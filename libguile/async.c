@@ -85,8 +85,6 @@
  */
 
 
-#define min(A,B) ((A) < (B) ? (A) : (B))
-
 
 unsigned int scm_async_clock = 20;
 static unsigned int scm_async_rate = 20;
