@@ -433,7 +433,7 @@ SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0,
 
 
 SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0, 
-            (SCM hash,SCM assoc,SCM table,SCM obj,SCM init),
+            (SCM hash, SCM assoc, SCM table, SCM obj, SCM init),
 	    "This behaves the same way as the corresponding @code{-create-handle}\n"
 	    "function, but uses @var{hasher} as a\n"
 	    "hash function and @var{assoc} to compare keys.  @code{hasher} must\n"
@@ -452,7 +452,7 @@ SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0,
 
 
 SCM_DEFINE (scm_hashx_ref, "hashx-ref", 4, 1, 0, 
-            (SCM hash,SCM assoc,SCM table,SCM obj,SCM dflt),
+            (SCM hash, SCM assoc, SCM table, SCM obj, SCM dflt),
 	    "This behaves the same way as the corresponding @code{ref}\n"
 	    "function, but uses @var{hasher} as a\n"
 	    "hash function and @var{assoc} to compare keys.  @code{hasher} must\n"

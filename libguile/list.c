@@ -192,19 +192,20 @@ SCM_DEFINE (scm_length, "length", 1, 0, 0,
 SCM_DEFINE (scm_append, "append", 0, 0, 1, 
             (SCM args),
             "Returns a list consisting of the elements of the first LIST\n"
-            "followed by the elements of the other LISTs.\n"
-            "\n"
-            "  (append '(x) '(y))          =>  (x y)\n"
-            "  (append '(a) '(b c d))      =>  (a b c d)\n"
-            "  (append '(a (b)) '((c)))    =>  (a (b) (c))\n"
-            "\n"
-            "The resulting list is always newly allocated, except that it shares\n"
-            "structure with the last LIST argument.  The last argument may\n"
-            "actually be any object; an improper list results if the last\n"
-            "argument is not a proper list.\n"
-
-            "  (append '(a b) '(c . d))    =>  (a b c . d)\n"
-            "  (append '() 'a)             =>  a\n")
+	    "followed by the elements of the other LISTs.\n\n"
+	    "@example\n"
+	    "  (append '(x) '(y))          =>  (x y)\n"
+	    "  (append '(a) '(b c d))      =>  (a b c d)\n"
+	    "  (append '(a (b)) '((c)))    =>  (a (b) (c))\n"
+	    "@end example\n\n"
+	    "The resulting list is always newly allocated, except that it shares\n"
+	    "structure with the last LIST argument.  The last argument may\n"
+	    "actually be any object; an improper list results if the last\n"
+	    "argument is not a proper list.\n\n"
+	    "@example\n"
+	    "  (append '(a b) '(c . d))    =>  (a b c . d)\n"
+	    "  (append '() 'a)             =>  a\n"
+	    "@end example")
 #define FUNC_NAME s_scm_append
 {
   SCM_VALIDATE_REST_ARGUMENT (args);

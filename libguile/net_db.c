@@ -108,7 +108,7 @@ SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
 	    "Converts an integer Internet host address into a string with the\n"
 	    "traditional dotted decimal representation.\n\n"
 	    "@smalllisp\n"
-	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\""
+	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\"\n"
 	    "@end smalllisp")
 #define FUNC_NAME s_scm_inet_ntoa
 {
