@@ -63,6 +63,7 @@
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/init.h"
 
 #include "libguile/gdbint.h"
 
@@ -104,6 +105,8 @@ do { \
   scm_ints_disabled = old_ints; \
 } while (0)
 
+
+#define MSG_GUILE_NOT_INITIALIZED "*** Guile not initialized ***"
 
 #define RESET_STRING { gdb_output_length = 0; }
 
@@ -264,20 +267,25 @@ gdb_eval (SCM exp)
 int
 gdb_print (SCM obj)
 {
-  RESET_STRING;
-  SCM_BEGIN_FOREIGN_BLOCK;
-  /* Reset stream */
-  scm_seek (gdb_output_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
-  scm_write (obj, gdb_output_port);
-  scm_truncate_file (gdb_output_port, SCM_UNDEFINED);
-  {
-    scm_port *pt = SCM_PTAB_ENTRY (gdb_output_port);
+  if (!scm_initialized_p)
+    SEND_STRING ("*** Guile not initialized ***");
+  else
+    {
+      RESET_STRING;
+      SCM_BEGIN_FOREIGN_BLOCK;
+      /* Reset stream */
+      scm_seek (gdb_output_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
+      scm_write (obj, gdb_output_port);
+      scm_truncate_file (gdb_output_port, SCM_UNDEFINED);
+      {
+	scm_port *pt = SCM_PTAB_ENTRY (gdb_output_port);
 
-    scm_flush (gdb_output_port);
-    *(pt->write_buf + pt->read_buf_size) = 0;
-    SEND_STRING (pt->read_buf);
-  }
-  SCM_END_FOREIGN_BLOCK;
+	scm_flush (gdb_output_port);
+	*(pt->write_buf + pt->read_buf_size) = 0;
+	SEND_STRING (pt->read_buf);
+      }
+      SCM_END_FOREIGN_BLOCK;
+    }
   return 0;
 }
 
