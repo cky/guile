@@ -1,3 +1,7 @@
+Wed Sep 11 14:38:50 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.in (distclean): Don't forget to delete fd.h.
+
 Tue Sep 10 14:01:46 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* fd.h.in, tags.h: Trivial cleanups. 
