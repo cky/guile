@@ -97,12 +97,11 @@ char *scm_isymnames[] =
   "#<unspecified>"
 };
 
-#ifdef DEBUG_EXTENSIONS
 scm_option scm_print_opts[] = {
-  { SCM_OPTION_BOOLEAN, "procnames", 0,
-    "Print names instead of closures." },
   { SCM_OPTION_SCM, "closure-hook", SCM_BOOL_F,
-    "Procedure used to print closures." }
+    "Hook for printing closures." },
+  { SCM_OPTION_BOOLEAN, "source", 0,
+    "Print closures with source." }
 };
 
 SCM_PROC (s_print_options, "print-options-interface", 0, 1, 0, scm_print_options);
@@ -121,7 +120,6 @@ scm_print_options (setting)
 			 s_print_options);
   return ans;
 }
-#endif
 
 
 /* {Printing of Scheme Objects}
@@ -269,7 +267,6 @@ taloop:
 	  scm_gen_write (scm_regular_string, "#<circ ref>", sizeof ("#<circ ref>") - 1, port);
 	  break;
 	case scm_tcs_closures:
-#ifdef DEBUG_EXTENSIONS
 	  if (SCM_NFALSEP (scm_procedure_p (SCM_PRINT_CLOSURE)))
 	    {
 	      SCM ans = scm_cons2 (exp, port,
@@ -279,28 +276,28 @@ taloop:
 	      ans = scm_apply (SCM_PRINT_CLOSURE, ans, SCM_EOL);
 	      RESTORE_REF_STACK (pstack, save);
 	    }
-	  else if (SCM_PRINT_PROCNAMES_P)
-	    {
-	      SCM name;
-	      name = scm_procedure_property (exp, scm_i_name);
-	      scm_gen_puts (scm_regular_string, "#<procedure", port);
-	      if (SCM_NFALSEP (name))
-		{
-		  scm_gen_putc (' ', port);
-		  /* FIXME */
-		  scm_gen_puts (scm_regular_string, SCM_CHARS (name), port);
-		}
-	      scm_gen_putc ('>', port);
-	    }
 	  else
-#endif
 	    {
-	      SCM code = SCM_CODE (exp);
-	      exp = scm_unmemocopy (code,
-				    SCM_EXTEND_ENV (SCM_CAR (code),
-						    SCM_EOL,
-						    SCM_ENV (exp)));
-	      scm_iprlist ("#<CLOSURE ", exp, '>', port, writing);
+	      SCM name, code;
+	      name = scm_procedure_property (exp, scm_i_name);
+	      code = SCM_CODE (exp);
+	      scm_gen_puts (scm_regular_string, "#<procedure ", port);
+	      if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
+		{
+		  scm_gen_puts (scm_regular_string, SCM_ROCHARS (name), port);
+		  scm_gen_putc (' ', port);
+		}
+	      scm_iprin1 (SCM_CAR (code), port, writing);
+	      if (SCM_PRINT_SOURCE_P)
+		{
+		  code = scm_unmemocopy (SCM_CDR (code),
+					 SCM_EXTEND_ENV (SCM_CAR (code),
+							 SCM_EOL,
+							 SCM_ENV (exp)));
+		  scm_iprlist (" ", code, '>', port, writing);
+		}
+	      else
+		scm_gen_putc ('>', port);
 	    }
 	  break;
 	case scm_tc7_mb_string:
@@ -738,10 +735,8 @@ void
 scm_init_print ()
 #endif
 {
-#ifdef DEBUG_EXTENSIONS
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
   init_ref_stack (&pstack);
   init_ref_stack (&lstack);
-#endif
 #include "print.x"
 }

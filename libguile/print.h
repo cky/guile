@@ -50,8 +50,8 @@
 
 extern scm_option scm_print_opts[];
 
-#define SCM_PRINT_PROCNAMES_P	((int) scm_print_opts[0].val)
-#define SCM_PRINT_CLOSURE	((SCM) scm_print_opts[1].val)
+#define SCM_PRINT_CLOSURE	((SCM) scm_print_opts[0].val)
+#define SCM_PRINT_SOURCE_P	((int) scm_print_opts[1].val)
 #define SCM_N_PRINT_OPTIONS 2
 
 #ifdef __STDC__
