@@ -1,3 +1,9 @@
+2000-09-22  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* src/vm_system.c (call): Call return-hook before reinstating a
+	continuation.
+	(tail_call): Call return-hook before a proper tail call.
+
 2000-09-20  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* src/vm.c (scm_name_property): New variable.
