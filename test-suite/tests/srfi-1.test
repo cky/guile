@@ -90,6 +90,69 @@
     (pass-if old (valid-alist-copy? old (alist-copy old)))))
 
 ;;
+;; alist-delete
+;;
+
+(with-test-prefix "alist-delete"
+
+  (pass-if "equality call arg order"
+    (let ((good #f))
+      (alist-delete 'k '((ak . 123))
+		    (lambda (k ak)
+		      (if (and (eq? k 'k) (eq? ak 'ak))
+			  (set! good #t))))
+      good))
+
+  (pass-if "delete keys greater than 5"
+    (equal? '((4 . x) (5 . y))
+	    (alist-delete 5 '((4 . x) (5 . y) (6 . z)) <)))
+
+  (pass-if "empty"
+    (equal? '() (alist-delete 'x '())))
+
+  (pass-if "(y)"
+    (equal? '() (alist-delete 'y '((y . 1)))))
+
+  (pass-if "(n)"
+    (equal? '((n . 1)) (alist-delete 'y '((n . 1)))))
+
+  (pass-if "(y y)"
+    (equal? '() (alist-delete 'y '((y . 1) (y . 2)))))
+
+  (pass-if "(n y)"
+    (equal? '((n . 1)) (alist-delete 'y '((n . 1) (y . 2)))))
+
+  (pass-if "(y n)"
+    (equal? '((n . 2)) (alist-delete 'y '((y . 1) (n . 2)))))
+
+  (pass-if "(n n)"
+    (equal? '((n . 1) (n . 2)) (alist-delete 'y '((n . 1) (n . 2)))))
+
+  (pass-if "(y y y)"
+    (equal? '() (alist-delete 'y '((y . 1) (y . 2) (y . 3)))))
+
+  (pass-if "(n y y)"
+    (equal? '((n . 1)) (alist-delete 'y '((n . 1) (y . 2) (y . 3)))))
+
+  (pass-if "(y n y)"
+    (equal? '((n . 2)) (alist-delete 'y '((y . 1) (n . 2) (y . 3)))))
+
+  (pass-if "(n n y)"
+    (equal? '((n . 1) (n . 2)) (alist-delete 'y '((n . 1) (n . 2) (y . 3)))))
+
+  (pass-if "(y y n)"
+    (equal? '( (n . 3)) (alist-delete 'y '((y . 1) (y . 2) (n . 3)))))
+
+  (pass-if "(n y n)"
+    (equal? '((n . 1) (n . 3)) (alist-delete 'y '((n . 1) (y . 2) (n . 3)))))
+
+  (pass-if "(y n n)"
+    (equal? '((n . 2) (n . 3)) (alist-delete 'y '((y . 1) (n . 2) (n . 3)))))
+
+  (pass-if "(n n n)"
+    (equal? '((n . 1) (n . 2) (n . 3)) (alist-delete 'y '((n . 1) (n . 2) (n . 3))))))
+
+;;
 ;; append-map
 ;;
 
