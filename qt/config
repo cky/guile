@@ -154,7 +154,7 @@ case $1 in
 		: "MIPS R2000 and R3000."
 
 		case $1 in
-			mips-irix5*)
+			mips-irix[56]*)
 				: "Silicon Graphics Irix with dynamic linking"
 				: "Use mips for irix4."
 				ln -s md/mips-irix5.s qtmds.s
