@@ -1,17 +1,17 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
  * Copyright (C) 2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -52,7 +52,7 @@
 #include "srfi-13.h"
 #include "srfi-14.h"
 
-SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0, 
+SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
             (SCM pred, SCM s, SCM start, SCM end),
 	    "Check if the predicate @var{pred} is true for any character in\n"
 	    "the string @var{s}, proceeding from left (index @var{start}) to\n"
@@ -83,7 +83,7 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0, 
+SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
             (SCM pred, SCM s, SCM start, SCM end),
 	    "Check if the predicate @var{pred} is true for every character\n"
 	    "in the string @var{s}, proceeding from left (index @var{start})\n"
@@ -115,7 +115,7 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0, 
+SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
             (SCM proc, SCM len),
 	    "@var{proc} is an integer->char procedure.  Construct a string\n"
 	    "of size @var{len} by applying @var{proc} to each index to\n"
@@ -169,7 +169,7 @@ SCM_DEFINE (scm_string_to_listS, "string->list", 1, 2, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0, 
+SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0,
             (SCM chrs),
 	    "An efficient implementation of @code{(compose string->list\n"
 	    "reverse)}:\n"
@@ -181,7 +181,7 @@ SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0,
 {
   SCM result;
   long i = scm_ilength (chrs);
-  
+
   if (i < 0)
     SCM_WRONG_TYPE_ARG (1, chrs);
   result = scm_allocate_string (i);
@@ -209,7 +209,7 @@ SCM_SYMBOL (scm_sym_strict_infix, "strict-infix");
 SCM_SYMBOL (scm_sym_suffix, "suffix");
 SCM_SYMBOL (scm_sym_prefix, "prefix");
 
-SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0, 
+SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
             (SCM ls, SCM delimiter, SCM grammar),
 	    "Append the string in the string list @var{ls}, using the string\n"
 	    "@var{delim} as a delimiter between the elements of @var{ls}.\n"
@@ -358,10 +358,10 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
       break;
     }
   return result;
-#undef GRAM_INFIX        
-#undef GRAM_STRICT_INFIX 
-#undef GRAM_SUFFIX       
-#undef GRAM_PREFIX       
+#undef GRAM_INFIX
+#undef GRAM_STRICT_INFIX
+#undef GRAM_SUFFIX
+#undef GRAM_PREFIX
 }
 #undef FUNC_NAME
 
@@ -380,12 +380,12 @@ SCM_DEFINE (scm_string_copyS, "string-copy", 1, 2, 0,
 				    2, start, cstart,
 				    3, end, cend);
   return scm_mem2string (cstr + cstart, cend - cstart);
-  
+
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_substring_shared, "substring/shared", 2, 1, 0, 
+SCM_DEFINE (scm_substring_shared, "substring/shared", 2, 1, 0,
             (SCM str, SCM start, SCM end),
 	    "Like @code{substring}, but the result may share memory with the\n"
 	    "argument @var{str}.")
@@ -405,7 +405,7 @@ SCM_DEFINE (scm_substring_shared, "substring/shared", 2, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_copy_x, "string-copy!", 3, 2, 0, 
+SCM_DEFINE (scm_string_copy_x, "string-copy!", 3, 2, 0,
             (SCM target, SCM tstart, SCM s, SCM start, SCM end),
 	    "Copy the sequence of characters from index range [@var{start},\n"
 	    "@var{end}) in string @var{s} to string @var{target}, beginning\n"
@@ -438,7 +438,7 @@ SCM_DEFINE (scm_string_copy_x, "string-copy!", 3, 2, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_take, "string-take", 2, 0, 0, 
+SCM_DEFINE (scm_string_take, "string-take", 2, 0, 0,
             (SCM s, SCM n),
 	    "Return the @var{n} first characters of @var{s}.")
 #define FUNC_NAME s_scm_string_take
@@ -449,13 +449,13 @@ SCM_DEFINE (scm_string_take, "string-take", 2, 0, 0,
   SCM_VALIDATE_STRING_COPY (1, s, cstr);
   SCM_VALIDATE_INUM_COPY (2, n, cn);
   SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
-  
+
   return scm_mem2string (cstr, cn);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_drop, "string-drop", 2, 0, 0, 
+SCM_DEFINE (scm_string_drop, "string-drop", 2, 0, 0,
             (SCM s, SCM n),
 	    "Return all but the first @var{n} characters of @var{s}.")
 #define FUNC_NAME s_scm_string_drop
@@ -466,13 +466,13 @@ SCM_DEFINE (scm_string_drop, "string-drop", 2, 0, 0,
   SCM_VALIDATE_STRING_COPY (1, s, cstr);
   SCM_VALIDATE_INUM_COPY (2, n, cn);
   SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
-  
+
   return scm_mem2string (cstr + cn, SCM_STRING_LENGTH (s) - cn);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_take_right, "string-take-right", 2, 0, 0, 
+SCM_DEFINE (scm_string_take_right, "string-take-right", 2, 0, 0,
             (SCM s, SCM n),
 	    "Return the @var{n} last characters of @var{s}.")
 #define FUNC_NAME s_scm_string_take_right
@@ -483,13 +483,13 @@ SCM_DEFINE (scm_string_take_right, "string-take-right", 2, 0, 0,
   SCM_VALIDATE_STRING_COPY (1, s, cstr);
   SCM_VALIDATE_INUM_COPY (2, n, cn);
   SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
-  
+
   return scm_mem2string (cstr + SCM_STRING_LENGTH (s) - cn, cn);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_drop_right, "string-drop-right", 2, 0, 0, 
+SCM_DEFINE (scm_string_drop_right, "string-drop-right", 2, 0, 0,
             (SCM s, SCM n),
 	    "Return all but the last @var{n} characters of @var{s}.")
 #define FUNC_NAME s_scm_string_drop_right
@@ -500,7 +500,7 @@ SCM_DEFINE (scm_string_drop_right, "string-drop-right", 2, 0, 0,
   SCM_VALIDATE_STRING_COPY (1, s, cstr);
   SCM_VALIDATE_INUM_COPY (2, n, cn);
   SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
-  
+
   return scm_mem2string (cstr, SCM_STRING_LENGTH (s) - cn);
 }
 #undef FUNC_NAME
@@ -882,7 +882,7 @@ SCM_DEFINE (scm_string_compare, "string-compare", 5, 4, 0,
   SCM_VALIDATE_PROC (3, proc_lt);
   SCM_VALIDATE_PROC (4, proc_eq);
   SCM_VALIDATE_PROC (5, proc_gt);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
@@ -925,7 +925,7 @@ SCM_DEFINE (scm_string_compare_ci, "string-compare-ci", 5, 4, 0,
   SCM_VALIDATE_PROC (3, proc_lt);
   SCM_VALIDATE_PROC (4, proc_eq);
   SCM_VALIDATE_PROC (5, proc_gt);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
@@ -960,7 +960,7 @@ SCM_DEFINE (scm_string_eq, "string=", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
@@ -995,7 +995,7 @@ SCM_DEFINE (scm_string_neq, "string<>", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
@@ -1030,7 +1030,7 @@ SCM_DEFINE (scm_string_lt, "string<", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
@@ -1065,7 +1065,7 @@ SCM_DEFINE (scm_string_gt, "string>", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
@@ -1100,7 +1100,7 @@ SCM_DEFINE (scm_string_le, "string<=", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
@@ -1135,7 +1135,7 @@ SCM_DEFINE (scm_string_ge, "string>=", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
@@ -1171,7 +1171,7 @@ SCM_DEFINE (scm_string_ci_eq, "string-ci=", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
@@ -1207,7 +1207,7 @@ SCM_DEFINE (scm_string_ci_neq, "string-ci<>", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
@@ -1243,7 +1243,7 @@ SCM_DEFINE (scm_string_ci_lt, "string-ci<", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
@@ -1279,7 +1279,7 @@ SCM_DEFINE (scm_string_ci_gt, "string-ci>", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
@@ -1315,7 +1315,7 @@ SCM_DEFINE (scm_string_ci_le, "string-ci<=", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
@@ -1351,7 +1351,7 @@ SCM_DEFINE (scm_string_ci_ge, "string-ci>=", 2, 4, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
 				    5, start2, cstart2,
 				    6, end2, cend2);
-  
+
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
@@ -1718,7 +1718,7 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	    return SCM_MAKINUM (cend);
 	}
     }
-  return SCM_BOOL_F;  
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -1838,7 +1838,7 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	    return SCM_MAKINUM (cend);
 	}
     }
-  return SCM_BOOL_F;  
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -1985,7 +1985,7 @@ SCM_DEFINE (scm_string_contains_ci, "string-contains-ci", 2, 4, 0,
 #undef FUNC_NAME
 
 
-/* Helper function for the string uppercase conversion functions.  
+/* Helper function for the string uppercase conversion functions.
  * No argument checking is performed.  */
 static SCM
 string_upcase_x (SCM v, int start, int end)
@@ -2001,7 +2001,7 @@ string_upcase_x (SCM v, int start, int end)
 
 /* FIXME::martin: The `S' is to avoid a name clash with the procedure
    in the core, which does not accept start/end indices */
-SCM_DEFINE (scm_string_upcase_xS, "string-upcase!", 1, 2, 0, 
+SCM_DEFINE (scm_string_upcase_xS, "string-upcase!", 1, 2, 0,
 	    (SCM str, SCM start, SCM end),
 	    "Destructively upcase every character in @code{str}.\n"
 	    "\n"
@@ -2026,7 +2026,7 @@ SCM_DEFINE (scm_string_upcase_xS, "string-upcase!", 1, 2, 0,
 
 /* FIXME::martin: The `S' is to avoid a name clash with the procedure
    in the core, which does not accept start/end indices */
-SCM_DEFINE (scm_string_upcaseS, "string-upcase", 1, 2, 0, 
+SCM_DEFINE (scm_string_upcaseS, "string-upcase", 1, 2, 0,
 	    (SCM str, SCM start, SCM end),
 	    "Upcase every character in @code{str}.")
 #define FUNC_NAME s_scm_string_upcaseS
@@ -2042,7 +2042,7 @@ SCM_DEFINE (scm_string_upcaseS, "string-upcase", 1, 2, 0,
 #undef FUNC_NAME
 
 
-/* Helper function for the string lowercase conversion functions.  
+/* Helper function for the string lowercase conversion functions.
  * No argument checking is performed.  */
 static SCM
 string_downcase_x (SCM v, int start, int end)
@@ -2058,7 +2058,7 @@ string_downcase_x (SCM v, int start, int end)
 
 /* FIXME::martin: The `S' is to avoid a name clash with the procedure
    in the core, which does not accept start/end indices */
-SCM_DEFINE (scm_string_downcase_xS, "string-downcase!", 1, 2, 0, 
+SCM_DEFINE (scm_string_downcase_xS, "string-downcase!", 1, 2, 0,
 	    (SCM str, SCM start, SCM end),
 	    "Destructively downcase every character in @var{str}.\n"
 	    "\n"
@@ -2085,7 +2085,7 @@ SCM_DEFINE (scm_string_downcase_xS, "string-downcase!", 1, 2, 0,
 
 /* FIXME::martin: The `S' is to avoid a name clash with the procedure
    in the core, which does not accept start/end indices */
-SCM_DEFINE (scm_string_downcaseS, "string-downcase", 1, 2, 0, 
+SCM_DEFINE (scm_string_downcaseS, "string-downcase", 1, 2, 0,
 	    (SCM str, SCM start, SCM end),
 	    "Downcase every character in @var{str}.")
 #define FUNC_NAME s_scm_string_downcaseS
@@ -2101,7 +2101,7 @@ SCM_DEFINE (scm_string_downcaseS, "string-downcase", 1, 2, 0,
 #undef FUNC_NAME
 
 
-/* Helper function for the string capitalization functions.  
+/* Helper function for the string capitalization functions.
  * No argument checking is performed.  */
 static SCM
 string_titlecase_x (SCM str, int start, int end)
@@ -2131,7 +2131,7 @@ string_titlecase_x (SCM str, int start, int end)
 }
 
 
-SCM_DEFINE (scm_string_titlecase_x, "string-titlecase!", 1, 2, 0, 
+SCM_DEFINE (scm_string_titlecase_x, "string-titlecase!", 1, 2, 0,
 	    (SCM str, SCM start, SCM end),
 	    "Destructively titlecase every first character in a word in\n"
 	    "@var{str}.")
@@ -2148,7 +2148,7 @@ SCM_DEFINE (scm_string_titlecase_x, "string-titlecase!", 1, 2, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_titlecase, "string-titlecase", 1, 2, 0, 
+SCM_DEFINE (scm_string_titlecase, "string-titlecase", 1, 2, 0,
 	    (SCM str, SCM start, SCM end),
 	    "Titlecase every first character in a word in @var{str}.")
 #define FUNC_NAME s_scm_string_titlecase
@@ -2183,7 +2183,7 @@ string_reverse_x (char * str, int cstart, int cend)
 }
 
 
-SCM_DEFINE (scm_string_reverse, "string-reverse", 1, 2, 0, 
+SCM_DEFINE (scm_string_reverse, "string-reverse", 1, 2, 0,
             (SCM str, SCM start, SCM end),
 	    "Reverse the string @var{str}.  The optional arguments\n"
 	    "@var{start} and @var{end} delimit the region of @var{str} to\n"
@@ -2205,7 +2205,7 @@ SCM_DEFINE (scm_string_reverse, "string-reverse", 1, 2, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_reverse_x, "string-reverse!", 1, 2, 0, 
+SCM_DEFINE (scm_string_reverse_x, "string-reverse!", 1, 2, 0,
             (SCM str, SCM start, SCM end),
 	    "Reverse the string @var{str} in-place.  The optional arguments\n"
 	    "@var{start} and @var{end} delimit the region of @var{str} to\n"
@@ -2225,7 +2225,7 @@ SCM_DEFINE (scm_string_reverse_x, "string-reverse!", 1, 2, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_append_shared, "string-append/shared", 0, 0, 1, 
+SCM_DEFINE (scm_string_append_shared, "string-append/shared", 0, 0, 1,
             (SCM ls),
 	    "Like @code{string-append}, but the result may share memory\n"
 	    "with the argument strings.")
@@ -2245,7 +2245,7 @@ SCM_DEFINE (scm_string_append_shared, "string-append/shared", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_concatenate, "string-concatenate", 1, 0, 0, 
+SCM_DEFINE (scm_string_concatenate, "string-concatenate", 1, 0, 0,
             (SCM ls),
 	    "Append the elements of @var{ls} (which must be strings)\n"
 	    "together into a single string.  Guaranteed to return a freshly\n"
@@ -2288,7 +2288,7 @@ SCM_DEFINE (scm_string_concatenate, "string-concatenate", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_concatenate_reverse, "string-concatenate-reverse", 1, 2, 0, 
+SCM_DEFINE (scm_string_concatenate_reverse, "string-concatenate-reverse", 1, 2, 0,
             (SCM ls, SCM final_string, SCM end),
 	    "Without optional arguments, this procedure is equivalent to\n"
 	    "\n"
@@ -2319,7 +2319,7 @@ SCM_DEFINE (scm_string_concatenate_reverse, "string-concatenate-reverse", 1, 2, 
       if (!SCM_UNBNDP (end))
 	{
 	  SCM_VALIDATE_INUM_COPY (3, end, cend);
-	  SCM_ASSERT_RANGE (3, end, 
+	  SCM_ASSERT_RANGE (3, end,
 			    (cend >= 0) &&
 			    (cend <= SCM_STRING_LENGTH (final_string)));
 	}
@@ -2369,7 +2369,7 @@ SCM_DEFINE (scm_string_concatenate_reverse, "string-concatenate-reverse", 1, 2, 
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_concatenate_shared, "string-concatenate/shared", 1, 0, 0, 
+SCM_DEFINE (scm_string_concatenate_shared, "string-concatenate/shared", 1, 0, 0,
             (SCM ls),
 	    "Like @code{string-concatenate}, but the result may share memory\n"
 	    "with the strings in the list @var{ls}.")
@@ -2387,7 +2387,7 @@ SCM_DEFINE (scm_string_concatenate_shared, "string-concatenate/shared", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_concatenate_reverse_shared, "string-concatenate-reverse/shared", 1, 2, 0, 
+SCM_DEFINE (scm_string_concatenate_reverse_shared, "string-concatenate-reverse/shared", 1, 2, 0,
             (SCM ls, SCM final_string, SCM end),
 	    "Like @code{string-concatenate-reverse}, but the result may\n"
 	    "share memory with the the strings in the @var{ls} arguments.")
@@ -2637,7 +2637,7 @@ SCM_DEFINE (scm_string_unfold_right, "string-unfold-right", 4, 2, 0,
 
 
 SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
-	    (SCM s, SCM proc, SCM start, SCM end),
+	    (SCM proc, SCM s, SCM start, SCM end),
 	    "@var{proc} is mapped over @var{s} in left-to-right order.  The\n"
 	    "return value is not specified.")
 #define FUNC_NAME s_scm_string_for_each
@@ -2645,13 +2645,35 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+  SCM_VALIDATE_PROC (1, proc);
+  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				    3, start, cstart,
 				    4, end, cend);
-  SCM_VALIDATE_PROC (2, proc);
   while (cstart < cend)
     {
       scm_call_1 (proc, SCM_MAKE_CHAR (cstr[cstart]));
+      cstart++;
+    }
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_for_each_index, "string-for-each-index", 2, 2, 0,
+	    (SCM proc, SCM s, SCM start, SCM end),
+	    "@var{proc} is mapped over @var{s} in left-to-right order.  The\n"
+	    "return value is not specified.")
+#define FUNC_NAME s_scm_string_for_each
+{
+  char * cstr;
+  int cstart, cend;
+
+  SCM_VALIDATE_PROC (1, proc);
+  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
+				    3, start, cstart,
+				    4, end, cend);
+  while (cstart < cend)
+    {
+      scm_call_1 (proc, SCM_MAKINUM (cstart));
       cstart++;
     }
   return SCM_UNSPECIFIED;
@@ -2683,9 +2705,9 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
   SCM_VALIDATE_INUM_DEF_COPY (3, to, cfrom + (cend - cstart), cto);
   if (cstart == cend && cfrom != cto)
     SCM_MISC_ERROR ("start and end indices must not be equal", SCM_EOL);
-  
+
   result = scm_allocate_string (cto - cfrom);
-  
+
   p = SCM_STRING_CHARS (result);
   while (cfrom < cto)
     {
@@ -2894,7 +2916,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
     {
       SCM ls = SCM_EOL;
       char chr;
-      
+
       chr = SCM_CHAR (char_pred);
       idx = cstart;
       while (idx < cend)
@@ -2908,7 +2930,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
   else if (SCM_CHARSETP (char_pred))
     {
       SCM ls = SCM_EOL;
-      
+
       idx = cstart;
       while (idx < cend)
 	{
@@ -2960,7 +2982,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
     {
       SCM ls = SCM_EOL;
       char chr;
-      
+
       chr = SCM_CHAR (char_pred);
       idx = cstart;
       while (idx < cend)
@@ -2974,7 +2996,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
   else if (SCM_CHARSETP (char_pred))
     {
       SCM ls = SCM_EOL;
-      
+
       idx = cstart;
       while (idx < cend)
 	{
