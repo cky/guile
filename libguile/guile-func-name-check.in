@@ -4,6 +4,7 @@
 
 BEGIN {
   filename = ARGV[1];
+  in_a_func = 0;
 }
 
 /^SCM_DEFINE/ { 
@@ -14,7 +15,7 @@ BEGIN {
   in_a_func = 1;
 }
 
-in_a_func && /^\{/ {
+/^\{/ && in_a_func {
   if (!match(last_line,/^#define[ \t]+FUNC_NAME[ \t]+/)) {
     printf filename ":" NR ":***" > "/dev/stderr";
     print "Missing or erroneous `#define FUNC_NAME s_" func_name "'" > "/dev/stderr";
@@ -39,7 +40,7 @@ in_a_func && /^\{/ {
   next_line_better_be_undef = 0;
 }
 
-in_a_func && /^\}/ {
+/^\}/ && in_a_func {
   next_line_better_be_undef = 1;
 }
 

@@ -1,3 +1,8 @@
+2000-10-02  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* guile-func-name-check.in: now should not confuse SCO nawk
+	anymore.  thanks to Bruce Korb for the fix!
+
 2000-10-01  Gary Houston  <ghouston@arglist.com>
 
 	* net_db.c: declare inet_aton only if HAVE_INET_ATON is not
