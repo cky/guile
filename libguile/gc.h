@@ -93,5 +93,5 @@ extern SCM scm_unprotect_object PROTO ((SCM obj));
 extern int scm_init_storage PROTO ((long init_heap_size));
 extern void scm_init_gc PROTO ((void));
 
-#include "marksweep.h"
+#include "libguile/marksweep.h"
 #endif  /* GCH */

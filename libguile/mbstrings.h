@@ -45,7 +45,7 @@
 
 
 #include "libguile/__scm.h"
-#include "symbols.h"
+#include "libguile/symbols.h"
 
 
 #define SCM_MB_STRINGP(x) (   (SCM_TYP7(x)==scm_tc7_mb_string) \
