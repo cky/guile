@@ -77,7 +77,7 @@ SCM_API const char scm_s_formals[];
 /* From eval.h: Helper macros for evaluation and application.  These were
  * deprecated in guile 1.7.0 on 2003-06-02.  */
 #define SCM_EVALIM2(x) \
-  ((SCM_EQ_P ((x), SCM_EOL) \
+  ((scm_is_eq ((x), SCM_EOL) \
     ? scm_misc_error (NULL, scm_s_expression, SCM_EOL), 0 \
     : 0), \
    (x))
@@ -305,16 +305,22 @@ SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 
 #define SCM_CELL_WORD_LOC(x, n)   ((scm_t_bits*)SCM_CELL_OBJECT_LOC((x),(n)))
 
-#define SCM_FALSEP(x)		(SCM_EQ_P ((x), SCM_BOOL_F))
-#define SCM_NFALSEP(x)		(!SCM_FALSEP (x))
+/* Deprecated because they do not follow the naming convention.  that
+   is, they endiin "P" but return a C boolean.  Also, SCM_BOOLP
+   evaluates its argument twice.
+*/
 
-#define SCM_BOOLP(x)		(SCM_EQ_P ((x), SCM_BOOL_F) || SCM_EQ_P ((x), SCM_BOOL_T))
+#define SCM_FALSEP		scm_is_false
+#define SCM_NFALSEP		scm_is_true
+#define SCM_BOOLP               scm_is_bool
+#define SCM_EQ_P                scm_is_eq
+
 
 /* Convert from a C boolean to a SCM boolean value */
-#define SCM_BOOL(f)		((f) ? SCM_BOOL_T : SCM_BOOL_F)
+#define SCM_BOOL		scm_from_bool
 
 /* Convert from a C boolean to a SCM boolean value and negate it */
-#define SCM_NEGATE_BOOL(f)	((f) ? SCM_BOOL_F : SCM_BOOL_T)
+#define SCM_NEGATE_BOOL(f)	scm_from_bool(!(f))
 
 /* SCM_BOOL_NOT returns the other boolean.  
  * The order of ^s here is important for Borland C++ (!?!?!)
@@ -328,6 +334,7 @@ SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 
 SCM_API SCM SCM_MAKINUM (scm_t_signed_bits val);
 SCM_API int SCM_INUMP (SCM obj);
+#define SCM_NINUMP(x) (!SCM_INUMP(x))
 SCM_API scm_t_signed_bits SCM_INUM (SCM obj);
 
 #define SCM_VALIDATE_INUM(pos, k) SCM_MAKE_VALIDATE_MSG (pos, k, INUMP, "exact integer")
