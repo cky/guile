@@ -530,6 +530,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	{
 	  SCM_DEVAL_P = 1;
 	  SCM_BACKTRACE_P = 1;
+	  SCM_RECORD_POSITIONS_P = 1;
 	  SCM_RESET_DEBUG_MODE;
 	}
 
