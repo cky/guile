@@ -113,3 +113,57 @@
       (eval '(define <foo> #f) (current-module))
       (eval '(define-class <foo> ()) (current-module))
       (eval '(is-a? <foo> <class>) (current-module)))))
+
+(with-test-prefix "defining generics"
+
+  (with-test-prefix "define-generic"
+
+    (pass-if "creating a new top-level binding"
+      (eval '(define foo #f) (current-module))
+      (eval '(undefine foo) (current-module))
+      (eval '(define-generic foo) (current-module))
+      (eval '(and (is-a? foo <generic>)
+		  (null? (generic-function-methods foo)))
+	    (current-module)))
+
+    (pass-if "overwriting a top-level binding to a non-generic"
+      (eval '(define (foo) #f) (current-module))
+      (eval '(define-generic foo) (current-module))
+      (eval '(and (is-a? foo <generic>)
+		  (= 1 (length (generic-function-methods foo))))
+	    (current-module)))
+
+    (pass-if "overwriting a top-level binding to a generic"
+      (eval '(define (foo) #f) (current-module))
+      (eval '(define-generic foo) (current-module))
+      (eval '(define-generic foo) (current-module))
+      (eval '(and (is-a? foo <generic>)
+		  (null? (generic-function-methods foo)))
+	    (current-module)))))
+
+(with-test-prefix "defining accessors"
+
+  (with-test-prefix "define-accessor"
+
+    (pass-if "creating a new top-level binding"
+      (eval '(define foo #f) (current-module))
+      (eval '(undefine foo) (current-module))
+      (eval '(define-accessor foo) (current-module))
+      (eval '(and (is-a? foo <generic-with-setter>)
+		  (null? (generic-function-methods foo)))
+	    (current-module)))
+
+    (pass-if "overwriting a top-level binding to a non-accessor"
+      (eval '(define (foo) #f) (current-module))
+      (eval '(define-accessor foo) (current-module))
+      (eval '(and (is-a? foo <generic-with-setter>)
+		  (= 1 (length (generic-function-methods foo))))
+	    (current-module)))
+
+    (pass-if "overwriting a top-level binding to an accessor"
+      (eval '(define (foo) #f) (current-module))
+      (eval '(define-accessor foo) (current-module))
+      (eval '(define-accessor foo) (current-module))
+      (eval '(and (is-a? foo <generic-with-setter>)
+		  (null? (generic-function-methods foo)))
+	    (current-module)))))

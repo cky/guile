@@ -1,5 +1,11 @@
 2002-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* goops.scm (define-generic, define-accessor):  Make sure that
+	define-generic and define-accessor will continue to work when
+	mmacros are expanded before execution.
+
+2002-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* goops.scm (define-class):  Make sure that define-class will
 	continue to work when mmacros are expanded before execution.
 

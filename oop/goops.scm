@@ -360,12 +360,13 @@
       (let ((name (cadr exp)))
 	(cond ((not (symbol? name))
 	       (goops-error "bad generic function name: ~S" name))
-	      ((and (top-level-env? env) 
-		    (defined? name env))
-	       `(define ,name
-		  (if (is-a? ,name <generic>)
-		      (make <generic> #:name ',name)
-		      (ensure-generic ,name ',name))))
+	      ((top-level-env? env)
+	       `(let* ((var (module-ensure-local-variable!
+			     (current-module) ',name))
+		       (old (and (variable-bound? var) (variable-ref var))))
+		  (if (or (not old) (is-a? old <generic>))
+		      (variable-set! var (make <generic> #:name ',name))
+		      (variable-set! var (ensure-generic old ',name)))))
 	      (else
 	       `(define ,name (make <generic> #:name ',name))))))))
 
@@ -391,13 +392,15 @@
       (let ((name (cadr exp)))
 	(cond ((not (symbol? name))
 	       (goops-error "bad accessor name: ~S" name))
-	      ((and (top-level-env? env) 
-		    (defined? name env))
-	       `(define ,name
-		  (if (and (is-a? ,name <generic-with-setter>)
-			   (is-a? (setter ,name) <generic>))
-		      (make-accessor ',name)
-		      (ensure-accessor ,name ',name))))
+	      ((top-level-env? env)
+	       `(let* ((var (module-ensure-local-variable!
+			     (current-module) ',name))
+		       (old (and (variable-bound? var) (variable-ref var))))
+		  (if (or (not old)
+			  (and (is-a? old <generic-with-setter>)
+			       (is-a? (setter old) <generic>)))
+		      (variable-set! var (make-accessor ',name))
+		      (variable-set! var (ensure-accessor old ',name)))))
 	      (else
 	       `(define ,name (make-accessor ',name))))))))
 
