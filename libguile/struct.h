@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef STRUCTH
-#define STRUCTH
-/*	Copyright (C) 1995, 1997, 1999, 2000 Free Software Foundation, Inc.
+#ifndef SCM_STRUCT_H
+#define SCM_STRUCT_H
+/* Copyright (C) 1995,1997,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ typedef size_t (*scm_struct_free_t) (scm_bits_t * vtable, scm_bits_t * data);
 #define SCM_STRUCT_VTABLE(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_vtable]))
 #define SCM_STRUCT_PRINTER(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_printer]))
 #define SCM_SET_STRUCT_PRINTER(x, v)\
-   (SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_printer] = (v))
+   (SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_printer] = SCM_UNPACK (v))
 #define SCM_SET_VTABLE_DESTRUCTOR(X, D) (SCM_STRUCT_DATA (X) [scm_struct_i_free] = (scm_bits_t) (D))
 /* Efficiency is important in the following macro, since it's used in GC */
 #define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
@@ -127,7 +127,7 @@ extern void scm_print_struct (SCM exp, SCM port, scm_print_state *);
 extern void scm_struct_prehistory (void);
 extern void scm_init_struct (void);
 
-#endif  /* STRUCTH */
+#endif  /* SCM_STRUCT_H */
 
 /*
   Local Variables:

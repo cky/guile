@@ -1129,8 +1129,8 @@ test_slot_existence (SCM class, SCM obj, SCM slot_name)
 {
   register SCM l;
 
-  for (l = SCM_ACCESSORS_OF (obj); SCM_NNULLP (l); l = SCM_CDR (l))
-    if (SCM_CAAR (l) == slot_name)
+  for (l = SCM_ACCESSORS_OF (obj); !SCM_NULLP (l); l = SCM_CDR (l))
+    if (SCM_EQ_P (SCM_CAAR (l), slot_name))
       return SCM_BOOL_T;
 
   return SCM_BOOL_F;
@@ -1289,9 +1289,10 @@ wrap_init (SCM class, SCM *m, long n)
     m[i] = SCM_GOOPS_UNBOUND;
 
   SCM_NEWCELL2 (z);
-  SCM_SETCDR (z, (SCM) m);
   SCM_SET_STRUCT_GC_CHAIN (z, 0);
-  SCM_SETCAR (z, (scm_bits_t) SCM_STRUCT_DATA (class) | scm_tc3_cons_gloc);
+  SCM_SET_CELL_WORD_1 (z, m);
+  SCM_SET_CELL_WORD_0 (z, (scm_bits_t) SCM_STRUCT_DATA (class)
+		          | scm_tc3_cons_gloc);
 
   return z;
 }
@@ -1435,10 +1436,10 @@ SCM_DEFINE (scm_sys_modify_class, "%modify-class", 2, 0, 0,
     SCM cdr = SCM_CDR (old);
     SCM_SETCAR (old, SCM_CAR (new));
     SCM_SETCDR (old, SCM_CDR (new));
-    SCM_STRUCT_DATA (old)[scm_vtable_index_vtable] = old;
+    SCM_STRUCT_DATA (old)[scm_vtable_index_vtable] = SCM_UNPACK (old);
     SCM_SETCAR (new, car);
     SCM_SETCDR (new, cdr);
-    SCM_STRUCT_DATA (new)[scm_vtable_index_vtable] = new;
+    SCM_STRUCT_DATA (new)[scm_vtable_index_vtable] = SCM_UNPACK (new);
   }
   SCM_REALLOW_INTS;
   return SCM_UNSPECIFIED;
@@ -1462,7 +1463,7 @@ SCM_DEFINE (scm_sys_invalidate_class, "%invalidate-class", 1, 0, 0,
  * infinite recursions.
  */
 
-static SCM **hell;
+static scm_bits_t **hell;
 static long n_hell = 1;		/* one place for the evil one himself */
 static long hell_size = 4;
 #ifdef USE_THREADS

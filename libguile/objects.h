@@ -1,9 +1,9 @@
 /* classes: h_files */
 
-#ifndef OBJECTSH
-#define OBJECTSH
+#ifndef SCM_OBJECTS_H
+#define SCM_OBJECTS_H
 
-/*	Copyright (C) 1996, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,10 +99,8 @@
 
 #define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
 #define SCM_SET_CLASS_INSTANCE_SIZE(c, s) \
-(SCM_STRUCT_DATA (c)[scm_struct_i_size] \
- = SCM_PACK ((SCM_UNPACK (SCM_STRUCT_DATA (c)[scm_struct_i_size])\
-               & SCM_STRUCTF_MASK)\
-              | s))
+  (SCM_STRUCT_DATA (c)[scm_struct_i_size] \
+   = (SCM_STRUCT_DATA (c) [scm_struct_i_size] & SCM_STRUCTF_MASK) | s)
 
 /* {Operator classes}
  *
@@ -242,7 +240,7 @@ extern SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
 				    unsigned long flags);
 extern void scm_init_objects (void);
 
-#endif /* OBJECTSH */
+#endif /* SCM_OBJECTS_H */
 
 /*
   Local Variables:

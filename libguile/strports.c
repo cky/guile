@@ -114,7 +114,7 @@ st_resize_port (scm_port_t *pt, off_t new_size)
 
   /* reset buffer. */
   {
-    pt->stream = new_stream;
+    pt->stream = SCM_UNPACK (new_stream);
     pt->read_buf = pt->write_buf = SCM_STRING_UCHARS (new_stream);
     pt->read_pos = pt->write_pos = pt->write_buf + index;
     pt->write_end = pt->write_buf + pt->write_buf_size;

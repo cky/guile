@@ -1,7 +1,7 @@
 /* classes: h_files */
 
-#ifndef __SCMH
-#define __SCMH
+#ifndef SCM___SCM_H
+#define SCM___SCM_H
 /* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -192,7 +192,7 @@
  * errors, and then do 'make clean; make'.
  */
 #ifndef SCM_DEBUG_TYPING_STRICTNESS
-#define SCM_DEBUG_TYPING_STRICTNESS 0
+#define SCM_DEBUG_TYPING_STRICTNESS 1
 #endif
 
 /* If SCM_ENABLE_VCELLS is set to 1, a couple of functions that deal
@@ -636,7 +636,7 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
 
 
 
-#endif  /* __SCMH */
+#endif  /* SCM___SCM_H */
 
 /*
   Local Variables:

@@ -99,17 +99,14 @@ gh_set_substr (char *src, SCM dst, long start, size_t len)
 {
   char *dst_ptr;
   size_t dst_len;
-  size_t effective_length;
 
   SCM_ASSERT (SCM_STRINGP (dst), dst, SCM_ARG3, "gh_set_substr");
 
   dst_ptr = SCM_STRING_CHARS (dst);
   dst_len = SCM_STRING_LENGTH (dst);
-  SCM_ASSERT (len >= 0 && len <= dst_len,
-	      dst, SCM_ARG4, "gh_set_substr");
+  SCM_ASSERT (start + len <= dst_len, dst, SCM_ARG4, "gh_set_substr");
   
-  effective_length = (len < dst_len) ? len : dst_len;
-  memmove (dst_ptr + start, src, effective_length);
+  memmove (dst_ptr + start, src, len);
   scm_remember_upto_here_1 (dst);
 }
 

@@ -54,8 +54,6 @@
 
 
 
-/* #define SCM_VOIDP_TEST    */
-
 /* In the beginning was the Word:
  */
 typedef long scm_bits_t;
@@ -63,16 +61,16 @@ typedef long scm_bits_t;
 /* But as external interface, we use SCM, which may, according to the desired
  * level of type checking, be defined in several ways:
  */
-#if (SCM_DEBUG_TYPING_STRICTNESS == 1)
+#if (SCM_DEBUG_TYPING_STRICTNESS == 2)
     typedef union { struct { scm_bits_t n; } n; } SCM;
     static SCM scm_pack(scm_bits_t b) { SCM s; s.n.n = b; return s; }
 #   define SCM_UNPACK(x) ((x).n.n)
 #   define SCM_PACK(x) (scm_pack ((scm_bits_t) (x)))
-#elif defined (SCM_VOIDP_TEST)
+#elif (SCM_DEBUG_TYPING_STRICTNESS == 1)
 /* This is the default, which provides an intermediate level of compile time
  * type checking while still resulting in very efficient code.
  */
-    typedef void * SCM;
+    typedef struct scm_unused_struct * SCM;
 #   define SCM_UNPACK(x) ((scm_bits_t) (x))
 #   define SCM_PACK(x) ((SCM) (x))
 #else

@@ -95,9 +95,11 @@ extern SCM scm_eval_options_interface (SCM setting);
  *
  * For an explanation of symbols containing "EVAL", see beginning of eval.c.
  */
-#define SCM_EVALIM2(x) ((SCM_EQ_P ((x), SCM_EOL)) \
-			? scm_misc_error (NULL, scm_s_expression, SCM_EOL), 0 \
-			: (x))
+#define SCM_EVALIM2(x) \
+  ((SCM_EQ_P ((x), SCM_EOL) \
+    ? scm_misc_error (NULL, scm_s_expression, SCM_EOL), 0 \
+    : 0), \
+   (x))
 #ifdef MEMOIZE_LOCALS
 #define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
                             ? *scm_ilookup ((x), env) \

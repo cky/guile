@@ -1321,36 +1321,39 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       ((char *) SCM_UVECTOR_BASE (v))[pos] = SCM_INUM (obj);
       break;
     case scm_tc7_uvect:
-      ((unsigned long *) SCM_VELTS(v))[pos] = SCM_PACK (scm_num2ulong(obj, SCM_ARG2, FUNC_NAME));
+      ((unsigned long *) SCM_UVECTOR_BASE (v))[pos] 
+	= scm_num2ulong (obj, SCM_ARG2, FUNC_NAME);
       break;
     case scm_tc7_ivect:
-      ((long *) SCM_VELTS(v))[pos] = SCM_PACK (scm_num2long (obj, SCM_ARG2, FUNC_NAME));
+      ((long *) SCM_UVECTOR_BASE (v))[pos] 
+	= scm_num2long (obj, SCM_ARG2, FUNC_NAME);
       break;
     case scm_tc7_svect:
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
-      ((short *) SCM_CELL_WORD_1 (v))[pos] = SCM_INUM (obj);
+      ((short *) SCM_UVECTOR_BASE (v))[pos] = SCM_INUM (obj);
       break;
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
-      ((long long *) SCM_CELL_WORD_1 (v))[pos] = scm_num2long_long (obj, SCM_ARG2, FUNC_NAME);
+      ((long long *) SCM_UVECTOR_BASE (v))[pos]
+	= scm_num2long_long (obj, SCM_ARG2, FUNC_NAME);
       break;
 #endif
-
-
     case scm_tc7_fvect:
-      ((float *) SCM_CELL_WORD_1 (v))[pos] = (float) scm_num2dbl (obj, FUNC_NAME);
+      ((float *) SCM_UVECTOR_BASE (v))[pos]
+	= (float) scm_num2dbl (obj, FUNC_NAME);
       break;
     case scm_tc7_dvect:
-      ((double *) SCM_CELL_WORD_1 (v))[pos] = scm_num2dbl (obj, FUNC_NAME);
+      ((double *) SCM_UVECTOR_BASE (v))[pos]
+	= scm_num2dbl (obj, FUNC_NAME);
       break;
     case scm_tc7_cvect:
       SCM_ASRTGO (SCM_INEXACTP (obj), badobj);
       if (SCM_REALP (obj)) {
-	((double *) SCM_CELL_WORD_1 (v))[2 * pos] = SCM_REAL_VALUE (obj);
-	((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1] = 0.0;
+	((double *) SCM_UVECTOR_BASE (v))[2 * pos] = SCM_REAL_VALUE (obj);
+	((double *) SCM_UVECTOR_BASE (v))[2 * pos + 1] = 0.0;
       } else {
-	((double *) SCM_CELL_WORD_1 (v))[2 * pos] = SCM_COMPLEX_REAL (obj);
-	((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1] = SCM_COMPLEX_IMAG (obj);
+	((double *) SCM_UVECTOR_BASE (v))[2 * pos] = SCM_COMPLEX_REAL (obj);
+	((double *) SCM_UVECTOR_BASE (v))[2 * pos + 1] = SCM_COMPLEX_IMAG (obj);
       }
       break;
     case scm_tc7_vector:

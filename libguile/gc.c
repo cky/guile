@@ -312,11 +312,11 @@ typedef struct scm_freelist_t {
 
 SCM scm_freelist = SCM_EOL;
 scm_freelist_t scm_master_freelist = {
-  SCM_EOL, 0, 0, SCM_EOL, 0, SCM_CLUSTER_SIZE_1, 0, 0, 0, 1, 0, 0
+  SCM_EOL, 0, 0, SCM_EOL, 0, SCM_CLUSTER_SIZE_1, 0, 0, 0, 1, 0, 0, 0
 };
 SCM scm_freelist2 = SCM_EOL;
 scm_freelist_t scm_master_freelist2 = {
-  SCM_EOL, 0, 0, SCM_EOL, 0, SCM_CLUSTER_SIZE_2, 0, 0, 0, 2, 0, 0
+  SCM_EOL, 0, 0, SCM_EOL, 0, SCM_CLUSTER_SIZE_2, 0, 0, 0, 2, 0, 0, 0
 };
 
 /* scm_mtrigger

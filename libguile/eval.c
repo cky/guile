@@ -2321,7 +2321,8 @@ dispatch:
 		/* Compute a hash value */
 		long hashset = SCM_INUM (proc);
 		long j = n;
-		mask = SCM_INUM (SCM_CAR (z = SCM_CDDR (z)));
+		z = SCM_CDDR (z);
+		mask = SCM_INUM (SCM_CAR (z));
 		proc = SCM_CADR (z);
 		i = 0;
 		t.arg1 = arg2;
@@ -3786,7 +3787,7 @@ promise_print (SCM exp, SCM port, scm_print_state *pstate)
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<promise ", port);
   SCM_SET_WRITINGP (pstate, 1);
-  scm_iprin1 (SCM_CELL_WORD_1 (exp), port, pstate);
+  scm_iprin1 (SCM_CELL_OBJECT_1 (exp), port, pstate);
   SCM_SET_WRITINGP (pstate, writingp);
   scm_putc ('>', port);
   return !0;

@@ -1,3 +1,68 @@
+2001-05-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h (SCM_DEBUG_TYPING_STRICTNESS):  Make 1 the default.
+
+	* eval.c (promise_print):  Read the promise's value as an object.
+
+	(SCM_CEVAL):  Don't perform side-effecting operations in macro
+	parameters.
+
+	* eval.h (SCM_EVALIM2):  Fix the typing strictness of the
+	conditional expression.
+
+	* gc.c (scm_master_freelist, scm_master_freelist2):  Added missing
+	initializer.
+
+	* gh_data.c (gh_set_substr):  Removed redundant unsigned >= 0
+	text, removed redundant computation of effective_length and fixed
+	the overflow check.
+
+	* goops.c (test_slot_existence):  Use SCM_EQ_P to compare SCM
+	values.
+
+	(wrap_init):  Don't use SCM_C[AD]R for non pairs.
+
+	(hell):  Make it a scm_bits_t pointer rather than a SCM pointer.
+
+	* goops.c (scm_sys_modify_class), strports.c (st_resize_port),
+	struct.h (SCM_SET_STRUCT_PRINTER):  Store unpacked values.
+
+	* goops.h (SCM_ACCESSORS_OF, SCM_SLOT):  Return a SCM value.
+
+	* goops.h (GOOPSH, SCM_GOOPS_H), modules.h (MODULESH,
+	SCM_MODULES_H), objects.h (OBJECTSH, SCM_OBJECTS_H), struct.h
+	(STRUCTH, SCM_STRUCT_H), symbols.h (SYMBOLSH, SCM_SYMBOLS_H),
+	__scm.h (__SCMH, SCM___SCM_H):  Change <foo>H to SCM_<foo>_H.
+
+	* modules.[ch] (scm_module_tag):  Make it a scm_bits_t value.
+
+	* objects.h (SCM_SET_CLASS_INSTANCE_SIZE):  Fixed typing.
+
+	* ramap.c (ramap_rp):  Removed bogus `;´.
+
+	* sort.c (scm_restricted_vector_sort_x):  Fixed signedness
+	problem.
+
+	* symbols.h (SCM_PROP_SLOTS, SCM_SET_PROP_SLOTS, SCM_SYMBOL_FUNC,
+	SCM_SET_SYMBOL_FUNC, SCM_SYMBOL_PROPS, SCM_SET_SYMBOL_PROPS):
+	Read SCM objects rather than scm_bits_t values.
+
+	* tags.h (SCM_VOIDP_TEST):  Removed.
+
+	(SCM_DEBUG_TYPING_STRICTNESS):  Now takes values 0, 1, 2.  The
+	value of 2 now corresponds to the former 1, the current 1
+	corresponds to the former situation that SCM_VOIDP_TEST was
+	defined.
+
+	(SCM):  Now defined as typedef struct scm_unused_struct * SCM; 
+	If this appears to be not ANSI compliant, we will change it to 
+	typedef struct scm_unused_struct { } * SCM;
+	Thanks to Han-Wen Nienhuys for the suggestion.
+
+	* unif.c (scm_array_set_x):  Fix typing problem, and use
+	SCM_UVECTOR_BASE instead of SCM_VELTS or SCM_CELL_WORD_1 when
+	dealing with uniform vectors.
+
 2001-05-27  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.c (scm_init_storage): init `scm_gc_registered_roots'.
@@ -25,8 +90,9 @@
 	* modules.c (scm_env_module): Exported to Scheme.
 
 	* eval.c (scm_debug_opts): New option `show-file-name'.
+
 	* debug.h (SCM_SHOW_FILE_NAME): New.
-	
+
 	* backtrace.c: Include "libguile/filesys.h".
 	(sym_base, display_backtrace_get_file_line,
 	display_backtrace_file, display_backtrace_file_and_line): New.

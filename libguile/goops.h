@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef GOOPSH
-#define GOOPSH
-/*	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+#ifndef SCM_GOOPS_H
+#define SCM_GOOPS_H
+/* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -120,7 +120,7 @@ typedef struct scm_method_t {
 #define SCM_INST_TYPE(x)       SCM_OBJ_CLASS_FLAGS (x)
 /* Also defined in libguuile/objects.c */
 #define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
-#define SCM_ACCESSORS_OF(x)    (SCM_STRUCT_VTABLE_DATA (x)[scm_si_getters_n_setters])
+#define SCM_ACCESSORS_OF(x)    (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x)[scm_si_getters_n_setters]))
 #define SCM_NUMBER_OF_SLOTS(x)\
  (SCM_UNPACK (SCM_STRUCT_DATA (x)[scm_struct_i_n_words]) \
   - scm_struct_n_extra_words) \
@@ -140,7 +140,7 @@ typedef struct scm_method_t {
 				& (SCM_CLASSF_ACCESSOR_METHOD \
 				   | SCM_CLASSF_SIMPLE_METHOD))
 
-#define SCM_SLOT(x, i)         (SCM_INST(x)[i])
+#define SCM_SLOT(x, i)         (SCM_PACK (SCM_INST (x) [i]))
 #define SCM_SUBCLASSP(c1, c2)  (!SCM_FALSEP (scm_c_memq (c2, SCM_SLOT (c1, scm_si_cpl))))
 #define SCM_IS_A_P(x, c)       (SCM_NIMP (x) \
 				&& SCM_INSTANCEP (x) \
@@ -284,4 +284,4 @@ SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs);
 SCM scm_init_goops_builtins (void);
 void scm_init_goops (void); 
 
-#endif /* GOOPSH */
+#endif /* SCM_GOOPS_H */

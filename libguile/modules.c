@@ -1,4 +1,4 @@
-/*	Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@
 
 int scm_module_system_booted_p = 0;
 
-SCM scm_module_tag;
+scm_bits_t scm_module_tag;
 
 static SCM the_module;
 

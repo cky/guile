@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef MODULESH
-#define MODULESH
-/*	Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+#ifndef SCM_MODULES_H
+#define SCM_MODULES_H
+/* Copyright (C) 1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,10 +51,10 @@
 
 
 extern int scm_module_system_booted_p;
-extern SCM scm_module_tag;
+extern scm_bits_t scm_module_tag;
 
 #define SCM_MODULEP(OBJ) \
-  (SCM_NIMP (OBJ) && SCM_CELL_TYPE (OBJ) == scm_module_tag)
+  (!SCM_IMP (OBJ) && SCM_CELL_TYPE (OBJ) == scm_module_tag)
 
 #define SCM_VALIDATE_MODULE(pos, scm) SCM_MAKE_VALIDATE (pos, scm, MODULEP)
 
@@ -139,7 +139,7 @@ extern SCM scm_load_scheme_module (SCM name);
 
 #endif
 
-#endif  /* MODULESH */
+#endif  /* SCM_MODULES_H */
 
 /*
   Local Variables:

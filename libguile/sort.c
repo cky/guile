@@ -434,8 +434,8 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   vp = SCM_VELTS (vec);		/* vector pointer */
   vlen = SCM_VECTOR_LENGTH (vec);
 
-  SCM_VALIDATE_INUM_COPY (3,startpos,spos);
-  SCM_ASSERT_RANGE (3,startpos,(spos >= 0) && (spos <= vlen));
+  SCM_VALIDATE_INUM_MIN_COPY (3, startpos, 0, spos);
+  SCM_ASSERT_RANGE (3,startpos, spos <= vlen);
   SCM_VALIDATE_INUM_RANGE (4,endpos,0,vlen+1);
   len = SCM_INUM (endpos) - spos;
 

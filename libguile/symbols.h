@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef SYMBOLSH
-#define SYMBOLSH
-/*	Copyright (C) 1995,1996,1997,1998, 2000, 2001 Free Software Foundation, Inc.
+#ifndef SCM_SYMBOLS_H
+#define SCM_SYMBOLS_H
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,12 +62,12 @@
 #define SCM_SYMBOL_HASH(X)          ((unsigned long) SCM_CELL_WORD_2 (X))
 #define SCM_SET_SYMBOL_HASH(X, v)   (SCM_SET_CELL_WORD_2 ((X), (v)))
 
-#define SCM_PROP_SLOTS(X)           (SCM_CELL_WORD_3 (X))
-#define SCM_SET_PROP_SLOTS(X, v)    (SCM_SET_CELL_WORD_3 ((X), (v)))
-#define SCM_SYMBOL_FUNC(X)	    (SCM_CAR (SCM_CELL_WORD_3 (X)))
-#define SCM_SET_SYMBOL_FUNC(X, v)   (SCM_SETCAR (SCM_CELL_WORD_3 (X), (v)))
-#define SCM_SYMBOL_PROPS(X)	    (SCM_CDR (SCM_CELL_WORD_3 (X)))
-#define SCM_SET_SYMBOL_PROPS(X, v)  (SCM_SETCDR (SCM_CELL_WORD_3 (X), (v)))
+#define SCM_PROP_SLOTS(X)           (SCM_CELL_OBJECT_3 (X))
+#define SCM_SET_PROP_SLOTS(X, v)    (SCM_SET_CELL_OBJECT_3 ((X), (v)))
+#define SCM_SYMBOL_FUNC(X)	    (SCM_CAR (SCM_CELL_OBJECT_3 (X)))
+#define SCM_SET_SYMBOL_FUNC(X, v)   (SCM_SETCAR (SCM_CELL_OBJECT_3 (X), (v)))
+#define SCM_SYMBOL_PROPS(X)	    (SCM_CDR (SCM_CELL_OBJECT_3 (X)))
+#define SCM_SET_SYMBOL_PROPS(X, v)  (SCM_SETCDR (SCM_CELL_OBJECT_3 (X), (v)))
 
 
 
@@ -152,7 +152,7 @@ extern void scm_init_symbols_deprecated (void);
 
 #endif /* SCM_ENABLE_VCELLS */
 
-#endif  /* SYMBOLSH */
+#endif  /* SCM_SYMBOLS_H */
 
 /*
   Local Variables:
