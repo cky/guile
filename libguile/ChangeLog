@@ -1,3 +1,9 @@
+1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* posix.c (scm_getpwuid): If we can't find an entry, return our
+ 	own message, instead of using scm_syserror --- the getpwMUMBLE
+ 	functions don't set `errno' to anything interesting.
+
 1998-10-03    <jimb@savonarola.red-bean.com>
 
 	Get rid of warnings from the cooperative threading system.
