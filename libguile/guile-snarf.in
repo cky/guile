@@ -1,34 +1,113 @@
 #!/bin/sh
-# Extract the initialization actions for builtin things.
+# Extract the initialization actions from source files.
 #
-#  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
-# 
+#  Copyright (C) 1996, 97, 98, 99, 2000, 2001, 2002 Free Software Foundation, Inc.
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this software; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 # Boston, MA 02111-1307 USA
 
+# Commentary:
+
+# Usage: guile-snarf [--compat=1.4] [-o OUTFILE] INFILE [CPP-OPTIONS ...]
+#
+# Process INFILE using the C pre-processor and some other programs.
+# Write output to a file, named OUTFILE if specified, or STEM.x if
+# INFILE looks like STEM.c and no OUTFILE is specified.  Ignore
+# lines from the input matching grep(1) regular expression:
+#
+#       ^#include ".*OUTFILE"
+#
+# If there are errors during processing, delete OUTFILE and exit with
+# non-zero status.
+#
+# Optional arg "--compat=1.4" means emulate guile-1.4 guile-snarf.
+# This option is easily misunderstood -- see Guile reference manual.
+#
+# If env var CPP is set, use its value instead of the C pre-processor
+# determined at Guile configure-time: "@CPP@".
+
+# Code:
+
+## funcs
+
+modern_snarf ()                         # writes stdout
+{
+${cpp} -DSCM_MAGIC_SNARF_INITS "$@" > ${temp} && cpp_ok_p=true
+grep "^ *\^ *\^" ${temp} | sed -e "s/^ *\^ *\^//"
+}
+
+compat_mode_clean_xxx ()                # modifies $1
+{
+filename=$1
+cp $filename ${temp}
+sed -e 's/SCM_CONST_LONG/SCM_GLOBAL_VCELL_INIT/g' \
+    -e 's/SCM_GLOBAL_VCELL_INIT/SCM_GLOBAL_VARIABLE_INIT/g' \
+    -e 's/SCM_GLOBAL_VCELL/SCM_GLOBAL_VARIABLE/g' \
+    -e 's/SCM_VCELL_INIT/SCM_VARIABLE_INIT/g' \
+    -e 's/SCM_VCELL/SCM_VARIABLE/g' \
+    < ${temp} \
+    > $filename
+}
+
+## main
+
+# process command line
+if [ x"$1" = x--help ] ; then
+    @AWK@ '/^#.Commentary:/,/^#.Code:/' $0 | grep -v Code: \
+        | sed -e 1,2d -e 's/^. *//g'
+    exit 0
+fi
+if [ x"$1" = x--compat=1.4 ]
+    then compat_mode_p=true ; shift
+    else compat_mode_p=false
+fi
+if [ x"$1" = x-o ]
+    then outfile=$2 ; shift ; shift ; infile=$1 ; shift
+    else infile=$1 ; shift ; outfile=`basename $infile .c`.x
+fi
+
+[ x"$infile" = x ] && { echo $0: No input file ; exit 1 ; }
+[ ! -f "$infile" ] && { echo $0: No such file: $infile ; exit 1 ; }
+
+# set vars and handler -- handle CPP override
+cpp_ok_p=false
 temp="/tmp/snarf.$$"
-trap "rm -f $temp" 0 1 2 15
+if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
+self_blind_regexp='^#include ".*'`basename $outfile`'"'
+clean_infile=$infile.clean.c            # temp file in same dir as infile
+                                        # so that #include "foo" works
+                                        # (e.g., see libguile/eval.c).
+                                        # use .c to satisfy cpp heuristics.
+trap "rm -f $temp $clean_infile" 0 1 2 15
 
-## Let the user override the preprocessor autoconf found.
-test -n "${CPP+set}" || CPP="@CPP@"
+# clean input file
+grep -v "$self_blind_regexp" $infile > $clean_infile
+$compat_mode_p && compat_mode_clean_xxx $clean_infile
 
-## We must use a temporary file here, instead of a pipe, because we
-## need to know if CPP exits with a non-zero status.
-${CPP} -DSCM_MAGIC_SNARF_INITS "$@" > ${temp} || exit $?
-< ${temp} grep "^ *\^ *\^" | sed -e "s/^ *\^ *\^//"
+# do the snarfing -- output something extra for needy cpp programs (AIX)
+{ echo "/* source: $infile */" ;
+  echo "/* cpp-options: $@ */" ;
+  modern_snarf "$@" $clean_infile ;
+} > $outfile
 
-## Apparently, AIX's preprocessor is unhappy if you try to #include an
-## empty file.
-echo
+# zonk outfile if errors occurred
+if $cpp_ok_p ; then
+    exit 0
+else
+    rm -f $outfile
+    exit 1
+fi
+
+# guile-snarf ends here
