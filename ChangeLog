@@ -1,12 +1,13 @@
 1998-10-10  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* GUILE-VERSION: bump to 1.2.91, since we're doing snapshots again.
+
 	* Guile 1.2.90 released --- beta.
 	* GUILE-VERSION: Set to 1.2.90.  This would appear to be a
  	regression from 1.3a, but everyone knows that the next release is
  	1.3, I want to switch to a more coherent version numbering system,
  	and now is the time.
 	
-
 1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in: Call AC_C_INLINE, so we can use inline happily in

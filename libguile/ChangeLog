@@ -1,5 +1,8 @@
 1998-10-10  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* genio.c (scm_do_read_line): Maintain the line count correctly.
+	(Thanks to Harvey J. Stein and Greg Harvey.)
+
 	* gc.c (scm_return_first): Remove #ifdef __STDC__ garbage; Guile
 	requires ANSI now.
 
