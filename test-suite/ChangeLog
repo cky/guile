@@ -1,3 +1,7 @@
+1999-12-18  Greg Harvey <Greg.Harvey@thezone.net>
+
+	* tests/alist.test: Added.
+
 Fri Dec 17 12:14:10 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* tests/c-api.test: Refine the list of files that are checked in
