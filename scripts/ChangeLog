@@ -1,3 +1,7 @@
+2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Change "foreign" to "gnu".
+
 2001-08-07  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* snarf-check-and-output-texi: print optional args in a prettier

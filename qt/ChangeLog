@@ -1,3 +1,8 @@
+2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am, md/Makefile.am, time/Makefile.am:
+	(AUTOMAKE_OPTIONS): Change "foreign" to "gnu".
+
 2001-08-15  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (libqthreads_la_LDFLAGS): use libtool interface version

@@ -1,3 +1,8 @@
+2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am, goops/Makefile.am: (AUTOMAKE_OPTIONS): Change
+	"foreign" to "gnu".
+
 2001-07-29  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* goops/dispatch.scm (hashset-index): Renumbered, since the vcell
