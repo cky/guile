@@ -1155,9 +1155,14 @@ gc_mark_nimp:
 
 gc_mark_loop_first_time:
 #endif
-  
+
 #if (SCM_DEBUG_CELL_ACCESSES == 1) || (defined (GUILE_DEBUG_FREELIST))
+  /* We are in debug mode.  Check the ptr exhaustively. */
   if (!scm_cellp (ptr))
+    SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
+#else
+  /* In non-debug mode, do at least some cheap testing. */
+  if (!SCM_CELLP (ptr))
     SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
 #endif
 

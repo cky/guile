@@ -1,3 +1,8 @@
+2001-04-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.c (MARK):  Re-introduce a cheap sanity test for non debug
+	mode, as suggested by Michael Livshin.
+
 2001-03-31  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* backtrace.c (display_backtrace_body): since the `print_state'
