@@ -1,3 +1,7 @@
+2001-05-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* safe-r5rs.scm: Fix typo: make-rectangualr => make-rectangular.
+
 2001-05-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (begin-deprecated): New.

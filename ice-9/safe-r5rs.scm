@@ -40,7 +40,7 @@
 	exp log sin cos tan asin acos atan
 	sqrt
 	expt
-	make-rectangualr make-polar real-part imag-part magnitude angle
+	make-rectangular make-polar real-part imag-part magnitude angle
 	exact->inexact inexact->exact
 
 	number->string string->number
