@@ -1,4 +1,4 @@
-/*      Copyright (C) 1995,1996,1997, 2000, 2001 Free Software Foundation, Inc.
+/*      Copyright (C) 1995,1996,1997, 2000, 2001, 2004 Free Software Foundation, Inc.
 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -79,77 +79,77 @@ gh_cons (SCM x, SCM y)
 SCM 
 gh_car (SCM x)
 {
-  return SCM_CAR (x);
+  return scm_car (x);
 }
 
 /* analogous to the Scheme cdr operator */
 SCM 
 gh_cdr (SCM x)
 {
-  return SCM_CDR (x);
+  return scm_cdr (x);
 }
 
 /* now for the multiple car/cdr utility procedures */
 SCM 
 gh_caar (SCM x)
 {
-  return SCM_CAAR (x);
+  return scm_caar (x);
 }
 SCM 
 gh_cadr (SCM x)
 {
-  return SCM_CADR (x);
+  return scm_cadr (x);
 }
 SCM 
 gh_cdar (SCM x)
 {
-  return SCM_CDAR (x);
+  return scm_cdar (x);
 }
 SCM 
 gh_cddr (SCM x)
 {
-  return SCM_CDDR (x);
+  return scm_cddr (x);
 }
 
 SCM 
 gh_caaar (SCM x)
 {
-  return SCM_CAAAR (x);
+  return scm_caaar (x);
 }
 SCM 
 gh_caadr (SCM x)
 {
-  return SCM_CAADR (x);
+  return scm_caadr (x);
 }
 SCM 
 gh_cadar (SCM x)
 {
-  return SCM_CADAR (x);
+  return scm_cadar (x);
 }
 SCM 
 gh_caddr (SCM x)
 {
-  return SCM_CADDR (x);
+  return scm_caddr (x);
 }
 SCM 
 gh_cdaar (SCM x)
 {
-  return SCM_CDAAR (x);
+  return scm_cdaar (x);
 }
 SCM 
 gh_cdadr (SCM x)
 {
-  return SCM_CDADR (x);
+  return scm_cdadr (x);
 }
 SCM 
 gh_cddar (SCM x)
 {
-  return SCM_CDDAR (x);
+  return scm_cddar (x);
 }
 SCM 
 gh_cdddr (SCM x)
 {
-  return SCM_CDDDR (x);
+  return scm_cdddr (x);
 }
 
 /* equivalent to (set-car! pair value) */
