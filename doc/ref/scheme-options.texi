@@ -124,13 +124,35 @@ directories, env vars, and versioning info.
 
 Briefly, here are the keys in @code{%guile-build-info}, by group:
 
+@cindex @code{srcdir}
+@cindex @code{top_srcdir}
+@cindex @code{prefix}
+@cindex @code{exec_prefix}
+@cindex @code{bindir}
+@cindex @code{sbindir}
+@cindex @code{libexecdir}
+@cindex @code{datadir}
+@cindex @code{sysconfdir}
+@cindex @code{sharedstatedir}
+@cindex @code{localstatedir}
+@cindex @code{libdir}
+@cindex @code{infodir}
+@cindex @code{mandir}
+@cindex @code{includedir}
+@cindex @code{pkgdatadir}
+@cindex @code{pkglibdir}
+@cindex @code{pkgincludedir}
 @table @asis
 @item   directories
 srcdir, top_srcdir, prefix, exec_prefix, bindir, sbindir, libexecdir,
 datadir, sysconfdir, sharedstatedir, localstatedir, libdir, infodir,
 mandir, includedir, pkgdatadir, pkglibdir, pkgincludedir
+@cindex @code{LIBS}
 @item   env vars
 LIBS
+@cindex @code{guileversion}
+@cindex @code{libguileinterface}
+@cindex @code{buildstamp}
 @item   versioning info
 guileversion, libguileinterface, buildstamp
 @end table
