@@ -95,7 +95,9 @@ char *scm_isymnames[] =
   "#<undefined>",
   "#<eof>",
   "()",
-  "#<unspecified>"
+  "#<unspecified>",
+  "#@dispatch",
+  "#@hash-dispatch"
 };
 
 scm_option scm_print_opts[] = {
