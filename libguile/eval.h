@@ -92,22 +92,40 @@ extern SCM scm_eval_options_interface SCM_P ((SCM setting));
  *
  * For an explanation of symbols containing "EVAL", see beginning of eval.c.
  */
+#ifdef MEMOIZE_LOCALS
+#define SCM_EVALIM(x, env) (SCM_ILOCP(x)?*scm_ilookup((x), env):x)
+#else
+#define SCM_EVALIM(x, env) x
+#endif
 #ifdef DEBUG_EXTENSIONS
-#define XEVAL(x, env) (SCM_IMP(x) \
+#define SCM_XEVAL(x, env) (SCM_IMP(x) \
 		      ? (x) \
 		      : (*scm_ceval_ptr) ((x), (env)))
+#define SCM_XEVALCAR(x, env) (SCM_NCELLP(SCM_CAR(x)) \
+			  ? (SCM_IMP(SCM_CAR(x)) \
+			     ? SCM_EVALIM(SCM_CAR(x), env) \
+			     : SCM_GLOC_VAL(SCM_CAR(x))) \
+			  : (SCM_SYMBOLP(SCM_CAR(x)) \
+			     ? *scm_lookupcar(x, env) \
+			     : (*scm_ceval_ptr) (SCM_CAR(x), env)))
 #else
-#define XEVAL(x, env) (SCM_IMP(x)?(x):scm_ceval((x), (env)))
+#define SCM_XEVAL(x, env) (SCM_IMP(x)?(x):scm_ceval((x), (env)))
+#define SCM_XEVALCAR(x, env) EVALCAR(x, env)
 #endif /* DEBUG_EXTENSIONS */
-
-#define SCM_CEVAL scm_ceval
-#define SIDEVAL(x, env) if SCM_NIMP(x) SCM_CEVAL((x), (env))
 
 
 
 #define SCM_EXTEND_ENV scm_acons
 
 
+extern char scm_s_expression[];
+extern char scm_s_test[];
+extern char scm_s_body[];
+extern char scm_s_bindings[];
+extern char scm_s_variable[];
+extern char scm_s_clauses[];
+extern char scm_s_formals[];
+
 extern SCM scm_i_dot;
 extern SCM scm_i_quote;
 extern SCM scm_i_quasiquote;
@@ -159,11 +177,9 @@ extern SCM scm_m_letrec SCM_P ((SCM xorig, SCM env));
 extern SCM scm_m_let SCM_P ((SCM xorig, SCM env));
 extern SCM scm_m_apply SCM_P ((SCM xorig, SCM env));
 extern SCM scm_m_cont SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_undefine SCM_P ((SCM x, SCM env));
 extern int scm_badargsp SCM_P ((SCM formals, SCM args));
 extern SCM scm_ceval SCM_P ((SCM x, SCM env));
 extern SCM scm_deval SCM_P ((SCM x, SCM env));
-extern SCM scm_procedure_documentation SCM_P ((SCM proc));
 extern SCM scm_nconc2last SCM_P ((SCM lst));
 extern SCM scm_apply SCM_P ((SCM proc, SCM arg1, SCM args));
 extern SCM scm_dapply SCM_P ((SCM proc, SCM arg1, SCM args));
@@ -172,26 +188,15 @@ extern SCM scm_map SCM_P ((SCM proc, SCM arg1, SCM args));
 extern SCM scm_for_each SCM_P ((SCM proc, SCM arg1, SCM args));
 extern SCM scm_closure SCM_P ((SCM code, SCM env));
 extern SCM scm_makprom SCM_P ((SCM code));
-extern SCM scm_makacro SCM_P ((SCM code));
-extern SCM scm_makmacro SCM_P ((SCM code));
-extern SCM scm_makmmacro SCM_P ((SCM code));
-extern SCM scm_macro_p SCM_P ((SCM obj));
-extern SCM scm_macro_type SCM_P ((SCM m));
-extern SCM scm_macro_name SCM_P ((SCM m));
-extern SCM scm_macro_transformer SCM_P ((SCM m));
 extern SCM scm_force SCM_P ((SCM x));
 extern SCM scm_promise_p SCM_P ((SCM x));
 extern SCM scm_copy_tree SCM_P ((SCM obj));
 extern SCM scm_eval_3 SCM_P ((SCM obj, int copyp, SCM env));
+extern SCM scm_env_top_level SCM_P ((SCM env));
 extern SCM scm_top_level_env SCM_P ((SCM thunk));
 extern SCM scm_eval2 SCM_P ((SCM obj, SCM env_thunk));
 extern SCM scm_eval SCM_P ((SCM obj));
 extern SCM scm_eval_x SCM_P ((SCM obj));
-extern SCM scm_macro_eval_x SCM_P ((SCM exp, SCM env));
-extern SCM scm_definedp SCM_P ((SCM sym));
-extern SCM scm_make_synt SCM_P ((char *name,
-				 SCM (*macroizer) (SCM),
-				 SCM (*fcn) ()));
 extern void scm_init_eval SCM_P ((void));
 
 #endif  /* EVALH */
