@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.5 1999-06-17 22:52:01 jimb Exp $
+@subtitle $Id: data-rep.texi,v 1.6 1999-06-19 11:02:18 jimb Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -76,12 +76,6 @@ by Free Software Foundation.
 @c @finalout
 @headings double
 
-
-@menu
-* Data Representation in Scheme::  
-* How Guile does it::           
-* Defining New Types (Smobs)::  
-@end menu
 
 @node Top, Data Representation in Scheme, (dir), (dir)
 @top Data Representation in Guile
