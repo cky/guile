@@ -7,6 +7,10 @@ absinthe, etc.  However, the first release containing the module
 system should be called Godot: "This is the one you've been waiting
 for."
 
+* Deprecate `make-shared-substring'!  We should arrange for shared
+  substrings to be generated automatically by `substring' and let string
+  mutators copy-on-write to otehr storage.
+
 Before releasing the next version of libguile which is not binary compatible
 with the one released with 1.4:
 - remove struct members system_transformer and top_level_lookup_closure_var
@@ -17,13 +21,6 @@ After signal handling and threading have been fixed:
   GUILE_OLD_ASYNC_CLICK macro.
 
 In release 1.5:
-- remove deprecated variables:
-    scm_top_level_lookup_closure_var
-- remove deprecated functions:
-    eval.c: scm_eval2, scm_eval_3
-    load.c: scm_read_and_eval_x
-- remove deprecated procedures:
-    boot-9.scm:eval-in-module
 - remove deprecated macros: SCM_INPORTP, SCM_OUTPORTP, SCM_CRDY, SCM_ICHRP,
   SCM_ICHR, SCM_MAKICHR, SCM_SETJMPBUF, SCM_NSTRINGP, SCM_NRWSTRINGP,
   SCM_NVECTORP
@@ -45,6 +42,13 @@ In release 1.5:
   SCM_REALPART, scm_makdbl, SCM_SINGP, SCM_NUM2DBL, SCM_NO_BIGDIG
 
 In release 1.6:
+- remove deprecated variables:
+    scm_top_level_lookup_closure_var
+- remove deprecated functions:
+    eval.c: scm_eval2, scm_eval_3
+    load.c: scm_read_and_eval_x
+- remove deprecated procedures:
+    boot-9.scm:eval-in-module
 - remove deprecated macros: SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL, 
   SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
   SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
