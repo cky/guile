@@ -1,3 +1,8 @@
+Thu Aug 22 17:34:17 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* error.c (scm_everr, scm_init_error): write now writes correct
+	number of characters.  Define %%system-error with SCM_SYMBOL.
+
 Tue Aug 20 18:48:40 1996  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* Makefile.in: Added {debug,options,srcprop}.{h,c}
