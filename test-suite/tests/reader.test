@@ -1,25 +1,22 @@
 ;;;; reader.test --- test the Guile parser -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 
-(define (try-to-read string)
-  (pass-if (call-with-output-string (lambda (port)
-				      (display "Try to read " port)
-				      (write string port)))
-	   (not (signals-error? 
-		 'signal
-		 (call-with-input-string string 
-					 (lambda (p) (read p)))))))
+(define (read-string s)
+  (with-input-from-string s (lambda () (read))))
 
-(try-to-read "0")
-(try-to-read "1++i")
-(try-to-read "1+i+i")
-(try-to-read "1+e10000i")
+(with-test-prefix "reading"
+  (pass-if "0"
+    (equal? (read-string "0") 0))
+  (pass-if "1++i"
+    (equal? (read-string "1++i") '1++i))
+  (pass-if "1+i+i"
+    (equal? (read-string "1+i+i") '1+i+i))
+  (pass-if "1+e10000i"
+    (equal? (read-string "1+e10000i") '1+e10000i)))
 
-(pass-if "radix passed to number->string can't be zero"
-	 (signals-error?
-	  'out-of-range
-	  (number->string 10 0)))
-(pass-if "radix passed to number->string can't be one either"
-	 (signals-error?
-	  'out-of-range
-	  (number->string 10 1)))
+(pass-if-exception "radix passed to number->string can't be zero"
+  exception:out-of-range
+  (number->string 10 0))
+(pass-if-exception "radix passed to number->string can't be one either"
+  exception:out-of-range
+  (number->string 10 1))

@@ -21,19 +21,14 @@
 (use-modules (test-suite lib))
 
 
-(pass-if "string=? does not accept symbols"
-  (catch 'wrong-type-arg
-    (lambda ()
-      (string=? 'a 'b)
-      #f)
-    (lambda args
-      #t)))
+(pass-if-exception "string=? does not accept symbols"
+  exception:wrong-type-arg
+  (string=? 'a 'b))
 
 (pass-if "string<? respects string length"
 	 (not (string<? "foo\0" "foo")))
 (pass-if "string-ci<? respects string length"
 	 (not (string-ci<? "foo\0" "foo")))
-(pass-if "substring-move! checks start and end correctly"
-	 (signals-error?
-	  'out-of-range
-	  (substring-move! "sample" 3 0 "test" 3)))
+(pass-if-exception "substring-move! checks start and end correctly"
+  exception:out-of-range
+  (substring-move! "sample" 3 0 "test" 3))

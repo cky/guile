@@ -58,20 +58,6 @@
 ;;; other reasons why they might not work as tested here, so if you
 ;;; haven't done anything to weaks, don't sweat it :)
 
-;;; Utility stuff (maybe these should go in lib? They're pretty useful
-;;; at keeping the code size down)
-
-;; Evaluate form inside a catch; if it throws, return false
-
-(define-macro (catch-error-returning-false error . form)
-  `(catch ,error (lambda () (begin ,@form #t)) (lambda (key . args) #f)))
-
-(define-macro (catch-error-returning-true error . form)
-  `(catch ,error (lambda () (begin ,@form #f)) (lambda args #t)))
-
-(define-macro (pass-if-not string form)
-  `(pass-if ,string (not ,form)))
-
 ;;; Creation functions 
 
 
@@ -79,12 +65,11 @@
  "weak-creation"
  (with-test-prefix "make-weak-vector"
   (pass-if "normal"
-	   (catch-error-returning-false #t
-	   (define x (make-weak-vector 10 #f))))
-  (pass-if "bad size"
-	   (catch-error-returning-true 
-	    'wrong-type-arg
-	    (define x (make-weak-vector 'foo)))))
+    (make-weak-vector 10 #f)
+    #t)
+  (pass-if-exception "bad size"
+    exception:wrong-type-arg
+    (make-weak-vector 'foo)))
 
  (with-test-prefix "list->weak-vector"
 		   (pass-if "create"
@@ -97,42 +82,32 @@
 				   (eq? (vector-ref wv 4) 'e)
 				   (eq? (vector-ref wv 5) 'f)
 				   (eq? (vector-ref wv 6) 'g))))
-		   (pass-if "bad-args"
-			    (catch-error-returning-true 
-			     'wrong-type-arg
-			     (define x (list->weak-vector 32)))))
+		   (pass-if-exception "bad-args"
+		     exception:wrong-type-arg
+		     (list->weak-vector 32)))
 
  (with-test-prefix "make-weak-key-hash-table"
 		   (pass-if "create"
-			    (catch-error-returning-false 
-			     #t
-			     (define x (make-weak-key-hash-table 17))))
-		   (pass-if "bad-args"
-			    (catch-error-returning-true 
-			     'wrong-type-arg
-			     (define x 
-			       (make-weak-key-hash-table '(bad arg))))))
+		     (make-weak-key-hash-table 17)
+		     #t)
+		   (pass-if-exception "bad-args"
+		     exception:wrong-type-arg
+		     (make-weak-key-hash-table '(bad arg))))
  (with-test-prefix "make-weak-value-hash-table"
 		   (pass-if "create"
-			    (catch-error-returning-false 
-			     #t
-			     (define x (make-weak-value-hash-table 17))))
-		   (pass-if "bad-args"
-			    (catch-error-returning-true 
-			     'wrong-type-arg
-			     (define x 
-			       (make-weak-value-hash-table '(bad arg))))))
+		     (make-weak-value-hash-table 17)
+		     #t)
+		   (pass-if-exception "bad-args"
+		     exception:wrong-type-arg
+		     (make-weak-value-hash-table '(bad arg))))
 
  (with-test-prefix "make-doubly-weak-hash-table"
 		   (pass-if "create"
-			    (catch-error-returning-false 
-			     #t
-			     (define x (make-doubly-weak-hash-table 17))))
-		   (pass-if "bad-args"
-			    (catch-error-returning-true 
-			     'wrong-type-arg
-			     (define x 
-			       (make-doubly-weak-hash-table '(bad arg)))))))
+		     (make-doubly-weak-hash-table 17)
+		     #t)
+		   (pass-if-exception "bad-args"
+		     exception:wrong-type-arg
+		     (make-doubly-weak-hash-table '(bad arg)))))
 
 
 

@@ -47,7 +47,6 @@
 ;;; miscellaneous
 ;;;
 
-
 (define (documented? object)
   (not (not (object-documentation object))))
 
@@ -64,24 +63,17 @@
     ;; Macros are accepted as function parameters.
     ;; Functions that 'apply' macros are rewritten!!!
 
-    (expect-fail "macro as argument"
+    (expect-fail-exception "macro as argument"
+      exception:wrong-type-arg
       (let ((f (lambda (p a b) (p a b))))
-	(catch 'wrong-type-arg
-	  (lambda ()
-	    (f and #t #t)
-	    #f)
-	  (lambda (key . args)
-	    #t))))
+	(f and #t #t)))
 
-    (expect-fail "application of macro"
-      (let ((f (lambda (p a b) (p a b))))
-	(catch 'wrong-type-arg
-	  (lambda ()
-            (let ((foo (procedure-source f)))
-	      (f and #t #t)
-	      (equal? (procedure-source f) foo)))
-	  (lambda (key . args)
-	    #t))))
+    (expect-fail-exception "passing macro as parameter"
+      exception:wrong-type-arg
+      (let* ((f (lambda (p a b) (p a b)))
+	     (foo (procedure-source f)))
+	(f and #t #t)
+	(equal? (procedure-source f) foo)))
 
     ))
 
@@ -103,35 +95,19 @@
 
     (with-test-prefix "different length lists"
 
-      (pass-if "first list empty"
-	(catch 'out-of-range
-	  (lambda ()
-	    (map + '() '(1))
-	    #f)
-	  (lambda (key . args)
-	    #t)))
+      (pass-if-exception "first list empty"
+	exception:out-of-range
+	(map + '() '(1)))
 
-      (pass-if "second list empty"
-	(catch 'out-of-range
-	  (lambda ()
-	    (map + '(1) '())
-	    #f)
-	  (lambda (key . args)
-	    #t)))
+      (pass-if-exception "second list empty"
+	exception:out-of-range
+	(map + '(1) '()))
 
-      (pass-if "first list shorter"
-	(catch 'out-of-range
-	  (lambda ()
-	    (map + '(1) '(2 3))
-	    #f)
-	  (lambda (key . args)
-	    #t)))
+      (pass-if-exception "first list shorter"
+	exception:out-of-range
+	(map + '(1) '(2 3)))
 
-      (pass-if "second list shorter"
-	(catch 'out-of-range
-	  (lambda ()
-	    (map + '(1 2) '(3))
-	    #f)
-	  (lambda (key . args)
-	    #t)))
+      (pass-if-exception "second list shorter"
+	exception:out-of-range
+	(map + '(1 2) '(3)))
     )))

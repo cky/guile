@@ -104,25 +104,18 @@
 	     (and (pair? x)
 		  (eq? (car x) 'c)
 		  (eq? (cdr x) 'd))))
-  (pass-if "assq deformed"
-	   (catch 'wrong-type-arg
-		  (lambda ()
-		    (assq 'x deformed))
-		  (lambda (key . args)
-		    #t)))
+  (pass-if-exception "assq deformed"
+    exception:wrong-type-arg
+    (assq 'x deformed))
   (pass-if-not "assq not" (assq 'r a))
   (pass-if "assv"
 	   (let ((x (assv 'a a)))
 	     (and (pair? x)
 		  (eq? (car x) 'a)
 		  (eq? (cdr x) 'b))))
-  (pass-if "assv deformed"
-	   (catch 'wrong-type-arg
-		  (lambda ()
-		    (assv 'x deformed)
-		    #f)
-		  (lambda (key . args)
-		    #t)))
+  (pass-if-exception "assv deformed"
+    exception:wrong-type-arg
+    (assv 'x deformed))
   (pass-if-not "assv not" (assq "this" b))
 
   (pass-if "assoc"
@@ -130,13 +123,9 @@
 	     (and (pair? x)
 		  (string=? (car x) "this")
 		  (string=? (cdr x) "is"))))
-  (pass-if "assoc deformed"
-	   (catch 'wrong-type-arg
-		  (lambda ()
-		    (assoc 'x deformed)
-		    #f)
-		  (lambda (key . args)
-		    #t)))
+  (pass-if-exception "assoc deformed"
+    exception:wrong-type-arg
+    (assoc 'x deformed))
   (pass-if-not "assoc not" (assoc "this isn't" b)))
 
 
@@ -168,32 +157,20 @@
 
   (let* ((have-sloppy-assv-ref? (defined? 'sloppy-assv-ref))) 
 
-    (pass-if "assv-ref deformed"
-      (catch 'wrong-type-arg
-	(lambda ()
-	  (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-	  (assv-ref deformed 'sloppy)
-	  #f)
-	(lambda (key . args)
-	  #t)))
+    (pass-if-exception "assv-ref deformed"
+      exception:wrong-type-arg
+      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
+      (assv-ref deformed 'sloppy))
 
-    (pass-if "assoc-ref deformed"
-      (catch 'wrong-type-arg
-	(lambda ()
-	  (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-	  (assoc-ref deformed 'sloppy)
-	  #f)
-	(lambda (key . args)
-	  #t)))
+    (pass-if-exception "assoc-ref deformed"
+      exception:wrong-type-arg
+      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
+      (assoc-ref deformed 'sloppy))
 
-    (pass-if "assq-ref deformed"
-      (catch 'wrong-type-arg
-	(lambda ()
-	  (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-	  (assq-ref deformed 'sloppy)
-	  #f)
-	(lambda (key . args)
-	  #t)))))
+    (pass-if-exception "assq-ref deformed"
+      exception:wrong-type-arg
+      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
+      (assq-ref deformed 'sloppy))))
 
 
 ;;; Setters
@@ -241,32 +218,20 @@
 
   (let* ((have-sloppy-assv-ref? (defined? 'sloppy-assv-ref))) 
 
-    (pass-if "assq-set! deformed"
-      (catch 'wrong-type-arg
-	(lambda ()
-	  (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-	  (assq-set! deformed 'cold '(very cold))
-	  #f)
-	(lambda (key . args)
-	  #t)))   
+    (pass-if-exception "assq-set! deformed"
+      exception:wrong-type-arg
+      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
+      (assq-set! deformed 'cold '(very cold)))   
 
-    (pass-if "assv-set! deformed"
-      (catch 'wrong-type-arg
-	(lambda ()
-	  (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-	  (assv-set! deformed 'canada 'Canada)
-	  #f)
-	(lambda (key . args)
-	  #t)))
+    (pass-if-exception "assv-set! deformed"
+      exception:wrong-type-arg
+      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
+      (assv-set! deformed 'canada 'Canada))
 
-    (pass-if "assoc-set! deformed"
-      (catch 'wrong-type-arg
-	(lambda ()
-	  (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-	  (assoc-set! deformed 'canada '(Iceland hence the name))
-	  #f)
-	(lambda (key . args)
-	  #t)))))
+    (pass-if-exception "assoc-set! deformed"
+      exception:wrong-type-arg
+      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
+      (assoc-set! deformed 'canada '(Iceland hence the name)))))
 
 ;;; Removers
 
@@ -288,29 +253,17 @@
 
   (let* ((have-sloppy-assq-remove? (defined? 'sloppy-assq-remove))) 
 
-    (pass-if "assq-remove! deformed"
-      (catch 'wrong-type-arg
-	(lambda ()
-	  (if (not have-sloppy-assq-remove?) (throw 'unsupported))
-	  (assq-remove! deformed 'puddle)
-	  #f)
-	(lambda (key . args)
-	  #t)))
+    (pass-if-exception "assq-remove! deformed"
+      exception:wrong-type-arg
+      (if (not have-sloppy-assq-remove?) (throw 'unsupported))
+      (assq-remove! deformed 'puddle))
 
-    (pass-if "assv-remove! deformed"
-      (catch 'wrong-type-arg
-	(lambda ()
-	  (if (not have-sloppy-assq-remove?) (throw 'unsupported))
-	  (assv-remove! deformed 'splashing)
-	  #f)
-	(lambda (key . args)
-	  #t)))
+    (pass-if-exception "assv-remove! deformed"
+      exception:wrong-type-arg
+      (if (not have-sloppy-assq-remove?) (throw 'unsupported))
+      (assv-remove! deformed 'splashing))
 
-    (pass-if "assoc-remove! deformed"
-      (catch 'wrong-type-arg
-	(lambda ()
-	  (if (not have-sloppy-assq-remove?) (throw 'unsupported))
-	  (assoc-remove! deformed 'fun)
-	  #f)
-	(lambda (key . args)
-	  #t)))))
+    (pass-if-exception "assoc-remove! deformed"
+      exception:wrong-type-arg
+      (if (not have-sloppy-assq-remove?) (throw 'unsupported))
+      (assoc-remove! deformed 'fun))))

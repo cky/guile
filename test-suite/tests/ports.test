@@ -427,7 +427,8 @@
 		  (call-with-input-string "foo" (lambda (p) p))
 		(lambda ()
 		  (close-port (current-input-port))
-		  (pass-if name
-			   (signals-error? 'wrong-type-arg (procedure))))))
+		  (pass-if-exception name
+		    exception:wrong-type-arg
+		    (procedure)))))
 	    (list read read-char read-line)
 	    '("read" "read-char" "read-line")))

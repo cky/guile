@@ -375,29 +375,17 @@
 
   (with-test-prefix "wrong argument"
 
-    (expect-fail "improper list and empty list"
-      (catch 'wrong-type-arg
-	(lambda () 
-	  (append! (cons 1 2) '())
-	  #f)
-	(lambda (key . args) 
-	  #t)))
+    (expect-fail-exception "improper list and empty list"
+      exception:wrong-type-arg
+      (append! (cons 1 2) '()))
 
-    (expect-fail "improper list and list"
-      (catch 'wrong-type-arg
-	(lambda () 
-	  (append! (cons 1 2) (list 3 4))
-	  #f)
-	(lambda (key . args)
-	  #t)))
+    (expect-fail-exception "improper list and list"
+      exception:wrong-type-arg
+      (append! (cons 1 2) (list 3 4)))
 
-    (expect-fail "list, improper list and list"
-      (catch 'wrong-type-arg
-	(lambda () 
-	  (append! (list 1 2) (cons 3 4) (list 5 6))
-	  #f)
-	(lambda (key . args)
-	  #t)))
+    (expect-fail-exception "list, improper list and list"
+      exception:wrong-type-arg
+      (append! (list 1 2) (cons 3 4) (list 5 6)))
 
     (expect-fail "circular list and empty list"
       (let ((foo (list 1 2 3)))
@@ -473,47 +461,27 @@
 
       (with-test-prefix "empty list"
 
-	(pass-if "index 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-ref '() 0)
-	      #f)
-	    (lambda (key . args)
-	      #t)))
+	(pass-if-exception "index 0"
+	  exception:out-of-range
+	  (list-ref '() 0))
 
-	(pass-if "index > 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-ref '() 1)
-	      #f)
-	    (lambda (key . args)
-	      #t)))
+	(pass-if-exception "index > 0"
+	  exception:out-of-range
+	  (list-ref '() 1))
 
-	(pass-if "index < 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-ref '() -1)
-	      #f)
-	    (lambda (key . args)
-	      #t))))
+	(pass-if-exception "index < 0"
+	  exception:out-of-range
+	  (list-ref '() -1)))
 
       (with-test-prefix "non-empty list"
 
-	(pass-if "index > length"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-ref '(1) 1)
-	      #f)
-	    (lambda (key . args)
-	      #t)))
+	(pass-if-exception "index > length"
+	  exception:out-of-range
+	  (list-ref '(1) 1))
 
-	(pass-if "index < 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-ref '(1) -1)
-	      #f)
-	    (lambda (key . args)
-	      #t)))))))
+	(pass-if-exception "index < 0"
+	  exception:out-of-range
+	  (list-ref '(1) -1))))))
 
 
 ;;; list-set!
@@ -541,47 +509,27 @@
 
       (with-test-prefix "empty list"
 
-	(pass-if "index 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-set! (list) 0 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t)))
+	(pass-if-exception "index 0"
+	  exception:out-of-range
+	  (list-set! (list) 0 #t))
 
-	(pass-if "index > 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-set! (list) 1 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t)))
+	(pass-if-exception "index > 0"
+	  exception:out-of-range
+	  (list-set! (list) 1 #t))
 
-	(pass-if "index < 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-set! (list) -1 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t))))
+	(pass-if-exception "index < 0"
+	  exception:out-of-range
+	  (list-set! (list) -1 #t)))
 
       (with-test-prefix "non-empty list"
 
-	(pass-if "index > length"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-set! (list 1) 1 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t)))
+	(pass-if-exception "index > length"
+	  exception:out-of-range
+	  (list-set! (list 1) 1 #t))
 
-	(pass-if "index < 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-set! (list 1) -1 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t)))))))
+	(pass-if-exception "index < 0"
+	  exception:out-of-range
+	  (list-set! (list 1) -1 #t))))))
 
 
 ;;; list-cdr-ref
@@ -615,47 +563,27 @@
 
       (with-test-prefix "empty list"
 
-	(pass-if "index 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-cdr-set! (list) 0 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t)))
+	(pass-if-exception "index 0"
+	  exception:out-of-range
+	  (list-cdr-set! (list) 0 #t))
 
-	(pass-if "index > 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-cdr-set! (list) 1 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t)))
+	(pass-if-exception "index > 0"
+	  exception:out-of-range
+	  (list-cdr-set! (list) 1 #t))
 
-	(pass-if "index < 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-cdr-set! (list) -1 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t))))
+	(pass-if-exception "index < 0"
+	  exception:out-of-range
+	  (list-cdr-set! (list) -1 #t)))
 
       (with-test-prefix "non-empty list"
 
-	(pass-if "index > length"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-cdr-set! (list 1) 1 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t)))
+	(pass-if-exception "index > length"
+	  exception:out-of-range
+	  (list-cdr-set! (list 1) 1 #t))
 
-	(pass-if "index < 0"
-	  (catch 'out-of-range
-	    (lambda ()
-	      (list-cdr-set! (list 1) -1 #t)
-	      #f)
-	    (lambda (key . args)
-	      #t)))))))
+	(pass-if-exception "index < 0"
+	  exception:out-of-range
+	  (list-cdr-set! (list 1) -1 #t))))))
 
 
 ;;; list-head

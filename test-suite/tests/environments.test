@@ -47,6 +47,8 @@
 ;;; miscellaneous
 ;;;
 
+(define exception:unbound-symbol
+  (cons 'misc-error "^Symbol .* not bound in environment"))
 
 (define (documented? object)
   (not (not (object-documentation object))))
@@ -173,37 +175,21 @@
 	  (environment-define env 'a #f)
 	  (not (eq? (environment-cell env 'a #t) cell)))))
 
-    (pass-if "reference an undefined symbol"
-      (catch #t
-	(lambda ()
-	  (environment-ref (make-leaf-environment) 'a)
-	  #f)
-	(lambda args
-	  #t)))
+    (pass-if-exception "reference an unbound symbol"
+      exception:unbound-symbol
+      (environment-ref (make-leaf-environment) 'a))
 
-    (pass-if "set! an undefined symbol"
-      (catch #t
-	(lambda ()
-	  (environment-set! (make-leaf-environment) 'a)
-	  #f)
-	(lambda args
-	  #t)))
+    (pass-if-exception "set! an unbound symbol"
+      exception:unbound-symbol
+      (environment-set! (make-leaf-environment) 'a #f))
 
-    (pass-if "get a readable cell for an undefined symbol"
-      (catch #t
-	(lambda ()
-	  (environment-cell (make-leaf-environment) 'a #f)
-	  #f)
-	(lambda args
-	  #t)))
+    (pass-if-exception "get a readable cell for an unbound symbol"
+      exception:unbound-symbol
+      (environment-cell (make-leaf-environment) 'a #f))
 
-    (pass-if "get a writable cell for an undefined symbol"
-      (catch #t
-	(lambda ()
-	  (environment-cell (make-leaf-environment) 'a #t)
-	  #f)
-	(lambda args
-	  #t))))
+    (pass-if-exception "get a writable cell for an unbound symbol"
+      exception:unbound-symbol
+      (environment-cell (make-leaf-environment) 'a #t)))
 
 
   (with-test-prefix "undefine"
@@ -621,37 +607,21 @@
 	   (imported (make-leaf-environment))
 	   (env (make-eval-environment local imported)))
 
-      (pass-if "reference an undefined symbol"
-	(catch #t
-	  (lambda ()
-	    (environment-ref env 'b)
-	    #f)
-	  (lambda args
-	    #t)))
+      (pass-if-exception "reference an unbound symbol"
+	exception:unbound-symbol
+	(environment-ref env 'b))
 
-      (pass-if "set! an undefined symbol"
-	(catch #t
-	  (lambda ()
-	    (environment-set! env 'b)
-	    #f)
-	  (lambda args
-	    #t)))
+      (pass-if-exception "set! an unbound symbol"
+	exception:unbound-symbol
+	(environment-set! env 'b #f))
 
-      (pass-if "get a readable cell for an undefined symbol"
-	(catch #t
-	  (lambda ()
-	    (environment-cell env 'b #f)
-	    #f)
-	  (lambda args
-	    #t)))
+      (pass-if-exception "get a readable cell for an unbound symbol"
+	exception:unbound-symbol
+	(environment-cell env 'b #f))
 
-      (pass-if "get a writable cell for an undefined symbol"
-	(catch #t
-	  (lambda ()
-	    (environment-cell env 'b #t)
-	    #f)
-	  (lambda args
-	    #t)))))
+      (pass-if-exception "get a writable cell for an unbound symbol"
+	exception:unbound-symbol
+	(environment-cell env 'b #t))))
 
   (with-test-prefix "eval-environment-set-local!"
 

@@ -16,12 +16,18 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(define-module (test-suite lib))
+(define-module (test-suite lib)
+  :use-module (ice-9 regex))
 
 (export
 
+ ;; Exceptions which are commonly being tested for.
+ exception:out-of-range exception:wrong-type-arg
+
  ;; Reporting passes and failures.
- run-test pass-if expect-fail
+ run-test
+ pass-if expect-fail
+ pass-if-exception expect-fail-exception
 
  ;; Naming groups of tests in a regular fashion.
  with-test-prefix with-test-prefix* current-test-prefix
@@ -67,7 +73,9 @@
 ;;;; environment.  All other exceptions thrown by THUNK are considered as
 ;;;; errors.
 ;;;;
-;;;; For convenience, the following macros are provided:
+;;;;
+;;;; Convenience macros for tests expected to pass or fail
+;;;;
 ;;;; * (pass-if name body) is a short form for 
 ;;;;   (run-test name #t (lambda () body))
 ;;;; * (expect-fail name body) is a short form for 
@@ -76,7 +84,24 @@
 ;;;; For example:  
 ;;;;
 ;;;;    (pass-if "integer addition" (= 2 (+ 1 1)))
-
+;;;;
+;;;;
+;;;; Convenience macros to test for exceptions
+;;;;
+;;;; The following macros take exception parameters which are pairs
+;;;; (type . message), where type is a symbol that denotes an exception type
+;;;; like 'wrong-type-arg or 'out-of-range, and message is a string holding a
+;;;; regular expression that describes the error message for the exception
+;;;; like "Argument .* out of range".
+;;;;
+;;;; * (pass-if-exception name exception body) will pass if the execution of
+;;;;   body causes the given exception to be thrown.  If no exception is
+;;;;   thrown, the test fails.  If some other exception is thrown, is is an
+;;;;   error.
+;;;; * (expect-fail-exception name exception body) will pass unexpectedly if
+;;;;   the execution of body causes the given exception to be thrown.  If no
+;;;;   exception is thrown, the test fails expectedly.  If some other
+;;;;   exception is thrown, it is an error.
 
 
 ;;;; TEST NAMES
@@ -194,6 +219,12 @@
 ;;;; MISCELLANEOUS
 ;;;;
 
+;;; Define some exceptions which are commonly being tested for.
+(define exception:out-of-range
+  (cons 'out-of-range "^Argument .*out of range"))
+(define exception:wrong-type-arg
+  (cons 'wrong-type-arg "^Wrong type argument"))
+
 ;;; Display all parameters to the default output port, followed by a newline.
 (define (display-line . objs)
   (for-each display objs)
@@ -246,6 +277,25 @@
 ;;; A short form for tests that are expected to fail, taken from Greg.
 (defmacro expect-fail (name body . rest)
   `(run-test ,name #f (lambda () ,body ,@rest)))
+
+;;; A helper function to implement the macros that test for exceptions.
+(define (run-test-exception name exception expect-pass thunk)
+  (run-test name expect-pass
+    (lambda ()
+      (catch (car exception)
+	(lambda () (thunk) #f)
+	(lambda (key proc message . rest) 
+	  (if (not (string-match (cdr exception) message))
+	      (apply throw key proc message rest)
+	      #t))))))
+
+;;; A short form for tests that expect a certain exception to be thrown.
+(defmacro pass-if-exception (name exception body . rest)
+  `(,run-test-exception ,name ,exception #t (lambda () ,body ,@rest)))
+
+;;; A short form for tests expected to fail to throw a certain exception.
+(defmacro expect-fail-exception (name exception body . rest)
+  `(,run-test-exception ,name ,exception #f (lambda () ,body ,@rest)))
 
 
 ;;;; TEST NAMES
