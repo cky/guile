@@ -80,7 +80,7 @@ scm_string (chrs)
      SCM chrs;
 {
   SCM res;
-  register char *data;
+  register unsigned char *data;
   long i;
   long len;
   SCM_DEFER_INTS;
@@ -106,7 +106,7 @@ scm_string (chrs)
 	}
   }
   res = scm_makstr (len, 0);
-  data = SCM_CHARS (res);
+  data = SCM_UCHARS (res);
   for (;SCM_NNULLP (chrs);chrs = SCM_CDR (chrs))
     {
       if (SCM_ICHRP (SCM_CAR (chrs)))
@@ -116,7 +116,7 @@ scm_string (chrs)
 	  int l;
 	  char * c;
 	  l = SCM_ROLENGTH (SCM_CAR (chrs));
-	  c = SCM_ROCHARS (SCM_CAR (chrs));
+	  c = SCM_ROUCHARS (SCM_CAR (chrs));
 	  while (l)
 	    {
 	      --l;
@@ -232,12 +232,12 @@ scm_make_string (k, chr)
      SCM chr;
 {
   SCM res;
-  register char *dst;
+  register unsigned char *dst;
   register long i;
   SCM_ASSERT (SCM_INUMP (k) && (k >= 0), k, SCM_ARG1, s_make_string);
   i = SCM_INUM (k);
   res = scm_makstr (i, 0);
-  dst = SCM_CHARS (res);
+  dst = SCM_UCHARS (res);
   if SCM_ICHRP (chr)
     {
       char c = SCM_ICHR (chr);
@@ -271,7 +271,7 @@ scm_string_ref (str, k)
     k = SCM_MAKINUM (0);
   SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG2, s_string_ref);
   SCM_ASSERT (SCM_INUM (k) < SCM_ROLENGTH (str) && SCM_INUM (k) >= 0, k, SCM_OUTOFRANGE, s_string_ref);
-  return SCM_MAKICHR (SCM_ROCHARS (str)[SCM_INUM (k)]);
+  return SCM_MAKICHR (SCM_ROUCHARS (str)[SCM_INUM (k)]);
 }
 
 SCM_PROC(s_string_set_x, "string-set!", 3, 0, 0, scm_string_set_x);
@@ -286,7 +286,7 @@ scm_string_set_x (str, k, chr)
   SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG2, s_string_set_x);
   SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG3, s_string_set_x);
   SCM_ASSERT (SCM_INUM (k) < SCM_LENGTH (str) && SCM_INUM (k) >= 0, k, SCM_OUTOFRANGE, s_string_set_x);
-  SCM_CHARS (str)[SCM_INUM (k)] = SCM_ICHR (chr);
+  SCM_UCHARS (str)[SCM_INUM (k)] = SCM_ICHR (chr);
   return SCM_UNSPECIFIED;
 }
 
@@ -323,7 +323,7 @@ scm_string_append (args)
   SCM res;
   register long i = 0;
   register SCM l, s;
-  register char *data;
+  register unsigned char *data;
   for (l = args;SCM_NIMP (l);) {
     SCM_ASSERT (SCM_CONSP (l), l, SCM_ARGn, s_string_append);
     s = SCM_CAR (l);
@@ -334,10 +334,10 @@ scm_string_append (args)
   }
   SCM_ASSERT (SCM_NULLP (l), args, SCM_ARGn, s_string_append);
   res = scm_makstr (i, 0);
-  data = SCM_CHARS (res);
+  data = SCM_UCHARS (res);
   for (l = args;SCM_NIMP (l);l = SCM_CDR (l)) {
     s = SCM_CAR (l);
-    for (i = 0;i<SCM_ROLENGTH (s);i++) *data++ = SCM_ROCHARS (s)[i];
+    for (i = 0;i<SCM_ROLENGTH (s);i++) *data++ = SCM_ROUCHARS (s)[i];
   }
   return res;
 }
