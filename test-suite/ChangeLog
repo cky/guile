@@ -2,6 +2,8 @@
 
 	* tests/regexp.test (make-regexp): Exercise flags args validation.
 
+	* tests/unif.test (array-set!): Exercise svect value range check.
+
 2004-07-24  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/common-list.test: Use define-module, to as not to import
