@@ -74,7 +74,7 @@
 ;; In thread:
 ;; Widespread bug in handling (call/cc (lambda (c) (0 (c 1)))) => 1 
 ;; http://groups.google.com/groups?selm=87g00y4b6l.fsf%40radish.petrofsky.org
-(should-be-but-isnt 2.1 1
+(should-be 2.1 1
  (call/cc (lambda (c) (0 (c 1)))))
 
 ;; Section 3: Hygienic macros

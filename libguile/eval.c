@@ -1640,23 +1640,6 @@ scm_badargsp (SCM formals, SCM args)
   return !SCM_NULLP (args) ? 1 : 0;
 }
 
-
-static int 
-scm_badformalsp (SCM closure, int n)
-{
-  SCM formals = SCM_CLOSURE_FORMALS (closure);
-  while (!SCM_NULLP (formals))
-    {
-      if (!SCM_CONSP (formals)) 
-        return 0;
-      if (n == 0) 
-        return 1;
-      --n;
-      formals = SCM_CDR (formals);
-    }
-  return n;
-}
-
 
 SCM 
 scm_eval_args (SCM l, SCM env, SCM proc)
@@ -2188,13 +2171,9 @@ dispatch:
 		    {
 		      proc = SCM_CDR (x);
 		      proc = EVALCAR (proc, env);
-		      SCM_ASRTGO (!SCM_IMP (proc), badfun);
 		      PREP_APPLY (proc, scm_list_1 (arg1));
 		      ENTER_APPLY;
-		      if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
-			goto umwrongnumargs;
-		      else
-			goto evap1;
+                      goto evap1;
 		    }
 		}
 	      x = SCM_CDR (x);
@@ -2399,7 +2378,6 @@ dispatch:
       /* new syntactic forms go here. */
     case SCM_BIT7 (SCM_MAKISYM (0)):
       proc = SCM_CAR (x);
-      SCM_ASRTGO (SCM_ISYMP (proc), badfun);
       switch (SCM_ISYMNUM (proc))
 	{
 
@@ -2407,7 +2385,6 @@ dispatch:
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
 	  proc = SCM_CDR (x);
 	  proc = EVALCAR (proc, env);
-	  SCM_ASRTGO (!SCM_IMP (proc), badfun);
 	  if (SCM_CLOSUREP (proc))
 	    {
 	      PREP_APPLY (proc, SCM_EOL);
@@ -2466,11 +2443,8 @@ dispatch:
 		arg1 = val;
 		proc = SCM_CDR (x);
 		proc = scm_eval_car (proc, env);
-		SCM_ASRTGO (SCM_NIMP (proc), badfun);
 		PREP_APPLY (proc, scm_list_1 (arg1));
 		ENTER_APPLY;
-		if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
-		  goto umwrongnumargs;
 		goto evap1;
 	      }
 	  }
@@ -2725,13 +2699,12 @@ dispatch:
 
 
 	default:
-	  goto badfun;
+	  goto evapply;
 	}
 
     default:
       proc = x;
-    badfun:
-      scm_misc_error (NULL, "Wrong type to apply: ~S", scm_list_1 (proc));
+      goto evapply;
     case scm_tc7_vector:
     case scm_tc7_wvect:
 #if SCM_HAVE_ARRAYS
@@ -2761,8 +2734,7 @@ dispatch:
 
     case SCM_BIT7 (SCM_ILOC00):
       proc = *scm_ilookup (SCM_CAR (x), env);
-      SCM_ASRTGO (SCM_NIMP (proc), badfun);
-      goto checkargs;
+      goto checkmacro;
 
     case scm_tcs_cons_nimcar:
       if (SCM_SYMBOLP (SCM_CAR (x)))
@@ -2778,12 +2750,6 @@ dispatch:
 	    proc = *location;
 	  }
 
-	  if (SCM_IMP (proc))
-	    {
-	      SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of
-					    lookupcar */
-	      goto badfun;
-	    }
 	  if (SCM_MACROP (proc))
 	    {
 	      SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of
@@ -2844,26 +2810,9 @@ dispatch:
 	}
       else
 	proc = SCM_CEVAL (SCM_CAR (x), env);
-      SCM_ASRTGO (!SCM_IMP (proc), badfun);
 
-    checkargs:
-      if (SCM_CLOSUREP (proc))
-	{
-	  SCM formals = SCM_CLOSURE_FORMALS (proc);
-	  SCM args = SCM_CDR (x);
-	  while (!SCM_NULLP (formals))
-	    {
-	      if (!SCM_CONSP (formals))
-		goto evapply;
-	      if (SCM_IMP (args))
-		goto umwrongnumargs;
-	      formals = SCM_CDR (formals);
-	      args = SCM_CDR (args);
-	    }
-	  if (!SCM_NULLP (args))
-	    goto umwrongnumargs;
-	}
-      else if (SCM_MACROP (proc))
+    checkmacro:
+      if (SCM_MACROP (proc))
 	goto handle_a_macro;
     }
 
@@ -2873,6 +2822,7 @@ evapply: /* inputs: x, proc */
   if (SCM_NULLP (SCM_CDR (x))) {
     ENTER_APPLY;
   evap0:
+    SCM_ASRTGO (!SCM_IMP (proc), badfun);
     switch (SCM_TYP7 (proc))
       {				/* no arguments given */
       case scm_tc7_subr_0:
@@ -2904,14 +2854,16 @@ evapply: /* inputs: x, proc */
 #endif
 	if (!SCM_CLOSUREP (proc))
 	  goto evap0;
-	if (scm_badformalsp (proc, 0))
-	  goto umwrongnumargs;
+        /* fallthrough */
       case scm_tcs_closures:
-	x = SCM_CLOSURE_BODY (proc);
-	env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-                              SCM_EOL,
-                              SCM_ENV (proc));
-	goto nontoplevel_begin;
+        {
+          const SCM formals = SCM_CLOSURE_FORMALS (proc);
+          if (SCM_CONSP (formals))
+            goto umwrongnumargs;
+          x = SCM_CLOSURE_BODY (proc);
+          env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
+          goto nontoplevel_begin;
+        }
       case scm_tcs_struct:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
@@ -2931,10 +2883,7 @@ evapply: /* inputs: x, proc */
 	    debug.info->a.proc = proc;
 	    debug.info->a.args = scm_list_1 (arg1);
 #endif
-	    if (SCM_NIMP (proc))
-	      goto evap1;
-	    else
-	      goto badfun;
+            goto evap1;
 	  }
       case scm_tc7_subr_1:
       case scm_tc7_subr_2:
@@ -2946,8 +2895,8 @@ evapply: /* inputs: x, proc */
 	unmemocar (x, env);
 	scm_wrong_num_args (proc);
       default:
-	/* handle macros here */
-	goto badfun;
+      badfun:
+        scm_misc_error (NULL, "Wrong type to apply: ~S", scm_list_1 (proc));
       }
   }
 
@@ -2967,6 +2916,7 @@ evapply: /* inputs: x, proc */
       {
 	ENTER_APPLY;
       evap1: /* inputs: proc, arg1 */
+        SCM_ASRTGO (!SCM_IMP (proc), badfun);
 	switch (SCM_TYP7 (proc))
 	  {				/* have one argument in arg1 */
 	  case scm_tc7_subr_2o:
@@ -3033,21 +2983,26 @@ evapply: /* inputs: x, proc */
 #endif
 	    if (!SCM_CLOSUREP (proc))
 	      goto evap1;
-	    if (scm_badformalsp (proc, 1))
-	      goto umwrongnumargs;
+            /* fallthrough */
 	  case scm_tcs_closures:
-	    /* clos1: */
-	    x = SCM_CLOSURE_BODY (proc);
+            {
+              /* clos1: */
+              const SCM formals = SCM_CLOSURE_FORMALS (proc);
+              if (SCM_NULLP (formals)
+                  || (SCM_CONSP (formals) && SCM_CONSP (SCM_CDR (formals))))
+                goto umwrongnumargs;
+              x = SCM_CLOSURE_BODY (proc);
 #ifdef DEVAL
-	    env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-                                  debug.info->a.args,
-                                  SCM_ENV (proc));
+              env = SCM_EXTEND_ENV (formals,
+                                    debug.info->a.args,
+                                    SCM_ENV (proc));
 #else
-	    env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-                                  scm_list_1 (arg1),
-                                  SCM_ENV (proc));
+              env = SCM_EXTEND_ENV (formals,
+                                    scm_list_1 (arg1),
+                                    SCM_ENV (proc));
 #endif
-	    goto nontoplevel_begin;
+              goto nontoplevel_begin;
+            }
 	  case scm_tcs_struct:
 	    if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	      {
@@ -3072,10 +3027,7 @@ evapply: /* inputs: x, proc */
 		debug.info->a.args = scm_cons (arg1, debug.info->a.args);
 		debug.info->a.proc = proc;
 #endif
-		if (SCM_NIMP (proc))
-		  goto evap2;
-		else
-		  goto badfun;
+                goto evap2;
 	      }
 	  case scm_tc7_subr_2:
 	  case scm_tc7_subr_0:
@@ -3099,6 +3051,7 @@ evapply: /* inputs: x, proc */
       if (SCM_NULLP (x)) {
 	ENTER_APPLY;
       evap2:
+        SCM_ASRTGO (!SCM_IMP (proc), badfun);
 	switch (SCM_TYP7 (proc))
 	  {			/* have two arguments */
 	  case scm_tc7_subr_2:
@@ -3183,21 +3136,29 @@ evapply: /* inputs: x, proc */
 #endif
 	    if (!SCM_CLOSUREP (proc))
 	      goto evap2;
-	    if (scm_badformalsp (proc, 2))
-	      goto umwrongnumargs;
+            /* fallthrough */
 	  case scm_tcs_closures:
-	    /* clos2: */
+            {
+              /* clos2: */
+              const SCM formals = SCM_CLOSURE_FORMALS (proc);
+              if (SCM_NULLP (formals)
+                  || (SCM_CONSP (formals)
+                      && (SCM_NULLP (SCM_CDR (formals))
+                          || (SCM_CONSP (SCM_CDR (formals))
+                              && SCM_CONSP (SCM_CDDR (formals))))))
+                goto umwrongnumargs;
 #ifdef DEVAL
-	    env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-                                  debug.info->a.args,
-                                  SCM_ENV (proc));
+              env = SCM_EXTEND_ENV (formals,
+                                    debug.info->a.args,
+                                    SCM_ENV (proc));
 #else
-	    env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-                                  scm_list_2 (arg1, arg2),
-                                  SCM_ENV (proc));
+              env = SCM_EXTEND_ENV (formals,
+                                    scm_list_2 (arg1, arg2),
+                                    SCM_ENV (proc));
 #endif
-	    x = SCM_CLOSURE_BODY (proc);
-	    goto nontoplevel_begin;
+              x = SCM_CLOSURE_BODY (proc);
+              goto nontoplevel_begin;
+            }
 	  }
       }
       if (!SCM_CONSP (x))
@@ -3209,6 +3170,7 @@ evapply: /* inputs: x, proc */
 #endif
       ENTER_APPLY;
     evap3:
+      SCM_ASRTGO (!SCM_IMP (proc), badfun);
       switch (SCM_TYP7 (proc))
 	{			/* have 3 or more arguments */
 #ifdef DEVAL
@@ -3258,15 +3220,23 @@ evapply: /* inputs: x, proc */
 	  debug.info->a.proc = proc;
 	  if (!SCM_CLOSUREP (proc))
 	    goto evap3;
-	  if (scm_badargsp (SCM_CLOSURE_FORMALS (proc), debug.info->a.args))
-	    goto umwrongnumargs;
+          /* fallthrough */
 	case scm_tcs_closures:
-	  SCM_SET_ARGSREADY (debug);
-	  env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-                                debug.info->a.args,
-                                SCM_ENV (proc));
-	  x = SCM_CLOSURE_BODY (proc);
-	  goto nontoplevel_begin;
+          {
+            const SCM formals = SCM_CLOSURE_FORMALS (proc);
+            if (SCM_NULLP (formals)
+                || (SCM_CONSP (formals)
+                    && (SCM_NULLP (SCM_CDR (formals))
+                        || (SCM_CONSP (SCM_CDR (formals))
+                            && scm_badargsp (SCM_CDDR (formals), x)))))
+              goto umwrongnumargs;
+            SCM_SET_ARGSREADY (debug);
+            env = SCM_EXTEND_ENV (formals,
+                                  debug.info->a.args,
+                                  SCM_ENV (proc));
+            x = SCM_CLOSURE_BODY (proc);
+            goto nontoplevel_begin;
+          }
 #else /* DEVAL */
 	case scm_tc7_subr_3:
 	  if (!SCM_NULLP (SCM_CDR (x)))
@@ -3312,26 +3282,24 @@ evapply: /* inputs: x, proc */
 	  proc = SCM_PROCEDURE (proc);
 	  if (!SCM_CLOSUREP (proc))
 	    goto evap3;
+          /* fallthrough */
+	case scm_tcs_closures:
 	  {
-	    SCM formals = SCM_CLOSURE_FORMALS (proc);
+	    const SCM formals = SCM_CLOSURE_FORMALS (proc);
 	    if (SCM_NULLP (formals)
 		|| (SCM_CONSP (formals)
 		    && (SCM_NULLP (SCM_CDR (formals))
 			|| (SCM_CONSP (SCM_CDR (formals))
 			    && scm_badargsp (SCM_CDDR (formals), x)))))
 	      goto umwrongnumargs;
+            env = SCM_EXTEND_ENV (formals,
+                                  scm_cons2 (arg1,
+                                             arg2,
+                                             scm_eval_args (x, env, proc)),
+                                  SCM_ENV (proc));
+            x = SCM_CLOSURE_BODY (proc);
+            goto nontoplevel_begin;
 	  }
-	case scm_tcs_closures:
-#ifdef DEVAL
-	  SCM_SET_ARGSREADY (debug);
-#endif
-	  env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-                                scm_cons2 (arg1,
-                                           arg2,
-                                           scm_eval_args (x, env, proc)),
-                                SCM_ENV (proc));
-	  x = SCM_CLOSURE_BODY (proc);
-	  goto nontoplevel_begin;
 #endif /* DEVAL */
 	case scm_tcs_struct:
 	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)

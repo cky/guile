@@ -1,5 +1,13 @@
 2003-05-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (SCM_CEVAL): In case of an application, all checks for a
+	proper function object and the correct number of arguments are now
+	performed in the application part of SCM_CEVAL.
+
+	(scm_badformalsp):  Removed.
+
+2003-05-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* deprecated.c (scm_read_and_eval_x):  Fixed C99-ism.
 
 2003-05-22  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
