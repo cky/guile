@@ -1,3 +1,9 @@
+2001-11-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (libguile_srfi_srfi_4_la_LIBADD,
+	libguile_srfi_srfi_13_14_la_LIBADD): Refer to build directory, not
+	the source directory, for libguile.la.  Thanks to Ken Raeburn.
+
 2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Support for native Win32.  Thanks to Stefan Jahn!
