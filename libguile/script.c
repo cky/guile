@@ -641,8 +641,6 @@ scm_compile_shell_switches (int argc, char **argv)
 	 quit.  */
       tail = scm_cons (scm_cons (sym_quit, SCM_EOL),
 		       tail);
-      /* Allow asyncs (signal handlers etc.) to be run.  */
-      scm_mask_ints = 0;
     }
 
   /* After the following line, actions will be added to the front. */
