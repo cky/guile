@@ -3246,6 +3246,8 @@ scm_init_eval ()
 #endif
 
 #include "eval.x"
+
+  scm_add_feature ("delay");
 }
 
 #endif /* !DEVAL */
