@@ -185,7 +185,7 @@ scm_options (SCM arg, scm_option options[], int n, const char *s)
 		  goto cont;
 		case SCM_OPTION_SCM:
 		  new_mode = SCM_CDR (new_mode);
-		  flags[i] = SCM_UNPACK_CAR (new_mode);
+		  flags[i] = SCM_UNPACK (SCM_CAR (new_mode));
 		  goto cont;
 		}
 #ifndef SCM_RECKLESS

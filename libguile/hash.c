@@ -145,7 +145,7 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
       if (d) return (scm_hasher(SCM_CAR(obj), n, d/2)+scm_hasher(SCM_CDR(obj), n, d/2)) % n;
       else return 1;
     case scm_tc7_port:
-      return ((SCM_RDNG & SCM_UNPACK_CAR(obj)) ? 260 : 261) % n;
+      return ((SCM_RDNG & SCM_CELL_WORD_0 (obj)) ? 260 : 261) % n;
     case scm_tcs_closures: 
     case scm_tc7_contin: 
     case scm_tcs_subrs:

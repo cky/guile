@@ -213,7 +213,7 @@ st_seek (SCM port, off_t offset, int whence)
   
       if (target >= pt->write_buf_size)
 	{
-	  if (!(SCM_UNPACK_CAR (port) & SCM_WRTNG))
+	  if (!(SCM_CELL_WORD_0 (port) & SCM_WRTNG))
 	    {
 	      if (target > pt->write_buf_size)
 		{

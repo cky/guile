@@ -375,7 +375,7 @@ free_list_length (char *title, int i, SCM freelist)
   SCM ls;
   int n = 0;
   for (ls = freelist; SCM_NNULLP (ls); ls = SCM_CDR (ls))
-    if (SCM_UNPACK_CAR (ls) == scm_tc_free_cell)
+    if (SCM_CELL_TYPE (ls) == scm_tc_free_cell)
       ++n;
     else
       {

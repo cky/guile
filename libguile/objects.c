@@ -167,8 +167,8 @@ scm_class_of (SCM x)
 	    /* fall through to ports */
 	  }
 	case scm_tc7_port:
-	  return scm_port_class[(SCM_WRTNG & SCM_UNPACK_CAR (x)
-				 ? (SCM_RDNG & SCM_UNPACK_CAR (x)
+	  return scm_port_class[(SCM_WRTNG & SCM_CELL_WORD_0 (x)
+				 ? (SCM_RDNG & SCM_CELL_WORD_0 (x)
 				    ? SCM_INOUT_PCLASS_INDEX | SCM_PTOBNUM (x)
 				    : SCM_OUT_PCLASS_INDEX | SCM_PTOBNUM (x))
 				 : SCM_IN_PCLASS_INDEX | SCM_PTOBNUM (x))];

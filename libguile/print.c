@@ -407,11 +407,11 @@ taloop:
 		    env = SCM_ENV (SCM_CDR (exp));
 		    scm_puts ("#<", port);
 		  }
-		if (SCM_UNPACK_CAR(exp) & (3L << 16))
+		if (SCM_CELL_WORD_0 (exp) & (3L << 16))
 		  scm_puts ("macro", port);
 		else
 		  scm_puts ("syntax", port);
-		if (SCM_UNPACK_CAR (exp) & (2L << 16))
+		if (SCM_CELL_WORD_0 (exp) & (2L << 16))
 		  scm_putc ('!', port);
 	      }
 	    else

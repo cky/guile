@@ -260,8 +260,7 @@ make_lazy_catch (struct lazy_catch *c)
   SCM_RETURN_NEWSMOB (tc16_lazy_catch, c);
 }
 
-#define SCM_LAZY_CATCH_P(obj) \
-  (SCM_NIMP (obj) && (SCM_UNPACK_CAR (obj) == tc16_lazy_catch))
+#define SCM_LAZY_CATCH_P(obj) (SCM_SMOB_PREDICATE (tc16_lazy_catch, obj))
 
 
 /* Exactly like scm_internal_catch, except:

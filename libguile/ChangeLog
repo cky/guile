@@ -1,5 +1,12 @@
 2000-05-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (free_list_length), hash.c (scm_hasher), macros.c
+	(scm_macro_type), objects.c (scm_class_of), options.c
+	(scm_options), print.c (scm_iprin1), strports.c (st_seek), throw.c
+	(SCM_LAZY_CATCH_P):  Replace SCM_UNPACK_CAR appropriately.
+
+2000-05-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_macroexp, SCM_CEVAL, scm_force), tags.h:  Replace
 	SCM_UNPACK_CAR with SCM_CELL_TYPE or SCM_CELL_WORD_0.
 
