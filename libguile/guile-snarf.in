@@ -1,4 +1,10 @@
 #!/bin/sh
 # Extract the initialization actions for builtin things.
 
-@CPP@ -DSCM_MAGIC_SNARFER "$@" | grep "^ *% *% *%" | sed -e "s/^ *% *% *%//"
+## Let the user override the preprocessor autoconf found.
+test -n "${CPP+set}" || CPP="@CPP@"
+${CPP} -DSCM_MAGIC_SNARFER "$@" | grep "^ *% *% *%" | sed -e "s/^ *% *% *%//"
+
+## Apparently, AIX's preprocessor is unhappy if you try to #include an
+## empty file.
+echo
