@@ -525,10 +525,10 @@
 (define map1 map)
 
 (define (append-map f clist1 . rest)
-  (apply append (apply map f clist1 rest)))
+  (concatenate (apply map f clist1 rest)))
   
 (define (append-map! f clist1 . rest)
-  (apply append! (apply map f clist1 rest)))
+  (concatenate! (apply map f clist1 rest)))
 
 ;; OPTIMIZE-ME: Re-use cons cells of list1
 (define map! map)
