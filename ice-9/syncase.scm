@@ -95,8 +95,16 @@
 	    (apply consumer (access-values result))
 	    (consumer result))))))
 
-(load-from-path "ice-9/psyntax.pp")
-;;(load-from-path "ice-9/psyntax.ss")
+(let ((old #f))
+  (dynamic-wind (lambda ()
+		  (set! old (read-options)))
+		(lambda ()
+		  (load-from-path "ice-9/psyntax.pp"))
+		(lambda ()
+		  (read-options old))))
+		
+;; The followin line is necessary only if we start making changes
+;; (load-from-path "ice-9/psyntax.ss")
 
 (define-public (eval-options . args)
   '())
