@@ -1,3 +1,13 @@
+2003-02-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Makefile.am (ice9_sources): Added weak-vector.scm.
+
+	* weak-vector.scm: New file.
+
+	* boot-9.scm (module-clear!): Use hash-clear!.
+	(module-for-each): Use hash-for-each.
+	(module-map): Use hash-map.
+
 2003-02-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* boot-9.scm (make-hash-table): Turned primitive.

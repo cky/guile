@@ -49,54 +49,42 @@
 #include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/ports.h"
-#include "libguile/weaks.h"
 
 #include "libguile/validate.h"
 #include "libguile/hashtab.h"
 
 
+/* NOTES
+ *
+ * 1. The current hash table implementation uses weak alist vectors
+ *    (implementation in weaks.c) internally, but we do the scanning
+ *    ourselves (in scan_weak_hashtables) because we need to update the
+ *    hash table structure when items are dropped during GC.
+ *
+ * 2. All hash table operations still work on alist vectors.
+ *
+ */
+
 /* Hash tables are either vectors of association lists or smobs
-   containing such vectors.  Currently, the vector version represents
-   constant size tables while those wrapped in a smob represents
-   resizing tables.
-
-   Growing or shrinking, with following rehashing, is triggered when
-   the load factor
-
-     L = N / S    (N: number of items in table, S: bucket vector length)
-
-   passes an upper limit of 0.9 or a lower limit of 0.25.
-
-   The implementation stores the upper and lower number of items which
-   trigger a resize in the hashtable object.
-
-   Possible hash table sizes (primes) are stored in the array
-   hashtable_size.
+ * containing such vectors.  Currently, the vector version represents
+ * constant size tables while those wrapped in a smob represents
+ * resizing tables.
+ *
+ * Growing or shrinking, with following rehashing, is triggered when
+ * the load factor
+ *
+ *   L = N / S    (N: number of items in table, S: bucket vector length)
+ *
+ * passes an upper limit of 0.9 or a lower limit of 0.25.
+ *
+ * The implementation stores the upper and lower number of items which
+ * trigger a resize in the hashtable object.
+ *
+ * Possible hash table sizes (primes) are stored in the array
+ * hashtable_size.
  */
-
-/*fixme* Update n_items correctly for weak tables.  This can be done
-  by representing such tables with ordinary vectors and adding a scan
-  function to the before sweep hook similarly to what is done in weaks.c.
- */
-
-#define SCM_HASHTABLE_P(x)	   SCM_TYP16_PREDICATE (scm_tc16_hashtable, x)
-#define SCM_HASHTABLE_VECTOR(x)	   SCM_CELL_OBJECT_1 (x)
-#define SCM_SET_HASHTABLE_VECTOR(x, v) SCM_SET_CELL_OBJECT_1 (x, v)
-#define SCM_HASHTABLE(x)	   ((scm_t_hashtable *) SCM_CELL_WORD_2 (x))
-#define SCM_HASHTABLE_N_ITEMS(x)   (SCM_HASHTABLE (x)->n_items)
-#define SCM_HASHTABLE_INCREMENT(x) (SCM_HASHTABLE_N_ITEMS(x)++)
-#define SCM_HASHTABLE_DECREMENT(x) (SCM_HASHTABLE_N_ITEMS(x)--)
-#define SCM_HASHTABLE_UPPER(x)     (SCM_HASHTABLE (x)->upper)
-#define SCM_HASHTABLE_LOWER(x)     (SCM_HASHTABLE (x)->lower)
 
 scm_t_bits scm_tc16_hashtable;
-
-typedef struct scm_t_hashtable {
-  unsigned long n_items;	/* number of items in table */
-  unsigned long lower;		/* when to shrink */
-  unsigned long upper;		/* when to grow */
-  int size_index;		/* index into hashtable_size */
-} scm_t_hashtable;
 
 #define HASHTABLE_SIZE_N 25
 
@@ -111,37 +99,217 @@ static unsigned long hashtable_size[] = {
 
 static char *s_hashtable = "hashtable";
 
-SCM
-scm_vector_to_hash_table (SCM vector) {
-  SCM table;
+SCM weak_hashtables = SCM_EOL;
+
+static SCM
+make_hash_table (int flags, unsigned long k, const char *func_name) {
+  SCM table, vector;
+  int i, n = k ? k : 31;
+  if (flags)
+    /* The SCM_WVECTF_NOSCAN flag informs the weak vector code not to
+       perform the final scan for broken references.  Instead we do
+       that ourselves in scan_weak_hashtables. */
+    vector = scm_i_allocate_weak_vector (flags | SCM_WVECTF_NOSCAN,
+					 SCM_MAKINUM (n),
+					 SCM_EOL,
+					 func_name);
+  else
+    vector = scm_c_make_vector (n, SCM_EOL);
   scm_t_hashtable *t = scm_gc_malloc (sizeof (*t), s_hashtable);
-  int i = 0, len = SCM_VECTOR_LENGTH (vector);
-  while (i < HASHTABLE_SIZE_N && len > hashtable_size[i])
+  i = 0;
+  while (i < HASHTABLE_SIZE_N && n > hashtable_size[i])
     ++i;
   if (i > 0)
     i = i - 1;
-  t->size_index = i;
+  t->min_size_index = t->size_index = i;
   t->n_items = 0;
-  if (i == 0)
-    t->lower = 0;
-  else
-    t->lower = hashtable_size[i] / 4;
+  t->lower = 0;
   t->upper = 9 * hashtable_size[i] / 10;
-  SCM_NEWSMOB2 (table, scm_tc16_hashtable, vector, t);
+  t->flags = flags;
+  if (flags)
+    {
+      SCM_NEWSMOB3 (table, scm_tc16_hashtable, vector, t, weak_hashtables);
+      weak_hashtables = table;
+    }
+  else
+    SCM_NEWSMOB3 (table, scm_tc16_hashtable, vector, t, SCM_EOL);
   return table;
 }
+
+
+void
+scm_i_rehash (SCM table,
+	      unsigned long (*hash_fn)(),
+	      void *closure,
+	      const char* func_name)
+{
+  SCM buckets, new_buckets;
+  int i;
+  unsigned long old_size;
+  unsigned long new_size;
+
+  if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table))
+    {
+      /* rehashing is not triggered when i <= min_size */
+      i = SCM_HASHTABLE (table)->size_index;
+      do
+	--i;
+      while (i > SCM_HASHTABLE (table)->min_size_index
+	     && SCM_HASHTABLE_N_ITEMS (table) < hashtable_size[i] / 4);
+    }
+  else
+    {
+      i = SCM_HASHTABLE (table)->size_index + 1;
+      if (i >= HASHTABLE_SIZE_N)
+	/* don't rehash */
+	return;
+      /* store for use in rehash_after_gc */
+      SCM_HASHTABLE (table)->hash_fn = hash_fn;
+      SCM_HASHTABLE (table)->closure = closure;
+    }
+  SCM_HASHTABLE (table)->size_index = i;
+  
+  new_size = hashtable_size[i];
+  if (i <= SCM_HASHTABLE (table)->min_size_index)
+    SCM_HASHTABLE (table)->lower = 0;
+  else
+    SCM_HASHTABLE (table)->lower = new_size / 4;
+  SCM_HASHTABLE (table)->upper = 9 * new_size / 10;
+  buckets = SCM_HASHTABLE_VECTOR (table);
+  
+  if (SCM_HASHTABLE_WEAK_P (table))
+    new_buckets = scm_i_allocate_weak_vector (SCM_HASHTABLE_FLAGS (table)
+					      | SCM_WVECTF_NOSCAN,
+					      SCM_MAKINUM (new_size),
+					      SCM_EOL,
+					      func_name);
+  else
+    new_buckets = scm_c_make_vector (new_size, SCM_EOL);
+
+  old_size = SCM_VECTOR_LENGTH (buckets);
+  for (i = 0; i < old_size; ++i)
+    {
+      SCM ls = SCM_VELTS (buckets)[i], handle;
+      while (!SCM_NULLP (ls))
+	{
+	  unsigned long h;
+	  handle = SCM_CAR (ls);
+	  h = hash_fn (SCM_CAR (handle), new_size, closure);
+	  if (h >= new_size)
+	    scm_out_of_range (func_name, scm_ulong2num (h));
+	  SCM_VECTOR_SET (new_buckets, h,
+			  scm_cons (handle, SCM_VELTS (new_buckets)[h]));
+	  ls = SCM_CDR (ls);
+	}
+    }
+  SCM_SET_HASHTABLE_VECTOR (table, new_buckets);
+}
+
 
 static int
 hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_t_hashtable *t = SCM_HASHTABLE (exp);
-  scm_puts ("#<resizing-hash-table ", port);
-  scm_intprint ((unsigned long)t->n_items, 10, port);
+  scm_puts ("#<", port);
+  if (SCM_HASHTABLE_WEAK_KEY_P (exp))
+    scm_puts ("weak-key-", port);
+  else if (SCM_HASHTABLE_WEAK_VALUE_P (exp))
+    scm_puts ("weak-value-", port);
+  else if (SCM_HASHTABLE_DOUBLY_WEAK_P (exp))
+    scm_puts ("doubly-weak-", port);
+  scm_puts ("hash-table ", port);
+  scm_intprint ((unsigned long) t->n_items, 10, port);
   scm_putc ('/', port);
   scm_intprint ((unsigned long) SCM_VECTOR_LENGTH (SCM_HASHTABLE_VECTOR (exp)),
 		10, port);
   scm_puts (">", port);
   return 1;
+}
+
+#define UNMARKED_CELL_P(x) (SCM_NIMP(x) && !SCM_GC_MARK_P (x))
+
+/* keep track of hash tables that need to shrink after scan */
+static SCM to_rehash = SCM_EOL;
+
+/* scan hash tables for broken references, remove them, and update
+   hash tables item count */
+static void *
+scan_weak_hashtables (void *dummy1 SCM_UNUSED,
+		      void *dummy2 SCM_UNUSED,
+		      void *dummy3 SCM_UNUSED)
+{
+  SCM *next = &weak_hashtables;
+  SCM h = *next;
+  while (!SCM_NULLP (h))
+    {
+      if (!SCM_GC_MARK_P (h))
+	*next = h = SCM_HASHTABLE_NEXT (h);
+      else
+	{
+	  SCM alist;
+	  int i, n = SCM_HASHTABLE_N_BUCKETS (h);
+	  int weak_car = SCM_HASHTABLE_FLAGS (h) & SCM_HASHTABLEF_WEAK_CAR;
+	  int weak_cdr = SCM_HASHTABLE_FLAGS (h) & SCM_HASHTABLEF_WEAK_CDR;
+	  int check_size_p = 0;
+	  for (i = 0; i < n; ++i)
+	    {
+	      SCM *next_spine = (SCM *) &SCM_HASHTABLE_BUCKETS (h)[i];
+	      for (alist = *next_spine;
+		   !SCM_NULLP (alist);
+		   alist = SCM_CDR (alist))
+		if ((weak_car && UNMARKED_CELL_P (SCM_CAAR (alist)))
+		    || (weak_cdr && UNMARKED_CELL_P (SCM_CDAR (alist))))
+		  {
+		    *next_spine = SCM_CDR (alist);
+		    SCM_HASHTABLE_DECREMENT (h);
+		    check_size_p = 1;
+		  }
+		else
+		  next_spine = SCM_CDRLOC (alist);
+	    }
+	  if (check_size_p
+	      && SCM_HASHTABLE_N_ITEMS (h) < SCM_HASHTABLE_LOWER (h))
+	    {
+	      SCM tmp = SCM_HASHTABLE_NEXT (h);
+	      /* temporarily move table from weak_hashtables to to_rehash */
+	      SCM_SET_HASHTABLE_NEXT (h, to_rehash);
+	      to_rehash = h;
+	      *next = h = tmp;
+	    }
+	  else
+	    {
+	      next = SCM_HASHTABLE_NEXTLOC (h);
+	      h = SCM_HASHTABLE_NEXT (h);
+	    }
+	}
+    }
+  return 0;
+}
+
+static void *
+rehash_after_gc (void *dummy1 SCM_UNUSED,
+		 void *dummy2 SCM_UNUSED,
+		 void *dummy3 SCM_UNUSED)
+{
+  if (!SCM_NULLP (to_rehash))
+    {
+      SCM h = to_rehash, last;
+      do
+	{
+	  scm_i_rehash (h,
+			/* use same hash_fn and closure as last time */
+			SCM_HASHTABLE (h)->hash_fn,
+			SCM_HASHTABLE (h)->closure,
+			"rehash_after_gc");
+	  last = h;
+	  h = SCM_HASHTABLE_NEXT (h);
+	} while (!SCM_NULLP (h));
+      /* move tables back to weak_hashtables */
+      SCM_SET_HASHTABLE_NEXT (last, weak_hashtables);
+      weak_hashtables = to_rehash;
+      to_rehash = SCM_EOL;
+    }
+  return 0;
 }
 
 static size_t
@@ -155,100 +323,132 @@ hashtable_free (SCM obj)
 SCM
 scm_c_make_hash_table (unsigned long k)
 {
-  return scm_c_make_vector (k, SCM_EOL);
-}
-
-SCM
-scm_c_make_resizing_hash_table ()
-{
-  return scm_vector_to_hash_table (scm_c_make_vector (31, SCM_EOL));
+  return make_hash_table (0, k, "scm_c_make_hash_table");
 }
 
 SCM_DEFINE (scm_make_hash_table, "make-hash-table", 0, 1, 0,
 	    (SCM n),
-	    "Make a hash table with constant number of buckets @var{n}\n"
-	    "If called with zero arguments, create a resizing hash table.")
+	    "Make a hash table with optional minimum number of buckets @var{n}\n")
 #define FUNC_NAME s_scm_make_hash_table
 {
   if (SCM_UNBNDP (n))
-    return scm_c_make_resizing_hash_table ();
+    return make_hash_table (0, 0, FUNC_NAME);
   else
     {
       int k;
       SCM_VALIDATE_INUM_COPY (1, n, k);
-      return scm_c_make_hash_table (k);
+      return make_hash_table (0, k, FUNC_NAME);
     }
 }
 #undef FUNC_NAME
 
-static void
-rehash (SCM table, unsigned long (*hash_fn)(), void *closure)
+SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0, 
+	    (SCM n),
+	    "@deffnx {Scheme Procedure} make-weak-value-hash-table size\n"
+	    "@deffnx {Scheme Procedure} make-doubly-weak-hash-table size\n"
+	    "Return a weak hash table with @var{size} buckets. As with any\n"
+	    "hash table, choosing a good size for the table requires some\n"
+	    "caution.\n"
+	    "\n"
+	    "You can modify weak hash tables in exactly the same way you\n"
+	    "would modify regular hash tables. (@pxref{Hash Tables})")
+#define FUNC_NAME s_scm_make_weak_key_hash_table
 {
-  SCM buckets, new_buckets;
-  int i;
-  unsigned long old_size;
-  unsigned long new_size;
-  
-  if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table))
-    /* rehashing is never triggered when i == 0 */
-    i = --SCM_HASHTABLE (table)->size_index;
+  if (SCM_UNBNDP (n))
+    return make_hash_table (SCM_HASHTABLEF_WEAK_CAR, 0, FUNC_NAME);
   else
     {
-      i = SCM_HASHTABLE (table)->size_index + 1;
-      if (i < HASHTABLE_SIZE_N)
-	SCM_HASHTABLE (table)->size_index = i;
-      else
-	/* don't rehash */
-	return;
+      int k;
+      SCM_VALIDATE_INUM_COPY (1, n, k);
+      return make_hash_table (SCM_HASHTABLEF_WEAK_CAR, k, FUNC_NAME);
     }
-  
-  new_size = hashtable_size[i];
-  if (i == 0)
-    SCM_HASHTABLE (table)->lower = 0;
-  else
-    SCM_HASHTABLE (table)->lower = new_size / 4;
-  SCM_HASHTABLE (table)->upper = 9 * new_size / 10;
-  buckets = SCM_HASHTABLE_VECTOR (table);
-  
-  if (SCM_VECTORP (buckets))
-    new_buckets = scm_c_make_vector (new_size, SCM_EOL);
-  else
-    switch (SCM_WVECT_TYPE (buckets)) {
-    case 1:
-      new_buckets = scm_make_weak_key_hash_table (SCM_MAKINUM (new_size));
-      break;
-    case 2:
-      new_buckets = scm_make_weak_value_hash_table (SCM_MAKINUM (new_size));
-      break;
-    case 3:
-      new_buckets = scm_make_doubly_weak_hash_table (SCM_MAKINUM (new_size));
-      break;
-    default:
-      abort (); /* never reached */
-    }
-
-  old_size = SCM_VECTOR_LENGTH (buckets);
-  for (i = 0; i < old_size; ++i)
-    {
-      SCM ls = SCM_VELTS (buckets)[i], handle;
-      while (!SCM_NULLP (ls))
-	{
-	  unsigned long h;
-	  if (!SCM_CONSP (ls))
-	    break;
-	  handle = SCM_CAR (ls);
-	  if (!SCM_CONSP (handle))
-	    continue;
-	  h = hash_fn (SCM_CAR (handle), new_size, closure);
-	  if (h >= new_size)
-	    scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (h));
-	  SCM_VECTOR_SET (new_buckets, h,
-			  scm_cons (handle, SCM_VELTS (new_buckets)[h]));
-	  ls = SCM_CDR (ls);
-	}
-    }
-  SCM_SET_HASHTABLE_VECTOR (table, new_buckets);
 }
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 0, 1, 0, 
+            (SCM n),
+	    "Return a hash table with weak values with @var{size} buckets.\n"
+	    "(@pxref{Hash Tables})")
+#define FUNC_NAME s_scm_make_weak_value_hash_table
+{
+  if (SCM_UNBNDP (n))
+    return make_hash_table (SCM_HASHTABLEF_WEAK_CDR, 0, FUNC_NAME);
+  else
+    {
+      int k;
+      SCM_VALIDATE_INUM_COPY (1, n, k);
+      return make_hash_table (SCM_HASHTABLEF_WEAK_CDR, k, FUNC_NAME);
+    }
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, 
+            (SCM n),
+	    "Return a hash table with weak keys and values with @var{size}\n"
+	    "buckets.  (@pxref{Hash Tables})")
+#define FUNC_NAME s_scm_make_doubly_weak_hash_table
+{
+  if (SCM_UNBNDP (n))
+    return make_hash_table (SCM_HASHTABLEF_WEAK_CAR | SCM_HASHTABLEF_WEAK_CDR,
+			    0,
+			    FUNC_NAME);
+  else
+    {
+      int k;
+      SCM_VALIDATE_INUM_COPY (1, n, k);
+      return make_hash_table (SCM_HASHTABLEF_WEAK_CAR | SCM_HASHTABLEF_WEAK_CDR,
+			      k,
+			      FUNC_NAME);
+    }
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_hash_table_p, "hash-table?", 1, 0, 0, 
+            (SCM obj),
+	    "Return @code{#t} if @var{obj} is a hash table.")
+#define FUNC_NAME s_scm_hash_table_p
+{
+  return SCM_BOOL (SCM_HASHTABLE_P (obj));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
+           (SCM obj),
+	    "@deffnx {Scheme Procedure} weak-value-hash-table? obj\n"
+	    "@deffnx {Scheme Procedure} doubly-weak-hash-table? obj\n"
+	    "Return @code{#t} if @var{obj} is the specified weak hash\n"
+	    "table. Note that a doubly weak hash table is neither a weak key\n"
+	    "nor a weak value hash table.")
+#define FUNC_NAME s_scm_weak_key_hash_table_p
+{
+  return SCM_BOOL (SCM_HASHTABLE_P (obj) && SCM_HASHTABLE_WEAK_KEY_P (obj));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0, 
+            (SCM obj),
+	    "Return @code{#t} if @var{obj} is a weak value hash table.")
+#define FUNC_NAME s_scm_weak_value_hash_table_p
+{
+  return SCM_BOOL (SCM_HASHTABLE_P (obj) && SCM_HASHTABLE_WEAK_VALUE_P (obj));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0, 
+            (SCM obj),
+	    "Return @code{#t} if @var{obj} is a doubly weak hash table.")
+#define FUNC_NAME s_scm_doubly_weak_hash_table_p
+{
+  return SCM_BOOL (SCM_HASHTABLE_P (obj) && SCM_HASHTABLE_DOUBLY_WEAK_P (obj));
+}
+#undef FUNC_NAME
+
 
 SCM
 scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
@@ -306,13 +506,7 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 	{
 	  SCM_HASHTABLE_INCREMENT (table);
 	  if (SCM_HASHTABLE_N_ITEMS (table) > SCM_HASHTABLE_UPPER (table))
-	    {
-	      rehash (table, hash_fn, closure);
-	      buckets = SCM_HASHTABLE_VECTOR (table);
-	      k = hash_fn (obj, SCM_VECTOR_LENGTH (buckets), closure);
-	      if (k >= SCM_VECTOR_LENGTH (buckets))
-		scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (k));
-	    }
+	    scm_i_rehash (table, hash_fn, closure, FUNC_NAME);
 	}
       return SCM_CAR (new_bucket);
     }
@@ -377,12 +571,23 @@ scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*asso
 	{
 	  SCM_HASHTABLE_DECREMENT (table);
 	  if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table))
-	    rehash (table, hash_fn, closure);
+	    scm_i_rehash (table, hash_fn, closure, "scm_hash_fn_remove_x");
 	}
     }
   return h;
 }
 
+SCM_DEFINE (scm_hash_clear_x, "hash-clear!", 1, 0, 0,
+	    (SCM table),
+	    "Remove all items from TABLE (without triggering a resize).")
+#define FUNC_NAME s_scm_hash_clear_x
+{
+  SCM_VALIDATE_HASHTABLE (1, table);
+  scm_vector_fill_x (SCM_HASHTABLE_VECTOR (table), SCM_EOL);
+  SCM_SET_HASHTABLE_N_ITEMS (table, 0);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
 
 
 
@@ -777,16 +982,72 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
   return result;
 }
 
+static SCM
+for_each_proc (void *proc, SCM key, SCM data, SCM value)
+{
+  return scm_call_2 (SCM_PACK (proc), key, data);
+}
+
+SCM_DEFINE (scm_hash_for_each, "hash-for-each", 2, 0, 0, 
+            (SCM proc, SCM table),
+	    "An iterator over hash-table elements.\n"
+            "Applies PROC successively on all hash table items.\n"
+            "The arguments to PROC are \"(key value)\" where key\n"
+            "and value are successive pairs from the hash table TABLE.")
+#define FUNC_NAME s_scm_hash_for_each
+{
+  SCM_VALIDATE_PROC (1, proc);
+  if (!SCM_HASHTABLE_P (table))
+    SCM_VALIDATE_VECTOR (2, table);
+  scm_internal_hash_fold (for_each_proc,
+			  (void *) SCM_UNPACK (proc),
+			  SCM_BOOL_F,
+			  table);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+static SCM
+map_proc (void *proc, SCM key, SCM data, SCM value)
+{
+  return scm_cons (scm_call_2 (SCM_PACK (proc), key, data), value);
+}
+
+SCM_DEFINE (scm_hash_map, "hash-map", 2, 0, 0, 
+            (SCM proc, SCM table),
+	    "An iterator over hash-table elements.\n"
+            "Accumulates and returns as a list the results of applying PROC successively.\n"
+            "The arguments to PROC are \"(key value)\" where key\n"
+            "and value are successive pairs from the hash table TABLE.")
+#define FUNC_NAME s_scm_hash_map
+{
+  SCM_VALIDATE_PROC (1, proc);
+  if (!SCM_HASHTABLE_P (table))
+    SCM_VALIDATE_VECTOR (2, table);
+  return scm_internal_hash_fold (map_proc,
+				 (void *) SCM_UNPACK (proc),
+				 SCM_EOL,
+				 table);
+}
+#undef FUNC_NAME
+
 
 
 
 void
-scm_init_hashtab ()
+scm_hashtab_prehistory ()
 {
   scm_tc16_hashtable = scm_make_smob_type (s_hashtable, 0);
   scm_set_smob_mark (scm_tc16_hashtable, scm_markcdr);
   scm_set_smob_print (scm_tc16_hashtable, hashtable_print);
   scm_set_smob_free (scm_tc16_hashtable, hashtable_free);
+  scm_c_hook_add (&scm_after_sweep_c_hook, scan_weak_hashtables, 0, 0);
+  scm_c_hook_add (&scm_after_gc_c_hook, rehash_after_gc, 0, 0);
+}
+
+void
+scm_init_hashtab ()
+{
 #include "libguile/hashtab.x"
 }
 

@@ -34,7 +34,8 @@ ice9_sources =								   \
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	   \
 	streams.scm string-fun.scm syncase.scm threads.scm	   	   \
 	buffered-input.scm time.scm history.scm channel.scm		   \
-        pretty-print.scm ftw.scm gap-buffer.scm occam-channel.scm
+        pretty-print.scm ftw.scm gap-buffer.scm occam-channel.scm	   \
+	weak-vector.scm
 
 subpkgdatadir = $(pkgdatadir)/${GUILE_EFFECTIVE_VERSION}/ice-9
 subpkgdata_DATA = $(ice9_sources)

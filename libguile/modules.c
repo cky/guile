@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -558,10 +558,10 @@ scm_module_reverse_lookup (SCM module, SCM variable)
   /* XXX - We do not use scm_hash_fold here to avoid searching the
      whole obarray.  We should have a scm_hash_find procedure. */
 
-  n = SCM_VECTOR_LENGTH (obarray);
+  n = SCM_HASHTABLE_N_BUCKETS (obarray);
   for (i = 0; i < n; ++i)
     {
-      SCM ls = SCM_VELTS (obarray)[i], handle;
+      SCM ls = SCM_HASHTABLE_BUCKETS (obarray)[i], handle;
       while (!SCM_NULLP (ls))
 	{
 	  handle = SCM_CAR (ls);

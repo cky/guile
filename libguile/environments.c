@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -531,10 +531,12 @@ observer_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
 static SCM
 obarray_enter (SCM obarray, SCM symbol, SCM data)
 {
-  size_t hash = SCM_SYMBOL_HASH (symbol) % SCM_VECTOR_LENGTH (obarray);
+  size_t hash = SCM_SYMBOL_HASH (symbol) % SCM_HASHTABLE_N_BUCKETS (obarray);
   SCM entry = scm_cons (symbol, data);
-  SCM slot = scm_cons (entry, SCM_VELTS (obarray)[hash]);
-  SCM_VECTOR_SET  (obarray, hash, slot);
+  SCM slot = scm_cons (entry, SCM_HASHTABLE_BUCKETS (obarray)[hash]);
+  SCM_SET_HASHTABLE_BUCKET  (obarray, hash, slot);
+  if (SCM_HASHTABLE_N_ITEMS (obarray) > SCM_HASHTABLE_UPPER (obarray))
+    scm_i_rehash (obarray, scm_i_hash_symbol, 0, "obarray_enter");
 
   return entry;
 }
@@ -547,12 +549,14 @@ obarray_enter (SCM obarray, SCM symbol, SCM data)
 static SCM
 obarray_replace (SCM obarray, SCM symbol, SCM data)
 {
-  size_t hash = SCM_SYMBOL_HASH (symbol) % SCM_VECTOR_LENGTH (obarray);
+  size_t hash = SCM_SYMBOL_HASH (symbol) % SCM_HASHTABLE_N_BUCKETS (obarray);
   SCM new_entry = scm_cons (symbol, data);
   SCM lsym;
   SCM slot;
 
-  for (lsym = SCM_VELTS (obarray)[hash]; !SCM_NULLP (lsym); lsym = SCM_CDR (lsym))
+  for (lsym = SCM_HASHTABLE_BUCKETS (obarray)[hash];
+       !SCM_NULLP (lsym);
+       lsym = SCM_CDR (lsym))
     {
       SCM old_entry = SCM_CAR (lsym);
       if (SCM_EQ_P (SCM_CAR (old_entry), symbol))
@@ -562,8 +566,10 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
 	}
     }
 
-  slot = scm_cons (new_entry, SCM_VELTS (obarray)[hash]);
-  SCM_VECTOR_SET (obarray, hash, slot);
+  slot = scm_cons (new_entry, SCM_HASHTABLE_BUCKETS (obarray)[hash]);
+  SCM_SET_HASHTABLE_BUCKET (obarray, hash, slot);
+  if (SCM_HASHTABLE_N_ITEMS (obarray) > SCM_HASHTABLE_UPPER (obarray))
+    scm_i_rehash (obarray, scm_i_hash_symbol, 0, "obarray_replace");
 
   return SCM_BOOL_F;
 }
@@ -575,10 +581,12 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
 static SCM
 obarray_retrieve (SCM obarray, SCM sym)
 {
-  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
+  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_HASHTABLE_N_BUCKETS (obarray);
   SCM lsym;
 
-  for (lsym = SCM_VELTS (obarray)[hash]; !SCM_NULLP (lsym); lsym = SCM_CDR (lsym))
+  for (lsym = SCM_HASHTABLE_BUCKETS (obarray)[hash];
+       !SCM_NULLP (lsym);
+       lsym = SCM_CDR (lsym))
     {
       SCM entry = SCM_CAR (lsym);
       if (SCM_EQ_P (SCM_CAR (entry), sym))
@@ -596,14 +604,15 @@ obarray_retrieve (SCM obarray, SCM sym)
 static SCM
 obarray_remove (SCM obarray, SCM sym)
 {
-  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
-  SCM table_entry = SCM_VELTS (obarray)[hash];
+  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_HASHTABLE_N_BUCKETS (obarray);
+  SCM table_entry = SCM_HASHTABLE_BUCKETS (obarray)[hash];
   SCM handle = scm_sloppy_assq (sym, table_entry);
 
   if (SCM_CONSP (handle))
     {
       SCM new_table_entry = scm_delq1_x (handle, table_entry);
-      SCM_VECTOR_SET (obarray, hash, new_table_entry);
+      SCM_SET_HASHTABLE_BUCKET (obarray, hash, new_table_entry);
+      SCM_HASHTABLE_DECREMENT (obarray);
     }
 
   return handle;
@@ -613,13 +622,14 @@ obarray_remove (SCM obarray, SCM sym)
 static void
 obarray_remove_all (SCM obarray)
 {
-  size_t size = SCM_VECTOR_LENGTH (obarray);
+  size_t size = SCM_HASHTABLE_N_BUCKETS (obarray);
   size_t i;
 
   for (i = 0; i < size; i++)
     {
-      SCM_VECTOR_SET (obarray, i, SCM_EOL);
+      SCM_SET_HASHTABLE_BUCKET (obarray, i, SCM_EOL);
     }
+  SCM_SET_HASHTABLE_N_ITEMS (obarray, 0);
 }
 
 
@@ -759,7 +769,7 @@ core_environments_init (struct core_environments_base *body,
 {
   body->funcs = funcs;
   body->observers = SCM_EOL;
-  body->weak_observers = scm_make_weak_value_hash_table (SCM_MAKINUM (1));
+  body->weak_observers = scm_make_weak_value_alist_vector (SCM_MAKINUM (1));
 }
 
 
@@ -897,10 +907,12 @@ leaf_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
   SCM result = init;
   SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
 
-  for (i = 0; i < SCM_VECTOR_LENGTH (obarray); i++)
+  for (i = 0; i < SCM_HASHTABLE_N_BUCKETS (obarray); i++)
     {
       SCM l;
-      for (l = SCM_VELTS (obarray)[i]; !SCM_NULLP (l); l = SCM_CDR (l))
+      for (l = SCM_HASHTABLE_BUCKETS (obarray)[i];
+	   !SCM_NULLP (l);
+	   l = SCM_CDR (l))
 	{
 	  SCM binding = SCM_CAR (l);
 	  SCM symbol = SCM_CAR (binding);

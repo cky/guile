@@ -445,14 +445,18 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 
   scm_block_gc = 1;
 
+  scm_storage_prehistory ();
   scm_threads_prehistory ();
   scm_ports_prehistory ();
   scm_smob_prehistory ();
+  scm_hashtab_prehistory ();	/* requires storage_prehistory */
   scm_tables_prehistory ();
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif
-  if (scm_init_storage ())        /* requires threads and smob_prehistory */
+  if (scm_init_storage ())        /* requires threads_prehistory,
+				     smob_prehistory and
+				     hashtab_prehistory */
     abort ();
   
   scm_struct_prehistory ();	  /* requires storage */
@@ -460,7 +464,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_weaks_prehistory ();	  /* requires storage */
   scm_init_subr_table ();
   scm_environments_prehistory (); /* requires storage */
-  scm_modules_prehistory ();      /* requires storage */
+  scm_modules_prehistory ();      /* requires storage and hash tables */
   scm_init_variable ();           /* all bindings need variables */
   scm_init_continuations ();
   scm_init_root ();		  /* requires continuations */

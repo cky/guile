@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -120,9 +120,9 @@ scm_mark_all (void)
   /* mark the registered roots */
   {
     size_t i;
-    for (i = 0; i < SCM_VECTOR_LENGTH (scm_gc_registered_roots); ++i)
+    for (i = 0; i < SCM_HASHTABLE_N_BUCKETS (scm_gc_registered_roots); ++i)
       {
-	SCM l = SCM_VELTS (scm_gc_registered_roots)[i];
+	SCM l = SCM_HASHTABLE_BUCKETS (scm_gc_registered_roots)[i];
 	for (; !SCM_NULLP (l); l = SCM_CDR (l))
 	  {
 	    SCM *p = (SCM *) (scm_num2long (SCM_CAAR (l), 0, NULL));
@@ -313,8 +313,8 @@ scm_gc_mark_dependencies (SCM p)
 	  int weak_values;
 
 	  len = SCM_VECTOR_LENGTH (ptr);
-	  weak_keys = SCM_IS_WHVEC (ptr) || SCM_IS_WHVEC_B (ptr);
-	  weak_values = SCM_IS_WHVEC_V (ptr) || SCM_IS_WHVEC_B (ptr);
+	  weak_keys = SCM_WVECT_WEAK_KEY_P (ptr);
+	  weak_values = SCM_WVECT_WEAK_VALUE_P (ptr);
 
 	  for (x = 0; x < len; ++x)
 	    {

@@ -1,3 +1,59 @@
+2003-02-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* hooks.c (scm_c_hook_add): Fixed bug in append mode.
+
+	The following changes introduce the use of resizable hash tables
+	throughout Guile.  It also renames the old *-hash-table* functions
+	to *-alist-vector* and places them, together with the rest of the
+	weak vector support, in the module (ice-9 weak-vector).  We should
+	probably introduce a new, better, API for weak references, for
+	example "weak pairs" a la MIT-Scheme.  (In Chez scheme, they even
+	look like and are used like ordinary pairs.)
+
+	* environments.c (obarray_enter, obarray_retrieve, obarray_remove,
+	leaf_environment_fold, obarray_remove_all): Use hashtable
+	accessors.
+
+	* gc.c (scm_init_storage): Moved hook initialization to
+	scm_storage_prehistory.
+	(scm_storage_prehistory): New function.
+	(scm_igc): Added commentary about placement of
+	scm_after_sweep_c_hook.
+
+	* gc-mark.c (scm_mark_all): Use hashtable accessors.
+	(scm_gc_mark_dependencies): Use SCM_WVECT_WEAK_KEY_P and
+	SCM_WVECT_WEAK_VALUE_P.
+
+	* hashtab.c, hashtab.h (scm_hash_for_each, scm_hash_map): New
+	functions.
+	(scm_vector_to_hash_table, scm_c_make_resizing_hash_table):
+	Removed.
+	(scm_make_weak_key_hash_table, scm_make_weak_value_hash_table,
+	scm_make_doubly_weak_hash_table): Moved here from weaks.c.
+
+	* init.c (scm_init_guile_1): Removed call to scm_init_weaks; Added
+	calls to scm_storage_prehistory and scm_hashtab_prehistory.
+
+	* modules.c (module-reverse-lookup): Use hashtable accessors.
+
+	* symbols.c, symbols.h (scm_i_hash_symbol): New function.
+
+	* weaks.c, weaks.h (scm_make_weak_key_alist_vector,
+	scm_make_weak_value_alist_vector,
+	scm_make_doubly_weak_alist_vector): New functions.
+
+	* weaks.c (scm_init_weaks_builtins): New function.
+
+	* weaks.h (SCM_WVECTF_WEAK_KEY, SCM_WVECTF_WEAK_VALUE,
+	SCM_WVECTF_NOSCAN, SCM_WVECT_WEAK_KEY_P, SCM_WVECT_WEAK_VALUE_P,
+	SCM_WVECT_NOSCAN_P): New macros.
+
+	* weaks.c (scm_scan_weak_vectors):  Use SCM_WVECT_WEAK_KEY_P
+	and SCM_WVECT_WEAK_VALUE_P.
+
+	* weaks.c, weaks.h (scm_i_allocate_weak_vector): Renamed from
+	allocate_weak_vector and exported.
+
 2003-02-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* hashtab.c: Undid thread safety.  (We decided that it's better to

@@ -52,6 +52,16 @@
 
 
 
+/* 1. The current hash table implementation in hashtab.c uses weak alist
+ *    vectors (formerly called weak hash tables) internally.
+ *
+ * 2. All hash table operations still work on alist vectors.
+ *
+ * 3. The weak vector and alist vector Scheme API is accessed through
+ *    the module (ice-9 weak-vector).
+ */
+
+
 /* {Weak Vectors}
  */
 
@@ -61,8 +71,8 @@
  * elements which are initialized with the 'fill' object, or, if 'fill' is
  * undefined, with an unspecified object.
  */
-static SCM
-allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
+SCM
+scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
 #define FUNC_NAME caller
 {
   if (SCM_INUMP (size))
@@ -108,7 +118,6 @@ allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
 }
 #undef FUNC_NAME
 
-
 SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
 	    (SCM size, SCM fill),
 	    "Return a weak vector with @var{size} elements. If the optional\n"
@@ -117,7 +126,7 @@ SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
 	    "empty list.")
 #define FUNC_NAME s_scm_make_weak_vector
 {
-  return allocate_weak_vector (0, size, fill, FUNC_NAME);
+  return scm_i_allocate_weak_vector (0, size, fill, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -170,85 +179,76 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 
 
 
-SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0, 
+SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 0, 
 	    (SCM size),
-	    "@deffnx {Scheme Procedure} make-weak-value-hash-table size\n"
-	    "@deffnx {Scheme Procedure} make-doubly-weak-hash-table size\n"
+	    "@deffnx {Scheme Procedure} make-weak-value-alist-vector size\n"
+	    "@deffnx {Scheme Procedure} make-doubly-weak-alist-vector size\n"
 	    "Return a weak hash table with @var{size} buckets. As with any\n"
 	    "hash table, choosing a good size for the table requires some\n"
 	    "caution.\n"
 	    "\n"
 	    "You can modify weak hash tables in exactly the same way you\n"
 	    "would modify regular hash tables. (@pxref{Hash Tables})")
-#define FUNC_NAME s_scm_make_weak_key_hash_table
+#define FUNC_NAME s_scm_make_weak_key_alist_vector
 {
-  if (SCM_UNBNDP (size))
-    return scm_vector_to_hash_table (allocate_weak_vector (1, SCM_MAKINUM (31),
-							   SCM_EOL, FUNC_NAME));
-  else
-    return allocate_weak_vector (1, size, SCM_EOL, FUNC_NAME);
+  return scm_i_allocate_weak_vector
+    (1, SCM_UNBNDP (size) ? SCM_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 0, 1, 0, 
+SCM_DEFINE (scm_make_weak_value_alist_vector, "make-weak-value-alist-vector", 0, 1, 0, 
             (SCM size),
 	    "Return a hash table with weak values with @var{size} buckets.\n"
 	    "(@pxref{Hash Tables})")
-#define FUNC_NAME s_scm_make_weak_value_hash_table
+#define FUNC_NAME s_scm_make_weak_value_alist_vector
 {
-  if (SCM_UNBNDP (size))
-    return scm_vector_to_hash_table (allocate_weak_vector (2, SCM_MAKINUM (31),
-							   SCM_EOL, FUNC_NAME));
-  else
-    return allocate_weak_vector (2, size, SCM_EOL, FUNC_NAME);
+  return scm_i_allocate_weak_vector
+    (2, SCM_UNBNDP (size) ? SCM_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, 
+SCM_DEFINE (scm_make_doubly_weak_alist_vector, "make-doubly-weak-alist-vector", 1, 0, 0, 
             (SCM size),
 	    "Return a hash table with weak keys and values with @var{size}\n"
 	    "buckets.  (@pxref{Hash Tables})")
-#define FUNC_NAME s_scm_make_doubly_weak_hash_table
+#define FUNC_NAME s_scm_make_doubly_weak_alist_vector
 {
-  if (SCM_UNBNDP (size))
-    return scm_vector_to_hash_table (allocate_weak_vector (3, SCM_MAKINUM (31),
-							   SCM_EOL, FUNC_NAME));
-  else
-    return allocate_weak_vector (3, size, SCM_EOL, FUNC_NAME);
+  return scm_i_allocate_weak_vector
+    (3, SCM_UNBNDP (size) ? SCM_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
+SCM_DEFINE (scm_weak_key_alist_vector_p, "weak-key-alist-vector?", 1, 0, 0, 
            (SCM obj),
-	    "@deffnx {Scheme Procedure} weak-value-hash-table? obj\n"
-	    "@deffnx {Scheme Procedure} doubly-weak-hash-table? obj\n"
+	    "@deffnx {Scheme Procedure} weak-value-alist-vector? obj\n"
+	    "@deffnx {Scheme Procedure} doubly-weak-alist-vector? obj\n"
 	    "Return @code{#t} if @var{obj} is the specified weak hash\n"
 	    "table. Note that a doubly weak hash table is neither a weak key\n"
 	    "nor a weak value hash table.")
-#define FUNC_NAME s_scm_weak_key_hash_table_p
+#define FUNC_NAME s_scm_weak_key_alist_vector_p
 {
   return SCM_BOOL (SCM_WVECTP (obj) && SCM_IS_WHVEC (obj));
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0, 
+SCM_DEFINE (scm_weak_value_alist_vector_p, "weak-value-alist-vector?", 1, 0, 0, 
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a weak value hash table.")
-#define FUNC_NAME s_scm_weak_value_hash_table_p
+#define FUNC_NAME s_scm_weak_value_alist_vector_p
 {
   return SCM_BOOL (SCM_WVECTP (obj) && SCM_IS_WHVEC_V (obj));
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0, 
+SCM_DEFINE (scm_doubly_weak_alist_vector_p, "doubly-weak-alist-vector?", 1, 0, 0, 
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a doubly weak hash table.")
-#define FUNC_NAME s_scm_doubly_weak_hash_table_p
+#define FUNC_NAME s_scm_doubly_weak_alist_vector_p
 {
   return SCM_BOOL (SCM_WVECTP (obj) && SCM_IS_WHVEC_B (obj));
 }
@@ -325,7 +325,9 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
 	    if (UNMARKED_CELL_P (ptr[j]))
 	      ptr[j] = SCM_BOOL_F;
 	}
-      else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
+      /* check if we should scan the alist vector here (hashtables
+	 have their own scan function in hashtab.c). */
+      else if (!SCM_WVECT_NOSCAN_P (w))
 	{
 	  SCM obj = w;
 	  register long n = SCM_VECTOR_LENGTH (w);
@@ -378,10 +380,18 @@ scm_weaks_prehistory ()
 }
 
 
+SCM
+scm_init_weaks_builtins ()
+{
+#include "libguile/weaks.x"
+  return SCM_UNSPECIFIED;
+}
+
 void
 scm_init_weaks ()
 {
-#include "libguile/weaks.x"
+  scm_c_define_gsubr ("%init-weaks-builtins", 0, 0, 0,
+		      scm_init_weaks_builtins);
 }
 
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -608,6 +608,25 @@ scm_igc (const char *what)
   /*
     TODO: this hook should probably be moved to just before the mark,
     since that's where the  sweep is finished in lazy sweeping.
+
+    MDJ 030219 <djurfeldt@nada.kth.se>: No, probably not.  The
+    original meaning implied at least two things: that it would be
+    called when
+
+      1. the freelist is re-initialized (no evaluation possible, though)
+      
+    and
+    
+      2. the heap is "fresh"
+         (it is well-defined what data is used and what is not)
+
+    Neither of these conditions would hold just before the mark phase.
+    
+    Of course, the lazy sweeping has muddled the distinction between
+    scm_before_sweep_c_hook and scm_after_sweep_c_hook, but even if
+    there were no difference, it would still be useful to have two
+    distinct classes of hook functions since this can prevent some
+    bad interference when several modules adds gc hooks.
    */
   scm_c_hook_run (&scm_after_sweep_c_hook, 0);
   gc_end_stats ();
@@ -873,6 +892,15 @@ scm_getenv_int (const char *var, int def)
   return res;
 }
 
+void
+scm_storage_prehistory ()
+{
+  scm_c_hook_init (&scm_before_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
+  scm_c_hook_init (&scm_before_mark_c_hook, 0, SCM_C_HOOK_NORMAL);
+  scm_c_hook_init (&scm_before_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
+  scm_c_hook_init (&scm_after_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
+  scm_c_hook_init (&scm_after_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
+}
 
 int
 scm_init_storage ()
@@ -893,13 +921,6 @@ scm_init_storage ()
   j = SCM_HEAP_SEG_SIZE;
 
   
-
-  scm_c_hook_init (&scm_before_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
-  scm_c_hook_init (&scm_before_mark_c_hook, 0, SCM_C_HOOK_NORMAL);
-  scm_c_hook_init (&scm_before_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
-  scm_c_hook_init (&scm_after_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
-  scm_c_hook_init (&scm_after_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
-
   /* Initialise the list of ports.  */
   scm_i_port_table = (scm_t_port **)
     malloc (sizeof (scm_t_port *) * scm_i_port_table_room);

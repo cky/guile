@@ -1003,7 +1003,7 @@
 	    (error
 	     "Lazy-binder expected to be a procedure or #f." binder))
 
-	(let ((module (module-constructor (make-vector size '())
+	(let ((module (module-constructor (make-hash-table size)
 					  uses binder #f #f #f #f
 					  '()
 					  (make-weak-value-hash-table 31)
@@ -1307,11 +1307,11 @@
 ;; make sure that a symbol is undefined in the local namespace of M.
 ;;
 (define (module-remove! m v)
-  (module-obarray-remove!  (module-obarray m) v)
+  (module-obarray-remove! (module-obarray m) v)
   (module-modified m))
 
 (define (module-clear! m)
-  (vector-fill! (module-obarray m) '())
+  (hash-clear! (module-obarray m))
   (module-modified m))
 
 ;; MODULE-FOR-EACH -- exported
@@ -1319,30 +1319,11 @@
 ;; Call PROC on each symbol in MODULE, with arguments of (SYMBOL VARIABLE).
 ;;
 (define (module-for-each proc module)
-  (let ((obarray (module-obarray module)))
-    (do ((index 0 (+ index 1))
-	 (end (vector-length obarray)))
-	((= index end))
-      (for-each
-       (lambda (bucket)
-	 (proc (car bucket) (cdr bucket)))
-       (vector-ref obarray index)))))
-
+  (hash-for-each proc (module-obarray module)))
 
 (define (module-map proc module)
-  (let* ((obarray (module-obarray module))
-	 (end (vector-length obarray)))
+  (hash-map proc (module-obarray module)))
 
-    (let loop ((i 0)
-	       (answer '()))
-      (if (= i end)
-	  answer
-	  (loop (+ 1 i)
-		(append!
-		 (map (lambda (bucket)
-			(proc (car bucket) (cdr bucket)))
-		      (vector-ref obarray i))
-		 answer))))))
 
 
 ;;; {Low Level Bootstrapping}

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,19 +83,40 @@ SCM_DEFINE (scm_sys_symbols, "%symbols", 0, 0, 0,
 /* {Symbols}
  */
 
+/* In order to optimize reading speed, this function breaks part of
+ * the hashtable abstraction.  The optimizations are:
+ *
+ * 1. The argument string can be compared directly to symbol objects
+ *    without first creating an SCM string object.  (This would have
+ *    been necessary if we had used the hashtable API in hashtab.h.)
+ *
+ * 2. We can use the raw hash value stored in SCM_SYMBOL_HASH (sym)
+ *    to speed up lookup.
+ *
+ * Both optimizations might be possible without breaking the
+ * abstraction if the API in hashtab.c is improved.
+ */
+
+unsigned long
+scm_i_hash_symbol (SCM obj, unsigned long n, void *closure)
+{
+  return SCM_SYMBOL_HASH (obj) % n;
+}
 
 SCM
 scm_mem2symbol (const char *name, size_t len)
 {
-  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len)/2;
-  size_t hash = raw_hash % SCM_VECTOR_LENGTH (symbols);
+  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len) / 2;
+  size_t hash = raw_hash % SCM_HASHTABLE_N_BUCKETS (symbols);
 
   {
     /* Try to find the symbol in the symbols table */
 
     SCM l;
 
-    for (l = SCM_VELTS (symbols) [hash]; !SCM_NULLP (l); l = SCM_CDR (l))
+    for (l = SCM_HASHTABLE_BUCKETS (symbols) [hash];
+	 !SCM_NULLP (l);
+	 l = SCM_CDR (l))
       {
 	SCM sym = SCM_CAAR (l);
 	if (SCM_SYMBOL_HASH (sym) == raw_hash
@@ -126,9 +147,12 @@ scm_mem2symbol (const char *name, size_t len)
 			      raw_hash,
 			      SCM_UNPACK (scm_cons (SCM_BOOL_F, SCM_EOL)));
 
-    SCM slot = SCM_VELTS (symbols) [hash];
+    SCM slot = SCM_HASHTABLE_BUCKETS (symbols) [hash];
     SCM cell = scm_cons (symbol, SCM_UNDEFINED);
-    SCM_VECTOR_SET (symbols, hash, scm_cons (cell, slot));
+    SCM_SET_HASHTABLE_BUCKET (symbols, hash, scm_cons (cell, slot));
+    SCM_HASHTABLE_INCREMENT (symbols);
+    if (SCM_HASHTABLE_N_ITEMS (symbols) > SCM_HASHTABLE_UPPER (symbols))
+      scm_i_rehash (symbols, scm_i_hash_symbol, 0, "scm_mem2symbol");
 
     return symbol;
   }

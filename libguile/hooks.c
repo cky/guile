@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ scm_c_hook_add (scm_t_c_hook *hook,
   scm_t_c_hook_entry **loc = &hook->first;
   if (appendp)
     while (*loc)
-      *loc = (*loc)->next;
+      loc = &(*loc)->next;
   entry->next = *loc;
   entry->func = func;
   entry->data = func_data;

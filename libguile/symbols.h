@@ -3,7 +3,7 @@
 #ifndef SCM_SYMBOLS_H
 #define SCM_SYMBOLS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,6 +78,7 @@
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_sys_symbols (void);
 #endif
+SCM_API unsigned long scm_i_hash_symbol (SCM obj, unsigned long n, void *closure);
 SCM_API SCM scm_mem2symbol (const char*, size_t);
 SCM_API SCM scm_mem2uninterned_symbol (const char *name, size_t len);
 SCM_API SCM scm_str2symbol (const char*);
