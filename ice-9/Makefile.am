@@ -31,12 +31,9 @@ ice9_sources =								\
 	r4rs.scm readline.scm regex.scm runq.scm session.scm slib.scm	\
 	streams.scm string-fun.scm syncase.scm tags.scm threads.scm
 
-# These should be installed, but not distributed.
-ice9_generated = version.scm
-
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
-subpkgdata_DATA = $(ice9_sources) $(ice9_generated)
+subpkgdata_DATA = $(ice9_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 
 ## test.scm is not currently installed.
-EXTRA_DIST = $(ice9_sources) test.scm version.scm.in
+EXTRA_DIST = $(ice9_sources) test.scm

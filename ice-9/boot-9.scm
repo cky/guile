@@ -3059,30 +3059,51 @@
 ;;;
 (define exit-hook (make-hook))
 
+;;; Load readline code into root module if readline primitives are available.
+;;;
+;;; Ideally, we wouldn't do this until we were sure we were actually
+;;; going to enter the repl, but autoloading individual functions is
+;;; clumsy at the moment.
+(if (and (memq 'readline *features*)
+	 (isatty? (current-input-port)))
+    (begin
+      (define-module (guile) :use-module (ice-9 readline))
+      (define-module (guile-user) :use-module (ice-9 readline))))
+
+
+;;; {Load debug extension code into user module if debug extensions present.}
+;;;
+;;; *fixme* This is a temporary solution.
+;;;
+
+(if (memq 'debug-extensions *features*)
+    (define-module (guile-user) :use-module (ice-9 debug)))
+
+
+;;; {Load session support into user module if present.}
+;;;
+;;; *fixme* This is a temporary solution.
+;;;
+
+(if (%search-load-path "ice-9/session.scm")
+    (define-module (guile-user) :use-module (ice-9 session)))
+
+;;; {Load thread code into user module if threads are present.}
+;;;
+;;; *fixme* This is a temporary solution.
+;;;
+
+(if (memq 'threads *features*)
+    (define-module (guile-user) :use-module (ice-9 threads)))
+
+
+;;; {Load regexp code if regexp primitives are available.}
+
+(if (memq 'regex *features*)
+    (define-module (guile-user) :use-module (ice-9 regex)))
+
 
 (define-module (guile))
 
-;;; {Check that the interpreter and scheme code match up.}
-
-(let ((show-line
-       (lambda args
-	 (with-output-to-port (current-error-port)
-	   (lambda ()
-	     (display (car (command-line)))
-	     (display ": ")
-	     (for-each (lambda (string) (display string))
-		       args) 
-	     (newline))))))
-
-  (load-from-path "ice-9/version.scm")
-
-  (if (not (string=?
-	    (libguile-config-stamp)	; from the interprpreter
-	    (ice-9-config-stamp)))	; from the Scheme code
-      (begin
-	(show-line "warning: different versions of libguile and ice-9:")
-	(show-line "libguile: configured on " (libguile-config-stamp))
-	(show-line "ice-9:    configured on " (ice-9-config-stamp)))))
-    
 (append! %load-path (cons "." ()))
 

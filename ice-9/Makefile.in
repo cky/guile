@@ -67,7 +67,6 @@ DLLTOOL = @DLLTOOL@
 GUILE_LIBS = @GUILE_LIBS@
 GUILE_MAJOR_VERSION = @GUILE_MAJOR_VERSION@
 GUILE_MINOR_VERSION = @GUILE_MINOR_VERSION@
-GUILE_STAMP = @GUILE_STAMP@
 GUILE_VERSION = @GUILE_VERSION@
 LD = @LD@
 LIBLOBJS = @LIBLOBJS@
@@ -97,14 +96,11 @@ AUTOMAKE_OPTIONS = foreign
 ice9_sources =  	and-let*.scm boot-9.scm calling.scm common-list.scm debug.scm		debugger.scm emacs.scm expect.scm format.scm				getopt-gnu-style.scm getopt-long.scm hcons.scm lineio.scm		ls.scm mapping.scm							optargs.scm poe.scm popen.scm psyntax.pp psyntax.ss q.scm		r4rs.scm readline.scm regex.scm runq.scm session.scm slib.scm		streams.scm string-fun.scm syncase.scm tags.scm threads.scm
 
 
-# These should be installed, but not distributed.
-ice9_generated = version.scm
-
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
-subpkgdata_DATA = $(ice9_sources) $(ice9_generated)
+subpkgdata_DATA = $(ice9_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 
-EXTRA_DIST = $(ice9_sources) test.scm version.scm.in
+EXTRA_DIST = $(ice9_sources) test.scm
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../libguile/scmconfig.h
 CONFIG_CLEAN_FILES =  version.scm
