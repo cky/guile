@@ -1,0 +1,17 @@
+@page
+@node R5RS Index
+@chapter R5RS Index
+
+@printindex r5
+
+
+@page
+@node Guile Extensions Index
+@chapter Guile Extensions Index
+
+@printindex ge
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

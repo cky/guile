@@ -1,0 +1,23 @@
+@page
+@node Libguile Intro
+@chapter Using Guile as an Extension Language
+
+The chapters in this part of the manual explain how to use Guile as a
+powerful application extension language.
+
+The following chapter, ``GH: A Portable C to Scheme Interface,'' shows
+how to call Guile from your application's C code, and how to add new
+Scheme level procedures to Guile whose behaviour is specified by
+application specific code written in C.  The Guile interface functions
+documented in this chapter make up a high level, portable interface
+which (we hope) will also someday work with other Scheme interpreters,
+allowing you to write C code which will work with any of several Scheme
+systems.
+
+The portable interface is rich enough to support simple use of Guile as
+an application extension language, but is limited by its own portability
+where a deeper integration is desired between Guile and your
+application's code.  The subsequent chapters therefore present aspects
+of libguile that allow you to use more of Guile's C level features, and
+to extend your application in more complex ways than is possible with
+the portable interface.

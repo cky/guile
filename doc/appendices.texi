@@ -1,0 +1,279 @@
+@node Obtaining and Installing Guile
+@appendix Obtaining and Installing Guile
+
+Here is the information you will need to get and install Guile and extra
+packages and documentation you might need or find interesting.
+
+@menu
+* The Basic Guile Package::      
+* Packages not shipped with Guile::  
+@end menu
+
+@node The Basic Guile Package
+@section The Basic Guile Package
+
+Guile can be obtained from the main GNU archive site
+@url{ftp://prep.ai.mit.edu/pub/gnu} or any of its mirrors.  The file
+will be named guile-version.tar.gz.  The current version is
+@value{VERSION}, so the file you should grab is:
+
+@url{ftp://prep.ai.mit.edu/pub/gnu/guile-@value{VERSION}.tar.gz}
+
+To unbundle Guile use the instruction
+@example
+zcat guile-@value{VERSION}.tar.gz | tar xvf -
+@end example
+which will create a directory called @file{guile-@value{VERSION}} with
+all the sources.  You can look at the file @file{INSTALL} for detailed
+instructions on how to build and install Guile, but you should be able
+to just do
+@example
+cd guile-@value{VERSION}
+./configure
+make install
+@end example
+
+This will install the Guile executable @file{guile}, the Guile library
+@file{libguile.a} and various associated header files and support
+libraries. It will also install the Guile tutorial and reference manual.
+
+@c [[include instructions for getting R4RS]]
+
+Since this manual frequently refers to the Scheme ``standard'', also
+known as R4RS, or the
+@iftex
+``Revised$^4$ Report on the Algorithmic Language Scheme'',
+@end iftex
+@ifinfo
+``Revised^4 Report on the Algorithmic Language Scheme'',
+@end ifinfo
+we have included the report in the Guile distribution;
+@xref{Top, , Introduction, r4rs, Revised(4) Report on the Algorithmic
+Language Scheme}.
+This will also be installed in your info directory.
+
+
+@node Packages not shipped with Guile
+@section Packages not shipped with Guile
+
+We ship the Guile tutorial and reference manual with the Guile
+distribution [FIXME: this is not currently true (Sat Sep 20 14:13:33 MDT
+1997), but will be soon.]  Since the Scheme standard (R4RS) is a stable
+document, we ship that too.
+
+Here are references (usually World Wide Web URLs) to some other freely
+redistributable documents and packages which you might find useful if
+you are using Guile.
+
+@table @strong
+@item SCSH
+the Scheme Shell.  Gary Houston has ported SCSH to Guile.  The relevant
+chapter (@pxref{The Scheme shell (scsh)}) has references to the SCSH web
+page with all its documentation.
+
+@item SLIB
+a portable Scheme library maintained by Aubrey Jaffer.  SLIB can be
+obtained by ftp from @url{ftp://prep.ai.mit.edu/pub/gnu/jacal/}.
+
+The SLIB package should be unpacked somewhere in Guile's load path.  It
+will typically be unpacked in @file{/usr/local/share/guile/site}, so
+that it will be @file{/usr/local/share/guile/site/slib}.
+
+Guile might have been installed with a different prefix, in which case
+the load path can be checked from inside the interpreter with:
+
+@smalllisp
+guile> %load-path
+("/usr/local/share/guile/site" "/usr/local/share/guile/1.3a" "/usr/local/share/guile" ".")
+@end smalllisp
+
+The relevant chapter (@pxref{SLIB}) has details on how to use SLIB with
+Guile.
+
+@item JACAL
+a symbolic math package by Aubrey Jaffer.  The latest version of Jacal
+can be obtained from @url{ftp://prep.ai.mit.edu/pub/gnu/jacal/}, and
+should be unpacked in @file{/usr/local/share/guile/site/slib} so that
+it will be in @file{/usr/local/share/guile/site/slib/jacal}.
+
+The relevant section (@pxref{JACAL}) has details on how to use Jacal.
+@end table
+
+
+@page
+@node Debugger User Interface
+@appendix Debugger User Interface
+ 
+@c      --- The title and introduction of this appendix need to
+@c          distinguish this clearly from the chapter on the internal
+@c          debugging interface.
+ 
+When debugging a program, programmers often find it helpful to examine
+the program's internal status while it runs: the values of internal
+variables, the choices made in @code{if} and @code{cond} statements, and
+so forth.  Guile Scheme provides a debugging interface that programmers
+can use to single-step through Scheme functions and examine symbol
+bindings.  This is different from the @ref{Debugging}, which permits
+programmers to debug the Guile interpreter itself.  Most programmers
+will be more interested in debugging their own Scheme programs than the
+interpreter which evaluates them.
+ 
+[FIXME: should we include examples of traditional debuggers
+and explain why they can't be used to debug interpreted Scheme or Lisp?]
+ 
+@menu
+* Single-Step::         Execute a program or function one step at a time.
+* Trace::               Print a report each time a given function is called.
+* Backtrace::           See a list of the statements that caused an error.
+* Stacks and Frames::	Examine the state of an interrupted program.
+@end menu
+ 
+@node Single-Step
+@appendixsec Single-Step
+ 
+@node Trace
+@appendixsec Trace
+
+When a function is @dfn{traced}, it means that every call to that
+function is reported to the user during a program run.  This can help a
+programmer determine whether a function is being called at the wrong
+time or with the wrong set of arguments.
+
+@defun trace function
+Enable debug tracing on @code{function}.  While a program is being run, Guile
+will print a brief report at each call to a traced function,
+advising the user which function was called and the arguments that were
+passed to it.
+@end defun
+
+@defun untrace function
+Disable debug tracing for @code{function}.
+@end defun
+
+Example:
+
+@lisp
+(define (rev ls)
+  (if (null? ls)
+      '()
+      (append (rev (cdr ls))
+              (cons (car ls) '())))) @result{} rev
+
+(trace rev) @result{} (rev)
+
+(rev '(a b c d e))
+@result{} [rev (a b c d e)]
+   |  [rev (b c d e)]
+   |  |  [rev (c d e)]
+   |  |  |  [rev (d e)]
+   |  |  |  |  [rev (e)]
+   |  |  |  |  |  [rev ()]
+   |  |  |  |  |  ()
+   |  |  |  |  (e)
+   |  |  |  (e d)
+   |  |  (e d c)
+   |  (e d c b)
+   (e d c b a)
+   (e d c b a)
+@end lisp
+ 
+Note the way Guile indents the output, illustrating the depth of
+execution at each function call.  This can be used to demonstrate, for
+example, that Guile implements self-tail-recursion properly:
+ 
+@lisp
+(define (rev ls sl)
+  (if (null? ls)
+      sl
+      (rev (cdr ls)
+           (cons (car ls) sl)))) @result{} rev
+ 
+(trace rev) @result{} (rev)
+ 
+(rev '(a b c d e) '())
+@result{} [rev (a b c d e) ()]
+   [rev (b c d e) (a)]
+   [rev (c d e) (b a)]
+   [rev (d e) (c b a)]
+   [rev (e) (d c b a)]
+   [rev () (e d c b a)]
+   (e d c b a)
+   (e d c b a)
+@end lisp
+ 
+Since the tail call is effectively optimized to a @code{goto} statement,
+there is no need for Guile to create a new stack frame for each
+iteration.  Using @code{trace} here helps us see why this is so.
+ 
+@node Backtrace
+@appendixsec Backtrace
+
+@node Stacks and Frames
+@appendixsec Stacks and Frames
+
+When a running program is interrupted, usually upon reaching an error or
+breakpoint, its state is represented by a @dfn{stack} of suspended
+function calls, each of which is called a @dfn{frame}.  The programmer
+can learn more about the program's state at the point of interruption by
+inspecting and modifying these frames.
+
+@deffn primitive stack? obj
+Return @code{#t} if @var{obj} is a calling stack.
+@end deffn
+
+@deffn primitive make-stack
+@end deffn
+
+@deffn syntax start-stack id exp
+Evaluate @var{exp} on a new calling stack with identity @var{id}.  If
+@var{exp} is interrupted during evaluation, backtraces will not display
+frames farther back than @var{exp}'s top-level form.  This macro is a
+way of artificially limiting backtraces and stack procedures, largely as
+a convenience to the user.
+@end deffn
+
+@deffn primitive stack-id stack
+Return the identifier given to @var{stack} by @code{start-stack}.
+@end deffn
+
+@deffn primitive stack-ref
+@end deffn
+
+@deffn primitive stack-length
+@end deffn
+
+@deffn primitive frame?
+@end deffn
+
+@deffn primitive last-stack-frame
+@end deffn
+
+@deffn primitive frame-number
+@end deffn
+
+@deffn primitive frame-source
+@end deffn
+
+@deffn primitive frame-procedure
+@end deffn
+
+@deffn primitive frame-arguments
+@end deffn
+
+@deffn primitive frame-previous
+@end deffn
+
+@deffn primitive frame-next
+@end deffn
+
+@deffn primitive frame-real?
+@end deffn
+
+@deffn primitive frame-procedure?
+@end deffn
+
+@deffn primitive frame-evaluating-args?
+@end deffn
+
+@deffn primitive frame-overflow
+@end deffn

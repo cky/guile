@@ -1,0 +1,579 @@
+@c $Id: intro.texi,v 1.1 2001-03-09 08:21:59 ossau Exp $
+
+@page
+@node What is Guile?
+@chapter What is Guile?
+
+Guile is an interpreter for the Scheme programming language, packaged
+for use in a wide variety of environments.  Guile implements Scheme as
+described in the
+@tex
+Revised$^5$
+@end tex
+@ifinfo
+Revised^5
+@end ifinfo
+Report on the Algorithmic Language Scheme (usually known as R5RS),
+providing clean and general data and control structures.  Guile goes
+beyond the rather austere language presented in R5RS, extending it with
+a module system, full access to POSIX system calls, networking support,
+multiple threads, dynamic linking, a foreign function call interface,
+powerful string processing, and many other features needed for
+programming in the real world.
+
+Like a shell, Guile can run interactively, reading expressions from the
+user, evaluating them, and displaying the results, or as a script
+interpreter, reading and executing Scheme code from a file.  However,
+Guile is also packaged as an object library, allowing other applications
+to easily incorporate a complete Scheme interpreter.  An application can
+use Guile as an extension language, a clean and powerful configuration
+language, or as multi-purpose ``glue'', connecting primitives provided
+by the application.  It is easy to call Scheme code from C code and vice
+versa, giving the application designer full control of how and when to
+invoke the interpreter.  Applications can add new functions, data types,
+control structures, and even syntax to Guile, creating a domain-specific
+language tailored to the task at hand, but based on a robust language
+design.
+
+Guile's module system allows one to break up a large program into
+manageable sections with well-defined interfaces between them.  Modules
+may contain a mixture of interpreted and compiled code; Guile can use
+either static or dynamic linking to incorporate compiled code.  Modules
+also encourage developers to package up useful collections of routines
+for general distribution; as of this writing, one can find Emacs
+interfaces, database access routines, compilers, GUI toolkit interfaces,
+and HTTP client functions, among others.
+
+In the future, we hope to expand Guile to support other languages like
+Tcl and Perl by translating them to Scheme code.  This means that users
+can program applications which use Guile in the language of their
+choice, rather than having the tastes of the application's author
+imposed on them.
+
+
+@page
+@node Whirlwind Tour
+@chapter A Whirlwind Tour
+
+This chapter presents a quick tour of all the ways that Guile can be
+used.
+
+@menu
+* Running Guile Interactively::  
+* Guile Scripts::               
+* Linking Programs With Guile::  
+* Writing Guile Modules::       
+@end menu
+
+
+@node Running Guile Interactively
+@section Running Guile Interactively
+
+In its simplest form, Guile acts as an interactive interpreter for the
+Scheme programming language, reading and evaluating Scheme expressions
+the user enters from the terminal.  Here is a sample interaction between
+Guile and a user; the user's input appears after the @code{$} and
+@code{guile>} prompts:
+
+@example
+$ guile
+guile> (+ 1 2 3)                ; add some numbers
+6
+guile> (define (factorial n)    ; define a function
+         (if (zero? n) 1 (* n (factorial (- n 1)))))
+guile> (factorial 20)
+2432902008176640000
+guile> (getpwnam "jimb")        ; find my entry in /etc/passwd
+#("jimb" ".0krIpK2VqNbU" 4008 10 "Jim Blandy" "/u/jimb"
+  "/usr/local/bin/bash")
+guile> @kbd{C-d}
+$
+@end example
+
+@c [[When we get a fancier read-eval-print loop, with features for bouncing
+@c around among modules, referring to the value of the last expression,
+@c etc. then this section will get longer.]]
+
+
+@node Guile Scripts
+@section Guile Scripts
+
+Like AWK, Perl, or any shell, Guile can interpret script files.  A Guile
+script is simply a file of Scheme code with some extra information at
+the beginning which tells the operating system how to invoke Guile, and
+then tells Guile how to handle the Scheme code.
+
+Before we present the details, here is a trivial Guile script:
+
+@example
+#!/usr/local/bin/guile -s
+!#
+(display "Hello, world!")
+(newline)
+@end example
+
+@menu
+* The Top of a Script File::    How to start a Guile script.
+* Scripting Examples::          Simple Guile scripts, explained.
+@end menu
+
+
+@node The Top of a Script File
+@subsection The Top of a Script File
+
+The first line of a Guile script must tell the operating system to use
+Guile to evaluate the script, and then tell Guile how to go about doing
+that.  Here is the simplest case:
+
+@itemize @bullet
+
+@item
+The first two characters of the file must be @samp{#!}.
+
+The operating system interprets this to mean that the rest of the line
+is the name of an executable that can interpret the script.  Guile,
+however, interprets these characters as the beginning of a multi-line
+comment, terminated by the characters @samp{!#} on a line by themselves.
+(This is an extension to the syntax described in R5RS, added to support
+shell scripts.)
+
+@item
+Immediately after those two characters must come the full pathname to
+the Guile interpreter.  On most systems, this would be
+@samp{/usr/local/bin/guile}.
+
+@item
+Then must come a space, followed by a command-line argument to pass to
+Guile; this should be @samp{-s}.  This switch tells Guile to run a
+script, instead of soliciting the user for input from the terminal.
+There are more elaborate things one can do here; see @ref{The Meta
+Switch}.
+
+@item
+Follow this with a newline.
+
+@item
+The second line of the script should contain only the characters
+@samp{!#} --- just like the top of the file, but reversed.  The
+operating system never reads this far, but Guile treats this as the end
+of the comment begun on the first line by the @samp{#!} characters.
+
+@item
+The rest of the file should be a Scheme program.
+
+@end itemize
+
+Guile reads the program, evaluating expressions in the order that they
+appear.  Upon reaching the end of the file, Guile exits.
+
+The function @code{command-line} returns the name of the script file and
+any command-line arguments passed by the user, as a list of strings.
+
+For example, consider the following script file:
+@example
+#!/usr/local/bin/guile -s
+!#
+(write (command-line))
+(newline)
+@end example
+
+If you put that text in a file called @file{foo} in the current
+directory, then you could make it executable and try it out like this:
+@example
+$ chmod a+x foo
+$ ./foo
+("./foo")
+$ ./foo bar baz
+("./foo" "bar" "baz")
+$ 
+@end example
+
+As another example, here is a simple replacement for the POSIX
+@code{echo} command:
+@example
+#!/usr/local/bin/guile -s
+!#
+(for-each (lambda (s) (display s) (display " "))
+  (cdr (command-line)))
+(newline)
+@end example
+
+@deffn procedure command-line
+@deffnx primitive program-arguments
+Return a list of the command-line arguments passed to the currently
+running program.  If the program invoked Guile with the @samp{-s},
+@samp{-c} or @samp{--} switches, these procedures ignore everything up
+to and including those switches.
+@end deffn
+
+
+@node Scripting Examples
+@subsection Scripting Examples
+
+To start with, here are some examples of invoking Guile directly:
+
+@table @code
+
+@item guile -- a b c
+Run Guile interactively; @code{(command-line)} will return @*
+@code{("/usr/local/bin/guile" "a" "b" "c")}.
+
+@item guile -s /u/jimb/ex2 a b c
+Load the file @file{/u/jimb/ex2}; @code{(command-line)} will return @*
+@code{("/u/jimb/ex2" "a" "b" "c")}.
+
+@item guile -c '(write %load-path) (newline)'
+Write the value of the variable @code{%load-path}, print a newline,
+and exit.
+
+@item guile -e main -s /u/jimb/ex4 foo
+Load the file @file{/u/jimb/ex4}, and then call the function
+@code{main}, passing it the list @code{("/u/jimb/ex4" "foo")}.
+
+@item guile -l first -ds -l last -s script
+Load the files @file{first}, @file{script}, and @file{last}, in that
+order.  The @code{-ds} switch says when to process the @code{-s}
+switch.  For a more motivated example, see the scripts below.
+
+@end table
+
+
+Here is a very simple Guile script:
+@example
+#!/usr/local/bin/guile -s
+!#
+(display "Hello, world!")
+(newline)
+@end example
+The first line marks the file as a Guile script.  When the user invokes
+it, the system runs @file{/usr/local/bin/guile} to interpret the script,
+passing @code{-s}, the script's filename, and any arguments given to the
+script as command-line arguments.  When Guile sees @code{-s
+@var{script}}, it loads @var{script}.  Thus, running this program
+produces the output:
+@example
+Hello, world!
+@end example
+
+Here is a script which prints the factorial of its argument:
+@example
+#!/usr/local/bin/guile -s
+!#
+(define (fact n)
+  (if (zero? n) 1
+    (* n (fact (- n 1)))))
+
+(display (fact (string->number (cadr (command-line)))))
+(newline)
+@end example
+In action:
+@example
+$ fact 5
+120
+$
+@end example
+
+However, suppose we want to use the definition of @code{fact} in this
+file from another script.  We can't simply @code{load} the script file,
+and then use @code{fact}'s definition, because the script will try to
+compute and display a factorial when we load it.  To avoid this problem,
+we might write the script this way:
+
+@example
+#!/usr/local/bin/guile \
+-e main -s
+!#
+(define (fact n)
+  (if (zero? n) 1
+    (* n (fact (- n 1)))))
+
+(define (main args)
+  (display (fact (string->number (cadr args))))
+  (newline))
+@end example
+This version packages the actions the script should perform in a
+function, @code{main}.  This allows us to load the file purely for its
+definitions, without any extraneous computation taking place.  Then we
+used the meta switch @code{\} and the entry point switch @code{-e} to
+tell Guile to call @code{main} after loading the script.
+@example
+$ fact 50
+30414093201713378043612608166064768844377641568960512000000000000
+@end example
+
+Suppose that we now want to write a script which computes the
+@code{choose} function: given a set of @var{m} distinct objects,
+@code{(choose @var{n} @var{m})} is the number of distinct subsets
+containing @var{n} objects each.  It's easy to write @code{choose} given
+@code{fact}, so we might write the script this way:
+@example
+#!/usr/local/bin/guile \
+-l fact -e main -s
+!#
+(define (choose n m)
+  (/ (fact m) (* (fact (- m n)) (fact n))))
+
+(define (main args)
+  (let ((n (string->number (cadr args)))
+        (m (string->number (caddr args))))
+    (display (choose n m))
+    (newline)))
+@end example
+
+The command-line arguments here tell Guile to first load the file
+@file{fact}, and then run the script, with @code{main} as the entry
+point.  In other words, the @code{choose} script can use definitions
+made in the @code{fact} script.  Here are some sample runs:
+@example
+$ choose 0 4
+1
+$ choose 1 4
+4
+$ choose 2 4
+6
+$ choose 3 4
+4
+$ choose 4 4
+1
+$ choose 50 100
+100891344545564193334812497256
+@end example
+
+
+@node Linking Programs With Guile
+@section Linking Programs With Guile
+
+The Guile interpreter is available as an object library, to be linked
+into applications using Scheme as a configuration or extension
+language.  This chapter covers the mechanics of linking your program
+with Guile on a typical POSIX system.
+
+Parts III and IV of this manual describe the C functions Guile provides.
+Furthermore, any Scheme function described in this manual as a
+``Primitive'' is also callable from C; see @ref{Scheme Primitives}.
+
+The header file @code{<libguile.h>} provides declarations for all of
+Guile's functions and constants.  You should @code{#include} it at the
+head of any C source file that uses identifiers described in this
+manual.
+
+Once you've compiled your source files, you can link them against Guile
+by passing the flag @code{-lguile} to your linker.  If you installed
+Guile with multi-thread support (by passing @code{--enable-threads} to
+the @code{configure} script), you may also need to link against the
+QuickThreads library, @code{-lqt}.  Guile refers to various mathematical
+functions, so you will probably need to link against the mathematical
+library, @code{-lm}, as well.
+
+@menu
+* Guile Initialization Functions::  What to call first.
+* A Sample Guile Main Program::  Sources and makefiles.
+@end menu
+
+
+@node Guile Initialization Functions
+@subsection Guile Initialization Functions
+
+To initialize Guile, use this function:
+
+@deftypefun void scm_boot_guile (int @var{argc}, char **@var{argv}, void (*@var{main_func}) (), void *@var{closure})
+Initialize the Guile Scheme interpreter.  Then call @var{main_func},
+passing it @var{closure}, @var{argc}, and @var{argv}.  @var{main_func}
+should do all the work of the program (initializing other packages,
+defining application-specific functions, reading user input, and so on)
+before returning.  When @var{main_func} returns, call @code{exit (0)};
+@code{scm_boot_guile} never returns.  If you want some other exit value,
+have @var{main_func} call exit itself.
+
+@code{scm_boot_guile} arranges for the Scheme @code{command-line}
+function to return the strings given by @var{argc} and @var{argv}.  If
+@var{main_func} modifies @var{argc} or @var{argv}, it should call
+@code{scm_set_program_arguments} with the final list, so Scheme code
+will know which arguments have been processed.
+
+@code{scm_boot_guile} establishes a catch-all error handler which prints
+an error message and exits the process.  This means that Guile exits in
+a coherent way if a system error occurs and the user isn't prepared to
+handle it.  If the user doesn't like this behavior, they can establish
+their own universal catcher in @var{main_func} to shadow this one.
+
+Why must the caller do all the real work from @var{main_func}?  Guile's
+garbage collector assumes that all local variables which reference
+Scheme objects will be above @code{scm_boot_guile}'s stack frame on the
+stack.  If you try to manipulate Scheme objects after this function
+returns, it's the luck of the draw whether Guile's storage manager will
+be able to find the objects you allocate.  So, @code{scm_boot_guile}
+function exits, rather than returning, to discourage you from making
+that mistake.
+@end deftypefun
+
+One common way to use Guile is to write a set of C functions which
+perform some useful task, make them callable from Scheme, and then link
+the program with Guile.  This yields a Scheme interpreter just like
+@code{guile}, but augmented with extra functions for some specific
+application --- a special-purpose scripting language.
+
+In this situation, the application should probably process its
+command-line arguments in the same manner as the stock Guile
+interpreter.  To make that straightforward, Guile provides this
+function:
+
+@deftypefun void scm_shell (int @var{argc}, char **@var{argv})
+Process command-line arguments in the manner of the @code{guile}
+executable.  This includes loading the normal Guile initialization
+files, interacting with the user or running any scripts or expressions
+specified by @code{-s} or @code{-e} options, and then exiting.
+@xref{Invoking Guile}, for more details.
+
+Since this function does not return, you must do all
+application-specific initialization before calling this function.
+
+If you do not use this function to start Guile, you are responsible for
+making sure Guile's usual initialization files, @file{init.scm} and
+@file{ice-9/boot-9.scm}, get loaded.  This will change soon.
+@end deftypefun
+
+
+@node A Sample Guile Main Program
+@subsection A Sample Guile Main Program
+
+Here is @file{simple-guile.c}, source code for a @code{main} and an
+@code{inner_main} function that will produce a complete Guile
+interpreter.
+
+@example
+/* simple-guile.c --- how to start up the Guile
+   interpreter from C code.  */
+
+/* Get declarations for all the scm_ functions.  */
+#include <libguile.h>
+
+static void
+inner_main (void *closure, int argc, char **argv)
+@{
+  /* module initializations would go here */
+  scm_shell (argc, argv);
+@}
+
+int
+main (int argc, char **argv)
+@{
+  scm_boot_guile (argc, argv, inner_main, 0);
+  return 0; /* never reached */
+@}
+@end example
+
+The @code{main} function calls @code{scm_boot_guile} to initialize
+Guile, passing it @code{inner_main}.  Once @code{scm_boot_guile} is
+ready, it invokes @code{inner_main}, which calls @code{scm_shell} to
+process the command-line arguments in the usual way.
+
+Here is a Makefile which you can use to compile the above program.
+@example
+# Use GCC, if you have it installed.
+CC=gcc
+
+# Tell the C compiler where to find <libguile.h> and -lguile.
+CFLAGS=-I/usr/local/include -L/usr/local/lib
+
+# Include -lqt and -lrx if they are present on your system.
+LIBS=-lguile -lqt -lrx -lm
+
+simple-guile: simple-guile.o
+        $@{CC@} $@{CFLAGS@} simple-guile.o $@{LIBS@} -o simple-guile
+simple-guile.o: simple-guile.c
+        $@{CC@} -c $@{CFLAGS@} simple-guile.c
+@end example
+
+If you are using the GNU Autoconf package to make your application more
+portable, Autoconf will settle many of the details in the Makefile above
+automatically, making it much simpler and more portable; we recommend
+using Autoconf with Guile.  Here is a @file{configure.in} file for
+@code{simple-guile}, which Autoconf can use as a template to generate a
+@code{configure} script:
+@example
+AC_INIT(simple-guile.c)
+
+# Find a C compiler.
+AC_PROG_CC
+
+# Check for libraries.
+AC_CHECK_LIB(m, sin)
+AC_CHECK_LIB(rx, regcomp)
+AC_CHECK_LIB(qt, main)
+AC_CHECK_LIB(guile, scm_boot_guile)
+
+# Generate a Makefile, based on the results.
+AC_OUTPUT(Makefile)
+@end example
+
+Here is a @code{Makefile.in} template, from which the @code{configure}
+script produces a Makefile customized for the host system:
+@example
+# The configure script fills in these values.
+CC=@@CC@@
+CFLAGS=@@CFLAGS@@
+LIBS=@@LIBS@@
+
+simple-guile: simple-guile.o
+        $@{CC@} $@{CFLAGS@} simple-guile.o $@{LIBS@} -o simple-guile
+simple-guile.o: simple-guile.c
+        $@{CC@} -c $@{CFLAGS@} simple-guile.c
+@end example
+
+The developer should use Autoconf to generate the @file{configure}
+script from the @file{configure.in} template, and distribute
+@file{configure} with the application.  Here's how a user might go about
+building the application:
+
+@example
+$ ls
+Makefile.in     configure*      configure.in    simple-guile.c
+$ ./configure
+creating cache ./config.cache
+checking for gcc... gcc
+checking whether the C compiler (gcc  ) works... yes
+checking whether the C compiler (gcc  ) is a cross-compiler... no
+checking whether we are using GNU C... yes
+checking whether gcc accepts -g... yes
+checking for sin in -lm... yes
+checking for regcomp in -lrx... yes
+checking for main in -lqt... yes
+checking for scm_boot_guile in -lguile... yes
+updating cache ./config.cache
+creating ./config.status
+creating Makefile
+$ make
+gcc -c -g -O2 simple-guile.c
+gcc -g -O2 simple-guile.o -lguile -lqt -lrx -lm  -o simple-guile
+$ ./simple-guile
+guile> (+ 1 2 3)
+6
+guile> (getpwnam "jimb")
+#("jimb" "83Z7d75W2tyJQ" 4008 10 "Jim Blandy" "/u/jimb"
+  "/usr/local/bin/bash")
+guile> (exit)
+$ 
+@end example
+
+
+@node Writing Guile Modules
+@section Writing Guile Modules
+
+[to be written]
+
+
+@page
+@node Reporting Bugs
+@chapter Reporting Bugs
+
+Any problems with the installation should be reported to
+@email{bug-guile@@gnu.org}.
+
+[[how about an explanation of what makes a good bug report?]]
+[[don't complain to us about problems with contributed modules?]]
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

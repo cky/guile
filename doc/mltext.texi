@@ -1,0 +1,146 @@
+@node Working with Multilingual Text
+@chapter Working with Multilingual Text
+
+@node Guile Character Properties, Exchanging Text With The Outside World, Multibyte String Functions, Functions for Operating on Multibyte Text
+@section Guile Character Properties
+
+These functions give information about the nature of a given Guile
+character.  These are defined for any @code{scm_mb_char_t} value.
+
+@deftypefn {Libguile Function} int scm_mb_isalnum (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is an alphabetic or numeric character.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_is_alpha (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is an alphabetic character.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_iscntrl (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a control character.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_isdigit (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a digit.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_isgraph (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a visible character.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_isupper (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is an upper-case character.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_islower (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a lower-case character.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_istitle (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a title-case character.  See the Unicode
+standard for an explanation of title case.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_isprint (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a printable character.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_ispunct (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a punctuation character.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_isspace (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a whitespace character.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_isxdigit (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a hexidecimal digit.
+@end deftypefn
+
+@deftypefn {Libguile Function} int scm_mb_isdefined (scm_mb_char_t @var{c})
+Return non-zero iff @var{c} is a valid character.
+@end deftypefn
+
+@deftypefn {Libguile Function} scm_mb_char_t scm_mb_char_toupper (scm_mb_char_t @var{c})
+@deftypefnx {Libguile Function} scm_mb_char_t scm_mb_char_tolower (scm_mb_char_t @var{c})
+@deftypefnx {Libguile Function} scm_mb_char_t scm_mb_char_totitle (scm_mb_char_t @var{c})
+Convert @var{c} to upper, lower, or title case.  If @var{c} has no
+equivalent in the requested case, or is already in that case, return it
+unchanged.
+@end deftypefn
+
+@deftypefn {Libguile Function} in scm_mb_digit_value (scm_mb_char_t @var{c})
+If @var{c} is a hexidecimal digit (according to
+@code{scm_mb_isxdigit}), then return its numeric value.  Otherwise
+return -1.
+@end deftypefn
+
+@deftypefn {Libguile Function} in scm_mb_digit_value (scm_mb_char_t @var{c})
+If @var{c} is a digit (according to @code{scm_mb_isdigit}), then
+return its numeric value.  Otherwise return -1.
+@end deftypefn
+
+
+@node Multibyte Character Tables, Multibyte Character Categories, Exchanging Text With The Outside World, Functions for Operating on Multibyte Text
+@section Multibyte Character Tables
+
+A @dfn{character table} is a table mapping @code{scm_mb_char_t} values
+onto Guile objects.  Guile provides functions for creating character
+tables, setting entries, and looking up characters.  Character tables
+are Guile objects, so they are managed by Guile's garbage collector.
+
+A character table can have a ``parent'' table, from which it inherits
+values for characters.  If a character table @var{child}, with a parent
+table @var{parent} maps some character @var{c} to the value
+@code{SCM_UNDEFINED}, then @code{scm_c_char_table_ref (@var{child},
+@var{c})} will look up @var{c} in @var{parent}, and return the value it
+finds there.
+
+This section describes only the C API for working with character tables.
+For the Scheme-level API, see @ref{some other section}.
+
+@deftypefn {Libguile Function} scm_make_char_table (SCM @var{init}, SCM @var{parent})
+Return a new character table object which maps every character to
+@var{init}.  If @var{parent} is a character table, then @var{parent} is
+the new table's parent.  If @var{parent} table is @code{SCM_UNDEFINED},
+then the new table has no parent.  Otherwise, signal a type error.
+@end deffn
+
+@deftypefn {Libguile Function} SCM scm_c_char_table_ref (SCM @var{table}, scm_mb_char_t @var{c})
+Look up the character @var{c} in the character table @var{table}, and
+return the value found there.  If @var{table} maps @var{c} to
+@code{SCM_UNDEFINED}, and @var{table} has a parent, then look up @var{c}
+in the parent.
+
+If @var{table} is not a character table, signal an error.
+@end deftypefn
+
+@deftypefn {Libguile Function} SCM scm_c_char_table_set_x (SCM @var{table}, scm_mb_char_t @var{c}, SCM @var{value})
+Set @var{table}'s value for the character @var{c} to @var{value}.
+If @var{value} is @code{SCM_UNDEFINED}, then @var{table}'s parent's
+value will show through for @var{c}.
+
+If @var{table} is not a character table, signal an error.
+
+This function changes only @var{table} itself, never @var{table}'s
+parent.
+@end deftypefn
+
+[[this is all wrong.  what about default values?]]
+
+
+
+
+
+@node Multibyte Character Categories,  , Multibyte Character Tables, Functions for Operating on Multibyte Text
+@section Multibyte Character Categories
+
+[[This will describe an ADT representing subsets of the Guile character
+set.]]
+
+
+
+
+@node Exchanging Guile Text With the Outside World
+@subsection Exchanging Guile Text With the Outside World
+
+[[Scheme-level functions for converting between encodings]]

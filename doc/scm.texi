@@ -1,0 +1,453 @@
+@page
+@node Scheme Primitives
+@c @chapter Writing Scheme primitives in C
+@c - according to the menu in guile.texi - NJ 2001/1/26
+@chapter Relationship between Scheme and C functions
+
+@c Chapter contents contributed by Thien-Thi Nguyen <ttn@gnu.org>.
+
+Scheme procedures marked "primitive functions" have a regular interface
+when calling from C, reflected in two areas: the name of a C function, and
+the convention for passing non-required arguments to this function.
+
+@c Although the vast majority of functions support these relationships,
+@c there are some exceptions.
+
+@menu
+* Transforming Scheme name to C name::
+* Structuring argument lists for C functions::
+@c * Exceptions to the regularity::
+@end menu
+
+@node Transforming Scheme name to C name
+@section Transforming Scheme name to C name
+
+Normally, the name of a C function can be derived given its Scheme name,
+using some simple textual transformations:
+
+@itemize @bullet
+
+@item
+Replace @code{-} (hyphen) with @code{_} (underscore).
+
+@item
+Replace @code{?} (question mark) with "_p".
+
+@item
+Replace @code{!} (exclamation point) with "_x".
+
+@item
+Replace internal @code{->} with "_to_".
+
+@item
+Replace @code{<=} (less than or equal) with "_leq".
+
+@item
+Replace @code{>=} (greater than or equal) with "_geq".
+
+@item
+Replace @code{<} (less than) with "_less".
+
+@item
+Replace @code{>} (greater than) with "_gr".
+
+@item
+Replace @code{@@} with "at". [Omit?]
+
+@item
+Prefix with "gh_" (or "scm_" if you are ignoring the gh interface).
+
+@item
+[Anything else?  --ttn, 2000/01/16 15:17:28]
+
+@end itemize
+
+Here is an Emacs Lisp command that prompts for a Scheme function name and
+inserts the corresponding C function name into the buffer.
+
+@example
+(defun insert-scheme-to-C (name &optional use-gh)
+  "Transforms Scheme NAME, a string, to its C counterpart, and inserts it.
+Prefix arg non-nil means use \"gh_\" prefix, otherwise use \"scm_\" prefix."
+  (interactive "sScheme name: \nP")
+  (let ((transforms '(("-"  . "_")
+                      ("?"  . "_p")
+                      ("!"  . "_x")
+                      ("->" . "_to_")
+                      ("<=" . "_leq")
+                      (">=" . "_geq")
+                      ("<"  . "_less")
+                      (">"  . "_gr")
+                      ("@"  . "at"))))
+    (while transforms
+      (let ((trigger (concat "\\(.*\\)"
+                             (regexp-quote (caar transforms))
+                             "\\(.*\\)"))
+            (sub (cdar transforms))
+            (m nil))
+        (while (setq m (string-match trigger name))
+          (setq name (concat (match-string 1 name)
+                             sub
+                             (match-string 2 name)))))
+      (setq transforms (cdr transforms))))
+  (insert (if use-gh "gh_" "scm_") name))
+@end example
+
+@node Structuring argument lists for C functions
+@section Structuring argument lists for C functions
+
+The C function's arguments will be all of the Scheme procedure's
+argumements, both required and optional; if the Scheme procedure takes a
+``rest'' argument, that will be a final argument to the C function.  The
+C function's arguments, as well as its return type, will be @code{SCM}.
+
+@c @node Exceptions to the regularity
+@c @section Exceptions to the regularity
+@c
+@c There are some exceptions to the regular structure described above.
+
+
+@page
+@node I/O Extensions
+@chapter Using and Extending Ports in C
+
+@menu
+* C Port Interface:: Using ports from C.
+* Port Implementation:: How to implement a new port type in C.
+@end menu
+
+
+@node C Port Interface
+@section C Port Interface
+
+This section describes how to use Scheme ports from C.
+
+@subsection Port basics
+
+There are two main data structures.  A port type object (ptob) is of
+type @code{scm_ptob_descriptor}.  A port instance is of type
+@code{scm_port}.  Given an @code{SCM} variable which points to a port,
+the corresponding C port object can be obtained using the
+@code{SCM_PTAB_ENTRY} macro.  The ptob can be obtained by using
+@code{SCM_PTOBNUM} to give an index into the @code{scm_ptobs}
+global array.
+
+@subsection Port buffers
+
+An input port always has a read buffer and an output port always has a
+write buffer.  However the size of these buffers is not guaranteed to be
+more than one byte (e.g., the @code{shortbuf} field in @code{scm_port}
+which is used when no other buffer is allocated).  The way in which the
+buffers are allocated depends on the implementation of the ptob.  For
+example in the case of an fport, buffers may be allocated with malloc
+when the port is created, but in the case of an strport the underlying
+string is used as the buffer.
+
+@subsection The @code{rw_random} flag
+
+Special treatment is required for ports which can be seeked at random.
+Before various operations, such as seeking the port or changing from
+input to output on a bidirectional port or vice versa, the port
+implemention must be given a chance to update its state.  The write
+buffer is updated by calling the @code{flush} ptob procedure and the
+input buffer is updated by calling the @code{end_input} ptob procedure.
+In the case of an fport, @code{flush} causes buffered output to be
+written to the file descriptor, while @code{end_input} causes the
+descriptor position to be adjusted to account for buffered input which
+was never read.
+
+The special treatment must be performed if the @code{rw_random} flag in
+the port is non-zero.
+
+@subsection The @code{rw_active} variable
+
+The @code{rw_active} variable in the port is only used if
+@code{rw_random} is set.  It's defined as an enum with the following
+values:
+
+@table @code
+@item SCM_PORT_READ
+the read buffer may have unread data.
+
+@item SCM_PORT_WRITE
+the write buffer may have unwritten data.
+
+@item SCM_PORT_NEITHER
+neither the write nor the read buffer has data.
+@end table
+
+@subsection Reading from a port.
+
+To read from a port, it's possible to either call existing libguile
+procedures such as @code{scm_getc} and @code{scm_read_line} or to read
+data from the read buffer directly.  Reading from the buffer involves
+the following steps:
+
+@enumerate
+@item
+Flush output on the port, if @code{rw_active} is @code{SCM_PORT_WRITE}.
+
+@item
+Fill the read buffer, if it's empty, using @code{scm_fill_input}.
+
+@item Read the data from the buffer and update the read position in
+the buffer.  Steps 2) and 3) may be repeated as many times as required.
+
+@item Set rw_active to @code{SCM_PORT_READ} if @code{rw_random} is set.
+
+@item update the port's line and column counts.
+@end enumerate
+
+@subsection Writing to a port.
+
+To write data to a port, calling @code{scm_lfwrite} should be sufficient for
+most purposes.  This takes care of the following steps:
+
+@enumerate
+@item
+End input on the port, if @code{rw_active} is @code{SCM_PORT_READ}.
+
+@item
+Pass the data to the ptob implementation using the @code{write} ptob
+procedure.  The advantage of using the ptob @code{write} instead of
+manipulating the write buffer directly is that it allows the data to be
+written in one operation even if the port is using the single-byte
+@code{shortbuf}.
+
+@item
+Set @code{rw_active} to @code{SCM_PORT_WRITE} if @code{rw_random}
+is set.
+@end enumerate
+
+
+@node Port Implementation
+@section Port Implementation
+
+This section describes how to implement a new port type in C.
+
+As described in the previous section, a port type object (ptob) is
+a structure of type @code{scm_ptob_descriptor}.  A ptob is created by
+calling @code{scm_make_port_type}.
+
+All of the elements of the ptob, apart from @code{name}, are procedures
+which collectively implement the port behaviour.  Creating a new port
+type mostly involves writing these procedures.
+
+@code{scm_make_port_type} initialises three elements of the structure
+(@code{name}, @code{fill_input} and @code{write}) from its arguments.
+The remaining elements are initialised with default values and can be
+set later if required.
+
+@table @code
+@item name
+A pointer to a NUL terminated string: the name of the port type.  This
+is the only element of @code{scm_ptob_descriptor} which is not
+a procedure.  Set via the first argument to @code{scm_make_port_type}.
+
+@item mark
+Called during garbage collection to mark any SCM objects that a port
+object may contain.  It doesn't need to be set unless the port has
+@code{SCM} components.  Set using @code{scm_set_port_mark}.
+
+@item free
+Called when the port is collected during gc.  It
+should free any resources used by the port.
+Set using @code{scm_set_port_free}.
+
+@item print
+Called when @code{write} is called on the port object, to print a
+port description.  e.g., for an fport it may produce something like:
+@code{#<input: /etc/passwd 3>}.   Set using @code{scm_set_port_print}.
+
+@item equalp
+Not used at present.  Set using @code{scm_set_port_equalp}.
+
+@item close
+Called when the port is closed, unless it was collected during gc.  It
+should free any resources used by the port.
+Set using @code{scm_set_port_close}.
+
+@item write
+Accept data which is to be written using the port.  The port implementation
+may choose to buffer the data instead of processing it directly.
+Set via the third argument to @code{scm_make_port_type}.
+
+@item flush
+Complete the processing of buffered output data.  Reset the value of
+@code{rw_active} to @code{SCM_PORT_NEITHER}.
+Set using @code{scm_set_port_flush}.
+
+@item end_input
+Perform any synchronisation required when switching from input to output
+on the port.  Reset the value of @code{rw_active} to @code{SCM_PORT_NEITHER}.
+Set using @code{scm_set_port_end_input}.
+
+@item fill_input
+Read new data into the read buffer and return the first character.  It
+can be assumed that the read buffer is empty when this procedure is called.
+Set via the second argument to @code{scm_make_port_type}.
+
+@item input_waiting
+Return a lower bound on the number of bytes that could be read from the
+port without blocking.  It can be assumed that the current state of
+@code{rw_active} is @code{SCM_PORT_NEITHER}.
+Set using @code{scm_set_port_input_waiting}.
+
+@item seek
+Set the current position of the port.  The procedure can not make
+any assumptions about the value of @code{rw_active} when it's
+called.  It can reset the buffers first if desired by using something
+like:
+
+@example
+      if (pt->rw_active == SCM_PORT_READ)
+	scm_end_input (object);
+      else if (pt->rw_active == SCM_PORT_WRITE)
+	ptob->flush (object);
+@end example
+
+However note that this will have the side effect of discarding any data
+in the unread-char buffer, in addition to any side effects from the
+@code{end_input} and @code{flush} ptob procedures.  This is undesirable
+when seek is called to measure the current position of the port, i.e.,
+@code{(seek p 0 SEEK_CUR)}.  The libguile fport and string port
+implementations take care to avoid this problem.
+
+The procedure is set using @code{scm_set_port_seek}.
+
+@item truncate
+Truncate the port data to be specified length.  It can be assumed that the
+current state of @code{rw_active} is @code{SCM_PORT_NEITHER}.
+Set using @code{scm_set_port_truncate}.
+
+@end table
+
+
+@node Handling Errors
+@chapter How to Handle Errors in C Code
+
+Error handling is based on catch and throw.  Errors are always thrown with
+a key and four arguments:
+
+@itemize @bullet
+@item
+key: a symbol which indicates the type of error.  The symbols used
+by libguile are listed below.
+
+@item
+subr: the name of the procedure from which the error is thrown, or #f.
+
+@item
+message: a string (possibly language and system dependent) describing the
+error.  The tokens %s and %S can be embedded within the message: they
+will be replaced with members of the args list when the message is
+printed.  %s indicates an argument printed using "display", while %S
+indicates an argument printed using "write".  message can also be #f,
+to allow it to be derived from the key by the error handler (may be
+useful if the key is to be thrown from both C and Scheme).
+
+@item
+args: a list of arguments to be used to expand %s and %S tokens in message.
+Can also be #f if no arguments are required.
+
+@item
+rest: a list of any additional objects required. e.g., when the key is
+'system-error, this contains the C errno value.  Can also be #f if no
+additional objects are required.
+@end itemize
+
+In addition to catch and throw, the following Scheme facilities are
+available:
+
+@itemize @bullet
+@item
+(scm-error key subr message args rest): throw an error, with arguments
+as described above.
+
+@item
+(error msg arg ...)  Throw an error using the key 'misc-error.  The error
+message is created by displaying msg and writing the args.
+@end itemize
+
+The following are the error keys defined by libguile and the situations
+in which they are used:
+
+@itemize @bullet
+@item
+error-signal: thrown after receiving an unhandled fatal signal such as
+SIGSEV, SIGBUS, SIGFPE etc.  The "rest" argument in the throw contains
+the coded signal number (at present this is not the same as the usual
+Unix signal number).
+
+@item
+system-error: thrown after the operating system indicates an error
+condition.  The "rest" argument in the throw contains the errno value.
+
+@item
+numerical-overflow: numerical overflow.
+
+@item
+out-of-range: the arguments to a procedure do not fall within the
+accepted domain.
+
+@item
+wrong-type-arg: an argument to a procedure has the wrong thpe.
+
+@item
+wrong-number-of-args: a procedure was called with the wrong number of
+arguments.
+
+@item
+memory-allocation-error: memory allocation error.
+
+@item
+stack-overflow: stack overflow error.
+
+@item
+regex-error: errors generated by the regular expression library.
+
+@item
+misc-error: other errors.
+@end itemize
+
+
+@section C Support
+
+SCM scm_error (SCM key, char *subr, char *message, SCM args, SCM rest)
+
+Throws an error, after converting the char * arguments to Scheme strings.
+subr is the Scheme name of the procedure, NULL is converted to #f.
+Likewise a NULL message is converted to #f.
+
+The following procedures invoke scm_error with various error keys and
+arguments.  The first three call scm_error with the system-error key
+and automatically supply errno in the "rest" argument:  scm_syserror
+generates messages using strerror,  scm_sysmissing is used when
+facilities are not available.  Care should be taken that the errno
+value is not reset (e.g. due to an interrupt).
+
+@itemize @bullet
+@item
+void scm_syserror (char *subr);
+@item
+void scm_syserror_msg (char *subr, char *message, SCM args);
+@item
+void scm_sysmissing (char *subr);
+@item
+void scm_num_overflow (char *subr);
+@item
+void scm_out_of_range (char *subr, SCM bad_value);
+@item
+void scm_wrong_num_args (SCM proc);
+@item
+void scm_wrong_type_arg (char *subr, int pos, SCM bad_value);
+@item
+void scm_memory_error (char *subr);
+@item
+static void scm_regex_error (char *subr, int code); (only used in rgx.c).
+@end itemize
+
+Exception handlers can also be installed from C, using
+scm_internal_catch, scm_lazy_catch, or scm_stack_catch from
+libguile/throw.c.  These have not yet been documented, however the
+source contains some useful comments.

@@ -1,0 +1,255 @@
+@page
+@node Read/Load/Eval
+@chapter Reading and Evaluating Scheme Code
+
+This chapter describes Guile functions that are concerned with reading,
+loading and evaluating Scheme code at run time.
+
+@menu
+* Scheme Syntax::               Standard and extended Scheme syntax.
+* Scheme Read::                 Reading Scheme code.
+* Fly Evaluation::              Procedures for on the fly evaluation.
+* Loading::                     Loading Scheme code from file.
+* Delayed Evaluation::          Postponing evaluation until it is needed.
+* Local Evaluation::            Evaluation in a local environment.
+* Evaluator Options::
+@end menu
+
+
+@node Scheme Syntax
+@section Scheme Syntax: Standard and Guile Extensions
+
+@menu
+* Expression Syntax::
+* Comments::
+* Block Comments::
+* Case Sensitivity::
+* Keyword Syntax::
+* Reader Extensions::
+@end menu
+
+
+@node Expression Syntax
+@subsection Expression Syntax
+
+
+@node Comments
+@subsection Comments
+
+
+@node Block Comments
+@subsection Block Comments
+
+
+@node Case Sensitivity
+@subsection Case Sensitivity
+
+
+@node Keyword Syntax
+@subsection Keyword Syntax
+
+
+@node Reader Extensions
+@subsection Reader Extensions
+
+@c docstring begin (texi-doc-string "guile" "read-hash-extend")
+@deffn primitive read-hash-extend chr proc
+Install the procedure @var{proc} for reading expressions
+starting with the character sequence @code{#} and @var{chr}.
+@var{proc} will be called with two arguments:  the character
+@var{chr} and the port to read further data from. The object
+returned will be the return value of @code{read}.
+@end deffn
+
+
+@node Scheme Read
+@section Reading Scheme Code
+
+@c docstring begin (texi-doc-string "guile" "read-options-interface")
+@deffn primitive read-options-interface [setting]
+Option interface for the read options. Instead of using
+this procedure directly, use the procedures @code{read-enable},
+@code{read-disable}, @code{read-set!} and @var{read-options}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "read")
+@deffn primitive read [port]
+Read an s-expression from the input port @var{port}, or from
+the current input port if @var{port} is not specified.
+Any whitespace before the next token is discarded.
+@end deffn
+
+
+@node Fly Evaluation
+@section Procedures for On the Fly Evaluation
+
+@c ARGFIXME environment/environment specifier
+@c docstring begin (texi-doc-string "guile" "eval")
+@deffn primitive eval exp environment
+Evaluate @var{exp}, a list representing a Scheme expression, in the
+environment given by @var{environment specifier}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "interaction-environment")
+@deffn primitive interaction-environment
+This procedure returns a specifier for the environment that contains
+implementation-defined bindings, typically a superset of those listed in
+the report.  The intent is that this procedure will return the
+environment in which the implementation would evaluate expressions
+dynamically typed by the user.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "eval-string")
+@deffn primitive eval-string string
+Evaluate @var{string} as the text representation of a Scheme form
+or forms, and return whatever value they produce.
+Evaluation takes place in (interaction-environment).
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "apply:nconc2last")
+@deffn primitive apply:nconc2last lst
+Given a list (@var{arg1} @dots{} @var{args}), this function
+conses the @var{arg1} @dots{} arguments onto the front of
+@var{args}, and returns the resulting list. Note that
+@var{args} is a list; thus, the argument to this function is
+a list whose last element is a list.
+Note: Rather than do new consing, @code{apply:nconc2last}
+destroys its argument, so use with care.
+@end deffn
+
+@deffn primitive primitive-eval exp
+Evaluate @var{exp} in the top-level environment specified by
+the current module.
+@end deffn
+
+@deffn primitive eval2 obj env_thunk
+Evaluate @var{exp}, a Scheme expression, in the environment
+designated by @var{lookup}, a symbol-lookup function."
+Do not use this version of eval, it does not play well
+with the module system.  Use @code{eval} or
+@code{primitive-eval} instead.
+@end deffn
+
+@deffn primitive read-and-eval! [port]
+Read a form from @var{port} (standard input by default), and evaluate it
+(memoizing it in the process) in the top-level environment.  If no data
+is left to be read from @var{port}, an @code{end-of-file} error is
+signalled.
+@end deffn
+
+
+@node Loading
+@section Loading Scheme Code from File
+
+@c ARGFIXME file/filename
+@c docstring begin (texi-doc-string "guile" "primitive-load")
+@deffn primitive primitive-load filename
+Load @var{file} and evaluate its contents in the top-level environment.
+The load paths are not searched; @var{file} must either be a full
+pathname or be a pathname relative to the current directory.  If the
+variable @code{%load-hook} is defined, it should be bound to a procedure
+that will be called before any code is loaded.  See documentation for
+@code{%load-hook} later in this section.
+@end deffn
+
+@c ARGFIXME file/filename
+@c docstring begin (texi-doc-string "guile" "primitive-load-path")
+@deffn primitive primitive-load-path filename
+Search @var{%load-path} for @var{file} and load it into the top-level
+environment.  If @var{file} is a relative pathname and is not found in
+the list of search paths, an error is signalled.
+@end deffn
+
+@c ARGFIXME file/filename
+@c docstring begin (texi-doc-string "guile" "%search-load-path")
+@deffn primitive %search-load-path filename
+Search @var{%load-path} for @var{file}, which must be readable by the
+current user.  If @var{file} is found in the list of paths to search or
+is an absolute pathname, return its full pathname.  Otherwise, return
+@code{#f}.  Filenames may have any of the optional extensions in the
+@code{%load-extensions} list; @code{%search-load-path} will try each
+extension automatically.
+@end deffn
+
+@defvar %load-hook
+A procedure to be run whenever @code{primitive-load} is called.  If this
+procedure is defined, it will be called with the filename argument that
+was passed to @code{primitive-load}.
+
+@example
+(define %load-hook (lambda (file)
+                     (display "Loading ")
+                     (display file)
+                     (write-line "...."))) @result{} undefined
+(load-from-path "foo.scm")
+@print{} Loading /usr/local/share/guile/site/foo.scm....
+@end example
+
+@end defvar
+
+@c docstring begin (texi-doc-string "guile" "current-load-port")
+@deffn primitive current-load-port
+Return the current-load-port.
+The load port is used internally by @code{primitive-load}.
+@end deffn
+
+@defvar %load-extensions
+A list of default file extensions for files containing Scheme code.
+@code{%search-load-path} tries each of these extensions when looking for
+a file to load.  By default, @code{%load-extensions} is bound to the
+list @code{("" ".scm")}.
+@end defvar
+
+
+@node Delayed Evaluation
+@section Delayed Evaluation
+
+[delay]
+
+@c ARGFIXME x/obj
+@c docstring begin (texi-doc-string "guile" "promise?")
+@deffn primitive promise? x
+Return true if @var{obj} is a promise, i.e. a delayed computation
+(@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "force")
+@deffn primitive force x
+If the promise X has not been computed yet, compute and return
+X, otherwise just return the previously computed value.
+@end deffn
+
+
+@node Local Evaluation
+@section Local Evaluation
+
+[the-environment]
+
+@c docstring begin (texi-doc-string "guile" "local-eval")
+@deffn primitive local-eval exp [env]
+Evaluate @var{exp} in its environment.  If @var{env} is supplied,
+it is the environment in which to evaluate @var{exp}.  Otherwise,
+@var{exp} must be a memoized code object (in which case, its environment
+is implicit).
+@end deffn
+
+
+@node Evaluator Options
+@section Evaluator Options
+
+@c docstring begin (texi-doc-string "guile" "eval-options-interface")
+@deffn primitive eval-options-interface [setting]
+Option interface for the evaluation options. Instead of using
+this procedure directly, use the procedures @code{eval-enable},
+@code{eval-disable}, @code{eval-set!} and @var{eval-options}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "evaluator-traps-interface")
+@deffn primitive evaluator-traps-interface [setting]
+Option interface for the evaluator trap options.
+@end deffn
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

@@ -1,0 +1,381 @@
+@page
+@node Scheduling
+@chapter Threads, Mutexes, Asyncs and Dynamic Roots
+
+[FIXME: This is pasted in from Tom Lord's original guile.texi chapter
+plus the Cygnus programmer's manual; it should be *very* carefully
+reviewed and largely reorganized.]
+
+@menu
+* Arbiters::
+* Asyncs::
+* Dynamic Roots::
+* Threads::
+* Fluids::
+@end menu
+
+
+@node Arbiters
+@section Arbiters
+
+@c docstring begin (texi-doc-string "guile" "make-arbiter")
+@deffn primitive make-arbiter name
+Return an object of type arbiter and name @var{name}. Its
+state is initially unlocked.  Arbiters are a way to achieve
+process synchronization.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "try-arbiter")
+@deffn primitive try-arbiter arb
+Return @code{#t} and lock the arbiter @var{arb} if the arbiter
+was unlocked. Otherwise, return @code{#f}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "release-arbiter")
+@deffn primitive release-arbiter arb
+Return @code{#t} and unlock the arbiter @var{arb} if the
+arbiter was locked. Otherwise, return @code{#f}.
+@end deffn
+
+
+@node Asyncs
+@section Asyncs
+
+@c docstring begin (texi-doc-string "guile" "async")
+@deffn primitive async thunk
+Create a new async for the procedure @var{thunk}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "system-async")
+@deffn primitive system-async thunk
+Create a new async for the procedure @var{thunk}.  Also
+add it to the system's list of active async objects.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "async-mark")
+@deffn primitive async-mark a
+Mark the async @var{a} for future execution.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "system-async-mark")
+@deffn primitive system-async-mark a
+Mark the async @var{a} for future execution.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "run-asyncs")
+@deffn primitive run-asyncs list_of_a
+Execute all thunks from the asyncs of the list @var{list_of_a}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "noop")
+@deffn primitive noop . args
+Do nothing.  When called without arguments, return @code{#f},
+otherwise return the first argument.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "unmask-signals")
+@deffn primitive unmask-signals
+Unmask signals. The returned value is not specified.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "mask-signals")
+@deffn primitive mask-signals
+Mask signals. The returned value is not specified.
+@end deffn
+
+
+@node Dynamic Roots
+@section Dynamic Roots
+@cindex dynamic roots
+
+A @dfn{dynamic root} is a root frame of Scheme evaluation.
+The top-level repl, for example, is an instance of a dynamic root.
+
+Each dynamic root has its own chain of dynamic-wind information.  Each
+has its own set of continuations, jump-buffers, and pending CATCH
+statements which are inaccessible from the dynamic scope of any
+other dynamic root.
+
+In a thread-based system, each thread has its own dynamic root.  Therefore,
+continuations created by one thread may not be invoked by another.
+
+Even in a single-threaded system, it is sometimes useful to create a new
+dynamic root.  For example, if you want to apply a procedure, but to
+not allow that procedure to capture the current continuation, calling
+the procedure under a new dynamic root will do the job.
+
+@c docstring begin (texi-doc-string "guile" "call-with-dynamic-root")
+@deffn primitive call-with-dynamic-root thunk handler
+Evaluate @code{(thunk)} in a new dynamic context, returning its value.
+
+If an error occurs during evaluation, apply @var{handler} to the
+arguments to the throw, just as @code{throw} would.  If this happens,
+@var{handler} is called outside the scope of the new root -- it is
+called in the same dynamic context in which
+@code{call-with-dynamic-root} was evaluated.
+
+If @var{thunk} captures a continuation, the continuation is rooted at
+the call to @var{thunk}.  In particular, the call to
+@code{call-with-dynamic-root} is not captured.  Therefore,
+@code{call-with-dynamic-root} always returns at most one time.
+
+Before calling @var{thunk}, the dynamic-wind chain is un-wound back to
+the root and a new chain started for @var{thunk}.  Therefore, this call
+may not do what you expect:
+
+@example
+;; Almost certainly a bug:
+(with-output-to-port
+ some-port
+
+ (lambda ()
+   (call-with-dynamic-root
+    (lambda ()
+      (display 'fnord)
+      (newline))
+    (lambda (errcode) errcode))))
+@end example
+
+The problem is, on what port will @samp{fnord} be displayed?  You
+might expect that because of the @code{with-output-to-port} that
+it will be displayed on the port bound to @code{some-port}.  But it
+probably won't -- before evaluating the thunk, dynamic winds are
+unwound, including those created by @code{with-output-to-port}.
+So, the standard output port will have been re-set to its default value
+before @code{display} is evaluated.
+
+(This function was added to Guile mostly to help calls to functions in C
+libraries that can not tolerate non-local exits or calls that return
+multiple times.  If such functions call back to the interpreter, it should
+be under a new dynamic root.)
+@end deffn
+
+
+@c docstring begin (texi-doc-string "guile" "dynamic-root")
+@deffn primitive dynamic-root
+Return an object representing the current dynamic root.
+
+These objects are only useful for comparison using @code{eq?}.
+They are currently represented as numbers, but your code should
+in no way depend on this.
+@end deffn
+
+@c begin (scm-doc-string "boot-9.scm" "quit")
+@deffn procedure quit [exit_val]
+Throw back to the error handler of the current dynamic root.
+
+If integer @var{exit_val} is specified and if Guile is being used
+stand-alone and if quit is called from the initial dynamic-root,
+@var{exit_val} becomes the exit status of the Guile process and the
+process exits.
+@end deffn
+
+When Guile is run interactively, errors are caught from within the
+read-eval-print loop.  An error message will be printed and @code{abort}
+called.  A default set of signal handlers is installed, e.g., to allow
+user interrupt of the interpreter.
+
+It is possible to switch to a "batch mode", in which the interpreter
+will terminate after an error and in which all signals cause their
+default actions.  Switching to batch mode causes any handlers installed
+from Scheme code to be removed.  An example of where this is useful is
+after forking a new process intended to run non-interactively.
+
+@c begin (scm-doc-string "boot-9.scm" "batch-mode?")
+@deffn procedure batch-mode?
+Returns a boolean indicating whether the interpreter is in batch mode.
+@end deffn
+
+@c begin (scm-doc-string "boot-9.scm" "set-batch-mode?!")
+@deffn procedure set-batch-mode?! arg
+If @var{arg} is true, switches the interpreter to batch mode.
+The @code{#f} case has not been implemented.
+@end deffn
+
+@node Threads
+@section Threads
+@cindex threads
+@cindex Guile threads
+
+@strong{[NOTE: this chapter was written for Cygnus Guile and has not yet
+been updated for the Guile 1.x release.]}
+
+Here is a the reference for Guile's threads.  In this chapter I simply
+quote verbatim Tom Lord's description of the low-level primitives
+written in C (basically an interface to the POSIX threads library) and
+Anthony Green's description of the higher-level thread procedures
+written in scheme.
+@cindex posix threads
+@cindex Lord, Tom
+@cindex Green, Anthony
+
+When using Guile threads, keep in mind that each guile thread is
+executed in a new dynamic root.
+
+@menu
+* Low level thread primitives::
+* Higher level thread procedures::
+@end menu
+
+
+@node Low level thread primitives
+@subsection Low level thread primitives
+
+@c NJFIXME no current mechanism for making sure that these docstrings
+@c are in sync.
+
+@c begin (texi-doc-string "guile" "call-with-new-thread")
+@deffn primitive call-with-new-thread thunk error-thunk
+Evaluate @code{(thunk)} in a new thread, and new dynamic context,
+returning a new thread object representing the thread.
+
+If an error occurs during evaluation, call error-thunk, passing it an
+error code describing the condition.  [Error codes are currently
+meaningless integers.  In the future, real values will be specified.]
+If this happens, the error-thunk is called outside the scope of the new
+root -- it is called in the same dynamic context in which
+with-new-thread was evaluated, but not in the callers thread.
+
+All the evaluation rules for dynamic roots apply to threads.
+@end deffn
+
+@c begin (texi-doc-string "guile" "join-thread")
+@deffn primitive join-thread thread
+Suspend execution of the calling thread until the target @var{thread}
+terminates, unless the target @var{thread} has already terminated.
+@end deffn
+
+@c begin (texi-doc-string "guile" "yield")
+@deffn primitive yield
+If one or more threads are waiting to execute, calling yield forces an
+immediate context switch to one of them. Otherwise, yield has no effect.
+@end deffn
+
+@c begin (texi-doc-string "guile" "make-mutex")
+@deffn primitive make-mutex
+Create a new mutex object.
+@end deffn
+
+@c begin (texi-doc-string "guile" "lock-mutex")
+@deffn primitive lock-mutex mutex
+Lock @var{mutex}. If the mutex is already locked, the calling thread
+blocks until the mutex becomes available. The function returns when
+the calling thread owns the lock on @var{mutex}.
+@end deffn
+
+@c begin (texi-doc-string "guile" "unlock-mutex")
+@deffn primitive unlock-mutex mutex
+Unlocks @var{mutex} if the calling thread owns the lock on @var{mutex}.
+Calling unlock-mutex on a mutex not owned by the current thread results
+in undefined behaviour. Once a mutex has been unlocked, one thread
+blocked on @var{mutex} is awakened and grabs the mutex lock.
+@end deffn
+
+@c begin (texi-doc-string "guile" "make-condition-variable")
+@deffn primitive make-condition-variable
+@end deffn
+
+@c begin (texi-doc-string "guile" "wait-condition-variable")
+@deffn primitive wait-condition-variable cond-var mutex
+@end deffn
+
+@c begin (texi-doc-string "guile" "signal-condition-variable")
+@deffn primitive signal-condition-variable cond-var
+@end deffn
+
+
+@node Higher level thread procedures
+@subsection Higher level thread procedures
+
+@c NJFIXME the following doc is a repeat of the previous node!
+
+@c begin (texi-doc-string "guile" "call-with-new-thread")
+@deffn primitive call-with-new-thread thunk error-thunk
+Evaluate @code{(thunk)} in a new thread, and new dynamic context,
+returning a new thread object representing the thread.
+
+If an error occurs during evaluation, call error-thunk, passing it an
+error code describing the condition.  [Error codes are currently
+meaningless integers.  In the future, real values will be specified.]
+If this happens, the error-thunk is called outside the scope of the new
+root -- it is called in the same dynamic context in which
+with-new-thread was evaluated, but not in the callers thread.
+
+All the evaluation rules for dynamic roots apply to threads.
+@end deffn
+
+@c begin (texi-doc-string "guile" "join-thread")
+@deffn primitive join-thread thread
+Suspend execution of the calling thread until the target @var{thread}
+terminates, unless the target @var{thread} has already terminated.
+@end deffn
+
+@c begin (texi-doc-string "guile" "yield")
+@deffn primitive yield
+If one or more threads are waiting to execute, calling yield forces an
+immediate context switch to one of them. Otherwise, yield has no effect.
+@end deffn
+
+@c begin (texi-doc-string "guile" "make-mutex")
+@deffn primitive make-mutex
+Create a new mutex object.
+@end deffn
+
+@c begin (texi-doc-string "guile" "lock-mutex")
+@deffn primitive lock-mutex mutex
+Lock @var{mutex}. If the mutex is already locked, the calling thread
+blocks until the mutex becomes available. The function returns when
+the calling thread owns the lock on @var{mutex}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "unlock-mutex")
+@deffn primitive unlock-mutex mutex
+Unlocks @var{mutex} if the calling thread owns the lock on @var{mutex}.
+Calling unlock-mutex on a mutex not owned by the current thread results
+in undefined behaviour. Once a mutex has been unlocked, one thread
+blocked on @var{mutex} is awakened and grabs the mutex lock.
+@end deffn
+
+
+@node Fluids
+@section Fluids
+
+@c docstring begin (texi-doc-string "guile" "make-fluid")
+@deffn primitive make-fluid
+Return a newly created fluid.
+Fluids are objects of a certain type (a smob) that can hold one SCM
+value per dynamic root.  That is, modifications to this value are
+only visible to code that executes within the same dynamic root as
+the modifying code.  When a new dynamic root is constructed, it
+inherits the values from its parent.  Because each thread executes
+in its own dynamic root, you can use fluids for thread local storage.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "fluid?")
+@deffn primitive fluid? obj
+Return #t iff @var{obj} is a fluid; otherwise, return #f.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "fluid-ref")
+@deffn primitive fluid-ref fluid
+Return the value associated with @var{fluid} in the current dynamic root.
+If @var{fluid} has not been set, then this returns #f.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "fluid-set!")
+@deffn primitive fluid-set! fluid value
+Set the value associated with @var{fluid} in the current dynamic root.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "with-fluids*")
+@deffn primitive with-fluids* fluids values thunk
+Set @var{fluids} to @var{values} temporary, and call @var{thunk}.
+@var{fluids} must be a list of fluids and @var{values} must be the same
+number of their values to be applied.  Each substitution is done
+one after another.  @var{thunk} must be a procedure with no argument.
+@end deffn
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

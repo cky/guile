@@ -1,0 +1,37 @@
+@page
+@node Binding Constructs
+@chapter Definitions and Variable Bindings
+
+@menu
+* Top Level::                   Top level variable definitions.
+* Local Bindings::              Local variable bindings.
+* Internal Definitions::        Internal definitions.
+* Binding Reflection::          Querying variable bindings.
+@end menu
+
+
+@node Top Level
+@section Top Level Variable Definitions
+
+
+@node Local Bindings
+@section Local Variable Bindings
+
+
+@node Internal Definitions
+@section Internal definitions
+
+
+@node Binding Reflection
+@section Querying variable bindings
+
+@c NJFIXME explain [env]
+@c docstring begin (texi-doc-string "guile" "defined?")
+@deffn primitive defined? sym [env]
+Return @code{#t} if @var{sym} is defined in the top-level environment.
+@end deffn
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

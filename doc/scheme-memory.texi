@@ -1,0 +1,244 @@
+@page
+@node Memory Management
+@chapter Memory Management and Garbage Collection
+
+@menu
+* Garbage Collection::
+* Weak References::
+* Guardians::
+@end menu
+
+
+@node Garbage Collection
+@section Garbage Collection
+
+[FIXME: this is pasted in from Tom Lord's original guile.texi and should
+be reviewed]
+
+@c docstring begin (texi-doc-string "guile" "gc")
+@deffn primitive gc
+Scans all of SCM objects and reclaims for further use those that are
+no longer accessible.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "gc-stats")
+@deffn primitive gc-stats
+Returns an association list of statistics about Guile's current use of storage.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "object-address")
+@deffn primitive object-address obj
+Return an integer that for the lifetime of @var{obj} is uniquely
+returned by this function for @var{obj}
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "unhash-name")
+@deffn primitive unhash-name name
+Flushes the glocs for @var{name}, or all glocs if @var{name}
+is @code{#t}.
+@end deffn
+
+
+@node Weak References
+@section Weak References
+
+[FIXME: This chapter is based on Mikael Djurfeldt's answer to a question
+by Michael Livshin. Any mistakes are not theirs, of course. ]
+
+Weak references let you attach bookkeeping information to data so that
+the additional information automatically disappears when the original
+data is no longer in use and gets garbage collected. In a weak key hash,
+the hash entry for that key disappears as soon as the key is no longer
+referneced from anywhere else. For weak value hashes, the same happens
+as soon as the value is no longer in use. Entries in a doubly weak hash
+disappear when either the key or the value are not used anywhere else
+anymore.
+
+Property lists offer the same kind of functionality as weak key hashes
+in many situations. (@pxref{Property Lists})
+
+Here's an example (a little bit strained perhaps, but one of the
+examples is actually used in Guile):
+
+Assume that you're implementing a debugging system where you want to
+associate information about filename and position of source code
+expressions with the expressions themselves.
+
+Hashtables can be used for that, but if you use ordinary hash tables
+it will be impossible for the scheme interpreter to "forget" old
+source when, for example, a file is reloaded.
+
+To implement the mapping from source code expressions to positional
+information it is necessary to use weak-key tables since we don't want
+the expressions to be remembered just because they are in our table.
+
+To implement a mapping from source file line numbers to source code
+expressions you would use a weak-value table.
+
+To implement a mapping from source code expressions to the procedures
+they constitute a doubly-weak table has to be used.
+
+@menu
+* Weak key hashes::
+* Weak vectors::
+@end menu
+
+
+@node Weak key hashes
+@subsection Weak key hashes
+
+@c ARGFIXME k/size
+@c docstring begin (texi-doc-string "guile" "make-weak-key-hash-table")
+@deffn primitive make-weak-key-hash-table k
+@deffnx primitive make-weak-value-hash-table size
+@deffnx primitive make-doubly-weak-hash-table size
+Return a weak hash table with @var{size} buckets. As with any hash
+table, choosing a good size for the table requires some caution.
+
+You can modify weak hash tables in exactly the same way you would modify
+regular hash tables. (@pxref{Hash Tables})
+@end deffn
+
+@c ARGFIXME x/obj
+@c docstring begin (texi-doc-string "guile" "weak-key-hash-table?")
+@deffn primitive weak-key-hash-table? x
+@deffnx primitive weak-value-hash-table? obj
+@deffnx primitive doubly-weak-hash-table? obj
+Return @var{#t} if @var{obj} is the specified weak hash table. Note
+that a doubly weak hash table is neither a weak key nor a weak value
+hash table.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "make-weak-value-hash-table")
+@deffn primitive make-weak-value-hash-table k
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "weak-value-hash-table?")
+@deffn primitive weak-value-hash-table? x
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "make-doubly-weak-hash-table")
+@deffn primitive make-doubly-weak-hash-table k
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "doubly-weak-hash-table?")
+@deffn primitive doubly-weak-hash-table? x
+@end deffn
+
+
+@node Weak vectors
+@subsection Weak vectors
+
+Weak vectors are mainly useful in Guile's implementation of weak hash
+tables.
+
+@c ARGFIXME k/size
+@c docstring begin (texi-doc-string "guile" "make-weak-vector")
+@deffn primitive make-weak-vector k [fill]
+Return a weak vector with @var{size} elements. If the optional
+argument @var{fill} is given, all entries in the vector will be set to
+@var{fill}. The default value for @var{fill} is the empty list.
+@end deffn
+
+@c NJFIXME should vector->list here be list->vector ?
+@c docstring begin (texi-doc-string "guile" "weak-vector")
+@c docstring begin (texi-doc-string "guile" "list->weak-vector")
+@deffn primitive weak-vector . l
+@deffnx primitive list->weak-vector l
+Construct a weak vector from a list: @code{weak-vector} uses the list of
+its arguments while @code{list->weak-vector} uses its only argument
+@var{l} (a list) to construct a weak vector the same way
+@code{vector->list} would.
+@end deffn
+
+@c ARGFIXME x/obj
+@c docstring begin (texi-doc-string "guile" "weak-vector?")
+@deffn primitive weak-vector? x
+Return @var{#t} if @var{obj} is a weak vector. Note that all weak
+hashes are also weak vectors.
+@end deffn
+
+
+@node Guardians
+@section Guardians
+
+@c docstring begin (texi-doc-string "guile" "make-guardian")
+@deffn primitive make-guardian [greedy?]
+Create a new guardian.
+A guardian protects a set of objects from garbage collection,
+allowing a program to apply cleanup or other actions.
+
+@code{make-guardian} returns a procedure representing the guardian.
+Calling the guardian procedure with an argument adds the
+argument to the guardian's set of protected objects.
+Calling the guardian procedure without an argument returns
+one of the protected objects which are ready for garbage
+collection, or @code{#f} if no such object is available.
+Objects which are returned in this way are removed from
+the guardian.
+
+@code{make-guardian} takes one optional argument that says whether the
+new guardian should be greedy or sharing.  If there is any chance
+that any object protected by the guardian may be resurrected,
+then you should make the guardian greedy (this is the default).
+
+See R. Kent Dybvig, Carl Bruggeman, and David Eby (1993)
+"Guardians in a Generation-Based Garbage Collector".
+ACM SIGPLAN Conference on Programming Language Design
+and Implementation, June 1993.
+
+(the semantics are slightly different at this point, but the
+paper still (mostly) accurately describes the interface).
+@end deffn
+
+@deffn primitive destroy-guardian! guardian
+Destroys @var{guardian}, by making it impossible to put any more
+objects in it or get any objects from it.  It also unguards any
+objects guarded by @var{guardian}.
+@end deffn
+
+@deffn primitive guardian-greedy? guardian
+Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.
+@end deffn
+
+@deffn primitive guardian-destroyed? guardian
+Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.
+@end deffn
+
+
+@page
+@node Objects
+@chapter Objects
+
+@c docstring begin (texi-doc-string "guile" "entity?")
+@deffn primitive entity? obj
+Return @code{#t} if @var{obj} is an entity.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "operator?")
+@deffn primitive operator? obj
+Return @code{#t} if @var{obj} is an operator.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "set-object-procedure!")
+@deffn primitive set-object-procedure! obj proc
+Return the object procedure of @var{obj} to @var{proc}.
+@var{obj} must be either an entity or an operator.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "make-class-object")
+@deffn primitive make-class-object metaclass layout
+Create a new class object of class @var{metaclass}, with the
+slot layout specified by @var{layout}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "make-subclass-object")
+@deffn primitive make-subclass-object class layout
+Create a subclass object of @var{class}, with the slot layout
+specified by @var{layout}.
+@end deffn
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
