@@ -1,0 +1,87 @@
+2001-04-23  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	Integrated the guile-srfi package into the Guile distribution.
+	
+	* srfi-13.c: All procedures so specified in the SRFI now accept
+	character set arguments.
+
+	* Makefile.am: Snarfed some variables from the guile-readline
+	directory.
+
+	* srfi-14.c, srfi-14.h: Add prefix SCM_ to exported macros.
+
+	* srfi-13.scm, srfi-14.scm, srfi-13.c, srfi-14.c, srfi-14.h,
+	configure.in, Makefile.am: Added FSF copyright and Guile license
+	information.
+
+	* srfi-13.c, srfi-14.c: Include srfi-14.h.
+	(scm_init_srfi_13_14): Initialize the complete module, if not
+	already done so.
+
+	* srfi-14.h: New file.
+
+	* srfi-13.scm, srfi-14.scm: Load new combined library.
+
+	* Makefile.am: Build only one library,
+	`libguile-srfi-srfi-13-14.la'
+
+2001-04-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* guile-srfi.texi: Integrated the SRFI-14 documentation.
+
+	* srfi-14.c, srfi-14.scm: Made the procedures and variables
+	compliant to the final SRFI document.
+
+	* Renamed the package to guile-srfi.
+
+2001-04-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* NEWS: New section for 0.0.3.
+
+	* configure.in, README, guile-srfi-13.texi: Bumped version number
+	to 0.0.3.
+
+	* Released version 0.0.2.
+	
+	* Makefile.am: Added rules for builing the SRFI-14 library.
+
+	* srfi-14.c, srfi-14.scm: New files, implementing SRFI-14
+	(character set library).
+
+2001-03-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* README: Updated procedure and incompatibility list.
+
+	* srfi-13.c (string_upcase_x, scm_string_upcase_xS),
+	(scm_string_upcase, string_downcase_x, scm_string_downcase_xS),
+	(scm_string_downcaseS, string_titlecase_x),
+	(scm_string_titlecase_x, scm_string_titlecase),
+	(scm_string_fill_xS, scm_string_copyS, scm_string_to_listS): New
+	procedures.
+
+	* srfi-13.scm: Export new case mapping procedures.
+
+	* guile-srfi-13.texi (What cannot be done): Removed case mapping
+	procedures from incompatibility list.
+	(Case Mapping): New section for case mapping procedures.
+
+2001-03-26  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* NEWS: New section for 0.0.2
+
+	* configure.in, README, guile-srfi-13.texi: Bumbed version number
+	to 0.0.2
+
+	* Released version 0.0.1.
+
+	* README: Made procedure list up-to-date.
+
+	* guile-srfi-13.texi: Fixed typos, completed reference and added
+	introductory blurb.
+
+	* srfi-13.c, srfi-13.scm: Filled in the last missing pieces.
+
+2001-03-22  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* Started guile-srfi-13 package.  Files are copied from the
+	guile-gdbm and slightly modified.

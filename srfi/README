@@ -1,0 +1,141 @@
+This is the integration of guile-srfi into the core.          -*- text -*-
+
+[ this is the README from guile-srfi 0.0.3, slightly modified for the
+  integration into the Guile core 
+
+  'martin -- 2001-04-23 ]
+
+This is a compiled Guile module that provides the string procedures
+defined in SRFI-13 (string library), and the character set procedures
+defined in SRFI-14 (character-set library).
+
+Getting Started ======================================================
+
+1. Type
+
+     guile
+
+   You should now be at the Guile prompt ("guile> ").
+
+2. Type
+
+     (use-modules (srfi srfi-13))
+
+   so that the srfi-13 module gets loaded.
+
+3. We're now ready to try some basic srfi-13/14 functionality.
+
+   $ guile
+   guile> (use-modules (srfi srfi-13))                  
+   guile> (string-concatenate '("Hello" " " "World"))
+   "Hello World"
+   guile> 
+
+   Check out the SRFI-14 (character-set library) procedures, too:
+
+   $ guile
+   guile> (use-modules (srfi srfi-14))                  
+   guile> (char-set-union (char-set #\f #\o #\o) (string->char-set "bar"))
+   #<charset {#\a #\b #\f #\o #\r}>
+   guile>
+
+What Is Included =====================================================
+
+   All SRFI-13 procedures which are not already compatibly defined in
+   the Guile core are implemented.  These are:
+
+   string-any string-every
+   string-tabulate
+   string->list
+   reverse-list->string
+   string-join
+   string-copy
+   substring/shared string-copy!
+   string-take string-take-right
+   string-drop string-drop-right
+   string-pad string-pad-right
+   string-trim string-trim-right string-trim-both
+   string-fill!
+   string-compare string-compare-ci
+   string= string<>
+   string< string>
+   string<= string>=
+   string-ci= string-ci<>
+   string-ci< string-ci>
+   string-ci<= string-ci>=
+   string-hash string-hash-ci
+   string-prefix-length string-prefix-length-ci
+   string-suffix-length string-suffix-length-ci
+   string-prefix? string-prefix-ci?
+   string-suffix? string-suffix-ci?
+   string-index string-index-right
+   string-skip string-skip-right
+   string-count
+   string-contains string-contains-ci
+   string-upcase string-upcase!
+   string-downcase string-downcase!
+   string-titlecase string-titlecase!
+   string-reverse string-reverse!
+   string-append/shared
+   string-concatenate
+   reverse-string-concatenate
+   string-concatenate/shared
+   reverse-string-concatenate/shared
+   string-map string-map!
+   string-fold string-fold-right
+   string-unfold string-unfold-right
+   string-for-each
+   xsubstring string-xcopy!
+   string-replace string-tokenize
+   string-filter string-delete
+
+
+   All procedures and variables defined in SRFI-14 are implemented.
+   Thes complete list is:
+
+   char-set? char-set= char-set<=
+   char-set-hash
+   char-set-fold char-set-unfold char-set-unfold!
+   char-set-for-each char-set-map
+   char-set-copy
+   char-set
+   list->char-set list->char-set!
+   string->char-set string-char-set!
+   predicate->char-set predicate->char-set!
+   ucs-range->char-set ucs-range->char-set!
+   ->char-set ->char-set!
+   char-set-size char-set-count
+   char-set-members char-set-contains?
+   char-set-every char-set-any
+   char-set-adjoin char-set-adjoin!
+   char-set-delete char-set-delete!
+   char-set-invert char-set-invert!
+   char-set-union char-set-union!
+   char-set-intersection char-set-intersection!
+   char-set-difference char-set-difference!
+   char-set-xor char-set-xor!
+   char-set-diff+intersection char-set-diff+intersection!
+   char-set:lower-case char-set:upper-case
+   char-set:title-case char-set:letter
+   char-set:digit char-set:letter+digit
+   char-set:graphic char-set:printing
+   char-set:whitespace char-set:iso-control
+   char-set:punctuation char-set:symbol
+   char-set:hex-digit char-set:blank
+   char-set:ascii char-set:empty
+   char-set:full 
+
+
+What Is Not Included =================================================
+
+   The following low-level procedures and syntax defined in SRFI-13
+   are currently not supported.
+
+   string-parse-start+end
+   string-parse-final-start+end
+   let-string-start+end
+   check-substring-spec
+   substring-spec-ok?
+   make-kmp-restart-vector
+   kmp-step
+   string-search-kmp
