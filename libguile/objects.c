@@ -40,9 +40,9 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* This file contains those minimal pieces of the Guile Object
- * Oriented Programming System which needs to be included in
- * libguile.
+/* This file and objects.h contains those minimal pieces of the Guile
+ * Object Oriented Programming System which need to be included in
+ * libguile.  See the comments in objects.h.
  */
 
 #include "_scm.h"
@@ -53,7 +53,7 @@
 
 
 SCM scm_metaclass_standard;
-SCM *scm_entity_vtable;
+SCM scm_metaclass_operator;
 
 void
 scm_init_objects ()
@@ -63,6 +63,11 @@ scm_init_objects ()
   SCM mt = scm_make_vtable_vtable (ml, SCM_INUM0,
 				   SCM_LIST3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
   
+  SCM os = scm_makfrom0str (SCM_METACLASS_OPERATOR_LAYOUT);
+  SCM ol = scm_make_struct_layout (os);
+  SCM ot = scm_make_vtable_vtable (ol, SCM_INUM0,
+				   SCM_LIST3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
+  
   SCM es = scm_makfrom0str (SCM_ENTITY_LAYOUT);
   SCM el = scm_make_struct_layout (es);
   SCM et = scm_make_struct (mt, SCM_INUM0,
@@ -70,6 +75,8 @@ scm_init_objects ()
 
   scm_sysintern ("<standard-metaclass>", mt);
   scm_metaclass_standard = mt;
+  scm_sysintern ("<operator-metaclass>", ot);
+  scm_metaclass_operator = ot;
+  SCM_SET_CLASS_FLAGS (et, SCM_CLASSF_OPERATOR | SCM_CLASSF_ENTITY);
   scm_sysintern ("<entity-class>", et);
-  scm_entity_vtable = SCM_STRUCT_DATA (et);
 }

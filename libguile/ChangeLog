@@ -1,3 +1,15 @@
+Sun Oct 12 14:41:39 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* ports.h: #include "libguile/print.h"
+
+	* eval.c (SCM_CEVAL, scm_apply): Completed GOOPS support code;
+ 	Some indentation fixes.
+
+	* objects.h (SCM_METACLASS_STANDARD_LAYOUT): Printer field is no
+	longer a user field; New field: class_flags.
+
+	* objets.c, objects.h: New metaclass: scm_metaclass_operator.
+
 Tue Oct  7 09:37:24 1997  Mark Galassi  <rosalia@cygnus.com>
 
 	* gh_data.c (gh_bool2scm): new function which replaces

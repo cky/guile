@@ -45,20 +45,92 @@
  * If you do not wish that, delete this exception notice.  */
 
 
+/* This file and objects.c contains those minimal pieces of the Guile
+ * Object Oriented Programming System which need to be included in
+ * libguile.
+ *
+ * {Objects and structs}
+ *
+ * Objects are currently based upon structs.  Although the struct
+ * implementation will change thoroughly in the future, objects will
+ * still be based upon structs.
+ */
+
 #include "libguile/__scm.h"
 #include "libguile/struct.h"
 
 
 
-#define SCM_I_ENTITYP(OBJ)\
-(SCM_STRUCT_VTABLE_DATA (OBJ) == scm_entity_vtable)
-#define SCM_ENTITY(OBJ) ((scm_entity*) SCM_STRUCT_DATA (OBJ))
-#define SCM_ENTITY_PROC_0(OBJ) (SCM_ENTITY (OBJ)->proc0)
-#define SCM_ENTITY_PROC_1(OBJ) (SCM_ENTITY (OBJ)->proc1)
-#define SCM_ENTITY_PROC_2(OBJ) (SCM_ENTITY (OBJ)->proc2)
-#define SCM_ENTITY_PROC_3(OBJ) (SCM_ENTITY (OBJ)->proc3)
+/* {Class flags}
+ *
+ * These are used for efficient identification of instances of a
+ * certain class or its subclasses when traversal of the inheritance
+ * graph would be too costly.
+ */
+#define SCM_CLASS_FLAGS(class) (SCM_STRUCT_DATA (class)[scm_struct_i_tag])
+#define SCM_OBJ_CLASS_FLAGS(obj)\
+(SCM_STRUCT_VTABLE_DATA (obj)[scm_struct_i_tag])
+#define SCM_SET_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) |= (f))
+#define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
+#define SCM_CLASSF_MASK (0xFF << 24)
 
-#define SCM_METACLASS_STANDARD_LAYOUT "pwpwpw"
+/* Operator classes need to be identified in the evaluator. */
+#define SCM_CLASSF_OPERATOR	(1L << 30)
+/* Entities also have SCM_CLASSF_OPERATOR set in their vtable. */
+#define SCM_CLASSF_ENTITY	(1L << 29)
+
+#define SCM_I_OPERATORP(obj)\
+((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR) != 0)
+#define SCM_OPERATOR_CLASS(obj)\
+((struct scm_metaclass_operator *) SCM_STRUCT_DATA (obj))
+#define SCM_OBJ_OPERATOR_CLASS(obj)\
+((struct scm_metaclass_operator *) SCM_STRUCT_VTABLE_DATA (obj))
+#define SCM_OPERATOR_PROC_0(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->proc0)
+#define SCM_OPERATOR_PROC_1(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->proc1)
+#define SCM_OPERATOR_PROC_2(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->proc2)
+#define SCM_OPERATOR_PROC_3(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->proc3)
+
+#define SCM_I_ENTITYP(obj)\
+((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_ENTITY) != 0)
+#define SCM_ENTITY(obj) ((scm_entity*) SCM_STRUCT_DATA (obj))
+#define SCM_ENTITY_PROC_0(obj) (SCM_ENTITY (obj)->proc0)
+#define SCM_ENTITY_PROC_1(obj) (SCM_ENTITY (obj)->proc1)
+#define SCM_ENTITY_PROC_2(obj) (SCM_ENTITY (obj)->proc2)
+#define SCM_ENTITY_PROC_3(obj) (SCM_ENTITY (obj)->proc3)
+
+/* {Operator classes}
+ *
+ * Instances of operator classes can work as operators, i. e., they
+ * can be applied to arguments just as if they were ordinary
+ * procedures.
+ *
+ * For instances of operator classes, the procedures to be applied are
+ * stored in four dedicated slots in the associated class object.
+ * Which one is selected depends on the number of arguments in the
+ * application.
+ *
+ * If zero arguments are passed, the first will be selected.
+ * If one argument is passed, the second will be selected.
+ * If two arguments are passed, the third will be selected.
+ * If three or more arguments are passed, the fourth will be selected.
+ *
+ * This is complicated and may seem gratuitous but has to do with the
+ * architecture of the evaluator.  Using only one procedure would
+ * result in a great deal less efficient application, loss of
+ * tail-recursion and would be difficult to reconcile with the
+ * debugging evaluator.
+ *
+ * Also, using this "forked" application in low-level code has the
+ * advantage of speeding up some code.  An example is method dispatch
+ * for generic operators applied to few arguments.  On the user level,
+ * the "forked" application will be hidden by mechanisms in the GOOPS
+ * package.
+ *
+ * Operator classes have the metaclass <operator-metaclass>.
+ *
+ * An example of an operator class is the class <tk-command>.
+ */
+#define SCM_METACLASS_STANDARD_LAYOUT "pwpw"
 struct scm_metaclass_standard {
   SCM layout;
   SCM vcell;
@@ -68,6 +140,28 @@ struct scm_metaclass_standard {
   SCM direct_slots;
 };
 
+#define SCM_METACLASS_OPERATOR_LAYOUT "pwpwpwpwpwpw"
+struct scm_metaclass_operator {
+  SCM layout;
+  SCM vcell;
+  SCM vtable;
+  SCM print;
+  SCM direct_supers;
+  SCM direct_slots;
+  SCM proc0;
+  SCM proc1;
+  SCM proc2;
+  SCM proc3;
+};
+
+/* {Entity classes}
+ *
+ * For instances of entity classes (entities), the procedures to be
+ * applied are stored in the instance itself rather than in the class
+ * object as is the case for instances of operator classes (see above).
+ *
+ * An example of an entity class is the class of generic methods.
+ */
 #define SCM_ENTITY_LAYOUT "pwpwpwpw"
 typedef struct scm_entity {
   SCM proc0;
@@ -77,7 +171,7 @@ typedef struct scm_entity {
 } scm_entity;
 
 extern SCM scm_metaclass_standard;
-extern SCM *scm_entity_vtable;
+extern SCM scm_metaclass_operator;
 
 extern void scm_init_objects SCM_P ((void));
 
