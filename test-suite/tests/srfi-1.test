@@ -322,3 +322,47 @@
   (pass-if "'(a b . c) 2"
     (equal? '(a b)
 	    (take '(a b . c) 2))))
+
+;;
+;; partition
+;;
+
+(define (test-partition pred list kept-good dropped-good)
+  (call-with-values (lambda ()
+			(partition pred list))
+      (lambda (kept dropped)
+	(and (equal? kept kept-good)
+	     (equal? dropped dropped-good)))))
+
+(with-test-prefix "partition"
+		  
+  (pass-if "with dropped tail"
+    (test-partition even? '(1 2 3 4 5 6 7)
+		    '(2 4 6) '(1 3 5 7)))
+
+  (pass-if "with kept tail"
+    (test-partition even? '(1 2 3 4 5 6)
+		    '(2 4 6) '(1 3 5)))
+
+  (pass-if "with everything dropped"
+    (test-partition even? '(1 3 5 7)
+		    '() '(1 3 5 7)))
+
+  (pass-if "with everything kept"
+    (test-partition even? '(2 4 6)
+		    '(2 4 6) '()))
+
+  (pass-if "with empty list"
+    (test-partition even? '()
+		    '() '()))
+
+  (pass-if "with reasonably long list"
+    ;; the old implementation from SRFI-1 reference implementation
+    ;; would signal a stack-overflow for a list of only 500 elements!
+    (call-with-values (lambda ()
+			(partition even?
+				   (make-list 10000 1)))
+      (lambda (even odd)
+	(and (= (length odd) 10000)
+	     (= (length even) 0))))))
+
