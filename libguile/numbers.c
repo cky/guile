@@ -96,6 +96,10 @@ static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 
 
 
+static SCM abs_most_negative_fixnum;
+
+
+
 
 SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0, 
             (SCM x),
@@ -201,7 +205,14 @@ scm_quotient (SCM x, SCM y)
 	}
       }
     } else if (SCM_BIGP (y)) {
-      return SCM_INUM0;
+      if (SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM
+	  && scm_bigcomp (abs_most_negative_fixnum, y) == 0)
+	{
+	  /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
+	  return SCM_MAKINUM (-1);
+	}
+      else
+	return SCM_MAKINUM (0);
     } else {
       SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
     }
@@ -262,7 +273,14 @@ scm_remainder (SCM x, SCM y)
 	return SCM_MAKINUM (z);
       }
     } else if (SCM_BIGP (y)) {
-      return x;
+      if (SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM
+	  && scm_bigcomp (abs_most_negative_fixnum, y) == 0)
+	{
+	  /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
+	  return SCM_MAKINUM (0);
+	}
+      else
+	return x;
     } else {
       SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG2, s_remainder);
     }
@@ -654,12 +672,14 @@ SCM scm_big_and(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int zsgn)
       if (!num) return scm_normbig(z);
     }
   }
-  else if (xsgn) do {
-    num += x[i];
-    if (num < 0) {zds[i] &= num + SCM_BIGRAD; num = -1;}
-    else {zds[i] &= ~SCM_BIGLO(num); num = 0;}
-  } while (++i < nx);
-  else do zds[i] = zds[i] & x[i]; while (++i < nx);
+  else if (xsgn) {
+    unsigned long int carry = 1;
+    do {
+      unsigned long int mask = (SCM_BIGDIG) ~x[i] + carry;
+      zds[i] = zds[i] & (SCM_BIGDIG) mask;
+      carry = (mask >= SCM_BIGRAD) ? 1 : 0;
+    } while (++i < nx);
+  } else do zds[i] = zds[i] & x[i]; while (++i < nx);
   return scm_normbig(z);
 }
 
@@ -1181,19 +1201,50 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_bit_extract
 {
-  int istart, iend;
+  unsigned long int istart, iend;
   SCM_VALIDATE_INUM_MIN_COPY (2,start,0,istart);
   SCM_VALIDATE_INUM_MIN_COPY (3, end, 0, iend);
   SCM_ASSERT_RANGE (3, end, (iend >= istart));
 
   if (SCM_INUMP (n)) {
-    return SCM_MAKINUM ((SCM_INUM (n) >> istart) & ((1L << (iend - istart)) - 1));
+    long int in = SCM_INUM (n);
+    unsigned long int bits = iend - istart;
+
+    if (in < 0 && bits >= SCM_FIXNUM_BIT)
+      {
+	/* Since we emulate two's complement encoded numbers, this special
+	 * case requires us to produce a result that has more bits than can be
+	 * stored in a fixnum.  Thus, we fall back to the more general
+	 * algorithm that is used for bignums.  
+	 */
+	goto generalcase;
+      }
+
+    if (istart < SCM_FIXNUM_BIT)
+      {
+	in = in >> istart;
+	if (bits < SCM_FIXNUM_BIT)
+	  return SCM_MAKINUM (in & ((1L << bits) - 1));
+	else /* we know: in >= 0 */
+	  return SCM_MAKINUM (in);
+      }
+    else if (in < 0)
+      {
+	return SCM_MAKINUM (-1L & ((1L << bits) - 1));
+      }
+    else
+      {
+	return SCM_MAKINUM (0);
+      }
   } else if (SCM_BIGP (n)) {
-    SCM num1 = SCM_MAKINUM (1L);
-    SCM num2 = SCM_MAKINUM (2L);
-    SCM bits = SCM_MAKINUM (iend - istart);
-    SCM mask  = scm_difference (scm_integer_expt (num2, bits), num1);
-    return scm_logand (mask, scm_ash (n, SCM_MAKINUM (-istart)));
+  generalcase:
+    {
+      SCM num1 = SCM_MAKINUM (1L);
+      SCM num2 = SCM_MAKINUM (2L);
+      SCM bits = SCM_MAKINUM (iend - istart);
+      SCM mask  = scm_difference (scm_integer_expt (num2, bits), num1);
+      return scm_logand (mask, scm_ash (n, SCM_MAKINUM (-istart)));
+    }
   } else {
     SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
   }
@@ -4353,6 +4404,9 @@ scm_num2ulong (SCM num, char *pos, const char *s_caller)
 void
 scm_init_numbers ()
 {
+  abs_most_negative_fixnum = scm_long2big (- SCM_MOST_NEGATIVE_FIXNUM);
+  scm_permanent_object (abs_most_negative_fixnum);
+
   /* It may be possible to tune the performance of some algorithms by using
    * the following constants to avoid the creation of bignums.  Please, before
    * using these values, remember the two rules of program optimization:

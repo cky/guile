@@ -1,3 +1,20 @@
+2001-01-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h (SCM_FIXNUM_BIT):  Added.  The name is chosen in analogy
+	to the names in limits.h.
+
+	* numbers.c (abs_most_negative_fixnum):  Added.
+
+	(scm_quotient, scm_remainder):  Fixed the fixnum-min / (abs
+	fixnum-min) special case.
+
+	(scm_big_and):  Fix for negative first parameter.
+
+	(scm_bit_extract):  Fix for fixnum paramters.
+	Thanks to Rob Browning for the bug report.
+
+	(scm_init_numbers):  Initialize abs_most_negative_fixnum.
+
 2001-01-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* symbols.c (scm_symbol_bound_p):  Fixed comment.

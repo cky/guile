@@ -217,6 +217,7 @@ typedef unsigned long long ulong_long;
 # else
 #  define SCM_CHAR_CODE_LIMIT 256L
 # endif /* def UCHAR_MAX */
+# define SCM_FIXNUM_BIT (LONG_BIT - 2)
 # define SCM_MOST_POSITIVE_FIXNUM (LONG_MAX>>2)
 # ifdef _UNICOS			/* Stupid cray bug */
 #  define SCM_MOST_NEGATIVE_FIXNUM ((long)LONG_MIN/4)
@@ -225,6 +226,7 @@ typedef unsigned long long ulong_long;
 # endif				/* UNICOS */
 #else
 # define SCM_CHAR_CODE_LIMIT 256L
+# define SCM_FIXNUM_BIT 30
 # define SCM_MOST_POSITIVE_FIXNUM ((long)((unsigned long)~0L>>3))
 # if (0 != ~0)
 #  define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM-1)
