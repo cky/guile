@@ -22,7 +22,6 @@
 (define-module (system base language)
   :use-module (oop goops)
   :use-syntax (system base syntax)
-  :use-module (system base module)
   :use-module (system il compile)
   :use-module (system vm core)
   :use-module (system vm assemble)

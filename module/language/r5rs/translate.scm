@@ -26,6 +26,9 @@
 
 (define (trans x) (if (pair? x) (trans-pair x) x))
 
+(define *primitive-procedure-list*
+  '(void car cdr cons + - * / < >))
+
 (define (trans-pair x)
   (let ((name (car x)) (args (cdr x)))
     (let ((il (case name
@@ -41,7 +44,11 @@
 		((lambda)
 		 (cons* '@lambda (trans-formals (car args))
 			(map trans (cdr args))))
-		(else (cons (trans name) (map trans args)))))
+		(else
+		 (if (memq name *primitive-procedure-list*)
+		     ;; FIXME: Temporary hack for direct optimization
+		     (cons (symbol-append '@ name) (map trans args))
+		     (cons (trans name) (map trans args))))))
 	  (props (source-properties x)))
       (if (not (null? props))
 	  (set-source-properties! il props))

@@ -20,7 +20,6 @@
 ;; Boston, MA 02111-1307, USA.
 
 (define-module (language r5rs spec)
-  :use-module (system base module)
   :use-module (system base language)
   :use-module (language r5rs expand)
   :use-module (language r5rs translate)
@@ -33,5 +32,5 @@
   :expander	expand
   :translator	translate
   :printer	write
-  :environment	(global-ref 'Language::R5RS::core)
+;;  :environment	(global-ref 'Language::R5RS::core)
   )
