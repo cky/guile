@@ -1,3 +1,13 @@
+2005-03-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* hashtab.h, hashtab.c (scm_hash_fx_remove_x): Removed delete_fn
+	argument; always use scm_delq_x.  The delete_fn function works on
+	the handle, not the key, and it therefore makes no sense to make
+	it configurable.  Changed all callers.
+	(scm_hashx_remove_x): Likewise.  Also, exported to Scheme.
+	(scm_hash_clear): Accept plain vectors as hashtables.
+	(scm_delx_x): Removed.
+	
 2005-03-28  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* inline.h (scm_double_cell): use __asm__ iso. asm, to maintain
