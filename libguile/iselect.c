@@ -1,4 +1,4 @@
-/*	Copyright (C) 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,19 +45,11 @@
 
 #include "_scm.h"
 
-/*
- * iselect.c is linked with Guile only when threads are in use.  However,
- * when threads are *not* in use, the `make depend' mechanism will try
- * to process this file anyway and get tangled up in iselect.h and
- * coop_threads.h.  Therefore, we use the USE_THREADS macro (which is
- * otherwise redundant for this file) to prevent `make depend' from
- * failing.
- */
-
-#ifdef USE_THREADS
 #include "iselect.h"
+
+#ifdef GUILE_ISELECT
+
 #include "coop-threads.h"
-#endif
 
 #ifdef MISSING_BZERO_DECL
 extern void bzero (void *, size_t);
@@ -602,6 +594,36 @@ coop_wait_for_runnable_thread ()
   return coop_wait_for_runnable_thread_now (&now);
 }
 
+/* Initialize bit counting array */
+static void init_bc (int bit, int i, int n)
+{
+  if (bit == 0)
+    bc[i] = n;
+  else
+    {
+      init_bc (bit >> 1, i, n);
+      init_bc (bit >> 1, i | bit, n + 1);
+    }
+}
+
+void
+scm_init_iselect ()
+{
+#if 0 /* This is just symbolic */
+  collisionp = 0;
+  gnfds = 0;
+  FD_ZERO (&greadfds);
+  FD_ZERO (&gwritefds);
+  FD_ZERO (&gexceptfds);
+  timeout0.tv_sec = 0;
+  timeout0.tv_usec = 0;
+#endif
+  init_bc (0x80, 0, 0);
+#include "iselect.x"
+}
+
+#endif /* GUILE_ISELECT */
+
 int
 scm_internal_select (int nfds,
 		     SELECT_TYPE *readfds,
@@ -609,6 +631,11 @@ scm_internal_select (int nfds,
 		     SELECT_TYPE *exceptfds,
 		     struct timeval *timeout)
 {
+#ifndef GUILE_ISELECT
+  int res = select (nfds, readfds, writefds, exceptfds, timeout);
+  SCM_ASYNC_TICK;
+  return res;
+#else /* GUILE_ISELECT */
   struct timeval now;
   coop_t *t, *curr = coop_global_curr;
 
@@ -661,33 +688,7 @@ scm_internal_select (int nfds,
   if (coop_global_curr->retval == -1)
     errno = coop_global_curr->_errno;
   SCM_ALLOW_INTS;
+  SCM_ASYNC_TICK;
   return coop_global_curr->retval;
-}
-
-/* Initialize bit counting array */
-static void init_bc (int bit, int i, int n)
-{
-  if (bit == 0)
-    bc[i] = n;
-  else
-    {
-      init_bc (bit >> 1, i, n);
-      init_bc (bit >> 1, i | bit, n + 1);
-    }
-}
-
-void
-scm_init_iselect ()
-{
-#if 0 /* This is just symbolic */
-  collisionp = 0;
-  gnfds = 0;
-  FD_ZERO (&greadfds);
-  FD_ZERO (&gwritefds);
-  FD_ZERO (&gexceptfds);
-  timeout0.tv_sec = 0;
-  timeout0.tv_usec = 0;
-#endif
-  init_bc (0x80, 0, 0);
-#include "iselect.x"
+#endif /* GUILE_ISELECT */
 }
