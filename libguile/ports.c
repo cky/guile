@@ -184,6 +184,14 @@ scm_current_error_port ()
   return scm_cur_errp;
 }
 
+SCM_PROC(s_current_load_port, "current-load-port", 0, 0, 0, scm_current_load_port);
+
+SCM 
+scm_current_load_port ()
+{
+  return scm_cur_loadp;
+}
+
 SCM_PROC(s_set_current_input_port, "set-current-input-port", 1, 0, 0, scm_set_current_input_port);
 
 SCM 
