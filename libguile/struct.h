@@ -51,11 +51,11 @@
 
 /* Number of words with negative index */
 #define scm_struct_n_extra_words 4
-#define scm_struct_entity_n_extra_words 9
+#define scm_struct_entity_n_extra_words 6
 
 /* These are how the initial words of a vtable are allocated. */
-#define scm_struct_i_setter	-9 /* Setter */
-#define scm_struct_i_proc	-8 /* Optional procedure slots */
+#define scm_struct_i_setter	-6 /* Setter */
+#define scm_struct_i_procedure	-5 /* Optional procedure slot */
 #define scm_struct_i_free	-4 /* Destructor */
 #define scm_struct_i_ptr	-3 /* Start of block (see alloc_struct) */
 #define scm_struct_i_n_words	-2 /* How many words allocated to this struct? */

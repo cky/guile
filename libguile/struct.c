@@ -391,10 +391,7 @@ scm_make_struct (vtable, tail_array_size, init)
       data = scm_alloc_struct (basic_size + tail_elts,
 			       scm_struct_entity_n_extra_words,
 			       "make-struct");
-      data[scm_struct_i_proc + 0] = SCM_BOOL_F;
-      data[scm_struct_i_proc + 1] = SCM_BOOL_F;
-      data[scm_struct_i_proc + 2] = SCM_BOOL_F;
-      data[scm_struct_i_proc + 3] = SCM_BOOL_F;
+      data[scm_struct_i_procedure] = SCM_BOOL_F;
       data[scm_struct_i_setter] = SCM_BOOL_F;
     }
   else
