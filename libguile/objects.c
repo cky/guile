@@ -48,7 +48,7 @@ SCM scm_class_boolean, scm_class_char, scm_class_pair;
 SCM scm_class_procedure, scm_class_string, scm_class_symbol;
 SCM scm_class_procedure_with_setter, scm_class_primitive_generic;
 SCM scm_class_vector, scm_class_null;
-SCM scm_class_integer, scm_class_real, scm_class_complex;
+SCM scm_class_integer, scm_class_real, scm_class_complex, scm_class_fraction;
 SCM scm_class_unknown;
 
 SCM *scm_port_class = 0;
@@ -110,6 +110,8 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
             return scm_class_real;
           case scm_tc16_complex:
             return scm_class_complex;
+	  case scm_tc16_fraction:
+	    return scm_class_fraction;
           }
 	case scm_tc7_asubr:
 	case scm_tc7_subr_0:

@@ -103,6 +103,7 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
 	}
         /* Fall through */
       case scm_tc16_complex:
+      case scm_tc16_fraction:
 	obj = scm_number_to_string (obj, SCM_MAKINUM (10));
         /* Fall through */
       }

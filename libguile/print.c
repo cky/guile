@@ -529,6 +529,9 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
           case scm_tc16_complex:
             scm_print_complex (exp, port, pstate);
             break;
+          case scm_tc16_fraction:
+            scm_i_print_fraction (exp, port, pstate);
+            break;
           }
 	  break;
 	case scm_tc7_string:

@@ -131,6 +131,7 @@
 #define scm_tc16_big		(scm_tc7_number + 1 * 256L)
 #define scm_tc16_real           (scm_tc7_number + 2 * 256L)
 #define scm_tc16_complex        (scm_tc7_number + 3 * 256L)
+#define scm_tc16_fraction       (scm_tc7_number + 4 * 256L)
 
 #define SCM_INEXACTP(x) \
   (!SCM_IMP (x) && (0xfeff & SCM_CELL_TYPE (x)) == scm_tc16_real)
@@ -148,7 +149,21 @@
 
 #define SCM_NUMBERP(x) (SCM_INUMP(x) || SCM_NUMP(x))
 #define SCM_NUMP(x) (!SCM_IMP(x) \
-  && (0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_number)
+  && (((0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_number) \
+      || ((0xfbff & SCM_CELL_TYPE (x)) == scm_tc7_number)))
+/* 0xfcff (#b1100) for 0 free, 1 big, 2 real, 3 complex, then 0xfbff (#b1011) for 4 fraction */
+
+#define SCM_FRACTIONP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_fraction)
+#define SCM_SLOPPY_FRACTIONP(x) (SCM_TYP16 (x) == scm_tc16_fraction)
+#define SCM_FRACTION_NUMERATOR(x)   ((SCM) (SCM_CELL_WORD_1 (x)))
+#define SCM_FRACTION_DENOMINATOR(x) ((SCM) (SCM_CELL_WORD_2 (x)))
+#define SCM_FRACTION_SET_NUMERATOR(x, v)   ((SCM) (SCM_SET_CELL_WORD_1 ((x), (v))))
+#define SCM_FRACTION_SET_DENOMINATOR(x, v) ((SCM) (SCM_SET_CELL_WORD_2 ((x), (v))))
+  /* I think the left half word is free in the type, so I'll use bit 17 */
+#define SCM_FRACTION_REDUCED_BIT 0x10000
+#define SCM_FRACTION_REDUCED_SET(x) (SCM_SET_CELL_TYPE((x), (SCM_CELL_TYPE (x) | SCM_FRACTION_REDUCED_BIT)))
+#define SCM_FRACTION_REDUCED_CLEAR(x) (SCM_SET_CELL_TYPE((x), (SCM_CELL_TYPE (x) & ~SCM_FRACTION_REDUCED_BIT)))
+#define SCM_FRACTION_REDUCED(x)     (0x10000 & SCM_CELL_TYPE (x))
 
 
 
@@ -223,11 +238,15 @@ SCM_API SCM scm_difference (SCM x, SCM y);
 SCM_API SCM scm_product (SCM x, SCM y);
 SCM_API double scm_num2dbl (SCM a, const char * why);
 SCM_API SCM scm_divide (SCM x, SCM y);
+SCM_API SCM scm_floor (SCM x);
+SCM_API SCM scm_ceiling (SCM x);
 SCM_API double scm_asinh (double x);
 SCM_API double scm_acosh (double x);
 SCM_API double scm_atanh (double x);
 SCM_API double scm_truncate (double x);
 SCM_API double scm_round (double x);
+SCM_API SCM scm_truncate_number (SCM x);
+SCM_API SCM scm_round_number (SCM x);
 SCM_API SCM scm_sys_expt (SCM z1, SCM z2);
 SCM_API SCM scm_sys_atan2 (SCM z1, SCM z2);
 SCM_API SCM scm_make_rectangular (SCM z1, SCM z2);
@@ -286,6 +305,7 @@ SCM_API SCM scm_i_mkbig (void);
 SCM_API SCM scm_i_normbig (SCM x);
 SCM_API int scm_i_bigcmp (SCM a, SCM b);
 SCM_API SCM scm_i_dbl2big (double d);
+SCM_API SCM scm_i_dbl2num (double d);
 SCM_API double scm_i_big2dbl (SCM b);
 SCM_API SCM scm_i_short2big (short n);
 SCM_API SCM scm_i_ushort2big (unsigned short n);
@@ -301,6 +321,18 @@ SCM_API SCM scm_i_long_long2big (long long n);
 SCM_API SCM scm_i_ulong_long2big (unsigned long long n);
 #endif
 
+
+/* ratio functions */
+SCM_API SCM scm_make_ratio (SCM num, SCM den);
+SCM_API SCM scm_rationalize (SCM x, SCM err);
+SCM_API SCM scm_numerator (SCM z);
+SCM_API SCM scm_denominator (SCM z);
+SCM_API SCM scm_rational_p (SCM z);
+
+/* fraction internal functions */
+SCM_API double scm_i_fraction2double (SCM z);
+SCM_API SCM scm_i_fraction_equalp (SCM x, SCM y);
+SCM_API int scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate);
 
 
 #ifdef GUILE_DEBUG

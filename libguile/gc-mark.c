@@ -281,6 +281,12 @@ scm_gc_mark_dependencies (SCM p)
       break;
 
     case scm_tc7_number:
+      if (SCM_TYP16 (ptr) == scm_tc16_fraction)
+	{
+	  scm_gc_mark (SCM_CELL_OBJECT_1 (ptr));
+	  ptr = SCM_CELL_OBJECT_2 (ptr);
+	  goto gc_mark_loop;
+	}
       break;
 
     case scm_tc7_wvect:

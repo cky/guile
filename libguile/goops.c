@@ -2406,6 +2406,8 @@ create_standard_classes (void)
 	       scm_class_class, scm_class_complex,	   SCM_EOL);
   make_stdcls (&scm_class_integer,	   "<integer>",
 	       scm_class_class, scm_class_real,		   SCM_EOL);
+  make_stdcls (&scm_class_fraction,	   "<fraction>",
+	       scm_class_class, scm_class_real,		   SCM_EOL);
   make_stdcls (&scm_class_keyword,	   "<keyword>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_unknown,	   "<unknown>",

@@ -186,6 +186,10 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	      scm_gc_free (SCM_COMPLEX_MEM (scmptr), sizeof (scm_t_complex),
 			   "complex");
 	      break;
+	    case scm_tc16_fraction:
+	      /* nothing to do here since the num/denum of a fraction
+		 are proper SCM objects themselves. */
+	      break;
             }
           break;
 	case scm_tc7_string:

@@ -61,6 +61,7 @@ real_eqv (double x, double y)
   return !memcmp (&x, &y, sizeof(double));
 }
 
+#include <stdio.h>
 SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 	     "The @code{eqv?} procedure defines a useful equivalence relation on objects.\n"
@@ -77,8 +78,14 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
   if (SCM_IMP (y))
     return SCM_BOOL_F;
   /* this ensures that types and scm_length are the same. */
+
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
     {
+      /* fractions use 0x10000 as a flag (at the suggestion of Marius Vollmer),
+	 but this checks the entire type word, so fractions may be accidentally
+	 flagged here as unequal.  Perhaps I should use the 4th double_cell word?
+      */
+
       /* treat mixes of real and complex types specially */
       if (SCM_INEXACTP (x))
 	{
@@ -93,6 +100,9 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 					  SCM_REAL_VALUE (y))
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
 	}
+
+      if (SCM_FRACTIONP (x) && SCM_FRACTIONP (y))
+	return scm_i_fraction_equalp (x, y);
       return SCM_BOOL_F;
     }
   if (SCM_NUMP (x))
@@ -101,6 +111,8 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 	return SCM_BOOL (scm_i_bigcmp (x, y) == 0);
       } else if (SCM_REALP (x)) {
 	return SCM_BOOL (real_eqv (SCM_REAL_VALUE (x), SCM_REAL_VALUE (y)));
+      } else if (SCM_FRACTIONP (x)) {
+	return scm_i_fraction_equalp (x, y);
       } else { /* complex */
 	return SCM_BOOL (real_eqv (SCM_COMPLEX_REAL (x),
 				   SCM_COMPLEX_REAL (y)) 
@@ -149,7 +161,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
     {
       /* treat mixes of real and complex types specially */
-      if (SCM_INEXACTP (x))
+      if (SCM_INEXACTP (x) && SCM_INEXACTP (y))
 	{
 	  if (SCM_REALP (x))
 	    return SCM_BOOL (SCM_COMPLEXP (y)
@@ -160,6 +172,25 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 			     && SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y)
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
 	}
+
+      /* should we handle fractions here also? */
+      else if ((SCM_FRACTIONP (x)) && (SCM_INEXACTP (y)))
+	{
+	  if (SCM_REALP (y))
+	    return SCM_BOOL (scm_i_fraction2double (x) == SCM_REAL_VALUE (y));
+	  else
+	    return SCM_BOOL (SCM_COMPLEX_REAL (y) == scm_i_fraction2double (x)
+			     && SCM_COMPLEX_IMAG (y) == 0.0);
+	}
+      else if ((SCM_FRACTIONP (y)) && (SCM_INEXACTP (x)))
+	{
+	  if (SCM_REALP (x))
+	    return SCM_BOOL (scm_i_fraction2double (y) == SCM_REAL_VALUE (x));
+	  else
+	    return SCM_BOOL (SCM_COMPLEX_REAL (x) == scm_i_fraction2double (y)
+			     && SCM_COMPLEX_IMAG (x) == 0.0);
+	}
+
       return SCM_BOOL_F;
     }
   switch (SCM_TYP7 (x))
@@ -175,6 +206,8 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
           return scm_real_equalp (x, y);
         case scm_tc16_complex:
           return scm_complex_equalp (x, y);
+	case scm_tc16_fraction:
+          return scm_i_fraction_equalp (x, y);
         }
     case scm_tc7_vector:
     case scm_tc7_wvect:
