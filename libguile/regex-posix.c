@@ -224,7 +224,7 @@ scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
     {
       SCM_ASSERT (SCM_INUMP (start), start, SCM_ARG3, s_regexp_exec);
       offset = SCM_INUM (start);
-      SCM_ASSERT (offset >= 0 && offset <= SCM_LENGTH (str), start,
+      SCM_ASSERT (offset >= 0 && (unsigned) offset <= SCM_LENGTH (str), start,
 		  SCM_OUTOFRANGE, s_regexp_exec);
     }
 
