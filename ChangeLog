@@ -1,5 +1,28 @@
 2000-09-20  Keisuke Nishida  <kxn30@po.cwru.edu>
 
+	* src/vm.c (scm_name_property): New variable.
+	(scm_name, scm_set_name_x): New procedures.
+	(scm_smob_print_with_name, init_name_property): New functions.
+	(print_program, scm_program_name): Removed.
+	(init_program_type, init_vm_type): Use scm_smob_print_with_name.
+	(scm_init_vm): Call init_name_property.
+	* src/vm_system.c (name): New instruction.
+	(savet): Don't set name.
+	* vm/shell.scm (vm-frame->call): Updated.
+	* vm/bytecomp.scm (translate-ref): Combined translate-local-ref,
+	translate-external-ref, and translate-top-level-ref.
+	(translate-set): Combined translate-local-set,
+	translate-external-set, and translate-top-level-ref.
+	Set a name to the object.
+
+	* src/vm_number.c (FUNC2): New macro.
+	(add2, sub2): Use FUNC2.
+	(remainder): New instruction.
+
+	* vm/bytecomp.scm (translate-and, translate-or): Bug fixed.
+
+2000-09-20  Keisuke Nishida  <kxn30@po.cwru.edu>
+
 	* src/vm_scheme.c (cons): Bug fixed.
 	* src/vm_system.c (br_if_null): Set ac = SCM_BOOL_T if null.
 
