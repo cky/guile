@@ -51,6 +51,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/posix.test			\
 	    tests/q.test			\
 	    tests/r4rs.test			\
+	    tests/r5rs_pitfall.test		\
 	    tests/reader.test			\
 	    tests/regexp.test			\
 	    tests/srcprop.test			\
