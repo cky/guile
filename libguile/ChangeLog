@@ -1,3 +1,15 @@
+Mon Oct 14 19:08:33 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Allocate data for structures on an eight-byte boundary, as
+	required by the tagging system.
+	* struct.c (alloc_struct): New function.
+	(scm_make_struct, scm_make_vtable_vtable): Call it.
+	* struct.h (scm_struct_n_extra_words): Bump to 3.
+	(scm_struct_i_ptr): New "field".
+	* gc.c (scm_gc_sweep): When we need to free the data, use the
+ 	information stored by alloc_struct to find the beginning of the
+ 	block allocated to the structure, so we can free it.
+
 Mon Oct 14 17:07:55 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* init.c (scm_boot_guile_1): Moved scm_init_struct in front of

@@ -22,5 +22,5 @@ of guile.texi.
 Anthony Green: wrote the original code in the 'threads' directory.
 
 Mikael Djurfeldt: wrote debug.c, debug.h, options.c, options.h,
-srcprop.c, srcprop.h, stacks.h, backtrace.c, backtrace.h.  Rewrote the
-code in 'threads'.  Many changes throughout.
+srcprop.c, srcprop.h, stacks.h, backtrace.c, backtrace.h, root.c,
+root.h.  Rewrote the code in 'threads'.  Many changes throughout.
