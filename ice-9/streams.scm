@@ -94,15 +94,22 @@
           '()))))
 
 (define (stream-car stream)
+  "Returns the first element in STREAM.  This is equivalent to `car'."
   (car (force stream)))
 
 (define (stream-cdr stream)
+  "Returns the first tail of STREAM. Equivalent to `(force (cdr STREAM))'."
   (cdr (force stream)))
 
 (define (stream-null? stream)
+  "Returns `#t' if STREAM is the end-of-stream marker; otherwise
+returns `#f'.  This is equivalent to `null?', but should be used
+whenever testing for the end of a stream."
   (null? (force stream)))
 
 (define (list->stream l)
+  "Returns a newly allocated stream whose elements are the elements of
+LIST.  Equivalent to `(apply stream LIST)'."
   (make-stream
    (lambda (l) l)
    l))
@@ -132,6 +139,8 @@
    (lambda (l len) (values (reverse! l) len))))
 
 (define (stream->list stream)
+  "Returns a newly allocated list whose elements are the elements of STREAM.
+If STREAM has infinite length this procedure will not terminate."
   (reverse! (stream->reversed-list stream)))
 
 (define (stream->vector stream)
@@ -169,6 +178,9 @@
          stream rest))
 
 (define (stream-map f stream . rest)
+  "Returns a newly allocated stream, each element being the result of
+invoking F with the corresponding elements of the STREAMs
+as its arguments."
   (if (null? rest) ;fast path
       (make-stream (lambda (s)
                      (or (stream-null? s)
