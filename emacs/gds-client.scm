@@ -67,7 +67,7 @@ decimal IP address where the UI server is running; default is
 			"w"))
   ;; Write initial context to debug server.
   (write-form (list 'name name (getpid)))
-  (write-form (cons 'modules (map module-name (loaded-modules))))
+  ;(write-form (cons 'modules (map module-name (loaded-modules))))
   ;; Start the asynchronous UI thread.
   (start-async-gds-thread)
   ;; If `debug' is true, debug immediately.
@@ -87,33 +87,43 @@ decimal IP address where the UI server is running; default is
     ;; Start the asynchronous UI thread.
     (begin-thread
       (set! async-gds-thread (current-thread))
-      (lock-mutex mutex)
       ;;(write (cons admin gds-port))
       ;;(newline)
+      (lock-mutex mutex)
       (catch 'server-died
 	     (lambda ()
 	       (let loop ((avail '()))
+		 (write-note 'startloop)
 		 ;;(write avail)
 		 ;;(newline)
 		 (cond ((not gds-port))	; exit loop
 		       ((null? avail)
 			(write-status 'ready-for-input)
-			(loop (car (select (list gds-port (car admin))
-					  '() '()))))
+			(unlock-mutex mutex)
+			(let ((ports (car (select (list gds-port (car admin))
+						  '() '()))))
+			  (lock-mutex mutex)
+			  (loop ports)))
 		       (else
+			(write-note 'sthg-to-read)
 			(let ((port (car avail)))
 			  (if (eq? port gds-port)
 			      (handle-instruction #f (read gds-port))
 			      (begin
+				(write-note 'debugger-takeover)
 				;; Notification from debugger that it
 				;; wants to take over.  Read the
 				;; notification char.
 				(read-char (car admin))
 				;; Wait on condition variable - this allows the
 				;; debugger thread to grab the mutex.
-				(wait-condition-variable condition mutex)))
+				(write-note 'cond-wait)
+				(signal-condition-variable condition)
+				(wait-condition-variable condition mutex)
+				))
 			  ;; Loop.
-			  (loop (cdr avail)))))))
+			  (loop '()))))
+		 (write-note 'loopexited)))
 	     (lambda args #f))
       (set! gds-disable-async-thread noop)
       (set! gds-continue-async-thread noop)
@@ -122,15 +132,22 @@ decimal IP address where the UI server is running; default is
     ;; Redefine procs used by debugger thread to take control.
     (set! gds-disable-async-thread
 	  (lambda ()
+	    (lock-mutex mutex)
 	    (write-char #\x (cdr admin))
 	    (force-output (cdr admin))
+	    (write-note 'char-written)
+	    (wait-condition-variable condition mutex)
 	    ;;(display "gds-disable-async-thread: locking mutex...\n"
 	    ;;	     (current-error-port))
-	    (lock-mutex mutex)))
+	    ))
     (set! gds-continue-async-thread
 	  (lambda ()
-	    (unlock-mutex mutex)
-	    (signal-condition-variable condition)))))
+	    (write-note 'cond-signal)
+	    (signal-condition-variable condition)
+	    ;; Make sure that the async thread has got the message
+	    ;; before we could possibly try to grab the main mutex
+	    ;; again.
+	    (unlock-mutex mutex)))))
 
 (define accumulated-output '())
 
@@ -194,6 +211,10 @@ decimal IP address where the UI server is running; default is
   (write form gds-port)
   (newline gds-port)
   (force-output gds-port))
+
+(define (write-note note)
+  ;; Write a note (for debugging this code) to UI frontend.
+  (false-if-exception (write-form `(note ,note))))
 
 (define (stack->emacs-readable stack)
   ;; Return Emacs-readable representation of STACK.

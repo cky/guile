@@ -1,5 +1,10 @@
 2003-11-19  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* gds-client.scm (start-async-gds-thread): Changes to fix
+	interaction between async and debugger threads.
+	(gds-connect): Don't send module list immediately after initial
+	connection.
+
 	* gds.el (gds-immediate-display): Removed.
 
 2003-11-19  Neil Jerram  <neil@ossau.uklinux.net>
