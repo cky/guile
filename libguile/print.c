@@ -46,6 +46,7 @@
 #include "genio.h"
 #include "smob.h"
 #include "eval.h"
+#include "macros.h"
 #include "procprop.h"
 #include "read.h"
 #include "weaks.h"
