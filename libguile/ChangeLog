@@ -1,5 +1,8 @@
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* guardians.c (scm_guardian_zombify): Don't set marks manually ---
+	use the macros.  (Thanks to Michael Livshin.)
+
 	* eval.c (scm_m_lambda): Let bodycheck check the body of the
 	lambda.  Let your sins be purified by the blood of the lambda.
 	(Thanks to Eric Hanchrow.)
