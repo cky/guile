@@ -1,5 +1,39 @@
 2000-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* backtrace.c (display_expression, display_error_body), fports.c
+	(prinfport), print.c (scm_iprin1):  Test for symbols and strings
+	explicitly instead of using SCM_ROSTRINGP.
+
+	* backtrace.c (scm_display_error_message):  Don't pass a symbol to
+	scm_simple_format.  Prefer high-level output functions.
+
+	(display_error_body):  When displaying procedure names, give
+	preference to the name passed as a parameter.  Only if none is
+	given extract a name from the stack information.
+
+	* fports.c (scm_fdes_to_port, prinfport), gc.c (scm_gc_mark),
+	ports.c (scm_port_filename, scm_set_port_filename_x):  Use
+	SCM_(SET_)?FILENAME.
+
+	* gh_data.c (gh_set_substr, gh_scm2newstr, gh_get_substr,
+	gh_symbol2newstr):  Use scm_remember instead of a pair of calls to
+	scm_protect/unprotect_object.
+
+	* goops.c (make_struct_class), objects.c (scm_class_of):  Struct
+	table names are symbols.
+
+	* ports.h (SCM_SET_FILENAME):  Added.
+
+	* print.c (scm_iprin1):  Don't use scm_puts to write symbols or
+	strings in order to treat substrings right.  Reposition call to
+	scm_remember after the last use of object's data.
+
+	(scm_simple_format):  Treat messages that are substrings right.
+
+	* symbols.h (SCM_ROSTRINGP):  Deprecated.
+
+2000-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* environments.c (obarray_replace, obarray_retrieve,
 	obarray_remove):  Don't use '==' to compare SCM objects.
 
