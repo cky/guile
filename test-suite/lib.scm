@@ -36,6 +36,7 @@
  register-reporter unregister-reporter reporter-registered?
  make-count-reporter print-counts
  make-log-reporter 
+ full-reporter
  user-reporter
  format-test-name)
 
@@ -137,6 +138,11 @@
 ;;;; This library provides some standard reporters for logging results
 ;;;; to a file, reporting interesting results to the user, and
 ;;;; collecting totals.
+;;;;
+;;;; You can use the REGISTER-REPORTER function and friends to add
+;;;; whatever reporting functions you like.  If you don't register any
+;;;; reporters, the library uses FULL-REPORTER, which simply writes
+;;;; all results to the standard output.
 
 
 ;;;; with-test-prefix: naming groups of tests
@@ -171,6 +177,9 @@
 ;;; The global list of reporters.
 (define reporters '())
 
+;;; The default reporter, to be used only if no others exist.
+(define default-reporter #f)
+
 ;;; Add the procedure REPORTER to the current set of reporter functions.
 ;;; Signal an error if that reporter procedure object is already registered.
 (define (register-reporter reporter)
@@ -192,8 +201,10 @@
 
 ;;; Send RESULT to all currently registered reporter functions.
 (define (report result)
-  (for-each (lambda (reporter) (reporter result))
-	    reporters))
+  (if (pair? reporters)
+      (for-each (lambda (reporter) (reporter result))
+		reporters)
+      (default-reporter result)))
 
 
 ;;;; Some useful reporter functions.
@@ -274,15 +285,27 @@
       (newline port)
       (force-output port))))
 
+;;; A reporter that reports all results to the user.
+(define (full-reporter result)
+  (let ((label (case (car result)
+		 ((pass) "pass")
+		 ((fail) "FAIL")
+		 ((xpass) "XPASS")
+		 ((xfail) "xfail")
+		 ((error) "ERROR")
+		 (else #f))))
+    (if label
+	(display-line label ": " (format-test-name (cdr result)))
+	(error "(test-suite lib) FULL-REPORTER: unrecognized result: "
+	       result))))
+
 ;;; A reporter procedure which shows interesting results (failures,
 ;;; unexpected passes) to the user.
 (define (user-reporter result)
-  (let ((label (case (car result)
-		 ((fail) "FAIL")
-		 ((xpass) "XPASS")
-		 (else #f))))
-    (if label
-	(display-line label ": " (format-test-name (cdr result))))))
+  (case (car result)
+    ((fail xpass) (full-reporter result))))
+
+(set! default-reporter full-reporter)
 
 
 ;;;; Marking independent groups of tests.
