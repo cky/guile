@@ -130,21 +130,21 @@ scm_realloc (void *mem, size_t size)
   if (ptr)
     return ptr;
 
-  scm_i_thread_put_to_sleep ();
+  scm_rec_mutex_lock (&scm_i_sweep_mutex);
   
   scm_i_sweep_all_segments ("realloc");
   
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
     { 
-      scm_i_thread_wake_up ();
+      scm_rec_mutex_unlock (&scm_i_sweep_mutex);
       return ptr;
     }
 
   scm_igc ("realloc");
   scm_i_sweep_all_segments ("realloc");
   
-  scm_i_thread_wake_up ();
+  scm_rec_mutex_unlock (&scm_i_sweep_mutex);
   
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
@@ -172,7 +172,7 @@ scm_calloc (size_t sz)
     By default, try to use calloc, as it is likely more efficient than
     calling memset by hand.
    */
-  SCM_SYSCALL(ptr= calloc (sz, 1));
+  SCM_SYSCALL (ptr = calloc (sz, 1));
   if (ptr)
     return ptr;
   
@@ -185,7 +185,7 @@ scm_calloc (size_t sz)
 char *
 scm_strndup (const char *str, size_t n)
 {
-  char *dst = scm_malloc (n+1);
+  char *dst = scm_malloc (n + 1);
   memcpy (dst, str, n);
   dst[n] = 0;
   return dst;
@@ -218,20 +218,23 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
       unsigned long prev_alloced;
       float yield;
       
-      scm_i_thread_put_to_sleep ();
+      scm_rec_mutex_lock (&scm_i_sweep_mutex);
       
       prev_alloced  = scm_mallocated;
       scm_igc (what);
       scm_i_sweep_all_segments ("mtrigger");
 
-      yield = ((float)prev_alloced - (float) scm_mallocated)
-	/ (float) prev_alloced;
+      yield = (((float) prev_alloced - (float) scm_mallocated)
+	       / (float) prev_alloced);
       
       scm_gc_malloc_yield_percentage = (int) (100  * yield);
 
 #ifdef DEBUGINFO
       fprintf (stderr,  "prev %lud , now %lud, yield %4.2lf, want %d",
-	       prev_alloced, scm_mallocated, 100.0*yield, scm_i_minyield_malloc);
+	       prev_alloced,
+	       scm_mallocated,
+	       100.0 * yield,
+	       scm_i_minyield_malloc);
 #endif
       
       if (yield < scm_i_minyield_malloc /  100.0)
@@ -250,11 +253,12 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 	  scm_mtrigger =  (unsigned long) no_overflow_trigger;
 	  
 #ifdef DEBUGINFO
-	  fprintf (stderr, "Mtrigger sweep: ineffective. New trigger %d\n", scm_mtrigger);
+	  fprintf (stderr, "Mtrigger sweep: ineffective. New trigger %d\n",
+		   scm_mtrigger);
 #endif
 	}
       
-      scm_i_thread_wake_up ();
+      scm_rec_mutex_unlock (&scm_i_sweep_mutex);
     }
   
 #ifdef GUILE_DEBUG_MALLOC

@@ -1,3 +1,27 @@
+2002-12-21  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	This change makes it possible for one thread to do lazy sweeping
+	while other threads are running.  Now only the mark phase need to
+	have all threads asleep.  We should look further into this issue.
+	Presently, I've put the locking of scm_i_sweep_mutex at
+	"conservative" places due to my current lack of knowledge about
+	the garbage collector.  Please feel free to restrict these regions
+	further to allow for maximal parallelism!
+
+	* gc.c, gc.h (scm_i_sweep_mutex): New mutex.
+
+	* gc.c (scm_gc_for_newcell), gc-malloc.c (scm_realloc,
+	scm_gc_register_collectable_memory): Substitute locking of
+	scm_i_sweep_mutex for calls to scm_i_thread_put_to_sleep.
+	(scm_igc): Lock sweep mutex here instead of in callers; Calls to
+	scm_i_thread_put_to_sleep/scm_i_thread_wake_up used to demarkate
+	the single-thread section (which now only contains the mark
+	phase).
+	(scm_gc): Don't lock sweeo mutex here since scm_igc locks it;
+	Removed SCM_DEFER/ALLOW_INTS.  Simply call scm_igc directly.
+
+	* threads.c (gc_section_mutex): Removed.
+
 2002-12-19  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
 	* threads.c (create_thread): Clear parent field in root state in

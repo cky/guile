@@ -90,6 +90,10 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 
 unsigned int scm_gc_running_p = 0;
 
+/* Lock this mutex before doing lazy sweeping.
+ */
+scm_t_rec_mutex scm_i_sweep_mutex;
+
 /* Set this to != 0 if every cell that is accessed shall be checked:
  */
 int scm_debug_cell_accesses_p = 0;
@@ -144,9 +148,7 @@ scm_i_expensive_validation_check (SCM cell)
       else
 	{
 	  counter = scm_debug_cells_gc_interval;
-	  scm_i_thread_put_to_sleep ();
 	  scm_igc ("scm_assert_cell_valid");
-	  scm_i_thread_wake_up ();
 	}
     }
 }
@@ -458,11 +460,7 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 	    "no longer accessible.")
 #define FUNC_NAME s_scm_gc
 {
-  SCM_DEFER_INTS;
-  scm_i_thread_put_to_sleep ();
   scm_igc ("call");
-  scm_i_thread_wake_up ();
-  SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -479,7 +477,7 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 {
   SCM cell;
  
-  scm_i_thread_put_to_sleep ();
+  scm_rec_mutex_lock (&scm_i_sweep_mutex);
 
   *free_cells = scm_i_sweep_some_segments (freelist);
   if (*free_cells == SCM_EOL && scm_i_gc_grow_heap_p (freelist))
@@ -521,7 +519,7 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 
   *free_cells = SCM_FREE_CELL_CDR (cell);
 
-  scm_i_thread_wake_up ();
+  scm_rec_mutex_unlock (&scm_i_sweep_mutex);
 
   return cell;
 }
@@ -536,6 +534,7 @@ scm_t_c_hook scm_after_gc_c_hook;
 void
 scm_igc (const char *what)
 {
+  scm_rec_mutex_lock (&scm_i_sweep_mutex);
   ++scm_gc_running_p;
   scm_c_hook_run (&scm_before_gc_c_hook, 0);
 
@@ -549,11 +548,7 @@ scm_igc (const char *what)
 #endif
 
   /* During the critical section, only the current thread may run. */
-#if 0 /* MDJ 021207 <djurfeldt@nada.kth.se>
-       Currently, a much larger piece of the GC is single threaded.
-       Can we shrink it again? */
-  SCM_CRITICAL_SECTION_START;
-#endif
+  scm_i_thread_put_to_sleep ();
 
   if (!scm_root || !scm_stack_base || scm_block_gc)
     {
@@ -617,15 +612,14 @@ scm_igc (const char *what)
   scm_c_hook_run (&scm_after_sweep_c_hook, 0);
   gc_end_stats ();
 
-#if 0 /* MDJ 021207 <djurfeldt@nada.kth.se> */
-  SCM_CRITICAL_SECTION_END;
-#endif
+  scm_i_thread_wake_up ();
 
   /*
     See above.
    */
   scm_c_hook_run (&scm_after_gc_c_hook, 0);
   --scm_gc_running_p;
+  scm_rec_mutex_unlock (&scm_i_sweep_mutex);
 
   /*
     For debugging purposes, you could do
@@ -885,6 +879,9 @@ scm_init_storage ()
 {
   size_t j;
 
+  /* Fixme: Should use mutexattr from the low-level API. */
+  scm_rec_mutex_init (&scm_i_sweep_mutex, &scm_i_plugin_rec_mutex);
+  
   j = SCM_NUM_PROTECTS;
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;

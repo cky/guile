@@ -1251,14 +1251,12 @@ scm_c_thread_exited_p (SCM thread)
 
 static scm_t_cond wake_up_cond;
 int scm_i_thread_go_to_sleep;
-static scm_t_rec_mutex gc_section_mutex;
 static int gc_section_count = 0;
 static int threads_initialized_p = 0;
 
 void
 scm_i_thread_put_to_sleep ()
 {
-  scm_rec_mutex_lock (&gc_section_mutex);
   if (threads_initialized_p && !gc_section_count++)
     {
       SCM threads;
@@ -1305,7 +1303,6 @@ scm_i_thread_wake_up ()
 	  }
       scm_i_plugin_mutex_unlock (&thread_admin_mutex);
     }
-  scm_rec_mutex_unlock (&gc_section_mutex);
 }
 
 void
@@ -1336,7 +1333,6 @@ scm_threads_prehistory ()
   scm_init_pthread_threads ();
 #endif  
   scm_i_plugin_mutex_init (&thread_admin_mutex, &scm_i_plugin_mutex);
-  scm_i_plugin_rec_mutex_init (&gc_section_mutex, &scm_i_plugin_rec_mutex);
   scm_i_plugin_cond_init (&wake_up_cond, 0);
   scm_i_plugin_mutex_init (&scm_i_critical_section_mutex, &scm_i_plugin_mutex);
   thread_count = 1;
