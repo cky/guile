@@ -100,6 +100,9 @@
 	(pass-if "list?"
           (list? (cons 'a %nil)))
 
+        (pass-if "length of %nil"
+          (= (length %nil) 0))
+
         (pass-if "length"
           (= (length (cons 'a (cons 'b (cons 'c %nil)))) 3))
 
@@ -115,6 +118,73 @@
           (string=? (with-output-to-string
 		      (lambda () (display (cons 'a %nil))))
 		    "(a)"))
+
+	(pass-if "assq"
+          (and (equal? (assq 1 `((1 one) (2 two) . ,%nil))
+		       '(1 one))
+	       (equal? (assq 3 `((1 one) (2 two) . ,%nil))
+		       #f)))
+
+	(pass-if "assv"
+          (and (equal? (assv 1 `((1 one) (2 two) . ,%nil))
+		       '(1 one))
+	       (equal? (assv 3 `((1 one) (2 two) . ,%nil))
+		       #f)))
+
+	(pass-if "assoc"
+          (and (equal? (assoc 1 `((1 one) (2 two) . ,%nil))
+		       '(1 one))
+	       (equal? (assoc 3 `((1 one) (2 two) . ,%nil))
+		       #f)))
+
+	(pass-if "with-fluids*"
+          (let ((f (make-fluid))
+                (g (make-fluid)))
+            (with-fluids* (cons f (cons g %nil))
+			  '(3 4)
+			  (lambda ()
+			    (and (eq? (fluid-ref f) 3)
+				 (eq? (fluid-ref g) 4))))))
+
+	(pass-if "append!"
+	  (let ((a (copy-tree '(1 2 3)))
+		(b (copy-tree `(4 5 6 . ,%nil)))
+		(c (copy-tree '(7 8 9)))
+		(d (copy-tree `(a b c . ,%nil))))
+	    (equal? (append! a b c d)
+		    `(1 2 3 4 5 6 7 8 9 a b c . ,%nil))))
+
+	(pass-if "last-pair"
+	  (equal? (last-pair `(1 2 3 4 5 . ,%nil))
+		  (cons 5 %nil)))
+
+	(pass-if "reverse"
+	  (equal? (reverse `(1 2 3 4 5 . ,%nil))
+		  '(5 4 3 2 1)))	; Hmmm... is this OK, or
+					; should it be
+					; `(5 4 3 2 1 . ,%nil) ?
+
+	(pass-if "reverse!"
+          (equal? (reverse! (copy-tree `(1 2 3 4 5 . ,%nil)))
+		  '(5 4 3 2 1)))	; Ditto.
+
+	(pass-if "list-ref"
+          (eq? (list-ref `(0 1 2 3 4 . ,%nil) 4) 4))
+
+	(pass-if-exception "list-ref"
+	  exception:out-of-range
+          (eq? (list-ref `(0 1 2 3 4 . ,%nil) 6) 6))
+
+	(pass-if "list-set!"
+	  (let ((l (copy-tree `(0 1 2 3 4 . ,%nil))))
+	    (list-set! l 4 44)
+	    (= (list-ref l 4) 44)))
+
+	(pass-if-exception "list-set!"
+	  exception:out-of-range
+	  (let ((l (copy-tree `(0 1 2 3 4 . ,%nil))))
+	    (list-set! l 6 44)
+	    (= (list-ref l 6) 44)))
 
 	)
 
