@@ -43,7 +43,9 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "libguile/__scm.h"
 
@@ -120,6 +122,10 @@
 #include "libguile/weaks.h"
 #ifdef USE_THREADS
 #include "libguile/threads.h"
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 
