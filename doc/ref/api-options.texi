@@ -245,7 +245,7 @@ Indicates support for arrays (@pxref{Arrays}).
 
 @item array-for-each
 Indicates availability of @code{array-for-each} and other array mapping
-procedures (@pxref{Array Mapping}).
+procedures (@pxref{Arrays}).
 
 @item char-ready?
 Indicates that the @code{char-ready?} function is available
