@@ -33,28 +33,18 @@
 
 /** Arrays */
 
-/*
-  an array SCM is a non-immediate pointing to a  heap cell where:
-
-   CAR: bits 0-15 hold the smob type id: scm_tc16_array
-        bit  16 is the SCM_ARRAY_FLAG_CONTIGUOUS flag
-	bits 17-31 hold the dimension (0 -- 32767)
-   CDR: pointer to a malloced block containing an scm_t_array structure
-        followed by an scm_t_array_dim structure for each dimension.
-*/
+typedef struct scm_t_array_dim
+{
+  ssize_t lbnd;
+  ssize_t ubnd;
+  ssize_t inc;
+} scm_t_array_dim;
 
 typedef struct scm_t_array
 {
   SCM v;  /* the contents of the array, e.g., a vector or uniform vector.  */
   unsigned long base;
 } scm_t_array;
-
-typedef struct scm_t_array_dim
-{
-  long lbnd;
-  long ubnd;
-  long inc;
-} scm_t_array_dim;
 
 SCM_API scm_t_bits scm_tc16_array;
 SCM_API scm_t_bits scm_tc16_enclosed_array;
