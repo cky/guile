@@ -1,6 +1,6 @@
 /* image-type.c
  * 
- *	Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+ *	Copyright (C) 1998, 2000, 2004 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,42 +39,53 @@ struct image {
 static SCM
 make_image (SCM name, SCM s_width, SCM s_height)
 {
+  SCM smob;
   struct image *image;
-  int width, height;
+  int width = scm_to_int (s_width);
+  int height = scm_to_int (s_height);
 
-  SCM_ASSERT (SCM_STRINGP (name), name, SCM_ARG1, "make-image");
-  SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
-  SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
-
-  width = SCM_INUM (s_width);
-  height = SCM_INUM (s_height);
-  
+  /* Step 1: Allocate the memory block.
+   */
   image = (struct image *) scm_gc_malloc (sizeof (struct image), "image");
+
+  /* Step 2: Initialize it with straight code.
+   */
   image->width = width;
   image->height = height;
-  image->pixels = scm_gc_malloc (width * height, "image pixels");
-  image->name = name;
+  image->pixels = NULL;
+  image->name = SCM_BOOL_F;
   image->update_func = SCM_BOOL_F;
 
-  SCM_RETURN_NEWSMOB (image_tag, image);
+  /* Step 3: Create the smob.
+   */
+  SCM_NEWSMOB (smob, image_tag, image);
+
+  /* Step 4: Finish the initialization.
+   */
+  image->name = name;
+  image->pixels = scm_gc_malloc (width * height, "image pixels");
+
+  return smob;
 }
 
-static SCM
+SCM
 clear_image (SCM image_smob)
 {
   int area;
   struct image *image;
 
-  SCM_ASSERT (SCM_SMOB_PREDICATE (image_tag, image_smob),
-              image_smob, SCM_ARG1, "clear-image");
+  scm_assert_smob_type (image_tag, image_smob);
 
   image = (struct image *) SCM_SMOB_DATA (image_smob);
   area = image->width * image->height;
   memset (image->pixels, 0, area);
 
-  /* Invoke the image's update function.  */
-  if (image->update_func != SCM_BOOL_F)
-    scm_apply (image->update_func, SCM_EOL, SCM_EOL);
+  /* Invoke the image's update function.
+   */
+  if (scm_is_true (image->update_func))
+    scm_call_0 (image->update_func);
+
+  scm_remember_upto_here_1 (image_smob);
 
   return SCM_UNSPECIFIED;
 }
