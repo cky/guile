@@ -22,6 +22,22 @@
 
 
 ;;
+;; delete and delete!
+;;
+
+(let ()	
+  (define (common-tests delete-proc)
+    (pass-if "called arg order"
+      (equal? '(1 2 3)
+	      (delete-proc 3 '(1 2 3 4 5) <))))
+  
+  (with-test-prefix "delete"
+    (common-tests delete))
+    
+  (with-test-prefix "delete!"
+    (common-tests delete!)))
+
+;;
 ;; drop
 ;;
 
