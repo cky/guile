@@ -1102,8 +1102,8 @@ SCM_DEFINE (scm_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
-SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_makmmacro, scm_m_atslot_set_x);
+SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_i_makbimacro, scm_m_atslot_ref);
+SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_i_makbimacro, scm_m_atslot_set_x);
 
 
 /** Utilities **/

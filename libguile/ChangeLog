@@ -1,3 +1,29 @@
+2003-05-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	The purpose of this patch is to make guile's internal memoizers
+	distinguishable from memoizing macros created on the scheme level
+	or from user provided primitive memoizing macros.  The reason is,
+	that the internal memoizers are the only ones that are allowed to
+	transform their scheme input into memoizer byte code, while all
+	other memoizing macros may only transform scheme code into new
+	scheme code.
+
+	To achieve this, a new macro type 'builtin-macro!' is introduced.
+	Currently, 'builtin-macro!'s are handled as memoizing macros, but
+	this will change when the memoizer and executor are separated.
+
+	* macros.[ch] (scm_i_makbimacro): New.
+
+	* macros.h (SCM_BUILTIN_MACRO_P): New.
+
+	* macros.c (macro_print, scm_macro_type): Support builtin-macro!s.
+
+	* eval.c, goops.c: All of guile's primitive memoizing macros are
+	primitive builtin-macros now.
+
+	* eval.c (scm_macroexp, SCM_CEVAL): Make sure the primitive
+	builtin-macros are handled equally to memoizing macros.
+
 2003-05-04  Marius Vollmer  <mvo@zagadka.de>
 
 	* throw.c (scm_ithrow): Remove "asm volatile" hack.  It used to

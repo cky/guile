@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -55,6 +55,9 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
 #endif
       if (SCM_MACRO_TYPE (macro) == 2)
 	scm_puts ("macro!", port);
+      if (SCM_MACRO_TYPE (macro) == 3)
+	scm_puts ("builtin-macro!", port);
+
       scm_putc (' ', port);
       scm_iprin1 (scm_macro_name (macro), port, pstate);
 
@@ -73,6 +76,35 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
 
   return 1;
 }
+
+
+/* Return a mmacro that is known to be one of guile's built in macros. */
+SCM
+scm_i_makbimacro (SCM code)
+#define FUNC_NAME "scm_i_makbimacro"
+{
+  SCM_VALIDATE_PROC (1, code);
+  SCM_RETURN_NEWSMOB (scm_tc16_macro | (3L << 16), SCM_UNPACK (code));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
+           (SCM code),
+	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
+	    "appears as the first symbol in an expression, evaluates the\n"
+	    "result of applying @var{code} to the expression and the\n"
+	    "environment.\n\n"
+	    "@code{procedure->memoizing-macro} is the same as\n"
+	    "@code{procedure->macro}, except that the expression returned by\n"
+	    "@var{code} replaces the original macro expression in the memoized\n"
+	    "form of the containing code.")
+#define FUNC_NAME s_scm_makmmacro
+{
+  SCM_VALIDATE_PROC (1, code);
+  SCM_RETURN_NEWSMOB (scm_tc16_macro | (2L << 16), SCM_UNPACK (code));
+}
+#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
@@ -119,24 +151,6 @@ SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0,
 #endif
 
 
-SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
-           (SCM code),
-	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
-	    "appears as the first symbol in an expression, evaluates the\n"
-	    "result of applying @var{code} to the expression and the\n"
-	    "environment.\n\n"
-	    "@code{procedure->memoizing-macro} is the same as\n"
-	    "@code{procedure->macro}, except that the expression returned by\n"
-	    "@var{code} replaces the original macro expression in the memoized\n"
-	    "form of the containing code.")
-#define FUNC_NAME s_scm_makmmacro
-{
-  SCM_VALIDATE_PROC (1, code);
-  SCM_RETURN_NEWSMOB (scm_tc16_macro | (2L << 16), SCM_UNPACK (code));
-}
-#undef FUNC_NAME
-
-
 SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0, 
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a\n"
@@ -153,6 +167,7 @@ SCM_SYMBOL (scm_sym_syntax, "syntax");
 SCM_SYMBOL (scm_sym_macro, "macro");
 #endif
 SCM_SYMBOL (scm_sym_mmacro, "macro!");
+SCM_SYMBOL (scm_sym_bimacro, "builtin-macro!");
 
 SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0, 
             (SCM m),
@@ -172,6 +187,7 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
     case 1: return scm_sym_macro;
 #endif
     case 2: return scm_sym_mmacro;
+    case 3: return scm_sym_bimacro;
     default: scm_wrong_type_arg (FUNC_NAME, 1, m);
     }
 }

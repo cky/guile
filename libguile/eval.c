@@ -455,7 +455,7 @@ scm_m_body (SCM op, SCM xorig, const char *what)
 /* Start of the memoizers for the standard R5RS builtin macros.  */
 
 
-SCM_SYNTAX (s_and, "and", scm_makmmacro, scm_m_and);
+SCM_SYNTAX (s_and, "and", scm_i_makbimacro, scm_m_and);
 SCM_GLOBAL_SYMBOL (scm_sym_and, s_and);
 
 SCM
@@ -470,7 +470,7 @@ scm_m_and (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_begin, "begin", scm_makmmacro, scm_m_begin);
+SCM_SYNTAX (s_begin, "begin", scm_i_makbimacro, scm_m_begin);
 SCM_GLOBAL_SYMBOL (scm_sym_begin, s_begin);
 
 SCM
@@ -481,7 +481,7 @@ scm_m_begin (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_case, "case", scm_makmmacro, scm_m_case);
+SCM_SYNTAX (s_case, "case", scm_i_makbimacro, scm_m_case);
 SCM_GLOBAL_SYMBOL (scm_sym_case, s_case);
 
 SCM
@@ -505,7 +505,7 @@ scm_m_case (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_cond, "cond", scm_makmmacro, scm_m_cond);
+SCM_SYNTAX (s_cond, "cond", scm_i_makbimacro, scm_m_cond);
 SCM_GLOBAL_SYMBOL (scm_sym_cond, s_cond);
 
 SCM
@@ -535,7 +535,7 @@ scm_m_cond (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX(s_define, "define", scm_makmmacro, scm_m_define);
+SCM_SYNTAX(s_define, "define", scm_i_makbimacro, scm_m_define);
 SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
 
 /* Guile provides an extension to R5RS' define syntax to represent function
@@ -597,7 +597,7 @@ scm_m_define (SCM x, SCM env)
 }
 
 
-SCM_SYNTAX (s_delay, "delay", scm_makmmacro, scm_m_delay);
+SCM_SYNTAX (s_delay, "delay", scm_i_makbimacro, scm_m_delay);
 SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
 
 /* Promises are implemented as closures with an empty parameter list.  Thus,
@@ -631,7 +631,7 @@ scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
    <step1> <step2> ... <stepn>) ;; missing steps replaced by var
  */
 
-SCM_SYNTAX(s_do, "do", scm_makmmacro, scm_m_do);
+SCM_SYNTAX(s_do, "do", scm_i_makbimacro, scm_m_do);
 SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
 
 SCM 
@@ -673,7 +673,7 @@ scm_m_do (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_if, "if", scm_makmmacro, scm_m_if);
+SCM_SYNTAX (s_if, "if", scm_i_makbimacro, scm_m_if);
 SCM_GLOBAL_SYMBOL (scm_sym_if, s_if);
 
 SCM
@@ -685,7 +685,7 @@ scm_m_if (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_lambda, "lambda", scm_makmmacro, scm_m_lambda);
+SCM_SYNTAX (s_lambda, "lambda", scm_i_makbimacro, scm_m_lambda);
 SCM_GLOBAL_SYMBOL (scm_sym_lambda, s_lambda);
 
 /* Return true if OBJ is `eq?' to one of the elements of LIST or to the
@@ -757,7 +757,7 @@ transform_bindings (SCM bindings, SCM *rvarloc, SCM *initloc, const char *what)
 }
 
 
-SCM_SYNTAX(s_let, "let", scm_makmmacro, scm_m_let);
+SCM_SYNTAX(s_let, "let", scm_i_makbimacro, scm_m_let);
 SCM_GLOBAL_SYMBOL(scm_sym_let, s_let);
 
 SCM
@@ -827,7 +827,7 @@ scm_m_let (SCM xorig, SCM env)
 }
 
 
-SCM_SYNTAX (s_letstar, "let*", scm_makmmacro, scm_m_letstar);
+SCM_SYNTAX (s_letstar, "let*", scm_i_makbimacro, scm_m_letstar);
 SCM_GLOBAL_SYMBOL (scm_sym_letstar, s_letstar);
 
 /* (let* ((v1 i1) (v2 i2) ...) body) with variables v1 .. vk and initializers
@@ -859,7 +859,7 @@ scm_m_letstar (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX(s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
+SCM_SYNTAX(s_letrec, "letrec", scm_i_makbimacro, scm_m_letrec);
 SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
 
 SCM 
@@ -884,7 +884,7 @@ scm_m_letrec (SCM xorig, SCM env)
 }
 
 
-SCM_SYNTAX (s_or, "or", scm_makmmacro, scm_m_or);
+SCM_SYNTAX (s_or, "or", scm_i_makbimacro, scm_m_or);
 SCM_GLOBAL_SYMBOL (scm_sym_or, s_or);
 
 SCM
@@ -970,7 +970,7 @@ scm_m_quasiquote (SCM xorig, SCM env)
 }
 
 
-SCM_SYNTAX (s_quote, "quote", scm_makmmacro, scm_m_quote);
+SCM_SYNTAX (s_quote, "quote", scm_i_makbimacro, scm_m_quote);
 SCM_GLOBAL_SYMBOL (scm_sym_quote, s_quote);
 
 SCM
@@ -982,7 +982,7 @@ scm_m_quote (SCM xorig, SCM env SCM_UNUSED)
 
 
 /* Will go into the RnRS module when Guile is factorized.
-SCM_SYNTAX (s_set_x, "set!", scm_makmmacro, scm_m_set_x); */
+SCM_SYNTAX (s_set_x, "set!", scm_i_makbimacro, scm_m_set_x); */
 static const char s_set_x[] = "set!";
 SCM_GLOBAL_SYMBOL (scm_sym_set_x, s_set_x);
 
@@ -999,7 +999,7 @@ scm_m_set_x (SCM xorig, SCM env SCM_UNUSED)
 /* Start of the memoizers for non-R5RS builtin macros.  */
 
 
-SCM_SYNTAX (s_atapply, "@apply", scm_makmmacro, scm_m_apply);
+SCM_SYNTAX (s_atapply, "@apply", scm_i_makbimacro, scm_m_apply);
 SCM_GLOBAL_SYMBOL (scm_sym_atapply, s_atapply);
 SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
 
@@ -1028,7 +1028,7 @@ scm_m_apply (SCM xorig, SCM env SCM_UNUSED)
   XXX - also implement `@bind*'.
 */
 
-SCM_SYNTAX (s_atbind, "@bind", scm_makmmacro, scm_m_atbind);
+SCM_SYNTAX (s_atbind, "@bind", scm_i_makbimacro, scm_m_atbind);
 
 SCM
 scm_m_atbind (SCM xorig, SCM env)
@@ -1065,7 +1065,7 @@ scm_m_atbind (SCM xorig, SCM env)
 }
 
 
-SCM_SYNTAX(s_atcall_cc, "@call-with-current-continuation", scm_makmmacro, scm_m_cont);
+SCM_SYNTAX(s_atcall_cc, "@call-with-current-continuation", scm_i_makbimacro, scm_m_cont);
 SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc, s_atcall_cc);
 
 
@@ -1078,7 +1078,7 @@ scm_m_cont (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_makmmacro, scm_m_at_call_with_values);
+SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_i_makbimacro, scm_m_at_call_with_values);
 SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, s_at_call_with_values);
 
 SCM
@@ -1090,7 +1090,7 @@ scm_m_at_call_with_values (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_future, "future", scm_makmmacro, scm_m_future);
+SCM_SYNTAX (s_future, "future", scm_i_makbimacro, scm_m_future);
 SCM_GLOBAL_SYMBOL (scm_sym_future, s_future);
 
 /* Like promises, futures are implemented as closures with an empty
@@ -1106,7 +1106,7 @@ scm_m_future (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_gset_x, "set!", scm_makmmacro, scm_m_generalized_set_x);
+SCM_SYNTAX (s_gset_x, "set!", scm_i_makbimacro, scm_m_generalized_set_x);
 SCM_SYMBOL (scm_sym_setter, "setter");
 
 SCM 
@@ -1162,7 +1162,7 @@ scm_m_atslot_set_x (SCM xorig, SCM env SCM_UNUSED)
 
 #if SCM_ENABLE_ELISP
 
-SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
+SCM_SYNTAX (s_nil_cond, "nil-cond", scm_i_makbimacro, scm_m_nil_cond);
 
 SCM
 scm_m_nil_cond (SCM xorig, SCM env SCM_UNUSED)
@@ -1173,7 +1173,7 @@ scm_m_nil_cond (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_atfop, "@fop", scm_makmmacro, scm_m_atfop);
+SCM_SYNTAX (s_atfop, "@fop", scm_i_makbimacro, scm_m_atfop);
 
 SCM
 scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
@@ -1305,7 +1305,8 @@ scm_macroexp (SCM x, SCM env)
   /* Only handle memoizing macros.  `Acros' and `macros' are really
      special forms and should not be evaluated here. */
 
-  if (!SCM_MACROP (proc) || SCM_MACRO_TYPE (proc) != 2)
+  if (!SCM_MACROP (proc)
+      || (SCM_MACRO_TYPE (proc) != 2 && !SCM_BUILTIN_MACRO_P (proc)))
     return x;
 
   SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of lookupcar */
@@ -2771,6 +2772,7 @@ dispatch:
 #endif
 	      switch (SCM_MACRO_TYPE (proc))
 		{
+		case 3:
 		case 2:
 		  if (scm_ilength (arg1) <= 0)
 		    arg1 = scm_list_2 (SCM_IM_BEGIN, arg1);

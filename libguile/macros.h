@@ -3,7 +3,7 @@
 #ifndef SCM_MACROS_H
 #define SCM_MACROS_H
 
-/* Copyright (C) 1998,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,12 +31,14 @@
 
 #define SCM_MACROP(x) SCM_TYP16_PREDICATE (scm_tc16_macro, (x))
 #define SCM_MACRO_TYPE(m) (SCM_CELL_WORD_0 (m) >> 16)
+#define SCM_BUILTIN_MACRO_P(x) (SCM_MACROP (x) && SCM_MACRO_TYPE (x) == 3)
 #define SCM_MACRO_CODE(m) SCM_CELL_OBJECT_1 (m)
 
 SCM_API scm_t_bits scm_tc16_macro;
 
-SCM_API SCM scm_makacro (SCM code);
+SCM_API SCM scm_i_makbimacro (SCM code);
 SCM_API SCM scm_makmmacro (SCM code);
+SCM_API SCM scm_makacro (SCM code);
 SCM_API SCM scm_macro_p (SCM obj);
 SCM_API SCM scm_macro_type (SCM m);
 SCM_API SCM scm_macro_name (SCM m);
