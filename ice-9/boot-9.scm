@@ -1811,12 +1811,23 @@
 	(append! (convert-c-registered-modules dynobj)
 		 registered-modules)))
 
+(define (warn-autoload-deprecation modname)
+  (display
+   ";;; Autoloading of compiled code modules is deprecated.\n"
+   (current-error-port))
+  (display
+   ";;; Write a Scheme file instead that uses `dynamic-link' directly.\n"
+   (current-error-port))
+  (format (current-error-port)
+	  ";;; (You just tried to autoload module ~S.\n" modname))
+
 (define (init-dynamic-module modname)
   ;; Register any linked modules which has been registered on the C level
   (register-modules #f)
   (or-map (lambda (modinfo)
 	    (if (equal? (car modinfo) modname)
 		(begin
+		  (warn-autload-deprecation modname)
 		  (set! registered-modules (delq! modinfo registered-modules))
 		  (let ((mod (resolve-module modname #f)))
 		    (save-module-excursion
