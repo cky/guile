@@ -166,7 +166,8 @@
       ;; Walk the set of non-overlapping, maximal matches.
       (let next-match ((matches (list-matches regexp string))
 		       (start 0))
-	(if (pair? matches)
+	(if (null? matches)
+	    (display (make-shared-substring string start) port)
 	    (let ((m (car matches)))
 
 	      ;; Process all of the items for this match.  Don't use
@@ -184,11 +185,7 @@
 		     (make-shared-substring string start (match:start m))
 		     port))
 		   ((eq? item 'post)
-		    (if (pair? (cdr matches))
-			(next-match (cdr matches) (match:end m))
-			(display
-			 (make-shared-substring string (match:end m))
-			 port)))
+		    (next-match (cdr matches) (match:end m)))
 		   (else (error 'wrong-type-arg item))))
 
 		(if (pair? items)
