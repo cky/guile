@@ -1,3 +1,22 @@
+Sun Dec 12 15:33:40 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* snarf.h: Drop SCM_PROC, SCM_PROC1. Added extra output for
+	guile-doc-snarf script.
+
+	* guile-doc-snarf.in, guile-doc-snarf.awk: New, simple doc
+	extraction system.  Builds foo.x, foo.doc from foo.{c,cc}.
+	There are dependencies between these files and snarf.h.  This
+	replaces guile-snarf.
+
+	* guile-snarf.in: Drop everything after $$$ for the new snarf.h
+	macros.  This is obsoleted by guile-doc-snarf, but kept here for
+	now for good measure.
+
+	* Makefile.am: Added guile-doc-snarf, guile-doc-snarf.awk to
+	bin_SCRIPTS.  Added .doc to SUFFIXES, and give rule for creating
+	.doc files to use guile-doc-snarf.  Update the rule for creating
+	.x files to use guile-doc-snarf.
+
 Sun Dec 12 12:31:38 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* *.c: Finish replacing K&R style prototypes with ANSI C

@@ -1,4 +1,9 @@
-1999-10-2  Greg J. Badros  <gjb@cs.washington.edu>
+1999-12-12  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* configure.in: Create guile-doc-snarf, chmod +x that script after 
+	AC_OUTPUTted.
+
+1999-12-10  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* NEWS: More complete description for --enable-debug-freelist.
 
