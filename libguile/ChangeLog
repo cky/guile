@@ -1,5 +1,7 @@
 2003-05-16  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
+	* ChangeLog: add my surname
+
 	* srcprop.c (scm_finish_srcprop): use
 	scm_gc_register_collectable_memory()
 	(scm_make_srcprops): idem.
@@ -2171,7 +2173,7 @@
 	implementation). 
 	(scm_gc_calloc): new function
 
-2002-08-04  Han-Wen  <hanwen@cs.uu.nl>
+2002-08-04  Han-Wen Nienhuys <hanwen@cs.uu.nl>
 
 	* ports.c (scm_new_port_table_entry): init port entry to 0
 	completely.
@@ -2213,7 +2215,7 @@
 
 	* modules.c (scm_sym2var):  Don't compare SCM values with ==.
 
-2002-07-21  Han-Wen  <hanwen@cs.uu.nl>
+2002-07-21  Han-Wen Nienhuys <hanwen@cs.uu.nl>
 
 	* goops.c (scm_compute_applicable_methods): use
 	scm_remember_upto_here_1 iso scm_remember_upto_here
@@ -2233,7 +2235,7 @@
 	* gc.h: undo previous undocumented changes related to #ifdef
 	GENGC.
 
-2002-07-20  Han-Wen  <hanwen@cs.uu.nl>
+2002-07-20  Han-Wen Nienhuys <hanwen@cs.uu.nl>
 
 	* *.c: add space after commas everywhere.
 
