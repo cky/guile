@@ -1,5 +1,8 @@
 2001-05-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* boot-9.scm (use-syntax): Do not set scm:eval-transformer when
+	deprecated features have been removed.  Thanks to Dale P. Smith!
+
 	* optargs.scm (#\&): Use `issue-deprecation-warning' instead of
 	`display'.
 
