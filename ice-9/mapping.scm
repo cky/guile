@@ -102,8 +102,8 @@
 (define (hash-table-mapping . options)
   (let* ((size (or (and options (number? (car options)) (car options))
 		   71))
-	 (hash-proc (or (kw-arg-ref options :hash-proc) hash))
-	 (assoc-proc (or (kw-arg-ref options :assoc-proc)
+	 (hash-proc (or (kw-arg-ref options #:hash-proc) hash))
+	 (assoc-proc (or (kw-arg-ref options #:assoc-proc)
 			 (cond
 			  ((eq? hash-proc hash) assoc)
 			  ((eq? hash-proc hashv) assv)
@@ -111,7 +111,7 @@
 			  (else (error 'hash-table-mapping
 				       "Hash-procedure specified with no known assoc function."
 				       hash-proc)))))
-	 (delete-proc (or (kw-arg-ref options :delete-proc)
+	 (delete-proc (or (kw-arg-ref options #:delete-proc)
 			  (cond
 			   ((eq? hash-proc hash) delete!)
 			   ((eq? hash-proc hashv) delv!)
@@ -119,7 +119,7 @@
 			   (else (error 'hash-table-mapping
 					"Hash-procedure specified with no known delete function."
 					hash-proc)))))
-	 (table-constructor (or (kw-arg-ref options :table-constructor)
+	 (table-constructor (or (kw-arg-ref options #:table-constructor)
 				(lambda (len) (make-vector len '())))))
     (make-hash-table-mapping (table-constructor size)
 			     hash-proc
