@@ -1,3 +1,8 @@
+2002-05-18  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* api-diff (group-diff): Also output +N and -N adds and subs
+	details, respectively.
+
 2002-05-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* read-rfc822: New script.
