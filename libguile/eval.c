@@ -3809,6 +3809,12 @@ call_subr1_1 (SCM proc, SCM arg1)
 }
 
 static SCM
+call_subr2o_1 (SCM proc, SCM arg1)
+{
+  return SCM_SUBRF (proc) (arg1, SCM_UNDEFINED);
+}
+
+static SCM
 call_lsubr_1 (SCM proc, SCM arg1)
 {
   return SCM_SUBRF (proc) (scm_list_1 (arg1));
@@ -3870,6 +3876,8 @@ scm_trampoline_1 (SCM proc)
     case scm_tc7_subr_1:
     case scm_tc7_subr_1o:
       return call_subr1_1;
+    case scm_tc7_subr_2o:
+      return call_subr2o_1;
     case scm_tc7_lsubr:
       return call_lsubr_1;
     case scm_tc7_cxr:
@@ -3914,6 +3922,12 @@ call_subr2_2 (SCM proc, SCM arg1, SCM arg2)
 }
 
 static SCM
+call_lsubr2_2 (SCM proc, SCM arg1, SCM arg2)
+{
+  return SCM_SUBRF (proc) (arg1, arg2, SCM_EOL);
+}
+
+static SCM
 call_lsubr_2 (SCM proc, SCM arg1, SCM arg2)
 {
   return SCM_SUBRF (proc) (scm_list_2 (arg1, arg2));
@@ -3942,6 +3956,8 @@ scm_trampoline_2 (SCM proc)
     case scm_tc7_rpsubr:
     case scm_tc7_asubr:
       return call_subr2_2;
+    case scm_tc7_lsubr_2:
+      return call_lsubr2_2;
     case scm_tc7_lsubr:
       return call_lsubr_2;
     case scm_tcs_closures:
