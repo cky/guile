@@ -51,9 +51,9 @@
 
 /* Opcode */
 enum scm_opcode {
-#include "vm_system.op"
-#include "vm_scheme.op"
-#include "vm_number.op"
+#include "vm_system.opcode"
+#include "vm_scheme.opcode"
+#include "vm_number.opcode"
   op_last
 };
 
@@ -73,7 +73,6 @@ struct scm_instruction {
   enum scm_opcode opcode;	/* opcode */
   enum scm_inst_type type;	/* argument type */
   char *name;			/* instruction name */
-  void *addr;			/* instruction address */
   SCM obj;			/* instruction object */
   /* fields for VM functions */
   char *sname;			/* Scheme procedure name */

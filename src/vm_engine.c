@@ -45,14 +45,11 @@
 
 /* VM names */
 #undef VM_NAME
-#undef VM_TABLE
 #if VM_ENGINE == SCM_VM_REGULAR_ENGINE
 #define VM_NAME		scm_regular_vm
-#define VM_TABLE	scm_regular_instruction_table
 #else
 #if VM_ENGINE == SCM_VM_DEBUG_ENGINE
 #define VM_NAME		scm_debug_vm
-#define VM_TABLE	scm_debug_instruction_table
 #endif
 #endif
 
@@ -79,20 +76,12 @@ VM_NAME (SCM vm, SCM program)
   SCM hook_args = SCM_LIST1 (vm);
 #endif
 
-  /* Initialize the instruction table at the first time.
-   * This code must be here because the following table contains
-   * pointers to the labels defined in this function.  */
-  if (!VM_TABLE)
-    {
-      static struct scm_instruction table[] = {
-#include "vm_system.vi"
-#include "vm_scheme.vi"
-#include "vm_number.vi"
-	{ op_last }
-      };
-      VM_TABLE = table;
-      return SCM_UNSPECIFIED;
-    }
+  /* Jump talbe */
+  static void *jump_table[] = {
+#include "vm_system.label"
+#include "vm_scheme.label"
+#include "vm_number.label"
+  };
 
   /* Initialize the VM */
   vmp     = SCM_VM_DATA (vm);

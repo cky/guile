@@ -11,8 +11,9 @@ libguilevm_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
 noinst_HEADERS = vm.h vm_engine.h vm-snarf.h
 EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_number.c \
 	     test.scm guile-compile.in
-BUILT_SOURCES = vm_system.vi vm_scheme.vi vm_number.vi \
-		vm_system.op vm_scheme.op vm_number.op vm.x
+BUILT_SOURCES = vm_system.inst vm_scheme.inst vm_number.inst \
+		vm_system.label vm_scheme.label vm_number.label \
+		vm_system.opcode vm_scheme.opcode vm_number.opcode vm.x
 
 CFLAGS = -g -O2 -Wall
 INCLUDES = $(GUILE_CFLAGS)
@@ -21,16 +22,20 @@ DISTCLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = Makefile.in config.h.in stamp-h.in
 
 SNARF = guile-snarf
-SUFFIXES = .x .vi .op
+SUFFIXES = .x .inst .label .opcode
 .c.x:
 	$(SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 
-.c.vi:
+.c.inst:
 	$(SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 
-.c.op:
+.c.label:
+	$(SNARF) -DSCM_SNARF_LABEL $(DEFS) $(INCLUDES) $(CPPFLAGS) \
+	$(CFLAGS) $< > $@ || { rm $@; false; }
+
+.c.opcode:
 	$(SNARF) -DSCM_SNARF_OPCODE $(DEFS) $(INCLUDES) $(CPPFLAGS) \
 	$(CFLAGS) $< > $@ || { rm $@; false; }
 

@@ -348,11 +348,7 @@
 
 #undef VM_GOTO_NEXT
 #if HAVE_LABELS_AS_VALUES
-#if VM_ENGINE == SCM_VM_DEBUG_ENGINE
-#define VM_GOTO_NEXT()		goto *SCM_CODE_TO_DEBUG_ADDR (FETCH ())
-#else /* not SCM_VM_DEBUG_ENGINE */
-#define VM_GOTO_NEXT()		goto *SCM_CODE_TO_ADDR (FETCH ())
-#endif
+#define VM_GOTO_NEXT()		goto *jump_table[SCM_UNPACK (FETCH ())]
 #else /* not HAVE_LABELS_AS_VALUES */
 #define VM_GOTO_NEXT()		goto vm_start
 #endif

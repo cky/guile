@@ -10,7 +10,8 @@ stamp-h.in
 Makefile
 Makefile.in
 *.x
-*.vi
-*.op
+*.inst
+*.label
+*.opcode
 *.lo
 *.la

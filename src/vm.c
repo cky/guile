@@ -114,21 +114,16 @@ init_name_property ()
  * Instruction
  */
 
-#define INSTRUCTION_HASH_SIZE op_last
-#define INSTRUCTION_HASH(ADDR) (((int) (ADDR) >> 1) % INSTRUCTION_HASH_SIZE)
-
-/* These variables are defined in VM engines when they are first called. */
-static struct scm_instruction *scm_regular_instruction_table = 0;
-static struct scm_instruction *scm_debug_instruction_table = 0;
-
-/* Hash table for finding instructions from addresses */
-static struct inst_hash {
-  void *addr;
-  struct scm_instruction *inst;
-  struct inst_hash *next;
-} *scm_instruction_hash_table[INSTRUCTION_HASH_SIZE];
-
 static long scm_instruction_tag;
+
+static struct scm_instruction scm_instruction_table[] = {
+#include "vm_system.inst"
+#include "vm_scheme.inst"
+#include "vm_number.inst"
+  {op_last}
+};
+
+#define SCM_INSTRUCTION(OP)	&scm_instruction_table[SCM_UNPACK (OP)]
 
 static SCM
 make_instruction (struct scm_instruction *instp)
@@ -155,34 +150,14 @@ init_instruction_type ()
 /* C interface */
 
 static struct scm_instruction *
-find_instruction_by_name (const char *name)
+scm_lookup_instruction (const char *name)
 {
   struct scm_instruction *p;
-  for (p = scm_regular_instruction_table; p->opcode != op_last; p++)
+  for (p = scm_instruction_table; p->opcode != op_last; p++)
     if (strcmp (name, p->name) == 0)
       return p;
   return 0;
 }
-
-static struct scm_instruction *
-find_instruction_by_code (SCM code)
-{
-  struct inst_hash *p;
-  void *addr = SCM_CODE_TO_ADDR (code);
-  for (p = scm_instruction_hash_table[INSTRUCTION_HASH (addr)]; p; p = p->next)
-    if (p->addr == addr)
-      return p->inst;
-  return 0;
-}
-
-#ifdef HAVE_LABELS_AS_VALUES
-static void *
-instruction_code_to_debug_addr (SCM code)
-{
-  struct scm_instruction *p = find_instruction_by_code (code);
-  return scm_debug_instruction_table[p->opcode].addr;
-}
-#endif
 
 /* Scheme interface */
 
@@ -219,7 +194,7 @@ SCM_DEFINE (scm_instruction_name_p, "instruction-name?", 1, 0, 0,
 #define FUNC_NAME s_scm_instruction_name_p
 {
   SCM_VALIDATE_SYMBOL (1, name);
-  return SCM_BOOL (find_instruction_by_name (SCM_SYMBOL_CHARS (name)));
+  return SCM_BOOL (scm_lookup_instruction (SCM_SYMBOL_CHARS (name)));
 }
 #undef FUNC_NAME
 
@@ -231,7 +206,7 @@ SCM_DEFINE (scm_symbol_to_instruction, "symbol->instruction", 1, 0, 0,
   struct scm_instruction *p;
   SCM_VALIDATE_SYMBOL (1, name);
 
-  p = find_instruction_by_name (SCM_SYMBOL_CHARS (name));
+  p = scm_lookup_instruction (SCM_SYMBOL_CHARS (name));
   if (!p)
     SCM_MISC_ERROR ("No such instruction: ~S", SCM_LIST1 (name));
 
@@ -246,7 +221,7 @@ SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
 {
   SCM list = SCM_EOL;
   struct scm_instruction *p;
-  for (p = scm_regular_instruction_table; p->opcode != op_last; p++)
+  for (p = scm_instruction_table; p->opcode != op_last; p++)
     list = scm_cons (p->obj, list);
   return scm_reverse_x (list, SCM_EOL);
 }
@@ -338,7 +313,7 @@ mark_bytecode (SCM bytecode)
 
   for (i = 0; i < size; i++)
     {
-      p = find_instruction_by_code (base[i]);
+      p = SCM_INSTRUCTION (base[i]);
       switch (p->type)
 	{
 	case INST_NONE:
@@ -472,9 +447,9 @@ SCM_DEFINE (scm_make_bytecode, "make-bytecode", 1, 0, 0,
 
       /* Process instruction */
       if (!SCM_SYMBOLP (old[i])
-	  || !(p = find_instruction_by_name (SCM_SYMBOL_CHARS (old[i]))))
+	  || !(p = scm_lookup_instruction (SCM_SYMBOL_CHARS (old[i]))))
 	SCM_MISC_ERROR ("Invalid instruction: ~S", SCM_LIST1 (old[i]));
-      new[i] = SCM_ADDR_TO_CODE (p->addr);
+      new[i] = SCM_PACK (p->opcode);
 
       /* Process arguments */
       if (p->type == INST_NONE)
@@ -543,7 +518,7 @@ SCM_DEFINE (scm_bytecode_decode, "bytecode-decode", 1, 0, 0,
       struct scm_instruction *p;
 
       /* Process instruction */
-      p = find_instruction_by_code (old[i]);
+      p = SCM_INSTRUCTION (old[i]);
       if (!p)
 	{
 	broken:
@@ -1010,7 +985,7 @@ SCM_DEFINE (scm_vm_fetch_code, "vm-fetch-code", 2, 0, 0,
 
   p = SCM_VM_ADDRESS (addr);
 
-  inst = find_instruction_by_code (*p);
+  inst = SCM_INSTRUCTION (*p);
   if (!inst)
     SCM_MISC_ERROR ("Broken bytecode", SCM_LIST1 (addr));
 
@@ -1135,7 +1110,7 @@ SCM_SYMBOL (sym_debug, "debug");
 static SCM scm_regular_vm (SCM vm, SCM program);
 static SCM scm_debug_vm (SCM vm, SCM program);
 
-#define VM_CODE(name) SCM_ADDR_TO_CODE (find_instruction_by_name (name)->addr)
+#define VM_CODE(name) SCM_PACK (scm_lookup_instruction (name)->opcode)
 
 SCM_DEFINE (scm_vm_run, "vm-run", 2, 0, 0,
 	    (SCM vm, SCM program),
@@ -1256,7 +1231,6 @@ scm_init_vm ()
   /* Initialize the module */
   scm_module_vm = scm_make_module (scm_read_0str ("(vm vm)"));
   old_module = scm_select_module (scm_module_vm);
-
   init_name_property ();
   init_instruction_type ();
   init_bytecode_type ();
@@ -1264,37 +1238,15 @@ scm_init_vm ()
   init_vm_frame_type ();
   init_vm_cont_type ();
   init_vm_type ();
-
 #include "vm.x"
-
   scm_select_module (old_module);
 
-  /* Initialize instruction tables */
   {
-    int i;
     struct scm_instruction *p;
-
-    SCM vm = make_vm (0);
-    scm_regular_vm (vm, SCM_BOOL_F);
-    scm_debug_vm (vm, SCM_BOOL_F);
-
-    /* hash table */
-    for (i = 0; i < INSTRUCTION_HASH_SIZE; i++)
-      scm_instruction_hash_table[i] = NULL;
-
-    for (p = scm_regular_instruction_table; p->opcode != op_last; p++)
+    for (p = scm_instruction_table; p->opcode != op_last; p++)
       {
-	int hash;
-	struct inst_hash *data;
-	SCM inst = scm_permanent_object (make_instruction (p));
-	p->obj = inst;
+	p->obj = scm_permanent_object (make_instruction (p));
 	if (p->restp) p->type = INST_INUM;
-	hash = INSTRUCTION_HASH (p->addr);
-	data = scm_must_malloc (sizeof (*data), "inst_hash");
-	data->addr = p->addr;
-	data->inst = p;
-	data->next = scm_instruction_hash_table[hash];
-	scm_instruction_hash_table[hash] = data;
       }
   }
 }
