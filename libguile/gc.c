@@ -782,13 +782,16 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 static void
 adjust_gc_trigger (scm_freelist_t *freelist)
 {
-  /* GC trigger is adjusted upwards so that next predicted yield is
-   * gc_trigger_fraction of total heap size.
+  /* GC trigger is adjusted upwards so that next predicted total yield
+   * (allocated cells actually freed by GC) becomes
+   * `gc_trigger_fraction' of total heap size.  Note, however, that
+   * the absolute value of gc_trigger will correspond to `collected'
+   * on one master (the one which currently is triggering GC).
    *
-   * The reason why we look at actual yield instead of collected cells
-   * is that we want to take other freelists into account.  On this
-   * freelist, we know that yield = collected cells, but that's
-   * probably not the case on the other lists.
+   * The reason why we look at total yield instead of cells collected
+   * on one list is that we want to take other freelists into account.
+   * On this freelist, we know that (local) yield = collected cells,
+   * but that's probably not the case on the other lists.
    *
    * (We might consider computing a better prediction, for example
    *  by computing an average over multiple GC:s.)
@@ -2309,8 +2312,10 @@ alloc_some_heap (scm_freelist_t *freelist)
    */
 #ifdef GUILE_NEW_GC_SCHEME
   {
-    /* Assure that the new segment is large enough for the new trigger */
-    int slack = freelist->gc_trigger - scm_gc_yield;
+    /* Assure that the new segment is predicted to be large enough for
+     * the new trigger.
+     */
+    int slack = freelist->gc_trigger - freelist->collected;
     int min_cells = 100 * slack / (99 - freelist->gc_trigger_fraction);
     len =  SCM_EXPHEAP (freelist->heap_size);
 #ifdef DEBUGINFO
