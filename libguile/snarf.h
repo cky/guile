@@ -55,7 +55,7 @@
 	static char RANAME[]=STR
 #else
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, CFN)
+%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN)
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
 %%%	scm_make_subr(RANAME, TYPE, CFN)
 #endif
