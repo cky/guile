@@ -41,7 +41,8 @@ ice9_DATA = readline.scm
 
 SUFFIXES = .x
 .c.x:
-	$(GUILE_SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
+	$(GUILE_SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	|| { rm $@; false; }
 
 EXTRA_DIST = readline.scm
 
