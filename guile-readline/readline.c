@@ -172,7 +172,7 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 	  --in_readline;
 	  scm_wrong_type_arg (s_scm_readline, SCM_ARG1, text);
 	}
-      SCM_COERCE_SUBSTR (text);
+      SCM_STRING_COERCE_0TERMINATION_X (text);
     }
   
   if (!((SCM_UNBNDP (inp) && SCM_NIMP (scm_cur_inp) && SCM_OPINFPORTP (inp))
@@ -256,7 +256,7 @@ internal_readline (SCM text)
 {
   SCM ret;
   char *s;
-  char *prompt = SCM_UNBNDP (text) ? "" : SCM_CHARS (text);
+  char *prompt = SCM_UNBNDP (text) ? "" : SCM_STRING_CHARS (text);
 
   promptp = 1;
   s = readline (prompt);
@@ -328,9 +328,9 @@ SCM_DEFINE (scm_add_history, "add-history", 1, 0, 0,
 {
   char* s;
   SCM_VALIDATE_STRING (1,text);
-  SCM_COERCE_SUBSTR (text);
+  SCM_STRING_COERCE_0TERMINATION_X (text);
 
-  s = SCM_CHARS (text);
+  s = SCM_STRING_CHARS (text);
   add_history (strdup (s));
 
   return SCM_UNSPECIFIED;
@@ -344,7 +344,7 @@ SCM_DEFINE (scm_read_history, "read-history", 1, 0, 0,
 #define FUNC_NAME s_scm_read_history
 {
   SCM_VALIDATE_STRING (1,file);
-  return SCM_NEGATE_BOOL(read_history (SCM_ROCHARS (file)));
+  return SCM_NEGATE_BOOL (read_history (SCM_STRING_CHARS (file)));
 }
 #undef FUNC_NAME
 
@@ -355,7 +355,7 @@ SCM_DEFINE (scm_write_history, "write-history", 1, 0, 0,
 #define FUNC_NAME s_scm_write_history
 {
   SCM_VALIDATE_STRING (1,file);
-  return SCM_NEGATE_BOOL(write_history (SCM_ROCHARS (file)));
+  return SCM_NEGATE_BOOL (write_history (SCM_STRING_CHARS (file)));
 }
 #undef FUNC_NAME
 
@@ -368,8 +368,8 @@ SCM_DEFINE (scm_filename_completion_function, "filename-completion-function", 2,
   char *s;
   SCM ans;
   SCM_VALIDATE_STRING (1,text);
-  SCM_COERCE_SUBSTR (text);
-  s = filename_completion_function (SCM_CHARS (text), SCM_NFALSEP (continuep));
+  SCM_STRING_COERCE_0TERMINATION_X (text);
+  s = filename_completion_function (SCM_STRING_CHARS (text), SCM_NFALSEP (continuep));
   ans = scm_makfrom0str (s);
   free (s);
   return ans;
@@ -404,8 +404,8 @@ completion_function (char *text, int continuep)
 	scm_misc_error (s_scm_readline,
 			"Completion function returned bogus value: %S",
 			SCM_LIST1 (res));
-      SCM_COERCE_SUBSTR (res);
-      return strdup (SCM_CHARS (res));
+      SCM_STRING_COERCE_0TERMINATION_X (res);
+      return strdup (SCM_STRING_CHARS (res));
     }
 }
 
