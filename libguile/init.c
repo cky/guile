@@ -356,7 +356,7 @@ scm_load_startup_files ()
     }
 }
 
-#ifdef GUILE_DEBUG
+#ifdef GUILE_NEW_GC_SCHEME
 /* Get an integer from an environment variable.  */
 static int
 scm_i_getenv_int (const char *var, int def)
@@ -474,7 +474,7 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_ports_prehistory ();
       scm_smob_prehistory ();
       scm_tables_prehistory ();
-#if defined (GUILE_DEBUG) && defined (GUILE_NEW_GC_SCHEME)
+#if defined (GUILE_NEW_GC_SCHEME)
       scm_init_storage (scm_i_getenv_int ("GUILE_INIT_HEAP_SIZE", 0),
 			scm_i_getenv_int ("GUILE_GC_TRIGGER", 0),
 			scm_i_getenv_int ("GUILE_INIT_HEAP_SIZE2", 40000),

@@ -2,7 +2,9 @@
 
 	* gc.c, gc.h (scm_map_free_list): Define also if GUILE_DEBUG is
 	defined.
-	
+	(scm_free_list_length): New procedure (GUILE_DEBUG).
+	Fixed a small but serious bug introduced by the previous change.
+
 	* gc.c (scm_gc_sweep): Moved variable n_objects to inner sweep
 	loop and declare as register.
 
