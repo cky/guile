@@ -273,15 +273,13 @@
 (test #f not 3)
 (test #f not (list 3))
 (test #t not #f)
-;;; Not for Guile
-;(test #f not '())
-;(test #f not (list))
+(test #f not '())
+(test #f not (list))
 (test #f not 'nil)
 
 (test #t boolean? #f)
 (test #f boolean? 0)
-;;; Not for Guile
-;(test #f boolean? '())
+(test #f boolean? '())
 (SECTION 6 2)
 (test #t eqv? 'a 'a)
 (test #f eqv? 'a 'b)
