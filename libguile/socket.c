@@ -465,7 +465,7 @@ scm_addr_vector (address, proc)
       ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin_port));
     }
   else
-    scm_misc_error (proc, "Unrecognised socket address type: %s",
+    scm_misc_error (proc, "Unrecognised internet address type: %s",
 		    scm_listify (SCM_MAKINUM (fam), SCM_UNSPECIFIED));
 
   return result;
@@ -634,6 +634,12 @@ scm_send (sock, message, flags)
   return SCM_MAKINUM (rv);
 }
 
+/* buff_or_size can be:
+   1/ size of buffer to allocate initially
+   2/ string buffer
+   3/ list with string buffer, start position and end positions.
+   (for SCSH networking).
+   */
 SCM_PROC (s_recvfrom, "recvfrom", 2, 1, 0, scm_recvfrom);
 
 SCM
@@ -646,27 +652,54 @@ scm_recvfrom (sock, buff_or_size, flags)
   int fd;
   int flg;
   SCM tok_buf;
-  char *p;
   int size;
   int allocated = 0;
   int tmp_size;
   SCM address;
+  char *c_buf;
 
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_recvfrom);
   if (SCM_INUMP (buff_or_size))
     {
       size = SCM_INUM (buff_or_size);
       tok_buf = scm_makstr (size, 0);
+      c_buf = SCM_CHARS (tok_buf);
       allocated = 1;
     }
   else
     {
-      SCM_ASSERT (SCM_NIMP (buff_or_size) && SCM_STRINGP (buff_or_size),
-	      buff_or_size, SCM_ARG2, s_recvfrom);
-      tok_buf = buff_or_size;
-      size = SCM_LENGTH (tok_buf);
+      SCM_ASSERT (SCM_NIMP (buff_or_size), buff_or_size, SCM_ARG2, s_recvfrom);
+      if (SCM_CONSP (buff_or_size))
+	{
+	  SCM s_start, s_end;
+	  int start, end;
+
+	  SCM_ASSERT (scm_ilength (buff_or_size) == 3, buff_or_size,
+		      SCM_ARG2, s_recvfrom);
+	  tok_buf = SCM_CAR (buff_or_size);
+	  SCM_ASSERT (SCM_NIMP (tok_buf) && SCM_STRINGP (tok_buf),
+		      buff_or_size, SCM_ARG2, s_recvfrom);
+	  s_start = SCM_CADR (buff_or_size);
+	  start = (int)scm_num2long (s_start, (char *)SCM_ARG2, s_recvfrom);
+	  if (start < 0)
+	    scm_out_of_range (s_recvfrom, s_start);
+	  s_end = SCM_CADDR (buff_or_size);
+	  end = (int)scm_num2long (s_end, (char *) SCM_ARG2, s_recvfrom);
+	  if (end < 0 || end > SCM_LENGTH (tok_buf))
+	    scm_out_of_range (s_recvfrom, s_end);
+	  if (start > end)
+	    scm_out_of_range (s_recvfrom, s_start);
+	  c_buf = SCM_CHARS (tok_buf) + start;
+	  size = end - start
+	}
+      else {
+	SCM_ASSERT (SCM_STRINGP (buff_or_size), buff_or_size, SCM_ARG2,
+		    s_recvfrom);
+	tok_buf = buff_or_size;
+	c_buf = SCM_CHARS (tok_buf);
+	size = SCM_LENGTH (tok_buf);
+      }
     }
-  p = SCM_CHARS (tok_buf);
   fd = fileno ((FILE *)SCM_STREAM (sock));
 
   if (SCM_UNBNDP (flags))
@@ -675,7 +708,7 @@ scm_recvfrom (sock, buff_or_size, flags)
     flg = scm_num2ulong (flags, (char *) SCM_ARG3, s_recvfrom);
 
   tmp_size = scm_addr_buffer_size;
-  SCM_SYSCALL (rv = recvfrom (fd, p, size, flg,
+  SCM_SYSCALL (rv = recvfrom (fd, c_buf, size, flg,
 			  (struct sockaddr *) scm_addr_buffer,
 			  &tmp_size));
   if (rv == -1)

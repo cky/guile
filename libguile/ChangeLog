@@ -1,3 +1,9 @@
+Mon Jan  6 20:39:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* socket.c (scm_recvfrom): allow buff_or_size to be a list containing
+	the buffer and start and end positions for SCSH networking
+	implementation.
+
 Sun Jan  5 13:53:53 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.am (EXTRA_DIST): Distribute PLUGIN/guile.libs.in, not
