@@ -53,6 +53,8 @@
 
 #include "libguile/__scm.h"
 
+#include "libguile/validate.h"
+
 /*
  * scm_class_class
  */
@@ -125,10 +127,12 @@ typedef struct scm_method_t {
 
 #define SCM_INSTANCEP(x)       (SCM_STRUCTP (x) \
 			       && (SCM_INST_TYPE (x) & SCM_CLASSF_GOOPS))
+#define SCM_VALIDATE_INSTANCE(pos, x) SCM_MAKE_VALIDATE (pos, x, INSTANCEP)
 
 #define SCM_PUREGENERICP(x)    (SCM_INST_TYPE(x) & SCM_CLASSF_PURE_GENERIC)
 #define SCM_SIMPLEMETHODP(x)   (SCM_INST_TYPE(x) & SCM_CLASSF_SIMPLE_METHOD)
 #define SCM_ACCESSORP(x)       (SCM_INST_TYPE(x) & SCM_CLASSF_ACCESSOR_METHOD)
+#define SCM_VALIDATE_ACCESSOR(pos, x) SCM_MAKE_VALIDATE (pos, x, ACCESSORP)
 #define SCM_FASTMETHODP(x)     (SCM_INST_TYPE(x) \
 				& (SCM_CLASSF_ACCESSOR_METHOD \
 				   | SCM_CLASSF_SIMPLE_METHOD))
@@ -138,6 +142,16 @@ typedef struct scm_method_t {
 #define SCM_IS_A_P(x, c)       (SCM_NIMP (x) \
 				&& SCM_INSTANCEP (x) \
 				&& SCM_SUBCLASSP (SCM_CLASS_OF (x), c))
+
+#define SCM_CLASSP(x)   (SCM_STRUCTP (x) \
+			&& SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_METACLASS)
+#define SCM_VALIDATE_CLASS(pos, x) SCM_MAKE_VALIDATE (pos, x, CLASSP)
+#define SCM_GENERICP(x) (SCM_INSTANCEP (x) \
+			&& SCM_SUBCLASSP (SCM_CLASS_OF (x), scm_class_generic))
+#define SCM_VALIDATE_GENERIC(pos, x) SCM_MAKE_VALIDATE (pos, x, GENERICP)
+#define SCM_METHODP(x)  (SCM_INSTANCEP (x) \
+			&& SCM_SUBCLASSP(SCM_CLASS_OF(x), scm_class_method))
+#define SCM_VALIDATE_METHOD(pos, x) SCM_MAKE_VALIDATE (pos, x, METHODP)
 
 #define SCM_MCACHE_N_SPECIALIZED(C) SCM_CADDR (C)
 #define SCM_SET_MCACHE_N_SPECIALIZED(C, X) SCM_SETCAR (SCM_CDDR (C), X)

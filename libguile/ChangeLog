@@ -1,5 +1,42 @@
 2000-12-16  Keisuke Nishida  <kxn30@po.cwru.edu>
 
+	* validate.h (SCM_WRONG_NUM_ARGS): New macro.
+	* goops.h: #include "libguile/validate.h"
+	(SCM_CLASSP, SCM_GENERICP, SCM_METHODP): Moved from goops.c with
+	prefix "SCM_".
+	(SCM_VALIDATE_INSTANCE, SCM_VALIDATE_ACCESSOR, SCM_VALIDATE_CLASS,
+	SCM_VALIDATE_GENERIC, SCM_VALIDATE_METHOD): New macros.
+	* goops.c (CLASSP, GENERICP, METHODP): Moved to goops.h with
+	prefix "SCM_".
+	(scm_sys_compute_slots, scm_sys_initialize_object,
+	scm_sys_prep_layout_x, s_sys_inherit_magic_x, scm_instance_p,
+	scm_class_name, scm_class_direct_supers, scm_class_direct_slots,
+	scm_class_direct_subclasses, scm_class_direct_methods,
+	scm_class_precedence_list, scm_class_slots, scm_class_environment,
+	scm_generic_function_name, scm_generic_function_methods,
+	scm_method_generic_function, scm_method_specializers,
+	scm_method_procedure, scm_accessor_method_slot_definition,
+	scm_make_unbound, scm_unbound_p, scm_assert_bound,
+	scm_at_assert_bound_ref, scm_sys_fast_slot_ref,
+	scm_sys_fast_slot_set_x, scm_slot_ref_using_class,
+	scm_slot_set_using_class_x, scm_slot_bound_using_class_p,
+	scm_slot_exists_using_class_p, scm_slot_ref, scm_slot_set_x,
+	scm_slot_bound_p, scm_slots_exists_p, scm_sys_allocate_instance,
+	scm_sys_set_object_setter_x, scm_sys_modify_instance,
+	scm_sys_modify_class, scm_sys_invalidate_class,
+	scm_sys_invalidate_method_cache_x, scm_generic_capability_p,
+	scm_enable_primitive_generic_x, scm_primitive_generic_generic,
+	scm_make, scm_find_method, scm_sys_method_more_specific_p,
+	scm_pure_generic_p, scm_sys_goops_loaded): Replaced SCM_PROC by
+	SCM_DEFINE.  Use validate macros defined above.
+	(scm_assert_bound, scm_at_assert_bound_ref, scm_sys_goops_loaded):
+	Declared as static functions.
+	(s_class_of, scm_class_of): Replaced SCM_PROC by SCM_DEFINE
+	in object.c.
+	* object.c (scm_class_of): Use SCM_DEFINE.
+
+2000-12-16  Keisuke Nishida  <kxn30@po.cwru.edu>
+
 	* symbols.h (scm_symbols_prehistory): Added prototype.
 
 2000-12-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>

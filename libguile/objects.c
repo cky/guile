@@ -83,8 +83,10 @@ SCM *scm_smob_class = 0;
 SCM scm_no_applicable_method;
 
 /* This function is used for efficient type dispatch.  */
-SCM
-scm_class_of (SCM x)
+SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
+	    (SCM x),
+	    "")
+#define FUNC_NAME s_scm_class_of
 {
   switch (SCM_ITAG3 (x))
     {
@@ -213,6 +215,7 @@ scm_class_of (SCM x)
     }
   return scm_class_unknown;
 }
+#undef FUNC_NAME
 
 /* (SCM_IM_DISPATCH ARGS N-SPECIALIZED
  *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
