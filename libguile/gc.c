@@ -63,6 +63,10 @@
 #include "validate.h"
 #include "gc.h"
 
+#ifdef GUILE_DEBUG_MALLOC
+#include "debug-malloc.h"
+#endif
+
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -1994,6 +1998,7 @@ scm_gc_sweep ()
  * The primary purpose of the front end is to impose calls to gc.
  */
 
+
 /* scm_must_malloc
  * Return newly malloced storage or throw an error.
  *
@@ -2017,6 +2022,9 @@ scm_must_malloc (scm_sizet size, const char *what)
       if (NULL != ptr)
 	{
 	  scm_mallocated = nm;
+#ifdef GUILE_DEBUG_MALLOC
+	  scm_malloc_register (ptr, what);
+#endif
 	  return ptr;
 	}
     }
@@ -2034,6 +2042,10 @@ scm_must_malloc (scm_sizet size, const char *what)
 	else
 	  scm_mtrigger += scm_mtrigger / 2;
       }
+#ifdef GUILE_DEBUG_MALLOC
+      scm_malloc_register (ptr, what);
+#endif
+
       return ptr;
     }
 
@@ -2060,6 +2072,9 @@ scm_must_realloc (void *where,
       if (NULL != ptr)
 	{
 	  scm_mallocated = nm;
+#ifdef GUILE_DEBUG_MALLOC
+	  scm_malloc_reregister (where, ptr, what);
+#endif
 	  return ptr;
 	}
     }
@@ -2077,6 +2092,9 @@ scm_must_realloc (void *where,
 	else
 	  scm_mtrigger += scm_mtrigger / 2;
       }
+#ifdef GUILE_DEBUG_MALLOC
+      scm_malloc_reregister (where, ptr, what);
+#endif
       return ptr;
     }
 
@@ -2087,6 +2105,9 @@ scm_must_realloc (void *where,
 void
 scm_must_free (void *obj)
 {
+#ifdef GUILE_DEBUG_MALLOC
+  scm_malloc_unregister (obj);
+#endif
   if (obj)
     free (obj);
   else
