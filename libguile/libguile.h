@@ -49,6 +49,7 @@
 
 /* These files define typedefs used by later files, so they need to
    come first.  */
+#include "libguile/print.h"
 #include "libguile/smob.h"
 #include "libguile/pairs.h"
 
@@ -90,7 +91,6 @@
 #include "libguile/options.h"
 #include "libguile/ports.h"
 #include "libguile/posix.h"
-#include "libguile/print.h"
 #include "libguile/procprop.h"
 #include "libguile/procs.h"
 #include "libguile/ramap.h"
