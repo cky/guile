@@ -1,3 +1,8 @@
+2003-05-10  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm (take): Make this an alias for list-head.
+	(drop): Make this an alias for list-tail.
+
 2003-04-30  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* srfi-34.scm: New file.
