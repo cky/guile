@@ -78,7 +78,7 @@ noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL)
-libguile_la_LDFLAGS = -version-info 7:0 -export-dynamic
+libguile_la_LDFLAGS = -version-info 8:0 -export-dynamic
 
 include_HEADERS = libguile.h
 
