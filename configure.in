@@ -240,6 +240,7 @@ AC_CHECK_SIZEOF(void *)
 AC_CHECK_SIZEOF(intptr_t)
 AC_CHECK_SIZEOF(uintptr_t)
 AC_CHECK_SIZEOF(ptrdiff_t)
+AC_CHECK_SIZEOF(size_t)
 
 if test "$ac_cv_sizeof_long" -ne "$ac_cv_sizeof_void_p"; then
   AC_MSG_ERROR(sizes of long and void* are not identical)
@@ -254,6 +255,8 @@ AC_SUBST([SCM_I_GSC_T_PTRDIFF])
 
 AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADERS([inttypes.h])
+
+AC_CHECK_SIZEOF(intmax_t)
 
 SCM_I_GSC_NEEDS_STDINT_H=0
 SCM_I_GSC_NEEDS_INTTYPES_H=0
