@@ -595,7 +595,8 @@ scm_m_case (SCM xorig, SCM env)
       proc = SCM_CAR (x);
       SCM_ASSYNT (scm_ilength (proc) >= 2, xorig, scm_s_clauses, s_case);
       SCM_ASSYNT (scm_ilength (SCM_CAR (proc)) >= 0
-		  || SCM_EQ_P (scm_sym_else, SCM_CAR (proc)),
+		  || (SCM_EQ_P (scm_sym_else, SCM_CAR (proc)) 
+		      && SCM_NULLP (SCM_CDR (x))),
 		  xorig, scm_s_clauses, s_case);
     }
   return scm_cons (SCM_IM_CASE, cdrx);
