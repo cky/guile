@@ -1560,7 +1560,7 @@
       (if already
 	  ;; The module already exists...
 	  (if (and (or (null? maybe-autoload) (car maybe-autoload))
-		   (not (module-ref already '%module-public-interface #f)))
+		   (not (module-public-interface already)))
 	      ;; ...but we are told to load and it doesn't contain source, so
 	      (begin
 		(try-load-module name)
@@ -1584,7 +1584,8 @@
 	  (set-module-public-interface! module interface))))
   (if (and (not (memq the-scm-module (module-uses module)))
 	   (not (eq? module the-root-module)))
-      (set-module-uses! module (append (module-uses module) (list the-scm-module)))))
+      (set-module-uses! module (append (module-uses module)
+                                       (list the-scm-module)))))
 
 (define (purify-module! module)
   "Removes bindings in MODULE which are inherited from the (guile) module."
@@ -1609,17 +1610,70 @@
 		  (module-define! module (car name) m)
 		  (make-modules-in m (cdr name)))))))
 
-(define (resolve-interface name)
-  (let ((module (resolve-module name)))
-    (and module (module-public-interface module))))
+;; Return a module interface made from SPEC.
+;; SPEC can be a list of symbols, in which case it names a module
+;; whose public interface is found and returned.
+;;
+;; SPEC can also be of the form:
+;;  (MODULE-NAME [:select SELECTION] [:rename RENAMER])
+;; in which case a partial interface is newly created and returned.
+;; MODULE-NAME is a list of symbols, as above; SELECTION is a list of
+;; selection-specs to be imported; and RENAMER is a procedure that takes a
+;; symbol and returns its new name.  A selection-spec is either a symbol or a
+;; pair of symbols (ORIG . SEEN), where ORIG is the name in the used module
+;; and SEEN is the name in the using module.  Note that SEEN is also passed
+;; through RENAMER.
+;;
+;; The `:select' and `:rename' clauses are optional.  If both are omitted, the
+;; returned interface has no bindings.  If the `:select' clause is omitted,
+;; RENAMER operates on the used module's public interface.
+;;
+;; Signal error if module name is not resolvable.
+;;
+(define (resolve-interface spec)
+  (let* ((simple? (not (pair? (car spec))))
+         (name (if simple? spec (car spec)))
+         (module (resolve-module name)))
+    (if (not module)
+        (error "no code for module" name)
+        (let ((public-i (module-public-interface module)))
+          (cond ((not public-i)
+                 (beautify-user-module! module)
+                 (set! public-i (module-public-interface module))))
+          (if simple?
+              public-i
+              (let ((selection (cond ((memq ':select spec) => cadr)
+                                     (else (module-map (lambda (sym var) sym)
+                                                       public-i))))
+                    (rename (cond ((memq ':rename spec)
+                                   => (lambda (x)
+                                        (eval (cadr x) (current-module))))
+                                  (else identity)))
+                    (partial-i (make-module 31)))
+                (set-module-kind! partial-i 'interface)
+                (for-each (lambda (sel-spec)
+                            (let* ((direct? (symbol? sel-spec))
+                                   (orig (if direct?
+                                             sel-spec
+                                             (car sel-spec)))
+                                   (seen (if direct?
+                                             sel-spec
+                                             (cdr sel-spec))))
+                              (module-add! partial-i (rename seen)
+                                           (module-variable module orig))))
+                          selection)
+                partial-i))))))
 
-
-(define %autoloader-developer-mode #t)
+(define (symbol-prefix-proc prefix)
+  (lambda (symbol)
+    (symbol-append prefix symbol)))
 
 (define (process-define-module args)
   (let*  ((module-id (car args))
 	  (module (resolve-module module-id #f))
-	  (kws (cdr args)))
+	  (kws (cdr args))
+          (unrecognized (lambda ()
+                          (error "unrecognized define-module argument" kws))))
     (beautify-user-module! module)
     (let loop ((kws kws)
 	       (reversed-interfaces '())
@@ -1638,32 +1692,24 @@
 					 (string->symbol (substring s 1))))))))
 	    (case keyword
 	      ((use-module use-syntax)
-	       (if (not (pair? (cdr kws)))
-		   (error "unrecognized defmodule argument" kws))
-	       (let* ((used-name (cadr kws))
-		      (used-module (resolve-module used-name)))
-		 (if (not (module-ref used-module
-				      '%module-public-interface
-				      #f))
-		     (begin
-		       ((if %autoloader-developer-mode warn error)
-			"no code for module" (module-name used-module))
-		       (beautify-user-module! used-module)))
-		 (let ((interface (module-public-interface used-module)))
-		   (if (not interface)
-		       (error "missing interface for use-module"
-			      used-module))
-		   (if (eq? keyword 'use-syntax)
-		       (set-module-transformer!
-			module
-			(module-ref interface (car (last-pair used-name))
-				    #f)))
-		   (loop (cddr kws)
-			 (cons interface reversed-interfaces)
-			 exports))))
+	       (or (pair? (cdr kws))
+		   (unrecognized))
+               (let* ((spec (cadr kws))
+                      (interface (resolve-interface spec)))
+                 (and (eq? keyword 'use-syntax)
+                      (or (symbol? (car spec))
+                          (error "invalid module name for use-syntax"
+                                 spec))
+                      (set-module-transformer!
+                       module
+                       (module-ref interface (car (last-pair module-name))
+                                   #f)))
+                 (loop (cddr kws)
+                       (cons interface reversed-interfaces)
+                       exports)))
 	      ((autoload)
-	       (if (not (and (pair? (cdr kws)) (pair? (cddr kws))))
-		   (error "unrecognized defmodule argument" kws))
+	       (or (and (pair? (cdr kws)) (pair? (cddr kws)))
+                   (unrecognized))
 	       (loop (cdddr kws)
 		     (cons (make-autoload-interface module
 						    (cadr kws)
@@ -1677,13 +1723,13 @@
 	       (purify-module! module)
 	       (loop (cdr kws) reversed-interfaces exports))
 	      ((export)
-	       (if (not (pair? (cdr kws)))
-		   (error "unrecognized defmodule argument" kws))
+	       (or (pair? (cdr kws))
+                   (unrecognized))
 	       (loop (cddr kws)
 		     reversed-interfaces
 		     (append (cadr kws) exports)))
 	      (else
-	       (error "unrecognized defmodule argument" kws))))))
+               (unrecognized))))))
     (set-current-module module)
     module))
 
@@ -1784,7 +1830,7 @@
       (issue-deprecation-warning
        "Autoloading of compiled code modules is deprecated."
        "Write a Scheme file instead that uses `dynamic-link' directly.")))
-   
+
 (define (init-dynamic-module modname)
   ;; Register any linked modules which have been registered on the C level
   (register-modules #f)
@@ -2557,13 +2603,13 @@
 
 ;; the guts of the use-modules macro.  add the interfaces of the named
 ;; modules to the use-list of the current module, in order
-(define (process-use-modules module-names)
-  (for-each (lambda (module-name)
-	      (let ((mod-iface (resolve-interface module-name)))
+(define (process-use-modules module-interface-specs)
+  (for-each (lambda (mif-spec)
+	      (let ((mod-iface (resolve-interface mif-spec)))
 		(or mod-iface
-		    (error "no such module" module-name))
+		    (error "no such module" mif-spec))
 		(module-use! (current-module) mod-iface)))
-	    (reverse module-names)))
+            module-interface-specs))
 
 (defmacro use-modules modules
   `(eval-case
@@ -2649,8 +2695,8 @@
   (module-use! (resolve-module user) (resolve-module usee)))
 
 (define (load-emacs-interface)
-  (if (memq 'debug-extensions *features*)
-      (debug-enable 'backtrace))
+  (and (provided? 'debug-extensions)
+       (debug-enable 'backtrace))
   (named-module-use! '(guile-user) '(ice-9 emacs)))
 
 
@@ -2675,10 +2721,10 @@
      :use-module (ice-9 session)
      :use-module (ice-9 debug)
      :autoload (ice-9 debugger) (debug)))  ;load debugger on demand
-  (if (memq 'threads *features*)
-      (named-module-use! '(guile-user) '(ice-9 threads)))
-  (if (memq 'regex *features*)
-      (named-module-use! '(guile-user) '(ice-9 regex)))
+  (and (provided? 'threads)
+       (named-module-use! '(guile-user) '(ice-9 threads)))
+  (and (provided? 'regex)
+       (named-module-use! '(guile-user) '(ice-9 regex)))
 
   (let ((old-handlers #f)
 	(signals (if (provided? 'posix)
