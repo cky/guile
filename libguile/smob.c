@@ -45,6 +45,8 @@
 
 #include "smob.h"
 
+#include "objects.h"
+
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -81,6 +83,10 @@ scm_newsmob (smob)
   SCM_ALLOW_INTS;
   if (!tmp)
   smoberr:scm_wta (SCM_MAKINUM ((long) scm_numsmob), (char *) SCM_NALLOC, "newsmob");
+  /* Make a class object if Goops is present. */
+  if (scm_smob_class)
+    scm_smob_class[scm_numsmob - 1]
+      = scm_make_extended_class (SCM_SMOBNAME (scm_numsmob - 1));
   return scm_tc7_smob + (scm_numsmob - 1) * 256;
 }
 
