@@ -1,3 +1,13 @@
+1998-12-02  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (process-define-module): Added new specifier
+	:autoload MODULENAME BINDINGS to the define-module form.
+	The autoload specifier tells the module system to load the module
+	MODULENAME at the first occasion that any variable with its name
+	among BINDINGS is referenced.
+	(make-autoload-interface): New procedure:  Constructs a stand-in
+	for the public interface for the module to be autoloaded.
+
 1998-12-01  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (*suppress-old-style-hook-warning*): Set this to #t

@@ -1989,9 +1989,31 @@
 					  #f)))
 			 (loop (cddr kws)
 			       (cons interface reversed-interfaces)))))))
+	      ((autoload)
+	       (if (not (and (pair? (cdr kws)) (pair? (cddr kws))))
+		   (error "unrecognized defmodule argument" kws))
+	       (loop (cdddr kws)
+		     (cons (make-autoload-interface module
+						    (cadr kws)
+						    (caddr kws))
+			   reversed-interfaces)))
 	      (else	
 	       (error "unrecognized defmodule argument" kws))))))
     module))
+
+;;; {Autoload}
+
+(define (make-autoload-interface module name bindings)
+  (let ((b (lambda (a sym definep)
+	     (and (memq sym bindings)
+		  (let ((i (module-public-interface (resolve-module name))))
+		    (if (not i)
+			(error "missing interface for module" name))
+		    ;; Replace autoload-interface with interface
+		    (set-car! (memq a (module-uses module)) i)
+		    (module-local-variable i sym))))))
+    (module-constructor #() #f b #f #f name 'autoload)))
+
 
 ;;; {Autoloading modules}
 
@@ -2038,6 +2060,7 @@
 	    (lambda () (set-autoloaded! dir-hint name didit)))
 	   didit))))
 
+
 ;;; Dynamic linking of modules
 
 ;; Initializing a module that is written in C is a two step process.
