@@ -17,6 +17,25 @@ improve the readability of argument checking.
 
 All (nearly?) K&R prototypes for functions replaced with ANSI C equivalents.
 
+* Dynamic linking now uses libltdl from the libtool package.
+
+The old system dependent code for doing dynamic linking has been
+replaced with calls to the libltdl functions which do all the hairy
+details for us.
+
+The major improvement is that you can now directly pass libtool
+library names like "libfoo.la" to `dynamic-link' and `dynamic-link'
+will be able to do the best shared library job you can get, via
+libltdl.
+
+The way dynamic libraries are found has changed and is not really
+portable across platforms, probably.  It is therefore recommended to
+use absolute filenames when possible.
+
+If you pass a filename without an extension to `dynamic-link', it will
+try a few appropriate ones.  Thus, the most platform ignorant way is
+specify a name like "libfoo", without any directories and extensions.
+
 * Changes to the distribution
 
 ** Trees from nightly snapshots and CVS now require you to run autogen.sh.
