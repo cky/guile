@@ -46,12 +46,13 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     feature.c fluids.c fports.c						    \
     gc.c gc_os_dep.c gdbint.c gh_data.c gh_eval.c gh_funcs.c gh_init.c	    \
     gh_io.c gh_list.c gh_predicates.c goops.c gsubr.c guardians.c hash.c    \
-    hashtab.c hooks.c init.c ioext.c iselect.c keywords.c lang.c list.c	    \
+    hashtab.c hooks.c init.c inline.c ioext.c iselect.c keywords.c	    \
+    lang.c list.c							    \
     load.c macros.c mallocs.c modules.c numbers.c objects.c objprop.c	    \
     options.c pairs.c ports.c print.c procprop.c procs.c properties.c	    \
     random.c rdelim.c read.c root.c rw.c scmsigs.c script.c simpos.c smob.c \
     sort.c srcprop.c stackchk.c stacks.c stime.c strings.c strop.c	    \
-    strorder.c strports.c struct.c symbols.c throw.c values.c 		    \
+    strorder.c strports.c struct.c symbols.c throw.c values.c		    \
     variable.c vectors.c version.c vports.c weaks.c
 
 DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
@@ -133,7 +134,8 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
     dynl.h dynwind.h environments.h eq.h error.h eval.h evalext.h	      \
     extensions.h feature.h filesys.h fluids.h fports.h gc.h		      \
     gdb_interface.h gdbint.h						      \
-    goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h ioext.h	      \
+    goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h		      \
+    inline.h ioext.h							      \
     iselect.h keywords.h lang.h list.h load.h macros.h mallocs.h modules.h    \
     net_db.h numbers.h objects.h objprop.h options.h pairs.h ports.h posix.h  \
     regex-posix.h print.h procprop.h procs.h properties.h random.h ramap.h    \
