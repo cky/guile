@@ -112,6 +112,14 @@
 (define-all)
 
 
+;;; {Misc}
+;;;
+(define-public (frame-number->index n)
+  (if (memq 'backwards (debug-options))
+      n
+      (- (stack-length the-last-stack) n 1)))
+
+
 ;;; {Trace}
 ;;;
 ;;; This code is just an experimental prototype (e. g., it is not
