@@ -321,6 +321,12 @@
 ;;
 ;; It should print OBJECT to PORT.
 
+(define (inherit-print-state old-port new-port)
+  (if (pair? old-port)
+      (cons (if (pair? new-port) (car new-port) new-port)
+	    (cdr old-port))
+      new-port))
+
 ;; 0: type-name, 1: fields
 (define record-type-vtable 
   (make-vtable-vtable "prpr" 0
@@ -2852,9 +2858,3 @@
 (define-module (guile))
 
 (append! %load-path (cons "." ()))
-
-(define (inherit-print-state old-port new-port)
-  (if (pair? old-port)
-      (cons (if (pair? new-port) (car new-port) new-port)
-	    (cdr old-port))
-      new-port))
