@@ -48,6 +48,7 @@
 #include "_scm.h"
 #include "debug.h"
 #include "continuations.h"
+#include "struct.h"
 
 #include "stacks.h"
 
@@ -122,18 +123,19 @@
  * DFRAME.  OFFSET is used for relocation of pointers when the stack
  * is read from a continuation.
  */
-static int stack_depth SCM_P ((scm_debug_frame *dframe, long offset, int *maxp));
+static int stack_depth SCM_P ((scm_debug_frame *dframe, long offset, SCM *id, int *maxp));
 static int
-stack_depth (dframe, offset, maxp)
+stack_depth (dframe, offset, id, maxp)
      scm_debug_frame *dframe;
      long offset;
+     SCM *id;
      int *maxp;
 {
   int n, size;
   int max_depth = SCM_BACKTRACE_MAXDEPTH;
   scm_debug_info *info;
   for (n = 0;
-       dframe && n < max_depth;
+       dframe && !SCM_VOIDFRAMEP (*dframe) && n < max_depth;
        dframe = (scm_debug_frame *) ((SCM_STACKITEM *) dframe->prev + offset))
     {
       if (SCM_EVALFRAMEP (*dframe))
@@ -152,7 +154,9 @@ stack_depth (dframe, offset, maxp)
       else
 	++n;
     }
-  if (dframe)
+  if (dframe && SCM_VOIDFRAMEP (*dframe))
+    *id = dframe->vect[0].id;
+  else if (dframe)
     *maxp = 1;
   return n;
 }
@@ -216,7 +220,7 @@ read_frames (dframe, offset, skip, n, iframes)
   scm_debug_info *info;
   
   for (;
-       dframe && n > 0;
+       dframe && !SCM_VOIDFRAMEP (*dframe) && n > 0;
        dframe = (scm_debug_frame *) ((SCM_STACKITEM *) dframe->prev + offset))
     {
       read_frame (dframe, offset, iframe);
@@ -299,18 +303,28 @@ read_frames (dframe, offset, skip, n, iframes)
 /* Stacks
  */
 
+SCM scm_stack_type;
+
+SCM_PROC (s_stack_p, "stack?", 1, 0, 0, scm_stack_p);
+SCM
+scm_stack_p (obj)
+     SCM obj;
+{
+  return SCM_NIMP (obj) && SCM_STACKP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+}
+
 SCM_PROC (s_make_stack, "make-stack", 0, 3, 0, scm_make_stack);
 SCM
-scm_make_stack (obj, inner_cut, outer_cut)
+scm_make_stack (obj, outer_cut, inner_cut)
      SCM obj;
-     SCM inner_cut;
      SCM outer_cut;
+     SCM inner_cut;
 {
-  int i, n, maxp = 0, size;
+  int i, n, maxp, size;
   scm_debug_frame *dframe;
   scm_info_frame *iframe;
   long offset = 0;
-  SCM stack;
+  SCM stack, id;
 
   if (SCM_UNBNDP (inner_cut))
     inner_cut = SCM_INUM0;
@@ -341,13 +355,16 @@ scm_make_stack (obj, inner_cut, outer_cut)
     }
 
   i = SCM_INUM (inner_cut);
-  n = stack_depth (dframe, offset, &maxp) - i - SCM_INUM (outer_cut);
+  id = SCM_BOOL_F;
+  maxp = 0;
+  n = stack_depth (dframe, offset, &id, &maxp) - i - SCM_INUM (outer_cut);
   if (n < 0)
     n = 0;
   size = n * SCM_FRAME_N_SLOTS;
 
-  stack = scm_make_vector (SCM_MAKINUM (size), SCM_BOOL_F, SCM_UNDEFINED);
-  iframe = (scm_info_frame *) SCM_VELTS (stack);
+  stack = scm_make_struct (scm_stack_type, SCM_MAKINUM (size), SCM_EOL);
+  SCM_STACK (stack) -> id = id;
+  iframe = (scm_info_frame *) &SCM_STACK (stack) -> frames[0];
   read_frames ((scm_debug_frame *) ((SCM_STACKITEM *) dframe + offset),
 	       offset,
 	       i,
@@ -360,7 +377,20 @@ scm_make_stack (obj, inner_cut, outer_cut)
   return stack;
 }
 
-SCM_PROC(s_stack_ref, "stack-ref", 2, 0, 0, scm_stack_ref);
+SCM_PROC (s_stack_id, "stack-id", 1, 0, 0, scm_stack_id);
+SCM
+scm_stack_id (stack)
+     SCM stack;
+{
+  SCM_ASSERT (SCM_NIMP (stack)
+	      && SCM_STACKP (stack),
+	      stack,
+	      SCM_ARG1,
+	      s_stack_id);
+  return SCM_STACK (stack) -> id;
+}
+
+SCM_PROC (s_stack_ref, "stack-ref", 2, 0, 0, scm_stack_ref);
 SCM
 scm_stack_ref (stack, i)
      SCM stack;
@@ -396,6 +426,14 @@ scm_stack_length (stack)
 /* Frames
  */
 
+SCM_PROC (s_frame_p, "frame?", 1, 0, 0, scm_frame_p);
+SCM
+scm_frame_p (obj)
+     SCM obj;
+{
+  return SCM_NIMP (obj) && SCM_FRAMEP (obj);
+}
+
 SCM_PROC(s_last_stack_frame, "last-stack-frame", 1, 0, 0, scm_last_stack_frame);
 SCM
 scm_last_stack_frame (obj)
@@ -403,7 +441,7 @@ scm_last_stack_frame (obj)
 {
   scm_debug_frame *dframe;
   long offset = 0;
-  SCM fobj, v;
+  SCM v;
   
   SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_last_stack_frame);
   if (SCM_DEBUGOBJP (obj))
@@ -419,22 +457,13 @@ scm_last_stack_frame (obj)
     }
   else scm_wta (obj, (char *) SCM_ARG1, s_last_stack_frame);
   
-  if (!dframe)
+  if (!dframe || SCM_VOIDFRAMEP (*dframe))
     return SCM_BOOL_F;
 
-  v = scm_make_vector (SCM_MAKINUM (SCM_FRAME_N_SLOTS),
-		       SCM_BOOL_F,
-		       SCM_UNDEFINED);
-
-  SCM_NEWCELL (fobj);
-  SCM_DEFER_INTS;
-  SCM_SETCAR (fobj, v);
-  SCM_SETCDR (fobj, SCM_INUM0);
-  SCM_ALLOW_INTS;
+  v = scm_make_struct (scm_stack_type, SCM_MAKINUM (SCM_FRAME_N_SLOTS), SCM_EOL);
+  read_frame (dframe, offset, (scm_info_frame *) &SCM_STACK (v) -> frames[0]);
   
-  read_frame (dframe, offset, (scm_info_frame *) SCM_VELTS (v));
-  
-  return fobj;
+  return scm_cons (v, SCM_INUM0);;
 }
 
 SCM_PROC(s_frame_number, "frame-number", 1, 0, 0, scm_frame_number);
@@ -574,5 +603,12 @@ scm_frame_overflow_p (frame)
 void
 scm_init_stacks ()
 {
+  SCM vtable;
+  SCM vtable_layout = scm_make_struct_layout (scm_nullstr);
+  SCM stack_layout = scm_make_struct_layout (scm_makfrom0str (SCM_STACK_LAYOUT));
+  vtable = scm_make_vtable_vtable (vtable_layout, SCM_INUM0, SCM_EOL);
+  scm_stack_type = scm_permanent_object (scm_make_struct (vtable,
+							  SCM_INUM0,
+							  scm_cons (stack_layout, SCM_EOL)));
 #include "stacks.x"
 }
