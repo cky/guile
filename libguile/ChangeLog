@@ -1,3 +1,16 @@
+2001-07-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	Some more compatibility patches for Windows.
+	
+	* posix.c (getlogin): getlogin() implementation for Windows.
+
+	* backtrace.c, ioext.c: Include <stdio.h>.
+
+	* unif.c, script.c, rw.c, error.c: Include <io.h>, if it does
+	exist.
+
+	* cpp_sig_symbols.in: Added SIGBREAK.
+
 2001-07-01  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* strports.c (scm_read_0str, scm_eval_0str): Call

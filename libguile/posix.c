@@ -103,6 +103,7 @@ extern char *ttyname();
 
 #ifdef __MINGW32__
 /* Some defines for Windows here. */
+# include <process.h>
 # define pipe(fd) _pipe (fd, 256, O_BINARY)
 #endif /* __MINGW32__ */
 
@@ -576,7 +577,6 @@ SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
   return SCM_MAKINUM (0L + getuid ());
 }
 #undef FUNC_NAME
-#endif /* __MINGW32__ */
 
 
 
@@ -675,6 +675,8 @@ SCM_DEFINE (scm_seteuid, "seteuid", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+#endif /* __MINGW32__ */
+
 
 #ifdef HAVE_SETEGID
 SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0, 
@@ -1382,6 +1384,21 @@ SCM_DEFINE (scm_chroot, "chroot", 1, 0, 0,
 }
 #undef FUNC_NAME
 #endif /* HAVE_CHROOT */
+
+
+#ifdef __MINGW32__
+/* Wrapper function to supplying `getlogin()' under Windows.  */
+static char * getlogin (void)
+{
+  static char user[256];
+  static unsigned long len = 256;
+
+  if (!GetUserName (user, &len))
+    return NULL;
+  return user;
+}
+#endif /* __MINGW32__ */
+
 
 #if HAVE_GETLOGIN
 SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0, 

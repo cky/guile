@@ -64,6 +64,10 @@
 #include <unistd.h>		/* for X_OK define */
 #endif
 
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
+
 /* Concatentate str2 onto str1 at position n and return concatenated
    string if file exists; 0 otherwise. */
 

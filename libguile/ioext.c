@@ -44,6 +44,7 @@
 
 
 
+#include <stdio.h>
 #include <errno.h>
 
 #include "libguile/_scm.h"

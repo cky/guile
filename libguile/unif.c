@@ -74,6 +74,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
+
 
 /* The set of uniform scm_vector types is:
  *  Vector of:		 Called:

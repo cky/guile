@@ -61,6 +61,11 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+/* For Windows... */
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
 
 
 
