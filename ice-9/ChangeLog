@@ -1,3 +1,24 @@
+1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* boot-9.scm: Don't assume that this file is loaded just before
+	entering a read-eval-print loop.  Turn code to load (ice-9 emacs)
+	into...
+	(load-emacs-interface): New function.
+	(top-repl): Call it, if use-emacs-interface is defined and true.
+	At this point, we *do* know we're about to enter a REPL.
+
+	We can't include Kent Dybvig's syntax-case macro expander in the
+ 	core Guile distribution, because we don't have copyright
+ 	assignments for this code.  We can certainly distribute them as a
+ 	separate package, but Guile should be FSF code.
+	* syncase.scm, psyntax.pp, psyntax.ss: Removed.
+	* Makefile.am (ice9_sources): Removed syncase.scm, psyntax.pp, and
+	psyntax.ss.
+	* Makefile.in: Regenerated.
+
+	* Makefile.am (ice9_sources): Add getopt-gnu-style.scm.
+	* Makefile.in: Regenerated.
+
 1998-10-18  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm: Added extended read syntax for byte vectors #y(...)
@@ -223,7 +244,7 @@
 
 1997-12-13  Tim Pierce  <twp@skepsis.com>
 
-*	* boot-9.scm (read-line): Rewritten to call %read-line for
+	* boot-9.scm (read-line): Rewritten to call %read-line for
 	improved speed.  Minor user-visible changes: the new functions are
 	hardwired to treat the LFD character as signifying end-of-line, so
 	changing `scm-line-incrementors' will no longer affect the
@@ -405,7 +426,7 @@ Thu Sep 11 02:31:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 Wed Sep 10 20:12:45 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-*	* boot-9.scm (primitive-macro?): New procedure.
+	* boot-9.scm (primitive-macro?): New procedure.
 
 	* slib.scm: Added hack which transfers syntactic information from
 	the builtin variable `define' to the slib version if module (ice-9
@@ -444,7 +465,7 @@ Fri Sep  5 05:47:36 1997  Mikael Djurfeldt  <mdj@faun.nada.kth.se>
 	(set-current-module): Use module-transformer to set
  	`scm:eval-transformer'.
 	(module-use!): Previous change reverted.
-*	(use-syntax): New function: Install a transformer in current
+	(use-syntax): New function: Install a transformer in current
  	module.
 	(sc-interface, sc-expand): Removed! :)
 
@@ -556,13 +577,13 @@ Tue Aug 19 02:39:41 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* psyntax.pp, psyntax.ss (quasiquote): Changed fx= --> =.
 
-*	* syncase.scm: New file: Guile-adaption for syntax-case macros.
-  	psyntax.pp, psyntax.ss: Syntax-case macros, portable version 2 by
+	* syncase.scm: New file: Guile-adaption for syntax-case macros.
+  	* psyntax.pp, psyntax.ss: Syntax-case macros, portable version 2 by
  	R. Kent Dybvig, Oscar Waddell, Bob Hieb and Carl Bruggeman
 
 Mon Aug 18 21:58:25 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-*	* session.scm: New file: Session support.
+	* session.scm: New file: Session support.
 	(apropos): New procedure: List bindings given regexp.
 
 Sat Aug 16 18:44:24 1997  Gary Houston  <ghouston@actrix.gen.nz>

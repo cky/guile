@@ -1,3 +1,23 @@
+1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* script.c (scm_compile_shell_switches): Define
+	use-emacs-interface in the root module, so the repl code can see
+	it.  See today's change to top-repl in ice-9/boot-9.scm.
+
+	* filesys.c (set_element, get_element): Make sure that `element'
+	is a cell before applying SCM_FPORTP to it.  (Thanks to Jost
+	Boekemeier and Jorgen "forcer" Schaefer.)
+
+1998-10-18  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* chars.c (scm_charnames): In ASCII character name table, make
+	newlines print as #\newline by default, not #\nl.
+
+	* Makefile.am (libguile_la_SOURCES, BUILT_SOURCES): Put these in
+	alphabetical order.  Oh thrills.  But it helps me know how far
+	along in the compilation I am. 
+	* Makefile.in: Regenerated.
+
 1998-10-18  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* unif.c (scm_raprin1): Changed print syntax for byte vectors from
