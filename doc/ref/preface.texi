@@ -34,23 +34,25 @@ the file @file{COPYING.LIB}.
 
 The manual is divided into five parts.
 
-@strong{Part I: Introduction to Guile} provides an overview of what
-Guile is and how you can use it.  A whirlwind tour shows how Guile can
-be used interactively and as a script interpreter, how to link Guile
-into your own applications, and how to write modules of interpreted and
-compiled code for use with Guile.  Everything introduced here is
-documented again and in full by the later parts of the manual.  This
-part also explains how to obtain and install new versions of Guile, and
-how to report bugs effectively.
+@table @strong
+@item Part I: Introduction to Guile
+Provides an overview of what Guile is and how you can use it.  A
+whirlwind tour shows how Guile can be used interactively and as a
+script interpreter, how to link Guile into your own applications, and
+how to write modules of interpreted and compiled code for use with
+Guile.  Everything introduced here is documented again and in full by
+the later parts of the manual.  This part also explains how to obtain
+and install new versions of Guile, and how to report bugs effectively.
 
-@strong{Part II: Writing and Running Guile Scheme} and @strong{Part III:
-Programming with Guile} document all aspects of practical programming
-using Guile.  This covers both the Scheme level --- where we provide an
-introduction to the key ideas of the Scheme language --- and use of
-Guile's @code{scm} interface to write new primitives and objects in C,
-and to incorporate Guile into a C application.  It also covers the use
-of Guile as a POSIX-compliant script interpreter and how to use the
-Guile debugger.
+@item Part II: Writing and Running Guile Scheme
+@itemx Part III: Programming with Guile
+Document all aspects of practical programming using Guile.  This
+covers both the Scheme level --- where we provide an introduction to
+the key ideas of the Scheme language --- and use of Guile's @code{scm}
+interface to write new primitives and objects in C, and to incorporate
+Guile into a C application.  It also covers the use of Guile as a
+@acronym{POSIX}-compliant script interpreter and how to use the Guile
+debugger.
 
 @c @strong{Part V: Extending Applications Using Guile} explains the options
 @c available for using Guile as a application extension language.  At the
@@ -65,11 +67,12 @@ Guile debugger.
 @c This part of the manual covers the complete range of application
 @c extension options.
 
-@strong{Part IV: Guile API Reference} documents Guile's core API.  Most
-of the variables and procedures in Guile's core programming interface
-are available in both Scheme and C and are related systematically such
-that the C interface can be inferred from the Scheme interface and vice
-versa.  Therefore, this part of the manual documents the Guile API in
+@item Part IV: Guile API Reference
+Documents Guile's core @acronym{API}.  Most of the variables and
+procedures in Guile's core programming interface are available in both
+Scheme and C and are related systematically such that the C interface
+can be inferred from the Scheme interface and vice versa.  Therefore,
+this part of the manual documents the Guile @acronym{API} in
 functionality-based groups with the Scheme and C interfaces presented
 side by side.  Where the Scheme and C interfaces for a particular
 functional area do differ --- which is sometimes inevitable, given the
@@ -86,20 +89,22 @@ together.
 @c all documented from scratch, and organized by functionality rather than
 @c by the defining standards.
 
-@strong{Part V: Guile Modules} describes some important modules,
-distributed as part of the Guile distribution, that extend the
-functionality provided by the Guile Scheme core.  Two important examples
-are:
+@item Part V: Guile Modules
+Describes some important modules, distributed as part of the Guile
+distribution, that extend the functionality provided by the Guile
+Scheme core.  Two important examples are:
 
 @itemize @bullet
 @item
-the POSIX module, which provides Scheme-level procedures for system and
-network programming that conform to the POSIX standard
+The @acronym{POSIX} module, which provides Scheme-level procedures for
+system and network programming that conform to the @acronym{POSIX}
+standard.
 
 @item
-the SLIB module, which makes Aubrey Jaffer's portable Scheme library
-available for use in Guile.
+The @acronym{SLIB} module, which makes Aubrey Jaffer's portable Scheme
+library available for use in Guile.
 @end itemize
+@end table
 
 
 @iftex
