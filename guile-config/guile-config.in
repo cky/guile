@@ -10,8 +10,7 @@
 ;;; * Implement the static library support.  This requires that
 ;;;   some portion of the module system be done.
 
-(use-modules (ice-9 regex)
-	     (ice-9 string-fun))
+(use-modules (ice-9 string-fun))
 
 
 ;;;; main function, command-line processing
@@ -38,11 +37,7 @@
 ;;; appropriate f or use in error messages (i.e., with leading
 ;;; directory names stripped).
 (define (set-program-name! path)
-  (set! program-name
-	(cond
-	 ((string-match "/([^/]+)$" path)
-	  => (lambda (match) (match:substring match 1)))
-	 (else path))))
+  (set! program-name (basename path)))
 
 (define (show-help args)
   (cond
@@ -82,6 +77,17 @@
        (string-append program-name
 		      " link: arguments to subcommand not yet implemented")))
 
+  ;; If PATH has the form FOO/libBAR.a, return the substring
+  ;; BAR, otherwise return #f.
+  (define (match-lib path)
+    (let* ((base (basename path))
+	   (len (string-length base)))
+      (if (and (> len 5)
+	       (string=? (make-shared-substring base 0 3) "lib")
+	       (string=? (make-shared-substring base (- len 2)) ".a"))
+	  (make-shared-substring base 3 (- len 2))
+	  #f)))
+
   (let* ((flags
 	  (let loop ((libs
 		      ;; Get the string of linker flags we used to build
@@ -89,13 +95,14 @@
 		      (separate-fields-discarding-char #\space
 						       (get-build-info 'LIBS)
 						       list)))
+
 	    (cond
 	     ((null? libs) '())
 
 	     ;; Turn any "FOO/libBAR.a" elements into "-lBAR".
-	     ((string-match "^.*/lib([^./]+).a$" (car libs))
-	      => (lambda (match)
-		   (cons (string-append "-l" (match:substring match 1))
+	     ((match-lib (car libs))
+	      => (lambda (bar)
+		   (cons (string-append "-l" bar)
 			 (loop (cdr libs)))))
 
 	     ;; Remove any empty strings that may have seeped in there.
