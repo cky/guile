@@ -1129,7 +1129,7 @@ gc_mark_nimp:
       SCM_SETGCMARK (ptr);
       {
 	SCM vcell;
-	vcell = SCM_CAR (ptr) - 1L;
+	vcell = (SCM) SCM_STRUCT_VTABLE_DATA (ptr);
 	switch (SCM_UNPACK (SCM_CDR (vcell)))
 	  {
 	  default:
@@ -1146,13 +1146,13 @@ gc_mark_nimp:
 	      register SCM * mem;
 	      register int x;
 
-	      vtable_data = (SCM *)vcell;
+	      vtable_data = (SCM *) vcell;
 	      layout = vtable_data[scm_vtable_index_layout];
 	      len = SCM_LENGTH (layout);
 	      fields_desc = SCM_CHARS (layout);
 	      /* We're using SCM_GCCDR here like STRUCT_DATA, except
                  that it removes the mark */
-	      mem = (SCM *)SCM_GCCDR (ptr);
+	      mem = (SCM *) SCM_GCCDR (ptr);
 
 	      if (SCM_UNPACK (vtable_data[scm_struct_i_flags]) & SCM_STRUCTF_ENTITY)
 		{
@@ -1166,9 +1166,8 @@ gc_mark_nimp:
 		      scm_gc_mark (*mem);
 		  if (fields_desc[x] == 'p')
 		    {
-		      int j;
 		      if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
-			for (j = (long int) *mem; x; --x)
+			for (x = (long int) *mem; x; --x)
 			  scm_gc_mark (*++mem);
 		      else
 			scm_gc_mark (*mem);
