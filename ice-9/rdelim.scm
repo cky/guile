@@ -24,6 +24,8 @@
 
 (define-module (ice-9 rdelim))
 
+(%init-rdelim-builtins)
+
 (export read-line read-line! read-delimited read-delimited!)
 (export %read-delimited! %read-line write-line)  ; C
 
