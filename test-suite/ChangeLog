@@ -1,0 +1,8 @@
+1999-06-09  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* lib.scm (full-reporter): The test name is the cadr of the
+	result, not the cdr.  I'm not macho enough to handle run-time
+	typechecking.
+
+	* lib.scm, guile-test, paths.scm: Log begins.
+
