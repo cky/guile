@@ -1,4 +1,4 @@
-;;; srfi-34.scm --- Time/Date Library
+;;; srfi-31.scm --- special form for recursive evaluation
 
 ;; 	Copyright (C) 2004 Free Software Foundation, Inc.
 ;;
