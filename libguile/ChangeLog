@@ -3,6 +3,8 @@
 	* random.c (scm_c_random_bignum): Don't generate a random number
 	equal to m (the second argument of scm_c_random_bignum); only
 	generate numbers in the range 0 <= r < m.
+	(scm_c_default_rstate): Use SCM_VARIABLE_REF to access
+	scm_var_random_state.
 
 	* num2integral.i.c (INTEGRAL2BIG): Put negation of n inside then
 	clause.

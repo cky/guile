@@ -167,7 +167,7 @@ scm_t_rstate *
 scm_c_default_rstate ()
 #define FUNC_NAME "scm_c_default_rstate"
 {
-  SCM state = SCM_CDR (scm_var_random_state);
+  SCM state = SCM_VARIABLE_REF (scm_var_random_state);
   if (!SCM_RSTATEP (state))
     SCM_MISC_ERROR ("*random-state* contains bogus random state", SCM_EOL);
   return SCM_RSTATE (state);
