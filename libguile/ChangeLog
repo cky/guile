@@ -1,3 +1,38 @@
+Mon Jan 20 19:54:49 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* dynl.c: The dynamic linking and module registration functions
+ 	are now defined even when dynamic linking is not available for the
+ 	host system.  Some of their functionality can be done without
+ 	dynamic linking; when it's really needed, they throw errors.
+
+Thu Jan 16 16:39:29 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Only define DYNAMIC_LINKING when one of the system
+ 	dependent functions is detected.
+	* dynl.c (scm_dynamic_func): New function to get the address of a
+ 	function in a dynamic object.
+	(scm_dynamic_call, scm_dynamic_args_call): Accept the values
+ 	produced by scm_dynamic_func as the thing to call.
+
+Sun Jan 12 21:09:42 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* dynl.c, dynl-dl.c, dynl-dld.c, dynl-shl.c: Restructured.
+	(scm_register_module_xxx, scm_registered_modules,
+ 	scm_clear_registered_modules): New functions.
+
+Sat Jan 11 21:37:15 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* symbols.c (scm_sysintern): Renamed to
+ 	scm_sysintern_no_module_lookup.
+	(scm_sysintern): New function to take the place of the old
+ 	scm_sysintern. It uses the current toplevel lookup closure to give
+ 	the symbol its value.  This is a temporary hack to put packages
+ 	like gtcltk into their own module.
+        (scm_can_use_top_level_lookup_closure_var): New variable to tell
+ 	us whether `scm_top_level_lookup_closure_var' has been initialized
+ 	and is usable.
+	* eval.c (scm_init_eval): Set it.
+
 Sat Jan 18 00:03:31 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* fports.c (scm_open_file): pass errno to scm_syserror_msg.
