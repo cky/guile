@@ -60,28 +60,39 @@ typedef struct scm_info_frame {
 } scm_info_frame;
 #define SCM_FRAME_N_SLOTS (sizeof (scm_info_frame) / sizeof (SCM))
 
-#define SCM_STACKP(obj) SCM_VECTORP (obj)
-#define SCM_STACK_LENGTH(stack) (SCM_LENGTH (stack) / SCM_FRAME_N_SLOTS)
+#define SCM_STACK(obj) ((scm_stack *) SCM_STRUCT_DATA (obj))
+#define SCM_STACK_LAYOUT "pwpW"
+typedef struct scm_stack {
+  SCM id;			/* Stack id */
+  unsigned long n_tail;		/* Size of struct tail array */
+  scm_info_frame frames[1];	/* Info frames */
+} scm_stack;
+
+extern SCM scm_stack_type;
+
+#define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_STRUCT_VTABLE (obj) == scm_stack_type)
+#define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> n_tail / SCM_FRAME_N_SLOTS)
 
 #define SCM_FRAMEP(obj) (SCM_CONSP (obj) \
-			 && SCM_NIMP (SCM_CAR (frame)) \
-			 && SCM_STACKP (SCM_CAR (frame)) \
-			 && SCM_INUMP (SCM_CDR (frame))) \
+			 && SCM_NIMP (SCM_CAR (obj)) \
+			 && SCM_STACKP (SCM_CAR (obj)) \
+			 && SCM_INUMP (SCM_CDR (obj))) \
 
 
-/* Note that the following line contains a dependency on the
-   representation of INUMs. */
-#define SCM_FRAME_REF(frame, idx) (SCM_VELTS (SCM_CAR (frame))[(SCM_CDR (frame) & ~3L) + (idx)])
-#define SCM_FRAME_NUMBER(frame) (SCM_BACKWARDS_P \
-				 ? SCM_INUM (SCM_CDR (frame)) \
-				 : (SCM_STACK_LENGTH (SCM_CAR (frame)) \
-				    - SCM_INUM (SCM_CDR (frame)) \
-				    - 1)) \
+#define SCM_FRAME_REF(frame, slot) \
+(SCM_STACK (SCM_CAR (frame)) -> frames[SCM_INUM (SCM_CDR (frame))].slot) \
 
-#define SCM_FRAME_FLAGS(frame) SCM_FRAME_REF (frame, 0)
-#define SCM_FRAME_SOURCE(frame) SCM_FRAME_REF (frame, 1)
-#define SCM_FRAME_PROC(frame) SCM_FRAME_REF (frame, 2)
-#define SCM_FRAME_ARGS(frame) SCM_FRAME_REF (frame, 3)
+#define SCM_FRAME_NUMBER(frame) \
+(SCM_BACKWARDS_P \
+ ? SCM_INUM (SCM_CDR (frame)) \
+ : (SCM_STACK_LENGTH (SCM_CAR (frame)) \
+    - SCM_INUM (SCM_CDR (frame)) \
+    - 1)) \
+
+#define SCM_FRAME_FLAGS(frame) SCM_FRAME_REF (frame, flags)
+#define SCM_FRAME_SOURCE(frame) SCM_FRAME_REF (frame, source)
+#define SCM_FRAME_PROC(frame) SCM_FRAME_REF (frame, proc)
+#define SCM_FRAME_ARGS(frame) SCM_FRAME_REF (frame, args)
 #define SCM_FRAME_PREV(frame) scm_frame_previous (frame)
 #define SCM_FRAME_NEXT(frame) scm_frame_next (frame)
 
@@ -99,10 +110,12 @@ typedef struct scm_info_frame {
 
 
 
-SCM scm_make_stack SCM_P ((SCM obj, SCM inner_cut, SCM outer_cut));
+SCM scm_stack_p SCM_P ((SCM obj));
+SCM scm_make_stack SCM_P ((SCM obj, SCM outer_cut, SCM inner_cut));
 SCM scm_stack_ref SCM_P ((SCM stack, SCM i));
 SCM scm_stack_length SCM_P ((SCM stack));
 
+SCM scm_frame_p SCM_P ((SCM obj));
 SCM scm_last_stack_frame SCM_P ((SCM obj));
 SCM scm_frame_number SCM_P ((SCM frame));
 SCM scm_frame_source SCM_P ((SCM frame));
