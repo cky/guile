@@ -1,3 +1,15 @@
+2002-10-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* root.c (root_mark): Mark active_asyncs slot.
+
+	* async.c (scm_async_click): Set the cdr of a executed handler
+	cell to SCM_BOOL_F, not SCM_EOL.
+	(scm_i_queue_async_cell): Queue the cell at the end of the list,
+	and only if the handler procedure is not already present.
+	(scm_system_async_mark_for_thread): Initialize cdr of handler cell
+	with SCM_BOOL_F.
+	* scmsigs.c (scm_sigaction_for_thread): Likewise.
+	
 2002-10-04  Rob Browning  <rlb@defaultvalue.org>
 
 	* guile.c (main): switch to scm_lt_dlset_preloaded_symbols;
