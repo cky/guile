@@ -1,5 +1,7 @@
 1999-08-05  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* feature.c, feature.h (scm_c_run_hook): Added.
+
 	* eval.c (SCM_CEVAL:SCM_IM_DISPATCH): Bugfix: Jump back to
 	cdrxnoap and loopnoap instead of begin and loop.
 
