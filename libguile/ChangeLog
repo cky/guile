@@ -1,3 +1,10 @@
+Tue Dec 14 10:53:14 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* snarf.h: Put SCM_PROC and SCM_PROC1 back in for
+	backward-compatibility of packages that use Guile.  Internally
+	Guile should not use them, though.  (Maybe enforce this with a new 
+	-DBUILDING_GUILE compile-time flag?).
+
 Tue Dec 14 09:41:01 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* backtrace.c (scm_set_print_params_x): Renamed from
