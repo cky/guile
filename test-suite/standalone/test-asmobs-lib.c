@@ -200,5 +200,5 @@ libtest_asmobs_init ()
   scm_set_smob_apply (asmob021, apply3, 0, 2, 1);
   asmob111 = scm_make_smob_type ("asmob111", 0);
   scm_set_smob_apply (asmob111, apply3, 1, 1, 1);
-# include "test-asmobs-lib.c.x"
+# include "test-asmobs-lib.x"
 }
