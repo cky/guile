@@ -1,3 +1,40 @@
+Wed Sep 18 17:13:35 1996  Mikael Djurfeldt  <mdj@kenneth>
+
+	* gdbint.c: scm_lread now has one more argument.
+
+	* ports.c, ports.h: Name change: scm_\(line\|column\)_number -->
+ 	scm_port_\1; Added mutator scm_set_port_filename_x (used when
+ 	loading source from non-file ports, which, e. g., happens when
+ 	using the Emacs interface).
+
+	* fports.c (scm_open_file): Don't call scm_makfrom0str on a scheme
+ 	object.
+
+	* read.c: Added code for recording of positions of source code
+ 	expressions; New functions: recsexpr, scm_lreadrecparen;
+ 	_scm_make_srcprops --> scm_make_srcprops
+	(scm_flush_ws): Removed updating of positions counters.  This work
+ 	is already done by scm_gen_getc
+
+	* read.h: Added prototype for scm_lreadrecparen
+	
+	* print.c: Added #include "alist.h"
+
+	* eval.c: Added #include "hash.h"
+
+	* eq.c: Added #include "ramap.h"
+
+	* options.c: Documentation fixes.
+
+	* srcprop.c (scm_finish_srcprop): Bugfix: update ptr.
+	(scm_init_srcprop): Adjusted size of initial source-whash.  Name
+ 	changes: tc16_srcprops --> scm_tc16_srcprops, _scm_make_srcprops
+ 	--> scm_make_srcprops
+
+	* srcprop.h: Name changes: tc16_srcprops --> scm_tc16_srcprops,
+ 	_scm_make_srcprops --> scm_make_srcprops; Remove one layer of
+ 	function calls in the definition of the whash access macros.
+
 Tue Sep 17 01:40:56 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ports.h (scm_port_table): put back file_name, it will be used to
