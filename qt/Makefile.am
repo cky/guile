@@ -36,7 +36,9 @@ libqthreads_la_LIBADD = qtmds.lo qtmdc.lo
 libqthreads_la_DEPENDENCIES = qtmds.lo qtmdc.lo
 libqthreads_la_LDFLAGS = -rpath $(libdir) -version-info @LIBGUILEQTHREADS_INTERFACE_CURRENT@:@LIBGUILEQTHREADS_INTERFACE_REVISION@:@LIBGUILEQTHREADS_INTERFACE_AGE@ -export-dynamic -no-undefined
 
-OMIT_DEPENDENCIES = axp.h hppa.h i386.h ksr.h m88k.h mips.h sparc.h vax.h
+# Seems to be obsolete - autogen.sh is giving:
+# invalid unused variable name: `OMIT_DEPENDENCIES'
+#OMIT_DEPENDENCIES = axp.h hppa.h i386.h ksr.h m88k.h mips.h sparc.h vax.h
 
 .s.lo:
 	$(LIBTOOL) --mode=compile $(COMPILE) $(qthread_asflags) -c $<

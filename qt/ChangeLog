@@ -1,3 +1,9 @@
+2001-11-21  Gary Houston  <ghouston@arglist.com>
+
+	* Makefile.am (OMIT_DEPENDENCIES): removed, since it seems to be
+	obsolete.  autogen.sh says:
+	invalid unused variable name: `OMIT_DEPENDENCIES'
+
 2001-11-04  Stefan Jahn  <stefan@lkcc.org>
 
 	* md/Makefile.am (EXTRA_DIST): Added `i386.asm'.
