@@ -46,6 +46,14 @@
 
 #include "modules.h"
 
+static SCM the_root_module;
+
+SCM
+scm_the_root_module ()
+{
+  return SCM_CDR (the_root_module);
+}
+
 static SCM the_module;
 
 SCM
@@ -78,14 +86,22 @@ scm_module_full_name (SCM name)
 }
 
 static SCM make_modules_in;
+static SCM beautify_user_module_x;
 
 SCM
 scm_make_module (SCM name)
 {
   return scm_apply (SCM_CDR (make_modules_in),
-		    SCM_LIST2 (scm_selected_module (),
+		    SCM_LIST2 (scm_the_root_module (),
 			       scm_module_full_name (name)),
 		    SCM_EOL);
+}
+
+SCM
+scm_ensure_user_module (SCM module)
+{
+  scm_apply (SCM_CDR (beautify_user_module_x), SCM_LIST1 (module), SCM_EOL);
+  return SCM_UNSPECIFIED;
 }
 
 static SCM module_eval_closure;
@@ -98,6 +114,14 @@ scm_module_lookup_closure (SCM module)
 		    SCM_EOL);
 }
 
+static SCM try_module_autoload;
+
+SCM
+scm_load_scheme_module (SCM name)
+{
+  return scm_apply (SCM_CDR (try_module_autoload), SCM_LIST1 (name), SCM_EOL);
+}
+
 void
 scm_init_modules ()
 {
@@ -107,10 +131,13 @@ scm_init_modules ()
 void
 scm_post_boot_init_modules ()
 {
+  the_root_module = scm_intern0 ("the-root-module");
   the_module = scm_intern0 ("the-module");
   set_current_module = scm_intern0 ("set-current-module");
   module_prefix = scm_permanent_object (SCM_LIST2 (scm_sym_app,
 						   scm_sym_modules));
   make_modules_in = scm_intern0 ("make-modules-in");
+  beautify_user_module_x = scm_intern0 ("beautify-user-module!");
   module_eval_closure = scm_intern0 ("module-eval-closure");
+  try_module_autoload = scm_intern0 ("try-module-autoload");
 }
