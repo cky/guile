@@ -157,6 +157,16 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     }
   if (SCM_TYP7 (x) == scm_tc7_string && SCM_TYP7 (y) == scm_tc7_string)
     return scm_string_equal_p (x, y);
+  if (SCM_TYP7 (x) == scm_tc7_smob && SCM_TYP16 (x) == SCM_TYP16 (y))
+    {
+      int i = SCM_SMOBNUM (x);
+      if (!(i < scm_numsmob))
+	return SCM_BOOL_F;
+      if (scm_smobs[i].equalp)
+	return (scm_smobs[i].equalp) (x, y);
+      else
+	goto generic_equal;
+    }
   /* This ensures that types and scm_length are the same.  */
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
     {
@@ -194,16 +204,6 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return scm_vector_equal_p (x, y);
-    case scm_tc7_smob:
-      {
-	int i = SCM_SMOBNUM (x);
-	if (!(i < scm_numsmob))
-	  return SCM_BOOL_F;
-	if (scm_smobs[i].equalp)
-	  return (scm_smobs[i].equalp) (x, y);
-	else
-	  break;
-      }
 #if SCM_HAVE_ARRAYS
     case scm_tc7_bvect: case scm_tc7_uvect: case scm_tc7_ivect:
     case scm_tc7_fvect:	case scm_tc7_cvect: case scm_tc7_dvect:
@@ -216,6 +216,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 	return scm_array_equal_p (x, y);
 #endif
     }
+ generic_equal:
   if (SCM_UNPACK (g_scm_equal_p))
     return scm_call_generic_2 (g_scm_equal_p, x, y);
   else
