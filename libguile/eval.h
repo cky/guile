@@ -56,7 +56,7 @@ extern scm_option scm_eval_opts[];
 #define SCM_EVAL_STACK	       scm_eval_opts[0].val
 #define SCM_N_EVAL_OPTIONS 1
 
-extern scm_eval_stack;
+extern int scm_eval_stack;
 
 extern scm_option scm_evaluator_trap_table[];
 
