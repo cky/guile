@@ -68,20 +68,6 @@ if test $ac_cv_lib_readline_readline = yes -a $ac_cv_func_rl_getc_function = no;
   echo 'Warning: libreadline is too old on your system.  Need >= 2.1.'
 fi
 
-# The following test defines TOTORO if we're configuring on
-# totoro.red-bean.com.  For some etheric reason, totoro refuses to
-# perform the test for presence of rl_getc_function in libreadline
-# correctly.  This variable is used in a workaround which forces
-# totoro to include readline support regardless.  This kludge should
-# obviously be removed as fast as possible.
-
-AC_CHECK_PROG(PROG_HOSTNAME, hostname, hostname)
-if test "$PROG_HOSTNAME" = hostname; then
-  if test "`hostname`" = totoro.red-bean.com; then
-    AC_DEFINE(TOTORO)
-  fi
-fi
-
 # Checks for dynamic linking
 
 if test "$enable_dynamic_linking" = "yes"; then
