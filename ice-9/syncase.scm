@@ -97,7 +97,7 @@
   (let* ((m (current-module))
 	 (v (or (module-variable m symbol)
 		(module-make-local-var! m symbol))))
-    (if (assq 'primitive-syntax (symbol-pref symbol))
+    (if (symbol-property symbol 'primitive-syntax)
 	(if (eq? (current-module) the-syncase-module)
 	    (set-object-property! (module-variable the-root-module symbol)
 				  key

@@ -1,3 +1,7 @@
+2000-09-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* syncase.scm (putprop):  Use the high-level property interface.
+
 2000-09-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* psyntax.ss (build-lexical-var): Use gentemp instead of gensym;
