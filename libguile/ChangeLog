@@ -1,5 +1,16 @@
 2000-04-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* objects.h (SCM_OBJ_CLASS_FLAGS, SCM_OBJ_CLASS_REDEF), struct.h
+	(SCM_STRUCT_VTABLE_DATA, SCM_STRUCT_LAYOUT, SCM_STRUCT_VTABLE,
+	SCM_STRUCT_PRINTER):  The struct vtable data is now an array of
+	scm_bits_t variables.
+
+	* struct.h (SCM_SET_STRUCT_LAYOUT):  New macro.
+
+	* struct.c (scm_make_vtable_vtable):  Use it.
+
+2000-04-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* symbols.c (scm_sym2vcell, scm_sym2ovcell_soft, scm_sym2ovcell,
 	scm_intern_obarray_soft, scm_sysintern0,
 	scm_string_to_obarray_symbol, scm_intern_symbol,

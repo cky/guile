@@ -70,7 +70,7 @@
 #define SCM_CLASS_FLAGS(class)\
         SCM_UNPACK (SCM_STRUCT_DATA (class)[scm_struct_i_flags])
 #define SCM_OBJ_CLASS_FLAGS(obj)\
-	SCM_UNPACK (SCM_STRUCT_VTABLE_DATA (obj)[scm_struct_i_flags])
+	(SCM_STRUCT_VTABLE_DATA (obj) [scm_struct_i_flags])
 #define SCM_SET_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) |= (f))
 #define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
 #define SCM_CLASSF_MASK SCM_STRUCTF_MASK
@@ -176,7 +176,7 @@ struct scm_metaclass_operator {
 #define scm_si_redefined         6
 #define scm_si_hashsets          7
 #define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
-#define SCM_OBJ_CLASS_REDEF(x)  (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
+#define SCM_OBJ_CLASS_REDEF(x)  (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x) [scm_si_redefined]))
 
 typedef struct scm_effective_slot_definition {
   SCM name;

@@ -500,7 +500,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 			   "make-vtable-vtable");
   SCM_SET_CELL_WORD_1 (handle, data);
   SCM_SETCAR (handle, ((SCM)data) + scm_tc3_cons_gloc);
-  SCM_STRUCT_LAYOUT (handle) = layout;
+  SCM_SET_STRUCT_LAYOUT (handle, layout);
   scm_struct_init (handle, tail_elts, scm_cons (layout, init));
   SCM_ALLOW_INTS;
   return handle;

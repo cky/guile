@@ -79,10 +79,13 @@ typedef scm_sizet (*scm_struct_free_t) (SCM *vtable, SCM *data);
 
 #define SCM_STRUCTP(X)  		(SCM_NIMP(X) && (SCM_TYP3(X) == scm_tc3_cons_gloc))
 #define SCM_STRUCT_DATA(X) 		((SCM *) SCM_UNPACK (SCM_CDR (X)))
-#define SCM_STRUCT_VTABLE_DATA(X) 	((SCM *) (SCM_UNPACK (SCM_CAR (X)) - 1))
-#define SCM_STRUCT_LAYOUT(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_layout])
-#define SCM_STRUCT_VTABLE(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_vtable])
-#define SCM_STRUCT_PRINTER(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_printer])
+#define SCM_STRUCT_VTABLE_DATA(X)       ((scm_bits_t *) (SCM_CELL_WORD_0 (X) - 1))
+
+#define SCM_STRUCT_LAYOUT(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout]))
+#define SCM_SET_STRUCT_LAYOUT(X, v)     (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout] = SCM_UNPACK (v))
+
+#define SCM_STRUCT_VTABLE(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_vtable]))
+#define SCM_STRUCT_PRINTER(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_printer]))
 #define SCM_SET_VTABLE_DESTRUCTOR(X, D) (SCM_STRUCT_DATA(X)[scm_struct_i_free] = (SCM) D)
 /* Efficiency is important in the following macro, since it's used in GC */
 #define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
