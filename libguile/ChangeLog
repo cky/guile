@@ -1,3 +1,32 @@
+2004-11-02  Marius Vollmer  <mvo@zagadka.de>
+
+        Mac OS X and OpenBSD compatibility patches from Andreas Vögele.
+	Thanks!
+
+	* backtrace.c (scm_display_backtrace_with_highlights): Join the
+	first and the second line of the SCM_DEFINE macro call, since old
+	preprocessors cannot handle definitions that are split into two
+	lines.
+
+	* inline.h (scm_cell, scm_double_cell): Don't use C99 variable
+	declarations.
+
+	* pairs.c (scm_i_chase_pairs): Replace scm_t_bits with
+	scm_t_uint32 to fix the mismatch between the function declaration
+	and definition.
+
+	* sort.c (quicksort): Don't use C99 variable declarations.
+
+	* srfi-4.c (uvec_fast_ref): Avoid a compiler warning by returning
+	SCM_BOOL_F if no type matches.
+
+	* threads.c (thread_print): Cast a pointer to size_t when printing
+	with scm_uintprint.
+
+	* unif.c (scm_i_tag_to_prototype): Make sure that "instead" gets
+	defined.
+	(scm_array_prototype): Deprecated.
+
 2004-11-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.h, srfi-4.c (scm_frame_uniform_vector_release): New.
