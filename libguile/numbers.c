@@ -72,20 +72,24 @@ static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
  */
 #define FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
 
-
-/* IS_INF tests its floating point number for infiniteness
-   Dirk:FIXME:: This test does not work if x == 0
- */
-#ifndef IS_INF
-#define IS_INF(x) ((x) == (x) / 2)
+#if defined (SCO)
+#if ! defined (HAVE_ISNAN)
+#define HAVE_ISNAN
+static int
+isnan (double x)
+{
+  return (IsNANorINF (x) && NaN (x) && ! IsINF (x)) ? 1 : 0;
+}
 #endif
+#if ! defined (HAVE_ISINF)
+#define HAVE_ISINF
+static int
+isinf (double x)
+{
+  return (IsNANorINF (x) && IsINF (x)) ? 1 : 0;
+}
 
-
-/* Return true if X is not infinite and is not a NaN
-   Dirk:FIXME:: Since IS_INF is broken, this test does not work if x == 0
- */
-#ifndef isfinite
-#define isfinite(x) (!IS_INF (x) && (x) == (x))
+#endif
 #endif
 
 
@@ -122,6 +126,8 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
     return SCM_BOOL ((4 & SCM_UNPACK (n)) != 0);
   } else if (SCM_BIGP (n)) {
     return SCM_BOOL ((1 & SCM_BDIGITS (n) [0]) != 0);
+  } else if (scm_inf_p (n)) {
+    return SCM_BOOL_T;
   } else {
     SCM_WRONG_TYPE_ARG (1, n);
   }
@@ -139,9 +145,145 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
     return SCM_BOOL ((4 & SCM_UNPACK (n)) == 0);
   } else if (SCM_BIGP (n)) {
     return SCM_BOOL ((1 & SCM_BDIGITS (n) [0]) == 0);
+  } else if (scm_inf_p (n)) {
+    return SCM_BOOL_T;
   } else {
     SCM_WRONG_TYPE_ARG (1, n);
   }
+}
+#undef FUNC_NAME
+
+static int
+xisinf (double x)
+{
+#if defined (HAVE_ISINF)
+  return isinf (x);
+#elif defined (HAVE_FINITE) && defined (HAVE_ISNAN)
+  return (! (finite (x) || isnan (x)));
+#else
+  return 0;
+#endif
+}
+
+static int
+xisnan (double x)
+{
+#if defined (HAVE_ISNAN)
+  return isnan (x);
+#else
+  return 0;
+#endif
+}
+
+#define isfinite(x) (! xisinf (x))
+
+SCM_DEFINE (scm_inf_p, "inf?", 1, 0, 0, 
+            (SCM n),
+	    "Return @code{#t} if @var{n} is infinite, @code{#f}\n"
+	    "otherwise.")
+#define FUNC_NAME s_scm_inf_p
+{
+  if (SCM_REALP (n)) {
+    return SCM_BOOL (xisinf (SCM_REAL_VALUE (n)));
+  } else if (SCM_COMPLEXP (n)) {
+    return SCM_BOOL (xisinf (SCM_COMPLEX_REAL (n))
+		     || xisinf (SCM_COMPLEX_IMAG (n)));
+  } else {
+    return SCM_BOOL_F;
+  }
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_nan_p, "nan?", 1, 0, 0, 
+            (SCM n),
+	    "Return @code{#t} if @var{n} is a NaN, @code{#f}\n"
+	    "otherwise.")
+#define FUNC_NAME s_scm_nan_p
+{
+  if (SCM_REALP (n)) {
+    return SCM_BOOL (xisnan (SCM_REAL_VALUE (n)));
+  } else if (SCM_COMPLEXP (n)) {
+    return SCM_BOOL (xisnan (SCM_COMPLEX_REAL (n))
+		     || xisnan (SCM_COMPLEX_IMAG (n)));
+  } else {
+    return SCM_BOOL_F;
+  }
+}
+#undef FUNC_NAME
+
+/* Guile's idea of infinity.  */
+static double guile_Inf;
+
+/* Guile's idea of not a number.  */
+static double guile_NaN;
+
+static void
+guile_ieee_init (void)
+{
+#if defined (HAVE_ISINF) || defined (HAVE_FINITE)
+
+/* Some version of gcc on some old version of Linux used to crash when
+   trying to make Inf and NaN.  */
+
+#if defined (SCO)
+  double tmp = 1.0;
+  guile_Inf = 1.0 / (tmp - tmp);
+#elif defined (__alpha__) && ! defined (linux)
+  extern unsigned int DINFINITY[2];
+  guile_Inf = (*(X_CAST(double *, DINFINITY)));
+#else
+  double tmp = 1e+10;
+  guile_Inf = tmp;
+  for (;;)
+    {
+      guile_Inf *= 1e+10;
+      if (guile_Inf == tmp)
+	break;
+      tmp = guile_Inf;
+    }
+#endif
+
+#endif
+
+#if defined (HAVE_ISNAN)
+
+#if defined (__alpha__) && ! defined (linux)
+  extern unsigned int DQNAN[2];
+  guile_NaN =  (*(X_CAST(double *, DQNAN)));
+#else
+  guile_NaN = guile_Inf / guile_Inf;
+#endif
+
+#endif
+}
+
+SCM_DEFINE (scm_inf, "inf", 0, 0, 0, 
+            (void),
+	    "Return Inf.")
+#define FUNC_NAME s_scm_inf
+{
+  static int initialized = 0;
+  if (! initialized)
+    {
+      guile_ieee_init ();
+      initialized = 1;
+    }
+  return scm_make_real (guile_Inf);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_nan, "nan", 0, 0, 0, 
+            (void),
+	    "Return NaN.")
+#define FUNC_NAME s_scm_nan
+{
+  static int initialized = 0;
+  if (! initialized)
+    {
+      guile_ieee_init ();
+      initialized = 1;
+    }
+  return scm_make_real (guile_NaN);
 }
 #undef FUNC_NAME
 
@@ -1934,37 +2076,50 @@ idbl2str (double f, char *a)
 
   if (f == 0.0)
     goto zero;			/*{a[0]='0'; a[1]='.'; a[2]='0'; return 3;} */
+
+  if (xisinf (f))
+    {
+      if (f < 0)
+	strcpy (a, "-inf.0");
+      else
+	strcpy (a, "+inf.0");
+      return ch+6;
+    }
+  else if (xisnan (f))
+    {
+      strcpy (a, "+nan.0");
+      return ch+6;
+    }
+
   if (f < 0.0)
     {
       f = -f;
       a[ch++] = '-';
     }
-  else if (f > 0.0);
-  else
-    goto funny;
-  if (IS_INF (f))
-    {
-      if (ch == 0)
-	a[ch++] = '+';
-    funny:
-      a[ch++] = '#';
-      a[ch++] = '.';
-      a[ch++] = '#';
-      return ch;
-    }
+
 #ifdef DBL_MIN_10_EXP  /* Prevent unnormalized values, as from 
 			  make-uniform-vector, from causing infinite loops. */
   while (f < 1.0)
     {
       f *= 10.0;
       if (exp-- < DBL_MIN_10_EXP)
-	goto funny;
+	{
+	  a[ch++] = '#';
+	  a[ch++] = '.';
+	  a[ch++] = '#';
+	  return ch;
+	}
     }
   while (f > 10.0)
     {
       f *= 0.10;
       if (exp++ > DBL_MAX_10_EXP)
-	goto funny;
+	{
+	  a[ch++] = '#';
+	  a[ch++] = '.';
+	  a[ch++] = '#';
+	  return ch;
+	}
     }
 #else
   while (f < 1.0)
@@ -2076,9 +2231,12 @@ iflo2str (SCM flt, char *str)
       i = idbl2str (SCM_COMPLEX_REAL (flt), str);
       if (SCM_COMPLEX_IMAG (flt) != 0.0)
 	{
-	  if (0 <= SCM_COMPLEX_IMAG (flt))
+	  double imag = SCM_COMPLEX_IMAG (flt);
+	  /* Don't output a '+' for negative numbers or for Inf and
+	     NaN.  They will provide their own sign. */
+	  if (0 <= imag && !xisinf (imag) && !xisnan (imag))
 	    str[i++] = '+';
-	  i += idbl2str (SCM_COMPLEX_IMAG (flt), &str[i]);
+	  i += idbl2str (imag, &str[i]);
 	  str[i++] = 'i';
 	}
     }
@@ -2513,6 +2671,24 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 
   if (idx == len)
     return SCM_BOOL_F;
+
+  if (idx+5 <= len && !strncmp (mem+idx, "inf.0", 5))
+    {
+      *p_idx = idx+5;
+      return scm_inf ();
+    }
+
+  if (idx+4 < len && !strncmp (mem+idx, "nan.", 4))
+    {
+      enum t_exactness x = EXACT;
+
+      /* Cobble up the fraction.  We might want to set the NaN's
+	 mantissa from it. */
+      idx += 4;
+      mem2uinteger (mem, len, &idx, 10, &x);
+      *p_idx = idx;
+      return scm_nan ();
+    }
 
   if (mem[idx] == '.')
     {
@@ -3694,6 +3870,11 @@ scm_num2dbl (SCM a, const char *why)
 }
 #undef FUNC_NAME
 
+#if ((defined (HAVE_ISINF) && defined (HAVE_ISNAN)) \
+     || (defined (HAVE_FINITE) && defined (HAVE_ISNAN)))
+#define ALLOW_DIVIDE_BY_ZERO
+/* #define ALLOW_DIVIDE_BY_EXACT_ZERO */
+#endif
 
 /* The code below for complex division is adapted from the GNU
    libstdc++, which adapted it from f2c's libF77, and is subject to
@@ -3739,8 +3920,10 @@ scm_divide (SCM x, SCM y)
       long xx = SCM_INUM (x);
       if (xx == 1 || xx == -1) {
 	return x;
+#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
       } else if (xx == 0) {
 	scm_num_overflow (s_divide);
+#endif
       } else {
 	return scm_make_real (1.0 / (double) xx);
       }
@@ -3748,9 +3931,11 @@ scm_divide (SCM x, SCM y)
       return scm_make_real (1.0 / scm_i_big2dbl (x));
     } else if (SCM_REALP (x)) {
       double xx = SCM_REAL_VALUE (x);
+#ifndef ALLOW_DIVIDE_BY_ZERO
       if (xx == 0.0)
 	scm_num_overflow (s_divide);
       else
+#endif
 	return scm_make_real (1.0 / xx);
     } else if (SCM_COMPLEXP (x)) {
       double r = SCM_COMPLEX_REAL (x);
@@ -3774,7 +3959,11 @@ scm_divide (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       long yy = SCM_INUM (y);
       if (yy == 0) {
+#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
 	scm_num_overflow (s_divide);
+#else
+	return scm_make_real ((double) xx / (double) yy);
+#endif
       } else if (xx % yy != 0) {
 	return scm_make_real ((double) xx / (double) yy);
       } else {
@@ -3793,9 +3982,11 @@ scm_divide (SCM x, SCM y)
       return scm_make_real ((double) xx / scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
       double yy = SCM_REAL_VALUE (y);
+#ifndef ALLOW_DIVIDE_BY_ZERO
       if (yy == 0.0)
 	scm_num_overflow (s_divide);
       else
+#endif
 	return scm_make_real ((double) xx / yy);
     } else if (SCM_COMPLEXP (y)) {
       a = xx;
@@ -3820,7 +4011,14 @@ scm_divide (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       long int yy = SCM_INUM (y);
       if (yy == 0) {
+#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
 	scm_num_overflow (s_divide);
+#else
+	if (scm_bigcomp (x, scm_i_int2big (0)) == 0)
+	  return scm_nan ();
+	else
+	  return scm_inf ();
+#endif
       } else if (yy == 1) {
 	return x;
       } else {
@@ -3859,9 +4057,11 @@ scm_divide (SCM x, SCM y)
 	: scm_make_real (scm_i_big2dbl (x) / scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
       double yy = SCM_REAL_VALUE (y);
+#ifndef ALLOW_DIVIDE_BY_ZERO
       if (yy == 0.0)
 	scm_num_overflow (s_divide);
       else
+#endif
 	return scm_make_real (scm_i_big2dbl (x) / yy);
     } else if (SCM_COMPLEXP (y)) {
       a = scm_i_big2dbl (x);
@@ -3873,18 +4073,21 @@ scm_divide (SCM x, SCM y)
     double rx = SCM_REAL_VALUE (x);
     if (SCM_INUMP (y)) {
       long int yy = SCM_INUM (y);
-      if (yy == 0) {
+#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
+      if (yy == 0)
 	scm_num_overflow (s_divide);
-      } else {
+      else
+#endif
 	return scm_make_real (rx / (double) yy);
-      }
     } else if (SCM_BIGP (y)) {
       return scm_make_real (rx / scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
       double yy = SCM_REAL_VALUE (y);
+#ifndef ALLOW_DIVIDE_BY_ZERO
       if (yy == 0.0)
 	scm_num_overflow (s_divide);
       else
+#endif
 	return scm_make_real (rx / yy);
     } else if (SCM_COMPLEXP (y)) {
       a = rx;
@@ -3897,9 +4100,12 @@ scm_divide (SCM x, SCM y)
     double ix = SCM_COMPLEX_IMAG (x);
     if (SCM_INUMP (y)) {
       long int yy = SCM_INUM (y);
-      if (yy == 0) {
+#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
+      if (yy == 0)
 	scm_num_overflow (s_divide);
-      } else {
+      else
+#endif
+      {
 	double d = yy;
 	return scm_make_complex (rx / d, ix / d);
       }
@@ -3908,9 +4114,11 @@ scm_divide (SCM x, SCM y)
       return scm_make_complex (rx / d, ix / d);
     } else if (SCM_REALP (y)) {
       double yy = SCM_REAL_VALUE (y);
+#ifndef ALLOW_DIVIDE_BY_ZERO
       if (yy == 0.0)
 	scm_num_overflow (s_divide);
       else
+#endif
 	return scm_make_complex (rx / yy, ix / yy);
     } else if (SCM_COMPLEXP (y)) {
       double ry = SCM_COMPLEX_REAL (y);
