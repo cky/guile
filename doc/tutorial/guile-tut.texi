@@ -52,13 +52,13 @@ by the author.
 @end titlepage
 
 
-@ifinfo
+@ifnottex
 @node Top
 @top Guile Tutorial
-@end ifinfo
+@end ifnottex
 
 @ifinfo
-This file gives a tutorial introductionto Guile.
+This file gives a tutorial introduction to Guile.
 
 Copyright (C) 1997 Free Software Foundation
 
