@@ -1,0 +1,94 @@
+Random notes about dynamic linking for Guile. I will update this file
+as I go along. Comments are very welcome.
+
+The dynamic linking support is mostly untested. I can't test it
+because I don't have all the different platforms, of course. Please
+try it out.
+
+To enable support for dynamic linking in libguile, give the
+
+    --enable-dynamic-linking
+
+option to configure. It is disabled by default because it will
+probably cause lots of problems in its present state. Currently there
+is support for -ldld, -ldl, HP-UX (and VMS, but not really).
+
+Files affected:
+
+ dynl*           new
+ configure.in    add --enable-dynamic-linking option and checking for
+                 system dependencies
+ Makefile.am     include dynl* in build and dist.
+ init.c          initialize dynamic linking support
+
+Here is my plan with indications of progress.
+
+- port "dynl.c" and maybe some parts of "Link.scm" from SCM to
+  Guile. This should not be difficult, maybe I can even squeeze the
+  VMS code into the "dynl:link", "dyn:call" interface.
+
+* Mostly done, except VMS, and almost completely untested. The -dl
+  support should work, but the rest has not even been compiled.
+
+  The code is in the "dynl*" files. "dynl.c" is the system independent
+  portion and includes the appropriate system dependent file, either
+  "dynl-dld.c", "dynl-dl.c" or "dynl-shl.c".
+
+  I have renamed the SCM names of the functions, because they didnn't
+  fit very well into Guile, the semantics are the same:
+
+    SCM name       Guile name
+
+    dynl:link      dynamic-link
+    dynl:call      dynamic-call
+    dynl:main-call dynamic-args-call
+    dynl:unlink    dynamic-unlink
+
+  I plan to generalise dynamic-call and dynamic-args-call to work with
+  arbitrary arguments, so these names are likely to change.
+
+  PROBLEMS:
+
+  When including dynlink support in libguile you need to link your
+  applications with additional libraries (-ldl or -ldld). How do you
+  communicate this to "guile" and "gh_test" for example? Some PLUGIN
+  magic?
+
+  You may need to link your application in a special way to make
+  dynamic linking work. For example, on Linux and a statically linked
+  libguile.a, you need -rdynamic to make the libguile symbols
+  available for dynamic linking. The solution is probably to build
+  libguile as a shared library on the systems that support it. Does
+  libtool help here? Where can I find it?
+
+
+- see how to couple dynamic linking with the module system. Dynamic
+  objects should have a way to specify the module they want to add
+  their bindings to. Extend this to statically linked parts of
+  guile. (i.e. posix could be put into a module and initialized on
+  demand)
+
+* Maybe it will suffice to have scm_make_gsubr, etc to honor the
+  current scm_top_level_lookup_closure and do all the module switching
+  from Scheme.
+
+
+- use gtcltk as a test case for the above, so that TCL/Tk capabilities
+  can be added to guile at runtime.
+
+- see how G-Wrap and libffi can work together and extend dyn:call to
+  functions taking arbitrary arguments. Something along the lines
+
+    (define XOpenDisplay (make-foreign-function X11-lib 'XOpenDisplay
+						.. whatever args ..))
+
+
+I have no ideas how to support the development of packages for Guile
+that can be dynamically linked into a running application.  Maybe
+automake can be used to automate most of the issues.
+
+One nice thing is, however, that developers and users of Guile
+packages have already installed Guile. So we might able to use Scheme
+to describe and handle the build process. I would like that much more
+than the arcane shell based implementations of autoconf, automake,
+etc.
