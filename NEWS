@@ -109,6 +109,38 @@ Example:
 
 * Changes to Scheme functions and syntax
 
+** The module system has been made more disciplined.
+
+The function `eval' will now save and restore the current module
+around the evaluation of the specified expression.  While this
+expression is evaluated, `(current-module)' will now return the right
+module, which is the module specified as the second argument to
+`eval'.
+
+A consequence of this change is that `eval' is not particularily
+useful when you want allow the evaluated code to change what module is
+designated as the current module and have this change persist from one
+call to `eval' to the next.  The read-eval-print-loop is an example
+where `eval' is now inadequate.  To compensate, there is a new
+function `primitive-eval' that does not take a module specifier and
+that does not save/restore the current module.  You should use this
+function together with `set-current-module', `current-module', etc
+when you want to have more control over the state that is carried from
+one eval to the next.
+
+Additionally, it has been made sure that forms that are evaluated at
+the top level are always evaluated with respect to the current module.
+Previously, subforms of top-level forms such as `begin', `case',
+etc. did not respect changes to the current module although these
+subforms are at the top-level as well.
+
+To prevent strange behaviour, the forms `define-module',
+`use-modules', `use-syntax', and `export' have been restricted to only
+work on the top level.  The forms `define-public' and
+`defmacro-public' only export the new binding on the top level.  They
+behave just like `define' and `defmacro', respectively, when they are
+used in a lexical environment.
+
 ** `port-for-each' makes an additional guarantee.
 
 From the docstring: @var{proc} is applied exactly once to every port
