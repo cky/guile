@@ -142,12 +142,6 @@ scm_class_of (SCM x)
 	case scm_tc7_pws:
 	  return scm_class_procedure_with_setter;
 
-	case scm_tc7_port:
-	  return scm_port_class[(SCM_WRTNG & SCM_CAR (x)
-				 ? (SCM_RDNG & SCM_CAR (x)
-				    ? SCM_INOUT_PCLASS_INDEX | SCM_PTOBNUM (x)
-				    : SCM_OUT_PCLASS_INDEX | SCM_PTOBNUM (x))
-				 : SCM_IN_PCLASS_INDEX | SCM_PTOBNUM (x))];
 	case scm_tc7_smob:
 	  {
 	    SCM type = SCM_TYP16 (x);
@@ -158,9 +152,17 @@ scm_class_of (SCM x)
 		else
 		  return scm_class_real;
 	      }
-	    else
+	    else if (type != scm_tc16_port_with_ps)
 	      return scm_smob_class[SCM_TC2SMOBNUM (type)];
+	    x = SCM_PORT_WITH_PS_PORT (x);
+	    /* fall through to ports */
 	  }
+	case scm_tc7_port:
+	  return scm_port_class[(SCM_WRTNG & SCM_CAR (x)
+				 ? (SCM_RDNG & SCM_CAR (x)
+				    ? SCM_INOUT_PCLASS_INDEX | SCM_PTOBNUM (x)
+				    : SCM_OUT_PCLASS_INDEX | SCM_PTOBNUM (x))
+				 : SCM_IN_PCLASS_INDEX | SCM_PTOBNUM (x))];
 	case scm_tcs_cons_gloc:
 	  /* must be a struct */
 	  if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS_VALID)
