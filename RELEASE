@@ -1,3 +1,4 @@
+-*-text-*-
 This is a checklist for making Guile releases.
 It's specific to the FSF's development environment; please don't put
 it in the distribution.
@@ -43,7 +44,9 @@ Perry Metzger <perry@piermont.com>
 
 Release Checklists ===================================================
 
-There are basically two phases to doing a release:
+There are basically three phases to doing a release:
+
+* "BRANCHING": Creating a stable development branch in CVS.
 
 * "SPIFFING": Updating NEWS, README, INSTALL.  Running tests.  Getting
   people to try builds on various machines.  Getting everything
@@ -53,18 +56,37 @@ There are basically two phases to doing a release:
   the FSF to put the disty on ftp.gnu.org.  Posting announcements.
 
 The "Spiffing" phase you might go through several times as you
-discover problems.  The "Punting" phase you do only once.
+discover problems.  The "Branching" and "Punting" phases you do only
+once.
 
+Branching checklist:
 
-Spiffing checklist (NOTE: these instructions are out of date now that
-we're using cvs branches for stable vs unstable).
+* Announce when you're about to make the branch so that you have a
+  greater chance of people holding off on edits during the short
+  period while you're branching.
 
-* Do a `cvs update -A', to get rid of any sticky tags in your working
-  directory.
+* Make sure you're on the main trunk (see HACKING), and then create
+  the branch-root tag.  i.e. -r branch-root_release-1-6.  (Add the
+  exact command here next time I do it.)
+
+* Now create the branch with the branch tag. i.e. -r
+  branch_release-1-6.  (Add exact command here next time I do it.)
+
+* Change the version numbers in GUILE-VERSION and README on the main
+  branch to reflect the new unstable version i.e. 1.7.0, if you're
+  currently creating the 1.6.X branch.
+
+Spiffing checklist:
+
+* Make sure you're working on the stable branch (see HACKING for
+  details).  Note that after following the branch checklist above, you
+  won't necessarily be.
+
 * Check for files that have changed a lot, but do not have up-to-date
   copyright notices.  This can be as simple as doing:
  	grep 'Copyright' * | grep -v 1999
   and looking for files you know you've worked on a lot.
+
 * Make sure NEWS, INSTALL, AUTHORS and THANKS and the docs are up to date:
   + Scan the ChangeLogs for user-visible changes, marked with an asterisk
     at the left margin.
@@ -75,24 +97,30 @@ we're using cvs branches for stable vs unstable).
   + Fact-check INSTALL.
   + Make sure AUTHORS and THANKS are up-to-date (see also TODO).
   + Remove finished items from TODO (those marked w/ "+").
+
 * Make sure the downloading addresses and filenames in README are
   current.  (But don't bump the version number yet.  We do that below.)
+
 * Check that the versions of aclocal, automake, autoconf, and autoheader
   in your PATH match those given in HACKING.  Note that the `make
   dist' process always invokes these tools, even when all the
   generated files are up to date.
   Make specifically sure that the files in libltdl are generated using
   the same tools as the rest.
+
 * Rebuild all generated files in the source tree:
-  + Install the .m4 files where aclocal will find them.
-  + Run aclocal.
-  + Run autoconf.
-  + Run autoheader.
-  + Run automake.
+  + run ./autogen.sh
+
 * Verify that Guile builds and runs in your working directory.
-* Run the test suite, in guile-core/test-suite.
+
+* Run a "make check".
+
 * Commit all changes to the CVS repository.
+
 * Build a test distribution.
+  + update GUILE-VERSION each time you make a test distribution.  For
+    example, just before the 1.6.0 release, we went through some
+    number of 1.5.X test releases.
   + BEFORE doing 'make dist', configure the source tree for build
     in the same tree with configuration options
     --enable-maintainer-mode --enable-debug-malloc --with-threads.
@@ -105,6 +133,7 @@ we're using cvs branches for stable vs unstable).
     (We currently use a kludge which edits the dependencies generated
     by automake so that Guile can be built in a directory separate
     from the source tree also with non-GNU make programs.)
+
 * Give the test disty to various people to try.  Here's what you should do:
   + Unset GUILE_LOAD_PATH.
   + Remove automake and autoconf from your path, or turn off their
@@ -117,39 +146,70 @@ we're using cvs branches for stable vs unstable).
 
 Once you've got a disty that seems pretty solid:
 
-* Choose new interface numbers for shared libraries.
-* Update the version numbers in GUILE-VERSION and README.  (There are
-  many places in README that need updating!)  The Guile version
-  number should have one of the following forms:
-    N.M                      - a major release
-    N.M.L, where L is even   - a minor release
-    N.M.L, where L is odd    - sources from CVS or nightly snapshot
+* Make sure the shared library libtool versioning numbers are correct,
+  but first make sure you understand "Libtool's versioning system" in
+  the libtool info pages.  Guile is going to be versioning it's shared
+  libraries independently, so follow the libtool rules for choosing
+  version numbers, but make sure to keep in mind that not everyone is
+  as good about this as they should be.  If a library even changes the
+  layout of a data structure that's part of it's API in a backward
+  incompatible way, even if that data structure is handled as an
+  opaque object in the API, that library is probably no longer
+  compatible with previous versions.
+
+  A canonical ugly problem is this.  Imagine you have libfoo and
+  libbar that both are linked against libbaz.  Now imagine that you
+  create a libwhatever that uses both libfoo and libbar.  What you
+  don't want to have happen is libfoo and libbar to be linked against
+  different versions of libbaz that produce incompatible instances of
+  the "same" data structure, and then have libwhatever get one version
+  of this data structure from libbaz via libfoo, and pass it back to a
+  different version of libbaz via libbar, a version of libbaz that
+  can't handle the newer/older struct from the other libbaz.
+
+* In general, there will be a number of libraries in guile that will
+  have to be versioned, and it would be best if the people who know
+  the most about the individual libs decide what the apropriate
+  CURRENT, REVISION, and AGE numbers for each one are.  In general,
+  though, you have to be conservative.  If no one is sure that the
+  libs are still compatible, then you *must* make the appropriate
+  changes under the assumption that they're not.  Getting this wrong
+  is very BAD(TM).
+
+* Make the final update to the version numbers in GUILE-VERSION and
+  README.  (There are many places in README that need updating!).  See
+  HACKING for more information on how the version numbers are to be
+  chosen.
+
 * Reformat the names in THANKS.
-* Do a `cvs update -A' of the whole tree, to look for any stray
+
+* Do a `cvs -z3 update -Pd' of the whole tree, to look for any stray
   uncommitted or accidental changes.
+
 * Commit your changes.
+
 * Make one last test distribution.
 
 Punting checklist:
 
 * Add "Guile N.M released." entry to the top-level ChangeLog, and commit it.
-* Tag the entire source tree with a tag of the form "release_N_M"
-  or "release_N_M_L".
+
+* Tag the entire source tree with a tag of the form "release_X-Y-Z",
+  i.e for release 1.6.0, use release_1-6-0
+
 * Do a 'make dist'.
+
 * Put the distribution up for FTP somewhere, and send mail to
   ftp-upload@gnu.org, asking them to put it on prep.
+
 * Send an announcement message to gnu-announce@gnu.org.  Put a brief
   summary of the changes in this release first, then "Obtaining
   Guile", "Thanks", "About This Distribution," and "Nightly
   Snapshots."  If I remember correctly, the moderator will delay it
   until the distribution appears on ftp.gnu.org.  The announcement
   text should be mostly taken from Guile's README file.
+
 * Notify freshmeat.net, although they're probably watching anyway.
   (They got the 1.3 release just fine.)  I have no idea if
   www.bowerbird.com.au will be something anyone refers to, but Guile
   does have an entry there.
-* Tweak the version numbers in GUILE-VERSION, and README to indicate
-  that the sources are a snapshot again.  Snapshots should have
-  version numbers of the form "N.M.L", where L is odd.
-* Start a new section of the NEWS file.
-* Start a new THANKS file.

@@ -1,3 +1,4 @@
+-*-text-*-
 Guile Hacking Guide
 Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Free software Foundation, Inc.
 
@@ -42,7 +43,7 @@ Autoconf 2.50 --- a system for automatically generating `configure'
 	program would like to use.  Available in
 	"ftp://ftp.gnu.org/pub/gnu/autoconf"
 
-Automake 1.4-p2 --- a system for automatically generating Makefiles that
+Automake 1.4-p4 --- a system for automatically generating Makefiles that
 	conform to the (rather Byzantine) GNU coding standards.  The
 	nice thing is that it takes care of hairy targets like 'make
 	dist' and 'make distclean', and automatically generates
@@ -112,8 +113,146 @@ The Guile sources live in several modules:
   - guile-rgx-ctax --- the Guile/Rx interface, and the ctax implementation
   - guile-scsh --- the port of SCSH to guile, talk to Gary Houston
   - guile-www --- A Guile module for making HTTP requests.
+  - guile-statprof --- an experimental statistical profiler.
 
 There is a mailing list for CVS commit messages; see README for details.
+
+- The guile-core tree is now versioned similarly to the Linux kernel.
+Guile now always uses three numbers to represent the version,
+i.e. "1.6.5".  The first number, 1, is the major version number, the
+second number, 6, is the minor version number, and the third number,
+5, is the micro version number.  Changes in major version number
+indicate major changes in Guile.
+
+Minor version numbers that are even denote stable releases, and odd
+minor version numbers denote development versions (which may be
+unstable).  The micro version number indicates a minor sub-revision of
+a given MAJOR.MINOR release.
+
+- A default CVS checkout will get the current unstable development
+tree.  However, for each stable release, a CVS branch is created so
+that release (and ongoing maintenance) of the stable version can
+proceed independent of the development of the next unstable version.
+To check out a particular stable branch, you just need to specify "-r
+branch_release-X-Y" to your CVS checkout command (or to any update).
+For example, if you wanted to check out the 1.6 stable branch, you
+would specify "-r branch_release-1-6".
+
+So, for example, during a normal development cycle, work will proceed
+on an unstable version, say 1.5.X, until it is decided that it's time
+for a stable release.  At that point, a branch named
+branch_release-1-6 will be created, and the version numbers on the
+HEAD of the CVS tree (the trunk, i.e. what you get by default), will
+be changed to reflect the new unstable version 1.7.X.  Then unstable
+development will proceed on the unstable version, while the stable
+1.5.X branch is fixed up for the eventual 1.6.0 release.
+
+Anytime you want to yank an existing checked out tree to the stable
+branch, you can run a command like this:
+
+  cvs -z3 update -r branch_release-1-6 -Pd
+
+This will yank the working directory over on to the stable release
+branch.  Note that this directory will track that branch from then on
+unless you do something to yank it back to the main (unstable) trunk.
+
+To go back to the unstable branch, you can use
+
+  cvs -z3 update -A -Pd
+
+Note that in either case, you should probably make sure you've
+commited or removed all local changes before running the commands or
+you're likely to have some unexpected results.
+
+Finally note that one approach, should you need to work on both
+branches, is to keep two trees checked out, one stable, the other
+unstable and you can work in whichever is appropriate.
+
+To save some initial bandwidth, you can check out either the stable
+tree or the unstable tree, and then do something like this:
+
+  cp -a core-unstable core-1.5
+  cd core-1.5
+  cvs -z3 update -r branch_release-1-6 -Pd
+
+- The stable and unstable CVS trees are distinct, and no changes will
+automatically propagate between them.  If you make changes that need
+to show up both places, you'll need to apply the changes both places.
+You *might* be able to do this with a cvs command, but often you'll
+probably need to apply the changes by hand or risk migrating
+superfluous modifications between the two versions.  This is
+particularly important when moving a change from the unstable branch
+to the stable branch.
+
+- In general, please don't be adventurous with the stable branch.  We
+mostly want bugfixes, documentation improvements, build improvements,
+etc., though exceptions will doubtless exist.
+
+- There are a few CVS tagging conventions which follow the Scheme
+convention that dashes are used to separate words within a single
+symbol, and so dashes bind more tightly than underscores.  This means
+that foo-bar_baz-bax indicates that foo-bar is somehow separate from
+baz-bax.  The conventions are as follows:
+
+  Branch root tags:
+  -----------------
+  anytime just before you create a branch it's a good
+  idea to create a normal tag so that you can refer to the branch point
+  on the main trunk as well as on the branch.  So please use a tag of
+  the form
+
+    branch-root-release-1-X
+
+  or more generally, for other non-release branches:
+
+    branch-root_FOO
+
+  Branch tags:
+  ------------
+  for the branch tag itself please use
+
+   branch_release-1-6
+
+  or more generally, for other non-release branches:
+
+    branch_FOO
+
+  Merge tags:
+  -----------
+  Whenever you're merging a branch back into the trunk (or into another
+  branch repeatedly) you need to tag the branch each time you merge.  If
+  you don't do that, you won't be able to merge repeatedly without
+  possibly tedious conflicts.  For those tags, we suggest:
+
+    branch-merge_SOME-FOO_to_SOME-BAR_1
+    branch-merge_SOME-FOO_to_SOME-BAR_2
+    ..
+
+  As an example, SOME-BAR might be trunk, or even perhaps another branch
+  like branch-mvo-super-fixes :>
+
+  More mundanely, you might have
+
+    branch-merge_release-1-6_to_trunk_1
+
+  (Merging the stable branch to the trunk like this
+   will probably be much more common, when it happens, than the
+   reverse for the reasons mentioned above.
+
+  Release tags:
+  -------------
+  When releasing a new version of guile, please use:
+
+    release_X-Y-Z
+
+  i.e.
+
+    release_1-6-0
+
+- If you hack on a stable branch, please apply any relevant patches or
+fixes to the current unstable version (the main CVS trunk) as well.
+Similarly, please back-port any important fixes to the unstable CVS
+tree to the current stable branch.
 
 - We check Makefile.am and configure.in files into CVS, but the
 "autogen.sh" script must be run from the top-level to generate the
@@ -166,6 +305,9 @@ make-stds.texi.
 GCC switches, which are the default in the current configure script:
 
     -O2 -Wall -Wpointer-arith -Wmissing-prototypes
+
+To make sure of this, you can use the --enable-error-on-warning option
+to configure.  This option will make GCC fail if it hits a warning.
 
 Note that the warnings generated vary from one version of GCC to the
 next, and from one architecture to the next (apparently).  To provide
@@ -234,7 +376,7 @@ Sat Aug  3 01:27:14 1996  Gary Houston  <ghouston@actrix.gen.nz>
 *	* fports.c (scm_open_file): don't return #f, throw error.
 
 When you've written a NEWS entry and updated the documentation, go
-ahead and remove the asterisk.  I will use the asterisks to find and
+ahead and remove the asterisk.  The asterisks are used to find and
 document changes that haven't been dealt with before a release.
 
 - Please write log entries for functions written in C under the

@@ -1,3 +1,8 @@
+2001-08-15  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (libqthreads_la_LDFLAGS): use libtool interface version
+	variables.
+
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* Makefile.am (OMIT_DEPENDENCIES): Defined to contain the list of

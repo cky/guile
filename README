@@ -3,7 +3,7 @@ anonymous CVS or as a nightly snapshot at some random time after the
 Guile 1.4 release.  If this were a Guile release, you would not see
 this message. !!!  [fixme: zonk on release]
 
-This is a 1.5 development version of Guile, Project GNU's extension
+This is a 1.7 development version of Guile, Project GNU's extension
 language library.  Guile is an interpreter for Scheme, packaged as a
 library that you can link into your applications to give them their
 own scripting language.  Guile will eventually support other languages
@@ -14,7 +14,7 @@ Guile versions with an odd middle number, i.e. 1.5.* are unstable
 development versions.  Even middle numbers indicate stable versions.
 This has been the case since the 1.3.* series.
 
-The next stable release will be version 1.6.0.
+The next stable release will be version 1.8.0.
 
 Please send bug reports to bug-guile@gnu.org.
 
