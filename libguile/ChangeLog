@@ -1,3 +1,8 @@
+2004-09-29  Kevin Ryde  <user42@zip.com.au>
+
+	* regex-posix.c (scm_regexp_exec): Correction to last change, should
+	be whole original string in match struct, not offsetted substring.
+
 2004-09-24  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* gc.c (scm_gc_unprotect_object): abort if called during GC.

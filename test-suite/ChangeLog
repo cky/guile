@@ -1,3 +1,7 @@
+2004-09-29  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/regexp.test (match:string): New tests.
+
 2004-09-26  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/optargs.test (let-keywords, let-keywords*, let-optional,
