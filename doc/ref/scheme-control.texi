@@ -1167,6 +1167,7 @@ flags are listed in the following table.
 
 @table @code
 @item SCM_F_WIND_EXPLICITLY
+@findex SCM_F_WIND_EXPLICITLY
 The registered action is also carried out when the frame is entered or
 left locally.
 @end table
