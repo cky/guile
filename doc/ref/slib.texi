@@ -11,16 +11,20 @@ must be executed:
 @end smalllisp
 
 @cindex @code{require}
-@code{require} can then be used as described in
-@ref{Top, , SLIB, slib, The SLIB Manual}.
+@code{require} can then be used in the usual way (@pxref{Requesting
+Features,,, slib, The SLIB Manual}).  For example,
 
-For example:
+@example
+(use-modules (ice-9 slib))
+(require 'primes)
+(probably-prime? 13)
+@result{} #t
+@end example
 
-@smalllisp
-guile> (use-modules (ice-9 slib))
-guile> (require 'primes)
-guile> (probably-prime? 13)
-@end smalllisp
+Note that @code{(ice-9 slib)} provides a new definition of
+@code{system}, one giving a plain exit code return value, as per the
+SLIB specification (@pxref{System Interface,,, slib, The SLIB
+Manual}).
 
 @menu
 * SLIB installation::
