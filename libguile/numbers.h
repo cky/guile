@@ -49,23 +49,23 @@
 #include "libguile/__scm.h"
 #include "libguile/print.h"
 
-#if defined (SCM_HAVE_FLOATINGPOINT_H)
-#include <floatingpoint.h>
+#if SCM_HAVE_FLOATINGPOINT_H
+# include <floatingpoint.h>
 #endif
 
-#if defined (SCM_HAVE_IEEEFP_H)
-#include <ieeefp.h>
+#if SCM_HAVE_IEEEFP_H
+# include <ieeefp.h>
 #endif
 
-#if defined (SCM_HAVE_NAN_H)
-#if defined (SCO)
-#define _IEEE 1
-#endif
-#include <nan.h>
-#if defined (SCO)
-#undef _IEEE
-#endif
-#endif
+#if SCM_HAVE_NAN_H
+# if defined (SCO)
+#   define _IEEE 1
+# endif
+# include <nan.h>
+# if defined (SCO)
+#   undef _IEEE
+# endif
+#endif /* SCM_HAVE_NAN_H */
 
 
 
@@ -110,20 +110,22 @@
  * SCM_FLTMAX is less than or scm_equal the largest single precision float
  */
 
-#ifdef SCM_HAVE_STDC_HEADERS
-#ifndef GO32
-#include <float.h>
-#endif /* ndef GO32 */
+#if SCM_HAVE_STDC_HEADERS
+# ifndef GO32
+#   include <float.h>
+# endif /* ndef GO32 */
 #endif /* def STDC_HEADERS */
+
 #ifdef DBL_MAX_10_EXP
-#define SCM_MAXEXP DBL_MAX_10_EXP
+# define SCM_MAXEXP DBL_MAX_10_EXP
 #else
-#define SCM_MAXEXP 308		/* IEEE doubles */
+# define SCM_MAXEXP 308		/* IEEE doubles */
 #endif /* def DBL_MAX_10_EXP */
+
 #ifdef FLT_MAX
-#define SCM_FLTMAX FLT_MAX
+# define SCM_FLTMAX FLT_MAX
 #else
-#define SCM_FLTMAX 1e+23
+# define SCM_FLTMAX 1e+23
 #endif /* def FLT_MAX */
 
 
