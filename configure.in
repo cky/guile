@@ -1,0 +1,50 @@
+AC_INIT(Makefile.in)
+
+all_subdirs=`cat $srcdir/*/PLUGIN/REQ $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
+req_subdirs=`cat $srcdir/*/PLUGIN/REQ /dev/null | tsort | xargs echo`
+opt_subdirs=`cat $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
+AC_CONFIG_SUBDIRS($all_subdirs)
+existingdirs=
+for d in $all_subdirs; do
+  if test -d $srcdir/$d ; then
+    existingdirs="$existingdirs $d"
+    if test "x$verbose" = xyes; then
+       if test -f $srcdir/$d/PLUGIN/greet ; then
+	  cat $srcdir/$d/PLUGIN/greet
+       else
+	 echo ===
+	 echo === Configuring plug-in component $d
+	 echo ===
+       fi
+    fi
+  fi
+done
+
+for d in $req_subdirs; do
+  if test ! -d $srcdir/$d ; then
+    echo "*******"
+    echo "*******"
+    echo "**\+/**"
+    echo "**=*=**" ERROR: Missing required package: $d
+    echo "**/+\**"
+    echo "*******"
+    echo "*******"
+    exit 1
+  fi
+done
+
+if test "x$verbose" = xyes; then
+  for d in $opt_subdirs; do
+    if test ! -d $srcdir/$d ; then
+      echo "*****"
+      echo "*===*"
+      echo "*=*=*" WARNING: Missing suggested package: $d
+      echo "*===*"
+      echo "*****"
+    fi
+  done
+fi
+
+
+AC_SUBST(existingdirs)
+AC_OUTPUT(Makefile)

@@ -1,0 +1,984 @@
+# @configure_input@
+
+#	Copyright (C) 1995 Free Software Foundation, Inc.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this software; see the file COPYING.  If not, write to
+# the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+
+#
+# Makefile for libguile
+#
+
+VPATH = @srcdir@
+srcdir = @srcdir@
+SHELL = /bin/sh
+
+VERSION=@GUILE_VERSION@
+
+# Common prefix for machine-independent installed files.
+prefix = @prefix@
+
+# Common prefix for machine-dependent installed files.
+exec_prefix = @exec_prefix@
+
+# Directory in which to install init files &c
+libdir = $(exec_prefix)/lib
+
+# Directory to search by default for included makefiles.
+includedir = $(prefix)/include
+
+# Directory to install `guile' in.
+bindir = $(exec_prefix)/bin
+
+
+INSTALL = $(srcdir)/../install-sh -c
+INSTALL_DATA = $(INSTALL) -m 644
+
+# Programs to make tags files.
+ETAGS = etags
+CTAGS = ctags -tw
+
+# where the init files are found
+IMPLPATH=$(libdir)/gls/guile
+
+# where the Tcl and Tk sources are found
+TCL_SRC_DIR = @TCL_SRC_DIR@
+TK_SRC_DIR = @TK_SRC_DIR@
+
+# CC
+X11_INCLUDES =		@XINCLUDES@
+XFLAGS = @X_CFLAGS@
+CFLAGS = @CFLAGS@ 
+INCLUDE_CFLAGS = -I. -I$(srcdir) -I$(TCL_SRC_DIR)/generic -I$(TK_SRC_DIR)/generic 
+ALL_CFLAGS = $(CFLAGS) $(X_CFLAGS) $(INCLUDE_CFLAGS) $(X11_INCLUDES) -DLIBRARY_PATH=\"$(libdir)/\" @DEFS@
+CC = @CC@ $(ALL_CFLAGS) -Wall
+
+# CC used as a front end for ld
+LDFLAGS = @LDFLAGS@
+CCLD= $(CC) $(LDFLAGS)
+
+# AR
+AR = ar
+AR_FLAGS = rc
+RANLIB = @RANLIB@
+
+# Any extra object files your system needs.
+extras = @LIBOBJS@
+
+libobjs=	alist.o \
+		append.o \
+		appinit.o \
+		arbiters.o \
+		async.o \
+		boolean.o \
+		chars.o \
+		continuations.o \
+		dynwind.o \
+		eq.o \
+		error.o \
+		eval.o \
+		extchrs.o \
+		fdsocket.o \
+		feature.o \
+		files.o \
+		filesys.o \
+		fports.o \
+		gc.o \
+		genio.o \
+		gsubr.o \
+		hash.o \
+		hashtab.o \
+		init.o \
+		ioext.o \
+		kw.o \
+		list.o \
+		load.o \
+		mallocs.o \
+		markers.o \
+		markers.o \
+		marksweep.o \
+		mbstrings.o \
+		numbers.o \
+		objprop.o \
+		pairs.o \
+		ports.o \
+		posix.o \
+		print.o \
+		procprop.o \
+		procs.o \
+		ramap.o \
+		read.o \
+		root.o \
+		scmsigs.o \
+		sequences.o \
+		simpos.o \
+		smob.o \
+		socket.o \
+		stackchk.o \
+		stime.o \
+		strings.o \
+		strop.o \
+		strorder.o \
+		strports.o \
+		struct.o \
+		symbols.o \
+		tag.o \
+		throw.o \
+		unif.o \
+		variable.o \
+		vectors.o \
+		vports.o \
+		weaks.o \
+		$(extras)
+
+
+uninstalled_h_files= _scm.h __scm.hd
+
+installed_h_files= __scm.h \
+		alist.h \
+		append.h \
+		arbiters.h \
+		async.h \
+		boolean.h \
+		chars.h \
+		continuations.h \
+		dynwind.h \
+		eq.h \
+		error.h \
+		eval.h \
+		extchrs.h \
+		fdsocket.h \
+		feature.h \
+		fports.h \
+		files.h \
+		filesys.h \
+		gc.h \
+		genio.h \
+		gsubr.h \
+		hash.h \
+		hashtab.h \
+		init.h \
+		ioext.h \
+		kw.h \
+		list.h \
+		load.h \
+		libguile.h \
+		mallocs.h \
+		markers.h \
+		marksweep.h \
+		markers.h \
+		mbstrings.h \
+		numbers.h \
+		objprop.h \
+		pairs.h \
+		ports.h \
+		posix.h \
+		params.h \
+		print.h \
+		procs.h \
+		procprop.h \
+		ramap.h \
+		read.h \
+		root.h \
+		scmsigs.h \
+		sequences.h \
+		simpos.h \
+		smob.h \
+		socket.h \
+		stackchk.h \
+		strports.h \
+		struct.h \
+		symbols.h \
+		tag.h \
+		stime.h \
+		tags.h \
+		variable.h \
+		vectors.h \
+		vports.h \
+		weaks.h \
+		unif.h \
+		scmhob.h \
+		strings.h \
+		strop.h \
+		strorder.h \
+		throw.h \
+		unif.h
+
+h_files=$(uninstalled_h_files) $(installed_h_files)
+
+c_files=	alist.c \
+		append.c \
+		appinit.c \
+		arbiters.c \
+		async.c \
+		boolean.c \
+		chars.c \
+		continuations.c \
+		dynwind.c \
+		eq.c \
+		error.c \
+		eval.c \
+		extchrs.c \
+		fdsocket.c \
+		feature.c \
+		files.c \
+		filesys.c \
+		fports.c \
+		gc.c \
+		genio.c \
+		gsubr.c \
+		hash.c \
+		hashtab.c \
+		inet_aton.c \
+		init.c \
+		ioext.c \
+		kw.c \
+		list.c \
+		load.c \
+		mallocs.c \
+		markers.c \
+		markers.c \
+		marksweep.c \
+		mbstrings.c \
+		numbers.c \
+		objprop.c \
+		pairs.c \
+		ports.c \
+		posix.c \
+		print.c \
+		procprop.c \
+		procs.c \
+		ramap.c \
+		read.c \
+		root.c \
+		scmsigs.c \
+		sequences.c \
+		simpos.c \
+		smob.c \
+		socket.c \
+		stackchk.c \
+		stime.c \
+		strings.c \
+		strop.c \
+		strorder.c \
+		strports.c \
+		struct.c \
+		symbols.c \
+		tag.c \
+		throw.c \
+		unif.c \
+		variable.c \
+		vectors.c \
+		vports.c \
+		weaks.c
+
+gen_c_files=	alist.x \
+		append.x \
+		arbiters.x \
+		async.x \
+		boolean.x \
+		chars.x \
+		continuations.x \
+		dynwind.x \
+		eq.x \
+		error.x \
+		eval.x \
+		extchrs.x \
+		fdsocket.x \
+		feature.x \
+		files.x \
+		filesys.x \
+		fports.x \
+		gc.x \
+		genio.x \
+		gsubr.x \
+		hash.x \
+		hashtab.x \
+		init.x \
+		ioext.x \
+		kw.x \
+		list.x \
+		load.x \
+		mallocs.x \
+		markers.x \
+		marksweep.x \
+		mbstrings.x \
+		numbers.x \
+		objprop.x \
+		pairs.x \
+		ports.x \
+		posix.x \
+		print.x \
+		procprop.x \
+		procs.x \
+		ramap.x \
+		read.x \
+		root.x \
+		scmsigs.x \
+		sequences.x \
+		simpos.x \
+		smob.x \
+		socket.x \
+		stackchk.x \
+		stime.x \
+		strings.x \
+		strop.x \
+		strorder.x \
+		strports.x \
+		struct.x \
+		symbols.x \
+		tag.x \
+		throw.x \
+		unif.x \
+		variable.x \
+		vectors.x \
+		vports.x \
+		weaks.x
+
+
+
+ancillery =	gscm.c \
+		gscm.h \
+		COPYING \
+		ChangeLog \
+		ChangeLog.scm \
+		Makefile.in \
+		PLUGIN \
+		acconfig-1.5.h \
+		configure \
+		configure.in \
+		def.sed \
+		scmconfig.h.in \
+		fd.h.in \
+		../doc/guile.texi \
+		../doc/guile.ps \
+		../doc/guile.info \
+		../doc/guile.info-1 \
+		../doc/guile.info-2 \
+		../doc/guile.info-3 \
+		../doc/guile.info-4 \
+		../doc/guile.info-5 \
+		../doc/in.texi \
+		../doc/in.info \
+		../doc/in.ps \
+		../doc/agenda \
+		../doc/texinfo.tex
+
+
+c_sources = $(c_files) $(h_files)
+manifest = $(ancillery) $(c_sources)
+
+
+.SUFFIXES:
+.SUFFIXES: .o .c .h .ps .dvi .info .texinfo .scm .cd .x .hd
+
+.cd.c:
+	(   echo "/* DO NOT EDIT  --- AUTO-GENERATED --- DO NOT EDIT */" > $@ \
+	 && echo -n "#line 1" \" \
+	 && echo $<\" | sed -e "s,^.*/,," >> $@ \
+	 && sed -f $(srcdir)/def.sed $< >> $@) \
+        || rm -f $@
+
+.hd.h:
+	(   echo "/* DO NOT EDIT  --- AUTO-GENERATED --- DO NOT EDIT */" > $@ \
+	 && echo -n "#line 1" \" >> $@ \
+	 && echo $<\" | sed -e "s,^.*/,," >> $@ \
+	 && sed -f $(srcdir)/def.sed $< >> $@) \
+        || rm -f $@
+
+.c.x:
+	if test ! -escmconfig.h ; then \
+	  touch scmconfig.h; \
+	  fake_scmconfig=1; \
+	else \
+	  fake_scmconfig=0; \
+	fi; \
+	$(CC) $(ALL_CFLAGS) -I. -DSCM_MAGIC_SNARFER -E $< | grep "^%%%" | sed -e "s/^%%%//" > $@ ; \
+	if test $$fake_scmconfig -eq 1 ; then \
+	  rm scmconfig.h; \
+	fi
+
+.PHONY: all
+all: libguile.a
+
+SUBDIR=.
+manifest:
+	for file in $(manifest) ; \
+	  do echo $(SUBDIR)/$$file ; \
+	done
+
+libguile.a: $(libobjs)
+	rm -f libguile.a
+	$(AR) $(AR_FLAGS) libguile.a $(libobjs)
+	$(RANLIB) libguile.a
+
+install: all
+	test -d $(prefix) || mkdir $(prefix)
+	test -d $(libdir) || mkdir $(libdir)
+	test -d $(includedir) || mkdir $(includedir)
+	test -d $(includedir)/guile$(VERSION) || mkdir $(includedir)/guile$(VERSION)
+	$(INSTALL_DATA) libguile.a $(libdir)/libguile$(VERSION).a
+	$(RANLIB) $(libdir)/libguile$(VERSION).a
+	$(INSTALL_DATA) scmconfig.h $(includedir)/guile$(VERSION)
+	for h in $(h_files); do \
+	  $(INSTALL_DATA) $(srcdir)/$$h $(includedir)/guile$(VERSION); \
+	done
+
+uninstall:
+	-for h in $(h_files); do \
+	  rm -f $(includedir)/guile$(VERSION)/$$h; \
+	done
+	rm -f $(includedir)/guile$(VERSION)/scmconfig.h
+	-rmdir $(includedir)/guile$(VERSION)
+	-rm $(libdir)/libguile$(VERSION).a
+
+
+TAGS:
+	etags $(c_sources)
+
+
+info:
+
+clean:
+	-rm -f libguile.a
+	-rm -f $(libobjs)
+	-rm -f $(gen_c_files)
+
+distclean: clean
+	-rm -f config.cache
+	-rm -f config.log
+	-rm -f config.status
+	-rm -f Makefile
+	-rm -f scmconfig.h
+
+
+realclean: distclean
+	-rm -f $(gen_c_files)
+	-rm -f scmconfig.h
+
+xfiles: $(gen_c_files)
+
+DEPENDS_CFLAGS=
+
+depends:
+	touch scmconfig.h
+	touch $(gen_c_files)
+	gcc -MM -I. $(DEPENDS_CFLAGS) $(c_files)
+	rm $(gen_c_files)
+	rm scmconfig.h
+
+$(srcdir)/__scm.h: __scm.hd
+
+###
+alist.o : alist.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h alist.x 
+append.o : append.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h append.x 
+appinit.o : appinit.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h 
+arbiters.o : arbiters.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h arbiters.x 
+async.o : async.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h async.x 
+boolean.o : boolean.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h boolean.x 
+chars.o : chars.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h chars.x 
+continuations.o : continuations.c _scm.h libguile.h __scm.h tags.h smob.h params.h \
+  alist.h append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h \
+  eq.h error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h \
+  fports.h gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h \
+  kw.h list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h \
+  print.h procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h \
+  socket.h stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h \
+  tag.h throw.h unif.h variable.h vectors.h vports.h weaks.h continuations.x 
+dynwind.o : dynwind.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h dynwind.x 
+eq.o : eq.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h eq.x 
+error.o : error.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h error.x 
+eval.o : eval.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h eval.x 
+extchrs.o : extchrs.c extchrs.h 
+fdsocket.o : fdsocket.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h fdsocket.x 
+feature.o : feature.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h feature.x 
+files.o : files.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h files.x 
+filesys.o : filesys.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h filesys.x 
+fports.o : fports.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h fports.x 
+gc.o : gc.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h gc.x 
+genio.o : genio.c extchrs.h _scm.h libguile.h __scm.h tags.h smob.h params.h \
+  alist.h append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h \
+  eq.h error.h pairs.h eval.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h 
+gsubr.o : gsubr.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h 
+hash.o : hash.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h hash.x 
+hashtab.o : hashtab.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h hashtab.x 
+inet_aton.o : inet_aton.c 
+init.o : init.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h 
+ioext.o : ioext.c ioext.x 
+kw.o : kw.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h kw.x 
+list.o : list.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h list.x 
+load.o : load.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h load.x 
+mallocs.o : mallocs.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h 
+markers.o : markers.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h 
+markers.o : markers.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h 
+marksweep.o : marksweep.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h 
+mbstrings.o : mbstrings.c extchrs.h _scm.h libguile.h __scm.h tags.h smob.h \
+  params.h alist.h append.h arbiters.h async.h boolean.h chars.h continuations.h \
+  dynwind.h eq.h error.h pairs.h eval.h fdsocket.h feature.h files.h filesys.h \
+  fports.h gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h \
+  kw.h list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h \
+  print.h procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h \
+  socket.h stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h \
+  tag.h throw.h unif.h variable.h vectors.h vports.h weaks.h mbstrings.x 
+numbers.o : numbers.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h numbers.x 
+objprop.o : objprop.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h objprop.x 
+pairs.o : pairs.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h pairs.x 
+ports.o : ports.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h ports.x 
+posix.o : posix.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h posix.x 
+print.o : print.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h print.x 
+procprop.o : procprop.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h procprop.x 
+procs.o : procs.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h procs.x 
+ramap.o : ramap.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h ramap.x 
+read.o : read.c extchrs.h _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h read.x 
+root.o : root.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h 
+scmsigs.o : scmsigs.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h scmsigs.x 
+sequences.o : sequences.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h sequences.x 
+simpos.o : simpos.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h simpos.x 
+smob.o : smob.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h 
+socket.o : socket.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h socket.x 
+stackchk.o : stackchk.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h stackchk.x 
+stime.o : stime.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h stime.x 
+strings.o : strings.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h strings.x 
+strop.o : strop.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h strop.x 
+strorder.o : strorder.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h strorder.x 
+strports.o : strports.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h strports.x 
+struct.o : struct.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h struct.x 
+symbols.o : symbols.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h symbols.x 
+tag.o : tag.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h tag.x 
+throw.o : throw.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h throw.x 
+unif.o : unif.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h unif.x 
+variable.o : variable.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h variable.x 
+vectors.o : vectors.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h vectors.x 
+vports.o : vports.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h \
+  append.h arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h \
+  error.h pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h \
+  gc.h marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h \
+  list.h load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h \
+  procprop.h procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h \
+  stackchk.h stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h \
+  unif.h variable.h vectors.h vports.h weaks.h vports.x 
+weaks.o : weaks.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \
+  arbiters.h async.h boolean.h chars.h continuations.h dynwind.h eq.h error.h \
+  pairs.h eval.h extchrs.h fdsocket.h feature.h files.h filesys.h fports.h gc.h \
+  marksweep.h genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+  load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h posix.h print.h procprop.h \
+  procs.h ramap.h read.h root.h scmsigs.h sequences.h simpos.h socket.h stackchk.h \
+  stime.h strings.h strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+  variable.h vectors.h vports.h weaks.h weaks.x 

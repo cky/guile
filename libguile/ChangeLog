@@ -1,0 +1,521 @@
+Wed Jun 12 00:28:31 1996  Tom Lord  <lord@beehive>
+
+	* struct.c (scm_init_struct): new file.
+
+Fri Jun  7 14:02:00 1996  Tom Lord  <lord@beehive>
+
+	* list.c (scm_list_tail): list-cdr-ref is the same as list-tail.
+	(scm_list_head): added list-head for rapidly chopping argument
+	lists off of longer lists (and similar).
+
+Tue Jun  4 09:40:33 1996  Tom Lord  <lord@beehive>
+
+	* objprop.c (scm_object_property): assq the cdr of the whash
+	handle for obj, not the handle itself.
+
+Mon Jun  3 17:19:30 1996  Tom Lord  <lord@beehive>
+
+	* gc.c (scm_mark_weak_vector_spines): Mark the spines (alists) of
+	weak hash tables last of all marking to avoid an obscure gc bug.
+	WARNING: circular lists stored in a weak hash table will hose us.
+
+Fri May 24 09:53:39 1996  Tom Lord  <lord@beehive>
+
+	* vectors.c (scm_vector_move_left_x, scm_vector_move_right_x):
+	new functions similar to scm_substring_move_left_x and
+	scm_substring_move_right_x.
+
+Wed May 22 20:07:01 1996  Tom Lord  <lord@beehive>
+
+	* init.c (scm_boot_guile): prevent gc with scm_block_gc not
+	scm_gc_heap_lock!
+
+Wed May 15 16:13:29 1996  Tom Lord  <lord@beehive>
+
+	* ports.c (scm_unread_char): scm_gen_ungetc as a scheme procedure.
+
+Thu May  9 09:33:17 1996  Tom Lord  <lord@beehive>
+
+	* strports.c (scm_strprint_obj): convenience function.  C for
+	(lambda (obj) (call-with-output-string (lambda (p) (write obj p))))
+
+	* guile-{tcl,tk}.[ch], events.[ch], keysyms.[ch], tcl-channels.[ch]
+		removed to a separate library
+
+	* init.c (scm_boot_guile): copied from guile-tcl.c.
+	Initialization specific to tcl interpreters removed.
+
+Wed May  8 15:07:37 1996  Tom Lord  <lord@beehive>
+
+	* ports.c (scm_ports_prehistory): size malloced here doesn't
+	matter so long as it is non-0 (got rid of "* 4").
+
+Tue May  7 11:43:37 1996  Tom Lord  <lord@beehive>
+
+	* gscm.h: gscm_mkarray eliminated (presumably was not being used
+	since its definition was bogus).
+
+Mon May  6 13:02:56 1996  Tom Lord  <lord@beehive>
+
+	* mallocs.[ch]: back again (for rx at least).
+
+Wed Apr 17 08:54:20 1996  Tom Lord  <lord@beehive>
+
+	* ports.c: removed functions relating to the mapping between ports
+        and descriptors.   (That stuff is unix-specific and should be collected
+	in a separate library).
+
+	* ramap.c (scm_array_copy): return #<unspecified> not #<undefined>.
+	(Tom Mckay@avanticorp.com)
+
+Mon Apr 15 14:16:55 1996  Tom Lord  <lord@beehive>
+
+	* gc.c (scm_gc_sweep): Immediates in weak vectors were not
+	handled correctly (SCM_FREEP was applied to them) -- test for
+	NIMP.  Keys in weak hash tables were spuriously (though harmlessly)
+	being overwritten with #f.   (brown@grettir.bibliotech.com)
+
+Tue Apr  2 22:25:00 1996  Tom Lord  <lord@beehive>
+
+	* gc.c (scm_unhash_name): new procedure, unhash-name, flushes glocs
+	for a specific symbol or for all symbols.
+
+Mon Apr  1 10:34:55 1996  Tom Lord  <lord@beehive>
+
+	* gc.c (scm_gc_mark): mark weak hash tables correctly (was getting weak
+	keys and weak values confused).
+
+Thu Mar 14 22:20:20 1996  Tom Lord  <lord@beehive>
+
+	* list.c (scm_last_pair): map '()=>'()
+
+Wed Mar 13 16:43:34 1996  Tom Lord  <lord@beehive>
+
+	* pairs.c, hashtab.c, list.c, alist.c append.c, sequences.c:
+	Generalized assoc and hash-table functions.
+	Factored pairs.c into multiple files.
+
+Fri Mar  8 14:44:39 1996  Tom Lord  <lord@beehive>
+
+	* gscm.c (gscm_run_scm): got rid of objprop.
+
+Fri Mar  1 10:39:52 1996  Tom Lord  <lord@beehive>
+
+	* genio.c (scm_getc): 
+	NOTE: fgetc may not be interruptable.
+
+	* procprop.c (scm_stand_in_scm_proc): 
+	NOTE: don't use a alist here.
+	(scm_set_procedure_properties_x): fix type checking throughout this file.
+
+	* gc.c (scm_gc_sweep): free heap segments with free, not must_free.
+
+	* ports.c (scm_remove_from_port_table): adjust scm_mallocated
+	after freeing part of the port table.
+
+Thu Feb 29 16:21:17 1996  Tom Lord  <lord@beehive>
+
+	* strports.c (scm_mkstrport): 
+	* vports.c (scm_make_soft_port): allocate a port table entry 
+	(possibly triggering gc) before setting the tag of the corresponding
+	ports handle.
+
+	* pairs.c (scm_delq_x): never throw an error.
+
+	* vectors.c (scm_make_vector): made the default vector fill argument
+	into '() (much more useful than the previous value, "#unspecified")
+
+Mon Feb 26 17:19:09 1996  Tom Lord  <lord@beehive>
+
+	* ports.c (scm_add_to_port_table): Added fields
+	to port table entries: file_name, line_num, col.
+	Update these in open_file, gen_getc and gen_ungetc.
+	Added procedures to access those fields.
+
+Sun Feb 25 00:10:36 1996  Tom Lord  <lord@beehive>
+
+	* procs.c (scm_make_subr_opt): new entry point for making
+	anonymous subrs.
+
+Sat Feb 24 17:11:31 1996  Tom Lord  <lord@beehive>
+
+	* gc.h: SCM_STACK_GROWS_UP is now set by autoconf.
+
+Fri Feb 23 10:26:29 1996  Tom Lord  <lord@beehive>
+
+	* numbers.c (scm_exact_p): This function no longer
+	implements "integer?".
+
+Thu Feb 22 20:56:16 1996  Tom Lord  <lord@beehive>
+
+	* gc.c (scm_gc_end): simulate a signal at the end of each GC.
+	(scm_gc_stats): return an assoc of useful data.  Replaces "room"
+	and the stats reporting formerlly built into repl.
+
+	* repl.[ch]: removed.  
+	GC statistics keeping moved to gc.c.
+	Other statistics keeping can be done from Scheme.
+	REPLS are now written in Scheme.
+
+Wed Feb 21 10:28:53 1996  Tom Lord  <lord@beehive>
+
+	* cnsvobj.c (gscm_is_gscm_obj): new file for old functions (icky
+	conservatively marked objects).
+
+	* throw.c (scm_ithrow): Unwind up to the right catch during a throw!
+
+	* error.c (scm_init_error): init system_error_sym here, not in repl.c.
+
+	* feature.c (scm_compiled_library_path): moved here from repl.c.
+	This file is for stuff relating specifically to Scheme libraries
+	like slib.
+
+	* eval.c (scm_m_define): don't give warning about redefinition, don't
+	check verbosity.  
+
+	NOTE: this should throw a resumable exception with parameters --
+	the name, the top-level env, the variable, the definition, #t/#f: redefining builtin?
+
+	* repl.c (scm_gc_begin/end): don't print a message, don't check verbosity.
+
+	* error.c: scm_warn eliminated.
+
+	* read.c (scm_lreadr): extra right paren gets an error, not a warning.
+
+	* repl.c, marksweep.c, gc.c (various): 
+	lose exit_report, growth_mon.
+
+	* gscm.c: got rid of verbosity functions.
+
+Tue Feb 20 00:19:10 1996  Tom Lord  <lord@beehive>
+
+	* throw.c (scm_ithrow): guard against the bad-throw hook changing
+	between the call to procedurep and use.
+
+	* error.c (scm_everr): 
+	* gc.c (fixconfig): 
+	* gsubr.c (scm_make_gsubr): use exit, not scm_quit.  still wrong, 
+	but less so.
+
+	* strports.c: don't reveal the port's string to the caller
+	because it changes size.
+
+	(stputc stwrite): check/change the strings length with interrupts
+	blocked.
+
+	* objprop.c (scm_set_object_property_x &c): use the generic
+	hashing functions and be threadsafe.
+
+	* eval.c (scm_unmemocar): do this operation in a thread-safe way.
+	(per suggestion jaffer@gnu.ai.mit.edu).
+
+	* mbstrings.c (scm_multi_byte_string): guard against argument list
+	changing length.
+
+	* strings.c (scm_make_string): loop cleanup
+
+	* unif.c (scm_vector_set_length_x): scm_vector_set_length_x no longer
+	a scheme function.
+
+	* weaks.c (scm_weak_vector): guard against argument list 
+	changing length.
+
+	* variable.c (scm_builtin_variable): check for/make a built-in
+	variable automicly.
+
+	* vectors.c (scm_vector): while filling the new array,
+	guard against a list of fill elements that grows after
+	the vector is allocated.
+
+	* hashtab.c -- new file: general hash table
+	functions.  hash, hashq, hashv, hashx.
+
+	* tags.h: made wvect an option bit of vector.
+
+Mon Feb 19 09:38:05 1996  Tom Lord  <lord@beehive>
+
+	* symbols.c: made the basic symbol table operations atomic.
+
+	* root.c &c.: collected stack-specific global state.
+	linum/colnum etc *should* be port-specific state.
+
+	* struct.c (scm_init_struct): init the first struct type during
+	initialization to fix a race condition.
+
+	* continuations.c (scm_dynthrow): pass throwval in the 'regs'
+	object, not in a global.
+	(suggested by green@cygnus, jaffer@gnu.ai.mit.edu)
+
+	* throw.c (_scm_throw): Pass throwval on the stack, not in a global
+	(suggested by green@cygnus, jaffer@gnu.ai.mit.edu)
+
+	* *.[ch]: namespace cleanup.  Changed all (nearly) exported CPP
+	and C symbols to begin with SCM_ or scm_.
+
+Sun Feb 18 15:55:38 1996  Tom Lord  <lord@beehive>
+
+	* gsubr.c (scm_gsubr_apply): statically allocate the
+	array of arguments (bothner@cygnus.com).
+
+Sat Feb 17 20:20:40 1996  Tom Lord  <lord@beehive>
+
+	* scmsigs.c: Simplified to use async rountines.
+
+	* async.c: New support for interrupt handlers.
+
+Thu Feb 15 11:39:09 1996  Tom Lord  <lord@beehive>
+
+	* symbols.c (scm_string_to_symbol et al.): number of tweaky changes to 
+	set the multi_byte flag correctly in symbols.  This is wrong.
+	intern_obbary_soft and msymbolize should take an extra parameter.
+	Also, weird multibyte symbols don't print correctly.
+	The weird symbol syntax is also a bit bogus (emacs doesn't quite
+	cope).
+
+Tue Feb 13 11:39:37 1996  Tom Lord  <lord@beehive>
+
+	* symbols.c (scm_string_to_obarray_symbol): obarray == #f means
+	use the system symhash.   == #t means create an uninterned symbol.
+
+Wed Feb  7 09:28:02 1996  Tom Lord  <lord@beehive>
+
+	* strings.c (scm_make_shared_substring): build'em.
+	It might better to keep a table of these and use one
+	less cons-pair per shared-substring.
+
+Tue Feb  6 17:45:21 1996  Tom Lord  <lord@beehive>
+
+	* strings.c (scm_string_shared_substring): create shared 
+	substrings.  (Doesn't handle mb strings yet).
+
+	* mbstrings.c (scm_print_mb_string): handle RO strings.
+
+	* print.c (scm_iprin1): print substrings as their non-substring
+        counterparts (dubious).
+
+	* marksweep.c (scm_gc_mark scm_gc_sweep): handle RO and MB
+        strings.
+
+	* hash.c (scm_hasher): hash RO and MB strings as bytestrings.
+
+	* eval.c (SCM_CEVAL): self-evaluate RO and MB strings.
+
+	* eq.c (scm_equal_p): handle RO and MB strings.
+
+	* symbols.c (scm_string_to_symbol): 
+	(scm_string_to_obarray_symbol): 
+	* strop.c (scm_i_index): 
+	(scm_i_rindex): 
+	(scm_string_null_p): 
+	(scm_string_to_list): 
+	* strings.c (scm_string_length): 
+	(scm_string_ref): 
+	(scm_substring): 
+	(scm_string_append): 
+	* simpos.c (scm_system): 
+	(scm_getenv): 
+	* fports.c (scm_open_file): 
+	* strorder.c (scm_string_equal_p): 
+	(scm_string_ci_equal_p): 
+	(scm_string_less_p): 
+	(scm_string_ci_less_p): 
+	* pairs.c (scm_obj_length): 
+	* mbstrings.c (scm_multi_byte_string_length): 
+
+	Use RO string macros for RO strings.
+
+Tue Jan 30 09:19:08 1996  Tom Lord  <lord@beehive>
+
+	* Makefile.in (CFLAGS ALL_CFLAGS): be more standard.
+
+	* strop.c (scm_i_rindex, scm_i_index): Don't use the BSD functions
+	index/rindex.   Do handle embedded \000 characters.
+
+Sun Jan 28 13:16:18 1996  Tom Lord  <lord@beehive>
+
+	* error.c (def_err_response): (int)scm_err_pos => (long)scm_err_pos
+	Eliminate a (presumed) warning on some systems.
+
+	* gscm.c (gscm_run_scm): SCM_INIT_PATH => GUILE_INIT_PATH
+	(Mikael Djurfeldt <mdj@nada.kth.se>)
+
+Sat Jan 27 12:36:55 1996  Tom Lord  <lord@beehive>
+
+	* eval.c (scm_map): added argument type checking.
+	(kawai@sail.t.u-tokyo.ac.jp)
+
+	* gscm.c (gscm_set_procedure_properties_x): parameter "new" => "new_val"
+	for C++. (Seth Alves <alves@gryphon.com>)
+
+	(gscm_cstr):  uses an uninitialized local variable causing
+	segv. (kawai@sail.t.u-tokyo.ac.jp)
+
+
+	* lvectors.c (scm_get_lvector_hook): 
+	In guile-ii, the lvector code was broken.  It was fixed in guile-iii.
+	It seems to me like if it is broken again in guile-iv...Here is a patch.
+	"!       || (LENGTH (keyvec) == 0))"
+	(From: Mikael Djurfeldt <mdj@nada.kth.se>)
+
+
+	* gscm.c (gscm_sys_default_verbosity): 
+	incorrectly declared for non-__STDC__
+	(Tom_Mckay@avanticorp.com)
+
+	* ports.c (scm_setfileno): Tweak the macro a bit
+	to make it easier to port to systems that use
+	more than a single structure field to hold a descriptor.
+
+	* debug.c (change_mode): Avoid GNUCism "int foo[n];"
+	Give a warning, not an error, for unrecognized modes.
+
+	* eval.c (SCM_CEVAL): 
+		static char scm_s_for_each[]; 
+		static char scm_s_map[];
+	not needed.
+
+	* strings.c (scm_string_p): 
+               static char s_string[];  
+       (see next entry)
+
+	* struct.c (scm_sys_struct_set_x): 
+               static char s_sys_make_struct[];
+               static char s_sys_struct_ref[];
+               static char s_sys_struct_set_x[];
+	Rearrange code to eliminate those forward decls for the sake of
+	broken compilers.
+
+	* variable.c (make_vcell_variable): static char s_make_variable[];
+	isn't needed.
+
+	* fports.c (scm_port_mode): 
+               chars modes[3] = "";
+        to
+               chars modes[3];
+               modes[0] = '\0';
+	(Tom_Mckay@avanticorp.com)
+
+
+	* pairs.c (scm_set_cdr_x): non-__STDC__ declaration of
+        scm_cons2(), scm_acons(), and scm_set_cdr_x() missing semicolon
+	(Tom_Mckay@avanticorp.com)
+
+	* numbers.c (scm_num_eq_p): Non-__STDC__ declaration of 
+	scm_num_eq_p() was scm_equal_p().
+	(Tom_Mckay@avanticorp.com)
+
+	* symbols.c (msymbolize): "CHARS(X) = " => "SETCHARS..."
+	(Tom_Mckay@avanticorp.com)
+
+Fri Jan 26 14:03:01 1996  Tom Lord  <lord@beehive>
+
+	* weaks.c (scm_make_weak_vector): "VELTS(X) =" => "SETVELTS..."
+	(Tom_Mckay@avanticorp.com)
+
+	* strop.c (scm_substring_fill_x): 
+        Non-__STDC__ declaration of scm_substring_fill_x() missing semicolon
+	(Tom_Mckay@avanticorp.com)
+
+	* eval.c (SCM_APPLY): variables "debug_info" -> dbg_info.
+	Works around a compiler bug on some machines. (Tom_Mckay@avanticorp.com)
+
+	* _scm.h (CxR functions): #define CxR SCM_CxR => #define CxR(X) SCM_CxR(X)
+	Works around a compiler bug on some machines. (Tom_Mckay@avanticorp.com)
+
+	* lvectors.c (scm_lvector_set_x): avoid VELTS (VELTS (...)[..]) which
+	can turn into an obscure gc bug.
+
+	* chars.c (scm_char_p): fixed PROC call.
+
+	* gscm.h (gscm_vset): use scm_vector_set_x not (the missing)
+	scm_vector_set.
+
+Tue Jan 23 13:29:40 1996  Tom Lord  <lord@beehive>
+
+	* elisp.c (new file): dynamic scoping and other bits for
+	elisp.   Don't use this yet unless you specificly want to 
+	hack on elisp emulation.
+
+	* dynwind.c (scm_dowinds): When entering or leaving a dynamic
+	scope created by scm_with_dynamic_bindings_operation_x, swap
+	the bindings of that scope with the corresponding globals. 
+
+	* continuations.c (scm_make_cont): when a continuation is captured,
+	relocate the continuation stack chunks registered on the wind chain
+	to the heap.
+
+Sun Jan 21 19:31:17 1996  Tom Lord  <lord@beehive>
+
+	* eval.c (SCM_CEVAL): if the function position evaluates
+	to a macro, process it accordingly.  (Previously, macros were
+	handled only if the function position was a symbol naming a 
+	variable bound to a macro).
+
+Sat Jan 20 23:21:37 1996  Tom Lord  <lord@beehive>
+
+	* eval.c (scm_m_set): allow multi-variable set! like
+	(set! x 1 y 2 z 3).
+
+Wed Dec  6 02:40:49 1995  Tom Lord  <lord@beehive>
+
+	* ports.h fports.c vports.c marksweep.c gc.c strports.c: moved the STREAM
+	of ports into the port table and replaced it with a port-table
+	index.
+
+	* repl.c (iprin1): added tc7_mb_string -- same as tc7_string.
+
+	* marksweep.c (scm_gc_mark): added tc7_mb_string -- same as tc7_string.
+
+	* mbstrings.c (new file): functions on multi-byte strings.
+
+	* tags.h (scm_typ7_string, scm_typ7_mb_string): added a tag
+	for multi-byte strings. Moved the string tag.
+
+	* chars.h chars.c repl.c (many functions): made scm_upcase and scm_downcase
+	functions that are safe for extended character sets.  
+
+	Changed the range of integer->char.
+
+	Changed the tyep of SCM_ICHR.
+
+
+
+Tue May 16 17:49:58 1995  Mikael Djurfeldt  <mdj@sanscalc.nada.kth.se>
+  
+	* guile.c: Changed init file name from "SCM_INIT_PATH" to
+ 	  "GUILE_INIT_PATH"
+ 
+Sun Aug  6 15:14:46 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* guile.c (gscm_is_gscm_type): New function.  (Without this how will we
+	know that it's safe to pass an object to gscm_get_type?)
+	(gscm_get_type): Fix tyop in error message.
+
+	* variable.c (scm_variable_ref): fixed assertion test.
+	(Robert STRANDH <strandh@labri.u-bordeaux.fr>)
+
+	* gscm.h: fixed several prototypes, notably gscm_vref.
+	Add gscm_is_eq and temporarily commented out gscm_eq (see
+	the note in gscm.h near gscm_eq if this change effects your
+	code). 
+	(Reported by Mark Galassi <rosalia@sstcx1.lanl.gov>)
+
+	* pairs.c (scm_obj_length): see next entry.
+
+	* gscm.h (gscm_obj_length): A way to get an integer
+	length for lists, strings, symbols (treated as strings),
+	and vectors.  Returns -1 on error.
+
+	* eq.c (scm_equal_p): fixed smob case.
+	(William Gribble <grib@arlut.utexas.edu>)
+
+	* Makefile.in (X_CFLAGS): defined.
+	(William Gribble <grib@arlut.utexas.edu>)
+
+	* gscm.h (gscm_2_double): provided now 
+	(reported by Mark Galassi <rosalia@sstcx1.lanl.gov>)
+
+Tue Jun 13 01:04:09 1995  gnu
+	* Vrooom!
+
+

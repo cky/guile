@@ -1,0 +1,97 @@
+/* classes: h_files */
+
+#ifndef ALISTH
+#define ALISTH
+/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this software; see the file COPYING.  If not, write to
+ * the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * As a special exception, the Free Software Foundation gives permission
+ * for additional uses of the text contained in its release of GUILE.
+ *
+ * The exception is that, if you link the GUILE library with other files
+ * to produce an executable, this does not by itself cause the
+ * resulting executable to be covered by the GNU General Public License.
+ * Your use of that executable is in no way restricted on account of
+ * linking the GUILE library code into it.
+ *
+ * This exception does not however invalidate any other reasons why
+ * the executable file might be covered by the GNU General Public License.
+ *
+ * This exception applies only to the code released by the
+ * Free Software Foundation under the name GUILE.  If you copy
+ * code from other Free Software Foundation releases into a copy of
+ * GUILE, as the General Public License permits, the exception does
+ * not apply to the code that you add in this way.  To avoid misleading
+ * anyone as to the status of such modified files, you must delete
+ * this exception notice from them.
+ *
+ * If you write modifications of your own for GUILE, it is your choice
+ * whether to permit this exception to apply to your modifications.
+ * If you do not wish that, delete this exception notice.  
+ */
+
+
+#include "__scm.h"
+
+
+
+
+
+
+#ifdef __STDC__
+extern SCM scm_acons (SCM w, SCM x, SCM y);
+extern SCM scm_sloppy_assq(SCM x, SCM alist);
+extern SCM scm_sloppy_assv(SCM x, SCM alist);
+extern SCM scm_sloppy_assoc(SCM x, SCM alist);
+extern SCM scm_assq(SCM x, SCM alist);
+extern SCM scm_assv(SCM x, SCM alist);
+extern SCM scm_assoc(SCM x, SCM alist);
+extern SCM scm_assq_ref (SCM alist, SCM key);
+extern SCM scm_assv_ref (SCM alist, SCM key);
+extern SCM scm_assoc_ref (SCM alist, SCM key);
+extern SCM scm_assq_set_x (SCM alist, SCM key, SCM val);
+extern SCM scm_assv_set_x (SCM alist, SCM key, SCM val);
+extern SCM scm_assoc_set_x (SCM alist, SCM key, SCM val);
+extern SCM scm_assq_remove_x (SCM alist, SCM key);
+extern SCM scm_assv_remove_x (SCM alist, SCM key);
+extern SCM scm_assoc_remove_x (SCM alist, SCM key);
+extern void scm_init_alist (void);
+
+#else /* STDC */
+extern SCM scm_acons ();
+extern SCM scm_sloppy_assq();
+extern SCM scm_sloppy_assv();
+extern SCM scm_sloppy_assoc();
+extern SCM scm_assq();
+extern SCM scm_assv();
+extern SCM scm_assoc();
+extern SCM scm_assq_ref ();
+extern SCM scm_assv_ref ();
+extern SCM scm_assoc_ref ();
+extern SCM scm_assq_set_x ();
+extern SCM scm_assv_set_x ();
+extern SCM scm_assoc_set_x ();
+extern SCM scm_assq_remove_x ();
+extern SCM scm_assv_remove_x ();
+extern SCM scm_assoc_remove_x ();
+extern void scm_init_alist ();
+
+#endif /* STDC */
+
+
+
+
+#endif  /* ALISTH */

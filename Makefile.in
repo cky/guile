@@ -1,0 +1,294 @@
+#	Copyright (C) 1994,1995 Free Software Foundation, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this software; see the file COPYING.  If not, write to
+# the Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+
+SHELL = /bin/sh
+
+subdirs=@existingdirs@
+
+localfiles =	ANNOUNCE \
+		COPYING \
+		Makefile.in \
+		configure \
+		configure.in \
+		config.sub \
+		config.guess \
+		install-sh
+
+localtreats = ANN.BX
+
+# `all'
+#     Compile the entire program.  This should be the default target.
+#     This target need not rebuild any documentation files; info files
+#     should normally be included in the distribution, and DVI files
+#     should be made only when explicitly asked for.
+all:
+	@for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} all; \
+		cd .. ;\
+	done
+
+#`install'
+#     Compile the program and copy the executables, libraries, and so on
+#     to the file names where they should reside for actual use.  If
+#     there is a simple test to verify that a program is properly
+#     installed then run that test.
+#
+#     Use `-' before any command for installing a man page, so that
+#     `make' will ignore any errors.  This is in case there are systems
+#     that don't have the Unix man page documentation system installed.
+#
+#     In the future, when we have a standard way of installing info
+#     files, `install' targets will be the proper place to do so.
+#
+subdir-inst-target=install-nobuild
+
+install: all
+	${MAKE} subdir-inst-target=install install-nobuild
+
+install-nobuild:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} ${subdir-inst-target}; \
+		cd ..  ;\
+	done
+
+#`uninstall'
+#     Delete all the installed files that the `install' target would
+#     create (but not the noninstalled files such as `make all' would
+#     create).
+uninstall:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} uninstall; \
+		cd ..  ;\
+	done
+
+
+#`clean'
+#     Delete all files from the current directory that are normally
+#     created by building the program.  Don't delete the files that
+#     record the configuration.  Also preserve files that could be made
+#     by building, but normally aren't because the distribution comes
+#     with them.
+#
+#     Delete `.dvi' files here if they are not part of the distribution.
+#
+clean:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} clean; \
+		cd ..  ;\
+	done
+
+#`distclean'
+#     Delete all files from the current directory that are created by
+#     configuring or building the program.  If you have unpacked the
+#     source and built the program without creating any other files,
+#     `make distclean' should leave only the files that were in the
+#     distribution.
+distclean:
+	rm -f config.cache
+	rm -f config.log
+	rm -f config.status
+	rm -f Makefile
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} distclean; \
+		cd ..  ;\
+	done
+
+
+#`mostlyclean'
+#     Like `clean', but may refrain from deleting a few files that people
+#     normally don't want to recompile.  For example, the `mostlyclean'
+#     target for GCC does not delete `libgcc.a', because recompiling it
+#     is rarely necessary and takes a lot of time.
+mostlyclean:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} mostlyclean; \
+		cd ..  ;\
+	done
+
+
+#`realclean'
+#     Delete everything from the current directory that can be
+#     reconstructed with this Makefile.  This typically includes
+#     everything deleted by distclean, plus more: C source files
+#     produced by Bison, tags tables, info files, and so on.
+#
+#     One exception, however: `make realclean' should not delete
+#     `configure' even if `configure' can be remade using a rule in the
+#     Makefile.  More generally, `make realclean' should not delete
+#     anything that needs to exist in order to run `configure' and then
+#     begin to build the program.
+realclean:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} realclean; \
+		cd ..  ;\
+	done
+
+
+#`TAGS'
+#     Update a tags table for this program.
+TAGS:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} TAGS; \
+		cd ..  ;\
+	done
+
+#`info'
+#     Generate any info files needed.  The best way to write the rules
+#     is as follows:
+#
+#          info:  foo.info
+#          
+#          foo.info: $(srcdir)/foo.texi $(srcdir)/chap1.texi $(srcdir)/chap2.texi
+#                  $(MAKEINFO) $(srcdir)/foo.texi
+#
+#     You must define the variable `MAKEINFO' in the Makefile.  It
+#     should run the Makeinfo program, which is part of the Texinfo2
+#     distribution.
+info:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} info; \
+		cd ..  ;\
+	done
+
+
+#`dvi'
+#     Generate DVI files for all TeXinfo documentation.  For example:
+#
+#          dvi: foo.dvi
+#          
+#          foo.dvi: $(srcdir)/foo.texi $(srcdir)/chap1.texi $(srcdir)/chap2.texi
+#                  $(TEXI2DVI) $(srcdir)/foo.texi
+#
+#     You must define the variable `TEXI2DVI' in the Makefile.  It should
+#     run the program `texi2dvi', which is part of the Texinfo2
+#     distribution.  Alternatively, write just the dependencies, and
+#     allow GNU Make to provide the command.
+dvi:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} dvi; \
+		cd ..  ;\
+	done
+
+#`dist'
+#     Create a distribution tar file for this program.  The tar file
+#     should be set up so that the file names in the tar file start with
+#     a subdirectory name which is the name of the package it is a
+#     distribution for.  This name can include the version number.
+#
+#     For example, the distribution tar file of GCC version 1.40 unpacks
+#     into a subdirectory named `gcc-1.40'.
+#
+#     The easiest way to do this is to create a subdirectory
+#     appropriately named, use `ln' or `cp' to install the proper files
+#     in it, and then `tar' that subdirectory.
+#
+#     The `dist' target should explicitly depend on all non-source files
+#     that are in the distribution, to make sure they are up to date in
+#     the distribution.  *Ref Making Releases: (standards)Releases.
+distname = brand-x
+distdir = $(distname)
+treats = $(localtreats)
+announcefile = ANN.BX
+
+manifest-file:
+	rm -f MANIFEST
+	cp $(announcefile) ANNOUNCE
+	for treat in $(localfiles) $(treats) ; \
+	  do echo $$treat >> MANIFEST ; \
+	done
+	for subdir in $(subdirs) ; do \
+	  make -s -f $$subdir/Makefile.in SUBDIR=$$subdir manifest >> MANIFEST ; \
+	done
+	sed -e "s%^%$(distdir)/%" MANIFEST > M2
+	sed -e "/Entering dir/d" -e "/Leaving dir/d" M2 > MANIFEST
+	rm M2
+
+
+
+dist: manifest-file
+	mkdir $(distdir)
+	- cd $(distdir); \
+	for file in $(localfiles) $(treats) $(subdirs); do ln -s ../$$file .; done; \
+	cd ..; \
+	gtar -zhcvf $(distname).tar.gz --files-from MANIFEST
+	rm -rf $(distdir)
+	-gtar ztvf $(distname).tar.gz | grep ".*~" > BACKUPS
+	test -s BACKUPS && (echo WARNING -- MANIFEST INCLUDES BACK FILES; cat BACKUPS)
+
+#`check'
+#     Perform self-tests (if any).  The user must build the program
+#     before running the tests, but need not install the program; you
+#     should write the self-tests so that they work when the program is
+#     built but not installed.
+check:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} check; \
+		cd ..  ;\
+	done
+
+
+#`installcheck'
+#     Perform installation tests (if any).  The user must build and
+#     install the program before running the tests.  You should not
+#     assume that `$(bindir)' is in the search path.
+installcheck:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} installcheck; \
+		cd ..  ;\
+	done
+
+
+#`installdirs'
+#     It's useful to add a target named `installdirs' to create the
+#     directories where files are installed, and their parent
+#     directories.  There is a script called `mkinstalldirs' which is
+#     convenient for this; find it in the Texinfo package.You can use a
+#     rule like this:
+#
+#          # Make sure all installation directories, e.g. $(bindir) actually exist by
+#          # making them if necessary.
+#          installdirs: mkinstalldirs
+#                  $(srcdir)/mkinstalldirs $(bindir) $(datadir) $(libdir) \
+#                                          $(infodir) $(mandir)
+installdirs:
+	for dir in ${subdirs}; do \
+		cd $$dir; \
+		${MAKE} installdirs; \
+		cd ..  ;\
+	done
+
+
+
+# Cygnus extention:
+# 
+#    `Makefile'
+#          Calls `./config.status' to rebuild the `Makefile' in this
+#          directory.
+Makefile:
+	${SHELL-/bin/sh} config.status

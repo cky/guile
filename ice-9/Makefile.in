@@ -1,0 +1,71 @@
+# 	Copyright (C) 1995 Free Software Foundation, Inc.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this software; see the file COPYING.  If not, write to
+# the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+# 
+
+
+
+SHELL = /bin/sh
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+
+VERSION=@GUILE_VERSION@
+
+libparent=$(prefix)/lib
+libdir=$(libparent)/guile$(VERSION)
+install_path=$(libdir)/@library_name@
+
+INSTALL = $(srcdir)/../install-sh -c
+INSTALL_DATA = $(INSTALL) -m 644
+
+scm_files=  @scm_files@
+aux_files = @aux_files@
+
+all: 
+
+install: all
+	test -d $(libparent) || mkdir $(libparent)
+	test -d $(libdir) || mkdir $(libdir)
+	test -d $(install_path) || mkdir $(install_path)
+	cd $(srcdir); \
+	for file in $(scm_files); do \
+	  $(INSTALL_DATA) $$file $(install_path); \
+	done
+
+uninstall: 
+	for file in $(scm_files) ; do \
+	  rm -f $(install_path)/$$file;  \
+	done;
+	-rmdir $(install_path)
+	-rmdir $(libdir)
+
+
+SUBDIR=.
+manifest:
+	srcdir=./$(SUBDIR) ; \
+	. $(SUBDIR)/PLUGIN/this.configure;  \
+	for file in $$scm_files $$aux_files ; \
+	  do echo $(SUBDIR)/$$file ; \
+	done
+
+clean:
+
+distclean:
+	-rm -f config.log config.status Makefile
+
+realclean:
+
