@@ -1,3 +1,8 @@
+2004-09-07  Kevin Ryde  <user42@zip.com.au>
+
+	* api-procedures.texi (let-keywords Reference): Typo, should be
+	let-keywords* @defunx.
+
 2004-09-02  Kevin Ryde  <user42@zip.com.au>
 
 	* misc-modules.texi (Formatted Output): Excess arguments are ignored.
