@@ -1,3 +1,9 @@
+2001-04-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* readline.c (scm_clear_history): New function.
+	* readline.scm (readline-port): Call clear-history on exit.
+	Thanks to Utz-Uwe Haus.
+
 2001-03-09  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* readline.c: Add #include <stdio.h>
