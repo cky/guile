@@ -259,7 +259,7 @@ scm_eval_0str (expr)
 			    SCM_OPN | SCM_RDNG,
 			    "scm_eval_0str");
   SCM form;
-  SCM ans;
+  SCM ans = SCM_EOL;
 
   /* Read expressions from that port; ignore the values.  */
   while ((form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F)) != SCM_EOF_VAL)
