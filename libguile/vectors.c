@@ -27,6 +27,10 @@
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
 #include "libguile/unif.h"
+#include "libguile/srfi-4.h"
+#include "libguile/strings.h"
+#include "libguile/srfi-13.h"
+
 
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
@@ -39,6 +43,12 @@ SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+int
+scm_is_vector (SCM obj)
+{
+  return SCM_VECTORP (obj);
+}
+
 SCM_GPROC (s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vector_length);
 /* Returns the number of elements in @var{vector} as an exact integer.  */
 SCM
@@ -47,6 +57,20 @@ scm_vector_length (SCM v)
   SCM_GASSERT1 (SCM_VECTORP(v),
 		g_vector_length, v, SCM_ARG1, s_vector_length);
   return scm_from_size_t (SCM_VECTOR_LENGTH (v));
+}
+
+size_t
+scm_c_vector_length (SCM v)
+{
+  if (SCM_VECTORP (v))
+    return SCM_VECTOR_LENGTH (v);
+  else
+    {
+      /* Call primitive generic to get an error or maybe dispatch to a
+	 method.
+      */
+      return scm_to_size_t (scm_vector_length (v));
+    }
 }
 
 SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
@@ -123,6 +147,20 @@ scm_vector_ref (SCM v, SCM k)
 }
 #undef FUNC_NAME
 
+SCM
+scm_c_vector_ref (SCM v, size_t k)
+{
+  if (SCM_VECTORP (v) && k < SCM_VECTOR_LENGTH (v))
+    return SCM_VECTOR_REF (v, k);
+  else
+    {
+      /* Call primitive generic to get an error or maybe dispatch to a
+	 method.
+      */
+      return scm_vector_ref (v, scm_from_size_t (k));
+    }
+}
+
 SCM_GPROC (s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x, g_vector_set_x);
 
 /* "@var{k} must be a valid index of @var{vector}.\n"
@@ -154,6 +192,22 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 }
 #undef FUNC_NAME
 
+SCM
+scm_c_vector_set_x (SCM v, size_t k, SCM obj)
+{
+  if (SCM_VECTORP (v) && k < SCM_VECTOR_LENGTH (v))
+    {
+      SCM_VECTOR_SET (v, k, obj);
+      return SCM_UNSPECIFIED;
+    }
+  else
+    {
+      /* Call primitive generic to get an error or maybe dispatch to a
+	 method.
+      */
+      return scm_vector_set_x (v, scm_from_size_t (k), obj);
+    }
+}
 
 SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
             (SCM k, SCM fill),
@@ -174,7 +228,7 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
 
 
 SCM
-scm_c_make_vector (unsigned long int k, SCM fill)
+scm_c_make_vector (size_t k, SCM fill)
 #define FUNC_NAME s_scm_make_vector
 {
   SCM v;
@@ -310,6 +364,121 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 }
 #undef FUNC_NAME
 
+
+/* Generalized vectors. */
+
+int
+scm_is_generalized_vector (SCM obj)
+{
+  return (scm_is_vector (obj)
+	  || scm_is_string (obj)
+	  || scm_is_bitvector (obj)
+	  || scm_is_uniform_vector (obj));
+}
+
+SCM_DEFINE (scm_generalized_vector_p, "generalized-vector?", 1, 0, 0,
+	    (SCM obj),
+	    "Return @code{#t} if @var{obj} is a vector, string,\n"
+	    "bitvector, or uniform numeric vector.")
+#define FUNC_NAME s_scm_generalized_vector_p
+{
+  return scm_from_bool (scm_is_generalized_vector (obj));
+}
+#undef FUNC_NAME
+
+size_t
+scm_c_generalized_vector_length (SCM v)
+{
+  if (scm_is_vector (v))
+    return scm_c_vector_length (v);
+  else if (scm_is_string (v))
+    return scm_c_string_length (v);
+  else if (scm_is_bitvector (v))
+    return scm_c_bitvector_length (v);
+  else if (scm_is_uniform_vector (v))
+    return scm_c_uniform_vector_length (v);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
+}
+
+SCM_DEFINE (scm_generalized_vector_length, "generalized-vector-length", 1, 0, 0,
+	    (SCM v),
+	    "Return the length of the generalized vector @var{v}.")
+#define FUNC_NAME s_scm_generalized_vector_length
+{
+  return scm_from_size_t (scm_c_generalized_vector_length (v));
+}
+#undef FUNC_NAME
+
+SCM
+scm_c_generalized_vector_ref (SCM v, size_t idx)
+{
+  if (scm_is_vector (v))
+    return scm_c_vector_ref (v, idx);
+  else if (scm_is_string (v))
+    return scm_c_string_ref (v, idx);
+  else if (scm_is_bitvector (v))
+    return scm_c_bitvector_ref (v, idx);
+  else if (scm_is_uniform_vector (v))
+    return scm_c_uniform_vector_ref (v, idx);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
+}
+
+SCM_DEFINE (scm_generalized_vector_ref, "generalized-vector-ref", 2, 0, 0,
+	    (SCM v, SCM idx),
+	    "Return the element at index @var{idx} of the\n"
+	    "generalized vector @var{v}.")
+#define FUNC_NAME s_scm_generalized_vector_ref
+{
+  return scm_c_generalized_vector_ref (v, scm_to_size_t (idx));
+}
+#undef FUNC_NAME
+
+void
+scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val)
+{
+  if (scm_is_vector (v))
+    scm_c_vector_set_x (v, idx, val);
+  else if (scm_is_string (v))
+    scm_c_string_set_x (v, idx, val);
+  else if (scm_is_bitvector (v))
+    scm_c_bitvector_set_x (v, idx, val);
+  else if (scm_is_uniform_vector (v))
+    scm_c_uniform_vector_set_x (v, idx, val);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
+}
+
+SCM_DEFINE (scm_generalized_vector_set_x, "generalized-vector-set!", 3, 0, 0,
+	    (SCM v, SCM idx, SCM val),
+	    "Set the element at index @var{idx} of the\n"
+	    "generalized vector @var{v} to @var{val}.")
+#define FUNC_NAME s_scm_generalized_vector_set_x
+{
+  scm_c_generalized_vector_set_x (v, scm_to_size_t (idx), val);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_generalized_vector_to_list, "generalized-vector->list", 1, 0, 0,
+	    (SCM v),
+	    "Return a new list whose elements are the elements of the\n"
+	    "generalized vector @var{v}.")
+#define FUNC_NAME s_scm_generalized_vector_to_list
+{
+  if (scm_is_vector (v))
+    return scm_vector_to_list (v);
+  else if (scm_is_string (v))
+    return scm_string_to_list (v);
+  else if (scm_is_bitvector (v))
+    return scm_bitvector_to_list (v);
+  else if (scm_is_uniform_vector (v))
+    return scm_uniform_vector_to_list (v);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
+}
+#undef FUNC_NAME
 
 
 void
