@@ -1,8 +1,15 @@
-2002-12-16  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+2002-12-16  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
 	* threads.c (scm_thread): Removed filed joining_threads.
 	(thread_print): Print thread number as well as address of thread
 	structure.
+	(scm_join_thread): Bugfix.
+	(scm_lock_mutex, scm_try_mutex, scm_unlock_mutex,
+	scm_timed_wait_condition_variable, scm_signal_condition_variable,
+	scm_broadcast_condition_variable): Use the low-level API.
+	(scm_all_threads): Return copy of thread list (to prevent
+	unintended destruction).
+	(scm_threads_prehistory): Initialize heap_mutex of fake thread.
 
 	* pthread-threads.c, pthread-threads.h, threads.c: Fixes to
 	pthread "native" recursive mutex support.

@@ -217,7 +217,7 @@ SCM_SNARF_INIT(scm_i_plugin_rec_mutex_init (&c_name, &scm_i_plugin_rec_mutex))
 
 #define SCM_GLOBAL_REC_MUTEX(c_name) \
 SCM_SNARF_HERE(scm_t_rec_mutex c_name) \
-SCM_SNARF_INIT(scm_i_plugin_mutex_init (&c_name, &scm_i_plugin_rec_mutex))
+SCM_SNARF_INIT(scm_i_plugin_rec_mutex_init (&c_name, &scm_i_plugin_rec_mutex))
 
 #ifdef SCM_MAGIC_SNARF_DOCS
 #undef SCM_ASSERT

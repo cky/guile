@@ -52,6 +52,7 @@
 /* This is an interface between Guile and the pthreads thread package. */
 
 #include <pthread.h>
+#include <sched.h>
 
 /* MDJ 021209 <djurfeldt@nada.kth.se>:
    The separation of the plugin interface and the low-level C API
@@ -65,26 +66,53 @@
 
 #define scm_i_plugin_thread_join	pthread_join 
 #define scm_i_plugin_thread_detach	pthread_detach 
-#define scm_i_plugin_thread_self	pthread_self 
+#define scm_i_plugin_thread_self	pthread_self
+#define scm_i_plugin_thread_yield	sched_yield
 
-#define scm_t_mutex			pthread_mutex_t
+/* Size is checked in scm_init_pthread_threads */
+#ifdef SCM_DEBUG_THREADS
+#define SCM_MUTEX_MAXSIZE (9 * sizeof (long))
+#else
+#define SCM_MUTEX_MAXSIZE (6 * sizeof (long))
+#endif
+typedef struct { char _[SCM_MUTEX_MAXSIZE]; } scm_t_mutex;
 #define scm_t_mutexattr			pthread_mutexattr_t
 
 extern scm_t_mutexattr scm_i_plugin_mutex; /* The "fast" mutex. */
 
-#define scm_i_plugin_mutex_init		pthread_mutex_init 
-#define scm_i_plugin_mutex_destroy	pthread_mutex_destroy
-#define scm_i_plugin_mutex_lock		pthread_mutex_lock 
-#define scm_i_plugin_mutex_trylock	pthread_mutex_trylock 
-#define scm_i_plugin_mutex_unlock	pthread_mutex_unlock 
+#ifdef SCM_DEBUG_THREADS
+int scm_i_plugin_mutex_init (scm_t_mutex *, const scm_t_mutexattr *);
+int scm_i_plugin_mutex_lock (scm_t_mutex *);
+int scm_i_plugin_mutex_unlock (scm_t_mutex *);
+#else
+#define scm_i_plugin_mutex_init(m,a) \
+  pthread_mutex_init ((pthread_mutex_t *) (m), (a))
+#define scm_i_plugin_mutex_lock(m) \
+  pthread_mutex_lock ((pthread_mutex_t *) (m))
+#define scm_i_plugin_mutex_unlock(m) \
+  pthread_mutex_unlock ((pthread_mutex_t *) (m))
+#endif
+#define scm_i_plugin_mutex_destroy(m) \
+  pthread_mutex_destroy ((pthread_mutex_t *) (m))
+#define scm_i_plugin_mutex_trylock(m) \
+  pthread_mutex_trylock ((pthread_mutex_t *) (m))
 
 /* Size is checked in scm_init_pthread_threads */
-#define SCM_REC_MUTEX_MAXSIZE (8 * sizeof (long))
+#ifdef SCM_DEBUG_THREADS
+#define SCM_REC_MUTEX_MAXSIZE (SCM_MUTEX_MAXSIZE + 3 * sizeof (long))
+#else
+#ifdef SCM_MUTEX_RECURSIVE
+#define SCM_REC_MUTEX_MAXSIZE SCM_MUTEX_MAXSIZE
+#else
+#define SCM_REC_MUTEX_MAXSIZE (SCM_MUTEX_MAXSIZE + 2 * sizeof (long))
+#endif
+#endif
 typedef struct { char _[SCM_REC_MUTEX_MAXSIZE]; } scm_t_rec_mutex;
 
 extern scm_t_mutexattr scm_i_plugin_rec_mutex;
 
-#ifdef SCM_MUTEX_RECURSIVE /* pthreads has recursive mutexes! */
+#if defined (SCM_MUTEX_RECURSIVE) && !defined (SCM_DEBUG_THREADS)
+/* pthreads has recursive mutexes! */
 #define scm_i_plugin_rec_mutex_init(m,a) \
   pthread_mutex_init ((pthread_mutex_t *) (m), (a))
 #define scm_i_plugin_rec_mutex_destroy(m) \
@@ -107,8 +135,10 @@ int scm_i_plugin_rec_mutex_unlock (scm_t_rec_mutex *);
 
 #define scm_i_plugin_cond_init		pthread_cond_init 
 #define scm_i_plugin_cond_destroy	pthread_cond_destroy 
-#define scm_i_plugin_cond_wait		pthread_cond_wait 
-#define scm_i_plugin_cond_timedwait	pthread_cond_timedwait 
+#define scm_i_plugin_cond_wait(c, m) \
+  pthread_cond_wait ((c), (pthread_mutex_t *) (m))
+#define scm_i_plugin_cond_timedwait(c, m, t) \
+  pthread_cond_timedwait ((c), (pthread_mutex_t *) (m), (t))
 #define scm_i_plugin_cond_signal	pthread_cond_signal 
 #define scm_i_plugin_cond_broadcast	pthread_cond_broadcast 
 

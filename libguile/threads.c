@@ -476,9 +476,10 @@ SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
   t = SCM_THREAD_DATA (thread);
   if (!t->exited)
     {
-      scm_thread *c = scm_i_leave_guile ();
+      scm_thread *c;
+      c = scm_i_leave_guile ();
       while (!THREAD_INITIALIZED_P (t))
-	SCM_TICK;
+	scm_i_plugin_thread_yield ();
       scm_thread_join (t->thread, 0);
       scm_i_enter_guile (c);
     }
@@ -784,9 +785,7 @@ SCM_DEFINE (scm_lock_mutex, "lock-mutex", 1, 0, 0,
   else
     {
       scm_t_mutex *m = SCM_MUTEX_DATA (mx);
-      scm_thread *t = scm_i_leave_guile ();
-      err = scm_i_plugin_mutex_lock (m);
-      scm_i_enter_guile (t);
+      err = scm_mutex_lock (m);
     }
 
   if (err)
@@ -812,9 +811,7 @@ SCM_DEFINE (scm_try_mutex, "try-mutex", 1, 0, 0,
   else
     {
       scm_t_mutex *m = SCM_MUTEX_DATA (mx);
-      scm_thread *t = scm_i_leave_guile ();
-      err = scm_i_plugin_mutex_trylock (m);
-      scm_i_enter_guile (t);
+      err = scm_mutex_trylock (m);
     }
 
   if (err == EBUSY)
@@ -862,7 +859,7 @@ SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0,
   else
     {
       scm_t_mutex *m = SCM_MUTEX_DATA (mx);
-      err = scm_i_plugin_mutex_unlock (m);
+      err = scm_mutex_unlock (m);
     }
 
   if (err)
@@ -935,9 +932,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
     {
       scm_t_cond *c = SCM_CONDVAR_DATA (cv);
       scm_t_mutex *m = SCM_MUTEX_DATA (mx);
-      scm_thread *t = scm_i_leave_guile ();
-      err = scm_i_plugin_cond_wait (c, m);
-      scm_i_enter_guile (t);
+      err = scm_cond_wait (c, m);
     }
 
   if (err)
@@ -960,7 +955,7 @@ SCM_DEFINE (scm_signal_condition_variable, "signal-condition-variable", 1, 0, 0,
   else
     {
       scm_t_cond *c = SCM_CONDVAR_DATA (cv);
-      scm_i_plugin_cond_signal (c);
+      scm_cond_signal (c);
     }
   return SCM_BOOL_T;
 }
@@ -977,7 +972,7 @@ SCM_DEFINE (scm_broadcast_condition_variable, "broadcast-condition-variable", 1,
   else
     {
       scm_t_cond *c = SCM_CONDVAR_DATA (cv);
-      scm_i_plugin_cond_broadcast (c);
+      scm_cond_broadcast (c);
     }
   return SCM_BOOL_T;
 }
@@ -1213,7 +1208,7 @@ SCM_DEFINE (scm_all_threads, "all-threads", 0, 0, 0,
 	    "Return a list of all threads.")
 #define FUNC_NAME s_scm_all_threads
 {
-  return all_threads;
+  return scm_list_copy (all_threads);
 }
 #undef FUNC_NAME
 
@@ -1343,7 +1338,9 @@ scm_threads_prehistory ()
   t = malloc (sizeof (scm_thread));
   t->base = NULL;
   t->clear_freelists_p = 0;
+  scm_i_plugin_mutex_init (&t->heap_mutex, &scm_i_plugin_mutex);
   scm_setspecific (scm_i_thread_key, t);
+  scm_i_enter_guile (t);
 }
 
 scm_t_bits scm_tc16_thread;

@@ -48,9 +48,12 @@ scm_t_mutexattr scm_i_plugin_mutex;
 
 scm_t_mutexattr scm_i_plugin_rec_mutex;
 
-#ifndef SCM_MUTEX_RECURSIVE
-#error hej
+#if !defined (SCM_MUTEX_RECURSIVE) || defined (SCM_DEBUG_THREADS)
+
 typedef struct rec_mutex {
+#ifdef SCM_DEBUG_THREADS
+  int kind;
+#endif
   scm_t_mutex mutex;
   scm_thread *owner;
   int count;
@@ -59,6 +62,92 @@ typedef struct rec_mutex {
 /* Mutex for recursive mutex administration */
 static scm_t_mutex rec_mutex_mutex;
 
+#ifdef SCM_DEBUG_THREADS
+
+#define FAST_MUTEX 1
+#define REC_MUTEX 2
+
+typedef struct mutex {
+#ifdef SCM_DEBUG_THREADS
+  int kind;
+#endif
+  pthread_mutex_t mutex;
+  scm_thread *owner;
+  int count;
+} mutex;
+
+static pthread_mutex_t mutex_mutex;
+
+int
+scm_i_plugin_mutex_init (scm_t_mutex *mx, const scm_t_mutexattr *a)
+{
+  mutex *m = (mutex *) mx;
+  pthread_mutex_init (&m->mutex, &scm_i_plugin_mutex);
+  m->owner = 0;
+  m->count = 0;
+  m->kind = FAST_MUTEX;
+  return 0;
+}
+
+int
+scm_i_plugin_mutex_lock (scm_t_mutex *mx)
+{
+  mutex *m = (mutex *) mx;
+  scm_thread *t = SCM_CURRENT_THREAD;
+  pthread_mutex_lock (&mutex_mutex);
+  if (m->kind != FAST_MUTEX)
+    {
+      fprintf (stderr,
+	       m->kind == REC_MUTEX
+	       ? "locking wrong mutex type\n"
+	       : "locking uninitialized mutex\n");
+      abort ();
+    }
+  if (m->owner == t)
+    {
+      fprintf (stderr, "locking mutex already locked by self\n");
+      abort ();
+    }
+  pthread_mutex_unlock (&mutex_mutex);
+  pthread_mutex_lock (&m->mutex);
+  m->count = 1;
+  m->owner = t;
+  return 0;
+}
+
+int
+scm_i_plugin_mutex_unlock (scm_t_mutex *mx)
+{
+  mutex *m = (mutex *) mx;
+  pthread_mutex_lock (&mutex_mutex);
+  if (m->kind != FAST_MUTEX)
+    {
+      fprintf (stderr,
+	       m->kind == REC_MUTEX
+	       ? "locking wrong mutex type\n"
+	       : "locking uninitialized mutex\n");
+      abort ();
+    }
+  if (m->count != 1)
+    {
+      fprintf (stderr,
+	       m->count == 0
+	       ? "unlocking unlocked mutex\n"
+	       : "bogus internal state");
+      abort ();
+    }
+  m->owner = 0;
+  m->count = 0;
+  pthread_mutex_unlock (&m->mutex);
+  pthread_mutex_unlock (&mutex_mutex);
+  return 0;
+}
+#endif
+
+/* The following section belongs in threads.c, or rather
+   thread-plugin.c.  It is generic and not tied to any particular
+   thread library. */
+
 int
 scm_i_plugin_rec_mutex_init (scm_t_rec_mutex *mx, const scm_t_mutexattr *a)
 {
@@ -66,6 +155,9 @@ scm_i_plugin_rec_mutex_init (scm_t_rec_mutex *mx, const scm_t_mutexattr *a)
   scm_i_plugin_mutex_init (&m->mutex, &scm_i_plugin_mutex);
   m->owner = 0;
   m->count = 0;
+#ifdef SCM_DEBUG_THREADS
+  m->kind = REC_MUTEX;
+#endif
   return 0;
 }
 
@@ -75,6 +167,16 @@ scm_i_plugin_rec_mutex_lock (scm_t_rec_mutex *mx)
   rec_mutex *m = (rec_mutex *) mx;
   scm_thread *t = SCM_CURRENT_THREAD;
   scm_i_plugin_mutex_lock (&rec_mutex_mutex);
+#ifdef SCM_DEBUG_THREADS
+  if (m->kind != REC_MUTEX)
+    {
+      fprintf (stderr,
+	       m->kind == FAST_MUTEX
+	       ? "locking wrong mutex type\n"
+	       : "locking uninitialized mutex\n");
+      abort ();
+    }
+#endif
   if (m->count && m->owner == t)
     {
       ++m->count;
@@ -118,6 +220,21 @@ scm_i_plugin_rec_mutex_unlock (scm_t_rec_mutex *mx)
 {
   rec_mutex *m = (rec_mutex *) mx;
   scm_i_plugin_mutex_lock (&rec_mutex_mutex);
+#ifdef SCM_DEBUG_THREADS
+  if (m->kind != REC_MUTEX)
+    {
+      fprintf (stderr,
+	       m->kind == FAST_MUTEX
+	       ? "locking wrong mutex type\n"
+	       : "locking uninitialized mutex\n");
+      abort ();
+    }
+  if (m->count == 0)
+    {
+      fprintf (stderr, "unlocking unlocked mutex\n");
+      abort ();
+    }
+#endif
   if (!--m->count)
     {
       m->owner = 0;
@@ -136,25 +253,32 @@ int pthread_mutexattr_settype (pthread_mutexattr_t *, int);
 void
 scm_init_pthread_threads ()
 {
-  if (sizeof (scm_t_rec_mutex) > SCM_REC_MUTEX_MAXSIZE)
-    {
-      fprintf (stderr, "Internal error: Need to upgrade mutex size\n");
-      abort ();
-    }
-  
   pthread_mutexattr_init (&scm_i_plugin_mutex);
 #ifdef SCM_MUTEX_FAST
   pthread_mutexattr_settype (&scm_i_plugin_mutex, SCM_MUTEX_FAST);
 #endif
 
-#ifdef SCM_MUTEX_RECURSIVE /* Use the POSIX 1003.1c identifier */
-  pthread_mutexattr_init (&scm_i_plugin_rec_mutex);
+#if defined (SCM_MUTEX_RECURSIVE) && !defined (SCM_DEBUG_THREADS)
+  if (sizeof (pthread_mutex_t) > SCM_REC_MUTEX_MAXSIZE)
+    {
+      fprintf (stderr, "Internal error: Need to upgrade mutex size\n");
+      abort ();
+    }
+    pthread_mutexattr_init (&scm_i_plugin_rec_mutex);
   pthread_mutexattr_settype (&scm_i_plugin_rec_mutex, SCM_MUTEX_RECURSIVE);
 #else
   /* If PTHREAD_MUTEX_RECURSIVE is not defined,
      scm_i_plugin_rec_mutex_init won't pay attention to it anyway
   */
+  if (sizeof (rec_mutex) > SCM_REC_MUTEX_MAXSIZE)
+    {
+      fprintf (stderr, "Internal error: Need to upgrade mutex size\n");
+      abort ();
+    }
   scm_i_plugin_mutex_init (&rec_mutex_mutex, &scm_i_plugin_mutex);
+#endif
+#ifdef SCM_DEBUG_THREADS
+  pthread_mutex_init (&mutex_mutex, &scm_i_plugin_mutex);
 #endif
 }
 
