@@ -28,11 +28,14 @@ eliminate the need for tcl-lambda.
 * Translators for additional languages; in particular, Perl, Python,
 TCL, Emacs Lisp, and Rexx.
 
-* Clean up declarations of C functions to use a PROTO macro
-for conditional prototypes, instead of explicit conditionals.
-
 * A package for time conversions and formatting.
 
 * Make GDB work with Guile
 
 This would permit programmable debugging and a nice integrated GUI.
+
+
+Low-level things
+
+* Use the SCM trick of tagging environments with immediates (see m_letrec1)
+  to convert source correctly in unmemocopy.

@@ -1,3 +1,15 @@
+1999-08-04  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Improvements to SCM_IM_DISPATCH and
+	SCM_IM_HASH_DISPATCH.
+
+	* objects.h (SCM_CLASSF_GOOPS_VALID): Added.
+	(scm_si_redfined, scm_si_hashsets): Moved.
+
+	* objects.c (scm_class_of): Use the new SCM_CLASSF_GOOPS_VALID
+	flag which combines type and status info so that the class
+	redefinition protocol has zero cost during normal execution.
+
 1999-08-03  Gary Houston  <ghouston@easynet.co.uk>
 
 	* ports.h (scm_ptob_descriptor): include a write procedure again.
