@@ -45,6 +45,8 @@
 
 
 
+#include "__scm.h"
+
 #ifdef STDC_HEADERS
 # include <stdlib.h>
 # ifdef AMIGA
@@ -58,8 +60,6 @@
 #  define scm_sizet unsigned int
 # endif /* def _SIZE_T */
 #endif /* def STDC_HEADERS */
-
-#include "__scm.h"
 
 #include "smob.h"
 
@@ -98,6 +98,7 @@
 #include "marksweep.h"
 #include "mbstrings.h"
 #include "numbers.h"
+#include "objprop.h"
 #include "pairs.h"
 #include "params.h"
 #include "ports.h"
