@@ -3,7 +3,7 @@
 	* removal of unused fields in root state (thanks to Christopher
 	Cramer for pointing out the disuse.)
 	* root.h (scm_root_state): removed def_inp, def_outp, def_errp.
-	(scm_def_inp, scm_def_oup, scm_def_errp): removed.
+	(scm_def_inp, scm_def_outp, scm_def_errp): removed.
 
 	* root.c (root_mark): don't mark them.
 	(scm_make_root): don't set them to #f.

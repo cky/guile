@@ -122,9 +122,6 @@ typedef struct scm_root_state
 #define scm_cur_inp			(scm_root->cur_inp)
 #define scm_cur_outp			(scm_root->cur_outp)
 #define scm_cur_errp			(scm_root->cur_errp)
-#define scm_def_inp			(scm_root->def_inp)
-#define scm_def_outp			(scm_root->def_outp)
-#define scm_def_errp			(scm_root->def_errp)
 #define scm_cur_loadp			(scm_root->cur_loadp)
      
 #ifdef USE_THREADS
