@@ -22,13 +22,14 @@
 AUTOMAKE_OPTIONS = foreign
 
 # These should be installed and distributed.
-ice9_sources =									\
-	and-let*.scm arrays.scm boot-9.scm calling.scm common-list.scm		\
-	debug.scm debugger.scm documentation.scm emacs.scm expect.scm		\
-	format.scm getopt-long.scm hcons.scm lineio.scm ls.scm			\
-	mapping.scm networking.scm null.scm optargs.scm poe.scm popen.scm	\
-	posix.scm psyntax.pp psyntax.ss q.scm r4rs.scm r5rs.scm			\
-	regex.scm runq.scm safe-r5rs.scm safe.scm session.scm slib.scm		\
+ice9_sources =								  \
+	and-let*.scm arrays.scm boot-9.scm calling.scm common-list.scm	  \
+	debug.scm debugger.scm documentation.scm emacs.scm expect.scm	  \
+	format.scm getopt-long.scm hcons.scm lineio.scm ls.scm		  \
+	mapping.scm networking.scm null.scm optargs.scm poe.scm popen.scm \
+	posix.scm psyntax.pp psyntax.ss q.scm r4rs.scm r5rs.scm		  \
+	receive.scm srfi-8.scm						  \
+	regex.scm runq.scm safe-r5rs.scm safe.scm session.scm slib.scm	  \
 	streams.scm string-fun.scm syncase.scm tags.scm threads.scm 
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
