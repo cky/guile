@@ -178,7 +178,6 @@ SCM_API scm_t_int32 *scm_s32vector_writable_elements (SCM uvec,
 
 SCM_API SCM scm_u64vector_p (SCM obj);
 SCM_API SCM scm_make_u64vector (SCM n, SCM fill);
-SCM_API SCM scm_take_u64vector (const scm_t_uint64 *data, size_t n);
 SCM_API SCM scm_u64vector (SCM l);
 SCM_API SCM scm_u64vector_length (SCM uvec);
 SCM_API SCM scm_u64vector_ref (SCM uvec, SCM index);
@@ -186,6 +185,9 @@ SCM_API SCM scm_u64vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_u64vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u64vector (SCM l);
 SCM_API SCM scm_any_to_u64vector (SCM obj);
+
+#if SCM_HAVE_T_UINT64
+SCM_API SCM scm_take_u64vector (const scm_t_uint64 *data, size_t n);
 SCM_API const scm_t_uint64 *scm_array_handle_u64_elements (scm_t_array_handle *h);
 SCM_API scm_t_uint64 *scm_array_handle_u64_writable_elements (scm_t_array_handle *h);
 SCM_API const scm_t_uint64 *scm_u64vector_elements (SCM uvec, 
@@ -196,10 +198,10 @@ SCM_API scm_t_uint64 *scm_u64vector_writable_elements (SCM uvec,
 						       scm_t_array_handle *h,
 						       size_t *lenp,
 						       ssize_t *incp);
+#endif
 
 SCM_API SCM scm_s64vector_p (SCM obj);
 SCM_API SCM scm_make_s64vector (SCM n, SCM fill);
-SCM_API SCM scm_take_s64vector (const scm_t_int64 *data, size_t n);
 SCM_API SCM scm_s64vector (SCM l);
 SCM_API SCM scm_s64vector_length (SCM uvec);
 SCM_API SCM scm_s64vector_ref (SCM uvec, SCM index);
@@ -207,6 +209,9 @@ SCM_API SCM scm_s64vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_s64vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s64vector (SCM l);
 SCM_API SCM scm_any_to_s64vector (SCM obj);
+
+#if SCM_HAVE_T_INT64
+SCM_API SCM scm_take_s64vector (const scm_t_int64 *data, size_t n);
 SCM_API const scm_t_int64 *scm_array_handle_s64_elements (scm_t_array_handle *h);
 SCM_API scm_t_int64 *scm_array_handle_s64_writable_elements (scm_t_array_handle *h);
 SCM_API const scm_t_int64 *scm_s64vector_elements (SCM uvec, 
@@ -216,6 +221,7 @@ SCM_API scm_t_int64 *scm_s64vector_writable_elements (SCM uvec,
 						      scm_t_array_handle *h,
 						      size_t *lenp,
 						      ssize_t *incp);
+#endif
 
 SCM_API SCM scm_f32vector_p (SCM obj);
 SCM_API SCM scm_make_f32vector (SCM n, SCM fill);

@@ -21,6 +21,8 @@
    The C type of the elements, for example scm_t_uint8.  The code
    below will never do sizeof (CTYPE), thus you can use just 'float'
    for the c32 type, for example.
+
+   When CTYPE is not defined, the functions using it are excluded.
 */
 
 /* The first level does not expand macros in the arguments. */
@@ -54,14 +56,6 @@ SCM_DEFINE (F(scm_make_,TAG,vector), "make-"S(TAG)"vector", 1, 1, 0,
   return make_uvec (TYPE, len, fill);
 }
 #undef FUNC_NAME
-
-SCM
-F(scm_take_,TAG,vector) (const CTYPE *data, size_t n)
-{
-  scm_gc_register_collectable_memory ((void *)data, n*uvec_sizes[TYPE],
-				      uvec_names[TYPE]);
-  return take_uvec (TYPE, data, n);
-}
 
 SCM_DEFINE (F(scm_,TAG,vector), S(TAG)"vector", 0, 0, 1,
             (SCM l),
@@ -138,6 +132,16 @@ SCM_DEFINE (F(scm_any_to_,TAG,vector), "any->"S(TAG)"vector", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#ifdef CTYPE
+
+SCM
+F(scm_take_,TAG,vector) (const CTYPE *data, size_t n)
+{
+  scm_gc_register_collectable_memory ((void *)data, n*uvec_sizes[TYPE],
+				      uvec_names[TYPE]);
+  return take_uvec (TYPE, data, n);
+}
+
 const CTYPE *
 F(scm_array_handle_,TAG,_elements) (scm_t_array_handle *h)
 {
@@ -179,6 +183,8 @@ F(scm_,TAG,vector_writable_elements) (SCM uvec,
     }
   return F(scm_array_handle_,TAG,_writable_elements) (h);
 }
+
+#endif
 
 static SCM
 F(,TAG,ref) (scm_t_array_handle *handle, ssize_t pos)
