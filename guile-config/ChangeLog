@@ -1,3 +1,8 @@
+2002-10-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* guile-config.in (build-link): Include "-lguile-ltdl" in link
+	flags.
+
 2002-07-17  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* qthreads.m4: Added configuration for ARM.
