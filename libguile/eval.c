@@ -68,7 +68,6 @@
 #include "procprop.h"
 #include "hashtab.h"
 #include "hash.h"
-#include "print.h"
 
 #ifdef DEBUG_EXTENSIONS
 #include "debug.h"

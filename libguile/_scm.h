@@ -49,6 +49,7 @@
 /* Include headers for those files central to the implementation.  The
    rest should be explicitly #included in the C files themselves.  */
 #include "error.h"		/* Everyone signals errors.  */
+#include "print.h"		/* Everyone needs to print.  */
 #include "pairs.h"		/* Everyone conses.  */
 #include "list.h"		/* Everyone makes lists.  */
 #include "gc.h"			/* Everyone allocates.  */

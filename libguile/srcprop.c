@@ -51,7 +51,6 @@
 #include "hashtab.h"
 #include "hash.h"
 #include "weaks.h"
-#include "print.h"
 
 #include "srcprop.h"
 

@@ -44,7 +44,6 @@
 #include "_scm.h"
 #include "unif.h"
 #include "eval.h"
-#include "print.h"
 
 #include "strports.h"
 

@@ -44,7 +44,6 @@
  */
 
 #include "libguile/__scm.h"
-#include "print.h"
 
 
 typedef struct scm_smobfuns
@@ -68,7 +67,6 @@ extern scm_smobfuns *scm_smobs;
 /* Everyone who uses smobs needs to print.  */
 #include "libguile/ports.h"
 #include "libguile/genio.h"
-#include "libguile/print.h"
 
 /* ... and they all need to GC.  */
 #include "libguile/markers.h"
