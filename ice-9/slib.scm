@@ -212,7 +212,18 @@
 			  '*sc-expander*
 			  '(define)))
 
-(define (software-type) 'UNIX)
+(define (software-type)
+  "Return a symbol describing the current platform's operating system.
+This may be one of AIX, VMS, UNIX, COHERENT, WINDOWS, MS-DOS, OS/2,
+THINKC, AMIGA, ATARIST, MACH, or ACORN.
+
+Note that most varieties of Unix are considered to be simply \"UNIX\".
+That is because when a program depends on features that are not present
+on every operating system, it is usually better to test for the presence
+or absence of that specific feature.  The return value of
+@code{software-type} should only be used for this purpose when there is
+no other easy or unambiguous way of detecting such features."
+ 'UNIX)
 
 (slib:load (in-vicinity (library-vicinity) "require.scm"))
 

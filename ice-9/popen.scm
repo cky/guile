@@ -40,6 +40,10 @@
 		   pid))))))
 
 (define-public (open-pipe command mode)
+  "Executes the shell command @var{command} (a string) in a subprocess.
+A pipe to the process is created and returned.  @var{modes} specifies
+whether an input or output pipe to the process is created: it should 
+be the value of @code{OPEN_READ} or @code{OPEN_WRITE}."
   (let* ((port/pid (open-process mode "/bin/sh" "-c" command))
 	 (port (car port/pid)))
     (pipe-guardian port)
@@ -56,6 +60,9 @@
   (cdr (waitpid (cdr port/pid))))
 
 (define-public (close-pipe p)
+  "Closes the pipe created by @code{open-pipe}, then waits for the process
+to terminate and returns its status value, @xref{Processes, waitpid}, for
+information on how to interpret this value."
   (let ((pid (fetch-pid p)))
     (if (not pid)
         (error "close-pipe: pipe not in table"))
