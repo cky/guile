@@ -43,10 +43,12 @@
 #include "_scm.h"
 
 #include "eval.h"
+#include "procprop.h"
 
 #include "modules.h"
 
 static SCM the_root_module;
+static SCM root_module_lookup_closure;
 
 SCM
 scm_the_root_module ()
@@ -130,6 +132,47 @@ scm_load_scheme_module (SCM name)
   return scm_apply (SCM_CDR (try_module_autoload), SCM_LIST1 (name), SCM_EOL);
 }
 
+/* Environments
+ */
+
+SCM
+scm_top_level_env (thunk)
+     SCM thunk;
+{
+  if (SCM_IMP (thunk))
+    return SCM_EOL;
+  else
+    return scm_cons (thunk, SCM_EOL);
+}
+
+SCM
+scm_env_top_level (SCM env)
+{
+  while (SCM_NIMP (env))
+    {
+      if (!SCM_CONSP (SCM_CAR (env))
+	  && SCM_NFALSEP (scm_procedure_p (SCM_CAR (env))))
+	return SCM_CAR(env);
+      env = SCM_CDR (env);
+    }
+  return SCM_BOOL_F;
+}
+
+
+SCM_SYMBOL (scm_sym_system_module, "system-module");
+
+SCM
+scm_system_module_env_p (SCM env)
+{
+  SCM proc = scm_env_top_level (env);
+  if (SCM_FALSEP (proc))
+    proc = root_module_lookup_closure;
+  return ((SCM_NFALSEP (scm_procedure_property (proc,
+						scm_sym_system_module)))
+	  ? SCM_BOOL_T
+	  : SCM_BOOL_F);
+}
+
 void
 scm_init_modules ()
 {
@@ -147,6 +190,8 @@ scm_post_boot_init_modules ()
   make_modules_in = scm_intern0 ("make-modules-in");
   beautify_user_module_x = scm_intern0 ("beautify-user-module!");
   module_eval_closure = scm_intern0 ("module-eval-closure");
+  root_module_lookup_closure = scm_permanent_object
+    (scm_module_lookup_closure (SCM_CDR (the_root_module)));
   resolve_module = scm_intern0 ("resolve-module");
   try_module_autoload = scm_intern0 ("try-module-autoload");
 }
