@@ -60,6 +60,46 @@ in backtraces.
 
 * Changes to Scheme functions and syntax
 
+** Guile now correctly handles internal defines by rewriting them into
+their equivalent letrec.  Previously, internal defines would
+incrementally add to the innermost environment, without checking
+whether the restrictions specified in RnRS were met.  This lead to the
+correct behaviour when these restriction actually were met, but didn't
+catch all illegal uses.  Such an illegal use could lead to crashes of
+the Guile interpreter or or other unwanted results.  An example of
+incorrect internal defines that made Guile behave erratically:
+
+  (let ()
+    (define a 1)
+    (define (b) a)
+    (define c (1+ (b)))
+    (define d 3)
+
+    (b))
+
+  => 2
+
+The problem with this example is that the definition of `c' uses the
+value of `b' directly.  This confuses the meoization machine of Guile
+so that the second call of `b' (this time in a larger environment that
+also contains bindings for `c' and `d') refers to the binding of `c'
+instead of `a'.  You could also make Guile crash with a variation on
+this theme:
+
+    (define (foo flag)
+      (define a 1)
+      (define (b flag) (if flag a 1))
+      (define c (1+ (b flag)))
+      (define d 3)
+
+      (b #t))
+
+    (foo #f)
+    (foo #t)
+
+From now on, Guile will issue an `Unbound variable: b' error message
+for both examples.
+
 ** Hooks
 
 A hook contains a list of functions which should be called on

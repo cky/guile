@@ -1,3 +1,8 @@
+1998-07-29  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* guile-config.in (build-link): Correct non-RnRS usage of internal
+	defines.
+
 1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.in: Regenerated.

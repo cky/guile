@@ -1,13 +1,99 @@
 1999-07-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* eval.c, tags.h, print.c (SCM_IM_SLOT_REF, SCM_IM_SLOT_SET_X):
+	New isym operations.
+
 	* eval.h: Added prototypes for multi language support functions.
 
 	* eval.c (SCM_IM_DISPATCH, SCM_IM_HASH_DISPATCH): Don't use
 	improper lists in the low-level representation, since that will
 	cause a begin to be prepended at macro expansion.
 
-	* eval.c, tags.h, print.c (SCM_IM_SLOT_REF, SCM_IM_SLOT_SET_X):
-	New isym operations.
+	* eval.c (scm_cons_source): Version of cons which copies source
+	properties from an existing cell.
+	(scm_m_quote, scm_m_begin, scm_m_if, scm_m_set_x, scm_m_and,
+	scm_m_or, scm_m_case, scm_m_cond, scm_m_lambda, scm_m_letstar,
+	scm_m_do, scm_m_letrec, scm_m_let, scm_copy_tree): Use
+	scm_cons_source.
+
+	* debug.c (scm_procedure_source): Cons SCM_IM_LAMBDA onto
+	procedure source before calling scm_unmemocopy instead of faking
+	an environment.
+
+1998-10-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Ported `internal defines' fix from SCM.  Original ChangeLog entry:
+
+	    1998-07-09  Radey Shouman  <radey@colorage.com>
+
+	    * eval.c (ceval_1): Modifications to allow rewriting of interal
+	    DEFINE to LETREC: If an ISYM is evaluated in non-tail position the
+	    body of which it is the CAR is macro expanded by m_expand_body,
+	    which rewrites internal DEFINE.
+
+	    (m_expand_body): Added.
+
+	    (m_macroexp1): Added argument to control error checking:
+	    m_expand_body may speculatively expand forms in the wrong
+	    environments.  Made argument number checks conditional on
+	    RECKLESS.
+
+	    (m_body): Added, error checks bodies and inserts the ISYM tokens.
+
+	    (m_lambda): (m_letstar): (m_letrec1): (m_letrec): (m_let): Now
+	    call m_body.
+
+	    (m_cond): (m_case): (m_quote): Modified to avoid destructively
+	    changing their argument forms.  Since m_expand_body
+	    speculatively macro expands forms the process must be
+	    reversible.
+
+	    (m_ident_eqp): Fixed to use proper environment.
+
+	    (renamed_ident): Added DEFER_INTS_EGC.
+
+	    Added prototypes for static functions.
+
+	* eval.c
+
+	(undef_cell): New.
+	
+	(scm_lookupcar1, scm_lookupcar): Added CHECK argument.  When CHECK
+	is false, do not produce an error for unbound variables, return a
+	pointer to cell_undef instead.
+
+	(EVALCELLCAR, XEVALCAR): Call scm_lookupcar with check=1.
+
+	(scm_m_body): New.
+
+	(scm_m_cond, scm_m_case, scm_m_quote): Modified to avoid
+	destructively changing their argument forms.  Since m_expand_body
+	speculatively macro expands forms the process must be reversible.
+
+	(scm_m_lambda): Use scm_m_body instead of bodycheck.  Account for
+	SCM_IM_LET introduced by named lets.
+
+	(scm_m_letstar): Use scm_m_body instead of bodycheck.
+
+	(scm_m_letrec1, scm_letrec): Split scm_letrec into scm_letrec1 and
+	scm_letrec.  scm_letrec1 does not check for a null binding and
+	takes an additional argument to specify the ISYM of the body.  Use
+	scm_m_body instead of bodycheck.
+
+	(scm_m_let): Use scm_m_body instead of bodycheck.
+
+	(scm_m_expand_body, scm_macroexp): New.
+
+	(unmemocopy): Account for ISYMs introduced by scm_m_body.
+
+	(ceval, deval): Call scm_m_expand_body.  Call scm_lookupcar with
+	check=1.  Throw error for internal defined that have not been
+	rewritten by scm_m_expand_body.
+
+	* eval.h: Added prototypes for scm_m_expand_body and scm_macroexp.
+	Removed prototype for SCM_APPLY.
+
+	* tags.h: Added extern declaration of scm_isymnames.
 
 1999-07-27  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
