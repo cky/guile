@@ -184,7 +184,7 @@ scm_c_make_vector (unsigned long int k, SCM fill)
     {
       unsigned long int j;
 
-      SCM_ASSERT_RANGE (1, scm_ulong2num (k), k <= SCM_VECTOR_MAX_LENGTH);
+      SCM_ASSERT_RANGE (1, scm_from_ulong (k), k <= SCM_VECTOR_MAX_LENGTH);
 
       base = scm_gc_malloc (k * sizeof (scm_t_bits), "vector");
       for (j = 0; j != k; ++j)

@@ -141,7 +141,7 @@ static SCM
 make_uve (long type, long k, size_t size)
 #define FUNC_NAME "scm_make_uve"
 {
-  SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_UVECTOR_MAX_LENGTH);
+  SCM_ASSERT_RANGE (1, scm_from_long (k), k <= SCM_UVECTOR_MAX_LENGTH);
 
   return scm_cell (SCM_MAKE_UVECTOR_TAG (k, type),
 		   (scm_t_bits) scm_gc_malloc (k * size, "vector"));
@@ -157,8 +157,8 @@ scm_make_uve (long k, SCM prot)
       if (k > 0)
 	{
 	  long i;
-	  SCM_ASSERT_RANGE (1,
-			    scm_long2num (k), k <= SCM_BITVECTOR_MAX_LENGTH);
+	  SCM_ASSERT_RANGE (1, scm_from_long (k),
+			    k <= SCM_BITVECTOR_MAX_LENGTH);
 	  i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
 	  return scm_cell (SCM_MAKE_BITVECTOR_TAG (k), 
 			   (scm_t_bits) scm_gc_malloc (i, "vector"));
@@ -1277,21 +1277,17 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       ((char *) SCM_UVECTOR_BASE (v))[pos] = scm_to_char (obj);
       break;
     case scm_tc7_uvect:
-      ((unsigned long *) SCM_UVECTOR_BASE (v))[pos] 
-	= scm_num2ulong (obj, SCM_ARG2, FUNC_NAME);
+      ((unsigned long *) SCM_UVECTOR_BASE (v))[pos] = scm_to_ulong (obj);
       break;
     case scm_tc7_ivect:
-      ((long *) SCM_UVECTOR_BASE (v))[pos] 
-	= scm_num2long (obj, SCM_ARG2, FUNC_NAME);
+      ((long *) SCM_UVECTOR_BASE (v))[pos] = scm_to_long (obj);
       break;
     case scm_tc7_svect:
-      ((short *) SCM_UVECTOR_BASE (v))[pos]
-	= scm_num2short (obj, SCM_ARG2, FUNC_NAME);
+      ((short *) SCM_UVECTOR_BASE (v))[pos] = scm_to_short (obj);
       break;
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
-      ((long long *) SCM_UVECTOR_BASE (v))[pos]
-	= scm_num2long_long (obj, SCM_ARG2, FUNC_NAME);
+      ((long long *) SCM_UVECTOR_BASE (v))[pos] = scm_to_long_long (obj);
       break;
 #endif
     case scm_tc7_fvect:
@@ -2137,7 +2133,7 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
       {
 	short *data = (short *)SCM_VELTS(v);
 	for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
-	  res = scm_cons(scm_short2num (data[k]), res);
+	  res = scm_cons (scm_from_short (data[k]), res);
 	return res;
       }
 #if SCM_SIZEOF_LONG_LONG != 0
@@ -2145,7 +2141,7 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
       {
 	long long *data = (long long *)SCM_VELTS(v);
 	for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
-	  res = scm_cons(scm_long_long2num(data[k]), res);
+	  res = scm_cons(scm_from_long_long (data[k]), res);
 	return res;
       }
 #endif

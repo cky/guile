@@ -32,7 +32,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 	  /* check big number ranges */
 	  else if (SCM_BIGP (val))
 	    {
-              scm_t_signed_bits v = scm_num2long (val, SCM_ARG1, FUNC_NAME);
+              scm_t_signed_bits v = scm_to_long (val);
 	      CTYPE c = (CTYPE) v;
 	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
 	    }
@@ -61,7 +61,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 	  if (SCM_I_INUMP (val))
             data[i] = (CTYPE) SCM_I_INUM (val);
           else if (SCM_BIGP (val))
-	    data[i] = (CTYPE) scm_num2long (val, SCM_ARG1, FUNC_NAME);
+	    data[i] = (CTYPE) scm_to_long (val);
 #if defined (FLOATTYPE)
           else
             data[i] = (CTYPE) SCM_REAL_VALUE (val);
@@ -92,7 +92,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 	  /* check big number ranges */
 	  else if (SCM_BIGP (val))
 	    {
-              scm_t_signed_bits v = scm_num2long (val, SCM_ARG1, FUNC_NAME);
+              scm_t_signed_bits v = scm_to_long (val);
 	      CTYPE c = (CTYPE) v;
 	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
 	    }
@@ -120,7 +120,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 	  if (SCM_I_INUMP (val))
             data[i] = (CTYPE) SCM_I_INUM (val);
           else if (SCM_BIGP (val))
-	    data[i] = (CTYPE) scm_num2long (val, SCM_ARG1, FUNC_NAME);
+	    data[i] = (CTYPE) scm_to_long (val);
 #if defined (FLOATTYPE)
           else
             data[i] = (CTYPE) SCM_REAL_VALUE (val);
@@ -194,7 +194,7 @@ CTYPES2UVECT (const CTYPE *data, long n)
   char *v;
 #endif
 
-  SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n),
+  SCM_ASSERT_RANGE (SCM_ARG2, scm_from_long (n),
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
 #if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
   v = scm_gc_malloc (n * SIZEOF_UVECTTYPE, "uvect");
@@ -220,7 +220,7 @@ CTYPES2UVECT_OPTIONAL (const unsigned CTYPE *data, long n)
   char *v;
 #endif
 
-  SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n), 
+  SCM_ASSERT_RANGE (SCM_ARG2, scm_from_long (n), 
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
 #if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
   v = scm_gc_malloc (n * SIZEOF_UVECTTYPE, "uvect");
@@ -247,7 +247,7 @@ CTYPES2SCM (const CTYPE *data, long n)
   long i;
   SCM v;
   
-  SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n), 
+  SCM_ASSERT_RANGE (SCM_ARG2, scm_from_long (n), 
 		    n > 0 && n <= SCM_VECTOR_MAX_LENGTH);
   v = scm_c_make_vector (n, SCM_UNSPECIFIED);
 

@@ -85,16 +85,16 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 		scm_ungetc (c, port);
 
 	      return scm_cons (SCM_MAKE_CHAR (c),
-			       scm_long2num (j - cstart));
+			       scm_from_long (j - cstart));
 	    }
 	}
       if (c == EOF)
 	return scm_cons (SCM_EOF_VAL, 
-			 scm_long2num (j - cstart));
+			 scm_from_long (j - cstart));
 
       buf[j] = c;
     }
-  return scm_cons (SCM_BOOL_F, scm_long2num (j - cstart));
+  return scm_cons (SCM_BOOL_F, scm_from_long (j - cstart));
 }
 #undef FUNC_NAME
 

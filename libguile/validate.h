@@ -40,57 +40,55 @@
 #define SCM_WRONG_TYPE_ARG(pos, obj) \
   do { scm_wrong_type_arg (FUNC_NAME, pos, obj); } while (0)
 
-#define SCM_NUM2SIZE(pos, arg) (scm_num2size (arg, pos, FUNC_NAME))
+#define SCM_NUM2SIZE(pos, arg) (scm_to_size_t (arg))
 
 #define SCM_NUM2SIZE_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2size (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_size_t (arg))
 
-#define SCM_NUM2PTRDIFF(pos, arg) (scm_num2ptrdiff (arg, pos, FUNC_NAME))
+#define SCM_NUM2PTRDIFF(pos, arg) (scm_to_ssize_t (arg))
 
 #define SCM_NUM2PTRDIFF_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2ptrdiff (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_ssize_t (arg))
 
-#define SCM_NUM2SHORT(pos, arg) (scm_num2short (arg, pos, FUNC_NAME))
+#define SCM_NUM2SHORT(pos, arg) (scm_to_short (arg))
 
 #define SCM_NUM2SHORT_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2short (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_short (arg))
 
-#define SCM_NUM2USHORT(pos, arg) (scm_num2ushort (arg, pos, FUNC_NAME))
+#define SCM_NUM2USHORT(pos, arg) (scm_to_ushort (arg))
 
 #define SCM_NUM2USHORT_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2ushort (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_ushort (arg))
 
-#define SCM_NUM2INT(pos, arg) (scm_num2int (arg, pos, FUNC_NAME))
+#define SCM_NUM2INT(pos, arg) (scm_to_int (arg))
 
 #define SCM_NUM2INT_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2int (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_int (arg))
 
-#define SCM_NUM2UINT(pos, arg) (scm_num2uint (arg, pos, FUNC_NAME))
+#define SCM_NUM2UINT(pos, arg) (scm_to_uint (arg))
 
 #define SCM_NUM2UINT_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2uint (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_uint (arg))
 
-#define SCM_NUM2ULONG(pos, arg) (scm_num2ulong (arg, pos, FUNC_NAME))
+#define SCM_NUM2ULONG(pos, arg) (scm_to_ulong (arg))
 
 #define SCM_NUM2ULONG_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2ulong (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_ulong (arg))
 
-#define SCM_NUM2LONG(pos, arg) (scm_num2long (arg, pos, FUNC_NAME))
+#define SCM_NUM2LONG(pos, arg) (scm_to_long (arg))
 
 #define SCM_NUM2LONG_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2long (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_long (arg))
 
-#define SCM_NUM2LONG_LONG(pos, arg) \
-  (scm_num2long_long (arg, pos, FUNC_NAME))
+#define SCM_NUM2LONG_LONG(pos, arg) (scm_to_long_long (arg))
 
 #define SCM_NUM2LONG_LONG_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2long_long (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_long_long (arg))
 
-#define SCM_NUM2ULONG_LONG(pos, arg) \
-  (scm_num2ulong_long (arg, pos, FUNC_NAME))
+#define SCM_NUM2ULONG_LONG(pos, arg) (scm_to_ulong_long (arg))
 
 #define SCM_NUM2ULONG_LONG_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2ulong_long (arg, pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_to_ulong_long (arg))
 
 #define SCM_NUM2FLOAT(pos, arg) \
   (scm_num2float (arg, pos, FUNC_NAME))

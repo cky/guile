@@ -245,7 +245,7 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 
   result = scm_c_make_vector (ngroups, SCM_BOOL_F);
   while (--ngroups >= 0) 
-    SCM_VECTOR_SET (result, ngroups, scm_ulong2num (groups[ngroups]));
+    SCM_VECTOR_SET (result, ngroups, scm_from_ulong (groups[ngroups]));
 
   free (groups);
   return result;
@@ -332,8 +332,8 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
 
   SCM_VECTOR_SET(result, 0, scm_makfrom0str (entry->pw_name));
   SCM_VECTOR_SET(result, 1, scm_makfrom0str (entry->pw_passwd));
-  SCM_VECTOR_SET(result, 2, scm_ulong2num ((unsigned long) entry->pw_uid));
-  SCM_VECTOR_SET(result, 3, scm_ulong2num ((unsigned long) entry->pw_gid));
+  SCM_VECTOR_SET(result, 2, scm_from_ulong (entry->pw_uid));
+  SCM_VECTOR_SET(result, 3, scm_from_ulong (entry->pw_gid));
   SCM_VECTOR_SET(result, 4, scm_makfrom0str (entry->pw_gecos));
   if (!entry->pw_dir)
     SCM_VECTOR_SET(result, 5, scm_makfrom0str (""));
@@ -399,7 +399,7 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
 
   SCM_VECTOR_SET(result, 0, scm_makfrom0str (entry->gr_name));
   SCM_VECTOR_SET(result, 1, scm_makfrom0str (entry->gr_passwd));
-  SCM_VECTOR_SET(result, 2, scm_ulong2num ((unsigned long) entry->gr_gid));
+  SCM_VECTOR_SET(result, 2, scm_from_ulong  (entry->gr_gid));
   SCM_VECTOR_SET(result, 3, scm_makfromstrs (-1, entry->gr_mem));
   return result;
 }
@@ -1910,7 +1910,7 @@ scm_init_posix ()
   scm_c_define ("LC_ALL", scm_from_int (LC_ALL));
 #endif
 #ifdef PIPE_BUF
-  scm_c_define ("PIPE_BUF", scm_long2num (PIPE_BUF));
+  scm_c_define ("PIPE_BUF", scm_from_long (PIPE_BUF));
 #endif
 
 #ifdef PRIO_PROCESS

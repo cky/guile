@@ -171,7 +171,7 @@ scm_i_rehash (SCM table,
 	  handle = SCM_CAR (ls);
 	  h = hash_fn (SCM_CAR (handle), new_size, closure);
 	  if (h >= new_size)
-	    scm_out_of_range (func_name, scm_ulong2num (h));
+	    scm_out_of_range (func_name, scm_from_ulong (h));
 	  SCM_VECTOR_SET (new_buckets, h,
 			  scm_cons (handle, SCM_VELTS (new_buckets)[h]));
 	  ls = SCM_CDR (ls);
@@ -433,7 +433,7 @@ scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*as
     return SCM_BOOL_F;
   k = hash_fn (obj, SCM_VECTOR_LENGTH (table), closure);
   if (k >= SCM_VECTOR_LENGTH (table))
-    scm_out_of_range ("hash_fn_get_handle", scm_ulong2num (k));
+    scm_out_of_range ("hash_fn_get_handle", scm_from_ulong (k));
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
   return h;
 }
@@ -461,7 +461,7 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 
   k = hash_fn (obj, SCM_VECTOR_LENGTH (buckets), closure);
   if (k >= SCM_VECTOR_LENGTH (buckets))
-    scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (k));
+    scm_out_of_range ("hash_fn_create_handle_x", scm_from_ulong (k));
   it = assoc_fn (obj, SCM_VELTS (buckets)[k], closure);
   if (scm_is_true (it))
     return it;
@@ -530,7 +530,7 @@ scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*asso
 
   k = hash_fn (obj, SCM_VECTOR_LENGTH (buckets), closure);
   if (k >= SCM_VECTOR_LENGTH (buckets))
-    scm_out_of_range ("hash_fn_remove_x", scm_ulong2num (k));
+    scm_out_of_range ("hash_fn_remove_x", scm_from_ulong (k));
   h = assoc_fn (obj, SCM_VELTS (buckets)[k], closure);
   if (scm_is_true (h))
     {
@@ -772,9 +772,7 @@ typedef struct scm_t_ihashx_closure
 static unsigned long
 scm_ihashx (SCM obj, unsigned long n, scm_t_ihashx_closure *closure)
 {
-  SCM answer = scm_call_2 (closure->hash,
-			   obj,
-			   scm_ulong2num ((unsigned long) n));
+  SCM answer = scm_call_2 (closure->hash, obj, scm_from_ulong (n));
   return scm_to_ulong (answer);
 }
 

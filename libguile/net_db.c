@@ -182,7 +182,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
   while (i--)
     {
       inad = *(struct in_addr *) argv[i];
-      lst = scm_cons (scm_ulong2num (ntohl (inad.s_addr)), lst);
+      lst = scm_cons (scm_from_ulong (ntohl (inad.s_addr)), lst);
     }
   SCM_VECTOR_SET(result, 4, lst);
   return result;

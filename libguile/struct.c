@@ -163,7 +163,7 @@ scm_struct_init (SCM handle, SCM layout, scm_t_bits * mem, int tail_elts, SCM in
 	    *mem = 0;
 	  else
 	    {
-	      *mem = scm_num2long (SCM_CAR (inits), SCM_ARGn, "scm_struct_init");
+	      *mem = scm_to_long (SCM_CAR (inits));
 	      inits = SCM_CDR (inits);
 	    }
 	  break;
@@ -174,9 +174,7 @@ scm_struct_init (SCM handle, SCM layout, scm_t_bits * mem, int tail_elts, SCM in
 	    *mem = 0;
 	  else
 	    {
-	      *mem = scm_num2ulong (SCM_CAR (inits),
-				    SCM_ARGn,
-				    "scm_struct_init");
+	      *mem = scm_to_ulong (SCM_CAR (inits));
 	      inits = SCM_CDR (inits);
 	    }
 	  break;
@@ -577,12 +575,12 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   switch (field_type)
     {
     case 'u':
-      answer = scm_ulong2num (data[p]);
+      answer = scm_from_ulong (data[p]);
       break;
 
 #if 0
     case 'i':
-      answer = scm_long2num (data[p]);
+      answer = scm_from_long (data[p]);
       break;
 
     case 'd':
@@ -694,7 +692,7 @@ SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0,
 #define FUNC_NAME s_scm_struct_vtable_tag
 {
   SCM_VALIDATE_VTABLE (1, handle);
-  return scm_long2num ((long) SCM_STRUCT_DATA (handle) >> 3);
+  return scm_from_ulong (((unsigned long)SCM_STRUCT_DATA (handle)) >> 3);
 }
 #undef FUNC_NAME
 

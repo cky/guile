@@ -122,14 +122,16 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
   SCM tmp;
   ftime (&time_buffer);
   time_buffer.time -= scm_your_base.time;
-  tmp = scm_long2num (time_buffer.millitm - scm_your_base.millitm);
+  tmp = scm_from_long (time_buffer.millitm - scm_your_base.millitm);
   tmp = scm_sum (tmp,
 		 scm_product (scm_from_int (1000),
 			      scm_from_int (time_buffer.time)));
-  return scm_quotient (scm_product (tmp, SCM_I_MAKINUM (SCM_TIME_UNITS_PER_SECOND)),
+  return scm_quotient (scm_product (tmp,
+				    scm_from_int (SCM_TIME_UNITS_PER_SECOND)),
 		       scm_from_int (1000));
 #else
-  return scm_long2num((time((timet*)0) - scm_your_base) * (int)SCM_TIME_UNITS_PER_SECOND);
+  return scm_from_long ((time((timet*)0) - scm_your_base)
+			* (int)SCM_TIME_UNITS_PER_SECOND);
 #endif /* HAVE_FTIME */
 }
 #undef FUNC_NAME
@@ -168,11 +170,11 @@ SCM_DEFINE (scm_times, "times", 0, 0, 0,
   rv = times (&t);
   if (rv == -1)
     SCM_SYSERROR;
-  SCM_VECTOR_SET (result, 0, scm_long2num (rv));
-  SCM_VECTOR_SET (result, 1, scm_long2num (t.tms_utime));
-  SCM_VECTOR_SET (result, 2, scm_long2num (t.tms_stime));
-  SCM_VECTOR_SET (result ,3, scm_long2num (t.tms_cutime));
-  SCM_VECTOR_SET (result, 4, scm_long2num (t.tms_cstime));
+  SCM_VECTOR_SET (result, 0, scm_from_long (rv));
+  SCM_VECTOR_SET (result, 1, scm_from_long (t.tms_utime));
+  SCM_VECTOR_SET (result, 2, scm_from_long (t.tms_stime));
+  SCM_VECTOR_SET (result ,3, scm_from_long (t.tms_cutime));
+  SCM_VECTOR_SET (result, 4, scm_from_long (t.tms_cstime));
   return result;
 }
 #undef FUNC_NAME
@@ -193,7 +195,7 @@ SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0,
 	    "included but subprocesses are not.")
 #define FUNC_NAME s_scm_get_internal_run_time
 {
-  return scm_long2num (scm_c_get_internal_run_time ());
+  return scm_from_long (scm_c_get_internal_run_time ());
 }
 #undef FUNC_NAME
 
@@ -216,7 +218,7 @@ SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
   if ((timv = time (0)) == -1)
     SCM_MISC_ERROR ("current time not available", SCM_EOL);
   SCM_ALLOW_INTS;
-  return scm_long2num((long) timv);
+  return scm_from_long (timv);
 }
 #undef FUNC_NAME
 
@@ -235,14 +237,14 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
   if (gettimeofday (&time, NULL) == -1)
     SCM_SYSERROR;
   SCM_ALLOW_INTS;
-  return scm_cons (scm_long2num ((long) time.tv_sec),
-		   scm_long2num ((long) time.tv_usec));
+  return scm_cons (scm_from_long (time.tv_sec),
+		   scm_from_long (time.tv_usec));
 #else
 # ifdef HAVE_FTIME
   struct timeb time;
 
   ftime(&time);
-  return scm_cons (scm_long2num ((long) time.time),
+  return scm_cons (scm_from_long (time.time),
 		   scm_from_int (time.millitm * 1000));
 # else
   timet timv;
@@ -251,7 +253,7 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
   if ((timv = time (0)) == -1)
     SCM_SYSERROR;
   SCM_ALLOW_INTS;
-  return scm_cons (scm_long2num (timv), scm_from_int (0));
+  return scm_cons (scm_from_long (timv), scm_from_int (0));
 # endif
 #endif
 }
@@ -549,7 +551,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   else if (utc->tm_yday > lt.tm_yday)
     zoff += 24 * 60 * 60;
 
-  result = scm_cons (scm_long2num ((long) itime),
+  result = scm_cons (scm_from_long (itime),
 		     filltime (&lt, zoff, zname));
   SCM_ALLOW_INTS;
   if (zname)
@@ -727,7 +729,7 @@ void
 scm_init_stime()
 {
   scm_c_define ("internal-time-units-per-second",
-		scm_long2num((long) SCM_TIME_UNITS_PER_SECOND));
+		scm_from_long (SCM_TIME_UNITS_PER_SECOND));
 
 #ifdef HAVE_FTIME
   if (!scm_your_base.time) ftime(&scm_your_base);

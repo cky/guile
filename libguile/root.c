@@ -333,7 +333,7 @@ SCM_DEFINE (scm_dynamic_root, "dynamic-root", 0, 0, 0,
 	    "in no way depend on this.")
 #define FUNC_NAME s_scm_dynamic_root
 {
-  return scm_ulong2num (SCM_SEQ (scm_root->rootcont));
+  return scm_from_ulong (SCM_SEQ (scm_root->rootcont));
 }
 #undef FUNC_NAME
 

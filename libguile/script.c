@@ -545,7 +545,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	      num = strtol (p, &end, 10);
 	      if (end - p > 0)
 		{
-		  srfis = scm_cons (scm_long2num (num), srfis);
+		  srfis = scm_cons (scm_from_long (num), srfis);
 		  if (*end)
 		    {
 		      if (*end == ',')

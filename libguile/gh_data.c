@@ -36,17 +36,17 @@ gh_bool2scm (int x)
 SCM 
 gh_int2scm (int x)
 {
-  return scm_long2num ((long) x);
+  return scm_from_long ((long) x);
 }
 SCM 
 gh_ulong2scm (unsigned long x)
 {
-  return scm_ulong2num (x);
+  return scm_from_ulong (x);
 }
 SCM 
 gh_long2scm (long x)
 {
-  return scm_long2num (x);
+  return scm_from_long (x);
 }
 SCM 
 gh_double2scm (double x)
@@ -187,17 +187,17 @@ gh_scm2bool (SCM obj)
 unsigned long 
 gh_scm2ulong (SCM obj)
 {
-  return scm_num2ulong (obj, SCM_ARG1, "gh_scm2ulong");
+  return scm_to_ulong (obj);
 }
 long 
 gh_scm2long (SCM obj)
 {
-  return scm_num2long (obj, SCM_ARG1, "gh_scm2long");
+  return scm_to_long (obj);
 }
 int 
 gh_scm2int (SCM obj)
 {
-  return (int) scm_num2int (obj, SCM_ARG1, "gh_scm2int");
+  return scm_to_int (obj);
 }
 double 
 gh_scm2double (SCM obj)
@@ -353,7 +353,7 @@ gh_scm2longs (SCM obj, long *m)
 	  val = SCM_VELTS (obj)[i];
 	  m[i] = SCM_I_INUMP (val) 
 	    ? SCM_I_INUM (val) 
-	    : scm_num2long (val, 0, NULL);
+	    : scm_to_long (val);
 	}
       break;
 #if SCM_HAVE_ARRAYS
@@ -405,7 +405,7 @@ gh_scm2floats (SCM obj, float *m)
 	  if (SCM_I_INUMP (val))
 	    m[i] = SCM_I_INUM (val);
 	  else if (SCM_BIGP (val))
-	    m[i] = scm_num2long (val, 0, NULL);
+	    m[i] = scm_to_long (val);
 	  else
 	    m[i] = SCM_REAL_VALUE (val);
 	}
@@ -468,7 +468,7 @@ gh_scm2doubles (SCM obj, double *m)
 	  if (SCM_I_INUMP (val))
 	    m[i] = SCM_I_INUM (val);
 	  else if (SCM_BIGP (val))
-	    m[i] = scm_num2long (val, 0, NULL);
+	    m[i] = scm_to_long (val);
 	  else
 	    m[i] = SCM_REAL_VALUE (val);
 	}

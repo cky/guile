@@ -315,7 +315,7 @@ SCM_DEFINE (scm_symbol_hash, "symbol-hash", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_hash
 {
   SCM_VALIDATE_SYMBOL (1, symbol);
-  return scm_ulong2num (SCM_SYMBOL_HASH (symbol));
+  return scm_from_ulong (SCM_SYMBOL_HASH (symbol));
 }
 #undef FUNC_NAME
 

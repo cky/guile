@@ -105,7 +105,7 @@ scm_mark_all (void)
 	SCM l = SCM_HASHTABLE_BUCKETS (scm_gc_registered_roots)[i];
 	for (; !SCM_NULLP (l); l = SCM_CDR (l))
 	  {
-	    SCM *p = (SCM *) (scm_num2long (SCM_CAAR (l), 0, NULL));
+	    SCM *p = (SCM *) (scm_to_ulong (SCM_CAAR (l)));
 	    scm_gc_mark (*p);
 	  }
       }

@@ -257,10 +257,12 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
       SCM_VECTOR_SET(mvec,0, str);
       for (i = 0; i < nmatches; ++i)
 	if (matches[i].rm_so == -1)
-	  SCM_VECTOR_SET(mvec,i+1, scm_cons (scm_from_int (-1), scm_from_int (-1)));
+	  SCM_VECTOR_SET(mvec, i+1,
+			 scm_cons (scm_from_int (-1), scm_from_int (-1)));
 	else
-	  SCM_VECTOR_SET(mvec,i+1,scm_cons (scm_long2num (matches[i].rm_so + offset),
-				       scm_long2num (matches[i].rm_eo + offset)));
+	  SCM_VECTOR_SET(mvec, i+1,
+			 scm_cons (scm_from_long (matches[i].rm_so + offset),
+				   scm_from_long (matches[i].rm_eo + offset)));
     }
   free (matches);
   SCM_ALLOW_INTS;
@@ -282,14 +284,14 @@ scm_init_regex_posix ()
   scm_set_smob_free (scm_tc16_regex, regex_free);
 
   /* Compilation flags.  */
-  scm_c_define ("regexp/basic", scm_long2num (REG_BASIC));
-  scm_c_define ("regexp/extended", scm_long2num (REG_EXTENDED));
-  scm_c_define ("regexp/icase", scm_long2num (REG_ICASE));
-  scm_c_define ("regexp/newline", scm_long2num (REG_NEWLINE));
+  scm_c_define ("regexp/basic", scm_from_long (REG_BASIC));
+  scm_c_define ("regexp/extended", scm_from_long (REG_EXTENDED));
+  scm_c_define ("regexp/icase", scm_from_long (REG_ICASE));
+  scm_c_define ("regexp/newline", scm_from_long (REG_NEWLINE));
 
   /* Execution flags.  */
-  scm_c_define ("regexp/notbol", scm_long2num (REG_NOTBOL));
-  scm_c_define ("regexp/noteol", scm_long2num (REG_NOTEOL));
+  scm_c_define ("regexp/notbol", scm_from_long (REG_NOTBOL));
+  scm_c_define ("regexp/noteol", scm_from_long (REG_NOTEOL));
 
 #include "libguile/regex-posix.x"
 

@@ -126,7 +126,7 @@ sf_input_waiting (SCM port)
     {
       SCM f = SCM_VELTS (p)[5];
       if (scm_is_true (f))
-	return scm_num2int (scm_call_0 (f), SCM_ARGn, NULL);
+	return scm_to_int (scm_call_0 (f));
     }
   /* Default is such that char-ready? for soft ports returns #t, as it
      did before this extension was implemented. */

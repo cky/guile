@@ -217,8 +217,9 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
     char *chars;
 
     chars = SCM_STRING_CHARS (name);
-    func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), FUNC_NAME);
-    return scm_ulong2num ((unsigned long) func);
+    func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), 
+					   FUNC_NAME);
+    return scm_from_ulong ((unsigned long) func);
   }
 }
 #undef FUNC_NAME

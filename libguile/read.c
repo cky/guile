@@ -88,8 +88,8 @@ scm_input_error(char const * function,
   scm_simple_format (string_port,
 		     scm_makfrom0str ("~A:~S:~S: ~A"),
 		     scm_list_4 (scm_makfrom0str (fn),
-				 scm_int2num (SCM_LINUM (port) + 1),
-				 scm_int2num (SCM_COL (port) + 1),
+				 scm_from_int (SCM_LINUM (port) + 1),
+				 scm_from_int (SCM_COL (port) + 1),
 				 scm_makfrom0str (message)));
 
     

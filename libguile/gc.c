@@ -340,25 +340,38 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 
   for (i = table_size; i--;)
     {
-      heap_segs = scm_cons (scm_cons (scm_ulong2num (bounds[2*i]),
-				      scm_ulong2num (bounds[2*i+1])),
+      heap_segs = scm_cons (scm_cons (scm_from_ulong (bounds[2*i]),
+				      scm_from_ulong (bounds[2*i+1])),
 			    heap_segs);
     }
   
-  answer = scm_list_n (scm_cons (sym_gc_time_taken, scm_ulong2num (local_scm_gc_time_taken)),
-		       scm_cons (sym_cells_allocated, scm_ulong2num (local_scm_cells_allocated)),
-		       scm_cons (sym_heap_size, scm_ulong2num (local_scm_heap_size)),
-		       scm_cons (sym_mallocated, scm_ulong2num (local_scm_mallocated)),
-		       scm_cons (sym_mtrigger, scm_ulong2num (local_scm_mtrigger)),
-		       scm_cons (sym_times, scm_ulong2num (local_scm_gc_times)),
-		       scm_cons (sym_gc_mark_time_taken, scm_ulong2num (local_scm_gc_mark_time_taken)),
-		       scm_cons (sym_cells_marked, scm_i_dbl2big (local_scm_gc_cells_marked)),
-		       scm_cons (sym_cells_swept, scm_i_dbl2big (local_scm_gc_cells_swept)),
-		       scm_cons (sym_malloc_yield, scm_long2num (local_scm_gc_malloc_yield_percentage)),
-		       scm_cons (sym_cell_yield, scm_long2num (local_scm_gc_cell_yield_percentage)),
-		       scm_cons (sym_protected_objects, scm_ulong2num (local_protected_obj_count)),
-		       scm_cons (sym_heap_segments, heap_segs),
-		       SCM_UNDEFINED);
+  answer =
+    scm_list_n (scm_cons (sym_gc_time_taken,
+			  scm_from_ulong (local_scm_gc_time_taken)),
+		scm_cons (sym_cells_allocated,
+			  scm_from_ulong (local_scm_cells_allocated)),
+		scm_cons (sym_heap_size,
+			  scm_from_ulong (local_scm_heap_size)),
+		scm_cons (sym_mallocated,
+			  scm_from_ulong (local_scm_mallocated)),
+		scm_cons (sym_mtrigger,
+			  scm_from_ulong (local_scm_mtrigger)),
+		scm_cons (sym_times,
+			  scm_from_ulong (local_scm_gc_times)),
+		scm_cons (sym_gc_mark_time_taken,
+			  scm_from_ulong (local_scm_gc_mark_time_taken)),
+		scm_cons (sym_cells_marked,
+			  scm_from_double (local_scm_gc_cells_marked)),
+		scm_cons (sym_cells_swept,
+			  scm_from_double (local_scm_gc_cells_swept)),
+		scm_cons (sym_malloc_yield,
+			  scm_from_long(local_scm_gc_malloc_yield_percentage)),
+		scm_cons (sym_cell_yield,
+			  scm_from_long (local_scm_gc_cell_yield_percentage)),
+		scm_cons (sym_protected_objects,
+			  scm_from_ulong (local_protected_obj_count)),
+		scm_cons (sym_heap_segments, heap_segs),
+		SCM_UNDEFINED);
   SCM_ALLOW_INTS;
   
   free (bounds);
@@ -406,7 +419,7 @@ SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
 	    "returned by this function for @var{obj}")
 #define FUNC_NAME s_scm_object_address
 {
-  return scm_ulong2num ((unsigned long) SCM_UNPACK (obj));
+  return scm_from_ulong (SCM_UNPACK (obj));
 }
 #undef FUNC_NAME
 
@@ -762,7 +775,7 @@ void
 scm_gc_register_root (SCM *p)
 {
   SCM handle;
-  SCM key = scm_long2num ((long) p);
+  SCM key = scm_from_ulong ((unsigned long) p);
 
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
@@ -778,7 +791,7 @@ void
 scm_gc_unregister_root (SCM *p)
 {
   SCM handle;
-  SCM key = scm_long2num ((long) p);
+  SCM key = scm_from_ulong ((unsigned long) p);
 
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
