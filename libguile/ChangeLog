@@ -1,3 +1,15 @@
+2000-03-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* gc.c, gc.h: Cleanup of the change of 2000-03-15.
+	Cluster sizes are now independent of GC trigger values.
+	GUILE_GC_TRIGGER_n can now specify a relative trigger value:
+	A negative integer gives fraction of total heap size in percent.
+
+	* init.c (scm_boot_guile_1): Introduced new variable
+	GUILE_MAX_SEGMENT_SIZE; New environment variable names:
+	GUILE_INIT_SEGMENT_SIZE_1, GUILE_GC_TRIGGER_1,
+	GUILE_INIT_SEGMENT_SIZE_2, GUILE_GC_TRIGGER_2
+
 2000-03-16  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	
 	* __scm.h (GC_FREE_SEGMENTS): Disable this until we have made
