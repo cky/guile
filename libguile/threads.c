@@ -937,6 +937,7 @@ void
 scm_threads_mark_stacks (void)
 {
   volatile SCM c;
+
   for (c = all_threads; !SCM_NULLP (c); c = SCM_CDR (c))
     {
       scm_thread *t = SCM_THREAD_DATA (SCM_CAR (c));
@@ -945,70 +946,24 @@ scm_threads_mark_stacks (void)
 	  /* Not fully initialized yet. */
 	  continue;
 	}
+
       if (t->top == NULL)
 	{
-	  long stack_len;
-#ifdef SCM_DEBUG
-	  if (t->thread != scm_thread_self ())
-	    abort ();
-#endif
-	  /* Active thread */
-	  /* stack_len is long rather than size_t in order to guarantee
-	     that &stack_len is long aligned */
-#if SCM_STACK_GROWS_UP
-	  stack_len = SCM_STACK_PTR (&t) - t->base;
-	  
-	  /* Protect from the C stack.  This must be the first marking
-	   * done because it provides information about what objects
-	   * are "in-use" by the C code.   "in-use" objects are  those
-	   * for which the information about length and base address must
-	   * remain usable.   This requirement is stricter than a liveness
-	   * requirement -- in particular, it constrains the implementation
-	   * of scm_resizuve.
+	  /* Thread has not been suspended, which should never happen.
 	   */
-	  SCM_FLUSH_REGISTER_WINDOWS;
-	  /* This assumes that all registers are saved into the jmp_buf */
-	  setjmp (scm_save_regs_gc_mark);
-	  scm_mark_locations ((SCM_STACKITEM *) scm_save_regs_gc_mark,
-			      ((size_t) sizeof scm_save_regs_gc_mark
-			       / sizeof (SCM_STACKITEM)));
-	  
-	  scm_mark_locations (t->base, (size_t) stack_len);
-#else
-	  stack_len = t->base - SCM_STACK_PTR (&t);
-	  
-	  /* Protect from the C stack.  This must be the first marking
-	   * done because it provides information about what objects
-	   * are "in-use" by the C code.   "in-use" objects are  those
-	   * for which the information about length and base address must
-	   * remain usable.   This requirement is stricter than a liveness
-	   * requirement -- in particular, it constrains the implementation
-	   * of scm_resizuve.
-	   */
-	  SCM_FLUSH_REGISTER_WINDOWS;
-	  /* This assumes that all registers are saved into the jmp_buf */
-	  setjmp (scm_save_regs_gc_mark);
-	  scm_mark_locations ((SCM_STACKITEM *) scm_save_regs_gc_mark,
-			      ((size_t) sizeof scm_save_regs_gc_mark
-			       / sizeof (SCM_STACKITEM)));
-	  
-	  scm_mark_locations (SCM_STACK_PTR (&t), stack_len);
-#endif
+	  abort ();
 	}
-      else
-	{
-	  /* Suspended thread */
+
 #if SCM_STACK_GROWS_UP
-	  long stack_len = t->top - t->base;
-	  scm_mark_locations (t->base, stack_len);
+      long stack_len = t->top - t->base;
+      scm_mark_locations (t->base, stack_len);
 #else
-	  long stack_len = t->base - t->top;
-	  scm_mark_locations (t->top, stack_len);
+      long stack_len = t->base - t->top;
+      scm_mark_locations (t->top, stack_len);
 #endif
-	  scm_mark_locations ((SCM_STACKITEM *) t->regs,
-			      ((size_t) sizeof(t->regs)
-			       / sizeof (SCM_STACKITEM)));
-	}
+      scm_mark_locations ((SCM_STACKITEM *) t->regs,
+			  ((size_t) sizeof(t->regs)
+			   / sizeof (SCM_STACKITEM)));
     }
 }
 
@@ -1189,25 +1144,29 @@ scm_c_thread_exited_p (SCM thread)
 
 static scm_t_cond wake_up_cond;
 int scm_i_thread_go_to_sleep;
-static int gc_section_count = 0;
 static int threads_initialized_p = 0;
 
 void
 scm_i_thread_put_to_sleep ()
 {
-  if (threads_initialized_p && !gc_section_count++)
+  if (threads_initialized_p)
     {
       SCM threads;
+
+      /* We leave Guile completely before locking the
+	 thread_admin_mutex.  This ensures that other threads can put
+	 us to sleep while we block on that mutex.
+      */
+      scm_i_leave_guile ();
       scm_i_plugin_mutex_lock (&thread_admin_mutex);
       threads = all_threads;
       /* Signal all threads to go to sleep */
       scm_i_thread_go_to_sleep = 1;
       for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
-	if (SCM_CAR (threads) != cur_thread)
-	  {
-	    scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
-	    scm_i_plugin_mutex_lock (&t->heap_mutex);
-	  }
+	{
+	  scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
+	  scm_i_plugin_mutex_lock (&t->heap_mutex);
+	}
       scm_i_thread_go_to_sleep = 0;
     }
 }
@@ -1228,18 +1187,18 @@ scm_i_thread_invalidate_freelists ()
 void
 scm_i_thread_wake_up ()
 {
-  if (threads_initialized_p && !--gc_section_count)
+  if (threads_initialized_p)
     {
       SCM threads;
       threads = all_threads;
       scm_i_plugin_cond_broadcast (&wake_up_cond);
       for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
-	if (SCM_CAR (threads) != cur_thread)
-	  {
-	    scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
-	    scm_i_plugin_mutex_unlock (&t->heap_mutex);
-	  }
+	{
+	  scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
+	  scm_i_plugin_mutex_unlock (&t->heap_mutex);
+	}
       scm_i_plugin_mutex_unlock (&thread_admin_mutex);
+      scm_i_enter_guile (SCM_CURRENT_THREAD);
     }
 }
 
