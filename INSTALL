@@ -88,6 +88,8 @@ not support dynamic linking.
 This option has no effect on systems that do not support shared
 libraries.
 
+--enable-lang --- Include experimental multilanguage support in libguile.
+
 --disable-shared --- Do not build shared libraries.  Normally, Guile
 will build shared libraries if your system supports them.  Guile
 always builds static libraries.
