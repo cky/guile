@@ -209,10 +209,7 @@ read_frame (dframe, offset, iframe)
 		flags |= SCM_FRAMEF_EVAL_ARGS;
 	    }
 	}
-      else
-	{
-	  iframe->source = scm_make_memoized (info[0].e.exp, info[0].e.env);
-	}
+      iframe->source = scm_make_memoized (info[0].e.exp, info[0].e.env);
     }
   else
     {
@@ -255,9 +252,10 @@ read_frames (dframe, offset, n, iframes)
       read_frame (dframe, offset, iframe);
       if (SCM_EVALFRAMEP (*dframe))
 	{
-	  /* If current frame is a macro frame, we should skip the
-	     previously recorded macro application frame.  */
-	  if (SCM_MACROFRAMEP (*dframe) && iframe > iframes)
+	  /* If current frame is a macro during expansion, we should
+	     skip the previously recorded macro transformer
+	     application frame.  */
+	  if (SCM_MACROEXPP (*dframe) && iframe > iframes)
 	    {
 	      *(iframe - 1) = *iframe;
 	      --iframe;
