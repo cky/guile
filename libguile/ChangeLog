@@ -26,6 +26,8 @@
 
 	* struct.h (scm_struct_i_setter): New constant.
 
+1999-03-08  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
 	* objects.h (SCM_OBJ_CLASS_REDEF): New macro: Find class slots
 	directly through the instance.
 
@@ -36,100 +38,10 @@
 
 	* list.c (scm_list_star): New procedure.
 
+1999-02-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+	
 	* debug.c (scm_init_debug): Added scheme level constant
 	SCM_IM_DISPATCH.
-
-	* print.c (scm_iprin1): Use scm_procedure_name instead of
-	scm_procedure_property for compiled closures.
-
-	* tags.h (scm_tc7_pws): New procedure type.  Four representations
-	for procedure-with-setters were considered before selecting this
-	one:
-
-	1. A closure where the CODE and ENV slots are used to represent
-	the getter and a new SETTER slot is used for the setter.  The
-	original getter is stored as a `getter' procedure property.  For
-	closure getters, the CODE and ENV slots contains a copy of the
-	getter's CODE and ENV slots.  For subr getters, the CODE contains
-	a call to the subr.
-
-	2. A compiled closure with a call to the getter in the cclo
-	procedure.  The getter and setter are stored in slots 1 and 2.
-	
-	3. An entity (i.e. a struct with an associated procedure) with a
-	call to the getter in the entity procedure and the setter stored
-	in slot 0.  The original getter is stored in slot 1.
-
-	4. A new primitive procedure type supported in the evaluator.  The
-	getter and setter are stored in a GETTER and SETTER slot.  A call
-	to this procedure type results in a retrieval of the getter and a
-	jump back to the correct eval dispatcher.
-
-	Representation 4 was selected because of efficiency and
-	simplicity.
-
-	Rep 1 has the advantage that there is zero penalty for closure
-	getters, but primitive getters will get considerable overhead
-	because the procedure-with-getter will be a closure which calls
-	the getter.
-	
-	Rep 3 has the advantage that a GOOPS accessor can be a subclass of
-	<procedure-with-setter>, but together with rep 2 it suffers from a
-	three level dispatch for non-GOOPS getters:
-
-	  cclo/struct --> dispatch proc --> getter
-	
-	This is because the dispatch procedure must take an extra initial
-	argument (cclo for rep 2, struct for rep 3).
-
-	Rep 4 has the single disadvantage that it uses up one tc7 type
-	code, but the plan for uniform vectors will very likely free tc7
-	codes, so this is probably no big problem.  Also note that the
-	GETTER and SETTER slots can live directly on the heap, using the
-	new four-word cells.
-
-	* procs.c, procs.h (SCM_PROCEDURE_WITH_SETTER_P, SCM_GETTER,
-	SCM_SETTER): New macros.
-	(scm_procedure_with_setter_p, scm_make_procedure_with_setter,
-	scm_getter, scm_setter): New procedures.
-
-	* eval.c, print.c (scm_iprin1): Added entries for scm_tc7_pws.
-
-	* gc.c (scm_gc_mark, scm_gc_sweep): Added case labels for
-	scm_tc7_pws.
-
-	* objects.c, objects.h (scm_class_of,
-	scm_class_procedure_with_setter): Added.
-
-	* procprop.c (scm_i_procedure_arity), procs.c (scm_thunk_p): Added
-	entry for scm_tc7_pws.
-
-	* procs.c (scm_procedure_p): Added case label for scm_tc7_pws.
-
-	* evalext.c, evalext.h (scm_m_generalized_set_x): New memoizing
-	macro.
-	(scm_init_evalext): Call scm_make_gsubr for
-	scm_m_generalized_set_x.
-
-	* eval.c, debug.c, tags.h (SCM_IM_SET_X): Renamed from SCM_IM_SET.
-
-	* eval.h: Declare scm_s_set_x, scm_sym_set_x;
-
-	* eval.c: Renamed "set" --> "set_x" in various names for
-	consistency of name correspondence between Scheme and C;
-	Renamed scm_i_set_x --> scm_sym_set_x and made global.
-	Renamed s_set_x --> scm_s_set_x and made global.
-
-	* random.c (scm_i_random_bignum): Made independent of endianness.
-
-	* eval.c (SCM_CEVAL): Added ENTER_APPLY in code for SCM_IM_APPLY.
-	(Thanks to Eric Hanchrow.)
-
-	* objects.c, objects.h (SCM_CLASS_REDEF): Renamed from CLASS_REDEF.
-
-	* random.c: Bugfix: Retrieve and store most significant 32 bits in
-	different order if the machine is bigendian.
-	(scm_init_random): Added safety check for bignum digit size.
 
 1999-02-12  Jim Blandy  <jimb@savonarola.red-bean.com>
 
@@ -208,6 +120,108 @@
 	* dynl.c, dynl-dld.c, dynl-dl.c, dynl-shl.c (sysdep_dynl_link,
 	sysdep_dynl_unlink, sysdep_dynl_func): Arguments FNAME, SUBR, and
 	SYMB now point to const.
+
+1999-01-30  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* print.c (scm_iprin1): Use scm_procedure_name instead of
+	scm_procedure_property for compiled closures.
+
+	* tags.h (scm_tc7_pws): New procedure type.  Four representations
+	for procedure-with-setters were considered before selecting this
+	one:
+
+	1. A closure where the CODE and ENV slots are used to represent
+	the getter and a new SETTER slot is used for the setter.  The
+	original getter is stored as a `getter' procedure property.  For
+	closure getters, the CODE and ENV slots contains a copy of the
+	getter's CODE and ENV slots.  For subr getters, the CODE contains
+	a call to the subr.
+
+	2. A compiled closure with a call to the getter in the cclo
+	procedure.  The getter and setter are stored in slots 1 and 2.
+	
+	3. An entity (i.e. a struct with an associated procedure) with a
+	call to the getter in the entity procedure and the setter stored
+	in slot 0.  The original getter is stored in slot 1.
+
+	4. A new primitive procedure type supported in the evaluator.  The
+	getter and setter are stored in a GETTER and SETTER slot.  A call
+	to this procedure type results in a retrieval of the getter and a
+	jump back to the correct eval dispatcher.
+
+	Representation 4 was selected because of efficiency and
+	simplicity.
+
+	Rep 1 has the advantage that there is zero penalty for closure
+	getters, but primitive getters will get considerable overhead
+	because the procedure-with-getter will be a closure which calls
+	the getter.
+	
+	Rep 3 has the advantage that a GOOPS accessor can be a subclass of
+	<procedure-with-setter>, but together with rep 2 it suffers from a
+	three level dispatch for non-GOOPS getters:
+
+	  cclo/struct --> dispatch proc --> getter
+	
+	This is because the dispatch procedure must take an extra initial
+	argument (cclo for rep 2, struct for rep 3).
+
+	Rep 4 has the single disadvantage that it uses up one tc7 type
+	code, but the plan for uniform vectors will very likely free tc7
+	codes, so this is probably no big problem.  Also note that the
+	GETTER and SETTER slots can live directly on the heap, using the
+	new four-word cells.
+
+	* procs.c, procs.h (SCM_PROCEDURE_WITH_SETTER_P, SCM_GETTER,
+	SCM_SETTER): New macros.
+	(scm_procedure_with_setter_p, scm_make_procedure_with_setter,
+	scm_getter, scm_setter): New procedures.
+
+	* eval.c, print.c (scm_iprin1): Added entries for scm_tc7_pws.
+
+	* gc.c (scm_gc_mark, scm_gc_sweep): Added case labels for
+	scm_tc7_pws.
+
+	* objects.c, objects.h (scm_class_of,
+	scm_class_procedure_with_setter): Added.
+
+	* procprop.c (scm_i_procedure_arity), procs.c (scm_thunk_p): Added
+	entry for scm_tc7_pws.
+
+	* procs.c (scm_procedure_p): Added case label for scm_tc7_pws.
+
+1999-01-28  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* evalext.c, evalext.h (scm_m_generalized_set_x): New memoizing
+	macro.
+	(scm_init_evalext): Call scm_make_gsubr for
+	scm_m_generalized_set_x.
+
+	* eval.c, debug.c, tags.h (SCM_IM_SET_X): Renamed from SCM_IM_SET.
+
+	* eval.h: Declare scm_s_set_x, scm_sym_set_x;
+
+	* eval.c: Renamed "set" --> "set_x" in various names for
+	consistency of name correspondence between Scheme and C;
+	Renamed scm_i_set_x --> scm_sym_set_x and made global.
+	Renamed s_set_x --> scm_s_set_x and made global.
+
+1999-01-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* random.c (scm_i_random_bignum): Made independent of endianness.
+
+1999-01-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Added ENTER_APPLY in code for SCM_IM_APPLY.
+	(Thanks to Eric Hanchrow.)
+
+1999-01-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* objects.c, objects.h (SCM_CLASS_REDEF): Renamed from CLASS_REDEF.
+
+	* random.c: Bugfix: Retrieve and store most significant 32 bits in
+	different order if the machine is bigendian.
+	(scm_init_random): Added safety check for bignum digit size.
 
 1999-01-21  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
