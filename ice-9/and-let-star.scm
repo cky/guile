@@ -25,7 +25,9 @@
   (define (expand vars body)
     (cond
      ((null? vars)
-      `(begin ,@body))
+      (if (null? body)
+	  #t
+	  `(begin ,@body)))
      ((pair? vars)
       (let ((exp (car vars)))
         (cond
