@@ -12,6 +12,11 @@ Previously, comparing two variables with `equal?' would recursivly
 compare their values.  This is no longer done.  Variables are now only
 `equal?' if they are `eq?'.
 
+** `(begin)' is now valid.
+
+You can now use an empty `begin' form.  It will yield #<unspecified>
+when evaluated and simply be ignored in a definition context.
+
 * Changes to the C interface
 
 ** New function: scm_str2string
