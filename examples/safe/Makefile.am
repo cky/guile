@@ -19,4 +19,7 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
-EXTRA_DIST = README safe untrusted.scm evil.scm
+EXTRA_DIST = README safe untrusted.scm evil.scm check.test
+
+installcheck:
+	srcdir=$(srcdir) GUILE_LOAD_PATH=$(top_srcdir) $(srcdir)/check.test

@@ -19,13 +19,18 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
-EXTRA_DIST = README box.c
+EXTRA_DIST = README box.c check.test
 
-CFLAGS=`guile-config compile`
-LIBS=`guile-config link`
+CFLAGS=`$(bindir)/guile-config compile`
+LIBS=`$(bindir)/guile-config link`
 
 box: box.o
 	$(CC) $< $(LIBS) -o box
 
 box.o: box.c
 	$(CC) $(CFLAGS) -c $< 
+
+installcheck: box
+	LD_LIBRARY_PATH=$(libdir) GUILE_LOAD_PATH=$(top_srcdir) $(srcdir)/check.test
+
+CLEANFILES=box box.o

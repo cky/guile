@@ -1,3 +1,64 @@
+2001-07-24  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	All examples are now built and tested on `make installcheck'
+	rather than `make check'.
+
+2001-07-19  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* box-dynamic-module/Makefile.am, box-dynamic/Makefile.am,
+	box-module/Makefile.am, box/Makefile.am: Use $(top_srcdir) to get
+	at GUILE_LOAD_PATH, and $(top_builddir) for the guile and
+	guile-config programs and for the link paths.  Add check.test to
+	EXTRA_DIST.
+
+	* box-dynamic-module/Makefile.am, box-dynamic/Makefile.am,
+	box-module/Makefile.am, box/Makefile.am: Add -L../../qt to LIBS.
+
+2001-07-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* box-module/.cvsignore: add .deps
+
+	* box/.cvsignore: add .deps.
+
+2001-07-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* box-module/Makefile.am (TESTS): New variable.
+	Create `box' on `make all'.
+
+	* box-module/check.test, box-dynamic-module/check.test,
+	* box-dynamic/check.test: New files.
+
+	* box-dynamic/Makefile.am (libbox): Create box library on `make
+	all'.
+	(TESTS): New variable.
+
+	* box/Makefile.am (TESTS): New variable.  
+	Create `box' program on `make all', use freshly built Guile for
+	building.
+
+	* box/check.test: New file.
+
+	* modules/check.test, safe/check.test, scripts/check.test: Set
+	GUILE_LOAD_PATH to make the tests run without installed Guile.
+
+2001-07-16  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* scripts/check.test: Add check for guile interpreter.
+	Fix bug: Use `$guile' everywhere.  Thanks to Martin Grabmueller.
+
+2001-07-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* modules/check.test, safe/check.test: New files.
+
+	* modules/Makefile.am (TESTS), safe/Makefile.am (TESTS): New
+	variables.
+
+2001-07-14  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* scripts/check.test: New file.
+
+	* Makefile.am (TESTS): New var.
+
 2001-07-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* modules/main: Use :renamer for specifying renaming procedure.

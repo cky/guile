@@ -55,7 +55,7 @@ same name.
 For safety reasons, #. evaluation is disabled by default.  To
 re-enable it, set the fluid read-eval? to #t.  For example:
 
-  (fluid-set read-eval? #t)
+  (fluid-set! read-eval? #t)
 
 but make sure you realize the potential security risks involved.  With
 read-eval?  enabled, reading a data file from an untrusted source can
