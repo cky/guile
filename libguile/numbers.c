@@ -2819,8 +2819,13 @@ scm_i_fraction_equalp (SCM x, SCM y)
 {
   scm_i_fraction_reduce (x);
   scm_i_fraction_reduce (y);
-  return SCM_BOOL (scm_equal_p (SCM_FRACTION_NUMERATOR (x), SCM_FRACTION_NUMERATOR (y))
-		   && scm_equal_p (SCM_FRACTION_DENOMINATOR (x), SCM_FRACTION_DENOMINATOR (y)));
+  if (SCM_FALSEP (scm_equal_p (SCM_FRACTION_NUMERATOR (x),
+			       SCM_FRACTION_NUMERATOR (y)))
+      || SCM_FALSEP (scm_equal_p (SCM_FRACTION_DENOMINATOR (x),
+				  SCM_FRACTION_DENOMINATOR (y))))
+    return SCM_BOOL_F;
+  else
+    return SCM_BOOL_T;
 }
 
 
@@ -5217,7 +5222,14 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 	      SCM_FALSEP 
 	      (scm_gr_p (scm_abs (scm_difference (ex, scm_divide (a, b))),
 			 err)))                      /* abs(x-a/b) <= err */
-	    return scm_sum (int_part, scm_divide (a, b)); /* int_part+a/b */
+	    {
+	      SCM res = scm_sum (int_part, scm_divide (a, b));
+	      if (SCM_FALSEP (scm_exact_p (x))
+		  || SCM_FALSEP (scm_exact_p (err)))
+		return scm_exact_to_inexact (res);
+	      else
+		return res;
+	    }
 	  rx = scm_divide (scm_difference (rx, tt),  /* rx = 1/(rx - tt) */
 			   SCM_UNDEFINED);
 	  tt = scm_floor (rx);                       /* tt = floor (rx) */
