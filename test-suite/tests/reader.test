@@ -1,0 +1,18 @@
+;;;; reader.test --- test the Guile parser -*- scheme -*-
+;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
+
+(define (try-to-read string)
+  (pass-if (call-with-output-string (lambda (port)
+				      (display "Try to read " port)
+				      (write string port)))
+	   (catch 'signal
+		  (lambda ()
+		    (call-with-input-string string 
+					    (lambda (p) (read p)))
+		    #t)
+		  (lambda args #f))))
+
+(try-to-read "0")
+(try-to-read "1++i")
+(try-to-read "1+i+i")
+(try-to-read "1+e10000i")
