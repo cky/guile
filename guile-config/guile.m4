@@ -1,77 +1,106 @@
-dnl   Autoconf macros for working with Guile.
-dnl
-dnl   	Copyright (C) 1998,2001 Free Software Foundation, Inc.
-dnl
-dnl   This program is free software; you can redistribute it and/or modify
-dnl   it under the terms of the GNU General Public License as published by
-dnl   the Free Software Foundation; either version 2, or (at your option)
-dnl   any later version.
-dnl
-dnl   This program is distributed in the hope that it will be useful,
-dnl   but WITHOUT ANY WARRANTY; without even the implied warranty of
-dnl   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-dnl   GNU General Public License for more details.
-dnl
-dnl   You should have received a copy of the GNU General Public License
-dnl   along with this software; see the file COPYING.  If not, write to
-dnl   the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-dnl   Boston, MA 02111-1307 USA
-dnl
-dnl   As a special exception, the Free Software Foundation gives permission
-dnl   for additional uses of the text contained in its release of GUILE.
-dnl
-dnl   The exception is that, if you link the GUILE library with other files
-dnl   to produce an executable, this does not by itself cause the
-dnl   resulting executable to be covered by the GNU General Public License.
-dnl   Your use of that executable is in no way restricted on account of
-dnl   linking the GUILE library code into it.
-dnl
-dnl   This exception does not however invalidate any other reasons why
-dnl   the executable file might be covered by the GNU General Public License.
-dnl
-dnl   This exception applies only to the code released by the
-dnl   Free Software Foundation under the name GUILE.  If you copy
-dnl   code from other Free Software Foundation releases into a copy of
-dnl   GUILE, as the General Public License permits, the exception does
-dnl   not apply to the code that you add in this way.  To avoid misleading
-dnl   anyone as to the status of such modified files, you must delete
-dnl   this exception notice from them.
-dnl
-dnl   If you write modifications of your own for GUILE, it is your choice
-dnl   whether to permit this exception to apply to your modifications.
-dnl   If you do not wish that, delete this exception notice.
+## Autoconf macros for working with Guile.
+##
+##   Copyright (C) 1998,2001 Free Software Foundation, Inc.
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2, or (at your option)
+## any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this software; see the file COPYING.  If not, write to
+## the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+## Boston, MA 02111-1307 USA
+##
+## As a special exception, the Free Software Foundation gives permission
+## for additional uses of the text contained in its release of GUILE.
+##
+## The exception is that, if you link the GUILE library with other files
+## to produce an executable, this does not by itself cause the
+## resulting executable to be covered by the GNU General Public License.
+## Your use of that executable is in no way restricted on account of
+## linking the GUILE library code into it.
+##
+## This exception does not however invalidate any other reasons why
+## the executable file might be covered by the GNU General Public License.
+##
+## This exception applies only to the code released by the
+## Free Software Foundation under the name GUILE.  If you copy
+## code from other Free Software Foundation releases into a copy of
+## GUILE, as the General Public License permits, the exception does
+## not apply to the code that you add in this way.  To avoid misleading
+## anyone as to the status of such modified files, you must delete
+## this exception notice from them.
+##
+## If you write modifications of your own for GUILE, it is your choice
+## whether to permit this exception to apply to your modifications.
+## If you do not wish that, delete this exception notice.
 
+## Index
+## -----
+##
+## GUILE_PROGS -- set paths to Guile interpreter, config and tool programs
+## GUILE_FLAGS -- set flags for compiling and linking with Guile
+## GUILE_SITE_DIR -- find path to Guile "site" directory
+## GUILE_CHECK -- evaluate Guile Scheme code and capture the return value
+## GUILE_MODULE_CHECK -- check feature of a Guile Scheme module
+## GUILE_MODULE_AVAILABLE -- check availability of a Guile Scheme module
+## GUILE_MODULE_REQUIRED -- fail if a Guile Scheme module is unavailable
+## GUILE_MODULE_EXPORTS -- check if a module exports a variable
+## GUILE_MODULE_REQUIRED_EXPORT -- fail if a module doesn't export a variable
 
-dnl   INDEX
-dnl   -----
+## Code
+## ----
 
-dnl   GUILE_FLAGS --- set flags for compiling and linking with Guile
-dnl   AC_GUILE_MODULE_CHECK --- check feature of a Guile Scheme module
-dnl   AC_GUILE_MODULE_AVAILABLE --- check availability of a Guile Scheme module
-dnl   AC_GUILE_MODULE_REQUIRED --- fail if a Guile Scheme module is unavailable
+# GUILE_PROGS -- set paths to Guile interpreter, config and tool programs
+#
+# Usage: GUILE_PROGS
+#
+# This macro looks for programs `guile', `guile-config' and `guile-tools',
+# and sets variables GUILE, GUILE_CONFIG and GUILE_TOOLS, to their paths,
+# respectively.  If either of the first two are not found, signal error.
+#
+# The variables are marked for substitution, as by AC_SUBST.
+#
+AC_DEFUN([GUILE_PROGS],
+ [AC_PATH_PROG(GUILE,guile)
+  if test "$GUILE" = "" ; then
+      AC_MSG_ERROR([guile required but not found])
+  fi
+  AC_SUBST(GUILE)
+  AC_PATH_PROG(GUILE_CONFIG,guile-config)
+  if test "$GUILE_CONFIG" = "" ; then
+      AC_MSG_ERROR([guile-config required but not found])
+  fi
+  AC_SUBST(GUILE_CONFIG)
+  AC_PATH_PROG(GUILE_TOOLS,guile-tools)
+  AC_SUBST(GUILE_TOOLS)
+ ])
 
-
-dnl   Code
-dnl   ----
-
-dnl   GUILE_FLAGS --- set flags for compiling and linking with Guile
-dnl
-dnl   This macro runs the `guile-config' script, installed with Guile,
-dnl   to find out where Guile's header files and libraries are
-dnl   installed.  It sets two variables, marked for substitution, as
-dnl   by AC_SUBST.
-dnl
-dnl	GUILE_CFLAGS --- flags to pass to a C or C++ compiler to build
-dnl		code that uses Guile header files.  This is almost
-dnl		always just a -I flag.
-dnl
-dnl     GUILE_LDFLAGS --- flags to pass to the linker to link a
-dnl		program against Guile.  This includes `-lguile' for
-dnl		the Guile library itself, any libraries that Guile
-dnl		itself requires (like -lqthreads), and so on.  It may
-dnl		also include a -L flag to tell the compiler where to
-dnl		find the libraries.
-
+# GUILE_FLAGS -- set flags for compiling and linking with Guile
+#
+# Usage: GUILE_FLAGS
+#
+# This macro runs the `guile-config' script, installed with Guile,
+# to find out where Guile's header files and libraries are
+# installed.  It sets two variables, GUILE_CFLAGS and GUILE_LDFLAGS.
+#
+# GUILE_CFLAGS: flags to pass to a C or C++ compiler to build code that
+# uses Guile header files.  This is almost always just a -I flag.
+#
+# GUILE_LDFLAGS: flags to pass to the linker to link a program against
+# Guile.  This includes `-lguile' for the Guile library itself, any
+# libraries that Guile itself requires (like -lqthreads), and so on.  It
+# may also include a -L flag to tell the compiler where to find the
+# libraries.
+#
+# The variables are marked for substitution, as by AC_SUBST.
+#
 AC_DEFUN([GUILE_FLAGS],[
 ## The GUILE_FLAGS macro.
   ## First, let's just see if we can find Guile at all.
@@ -87,46 +116,104 @@ AC_DEFUN([GUILE_FLAGS],[
   AC_MSG_RESULT(yes)
 ])
 
+# GUILE_SITE_DIR -- find path to Guile "site" directory
+#
+# Usage: GUILE_SITE_DIR
+#
+# This looks for Guile's "site" directory, usually something like
+# PREFIX/share/guile/site, and sets var GUILE_SITE to the path.
+# Note that the var name is different from the macro name.
+#
+# The variable is marked for substitution, as by AC_SUBST.
+#
+AC_DEFUN([GUILE_SITE_DIR],
+ [AC_REQUIRE([GUILE_PROGS])dnl
+  AC_MSG_CHECKING(for Guile site directory)
+  GUILE_SITE=`[$GUILE_CONFIG] info pkgdatadir`/site
+  AC_MSG_RESULT($GUILE_SITE)
+  AC_SUBST(GUILE_SITE)
+ ])
 
-dnl   AC_GUILE_MODULE_CHECK --- check feature of a Guile Scheme module
-dnl
-dnl   AC_GUILE_MODULE_CHECK(var,module,featuretest,description)
-dnl   $1 is a shell variable name to be set to "yes" or "no"
-dnl   $2 is a list of symbols, like: (ice-9 common-list)
-dnl   $3 is a thunk, like: (lambda () BODY ...)
-dnl      which returns either 0 or #t to indicate the check passed.
-dnl      avoid using the character "#" since that confuses autoconf.
-dnl   $4 is a noun phrase passed to AC_MSG_CHECKING
+# GUILE_CHECK -- evaluate Guile Scheme code and capture the return value
+#
+# Usage: GUILE_CHECK_RETVAL(var,check)
+#
+# $1 is a shell variable name to be set to the return value
+# $2 is a Guile Scheme expression, evaluated with "$GUILE -c", and
+#    returning either 0 or non-#f to indicate the check passed.
+#    Non-0 number or #f indicates failure.
+#    Avoid using the character "#" since that confuses autoconf.
+#
+AC_DEFUN([GUILE_CHECK],
+ [AC_REQUIRE([GUILE_PROGS])
+  $GUILE -c "$2" > /dev/null 2>&1
+  $1=$?
+ ])
 
-AC_DEFUN([AC_GUILE_MODULE_CHECK],
-         [AC_MSG_CHECKING([$2 $4])
-          $1=no
-          echo '(use-modules $2) (exit ($3))' > conftest
-          guile -s conftest > /dev/null 2>&1 && $1=yes
-          rm -f conftest
-          AC_MSG_RESULT($[$1])
+# GUILE_MODULE_CHECK -- check feature of a Guile Scheme module
+#
+# Usage: GUILE_MODULE_CHECK(var,module,featuretest,description)
+#
+# $1 is a shell variable name to be set to "yes" or "no"
+# $2 is a list of symbols, like: (ice-9 common-list)
+# $3 is an expression acceptable to GUILE_CHECK, q.v.
+# $4 is a present-tense verb phrase (passed to AC_MSG_CHECKING)
+#
+AC_DEFUN([GUILE_MODULE_CHECK],
+         [AC_MSG_CHECKING([if $2 $4])
+	  GUILE_CHECK($1,(use-modules $2) (exit ((lambda () $3))))
+	  if test "$$1" = "0" ; then $1=yes ; else $1=no ; fi
+          AC_MSG_RESULT($$1)
          ])
 
-dnl   AC_GUILE_MODULE_AVAILABLE --- check availability of a Guile Scheme module
-dnl
-dnl   AC_GUILE_MODULE_AVAILABLE(var,module)
-dnl   $1 is a shell variable name to be set to "yes" or "no"
-dnl   $2 is a list of symbols, like: (ice-9 common-list)
-
-AC_DEFUN([AC_GUILE_MODULE_AVAILABLE],
-         [AC_GUILE_MODULE_CHECK($1,$2,(lambda () 0),availability)
+# GUILE_MODULE_AVAILABLE -- check availability of a Guile Scheme module
+#
+# Usage: GUILE_MODULE_AVAILABLE(var,module)
+#
+# $1 is a shell variable name to be set to "yes" or "no"
+# $2 is a list of symbols, like: (ice-9 common-list)
+#
+AC_DEFUN([GUILE_MODULE_AVAILABLE],
+         [GUILE_MODULE_CHECK($1,$2,0,is available)
          ])
 
-dnl   AC_GUILE_MODULE_REQUIRED --- fail if a Guile Scheme module is unavailable
-dnl
-dnl   $1 is a list of symbols, WITHOUT the surrounding parens
-
-AC_DEFUN([AC_GUILE_MODULE_REQUIRED],
-         [AC_GUILE_MODULE_AVAILABLE(ac_guile_module_required, ($1))
+# GUILE_MODULE_REQUIRED -- fail if a Guile Scheme module is unavailable
+#
+# Usage: GUILE_MODULE_REQUIRED(symlist)
+#
+# $1 is a list of symbols, WITHOUT surrounding parens, like: ice-9 common-list
+#
+AC_DEFUN([GUILE_MODULE_REQUIRED],
+         [GUILE_MODULE_AVAILABLE(ac_guile_module_required, ($1))
           if test "$ac_guile_module_required" = "no" ; then
               AC_MSG_ERROR([required guile module not found: ($1)])
           fi
          ])
 
+# GUILE_MODULE_EXPORTS -- check if a module exports a variable
+#
+# Usage: GUILE_MODULE_EXPORTS(var,module,modvar)
+#
+# $1 is a shell variable to be set to "yes" or "no"
+# $2 is a list of symbols, like: (ice-9 common-list)
+# $3 is the Guile Scheme variable to check
+#
+AC_DEFUN([GUILE_MODULE_EXPORTS],
+ [GUILE_MODULE_CHECK($1,$2,$3,exports `$3')
+ ])
 
-dnl   guile.m4 ends here
+# GUILE_MODULE_REQUIRED_EXPORT -- fail if a module doesn't export a variable
+#
+# Usage: GUILE_MODULE_REQUIRED_EXPORT(module,modvar)
+#
+# $1 is a list of symbols, like: (ice-9 common-list)
+# $2 is the Guile Scheme variable to check
+#
+AC_DEFUN([GUILE_MODULE_REQUIRED_EXPORT],
+ [GUILE_MODULE_EXPORTS(guile_module_required_export,$1,$2)
+  if test "$guile_module_required_export" = "no" ; then
+      AC_MSG_ERROR([module $1 does not export $2; required])
+  fi
+ ])
+
+## guile.m4 ends here
