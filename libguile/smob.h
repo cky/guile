@@ -114,7 +114,7 @@ SCM_API int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
  * values using `scm_set_smob_xxx'.
  */
 
-SCM_API scm_t_bits scm_make_smob_type (char *name, size_t size);
+SCM_API scm_t_bits scm_make_smob_type (char const *name, size_t size);
 
 SCM_API void scm_set_smob_mark (scm_t_bits tc, SCM (*mark) (SCM));
 SCM_API void scm_set_smob_free (scm_t_bits tc, size_t (*free) (SCM));

@@ -1,3 +1,8 @@
+2003-10-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* smob.h (scm_make_smob_type): Made the declaration match the
+	definition.
+
 2003-10-07  Marius Vollmer  <mvo@zagadka.de>
 
  	* goops.c, objects.h, smob.c, smob.h: Make type names char
