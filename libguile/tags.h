@@ -136,7 +136,8 @@ typedef unsigned long scm_t_bits;
 /* SCM values can not be compared by using the operator ==.  Use the following
  * macro instead, which is the equivalent of the scheme predicate 'eq?'.
  */
-#define SCM_EQ_P(x, y) (SCM_UNPACK (x) == SCM_UNPACK (y))
+#define scm_is_eq(x, y) (SCM_UNPACK (x) == SCM_UNPACK (y))
+#define SCM_EQ_P scm_is_eq
 
 
 
