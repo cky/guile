@@ -1,5 +1,7 @@
 2001-11-19  Thien-Thi Nguyen  <ttn@glug.org>
 
+	* BUGS (11): Set "fixed: no-need".
+
 	* TODO (write emacs/patch.el): New item, self-assigned.
 
 2001-11-19  Rob Browning  <rlb@defaultvalue.org>
