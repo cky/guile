@@ -1,3 +1,9 @@
+2003-03-25  Rob Browning  <rlb@defaultvalue.org>
+
+	* srfi-4.c: replace typedefs for basic types with typedefs using
+	new standard int types (i.e. scm_t_uint8, etc.) -- should probably
+	remove typedefs altogether later.
+
 2003-03-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* srfi-1.scm: Re-export all srfi-1 bindings implemented by the

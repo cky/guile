@@ -1,3 +1,274 @@
+2003-03-25  Rob Browning  <rlb@defaultvalue.org>
+
+	* win32-socket.h: #include "libguile/__scm.h".  Replace usage of
+	HAVE_WINSOCK2_H with SCM_HAVE_WINSOCK2_H.
+
+	* win32-socket.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* vports.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* unif.c: #include <config.h> if HAVE_CONFIG_H.  Replace usage of
+	HAVE_LONG_LONGS with "SCM_SIZEOF_LONG_LONG != 0".
+
+	* threads.h: replace usage of struct timespect with
+	scm_t_timespec.  Replace usage of USE_PTHREAD_THREADS with
+	SCM_USE_PTHREAD_THREADS.  Remove typedef for struct timespec in
+	favor of scm_t_timespec from scmconfig.h.
+
+	* threads.c: move libguile/_scm.h include to the top so we pick up
+	any critical defines like _GNU_SOURCE early.  Replace usage of
+	struct timespect with scm_t_timespec.  Replace usage of
+	STACK_GROWS_UP with SCM_STACK_GROWS_UP.  Replace usage of
+	USE_PTHREAD_THREADS with SCM_USE_PTHREAD_THREADS.
+
+	* threads-plugin.h: replace usage of struct timespect with
+	scm_t_timespec.
+
+	* threads-plugin.c: #include <config.h> if HAVE_CONFIG_H.  Replace
+	usage of struct timespect with scm_t_timespec.
+
+	* tags.h: move HAVE_STDINT_H handling to scmconfig.h.  Move
+	HAVE_INTTYPES_H handling to scmconfig.h.  #include
+	"libguile/__scm.h".  Rework handling for scm_t_bits,
+	scm_t_signed_bits, SCM_T_BITS_MAX, SCM_T_SIGNED_BITS_MAX,
+	SCM_T_SIGNED_BITS_MIN, and SIZEOF_SCM_T_BITS to use scm_t_intptr,
+	scm_t_uintptr, SCM_SIZEOF_INTPTR_T, and SCM_SIZEOF_UINTPTR_T, and
+	SCM_SIZEOF_UNSIGNED_LONG.  Rename usage of HAVE_ARRAYS to
+	SCM_HAVE_ARRAYS.
+
+	* symbols.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* struct.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* strports.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* strop.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* stime.h: move handling of time related headers to scmconfig.h.
+
+	* stime.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* stacks.c: replace usage of STACK_GROWS_UP with
+	SCM_STACK_GROWS_UP.
+
+	* sort.c: #include <config.h> if HAVE_CONFIG_H.  Rename usage of
+	HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* socket.c: #include <config.h> if HAVE_CONFIG_H.  Replace usage
+	of uint32 and HAVE_UINT_32 with scm_t_int32.
+
+	* smob.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* simpos.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* script.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* scmsigs.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* scmconfig.h.top: new file -- preamble for scmconfig.h.
+
+	* rw.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* regex-posix.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* read.c: rename usage of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* rdelim.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* random.c: #include <config.h> if HAVE_CONFIG_H.  Replace usage
+	of LONG32, LONG64, SIZEOF_LONG, and HAVE_LONG_LONGS with
+	scm_t_int32, scm_t_int64, and SCM_HAVE_T_INT64.  Rename usage of
+	HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* ramap.c: replace usage of HAVE_LONG_LONGS with
+	"SCM_SIZEOF_LONG_LONG != 0".
+
+	* putenv.c: #include <config.h> if HAVE_CONFIG_H.  #include
+	"libguile/scmconfig.h".
+
+	* pthread-threads.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* print.c: rename usage of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+	Replace usage of HAVE_LONG_LONGS with "SCM_SIZEOF_LONG_LONG != 0".
+
+	* posix.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* ports.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* objects.c: rename usage of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* numbers.h: replace usage of HAVE_FLOATINGPOINT_H with
+	SCM_HAVE_FLOATINGPOINT_H.  Replace usage of HAVE_IEEEFP_H with
+	SCM_HAVE_IEEEFP_H.  Replace usage of HAVE_NAN_H with
+	SCM_HAVE_NAN_H.  Replace usage of STDC_HEADERS with
+	SCM_HAVE_STDC_HEADERS.  Replace usage of ptrdiff_t with
+	scm_t_ptrdiff.  Replace usage of HAVE_LONG_LONGS with
+	"SCM_SIZEOF_LONG_LONG != 0".
+
+	* numbers.c: #include <config.h> if HAVE_CONFIG_H.  Replace usage
+	of HAVE_LONG_LONGS with "SCM_SIZEOF_LONG_LONG != 0".  Replace
+	usage of ptrdiff_t with scm_t_ptrdiff.  Replace usage of
+	SIZEOF_PTRDIFF_T with SCM_SIZEOF_SCM_T_PTRDIFF.
+
+	* num2integral.i.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* null-threads.h: replace usage of struct timespect with
+	scm_t_timespec.
+
+	* net_db.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* mkstemp.c: #include <config.h> if HAVE_CONFIG_H.  #include
+	"libguile/__scm.h".  Remove definition of gcc_uint64_t in favor of
+	scm_t_uint64 and rename usages.
+
+	* mallocs.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* load.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* iselect.h: move handling of time related headers to scmconfig.h.
+	Rename usage of HAVE_SYS_SELECT_H to SCM_HAVE_SYS_SELECT_H.
+	Rename usage of HAVE_WINSOCK2_H to SCM_HAVE_WINSOCK2_H.  Rename
+	usage of USE_COOP_THREADS to SCM_USE_COOP_THREADS.
+
+	* iselect.c: #include <config.h> if HAVE_CONFIG_H.  Rename usage
+	of USE_COOP_THREADS to SCM_USE_COOP_THREADS.  Rename usage of
+	USE_NULL_THREADS to SCM_USE_NULL_THREADS.
+
+	* ioext.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* inline.h: #include "libguile/__scm.h" at the top.  Change code
+	to use SCM_C_INLINE and SCM_INLINE_C_INCLUDINT_INLINE_H to decide
+	what to do instead of creating a new public #define.  Rename usage
+	of USE_COOP_THREADS to SCM_USE_COOP_THREADS.  Rename usage of
+	USE_NULL_THREADS to SCM_USE_NULL_THREADS.  Rename usage of
+	USE_COPT_THREADS to SCM_USE_COPT_THREADS.
+
+	* inline.c: rearrange handling -- now we just #define
+	SCM_INLINE_C_INCLUDING_INLINE_H to 1 and #include
+	"libguile/inline.h".  scmconfig.h will define SCM_C_INLINE as
+	appropriate, and we use that in inline.h along with the above
+	define to determine how to respond.
+
+	* init.c: #include <config.h> if HAVE_CONFIG_H.  Rename usage of
+	HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* guile.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* gh_data.c: #include <config.h> if HAVE_CONFIG_H.  Rename usage
+	of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* gh.h: rename usage of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* gen-scmconfig.h.in: new file -- see gen-scmconfig.c for details.
+
+	* gen-scmconfig.c: new file -- see comments in file for details.
+
+	* gdbinit.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* gc_os_dep.c: #include <config.h> if HAVE_CONFIG_H.  Replace
+	usage of STACK_GROWS_UP with SCM_STACK_GROWS_UP.
+
+	* gc.h: replace usage of SIZEOF_LONG with
+	SCM_SIZEOF_UNSIGNED_LONG.  Replace usage of USE_PTHREAD_THREADS
+	with SCM_USE_PTHREAD_THREADS.  Remove SCM_SIZEOF_LONG definition
+	since we handle that in scmconfig.h now.
+
+	* gc.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* gc-mark.c: #include <config.h> if HAVE_CONFIG_H.  Rename usage
+	of HAVE_ARRAYS to SCM_HAVE_ARRAYS.  Replace usage of
+	HAVE_LONG_LONGS with "SCM_SIZEOF_LONG_LONG != 0".
+
+	* gc-malloc.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* gc-card.c: rename usage of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+	Replace usage of HAVE_LONG_LONGS with "SCM_SIZEOF_LONG_LONG != 0".
+
+	* fports.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* filesys.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* feature.c: #include <config.h> if HAVE_CONFIG_H.  Rename usage
+	of USE_NULL_THREADS to SCM_USE_NULL_THREADS.
+
+	* extensions.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* evalext.c: rename usage of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+	Replace usage of HAVE_LONG_LONGS with "SCM_SIZEOF_LONG_LONG != 0".
+
+	* eval.c: #include <config.h> if HAVE_CONFIG_H.  #include
+	"libguile/__scm.h" rather than scmconfig.h.  Rename usage of
+	HAVE_ARRAYS to SCM_HAVE_ARRAYS.  Replace usage of HAVE_LONG_LONGS
+	with "SCM_SIZEOF_LONG_LONG != 0".
+
+	* error.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* eq.c: #include <config.h> if HAVE_CONFIG_H.  Rename usage of
+	HAVE_ARRAYS to SCM_HAVE_ARRAYS.  Replace usage of HAVE_LONG_LONGS
+	with "SCM_SIZEOF_LONG_LONG != 0".
+
+	* deprecation.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* coop.c: replace usage of struct timespect with scm_t_timespec.
+	#include <config.h> if HAVE_CONFIG_H.
+
+	* coop-threads.c: #include "libguile/_scm.h" early.  Replace
+	usage of struct timespect with scm_t_timespec.  Replace usage of
+	STACK_GROWS_UP with SCM_STACK_GROWS_UP.
+
+	* coop-pthreads.c: #include "libguile/_scm.h" early.  Replace
+	usage of struct timespect with scm_t_timespec.  Replace usage of
+	STACK_GROWS_UP with SCM_STACK_GROWS_UP.
+
+	* coop-defs.h: move handling of time related headers to
+	scmconfig.h.  Add #include "libguile/__scm.h".  Rename usage of
+	HAVE_WINSOCK2_H to SCM_HAVE_WINSOCK2_H.  Replace usage of struct
+	timespect with scm_t_timespec.
+
+	* convert.i.c: rename usage of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* convert.h: rename usage of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* convert.c: #include <config.h> if HAVE_CONFIG_H.  Rename usage
+	of HAVE_ARRAYS to SCM_HAVE_ARRAYS.
+
+	* continuations.c: move libguile/_scm.h include to the top so we
+	pick up any critical defines like _GNU_SOURCE early.
+
+	* backtrace.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* async.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* alloca.c: #include <config.h> if HAVE_CONFIG_H.
+
+	* _scm.h: #include <config.h> if HAVE_CONFIG_H.
+	Rename usage of USE_PTHREAD_THREADS to SCM_USE_PTHREAD_THREADS.
+
+	* __scm.h: move libguile/scmconfig.h include up to the top, so
+	we're sure to pick up any critical defines like _GNU_SOURCE early.
+	#include <limits.h> removed in favor of scmconfig.h inclusion when
+	appropriate.  STDC_HEADERS based inclusion of stdlib.h,
+	sys/types.h, stddef.h, and sys/stdtypes.h removed in favor of
+	scmconfig.h inclusion when appropriate.  Various Win32 related
+	definitions removed in favor of scmconfig.h inclusion when
+	appropriate.
+	(HAVE_UINTPTR_T): definition removed (see NEWS).
+	(SIZEOF_PTRDIFF_T): definition removed (see NEWS).
+	(HAVE_LONG_LONGS): definition removed (see NEWS).
+	(HAVE_LONG_LONG): definition removed (see NEWS).
+	(HAVE_PTRDIFF_T): definition removed (see NEWS).
+
+	* Makefile.am: scmconfig.h is now generated by building and
+	running gen-scmconfig.h and capturing its output.  gen-scmconfig
+	uses config.h and the configure.in generated gen-scmconfig.h to
+	decide what to output.  See gen-scmconfig.c for details.
+	(noinst_PROGRAMS): add gen-scmconfig.
+	(gen_scmconfig_SOURCES): new variable.
+	(gen-scmconfig.$(OBJEXT)): new target - be careful to handle
+	cross-compiling right.
+	(scmconfig.h): build scmconfig.h from gen-scmconfig's output.
+	(BUILT_SOURCES): add scmconfig.h.
+
 2003-03-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc_os_dep.c: Added defines for sparc-unknown-netbsdelf1.5 from
