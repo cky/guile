@@ -758,7 +758,7 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
   /* support ordinary vectors even if arrays not available?  */
   else if (SCM_VECTORP (items))
     {
@@ -910,7 +910,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
   /* support ordinary vectors even if arrays not available?  */
   else if (SCM_VECTORP (items))
     {
