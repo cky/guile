@@ -93,9 +93,96 @@ scm_set_program_arguments (argc, argv, first)
 
 
 
-/* Hooks */
+/* Hooks
+ *
+ * A hook is basically a list of procedures to be called at well defined
+ * points in time.
+ *
+ * Hook name and arity are not full members of this type and therefore
+ * lack accessors.  They are added to aid debugging and are not
+ * intended to be used in programs.
+ *
+ */
 
 long scm_tc16_hook;
+
+
+static SCM
+make_hook (SCM name, SCM n_args, const char *subr)
+{
+  int n;
+  SCM_ASSERT (SCM_FALSEP (name) || (SCM_NIMP (name) && SCM_SYMBOLP (name)),
+	      name,
+	      SCM_ARG1,
+	      subr);
+  if (SCM_UNBNDP (n_args))
+    n = 0;
+  else
+    {
+      SCM_ASSERT (SCM_INUMP (n_args), n_args, SCM_ARGn, subr);
+      n = SCM_INUM (n_args);
+    }
+  SCM_ASSERT (n >= 0 && n <= 16, n_args, SCM_OUTOFRANGE, subr);
+  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_LIST1 (name));
+}
+
+
+static int
+print_hook (SCM hook, SCM port, scm_print_state *pstate)
+{
+  SCM ls, name;
+  scm_puts ("#<hook ", port);
+  if (SCM_NFALSEP (SCM_HOOK_NAME (hook)))
+    {
+      scm_iprin1 (SCM_HOOK_NAME (hook), port, pstate);
+      scm_putc (' ', port);
+    }
+  scm_intprint (SCM_HOOK_ARITY (hook), 10, port);
+  scm_putc (' ', port);
+  scm_intprint (hook, 16, port);
+  ls = SCM_HOOK_PROCEDURES (hook);
+  while (SCM_NIMP (ls))
+    {
+      scm_putc (' ', port);
+      name = scm_procedure_name (SCM_CAR (ls));
+      if (SCM_NFALSEP (name))
+	scm_iprin1 (name, port, pstate);
+      else
+	scm_putc ('?', port);
+      ls = SCM_CDR (ls);
+    }
+  scm_putc ('>', port);
+  return 1;
+}
+
+
+SCM
+scm_create_hook (const char* name, int n_args)
+{
+  SCM vcell = scm_sysintern0 (name);
+  SCM hook = make_hook (SCM_CAR (vcell), SCM_MAKINUM (n_args),
+			"scm_create_hook");
+  SCM_SETCDR (vcell, hook);
+  scm_protect_object (vcell);
+  return hook;
+}
+
+
+/* This function is deprecated.  It will be removed in next release. */
+SCM
+scm_make_named_hook (const char* name, int n_args)
+{
+  return scm_create_hook (name, n_args);
+}
+
+
+SCM_PROC (s_make_hook_with_name, "make-hook-with-name", 1, 1, 0, scm_make_hook_with_name);
+
+SCM
+scm_make_hook_with_name (SCM name, SCM n_args)
+{
+  return make_hook (name, n_args, s_make_hook_with_name);
+}
 
 
 SCM_PROC (s_make_hook, "make-hook", 0, 1, 0, scm_make_hook);
@@ -103,25 +190,7 @@ SCM_PROC (s_make_hook, "make-hook", 0, 1, 0, scm_make_hook);
 SCM
 scm_make_hook (SCM n_args)
 {
-  int n;
-  if (SCM_UNBNDP (n_args))
-    n = 0;
-  else
-    {
-      SCM_ASSERT (SCM_INUMP (n_args), n_args, SCM_ARG1, s_make_hook);
-      n = SCM_INUM (n_args);
-    }
-  SCM_ASSERT (n >= 0 && n <= 16, n_args, SCM_OUTOFRANGE, s_make_hook);
-  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_EOL);
-}
-
-
-SCM
-scm_make_named_hook (char* name, int n_args)
-{
-  SCM hook = scm_make_hook (SCM_MAKINUM (n_args));
-  scm_permanent_object (scm_sysintern (name, hook));
-  return hook;
+  return make_hook (SCM_BOOL_F, n_args, s_make_hook);
 }
 
 
@@ -271,6 +340,7 @@ scm_init_feature()
 
   scm_tc16_hook = scm_make_smob_type ("hook", 0);
   scm_set_smob_mark (scm_tc16_hook, scm_markcdr);
+  scm_set_smob_print (scm_tc16_hook, print_hook);
 
 #include "feature.x"
 }

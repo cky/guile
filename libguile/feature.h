@@ -48,8 +48,9 @@
 
 #define SCM_HOOKP(x) (SCM_TYP16 (x) == scm_tc16_hook)
 #define SCM_HOOK_ARITY(hook) (SCM_CAR (hook) >> 16)
-#define SCM_HOOK_PROCEDURES(hook) SCM_CDR (hook)
-#define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SETCDR (hook, procs)
+#define SCM_HOOK_NAME(hook) SCM_CADR (hook)
+#define SCM_HOOK_PROCEDURES(hook) SCM_CDDR (hook)
+#define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SETCDR (SCM_CDR (hook), procs)
 
 extern long scm_tc16_hook;
 
@@ -57,7 +58,10 @@ extern void scm_add_feature (const char* str);
 extern SCM scm_program_arguments (void);
 extern void scm_set_program_arguments (int argc, char **argv, char *first);
 extern SCM scm_make_hook (SCM n_args);
-extern SCM scm_make_named_hook (char* name, int n_args);
+extern SCM scm_make_hook_with_name (SCM name, SCM n_args);
+extern SCM scm_create_hook (const char* name, int n_args);
+extern void scm_free_hook (SCM hook);
+extern SCM scm_make_named_hook (const char* name, int n_args);
 extern SCM scm_hook_p (SCM x);
 extern SCM scm_hook_empty_p (SCM hook);
 extern SCM scm_add_hook_x (SCM hook, SCM thunk, SCM appendp);
