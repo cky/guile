@@ -45,12 +45,14 @@ the offending lines.
 
 bug 2 -- documentation mirroring not complete
 reported-by: lord@regexps.com / 2001-08
-fixed: not-yet
+fixed: 2002-03-17
 
 ttn sez:
 uncollated mirroring is already available:
 http://savannah.gnu.org/cgi-bin/viewcvs/guile/
 http://mail.gnu.org/pipermail/guile-devel/
+
+collated snapshots: http://www.glug.org/snap/ (user initiative)
 
 
 bug 3 -- design decisions not recorded
