@@ -1,3 +1,9 @@
+2000-11-04  Gary Houston  <ghouston@arglist.com>
+
+	* ports.c (scm_port_p): new function, implements "port?" which
+	is mentioned in R5RS.
+	* ports.h: declare scm_port_p.
+
 2000-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* backtrace.c (display_expression, display_error_body), fports.c

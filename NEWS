@@ -169,6 +169,11 @@ Guile.
 
 Instead, use scm_memq, scm_memv, scm_member.
 
+** New function: port? X
+
+Returns a boolean indicating whether X is a port.  Equivalent to
+`(or (input-port? X) (output-port? X))'.
+
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface

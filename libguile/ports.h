@@ -269,6 +269,7 @@ extern SCM scm_close_port (SCM port);
 extern SCM scm_close_all_ports_except (SCM ports);
 extern SCM scm_input_port_p (SCM x);
 extern SCM scm_output_port_p (SCM x);
+extern SCM scm_port_p (SCM x);
 extern SCM scm_port_closed_p (SCM port);
 extern SCM scm_eof_object_p (SCM x);
 extern SCM scm_force_output (SCM port);

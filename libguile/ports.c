@@ -735,6 +735,16 @@ SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_port_p, "port?", 1, 0, 0,
+	    (SCM x),
+            "Returns a boolean indicating whether @var{x} is a port.\n"
+	    "Equivalent to @code{(or (input-port? X) (output-port? X))}.")
+#define FUNC_NAME s_scm_port_p
+{
+  return SCM_BOOL (SCM_PORTP (x));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_port_closed_p, "port-closed?", 1, 0, 0,
            (SCM port),
 	    "Returns @code{#t} if @var{port} is closed or @code{#f} if it is open.")
