@@ -1,5 +1,10 @@
 2001-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* unif.c (scm_array_to_list):  Added missing handling of arrays of
+	bytes.  Thanks to Masao Uebayashi for the bug report.
+
+2001-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* debug.c (scm_procedure_source):  Use SCM_CLOSURE_FORMALS more
 	consistently.
 

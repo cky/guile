@@ -2108,36 +2108,44 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 	  res = scm_cons (SCM_BOOL(((long *) data)[k] & mask), res);
 	return res;
       }
-  case scm_tc7_uvect: {
-    long *data = (long *)SCM_VELTS(v);
-    for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
-      res = scm_cons(scm_ulong2num(data[k]), res);
-    return res;
-  }
-  case scm_tc7_ivect: {
-    long *data = (long *)SCM_VELTS(v);
-    for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
-      res = scm_cons(scm_long2num(data[k]), res);
-    return res;
-  }
-    case scm_tc7_svect: {
-      short *data;
-      data = (short *)SCM_VELTS(v);
-      for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
-	res = scm_cons(SCM_MAKINUM (data[k]), res);
-      return res;
-    }
+    case scm_tc7_byvect:
+      {
+	signed char *data = (signed char *) SCM_VELTS (v);
+	scm_sizet k = SCM_UVECTOR_LENGTH (v);
+	while (k != 0)
+	  res = scm_cons (SCM_MAKINUM (data[--k]), res);
+	return res;
+      }
+    case scm_tc7_uvect:
+      {
+	long *data = (long *)SCM_VELTS(v);
+	for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
+	  res = scm_cons(scm_ulong2num(data[k]), res);
+	return res;
+      }
+    case scm_tc7_ivect:
+      {
+	long *data = (long *)SCM_VELTS(v);
+	for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
+	  res = scm_cons(scm_long2num(data[k]), res);
+	return res;
+      }
+    case scm_tc7_svect:
+      {
+	short *data = (short *)SCM_VELTS(v);
+	for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
+	  res = scm_cons(SCM_MAKINUM (data[k]), res);
+	return res;
+      }
 #ifdef HAVE_LONG_LONGS
-    case scm_tc7_llvect: {
-      long_long *data;
-      data = (long_long *)SCM_VELTS(v);
-      for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
-	res = scm_cons(scm_long_long2num(data[k]), res);
-      return res;
-    }
+    case scm_tc7_llvect:
+      {
+	long_long *data = (long_long *)SCM_VELTS(v);
+	for (k = SCM_UVECTOR_LENGTH(v) - 1; k >= 0; k--)
+	  res = scm_cons(scm_long_long2num(data[k]), res);
+	return res;
+      }
 #endif
-
-
     case scm_tc7_fvect:
       {
 	float *data = (float *) SCM_VELTS (v);
