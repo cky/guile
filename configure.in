@@ -649,6 +649,10 @@ case "$with_threads" in
         [Define if using pthread multithreading.])
       with_threads="pthreads",
       with_threads="null")
+      if test $GCC = yes; then
+      AC_DEFINE(_THREAD_SAFE, 1,
+        [Use thread safe versions of GNU Libc functions.])
+      fi
   ;;
 esac
 

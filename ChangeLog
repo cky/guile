@@ -1,3 +1,8 @@
+2002-12-10  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* configure.in (_THREAD_SAFE): Define when pthreads are enabled in
+	order to get thread safe versions of glibc functions.
+
 2002-12-09  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* configure.in: Temporarily replaced "copt" threads option with new
