@@ -1,3 +1,8 @@
+2001-10-03  Gary Houston  <ghouston@arglist.com>
+
+	* continuations.h, unif.h: in the descriptions of the bit patterns
+	of the heap cells, make bit 0 the least significant.
+
 2001-09-25  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* chars.h (SCM_MAKE_CHAR): Use `scm_t_bits' instead of `intptr_t'.

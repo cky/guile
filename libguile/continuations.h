@@ -51,8 +51,8 @@
 
 
 /* a continuation SCM is a non-immediate pointing to a heap cell with:
-   word 0: bits 0-15: unused.
-           bits 16-31: smob type tag: scm_tc16_continuation.
+   word 0: bits 0-15: smob type tag: scm_tc16_continuation.
+           bits 16-31: unused.
    word 1: malloc block containing an scm_t_contregs structure with a
            tail array of SCM_STACKITEM.  the size of the array is stored
 	   in the num_stack_items field of the structure.

@@ -51,12 +51,12 @@
 
 
 /*
-  an array SCM is a non-immediate pointing to a  heap cell with:
+  an array SCM is a non-immediate pointing to a  heap cell where:
 
-   CAR: bits 0-14 hold the dimension (0 -- 32767)
-        bit  15 is the SCM_ARRAY_FLAG_CONTIGUOUS flag
-        bits 16-31 hold the smob type id: scm_tc16_array
-   CDR: pointer to a malloced block containing an scm_array structure
+   CAR: bits 0-15 hold the smob type id: scm_tc16_array
+        bit  16 is the SCM_ARRAY_FLAG_CONTIGUOUS flag
+	bits 17-31 hold the dimension (0 -- 32767)
+   CDR: pointer to a malloced block containing an scm_t_array structure
         followed by an scm_t_array_dim structure for each dimension.
 */
 
