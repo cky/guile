@@ -1,5 +1,8 @@
 2002-12-19  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
+	* threads.c (create_thread): Clear parent field in root state in
+	order not to unnecessarily remember dead threads.
+
 	* eval.c (call_subr2o_1, call_lsubr2_2): New functions.
 	(scm_trampoline_1, scm_trampoline_2): Use them.
 

@@ -397,6 +397,8 @@ create_thread (scm_t_catch_body body, void *body_data,
     /* must initialize root state pointer before the thread is linked
        into all_threads */
     t->root = SCM_ROOT_STATE (root);
+    /* disconnect from parent, to prevent remembering dead threads */
+    t->root->parent = SCM_BOOL_F;
     
     /* In order to avoid the need of synchronization between parent
        and child thread, we need to insert the child into all_threads
