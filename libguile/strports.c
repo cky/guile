@@ -105,7 +105,7 @@ st_resize_port (scm_port *pt, off_t new_size)
 
   /* reset buffer in case reallocation moved the string. */
   {
-    pt->read_buf = pt->write_buf = SCM_CHARS (stream);
+    pt->read_buf = pt->write_buf = SCM_UCHARS (stream);
     pt->read_pos = pt->write_pos = pt->write_buf + index;
     pt->write_end = pt->write_buf + pt->write_buf_size;
     pt->read_end = pt->read_buf + pt->read_buf_size;
@@ -146,7 +146,7 @@ st_write (SCM port, const void *data, size_t size)
       int space = pt->write_end - pt->write_pos;
       int write_len = (size > space) ? space : size;
       
-      strncpy (pt->write_pos, input, write_len);
+      strncpy ((char *) pt->write_pos, input, write_len);
       pt->write_pos += write_len;
       size -= write_len;
       input += write_len;
@@ -276,7 +276,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   SCM_SET_CELL_TYPE (z, scm_tc16_strport | modes);
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, SCM_UNPACK (str));
-  pt->write_buf = pt->read_buf = SCM_ROCHARS (str);
+  pt->write_buf = pt->read_buf = SCM_ROUCHARS (str);
   pt->read_pos = pt->write_pos = pt->read_buf + SCM_INUM (pos);
   pt->write_buf_size = pt->read_buf_size = str_len;
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;
@@ -298,7 +298,7 @@ SCM scm_strport_to_string (SCM port)
 
   if (pt->rw_active == SCM_PORT_WRITE)
     st_flush (port);
-  return scm_makfromstr (pt->read_buf, pt->read_buf_size, 0);
+  return scm_makfromstr ((char *) pt->read_buf, pt->read_buf_size, 0);
 }
 
 SCM_DEFINE (scm_call_with_output_string, "call-with-output-string", 1, 0, 0, 
