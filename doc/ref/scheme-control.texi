@@ -345,11 +345,12 @@ of the call to @code{call-with-values}.
 @example
 (call-with-values (lambda () (values 4 5))
                   (lambda (a b) b))
-                                             ==>  5
+@result{} 5
 
 @end example
 @example
-(call-with-values * -)                             ==>  -1
+(call-with-values * -)
+@result{} -1
 @end example
 @end deffn
 
@@ -791,23 +792,23 @@ times.
 (define x 'normal-binding)
 @result{} x
 (define a-cont  (call-with-current-continuation
-		  (lambda (escape)
-		     (let ((old-x x))
-		       (dynamic-wind
-			  ;; in-guard:
-			  ;;
-			  (lambda () (set! x 'special-binding))
+                  (lambda (escape)
+                     (let ((old-x x))
+                       (dynamic-wind
+                          ;; in-guard:
+                          ;;
+                          (lambda () (set! x 'special-binding))
 
-			  ;; thunk
-			  ;;
-		 	  (lambda () (display x) (newline)
-				     (call-with-current-continuation escape)
-				     (display x) (newline)
-				     x)
+                          ;; thunk
+                          ;;
+                          (lambda () (display x) (newline)
+                                     (call-with-current-continuation escape)
+                                     (display x) (newline)
+                                     x)
 
-			  ;; out-guard:
-			  ;;
-			  (lambda () (set! x old-x)))))))
+                          ;; out-guard:
+                          ;;
+                          (lambda () (set! x old-x)))))))
 
 ;; Prints:
 special-binding
