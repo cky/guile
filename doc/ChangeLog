@@ -1,3 +1,10 @@
+2000-01-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* README: Updated with note about oldfmt.c.
+
+	* oldfmt.c: New file: Used by application writers to adapt to
+	new-style error format strings.
+
 1999-12-06  Gary Houston  <ghouston@freewire.co.uk>
 
 	* data-rep.texi: change dircategory to match change in guile-doc

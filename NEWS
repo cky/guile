@@ -25,6 +25,50 @@ primitive `scm-error', now use scm_format to do their work.  This means
 that the message strings of all code must be updated to use ~A where %s
 was used before, and ~S where %S was used before.
 
+During the period when there still are a lot of old Guiles out there,
+you might want to support both old and new versions of Guile.
+
+There are basically two methods to achieve this.  Both methods use
+autoconf.  Put
+
+  AC_CHECK_FUNCS(scm_simple_format)
+
+in your configure.in.
+
+Method 1: Use the string concatenation features of ANSI C's
+          preprocessor.
+
+In C:
+
+#ifdef HAVE_SCM_SIMPLE_FORMAT
+#define FMT_S "~S"
+#else
+#define FMT_S "%S"
+#endif
+
+Then represent each of your error messages using a preprocessor macro:
+
+#define E_SPIDER_ERROR "There's a spider in your " ## FMT_S ## "!!!"
+
+In Scheme:
+
+(define fmt-s (if (defined? 'simple-format) "~S" "%S"))
+(define make-message string-append)
+
+(define e-spider-error (make-message "There's a spider in your " fmt-s "!!!"))
+
+Method 2: Use the oldfmt function found in doc/oldfmt.c.
+
+In C:
+
+scm_misc_error ("picnic", scm_c_oldfmt0 ("There's a spider in your ~S!!!"),
+                ...);
+
+In Scheme:
+
+(scm-error 'misc-error "picnic" (oldfmt "There's a spider in your ~S!!!")
+           ...)
+
 * Massive software engineering face-lift by Greg J. Badros <gjb@cs.washington.edu>
 
 Now Guile primitives are defined using the GUILE_PROC/GUILE_PROC1 macros
