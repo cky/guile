@@ -21,6 +21,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/deprecated.h"
+#include "libguile/discouraged.h"
 #include "libguile/deprecation.h"
 #include "libguile/snarf.h"
 #include "libguile/validate.h"
@@ -41,6 +42,7 @@
 #include "libguile/strports.h"
 #include "libguile/smob.h"
 #include "libguile/alist.h"
+#include "libguile/keywords.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -1201,7 +1203,7 @@ SCM_KEYWORDP (SCM obj)
 }
 
 SCM
-SCM_KEYWORDSYM (SCM keyword);
+SCM_KEYWORDSYM (SCM keyword)
 {
   scm_c_issue_deprecation_warning
     ("SCM_KEYWORDSYM is deprecated.  See scm_keyword_to_symbol instead.");
