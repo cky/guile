@@ -61,11 +61,12 @@ typedef struct scm_info_frame {
 #define SCM_FRAME_N_SLOTS (sizeof (scm_info_frame) / sizeof (SCM))
 
 #define SCM_STACK(obj) ((scm_stack *) SCM_STRUCT_DATA (obj))
-#define SCM_STACK_LAYOUT "pwuopW"
+#define SCM_STACK_LAYOUT "pwuourpW"
 typedef struct scm_stack {
   SCM id;			/* Stack id */
   scm_info_frame *frames;	/* Info frames */
   unsigned int length;		/* Stack length */
+  unsigned int tail_length;
   scm_info_frame tail[1];
 } scm_stack;
 
