@@ -273,7 +273,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 #endif
   for (; SCM_NIMP (env); env = SCM_CDR (env))
     {
-      if (SCM_TRUE_P (scm_procedure_p (SCM_CAR (env))))
+      if (!SCM_CONSP (SCM_CAR (env)))
 	break;
       al = SCM_CARLOC (env);
       for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
@@ -323,9 +323,9 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
     }
   {
     SCM top_thunk, vcell;
-    if (SCM_NIMP(env))
+    if (SCM_NIMP (env))
       {
-	top_thunk = SCM_CAR(env);	/* env now refers to a top level env thunk */
+	top_thunk = SCM_CAR (env);	/* env now refers to a top level env thunk */
 	env = SCM_CDR (env);
       }
     else
