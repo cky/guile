@@ -435,7 +435,7 @@ scm_sym2var (SCM sym, SCM proc, SCM definep)
     {
       SCM handle;
 
-      if (definep == SCM_BOOL_F)
+      if (SCM_FALSEP (definep))
 	var = scm_hashq_ref (scm_pre_modules_obarray, sym, SCM_BOOL_F);
       else
 	{

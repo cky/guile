@@ -1,3 +1,7 @@
+2002-07-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* modules.c (scm_sym2var):  Don't compare SCM values with ==.
+
 2002-07-21  Han-Wen  <hanwen@cs.uu.nl>
 
 	* goops.c (scm_compute_applicable_methods): use
