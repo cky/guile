@@ -47,6 +47,7 @@
 #include "alist.h"
 #include "eval.h"
 #include "dynwind.h"
+#include "backtrace.h"
 #ifdef DEBUG_EXTENSIONS
 #include "debug.h"
 #endif
@@ -341,13 +342,25 @@ uncaught_throw (key, args)
      SCM key;
      SCM args;
 {
-  SCM p = scm_def_errp; 
-  scm_gen_puts (scm_regular_string, "guile: uncaught throw to ", p);
-  scm_prin1 (key, p, 0);
-  scm_gen_puts (scm_regular_string, ": ", p);
-  scm_prin1 (args, p, 1);
-  scm_gen_putc ('\n', p);
-  
+  SCM p = scm_def_errp;
+
+  if (scm_ilength (args) >= 3)
+    {
+      SCM message = SCM_CADR (args);
+      SCM parts = SCM_CADDR (args);
+
+      scm_gen_puts (scm_regular_string, "guile: ", p);
+      scm_display_error_message (message, parts, p);
+    }
+  else
+    {
+      scm_gen_puts (scm_regular_string, "guile: uncaught throw to ", p);
+      scm_prin1 (key, p, 0);
+      scm_gen_puts (scm_regular_string, ": ", p);
+      scm_prin1 (args, p, 1);
+      scm_gen_putc ('\n', p);
+    }
+
   exit (2);
 }
 
