@@ -30,7 +30,7 @@ pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
 
-top_builddir = .
+top_builddir = ..
 
 ACLOCAL = @ACLOCAL@
 AUTOCONF = @AUTOCONF@
@@ -59,7 +59,13 @@ MAINT = @MAINT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 VERSION = @VERSION@
-module = @module@
+qtmd_h = @qtmd_h@
+qtmdb_s = @qtmdb_s@
+qtmdc_c = @qtmdc_c@
+qtmdc_o = @qtmdc_o@
+qtmds_o = @qtmds_o@
+qtmds_s = @qtmds_s@
+target_libs = @target_libs@
 xtra_PLUGIN_guile_libs = @xtra_PLUGIN_guile_libs@
 
 AUTOMAKE_OPTIONS = foreign
@@ -139,10 +145,9 @@ MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 CLEANFILES=cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
-ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 CONFIG_HEADER_IN = scmconfig.h.in
-CONFIG_HEADER_FULL = scmconfig.h
-mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
+CONFIG_HEADER_FULL = libguile/scmconfig.h
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = scmconfig.h
 CONFIG_CLEAN_FILES =  guile-snarf
 LTLIBRARIES =  $(lib_LTLIBRARIES)
@@ -186,8 +191,7 @@ DATA =  $(modinclude_DATA)
 HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) $(noinst_HEADERS) \
 $(pkginclude_HEADERS)
 
-DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in acconfig.h \
-acinclude.m4 aclocal.m4 configure configure.in guile-snarf.in \
+DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in guile-snarf.in \
 scmconfig.h.in stamp-h.in
 
 
@@ -224,19 +228,12 @@ default: all
 .SUFFIXES:
 .SUFFIXES: .c .o .lo .x
 $(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign libguile/Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
-	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(srcdir)/aclocal.m4: @MAINT@ configure.in  acinclude.m4
-	cd $(srcdir) && $(ACLOCAL)
-
-config.status: configure
-	$(SHELL) ./config.status --recheck
-$(srcdir)/configure: @MAINT@configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
-	cd $(srcdir) && $(AUTOCONF)
 
 $(CONFIG_HEADER): stamp-h
 stamp-h: $(CONFIG_HEADER_IN) $(top_builddir)/config.status
@@ -245,7 +242,7 @@ stamp-h: $(CONFIG_HEADER_IN) $(top_builddir)/config.status
 	     $(SHELL) ./config.status
 	@echo timestamp > stamp-h
 $(srcdir)/$(CONFIG_HEADER_IN): @MAINT@stamp-h.in
-$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) acconfig.h
+$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOHEADER)
 	echo timestamp > $(srcdir)/stamp-h.in
 
@@ -258,7 +255,7 @@ distclean-hdr:
 
 maintainer-clean-hdr:
 guile-snarf: $(top_builddir)/config.status guile-snarf.in
-	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 
 mostlyclean-libLTLIBRARIES:
 
@@ -463,43 +460,10 @@ distclean-tags:
 
 maintainer-clean-tags:
 
-distdir = $(PACKAGE)-$(VERSION)
-# This target untars the dist file and tries a VPATH configuration.  Then
-# it guarantees that the distribution is self-contained by making another
-# tarfile.
-distcheck: dist
-	rm -rf $(distdir)
-	GZIP=$(GZIP) $(TAR) zxf $(distdir).tar.gz
-	mkdir $(distdir)/=build
-	mkdir $(distdir)/=inst
-	dc_install_base=`cd $(distdir)/=inst && pwd`; \
-	cd $(distdir)/=build \
-	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
-	  && $(MAKE) \
-	  && $(MAKE) dvi \
-	  && $(MAKE) check \
-	  && $(MAKE) install \
-	  && $(MAKE) installcheck \
-	  && $(MAKE) dist
-	rm -rf $(distdir)
-	@echo "========================"; \
-	echo "$(distdir).tar.gz is ready for distribution"; \
-	echo "========================"
-dist: distdir
-	-chmod -R a+r $(distdir)
-	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
-	rm -rf $(distdir)
-dist-all: distdir
-	-chmod -R a+r $(distdir)
-	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
-	rm -rf $(distdir)
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = libguile
 distdir: $(DISTFILES)
-	rm -rf $(distdir)
-	mkdir $(distdir)
-	-chmod 755 $(distdir)
-	here=`pwd`; distdir=`cd $(distdir) && pwd` \
-	  && cd $(srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
 	$(mkinstalldirs) $(distdir)/PLUGIN
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
@@ -591,7 +555,6 @@ maintainer-clean:  maintainer-clean-hdr maintainer-clean-libLTLIBRARIES \
 		distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
-	rm -f config.status
 
 .PHONY: default mostlyclean-hdr distclean-hdr clean-hdr \
 maintainer-clean-hdr mostlyclean-libLTLIBRARIES \
