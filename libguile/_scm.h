@@ -62,6 +62,10 @@
 #include "root.h"		/* Everyone uses these objects.  */
 #include "ports.h"		/* Everyone does I/O.  */
 #include "async.h"		/* Everyone allows/disallows ints.  */
+#ifdef USE_THREADS
+#include "../threads/threads.h"	/* Some thread packages does switching
+				   at async ticks. */
+#endif
 
 /* On VMS, GNU C's errno.h contains a special hack to get link attributes
  * for errno correct for linking to the C RTL.
