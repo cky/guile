@@ -22,7 +22,3 @@ test -n "${CPP+set}" || CPP="@CPP@"
 ## need to know if CPP exits with a non-zero status.
 ${CPP} -DSCM_MAGIC_SNARFER "$@" > ${temp} || exit $?
 < ${temp} awk -f `dirname $0`/guile-doc-snarf.awk $filename
-
-## Apparently, AIX's preprocessor is unhappy if you try to #include an
-## empty file.
-echo

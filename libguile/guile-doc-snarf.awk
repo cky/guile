@@ -8,7 +8,7 @@ BEGIN { FS="|";
 	sub(/\..*$/,".x",dot_x_file);
 	sub(/\..*$/,".doc",dot_doc_file); 
         # be sure to put something in the files to help make out
-        printf "" > dot_x_file;  
+        print "" > dot_x_file;  
         printf "" > dot_doc_file;
 }
 
@@ -35,7 +35,7 @@ BEGIN { FS="|";
 		 sub(/[ \t]*$/,"",location);
 		 sub(/: /,":",location);
 		 gsub(/[ \t]*\|.*$/,"",copy);
-		 sub(/ )/,")",copy);
+		 sub(/ \)/,")",copy);
 		 if (numargs != numactuals && !registering) 
 		   { print location ":*** `" copy "' is improperly registered as having " numactuals " arguments"; }
 		 print "\n" copy (registering?")":"") > dot_doc_file ; }
