@@ -1,5 +1,7 @@
 2001-03-23  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* guile-snarf.awk.in: Substitute "\\" with "\" in .doc output.
+
 	* strop.c (scm_string_index): Fix docstring line break
 	regression.
 

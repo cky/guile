@@ -2464,7 +2464,7 @@ scm_cons_star
 @deffn primitive cons* arg . rest
 Like @code{list}, but the last arg provides the tail of the
 constructed list, returning @code{(cons @var{arg1} (cons
-@var{arg2} (cons @dots{} @var{argn}))).  Requires at least one
+@var{arg2} (cons @dots{} @var{argn})))}.  Requires at least one
 argument.  If given one argument, that argument is returned as
 result.  This function is called @code{list*} in some other
 Schemes and in Common LISP.
@@ -5747,13 +5747,15 @@ defaults to the end of @var{str}.  The shared substring returned by
 @end deffn
 
 string-index
-@c snarfed from strop.c:120
+@c snarfed from strop.c:121
 @deffn primitive string-index str chr [frm [to]]
 Return the index of the first occurrence of @var{chr} in
 @var{str}.  The optional integer arguments @var{frm} and
 @var{to} limit the search to a portion of the string.  This
 procedure essentially implements the @code{index} or
-@code{strchr} functions from the C library.\n (qdocs:) Returns
+@code{strchr} functions from the C library.
+
+(qdocs:) Returns
 the index of @var{char} in @var{str}, or @code{#f} if the
 @var{char} isn't in @var{str}. If @var{frm} is given and not
 @code{#f}, it is used as the starting index; if @var{to} is
@@ -5761,19 +5763,19 @@ given and not @code{#f}, it is used as the ending index
 (exclusive).
 
 @example
-(string-index "weiner" #\\e)
+(string-index "weiner" #\e)
 @result{} 1
 
-(string-index "weiner" #\\e 2)
+(string-index "weiner" #\e 2)
 @result{} 4
 
-(string-index "weiner" #\\e 2 4)
+(string-index "weiner" #\e 2 4)
 @result{} #f
 @end example
 @end deffn
 
 string-rindex
-@c snarfed from strop.c:151
+@c snarfed from strop.c:152
 @deffn primitive string-rindex str chr [frm [to]]
 Like @code{string-index}, but search from the right of the string rather
 than from the left.  This procedure essentially implements the
@@ -5784,31 +5786,31 @@ of @var{char} in the range [@var{frm}, @var{to}-1], which defaults to
 the entire string.
 
 @example
-(string-rindex "weiner" #\\e)
+(string-rindex "weiner" #\e)
 @result{} 4
 
-(string-rindex "weiner" #\\e 2 4)
+(string-rindex "weiner" #\e 2 4)
 @result{} #f
 
-(string-rindex "weiner" #\\e 2 5)
+(string-rindex "weiner" #\e 2 5)
 @result{} 4
 @end example
 @end deffn
 
 substring-move-left!
-@c snarfed from strop.c:168
+@c snarfed from strop.c:169
 @deffn primitive substring-move-left!
 scm_substring_move_x
 @end deffn
 
 substring-move-right!
-@c snarfed from strop.c:169
+@c snarfed from strop.c:170
 @deffn primitive substring-move-right!
 scm_substring_move_x
 @end deffn
 
 substring-move!
-@c snarfed from strop.c:243
+@c snarfed from strop.c:244
 @deffn primitive substring-move! str1 start1 end1 str2 start2
 @deffnx primitive substring-move-left! str1 start1 end1 str2 start2
 @deffnx primitive substring-move-right! str1 start1 end1 str2 start2
@@ -5831,7 +5833,7 @@ are different strings, it does not matter which function you use.
 @end deffn
 
 substring-fill!
-@c snarfed from strop.c:279
+@c snarfed from strop.c:280
 @deffn primitive substring-fill! str start end fill
 Change every character in @var{str} between @var{start} and @var{end} to
 @var{fill-char}.
@@ -5840,14 +5842,14 @@ Change every character in @var{str} between @var{start} and @var{end} to
 
 @example
 (define y "abcdefg")
-(substring-fill! y 1 3 #\\r)
+(substring-fill! y 1 3 #\r)
 y
 @result{} "arrdefg"
 @end example
 @end deffn
 
 string-null?
-@c snarfed from strop.c:306
+@c snarfed from strop.c:307
 @deffn primitive string-null? str
 Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}
 otherwise.
@@ -5864,7 +5866,7 @@ otherwise.
 @end deffn
 
 string->list
-@c snarfed from strop.c:322
+@c snarfed from strop.c:323
 @deffn primitive string->list str
 @samp{String->list} returns a newly allocated list of the
 characters that make up the given string.  @samp{List->string}
@@ -5875,20 +5877,20 @@ inverses so far as @samp{equal?} is concerned.  (r5rs)
 @end deffn
 
 string-copy
-@c snarfed from strop.c:347
+@c snarfed from strop.c:348
 @deffn primitive string-copy str
 Returns a newly allocated copy of the given @var{string}. (r5rs)
 @end deffn
 
 string-fill!
-@c snarfed from strop.c:360
+@c snarfed from strop.c:361
 @deffn primitive string-fill! str chr
 Stores @var{char} in every element of the given @var{string} and returns an
 unspecified value.  (r5rs)
 @end deffn
 
 string-upcase!
-@c snarfed from strop.c:396
+@c snarfed from strop.c:397
 @deffn primitive string-upcase! str
 Destructively upcase every character in @code{str}.
 
@@ -5904,13 +5906,13 @@ y
 @end deffn
 
 string-upcase
-@c snarfed from strop.c:408
+@c snarfed from strop.c:409
 @deffn primitive string-upcase str
 Upcase every character in @code{str}.
 @end deffn
 
 string-downcase!
-@c snarfed from strop.c:443
+@c snarfed from strop.c:444
 @deffn primitive string-downcase! str
 Destructively downcase every character in @code{str}.
 
@@ -5929,25 +5931,25 @@ y
 @end deffn
 
 string-downcase
-@c snarfed from strop.c:455
+@c snarfed from strop.c:456
 @deffn primitive string-downcase str
 Downcase every character in @code{str}.
 @end deffn
 
 string-capitalize!
-@c snarfed from strop.c:492
+@c snarfed from strop.c:493
 @deffn primitive string-capitalize! str
 Destructively capitalize every character in @code{str}.
 @end deffn
 
 string-capitalize
-@c snarfed from strop.c:504
+@c snarfed from strop.c:505
 @deffn primitive string-capitalize str
 Capitalize every character in @code{str}.
 @end deffn
 
 string-ci->symbol
-@c snarfed from strop.c:516
+@c snarfed from strop.c:517
 @deffn primitive string-ci->symbol str
 Return the symbol whose name is @var{str}, downcased in necessary(???).
 @end deffn

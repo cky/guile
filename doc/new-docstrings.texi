@@ -597,3 +597,7 @@ temporary file.
 @deffn primitive %tag-body body
 Internal GOOPS magic---don't use this function!
 @end deffn
+
+@deffn primitive list*
+scm_cons_star
+@end deffn

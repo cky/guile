@@ -8,8 +8,9 @@ in the libguile C source change.
 
 - README is this file.
 
-- docstring.el is a helpful Emacs Lisp library.  The usual entry point
-  is `docstring-process-current-buffer'.
+- docstring.el is a helpful Emacs Lisp library.  The two key entry
+  points are `docstring-process-module' and
+  `docstring-ediff-this-line'.
 
 - guile.texi is a snapshot of the built file
   guile-core/libguile/guile.texi, copied last time the reference

@@ -104,6 +104,7 @@ BEGIN { FS="|";
                       gsub(/\\n\\n\"?/,"\n",copy);
                       gsub(/\\n\"?[ \t]*$/,"",copy);
                       gsub(/\\\"/,"\"",copy);
+                      gsub(/\\\\/,"\\",copy);
                       gsub(/[ \t]*$/,"", copy);
                       if (copy != "") { print copy > dot_doc_file }
                 }
