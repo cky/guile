@@ -789,11 +789,14 @@
 (define %load-path
   (let ((lp (catch #t (lambda () (getenv "SCHEME_LOAD_PATH"))
 		   (lambda args #f))))
-    (append (parse-path lp)
-	    (list ""
-		  (in-vicinity (implementation-vicinity) "guile1.0b3/guile/")
-		  (in-vicinity (implementation-vicinity) "guile1.0b3/")
-		  (in-vicinity (implementation-vicinity) "slib/")))))
+    (append
+     (parse-path lp)
+     (cons "./"
+	   (map (lambda (dir) (in-vicinity (implementation-vicinity) dir "/"))
+		(cons "site"
+		      (map (lambda (dir) (string-append (version) "/" dir))
+			   '("." "gls/guile" "gls" "slib"))))))))
+
 
 ;;; {try-load}
 ;;;

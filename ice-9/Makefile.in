@@ -25,9 +25,11 @@ prefix = @prefix@
 
 VERSION=@GUILE_VERSION@
 
-libparent=$(prefix)/lib
-libdir=$(libparent)/guile$(VERSION)
-install_path=$(libdir)/@library_name@
+datadir=@datadir@
+pkgdatadir=$(datadir)/guile
+pkgverdatadir=$(pkgdatadir)/$(VERSION)
+subpkgdatadir=$(pkgverdatadir)/@library_name@
+sitedatadir=$(pkgdatadir)/site
 
 INSTALL = $(srcdir)/../install-sh -c
 INSTALL_DATA = $(INSTALL) -m 644
@@ -54,20 +56,23 @@ aux_files = \
 all: 
 
 install: all
-	test -d $(libparent) || mkdir $(libparent)
-	test -d $(libdir) || mkdir $(libdir)
-	test -d $(install_path) || mkdir $(install_path)
-	cd $(srcdir); \
+	for dir in $(datadir) $(pkgdatadir) $(pkgverdatadir) \
+	  $(subpkgdatadir) $(sitedatadir); do \
+	  test -d $$dir || mkdir $$dir; \
+	done
 	for file in $(scm_files); do \
-	  $(INSTALL_DATA) $$file $(install_path); \
+	  $(INSTALL_DATA) $(srcdir)/$$file $(subpkgdatadir); \
 	done
 
 uninstall: 
 	for file in $(scm_files) ; do \
-	  rm -f $(install_path)/$$file;  \
+	  rm -f $(subpkgdatadir)/$$file;  \
 	done;
-	-rmdir $(install_path)
-	-rmdir $(libdir)
+	-rmdir $(subpkgdatadir)
+	-rmdir $(pkgverdatadir)
+	-rmdir $(sitedatadir)
+	-rmdir $(pkgdatadir)
+	-rmdir $(datadir)
 
 
 # The `dist' target in the top-level Makefile uses this `dist-dir'
