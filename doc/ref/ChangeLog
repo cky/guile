@@ -1,3 +1,8 @@
+2003-08-14  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-control.texi (while do): Update `while' for code rewrite, in
+	particular describe break and continue.
+
 2003-08-09  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-memory.texi (Memory Blocks): Add index entries for deprecated
