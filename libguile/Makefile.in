@@ -109,8 +109,8 @@ libguile_la_SOURCES = \
     list.c load.c macros.c mallocs.c markers.c modules.c net_db.c \
     numbers.c objects.c \
     objprop.c options.c pairs.c ports.c posix.c print.c procprop.c \
-    procs.c ramap.c read.c readline.c root.c scmsigs.c script.c \
-    simpos.c smob.c socket.c srcprop.c stackchk.c stacks.c stime.c \
+    procs.c ramap.c random.c read.c readline.c root.c scmsigs.c script.c \
+    simpos.c smob.c socket.c sort.c srcprop.c stackchk.c stacks.c stime.c \
     strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c \
     throw.c unif.c variable.c vectors.c version.c vports.c weaks.c
 
@@ -124,10 +124,10 @@ BUILT_SOURCES = \
     iselect.x kw.x list.x load.x macros.x mallocs.x markers.x modules.x \
     net_db.x numbers.x \
     objects.x objprop.x options.x pairs.x ports.x posix.x print.x \
-    procprop.x procs.x ramap.x read.x readline.x regex-posix.x root.x \
-    scmsigs.x script.x simpos.x smob.x socket.x srcprop.x stackchk.x \
-    stacks.x stime.x strings.x strop.x strorder.x strports.x struct.x \
-    symbols.x tag.x threads.x throw.x unif.x variable.x vectors.x \
+    procprop.x procs.x random.x ramap.x read.x readline.x regex-posix.x \
+    root.x scmsigs.x script.x simpos.x smob.x socket.x sort.x srcprop.x \
+    stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x \
+    struct.x symbols.x tag.x threads.x throw.x unif.x variable.x vectors.x \
     version.x vports.x weaks.x
 
 EXTRA_libguile_la_SOURCES = _scm.h \
@@ -156,8 +156,8 @@ modinclude_HEADERS = \
     macros.h mallocs.h markers.h modules.h net_db.h numbers.h \
     objects.h objprop.h \
     options.h pairs.h ports.h posix.h regex-posix.h print.h procprop.h \
-    procs.h ramap.h read.h readline.h root.h scmsigs.h script.h \
-    simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h stime.h \
+    procs.h random.h ramap.h read.h readline.h root.h scmsigs.h script.h \
+    simpos.h smob.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h \
     strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h \
     tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
     weaks.h snarf.h threads.h coop-defs.h fluids.h iselect.h
@@ -207,10 +207,11 @@ gh_io.lo gh_list.lo gh_predicates.lo gsubr.lo guardians.lo hash.lo \
 hashtab.lo init.lo ioext.lo kw.lo list.lo load.lo macros.lo mallocs.lo \
 markers.lo modules.lo net_db.lo numbers.lo objects.lo objprop.lo \
 options.lo pairs.lo ports.lo posix.lo print.lo procprop.lo procs.lo \
-ramap.lo read.lo readline.lo root.lo scmsigs.lo script.lo simpos.lo \
-smob.lo socket.lo srcprop.lo stackchk.lo stacks.lo stime.lo strings.lo \
-strop.lo strorder.lo strports.lo struct.lo symbols.lo tag.lo throw.lo \
-unif.lo variable.lo vectors.lo version.lo vports.lo weaks.lo
+ramap.lo random.lo read.lo readline.lo root.lo scmsigs.lo script.lo \
+simpos.lo smob.lo socket.lo sort.lo srcprop.lo stackchk.lo stacks.lo \
+stime.lo strings.lo strop.lo strorder.lo strports.lo struct.lo \
+symbols.lo tag.lo throw.lo unif.lo variable.lo vectors.lo version.lo \
+vports.lo weaks.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 guile_OBJECTS =  guile.o
@@ -256,13 +257,14 @@ DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/arbiters.P .deps/async.P \
 .deps/numbers.P .deps/objects.P .deps/objprop.P .deps/options.P \
 .deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
 .deps/procprop.P .deps/procs.P .deps/putenv.P .deps/ramap.P \
-.deps/read.P .deps/readline.P .deps/regex-posix.P .deps/root.P \
-.deps/scmsigs.P .deps/script.P .deps/simpos.P .deps/smob.P \
-.deps/socket.P .deps/srcprop.P .deps/stackchk.P .deps/stacks.P \
-.deps/stime.P .deps/strerror.P .deps/strings.P .deps/strop.P \
-.deps/strorder.P .deps/strports.P .deps/struct.P .deps/symbols.P \
-.deps/tag.P .deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
-.deps/vectors.P .deps/version.P .deps/vports.P .deps/weaks.P
+.deps/random.P .deps/read.P .deps/readline.P .deps/regex-posix.P \
+.deps/root.P .deps/scmsigs.P .deps/script.P .deps/simpos.P .deps/smob.P \
+.deps/socket.P .deps/sort.P .deps/srcprop.P .deps/stackchk.P \
+.deps/stacks.P .deps/stime.P .deps/strerror.P .deps/strings.P \
+.deps/strop.P .deps/strorder.P .deps/strports.P .deps/struct.P \
+.deps/symbols.P .deps/tag.P .deps/threads.P .deps/throw.P .deps/unif.P \
+.deps/variable.P .deps/vectors.P .deps/version.P .deps/vports.P \
+.deps/weaks.P
 SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES) $(guile_SOURCES) $(gh_test_c_SOURCES) $(gh_test_repl_SOURCES)
 OBJECTS = $(libguile_la_OBJECTS) $(guile_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test_repl_OBJECTS)
 
