@@ -953,7 +953,7 @@ scm_threads_mark_stacks (void)
 	    abort ();
 #endif
 	  /* Active thread */
-	  /* stack_len is long rather than sizet in order to guarantee
+	  /* stack_len is long rather than size_t in order to guarantee
 	     that &stack_len is long aligned */
 #if SCM_STACK_GROWS_UP
 	  stack_len = SCM_STACK_PTR (&t) - t->base;
@@ -974,7 +974,7 @@ scm_threads_mark_stacks (void)
 			       / sizeof (SCM_STACKITEM)));
 	  
 	  scm_mark_locations (((size_t) t->base,
-			       (sizet) stack_len));
+			       (size_t) stack_len));
 #else
 	  stack_len = t->base - SCM_STACK_PTR (&t);
 	  
