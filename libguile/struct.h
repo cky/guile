@@ -67,7 +67,7 @@
 #define scm_vtable_index_printer 3 /* A printer for this struct type. */
 #define scm_vtable_offset_user   4 /* Where do user fields start? */
 
-typedef size_t (*scm_struct_free_t) (SCM *vtable, SCM *data);
+typedef scm_sizet (*scm_struct_free_t) (SCM *vtable, SCM *data);
 
 #define SCM_STRUCTF_MASK   (0xFFF << 20)
 #define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
@@ -95,10 +95,10 @@ extern SCM scm_struct_table;
 extern SCM *scm_alloc_struct (int n_words,
 			      int n_extra,
 			      char *who);
-extern size_t scm_struct_free_0 (SCM *vtable, SCM *data);
-extern size_t scm_struct_free_light (SCM *vtable, SCM *data);
-extern size_t scm_struct_free_standard (SCM *vtable, SCM *data);
-extern size_t scm_struct_free_entity (SCM *vtable, SCM *data);
+extern scm_sizet scm_struct_free_0 (SCM *vtable, SCM *data);
+extern scm_sizet scm_struct_free_light (SCM *vtable, SCM *data);
+extern scm_sizet scm_struct_free_standard (SCM *vtable, SCM *data);
+extern scm_sizet scm_struct_free_entity (SCM *vtable, SCM *data);
 extern void scm_struct_init SCM_P ((SCM handle, int tail_elts, SCM inits));
 extern SCM scm_make_struct_layout SCM_P ((SCM fields));
 extern SCM scm_struct_p SCM_P ((SCM x));

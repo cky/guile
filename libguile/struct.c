@@ -331,20 +331,20 @@ scm_alloc_struct (int n_words, int n_extra, char *who)
   return p;
 }
 
-size_t
+scm_sizet
 scm_struct_free_0 (SCM *vtable, SCM *data)
 {
   return 0;
 }
 
-size_t
+scm_sizet
 scm_struct_free_light (SCM *vtable, SCM *data)
 {
   free (data);
   return vtable[scm_struct_i_size] & ~SCM_STRUCTF_MASK;
 }
 
-size_t
+scm_sizet
 scm_struct_free_standard (SCM *vtable, SCM *data)
 {
   size_t n = ((data[scm_struct_i_n_words] + scm_struct_n_extra_words)
@@ -353,7 +353,7 @@ scm_struct_free_standard (SCM *vtable, SCM *data)
   return n;
 }
 
-size_t
+scm_sizet
 scm_struct_free_entity (SCM *vtable, SCM *data)
 {
   size_t n = ((data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
