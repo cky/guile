@@ -1,12 +1,73 @@
-The Guile reference and tutorial manuals were written and edited
-largely by Mark Galassi and Jim Blandy.  Significant portions were
-contributed by Gary Houston and Tim Pierce.
+@c This file is in -*-texinfo-*- mode because it gets @included by
+@c the top level Texinfo source files for each manual in this
+@c distribution.  We do this so as to avoid having to maintain
+@c authorship information in more than one place.
 
-Tom Lord contributed a great deal of material with early Guile
-snapshots; although most of this text has been rewritten, all of it
-was important, and much of the structure remains.
+@ifset guile
 
-Aubrey Jaffer wrote the SCM Scheme implementation and manual upon
-which the Guile program and manual are based.  Some portions of the
-SCM and SLIB manuals have been included here verbatim.
+@c The Guile reference and tutorial manuals were written and edited
+@c largely by Mark Galassi and Jim Blandy.
 
+@c Significant portions were contributed by Gary Houston (contributions
+@c to posix system calls and networking, expect, I/O internals and
+@c extensions, slib installation, error handling) and Tim Pierce
+@c (sections on script interpreter triggers, alists, function tracing).
+
+@c Tom Lord contributed a great deal of material with early Guile
+@c snapshots; although most of this text has been rewritten, all of it
+@c was important, and much of the structure remains.
+
+@c Aubrey Jaffer wrote the SCM Scheme implementation and manual upon
+@c which the Guile program and manual are based.  Some portions of the
+@c SCM and SLIB manuals have been included here verbatim.
+
+@c Since Guile 1.4, Neil Jerram has been maintaining and improving the
+@c reference manual.  Among other contributions, he wrote the Basic
+@c Ideas chapter, developed the tools for keeping the manual in sync
+@c with snarfed libguile docstrings, and reorganized the structure so as
+@c to accommodate docstrings for all Guile's primitives.
+
+@author Mark Galassi
+@author Cygnus Solution and Los Alamos National Laboratory
+@author @email{rosalia@@cygnus.com}
+@author
+@author Jim Blandy
+@author Free Software Foundation and MIT AI Lab
+@author @email{jimb@@red-bean.com}
+@author
+@author Gary Houston
+@author @email{ghouston@@arglist.com}
+@author
+@author Tim Pierce
+@author @email{twp@@skepsis.com}
+@author
+@author Neil Jerram
+@author @email{neil@@ossau.uklinux.net}
+
+@end ifset
+
+@ifset guile-tut
+
+@author Mark Galassi
+@author Cygnus Solutions and Los Alamos National Laboratory
+@author @email{rosalia@@nis.lanl.gov}
+
+@end ifset
+
+@ifset goops
+
+@c The GOOPS tutorial was written by Christian Lynbech and Mikael
+@c Djurfeldt, who also wrote GOOPS itself.  The GOOPS reference manual
+@c and MOP documentation were written by Neil Jerram and reviewed by
+@c Mikael Djurfeldt.
+
+@author Christian Lynbech
+@author @email{chl@@tbit.dk}
+@author
+@author Mikael Djurfeldt
+@author @email{djurfeldt@@nada.kth.se}
+@author
+@author Neil Jerram
+@author @email{neil@@ossau.uklinux.net}
+
+@end ifset

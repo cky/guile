@@ -1,21 +1,18 @@
-The Guile reference manual:
-- Mark Galassi, for general stewardship
-- Tim Pierce, for writing sections on script interpreter triggers, alists,
-  function tracing, and splitting the manual into its own module.
-- Gary Houston, contributions to posix system calls and networking,
-  expect, I/O internals and extensions, slib installation, error handling.
+Many thanks to the following people for contributing to the Guile
+manuals!
 
-Proofreading, bug reports and bug fixes from:
+Proofreading, bug reports and patches from:
+    Chris Bitmead
    Marcus Daniels
+     Dirk Herrmann
+  Dale P. Smith
+    Steve Tell
       Lee Thomas
+    Masao Uebayashi
      Joel Weber
     Keith Wright
-    Chris Bitmead
-  Dale P. Smith
-    Masao Uebayashi
 
 New entries from:
       Per Bothner
-
-Build patches from:
-    Steve Tell
+   Martin Grabmueller
+Thien Thi Nguyen

@@ -3,90 +3,30 @@
 @c %**start of header
 @setfilename guile.info
 @settitle Guile Reference Manual
+@set guile
 @c %**end of header
 
-@c Neil's notes:
-
-@c This file started life as a copy of guile-ref.texi, which I then
-@c modified to reflect the organization described in
-@c sources/jimb-org.texi.
-
-@c Jim's notes:
-
-@c Remember to use "subr" whereever appropriate.
-@c Actually, use "primitive", not "subr."  Why coin a new term?
+@c Notes: (distilled from Jim's and Tim's notes, and kept up to date)
+@c
+@c Remember to use "primitive" whereever appropriate.
 @c FIXME: gotta change existing "subr" uses to "Primitive".
-@c In my text for the Guile snarfer, I've used the term "subr" to denote
-@c a C function made available to the Scheme world as a function.  This
-@c terminology is weird, but consistent with the function names and also
-@c with Emacs Lisp, which I assume takes Maclisp's lead.
-
-@c Tim's notes:
-
+@c [JimB:] In my text for the Guile snarfer, I've used the term "subr"
+@c to denote a C function made available to the Scheme world as a
+@c function.  This terminology is weird, but consistent with the
+@c function names and also with Emacs Lisp, which I assume takes
+@c Maclisp's lead.
+@c
 @c When adding a new function to the Guile manual, please document
 @c it with @deffn as one of `primitive', `procedure', or `syntax'.
 @c
-@c The following Guile primitives are not documented.  We have a lot
-@c of work to do.
-@c
-@c   arbiters.c: make-arbiter, try-arbiter, release-arbiter
-@c   async.c: async, async-mark, system-async, system-async-mark,
-@c      run-asyncs, noop, set-tick-rate, set-switch-rate,
-@c      unmask-signals, mask-signals
-@c   backtrace.c: backtrace, display-error, display-application,
-@c      display-backtrace
-@c   chars.c: char-is-both?
-@c   debug.c: single-step, memoized?, unmemoize, memoized-environment,
-@c      procedure-name, procedure-source, procedure-environment,
-@c      local-eval, debug-object?, debug-hang
-@c   dynl.c: c-registered-modules, c-clear-registered-modules,
-@c      dynamic-link, dynamic-object?, dynamic-unlink, dynamic-func,
-@c      dynamic-call, dynamic-args-call
-@c   eval.c: procedure->syntax, procedure->macro, procedure->memoizing-macro,
-@c      macro-name, macro-transformer
-@c   fluids.c: make-fluid, fluid?, fluid-ref, fluid-set, with-fluids*
-@c   gc.c: map-free-list, unhash-name
-@c   kw.c: make-keyword-from-dash-symbol
-@c   net_db.c: sethost, setnet, setproto, setserv
-@c   print.c: current-pstate
-@c   procs.c: make-cclo, closure?, thunk?
-@c   read.c: read-hash-extend
-@c   readline.c: readline, add-history
-@c   srcprop.c: source-properties, set-source-properties!,
-@c      source-property, set-source-property!
-@c   stacks.c: make-stack, stack-ref, stack-length,
-@c      frame?, last-stack-frame, frame-number, frame-source,
-@c      frame-procedure, frame-arguments, frame-previous, frame-next,
-@c      frame-real?, frame-procedure?, frame-evaluating-args?,
-@c      frame-overflow
-@c   struct.c: struct-vtable-tag
-@c   symbols.c: builtin-weak-bindings
-@c   tag.c: tag
-@c   threads.c: single-active-thread?, yield, call-with-new-thread,
-@c      make-condition-variable, wait-condition-variable,
-@c      signal-condition-variable
-@c   throw.c: lazy-catch, vector-set-length!
-@c   unif.c: uniform-vector-ref, uniform-array-set1!
-@c   variable.c: make-variable, make-undefined-variable, variable?,
-@c      variable-ref, variable-set!, builtin-variable, variable-bound?
-@c   weaks.c: make-weak-vector, weak-vector, list->weak-vector,
-@c      weak-vector? make-weak-key-hash-table,
-@c      make-weak-value-hash-table, make-doubly-weak-hash-table,
-@c      weak-key-hash-table?, weak-value-hash-table?,
-@c      doubly-weak-hash-table?
-@c
-@c If you have worked with some of these concepts, implemented them,
-@c or just happen to know what they do, please write up a little
-@c explanation -- it would be a big help.  Alternatively, if you
-@c know of a great reason why some of these should *not* go in the
-@c manual, please let me know.
-@c
-@c The following functions are currently left undocumented for various reasons.
-@c   * should be documented in a section on debugging or Guile internals:
-@c       ports.c: pt-size, pt-member
-@c       eval.c: apply:nconc2last
-@c
-@c Thanks. -twp
+@c For a list of Guile primitives that are not yet incorporated into the
+@c reference manual, see the file `new-docstrings.texi', which holds all
+@c the docstrings snarfed from the libguile C sources for primitives
+@c that are not in the reference manual.  If you have worked with some
+@c of these concepts, implemented them, or just happen to know what they
+@c do, please write up a little explanation -- it would be a big help.
+@c Alternatively, if you know of a great reason why some of these should
+@c *not* go in the manual, please let me know. 
 
 @c Define indices that are used in the Guile Scheme part of the
 @c reference manual to group stuff according to whether it is R5RS or a
@@ -140,24 +80,10 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.6 2001-04-28 09:00:31 ossau Exp $
+@subtitle $Id: guile.texi,v 1.7 2001-04-28 23:38:52 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
-@author Mark Galassi
-@author Cygnus Solution and Los Alamos National Laboratory
-@author @email{rosalia@@cygnus.com}
-@author
-@author Jim Blandy
-@author Free Software Foundation and MIT AI Lab
-@author @email{jimb@@red-bean.com}
-@author
-@author Gary Houston
-@author @email{ghouston@@arglist.com}
-@author
-@author Tim Pierce
-@author @email{twp@@skepsis.com}
-@author
-@author Neil Jerram
-@author @email{neil@@ossau.uklinux.net}
+@include AUTHORS
+
 @c The following two commands start the copyright page.
 @page
 @vskip 0pt plus 1filll
@@ -207,6 +133,7 @@ Preface
 
 * Guile License::               Conditions for copying and using Guile.
 * Manual Layout::               How to read the rest of this manual.
+* Manual Conventions::          Conventional terminology.
 
 Part I: Introduction to Guile
 

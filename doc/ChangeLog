@@ -1,3 +1,16 @@
+2001-04-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.texi (Top): Add menu entry for Manual Conventions node.
+	
+2001-04-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* THANKS: Move authorship bit into AUTHORS, simplify structure,
+	add Dirk Herrmann.
+
+	* AUTHORS, guile.texi, guile-tut.texi, goops.texi, Makefile.am:
+	Consolidate authorship information in AUTHORS file, and @include
+	AUTHORS from the top level source file for each manual.
+
 2001-04-28  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* preface.texi (Manual Conventions): New chapter.
