@@ -1,6 +1,8 @@
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (compute-getters-n-setters): Check for bad init-thunk.
+	(eqv?): Added default method.
+	(equal?): New default method which uses eqv?.
 
 2003-04-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 

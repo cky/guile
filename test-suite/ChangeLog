@@ -1,7 +1,8 @@
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* tests/goops.test: Added tests for correctness of class
-	precedence list in all basic classes and tests for equal?.
+	precedence list in all basic classes and tests for eqv? and
+	equal?.
 
 2003-04-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 

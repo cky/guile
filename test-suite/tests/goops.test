@@ -136,7 +136,18 @@
     (pass-if "overwriting a binding to a non-class"
       (eval '(define <foo> #f) (current-module))
       (eval '(define-class <foo> ()) (current-module))
-      (eval '(is-a? <foo> <class>) (current-module)))))
+      (eval '(is-a? <foo> <class>) (current-module)))
+
+    (expect-fail "bad init-thunk"
+		 (catch #t
+			(lambda ()
+			  (eval '(define-class <foo> ()
+				   (x #:init-thunk (lambda (x) 1)))
+				(current-module))
+			  #t)
+			(lambda args
+			  #f)))
+    ))
 
 (with-test-prefix "defining generics"
 
@@ -210,22 +221,50 @@
 	  (current-module))
     (eval '(and (= (y foo) 456) (= (z foo) 789)) (current-module))))
 
-(with-test-prefix "equal?"
-  (pass-if "equal"
+(with-test-prefix "object comparison"
+  (pass-if "default method"
 	   (eval '(begin
 		    (define-class <c> ()
 		      (x #:accessor x #:init-keyword #:x)
 		      (y #:accessor y #:init-keyword #:y))
+		    (define o1 (make <c> #:x '(1) #:y '(2)))
+		    (define o2 (make <c> #:x '(1) #:y '(3)))
+		    (define o3 (make <c> #:x '(4) #:y '(3)))
+		    (define o4 (make <c> #:x '(4) #:y '(3)))
+		    (not (eqv? o1 o2)))
+		 (current-module)))
+  (pass-if "eqv?"
+	   (eval '(begin
+		    (define-method (eqv? (a <c>) (b <c>))
+		      (equal? (x a) (x b)))
+		    (eqv? o1 o2))
+		 (current-module)))
+  (pass-if "not eqv?"
+	   (eval '(not (eqv? o2 o3))
+		 (current-module)))
+  (pass-if "transfer eqv? => equal?"
+	   (eval '(equal? o1 o2)
+		 (current-module)))
+  (pass-if "equal?"
+	   (eval '(begin
 		    (define-method (equal? (a <c>) (b <c>))
 		      (equal? (y a) (y b)))
-		    (define o1 (make <c> #:x '(1) #:y '(3)))
-		    (define o2 (make <c> #:x '(2) #:y '(3)))
-		    (define o3 (make <c> #:x '(2) #:y '(4)))
-		    (equal? o1 o2))
+		    (equal? o2 o3))
 		 (current-module)))
-  (pass-if "not equal"
-	   (eval '(not (equal? o2 o3))
-		 (current-module))))
+  (pass-if "not equal?"
+	   (eval '(not (equal? o1 o2))
+		 (current-module)))
+  (pass-if "="
+	   (eval '(begin
+		    (define-method (= (a <c>) (b <c>))
+		      (and (equal? (x a) (x b))
+			   (equal? (y a) (y b))))
+		    (= o3 o4))
+		 (current-module)))
+  (pass-if "not ="
+	   (eval '(not (= o1 o2))
+		 (current-module)))
+  )
 
 (use-modules (oop goops active-slot))
 
@@ -260,3 +299,31 @@
 		       before-set! 2 before-ref after-ref after-set! 2 2)))
 	  (current-module))))
 
+(use-modules (oop goops composite-slot))
+
+(with-test-prefix "composite-slot"
+  (pass-if "creating instance with propagated slot"
+    (eval '(begin
+	     (define-class <a> ()
+	       (x #:accessor x #:init-keyword #:x)
+	       (y #:accessor y #:init-keyword #:y))
+	     (define-class <c> ()
+	       (o1 #:accessor o1 #:init-form (make <a> #:x 1 #:y 2))
+	       (o2 #:accessor o2 #:init-form (make <a> #:x 3 #:y 4))
+	       (x #:accessor x
+		  #:allocation #:propagated
+		  #:propagate-to '(o1 (o2 y)))
+	       #:metaclass <composite-class>)
+	     (define o (make <c>))
+	     (is-a? o <c>))
+	  (current-module)))
+  (pass-if "reading propagated slot"
+	   (eval '(= (x o) 1) (current-module)))
+  (pass-if "writing propagated slot"
+	   (eval '(begin
+		    (set! (x o) 5)
+		    (and (= (x (o1 o)) 5)
+			 (= (y (o1 o)) 2)
+			 (= (x (o2 o)) 3)
+			 (= (y (o2 o)) 5)))
+		 (current-module))))
