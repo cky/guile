@@ -238,6 +238,7 @@ add_fd_sets (coop_t *t)
       if (t->exceptfds != NULL && ((ulongptr) t->exceptfds)[i] != 0)
 	((ulongptr) &gexceptfds)[i] |= ((ulongptr) t->exceptfds)[i];
     cont_except:
+      ;
     }
 }
 
