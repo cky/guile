@@ -2,7 +2,7 @@
 
 #ifndef SYMBOLSH
 #define SYMBOLSH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -128,5 +128,7 @@ extern SCM scm_symbol_fset_x SCM_P ((SCM s, SCM val));
 extern SCM scm_symbol_pset_x SCM_P ((SCM s, SCM val));
 extern SCM scm_symbol_hash SCM_P ((SCM s));
 extern void scm_init_symbols SCM_P ((void));
+
+extern int scm_can_use_top_level_lookup_closure_var;
 
 #endif  /* SYMBOLSH */

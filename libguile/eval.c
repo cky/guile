@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2907,6 +2907,7 @@ scm_init_eval ()
 
   scm_top_level_lookup_closure_var =
     scm_sysintern("*top-level-lookup-closure*", SCM_BOOL_F);
+  scm_can_use_top_level_lookup_closure_var = 1;
 
   scm_i_and = scm_make_synt ("and", scm_makmmacro, scm_m_and);
   scm_i_begin = scm_make_synt ("begin", scm_makmmacro, scm_m_begin);

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -359,7 +359,7 @@ scm_intern0 (name)
 /* Intern the symbol named NAME in scm_symhash, and give it the value VAL.
    NAME is null-terminated.  */
 SCM 
-scm_sysintern (name, val)
+scm_sysintern_no_module_lookup (name, val)
      char *name;
      SCM val;
 {
@@ -388,6 +388,34 @@ scm_sysintern (name, val)
     }
 }
 
+
+/* Is it safe to access SCM_TOP_LEVEL_LOOKUP_CLOSURE_VAR?
+ */
+int scm_can_use_top_level_lookup_closure_var;
+
+/* Intern the symbol named NAME in scm_symhash, and give it the value
+   VAL.  NAME is null-terminated.  Use the current top_level lookup
+   closure to give NAME its value.
+ */
+SCM
+scm_sysintern (name, val)
+     char *name;
+     SCM val;
+{
+  SCM lookup_proc;
+  if (scm_can_use_top_level_lookup_closure_var && 
+      SCM_NIMP (lookup_proc = SCM_CDR (scm_top_level_lookup_closure_var)))
+    {
+      SCM sym = SCM_CAR (scm_intern0 (name));
+      SCM vcell = scm_sym2vcell (sym, lookup_proc, SCM_BOOL_T);
+      if (vcell == SCM_BOOL_F)
+	  scm_misc_error ("sysintern", "can't define variable", sym);
+      SCM_SETCDR (vcell, val);
+      return vcell;
+    }
+  else
+    return scm_sysintern_no_module_lookup (name, val);
+}
 
 SCM_PROC(s_symbol_p, "symbol?", 1, 0, 0, scm_symbol_p);
 
