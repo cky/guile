@@ -149,10 +149,6 @@ static const char s_mixed_body_forms[] = "Mixed definitions and expressions in";
  * is signalled.  */
 static const char s_bad_define[] = "Bad define placement";
 
-/* If a macro keyword is detected in a place where macro keywords are not
- * allowed, a 'Misplaced syntactic keyword' error is signalled.  */
-static const char s_macro_keyword[] = "Misplaced syntactic keyword";
-
 /* Case or cond expressions must have at least one clause.  If a case or cond
  * expression without any clauses is detected, a 'Missing clauses' error is
  * signalled.  */
@@ -830,7 +826,7 @@ scm_m_case (SCM expr, SCM env)
         {
           ASSERT_SYNTAX_2 (scm_ilength (labels) >= 0,
                            s_bad_case_labels, labels, expr);
-          all_labels = scm_append_x (scm_list_2 (labels, all_labels));
+          all_labels = scm_append (scm_list_2 (labels, all_labels));
         }
       else if (SCM_NULLP (labels))
         {
@@ -1583,7 +1579,6 @@ scm_m_set_x (SCM expr, SCM env SCM_UNUSED)
   /* Memoize the variable form. */
   ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
   new_variable = lookup_symbol (variable, env);
-  ASSERT_SYNTAX (!SCM_MACROP (new_variable), s_macro_keyword, variable);
   /* Leave the memoization of unbound symbols to lazy memoization: */
   if (SCM_UNBNDP (new_variable))
     new_variable = variable;
