@@ -1,3 +1,8 @@
+2000-06-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* image-type.c: Removed unused scm_smobfuns structure.
+	(init_image_type): Use standard smob type interface.
+
 Fri Jun 25 22:21:04 1999  Greg Badros  <gjb@cs.washington.edu>
 
 	* image-type.c:  Updated example to use scm_make_smob_type_mfpe,

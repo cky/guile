@@ -1,3 +1,10 @@
+2000-06-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* data-rep.texi: Center discussion around the standard interface
+	for smob type creation (scm_make_smob_type) and warn about the
+	ongoing discussion which may result in deprecating
+	scm_make_smob_type_mfpe in next release of Guile.
+
 2000-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* data-rep.texi:  Updated the macro names for operating on
