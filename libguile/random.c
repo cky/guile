@@ -493,12 +493,11 @@ vector_sum_squares (SCM v)
  */
 SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0, 
             (SCM v, SCM state),
-            "Fills vect with inexact real random numbers\n"
-            "the sum of whose squares is less than 1.0.\n"
-            "Thinking of vect as coordinates in space of\n"
-            "dimension n = (vector-length vect), the coordinates\n"
-            "are uniformly distributed within the unit n-sphere.\n"
-            "The sum of the squares of the numbers is returned.")
+	    "Fills @var{vect} with inexact real random numbers the sum of\n"
+	    "whose squares is less than 1.0.  Thinking of @var{vect} as\n"
+	    "coordinates in space of dimension @var{n} @math{=}\n"
+	    "@code{(vector-length @var{vect})}, the coordinates are\n"
+	    "uniformly distributed within the unit @var{n}-sphere.")
 #define FUNC_NAME s_scm_random_solid_sphere_x
 {
   if (SCM_UNBNDP (state))
