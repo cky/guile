@@ -85,26 +85,16 @@ extern char *strptime ();
 #endif
 
 /* This should be figured out by autoconf.  */
-#ifdef CLK_TCK
-# define CLKTCK CLK_TCK
-# ifdef CLOCKS_PER_SEC
-#  if defined (unix) || defined (__unix)
-#   ifndef ARM_ULIB
-#    include <sys/times.h>
-#   endif
-#   define LACK_CLOCK
-    /* This is because clock() might be POSIX rather than ANSI.
-       This occurs on HP-UX machines */
-#  endif
-# endif
-#else
-# ifdef CLOCKS_PER_SEC
-#  define CLKTCK CLOCKS_PER_SEC
-# else
-#  define LACK_CLOCK
-#  define CLKTCK 60
-# endif
+#if ! defined(CLKTCK) && defined(CLK_TCK)
+#  define CLKTCK CLK_TCK
 #endif
+#if ! defined(CLKTCK) && defined(CLOCKS_PER_SEC)
+#  define CLKTCK CLOCKS_PER_SEC
+#endif
+#if ! defined(CLKTCK)
+#  define CLKTCK 60
+#endif
+
 
 #ifdef __STDC__
 # define timet time_t
