@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000,2001,2002 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -403,7 +403,7 @@
 	    (slot-ref class 'getters-n-setters)))
 
 (define restore
-  (procedure->macro
+  (procedure->memoizing-macro
     (lambda (exp env)
       "(restore CLASS (SLOT-NAME1 ...) EXP1 ...)"
       `(let ((o (,%allocate-instance ,(cadr exp) '())))

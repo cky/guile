@@ -1,3 +1,7 @@
+2002-07-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops/save.scm (restore): Replaced "macro" by	mmacro.
+
 2001-10-21  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* goops.scm, goops/active-slot.scm, goops/compile.scm,

@@ -1,3 +1,8 @@
+2002-07-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm (define-option-interface): Replaced "macro" by
+	mmacro.
+
 2002-06-01  Gary Houston  <ghouston@arglist.com>
 
 	* boot-9.scm (file-set-position): Make third argument optional,
