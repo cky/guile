@@ -2920,7 +2920,7 @@ Return a list containing @var{objs}, the arguments to
 @deffn primitive cons* arg . rest
 Like @code{list}, but the last arg provides the tail of the
 constructed list, returning @code{(cons @var{arg1} (cons
-@var{arg2} (cons @dots{} @var{argn}))).  Requires at least one
+@var{arg2} (cons @dots{} @var{argn})))}.  Requires at least one
 argument.  If given one argument, that argument is returned as
 result.  This function is called @code{list*} in some other
 Schemes and in Common LISP.

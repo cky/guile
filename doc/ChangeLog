@@ -1,5 +1,8 @@
 2001-03-23  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* intro.texi (Writing Extensions for Guile), scheme-data.texi
+	(Lists): Fix typos.
+
 	* guile-tut.texi, ChangeLog-guile-doc-tutorial: Added to CVS.  It
 	seems that I somehow missed these out when I moved everything from
 	guile-doc to guile-core.
