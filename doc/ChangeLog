@@ -1,3 +1,9 @@
+2001-03-12  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* intro.texi: Changed to reflect current practice better.  Added
+	stuff about writing Guile Extensions (aka dynamically loaded
+	shared libraries).
+
 2001-03-09  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* goops.texi (VERSION): Bumped to version 0.3.
