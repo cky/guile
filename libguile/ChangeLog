@@ -1,3 +1,9 @@
+2000-10-20  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* init.c (scm_init_guile_1, invoke_main_func): Call
+	scm_load_startup_files in scm_init_guile_1, not in
+	invoke_main_func.
+
 2000-10-18  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* print.c (grow_ref_stack): Pass a INUM to scm_make_vector as the
