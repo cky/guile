@@ -1,5 +1,18 @@
 2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* __scm.h (SCM_NALLOC):  Removed.
+
+	* error.c (scm_wta):  Removed sick dispatch code for memory
+	errors.  (More sick dispatches still to be removed.)
+
+	* numbers.c (scm_mkbig, scm_adjbig), ports.c (scm_make_port_type),
+	random.c (scm_i_copy_rstate, scm_c_make_rstate), smob.c
+	(scm_make_smob_type), srcprop.c (scm_make_srcprops), vectors.c
+	(scm_vector_set_length_x):  Now using scm_memory_error to signal
+	memory errors.
+
+2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* __scm.h:  Removed some commented code and fixed some comments.
 
 	(SCM_HUP_SIGNAL, SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL,

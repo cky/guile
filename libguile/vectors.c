@@ -103,7 +103,7 @@ scm_vector_set_length_x (SCM vect, SCM len)
     l = 1L;
   siz = l * sz;
   if (siz != l * sz)
-    scm_wta (SCM_MAKINUM (l * sz), (char *) SCM_NALLOC, s_vector_set_length_x);
+    scm_memory_error (s_vector_set_length_x);
   SCM_REDEFER_INTS;
   SCM_SETCHARS (vect,
 	    ((char *)

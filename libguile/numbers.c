@@ -1319,7 +1319,7 @@ scm_mkbig (scm_sizet nlen, int sign)
   /* Cast to long int to avoid signed/unsigned comparison warnings.  */
   if ((( ((long int) nlen) << SCM_BIGSIZEFIELD) >> SCM_BIGSIZEFIELD)
       != (long int) nlen)
-    scm_wta (SCM_MAKINUM (nlen), (char *) SCM_NALLOC, s_bignum);
+    scm_memory_error (s_bignum);
   
   SCM_NEWCELL (v);
   SCM_DEFER_INTS;
@@ -1356,7 +1356,7 @@ scm_adjbig (SCM b, scm_sizet nlen)
 {
   scm_sizet nsiz = nlen;
   if (((nsiz << SCM_BIGSIZEFIELD) >> SCM_BIGSIZEFIELD) != nlen)
-    scm_wta (scm_ulong2num (nsiz), (char *) SCM_NALLOC, s_adjbig);
+    scm_memory_error (s_adjbig);
 
   SCM_DEFER_INTS;
   {

@@ -555,7 +555,6 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
  */
 #define SCM_WNA 		8
 #define SCM_OUTOFRANGE 		10
-#define SCM_NALLOC 		11
 
 #endif /* SCM_MAGIC_SNARFER */
 

@@ -171,8 +171,7 @@ scm_i_copy_rstate (scm_i_rstate *state)
 {
   scm_rstate *new_state = malloc (scm_the_rng.rstate_size);
   if (new_state == 0)
-    scm_wta (SCM_MAKINUM (scm_the_rng.rstate_size),
-	     (char *) SCM_NALLOC, "rstate");
+    scm_memory_error ("rstate");
   return memcpy (new_state, state, scm_the_rng.rstate_size);
 }
 
@@ -186,9 +185,7 @@ scm_c_make_rstate (char *seed, int n)
 {
   scm_rstate *state = malloc (scm_the_rng.rstate_size);
   if (state == 0)
-    scm_wta (SCM_MAKINUM (scm_the_rng.rstate_size),
-	     (char *) SCM_NALLOC,
-	     "rstate");
+    scm_memory_error ("rstate");
   state->reserved0 = 0;
   scm_the_rng.init_rstate (state, seed, n);
   return state;

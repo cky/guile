@@ -151,8 +151,10 @@ scm_make_port_type (char *name,
     }
   SCM_ALLOW_INTS;
   if (!tmp)
-  ptoberr:scm_wta (SCM_MAKINUM ((long) scm_numptob),
-		   (char *) SCM_NALLOC, "scm_make_port_type");
+    {
+    ptoberr:
+      scm_memory_error ("scm_make_port_type");
+    }
   /* Make a class object if Goops is present */
   if (scm_port_class)
     scm_make_port_classes (scm_numptob - 1, SCM_PTOBNAME (scm_numptob - 1));

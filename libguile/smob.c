@@ -144,9 +144,11 @@ scm_make_smob_type (char *name, scm_sizet size)
       scm_numsmob++;
     }
   SCM_ALLOW_INTS;
-  if (!tmp)
-  smoberr:scm_wta (SCM_MAKINUM ((long) scm_numsmob),
-		   (char *) SCM_NALLOC, "scm_make_smob_type");
+  if (!tmp) 
+    {
+    smoberr:
+      scm_memory_error ("scm_make_smob_type");
+    }
   /* Make a class object if Goops is present. */
   if (scm_smob_class)
     scm_smob_class[scm_numsmob - 1]

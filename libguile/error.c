@@ -318,8 +318,6 @@ scm_wta (SCM arg, const char *pos, const char *s_subr)
 	  scm_wrong_num_args (arg);
 	case SCM_OUTOFRANGE:
 	  scm_out_of_range (s_subr, arg);
-	case SCM_NALLOC:
-	  scm_memory_error (s_subr);
 	default:
 	  /* this shouldn't happen.  */
 	  scm_misc_error (s_subr, "Unknown error", SCM_EOL);
