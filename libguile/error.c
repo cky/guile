@@ -137,7 +137,7 @@ scm_error (key, subr, message, args, rest)
     (*scm_error_callback) (key, subr, message, args, rest);
 
   arg_list = scm_listify (subr ? scm_makfrom0str (subr) : SCM_BOOL_F,
-			  scm_makfrom0str (message),
+			  message ? scm_makfrom0str (message) : SCM_BOOL_F,
 			  args,
 			  rest,
 			  SCM_UNDEFINED);

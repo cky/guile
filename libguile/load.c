@@ -63,7 +63,7 @@
 
 /* Loading a file, given an absolute filename.  */
 
-SCM_PROC(s_sys_try_load, "%try-load", 1, 2, 0, scm_sys_try_load);
+SCM_PROC(s_sys_try_load, "primitive-load", 1, 2, 0, scm_sys_try_load);
 SCM 
 scm_sys_try_load (filename, case_insensitive_p, sharp)
      SCM filename;
@@ -76,8 +76,6 @@ scm_sys_try_load (filename, case_insensitive_p, sharp)
     SCM form, port;
     port = scm_open_file (filename,
 			  scm_makfromstr ("r", (scm_sizet) sizeof (char), 0));
-    if (SCM_FALSEP (port))
-      return SCM_BOOL_F;
     while (1)
       {
 	form = scm_read (port, case_insensitive_p, sharp);
@@ -87,7 +85,7 @@ scm_sys_try_load (filename, case_insensitive_p, sharp)
       }
     scm_close_port (port);
   }
-  return SCM_BOOL_T;
+  return SCM_UNSPECIFIED;
 }
 
 

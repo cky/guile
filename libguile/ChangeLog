@@ -1,3 +1,14 @@
+Tue Sep 24 06:48:38 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* load.c (scm_sys_try_load): don't check whether value returned
+	by scm_open_file is #f, it won't be.  Always return SCM_UNSPECIFIED.
+	Change the Scheme name from %try-load to primitive-load.
+
+	* error.c (scm_error): convert a NULL message to SCM_BOOL_F.
+  	Can avoid passing a message, allowing it to be derived in the
+ 	error handler (e.g., if we want to throw to the key both from
+ 	Scheme and C).
+
 Mon Sep 23 00:42:15 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 *	* print.c (scm_iprin1, scm_prin1, scm_iprlist): Circular
