@@ -1270,7 +1270,10 @@ scm_gc_sweep ()
 	  if (SCM_CAR (scmptr) == (SCM) scm_tc_free_cell)
 	    exit (2);
 #endif
-	  /* Stick the new cell on the front of nfreelist.  */
+	  /* Stick the new cell on the front of nfreelist.  It's
+	     critical that we mark this cell as freed; otherwise, the
+	     conservative collector might trace it as some other type
+	     of object.  */
 	  SCM_SETCAR (scmptr, (SCM) scm_tc_free_cell);
 	  SCM_SETCDR (scmptr, nfreelist);
 	  nfreelist = scmptr;
