@@ -1,3 +1,12 @@
+Sat Sep 27 20:19:20 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* boot-9.scm (separate-fields-discarding-char,
+	separate-fields-after-char, separate-fields-before-char): Call
+	continuation function, RET, as advertised: with each separated
+	field a separate argument.
+
+	* Makefile.in: Regenerated with automake 1.2a.
+
 Sat Sep 20 14:23:53 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* slib.scm (slib:load): Export.

@@ -3796,7 +3796,7 @@
      ((string-rindex str ch)
       => (lambda (w) (loop (cons (make-shared-substring str (+ 1 w)) fields)
 			   (make-shared-substring str 0 w))))
-     (else (ret (cons str fields))))))
+     (else (apply ret str fields)))))
 
 (define-public (separate-fields-after-char ch str ret)
   (reverse
@@ -3806,7 +3806,7 @@
       ((string-index str ch)
        => (lambda (w) (loop (cons (make-shared-substring str 0 (+ 1 w)) fields)
                            (make-shared-substring str (+ 1 w)))))
-      (else (ret (cons str fields)))))))
+      (else (apply ret str fields))))))
 
 (define-public (separate-fields-before-char ch str ret)
   (let loop ((fields '())
@@ -3815,7 +3815,7 @@
      ((string-rindex str ch)
       => (lambda (w) (loop (cons (make-shared-substring str w) fields)
 			     (make-shared-substring str 0 w))))
-     (else (ret (cons str fields))))))
+     (else (apply ret str fields)))))
 
 
 ;;; {String Fun: String Prefix Predicates}
