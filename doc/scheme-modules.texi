@@ -46,7 +46,7 @@ clutter the global name space.
 @node Scheme and modules
 @section Scheme and modules
 
-Scheme, as defined in R4RS, does @emph{not} have a module system at all.
+Scheme, as defined in R5RS, does @emph{not} have a module system at all.
 
 Aubrey Jaffer, mostly to support his portable Scheme library SLIB,
 implemented a provide/require mechanism for many Scheme implementations.

@@ -1,5 +1,18 @@
 2001-04-22  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-io.texi: Remove old docstring comments referring to
+	r4rs.scm.
+
+	* appendices.texi (The Basic Guile Package, Packages not shipped
+	with Guile), env.texi (Switching to Environments), format.texi
+	(Format Specification), gh.texi
+	(Executing Scheme code, Calling Scheme procedures from C),
+	guile-tut.texi (How to characterize Guile), scheme-data.texi
+	(Symbols, Keywords, Keyword Read Syntax, Append/Reverse),
+	scheme-evaluation.texi (Delayed Evaluation), scheme-modules.texi
+	(Scheme and modules), scheme-io.texi (Soft Ports): Change R4RS
+	references to R5RS.
+
 	* r4rs.texi: Removed.
 	
 	* Makefile.am (info_TEXINFOS): Remove r4rs.

@@ -315,7 +315,7 @@ list @code{("" ".scm")}.
 
 @deffn primitive promise? obj
 Return true if @var{obj} is a promise, i.e. a delayed computation
-(@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).
+(@pxref{Delayed evaluation,,,r5rs.info,The Revised^5 Report on Scheme}).
 @end deffn
 
 @rnindex force

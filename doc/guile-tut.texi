@@ -347,26 +347,26 @@ expression library @emph{rx}, and many more @dots{}
 @cindex rx
 
 So Guile has many more primitive procedures available to it than those
-specified in @ref{Standard Procedures, Revised(4) Report on the
-Algorithmic Language Scheme, , r4rs, Revised(4) Report on the
+specified in @ref{Standard Procedures, Revised(5) Report on the
+Algorithmic Language Scheme, , r5rs, Revised(5) Report on the
 Algorithmic Language Scheme}.  On top of that, Guile will interpret
 almost all standard Scheme programs.  The only incompatible difference
-between the basic Guile language and R4RS Scheme is that Guile is case
-sensitive, whereas R4RS is case insensitive.  We hope that few people
+between the basic Guile language and R5RS Scheme is that Guile is case
+sensitive, whereas R5RS is case insensitive.  We hope that few people
 have written Scheme programs that depend on case insensitivity.
 @cindex case sensitivity
-@cindex Revised(4) Report on the Algorithmic Language Scheme
+@cindex Revised(5) Report on the Algorithmic Language Scheme
 @cindex report on Scheme
 @cindex Scheme language - report
 @cindex Scheme language - definition
 
 Here is a possible view of the @emph{sum of the parts} in Guile:
 @cindex extensions to standard Scheme
-@cindex extensions to R4RS
+@cindex extensions to R5RS
 @cindex Scheme extensions
 @example
-guile   =       standard Scheme (R4RS)
-        PLUS    extensions to R4RS offered by SCM
+guile   =       standard Scheme (R5RS)
+        PLUS    extensions to R5RS offered by SCM
         PLUS    some extra primitives offered by Guile (catch/throw)
         PLUS    portable Scheme library (SLIB)
         PLUS    embeddable Scheme interpreter library (libguile)

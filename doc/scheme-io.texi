@@ -560,7 +560,6 @@ requested, @code{open-file} throws an exception.
 @end deffn
 
 @rnindex open-input-file
-@c begin (scm-doc-string "r4rs.scm" "open-input-file")
 @deffn procedure open-input-file filename
 Open @var{filename} for input.  Equivalent to
 @smalllisp
@@ -569,7 +568,6 @@ Open @var{filename} for input.  Equivalent to
 @end deffn
 
 @rnindex open-output-file
-@c begin (scm-doc-string "r4rs.scm" "open-output-file")
 @deffn procedure open-output-file filename
 Open @var{filename} for output.  Equivalent to
 @smalllisp
@@ -578,7 +576,6 @@ Open @var{filename} for output.  Equivalent to
 @end deffn
 
 @rnindex call-with-input-file
-@c begin (scm-doc-string "r4rs.scm" "call-with-input-file")
 @deffn procedure call-with-input-file file proc
 @var{proc} should be a procedure of one argument, and @var{file} should
 be a string naming a file.  The file must already exist. These
@@ -592,7 +589,6 @@ never again be used for a read or write operation.
 @end deffn
 
 @rnindex call-with-output-file
-@c begin (scm-doc-string "r4rs.scm" "call-with-output-file")
 @deffn procedure call-with-output-file file proc
 @var{proc} should be a procedure of one argument, and @var{file} should
 be a string naming a file.  The behaviour is unspecified if the file
@@ -606,7 +602,6 @@ port will never again be used for a read or write operation.
 @end deffn
 
 @rnindex with-input-from-file
-@c begin (scm-doc-string "r4rs.scm" "with-input-from-file")
 @deffn procedure with-input-from-file file thunk
 @var{thunk} must be a procedure of no arguments, and @var{file} must be
 a string naming a file.  The file must already exist. The file is opened
@@ -620,7 +615,6 @@ dependent.
 @end deffn
 
 @rnindex with-output-to-file
-@c begin (scm-doc-string "r4rs.scm" "with-output-to-file")
 @deffn procedure with-output-to-file file thunk
 @var{thunk} must be a procedure of no arguments, and @var{file} must be
 a string naming a file.  The effect is unspecified if the file already
@@ -633,7 +627,6 @@ used to escape from the continuation of these procedures, their behavior
 is implementation dependent.
 @end deffn
 
-@c begin (scm-doc-string "r4rs.scm" "with-error-to-file")
 @deffn procedure with-error-to-file file thunk
 @var{thunk} must be a procedure of no arguments, and @var{file} must be
 a string naming a file.  The effect is unspecified if the file already
@@ -689,14 +682,12 @@ created input port from which @var{string}'s contents may be
 read.  The value yielded by the @var{proc} is returned.
 @end deffn
 
-@c begin (scm-doc-string "r4rs.scm" "with-output-to-string")
 @deffn procedure with-output-to-string thunk
 Calls the zero-argument procedure @var{thunk} with the current output
 port set temporarily to a new string port.  It returns a string
 composed of the characters written to the current output.
 @end deffn
 
-@c begin (scm-doc-string "r4rs.scm" "with-input-from-string")
 @deffn procedure with-input-from-string string thunk
 Calls the zero-argument procedure @var{thunk} with the current input
 port set temporarily to a string port opened on the specified
@@ -758,7 +749,7 @@ procedures.  For an input-only port only elements 3 and 4 need
 be procedures.  Thunks 2 and 4 can instead be @code{#f} if
 there is no useful operation for them to perform.
 If thunk 3 returns @code{#f} or an @code{eof-object}
-(@pxref{Input, eof-object?, ,r4rs, The Revised^4 Report on
+(@pxref{Input, eof-object?, ,r5rs, The Revised^5 Report on
 Scheme}) it indicates that the port has reached end-of-file.
 For example:
 @lisp

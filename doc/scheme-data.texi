@@ -2351,7 +2351,7 @@ standard case is lower case:
 @deffn primitive symbol->string s
 Return the name of @var{symbol} as a string.  If the symbol was
 part of an object returned as the value of a literal expression
-(section @pxref{Literal expressions,,,r4rs, The Revised^4
+(section @pxref{Literal expressions,,,r5rs, The Revised^5
 Report on Scheme}) or by a call to the @code{read} procedure,
 and its name contains alphabetic characters, then the string
 returned will contain characters in the implementation's
@@ -2544,7 +2544,7 @@ return @code{#f}
 Keywords are self-evaluating objects with a convenient read syntax that
 makes them easy to type.
 
-Guile's keyword support conforms to R4RS, and adds a (switchable) read
+Guile's keyword support conforms to R5RS, and adds a (switchable) read
 syntax extension to permit keywords to begin with @code{:} as well as
 @code{#:}.
 
@@ -2688,9 +2688,9 @@ expression, keywords are self-quoting objects.
 
 If the @code{keyword} read option is set to @code{'prefix}, Guile also
 recognizes the alternative read syntax @code{:NAME}.  Otherwise, tokens
-of the form @code{:NAME} are read as symbols, as required by R4RS.
+of the form @code{:NAME} are read as symbols, as required by R5RS.
 
-To enable and disable the alternative non-R4RS keyword syntax, you use
+To enable and disable the alternative non-R5RS keyword syntax, you use
 the @code{read-options} procedure documented in @ref{General option
 interface} and @ref{Reader options}.
 
@@ -3058,7 +3058,7 @@ if the last argument is not a proper list.
 
 @deffn primitive append! . lists
 A destructive version of @code{append} (@pxref{Pairs and
-Lists,,,r4rs, The Revised^4 Report on Scheme}).  The cdr field
+lists,,,r5rs, The Revised^5 Report on Scheme}).  The cdr field
 of each list's final pair is changed to point to the head of
 the next list, so no consing is performed.  Return a pointer to
 the mutated list.
@@ -3072,8 +3072,8 @@ in reverse order.
 
 @c NJFIXME explain new_tail
 @deffn primitive reverse! lst [new_tail]
-A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r4rs,
-The Revised^4 Report on Scheme}).  The cdr of each cell in @var{lst} is
+A destructive version of @code{reverse} (@pxref{Pairs and lists,,,r5rs,
+The Revised^5 Report on Scheme}).  The cdr of each cell in @var{lst} is
 modified to point to the previous list element.  Return a pointer to the
 head of the reversed list.
 

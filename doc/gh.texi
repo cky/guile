@@ -249,7 +249,7 @@ except that a whole file is evaluated instead of a string.
 
 @code{gh_load} is identical to @code{gh_eval_file} (it's a macro that
 calls @code{gh_eval_file} on its argument).  It is provided to start
-making the @code{gh_} interface match the R4RS Scheme procedures
+making the @code{gh_} interface match the R5RS Scheme procedures
 closely.
 @end deftypefun
 
@@ -568,8 +568,8 @@ interface; they take and return objects of type SCM, and one could
 basically use them to write C code that mimics Scheme code.
 
 I will list these routines here without much explanation, since what
-they do is the same as documented in @ref{Standard Procedures, R4RS, ,
-r4rs, R4RS}.  But I will point out that when a procedure takes a
+they do is the same as documented in @ref{Standard procedures, R5RS, ,
+r5rs, R5RS}.  But I will point out that when a procedure takes a
 variable number of arguments (such as @code{gh_list}), you should pass
 the constant @var{SCM_EOL} from C to signify the end of the list.
 
