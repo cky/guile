@@ -6,6 +6,25 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.3.2:
 
+* Changes to Scheme functions and syntax
+
+** Print-state handling has been made more transparent
+
+Under certain circumstances, ports are represented as a port with an
+associated print state.  Earlier, this pair was represented as a pair
+(see "Some magic has been added to the printer" below).  It is now
+indistinguishable (almost; see `get-print-state') from a port on the
+user level.
+
+*** New function: port-with-print-state OUTPUT-PORT PRINT-STATE
+
+Return a new port with the associated print state PRINT-STATE.
+
+*** New function: get-print-state OUTPUT-PORT
+
+Return the print state associated with this port if it exists,
+otherwise return #f.
+
 
 Changes since Guile 1.3:
 
