@@ -326,3 +326,6 @@ no other easy or unambiguous way of detecting such features."
 	  (set-cdr! entry path-name)
 	  (set! *catalog*
 		(acons name path-name *catalog*))))))
+
+(define (make-exchanger obj)
+  (lambda (rep) (let ((old obj)) (set! obj rep) old)))
