@@ -45,7 +45,6 @@ In release 1.6:
     try-module-dynamic-link
     init-dynamic-module
     scm_register_module_xxx
-    scm_init_oop_goops_goopscore_module
     etc.
 - remove deprecated variables:
     scm_top_level_lookup_closure_var
