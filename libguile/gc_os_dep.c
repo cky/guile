@@ -21,6 +21,10 @@
  * and modified for Guile by Marius Vollmer.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <ctype.h>
 #include "libguile/gc.h"
 #include "libguile/scmconfig.h"
@@ -438,7 +442,7 @@ typedef int GC_bool;
  * highest address in the stack.
  * Under PCR or OS/2, we have other ways of finding thread stacks.
  * For each machine, the following should:
- * 1) define STACK_GROWS_UP if the stack grows toward higher addresses, and
+ * 1) define SCM_STACK_GROWS_UP if the stack grows toward higher addresses, and
  * 2) define exactly one of
  *	STACKBOTTOM (should be defined to be an expression)
  *	HEURISTIC1
@@ -448,7 +452,7 @@ typedef int GC_bool;
  * HEURISTIC1:  Take an address inside GC_init's frame, and round it up to
  *		the next multiple of STACK_GRAN.
  * HEURISTIC2:  Take an address inside GC_init's frame, increment it repeatedly
- *		in small steps (decrement if STACK_GROWS_UP), and read the value
+ *		in small steps (decrement if SCM_STACK_GROWS_UP), and read the value
  *		at each location.  Remember the value when the first
  *		Segmentation violation or Bus error is signalled.  Round that
  *		to the nearest plausible page boundary, and use that instead
@@ -1073,7 +1077,9 @@ typedef int GC_bool;
 	extern char ** environ;
 #       define STACKBOTTOM ((ptr_t)environ)
 #   endif
-#   define STACK_GROWS_UP
+#   ifndef SCM_STACK_GROWS_UP /* don't fight with scmconfig.h */
+#     define SCM_STACK_GROWS_UP
+#   endif
 #   define DYNAMIC_LOADING
 #   ifndef HPUX_THREADS
 #     define MPROTECT_VDB
@@ -1259,7 +1265,7 @@ typedef int GC_bool;
 #   define DATASTART ((ptr_t)(&__data_start != 0? &__data_start : &data_start))
 #endif
 
-# ifndef STACK_GROWS_UP
+# ifndef SCM_STACK_GROWS_UP
 #   define STACK_GROWS_DOWN
 # endif
 
