@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,11 +98,10 @@ scm_read (port)
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
-		port,
-		SCM_ARG1,
-		s_read);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
+	      port,
+	      SCM_ARG1,
+	      s_read);
 
   c = scm_flush_ws (port, (char *) NULL);
   if (EOF == c)

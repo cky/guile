@@ -245,11 +245,8 @@ scm_read_line (port)
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  else
-    {
-      SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
-		  port, SCM_ARG1, s_read_line);
-    }
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
+	      port, SCM_ARG1, s_read_line);
 
   pt = SCM_PTAB_ENTRY (port);
   if (pt->rw_active == SCM_PORT_WRITE)

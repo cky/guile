@@ -669,8 +669,7 @@ scm_read_char (SCM port)
   int c;
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_read_char);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_read_char);
   c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
