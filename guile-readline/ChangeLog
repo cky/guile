@@ -1,3 +1,15 @@
+1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	The following change makes it possible for applications to have
+	their own version of scm_readline.
+	* readline.c, readline.h (rl_cleanup_after_signal,
+	rl_free_line_state): Made global.
+	(scm_readline_init_ports): New function.
+	(scm_readline): Use scm_readline_init_ports.
+	(Thanks to Anders Holst.)
+
+	* Makefile.am: Install guile-readline/readline.h.
+	
 1999-08-20  James Blandy  <jimb@mule.m17n.org>
 
 	* Makefile.in, aclocal.m4, configure: Regenerated.
