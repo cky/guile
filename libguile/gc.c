@@ -981,17 +981,13 @@ mark_gc_async (void * hook_data SCM_UNUSED,
 void
 scm_init_gc ()
 {
-  SCM after_gc_thunk;
-
-
   scm_gc_init_mark ();
 
   scm_after_gc_hook = scm_permanent_object (scm_make_hook (SCM_INUM0));
   scm_c_define ("after-gc-hook", scm_after_gc_hook);
 
-  after_gc_thunk = scm_c_make_subr ("%gc-thunk", scm_tc7_subr_0,
-				    gc_async_thunk);
-  gc_async = scm_system_async (after_gc_thunk);  /* protected via scm_asyncs */
+  gc_async = scm_c_make_subr ("%gc-thunk", scm_tc7_subr_0,
+			      gc_async_thunk);
 
   scm_c_hook_add (&scm_after_gc_c_hook, mark_gc_async, NULL, 0);
 
