@@ -7,9 +7,7 @@ absinthe, etc.  However, the first release containing the module
 system should be called Godot: "This is the one you've been waiting
 for."
 
-* Deprecate `make-shared-substring'!  We should arrange for shared
-  substrings to be generated automatically by `substring' and let string
-  mutators copy-on-write to otehr storage.
+* Deprecate `read-only-string?'.
 
 Before releasing the next version of libguile which is not binary compatible
 with the one released with 1.4:
@@ -55,6 +53,8 @@ In release 1.6:
   SCM_ORD_SIG, SCM_NUM_SIGS
 - remove function scm_call_catching_errors
   (replaced by catch functions from throw.[ch])
+- remove scm_make_shared_substring
+- remove scm_read_only_string_p
 
 
 Modules sort.c and random.c should be factored out into separate

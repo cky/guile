@@ -1,3 +1,9 @@
+2000-08-26  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* strings: New directory.
+	
+	* strings/sharedstr.text (sharedstr.text): New file.
+
 2000-08-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* translate: New directory.

@@ -1,3 +1,16 @@
+2000-08-26  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* environments.c (scm_init_environments): All internal includes in
+	libguile must use the prefix "libguile/" in path names since inly
+	the top-level source directory is on the include list.  (That, in
+	turn, is because we want to distinguish between system header
+	files and hedares files internal to libguile.)
+
+	* strings.c (scm_make_shared_substring, scm_read_only_string_p):
+	Deprecated.
+	(scm_string_length, scm_string_ref, scm_substring,
+	scm_string_append): Don't accept symbols as arguments (R5RS).
+
 2000-08-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* ports.c (scm_set_port_column_x): Fix docstring so that it

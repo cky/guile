@@ -4,6 +4,8 @@ policy		Guile policy documents
 
 build		Build/installation process
 
+string		Strings and characters
+
 translation	Language traslation
 
 vm		Virtual machines

@@ -73,6 +73,18 @@ Example:
 (define (bar)
   ...)
 
+** Deprecated: scm_make_shared_substring
+
+Explicit shared substrings will disappear from Guile.
+
+Instead, "normal" strings will be implemented using sharing
+internally, combined with a copy-on-write strategy.
+
+** Deprecated: scm_read_only_string_p
+
+The concept of read-only strings will disappear in next release of
+Guile.
+
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface
