@@ -1,3 +1,8 @@
+2001-11-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.texi: Replaced by libguile version (after automatically
+	updating docstrings in the reference manual).
+
 2001-11-07  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile.texi: Replaced by libguile version (after automatically

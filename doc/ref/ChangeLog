@@ -1,3 +1,11 @@
+2001-11-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* new-docstrings.texi, scheme-data.texi: Merge recent doc
+	improvements from stable branch.
+
+	* scheme-options.texi: Automatic updates from docstring changes in
+	libguile's C source code.
+
 2001-11-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-data.texi (Vtables, Structure Basics): Automatic doc

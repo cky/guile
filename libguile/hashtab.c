@@ -524,7 +524,7 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
             "and value are successive pairs from the hash table TABLE, and\n"
             "prior-result is either INIT (for the first application of PROC)\n"
             "or the return value of the previous application of PROC.\n"
-            "For example, @code{(hash-fold acons () tab)} will convert a hash\n"
+            "For example, @code{(hash-fold acons '() tab)} will convert a hash\n"
             "table into an a-list of key-value pairs.")
 #define FUNC_NAME s_scm_hash_fold
 {

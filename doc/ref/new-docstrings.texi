@@ -506,7 +506,7 @@ Internal GOOPS magic---don't use this function!
 @end deffn
 
 @deffn primitive list*
-scm_cons_star
+implemented by the C function "scm_cons_star"
 @end deffn
 
 @deffn primitive set-current-module module
@@ -564,7 +564,7 @@ Return the module of @var{ENV}, a lexical environment.
 @end deffn
 
 @deffn primitive load-extension lib init
-Load and initilize the extension designated by LIB and INIT.
+Load and initialize the extension designated by LIB and INIT.
 When there is no pre-registered function for LIB/INIT, this is
 equivalent to
 

@@ -492,7 +492,7 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
             "the sum of whose squares is less than 1.0.\n"
             "Thinking of vect as coordinates in space of\n"
             "dimension n = (vector-length vect), the coordinates\n"
-            "are uniformly distributed within the unit n-shere.\n"
+            "are uniformly distributed within the unit n-sphere.\n"
             "The sum of the squares of the numbers is returned.")
 #define FUNC_NAME s_scm_random_solid_sphere_x
 {
@@ -516,7 +516,7 @@ SCM_DEFINE (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
             "Thinking of vect as coordinates in space of\n"
             "dimension n = (vector-length vect), the coordinates\n"
             "are uniformly distributed over the surface of the\n"
-            "unit n-shere.")
+            "unit n-sphere.")
 #define FUNC_NAME s_scm_random_hollow_sphere_x
 {
   SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);

@@ -117,7 +117,7 @@ scm_c_load_extension (const char *lib, const char *init)
 
 SCM_DEFINE (scm_load_extension, "load-extension", 2, 0, 0,
 	    (SCM lib, SCM init),
-	    "Load and initilize the extension designated by LIB and INIT.\n"
+	    "Load and initialize the extension designated by LIB and INIT.\n"
 	    "When there is no pre-registered function for LIB/INIT, this is\n"
 	    "equivalent to\n"
 	    "\n"

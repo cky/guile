@@ -1,3 +1,13 @@
+2001-11-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* random.c (scm_random_solid_sphere_x,
+	scm_random_hollow_sphere_x): Correct "shere" typos.
+
+	* hashtab.c (scm_hash_fold): Add missing apostrophe to docstring.
+
+	* version.c (scm_version): Update docstring to include
+	`micro-version'.
+
 2001-11-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* modules.c (scm_c_export): Call va_end after collecting the

@@ -1471,15 +1471,15 @@ between separator characters will result in an empty string in the
 result list.
 
 @lisp
-(string-split "root:x:0:0:root:/root:/bin/bash" #:)
+(string-split "root:x:0:0:root:/root:/bin/bash" #\:)
 @result{}
 ("root" "x" "0" "0" "root" "/root" "/bin/bash")
 
-(string-split "::" #:)
+(string-split "::" #\:)
 @result{}
 ("" "" "")
 
-(string-split "" #:)
+(string-split "" #\:)
 @result{}
 ("")
 @end lisp
@@ -2330,7 +2330,7 @@ association lists (@pxref{Association Lists}) or hash tables
 lot, and does not cause any performance loss.
 
 The read syntax for symbols is a sequence of letters, digits, and
-@emph{extended alphabetic characters} that begins with a character that
+@dfn{extended alphabetic characters} that begins with a character that
 cannot begin a number is an identifier.  In addition, @code{+},
 @code{-}, and @code{...} are identifiers.
 
@@ -2826,7 +2826,7 @@ This is the inverse of @code{make-keyword-from-dash-symbol}.
 Pairs are used to combine two Scheme objects into one compound object.
 Hence the name: A pair stores a pair of objects.
 
-The data type @emph{pair} is extremely important in Scheme, just like in
+The data type @dfn{pair} is extremely important in Scheme, just like in
 any other Lisp dialect.  The reason is that pairs are not only used to
 make two values available as one object, but that pairs are used for
 constructing lists of values.  Because lists are so important in Scheme,
@@ -2863,7 +2863,7 @@ examples is as follows.
 A new pair is made by calling the procedure @code{cons} with two
 arguments.  Then the argument values are stored into a newly allocated
 pair, and the pair is returned.  The name @code{cons} stands for
-@emph{construct}.  Use the procedure @code{pair?} to test whether a
+"construct".  Use the procedure @code{pair?} to test whether a
 given Scheme object is a pair or not.
 
 @rnindex cons
@@ -2879,8 +2879,8 @@ Return @code{#t} if @var{x} is a pair; otherwise return
 @code{#f}.
 @end deffn
 
-The two parts of a pair are traditionally called @emph{car} and
-@emph{cdr}.  They can be retrieved with procedures of the same name
+The two parts of a pair are traditionally called @dfn{car} and
+@dfn{cdr}.  They can be retrieved with procedures of the same name
 (@code{car} and @code{cdr}), and can be modified with the procedures
 @code{set-car!} and @code{set-cdr!}.  Since a very common operation in
 Scheme programs is to access the car of a pair, or the car of the cdr of
@@ -2927,8 +2927,8 @@ by @code{set-cdr!} is unspecified.
 
 A very important data type in Scheme---as well as in all other Lisp
 dialects---is the data type @dfn{list}.@footnote{Strictly speaking,
-Scheme does not have a real datatype @emph{list}.  Lists are made up of
-chained @emph{pairs}, and only exist by definition---a list is a chain
+Scheme does not have a real datatype @dfn{list}.  Lists are made up of
+@dfn{chained pairs}, and only exist by definition---a list is a chain
 of pairs which looks like a list.}
 
 This is the short definition of what a list is:
@@ -2955,7 +2955,7 @@ or a pair which has a list in its cdr.
 * List Constructors::           Creating new lists.
 * List Selection::              Selecting from lists, getting their length.
 * Append/Reverse::              Appending and reversing lists.
-* List Modifification::         Modifying list structure.
+* List Modification::           Modifying existing lists.
 * List Searching::              Searching for list elements
 * List Mapping::                Applying procedures to lists.
 @end menu
@@ -3013,7 +3013,7 @@ Return @code{#t} iff @var{x} is a proper list, else @code{#f}.
 The predicate @code{null?} is often used in list-processing code to
 tell whether a given list has run out of elements.  That is, a loop
 somehow deals with the elements of a list until the list satisfies
-@code{null?}.  Then, teh algorithm terminates.
+@code{null?}.  Then, the algorithm terminates.
 
 @rnindex null?
 @deffn primitive null? x
@@ -3161,14 +3161,11 @@ of the modified list is not lost, it is wise to save the return value of
 @code{reverse!}
 @end deffn
 
-@node List Modifification
+@node List Modification
 @subsection List Modification
 
-@c FIXME::martin: Review me!
-
-The following procedures modify existing list.  @code{list-set!}  and
-@code{list-cdr-set!} change which elements a list contains, the various
-deletion procedures @code{delq}, @code{delv} etc.
+The following procedures modify an existing list, either by changing
+elements of the list, or by changing the list structure itself.
 
 @deffn primitive list-set! list k val
 Set the @var{k}th element of @var{list} to @var{val}.
@@ -3235,7 +3232,7 @@ Like @code{delete!}, but only deletes the first occurrence of
 
 The following procedures search lists for particular elements.  They use
 different comparison predicates for comparing list elements with the
-object to be seached.  When they fail, they return @code{#f}, otherwise
+object to be searched.  When they fail, they return @code{#f}, otherwise
 they return the sublist whose car is equal to the search object, where
 equality depends on the equality predicate used.
 
@@ -3269,7 +3266,7 @@ the non-empty lists returned by @code{(list-tail @var{lst}
 empty list) is returned.
 @end deffn
 
-[FIXME: is there any reason to have the `sloppy' functions available at
+[FIXME: Is there any reason to have the `sloppy' functions available at
 high level at all?  Maybe these docs should be relegated to a "Guile
 Internals" node or something. -twp]
 
@@ -3300,8 +3297,8 @@ List processing is very convenient in Scheme because the process of
 iterating over the elements of a list can be highly abstracted.  The
 procedures in this section are the most basic iterating procedures for
 lists.  They take a procedure and one or more lists as arguments, and
-apply the procedure to each element of the list.  They differ in what
-the result of the invocation is.
+apply the procedure to each element of the list.  They differ in their
+return value.
 
 @rnindex map
 @c begin (texi-doc-string "guile" "map")
@@ -3336,13 +3333,15 @@ return value is not specified.
 
 Vectors are sequences of Scheme objects.  Unlike lists, the length of a
 vector, once the vector is created, cannot be changed.  The advantage of
-vectors over lists is that the time required to access one element of a
-vector is constant, whereas lists have an access time linear to the
-index of the accessed element in the list.
+vectors over lists is that the time required to access one element of a vector
+given its @dfn{position} (synonymous with @dfn{index}), a zero-origin number,
+is constant, whereas lists have an access time linear to the position of the
+accessed element in the list.
 
-Note that the vectors documented in this section can contain any kind of
-Scheme object, it is even possible to have different types of objects in
-the same vector.
+Vectors can contain any kind of Scheme object; it is even possible to have
+different types of objects in the same vector.  For vectors containing
+vectors, you may wish to use arrays, instead.  Note, too, that some array
+procedures operate happily on vectors (@pxref{Arrays}).
 
 @subsection Vector Read Syntax
 
@@ -3353,7 +3352,7 @@ parentheses, all elements of the vector in their respective read syntax,
 and finally a closing parentheses.  The following are examples of the
 read syntax for vectors; where the first vector only contains numbers
 and the second three different object types: a string, a symbol and a
-number in hexidecimal notation.
+number in hexadecimal notation.
 
 @lisp
 #(1 2 3)
@@ -3373,8 +3372,8 @@ Return @code{#t} if @var{obj} is a vector, otherwise return
 @rnindex make-vector
 @deffn primitive make-vector k [fill]
 Return a newly allocated vector of @var{k} elements.  If a
-second argument is given, then each element is initialized to
-@var{fill}.  Otherwise the initial contents of each element is
+second argument is given, then each position is initialized to
+@var{fill}.  Otherwise the initial contents of each position are
 unspecified.
 @end deffn
 
@@ -3382,8 +3381,8 @@ unspecified.
 @rnindex list->vector
 @deffn primitive vector . l
 @deffnx primitive list->vector l
-Return a newly allocated vector whose elements contain the
-given arguments.  Analogous to @code{list}.
+Return a newly allocated vector composed of the given arguments.
+Analogous to @code{list}.
 
 @lisp
 (vector 'a 'b 'c) @result{} #(a b c)
@@ -3392,8 +3391,7 @@ given arguments.  Analogous to @code{list}.
 
 @rnindex vector->list
 @deffn primitive vector->list v
-Return a newly allocated list of the objects contained in the
-elements of @var{vector}.
+Return a newly allocated list composed of the elements of @var{v}.
 
 @lisp
 (vector->list '#(dah dah didah)) @result{}  (dah dah didah)
@@ -3407,35 +3405,37 @@ A vector created by any of the vector constructor procedures
 (@pxref{Vectors}) documented above can be modified using the
 following procedures.
 
-According to R5RS, using any of these procedures on literally entered
-vectors is an error, because these vectors are considered to be
-constant, although Guile currently does not detect this error.
+@emph{NOTE:} According to R5RS, using any of these procedures on
+literally entered vectors is an error, because these vectors are
+considered to be constant, although Guile currently does not detect this
+error.
 
 @rnindex vector-set!
 @deffn primitive vector-set! vector k obj
+Store @var{obj} in position @var{k} of @var{vector}.
 @var{k} must be a valid index of @var{vector}.
-@code{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
 The value returned by @samp{vector-set!} is unspecified.
 @lisp
 (let ((vec (vector 0 '(2 2 2 2) "Anna")))
   (vector-set! vec 1 '("Sue" "Sue"))
   vec) @result{}  #(0 ("Sue" "Sue") "Anna")
-(vector-set! '#(0 1 2) 1 "doe") @result{} @emph{error} ; constant vector
 @end lisp
 @end deffn
 
 @rnindex vector-fill!
 @deffn primitive vector-fill! v fill
-Store @var{fill} in every element of @var{vector}.  The value
+Store @var{fill} in every position of @var{vector}.  The value
 returned by @code{vector-fill!} is unspecified.
 @end deffn
 
 @deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-left!}.
+Vector version of @code{substring-move-left!} (@pxref{String
+Modification}).
 @end deffn
 
 @deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-right!}.
+Vector version of @code{substring-move-right!} (@pxref{String
+Modification}).
 @end deffn
 
 @subsection Vector Selection
@@ -3445,14 +3445,13 @@ size or what elements are contained in the vector.
 
 @rnindex vector-length
 @deffn primitive vector-length vector
-Returns the number of elements in @var{vector} as an exact integer.
+Return the number of elements in @var{vector} as an exact integer.
 @end deffn
 
 @rnindex vector-ref
 @deffn primitive vector-ref vector k
+Return the contents of position @var{k} of @var{vector}.
 @var{k} must be a valid index of @var{vector}.
-@samp{Vector-ref} returns the contents of element @var{k} of
-@var{vector}.
 @lisp
 (vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8
 (vector-ref '#(1 1 2 3 5 8 13 21)
@@ -3467,14 +3466,11 @@ Returns the number of elements in @var{vector} as an exact integer.
 @node Records
 @section Records
 
-[FIXME: this is pasted in from Tom Lord's original guile.texi and should
-be reviewed]
-
 A @dfn{record type} is a first class object representing a user-defined
 data type.  A @dfn{record} is an instance of a record type.
 
 @deffn procedure record? obj
-Returns @code{#t} if @var{obj} is a record of any type and @code{#f}
+Return @code{#t} if @var{obj} is a record of any type and @code{#f}
 otherwise.
 
 Note that @code{record?} may be true of any Scheme value; there is no
@@ -3482,17 +3478,17 @@ promise that records are disjoint with other Scheme types.
 @end deffn
 
 @deffn procedure make-record-type type-name field-names
-Returns a @dfn{record-type descriptor}, a value representing a new data
+Return a @dfn{record-type descriptor}, a value representing a new data
 type disjoint from all others.  The @var{type-name} argument must be a
 string, but is only used for debugging purposes (such as the printed
 representation of a record of the new type).  The @var{field-names}
 argument is a list of symbols naming the @dfn{fields} of a record of the
 new type.  It is an error if the list contains any duplicates.  It is
-unspecified how record-type descriptors are represented.@refill
+unspecified how record-type descriptors are represented.
 @end deffn
 
 @deffn procedure record-constructor rtd [field-names]
-Returns a procedure for constructing new members of the type represented
+Return a procedure for constructing new members of the type represented
 by @var{rtd}.  The returned procedure accepts exactly as many arguments
 as there are symbols in the given list, @var{field-names}; these are
 used, in order, as the initial values of those fields in a new record,
@@ -3501,28 +3497,28 @@ fields not named in that list are unspecified.  The @var{field-names}
 argument defaults to the list of field names in the call to
 @code{make-record-type} that created the type represented by @var{rtd};
 if the @var{field-names} argument is provided, it is an error if it
-contains any duplicates or any symbols not in the default list.@refill
+contains any duplicates or any symbols not in the default list.
 @end deffn
 
 @deffn procedure record-predicate rtd
-Returns a procedure for testing membership in the type represented by
+Return a procedure for testing membership in the type represented by
 @var{rtd}.  The returned procedure accepts exactly one argument and
 returns a true value if the argument is a member of the indicated record
-type; it returns a false value otherwise.@refill
+type; it returns a false value otherwise.
 @end deffn
 
 @deffn procedure record-accessor rtd field-name
-Returns a procedure for reading the value of a particular field of a
+Return a procedure for reading the value of a particular field of a
 member of the type represented by @var{rtd}.  The returned procedure
 accepts exactly one argument which must be a record of the appropriate
 type; it returns the current value of the field named by the symbol
 @var{field-name} in that record.  The symbol @var{field-name} must be a
 member of the list of field-names in the call to @code{make-record-type}
-that created the type represented by @var{rtd}.@refill
+that created the type represented by @var{rtd}.
 @end deffn
 
 @deffn procedure record-modifier rtd field-name
-Returns a procedure for writing the value of a particular field of a
+Return a procedure for writing the value of a particular field of a
 member of the type represented by @var{rtd}.  The returned procedure
 accepts exactly two arguments: first, a record of the appropriate type,
 and second, an arbitrary Scheme value; it modifies the field named by
@@ -3530,31 +3526,31 @@ the symbol @var{field-name} in that record to contain the given value.
 The returned value of the modifier procedure is unspecified.  The symbol
 @var{field-name} must be a member of the list of field-names in the call
 to @code{make-record-type} that created the type represented by
-@var{rtd}.@refill
+@var{rtd}.
 @end deffn
 
 @deffn procedure record-type-descriptor record
-Returns a record-type descriptor representing the type of the given
+Return a record-type descriptor representing the type of the given
 record.  That is, for example, if the returned descriptor were passed to
 @code{record-predicate}, the resulting predicate would return a true
 value when passed the given record.  Note that it is not necessarily the
 case that the returned descriptor is the one that was passed to
 @code{record-constructor} in the call that created the constructor
-procedure that created the given record.@refill
+procedure that created the given record.
 @end deffn
 
 @deffn procedure record-type-name rtd
-Returns the type-name associated with the type represented by rtd.  The
+Return the type-name associated with the type represented by rtd.  The
 returned value is @code{eqv?} to the @var{type-name} argument given in
 the call to @code{make-record-type} that created the type represented by
-@var{rtd}.@refill
+@var{rtd}.
 @end deffn
 
 @deffn procedure record-type-fields rtd
-Returns a list of the symbols naming the fields in members of the type
+Return a list of the symbols naming the fields in members of the type
 represented by @var{rtd}.  The returned value is @code{equal?} to the
 field-names argument given in the call to @code{make-record-type} that
-created the type represented by @var{rtd}.@refill
+created the type represented by @var{rtd}.
 @end deffn
 
 
@@ -3678,7 +3674,7 @@ A pair object in which the first field is held constant could be:
 "prpw"
 @end example
 
-Binary fields, (fields of type "u"), hold one @emph{word} each.  The
+Binary fields, (fields of type "u"), hold one @dfn{word} each.  The
 size of a word is a machine dependent value defined to be equal to the
 value of the C expression: @code{sizeof (long)}.
 
@@ -3892,7 +3888,7 @@ Return the vtable tag of the structure @var{handle}.
 @node Conventional Arrays
 @subsection Conventional Arrays
 
-@dfn{Conventional arrays} are a collection of cells organised into an
+@dfn{Conventional arrays} are a collection of cells organized into an
 arbitrary number of dimensions.  Each cell can hold any kind of Scheme
 value and can be accessed in constant time by supplying an index for
 each dimension.  This contrasts with uniform arrays, which use memory
@@ -3901,7 +3897,7 @@ where inserting and deleting cells is more efficient, but more time
 is usually required to access a particular cell.
 
 A conventional array is displayed as @code{#} followed by the @dfn{rank}
-(number of dimensions) followed by the cells, organised into dimensions
+(number of dimensions) followed by the cells, organized into dimensions
 using parentheses.  The nesting depth of the parentheses is equal to
 the rank.
 
@@ -3939,8 +3935,13 @@ and is described elsewhere.
 @end deffn
 
 @deffn procedure make-array initial-value bound1 bound2 @dots{}
-Creates and returns an array that has as many dimensions as there are
-@var{bound}s and fills it with @var{initial-value}.
+Create and return an array that has as many dimensions as there are
+@var{bound}s and fill it with @var{initial-value}.  Each @var{bound}
+may be a positive non-zero integer @var{N}, in which case the index for
+that dimension can range from 0 through @var{N-1}; or an explicit index
+range specifier in the form @code{(LOWER UPPER)}, where both @var{lower}
+and @var{upper} are integers, possibly less than zero, and possibly the
+same number (however, @var{lower} cannot be greater than @var{upper}).
 @end deffn
 
 @c array-ref's type is `compiled-closure'.  There's some weird stuff
@@ -3957,9 +3958,10 @@ Return @code{#t} if its arguments would be acceptable to
 @code{array-ref}.
 @end deffn
 
+@c fixme: why do these sigs differ?  -ttn 2001/07/19 01:14:12
 @deffn primitive array-set! v obj . args
 @deffnx primitive uniform-array-set1! v obj args
-Sets the element at the @code{(index1, index2)} element in @var{array} to
+Set the element at the @code{(index1, index2)} element in @var{array} to
 @var{new-value}.  The value returned by array-set! is unspecified.
 @end deffn
 
@@ -4040,7 +4042,7 @@ examples:
 @end deffn
 
 @deffn procedure array-shape array
-Returns a list of inclusive bounds of integers.
+Return a list of inclusive bounds of integers.
 @example
 (array-shape (make-array 'foo '(-1 3) 5)) @result{} ((-1 3) (0 4))
 @end example
@@ -4066,20 +4068,20 @@ Return a list consisting of all the elements, in order, of
 
 @deffn primitive array-copy! src dst
 @deffnx primitive array-copy-in-order! src dst
-Copies every element from vector or array @var{source} to the
+Copy every element from vector or array @var{source} to the
 corresponding element of @var{destination}.  @var{destination} must have
 the same rank as @var{source}, and be at least as large in each
 dimension.  The order is unspecified.
 @end deffn
 
 @deffn primitive array-fill! ra fill
-Stores @var{fill} in every element of @var{array}.  The value returned
+Store @var{fill} in every element of @var{array}.  The value returned
 is unspecified.
 @end deffn
 
 @c begin (texi-doc-string "guile" "array-equal?")
 @deffn primitive array-equal? ra0 ra1
-Returns @code{#t} iff all arguments are arrays with the same shape, the
+Return @code{#t} iff all arguments are arrays with the same shape, the
 same type, and have corresponding elements which are either
 @code{equal?}  or @code{array-equal?}.  This function differs from
 @code{equal?} in that a one dimensional shared array may be
@@ -4114,12 +4116,12 @@ unspecified.  The order of application is unspecified.
 @end deffn
 
 @deffn primitive array-for-each proc ra0 . lra
-@var{proc} is applied to each tuple of elements of @var{array0} @dots{}
+Apply @var{proc} to each tuple of elements of @var{array0} @dots{}
 in row-major order.  The value returned is unspecified.
 @end deffn
 
 @deffn primitive array-index-map! ra proc
-applies @var{proc} to the indices of each element of @var{array} in
+Apply @var{proc} to the indices of each element of @var{array} in
 turn, storing the result in the corresponding element.  The value
 returned and the order of application are unspecified.
 
@@ -4197,16 +4199,16 @@ except that a single character from the above table is put between
 long integers is displayed in the form @code{'#e(3 5 9)}.
 
 @deffn primitive array? v [prot]
-Returns @code{#t} if the @var{obj} is an array, and @code{#f} if not.
+Return @code{#t} if the @var{obj} is an array, and @code{#f} if not.
 
 The @var{prototype} argument is used with uniform arrays and is described
 elsewhere.
 @end deffn
 
 @deffn procedure make-uniform-array prototype bound1 bound2 @dots{}
-Creates and returns a uniform array of type corresponding to
+Create and return a uniform array of type corresponding to
 @var{prototype} that has as many dimensions as there are @var{bound}s
-and fills it with @var{prototype}.
+and fill it with @var{prototype}.
 @end deffn
 
 @deffn primitive array-prototype ra
@@ -4224,7 +4226,7 @@ done.
 @end deffn
 
 @deffn primitive uniform-vector-fill! uve fill
-Stores @var{fill} in every element of @var{uve}.  The value returned is
+Store @var{fill} in every element of @var{uve}.  The value returned is
 unspecified.
 @end deffn
 
@@ -4244,7 +4246,7 @@ fill the array, otherwise @var{prototype} is used.
 
 @deffn primitive uniform-array-read! ra [port_or_fd [start [end]]]
 @deffnx primitive uniform-vector-read! uve [port-or-fdes] [start] [end]
-Attempts to read all elements of @var{ura}, in lexicographic order, as
+Attempt to read all elements of @var{ura}, in lexicographic order, as
 binary objects from @var{port-or-fdes}.
 If an end of file is encountered during
 uniform-array-read! the objects up to that point only are put into @var{ura}
@@ -4306,7 +4308,7 @@ within the specified range @code{#f} is returned.
 @end deffn
 
 @deffn primitive bit-invert! v
-Modifies @var{bv} by replacing each element with its negation.
+Modify @var{bv} by replacing each element with its negation.
 @end deffn
 
 @deffn primitive bit-set*! v kv obj
@@ -4551,7 +4553,7 @@ use @code{list-copy} to copy the old association list before modifying
 it.
 
 @deffn primitive acons key value alist
-Adds a new key-value pair to @var{alist}.  A new pair is
+Add a new key-value pair to @var{alist}.  A new pair is
 created whose car is @var{key} and whose cdr is @var{value}, and the
 pair is consed onto @var{alist}, and the new list is returned.  This
 function is @emph{not} destructive; @var{alist} is not modified.
@@ -4585,12 +4587,12 @@ is @code{(KEY . VALUE)}, not just the value.
 @deffn primitive assq key alist
 @deffnx primitive assv key alist
 @deffnx primitive assoc key alist
-Fetches the entry in @var{alist} that is associated with @var{key}.  To
+Fetch the entry in @var{alist} that is associated with @var{key}.  To
 decide whether the argument @var{key} matches a particular entry in
 @var{alist}, @code{assq} compares keys with @code{eq?}, @code{assv}
 uses @code{eqv?} and @code{assoc} uses @code{equal?}.  If @var{key}
 cannot be found in @var{alist} (according to whichever equality
-predicate is in use), then @code{#f} is returned.  These functions
+predicate is in use), then return @code{#f}.  These functions
 return the entire alist entry found (i.e. both the key and the value).
 @end deffn
 
