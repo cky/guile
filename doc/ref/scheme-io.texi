@@ -87,7 +87,7 @@ a port at end of file would be indistinguishable from an
 interactive port that has no ready characters.}
 @end deffn
 
-@rnindex read-char?
+@rnindex read-char
 @deffn {Scheme Procedure} read-char [port]
 @deffnx {C Function} scm_read_char (port)
 Return the next character available from @var{port}, updating
@@ -95,7 +95,7 @@ Return the next character available from @var{port}, updating
 characters are available, the end-of-file object is returned.
 @end deffn
 
-@rnindex peek-char?
+@rnindex peek-char
 @deffn {Scheme Procedure} peek-char [port]
 @deffnx {C Function} scm_peek_char (port)
 Return the next character available from @var{port},
@@ -154,7 +154,7 @@ for further input.
 Return the current column number or line number of @var{port},
 using the current input port if none is specified.  If the number is
 unknown, the result is #f.  Otherwise, the result is a 0-origin integer
-- i.e. the first character of the first line is line 0, column 0.
+- i.e.@: the first character of the first line is line 0, column 0.
 (However, when you display a file position, for example in an error
 message, we recommend you add 1 to get 1-origin integers.  This is
 because lines and column numbers traditionally start with 1, and that is
@@ -176,7 +176,7 @@ current input port if none is specified.
 
 @deffn {Scheme Procedure} get-print-state port
 @deffnx {C Function} scm_get_print_state (port)
-Return the print state of the port @var{port}. If @var{port}
+Return the print state of the port @var{port}.  If @var{port}
 has no associated print state, @code{#f} is returned.
 @end deffn
 
