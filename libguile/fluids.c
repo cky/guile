@@ -152,9 +152,11 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-void
-scm_i_swap_fluids (SCM fluids, SCM vals)
+static void
+swap_fluids (SCM data)
 {
+  SCM fluids = SCM_CAR (data), vals = SCM_CDR (data);
+  
   while (!SCM_NULL_OR_NIL_P (fluids))
     {
       SCM fl = SCM_CAR (fluids);
@@ -169,14 +171,14 @@ scm_i_swap_fluids (SCM fluids, SCM vals)
 /* Swap the fluid values in reverse order.  This is important when the
 same fluid appears multiple times in the fluids list. */
 
-void
-scm_i_swap_fluids_reverse (SCM fluids, SCM vals)
+static void
+swap_fluids_reverse_aux (SCM fluids, SCM vals)
 {
   if (!SCM_NULL_OR_NIL_P (fluids))
     {
       SCM fl, old_val;
 
-      scm_i_swap_fluids_reverse (SCM_CDR (fluids), SCM_CDR (vals));
+      swap_fluids_reverse_aux (SCM_CDR (fluids), SCM_CDR (vals));
       fl = SCM_CAR (fluids);
       old_val = scm_fluid_ref (fl);
       scm_fluid_set_x (fl, SCM_CAR (vals));
@@ -184,6 +186,11 @@ scm_i_swap_fluids_reverse (SCM fluids, SCM vals)
     }
 }
 
+static void
+swap_fluids_reverse (SCM data)
+{
+  swap_fluids_reverse_aux (SCM_CAR (data), SCM_CDR (data));
+}
 
 static SCM
 apply_thunk (void *thunk)
@@ -199,7 +206,8 @@ SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0,
 	    "one after another.  @var{thunk} must be a procedure with no argument.")
 #define FUNC_NAME s_scm_with_fluids
 {
-  return scm_c_with_fluids (fluids, values, apply_thunk, (void *) SCM_UNPACK (thunk));
+  return scm_c_with_fluids (fluids, values,
+			    apply_thunk, (void *) SCM_UNPACK (thunk));
 }
 #undef FUNC_NAME
 
@@ -207,7 +215,7 @@ SCM
 scm_c_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
 #define FUNC_NAME "scm_c_with_fluids"
 {
-  SCM ans;
+  SCM ans, data;
   long flen, vlen;
 
   SCM_VALIDATE_LIST_COPYLEN (1, fluids, flen);
@@ -215,12 +223,28 @@ scm_c_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
   if (flen != vlen)
     scm_out_of_range (s_scm_with_fluids, values);
 
-  scm_i_swap_fluids (fluids, values);
-  scm_dynwinds = scm_acons (fluids, values, scm_dynwinds);
+  if (flen == 1)
+    return scm_c_with_fluid (SCM_CAR (fluids), SCM_CAR (values),
+			     cproc, cdata);
+  
+  data = scm_cons (fluids, values);
+  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  scm_frame_rewind_with_scm (swap_fluids, data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_with_scm (swap_fluids_reverse, data, SCM_F_WIND_EXPLICITLY);
   ans = cproc (cdata);
-  scm_dynwinds = SCM_CDR (scm_dynwinds);
-  scm_i_swap_fluids_reverse (fluids, values);
+  scm_frame_end ();
   return ans;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_with_fluid, "with-fluid*", 3, 0, 0, 
+	    (SCM fluid, SCM value, SCM thunk),
+	    "Set @var{fluid} to @var{value} temporarily, and call @var{thunk}.\n"
+	    "@var{thunk} must be a procedure with no argument.")
+#define FUNC_NAME s_scm_with_fluid
+{
+  return scm_c_with_fluid (fluid, value,
+			   apply_thunk, (void *) SCM_UNPACK (thunk));
 }
 #undef FUNC_NAME
 
@@ -228,8 +252,13 @@ SCM
 scm_c_with_fluid (SCM fluid, SCM value, SCM (*cproc) (), void *cdata)
 #define FUNC_NAME "scm_c_with_fluid"
 {
-  return scm_c_with_fluids (scm_list_1 (fluid), scm_list_1 (value),
-			    cproc, cdata);
+  SCM ans;
+
+  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  scm_frame_fluid (fluid, value);
+  ans = cproc (cdata);
+  scm_frame_end ();
+  return ans;
 }
 #undef FUNC_NAME
 
