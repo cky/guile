@@ -2363,7 +2363,7 @@ dispatch:
 #endif
 #ifndef SCM_RECKLESS
 		if (scm_badargsp (formals, arg1))
-		  goto wrongnumargs;
+		  scm_wrong_num_args (proc);
 #endif
 		ENTER_APPLY;
 		/* Copy argument list */
@@ -2903,7 +2903,6 @@ evapply: /* inputs: x, proc */
       case scm_tc7_lsubr_2:
       umwrongnumargs:
 	unmemocar (x, env);
-      wrongnumargs:
 	scm_wrong_num_args (proc);
       default:
 	/* handle macros here */
@@ -2917,7 +2916,7 @@ evapply: /* inputs: x, proc */
   if (SCM_CONSP (x))
     arg1 = EVALCAR (x, env);
   else
-    goto wrongnumargs;
+    scm_wrong_num_args (proc);
 #else
   arg1 = EVALCAR (x, env);
 #endif
@@ -3043,7 +3042,7 @@ evapply: /* inputs: x, proc */
 	  case scm_tc7_subr_0:
 	  case scm_tc7_subr_3:
 	  case scm_tc7_lsubr_2:
-	    goto wrongnumargs;
+	    scm_wrong_num_args (proc);
 	  default:
 	    goto badfun;
 	  }
@@ -3052,7 +3051,7 @@ evapply: /* inputs: x, proc */
     if (SCM_CONSP (x))
       arg2 = EVALCAR (x, env);
     else
-      goto wrongnumargs;
+      scm_wrong_num_args (proc);
 #else
     arg2 = EVALCAR (x, env);
 #endif
@@ -3138,7 +3137,7 @@ evapply: /* inputs: x, proc */
 	  case scm_tc7_subr_1o:
 	  case scm_tc7_subr_1:
 	  case scm_tc7_subr_3:
-	    goto wrongnumargs;
+	    scm_wrong_num_args (proc);
 	  default:
 	    goto badfun;
 	  case scm_tc7_pws:
@@ -3166,7 +3165,7 @@ evapply: /* inputs: x, proc */
       }
 #ifdef SCM_CAUTIOUS
       if (!SCM_CONSP (x))
-	goto wrongnumargs;
+	scm_wrong_num_args (proc);
 #endif
 #ifdef DEVAL
       debug.info->a.args = scm_cons2 (arg1, arg2,
@@ -3179,9 +3178,11 @@ evapply: /* inputs: x, proc */
 	{			/* have 3 or more arguments */
 #ifdef DEVAL
 	case scm_tc7_subr_3:
-	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
-	  RETURN (SCM_SUBRF (proc) (arg1, arg2,
-				    SCM_CADDR (debug.info->a.args)));
+	  if (!SCM_NULLP (SCM_CDR (x)))
+	    scm_wrong_num_args (proc);
+	  else
+	    RETURN (SCM_SUBRF (proc) (arg1, arg2,
+				      SCM_CADDR (debug.info->a.args)));
 	case scm_tc7_asubr:
 	  arg1 = SCM_SUBRF(proc)(arg1, arg2);
 	  arg2 = SCM_CDDR (debug.info->a.args);
@@ -3233,8 +3234,10 @@ evapply: /* inputs: x, proc */
 	  goto nontoplevel_begin;
 #else /* DEVAL */
 	case scm_tc7_subr_3:
-	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
-	  RETURN (SCM_SUBRF (proc) (arg1, arg2, EVALCAR (x, env)));
+	  if (!SCM_NULLP (SCM_CDR (x)))
+	    scm_wrong_num_args (proc);
+	  else
+	    RETURN (SCM_SUBRF (proc) (arg1, arg2, EVALCAR (x, env)));
 	case scm_tc7_asubr:
 	  arg1 = SCM_SUBRF (proc) (arg1, arg2);
 	  do
@@ -3316,7 +3319,7 @@ evapply: /* inputs: x, proc */
 	case scm_tc7_subr_0:
 	case scm_tc7_cxr:
 	case scm_tc7_subr_1:
-	  goto wrongnumargs;
+	  scm_wrong_num_args (proc);
 	default:
 	  goto badfun;
 	}
@@ -3583,20 +3586,26 @@ tail:
       args = SCM_NULLP (args) ? SCM_UNDEFINED : SCM_CAR (args);
       RETURN (SCM_SUBRF (proc) (arg1, args));
     case scm_tc7_subr_2:
-      SCM_ASRTGO (!SCM_NULLP (args) && SCM_NULLP (SCM_CDR (args)),
-		  wrongnumargs);
+      if (SCM_NULLP (args) || !SCM_NULLP (SCM_CDR (args)))
+	scm_wrong_num_args (proc);
       args = SCM_CAR (args);
       RETURN (SCM_SUBRF (proc) (arg1, args));
     case scm_tc7_subr_0:
-      SCM_ASRTGO (SCM_UNBNDP (arg1), wrongnumargs);
-      RETURN (SCM_SUBRF (proc) ());
+      if (!SCM_UNBNDP (arg1))
+	scm_wrong_num_args (proc);
+      else
+	RETURN (SCM_SUBRF (proc) ());
     case scm_tc7_subr_1:
-      SCM_ASRTGO (!SCM_UNBNDP (arg1), wrongnumargs);
+      if (SCM_UNBNDP (arg1))
+	scm_wrong_num_args (proc);
     case scm_tc7_subr_1o:
-      SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);
-      RETURN (SCM_SUBRF (proc) (arg1));
+      if (!SCM_NULLP (args))
+	scm_wrong_num_args (proc);
+      else
+	RETURN (SCM_SUBRF (proc) (arg1));
     case scm_tc7_cxr:
-      SCM_ASRTGO (!SCM_UNBNDP (arg1) && SCM_NULLP (args), wrongnumargs);
+      if (SCM_UNBNDP (arg1) || !SCM_NULLP (args))
+	scm_wrong_num_args (proc);
       if (SCM_SUBRF (proc))
 	{
 	  if (SCM_INUMP (arg1))
@@ -3626,11 +3635,12 @@ tail:
 	RETURN (arg1);
       }
     case scm_tc7_subr_3:
-      SCM_ASRTGO (!SCM_NULLP (args)
-		  && !SCM_NULLP (SCM_CDR (args))
-		  && SCM_NULLP (SCM_CDDR (args)),
-		  wrongnumargs);
-      RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CADR (args)));
+      if (SCM_NULLP (args)
+	  || SCM_NULLP (SCM_CDR (args))
+	  || !SCM_NULLP (SCM_CDDR (args)))
+	scm_wrong_num_args (proc);
+      else
+	RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CADR (args)));
     case scm_tc7_lsubr:
 #ifdef DEVAL
       RETURN (SCM_SUBRF (proc) (SCM_UNBNDP (arg1) ? SCM_EOL : debug.vect[0].a.args));
@@ -3638,8 +3648,10 @@ tail:
       RETURN (SCM_SUBRF (proc) (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args)));
 #endif
     case scm_tc7_lsubr_2:
-      SCM_ASRTGO (SCM_CONSP (args), wrongnumargs);
-      RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CDR (args)));
+      if (!SCM_CONSP (args))
+	scm_wrong_num_args (proc);
+      else
+	RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CDR (args)));
     case scm_tc7_asubr:
       if (SCM_NULLP (args))
 	RETURN (SCM_SUBRF (proc) (arg1, SCM_UNDEFINED));
@@ -3670,7 +3682,7 @@ tail:
 #endif
 #ifndef SCM_RECKLESS
       if (scm_badargsp (SCM_CLOSURE_FORMALS (proc), arg1))
-	goto wrongnumargs;
+	scm_wrong_num_args (proc);
 #endif
       
       /* Copy argument list */
@@ -3771,12 +3783,9 @@ tail:
 	  else
 	    goto badproc;
 	}
-    wrongnumargs:
-      scm_wrong_num_args (proc);
     default:
     badproc:
       scm_wrong_type_arg ("apply", SCM_ARG1, proc);
-      RETURN (arg1);
     }
 #ifdef DEVAL
 exit:

@@ -1,3 +1,8 @@
+2002-03-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SCM_CEVAL, SCM_APPLY): Eliminated labels wrongnumargs
+	and the corresponding goto statements.  Removed redundant code.
+
 2002-03-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL): Minimized scope of variable arg2.
