@@ -1,3 +1,14 @@
+2000-08-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* Makefile.am:  Added all necessary environments.* files.
+
+	* init.c:  Include environments.h.
+
+	(scm_boot_guile_1):  Initialize the environments.
+
+	* environments.[ch]:  Added.  Most of the credit for these files
+	goes to Jost Boekemeier.
+
 2000-08-25  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* procprop.c: #include "libguile/smob.h"; handle applicable smobs.

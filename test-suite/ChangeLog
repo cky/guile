@@ -1,3 +1,7 @@
+2000-08-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/environments.test:  Added.
+
 2000-08-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* lib.scm (pass-if, expect-fail):  Generalized to allow a sequence

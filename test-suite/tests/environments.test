@@ -1,0 +1,364 @@
+;;;; environments.test                                    -*- scheme -*-
+;;;; Copyright (C) 2000 Free Software Foundation, Inc.
+;;;;
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;;
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+;;;;
+;;;; As a special exception, the Free Software Foundation gives permission
+;;;; for additional uses of the text contained in its release of GUILE.
+;;;;
+;;;; The exception is that, if you link the GUILE library with other files
+;;;; to produce an executable, this does not by itself cause the
+;;;; resulting executable to be covered by the GNU General Public License.
+;;;; Your use of that executable is in no way restricted on account of
+;;;; linking the GUILE library code into it.
+;;;;
+;;;; This exception does not however invalidate any other reasons why
+;;;; the executable file might be covered by the GNU General Public License.
+;;;;
+;;;; This exception applies only to the code released by the
+;;;; Free Software Foundation under the name GUILE.  If you copy
+;;;; code from other Free Software Foundation releases into a copy of
+;;;; GUILE, as the General Public License permits, the exception does
+;;;; not apply to the code that you add in this way.  To avoid misleading
+;;;; anyone as to the status of such modified files, you must delete
+;;;; this exception notice from them.
+;;;;
+;;;; If you write modifications of your own for GUILE, it is your choice
+;;;; whether to permit this exception to apply to your modifications.
+;;;; If you do not wish that, delete this exception notice.
+
+(use-modules (ice-9 documentation))
+
+
+;;;
+;;; miscellaneous
+;;;
+
+
+(define (documented? object)
+  (object-documentation object))
+
+(define (make-adder)
+  (let* ((counter 0))
+    (lambda increment
+      (if (not (null? increment))
+	  (set! counter (+ counter (car increment))))
+      counter)))
+
+(define (folder sym val res)
+  (cons (cons sym val) res))
+
+
+;;;
+;;; leaf-environments
+;;;
+
+(with-test-prefix "leaf-environments"
+
+  (with-test-prefix "leaf-environment?"
+
+    (pass-if "documented?"
+      (documented? leaf-environment?))
+
+    (pass-if "non-environment-object"
+      (not (leaf-environment? #f))))
+
+
+  (with-test-prefix "make-leaf-environment"
+
+    (pass-if "documented?"
+      (documented? make-leaf-environment))
+
+    (pass-if "produces an environment"
+      (environment? (make-leaf-environment)))
+
+    (pass-if "produces a leaf-environment"
+      (leaf-environment? (make-leaf-environment)))
+
+    (pass-if "produces always a new environment"
+      (not (eq? (make-leaf-environment) (make-leaf-environment)))))
+
+
+  (with-test-prefix "bound, define, ref, set!, cell"
+
+    (let* ((env (make-leaf-environment))
+	   (ctr (make-adder)))
+
+      (pass-if "unbound by default"
+	(and (not (environment-bound? env 'a))
+	     (not (environment-bound? env 'b))
+	     (not (environment-bound? env 'c))))
+
+      (pass-if "bound after define"
+	(environment-define env 'a (ctr 1))
+	(environment-bound? env 'a))
+
+      (pass-if "ref defined"
+	(and (begin
+	       (environment-define env 'a (ctr 1))
+	       (eq? (environment-ref env 'a) (ctr)))
+	     (begin
+	       (environment-define env 'a (ctr 1))
+	       (eq? (environment-ref env 'a) (ctr)))))
+
+      (pass-if "set! defined"
+	(and (begin
+	       (environment-set! env 'a (ctr 1))
+	       (eq? (environment-ref env 'a) (ctr)))
+	     (begin
+	       (environment-set! env 'a (ctr 1))
+	       (eq? (environment-ref env 'a) (ctr)))))
+
+      (pass-if "read-only cell"
+	(let* ((cell (environment-cell env 'a #f)))
+	  (and (begin
+		 (environment-set! env 'a (ctr 1))
+		 (eq? (cdr cell) (ctr))))))
+
+      (pass-if "read-only cell rebound after define"
+	(let* ((cell (environment-cell env 'a #f)))
+	  (environment-define env 'a (ctr 1))
+	  (not (eq? (environment-cell env 'a #f) cell))))
+
+      (pass-if "writable cell"
+	(let* ((readable (environment-cell env 'a #f))
+	       (writable (environment-cell env 'a #t)))
+	  (and (eq? readable writable)
+	       (begin
+		 (environment-set! env 'a (ctr 1))
+		 (eq? (cdr writable) (ctr)))
+	       (begin
+		 (set-cdr! writable (ctr 1))
+		 (eq? (environment-ref env 'a) (ctr)))
+	       (begin
+		 (set-cdr! (environment-cell env 'a #t) (ctr 1))
+		 (eq? (cdr writable) (ctr))))))
+
+      (pass-if "writable cell rebound after define"
+	(let* ((cell (environment-cell env 'a #t)))
+	  (environment-define env 'a (ctr 1))
+	  (not (eq? (environment-cell env 'a #t) cell))))
+
+      (pass-if "referencing undefined"
+	(catch #t
+	  (lambda ()
+	    (environment-ref env 'b)
+	    #f)
+	  (lambda args
+	    #t)))
+
+      (pass-if "set!ing undefined"
+	(catch #t
+	  (lambda ()
+	    (environment-set! env 'b)
+	    #f)
+	  (lambda args
+	    #t)))
+
+      (pass-if "readable cell from undefined"
+	(catch #t
+	  (lambda ()
+	    (environment-cell env 'b #f)
+	    #f)
+	  (lambda args
+	    #t)))
+
+      (pass-if "writable cell from undefined"
+	(catch #t
+	  (lambda ()
+	    (environment-cell env 'b #t)
+	    #f)
+	  (lambda args
+	    #t)))))
+
+
+  (with-test-prefix "undefine"
+
+    (let* ((env (make-leaf-environment)))
+
+      (pass-if "undefine defined"
+	(environment-define env 'a 1)
+	(and (environment-bound? env 'a)
+	     (begin
+	       (environment-undefine env 'a)
+	       (not (environment-bound? env 'a)))))
+
+      (pass-if "undefine undefined"
+	(and (not (environment-bound? env 'a))
+	     (begin
+	       (environment-undefine env 'a)
+	       (not (environment-bound? env 'a)))))))
+
+
+  (with-test-prefix "fold"
+
+    (let* ((env (make-leaf-environment))
+	   (ctr (make-adder)))
+
+      (pass-if "fold empty"
+	(eq? 'success (environment-fold env folder 'success)))
+
+      (pass-if "after define"
+	(environment-define env 'a (ctr 1))
+	(equal? `((a . ,(ctr))) (environment-fold env folder '())))
+
+      (pass-if "after undefine"
+	(environment-undefine env 'a)
+	(eq? 'success (environment-fold env folder 'success)))
+
+      (pass-if "after two defines"
+	(let* ((i (ctr 1))
+	       (j (+ i 1)))
+	  (environment-define env 'a i)
+	  (environment-define env 'b j)
+	  (let ((folded (environment-fold env folder '())))
+	    (or (equal? folded `((a . ,i) (b . ,j)))
+		(equal? folded `((b . ,j) (a . ,i)))))))
+
+      (pass-if "after set!"
+	(let* ((i (environment-ref env 'a)))
+	  (environment-set! env 'b i)
+	  (let ((folded (environment-fold env folder '())))
+	    (or (equal? folded `((a . ,i) (b . ,i)))
+		(equal? folded `((b . ,i) (a . ,i)))))))))
+
+
+  (with-test-prefix "observe"
+
+    (let* ((env (make-leaf-environment))
+	   (tag #f)
+	   (func (lambda (env) (set! tag (not tag))))
+	   (observer #f))
+
+      (pass-if "observe unobserved"
+	(set! observer (environment-observe env func))
+	#t)
+
+      (pass-if "define undefined"
+	(set! tag #f)
+	(environment-define env 'a 1)
+	tag)
+
+      (pass-if "define defined"
+	(set! tag #f)
+	(environment-define env 'a 1)
+	tag)
+
+      (pass-if "set! defined"
+	(set! tag #t)
+	(environment-set! env 'a 1)
+	tag)
+
+      (pass-if "undefine defined"
+	(set! tag #f)
+	(environment-undefine env 'a)
+	tag)
+
+      (pass-if "undefine undefined"
+	(set! tag #t)
+	(environment-undefine env 'a)
+	tag)
+
+      (pass-if "unobserve observed"
+	(set! tag #t)
+	(environment-unobserve observer)
+	(environment-define env 'a 1)
+	tag)
+
+      (pass-if "unobserve unobserved"
+	(environment-unobserve observer)
+	#t)))
+
+
+  (with-test-prefix "observe-weak"
+
+    (let* ((env (make-leaf-environment))
+	   (tag #f)
+	   (func (lambda (env) (set! tag (not tag))))
+	   (observer #f))
+
+      (pass-if "weak-observe unobserved"
+	(set! observer (environment-observe-weak env func))
+	#t)
+
+      (pass-if "define undefined"
+	(set! tag #f)
+	(environment-define env 'a 1)
+	tag)
+
+      (pass-if "define defined"
+	(set! tag #f)
+	(environment-define env 'a 1)
+	tag)
+
+      (pass-if "set! defined"
+	(set! tag #t)
+	(environment-set! env 'a 1)
+	tag)
+
+      (pass-if "undefine defined"
+	(set! tag #f)
+	(environment-undefine env 'a)
+	tag)
+
+      (pass-if "undefine undefined"
+	(set! tag #t)
+	(environment-undefine env 'a)
+	tag)
+
+      (pass-if "unobserve observed"
+	(set! tag #t)
+	(environment-unobserve observer)
+	(environment-define env 'a 1)
+	tag)
+
+      (pass-if "unobserve unobserved"
+	(environment-unobserve observer)
+	#t)
+
+      (pass-if "weak observer gets collected"
+	(gc)
+	(environment-observe-weak env func)
+	(set! tag #f)
+	(environment-define env 'a 1)
+	(and tag
+	     (begin
+	       (gc)
+	       (environment-define env 'a 1)
+	       tag)))))
+
+
+  (with-test-prefix "observer-errors"
+
+    (let* ((env (make-leaf-environment))
+	   (tag-1 #f)
+	   (tag-2 #f)
+	   (func-1 (lambda (env) 
+		     (set! tag-1 (not tag-1))
+		     (error)))
+	   (func-2 (lambda (env)
+		     (set! tag-2 (not tag-2))
+		     (error))))
+
+      (pass-if "update continues after error"
+	(environment-observe env func-1)
+	(environment-observe env func-2)
+	(catch #t
+	  (lambda () 
+	    (environment-define env 'a 1)
+	    #f)
+	  (lambda args
+	    (and tag-1 tag-2)))))))

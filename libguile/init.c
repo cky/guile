@@ -68,6 +68,7 @@
 #endif
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
+#include "libguile/environments.h"
 #include "libguile/eq.h"
 #include "libguile/error.h"
 #include "libguile/eval.h"
@@ -490,12 +491,14 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_struct_prehistory ();	/* Must come after scm_init_storage */
       scm_weaks_prehistory ();	/* Must come after scm_init_storage */
       scm_init_subr_table ();
+      scm_environments_prehistory (); /* create the root environment */
       scm_init_root ();
 #ifdef USE_THREADS
       scm_init_threads (base);
 #endif
       start_stack (base);
       scm_init_gsubr ();
+      scm_init_environments ();
       scm_init_feature ();
       scm_init_alist ();
       scm_init_arbiters ();

@@ -1,0 +1,2305 @@
+/* Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, MA 02111-1307 USA
+ *
+ * As a special exception, the Free Software Foundation gives permission
+ * for additional uses of the text contained in its release of GUILE.
+ *
+ * The exception is that, if you link the GUILE library with other files
+ * to produce an executable, this does not by itself cause the
+ * resulting executable to be covered by the GNU General Public License.
+ * Your use of that executable is in no way restricted on account of
+ * linking the GUILE library code into it.
+ *
+ * This exception does not however invalidate any other reasons why
+ * the executable file might be covered by the GNU General Public License.
+ *
+ * This exception applies only to the code released by the
+ * Free Software Foundation under the name GUILE.  If you copy
+ * code from other Free Software Foundation releases into a copy of
+ * GUILE, as the General Public License permits, the exception does
+ * not apply to the code that you add in this way.  To avoid misleading
+ * anyone as to the status of such modified files, you must delete
+ * this exception notice from them.
+ *
+ * If you write modifications of your own for GUILE, it is your choice
+ * whether to permit this exception to apply to your modifications.
+ * If you do not wish that, delete this exception notice.  */
+
+
+
+#include "libguile/_scm.h"
+#include "libguile/alist.h"
+#include "libguile/eval.h"
+#include "libguile/gh.h"
+#include "libguile/hash.h"
+#include "libguile/ports.h"
+#include "libguile/smob.h"
+#include "libguile/symbols.h"
+#include "libguile/vectors.h"
+#include "libguile/weaks.h"
+
+#include "libguile/environments.h"
+
+
+
+long scm_tc16_environment;
+long scm_tc16_observer;
+
+
+
+/* error conditions */
+
+/*
+ * Throw an error if symbol is not bound in environment func
+ */
+void
+scm_error_environment_unbound (const char *func, SCM env, SCM symbol)
+{
+  /* Dirk:FIXME:: Should throw an environment:unbound type error */
+  char error[] = "Symbol `~A' not bound in environment `~A'.";
+  SCM arguments = scm_cons2 (symbol, env, SCM_EOL);
+  scm_misc_error (func, error, arguments);
+}
+
+
+/*
+ * Throw an error if func tried to create (define) or remove
+ * (undefine) a new binding for symbol in env
+ */
+void
+scm_error_environment_immutable_binding (const char *func, SCM env, SCM symbol)
+{
+  /* Dirk:FIXME:: Should throw an environment:immutable-binding type error */
+  char error[] = "Immutable binding in environment ~A (symbol: `~A').";
+  SCM arguments = scm_cons2 (env, symbol, SCM_EOL);
+  scm_misc_error (func, error, arguments);
+}
+
+
+/*
+ * Throw an error if func tried to change an immutable location.
+ */
+void
+scm_error_environment_immutable_location (const char *func, SCM env, SCM symbol)
+{
+  /* Dirk:FIXME:: Should throw an environment:immutable-location type error */
+  char error[] = "Immutable location in environment `~A' (symbol: `~A').";
+  SCM arguments = scm_cons2 (env, symbol, SCM_EOL);
+  scm_misc_error (func, error, arguments);
+}
+
+
+
+/* generic environments */
+
+
+/* Create an environment for the given type.  Dereferencing type twice must
+ * deliver the initialized set of environment functions.  Thus, type will
+ * also determine the signature of the underlying environment implementation.
+ * Dereferencing type once will typically deliver the data fields used by the
+ * underlying environment implementation.
+ */
+SCM
+scm_make_environment (void *type)
+{
+  SCM env;
+
+  SCM_NEWCELL (env);
+  SCM_SET_CELL_WORD_1 (env, type);
+  SCM_SET_CELL_TYPE (env, scm_tc16_environment);
+
+  return env;
+}
+
+
+SCM_DEFINE (scm_environment_p, "environment?", 1, 0, 0, 
+	    (SCM obj),
+	    "Return #t if OBJ is an environment, or #f otherwise.")
+#define FUNC_NAME s_scm_environment_p
+{
+  return SCM_BOOL (SCM_ENVIRONMENT_P (obj));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_environment_bound_p, "environment-bound?", 2, 0, 0, 
+	    (SCM env, SCM sym),
+	    "Return #t if SYM is bound in ENV, or #f otherwise.")
+#define FUNC_NAME s_scm_environment_bound_p
+{
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+
+  return SCM_BOOL (SCM_ENVIRONMENT_BOUND_P (env, sym));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_environment_ref, "environment-ref", 2, 0, 0,
+	    (SCM env, SCM sym),
+	    "Return the value of the location bound to SYM in ENV.\n"
+	    "If SYM is unbound in ENV, signal an environment:unbound\n"
+	    "error.")
+#define FUNC_NAME s_scm_environment_ref
+{
+  SCM val;
+
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+
+  val = SCM_ENVIRONMENT_REF (env, sym);
+
+  if (!SCM_UNBNDP (val))
+    return val;
+  else
+    scm_error_environment_unbound (FUNC_NAME, env, sym);
+}
+#undef FUNC_NAME
+
+
+/* This C function is identical to environment-ref, except that if symbol is
+ * unbound in env, it returns the value SCM_UNDEFINED, instead of signalling
+ * an error.
+ */ 
+SCM
+scm_c_environment_ref (SCM env, SCM sym)
+{
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, "scm_c_environment_ref");
+  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, "scm_c_environment_ref");
+  return SCM_ENVIRONMENT_REF (env, sym);
+}
+
+
+static SCM
+environment_default_folder (SCM proc, SCM symbol, SCM value, SCM tail)
+{
+  return gh_call3 (proc, symbol, value, tail);
+}
+
+
+SCM_DEFINE (scm_environment_fold, "environment-fold", 3, 0, 0, 
+	    (SCM env, SCM proc, SCM init),
+	    "Iterate over all the bindings in ENV, accumulating some value.\n"
+	    "For each binding in ENV, apply PROC to the symbol bound, its\n"
+	    "value, and the result from the previous application of PROC.\n"
+	    "Use INIT as PROC's third argument the first time PROC is\n"
+	    "applied.\n"
+	    "If ENV contains no bindings, this function simply returns INIT.\n"
+	    "If ENV binds the symbol sym1 to the value val1, sym2 to val2,\n"
+	    "and so on, then this procedure computes:\n"
+	    "  (proc sym1 val1\n"
+	    "        (proc sym2 val2\n"
+	    "              ...\n"
+	    "              (proc symn valn\n"
+	    "                    init)))\n"
+	    "Each binding in ENV will be processed exactly once.\n"
+	    "environment-fold makes no guarantees about the order in which\n"
+	    "the bindings are processed.\n"
+	    "Here is a function which, given an environment, constructs an\n"
+	    "association list representing that environment's bindings,\n"
+	    "using environment-fold:\n"
+	    "  (define (environment->alist env)\n"
+	    "    (environment-fold env\n"
+	    "                      (lambda (sym val tail)\n"
+	    "                        (cons (cons sym val) tail))\n"
+	    "                      '()))")
+#define FUNC_NAME s_scm_environment_fold
+{
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T), 
+	      proc, SCM_ARG2, FUNC_NAME);
+
+  return SCM_ENVIRONMENT_FOLD (env, environment_default_folder, proc, init);
+}
+#undef FUNC_NAME
+
+
+/* This is the C-level analog of environment-fold. For each binding in ENV,
+ * make the call:
+ *   (*proc) (data, symbol, value, previous)
+ * where previous is the value returned from the last call to *PROC, or INIT
+ * for the first call. If ENV contains no bindings, return INIT. 
+ */
+SCM
+scm_c_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
+{
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, "scm_c_environment_fold");
+
+  return SCM_ENVIRONMENT_FOLD (env, proc, data, init);
+}
+
+
+SCM_DEFINE (scm_environment_define, "environment-define", 3, 0, 0, 
+	    (SCM env, SCM sym, SCM val),
+	    "Bind SYM to a new location containing VAL in ENV. If SYM is\n"
+	    "already bound to another location in ENV and the binding is\n"
+	    "mutable, that binding is replaced.  The new binding and\n"
+	    "location are both mutable. The return value is unspecified.\n"
+	    "If SYM is already bound in ENV, and the binding is immutable,\n"
+	    "signal an environment:immutable-binding error.")
+#define FUNC_NAME s_scm_environment_define
+{
+  SCM status;
+
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+
+  status = SCM_ENVIRONMENT_DEFINE (env, sym, val);
+
+  if (SCM_EQ_P (status, SCM_ENVIRONMENT_SUCCESS))
+    return SCM_UNSPECIFIED;
+  else if (SCM_EQ_P (status, SCM_ENVIRONMENT_BINDING_IMMUTABLE))
+    scm_error_environment_immutable_binding (FUNC_NAME, env, sym);
+  else
+    abort();
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_environment_undefine, "environment-undefine", 2, 0, 0, 
+	    (SCM env, SCM sym),
+	    "Remove any binding for SYM from ENV. If SYM is unbound in ENV,\n"
+	    "do nothing.  The return value is unspecified.\n"
+	    "If SYM is already bound in ENV, and the binding is immutable,\n"
+	    "signal an environment:immutable-binding error.")
+#define FUNC_NAME s_scm_environment_undefine
+{
+  SCM status;
+
+  SCM_ASSERT(SCM_ENVIRONMENT_P(env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT(SCM_SYMBOLP(sym), sym, SCM_ARG2, FUNC_NAME);
+
+  status = SCM_ENVIRONMENT_UNDEFINE (env, sym);
+
+  if (SCM_EQ_P (status, SCM_ENVIRONMENT_SUCCESS))
+    return SCM_UNSPECIFIED;
+  else if (SCM_EQ_P (status, SCM_ENVIRONMENT_BINDING_IMMUTABLE))
+    scm_error_environment_immutable_binding (FUNC_NAME, env, sym);
+  else
+    abort();
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_environment_set_x, "environment-set!", 3, 0, 0, 
+	    (SCM env, SCM sym, SCM val),
+	    "If ENV binds SYM to some location, change that location's\n"
+	    "value to VAL.  The return value is unspecified.\n"
+	    "If SYM is not bound in ENV, signal an environment:unbound\n"
+	    "error.  If ENV binds SYM to an immutable location, signal an\n"
+	    "environment:immutable-location error.")
+#define FUNC_NAME s_scm_environment_set_x
+{
+  SCM status;
+
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+
+  status = SCM_ENVIRONMENT_SET (env, sym, val);
+
+  if (SCM_EQ_P (status, SCM_ENVIRONMENT_SUCCESS))
+    return SCM_UNSPECIFIED;
+  else if (SCM_UNBNDP (status))
+    scm_error_environment_unbound (FUNC_NAME, env, sym);
+  else if (SCM_EQ_P (status, SCM_ENVIRONMENT_LOCATION_IMMUTABLE))
+    scm_error_environment_immutable_binding (FUNC_NAME, env, sym);
+  else
+    abort();
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_environment_cell, "environment-cell", 3, 0, 0, 
+	    (SCM env, SCM sym, SCM for_write),
+	    "Return the value cell which ENV binds to SYM, or #f if the\n"
+	    "binding does not live in a value cell.\n"
+	    "The argument FOR-WRITE indicates whether the caller intends\n"
+	    "to modify the variable's value by mutating the value cell.  If\n"
+	    "the variable is immutable, then environment-cell signals an\n"
+	    "environment:immutable-location error.\n"
+	    "If SYM is unbound in ENV, signal an environment:unbound error.\n"
+	    "If you use this function, you should consider using\n"
+	    "environment-observe, to be notified when SYM gets re-bound to\n"
+	    "a new value cell, or becomes undefined.")
+#define FUNC_NAME s_scm_environment_cell
+{
+  SCM location;
+
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (SCM_BOOLP (for_write), for_write, SCM_ARG3, FUNC_NAME);
+
+  location = SCM_ENVIRONMENT_CELL (env, sym, !SCM_FALSEP (for_write));
+  if (!SCM_IMP (location))
+    return location;
+  else if (SCM_UNBNDP (location))
+    scm_error_environment_unbound (FUNC_NAME, env, sym);
+  else if (SCM_EQ_P (location, SCM_ENVIRONMENT_LOCATION_IMMUTABLE))
+    scm_error_environment_immutable_location (FUNC_NAME, env, sym);
+  else /* no cell */
+    return location;
+}
+#undef FUNC_NAME
+
+
+/* This C function is identical to environment-cell, with the following
+ * exceptions:   If symbol is unbound in env, it returns the value
+ * SCM_UNDEFINED, instead of signalling an error.  If symbol is bound to an
+ * immutable location but the cell is requested for write, the value 
+ * SCM_ENVIRONMENT_LOCATION_IMMUTABLE is returned.
+ */
+SCM
+scm_c_environment_cell(SCM env, SCM sym, int for_write)
+{
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, "scm_c_environment_cell");
+  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, "scm_c_environment_cell");
+
+  return SCM_ENVIRONMENT_CELL (env, sym, for_write);
+}
+
+
+static void
+environment_default_observer (SCM env, SCM proc)
+{
+  gh_call1 (proc, env);
+}
+
+
+SCM_DEFINE (scm_environment_observe, "environment-observe", 2, 0, 0, 
+	    (SCM env, SCM proc),
+	    "Whenever ENV's bindings change, apply PROC to ENV.\n"
+	    "This function returns an object, token, which you can pass to\n"
+	    "environment-unobserve to remove PROC from the set of\n"
+	    "procedures observing ENV.  The type and value of token is\n"
+	    "unspecified.")
+#define FUNC_NAME s_scm_environment_observe
+{
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+
+  return SCM_ENVIRONMENT_OBSERVE (env, environment_default_observer, proc, 0);
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_environment_observe_weak, "environment-observe-weak", 2, 0, 0,
+	    (SCM env, SCM proc),
+	    "This function is the same as environment-observe, except that\n"
+	    "the reference ENV retains to PROC is a weak reference. This\n"
+	    "means that, if there are no other live, non-weak references\n"
+	    "to PROC, it will be garbage-collected, and dropped from ENV's\n"
+	    "list of observing procedures.")
+#define FUNC_NAME s_scm_environment_observe_weak
+{
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+
+  return SCM_ENVIRONMENT_OBSERVE (env, environment_default_observer, proc, 1);
+}
+#undef FUNC_NAME
+
+
+/* This is the C-level analog of the Scheme functions environment-observe and
+ * environment-observe-weak.  Whenever env's bindings change, call the
+ * function proc, passing it env and data. If weak_p is non-zero, env will
+ * retain only a weak reference to data, and if data is garbage collected, the
+ * entire observation will be dropped.  This function returns a token, with
+ * the same meaning as those returned by environment-observe and
+ * environment-observe-weak.
+ */
+SCM
+scm_c_environment_observe (SCM env, scm_environment_observer proc, SCM data, int weak_p)
+#define FUNC_NAME "scm_c_environment_observe"
+{
+  SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+
+  return SCM_ENVIRONMENT_OBSERVE (env, proc, data, weak_p);
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_environment_unobserve, "environment-unobserve", 1, 0, 0, 
+	    (SCM token),
+	    "Cancel the observation request which returned the value\n"
+	    "TOKEN.  The return value is unspecified.\n"
+	    "If a call (environment-observe env proc) returns token, then\n"
+	    "the call (environment-unobserve token) will cause proc to no\n"
+	    "longer be called when env's bindings change.")
+#define FUNC_NAME s_scm_environment_unobserve
+{
+  SCM env;
+
+  SCM_ASSERT (SCM_OBSERVER_P (token), token, SCM_ARG1, FUNC_NAME);
+
+  env = SCM_OBSERVER_ENVIRONMENT (token);
+  SCM_ENVIRONMENT_UNOBSERVE (env, token);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+static SCM
+mark_environment (SCM env)
+{
+  return (*(SCM_ENVIRONMENT_FUNCS (env)->mark)) (env);
+}
+
+
+static scm_sizet
+free_environment (SCM env)
+{
+  return (*(SCM_ENVIRONMENT_FUNCS (env)->free)) (env);
+}
+
+
+static int
+print_environment (SCM env, SCM port, scm_print_state *pstate)
+{
+  return (*(SCM_ENVIRONMENT_FUNCS (env)->print)) (env, port, pstate);
+}
+
+
+
+/* observers */
+
+static SCM
+mark_observer (SCM observer)
+{
+  scm_gc_mark (SCM_OBSERVER_ENVIRONMENT (observer));
+  scm_gc_mark (SCM_OBSERVER_DATA (observer));
+  return SCM_BOOL_F;
+}
+
+
+static scm_sizet
+free_observer (SCM observer_smob)
+{
+  return 0;
+}
+
+
+static int
+print_observer (SCM type, SCM port, scm_print_state *pstate)
+{
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+
+  scm_puts ("#<observer ", port);
+  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (">", port);
+
+  return 1;
+}
+
+
+
+/* obarrays
+ *
+ * Obarrays form the basic lookup tables used to implement most of guile's
+ * built-in environment types.  An obarray is implemented as a hash table with
+ * symbols as keys.  The content of the data depends on the environment type.
+ */
+
+
+/*
+ * Copy symbol to obarray.  The symbol must not already exist in obarray.
+ */
+static SCM
+obarray_enter (SCM obarray, SCM symbol, SCM data)
+{
+  scm_sizet hash = SCM_SYMBOL_HASH (symbol);
+  SCM entry = scm_cons (symbol, data);
+  SCM slot = scm_cons (entry, SCM_VELTS (obarray)[hash]);
+  SCM_VELTS (obarray)[hash] = slot;
+
+  return entry;
+}
+
+
+/*
+ * Look up symbol in obarray
+ */
+static SCM
+obarray_retrieve (SCM obarray, SCM sym)
+{
+  scm_sizet hash = SCM_SYMBOL_HASH (sym);
+  SCM lsym;
+
+  for (lsym = SCM_VELTS (obarray)[hash]; !SCM_NULLP (lsym); lsym = SCM_CDR (lsym))
+    {
+      SCM entry = SCM_CAR (lsym);
+      if (SCM_CAR (entry) == sym)
+	return entry;
+    }
+
+  return SCM_UNDEFINED;
+}
+
+
+/*
+ * remove entry from obarray
+ */
+static SCM
+obarray_remove (SCM obarray, SCM sym)
+{
+  scm_sizet hash = SCM_SYMBOL_HASH (sym);
+  SCM lsym;
+  SCM *lsymp;
+
+  /* Dirk:FIXME:: gc problem due to use of &SCM_VELTS[hash] */
+  for (lsym = *(lsymp = &SCM_VELTS (obarray)[hash]);
+       !SCM_NULLP (lsym);
+       lsym = *(lsymp = SCM_CDRLOC (lsym)))
+    {
+      SCM entry = SCM_CAR (lsym);
+      if (SCM_CAR (entry) == sym)
+	{
+	  *lsymp = SCM_CDR (lsym);
+	  return entry;
+	}
+    }
+  return SCM_BOOL_F;
+}
+
+
+static void
+obarray_remove_all (SCM obarray)
+{
+  scm_sizet size = SCM_LENGTH (obarray);
+  scm_sizet i;
+
+  for (i = 0; i < size; i++)
+    {
+      SCM_VELTS (obarray)[i] = SCM_EOL;
+    }
+}
+
+
+
+/* core environments base
+ *
+ * This struct and the corresponding functions form a base class for guile's
+ * built-in environment types.
+ */
+
+
+struct core_environments_base {
+  struct scm_environment_funcs *funcs;
+
+  SCM observers;
+  SCM weak_observers;
+};
+
+
+#define CORE_ENVIRONMENTS_BASE(env) \
+  ((struct core_environments_base *) SCM_CELL_WORD_1 (env))
+#define CORE_ENVIRONMENT_OBSERVERS(env) \
+  (CORE_ENVIRONMENTS_BASE (env)->observers)
+#define SCM_SET_CORE_ENVIRONMENT_OBSERVERS(env, v) \
+  (CORE_ENVIRONMENT_OBSERVERS (env) = (v))
+#define CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR(env) \
+  (CORE_ENVIRONMENTS_BASE (env)->weak_observers)
+#define CORE_ENVIRONMENT_WEAK_OBSERVERS(env) \
+  (SCM_VELTS (CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env)) [0])
+#define SCM_SET_CORE_ENVIRONMENT_WEAK_OBSERVERS(env, v) \
+  (SCM_VELTS (CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env)) [0] = (v))
+
+
+
+static SCM
+core_environments_observe (SCM env, scm_environment_observer proc, SCM data, int weak_p)
+{
+  SCM observer;
+
+  SCM_NEWCELL2 (observer);
+  SCM_SET_CELL_OBJECT_1 (observer, env);
+  SCM_SET_CELL_OBJECT_2 (observer, data);
+  SCM_SET_CELL_WORD_3 (observer, proc);
+  SCM_SET_CELL_TYPE (observer, scm_tc16_observer);
+
+  if (!weak_p)
+    {
+      SCM observers = CORE_ENVIRONMENT_OBSERVERS (env);
+      SCM new_observers = scm_cons (observer, observers);
+      SCM_SET_CORE_ENVIRONMENT_OBSERVERS (env, new_observers);
+    }
+  else
+    {
+      SCM observers = CORE_ENVIRONMENT_WEAK_OBSERVERS (env);
+      SCM new_observers = scm_acons (SCM_BOOL_F, observer, observers);
+      SCM_SET_CORE_ENVIRONMENT_WEAK_OBSERVERS (env, new_observers);
+    }
+
+  return observer;
+}
+
+
+static void
+core_environments_unobserve (SCM env, SCM observer)
+{
+  unsigned int handling_weaks;
+  for (handling_weaks = 0; handling_weaks <= 1; ++handling_weaks)
+    {
+      SCM l = handling_weaks
+	? CORE_ENVIRONMENT_WEAK_OBSERVERS (env)
+	: CORE_ENVIRONMENT_OBSERVERS (env);
+
+      if (!SCM_NULLP (l))
+	{
+	  SCM rest = SCM_CDR (l);
+	  SCM first = handling_weaks
+	    ? SCM_CDAR (l)
+	    : SCM_CAR (l);
+
+	  if (SCM_EQ_P (first, observer))
+	    {
+	      /* Remove the first observer */
+	      handling_weaks
+		? SCM_SET_CORE_ENVIRONMENT_WEAK_OBSERVERS (env, rest)
+		: SCM_SET_CORE_ENVIRONMENT_OBSERVERS (env, rest);
+	      return;
+	    }
+
+	  do {
+	    SCM rest = SCM_CDR (l);
+
+	    if (!SCM_NULLP (rest)) 
+	      {
+		SCM next = handling_weaks
+		  ? SCM_CDAR (l)
+		  : SCM_CAR (l);
+
+		if (SCM_EQ_P (next, observer))
+		  {
+		    SCM_SETCDR (l, SCM_CDR (rest));
+		    return;
+		  }
+	      }
+
+	    l = rest;
+	  } while (!SCM_NULLP (l));
+	}
+    }
+
+  /* Dirk:FIXME:: What to do now, since the observer is not found? */
+}
+
+
+static SCM
+core_environments_mark (SCM env)
+{
+  scm_gc_mark (CORE_ENVIRONMENT_OBSERVERS (env));
+  return CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env);
+}
+
+
+static void
+core_environments_finalize (SCM env)
+{
+}
+
+
+static void
+core_environments_preinit (struct core_environments_base *body)
+{
+  body->funcs = NULL;
+  body->observers = SCM_BOOL_F;
+  body->weak_observers = SCM_BOOL_F;
+}
+
+
+static void
+core_environments_init (struct core_environments_base *body,
+			       struct scm_environment_funcs *funcs)
+{
+  body->funcs = funcs;
+  body->observers = SCM_EOL;
+  body->weak_observers = scm_make_weak_value_hash_table (SCM_MAKINUM (1));
+}
+
+
+/* Tell all observers to clear their caches.
+ *
+ * Environments have to be informed about changes in the following cases:
+ * - The observed env has a new binding.  This must be always reported.
+ * - The observed env has dropped a binding.  This must be always reported.
+ * - A binding in the observed environment has changed.  This must only be
+ *   reported, if there is a chance that the binding is being cached outside.
+ *   However, this potential optimization is not performed currently.
+ *
+ * Errors that occur while the observers are called are accumulated and
+ * signalled as one single error message to the caller.
+ */
+
+struct update_data
+{
+  SCM observer;
+  SCM environment;
+};
+
+
+static SCM
+update_catch_body (void *ptr)
+{
+  struct update_data *data = (struct update_data *) ptr;
+  SCM observer = data->observer;
+
+  (*SCM_OBSERVER_PROC (observer)) 
+    (data->environment, SCM_OBSERVER_DATA (observer));
+
+  return SCM_UNDEFINED;
+}
+
+
+static SCM
+update_catch_handler (void *ptr, SCM tag, SCM args)
+{
+  struct update_data *data = (struct update_data *) ptr;
+  SCM observer = data->observer;
+  SCM message = scm_makfrom0str ("Observer `~A' signals `~A' error: ~S");
+
+  return scm_cons (message, scm_listify (observer, tag, args, SCM_UNDEFINED));
+}
+
+
+static void
+core_environments_broadcast (SCM env)
+#define FUNC_NAME "core_environments_broadcast"
+{
+  unsigned int handling_weaks;
+  SCM errors = SCM_EOL;
+
+  for (handling_weaks = 0; handling_weaks <= 1; ++handling_weaks)
+    {
+      SCM observers = handling_weaks
+	? CORE_ENVIRONMENT_WEAK_OBSERVERS (env)
+	: CORE_ENVIRONMENT_OBSERVERS (env);
+
+      for (; !SCM_NULLP (observers); observers = SCM_CDR (observers))
+	{
+          struct update_data data;
+	  SCM observer = handling_weaks
+	    ? SCM_CDAR (observers)
+	    : SCM_CAR (observers);
+          SCM error;
+
+          data.observer = observer;
+          data.environment = env;
+
+          error = scm_internal_catch (SCM_BOOL_T, 
+                                      update_catch_body, &data, 
+                                      update_catch_handler, &data);
+
+          if (!SCM_UNBNDP (error))
+            errors = scm_cons (error, errors);
+	}
+    }
+
+  if (!SCM_NULLP (errors))
+    {
+      /* Dirk:FIXME:: As soon as scm_misc_error is fixed to handle the name
+       * parameter correctly it should not be necessary any more to also pass
+       * namestr in order to get the desired information from the error
+       * message.
+       */
+      SCM ordered_errors = scm_reverse (errors);
+      scm_misc_error 
+        (FUNC_NAME,
+         "Observers of `~A' have signalled the following errors: ~S",
+         scm_cons2 (env, ordered_errors, SCM_EOL));
+    }
+}
+#undef FUNC_NAME
+
+
+
+/* leaf environments
+ *
+ * A leaf environment is simply a mutable set of definitions. A leaf
+ * environment supports no operations beyond the common set.
+ *
+ * Implementation:  The obarray of the leaf environment holds (symbol . value)
+ * pairs.  No further information is necessary, since all bindings and
+ * locations in a leaf environment are mutable.
+ */
+
+
+struct leaf_environment {
+  struct core_environments_base base;
+
+  SCM obarray;
+};
+
+
+#define LEAF_ENVIRONMENT(env) \
+  ((struct leaf_environment *) SCM_CELL_WORD_1 (env))
+
+
+
+static SCM
+leaf_environment_ref (SCM env, SCM sym)
+{
+  SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
+  SCM binding = obarray_retrieve (obarray, sym);
+  return SCM_UNBNDP (binding) ? binding : SCM_CDR (binding);
+}
+
+
+static SCM
+leaf_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
+{
+  scm_sizet i;
+  SCM result = init;
+  SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
+
+  for (i = 0; i < SCM_LENGTH (obarray); i++)
+    {
+      SCM l;
+      for (l = SCM_VELTS (obarray)[i]; !SCM_NULLP (l); l = SCM_CDR (l))
+	{
+	  SCM binding = SCM_CAR (l);
+	  SCM symbol = SCM_CAR (binding);
+	  SCM value = SCM_CDR (binding);
+	  result = (*proc) (data, symbol, value, result);
+	}
+    }
+  return result;
+}
+
+
+static SCM
+leaf_environment_define (SCM env, SCM sym, SCM val)
+#define FUNC_NAME "leaf_environment_define"
+{
+  SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
+  SCM old_binding = obarray_retrieve (obarray, sym);
+  SCM new_binding;
+
+  if (!SCM_UNBNDP (old_binding))
+    obarray_remove (obarray, sym);
+
+  new_binding = obarray_enter (obarray, sym, val);
+  core_environments_broadcast (env);
+
+  return SCM_ENVIRONMENT_SUCCESS;
+}
+#undef FUNC_NAME
+
+
+static SCM
+leaf_environment_undefine (SCM env, SCM sym)
+#define FUNC_NAME "leaf_environment_undefine"
+{
+  SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
+  SCM binding = obarray_retrieve (obarray, sym);
+  
+  if (!SCM_UNBNDP (binding))
+    {
+      obarray_remove (obarray, sym);
+      core_environments_broadcast (env);
+    }
+
+  return SCM_ENVIRONMENT_SUCCESS;
+}
+#undef FUNC_NAME
+
+
+static SCM
+leaf_environment_set_x (SCM env, SCM sym, SCM val)
+#define FUNC_NAME "leaf_environment_set_x"
+{
+  SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
+  SCM binding = obarray_retrieve (obarray, sym);
+
+  if (!SCM_UNBNDP (binding))
+    {
+      SCM_SETCDR (binding, val);
+      return SCM_ENVIRONMENT_SUCCESS;
+    }
+  else
+    {
+      return SCM_UNDEFINED;
+    }
+}
+#undef FUNC_NAME
+
+
+static SCM
+leaf_environment_cell(SCM env, SCM sym, int for_write)
+{
+  SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
+  SCM binding = obarray_retrieve (obarray, sym);
+  return binding;
+}
+
+
+static SCM
+mark_leaf_environment (SCM env)
+{
+  scm_gc_mark (LEAF_ENVIRONMENT (env)->obarray);
+  return core_environments_mark (env);
+}
+
+
+static scm_sizet
+free_leaf_environment (SCM env)
+{
+  core_environments_finalize (env);
+
+  free (LEAF_ENVIRONMENT (env));
+  return sizeof (struct leaf_environment);
+}
+
+
+static int
+print_leaf_environment (SCM type, SCM port, scm_print_state *pstate)
+{
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+
+  scm_puts ("#<leaf environment ", port);
+  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (">", port);
+
+  return 1;
+}
+
+
+static struct scm_environment_funcs leaf_environment_funcs = {
+  leaf_environment_ref,
+  leaf_environment_fold,
+  leaf_environment_define,
+  leaf_environment_undefine,
+  leaf_environment_set_x,
+  leaf_environment_cell,
+  core_environments_observe,
+  core_environments_unobserve,
+  mark_leaf_environment,
+  free_leaf_environment,
+  print_leaf_environment
+};
+
+
+void *scm_type_leaf_environment = &leaf_environment_funcs;
+
+
+SCM_DEFINE (scm_make_leaf_environment, "make-leaf-environment", 0, 0, 0, 
+	    (),
+	    "Create a new leaf environment, containing no bindings.\n"
+	    "All bindings and locations created in the new environment\n"
+	    "will be mutable.")
+#define FUNC_NAME s_scm_make_leaf_environment
+{
+  scm_sizet size = sizeof (struct leaf_environment);
+  struct leaf_environment *body = scm_must_malloc (size, FUNC_NAME);
+  SCM env;
+
+  core_environments_preinit (&body->base);
+  body->obarray = SCM_BOOL_F;
+
+  env = scm_make_environment (body);
+
+  core_environments_init (&body->base, &leaf_environment_funcs);
+  body->obarray = scm_make_vector (SCM_MAKINUM (scm_symhash_dim), SCM_EOL);  
+
+  return env;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_leaf_environment_p, "leaf-environment?", 1, 0, 0, 
+	    (SCM object),
+	    "Return #t if object is a leaf environment, or #f otherwise.")
+#define FUNC_NAME s_scm_leaf_environment_p
+{
+  return SCM_BOOL (SCM_LEAF_ENVIRONMENT_P (object));
+}
+#undef FUNC_NAME
+
+
+
+/* eval environments
+ *
+ * A module's source code refers to definitions imported from other modules,
+ * and definitions made within itself.  An eval environment combines two
+ * environments -- a local environment and an imported environment -- to
+ * produce a new environment in which both sorts of references can be
+ * resolved.
+ *
+ * Implementation:  The obarray of the eval environment is used to cache
+ * entries from the local and imported environments such that in most of the
+ * cases only a single lookup is necessary.  Since for neither the local nor
+ * the imported environment it is known, what kind of environment they form,
+ * the most general case is assumed.  Therefore, entries in the obarray take
+ * one of the following forms:
+ *
+ * 1) (<symbol> location mutability . source-env), where mutability indicates
+ *    one of the following states:  IMMUTABLE if the location is known to be
+ *    immutable, MUTABLE if the location is known to be mutable, UNKNOWN if
+ *    the location has only been requested for non modifying accesses.
+ *
+ * 2) (symbol . source-env) if the symbol has a binding in the source-env, but
+ *    if the source-env can't provide a cell for the binding.  Thus, for every
+ *    access, the source-env has to be contacted directly.
+ */
+
+
+struct eval_environment {
+  struct core_environments_base base;
+
+  SCM obarray;
+
+  SCM imported;
+  SCM imported_observer;
+  SCM local;
+  SCM local_observer;
+};
+
+
+#define EVAL_ENVIRONMENT(env) \
+  ((struct eval_environment *) SCM_CELL_WORD_1 (env))
+
+#define IMMUTABLE SCM_MAKINUM (0)
+#define MUTABLE   SCM_MAKINUM (1)
+#define UNKNOWN   SCM_MAKINUM (2)
+
+#define CACHED_LOCATION(x) SCM_CAR (x)
+#define CACHED_MUTABILITY(x) SCM_CADR (x)
+#define SET_CACHED_MUTABILITY(x, v) SCM_SETCAR (SCM_CDR (x), (v))
+#define CACHED_SOURCE_ENVIRONMENT(x) SCM_CDDR (x)
+
+
+
+/* eval_environment_lookup will report one of the following distinct results:
+ * a) (<object> . value) if a cell could be obtained.
+ * b) <environment> if the environment has to be contacted directly.
+ * c) IMMUTABLE if an immutable cell was requested for write.
+ * d) SCM_UNDEFINED if there is no binding for the symbol.
+ */
+static SCM
+eval_environment_lookup (SCM env, SCM sym, int for_write)
+{
+  SCM obarray = EVAL_ENVIRONMENT (env)->obarray;
+  SCM binding = obarray_retrieve (obarray, sym);
+
+  if (!SCM_UNBNDP (binding))
+    {
+      /* The obarray holds an entry for the symbol. */
+
+      SCM entry = SCM_CDR (binding);
+
+      if (SCM_CONSP (entry))
+	{
+	  /* The entry in the obarray is a cached location. */
+
+	  SCM location = CACHED_LOCATION (entry);
+	  SCM mutability;
+
+	  if (!for_write)
+	    return location;
+
+	  mutability = CACHED_MUTABILITY (entry);
+	  if (SCM_EQ_P (mutability, MUTABLE))
+	    return location;
+
+	  if (SCM_EQ_P (mutability, UNKNOWN))
+	    {
+	      SCM source_env = CACHED_SOURCE_ENVIRONMENT (entry);
+	      SCM location = SCM_ENVIRONMENT_CELL (source_env, sym, 1);
+
+	      if (SCM_CONSP (location))
+		{
+		  SET_CACHED_MUTABILITY (entry, MUTABLE);
+		  return location;
+		}
+	      else /* IMMUTABLE */
+		{
+		  SET_CACHED_MUTABILITY (entry, IMMUTABLE);
+		  return IMMUTABLE;
+		}
+	    }
+
+	  return IMMUTABLE;
+	}
+      else
+	{
+	  /* The obarray entry is an environment */
+
+	  return entry;
+	}
+    }
+  else
+    {
+      /* There is no entry for the symbol in the obarray.  This can either
+       * mean that there has not been a request for the symbol yet, or that
+       * the symbol is really undefined.  We are looking for the symbol in
+       * both the local and the imported environment.  If we find a binding, a
+       * cached entry is created.
+       */
+
+      struct eval_environment *body = EVAL_ENVIRONMENT (env);
+      unsigned int handling_import;
+
+      for (handling_import = 0; handling_import <= 1; ++handling_import)
+	{
+	  SCM source_env = handling_import ? body->imported : body->local;
+	  SCM location = SCM_ENVIRONMENT_CELL (source_env, sym, for_write);
+
+	  if (!SCM_UNBNDP (location))
+	    {
+	      if (SCM_CONSP (location))
+		{
+		  SCM mutability = for_write ? MUTABLE : UNKNOWN;
+		  SCM entry = scm_cons2 (location, mutability, source_env);
+		  obarray_enter (obarray, sym, entry);
+		  return location;
+		}
+	      else if (SCM_EQ_P (location, SCM_ENVIRONMENT_LOCATION_NO_CELL))
+		{
+		  obarray_enter (obarray, sym, source_env);
+		  return source_env;
+		}
+	      else
+		{
+		  return IMMUTABLE;
+		}
+	    }
+	}
+
+      return SCM_UNDEFINED;
+    }
+}
+
+
+static SCM
+eval_environment_ref (SCM env, SCM sym)
+#define FUNC_NAME "eval_environment_ref"
+{
+  SCM location = eval_environment_lookup (env, sym, 0);
+
+  if (SCM_CONSP (location))
+    return SCM_CDR (location);
+  else if (!SCM_UNBNDP (location))
+    return SCM_ENVIRONMENT_REF (location, sym);
+  else
+    return SCM_UNDEFINED;
+}
+#undef FUNC_NAME
+
+
+static SCM
+eval_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
+{
+  SCM local = SCM_CAR (extended_data);
+
+  if (!SCM_ENVIRONMENT_BOUND_P (local, symbol))
+    {
+      SCM proc_as_nr = SCM_CADR (extended_data);
+      unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, NULL, NULL);
+      scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
+      SCM data = SCM_CDDR (extended_data);
+
+      return (*proc) (data, symbol, value, tail);
+    }
+  else
+    {
+      return tail;
+    }
+}
+
+
+static SCM
+eval_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
+{
+  SCM local = EVAL_ENVIRONMENT (env)->local;
+  SCM imported = EVAL_ENVIRONMENT (env)->imported;
+  SCM proc_as_nr = scm_ulong2num ((unsigned long int) proc);
+  SCM extended_data = scm_cons2 (local, proc_as_nr, data);
+  SCM tmp_result = scm_c_environment_fold (imported, eval_environment_folder, extended_data, init);
+
+  return scm_c_environment_fold (local, proc, data, tmp_result);
+}
+
+
+static SCM
+eval_environment_define (SCM env, SCM sym, SCM val)
+#define FUNC_NAME "eval_environment_define"
+{
+  SCM local = EVAL_ENVIRONMENT (env)->local;
+  return SCM_ENVIRONMENT_DEFINE (local, sym, val);
+}
+#undef FUNC_NAME
+
+
+static SCM
+eval_environment_undefine (SCM env, SCM sym)
+#define FUNC_NAME "eval_environment_undefine"
+{
+  SCM local = EVAL_ENVIRONMENT (env)->local;
+  return SCM_ENVIRONMENT_UNDEFINE (local, sym);
+}
+#undef FUNC_NAME
+
+
+static SCM
+eval_environment_set_x (SCM env, SCM sym, SCM val)
+#define FUNC_NAME "eval_environment_set_x"
+{
+  SCM location = eval_environment_lookup (env, sym, 1);
+
+  if (SCM_CONSP (location))
+    {
+      SCM_SETCDR (location, val);
+      return SCM_ENVIRONMENT_SUCCESS;
+    }
+  else if (SCM_ENVIRONMENT_P (location))
+    {
+      return SCM_ENVIRONMENT_SET (location, sym, val);
+    }
+  else if (SCM_EQ_P (location, IMMUTABLE))
+    {
+      return SCM_ENVIRONMENT_LOCATION_IMMUTABLE;
+    }
+  else
+    {
+      return SCM_UNDEFINED;
+    }
+}
+#undef FUNC_NAME
+
+
+static SCM
+eval_environment_cell (SCM env, SCM sym, int for_write)
+#define FUNC_NAME "eval_environment_cell"
+{
+  SCM location = eval_environment_lookup (env, sym, for_write);
+
+  if (SCM_CONSP (location))
+    return location;
+  else if (SCM_ENVIRONMENT_P (location))
+    return SCM_ENVIRONMENT_LOCATION_NO_CELL;
+  else if (SCM_EQ_P (location, IMMUTABLE))
+    return SCM_ENVIRONMENT_LOCATION_IMMUTABLE;
+  else
+    return SCM_UNDEFINED;
+}
+#undef FUNC_NAME
+
+
+static SCM
+mark_eval_environment (SCM env)
+{
+  struct eval_environment *body = EVAL_ENVIRONMENT (env);
+
+  scm_gc_mark (body->obarray);
+  scm_gc_mark (body->imported);
+  scm_gc_mark (body->imported_observer);
+  scm_gc_mark (body->local);
+  scm_gc_mark (body->local_observer);
+
+  return core_environments_mark (env);
+}
+
+
+static scm_sizet
+free_eval_environment (SCM env)
+{
+  core_environments_finalize (env);
+
+  free (EVAL_ENVIRONMENT (env));
+  return sizeof (struct eval_environment);
+}
+
+
+static int
+print_eval_environment (SCM type, SCM port, scm_print_state *pstate)
+{
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+
+  scm_puts ("#<eval environment ", port);
+  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (">", port);
+
+  return 1;
+}
+
+
+static struct scm_environment_funcs eval_environment_funcs = {
+    eval_environment_ref,
+    eval_environment_fold,
+    eval_environment_define,
+    eval_environment_undefine,
+    eval_environment_set_x,
+    eval_environment_cell,
+    core_environments_observe,
+    core_environments_unobserve,
+    mark_eval_environment,
+    free_eval_environment,
+    print_eval_environment
+};
+
+
+void *scm_type_eval_environment = &eval_environment_funcs;
+
+
+static void
+eval_environment_observer (SCM caller, SCM eval_env)
+{
+  SCM obarray = EVAL_ENVIRONMENT (eval_env)->obarray;
+
+  obarray_remove_all (obarray);
+  core_environments_broadcast (eval_env);
+}
+
+
+SCM_DEFINE (scm_make_eval_environment, "make-eval-environment", 2, 0, 0, 
+	    (SCM local, SCM imported),
+	    "Return a new environment object eval whose bindings are the\n"
+	    "union of the bindings in the environments local and imported,\n"
+	    "with bindings from local taking precedence. Definitions made\n"
+	    "in eval are placed in local.\n"
+	    "Applying environment-define or environment-undefine to eval\n"
+	    "has the same effect as applying the procedure to local.\n"
+	    "Note that eval incorporates local and imported by reference:\n"
+	    "If, after creating eval, the program changes the bindings of\n"
+	    "local or imported, those changes will be visible in eval.\n"
+	    "Since most Scheme evaluation takes place in eval environments,\n"
+	    "they transparenty cache the bindings received from local and\n"
+	    "imported. Thus, the first time the program looks up a symbol\n"
+	    "in eval, eval may make calls to local or imported to find\n"
+	    "their bindings, but subsequent references to that symbol will\n"
+	    "be as fast as references to bindings in finite environments.\n"
+	    "In typical use, local will be a finite environment, and\n"
+	    "imported will be an import environment")
+#define FUNC_NAME s_scm_make_eval_environment
+{
+  SCM env;
+  struct eval_environment *body;
+
+  SCM_ASSERT (SCM_ENVIRONMENT_P (local), local, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_ENVIRONMENT_P (imported), imported, SCM_ARG2, FUNC_NAME);
+
+  body = scm_must_malloc (sizeof (struct eval_environment), FUNC_NAME);
+
+  core_environments_preinit (&body->base);
+  body->obarray = SCM_BOOL_F;
+  body->imported = SCM_BOOL_F;
+  body->imported_observer = SCM_BOOL_F;
+  body->local = SCM_BOOL_F;
+  body->local_observer = SCM_BOOL_F;
+
+  env = scm_make_environment (body);
+
+  core_environments_init (&body->base, &eval_environment_funcs);
+  body->obarray = scm_make_vector (SCM_MAKINUM (scm_symhash_dim), SCM_EOL);  
+  body->imported = imported;
+  body->imported_observer
+    = SCM_ENVIRONMENT_OBSERVE (imported, eval_environment_observer, env, 1);
+  body->local = local;
+  body->local_observer
+    = SCM_ENVIRONMENT_OBSERVE (local, eval_environment_observer, env, 1);
+
+  return env;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_eval_environment_p, "eval-environment?", 1, 0, 0,
+	    (SCM object),
+	    "Return #t if object is an eval environment, or #f otherwise.")
+#define FUNC_NAME s_scm_eval_environment_p
+{
+  return SCM_BOOL (SCM_EVAL_ENVIRONMENT_P (object));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_eval_environment_local, "eval-environment-local", 1, 0, 0, 
+	    (SCM env),
+	    "Return the local environment of eval environment env.")
+#define FUNC_NAME s_scm_eval_environment_local
+{
+  SCM_ASSERT (SCM_EVAL_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+
+  return EVAL_ENVIRONMENT (env)->local;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_eval_environment_set_local_x, "eval-environment-set-local!", 2, 0, 0, 
+	    (SCM env, SCM local),
+	    "Change env's local environment to LOCAL.")
+#define FUNC_NAME s_scm_eval_environment_set_local_x
+{
+  struct eval_environment *body;
+
+  SCM_ASSERT (SCM_EVAL_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_ENVIRONMENT_P (local), local, SCM_ARG2, FUNC_NAME);
+
+  body = EVAL_ENVIRONMENT (env);
+
+  obarray_remove_all (body->obarray);
+  SCM_ENVIRONMENT_UNOBSERVE (body->local, body->local_observer);
+
+  body->local = local;
+  body->local_observer
+    = SCM_ENVIRONMENT_OBSERVE (local, eval_environment_observer, env, 1);
+
+  core_environments_broadcast (env);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_eval_environment_imported, "eval-environment-imported", 1, 0, 0,
+	    (SCM env),
+	    "Return the imported environment of eval environment env.")
+#define FUNC_NAME s_scm_eval_environment_imported
+{
+  SCM_ASSERT (SCM_EVAL_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+
+  return EVAL_ENVIRONMENT (env)->imported;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_eval_environment_set_imported_x, "eval-environment-set-imported!", 2, 0, 0, 
+	    (SCM env, SCM imported),
+	    "Change env's imported environment to IMPORTED.")
+#define FUNC_NAME s_scm_eval_environment_set_imported_x
+{
+  struct eval_environment *body;
+
+  SCM_ASSERT (SCM_EVAL_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_ENVIRONMENT_P (imported), imported, SCM_ARG2, FUNC_NAME);
+
+  body = EVAL_ENVIRONMENT (env);
+
+  obarray_remove_all (body->obarray);
+  SCM_ENVIRONMENT_UNOBSERVE (body->imported, body->imported_observer);
+
+  body->imported = imported;
+  body->imported_observer
+    = SCM_ENVIRONMENT_OBSERVE (imported, eval_environment_observer, env, 1);
+
+  core_environments_broadcast (env);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+
+/* import environments
+ *
+ * An import environment combines the bindings of a set of argument
+ * environments, and checks for naming clashes.
+ *
+ * Implementation:  The import environment does no caching at all.  For every
+ * access, the list of imported environments is scanned.
+ */
+
+
+struct import_environment {
+  struct core_environments_base base;
+
+  SCM imports;
+  SCM import_observers;
+
+  SCM conflict_proc;
+};
+
+
+#define IMPORT_ENVIRONMENT(env) \
+  ((struct import_environment *) SCM_CELL_WORD_1 (env))
+
+
+
+/* Lookup will report one of the following distinct results:
+ * a) <environment> if only environment binds the symbol.
+ * b) (env-1 env-2 ...) for conflicting bindings in env-1, ...
+ * c) SCM_UNDEFINED if there is no binding for the symbol.
+ */
+static SCM
+import_environment_lookup (SCM env, SCM sym)
+{
+  SCM imports = IMPORT_ENVIRONMENT (env)->imports;
+  SCM result = SCM_UNDEFINED;
+  SCM l;
+
+  for (l = imports; !SCM_NULLP (l); l = SCM_CDR (l))
+    {
+      SCM imported = SCM_CAR (l);
+
+      if (SCM_ENVIRONMENT_BOUND_P (imported, sym))
+	{
+	  if (SCM_UNBNDP (result))
+	    result = imported;
+	  else if (SCM_CONSP (result))
+	    result = scm_cons (imported, result);
+	  else
+	    result = scm_cons2 (imported, result, SCM_EOL);
+	}
+    }
+
+  if (SCM_CONSP (result))
+    return scm_reverse (result);
+  else
+    return result;
+}
+
+
+static SCM
+import_environment_conflict (SCM env, SCM sym, SCM imports)
+{
+  SCM conflict_proc = IMPORT_ENVIRONMENT (env)->conflict_proc;
+  SCM args = scm_cons2 (env, sym, scm_cons (imports, SCM_EOL));
+
+  return scm_apply (conflict_proc, args, SCM_EOL);
+}
+
+
+static SCM
+import_environment_ref (SCM env, SCM sym)
+#define FUNC_NAME "import_environment_ref"
+{
+  SCM owner = import_environment_lookup (env, sym);
+
+  if (SCM_UNBNDP (owner))
+    {
+      return SCM_UNDEFINED;
+    }
+  else if (SCM_CONSP (owner))
+    {
+      SCM resolve = import_environment_conflict (env, sym, owner);
+
+      if (SCM_ENVIRONMENT_P (resolve))
+	return SCM_ENVIRONMENT_REF (resolve, sym);
+      else
+	return SCM_UNSPECIFIED;
+    }
+  else
+    {
+      return SCM_ENVIRONMENT_REF (owner, sym);
+    }
+}
+#undef FUNC_NAME
+
+
+static SCM
+import_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
+#define FUNC_NAME "import_environment_fold"
+{
+  SCM import_env = SCM_CAR (extended_data);
+  SCM imported_env = SCM_CADR (extended_data);
+  SCM owner = import_environment_lookup (import_env, symbol);
+  SCM proc_as_nr = SCM_CADDR (extended_data);
+  unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, NULL, NULL);
+  scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
+  SCM data = SCM_CDDDR (extended_data);
+
+  if (SCM_CONSP (owner) && SCM_EQ_P (SCM_CAR (owner), imported_env))
+    owner = import_environment_conflict (import_env, symbol, owner);
+
+  if (SCM_ENVIRONMENT_P (owner))
+    return (*proc) (data, symbol, value, tail);
+  else /* unresolved conflict */
+    return (*proc) (data, symbol, SCM_UNSPECIFIED, tail);
+}
+#undef FUNC_NAME
+
+
+static SCM
+import_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
+{
+  SCM proc_as_nr = scm_ulong2num ((unsigned long int) proc);
+  SCM result = init;
+  SCM l;
+
+  for (l = IMPORT_ENVIRONMENT (env)->imports; !SCM_NULLP (l); l = SCM_CDR (l))
+    {
+      SCM imported_env = SCM_CAR (l);
+      SCM extended_data = scm_cons (env, scm_cons2 (imported_env, proc_as_nr, data));
+
+      result = scm_c_environment_fold (imported_env, import_environment_folder, extended_data, result);
+    }
+
+  return result;
+}
+
+
+static SCM
+import_environment_define (SCM env, SCM sym, SCM val)
+#define FUNC_NAME "import_environment_define"
+{
+  return SCM_ENVIRONMENT_BINDING_IMMUTABLE;
+}
+#undef FUNC_NAME
+
+
+static SCM
+import_environment_undefine (SCM env, SCM sym)
+#define FUNC_NAME "import_environment_undefine"
+{
+  return SCM_ENVIRONMENT_BINDING_IMMUTABLE;
+}
+#undef FUNC_NAME
+
+
+static SCM
+import_environment_set_x (SCM env, SCM sym, SCM val)
+#define FUNC_NAME "import_environment_set_x"
+{
+  SCM owner = import_environment_lookup (env, sym);
+
+  if (SCM_UNBNDP (owner))
+    {
+      return SCM_UNDEFINED;
+    }
+  else if (SCM_CONSP (owner))
+    {
+      SCM resolve = import_environment_conflict (env, sym, owner);
+
+      if (SCM_ENVIRONMENT_P (resolve))
+	return SCM_ENVIRONMENT_SET (resolve, sym, val);
+      else
+	return SCM_ENVIRONMENT_LOCATION_IMMUTABLE;
+    }
+  else
+    {
+      return SCM_ENVIRONMENT_SET (owner, sym, val);
+    }
+}
+#undef FUNC_NAME
+
+
+static SCM
+import_environment_cell (SCM env, SCM sym, int for_write)
+#define FUNC_NAME "import_environment_cell"
+{
+  SCM owner = import_environment_lookup (env, sym);
+
+  if (SCM_UNBNDP (owner))
+    {
+      return SCM_UNDEFINED;
+    }
+  else if (SCM_CONSP (owner))
+    {
+      SCM resolve = import_environment_conflict (env, sym, owner);
+
+      if (SCM_ENVIRONMENT_P (resolve))
+	return SCM_ENVIRONMENT_CELL (resolve, sym, for_write);
+      else
+	return SCM_ENVIRONMENT_LOCATION_NO_CELL;
+    }
+  else
+    {
+      return SCM_ENVIRONMENT_CELL (owner, sym, for_write);
+    }
+}
+#undef FUNC_NAME
+
+
+static SCM
+mark_import_environment (SCM env)
+{
+  scm_gc_mark (IMPORT_ENVIRONMENT (env)->imports);
+  scm_gc_mark (IMPORT_ENVIRONMENT (env)->import_observers);
+  scm_gc_mark (IMPORT_ENVIRONMENT (env)->conflict_proc);
+  return core_environments_mark (env);
+}
+
+
+static scm_sizet
+free_import_environment (SCM env)
+{
+  core_environments_finalize (env);
+
+  free (IMPORT_ENVIRONMENT (env));
+  return sizeof (struct import_environment);
+}
+
+
+static int
+print_import_environment (SCM type, SCM port, scm_print_state *pstate)
+{
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+
+  scm_puts ("#<import environment ", port);
+  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (">", port);
+
+  return 1;
+}
+
+
+static struct scm_environment_funcs import_environment_funcs = {
+  import_environment_ref,
+  import_environment_fold,
+  import_environment_define,
+  import_environment_undefine,
+  import_environment_set_x,
+  import_environment_cell,
+  core_environments_observe,
+  core_environments_unobserve,
+  mark_import_environment,
+  free_import_environment,
+  print_import_environment
+};
+
+
+void *scm_type_import_environment = &import_environment_funcs;
+
+
+static void
+import_environment_observer (SCM caller, SCM import_env)
+{
+  core_environments_broadcast (import_env);
+}
+
+
+SCM_DEFINE (scm_make_import_environment, "make-import-environment", 2, 0, 0, 
+	    (SCM imports, SCM conflict_proc),
+	    "Return a new environment imp whose bindings are the union of\n"
+	    "the bindings from the environments in imports; imports must\n"
+	    "be a list of environments. That is, imp binds symbol to\n"
+	    "location when some element of imports does.\n"
+	    "If two different elements of imports have a binding for the\n"
+	    "same symbol, the conflict-proc is called with the following\n"
+	    "parameters:  the import environment, the symbol and the list\n"
+	    "of the imported environments that bind the symbol.  If the\n"
+	    "conflict-proc returns an environment env, the conflict is\n"
+	    "considered as resolved and the binding from env is used.  If\n"
+	    "the conflict-proc returns some non-environment object, the\n"
+	    "conflict is considered unresolved and the symbol is treated\n"
+	    "as unspecified in the import environment.\n"
+	    "The checking for conflicts may be performed lazily, i. e. at\m"
+	    "the moment when a value or binding for a certain symbol is\n"
+	    "requested instead of the moment when the environment is\n"
+	    "created or the bindings of the imports change.\n"
+	    "All bindings in imp are immutable. If you apply\n"
+	    "environment-define or environment-undefine to imp, Guile\n"
+	    "will signal an environment:immutable-binding error. However,\n"
+	    "notice that the set of bindings in imp may still change, if\n"
+	    "one of its imported environments changes.")
+#define FUNC_NAME s_scm_make_import_environment
+{
+  scm_sizet size = sizeof (struct import_environment);
+  struct import_environment *body = scm_must_malloc (size, FUNC_NAME);
+  SCM env;
+
+  core_environments_preinit (&body->base);
+  body->imports = SCM_BOOL_F;
+  body->import_observers = SCM_BOOL_F;
+  body->conflict_proc = SCM_BOOL_F;
+
+  env = scm_make_environment (body);
+
+  core_environments_init (&body->base, &import_environment_funcs);
+  body->imports = SCM_EOL;
+  body->import_observers = SCM_EOL;
+  body->conflict_proc = conflict_proc;
+
+  scm_import_environment_set_imports_x (env, imports);
+
+  return env;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_import_environment_p, "import-environment?", 1, 0, 0, 
+	    (SCM object),
+	    "Return #t if object is an import environment, or #f otherwise.")
+#define FUNC_NAME s_scm_import_environment_p
+{
+  return SCM_BOOL (SCM_IMPORT_ENVIRONMENT_P (object));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_import_environment_imports, "import-environment-imports", 1, 0, 0, 
+	    (SCM env),
+	    "Return the list of environments imported by the import environment env.")
+#define FUNC_NAME s_scm_import_environment_imports
+{
+  SCM_ASSERT (SCM_IMPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+
+  return IMPORT_ENVIRONMENT (env)->imports;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_import_environment_set_imports_x, "import-environment-set-imports!", 2, 0, 0, 
+	    (SCM env, SCM imports),
+	    "Change env's list of imported environments to imports, and check for conflicts.")
+#define FUNC_NAME s_scm_import_environment_set_imports_x
+{
+  struct import_environment *body = IMPORT_ENVIRONMENT (env);
+  SCM import_observers = SCM_EOL;
+  SCM l;
+
+  SCM_ASSERT (SCM_IMPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  for (l = imports; SCM_CONSP (l); l = SCM_CDR (l))
+    {
+      SCM obj = SCM_CAR (l);
+      SCM_ASSERT (SCM_ENVIRONMENT_P (obj), imports, SCM_ARG1, FUNC_NAME);
+    }
+  SCM_ASSERT (SCM_NULLP (l), imports, SCM_ARG1, FUNC_NAME);
+
+  for (l = body->import_observers; !SCM_NULLP (l); l = SCM_CDR (l))
+    {
+      SCM obs = SCM_CAR (l);
+      SCM_ENVIRONMENT_UNOBSERVE (env, obs);
+    }
+
+  for (l = imports; !SCM_NULLP (l); l = SCM_CDR (l))
+    {
+      SCM imp = SCM_CAR (l);
+      SCM obs = SCM_ENVIRONMENT_OBSERVE (imp, import_environment_observer, env, 1);
+      import_observers = scm_cons (obs, import_observers);
+    }
+
+  body->imports = imports;
+  body->import_observers = import_observers;
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+
+/* export environments
+ *
+ * An export environment restricts an environment to a specified set of
+ * bindings.
+ *
+ * Implementation:  The export environment does no caching at all.  For every
+ * access, the signature is scanned.  The signature that is stored internally
+ * is an alist of pairs (symbol . (mutability)).
+ */
+
+
+struct export_environment {
+  struct core_environments_base base;
+
+  SCM private;
+  SCM private_observer;
+
+  SCM signature;
+};
+
+
+#define EXPORT_ENVIRONMENT(env) \
+  ((struct export_environment *) SCM_CELL_WORD_1 (env))
+
+
+SCM_SYMBOL (symbol_immutable_location, "immutable-location");
+SCM_SYMBOL (symbol_mutable_location, "mutable-location");
+
+
+
+static SCM
+export_environment_ref (SCM env, SCM sym)
+#define FUNC_NAME "export_environment_ref"
+{
+  struct export_environment *body = EXPORT_ENVIRONMENT (env);
+  SCM entry = scm_assq (sym, body->signature);
+
+  if (SCM_FALSEP (entry))
+    return SCM_UNDEFINED;
+  else
+    return SCM_ENVIRONMENT_REF (body->private, sym);
+}
+#undef FUNC_NAME
+
+
+static SCM
+export_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
+{
+  struct export_environment *body = EXPORT_ENVIRONMENT (env);
+  SCM result = init;
+  SCM l;
+
+  for (l = body->signature; !SCM_NULLP (l); l = SCM_CDR (l))
+    {
+      SCM symbol = SCM_CAR (l);
+      SCM value = SCM_ENVIRONMENT_REF (body->private, symbol);
+      if (!SCM_UNBNDP (value))
+	result = (*proc) (data, symbol, value, result);
+    }
+  return result;
+}
+
+
+static SCM
+export_environment_define (SCM env, SCM sym, SCM val)
+#define FUNC_NAME "export_environment_define"
+{
+  return SCM_ENVIRONMENT_BINDING_IMMUTABLE;
+}
+#undef FUNC_NAME
+
+
+static SCM
+export_environment_undefine (SCM env, SCM sym)
+#define FUNC_NAME "export_environment_undefine"
+{
+  return SCM_ENVIRONMENT_BINDING_IMMUTABLE;
+}
+#undef FUNC_NAME
+
+
+static SCM
+export_environment_set_x (SCM env, SCM sym, SCM val)
+#define FUNC_NAME "export_environment_set_x"
+{
+  struct export_environment *body = EXPORT_ENVIRONMENT (env);
+  SCM entry = scm_assq (sym, body->signature);
+
+  if (SCM_FALSEP (entry))
+    {
+      return SCM_UNDEFINED;
+    }
+  else
+    {
+      if (SCM_EQ_P (SCM_CADR (entry), symbol_mutable_location))
+	return SCM_ENVIRONMENT_SET (body->private, sym, val);
+      else
+	return SCM_ENVIRONMENT_LOCATION_IMMUTABLE;
+    }
+}
+#undef FUNC_NAME
+
+
+static SCM
+export_environment_cell (SCM env, SCM sym, int for_write)
+#define FUNC_NAME "export_environment_cell"
+{
+  struct export_environment *body = EXPORT_ENVIRONMENT (env);
+  SCM entry = scm_assq (sym, body->signature);
+
+  if (SCM_FALSEP (entry))
+    {
+      return SCM_UNDEFINED;
+    }
+  else
+    {
+      if (!for_write || SCM_EQ_P (SCM_CADR (entry), symbol_mutable_location))
+	return SCM_ENVIRONMENT_CELL (body->private, sym, for_write);
+      else
+	return SCM_ENVIRONMENT_LOCATION_IMMUTABLE;
+    }
+}
+#undef FUNC_NAME
+
+
+static SCM
+mark_export_environment (SCM env)
+{
+  struct export_environment *body = EXPORT_ENVIRONMENT (env);
+
+  scm_gc_mark (body->private);
+  scm_gc_mark (body->private_observer);
+  scm_gc_mark (body->signature);
+
+  return core_environments_mark (env);
+}
+
+
+static scm_sizet
+free_export_environment (SCM env)
+{
+  core_environments_finalize (env);
+
+  free (EXPORT_ENVIRONMENT (env));
+  return sizeof (struct export_environment);
+}
+
+
+static int
+print_export_environment (SCM type, SCM port, scm_print_state *pstate)
+{
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+
+  scm_puts ("#<export environment ", port);
+  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (">", port);
+
+  return 1;
+}
+
+
+static struct scm_environment_funcs export_environment_funcs = {
+  export_environment_ref,
+  export_environment_fold,
+  export_environment_define,
+  export_environment_undefine,
+  export_environment_set_x,
+  export_environment_cell,
+  core_environments_observe,
+  core_environments_unobserve,
+  mark_export_environment,
+  free_export_environment,
+  print_export_environment
+};
+
+
+void *scm_type_export_environment = &export_environment_funcs;
+
+
+static void
+export_environment_observer (SCM caller, SCM export_env)
+{
+  core_environments_broadcast (export_env);
+}
+
+
+SCM_DEFINE (scm_make_export_environment, "make-export-environment", 2, 0, 0, 
+	    (SCM private, SCM signature),
+	    "Return a new environment exp containing only those bindings\n"
+	    "in private whose symbols are present in signature. The\n"
+	    "private argument must be an environment.\n\n"
+	    "The environment exp binds symbol to location when env does,\n"
+	    "and symbol is exported by signature.\n\n"
+	    "Signature is a list specifying which of the bindings in\n"
+	    "private should be visible in exp. Each element of signature\n"
+	    "should be a list of the form:\n"
+	    "  (symbol attribute ...)\n"
+	    "where each attribute is one of the following:\n"
+	    "* the symbol mutable-location exp should treat the location\n"
+	    "  bound to symbol as mutable. That is, exp will pass calls\n"
+	    "  to env-set! or environment-cell directly through to\n"
+	    "  private.\n"
+	    "* the symbol immutable-location exp should treat the\n"
+	    "  location bound to symbol as immutable. If the program\n"
+	    "  applies environment-set! to exp and symbol, or calls\n"
+	    "  environment-cell to obtain a writable value cell,\n"
+	    "  environment-set! will signal an\n"
+	    "  environment:immutable-location error. Note that, even if\n"
+	    "  an export environment treats a location as immutable, the\n"
+	    "  underlying environment may treat it as mutable, so its\n"
+	    "  value may change.\n"
+	    "It is an error for an element of signature to specify both\n"
+	    "mutable-location and immutable-location. If neither is\n"
+	    "specified, immutable-location is assumed.\n\n"
+	    "As a special case, if an element of signature is a lone\n"
+	    "symbol sym, it is equivalent to an element of the form\n"
+	    "(sym).\n\n"
+	    "All bindings in exp are immutable. If you apply\n"
+	    "environment-define or environment-undefine to exp, Guile\n"
+	    "will signal an environment:immutable-binding error. However,\n"
+	    "notice that the set of bindings in exp may still change, if\n"
+	    "the bindings in private change.")
+#define FUNC_NAME s_scm_make_export_environment
+{
+  scm_sizet size;
+  struct export_environment *body;
+  SCM env;
+
+  SCM_ASSERT (SCM_ENVIRONMENT_P (private), private, SCM_ARG1, FUNC_NAME);
+
+  size = sizeof (struct export_environment);
+  body = scm_must_malloc (size, FUNC_NAME);
+
+  core_environments_preinit (&body->base);
+  body->private = SCM_BOOL_F;
+  body->private_observer = SCM_BOOL_F;
+  body->signature = SCM_BOOL_F;
+
+  env = scm_make_environment (body);
+
+  core_environments_init (&body->base, &export_environment_funcs);
+  body->private = private;
+  body->private_observer
+    = SCM_ENVIRONMENT_OBSERVE (private, export_environment_observer, env, 1);
+  body->signature = SCM_EOL;
+
+  scm_export_environment_set_signature_x (env, signature);
+
+  return env;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_export_environment_p, "export-environment?", 1, 0, 0, 
+	    (SCM object),
+	    "Return #t if object is an export environment, or #f otherwise.")
+#define FUNC_NAME s_scm_export_environment_p
+{
+  return SCM_BOOL (SCM_EXPORT_ENVIRONMENT_P (object));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_export_environment_private, "export-environment-private", 1, 0, 0, 
+	    (SCM env),
+	    "Return the private environment of export environment env.")
+#define FUNC_NAME s_scm_export_environment_private
+{
+  SCM_ASSERT (SCM_EXPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+
+  return EXPORT_ENVIRONMENT (env)->private;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_export_environment_set_private_x, "export-environment-set-private!", 2, 0, 0, 
+	    (SCM env, SCM private),
+	    "Change the private environment of export environment env.")
+#define FUNC_NAME s_scm_export_environment_set_private_x
+{
+  struct export_environment *body;
+
+  SCM_ASSERT (SCM_EXPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_ENVIRONMENT_P (private), private, SCM_ARG2, FUNC_NAME);
+
+  body = EXPORT_ENVIRONMENT (env);
+  SCM_ENVIRONMENT_UNOBSERVE (private, body->private_observer);
+
+  body->private = private;
+  body->private_observer
+    = SCM_ENVIRONMENT_OBSERVE (private, export_environment_observer, env, 1);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_export_environment_signature, "export-environment-signature", 1, 0, 0, 
+	    (SCM env),
+	    "Return the signature of export environment env.")
+#define FUNC_NAME s_scm_export_environment_signature
+{
+  SCM_ASSERT (SCM_EXPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+
+  return EXPORT_ENVIRONMENT (env)->signature;
+}
+#undef FUNC_NAME
+
+
+static SCM
+export_environment_parse_signature (SCM signature, const char* caller)
+{
+  SCM result = SCM_EOL;
+  SCM l;
+
+  for (l = signature; SCM_CONSP (l); l = SCM_CDR (l))
+    {
+      SCM entry = SCM_CAR (l);
+
+      if (SCM_SYMBOLP (entry))
+	{
+	  SCM new_entry = scm_cons2 (entry, symbol_immutable_location, SCM_EOL);
+	  result = scm_cons (new_entry, result);
+	}
+      else
+	{
+	  SCM sym;
+	  SCM new_entry;
+	  int immutable = 0;
+	  int mutable = 0;
+	  SCM mutability;
+	  SCM l2;
+
+	  SCM_ASSERT (SCM_CONSP (entry), entry, SCM_ARGn, caller);
+	  SCM_ASSERT (SCM_SYMBOLP (SCM_CAR (entry)), entry, SCM_ARGn, caller);
+
+	  sym = SCM_CAR (entry);
+
+	  for (l2 = SCM_CDR (entry); SCM_CONSP (l2); l2 = SCM_CDR (l2))
+	    {
+	      SCM attribute = SCM_CAR (l2);
+	      if (SCM_EQ_P (attribute, symbol_immutable_location))
+		immutable = 1;
+	      else if (SCM_EQ_P (attribute, symbol_mutable_location))
+		mutable = 1;
+	      else
+		SCM_ASSERT (0, entry, SCM_ARGn, caller);
+	    }
+	  SCM_ASSERT (SCM_NULLP (l2), entry, SCM_ARGn, caller);
+	  SCM_ASSERT (!mutable || !immutable, entry, SCM_ARGn, caller);
+
+	  if (!mutable && !immutable)
+	    immutable = 1;
+
+	  mutability = mutable ? symbol_mutable_location : symbol_immutable_location;
+	  new_entry = scm_cons2 (sym, mutability, SCM_EOL);
+	  result = scm_cons (new_entry, result);
+	}
+    }
+  SCM_ASSERT (SCM_NULLP (l), signature, SCM_ARGn, caller);
+
+  /* Dirk:FIXME:: Now we know that signature is syntactically correct.  There
+   * are, however, no checks for symbols entered twice with contradicting
+   * mutabilities.  It would be nice, to implement this test, to be able to
+   * call the sort functions conveniently from C.
+   */
+
+  return scm_reverse (result);
+}
+
+
+SCM_DEFINE (scm_export_environment_set_signature_x, "export-environment-set-signature!", 2, 0, 0, 
+	    (SCM env, SCM signature),
+	    "Change the signature of export environment env.")
+#define FUNC_NAME s_scm_export_environment_set_signature_x
+{
+  SCM parsed_sig;
+
+  SCM_ASSERT (SCM_EXPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
+  parsed_sig = export_environment_parse_signature (signature, FUNC_NAME);
+
+  EXPORT_ENVIRONMENT (env)->signature = parsed_sig;
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+
+void
+scm_environments_prehistory ()
+{
+  /* create environment smob */
+  scm_tc16_environment = scm_make_smob_type ("environment", 0);
+  scm_set_smob_mark (scm_tc16_environment, mark_environment);
+  scm_set_smob_free (scm_tc16_environment, free_environment);
+  scm_set_smob_print (scm_tc16_environment, print_environment);
+
+  /* create observer smob */
+  scm_tc16_observer = scm_make_smob_type ("observer", 0);
+  scm_set_smob_mark (scm_tc16_observer, mark_observer);
+  scm_set_smob_free (scm_tc16_observer, free_observer);
+  scm_set_smob_print (scm_tc16_observer, print_observer);
+}
+
+
+void
+scm_init_environments ()
+{
+#include "environments.x"
+}
+
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -40,7 +40,8 @@ guile_LDFLAGS = @DLPREOPEN@
 
 libguile_la_SOURCES =							\
     alist.c arbiters.c async.c backtrace.c boolean.c chars.c		\
-    continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c	\
+    continuations.c debug.c dynl.c dynwind.c environments.c eq.c	\
+    error.c eval.c							\
     evalext.c feature.c fluids.c fports.c gc.c gdbint.c gh_data.c	\
     gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c gh_predicates.c	\
     gsubr.c guardians.c hash.c hashtab.c hooks.c init.c ioext.c		\
@@ -54,7 +55,8 @@ libguile_la_SOURCES =							\
 DOT_X_FILES =								\
     alist.x arbiters.x							\
     async.x backtrace.x boolean.x chars.x continuations.x debug.x	\
-    dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x		\
+    dynl.x dynwind.x environments.x eq.x error.x eval.x evalext.x	\
+    feature.x								\
     fluids.x fports.x gc.x gsubr.x guardians.x hash.x hashtab.x		\
     hooks.x init.x ioext.x iselect.x keywords.x lang.x list.x load.x	\
     macros.x mallocs.x modules.x net_db.x numbers.x objects.x		\
@@ -70,7 +72,8 @@ EXTRA_DOT_X_FILES = debug-malloc.x filesys.x net_db.x posix.x ramap.x	\
 
 DOT_DOC_FILES =								   \
     alist.doc arbiters.doc async.doc backtrace.doc boolean.doc		   \
-    chars.doc continuations.doc debug.doc dynl.doc dynwind.doc eq.doc	   \
+    chars.doc continuations.doc debug.doc dynl.doc dynwind.doc		   \
+    environments.doc eq.doc						   \
     error.doc eval.doc evalext.doc feature.doc fluids.doc fports.doc	   \
     gc.doc gsubr.doc guardians.doc hash.doc hashtab.doc hooks.doc init.doc \
     ioext.doc iselect.doc keywords.doc lang.doc list.doc load.doc	   \
@@ -115,7 +118,8 @@ pkginclude_HEADERS = gh.h
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS =							\
     __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h	\
-    continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h	\
+    continuations.h debug.h dynl.h dynwind.h environments.h eq.h	\
+    error.h eval.h							\
     evalext.h feature.h filesys.h fports.h gc.h gdb_interface.h		\
     gdbint.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h	\
     ioext.h keywords.h lang.h list.h load.h macros.h mallocs.h		\
