@@ -665,7 +665,7 @@
      ((= n 21)	(unmask-signals) (timer-thunk))
      ((= n 20)	(unmask-signals) (gc-thunk))
      ((= n 19)	(unmask-signals) (alarm-thunk))
-     (else (set! the-last-stack (make-stack #f 1 8))
+     (else (set! the-last-stack (make-stack #f 1 7))
 	   (if (not (eq? (stack-id the-last-stack) 'repl-stack))
 	       (set! the-last-stack #f))
 	   (unmask-signals)
