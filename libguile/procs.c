@@ -273,19 +273,19 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 #define FUNC_NAME s_scm_procedure_documentation
 {
   SCM code;
-  SCM_ASSERT (SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T) && SCM_NIMP (proc),
+  SCM_ASSERT (SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T),
 	      proc, SCM_ARG1, FUNC_NAME);
   switch (SCM_TYP7 (proc))
     {
     case scm_tcs_closures:
       code = SCM_CLOSURE_BODY (proc);
-      if (SCM_IMP (SCM_CDR (code)))
+      if (SCM_NULLP (SCM_CDR (code)))
 	return SCM_BOOL_F;
       code = SCM_CAR (code);
-      if (SCM_IMP (code))
-	return SCM_BOOL_F;
       if (SCM_STRINGP (code))
 	return code;
+      else
+	return SCM_BOOL_F;
     default:
       return SCM_BOOL_F;
 /*

@@ -1,3 +1,9 @@
+2003-03-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* procs.c (scm_procedure_documentation): Removed redundant
+	SCM_NIMP test and replaced other calls to SCM_IMP by more explicit
+	predicates.
+
 2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* list.c, list.h (scm_filter, scm_filter_x): New functions.
