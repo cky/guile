@@ -1,3 +1,8 @@
+2004-07-28  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_ctermid): Use an L_ctermid buf on the stack, for thread
+	safety.
+
 2004-07-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* deprecated.h (SCM_FALSEP, SCM_NFALSEP, SCM_BOOLP, SCM_BOOL):
