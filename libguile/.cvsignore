@@ -6,3 +6,5 @@ fd.h
 scmconfig.h
 *.x
 libpath.h
+.deps
+guile-snarf
