@@ -1870,10 +1870,9 @@ Otherwise it is equivalent to @code{setservent stayopen}.
 @subsection Network Sockets and Communication
 
 Socket ports can be created using @code{socket} and @code{socketpair}.
-The ports are initially unbuffered, to
-makes reading and writing to the same port more reliable.
-A buffer can be added to the port using @code{setvbuf},
-@xref{Ports and File Descriptors}.
+The ports are initially unbuffered, to make reading and writing to the
+same port more reliable.  A buffer can be added to the port using
+@code{setvbuf}, @xref{Ports and File Descriptors}.
 
 The convention used for "host" vs "network" addresses is that addresses
 are always held in host order at the Scheme level.  The procedures in
