@@ -228,7 +228,7 @@ scm_wrong_type_arg (const char *subr, int pos, SCM bad_value)
 {
   scm_error (scm_arg_type_key,
 	     subr,
-	     (pos == 0) ? "Wrong type argument: ~S"
+	     (pos == 0) ? "Wrong type: ~S"
 	     : "Wrong type argument in position ~A: ~S",
 	     (pos == 0) ? scm_list_1 (bad_value)
 	     : scm_list_2 (scm_from_int (pos), bad_value),
