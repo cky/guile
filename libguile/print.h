@@ -49,11 +49,12 @@
 
 extern scm_option scm_print_opts[];
 
-#define PRINT_PROCNAMES  scm_print_opts[0].val
-#define N_PRINT_OPTIONS 1
+#define SCM_PRINT_PROCNAMES_P	((int) scm_print_opts[0].val)
+#define SCM_PRINT_CLOSURE	((SCM) scm_print_opts[1].val)
+#define SCM_N_PRINT_OPTIONS 2
 
 #ifdef __STDC__
-extern SCM scm_print_options (SCM new_values);
+extern SCM scm_print_options (SCM setting);
 extern void scm_intprint (long n, int radix, SCM port);
 extern void scm_ipruk (char *hdr, SCM ptr, SCM port);
 extern void scm_iprlist (char *hdr, SCM exp, char tlr, SCM port, int writing);

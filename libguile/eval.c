@@ -801,7 +801,7 @@ scm_m_define (x, env)
     {
       x = evalcar (x, env);
 #ifdef DEBUG_EXTENSIONS
-      if (RECORD_PROCNAMES && SCM_NIMP (x) && SCM_CLOSUREP (x))
+      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x) && SCM_CLOSUREP (x))
 	scm_set_procedure_property_x (x, scm_i_name, proc);
 #endif
       arg1 = scm_sym2vcell (proc, env_top_level (env), SCM_BOOL_T);
@@ -1240,10 +1240,10 @@ scm_eval_args (l, env)
 #define PREP_APPLY(proc, args)
 #define ENTER_APPLY
 #define RETURN(x) return x;
-#ifdef NO_CEVAL_STACK_CHECK
-# ifdef STACK_CHECK
-#  undef STACK_CHECK
-# endif
+#ifdef STACK_CHECKING
+#ifndef NO_CEVAL_STACK_CHECKING
+#define EVAL_STACK_CHECKING
+#endif
 #endif
 
 #else /* !DEVAL */
@@ -1258,13 +1258,13 @@ scm_eval_args (l, env)
 #undef ENTER_APPLY
 #define ENTER_APPLY \
 {\
-  SETARGSREADY (debug);\
+  SCM_SET_ARGSREADY (debug);\
   if (CHECK_APPLY)\
-    if (APPLY_FRAME || (TRACE && PROCTRACEP (proc)))\
+    if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && PROCTRACEP (proc)))\
       {\
-	SCM tmp, tail = TRACEDFRAMEP (debug) ? SCM_BOOL_T : SCM_BOOL_F;\
-	SETTRACEDFRAME (debug);\
-	if (CHEAPTRAPS)\
+	SCM tmp, tail = SCM_TRACED_FRAME_P (debug) ? SCM_BOOL_T : SCM_BOOL_F;\
+	SCM_SET_TRACED_FRAME (debug);\
+	if (SCM_CHEAPTRAPS_P)\
 	  {\
 	    tmp = scm_make_debugobj ((scm_debug_frame *) &debug);\
 	    scm_ithrow (scm_i_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
@@ -1279,8 +1279,10 @@ scm_eval_args (l, env)
 }
 #undef RETURN
 #define RETURN(e) {proc = (e); goto exit;}
-#ifdef STACK_LIMIT
-# define STACK_CHECK
+#ifdef STACK_CHECKING
+#ifndef EVAL_STACK_CHECKING
+#define EVAL_STACK_CHECKING
+#endif
 #endif
 
 /* scm_ceval_ptr points to the currently selected evaluator.
@@ -1310,23 +1312,30 @@ scm_debug_frame *last_debug_info_frame;
 
 int scm_debug_eframe_size;
 
-int debug_mode, check_entry, check_apply, check_exit;
+int scm_debug_mode, scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 
 scm_option scm_debug_opts[] = {
-  { SCM_OPTION_BOOLEAN, "procnames", 1 },
-  { SCM_OPTION_BOOLEAN, "deval", 0 },
-  { SCM_OPTION_BOOLEAN, "breakpoints", 0 },
-  { SCM_OPTION_BOOLEAN, "trace", 0 },
-  { SCM_OPTION_BOOLEAN, "backtrace", 0 },
-  { SCM_OPTION_INTEGER, "depth", 80 },
-  { SCM_OPTION_INTEGER, "frames", 4 },
-  { SCM_OPTION_BOOLEAN, "cheap", 1 }
+  { SCM_OPTION_BOOLEAN, "cheap", 1,
+    "*Flyweight representation of the stack at traps." },
+  { SCM_OPTION_BOOLEAN, "breakpoints", 0, "*Check for breakpoints." },
+  { SCM_OPTION_BOOLEAN, "trace", 0, "*Trace mode." },
+  { SCM_OPTION_BOOLEAN, "procnames", 1,
+    "Record procedure names at definition." },
+  { SCM_OPTION_BOOLEAN, "backwards", 0,
+    "Display backtrace in anti-chronological order." },
+  { SCM_OPTION_INTEGER, "frames", 2,
+    "Maximum number of tail-recursive frames in backtrace." },
+  { SCM_OPTION_INTEGER, "depth", 80, "Maximal length of backtrace." },
+  { SCM_OPTION_BOOLEAN, "backtrace", 0,
+    "Show backtrace on error (use debugging evaluator)." },
+  { SCM_OPTION_BOOLEAN, "deval", 0, "Use the debugging evaluator." },
+  { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (0 = no check)." }
 };
 
 scm_option scm_evaluator_trap_table[] = {
-  { SCM_OPTION_BOOLEAN, "enter-frame", 0 },
-  { SCM_OPTION_BOOLEAN, "apply-frame", 0 },
-  { SCM_OPTION_BOOLEAN, "exit-frame", 0 }
+  { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
+  { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
+  { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." }
 };
 
 SCM
@@ -1416,11 +1425,14 @@ SCM_CEVAL (x, env)
   debug.info = &debug.vect[0];
   last_debug_info_frame = (scm_debug_frame *) &debug;
 #endif
-#ifdef STACK_CHECK
-  if (STACK_OVERFLOW_P ((STACKITEM *) &debug) && scm_check_stack_p)
+#ifdef EVAL_STACK_CHECKING
+  if (SCM_STACK_OVERFLOW_P ((SCM_STACKITEM *) &proc)
+      && scm_stack_checking_enabled_p)
     {
+#ifdef DEVAL
       debug.info->e.exp = x;
       debug.info->e.env = env;
+#endif
       scm_report_stack_overflow ();
     }
 #endif
@@ -1434,11 +1446,11 @@ loop:
 #if 0 /* This will probably never have any practical use ... */
   if (CHECK_EXIT)
     {
-      if (SINGLE_STEP || (TRACE && TRACEDFRAMEP (debug)))
+      if (SINGLE_STEP || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
 	{
 	  SINGLE_STEP = 0;
-	  RESET_DEBUG_MODE;
-	  CLEARTRACEDFRAME (debug);
+	  SCM_RESET_DEBUG_MODE;
+	  SCM_CLEAR_TRACED_FRAME (debug);
 	  scm_make_cont (&t.arg1);
 	  if (!setjmp (SCM_JMPBUF (t.arg1)))
 	    scm_ithrow (scm_i_exit_tail, scm_cons (t.arg1, SCM_EOL), 0);
@@ -1446,25 +1458,25 @@ loop:
     }
 nextframe:
 #endif
-  CLEARARGSREADY (debug);
-  if (OVERFLOWP (debug))
+  SCM_CLEAR_ARGSREADY (debug);
+  if (SCM_OVERFLOWP (debug))
     --debug.info;
   else if (++debug.info == (scm_debug_info *) &debug.info)
     {
-      SETOVERFLOW (debug);
+      SCM_SET_OVERFLOW (debug);
       debug.info -= 2;
     }
 start:
   debug.info->e.exp = x;
   debug.info->e.env = env;
   if (CHECK_ENTRY)
-    if (ENTER_FRAME || (BREAKPOINTS && SRCBRKP (x)))
+    if (SCM_ENTER_FRAME_P || (SCM_BREAKPOINTS_P && SRCBRKP (x)))
       {
-	SCM tail = TAILRECP (debug) ? SCM_BOOL_T : SCM_BOOL_F;
-	SETTAILREC (debug);
-	ENTER_FRAME = 0;
-	RESET_DEBUG_MODE;
-	if (CHEAPTRAPS)
+	SCM tail = SCM_TAILRECP (debug) ? SCM_BOOL_T : SCM_BOOL_F;
+	SCM_SET_TAILREC (debug);
+	SCM_ENTER_FRAME_P = 0;
+	SCM_RESET_DEBUG_MODE;
+	if (SCM_CHEAPTRAPS_P)
 	  t.arg1 = scm_make_debugobj ((scm_debug_frame *) &debug);
 	else
 	  {
@@ -1740,7 +1752,7 @@ dispatch:
       x = SCM_CDR (x);
       x = evalcar (x, env);
 #ifdef DEBUG_EXTENSIONS
-      if (RECORD_PROCNAMES && SCM_NIMP (x) && SCM_CLOSUREP (x))
+      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x) && SCM_CLOSUREP (x))
 	scm_set_procedure_property_x (x, scm_i_name, proc);
 #endif
       env = SCM_CAR (env);
@@ -2190,7 +2202,7 @@ evapply:
 	goto cclon;
 #endif
       case scm_tcs_closures:
-	SETARGSREADY (debug);
+	SCM_SET_ARGSREADY (debug);
 	env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)),
 			      debug.info->a.args,
 			      SCM_ENV (proc));
@@ -2219,7 +2231,7 @@ evapply:
 #endif
       case scm_tcs_closures:
 #ifdef DEVAL
-	SETARGSREADY (debug);
+	SCM_SET_ARGSREADY (debug);
 #endif
 	env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)),
 			      scm_cons2 (t.arg1, arg2, scm_eval_args (x, env)),
@@ -2242,12 +2254,12 @@ evapply:
 #ifdef DEVAL
 exit:
   if (CHECK_EXIT)
-    if (EXIT_FRAME || (TRACE && TRACEDFRAMEP (debug)))
+    if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
       {
-	EXIT_FRAME = 0;
-	RESET_DEBUG_MODE;
-	CLEARTRACEDFRAME (debug);
-	if (CHEAPTRAPS)
+	SCM_EXIT_FRAME_P = 0;
+	SCM_RESET_DEBUG_MODE;
+	SCM_CLEAR_TRACED_FRAME (debug);
+	if (SCM_CHEAPTRAPS_P)
 	  t.arg1 = scm_make_debugobj ((scm_debug_frame *) &debug);
 	else
 	  {
@@ -2384,12 +2396,12 @@ SCM_APPLY (proc, arg1, args)
 #ifdef DEVAL
   scm_debug_frame debug;
   debug.prev = last_debug_info_frame;
-  debug.status = APPLYFRAME;
+  debug.status = SCM_APPLYFRAME;
   debug.vect[0].a.proc = proc;
   debug.vect[0].a.args = SCM_EOL;
   last_debug_info_frame = &debug;
 #else
-  if (DEBUGGINGP)
+  if (SCM_DEBUGGINGP)
     return scm_dapply (proc, arg1, args);
 #endif
 #endif
@@ -2412,12 +2424,12 @@ SCM_APPLY (proc, arg1, args)
     }
 #ifdef DEVAL
   debug.vect[0].a.args = scm_cons (arg1, args);
-  if (ENTER_FRAME)
+  if (SCM_ENTER_FRAME_P)
     {
       SCM tmp;
-      ENTER_FRAME = 0;
-      RESET_DEBUG_MODE;
-      if (CHEAPTRAPS)
+      SCM_ENTER_FRAME_P = 0;
+      SCM_RESET_DEBUG_MODE;
+      if (SCM_CHEAPTRAPS_P)
 	tmp = scm_make_debugobj ((scm_debug_frame *) &debug);
       else
 	{
@@ -2559,12 +2571,12 @@ tail:
 #ifdef DEVAL
 exit:
   if (CHECK_EXIT)
-    if (EXIT_FRAME || (TRACE && TRACEDFRAMEP (debug)))
+    if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
       {
-	EXIT_FRAME = 0;
-	RESET_DEBUG_MODE;
-	CLEARTRACEDFRAME (debug);
-	if (CHEAPTRAPS)
+	SCM_EXIT_FRAME_P = 0;
+	SCM_RESET_DEBUG_MODE;
+	SCM_CLEAR_TRACED_FRAME (debug);
+	if (SCM_CHEAPTRAPS_P)
 	  arg1 = scm_make_debugobj ((scm_debug_frame *) &debug);
 	else
 	  {

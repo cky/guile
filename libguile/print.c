@@ -90,10 +90,13 @@ char *scm_isymnames[] =
 
 #ifdef DEBUG_EXTENSIONS
 scm_option scm_print_opts[] = {
-  { SCM_OPTION_BOOLEAN, "procnames", 0 },
+  { SCM_OPTION_BOOLEAN, "procnames", 0,
+    "Print names instead of closures." },
+  { SCM_OPTION_SCM, "closure-hook", SCM_BOOL_F,
+    "Procedure used to print closures." }
 };
 
-SCM_PROC (s_print_options, "print-options", 0, 1, 0, scm_print_options);
+SCM_PROC (s_print_options, "print-options-interface", 0, 1, 0, scm_print_options);
 #ifdef __STDC__
 SCM
 scm_print_options (SCM new_values)
@@ -103,10 +106,10 @@ scm_print_options (new_values)
      SCM new_values;
 #endif
 {
-  SCM ans = scm_change_options (new_values,
-				scm_print_opts,
-				N_PRINT_OPTIONS,
-				s_print_options);
+  SCM ans = scm_options (new_values,
+			 scm_print_opts,
+			 SCM_N_PRINT_OPTIONS,
+			 s_print_options);
   return ans;
 }
 #endif
@@ -184,7 +187,7 @@ taloop:
 	  break;
 	case scm_tcs_closures:
 #ifdef DEBUG_EXTENSIONS
-	  if (PRINT_PROCNAMES)
+	  if (SCM_PRINT_PROCNAMES_P)
 	    {
 	      SCM name;
 	      name = scm_procedure_property (exp, scm_i_name);
@@ -589,7 +592,7 @@ scm_init_print ()
 #endif
 {
 #ifdef DEBUG_EXTENSIONS
-  scm_init_opts (scm_print_options, scm_print_opts, N_PRINT_OPTIONS);
+  scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
 #endif
 #include "print.x"
 }
