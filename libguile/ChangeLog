@@ -1,3 +1,9 @@
+1999-08-30  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Duplicated the method dispatch code at the
+	SCM_IM_DISPATCH form instead of calling scm_mcache_lookup_cmethod
+	since that cuts down the time for type dispatch by 50%.
+
 1999-08-30  James Blandy  <jimb@mule.m17n.org>
 
 	* gh_data.c (gh_set_substr): Revert change of 1999-08-29; bcopy is
