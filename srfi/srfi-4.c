@@ -1,6 +1,6 @@
 /* srfi-4.c --- Homogeneous numeric vector datatypes.
  *
- * 	Copyright (C) 2001 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -73,7 +73,7 @@ int scm_tc16_uvec = 0;
 
 
 /* This array maps type tags to the size of the elements.  */
-static int uvec_sizes[10] = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8};
+static const int uvec_sizes[10] = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8};
 
 
 #if SCM_HAVE_T_INT64
