@@ -351,7 +351,7 @@ static size_t
 rstate_free (SCM rstate)
 {
   free (SCM_RSTATE (rstate));
-  return scm_the_rng.rstate_size;
+  return 0;
 }
 
 /*
