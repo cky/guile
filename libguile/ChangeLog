@@ -16,6 +16,9 @@
 
 	* continuations.h (SCM_SETJMPBUF): Cast second arg into SCM.
 
+	* continuations.c (scm_make_cont): Removed cast of size_t into
+	long.
+
 	* symbols.h (SCM_SETCHARS): Cast second arg into SCM.
 
 2000-03-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
