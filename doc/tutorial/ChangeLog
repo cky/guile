@@ -1,3 +1,13 @@
+2002-07-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile-tut.texi (Jump Start): Apply patch from M. Luedde on use
+	of tail recursion to avoid stack overflow (with minor editing).
+
+2002-07-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile-tut.texi (Jump Start): 
+	(Jump Start): 
+
 2001-11-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile-tut.texi (History of Guile and its motivations): Update

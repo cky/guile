@@ -99,6 +99,7 @@ by the author.
 * Type Index::
 @end menu
 
+
 @node Jump Start
 @chapter Jump Start
 
@@ -106,8 +107,8 @@ by the author.
 Before giving an overview of Guile, I present some simple commands and
 programs that you can type to get going immediately.
 
-Start by invoking the Guile interpreter (usually you do this by just
-typing @code{guile}).  Then type (or paste) the following expressions at
+Start by invoking the Guile interpreter.  Usually you do this by just
+typing @code{guile}.  Then type (or paste) the following expressions at
 the prompt; the interpreter's response is preceded (in this manual) by
 @result{}.
 
@@ -118,11 +119,26 @@ the prompt; the interpreter's response is preceded (in this manual) by
 (+ 20 35)
 @result{} 55
 (define (recursive-factorial n)
-         (if (= n 0)
-             1
-            (* n (recursive-factorial (- n 1)))))
+  (if (zero? n)
+      1
+      (* n (recursive-factorial (- n 1)))))
 (recursive-factorial 5)
 @result{} 120
+(quit)
+@end lisp
+
+In this example we did some simple arithmetic @code{(+ 20 35)} and got
+the answer @code{55}.  Then we coded the classic (and rather wasteful)
+factorial algorithm and computed the factorial of @code{55}.  Finally we
+quit with @code{(quit)}.
+
+@cindex bignumbers
+We can find out about some of Scheme's nice features by asking for the
+factorial of some big number, say @code{500}.  On some systems the
+correct answer will be returned (I do not indicate calling and leaving
+the guile session anymore).
+
+@lisp
 (recursive-factorial 500)
 @result{} 1220136825991110068701238785423046926253574342803192842192413588
    3858453731538819976054964475022032818630136164771482035841633787
@@ -142,15 +158,35 @@ the prompt; the interpreter's response is preceded (in this manual) by
    3896881639487469658817504506926365338175055478128640000000000000
    0000000000000000000000000000000000000000000000000000000000000000
    00000000000000000000000000000000000000000000000
-<control-D>
 @end lisp
 
-In this example we did some simple arithmetic @code{(+ 20 35)} and got
-the answer @code{55}.  Then we coded the classic (and rather wasteful)
-factorial algorithm, and got a glimpse of Scheme's nice
-@emph{bignumbers} by asking for the factorial of 500.  Then we quit
-with @code{(quit)}.
-@cindex bignumbers
+The result is an example of Scheme's @emph{bignumbers}.  However, there
+are operating environments that provide (by default) too little stack
+space.  They will instead produce an error message like this:
+
+@lisp
+(recursive-factorial 500)
+@print{}
+ERROR: Stack overflow
+ABORT: (stack-overflow)
+@end lisp
+
+Rather than enlarging the system's stack, we can implement the algorithm
+such that it does not consume increasing stack space.  This is called a
+@emph{tail recursive} implementation.  The following definition is tail
+recursive and so should work on all systems.
+
+@lisp
+(define (tail-recursive-factorial n)
+  (define (loop k l)
+    (if (zero? k) l
+	(loop (- k 1) (* k l))))
+  (loop n 1))
+
+(tail-recursive-factorial 500)
+@result{} 1220136825991110068701238785423046926253574342803192842192413588
+        ;; ... skipped
+@end lisp
 
 This is the most basic use of Guile: a simple Scheme interpreter.  In
 the rest of this tutorial I will show you how Guile has many facets: it
