@@ -75,10 +75,10 @@ fi
 #detect automake version
 
 
-# configure.in reqs automake-1.6; try to find it
-for suf in "-1.6" "1.6" ""  false; do
+# configure.in requires particular automake; try to find it
+for suf in "-1.7" "1.7" "-1.6" "1.6" ""  false; do
   version=`automake$suf --version 2>/dev/null | head -1 | awk '{print $NF}' | awk -F. '{print $1 * 10 + $2}'`
-  if test "0$version" -eq 16; then
+  if test "0$version" -eq 17 -o "0$version" -eq 16; then
     automake=automake$suf
     break
   fi
@@ -88,7 +88,6 @@ if test -z "$automake"; then
     echo "ERROR: Please install automake 1.6.x"
     exit 1
 fi
-
 
 ################################################################
 $autoheader

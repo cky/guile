@@ -1,3 +1,7 @@
+2002-10-13  Gary Houston  <ghouston@arglist.com>
+
+	* autogen.sh (ac_version): try automake 1.7 too.
+
 2002-10-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* autogen.sh: Make sure that $autoheader is always set.  When we
