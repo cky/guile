@@ -6,7 +6,7 @@
 
 @page
 @node GH
-@chapter GH: A Portable C to Scheme Interface
+@section GH: A Portable C to Scheme Interface
 @cindex libguile - gh
 @cindex gh
 @cindex gh - reference manual
@@ -39,7 +39,7 @@ the same result using the scm interface.
 
 
 @node GH deprecation
-@section Why the GH Interface is Now Deprecated
+@subsection Why the GH Interface is Now Deprecated
 
 Historically, the GH interface was the product of a practical problem
 and a neat idea.  The practical problem was that the interface of the
@@ -82,7 +82,7 @@ this as part of the core Guile project.
 
 
 @node gh preliminaries
-@section gh preliminaries
+@subsection gh preliminaries
 
 To use gh, you must have the following toward the beginning of your C
 source:
@@ -98,7 +98,7 @@ interpreter, you will have to add more libraries.
 
 
 @node Data types and constants defined by gh
-@section Data types and constants defined by gh
+@subsection Data types and constants defined by gh
 @cindex libguile - data types
 
 The following C constants and data types are defined in gh:
@@ -136,7 +136,7 @@ numbers of arguments, such as @code{gh_list()}.
 
 
 @node Starting and controlling the interpreter
-@section Starting and controlling the interpreter
+@subsection Starting and controlling the interpreter
 @cindex libguile - start interpreter
 
 In almost every case, your first @code{gh_} call will be:
@@ -247,7 +247,7 @@ procedures @code{gsl-ran-random}, @code{gsl-ran-gaussian} and so forth.
 
 
 @node Error messages
-@section Error messages
+@subsection Error messages
 @cindex libguile - error messages
 @cindex error messages in libguile
 
@@ -255,7 +255,7 @@ procedures @code{gsl-ran-random}, @code{gsl-ran-gaussian} and so forth.
 
 
 @node Executing Scheme code
-@section Executing Scheme code
+@subsection Executing Scheme code
 @cindex libguile - executing Scheme
 @cindex executing Scheme
 
@@ -286,7 +286,7 @@ closely.
 
 
 @node Defining new Scheme procedures in C
-@section Defining new Scheme procedures in C
+@subsection Defining new Scheme procedures in C
 @cindex libguile - new procedures
 @cindex new procedures
 @cindex procedures, new
@@ -357,7 +357,7 @@ These macros disable and re-enable Scheme's flow control.  They
 
 
 @node Converting data between C and Scheme
-@section Converting data between C and Scheme
+@subsection Converting data between C and Scheme
 @cindex libguile - converting data
 @cindex data conversion
 @cindex converting data
@@ -373,7 +373,7 @@ of type @code{SCM}) and return values of type @code{SCM}.
 @end menu
 
 @node C to Scheme
-@subsection C to Scheme
+@subsubsection C to Scheme
 
 @deftypefun SCM gh_bool2scm (int @var{x})
 Returns @code{#f} if @var{x} is zero, @code{#t} otherwise.
@@ -429,7 +429,7 @@ longs, unsigned longs, floats or doubles at memory location @var{dptr}.
 
 
 @node Scheme to C
-@subsection Scheme to C
+@subsubsection Scheme to C
 
 @deftypefun int gh_scm2bool (SCM @var{obj})
 @deftypefunx {unsigned long} gh_scm2ulong (SCM @var{obj})
@@ -495,7 +495,7 @@ that is, data will be copied as if the destination array was unsigned.
 
 
 @node Type predicates
-@section Type predicates
+@subsection Type predicates
 
 These C functions mirror Scheme's type predicate procedures with one
 important difference.  The C routines return C boolean values (0 and 1)
@@ -544,7 +544,7 @@ Returns 1 if @var{val} is an exact number, 0 otherwise.
 
 
 @node Equality predicates
-@section Equality predicates
+@subsection Equality predicates
 
 These C functions mirror Scheme's equality predicate procedures with one
 important difference.  The C routines return C boolean values (0 and 1)
@@ -580,7 +580,7 @@ Returns 1 if @var{l} is an empty list or pair; 0 otherwise.
 
 
 @node Memory allocation and garbage collection
-@section Memory allocation and garbage collection
+@subsection Memory allocation and garbage collection
 
 @c [FIXME: flesh this out with some description of garbage collection in
 @c scm/guile]
@@ -592,7 +592,7 @@ Returns 1 if @var{l} is an empty list or pair; 0 otherwise.
 
 
 @node Calling Scheme procedures from C
-@section Calling Scheme procedures from C
+@subsection Calling Scheme procedures from C
 
 Many of the Scheme primitives are available in the @code{gh_}
 interface; they take and return objects of type SCM, and one could
@@ -826,11 +826,11 @@ here.
 
 
 @node Mixing gh and scm APIs
-@section Mixing gh and scm APIs
+@subsection Mixing gh and scm APIs
 
 
 @node scm transition summary
-@section Transitioning to the scm Interface
+@subsection Transitioning to the scm Interface
 
 The following table summarizes the available information on how to
 transition from the GH to the scm interface.  Where transitioning is not

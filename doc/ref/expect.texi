@@ -6,7 +6,7 @@
 
 @page
 @node Expect
-@chapter Expect
+@section Expect
 
 The macros in this section are made available with:
 

@@ -6,7 +6,7 @@
 
 @page
 @node Pretty Printing
-@chapter Pretty Printing
+@section Pretty Printing
 
 @c FIXME::martin: Review me!
 
@@ -81,7 +81,7 @@ used by @code{write}, but not by @code{pretty-print}.
 
 @page
 @node Formatted Output
-@chapter Formatted Output
+@section Formatted Output
 
 @c FIXME::martin: Review me!
 
@@ -312,7 +312,7 @@ of the interpreter is not unnecessarily increased.
 
 @page
 @node Rx Regexps
-@chapter The Rx Regular Expression Library
+@section The Rx Regular Expression Library
 
 [FIXME: this is taken from Gary and Mark's quick summaries and should be
 reviewed and expanded.  Rx is pretty stable, so could already be done!]
@@ -445,7 +445,7 @@ Test whether obj is a compiled regular expression.
 
 
 @node File Tree Walk
-@chapter File Tree Walk
+@section File Tree Walk
 @cindex file tree walk
 
 The functions in this section traverse a tree of files and
@@ -622,7 +622,7 @@ use @code{throw} or similar to escape.
 
 
 @node Queues
-@chapter Queues
+@section Queues
 @cindex Queues
 @tindex Queues
 

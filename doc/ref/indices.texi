@@ -25,7 +25,7 @@ This is an alphabetical list of all the procedures and macros in Guile.
 When looking for a particular procedure, please look under its Scheme
 name as well as under its C name.  The C name can be constructed from
 the Scheme names by a simple transformation described in the section
-@xref{Transforming Scheme name to C name}.
+@xref{API Overview}.
 
 @printindex fn
 
@@ -42,7 +42,7 @@ constants in Guile.
 When looking for a particular variable or constant, please look under
 its Scheme name as well as under its C name.  The C name can be
 constructed from the Scheme names by a simple transformation described
-in the section @xref{Transforming Scheme name to C name}.
+in the section @xref{API Overview}.
 
 @printindex vr
 

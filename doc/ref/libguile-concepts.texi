@@ -1,0 +1,379 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@page
+@node General Libguile Concepts
+@section General concepts for using libguile
+
+When you want to embed the Guile Scheme interpreter into your program,
+you need to link it against the @file{libguile} library (@pxref{Linking
+Programs With Guile}).  Once you have done this, your C code has access
+to a number of data types and functions that can be used to invoke the
+interpreter, or make new functions that you have written in C available
+to be called from Scheme code, among other things.
+
+Scheme is different from C in a number of significant ways, and Guile
+tries to make the advantages of Scheme available to C as well.  Thus, in
+addition to a Scheme interpreter, libguile also offers dynamic types,
+garbage collection, continuations, arithmetic on arbitrary sized
+numbers, and other things.
+
+The two fundamental concepts are dynamic types and garbage collection.
+You need to understand how libguile offers them to C programs in order
+to use the rest of libguile.  Also, the more general control flow of
+Scheme caused by continuations needs to be dealt with.
+
+@menu
+* Dynamic Types::               Dynamic Types.
+* Garbage Collection::          Garbage Collection.
+* Control Flow::                Control Flow.
+@end menu
+
+@node Dynamic Types
+@subsection Dynamic Types
+
+Scheme is a dynamically-typed language; this means that the system
+cannot, in general, determine the type of a given expression at compile
+time.  Types only become apparent at run time.  Variables do not have
+fixed types; a variable may hold a pair at one point, an integer at the
+next, and a thousand-element vector later.  Instead, values, not
+variables, have fixed types.
+
+In order to implement standard Scheme functions like @code{pair?} and
+@code{string?} and provide garbage collection, the representation of
+every value must contain enough information to accurately determine its
+type at run time.  Often, Scheme systems also use this information to
+determine whether a program has attempted to apply an operation to an
+inappropriately typed value (such as taking the @code{car} of a string).
+
+Because variables, pairs, and vectors may hold values of any type,
+Scheme implementations use a uniform representation for values --- a
+single type large enough to hold either a complete value or a pointer
+to a complete value, along with the necessary typing information.
+
+In Guile, this uniform representation of all Scheme values is the C type
+@code{SCM}.  This is an opaque type and its size is typically equivalent
+to that of a pointer to @code{void}.  Thus, @code{SCM} values can be
+passed around efficiently and they take up reasonably little storage on
+their own.
+
+The most important rule is: You never access a @code{SCM} value
+directly; you only pass it to functions or macros defined in libguile.
+
+As an obvious example, although a @code{SCM} variable can contain
+integers, you can of course not compute the sum of two @code{SCM} values
+by adding them with the C @code{+} operator.  You must use the libguile
+function @code{scm_sum}.
+
+Less obvious and therefore more important to keep in mind is that you
+also cannot directly test @code{SCM} values for trueness.  In Scheme,
+the value @code{#f} is considered false and of course a @code{SCM}
+variable can represent that value.  But there is no guarantee that the
+@code{SCM} representation of @code{#f} looks false to C code as well.
+You need to use @code{scm_is_true} or @code{scm_is_false} to test a
+@code{SCM} value for trueness or falseness, respectively.
+
+You also can not directly compare two @code{SCM} values to find out
+whether they are identical (that is, whether they are @code{eq?} in
+Scheme terms).  You need to use @code{scm_is_eq} for this.
+
+The one exception is that you can directly assign a @code{SCM} value to
+a @code{SCM} variable by using the C @code{=} operator.
+
+The following (contrieved) example shows how to do it right.  It
+implements a function of two arguments (@var{a} and @var{flag}) that
+returns @var{a}+1 if @var{flag} is true, else it returns @var{a}
+unchanged.
+
+@example
+SCM
+my_incrementing_function (SCM a, SCM flag)
+@{
+  SCM result;
+
+  if (scm_is_true (flag))
+    result = scm_sum (a, scm_from_int (1));
+  else
+    result = a;
+
+  return result;
+@}
+@end example
+
+Often, you need to convert between @code{SCM} values and approriate C
+values.  For example, we needed to convert the integer @code{1} to its
+@code{SCM} representation in order to add it to @var{a}.  Libguile
+provides many function to do these conversions, both from C to
+@code{SCM} and from @code{SCM} to C.
+
+The conversion functions follow a common naming pattern: those that make
+a @code{SCM} value from a C value have names of the form
+@code{scm_from_@var{type} (@dots{})} and those that convert a @code{SCM}
+value to a C value use the form @code{scm_to_@var{type} (@dots{})}.
+
+However, it is best to avoid converting values when you can.  When you
+must combine C values and @code{SCM} values in a computation, it is
+often better to convert the C values to @code{SCM} values and do the
+computation by using libguile functions than to the other way around
+(converting @code{SCM} to C and doing the computation some other way).
+
+As a simple example, consider this version of
+@code{my_incrementing_function} from above:
+
+@example
+SCM
+my_other_incrementing_function (SCM a, SCM flag)
+@{
+  int result;
+
+  if (scm_is_true (flag))
+    result = scm_to_int (a) + 1;
+  else
+    result = scm_to_int (a);
+
+  return scm_from_int (result);
+@}
+@end example
+
+This version is much less general than the original one: it will only
+work for values @var{A} that can fit into a @code{int}.  The original
+function will work for all values that Guile can represent and that
+@code{scm_sum} can understand, including integers bigger than @code{long
+long}, floating point numbers, complex numbers, and new numerical types
+that have been added to Guile by third-party libraries.
+
+Also, computing with @code{SCM} is not necessarily inefficient.  Small
+integers will be encoded directly in the @code{SCM} value, for example,
+and do not need any additional memory on the heap.  See @ref{Data
+Representation} to find out the details.
+
+Some special @code{SCM} values are available to C code without needing
+to convert them from C values:
+
+@multitable {Scheme value} {C representation}
+@item Scheme value @tab C representation
+@item @nicode{#f}  @tab @nicode{SCM_BOOL_F}
+@item @nicode{#t}  @tab @nicode{SCM_BOOL_T}
+@item @nicode{()}  @tab @nicode{SCM_EOL}
+@end multitable
+
+In addition to @code{SCM}, Guile also defines the related type
+@code{scm_t_bits}.  This is an unsigned integral type of sufficient
+size to hold all information that is directly contained in a
+@code{SCM} value.  The @code{scm_t_bits} type is used internally by
+Guile to do all the bit twiddling explained in @ref{Data
+Representation}, but you will encounter it occasionally in low-level
+user code as well.
+
+
+@node Garbage Collection
+@subsection Garbage Collection
+
+As explained above, the @code{SCM} type can represent all Scheme values.
+Some values fit entirely into a @code{SCM} value (such as small
+integers), but other values require additional storage in the heap (such
+as strings and vectors).  This additional storage is managed
+automatically by Guile.  You don't need to explicitely deallocate it
+when a @code{SCM} value is no longer used.
+
+Two things must be guaranteed so that Guile is able to manage the
+storage automatically: it must know about all blocks of memory that have
+ever been allocated for Scheme values, and it must know about all Scheme
+values that are still being used.  Given this knowledge, Guile can
+periodically free all blocks that have been allocated but are not used
+by any active Scheme values.  This activity is called @dfn{garbage
+collection}.
+
+It is easy for Guile to remember all blocks of memory that is has
+allocated for use by Scheme values, but you need to help it with finding
+all Scheme values that are in use by C code.
+
+You do this when writing a SMOB mark function, for example
+(@pxref{Garbage Collecting Smobs}).  By calling this function, the
+garbage collector learns about all references that your SMOB has to
+other @code{SCM} values.
+
+Other references to @code{SCM} objects, such as global variables of type
+@code{SCM} or other random data structures in the heap that contain
+fields of type @code{SCM}, can be made visible to the garbage collector
+by calling the functions @code{scm_gc_protect} or
+@code{scm_permanent_object}.  You normally use these funtions for long
+lived objects such as a hash table that is stored in a global variable.
+For temporary references in local variables or function arguments, using
+these functions would be too expensive.
+
+These references are handled differently: Local variables (and function
+arguments) of type @code{SCM} are automatically visible to the garbage
+collector.  This works because the collector scans the stack for
+potential references to @code{SCM} objects and considers all referenced
+objects to be alive.  The scanning considers each and every word of the
+stack, regardless of what it is actually used for, and then decides
+whether it could possible be a reference to a @code{SCM} object.  Thus,
+the scanning is guaranteed to find all actual references, but it might
+also find words that only accidentally look like references.  These
+`false positives' might keep @code{SCM} objects alive that would
+otherwise be considered dead.  While this might waste memory, keeping an
+object around longer than it strictly needs to is harmless.  This is why
+this technique is called ``conservative garbage collection''.  In
+practice, the wasted memory seems to be no problem.
+
+The stack of every thread is scanned in this way and the registers of
+the CPU and all other memory locations where local variables or function
+parameters might show up are included in this scan as well.
+
+The consequence of the conservative scanning is that you can just
+declare local variables and function parameters of type @code{SCM} and
+be sure that the garbage collector will not free the corresponding
+objects.
+
+However, a local variable or function parameter is only protected as
+long as it is really on the stack (or in some register).  As an
+optimization, the C compiler might reuse its location for some other
+value and the @code{SCM} object would no longer be protected.  Normally,
+this leads to exactly the right behabvior: the compiler will only
+overwrite a reference when it is no longer needed and thus the object
+becomes unprotected precisely when the reference disappears, just as
+wanted.
+
+There are situations, however, where a @code{SCM} object needs to be
+around longer than its reference from a local variable or function
+parameter.  This happens, for example, when you retrieve the array of
+characters from a Scheme string and work on that array directly.  The
+reference to the @code{SCM} string object might be dead after the
+character array has been retrieved, but the array itself is still in use
+and thus the string object must be protected.  The compiler does not
+know about this connection and might overwrite the @code{SCM} reference
+too early.
+
+To get around this problem, you can use @code{scm_remember_upto_here_1}
+and its cousins.  It will keep the compiler from overwriting the
+reference.  For a typical example of its use, see @ref{Remembering
+During Operations}.
+
+@node Control Flow
+@subsection Control Flow
+
+Scheme has a more general view of program flow than C, both locally and
+non-locally.
+
+Controlling the local flow of control involves things like gotos, loops,
+calling functions and returning from them.  Non-local control flow
+refers to situations where the program jumps across one or more levels
+of function activations without using the normal call or return
+operations.
+
+The primitive means of C for local control flow is the @code{goto}
+statement, together with @code{if}.  Loops done with @code{for},
+@code{while} or @code{do} could in principle be rewritten with just
+@code{goto} and @code{if}.  In Scheme, the primitive means for local
+control flow is the @emph{function call} (together with @code{if}).
+Thus, the repetition of some computation in a loop is ultimately
+implemented by a function that calls itself, that is, by recursion.
+
+This approach is theoretically very powerful since it is easier to
+reason formally about recursion than about gotos.  In C, using
+recursion exclusively would not be practical, tho, since it would eat
+up the stack very quickly.  In Scheme, however, it is practical:
+function calls that appear in a @dfn{tail position} do not use any
+additional stack space.
+
+A function call is in a tail position when it is the last thing the
+calling function does.  The value returned by the called function is
+immediately returned from the calling function.  In the following
+example, the call to @code{bar-1} is in a tail position, while the
+call to @code{bar-2} is not.  (The call to @code{1-} in @code{foo-2}
+is in a tail position, tho.)
+
+@lisp
+(define (foo-1 x)
+  (bar-1 (1- x)))
+
+(define (foo-2 x)
+  (1- (bar-2 x)))
+@end lisp
+
+Thus, when you take care to recurse only in tail positions, the
+recursion will only use constant stack space and will be as good as a
+loop constructed from gotos.
+
+Scheme offers a few syntactic abstractions (@code{do} and @dfn{named}
+@code{let}) that make writing loops slightly easier.
+
+But only Scheme functions can call other functions in a tail position:
+C functions can not.  This matters when you have, say, two functions
+that call each other recursively to form a common loop.  The following
+(unrealistic) example shows how one might go about determing whether a
+non-negative integer @var{n} is even or odd.
+
+@lisp
+(define (my-even? n)
+  (cond ((zero? n) #t)
+        (else (my-odd? (1- n)))))
+
+(define (my-odd? n)
+  (cond ((zero? n) #f)
+        (else (my-even? (1- n)))))
+@end lisp
+
+Because the calls to @code{my-even?} and @code{my-odd?} are in tail
+positions, these two procedures can be applied to arbitrary large
+integers without overflowing the stack.  (They will still take a lot
+of time, of course.)
+
+However, when one or both of the two procedures would be rewritten in
+C, it could no longer call its companion in a tail position (since C
+does not have this concept).  You might need to take this
+consideration into account when deciding which parts of your program
+to write in Scheme and which in C.
+
+In addition to calling functions and returning from them, a Scheme
+program can also exit non-locally from a function so that the control
+flow returns directly to an outer level.  This means that some functions
+might not return at all.
+
+Even more, it is not only possible to jump to some outer level of
+control, a Scheme program can also jump back into the middle of a
+function that has already exited.  This might cause some functions to
+return more than once.
+
+In general, these non-local jumps are done by invoking
+@dfn{continuations} that have previously been captured using
+@code{call-with-current-continuation}.  Guile also offers a slightly
+restricted set of functions, @code{catch} and @code{throw}, that can
+only be used for non-local exits.  This restriction makes them more
+efficient.  Error reporting (with the function @code{error}) is
+implemented by invoking @code{throw}, for example.  The functions
+@code{catch} and @code{throw} belong to the topic of @dfn{exceptions}.
+
+Since Scheme functions can call C functions and vice versa, C code can
+experience the more general control flow of Scheme as well.  It is
+possible that a C function will not return at all, or will return more
+than once.  While C does offer @code{setjmp} and @code{longjmp} for
+non-local exits, it is still an unusual thing for C code.  In
+contrast, non-local exits are very common in Scheme, mostly to report
+errors.
+
+You need to be prepared for the non-local jumps in the control flow
+whenever you use a function from @code{libguile}: it is best to assume
+that any @code{libguile} function might signal an error or run a pending
+signal handler (which in turn can do arbitrary things).
+
+It is often necessary to take cleanup actions when the control leaves a
+function non-locally.  Also, when the control returns non-locally, some
+setup actions might be called for.  For example, the Scheme function
+@code{with-output-to-port} needs to modify the global state so that
+@code{current-output-port} returns the port passed to
+@code{with-output-to-port}.  The global output port needs to be reset to
+its previous value when @code{with-output-to-port} returns normally or
+when it is exited non-locally.  Likewise, the port needs to be set again
+when control enters non-locally.
+
+Scheme code can use the @code{dynamic-wind} function to arrange for the
+setting and resetting of the global state.  C code could use the
+corresponding @code{scm_internal_dynamic_wind} function, but it might
+prefer to use the @dfn{frames} concept that is more natural for C code,
+(@pxref{Frames}).
+

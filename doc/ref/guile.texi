@@ -10,22 +10,19 @@
 
 @copying
 This reference manual documents Guile, GNU's Ubiquitous Intelligent
-Language for Extensions, manual edition @value{MANUAL-EDITION}
+Language for Extensions.  This is edition @value{MANUAL-EDITION}
 corresponding to Guile @value{VERSION}.
 
 Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004 Free Software
 Foundation.
 
-Permission is granted to copy, distribute and/or modify this
-document under the terms of the GNU Free Documentation License,
-Version 1.2 or any later version published by the Free Software
-Foundation; with the no Invariant Sections, with the Front-Cover
-Texts being ``A GNU Manual,'' and with the Back-Cover Texts as in
-(a) below.  A copy of the license is included in the section
-entitled "GNU Free Documentation License".
-
-(a) The FSF's Back-Cover Text is: ``You are free to copy and modify
-this GNU Manual.''
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with the
+no Invariant Sections, with the Front-Cover Texts being ``A GNU
+Manual,'' and with the Back-Cover Text ``You are free to copy and
+modify this GNU Manual.''.  A copy of the license is included in the
+section entitled "GNU Free Documentation License".
 @end copying
 
 
@@ -124,14 +121,14 @@ x
 * Guile Reference: (guile).     The Guile reference manual.
 @end direntry
 
-@setchapternewpage off
+@setchapternewpage odd
 
 @titlepage
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.29 2004-02-18 20:07:19 mvo Exp $
+@c @subtitle $Id: guile.texi,v 1.30 2004-04-21 14:32:24 mvo Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
@@ -151,7 +148,7 @@ x
 @set example-dir doc/examples
 
 @ifnottex
-@node Top, Contributors, (dir), (dir)
+@node Top, Preface, (dir), (dir)
 @top The Guile Reference Manual
 
 @insertcopying
@@ -159,78 +156,20 @@ x
 @end ifnottex
 
 @menu
-Preface
 
-* Contributors::                Contributors to this manual.
-* Guile License::               Conditions for copying and using Guile.
-* Manual Layout::               How to read the rest of this manual.
-* Manual Conventions::          Conventional terminology.
+* Preface::
+* Introduction to Guile::
 
-Part I: Introduction to Guile
+* Programming in Scheme::
+* Programming in C::
 
-* What is Guile?::              And what does it do?
-* Whirlwind Tour::              An introductory whirlwind tour.
-* Obtaining and Installing Guile::
-* Reporting Bugs::              Reporting bugs in Guile or this manual.
+* API Reference::
 
-Part II: Writing and Running Guile Scheme
-
-* Running Intro::               Introduction to this part.
-* Guile Scheme::                Guile's implementation of Scheme.
-* Guile Scripting::             How to write Guile scripts.
-* Command Line Handling::       Command line options and arguments.
-* Debugging Features::          Features for debugging errors.
-* Autoconf Support::            Guile-specific configure.in macros.
-* Miscellaneous Tools::         Snarfing, linting, etc.
-* Basic Ideas::                 Basic ideas in Scheme.
-* Further Reading::             Where to find out more about Scheme.
-
-Part III: Guile as an Extension Language
-
-* Programming Intro::           Introduction to this part.
-* Libguile Intro::              Using Guile as an extension language.
-* Programming Overview::        An overview of Guile programming.
-* Data Representation::         Data representation in Guile.
-* GH::                          The deprecated GH interface.
-
-Part IV: Guile API Reference
-
-* Reference Intro::             Introduction to the Guile API reference.
-* API Overview::                Overview of the Guile API.
-* Simple Data Types::           Numbers, strings, booleans and so on.
-* Compound Data Types::         Data types for holding other data.
-* Procedures and Macros::       Procedures and macros.
-* Utility Functions::           General utility functions.
-* Binding Constructs::          Definitions and variable bindings.
-* Control Mechanisms::          Controlling the flow of program execution.
-* Input and Output::            Ports, reading and writing.
-* Read/Load/Eval::              Reading and evaluating Scheme code.
-* Memory Management::           Memory management and garbage collection.
-* Objects::                     Low level object orientation support.
-* Modules::                     Designing reusable code libraries.
-* Scheduling::                  Threads, mutexes, asyncs and dynamic roots.
-* Options and Config::          Configuration, features and runtime options.
-* Translation::                 Support for translating other languages.
-* Debugging::                   Internal debugging interface.
-* Deprecated::                  Features that are planned to disappear.
-
-Part V: Guile Modules
-
-* SLIB::                        Using the SLIB Scheme library.
-* POSIX::                       POSIX system calls and networking.
-* SRFI Support::                Support for various SRFIs.
-* Readline Support::            Module for using the readline library.
-* Value History::               Maintaining a value history in the REPL.
-* Pretty Printing::             Nicely formatting Scheme objects for output.
-* Formatted Output::            The @code{format} procedure.
-* Rx Regexps::                  The Rx regular expression library.
-* File Tree Walk::              Traversing the file system.
-* Queues::                      First-in first-out queuing.
-* Expect::			Controlling interactive programs with Guile.
-* The Scheme shell (scsh)::     Using scsh interfaces in Guile.
+* Guile Modules::
 
 Appendices
 
+* Data Representation::             All the details.
 * GNU Free Documentation License::  The license of this manual.
 
 Indices
@@ -247,16 +186,10 @@ Indices
 
 @include preface.texi
 
-@iftex
-@page
-@unnumbered{Part I: Introduction to Guile}
-@end iftex
-
 @include intro.texi
 
-@page
-@node Running Intro
-@unnumbered Part II: Writing and Running Guile Scheme
+@node Programming in Scheme
+@chapter Programming in Scheme
 
 Guile's core language is Scheme, and an awful lot can be achieved simply
 by using Guile to write and run Scheme programs.  In this part of the
@@ -269,49 +202,108 @@ includes a chapter that presents the basic concepts of the language, and
 gives references to freely available Scheme tutorial material on the
 web.
 
-For detailed reference information on the variables, functions etc. that
-make up Guile's application programming interface (API), please refer to
-Part IV (@pxref{Reference Intro,,Part IV --- Guile API Reference}).
+For detailed reference information on the variables, functions
+etc. that make up Guile's application programming interface (API),
+@xref{API Reference}.
 
+@menu
+* Basic Ideas::                 Basic ideas in Scheme.
+* Guile Scheme::                Guile's implementation of Scheme.
+* Guile Scripting::             How to write Guile scripts.
+* Debugging Features::          Features for finding errors.
+* Further Reading::             Where to find out more about Scheme.
+@end menu
+
+@include scheme-ideas.texi
 @include scheme-intro.texi
 @include scripts.texi
-@include script-getopt.texi
 @include debugging.texi
-@include autoconf.texi
-@include tools.texi
-@include scheme-ideas.texi
 @include scheme-reading.texi
 
-@page
-@node Programming Intro
-@unnumbered Part III: Guile as an Extension Language
+@node Programming in C
+@chapter Programming in C
 
-In this part of the manual, we aim to present a wide ranging picture of
-what it means to use Guile as an application extension language, to
-provide guidance, practical guidelines and tips for @emph{how} to
-program in Guile, and to document the tools that are available to help
-you with your programming.  For detailed reference information on the
-variables, functions etc. that make up Guile's application programming
-interface (API), please refer to Part IV (@pxref{Reference Intro,,Part
-IV --- Guile API Reference}).
+This part of the manual explains the general concepts that you need to
+understand when interfacing to Guile from C.  You will learn about how
+the latent typing of Scheme is embedded into the static typing of C, how
+the garbage collection of Guile is made available to C code, and how
+continuations influence the control flow in a C program.
 
-@include extend.texi
+This knowledge should make it straightforward to add new functions to
+Guile that can be called from Scheme.  Adding new data types is also
+possible and is done by defining @dfn{smobs}.
+
+The @ref{Programming Overview} section of this part contains general
+musings and guidelines about programming with Guile.  It explores
+different ways to design aprogram around Guile, or how to embed Guile
+into existing programs.
+
+There is also a pedagogical yet detailed explanation of how the data
+representation of Guile is implemented, @xref{Data Representation}.
+You don't need to know the details given there to use Guile from C,
+but they are useful when you want to modify Guile itself or when you
+are just curious about how it is all done.
+
+For detailed reference information on the variables, functions
+etc. that make up Guile's application programming interface (API),
+@xref{API Reference}.
+
+@menu
+* Linking Programs With Guile:: More precisely, with the libguile library.
+* Linking Guile with Libraries::  To extend Guile itself. 
+* General Libguile Concepts::   General concepts for using libguile.
+* Defining New Types (Smobs)::  Adding new types to Guile.
+* Function Snarfing::           A way to define new functions.
+* Programming Overview::        An overview of Guile programming.
+@end menu
+
+@include libguile-linking.texi
+@include libguile-extensions.texi
+@include libguile-concepts.texi
+@include libguile-smobs.texi
+@include libguile-snarf.texi
 @include program.texi
-@include data-rep.texi
-@include gh.texi
 
-@page
-@node Reference Intro
-@unnumbered Part IV: Guile API Reference
+@node API Reference
+@chapter API Reference
 
 Guile provides an application programming interface (@dfn{API}) to
 developers in two core languages: Scheme and C.  This part of the manual
 contains reference documentation for all of the functionality that is
 available through both Scheme and C interfaces.
 
+@menu
+* API Overview::                Overview of the Guile API.
+* The @code{SCM} Type::              The fundamental data type for C code.
+* Initialization::              Initializing Guile.
+* Snarfing Macros::             Macros for snarfing initialization actions.
+* Simple Data Types::           Numbers, strings, booleans and so on.
+* Compound Data Types::         Data types for holding other data.
+* Smobs::                       Defining new data types in C.
+* Procedures and Macros::       Procedures and macros.
+* Utility Functions::           General utility functions.
+* Binding Constructs::          Definitions and variable bindings.
+* Control Mechanisms::          Controlling the flow of program execution.
+* Input and Output::            Ports, reading and writing.
+* Read/Load/Eval::              Reading and evaluating Scheme code.
+* Memory Management::           Memory management and garbage collection.
+* Objects::                     Low level object orientation support.
+* Modules::                     Designing reusable code libraries.
+* Scheduling::                  Threads, mutexes, asyncs and dynamic roots.
+* Options and Config::          Configuration, features and runtime options.
+* Translation::                 Support for translating other languages.
+* Debugging::                   Internal debugging interface.
+* Deprecated::                  Features that are planned to disappear.
+* GH::                          The deprecated GH interface.
+@end menu
+
 @include scm.texi
+@include scheme-scm.texi
+@include ref-init.texi
+@include scheme-snarf.texi
 @include scheme-data.texi
 @include scheme-compound.texi
+@include scheme-smobs.texi
 @include scheme-procedures.texi
 @include scheme-utility.texi
 @include scheme-binding.texi
@@ -326,20 +318,37 @@ available through both Scheme and C interfaces.
 @include scheme-translation.texi
 @include scheme-debug.texi
 @include deprecated.texi
+@include gh.texi
 
-@iftex
-@page
-@unnumbered{Part V: Guile Modules}
-@end iftex
+@node Guile Modules
+@chapter Guile Modules
+
+@menu
+* SLIB::                        Using the SLIB Scheme library.
+* POSIX::                       POSIX system calls and networking.
+* getopt-long::                 Command line handling.
+* SRFI Support::                Support for various SRFIs.
+* Readline Support::            Module for using the readline library.
+* Value History::               Maintaining a value history in the REPL.
+* Pretty Printing::             Nicely formatting Scheme objects for output.
+* Formatted Output::            The @code{format} procedure.
+* Rx Regexps::                  The Rx regular expression library.
+* File Tree Walk::              Traversing the file system.
+* Queues::                      First-in first-out queuing.
+* Expect::			Controlling interactive programs with Guile.
+* The Scheme shell (scsh)::     Using scsh interfaces in Guile.
+@end menu
 
 @include slib.texi
 @include posix.texi
+@include mod-getopt-long.texi
 @include srfi-modules.texi
 @include repl-modules.texi
 @include misc-modules.texi
 @include expect.texi
 @include scsh.texi
 
+@include data-rep.texi
 @include fdl.texi
 
 @iftex

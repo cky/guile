@@ -6,7 +6,7 @@
 
 @page
 @node Programming Overview
-@chapter An Overview of Guile Programming
+@section An Overview of Guile Programming
 
 Guile is designed as an extension language interpreter that is
 straightforward to integrate with applications written in C (and C++).
@@ -35,7 +35,7 @@ available.
 
 
 @node Extending Dia
-@section How One Might Extend Dia Using Guile
+@subsection How One Might Extend Dia Using Guile
 
 Dia is a free software program for drawing schematic diagrams like flow
 charts and floor plans (REFFIXME).  This section conducts the thought
@@ -55,7 +55,7 @@ applications in general.
 
 
 @node Dia Objective
-@subsection Deciding Why You Want to Add Guile
+@subsubsection Deciding Why You Want to Add Guile
 
 First off, you should understand why you want to add Guile to Dia at
 all, and that means forming a picture of what Dia does and how it does
@@ -107,7 +107,7 @@ current page:
 
 
 @node Dia Steps
-@subsection Four Steps Required to Add Guile
+@subsubsection Four Steps Required to Add Guile
 
 Assuming this objective, four steps are needed to achieve it.
 
@@ -135,7 +135,7 @@ The following subsections expand on these four points in turn.
 
 
 @node Dia Smobs
-@subsection How to Represent Dia Data in Scheme
+@subsubsection How to Represent Dia Data in Scheme
 
 For all but the most trivial applications, you will probably want to
 allow some representation of your domain objects to exist on the Scheme
@@ -268,7 +268,7 @@ For full documentation on defining and using SMOB types, see
 
 
 @node Dia Primitives
-@subsection Writing Guile Primitives for Dia
+@subsubsection Writing Guile Primitives for Dia
 
 Once the details of object representation are decided, writing the
 primitive function code that you need is usually straightforward.
@@ -328,7 +328,7 @@ structure of Guile-enabled code (@pxref{Dia Structure}).
 
 
 @node Dia Hook
-@subsection Providing a Hook for the Evaluation of Scheme Code
+@subsubsection Providing a Hook for the Evaluation of Scheme Code
 
 To make the Guile integration useful, you have to design some kind of
 hook into your application that application users can use to cause their
@@ -348,7 +348,7 @@ calling the @code{scm_c_eval_string} function.
 
 
 @node Dia Structure
-@subsection Top-level Structure of Guile-enabled Dia
+@subsubsection Top-level Structure of Guile-enabled Dia
 
 Let's assume that the pre-Guile Dia code looks structurally like this:
 
@@ -408,7 +408,7 @@ ideal place for this.
 
 
 @node Dia Advanced
-@subsection Going Further with Dia and Guile
+@subsubsection Going Further with Dia and Guile
 
 The steps described so far implement an initial Guile integration that
 already gives a lot of additional power to Dia application users.  But
@@ -521,7 +521,7 @@ such application yet exists; but it'll happen some day @dots{}
 
 
 @node Scheme vs C
-@section Why Scheme is More Hackable Than C
+@subsection Why Scheme is More Hackable Than C
 
 Underlying Guile's value proposition is the assumption that programming
 in a high level language, specifically Guile's implementation of Scheme,
@@ -565,7 +565,7 @@ writing new code in their base implementation languages.
 
 
 @node Testbed Example
-@section Example: Using Guile for an Application Testbed
+@subsection Example: Using Guile for an Application Testbed
 
 As an example of what this means in practice, imagine writing a testbed
 for an application that is tested by submitting various requests (via a
@@ -594,7 +594,7 @@ language from the application.)
 
 
 @node Programming Options
-@section A Choice of Programming Options
+@subsection A Choice of Programming Options
 
 The preceding arguments and example point to a model of Guile
 programming that is applicable in many cases.  According to this model,
@@ -647,7 +647,7 @@ your answers.
 
 
 @node Available Functionality
-@subsection What Functionality is Already Available?
+@subsubsection What Functionality is Already Available?
 
 Suppose, for the sake of argument, that you would prefer to write your
 whole application in Scheme.  Then the API available to you consists of:
@@ -704,19 +704,19 @@ existing C code to the Guile world, see REFFIXME.
 
 
 @node Basic Constraints
-@subsection Functional and Performance Constraints
+@subsubsection Functional and Performance Constraints
 
 
 @node Style Choices
-@subsection Your Preferred Programming Style
+@subsubsection Your Preferred Programming Style
 
 
 @node Program Control
-@subsection What Controls Program Execution?
+@subsubsection What Controls Program Execution?
 
 
 @node User Programming
-@section How About Application Users?
+@subsection How About Application Users?
 
 So far we have considered what Guile programming means for an
 application developer.  But what if you are instead @emph{using} an

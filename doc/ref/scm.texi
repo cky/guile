@@ -6,79 +6,21 @@
 
 @page
 @node API Overview
-@chapter Overview of the Guile API
+@section Overview of the Guile API
 
 Guile's application programming interface (@dfn{API}) makes
 functionality available that an application developer can use in either
 C or Scheme programming.  The interface consists of @dfn{elements} that
 may be macros, functions or variables in C, and procedures, variables,
-syntax or other types of object in Scheme.  Broadly speaking, the
-interface as a whole can be divided into three groups.
+syntax or other types of object in Scheme.
 
-@enumerate
-@item
-Elements that are available equivalently as C functions or Scheme
-procedures.
+Many elements are available to both Scheme and C, in a form that is
+appropriate.  For example, the @code{assq} Scheme procedure is also
+available as @code{scm_assq} to C code.  These elements are documented
+only once, addressing both the Scheme and C aspects of them.
 
-@item
-Elements that are only available as macros, functions or variables for C
-programming.
-
-@item
-Elements that are only available as procedures or other objects in
-Scheme.
-@end enumerate
-
-Functions/procedures in the first group are often known as
-@dfn{primitives}, @dfn{subrs} or @dfn{builtins}.  An example is the
-@code{assq} Scheme procedure, which is also available as @code{scm_assq}
-in C.
-
-Elements in the second and third groups exist because they provide
-additional language-specific benefits in either Scheme or C.  Examples
-are the C macro @code{SCM_CONSP}, which is faster and more convenient in
-C programming than the primitive @code{scm_pair_p}, and the
-procedure-with-setter @code{make-object-property}, which provides a
-more convenient property handling interface in Scheme than the
-primitives on which it is based.
-
-@menu
-* Primitives::                  Identical function for Scheme and C.
-* C Only::                      Elements only available in C.
-* Scheme Only::                 Elements only available in Scheme.
-* Reference Layout::            The layout of this part of the manual.
-@end menu
-
-
-@node Primitives
-@section Identical Function in both Scheme and C
-
-They form the majority of the API, and allow both C and Scheme
-programmers to perform identical operations.
-
-@c @node Scheme Primitives
-@c @chapter Writing Scheme primitives in C
-@c - according to the menu in guile.texi - NJ 2001/1/26
-@c @chapter Relationship between Scheme and C functions
-
-@c Chapter contents contributed by Thien-Thi Nguyen <ttn@gnu.org>.
-
-Scheme procedures marked "primitive functions" have a regular interface
-when calling from C, reflected in two areas: the name of a C function, and
-the convention for passing non-required arguments to this function.
-
-@c Although the vast majority of functions support these relationships,
-@c there are some exceptions.
-
-@menu
-* Transforming Scheme name to C name::
-* Structuring argument lists for C functions::
-@c * Exceptions to the regularity::
-@end menu
-
-
-@node Transforming Scheme name to C name
-@subsection Transforming Scheme name to C name
+The Scheme name of an element is related to its C name in a regular
+way.  Also, a C function takes its parameters in a systematic way.
 
 Normally, the name of a C function can be derived given its Scheme name,
 using some simple textual transformations:
@@ -89,99 +31,82 @@ using some simple textual transformations:
 Replace @code{-} (hyphen) with @code{_} (underscore).
 
 @item
-Replace @code{?} (question mark) with "_p".
+Replace @code{?} (question mark) with @code{_p}.
 
 @item
-Replace @code{!} (exclamation point) with "_x".
+Replace @code{!} (exclamation point) with @code{_x}.
 
 @item
-Replace internal @code{->} with "_to_".
+Replace internal @code{->} with @code{_to_}.
 
 @item
-Replace @code{<=} (less than or equal) with "_leq".
+Replace @code{<=} (less than or equal) with @code{_leq}.
 
 @item
-Replace @code{>=} (greater than or equal) with "_geq".
+Replace @code{>=} (greater than or equal) with @code{_geq}.
 
 @item
-Replace @code{<} (less than) with "_less".
+Replace @code{<} (less than) with @code{_less}.
 
 @item
-Replace @code{>} (greater than) with "_gr".
+Replace @code{>} (greater than) with @code{gr}.
 
 @item
-Replace @code{@@} with "at". [Omit?]
-
-@item
-Prefix with "gh_" (or "scm_" if you are ignoring the gh interface).
-
-@item
-[Anything else?  --ttn, 2000/01/16 15:17:28]
+Prefix with @code{scm_}.
 
 @end itemize
 
-Here is an Emacs Lisp command that prompts for a Scheme function name and
-inserts the corresponding C function name into the buffer.
+@c Here is an Emacs Lisp command that prompts for a Scheme function name and
+@c inserts the corresponding C function name into the buffer.
 
-@example
-(defun insert-scheme-to-C (name &optional use-gh)
-  "Transforms Scheme NAME, a string, to its C counterpart, and inserts it.
-Prefix arg non-nil means use \"gh_\" prefix, otherwise use \"scm_\" prefix."
-  (interactive "sScheme name: \nP")
-  (let ((transforms '(("-"  . "_")
-                      ("?"  . "_p")
-                      ("!"  . "_x")
-                      ("->" . "_to_")
-                      ("<=" . "_leq")
-                      (">=" . "_geq")
-                      ("<"  . "_less")
-                      (">"  . "_gr")
-                      ("@@"  . "at"))))
-    (while transforms
-      (let ((trigger (concat "\\(.*\\)"
-                             (regexp-quote (caar transforms))
-                             "\\(.*\\)"))
-            (sub (cdar transforms))
-            (m nil))
-        (while (setq m (string-match trigger name))
-          (setq name (concat (match-string 1 name)
-                             sub
-                             (match-string 2 name)))))
-      (setq transforms (cdr transforms))))
-  (insert (if use-gh "gh_" "scm_") name))
-@end example
+@c @example
+@c (defun insert-scheme-to-C (name &optional use-gh)
+@c   "Transforms Scheme NAME, a string, to its C counterpart, and inserts it.
+@c Prefix arg non-nil means use \"gh_\" prefix, otherwise use \"scm_\" prefix."
+@c   (interactive "sScheme name: \nP")
+@c   (let ((transforms '(("-"  . "_")
+@c                       ("?"  . "_p")
+@c                       ("!"  . "_x")
+@c                       ("->" . "_to_")
+@c                       ("<=" . "_leq")
+@c                       (">=" . "_geq")
+@c                       ("<"  . "_less")
+@c                       (">"  . "_gr")
+@c                       ("@@"  . "at"))))
+@c     (while transforms
+@c       (let ((trigger (concat "\\(.*\\)"
+@c                              (regexp-quote (caar transforms))
+@c                              "\\(.*\\)"))
+@c             (sub (cdar transforms))
+@c             (m nil))
+@c         (while (setq m (string-match trigger name))
+@c           (setq name (concat (match-string 1 name)
+@c                              sub
+@c                              (match-string 2 name)))))
+@c       (setq transforms (cdr transforms))))
+@c   (insert (if use-gh "gh_" "scm_") name))
+@c @end example
 
+A C function always takes a fixed number of arguments of type
+@code{SCM}, even when the corresponding Scheme function takes a
+variable number.
 
-@node Structuring argument lists for C functions
-@subsection Structuring argument lists for C functions
+For some Scheme functions, some last arguments are optional; the
+corresponding C function must always be invoked with all optional
+arguments specified.  To get the effect as if an argument has not been
+specified, pass @code{SCM_UNDEFINED} as its value.  You can not do
+this for an argument in the middle; when one argument is
+@code{SCM_UNDEFINED} all the ones following it must be
+@code{SCM_UNDEFINED} as well.
 
-The C function's arguments will be all of the Scheme procedure's
-arguments, both required and optional; if the Scheme procedure takes a
-``rest'' argument, that will be a final argument to the C function.  The
-C function's arguments, as well as its return type, will be @code{SCM}.
+Some Scheme functions take an arbitrary number of @emph{rest}
+arguments; the corresponding C function must be invoked with a list of
+all these arguments.  This list is always the last argument of the C
+function.
 
+These two variants can also be combined.
 
-@node C Only
-@section Elements Available Only in C
-
-For C this is usually a matter of better performance (e.g. the
-@code{SCM_CONSP} macro) or of accepting C language types rather than the
-generic @code{SCM}.
-
-
-@node Scheme Only
-@section Elements Available Only in Scheme
-
-
-@node Reference Layout
-@section Reference Material Layout
-
-This part of the reference manual documents all of Guile's core
-Scheme-level language and features in functionally-related groups.
-Where a particular section of the manual includes both R5RS-compliant
-parts and Guile-specific extensions, the text indicates which parts of
-the documentation describe R5RS behaviour and which parts describe Guile
-extensions.
-
-For a quick way of identifying the parts of Guile that implement
-R5RS-compliant features, see the R5RS index: @ref{R5RS Index}.
+The type of the return value of a C function that corresponds to a
+Scheme function is always @code{SCM}.  In the descriptions below,
+types are therefore often omitted bot for the return value and for the
+arguments.

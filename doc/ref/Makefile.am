@@ -23,18 +23,28 @@ AUTOMAKE_OPTIONS = gnu
 
 info_TEXINFOS = guile.texi
 
-guile_TEXINFOS = preface.texi intro.texi program.texi scheme-intro.texi \
-	scheme-ideas.texi scheme-data.texi scheme-procedures.texi \
-	scheme-utility.texi scheme-binding.texi scheme-control.texi \
-	scheme-io.texi scheme-evaluation.texi scheme-memory.texi \
-	scheme-modules.texi scheme-scheduling.texi scheme-options.texi \
-	scheme-translation.texi scheme-debug.texi deprecated.texi \
-	scheme-reading.texi scheme-indices.texi slib.texi posix.texi \
-	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi \
-	debugging.texi indices.texi script-getopt.texi data-rep.texi \
-	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi \
+guile_TEXINFOS = preface.texi intro.texi program.texi			   \
+        scheme-intro.texi scheme-scm.texi scheme-snarf.texi		   \
+        scheme-smobs.texi						   \
+	scheme-ideas.texi scheme-data.texi scheme-procedures.texi	   \
+	scheme-utility.texi scheme-binding.texi scheme-control.texi	   \
+	scheme-io.texi scheme-evaluation.texi scheme-memory.texi	   \
+	scheme-modules.texi scheme-scheduling.texi scheme-options.texi	   \
+	scheme-translation.texi scheme-debug.texi deprecated.texi	   \
+	scheme-reading.texi scheme-indices.texi slib.texi posix.texi	   \
+	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi	   \
+	debugging.texi indices.texi script-getopt.texi data-rep.texi	   \
+	repl-modules.texi srfi-modules.texi				   \
+        misc-modules.texi						   \
 	scheme-compound.texi autoconf.texi autoconf-macros.texi tools.texi \
-	fdl.texi
+	fdl.texi							   \
+        libguile-concepts.texi						   \
+        libguile-smobs.texi						   \
+        libguile-snarf.texi						   \
+        libguile-linking.texi						   \
+        libguile-extensions.texi					   \
+        ref-init.texi							   \
+        mod-getopt-long.texi
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
 

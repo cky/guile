@@ -6,7 +6,7 @@
 
 @page
 @node Simple Data Types
-@chapter Simple Generic Data Types
+@section Simple Generic Data Types
 
 This chapter describes those of Guile's simple data types which are
 primarily used for their role as items of generic data.  By
@@ -15,29 +15,29 @@ containers to hold other data --- i.e.@: pairs, lists, vectors and so on.
 For the documentation of such @dfn{compound} data types, see
 @ref{Compound Data Types}.
 
-One of the great strengths of Scheme is that there is no straightforward
-distinction between ``data'' and ``functionality''.  For example,
-Guile's support for dynamic linking could be described:
+@c One of the great strengths of Scheme is that there is no straightforward
+@c distinction between ``data'' and ``functionality''.  For example,
+@c Guile's support for dynamic linking could be described:
 
-@itemize @bullet
-@item
-either in a ``data-centric'' way, as the behaviour and properties of the
-``dynamically linked object'' data type, and the operations that may be
-applied to instances of this type
+@c @itemize @bullet
+@c @item
+@c either in a ``data-centric'' way, as the behaviour and properties of the
+@c ``dynamically linked object'' data type, and the operations that may be
+@c applied to instances of this type
 
-@item
-or in a ``functionality-centric'' way, as the set of procedures that
-constitute Guile's support for dynamic linking, in the context of the
-module system.
-@end itemize
+@c @item
+@c or in a ``functionality-centric'' way, as the set of procedures that
+@c constitute Guile's support for dynamic linking, in the context of the
+@c module system.
+@c @end itemize
 
-The contents of this chapter are, therefore, a matter of judgment.  By
-@dfn{generic}, we mean to select those data types whose typical use as
-@emph{data} in a wide variety of programming contexts is more important
-than their use in the implementation of a particular piece of
-@emph{functionality}.  The last section of this chapter provides
-references for all the data types that are documented not here but in a
-``functionality-centric'' way elsewhere in the manual.
+@c The contents of this chapter are, therefore, a matter of judgment.  By
+@c @dfn{generic}, we mean to select those data types whose typical use as
+@c @emph{data} in a wide variety of programming contexts is more important
+@c than their use in the implementation of a particular piece of
+@c @emph{functionality}.  The last section of this chapter provides
+@c references for all the data types that are documented not here but in a
+@c ``functionality-centric'' way elsewhere in the manual.
 
 @menu
 * Booleans::                    True/false values.
@@ -52,7 +52,7 @@ references for all the data types that are documented not here but in a
 
 
 @node Booleans
-@section Booleans
+@subsection Booleans
 @tpindex Booleans
 
 The two boolean values are @code{#t} for true and @code{#f} for false.
@@ -145,7 +145,7 @@ sense; return false in the C sense otherwise.
 @end deffn
 
 @node Numbers
-@section Numerical data types
+@subsection Numerical data types
 @tpindex Numbers
 
 Guile supports a rich ``tower'' of numerical types --- integer,
@@ -177,7 +177,7 @@ in Scheme, which is particularly clear and accessible: see
 
 
 @node Numerical Tower
-@subsection Scheme's Numerical ``Tower''
+@subsubsection Scheme's Numerical ``Tower''
 @rnindex number?
 
 Scheme's numerical ``tower'' consists of the following categories of
@@ -249,7 +249,7 @@ The next few subsections document each of Guile's numerical data types
 in detail.
 
 @node Integers
-@subsection Integers
+@subsubsection Integers
 
 @tpindex Integer numbers
 
@@ -313,7 +313,7 @@ Return @code{#t} if @var{x} is an integer number, else @code{#f}.
 
 
 @node Reals and Rationals
-@subsection Real and Rational Numbers
+@subsubsection Real and Rational Numbers
 @tpindex Real numbers
 @tpindex Rational numbers
 
@@ -432,7 +432,7 @@ Return @code{#t} if @var{x} is @samp{+nan.0}, @code{#f} otherwise.
 @end deffn
 
 @node Complex Numbers
-@subsection Complex Numbers
+@subsubsection Complex Numbers
 @tpindex Complex numbers
 
 @rnindex complex?
@@ -473,7 +473,7 @@ rational or integer number.
 
 
 @node Exactness
-@subsection Exact and Inexact Numbers
+@subsubsection Exact and Inexact Numbers
 @tpindex Exact numbers
 @tpindex Inexact numbers
 
@@ -549,7 +549,7 @@ Convert the number @var{z} to its inexact representation.
 
 
 @node Number Syntax
-@subsection Read Syntax for Numerical Data
+@subsubsection Read Syntax for Numerical Data
 
 The read syntax for integers is a string of digits, optionally
 preceded by a minus or plus character, a code indicating the
@@ -631,7 +631,7 @@ The sign is ignored for `not-a-number' and the value is always printed
 as @samp{+nan.0}.
 
 @node Integer Operations
-@subsection Operations on Integer Values
+@subsubsection Operations on Integer Values
 @rnindex odd?
 @rnindex even?
 @rnindex quotient
@@ -705,7 +705,7 @@ Scheme function can take an arbitrary number.
 
 
 @node Comparison
-@subsection Comparison Predicates
+@subsubsection Comparison Predicates
 @rnindex zero?
 @rnindex positive?
 @rnindex negative?
@@ -775,7 +775,7 @@ zero.
 
 
 @node Conversion
-@subsection Converting Numbers To and From Strings
+@subsubsection Converting Numbers To and From Strings
 @rnindex number->string
 @rnindex string->number
 
@@ -800,7 +800,7 @@ syntactically valid notation for a number, then
 
 
 @node Complex
-@subsection Complex Number Operations
+@subsubsection Complex Number Operations
 @rnindex make-rectangular
 @rnindex make-polar
 @rnindex real-part
@@ -846,7 +846,7 @@ Return the angle of the complex number @var{z}.
 
 
 @node Arithmetic
-@subsection Arithmetic Functions
+@subsubsection Arithmetic Functions
 @rnindex max
 @rnindex min
 @rnindex +
@@ -942,7 +942,7 @@ Round the number @var{x} towards infinity.
 
 
 @node Scientific
-@subsection Scientific Functions
+@subsubsection Scientific Functions
 
 The following procedures accept any kind of number as arguments,
 including complex numbers.
@@ -1046,7 +1046,7 @@ Return the hyperbolic arctangent of @var{z}.
 
 
 @node Primitive Numerics
-@subsection Primitive Numeric Functions
+@subsubsection Primitive Numeric Functions
 
 Many of Guile's numeric procedures which accept any kind of numbers as
 arguments, including complex numbers, are implemented as Scheme
@@ -1190,7 +1190,7 @@ respectively.
 
 
 @node Bitwise Operations
-@subsection Bitwise Operations
+@subsubsection Bitwise Operations
 
 For the following bitwise functions, negative numbers are treated as
 infinite precision twos-complements.  For instance @math{-6} is bits
@@ -1356,7 +1356,7 @@ through @var{end} (exclusive) bits of @var{n}.  The
 
 
 @node Random
-@subsection Random Number Generation
+@subsubsection Random Number Generation
 
 Pseudo-random numbers are generated from a random state object, which
 can be created with @code{seed->random-state}.  The @var{state}
@@ -1437,7 +1437,7 @@ The global random state used by the above functions when the
 
 
 @node Characters
-@section Characters
+@subsection Characters
 @tpindex Characters
 
 @noindent
@@ -1639,15 +1639,15 @@ mentioned above.
 
 
 @node Strings
-@section Strings
+@subsection Strings
 @tpindex Strings
 
 Strings are fixed-length sequences of characters.  They can be created
 by calling constructor procedures, but they can also literally get
 entered at the @acronym{REPL} or in Scheme source files.
 
-Guile provides a rich set of string processing procedures, because text
-handling is very important when Guile is used as a scripting language.
+@c Guile provides a rich set of string processing procedures, because text
+@c handling is very important when Guile is used as a scripting language.
 
 Strings always carry the information about how many characters they are
 composed of with them, so there is no special end-of-string character,
@@ -1671,7 +1671,7 @@ called with string containing unusual characters.
 @end menu
 
 @node String Syntax
-@subsection String Read Syntax
+@subsubsection String Read Syntax
 
 The read syntax for strings is an arbitrarily long sequence of
 characters enclosed in double quotes (@code{"}).@footnote{Actually,
@@ -1693,7 +1693,7 @@ The following are examples of string literals:
 @c FIXME::martin: What about escape sequences like \r, \n etc.?
 
 @node String Predicates
-@subsection String Predicates
+@subsubsection String Predicates
 
 The following procedures can be used to check whether a given string
 fulfills some specified property.
@@ -1716,7 +1716,7 @@ y                    @result{} "foo"
 @end deffn
 
 @node String Constructors
-@subsection String Constructors
+@subsubsection String Constructors
 
 The string constructor procedures create new string objects, possibly
 initializing them with some specified character data.
@@ -1742,7 +1742,7 @@ of the @var{string} are unspecified.
 @end deffn
 
 @node List/String Conversion
-@subsection List/String conversion
+@subsubsection List/String conversion
 
 When processing strings, it is often convenient to first convert them
 into a list representation by using the procedure @code{string->list},
@@ -1782,7 +1782,7 @@ result list.
 
 
 @node String Selection
-@subsection String Selection
+@subsubsection String Selection
 
 Portions of strings can be extracted by these procedures.
 @code{string-ref} delivers individual characters whereas
@@ -1820,7 +1820,7 @@ exact integers satisfying:
 @end deffn
 
 @node String Modification
-@subsection String Modification
+@subsubsection String Modification
 
 These procedures are for modifying strings in-place.  This means that the
 result of the operation is not a new string; instead, the original string's
@@ -1863,7 +1863,7 @@ into @var{str2} beginning at position @var{start2}.
 
 
 @node String Comparison
-@subsection String Comparison
+@subsubsection String Comparison
 
 The procedures in this section are similar to the character ordering
 predicates (@pxref{Characters}), but are defined on character sequences.
@@ -1946,7 +1946,7 @@ equal to @var{s2} regardless of case.
 
 
 @node String Searching
-@subsection String Searching
+@subsubsection String Searching
 
 When searching for the index of a character in a string, these
 procedures can be used.
@@ -1991,7 +1991,7 @@ the C library.
 @end deffn
 
 @node Alphabetic Case Mapping
-@subsection Alphabetic Case Mapping
+@subsubsection Alphabetic Case Mapping
 
 These are procedures for mapping strings to their upper- or lower-case
 equivalents, respectively, or for capitalizing strings.
@@ -2051,7 +2051,7 @@ y                      @result{} "Hello World"
 
 
 @node Appending Strings
-@subsection Appending Strings
+@subsubsection Appending Strings
 
 The procedure @code{string-append} appends several strings together to
 form a longer result string.
@@ -2071,7 +2071,7 @@ concatenation of the given strings, @var{args}.
 
 
 @node Regular Expressions
-@section Regular Expressions
+@subsection Regular Expressions
 @tpindex Regular expressions
 
 @cindex regular expressions
@@ -2105,7 +2105,7 @@ regex))}.
 
 
 @node Regexp Functions
-@subsection Regexp Functions
+@subsubsection Regexp Functions
 
 By default, Guile supports POSIX extended regular expressions.
 That means that the characters @samp{(}, @samp{)}, @samp{+} and
@@ -2315,7 +2315,7 @@ follows to remove the @code{string-match} stage:
 
 
 @node Match Structures
-@subsection Match Structures
+@subsubsection Match Structures
 
 @cindex match structures
 
@@ -2429,7 +2429,7 @@ Return the original @var{target} string.
 
 
 @node Backslash Escapes
-@subsection Backslash Escapes
+@subsubsection Backslash Escapes
 
 Sometimes you will want a regexp to match characters like @samp{*} or
 @samp{$} exactly.  For example, to check whether a particular string
@@ -2513,7 +2513,7 @@ to this cumbersome escape syntax.
 
 
 @node Symbols
-@section Symbols
+@subsection Symbols
 @tpindex Symbols
 
 Symbols in Scheme are widely used in three ways: as items of discrete
@@ -2589,7 +2589,7 @@ which more below (@pxref{Symbol Variables}).
 
 
 @node Symbol Data
-@subsection Symbols as Discrete Data
+@subsubsection Symbols as Discrete Data
 
 Numbers and symbols are similar to the extent that they both lend
 themselves to @code{eq?} comparison.  But symbols are more descriptive
@@ -2669,7 +2669,7 @@ makes them ideal for use as discrete data.
 
 
 @node Symbol Keys
-@subsection Symbols as Lookup Keys
+@subsubsection Symbols as Lookup Keys
 
 Given their efficiency and descriptive power, it is natural to use
 symbols as the keys in an association list or hash table.
@@ -2735,7 +2735,7 @@ list.
 
 
 @node Symbol Variables
-@subsection Symbols as Denoting Variables
+@subsubsection Symbols as Denoting Variables
 
 When an unquoted symbol in a Scheme program is evaluated, it is
 interpreted as a variable reference, and the result of the evaluation is
@@ -2756,7 +2756,7 @@ Guile's module system.
 
 
 @node Symbol Primitives
-@subsection Operations Related to Symbols
+@subsubsection Operations Related to Symbols
 
 Given any Scheme value, you can determine whether it is a symbol using
 the @code{symbol?} primitive:
@@ -2889,7 +2889,7 @@ and read back in.
 
 
 @node Symbol Props
-@subsection Function Slots and Property Lists
+@subsubsection Function Slots and Property Lists
 
 In traditional Lisp dialects, symbols are often understood as having
 three kinds of value at once:
@@ -2969,7 +2969,7 @@ all.)  For a more modern and Schemely approach to properties, see
 
 
 @node Symbol Read Syntax
-@subsection Extended Read Syntax for Symbols
+@subsubsection Extended Read Syntax for Symbols
 
 The read syntax for a symbol is a sequence of letters, digits, and
 @dfn{extended alphabetic characters}, beginning with a character that
@@ -3022,7 +3022,7 @@ very readable.
 
 
 @node Symbol Uninterned
-@subsection Uninterned Symbols
+@subsubsection Uninterned Symbols
 
 What makes symbols useful is that they are automatically kept unique.
 There are no two symbols that are distinct objects but have the same
@@ -3115,7 +3115,7 @@ foo-3
 
 
 @node Keywords
-@section Keywords
+@subsection Keywords
 @tpindex Keywords
 
 Keywords are self-evaluating objects with a convenient read syntax that
@@ -3134,7 +3134,7 @@ syntax extension to permit keywords to begin with @code{:} as well as
 @end menu
 
 @node Why Use Keywords?
-@subsection Why Use Keywords?
+@subsubsection Why Use Keywords?
 
 Keywords are useful in contexts where a program or procedure wants to be
 able to accept a large number of optional arguments without making its
@@ -3194,7 +3194,7 @@ So the decision whether to use keywords or not is purely pragmatic: use
 them if they will clarify the procedure invocation at point of call.
 
 @node Coding With Keywords
-@subsection Coding With Keywords
+@subsubsection Coding With Keywords
 
 If a procedure wants to support keywords, it should take a rest argument
 and then use whatever means is convenient to extract keywords and their
@@ -3255,7 +3255,7 @@ facilities provided by the @code{(ice-9 optargs)} module, see
 
 
 @node Keyword Read Syntax
-@subsection Keyword Read Syntax
+@subsubsection Keyword Read Syntax
 
 Guile, by default, only recognizes the keyword syntax specified by R5RS.
 A token of the form @code{#:NAME}, where @code{NAME} has the same syntax
@@ -3298,7 +3298,7 @@ ABORT: (unbound-variable)
 @end smalllisp
 
 @node Keyword Procedures
-@subsection Keyword Procedures
+@subsubsection Keyword Procedures
 
 The following procedures can be used for converting symbols to keywords
 and back.
@@ -3313,7 +3313,7 @@ Return a symbol with the same characters as in @var{kw}.
 
 
 @node Keyword Primitives
-@subsection Keyword Primitives
+@subsubsection Keyword Primitives
 
 Internally, a keyword is implemented as something like a tagged symbol,
 where the tag identifies the keyword as being self-evaluating, and the
@@ -3371,7 +3371,7 @@ scm_c_make_keyword ("foo")
 
 
 @node Other Types
-@section ``Functionality-Centric'' Data Types
+@subsection ``Functionality-Centric'' Data Types
 
 Procedures and macros are documented in their own chapter: see
 @ref{Procedures and Macros}.

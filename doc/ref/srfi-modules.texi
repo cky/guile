@@ -6,7 +6,7 @@
 
 @page
 @node SRFI Support
-@chapter SRFI Support Modules
+@section SRFI Support Modules
 @cindex SRFI
 
 SRFI is an acronym for Scheme Request For Implementation.  The SRFI
@@ -40,7 +40,7 @@ get the relevant SRFI documents from the SRFI home page
 
 
 @node About SRFI Usage
-@section About SRFI Usage
+@subsection About SRFI Usage
 
 @c FIXME::martin: Review me!
 
@@ -74,7 +74,7 @@ automatically (@pxref{Invoking Guile}).
 
 
 @node SRFI-0
-@section SRFI-0 - cond-expand
+@subsection SRFI-0 - cond-expand
 @cindex SRFI-0
 @findex cond-expand
 
@@ -173,7 +173,7 @@ the following snippet will expand to @code{'hooray}.
 
 
 @node SRFI-1
-@section SRFI-1 - List library
+@subsection SRFI-1 - List library
 @cindex SRFI-1
 
 @c FIXME::martin: Review me!
@@ -203,7 +203,7 @@ processing procedure, you should also have a look at the sections
 @end menu
 
 @node SRFI-1 Constructors
-@subsection Constructors
+@subsubsection Constructors
 
 @c FIXME::martin: Review me!
 
@@ -252,7 +252,7 @@ APL language.
 
 
 @node SRFI-1 Predicates
-@subsection Predicates
+@subsubsection Predicates
 
 @c FIXME::martin: Review me!
 
@@ -299,7 +299,7 @@ equality predicate @var{elt=}.  If no or only one list is given,
 
 
 @node SRFI-1 Selectors
-@subsection Selectors
+@subsubsection Selectors
 
 @c FIXME::martin: Review me!
 
@@ -361,7 +361,7 @@ Return the last element of the non-empty, finite list @var{lst}.
 
 
 @node SRFI-1 Length Append etc
-@subsection Length, Append, Concatenate, etc.
+@subsubsection Length, Append, Concatenate, etc.
 
 @c FIXME::martin: Review me!
 
@@ -422,7 +422,7 @@ one list must be non-circular.
 
 
 @node SRFI-1 Fold and Map
-@subsection Fold, Unfold & Map
+@subsubsection Fold, Unfold & Map
 
 @c FIXME::martin: Review me!
 
@@ -592,7 +592,7 @@ which are true are saved in the result list.
 
 
 @node SRFI-1 Filtering and Partitioning
-@subsection Filtering and Partitioning
+@subsubsection Filtering and Partitioning
 
 @c FIXME::martin: Review me!
 
@@ -635,7 +635,7 @@ the input list.
 
 
 @node SRFI-1 Searching
-@subsection Searching
+@subsubsection Searching
 
 @c FIXME::martin: Review me!
 
@@ -715,7 +715,7 @@ predicate.  (@pxref{List Searching})
 
 
 @node SRFI-1 Deleting
-@subsection Deleting
+@subsubsection Deleting
 
 @c FIXME::martin: Review me!
 
@@ -768,7 +768,7 @@ is more efficient to sort and then compare only adjacent elements.
 
 
 @node SRFI-1 Association Lists
-@subsection Association Lists
+@subsubsection Association Lists
 
 @c FIXME::martin: Review me!
 
@@ -821,7 +821,7 @@ the list structure of @var{alist} to construct its return.
 
 
 @node SRFI-1 Set Operations
-@subsection Set Operations on Lists
+@subsubsection Set Operations on Lists
 
 @c FIXME::martin: Review me!
 
@@ -904,7 +904,7 @@ procedures return (@pxref{Multiple Values}).
 
 
 @node SRFI-2
-@section SRFI-2 - and-let*
+@subsection SRFI-2 - and-let*
 @cindex SRFI-2
 
 @noindent
@@ -973,7 +973,7 @@ from separate @code{and} and @code{let*}, or from @code{cond} with
 
 
 @node SRFI-4
-@section SRFI-4 - Homogeneous numeric vector datatypes
+@subsection SRFI-4 - Homogeneous numeric vector datatypes
 @cindex SRFI-4
 
 @c FIXME::martin: Review me!
@@ -1133,7 +1133,7 @@ initialized with the elements of the list @var{lst}.
 
 
 @node SRFI-6
-@section SRFI-6 - Basic String Ports
+@subsection SRFI-6 - Basic String Ports
 @cindex SRFI-6
 
 SRFI-6 defines the procedures @code{open-input-string},
@@ -1144,7 +1144,7 @@ SRFI-6 will be factored out of the core library in the future, so using
 this module does not hurt, after all.
 
 @node SRFI-8
-@section SRFI-8 - receive
+@subsection SRFI-8 - receive
 @cindex SRFI-8
 
 @code{receive} is a syntax for making the handling of multiple-value
@@ -1152,7 +1152,7 @@ procedures easier.  It is documented in @xref{Multiple Values}.
 
 
 @node SRFI-9
-@section SRFI-9 - define-record-type
+@subsection SRFI-9 - define-record-type
 @cindex SRFI-9
 
 This SRFI is a syntax for defining new record types and creating
@@ -1229,7 +1229,7 @@ desired, exported from a module, etc.
 
 
 @node SRFI-10
-@section SRFI-10 - Hash-Comma Reader Extension
+@subsection SRFI-10 - Hash-Comma Reader Extension
 @cindex SRFI-10
 
 @cindex hash-comma
@@ -1271,7 +1271,7 @@ read in.  The result of @var{proc} is returned by the Scheme reader.
 
 
 @node SRFI-11
-@section SRFI-11 - let-values
+@subsection SRFI-11 - let-values
 @cindex SRFI-11
 
 @findex let-values
@@ -1300,7 +1300,7 @@ expressions.
 
 
 @node SRFI-13
-@section SRFI-13 - String Library
+@subsection SRFI-13 - String Library
 @cindex SRFI-13
 
 In this section, we will describe all procedures defined in SRFI-13
@@ -1347,7 +1347,7 @@ soon as possible.
 
 
 @node Loading SRFI-13
-@subsection Loading SRFI-13
+@subsubsection Loading SRFI-13
 
 When Guile is properly installed, SRFI-13 support can be loaded into a
 running Guile by using the @code{(srfi srfi-13)} module.
@@ -1377,7 +1377,7 @@ guile> (string-concatenate '("Hello" " " "World!"))
 @end example
 
 @node SRFI-13 Predicates
-@subsection Predicates
+@subsubsection Predicates
 
 In addition to the primitives @code{string?} and @code{string-null?},
 which are already in the Guile core, the string predicates
@@ -1403,7 +1403,7 @@ application of @var{pred} to the last character of @var{s}.
 @c ===================================================================
 
 @node SRFI-13 Constructors
-@subsection Constructors
+@subsubsection Constructors
 
 SRFI-13 defines several procedures for constructing new strings.  In
 addition to @code{make-string} and @code{string} (available in the Guile
@@ -1420,7 +1420,7 @@ produce the corresponding string element.  The order in which
 @c ===================================================================
 
 @node SRFI-13 List/String Conversion
-@subsection List/String Conversion
+@subsubsection List/String Conversion
 
 The procedure @code{string->list} is extended by SRFI-13, that is why it
 is included in @code{(srfi srfi-13)}.  The other procedures are new.
@@ -1469,7 +1469,7 @@ Insert the separator before each list element.
 @c ===================================================================
 
 @node SRFI-13 Selection
-@subsection Selection
+@subsubsection Selection
 
 These procedures are called @dfn{selectors}, because they access
 information about the string or select pieces of a given string.
@@ -1547,7 +1547,7 @@ trimmed.
 @c ===================================================================
 
 @node SRFI-13 Modification
-@subsection Modification
+@subsubsection Modification
 
 The procedure @code{string-fill!} is extended from R5RS because it
 accepts optional start/end indices.  This bindings shadows the procedure
@@ -1564,7 +1564,7 @@ returns an unspecified value.
 @c ===================================================================
 
 @node SRFI-13 Comparison
-@subsection Comparison
+@subsubsection Comparison
 
 The procedures in this section are used for comparing strings in
 different ways.  The comparison predicates differ from those in R5RS in
@@ -1617,7 +1617,7 @@ Return a hash value of the string @var{s} in the range 0 @dots{}
 @c ===================================================================
 
 @node SRFI-13 Prefixes/Suffixes
-@subsection Prefixes/Suffixes
+@subsubsection Prefixes/Suffixes
 
 Using these procedures you can determine whether a given string is a
 prefix or suffix of another string or how long a common prefix/suffix
@@ -1644,7 +1644,7 @@ Is @var{s1} a prefix/suffix of @var{s2}. @code{string-prefix-ci?} and
 @c ===================================================================
 
 @node SRFI-13 Searching
-@subsection Searching
+@subsubsection Searching
 
 Use these procedures to find out whether a string contains a given
 character or a given substring, or a character from a set of characters.
@@ -1715,7 +1715,7 @@ indicated substrings.
 @c ===================================================================
 
 @node SRFI-13 Case Mapping
-@subsection Alphabetic Case Mapping
+@subsubsection Alphabetic Case Mapping
 
 These procedures convert the alphabetic case of strings.  They are
 similar to the procedures in the Guile core, but are extended to handle
@@ -1744,7 +1744,7 @@ variant.
 @c ===================================================================
 
 @node SRFI-13 Reverse/Append
-@subsection Reverse/Append
+@subsubsection Reverse/Append
 
 One appending procedure, @code{string-append} is the same in R5RS and in
 SRFI-13, so it is not redefined.
@@ -1800,7 +1800,7 @@ share memory with the the strings in the @var{ls} arguments.
 @c ===================================================================
 
 @node SRFI-13 Fold/Unfold/Map
-@subsection Fold/Unfold/Map
+@subsubsection Fold/Unfold/Map
 
 @code{string-map}, @code{string-for-each} etc. are for iterating over
 the characters a string is composed of.  The fold and unfold procedures
@@ -1858,7 +1858,7 @@ return value is not specified.
 @c ===================================================================
 
 @node SRFI-13 Replicate/Rotate
-@subsection Replicate/Rotate
+@subsubsection Replicate/Rotate
 
 These procedures are special substring procedures, which can also be
 used for replicating strings.  They are a bit tricky to use, but
@@ -1896,7 +1896,7 @@ cannot copy a string on top of itself.
 @c ===================================================================
 
 @node SRFI-13 Miscellaneous
-@subsection Miscellaneous
+@subsubsection Miscellaneous
 
 @code{string-replace} is for replacing a portion of a string with
 another string and @code{string-tokenize} splits a string into a list of
@@ -1924,7 +1924,7 @@ operating on the indicated substring of @var{s}.
 @c ===================================================================
 
 @node SRFI-13 Filtering/Deleting
-@subsection Filtering/Deleting
+@subsubsection Filtering/Deleting
 
 @dfn{Filtering} means to remove all characters from a string which do
 not match a given criteria, @dfn{deleting} means the opposite.
@@ -1947,7 +1947,7 @@ character set, it is tested for membership.
 
 
 @node SRFI-14
-@section SRFI-14 - Character-set Library
+@subsection SRFI-14 - Character-set Library
 @cindex SRFI-14
 
 SRFI-14 defines the data type @dfn{character set}, and also defines a
@@ -1971,7 +1971,7 @@ the module @code{(srfi srfi-14)}, as well as the standard variables
 
 
 @node Loading SRFI-14
-@subsection Loading SRFI-14
+@subsubsection Loading SRFI-14
 
 When Guile is properly installed, SRFI-14 support can be loaded into a
 running Guile by using the @code{(srfi srfi-14)} module.
@@ -1986,7 +1986,7 @@ guile>
 
 
 @node SRFI-14 Character Set Data Type
-@subsection Character Set Data Type
+@subsubsection Character Set Data Type
 
 The data type @dfn{charset} implements sets of characters
 (@pxref{Characters}).  Because the internal representation of character
@@ -2007,7 +2007,7 @@ don't rely on these ``features''.
 @c ===================================================================
 
 @node SRFI-14 Predicates/Comparison
-@subsection Predicates/Comparison
+@subsubsection Predicates/Comparison
 
 Use these procedures for testing whether an object is a character set,
 or whether several character sets are equal or subsets of each other.
@@ -2038,7 +2038,7 @@ returned value to the range 0 @dots{} @var{bound - 1}.
 @c ===================================================================
 
 @node SRFI-14 Iterating Over Character Sets
-@subsection Iterating Over Character Sets
+@subsubsection Iterating Over Character Sets
 
 Character set cursors are a means for iterating over the members of a
 character sets.  After creating a character set cursor with
@@ -2107,7 +2107,7 @@ Map the procedure @var{proc} over every character in @var{cs}.
 @c ===================================================================
 
 @node SRFI-14 Creating Character Sets
-@subsection Creating Character Sets
+@subsubsection Creating Character Sets
 
 New character sets are produced with these procedures.
 
@@ -2174,7 +2174,7 @@ character or a character set.
 @c ===================================================================
 
 @node SRFI-14 Querying Character Sets
-@subsection Querying Character Sets
+@subsubsection Querying Character Sets
 
 Access the elements and other information of a character set with these
 procedures.
@@ -2218,7 +2218,7 @@ Return a true value if any character in the character set
 @c ===================================================================
 
 @node SRFI-14 Character-Set Algebra
-@subsection Character-Set Algebra
+@subsubsection Character-Set Algebra
 
 Character sets can be manipulated with the common set algebra operation,
 such as union, complement, intersection etc.  All of these procedures
@@ -2272,7 +2272,7 @@ character sets.
 @c ===================================================================
 
 @node SRFI-14 Standard Character Sets
-@subsection Standard Character Sets
+@subsubsection Standard Character Sets
 
 In order to make the use of the character set data type and procedures
 useful, several predefined character set variables exist.
@@ -2348,7 +2348,7 @@ This character set contains all possible characters.
 @end defvar
 
 @node SRFI-16
-@section SRFI-16 - case-lambda
+@subsection SRFI-16 - case-lambda
 @cindex SRFI-16
 
 @c FIXME::martin: Review me!
@@ -2413,7 +2413,7 @@ applied to zero arguments, yields 1.
 
 
 @node SRFI-17
-@section SRFI-17 - Generalized set!
+@subsection SRFI-17 - Generalized set!
 @cindex SRFI-17
 
 This is an implementation of SRFI-17: Generalized set!
@@ -2437,7 +2437,7 @@ specified in the SRFI.  Using it avoids the described problems.
 
 
 @node SRFI-19
-@section SRFI-19 - Time/Date Library
+@subsection SRFI-19 - Time/Date Library
 @cindex SRFI-19
 
 This is an implementation of the SRFI-19 time/date library.  The
@@ -2457,7 +2457,7 @@ functions and variables described here are provided by
 @end menu
 
 @node SRFI-19 Introduction
-@subsection SRFI-19 Introduction
+@subsubsection SRFI-19 Introduction
 
 @cindex universal time
 @cindex atomic time
@@ -2511,7 +2511,7 @@ from 1858-11-17T00:00:00Z, ie.@: midnight 17 November 1858 UTC.
 
 
 @node SRFI-19 Time
-@subsection SRFI-19 Time
+@subsubsection SRFI-19 Time
 @cindex time
 
 A @dfn{time} object has type, seconds and nanoseconds fields
@@ -2633,7 +2633,7 @@ the given @var{time} to form their return.
 
 
 @node SRFI-19 Date
-@subsection SRFI-19 Date
+@subsubsection SRFI-19 Date
 @cindex date
 
 A @dfn{date} object represents a date in the Gregorian calendar and a
@@ -2729,7 +2729,7 @@ Return the current Modified Julian Day.
 
 
 @node SRFI-19 Time/Date conversions
-@subsection SRFI-19 Time/Date conversions
+@subsubsection SRFI-19 Time/Date conversions
 
 @defun date->julian-day date
 @defunx date->modified-julian-day date
@@ -2781,7 +2781,7 @@ their return.  The plain functions create a new object.
 @end defun
 
 @node SRFI-19 Date to string
-@subsection SRFI-19 Date to string
+@subsubsection SRFI-19 Date to string
 @cindex date to string
 
 @defun date->string date [format]
@@ -2871,7 +2871,7 @@ the future.
 
 
 @node SRFI-19 String to date
-@subsection SRFI-19 String to date
+@subsubsection SRFI-19 String to date
 @cindex string to date
 
 @c  FIXME: Can we say what happens when an incomplete date is
@@ -2994,7 +2994,7 @@ change in the future.
 
 
 @node SRFI-26
-@section SRFI-26 - specializing parameters
+@subsection SRFI-26 - specializing parameters
 @cindex SRFI-26
 
 This SRFI provides a syntax for conveniently specializing selected

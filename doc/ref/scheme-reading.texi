@@ -6,7 +6,7 @@
 
 @page
 @node Further Reading
-@chapter Further Reading
+@section Further Reading
 
 @itemize @bullet
 

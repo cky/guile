@@ -5,7 +5,7 @@
 @c See the file guile.texi for copying conditions.
 
 @node POSIX
-@chapter @acronym{POSIX} System Calls and Networking
+@section @acronym{POSIX} System Calls and Networking
 
 @menu
 * Conventions::                 Conventions employed by the POSIX interface.
@@ -26,7 +26,7 @@
 @end menu
 
 @node Conventions
-@section @acronym{POSIX} Interface Conventions
+@subsection @acronym{POSIX} Interface Conventions
 
 These interfaces provide access to operating system facilities.
 They provide a simple wrapping around the underlying C interfaces
@@ -99,7 +99,7 @@ It can be extracted with the function @code{system-error-errno}:
 @end example
 
 @node Ports and File Descriptors
-@section Ports and File Descriptors
+@subsection Ports and File Descriptors
 
 Conventions generally follow those of scsh, @ref{The Scheme shell (scsh)}.
 
@@ -534,7 +534,7 @@ An additional @code{select!} interface is provided.
 @end deffn
 
 @node File System
-@section File System
+@subsection File System
 
 These procedures allow querying and setting file system attributes
 (such as owner,
@@ -873,7 +873,7 @@ If @var{suffix} is provided, and is equal to the end of
 
 
 @node User Information
-@section User Information
+@subsection User Information
 
 The facilities in this section provide an interface to the user and
 group database.
@@ -1016,7 +1016,7 @@ information cannot be obtained.
 
 
 @node Time
-@section Time
+@subsection Time
 
 @deffn {Scheme Procedure} current-time
 @deffnx {C Function} scm_current_time ()
@@ -1198,7 +1198,7 @@ included but subprocesses are not.
 @end deffn
 
 @node Runtime Environment
-@section Runtime Environment
+@subsection Runtime Environment
 
 @deffn {Scheme Procedure} program-arguments
 @deffnx {Scheme Procedure} command-line
@@ -1261,7 +1261,7 @@ The return value is unspecified.
 
 
 @node Processes
-@section Processes
+@subsection Processes
 
 @findex cd
 @deffn {Scheme Procedure} chdir str
@@ -1595,7 +1595,7 @@ specified processes.
 
 
 @node Signals
-@section Signals
+@subsection Signals
 
 Procedures to raise, handle and wait for signals.
 
@@ -1746,7 +1746,7 @@ the seconds and microseconds of the timer @code{it_value}.
 
 
 @node Terminals and Ptys
-@section Terminals and Ptys
+@subsection Terminals and Ptys
 
 @deffn {Scheme Procedure} isatty? port
 @deffnx {C Function} scm_isatty_p (port)
@@ -1790,7 +1790,7 @@ controlling terminal.  The return value is unspecified.
 @end deffn
 
 @node Pipes
-@section Pipes
+@subsection Pipes
 
 The following procedures provide an interface to the @code{popen} and
 @code{pclose} system routines.  The code is in a separate ``popen''
@@ -1835,7 +1835,7 @@ close a pipe, but doesn't return the status.
 @end deffn
 
 @node Networking
-@section Networking
+@subsection Networking
 
 @menu
 * Network Address Conversion::
@@ -1845,12 +1845,12 @@ close a pipe, but doesn't return the status.
 @end menu
 
 @node Network Address Conversion
-@subsection Network Address Conversion
+@subsubsection Network Address Conversion
 
 This section describes procedures which convert internet addresses
 between numeric and string formats.
 
-@subsubsection IPv4 Address Conversion
+@subsubheading IPv4 Address Conversion
 
 An IPv4 Internet address is a 4-byte value, represented in Guile as an
 integer in network byte order (meaning the first byte is the most
@@ -1927,7 +1927,7 @@ Make an IPv4 Internet address by combining the network number
 @end lisp
 @end deffn
 
-@subsubsection IPv6 Address Conversion
+@subsubheading IPv6 Address Conversion
 
 @deffn {Scheme Procedure} inet-ntop family address
 @deffnx {C Function} scm_inet_ntop (family, address)
@@ -1959,13 +1959,13 @@ the result is an integer with normal host byte ordering.
 
 
 @node Network Databases
-@subsection Network Databases
+@subsubsection Network Databases
 
 This section describes procedures which query various network databases.
 Care should be taken when using the database routines since they are not
 reentrant.
 
-@subsubsection The Host Database
+@subsubheading The Host Database
 
 A @dfn{host object} is a structure that represents what is known about a
 network host, and is the usual way of representing a system's network
@@ -2043,7 +2043,8 @@ Close the stream used by @code{gethostent}.  The return value is unspecified.
 If @var{stayopen} is omitted, this is equivalent to @code{endhostent}.
 Otherwise it is equivalent to @code{sethostent stayopen}.
 @end deffn
-@subsubsection The Network Database
+
+@subsubheading The Network Database
 
 The following functions accept an object representing a network
 and return a selected component:
@@ -2101,7 +2102,7 @@ If @var{stayopen} is omitted, this is equivalent to @code{endnetent}.
 Otherwise it is equivalent to @code{setnetent stayopen}.
 @end deffn
 
-@subsubsection The Protocol Database
+@subsubheading The Protocol Database
 
 The following functions accept an object representing a protocol
 and return a selected component:
@@ -2154,7 +2155,7 @@ If @var{stayopen} is omitted, this is equivalent to @code{endprotoent}.
 Otherwise it is equivalent to @code{setprotoent stayopen}.
 @end deffn
 
-@subsubsection The Service Database
+@subsubheading The Service Database
 
 The following functions accept an object representing a service
 and return a selected component:
@@ -2224,7 +2225,7 @@ Otherwise it is equivalent to @code{setservent stayopen}.
 @end deffn
 
 @node Network Sockets and Communication
-@subsection Network Sockets and Communication
+@subsubsection Network Sockets and Communication
 
 Socket ports can be created using @code{socket} and @code{socketpair}.
 The ports are initially unbuffered, to make reading and writing to the
@@ -2614,18 +2615,11 @@ These procedures are inconvenient to use at present, but consider:
 
 
 @node Internet Socket Examples
-@subsection Network Socket Examples
+@subsubsection Network Socket Examples
 
-The following sections give examples of how to use network sockets.
+The following give examples of how to use network sockets.
 
-@menu
-* Internet Socket Client::
-* Internet Socket Server::
-@end menu
-
-
-@node Internet Socket Client
-@subsubsection Internet Socket Client Example
+@subsubheading Internet Socket Client Example
 
 @cindex socket client example
 The following example demonstrates an Internet socket client.
@@ -2644,8 +2638,7 @@ returns the contents of the root index URL.
 @end example
 
 
-@node Internet Socket Server
-@subsubsection Internet Socket Server Example
+@subsubheading Internet Socket Server Example
 
 @cindex socket server example
 The following example shows a simple Internet server which listens on
@@ -2681,7 +2674,7 @@ client.
 
 
 @node System Identification
-@section System Identification
+@subsection System Identification
 
 This section lists the various procedures Guile provides for accessing
 information about the system it runs on.
@@ -2740,7 +2733,7 @@ no other easy or unambiguous way of detecting such features.
 @end deffn
 
 @node Locales
-@section Locales
+@subsection Locales
 
 @deffn {Scheme Procedure} setlocale category [locale]
 @deffnx {C Function} scm_setlocale (category, locale)
@@ -2769,7 +2762,7 @@ Manual}.
 @end deffn
 
 @node Encryption
-@section Encryption
+@subsection Encryption
 
 Please note that the procedures in this section are not suited for
 strong encryption, they are only interfaces to the well-known and

@@ -6,7 +6,7 @@
 
 @page
 @node Utility Functions
-@chapter General Utility Functions
+@section General Utility Functions
 
 @c FIXME::martin: Review me!
 
@@ -25,7 +25,7 @@ applications, they are collected in a @dfn{utility} chapter.
 
 
 @node Equality
-@section Equality
+@subsection Equality
 
 @c FIXME::martin: Review me!
 
@@ -81,7 +81,7 @@ terminate if its arguments are circular data structures.
 
 
 @node Object Properties
-@section Object Properties
+@subsection Object Properties
 
 It's often useful to associate a piece of additional information with a
 Scheme object even though that object does not have a dedicated slot
@@ -151,7 +151,7 @@ protected by the table.
 
 
 @node Property Primitives
-@subsection Low Level Property Implementation.
+@subsubsection Low Level Property Implementation.
 
 @deffn {Scheme Procedure} primitive-make-property not-found-proc
 @deffnx {C Function} scm_primitive_make_property (not_found_proc)
@@ -184,7 +184,7 @@ Remove any value associated with @var{prop} and @var{obj}.
 
 
 @node Old-fashioned Properties
-@subsection An Older Approach to Properties
+@subsubsection An Older Approach to Properties
 
 Traditionally, Lisp systems provide a different object property
 interface to that provided by @code{make-object-property}, in which the
@@ -219,7 +219,7 @@ to @var{value}.
 
 
 @node Sorting
-@section Sorting
+@subsection Sorting
 
 @c FIXME::martin: Review me!
 
@@ -334,7 +334,7 @@ is not specified.
 
 
 @node Copying
-@section Copying Deep Structures
+@subsection Copying Deep Structures
 
 @c FIXME::martin: Review me!
 
@@ -355,7 +355,7 @@ any other object.
 
 
 @node General Conversion
-@section General String Conversion
+@subsection General String Conversion
 
 @c FIXME::martin: Review me!
 
@@ -380,7 +380,7 @@ argument @var{printer} (default: @code{write}).
 
 
 @node Hooks
-@section Hooks
+@subsection Hooks
 @tpindex Hooks
 
 A hook is a list of procedures to be called at well defined points in
@@ -409,12 +409,13 @@ using @code{run-hook}.
 * Hook Example::                Hook usage by example.
 * Hook Reference::              Reference of all hook procedures.
 * C Hooks::                     Hooks for use from C code.
-* Guile Hooks::                 Hooks provided by Guile.
+* GC Hooks::                    Garbage collection hooks.
+* REPL Hooks::                  Hooks into the Guile REPL.
 @end menu
 
 
 @node Hook Example
-@subsection Hook Usage by Example
+@subsubsection Hook Usage by Example
 
 Hook usage is shown by some examples in this section.  First, we will
 define a hook of arity 2 --- that is, the procedures stored in the hook
@@ -476,7 +477,7 @@ procedure to the @emph{end} of the list instead by providing a third
 
 
 @node Hook Reference
-@subsection Hook Reference
+@subsubsection Hook Reference
 
 When you create a hook with @code{make-hook}, you must specify the arity
 of the procedures which can be added to the hook.  If the arity is not
@@ -569,7 +570,7 @@ Return 1 if @var{x} is a Scheme-level hook, 0 otherwise.
 @end deftypefn
 
 
-@subsection Handling Scheme-level hooks from C code
+@subsubsection Handling Scheme-level hooks from C code
 
 Here is an example of how to handle Scheme-level hooks from C code using
 the above functions.
@@ -584,7 +585,7 @@ else
 
 
 @node C Hooks
-@subsection Hooks For C Code.
+@subsubsection Hooks For C Code.
 
 The hooks already described are intended to be populated by Scheme-level
 procedures.  In addition to this, the Guile library provides an
@@ -683,15 +684,6 @@ function's closure data, and the call closure data.
 @code{scm_c_hook_run}'s return value is the return value of the last
 function to be called.
 @end deftypefn
-
-
-@node Guile Hooks
-@subsection Hooks Provided by Guile
-
-@menu
-* GC Hooks::                    Garbage collection hooks.
-* REPL Hooks::                  Hooks into the Guile REPL.
-@end menu
 
 
 @node GC Hooks

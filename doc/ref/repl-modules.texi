@@ -6,7 +6,7 @@
 
 @page
 @node Readline Support
-@chapter Readline Support
+@section Readline Support
 
 @c FIXME::martin: Review me!
 
@@ -26,7 +26,7 @@ history entries.
 
 
 @node Loading Readline Support
-@section Loading Readline Support
+@subsection Loading Readline Support
 
 The module is not loaded by default and so has to be loaded and
 activated explicitly.  This is done with two simple lines of code:
@@ -67,7 +67,7 @@ expressions available.
 
 
 @node Readline Options
-@section Readline Options
+@subsection Readline Options
 
 @c FIXME::martin: Review me!
 
@@ -106,7 +106,7 @@ the readline module, because it is defined in that module.
 
 @page
 @node Value History
-@chapter Value History
+@section Value History
 
 @c FIXME::martin: Review me!
 

@@ -6,7 +6,7 @@
 
 @page
 @node The Scheme shell (scsh)
-@chapter The Scheme shell (scsh)
+@section The Scheme shell (scsh)
 @cindex SCSH
 @cindex Scheme Shell
 

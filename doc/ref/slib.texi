@@ -6,7 +6,7 @@
 
 @page
 @node SLIB
-@chapter SLIB
+@section SLIB
 @cindex SLIB
 
 Before the SLIB facilities can be used, the following Scheme expression
@@ -39,7 +39,7 @@ Manual}).
 @end menu
 
 @node SLIB installation
-@section SLIB installation
+@subsection SLIB installation
 
 The following seems to work (e.g., with slib versions 2c7 and 2d2):
 
@@ -89,15 +89,14 @@ install-info slib.info /usr/local/info/dir
 @end enumerate
 
 @node JACAL
-@section JACAL
+@subsection JACAL
 @cindex JACAL
 
 @cindex Jaffer, Aubrey
 @cindex symbolic math
 @cindex math -- symbolic
-Jacal is a symbolic math package written in Scheme by Aubrey Jaffer.  It
-is usually installed as an extra package in SLIB (@pxref{Packages not
-shipped with Guile}).
+Jacal is a symbolic math package written in Scheme by Aubrey Jaffer.
+It is usually installed as an extra package in SLIB.
 
 You can use Guile's interface to SLIB to invoke Jacal:
 
