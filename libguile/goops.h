@@ -156,6 +156,22 @@ typedef struct scm_t_method {
 #define scm_si_code_table	 3  /* offset of code. slot in a <method> */
 
 /* C interface */
+SCM_API SCM scm_class_boolean;
+SCM_API SCM scm_class_char;
+SCM_API SCM scm_class_pair;
+SCM_API SCM scm_class_procedure;
+SCM_API SCM scm_class_string;
+SCM_API SCM scm_class_symbol;
+SCM_API SCM scm_class_procedure_with_setter;
+SCM_API SCM scm_class_primitive_generic;
+SCM_API SCM scm_class_vector, scm_class_null;
+SCM_API SCM scm_class_real;
+SCM_API SCM scm_class_complex;
+SCM_API SCM scm_class_integer;
+SCM_API SCM scm_class_fraction;
+SCM_API SCM scm_class_unknown;
+SCM_API SCM *scm_port_class;
+SCM_API SCM *scm_smob_class;
 SCM_API SCM scm_class_top;
 SCM_API SCM scm_class_object;
 SCM_API SCM scm_class_class;
@@ -197,6 +213,8 @@ SCM_API SCM scm_class_float;
 SCM_API SCM scm_class_double;
 SCM_API const char *scm_s_slot_set_x;
 
+SCM_API SCM scm_no_applicable_method;
+
 SCM_API SCM scm_module_goops;
 
 SCM_API SCM scm_goops_version (void);
@@ -216,6 +234,7 @@ SCM_API SCM scm_wrap_object (SCM c, void *);
 SCM_API SCM scm_wrap_component (SCM c, SCM obj, void *);
 SCM_API SCM scm_ensure_accessor (SCM name);
 SCM_API void scm_add_method (SCM gf, SCM m);
+SCM_API SCM scm_class_of (SCM obj);
 
 /* Low level functions exported */
 SCM_API SCM scm_make_next_method (SCM methods, SCM args, SCM gf);

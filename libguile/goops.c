@@ -28,6 +28,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
+#include "libguile/chars.h"
 #include "libguile/debug.h"
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
@@ -114,7 +115,13 @@ static scm_t_rstate *goops_rstate;
 
 static SCM scm_goops_lookup_closure;
 
-/* Some classes are defined in libguile/objects.c. */
+/* These variables are filled in by the object system when loaded. */
+SCM scm_class_boolean, scm_class_char, scm_class_pair;
+SCM scm_class_procedure, scm_class_string, scm_class_symbol;
+SCM scm_class_procedure_with_setter, scm_class_primitive_generic;
+SCM scm_class_vector, scm_class_null;
+SCM scm_class_integer, scm_class_real, scm_class_complex, scm_class_fraction;
+SCM scm_class_unknown;
 SCM scm_class_top, scm_class_object, scm_class_class;
 SCM scm_class_applicable;
 SCM scm_class_entity, scm_class_entity_with_setter;
@@ -139,6 +146,11 @@ SCM scm_class_protected_opaque, scm_class_protected_read_only;
 SCM scm_class_scm;
 SCM scm_class_int, scm_class_float, scm_class_double;
 
+SCM *scm_port_class = 0;
+SCM *scm_smob_class = 0;
+
+SCM scm_no_applicable_method;
+
 SCM_SYMBOL (scm_sym_define_public, "define-public");
 
 static SCM scm_make_unbound (void);
@@ -146,6 +158,135 @@ static SCM scm_unbound_p (SCM obj);
 static SCM scm_assert_bound (SCM value, SCM obj);
 static SCM scm_at_assert_bound_ref (SCM obj, SCM index);
 static SCM scm_sys_goops_loaded (void);
+
+/* This function is used for efficient type dispatch.  */
+SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
+	    (SCM x),
+	    "Return the class of @var{x}.")
+#define FUNC_NAME s_scm_class_of
+{
+  switch (SCM_ITAG3 (x))
+    {
+    case scm_tc3_int_1:
+    case scm_tc3_int_2:
+      return scm_class_integer;
+
+    case scm_tc3_imm24:
+      if (SCM_CHARP (x))
+	return scm_class_char;
+      else if (scm_is_bool (x))
+        return scm_class_boolean;
+      else if (scm_is_null (x))
+        return scm_class_null;
+      else
+        return scm_class_unknown;
+
+    case scm_tc3_cons:
+      switch (SCM_TYP7 (x))
+	{
+	case scm_tcs_cons_nimcar:
+	  return scm_class_pair;
+	case scm_tcs_closures:
+	  return scm_class_procedure;
+	case scm_tc7_symbol:
+	  return scm_class_symbol;
+	case scm_tc7_vector:
+	case scm_tc7_wvect:
+	  return scm_class_vector;
+	case scm_tc7_string:
+	  return scm_class_string;
+        case scm_tc7_number:
+          switch SCM_TYP16 (x) {
+          case scm_tc16_big:
+            return scm_class_integer;
+          case scm_tc16_real:
+            return scm_class_real;
+          case scm_tc16_complex:
+            return scm_class_complex;
+	  case scm_tc16_fraction:
+	    return scm_class_fraction;
+          }
+	case scm_tc7_asubr:
+	case scm_tc7_subr_0:
+	case scm_tc7_subr_1:
+	case scm_tc7_dsubr:
+	case scm_tc7_cxr:
+	case scm_tc7_subr_3:
+	case scm_tc7_subr_2:
+	case scm_tc7_rpsubr:
+	case scm_tc7_subr_1o:
+	case scm_tc7_subr_2o:
+	case scm_tc7_lsubr_2:
+	case scm_tc7_lsubr:
+	  if (SCM_SUBR_GENERIC (x) && *SCM_SUBR_GENERIC (x))
+	    return scm_class_primitive_generic;
+	  else
+	    return scm_class_procedure;
+	case scm_tc7_cclo:
+	  return scm_class_procedure;
+	case scm_tc7_pws:
+	  return scm_class_procedure_with_setter;
+
+	case scm_tc7_smob:
+	  {
+	    scm_t_bits type = SCM_TYP16 (x);
+	    if (type != scm_tc16_port_with_ps)
+	      return scm_smob_class[SCM_TC2SMOBNUM (type)];
+	    x = SCM_PORT_WITH_PS_PORT (x);
+	    /* fall through to ports */
+	  }
+	case scm_tc7_port:
+	  return scm_port_class[(SCM_WRTNG & SCM_CELL_WORD_0 (x)
+				 ? (SCM_RDNG & SCM_CELL_WORD_0 (x)
+				    ? SCM_INOUT_PCLASS_INDEX | SCM_PTOBNUM (x)
+				    : SCM_OUT_PCLASS_INDEX | SCM_PTOBNUM (x))
+				 : SCM_IN_PCLASS_INDEX | SCM_PTOBNUM (x))];
+	case scm_tcs_struct:
+	  if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS_VALID)
+	    return SCM_CLASS_OF (x);
+	  else if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS)
+	    {
+	      /* Goops object */
+	      if (! scm_is_false (SCM_OBJ_CLASS_REDEF (x)))
+		scm_change_object_class (x,
+					 SCM_CLASS_OF (x),         /* old */
+					 SCM_OBJ_CLASS_REDEF (x)); /* new */
+	      return SCM_CLASS_OF (x);
+	    }
+	  else
+	    {
+	      /* ordinary struct */
+	      SCM handle = scm_struct_create_handle (SCM_STRUCT_VTABLE (x));
+	      if (scm_is_true (SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle))))
+		return SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle));
+	      else
+		{
+		  SCM name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
+		  SCM class = scm_make_extended_class (scm_is_true (name)
+						       ? scm_i_symbol_chars (name)
+						       : 0,
+						       SCM_I_OPERATORP (x));
+		  SCM_SET_STRUCT_TABLE_CLASS (SCM_CDR (handle), class);
+		  return class;
+		}
+	    }
+	default:
+	  if (scm_is_pair (x))
+	    return scm_class_pair;
+	  else
+	    return scm_class_unknown;
+	}
+
+    case scm_tc3_struct:
+    case scm_tc3_tc7_1:
+    case scm_tc3_tc7_2:
+    case scm_tc3_closure:
+      /* Never reached */
+      break;
+    }
+  return scm_class_unknown;
+}
+#undef FUNC_NAME
 
 /******************************************************************************
  *
@@ -2437,7 +2578,6 @@ create_standard_classes (void)
 	       scm_class_class,
 	       scm_list_2 (scm_class_input_port, scm_class_output_port),
 	       SCM_EOL);
-  scm_classes_initialized = 1;
 }
 
 /**********************************************************************

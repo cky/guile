@@ -178,25 +178,6 @@ typedef struct scm_effective_slot_definition {
 /* Plugin proxy classes for basic types. */
 SCM_API SCM scm_metaclass_standard;
 SCM_API SCM scm_metaclass_operator;
-SCM_API SCM scm_class_boolean;
-SCM_API SCM scm_class_char;
-SCM_API SCM scm_class_pair;
-SCM_API SCM scm_class_procedure;
-SCM_API SCM scm_class_string;
-SCM_API SCM scm_class_symbol;
-SCM_API SCM scm_class_procedure_with_setter;
-SCM_API SCM scm_class_primitive_generic;
-SCM_API SCM scm_class_vector, scm_class_null;
-SCM_API SCM scm_class_real;
-SCM_API SCM scm_class_complex;
-SCM_API SCM scm_class_integer;
-SCM_API SCM scm_class_fraction;
-SCM_API SCM scm_class_unknown;
-SCM_API SCM *scm_port_class;
-SCM_API SCM *scm_smob_class;
-SCM_API int scm_classes_initialized;
-
-SCM_API SCM scm_no_applicable_method;
 
 /* Goops functions. */
 SCM_API SCM scm_make_extended_class (char const *type_name, int applicablep);
@@ -205,7 +186,6 @@ SCM_API void scm_make_port_classes (long ptobnum, char *type_name);
 SCM_API void scm_change_object_class (SCM, SCM, SCM);
 SCM_API SCM scm_memoize_method (SCM x, SCM args);
 
-SCM_API SCM scm_class_of (SCM obj);
 SCM_API SCM scm_mcache_lookup_cmethod (SCM cache, SCM args);
 SCM_API SCM scm_mcache_compute_cmethod (SCM cache, SCM args);
 /* The following are declared in __scm.h
