@@ -63,12 +63,8 @@
 
 #define SCM_THREAD_SWITCH_COUNT       50
 
-extern pthread_t guile_thread;                       /* for debugging */
-
 #define SCM_THREAD_SWITCHING_CODE \
 do { \
-  if (guile_thread != pthread_self ()) \
-    abort (); \
   scm_switch_counter--; \
   if (scm_switch_counter == 0) \
     { \
@@ -78,56 +74,6 @@ do { \
 } while (0)
 
 SCM_API int scm_switch_counter;
-
-struct scm_copt_thread;
-
-typedef struct scm_copt_thread {
-  
-  /* A condition variable for sleeping on.
-   */
-  pthread_cond_t block;
-  
-  scm_root_state *root;
-  SCM handle;
-  pthread_t pthread;
-  SCM result;
-
-} scm_copt_thread;
-
-/* We implement our own mutex type since we want them to be 'fair', 
-   we want to do fancy things while waiting for them (like running
-   asyncs) and we want to support waiting on many things at once.
-*/
-typedef struct scm_copt_mutex {
-  /* the mutex for this data structure. */
-  pthread_mutex_t mutex;
-  /* the thread currently owning the mutex, or NULL. */
-  scm_copt_thread *owner;
-  /* how much the owner owns us. */
-  int level;
-  /* the threads waiting for this mutex. */
-  SCM waiting;
-} scm_copt_mutex;
-
-typedef scm_copt_mutex scm_t_mutex;
-
-SCM_API void scm_copt_mutex_init (scm_copt_mutex *m);
-SCM_API void scm_copt_mutex_lock (scm_copt_mutex *m);
-SCM_API void scm_copt_mutex_unlock (scm_copt_mutex *m);
-SCM_API void scm_copt_mutex_destroy (scm_copt_mutex *m);
-
-#define scm_mutex_init    scm_copt_mutex_init
-#define scm_mutex_lock    scm_copt_mutex_lock
-#define scm_mutex_unlock  scm_copt_mutex_unlock
-#define scm_mutex_destroy scm_copt_mutex_destroy
-
-typedef pthread_cond_t scm_t_cond;
-
-#define scm_cond_init(c)   pthread_cond_init ((c), NULL)
-#define scm_cond_wait      pthread_cond_wait
-#define scm_cond_signal    pthread_cond_signal
-#define scm_cond_broadcast pthread_cond_broadcast
-#define scm_cond_destroy   pthread_cond_destroy
 
 #define SCM_THREAD_LOCAL_DATA          (scm_copt_thread_data ())
 #define SCM_SET_THREAD_LOCAL_DATA(ptr) (scm_copt_set_thread_data (ptr))
