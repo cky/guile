@@ -279,7 +279,7 @@ scm_getpwuid (user)
       entry = getpwnam (SCM_ROCHARS (user));
     }
   if (!entry)
-    scm_syserror (s_getpwuid);
+    scm_misc_error (s_getpwuid, "entry not found", SCM_EOL);
 
   ve[0] = scm_makfrom0str (entry->pw_name);
   ve[1] = scm_makfrom0str (entry->pw_passwd);
