@@ -1,3 +1,10 @@
+2001-07-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-14.c: Allocate correct memory size for charsets (32 bytes),
+	use this value for initializing and comparing charsets.
+	(scm_char_set_hash): Use ``better'' hash algorithm which produces
+	more values.
+
 2001-07-15  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-14.c (scm_char_set_hash): recognise 0 instead of #f in the

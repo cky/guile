@@ -94,8 +94,8 @@ make_char_set (const char * func_name)
 {
   long * p;
   
-  p = scm_must_malloc (SCM_CHARSET_SIZE, func_name);
-  memset (p, 0, SCM_CHARSET_SIZE);
+  p = scm_must_malloc (SCM_CHARSET_SIZE / sizeof (char), func_name);
+  memset (p, 0, SCM_CHARSET_SIZE / sizeof (char));
   SCM_RETURN_NEWSMOB (scm_tc16_charset, p);
 }
 
@@ -131,7 +131,8 @@ SCM_DEFINE (scm_char_set_eq, "char-set=", 0, 0, 1,
       csi_data = (long *) SCM_SMOB_DATA (csi);
       if (cs1_data == NULL)
 	cs1_data = csi_data;
-      else if (memcmp (cs1_data, csi_data, SCM_CHARSET_SIZE) != 0)
+      else if (memcmp (cs1_data, csi_data,
+		       SCM_CHARSET_SIZE / sizeof (char)) != 0)
 	return SCM_BOOL_F;
       char_sets = SCM_CDR (char_sets);
     }
@@ -204,7 +205,8 @@ SCM_DEFINE (scm_char_set_hash, "char-set-hash", 1, 1, 0,
   p = (long *) SCM_SMOB_DATA (cs);
   for (k = 0; k < SCM_CHARSET_SIZE / sizeof (long); k++)
     {
-      val = p[k] ^ val;
+      if (p[k] != 0)
+        val = p[k] + (val << 1);
     }
   return SCM_MAKINUM (val % bnd);
 }
@@ -1368,7 +1370,7 @@ scm_c_init_srfi_14 (void)
   if (!initialized)
     {
       scm_tc16_charset = scm_make_smob_type ("character-set", 
-					     SCM_CHARSET_SIZE * sizeof (long));
+					     SCM_CHARSET_SIZE / sizeof (char));
       scm_set_smob_free (scm_tc16_charset, charset_free);
       scm_set_smob_print (scm_tc16_charset, charset_print);
       initialized = 1;
