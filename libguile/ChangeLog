@@ -1,3 +1,19 @@
+2001-10-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.h:  Removed old comment about using SCM_CAR to access
+	non-pair cells.
+
+	(SCM_MOST_POSITIVE_FIXNUM, SCM_MOST_NEGATIVE_FIXNUM):  Make sure
+	the return value is signed.  Thanks to Brian Crowder for the bug
+	report.
+
+	(SCM_SRS):  Avoid unnecessary casting and don't unpack input
+	values.  With this patch, SCM_SRS can be safely used for other
+	types than scm_t_signed_bits.  However, it should still better be
+	an internal macro and thus be renamed to SCM_I_SRS.
+
+	(SCM_MAKINUM, SCM_INUM):  Use proper casting.
+
 2001-10-03  Gary Houston  <ghouston@arglist.com>
 
 	* continuations.h, unif.h: in the descriptions of the bit patterns

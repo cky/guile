@@ -51,39 +51,36 @@
 
 
 
-/* Immediate Numbers 
+/* Immediate Numbers, also known as fixnums
  *
- * Inums are exact integer data that fits within an SCM word.
- *
- * SCM_INUMP applies only to values known to be Scheme objects.
- * In particular, SCM_INUMP (SCM_CAR (x)) is valid only if x is known
- * to be a SCM_CONSP.  If x is only known to be a non-immediate, 
- * SCM_INUMP (SCM_CAR (x)) can give wrong answers.
- */
+ * Inums are exact integer data that fits within an SCM word.  */
 
-#define SCM_I_FIXNUM_BIT (SCM_LONG_BIT - 2)
-#define SCM_MOST_POSITIVE_FIXNUM ((1L << (SCM_I_FIXNUM_BIT - 1)) - 1)
-#define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM - 1)
+#define SCM_I_FIXNUM_BIT \
+  (SCM_LONG_BIT - 2)
+#define SCM_MOST_POSITIVE_FIXNUM \
+  ((((scm_t_signed_bits) 1) << (SCM_I_FIXNUM_BIT - 1)) - 1)
+#define SCM_MOST_NEGATIVE_FIXNUM \
+  (-((scm_t_signed_bits) SCM_MOST_POSITIVE_FIXNUM) - 1)
 
 
 /* SCM_SRS is signed right shift */
 #if (-1 == (((-1) << 2) + 2) >> 2)
-# define SCM_SRS(x, y) ((scm_t_signed_bits)(x) >> (y))
+# define SCM_SRS(x, y) ((x) >> (y))
 #else
-# define SCM_SRS(x, y) ((SCM_UNPACK (x) < 0) ? ~((~SCM_UNPACK (x)) >> (y)) : (SCM_UNPACK (x) >> (y)))
+# define SCM_SRS(x, y) ((x) < 0 ? ~((~(x)) >> (y)) : ((x) >> (y)))
 #endif /* (-1 == (((-1) << 2) + 2) >> 2) */
 
 
 #define SCM_INUMP(x)	(2 & SCM_UNPACK (x))
 #define SCM_NINUMP(x) 	(!SCM_INUMP (x))
-#define SCM_MAKINUM(x)  (SCM_PACK (((x) << 2) + 2L))
-#define SCM_INUM(x)     ((scm_t_signed_bits)(SCM_SRS (SCM_UNPACK (x), 2)))
+#define SCM_MAKINUM(x)  (SCM_PACK ((((scm_t_signed_bits) (x)) << 2) + 2))
+#define SCM_INUM(x)     (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
 
 
 /* SCM_FIXABLE is true if its long argument can be encoded in an SCM_INUM. */
 #define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
 #define SCM_NEGFIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
-#define SCM_FIXABLE(n) (SCM_POSFIXABLE(n) && SCM_NEGFIXABLE(n))
+#define SCM_FIXABLE(n) (SCM_POSFIXABLE (n) && SCM_NEGFIXABLE (n))
 
 
 /* A name for 0. */
