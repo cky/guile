@@ -2188,9 +2188,6 @@
 		    e)))
    (#t e)))
 
-(define (gentemp)
-  (gensym "scm:G"))
-
 (provide 'defmacro)
 
 
