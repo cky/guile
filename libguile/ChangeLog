@@ -1,3 +1,8 @@
+2003-07-02  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* __scm.h (SCM_ASRTGO): add "else" to macro expansions with if
+	clauses.
+	
 2003-06-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* deprecated.h (SCM_OPDIRP, scm_fport, scm_option, scm_srcprops,

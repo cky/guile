@@ -492,13 +492,13 @@ do { \
 #else
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) \
 	if (!(_cond)) \
-          scm_wrong_type_arg (_subr, _pos, _arg)
+          scm_wrong_type_arg (_subr, _pos, _arg); else
 #define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg) \
 	if (!(_cond)) \
-          scm_wrong_type_arg_msg(_subr, _pos, _arg, _msg)
+          scm_wrong_type_arg_msg(_subr, _pos, _arg, _msg); else
 #define SCM_ASRTGO(_cond, _label) \
         if (!(_cond)) \
-          goto _label
+          goto _label; else
 #endif
 
 /*
