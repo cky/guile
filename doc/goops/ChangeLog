@@ -1,3 +1,8 @@
+2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.texi (Class Redefinition): Clarifications; Removed
+	mentioning of change-object-class.
+
 2002-11-07  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* goops.texi (Top): Say "Indices" before index nodes in main menu.
