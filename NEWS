@@ -87,27 +87,50 @@ Example:
 
 * Changes to Scheme functions and syntax
 
-** The "guardian" facility has changed (mostly compatibly).
+** The semantics of guardians has changed.
 
-There are now two types of guardians: greedy and sharing.
+The changes are for the most part compatible.  An important criteria
+was to keep the typical usage of guardians as simple as before, but to 
+make the semantics safer and (as a result) more useful.
 
-If you call (make-guardian #t) or without any arguments, you get a
-greedy guardian, else a sharing guardian.
+*** All objects returned from guardians are now properly alive.
 
-Greedy guardians are made the default because they are more
-"defensive".  You can only greedily guard an object once.  If you
-guard an object more than once, then it is guaranteed that the object
-won't be returned from sharing guardians as long as it is greedily
-guarded.
-
-The second change is making sure that all objects returned by
-guardians are properly live, i.e. it is impossible to return a
-contained object before the containing object.
+It is now guaranteed that any object referenced by an object returned
+from a guardian is alive.  It's now impossible for a guardian to
+return a "contained" object before its "containing" object.
 
 One incompatible (but probably not very important) change resulting
 from this is that it is no longer possible to guard objects that
 indirectly reference themselves (i.e. are parts of cycles).  If you do
 so accidentally, you'll get a warning.
+
+*** There are now two types of guardians: greedy and sharing.
+
+If you call (make-guardian #t) or just (make-guardian), you'll get a
+greedy guardian, and for (make-guardian #f) a sharing guardian.
+
+Greedy guardians are the default because they are more "defensive".
+You can only greedily guard an object once.  If you guard an object
+more than once, once in a greedy guardian and the rest of times in
+sharing guardians, then it is guaranteed that the object won't be
+returned from sharing guardians as long as it is greedily guarded
+and/or alive.
+
+Guardians returned by calls to `make-guardian' can now take one more
+optional parameter, which says whether to throw an error in case an
+attempt is made to greedily guard an object that is already greedily
+guarded.  The default is true, i.e. throw an error.  If the parameter
+is false, the guardian invocation returns #t if guarding was
+successful and #f if it wasn't.
+
+Also, since greedy guarding is, in effect, a side-effecting operation
+on objects, a new function is introduced: `destroy-guardian!'.
+Invoking this function on a guardian renders it unoperative and, if
+the guardian is greedy, clears the "greedily guarded" property of the
+objects that were guarded by it, thus undoing the side effect.
+
+Note that all this hair is hardly very important, since guardian
+objects are usually permanent.
 
 ** Escape procedures created by call-with-current-continuation now
 accept any number of arguments, as required by R5RS.

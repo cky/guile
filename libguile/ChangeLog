@@ -1,3 +1,24 @@
+2001-01-03  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* guardians.c (F_GREEDY, F_LISTED, F_DESTROYED, GREEDY_P,
+ 	SET_GREEDY, LISTED_P, SET_LISTED, CLR_LISTED, DESTROYED_P,
+ 	SET_DESTROYED): new defines/macros.
+	(GUARDIAN_LIVE, GUARDIAN_ZOMBIES, GUARDIAN_NEXT): deleted.
+	(add_to_live_list): takes a `guardian_t *' now, not SCM.
+	(guardian_print): print more info.
+	(guardian_apply): check if the guardian is destroyed, and throw an
+ 	error if so.  take one more optional argument `throw_p'.
+	(scm_guard): depending on the value of `throw_p', return a boolean
+ 	result.
+	(scm_get_one_zombie): remove redundant property test.
+	(guardian_t): represent the various (currently 3, I hope nothing
+ 	more gets added) boolean fields as bit flags.
+	(scm_guardian_destroyed_p, scm_guardian_greedy_p): new predicates.
+	(scm_destroy_guardian_x): new procedure.
+
+	* guardians.h: added prototypes for `scm_guardian_greedy_p' and
+	`scm_guardian_destroyed_p'.  changed prototype for `scm_guard'.
+
 2001-01-01  Gary Houston  <ghouston@arglist.com>
 
 	* fports.c (fport_write): bugfix: handle short writes for
@@ -19,7 +40,7 @@
 
 	* guardians.c: (greedily_guarded_prop): deleted.
 	(greedily_guarded_whash): new variable.  a doubly-weak hash table
-	used to keep the "greedily hashed" object property.  the previous
+	used to keep the "greedily guarded" object property.  the previous
 	implementation (via primitive object properties) was incorrect due
 	to its only-the-key-is-weak semantics.
 	(scm_guard, get_one_zombie, scm_init_guardians): use/init
