@@ -1,3 +1,8 @@
+2000-04-10  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* coop.c (mother): Handled EINTR (the wait has been interrupted by
+	a signal).
+
 2000-04-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_WTA_DISPATCH_[012n]):  To test whether a SCM value
