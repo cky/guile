@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,8 @@
 
 
 
+#include <assert.h>
+
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/alist.h"
@@ -32,6 +34,8 @@
  
    Things that can be on the wind list:
 
+   #<frame>
+   #<winder>
    (enter-proc . leave-proc)     dynamic-wind
    (tag . jmpbuf)                catch
    (tag . lazy-catch)            lazy-catch
@@ -108,27 +112,6 @@ SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-/* The implementation of a C-callable dynamic-wind,
- * scm_internal_dynamic_wind, requires packaging of C pointers in a
- * smob.  Objects of this type are pushed onto the dynwind chain.
- */
-
-#define SCM_GUARDSP(obj) SCM_TYP16_PREDICATE (tc16_guards, obj)
-#define SCM_BEFORE_GUARD(obj) ((scm_t_guard) SCM_CELL_WORD (obj, 1))
-#define SCM_AFTER_GUARD(obj) ((scm_t_guard) SCM_CELL_WORD (obj, 2))
-#define SCM_GUARD_DATA(obj) ((void *) SCM_CELL_WORD (obj, 3))
-
-static scm_t_bits tc16_guards;
-
-static int
-guards_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
-{
-  scm_puts ("#<guards ", port);
-  scm_intprint (SCM_UNPACK (SCM_CDR (exp)), 16, port);
-  scm_putc ('>', port);
-  return 1;
-}
-
 SCM
 scm_internal_dynamic_wind (scm_t_guard before,
 			   scm_t_inner inner,
@@ -136,15 +119,94 @@ scm_internal_dynamic_wind (scm_t_guard before,
 			   void *inner_data,
 			   void *guard_data)
 {
-  SCM guards, ans;
-  before (guard_data);
-  SCM_NEWSMOB3 (guards, tc16_guards, (scm_t_bits) before, 
-		(scm_t_bits) after, (scm_t_bits) guard_data);
-  scm_dynwinds = scm_acons (guards, SCM_BOOL_F, scm_dynwinds);
+  SCM ans;
+
+  scm_begin_frame (SCM_F_FRAME_REWINDABLE);
+  scm_on_rewind (before, guard_data, SCM_F_WIND_EXPLICITELY);
+  scm_on_unwind (after, guard_data, SCM_F_WIND_EXPLICITELY);
   ans = inner (inner_data);
-  scm_dynwinds = SCM_CDR (scm_dynwinds);
-  after (guard_data);
+  scm_end_frame ();
   return ans;
+}
+
+/* Frames and winders. */
+
+static scm_t_bits tc16_frame;
+#define FRAME_P(f)     SCM_SMOB_PREDICATE (tc16_frame, (f))
+
+#define FRAME_F_REWINDABLE    (1 << 16)
+#define FRAME_REWINDABLE_P(f) (SCM_CELL_WORD_0(f) & FRAME_F_REWINDABLE)
+
+static scm_t_bits tc16_winder;
+#define WINDER_P(w)    SCM_SMOB_PREDICATE (tc16_winder, (w))
+#define WINDER_PROC(w) ((void (*)(void *))SCM_CELL_WORD_1 (w))
+#define WINDER_DATA(w) ((void *)SCM_CELL_WORD_2 (w))
+
+#define WINDER_F_EXPLICIT    (1 << 16)
+#define WINDER_F_REWIND      (1 << 17)
+#define WINDER_EXPLICIT_P(w) (SCM_CELL_WORD_0(w) & WINDER_F_EXPLICIT)
+#define WINDER_REWIND_P(w)   (SCM_CELL_WORD_0(w) & WINDER_F_REWIND)
+
+static int
+frame_print (SCM obj, SCM port, scm_print_state *pstate SCM_UNUSED)
+{
+  scm_puts ("#<frame>", port);
+  return 1;
+}
+
+void
+scm_begin_frame (scm_t_frame_flags flags)
+{
+  SCM f;
+  scm_t_bits fl = ((flags&SCM_F_FRAME_REWINDABLE)? FRAME_F_REWINDABLE : 0);
+  SCM_NEWSMOB (f, tc16_frame | fl, 0);
+  scm_dynwinds = scm_cons (f, scm_dynwinds);
+}
+
+void
+scm_end_frame (void)
+{
+  long delta;
+  SCM to;
+  
+  /* Unwind upto and including the next frame entry.
+   */
+
+  for (to = scm_dynwinds, delta = 1;
+       SCM_CONSP (to);
+       to = SCM_CDR (to), delta++)
+    {
+      if (FRAME_P (SCM_CAR (to)))
+	{
+	  scm_i_dowinds (SCM_CDR (to), delta, 1, NULL, NULL);
+	  return;
+	}
+    }
+
+  assert (0);
+}
+
+void
+scm_on_unwind (void (*proc) (void *), void *data,
+	       scm_t_wind_flags flags)
+{
+  SCM w;
+  scm_t_bits fl = ((flags&SCM_F_WIND_EXPLICITELY)? WINDER_F_EXPLICIT : 0);
+  SCM_NEWSMOB2 (w, tc16_winder | fl,
+		(scm_t_bits) proc, (scm_t_bits) data);
+  scm_dynwinds = scm_cons (w, scm_dynwinds);
+}
+
+void
+scm_on_rewind (void (*proc) (void *), void *data,
+	       scm_t_wind_flags flags)
+{
+  SCM w;
+  SCM_NEWSMOB2 (w, tc16_winder | WINDER_F_REWIND,
+		(scm_t_bits) proc, (scm_t_bits) data);
+  scm_dynwinds = scm_cons (w, scm_dynwinds);
+  if (flags & SCM_F_WIND_EXPLICITELY)
+    proc (data);
 }
 
 #ifdef GUILE_DEBUG
@@ -174,18 +236,31 @@ scm_swap_bindings (SCM vars, SCM vals)
     }
 }
 
-void 
+void
 scm_dowinds (SCM to, long delta)
 {
+  scm_i_dowinds (to, delta, 0, NULL, NULL);
+}
+
+void 
+scm_i_dowinds (SCM to, long delta, int explicit,
+	       void (*turn_func) (void *), void *data)
+{
  tail:
-  if (SCM_EQ_P (to, scm_dynwinds));
+  if (SCM_EQ_P (to, scm_dynwinds))
+    {
+      if (turn_func)
+	turn_func (data);
+    }
   else if (delta < 0)
     {
       SCM wind_elt;
       SCM wind_key;
 
-      scm_dowinds (SCM_CDR (to), 1 + delta);
+      scm_i_dowinds (SCM_CDR (to), 1 + delta, explicit,
+		     turn_func, data);
       wind_elt = SCM_CAR (to);
+
 #if 0
       if (SCM_INUMP (wind_elt))
 	{
@@ -194,34 +269,50 @@ scm_dowinds (SCM to, long delta)
       else
 #endif
 	{
-	  wind_key = SCM_CAR (wind_elt);
-	  /* key = #t | symbol | thunk | list of variables | list of fluids */
-	  if (SCM_NIMP (wind_key))
+	  if (FRAME_P (wind_elt))
 	    {
-	      if (SCM_CONSP (wind_key))
+	      if (!FRAME_REWINDABLE_P (wind_elt))
+		scm_misc_error ("dowinds", 
+				"cannot invoke continuation from this context",
+				SCM_EOL);
+	    }
+	  else if (WINDER_P (wind_elt))
+	    {
+	      if (WINDER_REWIND_P (wind_elt))
 		{
-		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
-		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		  else if (SCM_FLUIDP (SCM_CAR (wind_key)))
-		    scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
+		  void (*proc) (void *) = WINDER_PROC (wind_elt);
+		  void *data = WINDER_DATA (wind_elt);
+		  proc (data);
 		}
-	      else if (SCM_GUARDSP (wind_key))
-		SCM_BEFORE_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
-	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
-		scm_call_0 (wind_key);
+	    }
+	  else
+	    {
+	      wind_key = SCM_CAR (wind_elt);
+	      /* key = #t | symbol | thunk | list of variables | list of fluids */
+	      if (SCM_NIMP (wind_key))
+		{
+		  if (SCM_CONSP (wind_key))
+		    {
+		      if (SCM_VARIABLEP (SCM_CAR (wind_key)))
+			scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
+		      else if (SCM_FLUIDP (SCM_CAR (wind_key)))
+			scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
+		    }
+		  else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+		    scm_call_0 (wind_key);
+		}
 	    }
 	}
       scm_dynwinds = to;
     }
   else
     {
-      SCM from;
       SCM wind_elt;
       SCM wind_key;
 
-      from = SCM_CDR (SCM_CAR (scm_dynwinds));
       wind_elt = SCM_CAR (scm_dynwinds);
       scm_dynwinds = SCM_CDR (scm_dynwinds);
+
 #if 0
       if (SCM_INUMP (wind_elt))
 	{
@@ -230,20 +321,35 @@ scm_dowinds (SCM to, long delta)
       else
 #endif
 	{
-	  wind_key = SCM_CAR (wind_elt);
-	  if (SCM_NIMP (wind_key))
+	  if (FRAME_P (wind_elt))
 	    {
-	      if (SCM_CONSP (wind_key))
+	      /* Nothing to do. */
+	    }
+	  else if (WINDER_P (wind_elt))
+	    {
+	      if (!WINDER_REWIND_P (wind_elt)
+		  && (!explicit || WINDER_EXPLICIT_P (wind_elt)))
 		{
-		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
-		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		  else if (SCM_FLUIDP (SCM_CAR (wind_key)))
-		    scm_swap_fluids_reverse (wind_key, SCM_CDR (wind_elt));
+		  void (*proc) (void *) = WINDER_PROC (wind_elt);
+		  void *data = WINDER_DATA (wind_elt);
+		  proc (data);
 		}
-	      else if (SCM_GUARDSP (wind_key))
-		SCM_AFTER_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
-	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
-		scm_call_0 (from);
+	    }
+	  else
+	    {
+	      wind_key = SCM_CAR (wind_elt);
+	      if (SCM_NIMP (wind_key))
+		{
+		  if (SCM_CONSP (wind_key))
+		    {
+		      if (SCM_VARIABLEP (SCM_CAR (wind_key)))
+			scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
+		      else if (SCM_FLUIDP (SCM_CAR (wind_key)))
+			scm_swap_fluids_reverse (wind_key, SCM_CDR (wind_elt));
+		    }
+		  else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+		    scm_call_0 (SCM_CDR (wind_elt));
+		}
 	    }
 	}
       delta--;
@@ -251,13 +357,14 @@ scm_dowinds (SCM to, long delta)
     }
 }
 
-
-
 void
 scm_init_dynwind ()
 {
-  tc16_guards = scm_make_smob_type ("guards", 0);
-  scm_set_smob_print (tc16_guards, guards_print);
+  tc16_frame = scm_make_smob_type ("frame", 0);
+  scm_set_smob_print (tc16_frame, frame_print);
+
+  tc16_winder = scm_make_smob_type ("winder", 0);
+
 #include "libguile/dynwind.x"
 }
 
