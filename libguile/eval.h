@@ -170,6 +170,7 @@ extern SCM * scm_lookupcar SCM_P ((SCM vloc, SCM genv, int check));
 extern SCM scm_unmemocar SCM_P ((SCM form, SCM env));
 extern SCM scm_unmemocopy SCM_P ((SCM form, SCM env));
 extern SCM scm_eval_car SCM_P ((SCM pair, SCM env));
+extern SCM scm_eval_body (SCM code, SCM env);
 extern SCM scm_eval_args SCM_P ((SCM i, SCM env, SCM proc));
 extern SCM scm_deval_args SCM_P ((SCM l, SCM env, SCM proc, SCM *lloc));
 extern SCM scm_m_quote SCM_P ((SCM xorig, SCM env));

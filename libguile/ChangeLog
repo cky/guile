@@ -1,5 +1,83 @@
+1999-08-26  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	This change extends the representation of primitive procedures
+	with more data fields, e.g. a place for documentation and true
+	procedure properties.
+	
+	* procs.c, procs.h (scm_subr_entry): New type: Stores data
+	associated with subrs.
+	(SCM_SUBRNUM, SCM_SUBR_ENTRY, SCM_SUBR_GENERIC, SCM_SUBR_PROPS,
+	SCM_SUBR_DOC): New macros.
+	(scm_subr_table): New variable.
+	(scm_mark_subr_table): New function.
+	
+	* init.c (scm_boot_guile_1): Call scm_init_subr_table.
+
+	* gc.c (scm_gc_mark): Don't mark subr names here.
+	(scm_igc): Call scm_mark_subr_table.
+
+
+	This change implements a scheme for letting a generic work as a
+	shadow for a primitive procedure.  If the primitive procedure
+	can't dispatch on its arguments, control is left over to the
+	generic.  Normal wrong type arg errors will be generated until the
+	user has hung the first method on the primitive.
+
+	* snarf.h (SCM_GPROC, SCM_GPROC1): New macros.
+
+	* procs.c, procs.h (scm_subr_p): New function (used internally).
+
+	* gsubr.c, gsubr.h (scm_make_gsubr_with_generic): New function.
+
+	* objects.c, objects.h (scm_primitive_generic): New class.
+
+	* objects.h (SCM_CMETHOD_CODE, SCM_CMETHOD_ENV): New macros.
+
+	* print.c (scm_iprin1): Print primitive-generics.
+
+	* __scm.h (SCM_WTA_DISPATCH_1, SCM_GASSERT1,
+	SCM_WTA_DISPATCH_2, SCM_GASSERT2): New macros.
+	
+	* eval.c (SCM_CEVAL, SCM_APPLY): Replace scm_wta -->
+	SCM_WTA_DISPATCH_1 for scm_cxr's (unary floating point
+	primitives).  NOTE: This means that it is now *required* to use
+	SCM_GPROC1 when creating float scm_cxr's (float scm_cxr's is an
+	obscured representation that will be removed in the future anyway,
+	so backward compatibility is no problem here).
+
+	* numbers.c: Converted most numeric primitives (all but bit
+	comparison operations and bit operations) to dispatch on generic
+	if args don't match.
+
+	
+	Better support for applying generic functions.
+
+	* eval.c, eval.h (scm_eval_body): New function.
+
+	* objects.c (scm_call_generic_0, scm_call_generic_1,
+	scm_call_generic_2, scm_call_generic_3, scm_apply_generic): New
+	functions.
+	
+	
+	Optimization of the generic function dispatch mechanism.
+	
+	* eval.c (SCM_CEVAL): Apply the cmethod directly after having
+	called scm_memoize_method instead of doing a second lookup.
+
+	* objects.h (scm_memoize_method): Now returns the memoized cmethod.
+
+
+	Bugfix
+
+	* procs.c (scm_make_subr_opt): Use scm_sysintern0 instead of
+	scm_sysintern so that the binding connected with the subr name
+	isn't cleared when we give set = 0.
+
+	
 1999-08-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	More transparent handling of ports with print states.
+	
 	* print.h (SCM_PORT_WITH_PS_P, SCM_PORT_WITH_PS_PORT,
 	SCM_PORT_WITH_PS_PS): Represent ports with print states as a smob
 	instead of a pair of a port and a print state.  We'll need to cons

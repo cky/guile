@@ -70,10 +70,29 @@ typedef struct scm_dsubr
   double (*dproc) ();
 } scm_dsubr;
 
-#define SCM_SNAME(x) ((SCM_CAR(x)>>8)?(SCM)(scm_heap_org+(SCM_CAR(x)>>8)):scm_nullstr)
+typedef struct
+{
+  SCM handle;			/* link back to procedure object */
+  SCM name;
+  SCM *generic;			/* 0 if no generic support
+				 * *generic == 0 until first method
+				 */
+  SCM properties;		/* procedure properties */
+  SCM documentation;
+} scm_subr_entry;
+
+#define SCM_SUBRNUM(subr) (SCM_CAR (subr) >> 8)
+#define SCM_SET_SUBRNUM(subr, num) \
+        SCM_SETCAR (subr, (num >> 8) + SCM_TYP7 (subr))
+#define SCM_SUBR_ENTRY(x) (scm_subr_table[SCM_SUBRNUM (x)])
+#define SCM_SNAME(x) (SCM_SUBR_ENTRY (x).name)
 #define SCM_SUBRF(x) (((scm_subr *)(SCM2PTR(x)))->cproc)
 #define SCM_DSUBRF(x) (((scm_dsubr *)(SCM2PTR(x)))->dproc)
 #define SCM_CCLO_SUBR(x) (SCM_VELTS(x)[0])
+
+#define SCM_SUBR_GENERIC(x) (SCM_SUBR_ENTRY (x).generic)
+#define SCM_SUBR_PROPS(x) (SCM_SUBR_ENTRY (x).properties)
+#define SCM_SUBR_DOC(x) (SCM_SUBR_ENTRY (x).documentation)
 
 /* Closures
  */
@@ -139,9 +158,19 @@ typedef struct scm_dsubr
 #define SCM_PROCEDURE(obj) SCM_CADR (obj)
 #define SCM_SETTER(obj) SCM_CDDR (obj)
 
+extern scm_subr_entry *scm_subr_table;
+extern int scm_subr_table_size;
+extern int scm_subr_table_room;
+
 
 
+extern void scm_mark_subr_table (void);
+extern void scm_free_subr_entry (SCM subr);
 extern SCM scm_make_subr SCM_P ((const char *name, int type, SCM (*fcn) ()));
+extern SCM scm_make_subr_with_generic (const char *name,
+				       int type,
+				       SCM (*fcn) (),
+				       SCM *gf);
 extern SCM scm_make_subr_opt SCM_P ((const char *name, 
 				     int type, 
 				     SCM (*fcn) (),
@@ -150,12 +179,14 @@ extern SCM scm_makcclo SCM_P ((SCM proc, long len));
 extern SCM scm_procedure_p SCM_P ((SCM obj));
 extern SCM scm_closure_p SCM_P ((SCM obj));
 extern SCM scm_thunk_p SCM_P ((SCM obj));
+extern int scm_subr_p (SCM obj);
 extern SCM scm_procedure_documentation SCM_P ((SCM proc));
 extern SCM scm_procedure_with_setter_p SCM_P ((SCM obj));
 extern SCM scm_make_procedure_with_setter SCM_P ((SCM procedure, SCM setter));
 extern SCM scm_procedure SCM_P ((SCM proc));
 extern SCM scm_setter SCM_P ((SCM proc));
 extern void scm_init_iprocs SCM_P ((const scm_iproc *subra, int type));
+extern void scm_init_subr_table (void);
 extern void scm_init_procs SCM_P ((void));
 
 #ifdef GUILE_DEBUG

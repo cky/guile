@@ -415,6 +415,28 @@ extern unsigned int scm_async_clock;
           goto _label
 #endif
 
+/*
+ * SCM_WTA_DISPATCH
+ */
+
+extern SCM scm_call_generic_1 (SCM gf, SCM a1);
+
+#define SCM_WTA_DISPATCH_1(gf, a1, pos, subr) \
+  return ((gf) \
+          ? scm_call_generic_1 ((gf), (a1)) \
+          : scm_wta ((a1), (char *) (pos), (subr)))
+#define SCM_GASSERT1(cond, gf, a1, pos, subr) \
+  if (!(cond)) SCM_WTA_DISPATCH_1((gf), (a1), (pos), (subr))
+
+extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
+
+#define SCM_WTA_DISPATCH_2(gf, a1, a2, pos, subr) \
+  return ((gf) \
+          ? scm_call_generic_2 ((gf), (a1), (a2)) \
+          : scm_wta ((pos) == SCM_ARG1 ? (a1) : (a2), (char *) (pos), (subr)))
+#define SCM_GASSERT2(cond, gf, a1, a2, pos, subr) \
+  if (!(cond)) SCM_WTA_DISPATCH_2((gf), (a1), (a2), (pos), (subr))
+
 #define SCM_ARGn 		0
 #define SCM_ARG1 		1
 #define SCM_ARG2 		2

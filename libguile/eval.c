@@ -94,7 +94,7 @@ char *alloca ();
 
 #include "eval.h"
 
-void (*scm_memoize_method) (SCM, SCM);
+SCM (*scm_memoize_method) (SCM, SCM);
 
 
 
@@ -1618,6 +1618,29 @@ scm_eval_args (l, env, proc)
   return results;
 }
 
+SCM
+scm_eval_body (SCM code, SCM env)
+{
+  SCM next;
+ again:
+  next = code;
+  while (SCM_NNULLP (next = SCM_CDR (next)))
+    {
+      if (SCM_IMP (SCM_CAR (code)))
+	{
+	  if (SCM_ISYMP (SCM_CAR (code)))
+	    {
+	      code = scm_m_expand_body (code, env);
+	      goto again;
+	    }
+	}
+      else
+	SCM_XEVAL (SCM_CAR (code), env);
+      code = next;
+    }
+  return SCM_XEVALCAR (code, env);
+}
+
 
 #endif /* !DEVAL */
 
@@ -2375,32 +2398,33 @@ dispatch:
 	    do
 	      {
 		int j = n;
-		SCM entry = SCM_VELTS (proc)[i];
+		z = SCM_VELTS (proc)[i];
 		t.arg1 = arg2; /* list of arguments */
 		do
 		  {
 		    /* More arguments than specifiers => CLASS != ENV */
-		    if (scm_class_of (SCM_CAR (t.arg1)) != SCM_CAR (entry))
+		    if (scm_class_of (SCM_CAR (t.arg1)) != SCM_CAR (z))
 		      goto next_method;
 		    t.arg1 = SCM_CDR (t.arg1);
-		    entry = SCM_CDR (entry);
+		    z = SCM_CDR (z);
 		  }
 		while (--j && SCM_NIMP (t.arg1));
 		/* Fewer arguments than specifiers => CAR != ENV */
-		if (!SCM_CONSP (SCM_CAR (entry)))
+		if (!SCM_CONSP (SCM_CAR (z)))
 		  goto next_method;
+	      apply_cmethod:
 		/* Copy the environment frame so that the dispatch form can
 		   be used also in normal code. */
-		env = EXTEND_ENV (SCM_CADR (entry), arg2, SCM_CAR (entry));
-		x = SCM_CDR (entry);
+		env = EXTEND_ENV (SCM_CADR (z), arg2, SCM_CAR (z));
+		x = SCM_CDR (z);
 		goto cdrxbegin;
 	      next_method:
 		i = (i + 1) & mask;
 	      } while (i != end);
 
 	    /* No match - call external function and try again */
-	    scm_memoize_method (x, arg2);
-	    goto type_dispatch;
+	    z = scm_memoize_method (x, arg2);
+	    goto apply_cmethod;
 	  }
 
 	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
@@ -2817,7 +2841,8 @@ evapply:
 		}
 #endif
 	    floerr:
-	      scm_wta (t.arg1, (char *) SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
+	      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), t.arg1,
+				  SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
 	    }
 #endif
 	  proc = (SCM) SCM_SNAME (proc);
@@ -3468,7 +3493,8 @@ tail:
 	      RETURN (scm_makdbl (SCM_DSUBRF (proc) (scm_big2dbl (arg1)), 0.0))
 #endif
 	floerr:
-	  scm_wta (arg1, (char *) SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
+	  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
+			      SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
 	}
 #endif
       proc = (SCM) SCM_SNAME (proc);

@@ -101,6 +101,40 @@ scm_make_gsubr(name, req, opt, rst, fcn)
   }
 }
 
+SCM
+scm_make_gsubr_with_generic (const char *name,
+			     int req,
+			     int opt,
+			     int rst,
+			     SCM (*fcn)(),
+			     SCM *gf)
+{
+  switch SCM_GSUBR_MAKTYPE(req, opt, rst) {
+  case SCM_GSUBR_MAKTYPE(0, 0, 0):
+    return scm_make_subr_with_generic(name, scm_tc7_subr_0, fcn, gf);
+  case SCM_GSUBR_MAKTYPE(1, 0, 0):
+    return scm_make_subr_with_generic(name, scm_tc7_subr_1, fcn, gf);
+  case SCM_GSUBR_MAKTYPE(0, 1, 0):
+    return scm_make_subr_with_generic(name, scm_tc7_subr_1o, fcn, gf);
+  case SCM_GSUBR_MAKTYPE(1, 1, 0):
+    return scm_make_subr_with_generic(name, scm_tc7_subr_2o, fcn, gf);
+  case SCM_GSUBR_MAKTYPE(2, 0, 0):
+    return scm_make_subr_with_generic(name, scm_tc7_subr_2, fcn, gf);
+  case SCM_GSUBR_MAKTYPE(3, 0, 0):
+    return scm_make_subr_with_generic(name, scm_tc7_subr_3, fcn, gf);
+  case SCM_GSUBR_MAKTYPE(0, 0, 1):
+    return scm_make_subr_with_generic(name, scm_tc7_lsubr, fcn, gf);
+  case SCM_GSUBR_MAKTYPE(2, 0, 1):
+    return scm_make_subr_with_generic(name, scm_tc7_lsubr_2, fcn, gf);
+  default:
+    ;
+  }
+  scm_misc_error ("scm_make_gsubr_with_generic",
+		  "can't make primitive-generic with this arity",
+		  SCM_EOL);
+  return 0; /* never reached */
+}
+
 
 SCM_PROC(s_gsubr_apply, "gsubr-apply", 0, 0, 1, scm_gsubr_apply);
 

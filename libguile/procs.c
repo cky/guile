@@ -52,6 +52,12 @@
 /* {Procedures}
  */
 
+scm_subr_entry *scm_subr_table;
+
+/* libguile contained approx. 700 primitive procedures 990824. */
+
+int scm_subr_table_size = 0;
+int scm_subr_table_room = 750;
 
 SCM 
 scm_make_subr_opt (name, type, fcn, set)
@@ -61,21 +67,51 @@ scm_make_subr_opt (name, type, fcn, set)
      int set;
 {
   SCM symcell;
-  long tmp;
   register SCM z;
-  symcell = scm_sysintern (name, SCM_UNDEFINED);
-  tmp = ((((SCM_CELLPTR) (SCM_CAR (symcell))) - scm_heap_org) << 8);
-  if ((tmp >> 8) != ((SCM_CELLPTR) (SCM_CAR (symcell)) - scm_heap_org))
-    tmp = 0;
+  int entry;
+
+  if (scm_subr_table_size == scm_subr_table_room)
+    {
+      scm_sizet new_size = scm_port_table_room * 3 / 2;
+      void *new_table = scm_must_realloc ((char *) scm_subr_table,
+					  scm_subr_table_room,
+					  new_size,
+					  "scm_make_subr_opt");
+      scm_subr_table = new_table;
+      scm_subr_table_room = new_size;
+    }
+
   SCM_NEWCELL (z);
+  symcell = set ? scm_sysintern0 (name) : scm_intern0 (name);
+  
+  entry = scm_subr_table_size;
+  scm_subr_table[entry].handle = z;
+  scm_subr_table[entry].name = SCM_CAR (symcell);
+  scm_subr_table[entry].generic = 0;
+  scm_subr_table[entry].properties = SCM_EOL;
+  scm_subr_table[entry].documentation = SCM_BOOL_F;
+  
   SCM_SUBRF (z) = fcn;
-  SCM_SETCAR (z, tmp + type);
+  SCM_SETCAR (z, (entry << 8) + type);
+  scm_subr_table_size++;
+  
   if (set)
     SCM_SETCDR (symcell, z);
+  
   return z;
 }
 
-
+/* This function isn't currently used since subrs are never freed. */
+/* *fixme* Need mutex here. */
+void
+scm_free_subr_entry (SCM subr)
+{
+  int entry = SCM_SUBRNUM (subr);
+  /* Move last entry in table to the free position */
+  scm_subr_table[entry] = scm_subr_table[scm_subr_table_size - 1];
+  SCM_SET_SUBRNUM (scm_subr_table[entry].handle, entry);
+  scm_subr_table_size--;
+}
 
 SCM 
 scm_make_subr (name, type, fcn)
@@ -86,8 +122,32 @@ scm_make_subr (name, type, fcn)
   return scm_make_subr_opt (name, type, fcn, 1);
 }
 
-#ifdef CCLO
+SCM
+scm_make_subr_with_generic (const char *name, int type, SCM (*fcn) (), SCM *gf)
+{
+  SCM subr = scm_make_subr_opt (name, type, fcn, 1);
+  scm_subr_table[scm_subr_table_size - 1].generic = gf;
+  return subr;
+}
 
+void
+scm_mark_subr_table ()
+{
+  int i;
+  for (i = 0; i < scm_subr_table_size; ++i)
+    {
+      SCM_SETGC8MARK (scm_subr_table[i].name);
+      if (scm_subr_table[i].generic && *scm_subr_table[i].generic)
+	scm_gc_mark (*scm_subr_table[i].generic);
+      if (SCM_NIMP (scm_subr_table[i].properties))
+	scm_gc_mark (scm_subr_table[i].properties);
+      if (SCM_NIMP (scm_subr_table[i].documentation))
+	scm_gc_mark (scm_subr_table[i].documentation);
+    }
+}
+
+
+#ifdef CCLO
 SCM 
 scm_makcclo (proc, len)
      SCM proc;
@@ -194,6 +254,21 @@ scm_thunk_p (obj)
   return SCM_BOOL_F;
 }
 
+/* Only used internally. */
+int
+scm_subr_p (SCM obj)
+{
+  if (SCM_NIMP (obj))
+    switch (SCM_TYP7 (obj))
+      {
+      case scm_tcs_subrs:
+	return 1;
+      default:
+	;
+      }
+  return 0;
+}
+
 SCM_PROC(s_procedure_documentation, "procedure-documentation", 1, 0, 0, scm_procedure_documentation);
 
 SCM 
@@ -293,6 +368,7 @@ scm_setter (SCM proc)
   return 0;
 }
 
+
 void
 scm_init_iprocs(subra, type)
      const scm_iproc *subra;
@@ -305,12 +381,17 @@ scm_init_iprocs(subra, type)
 }
 
 
-
-
+void
+scm_init_subr_table ()
+{
+  scm_subr_table
+    = ((scm_subr_entry *)
+       scm_must_malloc (sizeof (scm_subr_entry) * scm_subr_table_room,
+			"scm_subr_table"));
+}
 
 void
 scm_init_procs ()
 {
 #include "procs.x"
 }
-

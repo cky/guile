@@ -441,6 +441,7 @@ scm_boot_guile_1 (base, closure)
       scm_smob_prehistory ();
       scm_tables_prehistory ();
       scm_init_storage (0);
+      scm_init_subr_table ();
       scm_init_root ();
 #ifdef USE_THREADS
       scm_init_threads (base);

@@ -193,6 +193,9 @@ typedef struct scm_effective_slot_definition {
 
 #define SCM_ESLOTDEF(x) ((scm_effective_slot_definition *) SCM_CDR (x))
 
+#define SCM_CMETHOD_CODE(cmethod) SCM_CDR (cmethod)
+#define SCM_CMETHOD_ENV(cmethod)  SCM_CAR (cmethod)
+
 /* Port classes */
 #define SCM_IN_PCLASS_INDEX    0x000
 #define SCM_OUT_PCLASS_INDEX   0x100
@@ -203,7 +206,7 @@ extern SCM scm_metaclass_standard;
 extern SCM scm_metaclass_operator;
 extern SCM scm_class_boolean, scm_class_char, scm_class_pair;
 extern SCM scm_class_procedure, scm_class_string, scm_class_symbol;
-extern SCM scm_class_procedure_with_setter;
+extern SCM scm_class_procedure_with_setter, scm_class_primitive_generic;
 extern SCM scm_class_vector, scm_class_null;
 extern SCM scm_class_real, scm_class_complex, scm_class_integer;
 extern SCM scm_class_unknown;
@@ -212,15 +215,26 @@ extern SCM *scm_smob_class;
 
 extern SCM scm_apply_generic_env;
 
+extern SCM scm_no_applicable_method;
+
 /* Plugin Goops functions. */
 extern SCM (*scm_make_extended_class) (char *type_name);
 extern void (*scm_make_port_classes) (int ptobnum, char *type_name);
 extern void (*scm_change_object_class) (SCM, SCM, SCM);
-extern void (*scm_memoize_method) (SCM x, SCM args);
+extern SCM (*scm_memoize_method) (SCM x, SCM args);
 
 extern SCM scm_sym_atdispatch;
 
 extern SCM scm_class_of (SCM obj);
+extern SCM scm_mcache_lookup_cmethod (SCM cache, SCM args);
+extern SCM scm_mcache_create_cmethod (SCM cache, SCM args);
+extern SCM scm_call_generic_0 (SCM gf);
+/* The following are declared in __scm.h
+extern SCM scm_call_generic_1 (SCM gf, SCM a1);
+extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
+*/
+extern SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
+extern SCM scm_apply_generic (SCM gf, SCM args);
 extern SCM scm_entity_p (SCM obj);
 extern SCM scm_operator_p (SCM obj);
 extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);

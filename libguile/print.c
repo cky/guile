@@ -589,7 +589,10 @@ taloop:
 	  scm_raprin1 (exp, port, pstate);
 	  break;
 	case scm_tcs_subrs:
-	  scm_puts ("#<primitive-procedure ", port);
+	  scm_puts (SCM_SUBR_GENERIC (exp) && *SCM_SUBR_GENERIC (exp)
+		    ? "#<primitive-generic "
+		    : "#<primitive-procedure ",
+		    port);
 	  scm_puts (SCM_CHARS (SCM_SNAME (exp)), port);
 	  scm_putc ('>', port);
 	  break;

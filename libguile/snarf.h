@@ -51,19 +51,33 @@
 #ifndef SCM_MAGIC_SNARFER
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 	static const char RANAME[]=STR
+#define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
+	static const char RANAME[]=STR; \
+	static SCM GF = 0
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
 	static const char RANAME[]=STR
+#define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF) \
+	static const char RANAME[]=STR; \
+	static SCM GF = 0
 #else
 #if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 %%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...))CFN)
+#define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
+%%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)(...))CFN, &GF)
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
 %%%	scm_make_subr(RANAME, TYPE, (SCM (*)(...))CFN)
+#define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF)  \
+%%%	scm_make_subr_with_generic(RANAME, TYPE, (SCM (*)(...))CFN, &GF)
 #else
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 %%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN)
+#define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
+%%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN, &GF)
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
 %%%	scm_make_subr(RANAME, TYPE, CFN)
+#define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF)  \
+%%%	scm_make_subr_with_generic(RANAME, TYPE, CFN, &GF)
 #endif
 #endif
 

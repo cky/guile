@@ -563,6 +563,11 @@ scm_igc (what)
   while (j--)
     scm_gc_mark (scm_sys_protects[j]);
 
+  /* FIXME: we should have a means to register C functions to be run
+   * in different phases of GC
+   */ 
+  scm_mark_subr_table ();
+  
 #ifndef USE_THREADS
   scm_gc_mark (scm_root->handle);
 #endif
@@ -830,8 +835,7 @@ gc_mark_nimp:
       SCM_SETGC8MARK (ptr);
       break;
     case scm_tcs_subrs:
-      ptr = (SCM)(scm_heap_org + (((unsigned long)SCM_CAR (ptr)) >> 8));
-      goto gc_mark_loop;
+      break;
     case scm_tc7_port:
       i = SCM_PTOBNUM (ptr);
       if (!(i < scm_numptob))

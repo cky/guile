@@ -52,6 +52,8 @@
 #include "chars.h"
 #include "keywords.h"
 #include "smob.h"
+#include "eval.h"
+#include "alist.h"
 
 #include "objects.h"
 
@@ -62,7 +64,7 @@ SCM scm_metaclass_operator;
 /* These variables are filled in by the object system when loaded. */
 SCM scm_class_boolean, scm_class_char, scm_class_pair;
 SCM scm_class_procedure, scm_class_string, scm_class_symbol;
-SCM scm_class_procedure_with_setter;
+SCM scm_class_procedure_with_setter, scm_class_primitive_generic;
 SCM scm_class_vector, scm_class_null;
 SCM scm_class_integer, scm_class_real, scm_class_complex;
 SCM scm_class_unknown;
@@ -71,6 +73,8 @@ SCM *scm_port_class = 0;
 SCM *scm_smob_class = 0;
 
 SCM scm_apply_generic_env;
+
+SCM scm_no_applicable_method;
 
 SCM (*scm_make_extended_class) (char *type_name);
 void (*scm_make_port_classes) (int ptobnum, char *type_name);
@@ -137,6 +141,10 @@ scm_class_of (SCM x)
 	case scm_tc7_subr_2o:
 	case scm_tc7_lsubr_2:
 	case scm_tc7_lsubr:
+	  if (SCM_SUBR_GENERIC (x) && *SCM_SUBR_GENERIC (x))
+	    return scm_class_primitive_generic;
+	  else
+	    return scm_class_procedure;
 	case scm_tc7_cclo:
 	  return scm_class_procedure;
 	case scm_tc7_pws:
@@ -207,6 +215,147 @@ scm_class_of (SCM x)
       break;
     }
   return scm_class_unknown;
+}
+
+SCM
+scm_mcache_lookup_cmethod (SCM cache, SCM args)
+{
+  int i, n, end, mask;
+  SCM ls, methods, z = SCM_CDDR (cache);
+  n = SCM_INUM (SCM_CAR (z)); /* maximum number of specializers */
+  methods = SCM_CADR (z);
+
+  if (SCM_NIMP (methods))
+    {
+      /* Prepare for linear search */
+      mask = -1;
+      i = 0;
+      end = SCM_LENGTH (methods);
+    }
+  else
+    {
+      /* Compute a hash value */
+      int hashset = SCM_INUM (methods);
+      int j = n;
+      mask = SCM_INUM (SCM_CAR (z = SCM_CDDR (z)));
+      methods = SCM_CADR (z);
+      i = 0;
+      ls = args;
+      do
+	{
+	  i += (SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
+		[scm_si_hashsets + hashset]);
+	  ls = SCM_CDR (ls);
+	}
+      while (--j && SCM_NIMP (ls));
+      i &= mask;
+      end = i;
+    }
+
+  /* Search for match  */
+  do
+    {
+      int j = n;
+      z = SCM_VELTS (methods)[i];
+      ls = args; /* list of arguments */
+      do
+	{
+	  /* More arguments than specifiers => CLASS != ENV */
+	  if (scm_class_of (SCM_CAR (ls)) != SCM_CAR (z))
+	    goto next_method;
+	  ls = SCM_CDR (ls);
+	  z = SCM_CDR (z);
+	}
+      while (--j && SCM_NIMP (ls));
+      /* Fewer arguments than specifiers => CAR != ENV */
+      if (!SCM_CONSP (SCM_CAR (z)))
+	goto next_method;
+      return z;
+    next_method:
+      i = (i + 1) & mask;
+    } while (i != end);
+  return SCM_BOOL_F;
+}
+
+SCM
+scm_mcache_create_cmethod (SCM cache, SCM args)
+{
+  SCM cmethod = scm_mcache_lookup_cmethod (cache, args);
+  if (SCM_IMP (cmethod))
+    /* No match - memoize */
+    return scm_memoize_method (cache, args);
+  return cmethod;
+}
+
+SCM
+scm_call_generic_0 (SCM gf)
+{
+  SCM clos = SCM_ENTITY_PROC_0 (gf);
+  if (SCM_CLOSUREP (clos))
+    return scm_eval_body (SCM_CDR (SCM_CODE (clos)),
+			  SCM_EXTEND_ENV (SCM_CAR (SCM_CODE (clos)),
+					  SCM_LIST1 (gf),
+					  SCM_ENV (clos)));
+  else
+    return SCM_SUBRF (clos) (gf);
+}
+
+SCM
+scm_call_generic_1 (SCM gf, SCM a1)
+{
+  SCM args = SCM_LIST1 (a1);
+  SCM cmethod = scm_mcache_create_cmethod (SCM_ENTITY_PROC_1 (gf), args);
+  return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
+			SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
+					args,
+					SCM_CMETHOD_ENV (cmethod)));
+}
+
+SCM
+scm_call_generic_2 (SCM gf, SCM a1, SCM a2)
+{
+  SCM args = SCM_LIST2 (a1, a2);
+  SCM cmethod = scm_mcache_create_cmethod (SCM_ENTITY_PROC_2 (gf), args);
+  if (SCM_IMP (cmethod))
+    return scm_call_generic_2 (scm_no_applicable_method, gf, args);
+  return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
+			SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
+					args,
+					SCM_CMETHOD_ENV (cmethod)));
+}
+
+SCM
+scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
+{
+  SCM args = SCM_LIST3 (a1, a2, a3);
+  SCM cmethod = scm_mcache_create_cmethod (SCM_ENTITY_PROC_3 (gf), args);
+  if (SCM_IMP (cmethod))
+    return scm_call_generic_2 (scm_no_applicable_method, gf, args);
+  return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
+			SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
+					args,
+					SCM_CMETHOD_ENV (cmethod)));
+}
+
+SCM
+scm_apply_generic (SCM gf, SCM args)
+{
+  if (SCM_NULLP (args))
+    return scm_call_generic_0 (gf);
+  {
+    SCM cache = (SCM_NULLP (SCM_CDR (args))
+		 ? SCM_ENTITY_PROC_1 (gf)
+		 : (SCM_NULLP (SCM_CDDR (args))
+		    ? SCM_ENTITY_PROC_2 (gf)
+		    : SCM_ENTITY_PROC_3 (gf)));
+    SCM cmethod = scm_mcache_create_cmethod (cache, args);
+    if (SCM_IMP (cmethod))
+      return scm_call_generic_2 (scm_no_applicable_method, gf, args);
+    return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
+			  SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
+					  args,
+					  SCM_CMETHOD_ENV (cmethod)));
+  }
 }
 
 SCM_PROC (s_entity_p, "entity?", 1, 0, 0, scm_entity_p);
