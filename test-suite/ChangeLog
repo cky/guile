@@ -1,3 +1,7 @@
+2005-03-26  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-13.test (string-index): Exercise 8-bit char in string.
+
 2005-03-18  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (filter-map): More tests.
