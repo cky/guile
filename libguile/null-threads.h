@@ -77,7 +77,7 @@ SCM_API int scm_null_condvar_wait (scm_null_condvar *, scm_null_mutex *);
 SCM_API int scm_null_condvar_signal (scm_null_condvar *);
 SCM_API int scm_null_condvar_destroy (scm_null_condvar *);
 
-typedef scm_null_condvar scm_t_condvar;
+typedef scm_null_condvar scm_t_cond;
 #define scm_cond_init scm_null_condvar_init
 #define scm_cond_wait scm_null_condvar_wait
 #define scm_cond_signal scm_null_condvar_signal
