@@ -3,14 +3,16 @@
 @chapter Further Reading
 
 @itemize @bullet
+
+@item
+The website @url{http://www.schemers.org} is a good starting point for
+all things Scheme.
+
 @item
 Dorai Sitaram's online Scheme tutorial, @dfn{Teach Yourself Scheme in
 Fixnum Days}, at
-@url{http://www.cs.rice.edu/~dorai/t-y-scheme/t-y-scheme.html}.
+@url{http://www.ccs.neu.edu/home/dorai/t-y-scheme/t-y-scheme.html}.
 Includes a nice explanation of continuations.
-
-@item
-@url{http://wombat.doc.ic.ac.uk/foldoc/}.
 
 @item
 The complete text of @dfn{Structure and Interpretation of Computer
