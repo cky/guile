@@ -72,6 +72,10 @@ SCM_API SCM scm_lreadr (SCM * tok_buf, SCM port, SCM *copy);
 SCM_API size_t scm_read_token (int ic, SCM * tok_buf, SCM port, int weird);
 SCM_API SCM scm_lreadrecparen (SCM * tok_buf, SCM port, char *name, SCM *copy);
 SCM_API SCM scm_read_hash_extend (SCM chr, SCM proc);
+
+SCM_API void scm_i_input_error (const char *func, SCM port,
+				const char *message, SCM arg);
+
 SCM_API void scm_init_read (void);
 
 #endif  /* SCM_READ_H */

@@ -35,6 +35,7 @@
 #include "libguile/strports.h"
 #include "libguile/vectors.h"
 #include "libguile/validate.h"
+#include "libguile/srfi-4.h"
 
 #include "libguile/read.h"
 
@@ -75,9 +76,9 @@ scm_t_option scm_read_opts[] = {
  */
 
 
-static void
-scm_input_error (char const *function,
-		 SCM port, const char *message, SCM arg)
+void
+scm_i_input_error (char const *function,
+		   SCM port, const char *message, SCM arg)
 {
   SCM fn = (scm_is_string (SCM_FILENAME(port))
 	    ? SCM_FILENAME(port)
@@ -95,7 +96,7 @@ scm_input_error (char const *function,
   string = scm_get_output_string (string_port);
   scm_close_output_port (string_port);
   scm_error_scm (scm_from_locale_symbol ("read-error"),
-		 scm_from_locale_string (function),
+		 function? scm_from_locale_string (function) : SCM_BOOL_F,
 		 string,
 		 arg,
 		 SCM_BOOL_F);
@@ -179,8 +180,8 @@ skip_scsh_block_comment (SCM port)
       int c = scm_getc (port);
       
       if (c == EOF)
-	scm_input_error ("skip_block_comment", port, 
-			 "unterminated `#! ... !#' comment", SCM_EOL);
+	scm_i_input_error ("skip_block_comment", port, 
+			   "unterminated `#! ... !#' comment", SCM_EOL);
 
       if (c == '!')
 	bang_seen = 1;
@@ -202,10 +203,10 @@ scm_flush_ws (SCM port, const char *eoferr)
       goteof:
 	if (eoferr)
 	  {
-	    scm_input_error (eoferr,
-			     port,
-			     "end of file",
-			     SCM_EOL);
+	    scm_i_input_error (eoferr,
+			       port,
+			       "end of file",
+			       SCM_EOL);
 	  }
 	return c;
       case ';':
@@ -350,7 +351,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	? scm_lreadrecparen (tok_buf, port, s_list, copy)
 	: scm_i_lreadparen (tok_buf, port, s_list, copy, ')');
     case ')':
-      scm_input_error (FUNC_NAME, port,"unexpected \")\"", SCM_EOL);
+      scm_i_input_error (FUNC_NAME, port,"unexpected \")\"", SCM_EOL);
       goto tryagain;
     
 #if SCM_ENABLE_ELISP
@@ -427,7 +428,11 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	case 't':
 	case 'T':
 	  return SCM_BOOL_T;
+
 	case 'f':
+	  /* #f32(...), #f64(...), or just #f.
+	   */
+	  return scm_i_read_homogenous_vector (port, 'f');
 	case 'F':
 	  return SCM_BOOL_F;
 
@@ -446,6 +451,16 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	  scm_ungetc (c, port);
 	  c = '#';
 	  goto num;
+
+	case 's':
+	  /* #s8(...), #s16(...), #s32(...) or #s64(...)
+	   */
+	  return scm_i_read_homogenous_vector (port, 's');
+	  
+	case 'u':
+	  /* #u8(...), #u16(...), #u32(...) or #u64(...)
+	   */
+	  return scm_i_read_homogenous_vector (port, 'u');
 
 	case '!':
 	  /* should never happen, #!...!# block comments are skipped
@@ -487,8 +502,8 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 		&& (scm_i_casei_streq (scm_charnames[c],
 				       scm_i_string_chars (*tok_buf), j)))
 	      return SCM_MAKE_CHAR (scm_charnums[c]);
-	  scm_input_error (FUNC_NAME, port, "unknown character name ~a",
-			   scm_list_1 (scm_c_substring (*tok_buf, 0, j)));
+	  scm_i_input_error (FUNC_NAME, port, "unknown character name ~a",
+			     scm_list_1 (scm_c_substring (*tok_buf, 0, j)));
 
 	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
 	case ':':
@@ -516,8 +531,8 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	      }
 	  }
 	unkshrp:
-	scm_input_error (FUNC_NAME, port, "Unknown # object: ~S",
-		     scm_list_1 (SCM_MAKE_CHAR (c)));
+	scm_i_input_error (FUNC_NAME, port, "Unknown # object: ~S",
+			   scm_list_1 (SCM_MAKE_CHAR (c)));
 	}
 
     case '"':
@@ -525,7 +540,9 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       while ('"' != (c = scm_getc (port)))
 	{
 	  if (c == EOF)
-	    str_eof: scm_input_error (FUNC_NAME, port, "end of file in string constant", SCM_EOL);
+	    str_eof: scm_i_input_error (FUNC_NAME, port,
+					"end of file in string constant", 
+					SCM_EOL);
 
 	  while (j + 2 >= scm_i_string_length (*tok_buf))
 	    scm_grow_tok_buf (tok_buf);
@@ -588,9 +605,9 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 		}
 	      default:
 	      bad_escaped:
-		scm_input_error(FUNC_NAME, port,
-				"illegal character in escape sequence: ~S",
-				scm_list_1 (SCM_MAKE_CHAR (c)));
+		scm_i_input_error(FUNC_NAME, port,
+				  "illegal character in escape sequence: ~S",
+				  scm_list_1 (SCM_MAKE_CHAR (c)));
 	      }
 	  scm_c_string_set_x (*tok_buf, j, SCM_MAKE_CHAR (c));
 	  ++j;
@@ -625,7 +642,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	      c = scm_i_string_chars (*tok_buf)[1];
 	      goto callshrp;
 	    }
-	  scm_input_error (FUNC_NAME, port, "unknown # object", SCM_EOL);
+	  scm_i_input_error (FUNC_NAME, port, "unknown # object", SCM_EOL);
 	}
       goto tok;
 
@@ -760,7 +777,7 @@ scm_i_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy, char term_char)
       ans = scm_lreadr (tok_buf, port, copy);
     closeit:
       if (term_char != (c = scm_flush_ws (port, name)))
-	scm_input_error (FUNC_NAME, port, "missing close paren", SCM_EOL);
+	scm_i_input_error (FUNC_NAME, port, "missing close paren", SCM_EOL);
       return ans;
     }
   ans = tl = scm_cons (tmp, SCM_EOL);
@@ -800,7 +817,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
     {
       ans = scm_lreadr (tok_buf, port, copy);
       if (')' != (c = scm_flush_ws (port, name)))
-	scm_input_error (FUNC_NAME, port, "missing close paren", SCM_EOL);
+	scm_i_input_error (FUNC_NAME, port, "missing close paren", SCM_EOL);
       return ans;
     }
   /* Build the head of the list structure. */
@@ -824,7 +841,8 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 				       : tmp,
 				       SCM_EOL));
 	  if (')' != (c = scm_flush_ws (port, name)))
-	    scm_input_error (FUNC_NAME, port, "missing close paren", SCM_EOL);
+	    scm_i_input_error (FUNC_NAME, port,
+			       "missing close paren", SCM_EOL);
 	  goto exit;
 	}
 
