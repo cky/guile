@@ -27,7 +27,7 @@ AC_CONFIG_SRCDIR([GUILE-VERSION])
 . $srcdir/GUILE-VERSION
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
 AM_MAINTAINER_MODE
-AM_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER([config.h])
 
 #--------------------------------------------------------------------
 #
@@ -53,11 +53,12 @@ AC_ARG_ENABLE(error-on-warning,
      *) AC_MSG_ERROR(bad value ${enableval} for --enable-error-on-warning) ;;
    esac])
 
+SCM_I_GSC_GUILE_DEBUG_FREELIST=0
 AC_ARG_ENABLE(debug-freelist,
   [  --enable-debug-freelist include garbage collector freelist debugging code],
-  if test "$enable_debug_freelist" = y || test "$enable_debug_freelist" = yes; then
-    AC_DEFINE(GUILE_DEBUG_FREELIST, 1,
-      [Define this if you want to debug the free list (helps w/ GC bugs).])
+  if test "$enable_debug_freelist" = y \
+     || test "$enable_debug_freelist" = yes; then
+    SCM_I_GSC_GUILE_DEBUG_FREELIST=1
   fi)
 
 AC_ARG_ENABLE(debug-malloc,
@@ -67,15 +68,17 @@ AC_ARG_ENABLE(debug-malloc,
       [Define this if you want to debug scm_must_malloc/realloc/free calls.])
   fi)
 
+SCM_I_GSC_GUILE_DEBUG=0
 AC_ARG_ENABLE(guile-debug,
-  [  --enable-guile-debug    include internal debugging functions],
+  [AC_HELP_STRING([--enable-guile-debug],
+                  [include internal debugging functions])],
   if test "$enable_guile_debug" = y || test "$enable_guile_debug" = yes; then
-    AC_DEFINE(GUILE_DEBUG, 1,
-      [Define this to include various undocumented functions used to debug.])
+    SCM_I_GSC_GUILE_DEBUG=1
   fi)
 
 AC_ARG_ENABLE(arrays,
-  [  --disable-arrays        omit array and uniform array support],,
+  [AC_HELP_STRING([--disable-arrays],[omit array and uniform array support])],
+  ,
   enable_arrays=yes)
 
 AC_ARG_ENABLE(posix,
@@ -112,14 +115,11 @@ AC_ARG_ENABLE(htmldoc,
 
 AM_CONDITIONAL(HTMLDOC, test x$htmldoc_enabled = xyes)
 
-AC_ARG_ENABLE(deprecated,
-  [  --disable-deprecated    omit deprecated features])
-
-AH_TEMPLATE([SCM_ENABLE_DEPRECATED],
-  [Define this to 1 if you want to include deprecated features.])
+AC_ARG_ENABLE([deprecated],
+  AC_HELP_STRING([--disable-deprecated],[omit deprecated features]))
 
 if test "$enable_deprecated" = no; then
-  AC_DEFINE(SCM_ENABLE_DEPRECATED, 0)
+  SCM_I_GSC_ENABLE_DEPRECATED=0
 else
   if test "$enable_deprecated" = yes || test "$enable_deprecated" = ""; then
     warn_default=summary
@@ -128,22 +128,10 @@ else
   else
     warn_default=$enable_deprecated
   fi
-  AC_DEFINE(SCM_ENABLE_DEPRECATED, 1)
+  SCM_I_GSC_ENABLE_DEPRECATED=1
   AC_DEFINE_UNQUOTED(SCM_WARN_DEPRECATED_DEFAULT, "$warn_default",
   [Define this to control the default warning level for deprecated features.])
 fi
-
-dnl The --disable-debug used to control these two.  But now they are
-dnl a required part of the distribution.
-AC_DEFINE(DEBUG_EXTENSIONS, 1,
-  [Define if you want support for debugging Scheme programs.])
-AC_DEFINE(READER_EXTENSIONS, 1,
-  [Define if you want support for debugging Scheme programs.])
-
-dnl These two used to be optional, too, but now they are always
-dnl defined.
-AC_DEFINE(USE_THREADS, 1, [Deprecated, always defined.])
-AC_DEFINE(GUILE_ISELECT, 1, [Deprecated, always defined.])
 
 AC_ARG_ENABLE(elisp,
   [  --disable-elisp         omit Emacs Lisp support],,
@@ -183,8 +171,6 @@ use_modules="$withval")
 test -z "$use_modules" && use_modules=yes
 DLPREOPEN=
 if test "$use_modules" != no; then
-  AC_DEFINE(DYNAMIC_LINKING, 1,
-    [Define if you want support for dynamic linking.])
   if test "$use_modules" = yes; then
     DLPREOPEN="-dlpreopen force"
   else
@@ -201,11 +187,11 @@ if test "$use_modules" != no; then
    AC_LIBOBJ([dynl])
 fi
 
+SCM_I_GSC_HAVE_ARRAYS=0
 if test "$enable_arrays" = yes; then
    AC_LIBOBJ([ramap])
    AC_LIBOBJ([unif])
-   AC_DEFINE(HAVE_ARRAYS, 1,
-     [Define this if you want support for arrays and uniform arrays.])
+   SCM_I_GSC_HAVE_ARRAYS=1
 fi
 
 if test "$enable_posix" = yes; then
@@ -227,41 +213,257 @@ if test "$enable_debug_malloc" = yes; then
 fi
 
 if test "$enable_elisp" = yes; then
-   AC_DEFINE(SCM_ENABLE_ELISP, 1,
-     [Define this if you want Elisp support (in addition to Scheme).])
+  SCM_I_GSC_ENABLE_ELISP=1
+else
+  SCM_I_GSC_ENABLE_ELISP=0
 fi
-
 
 AC_C_CONST
-AC_C_INLINE
-AC_C_BIGENDIAN
 
+AC_C_INLINE
 if test "$ac_cv_c_inline" != no; then
-  AC_DEFINE(HAVE_INLINE, 1,
-    [Define if the compiler supports inline functions.])
+  SCM_I_GSC_C_INLINE="\"${ac_cv_c_inline}\""
+else
+  SCM_I_GSC_C_INLINE=NULL
 fi
 
+AC_C_BIGENDIAN
+
+AC_CHECK_SIZEOF(char)
+AC_CHECK_SIZEOF(unsigned char)
 AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(unsigned short)
 AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(unsigned int)
 AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(unsigned long)
 AC_CHECK_SIZEOF(size_t)
-
-dnl Check for integral types that can represent the range of pointers.
-dnl If these types don't exist on this platform, they are replaced by
-dnl "unsigned long" and "long", respectively.
-
-AC_CHECK_HEADERS(stdint.h)
-AC_CHECK_HEADERS(inttypes.h)
+AC_CHECK_SIZEOF(long long)
+AC_CHECK_SIZEOF(unsigned long long)
+AC_CHECK_SIZEOF(void *)
+AC_CHECK_SIZEOF(intptr_t)
 AC_CHECK_SIZEOF(uintptr_t)
 AC_CHECK_SIZEOF(ptrdiff_t)
-
-AC_CHECK_SIZEOF(long long)
-
-AC_CHECK_SIZEOF(void *)
 
 if test "$ac_cv_sizeof_long" -ne "$ac_cv_sizeof_void_p"; then
   AC_MSG_ERROR(sizes of long and void* are not identical)
 fi
+
+if test "$ac_cv_sizeof_ptrdiff_t" -eq 0; then
+  SCM_I_GSC_T_PTRDIFF='"ptrdiff_t"'
+else
+  SCM_I_GSC_T_PTRDIFF='"long"'
+fi
+AC_SUBST([SCM_I_GSC_T_PTRDIFF])
+
+AC_CHECK_HEADERS([stdint.h])
+AC_CHECK_HEADERS([inttypes.h])
+
+SCM_I_GSC_NEEDS_STDINT_H=0
+SCM_I_GSC_NEEDS_INTTYPES_H=0
+
+### intptr and uintptr (try not to use inttypes if we don't have to)
+if test "$ac_cv_header_inttypes_h" = yes; then
+  if test "$ac_cv_sizeof_intptr_t" -eq 0; then
+    AC_CHECK_SIZEOF([intptr_t],,[#include <inttypes.h>
+#include <stdio.h>])
+    if test "$ac_cv_sizeof_intptr_t" -ne 0; then
+      SCM_I_GSC_NEEDS_INTTYPES_H=1
+    fi
+  fi
+  if test "$ac_cv_sizeof_uintptr_t" -eq 0; then
+    AC_CHECK_SIZEOF([uintptr_t],,[#include <inttypes.h>
+#include <stdio.h>])
+    if test "$ac_cv_sizeof_uintptr_t" -ne 0; then
+      SCM_I_GSC_NEEDS_INTTYPES_H=1
+    fi
+  fi
+fi
+
+### See what's provided by stdint.h
+if test "$ac_cv_header_stdint_h" = yes; then
+   AC_CHECK_TYPE([int8_t],[scm_stdint_has_int8=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([uint8_t],[scm_stdint_has_uint8=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([int16_t],[scm_stdint_has_int16=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([uint16_t],[scm_stdint_has_uint16=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([int32_t],[scm_stdint_has_int32=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([uint32_t],[scm_stdint_has_uint32=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([int64_t],[scm_stdint_has_int64=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([uint64_t],[scm_stdint_has_uint64=1],,[#include <stdint.h>])
+fi
+
+# so we don't get confused by the cache (wish there was a better way
+# to check particular headers for the same type...)
+
+unset ac_cv_type_int8_t
+unset ac_cv_type_uint8_t
+unset ac_cv_type_int16_t
+unset ac_cv_type_uint16_t
+unset ac_cv_type_int32_t
+unset ac_cv_type_uint32_t
+unset ac_cv_type_int64_t
+unset ac_cv_type_uint64_t
+
+### See what's provided by inttypes.h
+if test "$ac_cv_header_inttypes_h" = yes; then
+  AC_CHECK_TYPE([int8_t],[scm_inttypes_has_int8=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([uint8_t],[scm_inttypes_has_uint8=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([int16_t],[scm_inttypes_has_int16=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([uint16_t],[scm_inttypes_has_uint16=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([int32_t],[scm_inttypes_has_int32=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([uint32_t],[scm_inttypes_has_uint32=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([int64_t],[scm_inttypes_has_int64=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([uint64_t],[scm_inttypes_has_uint64=1],,[#include <inttypes.h>])
+fi
+
+# Try hard to find definitions for some required scm_t_*int* types.
+
+### Required type scm_t_int8
+if test "$ac_cv_sizeof_char" -eq 1; then
+  SCM_I_GSC_T_INT8='"char"'
+elif test "$scm_stdint_has_int8"; then
+  SCM_I_GSC_T_INT8='"int8_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_int8"; then
+  SCM_I_GSC_T_INT8='"int8_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+else
+  AC_MSG_ERROR([Can't find appropriate type for scm_t_int8.])
+fi
+AC_SUBST([SCM_I_GSC_T_INT8])
+
+### Required type scm_t_uint8
+if test "$ac_cv_sizeof_unsigned_char" -eq 1; then
+  SCM_I_GSC_T_UINT8='"unsigned char"'
+elif test "$scm_stdint_has_uint8"; then
+  SCM_I_GSC_T_UINT8='"uint8_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_uint8"; then
+  SCM_I_GSC_T_UINT8='"uint8_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+else
+  AC_MSG_ERROR([Can't find appropriate type for scm_t_uint8.])
+fi
+AC_SUBST([SCM_I_GSC_T_UINT8])
+
+
+### Required type scm_t_int16 (ANSI C says int or short might work)
+if test "$ac_cv_sizeof_int" -eq 2; then
+  SCM_I_GSC_T_INT16='"int"'
+elif test "$ac_cv_sizeof_short" -eq 2; then
+  SCM_I_GSC_T_INT16='"short"'
+elif test "$scm_stdint_has_int16"; then
+  SCM_I_GSC_T_INT16='"int16_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_int16"; then
+  SCM_I_GSC_T_INT16='"int16_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+else
+  AC_MSG_ERROR([Can't find appropriate type for scm_t_int16.])
+fi
+AC_SUBST([SCM_I_GSC_T_INT16])
+
+### Required type scm_t_uint16 (ANSI C says int or short might work)
+if test "$ac_cv_sizeof_unsigned_int" -eq 2; then
+  SCM_I_GSC_T_UINT16='"unsigned int"'
+elif test "$ac_cv_sizeof_unsigned_short" -eq 2; then
+  SCM_I_GSC_T_UINT16='"unsigned short"'
+elif test "$scm_stdint_has_uint16"; then
+  SCM_I_GSC_T_UINT16='"uint16_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_uint16"; then
+  SCM_I_GSC_T_UINT16='"uint16_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+else
+  AC_MSG_ERROR([Can't find appropriate type for scm_t_uint16.])
+fi
+AC_SUBST([SCM_I_GSC_T_UINT16])
+
+
+### Required type scm_t_int32 (ANSI C says int, short, or long might work)
+if test "$ac_cv_sizeof_int" -eq 4; then
+  SCM_I_GSC_T_INT32='"int"'
+elif test "$ac_cv_sizeof_long" -eq 4; then
+  SCM_I_GSC_T_INT32='"long"'
+elif test "$ac_cv_sizeof_short" -eq 4; then
+  SCM_I_GSC_T_INT32='"short"'
+elif test "$scm_stdint_has_int32"; then
+  SCM_I_GSC_T_INT32='"int32_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_int32"; then
+  SCM_I_GSC_T_INT32='"int32_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+else
+  AC_MSG_ERROR([Can't find appropriate type for scm_t_int32.])
+fi
+AC_SUBST([SCM_I_GSC_T_INT32])
+
+### Required type scm_t_uint32 (ANSI C says int, short, or long might work)
+if test "$ac_cv_sizeof_unsigned_int" -eq 4; then
+  SCM_I_GSC_T_UINT32='"unsigned int"'
+elif test "$ac_cv_sizeof_unsigned_long" -eq 4; then
+  SCM_I_GSC_T_UINT32='"unsigned long"'
+elif test "$ac_cv_sizeof_unsigned_short" -eq 4; then
+  SCM_I_GSC_T_UINT32='"unsigned short"'
+elif test "$scm_stdint_has_uint32"; then
+  SCM_I_GSC_T_UINT32='"uint32_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_uint32"; then
+  SCM_I_GSC_T_UINT32='"uint32_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+else
+  AC_MSG_ERROR([Can't find appropriate type for scm_t_uint32.])
+fi
+AC_SUBST([SCM_I_GSC_T_UINT32])
+
+
+### Required type scm_t_int64 (ANSI C says int, short, or long might work)
+### Also try long long if we have it.
+SCM_I_GSC_T_INT64=0
+if test "$ac_cv_sizeof_int" -eq 8; then
+  SCM_I_GSC_T_INT64='"int"'
+elif test "$ac_cv_sizeof_long" -eq 8; then
+  SCM_I_GSC_T_INT64='"long"'
+elif test "$ac_cv_sizeof_short" -eq 8; then
+  SCM_I_GSC_T_INT64='"short"'
+elif test "$ac_cv_sizeof_long_long" -eq 8; then
+  SCM_I_GSC_T_INT64='"long long"'
+elif test "$scm_stdint_has_int64"; then
+  SCM_I_GSC_T_INT64='"int64_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_int64"; then
+  SCM_I_GSC_T_INT64='"int64_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+else
+  AC_MSG_ERROR([Can't find appropriate type for scm_t_int64.])
+fi
+AC_SUBST([SCM_I_GSC_T_INT64])
+
+### Required type scm_t_uint64 (ANSI C says int, short, or long might work)
+### Also try long long if we have it.
+SCM_I_GSC_T_UINT64=0
+if test "$ac_cv_sizeof_unsigned_int" -eq 8; then
+  SCM_I_GSC_T_UINT64='"unsigned int"'
+elif test "$ac_cv_sizeof_unsigned_long" -eq 8; then
+  SCM_I_GSC_T_UINT64='"unsigned long"'
+elif test "$ac_cv_sizeof_unsigned_short" -eq 8; then
+  SCM_I_GSC_T_UINT64='"unsigned short"'
+elif test "$ac_cv_sizeof_unsigned_long_long" -eq 8; then
+  SCM_I_GSC_T_UINT64='"unsigned long long"'
+elif test "$scm_stdint_has_uint64"; then
+  SCM_I_GSC_T_UINT64='"uint64_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_uint64"; then
+  SCM_I_GSC_T_UINT64='"uint64_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+else
+  AC_MSG_ERROR([Can't find appropriate type for scm_t_uint64.])
+fi
+AC_SUBST([SCM_I_GSC_T_UINT64])
+
+
+AC_SUBST([SCM_I_GSC_NEEDS_STDINT_H])
+AC_SUBST([SCM_I_GSC_NEEDS_INTTYPES_H])
 
 AC_HEADER_STDC
 AC_HEADER_DIRENT
@@ -572,15 +774,13 @@ GUILE_STRUCT_UTIMBUF
 #
 #--------------------------------------------------------------------
 
+SCM_I_GSC_STACK_GROWS_UP=0
 AC_TRY_RUN(aux (l) unsigned long l;
 	     { int x; exit (l >= ((unsigned long)&x)); }
 	   main () { int q; aux((unsigned long)&q); },
-	   [AC_DEFINE([SCM_STACK_GROWS_UP], 1,
-              [Define this if a callee's stack frame has a higher address
-               than the caller's stack frame.  On most machines, this is
-               not the case.])],
+           SCM_I_GSC_STACK_GROWS_UP=1
 	   [],
-           [AC_MSG_WARN(Guessing that stack grows down -- see scmconfig.h.in)])
+           [AC_MSG_WARN(Guessing that stack grows down -- see scmconfig.h)])
 
 AH_TEMPLATE([SCM_SINGLES],
   [Define this if floats are the same size as longs.])
@@ -637,6 +837,13 @@ fi
 #
 #--------------------------------------------------------------------
 
+SCM_I_GSC_USE_PTHREAD_THREADS=0
+SCM_I_GSC_USE_NULL_THREADS=0
+SCM_I_GSC_USE_COOP_THREADS=0
+AC_SUBST([SCM_I_GSC_USE_PTHREAD_THREADS])
+AC_SUBST([SCM_I_GSC_USE_NULL_THREADS])
+AC_SUBST([SCM_I_GSC_USE_COOP_THREADS])
+
 ### What thread package has the user asked for?
 AC_ARG_WITH(threads, [  --with-threads          thread interface],
             , with_threads=yes)
@@ -645,8 +852,7 @@ case "$with_threads" in
   "yes" | "pthread" | "pthreads" | "pthread-threads" | "")
     AC_CHECK_LIB(pthread, main,
       LIBS="-lpthread $LIBS"
-      AC_DEFINE(USE_PTHREAD_THREADS, 1,
-        [Define if using pthread multithreading.])
+      SCM_I_GSC_USE_PTHREAD_THREADS=1
       with_threads="pthreads",
       with_threads="null")
       
@@ -702,8 +908,7 @@ case "$with_threads" in
   "pthreads")
   ;;
   "no" | "null")
-    AC_DEFINE(USE_NULL_THREADS, 1,
-      [Define if using one-thread 'multi'threading.])
+    SCM_I_GSC_USE_NULL_THREADS=1
     with_threads="null-threads"
   ;;
   * )
@@ -850,6 +1055,16 @@ top_builddir_absolute=`pwd`
 AC_SUBST(top_builddir_absolute)
 top_srcdir_absolute=`(cd $srcdir && pwd)`
 AC_SUBST(top_srcdir_absolute)
+
+# Additional SCM_I_GSC definitions are above.
+AC_SUBST([SCM_I_GSC_GUILE_DEBUG])
+AC_SUBST([SCM_I_GSC_GUILE_DEBUG_FREELIST])
+AC_SUBST([SCM_I_GSC_ENABLE_DEPRECATED])
+AC_SUBST([SCM_I_GSC_ENABLE_ELISP])
+AC_SUBST([SCM_I_GSC_HAVE_ARRAYS])
+AC_SUBST([SCM_I_GSC_STACK_GROWS_UP])
+AC_SUBST([SCM_I_GSC_C_INLINE])
+AC_CONFIG_FILES([libguile/gen-scmconfig.h])
 
 AC_CONFIG_FILES([
   Makefile
