@@ -1,3 +1,8 @@
+1999-09-20  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* tests/regexp.test: Check regexp-substitute/global when there are
+	no matches.  (Duh.)
+
 1999-09-15  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* tests/c-api.test: New file.  Add test to check that all source
