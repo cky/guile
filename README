@@ -1,5 +1,21 @@
-This is beta release 1.0b3 of Guile, the GNU extension language library.
-Please send bug reports to bug-guile@prep.ai.mit.edu.
+This is a nightly snapshot of Guile, the GNU extension language
+library.  Please send bug reports to bug-guile@prep.ai.mit.edu.
+
+IMPORTANT FACTS ABOUT SNAPSHOTS:
+
+    Please keep in mind that these sources are strictly experimental;
+    they will usually not be well-tested, and may not even compile on
+    some systems.  They may contain interfaces which will change.
+    They will usually not be of sufficient quality for use by people
+    not comfortable hacking the innards of Guile.  Caveat!
+
+    However, we're providing them anyway for several reasons.  We'd like
+    to encourage people to get involved in developing Guile.  People
+    willing to use the bleeding edge of development can get earlier access
+    to new, experimental features.  Patches submitted relative to recent
+    snapshots will be easier for us to evaluate and install, since the
+    patch's original sources will be closer to what we're working with.
+    And it allows us to start testing features earlier.
 
 Guile is a portable, embeddable Scheme implementation written in C.
 Guile provides a machine independent execution platform that can be
