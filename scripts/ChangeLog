@@ -1,3 +1,7 @@
+2001-11-28  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* punify (write-punily): Handle symbols w/ ":" prefix specially.
+
 2001-11-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* snarf-check-and-output-texi: Change generated @deffn categories
@@ -10,7 +14,7 @@
 	index entries for each Guile primitive to the copy of the doc
 	snarf output that is used for reference manual synchronization.
 	Online help is unchanged.
-	
+
 	* snarf-check-and-output-texi (*manual-flag*,
 	snarf-check-and-output-texi): Handle `--manual' invocation arg
 	passed through from libguile/Makefile.am.
@@ -21,7 +25,7 @@
 	(*primitive-deffnx-signature*, *primitive-deffnx-sig-length*):
 	Fluff to help insert the C declaration after any "@deffnx
 	primitive" lines in the snarfed docstring.
-	
+
 2001-10-05  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* read-scheme-source (quoted?, clump): New procs, exported.
