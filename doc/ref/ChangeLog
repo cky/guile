@@ -11,6 +11,11 @@
 
 	* posix.texi (Locales): Use @var for category arg.
 
+	* posix.texi (System Identification): Remove software-type, it doesn't
+	exist in the guile core.
+
+	* srfi-modules.texi (SRFI-10): Revise and expand.
+
 2004-09-02  Kevin Ryde  <user42@zip.com.au>
 
 	* misc-modules.texi (Formatted Output): Excess arguments are ignored.
