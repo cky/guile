@@ -1,3 +1,14 @@
+2001-03-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* gh_data.c (gh_scm2chars, gh_scm2shorts, gh_scm2longs),
+	(gh_scm2floats, gh_scm2doubles): Check for malloc() returning NULL
+	in various places.
+	(gh_scm2newstr, gh_symbol2newstr): Change call to
+	scm_must_malloc() to malloc(), because user-free()able memory is
+	allocated.
+
+	* gc.c: Added declaration of `scm_debug_check_freelist'.
+
 2001-03-13  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* ports.c (scm_port_mode): Changed `mode' array size to 4.

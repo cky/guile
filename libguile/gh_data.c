@@ -258,7 +258,7 @@ gh_scm2char (SCM obj)
 
 /* Convert a vector, weak vector, string, substring or uniform vector
    into an array of chars.  If result array in arg 2 is NULL, malloc a
-   new one. */
+   new one.  If out of memory, return NULL.  */
 char *
 gh_scm2chars (SCM obj, char *m)
 {
@@ -286,6 +286,8 @@ gh_scm2chars (SCM obj, char *m)
 	}
       if (m == 0)
 	m = (char *) malloc (n * sizeof (char));
+      if (m == NULL)
+	return NULL;
       for (i = 0; i < n; ++i)
 	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
       break;
@@ -294,6 +296,8 @@ gh_scm2chars (SCM obj, char *m)
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (char *) malloc (n * sizeof (char));
+      if (m == NULL)
+	return NULL;
       memcpy (m, SCM_VELTS (obj), n * sizeof (char));
       break;
 #endif
@@ -302,6 +306,8 @@ gh_scm2chars (SCM obj, char *m)
       n = SCM_STRING_LENGTH (obj);
       if (m == 0)
 	m = (char *) malloc (n * sizeof (char));
+      if (m == NULL)
+	return NULL;
       memcpy (m, SCM_VELTS (obj), n * sizeof (char));
       break;
     default:
@@ -311,7 +317,8 @@ gh_scm2chars (SCM obj, char *m)
 }
 
 /* Convert a vector, weak vector or uniform vector into an array of
-   shorts.  If result array in arg 2 is NULL, malloc a new one. */
+   shorts.  If result array in arg 2 is NULL, malloc a new one.  If
+   out of memory, return NULL.  */
 short *
 gh_scm2shorts (SCM obj, short *m)
 {
@@ -339,6 +346,8 @@ gh_scm2shorts (SCM obj, short *m)
 	}
       if (m == 0)
 	m = (short *) malloc (n * sizeof (short));
+      if (m == NULL)
+	return NULL;
       for (i = 0; i < n; ++i)
 	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
       break;
@@ -347,6 +356,8 @@ gh_scm2shorts (SCM obj, short *m)
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (short *) malloc (n * sizeof (short));
+      if (m == NULL)
+	return NULL;
       memcpy (m, SCM_VELTS (obj), n * sizeof (short));
       break;
 #endif
@@ -357,7 +368,8 @@ gh_scm2shorts (SCM obj, short *m)
 }
 
 /* Convert a vector, weak vector or uniform vector into an array of
-   longs.  If result array in arg 2 is NULL, malloc a new one. */
+   longs.  If result array in arg 2 is NULL, malloc a new one.  If out
+   of memory, return NULL.  */
 long *
 gh_scm2longs (SCM obj, long *m)
 {
@@ -378,6 +390,8 @@ gh_scm2longs (SCM obj, long *m)
 	}
       if (m == 0)
 	m = (long *) malloc (n * sizeof (long));
+      if (m == NULL)
+	return NULL;
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
@@ -390,6 +404,8 @@ gh_scm2longs (SCM obj, long *m)
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (long *) malloc (n * sizeof (long));
+      if (m == NULL)
+	return NULL;
       memcpy (m, SCM_VELTS (obj), n * sizeof (long));
       break;
 #endif
@@ -400,7 +416,8 @@ gh_scm2longs (SCM obj, long *m)
 }
 
 /* Convert a vector, weak vector or uniform vector into an array of
-   floats.  If result array in arg 2 is NULL, malloc a new one. */
+   floats.  If result array in arg 2 is NULL, malloc a new one.  If
+   out of memory, return NULL.  */
 float *
 gh_scm2floats (SCM obj, float *m)
 {
@@ -422,6 +439,8 @@ gh_scm2floats (SCM obj, float *m)
 	}
       if (m == 0)
 	m = (float *) malloc (n * sizeof (float));
+      if (m == NULL)
+	return NULL;
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
@@ -438,6 +457,8 @@ gh_scm2floats (SCM obj, float *m)
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (float *) malloc (n * sizeof (float));
+      if (m == NULL)
+	return NULL;
       memcpy (m, (float *) SCM_VELTS (obj), n * sizeof (float));
       break;
 
@@ -445,6 +466,8 @@ gh_scm2floats (SCM obj, float *m)
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (float*) malloc (n * sizeof (float));
+      if (m == NULL)
+	return NULL;
       for (i = 0; i < n; ++i)
 	m[i] = ((double *) SCM_VELTS (obj))[i];
       break;
@@ -456,7 +479,8 @@ gh_scm2floats (SCM obj, float *m)
 }
 
 /* Convert a vector, weak vector or uniform vector into an array of
-   doubles.  If result array in arg 2 is NULL, malloc a new one. */
+   doubles.  If result array in arg 2 is NULL, malloc a new one.  If
+   out of memory, return NULL.  */
 double *
 gh_scm2doubles (SCM obj, double *m)
 {
@@ -478,6 +502,8 @@ gh_scm2doubles (SCM obj, double *m)
 	}
       if (m == 0)
 	m = (double *) malloc (n * sizeof (double));
+      if (m == NULL)
+	return NULL;
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
@@ -494,6 +520,8 @@ gh_scm2doubles (SCM obj, double *m)
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (double *) malloc (n * sizeof (double));
+      if (m == NULL)
+	return NULL;
       for (i = 0; i < n; ++i)
 	m[i] = ((float *) SCM_VELTS (obj))[i];
       break;
@@ -502,6 +530,8 @@ gh_scm2doubles (SCM obj, double *m)
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (double*) malloc (n * sizeof (double));
+      if (m == NULL)
+	return NULL;
       memcpy (m, SCM_VELTS (obj), n * sizeof (double));
       break;
 #endif
@@ -518,7 +548,8 @@ gh_scm2doubles (SCM obj, double *m)
    non-null, set *lenp to the string's length.
 
    This function uses malloc to obtain storage for the copy; the
-   caller is responsible for freeing it.
+   caller is responsible for freeing it.  If out of memory, NULL is
+   returned.
 
    Note that Scheme strings may contain arbitrary data, including null
    characters.  This means that null termination is not a reliable way
@@ -535,14 +566,14 @@ gh_scm2newstr (SCM str, int *lenp)
 
   len = SCM_STRING_LENGTH (str);
 
-  ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
-				      "gh_scm2newstr");
+  ret_str = (char *) malloc ((len + 1) * sizeof (char));
+  if (ret_str == NULL)
+    return NULL;
   /* so we copy tmp_str to ret_str, which is what we will allocate */
   memcpy (ret_str, SCM_STRING_CHARS (str), len);
   scm_remember_upto_here_1 (str);
   /* now make sure we null-terminate it */
   ret_str[len] = '\0';
-
 
   if (lenp != NULL)
     {
@@ -580,7 +611,8 @@ gh_get_substr (SCM src, char *dst, int start, int len)
    string's length.
 
    This function uses malloc to obtain storage for the copy; the
-   caller is responsible for freeing it. */
+   caller is responsible for freeing it.  If out of memory, NULL is
+   returned.*/
 char *
 gh_symbol2newstr (SCM sym, int *lenp)
 {
@@ -591,8 +623,9 @@ gh_symbol2newstr (SCM sym, int *lenp)
 
   len = SCM_SYMBOL_LENGTH (sym);
 
-  ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
-				      "gh_symbol2newstr");
+  ret_str = (char *) malloc ((len + 1) * sizeof (char));
+  if (ret_str == NULL)
+    return NULL;
   /* so we copy sym to ret_str, which is what we will allocate */
   memcpy (ret_str, SCM_SYMBOL_CHARS (sym), len);
   scm_remember_upto_here_1 (sym);

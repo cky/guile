@@ -609,6 +609,10 @@ SCM_DEFINE (scm_free_list_length, "free-list-length", 0, 0, 0,
 
 #ifdef GUILE_DEBUG_FREELIST
 
+/* Non-zero if freelist debugging is in effect.  Set this via
+   `gc-set-debug-check-freelist!'. */
+static int scm_debug_check_freelist = 0;
+
 /* Number of calls to SCM_NEWCELL since startup.  */
 static unsigned long scm_newcell_count;
 static unsigned long scm_newcell2_count;
