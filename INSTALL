@@ -6,7 +6,8 @@ To build Guile on unix, there are two basic steps:
 	2. Type "make", to build the package.
 
 Generic instructions for configuring and compiling GNU distributions
-are included below.
+are included below.  (For instructions how to install SLIB, the scheme
+procedure library, see below.)
 
 
 Special Instructions For Some Systems =====================================
@@ -32,6 +33,7 @@ HP/UX: GCC 2.7.2 (and maybe other versions) have trouble creating
 NetBSD: Perry Metzger says, "Guile will build under NetBSD only using
     gmake -- the native make will not work.  (gmake is in our package
     system, so this will not be a problem when we packagize 1.3.)"
+
 
 Flags Accepted by Configure ===============================================
 
@@ -106,6 +108,7 @@ number of objects of that kind.
 --disable-networking --- omit networking interfaces
 --disable-regex      --- omit regular expression interfaces
 
+
 Using Guile Without Installing It =========================================
 
 If you want to run Guile without installing it, set the environment
@@ -124,6 +127,39 @@ you're using Bash or any other Bourne shell variant,
 or if you're using CSH or one of its variants:
 
   setenv GUILE_LOAD_PATH /home/jimb/guile-snap
+
+
+Installing SLIB ===========================================================
+
+In order to use SLIB from Guile you basically only need to put the
+`slib' directory _in_ one of the directories on Guile's load path.
+
+The standard installation is:
+
+  1. Obtain slib from http://www-swiss.ai.mit.edu/~jaffer/SLIB.html
+
+  2. Put it in Guile's data directory, that is the directory printed when
+     you type
+
+       guile-config info pkgdatadir
+
+     at the shell prompt.  This is normally `/usr/local/share/guile', so the
+     directory will normally have full path `/usr/local/share/guile/slib'.
+
+  3. Start guile as a user with write access to the data directory and type
+
+       (use-modules (ice-9 slib))
+
+     at the Guile prompt.  This will generate the slibcat catalog next to
+     the slib directory.
+
+SLIB's `require' is provided by the Guile module (ice-9 slib).
+
+Example:
+
+  (use-modules (ice-9 slib))
+  (require 'primes)
+  (prime? 7)
 
 
 Generic Instructions for Building Auto-Configured Packages ================
