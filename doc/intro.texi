@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.6 2001-04-20 07:31:25 mgrabmue Exp $
+@c $Id: intro.texi,v 1.7 2001-05-06 01:49:56 ttn Exp $
 
 @page
 @node What is Guile?
@@ -59,11 +59,11 @@ This chapter presents a quick tour of all the ways that Guile can be
 used.
 
 @menu
-* Running Guile Interactively::  
-* Guile Scripts::               
-* Linking Programs With Guile::  
-* Writing Extensions for Guile::  
-* Guile Modules::               
+* Running Guile Interactively::
+* Guile Scripts::
+* Linking Programs With Guile::
+* Writing Extensions for Guile::
+* Guile Modules::
 @end menu
 
 
@@ -186,7 +186,7 @@ $ ./foo
 ("./foo")
 $ ./foo bar baz
 ("./foo" "bar" "baz")
-$ 
+$
 @end example
 
 As another example, here is a simple replacement for the POSIX
@@ -580,7 +580,7 @@ guile> (getpwnam "jimb")
 #("jimb" "83Z7d75W2tyJQ" 4008 10 "Jim Blandy" "/u/jimb"
   "/usr/local/bin/bash")
 guile> (exit)
-$ 
+$
 @end example
 
 @node Writing Extensions for Guile
@@ -622,7 +622,7 @@ standalone program.  The shared library can then be loaded dynamically
 by Guile.
 
 @menu
-* A Sample Guile Extension::    
+* A Sample Guile Extension::
 @end menu
 
 @node A Sample Guile Extension
@@ -700,17 +700,13 @@ the future.  Feel free to use the existing system anyway.  Guile will
 provide reasonable backwards compatability.)
 
 @menu
-* Using Guile Modules::         
-* Writing New Modules::         
-* Modules and Extensions::      
+* Using Guile Modules::
+* Writing New Modules::
+* Modules and Extensions::
 @end menu
 
 @node Using Guile Modules
 @subsection Using Existing Modules
-
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: More?  Or leave the rest to the module chapter?
 
 Guile comes with a lot of useful modules, for example for string
 processing or command line parsing.  Additionally, there exist many
@@ -718,8 +714,14 @@ Guile modules written by other Guile hackers, but which have to be
 installed manually.
 
 Existing modules have to be placed in places where Guile looks for them
-by default or in directories in the environment variable
-@code{GUILE_LOAD_PATH}.
+by default or in colon-separated directories in the environment variable
+@code{GUILE_LOAD_PATH}.  When this variable is set, those directories
+are searched first, then the the default.  The following command
+shows the complete list of directories searched:
+
+@smallexample
+guile -c '(for-each write-line %load-path)'
+@end smallexample
 
 Suppose you want to use the procedures and variables exported by the
 module @code{(ice-9 popen)}, which provides the means for communicating
@@ -831,18 +833,13 @@ for example as @file{/usr/local/share/guile/math/bessel.scm}.
 @node Reporting Bugs
 @chapter Reporting Bugs
 
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: A lot of this was taken from the Emacs reference 
-@c   manual and adapted.  I guess that is okay?
-
 Any problems with the installation should be reported to
 @email{bug-guile@@gnu.org}.
 
 Whenever you have found a bug in Guile you are encouraged to report it
-to the Guile developers, so they can fix it.  They may probably have
-also advice what to do to work around a bug when it is not possible for
-you to apply the bugfix or install a new version of Guile yourself.
+to the Guile developers, so they can fix it.  They may also be able to
+suggest workarounds when it is not possible for you to apply the bugfix
+or install a new version of Guile yourself.
 
 Before sending in bug reports, please check with the following list that
 you really have found a bug.
@@ -865,7 +862,6 @@ When calculations produce wrong results, it is a bug.
 When Guile signals an error for valid Scheme programs, it is a bug.
 
 @item
-@c FIXME::martin: Too strict?
 When Guile does not signal an error for invalid Scheme programs, it may
 be a bug, unless this is explicitly documented.
 
@@ -877,7 +873,7 @@ to you even after re--reading the section, it is a bug.
 When you write a bug report, please make sure to include as much of the
 information described below in the report.  If you can't figure out some
 of the items, it is not a problem, but the more information we get, the
-better are chances we can diagnose and fix the bug.
+more likely we can diagnose and fix the bug.
 
 @itemize @bullet
 @item
@@ -907,7 +903,8 @@ Linux tortoise 2.2.17 #1 Thu Dec 21 17:29:05 CET 2000 i586 unknown
 
 @item
 The operands given to the @file{configure} command when Guile was
-installed.
+installed.  It's often useful to augment this with the output of the
+command @code{guile-config info}.
 
 @item
 A complete list of any modifications you have made to the Guile source.
@@ -953,12 +950,13 @@ This can be done using the procedure @code{backtrace} in the REPL.
 
 @item
 Check whether any programs you have loaded into Guile, including your
-`.guile' file, set any variables that may affect the functioning of
+@file{.guile} file, set any variables that may affect the functioning of
 Guile.  Also, see whether the problem happens in a freshly started Guile
-without loading your `.guile file (start Guile with the `-q' switch to
-prevent loading the init file).  If the problem does _not_ occur then,
-you must report the precise contents of any programs that you must load
-into Guile in order to cause the problem to occur.
+without loading your @file{.guile} file (start Guile with the @code{-q}
+switch to prevent loading the init file).  If the problem does
+@emph{not} occur then, you must report the precise contents of any
+programs that you must load into Guile in order to cause the problem to
+occur.
 
 @item
 If the problem does depend on an init file or other Lisp programs that
@@ -983,8 +981,9 @@ If you don't know how to use GDB, please read the GDB manual--it is not
 very long, and using GDB is easy.  You can find the GDB distribution,
 including the GDB manual in online form, in most of the same places you
 can find the Guile distribution.  To run Guile under GDB, you should
-switch to the `libguile' subdirectory in which Guile was compiled, then
-do `gdb guile'.
+switch to the @file{libguile} subdirectory in which Guile was compiled, then
+do @code{gdb .libs/guile}.
+@c fixme: libguile/.libs is for libtool-enabled systems -- what about rest?
 
 However, you need to think when you collect the additional information
 if you want it to show what causes the bug.
