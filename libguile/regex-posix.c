@@ -159,7 +159,10 @@ scm_make_regexp (SCM pat, SCM flags)
 
   SCM_DEFER_INTS;
   rx = (regex_t *) scm_must_malloc (sizeof (regex_t), s_make_regexp);
-  status = regcomp (rx, SCM_ROCHARS (pat), SCM_INUM (flags));
+  status = regcomp (rx, SCM_ROCHARS (pat),
+		    /* Make sure they're not passing REG_NOSUB;
+                       regexp-exec assumes we're getting match data.  */
+		    (SCM_INUM (flags) & ~REG_NOSUB));
   if (status != 0)
     {
       SCM_ALLOW_INTS;
@@ -247,7 +250,6 @@ scm_init_regex_posix ()
   /* Compilation flags.  */
   scm_sysintern ("regexp/extended", scm_long2num (REG_EXTENDED));
   scm_sysintern ("regexp/icase", scm_long2num (REG_ICASE));
-  scm_sysintern ("regexp/nosub", scm_long2num (REG_NOSUB));
   scm_sysintern ("regexp/newline", scm_long2num (REG_NEWLINE));
 
   /* Execution flags.  */
