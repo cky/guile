@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2004 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -33,7 +33,8 @@ guile_TEXINFOS = preface.texi intro.texi program.texi scheme-intro.texi \
 	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi \
 	debugging.texi indices.texi script-getopt.texi data-rep.texi \
 	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi \
-	scheme-compound.texi autoconf.texi autoconf-macros.texi tools.texi
+	scheme-compound.texi autoconf.texi autoconf-macros.texi tools.texi \
+	fdl.texi
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
 
