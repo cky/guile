@@ -56,28 +56,36 @@
 #include <string.h>
 #endif
 
-#define CTYPE           char
-#define SIZEOF_CTYPE    1
-#define SCM2CTYPES_FN   "scm_c_scm2chars"
-#define SCM2CTYPES      scm_c_scm2chars
-#define CTYPES2SCM_FN   "scm_c_chars2scm"
-#define CTYPES2SCM      scm_c_chars2scm
-#define CTYPES2UVECT_FN "scm_c_chars2byvect"
-#define CTYPES2UVECT    scm_c_chars2byvect
-#define UVECTTYPE       scm_tc7_byvect
-#define ARRAYTYPE       scm_tc7_byvect
+#define CTYPE            char
+#define SIZEOF_CTYPE     1
+#define SCM2CTYPES_FN    "scm_c_scm2chars"
+#define SCM2CTYPES       scm_c_scm2chars
+#define CTYPES2SCM_FN    "scm_c_chars2scm"
+#define CTYPES2SCM       scm_c_chars2scm
+#define CTYPES2UVECT_FN  "scm_c_chars2byvect"
+#define CTYPES2UVECT     scm_c_chars2byvect
+#define UVECTTYPE        scm_tc7_byvect
+#define SIZEOF_UVECTTYPE 1
+#define UVECTCTYPE       char
+#define ARRAYTYPE        scm_tc7_byvect
+#define SIZEOF_ARRAYTYPE 1
+#define ARRAYCTYPE       char
 #include "convert.i.c"
 
-#define CTYPE           short
-#define SIZEOF_CTYPE    SIZEOF_SHORT
-#define SCM2CTYPES_FN   "scm_c_scm2shorts"
-#define SCM2CTYPES      scm_c_scm2shorts
-#define CTYPES2SCM_FN   "scm_c_shorts2scm"
-#define CTYPES2SCM      scm_c_shorts2scm
-#define CTYPES2UVECT_FN "scm_c_shorts2svect"
-#define CTYPES2UVECT    scm_c_shorts2svect
-#define UVECTTYPE       scm_tc7_svect
-#define ARRAYTYPE       scm_tc7_svect
+#define CTYPE            short
+#define SIZEOF_CTYPE     SIZEOF_SHORT
+#define SCM2CTYPES_FN    "scm_c_scm2shorts"
+#define SCM2CTYPES       scm_c_scm2shorts
+#define CTYPES2SCM_FN    "scm_c_shorts2scm"
+#define CTYPES2SCM       scm_c_shorts2scm
+#define CTYPES2UVECT_FN  "scm_c_shorts2svect"
+#define CTYPES2UVECT     scm_c_shorts2svect
+#define UVECTTYPE        scm_tc7_svect
+#define SIZEOF_UVECTTYPE SIZEOF_SHORT
+#define UVECTCTYPE       short
+#define ARRAYTYPE        scm_tc7_svect
+#define SIZEOF_ARRAYTYPE SIZEOF_SHORT
+#define ARRAYCTYPE       short
 #include "convert.i.c"
 
 #define CTYPE                    int
@@ -89,10 +97,14 @@
 #define CTYPES2UVECT_FN          "scm_c_ints2ivect"
 #define CTYPES2UVECT             scm_c_ints2ivect
 #define UVECTTYPE                scm_tc7_ivect
+#define SIZEOF_UVECTTYPE         SIZEOF_LONG
+#define UVECTCTYPE               long
 #define CTYPES2UVECT_FN_OPTIONAL "scm_c_uints2uvect"
 #define CTYPES2UVECT_OPTIONAL    scm_c_uints2uvect
 #define UVECTTYPE_OPTIONAL       scm_tc7_uvect
 #define ARRAYTYPE                scm_tc7_ivect
+#define SIZEOF_ARRAYTYPE         SIZEOF_LONG
+#define ARRAYCTYPE               long
 #define ARRAYTYPE_OPTIONAL       scm_tc7_uvect
 #include "convert.i.c"
 
@@ -105,10 +117,14 @@
 #define CTYPES2UVECT_FN          "scm_c_longs2ivect"
 #define CTYPES2UVECT             scm_c_longs2ivect
 #define UVECTTYPE                scm_tc7_ivect
+#define SIZEOF_UVECTTYPE         SIZEOF_LONG
+#define UVECTCTYPE               long
 #define CTYPES2UVECT_FN_OPTIONAL "scm_c_ulongs2uvect"
 #define CTYPES2UVECT_OPTIONAL    scm_c_ulongs2uvect
 #define UVECTTYPE_OPTIONAL       scm_tc7_uvect
 #define ARRAYTYPE                scm_tc7_ivect
+#define SIZEOF_ARRAYTYPE         SIZEOF_LONG
+#define ARRAYCTYPE               long
 #define ARRAYTYPE_OPTIONAL       scm_tc7_uvect
 #include "convert.i.c"
 
@@ -121,7 +137,9 @@
 #define CTYPES2UVECT_FN    "scm_c_floats2fvect"
 #define CTYPES2UVECT       scm_c_floats2fvect
 #define UVECTTYPE          scm_tc7_fvect
+#define SIZEOF_UVECTTYPE   0
 #define ARRAYTYPE          scm_tc7_fvect
+#define SIZEOF_ARRAYTYPE   0
 #define ARRAYTYPE_OPTIONAL scm_tc7_dvect
 #define FLOATTYPE          float
 #define FLOATTYPE_OPTIONAL double
@@ -136,7 +154,9 @@
 #define CTYPES2UVECT_FN    "scm_c_doubles2dvect"
 #define CTYPES2UVECT       scm_c_doubles2dvect
 #define UVECTTYPE          scm_tc7_dvect
+#define SIZEOF_UVECTTYPE   0
 #define ARRAYTYPE          scm_tc7_dvect
+#define SIZEOF_ARRAYTYPE   0
 #define ARRAYTYPE_OPTIONAL scm_tc7_fvect
 #define FLOATTYPE          double
 #define FLOATTYPE_OPTIONAL float

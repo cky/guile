@@ -54,10 +54,8 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 
       /* allocate new memory if necessary */
       if (data == NULL)
-	{
-	  if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
-	    return NULL;
-	}
+	if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
+	  return NULL;
 
       /* traverse the list once more and convert each member */
       list = obj;
@@ -116,10 +114,8 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 
       /* allocate new memory if necessary */
       if (data == NULL)
-	{
-	  if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
-	    return NULL;
-	}
+	if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
+	  return NULL;
 
       /* traverse the vector once more and convert each member */
       for (i = 0; i < n; i++)
@@ -146,10 +142,8 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 
       /* allocate new memory if necessary */
       if (data == NULL)
-	{
-	  if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
-	    return NULL;
-	}
+	if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
+	  return NULL;
 
 #ifdef FLOATTYPE_OPTIONAL
       /* float <-> double conversions */
@@ -160,8 +154,14 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 	}
       else
 #endif
+#if SIZEOF_CTYPE != SIZEOF_ARRAYTYPE
+      /* copy array element by element */
+      for (i = 0; i < n; i++)
+	data[i] = (CTYPE) ((ARRAYCTYPE *) SCM_UVECTOR_BASE (obj))[i];
+#else
       /* copy whole array */
       memcpy (data, (CTYPE *) SCM_UVECTOR_BASE (obj), n * sizeof (CTYPE));
+#endif
       break;
 #endif /* HAVE_ARRAYS */
 
@@ -191,12 +191,23 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 SCM
 CTYPES2UVECT (const CTYPE *data, long n)
 {
+#if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
+  UVECTCTYPE *v;
+  long i;
+#else
   char *v;
+#endif
 
   SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n),
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
+#if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
+  v = scm_gc_malloc (n * SIZEOF_UVECTTYPE, "uvect");
+  for (i = 0; i < n; i++)
+    v[i] = (UVECTCTYPE) data[i];
+#else
   v = scm_gc_malloc (n * sizeof (CTYPE), "uvect");
   memcpy (v, data, n * sizeof (CTYPE));
+#endif
   return scm_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE), (scm_t_bits) v);
 }
 #undef FUNC_NAME
@@ -206,12 +217,23 @@ CTYPES2UVECT (const CTYPE *data, long n)
 SCM
 CTYPES2UVECT_OPTIONAL (const unsigned CTYPE *data, long n)
 {
+#if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
+  unsigned UVECTCTYPE *v;
+  long i;
+#else
   char *v;
+#endif
 
   SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n), 
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
-  v = scm_gc_malloc (n * sizeof (unsigned CTYPE) * n, "uvect");
-  memcpy (v, data, n * sizeof (unsigned CTYPE));
+#if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
+  v = scm_gc_malloc (n * SIZEOF_UVECTTYPE, "uvect");
+  for (i = 0; i < n; i++)
+    v[i] = (unsigned UVECTCTYPE) data[i];
+#else
+  v = scm_gc_malloc (n * sizeof (CTYPE), "uvect");
+  memcpy (v, data, n * sizeof (CTYPE));
+#endif
   return scm_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE_OPTIONAL), 
 		   (scm_t_bits) v);
 }
@@ -258,6 +280,8 @@ CTYPES2SCM (const CTYPE *data, long n)
 #undef UVECTTYPE_OPTIONAL
 #endif
 #undef SIZEOF_CTYPE
+#undef SIZEOF_UVECTTYPE
+#undef SIZEOF_ARRAYTYPE
 #undef ARRAYTYPE
 #ifdef ARRAYTYPE_OPTIONAL
 #undef ARRAYTYPE_OPTIONAL
@@ -267,6 +291,12 @@ CTYPES2SCM (const CTYPE *data, long n)
 #endif
 #ifdef FLOATTYPE_OPTIONAL
 #undef FLOATTYPE_OPTIONAL
+#endif
+#ifdef UVECTCTYPE
+#undef UVECTCTYPE
+#endif
+#ifdef ARRAYCTYPE
+#undef ARRAYCTYPE
 #endif
 
 /*
