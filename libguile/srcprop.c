@@ -305,19 +305,25 @@ scm_set_source_property_x (obj, key, datum)
     }
   else if (scm_i_line == key)
     {
+      SCM_ASSERT (SCM_INUMP (datum),
+		  datum, SCM_ARG3, s_set_source_property_x);
       if (SCM_NIMP (p) && SRCPROPSP (p))
-	SETSRCPROPLINE (p, datum);
+	SETSRCPROPLINE (p, SCM_INUM (datum));
       else
 	SCM_WHASHSET (scm_source_whash, h,
-		  scm_make_srcprops (datum, 0, SCM_UNDEFINED, SCM_UNDEFINED, p));
+		      scm_make_srcprops (SCM_INUM (datum), 0,
+					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
   else if (scm_i_column == key)
     {
+      SCM_ASSERT (SCM_INUMP (datum),
+		  datum, SCM_ARG3, s_set_source_property_x);
       if (SCM_NIMP (p) && SRCPROPSP (p))
-	SETSRCPROPCOL (p, datum);
+	SETSRCPROPCOL (p, SCM_INUM (datum));
       else
 	SCM_WHASHSET (scm_source_whash, h,
-		  scm_make_srcprops (0, datum, SCM_UNDEFINED, SCM_UNDEFINED, p));
+		      scm_make_srcprops (0, SCM_INUM (datum),
+					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
   else if (scm_i_filename == key)
     {
