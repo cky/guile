@@ -388,9 +388,10 @@ typedef unsigned long scm_t_bits;
 /* Checking if a SCM variable holds a pair (for historical reasons, in Guile
  * also known as a cons-cell): This is done by first checking that the SCM
  * variable holds a non-immediate, and second, by checking that tc1==0 holds
- * for the SCM_CELL_TYPE of the SCM variable.  */
-#define SCM_CONSP(x)  (!SCM_IMP (x) && ((1 & SCM_CELL_TYPE (x)) == 0))
-#define SCM_NCONSP(x) (!SCM_CONSP (x))
+ * for the SCM_CELL_TYPE of the SCM variable.  
+*/
+
+#define SCM_I_CONSP(x)  (!SCM_IMP (x) && ((1 & SCM_CELL_TYPE (x)) == 0))
 
 
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -74,10 +74,45 @@ SCM_DEFINE (scm_pair_p, "pair?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_pair_p
 {
-  return scm_from_bool (SCM_CONSP (x));
+  return scm_from_bool (scm_is_pair (x));
 }
 #undef FUNC_NAME
 
+int
+scm_is_pair (SCM x)
+{
+  return SCM_I_CONSP (x);
+}
+
+SCM
+scm_car (SCM pair)
+{
+  if (!scm_is_pair (pair))
+    scm_wrong_type_arg_msg (NULL, 0, pair, "pair");
+  return SCM_CAR (pair);
+}
+
+SCM
+scm_cdr (SCM pair)
+{
+  if (!scm_is_pair (pair))
+    scm_wrong_type_arg_msg (NULL, 0, pair, "pair");
+  return SCM_CDR (pair);
+}
+
+SCM
+scm_i_chase_pairs (SCM tree, scm_t_bits pattern)
+{
+  do
+    {
+      if (!scm_is_pair (tree))
+	scm_wrong_type_arg_msg (NULL, 0, tree, "pair");
+      tree = (pattern & 1) ? SCM_CAR (tree) : SCM_CDR (tree);
+      pattern >>= 2;
+    }
+  while (pattern);
+  return tree;
+}
 
 SCM_DEFINE (scm_set_car_x, "set-car!", 2, 0, 0,
             (SCM pair, SCM value),

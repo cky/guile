@@ -3,7 +3,7 @@
 #ifndef SCM_PAIRS_H
 #define SCM_PAIRS_H
 
-/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,13 +28,12 @@
 
 #if (SCM_DEBUG_PAIR_ACCESSES == 1)
 # define SCM_VALIDATE_PAIR(cell, expr) \
-    ((!SCM_CONSP (cell) ? scm_error_pair_access (cell), 0 : 0), (expr))
+    ((!scm_is_pair (cell) ? scm_error_pair_access (cell), 0 : 0), (expr))
 #else
 # define SCM_VALIDATE_PAIR(cell, expr) (expr)
 #endif
 
-#define SCM_NULLP(x)		(scm_is_eq ((x), SCM_EOL))
-#define SCM_NNULLP(x)		(!SCM_NULLP (x))
+#define scm_is_null(x)          (scm_is_eq ((x), SCM_EOL))
 
 #define SCM_CAR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_0 (x)))
 #define SCM_CDR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_1 (x)))
@@ -78,6 +77,9 @@
 #if (SCM_DEBUG_PAIR_ACCESSES == 1)
 SCM_API void scm_error_pair_access (SCM);
 #endif
+
+SCM_API int scm_is_pair (SCM x);
+
 SCM_API SCM scm_cons (SCM x, SCM y);
 SCM_API SCM scm_cons2 (SCM w, SCM x, SCM y);
 SCM_API SCM scm_pair_p (SCM x);
@@ -85,8 +87,6 @@ SCM_API SCM scm_car (SCM x);
 SCM_API SCM scm_cdr (SCM x);
 SCM_API SCM scm_set_car_x (SCM pair, SCM value);
 SCM_API SCM scm_set_cdr_x (SCM pair, SCM value);
-
-SCM_API int scm_is_pair (SCM val);
 
 #define SCM_I_D_PAT    0x02 /* 00000010 */
 #define SCM_I_A_PAT    0x03 /* 00000011 */

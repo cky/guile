@@ -148,6 +148,15 @@ SCM_API SCM scm_allocate_string (size_t len);
 #define SCM_SYMBOL_HASH             scm_i_symbol_hash
 #define SCM_SYMBOL_INTERNED_P(X)    scm_i_symbol_is_interned
 
+/* Discouraged because they evaluated their arguments twice and/or
+   don't fit the naming scheme.
+*/
+
+#define SCM_CONSP(x)            (scm_is_pair (x))
+#define SCM_NCONSP(x)           (!SCM_CONSP (x))
+#define SCM_NULLP(x)		(scm_is_null (x))
+#define SCM_NNULLP(x)		(!scm_is_null (x))
+
 void scm_i_init_discouraged (void);
 
 #endif /* SCM_ENABLE_DISCOURAGED == 1 */
