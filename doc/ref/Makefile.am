@@ -58,4 +58,5 @@ guile_toc.html: guile.texi $(guile_TEXINFOS)
 
 endif
 
-CLEANFILES = autoconf-macros.texi
+CLEANFILES = autoconf-macros.texi \
+             guile.cps guile.fns guile.rns guile.tps guile.vrs guile.tmp
