@@ -150,6 +150,8 @@ take_signal (int signum)
   }
 #endif
   scm_system_async_mark (signal_async);
+  if (signum == SIGSEGV || signum == SIGILL || signum == SIGBUS)
+    SCM_ASYNC_TICK;
   errno = saved_errno;
 }
 
