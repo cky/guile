@@ -1,3 +1,8 @@
+2002-11-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* format.scm (format): Use 'monitor' properly.  Not the definition
+	needs to be restricted, the actual function needs to be.
+
 2002-11-05  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (define-option-interface): Fix to "simplification"
