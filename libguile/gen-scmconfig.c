@@ -300,6 +300,8 @@ main (int argc, char *argv[])
   pf ("typedef %s scm_t_uint16;\n", SCM_I_GSC_T_UINT16);
   pf ("typedef %s scm_t_int32;\n", SCM_I_GSC_T_INT32);
   pf ("typedef %s scm_t_uint32;\n", SCM_I_GSC_T_UINT32);
+  pf ("typedef %s scm_t_intmax;\n", SCM_I_GSC_T_INTMAX);
+  pf ("typedef %s scm_t_uintmax;\n", SCM_I_GSC_T_UINTMAX);
 
   pf ("\n");
   pf ("/* 64-bit integer -- if available SCM_HAVE_T_INT64 will be 1 and\n"
