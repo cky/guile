@@ -934,21 +934,12 @@ SCM_DEFINE (scm_accessor_method_slot_definition, "accessor-method-slot-definitio
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_sys_pre_expand_closure_x, "%pre-expand-closure!", 1, 0, 0,
-	    (SCM closure),
+SCM_DEFINE (scm_sys_tag_body, "%tag-body", 1, 0, 0,
+	    (SCM body),
 	    "Internal GOOPS magic---don't use this function!")
-#define FUNC_NAME s_scm_sys_pre_expand_closure_x
+#define FUNC_NAME s_scm_sys_tag_body
 {
-  SCM formals, code, env;
-  SCM_VALIDATE_CLOSURE (1, closure);
-  formals = SCM_CAR (SCM_CODE (closure));
-  env = SCM_EXTEND_ENV (formals, formals, SCM_ENV (closure));
-  code = SCM_CDR (SCM_CODE (closure));
-  while (SCM_NNULLP (SCM_CDR (code))
-	 && SCM_IMP (SCM_CAR (code))
-	 && SCM_ISYMP (SCM_CAR (code)))
-    code = scm_m_expand_body (code, env);
-  return closure;
+  return scm_cons (SCM_IM_LAMBDA, body);
 }
 #undef FUNC_NAME
 

@@ -258,7 +258,7 @@ SCM scm_method_generic_function (SCM obj);
 SCM scm_method_specializers (SCM obj); 
 SCM scm_method_procedure (SCM obj); 
 SCM scm_accessor_method_slot_definition (SCM obj);
-SCM scm_sys_pre_expand_closure_x (SCM closure);
+SCM scm_sys_tag_body (SCM body);
 SCM scm_sys_fast_slot_ref (SCM obj, SCM index); 
 SCM scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value); 
 SCM scm_slot_ref_using_class (SCM cls, SCM obj, SCM slot_name); 

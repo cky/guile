@@ -1,3 +1,8 @@
+2001-03-04  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* goops.c, goops.h (scm_sys_pre_expand_closure_x): Removed.
+	(scm_sys_tag_body): Added.
+
 2001-03-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* continuations.c (continuation_apply), eval.c (scm_m_lambda,
