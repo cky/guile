@@ -52,12 +52,17 @@
 #include <unistd.h>
 #endif
 
-#if defined(MISSING_USLEEP_DECL) || (defined(GUILE_ISELECT) && !defined(HAVE_USLEEP))
-#ifdef USLEEP_RETURNS_VOID
-extern void usleep (USLEEP_ARG_TYPE);
-#else
-extern int usleep (USLEEP_ARG_TYPE);
+/* The thread system has its own sleep and usleep functions.  */
+#ifndef USE_THREADS
+
+#if defined(MISSING_SLEEP_DECL)
+int sleep ();
 #endif
+
+#if defined(HAVE_USLEEP) && defined(MISSING_USLEEP_DECL)
+int usleep ();
+#endif
+
 #endif
 
 
@@ -353,32 +358,44 @@ SCM
 scm_sleep (i)
      SCM i;
 {
-  unsigned int j;
+  unsigned long j;
   SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_sleep);
+#ifdef USE_THREADS
+  j = scm_thread_sleep (SCM_INUM(i));
+#else
   j = sleep (SCM_INUM(i));
-  return SCM_MAKINUM (j);
+#endif
+  return scm_ulong2num (j);
 }
 
-#if defined(GUILE_ISELECT) || defined(HAVE_USLEEP)
+#if defined(USE_THREADS) || defined(HAVE_USLEEP)
 SCM_PROC(s_usleep, "usleep", 1, 0, 0, scm_usleep);
 
 SCM 
 scm_usleep (i)
      SCM i;
 {
-#ifndef USLEEP_RETURNS_VOID
-  int j;
-#endif
   SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_usleep);
+
+#ifdef USE_THREADS
+  /* If we have threads, we use the thread system's sleep function.  */
+  {
+    unsigned long j = scm_thread_usleep (SCM_INUM (i));
+    return scm_ulong2num (j);
+  }
+#else
 #ifdef USLEEP_RETURNS_VOID
   usleep (SCM_INUM (i));
   return SCM_INUM0;
 #else
-  j = usleep (SCM_INUM (i));
-  return SCM_MAKINUM (j);
+  {
+    int j = usleep (SCM_INUM (i));
+    return SCM_MAKINUM (j);
+  }
+#endif
 #endif
 }
-#endif
+#endif /* GUILE_ISELECT || HAVE_USLEEP */
 
 SCM_PROC(s_raise, "raise", 1, 0, 0, scm_raise);
 
