@@ -872,8 +872,6 @@ This version of @code{member} extends the core @code{member}
 @subsubsection Deleting
 @cindex list delete
 
-@c FIXME::martin: Review me!
-
 @deffn {Scheme Procedure} delete x lst [=]
 @deffnx {Scheme Procedure} delete! x lst [=]
 Return a list containing the elements of @var{lst} but with those
@@ -892,8 +890,10 @@ deleted with @code{(delete 5 lst <)}.
 common tail with @var{lst}.  @code{delete!} may modify the structure
 of @var{lst} to construct its return.
 
-These functions extend the core @code{delete} and @code{delete!} in
-accepting an equality predicate.  (@pxref{List Modification})
+These functions extend the core @code{delete} and @code{delete!}
+(@pxref{List Modification}) in accepting an equality predicate.  See
+also @code{lset-difference} (@pxref{SRFI-1 Set Operations}) for
+deleting multiple elements from a list.
 @end deffn
 
 @deffn {Scheme Procedure} delete-duplicates lst [=]
@@ -981,81 +981,198 @@ the list structure of @var{alist} to construct its return.
 @subsubsection Set Operations on Lists
 @cindex list set operation
 
-@c FIXME::martin: Review me!
+Lists can be used to represent sets of objects.  The procedures in
+this section operate on such lists as sets.
 
-Lists can be used for representing sets of objects.  The procedures
-documented in this section can be used for such set representations.
-Man combining several sets or adding elements, they make sure that no
-object is contained more than once in a given list.  Please note that
-lists are not a too efficient implementation method for sets, so if
-you need high performance, you should think about implementing a
-custom data structure for representing sets, such as trees, bitsets,
-hash tables or something similar.
+Note that lists are not an efficient way to implement large sets.  The
+procedures here typically take time @math{@var{m}@times{}@var{n}} when
+operating on @var{m} and @var{n} element lists.  Other data structures
+like trees, bitsets (@pxref{Bit Vectors}) or hash tables (@pxref{Hash
+Tables}) are faster.
 
-All these procedures accept an equality predicate as the first
-argument.  This predicate is used for testing the objects in the list
-sets for sameness.
+All these procedures take an equality predicate as the first argument.
+This predicate is used for testing the objects in the list sets for
+sameness.  This predicate must be consistent with @code{eq?}
+(@pxref{Equality}) in the sense that if two list elements are
+@code{eq?} then they must also be equal under the predicate.  This
+simply means a given object must be equal to itself.
 
-@deffn {Scheme Procedure} lset<= = list1 @dots{}
-Return @code{#t} if every @var{listi} is a subset of @var{listi+1},
-otherwise return @code{#f}.  Returns @code{#t} if called with less
-than two arguments. @var{=} is used for testing element equality.
+@deffn {Scheme Procedure} lset<= = list1 list2 @dots{}
+Return @code{#t} if each list is a subset of the one following it.
+Ie.@: @var{list1} a subset of @var{list2}, @var{list2} a subset of
+@var{list3}, etc, for as many lists as given.  If only one list or no
+lists are given then the return is @code{#t}.
+
+A list @var{x} is a subset of @var{y} if each element of @var{x} is
+equal to some element in @var{y}.  Elements are compared using the
+given @var{=} procedure, called as @code{(@var{=} xelem yelem)}.
+
+@example
+(lset<= eq?)                      @result{} #t
+(lset<= eqv? '(1 2 3) '(1))       @result{} #f
+(lset<= eqv? '(1 3 2) '(4 3 1 2)) @result{} #t
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} lset= = list1 list2 @dots{}
-Return @code{#t} if all argument lists are equal. @var{=} is used for
-testing element equality.
+Return @code{#t} if all argument lists are set-equal.  @var{list1} is
+compared to @var{list2}, @var{list2} to @var{list3}, etc, for as many
+lists as given.  If only one list or no lists are given then the
+return is @code{#t}.
+
+Two lists @var{x} and @var{y} are set-equal if each element of @var{x}
+is equal to some element of @var{y} and conversely each element of
+@var{y} is equal to some element of @var{x}.  The order of the
+elements in the lists doesn't matter.  Element equality is determined
+with the given @var{=} procedure, called as @code{(@var{=} xelem
+yelem)}, but exactly which calls are made is unspecified.
+
+@example
+(lset= eq?)                      @result{} #t
+(lset= eqv? '(1 2 3) '(3 2 1))   @result{} #t
+(lset= string-ci=? '("a" "A" "b") '("B" "b" "a")) @result{} #t
+@end example
 @end deffn
 
-@deffn {Scheme Procedure} lset-adjoin = list elt1 @dots{}
-Add all @var{elts} to the list @var{list}, suppressing duplicates and
-return the resulting list.  @var{=} is used for testing
-element equality.
+@deffn {Scheme Procedure} lset-adjoin = list elem1 @dots{}
+Add to @var{list} any of the given @var{elem}s not already in the
+list.  @var{elem}s are @code{cons}ed onto the start of @var{list} (so
+the return shares a common tail with @var{list}), but the order
+they're added is unspecified.
+
+The given @var{=} procedure is used for comparing elements, called as
+@code{(@var{=} listelem elem)}, ie.@: the second argument is one of
+the given @var{elem} parameters.
+
+@example
+(lset-adjoin eqv? '(1 2 3) 4 1 5) @result{} (5 4 1 2 3)
+@end example
 @end deffn
 
-@deffn {Scheme Procedure} lset-union = list1 @dots{}
-@deffnx {Scheme Procedure} lset-union! = list1 @dots{}
-Return the union of all argument list sets.  The union is the set of
-all elements which appear in any of the argument sets.
-@code{lset-union!} is allowed, but not required to modify its first
-argument. @var{=} is used for testing element equality.
+@deffn {Scheme Procedure} lset-union = list1 list2 @dots{}
+@deffnx {Scheme Procedure} lset-union! = list1 list2 @dots{}
+Return the union of the argument list sets.  The result is built by
+taking the union of @var{list1} and @var{list2}, then the union of
+that with @var{list3}, etc, for as many lists as given.  For one list
+argument that list itself is the result, for no list arguments the
+result is the empty list.
+
+The union of two lists @var{x} and @var{y} is formed as follows.  If
+@var{x} is empty then the result is @var{y}.  Otherwise start with
+@var{x} as the result and consider each @var{y} element (from first to
+last).  A @var{y} element not equal to something already in the result
+is @code{cons}ed onto the result.
+
+The given @var{=} procedure is used for comparing elements, called as
+@code{(@var{=} relem yelem)}.  The first argument is from the result
+accumulated so far, and the second is from the list being union-ed in.
+But exactly which calls are made is otherwise unspecified.
+
+Notice that duplicate elements in @var{list1} (or the first non-empty
+list) are preserved, but that repeated elements in subsequent lists
+are only added once.
+
+@example
+(lset-union eqv?)                          @result{} ()
+(lset-union eqv? '(1 2 3))                 @result{} (1 2 3)
+(lset-union eqv? '(1 2 1 3) '(2 4 5) '(5)) @result{} (5 4 1 2 1 3)
+@end example
+
+@code{lset-union} doesn't change the given lists but the result may
+share a tail with the first non-empty list.  @code{lset-union!} can
+modify all of the given lists to form the result.
 @end deffn
 
 @deffn {Scheme Procedure} lset-intersection = list1 list2 @dots{}
 @deffnx {Scheme Procedure} lset-intersection! = list1 list2 @dots{}
-Return the intersection of all argument list sets.  The intersection
-is the set containing all elements which appear in all argument sets.
-@code{lset-intersection!} is allowed, but not required to modify its
-first argument. @var{=} is used for testing element equality.
+Return the intersection of @var{list1} with the other argument lists,
+meaning those elements of @var{list1} which are also in all of
+@var{list2} etc.  For one list argument, just that list is returned.
+
+The test for an element of @var{list1} to be in the return is simply
+that it's equal to some element in each of @var{list2} etc.  Notice
+this means an element appearing twice in @var{list1} but only once in
+each of @var{list2} etc will go into the return twice.  The return has
+its elements in the same order as they were in @var{list1}.
+
+The given @var{=} procedure is used for comparing elements, called as
+@code{(@var{=} elem1 elemN)}.  The first argument is from @var{list1}
+and the second is from one of the subsequent lists.  But exactly which
+calls are made and in what order is unspecified.
+
+@example
+(lset-intersection eqv? '(x y))                        @result{} (x y)
+(lset-intersection eqv? '(1 2 3) '(4 3 2))             @result{} (2 3)
+(lset-intersection eqv? '(1 1 2 2) '(1 2) '(2 1) '(2)) @result{} (2 2)
+@end example
+
+The return from @code{lset-intersection} may share a tail with
+@var{list1}.  @code{lset-intersection!} may modify @var{list1} to form
+its result.
 @end deffn
 
 @deffn {Scheme Procedure} lset-difference = list1 list2 @dots{}
 @deffnx {Scheme Procedure} lset-difference! = list1 list2 @dots{}
-Return the difference of all argument list sets.  The difference is
-the the set containing all elements of the first list which do not
-appear in the other lists.  @code{lset-difference!}  is allowed, but
-not required to modify its first argument. @var{=} is used for testing
-element equality.
-@end deffn
+Return @var{list1} with any elements in @var{list2}, @var{list3} etc
+removed (ie.@: subtracted).  For one list argument, just that list is
+returned.
 
-@deffn {Scheme Procedure} lset-xor = list1 @dots{}
-@deffnx {Scheme Procedure} lset-xor! = list1 @dots{}
-Return the set containing all elements which appear in the first
-argument list set, but not in the second; or, more generally: which
-appear in an odd number of sets.  @code{lset-xor!}  is allowed, but
-not required to modify its first argument. @var{=} is used for testing
-element equality.
+The given @var{=} procedure is used for comparing elements, called as
+@code{(@var{=} elem1 elemN)}.  The first argument is from @var{list1}
+and the second from one of the subsequent lists.  But exactly which
+calls are made and in what order is unspecified.
+
+@example
+(lset-difference eqv? '(x y))             @result{} (x y)
+(lset-difference eqv? '(1 2 3) '(3 1))    @result{} (2)
+(lset-difference eqv? '(1 2 3) '(3) '(2)) @result{} (1)
+@end example
+
+The return from @code{lset-difference} may share a tail with
+@var{list1}.  @code{lset-difference!} may modify @var{list1} to form
+its result.
 @end deffn
 
 @deffn {Scheme Procedure} lset-diff+intersection = list1 list2 @dots{}
 @deffnx {Scheme Procedure} lset-diff+intersection! = list1 list2 @dots{}
-Return two values, the difference and the intersection of the argument
-list sets. This works like a combination of @code{lset-difference} and
-@code{lset-intersection}, but is more efficient.
-@code{lset-diff+intersection!}  is allowed, but not required to modify
-its first argument. @var{=} is used for testing element equality.  You
-have to use some means to deal with the multiple values these
-procedures return (@pxref{Multiple Values}).
+Return two values (@pxref{Multiple Values}), the difference and
+intersection of the argument lists as per @code{lset-difference} and
+@code{lset-intersection} above.
+
+For two list arguments this partitions @var{list1} into those elements
+of @var{list1} which are in @var{list2} and not in @var{list2}.  (But
+for more than two arguments there can be elements of @var{list1} which
+are neither part of the difference nor the intersection.)
+
+One of the return values from @code{lset-diff+intersection} may share
+a tail with @var{list1}.  @code{lset-diff+intersection!} may modify
+@var{list1} to form its results.
+@end deffn
+
+@deffn {Scheme Procedure} lset-xor = list1 list2 @dots{}
+@deffnx {Scheme Procedure} lset-xor! = list1 list2 @dots{}
+Return an XOR of the argument lists.  For two lists this means those
+elements which are in exactly one of the lists.  For more than two
+lists it means those elements which appear in an odd number of the
+lists.
+
+To be precise, the XOR of two lists @var{x} and @var{y} is formed by
+taking those elements of @var{x} not equal to any element of @var{y},
+plus those elements of @var{y} not equal to any element of @var{x}.
+Equality is determined with the given @var{=} procedure, called as
+@code{(@var{=} e1 e2)}.  One argument is from @var{x} and the other
+from @var{y}, but which way around is unspecified.  Exactly which
+calls are made is also unspecified, as is the order of the elements in
+the result.
+
+@example
+(lset-xor eqv? '(x y))             @result{} (x y)
+(lset-xor eqv? '(1 2 3) '(4 3 2))  @result{} (4 1)
+@end example
+
+The return from @code{lset-xor} may share a tail with one of the list
+arguments.  @code{lset-xor!} may modify @var{list1} to form its
+result.
 @end deffn
 
 
