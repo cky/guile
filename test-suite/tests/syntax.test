@@ -643,6 +643,16 @@
                    (eq? 'c (a 2) (a 5))))
            (interaction-environment))))
 
+  (expect-fail "internal defines with macro application"
+    (false-if-exception
+     (eval '(begin
+              (defmacro a forms
+                (cons 'define forms))
+              (let ((c identity) (x #t))
+                (define (a x y) (and x y))
+                (a (c x) (c x))))
+           (interaction-environment))))
+
   (pass-if-exception "missing body expression"
     exception:missing-body-expr
     (eval '(let () (define x #t))

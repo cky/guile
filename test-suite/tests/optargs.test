@@ -18,12 +18,15 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (test-suite lib)
-	     (ice-9 optargs))
+(define-module (test-suite test-optargs)
+  :use-module (test-suite lib)
+  :use-module (ice-9 optargs))
 
 (with-test-prefix "optional argument processing"
-  (define* (test-1 #:optional (x 0))
-    (define d 1)			; local define
-    #t)
   (pass-if "local defines work with optional arguments"
-	   (false-if-exception (test-1))))
+    (eval '(begin
+             (define* (test-1 #:optional (x 0))
+               (define d 1)			; local define
+               #t)
+             (false-if-exception (test-1)))
+          (interaction-environment))))
