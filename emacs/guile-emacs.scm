@@ -58,7 +58,7 @@
 ;;; for guile-import and guile-use-modules
 ;;;
 
-(define (guile-emacs-export-procedure proc)
+(define (guile-emacs-export-procedure name proc docs)
   (define (procedure-arity proc)
     (assq-ref (procedure-properties proc) 'arity))
 
@@ -84,32 +84,29 @@
 
   (define (procedure-call name args)
     (let ((restp (memq '&rest args))
-	  (args (map (lambda (a) `(let ((_t ,a))
-				    (if (guile-tokenp _t)
-				      (cadr _t)
-				      (list 'quote _t))))
-		     (delq '&rest (delq '&optional args)))))
+	  (args (delq '&rest (delq '&optional args))))
       (if restp
-	`(list 'apply ',name ,@args)
-	`(list ',name ,@args))))
+	`('apply ',name ,@args)
+	`(',name ,@args))))
 
-  (let ((name (procedure-name proc))
-	(args (procedure-args proc))
-	(docs (object-documentation proc)))
+  (let ((args (procedure-args proc))
+	(docs (and docs (object-documentation proc))))
     `(defun ,name ,args
        ,@(if docs (list docs) '())
-       (guile-lisp-eval ,(procedure-call name args)))))
+       (guile-lisp-flat-eval ,@(procedure-call name args)))))
 
-(define (guile-emacs-export proc-name)
-  (guile-emacs-export-procedure (module-ref (current-module) proc-name)))
+(define (guile-emacs-export proc-name func-name docs)
+  (let ((proc (module-ref (current-module) proc-name)))
+    (guile-emacs-export-procedure func-name proc docs)))
 
-(define (guile-emacs-export-procedures module-name)
+(define (guile-emacs-export-procedures module-name docs)
   (define (module-public-procedures name)
     (hash-fold (lambda (s v d)
 		 (let ((val (variable-ref v)))
-		   (if (procedure? val) (cons val d) d)))
+		   (if (procedure? val) (acons s val d) d)))
 	       '() (module-obarray (resolve-interface name))))
-  `(progn ,@(map guile-emacs-export-procedure
+  `(progn ,@(map (lambda (n+p)
+		   (guile-emacs-export-procedure (car n+p) (cdr n+p) docs))
 		 (module-public-procedures module-name))))
 
 

@@ -31,10 +31,22 @@
 	  load-path)
     (error "Cannot find guile-emacs.scm")))
 
+(defvar gulie-channel-file
+  (catch 'return
+    (mapc (lambda (dir)
+	    (let ((file (expand-file-name "channel.scm" dir)))
+	      (if (file-exists-p file) (throw 'return file))))
+	  load-path)))
+
+(defvar guile-libs
+  (nconc (if gulie-channel-file (list "-l" gulie-channel-file) '())
+	 (list "-l" gulie-emacs-file)))
+
+;;;###autoload
 (defun guile:make-adapter (command channel)
   (let* ((buff (generate-new-buffer " *guile object channel*"))
-	 (proc (start-process "guile-oa" buff command
-			      "-q" "-l" gulie-emacs-file)))
+	 (libs (if gulie-channel-file (list "-l" gulie-channel-file) nil))
+	 (proc (apply 'start-process "guile-oa" buff command "-q" guile-libs)))
     (process-kill-without-query proc)
     (accept-process-output proc)
     (guile-process-require proc (format "(%s)\n" channel) "channel> ")
@@ -47,6 +59,7 @@
 
 (defun guile-tokenp (x) (and (consp x) (eq (car x) guile-token-tag)))
 
+;;;###autoload
 (defun guile:eval (string adapter)
   (let ((output (guile-process-require adapter (concat "eval " string "\n")
 				       "channel> ")))
@@ -91,6 +104,7 @@
   (cond
    ((or (eq x true) (eq x false)) x)
    ((null x) "'()")
+   ((keywordp x) (concat "#" (prin1-to-string x)))
    ((stringp x) (prin1-to-string x))
    ((guile-tokenp x) (cadr x))
    ((consp x)
@@ -99,25 +113,36 @@
       (cons (guile-lisp-convert (car x)) (guile-lisp-convert (cdr x)))))
    (t x)))
 
-(defun guile-lisp-eval (exp)
-  (guile:eval (format "%s" (guile-lisp-convert exp)) (guile-lisp-adapter)))
+;;;###autoload
+(defun guile-lisp-eval (form)
+  (guile:eval (format "%s" (guile-lisp-convert form)) (guile-lisp-adapter)))
+
+(defun guile-lisp-flat-eval (&rest form)
+  (let ((args (mapcar (lambda (x)
+			(if (guile-tokenp x) (cadr x) (list 'quote x)))
+		      (cdr form))))
+    (guile-lisp-eval (cons (car form) args))))
 
 ;;;###autoload
-(defmacro guile-import (name)
-  `(guile-process-import ',name))
+(defmacro guile-import (name &optional new-name &rest opts)
+  `(guile-process-import ',name ',new-name ',opts))
 
-(defun guile-process-import (name)
-  (eval (guile-lisp-eval `(guile-emacs-export ',name))))
+(defun guile-process-import (name new-name opts)
+  (let ((real (or new-name name))
+	(docs (if (memq :with-docs opts) true false)))
+    (eval (guile-lisp-eval `(guile-emacs-export ',name ',real ,docs)))))
 
 ;;;###autoload
-(defmacro guile-use-modules (&rest name-list)
-  `(guile-process-use-modules ',name-list))
+(defmacro guile-import-module (name &rest opts)
+  `(guile-process-use-module ',name ',opts))
 
-(defun guile-process-use-modules (list)
+(defun guile-process-use-module (name opts)
   (unless (boundp 'guile-emacs-export-procedures)
     (guile-import guile-emacs-export-procedures))
-  (guile-lisp-eval `(use-modules ,@list))
-  (mapc (lambda (name) (eval (guile-emacs-export-procedures name))) list))
+  (let ((docs (if (memq :with-docs opts) true false)))
+    (guile-lisp-eval `(use-modules ,name))
+    (eval (guile-emacs-export-procedures name docs))
+    name))
 
 
 ;;;
