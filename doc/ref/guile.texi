@@ -22,7 +22,7 @@ any later version published by the Free Software Foundation; with the
 no Invariant Sections, with the Front-Cover Texts being ``A GNU
 Manual,'' and with the Back-Cover Text ``You are free to copy and
 modify this GNU Manual.''.  A copy of the license is included in the
-section entitled "GNU Free Documentation License".
+section entitled ``GNU Free Documentation License''.
 @end copying
 
 
@@ -137,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.39 2005-01-07 23:48:54 kryde Exp $
+@c @subtitle $Id: guile.texi,v 1.40 2005-03-04 14:22:41 mvo Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
