@@ -1827,7 +1827,7 @@
   (or-map (lambda (modinfo)
 	    (if (equal? (car modinfo) modname)
 		(begin
-		  (warn-autload-deprecation modname)
+		  (warn-autoload-deprecation modname)
 		  (set! registered-modules (delq! modinfo registered-modules))
 		  (let ((mod (resolve-module modname #f)))
 		    (save-module-excursion
