@@ -61,6 +61,22 @@
 
 extern SCM scm_f_gsubr_apply;
 
+extern SCM scm_c_make_gsubr (const char *name, 
+			     int req, int opt, int rst, SCM (*fcn) ());
+extern SCM scm_c_make_gsubr_with_generic (const char *name,
+					  int req, int opt, int rst,
+					  SCM (*fcn) (), SCM *gf);
+extern SCM scm_c_define_gsubr (const char *name, 
+			       int req, int opt, int rst, SCM (*fcn) ());
+extern SCM scm_c_define_gsubr_with_generic (const char *name,
+					    int req, int opt, int rst,
+					    SCM (*fcn) (), SCM *gf);
+
+extern SCM scm_gsubr_apply (SCM args);
+extern void scm_init_gsubr (void);
+
+#if SCM_DEBUG_DEPRECATED == 0
+
 extern SCM scm_make_gsubr (const char *name, int req, int opt, int rst,
                            SCM (*fcn)());
 extern SCM scm_make_gsubr_with_generic (const char *name,
@@ -69,8 +85,8 @@ extern SCM scm_make_gsubr_with_generic (const char *name,
                                         int rst,
                                         SCM (*fcn)(),
                                         SCM *gf);
-extern SCM scm_gsubr_apply (SCM args);
-extern void scm_init_gsubr (void);
+
+#endif
 
 #endif  /* GSUBRH */
 

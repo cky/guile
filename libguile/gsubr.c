@@ -63,72 +63,146 @@ SCM_GLOBAL_SYMBOL (scm_sym_name, "name");
 
 SCM scm_f_gsubr_apply;
 
-SCM
-scm_make_gsubr(const char *name,int req,int opt,int rst,SCM (*fcn)())
+static SCM
+create_gsubr (int define, const char *name, 
+	      int req, int opt, int rst, SCM (*fcn)())
 {
-  switch SCM_GSUBR_MAKTYPE(req, opt, rst) {
-  case SCM_GSUBR_MAKTYPE(0, 0, 0): return scm_make_subr(name, scm_tc7_subr_0, fcn);
-  case SCM_GSUBR_MAKTYPE(1, 0, 0): return scm_make_subr(name, scm_tc7_subr_1, fcn);
-  case SCM_GSUBR_MAKTYPE(0, 1, 0): return scm_make_subr(name, scm_tc7_subr_1o, fcn);
-  case SCM_GSUBR_MAKTYPE(1, 1, 0): return scm_make_subr(name, scm_tc7_subr_2o, fcn);
-  case SCM_GSUBR_MAKTYPE(2, 0, 0): return scm_make_subr(name, scm_tc7_subr_2, fcn);
-  case SCM_GSUBR_MAKTYPE(3, 0, 0): return scm_make_subr(name, scm_tc7_subr_3, fcn);
-  case SCM_GSUBR_MAKTYPE(0, 0, 1): return scm_make_subr(name, scm_tc7_lsubr, fcn);
-  case SCM_GSUBR_MAKTYPE(2, 0, 1): return scm_make_subr(name, scm_tc7_lsubr_2, fcn);
-  default:
+  SCM subr;
+
+  switch (SCM_GSUBR_MAKTYPE (req, opt, rst))
     {
-      SCM sym = scm_str2symbol (name);
-      SCM var = scm_sym2var (sym, scm_current_module_lookup_closure (),
-			     SCM_BOOL_T);
-      SCM cclo = scm_makcclo (scm_f_gsubr_apply, 3L);
-      if (SCM_GSUBR_MAX < req + opt + rst) {
-	fputs("ERROR in scm_make_gsubr: too many args\n", stderr);
-	exit (1);
-      }
-      SCM_SET_GSUBR_PROC (cclo, scm_make_subr_opt (name, scm_tc7_subr_0, fcn, 0));
-      SCM_SET_GSUBR_TYPE (cclo, SCM_MAKINUM (SCM_GSUBR_MAKTYPE (req, opt, rst)));
-      SCM_VARIABLE_SET (var, cclo);
+    case SCM_GSUBR_MAKTYPE(0, 0, 0):
+      subr = scm_c_make_subr (name, scm_tc7_subr_0, fcn);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(1, 0, 0):
+      subr = scm_c_make_subr (name, scm_tc7_subr_1, fcn);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(0, 1, 0):
+      subr = scm_c_make_subr (name, scm_tc7_subr_1o, fcn);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(1, 1, 0):
+      subr = scm_c_make_subr (name, scm_tc7_subr_2o, fcn);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(2, 0, 0):
+      subr = scm_c_make_subr (name, scm_tc7_subr_2, fcn);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(3, 0, 0):
+      subr = scm_c_make_subr (name, scm_tc7_subr_3, fcn);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(0, 0, 1):
+      subr = scm_c_make_subr (name, scm_tc7_lsubr, fcn);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(2, 0, 1):
+      subr = scm_c_make_subr (name, scm_tc7_lsubr_2, fcn);
+    create_subr:
+      if (define)
+	scm_define (SCM_SUBR_ENTRY(subr).name, subr);
+      return subr;
+    default:
+      {
+	SCM cclo = scm_makcclo (scm_f_gsubr_apply, 3L);
+	SCM subr = scm_c_make_subr (name, scm_tc7_subr_0, fcn);
+	SCM sym = SCM_SUBR_ENTRY(subr).name;
+	if (SCM_GSUBR_MAX < req + opt + rst)
+	  {
+	    fputs ("ERROR in scm_c_make_gsubr: too many args\n", stderr);
+	    exit (1);
+	  }
+	SCM_SET_GSUBR_PROC (cclo, subr);
+	SCM_SET_GSUBR_TYPE (cclo,
+			    SCM_MAKINUM (SCM_GSUBR_MAKTYPE (req, opt, rst)));
 #ifdef DEBUG_EXTENSIONS
-      if (SCM_REC_PROCNAMES_P)
-	scm_set_procedure_property_x (cclo, scm_sym_name, sym);
+	if (SCM_REC_PROCNAMES_P)
+	  scm_set_procedure_property_x (cclo, scm_sym_name, sym);
 #endif
+	if (define)
+	  scm_define (sym, cclo);
       return cclo;
+      }
     }
-  }
 }
 
 SCM
-scm_make_gsubr_with_generic (const char *name,
-			     int req,
-			     int opt,
-			     int rst,
-			     SCM (*fcn)(),
-			     SCM *gf)
+scm_c_make_gsubr (const char *name, int req, int opt, int rst, SCM (*fcn)())
 {
-  switch SCM_GSUBR_MAKTYPE(req, opt, rst) {
-  case SCM_GSUBR_MAKTYPE(0, 0, 0):
-    return scm_make_subr_with_generic(name, scm_tc7_subr_0, fcn, gf);
-  case SCM_GSUBR_MAKTYPE(1, 0, 0):
-    return scm_make_subr_with_generic(name, scm_tc7_subr_1, fcn, gf);
-  case SCM_GSUBR_MAKTYPE(0, 1, 0):
-    return scm_make_subr_with_generic(name, scm_tc7_subr_1o, fcn, gf);
-  case SCM_GSUBR_MAKTYPE(1, 1, 0):
-    return scm_make_subr_with_generic(name, scm_tc7_subr_2o, fcn, gf);
-  case SCM_GSUBR_MAKTYPE(2, 0, 0):
-    return scm_make_subr_with_generic(name, scm_tc7_subr_2, fcn, gf);
-  case SCM_GSUBR_MAKTYPE(3, 0, 0):
-    return scm_make_subr_with_generic(name, scm_tc7_subr_3, fcn, gf);
-  case SCM_GSUBR_MAKTYPE(0, 0, 1):
-    return scm_make_subr_with_generic(name, scm_tc7_lsubr, fcn, gf);
-  case SCM_GSUBR_MAKTYPE(2, 0, 1):
-    return scm_make_subr_with_generic(name, scm_tc7_lsubr_2, fcn, gf);
-  default:
-    ;
-  }
-  scm_misc_error ("scm_make_gsubr_with_generic",
+  return create_gsubr (0, name, req, opt, rst, fcn);
+}
+
+SCM
+scm_c_define_gsubr (const char *name, int req, int opt, int rst, SCM (*fcn)())
+{
+  return create_gsubr (1, name, req, opt, rst, fcn);
+}
+
+static SCM
+create_gsubr_with_generic (int define,
+			   const char *name,
+			   int req,
+			   int opt,
+			   int rst,
+			   SCM (*fcn)(),
+			   SCM *gf)
+{
+  SCM subr;
+
+  switch (SCM_GSUBR_MAKTYPE(req, opt, rst))
+    {
+    case SCM_GSUBR_MAKTYPE(0, 0, 0):
+      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_0, fcn, gf);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(1, 0, 0):
+      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_1, fcn, gf);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(0, 1, 0):
+      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_1o, fcn, gf);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(1, 1, 0):
+      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_2o, fcn, gf);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(2, 0, 0):
+      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_2, fcn, gf);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(3, 0, 0):
+      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_3, fcn, gf);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(0, 0, 1):
+      subr = scm_c_make_subr_with_generic (name, scm_tc7_lsubr, fcn, gf);
+      goto create_subr;
+    case SCM_GSUBR_MAKTYPE(2, 0, 1):
+      subr = scm_c_make_subr_with_generic (name, scm_tc7_lsubr_2, fcn, gf);
+    create_subr:
+      if (define)
+	scm_define (SCM_SUBR_ENTRY(subr).name, subr);
+      return subr;
+    default:
+      ;
+    }
+  scm_misc_error ("scm_c_make_gsubr_with_generic",
 		  "can't make primitive-generic with this arity",
 		  SCM_EOL);
   return SCM_BOOL_F; /* never reached */
+}
+
+SCM
+scm_c_make_gsubr_with_generic (const char *name,
+			       int req,
+			       int opt,
+			       int rst,
+			       SCM (*fcn)(),
+			       SCM *gf)
+{
+  return create_gsubr_with_generic (0, name, req, opt, rst, fcn, gf);
+}
+
+SCM
+scm_c_define_gsubr_with_generic (const char *name,
+				 int req,
+				 int opt,
+				 int rst,
+				 SCM (*fcn)(),
+				 SCM *gf)
+{
+  return create_gsubr_with_generic (1, name, req, opt, rst, fcn, gf);
 }
 
 
@@ -209,16 +283,42 @@ gsubr_21l(SCM req1, SCM req2, SCM opt, SCM rst)
 void
 scm_init_gsubr()
 {
-  scm_f_gsubr_apply = scm_make_subr_opt("gsubr-apply", scm_tc7_lsubr, scm_gsubr_apply, 0);
-
+  scm_f_gsubr_apply = scm_c_make_subr ("gsubr-apply", scm_tc7_lsubr,
+				       scm_gsubr_apply);
 #ifdef GSUBR_TEST
-  scm_make_gsubr("gsubr-2-1-l", 2, 1, 1, gsubr_21l); /* example */
+  scm_c_define_gsubr ("gsubr-2-1-l", 2, 1, 1, gsubr_21l); /* example */
 #endif
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/gsubr.x"
 #endif
 }
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+SCM
+scm_make_gsubr (const char *name, int req, int opt, int rst, SCM (*fcn)())
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_make_gsubr' is deprecated.  Use `scm_c_define_gsubr' instead.");
+
+  return scm_c_define_gsubr (name, req, opt, rst, fcn);
+}
+
+SCM
+scm_make_gsubr_with_generic (const char *name,
+			     int req, int opt, int rst,
+			     SCM (*fcn)(), SCM *gf)
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_make_gsubr_with_generic' is deprecated.  "
+     "Use `scm_c_define_gsubr_with_generic' instead.");
+
+  return scm_c_define_gsubr_with_generic (name, req, opt, rst, fcn, gf);
+}
+
+#endif /* !SCM_DEBUG_DEPRECATED */
+
 
 /*
   Local Variables:
