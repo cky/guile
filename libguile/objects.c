@@ -50,7 +50,7 @@
 #include "struct.h"
 #include "procprop.h"
 #include "chars.h"
-#include "kw.h"
+#include "keywords.h"
 #include "smob.h"
 
 #include "objects.h"
