@@ -39,9 +39,6 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
-   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
-
 #include <string.h>
 #include <stdio.h>
 
@@ -52,14 +49,10 @@
 #include "libguile/debug-malloc.h"
 
 /*
- * The following code is a hack written quickly in order to solve a
- * memory leak problem.  No respect has been paid to maintainability
- * etc, but since it isn't a part of Guile proper, and probably
- * doesn't need maintenance, it has been contributed because of its
- * utility.
- *
- * It is intended to be maximally fast (so that the application runs
- * close to normal speed).
+ * The following code is a hack which I wrote quickly in order to
+ * solve a memory leak problem.  Since I wanted to have the
+ * application running at close to normal speed, I prioritized speed
+ * over maintainability.  /mdj
  */
 
 typedef struct hash_entry {
