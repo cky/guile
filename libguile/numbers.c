@@ -3382,6 +3382,12 @@ scm_negative_p (SCM x)
 }
 
 
+/* scm_min and scm_max return an inexact when either argument is inexact, as
+   required by r5rs.  On that basis, for exact/inexact combinations the
+   exact is converted to inexact to compare and possibly return.  This is
+   unlike scm_less_p above which takes some trouble to preserve all bits in
+   its test, such trouble is not required for min and max.  */
+
 SCM_GPROC1 (s_max, "max", scm_tc7_asubr, scm_max, g_max);
 /* "Return the maximum of all parameter values."
  */
@@ -3442,13 +3448,12 @@ scm_max (SCM x, SCM y)
 	}
       else if (SCM_REALP (y))
 	{
-	  double yy = SCM_REAL_VALUE (y);
-	  int cmp;
-	  if (xisnan (yy))
-	    return y;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
-	  scm_remember_upto_here_1 (x);
-	  return (cmp > 0) ? x : y;
+          /* if y==NaN then xx>yy is false, so we return the NaN y */
+          double xx, yy;
+        big_real:
+          xx = scm_i_big2dbl (x);
+          yy = SCM_REAL_VALUE (y);
+	  return (xx > yy ? scm_make_real (xx) : y);
 	}
       else if (SCM_FRACTIONP (y))
 	{
@@ -3471,13 +3476,8 @@ scm_max (SCM x, SCM y)
 	}
       else if (SCM_BIGP (y))
 	{
-	  double xx = SCM_REAL_VALUE (x);
-	  int cmp;
-	  if (xisnan (xx))
-	    return x;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
-	  scm_remember_upto_here_1 (y);
-	  return (cmp < 0) ? x : y;
+          SCM t = x; x = y; y = t;
+          goto big_real;
 	}
       else if (SCM_REALP (y))
 	{
@@ -3591,13 +3591,12 @@ scm_min (SCM x, SCM y)
 	}
       else if (SCM_REALP (y))
 	{
-	  double yy = SCM_REAL_VALUE (y);
-	  int cmp;
-	  if (xisnan (yy))
-	    return y;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
-	  scm_remember_upto_here_1 (x);
-	  return (cmp > 0) ? y : x;
+          /* if y==NaN then xx<yy is false, so we return the NaN y */
+          double xx, yy;
+        big_real:
+          xx = scm_i_big2dbl (x);
+          yy = SCM_REAL_VALUE (y);
+	  return (xx < yy ? scm_make_real (xx) : y);
 	}
       else if (SCM_FRACTIONP (y))
 	{
@@ -3620,13 +3619,8 @@ scm_min (SCM x, SCM y)
 	}
       else if (SCM_BIGP (y))
 	{
-	  double xx = SCM_REAL_VALUE (x);
-	  int cmp;
-	  if (xisnan (xx))
-	    return x;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
-	  scm_remember_upto_here_1 (y);
-	  return (cmp < 0) ? y : x;
+          SCM t = x; x = y; y = t;
+          goto big_real;
 	}
       else if (SCM_REALP (y))
 	{
