@@ -44,6 +44,12 @@
  * If you do not wish that, delete this exception notice.  */
 
 
+/* Define this if you want to exclude deprecated features */
+#undef SCM_DEBUG_DEPRECATED
+
+/* Define this to control the default warning level for deprecated features */
+#undef GUILE_WARN_DEPRECATED_DEFAULT
+
 /* Define these two if you want support for debugging of Scheme
    programs.  */
 #undef DEBUG_EXTENSIONS
