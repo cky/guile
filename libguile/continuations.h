@@ -61,7 +61,7 @@ typedef struct
 } scm_contregs;
 
 #define SCM_JMPBUF(x) (((scm_contregs *)SCM_CHARS(x))->jmpbuf)
-#define SCM_SETJMPBUF SCM_SETCDR
+#define SCM_SETJMPBUF(z, x) SCM_SETCDR (z, (SCM) x)
 #define SCM_DYNENV(x) (((scm_contregs *)SCM_CHARS(x))->dynenv)
 #define SCM_THROW_VALUE(x) (((scm_contregs *)SCM_CHARS(x))->throw_value)
 #define SCM_BASE(x) (((scm_contregs *)SCM_CHARS(x))->base)
