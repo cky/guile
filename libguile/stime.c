@@ -580,14 +580,22 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
        until TZ is restored.  */
     char **oldenv = NULL;
     SCM *velts = SCM_VELTS (stime);
+    int have_zone = 0;
 
-    if (SCM_NFALSEP (velts[10]))
+    if (SCM_NFALSEP (velts[10]) && *SCM_CHARS (velts[10]) != 0)
       {
 	/* it's not required that the TZ setting be correct, just that
-	   it has the right name.  so try something like TZ=EST.
-	   possibly TZ=EST0 would be better.  */
+	   it has the right name.  so try something like TZ=EST0.
+	   using only TZ=EST would be simpler but it doesn't work on
+	   some OSs, e.g., Solaris.  */
+	SCM zone =
+	  scm_string_append (scm_cons (velts[10],
+				       scm_cons (scm_makfrom0str ("0"),
+						 SCM_EOL)));
+	
+	have_zone = 1;
 	SCM_DEFER_INTS;
-	oldenv = setzone (velts[10], SCM_ARG2, FUNC_NAME);
+	oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
       }
 #endif
 
@@ -603,7 +611,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
       }
 
 #if !defined (HAVE_TM_ZONE)
-    if (SCM_NFALSEP (velts[10]))
+    if (have_zone)
       {
 	restorezone (velts[10], oldenv, FUNC_NAME);
 	SCM_ALLOW_INTS;
