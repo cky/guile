@@ -545,13 +545,16 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 #define FUNC_NAME s_scm_setsockopt
 {
   int fd;
-  int optlen = -1;
-  /* size of optval is the largest supported option.  */
+
+  int opt_int;
 #ifdef HAVE_STRUCT_LINGER
-  char optval[sizeof (struct linger)];
-#else
-  char optval[sizeof (size_t)];
+  struct linger opt_linger;
 #endif
+  struct ip_mreq opt_mreq;
+
+  const void *optval = NULL;
+  socklen_t optlen = 0;
+
   int ilevel, ioptname;
 
   sock = SCM_COERCE_OUTPORT (sock);
@@ -561,39 +564,25 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
   ioptname = scm_to_int (optname);
 
   fd = SCM_FPORT_FDES (sock);
-
+  
   if (ilevel == SOL_SOCKET)
     {
 #ifdef SO_LINGER
       if (ioptname == SO_LINGER)
 	{
 #ifdef HAVE_STRUCT_LINGER
-	  struct linger ling;
-	  long lv;
-
 	  SCM_ASSERT (scm_is_pair (value), value, SCM_ARG4, FUNC_NAME);
-	  lv = SCM_NUM2LONG (4, SCM_CAR (value));
-	  ling.l_onoff = (int) lv;
-	  SCM_ASSERT_RANGE (SCM_ARG4, value, ling.l_onoff == lv);
-	  lv = SCM_NUM2LONG (4, SCM_CDR (value));
-	  ling.l_linger = (int) lv;
-	  SCM_ASSERT_RANGE (SCM_ARG4, value, ling.l_linger == lv);
-	  optlen = (int) sizeof (struct linger);
-	  memcpy (optval, (void *) &ling, optlen);
+	  opt_linger.l_onoff = scm_to_int (SCM_CAR (value));
+	  opt_linger.l_linger = scm_to_int (SCM_CDR (value));
+	  optlen = sizeof (struct linger);
+	  optval = &opt_linger;
 #else
-	  int ling;
-	  long lv;
-
 	  SCM_ASSERT (scm_is_pair (value), value, SCM_ARG4, FUNC_NAME);
+	  opt_int = scm_to_int (SCM_CAR (value));
 	  /* timeout is ignored, but may as well validate it.  */
-	  lv = SCM_NUM2LONG (4, SCM_CDR (value));
-	  ling = (int) lv;
-	  SCM_ASSERT_RANGE (SCM_ARG4, value, ling == lv);
-	  lv = SCM_NUM2LONG (4, SCM_CAR (value));
-	  ling = (int) lv;
-	  SCM_ASSERT_RANGE (SCM_ARG4, value, ling == lv);
-	  optlen = (int) sizeof (int);
-	  (*(int *) optval) = ling;
+	  scm_to_int (SCM_CDR (value));
+	  optlen = sizeof (int);
+	  optval = &opt_int;
 #endif
 	}
       else
@@ -607,23 +596,32 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 #endif
 	    )
 	  {
-	    long lv = SCM_NUM2LONG (4, value);
-
-	    optlen = (int) sizeof (size_t);
-	    (*(size_t *) optval) = (size_t) lv;
+	    opt_int = scm_to_int (value);
+	    optlen = sizeof (size_t);
+	    optval = &opt_int;
 	  }
     }
-  if (optlen == -1)
+
+  if (ilevel == IPPROTO_IP &&
+      (ioptname == IP_ADD_MEMBERSHIP || ioptname == IP_DROP_MEMBERSHIP))
+    {
+      /* Fourth argument must be a pair of addresses. */
+      SCM_ASSERT (scm_is_pair (value), value, SCM_ARG4, FUNC_NAME);
+      opt_mreq.imr_multiaddr.s_addr = htonl (scm_to_ulong (SCM_CAR (value)));
+      opt_mreq.imr_interface.s_addr = htonl (scm_to_ulong (SCM_CDR (value)));
+      optlen = sizeof (opt_mreq);
+      optval = &opt_mreq;
+    }
+
+  if (optval == NULL)
     {
       /* Most options take an int.  */
-      long lv = SCM_NUM2LONG (4, value);
-      int val = (int) lv;
-
-      SCM_ASSERT_RANGE (SCM_ARG4, value, val == lv);
-      optlen = (int) sizeof (int);
-      (*(int *) optval) = val;
+      opt_int = scm_to_int (value);
+      optlen = sizeof (int);
+      optval = &opt_int;
     }
-  if (setsockopt (fd, ilevel, ioptname, (void *) optval, optlen) == -1)
+
+  if (setsockopt (fd, ilevel, ioptname, optval, optlen) == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
@@ -1413,6 +1411,11 @@ scm_init_socket ()
 
 #ifdef __MINGW32__
   scm_i_init_socket_Win32 ();
+#endif
+
+#ifdef IP_ADD_MEMBERSHIP
+  scm_c_define ("IP_ADD_MEMBERSHIP", scm_from_int (IP_ADD_MEMBERSHIP));
+  scm_c_define ("IP_DROP_MEMBERSHIP", scm_from_int (IP_DROP_MEMBERSHIP));
 #endif
 
   scm_add_feature ("socket");
