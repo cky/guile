@@ -1771,6 +1771,16 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 /* SECTION: Some local definitions for the evaluator.
  */
 
+/* Update the toplevel environment frame ENV so that it refers to the
+   current module.
+*/
+#define UPDATE_TOPLEVEL_ENV(env) \
+  do { \
+    SCM p = scm_current_module_lookup_closure (); \
+    if (p != SCM_CAR(env)) \
+      env = scm_top_level_env (p); \
+  } while (0)
+
 #ifndef DEVAL
 #define CHECK_EQVISH(A,B) 	(SCM_EQ_P ((A), (B)) || (SCM_NFALSEP (scm_eqv_p ((A), (B)))))
 #endif /* DEVAL */
@@ -1918,9 +1928,11 @@ dispatch:
       goto carloop;
 
     case SCM_BIT8(SCM_IM_BEGIN):
-    cdrxnoap:
+    /* (currently unused)
+    cdrxnoap: */
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-    cdrxbegin:
+    /* (currently unused)
+    cdrxbegin: */
       x = SCM_CDR (x);
 
     begin:
@@ -1929,20 +1941,12 @@ dispatch:
       if (SCM_CONSP(env) && !SCM_CONSP(SCM_CAR(env)))
 	{
 	  t.arg1 = x;
-	  {
-	    SCM p = scm_current_module_lookup_closure ();
-	    if (p != SCM_CAR(env))
-	      env = scm_top_level_env (p);
-	  }
+	  UPDATE_TOPLEVEL_ENV (env);
 	  while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
 	    {
 	      EVALCAR (x, env);
 	      x = t.arg1;
-	      {
-		SCM p = scm_current_module_lookup_closure ();
-		if (p != SCM_CAR(env))
-		  env = scm_top_level_env (p);
-	      }
+	      UPDATE_TOPLEVEL_ENV (env);
 	    }
 	  goto carloop;
 	}
