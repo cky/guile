@@ -62,11 +62,13 @@
 #define scm_struct_i_n_words	-2 /* How many words allocated to this struct? */
 #define scm_struct_i_size	-1 /* Instance size */
 #define scm_struct_i_flags	-1 /* Upper 12 bits used as flags */
+
+/* These indices must correspond to required_vtable_fields in
+   struct.c. */
 #define scm_vtable_index_layout  0 /* A symbol describing the physical arrangement of this type. */
-#define scm_vtable_index_vcell   1 /* XXX - remove this, it is unused. */
-#define scm_vtable_index_vtable  2 /* A pointer to the handle for this vtable. */
-#define scm_vtable_index_printer 3 /* A printer for this struct type. */
-#define scm_vtable_offset_user   4 /* Where do user fields start? */
+#define scm_vtable_index_vtable  1 /* A pointer to the handle for this vtable. */
+#define scm_vtable_index_printer 2 /* A printer for this struct type. */
+#define scm_vtable_offset_user   3 /* Where do user fields start? */
 
 typedef size_t (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
 
