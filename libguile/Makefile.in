@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1k from Makefile.am
+# Makefile.in generated automatically by automake 1.1l from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -39,6 +39,10 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
 FD_SETTER = @FD_SETTER@
 RANLIB = @RANLIB@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+module = @module@
 CC = @CC@
 
 AUTOMAKE_OPTIONS = foreign
@@ -120,9 +124,6 @@ acinclude.m4 aclocal.m4 configure configure.in fd.h.in guile-snarf.in \
 scmconfig.h.in stamp-h.in
 
 
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
 	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
 
@@ -151,7 +152,7 @@ default: all
 
 .SUFFIXES:
 .SUFFIXES: .c .o .x
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
 	cd $(top_srcdir) && automake --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
@@ -204,12 +205,14 @@ install-libLIBRARIES: $(lib_LIBRARIES)
 	$(mkinstalldirs) $(libdir)
 	list="$(lib_LIBRARIES)"; for p in $$list; do \
 	  if test -f $$p; then \
+	    echo "$(INSTALL_DATA) $$p $(libdir)/$$p"; \
 	    $(INSTALL_DATA) $$p $(libdir)/$$p; \
 	  else :; fi; \
 	done
 	$(POST_INSTALL)
-	list="$(lib_LIBRARIES)"; for p in $$list; do \
+	@list="$(lib_LIBRARIES)"; for p in $$list; do \
 	  if test -f $$p; then \
+	    echo "$(RANLIB) $(libdir)/$$p"; \
 	    $(RANLIB) $(libdir)/$$p; \
 	  else :; fi; \
 	done
@@ -241,12 +244,13 @@ libguile.a: $(libguile_a_OBJECTS) $(libguile_a_DEPENDENCIES)
 install-binSCRIPTS: $(bin_SCRIPTS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(bindir)
-	list="$(bin_SCRIPTS)"; for p in $$list; do \
+	@list="$(bin_SCRIPTS)"; for p in $$list; do \
 	  if test -f $$p; then \
+	    echo "$(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
 	    $(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`; \
 	  else if test -f $(srcdir)/$$p; then \
-	    $(INSTALL_SCRIPT) $(srcdir)/$$p \
-	      $(bindir)/`echo $$p|sed '$(transform)'`; \
+	    echo "$(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`; \
 	  else :; fi; fi; \
 	done
 
@@ -258,10 +262,12 @@ uninstall-binSCRIPTS:
 install-modincludeDATA: $(modinclude_DATA)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(modincludedir)
-	list="$(modinclude_DATA)"; for p in $$list; do \
+	@list="$(modinclude_DATA)"; for p in $$list; do \
 	  if test -f $(srcdir)/$$p; then \
+	    echo "$(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
 	    $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
 	  else if test -f $$p; then \
+	    echo "$(INSTALL_DATA) $$p $(modincludedir)/$$p"; \
 	    $(INSTALL_DATA) $$p $(modincludedir)/$$p; \
 	  fi; fi; \
 	done
@@ -274,7 +280,8 @@ uninstall-modincludeDATA:
 install-includeHEADERS: $(include_HEADERS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(includedir)
-	list="$(include_HEADERS)"; for p in $$list; do \
+	@list="$(include_HEADERS)"; for p in $$list; do \
+	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p"; \
 	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
 	done
 
@@ -286,7 +293,8 @@ uninstall-includeHEADERS:
 install-modincludeHEADERS: $(modinclude_HEADERS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(modincludedir)
-	list="$(modinclude_HEADERS)"; for p in $$list; do \
+	@list="$(modinclude_HEADERS)"; for p in $$list; do \
+	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
 	  $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
 	done
 
@@ -378,11 +386,11 @@ distclean-depend:
 maintainer-clean-depend:
 	rm -rf .deps
 
-.deps/%.P: $(srcdir)/%@EXT@
+.deps/%.P: $(srcdir)/%.c
 	@echo "Computing dependencies for $<..."
 	@o='o';				\
-ONLYC	test -n "$o" && o='$$o';	\
-	$(@MKDEP@) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
+	test -n "$o" && o='$$o';	\
+	$(MKDEP) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
 info:
 dvi:
 check: all

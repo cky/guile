@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1k from Makefile.am
+# Makefile.in generated automatically by automake 1.1l from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -37,17 +37,21 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-host_alias = @host_alias@
 host_triplet = @host@
-RANLIB = @RANLIB@
-qtmd_h = @qtmd_h@
+host_alias = @host_alias@
+target_libs = @target_libs@
+VERSION = @VERSION@
+module = @module@
 CC = @CC@
 qtmds_o = @qtmds_o@
 qtmdc_o = @qtmdc_o@
-target_libs = @target_libs@
-qtmds_s = @qtmds_s@
-qtmdc_c = @qtmdc_c@
+RANLIB = @RANLIB@
 qtmdb_s = @qtmdb_s@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+qtmdc_c = @qtmdc_c@
+qtmds_s = @qtmds_s@
+PACKAGE = @PACKAGE@
+qtmd_h = @qtmd_h@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -63,9 +67,6 @@ CONFIG_CLEAN_FILES =
 DIST_COMMON =  Makefile.am Makefile.in
 
 
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
 	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
 
@@ -73,8 +74,8 @@ TAR = tar
 default: all
 
 .SUFFIXES:
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in 
-	cd $(top_srcdir) && automake --foreign Makefile
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
+	cd $(top_srcdir) && automake --foreign md/Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
