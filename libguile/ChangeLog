@@ -1,3 +1,8 @@
+2001-02-15  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* symbols.c (scm_mem2symbol): Put a empty statement after the
+	next_symbol label.  This is mandated by ANSI, appearantly.
+
 2001-02-13  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* gc_os_dep.c: Do not include <linux/version.h>.  It makes no
