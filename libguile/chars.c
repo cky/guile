@@ -24,6 +24,8 @@
 #include "libguile/validate.h"
 
 #include "libguile/chars.h"
+#include "libguile/srfi-14.h"
+
 
 
 SCM_DEFINE (scm_char_p, "char?", 1, 0, 0, 
@@ -158,34 +160,28 @@ SCM_DEFINE1 (scm_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr,
 
 SCM_DEFINE (scm_char_alphabetic_p, "char-alphabetic?", 1, 0, 0,
            (SCM chr),
-	    "Return @code{#t} iff @var{chr} is alphabetic, else @code{#f}.\n"
-	    "Alphabetic means the same thing as the isalpha C library function.")
+	    "Return @code{#t} iff @var{chr} is alphabetic, else @code{#f}.\n")
 #define FUNC_NAME s_scm_char_alphabetic_p
 {
-  SCM_VALIDATE_CHAR (1, chr);
-  return scm_from_bool (isalpha(SCM_CHAR(chr)));
+  return scm_char_set_contains_p (scm_char_set_letter, chr);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_char_numeric_p, "char-numeric?", 1, 0, 0, 
            (SCM chr),
-	    "Return @code{#t} iff @var{chr} is numeric, else @code{#f}.\n"
-	    "Numeric means the same thing as the isdigit C library function.")
+	    "Return @code{#t} iff @var{chr} is numeric, else @code{#f}.\n")
 #define FUNC_NAME s_scm_char_numeric_p
 {
-  SCM_VALIDATE_CHAR (1, chr);
-  return scm_from_bool (isdigit(SCM_CHAR(chr)));
+  return scm_char_set_contains_p (scm_char_set_digit, chr);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_char_whitespace_p, "char-whitespace?", 1, 0, 0, 
            (SCM chr),
-	    "Return @code{#t} iff @var{chr} is whitespace, else @code{#f}.\n"
-	    "Whitespace means the same thing as the isspace C library function.")
+	    "Return @code{#t} iff @var{chr} is whitespace, else @code{#f}.\n")
 #define FUNC_NAME s_scm_char_whitespace_p
 {
-  SCM_VALIDATE_CHAR (1, chr);
-  return scm_from_bool (isspace(SCM_CHAR(chr)));
+  return scm_char_set_contains_p (scm_char_set_whitespace, chr);
 }
 #undef FUNC_NAME
 
@@ -193,24 +189,20 @@ SCM_DEFINE (scm_char_whitespace_p, "char-whitespace?", 1, 0, 0,
 
 SCM_DEFINE (scm_char_upper_case_p, "char-upper-case?", 1, 0, 0, 
            (SCM chr),
-	    "Return @code{#t} iff @var{chr} is uppercase, else @code{#f}.\n"
-	    "Uppercase means the same thing as the isupper C library function.")
+	    "Return @code{#t} iff @var{chr} is uppercase, else @code{#f}.\n")
 #define FUNC_NAME s_scm_char_upper_case_p
 {
-  SCM_VALIDATE_CHAR (1, chr);
-  return scm_from_bool (isupper(SCM_CHAR(chr)));
+  return scm_char_set_contains_p (scm_char_set_upper_case, chr);
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_char_lower_case_p, "char-lower-case?", 1, 0, 0, 
            (SCM chr),
-	    "Return @code{#t} iff @var{chr} is lowercase, else @code{#f}.\n"
-	    "Lowercase means the same thing as the islower C library function.")
+	    "Return @code{#t} iff @var{chr} is lowercase, else @code{#f}.\n")
 #define FUNC_NAME s_scm_char_lower_case_p
 {
-  SCM_VALIDATE_CHAR (1, chr);
-  return scm_from_bool (islower(SCM_CHAR(chr)));
+  return scm_char_set_contains_p (scm_char_set_lower_case, chr);
 }
 #undef FUNC_NAME
 
@@ -218,13 +210,12 @@ SCM_DEFINE (scm_char_lower_case_p, "char-lower-case?", 1, 0, 0,
 
 SCM_DEFINE (scm_char_is_both_p, "char-is-both?", 1, 0, 0, 
             (SCM chr),
-	    "Return @code{#t} iff @var{chr} is either uppercase or lowercase, else @code{#f}.\n"
-	    "Uppercase and lowercase are as defined by the isupper and islower\n"
-	    "C library functions.")
+	    "Return @code{#t} iff @var{chr} is either uppercase or lowercase, else @code{#f}.\n")
 #define FUNC_NAME s_scm_char_is_both_p
 {
-  SCM_VALIDATE_CHAR (1, chr);
-  return scm_from_bool ((isupper(SCM_CHAR(chr)) || islower(SCM_CHAR(chr))));
+  if (scm_is_true (scm_char_set_contains_p (scm_char_set_lower_case, chr)))
+    return SCM_BOOL_T;
+  return scm_char_set_contains_p (scm_char_set_upper_case, chr);
 }
 #undef FUNC_NAME
 
