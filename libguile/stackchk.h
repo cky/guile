@@ -45,6 +45,10 @@
 
 #include "libguile/__scm.h"
 
+#include "libguile/continuations.h"
+#ifdef DEBUG_EXTENSIONS
+#include "libguile/debug.h"
+#endif
 
 
 /* With debug extensions we have the possibility to use the debug options
