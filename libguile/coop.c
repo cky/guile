@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.35 2003-03-25 23:54:01 rlb Exp $ */
+/* $Id: coop.c,v 1.36 2003-03-27 20:06:17 rlb Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -536,10 +536,10 @@ coop_condition_variable_destroy (coop_c *c)
 #ifdef GUILE_PTHREAD_COMPAT
 
 /* 1K room for the cond wait routine */
-#ifdef SCM_STACK_GROWS_UP
-#define COOP_STACK_ROOM (256)
+#if SCM_STACK_GROWS_UP
+# define COOP_STACK_ROOM (256)
 #else
-#define COOP_STACK_ROOM (-256)
+# define COOP_STACK_ROOM (-256)
 #endif
 
 static void *
