@@ -1,3 +1,19 @@
+2001-04-26  Rob Browning  <rlb@cs.utexas.edu>
+
+	* Makefile.am (srfi_DATA): added srfi-6.scm.
+	(srfi_DATA): added srfi-11.scm.
+	(srfi_DATA): added srfi-8.scm.
+	(srfi_DATA): added srfi-2.scm.
+
+	* srfi-11.scm: new file - exports let-values and let*-values.
+
+	* srfi-6.scm: new file - guile already has srfi-6 procedures
+	loaded by default, so this is a dummy file right now.
+
+	* srfi-8.scm: new file - exports receive.
+
+	* srfi-2.scm: new file - just use/export (ice-9 and-let-star)
+
 2001-04-26  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	Changed two procedure names to match final SRFI document.  Thanks
