@@ -1325,8 +1325,8 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
 	       of a cell as raw data.  Further:  How can we be sure that
 	       the values fit into an inum?
 	     */
-	    SCM n1 = SCM_MAKINUM (((long *) SCM2PTR (SCM_CDR (ra1)))[i1]);
-	    SCM n2 = SCM_MAKINUM (((long *) SCM2PTR (SCM_CDR (ra2)))[i2]);
+	    SCM n1 = SCM_MAKINUM (((long *) SCM_UNPACK (SCM_CDR (ra1)))[i1]);
+	    SCM n2 = SCM_MAKINUM (((long *) SCM_UNPACK (SCM_CDR (ra2)))[i2]);
 	    if (SCM_FALSEP (SCM_SUBRF (proc) (n1, n2)));
 	      SCM_BITVEC_CLR (ra0, i0);
 	  }

@@ -185,8 +185,8 @@
 #define SCM_CPLXP(x) SCM_COMPLEXP(x) /* Deprecated */
 
 #define SCM_REAL_VALUE(x) (((scm_double_t *) SCM2PTR (x))->real)
-#define SCM_COMPLEX_REAL(x) (((scm_complex_t *) SCM2PTR (SCM_CDR (x)))->real)
-#define SCM_COMPLEX_IMAG(x) (((scm_complex_t *) SCM2PTR (SCM_CDR (x)))->imag)
+#define SCM_COMPLEX_REAL(x) (((scm_complex_t *) SCM_UNPACK (SCM_CDR (x)))->real)
+#define SCM_COMPLEX_IMAG(x) (((scm_complex_t *) SCM_UNPACK (SCM_CDR (x)))->imag)
 #define SCM_REAL(x) \
  (SCM_SLOPPY_REALP (x) \
   ? SCM_REAL_VALUE (x) \
@@ -257,7 +257,7 @@
 #define SCM_BIGSIGNFLAG 0x10000L
 #define SCM_BIGSIZEFIELD 17
 #define SCM_BIGSIGN(x) (SCM_UNPACK_CAR (x) & SCM_BIGSIGNFLAG)
-#define SCM_BDIGITS(x) ((SCM_BIGDIG *) SCM2PTR (SCM_CDR (x)))
+#define SCM_BDIGITS(x) ((SCM_BIGDIG *) SCM_UNPACK (SCM_CDR (x)))
 #define SCM_NUMDIGS(x) ((scm_sizet) (SCM_UNPACK_CAR (x) >> SCM_BIGSIZEFIELD))
 #define SCM_SETNUMDIGS(x, v, sign) \
   SCM_SETCAR (x, \

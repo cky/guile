@@ -1,3 +1,9 @@
+2000-03-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.h, ramap.c, struct.h, vectors.h:  Don't use SCM2PTR for
+	non scheme values.  If raw data is stored in SCM variables, it has
+	to be accessed using SCM_UNPACK until a better solution is found.
+
 2000-03-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* tags.h (SCM_ECONSP, SCM_NECONSP): More corrections of
