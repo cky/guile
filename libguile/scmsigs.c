@@ -57,6 +57,11 @@
 #define signal ssignal		/* Needed for TURBOC V1.0 */
 #endif
 
+#ifdef USE_MIT_PTHREADS
+#undef signal
+#define signal pthread_signal
+#endif
+
 
 
 /* SIGRETTYPE is the type that signal handlers return.  See <signal.h>*/
