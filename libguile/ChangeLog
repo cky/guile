@@ -1,3 +1,7 @@
+2001-01-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* validate.h (SCM_VALIDATE_NUMBER): New.
+
 2001-01-03  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* guardians.c (F_GREEDY, F_LISTED, F_DESTROYED, GREEDY_P,
