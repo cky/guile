@@ -2027,11 +2027,16 @@ dispatch:
 
 	    handle_a_macro:
 #ifdef DEVAL
-	      SCM_SET_MACROFRAME (debug);
+	      /* Set a flag during macro expansion so that macro
+		 application frames can be deleted from the backtrace. */
+	      SCM_SET_MACROEXP (debug);
 #endif
 	      t.arg1 = SCM_APPLY (SCM_CDR (proc), x,
 				  scm_cons (env, scm_listofnull));
 
+#ifdef DEVAL
+	      SCM_CLEAR_MACROEXP (debug);
+#endif
 	      switch ((int) (SCM_CAR (proc) >> 16))
 		{
 		case 2:
