@@ -300,61 +300,10 @@
 
 
 
-;;; Printing structs
-
-;; The printing of structures can be customized by setting the builtin
-;; variable *struct-printer* to a procedure.  A second dispatching
-;; step is implemented here to allow for struct-type specific printing
-;; procedures.
-;;
-;; A particular type of structures is characterized by its vtable.  In
-;; addition to some internal fields, such a vtable can contain
-;; arbitrary user-defined fields.  We use the first of these fields to
-;; hold the specific printing procedure.  To avoid breaking code that
-;; already uses this first extra-field for some other purposes, we use
-;; a unique tag to decide whether it really contains a structure
-;; printer or not.
-;;
-;; XXX - Printing structures is probably fundamental enough that we
-;; can simply hardcode the vtable slot convention and expect everyone
-;; to obey it.
-;;
-;; A structure-type specific printer follows the same calling
-;; convention as the builtin *struct-printer*.
-
-;; A shorthand for one already hardcoded vtable convention
+;;; {Structs}
 
 (define (struct-layout s)
-  (struct-ref (struct-vtable s) 0))
-
-;; This is our new convention for storing printing procedures
-
-(define %struct-printer-tag (cons '%struct-printer-tag #f))
-
-(define (struct-printer s)
-  (let ((vtable (struct-vtable s)))
-    (and (> (string-length (struct-layout vtable))
-	    (* 2 struct-vtable-offset))
-	 (let ((p (struct-ref vtable struct-vtable-offset)))
-	   (and (pair? p)
-	        (eq? (car p) %struct-printer-tag)
-		(cdr p))))))
-
-(define (make-struct-printer printer)
-  (cons %struct-printer-tag printer))
-
-;; Note: While the printer is extracted from a structure itself, it
-;; has to be set in the vtable of the structure.
-
-(define (set-struct-printer-in-vtable! vtable printer)
-  (struct-set! vtable struct-vtable-offset (make-struct-printer printer)))
-
-;; The dispatcher
-
-(set! *struct-printer* (lambda (s p)
-			 (let ((printer (struct-printer s)))
-			   (and printer
-				(printer s p)))))
+  (struct-ref (struct-vtable s) vtable-index-layout))
 
 
 ;;; {Records}
@@ -372,17 +321,16 @@
 ;;
 ;; It should print OBJECT to PORT.
 
-;; 0: printer, 1: type-name, 2: fields
+;; 0: type-name, 1: fields
 (define record-type-vtable 
-  (make-vtable-vtable "prprpr" 0
-		      (make-struct-printer
-		       (lambda (s p)
-			 (cond ((eq? s record-type-vtable)
-				(display "#<record-type-vtable>" p))
-			       (else
-				(display "#<record-type " p)
-				(display (record-type-name s) p)
-				(display ">" p)))))))
+  (make-vtable-vtable "prpr" 0
+		      (lambda (s p)
+			(cond ((eq? s record-type-vtable)
+			       (display "#<record-type-vtable>" p))
+			      (else
+			       (display "#<record-type " p)
+			       (display (record-type-name s) p)
+			       (display ">" p))))))
 
 (define (record-type? obj)
   (and (struct? obj) (eq? record-type-vtable (struct-vtable obj))))
@@ -393,33 +341,32 @@
 			       (make-struct-layout
 				(apply symbol-append
 				       (map (lambda (f) "pw") fields)))
-			       (make-struct-printer
-				(or printer-fn
-				    (lambda (s p)
-				      (display "#<" p)
-				      (display type-name p)
-				      (let loop ((fields fields)
-						 (off 0))
-					(cond
-					 ((not (null? fields))
-					  (display " " p)
-					  (display (car fields) p)
-					  (display ": " p)
-					  (display (struct-ref s off) p)
-					  (loop (cdr fields) (+ 1 off)))))
-				      (display ">" p))))
+			       (or printer-fn
+				   (lambda (s p)
+				     (display "#<" p)
+				     (display type-name p)
+				     (let loop ((fields fields)
+						(off 0))
+				       (cond
+					((not (null? fields))
+					 (display " " p)
+					 (display (car fields) p)
+					 (display ": " p)
+					 (display (struct-ref s off) p)
+					 (loop (cdr fields) (+ 1 off)))))
+				     (display ">" p)))
 			       type-name
 			       (copy-tree fields))))
       struct)))
 
 (define (record-type-name obj)
   (if (record-type? obj)
-      (struct-ref obj (+ 1 struct-vtable-offset))
+      (struct-ref obj vtable-offset-user)
       (error 'not-a-record-type obj)))
 
 (define (record-type-fields obj)
   (if (record-type? obj)
-      (struct-ref obj (+ 2 struct-vtable-offset))
+      (struct-ref obj (+ 1 vtable-offset-user))
       (error 'not-a-record-type obj)))
 
 (define (record-constructor rtd . opt)
