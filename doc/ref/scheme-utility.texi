@@ -667,7 +667,7 @@ being registered multiple times with different closure data.
 Finally, to invoke a C hook, call the @code{scm_c_hook_run} function
 specifying the hook and the call closure data for this run:
 
-@deftypefn {C Function} void * scm_c_hook_run (scm_t_c_hook *hook, void *data)
+@deftypefn {C Function} {void *} scm_c_hook_run (scm_t_c_hook *hook, void *data)
 Run the C hook @var{hook} will call closure data @var{data}.  Subject to
 the variations for hook types @code{SCM_C_HOOK_OR} and
 @code{SCM_C_HOOK_AND}, @code{scm_c_hook_run} calls @var{hook}'s
