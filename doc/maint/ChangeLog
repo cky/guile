@@ -1,0 +1,4 @@
+2001-03-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* ChangeLog, README, docstring.el, guile.texi: New files.
+

@@ -51,7 +51,8 @@ Returns @code{#t} if @var{x} is an output port, otherwise returns
 @c docstring begin (texi-doc-string "guile" "port?")
 @deffn primitive port? x
 Returns a boolean indicating whether @var{x} is a port.
-Equivalent to @code{(or (input-port? X) (output-port? X))}.
+Equivalent to @code{(or (input-port? @var{x}) (output-port?
+@var{x}))}.
 @end deffn
 
 
@@ -135,13 +136,13 @@ characters) and returns the content as a single string.
 @c docstring begin (texi-doc-string "guile" "port-column")
 @c docstring begin (texi-doc-string "guile" "port-line")
 @deffn primitive port-column port
-@deffnx primitive port-line [input-port]
-Return the current column number or line number of @var{input-port},
+@deffnx primitive port-line port
+Return the current column number or line number of @var{port},
 using the current input port if none is specified.  If the number is
 unknown, the result is #f.  Otherwise, the result is a 0-origin integer
 - i.e. the first character of the first line is line 0, column 0.
 (However, when you display a file position, for example in an error
-message, we recommand you add 1 to get 1-origin integers.  This is
+message, we recommend you add 1 to get 1-origin integers.  This is
 because lines and column numbers traditionally start with 1, and that is
 what non-programmers will find most natural.)
 @end deffn
@@ -216,8 +217,9 @@ included print state @var{pstate}.
 @c docstring begin (texi-doc-string "guile" "print-options-interface")
 @deffn primitive print-options-interface [setting]
 Option interface for the print options. Instead of using
-this procedure directly, use the procedures @code{print-enable},
-@code{print-disable}, @code{print-set!} and @var{print-options}.
+this procedure directly, use the procedures
+@code{print-enable}, @code{print-disable}, @code{print-set!}
+and @code{print-options}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "simple-format")
@@ -460,19 +462,19 @@ internals.
 @c docstring begin (texi-doc-string "guile" "%read-delimited!")
 @deffn primitive %read-delimited! delims str gobble [port [start [end]]]
 Read characters from @var{port} into @var{str} until one of the
-characters in the @var{delims} string is encountered.  If @var{gobble}
-is true, discard the delimiter character; otherwise, leave it
-in the input stream for the next read.
-If @var{port} is not specified, use the value of
-@code{(current-input-port)}.  If @var{start} or @var{end} are specified,
-store data only into the substring of @var{str} bounded by @var{start}
-and @var{end} (which default to the beginning and end of the string,
-respectively).
-
-Return a pair consisting of the delimiter that terminated the string and
-the number of characters read.  If reading stopped at the end of file,
-the delimiter returned is the @var{eof-object}; if the string was filled
-without encountering a delimiter, this value is @var{#f}.
+characters in the @var{delims} string is encountered.  If
+@var{gobble} is true, discard the delimiter character;
+otherwise, leave it in the input stream for the next read.  If
+@var{port} is not specified, use the value of
+@code{(current-input-port)}.  If @var{start} or @var{end} are
+specified, store data only into the substring of @var{str}
+bounded by @var{start} and @var{end} (which default to the
+beginning and end of the string, respectively).
+ Return a pair consisting of the delimiter that terminated the
+string and the number of characters read.  If reading stopped
+at the end of file, the delimiter returned is the
+@var{eof-object}; if the string was filled without encountering
+a delimiter, this value is @code{#f}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "%read-line")

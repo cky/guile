@@ -132,9 +132,10 @@ dynamically typed by the user.
 
 @c docstring begin (texi-doc-string "guile" "eval-string")
 @deffn primitive eval-string string
-Evaluate @var{string} as the text representation of a Scheme form
-or forms, and return whatever value they produce.
-Evaluation takes place in (interaction-environment).
+Evaluate @var{string} as the text representation of a Scheme
+form or forms, and return whatever value they produce.
+Evaluation takes place in the environment returned by the
+procedure @code{interaction-environment}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "apply:nconc2last")
@@ -191,31 +192,34 @@ this section.
 @c ARGFIXME file/filename
 @c docstring begin (texi-doc-string "guile" "primitive-load")
 @deffn primitive primitive-load filename
-Load @var{file} and evaluate its contents in the top-level environment.
-The load paths are not searched; @var{file} must either be a full
-pathname or be a pathname relative to the current directory.  If the
-variable @code{%load-hook} is defined, it should be bound to a procedure
-that will be called before any code is loaded.  See documentation for
-@code{%load-hook} later in this section.
+Load the file named @var{filename} and evaluate its contents in
+the top-level environment. The load paths are not searched;
+@var{filename} must either be a full pathname or be a pathname
+relative to the current directory.  If the  variable
+@code{%load-hook} is defined, it should be bound to a procedure
+that will be called before any code is loaded.  See the
+documentation for @code{%load-hook} later in this section.
 @end deffn
 
 @c ARGFIXME file/filename
 @c docstring begin (texi-doc-string "guile" "primitive-load-path")
 @deffn primitive primitive-load-path filename
-Search @var{%load-path} for @var{file} and load it into the top-level
-environment.  If @var{file} is a relative pathname and is not found in
-the list of search paths, an error is signalled.
+Search @var{%load-path} for the file named @var{filename} and
+load it into the top-level environment.  If @var{filename} is a
+relative pathname and is not found in the list of search paths,
+an error is signalled.
 @end deffn
 
 @c ARGFIXME file/filename
 @c docstring begin (texi-doc-string "guile" "%search-load-path")
 @deffn primitive %search-load-path filename
-Search @var{%load-path} for @var{file}, which must be readable by the
-current user.  If @var{file} is found in the list of paths to search or
-is an absolute pathname, return its full pathname.  Otherwise, return
-@code{#f}.  Filenames may have any of the optional extensions in the
-@code{%load-extensions} list; @code{%search-load-path} will try each
-extension automatically.
+Search @var{%load-path} for the file named @var{filename},
+which must be readable by the current user.  If @var{filename}
+is found in the list of paths to search or is an absolute
+pathname, return its full pathname.  Otherwise, return
+@code{#f}.  Filenames may have any of the optional extensions
+in the @code{%load-extensions} list; @code{%search-load-path}
+will try each extension automatically.
 @end deffn
 
 @defvar %load-hook
@@ -255,7 +259,7 @@ list @code{("" ".scm")}.
 
 @c ARGFIXME x/obj
 @c docstring begin (texi-doc-string "guile" "promise?")
-@deffn primitive promise? x
+@deffn primitive promise? obj
 Return true if @var{obj} is a promise, i.e. a delayed computation
 (@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).
 @end deffn
@@ -263,8 +267,9 @@ Return true if @var{obj} is a promise, i.e. a delayed computation
 @r5index force
 @c docstring begin (texi-doc-string "guile" "force")
 @deffn primitive force x
-If the promise X has not been computed yet, compute and return
-X, otherwise just return the previously computed value.
+If the promise @var{x} has not been computed yet, compute and
+return @var{x}, otherwise just return the previously computed
+value.
 @end deffn
 
 

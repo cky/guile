@@ -1,0 +1,16 @@
+README for guile-core/doc/maint                      -*- text -*-
+
+The files in this directory are used by the maintainers to automate
+the process of updating the Guile reference manual when the docstrings
+in the libguile C source change.
+
+- ChangeLog is the change log for files in this directory.
+
+- README is this file.
+
+- docstring.el is a helpful Emacs Lisp library.  The usual entry point
+  is `docstring-process-current-buffer'.
+
+- guile.texi is a snapshot of the built file
+  guile-core/libguile/guile.texi, copied last time the reference
+  manual was determined to be in sync with the libguile source.

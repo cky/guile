@@ -1,3 +1,11 @@
+2001-03-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi, scheme-data.texi, scheme-evaluation.texi,
+	scheme-io.texi, scheme-memory.texi: Automatic docstring updates.
+
+	* new-docstrings.texi: New file.  Holds snarfed docstrings that
+	have not yet been incorporated into the reference manual.
+
 2001-03-20  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-options.texi (Evaluator options): Added evaluator

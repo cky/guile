@@ -104,9 +104,9 @@ regular hash tables. (@pxref{Hash Tables})
 @deffn primitive weak-key-hash-table? x
 @deffnx primitive weak-value-hash-table? obj
 @deffnx primitive doubly-weak-hash-table? obj
-Return @var{#t} if @var{obj} is the specified weak hash table. Note
-that a doubly weak hash table is neither a weak key nor a weak value
-hash table.
+Return @code{#t} if @var{obj} is the specified weak hash
+table. Note that a doubly weak hash table is neither a weak key
+nor a weak value hash table.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "make-weak-value-hash-table")
@@ -154,8 +154,8 @@ its arguments while @code{list->weak-vector} uses its only argument
 @c ARGFIXME x/obj
 @c docstring begin (texi-doc-string "guile" "weak-vector?")
 @deffn primitive weak-vector? x
-Return @var{#t} if @var{obj} is a weak vector. Note that all weak
-hashes are also weak vectors.
+Return @code{#t} if @var{obj} is a weak vector. Note that all
+weak hashes are also weak vectors.
 @end deffn
 
 

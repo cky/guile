@@ -760,9 +760,11 @@ The return value is unspecified.
 
 @c docstring begin (texi-doc-string "guile" "tmpnam")
 @deffn primitive tmpnam
-Create a new file in the file system with a unique name.  The return
-value is the name of the new file.  This function is implemented with
-the @code{tmpnam} function in the system libraries.
+tmpnam returns a name in the file system that does not match
+any existing file.  However there is no guarantee that
+another process will not create the file after tmpnam
+is called.  Care should be taken if opening the file,
+e.g., use the O_EXCL open flag or use @code{mkstemp!} instead.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "dirname")
@@ -1469,8 +1471,8 @@ of seconds remaining otherwise.
 
 @c docstring begin (texi-doc-string "guile" "usleep")
 @deffn primitive usleep i
-Sleep for I microseconds.
-`usleep' is not available on all platforms.
+Sleep for I microseconds.  @code{usleep} is not available on
+all platforms.
 @end deffn
 
 @node Terminals and Ptys
