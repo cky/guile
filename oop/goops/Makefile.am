@@ -25,7 +25,7 @@ AUTOMAKE_OPTIONS = foreign
 goops_sources =							\
     active-slot.scm compile.scm composite-slot.scm describe.scm	\
     dispatch.scm internal.scm save.scm stklos.scm util.scm      \
-    old-define-method.scm goopscore.scm
+    old-define-method.scm
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/oop/goops
 subpkgdata_DATA = $(goops_sources)

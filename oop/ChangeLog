@@ -1,3 +1,8 @@
+2001-04-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* goops/Makefile.am, goops/goopscore.scm: Reverted changes of
+	2001-04-03, 2001-03-09.
+
 2001-04-03  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* goops/Makefile.am (goops_sources): Include goopscore.scm.
