@@ -126,6 +126,11 @@ switches specific to Guile you may find useful in some circumstances.
 
   The default is `--enable-deprecated=yes'.
 
+  In addition to setting GUILE_WARN_DEPRECATED in the environment, you
+  can also use (debug-enable 'warn-deprecated) and (debug-disable
+  'warn-deprecated) to enable and disable the detailed messaged at run
+  time.
+
 --disable-discouraged
 
   In addition to deprecated features, Guile can also contain things
