@@ -698,7 +698,7 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
   ++scm_ints_disabled;
   do
     {
-      while (SCM_NULLP (master->clusters))
+      if (SCM_NULLP (master->clusters))
 	{
 	  if (master->grow_heap_p || scm_block_gc)
 	    {
@@ -715,6 +715,12 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
 #endif
 	      scm_igc ("cells");
 	      adjust_min_yield (master);
+	      if (SCM_NULLP (master->clusters))
+		{
+		  /* gc could not free any cells */
+		  master->grow_heap_p = 0;
+		  alloc_some_heap (master);
+		}
 	    }
 	}
       cell = SCM_CAR (master->clusters);
@@ -1962,7 +1968,10 @@ alloc_some_heap (scm_freelist_t *freelist)
   SCM_SYSCALL (tmptable = ((scm_heap_seg_data_t *)
 		       realloc ((char *)scm_heap_table, len)));
   if (!tmptable)
-    SCM_MISC_ERROR ("could not grow heap segment table", SCM_EOL);
+    /* Dirk:FIXME:: scm_memory_error needs an additional message parameter.
+     * Here: "could not grow heap segment table".
+     */
+    scm_memory_error (FUNC_NAME);
   else
     scm_heap_table = tmptable;
 
@@ -2025,7 +2034,10 @@ alloc_some_heap (scm_freelist_t *freelist)
       }
   }
 
-  SCM_MISC_ERROR ("could not grow heap", SCM_EOL);
+  /* Dirk:FIXME:: scm_memory_error needs an additional message parameter.
+   * Here: "could not grow heap".
+   */
+  scm_memory_error (FUNC_NAME);
 }
 #undef FUNC_NAME
 
