@@ -1,5 +1,14 @@
 1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* configure.in: Don't forget to #define HAVE_RL_GETC_FUNCTION if
+	we do find the rl_getc_function variable in the readline library;
+	AC_CHECK_FUNCS used to do this for us, but we're not using it any
+	more.
+
+	* configure.in: Properly test for the presence of rl_getc_function;
+	it's a variable, not a function.
+	* configure: Regenerated.
+
 	* doc: New subdirectory.
 	* Makefile.am (SUBDIRS): List it.
 	* configure.in (AC_OUTPUT): Build its Makefile.
