@@ -59,25 +59,6 @@ Print within the given @var{columns}.  The default is 79.
 @end table
 @end deffn
 
-Beware: Since @code{pretty-print} uses it's own write procedure, it's
-output will not be the same as for example the output of @code{write}.
-Consider the following example.
-
-@lisp
-(write (lambda (x) x))
-@print{}
-#<procedure #f (x)>
-
-(pretty-print (lambda (x) x))
-@print{}
-#[procedure]
-@end lisp
-
-The reason is that @code{pretty-print} does not know as much about
-Guile's object types as the builtin procedures.  This is particularly
-important for smobs, for which a write procedure can be defined and be
-used by @code{write}, but not by @code{pretty-print}.
-
 
 @page
 @node Formatted Output
