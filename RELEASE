@@ -5,7 +5,7 @@ it in the distribution.
 In release 1.3:
 - (done) make #/ generate a warning.
 - (done) make SCHEME_LOAD_PATH generate a warning.
-- Perry Metzger <perry@piermont.com> is willing to do beta-testing
+- (done) Perry Metzger <perry@piermont.com> is willing to do beta-testing
   for NetBSD.
 
 In release 1.4:
@@ -33,7 +33,7 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
    c) Remove the user-visible markers from the log entries once they're
       documented.
    d) Check for any [[incomplete]] sections of NEWS.
-4) Scan output from `cvs log' to find files that have changed a lot, but
+4) Scan output from `cvs diff' to find files that have changed a lot, but
    do not have up-to-date copyright notices.
 5) Update the version numbers in GUILE-VERSION, and README.  The Guile
    version number should be of the form N.M for a major release, and

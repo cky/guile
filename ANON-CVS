@@ -15,6 +15,10 @@ sources will be easier for us to evaluate and install, since the
 patch's original sources will be closer to what we're working with.
 And it allows us to start testing features earlier.
 
+Since the CVS tree is arranged for the convenience of the developers,
+it requires GCC and GNU Make, which together support automatic
+dependency management.
+
 To check out a CVS working directory:
 
 1) Install CVS version 1.9 or later on your system.

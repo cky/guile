@@ -1,3 +1,8 @@
+1998-10-20  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* ports.h: Put text after #endif in comment.  (Thanks to Nicolas
+	Neuss.)
+
 1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* __scm.h, alist.c, async.c, async.h, backtrace.h, chars.c,
