@@ -5,8 +5,6 @@ To run these tests, you will need a version of Guile more recent than
 15 Feb 1999 --- the tests use the (ice-9 and-let*) and (ice-9
 getopt-long) modules, which were added to Guile around then.
 
-Right now, we only have tests for I/O ports.
-
 To run the test suite, you'll need to:
 - edit the path to the guile interpreter in `guile-test', and 
 - edit the paths in `paths.scm', so `guile-test' can find the test
@@ -23,3 +21,29 @@ Please write more Guile tests, and send them to bug-guile@gnu.org.
 We'll merge them into the distribution.  All test suites must be
 licensed for our use under the GPL, but I don't think I'm going to
 collect assignment papers for them.
+
+
+
+Some test suite philosophy:
+
+GDB has an extensive test suite --- around 6300 tests.  Every time the
+test suite catches a bug, it's great.
+
+GDB is so complicated that folks are often unable to get a solid
+understanding of the code before making a change --- we just don't
+have time.  You'll see people say things like, "Here's a fix for X; it
+doesn't cause any regressions."  The subtext is, I made a change that
+looks reasonable, and the test suite didn't complain, so it must be
+okay.
+
+I think this is terrible, because it suggests that the writer is using
+the test suite as a substitute for having a rock-solid explanation of
+why their changes are correct.
+
+
+Jim's rule for test suites:
+
+Every test suite failure should be a complete, mysterious surprise,
+never a possibility you were prepared for.  Any other attitude
+indicates that you're using the test suite as a crutch, which you need
+only because your understanding is weak.
