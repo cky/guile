@@ -29,29 +29,13 @@
 /* Boolean Values 
  *
  */ 
-#define SCM_FALSEP(x)		(SCM_EQ_P ((x), SCM_BOOL_F))
-#define SCM_NFALSEP(x)		(!SCM_FALSEP (x))
 
-#define SCM_BOOLP(x)		(SCM_EQ_P ((x), SCM_BOOL_F) || SCM_EQ_P ((x), SCM_BOOL_T))
-
-/* Convert from a C boolean to a SCM boolean value */
-#define SCM_BOOL(f)		((f) ? SCM_BOOL_T : SCM_BOOL_F)
-
-/* Convert from a C boolean to a SCM boolean value and negate it */
-#define SCM_NEGATE_BOOL(f)	((f) ? SCM_BOOL_F : SCM_BOOL_T)
-
-/* SCM_BOOL_NOT returns the other boolean.  
- * The order of ^s here is important for Borland C++ (!?!?!)
- */
-#define SCM_BOOL_NOT(x)		(SCM_PACK (SCM_UNPACK (x) \
-					   ^ (SCM_UNPACK (SCM_BOOL_T) \
-					      ^ SCM_UNPACK (SCM_BOOL_F))))
 
 #define scm_is_false(x) scm_is_eq ((x), SCM_BOOL_F)
 #define scm_is_true(x)  !scm_is_false (x)
 
-SCM_API int scm_is_bool(x);
-#define scm_from_bool(x) ((f) ? SCM_BOOL_T : SCM_BOOL_F)
+SCM_API int scm_is_bool (SCM x);
+#define scm_from_bool(x) ((x) ? SCM_BOOL_T : SCM_BOOL_F)
 SCM_API int scm_to_bool (SCM x);
 
 

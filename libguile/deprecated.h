@@ -305,6 +305,28 @@ SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 
 #define SCM_CELL_WORD_LOC(x, n)   ((scm_t_bits*)SCM_CELL_OBJECT_LOC((x),(n)))
 
+#define SCM_FALSEP(x)		(SCM_EQ_P ((x), SCM_BOOL_F))
+#define SCM_NFALSEP(x)		(!SCM_FALSEP (x))
+
+#define SCM_BOOLP(x)		(SCM_EQ_P ((x), SCM_BOOL_F) || SCM_EQ_P ((x), SCM_BOOL_T))
+
+/* Convert from a C boolean to a SCM boolean value */
+#define SCM_BOOL(f)		((f) ? SCM_BOOL_T : SCM_BOOL_F)
+
+/* Convert from a C boolean to a SCM boolean value and negate it */
+#define SCM_NEGATE_BOOL(f)	((f) ? SCM_BOOL_F : SCM_BOOL_T)
+
+/* SCM_BOOL_NOT returns the other boolean.  
+ * The order of ^s here is important for Borland C++ (!?!?!)
+ */
+#define SCM_BOOL_NOT(x)		(SCM_PACK (SCM_UNPACK (x) \
+					   ^ (SCM_UNPACK (SCM_BOOL_T) \
+					      ^ SCM_UNPACK (SCM_BOOL_F))))
+
+#if 0
+SCM_API SCM SCM_MAKINUM (scm_t_signed_bits val);
+#endif
+
 void scm_i_init_deprecated (void);
 
 #endif
