@@ -1,3 +1,14 @@
+2000-04-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_quotient, scm_remainder):  Removed code that was
+	conditionally compiled based on BADIVSGNS.  BADIVSGNS does not
+	occur anywhere else throughout guile.
+
+	* numbers.c (scm_quotient):  Fixed parameter number in error
+	message.
+
+	* numbers.c (scm_remainder):  Reordered dispatch sequence.
+
 2000-04-25  Gary Houston  <ghouston@arglist.com>
 
 	* posix.c (scm_execlp): docstring fix (thanks to Martin
