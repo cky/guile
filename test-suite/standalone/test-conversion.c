@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 static void
 test_1 (const char *str, scm_t_intmax min, scm_t_intmax max,
@@ -194,6 +195,12 @@ static SCM
 wrong_type_handler (void *data, SCM key, SCM args)
 {
   return scm_equal_p (key, scm_str2symbol ("wrong-type-arg"));
+}
+
+static SCM
+misc_error_handler (void *data, SCM key, SCM args)
+{
+  return scm_equal_p (key, scm_str2symbol ("misc-error"));
 }
 
 static SCM
@@ -850,6 +857,159 @@ test_to_double ()
   test_10 ("+1i",         0.0,  1);
 }
 
+typedef struct {
+  SCM val;
+  char *result;
+} to_locale_string_data;
+
+static SCM
+to_locale_string_body (void *data)
+{
+  to_locale_string_data *d = (to_locale_string_data *)data;
+  d->result = scm_to_locale_string (d->val);
+  return SCM_BOOL_F;
+}
+
+static void
+test_11 (const char *str, const char *result, int misc_error, int type_error)
+{
+  to_locale_string_data data;
+  data.val = scm_c_eval_string (str);
+  data.result = NULL;
+
+  if (misc_error)
+    {
+      if (scm_is_false (scm_internal_catch (SCM_BOOL_T,
+					    to_locale_string_body, &data,
+					    misc_error_handler, NULL)))
+	{
+	  fprintf (stderr,
+		   "fail: scm_to_locale_string (%s) -> misc error\n", str);
+	  exit (1);
+	}
+    }
+  else if (type_error)
+    {
+      if (scm_is_false (scm_internal_catch (SCM_BOOL_T,
+					    to_locale_string_body, &data,
+					    wrong_type_handler, NULL)))
+	{
+	  fprintf (stderr,
+		   "fail: scm_to_locale_string (%s) -> wrong type\n", str);
+	  exit (1);
+	}
+    }
+  else
+    {
+      if (scm_is_true (scm_internal_catch (SCM_BOOL_T,
+					   to_locale_string_body, &data,
+					   any_handler, NULL))
+	  || data.result == NULL || strcmp (data.result, result))
+	{
+	  fprintf (stderr,
+		   "fail: scm_to_locale_string (%s) = %s\n", str, result);
+	  exit (1);
+	}
+    }
+
+  free (data.result);
+}
+
+static void
+test_locale_strings ()
+{
+  const char *lstr = "This is not a string.";
+  char *lstr2;
+  SCM str, str2;
+  char buf[20];
+  size_t len;
+
+  if (!scm_is_string (scm_c_eval_string ("\"foo\"")))
+    {
+      fprintf (stderr, "fail: scm_is_string (\"foo\") = true\n");
+      exit (1);
+    }
+
+  str = scm_from_locale_string (lstr);
+
+  if (!scm_is_string (str))
+    {
+      fprintf (stderr, "fail: scm_is_string (str) = true\n");
+      exit (1);
+    }
+
+  lstr2 = scm_to_locale_string (str);
+  if (strcmp (lstr, lstr2))
+    {
+      fprintf (stderr, "fail: lstr = lstr2\n");
+      exit (1);
+    }
+  free (lstr2);
+
+  buf[15] = 'x';
+  len = scm_to_locale_stringbuf (str, buf, 15);
+  if (len != strlen (lstr))
+    {
+      fprintf (stderr, "fail: scm_to_locale_stringbuf (...) = strlen(lstr)\n");
+      exit (1);
+    }
+  if (buf[15] != 'x')
+    {
+      fprintf (stderr, "fail: scm_to_locale_stringbuf (...) no overrun\n");
+      exit (1);
+    }
+  if (strncmp (lstr, buf, 15))
+    {
+      fprintf (stderr, "fail: scm_to_locale_stringbuf (...) = lstr\n");
+      exit (1);
+    }
+
+  str2 = scm_from_locale_stringn (lstr, 10);
+
+  if (!scm_is_string (str2))
+    {
+      fprintf (stderr, "fail: scm_is_string (str2) = true\n");
+      exit (1);
+    }
+
+  lstr2 = scm_to_locale_string (str2);
+  if (strncmp (lstr, lstr2, 10))
+    {
+      fprintf (stderr, "fail: lstr = lstr2\n");
+      exit (1);
+    }
+  free (lstr2);
+
+  buf[10] = 'x';
+  len = scm_to_locale_stringbuf (str2, buf, 20);
+  if (len != 10)
+    {
+      fprintf (stderr, "fail: scm_to_locale_stringbuf (...) = 10\n");
+      exit (1);
+    }
+  if (buf[10] != 'x')
+    {
+      fprintf (stderr, "fail: scm_to_locale_stringbuf (...) no overrun\n");
+      exit (1);
+    }
+  if (strncmp (lstr, buf, 10))
+    {
+      fprintf (stderr, "fail: scm_to_locale_stringbuf (...) = lstr\n");
+      exit (1);
+    }
+
+  lstr2 = scm_to_locale_stringn (str2, &len);
+  if (len != 10)
+    {
+      fprintf (stderr, "fail: scm_to_locale_stringn, len = 10\n");
+      exit (1);
+    }
+
+  test_11 ("#f", NULL, 0, 1);
+  test_11 ("\"foo\"", "foo", 0, 0);
+  test_11 ("(string #\\f #\\nul)", NULL, 1, 0);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -863,5 +1023,6 @@ main (int argc, char *argv[])
   test_int_sizes ();
   test_from_double ();
   test_to_double ();
+  test_locale_strings ();
   return 0;
 }
