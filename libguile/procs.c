@@ -179,7 +179,8 @@ scm_makcclo (SCM proc, long len)
 #ifdef GUILE_DEBUG
 SCM_DEFINE (scm_make_cclo, "make-cclo", 2, 0, 0,
             (SCM proc, SCM len),
-"")
+	    "Create a compiled closure for @var{proc}, which reserves\n"
+	    "@var{len} objects for its usage.")
 #define FUNC_NAME s_scm_make_cclo
 {
   return scm_makcclo (proc, SCM_INUM (len));
@@ -191,8 +192,8 @@ SCM_DEFINE (scm_make_cclo, "make-cclo", 2, 0, 0,
 
 
 SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0, 
-           (SCM obj),
-"")
+	    (SCM obj),
+	    "Return @code{#t} if @var{obj} is a procedure.")
 #define FUNC_NAME s_scm_procedure_p
 {
   if (SCM_NIMP (obj))
@@ -219,7 +220,7 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
 
 SCM_DEFINE (scm_closure_p, "closure?", 1, 0, 0, 
            (SCM obj),
-"")
+	    "Return @code{#t} if @var{obj} is a closure.")
 #define FUNC_NAME s_scm_closure_p
 {
   return SCM_BOOL(SCM_CLOSUREP (obj));
@@ -227,8 +228,8 @@ SCM_DEFINE (scm_closure_p, "closure?", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0, 
-           (SCM obj),
-"")
+	    (SCM obj),
+	    "Return @code{#t} if @var{obj} is a thunk.")
 #define FUNC_NAME s_scm_thunk_p
 {
   if (SCM_NIMP (obj))
@@ -314,7 +315,8 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 
 SCM_DEFINE (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0, 
             (SCM obj),
-	    "")
+	    "Return @code{#t} if @var{obj} is a procedure with an\n"
+	    "associated setter procedure.")
 #define FUNC_NAME s_scm_procedure_with_setter_p
 {
   return SCM_BOOL(SCM_PROCEDURE_WITH_SETTER_P (obj));
@@ -323,7 +325,8 @@ SCM_DEFINE (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0,
 
 SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 0, 
             (SCM procedure, SCM setter),
-	    "")
+	    "Create a new procedure which behaves like @var{procedure}, but\n"
+	    "with the associated setter @var{setter}.")
 #define FUNC_NAME s_scm_make_procedure_with_setter
 {
   SCM z;
@@ -341,7 +344,8 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 
 SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0, 
             (SCM proc),
-	    "")
+	    "Return the procedure of @var{proc}, which must be either a\n"
+	    "procedure with setter, or an operator struct.")
 #define FUNC_NAME s_scm_procedure
 {
   SCM_VALIDATE_NIM (1, proc);
