@@ -1,15 +1,11 @@
 AC_INIT(qt.c)
+AM_INIT_GUILE_MODULE(qt)
 
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CPP
-AC_PROG_INSTALL
 AC_PROG_RANLIB
 
-# Tell configure where to find config.guess
-AC_CONFIG_AUX_DIR(..) #`cd $srcdir; pwd`/..)
-
-builtin(sinclude, ../aclocal.m4)
 CY_AC_WITH_THREADS
 
 threads_enabled=false
@@ -58,21 +54,15 @@ esac
 
 
 if $threads_enabled; then
-	target_all=libqt.a
-	target_install=install_qt
-	target_uninstall=uninstall_qt
+   target_libs=libqt.a
 else
-	target_all=''	
-	target_install=''
-	target_uninstall=''
+   target_libs=
 fi
 
-AC_SUBST(target_all)
-AC_SUBST(target_install)
-AC_SUBST(target_uninstall)
+AC_SUBST(target_libs)
 AC_SUBST(qtmd_h)
 AC_SUBST(qtmdc_c)
 AC_SUBST(qtmds_s)
 AC_SUBST(qtmdb_s)
 
-AC_OUTPUT(Makefile qt.h)
+AC_OUTPUT(Makefile qt.h md/Makefile time/Makefile)

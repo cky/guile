@@ -1,875 +1,450 @@
-# @configure_input@
+# Makefile.in generated automatically by automake 1.1i from Makefile.am
 
-#	Copyright (C) 1995 Free Software Foundation, Inc.
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this software; see the file COPYING.  If not, write to
-# the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-#
-
+# Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy, distribute and modify it.
 
-#
-# Makefile for libguile
-#
 
-VPATH = @srcdir@
-srcdir = @srcdir@
 SHELL = /bin/sh
 
-VERSION=@GUILE_VERSION@
-
-# Common prefix for machine-independent installed files.
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
 prefix = @prefix@
-
-# Common prefix for machine-dependent installed files.
 exec_prefix = @exec_prefix@
 
-# Directory in which to install init files &c
-libdir = @libdir@
-
-# Directory for installed #include files for all packages
-includedir = @includedir@
-innerincludedir = $(includedir)/libguile
-
-# Directory to install `guile' in.
 bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
 
-# Directories for read-only architecture-independent files.
-datadir=@datadir@
-pkgdatadir=$(datadir)/guile
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
 
-INSTALL = $(srcdir)/../install-sh -c
-INSTALL_DATA = $(INSTALL) -m 644
-INSTALL_PROGRAM = $(INSTALL) -m 755
+top_builddir = .
 
-# Programs to make tags files.
-ETAGS = etags
-CTAGS = ctags -tw
-
-# CC
-X11_INCLUDES=@XINCLUDES@
-XFLAGS=@X_CFLAGS@
-CFLAGS=@CFLAGS@ 
-# Check for headers in $(srcdir)/.., so that #include
-# <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
-# building.
-INCLUDE_CFLAGS=-I. -I.. -I$(srcdir)/.. -I$(srcdir)
-ALL_CFLAGS=$(X_CFLAGS) $(INCLUDE_CFLAGS) $(X11_INCLUDES) @DEFS@
-CC=@CC@ $(ALL_CFLAGS)
-CPP=@CPP@
-
-# CC used as a front end for ld
-LDFLAGS = @LDFLAGS@
-CCLD= $(CC) $(LDFLAGS)
-
-# AR
-AR = ar
-AR_FLAGS = rc
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+FD_SETTER = @FD_SETTER@
 RANLIB = @RANLIB@
+CC = @CC@
 
-# Any extra object files your system needs.
-extras = @LIBOBJS@
+AUTOMAKE_OPTIONS = foreign
 
-libobjs=	alist.o \
-		append.o \
-		appinit.o \
-		arbiters.o \
-		async.o \
-		boolean.o \
-		chars.o \
-		continuations.o \
-		dynwind.o \
-		eq.o \
-		error.o \
-		eval.o \
-		extchrs.o \
-		fdsocket.o \
-		feature.o \
-		filesys.o \
-		fports.o \
-		gc.o \
-		gdbint.o \
-		genio.o \
-		gsubr.o \
-		hash.o \
-		hashtab.o \
-		init.o \
-		ioext.o \
-		kw.o \
-		list.o \
-		load.o \
-		mallocs.o \
-		markers.o \
-		mbstrings.o \
-		numbers.o \
-		objprop.o \
-		options.o \
-		pairs.o \
-		ports.o \
-		posix.o \
-		print.o \
-		procprop.o \
-		procs.o \
-		ramap.o \
-		read.o \
-		root.o \
-		scmsigs.o \
-		sequences.o \
-		simpos.o \
-		smob.o \
-		socket.o \
-		stackchk.o \
-		stime.o \
-		strings.o \
-		strop.o \
-		strorder.o \
-		strports.o \
-		struct.o \
-		symbols.o \
-		tag.o \
-		throw.o \
-		unif.o \
-		variable.o \
-		vectors.o \
-		version.o \
-		vports.o \
-		weaks.o \
-		$(extras)
+INCLUDES = -I.. -I$(srcdir)/..
 
+lib_LIBRARIES = libguile.a
+libguile_a_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
+backtrace.c boolean.c chars.c continuations.c debug.c dynwind.c eq.c \
+error.c eval.c extchrs.c fdsocket.c feature.c filesys.c fports.c gc.c \
+gdbint.c genio.c gsubr.c hash.c hashtab.c inet_aton.c init.c ioext.c \
+kw.c list.c load.c mallocs.c markers.c mbstrings.c numbers.c objprop.c \
+options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
+read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c srcprop.c \
+stackchk.c stacks.c stime.c strerror.c strings.c strop.c strorder.c \
+strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
+vectors.c version.c vports.c weaks.c _scm.h
 
-# These are headers used only by the internal guile sources.
-uninstalled_h_files= _scm.h
-
-# These are headers visible as <mumble.h>.
-installed_h_files = libguile.h
+include_HEADERS = libguile.h
 
 # These are headers visible as <libguile/mumble.h>.
-inner_h_files= __scm.h \
-		alist.h \
-		append.h \
-		arbiters.h \
-		async.h \
-		backtrace.h \
-		boolean.h \
-		chars.h \
-		continuations.h \
-		debug.h \
-		dynwind.h \
-		eq.h \
-		error.h \
-		eval.h \
-		extchrs.h \
-		fdsocket.h \
-		feature.h \
-		filesys.h \
-		fports.h \
-		gc.h \
-		gdb_interface.h \
-		gdbint.h \
-		genio.h \
-		gsubr.h \
-		hash.h \
-		hashtab.h \
-		init.h \
-		ioext.h \
-		kw.h \
-		list.h \
-		load.h \
-		mallocs.h \
-		markers.h \
-		mbstrings.h \
-		numbers.h \
-		objprop.h \
-		options.h \
-		pairs.h \
-		ports.h \
-		posix.h \
-		print.h \
-		procprop.h \
-		procs.h \
-		ramap.h \
-		read.h \
-		root.h \
-		scmhob.h \
-		scmsigs.h \
-		sequences.h \
-		simpos.h \
-		smob.h \
-		snarf.h \
-		socket.h \
-		srcprop.h \
-		stackchk.h \
-		stacks.h \
-		stime.h \
-		strings.h \
-		strop.h \
-		strorder.h \
-		strports.h \
-		struct.h \
-		symbols.h \
-		tag.h \
-		tags.h \
-		throw.h \
-		unif.h \
-		variable.h \
-		vectors.h \
-		version.h \
-		vports.h \
-		weaks.h
+modincludedir = $(includedir)/@module@
+modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
+backtrace.h boolean.h chars.h continuations.h debug.h dynwind.h eq.h \
+error.h eval.h extchrs.h fdsocket.h feature.h filesys.h fports.h gc.h \
+gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h ioext.h \
+kw.h list.h load.h mallocs.h markers.h mbstrings.h numbers.h objprop.h \
+options.h pairs.h ports.h posix.h print.h procprop.h procs.h ramap.h read.h \
+root.h scmhob.h scmsigs.h sequences.h simpos.h smob.h socket.h srcprop.h \
+stackchk.h stacks.h stime.h strings.h strop.h strorder.h strports.h struct.h \
+symbols.h tag.h tags.h throw.h unif.h variable.h vectors.h version.h \
+vports.h weaks.h snarf.h
 
-h_files=$(uninstalled_h_files) $(installed_h_files) $(inner_h_files)
+modinclude_DATA = scmconfig.h
 
-c_files=	alist.c \
-		append.c \
-		appinit.c \
-		arbiters.c \
-		async.c \
-		backtrace.c \
-		boolean.c \
-		chars.c \
-		continuations.c \
-		debug.c \
-		dynwind.c \
-		eq.c \
-		error.c \
-		eval.c \
-		extchrs.c \
-		fdsocket.c \
-		feature.c \
-		filesys.c \
-		fports.c \
-		gc.c \
-		gdbint.c \
-		genio.c \
-		gsubr.c \
-		hash.c \
-		hashtab.c \
-		inet_aton.c \
-		init.c \
-		ioext.c \
-		kw.c \
-		list.c \
-		load.c \
-		mallocs.c \
-		markers.c \
-		mbstrings.c \
-		numbers.c \
-		objprop.c \
-		options.c \
-		pairs.c \
-		ports.c \
-		posix.c \
-		print.c \
-		procprop.c \
-		procs.c \
-		ramap.c \
-		read.c \
-		root.c \
-		scmsigs.c \
-		sequences.c \
-		simpos.c \
-		smob.c \
-		socket.c \
-		srcprop.c \
-		stackchk.c \
-		stacks.c \
-		stime.c \
-		strerror.c \
-		strings.c \
-		strop.c \
-		strorder.c \
-		strports.c \
-		struct.c \
-		symbols.c \
-		tag.c \
-		throw.c \
-		unif.c \
-		variable.c \
-		vectors.c \
-		version.c \
-		vports.c \
-		weaks.c
+EXTRA_DIST = gscm.c gscm.h ChangeLog-scm PLUGIN/REQ PLUGIN/guile.config \
+PLUGIN/guile.libs
 
-gen_c_files=	alist.x \
-		append.x \
-		arbiters.x \
-		async.x \
-		backtrace.x \
-		boolean.x \
-		chars.x \
-		continuations.x \
-		debug.x \
-		dynwind.x \
-		eq.x \
-		error.x \
-		eval.x \
-		extchrs.x \
-		fdsocket.x \
-		feature.x \
-		filesys.x \
-		fports.x \
-		gc.x \
-		genio.x \
-		gsubr.x \
-		hash.x \
-		hashtab.x \
-		init.x \
-		ioext.x \
-		kw.x \
-		list.x \
-		load.x \
-		mallocs.x \
-		markers.x \
-		mbstrings.x \
-		numbers.x \
-		objprop.x \
-		options.x \
-		pairs.x \
-		ports.x \
-		posix.x \
-		print.x \
-		procprop.x \
-		procs.x \
-		ramap.x \
-		read.x \
-		root.x \
-		scmsigs.x \
-		sequences.x \
-		simpos.x \
-		smob.x \
-		socket.x \
-		srcprop.x \
-		stackchk.x \
-		stacks.x \
-		stime.x \
-		strings.x \
-		strop.x \
-		strorder.x \
-		strports.x \
-		struct.x \
-		symbols.x \
-		tag.x \
-		throw.x \
-		unif.x \
-		variable.x \
-		vectors.x \
-		version.x \
-		vports.x \
-		weaks.x
+SUFFIXES = .x
+
+MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ACLOCAL = $(top_srcdir)/aclocal.m4
+CONFIG_HEADER_IN = scmconfig.h.in
+mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
+CONFIG_HEADER = scmconfig.h
+CONFIG_CLEAN_FILES =  fd.h
+LIBRARIES =  $(lib_LIBRARIES)
 
 
+DEFS = @DEFS@ -I. -I$(srcdir) -I.
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libguile_a_LIBADD = 
+libguile_a_OBJECTS =  alist.o append.o appinit.o arbiters.o async.o \
+backtrace.o boolean.o chars.o continuations.o debug.o dynwind.o eq.o \
+error.o eval.o extchrs.o fdsocket.o feature.o filesys.o fports.o gc.o \
+gdbint.o genio.o gsubr.o hash.o hashtab.o inet_aton.o init.o ioext.o \
+kw.o list.o load.o mallocs.o markers.o mbstrings.o numbers.o objprop.o \
+options.o pairs.o ports.o posix.o print.o procprop.o procs.o ramap.o \
+read.o root.o scmsigs.o sequences.o simpos.o smob.o socket.o srcprop.o \
+stackchk.o stacks.o stime.o strerror.o strings.o strop.o strorder.o \
+strports.o struct.o symbols.o tag.o throw.o unif.o variable.o vectors.o \
+version.o vports.o weaks.o
+AR = ar
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LINK = $(CC) $(LDFLAGS) -o $@
+DATA =  $(modinclude_DATA)
 
-ancillary =	gscm.c \
-		gscm.h \
-		COPYING \
-		ChangeLog \
-		ChangeLog-scm \
-		Makefile.in \
-		acconfig.h \
-		aclocal.m4 \
-		configure \
-		configure.in \
-		scmconfig.h.in \
-		fd.h.in \
-		guile-snarf.sh
+HEADERS =  $(include_HEADERS) $(modinclude_HEADERS)
+
+DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in acconfig.h \
+acinclude.m4 aclocal.m4 configure configure.in fd.h.in scmconfig.h.in \
+stamp-h.in
 
 
-c_sources = $(c_files) $(h_files)
-manifest = $(ancillary) $(c_sources)
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+
+TAR = tar
+DEP_FILES =  .deps/alist.P .deps/append.P .deps/appinit.P \
+.deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
+.deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynwind.P \
+.deps/eq.P .deps/error.P .deps/eval.P .deps/extchrs.P .deps/fdsocket.P \
+.deps/feature.P .deps/filesys.P .deps/fports.P .deps/gc.P \
+.deps/gdbint.P .deps/genio.P .deps/gsubr.P .deps/hash.P .deps/hashtab.P \
+.deps/inet_aton.P .deps/init.P .deps/ioext.P .deps/kw.P .deps/list.P \
+.deps/load.P .deps/mallocs.P .deps/markers.P .deps/mbstrings.P \
+.deps/numbers.P .deps/objprop.P .deps/options.P .deps/pairs.P \
+.deps/ports.P .deps/posix.P .deps/print.P .deps/procprop.P \
+.deps/procs.P .deps/ramap.P .deps/read.P .deps/root.P .deps/scmsigs.P \
+.deps/sequences.P .deps/simpos.P .deps/smob.P .deps/socket.P \
+.deps/srcprop.P .deps/stackchk.P .deps/stacks.P .deps/stime.P \
+.deps/strerror.P .deps/strings.P .deps/strop.P .deps/strorder.P \
+.deps/strports.P .deps/struct.P .deps/symbols.P .deps/tag.P \
+.deps/throw.P .deps/unif.P .deps/variable.P .deps/vectors.P \
+.deps/version.P .deps/vports.P .deps/weaks.P
+SOURCES = $(libguile_a_SOURCES)
+OBJECTS = $(libguile_a_OBJECTS)
+
+default: all
 
 .SUFFIXES:
-.SUFFIXES: .o .c .h .ps .dvi .info .texinfo .scm .x
+.SUFFIXES: .c .o .x
+$(srcdir)/aclocal.m4: configure.in acinclude.m4
+	cd $(srcdir) && aclocal
 
-.c.x: guile-snarf
-	./guile-snarf $(ALL_CFLAGS) $< > $@
+$(srcdir)/Makefile.in: Makefile.am configure.in
+	cd $(srcdir) && automake --strictness=foreign Makefile
 
-.PHONY: all
-all: libguile.a
+# For an explanation of the following Makefile rules, see node
+# `Automatic Remaking' in GNU Autoconf documentation.
+Makefile: $(srcdir)/Makefile.in config.status $(BUILT_SOURCES)
+	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+config.status: configure
+	$(SHELL) ./config.status --recheck
+$(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && autoconf
+
+$(CONFIG_HEADER): stamp-h
+stamp-h: $(CONFIG_HEADER_IN) $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES= CONFIG_HEADERS=$(CONFIG_HEADER) \
+	     $(SHELL) ./config.status
+	@echo timestamp > stamp-h
+$(srcdir)/$(CONFIG_HEADER_IN): stamp-h.in
+$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL) acconfig.h
+	cd $(top_srcdir) && autoheader
+	echo timestamp > $(srcdir)/stamp-h.in
+
+mostlyclean-hdr:
+
+clean-hdr:
+
+distclean-hdr:
+	rm -f $(CONFIG_HEADER)
+
+maintainer-clean-hdr:
+fd.h: $(top_builddir)/config.status fd.h.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
+
+mostlyclean-libLIBRARIES:
+
+clean-libLIBRARIES:
+	test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+
+distclean-libLIBRARIES:
+
+maintainer-clean-libLIBRARIES:
+
+install-libLIBRARIES: $(lib_LIBRARIES)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(libdir)
+	list="$(lib_LIBRARIES)"; for p in $$list; do \
+	  if test -f $$p; then \
+	    $(INSTALL_DATA) $$p $(libdir)/$$p; \
+	  else :; fi; \
+	done
+	$(POST_INSTALL)
+	list="$(lib_LIBRARIES)"; for p in $$list; do \
+	  if test -f $$p; then \
+	    $(RANLIB) $(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLIBRARIES:
+	list="$(lib_LIBRARIES)"; for p in $$list; do \
+	  rm -f $(libdir)/$$p; \
+	done
+
+.c.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	rm -f *.o core
+
+clean-compile:
+
+distclean-compile:
+	rm -f *.tab.c
+
+maintainer-clean-compile:
+$(libguile_a_OBJECTS): scmconfig.h
+
+libguile.a: $(libguile_a_OBJECTS) $(libguile_a_DEPENDENCIES)
+	rm -f libguile.a
+	$(AR) cru libguile.a $(libguile_a_OBJECTS) $(libguile_a_LIBADD)
+	$(RANLIB) libguile.a
+
+install-modincludeDATA: $(modinclude_DATA)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(modincludedir)
+	list="$(modinclude_DATA)"; for p in $$list; do \
+	  if test -f $(srcdir)/$$p; then \
+	    $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
+	  else if test -f $$p; then \
+	    $(INSTALL_DATA) $$p $(modincludedir)/$$p; \
+	  fi; fi; \
+	done
+
+uninstall-modincludeDATA:
+	list="$(modinclude_DATA)"; for p in $$list; do \
+	  rm -f $(modincludedir)/$$p; \
+	done
+
+install-includeHEADERS: $(include_HEADERS)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(includedir)
+	list="$(include_HEADERS)"; for p in $$list; do \
+	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
+	done
+
+uninstall-includeHEADERS:
+	list="$(include_HEADERS)"; for p in $$list; do \
+	  rm -f $(includedir)/$$p; \
+	done
+
+install-modincludeHEADERS: $(modinclude_HEADERS)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(modincludedir)
+	list="$(modinclude_HEADERS)"; for p in $$list; do \
+	  $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
+	done
+
+uninstall-modincludeHEADERS:
+	list="$(modinclude_HEADERS)"; for p in $$list; do \
+	  rm -f $(modincludedir)/$$p; \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES)
+	here=`pwd` && cd $(srcdir) && mkid -f$$here/ID $(SOURCES) $(HEADERS)
+
+TAGS:  $(HEADERS) $(SOURCES) scmconfig.h.in $(TAGS_DEPENDENCIES)
+	tags=; \
+	here=`pwd`; \
+	list="$(SUBDIRS)"; for subdir in $$list; do \
+	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+	done; \
+	test -z "$(ETAGS_ARGS)scmconfig.h.in$(SOURCES)$(HEADERS)$$tags" \
+	  || cd $(srcdir) && etags $(ETAGS_ARGS) $$tags scmconfig.h.in $(SOURCES) $(HEADERS) -o $$here/TAGS
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(PACKAGE)-$(VERSION)
+# This target untars the dist file and tries a VPATH configuration.  Then
+# it guarantees that the distribution is self-contained by making another
+# tarfile.
+distcheck: dist
+	rm -rf $(distdir)
+	$(TAR) zxf $(distdir).tar.gz
+	mkdir $(distdir)/=build
+	mkdir $(distdir)/=inst
+	dc_install_base=`cd $(distdir)/=inst && pwd`; \
+	cd $(distdir)/=build \
+	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
+	  && $(MAKE) \
+	  && $(MAKE) dvi \
+	  && $(MAKE) check \
+	  && $(MAKE) install \
+	  && $(MAKE) installcheck \
+	  && $(MAKE) dist
+	rm -rf $(distdir)
+	@echo "========================"; \
+	echo "$(distdir).tar.gz is ready for distribution"; \
+	echo "========================"
+dist: distdir
+	-chmod -R a+r $(distdir)
+	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	rm -rf $(distdir)
+dist-all: distdir
+	-chmod -R a+r $(distdir)
+	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	rm -rf $(distdir)
+distdir: $(DISTFILES)
+	rm -rf $(distdir)
+	mkdir $(distdir)
+	-chmod 755 $(distdir)
+	here=`pwd`; distdir=`cd $(distdir) && pwd` \
+	  && cd $(srcdir) \
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --strictness=foreign
+	$(mkinstalldirs) $(distdir)/PLUGIN
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  test -f $(distdir)/$$file \
+	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $$d/$$file $(distdir)/$$file; \
+	done
+.deps/.P:
+	test -d .deps || mkdir .deps
+	echo > $@
+
+-include $(DEP_FILES)
+$(DEP_FILES): .deps/.P
+
+mostlyclean-depend:
+
+clean-depend:
+
+distclean-depend:
+
+maintainer-clean-depend:
+	rm -rf .deps
+
+.deps/%.P: $(srcdir)/%.c
+	@echo "Computing dependencies for $<..."
+	@$(MKDEP) $< > $@-tmp
+	@if test -n "$o"; then			\
+	  sed 's/\.o:/$$o:/' $@-tmp > $@;	\
+	  rm $@-tmp;				\
+	else					\
+	  mv $@-tmp $@;				\
+	fi
+info:
+dvi:
+check: all
+	$(MAKE)
+installcheck:
+install-exec: install-libLIBRARIES
+	$(NORMAL_INSTALL)
+
+install-data: install-modincludeDATA install-includeHEADERS install-modincludeHEADERS
+	$(NORMAL_INSTALL)
+
+install: install-exec install-data all
+	@:
+
+uninstall: uninstall-libLIBRARIES uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS
+
+all: $(LIBRARIES) $(DATA) $(HEADERS) Makefile scmconfig.h
+
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
+installdirs:
+	$(mkinstalldirs)  $(libdir) $(modincludedir) $(includedir) \
+		$(modincludedir)
+
+
+mostlyclean-generic:
+	test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
+
+clean-generic:
+	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+
+distclean-generic:
+	rm -f Makefile $(DISTCLEANFILES)
+	rm -f config.cache config.log stamp-h
+	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+
+maintainer-clean-generic:
+	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+mostlyclean:  mostlyclean-hdr mostlyclean-libLIBRARIES \
+		mostlyclean-compile mostlyclean-tags mostlyclean-depend \
+		mostlyclean-generic
+
+clean:  clean-hdr clean-libLIBRARIES clean-compile clean-tags \
+		clean-depend clean-generic mostlyclean 
+
+distclean:  distclean-hdr distclean-libLIBRARIES distclean-compile \
+		distclean-tags distclean-depend distclean-generic \
+		clean 
+	rm -f config.status
+
+maintainer-clean:  maintainer-clean-hdr maintainer-clean-libLIBRARIES \
+		maintainer-clean-compile maintainer-clean-tags \
+		maintainer-clean-depend maintainer-clean-generic \
+		distclean 
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+	rm -f config.status
+
+.PHONY: default mostlyclean-hdr distclean-hdr clean-hdr \
+maintainer-clean-hdr mostlyclean-libLIBRARIES distclean-libLIBRARIES \
+clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
+install-libLIBRARIES mostlyclean-compile distclean-compile \
+clean-compile maintainer-clean-compile uninstall-modincludeDATA \
+install-modincludeDATA uninstall-includeHEADERS install-includeHEADERS \
+uninstall-modincludeHEADERS install-modincludeHEADERS tags \
+mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
+distdir mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info dvi installcheck install-exec install-data \
+install uninstall all installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
+
 
 libpath.h: Makefile
 	echo '/* generated by Makefile */' > libpath.h
-	echo '#define SCM_PKGDATA_DIR "$(pkgdatadir)"' >> libpath.h
-	echo '#define SCM_LIBRARY_DIR "$(pkgdatadir)/$(VERSION)"' >> libpath.h
-	echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.h
+	echo '#define LIBRARY_PATH "$(pkgdatadir)/$(VERSION)"' >> libpath.h
+.c.x:
+	$(CPP) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) \
+	   -DSCM_MAGIC_SNARFER $< | grep "^%%%" | sed -e "s/^%%%//" > $@
 
-$(gen_c_files): guile-snarf
-guile-snarf: $(srcdir)/guile-snarf.sh
-	rm -f guile-snarf
-	sed -e 's,xCPPx,$(CPP),' $(srcdir)/guile-snarf.sh > guile-snarf-t
-	mv guile-snarf-t guile-snarf
-	chmod +x guile-snarf
-
-# The `dist' target in the top-level Makefile uses this `dist-dir'
-# target to select the appropriate files for distribution from the
-# directory containing this Makefile.
-.PHONY: dist-dir
-dist-dir:
-	mkdir ${DISTDIR}
-	for f in ${manifest}; do \
-	  ln ${srcdir}/$$f ${DISTDIR}; \
-	done
-	mkdir ${DISTDIR}/PLUGIN
-	for f in REQ greet guile.config guile.libs; do \
-	  ln ${srcdir}/PLUGIN/$$f ${DISTDIR}/PLUGIN; \
-	done
-
-SUBDIR=.
-manifest:
-	for file in $(manifest) ; \
-	  do echo $(SUBDIR)/$$file ; \
-	done
-
-libguile.a: $(libobjs)
-	rm -f libguile.a
-	$(AR) $(AR_FLAGS) libguile.a $(libobjs)
-	$(RANLIB) libguile.a
-
-install: all
-	test -d $(prefix) || mkdir $(prefix)
-	test -d $(libdir) || mkdir $(libdir)
-	$(INSTALL_DATA) libguile.a $(libdir)/libguile$(VERSION).a
-	ln -f -s libguile$(VERSION).a $(libdir)/libguile.a
-	test -d $(includedir)	   || mkdir $(includedir)
-	test -d $(innerincludedir) || mkdir $(innerincludedir)
-	for h in $(installed_h_files); do \
-	  $(INSTALL_DATA) $(srcdir)/$$h $(includedir); \
-	done
-	$(INSTALL_DATA) scmconfig.h $(innerincludedir)
-	$(INSTALL_DATA) libpath.h $(innerincludedir)
-	for h in $(inner_h_files); do \
-	  $(INSTALL_DATA) $(srcdir)/$$h $(innerincludedir); \
-	done
-	test -d $(bindir) || mkdir $(bindir)
-	$(INSTALL_PROGRAM) guile-snarf $(bindir)
-
-uninstall:
-	-rm $(libdir)/libguile$(VERSION).a
-	-rm $(libdir)/libguile.a
-	-rm -rf $(guileincludedir)
-	-rm $(includedir)/guile
-	-rm $(bindir)/guile-snarf
-
-TAGS:
-	etags $(c_sources)
-
-
-info:
-
-clean:
-	-rm -f libguile.a
-	-rm -f $(libobjs)
-	-rm -f $(gen_c_files)
-	-rm -f libpath.h
-
-distclean: clean
-	-rm -f config.cache
-	-rm -f config.log
-	-rm -f config.status
-	-rm -f Makefile
-	-rm -f scmconfig.h
-	-rm -f fd.h
-	-rm -f guile-snarf
-
-realclean: distclean
-	-rm -f $(gen_c_files)
-	-rm -f scmconfig.h
-
-xfiles: $(gen_c_files)
-
-DEPENDS_CFLAGS=
-
-depends:
-	@gcc -MM -I. -I.. $(DEPENDS_CFLAGS) $(c_files)
-
-###
-alist.o: alist.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eq.h \
- alist.h alist.x
-append.o: append.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- append.h append.x
-appinit.o: appinit.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h
-arbiters.o: arbiters.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h smob.h \
- ports.h genio.h markers.h \
- arbiters.h arbiters.x
-async.o: async.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
- throw.h smob.h ports.h genio.h \
- markers.h async.x
-backtrace.o: backtrace.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
- throw.h genio.h smob.h ports.h genio.h \
- markers.h procprop.h srcprop.h alist.h continuations.h \
- strports.h read.h feature.h backtrace.h backtrace.x
-boolean.o: boolean.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- boolean.x
-chars.o: chars.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h chars.x
-continuations.o: continuations.c _scm.h __scm.h \
- scmconfig.h tags.h error.h \
- __scm.h print.h options.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h stackchk.h continuations.h \
- debug.h debug.h dynwind.h continuations.h continuations.x
-debug.o: debug.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
- throw.h genio.h smob.h ports.h genio.h \
- markers.h procprop.h srcprop.h alist.h continuations.h \
- strports.h read.h feature.h debug.h debug.x
-dynwind.o: dynwind.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
- alist.h dynwind.h dynwind.x
-eq.o: eq.c _scm.h __scm.h scmconfig.h tags.h \
- error.h __scm.h print.h options.h pairs.h \
- list.h gc.h gsubr.h procs.h numbers.h symbols.h boolean.h strings.h \
- vectors.h root.h ports.h async.h ramap.h stackchk.h \
- continuations.h debug.h strorder.h smob.h \
- ports.h genio.h markers.h unif.h \
- eq.h eq.x
-error.o: error.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- genio.h throw.h error.x
-eval.o: eval.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- debug.h append.h alist.h sequences.h eq.h continuations.h throw.h \
- smob.h ports.h genio.h markers.h \
- markers.h procprop.h hashtab.h hash.h srcprop.h stackchk.h \
- continuations.h debug.h eval.h eval.c eval.x
-extchrs.o: extchrs.c extchrs.h
-fdsocket.o: fdsocket.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- filesys.h unif.h fdsocket.h fdsocket.x
-feature.o: feature.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- feature.h feature.x
-filesys.o: filesys.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- genio.h smob.h ports.h genio.h \
- markers.h filesys.h filesys.x
-fports.o: fports.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- markers.h fports.h ports.h fports.x
-gc.o: gc.c _scm.h __scm.h scmconfig.h tags.h \
- error.h __scm.h print.h options.h pairs.h \
- list.h gc.h gsubr.h procs.h numbers.h symbols.h boolean.h strings.h \
- vectors.h root.h ports.h async.h stime.h stackchk.h \
- continuations.h debug.h struct.h genio.h \
- weaks.h smob.h ports.h genio.h \
- markers.h unif.h gc.x
-gdbint.o: gdbint.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h tag.h \
- strports.h read.h eval.h chars.h gdbint.h gdb_interface.h
-genio.o: genio.c extchrs.h _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h genio.h
-gsubr.o: gsubr.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- genio.h
-hash.o: hash.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h hash.h hash.x
-hashtab.o: hashtab.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- alist.h hash.h eval.h hashtab.h hashtab.x
-inet_aton.o: inet_aton.c
-init.o: init.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- alist.h append.h arbiters.h chars.h continuations.h debug.h dynwind.h \
- eq.h eval.h fdsocket.h feature.h filesys.h fports.h \
- ports.h gdbint.h hash.h hashtab.h ioext.h kw.h load.h \
- mallocs.h mbstrings.h symbols.h objprop.h options.h \
- posix.h procprop.h ramap.h read.h scmsigs.h sequences.h simpos.h \
- smob.h genio.h markers.h socket.h srcprop.h \
- stackchk.h continuations.h debug.h stime.h \
- strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
- variable.h version.h vports.h weaks.h init.h
-ioext.o: ioext.c fd.h _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- fports.h ports.h ioext.h ioext.x
-kw.o: kw.c _scm.h __scm.h scmconfig.h tags.h \
- error.h __scm.h print.h options.h pairs.h \
- list.h gc.h gsubr.h procs.h numbers.h symbols.h boolean.h strings.h \
- vectors.h root.h ports.h async.h genio.h mbstrings.h \
- symbols.h smob.h ports.h genio.h \
- markers.h kw.h kw.x
-list.o: list.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eq.h \
- list.x
-load.o: load.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- libpath.h fports.h ports.h read.h eval.h load.h load.x
-mallocs.o: mallocs.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- genio.h smob.h ports.h genio.h \
- markers.h mallocs.h
-markers.o: markers.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- markers.h
-mbstrings.o: mbstrings.c extchrs.h _scm.h __scm.h \
- scmconfig.h tags.h error.h \
- __scm.h print.h options.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h unif.h genio.h read.h mbstrings.h \
- symbols.h mbstrings.x
-numbers.o: numbers.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- genio.h unif.h numbers.x
-objprop.o: objprop.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- hashtab.h alist.h weaks.h objprop.h objprop.x
-options.o: options.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- options.h options.x
-pairs.o: pairs.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- pairs.x
-ports.o: ports.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- genio.h chars.h markers.h fports.h ports.h strports.h \
- vports.h ports.x
-posix.o: posix.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- fports.h ports.h genio.h scmsigs.h read.h unif.h \
- feature.h sequences.h posix.h posix.x
-print.o: print.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h genio.h mbstrings.h symbols.h smob.h \
- ports.h genio.h markers.h eval.h \
- procprop.h read.h weaks.h unif.h alist.h struct.h print.x
-procprop.o: procprop.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- alist.h eval.h procprop.h procprop.x
-procs.o: procs.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- procs.x
-ramap.o: ramap.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h unif.h \
- smob.h ports.h genio.h markers.h \
- chars.h eq.h eval.h feature.h ramap.h ramap.x
-read.o: read.c extchrs.h _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h genio.h eval.h unif.h mbstrings.h symbols.h kw.h \
- alist.h srcprop.h hashtab.h hash.h read.h read.x
-root.o: root.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- stackchk.h continuations.h debug.h dynwind.h \
- eval.h genio.h smob.h ports.h genio.h \
- markers.h throw.h root.x
-scmsigs.o: scmsigs.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- scmsigs.h scmsigs.x
-sequences.o: sequences.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- sequences.h sequences.x
-simpos.o: simpos.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- scmsigs.h simpos.h simpos.x
-smob.o: smob.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h smob.h \
- ports.h genio.h markers.h
-socket.o: socket.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- feature.h socket.h socket.x
-srcprop.o: srcprop.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h smob.h \
- ports.h genio.h markers.h alist.h \
- debug.h hashtab.h hash.h weaks.h srcprop.h srcprop.x
-stackchk.o: stackchk.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- genio.h stackchk.h continuations.h debug.h \
- stackchk.x
-stacks.o: stacks.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
- throw.h genio.h smob.h ports.h genio.h \
- markers.h procprop.h srcprop.h alist.h continuations.h \
- strports.h read.h feature.h stacks.h stacks.x
-stime.o: stime.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- stime.h stime.x
-strerror.o: strerror.c
-strings.o: strings.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h strings.x
-strop.o: strop.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h strop.h strop.x
-strorder.o: strorder.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h strorder.h strorder.x
-strports.o: strports.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h unif.h \
- eval.h read.h strports.h strports.x
-struct.o: struct.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h struct.h struct.x
-symbols.o: symbols.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h eval.h variable.h alist.h mbstrings.h symbols.h \
- symbols.x
-tag.o: tag.c _scm.h __scm.h scmconfig.h tags.h \
- error.h __scm.h print.h options.h pairs.h \
- list.h gc.h gsubr.h procs.h numbers.h symbols.h boolean.h strings.h \
- vectors.h root.h ports.h async.h chars.h struct.h tag.h tag.x
-throw.o: throw.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- genio.h smob.h ports.h genio.h \
- markers.h alist.h eval.h dynwind.h debug.h \
- continuations.h stackchk.h continuations.h \
- debug.h throw.h throw.x
-unif.o: unif.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h eval.h genio.h smob.h ports.h genio.h \
- markers.h sequences.h strop.h feature.h unif.h ramap.h \
- unif.x
-variable.o: variable.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- genio.h smob.h ports.h genio.h \
- markers.h variable.h variable.x
-vectors.o: vectors.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eq.h \
- vectors.x
-version.o: version.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- version.h version.x
-vports.o: vports.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
- chars.h fports.h ports.h vports.h vports.x
-weaks.o: weaks.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h print.h \
- options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- weaks.h weaks.x
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

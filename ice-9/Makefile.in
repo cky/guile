@@ -1,103 +1,204 @@
-# 	Copyright (C) 1995 Free Software Foundation, Inc.
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this software; see the file COPYING.  If not, write to
-# the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-# 
+# Makefile.in generated automatically by automake 1.1i from Makefile.am
 
-
+# Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy, distribute and modify it.
+
 
 SHELL = /bin/sh
 
 srcdir = @srcdir@
+top_srcdir = @top_srcdir@
 VPATH = @srcdir@
 prefix = @prefix@
+exec_prefix = @exec_prefix@
 
-VERSION=@GUILE_VERSION@
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
 
-datadir=@datadir@
-pkgdatadir=$(datadir)/guile
-pkgverdatadir=$(pkgdatadir)/$(VERSION)
-subpkgdatadir=$(pkgverdatadir)/@library_name@
-sitedatadir=$(pkgdatadir)/site
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
 
-INSTALL = $(srcdir)/../install-sh -c
-INSTALL_DATA = $(INSTALL) -m 644
+top_builddir = .
 
-scm_files = \
-	boot-9.scm \
-	r4rs.scm \
-	debug.scm \
-	expect.scm \
-	hcons.scm \
-	lineio.scm \
-	mapping.scm \
-	poe.scm \
-	slib.scm  \
-	tags.scm \
-	threads.scm \
-	test.scm
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
 
-aux_files = \
-	.cvsignore \
-	COPYING \
-	ChangeLog \
-	Makefile.in \
-	configure \
-	configure.in
+AUTOMAKE_OPTIONS = foreign
+
+subpkgdatadir = $(pkgdatadir)/$(VERSION)/@module@
+subpkgdata_DATA = boot-9.scm debug.scm expect.scm hcons.scm lineio.scm \
+mapping.scm poe.scm slib.scm tags.scm threads.scm r4rs.scm
+
+EXTRA_DIST = PLUGIN/REQ $(subpkgdata_DATA) test.scm
+ACLOCAL = $(top_srcdir)/aclocal.m4
+mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
+CONFIG_CLEAN_FILES = 
+DATA =  $(subpkgdata_DATA)
+
+DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in aclocal.m4 \
+configure configure.in
 
 
-all: 
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
 
-install: all
-	for dir in $(datadir) $(pkgdatadir) $(pkgverdatadir) \
-	  $(subpkgdatadir) $(sitedatadir); do \
-	  test -d $$dir || mkdir $$dir; \
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+
+TAR = tar
+default: all
+
+.SUFFIXES:
+$(srcdir)/aclocal.m4: configure.in
+	cd $(srcdir) && aclocal
+
+$(srcdir)/Makefile.in: Makefile.am configure.in
+	cd $(srcdir) && automake --strictness=foreign Makefile
+
+# For an explanation of the following Makefile rules, see node
+# `Automatic Remaking' in GNU Autoconf documentation.
+Makefile: $(srcdir)/Makefile.in config.status $(BUILT_SOURCES)
+	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+config.status: configure
+	$(SHELL) ./config.status --recheck
+$(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && autoconf
+
+install-subpkgdataDATA: $(subpkgdata_DATA)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(subpkgdatadir)
+	list="$(subpkgdata_DATA)"; for p in $$list; do \
+	  if test -f $(srcdir)/$$p; then \
+	    $(INSTALL_DATA) $(srcdir)/$$p $(subpkgdatadir)/$$p; \
+	  else if test -f $$p; then \
+	    $(INSTALL_DATA) $$p $(subpkgdatadir)/$$p; \
+	  fi; fi; \
 	done
-	for file in $(scm_files); do \
-	  $(INSTALL_DATA) $(srcdir)/$$file $(subpkgdatadir); \
+
+uninstall-subpkgdataDATA:
+	list="$(subpkgdata_DATA)"; for p in $$list; do \
+	  rm -f $(subpkgdatadir)/$$p; \
 	done
-
-uninstall: 
-	for file in $(scm_files) ; do \
-	  rm -f $(subpkgdatadir)/$$file;  \
-	done;
-	-rmdir $(subpkgdatadir)
-	-rmdir $(pkgverdatadir)
-	-rmdir $(sitedatadir)
-	-rmdir $(pkgdatadir)
-	-rmdir $(datadir)
+tags: TAGS
+TAGS:
 
 
-# The `dist' target in the top-level Makefile uses this `dist-dir'
-# target to select the appropriate files for distribution from the
-# directory containing this Makefile.
-.PHONY: dist-dir
-dist-dir:
-	mkdir ${DISTDIR}
-	for f in ${scm_files} ${aux_files}; do \
-	  ln ${srcdir}/$$f ${DISTDIR}; \
+distdir = $(PACKAGE)-$(VERSION)
+# This target untars the dist file and tries a VPATH configuration.  Then
+# it guarantees that the distribution is self-contained by making another
+# tarfile.
+distcheck: dist
+	rm -rf $(distdir)
+	$(TAR) zxf $(distdir).tar.gz
+	mkdir $(distdir)/=build
+	mkdir $(distdir)/=inst
+	dc_install_base=`cd $(distdir)/=inst && pwd`; \
+	cd $(distdir)/=build \
+	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
+	  && $(MAKE) \
+	  && $(MAKE) dvi \
+	  && $(MAKE) check \
+	  && $(MAKE) install \
+	  && $(MAKE) installcheck \
+	  && $(MAKE) dist
+	rm -rf $(distdir)
+	@echo "========================"; \
+	echo "$(distdir).tar.gz is ready for distribution"; \
+	echo "========================"
+dist: distdir
+	-chmod -R a+r $(distdir)
+	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	rm -rf $(distdir)
+dist-all: distdir
+	-chmod -R a+r $(distdir)
+	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	rm -rf $(distdir)
+distdir: $(DISTFILES)
+	rm -rf $(distdir)
+	mkdir $(distdir)
+	-chmod 755 $(distdir)
+	here=`pwd`; distdir=`cd $(distdir) && pwd` \
+	  && cd $(srcdir) \
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --strictness=foreign
+	$(mkinstalldirs) $(distdir)/PLUGIN
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  test -f $(distdir)/$$file \
+	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $$d/$$file $(distdir)/$$file; \
 	done
-	mkdir ${DISTDIR}/PLUGIN
-	for f in REQ greet split.sed this.configure; do \
-	  ln ${srcdir}/PLUGIN/$$f ${DISTDIR}/PLUGIN; \
-	done
+info:
+dvi:
+check: all
+	$(MAKE)
+installcheck:
+install-exec: 
+	$(NORMAL_INSTALL)
+
+install-data: install-subpkgdataDATA
+	$(NORMAL_INSTALL)
+
+install: install-exec install-data all
+	@:
+
+uninstall: uninstall-subpkgdataDATA
+
+all: $(DATA) Makefile
+
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
+installdirs:
+	$(mkinstalldirs)  $(subpkgdatadir)
 
 
-clean:
+mostlyclean-generic:
+	test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
 
-distclean:
-	-rm -f config.log config.status Makefile
+clean-generic:
+	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
-realclean:
+distclean-generic:
+	rm -f Makefile $(DISTCLEANFILES)
+	rm -f config.cache config.log stamp-h
+	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 
+maintainer-clean-generic:
+	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+mostlyclean:  mostlyclean-generic
+
+clean:  clean-generic mostlyclean 
+
+distclean:  distclean-generic clean 
+	rm -f config.status
+
+maintainer-clean:  maintainer-clean-generic distclean 
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+	rm -f config.status
+
+.PHONY: default uninstall-subpkgdataDATA install-subpkgdataDATA tags \
+distdir info dvi installcheck install-exec install-data install \
+uninstall all installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
+
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

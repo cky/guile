@@ -1,3 +1,9 @@
+Sat Nov 30 23:57:28 1996  Tom Tromey  <tromey@cygnus.com>
+
+	* PLUGIN/greet, PLUGIN/split.sed, PLUGIN/this.configure: Removed.
+	* Makefile.am, aclocal.m4: New files.
+	* configure.in: Updated for Automake.
+
 Wed Nov 27 14:16:14 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (macroexpand-1, macroexpand), slib.scm

@@ -1,131 +1,384 @@
-# Makefile for libqt
-#
-# Copyright (C) 1996, Free Software Foundation, Inc.
-# 
-# This file is part of GNU GUILE.
-# 
-# GNU GUILE is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
-# 
-# GNU GUILE is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with GNU GUILE; see the file COPYING.  If not, write to
-# the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+# Makefile.in generated automatically by automake 1.1i from Makefile.am
+
+# Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy, distribute and modify it.
+
 
 SHELL = /bin/sh
+
 srcdir = @srcdir@
+top_srcdir = @top_srcdir@
 VPATH = @srcdir@
-
 prefix = @prefix@
-exec_prefix = $(prefix)
-libdir = $(exec_prefix)/lib
-includedir = $(prefix)/include/threads
-infodir = $(prefix)/info
+exec_prefix = @exec_prefix@
 
-CC = @CC@
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = .
+
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
-
-DEFS = @DEFS@
-LIBS = @LIBS@
-
-AR_FLAGS = rc
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+host_triplet = @host@
+host_alias = @host_alias@
+target_libs = @target_libs@
 RANLIB = @RANLIB@
+qtmdb_s = @qtmdb_s@
+qtmds_s = @qtmds_s@
+qtmdc_c = @qtmdc_c@
+qtmd_h = @qtmd_h@
+CC = @CC@
 
-CFLAGS = -g
-XCFLAGS = $(CFLAGS) -I. 
-LDFLAGS = -g
+AUTOMAKE_OPTIONS = foreign
 
-#### End of system configuration section. ####
+SUBDIRS = md time
 
-distfiles = .cvsignore CHANGES ChangeLog INSTALL Makefile.base \
-	Makefile.in README README.MISC README.PORT b.h config configure \
-	configure.in copyright.h meas.c qt.c qt.h.in stp.c stp.h
-plugin_distfiles = OPT greet
-md_distfiles = \
-	default.Makefile null.README null.c \
-	axp.1.Makefile axp.2.Makefile axp.Makefile axp.README axp.c \
-		axp.h axp.s axp_b.s \
-	hppa-cnx.Makefile hppa.Makefile hppa.h hppa.s hppa_b.s \
-	i386.README i386.h i386.s i386_b.s \
-	ksr1.Makefile ksr1.h ksr1.s ksr1_b.s \
-	m88k.Makefile m88k.c m88k.h m88k.s m88k_b.s \
-	mips-irix5.s mips.h mips.s mips_b.s \
-	solaris.README sparc.h sparc.s sparc_b.s _sparc.s _sparc_b.s \
-	vax.h vax.s vax_b.s
-time_distfiles = README.time assim cswap go init prim raw
+lib_LIBRARIES = @target_libs@
+EXTRA_LIBRARIES = libqt.a
 
-all_objs= qt.o qtmds.o qtmdc.o
+libqt_a_SOURCES = qt.c copyright.h
+libqt_a_LIBADD = qtmds.o qtmdc.o
 
-all: @target_all@
+EXTRA_DIST = CHANGES README.MISC README.PORT b.h meas.c stp.c stp.h \
+PLUGIN/OPT Makefile.base config
+ACLOCAL = $(top_srcdir)/aclocal.m4
+mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
+CONFIG_CLEAN_FILES =  qt.h
+LIBRARIES =  $(lib_LIBRARIES)
 
-libqt.a: $(all_objs)
-	$(AR) $(AR_FLAGS) libqt.a $(all_objs)
+
+DEFS = @DEFS@ -I. -I$(srcdir) 
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libqt_a_DEPENDENCIES =  qtmds.o qtmdc.o
+libqt_a_OBJECTS =  qt.o
+AR = ar
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LINK = $(CC) $(LDFLAGS) -o $@
+DIST_COMMON =  README ChangeLog INSTALL Makefile.am Makefile.in README \
+aclocal.m4 configure configure.in qt.h.in
+
+
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+
+TAR = tar
+DEP_FILES =  .deps/qt.P
+SOURCES = $(libqt_a_SOURCES)
+OBJECTS = $(libqt_a_OBJECTS)
+
+default: all
+
+.SUFFIXES:
+.SUFFIXES: .c .o
+$(srcdir)/aclocal.m4: configure.in
+	cd $(srcdir) && aclocal
+
+$(srcdir)/Makefile.in: Makefile.am configure.in
+	cd $(srcdir) && automake --strictness=foreign Makefile
+
+# For an explanation of the following Makefile rules, see node
+# `Automatic Remaking' in GNU Autoconf documentation.
+Makefile: $(srcdir)/Makefile.in config.status $(BUILT_SOURCES)
+	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+config.status: configure
+	$(SHELL) ./config.status --recheck
+$(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && autoconf
+qt.h: $(top_builddir)/config.status qt.h.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
+
+mostlyclean-libLIBRARIES:
+
+clean-libLIBRARIES:
+	test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+
+distclean-libLIBRARIES:
+
+maintainer-clean-libLIBRARIES:
+
+install-libLIBRARIES: $(lib_LIBRARIES)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(libdir)
+	list="$(lib_LIBRARIES)"; for p in $$list; do \
+	  if test -f $$p; then \
+	    $(INSTALL_DATA) $$p $(libdir)/$$p; \
+	  else :; fi; \
+	done
+	$(POST_INSTALL)
+	list="$(lib_LIBRARIES)"; for p in $$list; do \
+	  if test -f $$p; then \
+	    $(RANLIB) $(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLIBRARIES:
+	list="$(lib_LIBRARIES)"; for p in $$list; do \
+	  rm -f $(libdir)/$$p; \
+	done
+
+.c.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	rm -f *.o core
+
+clean-compile:
+
+distclean-compile:
+	rm -f *.tab.c
+
+maintainer-clean-compile:
+
+libqt.a: $(libqt_a_OBJECTS) $(libqt_a_DEPENDENCIES)
+	rm -f libqt.a
+	$(AR) cru libqt.a $(libqt_a_OBJECTS) $(libqt_a_LIBADD)
 	$(RANLIB) libqt.a
 
-# The `dist' target in the top-level Makefile uses this `dist-dir'
-# target to select the appropriate files for distribution from the
-# directory containing this Makefile.
-.PHONY: dist-dir
-dist-dir:
-	mkdir ${DISTDIR}
-	for f in ${distfiles}; do \
-	  ln ${srcdir}/$$f ${DISTDIR}; \
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+
+@SET_MAKE@
+
+all-recursive install-data-recursive install-exec-recursive \
+installdirs-recursive install-recursive uninstall-recursive  \
+check-recursive installcheck-recursive info-recursive dvi-recursive \
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	for subdir in $(SUBDIRS); do		\
+	  target=`echo $@ | sed s/-recursive//`; \
+	  (cd $$subdir && $(MAKE) $$target)	\
+	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list="$(SUBDIRS)"; for subdir in $$list; do \
+	  (cd $$subdir && $(MAKE) tags); \
 	done
-	mkdir ${DISTDIR}/PLUGIN
-	for f in ${plugin_distfiles}; do \
-	  ln ${srcdir}/PLUGIN/$$f ${DISTDIR}/PLUGIN; \
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES)
+	here=`pwd` && cd $(srcdir) && mkid -f$$here/ID $(SOURCES) $(HEADERS)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES)
+	tags=; \
+	here=`pwd`; \
+	list="$(SUBDIRS)"; for subdir in $$list; do \
+	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+	done; \
+	test -z "$(ETAGS_ARGS)$(SOURCES)$(HEADERS)$$tags" \
+	  || cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $(SOURCES) $(HEADERS) -o $$here/TAGS
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(PACKAGE)-$(VERSION)
+# This target untars the dist file and tries a VPATH configuration.  Then
+# it guarantees that the distribution is self-contained by making another
+# tarfile.
+distcheck: dist
+	rm -rf $(distdir)
+	$(TAR) zxf $(distdir).tar.gz
+	mkdir $(distdir)/=build
+	mkdir $(distdir)/=inst
+	dc_install_base=`cd $(distdir)/=inst && pwd`; \
+	cd $(distdir)/=build \
+	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
+	  && $(MAKE) \
+	  && $(MAKE) dvi \
+	  && $(MAKE) check \
+	  && $(MAKE) install \
+	  && $(MAKE) installcheck \
+	  && $(MAKE) dist
+	rm -rf $(distdir)
+	@echo "========================"; \
+	echo "$(distdir).tar.gz is ready for distribution"; \
+	echo "========================"
+dist: distdir
+	-chmod -R a+r $(distdir)
+	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	rm -rf $(distdir)
+dist-all: distdir
+	-chmod -R a+r $(distdir)
+	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	rm -rf $(distdir)
+distdir: $(DISTFILES)
+	rm -rf $(distdir)
+	mkdir $(distdir)
+	-chmod 755 $(distdir)
+	here=`pwd`; distdir=`cd $(distdir) && pwd` \
+	  && cd $(srcdir) \
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --strictness=foreign
+	$(mkinstalldirs) $(distdir)/PLUGIN
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  test -f $(distdir)/$$file \
+	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $$d/$$file $(distdir)/$$file; \
 	done
-	mkdir ${DISTDIR}/md
-	for f in ${md_distfiles}; do \
-	  ln ${srcdir}/md/$$f ${DISTDIR}/md; \
+	for subdir in $(SUBDIRS); do		\
+	  test -d $(distdir)/$$subdir		\
+	  || mkdir $(distdir)/$$subdir		\
+	  || exit 1;				\
+	  chmod 755 $(distdir)/$$subdir;	\
+	  (cd $$subdir && $(MAKE) distdir=../$(distdir)/$$subdir distdir) \
+	    || exit 1; \
 	done
-	mkdir ${DISTDIR}/time
-	for f in ${time_distfiles}; do \
-	  ln ${srcdir}/time/$$f ${DISTDIR}/time; \
-	done
+
+MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
+-include .deps/.P
+.deps/.P:
+	test -d .deps || mkdir .deps
+	echo > $@
+
+-include $(DEP_FILES)
+$(DEP_FILES): .deps/.P
+
+mostlyclean-depend:
+
+clean-depend:
+
+distclean-depend:
+
+maintainer-clean-depend:
+	rm -rf .deps
+
+.deps/%.P: $(srcdir)/%.c
+	@echo "Computing dependencies for $<..."
+	@$(MKDEP) $< > $@-tmp
+	@if test -n "$o"; then			\
+	  sed 's/\.o:/$$o:/' $@-tmp > $@;	\
+	  rm $@-tmp;				\
+	else					\
+	  mv $@-tmp $@;				\
+	fi
+info: info-recursive
+dvi: dvi-recursive
+check: all-am
+	$(MAKE) check-recursive
+installcheck: installcheck-recursive
+all-am: $(LIBRARIES) Makefile
+
+install-exec-am: install-libLIBRARIES
+
+uninstall-am: uninstall-libLIBRARIES
+
+install-exec: install-exec-recursive install-exec-am
+	$(NORMAL_INSTALL)
+
+install-data: install-data-recursive
+	$(NORMAL_INSTALL)
+
+install: install-recursive install-exec-am
+	@:
+
+uninstall: uninstall-recursive uninstall-am
+
+all: all-recursive all-am
+
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
+installdirs: installdirs-recursive
+	$(mkinstalldirs)  $(libdir)
 
 
-install: @target_install@
-install_qt: all
-	test -d $(prefix) || mkdir $(prefix)
-	test -d $(libdir) || mkdir $(libdir)
-	$(INSTALL) libqt.a $(libdir)/libqt.a
-	$(RANLIB) $(libdir)/libqt.a
-	$(INSTALL) $(srcdir)/qt.h $(includedir); 
+mostlyclean-generic:
+	test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
 
-uninstall: @target_uninstall@
-uninstall_qt:
-	-rm -f $(libdir)/libqt.a
-	-rm -f $(includedir)/qt.h
+clean-generic:
+	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
-info:
+distclean-generic:
+	rm -f Makefile $(DISTCLEANFILES)
+	rm -f config.cache config.log stamp-h
+	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 
-clean:
-	-rm -f guile
-	-rm -f $(all_objs)
+maintainer-clean-generic:
+	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+mostlyclean-am:  mostlyclean-libLIBRARIES mostlyclean-compile \
+		mostlyclean-tags mostlyclean-depend mostlyclean-generic
 
-distclean: clean
-	-rm -f config.cache
-	-rm -f config.log
-	-rm -f config.status
+clean-am:  clean-libLIBRARIES clean-compile clean-tags clean-depend \
+		clean-generic mostlyclean-am 
 
-realclean: distclean
+distclean-am:  distclean-libLIBRARIES distclean-compile distclean-tags \
+		distclean-depend distclean-generic clean-am 
 
-###
+maintainer-clean-am:  maintainer-clean-libLIBRARIES \
+		maintainer-clean-compile maintainer-clean-tags \
+		maintainer-clean-depend maintainer-clean-generic \
+		distclean-am 
 
-qt.o: $(srcdir)/qt.c @qtmd_h@ qt.h $(srcdir)/copyright.h
-	$(CC) -o qt.o -c $(CPPFLAGS) $(DEFS) $(XCFLAGS) -I$(srcdir) $(srcdir)/qt.c
+mostlyclean:  mostlyclean-am mostlyclean-recursive
+
+clean:  clean-am clean-recursive
+
+distclean:  distclean-am distclean-recursive
+	rm -f config.status
+
+maintainer-clean:  maintainer-clean-am maintainer-clean-recursive
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+	rm -f config.status
+
+.PHONY: default mostlyclean-libLIBRARIES distclean-libLIBRARIES \
+clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
+install-libLIBRARIES mostlyclean-compile distclean-compile \
+clean-compile maintainer-clean-compile install-data-recursive \
+uninstall-data-recursive install-exec-recursive \
+uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
+all-recursive check-recursive installcheck-recursive info-recursive \
+dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir \
+mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info dvi installcheck all-am install-exec-am \
+uninstall-am install-exec install-data install uninstall all \
+installdirs mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+
 
 qtmds.o: @qtmds_s@ 
-	$(CC) -o qtmds.o -c $(CPPFLAGS) $(DEFS) $(XCFLAGS) -I$(srcdir) @qtmds_s@
+	$(COMPILE) -o qtmds.o @qtmds_s@
 
 qtmdc.o: @qtmdc_c@ @qtmd_h@
-	$(CC) -o qtmdc.o -c $(CPPFLAGS) $(DEFS) $(XCFLAGS) -I$(srcdir) @qtmdc_c@
+	$(COMPILE) -o qtmdc.o @qtmdc_c@
 
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

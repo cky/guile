@@ -1,7 +1,6 @@
 AC_INIT(eval.c)
-AC_CONFIG_HEADER(scmconfig.h)
-
-. $srcdir/../GUILE-VERSION
+AM_CONFIG_HEADER(scmconfig.h)
+AM_INIT_GUILE_MODULE(libguile)
 
 #--------------------------------------------------------------------
 #
@@ -19,9 +18,6 @@ fi
 
 #--------------------------------------------------------------------
 
-test -z "$CFLAGS" && CFLAGS=-g
-test -z "$LDFLAGS" && LDFLAGS=-g
-
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_RANLIB
@@ -30,9 +26,7 @@ AC_AIX
 AC_ISC_POSIX
 AC_MINIX
 
-builtin(sinclude, ../aclocal.m4)
 CY_AC_WITH_THREADS
-CFLAGS="$CPPFLAGS $CFLAGS"
 
 AC_C_CONST
 
@@ -203,14 +197,7 @@ AC_DEFINE_UNQUOTED(GUILE_MAJOR_VERSION, "$GUILE_MAJOR_VERSION")
 AC_DEFINE_UNQUOTED(GUILE_MINOR_VERSION, "$GUILE_MINOR_VERSION")
 AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION")
 
-AC_SUBST(CFLAGS)
-AC_SUBST(LDFLAGS)
-AC_SUBST(LIBOBJS)
 AC_SUBST(FD_SETTER)
-AC_SUBST(XINCLUDES)
-AC_SUBST(GUILE_MAJOR_VERSION)
-AC_SUBST(GUILE_MINOR_VERSION)
-AC_SUBST(GUILE_VERSION)
 AC_OUTPUT(Makefile fd.h)
 
 dnl Local Variables:

@@ -1,3 +1,10 @@
+Sat Nov 30 23:59:06 1996  Tom Tromey  <tromey@cygnus.com>
+
+	* PLUGIN/greet: Removed.
+	* Makefile.am, md/Makefile.am, time/Makefile.am, aclocal.m4: New
+	files.
+	* configure.in: Updated for Automake.
+
 Sun Nov 10 17:40:47 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* configure.in, Makefile.in: The 'install' and 'uninstall'

@@ -73,3 +73,6 @@
 
 /* Define if using any sort of threads.  */
 #undef USE_THREADS
+
+/* Name of this package.  */
+#undef PACKAGE

@@ -36,9 +36,10 @@ precisely engineered fashion; to correct an error, you need not know
 the history of the erroneous passage.  (This is copied from the GNU
 coding standards.)
 
-- If you add or remove files, don't forget to update the 'dist-dir'
-target in the relevant Makefile.in files, so the snapshot and
-distribution processes will work.
+- If you add or remove files, don't forget to update the appropriate
+part of the relevant Makefile.am files, and regenerate the
+Makefile.in.  If you forget this, the snapshot and distribution
+processes will not work.
 
 - Make sure you have papers from people before integrating their
 changes or contributions.  This is very frustrating, but very

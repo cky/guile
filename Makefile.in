@@ -1,304 +1,259 @@
-#	Copyright (C) 1994,1995 Free Software Foundation, Inc.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this software; see the file COPYING.  If not, write to
-# the Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# Makefile.in generated automatically by automake 1.1i from Makefile.am
 
-VERSION = @GUILE_VERSION@
+# Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy, distribute and modify it.
+
 
 SHELL = /bin/sh
 
-srcdir=@srcdir@
-subdirs=@build_subdirs@
-dist_dirs=@existingdirs@ doc
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
 
-DISTFILES =	AUTHORS \
-		COPYING \
-		ChangeLog \
-		GUILE-VERSION \
-		INSTALL \
-		NEWS \
-		README \
-		TODO \
-		aclocal.m4 \
-		Makefile.in \
-		configure \
-		configure.in \
-		config.sub \
-		config.guess \
-		install-sh \
-		mkinstalldirs
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
 
-# `all'
-#     Compile the entire program.  This should be the default target.
-#     This target need not rebuild any documentation files; info files
-#     should normally be included in the distribution, and DVI files
-#     should be made only when explicitly asked for.
-all:
-	@for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} all; \
-		cd .. ;\
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = .
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+existingdirs = @existingdirs@
+
+SUBDIRS = @existingdirs@ doc
+
+guile_dirs = @existingdirs@ doc
+
+aclocaldir = $(datadir)/aclocal
+aclocal_DATA = guile.m4 threads.m4
+
+EXTRA_DIST = $(aclocal_DATA) HACKING GUILE-VERSION
+ACLOCAL = $(top_srcdir)/aclocal.m4
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_CLEAN_FILES = 
+DATA =  $(aclocal_DATA)
+
+DIST_COMMON =  README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
+Makefile.in NEWS README TODO aclocal.m4 config.guess config.sub \
+configure configure.in install-sh mdate-sh mkinstalldirs
+
+
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+
+TAR = tar
+default: all
+
+.SUFFIXES:
+$(srcdir)/aclocal.m4: configure.in
+	cd $(srcdir) && aclocal
+
+$(srcdir)/Makefile.in: Makefile.am configure.in
+	cd $(srcdir) && automake --strictness=gnu Makefile
+
+# For an explanation of the following Makefile rules, see node
+# `Automatic Remaking' in GNU Autoconf documentation.
+Makefile: $(srcdir)/Makefile.in config.status $(BUILT_SOURCES)
+	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+config.status: configure
+	$(SHELL) ./config.status --recheck
+$(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && autoconf
+
+install-aclocalDATA: $(aclocal_DATA)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(aclocaldir)
+	list="$(aclocal_DATA)"; for p in $$list; do \
+	  if test -f $(srcdir)/$$p; then \
+	    $(INSTALL_DATA) $(srcdir)/$$p $(aclocaldir)/$$p; \
+	  else if test -f $$p; then \
+	    $(INSTALL_DATA) $$p $(aclocaldir)/$$p; \
+	  fi; fi; \
 	done
 
-#`install'
-#     Compile the program and copy the executables, libraries, and so on
-#     to the file names where they should reside for actual use.  If
-#     there is a simple test to verify that a program is properly
-#     installed then run that test.
-#
-#     Use `-' before any command for installing a man page, so that
-#     `make' will ignore any errors.  This is in case there are systems
-#     that don't have the Unix man page documentation system installed.
-#
-#     In the future, when we have a standard way of installing info
-#     files, `install' targets will be the proper place to do so.
-#
-subdir-inst-target=install-nobuild
-
-install: all
-	${MAKE} subdir-inst-target=install install-nobuild
-
-install-nobuild:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} ${subdir-inst-target}; \
-		cd ..  ;\
+uninstall-aclocalDATA:
+	list="$(aclocal_DATA)"; for p in $$list; do \
+	  rm -f $(aclocaldir)/$$p; \
 	done
 
-#`uninstall'
-#     Delete all the installed files that the `install' target would
-#     create (but not the noninstalled files such as `make all' would
-#     create).
-uninstall:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} uninstall; \
-		cd ..  ;\
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+
+@SET_MAKE@
+
+all-recursive install-data-recursive install-exec-recursive \
+installdirs-recursive install-recursive uninstall-recursive  \
+check-recursive installcheck-recursive info-recursive dvi-recursive \
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	for subdir in $(SUBDIRS); do		\
+	  target=`echo $@ | sed s/-recursive//`; \
+	  (cd $$subdir && $(MAKE) $$target)	\
+	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list="$(SUBDIRS)"; for subdir in $$list; do \
+	  (cd $$subdir && $(MAKE) tags); \
 	done
+tags: TAGS
+TAGS:
 
 
-#`clean'
-#     Delete all files from the current directory that are normally
-#     created by building the program.  Don't delete the files that
-#     record the configuration.  Also preserve files that could be made
-#     by building, but normally aren't because the distribution comes
-#     with them.
-#
-#     Delete `.dvi' files here if they are not part of the distribution.
-#
-clean:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} clean; \
-		cd ..  ;\
+distdir = $(PACKAGE)-$(VERSION)
+# This target untars the dist file and tries a VPATH configuration.  Then
+# it guarantees that the distribution is self-contained by making another
+# tarfile.
+distcheck: dist
+	rm -rf $(distdir)
+	$(TAR) zxf $(distdir).tar.gz
+	mkdir $(distdir)/=build
+	mkdir $(distdir)/=inst
+	dc_install_base=`cd $(distdir)/=inst && pwd`; \
+	cd $(distdir)/=build \
+	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
+	  && $(MAKE) \
+	  && $(MAKE) dvi \
+	  && $(MAKE) check \
+	  && $(MAKE) install \
+	  && $(MAKE) installcheck \
+	  && $(MAKE) dist
+	rm -rf $(distdir)
+	@echo "========================"; \
+	echo "$(distdir).tar.gz is ready for distribution"; \
+	echo "========================"
+dist: distdir
+	-chmod -R a+r $(distdir)
+	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	rm -rf $(distdir)
+dist-all: distdir
+	-chmod -R a+r $(distdir)
+	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	rm -rf $(distdir)
+distdir: $(DISTFILES)
+	rm -rf $(distdir)
+	mkdir $(distdir)
+	-chmod 755 $(distdir)
+	here=`pwd`; distdir=`cd $(distdir) && pwd` \
+	  && cd $(srcdir) \
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --strictness=gnu
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  test -f $(distdir)/$$file \
+	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $$d/$$file $(distdir)/$$file; \
 	done
+	for subdir in $(SUBDIRS); do		\
+	  test -d $(distdir)/$$subdir		\
+	  || mkdir $(distdir)/$$subdir		\
+	  || exit 1;				\
+	  chmod 755 $(distdir)/$$subdir;	\
+	  (cd $$subdir && $(MAKE) distdir=../$(distdir)/$$subdir distdir) \
+	    || exit 1; \
+	done
+info: info-recursive
+dvi: dvi-recursive
+check: all-am
+	$(MAKE) check-recursive
+installcheck: installcheck-recursive
+all-am: $(DATA) Makefile
 
-#`distclean'
-#     Delete all files from the current directory that are created by
-#     configuring or building the program.  If you have unpacked the
-#     source and built the program without creating any other files,
-#     `make distclean' should leave only the files that were in the
-#     distribution.
-distclean:
-	rm -f config.cache
-	rm -f config.log
+install-data-am: install-aclocalDATA
+
+uninstall-am: uninstall-aclocalDATA
+
+install-exec: install-exec-recursive
+	$(NORMAL_INSTALL)
+
+install-data: install-data-recursive install-data-am
+	$(NORMAL_INSTALL)
+
+install: install-recursive install-data-am
+	@:
+
+uninstall: uninstall-recursive uninstall-am
+
+all: all-recursive all-am
+
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
+installdirs: installdirs-recursive
+	$(mkinstalldirs)  $(aclocaldir)
+
+
+mostlyclean-generic:
+	test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
+
+clean-generic:
+	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+
+distclean-generic:
+	rm -f Makefile $(DISTCLEANFILES)
+	rm -f config.cache config.log stamp-h
+	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+
+maintainer-clean-generic:
+	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+mostlyclean-am:  mostlyclean-generic
+
+clean-am:  clean-generic mostlyclean-am 
+
+distclean-am:  distclean-generic clean-am 
+
+maintainer-clean-am:  maintainer-clean-generic distclean-am 
+
+mostlyclean:  mostlyclean-am mostlyclean-recursive
+
+clean:  clean-am clean-recursive
+
+distclean:  distclean-am distclean-recursive
 	rm -f config.status
-	rm -f config.build-subdirs
-	rm -f Makefile
-	rm -f doc/Makefile
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} distclean; \
-		cd ..  ;\
-	done
 
+maintainer-clean:  maintainer-clean-am maintainer-clean-recursive
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+	rm -f config.status
 
-#`mostlyclean'
-#     Like `clean', but may refrain from deleting a few files that people
-#     normally don't want to recompile.  For example, the `mostlyclean'
-#     target for GCC does not delete `libgcc.a', because recompiling it
-#     is rarely necessary and takes a lot of time.
-mostlyclean:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} mostlyclean; \
-		cd ..  ;\
-	done
+.PHONY: default uninstall-aclocalDATA install-aclocalDATA \
+install-data-recursive uninstall-data-recursive install-exec-recursive \
+uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
+all-recursive check-recursive installcheck-recursive info-recursive \
+dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags tags-recursive distdir info dvi \
+installcheck all-am install-data-am uninstall-am install-exec \
+install-data install uninstall all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
+guile-dist:
+	$(MAKE) SUBDIRS="$(guile_dirs)" dist
 
-#`realclean'
-#     Delete everything from the current directory that can be
-#     reconstructed with this Makefile.  This typically includes
-#     everything deleted by distclean, plus more: C source files
-#     produced by Bison, tags tables, info files, and so on.
-#
-#     One exception, however: `make realclean' should not delete
-#     `configure' even if `configure' can be remade using a rule in the
-#     Makefile.  More generally, `make realclean' should not delete
-#     anything that needs to exist in order to run `configure' and then
-#     begin to build the program.
-realclean:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} realclean; \
-		cd ..  ;\
-	done
-
-
-#`TAGS'
-#     Update a tags table for this program.
-#     We could allow each subdirectory to create its own TAGS file,
-#     and then use etags' --include option to incorporate them all by
-#     reference into a top-level TAGS file, but the --include option
-#     seems to be deprecated, and this works fine.
-# 
-#     The extra 'tags' name is useful --- 'make TAGS' won't run the
-#     commands if the file `TAGS' already exists, but `make tags'
-#     doesn't have that problem.
-TAGS tags:
-	etags \
-	  --regex='/SCM_PROC[^"]*"[^"]*"/' \
-	  `find ${srcdir} -name '*.[ch]' -o -name '*.scm'`
-
-#`info'
-#     Generate any info files needed.  The best way to write the rules
-#     is as follows:
-#
-#          info:  foo.info
-#          
-#          foo.info: $(srcdir)/foo.texi $(srcdir)/chap1.texi $(srcdir)/chap2.texi
-#                  $(MAKEINFO) $(srcdir)/foo.texi
-#
-#     You must define the variable `MAKEINFO' in the Makefile.  It
-#     should run the Makeinfo program, which is part of the Texinfo2
-#     distribution.
-info:
-	cd doc; ${MAKE} info
-
-#`dvi'
-#     Generate DVI files for all TeXinfo documentation.  For example:
-#
-#          dvi: foo.dvi
-#          
-#          foo.dvi: $(srcdir)/foo.texi $(srcdir)/chap1.texi $(srcdir)/chap2.texi
-#                  $(TEXI2DVI) $(srcdir)/foo.texi
-#
-#     You must define the variable `TEXI2DVI' in the Makefile.  It should
-#     run the program `texi2dvi', which is part of the Texinfo2
-#     distribution.  Alternatively, write just the dependencies, and
-#     allow GNU Make to provide the command.
-dvi:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} dvi; \
-		cd ..  ;\
-	done
-
-#`dist'
-#     Create a distribution tar file for this program.  The tar file
-#     should be set up so that the file names in the tar file start with
-#     a subdirectory name which is the name of the package it is a
-#     distribution for.  This name can include the version number.
-#
-#     For example, the distribution tar file of GCC version 1.40 unpacks
-#     into a subdirectory named `gcc-1.40'.
-#
-#     The easiest way to do this is to create a subdirectory
-#     appropriately named, use `ln' or `cp' to install the proper files
-#     in it, and then `tar' that subdirectory.
-#
-#     The `dist' target should explicitly depend on all non-source files
-#     that are in the distribution, to make sure they are up to date in
-#     the distribution.  *Ref Making Releases: (standards)Releases.
-.PHONY: dist
-GZIP=gzip --best
-GZIP_EXT=.gz
-TAR_VERBOSE=v
-DIST_NAME=guile-${VERSION}
-dist: info
-	@echo "Creating distribution for ${DIST_NAME}."
-	rm -rf ${DIST_NAME} ${DIST_NAME}.tar${GZIP_EXT}
-	${MAKE} dist-dir DISTDIR="${DIST_NAME}"
-	for dir in ${dist_dirs}; do \
-	  ( DISTDIR="../${DIST_NAME}/$${dir}"; \
-	    cd $${dir} && \
-	    ${MAKE} dist-dir DISTDIR="$${DISTDIR}" \
-	  ); \
-	done
-	tar chf${TAR_VERBOSE} - ${DIST_NAME} | ${GZIP} > "${DIST_NAME}.tar${GZIP_EXT}"
-	rm -rf ${DIST_NAME}
-
-# The `dist' target in the top-level Makefile uses this `dist-dir'
-# target to select the appropriate files for distribution from the
-# directory containing this Makefile.
-.PHONY: dist-dir
-dist-dir:
-	mkdir ${DISTDIR}
-	for i in ${DISTFILES}; do \
-	  ln $(srcdir)/$${i} ${DISTDIR}; \
-        done
-
-#`check'
-#     Perform self-tests (if any).  The user must build the program
-#     before running the tests, but need not install the program; you
-#     should write the self-tests so that they work when the program is
-#     built but not installed.
-check:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} check; \
-		cd ..  ;\
-	done
-
-
-#`installcheck'
-#     Perform installation tests (if any).  The user must build and
-#     install the program before running the tests.  You should not
-#     assume that `$(bindir)' is in the search path.
-installcheck:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} installcheck; \
-		cd ..  ;\
-	done
-
-
-#`installdirs'
-#     It's useful to add a target named `installdirs' to create the
-#     directories where files are installed, and their parent
-#     directories.  There is a script called `mkinstalldirs' which is
-#     convenient for this; find it in the Texinfo package.You can use a
-#     rule like this:
-#
-#          # Make sure all installation directories, e.g. $(bindir) actually exist by
-#          # making them if necessary.
-#          installdirs: mkinstalldirs
-#                  $(srcdir)/mkinstalldirs $(bindir) $(datadir) $(libdir) \
-#                                          $(infodir) $(mandir)
-installdirs:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} installdirs; \
-		cd ..  ;\
-	done
-
-
-
-# Cygnus extention:
-# 
-#    `Makefile'
-#          Calls `./config.status' to rebuild the `Makefile' in this
-#          directory.
-Makefile:
-	${SHELL-/bin/sh} config.status
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

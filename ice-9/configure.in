@@ -3,11 +3,5 @@
 #
 
 AC_INIT(boot-9.scm)
-
-. $srcdir/../GUILE-VERSION
-
-. $srcdir/PLUGIN/this.configure
-AC_SUBST(library_name)
-AC_SUBST(info_files)
-AC_SUBST(GUILE_VERSION)
+AM_INIT_GUILE_MODULE(ice-9)
 AC_OUTPUT(Makefile)

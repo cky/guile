@@ -1,5 +1,17 @@
 dnl aclocal.m4 generated automatically by aclocal 1.1i
 
+
+dnl Usage: AM_INIT_GUILE_MODULE(module-name)
+dnl This macro will automatically get the guile version from the
+dnl top-level srcdir, and will initialize automake.  It also
+dnl defines the `module' variable.
+AC_DEFUN([AM_INIT_GUILE_MODULE],[
+. $srcdir/../GUILE-VERSION
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
+AC_CONFIG_AUX_DIR(..)
+module=[$1]
+AC_SUBST(module)])
+
 # Do all the work for Automake.  This macro actually does too much --
 # some checks are only needed if your package does certain things.
 # But this isn't really a big deal.

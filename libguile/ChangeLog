@@ -1,3 +1,12 @@
+Sun Dec  1 00:00:49 1996  Tom Tromey  <tromey@cygnus.com>
+
+	* guile-snarf.sh: Removed.
+	* PLUGIN/guile.libs: Added dependency for -lm.
+	* acinclude.m4: Renamed from aclocal.m4.
+	* PLUGIN/greet: Removed.
+	* Makefile.am, aclocal.m4: New files.
+	* configure.in: Updated for Automake.
+
 Thu Nov 28 00:23:55 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (scm_definedp): Use top_level_lookup_closure_var
