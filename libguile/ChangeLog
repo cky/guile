@@ -1,3 +1,11 @@
+2000-04-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (scm_unmemocar):  Use macros to test for gloc cell.
+	Minimize scope of variable 'ir'.
+
+	* eval.h (SCM_IFRAME, SCM_IDIST), weaks.h (SCM_IS_WHVEC_ANY):
+	Added missing call to SCM_UNPACK.
+
 2000-04-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* validate.h (SCM_VALIDATE_INUM_RANGE_COPY,

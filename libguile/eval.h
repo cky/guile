@@ -81,9 +81,10 @@ extern SCM scm_eval_options_interface (SCM setting);
 #define SCM_ICDR		(0x00080000L)
 #define SCM_IFRINC		(0x00000100L)
 #define SCM_IDSTMSK		(-SCM_IDINC)
-#define SCM_IFRAME(n) 		((int)((SCM_ICDR-SCM_IFRINC)>>8) & ((int)(n)>>8))
-#define SCM_IDIST(n) 		(((unsigned long)(n))>>20)
-#define SCM_ICDRP(n) 		(SCM_ICDR & SCM_UNPACK(n))
+#define SCM_IFRAME(n) 		((int)((SCM_ICDR-SCM_IFRINC)>>8) \
+				 & (SCM_UNPACK (n) >> 8))
+#define SCM_IDIST(n) 		(SCM_UNPACK (n) >> 20)
+#define SCM_ICDRP(n) 		(SCM_ICDR & SCM_UNPACK (n))
 
 
 

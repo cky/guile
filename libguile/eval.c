@@ -405,20 +405,19 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 SCM 
 scm_unmemocar (SCM form, SCM env)
 {
-#ifdef DEBUG_EXTENSIONS
-  register int ir;
-#endif
   SCM c;
 
   if (SCM_IMP (form))
     return form;
   c = SCM_CAR (form);
-  if (1 == (SCM_UNPACK (c) & 7))
+  if (SCM_ITAG3 (c) == scm_tc3_cons_gloc)
     SCM_SETCAR (form, SCM_GLOC_SYM (c));
 #ifdef MEMOIZE_LOCALS
 #ifdef DEBUG_EXTENSIONS
   else if (SCM_ILOCP (c))
     {
+      int ir;
+
       for (ir = SCM_IFRAME (c); ir != 0; --ir)
 	env = SCM_CDR (env);
       env = SCM_CAR (SCM_CAR (env));

@@ -56,7 +56,7 @@
 #define SCM_IS_WHVEC(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) == 1)
 #define SCM_IS_WHVEC_V(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) == 2)
 #define SCM_IS_WHVEC_B(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) == 3)
-#define SCM_IS_WHVEC_ANY(X) (SCM_VELTS(X)[-1])
+#define SCM_IS_WHVEC_ANY(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) != 0)
 #define SCM_WVECT_GC_CHAIN(X) (SCM_VELTS(X)[-2])
 
 
