@@ -70,6 +70,7 @@ int scm_subr_table_room = 750;
 SCM 
 scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
 {
+  SCM symbol;
   SCM symcell;
   register SCM z;
   int entry;
@@ -87,14 +88,21 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
     }
 
   SCM_NEWCELL (z);
-  symcell = set ? scm_sysintern0 (name) : scm_intern0 (name);
+  if (set)
+    {
+      symcell = scm_sysintern (name, SCM_UNDEFINED);
+      symbol = SCM_CAR (symcell);
+    }
+  else
+    {
+      symbol = scm_str2symbol (name);
+    }
   
   entry = scm_subr_table_size;
   scm_subr_table[entry].handle = z;
-  scm_subr_table[entry].name = SCM_CAR (symcell);
+  scm_subr_table[entry].name = symbol;
   scm_subr_table[entry].generic = 0;
   scm_subr_table[entry].properties = SCM_EOL;
-  scm_subr_table[entry].documentation = SCM_BOOL_F;
   
   SCM_SET_SUBRF (z, fcn);
   SCM_SET_CELL_TYPE (z, (entry << 8) + type);
@@ -143,8 +151,6 @@ scm_mark_subr_table ()
 	scm_gc_mark (*scm_subr_table[i].generic);
       if (SCM_NIMP (scm_subr_table[i].properties))
 	scm_gc_mark (scm_subr_table[i].properties);
-      if (SCM_NIMP (scm_subr_table[i].documentation))
-	scm_gc_mark (scm_subr_table[i].documentation);
     }
 }
 

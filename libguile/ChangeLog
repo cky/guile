@@ -1,3 +1,17 @@
+2000-12-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* procs.h (scm_subr_entry):  Removed unused struct member
+	"documentation".
+
+	(SCM_SUBR_DOC):  Deprecated.
+
+	* procs.c (scm_make_subr_opt):  Eliminate use of scm_intern0 in
+	favor of scm_str2symbol.  Similarly, prefer scm_sysintern over
+	scm_sysintern0.
+
+	(scm_make_subr_opt, scm_mark_subr_table):  Struct scm_subr_entry
+	does not have a member "documentation" any more.
+
 2000-12-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (restore_environment):  Make sure that changes to the
