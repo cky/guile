@@ -1,3 +1,7 @@
+2002-05-09  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* scan-api (scan-C!): Use more robust regexp.
+
 2002-05-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* scan-api: New script.
