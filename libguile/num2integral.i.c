@@ -35,6 +35,11 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
       ITYPE res = 0;
       size_t l;
 
+#ifdef UNSIGNED
+      if (SCM_BIGSIGN (num))
+        scm_out_of_range (s_caller, num);
+#endif
+
       for (l = SCM_NUMDIGS (num); l--;)
         {
           ITYPE new = SCM_I_BIGUP (ITYPE, res) + SCM_BDIGITS (num)[l];
@@ -47,10 +52,10 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
           res = new;
         }
     
-      if (SCM_BIGSIGN (num))
 #ifdef UNSIGNED
-        scm_out_of_range (s_caller, num);
+      return res;
 #else
+      if (SCM_BIGSIGN (num))
         {
           res = -res;
           if (res <= 0)
@@ -58,7 +63,6 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
           else
             scm_out_of_range (s_caller, num);
         }
-#endif
       else
         {
           if (res >= 0)
@@ -66,8 +70,7 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
           else
             scm_out_of_range (s_caller, num);
         }
-
-      return res;
+#endif
     }
   else
     scm_wrong_type_arg (s_caller, pos, num);

@@ -1,5 +1,10 @@
 2001-10-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* num2integral.i.c (NUM2INTEGRAL):  Eliminated some warnings about
+	testing an unsigned value for being >= 0.
+
+2001-10-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.h:  Removed old comment about using SCM_CAR to access
 	non-pair cells.
 
