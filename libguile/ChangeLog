@@ -1,5 +1,12 @@
 2000-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.c (scm_logbit_p, scm_bit_extract):  Reordered dispatch
+	sequence.
+
+	(scm_bit_extract):  Fixed handling of bignums.
+
+2000-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* async.c (scm_sys_gc_async_thunk), chars.h (SCM_ICHRP, SCM_ICHR,
 	SCM_MAKICHR), continuations.h (SCM_SETJMPBUF), error.c
 	(scm_sysmissing), error.h (scm_sysmissing), evalext.c

@@ -1030,33 +1030,41 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_logbit_p
 {
-  SCM_ASSERT(SCM_INUMP(index) && SCM_INUM(index) >= 0, index, SCM_ARG1, FUNC_NAME);
-#ifdef SCM_BIGDIG
-  if SCM_NINUMP(j) {
-    SCM_ASSERT(SCM_BIGP (j), j, SCM_ARG2, FUNC_NAME);
-    if (SCM_NUMDIGS(j) * SCM_BITSPERDIG < SCM_INUM(index)) return SCM_BOOL_F;
-    else if SCM_BIGSIGN(j) {
+  unsigned long int iindex;
+
+  SCM_VALIDATE_INUM_MIN (SCM_ARG1, index, 0);
+  iindex = (unsigned long int) SCM_INUM (index);
+
+  if (SCM_INUMP (j)) {
+    return SCM_BOOL ((1L << iindex) & SCM_INUM (j));
+  } else if (SCM_BIGP (j)) {
+    if (SCM_NUMDIGS (j) * SCM_BITSPERDIG < iindex) {
+      return SCM_BOOL_F;
+    } else if (SCM_BIGSIGN (j)) {
       long num = -1;
       scm_sizet i = 0;
-      SCM_BIGDIG *x = SCM_BDIGITS(j);
-      scm_sizet nx = SCM_INUM(index)/SCM_BITSPERDIG;
-      while (!0) {
+      SCM_BIGDIG * x = SCM_BDIGITS (j);
+      scm_sizet nx = iindex / SCM_BITSPERDIG;
+      while (1) {
 	num += x[i];
-	if (nx==i++)
-	  return ((1L << (SCM_INUM(index)%SCM_BITSPERDIG)) & num) ? SCM_BOOL_F : SCM_BOOL_T;
-	if (num < 0) num = -1;
-	else num = 0;
+	if (nx == i++) {
+	  return SCM_BOOL (((1L << (iindex % SCM_BITSPERDIG)) & num) == 0);
+	} else if (num < 0) {
+	  num = -1;
+	} else {
+	  num = 0;
+	}
       }
+    } else {
+      return SCM_BOOL (SCM_BDIGITS (j) [iindex / SCM_BITSPERDIG]
+		       & (1L << (iindex % SCM_BITSPERDIG)));
     }
-    else return (SCM_BDIGITS(j)[SCM_INUM(index)/SCM_BITSPERDIG] &
-		 (1L << (SCM_INUM(index)%SCM_BITSPERDIG))) ? SCM_BOOL_T : SCM_BOOL_F;
+  } else {
+    SCM_WRONG_TYPE_ARG (SCM_ARG2, j);
   }
-#else
-  SCM_ASSERT(SCM_INUMP(j), j, SCM_ARG2, FUNC_NAME);
-#endif
-  return ((1L << SCM_INUM(index)) & SCM_INUM(j)) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0, 
             (SCM n),
@@ -1188,21 +1196,21 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 #define FUNC_NAME s_scm_bit_extract
 {
   int istart, iend;
-  SCM_VALIDATE_INUM (1,n);
   SCM_VALIDATE_INUM_MIN_COPY (2,start,0,istart);
   SCM_VALIDATE_INUM_MIN_COPY (3, end, 0, iend);
   SCM_ASSERT_RANGE (3, end, (iend >= istart));
-#ifdef SCM_BIGDIG
-  if (SCM_NINUMP (n))
-    return
-      scm_logand (scm_difference (scm_integer_expt (SCM_MAKINUM (2),
-						    SCM_MAKINUM (iend - istart)),
-				  SCM_MAKINUM (1L)),
-		  scm_ash (n, SCM_MAKINUM (-istart)));
-#else
-  SCM_VALIDATE_INUM (1,n);
-#endif
-  return SCM_MAKINUM ((SCM_INUM (n) >> istart) & ((1L << (iend - istart)) - 1));
+
+  if (SCM_INUMP (n)) {
+    return SCM_MAKINUM ((SCM_INUM (n) >> istart) & ((1L << (iend - istart)) - 1));
+  } else if (SCM_BIGP (n)) {
+    SCM num1 = SCM_MAKINUM (1L);
+    SCM num2 = SCM_MAKINUM (2L);
+    SCM bits = SCM_MAKINUM (iend - istart);
+    SCM mask  = scm_difference (scm_integer_expt (num2, bits), num1);
+    return scm_logand (mask, scm_ash (n, SCM_MAKINUM (-istart)));
+  } else {
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
+  }
 }
 #undef FUNC_NAME
 
