@@ -24,6 +24,7 @@
   :use-module (system il ghil)
   :use-module (language r5rs expand)
   :use-module (ice-9 match)
+  :use-module (ice-9 and-let-star)
   :export (gscheme))
 
 
@@ -53,28 +54,28 @@
 (define (translate x) (if (pair? x) (translate-pair x) x))
 
 (define (translate-pair x)
-  (let ((name (car x)) (args (cdr x)))
-    (case name
-      ((quote) (cons '@quote args))
+  (let ((head (car x)) (rest (cdr x)))
+    (case head
+      ((quote) (cons '@quote rest))
       ((define set! if and or begin)
-       (cons (symbol-append '@ name) (map translate args)))
+       (cons (symbol-append '@ head) (map translate rest)))
       ((let let* letrec)
        (match x
 	 (('let (? symbol? f) ((s v) ...) body ...)
 	  `(@letrec ((,f (@lambda ,s ,@(map translate body))))
 		    (,f ,@(map translate v))))
 	 (else
-	  (cons* (symbol-append '@ name)
+	  (cons* (symbol-append '@ head)
 		 (map (lambda (b) (cons (car b) (map translate (cdr b))))
-		      (car args))
-		 (map translate (cdr args))))))
+		      (car rest))
+		 (map translate (cdr rest))))))
       ((lambda)
-       (cons* '@lambda (car args) (map translate (cdr args))))
+       (cons* '@lambda (car rest) (map translate (cdr rest))))
       (else
-       (let ((prim (symbol-append '@ name)))
-	 (if (ghil-primitive? prim)
-	     (cons prim (map translate args))
-	     (cons (translate name) (map translate args))))))))
+       (let ((prim (and (symbol? head) (symbol-append '@ head))))
+	 (if (and prim (ghil-primitive? prim))
+	     (cons prim (map translate rest))
+	     (cons (translate head) (map translate rest))))))))
 
 
 ;;;

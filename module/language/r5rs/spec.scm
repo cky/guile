@@ -33,21 +33,20 @@
 (define (translate x) (if (pair? x) (translate-pair x) x))
 
 (define (translate-pair x)
-  (let ((name (car x)) (args (cdr x)))
-    (case name
-      ((quote) (cons '@quote args))
+  (let ((head (car x)) (rest (cdr x)))
+    (case head
+      ((quote) (cons '@quote rest))
       ((define set! if and or begin)
-       (cons (symbol-append '@ name) (map translate args)))
+       (cons (symbol-append '@ head) (map translate rest)))
       ((let let* letrec)
-       (cons* (symbol-append '@ name)
-	      (map (lambda (b)
-		     (cons (car b) (map translate (cdr b))))
-		   (car args))
-	      (map translate (cdr args))))
+       (cons* (symbol-append '@ head)
+	      (map (lambda (b) (cons (car b) (map translate (cdr b))))
+		   (car rest))
+	      (map translate (cdr rest))))
       ((lambda)
-       (cons* '@lambda (car args) (map translate (cdr args))))
+       (cons* '@lambda (car rest) (map translate (cdr rest))))
       (else
-       (cons (translate name) (map translate args))))))
+       (cons (translate head) (map translate rest))))))
 
 
 ;;;

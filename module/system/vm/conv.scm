@@ -23,7 +23,8 @@
   :use-module (system vm core)
   :use-module (ice-9 match)
   :use-module (ice-9 regex)
-  :export (code-pack code-unpack object->code code->object code->bytes))
+  :export (code-pack code-unpack object->code code->object code->bytes
+		     make-byte-decoder))
 
 ;;;
 ;;; Code compress/decompression
@@ -62,7 +63,7 @@
   (cond ((eq? x #t) `(make-true))
 	((eq? x #f) `(make-false))
 	((null? x) `(make-eol))
-	((integer? x)
+	((and (integer? x) (exact? x))
 	 (cond ((and (<= -128 x) (< x 128))
 		`(make-int8 ,(modulo x 256)))
 	       ((and (<= -32768 x) (< x 32768))
@@ -104,7 +105,7 @@
 	  (else
 	   (error "Invalid code:" code)))))
 
-(define-public (make-byte-decoder bytes)
+(define (make-byte-decoder bytes)
   (let ((addr 0) (size (string-length bytes)))
     (define (pop)
       (let ((byte (char->integer (string-ref bytes addr))))
@@ -135,17 +136,16 @@
 
 (define (encode-length len)
   (define C integer->char)
-  (list->string
-   (cond ((< len 254) (list (C len)))
-	 ((< len (* 256 256))
-	  (list (C 254) (C (quotient len 256)) (C (modulo len 256))))
-	 ((< len most-positive-fixnum)
-	  (list (C 255)
-		(C (quotient len (* 256 256 256)))
-		(C (modulo (quotient len (* 256 256)) 256))
-		(C (modulo (quotient len 256) 256))
-		(C (modulo len 256))))
-	 (else (error "Too long code length:" len)))))
+  (cond ((< len 254) (string (C len)))
+	((< len (* 256 256))
+	 (string (C 254) (C (quotient len 256)) (C (modulo len 256))))
+	((< len most-positive-fixnum)
+	 (string (C 255)
+		 (C (quotient len (* 256 256 256)))
+		 (C (modulo (quotient len (* 256 256)) 256))
+		 (C (modulo (quotient len 256) 256))
+		 (C (modulo len 256))))
+	(else (error "Too long code length:" len))))
 
 (define (decode-length pop)
   (let ((len (pop)))

@@ -77,7 +77,6 @@ vm_engine (SCM vm, SCM program, SCM args)
 #include "vm_expand.h"
 #include "vm_system.i"
 #include "vm_scheme.i"
-#include "vm_number.i"
 #include "vm_loader.i"
 #undef VM_INSTRUCTION_TO_LABEL
   };
@@ -114,7 +113,6 @@ vm_engine (SCM vm, SCM program, SCM args)
 #include "vm_expand.h"
 #include "vm_system.c"
 #include "vm_scheme.c"
-#include "vm_number.c"
 #include "vm_loader.c"
 
 #ifndef HAVE_LABELS_AS_VALUES

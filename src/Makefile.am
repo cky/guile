@@ -7,8 +7,8 @@ lib_LTLIBRARIES = libguilevm.la
 libguilevm_la_SOURCES = envs.c instructions.c programs.c vm.c	\
 	envs.h instructions.h programs.h vm.h vm_engine.h vm_expand.h
 libguilevm_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
-EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_number.c vm_loader.c
-BUILT_SOURCES = vm_system.i vm_scheme.i vm_number.i vm_loader.i \
+EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_loader.c
+BUILT_SOURCES = vm_system.i vm_scheme.i vm_loader.i \
 	envs.x instructions.x programs.x vm.x
 
 INCLUDES = $(GUILE_CFLAGS)

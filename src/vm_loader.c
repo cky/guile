@@ -58,11 +58,11 @@ VM_DEFINE_INSTRUCTION (load_integer, "load-integer", -1, 0, 1)
     SCM_MISC_ERROR ("load-integer: not implemented yet", SCM_EOL);
 }
 
-VM_DEFINE_INSTRUCTION (load_symbol, "load-symbol", -1, 0, 1)
+VM_DEFINE_INSTRUCTION (load_number, "load-number", -1, 0, 1)
 {
   size_t len;
   FETCH_LENGTH (len);
-  PUSH (scm_mem2symbol (ip, len));
+  PUSH (scm_istring2number (ip, len, 10));
   ip += len;
   NEXT;
 }
@@ -72,6 +72,15 @@ VM_DEFINE_INSTRUCTION (load_string, "load-string", -1, 0, 1)
   size_t len;
   FETCH_LENGTH (len);
   PUSH (scm_makfromstr (ip, len, 0));
+  ip += len;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (load_symbol, "load-symbol", -1, 0, 1)
+{
+  size_t len;
+  FETCH_LENGTH (len);
+  PUSH (scm_mem2symbol (ip, len));
   ip += len;
   NEXT;
 }

@@ -50,19 +50,6 @@
      (let ((sym (make-sym)))
        `(@let ((,sym ,x)) (@if ,sym ,sym (@or ,@rest)))))))
 
-;; (@while TEST BODY...) =>
-;; 
-;;     (@goto L1)
-;; L0: BODY...
-;; L1: (@if TEST (@goto L0) (@void))
-;;; non-R5RS
-(define (@while test . body)
-  (let ((L0 (make-label)) (L1 (make-label)))
-    `(@begin
-       (@goto ,L1)
-       (@label ,L0) ,@body
-       (@label ,L1) (@if ,test (@goto ,L0) (@void)))))
-
 ;; (@cond (TEST BODY...) ...) =>
 ;;
 ;;   (@if TEST
@@ -92,35 +79,26 @@
 
 ;;; 6.1 Equivalence predicates
 
-(define (@eq? x y)     `(@@ eq? ,x ,y))
-(define (@eqv? x y)    `(@@ eqv? ,x ,y))
-(define (@equal? x y)  `(@@ equal? ,x ,y))
+(define (@eq? x y)	`(@@ eq? ,x ,y))
+(define (@eqv? x y)	`(@@ eqv? ,x ,y))
+(define (@equal? x y)	`(@@ equal? ,x ,y))
 
 ;;; 6.2 Numbers
 
-(define (@number? x)   `(@@ number? ,x))
-(define (@complex? x)  `(@@ complex? ,x))
-(define (@real? x)     `(@@ real? ,x))
-(define (@rational? x) `(@@ rational? ,x))
-(define (@integer? x)  `(@@ integer? ,x))
+(define (@number? x)	`((@ Core::number?) ,x))
+(define (@complex? x)	`((@ Core::complex?) ,x))
+(define (@real? x)	`((@ Core::real?) ,x))
+(define (@rational? x)	`((@ Core::rational?) ,x))
+(define (@integer? x)	`((@ Core::integer?) ,x))
 
-(define (@exact? x)    `(@@ exact? ,x))
-(define (@inexact? x)  `(@@ inexact? ,x))
+(define (@exact? x)	`((@ Core::exact?) ,x))
+(define (@inexact? x)	`((@ Core::inexact?) ,x))
 
-(define (@= x y)       `(@@ ee? ,x ,y))
-(define (@< x y)       `(@@ lt? ,x ,y))
-(define (@> x y)       `(@@ gt? ,x ,y))
-(define (@<= x y)      `(@@ le? ,x ,y))
-(define (@>= x y)      `(@@ ge? ,x ,y))
-
-(define (@zero? x)     `(@= ,x 0))
-(define (@positive? x) `(@> ,x 0))
-(define (@negative? x) `(@< ,x 0))
-(define (@odd? x)      `(@= (@modulo ,x 2) 1))
-(define (@even? x)     `(@= (@modulo ,x 2) 0))
-
-(define (@max . args)  `(@@ max ,@args))
-(define (@min . args)  `(@@ min ,@args))
+(define (@= x y)	`(@@ ee? ,x ,y))
+(define (@< x y)	`(@@ lt? ,x ,y))
+(define (@> x y)	`(@@ gt? ,x ,y))
+(define (@<= x y)	`(@@ le? ,x ,y))
+(define (@>= x y)	`(@@ ge? ,x ,y))
 
 (define @+
   (match-lambda*
@@ -138,25 +116,20 @@
 
 (define @-
   (match-lambda*
-    ((x) `(@@ neg ,x))
+    ((x) `(@@ sub 0 ,x))
     ((x y) `(@@ sub ,x ,y))
     ((x y . rest) `(@@ sub ,x (@+ ,y ,@rest)))))
 
 (define @/
   (match-lambda*
-    ((x) `(@@ rec ,x))
+    ((x) `(@@ div 1 ,x))
     ((x y) `(@@ div ,x ,y))
     ((x y . rest) `(@@ div ,x (@* ,y ,@rest)))))
 
-(define (@abs x) `(@if (@< x 0) (@- x) x))
+(define (@quotient x y) `(@@ quo ,x ,y))
+(define (@remainder x y) `(@@ rem ,x ,y))
+(define (@modulo x y) `(@@ mod ,x ,y))
 
-(define (@quotient x y) `(@@ quotient ,x ,y))
-(define (@remainder x y) `(@@ remainder ,x ,y))
-(define (@modulo x y) `(@@ modulo ,x ,y))
-
-;;; gcd
-;;; lcm
-;;; 
 ;;; numerator
 ;;; denominator
 ;;; 
@@ -164,8 +137,6 @@
 ;;; ceiling
 ;;; truncate
 ;;; round
-;;; 
-;;; rationalize
 ;;; 
 ;;; exp
 ;;; log
@@ -197,7 +168,7 @@
 ;;;; 6.3.1 Booleans
 
 (define (@not x) `(@@ not ,x))
-(define (@boolean? x) `(@@ boolean? ,x))
+(define (@boolean? x) `((@ Core::boolean?) ,x))
 
 ;;;; 6.3.2 Pairs and lists
 
@@ -245,8 +216,6 @@
 ;;; length
 ;;; append
 ;;; reverse
-;;; list-tail
-;;; list-ref
 ;;; 
 ;;; memq
 ;;; memv
@@ -270,74 +239,34 @@
 ;;; char>?
 ;;; char<=?
 ;;; char>=?
-;;; char-ci=?
-;;; char-ci<?
-;;; char-ci>?
-;;; char-ci<=?
-;;; char-ci>=?
-;;; char-alphabetic?
-;;; char-numeric?
-;;; char-whitespace?
-;;; char-upper-case?
-;;; char-lower-case?
 ;;; char->integer
 ;;; integer->char
-;;; char-upcase
-;;; char-downcase
 
 ;;;; 6.3.5 Strings
 
 ;;; string?
 ;;; make-string
-;;; string
 ;;; string-length
 ;;; string-ref
 ;;; string-set!
-;;; 
-;;; string=?
-;;; string-ci=?
-;;; string<?
-;;; string>?
-;;; string<=?
-;;; string>=?
-;;; string-ci<?
-;;; string-ci>?
-;;; string-ci<=?
-;;; string-ci>=?
-;;; 
-;;; substring
-;;; string-append
-;;; string->list
-;;; list->string
-;;; string-copy
-;;; string-fill!
 
 ;;;; 6.3.6 Vectors
 
 ;;; vector?
 ;;; make-vector
-;;; vector
 ;;; vector-length
 ;;; vector-ref
 ;;; vector-set!
-;;; vector->list
-;;; list->vector
-;;; vector-fill!
 
 ;;;; 6.4 Control features
 
-(define (@procedure? x) `(@@ procedure? x))
+;; (define (@procedure? x) `(@@ procedure? x))
 
 ;; (define (@apply proc . args) ...)
 
-;;; map
-;;; for-each
-
 ;;; (define (@force promise) `(@@ force promise))
 
-;;; (define (@call-with-current-continuation proc) `(@@ call/cc proc))
-
-;;; (define @call/cc @call-with-current-continuation)
+;;; (define (@call/cc proc) `(@@ call/cc proc))
 
 ;;; values
 ;;; call-with-values
@@ -345,25 +274,14 @@
 
 ;;; 6.5 Eval
 
-;;; eval
-;;; scheme-report-environment
-;;; null-environment
-;;; interaction-environment
-
 ;;; 6.6 Input and output
 
 ;;;; 6.6.1 Ports
 
-;;; call-with-input-file
-;;; call-with-output-file
-;;; 
 ;;; input-port?
 ;;; output-port?
 ;;; current-input-port
 ;;; current-output-port
-;;; 
-;;; with-input-from-file
-;;; with-output-to-file
 ;;; 
 ;;; open-input-file
 ;;; open-output-file
@@ -387,10 +305,6 @@
 
 ;;;; 6.6.4 System interface
 
-;;; load
-;;; transcript-on
-;;; transcript-off
-
 
 ;;;
 ;;; Non-R5RS Procedures
@@ -401,8 +315,3 @@
     ((x) x)
     ((x y) `(@cons ,x ,y))
     ((x y . rest) `(@cons ,x (@cons* ,y ,@rest)))))
-
-(define (@error . args) `(@@ display ,@args))
-
-(define (@current-module)
-  `((@ System::Base::module::current-module)))

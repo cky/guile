@@ -66,6 +66,7 @@
 (define remprop symbol-property-remove!)
 
 (define syncase-module (current-module))
+
 (define (sc-eval x) (eval x syncase-module))
 
 (load "psyntax.scm")

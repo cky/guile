@@ -63,6 +63,7 @@
 (define core-eval eval)
 (define (eval x) (core-eval (cadr x) (interaction-environment)))
 
+(debug-set! stack 0)
 (load "psyntax.pp")
 
 (call-with-input-file "psyntax.ss"

@@ -41,104 +41,247 @@
 
 /* This file is included in vm_engine.c */
 
+
+/*
+ * Predicates
+ */
+
 VM_DEFINE_FUNCTION (not, "not", 1)
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (SCM_FALSEP (a1)));
+  ARGS1 (x);
+  RETURN (SCM_BOOL (SCM_FALSEP (x)));
 }
 
 VM_DEFINE_FUNCTION (not_not, "not-not", 1)
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (!SCM_FALSEP (a1)));
+  ARGS1 (x);
+  RETURN (SCM_BOOL (!SCM_FALSEP (x)));
 }
 
 VM_DEFINE_FUNCTION (eq, "eq?", 2)
 {
-  ARGS2 (a1, a2);
-  RETURN (SCM_BOOL (SCM_EQ_P (a1, a2)));
+  ARGS2 (x, y);
+  RETURN (SCM_BOOL (SCM_EQ_P (x, y)));
 }
 
 VM_DEFINE_FUNCTION (not_eq, "not-eq?", 2)
 {
-  ARGS2 (a1, a2);
-  RETURN (SCM_BOOL (!SCM_EQ_P (a1, a2)));
+  ARGS2 (x, y);
+  RETURN (SCM_BOOL (!SCM_EQ_P (x, y)));
 }
 
 VM_DEFINE_FUNCTION (nullp, "null?", 1)
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (SCM_NULLP (a1)));
+  ARGS1 (x);
+  RETURN (SCM_BOOL (SCM_NULLP (x)));
 }
 
 VM_DEFINE_FUNCTION (not_nullp, "not-null?", 1)
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (!SCM_NULLP (a1)));
+  ARGS1 (x);
+  RETURN (SCM_BOOL (!SCM_NULLP (x)));
+}
+
+VM_DEFINE_FUNCTION (eqv, "eqv?", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_EQ_P (x, y))
+    RETURN (SCM_BOOL_T);
+  if (SCM_IMP (x) || SCM_IMP (y))
+    RETURN (SCM_BOOL_F);
+  SYNC_BEFORE_GC ();
+  RETURN (scm_eqv_p (x, y));
+}
+
+VM_DEFINE_FUNCTION (equal, "equal?", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_EQ_P (x, y))
+    RETURN (SCM_BOOL_T);
+  if (SCM_IMP (x) || SCM_IMP (y))
+    RETURN (SCM_BOOL_F);
+  SYNC_BEFORE_GC ();
+  RETURN (scm_equal_p (x, y));
 }
 
 VM_DEFINE_FUNCTION (pairp, "pair?", 1)
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (SCM_CONSP (a1)));
+  ARGS1 (x);
+  RETURN (SCM_BOOL (SCM_CONSP (x)));
 }
 
 VM_DEFINE_FUNCTION (listp, "list?", 1)
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (scm_ilength (a1) >= 0));
+  ARGS1 (x);
+  RETURN (SCM_BOOL (scm_ilength (x) >= 0));
 }
+
+
+/*
+ * Basic data
+ */
 
 VM_DEFINE_FUNCTION (cons, "cons", 2)
 {
-  ARGS2 (a1, a2);
-  CONS (a1, a1, a2);
-  RETURN (a1);
+  ARGS2 (x, y);
+  CONS (x, x, y);
+  RETURN (x);
 }
 
 VM_DEFINE_FUNCTION (car, "car", 1)
 {
-  ARGS1 (a1);
-  SCM_VALIDATE_CONS (1, a1);
-  RETURN (SCM_CAR (a1));
+  ARGS1 (x);
+  SCM_VALIDATE_CONS (1, x);
+  RETURN (SCM_CAR (x));
 }
 
 VM_DEFINE_FUNCTION (cdr, "cdr", 1)
 {
-  ARGS1 (a1);
-  SCM_VALIDATE_CONS (1, a1);
-  RETURN (SCM_CDR (a1));
+  ARGS1 (x);
+  SCM_VALIDATE_CONS (1, x);
+  RETURN (SCM_CDR (x));
 }
 
 VM_DEFINE_FUNCTION (set_car, "set-car!", 2)
 {
-  ARGS2 (a1, a2);
-  SCM_VALIDATE_CONS (1, a1);
-  SCM_SETCAR (a1, a2);
+  ARGS2 (x, y);
+  SCM_VALIDATE_CONS (1, x);
+  SCM_SETCAR (x, y);
   RETURN (SCM_UNSPECIFIED);
 }
 
 VM_DEFINE_FUNCTION (set_cdr, "set-cdr!", 2)
 {
-  ARGS2 (a1, a2);
-  SCM_VALIDATE_CONS (1, a1);
-  SCM_SETCDR (a1, a2);
+  ARGS2 (x, y);
+  SCM_VALIDATE_CONS (1, x);
+  SCM_SETCDR (x, y);
   RETURN (SCM_UNSPECIFIED);
 }
 
 VM_DEFINE_FUNCTION (list, "list", -1)
 {
-  ARGSN (an);
-  POP_LIST (an);
+  ARGSN (n);
+  POP_LIST (n);
   NEXT;
 }
 
 VM_DEFINE_FUNCTION (vector, "vector", -1)
 {
-  ARGSN (an);
-  POP_LIST (an);
+  ARGSN (n);
+  POP_LIST (n);
+  SYNC_BEFORE_GC ();
   *sp = scm_vector (*sp);
   NEXT;
+}
+
+
+/*
+ * Numeric relational tests
+ */
+
+#undef REL
+#define REL(crel,srel)					\
+{							\
+  ARGS2 (x, y);						\
+  if (SCM_INUMP (x) && SCM_INUMP (y))			\
+    RETURN (SCM_BOOL (SCM_INUM (x) crel SCM_INUM (y)));	\
+  RETURN (srel (x, y));					\
+}
+
+VM_DEFINE_FUNCTION (ee, "ee?", 2)
+{
+  REL (==, scm_num_eq_p);
+}
+
+VM_DEFINE_FUNCTION (lt, "lt?", 2)
+{
+  REL (<, scm_less_p);
+}
+
+VM_DEFINE_FUNCTION (le, "le?", 2)
+{
+  REL (<=, scm_leq_p);
+}
+
+VM_DEFINE_FUNCTION (gt, "gt?", 2)
+{
+  REL (>, scm_gr_p);
+}
+
+VM_DEFINE_FUNCTION (ge, "ge?", 2)
+{
+  REL (>=, scm_geq_p);
+}
+
+
+/*
+ * Numeric functions
+ */
+
+#undef FUNC1
+#define FUNC1(CEXP,SEXP)			\
+{						\
+  ARGS1 (x);					\
+  if (SCM_INUMP (x))				\
+    {						\
+      int n = CEXP;				\
+      if (SCM_FIXABLE (n))			\
+	RETURN (SCM_MAKINUM (n));		\
+    }						\
+  RETURN (SEXP);				\
+}
+
+#undef FUNC2
+#define FUNC2(CFUNC,SFUNC)				\
+{							\
+  ARGS2 (x, y);					\
+  if (SCM_INUMP (x) && SCM_INUMP (y))			\
+    {							\
+      int n = SCM_INUM (x) CFUNC SCM_INUM (y);	\
+      if (SCM_FIXABLE (n))				\
+	RETURN (SCM_MAKINUM (n));			\
+    }							\
+  RETURN (SFUNC (x, y));				\
+}
+
+VM_DEFINE_FUNCTION (add, "add", 2)
+{
+  FUNC2 (+, scm_sum);
+}
+
+VM_DEFINE_FUNCTION (sub, "sub", 2)
+{
+  FUNC2 (-, scm_difference);
+}
+
+VM_DEFINE_FUNCTION (mul, "mul", 2)
+{
+  ARGS2 (x, y);
+  RETURN (scm_product (x, y));
+}
+
+VM_DEFINE_FUNCTION (div, "div", 2)
+{
+  ARGS2 (x, y);
+  RETURN (scm_divide (x, y));
+}
+
+VM_DEFINE_FUNCTION (quo, "quo", 2)
+{
+  ARGS2 (x, y);
+  RETURN (scm_quotient (x, y));
+}
+
+VM_DEFINE_FUNCTION (rem, "rem", 2)
+{
+  ARGS2 (x, y);
+  RETURN (scm_remainder (x, y));
+}
+
+VM_DEFINE_FUNCTION (mod, "mod", 2)
+{
+  ARGS2 (x, y);
+  RETURN (scm_modulo (x, y));
 }
 
 /*

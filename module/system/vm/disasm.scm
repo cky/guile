@@ -63,7 +63,7 @@
 	     (set! rest (acons sym x rest))
 	     (print-info addr (format #f "load-program #~A" sym) #f)))
 	  (else
-	   (let ((info (list->string code))
+	   (let ((info (list->info code))
 		 (extra (original-value addr code
 					(if (null? opt) #f (car opt)))))
 	     (print-info addr info extra))))))
@@ -83,7 +83,7 @@
 (define (disassemble-meta meta)
   (display "Meta info:\n\n")
   (for-each (lambda (data)
-	      (print-info (car data) (list->string (cdr data)) #f))
+	      (print-info (car data) (list->info (cdr data)) #f))
 	    meta)
   (newline))
 
@@ -109,7 +109,7 @@
 ;;;		      (if (pair? var) (car var) var))))
 	       (else #f)))))))
 
-(define (list->string list)
+(define (list->info list)
   (let ((str (object->string list)))
     (substring str 1 (1- (string-length str)))))
 

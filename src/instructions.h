@@ -50,7 +50,6 @@ enum scm_opcode {
 #include "vm_expand.h"
 #include "vm_system.i"
 #include "vm_scheme.i"
-#include "vm_number.i"
 #include "vm_loader.i"
 #undef VM_INSTRUCTION_TO_OPCODE
   scm_op_last

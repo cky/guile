@@ -2744,7 +2744,8 @@
 ;;; expanded, and the expanded definitions are also residualized into
 ;;; the object file if we are compiling a file.
 (set! sc-expand
-  (let ((user-ribcage
+  (let ((m 'e) (esew '(eval))
+        (user-ribcage
          (let ((ribcage (make-empty-ribcage)))
            (extend-ribcage-subst! ribcage '*top*)
            ribcage)))
@@ -2752,11 +2753,9 @@
            (make-wrap (wrap-marks top-wrap)
              (cons user-ribcage (wrap-subst top-wrap)))))
       (lambda (x)
-	(let ((m 'e)
-	      (esew '(eval)))
-	  (if (and (pair? x) (equal? (car x) noexpand))
-	      (cadr x)
-	      (chi-top x null-env user-top-wrap m esew user-ribcage)))))))
+        (if (and (pair? x) (equal? (car x) noexpand))
+            (cadr x)
+            (chi-top x null-env user-top-wrap m esew user-ribcage))))))
 
 (set! identifier?
   (lambda (x)
@@ -2927,7 +2926,7 @@
          ((_ ((out in) ...) e1 e2 ...)
           (syntax (syntax-case (list in ...) ()
                      ((out ...) (begin e1 e2 ...))))))))
-
+ 
 (define-syntax syntax-rules
   (lambda (x)
     (syntax-case x ()

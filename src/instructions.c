@@ -47,7 +47,6 @@ struct scm_instruction scm_instruction_table[] = {
 #include "vm_expand.h"
 #include "vm_system.i"
 #include "vm_scheme.i"
-#include "vm_number.i"
 #include "vm_loader.i"
 #undef VM_INSTRUCTION_TO_TABLE
   {scm_op_last}

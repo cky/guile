@@ -249,7 +249,7 @@ do {						\
 #define ARGS3(a1,a2,a3)	SCM a1 = sp[2], a2 = sp[1], a3 = sp[0]; sp += 2;
 #define ARGSN(an)	int an = FETCH ();
 
-#define RETURN(x)	{ *sp = x; NEXT; }
+#define RETURN(x)	do { *sp = x; NEXT; } while (0)
 
 
 /*
