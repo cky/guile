@@ -1,3 +1,15 @@
+2001-10-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (mem2uinteger):  Return number read so far when coming
+	across a hexdigit after having read a # or if not reading a hex
+	value.  This will enable the calling code to correctly handle
+	forms like 1e2.  (The background is, that the exponent markers d,
+	e and f are also hexdigits.)  Thanks to Mikael Djurfeldt for
+	providing this patch.
+
+	(mem2complex):  Fix erroneous double-negation.  Now, numbers like
+	1-i will be read correctly.
+
 2001-10-12  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* debug.c (scm_mem_to_proc): Fixed typo in previous change.

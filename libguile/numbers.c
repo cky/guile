@@ -2296,10 +2296,10 @@ mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
       if (isxdigit (c))
 	{
 	  if (hash_seen)
-	    return SCM_BOOL_F;
+	    break;
 	  digit_value = XDIGIT2UINT (c);
 	  if (digit_value >= radix)
-	    return SCM_BOOL_F;
+	    break;
 	}
       else if (c == '#')
 	{
@@ -2683,10 +2683,11 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 	    {
 	      int sign = (c == '+') ? 1 : -1;
 	      SCM imag = mem2ureal (mem, len, &idx, radix, p_exactness);
-	      SCM result;
 
 	      if (SCM_FALSEP (imag))
 		imag = SCM_MAKINUM (sign);
+	      else if (sign == -1)
+		imag = scm_difference (imag, SCM_UNDEFINED);
 
 	      if (idx == len)
 		return SCM_BOOL_F;
@@ -2697,10 +2698,7 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 	      if (idx != len)
 		return SCM_BOOL_F;
 
-	      if (sign == -1)
-		imag = scm_difference (imag, SCM_UNDEFINED);
-	      result = scm_make_rectangular (ureal, imag);
-	      return result;
+	      return scm_make_rectangular (ureal, imag);
 	    }
 	default:
 	  return SCM_BOOL_F;
