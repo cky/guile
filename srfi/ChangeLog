@@ -1,3 +1,9 @@
+2002-02-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-14.c, srfi-4.c: Use scm_gc_malloc/scm_malloc and
+	scm_gc_free/free instead of scm_must_malloc and scm_must_free, as
+	appropriate.
+
 2002-01-21  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* srfi-1.scm (count1, take-while): Rewrite to be tail-recursive.

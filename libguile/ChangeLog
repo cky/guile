@@ -1,3 +1,31 @@
+2002-02-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* gc.h, gc.c (scm_gc_sweep): Issue deprecation warning when
+	non-zero is returned from a port or smob free function.
+	(scm_malloc, scm_realloc, scm_strndup, scm_strdup,
+	scm_gc_register_collectable_memory,
+	scm_gc_unregister_collectable_memory, scm_gc_malloc,
+	scm_gc_realloc, scm_gc_free, scm_gc_strndup, scm_gc_strdup): New.
+
+	* backtrace.c, continuations.c, convert.i.c, coop-threads.c,
+	debug-malloc.c, dynl.c, environments.c, environments.h,
+	extensions.c, filesys.c, fports.c, gc.c, gc.h, gh_data.c, goops.c,
+	guardians.c, hooks.c, init.c, keywords.c, load.c, numbers.c,
+	ports.c, posix.c, procs.c, rdelim.c, regex-posix.c, root.c,
+	smob.c, stime.c, strings.c, struct.c, struct.h, symbols.c, unif.c,
+	vectors.c, weaks.c: Use scm_gc_malloc/scm_malloc and
+	scm_gc_free/free instead of scm_must_malloc and scm_must_free, as
+	appropriate.  Return zero from smob and port free functions.
+
+	* debug-malloc.c (scm_malloc_reregister): Handle "old == NULL".
+
+	* deprecation.h, deprecation.c: Reimplemented to allow deprecation
+	messages while the GC is running.
+	(scm_c_issue_deprecation_warning_fmt): New.
+
+	* fports.c (scm_setvbuf): Reset read buffer to saved values when
+	it is pointing to the putback buffer.
+
 2002-02-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* gsubr.c (create_gsubr): On "too many args" error,
