@@ -1,3 +1,9 @@
+2002-02-28  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* image-type.c (image_tag): Changed type to scm_t_bits.
+	(make_image): Use scm_gc_malloc instead of scm_must_malloc.
+	(free_image): Use scm_gc_free instead of free.  Return zero.
+
 2001-05-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* image-type.c: Adapted to new typing and naming convention.
