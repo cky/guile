@@ -56,7 +56,6 @@
 /* #define GSUBR_TEST */
 
 SCM scm_i_name;
-SCM scm_i_inner_name;
 SCM scm_f_gsubr_apply;
 
 SCM
@@ -183,8 +182,6 @@ scm_init_gsubr()
   scm_f_gsubr_apply = scm_make_subr(s_gsubr_apply, scm_tc7_lsubr, scm_gsubr_apply);
   scm_i_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
   scm_permanent_object (scm_i_name);
-  scm_i_inner_name = SCM_CAR (scm_sysintern ("inner-name", SCM_UNDEFINED));
-  scm_permanent_object (scm_i_inner_name);
 #ifdef GSUBR_TEST
   scm_make_gsubr("gsubr-2-1-l", 2, 1, 1, gsubr_21l); /* example */
 #endif
