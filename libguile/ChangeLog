@@ -1,5 +1,16 @@
 Fri May 16 03:06:08 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* backtrace.c, backtrace.h, debug.c, debug.h, eq.c,
+ 	gdb_interface.h, gdbint.c, gdbint.h, gh_data.c, gh_init.c,
+ 	gh_io.c, gh_list.c, gh_predicates.c, gh_test_c.c, gh_test_repl.c,
+ 	init.c, net_db.c, options.c, options.h, ports.c, print.c, read.c,
+ 	script.h, snarf.h, srcprop.c, srcprop.h, stacks.c, stacks.h,
+ 	throw.c: Update copyright years; these files have been worked on
+	significantly in 1997, but only had copyright years for 1996.
+	Also, change name of copyright holder on some from Mikael
+	Djurfeldt to Free Software Foundation; he has signed papers
+	assigning the changes to the FSF.
+	
 	* script.c (scm_shell_usage): Pass FATAL to exit.  There's no
 	reason not to give the user the option.
 
