@@ -118,13 +118,13 @@ typedef struct scm_copt_thread {
 } scm_copt_thread;
 
 static SCM
-make_thread (SCM args)
+make_thread (SCM creation_protects)
 {
   SCM z;
   scm_copt_thread *t = scm_gc_malloc (sizeof(*t), "thread");
   z = scm_cell (scm_tc16_thread, (scm_t_bits)t);
   t->handle = z;
-  t->result = args;
+  t->result = creation_protects;
   t->base = NULL;
   t->joining_threads = make_queue ();
   pthread_cond_init (&t->sleep_cond, NULL);
@@ -154,9 +154,6 @@ static SCM
 thread_mark (SCM obj)
 {
   scm_copt_thread *t = SCM_THREAD_DATA (obj);
-#ifdef DEBUG
-  // fprintf (stderr, "marking %ld\n", t->pthread);
-#endif
   scm_gc_mark (t->result);
   scm_gc_mark (t->joining_threads);
   return t->root->handle;
@@ -183,9 +180,6 @@ static size_t
 thread_free (SCM obj)
 {
   scm_copt_thread *t = SCM_THREAD_DATA (obj);
-#ifdef DEBUG
-  // fprintf (stderr, "freeing %ld\n", t->pthread);
-#endif
   if (t->pthread != -1)
     abort ();
   scm_gc_free (t, sizeof (*t), "thread");
@@ -414,11 +408,9 @@ int scm_i_switch_counter;
 SCM
 scm_yield ()
 {
-  /* Testing guile_mutex.next_waiting is safe since only the owner of
-     guile_mutex can bring it from non-NULL to NULL.  We are the
-     owner, so that can not happen.  When it goes from NULL to
-     non-NULL, we might miss it this time, but next time we will
-     yield.
+  /* Testing guile_mutex.next_waiting without locking guile_mutex.lock
+     is OK since the outcome is not critical.  Even when it changes
+     after the test, we do the right thing.
   */
   if (guile_mutex.next_waiting)
     {
@@ -466,43 +458,47 @@ unblock (scm_copt_thread *t)
 static SCM all_threads;
 static int thread_count;
 
-typedef struct scheme_launch_data {
+typedef struct launch_data {
+  SCM thread;
   SCM rootcont;
-  SCM body;
-  SCM handler;
-} scheme_launch_data;
+  scm_t_catch_body body;
+  void *body_data;
+  scm_t_catch_handler handler;
+  void *handler_data;
+} launch_data;
 
 static SCM
-scheme_body_bootstrip (scheme_launch_data* data)
+body_bootstrip (launch_data* data)
 {
   /* First save the new root continuation */
   data->rootcont = scm_root->rootcont;
-  return scm_call_0 (data->body);
+  return (data->body) (data->body_data);
+  // return scm_call_0 (data->body);
 }
 
 static SCM
-scheme_handler_bootstrip (scheme_launch_data* data, SCM tag, SCM throw_args)
+handler_bootstrip (launch_data* data, SCM tag, SCM throw_args)
 {
   scm_root->rootcont = data->rootcont;
-  return scm_apply_1 (data->handler, tag, throw_args);
+  return (data->handler) (data->handler_data, tag, throw_args);
+  // return scm_apply_1 (data->handler, tag, throw_args);
 }
 
 static void
-really_launch (SCM_STACKITEM *base, SCM thread)
+really_launch (SCM_STACKITEM *base, launch_data *data)
 {
+  SCM thread = data->thread;
   scm_copt_thread *t = SCM_THREAD_DATA (thread);
-  scheme_launch_data data;
   init_thread_creatant (thread, base);
   enter_guile (t);
 
-  data.rootcont = SCM_BOOL_F;
-  data.body = SCM_CAR (t->result);
-  data.handler = SCM_CADR (t->result);
+  data->rootcont = SCM_BOOL_F;
   t->result =
-    scm_internal_cwdr ((scm_t_catch_body) scheme_body_bootstrip,
-		       &data,
-		       (scm_t_catch_handler) scheme_handler_bootstrip,
-		       &data, base);
+    scm_internal_cwdr ((scm_t_catch_body) body_bootstrip,
+		       data,
+		       (scm_t_catch_handler) handler_bootstrip,
+		       data, base);
+  free (data);
 
   pthread_detach (t->pthread);
   all_threads = scm_delq (thread, all_threads);
@@ -512,22 +508,66 @@ really_launch (SCM_STACKITEM *base, SCM thread)
 }
 
 static void *
-scheme_launch_thread (void *p)
+launch_thread (void *p)
 {
-  really_launch ((SCM_STACKITEM *)&p, (SCM)p);
+  really_launch ((SCM_STACKITEM *)&p, (launch_data *)p);
   return NULL;
+}
+
+static SCM
+create_thread (scm_t_catch_body body, void *body_data,
+	       scm_t_catch_handler handler, void *handler_data,
+	       SCM protects)
+{
+  SCM thread;
+
+  /* Make new thread.  The first thing the new thread will do is to
+     lock guile_mutex.  Thus, we can safely complete its
+     initialization after creating it.  While the new thread starts,
+     all its data is protected via all_threads.
+   */
+
+  {
+    pthread_t th;
+    SCM root, old_winds;
+    launch_data *data;
+
+    /* Unwind wind chain. */
+    old_winds = scm_dynwinds;
+    scm_dowinds (SCM_EOL, scm_ilength (scm_root->dynwinds));
+
+    /* Allocate thread locals. */
+    root = scm_make_root (scm_root->handle);
+    data = scm_malloc (sizeof (launch_data));
+
+    /* Make thread. */
+    thread = make_thread (protects);
+    data->thread = thread;
+    data->body = body;
+    data->body_data = body_data;
+    data->handler = handler;
+    data->handler_data = handler_data;
+    pthread_create (&th, NULL, launch_thread, (void *) data);
+    init_thread_creator (thread, th, SCM_ROOT_STATE (root));
+    all_threads = scm_cons (thread, all_threads);
+    thread_count++;
+
+    /* Return to old dynamic context. */
+    scm_dowinds (old_winds, - scm_ilength (old_winds));
+  }
+
+  return thread;
 }
 
 SCM
 scm_call_with_new_thread (SCM argl)
 #define FUNC_NAME s_call_with_new_thread
 {
-  SCM thread;
+  SCM thunk, handler;
 
   /* Check arguments. */
   {
     register SCM args = argl;
-    SCM thunk, handler;
     if (!SCM_CONSP (args))
       SCM_WRONG_NUM_ARGS ();
     thunk = SCM_CAR (args);
@@ -547,36 +587,18 @@ scm_call_with_new_thread (SCM argl)
       SCM_WRONG_NUM_ARGS ();
   }
 
-  /* Make new thread.  The first thing the new thread will do is to
-     lock guile_mutex.  Thus, we can safely complete its
-     initialization after creating it.  While the new thread starts,
-     all its data is protected via all_threads.
-   */
-
-  {
-    pthread_t th;
-    SCM root, old_winds;
-    
-    /* Unwind wind chain. */
-    old_winds = scm_dynwinds;
-    scm_dowinds (SCM_EOL, scm_ilength (scm_root->dynwinds));
-
-    /* Allocate thread locals. */
-    root = scm_make_root (scm_root->handle);
-    /* Make thread. */
-    thread = make_thread (argl);
-    pthread_create (&th, NULL, scheme_launch_thread, (void *) thread);
-    init_thread_creator (thread, th, SCM_ROOT_STATE (root));
-    all_threads = scm_cons (thread, all_threads);
-    thread_count++;
-
-    /* Return to old dynamic context. */
-    scm_dowinds (old_winds, - scm_ilength (old_winds));
-  }
-
-  return thread;
+  return create_thread ((scm_t_catch_body) scm_call_0, thunk,
+			(scm_t_catch_handler) scm_apply_1, handler,
+			argl);
 }
 #undef FUNC_NAME
+
+SCM
+scm_spawn_thread (scm_t_catch_body body, void *body_data,
+		  scm_t_catch_handler handler, void *handler_data)
+{
+  return create_thread (body, body_data, handler, handler_data, SCM_BOOL_F);
+}
 
 /*** Mutexes */
 
@@ -1032,124 +1054,6 @@ scm_c_thread_exited_p (SCM thread)
   return t->pthread == -1;
 }
 #undef FUNC_NAME
-
-
-/* XXX from here to end */
-
-#if 0
-/* NOTE: There are TWO mechanisms for starting a thread: The first one
-   is used when spawning a thread from Scheme, while the second one is
-   used from C.
-
-   It might be argued that the first should be implemented in terms of
-   the second.  The reason it isn't is that that would require an
-   extra unnecessary malloc (the thread_args structure).  By providing
-   one pair of extra functions (c_launch_thread, scm_spawn_thread) the
-   Scheme threads are started more efficiently.  */
-
-/* This is the first thread spawning mechanism: threads from Scheme */
-
-
-
-/* This is the second thread spawning mechanism: threads from C */
-
-typedef struct c_launch_data {
-  union {
-    SCM thread;
-    SCM rootcont;
-  } u;
-  scm_t_catch_body body;
-  void *body_data;
-  scm_t_catch_handler handler;
-  void *handler_data;
-} c_launch_data;
-
-static SCM
-c_body_bootstrip (c_launch_data* data)
-{
-  /* First save the new root continuation */
-  data->u.rootcont = scm_root->rootcont;
-  return (data->body) (data->body_data);
-}
-
-static SCM
-c_handler_bootstrip (c_launch_data* data, SCM tag, SCM throw_args)
-{
-  scm_root->rootcont = data->u.rootcont;
-  return (data->handler) (data->handler_data, tag, throw_args);
-}
-
-static void
-c_really_launch (void *p)
-{
-  SCM result;
-  c_launch_data *data = (c_launch_data *) p;
-  /* The thread object will be GC protected by being on this stack */
-  SCM thread = data->u.thread;
-  scm_copt_thread *t = SCM_THREAD_DATA (thread);
-  /* We must use the address of `thread', otherwise the compiler will
-     optimize it away.  This is OK since the longest SCM_STACKITEM
-     also is a long.  */
-  result = scm_internal_cwdr ((scm_t_catch_body) c_body_bootstrip,
-			      data,
-			      (scm_t_catch_handler) c_handler_bootstrip,
-			      data,
-			      (SCM_STACKITEM *) &thread);
-  all_threads = scm_delq (thread, all_threads);
-  t->result = result;
-  pthread_detach (t->pthread);
-  t->pthread = -1;
-  thread_count--;
-  free ((char *) data);
-}
-
-static void *
-c_launch_thread (void *p)
-{
-  ticket t;
-  enter_guile ((SCM_STACKITEM *)&t, &t);
-  c_really_launch (p);
-  leave_guile (&t);
-  return NULL;
-}
-
-SCM
-scm_spawn_thread (scm_t_catch_body body, void *body_data,
-		  scm_t_catch_handler handler, void *handler_data)
-{
-  SCM thread;
-  pthread_t th;
-  SCM root, old_winds;
-  c_launch_data *data = (c_launch_data *) scm_malloc (sizeof (*data));
-  
-  /* Unwind wind chain. */
-  old_winds = scm_dynwinds;
-  scm_dowinds (SCM_EOL, scm_ilength (scm_root->dynwinds));
-
-  /* Allocate thread locals. */
-  root = scm_make_root (scm_root->handle);
-  /* Make thread. */
-  thread = make_thread ();
-  SCM_DEFER_INTS;
-
-  data->u.thread = thread;
-  data->body = body;
-  data->body_data = body_data;
-  data->handler = handler;
-  data->handler_data = handler_data;
-  
-  pthread_create (&th, NULL, c_launch_thread, (void *) data);
-  init_thread_creator (thread, th, SCM_ROOT_STATE (root));
-  all_threads = scm_cons (thread, all_threads);
-  thread_count++;
-  SCM_ALLOW_INTS;
-
-  /* Return to old dynamic context. */
-  scm_dowinds (old_winds, - scm_ilength (old_winds));
-  
-  return thread;
-}
-#endif
 
 /*
   Local Variables:
