@@ -119,8 +119,10 @@
 /* This is included as part of a workaround for a autoheader bug. */
 #undef HAVE_REGCOMP
 
+/* Define this if you want support for POSIX system calls in Guile.  */
 #undef HAVE_POSIX
 
+/* Define this if you want support for networking in Guile.  */
 #undef HAVE_NETWORKING
 
 /* Define if the operating system supplies bzero without declaring it. */
