@@ -641,7 +641,14 @@ SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
 	return x;
     }
   else if (SCM_REALP (x))
-    return scm_make_real (fabs (SCM_REAL_VALUE (x)));
+    {
+      /* note that if x is a NaN then xx<0 is false so we return x unchanged */
+      double xx = SCM_REAL_VALUE (x);
+      if (xx < 0.0)
+        return scm_make_real (-xx);
+      else
+        return x;
+    }
   else if (SCM_FRACTIONP (x))
     {
       if (SCM_FALSEP (scm_negative_p (SCM_FRACTION_NUMERATOR (x))))
