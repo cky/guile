@@ -1,7 +1,9 @@
+BUGS
 Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache
+benchmark-guile
 check-guile
 check-guile.log
 config.build-subdirs

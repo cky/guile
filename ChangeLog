@@ -1,3 +1,22 @@
+2002-10-04  Rob Browning  <rlb@defaultvalue.org>
+
+	* libltdl: moved to libguile-ltdl.
+
+	* Makefile.am (SUBDIRS): remove libltdl.
+
+	* autogen.sh: remove support for libltdl sub-configure.
+	(ac_version): widen support check to any 2.5?  autoconf version.
+	2.54 is out now.
+
+	* configure.in: turn on -Werror by default.  We're now clean.  I'd
+	like to stay that way.  If we want, we can turn it off by default
+	when we make the stable release, but I caught a lot of bugs this
+	way.  Accomodate libguile-ltdl -- therea are some ltdl things that
+	are commented out now INCLTDL and LIBLTDL.  I think we may not
+	need them anymore, but I'll leave them until we're sure.  We also
+	killed off the libltdl dir and related options including the
+	AC_CONFIG_SUBDIRS.
+
 2002-10-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Use AC_LIBLTDL_CONVENIENCE instead of

@@ -1,5 +1,18 @@
 2002-10-04  Rob Browning  <rlb@defaultvalue.org>
 
+	* guile.c (main): switch to scm_lt_dlset_preloaded_symbols;
+
+	* dynl.c (sysdep_dynl_link): switch to scm_lt_dlhandle,
+	scm_lt_dlopenext, and scm_lt_dlerror.
+	(sysdep_dynl_unlink): switch to scm_lt_dlhandle, scm_lt_dlclose,
+	and scm_lt_dlerror.
+	(sysdep_dynl_func): switch to scm_lt_dlhandle, scm_lt_dlsym,
+	and scm_lt_dlerror.
+	(sysdep_dynl_init): switch to scm_lt_dlinit();
+
+	* Makefile.am (libguile_la_LIBADD): switch to use
+	libguile-ltdl.la.
+
 	* numbers.c (s_scm_integer_expt): (expt 0 1) should be 1.
 
 2002-10-04  Marius Vollmer  <mvo@zagadka.ping.de>
