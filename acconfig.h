@@ -53,7 +53,7 @@
 #undef READER_EXTENSIONS
 
 /* Define this if you want to debug the free list (helps w/ GC bugs) */
-#undef DEBUG_FREELIST
+#undef GUILE_DEBUG_FREELIST
 
 /* Define this if your system defines S_ISLNK in sys/stat.h */
 #undef HAVE_S_ISLNK

@@ -220,7 +220,7 @@ static void alloc_some_heap SCM_P ((int, SCM *));
 
 /* Debugging functions.  */
 
-#ifdef DEBUG_FREELIST
+#ifdef GUILE_DEBUG_FREELIST
 
 /* Return the number of the heap segment containing CELL.  */
 static int
@@ -327,7 +327,7 @@ scm_debug_newcell (void)
   return new;
 }
 
-#endif /* DEBUG_FREELIST */
+#endif /* GUILE_DEBUG_FREELIST */
 
 
 
@@ -1348,7 +1348,7 @@ scm_gc_sweep ()
            the list of free cells we've built for this segment.  */
 	*hp_freelist = nfreelist;
 
-#ifdef DEBUG_FREELIST
+#ifdef GUILE_DEBUG_FREELIST
       scm_check_freelist ();
       scm_map_free_list ();
 #endif

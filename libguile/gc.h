@@ -75,7 +75,7 @@ extern unsigned long scm_cells_allocated;
 extern long scm_mallocated;
 extern unsigned long scm_mtrigger;
 
-#ifdef DEBUG_FREELIST
+#ifdef GUILE_DEBUG_FREELIST
 extern SCM scm_map_free_list (void);
 extern SCM scm_debug_newcell (void);
 extern SCM scm_gc_set_debug_check_freelist_x (SCM flag);

@@ -144,7 +144,7 @@ typedef SCM  huge *SCMPTR;
 #define SCM_CDDDDR(OBJ)		SCM_CDR (SCM_CDR (SCM_CDR (SCM_CDR (OBJ))))
 
 
-#ifdef DEBUG_FREELIST
+#ifdef GUILE_DEBUG_FREELIST
 #define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
 #else
 #define SCM_NEWCELL(_into) \

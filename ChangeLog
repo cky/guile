@@ -2,7 +2,7 @@ Mon Sep 27 16:28:33 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* configure.in:  Added --enable-debug-freelist option.
 
-	* acconfig.h: Added DEBUG_FREELIST.
+	* acconfig.h: Added GUILE_DEBUG_FREELIST.
 
 1999-09-23  Gary Houston  <ghouston@freewire.co.uk>
 
