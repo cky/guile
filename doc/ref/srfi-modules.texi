@@ -662,18 +662,38 @@ wanting to use @code{break} from within a @code{while} loop will need
 to make a new define under a different name.
 @end deffn
 
-@deffn {Scheme Procedure} any pred lst1 lst2 @dots{}
-Apply @var{pred} across the lists and return a true value if the
-predicate returns true for any of the list elements(s); return
-@code{#f} otherwise.  The true value returned is always the result of
-the first successful application of @var{pred}.
+@deffn {Scheme Procedure} any pred lst1 lst2 @dots{} lstN
+Test whether any set of elements from @var{lst1} @dots{} lstN
+satisfies @var{pred}.  If so the return value is the return from the
+successful @var{pred} call, or if not the return is @code{#f}.
+
+Each @var{pred} call is @code{(@var{pred} @var{elem1} @dots{}
+@var{elemN})} taking an element from each @var{lst}.  The calls are
+made successively for the first, second, etc elements of the lists,
+stopping when @var{pred} returns non-@code{#f}, or when the end of the
+shortest list is reached.
+
+The @var{pred} call on the last set of elements (ie.@: when the end of
+the shortest list has been reached), if that point is reached, is a
+tail call.
 @end deffn
 
-@deffn {Scheme Procedure} every pred lst1 lst2 @dots{}
-Apply @var{pred} across the lists and return a true value if the
-predicate returns true for every of the list elements(s); return
-@code{#f} otherwise.  The true value returned is always the result of
-the final successful application of @var{pred}.
+@deffn {Scheme Procedure} every pred lst1 lst2 @dots{} lstN
+Test whether every set of elements from @var{lst1} @dots{} lstN
+satisfies @var{pred}.  If so the return value is the return from the
+final @var{pred} call, or if not the return is @code{#f}.
+
+Each @var{pred} call is @code{(@var{pred} @var{elem1} @dots{}
+@var{elemN})} taking an element from each @var{lst}.  The calls are
+made successively for the first, second, etc elements of the lists,
+stopping if @var{pred} returns @code{#f}, or when the end of any of
+the lists is reached.
+
+The @var{pred} call on the last set of elements (ie.@: when the end of
+the shortest list has been reached) is a tail call.
+
+If one of @var{lst1} @dots{} @var{lstN} is empty then no calls to
+@var{pred} are made, and the return is @code{#t}.
 @end deffn
 
 @deffn {Scheme Procedure} list-index pred lst1 lst2 @dots{}
