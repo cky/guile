@@ -444,7 +444,7 @@ swap_port (SCM scm_data)
 }
 
 static void
-scm_with_current_foo_port (SCM port,
+scm_frame_current_foo_port (SCM port,
 			   SCM (*getter) (void), SCM (*setter) (SCM))
 {
   SCM scm_data = scm_malloc_obj (sizeof (swap_data));
@@ -453,32 +453,32 @@ scm_with_current_foo_port (SCM port,
   data->getter = getter;
   data->setter = setter;
   
-  scm_on_rewind_with_scm (swap_port, scm_data, SCM_F_WIND_EXPLICITLY);
-  scm_on_unwind_with_scm (swap_port, scm_data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_rewind_with_scm (swap_port, scm_data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_with_scm (swap_port, scm_data, SCM_F_WIND_EXPLICITLY);
 }
 
 void
-scm_with_current_input_port (SCM port)
+scm_frame_current_input_port (SCM port)
 {
-  scm_with_current_foo_port (port,
-			     scm_current_input_port,
-			     scm_set_current_input_port);
+  scm_frame_current_foo_port (port,
+			      scm_current_input_port,
+			      scm_set_current_input_port);
 }
 
 void
-scm_with_current_output_port (SCM port)
+scm_frame_current_output_port (SCM port)
 {
-  scm_with_current_foo_port (port,
-			     scm_current_output_port,
-			     scm_set_current_output_port);
+  scm_frame_current_foo_port (port,
+			      scm_current_output_port,
+			      scm_set_current_output_port);
 }
 
 void
-scm_with_current_error_port (SCM port)
+scm_frame_current_error_port (SCM port)
 {
-  scm_with_current_foo_port (port,
-			     scm_current_error_port,
-			     scm_set_current_error_port);
+  scm_frame_current_foo_port (port,
+			      scm_current_error_port,
+			      scm_set_current_error_port);
 }
 
 
