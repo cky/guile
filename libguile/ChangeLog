@@ -1,3 +1,35 @@
+Mon Sep  2 15:22:40 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* socket.c: Don't include a prototype for inet_aton; just use a
+ 	K&R style declaration, to avoid warnings but minimize the chance
+ 	of conflicts with the system.
+
+	On NextStep, <utime.h> doesn't define struct utime, unless we
+	#define _POSIX_SOURCE before #including it.
+	* aclocal.m4 (GUILE_STRUCT_UTIMBUF): New test.
+	* acconfig.h: New comment text for above CPP symbol.
+	* configure.in: Call it.
+	* posix.c: #define _POSIX_SOURCE if it seems necessary.
+
+	* configure.in (AC_CHECK_HEADERS): Include sys/utime.h and utime.h
+	in the list.
+	* posix.c: Check HAVE_SYS_UTIME_H and HAVE_UTIME_H, instead of
+	testing for __EMX__.
+
+	* posix.c: #include <libc.h>, if it exists.
+
+	* posix.c: Cast the return result to GETGROUPS_T, not gid_t; we
+	don't even know if the latter exists.
+
+        * posix.c (s_sys_setpgid, s_sys_setsid, s_sys_ctermid,
+	s_sys_tcgetpgrp, s_sys_tcsetpgrp): Renamed from s_setpgid,
+	s_setsid, s_ctermid, s_tcgetpgrp, s_tcsetpgrp, for consistency.
+
+	* posix.c (R_OK, W_OK, X_OK, F_OK): #define these if the system's
+	header files don't.
+	(scm_init_posix): Use them when initializing the Scheme constants
+	of the same name.
+
 Fri Aug 30 16:01:30 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in (libdir, includedir, bindir): Use the
