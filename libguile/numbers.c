@@ -3952,8 +3952,8 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 
    ITYPE - the name of the integral type.
 
-   UNSIGNED - Define this when ITYPE is an unsigned type.  Do not
-     define it otherwise.
+   UNSIGNED - Define this to 1 when ITYPE is an unsigned type.  Define
+   it to 0 otherwise.
 
    UNSIGNED_ITYPE - the name of the the unsigned variant of the
      integral type.  If you don't define this, it defaults to
