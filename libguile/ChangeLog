@@ -1,3 +1,36 @@
+Thu Aug 29 23:06:19 1996  Thomas Morgan  <tmorgan@gnu.ai.mit.edu>
+
+	* libguile.h: #include "version.h"
+
+	* init.c (scm_boot_guile): Call scm_init_version.
+	* gscm.c (gscm_run_scm): Call scm_init_version.
+
+	* configure.in (GUILE_MAJOR_VERSION, GUILE_MINOR_VERSION,
+	GUILE_VERSION): AC_DEFINE these.
+	(acconfig.h): #undef the above symbols.
+
+	* Makefile.in (libobjs): Add version.o.
+	(installed_h_files): Add version.h.
+	(c_files): Add version.c.
+	(gen_c_files): Add version.x.
+	(version.o): New rule.
+	(alist.o, append.o, appinit.o, arbiters.o, async.o, boolean.o,
+	chars.o, continuations.o, dynwind.o, eq.o, error.o, eval.o,
+	fdsocket.o, feature.o, files.o, filesys.o, fports.o, gc.o,
+	genio.o, gsubr.o, hash.o, hashtab.o, init.o, kw.o, list.o, load.o,
+	mallocs.o, markers.o, marksweep.o, mbstrings.o, numbers.o,
+	objprop.o, pairs.o, ports.o, posix.o, print.o, procprop.o,
+	procs.o, ramap.o, read.o, root.o, scmsigs.o, sequences.o,
+	simpos.o, smob.o, socket.o, stackchk.o, stime.o, strings.o,
+	strop.o, strorder.o, strports.o, struct.o, symbols.o, tag.o,
+	throw.o, unif.o, variable.o, vectors.o, version.o, vports.o,
+	weaks.o): Add version.h to dependency lists.
+	(markers.o): Remove duplicate rule.
+
+	* version.h: New file.
+
+	* version.c: New file.
+
 Thu Aug 29 15:21:39 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* symbols.c (scm_strhash): scm_downcase is now a function, not an
