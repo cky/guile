@@ -129,8 +129,6 @@
 	;;transcript-off
 	)
 
-(define eval eval-in-module)
-
 (define null-interface (make-module 31))
 (set-module-kind! null-interface 'interface)
 
