@@ -62,7 +62,7 @@ SCM_API SCM scm_c_longs2scm (const long *src, long n);
 SCM_API SCM scm_c_floats2scm (const float *src, long n);
 SCM_API SCM scm_c_doubles2scm (const double *src, long n);
 
-#if HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
 SCM_API SCM scm_c_chars2byvect (const char *src, long n);
 SCM_API SCM scm_c_shorts2svect (const short *src, long n);
 SCM_API SCM scm_c_ints2ivect (const int *src, long n);
