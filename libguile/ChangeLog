@@ -6,9 +6,16 @@
 	scm_make_gsubr_with_generic, scm_create_hook, SCM_LIST0,
 	SCM_LIST1, SCM_LIST2, SCM_LIST3, SCM_LIST4, SCM_LIST5, SCM_LIST6,
 	SCM_LIST7, SCM_LIST8, SCM_LIST9, scm_listify, scm_sloppy_memq,
-	scm_sloppy_memv, scm_sloppy_member, scm_read_and_eval_x): Re-added
-	from release_1_6 branch.
-
+	scm_sloppy_memv, scm_sloppy_member, scm_read_and_eval_x,
+	scm_subr_entry, SCM_SUBR_DOC, scm_make_subr,
+	scm_make_subr_with_generic, scm_make_subr_opt,
+	scm_call_catching_errors, scm_make_smob_type_mfpe,
+	scm_set_smob_mfpe, scm_strprint_obj, scm_read_0str, scm_eval_0str,
+	SCM_CHARS, SCM_UCHARS, SCM_LENGTH): Re-added from the release_1_6
+	branch.  Some have been slightly rewritten.
+	(scm_i_object_chars, scm_i_object_length): New, to support
+	SCM_CHARS, SCM_UCHARS, and SCM_LENTH.
+	
 2003-05-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_m_do, unmemocopy, SCM_CEVAL):  Reversed order of
