@@ -1,3 +1,16 @@
+2000-05-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gh_data.c (gh_scm2chars, gh_scm2shorts, gh_scm2longs,
+	gh_scm2floats, gh_scm2doubles):  Change !SCM_NIMP to SCM_IMP.
+
+	* gc.c (scm_cellp):  Fixed and simplified.
+
+	* throw.c (JBJMPBUF, SETJBJMPBUF, SCM_JBDFRAME, SCM_SETJBDFRAME,
+	make_jmpbuf, scm_init_throw):  Now using double cells to represent
+	jump buffers when using debug extensions.
+
+	(freejb):  Removed.
+
 2000-05-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gh.h gh_data.c gh_funcs.c (gh_new_procedure*, gh_chars2byvect,

@@ -268,7 +268,7 @@ gh_scm2chars (SCM obj, char *m)
   int i, n;
   long v;
   SCM val;
-  if (!SCM_NIMP (obj))
+  if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
   switch (SCM_TYP7 (obj))
     {
@@ -316,7 +316,7 @@ gh_scm2shorts (SCM obj, short *m)
   int i, n;
   long v;
   SCM val;
-  if (!SCM_NIMP (obj))
+  if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
   switch (SCM_TYP7 (obj))
     {
@@ -361,7 +361,7 @@ gh_scm2longs (SCM obj, long *m)
 {
   int i, n;
   SCM val;
-  if (!SCM_NIMP (obj))
+  if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
   switch (SCM_TYP7 (obj))
     {
@@ -404,7 +404,7 @@ gh_scm2floats (SCM obj, float *m)
 {
   int i, n;
   SCM val;
-  if (!SCM_NIMP (obj))
+  if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
   switch (SCM_TYP7 (obj))
     {
@@ -460,7 +460,7 @@ gh_scm2doubles (SCM obj, double *m)
 {
   int i, n;
   SCM val;
-  if (!SCM_NIMP (obj))
+  if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
   switch (SCM_TYP7 (obj))
     {

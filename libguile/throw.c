@@ -74,21 +74,11 @@ static int scm_tc16_jmpbuffer;
 #define ACTIVATEJB(OBJ)  (SCM_SETOR_CAR (OBJ, (1L << 16L)))
 #define DEACTIVATEJB(OBJ)  (SCM_SETAND_CAR (OBJ, ~(1L << 16L)))
 
-#ifndef DEBUG_EXTENSIONS
 #define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
 #define SETJBJMPBUF(x,v)        (SCM_SET_CELL_WORD_1 ((x), (v)))
-#else
-#define SCM_JBDFRAME(x)         ((scm_debug_frame *) SCM_CELL_WORD_0 (SCM_CDR (x)))
-#define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (SCM_CDR (OBJ)))
-#define SCM_SETJBDFRAME(OBJ,X)  (SCM_SET_CELL_WORD_0 (SCM_CDR (OBJ), (X)))
-#define SETJBJMPBUF(OBJ,X)      (SCM_SET_CELL_WORD_1 (SCM_CDR (OBJ), (X)))
-
-static scm_sizet
-freejb (SCM jbsmob)
-{
-  scm_must_free ((char *) SCM_CELL_WORD_1 (jbsmob));
-  return sizeof (scm_cell);
-}
+#ifdef DEBUG_EXTENSIONS
+#define SCM_JBDFRAME(x)         ((scm_debug_frame *) SCM_CELL_WORD_2 (x))
+#define SCM_SETJBDFRAME(x,v)    (SCM_SET_CELL_WORD_2 ((x), (v)))
 #endif
 
 static int
@@ -110,10 +100,7 @@ make_jmpbuf (void)
   SCM_REDEFER_INTS;
   {
 #ifdef DEBUG_EXTENSIONS
-    char *mem = scm_must_malloc (sizeof (scm_cell), "jb");
-#endif
-#ifdef DEBUG_EXTENSIONS
-    SCM_NEWSMOB (answer, scm_tc16_jmpbuffer, mem);
+    SCM_NEWSMOB2 (answer, scm_tc16_jmpbuffer, 0, 0);
 #else
     SCM_NEWSMOB (answer, scm_tc16_jmpbuffer, 0);
 #endif
@@ -715,15 +702,9 @@ void
 scm_init_throw ()
 {
   scm_tc16_jmpbuffer = scm_make_smob_type_mfpe ("jmpbuffer",
-#ifdef DEBUG_EXTENSIONS
-						sizeof (scm_cell),
-						NULL, /* mark */
-						freejb,
-#else
 						0,
 						NULL, /* mark */
 						NULL,
-#endif
 						printjb,
 						NULL);
 

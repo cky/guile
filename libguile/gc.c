@@ -1454,71 +1454,38 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 }
 
 
-/* The following is a C predicate which determines if an SCM value can be
-   regarded as a pointer to a cell on the heap.  The code is duplicated
-   from scm_mark_locations.  */
-
-
+/* The function scm_cellp determines whether an SCM value can be regarded as a
+ * pointer to a cell on the heap.  Binary search is used in order to determine
+ * the heap segment that contains the cell.
+ */
 int
 scm_cellp (SCM value)
 {
-  register int i, j;
-  register SCM_CELLPTR ptr;
+  if (SCM_CELLP (value)) {
+    scm_cell * ptr = SCM2PTR (value);
+    unsigned int i = 0;
+    unsigned int j = scm_n_heap_segs - 1;
 
-  if (SCM_CELLP (value))
-    {
-      ptr = SCM2PTR (value);
-      i = 0;
-      j = scm_n_heap_segs - 1;
-      if (   SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
-	     && SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
-	{
-	  while (i <= j)
-	    {
-	      int seg_id;
-	      seg_id = -1;
-	      if (   (i == j)
-		     || SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr))
-		seg_id = i;
-	      else if (SCM_PTR_LE (scm_heap_table[j].bounds[0], ptr))
-		seg_id = j;
-	      else
-		{
-		  int k;
-		  k = (i + j) / 2;
-		  if (k == i)
-		    break;
-		  if (SCM_PTR_GT (scm_heap_table[k].bounds[1], ptr))
-		    {
-		      j = k;
-		      ++i;
-		      if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr))
-			continue;
-		      else
-			break;
-		    }
-		  else if (SCM_PTR_LE (scm_heap_table[k].bounds[0], ptr))
-		    {
-		      i = k;
-		      --j;
-		      if (SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
-			continue;
-		      else
-			break;
-		    }
-		}
-	      if (!scm_heap_table[seg_id].valid
-		     || scm_heap_table[seg_id].valid (ptr,
-						      &scm_heap_table[seg_id]))
-		if (scm_heap_table[seg_id].span == 1
-		    || SCM_DOUBLE_CELLP (value))
-		  scm_gc_mark (value);
-	      break;
-	    }
-
-	}
+    while (i < j) {
+      int k = (i + j) / 2;
+      if (SCM_PTR_GT (scm_heap_table[k].bounds[1], ptr)) {
+	j = k;
+      } else if (SCM_PTR_LE (scm_heap_table[k].bounds[0], ptr)) {
+	i = k + 1;
+      }
     }
-  return 0;
+
+    if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr) 
+	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr)
+	&& (!scm_heap_table[i].valid || scm_heap_table[i].valid (ptr, &scm_heap_table[i]))
+	&& (scm_heap_table[i].span == 1 || SCM_DOUBLE_CELLP (value))) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
 }
 
 
