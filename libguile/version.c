@@ -123,6 +123,31 @@ SCM_DEFINE (scm_version, "version", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+/* Return a Scheme string containing Guile's effective version.  */
+
+SCM_DEFINE (scm_effective_version, "effective-version", 0, 0, 0, 
+            (),
+	    "Return a string describing Guile's effective version number.\n"
+	    "@lisp\n"
+	    "(version) @result{} \"1.6.0\"\n"
+	    "(effective-version) @result{} \"1.6\"\n"
+	    "(major-version) @result{} \"1\"\n"
+	    "(minor-version) @result{} \"6\"\n"
+	    "(micro-version) @result{} \"0\"\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_effective_version
+{
+
+  char version_str[2 * 4 + 3];
+
+#if (SCM_MAJOR_VERSION > 9999 || SCM_MINOR_VERSION > 9999)
+# error version string may overflow buffer
+#endif
+  sprintf (version_str, "%d.%d", SCM_MAJOR_VERSION, SCM_MINOR_VERSION);
+  return scm_makfrom0str (version_str);
+}
+#undef FUNC_NAME
+
 
 
 
