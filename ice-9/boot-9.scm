@@ -588,6 +588,19 @@
 	    (map-in-order fn (cdr l)))))
 
 
+;;; {Hooks}
+(define (run-hooks hook)
+  (for-each (lambda (thunk) (thunk)) hook))
+
+(define add-hook!
+  (procedure->macro
+    (lambda (exp env)
+      `(let ((thunk ,(caddr exp)))
+	 (if (not (memq thunk ,(cadr exp)))
+	     (set! ,(cadr exp)
+		   (cons thunk ,(cadr exp))))))))
+
+
 ;;; {Files}
 ;;; !!!! these should be implemented using Tcl commands, not fports.
 ;;;
@@ -2159,6 +2172,8 @@
     (else
      (apply default-lazy-handler key args))))
 
+(define abort-hook '())
+
 (define (error-catching-loop thunk)
   (define (loop first)
     (let ((next 
@@ -2197,6 +2212,7 @@
 		  ;; (set! first #f) above
 		  ;;
 		  (lambda ()
+		    (run-hooks abort-hook)
 		    (force-output)
 		    (display "ABORT: "  (current-error-port))
 		    (write args (current-error-port))
@@ -2244,10 +2260,10 @@
 			      (apply make-stack #t save-stack id narrowing))))))
 	 (set! stack-saved? #t))))
 
-(define before-error-hook #f)
-(define after-error-hook #f)
-(define before-backtrace-hook #f)
-(define after-backtrace-hook #f)
+(define before-error-hook '())
+(define after-error-hook '())
+(define before-backtrace-hook '())
+(define after-backtrace-hook '())
 
 (define has-shown-debugger-hint? #f)
 
@@ -2255,14 +2271,14 @@
   (let ((cep (current-error-port)))
     (cond ((not (stack? the-last-stack)))
 	  ((memq 'backtrace (debug-options-interface))
-	   (and before-backtrace-hook (before-backtrace-hook))
+	   (run-hooks before-backtrace-hook)
 	   (newline cep)
 	   (display-backtrace the-last-stack cep)
 	   (newline cep)
-	   (and after-backtrace-hook (after-backtrace-hook))))
-    (and before-error-hook (before-error-hook))
+	   (run-hooks after-backtrace-hook)))
+    (run-hooks before-error-hook)
     (apply display-error the-last-stack cep args)
-    (and after-error-hook (after-error-hook))
+    (run-hooks after-error-hook)
     (force-output cep)
     (throw 'abort key)))
 
@@ -2293,8 +2309,8 @@
 (define (gc-run-time)
   (cdr (assq 'gc-time-taken (gc-stats))))
 
-(define before-read-hook #f)
-(define after-read-hook #f)
+(define before-read-hook '())
+(define after-read-hook '())
 
 (define (scm-style-repl)
   (letrec (
@@ -2324,9 +2340,9 @@
 					 (else "> ")))
 			  (force-output)
 			  (repl-report-reset)))
-		    (and before-read-hook (before-read-hook))
+		    (run-hooks before-read-hook)
 		    (let ((val (read (current-input-port) #t read-sharp)))
-		      (and after-read-hook (after-read-hook))
+		      (run-hooks after-read-hook)
 		      (if (eof-object? val)
 			  (begin
 			    (if scm-repl-verbose

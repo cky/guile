@@ -158,6 +158,7 @@
        ls))
 
 (define trace-level 0)
+(add-hook! abort-hook (lambda () (set! trace-level 0)))
 
 (define (trace-entry key cont tail)
   (dynamic-wind

@@ -1,5 +1,11 @@
 Sat Mar  1 00:10:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* debug.scm: Add hook for reset of trace level at abort.
+
+	* boot-9.scm (run-hooks): New procedure.
+	(add-hooks!): New macro.
+	Change hooks to use these functions.
+
 *	* debug.scm: *Warning* This feature is a bit premature.  I add
  	it anyway because 1. it is very useful, and, 2. you can start
 	making it less premature by complaining to me and by modifying
