@@ -1,3 +1,25 @@
+2001-05-19  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* psyntax.ss (build-lexical-var): Use gensym instead of gentemp.
+	* match.scm: Likewise.
+	* expect.scm: Likewise.
+	* psyntax.pp: Regenerated.
+	
+	* rdelim.scm:  Call `%init-rdelim-builtins'.
+
+	* rw.scm: Call `%init-rw-builtins'.
+
+	* boot-9.scm (process-define-module): Do not call
+	set-current-module.
+	(define-module): Do it here, in the expansion.
+	(top-repl): Do not define '(guile-user)' module and conditionally
+	load `(ice-9 threads)' and/or `(ice-9 regex)' here.  Do it on
+	top-level as the last thing in boot-9.scm instead.
+	(%load-path): Use `list' instead of `cons' to create a single
+	element list when adding "." to it.
+	(process-define-module, process-use-modules, module-export!): Add
+	dummy definitions prior to booting the mdule system.
+
 2001-05-18  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* boot-9.scm: (resolve-interface, use-srfis): Small
