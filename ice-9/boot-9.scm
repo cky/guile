@@ -332,11 +332,12 @@
 (define %struct-printer-tag (cons '%struct-printer-tag #f))
 
 (define (struct-printer s)
-  (and (>= (string-length (struct-layout s))
-	   (* 2 struct-vtable-offset))
-       (let ((p (struct-ref (struct-vtable s) struct-vtable-offset)))
-	 (and (eq? (car p) %struct-printer-tag)
-	      (cdr p)))))
+  (let ((vtable (struct-vtable s)))
+    (and (>= (string-length (struct-layout vtable))
+	     (* 2 struct-vtable-offset))
+	 (let ((p (struct-ref vtable struct-vtable-offset)))
+	   (and (eq? (car p) %struct-printer-tag)
+		(cdr p))))))
 
 (define (make-struct-printer printer)
   (cons %struct-printer-tag printer))
