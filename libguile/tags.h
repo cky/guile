@@ -2,7 +2,7 @@
 
 #ifndef TAGSH
 #define TAGSH
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@ typedef long SCM;
  * (Not always impossible but it is fair to say that many details of tags
  * are mutually dependent).  */
 
-#define SCM_IMP(x) 		(6 & (int)(x))
+#define SCM_IMP(x) 		(6 & (SCM)(x))
 #define SCM_NIMP(x) 		(!SCM_IMP(x))
 
 /* Here is a summary of tagging in SCM values as they might occur in
@@ -260,7 +260,7 @@ typedef long SCM;
  * stored in the SCM_CAR of a non-immediate object have a 1 in bit 1:
  */
 
-#define SCM_NCONSP(x) (1 & (int)SCM_CAR(x))
+#define SCM_NCONSP(x) (1 & SCM_CAR(x))
 #define SCM_CONSP(x) (!SCM_NCONSP(x))
 
 
@@ -277,13 +277,13 @@ typedef long SCM;
 
 
 #define SCM_CELLP(x) 	(!SCM_NCELLP(x))
-#define SCM_NCELLP(x) 	((sizeof(scm_cell)-1) & (int)(x))
+#define SCM_NCELLP(x) 	((sizeof(scm_cell)-1) & (SCM)(x))
 
 /* See numbers.h for macros relating to immediate integers.
  */
 
-#define SCM_ITAG3(x) 		(7 & (int)x)
-#define SCM_TYP3(x) 		(7 & (int)SCM_CAR(x))
+#define SCM_ITAG3(x) 		(7 & (SCM)x)
+#define SCM_TYP3(x) 		(7 & SCM_CAR(x))
 #define scm_tc3_cons		0
 #define scm_tc3_cons_gloc	1
 #define scm_tc3_int_1		2
@@ -299,20 +299,20 @@ typedef long SCM;
  */
 
 
-#define SCM_TYP7(x) 		((int)SCM_CAR(x) & 0x7f)
-#define SCM_TYP7S(x) 		((int)SCM_CAR(x) & (0x7f & ~2))
+#define SCM_TYP7(x) 		(SCM_CAR(x) & 0x7f)
+#define SCM_TYP7S(x) 		(SCM_CAR(x) & (0x7f & ~2))
 
 
-#define SCM_TYP16(x) 		(0xffff & (int)SCM_CAR(x))
-#define SCM_TYP16S(x) 		(0xfeff & (int)SCM_CAR(x))
-#define SCM_GCTYP16(x) 		(0xff7f & (int)SCM_CAR(x))
+#define SCM_TYP16(x) 		(0xffff & SCM_CAR(x))
+#define SCM_TYP16S(x) 		(0xfeff & SCM_CAR(x))
+#define SCM_GCTYP16(x) 		(0xff7f & SCM_CAR(x))
 
 
 
 /* Testing and Changing GC Marks in Various Standard Positions
  */
-#define SCM_GCMARKP(x) 		(1 & (int)SCM_CDR(x))
-#define SCM_GC8MARKP(x) 	(0x80 & (int)SCM_CAR(x))
+#define SCM_GCMARKP(x) 		(1 & SCM_CDR(x))
+#define SCM_GC8MARKP(x) 	(0x80 & SCM_CAR(x))
 #define SCM_SETGCMARK(x) 	SCM_SETOR_CDR (x,1)
 #define SCM_CLRGCMARK(x) 	SCM_SETAND_CDR (x, ~1L)
 #define SCM_SETGC8MARK(x) 	SCM_SETOR_CAR (x, 0x80)
@@ -419,7 +419,7 @@ enum scm_tags
   scm_tc8_iloc = 0xfc
 };
 
-#define SCM_ITAG8(X)		((int)(X) & 0xff)
+#define SCM_ITAG8(X)		((SCM)(X) & 0xff)
 #define SCM_MAKE_ITAG8(X, TAG)	(((X)<<8) + TAG)
 #define SCM_ITAG8_DATA(X)	((X)>>8)
 
@@ -429,11 +429,11 @@ enum scm_tags
  */
 
 /* SCM_ISYMP tests for ISPCSYM and ISYM */
-#define SCM_ISYMP(n) 		((0x187 & (int)(n))==4)
+#define SCM_ISYMP(n) 		((0x187 & (SCM)(n))==4)
 
 /* SCM_IFLAGP tests for ISPCSYM, ISYM and IFLAG */
-#define SCM_IFLAGP(n) 		((0x87 & (int)(n))==4)
-#define SCM_ISYMNUM(n) 		((int)((n)>>9))
+#define SCM_IFLAGP(n) 		((0x87 & (SCM)(n))==4)
+#define SCM_ISYMNUM(n) 		((SCM)((n)>>9))
 #define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM(n)])
 #define SCM_MAKSPCSYM(n) 	(((n)<<9)+((n)<<3)+4L)
 #define SCM_MAKISYM(n) 		(((n)<<9)+0x74L)
