@@ -1,3 +1,9 @@
+2000-09-27  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* src/vm.c, src/vm.h, src/vm_engine.c, src/vm_engine.h,
+	src/vm-snarf.h: Indirect threaded.
+	* src/Makefile.am, src/.cvsignore: Updated.
+
 2000-09-22  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* src/vm.c: SCM_CHARS -> SCM_SYMBOL_CHARS.
