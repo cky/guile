@@ -255,7 +255,7 @@
 ;;;;     report as system time.
 ;;;; benchmark-frame-time : this function takes the argument ITERATIONS.  It
 ;;;;     reports the part of the user time that is consumed by the
-;;;;     benchmarking framework itself to run some benchmark for the giben
+;;;;     benchmarking framework itself to run some benchmark for the given
 ;;;;     number of iterations.  You can think of this as the time that would
 ;;;;     still be consumed, even if the benchmarking code itself was empty.
 ;;;;     This value does not include any time for garbage collection, even if
@@ -286,11 +286,16 @@
 ;;;; MISCELLANEOUS
 ;;;;
 
+;;; Perform a division and convert the result to inexact.
+(define (i/ a b)
+  (exact->inexact (/ a b)))
+
 ;;; Scale the number of iterations according to the given scaling factor.
 (define iteration-factor 1)
 (define (scale-iterations iterations)
   (let* ((i (inexact->exact (round (* iterations iteration-factor)))))
     (if (< i 1) 1 i)))
+
 
 ;;;; CORE FUNCTIONS
 ;;;;
@@ -450,8 +455,7 @@
 	 (user-time\interpreter
 	  (benchmark-user-time\interpreter before after gc-time))
 	 (benchmark-core-time\interpreter 
-	  (benchmark-core-time\interpreter iterations before after gc-time))
-	 (i/ (lambda (a b) (exact->inexact (/ a b)))))
+	  (benchmark-core-time\interpreter iterations before after gc-time)))
     (write (list name iterations
 		 'total (i/ total-time time-base)
 		 'user (i/ user-time time-base)
@@ -483,8 +487,7 @@
 	 (user-time (benchmark-user-time before after))
 	 (benchmark-time (benchmark-core-time iterations before after))
 	 (benchmark-core-time\interpreter
-	  (benchmark-core-time\interpreter iterations before after gc-time))
-	 (i/ (lambda (a b) (exact->inexact (/ a b)))))
+	  (benchmark-core-time\interpreter iterations before after gc-time)))
     (write (list name iterations 
 		 'user (i/ user-time time-base)
 		 'benchmark (i/ benchmark-time time-base)
@@ -501,19 +504,24 @@
 ;;;; Initialize the benchmarking system:
 ;;;;
 
-;;; First, make sure the benchmarking routines are compiled.
+;;; First, display version information
+(display ";; running guile version " (current-output-port))
+(display (version) (current-output-port))
+(newline (current-output-port))
+
+;;; Second, make sure the benchmarking routines are compiled.
 (define (null-reporter . args) #t)
 (set! default-reporter null-reporter)
 (benchmark "empty initialization benchmark" 2 #t)
 
-;;; Second, initialize the system constants
+;;; Third, initialize the system constants
 (display ";; calibrating the benchmarking framework..." (current-output-port))
 (newline (current-output-port))
 (define (initialization-reporter name iterations before after gc-time)
   (let* ((frame-time (- (tms:utime after) (tms:utime before) gc-time 3)))
     (set! frame-time/iteration (/ frame-time iterations))
     (display ";; framework time per iteration: " (current-output-port))
-    (display (/ frame-time/iteration time-base) (current-output-port))
+    (display (i/ frame-time/iteration time-base) (current-output-port))
     (newline (current-output-port))))
 (set! default-reporter initialization-reporter)
 (benchmark "empty initialization benchmark" 524288 #t)

@@ -1,3 +1,9 @@
+2004-01-23  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* lib.scm: Extracted '/i' to toplevel.  Print the guile version
+	number before the benchmarks are run.  Print the framework-time
+	per iteration as an inexact number.
+
 2004-01-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* lib.scm (print-result, print-user-result): Handle exact
