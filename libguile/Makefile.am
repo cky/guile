@@ -16,7 +16,7 @@ guile_SOURCES = guile.c
 guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 
 libguile_la_SOURCES = \
-    alist.c appinit.c arbiters.c async.c boolean.c chars.c \
+    alist.c arbiters.c async.c boolean.c chars.c \
     continuations.c dynl.c dynwind.c eq.c error.c eval.c feature.c \
     filesys.c fports.c gc.c gdbint.c genio.c gh_data.c gh_eval.c \
     gh_funcs.c gh_init.c gh_io.c gh_list.c gh_predicates.c gsubr.c \
@@ -30,7 +30,7 @@ libguile_la_SOURCES = \
 
 BUILT_SOURCES = \
     cpp_err_symbols.c cpp_sig_symbols.c libpath.h versiondat.h \
-    alist.x appinit.x arbiters.x async.x boolean.x chars.x \
+    alist.x arbiters.x async.x boolean.x chars.x \
     continuations.x dynl.x dynwind.x eq.x error.x eval.x feature.x \
     filesys.x fports.x gc.x gdbint.x genio.x gh_data.x gh_eval.x \
     gh_funcs.x gh_init.x gh_io.x gh_list.x gh_predicates.x gsubr.x \
