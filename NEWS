@@ -142,6 +142,10 @@ need minor modification: an error will be thrown with key
 now possible to use `defined?' to check whether the facility is
 available.
 
+** Procedures which depend on the timezone should now give the correct
+result on systems which cache the TZ environment variable, even if TZ 
+is changed without calling tzset.
+
 * Changes to the networking interfaces:
 
 ** New functions: htons, ntohs, htonl, ntohl: for converting short and

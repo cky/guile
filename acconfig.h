@@ -110,6 +110,9 @@
 /* Define if dlsym automatically supplies a leading underscore. */
 #undef DLSYM_ADDS_USCORE
 
+/* Define if localtime caches the TZ setting.  */
+#undef LOCALTIME_CACHE
+
 /* Define if the operating system can restart system calls.  */
 #undef HAVE_RESTARTS
 

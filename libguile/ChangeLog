@@ -1,3 +1,18 @@
+2000-01-09  Gary Houston  <ghouston@arglist.com>
+
+	* These changes should make it unnecessary to call tzset from
+	Scheme after modifying the TZ environment variable, even if the
+	system date facilities cache the value.
+	* stime.c (setzone, scm_localtime): added comments.
+	(tzset): don't define a noop tzset macro if HAVE_TZSET not defined.
+	(setzone): don't call tzset.
+	(restorezone): call tzset only if HAVE_TZSET is defined.
+	(scm_tzset): don't define if HAVE_TZSET not defined.  Change the
+	doc string to indicate that this procedure isn't likely to do
+	anything useful.
+	(scm_localtime, scm_strftime, scm_mktime): call tzset if
+	LOCALTIME_CACHE is defined.
+
 2000-01-09  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* posix.c (scm_sync): Return SCM_UNSPECIFIED.

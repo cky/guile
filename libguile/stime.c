@@ -205,12 +205,6 @@ terminated child processes.
 #undef FUNC_NAME
 #endif /* HAVE_TIMES */
 
-#ifndef HAVE_TZSET
-/* GNU-WIN32's cygwin.dll doesn't have this. */
-#define tzset()
-#endif
-
-
 static long scm_my_base = 0;
 
 SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
@@ -298,6 +292,10 @@ filltime (struct tm *bd_time, int zoff, char *zname)
 static char tzvar[3] = "TZ";
 extern char ** environ;
 
+/* if zone is set, create a temporary environment with only a TZ
+   string.  other threads or interrupt handlers shouldn't be allowed
+   to run until the corresponding restorezone is called.  hence the use
+   of a static variable for tmpenv is no big deal.  */
 static char **
 setzone (SCM zone, int pos, const char *subr)
 {
@@ -308,7 +306,6 @@ setzone (SCM zone, int pos, const char *subr)
       static char *tmpenv[2];
       char *buf;
 
-      /* if zone was supplied, set the environment temporarily.  */
       SCM_ASSERT (SCM_ROSTRINGP (zone), zone, pos, subr);
       SCM_COERCE_SUBSTR (zone);
       buf = scm_must_malloc (SCM_LENGTH (zone) + sizeof (tzvar) + 1,
@@ -318,7 +315,6 @@ setzone (SCM zone, int pos, const char *subr)
       tmpenv[0] = buf;
       tmpenv[1] = 0;
       environ = tmpenv;
-      tzset();
     }
   return oldenv;
 }
@@ -330,7 +326,10 @@ restorezone (SCM zone, char **oldenv, const char *subr)
     {
       scm_must_free (environ[0]);
       environ = oldenv;
+#ifdef HAVE_TZSET
+      /* for the possible benefit of user code linked with libguile.  */
       tzset();
+#endif
     }
 }
 
@@ -353,8 +352,14 @@ used.")
   int err;
 
   itime = SCM_NUM2LONG (1,time);
+
+  /* deferring interupts is essential since a) setzone may install a temporary
+     environment b) localtime uses a static buffer.  */
   SCM_DEFER_INTS;
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
+#ifdef LOCALTIME_CACHE
+  tzset ();
+#endif
   ltptr = localtime (&itime);
   err = errno;
   if (ltptr)
@@ -487,6 +492,9 @@ as @var{bd-time} but with normalized values.")
 
   SCM_DEFER_INTS;
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
+#ifdef LOCALTIME_CACHE
+  tzset ();
+#endif
   itime = mktime (&lt);
   err = errno;
 
@@ -539,18 +547,20 @@ as @var{bd-time} but with normalized values.")
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_TZSET
 SCM_DEFINE (scm_tzset, "tzset", 0, 0, 0, 
             (void),
-"Initialize the timezone from the TZ environment variable or the system
-default.  Usually this is done automatically by other procedures which
-use the time zone, but this procedure may need to be used if TZ
-is changed.")
+"Initialize the timezone from the TZ environment variable
+or the system default.  It's not usually necessary to call this procedure
+since it's done automatically by other procedures that depend on the
+timezone.")
 #define FUNC_NAME s_scm_tzset
 {
   tzset();
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+#endif /* HAVE_TZSET */
 
 SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
             (SCM format, SCM stime),
@@ -579,6 +589,9 @@ is the formatted string.
   len = SCM_ROLENGTH (format);
 
   tbuf = SCM_MUST_MALLOC (size);
+#ifdef LOCALTIME_CACHE
+  tzset ();
+#endif
   while ((len = strftime (tbuf, size, fmt, &t)) == size)
     {
       scm_must_free (tbuf);

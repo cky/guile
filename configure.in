@@ -248,6 +248,53 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
 
 dnl </GNU-WIN32 hacks>
 
+AC_MSG_CHECKING(whether localtime caches TZ)
+AC_CACHE_VAL(guile_cv_localtime_cache,
+[if test x$ac_cv_func_tzset = xyes; then
+AC_TRY_RUN([#include <time.h>
+#if STDC_HEADERS
+# include <stdlib.h>
+#endif
+extern char **environ;
+unset_TZ ()
+{
+  char **from, **to;
+  for (to = from = environ; (*to = *from); from++)
+    if (! (to[0][0] == 'T' && to[0][1] == 'Z' && to[0][2] == '='))
+      to++;
+}
+char TZ_GMT0[] = "TZ=GMT0";
+char TZ_PST8[] = "TZ=PST8";
+main()
+{
+  time_t now = time ((time_t *) 0);
+  int hour_GMT0, hour_unset;
+  if (putenv (TZ_GMT0) != 0)
+    exit (1);
+  hour_GMT0 = localtime (&now)->tm_hour;
+  unset_TZ ();
+  hour_unset = localtime (&now)->tm_hour;
+  if (putenv (TZ_PST8) != 0)
+    exit (1);
+  if (localtime (&now)->tm_hour == hour_GMT0)
+    exit (1);
+  unset_TZ ();
+  if (localtime (&now)->tm_hour != hour_unset)
+    exit (1);
+  exit (0);
+}], guile_cv_localtime_cache=no, guile_cv_localtime_cache=yes,
+[# If we have tzset, assume the worst when cross-compiling.
+guile_cv_localtime_cache=yes])
+else
+        # If we lack tzset, report that localtime does not cache TZ,
+        # since we can't invalidate the cache if we don't have tzset.
+        guile_cv_localtime_cache=no
+fi])dnl
+AC_MSG_RESULT($guile_cv_localtime_cache)
+if test $guile_cv_localtime_cache = yes; then
+  AC_DEFINE(LOCALTIME_CACHE)
+fi
+
 dnl Test whether system calls are restartable by default on the
 dnl current system.  If they are not, we put a loop around every system
 dnl call to check for EINTR (see SCM_SYSCALL) and do not attempt to

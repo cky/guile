@@ -1,3 +1,9 @@
+2000-01-09  Gary Houston  <ghouston@arglist.com>
+
+	* configure.in: check whether localtime caches TZ.  copied from
+	Emacs 20.5.
+	* acconfig.h: add LOCALTIME_CACHE.
+
 Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* configure.in: Make it be guile-snarf.awk, since we'll be
