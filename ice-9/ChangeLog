@@ -1,3 +1,10 @@
+2002-10-10  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (top-repl): Use 2 as the limit when saving the stack.
+	(error-catching-loop): use call-with-blocked-asyncs and
+	call-with-unblocked-asyncs instead of mask-signals and
+	unmask-signals.
+	
 2002-10-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* buffered-input.scm (make-buffered-input-port): Build an

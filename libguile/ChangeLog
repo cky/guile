@@ -1,3 +1,31 @@
+2002-10-10  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* root.h (scm_root_state): Added 'block_async' slot.
+	(scm_active_asyncs): Removed abbrev.
+	* root.c (scm_make_root): Initialize 'block_asyncs' slot.
+
+	* __scm.h (SCM_ASYNC_TICK): Do without the scm_active_asyncs
+	abbrev.
+
+	* async.h (scm_call_with_blocked_asyncs,
+	scm_call_with_unblocked_asyncs, scm_c_call_with_blocked_asyncs,
+	scm_c_call_with_unblocked_asyncs): New prototypes.
+	(scm_mask_signals, scm_unmask_signals): Deprecated.
+	(scm_mask_ints): Turned into a macro.
+	* async.c (scm_mask_ints): Removed.
+	(scm_run_asyncs): Do not set scm_mask_ints while running an async.
+	this should not be necessary.
+	(scm_async_click): Test block_asyncs instead of scm_mask_ints.
+	(scm_mask_signals, scm_unmask_signals): Deprecated.  Emit
+	deprecation warning and check for errornous use.  Set block_asyncs
+	instead of scm_mask_ints.
+	(increase_block, decrease_block, scm_call_with_blocked_asyncs,
+	scm_call_with_unblocked_asyncs, scm_c_call_with_blocked_asyncs,
+	scm_c_call_with_unblocked_asyncs): New.
+	
+	* script.c (scm_compile_shell_switches): Do not set scm_mask_ints.
+	Asyncs are enabled by default.
+
 2002-10-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* vports.c (scm_make_soft_port): Allow vector argument to carry a

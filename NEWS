@@ -50,6 +50,23 @@ You can now pass any zero-argument procedure to 'system-async-mark'.
 The function 'system-async' will just return its argument unchanged
 now.
 
+** New functions 'call-with-blocked-asyncs' and
+   'call-with-unblocked-asyncs'
+
+The expression (call-with-blocked-asyncs PROC) will call PROC and will
+block execution of system asyncs for the current thread by one level
+while PROC runs.  Likewise, call-with-unblocked-asyncs will call a
+procedure and will unblock the execution of system asyncs by one
+level for the current thread.
+
+Only system asyncs are affected by these functions.
+
+** The functions 'mask-signals' and 'unmask-signals' are deprecated.
+
+Use 'call-with-blocked-asyncs' or 'call-with-unblocked-asyncs'
+instead.  Those functions are easier to use correctly and can be
+nested.
+
 ** New function 'unsetenv'.
 
 ** New macro 'define-syntax-public'.
@@ -137,6 +154,17 @@ to use r5rs macros.  Also, be aware that macro expansion will not be done
 during evaluation, but prior to evaluation.
 
 * Changes to the C interface
+
+** The value 'scm_mask_ints' is no longer writable.
+
+Previously, you could set scm_mask_ints directly.  This is no longer
+possible.  Use scm_c_call_with_blocked_asyncs and
+scm_c_call_with_unblocked_asyncs instead.
+
+** New functions scm_c_call_with_blocked_asyncs and
+   scm_c_call_with_unblocked_asyncs
+
+Like scm_call_with_blocked_asyncs etc. but for C functions.
 
 ** New snarfer macro SCM_DEFINE_PUBLIC.
 
