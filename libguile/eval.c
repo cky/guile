@@ -896,7 +896,8 @@ iqq (form, env, depth)
 
 /* Here are acros which return values rather than code. */
 
-SCM_SYNTAX(s_delay, "delay", scm_makacro, scm_m_delay);
+SCM_SYNTAX (s_delay, "delay", scm_makmmacro, scm_m_delay);
+SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
 
 SCM 
 scm_m_delay (xorig, env)
@@ -904,10 +905,7 @@ scm_m_delay (xorig, env)
      SCM env;
 {
   SCM_ASSYNT (scm_ilength (xorig) == 2, xorig, scm_s_expression, s_delay);
-  xorig = SCM_CDR (xorig);
-  return scm_makprom (scm_closure (scm_cons2 (SCM_EOL, SCM_CAR (xorig),
-					      SCM_CDR (xorig)),
-				   env));
+  return scm_cons2 (SCM_IM_DELAY, SCM_EOL, SCM_CDR (xorig));
 }
 
 
@@ -1514,6 +1512,10 @@ unmemocopy (x, env)
 	  goto loop;
 	case (SCM_ISYMNUM (SCM_IM_CONT)):
 	  ls = z = scm_cons (scm_sym_atcall_cc, SCM_UNSPECIFIED);
+	  goto loop;
+	case (SCM_ISYMNUM (SCM_IM_DELAY)):
+	  ls = z = scm_cons (scm_sym_delay, SCM_UNSPECIFIED);
+	  x = SCM_CDR (x);
 	  goto loop;
 	default:
 	  /* appease the Sun compiler god: */ ;
@@ -2302,7 +2304,7 @@ dispatch:
 	    {
 	      SCM val;
 	      val = SCM_THROW_VALUE (t.arg1);
-	      RETURN (val);
+	      RETURN (val)
 	    }
 	  proc = SCM_CDR (x);
 	  proc = evalcar (proc, env);
@@ -2310,6 +2312,9 @@ dispatch:
 	  PREP_APPLY (proc, scm_cons (t.arg1, SCM_EOL));
 	  ENTER_APPLY;
 	  goto evap1;
+
+	case (SCM_ISYMNUM (SCM_IM_DELAY)):
+	  RETURN (scm_makprom (scm_closure (SCM_CDR (x), env)))
 
 	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
 	  proc = SCM_CADR (x); /* unevaluated operands */
