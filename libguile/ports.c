@@ -708,7 +708,7 @@ scm_unread_string (str, port)
      SCM str;
      SCM port;
 {
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str),
+  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str),
 	      str, SCM_ARG1, s_unread_string);
 
   if (SCM_UNBNDP (port))
@@ -717,7 +717,7 @@ scm_unread_string (str, port)
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
 		port, SCM_ARG2, s_unread_string);
 
-  scm_ungets (SCM_UCHARS (str), SCM_LENGTH (str), port);
+  scm_ungets (SCM_ROUCHARS (str), SCM_LENGTH (str), port);
   
   return str;
 }
