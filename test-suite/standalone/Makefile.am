@@ -49,6 +49,13 @@ BUILT_SOURCES += test-asmobs-lib.x
 check_SCRIPTS += test-asmobs
 TESTS += test-asmobs
 
+# test-unwind
+test_unwind_SOURCES = test-unwind.c
+test_unwind_CFLAGS = ${test_cflags}
+test_unwind_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-unwind
+TESTS += test-unwind
+
 all-local:
 	cd ${srcdir} && chmod u+x ${check_SCRIPTS}
 
