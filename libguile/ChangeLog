@@ -1,3 +1,7 @@
+2000-04-16  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* script.c (scm_compile_shell_switches): Added --debug option.
+
 2000-04-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* vectors.c (scm_vector_set_x): Return SCM_UNSPECIFIED (as
