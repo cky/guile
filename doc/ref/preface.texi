@@ -20,8 +20,45 @@ corresponds to Guile version @value{VERSION}.
 @chapter The Guile License
 @end ifnottex
 
-The license of Guile is the GNU Lesser General Public License.  See
+Guile is Free Software.  Guile is copyrighted, not public domain, and
+there are restrictions on its distribution or redistribution, but
+these restrictions are designed to permit everything a cooperating
+person would want to do.
+
+@itemize @bullet
+@item
+The Guile library (libguile) and supporting files are published under
+the terms of the GNU Lesser General Public License version 2.1.  See
 the file @file{COPYING.LIB}.
+
+@item
+The Guile readline module is published under the terms of the GNU
+General Public License version 2.  See the file @file{COPYING}.
+
+@item
+The manual you're now reading is published under terms described
+@iftex
+at the start of the document.
+@end iftex
+@ifnottex
+at the start of the document (@pxref{Top}).
+@end ifnottex
+@end itemize
+
+C code linking to the Guile library is subject to terms of that
+library.  Basically such code may be published on any terms, provided
+users can re-link against a new or modified version of Guile.
+
+C code linking to the Guile readline module is subject to the terms of
+that module.  Basically such code must be published on Free terms.
+
+Scheme level code written to be run by Guile (but not derived from
+Guile itself) is not resticted in any way, and may be published on any
+terms.  We encourage authors to publish on Free terms.
+
+You must be aware there is no warranty whatsoever for Guile.  This is
+described in full in the licenses.
+
 
 @iftex
 @section Layout of this Manual
