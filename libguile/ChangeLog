@@ -15,6 +15,14 @@
 
 2004-02-12  Kevin Ryde  <user42@zip.com.au>
 
+	* ports.c (scm_port_line): In docstring, note first line is 0.
+	(scm_set_port_line_x): In docstring, note first line is 0.
+	(scm_port_column): In docstring, there's no default to current input
+	port, and remove shared port-line @defun.
+	(scm_set_port_column_x): In docstring, there's no default to current
+	input port, note first column is 0, remove shared set-port-line!
+	@defun.
+
 	* ramap.c (scm_array_fill_x): For fvect and dvect, use scm_num2dbl to
 	convert args the same way that array-set! does.
 
