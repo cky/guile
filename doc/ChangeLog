@@ -1,3 +1,17 @@
+1998-10-15  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* stamp-vti: Regenerated.
+
+	* hacks.el: Some handy helper functions for working on the manual.
+
+	* data-rep.texi: Extended to accomodate a full running example,
+	provided with the manual.
+	* example-smob: A new subdirectory, containing example files for
+	the manual chapter on smobs.
+	* Makefile.am (EXAMPLE_SMOB_FILES, dist-hook): New variable and
+	target, to get the example-smob directory into the distribution.
+	* Makefile.in: Regenerated.
+	
 1998-10-08  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* .cvsignore: New file, containing data-rep.info.  I'm not sure

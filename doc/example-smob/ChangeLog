@@ -1,0 +1,7 @@
+1998-10-15  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Created this directory for the Guile 1.3 release.  Thanks to Jay
+	Glascoe for suggesting that we provide a complete, buildable
+	example!
+	* ChangeLog, Makefile, README, image-type.c, image-type.h,
+	myguile: New files.
