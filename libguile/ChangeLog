@@ -1,6 +1,8 @@
 2004-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
-	* dynwind.c (scm_i_dowinds): Removed code for handling fluids.
+	* dynwind.h, dynwind.c (scm_i_dowinds): Removed 'explicit'
+	argument since it is always zero now.  Changed all callers.
+	Removed code for handling fluids.
 
 	* fluids.c (scm_c_with_fluids): Use frames instead of adding to
 	the wind chain explicitely.  Use scm_c_with_fluid for the common
