@@ -1,3 +1,8 @@
+2001-06-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-data.texi (Hash Tables): Added docs for
+	`make-hash-table'.
+
 2001-06-29  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* misc-modules.texi: New file.

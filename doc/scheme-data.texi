@@ -4331,8 +4331,8 @@ useful for organizing and indexing large bodies of information.
 
 @menu
 * Dictionary Types::            About dictionary types; what they're good for.
-* Association Lists::           
-* Hash Tables::                 
+* Association Lists::           List-based dictionaries.
+* Hash Tables::                 Table-based dictionaries.
 @end menu
 
 @node Dictionary Types
@@ -4793,6 +4793,15 @@ keys match.  The @code{hashv} functions use @code{eqv?}, and the
 In each of the functions that follow, the @var{table} argument
 must be a vector.  The @var{key} and @var{value} arguments may be
 any Scheme object.
+
+@deffn procedure make-hash-table size
+Create a new hash table of @var{size} slots.  Note that the number of
+slots does not limit the size of the table, it just tells how large
+the underlying vector will be.  The @var{size} should be similar to
+the expected number of elements which will be added to the table, but
+they need not match.  For good performance, it might be a good idea to
+use a prime number as the @var{size}.
+@end deffn
 
 @deffn primitive hashq-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
