@@ -1,3 +1,28 @@
+2000-08-16  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* stime.c (scm_c_get_internal_run_time): new function, same as
+ 	scm_get_internal_run_time but returns a long.  it's used by the GC
+ 	for timekeeping, since with scm_get_internal_run_time there is a
+ 	(extremely theoretical) possibility of consing.
+	(scm_get_internal_run_time): redefined in terms of
+ 	scm_c_get_internal_run_time.
+
+	* stime.h: added prototype for scm_c_get_internal_run_time.
+
+	* gc.c (scm_gc_stats): add more obscure stats, such as: mark time,
+ 	sweep time, total marked cells, total swept cells, and number of
+ 	times GC was invoked.
+	(gc_start_stats): renamed from scm_gc_start, made static, taught
+ 	to init the new stats.
+	(gc_end_stats): renamed from scm_gc_end, made static, taught to
+ 	calculate the new stats.
+	(scm_igc): don't call gc_start_stats unless we are sure that we
+ 	are indeed going to collect.  also, added some timekeeping between
+ 	the mark and sweep phases.
+	(scm_gc_sweep): count number of cells we sweep as we go.
+
+	* gc.h: removed prototypes for scm_gc_{start,end}.
+
 2000-08-13  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* alist.c (scm_assq, scm_assv, scm_assoc): Report argument type
@@ -8,7 +33,7 @@
 
 	* root.c (s_scm_call_with_dynamic_root): Docstring fix - rogue
 	newline.
-	
+
 2000-08-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* numbers.c (scm_ash): Docstring fix - missing newlines.
@@ -31,7 +56,7 @@
 
 	* list.c (scm_list_tail): Add @deffnx line to docstring for
 	list-cdr-ref.
-	
+
 	* keywords.c: Docstring improvements in conjunction with new
 	reference manual doc on keywords.
 
@@ -61,7 +86,7 @@
 	(scm_module_index_obarray, scm_module_index_uses,
 	scm_module_index_binder, scm_module_index_eval_closure): New
 	constants; #include "validate.h".
-	
+
 	* modules.c (scm_module_tag, scm_module_system_booted_p): New
 	globals.
 	(scm_post_boot_init_modules): Initialize scm_module_tag.
@@ -178,7 +203,7 @@
 	equal (respectively) to the argument key, not all cells that are
 	eq, eqv, or equal to the first cell with the argument key.  Thanks
 	to Neil Jerram!
-	
+
 2000-07-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.h (SCM_FREE_CELL_CDR, SCM_SET_FREE_CELL_CDR), hooks.c
@@ -478,8 +503,8 @@
 2000-06-21  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* guile-doc-snarf.in: use cut instead of sed, that's much much
-	faster.  also, don't call basename more than needed.  and, to gain 
-	a couple of microseconds more, don't call cat needlessly.  (thanks 
+	faster.  also, don't call basename more than needed.  and, to gain
+	a couple of microseconds more, don't call cat needlessly.  (thanks
 	to Brad Knotwell).
 
 2000-06-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
@@ -776,7 +801,7 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	that a chain of Scheme level procedures has been evaluated for
 	every top-level symbol lookup during the first pass through the
 	code.
-	
+
 	The following is a kludge which I suggested four years ago, and
 	which I've repeatedly suggested since.  Personally, I've never
 	been bothered by Guile's slow loading speed, so I thought I would
@@ -785,7 +810,7 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	But since the new environments will be included first in
 	Guile-1.5, I thought it would make people happy to get the kludge
 	into 1.4.
-	
+
 	* modules.c: Added #include "libguile/vectors.h";
 	Added #include "libguile/hashtab.h";
 	Added #include "libguile/struct.h";
@@ -893,7 +918,7 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* filesys.h (SCM_OPDIRP), fluids.h (SCM_FLUIDP, SCM_FLUID_NUM),
 	fports.h (SCM_OPFPORTP, SCM_OPINFPORTP, SCM_OPOUTFPORTP), hooks.h
 	(SCM_HOOK_ARITY), keywords.h (SCM_KEYWORDP, SCM_KEYWORDSYM),
-	numbers.h (SCM_NUMP, SCM_BIGSIGN, SCM_BDIGITS, SCM_NUMDIGS): 
+	numbers.h (SCM_NUMP, SCM_BIGSIGN, SCM_BDIGITS, SCM_NUMDIGS):
 	Replace SCM_UNPACK_CAR appropriately.  Don't access cells via
 	SCM_{SET}?C[AD]R unless they are known to be cons cells.
 
@@ -948,7 +973,7 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	cookies anyway.  in the long term, it would be nice not to depend
 	on AWK for anything.)
 
-	* gc.h (SCM_[SET_]CELL_{WORD,OBJECT}, SCM_VALIDATE_CELL): reverted 
+	* gc.h (SCM_[SET_]CELL_{WORD,OBJECT}, SCM_VALIDATE_CELL): reverted
 	the previous change to this macros, after deciding to torture the
 	snarfer instead.
 
@@ -975,7 +1000,7 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* hashtab.c (scm_hash_fn_create_handle_x): add missing
 	SCM_REALLOW_INTS before return.  I really wonder about the
 	possible interactions between hashtables, threads & GC.  it
-	doesn't look healthy at all. 
+	doesn't look healthy at all.
 
 2000-05-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -1057,7 +1082,7 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* stacks.c (scm_make_stack), stacks.h (scm_make_stack), throw.c
 	(ss_handler, handler_message):  Make first mandatory rest argument
-	of scm_make_stack into a standard mandatory argument.  
+	of scm_make_stack into a standard mandatory argument.
 
 	* unif.c (scm_transpose_array, scm_enclose_array,
 	scm_array_in_bounds_p), unif.h (scm_transpose_array,
@@ -1385,7 +1410,7 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	comparisons of SCM values with integer constants.
 
 	* number.c (scm_logtest):  Removed some redundant SCM_{N}?IMP
-	tests. 
+	tests.
 
 2000-04-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -1423,7 +1448,7 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	Better modularization of GC extensions through new C level GC
 	hooks:
-	
+
 	* weaks.c (scm_weaks_prehistory): New function: Add
 	scm_weak_vector_gc_init to scm_before_mark_c_hook; Add
 	scm_mark_weak_vector_spines to scm_before_sweep_c_hook.
@@ -1487,7 +1512,7 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	the new code is not less clear.)
 
 	* gc.c (scm_must_malloc, scm_must_realloc, scm_must_free): Added
-	calls to malloc debugging functions. 
+	calls to malloc debugging functions.
 
 	* init.c (scm_boot_guile_1): Added calls to debug-malloc init
 	functions.
@@ -1558,8 +1583,8 @@ Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 Tue Apr 18 08:22:41 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
-	* validate.h: Do not cast to (unsigned) in SCM_VALIDATE_INUM_RANGE 
-	when testing high-end of the range.  Mikael Djurfeldt noticed this 
+	* validate.h: Do not cast to (unsigned) in SCM_VALIDATE_INUM_RANGE
+	when testing high-end of the range.  Mikael Djurfeldt noticed this
 	anomaly -- thanks Mikael!
 
 2000-04-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
@@ -1697,7 +1722,7 @@ Tue Apr 18 08:22:41 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	symbols.c (scm_intern_obarray_soft, msymbolize, scm_symbol_fset_x,
 	scm_symbol_pset_x):  Use them.
 
-	* symbols.c (scm_symbol_hash):  Unpack to access SCM raw data. 
+	* symbols.c (scm_symbol_hash):  Unpack to access SCM raw data.
 
 2000-04-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -1748,7 +1773,7 @@ Tue Apr 18 08:22:41 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* numbers.c (scm_quotient, scm_modulo):  Reordered to handle the
 	case of immediate numbers parameters first.  Also, only use
 	decoded numbers for numerical comparison.
-	
+
 2000-04-10  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* objects.h: Don't redeclare scm_call_generic_0 and
