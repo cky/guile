@@ -1,14 +1,14 @@
-Here are some guidelines for working on the Guile source tree at GNU.
+Here are some guidelines for members of the Guile developers team.
 
 - We use CVS to manage the Guile sources.  The repository lives on
-totoro.red-bean.com, in /u/src/master; you will need an account on
+egcs.cygnus.com, in /egcs/carton/cvsfiles; you will need an account on
 that machine to access the repository.  Also, for security reasons,
-totoro presently only supports CVS connections via the SSH protocol,
-so you must first install the SSH client.  Then, you should set your
+egcs presently only supports CVS connections via the SSH protocol, so
+you must first install the SSH client.  Then, you should set your
 CVS_RSH environment variable to ssh, and use the following as your CVS
 root:
 
-	:ext:USER@guile-cvs.red-bean.com:/u/src/master
+	:ext:USER@egcs.cygnus.com:/egcs/carton/cvsfiles
 
 Either set your CVSROOT environment variable to that, or give it as
 the value of the global -d option to CVS when you check out a working
