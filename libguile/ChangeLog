@@ -1,3 +1,52 @@
+1999-02-06  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	All the below are changes from Ken Raeburn, to get Guile to use
+	const where it can.
+
+	* chars.c (scm_lowers, scm_uppers, scm_charnames, scm_charnums),
+	eval.c (s_expression, s_test, s_body, s_bindings, s_variable,
+	s_clauses, s_formals): Variables now const.
+
+	* eval.c (promsmob): Now const.
+	* macros.c (macrosmob): Now const.
+	* smob.c (scm_newsmob): Smobfuns argument now points to const.
+	(freecell, flob, bigob): Now const.
+
+	* dynl.c (scm_make_argv_from_stringlist, scm_coerce_rostring),
+	error.c (scm_error, scm_syserror, scm_syserror_msg,
+	scm_num_overflow, scm_out_of_range, scm_wrong_type_arg,
+	scm_memory_error, scm_misc_error, scm_wta), macros.c
+	(scm_make_synt), feature.c (scm_add_feature), filesys.c
+	(scm_input_waiting_p), gc.c (scm_gc_start, scm_igc,
+	scm_must_malloc, scm_must_realloc), gsubr.c (scm_make_gsubr),
+	numbers.c (scm_num2dbl, scm_two_doubles, scm_num2long,
+	scm_num2long_long, scm_num2ulong), 
+	options.c (scm_options), posix.c (scm_convert_exec_args,
+	environ_list_to_c), procs.c (scm_make_subr_opt, scm_make_subr),
+	ramap.c (scm_ramapc), read.c (scm_flush_ws), socket.c
+	(scm_sock_fd_to_port, scm_fill_sockaddr, scm_addr_vector), stime.c
+	(setzone, restorezone, bdtime2c), strop.c (scm_i_index),
+	strports.c (scm_mkstrport), symbols.c (scm_intern_obarray_soft,
+	scm_intern_obarray, scm_intern, scm_intern0,
+	scm_sysintern0_no_module_lookup, scm_sysintern, scm_sysintern0,
+	scm_symbol_value0), unif.c (scm_aind, scm_shap2ra): Argument
+	indicating calling subr, error message text, reason for error,
+	symbol name or feature name are now pointer to const.
+	* snarf.h (SCM_PROC, SCM_PROC1): String variables are now const.
+
+	* procs.c (scm_init_iprocs): iproc argument now points to const.
+	* pairs.c (cxrs): Now const.
+
+	* chars.h, error.h, feature.h, filesys.h, gc.h, gsubr.h, macros.h,
+	numbers.h, options.h, procs.h, ramap.h, read.h, smob.h,
+	strports.h, symbols.h, unif.h: Update variable declarations and
+	function prototypes for above changes.
+
+	* dynl.c, dynl-dld.c, dynl-dl.c, dynl-shl.c (sysdep_dynl_link,
+	sysdep_dynl_unlink, sysdep_dynl_func): Arguments FNAME, SUBR, and
+	SYMB now point to const.
+
+
 1999-01-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* random.c (scm_i_random_bignum): Made independent of endianness.
