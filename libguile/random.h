@@ -92,6 +92,7 @@ extern scm_i_rstate *scm_i_copy_rstate (scm_i_rstate *);
 /*
  * Random number library functions
  */
+extern scm_rstate *scm_i_make_rstate (char *, int);
 extern double scm_i_uniform01 (scm_rstate *);
 extern double scm_i_normal01 (scm_rstate *);
 extern double scm_i_exp1 (scm_rstate *);
@@ -110,7 +111,8 @@ extern unsigned char scm_masktab[256];
 
 extern SCM scm_var_random_state;
 extern SCM scm_random (SCM n, SCM state);
-extern SCM scm_make_random_state (SCM state);
+extern SCM scm_copy_random_state (SCM state);
+extern SCM scm_seed_to_random_state (SCM seed);
 extern SCM scm_random_uniform (SCM state);
 extern SCM scm_random_solid_sphere_x (SCM v, SCM state);
 extern SCM scm_random_hollow_sphere_x (SCM v, SCM state);
