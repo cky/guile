@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.8 2002-08-08 21:47:53 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.9 2003-04-26 15:09:18 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1489,12 +1489,6 @@ deprecated and will be removed in a future version of Guile.  You should
 use the mechanism described above for new code, and change old code not
 to use deprecated features.
 
-Instead of using @code{scm_make_smob_type} and calling each of the
-individual @code{scm_set_smob_XXX} functions to register each special
-function independently, you could use @code{scm_make_smob_type_mfpe} to
-register all of the special functions at once as you create the smob
-type
-
 @deftypefun long scm_make_smob_type_mfpe(const char *name, size_t size, SCM (*mark) (SCM), size_t (*free) (SCM), int (*print) (SCM, SCM, scm_print_state*), SCM (*equalp) (SCM, SCM))
 This function invokes @code{scm_make_smob_type} on its first two arguments
 to add a new smob type named @var{name}, with instance size @var{size} to the system.  
@@ -1504,6 +1498,8 @@ to have that special function use the default behavior for guile.
 The return value is a tag that is used in creating instances of the type.  If @var{size}
 is 0, then no memory will be allocated when instances of the smob are created, and
 nothing will be freed by the default free function.
+
+@emph{This function is deprecated}
 @end deftypefun
 
 For example, here is how one might declare and register a new type

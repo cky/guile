@@ -1,5 +1,9 @@
 2003-04-26  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* data-rep.texi (Describing a New Type): Clarify that
+	scm_make_smob_type_mfpe is deprecated.  (Thanks to
+	tomas@fabula.de.)
+
 	* scheme-control.texi (Handling Errors): Remove scm_sysmissing,
 	long since gone from libguile.  (Thanks to Kevin Ryde.)
 
