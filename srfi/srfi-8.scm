@@ -44,6 +44,6 @@
 (define-module (srfi srfi-8)
   :use-module (ice-9 receive))
 
-(export-syntax receive)
+(re-export-syntax receive)
 
 (cond-expand-provide (current-module) '(srfi-8))
