@@ -1,3 +1,34 @@
+2000-08-17  Michael Livshin  <mlivshin@bigfoot.com>
+
+	this changes the Guile GC to use cards (aka "chunklets").
+
+	* tags.h: (SCM_GCTYPE16, SCM_GCCDR, SCM_GC[8]MARKP,
+	SCM_SETGC[8]MARK, SCM_CLRGC[8]MARK): moved from here into gc.h.
+	some (most) of these are probably going to be deprecated.
+
+	* gc.h (SCM_MARKEDP): simplified, there are no different mark bit
+	locations anymore.
+	(SCM_GC_CARD_*, SCM_C_BVEC_*): lots of new macros to deal with
+	cards and bvecs (bit-vectors).
+
+	* gc.c: (scm_default_init_heap_size_*): defined to take cards into
+ 	account, but keeping more or less the same values as previously.
+  	added some simple helper macros.
+	(CLUSTER_SIZE_IN_BYTES, ALIGNMENT_SLACK): defined to take cards
+ 	into account.
+	(BVEC_*, scm_mark_space_t, current_mark_space, mark_space_ptr,
+ 	current_mark_space_offset, mark_space_head, get_bvec,
+	clear_mark_space): new functions and supporting variables, types
+	and macros that implement mark space management.
+	(scm_igc): clear the mark space (all of it) before beginning the
+	mark phase.
+	(scm_gc_mark): changed the tests for rogue cells, much simplified
+	throughout (no different mark bit locations to worry about now).
+	(scm_mark_locations): don't consider card header cells.
+	(scm_cellp): ditto.
+	(scm_gc_sweep): simplified.
+	(init_heap_seg): changed to take cards into account.
+
 2000-08-16  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* stime.c (scm_c_get_internal_run_time): new function, same as
