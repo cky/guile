@@ -1,6 +1,6 @@
 * Introduction
 
-Version: $Id: langtools.text,v 1.3 2000-08-13 03:44:52 mdj Exp $
+Version: $Id: langtools.text,v 1.4 2000-08-13 04:16:18 mdj Exp $
 
 This is a proposal for how Guile could interface with language
 translators.  It will be posted on the Guile list and revised for some
@@ -188,6 +188,20 @@ with the purpose of the module.
 Therefore, the repl provides a special command language on top of
 whatever syntax the current module provides.  (Scheme48 and RScheme
 provides similar repl command languages.)
+
+[Jost Boekemeier has suggested the following alternative solution:
+ Commands are bindings just like any other binding.  It is enough if
+ some modules carry command bindings (it's in fact enough if *one*
+ module has them), because from such a module you can use the command
+ (in MODULE) to walk into a module not carrying command bindings, and
+ then use CTRL-D to exit.
+
+ However, this has the disadvantage of mixing the "real" bindings with
+ command bindings (the module might want to use "in" for other
+ purposes), that CTRL-D could cause problems since for some channels
+ CTRL-D might close down the connection, and that using one type of
+ command ("in") to go "into" the module and another (CTRL-D) to "exit"
+ is more complex than simply "going to" a module.]
 
 *** Repl command syntax
 
@@ -399,8 +413,8 @@ Return a THUNK which can be called repeatedly like this:
   THUNK --> SCHEMECODE
 
 Each call will yield a new piece of scheme code.  The THUNK signals
-end of translation by returning the unique value *end-of-translation*
-which can be tested using the predicate `end-of-translation?'.
+end of translation by returning the value *end-of-translation* (which
+is tested using the predicate `end-of-translation?').
 
 The optional argument ALIST provides compilation options for the
 translator:
