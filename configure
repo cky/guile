@@ -3247,7 +3247,7 @@ fi
   fi
 
 
-for ac_func in ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep atexit
+for ac_func in ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep atexit on_exit
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:3254: checking for $ac_func" >&5

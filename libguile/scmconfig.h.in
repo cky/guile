@@ -263,6 +263,9 @@
 /* Define if you have the nice function.  */
 #undef HAVE_NICE
 
+/* Define if you have the on_exit function.  */
+#undef HAVE_ON_EXIT
+
 /* Define if you have the pause function.  */
 #undef HAVE_PAUSE
 
