@@ -995,14 +995,16 @@ scm_m_let (SCM xorig, SCM env)
       || (scm_ilength (temp) == 1 && SCM_CONSP (SCM_CAR (temp))))
     {
       /* null or single binding, let* is faster */
+      SCM bindings = temp;
       SCM body = scm_m_body (SCM_IM_LET, SCM_CDR (x), s_let);
-      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), temp, body), env);
+      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), bindings, body), env);
     }
   else if (SCM_CONSP (temp))
     {
-      /* plain let, temp is <bindings> */
+      /* plain let */
+      SCM bindings = temp;
       SCM rvars, inits, body;
-      transform_bindings (temp, &rvars, &inits, "let");
+      transform_bindings (bindings, &rvars, &inits, "let");
       body = scm_m_body (SCM_IM_LET, SCM_CDR (x), "let");
       return scm_cons2 (SCM_IM_LET, rvars, scm_cons (inits, body));
     }
