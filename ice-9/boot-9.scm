@@ -1713,10 +1713,11 @@
                              (seen (if direct? bspec (cdr bspec))))
                         (module-add! custom-i (renamer seen)
                                      (or (module-local-variable public-i orig)
+                                         (module-local-variable module orig)
                                          (error
                                           ;; fixme: format manually for now
                                           (simple-format
-                                           #f "no binding `~A' exported from module ~A"
+                                           #f "no binding `~A' in module ~A"
                                            orig name))))))
                     selection)
           custom-i))))
@@ -1879,7 +1880,7 @@
     "Write a Scheme file instead that uses `load-extension'.")
    (issue-deprecation-warning
     (simple-format #f "(You just autoloaded module ~S.)" modname)))
- 
+
  (define (init-dynamic-module modname)
    ;; Register any linked modules which have been registered on the C level
    (register-modules #f)
@@ -1942,7 +1943,7 @@
 					   module-name)))))
      (let ((subdir (car subdir-and-libname))
 	   (libname (cdr subdir-and-libname)))
-       
+
        ;; Now look in each dir in %LOAD-PATH for `subdir/libfoo.la'.  If that
        ;; file exists, fetch the dlname from that file and attempt to link
        ;; against it.  If `subdir/libfoo.la' does not exist, or does not seem
@@ -1958,23 +1959,23 @@
 	       (if (and sharlib-full (file-exists? sharlib-full))
 		   (link-dynamic-module sharlib-full init)
 		   (check-dirs (cdr dir-list)))))))))
- 
+
  (define (try-using-libtool-name libdir libname)
    (let ((libtool-filename (in-vicinity libdir
 					(string-append libname ".la"))))
      (and (file-exists? libtool-filename)
 	  libtool-filename)))
- 
+
  (define (try-using-sharlib-name libdir libname)
    (in-vicinity libdir (string-append libname ".so")))
- 
+
  (define (link-dynamic-module filename initname)
    ;; Register any linked modules which have been registered on the C level
    (register-modules #f)
    (let ((dynobj (dynamic-link filename)))
      (dynamic-call initname dynobj)
      (register-modules dynobj)))
- 
+
  (define (try-module-linked module-name)
    (init-dynamic-module module-name))
 
@@ -1982,7 +1983,7 @@
    (and (find-and-link-dynamic-module module-name)
 	(init-dynamic-module module-name))))
 ;; end of deprecated section
- 
+
 
 (define autoloads-done '((guile . guile)))
 
@@ -2649,7 +2650,7 @@
 	   '())))
   (define (map-apply func list)
     (map (lambda (args) (apply func args)) list))
-  (define keys 
+  (define keys
     ;; sym     key      quote?
     '((:select #:select #t)
       (:renamer #:renamer #f)))
@@ -2700,7 +2701,7 @@
 (defmacro define-module args
   `(eval-case
     ((load-toplevel)
-     (let ((m (process-define-module 
+     (let ((m (process-define-module
 	       (list ,@(compile-define-module-args args)))))
        (set-current-module m)
        m))
@@ -2785,7 +2786,7 @@
 		(begin-deprecated
 		 (if (not (module-local-variable m name))
 		     (let ((v (module-variable m name)))
-		       (cond 
+		       (cond
 			(v
 			 (issue-deprecation-warning
 			  "Using `export' to re-export imported bindings is deprecated.  Use `re-export' instead.")
@@ -2987,13 +2988,13 @@
 	(load-emacs-interface))
 
     ;; Use some convenient modules (in reverse order)
-    
+
     (if (provided? 'regex)
 	(module-use! guile-user-module (resolve-interface '(ice-9 regex))))
     (if (provided? 'threads)
 	(module-use! guile-user-module (resolve-interface '(ice-9 threads))))
     ;; load debugger on demand
-    (module-use! guile-user-module 
+    (module-use! guile-user-module
 		 (make-autoload-interface guile-user-module
 					  '(ice-9 debugger) '(debug)))
     (module-use! guile-user-module (resolve-interface '(ice-9 session)))
@@ -3032,13 +3033,13 @@
 			   (sigaction (car sig-msg)
 				      (make-handler (cdr sig-msg))))
 			 signals))))
-	  
+
 	  ;; the protected thunk.
 	  (lambda ()
 	    (let ((status (scm-style-repl)))
 	      (run-hook exit-hook)
 	      status))
-	  
+
 	  ;; call at exit.
 	  (lambda ()
 	    (map (lambda (sig-msg old-handler)
