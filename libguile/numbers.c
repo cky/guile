@@ -2945,6 +2945,7 @@ SCM_GPROC1 (s_eq_p, "=", scm_tc7_rpsubr, scm_num_eq_p, g_eq_p);
 SCM
 scm_num_eq_p (SCM x, SCM y)
 {
+ again:
   if (SCM_INUMP (x))
     {
       long xx = SCM_INUM (x);
@@ -3019,7 +3020,15 @@ scm_num_eq_p (SCM x, SCM y)
 	return SCM_BOOL ((SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y))
 			 && (0.0 == SCM_COMPLEX_IMAG (y)));
       else if (SCM_FRACTIONP (y))
-	return SCM_BOOL (SCM_REAL_VALUE (x) == scm_i_fraction2double (y));
+        {
+          double  xx = SCM_REAL_VALUE (x);
+          if (xisnan (xx))
+            return SCM_BOOL_F;
+          if (xisinf (xx))
+            return SCM_BOOL (xx < 0.0);
+          x = scm_inexact_to_exact (x);  /* with x as frac or int */
+          goto again;
+        }
       else
 	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
     }
@@ -3046,8 +3055,18 @@ scm_num_eq_p (SCM x, SCM y)
 	return SCM_BOOL ((SCM_COMPLEX_REAL (x) == SCM_COMPLEX_REAL (y))
 			 && (SCM_COMPLEX_IMAG (x) == SCM_COMPLEX_IMAG (y)));
       else if (SCM_FRACTIONP (y))
-	return SCM_BOOL ((SCM_COMPLEX_REAL (x) == scm_i_fraction2double (y))
-			 && (SCM_COMPLEX_IMAG (x) == 0.0));
+        {
+          double  xx;
+          if (SCM_COMPLEX_IMAG (x) != 0.0)
+            return SCM_BOOL_F;
+          xx = SCM_COMPLEX_REAL (x);
+          if (xisnan (xx))
+            return SCM_BOOL_F;
+          if (xisinf (xx))
+            return SCM_BOOL (xx < 0.0);
+          x = scm_inexact_to_exact (x);  /* with x as frac or int */
+          goto again;
+        }
       else
 	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
     }
@@ -3058,10 +3077,28 @@ scm_num_eq_p (SCM x, SCM y)
       else if (SCM_BIGP (y))
 	return SCM_BOOL_F;
       else if (SCM_REALP (y))
-	return SCM_BOOL (scm_i_fraction2double (x) == SCM_REAL_VALUE (y));
+        {
+          double yy = SCM_REAL_VALUE (y);
+          if (xisnan (yy))
+            return SCM_BOOL_F;
+          if (xisinf (yy))
+            return SCM_BOOL (0.0 < yy);
+          y = scm_inexact_to_exact (y);  /* with y as frac or int */
+          goto again;
+        }
       else if (SCM_COMPLEXP (y))
-	return SCM_BOOL ((scm_i_fraction2double (x) == SCM_COMPLEX_REAL (y))
-			 && (0.0 == SCM_COMPLEX_IMAG (y)));
+        {
+          double yy;
+          if (SCM_COMPLEX_IMAG (y) != 0.0)
+            return SCM_BOOL_F;
+          yy = SCM_COMPLEX_REAL (y);
+          if (xisnan (yy))
+            return SCM_BOOL_F;
+          if (xisinf (yy))
+            return SCM_BOOL (0.0 < yy);
+          y = scm_inexact_to_exact (y);  /* with y as frac or int */
+          goto again;
+        }
       else if (SCM_FRACTIONP (y))
 	return scm_i_fraction_equalp (x, y);
       else
