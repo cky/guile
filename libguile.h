@@ -1,7 +1,7 @@
 #ifndef LIBGUILEH
 #define LIBGUILEH
 
-/*	Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,6 +85,7 @@ extern "C" {
 #include "libguile/hashtab.h"
 #include "libguile/init.h"
 #include "libguile/ioext.h"
+#include "libguile/rdelim.h"
 #include "libguile/keywords.h"
 #include "libguile/list.h"
 #include "libguile/load.h"
