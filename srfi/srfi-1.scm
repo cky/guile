@@ -63,7 +63,7 @@
  ;; caar				<= in the core
  ;; cadr				<= in the core
  ;; cdar				<= in the core
-o ;; cddr				<= in the core
+ ;; cddr				<= in the core
  ;; caaar				<= in the core
  ;; caadr				<= in the core
  ;; cadar				<= in the core
