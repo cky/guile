@@ -550,6 +550,14 @@
 	     (set! ,(cadr exp)
 		   (cons thunk ,(cadr exp))))))))
 
+(define remove-hook!
+  (procedure->macro
+    (lambda (exp env)
+      `(let ((thunk ,(caddr exp)))
+	 (if (memq thunk ,(cadr exp)))
+	 (set! ,(cadr exp)
+	       (delq! thunk ,(cadr exp)))))))
+
 
 ;;; {Files}
 ;;;

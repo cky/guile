@@ -1,3 +1,8 @@
+1998-03-28  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm (remove-hook!): New macro.  (Thanks to Maciej
+	Stachowiak.)
+
 1998-01-30  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* threads.scm: Added simple error and signal handler.
