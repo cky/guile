@@ -40,6 +40,9 @@ BEGIN { FS="|";
 		 sub(/ \)/,")",copy);
 		 # Now `copy' contains the nice scheme proc "prototype", e.g.
 		 # (set-car! pair value)
+                 # Since this is destined to become Texinfo source,
+                 # quote any `@'s that occur in the prototype.
+                 gsub(/\@/,"@@",copy);
 		 # print copy > "/dev/stderr";  # for debugging
 		 sub(/^\(/,"",copy);
 		 sub(/\)[ \t]*$/,"",copy);

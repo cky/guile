@@ -1,3 +1,8 @@
+2001-02-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile-snarf.awk.in: Quote any `@'s that occur in Scheme names,
+	by doubling them to `@@'.
+
 2001-02-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* numbers.c (scm_lognot), random.c (scm_random,
