@@ -224,7 +224,10 @@ scm_internal_parse_path (char *path, SCM tail)
 
 SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0, 
             (SCM path, SCM tail),
-	    "")
+	    "Parse @var{path}, which is expected to be a colon-separated\n"
+	    "string, into a list and return the resulting list with\n"
+	    "@var{tail} appended. If @var{path} is @code{#f}, @var{tail}\n"
+	    "is returned.")
 #define FUNC_NAME s_scm_parse_path
 {
   SCM_ASSERT (SCM_FALSEP (path) || (SCM_STRINGP (path)),
@@ -269,7 +272,13 @@ SCM scm_listofnullstr;
    in PATH, we search for FILENAME concatenated with each EXTENSION.  */
 SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
            (SCM path, SCM filename, SCM extensions),
-	    "")
+	    "Search @var{path} for a directory containing a file named\n"
+	    "@var{filename}. The file must be readable, and not a directory.\n"
+	    "If we find one, return its full filename; otherwise, return\n"
+	    "@code{#f}.  If @var{filename} is absolute, return it unchanged.\n"
+	    "If given, @var{extensions} is a list of strings; for each\n"
+	    "directory in @var{path}, we search for @var{filename}\n"
+	    "concatenated with each @var{extension}.")
 #define FUNC_NAME s_scm_search_path
 {
   char *filename_chars;
