@@ -1,5 +1,14 @@
 2003-04-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* deprecated.h, deprecated.c (scm_protect_object,
+	scm_unprotect_object, SCM_SETAND_CAR, SCM_SETOR_CAR,
+	SCM_SET_AND_CDR, SCM_SET_OR_CDR, SCM_FREEP, SCM_NFREEP,
+	SCM_GC8MARKP, SCM_SETGC8MARK, SCM_CLRGC8MARK, SCM_GCTYP16,
+	SCM_GCCDR, scm_remember, scm_the_root_module, scm_make_module,
+	scm_ensure_user_module, scm_load_scheme_module, scm_port,
+	scm_ptob_descriptor, scm_port_rw_active,
+	scm_close_all_ports_except): New.
+
 	* ports.c (scm_c_port_for_each): New function, mostly copied from
 	scm_port_for_each.
 	(scm_port_for_each): Reimplemented using scm_c_port_for_each.
