@@ -1,3 +1,24 @@
 @page
 @node Deprecated
 @chapter Deprecated
+
+The features and functions described in this chapter are considered
+obsolete and should not be used by new programs.  They're retained for
+compatibility with past versions of Guile.
+
+@deffn {Scheme Procedure} substring-move-left! str1 start1 end1 str2 start2
+@deffnx {Scheme Procedure} substring-move-right! str1 start1 end1 str2 start2
+These functions are aliases for @code{substring-move!} and calls to
+them can simply be replaced by @code{substring-move!} (@pxref{String
+Modification}.)
+
+In the past, if @var{str1} and @var{str2} were the same string, it was
+necessary to call @code{substring-move-left!} if the move was to the
+left (@math{@var{start2} < @var{start1}}), or call
+@code{substring-move-right!} if the move was to the right
+(@math{@var{start2} > @var{start1}}).  @code{substring-move!} is now
+able to do both.
+@end deffn
+
+
+
