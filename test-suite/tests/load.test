@@ -46,9 +46,6 @@
 	  (loop parent (cdr tree))))))
 
 (define (delete-tree tree)
-  (display "deleting ")
-  (write tree)
-  (newline)
   (cond
    ((file-is-directory? tree)
     (let ((dir (opendir tree)))
@@ -80,7 +77,6 @@
 		      (display " yields " port)
 		      (write expected port)))))
     (let ((result (search-path path input extensions)))
-      (write result) (newline)
       (pass-if test-name
 	       (equal? (if (string? expected)
 			   (string-append temp-dir "/" expected)
