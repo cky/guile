@@ -22,6 +22,26 @@
 
 #include "libguile/__scm.h"
 
+/* Generic procedures.
+ */
+
+SCM_API SCM scm_uniform_vector_p (SCM v);
+SCM_API SCM scm_uniform_vector_length (SCM v);
+SCM_API SCM scm_uniform_vector_ref (SCM v, SCM idx);
+SCM_API SCM scm_uniform_vector_set_x (SCM v, SCM idx, SCM val);
+SCM_API SCM scm_uniform_vector_to_list (SCM v);
+
+SCM_API int scm_is_uniform_vector (SCM obj);
+SCM_API size_t scm_c_uniform_vector_length (SCM v);
+SCM_API size_t scm_c_uniform_vector_size (SCM v);
+
+SCM_API void *scm_uniform_vector_elements (SCM uvec);
+SCM_API size_t scm_uniform_vector_element_size (SCM uvec);
+SCM_API void scm_uniform_vector_release (SCM uvec);
+
+/* Specific procedures.
+ */
+
 SCM_API SCM scm_u8vector_p (SCM obj);
 SCM_API SCM scm_make_u8vector (SCM n, SCM fill);
 SCM_API SCM scm_u8vector (SCM l);
@@ -30,6 +50,7 @@ SCM_API SCM scm_u8vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_u8vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_u8vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u8vector (SCM l);
+SCM_API scm_t_uint8 *scm_u8vector_elements (SCM uvec);
 
 SCM_API SCM scm_s8vector_p (SCM obj);
 SCM_API SCM scm_make_s8vector (SCM n, SCM fill);
@@ -39,6 +60,7 @@ SCM_API SCM scm_s8vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_s8vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_s8vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s8vector (SCM l);
+SCM_API scm_t_int8 *scm_s8vector_elements (SCM uvec);
 
 SCM_API SCM scm_u16vector_p (SCM obj);
 SCM_API SCM scm_make_u16vector (SCM n, SCM fill);
@@ -48,6 +70,7 @@ SCM_API SCM scm_u16vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_u16vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_u16vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u16vector (SCM l);
+SCM_API scm_t_uint16 *scm_u16vector_elements (SCM uvec);
 
 SCM_API SCM scm_s16vector_p (SCM obj);
 SCM_API SCM scm_make_s16vector (SCM n, SCM fill);
@@ -57,6 +80,7 @@ SCM_API SCM scm_s16vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_s16vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_s16vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s16vector (SCM l);
+SCM_API scm_t_int16 *scm_s16vector_elements (SCM uvec);
 
 SCM_API SCM scm_u32vector_p (SCM obj);
 SCM_API SCM scm_make_u32vector (SCM n, SCM fill);
@@ -66,6 +90,7 @@ SCM_API SCM scm_u32vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_u32vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_u32vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u32vector (SCM l);
+SCM_API scm_t_uint32 *scm_u32vector_elements (SCM uvec);
 
 SCM_API SCM scm_s32vector_p (SCM obj);
 SCM_API SCM scm_make_s32vector (SCM n, SCM fill);
@@ -75,6 +100,7 @@ SCM_API SCM scm_s32vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_s32vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_s32vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s32vector (SCM l);
+SCM_API scm_t_int32 *scm_s32vector_elements (SCM uvec);
 
 SCM_API SCM scm_u64vector_p (SCM obj);
 SCM_API SCM scm_make_u64vector (SCM n, SCM fill);
@@ -84,6 +110,7 @@ SCM_API SCM scm_u64vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_u64vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_u64vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u64vector (SCM l);
+SCM_API scm_t_uint64 *scm_u64vector_elements (SCM uvec);
 
 SCM_API SCM scm_s64vector_p (SCM obj);
 SCM_API SCM scm_make_s64vector (SCM n, SCM fill);
@@ -93,6 +120,7 @@ SCM_API SCM scm_s64vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_s64vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_s64vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s64vector (SCM l);
+SCM_API scm_t_int64 *scm_s64vector_elements (SCM uvec);
 
 SCM_API SCM scm_f32vector_p (SCM obj);
 SCM_API SCM scm_make_f32vector (SCM n, SCM fill);
@@ -102,6 +130,7 @@ SCM_API SCM scm_f32vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_f32vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_f32vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_f32vector (SCM l);
+SCM_API float *scm_f32vector_elements (SCM uvec);
 
 SCM_API SCM scm_f64vector_p (SCM obj);
 SCM_API SCM scm_make_f64vector (SCM n, SCM fill);
@@ -111,8 +140,13 @@ SCM_API SCM scm_f64vector_ref (SCM uvec, SCM index);
 SCM_API SCM scm_f64vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_f64vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_f64vector (SCM l);
+SCM_API double *scm_f64vector_elements (SCM uvec);
 
 SCM_API SCM scm_i_read_homogenous_vector (SCM port, char pfx);
+SCM_API SCM scm_i_uniform_vector_prototype (SCM uvec);
+SCM_API const char *scm_i_uniform_vector_tag (SCM uvec);
+
+SCM_API size_t scm_uniform_element_size (SCM obj);
 
 SCM_API void scm_init_srfi_4 (void);
 

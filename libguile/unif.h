@@ -85,9 +85,7 @@ SCM_API scm_t_bits scm_tc16_array;
 
 
 
-SCM_API size_t scm_uniform_element_size (SCM obj);
 SCM_API SCM scm_make_uve (long k, SCM prot);
-SCM_API SCM scm_uniform_vector_length (SCM v);
 SCM_API SCM scm_array_p (SCM v, SCM prot);
 SCM_API SCM scm_array_rank (SCM ra);
 SCM_API SCM scm_array_dimensions (SCM ra);
@@ -103,7 +101,7 @@ SCM_API SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
 SCM_API SCM scm_transpose_array (SCM ra, SCM args);
 SCM_API SCM scm_enclose_array (SCM ra, SCM axes);
 SCM_API SCM scm_array_in_bounds_p (SCM v, SCM args);
-SCM_API SCM scm_uniform_vector_ref (SCM v, SCM args);
+SCM_API SCM scm_array_ref (SCM v, SCM args);
 SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
 SCM_API SCM scm_array_set_x (SCM v, SCM obj, SCM args);
 SCM_API SCM scm_array_contents (SCM ra, SCM strict);

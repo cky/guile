@@ -15,6 +15,10 @@
    The tag name of the vector, for example u8.  The tag is used to
    form the function names and is included in the docstrings, for
    example.
+
+   - CTYPE
+
+   The C type of the elements, for example scm_t_uint8.
 */
 
 /* The first level does not expand macros in the arguments. */
@@ -113,6 +117,13 @@ SCM_DEFINE (F(scm_list_to_,TAG,vector), "list->"S(TAG)"vector", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+CTYPE *
+F(scm_,TAG,vector_elements) (SCM obj)
+{
+  uvec_assert (TYPE, obj);
+  return (CTYPE *)SCM_UVEC_BASE (obj);
+}
+
 #undef paste
 #undef s_paste
 #undef stringify
@@ -122,3 +133,4 @@ SCM_DEFINE (F(scm_list_to_,TAG,vector), "list->"S(TAG)"vector", 1, 0, 0,
 
 #undef TYPE
 #undef TAG
+#undef CTYPE

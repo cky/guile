@@ -34,6 +34,8 @@
 #include <string.h>
 
 #include "libguile/_scm.h"
+#include "libguile/__scm.h"
+#include "libguile/eq.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"
 #include "libguile/fports.h"
@@ -42,6 +44,7 @@
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
+#include "libguile/srfi-4.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
@@ -59,68 +62,21 @@
 
 
 /* The set of uniform scm_vector types is:
- *  Vector of:		 Called:
- * unsigned char	string
- * char			byvect
- * boolean		bvect
- * signed long		ivect
- * unsigned long	uvect
- * float		fvect
- * double		dvect
+ *  Vector of:		 Called:   Replaced by:
+ * unsigned char	string     u8
+ * char			byvect     s8
+ * boolean		bvect      
+ * signed long		ivect      s32
+ * unsigned long	uvect      u32
+ * float		fvect      f32
+ * double		dvect      d32
  * complex double	cvect
- * short		svect
- * long long		llvect
+ * short		svect      s16
+ * long long		llvect     s64
  */
 
 scm_t_bits scm_tc16_array;
 static SCM exactly_one_third;
-
-/* return the size of an element in a uniform array or 0 if type not
-   found.  */
-size_t
-scm_uniform_element_size (SCM obj)
-{
-  size_t result;
-
-  switch (SCM_TYP7 (obj))
-    {
-    case scm_tc7_bvect:
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-      result = sizeof (long);
-      break;
-
-    case scm_tc7_byvect:
-      result = sizeof (char);
-      break;
-
-    case scm_tc7_svect:
-      result = sizeof (short);
-      break;
-
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-      result = sizeof (long long);
-      break;
-#endif 
-
-    case scm_tc7_fvect:
-      result = sizeof (float);
-      break;
-
-    case scm_tc7_dvect:
-      result = sizeof (double);
-      break;
-
-    case scm_tc7_cvect:
-      result = 2 * sizeof (double);
-      break;
-      
-    default:
-      result = 0;
-    }
-  return result;
-}
 
 /* Silly function used not to modify the semantics of the silly
  * prototype system in order to be backward compatible.
@@ -168,7 +124,7 @@ scm_make_uve (long k, SCM prot)
 	return scm_cell (SCM_MAKE_BITVECTOR_TAG (0), 0);
     }
   else if (SCM_CHARP (prot) && (SCM_CHAR (prot) == '\0'))
-    return make_uve (scm_tc7_byvect, k, sizeof (char));
+    return scm_make_s8vector (scm_from_long (k), SCM_UNDEFINED);
   else if (SCM_CHARP (prot))
     return scm_c_make_string (sizeof (char) * k, SCM_UNDEFINED);
   else if (SCM_I_INUMP (prot))
@@ -207,38 +163,6 @@ scm_make_uve (long k, SCM prot)
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
-	    (SCM v),
-	    "Return the number of elements in @var{uve}.")
-#define FUNC_NAME s_scm_uniform_vector_length
-{
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
-  switch SCM_TYP7 (v)
-    {
-    default:
-    badarg1:SCM_WRONG_TYPE_ARG (1, v);
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      return scm_from_size_t (SCM_VECTOR_LENGTH (v));
-    case scm_tc7_string:
-      return scm_from_size_t (scm_i_string_length (v));
-    case scm_tc7_bvect:
-      return scm_from_size_t (SCM_BITVECTOR_LENGTH (v));
-    case scm_tc7_byvect:
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-    case scm_tc7_fvect:
-    case scm_tc7_dvect:
-    case scm_tc7_cvect:
-    case scm_tc7_svect:
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-#endif
-      return scm_from_size_t (SCM_UVECTOR_LENGTH (v));
-    }
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
            (SCM v, SCM prot),
 	    "Return @code{#t} if the @var{obj} is an array, and @code{#f} if\n"
@@ -253,16 +177,22 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
   if (SCM_IMP (v))
     return SCM_BOOL_F;
 
-  while (SCM_TYP7 (v) == scm_tc7_smob)
+  while (SCM_ARRAYP (v))
     {
-      if (!SCM_ARRAYP (v))
-	return SCM_BOOL_F;
       if (nprot)
 	return SCM_BOOL_T;
       if (enclosed++)
 	return SCM_BOOL_F;
       v = SCM_ARRAY_V (v);
-     }
+    }
+
+  if (scm_is_uniform_vector (v))
+    {
+      if (nprot)
+	return SCM_BOOL_T;
+      else
+	return scm_eq_p (prot, scm_i_uniform_vector_prototype (v));
+    }
 
   if (nprot)
     {
@@ -270,7 +200,6 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
  	{
  	case scm_tc7_bvect:
  	case scm_tc7_string:
- 	case scm_tc7_byvect:
  	case scm_tc7_uvect:
  	case scm_tc7_ivect:
  	case scm_tc7_svect:
@@ -290,7 +219,7 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
   else
     {
       int protp = 0;
-      
+
       switch (SCM_TYP7 (v))
  	{
  	case scm_tc7_bvect:
@@ -298,9 +227,6 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
           break;
  	case scm_tc7_string:
  	  protp = SCM_CHARP(prot) && (SCM_CHAR (prot) != '\0');
-          break;
- 	case scm_tc7_byvect:
- 	  protp = scm_is_eq (prot, SCM_MAKE_CHAR ('\0'));
           break;
  	case scm_tc7_uvect:
  	  protp = SCM_I_INUMP(prot) && SCM_I_INUM(prot)>0;
@@ -351,6 +277,9 @@ SCM_DEFINE (scm_array_rank, "array-rank", 1, 0, 0,
 	    "not an array, @code{0} is returned.")
 #define FUNC_NAME s_scm_array_rank
 {
+  if (scm_is_uniform_vector (ra))
+    return scm_from_int (1);
+
   if (SCM_IMP (ra))
     return SCM_INUM0;
   switch (SCM_TYP7 (ra))
@@ -360,7 +289,6 @@ SCM_DEFINE (scm_array_rank, "array-rank", 1, 0, 0,
     case scm_tc7_string:
     case scm_tc7_vector:
     case scm_tc7_wvect:
-    case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_fvect:
@@ -394,6 +322,10 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
   scm_t_array_dim *s;
   if (SCM_IMP (ra))
     return SCM_BOOL_F;
+
+  if (scm_is_uniform_vector (ra))
+    return scm_cons (scm_uniform_vector_length (ra), SCM_EOL);
+
   switch (SCM_TYP7 (ra))
     {
     default:
@@ -402,7 +334,6 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
     case scm_tc7_vector:
     case scm_tc7_wvect:
     case scm_tc7_bvect:
-    case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_fvect:
@@ -587,7 +518,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
       SCM answer = scm_make_uve (scm_to_long (dims), prot);
       if (!SCM_UNBNDP (fill))
 	scm_array_fill_x (answer, fill);
-      else if (scm_is_symbol (prot))
+      else if (scm_is_symbol (prot) || scm_is_eq (prot, SCM_MAKE_CHAR (0)))
 	scm_array_fill_x (answer, scm_from_int (0));
       else
 	scm_array_fill_x (answer, prot);
@@ -612,7 +543,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
 
   if (!SCM_UNBNDP (fill))
     scm_array_fill_x (ra, fill);
-  else if (scm_is_symbol (prot))
+  else if (scm_is_symbol (prot) || scm_is_eq (prot, SCM_MAKE_CHAR (0)))
     scm_array_fill_x (ra, scm_from_int (0));
   else
     scm_array_fill_x (ra, prot);
@@ -804,13 +735,25 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 
   SCM_VALIDATE_REST_ARGUMENT (args);
   SCM_ASSERT (SCM_NIMP (ra), ra, SCM_ARG1, FUNC_NAME);
+
+  if (scm_is_uniform_vector (ra))
+    {
+      /* Make sure that we are called with a single zero as
+	 arguments. 
+      */
+      if (scm_is_null (args) || !scm_is_null (SCM_CDR (args)))
+	SCM_WRONG_NUM_ARGS ();
+      SCM_VALIDATE_INT_COPY (SCM_ARG2, SCM_CAR (args), i);
+      SCM_ASSERT_RANGE (SCM_ARG2, SCM_CAR (args), i == 0);
+      return ra;
+    }
+
   switch (SCM_TYP7 (ra))
     {
     default:
     badarg:SCM_WRONG_TYPE_ARG (1, ra);
     case scm_tc7_bvect:
     case scm_tc7_string:
-    case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_fvect:
@@ -915,13 +858,16 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
     SCM_WRONG_NUM_ARGS ();
   ra_inr = scm_make_ra (ninr);
   SCM_ASRTGO (SCM_NIMP (ra), badarg1);
+
+  if (scm_is_uniform_vector (ra))
+    goto uniform_vector;
+
   switch SCM_TYP7 (ra)
     {
     default:
     badarg1:SCM_WRONG_TYPE_ARG (1, ra);
     case scm_tc7_string:
     case scm_tc7_bvect:
-    case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_fvect:
@@ -933,6 +879,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
+    uniform_vector:
       s->lbnd = 0;
       s->ubnd = scm_to_long (scm_uniform_vector_length (ra)) - 1;
       s->inc = 1;
@@ -1005,6 +952,10 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
       pos = scm_to_long (ind);
     }
 tail:
+
+  if (scm_is_uniform_vector (v))
+    goto uniform_vector;
+
   switch SCM_TYP7 (v)
     {
     default:
@@ -1042,7 +993,6 @@ tail:
       goto tail;
     case scm_tc7_bvect:
     case scm_tc7_string:
-    case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_fvect:
@@ -1054,6 +1004,7 @@ tail:
 #endif
     case scm_tc7_vector:
     case scm_tc7_wvect:
+    uniform_vector:
       {
 	unsigned long length = scm_to_ulong (scm_uniform_vector_length (v));
 	SCM_ASRTGO (scm_is_null (args) && scm_is_integer (ind), wna);
@@ -1064,15 +1015,11 @@ tail:
 #undef FUNC_NAME
 
 
-SCM_REGISTER_PROC(s_array_ref, "array-ref", 1, 0, 1, scm_uniform_vector_ref);
-
-
-SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
+SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
            (SCM v, SCM args),
-	    "@deffnx {Scheme Procedure} array-ref v . args\n"
 	    "Return the element at the @code{(index1, index2)} element in\n"
 	    "@var{array}.")
-#define FUNC_NAME s_scm_uniform_vector_ref
+#define FUNC_NAME s_scm_array_ref
 {
   long pos;
 
@@ -1102,6 +1049,10 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       length = scm_to_ulong (scm_uniform_vector_length (v));
       SCM_ASRTGO (pos >= 0 && pos < length, outrng);
     }
+
+  if (scm_is_uniform_vector (v))
+    return scm_uniform_vector_ref (v, scm_from_long (pos));
+
   switch SCM_TYP7 (v)
     {
     default:
@@ -1136,12 +1087,10 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 	return SCM_BOOL_F;
     case scm_tc7_string:
       return scm_c_string_ref (v, pos);
-    case scm_tc7_byvect:
-      return scm_from_schar (((char *) SCM_UVECTOR_BASE (v))[pos]);
-  case scm_tc7_uvect:
+    case scm_tc7_uvect:
     return scm_from_ulong (((unsigned long *) SCM_VELTS (v))[pos]);
-  case scm_tc7_ivect:
-    return scm_from_long (((signed long *) SCM_VELTS (v))[pos]);
+    case scm_tc7_ivect:
+      return scm_from_long (((signed long *) SCM_VELTS (v))[pos]);
 
     case scm_tc7_svect:
       return scm_from_short (((short *) SCM_CELL_WORD_1 (v))[pos]);
@@ -1171,6 +1120,9 @@ SCM
 scm_cvref (SCM v, unsigned long pos, SCM last)
 #define FUNC_NAME "scm_cvref"
 {
+  if (scm_is_uniform_vector (v))
+    return scm_uniform_vector_ref (v, scm_from_ulong (pos));
+
   switch SCM_TYP7 (v)
     {
     default:
@@ -1182,8 +1134,6 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
 	return SCM_BOOL_F;
     case scm_tc7_string:
       return scm_c_string_ref (v, pos);
-    case scm_tc7_byvect:
-      return scm_from_char (((char *) SCM_UVECTOR_BASE (v))[pos]);
     case scm_tc7_uvect:
       return scm_from_ulong (((unsigned long *) SCM_VELTS (v))[pos]);
     case scm_tc7_ivect:
@@ -1274,6 +1224,10 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       length = scm_to_ulong (scm_uniform_vector_length (v));
       SCM_ASRTGO (pos >= 0 && pos < length, outrng);
     }
+
+  if (scm_is_uniform_vector (v))
+    return scm_uniform_vector_set_x (v, scm_from_long (pos), obj);
+
   switch (SCM_TYP7 (v))
     {
     default: badarg1:
@@ -1296,11 +1250,6 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
     case scm_tc7_string:
       SCM_ASRTGO (SCM_CHARP (obj), badobj);
       scm_c_string_set_x (v, pos, obj);
-      break;
-    case scm_tc7_byvect:
-      if (SCM_CHARP (obj))
-	obj = scm_from_schar ((char) SCM_CHAR (obj));
-      ((char *) SCM_UVECTOR_BASE (v))[pos] = scm_to_schar (obj);
       break;
     case scm_tc7_uvect:
       ((unsigned long *) SCM_UVECTOR_BASE (v))[pos] = scm_to_ulong (obj);
@@ -1359,8 +1308,13 @@ SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
 #define FUNC_NAME s_scm_array_contents
 {
   SCM sra;
+
+  if (scm_is_uniform_vector (ra))
+    return ra;
+
   if (SCM_IMP (ra))
     return SCM_BOOL_F;
+
   switch SCM_TYP7 (ra)
     {
     default:
@@ -1369,7 +1323,6 @@ SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
     case scm_tc7_wvect:
     case scm_tc7_string:
     case scm_tc7_bvect:
-    case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_fvect:
@@ -1491,61 +1444,63 @@ SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
 	  : scm_to_long (scm_uniform_vector_length (v)));
 
 loop:
-  switch SCM_TYP7 (v)
+  if (scm_is_uniform_vector (v))
     {
-    default:
-    badarg1:SCM_WRONG_TYPE_ARG (SCM_ARG1, v);
-    case scm_tc7_smob:
-      SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
-      cra = scm_ra2contig (ra, 0);
-      cstart += SCM_ARRAY_BASE (cra);
-      vlen = SCM_ARRAY_DIMS (cra)->inc *
-	(SCM_ARRAY_DIMS (cra)->ubnd - SCM_ARRAY_DIMS (cra)->lbnd + 1);
-      v = SCM_ARRAY_V (cra);
-      goto loop;
-    case scm_tc7_string:
-      base = NULL;  /* writing to strings is special, see below. */
-      sz = sizeof (char);
-      break;
-    case scm_tc7_bvect:
-      base = (char *) SCM_BITVECTOR_BASE (v);
-      vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
-      cstart /= SCM_LONG_BIT;
-      sz = sizeof (long);
-      break;
-    case scm_tc7_byvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (char);
-      break;
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (long);
-      break;
-    case scm_tc7_svect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (short);
-      break;
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (long long);
-      break;
-#endif
-    case scm_tc7_fvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (float);
-      break;
-    case scm_tc7_dvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (double);
-      break;
-    case scm_tc7_cvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = 2 * sizeof (double);
-      break;
+      base = scm_uniform_vector_elements (v);
+      sz = scm_uniform_vector_element_size (v);
     }
-
+  else
+    switch SCM_TYP7 (v)
+      {
+      default:
+      badarg1:SCM_WRONG_TYPE_ARG (SCM_ARG1, v);
+      case scm_tc7_smob:
+	SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
+	cra = scm_ra2contig (ra, 0);
+	cstart += SCM_ARRAY_BASE (cra);
+	vlen = SCM_ARRAY_DIMS (cra)->inc *
+	  (SCM_ARRAY_DIMS (cra)->ubnd - SCM_ARRAY_DIMS (cra)->lbnd + 1);
+	v = SCM_ARRAY_V (cra);
+	goto loop;
+      case scm_tc7_string:
+	base = NULL;  /* writing to strings is special, see below. */
+	sz = sizeof (char);
+	break;
+      case scm_tc7_bvect:
+	base = (char *) SCM_BITVECTOR_BASE (v);
+	vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
+	cstart /= SCM_LONG_BIT;
+	sz = sizeof (long);
+	break;
+      case scm_tc7_uvect:
+      case scm_tc7_ivect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (long);
+	break;
+      case scm_tc7_svect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (short);
+	break;
+#if SCM_SIZEOF_LONG_LONG != 0
+      case scm_tc7_llvect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (long long);
+	break;
+#endif
+      case scm_tc7_fvect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (float);
+	break;
+      case scm_tc7_dvect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (double);
+	break;
+      case scm_tc7_cvect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = 2 * sizeof (double);
+	break;
+      }
+  
   cend = vlen;
   if (!SCM_UNBNDP (start))
     {
@@ -1675,61 +1630,63 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
 	  : scm_to_long (scm_uniform_vector_length (v)));
   
 loop:
-  switch SCM_TYP7 (v)
+  if (scm_is_uniform_vector (v))
     {
-    default:
-    badarg1:SCM_WRONG_TYPE_ARG (1, v);
-    case scm_tc7_smob:
-      SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
-      v = scm_ra2contig (v, 1);
-      cstart = SCM_ARRAY_BASE (v);
-      vlen = (SCM_ARRAY_DIMS (v)->inc
-	      * (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1));
-      v = SCM_ARRAY_V (v);
-      goto loop;
-    case scm_tc7_string:
-      base = scm_i_string_chars (v);
-      sz = sizeof (char);
-      break;
-    case scm_tc7_bvect:
-      base = (char *) SCM_BITVECTOR_BASE (v);
-      vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
-      cstart /= SCM_LONG_BIT;
-      sz = sizeof (long);
-      break;
-    case scm_tc7_byvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (char);
-      break;
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (long);
-      break;
-    case scm_tc7_svect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (short);
-      break;
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (long long);
-      break;
-#endif
-    case scm_tc7_fvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (float);
-      break;
-    case scm_tc7_dvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = sizeof (double);
-      break;
-    case scm_tc7_cvect:
-      base = (char *) SCM_UVECTOR_BASE (v);
-      sz = 2 * sizeof (double);
-      break;
+      base = scm_uniform_vector_elements (v);
+      sz = scm_uniform_vector_element_size (v);
     }
-
+  else
+    switch SCM_TYP7 (v)
+      {
+      default:
+      badarg1:SCM_WRONG_TYPE_ARG (1, v);
+      case scm_tc7_smob:
+	SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
+	v = scm_ra2contig (v, 1);
+	cstart = SCM_ARRAY_BASE (v);
+	vlen = (SCM_ARRAY_DIMS (v)->inc
+		* (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1));
+	v = SCM_ARRAY_V (v);
+	goto loop;
+      case scm_tc7_string:
+	base = scm_i_string_chars (v);
+	sz = sizeof (char);
+	break;
+      case scm_tc7_bvect:
+	base = (char *) SCM_BITVECTOR_BASE (v);
+	vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
+	cstart /= SCM_LONG_BIT;
+	sz = sizeof (long);
+	break;
+      case scm_tc7_uvect:
+      case scm_tc7_ivect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (long);
+	break;
+      case scm_tc7_svect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (short);
+	break;
+#if SCM_SIZEOF_LONG_LONG != 0
+      case scm_tc7_llvect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (long long);
+	break;
+#endif
+      case scm_tc7_fvect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (float);
+	break;
+      case scm_tc7_dvect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = sizeof (double);
+	break;
+      case scm_tc7_cvect:
+	base = (char *) SCM_UVECTOR_BASE (v);
+	sz = 2 * sizeof (double);
+	break;
+      }
+  
   cend = vlen;
   if (!SCM_UNBNDP (start))
     {
@@ -2128,6 +2085,10 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 {
   SCM res = SCM_EOL;
   register long k;
+
+  if (scm_is_uniform_vector (v))
+    return scm_uniform_vector_to_list (v);
+
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   switch SCM_TYP7 (v)
     {
@@ -2150,14 +2111,6 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 	    res = scm_cons (scm_from_bool(((long *) data)[k] & mask), res);
 	for (mask = 1L << ((SCM_BITVECTOR_LENGTH (v) % SCM_LONG_BIT) - 1); mask; mask >>= 1)
 	  res = scm_cons (scm_from_bool(((long *) data)[k] & mask), res);
-	return res;
-      }
-    case scm_tc7_byvect:
-      {
-	signed char *data = (signed char *) SCM_VELTS (v);
-	unsigned long k = SCM_UVECTOR_LENGTH (v);
-	while (k != 0)
-	  res = scm_cons (scm_from_schar (data[--k]), res);
 	return res;
       }
     case scm_tc7_uvect:
@@ -2359,7 +2312,7 @@ tail:
     default:
       /* scm_tc7_bvect and scm_tc7_llvect only?  */
       if (n-- > 0)
-	scm_iprin1 (scm_uniform_vector_ref (ra, scm_from_ulong (j)), port, pstate);
+	scm_iprin1 (scm_cvref (ra, j, SCM_UNDEFINED), port, pstate);
       for (j += inc; n-- > 0; j += inc)
 	{
 	  scm_putc (' ', port);
@@ -2384,20 +2337,11 @@ tail:
 	scm_remember_upto_here_1 (ra);
       }
       break;
-    case scm_tc7_byvect:
-      if (n-- > 0)
-	scm_intprint (((char *) SCM_CELL_WORD_1 (ra))[j], 10, port);
-      for (j += inc; n-- > 0; j += inc)
-	{
-	  scm_putc (' ', port);
-	  scm_intprint (((char *)SCM_CELL_WORD_1 (ra))[j], 10, port);
-	}
-      break;
-
+      
     case scm_tc7_uvect:
       {
 	char str[11];
-
+	
 	if (n-- > 0)
 	  {
 	    /* intprint can't handle >= 2^31.  */
@@ -2420,7 +2364,7 @@ tail:
 	  scm_intprint (((signed long *) SCM_VELTS (ra))[j], 10, port);
 	}
       break;
-
+      
     case scm_tc7_svect:
       if (n-- > 0)
 	scm_intprint (((short *) SCM_CELL_WORD_1 (ra))[j], 10, port);
@@ -2430,7 +2374,7 @@ tail:
 	  scm_intprint (((short *) SCM_CELL_WORD_1 (ra))[j], 10, port);
 	}
       break;
-
+      
     case scm_tc7_fvect:
       if (n-- > 0)
 	{
@@ -2483,13 +2427,158 @@ tail:
     }
 }
 
+/* Print dimension DIM of ARRAY.
+ */
 
+static int
+scm_i_print_array_dimension (SCM array, int dim, int base,
+			     SCM port, scm_print_state *pstate)
+{
+  scm_t_array_dim *dim_spec = SCM_ARRAY_DIMS (array) + dim;
+  long idx;
+
+  scm_putc ('(', port);
+
+#if 0
+  scm_putc ('{', port);
+  scm_intprint (dim_spec->lbnd, 10, port);
+  scm_putc (':', port);
+  scm_intprint (dim_spec->ubnd, 10, port);
+  scm_putc (':', port);
+  scm_intprint (dim_spec->inc, 10, port);
+  scm_putc ('}', port);
+#endif
+
+  for (idx = dim_spec->lbnd; idx <= dim_spec->ubnd; idx++)
+    {
+      if (dim < SCM_ARRAY_NDIM(array)-1)
+	scm_i_print_array_dimension (array, dim+1, base, port, pstate);
+      else
+	scm_iprin1 (scm_cvref (SCM_ARRAY_V (array), base, SCM_UNDEFINED), 
+		    port, pstate);
+      if (idx < dim_spec->ubnd)
+	scm_putc (' ', port);
+      base += dim_spec->inc;
+    }
+
+  scm_putc (')', port);
+  return 1;
+}
+
+static const char *
+scm_i_legacy_tag (SCM v)
+{
+  switch (SCM_TYP7 (v))
+    {
+    case scm_tc7_bvect:
+      return "b";
+    case scm_tc7_string:
+      return "a";
+    case scm_tc7_uvect:
+      return "u";
+    case scm_tc7_ivect:
+      return "e";
+    case scm_tc7_svect:
+      return "h";
+#if SCM_SIZEOF_LONG_LONG != 0
+    case scm_tc7_llvect:
+      return "l";
+#endif
+    case scm_tc7_fvect:
+      return "s";
+    case scm_tc7_dvect:
+      return "i";
+    case scm_tc7_cvect:
+      return "c";
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
+      return "";
+    default:
+      return "?";
+    }
+}
+
+/* Print a array.  (Only for strict arrays, not for strings, uniform
+   vectors, vectors and other stuff that can masquerade as an array.)
+*/
+
+/* The array tag is generally of the form
+ *
+ *   #<rank><unif><@lower><@lower>...
+ *
+ * <rank> is a positive integer in decimal giving the rank of the
+ * array.  It is omitted when the rank is 1.
+ *
+ * <unif> is the tag for a uniform (or homogenous) numeric vector,
+ * like u8, s16, etc, as defined by SRFI-4.  It is omitted when the
+ * array is not uniform.
+ *
+ * <@lower> is a 'at' sign followed by a integer in decimal giving the
+ * lower bound of a dimension.  There is one <@lower> for each
+ * dimension.  When all lower bounds are zero, all <@lower> are
+ * omitted.
+ *
+ * Thus, 
+ *
+ *   #(1 2 3) is non-uniform array of rank 1 with lower bound 0 in
+ *   dimension 0.  (I.e., a regular vector.)
+ *
+ *   #@2(1 2 3) is non-uniform array of rank 1 with lower bound 2 in
+ *   dimension 0.
+ *
+ *   #2((1 2 3) (4 5 6)) is a non-uniform array of rank 2; a 3x3
+ *   matrix with index ranges 0..2 and 0..2.
+ *
+ *   #u32(0 1 2) is a uniform u8 array of rank 1.
+ *
+ *   #2u32@2@3((1 2) (2 3)) is a uniform u8 array of rank 2 with index
+ *   ranges 2..3 and 3..4.
+ */
+
+static int
+scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
+{
+  long ndim = SCM_ARRAY_NDIM (array);
+  scm_t_array_dim *dim_specs = SCM_ARRAY_DIMS (array);
+  unsigned long base = SCM_ARRAY_BASE (array);
+  long i;
+
+  scm_putc ('#', port);
+  if (ndim != 1)
+    scm_intprint (ndim, 10, port);
+  if (scm_is_uniform_vector (SCM_ARRAY_V (array)))
+    scm_puts (scm_i_uniform_vector_tag (SCM_ARRAY_V (array)), port);
+  else 
+    scm_puts (scm_i_legacy_tag (SCM_ARRAY_V (array)), port);
+  for (i = 0; i < ndim; i++)
+    if (dim_specs[i].lbnd != 0)
+      {
+	for (i = 0; i < ndim; i++)
+	  {
+	    scm_putc ('@', port);
+	    scm_uintprint (dim_specs[i].lbnd, 10, port);
+	  }
+	break;
+      }
+
+#if 0
+  scm_putc ('{', port);
+  scm_uintprint (base, 10, port);
+  scm_putc ('}', port);
+#endif
+
+  return scm_i_print_array_dimension (array, 0, base, port, pstate);
+}
 
 int 
 scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
   SCM v = exp;
   unsigned long base = 0;
+
+  if (SCM_ARRAYP (exp)) // && scm_is_uniform_vector (SCM_ARRAY_V (exp)))
+    return scm_i_print_array (exp, port, pstate);
+
   scm_putc ('#', port);
 tail:
   switch SCM_TYP7 (v)
@@ -2545,9 +2634,6 @@ tail:
     case scm_tc7_string:
       scm_putc ('a', port);
       break;
-    case scm_tc7_byvect:
-      scm_putc ('y', port);
-      break;
     case scm_tc7_uvect:
       scm_putc ('u', port);
       break;
@@ -2588,6 +2674,9 @@ SCM_DEFINE (scm_array_prototype, "array-prototype", 1, 0, 0,
   int enclosed = 0;
   SCM_ASRTGO (SCM_NIMP (ra), badarg);
 loop:
+  if (scm_is_uniform_vector (ra))
+    return scm_i_uniform_vector_prototype (ra);
+
   switch SCM_TYP7 (ra)
     {
     default:
@@ -2605,8 +2694,6 @@ loop:
       return SCM_BOOL_T;
     case scm_tc7_string:
       return SCM_MAKE_CHAR ('a');
-    case scm_tc7_byvect:
-      return SCM_MAKE_CHAR ('\0');
     case scm_tc7_uvect:
       return scm_from_int (1);
     case scm_tc7_ivect:
