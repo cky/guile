@@ -1,3 +1,8 @@
+1997-10-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Make dynamic linking work on Dec Unix. (Thanks to Clark McGrew)
+	* configure.in: Check whether dlopen can be found without -ldl.
+
 Mon Sep 29 23:52:52 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.in: Regenerated with automake 1.2c.
