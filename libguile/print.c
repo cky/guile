@@ -169,15 +169,54 @@ scm_current_pstate ()
 
 #define PSTATE_SIZE 50L
 
+static SCM make_print_state SCM_P ((void));
+
+static SCM
+make_print_state ()
+{
+  SCM print_state = scm_make_struct (SCM_CAR (print_state_pool), /* pstate type */
+				     SCM_MAKINUM (PSTATE_SIZE),
+				     SCM_EOL);
+  SCM_PRINT_STATE (print_state)->ceiling = PSTATE_SIZE;
+  return print_state;
+}
 
 SCM
 scm_make_print_state ()
 {
-  return scm_make_struct (SCM_CAR (print_state_pool), /* pstate type */
-			  SCM_MAKINUM (PSTATE_SIZE),
-			  SCM_EOL);
+  SCM answer = 0;
+
+  /* First try to allocate a print state from the pool */
+  SCM_DEFER_INTS;
+  if (SCM_NNULLP (SCM_CDR (print_state_pool)))
+    {
+      answer = SCM_CADR (print_state_pool);
+      SCM_SETCDR (print_state_pool, SCM_CDDR (print_state_pool));
+    }
+  SCM_ALLOW_INTS;
+  
+  return answer ? answer : make_print_state ();
 }
 
+void
+scm_free_print_state (print_state)
+     SCM print_state;
+{
+  SCM handle;
+  scm_print_state *pstate = SCM_PRINT_STATE (print_state);
+  /* Cleanup before returning print state to pool.
+   * It is better to do it here.  Doing it in scm_prin1
+   * would cost more since that function is called much more
+   * often.
+   */
+  pstate->fancyp = 0;
+  SCM_NEWCELL (handle);
+  SCM_DEFER_INTS;
+  SCM_SETCAR (handle, print_state);
+  SCM_SETCDR (handle, SCM_CDR (print_state_pool));
+  SCM_SETCDR (print_state_pool, handle);
+  SCM_ALLOW_INTS;
+}
 
 static void grow_ref_stack SCM_P ((scm_print_state *pstate));
 
@@ -562,9 +601,9 @@ scm_prin1 (exp, port, writingp)
   SCM_ALLOW_INTS;
   
   if (!handle)
-    handle = scm_cons (scm_make_print_state (), SCM_EOL);
+    handle = scm_cons (make_print_state (), SCM_EOL);
 
-  pstate = (scm_print_state *) SCM_STRUCT_DATA (SCM_CAR (handle));
+  pstate = SCM_PRINT_STATE (SCM_CAR (handle));
   pstate->writingp = writingp;
   scm_iprin1 (exp, port, pstate);
 
