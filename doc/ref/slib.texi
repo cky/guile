@@ -16,7 +16,7 @@ must be executed:
 (use-modules (ice-9 slib))
 @end smalllisp
 
-@cindex @code{require}
+@findex require
 @code{require} can then be used in the usual way (@pxref{Requesting
 Features,,, slib, The SLIB Manual}).  For example,
 
@@ -27,6 +27,7 @@ Features,,, slib, The SLIB Manual}).  For example,
 @result{} #t
 @end example
 
+@findex system
 Note that @code{(ice-9 slib)} provides a new definition of
 @code{system}, one giving a plain exit code return value, as per the
 SLIB specification (@pxref{System Interface,,, slib, The SLIB
