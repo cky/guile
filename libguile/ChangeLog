@@ -1,3 +1,11 @@
+Tue Jan  4 14:21:35 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* options.c, objects.c, keywords.c, gc.c: Some redundant SCM_NIMP
+ 	removals from Dirk Hermann.
+
+	* alist.c: Rename formals to match the parameter names in the
+	documentation, updates to documentation.  Thanks Dirk Hermann!
+
 2000-01-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c (SCM_CEVAL): Reverse order of
