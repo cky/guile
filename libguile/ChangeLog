@@ -1,3 +1,28 @@
+1998-10-24  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* gc.h: Remove all uses of SCM_P.  (Thanks to Richard Polton.)
+
+	* guile-snarf.in: Never generate an empty file.  (Thanks to
+	Richard Polton.)
+
+	* gh.h (gh_enter, gh_new_procedure0_0, gh_new_procedure0_1,
+ 	gh_new_procedure0_2, gh_new_procedure1_0, gh_new_procedure1_1,
+ 	gh_new_procedure1_2, gh_new_procedure2_0, gh_new_procedure2_1,
+ 	gh_new_procedure2_2, gh_new_procedure3_0, gh_new_procedure4_0,
+ 	gh_new_procedure5_0): Specify argument types, to appease C++
+	compilers.  (Thanks to Brad Bowman.)
+
+	Bug reports from Russ McManus:
+	* guile-snarf.in: If the CPP environment variable is set, use that
+	as the C preprocessor, instead of the preprocessor autoconf
+	found.
+	* snarf.h (SCM_PROC): Cast the function pointer passed to
+	scm_make_gsubr, to satisfy C++.
+
+	* gh_eval.c (gh_eval_str_with_catch, gh_eval_file_with_catch):
+	Use the handler passed, instead of ignoring it and using
+	gh_standard_handler.  (Thanks to Etienne Bernard.)
+	
 1998-10-20  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* ports.h: Put text after #endif in comment.  (Thanks to Nicolas

@@ -2,7 +2,13 @@ The Guile core distribution:
 
 Bug reports and fixes from:
 
+     Etienne Bernard
+        Brad Bowman
+        Russ McManus
      Nicolas Neuss
+     Richard Polton
+     Bernard Urban
 
 Also, thanks to:
+- Craig Brozefsky, for his work on the Guile mailing list web archives
 - Pat Eyler, for his continuing work on the Guile web pages
