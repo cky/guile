@@ -1,3 +1,9 @@
+2000-05-14  Gary Houston  <ghouston@arglist.com>
+
+	from Keisuke Nishida:
+	* fports.c (scm_setvbuf): minor docstring fix.
+	* ports.h (scm_generic_fgets): obsolete prototype deleted.
+
 2000-05-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h:  Added new section for debugging options.
