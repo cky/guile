@@ -67,22 +67,22 @@ typedef struct scm_t_srcprops_chunk
   scm_t_srcprops srcprops[1];
 } scm_t_srcprops_chunk;
 
-#define SCM_SOURCE_PROPERTY_FLAG_BREAK (1L << 16)
+#define SCM_SOURCE_PROPERTY_FLAG_BREAK 1
 
-#define SRCPROPSP(p) (SCM_TYP16_PREDICATE (scm_tc16_srcprops, p))
-#define SRCPROPBRK(p) (SCM_CELL_WORD_0 (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK)
-#define SRCPROPPOS(p) ((scm_t_srcprops *) SCM_CELL_WORD_1 (p))->pos
+#define SRCPROPSP(p) (SCM_SMOB_PREDICATE (scm_tc16_srcprops, (p)))
+#define SRCPROPBRK(p) (SCM_SMOB_FLAGS (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK)
+#define SRCPROPPOS(p) ((scm_t_srcprops *) SCM_SMOB_DATA (p))->pos
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
-#define SRCPROPFNAME(p) ((scm_t_srcprops *) SCM_CELL_WORD_1 (p))->fname
-#define SRCPROPCOPY(p) ((scm_t_srcprops *) SCM_CELL_WORD_1 (p))->copy
-#define SRCPROPPLIST(p) ((scm_t_srcprops *) SCM_CELL_WORD_1 (p))->plist
+#define SRCPROPFNAME(p) ((scm_t_srcprops *) SCM_SMOB_DATA (p))->fname
+#define SRCPROPCOPY(p) ((scm_t_srcprops *) SCM_SMOB_DATA (p))->copy
+#define SRCPROPPLIST(p) ((scm_t_srcprops *) SCM_SMOB_DATA (p))->plist
 #define SETSRCPROPBRK(p) \
-  (SCM_SET_CELL_WORD_0 ((p), SCM_CELL_WORD_0 (p) \
-                             | SCM_SOURCE_PROPERTY_FLAG_BREAK))
+ (SCM_SET_SMOB_FLAGS ((p), \
+                      SCM_SMOB_FLAGS (p) | SCM_SOURCE_PROPERTY_FLAG_BREAK))
 #define CLEARSRCPROPBRK(p)  \
-  (SCM_SET_CELL_WORD_0 ((p), SCM_CELL_WORD_0 (p) \
-                             & ~SCM_SOURCE_PROPERTY_FLAG_BREAK))
+ (SCM_SET_SMOB_FLAGS ((p), \
+                      SCM_SMOB_FLAGS (p) & ~SCM_SOURCE_PROPERTY_FLAG_BREAK))
 #define SRCPROPMAKPOS(l, c) (((l) << 12) + (c))
 #define SETSRCPROPPOS(p, l, c) (SRCPROPPOS (p) = SRCPROPMAKPOS (l, c))
 #define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))

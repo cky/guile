@@ -37,16 +37,16 @@ SCM_API scm_t_bits scm_tc16_fair_mutex;
 SCM_API scm_t_bits scm_tc16_condvar;
 SCM_API scm_t_bits scm_tc16_fair_condvar;
 
-#define SCM_THREADP(x)        SCM_TYP16_PREDICATE (scm_tc16_thread, x)
-#define SCM_THREAD_DATA(x)    ((scm_thread *) SCM_CELL_WORD_1 (x))
+#define SCM_THREADP(x)        SCM_SMOB_PREDICATE (scm_tc16_thread, x)
+#define SCM_THREAD_DATA(x)    ((scm_thread *) SCM_SMOB_DATA (x))
 
-#define SCM_MUTEXP(x)         SCM_TYP16_PREDICATE (scm_tc16_mutex, x)
-#define SCM_FAIR_MUTEX_P(x)   SCM_TYP16_PREDICATE (scm_tc16_fair_mutex, x)
-#define SCM_MUTEX_DATA(x)     ((void *) SCM_CELL_WORD_1 (x))
+#define SCM_MUTEXP(x)         SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
+#define SCM_FAIR_MUTEX_P(x)   SCM_SMOB_PREDICATE (scm_tc16_fair_mutex, x)
+#define SCM_MUTEX_DATA(x)     ((void *) SCM_SMOB_DATA (x))
 
-#define SCM_CONDVARP(x)       SCM_TYP16_PREDICATE (scm_tc16_condvar, x)
-#define SCM_FAIR_CONDVAR_P(x) SCM_TYP16_PREDICATE (scm_tc16_fair_condvar, x)
-#define SCM_CONDVAR_DATA(x)   ((void *) SCM_CELL_WORD_1 (x))
+#define SCM_CONDVARP(x)       SCM_SMOB_PREDICATE (scm_tc16_condvar, x)
+#define SCM_FAIR_CONDVAR_P(x) SCM_SMOB_PREDICATE (scm_tc16_fair_condvar, x)
+#define SCM_CONDVAR_DATA(x)   ((void *) SCM_SMOB_DATA (x))
 
 #define SCM_VALIDATE_THREAD(pos, a) \
  SCM_MAKE_VALIDATE_MSG (pos, a, THREADP, "thread")

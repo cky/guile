@@ -50,7 +50,7 @@
 
 SCM_API scm_t_bits scm_tc16_fluid;
 
-#define SCM_FLUIDP(x)    (!SCM_IMP (x) && (SCM_CELL_TYPE (x) == scm_tc16_fluid))
+#define SCM_FLUIDP(x)    (SCM_SMOB_PREDICATE (scm_tc16_fluid, (x)))
 #define SCM_FLUID_NUM(x) (SCM_CELL_WORD_1 (x))
 
 /* The fastest way to acces/modify the value of a fluid.  These macros

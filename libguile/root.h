@@ -49,8 +49,8 @@ SCM_API SCM scm_sys_protects[];
 
 SCM_API scm_t_bits scm_tc16_root;
 
-#define SCM_ROOTP(obj)       SCM_TYP16_PREDICATE (scm_tc16_root, obj)
-#define SCM_ROOT_STATE(root) ((scm_root_state *) SCM_CELL_WORD_1 (root))
+#define SCM_ROOTP(obj)       SCM_SMOB_PREDICATE (scm_tc16_root, (obj))
+#define SCM_ROOT_STATE(root) ((scm_root_state *) SCM_SMOB_DATA (root))
 
 typedef struct scm_root_state
 {

@@ -43,7 +43,7 @@ typedef struct scm_t_future {
 #define SCM_VALIDATE_FUTURE(pos, obj) \
   SCM_ASSERT_TYPE (SCM_TYP16_PREDICATE (scm_tc16_future, obj), \
 		   obj, pos, FUNC_NAME, "future");
-#define SCM_FUTURE(future) ((scm_t_future *) SCM_CELL_WORD_2 (future))
+#define SCM_FUTURE(future) ((scm_t_future *) SCM_SMOB_DATA_2 (future))
 #define SCM_FUTURE_MUTEX(future) (&SCM_FUTURE (future)->mutex)
 #define SCM_FUTURE_COND(future) (&SCM_FUTURE (future)->cond)
 #define SCM_FUTURE_STATUS(future) (SCM_FUTURE (future)->status)
@@ -53,9 +53,9 @@ typedef struct scm_t_future {
 #define SCM_FUTURE_DATA(future) (SCM_FUTURE (future)->data)
 #define SCM_SET_FUTURE_DATA(future, x) \
  do { SCM_FUTURE (future)->data = (x); } while (0)
-#define SCM_FUTURE_NEXT SCM_CELL_OBJECT_1
-#define SCM_FUTURE_NEXTLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 1))
-#define SCM_SET_FUTURE_NEXT SCM_SET_CELL_OBJECT_1
+#define SCM_FUTURE_NEXT       SCM_SMOB_OBJECT
+#define SCM_FUTURE_NEXTLOC    SCM_SMOB_OBJECT_LOC
+#define SCM_SET_FUTURE_NEXT   SCM_SET_SMOB_OBJECT
 
 SCM_API scm_t_bits scm_tc16_future;
 

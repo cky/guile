@@ -66,15 +66,17 @@ SCM_API SCM scm_eval_options_interface (SCM setting);
 /* {Promises}
  */
 
-#define SCM_F_PROMISE_COMPUTED (1L << 16)
+#define SCM_F_PROMISE_COMPUTED (1L << 0)
 #define SCM_PROMISE_COMPUTED_P(promise) \
-  (SCM_F_PROMISE_COMPUTED & SCM_CELL_WORD_0 (promise))
+  (SCM_F_PROMISE_COMPUTED & SCM_SMOB_FLAGS (promise))
 #define SCM_SET_PROMISE_COMPUTED(promise) \
-  SCM_SET_CELL_WORD_0 (promise, scm_tc16_promise | SCM_F_PROMISE_COMPUTED)
+  SCM_SET_SMOB_FLAGS ((promise), SCM_F_PROMISE_COMPUTED)
 #define SCM_PROMISE_MUTEX(promise) \
-  ((scm_t_rec_mutex *) SCM_CELL_WORD_2 (promise))
-#define SCM_PROMISE_DATA SCM_CELL_OBJECT_1
-#define SCM_SET_PROMISE_DATA SCM_SET_CELL_OBJECT_1
+  ((scm_t_rec_mutex *) SCM_SMOB_DATA_2 (promise))
+#define SCM_PROMISE_DATA      SCM_SMOB_OBJECT
+#define SCM_SET_PROMISE_DATA  SCM_SET_SMOB_OBJECT
+
+
 SCM_API scm_t_bits scm_tc16_promise;
 
 

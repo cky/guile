@@ -27,9 +27,9 @@
 
 SCM_API scm_t_bits scm_tc16_malloc;
 
-#define SCM_MALLOCP(X)  (SCM_TYP16 (X) == scm_tc16_malloc)
-#define SCM_MALLOCDATA(obj) ((char *) SCM_CELL_WORD_1 (obj))
-#define SCM_SETMALLOCDATA(obj, val) (SCM_SET_CELL_WORD_1 (obj, val))
+#define SCM_MALLOCP(X)  (SCM_SMOB_PREDICATE (scm_tc16_malloc, (X)))
+#define SCM_MALLOCDATA(obj) ((char *) SCM_SMOB_DATA (obj))
+#define SCM_SETMALLOCDATA(obj, val) (SCM_SET_SMOB_DATA ((obj), (val)))
 
 
 

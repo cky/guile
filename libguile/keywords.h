@@ -28,8 +28,8 @@
 
 SCM_API scm_t_bits scm_tc16_keyword;
 
-#define SCM_KEYWORDP(X)		(!SCM_IMP (X) && (SCM_CELL_TYPE (X) == scm_tc16_keyword))
-#define SCM_KEYWORDSYM(X)	(SCM_CELL_OBJECT_1 (X))
+#define SCM_KEYWORDP(X)		(SCM_SMOB_PREDICATE (scm_tc16_keyword, (X)))
+#define SCM_KEYWORDSYM(X)	(SCM_SMOB_OBJECT (X))
 
 
 

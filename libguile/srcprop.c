@@ -71,8 +71,8 @@ srcprops_mark (SCM obj)
 static size_t
 srcprops_free (SCM obj)
 {
-  *((scm_t_srcprops **) SCM_CELL_WORD_1 (obj)) = srcprops_freelist;
-  srcprops_freelist = (scm_t_srcprops *) SCM_CELL_WORD_1 (obj);
+  *((scm_t_srcprops **) SCM_SMOB_DATA (obj)) = srcprops_freelist;
+  srcprops_freelist = (scm_t_srcprops *) SCM_SMOB_DATA (obj);
   return 0; /* srcprops_chunks are not freed until leaving guile */
 }
 

@@ -77,6 +77,14 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
   return 1;
 }
 
+static SCM
+makmac (SCM code, scm_t_bits flags)
+{
+  SCM z;
+  SCM_NEWSMOB (z, scm_tc16_macro, SCM_UNPACK (code));
+  SCM_SET_SMOB_FLAGS (z, flags);
+  return z;
+}
 
 /* Return a mmacro that is known to be one of guile's built in macros. */
 SCM
@@ -84,7 +92,7 @@ scm_i_makbimacro (SCM code)
 #define FUNC_NAME "scm_i_makbimacro"
 {
   SCM_VALIDATE_PROC (1, code);
-  SCM_RETURN_NEWSMOB (scm_tc16_macro | (3L << 16), SCM_UNPACK (code));
+  return makmac (code, 3);
 }
 #undef FUNC_NAME
 
@@ -102,7 +110,7 @@ SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0,
 #define FUNC_NAME s_scm_makmmacro
 {
   SCM_VALIDATE_PROC (1, code);
-  SCM_RETURN_NEWSMOB (scm_tc16_macro | (2L << 16), SCM_UNPACK (code));
+  return makmac (code, 2);
 }
 #undef FUNC_NAME
 
@@ -116,7 +124,7 @@ SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
 #define FUNC_NAME s_scm_makacro
 {
   SCM_VALIDATE_PROC (1, code);
-  SCM_RETURN_NEWSMOB (scm_tc16_macro, SCM_UNPACK (code));
+  return makmac (code, 0);
 }
 #undef FUNC_NAME
 
@@ -144,7 +152,7 @@ SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0,
      " or r5rs macros instead.");
 
   SCM_VALIDATE_PROC (1, code);
-  SCM_RETURN_NEWSMOB (scm_tc16_macro | (1L << 16), SCM_UNPACK (code));
+  return makmac (code, 1);
 }
 #undef FUNC_NAME
 
@@ -157,7 +165,7 @@ SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0,
 	    "syntax transformer.")
 #define FUNC_NAME s_scm_macro_p
 {
-  return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_macro, obj));
+  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_macro, obj));
 }
 #undef FUNC_NAME
 
@@ -178,7 +186,7 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
 	    "returned.")
 #define FUNC_NAME s_scm_macro_type
 {
-  if (!SCM_TYP16_PREDICATE (scm_tc16_macro, m))
+  if (!SCM_SMOB_PREDICATE (scm_tc16_macro, m))
     return SCM_BOOL_F;
   switch (SCM_MACRO_TYPE (m))
     {

@@ -29,10 +29,10 @@
 #define SCM_ASSYNT(_cond, _msg, _subr) \
   if (!(_cond)) scm_misc_error (_subr, _msg, SCM_EOL);
 
-#define SCM_MACROP(x) SCM_TYP16_PREDICATE (scm_tc16_macro, (x))
-#define SCM_MACRO_TYPE(m) (SCM_CELL_WORD_0 (m) >> 16)
+#define SCM_MACROP(x) SCM_SMOB_PREDICATE (scm_tc16_macro, (x))
+#define SCM_MACRO_TYPE(m) SCM_SMOB_FLAGS (m)
 #define SCM_BUILTIN_MACRO_P(x) (SCM_MACROP (x) && SCM_MACRO_TYPE (x) == 3)
-#define SCM_MACRO_CODE(m) SCM_CELL_OBJECT_1 (m)
+#define SCM_MACRO_CODE(m) SCM_SMOB_OBJECT (m)
 
 SCM_API scm_t_bits scm_tc16_macro;
 

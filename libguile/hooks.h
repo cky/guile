@@ -73,10 +73,10 @@ SCM_API void *scm_c_hook_run (scm_t_c_hook *hook, void *data);
 
 SCM_API scm_t_bits scm_tc16_hook;
 
-#define SCM_HOOKP(x)			SCM_TYP16_PREDICATE (scm_tc16_hook, x)
-#define SCM_HOOK_ARITY(hook)		(SCM_CELL_WORD_0 (hook) >> 16)
-#define SCM_HOOK_PROCEDURES(hook)	SCM_CELL_OBJECT_1 (hook)
-#define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SET_CELL_OBJECT_1 ((hook), (procs))
+#define SCM_HOOKP(x)			SCM_SMOB_PREDICATE (scm_tc16_hook, x)
+#define SCM_HOOK_ARITY(hook)		SCM_SMOB_FLAGS (hook)
+#define SCM_HOOK_PROCEDURES(hook)	SCM_SMOB_OBJECT (hook)
+#define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SET_SMOB_OBJECT ((hook), (procs))
 
 SCM_API SCM scm_make_hook (SCM n_args);
 SCM_API SCM scm_hook_p (SCM x);

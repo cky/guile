@@ -84,8 +84,8 @@ SCM_API SCM scm_c_random_bignum (scm_t_rstate *, SCM m);
  * Scheme level interface
  */
 SCM_API scm_t_bits scm_tc16_rstate;
-#define SCM_RSTATEP(obj) SCM_TYP16_PREDICATE (scm_tc16_rstate, obj)
-#define SCM_RSTATE(obj)  ((scm_t_rstate *) SCM_CELL_WORD_1 (obj))
+#define SCM_RSTATEP(obj) SCM_SMOB_PREDICATE (scm_tc16_rstate, obj)
+#define SCM_RSTATE(obj)  ((scm_t_rstate *) SCM_SMOB_DATA (obj))
 
 SCM_API unsigned char scm_masktab[256];
 

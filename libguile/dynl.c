@@ -111,9 +111,9 @@ sysdep_dynl_init ()
 
 scm_t_bits scm_tc16_dynamic_obj;
 
-#define DYNL_FILENAME(x)        (SCM_CELL_OBJECT_1 (x))
-#define DYNL_HANDLE(x)          ((void *) SCM_CELL_WORD_2 (x))
-#define SET_DYNL_HANDLE(x, v)   (SCM_SET_CELL_WORD_2 ((x), (v)))
+#define DYNL_FILENAME         SCM_SMOB_OBJECT
+#define DYNL_HANDLE(x)        ((void *) SCM_SMOB_DATA_2 (x))
+#define SET_DYNL_HANDLE(x, v) (SCM_SET_SMOB_DATA_2 ((x), (v)))
 
 
 static SCM
