@@ -1,3 +1,8 @@
+2002-10-03  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi (Processes), scheme-options.texi (Common Feature
+	Symbols): Refer to provided?  rather than deprecated feature?.
+
 2002-10-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tools.texi (How guile-snarf works): Updated.

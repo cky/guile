@@ -316,7 +316,7 @@ practice to rely on them, as the correspondences between feature symbols
 and available procedures/behaviour are not strictly defined.  If you are
 writing code that needs to check for the existence of some procedure, it
 is probably safer to do so directly using the @code{defined?} procedure
-than to test for the corresponding feature using @code{feature?}.
+than to test for the corresponding feature using @code{provided?}.
 
 
 @node Runtime Options

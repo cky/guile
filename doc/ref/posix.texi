@@ -1229,7 +1229,7 @@ Return an integer representing the current real group ID.
 @deffnx {C Function} scm_geteuid ()
 Return an integer representing the current effective user ID.
 If the system does not support effective IDs, then the real ID
-is returned.  @code{(feature? 'EIDs)} reports whether the
+is returned.  @code{(provided? 'EIDs)} reports whether the
 system supports effective IDs.
 @end deffn
 
@@ -1237,7 +1237,7 @@ system supports effective IDs.
 @deffnx {C Function} scm_getegid ()
 Return an integer representing the current effective group ID.
 If the system does not support effective IDs, then the real ID
-is returned.  @code{(feature? 'EIDs)} reports whether the
+is returned.  @code{(provided? 'EIDs)} reports whether the
 system supports effective IDs.
 @end deffn
 
@@ -1259,7 +1259,7 @@ The return value is unspecified.
 @deffnx {C Function} scm_seteuid (id)
 Sets the effective user ID to the integer @var{id}, provided the process
 has appropriate privileges.  If effective IDs are not supported, the
-real ID is set instead -- @code{(feature? 'EIDs)} reports whether the
+real ID is set instead -- @code{(provided? 'EIDs)} reports whether the
 system supports effective IDs.
 The return value is unspecified.
 @end deffn
@@ -1268,7 +1268,7 @@ The return value is unspecified.
 @deffnx {C Function} scm_setegid (id)
 Sets the effective group ID to the integer @var{id}, provided the process
 has appropriate privileges.  If effective IDs are not supported, the
-real ID is set instead -- @code{(feature? 'EIDs)} reports whether the
+real ID is set instead -- @code{(provided? 'EIDs)} reports whether the
 system supports effective IDs.
 The return value is unspecified.
 @end deffn
