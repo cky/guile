@@ -383,6 +383,7 @@ scm_add_to_port_table (SCM port)
   entry->putback_buf = 0;
   entry->putback_buf_size = 0;
   entry->rw_active = SCM_PORT_NEITHER;
+  entry->rw_random = 0;
 
   scm_port_table[scm_port_table_size] = entry;
   scm_port_table_size++;

@@ -247,9 +247,7 @@ scm_mkstrport (pos, str, modes, caller)
   pt->write_buf_size = pt->read_buf_size = str_len;
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;
 
-  /* doesn't check (modes & SCM_RDNG), since the read_buf must be
-     maintained even for output-only ports.  */
-  pt->rw_random = modes & SCM_WRTNG;
+  pt->rw_random = 1;
 
   SCM_ALLOW_INTS;
 

@@ -310,8 +310,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
     if (fp == NULL)
       scm_memory_error ("scm_fdes_to_port");
     fp->fdes = fdes;
-    pt->rw_random = (mode_bits & SCM_RDNG) && (mode_bits & SCM_WRTNG)
-      && SCM_FDES_RANDOM_P (fdes);
+    pt->rw_random = SCM_FDES_RANDOM_P (fdes);
     SCM_SETSTREAM (port, fp);
     if (mode_bits & SCM_BUF0)
       scm_fport_buffer_add (port, 0, 0);

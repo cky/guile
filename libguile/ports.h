@@ -113,16 +113,16 @@ typedef struct
 
   unsigned char shortbuf;       /* buffer for "unbuffered" streams.  */
 
-  int rw_random;                /* true if the port is bidirectional and
-				   random access.  implies that the buffers
-				   must be flushed before switching between
-				   reading and writing.  */
+  int rw_random;                /* true if the port is random access.
+				   implies that the buffers must be
+				   flushed before switching between
+				   reading and writing, seeking, etc.  */
 
-  enum scm_port_rw_active rw_active; /* for bidirectional random
-				   ports, indicates which of the
-				   buffers is currently in use.  can
-				   be SCM_PORT_WRITE, SCM_PORT_READ,
-				   or 0.  */
+  enum scm_port_rw_active rw_active; /* for random access ports,
+					indicates which of the buffers
+					is currently in use.  can be
+					SCM_PORT_WRITE, SCM_PORT_READ,
+					or SCM_PORT_NEITHER.  */
 
 
   /* a buffer for un-read chars and strings.  */

@@ -1,3 +1,16 @@
+1999-10-18  Gary Houston  <ghouston@freewire.co.uk>
+
+	* fports.c (scm_fdes_to_port): always set rw_random if the fdes is
+	random access.  rw_active needs to be maintained even for single
+	directional ports, otherwise scm_seek and probably other things are
+	broken.  (thanks to Roland Orre).
+
+	* strports.c (scm_mkstrport): set rw_random to 1 unconditionally.
+
+	* ports.c (scm_add_to_port_table): initialise rw_random to 0.
+
+	* ports.h (scm_port): change the comments on rw_random and rw_active.
+
 1999-10-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* ioext.c: Added #include "feature.h".
