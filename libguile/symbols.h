@@ -41,6 +41,7 @@ SCM_API SCM scm_symbol_interned_p (SCM sym);
 SCM_API SCM scm_make_symbol (SCM name);
 SCM_API SCM scm_symbol_to_string (SCM s);
 SCM_API SCM scm_string_to_symbol (SCM s);
+SCM_API SCM scm_string_ci_to_symbol (SCM s);
 
 SCM_API SCM scm_symbol_fref (SCM s);
 SCM_API SCM scm_symbol_pref (SCM s);

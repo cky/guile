@@ -34,6 +34,8 @@
 #include "libguile/hashtab.h"
 #include "libguile/weaks.h"
 #include "libguile/modules.h"
+#include "libguile/read.h"
+#include "libguile/srfi-13.h"
 
 #include "libguile/validate.h"
 #include "libguile/symbols.h"
@@ -242,6 +244,19 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
 {
   SCM_VALIDATE_STRING (1, string);
   return scm_i_mem2symbol (string);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0,
+	    (SCM str),
+	    "Return the symbol whose name is @var{str}.  @var{str} is\n"
+	    "converted to lowercase before the conversion is done, if Guile\n"
+	    "is currently reading symbols case-insensitively.")
+#define FUNC_NAME s_scm_string_ci_to_symbol
+{
+  return scm_string_to_symbol (SCM_CASE_INSENSITIVE_P
+			       ? scm_string_downcase(str)
+			       : str);
 }
 #undef FUNC_NAME
 
