@@ -70,7 +70,7 @@ SCM scm_struct_table;
 SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0, 
             (SCM fields),
 	    "Return a new structure layout object.\n\n"
-	    "@var{fields} must be a read-only string made up of pairs of characters\n"
+	    "@var{fields} must be a string made up of pairs of characters\n"
 	    "strung together.  The first character of each pair describes a field\n"
 	    "type, the second a field protection.  Allowed types are 'p' for\n"
 	    "GC-protected Scheme data, 'u' for unprotected binary data, and 's' for\n"
@@ -81,7 +81,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 #define FUNC_NAME s_scm_make_struct_layout
 {
   SCM new_sym;
-  SCM_VALIDATE_ROSTRING (1,fields);
+  SCM_VALIDATE_STRINGORSUBSTR (1, fields);
   { /* scope */
     char * field_desc;
     int len;
@@ -525,7 +525,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   scm_bits_t * data;
   SCM handle;
 
-  SCM_VALIDATE_ROSTRING (1, user_fields);
+  SCM_VALIDATE_STRINGORSUBSTR (1, user_fields);
   SCM_VALIDATE_INUM (2, tail_array_size);
   SCM_VALIDATE_REST_ARGUMENT (init);
 
@@ -820,7 +820,7 @@ scm_init_struct ()
 {
   scm_struct_table
     = scm_permanent_object (scm_make_weak_key_hash_table (SCM_MAKINUM (31)));
-  required_vtable_fields = SCM_CAR (scm_intern_obarray ("pruosrpw", sizeof ("pruosrpw") - 1, SCM_BOOL_F));
+  required_vtable_fields = scm_makfrom0str ("pruosrpw");
   scm_permanent_object (required_vtable_fields);
   scm_sysintern ("vtable-index-layout", SCM_MAKINUM (scm_vtable_index_layout));
   scm_sysintern ("vtable-index-vtable", SCM_MAKINUM (scm_vtable_index_vtable));
