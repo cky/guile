@@ -1,3 +1,9 @@
+2001-07-09  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* PROGRAM, generate-autoload, use2dot, punify, display-commentary,
+	doc-snarf, read-scheme-source, snarf-check-and-output-texi:
+	Remove authorship info.
+
 2001-06-25  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* snarf-check-and-output-texi: rewrite.
