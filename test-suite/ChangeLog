@@ -1,3 +1,9 @@
+2004-11-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tests/unif.test: Replaced uniform-array-set1! with just
+	array-set!.  Do not check improper index lists, which can't arise
+	with uarray-set!.  Use "#s16()" instead of "#h()".
+
 2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tests/unif.test: Removed tests that tried to store a character

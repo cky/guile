@@ -1,3 +1,7 @@
+2004-11-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* arrays.scm: Do not use prototypes, use creator functions.
+
 2004-11-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* arrays.scm (uniform-vector-read!, uniform-vector-write):

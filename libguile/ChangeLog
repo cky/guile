@@ -1,9 +1,55 @@
+2004-11-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	Enclosed arrays are now their own smob.  This has been done to
+	make the code more explicit about them and to prepare for the time
+	when generalized vectors include arbitrary one-dimensional arrays.
+	
+	* unif.h, unif.c: (scm_tc16_enclosed_array, SCM_ENCLOSED_ARRAYP):
+	New.
+	(exactly_one_third, singp): Removed.
+	(scm_array_p, scm_array_dimensions, scm_shared_array_root,
+	scm_shared_array_offset, scm_shared_array_increments): Handle
+	enclosed arrays explicitely.
+	(scm_array_rank): Likewise. Also, do not return zero for
+	non-arrays, signal an error instead since arrays with rank zero do
+	exist.
+	(scm_i_make_ra): New, for specifying the tag of the new array.
+	(scm_make_enclosed_array): Use it.
+	(scm_make_ra): Reimplemented in terms of scm_i_make_ra.
+	(scm_make_shared_array): Use scm_c_generalized_vector_length
+	instead of scm_uniform_vector_length.
+	(scm_array_in_bounds_p): Rewritten to be much cleaner.
+	(scm_i_cvref): New, doing the job of scm_cvref.
+	(scm_cvref): Use scm_i_cvref.
+	(scm_array_ref): Do not accept non-arrays when no indices are
+	given. Use scm_i_cvref to do the actual access.
+	("uniform-array-set1"): Do not register.
+	(scm_array_set_x, scm_uniform_array_read_x,
+	scm_uniform_array_write): Handle enclosed arrays explicitly.
+	(ra2l): Use scm_i_cvref instead of scm_uniform_vector_ref to also
+	handle enclosed arrays.
+	(scm_array_to_list): Handle enclosed arrays explicitly.
+	(rapr1): Removed.
+	(scm_i_print_array_dimension): Use scm_i_cvref to also handle
+	enclosed arrays.
+	(scm_i_print_enclosed_array): New.
+	(tag_proto_table, tag_creator_table): Renamed former to latter.
+	Added "a" and "b" for strings and bitvectors, resp.
+	(scm_i_tag_to_prototype, scm_i_tag_to_creator): Renamed former to
+	latter.  Tag "a" is in the table now, no need to handle it as a
+	legacy tag.
+	(scm_raprin1): Just call scm_iprin1.
+	(scm_array_creator, scm_array_prototype): Handle enclosed arrays
+	explicitly.
+	(scm_init_unif): Initialize scm_tc16_enclosed_array smob.
+	Use scm_i_print_array as printer for scm_tc16_array.
+	
 2004-11-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* ramap.c (cind): Changed second arg to be pointer to long instead
 	of uniform vector.
 	(scm_ramapc): Allocate index vector with scm_malloc and not as
-	uniform vector.  Wrap it in a frameso that it gets properly freed.
+	uniform vector.  Wrap it in a frame so that it gets properly freed.
 	(scm_array_index_map_x): Likewise.
 
 	* unif.c: Changed all uses of scm_array_prototype to
