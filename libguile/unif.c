@@ -1437,16 +1437,17 @@ scm_ra2contig (ra, copy)
 SCM_PROC(s_uniform_array_read_x, "uniform-array-read!", 1, 3, 0, scm_uniform_array_read_x);
 
 SCM 
-scm_uniform_array_read_x (ra, port_or_fd, offset, length)
+scm_uniform_array_read_x (ra, port_or_fd, start, end)
      SCM ra;
      SCM port_or_fd;
-     SCM offset;
-     SCM length;
+     SCM start;
+     SCM end;
 {
   SCM cra = SCM_UNDEFINED, v = ra;
   long sz, vlen, ans;
-  long start = 0;
-  long len_to_read;
+  long cstart = 0;
+  long cend;
+  long offset = 0;
 
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_UNBNDP (port_or_fd))
@@ -1465,7 +1466,7 @@ loop:
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       cra = scm_ra2contig (ra, 0);
-      start += SCM_ARRAY_BASE (cra);
+      cstart += SCM_ARRAY_BASE (cra);
       vlen = SCM_ARRAY_DIMS (cra)->inc *
 	(SCM_ARRAY_DIMS (cra)->ubnd - SCM_ARRAY_DIMS (cra)->lbnd + 1);
       v = SCM_ARRAY_V (cra);
@@ -1476,7 +1477,7 @@ loop:
       break;
     case scm_tc7_bvect:
       vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
-      start /= SCM_LONG_BIT;
+      cstart /= SCM_LONG_BIT;
     case scm_tc7_uvect:
     case scm_tc7_ivect:
       sz = sizeof (long);
@@ -1504,25 +1505,24 @@ loop:
 #endif
     }
   
-  len_to_read = vlen;
-  if (!SCM_UNBNDP (offset))
+  cend = vlen;
+  if (!SCM_UNBNDP (start))
     {
-      long loff =
-	scm_num2long (offset, (char *) SCM_ARG3, s_uniform_array_read_x);
+      offset = 
+	scm_num2long (start, (char *) SCM_ARG3, s_uniform_array_read_x);
 
-      if (loff < 0 || loff >= vlen)
-	scm_out_of_range (s_uniform_array_read_x, offset);
-      start += loff;
-      len_to_read -= loff;
-    }
-  if (!SCM_UNBNDP (length))
-    {
-      long llen =
-	scm_num2long (length, (char *) SCM_ARG4, s_uniform_array_read_x);
+      if (offset < 0 || offset >= cend)
+	scm_out_of_range (s_uniform_array_read_x, start);
+
+      if (!SCM_UNBNDP (end))
+	{
+	  long tend =
+	    scm_num2long (end, (char *) SCM_ARG4, s_uniform_array_read_x);
       
-      if (llen < 0 || llen > len_to_read)
-	scm_out_of_range (s_uniform_array_read_x, length);
-      len_to_read = llen;
+	  if (tend <= offset || tend > cend)
+	    scm_out_of_range (s_uniform_array_read_x, end);
+	  cend = tend;
+	}
     }
 
   if (SCM_NIMP (port_or_fd))
@@ -1536,16 +1536,15 @@ loop:
 	  ungetc (SCM_CGETUN (port_or_fd), (FILE *)SCM_STREAM (port_or_fd));
 	  SCM_CLRDY (port_or_fd); /* Clear ungetted char */
 	}
-      SCM_SYSCALL (ans = fread (SCM_CHARS (v) + start * sz,
-			       (scm_sizet) sz, (scm_sizet) len_to_read,
-			       (FILE *)SCM_STREAM (port_or_fd)));
-      
+      SCM_SYSCALL (ans = fread (SCM_CHARS (v) + (cstart + offset) * sz,
+			       (scm_sizet) sz, (scm_sizet) (cend - offset),
+				(FILE *)SCM_STREAM (port_or_fd)));
     }
   else /* file descriptor.  */
     {
       SCM_SYSCALL (ans = read (SCM_INUM (port_or_fd),
-			       SCM_CHARS (v) + start * sz,
-			       (scm_sizet) (sz * len_to_read)));
+			       SCM_CHARS (v) + (cstart + offset) * sz,
+			       (scm_sizet) (sz * (cend - offset))));
       if (ans == -1)
 	scm_syserror (s_uniform_array_read_x);
     }
@@ -1561,15 +1560,16 @@ loop:
 SCM_PROC(s_uniform_array_write, "uniform-array-write", 1, 3, 0, scm_uniform_array_write);
 
 SCM 
-scm_uniform_array_write (v, port_or_fd, offset, length)
+scm_uniform_array_write (v, port_or_fd, start, end)
      SCM v;
      SCM port_or_fd;
-     SCM offset;
-     SCM length;
+     SCM start;
+     SCM end;
 {
   long sz, vlen, ans;
-  long start = 0;
-  long len_to_write;
+  long offset = 0;
+  long cstart = 0;
+  long cend;
 
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_UNBNDP (port_or_fd))
@@ -1588,7 +1588,7 @@ loop:
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       v = scm_ra2contig (v, 1);
-      start = SCM_ARRAY_BASE (v);
+      cstart = SCM_ARRAY_BASE (v);
       vlen = SCM_ARRAY_DIMS (v)->inc
 	* (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1);
       v = SCM_ARRAY_V (v);
@@ -1599,7 +1599,7 @@ loop:
       break;
     case scm_tc7_bvect:
       vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
-      start /= SCM_LONG_BIT;
+      cstart /= SCM_LONG_BIT;
     case scm_tc7_uvect:
     case scm_tc7_ivect:
       sz = sizeof (long);
@@ -1627,38 +1627,37 @@ loop:
 #endif
     }
 
-  len_to_write = vlen;
-  if (!SCM_UNBNDP (offset))
+  cend = vlen;
+  if (!SCM_UNBNDP (start))
     {
-      long loff =
-	scm_num2long (offset, (char *) SCM_ARG3, s_uniform_array_write);
+      offset = 
+	scm_num2long (start, (char *) SCM_ARG3, s_uniform_array_write);
 
-      if (loff < 0 || loff >= vlen)
-	scm_out_of_range (s_uniform_array_write, offset);
-      start += loff;
-      len_to_write -= loff;
-    }
-  if (!SCM_UNBNDP (length))
-    {
-      long llen =
-	scm_num2long (length, (char *) SCM_ARG4, s_uniform_array_read_x);
+      if (offset < 0 || offset >= cend)
+	scm_out_of_range (s_uniform_array_write, start);
+
+      if (!SCM_UNBNDP (end))
+	{
+	  long tend = 
+	    scm_num2long (end, (char *) SCM_ARG4, s_uniform_array_write);
       
-      if (llen < 0 || llen > len_to_write)
-	scm_out_of_range (s_uniform_array_read_x, length);
-      len_to_write = llen;
+	  if (tend <= offset || tend > cend)
+	    scm_out_of_range (s_uniform_array_write, end);
+	  cend = tend;
+	}
     }
 
   if (SCM_NIMP (port_or_fd))
     {
-      SCM_SYSCALL (ans = fwrite (SCM_CHARS (v) + start * sz,
-				 (scm_sizet) sz, (scm_sizet) len_to_write,
+      SCM_SYSCALL (ans = fwrite (SCM_CHARS (v) + (cstart + offset) * sz,
+				 (scm_sizet) sz, (scm_sizet) (cend - offset),
 				 (FILE *)SCM_STREAM (port_or_fd)));
     }
   else /* file descriptor.  */
     {
       SCM_SYSCALL (ans = write (SCM_INUM (port_or_fd),
-				SCM_CHARS (v) + start * sz,
-				(scm_sizet) (sz * len_to_write)));
+				SCM_CHARS (v) + (cstart + offset) * sz,
+				(scm_sizet) (sz * (cend - offset))));
       if (ans == -1)
 	scm_syserror (s_uniform_array_write);
     }

@@ -558,37 +558,20 @@ scm_getpeername (sock)
   return result;
 }
 
-SCM_PROC (s_recv, "recv", 2, 1, 0, scm_recv);
+SCM_PROC (s_recv, "recv!", 2, 1, 0, scm_recv);
 
 SCM
-scm_recv (sock, buff_or_size, flags)
+scm_recv (sock, buf, flags)
      SCM sock;
-     SCM buff_or_size;
+     SCM buf;
      SCM flags;
 {
   int rv;
   int fd;
   int flg;
-  SCM tok_buf;
-  char *p;
-  int size;
-  int allocated = 0;
 
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_recv);
-  if (SCM_INUMP (buff_or_size))
-    {
-      size = SCM_INUM (buff_or_size);
-      tok_buf = scm_makstr (size, 0);
-      allocated = 1;
-    }
-  else
-    {
-      SCM_ASSERT (SCM_NIMP (buff_or_size) && SCM_STRINGP (buff_or_size),
-	      buff_or_size, SCM_ARG2, s_recv);
-      tok_buf = buff_or_size;
-      size = SCM_LENGTH (tok_buf);
-    }
-  p = SCM_CHARS (tok_buf);
+  SCM_ASSERT (SCM_NIMP (buf) && SCM_STRINGP (buf), buf, SCM_ARG2, s_recv);
   fd = fileno ((FILE *)SCM_STREAM (sock));
 
   if (SCM_UNBNDP (flags))
@@ -596,14 +579,11 @@ scm_recv (sock, buff_or_size, flags)
   else
     flg = scm_num2ulong (flags, (char *) SCM_ARG3, s_recv);
 
-  SCM_SYSCALL (rv = recv (fd, p, size, flg));
+  SCM_SYSCALL (rv = recv (fd, SCM_CHARS (buf), SCM_LENGTH (buf), flg));
   if (rv == -1)
     scm_syserror (s_recv);
 
-  return scm_cons (allocated
-		   ? scm_vector_set_length_x (tok_buf, (SCM) SCM_MAKINUM (rv))
-		   : tok_buf,
-		   SCM_MAKINUM (rv));
+  return SCM_MAKINUM (rv);
 }
 
 SCM_PROC (s_send, "send", 2, 1, 0, scm_send);
@@ -633,83 +613,63 @@ scm_send (sock, message, flags)
   return SCM_MAKINUM (rv);
 }
 
-/* buff_or_size can be:
-   1/ size of buffer to allocate initially
-   2/ string buffer
-   3/ list with string buffer, start position and end positions.
-   (for SCSH networking).
-   */
-SCM_PROC (s_recvfrom, "recvfrom", 2, 1, 0, scm_recvfrom);
+SCM_PROC (s_recvfrom, "recvfrom!", 2, 3, 0, scm_recvfrom);
 
 SCM
-scm_recvfrom (sock, buff_or_size, flags)
+scm_recvfrom (sock, buf, flags, start, end)
      SCM sock;
-     SCM buff_or_size;
+     SCM buf;
      SCM flags;
+     SCM start;
+     SCM end;
 {
   int rv;
   int fd;
   int flg;
-  SCM tok_buf;
-  int size;
-  int allocated = 0;
+  int offset = 0;
+  int cend;
   int tmp_size;
   SCM address;
-  char *c_buf;
 
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_recvfrom);
-  if (SCM_INUMP (buff_or_size))
-    {
-      size = SCM_INUM (buff_or_size);
-      tok_buf = scm_makstr (size, 0);
-      c_buf = SCM_CHARS (tok_buf);
-      allocated = 1;
-    }
-  else
-    {
-      SCM_ASSERT (SCM_NIMP (buff_or_size), buff_or_size, SCM_ARG2, s_recvfrom);
-      if (SCM_CONSP (buff_or_size))
-	{
-	  SCM s_start, s_end;
-	  int start, end;
-
-	  SCM_ASSERT (scm_ilength (buff_or_size) == 3, buff_or_size,
-		      SCM_ARG2, s_recvfrom);
-	  tok_buf = SCM_CAR (buff_or_size);
-	  SCM_ASSERT (SCM_NIMP (tok_buf) && SCM_STRINGP (tok_buf),
-		      buff_or_size, SCM_ARG2, s_recvfrom);
-	  s_start = SCM_CADR (buff_or_size);
-	  start = (int)scm_num2long (s_start, (char *)SCM_ARG2, s_recvfrom);
-	  if (start < 0)
-	    scm_out_of_range (s_recvfrom, s_start);
-	  s_end = SCM_CADDR (buff_or_size);
-	  end = (int)scm_num2long (s_end, (char *) SCM_ARG2, s_recvfrom);
-	  if (end < 0 || end > SCM_LENGTH (tok_buf))
-	    scm_out_of_range (s_recvfrom, s_end);
-	  if (start > end)
-	    scm_out_of_range (s_recvfrom, s_start);
-	  c_buf = SCM_CHARS (tok_buf) + start;
-	  size = end - start;
-	}
-      else {
-	SCM_ASSERT (SCM_STRINGP (buff_or_size), buff_or_size, SCM_ARG2,
-		    s_recvfrom);
-	tok_buf = buff_or_size;
-	c_buf = SCM_CHARS (tok_buf);
-	size = SCM_LENGTH (tok_buf);
-      }
-    }
-  fd = fileno ((FILE *)SCM_STREAM (sock));
-
+  SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1,
+	      s_recvfrom);
+  SCM_ASSERT (SCM_NIMP (buf) && SCM_STRINGP (buf), buf, SCM_ARG2, s_recvfrom);
+  cend = SCM_LENGTH (buf);
+  
   if (SCM_UNBNDP (flags))
     flg = 0;
   else
-    flg = scm_num2ulong (flags, (char *) SCM_ARG3, s_recvfrom);
+    {
+      flg = scm_num2ulong (flags, (char *) SCM_ARG3, s_recvfrom);
+
+      if (!SCM_UNBNDP (start))
+	{
+	  offset = (int) scm_num2long (start,
+				       (char *) SCM_ARG4, s_recvfrom);
+	  
+	  if (offset < 0 || offset >= cend)
+	    scm_out_of_range (s_recvfrom, start);
+
+	  if (!SCM_UNBNDP (end))
+	    {
+	      int tend = (int) scm_num2long (end,
+					     (char *) SCM_ARG5, s_recvfrom);
+      
+	      if (tend <= offset || tend > cend)
+		scm_out_of_range (s_recvfrom, end);
+
+	      cend = tend;
+	    }
+	}
+    }
+
+  fd = fileno ((FILE *)SCM_STREAM (sock));
 
   tmp_size = scm_addr_buffer_size;
-  SCM_SYSCALL (rv = recvfrom (fd, c_buf, size, flg,
-			  (struct sockaddr *) scm_addr_buffer,
-			  &tmp_size));
+  SCM_SYSCALL (rv = recvfrom (fd, SCM_CHARS (buf) + offset,
+			      cend - offset, flg,
+			      (struct sockaddr *) scm_addr_buffer,
+			      &tmp_size));
   if (rv == -1)
     scm_syserror (s_recvfrom);
   if (tmp_size > 0)
@@ -717,13 +677,7 @@ scm_recvfrom (sock, buff_or_size, flags)
   else
     address = SCM_BOOL_F;
 
-  return scm_listify (allocated
-		      ? scm_vector_set_length_x (tok_buf,
-						 (SCM) SCM_MAKINUM (rv))
-		      : tok_buf,
-		      SCM_MAKINUM (rv),
-		      address,
-		      SCM_UNDEFINED);
+  return scm_cons (SCM_MAKINUM (rv), address);
 }
 
 SCM_PROC (s_sendto, "sendto", 4, 0, 1, scm_sendto);

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,10 +43,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "fports.h"
-#include "genio.h"
 #include "scmsigs.h"
-#include "read.h"
-#include "unif.h"
 #include "feature.h"
 #include "sequences.h"
 
@@ -986,115 +983,6 @@ scm_putenv (str)
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
-}
-
-SCM_PROC (s_read_line, "read-line", 0, 2, 0, scm_read_line);
-
-SCM 
-scm_read_line (port, include_terminator)
-     SCM port;
-     SCM include_terminator;
-{
-  register int c;
-  register int j = 0;
-  scm_sizet len = 30;
-  SCM tok_buf;
-  register char *p;
-  int include;
-
-  tok_buf = scm_makstr ((long) len, 0);
-  p = SCM_CHARS (tok_buf);
-  if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
-  else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_read_line);
-
-  if (SCM_UNBNDP (include_terminator))
-    include = 0;
-  else
-    include = SCM_NFALSEP (include_terminator);
-
-  if (EOF == (c = scm_gen_getc (port)))
-    return SCM_EOF_VAL;
-  while (1)
-    {
-      switch (c)
-	{
-	case SCM_LINE_INCREMENTORS:
-	  if (j >= len)
-	    {
-	      p = scm_grow_tok_buf (&tok_buf);
-	      len = SCM_LENGTH (tok_buf);
-	    }
-	  p[j++] = c;
-	  /* fallthrough */
-	case EOF:
-	  if (len == j)
-	    return tok_buf;
-	  return scm_vector_set_length_x (tok_buf, (SCM) SCM_MAKINUM (j));
-
-	default:
-	  if (j >= len)
-	    {
-	      p = scm_grow_tok_buf (&tok_buf);
-	      len = SCM_LENGTH (tok_buf);
-	    }
-	  p[j++] = c;
-	  c = scm_gen_getc (port);
-	  break;
-	}
-    }
-}
-
-SCM_PROC (s_read_line_x, "read-line!", 1, 1, 0, scm_read_line_x);
-
-SCM 
-scm_read_line_x (str, port)
-     SCM str;
-     SCM port;
-{
-  register int c;
-  register int j = 0;
-  register char *p;
-  scm_sizet len;
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_read_line_x);
-  p = SCM_CHARS (str);
-  len = SCM_LENGTH (str);
-  if SCM_UNBNDP
-    (port) port = scm_cur_inp;
-  else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG2, s_read_line_x);
-  c = scm_gen_getc (port);
-  if (EOF == c)
-    return SCM_EOF_VAL;
-  while (1)
-    {
-      switch (c)
-	{
-	case SCM_LINE_INCREMENTORS:
-	case EOF:
-	  return SCM_MAKINUM (j);
-	default:
-	  if (j >= len)
-	    {
-	      scm_gen_ungetc (c, port);
-	      return SCM_BOOL_F;
-	    }
-	  p[j++] = c;
-	  c = scm_gen_getc (port);
-	}
-    }
-}
-
-SCM_PROC (s_write_line, "write-line", 1, 1, 0, scm_write_line);
-
-SCM 
-scm_write_line (obj, port)
-     SCM obj;
-     SCM port;
-{
-  scm_display (obj, port);
-  return scm_newline (port);
 }
 
 SCM_PROC (s_setlocale, "setlocale", 1, 1, 0, scm_setlocale);

@@ -302,8 +302,8 @@ scm_remove_from_port_table (port)
 #ifdef DEBUG
 /* Undocumented functions for debugging.  */
 /* Return the number of ports in the table.  */
-static char s_pt_size[] = "pt-size";
 
+SCM_PROC(s_pt_size, "pt-size", 0, 0, 0, scm_pt_size);
 SCM
 scm_pt_size ()
 {
@@ -311,8 +311,7 @@ scm_pt_size ()
 }
 
 /* Return the ith member of the port table.  */
-static char s_pt_member[] = "pt-member";
-
+SCM_PROC(s_pt_member, "pt-member", 1, 0, 0, scm_pt_member);
 SCM
 scm_pt_member (member)
      SCM member;

@@ -1,3 +1,47 @@
+Fri Jan 24 06:16:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ports.c: add SCM_PROC declarations for pt-size and pt-member.
+
+	* Makefile.am: remove AWK=@AWK@.
+	Add a rule for generating errnos.list.
+	(CLEANFILES): put errnos.list here instead of in DISTCLEANFILES.
+
+	* configure.in: add AC_SUBST(AWK) and AC_SUBST(ERRNO_EXTRACT).
+	don't extract errnos, just set a variable (avoids the
+	need to recompile error.c just because configure is run.)
+	
+	* unif.h: update prototypes.
+	* unif.c (scm_uniform_array_read,write): change the offset and
+	length arguments to start and end, for consistency.
+
+	* __scm.h: uncomment SCM_ARG6 and SCM_ARG7, I needed SCM_ARG6.
+
+	* ioext.h: update prototypes.
+*	* ioext.c (scm_read_delimited_x): replaces scm_read_line and
+	scm_read_line_x, it's a more general procedure using an
+	interface from scsh.  read-line and read-line! are now defined
+	in boot-9.scm.
+*  	Note that the new read-line trims the terminator
+	by default, previously it was appended to the returned string.  An
+	optional argument specifies how to process the terminator (scsh
+	compatible).  For the old behaviour: (read-line port 'concat).
+	scm_read_line, scm_read_line_x: deleted.  (read-line port 'split)
+	returns a pair, but is converted to multiple values if the scsh
+	module is loaded.
+
+	socket.h: update prototypes.
+	* socket.c (scm_recvfrom): for consistency with other procedures,
+	take start and end as separate optional arguments.
+*	(scm_recv, scm_recvfrom): don't allow the second argument
+	to be a size, only a buffer.  Change the scheme names to
+	recv! and recvfrom!.  Don't return the buffer.
+
+	* ioext.h, posix.h: move prototypes too.
+	* ioext.c, posix.c (scm_read_line, scm_read_line_x, scm_write_line:
+	moved back from posix.c to ioext.c.  Also move #includes of "genio.h"
+	"read.h" and "unif.h".
+	* ioext.c: include "chars.h"
+
 Mon Jan 20 19:54:49 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* dynl.c: The dynamic linking and module registration functions

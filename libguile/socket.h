@@ -2,7 +2,7 @@
 
 #ifndef SOCKETH
 #define SOCKETH
-/*	Copyright (C) 1995 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ extern SCM scm_getsockname SCM_P ((SCM sockfd));
 extern SCM scm_getpeername SCM_P ((SCM sockfd));
 extern SCM scm_recv SCM_P ((SCM sockfd, SCM buff_or_size, SCM flags));
 extern SCM scm_send SCM_P ((SCM sockfd, SCM message, SCM flags));
-extern SCM scm_recvfrom SCM_P ((SCM sockfd, SCM buff_or_size, SCM flags));
+extern SCM scm_recvfrom SCM_P ((SCM sockfd, SCM buff_or_size, SCM flags, SCM offset, SCM length));
 extern SCM scm_sendto SCM_P ((SCM sockfd, SCM message, SCM fam, SCM address, SCM args_and_flags));
 extern void scm_init_socket SCM_P ((void));
 

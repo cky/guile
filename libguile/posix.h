@@ -2,7 +2,7 @@
 
 #ifndef POSIXH
 #define POSIXH
-/*	Copyright (C) 1995 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,9 +87,6 @@ extern SCM scm_utime SCM_P ((SCM pathname, SCM actime, SCM modtime));
 extern SCM scm_access SCM_P ((SCM path, SCM how));
 extern SCM scm_getpid SCM_P ((void));
 extern SCM scm_putenv SCM_P ((SCM str));
-extern SCM scm_read_line SCM_P ((SCM port, SCM include_terminator));
-extern SCM scm_read_line_x SCM_P ((SCM str, SCM port));
-extern SCM scm_write_line SCM_P ((SCM obj, SCM port));
 extern SCM scm_setlocale SCM_P ((SCM category, SCM locale));
 extern SCM scm_strftime SCM_P ((SCM format, SCM stime));
 extern SCM scm_strptime SCM_P ((SCM format, SCM string));

@@ -224,15 +224,11 @@ esac
 
 AC_PROG_AWK
 AC_MSG_CHECKING(whether errno codes can be extracted from errno.h)
-goterrnos=0
 if test "$GCC" = yes ; then
-  ${CC-cc} -undef -dM -E $srcdir/errnos_get.c | egrep ' E.+' | cut -f2 -d' ' > errnos.list
-  egrep '^E.+' errnos.list > /dev/null 2>&1 && goterrnos=1
-fi
-if test $goterrnos = 1 ; then
   AC_MSG_RESULT(yes)
+  ERRNO_EXTRACT="${CC-cc} -undef -dM -E $srcdir/errnos_get.c | egrep ' E.+' | cut -f2 -d' ' > errnos.list"
 else
-  cp $srcdir/errnos.default errnos.list
+  ERRNO_EXTRACT="cp $srcdir/errnos.default errnos.list"
   AC_MSG_RESULT([no, using default])
 fi
 
@@ -240,7 +236,9 @@ AC_DEFINE_UNQUOTED(GUILE_MAJOR_VERSION, "$GUILE_MAJOR_VERSION")
 AC_DEFINE_UNQUOTED(GUILE_MINOR_VERSION, "$GUILE_MINOR_VERSION")
 AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION")
 
+AC_SUBST(AWK)
 AC_SUBST(FD_SETTER)
+AC_SUBST(ERRNO_EXTRACT)
 AC_OUTPUT([Makefile fd.h guile-snarf PLUGIN/guile.libs], [chmod +x guile-snarf])
 
 dnl Local Variables:

@@ -2,7 +2,7 @@
 
 #ifndef IOEXTH
 #define IOEXTH
-/*	Copyright (C) 1995 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,9 +48,8 @@
 
 
 
-
-
-
+extern SCM scm_read_delimited_x SCM_P ((SCM delims, SCM buf, SCM gobble, SCM port, SCM offset, SCM length));
+extern SCM scm_write_line SCM_P ((SCM obj, SCM port));
 extern SCM scm_sys_ftell SCM_P ((SCM port));
 extern SCM scm_sys_fseek SCM_P ((SCM port, SCM offset, SCM whence));
 extern SCM scm_sys_freopen SCM_P ((SCM filename, SCM modes, SCM port));

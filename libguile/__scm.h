@@ -353,8 +353,8 @@ extern unsigned int scm_async_clock;
 #define SCM_ARG3 		3
 #define SCM_ARG4 		4
 #define SCM_ARG5 		5
-     /* #define SCM_ARG6 		6
-	#define SCM_ARG7 		7 */
+#define SCM_ARG6 		6
+#define SCM_ARG7 		7 
      /* #define SCM_ARGERR(X) 		((X) < SCM_WNA \
 				 ? (char *)(X) \
 				 : "wrong type argument")

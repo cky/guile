@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,11 @@
 #include <stdio.h>
 #include "fd.h"
 #include "_scm.h"
+#include "genio.h"
+#include "read.h"
 #include "fports.h"
+#include "unif.h"
+#include "chars.h"
 
 #include "ioext.h"
 
@@ -55,6 +59,96 @@
 #include <unistd.h>
 #endif
 
+
+SCM_PROC (s_read_delimited_x, "%read-delimited!", 3, 3, 0, scm_read_delimited_x);
+
+SCM 
+scm_read_delimited_x (delims, buf, gobble, port, start, end)
+     SCM delims;
+     SCM buf;
+     SCM gobble;
+     SCM port;
+     SCM start;
+     SCM end;
+{
+  long j;
+  char *cbuf;
+  long cstart;
+  long cend;
+  int c;
+  char *cdelims;
+  int num_delims;
+
+  SCM_ASSERT (SCM_NIMP (delims) && SCM_STRINGP (delims),
+	      delims, SCM_ARG1, s_read_delimited_x);
+  cdelims = SCM_CHARS (delims);
+  num_delims = SCM_LENGTH (delims);
+  SCM_ASSERT (SCM_NIMP (buf) && SCM_STRINGP (buf),
+	      buf, SCM_ARG2, s_read_delimited_x);
+  cbuf = SCM_CHARS (buf);
+  cend = SCM_LENGTH (buf);
+  if (SCM_UNBNDP (port))
+    port = scm_cur_inp;
+  else
+    {
+      SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
+		  port, SCM_ARG1, s_read_delimited_x);
+    }
+
+  if (SCM_UNBNDP (start))
+    cstart = 0;
+  else
+    {
+      cstart = scm_num2long (start,
+			     (char *) SCM_ARG5, s_read_delimited_x);
+      if (cstart < 0 || cstart >= cend)
+	scm_out_of_range (s_read_delimited_x, start);
+
+      if (!SCM_UNBNDP (end))
+	{
+	  long tend = scm_num2long (end, (char *) SCM_ARG6,
+				    s_read_delimited_x);
+	  if (tend <= cstart || tend > cend)
+	    scm_out_of_range (s_read_delimited_x, end);
+	  cend = tend;
+	}
+    }
+
+  for (j = cstart; j < cend; j++)
+    {  
+      int k;
+
+      c = scm_gen_getc (port);
+      for (k = 0; k < num_delims; k++)
+	{
+	  if (cdelims[k] == c)
+	    {
+	      if (SCM_FALSEP (gobble))
+		scm_gen_ungetc (c, port);
+
+	      return scm_cons (SCM_MAKICHR (c),
+			       scm_long2num (j - cstart));
+	    }
+	}
+      if (c == EOF)
+	return scm_cons (SCM_EOF_VAL, 
+			 scm_long2num (j - cstart));
+
+      cbuf[j] = c;
+    }
+  return scm_cons (SCM_BOOL_F, scm_long2num (j - cstart));
+}
+
+SCM_PROC (s_write_line, "write-line", 1, 1, 0, scm_write_line);
+
+SCM 
+scm_write_line (obj, port)
+     SCM obj;
+     SCM port;
+{
+  scm_display (obj, port);
+  return scm_newline (port);
+}
 
 SCM_PROC (s_sys_ftell, "ftell", 1, 0, 0, scm_sys_ftell);
 

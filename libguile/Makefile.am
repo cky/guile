@@ -2,7 +2,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-AWK=@AWK@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
@@ -69,8 +68,10 @@ dynl.o dynl.lo: dynl.x
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
+errnos.list: $(srcdir)/errnos.default
+	$(ERRNO_EXTRACT)
+	
 errnos.c: errnos.list
 	$(AWK) -f $(srcdir)/errnos_cnvt.awk < errnos.list > errnos.c
 
-CLEANFILES=errnos.c
-DISTCLEANFILES=errnos.list
+CLEANFILES=errnos.c errnos.list
