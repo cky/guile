@@ -177,9 +177,9 @@ struct scm_heap_seg_data
 
 
 
-
-static void alloc_some_heap ();
-static void scm_mark_weak_vector_spines ();
+static void scm_mark_weak_vector_spines PROTO ((void));
+static scm_sizet init_heap_seg PROTO ((SCM_CELLPTR, scm_sizet, int, SCM *));
+static void alloc_some_heap PROTO ((int, SCM *));
 
 
 
@@ -188,13 +188,8 @@ static void scm_mark_weak_vector_spines ();
  */
 
 SCM_PROC (s_gc_stats, "gc-stats", 0, 0, 0, scm_gc_stats);
-#ifdef __STDC__
-SCM
-scm_gc_stats (void)
-#else
 SCM
 scm_gc_stats ()
-#endif
 {
   int i;
   int n;
@@ -237,14 +232,9 @@ scm_gc_stats ()
 }
 
 
-#ifdef __STDC__
-void 
-scm_gc_start (char *what)
-#else
 void 
 scm_gc_start (what)
      char *what;
-#endif
 {
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ());
   scm_gc_cells_collected = 0;
@@ -252,13 +242,8 @@ scm_gc_start (what)
   scm_gc_ports_collected = 0;
 }
 
-#ifdef __STDC__
-void 
-scm_gc_end (void)
-#else
 void 
 scm_gc_end ()
-#endif
 {
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ()) - scm_gc_rt;
   scm_gc_time_taken = scm_gc_time_taken + scm_gc_rt;
@@ -276,13 +261,8 @@ scm_object_addr (obj)
 
 
 SCM_PROC(s_gc, "gc", 0, 0, 0, scm_gc);
-#ifdef __STDC__
-SCM 
-scm_gc (void)
-#else
 SCM 
 scm_gc ()
-#endif
 {
   SCM_DEFER_INTS;
   scm_igc ("call");
@@ -295,15 +275,10 @@ scm_gc ()
 /* {C Interface For When GC is Triggered}
  */
 
-#ifdef __STDC__
-void
-scm_gc_for_alloc (int ncells, SCM * freelistp)
-#else
 void
 scm_gc_for_alloc (ncells, freelistp)
      int ncells;
      SCM * freelistp;
-#endif
 {
   SCM_REDEFER_INTS;
   scm_igc ("cells");
@@ -315,13 +290,8 @@ scm_gc_for_alloc (ncells, freelistp)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_gc_for_newcell (void)
-#else
 SCM 
 scm_gc_for_newcell ()
-#endif
 {
   SCM fl;
   scm_gc_for_alloc (1, &scm_freelist);
@@ -330,14 +300,9 @@ scm_gc_for_newcell ()
   return fl;
 }
 
-#ifdef __STDC__
-void
-scm_igc (char *what)
-#else
 void
 scm_igc (what)
      char *what;
-#endif
 {
   int j;
 
@@ -463,14 +428,9 @@ scm_igc (what)
 
 /* Mark an object precisely.
  */
-#ifdef __STDC__
-void 
-scm_gc_mark (SCM p)
-#else
 void 
 scm_gc_mark (p)
      SCM p;
-#endif
 {
   register long i;
   register SCM ptr;
@@ -743,15 +703,10 @@ gc_mark_nimp:
 /* Mark a Region Conservatively
  */
 
-#ifdef __STDC__
-void 
-scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
-#else
 void 
 scm_mark_locations (x, n)
      SCM_STACKITEM x[];
      scm_sizet n;
-#endif
 {
   register long m = n;
   register int i, j;
@@ -812,13 +767,8 @@ scm_mark_locations (x, n)
 }
 
 
-#ifdef __STDC__
-void
-scm_mark_weak_vector_spines (void)
-#else
-void
+static void
 scm_mark_weak_vector_spines ()
-#endif
 {
   int i;
 
@@ -856,13 +806,8 @@ scm_mark_weak_vector_spines ()
 
 
 
-#ifdef __STDC__
-void 
-scm_gc_sweep (void)
-#else
 void 
 scm_gc_sweep ()
-#endif
 {
   register SCM_CELLPTR ptr;
 #ifdef SCM_POINTERS_MUNGED
@@ -1215,15 +1160,10 @@ scm_gc_sweep ()
  *
  * The limit scm_mtrigger may be raised by this allocation.
  */
-#ifdef __STDC__
-char *
-scm_must_malloc (long len, char *what)
-#else
 char *
 scm_must_malloc (len, what)
      long len;
      char *what;
-#endif
 {
   char *ptr;
   scm_sizet size = len;
@@ -1257,17 +1197,12 @@ scm_must_malloc (len, what)
 /* scm_must_realloc
  * is similar to scm_must_malloc.
  */
-#ifdef __STDC__
-char *
-scm_must_realloc (char *where, long olen, long len, char *what)
-#else
 char *
 scm_must_realloc (where, olen, len, what)
      char *where;
      long olen;
      long len;
      char *what;
-#endif
 {
   char *ptr;
   scm_sizet size = len;
@@ -1297,17 +1232,9 @@ scm_must_realloc (where, olen, len, what)
   goto ralerr;
 }
 
-/* scm_must_free
- * is for releasing memory from scm_must_realloc and scm_must_malloc.
- */
-#ifdef __STDC__
-void 
-scm_must_free (char *obj)
-#else
 void 
 scm_must_free (obj)
      char *obj;
-#endif
 {
   if (obj)
     free (obj);
@@ -1359,17 +1286,12 @@ long scm_heap_size = 0;
  */
 
 
-#ifdef __STDC__
-static scm_sizet 
-init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
-#else
 static scm_sizet 
 init_heap_seg (seg_org, size, ncells, freelistp)
      SCM_CELLPTR seg_org;
      scm_sizet size;
      int ncells;
      SCM *freelistp;
-#endif
 {
   register SCM_CELLPTR ptr;
 #ifdef SCM_POINTERS_MUNGED
@@ -1450,15 +1372,10 @@ init_heap_seg (seg_org, size, ncells, freelistp)
 }
 
 
-#ifdef __STDC__
-static void 
-alloc_some_heap (int ncells, SCM * freelistp)
-#else
 static void 
 alloc_some_heap (ncells, freelistp)
      int ncells;
      SCM * freelistp;
-#endif
 {
   struct scm_heap_seg_data * tmptable;
   SCM_CELLPTR ptr;
@@ -1524,14 +1441,9 @@ alloc_some_heap (ncells, freelistp)
 
 
 SCM_PROC (s_unhash_name, "unhash-name", 1, 0, 0, scm_unhash_name);
-#ifdef __STDC__
-SCM
-scm_unhash_name (SCM name)
-#else
 SCM
 scm_unhash_name (name)
      SCM name;
-#endif
 {
   int x;
   int bound;
@@ -1571,14 +1483,9 @@ scm_unhash_name (name)
  */
 
 
-#ifdef __STDC__
-void
-scm_remember (SCM * ptr)
-#else
 void
 scm_remember (ptr)
      SCM * ptr;
-#endif
 {}
 
 #ifdef __STDC__
@@ -1595,14 +1502,9 @@ scm_return_first (elt, va_alist)
 }
 
 
-#ifdef __STDC__
-SCM
-scm_permanent_object (SCM obj)
-#else
 SCM
 scm_permanent_object (obj)
      SCM obj;
-#endif
 {
   SCM_REDEFER_INTS;
   scm_permobjs = scm_cons (obj, scm_permobjs);
@@ -1612,14 +1514,9 @@ scm_permanent_object (obj)
 
 
 
-#ifdef __STDC__
-int
-scm_init_storage (long init_heap_size)
-#else
 int
 scm_init_storage (init_heap_size)
      long init_heap_size;
-#endif
 {
   scm_sizet j;
 
@@ -1668,6 +1565,7 @@ scm_init_storage (init_heap_size)
   scm_weak_symhash = scm_make_weak_hash_table ((SCM) SCM_MAKINUM (scm_symhash_dim));
   scm_symhash_vars = scm_make_vector ((SCM) SCM_MAKINUM (scm_symhash_dim), SCM_EOL, SCM_UNDEFINED);
   scm_permobjs = SCM_EOL;
+  scm_asyncs = SCM_EOL;
   scm_sysintern ("most-positive-fixnum", (SCM) SCM_MAKINUM (SCM_MOST_POSITIVE_FIXNUM));
   scm_sysintern ("most-negative-fixnum", (SCM) SCM_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM));
 #ifdef SCM_BIGDIG
@@ -1677,14 +1575,8 @@ scm_init_storage (init_heap_size)
 }
 
 
-#ifdef __STDC__
-void
-scm_init_gc (void)
-#else
 void
 scm_init_gc ()
-#endif
 {
 #include "gc.x"
 }
-
