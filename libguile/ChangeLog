@@ -1,3 +1,17 @@
+2000-03-31  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* coop.c (coop_quitting_p, coop_cond_create, coop_mutex_create,
+	coop_mother, coop_child): New variables.
+	(mother): New function.
+	(coop_create): New thread spawning mechanism which uses a "mother
+	thread".  The "dummy" pthreads aren't healthy enough to give birth
+	to new threads since Linux threads thinks they are asleep.
+
+	* coop-defs.h (struct coop_t): Removed dummy_mutex.
+
+	* coop-defs.h, coop-threads.c (struct coop_t): Eliminate
+	`sto'-field when GUILE_PTHREAD_COMPAT is enabled.
+
 2000-03-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* arbiters.c (scm_make_arbiter), async.c (scm_async), dynwind.c
