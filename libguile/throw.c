@@ -51,6 +51,7 @@
 #include "debug.h"
 #endif
 #include "continuations.h"
+#include "stackchk.h"
 
 #include "throw.h"
 
@@ -115,7 +116,7 @@ make_jmpbuf ()
 {
   SCM answer;
   SCM_NEWCELL (answer);
-  SCM_DEFER_INTS;
+  SCM_REDEFER_INTS;
   {
 #ifdef DEBUG_EXTENSIONS
     char *mem = scm_must_malloc (sizeof (scm_cell), "jb");
@@ -125,10 +126,9 @@ make_jmpbuf ()
     SETJBJMPBUF(answer, (jmp_buf *)0);
     DEACTIVATEJB(answer);
   }
-  SCM_ALLOW_INTS;
+  SCM_REALLOW_INTS;
   return answer;
 }
-
 
 struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
 {
@@ -162,10 +162,13 @@ scm_catch (tag, thunk, handler)
       SCM throw_tag;
       SCM throw_args;
 
-      SCM_DEFER_INTS;
+#ifdef STACK_CHECKING
+      scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
+#endif
+      SCM_REDEFER_INTS;
       DEACTIVATEJB (jmpbuf);
       scm_dynwinds = SCM_CDR (scm_dynwinds);
-      SCM_ALLOW_INTS;
+      SCM_REALLOW_INTS;
       throw_args = jbr.retval;
       throw_tag = jbr.throw_tag;
       jbr.throw_tag = SCM_EOL;
@@ -178,10 +181,10 @@ scm_catch (tag, thunk, handler)
       answer = scm_apply (thunk,
 			  ((tag == SCM_BOOL_F) ? scm_cons (jmpbuf, SCM_EOL) : SCM_EOL),
 			  SCM_EOL);
-      SCM_DEFER_INTS;
+      SCM_REDEFER_INTS;
       DEACTIVATEJB (jmpbuf);
       scm_dynwinds = SCM_CDR (scm_dynwinds);
-      SCM_ALLOW_INTS;
+      SCM_REALLOW_INTS;
     }
   return answer;
 }
