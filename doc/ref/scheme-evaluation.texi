@@ -319,20 +319,36 @@ list @code{("" ".scm")}.
 
 @node Delayed Evaluation
 @section Delayed Evaluation
+@cindex delayed evaluation
+@cindex promises
 
-[delay]
+Promises are a convenient way to defer a calculation until its result
+is actually needed, and to run such a calculation only once.
+
+@deffn syntax delay expr
+@rnindex delay
+Return a promise object which holds the given @var{expr} expression,
+ready to be evaluated by a later @code{force}.
+@end deffn
 
 @deffn {Scheme Procedure} promise? obj
 @deffnx {C Function} scm_promise_p (obj)
-Return true if @var{obj} is a promise, i.e. a delayed computation
-(@pxref{Delayed evaluation,,,r5rs.info,The Revised^5 Report on Scheme}).
+Return true if @var{obj} is a promise.
 @end deffn
 
 @rnindex force
-@deffn {Scheme Procedure} force x
-@deffnx {C Function} scm_force (x)
-If the promise @var{x} has not been computed yet, compute and
-return @var{x}, otherwise just return the previously computed
+@deffn {Scheme Procedure} force p
+@deffnx {C Function} scm_force (p)
+Return the value obtained from evaluating the @var{expr} in the given
+promise @var{p}.  If @var{p} has previously been forced then its
+@var{expr} is not evaluated again, instead the value obtained at that
+time is simply returned.
+
+During a @code{force}, an @var{expr} can call @code{force} again on
+its own promise, resulting in a recursive evaluation of that
+@var{expr}.  The first evaluation to return gives the value for the
+promise.  Higher evaluations run to completion in the normal way, but
+their results are ignored, @code{force} always returns the first
 value.
 @end deffn
 
