@@ -1,5 +1,11 @@
 2001-05-19  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* throw.c: Lazy-catch handlers are no longer allowed to return.
+	Fixed comments throughout.
+	(scm_ithrow): Signal an error when a lazy-catch handler returns.
+	Moved actual jump to jmpbuf into if-branch where the jmpbuf is
+	recognized as such.
+
 	* version.c (s_scm_micro_version): Fix typo in FUNC_NAME, it
 	refered to s_scm_minor_version previously.
 
