@@ -125,6 +125,18 @@ scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
 /* {Apply}
  */
 
+/*
+ * A possible future optimization:
+ *
+ * Let's call each of the forms of call below a "trampoline".
+ *
+ * We could make a function out of each trampoline and store four
+ * pointers to trampolines in the descriptor, one corresponding to
+ * each arity of call (apply_0, apply_1 etc.)
+ *
+ * Which trampoline to store in which field is chosen in scm_set_smob_apply.
+ */
+
 SCM
 scm_smob_apply_0 (SCM smob)
 {
