@@ -58,14 +58,19 @@ top_builddir="@top_builddir_absolute@"
 }
 
 # handle GUILE_LOAD_PATH (no clobber)
-if [ x"$GUILE_LOAD_PATH" = x ] ; then
-    GUILE_LOAD_PATH="${top_srcdir}"
+if [ x"$GUILE_LOAD_PATH" = x ]
+then
+    GUILE_LOAD_PATH="${top_srcdir}/guile-readline:${top_srcdir}"
 else
+  for d in "${top_srcdir}" "${top_srcdir}/guile-readline"
+  do
     # This hair prevents double inclusion.
     # The ":" prevents prefix aliasing.
-    case x"$GUILE_LOAD_PATH" in x*${top_srcdir}:*) ;;
-      *) GUILE_LOAD_PATH="${top_srcdir}:$GUILE_LOAD_PATH" ;;
+    case x"$GUILE_LOAD_PATH" in
+      x*${d}:*) ;;
+      *) GUILE_LOAD_PATH="${d}:$GUILE_LOAD_PATH" ;;
     esac
+  done
 fi
 export GUILE_LOAD_PATH
 
