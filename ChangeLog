@@ -1,3 +1,10 @@
+Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* configure.in: Make it be guile-snarf.awk, since we'll be
+	switching names for guile-doc-snarf.  (I wouldn't have changed
+	this, but I was getting ready to commit this way when the below
+	change was committed).
+
 1999-12-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* configure.in: Create guile-doc-snarf.awk.

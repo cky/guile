@@ -1,3 +1,33 @@
+Tue Dec 14 09:41:01 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* backtrace.c (scm_set_print_params_x): Renamed from
+	set_print_params_x.
+
+	* guile-doc-snarf.in: Use guile-snarf.awk, not
+	guile-doc-snarf.awk.  Pass the basename of $filename 
+
+	* load.h: Added prototypes for scm_sys_library_dir,
+	scm_sys_site_dir.
+
+	* load.c (scm_sys_library_dir, scm_sys_site_dir):  Added these
+	functions, and took out the old scm_library_dir, scm_site_dir,
+	scm_pkgdata_dir.  Now the primitives are %package-data-dir
+	(already existed), %library-dir, and %site-dir.
+
+	* debug.c: Use SCM_MISC_ERROR when possible instead of using
+	s_scm_* in a scm_misc_error() call.
+
+	* Makefile.am: Use guile-snarf.awk, not guile-doc-snarf.awk.  Make 
+	using guile-doc-snarf send stdout to $@ to create the .x file like 
+	guile-snarf does.
+
+	* guile-snarf.awk.in: Added.
+
+	* guile-doc-snarf.awk.in: Removed (sorry to back out a recent
+	commit; if we're going to switch to guile-snarf I figure it makes
+	sense to get this right now-- I'd already had the change in my
+	working copy when the below commit happened).
+
 1999-12-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* guile-doc-snarf.awk: Removed.

@@ -1,3 +1,7 @@
+Mon Dec 13 13:57:57 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* readline.c: Include libguile/scm_validate.h
+
 Sun Dec 12 19:56:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* readline.c: Updated to use GUILE_PROC, SCM_VALIDATE, and have
