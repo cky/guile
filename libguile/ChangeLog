@@ -1,5 +1,7 @@
 2004-04-06  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
+	* inline.h (scm_cell): use SCM_GC_CELL_WORD for checking tag.
+
 	* chars.h (scm_init_chars): change scm_{upcase,downcase} to
 	scm_c_{up,down}case. 
 	(SCM_MAKE_CHAR): add (unsigned char) cast. This prevents havoc

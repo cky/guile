@@ -98,7 +98,7 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
 	    fprintf(stderr, "scm_cell tried to allocate a marked cell.\n");
 	    abort();
 	  }
-	else if (SCM_GC_CELL_TYPE(z) != scm_tc_free_cell)
+	else if (SCM_GC_CELL_WORD(z, 0) != scm_tc_free_cell)
 	  {
 	    fprintf(stderr, "cell from freelist is not a free cell.\n");
 	    abort();
