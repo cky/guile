@@ -2893,6 +2893,31 @@
 
 (define load load-module)
 
+;; The following macro allows one to write, for example,
+;;
+;;    (@ (ice-9 pretty-print) pretty-print)
+;;
+;; to refer directly to the pretty-print variable in module (ice-9
+;; pretty-print).  It works by looking up the variable and inserting
+;; it directly into the code.  This is understood by the evaluator.
+;; Indeed, all references to global variables are memoized into such
+;; variable objects.
+
+(define-macro (@ mod-name var-name)
+  (let ((var (module-variable (resolve-interface mod-name) var-name)))
+    (if (not var)
+	(error "no such public variable" (list '@ mod-name var-name)))
+    var))
+
+;; The '@@' macro is like '@' but it can also access bindings that
+;; have not been explicitely exported.
+
+(define-macro (@@ mod-name var-name)
+  (let ((var (module-variable (resolve-module mod-name) var-name)))
+    (if (not var)
+	(error "no such variable" (list '@@ mod-name var-name)))
+    var))
+
 
 ;;; {Parameters}
 ;;;
