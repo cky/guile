@@ -1901,7 +1901,6 @@
 
 (set! datum->syntax-object
   (lambda (id datum)
-    (arg-check nonsymbol-id? id 'datum->syntax-object)
     (make-syntax-object datum (syntax-object-wrap id))))
 
 (set! syntax-object->datum
