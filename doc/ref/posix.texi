@@ -894,8 +894,16 @@ buffered port open for reading and writing to the file.
 created: it must end with @samp{XXXXXX} and will be changed in
 place to return the name of the temporary file.
 
-The file is created with mode @code{0600}, which means read and write
-for the owner only.  @code{chmod} can be used to change this.
+POSIX doesn't specify the permissions mode of the file, on a GNU
+system it's @code{#o600} (but was @code{#o666} in the past).  An
+application can use @code{chmod} to set what it wants.  For example
+@code{#o666} less @code{umask} is usual for ordinary files,
+
+@example
+(let ((port (mkstemp! (string-copy "file-XXXXXX"))))
+  (chmod port (logand #o666 (lognot (umask))))
+  ...)
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} dirname filename
