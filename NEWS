@@ -1,14 +1,15 @@
-Guile NEWS --- history of user-visible changes.  2 Aug 1996  -*- text -*-
-Copyright (C) 1996 Free Software Foundation, Inc.
+Guile NEWS --- history of user-visible changes.  -*- text -*-
+Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@prep.ai.mit.edu.
 
+Changes since Guile 1.0 (Sun 5 Jan 1997):
+
+
 Guile 1.0b3
 
-User-visible changes since Thursday, September 5:
-
-
+User-visible changes from Thursday, September 5, 1996 until Guile 1.0:
 
 * Changes to the 'guile' program:
 
