@@ -76,10 +76,34 @@ For ways to deal with exceptions, see @ref{Exceptions}.
 
 Errors which the C library would report by returning a null pointer or
 through some other means are reported by raising a @code{system-error}
-exception.  The value of the Unix @code{errno} variable is available
-in the data passed by the exception.
+exception with @code{scm-error} (@pxref{Error Reporting}).  The
+@var{data} parameter is a list containing the Unix @code{errno} value
+(an integer).  For example,
 
-It can be extracted with the function @code{system-error-errno}:
+@example
+(define (my-handler key func fmt fmtargs data)
+  (display key) (newline)
+  (display func) (newline)
+  (apply format #t fmt fmtargs) (newline)
+  (display data) (newline))
+
+(catch 'system-error
+  (lambda () (dup2 -123 -456))
+  my-handler)
+
+@print{}
+system-error
+dup2
+Bad file descriptor
+(9)
+@end example
+
+
+@sp 1
+@defun system-error-errno arglist
+Return the @code{errno} value from a list which is the arguments to an
+exception handler.  If the exception is not a @code{system-error},
+then the return is @code{#f}.  For example,
 
 @example
 (catch
@@ -97,6 +121,8 @@ It can be extracted with the function @code{system-error-errno}:
        (display (strerror errno))))
      (newline))))
 @end example
+@end defun
+
 
 @node Ports and File Descriptors
 @subsection Ports and File Descriptors
@@ -2789,3 +2815,8 @@ terminating newline character are discarded.  While reading
 the password, echoing and the generation of signals by special
 characters is disabled.
 @end deffn
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
