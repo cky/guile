@@ -17,8 +17,8 @@ must be executed:
 @end smalllisp
 
 @findex require
-@code{require} can then be used in the usual way (@pxref{Requesting
-Features,,, slib, The SLIB Manual}).  For example,
+@code{require} can then be used in the usual way (@pxref{Require,,,
+slib, The SLIB Manual}).  For example,
 
 @example
 (use-modules (ice-9 slib))
