@@ -27,7 +27,7 @@ bugs are good.
 
 bug 1 -- (debug-disable 'debug) has no effect if first form in ~/.guile
 reported-by: Sven.Hartrumpf@fernuni-hagen.de / 2001-08-31
-fixed: not-yet
+fixed: 2001-11-07 (1.7.x)
 
 ttn sez:
 buggy behavior confirmed on both 1.5.x and 1.7.x.
@@ -35,6 +35,12 @@ buggy behavior confirmed on both 1.5.x and 1.7.x.
 on the other hand, when second or later, the expected effect (disabling use of
 debugging evaluator) seems to be reflected when viewing the debug options.  it
 could be that the bug is in display and not the actual setting.
+
+NJ 2002-03-08:
+
+Problem was caused by (top-repl)'s loading of (ice-9 debug), which
+ended with unconditional `(debug-enable 'debug)'.  Fixed by removing
+the offending lines.
 
 
 bug 2 -- documentation mirroring not complete
@@ -169,6 +175,14 @@ Keith Wright sez:
 >
 > I get the impression that it is supposed to build without 'makeinfo',
 > if this is not so it should be mentioned in the README or INSTALL.
+
+NJ 2002-03-08:
+
+Addressed partially in Makefile.am, by copying guile-procedures.texi
+to guile-procedures.txt if makeinfo is not available.
+
+However, a better IMO fix would be to include a prebuilt
+guile-procedures.txt in the distribution.
 
 
 bug 9 -- sibling threads not infinite looping
