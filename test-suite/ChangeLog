@@ -1,3 +1,8 @@
+2003-09-19  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/popen.test: New file.
+	* Makefile.am (SCM_TESTS): Add it.
+
 2003-09-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/numbers.test (equal?): Added tests.
