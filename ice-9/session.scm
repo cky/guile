@@ -191,6 +191,7 @@ You don't seem to have regular expressions installed.\n"))
 (define (help-usage)
   (display "Usage: (help NAME) gives documentation about objects named NAME (a symbol)
        (help REGEXP) ditto for objects with names matching REGEXP (a string)
+       (help 'NAME) gives documentation for NAME, even if it is not an object
        (help ,EXPR) gives documentation for object returned by EXPR
        (help (my module)) gives module commentary for `(my module)'
        (help) gives this text
