@@ -880,10 +880,8 @@ testing element equality.
 @end deffn
 
 @deffn {Scheme Procedure} lset-adjoin = list elt1 @dots{}
-@deffnx {Scheme Procedure} lset-adjoin! = list elt1 @dots{}
 Add all @var{elts} to the list @var{list}, suppressing duplicates and
-return the resulting list.  @code{lset-adjoin!} is allowed, but not
-required to modify its first argument. @var{=} is used for testing
+return the resulting list.  @var{=} is used for testing
 element equality.
 @end deffn
 
