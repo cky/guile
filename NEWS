@@ -8,35 +8,23 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
-** New module (srfi srfi-13)
+** New SRFI modules:
 
-Implements SRFI-13 (string library).
+(srfi srfi-2) exports and-let*.
 
-** New module (srfi srfi-14)
+(srfi srfi-6) is a dummy module for now, since guile already provides
+  all of the srfi-6 procedures by default: open-input-string,
+  open-output-string, get-output-string.
 
-Implements SRFI-14 (character-set library).
+(srfi srfi-8) exports receive.
 
-** New module (srfi srfi-9)
+(srfi srfi-9) exports define-record-type.
 
-This module exports define-record-type.
+(srfi srfi-11) exports let-values and let*-values.
 
-** New module (srfi srfi-11):
+(srfi srfi-13) implements the SRFI String Library.
 
-This module exports let-values and let*-values.
-
-** New module (srfi srfi-6):
-
-This is a dummy file for now, since guile already provides all of the
-srfi-6 procedures by default: open-input-string, open-output-string,
-get-output-string.
-
-** New module (srfi srfi-8):
-
-This module exports receive.
-
-** New module (srfi srfi-2):
-
-This module exports and-let*.
+(srfi srfi-14) implements the SRFI Character-Set Library.
 
 ** New module (ice-9 stack-catch):
 
