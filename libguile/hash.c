@@ -48,6 +48,8 @@
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
 #include "libguile/ports.h"
+#include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
@@ -117,6 +119,7 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 	obj = scm_number_to_string(obj, SCM_MAKINUM(10));
       }
     case scm_tc7_string:
+      return scm_string_hash (SCM_STRING_UCHARS (obj), SCM_LENGTH (obj)) % n;
     case scm_tc7_substring:
       return scm_string_hash (SCM_ROUCHARS (obj), SCM_ROLENGTH (obj)) % n;
     case scm_tc7_symbol:

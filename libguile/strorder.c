@@ -46,6 +46,8 @@
 #include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
+#include "libguile/strings.h"
+#include "libguile/symbols.h"
 
 #include "libguile/validate.h"
 #include "libguile/strorder.h"

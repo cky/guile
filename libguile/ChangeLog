@@ -1,3 +1,39 @@
+2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* continuations.c (scm_make_cont, scm_dynthrow), print.c
+	(scm_iprin1), stacks.c (scm_make_stack, scm_stack_id,
+	scm_last_stack_frame):  For continuations, use SCM_CONTREGS
+	instead of SCM_CHARS.
+
+	* coop-threads.c (scm_threads_mark_stacks):  Eliminate references
+	to SCM_LENGTH and SCM_CHARS from comments.
+
+	* dynl.c (scm_dynamic_link, scm_dynamic_func), symbols.h
+	(SCM_ROCHARS, SCM_ROUCHARS):  Cleanly distinguish between string
+	and symbol arguments.
+
+	* hash.c (scm_hasher), keywords.c (prin_keyword), objects.c
+	(scm_make_subclass_object), print.c (scm_iprin1), regex-posix.c
+	(scm_regexp_error_msg), stime.c (bdtime2c, scm_strftime), struct.c
+	(scm_struct_init, scm_struct_vtable_p, scm_struct_ref,
+	scm_struct_set_x):  Use SCM_STRING_U?CHARS or SCM_SYMBOL_U?CHARS
+	instead of SCM_U?CHARS.
+
+	* strings.h (SCM_STRING_UCHARS):  Added as a replacement for
+	SCM_UCHARS for string arguments.
+
+	* strorder.c:  Include strings.h and symbols.h.
+
+	* symbols.h:  Replaced SCM_CHARS in comment.
+
+	(SCM_SYMBOL_UCHARS):  Added as a replacement for SCM_UCHARS for
+	symbol arguments.
+
+	(SCM_SLOPPY_SUBSTRP):  Deprecated.
+
+	* tags.h:  Fixed comments not to reference SCM_LENGTH or
+	SCM_CHARS.
+
 2000-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_gc_mark, scm_gc_sweep), tags.h:  Removed the

@@ -94,7 +94,7 @@ scm_make_cont (SCM *answer)
 #ifndef SCM_STACK_GROWS_UP
   src -= SCM_LENGTH (cont);
 #endif /* ndef SCM_STACK_GROWS_UP */
-  dst = (SCM_STACKITEM *) (SCM_CHARS (cont) + sizeof (scm_contregs));
+  dst = (SCM_STACKITEM *) ((char *) SCM_CONTREGS (cont) + sizeof (scm_contregs));
 
   /* memcpy should be safe:  src and dst will never overlap */
   memcpy (dst, src, sizeof (SCM_STACKITEM) * SCM_LENGTH (cont));
@@ -166,7 +166,7 @@ scm_dynthrow (SCM cont, SCM val)
     grow_stack (cont, val);
 #endif /* def SCM_STACK_GROWS_UP */
   SCM_FLUSH_REGISTER_WINDOWS;
-  src = (SCM_STACKITEM *) (SCM_CHARS (cont) + sizeof (scm_contregs));
+  src = (SCM_STACKITEM *) ((char *) SCM_CONTREGS (cont) + sizeof (scm_contregs));
   copy_stack_and_call (cont, val, src, dst);
 }
 

@@ -128,7 +128,7 @@ scm_regexp_error_msg (int regerrno, regex_t *rx)
   if (l > 80)
     {
       errmsg = scm_make_string (SCM_MAKINUM (l), SCM_UNDEFINED);
-      regerror (regerrno, rx, SCM_CHARS (errmsg), l);
+      regerror (regerrno, rx, SCM_STRING_CHARS (errmsg), l);
     }
   SCM_ALLOW_INTS;
   return SCM_STRING_CHARS (errmsg);

@@ -151,7 +151,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 static void
 scm_struct_init (SCM handle, SCM layout, scm_bits_t * mem, int tail_elts, SCM inits)
 {
-  unsigned char * fields_desc = (unsigned char *) SCM_CHARS (layout) - 2;
+  unsigned char * fields_desc = (unsigned char *) SCM_SYMBOL_CHARS (layout) - 2;
   unsigned char prot = 0;
   int n_fields = SCM_LENGTH (layout) / 2;
   int tailp = 0;
@@ -259,7 +259,7 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
   if (SCM_LENGTH (layout) < SCM_LENGTH (required_vtable_fields))
     return SCM_BOOL_F;
 
-  if (strncmp (SCM_CHARS (layout), SCM_CHARS (required_vtable_fields),
+  if (strncmp (SCM_SYMBOL_CHARS (layout), SCM_STRING_CHARS (required_vtable_fields),
 	       SCM_LENGTH (required_vtable_fields)))
     return SCM_BOOL_F;
 
@@ -577,7 +577,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   data = SCM_STRUCT_DATA (handle);
   p = SCM_INUM (pos);
 
-  fields_desc = (unsigned char *) SCM_CHARS (layout);
+  fields_desc = SCM_SYMBOL_UCHARS (layout);
   n_fields = data[scm_struct_i_n_words];
   
   SCM_ASSERT_RANGE(1,pos, p < n_fields);
@@ -654,7 +654,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   data = SCM_STRUCT_DATA (handle);
   p = SCM_INUM (pos);
 
-  fields_desc = (unsigned char *)SCM_CHARS (layout);
+  fields_desc = SCM_SYMBOL_UCHARS (layout);
   n_fields = data[scm_struct_i_n_words];
 
   SCM_ASSERT_RANGE (1,pos, p < n_fields);

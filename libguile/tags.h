@@ -210,7 +210,7 @@ typedef long scm_bits_t;
  * gloc    ..........SCM vcell..........001  ...........SCM cdr.............G
  * struct  ..........void * type........001  ...........void * data.........G
  * closure ..........SCM code...........011  ...........SCM env.............G
- * tc7	   .........long length....Gxxxx1S1  ..........void *data............
+ * tc7	   ......24.bits of data...Gxxxx1S1  ..........void *data............
  *
  *
  *
@@ -219,18 +219,11 @@ typedef long scm_bits_t;
  *		tc7_tags are 7 bit tags ending in 1x1.  These tags
  *		occur only in the CAR of heap cells, and have the
  *		handy property that all bits of the CAR above the
- *		bottom eight can be used to store a length, thus
+ *		bottom eight can be used to store some data, thus
  *		saving a word in the body itself.  Thus, we use them
  *		for strings and vectors (among other things).
  *
- *		SCM_LENGTH returns the bits in "length" (see the diagram).
- *		SCM_CHARS returns the data cast to "char *"
- *		SCM_CDR returns the data cast to "SCM"
- *		TYP7(X) returns bits 0...6 of SCM_CAR (X)
- *
- *		For the interpretation of SCM_LENGTH and SCM_CHARS
- *		that applies to a particular type, see the header file
- *		for that type.
+ *		TYP7(X) returns bits 0...6 of CELL_TYPE (X)
  *
  *              Sometimes we choose the bottom seven bits carefully,
  *              so that the 2-valued bit (called S bit) can be masked

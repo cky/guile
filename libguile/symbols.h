@@ -53,10 +53,11 @@
 extern int scm_symhash_dim;
 
 /* SCM_LENGTH(SYM) is the length of SYM's name in characters, and
- * SCM_CHARS(SYM) is the address of the first character of SYM's name.
+ * SCM_SYMBOL_CHARS(SYM) is the address of the first character of SYM's name.
  */
 
 #define SCM_SYMBOLP(x)	(SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_symbol))
+#define SCM_SYMBOL_UCHARS(x)  ((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SYMBOL_CHARS(x)  ((char *) (SCM_CELL_WORD_1 (x)))
 
 #define SCM_LENGTH_MAX		(0xffffffL)
@@ -78,15 +79,18 @@ extern int scm_symhash_dim;
 
 #define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
 			  || (SCM_TYP7(x) == scm_tc7_symbol)))
-#define SCM_ROCHARS(x) ((char *)((SCM_TYP7(x) == scm_tc7_substring) \
-			? SCM_INUM (SCM_CADR (x)) + SCM_CHARS (SCM_CDDR (x))  \
-			: SCM_CHARS (x)))
-#define SCM_ROUCHARS(x) ((unsigned char *) ((SCM_TYP7(x) == scm_tc7_substring) \
-			 ? SCM_INUM (SCM_CADR (x)) + SCM_UCHARS (SCM_CDDR (x))\
-			 : SCM_UCHARS (x)))
+#define SCM_ROCHARS(x) ((SCM_TYP7 (x) == scm_tc7_substring) \
+			? (SCM_INUM (SCM_CADR (x)) + SCM_STRING_CHARS (SCM_CDDR (x))) \
+			: ((SCM_TYP7 (x) == scm_tc7_string) \
+			   ? SCM_STRING_CHARS (x) \
+			   : SCM_SYMBOL_CHARS (x)))
+#define SCM_ROUCHARS(x) ((SCM_TYP7 (x) == scm_tc7_substring) \
+			 ? (SCM_INUM (SCM_CADR (x)) + SCM_STRING_UCHARS (SCM_CDDR (x))) \
+			 : ((SCM_TYP7 (x) == scm_tc7_string) \
+			    ? SCM_STRING_UCHARS (x) \
+			    : SCM_SYMBOL_UCHARS (x)))
 #define SCM_ROLENGTH(x) SCM_LENGTH (x)
-#define SCM_SLOPPY_SUBSTRP(x) (SCM_TYP7(x) == scm_tc7_substring)
-#define SCM_SUBSTRP(x) (SCM_NIMP(x) && SCM_SLOPPY_SUBSTRP(x))
+#define SCM_SUBSTRP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_substring))
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
 
@@ -133,6 +137,7 @@ extern void scm_init_symbols (void);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
+#define SCM_SLOPPY_SUBSTRP(x) (SCM_SUBSTRP (x))
 #define scm_strhash(str, len, n) (scm_string_hash ((str), (len)) % (n))
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */

@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
+#include "libguile/continuations.h"
 #include "libguile/smob.h"
 #include "libguile/eval.h"
 #include "libguile/macros.h"
@@ -620,7 +621,7 @@ taloop:
 		    ? "#<primitive-generic "
 		    : "#<primitive-procedure ",
 		    port);
-	  scm_puts (SCM_CHARS (SCM_SNAME (exp)), port);
+	  scm_puts (SCM_SYMBOL_CHARS (SCM_SNAME (exp)), port);
 	  scm_putc ('>', port);
 	  break;
 #ifdef CCLO
@@ -635,7 +636,7 @@ taloop:
 		if (SCM_NFALSEP (name))
 		  {
 		    scm_putc (' ', port);
-		    scm_puts (SCM_CHARS (name), port);
+		    scm_puts (SCM_SYMBOL_CHARS (name), port);
 		  }
 	      }
 	    else
@@ -663,7 +664,7 @@ taloop:
 	  scm_puts ("#<continuation ", port);
 	  scm_intprint (SCM_LENGTH (exp), 10, port);
 	  scm_puts (" @ ", port);
-	  scm_intprint ((long) SCM_CHARS (exp), 16, port);
+	  scm_intprint ((long) SCM_CONTREGS (exp), 16, port);
 	  scm_putc ('>', port);
 	  break;
 	case scm_tc7_port:

@@ -101,8 +101,8 @@ scm_threads_mark_stacks (void)
 	  /* Protect from the C stack.  This must be the first marking
 	   * done because it provides information about what objects
 	   * are "in-use" by the C code.   "in-use" objects are  those
-	   * for which the values from SCM_LENGTH and SCM_CHARS must remain
-	   * usable.   This requirement is stricter than a liveness
+	   * for which the information about length and base address must
+	   * remain usable.   This requirement is stricter than a liveness
 	   * requirement -- in particular, it constrains the implementation
 	   * of scm_resizuve.
 	   */
@@ -122,8 +122,8 @@ scm_threads_mark_stacks (void)
 	  /* Protect from the C stack.  This must be the first marking
 	   * done because it provides information about what objects
 	   * are "in-use" by the C code.   "in-use" objects are  those
-	   * for which the values from SCM_LENGTH and SCM_CHARS must remain
-	   * usable.   This requirement is stricter than a liveness
+	   * for which the information about length and base address must
+	   * remain usable.   This requirement is stricter than a liveness
 	   * requirement -- in particular, it constrains the implementation
 	   * of scm_resizuve.
 	   */

@@ -353,9 +353,11 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0,
 #define FUNC_NAME s_scm_dynamic_link
 {
   void *handle;
+  char *chars;
 
-  SCM_COERCE_ROSTRING (1, fname);
-  handle = sysdep_dynl_link (SCM_CHARS (fname), FUNC_NAME);
+  fname = scm_coerce_rostring (fname, FUNC_NAME, 1);
+  chars = SCM_STRINGP (fname) ? SCM_STRING_CHARS (fname) : SCM_SYMBOL_CHARS (fname);
+  handle = sysdep_dynl_link (chars, FUNC_NAME);
   SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (fname), handle);
 }
 #undef FUNC_NAME
@@ -416,16 +418,17 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
 {
   void (*func) ();
 
-  SCM_COERCE_ROSTRING (1, symb);
+  symb = scm_coerce_rostring (symb, FUNC_NAME, 1);
   /*fixme* GC-problem */
   SCM_VALIDATE_SMOB (SCM_ARG2, dobj, dynamic_obj);
   if (DYNL_HANDLE (dobj) == NULL) {
     SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
   } else {
+    char *chars;
+
     SCM_DEFER_INTS;
-    func = (void (*) ()) sysdep_dynl_func (SCM_CHARS (symb),
-					   DYNL_HANDLE (dobj),
-					   FUNC_NAME);
+    chars = SCM_STRINGP (symb) ? SCM_STRING_CHARS (symb) : SCM_SYMBOL_CHARS (symb);
+    func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), FUNC_NAME);
     SCM_ALLOW_INTS;
     return scm_ulong2num ((unsigned long) func);
   }

@@ -461,7 +461,7 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
   if (SCM_FALSEP (velts[10]))
     lt->tm_zone = NULL;
   else
-    lt->tm_zone  = SCM_CHARS (velts[10]);
+    lt->tm_zone  = SCM_STRING_CHARS (velts[10]);
 #endif
 }
 
@@ -602,7 +602,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
     SCM *velts = SCM_VELTS (stime);
     int have_zone = 0;
 
-    if (SCM_NFALSEP (velts[10]) && *SCM_CHARS (velts[10]) != 0)
+    if (SCM_NFALSEP (velts[10]) && *SCM_STRING_CHARS (velts[10]) != 0)
       {
 	/* it's not required that the TZ setting be correct, just that
 	   it has the right name.  so try something like TZ=EST0.

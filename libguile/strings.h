@@ -52,6 +52,7 @@
 
 
 #define SCM_STRINGP(x) (SCM_NIMP (x) && (SCM_TYP7S (x) == scm_tc7_string))
+#define SCM_STRING_UCHARS(x) ((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_STRING_CHARS(x) ((char *) (SCM_CELL_WORD_1 (x)))
 
 /* Is X a writable string (i.e., not a substring)?  */
