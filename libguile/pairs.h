@@ -104,21 +104,21 @@ typedef SCM  huge *SCMPTR;
 
 #define SCM_CAR(x) (((scm_cell *)(SCM2PTR(x)))->car)
 #define SCM_CDR(x) (((scm_cell *)(SCM2PTR(x)))->cdr)
-#define SCM_GCCDR(x) SCM_SCM(~1L & SCM_BITS (SCM_CDR(x)))
-#define SCM_SETCAR(x, v) (SCM_CAR(x) = SCM_SCM(v))
-#define SCM_SETCDR(x, v) (SCM_CDR(x) = SCM_SCM(v))
+#define SCM_GCCDR(x) SCM_PACK(~1L & SCM_UNPACK (SCM_CDR(x)))
+#define SCM_SETCAR(x, v) (SCM_CAR(x) = SCM_PACK(v))
+#define SCM_SETCDR(x, v) (SCM_CDR(x) = SCM_PACK(v))
 
 #define SCM_CARLOC(x) (&SCM_CAR (x))
 #define SCM_CDRLOC(x) (&SCM_CDR (x))
 
 #define SCM_SETAND_CAR(x, y)\
-  (SCM_CAR (x) = SCM_SCM (SCM_BITS (SCM_CAR (x)) & (y)))
+  (SCM_CAR (x) = SCM_PACK (SCM_UNPACK (SCM_CAR (x)) & (y)))
 #define SCM_SETAND_CDR(x, y)\
-  (SCM_CDR (x) = SCM_SCM (SCM_BITS (SCM_CDR (x)) & (y)))
+  (SCM_CDR (x) = SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y)))
 #define SCM_SETOR_CAR(x, y)\
-  (SCM_CAR (x) = SCM_SCM (SCM_BITS (SCM_CAR (x)) | (y)))
+  (SCM_CAR (x) = SCM_PACK (SCM_UNPACK (SCM_CAR (x)) | (y)))
 #define SCM_SETOR_CDR(x, y)\
-  (SCM_CDR (x) = SCM_SCM (SCM_BITS (SCM_CDR (x)) | (y)))
+  (SCM_CDR (x) = SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y)))
 
 #define SCM_CAAR(OBJ)		SCM_CAR (SCM_CAR (OBJ))
 #define SCM_CDAR(OBJ)		SCM_CDR (SCM_CAR (OBJ))

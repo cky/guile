@@ -201,7 +201,7 @@ scm_quotient (SCM x, SCM y)
 	z = -z;
       if (z < SCM_BIGRAD)
 	{
-	  SCM sw = scm_copybig (x, SCM_BIGSIGN (x) ? (SCM_BITS (y) > 0) : (SCM_BITS (y) < 0));
+	  SCM sw = scm_copybig (x, SCM_BIGSIGN (x) ? (SCM_UNPACK (y) > 0) : (SCM_UNPACK (y) < 0));
 	  scm_divbigdig (SCM_BDIGITS (sw), SCM_NUMDIGS (sw), (SCM_BIGDIG) z);
 	  return scm_normbig (sw);
 	}
@@ -1079,7 +1079,7 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 #define FUNC_NAME s_scm_ash
 {
   /* GJB:FIXME:: what is going on here? */
-  SCM res = SCM_SCM (SCM_INUM (n));
+  SCM res = SCM_PACK (SCM_INUM (n));
   SCM_VALIDATE_INUM (2,cnt);
 #ifdef SCM_BIGDIG
   if (cnt < 0)
@@ -1554,7 +1554,7 @@ scm_addbig (SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int sgny)
 	{
 	  num = 1;
 	  i = 0;
-	  SCM_SETCAR (z, SCM_CARBITS (z) ^ 0x0100);
+	  SCM_SETCAR (z, SCM_UNPACK_CAR (z) ^ 0x0100);
 	  do
 	    {
 	      num += (SCM_BIGRAD - 1) - zds[i];
@@ -4207,7 +4207,7 @@ scm_divide (SCM x, SCM y)
 				   SCM_BIGSIGN (x) ? (y > 0) : (y < 0), 3);
 	      }
 #endif
-	      return z ? SCM_SCM (z) : scm_makdbl (scm_big2dbl (x) / SCM_INUM (y), 0.0);
+	      return z ? SCM_PACK (z) : scm_makdbl (scm_big2dbl (x) / SCM_INUM (y), 0.0);
 	    }
 	  SCM_ASRTGO (SCM_NIMP (y), bady);
 	  if (SCM_BIGP (y))

@@ -62,9 +62,9 @@
 /*
   bit vectors
  */
-#define SCM_BITVEC_REF(a, i) ((SCM_BITS(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) & (1L<<((i)%SCM_LONG_BIT))) ? 1 : 0)
-#define SCM_BITVEC_SET(a, i) SCM_BITS(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) |= (1L<<((i)%SCM_LONG_BIT))
-#define SCM_BITVEC_CLR(a, i) SCM_BITS(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) &= ~(1L<<((i)%SCM_LONG_BIT))
+#define SCM_BITVEC_REF(a, i) ((SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) & (1L<<((i)%SCM_LONG_BIT))) ? 1 : 0)
+#define SCM_BITVEC_SET(a, i) SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) |= (1L<<((i)%SCM_LONG_BIT))
+#define SCM_BITVEC_CLR(a, i) SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) &= ~(1L<<((i)%SCM_LONG_BIT))
 
 
 

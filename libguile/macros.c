@@ -134,7 +134,7 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
 {
   if (!(SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro))
     return SCM_BOOL_F;
-  switch ((int) (SCM_CARBITS (m) >> 16))
+  switch ((int) (SCM_UNPACK_CAR (m) >> 16))
     {
     case 0: return scm_sym_syntax;
     case 1: return scm_sym_macro;

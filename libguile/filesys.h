@@ -54,7 +54,7 @@
 
 extern long scm_tc16_dir;
 #define SCM_DIRP(x) (SCM_NIMP(x) && (SCM_TYP16(x)==(scm_tc16_dir)))
-#define SCM_OPDIRP(x) (SCM_NIMP(x) && (SCM_CARBITS(x)==(scm_tc16_dir | SCM_OPN)))
+#define SCM_OPDIRP(x) (SCM_NIMP(x) && (SCM_UNPACK_CAR(x)==(scm_tc16_dir | SCM_OPN)))
 
 
 extern SCM scm_chown (SCM object, SCM owner, SCM group);

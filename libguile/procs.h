@@ -84,7 +84,7 @@ typedef struct
   SCM documentation;
 } scm_subr_entry;
 
-#define SCM_SUBRNUM(subr) (SCM_CARBITS (subr) >> 8)
+#define SCM_SUBRNUM(subr) (SCM_UNPACK_CAR (subr) >> 8)
 #define SCM_SET_SUBRNUM(subr, num) \
         SCM_SETCAR (subr, (num >> 8) + SCM_TYP7 (subr))
 #define SCM_SUBR_ENTRY(x) (scm_subr_table[SCM_SUBRNUM (x)])
@@ -101,7 +101,7 @@ typedef struct
  */
 
 #define SCM_CLOSUREP(x) (SCM_NIMP(x) && (SCM_TYP3 (x) == scm_tc3_closure))
-#define SCM_CLOSCAR(x) SCM_SCM (SCM_CARBITS (x) - scm_tc3_closure)
+#define SCM_CLOSCAR(x) SCM_PACK (SCM_UNPACK_CAR (x) - scm_tc3_closure)
 #define SCM_CODE(x) SCM_CAR (SCM_CLOSCAR (x))
 #define SCM_PROCPROPS(x) SCM_CDR (SCM_CLOSCAR (x))
 #define SCM_SETPROCPROPS(x, p) SCM_SETCDR (SCM_CLOSCAR (x), p)

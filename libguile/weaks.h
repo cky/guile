@@ -53,9 +53,9 @@
 
 
 #define SCM_WVECTP(x) (SCM_NIMP(x) && (SCM_TYP7(x)==scm_tc7_wvect))
-#define SCM_IS_WHVEC(X) (SCM_BITS (SCM_VELTS(X)[-1]) == 1)
-#define SCM_IS_WHVEC_V(X) (SCM_BITS (SCM_VELTS(X)[-1]) == 2)
-#define SCM_IS_WHVEC_B(X) (SCM_BITS (SCM_VELTS(X)[-1]) == 3)
+#define SCM_IS_WHVEC(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) == 1)
+#define SCM_IS_WHVEC_V(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) == 2)
+#define SCM_IS_WHVEC_B(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) == 3)
 #define SCM_IS_WHVEC_ANY(X) (SCM_VELTS(X)[-1])
 #define SCM_WVECT_GC_CHAIN(X) (SCM_VELTS(X)[-2])
 

@@ -173,7 +173,7 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 	    {
 	      tailp = 1;
 	      prot = prot == 'R' ? 'r' : prot == 'W' ? 'w' : 'o';
-	      *mem++ = SCM_SCM (tail_elts);
+	      *mem++ = SCM_PACK (tail_elts);
 	      n_fields += tail_elts - 1;
 	      if (n_fields == 0)
 		break;
@@ -199,7 +199,7 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 	    *mem = 0;
 	  else
 	    {
-	      *mem = SCM_SCM (scm_num2ulong (SCM_CAR (inits),
+	      *mem = SCM_PACK (scm_num2ulong (SCM_CAR (inits),
 					       SCM_ARGn,
 					       "scm_struct_init"));
 	      inits = SCM_CDR (inits);
@@ -326,7 +326,7 @@ scm_alloc_struct (int n_words, int n_extra, char *who)
   SCM *p = block + n_extra;
 
   /* Adjust it even further so it's aligned on an eight-byte boundary.  */
-  p = (SCM *) (((scm_bits_t) SCM_BITS (p) + 7) & ~7);
+  p = (SCM *) (((scm_bits_t) SCM_UNPACK (p) + 7) & ~7);
 
   /* Initialize a few fields as described above.  */
   p[scm_struct_i_free] = (SCM) scm_struct_free_standard;
@@ -347,13 +347,13 @@ scm_sizet
 scm_struct_free_light (SCM *vtable, SCM *data)
 {
   free (data);
-  return SCM_BITS (vtable[scm_struct_i_size]) & ~SCM_STRUCTF_MASK;
+  return SCM_UNPACK (vtable[scm_struct_i_size]) & ~SCM_STRUCTF_MASK;
 }
 
 scm_sizet
 scm_struct_free_standard (SCM *vtable, SCM *data)
 {
-  size_t n = ((SCM_BITS (data[scm_struct_i_n_words]) + scm_struct_n_extra_words)
+  size_t n = ((SCM_UNPACK (data[scm_struct_i_n_words]) + scm_struct_n_extra_words)
 	      * sizeof (SCM) + 7);
   free ((void *) data[scm_struct_i_ptr]);
   return n;
@@ -362,7 +362,7 @@ scm_struct_free_standard (SCM *vtable, SCM *data)
 scm_sizet
 scm_struct_free_entity (SCM *vtable, SCM *data)
 {
-  size_t n = (SCM_BITS(data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
+  size_t n = (SCM_UNPACK(data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
 	      * sizeof (SCM) + 7);
   free ((void *) data[scm_struct_i_ptr]);
   return n;
@@ -396,7 +396,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  if (SCM_BITS (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags]) & SCM_STRUCTF_ENTITY)
+  if (SCM_UNPACK (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags]) & SCM_STRUCTF_ENTITY)
     {
       data = scm_alloc_struct (basic_size + tail_elts,
 			       scm_struct_entity_n_extra_words,
@@ -535,7 +535,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *) SCM_CHARS (layout);
-  n_fields = SCM_BITS (data[scm_struct_i_n_words]);
+  n_fields = SCM_UNPACK (data[scm_struct_i_n_words]);
   
   SCM_ASSERT_RANGE(1,pos, p < n_fields);
 
@@ -563,7 +563,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   switch (field_type)
     {
     case 'u':
-      answer = scm_ulong2num (SCM_BITS (data[p]));
+      answer = scm_ulong2num (SCM_UNPACK (data[p]));
       break;
 
 #if 0
@@ -612,7 +612,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = SCM_BITS (data[scm_struct_i_n_words]);
+  n_fields = SCM_UNPACK (data[scm_struct_i_n_words]);
 
   SCM_ASSERT_RANGE (1,pos, p < n_fields);
 
@@ -635,7 +635,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   switch (field_type)
     {
     case 'u':
-      data[p] = SCM_SCM (SCM_NUM2ULONG (3, val));
+      data[p] = SCM_PACK (SCM_NUM2ULONG (3, val));
       break;
 
 #if 0
@@ -699,7 +699,7 @@ scm_struct_ihashq (SCM obj, unsigned int n)
 {
   /* The length of the hash table should be a relative prime it's not
      necessary to shift down the address.  */
-  return SCM_BITS (obj) % n;
+  return SCM_UNPACK (obj) % n;
 }
 
 SCM

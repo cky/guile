@@ -160,7 +160,7 @@ scm_class_of (SCM x)
 	    long type = SCM_TYP16 (x);
 	    if (type == scm_tc16_flo)
 	      {
-		if (SCM_CARBITS (x) & SCM_IMAG_PART)
+		if (SCM_UNPACK_CAR (x) & SCM_IMAG_PART)
 		  return scm_class_complex;
 		else
 		  return scm_class_real;
@@ -171,8 +171,8 @@ scm_class_of (SCM x)
 	    /* fall through to ports */
 	  }
 	case scm_tc7_port:
-	  return scm_port_class[(SCM_WRTNG & SCM_CARBITS (x)
-				 ? (SCM_RDNG & SCM_CARBITS (x)
+	  return scm_port_class[(SCM_WRTNG & SCM_UNPACK_CAR (x)
+				 ? (SCM_RDNG & SCM_UNPACK_CAR (x)
 				    ? SCM_INOUT_PCLASS_INDEX | SCM_PTOBNUM (x)
 				    : SCM_OUT_PCLASS_INDEX | SCM_PTOBNUM (x))
 				 : SCM_IN_PCLASS_INDEX | SCM_PTOBNUM (x))];
@@ -280,7 +280,7 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       if (SCM_NIMP (ls))
 	do
 	  {
-	    i += SCM_BITS (SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
+	    i += SCM_UNPACK (SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
 		  [scm_si_hashsets + hashset]);
 	    ls = SCM_CDR (ls);
 	  }

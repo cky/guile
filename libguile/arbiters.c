@@ -63,7 +63,7 @@
 static long scm_tc16_arbiter;
 
 
-#define SCM_ARB_LOCKED(arb) ((SCM_CARBITS (arb)) & (1L << 16))
+#define SCM_ARB_LOCKED(arb) ((SCM_UNPACK_CAR (arb)) & (1L << 16))
 #define SCM_LOCK_ARB(arb) SCM_SETCAR (arb, (SCM) (scm_tc16_arbiter | (1L << 16)));
 #define SCM_UNLOCK_ARB(arb) SCM_SETCAR (arb, (SCM) scm_tc16_arbiter);
 

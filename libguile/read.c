@@ -70,7 +70,7 @@ scm_option scm_read_opts[] = {
     "Record positions of source code expressions." },
   { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
     "Convert symbols to lower case."},
-  { SCM_OPTION_SCM, "keywords", SCM_BITS (SCM_BOOL_F),
+  { SCM_OPTION_SCM, "keywords", SCM_UNPACK (SCM_BOOL_F),
     "Style of keyword recognition: #f or 'prefix"}
 };
 
@@ -489,7 +489,7 @@ tryagain_no_flush_ws:
       goto tok;
 
     case ':':
-      if (SCM_SCM (SCM_KEYWORD_STYLE) == scm_keyword_prefix)
+      if (SCM_PACK (SCM_KEYWORD_STYLE) == scm_keyword_prefix)
 	{
 	  j = scm_read_token ('-', tok_buf, port, 0);
 	  p = scm_intern (SCM_CHARS (*tok_buf), j);

@@ -5,7 +5,7 @@
 
 	* tags.h (SCM_NCELLP): Removed (SCMWORD).
 
-	* arbiters.c (SCM_ARB_LOCKED): Use SCM_CARBITS.
+	* arbiters.c (SCM_ARB_LOCKED): Use SCM_UNPACK_CAR.
 
 	* async.c, boolean.h, debug.c, dynl.c, dynwind.c, eval.c, eval.h,
 	  feature.h, filesys.h, fluids.h, fports.c, fports.h, gc.c, gc.h,
@@ -14,7 +14,7 @@
 	  procs.h, ramap.c, read.c, smob.c, smob.h, srcprop.h, stacks.c,
 	  stacks.h, strports.c, struct.c, struct.h, tag.c, tags.h,
 	  throw.c, unif.c, unif.h, variable.h, vectors.h, weaks.c,
-	  weaks.h (SCM_SCM, SCM_BITS, SCM_CARBITS): Renamed from
+	  weaks.h (SCM_PACK, SCM_UNPACK, SCM_UNPACK_CAR): Renamed from
 	  SCM_ASSCM, SCM_ASWORD, SCM_CARW).
 
 	* numbers.h (SCM_SRS, SCM_INUM): Corrected SCM_ASSCM/ASWORD fixes.

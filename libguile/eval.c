@@ -319,7 +319,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 #endif
 	}
 #ifdef MEMOIZE_LOCALS
-      iloc = SCM_SCM ((~SCM_IDSTMSK) & SCM_BITS(iloc + SCM_IFRINC));
+      iloc = SCM_PACK ((~SCM_IDSTMSK) & SCM_UNPACK(iloc + SCM_IFRINC));
 #endif
     }
   {
@@ -367,7 +367,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
       if (SCM_ITAG3 (var) == 1)
 	return SCM_GLOC_VAL_LOC (var);
 #ifdef MEMOIZE_LOCALS
-      if ((SCM_BITS (var) & 127) == (127 & SCM_BITS (SCM_ILOC00)))
+      if ((SCM_UNPACK (var) & 127) == (127 & SCM_UNPACK (SCM_ILOC00)))
 	return scm_ilookup (var, genv);
 #endif
       /* We can't cope with anything else than glocs and ilocs.  When
@@ -409,7 +409,7 @@ scm_unmemocar (SCM form, SCM env)
   if (SCM_IMP (form))
     return form;
   c = SCM_CAR (form);
-  if (1 == (SCM_BITS (c) & 7))
+  if (1 == (SCM_UNPACK (c) & 7))
     SCM_SETCAR (form, SCM_CAR (c - 1));
 #ifdef MEMOIZE_LOCALS
 #ifdef DEBUG_EXTENSIONS
@@ -1262,7 +1262,7 @@ scm_macroexp (SCM x, SCM env)
 
   if (SCM_IMP (proc)
       || scm_tc16_macro != SCM_TYP16 (proc)
-      || (int) (SCM_CARBITS (proc) >> 16) != 2)
+      || (int) (SCM_UNPACK_CAR (proc) >> 16) != 2)
     return x;
 
   unmemocar (x, env);
@@ -1295,7 +1295,7 @@ scm_macroexp (SCM x, SCM env)
  *  readable style... :)
  */
 
-#define SCM_BIT8(x) (127 & SCM_BITS (x))
+#define SCM_BIT8(x) (127 & SCM_UNPACK (x))
 
 static SCM
 unmemocopy (SCM x, SCM env)
@@ -2299,7 +2299,7 @@ dispatch:
 		if (SCM_NIMP (t.arg1))
 		  do
 		    {
-		      i += SCM_BITS ((SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1))))
+		      i += SCM_UNPACK ((SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1))))
 				       [scm_si_hashsets + hashset]);
 		      t.arg1 = SCM_CDR (t.arg1);
 		    }
@@ -2548,7 +2548,7 @@ dispatch:
 #ifdef DEVAL
 	      SCM_CLEAR_MACROEXP (debug);
 #endif
-	      switch ((int) (SCM_CARBITS (proc) >> 16))
+	      switch ((int) (SCM_UNPACK_CAR (proc) >> 16))
 		{
 		case 2:
 		  if (scm_ilength (t.arg1) <= 0)
@@ -3711,10 +3711,10 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
 #define FUNC_NAME s_scm_force
 {
   SCM_VALIDATE_SMOB (1,x,promise);
-  if (!((1L << 16) & SCM_CARBITS (x)))
+  if (!((1L << 16) & SCM_UNPACK_CAR (x)))
     {
       SCM ans = scm_apply (SCM_CDR (x), SCM_EOL, SCM_EOL);
-      if (!((1L << 16) & SCM_CARBITS (x)))
+      if (!((1L << 16) & SCM_UNPACK_CAR (x)))
 	{
 	  SCM_DEFER_INTS;
 	  SCM_SETCDR (x, ans);

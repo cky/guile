@@ -105,8 +105,8 @@ SCM_DEFINE (scm_tag, "tag", 1, 0, 0,
 	return SCM_CDR (scm_utag_immediate_char) ;
       else
 	{
-	  SCM tag = SCM_MAKINUM ((SCM_BITS (x) >> 8) & 0xff);
-	  return SCM_MAKINUM (SCM_INUM (SCM_CDR (scm_utag_flag_base) ) | (SCM_BITS (tag) << 8));
+	  SCM tag = SCM_MAKINUM ((SCM_UNPACK (x) >> 8) & 0xff);
+	  return SCM_MAKINUM (SCM_INUM (SCM_CDR (scm_utag_flag_base) ) | (SCM_UNPACK (tag) << 8));
 	}
 
     case scm_tc3_cons:

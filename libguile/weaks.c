@@ -133,7 +133,7 @@ SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0,
   SCM_VALIDATE_INUM (1,k);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
-  SCM_BITS (SCM_VELTS (v)[-1]) = 1;
+  SCM_UNPACK (SCM_VELTS (v)[-1]) = 1;
   SCM_ALLOW_INTS;
   return v;
 }
@@ -149,7 +149,7 @@ SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 
   SCM_VALIDATE_INUM (1,k);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
-  SCM_BITS (SCM_VELTS (v)[-1]) = 2;
+  SCM_UNPACK (SCM_VELTS (v)[-1]) = 2;
   SCM_ALLOW_INTS;
   return v;
 }
@@ -166,7 +166,7 @@ SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
   SCM_VALIDATE_INUM (1,k);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
-  SCM_BITS (SCM_VELTS (v)[-1]) = 3;
+  SCM_UNPACK (SCM_VELTS (v)[-1]) = 3;
   SCM_ALLOW_INTS;
   return v;
 }

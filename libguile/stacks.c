@@ -188,7 +188,7 @@ stack_depth (scm_debug_frame *dframe,long offset,SCM *id,int *maxp)
 static void
 read_frame (scm_debug_frame *dframe,long offset,scm_info_frame *iframe)
 {
-  scm_bits_t flags = SCM_BITS (SCM_INUM0); /* UGh. */
+  scm_bits_t flags = SCM_UNPACK (SCM_INUM0); /* UGh. */
   int size;
   scm_debug_info *info;
   if (SCM_EVALFRAMEP (*dframe))
@@ -291,7 +291,7 @@ read_frames (scm_debug_frame *dframe,long offset,int n,scm_info_frame *iframes)
 		   && !SCM_UNBNDP (info[1].a.proc))
 	    {
 	      NEXT_FRAME (iframe, n, quit);
-	      iframe->flags = SCM_BITS(SCM_INUM0) | SCM_FRAMEF_PROC;
+	      iframe->flags = SCM_UNPACK(SCM_INUM0) | SCM_FRAMEF_PROC;
 	      iframe->proc = info[1].a.proc;
 	      iframe->args = info[1].a.args;
 	    }
@@ -303,12 +303,12 @@ read_frames (scm_debug_frame *dframe,long offset,int n,scm_info_frame *iframes)
 	    {
 	      if (!SCM_UNBNDP (info[1].a.proc))
 		{
-		  iframe->flags = SCM_BITS(SCM_INUM0) | SCM_FRAMEF_PROC;
+		  iframe->flags = SCM_UNPACK(SCM_INUM0) | SCM_FRAMEF_PROC;
 		  iframe->proc = info[1].a.proc;
 		  iframe->args = info[1].a.args;
 		}
 	      else
-		iframe->flags = SCM_BITS (SCM_INUM0);
+		iframe->flags = SCM_UNPACK (SCM_INUM0);
 	      iframe->source = scm_make_memoized (info[0].e.exp,
 						  info[0].e.env);
 	      info -= 2;

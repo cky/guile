@@ -71,9 +71,9 @@
 /* shifts of more than one are done by a library call, single shifts are
  * performed in registers
  */
-# define SCM_MAKINUM(x) ((SCM) (((SCM_BITS(x)<<1)<<1)+2L))
+# define SCM_MAKINUM(x) ((SCM) (((SCM_UNPACK(x)<<1)<<1)+2L))
 #else
-# define SCM_MAKINUM(x) ((SCM)((SCM_BITS(x)<<2)+2L))
+# define SCM_MAKINUM(x) ((SCM)((SCM_UNPACK(x)<<2)+2L))
 #endif /* def __TURBOC__ */
 
 
@@ -85,14 +85,14 @@
 #if (-1==(((-1)<<2)+2)>>2) && (__TURBOC__ != 0x295)
 # define SCM_SRS(x, y) ((x) >> y)
 # ifdef __TURBOC__
-#  define SCM_INUM(x) ((SCM_BITS (x) >>1) >>1)
+#  define SCM_INUM(x) ((SCM_UNPACK (x) >>1) >>1)
 # else
-#  define SCM_INUM(x) SCM_SRS (SCM_BITS (x), 2)
+#  define SCM_INUM(x) SCM_SRS (SCM_UNPACK (x), 2)
 # endif /* def __TURBOC__ */
 #else
 # define SCM_SRS(x, y)\
- ((SCM_BITS (x) < 0) ? ~( (~SCM_BITS (x)) >> y) : (SCM_BITS (x) >> y))
-# define SCM_INUM(x) SCM_SRS (SCM_BITS (x), 2)
+ ((SCM_UNPACK (x) < 0) ? ~( (~SCM_UNPACK (x)) >> y) : (SCM_UNPACK (x) >> y))
+# define SCM_INUM(x) SCM_SRS (SCM_UNPACK (x), 2)
 #endif /*  (-1==(((-1)<<2)+2)>>2) && (__TURBOC__ != 0x295) */
 
 
@@ -134,15 +134,15 @@
  */
 
 #define SCM_INEXP(x) (SCM_NIMP(x) && (SCM_TYP16(x)==scm_tc16_flo))
-#define SCM_CPLXP(x) (SCM_NIMP(x) && (SCM_CARBITS (x)==scm_tc_dblc))
+#define SCM_CPLXP(x) (SCM_NIMP(x) && (SCM_UNPACK_CAR (x)==scm_tc_dblc))
 #define SCM_REAL(x) (*(((scm_dbl *) (SCM2PTR(x)))->real))
 #define SCM_IMAG(x) (*((double *)(SCM_CHARS(x)+sizeof(double))))
 /* ((&SCM_REAL(x))[1]) */
 
 
 #ifdef SCM_SINGLES
-#define SCM_REALP(x) (SCM_NIMP(x) && ((~SCM_REAL_PART & SCM_CARBITS (x))==scm_tc_flo))
-#define SCM_SINGP(x) (SCM_NIMP(x) && (SCM_CARBITS (x)==scm_tc_flo))
+#define SCM_REALP(x) (SCM_NIMP(x) && ((~SCM_REAL_PART & SCM_UNPACK_CAR (x))==scm_tc_flo))
+#define SCM_SINGP(x) (SCM_NIMP(x) && (SCM_UNPACK_CAR (x)==scm_tc_flo))
 #define SCM_FLO(x) (((scm_flo *)(SCM2PTR(x)))->num)
 #define SCM_REALPART(x) (SCM_SINGP(x)?0.0+SCM_FLO(x):SCM_REAL(x))
 #else /* SCM_SINGLES */
@@ -218,7 +218,7 @@
 #define SCM_BIGP(x) (SCM_NIMP(x) && SCM_TYP16S(x)==scm_tc16_bigpos)
 #define SCM_BIGSIGN(x) (0x0100 & (int)SCM_CAR(x))
 #define SCM_BDIGITS(x) ((SCM_BIGDIG *)(SCM_CDR(x)))
-#define SCM_NUMDIGS(x) ((scm_sizet)(SCM_CARBITS (x)>>16))
+#define SCM_NUMDIGS(x) ((scm_sizet)(SCM_UNPACK_CAR (x)>>16))
 #define SCM_SETNUMDIGS(x, v, t) SCM_SETCAR(x, (((v)+0L)<<16)+(t))
 
 

@@ -414,7 +414,7 @@ static struct dynl_obj *
 get_dynl_obj (SCM dobj,const char *subr,int argn)
 {
     struct dynl_obj *d;
-    SCM_ASSERT (SCM_NIMP (dobj) && SCM_CARBITS (dobj) == scm_tc16_dynamic_obj,
+    SCM_ASSERT (SCM_NIMP (dobj) && SCM_UNPACK_CAR (dobj) == scm_tc16_dynamic_obj,
 		dobj, argn, subr);
     d = (struct dynl_obj *)SCM_CDR (dobj);
     SCM_ASSERT (d->handle != NULL, dobj, argn, subr);
@@ -427,7 +427,7 @@ SCM_DEFINE (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_dynamic_object_p
 {
-    return SCM_BOOL(SCM_NIMP (obj) && SCM_CARBITS (obj) == scm_tc16_dynamic_obj);
+    return SCM_BOOL(SCM_NIMP (obj) && SCM_UNPACK_CAR (obj) == scm_tc16_dynamic_obj);
 }
 #undef FUNC_NAME
 

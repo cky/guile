@@ -62,9 +62,9 @@ struct scm_fport {
 #define SCM_FPORT_FDES(x) (SCM_FSTREAM (x)->fdes)
 
 #define SCM_FPORTP(x) (SCM_NIMP(x) && (SCM_TYP16S(x)==scm_tc7_port))
-#define SCM_OPFPORTP(x) (SCM_NIMP(x) && (((0xfeff | SCM_OPN) & SCM_CARBITS (x))==(scm_tc7_port | SCM_OPN)))
-#define SCM_OPINFPORTP(x) (SCM_NIMP(x) && (((0xfeff | SCM_OPN | SCM_RDNG) &  SCM_CARBITS (x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
-#define SCM_OPOUTFPORTP(x) (SCM_NIMP(x) && (((0xfeff | SCM_OPN | SCM_WRTNG) & SCM_CARBITS (x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
+#define SCM_OPFPORTP(x) (SCM_NIMP(x) && (((0xfeff | SCM_OPN) & SCM_UNPACK_CAR (x))==(scm_tc7_port | SCM_OPN)))
+#define SCM_OPINFPORTP(x) (SCM_NIMP(x) && (((0xfeff | SCM_OPN | SCM_RDNG) &  SCM_UNPACK_CAR (x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
+#define SCM_OPOUTFPORTP(x) (SCM_NIMP(x) && (((0xfeff | SCM_OPN | SCM_WRTNG) & SCM_UNPACK_CAR (x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
 
 /* test whether fdes supports random access.  */
 #define SCM_FDES_RANDOM_P(fdes) ((lseek (fdes, 0, SEEK_CUR) == -1) ? 0 : 1)

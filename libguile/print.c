@@ -123,7 +123,7 @@ char *scm_isymnames[] =
 };
 
 scm_option scm_print_opts[] = {
-  { SCM_OPTION_SCM, "closure-hook", SCM_BITS(SCM_BOOL_F),
+  { SCM_OPTION_SCM, "closure-hook", SCM_UNPACK(SCM_BOOL_F),
     "Hook for printing closures." },
   { SCM_OPTION_BOOLEAN, "source", 0,
     "Print closures with source." }
@@ -404,11 +404,11 @@ taloop:
 		    env = SCM_ENV (SCM_CDR (exp));
 		    scm_puts ("#<", port);
 		  }
-		if (SCM_CARBITS(exp) & (3L << 16))
+		if (SCM_UNPACK_CAR(exp) & (3L << 16))
 		  scm_puts ("macro", port);
 		else
 		  scm_puts ("syntax", port);
-		if (SCM_CARBITS (exp) & (2L << 16))
+		if (SCM_UNPACK_CAR (exp) & (2L << 16))
 		  scm_putc ('!', port);
 	      }
 	    else

@@ -89,7 +89,7 @@ SCM
 scm_markstream (SCM ptr)
 {
   int openp;
-  openp = SCM_CARBITS (ptr) & SCM_OPN;
+  openp = SCM_UNPACK_CAR (ptr) & SCM_OPN;
   if (openp)
     return SCM_STREAM  (ptr);
   else
@@ -568,15 +568,15 @@ SCM_DEFINE (scm_port_mode, "port-mode", 1, 0, 0,
 
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPPORT (1,port);
-  if (SCM_CARBITS (port) & SCM_RDNG) {
-    if (SCM_CARBITS (port) & SCM_WRTNG)
+  if (SCM_UNPACK_CAR (port) & SCM_RDNG) {
+    if (SCM_UNPACK_CAR (port) & SCM_WRTNG)
       strcpy (modes, "r+");
     else
       strcpy (modes, "r");
   }
-  else if (SCM_CARBITS (port) & SCM_WRTNG)
+  else if (SCM_UNPACK_CAR (port) & SCM_WRTNG)
     strcpy (modes, "w");
-  if (SCM_CARBITS (port) & SCM_BUF0)
+  if (SCM_UNPACK_CAR (port) & SCM_BUF0)
     strcat (modes, "0");
   return scm_makfromstr (modes, strlen (modes), 0);
 }
@@ -1252,11 +1252,11 @@ scm_print_port_mode (SCM exp, SCM port)
 {
   scm_puts (SCM_CLOSEDP (exp)
 	    ? "closed: "
-	    : (SCM_RDNG & SCM_CARBITS (exp)
-	       ? (SCM_WRTNG & SCM_CARBITS (exp)
+	    : (SCM_RDNG & SCM_UNPACK_CAR (exp)
+	       ? (SCM_WRTNG & SCM_UNPACK_CAR (exp)
 		  ? "input-output: "
 		  : "input: ")
-	       : (SCM_WRTNG & SCM_CARBITS (exp)
+	       : (SCM_WRTNG & SCM_UNPACK_CAR (exp)
 		  ? "output: "
 		  : "bogus: ")),
 	    port);
