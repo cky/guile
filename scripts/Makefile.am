@@ -42,7 +42,9 @@ EXTRA_DIST = $(scripts_sources)
 list:
 	@echo $(scripts_sources)
 
-overview:
+include $(top_srcdir)/pre-inst-guile.am
+
+overview: $(scripts_sources)
 	@echo '----------------------------'
 	@echo Overview
 	@echo I. Commentaries
@@ -50,10 +52,10 @@ overview:
 	@echo '----------------------------'
 	@echo I. Commentaries
 	@echo '----------------------------'
-	@GUILE_LOAD_PATH=`(cd $(srcdir)/.. ; pwd)` \
-	$(srcdir)/display-commentary $(scripts_sources)
+	$(preinstguiletool)/display-commentary $^
 	@echo '----------------------------'
 	@echo II. Module Interfaces
 	@echo '----------------------------'
-	@GUILE_LOAD_PATH=`(cd $(srcdir)/.. ; pwd)` \
-	$(srcdir)/frisk $(scripts_sources)
+	$(preinstguiletool)/frisk $^
+
+# Makefile.am ends here
