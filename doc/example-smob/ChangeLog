@@ -1,3 +1,7 @@
+2001-05-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* image-type.c: Adapted to new typing and naming convention.
+
 2001-04-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* image-type.c (make_image): Don't need to use SCM_NIMP before

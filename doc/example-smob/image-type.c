@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <libguile.h>
 
-static long image_tag;
+static scm_bits_t image_tag;
 
 struct image {
   int width, height;
@@ -89,11 +89,11 @@ mark_image (SCM image_smob)
   return image->update_func;
 }
 
-static scm_sizet
+static size_t
 free_image (SCM image_smob)
 {
   struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
-  scm_sizet size = image->width * image->height + sizeof (struct image);
+  size_t size = image->width * image->height + sizeof (struct image);
 
   free (image->pixels);
   free (image);
@@ -115,13 +115,13 @@ print_image (SCM image_smob, SCM port, scm_print_state *pstate)
 }
 
 void
-init_image_type ()
+init_image_type (void)
 {
   image_tag = scm_make_smob_type ("image", sizeof (struct image));
   scm_set_smob_mark (image_tag, mark_image);
   scm_set_smob_free (image_tag, free_image);
   scm_set_smob_print (image_tag, print_image);
 
-  scm_make_gsubr ("clear-image", 1, 0, 0, clear_image);
-  scm_make_gsubr ("make-image", 3, 0, 0, make_image);
+  scm_c_define_gsubr ("clear-image", 1, 0, 0, clear_image);
+  scm_c_define_gsubr ("make-image", 3, 0, 0, make_image);
 }
