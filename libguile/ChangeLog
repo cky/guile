@@ -1,3 +1,18 @@
+2000-03-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* pairs.h (SCM_SETAND_CAR, SCM_SETAND_CDR, SCM_SETOR_CAR,
+	SCM_SETOR_CDR): Corrected SCM_ASSCM/WORD fixes.
+
+	* tags.h (SCM_VOIDP_TEST): Renamed from VOIDP_TEST.
+	Layout cleanups.
+
+	* objects.h (SCM_CLASS_FLAGS, SCM_OBJ_CLASS_FLAGS,
+	SCM_SET_CLASS_INSTANCE_SIZE), struct.h (SCM_STRUCT_VTABLE_DATA),
+	proc.h (SCM_CLOSCAR): SCM_ASSCM/WORD fixes.
+
+	* eval.c (scm_lookupcar1): Inserted SCM_ASWORD in expressions
+	dealing with ilocs.
+
 2000-03-11  Dale P. Smith  <dpsm@en.com>, applied by Greg J. Badros, <gjb@cs.washington.edu>
 
         * numbers.c (scm_copy_big_dec, scm_copy_smaller, scm_big_ior,
