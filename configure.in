@@ -773,7 +773,10 @@ AC_CHECK_FUNCS(asinh acosh atanh copysign finite isinf isnan sincos trunc)
 # explicitly to LIBOBJS to make sure that it is translated to
 # `alloca.lo' for libtool later on.  This can and should be done more cleanly.
 AC_FUNC_ALLOCA
-if test "$ALLOCA" = "alloca.o"; then AC_LIBOBJ([alloca]); fi
+if test "$ALLOCA" = "alloca.o"
+then
+  AC_LIBOBJ([alloca])
+fi
 
 AC_CHECK_MEMBERS([struct stat.st_rdev])
 AC_CHECK_MEMBERS([struct stat.st_blksize])
