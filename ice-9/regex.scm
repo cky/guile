@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 1999, 2001, 2004 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2001, 2004, 2005 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -101,20 +101,18 @@
 (define (regexp-quote string)
   (call-with-output-string
    (lambda (p)
-     (let loop ((i 0))
-       (and (< i (string-length string))
-	    (begin
-	      (case (string-ref string i)
-		((#\* #\. #\\ #\^ #\$ #\[)
-		 (write-char #\\ p)
-		 (write-char (string-ref string i) p))
-		((#\( #\) #\+ #\? #\{ #\} #\|)
-		 (write-char #\[ p)
-		 (write-char (string-ref string i) p)
-		 (write-char #\] p))
-		(else
-		 (write-char (string-ref string i) p)))
-	      (loop (1+ i))))))))
+     (string-for-each (lambda (c)
+			(case c
+			  ((#\* #\. #\\ #\^ #\$ #\[)
+			   (write-char #\\ p)
+			   (write-char c p))
+			  ((#\( #\) #\+ #\? #\{ #\} #\|)
+			   (write-char #\[ p)
+			   (write-char c p)
+			   (write-char #\] p))
+			  (else
+			   (write-char c p))))
+		      string))))
 
 (define (match:start match . args)
   (let* ((matchnum (if (pair? args)
