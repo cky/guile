@@ -347,17 +347,17 @@
 
 (define (take x i)
   (let lp ((n i) (l x) (acc '()))
-    (if (zero? n)
+    (if (<= n 0)
       (reverse! acc)
       (lp (- n 1) (cdr l) (cons (car l) acc)))))
 (define (drop x i)
   (let lp ((n i) (l x))
-    (if (zero? n)
+    (if (<= n 0)
       l
       (lp (- n 1) (cdr l)))))
 (define (take-right flist i)
   (let lp ((n i) (l flist))
-    (if (zero? n)
+    (if (<= n 0)
       (let lp0 ((s flist) (l l))
 	(if (null? l)
 	  s
@@ -366,7 +366,7 @@
   
 (define (drop-right flist i)
   (let lp ((n i) (l flist))
-    (if (zero? n)
+    (if (<= n 0)
       (let lp0 ((s flist) (l l) (acc '()))
 	(if (null? l)
 	  (reverse! acc)
@@ -374,20 +374,20 @@
       (lp (- n 1) (cdr l)))))
 
 (define (take! x i)
-  (if (zero? i)
+  (if (<= i 0)
     '()
     (let lp ((n (- i 1)) (l x))
-      (if (zero? n)
+      (if (<= n 0)
 	(begin 
 	  (set-cdr! l '())
 	  x)
 	(lp (- n 1) (cdr l))))))
 
 (define (drop-right! flist i)
-  (if (zero? i)
+  (if (<= i 0)
     flist
     (let lp ((n (+ i 1)) (l flist))
-      (if (zero? n)
+      (if (<= n 0)
 	(let lp0 ((s flist) (l l))
 	  (if (null? l)
 	    (begin
@@ -400,15 +400,15 @@
 
 (define (split-at x i)
   (let lp ((l x) (n i) (acc '()))
-    (if (zero? n)
+    (if (<= n 0)
       (values (reverse! acc) l)
       (lp (cdr l) (- n 1) (cons (car l) acc)))))
 
 (define (split-at! x i)
-  (if (zero? i)
+  (if (<= i 0)
     (values '() x)
     (let lp ((l x) (n (- i 1)))
-      (if (zero? n)
+      (if (<= n 0)
 	(let ((tmp (cdr l)))
 	  (set-cdr! l '())
 	  (values x tmp))

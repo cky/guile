@@ -1,7 +1,8 @@
 2001-07-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-1.scm (list-tabulate): Do not go into infinite loop for
-	invalid arguments.
+	invalid arguments.  Same fix for several other procedures (do not
+	use zero?, use <= 0).
 
 2001-07-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
