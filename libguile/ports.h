@@ -217,10 +217,11 @@ extern int scm_port_table_room;
 
 
 extern SCM scm_markstream (SCM ptr);
-extern long scm_make_port_type (char *name,
-				int (*fill_input) (SCM port),
-				void (*write) (SCM port, const void *data,
-					       size_t size));
+extern scm_bits_t scm_make_port_type (char *name,
+				      int (*fill_input) (SCM port),
+				      void (*write) (SCM port, 
+						     const void *data,
+						     size_t size));
 extern void scm_set_port_mark (long tc, SCM (*mark) (SCM));
 extern void scm_set_port_free (long tc, scm_sizet (*free) (SCM));
 extern void scm_set_port_print (long tc,

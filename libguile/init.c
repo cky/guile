@@ -499,7 +499,8 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_fluids ();
   scm_init_backtrace ();	/* Requires fluids */
   scm_init_fports ();
-  scm_init_gdbint ();
+  scm_init_strports ();
+  scm_init_gdbint ();           /* Requires strports */
   scm_init_hash ();
   scm_init_hashtab ();
   scm_init_objprop ();
@@ -539,7 +540,6 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_stackchk ();
   scm_init_struct ();
   scm_init_stacks ();   /* Requires struct */
-  scm_init_strports ();
   scm_init_symbols ();
   scm_init_tag ();
   scm_init_values ();   /* Requires struct */
@@ -570,7 +570,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 #endif
   scm_init_simpos ();
   scm_init_load_path ();
-  scm_init_standard_ports ();
+  scm_init_standard_ports ();  /* Requires fports */
   scm_init_dynamic_linking ();
   scm_init_lang ();
   scm_init_script ();

@@ -58,13 +58,15 @@ struct scm_fport {
   int fdes;			/* file descriptor.  */
 };
 
+extern scm_bits_t scm_tc16_fport;
+
 #define SCM_FSTREAM(x) ((struct scm_fport *) SCM_STREAM (x))
 #define SCM_FPORT_FDES(x) (SCM_FSTREAM (x)->fdes)
 
-#define SCM_FPORTP(x) (!SCM_IMP (x) && (SCM_TYP16S (x) == scm_tc7_port))
-#define SCM_OPFPORTP(x) (!SCM_IMP (x) && (((0xfeff | SCM_OPN) & SCM_CELL_WORD_0 (x)) == (scm_tc7_port | SCM_OPN)))
-#define SCM_OPINFPORTP(x) (!SCM_IMP (x) && (((0xfeff | SCM_OPN | SCM_RDNG) & SCM_CELL_WORD_0 (x)) == (scm_tc7_port | SCM_OPN | SCM_RDNG)))
-#define SCM_OPOUTFPORTP(x) (!SCM_IMP(x) && (((0xfeff | SCM_OPN | SCM_WRTNG) & SCM_CELL_WORD_0 (x)) == (scm_tc7_port | SCM_OPN | SCM_WRTNG)))
+#define SCM_FPORTP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_fport))
+#define SCM_OPFPORTP(x) (SCM_FPORTP (x) && (SCM_CELL_WORD_0 (x) & SCM_OPN))
+#define SCM_OPINFPORTP(x) (SCM_OPFPORTP (x) && (SCM_CELL_WORD_0 (x) & SCM_RDNG))
+#define SCM_OPOUTFPORTP(x) (SCM_OPFPORTP (x) && (SCM_CELL_WORD_0 (x) & SCM_WRTNG))
 
 /* test whether fdes supports random access.  */
 #define SCM_FDES_RANDOM_P(fdes) ((lseek (fdes, 0, SEEK_CUR) == -1) ? 0 : 1)

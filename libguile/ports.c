@@ -115,7 +115,7 @@ end_input_default (SCM port, int offset)
 {
 }
 
-long 
+scm_bits_t
 scm_make_port_type (char *name,
 		    int (*fill_input) (SCM port),
 		    void (*write) (SCM port, const void *data, size_t size))
@@ -1382,23 +1382,11 @@ scm_port_print (SCM exp, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-extern void scm_make_fptob ();
-extern void scm_make_stptob ();
-extern void scm_make_sfptob ();
-
 void
 scm_ports_prehistory ()
 {
   scm_numptob = 0;
   scm_ptobs = (scm_ptob_descriptor *) malloc (sizeof (scm_ptob_descriptor));
-  
-  /* WARNING: These scm_newptob calls must be done in this order.
-   * They must agree with the port declarations in tags.h.
-   */
-  /* scm_tc16_fport = */ scm_make_fptob ();
-  /* scm_tc16_pipe was here */ scm_make_fptob (); /* dummy.  */
-  /* scm_tc16_strport = */ scm_make_stptob ();
-  /* scm_tc16_sfport = */ scm_make_sfptob ();
 }
 
 

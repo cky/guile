@@ -716,7 +716,7 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
 
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPPORT (1,port);
-  if (scm_tc16_fport != SCM_TYP16 (port))
+  if (!SCM_FPORTP (port))
     return SCM_BOOL_F;
   fd = SCM_FPORT_FDES (port);
   SCM_SYSCALL (ans = ttyname (fd));

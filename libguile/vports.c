@@ -67,6 +67,9 @@
  */
 
 
+static scm_bits_t scm_tc16_sfport;
+
+
 static void
 sf_flush (SCM port)
 {
@@ -197,20 +200,23 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
 #undef FUNC_NAME
 
 
-void scm_make_sfptob (void); /* Called from ports.c */
-
-void
+static scm_bits_t
 scm_make_sfptob ()
 {
-  long tc = scm_make_port_type ("soft", sf_fill_input, sf_write);
+  scm_bits_t tc = scm_make_port_type ("soft", sf_fill_input, sf_write);
+
   scm_set_port_mark (tc, scm_markstream);
   scm_set_port_flush (tc, sf_flush);
   scm_set_port_close (tc, sf_close);
+
+  return tc;
 }
 
 void
 scm_init_vports ()
 {
+  scm_tc16_sfport = scm_make_sfptob ();
+
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/vports.x"
 #endif

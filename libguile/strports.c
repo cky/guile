@@ -79,6 +79,10 @@
    when rw_active is SCM_PORT_NEITHER.
 */
 
+
+static scm_bits_t scm_tc16_strport;
+
+
 static int
 stfill_buffer (SCM port)
 {
@@ -416,22 +420,25 @@ SCM_DEFINE (scm_eval_string, "eval-string", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-void scm_make_stptob (void); /* Called from ports.c */
-
-void
+static scm_bits_t
 scm_make_stptob ()
 {
-  long tc = scm_make_port_type ("string", stfill_buffer, st_write);
+  scm_bits_t tc = scm_make_port_type ("string", stfill_buffer, st_write);
+
   scm_set_port_mark        (tc, scm_markstream);
   scm_set_port_end_input   (tc, st_end_input);
   scm_set_port_flush       (tc, st_flush);
   scm_set_port_seek        (tc, st_seek);
   scm_set_port_truncate    (tc, st_truncate);
+
+  return tc;
 }
 
 void
 scm_init_strports ()
 {
+  scm_tc16_strport = scm_make_stptob ();
+
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/strports.x"
 #endif

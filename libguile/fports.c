@@ -69,6 +69,10 @@ scm_sizet fwrite ();
 
 #include "libguile/iselect.h"
 
+
+scm_bits_t scm_tc16_fport;
+
+
 /* default buffer size, used if the O/S won't supply a value.  */
 static const int default_buffer_size = 1024;
 
@@ -767,12 +771,11 @@ fport_free (SCM port)
   return 0;
 }
 
-void scm_make_fptob (void); /* Called from ports.c */
-
-void
+static scm_bits_t
 scm_make_fptob ()
 {
-  long tc = scm_make_port_type ("file", fport_fill_input, fport_write);
+  scm_bits_t tc = scm_make_port_type ("file", fport_fill_input, fport_write);
+
   scm_set_port_free            (tc, fport_free);
   scm_set_port_print           (tc, fport_print);
   scm_set_port_flush           (tc, fport_flush);
@@ -781,17 +784,22 @@ scm_make_fptob ()
   scm_set_port_seek            (tc, fport_seek);
   scm_set_port_truncate        (tc, fport_truncate);
   scm_set_port_input_waiting   (tc, fport_input_waiting);
+
+  return tc;
 }
 
 void
 scm_init_fports ()
 {
-#ifndef SCM_MAGIC_SNARFER
-#include "libguile/fports.x"
-#endif
+  scm_tc16_fport = scm_make_fptob ();
+
   scm_sysintern ("_IOFBF", SCM_MAKINUM (_IOFBF));
   scm_sysintern ("_IOLBF", SCM_MAKINUM (_IOLBF));
   scm_sysintern ("_IONBF", SCM_MAKINUM (_IONBF));
+
+#ifndef SCM_MAGIC_SNARFER
+#include "libguile/fports.x"
+#endif
 }
 
 /*

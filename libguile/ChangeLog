@@ -1,5 +1,35 @@
 2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tags.h (scm_tc16_fport, scm_tc16_strport, scm_tc16_sfport):
+	These are now defined in fports.c, strports.c and vports.c.
+
+	* fports.[ch] (scm_tc16_fport), strports.c (scm_tc16_strport),
+	vports.c (scm_tc16_sfport): Made variables (were macros defined in
+	tags.h).
+
+	fports.c (scm_make_fptob), strports.c (scm_make_stptob), vports.c
+	(scm_make_sfptob):  Made static.  These return a type code now.
+
+	fports.c (scm_init_fports), strports.c (scm_init_strports),
+	vports.c (scm_init_vports):  Create the corresponding port types.
+
+	* fports.h (SCM_FPORTP, SCM_OPFPORTP, SCM_OPINFPORTP,
+	SCM_OPOUTFPORTP):  Redefined in terms of scm_tc16_fport.
+
+	* init.c (scm_init_guile_1):  Make sure strports are initialized
+	before gdbint.
+
+	* ports.[ch] (scm_make_port_type):  Changed the return type to
+	scm_bits_t.
+
+	* ports.c (scm_ports_prehistory):  Don't create any port types
+	here.
+
+	* posix.c (scm_ttyname):  Use SCM_FPORTP instead of comparing
+	against scm_tc16_fport directly.
+
+2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* srcprop.c (scm_set_source_property_x):  Fix to handle
 	(set-source-property! <obj> 'copy <datum>) correctly.
 
