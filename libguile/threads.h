@@ -78,8 +78,8 @@ SCM scm_spawn_thread (scm_catch_body_t body, void *body_data,
 
 /* These are versions of the ordinary sleep and usleep functions,
    that play nicely with the thread system.  */
-SCM unsigned long scm_thread_sleep (unsigned long);
-SCM unsigned long scm_thread_usleep (unsigned long);
+SCM scm_thread_sleep (unsigned long);
+SCM scm_thread_usleep (unsigned long);
 
 
 /* The C versions of the Scheme-visible thread functions.  */

@@ -1,3 +1,8 @@
+1998-10-28  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* threads.h (scm_thread_sleep, scm_thread_usleep): Fixed
+	declarations. (Thanks to Russ McManus.)
+
 1998-10-26  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* numbers.c (num2long): As a software archeologist, I'm proud of
