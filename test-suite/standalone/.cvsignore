@@ -1,0 +1,9 @@
+*.la
+*.lo
+*.x
+.deps
+.libs
+Makefile
+Makefile.in
+test-gh
+test-num2integral
