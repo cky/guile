@@ -1364,15 +1364,25 @@ scm_init_socket ()
   scm_c_define ("INADDR_LOOPBACK", scm_from_ulong (INADDR_LOOPBACK));
 #endif
 
-  /* socket types.  */
+  /* socket types.
+
+     SOCK_PACKET is deliberately omitted, the GNU/Linux socket(2) and
+     packet(7) advise that it's obsolete and strongly deprecated.  */
+
 #ifdef SOCK_STREAM
   scm_c_define ("SOCK_STREAM", scm_from_int (SOCK_STREAM));
 #endif
 #ifdef SOCK_DGRAM
   scm_c_define ("SOCK_DGRAM", scm_from_int (SOCK_DGRAM));
 #endif
+#ifdef SOCK_SEQPACKET
+  scm_c_define ("SOCK_SEQPACKET", scm_from_int (SOCK_SEQPACKET));
+#endif
 #ifdef SOCK_RAW
   scm_c_define ("SOCK_RAW", scm_from_int (SOCK_RAW));
+#endif
+#ifdef SOCK_RDM
+  scm_c_define ("SOCK_RDM", scm_from_int (SOCK_RDM));
 #endif
 
   /* setsockopt level.  */
