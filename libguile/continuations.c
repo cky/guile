@@ -102,8 +102,9 @@ scm_make_cont (SCM *answer)
   SCM_FLUSH_REGISTER_WINDOWS;
   j = scm_stack_size (SCM_BASE (scm_rootcont));
   SCM_SETJMPBUF (cont,
-	     scm_must_malloc ((long) (sizeof (scm_contregs) + j * sizeof (SCM_STACKITEM)),
-			      s_cont));
+		 scm_must_malloc (sizeof (scm_contregs)
+				  + j * sizeof (SCM_STACKITEM),
+				  s_cont));
   SCM_DYNENV (cont) = scm_dynwinds;
   SCM_THROW_VALUE (cont) = SCM_EOL;
   src = SCM_BASE (cont) = SCM_BASE (scm_rootcont);
