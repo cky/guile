@@ -104,26 +104,28 @@
 
 ;;;; String ports.
 
-;;; Write text to a string port.
-(catch-test-errors
- (let* ((string "Howdy there, partner!")
-	(in-string (call-with-output-string
-		    (lambda (port)
-		      (display string port)
-		      (newline port)))))
-   (pass-if "output string: display text"
-	    (equal? in-string (string-append string "\n")))))
+(with-test-prefix "string ports"
+
+  ;; Write text to a string port.
+  (catch-test-errors
+   (let* ((string "Howdy there, partner!")
+          (in-string (call-with-output-string
+                      (lambda (port)
+                        (display string port)
+                        (newline port)))))
+     (pass-if "display text"
+              (equal? in-string (string-append string "\n")))))
 		   
-;;; Write an s-expression to a string port.
-(catch-test-errors
- (let* ((sexpr '("more utterly random text" 1729 #(a vector) 3.1415926))
-	(in-sexpr 
-	 (call-with-input-string (call-with-output-string
-				  (lambda (port)
-				    (write sexpr port)))
-				 read)))
-   (pass-if "input and output string: write/read sexpr"
-	    (equal? in-sexpr sexpr))))
+  ;; Write an s-expression to a string port.
+  (catch-test-errors
+   (let* ((sexpr '("more utterly random text" 1729 #(a vector) 3.1415926))
+	  (in-sexpr 
+	   (call-with-input-string (call-with-output-string
+				    (lambda (port)
+				      (write sexpr port)))
+				   read)))
+     (pass-if "write/read sexpr"
+	      (equal? in-sexpr sexpr)))))
 
 
 ;;;; Soft ports.  No tests implemented yet.
@@ -151,7 +153,7 @@
   (define port-list-names '("file" "pipe" "string"))
 
   ;; Test the line counter.
-  (define (test-line-counter text second-line)
+  (define (test-line-counter text second-line final-column)
     (with-test-prefix "line counter"
       (let ((ports (input-port-list text)))
 	(for-each
@@ -178,7 +180,9 @@
 			 ((> i 20) #f)
 			 (else (loop (+ i 1))))))
 	     (pass-if "line count is 5 at EOF"
-		      (= (port-line port) 5))))
+		      (= (port-line port) 5))
+	     (pass-if "column is correct at EOF"
+		      (= (port-column port) final-column))))
 	 ports port-list-names)
 	(for-each close-port ports)
 	(delete-file port-loop-temp))))
@@ -191,7 +195,8 @@
 		     "himself without lessening mine; as he who lights his\n"
 		     "taper at mine, receives light without darkening me.\n"
 		     "  --- Thomas Jefferson\n")
-      "He who receives an idea from me, receives instruction")))
+      "He who receives an idea from me, receives instruction"
+      0)))
 
   (catch-test-errors
    (with-test-prefix "no newline"
@@ -202,4 +207,5 @@
 		     "taper at mine, receives light without darkening me.\n"
 		     "  --- Thomas Jefferson\n"
 		     "no newline here")
-      "He who receives an idea from me, receives instruction"))))
+      "He who receives an idea from me, receives instruction"
+      15))))
