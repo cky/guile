@@ -54,6 +54,7 @@
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/weaks.h"
+#include "libguile/modules.h"
 
 #include "libguile/validate.h"
 #include "libguile/symbols.h"
@@ -376,11 +377,6 @@ scm_sysintern0_no_module_lookup (const char *name)
     }
 }
 
-
-/* Is it safe to access SCM_TOP_LEVEL_LOOKUP_CLOSURE_VAR?
- */
-int scm_can_use_top_level_lookup_closure_var;
-
 /* Intern the symbol named NAME in scm_symhash, and give it the value
    VAL.  NAME is null-terminated.  Use the current top_level lookup
    closure to give NAME its value.
@@ -397,8 +393,8 @@ SCM
 scm_sysintern0 (const char *name)
 {
   SCM lookup_proc;
-  if (scm_can_use_top_level_lookup_closure_var && 
-      SCM_NIMP (lookup_proc = SCM_TOP_LEVEL_LOOKUP_CLOSURE))
+  if (scm_module_system_booted_p
+      && SCM_NIMP (lookup_proc = SCM_TOP_LEVEL_LOOKUP_CLOSURE))
     {
       SCM sym = SCM_CAR (scm_intern0 (name));
       SCM vcell = scm_sym2vcell (sym, lookup_proc, SCM_BOOL_T);
