@@ -132,7 +132,7 @@ make_jmpbuf ()
 }
 
 
-/* scm_internal_catch (the guts of catch), and functions to use with it */
+/* scm_internal_catch (the guts of catch) */
 
 struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
 {
@@ -240,6 +240,104 @@ scm_internal_catch (tag, body, body_data, handler, handler_data)
   return answer;
 }
 
+
+
+/* scm_internal_lazy_catch (the guts of lazy catching) */
+
+/* The smob tag for lazy_catch smobs.  */
+static long tc16_lazy_catch;
+
+/* This is the structure we put on the wind list for a lazy catch.  It
+   stores the handler function to call, and the data pointer to pass
+   through to it.  It's not a Scheme closure, but it is a function
+   with data, so the term "closure" is appropriate in its broader
+   sense.
+
+   (We don't need anything like this in the "eager" catch code,
+   because the same C frame runs both the body and the handler.)  */
+struct lazy_catch {
+  scm_catch_handler_t handler;
+  void *handler_data;
+};
+
+/* Strictly speaking, we could just pass a zero for our print
+   function, because we don't need to print them.  They should never
+   appear in normal data structures, only in the wind list.  However,
+   it might be nice for debugging someday... */
+static int
+print_lazy_catch (SCM closure, SCM port, scm_print_state *pstate)
+{
+  struct lazy_catch *c = (struct lazy_catch *) SCM_CDR (closure);
+  char buf[200];
+
+  sprintf (buf, "#<lazy-catch 0x%lx 0x%lx>",
+	   (long) c->handler, (long) c->handler_data);
+  scm_gen_puts (scm_regular_string, buf, port);
+
+  return 1;
+}
+
+static scm_smobfuns lazy_catch_funs = {
+  scm_mark0, scm_free0, print_lazy_catch, 0
+};
+
+
+/* Given a pointer to a lazy catch structure, return a smob for it,
+   suitable for inclusion in the wind list.  ("Ah yes, a Château
+   Gollombiere '72, non?").  */
+static SCM
+make_lazy_catch (struct lazy_catch *c)
+{
+  SCM smob;
+
+  SCM_NEWCELL (smob);
+  SCM_SETCDR (smob, c);
+  SCM_SETCAR (smob, tc16_lazy_catch);
+
+  return smob;
+}
+
+#define SCM_LAZY_CATCH_P(obj) \
+  (SCM_NIMP (obj) && (SCM_CAR (obj) == tc16_lazy_catch))
+
+
+/* Exactly like scm_internal_catch, except:
+   - It does not unwind the stack (this is the major difference).
+   - If handler returns, its value is returned from the throw.
+   - BODY always receives #f as its JMPBUF argument (since there's no
+     jmpbuf associated with a lazy catch, because we don't unwind the
+     stack.)  */
+SCM
+scm_internal_lazy_catch (tag, body, body_data, handler, handler_data)
+     SCM tag;
+     scm_catch_body_t body;
+     void *body_data;
+     scm_catch_handler_t handler;
+     void *handler_data;
+{
+  SCM lazy_catch, answer;
+  struct lazy_catch c;
+
+  c.handler = handler;
+  c.handler_data = handler_data;
+  lazy_catch = make_lazy_catch (&c);
+
+  SCM_REDEFER_INTS;
+  scm_dynwinds = scm_acons (tag, lazy_catch, scm_dynwinds);
+  SCM_REALLOW_INTS;
+
+  answer = (*body) (body_data, SCM_BOOL_F);
+
+  SCM_REDEFER_INTS;
+  scm_dynwinds = SCM_CDR (scm_dynwinds);
+  SCM_REALLOW_INTS;
+
+  return answer;
+}
+
+
+
+/* body and handler functions for use with either of the above */
 
 /* This is a body function you can pass to scm_internal_catch if you
    want the body to be like Scheme's `catch' --- a thunk, or a
@@ -359,100 +457,6 @@ scm_exit_status (args)
   return 0;
 }
 	
-
-
-/* scm_internal_lazy_catch (the guts of lazy catching), and friends */
-
-/* The smob tag for lazy_catch smobs.  */
-static long tc16_lazy_catch;
-
-/* This is the structure we put on the wind list for a lazy catch.  It
-   stores the handler function to call, and the data pointer to pass
-   through to it.  It's not a Scheme closure, but it is a function
-   with data, so the term "closure" is appropriate in its broader
-   sense.
-
-   (We don't need anything like this in the "eager" catch code,
-   because the same C frame runs both the body and the handler.)  */
-struct lazy_catch {
-  scm_catch_handler_t handler;
-  void *handler_data;
-};
-
-/* Strictly speaking, we could just pass a zero for our print
-   function, because we don't need to print them.  They should never
-   appear in normal data structures, only in the wind list.  However,
-   it might be nice for debugging someday... */
-static int
-print_lazy_catch (SCM closure, SCM port, scm_print_state *pstate)
-{
-  struct lazy_catch *c = (struct lazy_catch *) SCM_CDR (closure);
-  char buf[200];
-
-  sprintf (buf, "#<lazy-catch 0x%lx 0x%lx>",
-	   (long) c->handler, (long) c->handler_data);
-  scm_gen_puts (scm_regular_string, buf, port);
-
-  return 1;
-}
-
-static scm_smobfuns lazy_catch_funs = {
-  scm_mark0, scm_free0, print_lazy_catch, 0
-};
-
-
-/* Given a pointer to a lazy catch structure, return a smob for it,
-   suitable for inclusion in the wind list.  ("Ah yes, a Château
-   Gollombiere '72, no?").  */
-static SCM
-make_lazy_catch (struct lazy_catch *c)
-{
-  SCM smob;
-
-  SCM_NEWCELL (smob);
-  SCM_SETCDR (smob, c);
-  SCM_SETCAR (smob, tc16_lazy_catch);
-
-  return smob;
-}
-
-#define SCM_LAZY_CATCH_P(obj) \
-  (SCM_NIMP (obj) && (SCM_CAR (obj) == tc16_lazy_catch))
-
-
-/* Exactly like scm_internal_catch, except:
-   - It does not unwind the stack (this is the major difference).
-   - If handler returns, its value is returned from the throw.
-   - BODY always receives #f as its JMPBUF argument (since there's no
-     jmpbuf associated with a lazy catch, because we don't unwind the
-     stack.)  */
-SCM
-scm_internal_lazy_catch (tag, body, body_data, handler, handler_data)
-     SCM tag;
-     scm_catch_body_t body;
-     void *body_data;
-     scm_catch_handler_t handler;
-     void *handler_data;
-{
-  SCM lazy_catch, answer;
-  struct lazy_catch c;
-
-  c.handler = handler;
-  c.handler_data = handler_data;
-  lazy_catch = make_lazy_catch (&c);
-
-  SCM_REDEFER_INTS;
-  scm_dynwinds = scm_acons (tag, lazy_catch, scm_dynwinds);
-  SCM_REALLOW_INTS;
-
-  answer = (*body) (body_data, SCM_BOOL_F);
-
-  SCM_REDEFER_INTS;
-  scm_dynwinds = SCM_CDR (scm_dynwinds);
-  SCM_REALLOW_INTS;
-
-  return answer;
-}
 
 
 
