@@ -201,7 +201,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
       flag = SCM_CDR (flag);
     }
 	  
-  rx = SCM_MUST_MALLOC_TYPE(regex_t);
+  rx = SCM_MUST_MALLOC_TYPE (regex_t);
   status = regcomp (rx, SCM_ROCHARS (pat),
 		    /* Make sure they're not passing REG_NOSUB;
                        regexp-exec assumes we're getting match data.  */
