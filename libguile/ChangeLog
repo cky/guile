@@ -1,5 +1,7 @@
 1999-08-20  James Blandy  <jimb@mule.m17n.org>
 
+	* load.c (scm_init_load_path): Remove support for SCHEME_LOAD_PATH.
+
 	* ports.h (enum scm_port_rw_active): New enum, containing
 	SCM_PORT_READ, SCM_PORT_WRITE, and SCM_PORT_NEITHER (instead of
 	zero).  The debugger knows about enums, but doesn't know about

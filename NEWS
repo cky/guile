@@ -1086,6 +1086,16 @@ argument, a relative module reference.  In the case of no argument,
 `(current-module)' is now consulted for definitions to return, instead
 of simply returning #f, the former behavior.
 
+** The #/ syntax for lists is no longer supported.
+
+Earlier versions of Scheme accepted this syntax, but printed a
+warning.
+
+** Guile no longer consults the SCHEME_LOAD_PATH environment variable.
+
+Instead, you should set GUILE_LOAD_PATH to tell Guile where to find
+modules.
+
 * Changes to the gh_ interface
 
 ** gh_scm2doubles

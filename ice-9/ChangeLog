@@ -1,3 +1,11 @@
+1999-08-20  James Blandy  <jimb@mule.m17n.org>
+
+	Remove support for the #/ path list syntax entirely.
+	* boot-9.scm (read-path-list-notation,
+	read-path-list-notation-warning): Deleted.
+	Don't register read-path-list-notation-warning as a reader for
+	objects starting with '#/'.
+
 1999-08-05  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	GOOPS needs the observer protocol specified for the new module

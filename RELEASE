@@ -2,14 +2,15 @@ This is a checklist for making Guile releases.
 It's specific to the FSF's development environment; please don't put
 it in the distribution.
 
-Maybe we should name Guile releases after entertaining poisons.
-However, the first release containing the module system should be
-called Godot: "This is the one you've been waiting for."
+Maybe we should name Guile releases after entertaining poisons:
+absinthe, etc.  However, the first release containing the module
+system should be called Godot: "This is the one you've been waiting
+for."
 
 In release 1.3.2:
-- Release is titled ``wormwood'' release.
-- remove #/ syntax
-- Remove SCHEME_LOAD_PATH.
+* Release is titled ``wormwood'' release.
+* remove #/ syntax
+* Remove SCHEME_LOAD_PATH.
 - remove hook support from boot-9.scm
   (only provided for backward compatibility)
 
