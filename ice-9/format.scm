@@ -13,6 +13,7 @@
 
 (define-module (ice-9 format)
   :use-module (ice-9 and-let-star)
+  :use-module (ice-9 threads)
   :autoload (ice-9 pretty-print) (pretty-print))
 
 (export format
@@ -1725,7 +1726,8 @@
 
 (define format:abort (lambda () (error "error in format")))
 
-(define format format:format)
+(define format (monitor format:format))
+
 ;; Thanks to Shuji Narazaki
 (module-set! the-root-module 'format format)
 
