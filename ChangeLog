@@ -16,6 +16,8 @@
 
 	* RELEASE: Add TODO-processing to spiffing checklist.
 
+	* HACKING: Update deprecation procedure to refer to TODO.
+
 2001-06-27  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* autogen.sh: don't run flex here.
