@@ -1,3 +1,25 @@
+2000-09-03  Michael Livshin  <mlivshin@bigfoot.com>
+
+	the following changes let Guile get rid of the `allocated' cell
+	state.
+
+	* smob.c (scm_smob_prehistory): don't init the "allocated" smob
+	type.
+
+	* tags.h (scm_tc16_allocated): removed.
+
+	* gc.h: removed now-obsolete comments about the `allocated' cell
+	state.
+	(SCM_NEWCELL): don't change cell type to `allocated'.
+	(SCM_NEWCELL2): ditto.
+
+	* gc.c (scm_mark_locations): mark freecells too, and don't worry
+	about any possible false positives.
+	(scm_debug_newcell): don't change cell type to `allocated'.
+	(scm_debug_newcell2): ditto.
+	(scm_gc_for_newcell): ditto.
+	(scm_gc_mark): remove the tc16_allocated case.
+
 2000-08-26  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* gdbint.c (gdb_print): Removed superfluous macro definition.
