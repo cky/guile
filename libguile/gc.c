@@ -698,7 +698,7 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
   ++scm_ints_disabled;
   do
     {
-      if (SCM_NULLP (master->clusters))
+      while (SCM_NULLP (master->clusters))
 	{
 	  if (master->grow_heap_p || scm_block_gc)
 	    {
