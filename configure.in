@@ -132,6 +132,15 @@ AC_ARG_ENABLE(regex,
   [  --disable-regex         omit regular expression interfaces],,
   enable_regex=yes)
 
+AC_ARG_ENABLE([discouraged],
+  AC_HELP_STRING([--disable-discouraged],[omit discouraged features]))
+
+if test "$enable_discouraged" = no; then
+  SCM_I_GSC_ENABLE_DISCOURAGED=0
+else
+  SCM_I_GSC_ENABLE_DISCOURAGED=1
+fi
+
 AC_ARG_ENABLE([deprecated],
   AC_HELP_STRING([--disable-deprecated],[omit deprecated features]))
 
@@ -1179,6 +1188,7 @@ AC_SUBST(top_srcdir_absolute)
 # Additional SCM_I_GSC definitions are above.
 AC_SUBST([SCM_I_GSC_GUILE_DEBUG])
 AC_SUBST([SCM_I_GSC_GUILE_DEBUG_FREELIST])
+AC_SUBST([SCM_I_GSC_ENABLE_DISCOURAGED])
 AC_SUBST([SCM_I_GSC_ENABLE_DEPRECATED])
 AC_SUBST([SCM_I_GSC_ENABLE_ELISP])
 AC_SUBST([SCM_I_GSC_HAVE_ARRAYS])
