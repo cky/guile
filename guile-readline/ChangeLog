@@ -1,3 +1,8 @@
+2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* readline.scm (activate-readline):  Lookup 'use-emacs-interface
+	in the-root-module.
+
 2000-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* readline.c (current_input_getc):  Use more explicit predicate

@@ -2793,7 +2793,7 @@
 
   ;; Load emacs interface support if emacs option is given.
   (if (and (module-defined? the-root-module 'use-emacs-interface)
-	   use-emacs-interface)
+	   (module-ref the-root-module 'use-emacs-interface))
       (load-emacs-interface))
 
   ;; Place the user in the guile-user module.
