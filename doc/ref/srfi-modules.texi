@@ -1,6 +1,7 @@
 @page
 @node SRFI Support
 @chapter SRFI Support Modules
+@cindex SRFI
 
 SRFI is an acronym for Scheme Request For Implementation.  The SRFI
 documents define a lot of syntactic and procedure extensions to standard
@@ -67,6 +68,7 @@ automatically (@pxref{Invoking Guile}).
 
 @node SRFI-0
 @section SRFI-0 - cond-expand
+@cindex SRFI-0
 
 @c FIXME::martin: Review me!
 
@@ -164,6 +166,7 @@ the following snippet will expand to @code{'hooray}.
 
 @node SRFI-1
 @section SRFI-1 - List library
+@cindex SRFI-1
 
 @c FIXME::martin: Review me!
 
@@ -840,9 +843,11 @@ procedures return (@pxref{Multiple Values}).
 
 @node SRFI-2
 @section SRFI-2 - and-let*
+@cindex SRFI-2
 
 @c FIXME::martin: Review me!
 
+@findex and-let*
 The syntactic form @code{and-let*} combines the conditional evaluation
 form @code{and} with the binding form @var{let*}.  Each argument
 expression will be evaluated sequentially, bound to a variable (if a
@@ -871,6 +876,7 @@ returns the value of @var{x}.
 
 @node SRFI-4
 @section SRFI-4 - Homogeneous numeric vector datatypes.
+@cindex SRFI-4
 
 @c FIXME::martin: Review me!
 
@@ -996,6 +1002,7 @@ initialized with the elements of the list @var{lst}.
 
 @node SRFI-6
 @section SRFI-6 - Basic String Ports
+@cindex SRFI-6
 
 SRFI-6 defines the procedures @code{open-input-string},
 @code{open-output-string} and @code{get-output-string}.  These
@@ -1006,6 +1013,7 @@ this module does not hurt, after all.
 
 @node SRFI-8
 @section SRFI-8 - receive
+@cindex SRFI-8
 
 @code{receive} is a syntax for making the handling of multiple-value
 procedures easier.  It is documented in @xref{Multiple Values}.
@@ -1013,6 +1021,7 @@ procedures easier.  It is documented in @xref{Multiple Values}.
 
 @node SRFI-9
 @section SRFI-9 - define-record-type
+@cindex SRFI-9
 
 This is the SRFI way for defining record types.  The Guile
 implementation is a layer above Guile's normal record construction
@@ -1063,6 +1072,7 @@ guile> (foo? 1)
 
 @node SRFI-10
 @section SRFI-10 - Hash-Comma Reader Extension
+@cindex SRFI-10
 
 @cindex hash-comma
 @cindex #,()
@@ -1104,7 +1114,10 @@ read in.  The result of @var{proc} is returned by the Scheme reader.
 
 @node SRFI-11
 @section SRFI-11 - let-values
+@cindex SRFI-11
 
+@findex let-values
+@findex let-values*
 This module implements the binding forms for multiple values
 @code{let-values} and @code{let-values*}.  These forms are similar to
 @code{let} and @code{let*} (@pxref{Local Bindings}), but they support
@@ -1130,6 +1143,7 @@ expressions.
 
 @node SRFI-13
 @section SRFI-13 - String Library
+@cindex SRFI-13
 
 In this section, we will describe all procedures defined in SRFI-13
 (string library) and implemented by the module @code{(srfi srfi-13)}.
@@ -1773,6 +1787,7 @@ character set, it is tested for membership.
 
 @node SRFI-14
 @section SRFI-14 - Character-set Library
+@cindex SRFI-14
 
 SRFI-14 defines the data type @dfn{character set}, and also defines a
 lot of procedures for handling this character type, and a few standard
@@ -2173,9 +2188,11 @@ This character set contains all possible characters.
 
 @node SRFI-16
 @section SRFI-16 - case-lambda
+@cindex SRFI-16
 
 @c FIXME::martin: Review me!
 
+@findex case-lambda
 The syntactic form @code{case-lambda} creates procedures, just like
 @code{lambda}, but has syntactic extensions for writing procedures of
 varying arity easier.
@@ -2236,9 +2253,11 @@ applied to zero arguments, yields 1.
 
 @node SRFI-17
 @section SRFI-17 - Generalized set!
+@cindex SRFI-17
 
 This is an implementation of SRFI-17: Generalized set!
 
+@findex getter-with-setter
 It exports the Guile procedure @code{make-procedure-with-setter} under
 the SRFI name @code{getter-with-setter} and exports the standard
 procedures @code{car}, @code{cdr}, @dots{}, @code{cdddr},
@@ -2258,6 +2277,7 @@ specified in the SRFI.  Using it avoids the described problems.
 
 @node SRFI-19
 @section SRFI-19 - Time/Date Library
+@cindex SRFI-19
 
 This is an implementation of SRFI-19: Time/Date Library
 
