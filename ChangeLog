@@ -1,3 +1,7 @@
+2000-09-11  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* autogen.sh: Run aclocal with check where guile.m4 is installed.
+
 2000-09-10  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* src/vm_system.c (push_list): New instruction.
