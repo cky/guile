@@ -1,3 +1,14 @@
+Thu Mar  9 11:33:25 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* vectors.h (SCM_VELTS_AS_STACKITEMS): Added this macro to help in 
+	eliminating some warnings.
+
+	* unif.c, strports.c, print.c, options.c: Fix some warnings on
+ 	mis-use of SCM/long
+
+	* gc.c, gc.h: Added scm_return_first_int(), and added comment re:
+ 	what the scm_return_first* functions do.
+
 2000-03-09  Han-Wen Nienhuys  <hanwen@cs.uu.nl>, applied by Greg J. Badros, <gjb@cs.washington.edu>
 
        * libguile/*.[ch]: make a distinction between SCM as a generic
