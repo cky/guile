@@ -1192,7 +1192,7 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
 	    "being created.\n\n"
 	    "E.g.,\n"
 	    "@example\n"
-	    "(mknod "/dev/fd0" 'block-special #o660 (+ (* 2 256) 2))
+	    "(mknod \"/dev/fd0\" 'block-special #o660 (+ (* 2 256) 2)")
 @end example
 
 The return value is unspecified.")
