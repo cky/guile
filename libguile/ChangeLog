@@ -1,3 +1,18 @@
+Sun Oct 27 01:22:04 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* load.c: change s_try_load and s_try_load_path to s_primitive_load
+	and s_primitive_load_path.
+
+	* eval.c, load.c, error.c (scm_wta): use scm_misc_error.
+
+	* error.h: don't declare error symbols.  prototype for scm_misc_error.
+
+	* stackchk.c (scm_stack_overflow_key): defined here instead of in
+	error.c.
+
+	* error.c: use SCM_SYMBOL to set up error keys.
+	scm_misc_error: new procedure.
+
 Fri Oct 25 01:56:30 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* read.c (scm_lreadr): Recognize SCSH-style block comments; text

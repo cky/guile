@@ -53,6 +53,8 @@
 #ifdef STACK_CHECKING
 int scm_stack_checking_enabled_p;
 
+SCM_SYMBOL (scm_stack_overflow_key, "stack-overflow");
+
 void
 scm_report_stack_overflow ()
 {

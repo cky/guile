@@ -125,7 +125,6 @@ scm_perror (arg)
 void (*scm_error_callback) () = 0;
 
 /* all errors thrown from C should pass through here.  */
-/* also known as scm_error.  */
 void
 scm_error (key, subr, message, args, rest)
      SCM key;
@@ -151,17 +150,7 @@ scm_error (key, subr, message, args, rest)
   exit (1);
 }
 
-/* error keys: defined here, initialized below, prototyped in error.h,
-   associated with handler procedures in boot-9.scm.  */
-SCM scm_system_error_key;
-SCM scm_num_overflow_key;
-SCM scm_out_of_range_key;
-SCM scm_arg_type_key;
-SCM scm_args_number_key;
-SCM scm_memory_alloc_key;
-SCM scm_stack_overflow_key;
-SCM scm_misc_error_key;
-
+SCM_SYMBOL (scm_system_error_key, "system-error");
 void
 scm_syserror (subr)
      char *subr;
@@ -206,6 +195,7 @@ scm_sysmissing (subr)
 #endif
 }
 
+SCM_SYMBOL (scm_num_overflow_key, "numerical-overflow");
 void
 scm_num_overflow (subr)
   char *subr;
@@ -217,6 +207,7 @@ scm_num_overflow (subr)
 	     SCM_BOOL_F);
 }
 
+SCM_SYMBOL (scm_out_of_range_key, "out-of-range");
 void
 scm_out_of_range (subr, bad_value)
      char *subr;
@@ -229,6 +220,7 @@ scm_out_of_range (subr, bad_value)
 	     SCM_BOOL_F);
 }
 
+SCM_SYMBOL (scm_args_number_key, "wrong-number-of-args");
 void
 scm_wrong_num_args (proc)
      SCM proc;
@@ -240,6 +232,7 @@ scm_wrong_num_args (proc)
 	     SCM_BOOL_F);
 }
 
+SCM_SYMBOL (scm_arg_type_key, "wrong-type-arg");
 void
 scm_wrong_type_arg (subr, pos, bad_value)
      char *subr;
@@ -255,6 +248,7 @@ scm_wrong_type_arg (subr, pos, bad_value)
 	     SCM_BOOL_F);
 }
 
+SCM_SYMBOL (scm_memory_alloc_key, "memory-allocation-error");
 void
 scm_memory_error (subr)
      char *subr;
@@ -264,6 +258,16 @@ scm_memory_error (subr)
 	     "Memory allocation error",
 	     SCM_BOOL_F,
 	     SCM_BOOL_F);
+}
+
+SCM_SYMBOL (scm_misc_error_key, "misc-error");
+void
+scm_misc_error (subr, message, args)
+     char *subr;
+     char *message;
+     SCM args;
+{
+  scm_error (scm_misc_error_key, subr, message, args, SCM_BOOL_F);
 }
 
 /* implements the SCM_ASSERT interface.  */  
@@ -278,11 +282,7 @@ scm_wta (arg, pos, s_subr)
   if ((~0x1fL) & (long) pos)
     {
       /* error string supplied.  */
-      scm_error (scm_misc_error_key,
-		 s_subr,
-		 pos,
-		 SCM_BOOL_F,
-		 SCM_BOOL_F);
+      scm_misc_error (s_subr, pos, SCM_BOOL_F);
     }
   else
     {
@@ -311,11 +311,7 @@ scm_wta (arg, pos, s_subr)
 	  scm_memory_error (s_subr);
 	default:
 	  /* this shouldn't happen.  */
-	  scm_error (scm_misc_error_key,
-		     s_subr,
-		     "Unknown error",
-		     SCM_BOOL_F,
-		     SCM_BOOL_F);
+	  scm_misc_error (s_subr, "Unknown error", SCM_BOOL_F);
 	}
     }
   return SCM_UNSPECIFIED;
@@ -327,22 +323,6 @@ scm_wta (arg, pos, s_subr)
 void
 scm_init_error ()
 {
-  scm_system_error_key
-    = scm_permanent_object (SCM_CAR (scm_intern0 ("system-error")));
-  scm_num_overflow_key
-    = scm_permanent_object (SCM_CAR (scm_intern0 ("numerical-overflow")));
-  scm_out_of_range_key
-    = scm_permanent_object (SCM_CAR (scm_intern0 ("out-of-range")));
-  scm_arg_type_key
-    = scm_permanent_object (SCM_CAR (scm_intern0 ("wrong-type-arg")));
-  scm_args_number_key
-    = scm_permanent_object (SCM_CAR (scm_intern0 ("wrong-number-of-args")));
-  scm_memory_alloc_key
-    = scm_permanent_object (SCM_CAR (scm_intern0 ("memory-allocation-error")));
-  scm_stack_overflow_key
-    = scm_permanent_object (SCM_CAR (scm_intern0 ("stack-overflow")));
-  scm_misc_error_key
-    = scm_permanent_object (SCM_CAR (scm_intern0 ("misc-error")));
 #include "error.x"
 }
 

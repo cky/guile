@@ -235,13 +235,11 @@ scm_lookupcar (vloc, genv)
       var = SCM_CAR (var);
     errout:
       /* scm_everr (vloc, genv,...) */
-      scm_error (scm_misc_error_key,
-		 NULL,
-		 SCM_NULLP (env)
-		 ? "Unbound variable: %S"
-		 : "Damaged environment: %S",
-		 scm_listify (var, SCM_UNDEFINED),
-		 SCM_BOOL_F);
+      scm_misc_error (NULL,
+		      SCM_NULLP (env)
+		      ? "Unbound variable: %S"
+		      : "Damaged environment: %S",
+		      scm_listify (var, SCM_UNDEFINED));
     }
 #endif
   SCM_SETCAR (vloc, var + 1);
@@ -397,11 +395,9 @@ scm_m_vref (xorig, env)
   if (SCM_NIMP(x) && UDSCM_VARIABLEP (SCM_CAR (x)))
     {
       /* scm_everr (SCM_UNDEFINED, env,..., "global variable reference") */
-      scm_error (scm_misc_error_key,
-		 NULL,
-		 "Bad variable: %S",
-		 scm_listify (SCM_CAR (SCM_CDR (x)), SCM_UNDEFINED),
-		 SCM_BOOL_F);
+      scm_misc_error (NULL,
+		      "Bad variable: %S",
+		      scm_listify (SCM_CAR (SCM_CDR (x)), SCM_UNDEFINED));
     }
   ASSYNT (SCM_NIMP(x) && DEFSCM_VARIABLEP (SCM_CAR (x)),
 	  xorig, s_variable, s_vref);
@@ -1735,11 +1731,9 @@ dispatch:
       proc = x;
     badfun:
       /* scm_everr (x, env,...) */
-      scm_error (scm_misc_error_key,
-		 NULL,
-		 "Wrong type to apply: %S",
-		 scm_listify (proc, SCM_UNDEFINED),
-		 SCM_BOOL_F);
+      scm_misc_error (NULL,
+		      "Wrong type to apply: %S",
+		      scm_listify (proc, SCM_UNDEFINED));
     case scm_tc7_vector:
     case scm_tc7_wvect:
     case scm_tc7_bvect:

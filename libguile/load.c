@@ -63,7 +63,7 @@
 
 /* Loading a file, given an absolute filename.  */
 
-SCM_PROC(s_sys_try_load, "primitive-load", 1, 2, 0, scm_primitive_load);
+SCM_PROC(s_primitive_load, "primitive-load", 1, 2, 0, scm_primitive_load);
 SCM 
 scm_primitive_load (filename, case_insensitive_p, sharp)
      SCM filename;
@@ -71,7 +71,7 @@ scm_primitive_load (filename, case_insensitive_p, sharp)
      SCM sharp;
 {
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG1, s_sys_try_load);
+	      SCM_ARG1, s_primitive_load);
   {
     SCM form, port;
     port = scm_open_file (filename,
@@ -197,7 +197,7 @@ scm_sys_search_load_path (filename)
 }
 
 
-SCM_PROC(s_sys_try_load_path, "primitive-load-path", 1, 2, 0,scm_primitive_load_path);
+SCM_PROC(s_primitive_load_path, "primitive-load-path", 1, 2, 0,scm_primitive_load_path);
 SCM 
 scm_primitive_load_path (filename, case_insensitive_p, sharp)
      SCM filename;
@@ -207,11 +207,10 @@ scm_primitive_load_path (filename, case_insensitive_p, sharp)
   SCM full_filename = scm_sys_search_load_path (filename);
   if (SCM_FALSEP (full_filename))
     {
-      scm_error (scm_misc_error_key,
-		 s_sys_try_load_path,
-		 "Unable to find file %S in %S",
-		 scm_listify (filename, *scm_loc_load_path, SCM_UNDEFINED),
-		 SCM_BOOL_F);
+      scm_misc_error (s_primitive_load_path,
+		      "Unable to find file %S in %S",
+		      scm_listify (filename, *scm_loc_load_path,
+				   SCM_UNDEFINED));
     }
   return scm_primitive_load (full_filename, case_insensitive_p, sharp);
 }
