@@ -28,8 +28,7 @@
   :use-module (system vm assemble)
   :use-module (ice-9 regex)
   :export (define-language lookup-language
-	    read-in compile-in print-in compile-file-in load-file-in
-	    hacked-load-in))
+	    read-in compile-in print-in compile-file-in load-file-in))
 
 
 ;;;
@@ -107,10 +106,6 @@
 	(let ((bytes (make-uniform-vector (stat:size (stat compiled)) #\a)))
 	  (uniform-vector-read! bytes p)
 	  bytes)))))
-
-(define (hacked-load-in file lang)
-  ((vm-load (make-vm)
-	    (load-file-in file (global-ref 'user) (lookup-language lang)))))
 
 (define (object-file-name file)
   (let ((m (string-match "\\.[^.]*$" file)))

@@ -21,7 +21,6 @@
 
 (define-module (system vm assemble)
   :use-syntax (system base syntax)
-  :use-module (system base module)
   :use-module (system il glil)
   :use-module (system vm core)
   :use-module (system vm conv)
@@ -119,15 +118,15 @@
 				   (+ index i))))))
 
 	   (($ <glil-module> op module name)
-	    (let ((mod (make-vmod module)))
-	      (if toplevel
-		  (begin
-		    ;; (push-code! `(load-module ,module))
-		    (push-code! `(load-symbol ,name))
-		    (push-code! `(link/current-module)))
-		  (let ((vlink (make-vlink mod name)))
-		    (push-code! `(object-ref ,(object-index vlink)))))
-	      (push-code! (list (symbol-append 'variable- op)))))
+	    (if toplevel
+		(begin
+		  ;; (push-code! `(load-module ,module))
+		  (push-code! `(load-symbol ,name))
+		  (push-code! `(link/current-module)))
+		;; (let ((vlink (make-vlink (make-vmod module) name)))
+		(let ((vlink (make-vlink #f name)))
+		  (push-code! `(object-ref ,(object-index vlink)))))
+	    (push-code! (list (symbol-append 'variable- op))))
 
 	   (($ <glil-label> label)
 	    (label-set label (current-address)))
@@ -263,7 +262,7 @@
 (define (build-object-table bytespec)
   (let ((table '()) (index 0))
     (define (insert! x)
-      (if (vlink? x) (begin (insert! (vlink-module x))))
+      ;; (if (vlink? x) (begin (insert! (vlink-module x))))
       (if (not (object-find table x))
 	  (begin
 	    (set! table (acons x index table))

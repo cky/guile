@@ -22,7 +22,6 @@
 (define-module (system il ghil)
   :use-module (oop goops)
   :use-syntax (system base syntax)
-  :use-module (system base module)
   :use-module (ice-9 match)
   :use-module (ice-9 regex)
   :export
@@ -83,7 +82,8 @@
 
 (define-method (ghil-lookup (mod <ghil-mod>) (sym <symbol>))
   (or (assq-ref mod.table sym)
-      (let ((var (make-ghil-var (env-identifier mod.module) sym 'module)))
+      ;; (let ((var (make-ghil-var (env-identifier mod.module) sym 'module)))
+      (let ((var (make-ghil-var #f sym 'module)))
 	(set! mod.table (acons sym var mod.table))
 	var)))
 

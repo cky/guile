@@ -22,7 +22,6 @@
 (define-module (system il compile)
   :use-module (oop goops)
   :use-syntax (system base syntax)
-  :use-module (system base module)
   :use-module (system il glil)
   :use-module (system il ghil)
   :use-module (ice-9 common-list)

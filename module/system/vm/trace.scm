@@ -20,9 +20,6 @@
 ;;; Code:
 
 (define-module (system vm trace)
-  :use-module (oop goops)
-  :use-syntax (system base syntax)
-  :use-module (system base module)
   :use-module (system vm core)
   :use-module (system vm frame)
   :use-module (ice-9 format)

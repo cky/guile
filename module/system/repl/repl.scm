@@ -65,10 +65,10 @@
     error-handler))
 
 (define (error-handler key . args)
-  (case key
-    ((vm-error)
-     (write (frame->call (cadddr args)))
-     (newline)))
+;;   (case key
+;;     ((vm-error)
+;;      (write (frame->call (cadddr args)))
+;;      (newline)))
   (display "ERROR: ")
   (apply format #t (cadr args) (caddr args))
   (newline))

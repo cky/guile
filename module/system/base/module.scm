@@ -216,7 +216,3 @@
 (let ((core (make-vmodule)))
   (env-define *root-package* 'core core)
   (hash-fold (lambda (s v d) (env-define core s v)) #f (builtin-bindings)))
-
-(let ((module (make-vmodule)))
-  (env-define (global-ref 'System::Base) 'module module)
-  (import-old-module! module (current-module)))
