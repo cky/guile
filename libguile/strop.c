@@ -312,7 +312,7 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 
 SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
            (SCM str),
-	    "Return @code{#t} if @var{str}'s length is nonzero, and\n"
+	    "Return @code{#t} if @var{str}'s length is zero, and\n"
 	    "@code{#f} otherwise.\n"
 	    "@lisp\n"
 	    "(string-null? \"\")  @result{} #t\n"
