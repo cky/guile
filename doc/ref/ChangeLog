@@ -1,5 +1,8 @@
 2005-01-14  Kevin Ryde  <user42@zip.com.au>
 
+	* api-data.texi (Mapping Folding and Unfolding): In
+	string-for-each-index, make it clear iteration is over indices.
+
 	* posix.texi (User Information): Note cuserid gone from POSIX.
 	Prompted by Roland Besserer.
 
