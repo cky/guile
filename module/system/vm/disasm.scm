@@ -134,3 +134,11 @@
   (if extra
       (format #t "~4@A    ~32A;; ~A\n" addr info extra)
       (format #t "~4@A    ~A\n" addr info)))
+
+(define (simplify x)
+  (cond ((string? x)
+	 (cond ((string-index x #\newline) =>
+		(lambda (i) (set! x (substring x 0 i)))))
+	 (cond ((> (string-length x) 16)
+		(set! x (string-append (substring x 0 13) "..."))))))
+  x)

@@ -351,10 +351,9 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
 	LOCAL_SET (i, SCM_UNDEFINED);
 
       /* Create external variables */
-      CACHE_EXTERNAL ();
+      external = bp->external;
       for (i = 0; i < bp->nexts; i++)
 	CONS (external, SCM_UNDEFINED, external);
-      SYNC_EXTERNAL ();
 
       ENTER_HOOK ();
       APPLY_HOOK ();
@@ -365,9 +364,10 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
    */
   if (!SCM_FALSEP (scm_procedure_p (x)))
     {
+      SCM args;
       POP_LIST (nargs);
-      sp[-1] = scm_apply (x, *sp, SCM_EOL);
-      sp--;
+      POP (args);
+      *sp = scm_apply (x, args, SCM_EOL);
       NEXT;
     }
   /*
@@ -406,18 +406,16 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
    */
   if (SCM_EQ_P (x, program))
     {
-      INIT_ARGS ();
+      int i;
 
       /* Move arguments */
-      if (bp->nargs)
-	{
-	  int i;
-	  sp -= bp->nargs - 1;
-	  for (i = 0; i < bp->nargs; i++)
-	    LOCAL_SET (i, sp[i]);
-	  sp -= 2;
-	}
+      INIT_ARGS ();
+      sp -= bp->nargs - 1;
+      for (i = 0; i < bp->nargs; i++)
+	LOCAL_SET (i, sp[i]);
+      sp--;
 
+      /* Call itself */
       ip = bp->base;
       APPLY_HOOK ();
       NEXT;
@@ -447,9 +445,10 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
    */
   if (!SCM_FALSEP (scm_procedure_p (x)))
     {
+      SCM args;
       POP_LIST (nargs);
-      sp[-1] = scm_apply (x, *sp, SCM_EOL);
-      sp--;
+      POP (args);
+      *sp = scm_apply (x, args, SCM_EOL);
       goto vm_return;
     }
   /*
@@ -504,7 +503,6 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
   /* Restore the last program */
   program = SCM_VM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
-  CACHE_EXTERNAL ();
   PUSH (ret);
   NEXT;
 }

@@ -26,7 +26,7 @@
   :use-module (system vm core)
   :autoload (system il glil) (pprint-glil)
   :autoload (system vm disasm) (disassemble-program disassemble-objcode)
-  :autoload (system vm trace) (vm-trace)
+  :autoload (system vm trace) (vm-trace vm-trace-on vm-trace-off)
   :autoload (system vm profile) (vm-profile)
   :use-module (ice-9 format)
   :use-module (ice-9 session)
@@ -45,7 +45,7 @@
 	      (disassemble x) (disassemble-file xx))
     (profile  (time t) (profile pr))
     (debug    (backtrace bt) (debugger db) (trace r) (step st))
-    (system   (gc) (statistics st))))
+    (system   (gc) (statistics stat))))
 
 (define (group-name g) (car g))
 (define (group-commands g) (cdr g))
@@ -109,7 +109,7 @@
 	       (if c
 		   (cond ((memq :h opts) (display-command c))
 			 (else (apply (command-procedure c)
-				      repl (append! args opts))))
+				      repl (append! args (reverse! opts)))))
 		   (user-error "Unknown meta command: ~A" key))))))))
 
 
@@ -159,7 +159,22 @@ Show description/documentation."
 (define (option repl . args)
   "option [KEY VALUE]
 List/show/set options."
-  (display "Not implemented yet\n"))
+  (match args
+    (()
+     (for-each (lambda (key+val)
+		 (format #t "~A\t~A\n" (car key+val) (cdr key+val)))
+	       repl.options))
+    ((key)
+     (display (repl-option-ref repl key))
+     (newline))
+    ((key val)
+     (repl-option-set! repl key val)
+     (case key
+       ((trace)
+	(let ((opts (repl-option-ref repl 'trace-options)))
+	  (if val
+	      (apply vm-trace-on repl.env.vm opts)
+	      (vm-trace-off repl.env.vm))))))))
 
 (define (quit repl)
   "quit
@@ -221,15 +236,12 @@ Import modules / List those imported."
   "load FILE
 Load a file in the current module.
 
-  -f    Load source file (see `compile')
-  -r    Trace loading (see `trace')"
+  -f    Load source file (see `compile')"
   (let* ((file (->string file))
 	 (objcode (if (memq :f opts)
 		      (apply load-source-file file opts)
 		      (apply load-file file opts))))
-    (if (memq :r opts)
-	(apply vm-trace repl.env.vm objcode opts)
-	(vm-load repl.env.vm objcode))))
+    (vm-load repl.env.vm objcode)))
 
 (define (binding repl . opts)
   "binding
@@ -267,10 +279,11 @@ Generate compiled code.
 	  ((memq :c opts) (pprint-glil x))
 	  (else (disassemble-objcode x)))))
 
+(define guile:compile-file compile-file)
 (define (compile-file repl file . opts)
   "compile-file FILE
 Compile a file."
-  (apply repl-compile-file repl (->string file) opts))
+  (apply guile:compile-file (->string file) opts))
 
 (define (disassemble repl prog)
   "disassemble PROGRAM

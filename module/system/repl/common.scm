@@ -32,7 +32,11 @@
 ;;; Repl type
 ;;;
 
-(define-vm-class <repl> () env tm-stats vm-stats gc-stats)
+(define-vm-class <repl> () env options tm-stats gc-stats vm-stats)
+
+(define repl-default-options
+  '((trace . #f)
+    (trace-options . (:s))))
 
 (define-public (make-repl lang)
   (let ((cenv (make-cenv :vm (the-vm)
@@ -40,9 +44,10 @@
 			 :module (current-module))))
     (make <repl>
 	  :env cenv
+	  :options repl-default-options
 	  :tm-stats (times)
-	  :vm-stats (vm-stats cenv.vm)
-	  :gc-stats (gc-stats))))
+	  :gc-stats (gc-stats)
+	  :vm-stats (vm-stats cenv.vm))))
 
 (define-public (repl-welcome repl)
   (format #t "~A interpreter ~A on Guile ~A\n"
@@ -72,6 +77,12 @@
       (begin
 	(repl.env.language.printer val)
 	(newline))))
+
+(define-public (repl-option-ref repl key)
+  (assq-ref repl.options key))
+
+(define-public (repl-option-set! repl key val)
+  (set! repl.options (assq-set! repl.options key val)))
 
 
 ;;;

@@ -57,8 +57,9 @@
 	((= i nargs) (cons (program-name prog) (reverse! r))))))
 
 (define (program-name x)
-  (hash-fold (lambda (s v d) (if (eq? x (variable-ref v)) s d)) x
-	     (module-obarray (current-module))))
+  (or (object-property x 'name)
+      (hash-fold (lambda (s v d) (if (eq? x (variable-ref v)) s d)) x
+		 (module-obarray (current-module)))))
 
 
 ;;;

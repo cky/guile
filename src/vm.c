@@ -328,7 +328,7 @@ vm_mark (SCM obj)
 	if (SCM_NIMP (*sp))
 	  scm_gc_mark (*sp);
       fp = SCM_VM_STACK_ADDRESS (sp[-1]);	/* dynamic link */
-      /* Mark frame variables + program */
+      /* Mark external link, frame variables, and program */
       for (sp -= 2; sp >= lower; sp--)
 	if (SCM_NIMP (*sp))
 	  scm_gc_mark (*sp);

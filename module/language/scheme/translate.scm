@@ -45,8 +45,20 @@
 	   (if (eq? x y)
 	       (trans-pair e (or (location x) l) (car x) (cdr x))
 	       (trans e l y))))
-	((symbol? x) (make-<ghil-ref> e l (ghil-lookup e x)))
+	((symbol? x)
+	 (let ((y (expand-symbol x)))
+	   (if (eq? x y)
+	       (make-<ghil-ref> e l (ghil-lookup e x))
+	       (trans e l y))))
 	(else (make-<ghil-quote> e l x))))
+
+(define (expand-symbol x)
+  (let loop ((s (symbol->string x)))
+    (let ((i (string-rindex s #\.)))
+      (if i
+	  `(slot ,(loop (substring s 0 i))
+		 (quote ,(string->symbol (substring s (1+ i)))))
+	  (string->symbol s)))))
 
 (define (trans-pair e l head tail)
   (define (trans:x x) (trans e l x))

@@ -135,16 +135,6 @@
   objects = SCM_VELTS (bp->objs);		\
 }
 
-#define CACHE_EXTERNAL()			\
-{						\
-  external = fp[bp->nargs + bp->nlocs];		\
-}
-
-#define SYNC_EXTERNAL()				\
-{						\
-  fp[bp->nargs + bp->nlocs] = external;		\
-}
-
 #define SYNC_BEFORE_GC()			\
 {						\
   SYNC_REGISTER ();				\
@@ -305,16 +295,16 @@ do {						\
   CHECK_OVERFLOW ();				\
   sp[0]  = ra;					\
   sp[-1] = dl;					\
-  sp[-2] = bp->external;			\
+  sp[-2] = external;				\
 }
 
 #define FREE_FRAME()				\
 {						\
-  SCM *new_sp = fp - 2;				\
-  sp = fp + bp->nargs + bp->nlocs;		\
-  ip = SCM_VM_BYTE_ADDRESS (sp[2]);		\
-  fp = SCM_VM_STACK_ADDRESS (sp[1]);		\
-  sp = new_sp;					\
+  SCM *p = fp + bp->nargs + bp->nlocs;		\
+  sp = fp - 2;					\
+  ip = SCM_VM_BYTE_ADDRESS (p[2]);		\
+  fp = SCM_VM_STACK_ADDRESS (p[1]);		\
+  external = p[0];				\
 }
 
 /*

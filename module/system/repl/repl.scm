@@ -23,6 +23,7 @@
   :use-syntax (system base syntax)
   :use-module (system repl common)
   :use-module (system repl command)
+  :use-module (system vm core)
   :use-module (ice-9 rdelim)
   :export (start-repl))
 
@@ -60,10 +61,10 @@
     error-handler))
 
 (define (error-handler key . args)
-;;   (case key
-;;     ((vm-error)
-;;      (write (frame->call (cadddr args)))
-;;      (newline)))
+  (case key
+    ((vm-error)
+     (write (frame->call (cadddr args)))
+     (newline)))
   (display "ERROR: ")
   (apply format #t (cadr args) (caddr args))
   (newline))

@@ -83,7 +83,6 @@
     (('load-string s) s)
     (('load-symbol s) (string->symbol s))
     (('load-keyword s) (make-keyword-from-dash-symbol (string->symbol s)))
-    (('link s) (cons (string->symbol s) '???))
     (else #f)))
 
 (define (code->bytes code)

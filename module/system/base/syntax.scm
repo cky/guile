@@ -24,7 +24,7 @@
   :use-module (ice-9 match)
   :use-module (ice-9 receive)
   :use-module (ice-9 and-let-star)
-  :export (match and-let* receive))
+  :export (match syntax-error and-let* receive))
 
 
 ;;;
