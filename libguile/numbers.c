@@ -2641,7 +2641,7 @@ scm_istr2flo (char *str, long len, long radix)
 	      case DIGITS:
 		expon = expon * 10 + c - '0';
 		if (expon > SCM_MAXEXP)
-		  return SCM_BOOL_F;	/* exponent too large */
+		  scm_out_of_range ("string->number", SCM_MAKINUM (expon));
 		break;
 	      default:
 		goto out4;
