@@ -43,6 +43,19 @@
 
 (define-module (srfi srfi-13))
 
+(begin-deprecated
+ ;; Prevent `export' from re-exporting core bindings.  This behaviour
+ ;; of `export' is deprecated and will disappear in one f the next
+ ;; releases.
+ (define string->list #f)
+ (define string-copy #f)
+ (define string-fill! #f)
+ (define string-index #f)
+ (define string-upcase #f)
+ (define string-upcase! #f)
+ (define string-downcase #f)
+ (define string-downcase! #f))
+
 (export 
 ;;; Predicates
  ;; string? string-null?       <= in the core
