@@ -1,3 +1,9 @@
+2001-04-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-procedures.texi (Procedures with Setters):  Fix dvi
+	building syntax error.  Thanks to Dale P. Smith for the report and
+	patch.
+
 2001-04-11  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-scheduling.texi (Arbiters): New explanatory text.

@@ -203,7 +203,8 @@ structure.@footnote{Working definitions would be:
 (define foo-ref vector-ref)
 (define foo-set! vector-set!) 
 (define f (make-vector 2 #f))
-@end lisp}
+@end lisp
+}
 
 @lisp
 (foo-ref f 0)       @result{} bar
