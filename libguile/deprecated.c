@@ -26,6 +26,16 @@
 #include "libguile/validate.h"
 #include "libguile/strings.h"
 #include "libguile/strop.h"
+#include "libguile/modules.h"
+#include "libguile/eval.h"
+#include "libguile/smob.h"
+#include "libguile/procprop.h"
+#include "libguile/vectors.h"
+#include "libguile/hashtab.h"
+#include "libguile/struct.h"
+#include "libguile/variable.h"
+#include "libguile/fluids.h"
+#include "libguile/ports.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -177,6 +187,144 @@ SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+void
+scm_remember (SCM *ptr)
+{
+  scm_c_issue_deprecation_warning ("`scm_remember' is deprecated. "
+                                   "Use the `scm_remember_upto_here*' family of functions instead.");
+}
+
+SCM
+scm_protect_object (SCM obj)
+{
+  scm_c_issue_deprecation_warning ("`scm_protect_object' is deprecated. "
+                                   "Use `scm_gc_protect_object' instead.");
+  return scm_gc_protect_object (obj);
+}
+
+SCM
+scm_unprotect_object (SCM obj)
+{
+  scm_c_issue_deprecation_warning ("`scm_unprotect_object' is deprecated. "
+                                   "Use `scm_gc_unprotect_object' instead.");
+  return scm_gc_unprotect_object (obj);
+}
+
+SCM_SYMBOL (scm_sym_app, "app");
+SCM_SYMBOL (scm_sym_modules, "modules");
+static SCM module_prefix = SCM_BOOL_F;
+static SCM make_modules_in_var;
+static SCM beautify_user_module_x_var;
+static SCM try_module_autoload_var;
+
+static void
+init_module_stuff ()
+{
+#define PERM(x) scm_permanent_object(x)
+
+  if (module_prefix == SCM_BOOL_F)
+    {
+      module_prefix = PERM (scm_list_2 (scm_sym_app, scm_sym_modules));
+      make_modules_in_var = PERM (scm_c_lookup ("make-modules-in"));
+      beautify_user_module_x_var =
+	PERM (scm_c_lookup ("beautify-user-module!"));
+      try_module_autoload_var = PERM (scm_c_lookup ("try-module-autoload"));
+    }
+}
+
+SCM
+scm_the_root_module ()
+{
+  init_module_stuff ();
+  scm_c_issue_deprecation_warning ("`scm_the_root_module' is deprecated. "
+				   "Use `scm_c_resolve_module (\"guile\")' "
+				   "instead.");
+
+  return scm_c_resolve_module ("guile");
+}
+
+static SCM
+scm_module_full_name (SCM name)
+{
+  init_module_stuff ();
+  if (SCM_EQ_P (SCM_CAR (name), scm_sym_app))
+    return name;
+  else
+    return scm_append (scm_list_2 (module_prefix, name));
+}
+
+SCM
+scm_make_module (SCM name)
+{
+  init_module_stuff ();
+  scm_c_issue_deprecation_warning ("`scm_make_module' is deprecated. "
+				   "Use `scm_c_define_module instead.");
+
+  return scm_call_2 (SCM_VARIABLE_REF (make_modules_in_var),
+		     scm_the_root_module (),
+		     scm_module_full_name (name));
+}
+
+SCM
+scm_ensure_user_module (SCM module)
+{
+  init_module_stuff ();
+  scm_c_issue_deprecation_warning ("`scm_ensure_user_module' is deprecated. "
+				   "Use `scm_c_define_module instead.");
+
+  scm_call_1 (SCM_VARIABLE_REF (beautify_user_module_x_var), module);
+  return SCM_UNSPECIFIED;
+}
+
+SCM
+scm_load_scheme_module (SCM name)
+{
+  init_module_stuff ();
+  scm_c_issue_deprecation_warning ("`scm_load_scheme_module' is deprecated. "
+				   "Use `scm_c_resolve_module instead.");
+
+  return scm_call_1 (SCM_VARIABLE_REF (try_module_autoload_var), name);
+}
+
+/* This is implemented in C solely for SCM_COERCE_OUTPORT ... */
+
+static void
+maybe_close_port (void *data, SCM port)
+{
+  SCM except = (SCM)data;
+
+  while (!SCM_NULLP (except))
+    {
+      SCM p = SCM_COERCE_OUTPORT (SCM_CAR (except));
+      if (SCM_EQ_P (p, port))
+	return;
+      except = SCM_CDR (except);
+    }
+
+  scm_close_port (port);
+}
+
+SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
+           (SCM ports),
+	    "[DEPRECATED] Close all open file ports used by the interpreter\n"
+	    "except for those supplied as arguments.  This procedure\n"
+	    "was intended to be used before an exec call to close file descriptors\n"
+	    "which are not needed in the new process.  However it has the\n"
+	    "undesirable side effect of flushing buffers, so it's deprecated.\n"
+	    "Use port-for-each instead.")
+#define FUNC_NAME s_scm_close_all_ports_except
+{
+  SCM p;
+  SCM_VALIDATE_REST_ARGUMENT (ports);
+  
+  for (p = ports; !SCM_NULLP (p); p = SCM_CDR (p))
+    SCM_VALIDATE_OPPORT (SCM_ARG1, SCM_COERCE_OUTPORT (SCM_CAR (p)));
+
+  scm_c_port_for_each (maybe_close_port, ports);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
 
 void
 scm_i_init_deprecated ()
