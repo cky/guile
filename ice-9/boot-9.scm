@@ -1098,11 +1098,11 @@
 ;; A module is characterized by an obarray in which local symbols
 ;; are interned, a list of modules, "uses", from which non-local
 ;; bindings can be inherited, and an optional lazy-binder which
-;; is a (THUNK module symbol) which, as a last resort, can provide
+;; is a (CLOSURE module symbol) which, as a last resort, can provide
 ;; bindings that would otherwise not be found locally in the module.
 ;;
 (define module-type
-  (make-record-type 'module '(obarray uses binder eval-thunk name kind)
+  (make-record-type 'module '(obarray uses binder eval-closure name kind)
 		    %print-module))
 
 ;; make-module &opt size uses binder
@@ -1140,7 +1140,7 @@
 	  ;; We can't pass this as an argument to module-constructor,
 	  ;; because we need it to close over a pointer to the module
 	  ;; itself.
-	  (set-module-eval-thunk! module
+	  (set-module-eval-closure! module
 				  (lambda (symbol define?)
 				    (if define?
 					(module-make-local-var! module symbol)
@@ -1155,8 +1155,8 @@
 (define set-module-uses! (record-modifier module-type 'uses))
 (define module-binder (record-accessor module-type 'binder))
 (define set-module-binder! (record-modifier module-type 'binder))
-(define module-eval-thunk (record-accessor module-type 'eval-thunk))
-(define set-module-eval-thunk! (record-modifier module-type 'eval-thunk))
+(define module-eval-closure (record-accessor module-type 'eval-closure))
+(define set-module-eval-closure! (record-modifier module-type 'eval-closure))
 (define module-name (record-accessor module-type 'name))
 (define set-module-name! (record-modifier module-type 'name))
 (define module-kind (record-accessor module-type 'kind))
@@ -1165,7 +1165,7 @@
 
 
 (define (eval-in-module exp module)
-  (eval2 exp (module-eval-thunk module)))
+  (eval2 exp (module-eval-closure module)))
 
 
 ;;; {Module Searching in General}
@@ -1426,7 +1426,7 @@
 ;;
 
 
-(define (root-module-thunk m s define?)
+(define (root-module-closure m s define?)
   (let ((bi (and (symbol-interned? #f s)
 		 (builtin-variable s))))
     (and bi
@@ -1436,7 +1436,7 @@
 	   bi))))
 
 (define (make-root-module)
-  (make-module 1019 '() root-module-thunk))
+  (make-module 1019 '() root-module-closure))
 
 
 ;; make-scm-module 
@@ -1473,8 +1473,8 @@
 (define (set-current-module m)
   (set! the-module m)
   (if m
-      (set! *top-level-lookup-thunk* (module-eval-thunk the-module))
-      (set! *top-level-lookup-thunk* #f)))
+      (set! *top-level-lookup-closure* (module-eval-closure the-module))
+      (set! *top-level-lookup-closure* #f)))
 
 
 ;; current-module
