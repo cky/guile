@@ -161,6 +161,18 @@
 /* Define if you have the ctermid function.  */
 #undef HAVE_CTERMID
 
+/* Define if you have the endhostent function.  */
+#undef HAVE_ENDHOSTENT
+
+/* Define if you have the endnetent function.  */
+#undef HAVE_ENDNETENT
+
+/* Define if you have the endprotoent function.  */
+#undef HAVE_ENDPROTOENT
+
+/* Define if you have the endservent function.  */
+#undef HAVE_ENDSERVENT
+
 /* Define if you have the ftime function.  */
 #undef HAVE_FTIME
 
@@ -176,11 +188,35 @@
 /* Define if you have the gethostent function.  */
 #undef HAVE_GETHOSTENT
 
+/* Define if you have the getnetbyaddr function.  */
+#undef HAVE_GETNETBYADDR
+
+/* Define if you have the getnetbyname function.  */
+#undef HAVE_GETNETBYNAME
+
+/* Define if you have the getnetent function.  */
+#undef HAVE_GETNETENT
+
+/* Define if you have the getprotoent function.  */
+#undef HAVE_GETPROTOENT
+
+/* Define if you have the getservent function.  */
+#undef HAVE_GETSERVENT
+
 /* Define if you have the gettimeofday function.  */
 #undef HAVE_GETTIMEOFDAY
 
 /* Define if you have the inet_aton function.  */
 #undef HAVE_INET_ATON
+
+/* Define if you have the inet_lnaof function.  */
+#undef HAVE_INET_LNAOF
+
+/* Define if you have the inet_makeaddr function.  */
+#undef HAVE_INET_MAKEADDR
+
+/* Define if you have the inet_netof function.  */
+#undef HAVE_INET_NETOF
 
 /* Define if you have the lstat function.  */
 #undef HAVE_LSTAT
@@ -221,8 +257,14 @@
 /* Define if you have the seteuid function.  */
 #undef HAVE_SETEUID
 
+/* Define if you have the sethostent function.  */
+#undef HAVE_SETHOSTENT
+
 /* Define if you have the setlocale function.  */
 #undef HAVE_SETLOCALE
+
+/* Define if you have the setnetent function.  */
+#undef HAVE_SETNETENT
 
 /* Define if you have the setpgid function.  */
 #undef HAVE_SETPGID

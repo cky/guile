@@ -1129,7 +1129,7 @@ if eval "test \"`echo '$''{'am_cv_path_LD'+set}'`\" = set"; then
 else
   case "$LD" in
   /*)
-  am_cv_path_LD="$LD" # Let the user override the test with a path.
+  ac_cv_path_LD="$LD" # Let the user override the test with a path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
@@ -2615,64 +2615,64 @@ fi
 done
 
 
-cp confdefs.h confdefs.h.bak
-for func in sethostent endhostent getnetent setnetent endnetent getprotoent endprotoent getservent endservent getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof ; do
-cp confdefs.h.bak confdefs.h
-cat >> confdefs.h << EOF 
-#ifdef __CYGWIN32__
-#define $func cygwin32_$func
-#endif
-EOF
-echo $ac_n "checking for $func""... $ac_c" 1>&6
-echo "configure:2628: checking for $func" >&5
-if eval "test \"`echo '$''{'ac_cv_func_$func'+set}'`\" = set"; then
+
+
+
+for ac_func in sethostent endhostent getnetent setnetent endnetent getprotoent endprotoent getservent endservent getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof
+do
+echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+echo "configure:2625: checking for $ac_func" >&5
+if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2633 "configure"
+#line 2630 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char $func(); below.  */
+    which can conflict with char $ac_func(); below.  */
 #include <assert.h>
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
-char $func();
+char $ac_func();
 
 int main() {
 
 /* The GNU C library defines this for functions which it implements
     to always fail with ENOSYS.  Some functions are actually named
     something starting with __ and the normal name is an alias.  */
-#if defined (__stub_$func) || defined (__stub___$func)
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
 choke me
 #else
-$func();
+$ac_func();
 #endif
 
 ; return 0; }
 EOF
-if { (eval echo configure:2656: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:2653: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
-  eval "ac_cv_func_$func=yes"
+  eval "ac_cv_func_$ac_func=yes"
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
-  eval "ac_cv_func_$func=no"
+  eval "ac_cv_func_$ac_func=no"
 fi
 rm -f conftest*
 fi
 
-if eval "test \"`echo '$ac_cv_func_'$func`\" = yes"; then
+if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  :
+    ac_tr_func=HAVE_`echo $ac_func | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_func 1
+EOF
+ 
 else
   echo "$ac_t""no" 1>&6
 fi
-
 done
-cp confdefs.h.bak confdefs.h
+
 
 
 echo $ac_n "checking for restartable system calls""... $ac_c" 1>&6

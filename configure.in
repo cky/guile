@@ -96,17 +96,31 @@ fi
 
 AC_CHECK_FUNCS(socketpair getgroups setpwent pause tzset)
 
-cp confdefs.h confdefs.h.bak
-for func in sethostent endhostent getnetent setnetent endnetent getprotoent endprotoent getservent endservent getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof ; do
-cp confdefs.h.bak confdefs.h
-cat >> confdefs.h << EOF 
-#ifdef __CYGWIN32__
-#define $func cygwin32_$func
-#endif
-EOF
-AC_CHECK_FUNC($func)
-done
-cp confdefs.h.bak confdefs.h
+dnl I don't know what this prefixing of cygwin32_ is for.
+dnl scmconfig.h wasn't updated with the test results.
+dnl so use AC_CHECK_FUNCS for now.
+
+dnl how about:
+dnl save confdefs.h
+dnl if test $ac_cv_cigwin = yes; then
+dnl   modify confdefs.h
+dnl fi
+dnl AC_CHECK_FUNCS...
+dnl restore confdefs.h
+
+dnl cp confdefs.h confdefs.h.bak
+dnl for func in sethostent endhostent getnetent setnetent endnetent getprotoent endprotoent getservent endservent getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof ; do
+dnl cp confdefs.h.bak confdefs.h
+dnl cat >> confdefs.h << EOF 
+dnl #ifdef __CYGWIN32__
+dnl #define $func cygwin32_$func
+dnl #endif
+dnl EOF
+dnl AC_CHECK_FUNC($func)
+dnl done
+dnl cp confdefs.h.bak confdefs.h
+
+AC_CHECK_FUNCS(sethostent endhostent getnetent setnetent endnetent getprotoent endprotoent getservent endservent getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof)
 
 dnl </GNU-WIN32 hacks>
 

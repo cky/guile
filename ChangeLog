@@ -1,3 +1,9 @@
+Thu Jul 17 07:56:05 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* configure.in: use AC_CHECK_FUNCS for sethostent etc.,
+	so scmconfig.h is updated with the test results.  this may
+	disable one of the cygwin hacks.
+
 Fri Jul 11 00:18:19 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	Changes to compile under gnu-win32, from Marcus Daniels:
