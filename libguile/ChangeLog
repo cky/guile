@@ -1,7 +1,7 @@
 1999-08-29  Gary Houston  <ghouston@easynet.co.uk>
 
 	* ports.c (scm_ungetc): bugfix: if putback_buf is NULL 
-	don't allocate zero bytes.
+	don't allocate zero bytes (thanks to Bill Schottstaedt).
 
 1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
