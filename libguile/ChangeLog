@@ -1,3 +1,8 @@
+Fri Jul 25 17:00:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c (scm_apply): Handle the case when a tc7_sybr_2 is applied
+	to a list of length zero correctly.
+
 Wed Jul 23 16:17:46 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
 
 	Supply an `fgets' method for port objects to do fast line i/o.

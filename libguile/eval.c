@@ -2592,7 +2592,8 @@ tail:
       args = SCM_NULLP (args) ? SCM_UNDEFINED : SCM_CAR (args);
       RETURN (SCM_SUBRF (proc) (arg1, args))
     case scm_tc7_subr_2:
-      SCM_ASRTGO (SCM_NULLP (SCM_CDR (args)), wrongnumargs);
+      SCM_ASRTGO (SCM_NNULLP (args) && SCM_NULLP (SCM_CDR (args)),
+		  wrongnumargs);
       args = SCM_CAR (args);
       RETURN (SCM_SUBRF (proc) (arg1, args))
     case scm_tc7_subr_0:
