@@ -1,5 +1,7 @@
 2004-04-22  Kevin Ryde  <user42@zip.com.au>
 
+	* numbers.c (scm_bit_extract): Use SCM_SRS for signed right shift.
+
 	* numbers.c (scm_round): Test for x already an integer, to avoid bad
 	rounding in x+0.5 when x is a big value already an integer.  In
 	certain hardware rounding cases x+0.5 can give an adjacent integer,
