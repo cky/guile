@@ -1,6 +1,6 @@
 ;; popen emulation, for non-stdio based ports.
 
-;;;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998, 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -90,14 +90,18 @@
 			  (set! output-fdes (dup->fdes 0)))
 		      (if (= error-fdes 0)
 			  (set! error-fdes (dup->fdes 0)))
-		      (dup2 input-fdes 0)))
+		      (dup2 input-fdes 0)
+		      (close-fdes input-fdes)))
 
 	       (cond ((not (= output-fdes 1))
 		      (if (= error-fdes 1)
 			  (set! error-fdes (dup->fdes 1)))
-		      (dup2 output-fdes 1)))
+		      (dup2 output-fdes 1)
+		      (close-fdes output-fdes)))
 
-	       (dup2 error-fdes 2)
+	       (cond ((not (= error-fdes 2))
+		      (dup2 error-fdes 2)
+		      (close-fdes error-fdes)))
 		     
 	       (apply execlp prog prog args)))
 
