@@ -28,6 +28,22 @@ libguile_la_SOURCES = \
     struct.c symbols.c tag.c throw.c unif.c variable.c vectors.c \
     version.c vports.c weaks.c fluids.c
 
+BUILT_SOURCES = \
+    alist.x appinit.x arbiters.x async.x boolean.x chars.x \
+    continuations.x dynl.x dynwind.x eq.x error.x eval.x feature.x \
+    filesys.x fports.x gc.x gdbint.x genio.x gh_data.x gh_eval.x \
+    gh_funcs.x gh_init.x gh_io.x gh_list.x gh_predicates.x gsubr.x \
+    hash.x hashtab.x init.x ioext.x kw.x list.x load.x mallocs.x \
+    markers.x net_db.x numbers.x objects.x objprop.x options.x pairs.x \
+    ports.x posix.x print.x procprop.x procs.x ramap.x read.x \
+    readline.x root.x scmsigs.x script.x simpos.x smob.x socket.x \
+    stackchk.x stime.x strings.x strop.x strorder.x strports.x \
+    struct.x symbols.x tag.x throw.x unif.x variable.x vectors.x \
+    version.x vports.x weaks.x fluids.x \
+    backtrace.x stacks.x debug.x srcprop.x \
+    threads.x \
+    regex-posix.x iselect.x
+
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
     strerror.c inet_aton.c putenv.c \

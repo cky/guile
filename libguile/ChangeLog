@@ -1,3 +1,7 @@
+1998-04-14  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* Makefile.am: Added .x-dependencies to variable BUILT_SOURCES.
+
 1998-04-13  Mikael Djurfeldt  <mdj@kenneth>
 
 	* ports.c (scm_port_line, scm_set_port_line_x, scm_port_column,
