@@ -147,14 +147,7 @@ SCM
 scm_closure_p (obj)
      SCM obj;
 {
-  if (SCM_NIMP (obj))
-    switch (SCM_TYP7 (obj))
-      {
-      case scm_tcs_closures:
-	return SCM_BOOL_T;
-      default: ;
-      }
-  return SCM_BOOL_F;
+  return SCM_NIMP (obj) && SCM_CLOSUREP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 SCM_PROC(s_thunk_p, "thunk?", 1, 0, 0, scm_thunk_p);

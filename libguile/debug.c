@@ -214,11 +214,13 @@ scm_procedure_name (proc)
     {
       SCM name = scm_procedure_property (proc, scm_i_name);
 #if 0
-      /* Procedure property scm_i_procname not implemented yet... */
+      /* Source property scm_i_procname not implemented yet... */
       SCM name = scm_source_property (SCM_CAR (SCM_CDR (SCM_CODE (proc))), scm_i_procname);
       if (SCM_FALSEP (name))
 	name = scm_procedure_property (proc, scm_i_name);
 #endif
+      if (SCM_FALSEP (name))
+	name = scm_procedure_property (proc, scm_i_inner_name);
       return name;
     }
   case scm_tcs_subrs:

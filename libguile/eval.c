@@ -879,8 +879,21 @@ scm_m_define (x, env)
     {
       x = evalcar (x, env);
 #ifdef DEBUG_EXTENSIONS
-      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x) && SCM_CLOSUREP (x))
-	scm_set_procedure_property_x (x, scm_i_name, proc);
+      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x))
+	{
+	  arg1 = x;
+	proc:
+	  if (SCM_CLOSUREP (arg1)
+	      /* Only the first definition determines the name. */
+	      && scm_procedure_property (arg1, scm_i_name) == SCM_BOOL_F)
+	    scm_set_procedure_property_x (arg1, scm_i_name, proc);
+	  else if (SCM_TYP16 (arg1) == scm_tc16_macro
+		   && SCM_CDR (arg1) != arg1)
+	    {
+	      arg1 = SCM_CDR (arg1);
+	      goto proc;
+	    }
+	}
 #endif
       arg1 = scm_sym2vcell (proc, env_top_level (env), SCM_BOOL_T);
 #if 0
@@ -1818,8 +1831,22 @@ dispatch:
       x = SCM_CDR (x);
       x = evalcar (x, env);
 #ifdef DEBUG_EXTENSIONS
-      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x) && SCM_CLOSUREP (x))
-	scm_set_procedure_property_x (x, scm_i_name, proc);
+      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x))
+	{
+	  t.arg1 = x;
+	proc:
+	  if (SCM_CLOSUREP (t.arg1)
+	      /* Only the first definition determines the name. */
+	      && (scm_procedure_property (t.arg1, scm_i_inner_name)
+		  == SCM_BOOL_F))
+	    scm_set_procedure_property_x (t.arg1, scm_i_inner_name, proc);
+	  else if (SCM_TYP16 (t.arg1) == scm_tc16_macro
+		   && SCM_CDR (t.arg1) != t.arg1)
+	    {
+	      t.arg1 = SCM_CDR (t.arg1);
+	      goto proc;
+	    }
+	}
 #endif
       env = SCM_CAR (env);
       SCM_DEFER_INTS;
@@ -2983,7 +3010,7 @@ scm_macro_transformer (m)
 	      m,
 	      SCM_ARG1,
 	      s_macro_transformer);
-  return SCM_NFALSEP (scm_closure_p (SCM_CDR (m))) ? SCM_CDR (m) : SCM_BOOL_F;
+  return SCM_CLOSUREP (SCM_CDR (m)) ? SCM_CDR (m) : SCM_BOOL_F;
 }
 
 

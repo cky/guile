@@ -348,7 +348,7 @@ taloop:
 	  print_circref (port, pstate, exp);
 	  break;
 	macros:
-	  if (SCM_FALSEP (scm_closure_p (SCM_CDR (exp))))
+	  if (!SCM_CLOSUREP (SCM_CDR (exp)))
 	    goto prinmacro;
 	case scm_tcs_closures:
 	  /* The user supplied print closure procedure must handle
@@ -369,8 +369,8 @@ taloop:
 		{
 		  /* Printing a macro. */
 		prinmacro:
-		  name = scm_procedure_name (SCM_CDR (exp));
-		  if (SCM_FALSEP (scm_closure_p (SCM_CDR (exp))))
+		  name = scm_macro_name (exp);
+		  if (!SCM_CLOSUREP (SCM_CDR (exp)))
 		    {
 		      code = 0;
 		      scm_gen_puts (scm_regular_string, "#<primitive-",
