@@ -101,9 +101,16 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 
 (define (read-text-outline-silently port)
   (let* ((all '(start))
-         (pchain (list))                ; parents chain
-         (tp all))                      ; tail pointer
-    (let loop ((line (read-line port)) (prev-level -1))
+         (pchain (list)))               ; parents chain
+    (let loop ((line (read-line port))
+               (prev-level -1)          ; how this relates to the first input
+                                        ; level determines whether or not we
+                                        ; start in "sibling" or "child" mode.
+                                        ; in the end, `start' is ignored and
+                                        ; it's much easier to ignore parents
+                                        ; than siblings (sometimes).  this is
+                                        ; not to encourage ignorance, however.
+               (tp all))                ; tail pointer
       (or (eof-object? line)
           (cond ((regexp-exec *depth-cue-rx* line)
                  => (lambda (m)
@@ -112,38 +119,40 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                                         (or (match:substring m *subm-number*)
                                             ""))
                                        *level-divisor*))
-                             (diff (- level prev-level))
-                             (saved-tp tp))
+                             (diff (- level prev-level)))
                         (cond
 
                          ;; sibling
                          ((zero? diff)
-                          (set-cdr! tp words)
-                          (set! tp words))
+                          ;; just extend the chain
+                          (set-cdr! tp words))
 
                          ;; child
                          ((positive? diff)
                           (or (= 1 diff)
                               (error "unhandled diff not 1:" diff line))
+                          ;; parent may be contacted by uncle later (kids
+                          ;; these days!) so save its level
                           (set-object-property! tp 'level prev-level)
                           (set! pchain (cons tp pchain))
-                          (set-car! tp (cons (car tp) words))
-                          (set! tp words))
+                          ;; "push down" car into hierarchy
+                          (set-car! tp (cons (car tp) words)))
 
                          ;; uncle
                          ((negative? diff)
+                          ;; prune back to where levels match
                           (do ((p pchain (cdr p)))
                               ((= level (object-property (car p) 'level))
                                (set! pchain p)))
+                          ;; resume at this level
                           (set-cdr! (car pchain) words)
-                          (set! pchain (cdr pchain))
-                          (set! tp words)))
+                          (set! pchain (cdr pchain))))
 
-                        (loop (read-line port) level))))
-                (else (loop (read-line port) prev-level)))))
+                        (loop (read-line port) level words))))
+                (else (loop (read-line port) prev-level tp)))))
     (set! all (car all))
     (if (eq? 'start all)
-        '()
+        '()                             ; wasteland
         (cdr all))))
 
 (define (read-text-outline . args)
