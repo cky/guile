@@ -1,3 +1,9 @@
+2004-08-11  Marius Vollmer  <mvo@zagadka.de>
+
+	* gc.c, procprop.c (scm_init_storage, scm_stand_in_procs,
+	scm_stand_in_proc): Use a hastable for scm_stand_in_procs instead
+	of an alist.  Thanks to Matthias Koeppe!
+
 2004-08-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* strings.h, deprecated.h (SCM_STRING_COERCE_0TERMINATION_X):

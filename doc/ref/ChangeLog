@@ -1,3 +1,7 @@
+2004-08-11  Marius Vollmer  <mvo@zagadka.de>
+
+	* api-data.texi (scm_c_round, scm_c_truncate): Docs for'em.
+
 2004-08-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-control.texi: Updated example to use scm_to_locale_string
