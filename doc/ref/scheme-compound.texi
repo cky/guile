@@ -340,32 +340,34 @@ pairs.  This is why you should be careful when using the side-effecting
 variants.
 
 @rnindex append
-@deffn {Scheme Procedure} append . args
-@deffnx {C Function} scm_append (args)
-Return a list consisting of the elements the lists passed as
-arguments.
+@deffn {Scheme Procedure} append lst1 @dots{} lstN
+@deffnx {Scheme Procedure} append! lst1 @dots{} lstN
+@deffnx {C Function} scm_append (lstlst)
+@deffnx {C Function} scm_append_x (lstlst)
+Return a list comprising all the elements of lists @var{lst1} to
+@var{lstN}.
+
 @lisp
 (append '(x) '(y))          @result{}  (x y)
 (append '(a) '(b c d))      @result{}  (a b c d)
 (append '(a (b)) '((c)))    @result{}  (a (b) (c))
 @end lisp
-The resulting list is always newly allocated, except that it
-shares structure with the last list argument.  The last
-argument may actually be any object; an improper list results
-if the last argument is not a proper list.
+
+The last argument @var{lstN} may actually be any object; an improper
+list results if the last argument is not a proper list.
+
 @lisp
 (append '(a b) '(c . d))    @result{}  (a b c . d)
 (append '() 'a)             @result{}  a
 @end lisp
-@end deffn
 
-@deffn {Scheme Procedure} append! . lists
-@deffnx {C Function} scm_append_x (lists)
-A destructive version of @code{append} (@pxref{Pairs and
-lists,,,r5rs, The Revised^5 Report on Scheme}).  The cdr field
-of each list's final pair is changed to point to the head of
-the next list, so no consing is performed.  Return a pointer to
-the mutated list.
+@code{append} doesn't modify the given lists, but the return may share
+structure with the final @var{lstN}.  @code{append!} modifies the
+given lists to form its return.
+
+For @code{scm_append} and @code{scm_append_x}, @var{lstlst} is a list
+of the list operands @var{lst1} @dots{} @var{lstN}.  That @var{lstlst}
+itself is not modified or used in the return.
 @end deffn
 
 @rnindex reverse
