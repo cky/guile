@@ -77,7 +77,7 @@
 
 
 unsigned long 
-scm_strhash (unsigned char *str,scm_sizet len,unsigned long n)
+scm_strhash (const unsigned char *str, scm_sizet len, unsigned long n)
 {
   if (len > 5)
     {
@@ -237,16 +237,13 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness
 
   SCM_REDEFER_INTS;
 
-  i = len;
-  tmp = (unsigned char *) name;
-
   if (obarray == SCM_BOOL_F)
     {
-      scm_hash = scm_strhash (tmp, i, 1019);
+      scm_hash = scm_strhash (name, len, 1019);
       goto uninterned_symbol;
     }
 
-  scm_hash = scm_strhash (tmp, i, SCM_LENGTH(obarray));
+  scm_hash = scm_strhash (name, len, SCM_LENGTH (obarray));
 
   /* softness == -1 used to mean that it was known that the symbol
      wasn't already in the obarray.  I don't think there are any
@@ -359,8 +356,7 @@ scm_sysintern0_no_module_lookup (const char *name)
     {
       SCM lsym;
       scm_sizet len = strlen (name);
-      register unsigned char *tmp = (unsigned char *) name;
-      scm_sizet scm_hash = scm_strhash (tmp, len, (unsigned long) scm_symhash_dim);
+      scm_sizet scm_hash = scm_strhash (name, len, (unsigned long) scm_symhash_dim);
       SCM_NEWCELL (lsym);
       SCM_SETLENGTH (lsym, (long) len, scm_tc7_ssymbol);
       SCM_SETCHARS (lsym, name);

@@ -109,7 +109,7 @@ extern int scm_symhash_dim;
 
 
 
-extern unsigned long scm_strhash (unsigned char *str, scm_sizet len, unsigned long n);
+extern unsigned long scm_strhash (const unsigned char *str, scm_sizet len, unsigned long n);
 extern SCM scm_sym2vcell (SCM sym, SCM thunk, SCM definep);
 extern SCM scm_sym2ovcell_soft (SCM sym, SCM obarray);
 extern SCM scm_sym2ovcell (SCM sym, SCM obarray);

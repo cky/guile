@@ -1,5 +1,14 @@
 2000-03-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* symbols.h, symbols.c (scm_strhash):  Declare the string
+	parameter as constant, since it is not modified.
+
+	* symbols.c (scm_intern_obarray_soft,
+	scm_sysintern0_no_module_lookup):  Can now pass constant strings
+	to scm_strhash without need for casting.
+
+2000-03-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* vectors.h (SCM_VELTS, SCM_VELTS_AS_STACKITEMS):  Don't cast SCM
 	values to pointers.  Use SCM2PTR instead.
 
