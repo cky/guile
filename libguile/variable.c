@@ -42,6 +42,7 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "eq.h"
 #include "genio.h"
 #include "smob.h"
 
@@ -97,8 +98,18 @@ scm_markvar (ptr)
   return SCM_CDR (ptr);
 }
 
+static SCM var_equal SCM_P ((SCM var1, SCM var2));
+
+static SCM
+var_equal (var1, var2)
+     SCM var1;
+     SCM var2;
+{
+  return scm_equal_p (SCM_CDR (var1), SCM_CDR (var2));
+}
+
 int scm_tc16_variable;
-static scm_smobfuns variable_smob = {scm_markvar, free_var, prin_var, 0};
+static scm_smobfuns variable_smob = {scm_markvar, free_var, prin_var, var_equal};
 
 
 static SCM anonymous_variable_sym;
