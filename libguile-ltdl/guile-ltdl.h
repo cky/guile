@@ -27,9 +27,10 @@ Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #define SCM_LTDL_H 1
 
 typedef struct scm_i_lt_dlhandle_struct *scm_lt_dlhandle;
+typedef struct scm_i_lt_dlsymlist_struct scm_lt_dlsymlist;
 typedef void * scm_lt_ptr;
 
-void            scm_lt_dlset_preloaded_symbols (void);
+void            scm_lt_dlpreload_default (const scm_lt_dlsymlist *preloads);
 int             scm_lt_dlinit (void);
 scm_lt_dlhandle scm_lt_dlopenext (const char *filename);
 scm_lt_ptr      scm_lt_dlsym (scm_lt_dlhandle handle, const char *name);
