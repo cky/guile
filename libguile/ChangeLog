@@ -1,3 +1,7 @@
+1997-11-29  Tim Pierce  <twp@skepsis.com>
+
+	* iselect.c: Doc fix.
+
 Sat Nov 29 01:16:53 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* init.c (scm_start_stack): Removed initialization of

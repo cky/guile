@@ -45,6 +45,15 @@
 
 #include "_scm.h"
 
+/*
+ * iselect.c is linked with Guile only when threads are in use.  However,
+ * when threads are *not* in use, the `make depend' mechanism will try
+ * to process this file anyway and get tangled up in iselect.h and
+ * coop-threads.h.  Therefore, we use the USE_THREADS macro (which is
+ * otherwise redundant for this file) to prevent `make depend' from
+ * failing.
+ */
+
 #ifdef USE_THREADS
 #include "iselect.h"
 #include "coop-threads.h"
