@@ -1,3 +1,8 @@
+2000-03-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* async.c (scm_set_tick_rate, scm_set_switch_rate):  Don't unpack
+	results of SCM_INUM.
+
 2000-03-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* init.c (scm_boot_guile_1): Renamed GUILE_GC_TRIGGER_1 -->
