@@ -170,4 +170,5 @@
 		    (lambda () (read))
 		    (lambda ()
 		      (set-readline-prompt! "" "")
-		      (set-readline-read-hook! #f))))))))
+		      (set-readline-read-hook! #f)))))
+	(set! (using-readline?) #t))))
