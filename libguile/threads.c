@@ -876,6 +876,15 @@ SCM_DEFINE (scm_lock_mutex, "lock-mutex", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+void
+scm_frame_lock_mutex (SCM mutex)
+{
+  scm_frame_unwind_handler_with_scm ((void(*)(SCM))scm_unlock_mutex, mutex,
+				     SCM_F_WIND_EXPLICITLY);
+  scm_frame_rewind_handler_with_scm ((void(*)(SCM))scm_lock_mutex, mutex,
+				     SCM_F_WIND_EXPLICITLY);
+}
+
 static char *
 fat_mutex_trylock (fat_mutex *m, int *resp)
 {
@@ -1490,13 +1499,20 @@ scm_i_frame_single_threaded ()
   scm_frame_unwind_handler (wake_up, NULL, SCM_F_WIND_EXPLICITLY);
 }
 
+/* This mutex is used by SCM_CRITICAL_SECTION_START/END.
+ */
 scm_i_pthread_mutex_t scm_i_critical_section_mutex =
-  SCM_I_PTHREAD_MUTEX_INITIALIZER;
+  SCM_I_PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+int scm_i_critical_section_level = 0;
+
+static SCM framed_critical_section_mutex;
 
 void
-scm_frame_critical_section ()
+scm_frame_critical_section (SCM mutex)
 {
-  scm_i_frame_pthread_mutex_lock (&scm_i_critical_section_mutex);
+  if (scm_is_false (mutex))
+    mutex = framed_critical_section_mutex;
+  scm_frame_lock_mutex (mutex);
   scm_frame_block_asyncs ();
 }
 
@@ -1508,10 +1524,8 @@ scm_i_pthread_mutex_t scm_i_misc_mutex;
 void
 scm_threads_prehistory (SCM_STACKITEM *base)
 {
-  scm_i_pthread_mutex_init (&thread_admin_mutex, NULL);
   scm_i_pthread_mutex_init (&scm_i_misc_mutex, NULL);
   scm_i_pthread_cond_init (&wake_up_cond, NULL);
-  scm_i_pthread_mutex_init (&scm_i_critical_section_mutex, NULL);
   scm_i_pthread_key_create (&scm_i_freelist, NULL);
   scm_i_pthread_key_create (&scm_i_freelist2, NULL);
   
@@ -1544,6 +1558,9 @@ scm_init_threads ()
   scm_i_default_dynamic_state = SCM_BOOL_F;
   guilify_self_2 (SCM_BOOL_F);
   threads_initialized_p = 1;
+
+  framed_critical_section_mutex =
+    scm_permanent_object (scm_make_recursive_mutex ());
 }
 
 void

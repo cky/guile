@@ -132,18 +132,6 @@ SCM_API void *scm_with_guile (void *(*func)(void *), void *data);
 SCM_API void *scm_i_with_guile_and_parent (void *(*func)(void *), void *data,
 					   SCM parent);
 
-/* Critical sections */
-
-/* XXX - every critical section needs to be examined and protected
-   with scm_frame_critical_section, say.
-*/
-
-extern scm_i_pthread_mutex_t scm_i_critical_section_mutex;
-
-#define SCM_CRITICAL_SECTION_START \
-  scm_i_pthread_mutex_lock (&scm_i_critical_section_mutex)
-#define SCM_CRITICAL_SECTION_END \
-  scm_i_pthread_mutex_unlock (&scm_i_critical_section_mutex)
 
 extern int scm_i_thread_go_to_sleep;
 
@@ -174,6 +162,7 @@ SCM_API SCM scm_join_thread (SCM t);
 SCM_API SCM scm_make_mutex (void);
 SCM_API SCM scm_make_recursive_mutex (void);
 SCM_API SCM scm_lock_mutex (SCM m);
+SCM_API void scm_frame_lock_mutex (SCM mutex);
 SCM_API SCM scm_try_mutex (SCM m);
 SCM_API SCM scm_unlock_mutex (SCM m);
 
@@ -190,7 +179,7 @@ SCM_API SCM scm_all_threads (void);
 SCM_API int scm_c_thread_exited_p (SCM thread);
 SCM_API SCM scm_thread_exited_p (SCM thread);
 
-SCM_API void scm_frame_critical_section (void);
+SCM_API void scm_frame_critical_section (SCM mutex);
 
 #define SCM_I_CURRENT_THREAD \
   ((scm_i_thread *) scm_i_pthread_getspecific (scm_i_thread_key))

@@ -51,6 +51,32 @@ void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
 void scm_frame_block_asyncs (void);
 void scm_frame_unblock_asyncs (void);
 
+/* Critical sections */
+
+/* XXX - every critical section needs to be examined whether the
+   requirements for SCM_CRITICAL_SECTION_START/END are fulfilled.  See
+   the manual.
+*/
+
+/* Defined in threads.c.  scm_i_critical_section_level is only used
+   for error checking and will go away eventually. */
+extern scm_i_pthread_mutex_t scm_i_critical_section_mutex;
+extern int scm_i_critical_section_level;
+
+#define SCM_CRITICAL_SECTION_START \
+  do { \
+    scm_i_pthread_mutex_lock (&scm_i_critical_section_mutex);\
+    SCM_I_CURRENT_THREAD->block_asyncs++; \
+    scm_i_critical_section_level++; \
+  } while (0)
+#define SCM_CRITICAL_SECTION_END \
+  do { \
+    scm_i_critical_section_level--; \
+    SCM_I_CURRENT_THREAD->block_asyncs--; \
+    scm_i_pthread_mutex_unlock (&scm_i_critical_section_mutex); \
+    scm_async_click ();	\
+  } while (0)
+
 SCM_API void scm_init_async (void);
 
 #if (SCM_ENABLE_DEPRECATED == 1)
