@@ -1863,9 +1863,31 @@
 ;;; truncate
 ;;;
 
+(with-test-prefix "truncate"
+  (pass-if (=  1 (truncate  1.75)))
+  (pass-if (=  1 (truncate  1.5)))
+  (pass-if (=  1 (truncate  1.25)))
+  (pass-if (=  0 (truncate  0.75)))
+  (pass-if (=  0 (truncate  0.5)))
+  (pass-if (=  0 (truncate  0.0)))
+  (pass-if (=  0 (truncate -0.5)))
+  (pass-if (= -1 (truncate -1.25)))
+  (pass-if (= -1 (truncate -1.5))))
+
 ;;;
 ;;; round
 ;;;
+
+(with-test-prefix "round"
+  (pass-if (=  2 (round  1.75)))
+  (pass-if (=  2 (round  1.5)))
+  (pass-if (=  1 (round  1.25)))
+  (pass-if (=  1 (round  0.75)))
+  (pass-if (=  0 (round  0.5)))
+  (pass-if (=  0 (round  0.0)))
+  (pass-if (=  0 (round -0.5)))
+  (pass-if (= -1 (round -1.25)))
+  (pass-if (= -2 (round -1.5))))
 
 ;;;
 ;;; exact->inexact
@@ -1888,6 +1910,27 @@
   (pass-if "(= 1 (expt 0 0.0))" (= 1 (expt 0 0.0)))
   (pass-if "(= 1 (expt 0.0 0))" (= 1 (expt 0.0 0)))
   (pass-if "(= 1 (expt 0.0 0.0))" (= 1 (expt 0.0 0.0))))
+
+;;;
+;;; asinh
+;;;
+
+(with-test-prefix "asinh"
+  (pass-if (= 0 (asinh 0))))
+
+;;;
+;;; acosh
+;;;
+
+(with-test-prefix "acosh"
+  (pass-if (= 0 (acosh 1))))
+
+;;;
+;;; atanh
+;;;
+
+(with-test-prefix "atanh"
+  (pass-if (= 0 (atanh 0))))
 
 ;;;
 ;;; make-rectangular
