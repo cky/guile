@@ -348,11 +348,11 @@ typedef long scm_bits_t;
  * of these 7 bit tags!
  */
 #define scm_tc7_pws		31
-#define scm_tc7_lvector		39
 
 #ifdef HAVE_ARRAYS
 #define scm_tc7_llvect          29
 #define scm_tc7_uvect		37
+/* free                         39 */
 #define scm_tc7_fvect		45
 #define scm_tc7_dvect		47
 #define scm_tc7_cvect		53

@@ -1213,7 +1213,6 @@ gc_mark_nimp:
       ptr = SCM_CDR (ptr);
       goto gc_mark_nimp;
     case scm_tc7_vector:
-    case scm_tc7_lvector:
 #ifdef CCLO
     case scm_tc7_cclo:
 #endif
@@ -1608,7 +1607,6 @@ scm_gc_sweep ()
               scm_must_free ((char *)(SCM_VELTS (scmptr) - 2));
               break;
 	    case scm_tc7_vector:
-	    case scm_tc7_lvector:
 #ifdef CCLO
 	    case scm_tc7_cclo:
 #endif

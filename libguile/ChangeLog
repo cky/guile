@@ -1,5 +1,10 @@
 2000-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_gc_mark, scm_gc_sweep), tags.h:  Removed the
+	scm_tc7_lvector type tag.
+
+2000-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_m_define), evalext.c (scm_m_undefine):  Removed dead
 	code.
 

@@ -160,9 +160,11 @@ scm_gensym now only takes one argument.
 
 The builtin `gentemp' has now become a primitive.
 
-** Deprecated type tags:  scm_tc7_ssymbol, scm_tc7_msymbol, scm_tcs_symbols
+** Deprecated type tags:  scm_tc7_ssymbol, scm_tc7_msymbol, scm_tcs_symbols,
+scm_tc7_lvector
 
 There is now only a single symbol type scm_tc7_symbol.
+The tag scm_tc7_lvector was not used anyway.
 
 
 Changes since Guile 1.3.4:
