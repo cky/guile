@@ -298,132 +298,131 @@ Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.
 @end deffn
 
 char?
-@c snarfed from chars.c:31
+@c snarfed from chars.c:33
 @deffn {Scheme Procedure} char? x
 @deffnx {C Function} scm_char_p (x)
 Return @code{#t} iff @var{x} is a character, else @code{#f}.
 @end deffn
 
 char=?
-@c snarfed from chars.c:40
+@c snarfed from chars.c:42
 @deffn {Scheme Procedure} char=? x y
 Return @code{#t} iff @var{x} is the same character as @var{y}, else @code{#f}.
 @end deffn
 
 char<?
-@c snarfed from chars.c:53
+@c snarfed from chars.c:55
 @deffn {Scheme Procedure} char<? x y
 Return @code{#t} iff @var{x} is less than @var{y} in the ASCII sequence,
 else @code{#f}.
 @end deffn
 
 char<=?
-@c snarfed from chars.c:65
+@c snarfed from chars.c:67
 @deffn {Scheme Procedure} char<=? x y
 Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
 ASCII sequence, else @code{#f}.
 @end deffn
 
 char>?
-@c snarfed from chars.c:77
+@c snarfed from chars.c:79
 @deffn {Scheme Procedure} char>? x y
 Return @code{#t} iff @var{x} is greater than @var{y} in the ASCII
 sequence, else @code{#f}.
 @end deffn
 
 char>=?
-@c snarfed from chars.c:89
+@c snarfed from chars.c:91
 @deffn {Scheme Procedure} char>=? x y
 Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
 ASCII sequence, else @code{#f}.
 @end deffn
 
 char-ci=?
-@c snarfed from chars.c:101
+@c snarfed from chars.c:103
 @deffn {Scheme Procedure} char-ci=? x y
 Return @code{#t} iff @var{x} is the same character as @var{y} ignoring
 case, else @code{#f}.
 @end deffn
 
 char-ci<?
-@c snarfed from chars.c:113
+@c snarfed from chars.c:115
 @deffn {Scheme Procedure} char-ci<? x y
 Return @code{#t} iff @var{x} is less than @var{y} in the ASCII sequence
 ignoring case, else @code{#f}.
 @end deffn
 
 char-ci<=?
-@c snarfed from chars.c:125
+@c snarfed from chars.c:127
 @deffn {Scheme Procedure} char-ci<=? x y
 Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
 ASCII sequence ignoring case, else @code{#f}.
 @end deffn
 
 char-ci>?
-@c snarfed from chars.c:137
+@c snarfed from chars.c:139
 @deffn {Scheme Procedure} char-ci>? x y
 Return @code{#t} iff @var{x} is greater than @var{y} in the ASCII
 sequence ignoring case, else @code{#f}.
 @end deffn
 
 char-ci>=?
-@c snarfed from chars.c:149
+@c snarfed from chars.c:151
 @deffn {Scheme Procedure} char-ci>=? x y
 Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
 ASCII sequence ignoring case, else @code{#f}.
 @end deffn
 
 char-alphabetic?
-@c snarfed from chars.c:162
+@c snarfed from chars.c:163
 @deffn {Scheme Procedure} char-alphabetic? chr
 @deffnx {C Function} scm_char_alphabetic_p (chr)
 Return @code{#t} iff @var{chr} is alphabetic, else @code{#f}.
-Alphabetic means the same thing as the isalpha C library function.
+
 @end deffn
 
 char-numeric?
-@c snarfed from chars.c:173
+@c snarfed from chars.c:172
 @deffn {Scheme Procedure} char-numeric? chr
 @deffnx {C Function} scm_char_numeric_p (chr)
 Return @code{#t} iff @var{chr} is numeric, else @code{#f}.
-Numeric means the same thing as the isdigit C library function.
+
 @end deffn
 
 char-whitespace?
-@c snarfed from chars.c:184
+@c snarfed from chars.c:181
 @deffn {Scheme Procedure} char-whitespace? chr
 @deffnx {C Function} scm_char_whitespace_p (chr)
 Return @code{#t} iff @var{chr} is whitespace, else @code{#f}.
-Whitespace means the same thing as the isspace C library function.
+
 @end deffn
 
 char-upper-case?
-@c snarfed from chars.c:197
+@c snarfed from chars.c:192
 @deffn {Scheme Procedure} char-upper-case? chr
 @deffnx {C Function} scm_char_upper_case_p (chr)
 Return @code{#t} iff @var{chr} is uppercase, else @code{#f}.
-Uppercase means the same thing as the isupper C library function.
+
 @end deffn
 
 char-lower-case?
-@c snarfed from chars.c:209
+@c snarfed from chars.c:202
 @deffn {Scheme Procedure} char-lower-case? chr
 @deffnx {C Function} scm_char_lower_case_p (chr)
 Return @code{#t} iff @var{chr} is lowercase, else @code{#f}.
-Lowercase means the same thing as the islower C library function.
+
 @end deffn
 
 char-is-both?
-@c snarfed from chars.c:223
+@c snarfed from chars.c:213
 @deffn {Scheme Procedure} char-is-both? chr
 @deffnx {C Function} scm_char_is_both_p (chr)
 Return @code{#t} iff @var{chr} is either uppercase or lowercase, else @code{#f}.
-Uppercase and lowercase are as defined by the isupper and islower
-C library functions.
+
 @end deffn
 
 char->integer
-@c snarfed from chars.c:237
+@c snarfed from chars.c:228
 @deffn {Scheme Procedure} char->integer chr
 @deffnx {C Function} scm_char_to_integer (chr)
 Return the number corresponding to ordinal position of @var{chr} in the
@@ -431,21 +430,21 @@ ASCII sequence.
 @end deffn
 
 integer->char
-@c snarfed from chars.c:249
+@c snarfed from chars.c:240
 @deffn {Scheme Procedure} integer->char n
 @deffnx {C Function} scm_integer_to_char (n)
 Return the character at position @var{n} in the ASCII sequence.
 @end deffn
 
 char-upcase
-@c snarfed from chars.c:259
+@c snarfed from chars.c:250
 @deffn {Scheme Procedure} char-upcase chr
 @deffnx {C Function} scm_char_upcase (chr)
 Return the uppercase character version of @var{chr}.
 @end deffn
 
 char-downcase
-@c snarfed from chars.c:270
+@c snarfed from chars.c:261
 @deffn {Scheme Procedure} char-downcase chr
 @deffnx {C Function} scm_char_downcase (chr)
 Return the lowercase character version of @var{chr}.
@@ -1113,7 +1112,7 @@ must be an integer value.
 @end deffn
 
 apply:nconc2last
-@c snarfed from eval.c:4697
+@c snarfed from eval.c:4700
 @deffn {Scheme Procedure} apply:nconc2last lst
 @deffnx {C Function} scm_nconc2last (lst)
 Given a list (@var{arg1} @dots{} @var{args}), this function
@@ -1126,7 +1125,7 @@ destroys its argument, so use with care.
 @end deffn
 
 force
-@c snarfed from eval.c:5625
+@c snarfed from eval.c:5628
 @deffn {Scheme Procedure} force promise
 @deffnx {C Function} scm_force (promise)
 If the promise @var{x} has not been computed yet, compute and
@@ -1135,7 +1134,7 @@ value.
 @end deffn
 
 promise?
-@c snarfed from eval.c:5648
+@c snarfed from eval.c:5651
 @deffn {Scheme Procedure} promise? obj
 @deffnx {C Function} scm_promise_p (obj)
 Return true if @var{obj} is a promise, i.e. a delayed computation
@@ -1143,7 +1142,7 @@ Return true if @var{obj} is a promise, i.e. a delayed computation
 @end deffn
 
 cons-source
-@c snarfed from eval.c:5660
+@c snarfed from eval.c:5663
 @deffn {Scheme Procedure} cons-source xorig x y
 @deffnx {C Function} scm_cons_source (xorig, x, y)
 Create and return a new pair whose car and cdr are @var{x} and @var{y}.
@@ -1152,7 +1151,7 @@ with the new pair.
 @end deffn
 
 copy-tree
-@c snarfed from eval.c:5817
+@c snarfed from eval.c:5820
 @deffn {Scheme Procedure} copy-tree obj
 @deffnx {C Function} scm_copy_tree (obj)
 Recursively copy the data tree that is bound to @var{obj}, and return a
@@ -1163,7 +1162,7 @@ any other object.
 @end deffn
 
 primitive-eval
-@c snarfed from eval.c:5903
+@c snarfed from eval.c:5906
 @deffn {Scheme Procedure} primitive-eval exp
 @deffnx {C Function} scm_primitive_eval (exp)
 Evaluate @var{exp} in the top-level environment specified by
@@ -1171,7 +1170,7 @@ the current module.
 @end deffn
 
 eval
-@c snarfed from eval.c:5972
+@c snarfed from eval.c:5975
 @deffn {Scheme Procedure} eval exp module
 @deffnx {C Function} scm_eval (exp, module)
 Evaluate @var{exp}, a list representing a Scheme expression,
@@ -1182,7 +1181,7 @@ is reset to its previous value when @var{eval} returns.
 @end deffn
 
 eval-options-interface
-@c snarfed from eval.c:3087
+@c snarfed from eval.c:3090
 @deffn {Scheme Procedure} eval-options-interface [setting]
 @deffnx {C Function} scm_eval_options_interface (setting)
 Option interface for the evaluation options. Instead of using
@@ -1191,7 +1190,7 @@ this procedure directly, use the procedures @code{eval-enable},
 @end deffn
 
 evaluator-traps-interface
-@c snarfed from eval.c:3105
+@c snarfed from eval.c:3108
 @deffn {Scheme Procedure} evaluator-traps-interface [setting]
 @deffnx {C Function} scm_evaluator_traps (setting)
 Option interface for the evaluator trap options.
@@ -2912,10 +2911,10 @@ otherwise.
 
 inf?
 @c snarfed from numbers.c:549
-@deffn {Scheme Procedure} inf? n
-@deffnx {C Function} scm_inf_p (n)
-Return @code{#t} if @var{n} is infinite, @code{#f}
-otherwise.
+@deffn {Scheme Procedure} inf? x
+@deffnx {C Function} scm_inf_p (x)
+Return @code{#t} if @var{x} is either @samp{+inf.0}
+or @samp{-inf.0}, @code{#f} otherwise.
 @end deffn
 
 nan?
@@ -4898,20 +4897,20 @@ which were used for the conversion.
 @end deffn
 
 string?
-@c snarfed from strings.c:481
+@c snarfed from strings.c:494
 @deffn {Scheme Procedure} string? obj
 @deffnx {C Function} scm_string_p (obj)
 Return @code{#t} if @var{obj} is a string, else @code{#f}.
 @end deffn
 
 list->string
-@c snarfed from strings.c:489
+@c snarfed from strings.c:502
 @deffn {Scheme Procedure} list->string
 implemented by the C function "scm_string"
 @end deffn
 
 string
-@c snarfed from strings.c:495
+@c snarfed from strings.c:508
 @deffn {Scheme Procedure} string . chrs
 @deffnx {Scheme Procedure} list->string chrs
 @deffnx {C Function} scm_string (chrs)
@@ -4920,7 +4919,7 @@ Return a newly allocated string composed of the arguments,
 @end deffn
 
 make-string
-@c snarfed from strings.c:533
+@c snarfed from strings.c:546
 @deffn {Scheme Procedure} make-string k [chr]
 @deffnx {C Function} scm_make_string (k, chr)
 Return a newly allocated string of
@@ -4930,14 +4929,14 @@ of the @var{string} are unspecified.
 @end deffn
 
 string-length
-@c snarfed from strings.c:559
+@c snarfed from strings.c:572
 @deffn {Scheme Procedure} string-length string
 @deffnx {C Function} scm_string_length (string)
 Return the number of characters in @var{string}.
 @end deffn
 
 string-ref
-@c snarfed from strings.c:578
+@c snarfed from strings.c:591
 @deffn {Scheme Procedure} string-ref str k
 @deffnx {C Function} scm_string_ref (str, k)
 Return character @var{k} of @var{str} using zero-origin
@@ -4945,7 +4944,7 @@ indexing. @var{k} must be a valid index of @var{str}.
 @end deffn
 
 string-set!
-@c snarfed from strings.c:601
+@c snarfed from strings.c:614
 @deffn {Scheme Procedure} string-set! str k chr
 @deffnx {C Function} scm_string_set_x (str, k, chr)
 Store @var{chr} in element @var{k} of @var{str} and return
@@ -4954,7 +4953,7 @@ an unspecified value. @var{k} must be a valid index of
 @end deffn
 
 substring
-@c snarfed from strings.c:637
+@c snarfed from strings.c:650
 @deffn {Scheme Procedure} substring str start [end]
 @deffnx {C Function} scm_substring (str, start, end)
 Return a newly allocated string formed from the characters
@@ -4967,7 +4966,7 @@ exact integers satisfying:
 @end deffn
 
 substring/copy
-@c snarfed from strings.c:660
+@c snarfed from strings.c:673
 @deffn {Scheme Procedure} substring/copy str start [end]
 @deffnx {C Function} scm_substring_copy (str, start, end)
 Return a newly allocated string formed from the characters
@@ -4980,7 +4979,7 @@ exact integers satisfying:
 @end deffn
 
 substring/shared
-@c snarfed from strings.c:683
+@c snarfed from strings.c:697
 @deffn {Scheme Procedure} substring/shared str start [end]
 @deffnx {C Function} scm_substring_shared (str, start, end)
 Return string that indirectly refers to the characters
@@ -4993,82 +4992,15 @@ exact integers satisfying:
 @end deffn
 
 string-append
-@c snarfed from strings.c:702
+@c snarfed from strings.c:716
 @deffn {Scheme Procedure} string-append . args
 @deffnx {C Function} scm_string_append (args)
 Return a newly allocated string whose characters form the
 concatenation of the given strings, @var{args}.
 @end deffn
 
-string-index
-@c snarfed from strop.c:113
-@deffn {Scheme Procedure} string-index str chr [frm [to]]
-@deffnx {C Function} scm_string_index (str, chr, frm, to)
-Return the index of the first occurrence of @var{chr} in
-@var{str}.  The optional integer arguments @var{frm} and
-@var{to} limit the search to a portion of the string.  This
-procedure essentially implements the @code{index} or
-@code{strchr} functions from the C library.
-
-@lisp
-(string-index "weiner" #\e)
-@result{} 1
-
-(string-index "weiner" #\e 2)
-@result{} 4
-
-(string-index "weiner" #\e 2 4)
-@result{} #f
-@end lisp
-@end deffn
-
-string-rindex
-@c snarfed from strop.c:143
-@deffn {Scheme Procedure} string-rindex str chr [frm [to]]
-@deffnx {C Function} scm_string_rindex (str, chr, frm, to)
-Like @code{string-index}, but search from the right of the
-string rather than from the left.  This procedure essentially
-implements the @code{rindex} or @code{strrchr} functions from
-the C library.
-
-@lisp
-(string-rindex "weiner" #\e)
-@result{} 4
-
-(string-rindex "weiner" #\e 2 4)
-@result{} #f
-
-(string-rindex "weiner" #\e 2 5)
-@result{} 4
-@end lisp
-@end deffn
-
-substring-move!
-@c snarfed from strop.c:163
-@deffn {Scheme Procedure} substring-move! str1 start1 end1 str2 start2
-@deffnx {C Function} scm_substring_move_x (str1, start1, end1, str2, start2)
-Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
-into @var{str2} beginning at position @var{start2}.
-@var{str1} and @var{str2} can be the same string.
-@end deffn
-
-substring-fill!
-@c snarfed from strop.c:198
-@deffn {Scheme Procedure} substring-fill! str start end fill
-@deffnx {C Function} scm_substring_fill_x (str, start, end, fill)
-Change every character in @var{str} between @var{start} and
-@var{end} to @var{fill}.
-
-@lisp
-(define y "abcdefg")
-(substring-fill! y 1 3 #\r)
-y
-@result{} "arrdefg"
-@end lisp
-@end deffn
-
 string-null?
-@c snarfed from strop.c:227
+@c snarfed from srfi-13.c:71
 @deffn {Scheme Procedure} string-null? str
 @deffnx {C Function} scm_string_null_p (str)
 Return @code{#t} if @var{str}'s length is zero, and
@@ -5080,75 +5012,657 @@ y                    @result{} "foo"
 @end lisp
 @end deffn
 
+string-any
+@c snarfed from srfi-13.c:91
+@deffn {Scheme Procedure} string-any char_pred s [start [end]]
+@deffnx {C Function} scm_string_any (char_pred, s, start, end)
+Check if the predicate @var{pred} is true for any character in
+the string @var{s}.
+
+Calls to @var{pred} are made from left to right across @var{s}.
+When it returns true (ie.@: non-@code{#f}), that return value
+is the return from @code{string-any}.
+
+The SRFI-13 specification requires that the call to @var{pred}
+on the last character of @var{s} (assuming that point is
+reached) be a tail call, but currently in Guile this is not the
+case.
+@end deffn
+
+string-every
+@c snarfed from srfi-13.c:150
+@deffn {Scheme Procedure} string-every char_pred s [start [end]]
+@deffnx {C Function} scm_string_every (char_pred, s, start, end)
+Check if the predicate @var{pred} is true for every character
+in the string @var{s}.
+
+Calls to @var{pred} are made from left to right across @var{s}.
+If the predicate is true for every character then the return
+value from the last @var{pred} call is the return from
+@code{string-every}.
+
+If there are no characters in @var{s} (ie.@: @var{start} equals
+@var{end}) then the return is @code{#t}.
+
+The SRFI-13 specification requires that the call to @var{pred}
+on the last character of @var{s} (assuming that point is
+reached) be a tail call, but currently in Guile this is not the
+case.
+@end deffn
+
+string-tabulate
+@c snarfed from srfi-13.c:202
+@deffn {Scheme Procedure} string-tabulate proc len
+@deffnx {C Function} scm_string_tabulate (proc, len)
+@var{proc} is an integer->char procedure.  Construct a string
+of size @var{len} by applying @var{proc} to each index to
+produce the corresponding string element.  The order in which
+@var{proc} is applied to the indices is not specified.
+@end deffn
+
 string->list
-@c snarfed from strop.c:241
-@deffn {Scheme Procedure} string->list str
-@deffnx {C Function} scm_string_to_list (str)
-Return a newly allocated list of the characters that make up
-the given string @var{str}. @code{string->list} and
-@code{list->string} are inverses as far as @samp{equal?} is
-concerned.
+@c snarfed from srfi-13.c:234
+@deffn {Scheme Procedure} string->list str [start [end]]
+@deffnx {C Function} scm_substring_to_list (str, start, end)
+Convert the string @var{str} into a list of characters.
+@end deffn
+
+reverse-list->string
+@c snarfed from srfi-13.c:271
+@deffn {Scheme Procedure} reverse-list->string chrs
+@deffnx {C Function} scm_reverse_list_to_string (chrs)
+An efficient implementation of @code{(compose string->list
+reverse)}:
+
+@smalllisp
+(reverse-list->string '(#\a #\B #\c)) @result{} "cBa"
+@end smalllisp
+@end deffn
+
+string-join
+@c snarfed from srfi-13.c:324
+@deffn {Scheme Procedure} string-join ls [delimiter [grammar]]
+@deffnx {C Function} scm_string_join (ls, delimiter, grammar)
+Append the string in the string list @var{ls}, using the string
+@var{delim} as a delimiter between the elements of @var{ls}.
+@var{grammar} is a symbol which specifies how the delimiter is
+placed between the strings, and defaults to the symbol
+@code{infix}.
+
+@table @code
+@item infix
+Insert the separator between list elements.  An empty string
+will produce an empty list.
+@item string-infix
+Like @code{infix}, but will raise an error if given the empty
+list.
+@item suffix
+Insert the separator after every list element.
+@item prefix
+Insert the separator before each list element.
+@end table
 @end deffn
 
 string-copy
-@c snarfed from strop.c:274
-@deffn {Scheme Procedure} string-copy str
-@deffnx {C Function} scm_string_copy (str)
-Return a newly allocated copy of the given @var{string}.
+@c snarfed from srfi-13.c:480
+@deffn {Scheme Procedure} string-copy str [start [end]]
+@deffnx {C Function} scm_srfi13_substring_copy (str, start, end)
+Return a freshly allocated copy of the string @var{str}.  If
+given, @var{start} and @var{end} delimit the portion of
+@var{str} which is copied.
+@end deffn
+
+string-copy!
+@c snarfed from srfi-13.c:507
+@deffn {Scheme Procedure} string-copy! target tstart s [start [end]]
+@deffnx {C Function} scm_string_copy_x (target, tstart, s, start, end)
+Copy the sequence of characters from index range [@var{start},
+@var{end}) in string @var{s} to string @var{target}, beginning
+at index @var{tstart}.  The characters are copied left-to-right
+or right-to-left as needed -- the copy is guaranteed to work,
+even if @var{target} and @var{s} are the same string.  It is an
+error if the copy operation runs off the end of the target
+string.
+@end deffn
+
+substring-move!
+@c snarfed from srfi-13.c:536
+@deffn {Scheme Procedure} substring-move! str1 start1 end1 str2 start2
+@deffnx {C Function} scm_substring_move_x (str1, start1, end1, str2, start2)
+Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
+into @var{str2} beginning at position @var{start2}.
+@var{str1} and @var{str2} can be the same string.
+@end deffn
+
+string-take
+@c snarfed from srfi-13.c:545
+@deffn {Scheme Procedure} string-take s n
+@deffnx {C Function} scm_string_take (s, n)
+Return the @var{n} first characters of @var{s}.
+@end deffn
+
+string-drop
+@c snarfed from srfi-13.c:555
+@deffn {Scheme Procedure} string-drop s n
+@deffnx {C Function} scm_string_drop (s, n)
+Return all but the first @var{n} characters of @var{s}.
+@end deffn
+
+string-take-right
+@c snarfed from srfi-13.c:565
+@deffn {Scheme Procedure} string-take-right s n
+@deffnx {C Function} scm_string_take_right (s, n)
+Return the @var{n} last characters of @var{s}.
+@end deffn
+
+string-drop-right
+@c snarfed from srfi-13.c:577
+@deffn {Scheme Procedure} string-drop-right s n
+@deffnx {C Function} scm_string_drop_right (s, n)
+Return all but the last @var{n} characters of @var{s}.
+@end deffn
+
+string-pad
+@c snarfed from srfi-13.c:592
+@deffn {Scheme Procedure} string-pad s len [chr [start [end]]]
+@deffnx {C Function} scm_string_pad (s, len, chr, start, end)
+Take that characters from @var{start} to @var{end} from the
+string @var{s} and return a new string, right-padded by the
+character @var{chr} to length @var{len}.  If the resulting
+string is longer than @var{len}, it is truncated on the right.
+@end deffn
+
+string-pad-right
+@c snarfed from srfi-13.c:632
+@deffn {Scheme Procedure} string-pad-right s len [chr [start [end]]]
+@deffnx {C Function} scm_string_pad_right (s, len, chr, start, end)
+Take that characters from @var{start} to @var{end} from the
+string @var{s} and return a new string, left-padded by the
+character @var{chr} to length @var{len}.  If the resulting
+string is longer than @var{len}, it is truncated on the left.
+@end deffn
+
+string-trim
+@c snarfed from srfi-13.c:686
+@deffn {Scheme Procedure} string-trim s [char_pred [start [end]]]
+@deffnx {C Function} scm_string_trim (s, char_pred, start, end)
+Trim @var{s} by skipping over all characters on the left
+that satisfy the parameter @var{char_pred}:
+
+@itemize @bullet
+@item
+if it is the character @var{ch}, characters equal to
+@var{ch} are trimmed,
+
+@item
+if it is a procedure @var{pred} characters that
+satisfy @var{pred} are trimmed,
+
+@item
+if it is a character set, characters in that set are trimmed.
+@end itemize
+
+If called without a @var{char_pred} argument, all whitespace is
+trimmed.
+@end deffn
+
+string-trim-right
+@c snarfed from srfi-13.c:762
+@deffn {Scheme Procedure} string-trim-right s [char_pred [start [end]]]
+@deffnx {C Function} scm_string_trim_right (s, char_pred, start, end)
+Trim @var{s} by skipping over all characters on the rightt
+that satisfy the parameter @var{char_pred}:
+
+@itemize @bullet
+@item
+if it is the character @var{ch}, characters equal to @var{ch}
+are trimmed,
+
+@item
+if it is a procedure @var{pred} characters that satisfy
+@var{pred} are trimmed,
+
+@item
+if it is a character sets, all characters in that set are
+trimmed.
+@end itemize
+
+If called without a @var{char_pred} argument, all whitespace is
+trimmed.
+@end deffn
+
+string-trim-both
+@c snarfed from srfi-13.c:838
+@deffn {Scheme Procedure} string-trim-both s [char_pred [start [end]]]
+@deffnx {C Function} scm_string_trim_both (s, char_pred, start, end)
+Trim @var{s} by skipping over all characters on both sides of
+the string that satisfy the parameter @var{char_pred}:
+
+@itemize @bullet
+@item
+if it is the character @var{ch}, characters equal to @var{ch}
+are trimmed,
+
+@item
+if it is a procedure @var{pred} characters that satisfy
+@var{pred} are trimmed,
+
+@item
+if it is a character set, the characters in the set are
+trimmed.
+@end itemize
+
+If called without a @var{char_pred} argument, all whitespace is
+trimmed.
 @end deffn
 
 string-fill!
-@c snarfed from strop.c:285
-@deffn {Scheme Procedure} string-fill! str chr
-@deffnx {C Function} scm_string_fill_x (str, chr)
-Store @var{char} in every element of the given @var{string} and
-return an unspecified value.
+@c snarfed from srfi-13.c:925
+@deffn {Scheme Procedure} string-fill! str chr [start [end]]
+@deffnx {C Function} scm_substring_fill_x (str, chr, start, end)
+Stores @var{chr} in every element of the given @var{str} and
+returns an unspecified value.
+@end deffn
+
+string-compare
+@c snarfed from srfi-13.c:975
+@deffn {Scheme Procedure} string-compare s1 s2 proc_lt proc_eq proc_gt [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_compare (s1, s2, proc_lt, proc_eq, proc_gt, start1, end1, start2, end2)
+Apply @var{proc_lt}, @var{proc_eq}, @var{proc_gt} to the
+mismatch index, depending upon whether @var{s1} is less than,
+equal to, or greater than @var{s2}.  The mismatch index is the
+largest index @var{i} such that for every 0 <= @var{j} <
+@var{i}, @var{s1}[@var{j}] = @var{s2}[@var{j}] -- that is,
+@var{i} is the first position that does not match.
+@end deffn
+
+string-compare-ci
+@c snarfed from srfi-13.c:1018
+@deffn {Scheme Procedure} string-compare-ci s1 s2 proc_lt proc_eq proc_gt [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_compare_ci (s1, s2, proc_lt, proc_eq, proc_gt, start1, end1, start2, end2)
+Apply @var{proc_lt}, @var{proc_eq}, @var{proc_gt} to the
+mismatch index, depending upon whether @var{s1} is less than,
+equal to, or greater than @var{s2}.  The mismatch index is the
+largest index @var{i} such that for every 0 <= @var{j} <
+@var{i}, @var{s1}[@var{j}] = @var{s2}[@var{j}] -- that is,
+@var{i} is the first position that does not match.  The
+character comparison is done case-insensitively.
+@end deffn
+
+string=
+@c snarfed from srfi-13.c:1056
+@deffn {Scheme Procedure} string= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_eq (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} and @var{s2} are not equal, a true
+value otherwise.
+@end deffn
+
+string<>
+@c snarfed from srfi-13.c:1095
+@deffn {Scheme Procedure} string<> s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_neq (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} and @var{s2} are equal, a true
+value otherwise.
+@end deffn
+
+string<
+@c snarfed from srfi-13.c:1138
+@deffn {Scheme Procedure} string< s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_lt (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is greater or equal to @var{s2}, a
+true value otherwise.
+@end deffn
+
+string>
+@c snarfed from srfi-13.c:1181
+@deffn {Scheme Procedure} string> s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_gt (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is less or equal to @var{s2}, a
+true value otherwise.
+@end deffn
+
+string<=
+@c snarfed from srfi-13.c:1224
+@deffn {Scheme Procedure} string<= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_le (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is greater to @var{s2}, a true
+value otherwise.
+@end deffn
+
+string>=
+@c snarfed from srfi-13.c:1267
+@deffn {Scheme Procedure} string>= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ge (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is less to @var{s2}, a true value
+otherwise.
+@end deffn
+
+string-ci=
+@c snarfed from srfi-13.c:1311
+@deffn {Scheme Procedure} string-ci= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_eq (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} and @var{s2} are not equal, a true
+value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+string-ci<>
+@c snarfed from srfi-13.c:1355
+@deffn {Scheme Procedure} string-ci<> s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_neq (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} and @var{s2} are equal, a true
+value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+string-ci<
+@c snarfed from srfi-13.c:1399
+@deffn {Scheme Procedure} string-ci< s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_lt (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is greater or equal to @var{s2}, a
+true value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+string-ci>
+@c snarfed from srfi-13.c:1443
+@deffn {Scheme Procedure} string-ci> s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_gt (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is less or equal to @var{s2}, a
+true value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+string-ci<=
+@c snarfed from srfi-13.c:1487
+@deffn {Scheme Procedure} string-ci<= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_le (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is greater to @var{s2}, a true
+value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+string-ci>=
+@c snarfed from srfi-13.c:1531
+@deffn {Scheme Procedure} string-ci>= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_ge (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is less to @var{s2}, a true value
+otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+string-hash
+@c snarfed from srfi-13.c:1576
+@deffn {Scheme Procedure} string-hash s [bound [start [end]]]
+@deffnx {C Function} scm_substring_hash (s, bound, start, end)
+Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
+@end deffn
+
+string-hash-ci
+@c snarfed from srfi-13.c:1593
+@deffn {Scheme Procedure} string-hash-ci s [bound [start [end]]]
+@deffnx {C Function} scm_substring_hash_ci (s, bound, start, end)
+Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
+@end deffn
+
+string-prefix-length
+@c snarfed from srfi-13.c:1605
+@deffn {Scheme Procedure} string-prefix-length s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_prefix_length (s1, s2, start1, end1, start2, end2)
+Return the length of the longest common prefix of the two
+strings.
+@end deffn
+
+string-prefix-length-ci
+@c snarfed from srfi-13.c:1634
+@deffn {Scheme Procedure} string-prefix-length-ci s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_prefix_length_ci (s1, s2, start1, end1, start2, end2)
+Return the length of the longest common prefix of the two
+strings, ignoring character case.
+@end deffn
+
+string-suffix-length
+@c snarfed from srfi-13.c:1663
+@deffn {Scheme Procedure} string-suffix-length s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_suffix_length (s1, s2, start1, end1, start2, end2)
+Return the length of the longest common suffix of the two
+strings.
+@end deffn
+
+string-suffix-length-ci
+@c snarfed from srfi-13.c:1692
+@deffn {Scheme Procedure} string-suffix-length-ci s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_suffix_length_ci (s1, s2, start1, end1, start2, end2)
+Return the length of the longest common suffix of the two
+strings, ignoring character case.
+@end deffn
+
+string-prefix?
+@c snarfed from srfi-13.c:1720
+@deffn {Scheme Procedure} string-prefix? s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_prefix_p (s1, s2, start1, end1, start2, end2)
+Is @var{s1} a prefix of @var{s2}?
+@end deffn
+
+string-prefix-ci?
+@c snarfed from srfi-13.c:1749
+@deffn {Scheme Procedure} string-prefix-ci? s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_prefix_ci_p (s1, s2, start1, end1, start2, end2)
+Is @var{s1} a prefix of @var{s2}, ignoring character case?
+@end deffn
+
+string-suffix?
+@c snarfed from srfi-13.c:1778
+@deffn {Scheme Procedure} string-suffix? s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_suffix_p (s1, s2, start1, end1, start2, end2)
+Is @var{s1} a suffix of @var{s2}?
+@end deffn
+
+string-suffix-ci?
+@c snarfed from srfi-13.c:1807
+@deffn {Scheme Procedure} string-suffix-ci? s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_suffix_ci_p (s1, s2, start1, end1, start2, end2)
+Is @var{s1} a suffix of @var{s2}, ignoring character case?
+@end deffn
+
+string-index
+@c snarfed from srfi-13.c:1848
+@deffn {Scheme Procedure} string-index s char_pred [start [end]]
+@deffnx {C Function} scm_string_index (s, char_pred, start, end)
+Search through the string @var{s} from left to right, returning
+the index of the first occurence of a character which
+
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
+
+@item
+satisifies the predicate @var{char_pred}, if it is a procedure,
+
+@item
+is in the set @var{char_pred}, if it is a character set.
+@end itemize
+@end deffn
+
+string-index-right
+@c snarfed from srfi-13.c:1907
+@deffn {Scheme Procedure} string-index-right s char_pred [start [end]]
+@deffnx {C Function} scm_string_index_right (s, char_pred, start, end)
+Search through the string @var{s} from right to left, returning
+the index of the last occurence of a character which
+
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
+
+@item
+satisifies the predicate @var{char_pred}, if it is a procedure,
+
+@item
+is in the set if @var{char_pred} is a character set.
+@end itemize
+@end deffn
+
+string-rindex
+@c snarfed from srfi-13.c:1966
+@deffn {Scheme Procedure} string-rindex s char_pred [start [end]]
+@deffnx {C Function} scm_string_rindex (s, char_pred, start, end)
+Search through the string @var{s} from right to left, returning
+the index of the last occurence of a character which
+
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
+
+@item
+satisifies the predicate @var{char_pred}, if it is a procedure,
+
+@item
+is in the set if @var{char_pred} is a character set.
+@end itemize
+@end deffn
+
+string-skip
+@c snarfed from srfi-13.c:1986
+@deffn {Scheme Procedure} string-skip s char_pred [start [end]]
+@deffnx {C Function} scm_string_skip (s, char_pred, start, end)
+Search through the string @var{s} from left to right, returning
+the index of the first occurence of a character which
+
+@itemize @bullet
+@item
+does not equal @var{char_pred}, if it is character,
+
+@item
+does not satisify the predicate @var{char_pred}, if it is a
+procedure,
+
+@item
+is not in the set if @var{char_pred} is a character set.
+@end itemize
+@end deffn
+
+string-skip-right
+@c snarfed from srfi-13.c:2047
+@deffn {Scheme Procedure} string-skip-right s char_pred [start [end]]
+@deffnx {C Function} scm_string_skip_right (s, char_pred, start, end)
+Search through the string @var{s} from right to left, returning
+the index of the last occurence of a character which
+
+@itemize @bullet
+@item
+does not equal @var{char_pred}, if it is character,
+
+@item
+does not satisfy the predicate @var{char_pred}, if it is a
+procedure,
+
+@item
+is not in the set if @var{char_pred} is a character set.
+@end itemize
+@end deffn
+
+string-count
+@c snarfed from srfi-13.c:2107
+@deffn {Scheme Procedure} string-count s char_pred [start [end]]
+@deffnx {C Function} scm_string_count (s, char_pred, start, end)
+Return the count of the number of characters in the string
+@var{s} which
+
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
+
+@item
+satisifies the predicate @var{char_pred}, if it is a procedure.
+
+@item
+is in the set @var{char_pred}, if it is a character set.
+@end itemize
+@end deffn
+
+string-contains
+@c snarfed from srfi-13.c:2162
+@deffn {Scheme Procedure} string-contains s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_contains (s1, s2, start1, end1, start2, end2)
+Does string @var{s1} contain string @var{s2}?  Return the index
+in @var{s1} where @var{s2} occurs as a substring, or false.
+The optional start/end indices restrict the operation to the
+indicated substrings.
+@end deffn
+
+string-contains-ci
+@c snarfed from srfi-13.c:2203
+@deffn {Scheme Procedure} string-contains-ci s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_contains_ci (s1, s2, start1, end1, start2, end2)
+Does string @var{s1} contain string @var{s2}?  Return the index
+in @var{s1} where @var{s2} occurs as a substring, or false.
+The optional start/end indices restrict the operation to the
+indicated substrings.  Character comparison is done
+case-insensitively.
 @end deffn
 
 string-upcase!
-@c snarfed from strop.c:327
-@deffn {Scheme Procedure} string-upcase! str
-@deffnx {C Function} scm_string_upcase_x (str)
-Destructively upcase every character in @var{str} and return
-@var{str}.
+@c snarfed from srfi-13.c:2261
+@deffn {Scheme Procedure} string-upcase! str [start [end]]
+@deffnx {C Function} scm_substring_upcase_x (str, start, end)
+Destructively upcase every character in @code{str}.
+
 @lisp
-y                  @result{} "arrdefg"
-(string-upcase! y) @result{} "ARRDEFG"
-y                  @result{} "ARRDEFG"
+(string-upcase! y)
+@result{} "ARRDEFG"
+y
+@result{} "ARRDEFG"
 @end lisp
 @end deffn
 
 string-upcase
-@c snarfed from strop.c:340
-@deffn {Scheme Procedure} string-upcase str
-@deffnx {C Function} scm_string_upcase (str)
-Return a freshly allocated string containing the characters of
-@var{str} in upper case.
+@c snarfed from srfi-13.c:2282
+@deffn {Scheme Procedure} string-upcase str [start [end]]
+@deffnx {C Function} scm_substring_upcase (str, start, end)
+Upcase every character in @code{str}.
 @end deffn
 
 string-downcase!
-@c snarfed from strop.c:376
-@deffn {Scheme Procedure} string-downcase! str
-@deffnx {C Function} scm_string_downcase_x (str)
-Destructively downcase every character in @var{str} and return
-@var{str}.
+@c snarfed from srfi-13.c:2328
+@deffn {Scheme Procedure} string-downcase! str [start [end]]
+@deffnx {C Function} scm_substring_downcase_x (str, start, end)
+Destructively downcase every character in @var{str}.
+
 @lisp
-y                     @result{} "ARRDEFG"
-(string-downcase! y)  @result{} "arrdefg"
-y                     @result{} "arrdefg"
+y
+@result{} "ARRDEFG"
+(string-downcase! y)
+@result{} "arrdefg"
+y
+@result{} "arrdefg"
 @end lisp
 @end deffn
 
 string-downcase
-@c snarfed from strop.c:389
-@deffn {Scheme Procedure} string-downcase str
-@deffnx {C Function} scm_string_downcase (str)
-Return a freshly allocation string containing the characters in
-@var{str} in lower case.
+@c snarfed from srfi-13.c:2349
+@deffn {Scheme Procedure} string-downcase str [start [end]]
+@deffnx {C Function} scm_substring_downcase (str, start, end)
+Downcase every character in @var{str}.
+@end deffn
+
+string-titlecase!
+@c snarfed from srfi-13.c:2404
+@deffn {Scheme Procedure} string-titlecase! str [start [end]]
+@deffnx {C Function} scm_string_titlecase_x (str, start, end)
+Destructively titlecase every first character in a word in
+@var{str}.
+@end deffn
+
+string-titlecase
+@c snarfed from srfi-13.c:2420
+@deffn {Scheme Procedure} string-titlecase str [start [end]]
+@deffnx {C Function} scm_string_titlecase (str, start, end)
+Titlecase every first character in a word in @var{str}.
 @end deffn
 
 string-capitalize!
-@c snarfed from strop.c:441
+@c snarfed from srfi-13.c:2445
 @deffn {Scheme Procedure} string-capitalize! str
 @deffnx {C Function} scm_string_capitalize_x (str)
 Upcase the first character of every word in @var{str}
@@ -5162,7 +5676,7 @@ y                      @result{} "Hello World"
 @end deffn
 
 string-capitalize
-@c snarfed from strop.c:455
+@c snarfed from srfi-13.c:2457
 @deffn {Scheme Procedure} string-capitalize str
 @deffnx {C Function} scm_string_capitalize (str)
 Return a freshly allocated string with the characters in
@@ -5170,8 +5684,230 @@ Return a freshly allocated string with the characters in
 capitalized.
 @end deffn
 
+string-reverse
+@c snarfed from srfi-13.c:2488
+@deffn {Scheme Procedure} string-reverse str [start [end]]
+@deffnx {C Function} scm_string_reverse (str, start, end)
+Reverse the string @var{str}.  The optional arguments
+@var{start} and @var{end} delimit the region of @var{str} to
+operate on.
+@end deffn
+
+string-reverse!
+@c snarfed from srfi-13.c:2512
+@deffn {Scheme Procedure} string-reverse! str [start [end]]
+@deffnx {C Function} scm_string_reverse_x (str, start, end)
+Reverse the string @var{str} in-place.  The optional arguments
+@var{start} and @var{end} delimit the region of @var{str} to
+operate on.  The return value is unspecified.
+@end deffn
+
+string-append/shared
+@c snarfed from srfi-13.c:2535
+@deffn {Scheme Procedure} string-append/shared . ls
+@deffnx {C Function} scm_string_append_shared (ls)
+Like @code{string-append}, but the result may share memory
+with the argument strings.
+@end deffn
+
+string-concatenate
+@c snarfed from srfi-13.c:2556
+@deffn {Scheme Procedure} string-concatenate ls
+@deffnx {C Function} scm_string_concatenate (ls)
+Append the elements of @var{ls} (which must be strings)
+together into a single string.  Guaranteed to return a freshly
+allocated string.
+@end deffn
+
+string-concatenate-reverse
+@c snarfed from srfi-13.c:2578
+@deffn {Scheme Procedure} string-concatenate-reverse ls [final_string [end]]
+@deffnx {C Function} scm_string_concatenate_reverse (ls, final_string, end)
+Without optional arguments, this procedure is equivalent to
+
+@smalllisp
+(string-concatenate (reverse ls))
+@end smalllisp
+
+If the optional argument @var{final_string} is specified, it is
+consed onto the beginning to @var{ls} before performing the
+list-reverse and string-concatenate operations.  If @var{end}
+is given, only the characters of @var{final_string} up to index
+@var{end} are used.
+
+Guaranteed to return a freshly allocated string.
+@end deffn
+
+string-concatenate/shared
+@c snarfed from srfi-13.c:2647
+@deffn {Scheme Procedure} string-concatenate/shared ls
+@deffnx {C Function} scm_string_concatenate_shared (ls)
+Like @code{string-concatenate}, but the result may share memory
+with the strings in the list @var{ls}.
+@end deffn
+
+string-concatenate-reverse/shared
+@c snarfed from srfi-13.c:2658
+@deffn {Scheme Procedure} string-concatenate-reverse/shared ls [final_string [end]]
+@deffnx {C Function} scm_string_concatenate_reverse_shared (ls, final_string, end)
+Like @code{string-concatenate-reverse}, but the result may
+share memory with the the strings in the @var{ls} arguments.
+@end deffn
+
+string-map
+@c snarfed from srfi-13.c:2671
+@deffn {Scheme Procedure} string-map proc s [start [end]]
+@deffnx {C Function} scm_string_map (proc, s, start, end)
+@var{proc} is a char->char procedure, it is mapped over
+@var{s}.  The order in which the procedure is applied to the
+string elements is not specified.
+@end deffn
+
+string-map!
+@c snarfed from srfi-13.c:2704
+@deffn {Scheme Procedure} string-map! proc s [start [end]]
+@deffnx {C Function} scm_string_map_x (proc, s, start, end)
+@var{proc} is a char->char procedure, it is mapped over
+@var{s}.  The order in which the procedure is applied to the
+string elements is not specified.  The string @var{s} is
+modified in-place, the return value is not specified.
+@end deffn
+
+string-fold
+@c snarfed from srfi-13.c:2731
+@deffn {Scheme Procedure} string-fold kons knil s [start [end]]
+@deffnx {C Function} scm_string_fold (kons, knil, s, start, end)
+Fold @var{kons} over the characters of @var{s}, with @var{knil}
+as the terminating element, from left to right.  @var{kons}
+must expect two arguments: The actual character and the last
+result of @var{kons}' application.
+@end deffn
+
+string-fold-right
+@c snarfed from srfi-13.c:2760
+@deffn {Scheme Procedure} string-fold-right kons knil s [start [end]]
+@deffnx {C Function} scm_string_fold_right (kons, knil, s, start, end)
+Fold @var{kons} over the characters of @var{s}, with @var{knil}
+as the terminating element, from right to left.  @var{kons}
+must expect two arguments: The actual character and the last
+result of @var{kons}' application.
+@end deffn
+
+string-unfold
+@c snarfed from srfi-13.c:2803
+@deffn {Scheme Procedure} string-unfold p f g seed [base [make_final]]
+@deffnx {C Function} scm_string_unfold (p, f, g, seed, base, make_final)
+@itemize @bullet
+@item @var{g} is used to generate a series of @emph{seed}
+values from the initial @var{seed}: @var{seed}, (@var{g}
+@var{seed}), (@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}),
+@dots{}
+@item @var{p} tells us when to stop -- when it returns true
+when applied to one of these seed values.
+@item @var{f} maps each seed value to the corresponding
+character in the result string.  These chars are assembled
+into the string in a left-to-right order.
+@item @var{base} is the optional initial/leftmost portion
+of the constructed string; it default to the empty
+string.
+@item @var{make_final} is applied to the terminal seed
+value (on which @var{p} returns true) to produce
+the final/rightmost portion of the constructed string.
+It defaults to @code{(lambda (x) )}.
+@end itemize
+@end deffn
+
+string-unfold-right
+@c snarfed from srfi-13.c:2866
+@deffn {Scheme Procedure} string-unfold-right p f g seed [base [make_final]]
+@deffnx {C Function} scm_string_unfold_right (p, f, g, seed, base, make_final)
+@itemize @bullet
+@item @var{g} is used to generate a series of @emph{seed}
+values from the initial @var{seed}: @var{seed}, (@var{g}
+@var{seed}), (@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}),
+@dots{}
+@item @var{p} tells us when to stop -- when it returns true
+when applied to one of these seed values.
+@item @var{f} maps each seed value to the corresponding
+character in the result string.  These chars are assembled
+into the string in a right-to-left order.
+@item @var{base} is the optional initial/rightmost portion
+of the constructed string; it default to the empty
+string.
+@item @var{make_final} is applied to the terminal seed
+value (on which @var{p} returns true) to produce
+the final/leftmost portion of the constructed string.
+It defaults to @code{(lambda (x) )}.
+@end itemize
+@end deffn
+
+string-for-each
+@c snarfed from srfi-13.c:2913
+@deffn {Scheme Procedure} string-for-each proc s [start [end]]
+@deffnx {C Function} scm_string_for_each (proc, s, start, end)
+@var{proc} is mapped over @var{s} in left-to-right order.  The
+return value is not specified.
+@end deffn
+
+string-for-each-index
+@c snarfed from srfi-13.c:2937
+@deffn {Scheme Procedure} string-for-each-index proc s [start [end]]
+@deffnx {C Function} scm_string_for_each_index (proc, s, start, end)
+@var{proc} is mapped over @var{s} in left-to-right order.  The
+return value is not specified.
+@end deffn
+
+xsubstring
+@c snarfed from srfi-13.c:2967
+@deffn {Scheme Procedure} xsubstring s from [to [start [end]]]
+@deffnx {C Function} scm_xsubstring (s, from, to, start, end)
+This is the @emph{extended substring} procedure that implements
+replicated copying of a substring of some string.
+
+@var{s} is a string, @var{start} and @var{end} are optional
+arguments that demarcate a substring of @var{s}, defaulting to
+0 and the length of @var{s}.  Replicate this substring up and
+down index space, in both the positive and negative directions.
+@code{xsubstring} returns the substring of this string
+beginning at index @var{from}, and ending at @var{to}, which
+defaults to @var{from} + (@var{end} - @var{start}).
+@end deffn
+
+string-xcopy!
+@c snarfed from srfi-13.c:3010
+@deffn {Scheme Procedure} string-xcopy! target tstart s sfrom [sto [start [end]]]
+@deffnx {C Function} scm_string_xcopy_x (target, tstart, s, sfrom, sto, start, end)
+Exactly the same as @code{xsubstring}, but the extracted text
+is written into the string @var{target} starting at index
+@var{tstart}.  The operation is not defined if @code{(eq?
+@var{target} @var{s})} or these arguments share storage -- you
+cannot copy a string on top of itself.
+@end deffn
+
+string-replace
+@c snarfed from srfi-13.c:3058
+@deffn {Scheme Procedure} string-replace s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_replace (s1, s2, start1, end1, start2, end2)
+Return the string @var{s1}, but with the characters
+@var{start1} @dots{} @var{end1} replaced by the characters
+@var{start2} @dots{} @var{end2} from @var{s2}.
+@end deffn
+
+string-tokenize
+@c snarfed from srfi-13.c:3093
+@deffn {Scheme Procedure} string-tokenize s [token_set [start [end]]]
+@deffnx {C Function} scm_string_tokenize (s, token_set, start, end)
+Split the string @var{s} into a list of substrings, where each
+substring is a maximal non-empty contiguous sequence of
+characters from the character set @var{token_set}, which
+defaults to @code{char-set:graphic}.
+If @var{start} or @var{end} indices are provided, they restrict
+@code{string-tokenize} to operating on the indicated substring
+of @var{s}.
+@end deffn
+
 string-split
-@c snarfed from strop.c:484
+@c snarfed from srfi-13.c:3157
 @deffn {Scheme Procedure} string-split str chr
 @deffnx {C Function} scm_string_split (str, chr)
 Split the string @var{str} into the a list of the substrings delimited
@@ -5194,17 +5930,439 @@ result list.
 @end lisp
 @end deffn
 
-string-ci->symbol
-@c snarfed from strop.c:520
-@deffn {Scheme Procedure} string-ci->symbol str
-@deffnx {C Function} scm_string_ci_to_symbol (str)
-Return the symbol whose name is @var{str}.  @var{str} is
-converted to lowercase before the conversion is done, if Guile
-is currently reading symbols case-insensitively.
+string-filter
+@c snarfed from srfi-13.c:3195
+@deffn {Scheme Procedure} string-filter s char_pred [start [end]]
+@deffnx {C Function} scm_string_filter (s, char_pred, start, end)
+Filter the string @var{s}, retaining only those characters that
+satisfy the @var{char_pred} argument.  If the argument is a
+procedure, it is applied to each character as a predicate, if
+it is a character, it is tested for equality and if it is a
+character set, it is tested for membership.
+@end deffn
+
+string-delete
+@c snarfed from srfi-13.c:3265
+@deffn {Scheme Procedure} string-delete s char_pred [start [end]]
+@deffnx {C Function} scm_string_delete (s, char_pred, start, end)
+Filter the string @var{s}, retaining only those characters that
+do not satisfy the @var{char_pred} argument.  If the argument
+is a procedure, it is applied to each character as a predicate,
+if it is a character, it is tested for equality and if it is a
+character set, it is tested for membership.
+@end deffn
+
+char-set?
+@c snarfed from srfi-14.c:85
+@deffn {Scheme Procedure} char-set? obj
+@deffnx {C Function} scm_char_set_p (obj)
+Return @code{#t} if @var{obj} is a character set, @code{#f}
+otherwise.
+@end deffn
+
+char-set=
+@c snarfed from srfi-14.c:95
+@deffn {Scheme Procedure} char-set= . char_sets
+@deffnx {C Function} scm_char_set_eq (char_sets)
+Return @code{#t} if all given character sets are equal.
+@end deffn
+
+char-set<=
+@c snarfed from srfi-14.c:125
+@deffn {Scheme Procedure} char-set<= . char_sets
+@deffnx {C Function} scm_char_set_leq (char_sets)
+Return @code{#t} if every character set @var{cs}i is a subset
+of character set @var{cs}i+1.
+@end deffn
+
+char-set-hash
+@c snarfed from srfi-14.c:163
+@deffn {Scheme Procedure} char-set-hash cs [bound]
+@deffnx {C Function} scm_char_set_hash (cs, bound)
+Compute a hash value for the character set @var{cs}.  If
+@var{bound} is given and non-zero, it restricts the
+returned value to the range 0 @dots{} @var{bound - 1}.
+@end deffn
+
+char-set-cursor
+@c snarfed from srfi-14.c:196
+@deffn {Scheme Procedure} char-set-cursor cs
+@deffnx {C Function} scm_char_set_cursor (cs)
+Return a cursor into the character set @var{cs}.
+@end deffn
+
+char-set-ref
+@c snarfed from srfi-14.c:216
+@deffn {Scheme Procedure} char-set-ref cs cursor
+@deffnx {C Function} scm_char_set_ref (cs, cursor)
+Return the character at the current cursor position
+@var{cursor} in the character set @var{cs}.  It is an error to
+pass a cursor for which @code{end-of-char-set?} returns true.
+@end deffn
+
+char-set-cursor-next
+@c snarfed from srfi-14.c:233
+@deffn {Scheme Procedure} char-set-cursor-next cs cursor
+@deffnx {C Function} scm_char_set_cursor_next (cs, cursor)
+Advance the character set cursor @var{cursor} to the next
+character in the character set @var{cs}.  It is an error if the
+cursor given satisfies @code{end-of-char-set?}.
+@end deffn
+
+end-of-char-set?
+@c snarfed from srfi-14.c:254
+@deffn {Scheme Procedure} end-of-char-set? cursor
+@deffnx {C Function} scm_end_of_char_set_p (cursor)
+Return @code{#t} if @var{cursor} has reached the end of a
+character set, @code{#f} otherwise.
+@end deffn
+
+char-set-fold
+@c snarfed from srfi-14.c:266
+@deffn {Scheme Procedure} char-set-fold kons knil cs
+@deffnx {C Function} scm_char_set_fold (kons, knil, cs)
+Fold the procedure @var{kons} over the character set @var{cs},
+initializing it with @var{knil}.
+@end deffn
+
+char-set-unfold
+@c snarfed from srfi-14.c:296
+@deffn {Scheme Procedure} char-set-unfold p f g seed [base_cs]
+@deffnx {C Function} scm_char_set_unfold (p, f, g, seed, base_cs)
+This is a fundamental constructor for character sets.
+@itemize @bullet
+@item @var{g} is used to generate a series of ``seed'' values
+from the initial seed: @var{seed}, (@var{g} @var{seed}),
+(@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}), @dots{}
+@item @var{p} tells us when to stop -- when it returns true
+when applied to one of the seed values.
+@item @var{f} maps each seed value to a character. These
+characters are added to the base character set @var{base_cs} to
+form the result; @var{base_cs} defaults to the empty set.
+@end itemize
+@end deffn
+
+char-set-unfold!
+@c snarfed from srfi-14.c:340
+@deffn {Scheme Procedure} char-set-unfold! p f g seed base_cs
+@deffnx {C Function} scm_char_set_unfold_x (p, f, g, seed, base_cs)
+This is a fundamental constructor for character sets.
+@itemize @bullet
+@item @var{g} is used to generate a series of ``seed'' values
+from the initial seed: @var{seed}, (@var{g} @var{seed}),
+(@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}), @dots{}
+@item @var{p} tells us when to stop -- when it returns true
+when applied to one of the seed values.
+@item @var{f} maps each seed value to a character. These
+characters are added to the base character set @var{base_cs} to
+form the result; @var{base_cs} defaults to the empty set.
+@end itemize
+@end deffn
+
+char-set-for-each
+@c snarfed from srfi-14.c:369
+@deffn {Scheme Procedure} char-set-for-each proc cs
+@deffnx {C Function} scm_char_set_for_each (proc, cs)
+Apply @var{proc} to every character in the character set
+@var{cs}.  The return value is not specified.
+@end deffn
+
+char-set-map
+@c snarfed from srfi-14.c:388
+@deffn {Scheme Procedure} char-set-map proc cs
+@deffnx {C Function} scm_char_set_map (proc, cs)
+Map the procedure @var{proc} over every character in @var{cs}.
+@var{proc} must be a character -> character procedure.
+@end deffn
+
+char-set-copy
+@c snarfed from srfi-14.c:414
+@deffn {Scheme Procedure} char-set-copy cs
+@deffnx {C Function} scm_char_set_copy (cs)
+Return a newly allocated character set containing all
+characters in @var{cs}.
+@end deffn
+
+char-set
+@c snarfed from srfi-14.c:434
+@deffn {Scheme Procedure} char-set . rest
+@deffnx {C Function} scm_char_set (rest)
+Return a character set containing all given characters.
+@end deffn
+
+list->char-set
+@c snarfed from srfi-14.c:462
+@deffn {Scheme Procedure} list->char-set list [base_cs]
+@deffnx {C Function} scm_list_to_char_set (list, base_cs)
+Convert the character list @var{list} to a character set.  If
+the character set @var{base_cs} is given, the character in this
+set are also included in the result.
+@end deffn
+
+list->char-set!
+@c snarfed from srfi-14.c:496
+@deffn {Scheme Procedure} list->char-set! list base_cs
+@deffnx {C Function} scm_list_to_char_set_x (list, base_cs)
+Convert the character list @var{list} to a character set.  The
+characters are added to @var{base_cs} and @var{base_cs} is
+returned.
+@end deffn
+
+string->char-set
+@c snarfed from srfi-14.c:523
+@deffn {Scheme Procedure} string->char-set str [base_cs]
+@deffnx {C Function} scm_string_to_char_set (str, base_cs)
+Convert the string @var{str} to a character set.  If the
+character set @var{base_cs} is given, the characters in this
+set are also included in the result.
+@end deffn
+
+string->char-set!
+@c snarfed from srfi-14.c:557
+@deffn {Scheme Procedure} string->char-set! str base_cs
+@deffnx {C Function} scm_string_to_char_set_x (str, base_cs)
+Convert the string @var{str} to a character set.  The
+characters from the string are added to @var{base_cs}, and
+@var{base_cs} is returned.
+@end deffn
+
+char-set-filter
+@c snarfed from srfi-14.c:584
+@deffn {Scheme Procedure} char-set-filter pred cs [base_cs]
+@deffnx {C Function} scm_char_set_filter (pred, cs, base_cs)
+Return a character set containing every character from @var{cs}
+so that it satisfies @var{pred}.  If provided, the characters
+from @var{base_cs} are added to the result.
+@end deffn
+
+char-set-filter!
+@c snarfed from srfi-14.c:620
+@deffn {Scheme Procedure} char-set-filter! pred cs base_cs
+@deffnx {C Function} scm_char_set_filter_x (pred, cs, base_cs)
+Return a character set containing every character from @var{cs}
+so that it satisfies @var{pred}.  The characters are added to
+@var{base_cs} and @var{base_cs} is returned.
+@end deffn
+
+ucs-range->char-set
+@c snarfed from srfi-14.c:658
+@deffn {Scheme Procedure} ucs-range->char-set lower upper [error [base_cs]]
+@deffnx {C Function} scm_ucs_range_to_char_set (lower, upper, error, base_cs)
+Return a character set containing all characters whose
+character codes lie in the half-open range
+[@var{lower},@var{upper}).
+
+If @var{error} is a true value, an error is signalled if the
+specified range contains characters which are not contained in
+the implemented character range.  If @var{error} is @code{#f},
+these characters are silently left out of the resultung
+character set.
+
+The characters in @var{base_cs} are added to the result, if
+given.
+@end deffn
+
+ucs-range->char-set!
+@c snarfed from srfi-14.c:711
+@deffn {Scheme Procedure} ucs-range->char-set! lower upper error base_cs
+@deffnx {C Function} scm_ucs_range_to_char_set_x (lower, upper, error, base_cs)
+Return a character set containing all characters whose
+character codes lie in the half-open range
+[@var{lower},@var{upper}).
+
+If @var{error} is a true value, an error is signalled if the
+specified range contains characters which are not contained in
+the implemented character range.  If @var{error} is @code{#f},
+these characters are silently left out of the resultung
+character set.
+
+The characters are added to @var{base_cs} and @var{base_cs} is
+returned.
+@end deffn
+
+->char-set
+@c snarfed from srfi-14.c:741
+@deffn {Scheme Procedure} ->char-set x
+@deffnx {C Function} scm_to_char_set (x)
+Coerces x into a char-set. @var{x} may be a string, character or char-set. A string is converted to the set of its constituent characters; a character is converted to a singleton set; a char-set is returned as-is.
+@end deffn
+
+char-set-size
+@c snarfed from srfi-14.c:757
+@deffn {Scheme Procedure} char-set-size cs
+@deffnx {C Function} scm_char_set_size (cs)
+Return the number of elements in character set @var{cs}.
+@end deffn
+
+char-set-count
+@c snarfed from srfi-14.c:774
+@deffn {Scheme Procedure} char-set-count pred cs
+@deffnx {C Function} scm_char_set_count (pred, cs)
+Return the number of the elements int the character set
+@var{cs} which satisfy the predicate @var{pred}.
+@end deffn
+
+char-set->list
+@c snarfed from srfi-14.c:797
+@deffn {Scheme Procedure} char-set->list cs
+@deffnx {C Function} scm_char_set_to_list (cs)
+Return a list containing the elements of the character set
+@var{cs}.
+@end deffn
+
+char-set->string
+@c snarfed from srfi-14.c:816
+@deffn {Scheme Procedure} char-set->string cs
+@deffnx {C Function} scm_char_set_to_string (cs)
+Return a string containing the elements of the character set
+@var{cs}.  The order in which the characters are placed in the
+string is not defined.
+@end deffn
+
+char-set-contains?
+@c snarfed from srfi-14.c:841
+@deffn {Scheme Procedure} char-set-contains? cs ch
+@deffnx {C Function} scm_char_set_contains_p (cs, ch)
+Return @code{#t} iff the character @var{ch} is contained in the
+character set @var{cs}.
+@end deffn
+
+char-set-every
+@c snarfed from srfi-14.c:854
+@deffn {Scheme Procedure} char-set-every pred cs
+@deffnx {C Function} scm_char_set_every (pred, cs)
+Return a true value if every character in the character set
+@var{cs} satisfies the predicate @var{pred}.
+@end deffn
+
+char-set-any
+@c snarfed from srfi-14.c:878
+@deffn {Scheme Procedure} char-set-any pred cs
+@deffnx {C Function} scm_char_set_any (pred, cs)
+Return a true value if any character in the character set
+@var{cs} satisfies the predicate @var{pred}.
+@end deffn
+
+char-set-adjoin
+@c snarfed from srfi-14.c:901
+@deffn {Scheme Procedure} char-set-adjoin cs . rest
+@deffnx {C Function} scm_char_set_adjoin (cs, rest)
+Add all character arguments to the first argument, which must
+be a character set.
+@end deffn
+
+char-set-delete
+@c snarfed from srfi-14.c:929
+@deffn {Scheme Procedure} char-set-delete cs . rest
+@deffnx {C Function} scm_char_set_delete (cs, rest)
+Delete all character arguments from the first argument, which
+must be a character set.
+@end deffn
+
+char-set-adjoin!
+@c snarfed from srfi-14.c:957
+@deffn {Scheme Procedure} char-set-adjoin! cs . rest
+@deffnx {C Function} scm_char_set_adjoin_x (cs, rest)
+Add all character arguments to the first argument, which must
+be a character set.
+@end deffn
+
+char-set-delete!
+@c snarfed from srfi-14.c:984
+@deffn {Scheme Procedure} char-set-delete! cs . rest
+@deffnx {C Function} scm_char_set_delete_x (cs, rest)
+Delete all character arguments from the first argument, which
+must be a character set.
+@end deffn
+
+char-set-complement
+@c snarfed from srfi-14.c:1010
+@deffn {Scheme Procedure} char-set-complement cs
+@deffnx {C Function} scm_char_set_complement (cs)
+Return the complement of the character set @var{cs}.
+@end deffn
+
+char-set-union
+@c snarfed from srfi-14.c:1031
+@deffn {Scheme Procedure} char-set-union . rest
+@deffnx {C Function} scm_char_set_union (rest)
+Return the union of all argument character sets.
+@end deffn
+
+char-set-intersection
+@c snarfed from srfi-14.c:1060
+@deffn {Scheme Procedure} char-set-intersection . rest
+@deffnx {C Function} scm_char_set_intersection (rest)
+Return the intersection of all argument character sets.
+@end deffn
+
+char-set-difference
+@c snarfed from srfi-14.c:1100
+@deffn {Scheme Procedure} char-set-difference cs1 . rest
+@deffnx {C Function} scm_char_set_difference (cs1, rest)
+Return the difference of all argument character sets.
+@end deffn
+
+char-set-xor
+@c snarfed from srfi-14.c:1130
+@deffn {Scheme Procedure} char-set-xor . rest
+@deffnx {C Function} scm_char_set_xor (rest)
+Return the exclusive-or of all argument character sets.
+@end deffn
+
+char-set-diff+intersection
+@c snarfed from srfi-14.c:1171
+@deffn {Scheme Procedure} char-set-diff+intersection cs1 . rest
+@deffnx {C Function} scm_char_set_diff_plus_intersection (cs1, rest)
+Return the difference and the intersection of all argument
+character sets.
+@end deffn
+
+char-set-complement!
+@c snarfed from srfi-14.c:1209
+@deffn {Scheme Procedure} char-set-complement! cs
+@deffnx {C Function} scm_char_set_complement_x (cs)
+Return the complement of the character set @var{cs}.
+@end deffn
+
+char-set-union!
+@c snarfed from srfi-14.c:1226
+@deffn {Scheme Procedure} char-set-union! cs1 . rest
+@deffnx {C Function} scm_char_set_union_x (cs1, rest)
+Return the union of all argument character sets.
+@end deffn
+
+char-set-intersection!
+@c snarfed from srfi-14.c:1254
+@deffn {Scheme Procedure} char-set-intersection! cs1 . rest
+@deffnx {C Function} scm_char_set_intersection_x (cs1, rest)
+Return the intersection of all argument character sets.
+@end deffn
+
+char-set-difference!
+@c snarfed from srfi-14.c:1282
+@deffn {Scheme Procedure} char-set-difference! cs1 . rest
+@deffnx {C Function} scm_char_set_difference_x (cs1, rest)
+Return the difference of all argument character sets.
+@end deffn
+
+char-set-xor!
+@c snarfed from srfi-14.c:1310
+@deffn {Scheme Procedure} char-set-xor! cs1 . rest
+@deffnx {C Function} scm_char_set_xor_x (cs1, rest)
+Return the exclusive-or of all argument character sets.
+@end deffn
+
+char-set-diff+intersection!
+@c snarfed from srfi-14.c:1349
+@deffn {Scheme Procedure} char-set-diff+intersection! cs1 cs2 . rest
+@deffnx {C Function} scm_char_set_diff_plus_intersection_x (cs1, cs2, rest)
+Return the difference and the intersection of all argument
+character sets.
 @end deffn
 
 string=?
-@c snarfed from strorder.c:38
+@c snarfed from strorder.c:50
 @deffn {Scheme Procedure} string=? s1 s2
 Lexicographic equality predicate; return @code{#t} if the two
 strings are the same length and contain the same characters in
@@ -5217,7 +6375,7 @@ characters.
 @end deffn
 
 string-ci=?
-@c snarfed from strorder.c:77
+@c snarfed from strorder.c:62
 @deffn {Scheme Procedure} string-ci=? s1 s2
 Case-insensitive string equality predicate; return @code{#t} if
 the two strings are the same length and their component
@@ -5226,35 +6384,35 @@ return @code{#f}.
 @end deffn
 
 string<?
-@c snarfed from strorder.c:140
+@c snarfed from strorder.c:72
 @deffn {Scheme Procedure} string<? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than @var{s2}.
 @end deffn
 
 string<=?
-@c snarfed from strorder.c:154
+@c snarfed from strorder.c:82
 @deffn {Scheme Procedure} string<=? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than or equal to @var{s2}.
 @end deffn
 
 string>?
-@c snarfed from strorder.c:168
+@c snarfed from strorder.c:92
 @deffn {Scheme Procedure} string>? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than @var{s2}.
 @end deffn
 
 string>=?
-@c snarfed from strorder.c:182
+@c snarfed from strorder.c:102
 @deffn {Scheme Procedure} string>=? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than or equal to @var{s2}.
 @end deffn
 
 string-ci<?
-@c snarfed from strorder.c:223
+@c snarfed from strorder.c:113
 @deffn {Scheme Procedure} string-ci<? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than @var{s2}
@@ -5262,7 +6420,7 @@ regardless of case.
 @end deffn
 
 string-ci<=?
-@c snarfed from strorder.c:238
+@c snarfed from strorder.c:124
 @deffn {Scheme Procedure} string-ci<=? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than or equal
@@ -5270,7 +6428,7 @@ to @var{s2} regardless of case.
 @end deffn
 
 string-ci>?
-@c snarfed from strorder.c:253
+@c snarfed from strorder.c:135
 @deffn {Scheme Procedure} string-ci>? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than
@@ -5278,7 +6436,7 @@ Case insensitive lexicographic ordering predicate; return
 @end deffn
 
 string-ci>=?
-@c snarfed from strorder.c:268
+@c snarfed from strorder.c:146
 @deffn {Scheme Procedure} string-ci>=? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than or
@@ -5530,7 +6688,7 @@ Set the name of the vtable @var{vtable} to @var{name}.
 @end deffn
 
 symbol?
-@c snarfed from symbols.c:156
+@c snarfed from symbols.c:158
 @deffn {Scheme Procedure} symbol? obj
 @deffnx {C Function} scm_symbol_p (obj)
 Return @code{#t} if @var{obj} is a symbol, otherwise return
@@ -5538,7 +6696,7 @@ Return @code{#t} if @var{obj} is a symbol, otherwise return
 @end deffn
 
 symbol-interned?
-@c snarfed from symbols.c:166
+@c snarfed from symbols.c:168
 @deffn {Scheme Procedure} symbol-interned? symbol
 @deffnx {C Function} scm_symbol_interned_p (symbol)
 Return @code{#t} if @var{symbol} is interned, otherwise return
@@ -5546,14 +6704,14 @@ Return @code{#t} if @var{symbol} is interned, otherwise return
 @end deffn
 
 make-symbol
-@c snarfed from symbols.c:178
+@c snarfed from symbols.c:180
 @deffn {Scheme Procedure} make-symbol name
 @deffnx {C Function} scm_make_symbol (name)
 Return a new uninterned symbol with the name @var{name}.  The returned symbol is guaranteed to be unique and future calls to @code{string->symbol} will not return it.
 @end deffn
 
 symbol->string
-@c snarfed from symbols.c:210
+@c snarfed from symbols.c:212
 @deffn {Scheme Procedure} symbol->string s
 @deffnx {C Function} scm_symbol_to_string (s)
 Return the name of @var{symbol} as a string.  If the symbol was
@@ -5582,7 +6740,7 @@ standard case is lower case:
 @end deffn
 
 string->symbol
-@c snarfed from symbols.c:240
+@c snarfed from symbols.c:242
 @deffn {Scheme Procedure} string->symbol string
 @deffnx {C Function} scm_string_to_symbol (string)
 Return the symbol whose name is @var{string}. This procedure
@@ -5607,8 +6765,17 @@ standard case is lower case:
 @end lisp
 @end deffn
 
+string-ci->symbol
+@c snarfed from symbols.c:254
+@deffn {Scheme Procedure} string-ci->symbol str
+@deffnx {C Function} scm_string_ci_to_symbol (str)
+Return the symbol whose name is @var{str}.  @var{str} is
+converted to lowercase before the conversion is done, if Guile
+is currently reading symbols case-insensitively.
+@end deffn
+
 gensym
-@c snarfed from symbols.c:256
+@c snarfed from symbols.c:271
 @deffn {Scheme Procedure} gensym [prefix]
 @deffnx {C Function} scm_gensym (prefix)
 Create a new symbol with a name constructed from a prefix and
@@ -5619,35 +6786,35 @@ resetting the counter.
 @end deffn
 
 symbol-hash
-@c snarfed from symbols.c:282
+@c snarfed from symbols.c:297
 @deffn {Scheme Procedure} symbol-hash symbol
 @deffnx {C Function} scm_symbol_hash (symbol)
 Return a hash value for @var{symbol}.
 @end deffn
 
 symbol-fref
-@c snarfed from symbols.c:292
+@c snarfed from symbols.c:307
 @deffn {Scheme Procedure} symbol-fref s
 @deffnx {C Function} scm_symbol_fref (s)
 Return the contents of @var{symbol}'s @dfn{function slot}.
 @end deffn
 
 symbol-pref
-@c snarfed from symbols.c:303
+@c snarfed from symbols.c:318
 @deffn {Scheme Procedure} symbol-pref s
 @deffnx {C Function} scm_symbol_pref (s)
 Return the @dfn{property list} currently associated with @var{symbol}.
 @end deffn
 
 symbol-fset!
-@c snarfed from symbols.c:314
+@c snarfed from symbols.c:329
 @deffn {Scheme Procedure} symbol-fset! s val
 @deffnx {C Function} scm_symbol_fset_x (s, val)
 Change the binding of @var{symbol}'s function slot.
 @end deffn
 
 symbol-pset!
-@c snarfed from symbols.c:326
+@c snarfed from symbols.c:341
 @deffn {Scheme Procedure} symbol-pset! s val
 @deffnx {C Function} scm_symbol_pset_x (s, val)
 Change the binding of @var{symbol}'s property slot.
