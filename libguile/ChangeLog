@@ -1,3 +1,66 @@
+2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* list.c (SCM_I_CONS):  Make sure the cell type is initialized
+	last.
+
+	* gc.c (s_scm_map_free_list, scm_igc, scm_gc_sweep,
+	init_heap_seg):  Fixed signedness.
+
+	(init_heap_seg):  Replaced strange for-loop with a while loop.
+
+	* weaks.h (WEAKSH, SCM_WEAKS_H):  Rename <foo>H to SCM_<foo>_H.
+
+	(SCM_WVECTP):  Prefer !SCM_<pred> over SCM_N<pred>.
+
+	The following patch adds conservative marking for the elements of
+	free or allocated cells.
+
+	* gc.c (allocated_mark, heap_segment):  New static functions.
+
+	(which_seg):  Deleted, since the functionality is now provided by
+	function heap_segment.
+
+	(map_free_list):  Use heap_segment instead of which_seg.
+
+	(MARK):  If cell debugging is disabled, mark free cells
+	conservatively.
+
+	(scm_mark_locations, scm_cellp):  Extracted the search for the
+	heap segment of a SCM value into function heap_segment.
+
+	(scm_init_storage):  Allocated cells must be marked
+	conservatively.
+
+	* gc.[ch] (scm_gc_mark_cell_conservatively):  New function.
+
+	The following patch changes the representation of weak vectors to
+	double cells instead of using an extension of the vector's
+	allocated memory.
+
+	* gc.c (MARK):  Use SCM_SET_WVECT_GC_CHAIN instead of assigning to
+	the result of SCM_WVECT_GC_CHAIN.
+
+	(scm_gc_sweep):  Weak vectors don't have extra fields any more.
+
+	* weaks.c (allocate_weak_vector):  New static function.  It does
+	not patch any previously created vector object during the
+	construction of a weak vector, and thus doesn't need to switch
+	off interrupts during vector creation.
+
+	(scm_make_weak_vector, scm_make_weak_key_hash_table,
+	scm_make_weak_value_hash_table, scm_make_doubly_weak_hash_table):
+	Use allocate_weak_vector to provide the new weak vector object.
+
+	* weaks.h (SCM_WVECT_TYPE, SCM_SET_WVECT_TYPE,
+	SCM_SET_WVECT_GC_CHAIN):  New macros.  The weak vector subtype is
+	now stored in the double cell.
+
+	(SCM_IS_WHVEC, SCM_IS_WHVEC_V, SCM_IS_WHVEC_B, SCM_IS_WHVEC_ANY):
+	Use SCM_WVECT_TYPE.
+
+	(SCM_WVECT_GC_CHAIN):  The weak objects are now chained together
+	using an entry of the double cell.
+
 2001-06-30  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* stamp-h.in: bye bye

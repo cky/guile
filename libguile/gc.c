@@ -114,6 +114,19 @@ unsigned int scm_debug_cell_accesses_p = 1;
 static unsigned int debug_cells_gc_interval = 0;
 
 
+/* If an allocated cell is detected during garbage collection, this means that
+ * some code has just obtained the object but was preempted before the
+ * initialization of the object was completed.  This meanst that some entries
+ * of the allocated cell may already contain SCM objects.  Therefore,
+ * allocated cells are scanned conservatively.  */
+static SCM
+allocated_mark (SCM allocated)
+{
+  scm_gc_mark_cell_conservatively (allocated);
+  return SCM_BOOL_F;
+}
+
+
 /* Assert that the given object is a valid reference to a valid cell.  This
  * test involves to determine whether the object is a cell pointer, whether
  * this pointer actually points into a heap segment and whether the cell
@@ -517,22 +530,6 @@ clear_mark_space ()
 
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
 
-/* Return the number of the heap segment containing CELL.  */
-static long
-which_seg (SCM cell)
-{
-  long i;
-
-  for (i = 0; i < scm_n_heap_segs; i++)
-    if (SCM_PTR_LE (scm_heap_table[i].bounds[0], SCM2PTR (cell))
-	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], SCM2PTR (cell)))
-      return i;
-  fprintf (stderr, "which_seg: can't find segment containing cell %lux\n",
-	   (unsigned long) SCM_UNPACK (cell));
-  abort ();
-}
-
-
 static void
 map_free_list (scm_t_freelist *master, SCM freelist)
 {
@@ -541,9 +538,16 @@ map_free_list (scm_t_freelist *master, SCM freelist)
 
   for (f = freelist; !SCM_NULLP (f); f = SCM_FREE_CELL_CDR (f))
     {
-      long this_seg = which_seg (f);
+      long int this_seg = heap_segment (f);
 
-      if (this_seg != last_seg)
+      if (this_seg == -1)
+	{
+	  fprintf (stderr, 
+		   "map_free_list: can't find segment containing cell %lux\n",
+		   (unsigned long int) SCM_UNPACK (cell));
+	  abort ();
+	}
+      else if (this_seg != last_seg)
 	{
 	  if (last_seg != -1)
 	    fprintf (stderr, "  %5ld %d-cells in segment %ld\n",
@@ -565,12 +569,14 @@ SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
 	    "@code{--enable-guile-debug} builds of Guile.")
 #define FUNC_NAME s_scm_map_free_list
 {
-  long i;
+  size_t i;
+
   fprintf (stderr, "%ld segments total (%d:%ld",
 	   (long) scm_n_heap_segs,
 	   scm_heap_table[0].span,
 	   (long) (scm_heap_table[0].bounds[1] - scm_heap_table[0].bounds[0]));
-  for (i = 1; i < scm_n_heap_segs; i++)
+
+  for (i = 1; i != scm_n_heap_segs; i++)
     fprintf (stderr, ", %d:%ld",
 	     scm_heap_table[i].span,
 	     (long) (scm_heap_table[i].bounds[1] - scm_heap_table[i].bounds[0]));
@@ -1120,10 +1126,10 @@ scm_igc (const char *what)
 
   /* mark the registered roots */
   {
-    long i;
+    size_t i;
     for (i = 0; i < SCM_VECTOR_LENGTH (scm_gc_registered_roots); ++i) {
       SCM l = SCM_VELTS (scm_gc_registered_roots)[i];
-      for (; ! SCM_NULLP (l); l = SCM_CDR (l)) {
+      for (; !SCM_NULLP (l); l = SCM_CDR (l)) {
         SCM *p = (SCM *) (scm_num2long (SCM_CAAR (l), 0, NULL));
         scm_gc_mark (*p);
       }
@@ -1366,7 +1372,7 @@ gc_mark_loop_first_time:
       goto_gc_mark_loop;
 
     case scm_tc7_wvect:
-      SCM_WVECT_GC_CHAIN (ptr) = scm_weak_vectors;
+      SCM_SET_WVECT_GC_CHAIN (ptr, scm_weak_vectors);
       scm_weak_vectors = ptr;
       if (SCM_IS_WHVEC_ANY (ptr))
 	{
@@ -1449,7 +1455,27 @@ gc_mark_loop_first_time:
       switch (SCM_TYP16 (ptr))
 	{ /* should be faster than going through scm_smobs */
 	case scm_tc_free_cell:
-	  /* printf("found free_cell %X ", ptr); fflush(stdout); */
+	  /* We have detected a free cell.  This can happen if non-object data
+	   * on the C stack points into guile's heap and is scanned during
+	   * conservative marking.  */
+#if (SCM_DEBUG_CELL_ACCESSES == 0)
+	  /* If cell debugging is disabled, there is a second situation in
+	   * which a free cell can be encountered, namely if with preemptive
+	   * threading one thread has just obtained a fresh cell and was
+	   * preempted before the cell initialization was completed.  In this
+	   * case, some entries of the cell may already contain objects.
+	   * Thus, if cell debugging is disabled, free cells are scanned
+	   * conservatively.  */
+	  scm_gc_mark_cell_conservatively (ptr);
+#else /* SCM_DEBUG_CELL_ACCESSES == 1 */
+	  /* With cell debugging enabled, a freshly obtained but not fully
+	   * initialized cell is guaranteed to be of type scm_tc16_allocated.
+	   * Thus, no conservative scanning for free cells is necessary, but
+	   * instead cells of type scm_tc16_allocated have to be scanned
+	   * conservatively.  This is done in the mark function of the
+	   * scm_tc16_allocated smob type.  */ 
+#endif
+	  break;
 	case scm_tc16_big:
 	case scm_tc16_real:
 	case scm_tc16_complex:
@@ -1493,9 +1519,97 @@ gc_mark_loop_first_time:
 #undef FNAME
 
 
-/* Mark a Region Conservatively
- */
+/* Determine whether the given value does actually represent a cell in some
+ * heap segment.  If this is the case, the number of the heap segment is
+ * returned.  Otherwise, -1 is returned.  Binary search is used in order to
+ * determine the heap segment that contains the cell.*/
+/* FIXME:  To be used within scm_gc_mark_cell_conservatively,
+ * scm_mark_locations and scm_cellp this function should be an inline
+ * function.  */
+static long int
+heap_segment (SCM obj)
+{
+  if (!SCM_CELLP (obj))
+    return -1;
+  else
+    {
+      SCM_CELLPTR ptr = SCM2PTR (obj);
+      unsigned long int i = 0;
+      unsigned long int j = scm_n_heap_segs - 1;
 
+      if (SCM_PTR_LT (ptr, scm_heap_table[i].bounds[0]))
+	return -1;
+      else if (SCM_PTR_LE (scm_heap_table[j].bounds[1], ptr))
+	return -1;
+      else
+	{
+	  while (i < j)
+	    {
+	      if (SCM_PTR_LT (ptr, scm_heap_table[i].bounds[1]))
+		{
+		  break;
+		}
+	      else if (SCM_PTR_LE (scm_heap_table[j].bounds[0], ptr))
+		{
+		  i = j;
+		  break;
+		}
+	      else
+		{
+		  unsigned long int k = (i + j) / 2;
+
+		  if (k == i)
+		    return -1;
+		  else if (SCM_PTR_LT (ptr, scm_heap_table[k].bounds[1]))
+		    {
+		      j = k;
+		      ++i;
+		      if (SCM_PTR_LT (ptr, scm_heap_table[i].bounds[0]))
+			return -1;
+		    }
+		  else if (SCM_PTR_LE (scm_heap_table[k].bounds[0], ptr))
+		    {
+		      i = k;
+		      --j;
+		      if (SCM_PTR_LE (scm_heap_table[j].bounds[1], ptr))
+			return -1;
+		    }
+		}
+	    }
+
+	  if (!DOUBLECELL_ALIGNED_P (obj) && scm_heap_table[i].span == 2)
+	    return -1;
+	  else if (SCM_GC_IN_CARD_HEADERP (ptr))
+	    return -1;
+	  else
+	    return i;
+	}
+    }
+}
+
+
+/* Mark the entries of a cell conservatively.  The given cell is known to be
+ * on the heap.  Still we have to determine its heap segment in order to
+ * figure out whether it is a single or a double cell.  Then, each of the cell
+ * elements itself is checked and potentially marked. */
+void
+scm_gc_mark_cell_conservatively (SCM cell)
+{
+  unsigned long int cell_segment = heap_segment (cell);
+  unsigned int span = scm_heap_table[cell_segment].span;
+  unsigned int i;
+
+  for (i = 1; i != span * 2; ++i)
+    {
+      SCM obj = SCM_CELL_OBJECT (cell, i);
+      long int obj_segment = heap_segment (obj);
+      if (obj_segment >= 0)
+	scm_gc_mark (obj);
+    }
+}
+
+
+/* Mark a region conservatively */
 void
 scm_mark_locations (SCM_STACKITEM x[], unsigned long n)
 {
@@ -1504,98 +1618,21 @@ scm_mark_locations (SCM_STACKITEM x[], unsigned long n)
   for (m = 0; m < n; ++m)
     {
       SCM obj = * (SCM *) &x[m];
-      if (SCM_CELLP (obj))
-	{
-	  SCM_CELLPTR ptr = SCM2PTR (obj);
-	  long i = 0;
-	  long j = scm_n_heap_segs - 1;
-	  if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
-	      && SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
-	    {
-	      while (i <= j)
-		{
-		  long seg_id;
-		  seg_id = -1;
-		  if ((i == j)
-		      || SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr))
-		    seg_id = i;
-		  else if (SCM_PTR_LE (scm_heap_table[j].bounds[0], ptr))
-		    seg_id = j;
-		  else
-		    {
-		      long k;
-		      k = (i + j) / 2;
-		      if (k == i)
-			break;
-		      if (SCM_PTR_GT (scm_heap_table[k].bounds[1], ptr))
-			{
-			  j = k;
-			  ++i;
-			  if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr))
-			    continue;
-			  else
-			    break;
-			}
-		      else if (SCM_PTR_LE (scm_heap_table[k].bounds[0], ptr))
-			{
-			  i = k;
-			  --j;
-			  if (SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
-			    continue;
-			  else
-			    break;
-			}
-		    }
-
-                  if (SCM_GC_IN_CARD_HEADERP (ptr))
-                    break;
-
-		  if (scm_heap_table[seg_id].span == 1
-		      || DOUBLECELL_ALIGNED_P (obj))
-                    scm_gc_mark (obj);
-                  
-		  break;
-		}
-	    }
-	}
+      long int segment = heap_segment (obj);
+      if (segment >= 0)
+	scm_gc_mark (obj);
     }
 }
 
 
 /* The function scm_cellp determines whether an SCM value can be regarded as a
- * pointer to a cell on the heap.  Binary search is used in order to determine
- * the heap segment that contains the cell.
+ * pointer to a cell on the heap.
  */
 int
 scm_cellp (SCM value)
 {
-  if (SCM_CELLP (value)) {
-    scm_cell * ptr = SCM2PTR (value);
-    unsigned long i = 0;
-    unsigned long j = scm_n_heap_segs - 1;
-
-    if (SCM_GC_IN_CARD_HEADERP (ptr))
-      return 0;
-
-    while (i < j) {
-      long k = (i + j) / 2;
-      if (SCM_PTR_GT (scm_heap_table[k].bounds[1], ptr)) {
-	j = k;
-      } else if (SCM_PTR_LE (scm_heap_table[k].bounds[0], ptr)) {
-	i = k + 1;
-      }
-    }
-
-    if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
-	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr)
-	&& (scm_heap_table[i].span == 1 || DOUBLECELL_ALIGNED_P (value))
-        && !SCM_GC_IN_CARD_HEADERP (ptr)
-        )
-      return 1;
-    else
-      return 0;
-  } else
-    return 0;
+  long int segment = heap_segment (value);
+  return (segment >= 0);
 }
 
 
@@ -1654,7 +1691,7 @@ scm_gc_sweep ()
   register scm_t_freelist *freelist;
   register unsigned long m;
   register int span;
-  long i;
+  size_t i;
   size_t seg_size;
 
   m = 0;
@@ -1738,9 +1775,6 @@ scm_gc_sweep ()
 	    case scm_tc7_pws:
 	      break;
 	    case scm_tc7_wvect:
-              m += (2 + SCM_VECTOR_LENGTH (scmptr)) * sizeof (SCM);
-              scm_must_free (SCM_VECTOR_BASE (scmptr) - 2);
-              break;
 	    case scm_tc7_vector:
 	      {
 		unsigned long int length = SCM_VECTOR_LENGTH (scmptr);
@@ -2222,7 +2256,7 @@ init_heap_seg (SCM_CELLPTR seg_org, size_t size, scm_t_freelist *freelist)
 {
   register SCM_CELLPTR ptr;
   SCM_CELLPTR seg_end;
-  long new_seg_index;
+  size_t new_seg_index;
   ptrdiff_t n_new_cells;
   int span = freelist->span;
 
@@ -2238,13 +2272,11 @@ init_heap_seg (SCM_CELLPTR seg_org, size_t size, scm_t_freelist *freelist)
   seg_end = SCM_GC_CARD_DOWN ((char *)seg_org + size);
 
   /* Find the right place and insert the segment record.
-   *
    */
-  for (new_seg_index = 0;
-       (   (new_seg_index < scm_n_heap_segs)
-	&& SCM_PTR_LE (scm_heap_table[new_seg_index].bounds[0], seg_org));
-       new_seg_index++)
-    ;
+  new_seg_index = 0;
+  while (new_seg_index < scm_n_heap_segs 
+	 && SCM_PTR_LE (scm_heap_table[new_seg_index].bounds[0], seg_org))
+    new_seg_index++;
 
   {
     int i;
@@ -2468,7 +2500,7 @@ alloc_some_heap (scm_t_freelist *freelist, policy_on_error error_policy)
  * parameters.  Therefore, you can be sure that the compiler will keep those
  * scheme values alive (on the stack or in a register) up to the point where
  * scm_remember_upto_here* is called.  In other words, place the call to
- * scm_remember_upt_here* _behind_ the last code in your function, that
+ * scm_remember_upto_here* _behind_ the last code in your function, that
  * depends on the scheme object to exist.
  *
  * Example: We want to make sure, that the string object str does not get
@@ -2778,6 +2810,7 @@ scm_init_storage ()
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
   scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);
+  scm_set_smob_mark (scm_tc16_allocated, allocated_mark);
 #endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 
   j = SCM_NUM_PROTECTS;

@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef WEAKSH
-#define WEAKSH
-/*	Copyright (C) 1995,1996, 2000 Free Software Foundation, Inc.   
+#ifndef SCM_WEAKS_H
+#define SCM_WEAKS_H
+/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.   
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,13 +51,15 @@
 
 
 
-
-#define SCM_WVECTP(x) (SCM_NIMP(x) && (SCM_TYP7(x)==scm_tc7_wvect))
-#define SCM_IS_WHVEC(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) == 1)
-#define SCM_IS_WHVEC_V(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) == 2)
-#define SCM_IS_WHVEC_B(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) == 3)
-#define SCM_IS_WHVEC_ANY(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) != 0)
-#define SCM_WVECT_GC_CHAIN(X) (SCM_VELTS(X)[-2])
+#define SCM_WVECTP(x) (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_wvect)
+#define SCM_WVECT_TYPE(x) (SCM_CELL_WORD_2 (x))
+#define SCM_SET_WVECT_TYPE(x, t) (SCM_SET_CELL_WORD_2 ((x), (t)))
+#define SCM_IS_WHVEC(X) (SCM_WVECT_TYPE (X) == 1)
+#define SCM_IS_WHVEC_V(X) (SCM_WVECT_TYPE (X) == 2)
+#define SCM_IS_WHVEC_B(X) (SCM_WVECT_TYPE (X) == 3)
+#define SCM_IS_WHVEC_ANY(X) (SCM_WVECT_TYPE (X) != 0)
+#define SCM_WVECT_GC_CHAIN(X) (SCM_CELL_OBJECT_3 (X))
+#define SCM_SET_WVECT_GC_CHAIN(X, o) (SCM_SET_CELL_OBJECT_3 ((X), (o)))
 
 extern SCM scm_weak_vectors;
 
@@ -75,7 +77,7 @@ extern SCM scm_doubly_weak_hash_table_p (SCM x);
 extern void scm_weaks_prehistory (void);
 extern void scm_init_weaks (void);
 
-#endif  /* WEAKSH */
+#endif  /* SCM_WEAKS_H */
 
 /*
   Local Variables:

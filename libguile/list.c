@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,8 +63,8 @@
 #define SCM_I_CONS(cell,x,y)			\
 do {						\
   SCM_NEWCELL (cell);				\
-  SCM_SET_CELL_OBJECT_0 (cell, x);		\
   SCM_SET_CELL_OBJECT_1 (cell, y);		\
+  SCM_SET_CELL_OBJECT_0 (cell, x);		\
 } while (0)
 
 SCM

@@ -43,16 +43,70 @@
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
+
 #include "libguile/_scm.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
 #include "libguile/weaks.h"
-
 
+
 
 /* {Weak Vectors}
  */
+
+
+/* Allocate memory for a weak vector on behalf of the caller.  The allocated
+ * vector will be of the given weak vector subtype.  It will contain size
+ * elements which are initialized with the 'fill' object, or, if 'fill' is
+ * undefined, with an unspecified object.
+ */
+static SCM
+allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
+#define FUNC_NAME caller
+{
+  if (SCM_INUMP (size))
+    {
+      size_t c_size;
+      SCM v;
+
+      SCM_ASSERT_RANGE (1, size, SCM_INUM (size) >= 0);
+      c_size = SCM_INUM (size);
+
+      SCM_NEWCELL2 (v);
+      SCM_SET_WVECT_GC_CHAIN (v, SCM_EOL);
+      SCM_SET_WVECT_TYPE (v, type);
+
+      if (c_size > 0)
+	{
+	  scm_t_bits *base;
+	  size_t j;
+
+	  if (SCM_UNBNDP (fill))
+	    fill = SCM_UNSPECIFIED;
+
+	  SCM_ASSERT_RANGE (1, size, c_size <= SCM_VECTOR_MAX_LENGTH);
+	  base = scm_must_malloc (c_size * sizeof (scm_t_bits), FUNC_NAME);
+	  for (j = 0; j != c_size; ++j)
+	    base[j] = SCM_UNPACK (fill);
+	  SCM_SET_VECTOR_BASE (v, base);
+	  SCM_SET_VECTOR_LENGTH (v, c_size, scm_tc7_wvect);
+	  scm_remember_upto_here_1 (fill);
+	}
+      else
+	{
+	  SCM_SET_VECTOR_BASE (v, NULL);
+	  SCM_SET_VECTOR_LENGTH (v, 0, scm_tc7_wvect);
+	}
+
+      return v;
+    }
+  else if (SCM_BIGP (size))
+    SCM_OUT_OF_RANGE (1, size);
+  else
+    SCM_WRONG_TYPE_ARG (1, size);
+}
+#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
@@ -63,16 +117,7 @@ SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
 	    "empty list.")
 #define FUNC_NAME s_scm_make_weak_vector
 {
-  /* Dirk:FIXME:: We should probably rather use a double cell for weak vectors. */
-  SCM v;
-  v = scm_make_vector (scm_sum (size, SCM_MAKINUM (2)), fill);
-  SCM_DEFER_INTS;
-  SCM_SET_VECTOR_LENGTH (v, SCM_INUM (size), scm_tc7_wvect);
-  SCM_SETVELTS(v, SCM_VELTS(v) + 2);
-  SCM_VELTS(v)[-2] = SCM_EOL;
-  SCM_VECTOR_BASE (v) [-1] = 0;
-  SCM_ALLOW_INTS;
-  return v;
+  return allocate_weak_vector (0, size, fill, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -116,15 +161,11 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 	    "weak hashes are also weak vectors.")
 #define FUNC_NAME s_scm_weak_vector_p
 {
-  return SCM_BOOL(SCM_WVECTP (obj) && !SCM_IS_WHVEC (obj));
+  return SCM_BOOL (SCM_WVECTP (obj) && !SCM_IS_WHVEC (obj));
 }
 #undef FUNC_NAME
 
-
-
 
-
-
 
 SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, 
 	    (SCM size),
@@ -138,13 +179,7 @@ SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0,
 	    "would modify regular hash tables. (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_key_hash_table
 {
-  SCM v;
-  SCM_VALIDATE_INUM (1, size);
-  v = scm_make_weak_vector (size, SCM_EOL);
-  SCM_DEFER_INTS;
-  SCM_VECTOR_BASE (v) [-1] = 1;
-  SCM_ALLOW_INTS;
-  return v;
+  return allocate_weak_vector (1, size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -155,16 +190,9 @@ SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 
 	    "(@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_value_hash_table
 {
-  SCM v;
-  SCM_VALIDATE_INUM (1, size);
-  v = scm_make_weak_vector (size, SCM_EOL);
-  SCM_DEFER_INTS;
-  SCM_VECTOR_BASE (v) [-1] = 2;
-  SCM_ALLOW_INTS;
-  return v;
+  return allocate_weak_vector (2, size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
-
 
 
 SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, 
@@ -173,15 +201,10 @@ SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 	    "buckets.  (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_doubly_weak_hash_table
 {
-  SCM v;
-  SCM_VALIDATE_INUM (1, size);
-  v = scm_make_weak_vector (size, SCM_EOL);
-  SCM_DEFER_INTS;
-  SCM_VECTOR_BASE (v) [-1] = 3;
-  SCM_ALLOW_INTS;
-  return v;
+  return allocate_weak_vector (3, size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
            (SCM obj),
@@ -192,7 +215,7 @@ SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0,
 	    "nor a weak value hash table.")
 #define FUNC_NAME s_scm_weak_key_hash_table_p
 {
-  return SCM_BOOL(SCM_WVECTP (obj) && SCM_IS_WHVEC(obj));
+  return SCM_BOOL (SCM_WVECTP (obj) && SCM_IS_WHVEC (obj));
 }
 #undef FUNC_NAME
 
@@ -202,7 +225,7 @@ SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a weak value hash table.")
 #define FUNC_NAME s_scm_weak_value_hash_table_p
 {
-  return SCM_BOOL(SCM_WVECTP (obj) && SCM_IS_WHVEC_V(obj));
+  return SCM_BOOL (SCM_WVECTP (obj) && SCM_IS_WHVEC_V (obj));
 }
 #undef FUNC_NAME
 
@@ -212,9 +235,10 @@ SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a doubly weak hash table.")
 #define FUNC_NAME s_scm_doubly_weak_hash_table_p
 {
-  return SCM_BOOL(SCM_WVECTP (obj) && SCM_IS_WHVEC_B (obj));
+  return SCM_BOOL (SCM_WVECTP (obj) && SCM_IS_WHVEC_B (obj));
 }
 #undef FUNC_NAME
+
 
 static void *
 scm_weak_vector_gc_init (void *dummy1 SCM_UNUSED,
@@ -225,6 +249,7 @@ scm_weak_vector_gc_init (void *dummy1 SCM_UNUSED,
 
   return 0;
 }
+
 
 static void *
 scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
@@ -264,6 +289,7 @@ scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
 
   return 0;
 }
+
 
 static void *
 scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
@@ -325,9 +351,7 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
   return 0;
 }
 
-
 
-
 
 void
 scm_weaks_prehistory ()
@@ -336,6 +360,7 @@ scm_weaks_prehistory ()
   scm_c_hook_add (&scm_before_sweep_c_hook, scm_mark_weak_vector_spines, 0, 0);
   scm_c_hook_add (&scm_after_sweep_c_hook, scm_scan_weak_vectors, 0, 0);
 }
+
 
 void
 scm_init_weaks ()
