@@ -2383,13 +2383,13 @@ dispatch:
 
 
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
-	  proc = SCM_CDR (x);
-	  proc = EVALCAR (proc, env);
+	  x = SCM_CDR (x);
+	  proc = EVALCAR (x, env);
+          PREP_APPLY (proc, SCM_EOL);
+          x = SCM_CDR (x);
+          arg1 = EVALCAR (x, env);
 	  if (SCM_CLOSUREP (proc))
 	    {
-	      PREP_APPLY (proc, SCM_EOL);
-	      arg1 = SCM_CDDR (x);
-	      arg1 = EVALCAR (arg1, env);
 	    apply_closure:
 	      /* Go here to tail-call a closure.  PROC is the closure
 		 and ARG1 is the list of arguments.  Do not forget to
@@ -2426,8 +2426,8 @@ dispatch:
 	    }
 	  else
 	    {
-	      proc = f_apply;
-	      goto evapply;
+              ENTER_APPLY;
+              RETURN (SCM_APPLY (proc, arg1, SCM_EOL));
 	    }
 
 

@@ -1,3 +1,8 @@
+2003-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SCM_CEVAL): Avoid one level of indirection when applying
+	a non closure.
+
 2003-05-30  Stefan Jahn  <stefan@lkcc.org>
 
 	* posix.c (s_scm_putenv): Use the new HAVE_UNSETENV 
