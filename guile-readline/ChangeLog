@@ -1,3 +1,7 @@
+2000-05-01  Gary Houston  <ghouston@arglist.com>
+
+	* readline.c: include libguile.h, not libguile/libguile.h.
+
 2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* *.*: Change includes so that they always use the "prefixes"

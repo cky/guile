@@ -1,3 +1,9 @@
+2000-05-01  Gary Houston  <ghouston@arglist.com>
+
+	* Makefile.am: add include_HEADERS.
+	libguile.h: moved from libguile directory.  maybe libguile.h should
+	be installed in $prefix/include/libguile/libguile.h instead?
+
 2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* qthreads.m4: Removed THREADS_CPPFLAGS.
