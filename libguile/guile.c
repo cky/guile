@@ -47,7 +47,7 @@
    system.  For now, please don't put interesting code in here.  */
 
 #ifdef __MINGW32__
-# define __SCM_IMPORT__ 1
+# define SCM_IMPORT 1
 #endif
 #include <libguile.h>
 

@@ -128,17 +128,60 @@
 /* The MinGW gcc does not define the S_ISSOCK macro. Any other native Windows
    compiler like BorlandC or MSVC has none of these macros defined. */
 #ifdef __MINGW32__
-# define _S_IFSOCK 0xC000
-# define S_ISSOCK(mode) (((mode) & _S_IFMT) == _S_IFSOCK)
-#endif
-#if defined (__BORLANDC__) || defined (_MSC_VER)
-# define _S_IFBLK 0x3000
-# define S_ISBLK(mode) (((mode) & _S_IFMT) == _S_IFBLK)
+
+# ifdef _S_IFIFO
+#  undef _S_IFIFO
+# endif
+# ifdef _S_IFCHR
+#  undef _S_IFCHR
+# endif
+# ifdef _S_IFBLK
+#  undef _S_IFBLK
+# endif
+# ifdef _S_IFDIR
+#  undef _S_IFDIR
+# endif
+# ifdef _S_IFREG
+#  undef _S_IFREG
+# endif
+# ifdef _S_IFSOCK
+#  undef _S_IFSOCK
+# endif
+
+# define _S_IFIFO        0x1000  /* FIFO */
+# define _S_IFCHR        0x2000  /* Character */
+# define _S_IFBLK        0x3000  /* Block */
+# define _S_IFDIR        0x4000  /* Directory */
+# define _S_IFREG        0x8000  /* Regular */
+# define _S_IFSOCK       0xC000  /* Socket */
+
+# ifdef S_ISBLK
+#  undef S_ISBLK
+# endif
+# ifdef S_ISFIFO
+#  undef S_ISFIFO
+# endif
+# ifdef S_ISCHR
+#  undef S_ISCHR
+# endif
+# ifdef S_ISDIR
+#  undef S_ISDIR
+# endif
+# ifdef S_ISREG
+#  undef S_ISREG
+# endif
+# ifdef S_ISSOCK
+#  undef S_ISSOCK
+# endif
+
+# define S_ISBLK(mode)  (((mode) & _S_IFMT) == _S_IFBLK)
 # define S_ISFIFO(mode) (((mode) & _S_IFMT) == _S_IFIFO)
-# define S_ISCHR(mode) (((mode) & _S_IFMT) == _S_IFCHR)
-# define S_ISDIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
-# define S_ISREG(mode) (((mode) & _S_IFMT) == _S_IFREG)
-#endif
+# define S_ISCHR(mode)  (((mode) & _S_IFMT) == _S_IFCHR)
+# define S_ISDIR(mode)  (((mode) & _S_IFMT) == _S_IFDIR)
+# define S_ISREG(mode)  (((mode) & _S_IFMT) == _S_IFREG)
+# define S_ISSOCK(mode) (((mode) & _S_IFMT) == _S_IFSOCK)
+
+#endif /* __MINGW32__ */
 
 /* Some more definitions for the native Windows port. */
 #ifdef __MINGW32__

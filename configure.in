@@ -228,19 +228,18 @@ dnl
 dnl Check for Winsock and other functionality on Win32 (*not* CygWin)
 dnl
 EXTRA_DEFS=""
-EXTRA_LIB_DEFS=""
 if test "$MINGW32" = "yes" ; then
     AC_CHECK_HEADER(winsock2.h, [AC_DEFINE([HAVE_WINSOCK2_H], 1, 
       [Define if you have the <winsock2.h> header file.])])
     AC_CHECK_LIB(ws2_32, main)
-    LIBOBJS="$LIBOBJS uname.o dirent.o"
+    LIBOBJS="$LIBOBJS win32-uname.o win32-dirent.o"
     if test $enable_shared = yes ; then
-      EXTRA_DEFS="-D__SCM_IMPORT__ -D__REGEX_IMPORT__ -D__CRYPT_IMPORT__"
-      EXTRA_LIB_DEFS="-D__REGEX_IMPORT__ -D__CRYPT_IMPORT__"
+      EXTRA_DEFS="-DSCM_IMPORT"
+      AC_DEFINE(USE_DLL_IMPORT, 1,
+        [Define if you need additional CPP macros on Win32 platforms.])
     fi
 fi
 AC_SUBST(EXTRA_DEFS)
-AC_SUBST(EXTRA_LIB_DEFS)
 
 dnl Check for dynamic linking
 
@@ -613,6 +612,10 @@ case "$GCC" in
 esac
 
 AC_PROG_AWK
+
+## Remove fileblocks.o from the object list.  This file gets added by
+## the Autoconf macro AC_STRUCT_ST_BLOCKS.  But there is no need.
+LIBOBJS="`echo ${LIBOBJS} | sed 's/fileblocks\.o//g'`"
 
 ## If we're creating a shared library (using libtool!), then we'll
 ## need to generate a list of .lo files corresponding to the .o files

@@ -91,6 +91,7 @@
   (seek port -2 SEEK_END)
   (pass-if "file: r/w 4"
 	   (char=? (read-char port) #\s))
+  (close-port port)
   (delete-file filename))
 
 ;;; Unbuffered input/output port with seeking.
@@ -110,6 +111,7 @@
   (seek port -2 SEEK_END)
   (pass-if "file: ub r/w 4"
 	   (char=? (read-char port) #\s))
+  (close-port port)
   (delete-file filename))
 
 ;;; Buffered output-only and input-only ports with seeking.
@@ -155,7 +157,8 @@
     (pass-if "file: read back NUL 2"
 	     (char=? (string-ref line 3) #\nul))
     (pass-if "file: EOF"
-	     (eof-object? (read-char port))))
+	     (eof-object? (read-char port)))
+    (close-port port))
   (delete-file filename))
 
 ;;; line buffering mode.

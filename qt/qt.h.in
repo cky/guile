@@ -1,6 +1,14 @@
 #ifndef QT_H
 #define QT_H
 
+#if defined (QT_IMPORT)
+# define QT_API __declspec (dllimport) extern
+#elif defined (QT_EXPORT) || defined (DLL_EXPORT)
+# define QT_API __declspec (dllexport) extern
+#else
+# define QT_API extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -126,7 +134,7 @@ typedef void (qt_cleanup_t)(void *pt, void *vuserf_return);
 #define QT_VADJ(sp)	(((char *)sp) + QT_VSTKBASE)
 #endif
 
-extern qt_t *qt_vargs (qt_t *sp, int nbytes, void *vargs,
+QT_API qt_t *qt_vargs (qt_t *sp, int nbytes, void *vargs,
 		       void *pt, qt_startup_t *startup,
 		       qt_vuserf_t *vuserf, qt_cleanup_t *cleanup);
 
@@ -137,8 +145,8 @@ extern qt_t *qt_vargs (qt_t *sp, int nbytes, void *vargs,
 
 #endif
 
-extern void qt_null (void);
-extern void qt_error (void);
+QT_API void qt_null (void);
+QT_API void qt_error (void);
 
 /* Save the state of the thread and call the helper function
    using the stack of the new thread. */
@@ -149,7 +157,7 @@ typedef void *(qt_block_t)(qt_helper_t *helper, void *a0, void *a1,
 /* Rearrange the parameters so that things passed to the helper
    function are already in the right argument registers. */
 #ifndef QT_ABORT
-extern void qt_abort (qt_helper_t *h, void *a0, void *a1, qt_t *newthread);
+QT_API void qt_abort (qt_helper_t *h, void *a0, void *a1, qt_t *newthread);
 /* The following does, technically, `return' a value, but the
    user had better not rely on it, since the function never
    returns. */ 
@@ -158,14 +166,14 @@ extern void qt_abort (qt_helper_t *h, void *a0, void *a1, qt_t *newthread);
 #endif
 
 #ifndef QT_BLOCK
-extern void *qt_block (qt_helper_t *h, void *a0, void *a1,
+QT_API void *qt_block (qt_helper_t *h, void *a0, void *a1,
 		       qt_t *newthread);
 #define QT_BLOCK(h, a0, a1, newthread) \
     (qt_block (h, a0, a1, newthread))
 #endif
 
 #ifndef QT_BLOCKI
-extern void *qt_blocki (qt_helper_t *h, void *a0, void *a1,
+QT_API void *qt_blocki (qt_helper_t *h, void *a0, void *a1,
 			qt_t *newthread);
 #define QT_BLOCKI(h, a0, a1, newthread) \
     (qt_blocki (h, a0, a1, newthread))

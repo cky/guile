@@ -1,3 +1,15 @@
+2001-11-04  Stefan Jahn  <stefan@lkcc.org>
+
+	* configure.in (EXTRA_DEFS): Follow-up patch.  Using SCM_IMPORT
+	instead of __SCM_IMPORT__.
+
+	* readline.c (scm_readline_init_ports): Disable input/output
+	stream redirection for Win32.  The readline package for Win32
+	does not support this.  The guile-readline library works fine
+	for command line editing.
+
+	* readline.h (SCM_RL_API): Renamed __FOO__ macros into FOO.
+
 2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Support for native Win32.  Thanks to Stefan Jahn!

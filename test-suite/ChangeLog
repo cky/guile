@@ -1,3 +1,8 @@
+2001-11-04  Stefan Jahn  <stefan@lkcc.org>
+
+	* tests/ports.test: Run (close-port) before (delete-file) if
+	necessary/advisory.
+
 2001-10-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/eval.test:  Added tests for promises.

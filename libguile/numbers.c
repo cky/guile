@@ -4258,22 +4258,6 @@ scm_i_big2dbl (SCM b)
 # endif
 #endif
 
-#ifndef SIZE_MAX
-#define SIZE_MAX ((size_t) (-1))
-#endif
-
-#ifndef PTRDIFF_MIN
-/* the below is not really guaranteed to work (I think), but probably does: */
-#define PTRDIFF_MIN ((ptrdiff_t) ((ptrdiff_t)1 << (sizeof (ptrdiff_t)*8 - 1)))
-/* this prevents num2integral.c.i from using PTRDIFF_MIN in
-   preprocessor expressions. */
-#define NO_PREPRO_MAGIC
-#endif
-
-#ifndef PTRDIFF_MAX
-#define PTRDIFF_MAX (~ PTRDIFF_MIN)
-#endif
-
 #define NUM2INTEGRAL scm_num2short
 #define INTEGRAL2NUM scm_short2num
 #define INTEGRAL2BIG scm_i_short2big
@@ -4322,6 +4306,18 @@ scm_i_big2dbl (SCM b)
 #define MAX_VALUE ULONG_MAX
 #include "libguile/num2integral.i.c"
 
+#ifndef PTRDIFF_MIN
+/* the below is not really guaranteed to work (I think), but probably does: */
+#define PTRDIFF_MIN ((ptrdiff_t) ((ptrdiff_t)1 << (sizeof (ptrdiff_t)*8 - 1)))
+/* this prevents num2integral.c.i from using PTRDIFF_MIN in
+   preprocessor expressions. */
+#define NO_PREPRO_MAGIC
+#endif
+
+#ifndef PTRDIFF_MAX
+#define PTRDIFF_MAX (~ PTRDIFF_MIN)
+#endif
+
 #define NUM2INTEGRAL scm_num2ptrdiff
 #define INTEGRAL2NUM scm_ptrdiff2num
 #define INTEGRAL2BIG scm_i_ptrdiff2big
@@ -4329,6 +4325,11 @@ scm_i_big2dbl (SCM b)
 #define MIN_VALUE PTRDIFF_MIN
 #define MAX_VALUE PTRDIFF_MAX
 #include "libguile/num2integral.i.c"
+
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t) (-1))
+#define NO_PREPRO_MAGIC
+#endif
 
 #define NUM2INTEGRAL scm_num2size
 #define INTEGRAL2NUM scm_size2num

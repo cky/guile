@@ -1,0 +1,10 @@
+LIBRARY			libqthreads
+DESCRIPTION		"libqthreads: QuickThreads Library"
+EXPORTS
+	qt_abort
+	qt_block
+	qt_blocki
+	qt_error
+	qt_null
+	qt_vargs
+	qt_vstart

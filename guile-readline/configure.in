@@ -20,7 +20,7 @@ AC_MINGW32
 EXTRA_DEFS=""
 if test "$MINGW32" = "yes" ; then
     if test $enable_shared = yes ; then
-      EXTRA_DEFS="-D__SCM_IMPORT__ -D__READLINE_IMPORT__"
+      EXTRA_DEFS="-DSCM_IMPORT"
     fi
 fi
 AC_SUBST(EXTRA_DEFS)

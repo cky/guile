@@ -1,3 +1,8 @@
+2001-11-04  Stefan Jahn  <stefan@lkcc.org>
+
+	* srfi-13.h, srfi-14.h, srfi-4.h: Follow-up patch.  Renamed 
+	__FOO__	macros into FOO.
+
 2001-11-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (libguile_srfi_srfi_4_la_LIBADD,

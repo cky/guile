@@ -159,11 +159,11 @@
 
 /* SCM_API is a macro prepended to all function and data definitions
    which should be exported or imported in the resulting dynamic link
-   library in the Win32 port. */
+   library (DLL) in the Win32 port. */
 
-#if defined (__SCM_IMPORT__)
+#if defined (SCM_IMPORT)
 # define SCM_API __declspec (dllimport) extern
-#elif defined (__SCM_EXPORT__) || defined (DLL_EXPORT)
+#elif defined (SCM_EXPORT) || defined (DLL_EXPORT)
 # define SCM_API __declspec (dllexport) extern
 #else
 # define SCM_API extern
@@ -331,6 +331,16 @@ typedef long ptrdiff_t;
 # endif
 #  include <stddef.h>
 #endif /* def STDC_HEADERS */
+
+
+
+/* Define some additional CPP macros on Win32 platforms. */
+#if USE_DLL_IMPORT
+# define __REGEX_IMPORT__ 1
+# define __CRYPT_IMPORT__ 1
+# define __READLINE_IMPORT__ 1
+# define QT_IMPORT 1
+#endif
 
 
 

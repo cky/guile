@@ -63,6 +63,10 @@
 #include "libguile/iselect.h"
 #endif
 
+#if HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+
 #ifdef GUILE_PTHREAD_COMPAT
 #include <pthread.h>
 #endif

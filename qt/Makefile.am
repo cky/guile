@@ -34,7 +34,7 @@ INCLUDES = -I.. -I$(srcdir)/..
 libqthreads_la_SOURCES = qt.c copyright.h
 libqthreads_la_LIBADD = qtmds.lo qtmdc.lo
 libqthreads_la_DEPENDENCIES = qtmds.lo qtmdc.lo
-libqthreads_la_LDFLAGS = -rpath $(libdir) -version-info @LIBGUILEQTHREADS_INTERFACE_CURRENT@:@LIBGUILEQTHREADS_INTERFACE_REVISION@:@LIBGUILEQTHREADS_INTERFACE_AGE@ -export-dynamic
+libqthreads_la_LDFLAGS = -rpath $(libdir) -version-info @LIBGUILEQTHREADS_INTERFACE_CURRENT@:@LIBGUILEQTHREADS_INTERFACE_REVISION@:@LIBGUILEQTHREADS_INTERFACE_AGE@ -export-dynamic -no-undefined
 
 OMIT_DEPENDENCIES = axp.h hppa.h i386.h ksr.h m88k.h mips.h sparc.h vax.h
 
@@ -48,4 +48,4 @@ qtdmdb.s:
 	${LN_S} ${srcdir}/${qtdmdb_s} qtdmdb.s
 
 EXTRA_DIST = CHANGES README.MISC README.PORT b.h meas.c stp.c stp.h \
-	Makefile.base config
+	Makefile.base config libqthreads.def

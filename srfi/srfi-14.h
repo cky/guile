@@ -50,9 +50,9 @@
    which should be exported or imported in the resulting dynamic link
    library in the Win32 port. */
 
-#if defined (__SCM_SRFI1314_IMPORT__)
+#if defined (SCM_SRFI1314_IMPORT)
 # define SCM_SRFI1314_API __declspec (dllimport) extern
-#elif defined (__SCM_SRFI1314_EXPORT__) || defined (DLL_EXPORT)
+#elif defined (SCM_SRFI1314_EXPORT) || defined (DLL_EXPORT)
 # define SCM_SRFI1314_API __declspec (dllexport) extern
 #else
 # define SCM_SRFI1314_API extern

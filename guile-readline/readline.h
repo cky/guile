@@ -24,10 +24,10 @@
    which should be exported or imported in the resulting dynamic link
    library in the Win32 port. */
 
-#if defined (__SCM_RL_IMPORT__)
-# define SCM_RL_API __declspec (dllimport)
-#elif defined (__SCM_RL_EXPORT__) || defined (DLL_EXPORT)
-# define SCM_RL_API __declspec (dllexport)
+#if defined (SCM_RL_IMPORT)
+# define SCM_RL_API __declspec (dllimport) extern
+#elif defined (SCM_RL_EXPORT) || defined (DLL_EXPORT)
+# define SCM_RL_API __declspec (dllexport) extern
 #else
 # define SCM_RL_API extern
 #endif

@@ -1,3 +1,39 @@
+2001-11-04  Stefan Jahn  <stefan@lkcc.org>
+
+	* Makefile.am (libguile_la_LIBADD): Added $(THREAD_LIBS_LOCAL)
+	here (was at guile_LDADD) which describes the dependency 
+	correctly and allows a clean build on Win32.
+
+	* __scm.h (SCM_API): Follow-up patch.  Renamed __FOO__ macros 
+	into FOO.
+
+	* __scm.h: USE_DLL_IMPORT indicates the usage of the DLL
+	import macros for external libraries (libcrypt, libqthreads,
+	libreadline and libregex).
+
+	* coop-defs.h: Include <winsock2.h> for `struct timeval'.
+
+	* posix.c (flock): Added support for flock() in M$-Windows.
+
+	* guile.c (SCM_IMPORT): Follow-up patch.  Use SCM_IMPORT instead
+	of __SCM_IMPORT__.
+
+	* fports.c (getflags): Differentiate reading and writing pipes
+	descriptors.
+
+	* filesys.c (S_IS*): Redefine all of the S_IS*() macros for
+	M$-Windows.
+
+	* coop.c (coop_condition_variable_timed_wait_mutex): Use
+	conditionalized error code if `ETIMEDOUT' is not available.
+	(scm_thread_usleep): Remove bogus declaration of `struct timeval
+	timeout'.
+
+	* numbers.c (PTRDIFF_MIN): Moved this definition where it actually
+	belongs.  That is because NO_PREPRO_MAGIC gets undefined after
+	each inclusion of `num2integral.i.c'.
+	(SIZE_MAX): Define NO_PREPRO_MAGIC if SIZE_MAX is undefined.
+
 2001-11-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (scm_m_begin): Allow `(begin)`, with no subforms.

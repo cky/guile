@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.28 2001-10-06 16:30:20 mdj Exp $ */
+/* $Id: coop.c,v 1.29 2001-11-04 15:52:29 ela Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -422,7 +422,13 @@ coop_condition_variable_timed_wait_mutex (coop_c *c,
 					  const struct timespec *abstime)
 {
   coop_t *old, *t;
+#ifdef ETIMEDOUT
   int res = ETIMEDOUT;
+#elif defined (WSAETIMEDOUT)
+  int res = WSAETIMEDOUT;
+#else
+  int res = 0;
+#endif
 
   /* coop_mutex_unlock (m); */
   t = coop_qget (&(m->waiting));
@@ -842,7 +848,6 @@ scm_thread_usleep (unsigned long usec)
 {
   /* We're so cheap.  */
   scm_thread_sleep (usec / 1000000);
-  struct timeval timeout;
   return 0;  /* Maybe we should calculate actual time slept,
 		but this is faster... :) */
 }

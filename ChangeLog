@@ -1,3 +1,12 @@
+2001-11-04  Stefan Jahn  <stefan@lkcc.org>
+
+	* NEWS: Corrected remarks about SCM_API.
+
+	* configure.in: Defining USE_DLL_IMPORT definition to indicate
+	usage of DLL import macros in `libguile/__scm.h'.
+	(LIBOBJS): Removed `fileblocks.o' from the list	of object files.
+	Somehow Jim Blandy's patch from 1997 did not survive.
+
 2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Support for native Win32.  Thanks to Stefan Jahn!
@@ -6,9 +15,9 @@
         build systems which do not have symbolic links.
         * configure.in: Define AC_LIBTOOL_WIN32_DLL to build clean dlls
         on Win32 platforms.
-        Checking for `ws2_32.dll', `winsock2.h', add `uname.o' and
-        `dirent.o' and define extra compiler flags necessary to build
-        clean dlls.
+        Checking for `ws2_32.dll', `winsock2.h', add `win32-uname.o' 
+	and `win32-dirent.o' and define extra compiler flags necessary 
+	to build clean dlls.
         Check for `regcomp()' inside `-lregex'.
 
 2001-10-26  Thien-Thi Nguyen  <ttn@glug.org>

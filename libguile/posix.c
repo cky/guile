@@ -1502,7 +1502,73 @@ SCM_DEFINE (scm_getpass, "getpass", 1, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_GETPASS */
 
-#if HAVE_FLOCK
+/* Wrapper function for flock() support under M$-Windows. */
+#ifdef __MINGW32__
+# include <io.h>
+# include <sys/locking.h>
+# include <errno.h>
+# ifndef _LK_UNLCK
+   /* Current MinGW package fails to define this. *sigh* */
+#  define _LK_UNLCK 0
+# endif
+# define LOCK_EX 1
+# define LOCK_UN 2
+# define LOCK_SH 4
+# define LOCK_NB 8
+
+static int flock (int fd, int operation)
+{
+  long pos, len;
+  int ret, err;
+
+  /* Disable invalid arguments. */
+  if (((operation & (LOCK_EX | LOCK_SH)) == (LOCK_EX | LOCK_SH)) ||
+      ((operation & (LOCK_EX | LOCK_UN)) == (LOCK_EX | LOCK_UN)) ||
+      ((operation & (LOCK_SH | LOCK_UN)) == (LOCK_SH | LOCK_UN)))
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  /* Determine mode of operation and discard unsupported ones. */
+  if (operation == (LOCK_NB | LOCK_EX))
+    operation = _LK_NBLCK;
+  else if (operation & LOCK_UN)
+    operation = _LK_UNLCK;
+  else if (operation == LOCK_EX)
+    operation = _LK_LOCK;
+  else
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  /* Save current file pointer and seek to beginning. */
+  if ((pos = lseek (fd, 0, SEEK_CUR)) == -1 || (len = filelength (fd)) == -1)
+    return -1;
+  lseek (fd, 0L, SEEK_SET);
+
+  /* Deadlock if necessary. */
+  do
+    {
+      ret = _locking (fd, operation, len);
+    }
+  while (ret == -1 && errno == EDEADLOCK);
+
+  /* Produce meaningful error message. */
+  if (errno == EACCES && operation == _LK_NBLCK)
+    err = EDEADLOCK;
+  else
+    err = errno;
+
+  /* Return to saved file position pointer. */
+  lseek (fd, pos, SEEK_SET);
+  errno = err;
+  return ret;
+}
+#endif /* __MINGW32__ */
+
+#if HAVE_FLOCK || defined (__MINGW32__)
 SCM_DEFINE (scm_flock, "flock", 2, 0, 0, 
             (SCM file, SCM operation),
 	    "Apply or remove an advisory lock on an open file.\n"

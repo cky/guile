@@ -212,8 +212,10 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 			    (void *) SCM_UNPACK (text),
 			    handle_error, 0);
 
+#ifndef __MINGW32__
   fclose (rl_instream);
   fclose (rl_outstream);
+#endif
 
   --in_readline;
   return ans;
@@ -246,8 +248,10 @@ handle_error (void *data, SCM tag, SCM args)
   rl_free_line_state ();
   rl_cleanup_after_signal ();
   fputc ('\n', rl_outstream); /* We don't want next output on this line */
+#ifndef __MINGW32__
   fclose (rl_instream);
   fclose (rl_outstream);
+#endif
   --in_readline;
   scm_handle_by_throw (data, tag, args);
   return SCM_UNSPECIFIED; /* never reached */
@@ -317,8 +321,10 @@ scm_readline_init_ports (SCM inp, SCM outp)
   }
 
   input_port = inp;
+#ifndef __MINGW32__
   rl_instream = stream_from_fport (inp, "r", s_scm_readline);
   rl_outstream = stream_from_fport (outp, "w", s_scm_readline);
+#endif
 }
 
 
@@ -482,10 +488,13 @@ find_matching_paren(int k)
 static int
 match_paren (int x, int k)
 {
-  int tmp, fno;
+  int tmp;
+#ifndef __MINGW32__
+  int fno;
   SELECT_TYPE readset;
   struct timeval timeout;
-  
+#endif
+
   rl_insert (x, k);
   if (!SCM_READLINE_BOUNCE_PARENS)
     return 0;
@@ -495,13 +504,15 @@ match_paren (int x, int k)
       && rl_line_buffer[rl_point - 2] == '\\')
     return 0;
 
+#ifndef __MINGW32__
   tmp = 1000 * SCM_READLINE_BOUNCE_PARENS;
   timeout.tv_sec = tmp / 1000000;
   timeout.tv_usec = tmp % 1000000;
   FD_ZERO (&readset);
   fno = fileno (rl_instream);
   FD_SET (fno, &readset);
-  
+#endif
+
   if (rl_point > 1)
     {
       tmp = rl_point;
@@ -509,7 +520,12 @@ match_paren (int x, int k)
       if (rl_point > -1)
 	{
 	  rl_redisplay ();
+#ifndef __MINGW32__
 	  scm_internal_select (fno + 1, &readset, NULL, NULL, &timeout);
+#else
+	  WaitForSingleObject (GetStdHandle(STD_INPUT_HANDLE),
+			       SCM_READLINE_BOUNCE_PARENS); 
+#endif
 	}
       rl_point = tmp;
     }
@@ -545,7 +561,9 @@ scm_init_readline ()
 #include "guile-readline/readline.x"
   scm_readline_completion_function_var
     = scm_c_define ("*readline-completion-function*", SCM_BOOL_F);
+#ifndef __MINGW32__
   rl_getc_function = current_input_getc;
+#endif
   rl_redisplay_function = redisplay;
 #if defined (_RL_FUNCTION_TYPEDEF)
   rl_completion_entry_function = (rl_compentry_func_t*) completion_function;

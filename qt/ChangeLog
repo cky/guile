@@ -1,3 +1,21 @@
+2001-11-04  Stefan Jahn  <stefan@lkcc.org>
+
+	* md/Makefile.am (EXTRA_DIST): Added `i386.asm'.
+
+	* md/i386.asm: New file.  Contains the Intel syntax version for
+	nasm/tasm/masm of the file `i386.s'.
+
+	* qt.h.in: Definition of QT_API, QT_IMPORT and QT_EXPORT.
+	Prefixed each symbols which is meant to go into a DLL.
+
+	* Makefile.am (libqthreads_la_LDFLAGS):  Put `-no-undefined' 
+	into LDFLAGS to support linkers which do not allow unresolved 
+	symbols inside shared libraries.
+	(EXTRA_DIST): Add `libqthreads.def', which is an export file 
+	definition for M$-Windows.  It defines exported symbols.  This is
+	necessary because the M$VC linker does not know how to export
+	assembler symbols into a DLL.
+
 2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am, md/Makefile.am, time/Makefile.am:

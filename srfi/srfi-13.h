@@ -50,9 +50,9 @@
    which should be exported or imported in the resulting dynamic link
    library in the Win32 port. */
 
-#if defined (__SCM_SRFI1314_IMPORT__)
+#if defined (SCM_SRFI1314_IMPORT)
 # define SCM_SRFI1314_API __declspec (dllimport) extern
-#elif defined (__SCM_SRFI1314_EXPORT__) || defined (DLL_EXPORT)
+#elif defined (SCM_SRFI1314_EXPORT) || defined (DLL_EXPORT)
 # define SCM_SRFI1314_API __declspec (dllexport) extern
 #else
 # define SCM_SRFI1314_API extern
@@ -136,9 +136,5 @@ SCM_SRFI1314_API SCM scm_string_replace (SCM s1, SCM s2, SCM start1, SCM end1, S
 SCM_SRFI1314_API SCM scm_string_tokenize (SCM s, SCM token_char, SCM start, SCM end);
 SCM_SRFI1314_API SCM scm_string_filter (SCM s, SCM char_pred, SCM start, SCM end);
 SCM_SRFI1314_API SCM scm_string_delete (SCM s, SCM char_pred, SCM start, SCM end);
-
-
-
-
 
 #endif /* SCM_SRFI_13_H */

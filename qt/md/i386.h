@@ -58,7 +58,7 @@ typedef unsigned long qt_word_t;
 
 
 /* What to do to start a varargs thread running. */
-extern void qt_vstart (void);
+QT_API void qt_vstart (void);
 
 
 /* Hold 4 saved regs plus two return pcs (qt_error, qt_start) plus
@@ -101,7 +101,7 @@ extern void qt_vstart (void);
    pop off (preincrement, postdecrement). */
 #define QT_GROW_DOWN
 
-extern void qt_error (void);
+QT_API void qt_error (void);
 
 /* Push on the error return address. */
 #define QT_ARGS_MD(sto) \

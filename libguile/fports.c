@@ -380,7 +380,8 @@ static int getflags (int fdes)
     {
       /* Or an anonymous pipe handle ? */
       if (buf.st_mode & _S_IFIFO)
-	flags = O_RDWR;
+	flags = PeekNamedPipe ((HANDLE) _get_osfhandle (fdes), NULL, 0, 
+			       NULL, NULL, NULL) ? O_RDONLY : O_WRONLY;
       /* stdin ? */
       else if (fdes == fileno (stdin) && isatty (fdes))
 	flags = O_RDONLY;
