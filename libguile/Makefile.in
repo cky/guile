@@ -111,7 +111,7 @@ EXTRA_libguile_la_SOURCES = _scm.h \
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@
+libguile_la_LIBADD = @LIBLOBJS@ @ALLOCA@
 libguile_la_LDFLAGS = -version-info 2:0 -rpath $(libdir)
 
 include_HEADERS = libguile.h
@@ -154,8 +154,13 @@ SUFFIXES = .x
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
-CLEANFILES=cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
+MOSTLYCLEANFILES = \
+	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
+
+CLEANFILES = versiondat.h libpath.h
+
+DISTCLEANFILES = *.x
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = scmconfig.h
 CONFIG_CLEAN_FILES =  guile-snarf
@@ -200,8 +205,8 @@ DATA =  $(modinclude_DATA)
 HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) $(noinst_HEADERS) \
 $(pkginclude_HEADERS)
 
-DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in guile-snarf.in \
-scmconfig.h.in stamp-h.in
+DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in alloca.c \
+guile-snarf.in scmconfig.h.in stamp-h.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)

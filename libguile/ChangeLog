@@ -4,6 +4,7 @@ Fri Jun 27 20:36:35 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
 	(MOSTLYCLEANFILES): New target, changed from CLEANFILES.
 	(CLEANFILES): New target, clean versiondat.h, libpath.h.
 	(DISTCLEANFILES): New target, clean *.x.
+	* Makefile.in: Regenerated.
 
 Tue Jun 24 00:29:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
