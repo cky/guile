@@ -2798,13 +2798,14 @@ SCM_DEFINE (scm_string_replace, "string-replace", 2, 4, 0,
 
 
 SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
-	    (SCM s, SCM token_char, SCM start, SCM end),
+	    (SCM s, SCM token_set, SCM start, SCM end),
 	    "Split the string @var{s} into a list of substrings, where each\n"
 	    "substring is a maximal non-empty contiguous sequence of\n"
-	    "characters equal to the character @var{token_char}, or\n"
-	    "whitespace, if @var{token_char} is not given.  If\n"
-	    "@var{token_char} is a character set, it is used for finding the\n"
-	    "token borders.")
+	    "characters from the character set @var{token_set}, which\n"
+	    "defaults to an equivalent of @code{char-set:graphic}.\n"
+	    "If @var{start} or @var{end} indices are provided, they restrict\n"
+	    "@code{string-tokenize} to operating on the indicated substring\n"
+	    "of @var{s}.")
 #define FUNC_NAME s_scm_string_tokenize
 {
   char * cstr;
@@ -2814,7 +2815,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
 				    3, start, cstart,
 				    4, end, cend);
-  if (SCM_UNBNDP (token_char))
+  if (SCM_UNBNDP (token_set))
     {
       int idx;
 
@@ -2822,7 +2823,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 	{
 	  while (cstart < cend)
 	    {
-	      if (!isspace (cstr[cend - 1]))
+	      if (isgraph (cstr[cend - 1]))
 		break;
 	      cend--;
 	    }
@@ -2831,14 +2832,14 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 	  idx = cend;
 	  while (cstart < cend)
 	    {
-	      if (isspace (cstr[cend - 1]))
+	      if (!isgraph (cstr[cend - 1]))
 		break;
 	      cend--;
 	    }
 	  result = scm_cons (scm_mem2string (cstr + cend, idx - cend), result);
 	}
     }
-  else if (SCM_CHARSETP (token_char))
+  else if (SCM_CHARSETP (token_set))
     {
       int idx;
 
@@ -2846,7 +2847,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 	{
 	  while (cstart < cend)
 	    {
-	      if (!SCM_CHARSET_GET (token_char, cstr[cend - 1]))
+	      if (SCM_CHARSET_GET (token_set, cstr[cend - 1]))
 		break;
 	      cend--;
 	    }
@@ -2855,41 +2856,14 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 	  idx = cend;
 	  while (cstart < cend)
 	    {
-	      if (SCM_CHARSET_GET (token_char, cstr[cend - 1]))
+	      if (!SCM_CHARSET_GET (token_set, cstr[cend - 1]))
 		break;
 	      cend--;
 	    }
 	  result = scm_cons (scm_mem2string (cstr + cend, idx - cend), result);
 	}
     }
-  else
-    {
-      int idx;
-      char chr;
-
-      SCM_VALIDATE_CHAR (2, token_char);
-      chr = SCM_CHAR (token_char);
-
-      while (cstart < cend)
-	{
-	  while (cstart < cend)
-	    {
-	      if (cstr[cend - 1] != chr)
-		break;
-	      cend--;
-	    }
-	  if (cstart >= cend)
-	    break;
-	  idx = cend;
-	  while (cstart < cend)
-	    {
-	      if (cstr[cend - 1] == chr)
-		break;
-	      cend--;
-	    }
-	  result = scm_cons (scm_mem2string (cstr + cend, idx - cend), result);
-	}
-    }
+  else SCM_WRONG_TYPE_ARG (2, token_set);
   return result;
 }
 #undef FUNC_NAME
