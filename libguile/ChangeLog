@@ -1,3 +1,14 @@
+Thu Sep 12 00:00:32 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* gdbint.c (gdb_read): Now possible to run during GC.
+	(unmark_port, remark_port): New functions.
+
+	* symbols.h (SCM_SETLENGTH): Use SCM_SETCAR.
+
+	* read.c (scm_grow_tok_buf): Use scm_vector_set_length_x instead
+	of allocating a new string object.  Also, increase size by
+	the factor 2 instead of 1.5.
+
 Wed Sep 11 15:10:38 1996  Petr Adamek  <jimb@floss.cyclic.com>
 
 	* __scm.h (SCM_P): Corrected to run under traditional C.
