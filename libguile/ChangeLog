@@ -1,5 +1,8 @@
 2004-04-18  Kevin Ryde  <user42@zip.com.au>
 
+	* filesys.c (scm_readdir): Use readdir_r when available, for thread
+	safety.
+
 	* numbers.c (scm_max, scm_min): For big/real, use SCM_SWAP rather than
 	explicit swapping code.
 
