@@ -68,7 +68,6 @@ extern "C" {
 #endif
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
-#include "libguile/environments.h"
 #include "libguile/eq.h"
 #include "libguile/error.h"
 #include "libguile/eval.h"
