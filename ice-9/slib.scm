@@ -109,7 +109,7 @@
 
 
 ;;; FIXME: Because uers want require to search the path, this uses
-;;; primitive-load-path, which probably isn't a hot idea.  slib
+;;; load-from-path, which probably isn't a hot idea.  slib
 ;;; doesn't expect this function to search a path, so I expect to get
 ;;; bug reports at some point complaining that the wrong file gets
 ;;; loaded when something accidentally appears in the path before
@@ -123,13 +123,13 @@
      (set-current-module slib-module)
      (let* ((errinfo (catch 'system-error
 			    (lambda ()
-			      (primitive-load-path name)
+			      (load-from-path name)
 			      #f)
 			    (lambda args args)))
 	    (errinfo (and errinfo
 			  (catch 'system-error
 				 (lambda ()
-				   (primitive-load-path
+				   (load-from-path
 				    (string-append name ".scm"))
 				   #f)
 				 (lambda args args)))))

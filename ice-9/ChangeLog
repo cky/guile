@@ -1,3 +1,13 @@
+Thu Aug 14 19:55:37 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* slib.scm (slib:load): Use load-from-path instead of
+ 	primitive-load-path so that backtraces get narrowed properly at
+ 	the top.
+
+	* boot-9.scm (top-repl): Save stack already in signal handler in
+	order to narrow it correctly.
+	(save-stack): Adjust narrowing tag for the top of load-stacks.
+
 Tue Jul 29 01:18:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (move->fdes, dup->port): use dup->fdes, not primitive-dup.

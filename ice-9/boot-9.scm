@@ -2307,7 +2307,7 @@
 		 ((repl-stack)
 		  (apply make-stack #t save-stack eval narrowing))
 		 ((load-stack)
-		  (apply make-stack #t save-stack gsubr-apply narrowing))
+		  (apply make-stack #t save-stack 0 narrowing))
 		 ((tk-stack)
 		  (apply make-stack #t save-stack tk-stack-mark narrowing))
 		 ((#t)
@@ -2676,6 +2676,7 @@
      (lambda ()
        (let ((make-handler (lambda (msg)
 			     (lambda (sig)
+			       (save-stack %deliver-signals)
 			       (scm-error 'signal
 					  #f
 					  msg
