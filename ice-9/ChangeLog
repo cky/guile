@@ -1,3 +1,14 @@
+1999-09-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* debugger.scm ("backtrace"): Don't pass length param to
+	display-backtrace if it wasn't explicitly given by the user.
+	(write-frame-long/application): Also print corresponding source
+	expression.
+	("evaluate"): Evaluate in local environment frame, if existent;
+	Handle errors.
+
+	* emacs.scm: Set backtrace width to 60.
+
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* format.scm (format:format-work): Use #\tab and #\page instead of

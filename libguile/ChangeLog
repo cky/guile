@@ -1,3 +1,18 @@
+1999-09-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* srcprop.c (scm_source_property): Bugfix: Use SCM_NECONSP instead
+	of SCM_NCONSP.  (Thanks to Greg Badros.)
+
+	* gsubr.c (scm_make_gsubr): Use scm_make_subr_opt for creation of
+	the self subr.
+
+	* eval.c, debug.h (SCM_BACKTRACE_WIDTH): New debug option: width.
+
+	* backtrace.c: Keep backtraces within specified width by
+	adaptively adjusting fancy printing parameters and cut output if
+	necessary.
+	(scm_display_application): Check args.
+
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.am (CLEANFILES): Remove versiondat.h; that should only
