@@ -1,3 +1,12 @@
+2000-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* symbols.c (scm_sym2vcell, scm_sym2ovcell_soft,
+	scm_intern_symbol, scm_unintern_symbol):  Symbol objects already
+	hold their hash values, no need to recompute them.
+
+	(scm_intern_obarray_soft):  Speed up search for a matching symbol
+	by comparing the hash values first.
+
 2000-10-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* unif.c (scm_make_uve, scm_dimensions_to_uniform_array):  Don't
