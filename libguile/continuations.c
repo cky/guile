@@ -68,7 +68,7 @@ scm_make_cont (answer)
   SCM_DEFER_INTS;
   SCM_SETJMPBUF (cont, scm_must_malloc ((long) sizeof (regs), s_cont));
   SCM_CAR (cont) = scm_tc7_contin;
-  SCM_DYNENV (cont) = dynwinds;
+  SCM_DYNENV (cont) = scm_dynwinds;
   SCM_THROW_VALUE = SCM_EOL;
   SCM_BASE (cont) = SCM_BASE (rootcont);
   SCM_SEQ (cont) = SCM_SEQ (rootcont);
@@ -76,19 +76,19 @@ scm_make_cont (answer)
 #else
   register SCM_STACKITEM *src, *dst;
 
+#if 0
   {
     SCM winds;
 
     for (winds = scm_dynwinds; winds != SCM_EOL; winds = SCM_CDR (winds))
       {
-#if 0
 	if (SCM_INUMP (SCM_CAR (winds)))
 	  {
 	    scm_relocate_chunk_to_heap (SCM_CAR (winds));
 	  }
-#endif
       }
   }
+#endif
 
   SCM_NEWCELL (cont);
   *answer = cont;
