@@ -57,15 +57,19 @@
 ## Code
 ## ----
 
+## NOTE: Comments preceding an AC_DEFUN (starting from "Usage:") are massaged
+## into doc/ref/autoconf-macros.texi (see Makefile.am in that directory).
+
 # GUILE_PROGS -- set paths to Guile interpreter, config and tool programs
 #
 # Usage: GUILE_PROGS
 #
-# This macro looks for programs `guile', `guile-config' and `guile-tools',
-# and sets variables GUILE, GUILE_CONFIG and GUILE_TOOLS, to their paths,
-# respectively.  If either of the first two are not found, signal error.
+# This macro looks for programs @code{guile}, @code{guile-config} and
+# @code{guile-tools}, and sets variables @var{GUILE}, @var{GUILE_CONFIG} and
+# @var{GUILE_TOOLS}, to their paths, respectively.  If either of the first two
+# are not found, signal error.
 #
-# The variables are marked for substitution, as by AC_SUBST.
+# The variables are marked for substitution, as by @code{AC_SUBST}.
 #
 AC_DEFUN([GUILE_PROGS],
  [AC_PATH_PROG(GUILE,guile)
@@ -86,45 +90,42 @@ AC_DEFUN([GUILE_PROGS],
 #
 # Usage: GUILE_FLAGS
 #
-# This macro runs the `guile-config' script, installed with Guile,
-# to find out where Guile's header files and libraries are
-# installed.  It sets two variables, GUILE_CFLAGS and GUILE_LDFLAGS.
+# This macro runs the @code{guile-config} script, installed with Guile, to
+# find out where Guile's header files and libraries are installed.  It sets
+# two variables, @var{GUILE_CFLAGS} and @var{GUILE_LDFLAGS}.
 #
-# GUILE_CFLAGS: flags to pass to a C or C++ compiler to build code that
-# uses Guile header files.  This is almost always just a -I flag.
+# @var{GUILE_CFLAGS}: flags to pass to a C or C++ compiler to build code that
+# uses Guile header files.  This is almost always just a @code{-I} flag.
 #
-# GUILE_LDFLAGS: flags to pass to the linker to link a program against
-# Guile.  This includes `-lguile' for the Guile library itself, any
-# libraries that Guile itself requires (like -lqthreads), and so on.  It
-# may also include a -L flag to tell the compiler where to find the
+# @var{GUILE_LDFLAGS}: flags to pass to the linker to link a program against
+# Guile.  This includes @code{-lguile} for the Guile library itself, any
+# libraries that Guile itself requires (like -lqthreads), and so on.  It may
+# also include a @code{-L} flag to tell the compiler where to find the
 # libraries.
 #
-# The variables are marked for substitution, as by AC_SUBST.
+# The variables are marked for substitution, as by @code{AC_SUBST}.
 #
-AC_DEFUN([GUILE_FLAGS],[
-## The GUILE_FLAGS macro.
-  ## First, let's just see if we can find Guile at all.
-  AC_MSG_CHECKING(for Guile)
-  guile-config link > /dev/null || {
-    echo "configure: cannot find guile-config; is Guile installed?" 1>&2
-    exit 1
-  }
-  GUILE_CFLAGS="`guile-config compile`"
-  GUILE_LDFLAGS="`guile-config link`"
+AC_DEFUN([GUILE_FLAGS],
+ [AC_REQUIRE([GUILE_PROGS])dnl
+  AC_MSG_CHECKING([libguile compile flags])
+  GUILE_CFLAGS="`$GUILE_CONFIG compile`"
+  AC_MSG_RESULT([$GUILE_CFLAGS])
+  AC_MSG_CHECKING([libguile link flags])
+  GUILE_LDFLAGS="`$GUILE_CONFIG link`"
+  AC_MSG_RESULT([$GUILE_LDFLAGS])
   AC_SUBST(GUILE_CFLAGS)
   AC_SUBST(GUILE_LDFLAGS)
-  AC_MSG_RESULT(yes)
-])
+ ])
 
 # GUILE_SITE_DIR -- find path to Guile "site" directory
 #
 # Usage: GUILE_SITE_DIR
 #
 # This looks for Guile's "site" directory, usually something like
-# PREFIX/share/guile/site, and sets var GUILE_SITE to the path.
+# PREFIX/share/guile/site, and sets var @var{GUILE_SITE} to the path.
 # Note that the var name is different from the macro name.
 #
-# The variable is marked for substitution, as by AC_SUBST.
+# The variable is marked for substitution, as by @code{AC_SUBST}.
 #
 AC_DEFUN([GUILE_SITE_DIR],
  [AC_REQUIRE([GUILE_PROGS])dnl
@@ -138,8 +139,8 @@ AC_DEFUN([GUILE_SITE_DIR],
 #
 # Usage: GUILE_CHECK_RETVAL(var,check)
 #
-# $1 is a shell variable name to be set to the return value
-# $2 is a Guile Scheme expression, evaluated with "$GUILE -c", and
+# @var{var} is a shell variable name to be set to the return value.
+# @var{check} is a Guile Scheme expression, evaluated with "$GUILE -c", and
 #    returning either 0 or non-#f to indicate the check passed.
 #    Non-0 number or #f indicates failure.
 #    Avoid using the character "#" since that confuses autoconf.
@@ -154,10 +155,10 @@ AC_DEFUN([GUILE_CHECK],
 #
 # Usage: GUILE_MODULE_CHECK(var,module,featuretest,description)
 #
-# $1 is a shell variable name to be set to "yes" or "no"
-# $2 is a list of symbols, like: (ice-9 common-list)
-# $3 is an expression acceptable to GUILE_CHECK, q.v.
-# $4 is a present-tense verb phrase (passed to AC_MSG_CHECKING)
+# @var{var} is a shell variable name to be set to "yes" or "no".
+# @var{module} is a list of symbols, like: (ice-9 common-list).
+# @var{featuretest} is an expression acceptable to GUILE_CHECK, q.v.
+# @var{description} is a present-tense verb phrase (passed to AC_MSG_CHECKING).
 #
 AC_DEFUN([GUILE_MODULE_CHECK],
          [AC_MSG_CHECKING([if $2 $4])
@@ -170,8 +171,8 @@ AC_DEFUN([GUILE_MODULE_CHECK],
 #
 # Usage: GUILE_MODULE_AVAILABLE(var,module)
 #
-# $1 is a shell variable name to be set to "yes" or "no"
-# $2 is a list of symbols, like: (ice-9 common-list)
+# @var{var} is a shell variable name to be set to "yes" or "no".
+# @var{module} is a list of symbols, like: (ice-9 common-list).
 #
 AC_DEFUN([GUILE_MODULE_AVAILABLE],
          [GUILE_MODULE_CHECK($1,$2,0,is available)
@@ -181,7 +182,8 @@ AC_DEFUN([GUILE_MODULE_AVAILABLE],
 #
 # Usage: GUILE_MODULE_REQUIRED(symlist)
 #
-# $1 is a list of symbols, WITHOUT surrounding parens, like: ice-9 common-list
+# @var{symlist} is a list of symbols, WITHOUT surrounding parens,
+# like: ice-9 common-list.
 #
 AC_DEFUN([GUILE_MODULE_REQUIRED],
          [GUILE_MODULE_AVAILABLE(ac_guile_module_required, ($1))
@@ -194,9 +196,9 @@ AC_DEFUN([GUILE_MODULE_REQUIRED],
 #
 # Usage: GUILE_MODULE_EXPORTS(var,module,modvar)
 #
-# $1 is a shell variable to be set to "yes" or "no"
-# $2 is a list of symbols, like: (ice-9 common-list)
-# $3 is the Guile Scheme variable to check
+# @var{var} is a shell variable to be set to "yes" or "no".
+# @var{module} is a list of symbols, like: (ice-9 common-list).
+# @var{modvar} is the Guile Scheme variable to check.
 #
 AC_DEFUN([GUILE_MODULE_EXPORTS],
  [GUILE_MODULE_CHECK($1,$2,$3,exports `$3')
@@ -206,8 +208,8 @@ AC_DEFUN([GUILE_MODULE_EXPORTS],
 #
 # Usage: GUILE_MODULE_REQUIRED_EXPORT(module,modvar)
 #
-# $1 is a list of symbols, like: (ice-9 common-list)
-# $2 is the Guile Scheme variable to check
+# @var{module} is a list of symbols, like: (ice-9 common-list).
+# @var{modvar} is the Guile Scheme variable to check.
 #
 AC_DEFUN([GUILE_MODULE_REQUIRED_EXPORT],
  [GUILE_MODULE_EXPORTS(guile_module_required_export,$1,$2)
