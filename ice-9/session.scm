@@ -88,7 +88,7 @@
 	(modules (cons (current-module)
 		       (module-uses (current-module))))
 	(recorded (make-vector 61 '()))
-	(vars '(#f)))
+	(vars (cons '() '())))
     (let ((last vars))
       (for-each
        (lambda (module)

@@ -1,3 +1,9 @@
+Mon Aug 25 16:15:55 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* session.scm (apropos-internal): Musn't initialize symbol
+	accumulator with a constant pair.  That led to mutation of the
+	source!
+
 Sun Aug 24 01:03:10 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* session.scm (vector-for-each): Removed.
