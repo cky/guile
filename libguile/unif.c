@@ -2567,6 +2567,7 @@ scm_istr2bve (str, len)
 void 
 scm_init_unif ()
 {
+#include "unif.x"
   scm_make_subr (s_resizuve, scm_tc7_subr_2, scm_vector_set_length_x);
 }
 
