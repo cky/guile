@@ -41,6 +41,10 @@
 
 
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -286,7 +290,7 @@ scm_gc_mark_dependencies (SCM p)
 	goto gc_mark_loop;
       }
 #endif
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
     case scm_tc7_bvect:
     case scm_tc7_byvect:
     case scm_tc7_ivect:
@@ -295,7 +299,7 @@ scm_gc_mark_dependencies (SCM p)
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
 #endif
