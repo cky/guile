@@ -1,5 +1,13 @@
 2004-04-25  Kevin Ryde  <user42@zip.com.au>
 
+	* chars.c (scm_char_upcase, scm_char_downcase, scm_c_upcase,
+	scm_c_downcase): Use ctype.h toupper and tolower.  This will be useful
+	in 8-bit locales, and ensures consistency with char-upper-case? and
+	char-lower-case? which already use ctype.h.
+	(scm_c_upcase_table, scm_c_downcase_table, scm_lowers, scm_uppers):
+	Remove.
+	* chars.c, chars.h, init.c (scm_tables_prehistory): Remove.
+
 	* socket.c (VALIDATE_INET6): Correction to bignum_in_ipv6_range_p
 	call.  Reported by Hyperdivision.
 
