@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "smob.h"
+#include "genio.h"
 #include "alist.h"
 #include "debug.h"
 #include "hashtab.h"

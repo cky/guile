@@ -63,6 +63,7 @@
 #include "_scm.h"
 #include "dynwind.h"
 #include "smob.h"
+#include "genio.h"
 
 #include "threads.h"
 
