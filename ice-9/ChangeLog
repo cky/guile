@@ -1,3 +1,17 @@
+2000-09-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* psyntax.ss (build-lexical-var): Use gentemp instead of gensym;
+	Convert first argument to a string.
+
+	* calling.scm (excursion-function-syntax,
+	getter-and-setter-syntax,
+	delegating-getter-and-setter-syntax): Call gensym with string
+	argument.  (Thanks to Dale P. Smith.)
+
+	* oldprint.scm (print-table-add!): Ditto.
+
+	* boot-9.scm (gentemp): Moved to symbols.c.
+
 2000-08-27  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (make-object-property): New function.
