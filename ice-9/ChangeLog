@@ -1,5 +1,10 @@
 1998-11-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
+	* boot-9.scm (values, call-with-values): Moved here from
+	syncase.scm.
+
+	* syncase.scm (values, call-with-values): Moved to boot-9.scm.
+
 	* boot-9.scm (readline-options, readline-enable, readline.disable,
 	readline-set!: New options interface.
 
