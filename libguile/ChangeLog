@@ -1,3 +1,27 @@
+Thu Dec 19 02:54:59 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Don't use GCC extensions to allocate space for debugging frames.
+	(Here he goes again!  Why do we put up with this?!)
+	* debug.h (scm_debug_frame): Make the 'vect' member a pointer to
+	an scm_debug_info structure, not an in-line array of them.  Add
+	'info' member, to say how many vect elements we've used, for eval
+	frames.
+	* eval.c (SCM_CEVAL): Use alloca to allocate space for vect.  Use
+	a new variable debug_info_end to mark the end of vect, instead of
+	the address of the 'info' pointer itself.
+	[DEVAL] (ENTER_APPLY, SCM_CEVAL, SCM_APPLY): Remove casts of
+	&debug to scm_debug_frame *; debug is a real scm_debug_frame now.
+	(SCM_APPLY): Explicitly allocate space for debug.vect. 
+	* debug.c (scm_m_start_stack): Same, for vframe.vect.
+	* stacks.c: Adjusted for new debug frame structure.
+	(RELOC_INFO, RELOC_FRAME): New macros.
+	(stack_depth, read_frames): Use them, and new scm_debug_frame
+	element 'info', instead of magically knowing that eval frames have
+	an info pointer sitting after vect.
+	(scm_make_stack, scm_stack_id, scm_last_stack_frame): Use
+	RELOC_FRAME.
+	(scm_init_stacks): Formatting tweaks.
+
 Wed Dec 18 14:57:57 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Give GCC more control flow information, so it can be sure that
