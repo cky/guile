@@ -2,7 +2,7 @@
 
 #ifndef MODULESH
 #define MODULESH
-/*	Copyright (C) 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +59,7 @@ extern SCM scm_load_scheme_module (SCM name);
 extern SCM scm_env_top_level (SCM env);
 extern SCM scm_top_level_env (SCM thunk);
 extern SCM scm_system_module_env_p (SCM env);
+extern SCM scm_standard_eval_closure (SCM module);
 extern void scm_init_modules (void);
 extern void scm_post_boot_init_modules (void);
 
