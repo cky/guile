@@ -3031,11 +3031,7 @@ scm_max (x, y)
   if (SCM_UNBNDP (y))
     {
 #ifndef SCM_RECKLESS
-      if (!(SCM_NUMBERP (x)))
-	{
-	badx:
-	  SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARG1, s_max);
-	}
+      SCM_GASSERT1 (SCM_NUMBERP (x), g_max, x, SCM_ARG1, s_max);
 #endif
       return x;
     }
@@ -3043,7 +3039,11 @@ scm_max (x, y)
   if (SCM_NINUMP (x))
     {
 #ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (x), badx);
+      if (!SCM_NIMP (x))
+	{
+	badx2:
+	  SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARG1, s_max);
+	}
       if (SCM_BIGP (x))
 	{
 	  if (SCM_INUMP (y))
@@ -3055,7 +3055,7 @@ scm_max (x, y)
 	  z = scm_big2dbl (x);
 	  return (z < SCM_REALPART (y)) ? y : scm_makdbl (z, 0.0);
 	}
-      SCM_ASRTGO (SCM_REALP (x), badx);
+      SCM_ASRTGO (SCM_REALP (x), badx2);
 #else
       SCM_GASSERT2 (SCM_NIMP (x) && SCM_REALP (x),
 		    g_max, x, y, SCM_ARG1, s_max);
@@ -3148,11 +3148,7 @@ scm_min (x, y)
   if (SCM_UNBNDP (y))
     {
 #ifndef SCM_RECKLESS
-      if (!(SCM_NUMBERP (x)))
-	{
-	badx:
-	  SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARG1, s_min);
-	}
+      SCM_GASSERT1 (SCM_NUMBERP (x), g_min, x, SCM_ARG1, s_min);
 #endif
       return x;
     }
@@ -3160,7 +3156,11 @@ scm_min (x, y)
   if (SCM_NINUMP (x))
     {
 #ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (x), badx);
+      if (!(SCM_NIMP (x)))
+	{
+	badx2:
+	  SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARG1, s_min);
+	}
       if (SCM_BIGP (x))
 	{
 	  if (SCM_INUMP (y))
@@ -3172,7 +3172,7 @@ scm_min (x, y)
 	  z = scm_big2dbl (x);
 	  return (z > SCM_REALPART (y)) ? y : scm_makdbl (z, 0.0);
 	}
-      SCM_ASRTGO (SCM_REALP (x), badx);
+      SCM_ASRTGO (SCM_REALP (x), badx2);
 #else
       SCM_GASSERT2 (SCM_NIMP (x) && SCM_REALP (x),
 		    g_min, x, y, SCM_ARG1, s_min);
@@ -3264,11 +3264,7 @@ scm_sum (x, y)
       if (SCM_UNBNDP (x))
 	return SCM_INUM0;
 #ifndef SCM_RECKLESS
-      if (!(SCM_NUMBERP (x)))
-	{
-	badx:
-	  SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARG1, s_sum);
-	}
+      SCM_GASSERT1 (SCM_NUMBERP (x), g_sum, x, SCM_ARG1, s_sum);
 #endif
       return x;
     }
@@ -3277,7 +3273,11 @@ scm_sum (x, y)
     {
       SCM t;
 #ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (x), badx);
+      if (!SCM_NIMP (x))
+	{
+	badx2:
+	  SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARG1, s_sum);
+	}
       if (SCM_BIGP (x))
 	{
 	  if (SCM_INUMP (y))
@@ -3305,9 +3305,9 @@ scm_sum (x, y)
 	  return scm_makdbl (scm_big2dbl (x) + SCM_REALPART (y),
 			     SCM_CPLXP (y) ? SCM_IMAG (y) : 0.0);
 	}
-      SCM_ASRTGO (SCM_INEXP (x), badx);
+      SCM_ASRTGO (SCM_INEXP (x), badx2);
 #else
-      SCM_ASRTGO (SCM_NIMP (x) && SCM_INEXP (x), badx);
+      SCM_ASRTGO (SCM_NIMP (x) && SCM_INEXP (x), badx2);
 #endif
       if (SCM_INUMP (y))
 	{
@@ -3385,7 +3385,7 @@ scm_sum (x, y)
   if (SCM_NINUMP (x))
     {
       SCM t;
-      SCM_ASRTGO (SCM_NIMP (x) && SCM_BIGP (x), badx);
+      SCM_ASRTGO (SCM_NIMP (x) && SCM_BIGP (x), badx2);
       if (SCM_INUMP (y))
 	{
 	  t = x;
@@ -3425,7 +3425,7 @@ scm_sum (x, y)
       }
     }
 #else
-  SCM_ASRTGO (SCM_INUMP (x), badx);
+  SCM_ASRTGO (SCM_INUMP (x), badx2);
   SCM_GASSERT2 (SCM_INUMP (y), g_sum, x, y, SCM_ARGn, s_sum);
 #endif
 #endif
@@ -3460,8 +3460,16 @@ scm_difference (x, y)
 #ifndef SCM_RECKLESS
       if (!(SCM_NIMP (x)))
 	{
-	badx:
-	  SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARG1, s_difference);
+	  if (SCM_UNBNDP (y))
+	    {
+	    badx:
+	      SCM_WTA_DISPATCH_1 (g_difference, x, SCM_ARG1, s_difference);
+	    }
+	  else
+	    {
+	    badx2:
+	      SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARG1, s_difference);
+	    }
 	}
 #endif
       if (SCM_UNBNDP (y))
@@ -3498,13 +3506,13 @@ scm_difference (x, y)
 	  return scm_makdbl (scm_big2dbl (x) - SCM_REALPART (y),
 			     SCM_CPLXP (y) ? -SCM_IMAG (y) : 0.0);
 	}
-      SCM_ASRTGO (SCM_INEXP (x), badx);
+      SCM_ASRTGO (SCM_INEXP (x), badx2);
       if (SCM_BIGP (y))
 	return scm_makdbl (SCM_REALPART (x) - scm_big2dbl (y),
 			   SCM_CPLXP (x) ? SCM_IMAG (x) : 0.0);
       SCM_ASRTGO (SCM_INEXP (y), bady);
 #else
-      SCM_ASRTGO (SCM_INEXP (x), badx);
+      SCM_ASRTGO (SCM_INEXP (x), badx2);
       SCM_ASRTGO (SCM_NIMP (y) && SCM_INEXP (y), bady);
 #endif
       if (SCM_CPLXP (x))
@@ -3661,11 +3669,7 @@ scm_product (x, y)
       if (SCM_UNBNDP (x))
 	return SCM_MAKINUM (1L);
 #ifndef SCM_RECKLESS
-      if (!(SCM_NUMBERP (x)))
-	{
-	badx:
-	  SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARG1, s_product);
-	}
+      SCM_GASSERT1 (SCM_NUMBERP (x), g_product, x, SCM_ARG1, s_product);
 #endif
       return x;
     }
@@ -3674,7 +3678,11 @@ scm_product (x, y)
     {
       SCM t;
 #ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (x), badx);
+      if (!SCM_NIMP (x))
+	{
+	badx2:
+	  SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARG1, s_product);
+	}
       if (SCM_BIGP (x))
 	{
 	  if (SCM_INUMP (y))
@@ -3697,9 +3705,9 @@ scm_product (x, y)
 			       SCM_CPLXP (y) ? bg * SCM_IMAG (y) : 0.0);
 	  }
 	}
-      SCM_ASRTGO (SCM_INEXP (x), badx);
+      SCM_ASRTGO (SCM_INEXP (x), badx2);
 #else
-      SCM_ASRTGO (SCM_NIMP (x) && SCM_INEXP (x), badx);
+      SCM_ASRTGO (SCM_NIMP (x) && SCM_INEXP (x), badx2);
 #endif
       if (SCM_INUMP (y))
 	{
@@ -3787,7 +3795,7 @@ scm_product (x, y)
 #ifdef SCM_BIGDIG
   if (SCM_NINUMP (x))
     {
-      SCM_ASRTGO (SCM_NIMP (x) && SCM_BIGP (x), badx);
+      SCM_ASRTGO (SCM_NIMP (x) && SCM_BIGP (x), badx2);
       if (SCM_INUMP (y))
 	{
 	  SCM t = x;
@@ -3830,7 +3838,7 @@ scm_product (x, y)
       }
     }
 #else
-  SCM_ASRTGO (SCM_INUMP (x), badx);
+  SCM_ASRTGO (SCM_INUMP (x), badx2);
   SCM_GASSERT (SCM_INUMP (y), g_product, x, y, SCM_ARGn, s_product);
 #endif
 #endif
@@ -3908,8 +3916,16 @@ scm_divide (x, y)
 #ifndef SCM_RECKLESS
       if (!(SCM_NIMP (x)))
 	{
-	badx:
-	  SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARG1, s_divide);
+	  if (SCM_UNBNDP (y))
+	    {
+	    badx:
+	      SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
+	    }
+	  else
+	    {
+	    badx2:
+	      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARG1, s_divide);
+	    }
 	}
 #endif
       if (SCM_UNBNDP (y))
@@ -3981,7 +3997,7 @@ scm_divide (x, y)
 	  goto complex_div;
 	}
 #endif
-      SCM_ASRTGO (SCM_INEXP (x), badx);
+      SCM_ASRTGO (SCM_INEXP (x), badx2);
       if (SCM_INUMP (y))
 	{
 	  d = SCM_INUM (y);
