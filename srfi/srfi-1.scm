@@ -164,8 +164,8 @@
  reduce-right
  unfold
  unfold-right
- ;; map					<= in the core
- ;; for-each				<= in the core
+ map
+ for-each
  append-map
  append-map!
  map!
@@ -471,20 +471,20 @@
   (let lp ((l (cons clist1 rest)) (acc '()))
     (if (any null? l)
       (reverse! acc)
-      (lp (map cdr l) (cons (map car l) acc)))))
+      (lp (map1 cdr l) (cons (map1 car l) acc)))))
     
 
 (define (unzip1 l)
-  (map first l))
+  (map1 first l))
 (define (unzip2 l)
-  (values (map first l) (map second l)))
+  (values (map1 first l) (map1 second l)))
 (define (unzip3 l)
-  (values (map first l) (map second l) (map third l)))
+  (values (map1 first l) (map1 second l) (map1 third l)))
 (define (unzip4 l)
-  (values (map first l) (map second l) (map third l) (map fourth l)))
+  (values (map1 first l) (map1 second l) (map1 third l) (map1 fourth l)))
 (define (unzip5 l)
-  (values (map first l) (map second l) (map third l) (map fourth l)
-	  (map fifth l)))
+  (values (map1 first l) (map1 second l) (map1 third l) (map1 fourth l)
+	  (map1 fifth l)))
 
 (define (count pred clist1 . rest)
   (if (null? rest)
@@ -493,9 +493,9 @@
 	(cond ((any1 null? lists)
 	       0)
 	      (else
-	       (if (apply pred (map car lists))
-		 (+ 1 (lp (map cdr lists)))
-		 (lp (map cdr lists))))))))
+	       (if (apply pred (map1 car lists))
+		 (+ 1 (lp (map1 cdr lists)))
+		 (lp (map1 cdr lists))))))))
 
 (define (count1 pred clist)
   (if (null? clist)
@@ -515,8 +515,8 @@
       (let f ((knil knil) (lists (cons list1 rest)))
 	(if (any null? lists)
 	    knil
-	    (let ((cars (map car lists))
-		  (cdrs (map cdr lists)))
+	    (let ((cars (map1 car lists))
+		  (cdrs (map1 cdr lists)))
 	      (f (apply kons (append! cars (list knil))) cdrs))))))
 
 (define (fold-right kons knil clist1 . rest)
@@ -528,7 +528,7 @@
     (let f ((lists (cons clist1 rest)))
       (if (any null? lists)
 	knil
-	(apply kons (append! (map car lists) (list (f (map cdr lists)))))))))
+	(apply kons (append! (map1 car lists) (list (f (map1 cdr lists)))))))))
 
 (define (pair-fold kons knil clist1 . rest)
   (if (null? rest)
@@ -540,7 +540,7 @@
       (let f ((knil knil) (lists (cons clist1 rest)))
 	(if (any null? lists)
 	    knil
-	    (let ((tails (map cdr lists)))
+	    (let ((tails (map1 cdr lists)))
 	      (f (apply kons (append! lists (list knil))) tails))))))
 
 
@@ -553,7 +553,7 @@
     (let f ((lists (cons clist1 rest)))
       (if (any null? lists)
 	knil
-	(apply kons (append! lists (list (f (map cdr lists)))))))))
+	(apply kons (append! lists (list (f (map1 cdr lists)))))))))
 
 (define (unfold p f g seed . rest)
   (let ((tail-gen (if (pair? rest)
@@ -587,6 +587,48 @@
 (define (reduce-right f ridentity lst)
   (fold-right f ridentity lst))
 
+
+;; Internal helper procedure.  Map `f' over the single list `ls'.
+;;
+(define (map1 f ls)
+  (let lp ((l ls))
+    (if (null? l)
+      '()
+      (cons (f (car l)) (lp (cdr l))))))
+
+;; This `map' is extended from the standard `map'.  It allows argument
+;; lists of different length, so that the shortest list determines the
+;; number of elements processed.
+;;
+(define (map f list1 . rest)
+  (if (null? rest)
+    (map1 f list1)
+    (let lp ((l (cons list1 rest)))
+      (if (any1 null? l)
+	'()
+	(cons (apply f (map1 car l)) (lp (map1 cdr l)))))))
+
+
+;; This `for-each' is extended from the standard `for-each'.  It
+;; allows argument lists of different length, so that the shortest
+;; list determines the number of elements processed.
+;;
+(define (for-each f list1 . rest)
+  (if (null? rest)
+    (let lp ((l list1))
+      (if (null? l)
+	(if #f #f)			; Return unspecified value.
+	(begin
+	  (f (car l))
+	  (lp (cdr l)))))
+    (let lp ((l (cons list1 rest)))
+      (if (any1 null? l)
+	(if #f #f)
+	(begin
+	  (apply f (map1 car l))
+	  (lp (map1 cdr l)))))))
+
+
 (define (append-map f clist1 . rest)
   (if (null? rest)
     (let lp ((l clist1))
@@ -596,7 +638,8 @@
     (let lp ((l (cons clist1 rest)))
       (if (any1 null? l)
 	'()
-	(append (apply f (map car l)) (lp (map cdr l)))))))
+	(append (apply f (map1 car l)) (lp (map1 cdr l)))))))
+
 
 (define (append-map! f clist1 . rest)
   (if (null? rest)
@@ -607,7 +650,7 @@
     (let lp ((l (cons clist1 rest)))
       (if (any1 null? l)
 	'()
-	(append! (apply f (map car l)) (lp (map cdr l)))))))
+	(append! (apply f (map1 car l)) (lp (map1 cdr l)))))))
 
 (define (map! f list1 . rest)
   (if (null? rest)
@@ -622,8 +665,8 @@
       (if (any1 null? l)
 	'()
 	(begin
-	  (set-car! res (apply f (map car l)))
-	  (set-cdr! res (lp (map cdr l) (cdr res)))
+	  (set-car! res (apply f (map1 car l)))
+	  (set-cdr! res (lp (map1 cdr l) (cdr res)))
 	  res)))))
 
 (define (pair-for-each f clist1 . rest)
@@ -639,7 +682,7 @@
 	(if #f #f)
 	(begin
 	  (apply f l)
-	  (lp (map cdr l)))))))
+	  (lp (map1 cdr l)))))))
 
 (define (filter-map f clist1 . rest)
   (if (null? rest)
@@ -653,10 +696,10 @@
     (let lp ((l (cons clist1 rest)))
       (if (any1 null? l)
 	'()
-	(let ((res (apply f (map car l))))
+	(let ((res (apply f (map1 car l))))
 	  (if res
-	    (cons res (lp (map cdr l)))
-	    (lp (map cdr l))))))))
+	    (cons res (lp (map1 cdr l)))
+	    (lp (map1 cdr l))))))))
 
 ;;; Filtering & partitioning
 
@@ -753,10 +796,10 @@
       (let lp ((lists (cons ls lists)))
 	(cond ((any1 null? lists)
 	       #f)
-	      ((any1 null? (map cdr lists))
-	       (apply pred (map car lists)))
+	      ((any1 null? (map1 cdr lists))
+	       (apply pred (map1 car lists)))
 	      (else
-	       (or (apply pred (map car lists)) (lp (map cdr lists))))))))
+	       (or (apply pred (map1 car lists)) (lp (map1 cdr lists))))))))
 
 (define (any1 pred ls)
   (let lp ((ls ls))
@@ -773,10 +816,10 @@
       (let lp ((lists (cons ls lists)))
 	(cond ((any1 null? lists)
 	       #t)
-	      ((any1 null? (map cdr lists))
-	       (apply pred (map car lists)))
+	      ((any1 null? (map1 cdr lists))
+	       (apply pred (map1 car lists)))
 	      (else
-	       (and (apply pred (map car lists)) (lp (map cdr lists))))))))
+	       (and (apply pred (map1 car lists)) (lp (map1 cdr lists))))))))
 
 (define (every1 pred ls)
   (let lp ((ls ls))
@@ -798,9 +841,9 @@
     (let lp ((lists (cons clist1 rest)) (i 0))
       (cond ((any1 null? lists)
 	     #f)
-	    ((apply pred (map car lists)) i)
+	    ((apply pred (map1 car lists)) i)
 	    (else
-	     (lp (map cdr lists) (+ i 1)))))))
+	     (lp (map1 cdr lists) (+ i 1)))))))
 
 (define (member x list . rest)
   (let ((l= (if (pair? rest) (car rest) equal?)))
