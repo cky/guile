@@ -458,7 +458,7 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
 
 static void
 vector_scale (SCM v, double c)
