@@ -24,14 +24,14 @@
 (define exception:bad-expression
   (cons 'syntax-error "Bad expression"))
 
-(define exception:missing/extra-expr-misc
-  (cons 'misc-error "^missing or extra expression"))
 (define exception:missing/extra-expr
-  (cons 'syntax-error "missing or extra expression"))
+  (cons 'syntax-error "Missing or extra expression"))
 (define exception:missing-expr
   (cons 'syntax-error "Missing expression"))
 (define exception:extra-expr
   (cons 'syntax-error "Extra expression"))
+(define exception:illegal-empty-combination
+  (cons 'syntax-error "Illegal empty combination"))
 
 (define exception:bad-bindings
   (cons 'syntax-error "Bad bindings"))
@@ -86,7 +86,7 @@
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "empty parentheses \"()\""
-      exception:missing/extra-expr-misc
+      exception:illegal-empty-combination
       (eval '()
 	    (interaction-environment)))))
 

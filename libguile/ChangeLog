@@ -1,3 +1,17 @@
+2003-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (s_expression): Added comment.
+
+	(s_empty_combination, error_unbound_variable): New static
+	identifiers.
+
+	(SCM_VALIDATE_NON_EMPTY_COMBINATION, SCM_EVALIM2, scm_lookupcar1):
+	Use ASSERT_SYNTAX, syntax_error or error_unbound_variable to
+	signal syntax errors.
+
+	(SCM_CEVAL): Separated handling of evaluator bytecodes and other
+	scheme objects.
+
 2003-10-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (unmemocar, sym_three_question_marks, scm_unmemocar):

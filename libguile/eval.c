@@ -101,6 +101,11 @@ char *alloca ();
  * expression is expected, a 'Bad expression' error is signalled.  */
 static const char s_bad_expression[] = "Bad expression";
 
+/* If a form is detected that holds a different number of expressions than are
+ * required in that context, a 'Missing or extra expression' error is
+ * signalled.  */
+static const char s_expression[] = "Missing or extra expression in";
+
 /* If a form is detected that holds less expressions than are required in that
  * context, a 'Missing expression' error is signalled.  */
 static const char s_missing_expression[] = "Missing expression in";
@@ -108,6 +113,13 @@ static const char s_missing_expression[] = "Missing expression in";
 /* If a form is detected that holds more expressions than are allowed in that
  * context, an 'Extra expression' error is signalled.  */
 static const char s_extra_expression[] = "Extra expression in";
+
+/* The empty combination '()' is not allowed as an expression in scheme.  If
+ * it is detected in a place where an expression is expected, an 'Illegal
+ * empty combination' error is signalled.  Note: If you encounter this error
+ * message, it is very likely that you intended to denote the empty list.  To
+ * do so, you need to quote the empty list like (quote ()) or '().  */
+static const char s_empty_combination[] = "Illegal empty combination";
 
 /* Case or cond expressions must have at least one clause.  If a case or cond
  * expression without any clauses is detected, a 'Missing clauses' error is
@@ -327,10 +339,7 @@ SCM_DEFINE (scm_dbg_iloc_p, "dbg-iloc?", 1, 0, 0,
 
 
 #define SCM_VALIDATE_NON_EMPTY_COMBINATION(x) \
-  do { \
-    if (SCM_EQ_P ((x), SCM_EOL)) \
-      scm_misc_error (NULL, s_expression, SCM_EOL); \
-  } while (0)
+  ASSERT_SYNTAX (!SCM_EQ_P ((x), SCM_EOL), s_empty_combination, x)
 
 
 
@@ -367,7 +376,7 @@ SCM_DEFINE (scm_dbg_iloc_p, "dbg-iloc?", 1, 0, 0,
 
 #define SCM_EVALIM2(x) \
   ((SCM_EQ_P ((x), SCM_EOL) \
-    ? scm_misc_error (NULL, s_expression, SCM_EOL), 0 \
+    ? syntax_error (s_empty_combination, (x), SCM_UNDEFINED), 0 \
     : 0), \
    (x))
 
@@ -394,7 +403,6 @@ SCM_DEFINE (scm_dbg_iloc_p, "dbg-iloc?", 1, 0, 0,
 SCM_REC_MUTEX (source_mutex);
 
 
-static const char s_expression[] = "missing or extra expression";
 static const char s_test[] = "bad test";
 static const char s_body[] = "bad body";
 static const char s_bindings[] = "bad bindings";
@@ -428,6 +436,18 @@ scm_ilookup (SCM iloc, SCM env)
   if (SCM_ICDRP (iloc))
     return SCM_CDRLOC (bindings);
   return SCM_CARLOC (SCM_CDR (bindings));
+}
+
+
+SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
+
+static void error_unbound_variable (SCM symbol) SCM_NORETURN;
+static void
+error_unbound_variable (SCM symbol)
+{
+  scm_error (scm_unbound_variable_key, NULL,
+	     "Unbound variable: ~S",
+	     scm_list_1 (symbol), SCM_BOOL_F);
 }
 
 
@@ -504,8 +524,6 @@ scm_ilookup (SCM iloc, SCM env)
    for NULL.  I think I've found the only places where this
    applies. */
 
-SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
-
 static SCM *
 scm_lookupcar1 (SCM vloc, SCM genv, int check)
 {
@@ -568,9 +586,7 @@ scm_lookupcar1 (SCM vloc, SCM genv, int check)
 	if (check)
 	  {
 	    if (SCM_NULLP (env))
-	      scm_error (scm_unbound_variable_key, NULL,
-			 "Unbound variable: ~S",
-			 scm_list_1 (var), SCM_BOOL_F);
+              error_unbound_variable (var);
 	    else
 	      scm_misc_error (NULL, "Damaged environment: ~S",
 			      scm_list_1 (var));
@@ -1840,6 +1856,7 @@ scm_m_expand_body (SCM xorig, SCM env)
   return xorig;
 }
 
+
 SCM
 scm_macroexp (SCM x, SCM env)
 {
@@ -2602,11 +2619,6 @@ dispatch:
   SCM_TICK;
   switch (SCM_TYP7 (x))
     {
-    case scm_tc7_symbol:
-      /* Only happens when called at top level.  */
-      x = scm_cons (x, SCM_UNDEFINED);
-      RETURN (*scm_lookupcar (x, env, 1));
-
     case SCM_BIT7 (SCM_IM_AND):
       x = SCM_CDR (x);
       while (!SCM_NULLP (SCM_CDR (x)))
@@ -3286,9 +3298,11 @@ dispatch:
 	  goto evapply;
 	}
 
+
     default:
       proc = x;
       goto evapply;
+
 
     case scm_tc7_vector:
     case scm_tc7_wvect:
@@ -3314,6 +3328,11 @@ dispatch:
     case scm_tcs_subrs:
     case scm_tcs_struct:
       RETURN (x);
+
+    case scm_tc7_symbol:
+      /* Only happens when called at top level.  */
+      x = scm_cons (x, SCM_UNDEFINED);
+      RETURN (*scm_lookupcar (x, env, 1));
 
     case scm_tc7_variable:
       RETURN (SCM_VARIABLE_REF(x));

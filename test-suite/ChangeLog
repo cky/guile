@@ -1,3 +1,13 @@
+2003-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/syntax.test (exception:missing/extra-expr-misc): Removed.
+
+	(exception:illegal-empty-combination): New.
+
+	(exception:missing/extra-expr): Unified capitalization.
+
+	Adapted test for '()' to the new way of error reporting.
+
 2003-10-19  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test: Use define-module to hide helper defines.
