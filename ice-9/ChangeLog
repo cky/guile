@@ -1,3 +1,22 @@
+1999-09-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+*	* boot-9.scm (using-readline?): New procedure: Returns #t if
+	readline is used by the repl run by this thread.
+	(handle-system-error): Print "Backtrace:" before backtrace since
+	this is no longer done by display-backtrace.
+	
+	* debug.scm (frame-number->index): Optionally take stack as
+	argument.
+
+	* debugger.scm: Use the frame number abstraction which allows for
+	both forward and backward views of the stack
+	(write-frame-index-short, write-frame-index-long):
+	Use selector `frame-number';
+	(select-frame-absolute): Use frame-number->index.
+	("backtrace"): Use builtin backtrace printing.
+	Use (ice-9 debug).
+	Use readline conditionally.
+	
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* regex.scm (fold-matches, list-matches): New functions.
@@ -40,7 +59,6 @@
 *	* debugger.scm: New file: Initial version of the Guile debugger
 	written by Chris Hanson.  (The debugger isn't finished, but is
 	included in Guile anyway since it is already quite useful.)
-	Use readline conditionally.
 
 *	* boot-9.scm (top-repl): Use (ice-9 debug) (ice-9 debugger) (ice-9
 	session) (ice-9 threads) (ice-9 regex) from guile-user only if

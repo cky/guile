@@ -16,6 +16,8 @@
 
 	* backtrace.c (display_frame_expr): Don't print a newline.
 	(display_frame): Print the newline here instead.
+	(display_backtrace_body): Don't print "Backtrace:".
+	(scm_backtrace): Print "Backtrace:" here instead.
 
 1999-09-09  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
