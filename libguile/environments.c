@@ -545,7 +545,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
   for (lsym = SCM_VELTS (obarray)[hash]; !SCM_NULLP (lsym); lsym = SCM_CDR (lsym))
     {
       SCM old_entry = SCM_CAR (lsym);
-      if (SCM_CAR (old_entry) == symbol)
+      if (SCM_EQ_P (SCM_CAR (old_entry), symbol))
 	{
 	  SCM_SETCAR (lsym, new_entry);
 	  return old_entry;
@@ -571,7 +571,7 @@ obarray_retrieve (SCM obarray, SCM sym)
   for (lsym = SCM_VELTS (obarray)[hash]; !SCM_NULLP (lsym); lsym = SCM_CDR (lsym))
     {
       SCM entry = SCM_CAR (lsym);
-      if (SCM_CAR (entry) == sym)
+      if (SCM_EQ_P (SCM_CAR (entry), sym))
 	return entry;
     }
 
@@ -596,7 +596,7 @@ obarray_remove (SCM obarray, SCM sym)
        lsym = *(lsymp = SCM_CDRLOC (lsym)))
     {
       SCM entry = SCM_CAR (lsym);
-      if (SCM_CAR (entry) == sym)
+      if (SCM_EQ_P (SCM_CAR (entry), sym))
 	{
 	  *lsymp = SCM_CDR (lsym);
 	  return entry;

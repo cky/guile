@@ -1,5 +1,12 @@
 2000-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* environments.c (obarray_replace, obarray_retrieve,
+	obarray_remove):  Don't use '==' to compare SCM objects.
+
+	* posix.c (scm_getgroups):  Don't create a redundant string.
+
+2000-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* symbols.c (scm_sym2vcell, scm_sym2ovcell_soft,
 	scm_intern_symbol, scm_unintern_symbol):  Symbol objects already
 	hold their hash values, no need to recompute them.

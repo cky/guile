@@ -205,33 +205,27 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 	    "Returns a vector of integers representing the current supplimentary group IDs.")
 #define FUNC_NAME s_scm_getgroups
 {
-  SCM grps, ans;
-  int ngroups = getgroups (0, NULL);
-  if (!ngroups)
-    SCM_SYSERROR;
-  SCM_NEWCELL(grps);
-  SCM_DEFER_INTS;
-  {
-    GETGROUPS_T *groups;
-    int val;
+  SCM ans;
+  int ngroups;
+  scm_sizet size;
+  GETGROUPS_T *groups;
 
-    groups = SCM_MUST_MALLOC_TYPE_NUM(GETGROUPS_T,ngroups);					    
-    val = getgroups(ngroups, groups);
-    if (val < 0)
-      {
-	int en = errno;
-	scm_must_free((char *)groups);
-	errno = en;
-	SCM_SYSERROR;
-      }
-    SCM_SETCHARS(grps, groups);	/* set up grps as a GC protect */
-    SCM_SETLENGTH(grps, 0L + ngroups * sizeof(GETGROUPS_T), scm_tc7_string);
-    ans = scm_make_vector (SCM_MAKINUM(ngroups), SCM_UNDEFINED);
-    while (--ngroups >= 0) SCM_VELTS(ans)[ngroups] = SCM_MAKINUM(groups[ngroups]);
-    SCM_SETCHARS(grps, groups);	/* to make sure grps stays around. */
-    SCM_ALLOW_INTS;
-    return ans;
-  }
+  ngroups = getgroups (0, NULL);
+  if (ngroups <= 0)
+    SCM_SYSERROR;
+
+  size = ngroups * sizeof (GETGROUPS_T);
+  groups = scm_must_malloc (size, FUNC_NAME);
+  getgroups (ngroups, groups);
+
+  ans = scm_make_vector (SCM_MAKINUM (ngroups), SCM_UNDEFINED);
+  while (--ngroups >= 0) 
+    SCM_VELTS (ans) [ngroups] = SCM_MAKINUM (groups [ngroups]);
+
+  scm_must_free (groups);
+  scm_done_free (size);
+
+  return ans;
 }
 #undef FUNC_NAME  
 #endif
