@@ -1,3 +1,9 @@
+2002-03-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* ftw.scm: New file.
+
+	* Makefile.am (ice9_sources): Add ftw.scm.
+
 2002-02-26  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am: Update path to pre-inst-guile automake frag.
