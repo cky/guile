@@ -1,3 +1,8 @@
+2003-04-05  Rob Browning  <rlb@defaultvalue.org>
+
+	* modules.c (s_scm_module_import_interface): move declaration of
+	uses before any code.
+
 2003-04-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* Makefile.am (scmconfig.h): Look for config.h in top_builddir,
@@ -41,6 +46,157 @@
 	* eval.c: remove SCM_BIGDIG conditionals.
 
 	* eq.c (s_scm_eqv_p): scm_i_bigcomp -> scm_i_bigcmp.
+
+2003-03-31  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (scmconfig.h): change srcdir to builddir.  (Thanks
+	to Kevin Ryde.)
+
+2003-03-27  Rob Browning  <rlb@defaultvalue.org>
+
+	* threads.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* threads.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* tags.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* stacks.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* stackchk.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* stackchk.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* sort.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* read.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* random.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* print.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* objects.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* numbers.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* null-threads.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* lang.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* lang.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* iselect.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* init.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* gh_data.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* gh.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* gen-scmconfig.c: change most new public symbols to be defined to
+	0 or 1 rather than being either 1 or undefined.
+
+	* gc_os_dep.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+	(STACK_GROWS_DOWN): define to 0 or 1 rather than 1 or undef.
+
+	* gc.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* gc-card.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* gc-mark.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* feature.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* evalext.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* eval.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* eval.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* eq.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* coop.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* coop-threads.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* coop-pthreads.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* coop-defs.h: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* convert.i.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* continuations.c: fix various preprocessor usages of new public
+	symbols to expect 0 or 1 values rather than 1 or undefined.
+	i.e. change #ifdef to #if, etc.
+
+	* _scm.h: fix various preprocessor usages of new public symbols to
+	expect 0 or 1 values rather than 1 or undefined.  i.e. change
+	#ifdef to #if, etc.
 
 2003-03-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
