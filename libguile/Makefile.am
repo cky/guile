@@ -49,7 +49,7 @@ gen-scmconfig.$(OBJEXT): gen-scmconfig.c
 
 scmconfig.h: ${top_srcdir}/config.h gen-scmconfig
 	rm -f scmconfig.h.tmp
-	cat scmconfig.h.top > scmconfig.h.tmp
+	cat $(srcdir)/scmconfig.h.top > scmconfig.h.tmp
 	./gen-scmconfig >> scmconfig.h.tmp
 	chmod 444 scmconfig.h.tmp
 	rm -f scmconfig.h
@@ -193,7 +193,8 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
     ChangeLog-1996-1999 ChangeLog-2000 cpp_signal.c			\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c		\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk	\
-    c-tokenize.lex threads-plugin.c version.h.in pthread-threads.c
+    c-tokenize.lex threads-plugin.c version.h.in pthread-threads.c \
+    scmconfig.h.top
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 
