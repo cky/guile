@@ -1,5 +1,14 @@
 2004-10-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* variable.c, threads.c, struct.c, stackchk.c, smob.c, root.c,
+	print.c, ports.c, mallocs.c, hooks.c, hashtab.c, fports.c,
+	guardians.c, filesys.c, coop-pthreads.c, continuations.c: Use
+	scm_uintprint to print unsigned integers, raw heap words, and
+	adresses, using a cast to scm_t_bits to turn pointers into
+	integers.
+
+	* unif.c: Include "libguile/print.h".
+
 	* numbers.h, numbers.c (SCM_T_INTBUFLEN): Increased to cover
 	scm_t_intmax values.
 	(scm_uint2str): New, for scm_t_uintmax.
