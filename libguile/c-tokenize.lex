@@ -1,4 +1,5 @@
 %option noyywrap
+%option nounput
 %pointer
 
 EOL             \n
@@ -18,6 +19,8 @@ INTQUAL		(l|L|ll|LL|lL|Ll|u|U)
 #include <stdlib.h>
 #include <string.h>
 
+int yylex(void);
+  
 int filter_snarfage = 0;
 int print = 1; 
 
