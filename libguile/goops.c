@@ -707,7 +707,6 @@ build_class_class_slots ()
 {
   return scm_list_n (
     scm_list_3 (sym_layout, k_class, scm_class_protected_read_only),
-    scm_list_3 (sym_vcell, k_class, scm_class_opaque),
     scm_list_3 (sym_vtable, k_class, scm_class_self),
     scm_list_1 (sym_print),
     scm_list_3 (sym_procedure, k_class, scm_class_protected_opaque),
