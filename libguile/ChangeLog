@@ -1,5 +1,17 @@
 2003-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (scm_m_body, scm_m_lambda): Documentation strings are not
+	handled in scm_m_body any more, but rather in scm_m_lambda.
+
+	(scm_m_body, memoize_named_let, scm_m_let, scm_m_letstar,
+	scm_m_letrec, scm_m_expand_body): Check for validity is done by
+	calling functions of scm_m_body.
+
+	(scm_m_lambda): Avoid unnecessary consing when creating the
+	memoized code.
+
+2003-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (s_expression): Added comment.
 
 	(s_empty_combination, error_unbound_variable): New static
