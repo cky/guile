@@ -1,3 +1,10 @@
+Sun Jun 22 19:12:58 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* __scm.h: (SCM_FENCE): New macro: optimizer will not move code
+	across this.  Only works on GCC.  Otherwise, we hope for the best.
+	(SCM_DEFER_INTS, SCM_ALLOW_INTS): Use FENCE appropriately.  I have
+	the feeling that real thread systems will not need this...
+
 Sun Jun 22 15:46:35 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	Try to detect when people are using one version of libguile and a
