@@ -1,5 +1,8 @@
 2000-08-12  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* vports.c (s_scm_make_soft_port): Docstring updated so that
+	example is correct.
+
 	* strop.c: Docstring fixes - quotation marks and backslashes
 	needed quoting.
 

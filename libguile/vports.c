@@ -175,7 +175,7 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
 	    "            (lambda () (char-upcase (read-char)))\n"
 	    "            (lambda () (display \"@@\" stdout)))\n"
 	    "           \"rw\"))\n\n"
-	    "(write p p) @result{} #<input-output-soft#\space45d10#\>\n"
+	    "(write p p) @result{} #<input-output: soft 8081e20>\n"
 	    "@end example")
 #define FUNC_NAME s_scm_make_soft_port
 {
