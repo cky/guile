@@ -2351,6 +2351,8 @@ evapply:
 	  env = EXTEND_ENV (SCM_CAR (x), scm_cons (t.arg1, SCM_EOL), SCM_ENV (proc));
 #endif
 	  goto cdrxbegin;
+	case scm_tc7_contin:
+	  scm_call_continuation (proc, t.arg1);
 	case scm_tcs_cons_gloc:
 	  if (SCM_I_OPERATORP (proc))
 	    {
@@ -2376,8 +2378,6 @@ evapply:
 		}
 	      /* Fall through. */
 	    }
-	case scm_tc7_contin:
-	  scm_call_continuation (proc, t.arg1);
 	case scm_tc7_subr_2:
 	case scm_tc7_subr_0:
 	case scm_tc7_subr_3:
@@ -2472,7 +2472,7 @@ evapply:
 #endif
 		      env = EXTEND_ENV (SCM_CAR (SCM_CODE (x)),
 					scm_cons2 (proc, t.arg1,
-						   scm_cons (arg2, env)),
+						   scm_cons (arg2, SCM_EOL)),
 					SCM_ENV (x));
 		      x = SCM_CODE (x);
 		      goto cdrxbegin;
