@@ -24,7 +24,7 @@ function that has already exited.  This might cause some functions to
 return more than once.
 
 In general, these non-local jumps are done by invoking
-@emph{continuations} that have previously been captured using
+@dfn{continuations} that have previously been captured using
 @code{call-with-current-continuation}.  Guile also offers a slightly
 restricted set of functions, @code{catch} and @code{throw}, that can
 only be used for non-local exits.  This restriction makes them more
@@ -57,7 +57,7 @@ when control enters non-locally.
 Scheme code can use the @code{dynamic-wind} function to arrange the
 setting and resetting of the global state.  C code could use the
 corresponding @code{scm_internal_dynamic_wind} function, but it might
-prefer to use the @emph{frames} concept that is more natural for C code.
+prefer to use the @dfn{frames} concept that is more natural for C code.
 
 @menu
 * begin::                       Evaluating a sequence of expressions.
@@ -444,8 +444,8 @@ flow going on as normal.
 
 The functions @code{dynamic-wind} (@pxref{Dynamic Wind}) can be used to
 ensure setup and cleanup code is run when a program locus is resumed or
-abandoned through the continuation mechanism.  C code can use the
-functions explained in @pxref{Frames}.
+abandoned through the continuation mechanism.  C code can use
+@dfn{frames} (@pxref{Frames}).
 
 @sp 1
 Continuations are a powerful mechanism, and can be used to implement
