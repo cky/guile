@@ -50,6 +50,8 @@
   (is-a? obj <vm:code>))
 
 (define-public (make-code tag env . args)
+  (assert keyword? tag)
+  (assert env? env)
   (make <vm:code> #:tag tag #:env env #:args args))
 
 
@@ -349,12 +351,12 @@
 (define-public (make-code:and env . args)
   (assert env? env)
   (assert-for-each code? args)
-  (apply make-code #:and args))
+  (apply make-code #:and env args))
 
 (define-public (make-code:or env . args)
   (assert env? env)
   (assert-for-each code? args)
-  (apply make-code #:or args))
+  (apply make-code #:or env args))
 
 (define-public (make-code:begin env . body)
   (assert env? env)
