@@ -20,11 +20,6 @@
 
 (use-modules (srfi srfi-13) (srfi srfi-14) (test-suite lib))
 
-;;; This kludge is needed, because SRFI-13 redefines some bindings in
-;;; the core.
-(define (module-peek module-name sym)
-  (variable-ref (module-variable (resolve-module module-name) sym)))
-
 (define exception:strict-infix-grammar
   (cons 'misc-error "^strict-infix"))
 
@@ -250,9 +245,6 @@
     (string=? (string-tabulate
 	       (lambda (idx) (integer->char (+ idx 32))) 10) " !\"#$%&'()")))
 
-;; Get the procedure from the library.
-(define string->list (module-peek '(srfi srfi-13) 'string->list))
-
 (with-test-prefix "string->list"
 
   (pass-if "empty"
@@ -355,9 +347,6 @@
   (pass-if "two strings, suffix"
      (string=? "foo|delim|bar|delim|" (string-join '("foo" "bar") "|delim|"
 						   'suffix))))
-
-;; Get the procedure from the library.
-(define string-copy (module-peek '(srfi srfi-13) 'string-copy))
 
 (with-test-prefix "string-copy"
 
@@ -568,9 +557,6 @@
   (pass-if "start and end index, charset"
     (string=? "f" (string-trim-both " \tfoo " char-set:whitespace 1 3))))
 
-;; Get the procedure from the library.
-(define string-fill! (module-peek '(srfi srfi-13) 'string-fill!))
-
 (define s0 (make-string 200 #\!))
 (define s1 (make-string 0 #\!))
 
@@ -687,9 +673,6 @@
 
   (pass-if "non-empty suffix - no match"
     (not (string-suffix-ci? "fOo" "foo bar"))))
-
-;; Get the procedure from the library.
-(define string-index (module-peek '(srfi srfi-13) 'string-index))
 
 (with-test-prefix "string-index"
 
