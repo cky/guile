@@ -1,3 +1,37 @@
+Wed Dec 18 14:57:57 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Give GCC more control flow information, so it can be sure that
+	variables aren't used uninitialized.
+	* error.h (scm_error, scm_syserror, scm_syserror_msg,
+ 	scm_sysmissing, scm_num_overflow, scm_out_of_range,
+ 	scm_wrong_num_args, scm_wrong_type_arg, scm_memory_error,
+ 	scm_misc_error): Tell GCC that these functions never return.
+	* struct.c (scm_struct_ref, scm_struct_set_x): If we can't figure
+	out the field type, call abort if SCM_ASSERT returns, to placate
+	the optimizer.
+	* stacks.c (scm_make_stack, scm_last_stack_frame): abort if
+	scm_wta ever returns.  We can't handle this case anyway, and this
+	gives the optimizer more information.
+	* unif.c (scm_uniform_vector_ref, scm_array_set_x): Abort if
+	scm_wta ever returns.
+
+	In some cases, the code is fine, but GCC isn't smart enough to
+ 	figure that out; this usually happens when one variable is only
+ 	initialized and used when a particular condition holds true, and
+ 	we know that condition will never change within a given invocation
+ 	of the function.  In this case, we simply initialize the variables
+ 	to placate the compiler, hopefully to a value which will cause a
+	crash if it is ever actually used.
+	* print.c (scm_iprin1): Initialize mw_pos.
+	* read.c (scm_lreadrecparen): Initialize tl2, ans2.
+	* throw.c (scm_ithrow): Initialize dynpair.
+	* unif.c (scm_uniform_vector_ref): Initialize cra.
+	* struct.c (init_struct): Initialize prot.
+	* mbstrings.c (scm_print_mb_symbol): Initialize mw_pos and inc.
+
+	* strports.c (scm_eval_0str): Don't return uninitialized garbage
+	if EXPR contains no expressions.
+
 Wed Dec 18 11:43:22 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* eval.c, debug.h: Revert changes of Dec 16 and Nov 21.  They
