@@ -1155,16 +1155,18 @@ SCM_DEFINE (scm_char_set_xor, "char-set-xor", 0, 0, 1,
     {
       long * p;
       int argnum = 2;
+      long mask[LONGS_PER_CHARSET];
+      int k;
 
+      memset (mask, 0, sizeof mask);
       res = scm_char_set_copy (SCM_CAR (rest));
       p = (long *) SCM_SMOB_DATA (res);
       rest = SCM_CDR (rest);
 
       while (SCM_CONSP (rest))
 	{
-	  int k;
 	  SCM cs = SCM_CAR (rest);
-	  long *cs_data; 
+	  long *cs_data;
 
 	  SCM_VALIDATE_SMOB (argnum, cs, charset);
 	  argnum++;
@@ -1172,8 +1174,14 @@ SCM_DEFINE (scm_char_set_xor, "char-set-xor", 0, 0, 1,
 	  rest = SCM_CDR (rest);
 
 	  for (k = 0; k < LONGS_PER_CHARSET; k++)
-	    p[k] ^= cs_data[k];
+	    {
+	      mask[k] |= p[k] & cs_data[k];
+	      p[k] ^= cs_data[k];
+	    }
 	}
+      /* avoid including characters that occur an odd number of times >= 3.  */
+      for (k = 0; k < LONGS_PER_CHARSET; k++)
+	p[k] &= ~mask[k];
     }
   return res;
 }
