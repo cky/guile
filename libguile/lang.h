@@ -50,7 +50,7 @@
 
 
 
-#ifdef SCM_ENABLE_ELISP
+#if SCM_ENABLE_ELISP
 
 #define SCM_NILP(x) (SCM_EQ_P ((x), SCM_ELISP_NIL))
 
