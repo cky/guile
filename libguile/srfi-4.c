@@ -670,17 +670,25 @@ scm_array_handle_uniform_element_size (scm_t_array_handle *h)
     return uvec_sizes[SCM_UVEC_TYPE(vec)];
   scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
 }
+
+#if SCM_ENABLE_DEPRECATED
  
 /* return the size of an element in a uniform array or 0 if type not
    found.  */
 size_t
 scm_uniform_element_size (SCM obj)
 {
+  scm_c_issue_deprecation_warning 
+    ("scm_uniform_element_size is deprecated.  "
+     "Use scm_array_handle_uniform_element_size instead.");
+
   if (SCM_IS_UVEC (obj))
     return uvec_sizes[SCM_UVEC_TYPE(obj)];
   else
     return 0;
 }
+
+#endif
 
 const void *
 scm_array_handle_uniform_elements (scm_t_array_handle *h)
