@@ -3,6 +3,7 @@
 	* Makefile.am (SCM_BENCHMARKS): List the real benchmarks, not foo
 	and bar.
 	(SCM_BENCHMARKS_DIRS): Uncommented, with an empty value.
+	(dist-hook): Use quotes so that an empty SCM_BENCHMARKS_DIRS works.
 	
 2002-07-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
