@@ -767,7 +767,9 @@ racp (src, dst)
 }
 
 
+/* This name is obsolete.  Will go away in release 1.5.  */
 SCM_PROC(s_serial_array_copy_x, "serial-array-copy!", 2, 0, 0, scm_array_copy_x);
+SCM_PROC(s_array_copy_in_order_x, "array-copy-in-order!", 2, 0, 0, scm_array_copy_x);
 SCM_PROC(s_array_copy_x, "array-copy!", 2, 0, 0, scm_array_copy_x);
 
 SCM
@@ -1671,7 +1673,9 @@ ramap_a (ra0, proc, ras)
   return 1;
 }
 
+/* This name is obsolete.  Will go away in release 1.5.  */
 SCM_PROC(s_serial_array_map_x, "serial-array-map!", 2, 0, 1, scm_array_map_x);
+SCM_PROC(s_array_map_in_order_x, "array-map-in-order!", 2, 0, 1, scm_array_map_x);
 SCM_PROC(s_array_map_x, "array-map!", 2, 0, 1, scm_array_map_x);
 
 SCM
