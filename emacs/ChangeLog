@@ -1,3 +1,29 @@
+2003-11-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Initial support for setting source breakpoints...
+	
+	* gds.el (gds-handle-client-input): Handle new `breakpoint-set'
+	protocol.
+	(gds-breakpoint-face): New.
+	(gds-new-breakpoint-before-string): New.
+	(gds-new-breakpoint-after-string): New.
+	(gds-active-breakpoint-before-string): New.
+	(gds-active-breakpoint-after-string): New.
+	(gds-source-breakpoint-pos): New.
+	(gds-source-breakpoint-overlay-at): New.
+	(gds-set-source-breakpoint): New.
+	(gds-delete-source-breakpoint): New.
+	(gds-region-breakpoint-info): New.
+	(gds-eval-region): Include bpinfo in `eval' protocol.
+	(scheme-mode-map): New keys for setting and deleting breakpoints.
+	(gds-breakpoint-menu): New.
+	(gds-menu): Include `gds-breakpoint-menu'.
+
+	* gds-client.scm (handle-instruction-1): Handle bpinfo protocol
+	field and pass to `gds-eval'.
+	(install-breakpoints): New.
+	(gds-eval): Call `install-breakpoints'.
+
 2003-11-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds-client.scm (start-async-gds-thread): Changes to fix

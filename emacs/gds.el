@@ -244,6 +244,35 @@
 	  ((eq proc 'completion-result)
 	   (setq gds-completion-results (or (car args) t)))
 
+	  (;; (breakpoint-set FILE LINE COLUMN INFO) - Breakpoint set.
+	   (eq proc 'breakpoint-set)
+	   (let ((file (nth 0 args))
+		 (line (nth 1 args))
+		 (column (nth 2 args))
+		 (info (nth 3 args)))
+	     (with-current-buffer (find-file-noselect file)
+	       (save-excursion
+		 (goto-char (point-min))
+		 (or (zerop line)
+		     (forward-line line))
+		 (move-to-column column)
+		 (let ((os (overlays-at (point))) o)
+		   (while os
+		     (if (and (overlay-get (car os) 'gds-breakpoint-info)
+			      (= (overlay-start (car os)) (point)))
+			 (progn
+			   (overlay-put (car os)
+					'gds-breakpoint-info
+					info)
+			   (overlay-put (car os)
+					'before-string
+					gds-active-breakpoint-before-string)
+			   (overlay-put (car os)
+					'after-string
+					gds-active-breakpoint-after-string)
+			   (setq os nil))
+		       (setq os (cdr os)))))))))
+
 	  )))
 
 
@@ -799,6 +828,136 @@ are not readable by Emacs.")
 			behaviour)))))
 
 
+;;;; Scheme source breakpoints.
+
+(defcustom gds-breakpoint-face 'default
+  "*Face used to highlight the location of a source breakpoint.
+Specifically, this face highlights the opening parenthesis of the
+form where the breakpoint is set."
+  :type 'face
+  :group 'gds)
+
+(defcustom gds-new-breakpoint-before-string ""
+  "*String used to show the presence of a new source breakpoint.
+`New' means that the breakpoint has been set but isn't yet known to
+Guile because the containing code hasn't been reevaluated yet.
+This string appears before the opening parenthesis of the form where
+the breakpoint is set.  If you prefer a marker to appear after the
+opening parenthesis, make this string empty and use
+`gds-new-breakpoint-after-string'."
+  :type 'string 
+  :group 'gds)
+
+(defcustom gds-new-breakpoint-after-string "=?= "
+  "*String used to show the presence of a new source breakpoint.
+`New' means that the breakpoint has been set but isn't yet known to
+Guile because the containing code hasn't been reevaluated yet.
+This string appears after the opening parenthesis of the form where
+the breakpoint is set.  If you prefer a marker to appear before the
+opening parenthesis, make this string empty and use
+`gds-new-breakpoint-before-string'."
+  :type 'string 
+  :group 'gds)
+
+(defcustom gds-active-breakpoint-before-string ""
+  "*String used to show the presence of a source breakpoint.
+`Active' means that the breakpoint is known to Guile.
+This string appears before the opening parenthesis of the form where
+the breakpoint is set.  If you prefer a marker to appear after the
+opening parenthesis, make this string empty and use
+`gds-active-breakpoint-after-string'."
+  :type 'string 
+  :group 'gds)
+
+(defcustom gds-active-breakpoint-after-string "=|= "
+  "*String used to show the presence of a source breakpoint.
+`Active' means that the breakpoint is known to Guile.
+This string appears after the opening parenthesis of the form where
+the breakpoint is set.  If you prefer a marker to appear before the
+opening parenthesis, make this string empty and use
+`gds-active-breakpoint-before-string'."
+  :type 'string 
+  :group 'gds)
+
+(defun gds-source-breakpoint-pos ()
+  "Return the position of the starting parenthesis of the innermost
+Scheme pair around point."
+  (if (eq (char-syntax (char-after)) ?\()
+      (point)
+    (save-excursion
+      (condition-case nil
+	  (while t (forward-sexp -1))
+	(error))
+      (forward-char -1)
+      (while (not (eq (char-syntax (char-after)) ?\())
+	(forward-char -1))
+      (point))))
+
+(defun gds-source-breakpoint-overlay-at (pos)
+  "Return the source breakpoint overlay at POS, if any."
+  (let* (o (os (overlays-at pos)))
+    (while os
+      (if (and (overlay-get (car os) 'gds-breakpoint-info)
+	       (= (overlay-start (car os)) pos))
+	  (setq o (car os)
+		os nil))
+      (setq os (cdr os)))
+    o))
+
+(defun gds-set-source-breakpoint ()
+  (interactive)
+  (let* ((pos (gds-source-breakpoint-pos))
+	 (o (gds-source-breakpoint-overlay-at pos)))
+    (if o
+	(error "There is already a breakpoint here!")
+      (setq o (make-overlay pos (+ pos 1)))
+      (overlay-put o 'evaporate t)
+      (overlay-put o 'face gds-breakpoint-face)
+      (overlay-put o 'gds-breakpoint-info 0)
+      (overlay-put o 'before-string gds-new-breakpoint-before-string)
+      (overlay-put o 'after-string gds-new-breakpoint-after-string))))
+
+(defun gds-delete-source-breakpoint ()
+  (interactive)
+  (let* ((pos (gds-source-breakpoint-pos))
+	 (o (gds-source-breakpoint-overlay-at pos)))
+    (or o
+	(error "There is no breakpoint here to delete!"))
+    (delete-overlay o)))
+
+(defun gds-region-breakpoint-info (beg end)
+  "Return an alist of breakpoints in REGION.
+The car of each alist element is a cons (LINE . COLUMN) giving the
+source location of the breakpoint.  The cdr is information describing
+breakpoint properties.  Currently `information' is just the breakpoint
+index, for an existing Guile breakpoint, or 0 for a breakpoint that
+isn't yet known to Guile."
+  (interactive "r")
+  (let ((os (overlays-in beg end))
+	info o)
+    (while os
+      (setq o (car os)
+	    os (cdr os))
+      (if (overlay-get o 'gds-breakpoint-info)
+	  (progn
+	    (setq info
+		  (cons (cons (save-excursion
+				(goto-char (overlay-start o))
+				(cons (save-excursion
+					(beginning-of-line)
+					(count-lines (point-min) (point)))
+				      (current-column)))
+			      (overlay-get o 'gds-breakpoint-info))
+			info))
+	    ;; Also now mark the breakpoint as `new'.  It will become
+	    ;; `active' (again) when we receive a notification from
+	    ;; Guile that the breakpoint has been set.
+	    (overlay-put o 'gds-breakpoint-info 0)
+	    (overlay-put o 'before-string gds-new-breakpoint-before-string)
+	    (overlay-put o 'after-string gds-new-breakpoint-after-string))))
+    (nreverse info)))
+
+
 ;;;; Evaluating code.
 
 ;; The following commands send code for evaluation through the GDS TCP
@@ -897,10 +1056,11 @@ region's code."
       (setq column (current-column))	; 0-based
       (beginning-of-line)
       (setq line (count-lines (point-min) (point)))) ; 0-based
-    (gds-send (format "(%S eval %s %S %d %d %S)\n"
+    (gds-send (format "(%S eval %s %S %d %d %S %S)\n"
 		      client
 		      (if module (prin1-to-string module) "#f")
 		      port-name line column
+		      (gds-region-breakpoint-info start end)
 		      (buffer-substring-no-properties start end)))))
 
 (defun gds-eval-expression (expr &optional client)
@@ -1074,6 +1234,8 @@ Used for determining the default for the next `gds-load-file'.")
 (define-key scheme-mode-map "\C-hg" 'gds-help-symbol)
 (define-key scheme-mode-map "\C-h\C-g" 'gds-apropos)
 (define-key scheme-mode-map "\e\t" 'gds-complete-symbol)
+(define-key scheme-mode-map "\C-x " 'gds-set-source-breakpoint)
+(define-key scheme-mode-map "\C-x\e " 'gds-delete-source-breakpoint)
 
 
 ;;;; GDS (Guile Interaction) mode keymap and menu items.
@@ -1139,6 +1301,16 @@ Used for determining the default for the next `gds-load-file'.")
   (define-key gds-debug-menu [eval]
     '(menu-item "Eval In This Frame..." gds-evaluate)))
 
+(defvar gds-breakpoint-menu nil
+  "GDS breakpoint menu.")
+(if gds-breakpoint-menu
+    nil
+  (setq gds-breakpoint-menu (make-sparse-keymap "Breakpoint"))
+  (define-key gds-breakpoint-menu [last-sexp]
+    '(menu-item "Delete Breakpoint" gds-delete-source-breakpoint))
+  (define-key gds-breakpoint-menu [set]
+    '(menu-item "Set Breakpoint" gds-set-source-breakpoint)))
+
 (defvar gds-eval-menu nil
   "GDS evaluation menu.")
 (if gds-eval-menu
@@ -1194,6 +1366,8 @@ Used for determining the default for the next `gds-load-file'.")
   (define-key gds-menu [debug]
     `(menu-item "Debug" ,gds-debug-menu :enable (and gds-focus-client
 						     (gds-client-blocked))))
+  (define-key gds-menu [breakpoint]
+    `(menu-item "Breakpoints" ,gds-breakpoint-menu :enable t))
   (define-key gds-menu [eval]
     `(menu-item "Evaluate" ,gds-eval-menu :enable (or gds-buffers
 						      gds-autostart-captive)))

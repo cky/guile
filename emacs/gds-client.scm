@@ -21,6 +21,7 @@
   #:use-module (ice-9 debugger behaviour)
   #:use-module (ice-9 debugger breakpoints)
   #:use-module (ice-9 debugger breakpoints procedural)
+  #:use-module (ice-9 debugger breakpoints source)
   #:use-module (ice-9 debugger state)
   #:use-module (ice-9 debugger utils)
   #:use-module (ice-9 optargs)
@@ -347,7 +348,7 @@ decimal IP address where the UI server is running; default is
 		      (module-ref (resolve-module (cadr ins)) (caddr ins)))
      state)
     ((eval)
-     (apply (lambda (module port-name line column code)
+     (apply (lambda (module port-name line column bpinfo code)
 	      (with-input-from-string code
 	        (lambda ()
 		  (set-port-filename! (current-input-port) port-name)
@@ -357,7 +358,7 @@ decimal IP address where the UI server is running; default is
 		    (let loop ((results '()) (x (read)))
 		      (if (eof-object? x)
 			  (write-form `(eval-results ,@results))
-			  (loop (append results (gds-eval x m))
+			  (loop (append results (gds-eval x bpinfo m))
 				(read))))))))
 	    (cdr ins))
      state)
@@ -402,7 +403,31 @@ decimal IP address where the UI server is running; default is
      state)
     (else state)))
 
-(define (gds-eval x m)
+(define (install-breakpoints x bpinfo)
+  (define (install-recursive x)
+    (if (list? x)
+	(begin
+	  ;; Check source properties of x itself.
+	  (let* ((infokey (cons (source-property x 'line)
+				(source-property x 'column)))
+		 (bpentry (assoc infokey bpinfo)))
+	    (if bpentry
+		(let ((bp (set-breakpoint! debug-here x x)))
+		  ;; FIXME: Here should transfer properties from the
+		  ;; old breakpoint with index (cdr bpentry) to the
+		  ;; new breakpoint.  (Or else provide an alternative
+		  ;; to set-breakpoint! that reuses the same
+		  ;; breakpoint.)
+		  (write-form (list 'breakpoint-set
+				    (source-property x 'filename)
+				    (car infokey)
+				    (cdr infokey)
+				    (bp-number bp))))))
+	  ;; Check each of x's elements.
+	  (for-each install-recursive x))))
+  (install-recursive x))
+
+(define (gds-eval x bpinfo m)
   ;; Consumer to accept possibly multiple values and present them for
   ;; Emacs as a list of strings.
   (define (value-consumer . values)
@@ -411,6 +436,10 @@ decimal IP address where the UI server is running; default is
 	(map (lambda (value)
 	       (with-output-to-string (lambda () (write value))))
 	     values)))
+  ;; Before evaluation, set breakpoints in the read code as specified
+  ;; by bpinfo.
+  (install-breakpoints x bpinfo)
+  ;; Now do evaluation.
   (let ((value #f))
     (let* ((do-eval (if m
 			(lambda ()
