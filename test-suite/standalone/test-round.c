@@ -31,7 +31,7 @@
 #define numberof(x)  (sizeof (x) / sizeof ((x)[0]))
 
 static void
-test_scm_round ()
+test_scm_c_round ()
 {
   /* FE constants are defined only where supported, in particular for
      instance some ARM systems have been seen with only a couple of modes */
@@ -66,50 +66,50 @@ test_scm_round ()
 #endif
         }
 
-      assert (scm_round (0.0) == 0.0);
-      assert (scm_round (1.0) == 1.0);
-      assert (scm_round (-1.0) == -1.0);
+      assert (scm_c_round (0.0) == 0.0);
+      assert (scm_c_round (1.0) == 1.0);
+      assert (scm_c_round (-1.0) == -1.0);
 
-      assert (scm_round (0.5) == 0.0);
-      assert (scm_round (1.5) == 2.0);
-      assert (scm_round (-1.5) == -2.0);
-      assert (scm_round (2.5) == 2.0);
-      assert (scm_round (-2.5) == -2.0);
-      assert (scm_round (3.5) == 4.0);
-      assert (scm_round (-3.5) == -4.0);
+      assert (scm_c_round (0.5) == 0.0);
+      assert (scm_c_round (1.5) == 2.0);
+      assert (scm_c_round (-1.5) == -2.0);
+      assert (scm_c_round (2.5) == 2.0);
+      assert (scm_c_round (-2.5) == -2.0);
+      assert (scm_c_round (3.5) == 4.0);
+      assert (scm_c_round (-3.5) == -4.0);
 
       /* 2^(DBL_MANT_DIG-1)-1+0.5 */
       x = ldexp (1.0, DBL_MANT_DIG - 1) - 1.0 + 0.5;
       want = ldexp (1.0, DBL_MANT_DIG - 1);
-      assert (scm_round (x) == want);
+      assert (scm_c_round (x) == want);
 
       /* -(2^(DBL_MANT_DIG-1)-1+0.5) */
       x = - (ldexp (1.0, DBL_MANT_DIG - 1) - 1.0 + 0.5);
       want = - ldexp (1.0, DBL_MANT_DIG - 1);
-      assert (scm_round (x) == want);
+      assert (scm_c_round (x) == want);
 
       /* 2^DBL_MANT_DIG-1
-         In the past scm_round had incorrectly incremented this value, due
+         In the past scm_c_round had incorrectly incremented this value, due
          to the way that x+0.5 would round upwards (in the usual default
          nearest-even mode on most systems).  */
       x = ldexp (1.0, DBL_MANT_DIG) - 1.0;
       assert (x == floor (x));      /* should be an integer already */
-      assert (scm_round (x) == x);  /* scm_round should return it unchanged */
+      assert (scm_c_round (x) == x);  /* scm_c_round should return it unchanged */
 
       /* -(2^DBL_MANT_DIG-1) */
       x = - (ldexp (1.0, DBL_MANT_DIG) - 1.0);
       assert (x == floor (x));      /* should be an integer already */
-      assert (scm_round (x) == x);  /* scm_round should return it unchanged */
+      assert (scm_c_round (x) == x);  /* scm_c_round should return it unchanged */
 
       /* 2^64 */
       x = ldexp (1.0, 64);
-      assert (scm_round (x) == x);
+      assert (scm_c_round (x) == x);
 
       /* -2^64
-         In the past scm_round had incorrectely gone to the next highest
+         In the past scm_c_round had incorrectely gone to the next highest
          representable value in FE_UPWARD, due to x+0.5 rounding.  */
       x = - ldexp (1.0, 64);
-      assert (scm_round (x) == x);
+      assert (scm_c_round (x) == x);
     }
 }
 
@@ -117,6 +117,6 @@ int
 main (int argc, char *argv[])
 {
   scm_init_guile();
-  test_scm_round ();
+  test_scm_c_round ();
   return 0;
 }
