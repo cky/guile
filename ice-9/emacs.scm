@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1996, 1997 Mikael Djurfeldt
+;;;; 	Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -17,14 +17,14 @@
 ;;;;
 ;;;; The author can be reached at djurfeldt@nada.kth.se
 ;;;; Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN
+;;;; (I didn't write this!)
 ;;;;
 
 
-;;; *******************************
-;;; * Experimental hack           *
-;;; * Shouldn't go into snapshots *
-;;; * Don't distribute!           *
-;;; *******************************
+;;; *********************************************************************
+;;; * This is the Guile side of the Emacs interface                     *
+;;; * Experimental hACK---the real version will be coming soon (almost) *
+;;; *********************************************************************
 
 ;;; {Session support for Emacs}
 ;;;
