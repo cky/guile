@@ -1,5 +1,10 @@
 2001-05-07  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* gh_data.c (gh_lookup): Call gh_module_lookup with
+	`scm_current_module ()', not `#f'.
+	(gh_module_lookup): Expect a module instead of an obarray as first
+	argument and do lookup in that module.
+	
 	* ramap.c (raeql_1): Do not call scm_uniform_vector_length on
 	arrays.  The length of array is already determined differently and
 	scm_uniform_vector_length does not work on arrays.
