@@ -1,4 +1,4 @@
-dnl aclocal.m4 generated automatically by aclocal 1.1n
+dnl aclocal.m4 generated automatically by aclocal 1.1p
 
 dnl  On the NeXT, #including <utime.h> doesn't give you a definition for
 dnl  struct utime, unless you #define _POSIX_SOURCE.
@@ -75,6 +75,10 @@ PACKAGE=[$1]
 AC_SUBST(PACKAGE)
 VERSION=[$2]
 AC_SUBST(VERSION)
+dnl test to see if srcdir already configured
+if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
+  AC_MSG_ERROR([source directory already configured; run "make distclean" there first])
+fi
 ifelse([$3],,
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
 AC_DEFINE_UNQUOTED(VERSION, "$VERSION"))
@@ -136,7 +140,8 @@ AC_DEFUN(AM_MISSING_PROG,
 [AC_MSG_CHECKING(for working $2)
 # Run test in a subshell; some versions of sh will print an error if
 # an executable is not found, even if stderr is redirected.
-if ($2 --version) > /dev/null 2>&1; then
+# Redirect stdin to placate older versions of autoconf.  Sigh.
+if ($2 --version) < /dev/null > /dev/null 2>&1; then
    $1=$2
    AC_MSG_RESULT(found)
 else
@@ -178,7 +183,17 @@ dnl This file resides in the same directory as the config header
 dnl that is generated.  We must strip everything past the first ":",
 dnl and everything past the last "/".
 AC_OUTPUT_COMMANDS(changequote(<<,>>)dnl
-test -z "<<$>>CONFIG_HEADERS" || echo timestamp > patsubst(<<$1>>, <<^\([^:]*/\)?.*>>, <<\1>>)stamp-h<<>>dnl
+ifelse(patsubst(<<$1>>, <<[^ ]>>, <<>>), <<>>,
+<<test -z "<<$>>CONFIG_HEADERS" || echo timestamp > patsubst(<<$1>>, <<^\([^:]*/\)?.*>>, <<\1>>)stamp-h<<>>dnl>>,
+<<am_indx=1
+for am_file in <<$1>>; do
+  case " <<$>>CONFIG_HEADERS " in
+  *" <<$>>am_file "*<<)>>
+    echo timestamp > `echo <<$>>am_file | sed -e 's%:.*%%' -e 's%[^/]*$%%'`stamp-h$am_indx
+    ;;
+  esac
+  am_indx=`expr "<<$>>am_indx" + 1`
+done<<>>dnl>>)
 changequote([,]))])
 
 
