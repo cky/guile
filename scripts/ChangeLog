@@ -2,6 +2,9 @@
 
 	* punify (write-punily): Handle symbols w/ ":" prefix specially.
 
+	* use2dot (ferret): New proc.
+	(grok): Use `ferret'.
+
 2001-11-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* snarf-check-and-output-texi: Change generated @deffn categories
