@@ -56,7 +56,7 @@
 /* {Multi-language support}
  */
 
-#ifdef SCM_ENABLE_ELISP
+#if SCM_ENABLE_ELISP
 
 void
 scm_init_lang ()
