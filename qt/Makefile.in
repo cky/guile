@@ -123,7 +123,7 @@ DIST_COMMON =  README ChangeLog INSTALL Makefile.am Makefile.in qt.h.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/qt.P
 SOURCES = $(libqthreads_la_SOURCES)

@@ -201,7 +201,7 @@ guile-snarf.in scmconfig.h.in versiondat.h.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/arbiters.P .deps/async.P \
 .deps/backtrace.P .deps/boolean.P .deps/chars.P .deps/continuations.P \
