@@ -29,13 +29,14 @@
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
+#include "libguile/fluids.h"
 
 #include "libguile/feature.h"
 
 
 
+static SCM progargs_fluid;
 static SCM features_var;
-
 
 void
 scm_add_feature (const char *str)
@@ -56,7 +57,7 @@ SCM_DEFINE (scm_program_arguments, "program-arguments", 0, 0, 0,
 	    "options like @code{-e} and @code{-l}.")
 #define FUNC_NAME s_scm_program_arguments
 {
-  return scm_progargs;
+  return scm_fluid_ref (progargs_fluid);
 }
 #undef FUNC_NAME
 
@@ -69,9 +70,10 @@ SCM_DEFINE (scm_program_arguments, "program-arguments", 0, 0, 0,
 void
 scm_set_program_arguments (int argc, char **argv, char *first)
 {
-  scm_progargs = scm_makfromstrs (argc, argv);
+  SCM args = scm_makfromstrs (argc, argv);
   if (first)
-    scm_progargs = scm_cons (scm_from_locale_string (first), scm_progargs);
+    args = scm_cons (scm_from_locale_string (first), args);
+  scm_fluid_set_x (progargs_fluid, args);
 }
 
 
@@ -80,6 +82,8 @@ scm_set_program_arguments (int argc, char **argv, char *first)
 void
 scm_init_feature()
 {
+  progargs_fluid = scm_permanent_object (scm_make_fluid ());
+
   features_var = scm_c_define ("*features*", SCM_EOL);
 #ifndef _Windows
   scm_add_feature("system");
@@ -96,8 +100,10 @@ scm_init_feature()
 #ifndef CHEAP_CONTINUATIONS
   scm_add_feature ("full-continuation");
 #endif
+#if SCM_USE_PTHREAD_THREADS
   scm_add_feature ("threads");
-  
+#endif
+
   scm_c_define ("char-code-limit", scm_from_int (SCM_CHAR_CODE_LIMIT));
 
 #include "libguile/feature.x"
