@@ -6,11 +6,7 @@ AC_INIT(boot-9.scm)
 
 . $srcdir/../GUILE-VERSION
 
-scm_files=""
-aux_files=""
 . $srcdir/PLUGIN/this.configure
-AC_SUBST(scm_files)
-AC_SUBST(aux_files)
 AC_SUBST(library_name)
 AC_SUBST(info_files)
 AC_SUBST(GUILE_VERSION)

@@ -32,8 +32,24 @@ install_path=$(libdir)/@library_name@
 INSTALL = $(srcdir)/../install-sh -c
 INSTALL_DATA = $(INSTALL) -m 644
 
-scm_files=  @scm_files@
-aux_files = @aux_files@
+scm_files = \
+	boot-9.scm \
+	debug.scm \
+	hcons.scm \
+	lineio.scm \
+	mapping.scm \
+	poe.scm \
+	slib.scm  \
+	tags.scm
+
+aux_files = \
+	.cvsignore \
+	COPYING \
+	ChangeLog \
+	Makefile.in \
+	configure \
+	configure.in
+
 
 all: 
 
