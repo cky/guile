@@ -1132,7 +1132,7 @@ It is replaced by:
 
 Similarly to the new smob interface, there is a set of function
 setters by which the user can customize the behaviour of his port
-type.  See ports.h (scm_set_ptob_XXX).
+type.  See ports.h (scm_set_port_XXX).
 
 ** scm_strport_to_string: New function: creates a new string from
 a string port's buffer.

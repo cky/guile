@@ -1,3 +1,8 @@
+1999-07-25  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* ports.c, ports.h, fports.c, strports.c, vports.c: Renamed
+	scm_set_ptob_XXX --> scm_set_port_XXX.
+
 1999-07-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* ports.c, ports.h (scm_make_port_type): New interface for
