@@ -3,7 +3,7 @@
 #ifndef COOP_DEFSH
 #define COOP_DEFSH
 
-/*	Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -169,6 +169,16 @@ typedef struct coop_c {
 typedef int coop_cattr;
 
 typedef coop_c scm_cond_t;
+
+#ifndef HAVE_STRUCT_TIMESPEC
+/* POSIX.4 structure for a time value.  This is like a `struct timeval' but
+   has nanoseconds instead of microseconds.  */
+struct timespec
+{
+  long int tv_sec;		/* Seconds.  */
+  long int tv_nsec;		/* Nanoseconds.  */
+};
+#endif
 
 extern int coop_condition_variable_init (coop_c*);
 extern int coop_new_condition_variable_init (coop_c*, coop_cattr*);
