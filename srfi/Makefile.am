@@ -54,7 +54,7 @@ libguile_srfi_srfi_13_14_la_LIBADD = ../libguile/libguile.la
 libguile_srfi_srfi_13_14_la_LDFLAGS = -export-dynamic \
   -version-info @LIBGUILE_SRFI_SRFI_13_14_INTERFACE@
 
-srfidir = $(datadir)/guile/$(VERSION)/srfi
+srfidir = $(datadir)/guile/$(GUILE_EFFECTIVE_VERSION)/srfi
 srfi_DATA = srfi-1.scm \
             srfi-2.scm \
 	    srfi-4.scm \
