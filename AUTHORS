@@ -1,0 +1,14 @@
+George Carrette:
+wrote files present in Siod version 2.3, released in December of 1989.
+
+Aubrey Jaffer:
+Wrote substantial portions of guile.texi, and surely others.
+Changes to: eval.c, ioext.c, posix.c, gscm.c, scm.h, socket.c,
+gsubr.c, sys.c, test.scm, stime.c, and unif.c.
+
+Gary Houston: changes to many files in libguile.
+
+Tom Lord: wrote the original versions of all files in the
+subdirectories ctax, gtcltk-lib, guile, ice-9, lang, and rx.  In doc,
+wrote ctax.texi, gtcltk.texi, in.texi, lang.texi, and major portions
+of guile.texi.
