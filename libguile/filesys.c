@@ -384,7 +384,7 @@ scm_stat2scm (struct stat *stat_temp)
   ve[3] = scm_ulong2num ((unsigned long) stat_temp->st_nlink);
   ve[4] = scm_ulong2num ((unsigned long) stat_temp->st_uid);
   ve[5] = scm_ulong2num ((unsigned long) stat_temp->st_gid);
-#ifdef HAVE_ST_RDEV
+#ifdef HAVE_STRUCT_STAT_ST_RDEV
   ve[6] = scm_ulong2num ((unsigned long) stat_temp->st_rdev);
 #else
   ve[6] = SCM_BOOL_F;
@@ -393,12 +393,12 @@ scm_stat2scm (struct stat *stat_temp)
   ve[8] = scm_ulong2num ((unsigned long) stat_temp->st_atime);
   ve[9] = scm_ulong2num ((unsigned long) stat_temp->st_mtime);
   ve[10] = scm_ulong2num ((unsigned long) stat_temp->st_ctime);
-#ifdef HAVE_ST_BLKSIZE
+#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
   ve[11] = scm_ulong2num ((unsigned long) stat_temp->st_blksize);
 #else
   ve[11] = scm_ulong2num (4096L);
 #endif
-#ifdef HAVE_ST_BLOCKS
+#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
   ve[12] = scm_ulong2num ((unsigned long) stat_temp->st_blocks);
 #else
   ve[12] = SCM_BOOL_F;
