@@ -792,25 +792,11 @@ AC_TRY_RUN(aux (l) unsigned long l;
 	   [],
            [AC_MSG_WARN(Guessing that stack grows down -- see scmconfig.h)])
 
-AH_TEMPLATE([SCM_SINGLES],
-  [Define this if floats are the same size as longs.])
-
-AC_CACHE_CHECK([whether floats fit in longs], guile_cv_type_float_fits_long,
-    [AC_TRY_RUN([main () { exit (sizeof(float) > sizeof(long)); }],
-		[guile_cv_type_float_fits_long=yes],
-		[guile_cv_type_float_fits_long=no],
-		[guile_cv_type_float_fits_long=guess-yes])])
-case $guile_cv_type_float_fits_long in
-  "yes" )
-    AC_DEFINE(SCM_SINGLES)
-  ;;
-  "guess-yes" )
-    AC_DEFINE(SCM_SINGLES)
-    AC_MSG_WARN([guessing that sizeof(long) == sizeof(float)])
-    AC_MSG_WARN([see SCM_SINGLES in scmconfig.h.in])
-  ;;
-esac
-
+AC_CHECK_SIZEOF(float)
+if test "$ac_cv_sizeof_float" -le "$ac_cv_sizeof_long"; then
+    AC_DEFINE(SCM_SINGLES, 1, 
+              [Define this if floats are the same size as longs.])
+fi
 
 AC_MSG_CHECKING(for struct linger)
 AC_CACHE_VAL(scm_cv_struct_linger,
