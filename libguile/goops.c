@@ -1074,7 +1074,7 @@ SCM_DEFINE (scm_sys_fast_slot_ref, "%fast-slot-ref", 2, 0, 0,
   i = SCM_INUM (index);
   SCM_ASSERT_RANGE (2, index, i < SCM_NUMBER_OF_SLOTS (obj));
 
-  return scm_at_assert_bound_ref (obj, index);
+  return SCM_SLOT (obj, i);
 }
 #undef FUNC_NAME
 

@@ -1,3 +1,11 @@
+2003-04-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (compute-getter-method): For custom getter: Check
+	boundness even if there is an init-thunk.  (The getter can return
+	#<unbound> even if the slot has been set before.)
+	(remove-class-accessors!): Also remove accessor-method from its
+	accessor.
+
 2003-04-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (compute-getters-n-setters/verify-accessors): Better

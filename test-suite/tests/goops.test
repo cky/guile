@@ -1,6 +1,6 @@
 ;;;; goops.test --- test suite for GOOPS                      -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -167,3 +167,55 @@
       (eval '(and (is-a? foo <generic-with-setter>)
 		  (null? (generic-function-methods foo)))
 	    (current-module)))))
+
+(with-test-prefix "object update"
+  (pass-if "defining class"
+    (eval '(define-class <foo> ()
+	     (x #:accessor x #:init-value 123)
+	     (z #:accessor z #:init-value 789))
+	  (current-module))
+    (eval '(is-a? <foo> <class>) (current-module)))
+  (pass-if "making instance"
+    (eval '(define foo (make <foo>)) (current-module))
+    (eval '(and (is-a? foo <foo>) (= (x foo) 123)) (current-module)))
+  (pass-if "redefining class"
+    (eval '(define-class <foo> ()
+	     (x #:accessor x #:init-value 123)
+	     (y #:accessor y #:init-value 456)
+	     (z #:accessor z #:init-value 789))
+	  (current-module))
+    (eval '(and (= (y foo) 456) (= (z foo) 789)) (current-module))))
+
+(use-modules (oop goops active-slot))
+
+(with-test-prefix "active-slot"
+  (pass-if "defining class with active slot"
+    (eval '(begin
+	     (define z '())
+	     (define-class <bar> ()
+	       (x #:accessor x
+		  #:init-value 1
+		  #:allocation #:active
+		  #:before-slot-ref
+		  (lambda (o)
+		    (set! z (cons 'before-ref z))
+		    #t)
+		  #:after-slot-ref
+		  (lambda (o)
+		    (set! z (cons 'after-ref z)))
+		  #:before-slot-set!
+		  (lambda (o v)
+		    (set! z (cons* v 'before-set! z)))
+		  #:after-slot-set!
+		  (lambda (o v)
+		    (set! z (cons* v (x o) 'after-set! z))))
+	       #:metaclass <active-class>)
+	     (define bar (make <bar>))
+	     (x bar)
+	     (set! (x bar) 2)
+	     (equal? (reverse z)
+		     '(before-ref before-set! 1 before-ref after-ref
+		       after-set! 1 1 before-ref after-ref
+		       before-set! 2 before-ref after-ref after-set! 2 2)))
+	  (current-module))))
+

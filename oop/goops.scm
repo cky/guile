@@ -1059,7 +1059,13 @@
 (define-method (remove-class-accessors! (c <class>))
   (for-each (lambda (m)
 	      (if (is-a? m <accessor-method>)
-		  (remove-method-in-classes! m)))
+		  (let ((gf (slot-ref m 'generic-function)))
+		    ;; remove the method from its GF
+		    (slot-set! gf 'methods
+			       (delq1! m (slot-ref gf 'methods)))
+		    (%invalidate-method-cache! gf)
+		    ;; remove the method from its specializers
+		    (remove-method-in-classes! m))))
 	    (class-direct-methods c)))
 
 ;;;
@@ -1125,10 +1131,7 @@
     (make <accessor-method>
           #:specializers (list class)
 	  #:procedure (cond ((pair? g-n-s)
-			     (if init-thunk
-				 (car g-n-s)
-				 (make-generic-bound-check-getter (car g-n-s))
-				 ))
+			     (make-generic-bound-check-getter (car g-n-s)))
 			    (init-thunk
 			     (standard-get g-n-s))
 			    (else

@@ -1,3 +1,9 @@
+2003-04-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.c (scm_sys_fast_slot_ref): Use SCM_SLOT instead of
+	scm_at_assert_bound_ref.  (We don't want the unbound check.  See
+	oop/goops/active-slot.scm.)
+
 2003-04-14  Rob Browning  <rlb@defaultvalue.org>
 
 	* tags.h: scm_t_intptr should have been intptr_t.
