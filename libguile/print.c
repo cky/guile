@@ -88,6 +88,29 @@ char *scm_isymnames[] =
   "#<unspecified>"
 };
 
+#ifdef DEBUG_EXTENSIONS
+scm_option scm_print_opts[] = {
+  { SCM_OPTION_BOOLEAN, "procnames", 0 },
+};
+
+SCM_PROC (s_print_options, "print-options", 0, 1, 0, scm_print_options);
+#ifdef __STDC__
+SCM
+scm_print_options (SCM new_values)
+#else
+SCM
+scm_print_options (new_values)
+     SCM new_values;
+#endif
+{
+  SCM ans = scm_change_options (new_values,
+				scm_print_opts,
+				N_PRINT_OPTIONS,
+				s_print_options);
+  return ans;
+}
+#endif
+
 
 /* {Printing of Scheme Objects}
  */
@@ -565,6 +588,9 @@ void
 scm_init_print ()
 #endif
 {
+#ifdef DEBUG_EXTENSIONS
+  scm_init_opts (scm_print_options, scm_print_opts, N_PRINT_OPTIONS);
+#endif
 #include "print.x"
 }
 
