@@ -1670,9 +1670,9 @@
 
 (define format:abort (lambda () (error "error in format")))
 
-;;(define format format:format)
+(define format format:format)
 ;; Thanks to Shuji Narazaki
-(variable-set! (builtin-variable 'format) format:format)
+(variable-set! (builtin-variable 'format) format)
 
 ;; If this is not possible then a continuation is used to recover
 ;; properly from a format error. In this case format returns #f.
