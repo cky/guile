@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.  -*- text -*-
-Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -371,6 +371,23 @@ There is no such concept as a weak binding any more.
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface
+
+** New function: scm_c_read (SCM port, void *buffer, scm_sizet size)
+
+Used by an application to read arbitrary number of bytes from a port.
+Same semantics as libc read, except that scm_c_read only returns less
+than SIZE bytes if at end-of-file.
+
+Warning: Doesn't update port line and column counts!
+
+** New function: scm_c_write (SCM port, const void *ptr, scm_sizet size)
+
+Used by an application to write arbitrary number of bytes to an SCM
+port.  Similar semantics as libc write.  However, unlike libc
+write, scm_c_write writes the requested number of bytes and has no
+return value.
+
+Warning: Doesn't update port line and column counts!
 
 ** New function: scm_init_guile ()
 

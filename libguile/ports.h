@@ -2,7 +2,7 @@
 
 #ifndef PORTSH
 #define PORTSH
-/*	Copyright (C) 1995,1996,1997,1998,1999, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998,1999, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,6 +135,7 @@ typedef struct
 extern scm_port **scm_port_table;
 extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 
+#define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
 
 
 
@@ -279,6 +280,8 @@ extern SCM scm_flush_all_ports (void);
 extern SCM scm_read_char (SCM port);
 extern void scm_putc (char c, SCM port);
 extern void scm_puts (const char *str_data, SCM port);
+extern scm_sizet scm_c_read (SCM port, void *buffer, scm_sizet size);
+extern void scm_c_write (SCM port, const void *buffer, scm_sizet size);
 extern void scm_lfwrite (const char *ptr, scm_sizet size, SCM port);
 extern void scm_flush (SCM port);
 extern void scm_end_input (SCM port);

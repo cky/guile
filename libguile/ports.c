@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998,1999, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998,1999, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -963,6 +963,14 @@ scm_puts (const char *s, SCM port)
   scm_lfwrite (s, strlen (s), port);
 }
 
+/* scm_lfwrite
+ *
+ * Currently, this function has an identical implementation to
+ * scm_c_write.  We could have turned it into a macro expanding into a
+ * call to scm_c_write.  However, the implementation is small and
+ * might differ in the future.
+ */
+
 void 
 scm_lfwrite (const char *ptr, scm_sizet size, SCM port)
 {
@@ -978,6 +986,81 @@ scm_lfwrite (const char *ptr, scm_sizet size, SCM port)
     pt->rw_active = SCM_PORT_WRITE;
 }
 
+/* scm_c_read
+ *
+ * Used by an application to read arbitrary number of bytes from an
+ * SCM port.  Same semantics as libc read, except that scm_c_read only
+ * returns less than SIZE bytes if at end-of-file.
+ *
+ * Warning: Doesn't update port line and column counts!  */
+
+scm_sizet
+scm_c_read (SCM port, void *buffer, scm_sizet size)
+{
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_sizet n_read = 0, n_available;
+
+  if (pt->rw_active == SCM_PORT_WRITE)
+    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
+
+  if (SCM_READ_BUFFER_EMPTY_P (pt))
+    {
+      if (scm_fill_input (port) == EOF)
+	return 0;
+    }
+  
+  n_available = pt->read_end - pt->read_pos;
+  
+  while (n_available < size)
+    {
+      memcpy (buffer, pt->read_pos, n_available);
+      buffer += n_available;
+      pt->read_pos += n_available;
+      n_read += n_available;
+      
+      if (SCM_READ_BUFFER_EMPTY_P (pt))
+	{
+	  if (scm_fill_input (port) == EOF)
+	    return n_read;
+	}
+
+      size -= n_available;
+      n_available = pt->read_end - pt->read_pos;
+    }
+
+  memcpy (buffer, pt->read_pos, size);
+  pt->read_pos += size;
+
+  return n_read + size;
+}
+
+/* scm_c_write
+ *
+ * Used by an application to write arbitrary number of bytes to an SCM
+ * port.  Similar semantics as libc write.  However, unlike libc
+ * write, scm_c_write writes the requested number of bytes and has no
+ * return value.
+ *
+ * Warning: Doesn't update port line and column counts!
+ */
+
+void 
+scm_c_write (SCM port, const void *ptr, scm_sizet size)
+{
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+
+  if (pt->rw_active == SCM_PORT_READ)
+    scm_end_input (port);
+
+  ptob->write (port, ptr, size);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_WRITE;
+}
 
 void 
 scm_flush (SCM port)
@@ -1199,8 +1282,8 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 
   object = SCM_COERCE_OUTPORT (object);
 
-  off = SCM_NUM2LONG (2,offset);
-  SCM_VALIDATE_INUM_COPY (3,whence,how);
+  off = SCM_NUM2LONG (2, offset);
+  SCM_VALIDATE_INUM_COPY (3, whence, how);
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
     SCM_OUT_OF_RANGE (3, whence);
   if (SCM_OPPORTP (object))
