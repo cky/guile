@@ -2714,6 +2714,15 @@
 	    (lambda () (continue))
 	    (lambda v (cadr v)))))
 
+;;; {collect}
+;;;
+;;; Similar to `begin' but returns a list of the results of all constituent
+;;; forms instead of the result of the last form.
+;;; (The definition relies on the current left-to-right
+;;;  order of evaluation of operands in applications.)
+
+(defmacro collect forms
+  (cons 'list forms))
 
 ;;; {with-fluids}
 

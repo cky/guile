@@ -1,3 +1,9 @@
+1998-11-13  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (collect): New syntax.  Similar to begin but returns
+	a list of the results of all forms in the sequence instead of the
+	result of the last form.
+
 1998-11-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (values, call-with-values): Moved here from
