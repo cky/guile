@@ -269,6 +269,9 @@ rehash_after_gc (void *dummy1 SCM_UNUSED,
   if (!SCM_NULLP (to_rehash))
     {
       SCM h = to_rehash, last;
+      /* important to clear to_rehash here so that we don't get stuck
+	 in an infinite loop if scm_i_rehash causes GC */
+      to_rehash = SCM_EOL;
       do
 	{
 	  scm_i_rehash (h,
@@ -282,7 +285,6 @@ rehash_after_gc (void *dummy1 SCM_UNUSED,
       /* move tables back to weak_hashtables */
       SCM_SET_HASHTABLE_NEXT (last, weak_hashtables);
       weak_hashtables = to_rehash;
-      to_rehash = SCM_EOL;
     }
   return 0;
 }

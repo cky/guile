@@ -1,3 +1,10 @@
+2003-04-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* hashtab.c (rehash_after_gc): Clear to_rehash list before
+	processing it in order to avoid an infinite loop.
+
+	* print.c (scm_prin1): Remember old state of pstate->writingp.
+
 2003-04-05  Marius Vollmer  <mvo@zagadka.de>
 
 	* Changed license terms to the plain LGPL thru-out.
@@ -317,6 +324,7 @@
 	(scmconfig.h): build scmconfig.h from gen-scmconfig's output.
 	(BUILT_SOURCES): add scmconfig.h.
 
+>>>>>>> 1.1798
 2003-03-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc_os_dep.c: Added defines for sparc-unknown-netbsdelf1.5 from
