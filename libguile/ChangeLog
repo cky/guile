@@ -1,3 +1,13 @@
+Mon Jan 17 11:41:22 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* scm_validate.h: Added SCM_VALIDATE_ULONG_COPY,
+	SCM_VALIDATE_LONG_COPY
+
+	* numbers.c: Use SCM_VALIDATE_ULONG_COPY, instead of
+	SCM_VALIDATE_INUM_COPY to let bigger numbers be used.  Rename a
+	couple of formal arguments (and fix their uses) to make arguments
+	match the documentation.
+
 2000-01-14    <mstachow@alum.mit.edu>
 
 	* Makefile.am: Augment path when running guile-doc-snarf so
