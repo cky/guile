@@ -55,9 +55,85 @@
 scm_sizet fwrite ();
 #endif
 
-/* {Ports - file ports}
- * 
- */
+
+/* Port direction --- handling el cheapo stdio implementations.
+
+   Guile says that when you've got a port that's both readable and
+   writable, like a socket, why then, by gum, you can read from it and
+   write to it!  However, most standard I/O implementations make
+   cheezy caveats like this:
+
+	When a file is opened for update, both input and output  may
+	be done on the resulting stream.  However, output may not be
+	directly followed by input without an intervening  fflush(),
+	fseek(),  fsetpos(),  or  rewind(),  and  input  may  not be
+	directly followed by output without an intervening  fseek(),
+	fsetpos(),   or   rewind(),   or  an  input  operation  that
+	encounters end-of-file.
+		   -- the Solaris fdopen(3S) man page
+
+   I think this behavior is permitted by the ANSI C standard.
+
+   So we made the implementation more complex, so what the user sees
+   remains simple.  When we have a Guile port based on a stdio stream
+   (this source file's specialty), we keep track of whether it was
+   last written to, read from, or whether it is in a safe state for
+   both operations.  Each port operation function just checks the
+   state of the port before each operation, and does the required
+   magic if necessary.
+
+   We use two bits in the CAR of the port, FPORT_READ_SAFE and
+   FPORT_WRITE_SAFE, to indicate what operations the underlying stdio
+   stream could correctly perform next.  You're not allowed to clear
+   them both at the same time, but both can be set --- for example, if
+   the stream has just been opened, or flushed, or had its position
+   changed.
+
+   It's possible for a port to have neither bit set, if we receive a
+   FILE * pointer in an unknown state; this code should handle that
+   gracefully.  */
+
+#define FPORT_READ_SAFE  (1L << 24)
+#define FPORT_WRITE_SAFE (2L << 24)
+
+#define FPORT_ALL_OKAY(port) \
+     (SCM_SETOR_CAR (port, (FPORT_READ_SAFE | FPORT_WRITE_SAFE)))
+
+static inline void
+pre_read (SCM port)
+{
+  if (! (SCM_CAR (port) & FPORT_READ_SAFE))
+    fflush ((FILE *)SCM_STREAM (port));
+
+  /* We've done the flush, so reading is safe.
+     Assuming that we're going to do a read next, writing will not be
+     safe by the time we're done.  */
+  SCM_SETOR_CAR  (port,  FPORT_READ_SAFE);
+  SCM_SETAND_CAR (port, ~FPORT_WRITE_SAFE);
+  
+}
+
+static inline void
+pre_write (SCM port)
+{
+  if (! (SCM_CAR (port) & FPORT_WRITE_SAFE))
+    /* This can fail, if we're talking to a line-buffered terminal.  As
+       far as I can tell, there's no way to get mixed reads and writes
+       to work on a line-buffered terminal at all --- you get a full
+       line in the buffer when you read, and then you have to throw it
+       out to write.  You have to do unbuffered input, and make the
+       system provide the second buffer.  */
+    fseek ((FILE *)SCM_STREAM (port), 0, SEEK_CUR);
+
+  /* We've done the seek, so writing is safe.
+     Assuming that we're going to do a write next, reading will not be
+     safe by the time we're done.  */
+  SCM_SETOR_CAR (port, FPORT_WRITE_SAFE);
+  SCM_SETAND_CAR (port, ~FPORT_READ_SAFE);
+}
+
+
+/* Helpful operations on stdio FILE-based ports  */
 
 /* should be called with SCM_DEFER_INTS active */
 
@@ -178,7 +254,6 @@ scm_open_file (filename, modes)
   file = SCM_ROCHARS (filename);
   mode = SCM_ROCHARS (modes);
 
-  SCM_NEWCELL (port);
   SCM_DEFER_INTS;
   SCM_SYSCALL (f = fopen (file, mode));
   if (!f)
@@ -192,35 +267,64 @@ scm_open_file (filename, modes)
 			en);
     }
   else
-    {
-      struct scm_port_table * pt;
+    port = scm_stdio_to_port (f, mode, filename);
+  SCM_ALLOW_INTS;
+  return port;
+}
 
-      pt = scm_add_to_port_table (port);
-      SCM_SETPTAB_ENTRY (port, pt);
-      SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (mode));
-      SCM_SETSTREAM (port, (SCM) f);
+
+SCM_PROC (s_freopen, "freopen", 3, 0, 0, scm_freopen);
+
+SCM 
+scm_freopen (filename, modes, port)
+     SCM filename;
+     SCM modes;
+     SCM port;
+{
+  FILE *f;
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
+	      SCM_ARG1, s_freopen);
+  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
+	      s_freopen);
+
+  SCM_COERCE_SUBSTR (filename);
+  SCM_COERCE_SUBSTR (modes);
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_DEFER_INTS;
+  SCM_ASSERT (SCM_NIMP (port) && SCM_FPORTP (port), port, SCM_ARG3, s_freopen);
+  SCM_SYSCALL (f = freopen (SCM_ROCHARS (filename), SCM_ROCHARS (modes),
+			    (FILE *)SCM_STREAM (port)));
+  if (!f)
+    {
+      SCM p;
+      p = port;
+      port = SCM_MAKINUM (errno);
+      SCM_SETAND_CAR (p, ~SCM_OPN);
+      scm_remove_from_port_table (p);
+    }
+  else
+    {
+      SCM_SETSTREAM (port, (SCM)f);
+      SCM_SETCAR (port, (scm_tc16_fport
+			 | scm_mode_bits (SCM_ROCHARS (modes))
+			 | FPORT_READ_SAFE | FPORT_WRITE_SAFE));
       if (SCM_BUF0 & SCM_CAR (port))
 	scm_setbuf0 (port);
-      SCM_PTAB_ENTRY (port)->file_name = filename;
     }
   SCM_ALLOW_INTS;
   return port;
 }
 
 
+
+/* Building Guile ports from stdio FILE pointers.  */
+
 /* Build a Scheme port from an open stdio port, FILE.
    MODE indicates whether FILE is open for reading or writing; it uses
       the same notation as open-file's second argument.
-   If NAME is non-zero, use it as the port's filename.
-
-   scm_stdio_to_port sets the revealed count for FILE's file
-   descriptor to 1, so that FILE won't be closed when the port object
-   is GC'd.  */
+   Use NAME as the port's filename.  */
 SCM
-scm_stdio_to_port (file, mode, name)
-     FILE *file;
-     char *mode;
-     char *name;
+scm_stdio_to_port (FILE *file, char *mode, SCM name)
 {
   long mode_bits = scm_mode_bits (mode);
   SCM port;
@@ -231,18 +335,34 @@ scm_stdio_to_port (file, mode, name)
   {
     pt = scm_add_to_port_table (port);
     SCM_SETPTAB_ENTRY (port, pt);
-    SCM_SETCAR (port, (scm_tc16_fport | mode_bits));
+    SCM_SETCAR (port, (scm_tc16_fport
+		       | mode_bits
+		       | FPORT_READ_SAFE | FPORT_WRITE_SAFE));
     SCM_SETSTREAM (port, (SCM) file);
     if (SCM_BUF0 & SCM_CAR (port))
       scm_setbuf0 (port);
-    SCM_PTAB_ENTRY (port)->file_name = scm_makfrom0str (name);
+    SCM_PTAB_ENTRY (port)->file_name = name;
   }
   SCM_ALLOW_INTS;
+  return port;
+}
+
+
+/* Like scm_stdio_to_port, except that:
+   - NAME is a standard C string, not a Guile string
+   - we set the revealed count for FILE's file descriptor to 1, so
+     that FILE won't be closed when the port object is GC'd.  */
+SCM
+scm_standard_stream_to_port (FILE *file, char *mode, char *name)
+{
+  SCM port = scm_stdio_to_port (file, mode, scm_makfrom0str (name));
   scm_set_port_revealed_x (port, SCM_MAKINUM (1));
   return port;
 }
 
 
+
+/* The fport and pipe port scm_ptobfuns functions --- reading and writing  */
 
 static int prinfport SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 
@@ -277,6 +397,7 @@ static int
 local_fgetc (SCM port)
 {
   FILE *s = (FILE *) SCM_STREAM (port);
+  pre_read (port);
   if (feof (s))
     return EOF;
   else
@@ -292,6 +413,8 @@ local_fgets (SCM port, int *len)
   char *buf   = NULL;
   char *p;		/* pointer to current buffer position */
   int   limit = 80;	/* current size of buffer */
+
+  pre_read (port);
 
   f = (FILE *) SCM_STREAM (port);
   if (feof (f))
@@ -365,11 +488,6 @@ pwrite (ptr, size, nitems, port)
 #define ffwrite fwrite
 #endif
 
-
-/* This otherwise pointless code helps some poor 
- * crippled C compilers cope with life. 
- */
-
 static int
 local_fclose (SCM port)
 {
@@ -383,6 +501,7 @@ local_fflush (SCM port)
 {
   FILE *fp = (FILE *) SCM_STREAM (port);
   return fflush (fp);
+  FPORT_ALL_OKAY (port);
 }
 
 static int
@@ -390,6 +509,7 @@ local_fputc (int c, SCM port)
 {
   FILE *fp = (FILE *) SCM_STREAM (port);
 
+  pre_write (port);
   return fputc (c, fp);
 }
 
@@ -397,6 +517,7 @@ static int
 local_fputs (char *s, SCM port)
 {
   FILE *fp = (FILE *) SCM_STREAM (port);
+  pre_write (port);
   return fputs (s, fp);
 }
 
@@ -407,6 +528,7 @@ local_ffwrite (char *ptr,
 	       SCM port)
 {
   FILE *fp = (FILE *) SCM_STREAM (port);
+  pre_write (port);
   return ffwrite (ptr, size, nitems, fp);
 }
 
@@ -426,6 +548,8 @@ local_pclose (SCM port)
 }
 
 
+/* The file and pipe port scm_ptobfuns structures themselves.  */
+
 scm_ptobfuns scm_fptob =
 {
   0,
