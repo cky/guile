@@ -42,6 +42,7 @@ srfidir = $(datadir)/guile/$(VERSION)/srfi
 srfi_DATA = srfi-2.scm \
             srfi-6.scm \
             srfi-8.scm \
+            srfi-9.scm \
             srfi-11.scm \
             srfi-13.scm \
             srfi-14.scm

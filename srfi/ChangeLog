@@ -1,3 +1,9 @@
+2001-04-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* Makefile.am (srfi_DATA): Added srfi-9.scm.
+
+	* srfi-9.scm: New file.  Exports `define-record-type'.
+
 2001-04-26  Rob Browning  <rlb@cs.utexas.edu>
 
 	* Makefile.am (srfi_DATA): added srfi-6.scm.
