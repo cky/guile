@@ -170,7 +170,7 @@ SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
 	    "guaranteed to deliver the same value if the key object gets\n"
 	    "garbage collected in between.  This can happen, for example\n"
 	    "with symbols:  (hashq 'foo n) (gc) (hashq 'foo n) may produce two\n" 
-	    "different values, since 'x will be garbage collected.")
+	    "different values, since 'foo will be garbage collected.")
 #define FUNC_NAME s_scm_hashq
 {
   SCM_VALIDATE_INUM_MIN (2, size, 0);
@@ -205,7 +205,7 @@ SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
 	    "guaranteed to deliver the same value if the key object gets\n"
 	    "garbage collected in between.  This can happen, for example\n"
 	    "with symbols:  (hashv 'foo n) (gc) (hashv 'foo n) may produce two\n" 
-	    "different values, since 'x will be garbage collected.")
+	    "different values, since 'foo will be garbage collected.")
 #define FUNC_NAME s_scm_hashv
 {
   SCM_VALIDATE_INUM_MIN (2, size, 0);
