@@ -69,6 +69,9 @@
 	* gc-card.c (scm_i_sweep_card):  Call scm_i_string_free,
 	scm_i_stringbuf_free and scm_i_symbol_free, as appropriate.
 
+	* strop.c (scm_string_copy): Use scm_c_substring to get a
+	copy-on-write string.
+
 2004-08-18  Kevin Ryde  <user42@zip.com.au>
 
 	* arbiters.c (FETCH_STORE): New macro.
