@@ -73,7 +73,7 @@ scm_the_root_module ()
 static SCM the_module;
 
 SCM
-scm_selected_module ()
+scm_current_module ()
 {
   return scm_fluid_ref (SCM_CDR (the_module));
 }
@@ -86,9 +86,9 @@ static SCM set_current_module;
  */
 
 SCM
-scm_select_module (SCM module)
+scm_set_current_module (SCM module)
 {
-  SCM old = scm_selected_module ();
+  SCM old = scm_current_module ();
   scm_apply (SCM_CDR (set_current_module), SCM_LIST1 (module), SCM_EOL);
   return old;
 }
@@ -102,7 +102,7 @@ SCM_DEFINE (scm_interaction_environment, "interaction-environment", 0, 0, 0,
 	    "dynamically typed by the user.")
 #define FUNC_NAME s_scm_interaction_environment
 {
-  return scm_selected_module ();
+  return scm_current_module ();
 }
 #undef FUNC_NAME
 

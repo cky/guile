@@ -284,13 +284,13 @@ void
 scm_init_rdelim (void)
 {
   SCM rdelim_module = scm_make_module (scm_read_0str ("(ice-9 rdelim)"));
-  SCM old_module = scm_select_module (rdelim_module);
+  SCM old_module = scm_set_current_module (rdelim_module);
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/rdelim.x"
 #endif
 
-  scm_select_module (old_module);
+  scm_set_current_module (old_module);
 
 #if DEBUG_DEPRECATED == 0
   {
@@ -300,7 +300,7 @@ scm_init_rdelim (void)
 
     scm_eval_string (scm_makfromstr (expr, (sizeof expr) - 1, 0));
   }
-  scm_select_module (old_module);
+  scm_set_current_module (old_module);
 #endif
 }
 

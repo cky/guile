@@ -3820,9 +3820,9 @@ change_environment (void *data)
 {
   SCM pair = SCM_PACK (data);
   SCM new_module = SCM_CAR (pair);
-  SCM old_module = scm_selected_module ();
+  SCM old_module = scm_current_module ();
   SCM_SETCDR (pair, old_module);
-  scm_select_module (new_module);
+  scm_set_current_module (new_module);
 }
 
 
@@ -3847,9 +3847,9 @@ restore_environment (void *data)
 {
   SCM pair = SCM_PACK (data);
   SCM old_module = SCM_CDR (pair);
-  SCM new_module = scm_selected_module ();
+  SCM new_module = scm_current_module ();
   SCM_SETCAR (pair, new_module);
-  scm_select_module (old_module);
+  scm_set_current_module (old_module);
 }
 
 
@@ -3874,7 +3874,7 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
-/* Use scm_selected_module () or scm_interaction_environment ()
+/* Use scm_current_module () or scm_interaction_environment ()
  * instead.  The former is the module selected during loading of code.
  * The latter is the module in which the user of this thread currently
  * types expressions.

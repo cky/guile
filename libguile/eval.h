@@ -125,7 +125,7 @@ extern SCM scm_eval_options_interface (SCM setting);
 /*fixme* This should probably be removed throught the code. */
 
 #define SCM_TOP_LEVEL_LOOKUP_CLOSURE \
-  SCM_MODULE_EVAL_CLOSURE (scm_selected_module ())
+  SCM_MODULE_EVAL_CLOSURE (scm_current_module ())
 
 #if SCM_DEBUG_DEPRECATED == 0
 

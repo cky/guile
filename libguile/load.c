@@ -103,7 +103,7 @@ load (void *data)
       scm_i_eval_x (form,
 		    scm_module_system_booted_p
 		    ? (scm_top_level_env
-		       (SCM_MODULE_EVAL_CLOSURE (scm_selected_module ())))
+		       (SCM_MODULE_EVAL_CLOSURE (scm_current_module ())))
 		    : SCM_EOL);
     }
   return SCM_UNSPECIFIED;
@@ -479,7 +479,7 @@ SCM_DEFINE (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0,
   SCM form = scm_read (port);
   if (SCM_EOF_OBJECT_P (form))
     scm_ithrow (scm_end_of_file_key, SCM_EOL, 1);
-  return scm_eval_x (form, scm_selected_module ());
+  return scm_eval_x (form, scm_current_module ());
 }
 #undef FUNC_NAME
 

@@ -2323,9 +2323,9 @@ make_class_from_template (char *template, char *type_name, SCM supers)
        * This kludge is needed until DEFVAR ceases to use `define-public'
        * or `define-public' ceases to use `current-module'.
        */
-      SCM old_module = scm_select_module (scm_module_goops);
+      SCM old_module = scm_set_current_module (scm_module_goops);
       DEFVAR (name, class);
-      scm_select_module (old_module);
+      scm_set_current_module (old_module);
     }
   return class;
 }
@@ -2632,7 +2632,7 @@ scm_init_goops (void)
 {
   SCM old_module;
   scm_module_goops = scm_make_module (scm_read_0str ("(oop goops)"));
-  old_module = scm_select_module (scm_module_goops);
+  old_module = scm_set_current_module (scm_module_goops);
   
   scm_goops_lookup_closure = scm_module_lookup_closure (scm_module_goops);
 
@@ -2667,7 +2667,7 @@ scm_init_goops (void)
     DEFVAR (name, scm_no_applicable_method);
   }
   
-  scm_select_module (old_module);
+  scm_set_current_module (old_module);
 }
 
 void
