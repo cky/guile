@@ -54,6 +54,7 @@
 	   logical:bit-extract logical:integer-expt logical:ipow-by-squaring
 	   slib:eval-load slib:tab slib:form-feed difftime offset-time
 	   software-type)
+  :replace (provide provided?)
   :no-backtrace)
 
 
@@ -98,7 +99,7 @@
 
 ;;; *FEATURES* should be set to a list of symbols describing features
 ;;; of this implementation.  Suggestions for features are:
-(define *features*
+(set! *features*
   (append
       '(
 	source				;can load scheme source files

@@ -1457,7 +1457,8 @@
 ;;
 (define (module-use-interfaces! module interfaces)
   (let* ((duplicates-info (module-duplicates-info module))
-	 (duplicates-handlers? (car duplicates-info))
+	 (duplicates-handlers? (or (car duplicates-info)
+				   (default-duplicate-binding-procedures)))
 	 (uses (module-uses module)))
     ;; remove duplicates-interface
     (set! uses (delq! (cdr duplicates-info) uses))
@@ -1609,9 +1610,7 @@
 	  (set-module-name! interface (module-name module))
 	  (set-module-kind! interface 'interface)
 	  (set-module-public-interface! module interface)
-	  (set-module-duplicates-info!
-	   module
-	   (cons (default-module-duplicates-handler) #f)))))
+	  (set-module-duplicates-info! module (cons #f #f)))))
   (if (and (not (memq the-scm-module (module-uses module)))
 	   (not (eq? module the-root-module)))
       (set-module-uses! module
@@ -2873,9 +2872,15 @@
 		handler-names
 		(list handler-names)))))
 
-(define default-module-duplicates-handler
+(define default-duplicate-binding-procedures
+  (make-mutable-parameter #f))
+
+(define default-duplicate-binding-handler
   (make-mutable-parameter '(replace warn-override-core check)
-			  lookup-duplicates-handlers))
+			  (lambda (handler-names)
+			    (default-duplicate-binding-procedures
+			      (lookup-duplicates-handlers handler-names))
+			    handler-names)))
 
 (define (make-duplicates-interface)
   (let ((m (make-module)))
@@ -2885,7 +2890,8 @@
 
 (define (process-duplicates module interface)
   (let* ((duplicates-info (module-duplicates-info module))
-	 (duplicates-handlers (car duplicates-info))
+	 (duplicates-handlers (or (car duplicates-info)
+				  (default-duplicate-binding-procedures)))
 	 (duplicates-interface (cdr duplicates-info)))
     (module-for-each
      (lambda (name var)

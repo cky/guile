@@ -1,3 +1,16 @@
+2003-03-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* slib.scm (*features*): Set the core variable instead of defining
+	a local version.
+	(provide, provided?): Mark as replacements.
+
+	* boot-9.scm (beautify-user-module!): Don't install the duplicates
+	handler here.
+	(default-duplicate-binding-handler): Renamed from
+	default-module-duplicates-handler; Removed converter.
+	(process-duplicates): Lookup default duplicates handler dynamically.
+	(default-duplicate-binding-procedures): New parameter.
+
 2003-03-12  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
 	* slib.scm (identity): Removed.  (Provided by core.)
