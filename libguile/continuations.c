@@ -183,14 +183,18 @@ scm_make_continuation (int *first)
     }
   else
     {
+      SCM ret = continuation->throw_value;
       *first = 0;
-      return continuation->throw_value;
+      continuation->throw_value = SCM_BOOL_F;
+      return ret;
     }
 #else /* !__ia64__ */
   if (setjmp (continuation->jmpbuf))
     {
+      SCM ret = continuation->throw_value;
       *first = 0;
-      return continuation->throw_value;
+      continuation->throw_value = SCM_BOOL_F;
+      return ret;
     }
   else
     {
