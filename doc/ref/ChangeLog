@@ -1,3 +1,8 @@
+2004-07-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* misc-modules.texi (Formatted Output): Changed @w to @w{} in
+	itemize.  The former doesn't work for some reason...
+
 2004-07-28  Kevin Ryde  <user42@zip.com.au>
 
 	* misc-modules.texi (Formatted Output): Rewrite, describing escapes
