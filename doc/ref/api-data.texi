@@ -1141,6 +1141,12 @@ Round the number @var{x} towards minus infinity.
 Round the number @var{x} towards infinity.
 @end deffn
 
+@deftypefn  {C Function} double scm_c_truncate (double x)
+@deftypefnx {C Function} double scm_c_round (double x)
+Like @code{scm_truncate_number} or @code{scm_round_number},
+respectively, but these functions take and return @code{double}
+values.
+@end deftypefn
 
 @node Scientific
 @subsubsection Scientific Functions
