@@ -106,7 +106,7 @@ OMIT_DEPENDENCIES = libguile.h ltdl.h \
 ## lingering there due to an earlier guile version not having been
 ## wiped out.
 install-exec-hook:
-	rm -f $(bindir)/guile-snarf.awk
+	rm -f $(DESTDIR)$(bindir)/guile-snarf.awk
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included.  So instead we list them here.
