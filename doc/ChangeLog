@@ -1,5 +1,12 @@
 2001-04-11  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
+	* scheme-scheduling.texi (Arbiters): New explanatory text.
+	(Asyncs): New explanations and documentation.
+	(Scheduling): Added menu entry descriptions.
+	(Fluids): New documentation.
+
+2001-04-11  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
 	* scheme-procedures.texi (Lambda): Documented the lambda form.
 	(Procedure Properties): Concept and usage explanation added.
 	(Procedures with Setters): Explain by example, introduce
