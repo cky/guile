@@ -1991,7 +1991,8 @@
 		    ;; Replace autoload-interface with interface
 		    (set-car! (memq a (module-uses module)) i)
 		    (module-local-variable i sym))))))
-    (module-constructor #() #f b #f #f name 'autoload)))
+    (module-constructor #() #f b #f #f name 'autoload
+			'() (make-weak-value-hash-table 31) 0)))
 
 
 ;;; {Autoloading modules}
@@ -2987,9 +2988,10 @@
 
   ;; Place the user in the guile-user module.
   (define-module (guile-user)
+    :use-module (guile) ;so that bindings will be checked here first
     :use-module (ice-9 session)
     :use-module (ice-9 debug)
-    :use-module (ice-9 debugger))
+    :autoload (ice-9 debugger) (debug))	;load debugger on demand
   (if (memq 'threads *features*)
       (define-module (guile-user) :use-module (ice-9 threads)))
   (if (memq 'regex *features*)
