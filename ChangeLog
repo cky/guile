@@ -1,3 +1,7 @@
+1999-09-12  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* configure.in: Removed ice-9/version.scm from AC_OUTPUT.
+
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* configure.in (GUILE_STAMP): Don't set this variable, or
