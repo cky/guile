@@ -50,8 +50,8 @@
 
 #ifdef __ia64__
 #include <sys/ucontext.h>
-extern unsigned long  __libc_ia64_register_backing_store_base;
-#endif
+extern unsigned long * __libc_ia64_register_backing_store_base;
+#endif /* __ia64__ */
 
 
 /* a continuation SCM is a non-immediate pointing to a heap cell with:
@@ -62,7 +62,7 @@ extern unsigned long  __libc_ia64_register_backing_store_base;
 	   in the num_stack_items field of the structure.
 */
 
-extern scm_t_bits scm_tc16_continuation;
+SCM_API scm_t_bits scm_tc16_continuation;
 
 typedef struct 
 {
@@ -102,8 +102,8 @@ typedef struct
 
 
 
-extern SCM scm_make_continuation (int *first);
-extern void scm_init_continuations (void);
+SCM_API SCM scm_make_continuation (int *first);
+SCM_API void scm_init_continuations (void);
 
 #endif  /* SCM_CONTINUATIONS_H */
 

@@ -115,6 +115,9 @@ continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
 }
 
 #ifdef __ia64__
+/* Extern declaration of getcontext()/setcontext() in order to redefine
+   getcontext() since on ia64-linux the second return value indicates whether
+   it returned from getcontext() itself or by running setcontext(). */
 struct rv
 {
   long retval;
@@ -138,7 +141,7 @@ scm_make_continuation (int *first)
   SCM_STACKITEM * src;
 #ifdef __ia64__
   struct rv rv;
-#endif
+#endif /* __ia64__ */
 
   SCM_ENTER_A_SECTION;
   SCM_FLUSH_REGISTER_WINDOWS;
@@ -168,7 +171,7 @@ scm_make_continuation (int *first)
     {
       continuation->backing_store_size = 
         continuation->ctx.uc_mcontext.sc_ar_bsp - 
-        __libc_ia64_register_backing_store_base;
+        (unsigned long) __libc_ia64_register_backing_store_base;
       continuation->backing_store = NULL;
       continuation->backing_store = 
         scm_must_malloc (continuation->backing_store_size, FUNC_NAME);
