@@ -225,10 +225,11 @@ non-#f return values of P."
 
 (define-public (uniq l)
   "Return a list containing elements of L, with duplicates removed."
-  (if (null? l)
-      '()
-      (let ((u (uniq (cdr l))))
-	(if (memq (car l) u)
-	    u
-	    (cons (car l) u)))))
-
+  (let loop ((acc '())
+	     (l l))
+    (if (null? l)
+	(reverse! acc)
+	(loop (if (memq (car l) acc)
+		  acc
+		  (cons (car l) acc))
+	      (cdr l)))))
