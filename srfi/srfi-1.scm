@@ -318,11 +318,10 @@
 	     (and (elt= (car a) (car b))
 		  (lp (cdr a) (cdr b)))))))
   (or (null? rest)
-      (let ((first (car rest)))
-	(let lp ((lists rest))
-	  (or (null? lists)
-	      (and (lists-equal first (car lists))
-		   (lp (cdr lists))))))))
+      (let lp ((lists rest))
+	(or (null? (cdr lists))
+	    (and (lists-equal (car lists) (cadr lists))
+		 (lp (cdr lists)))))))
 
 ;;; Selectors
 
