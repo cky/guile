@@ -1,3 +1,13 @@
+2005-01-09  Marius Vollmer  <mvo@zagadka.de>
+
+	* unif.c (scm_array_handle_set): Correctly execute only one
+	alternative.  D'Oh!
+	(scm_list_to_typed_array, l2ra): Use scm_t_array_handle to fill
+	the array; this covers all cases with much simpler code.
+	
+	* srfi-4.c (scm_uniform_element_size): Deprecated implementation
+	as well.
+
 2005-01-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.c (uvec_type): New.
