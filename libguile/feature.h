@@ -50,7 +50,6 @@
 extern SCM *scm_loc_features;
 
 extern void scm_add_feature PROTO((char* str));
-extern SCM scm_compiled_library_path  PROTO((void));
 extern SCM scm_program_arguments  PROTO((void));
 extern void scm_init_feature PROTO((void));
 
