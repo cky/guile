@@ -63,6 +63,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/* Some systems do not declare this.  It seems unlikely to produce a
+   conflict.  */
+extern int h_errno;
+
 
 
 #ifndef STDC_HEADERS
