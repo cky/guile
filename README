@@ -37,8 +37,9 @@ libguile.a --- an object library containing the Guile interpreter,
 libqthreads.a --- an object library containing the QuickThreads
 	primitives.  If you enabled thread support when you configured
 	Guile, you will need to link your code against this too.
-libguilereadline --- an object library containing glue code for the
-        GNU readline library.
+libguilereadline.a --- an object library containing glue code for the
+        GNU readline library.  See NEWS for instructions on how to enable
+	readline for your personal use.
 <libguile.h>, <guile/gh.h>, <libguile/*.h> --- header files for
 	libguile.a, usually installed in /usr/local/include.
 ice-9, ice-9/*.scm --- run-time support for Guile: the module
