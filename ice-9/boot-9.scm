@@ -787,7 +787,7 @@
                     (if (fluid-ref read-eval?)
                         (eval (read port) (interaction-environment))
                         (error
-                         "#. read expansion found and read-eval? is not #f."))))
+                         "#. read expansion found and read-eval? is #f."))))
 
 
 ;;; {Command Line Options}
