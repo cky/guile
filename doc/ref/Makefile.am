@@ -43,7 +43,7 @@ GUILE = $(top_builddir)/libguile/guile
 
 autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
-	GUILE=$(GUILE) \
+	GUILE=$(GUILE) GUILE_LOAD_PATH=$(top_srcdir) \
 	$(top_srcdir)/scripts/snarf-guile-m4-docs $< > $(srcdir)/$@
 
 # Optionally support building an HTML version of the reference manual.
