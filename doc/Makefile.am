@@ -38,7 +38,7 @@ guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
 	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi \
 	AUTHORS
 
-guile_tut_TEXINFOS = guile-tut.texi AUTHORS
+guile_tut_TEXINFOS = AUTHORS
 
 goops_TEXINFOS = goops-tutorial.texi hierarchy.eps hierarchy.txt AUTHORS
 
