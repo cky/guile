@@ -17,7 +17,7 @@
  */
 
 /*
- * Copied from gc5.2, files "os_dep.c", "gc_priv.h"and "gcconfig.h",
+ * Copied from gc5.2, files "os_dep.c", "gc_priv.h", "mark.c" and "gcconfig.h",
  * and modified for Guile by Marius Vollmer.  
  */
 
@@ -44,6 +44,32 @@ typedef long GC_signed_word;
 
 typedef GC_word word;
 typedef GC_signed_word signed_word;
+
+typedef int GC_bool;
+# define TRUE 1
+# define FALSE 0
+
+#if defined(__STDC__)
+#   include <stdlib.h>
+#   if !(defined( sony_news ) )
+#       include <stddef.h>
+#   endif
+#   define VOLATILE volatile
+#else
+#   ifdef MSWIN32
+#   	include <stdlib.h>
+#   endif
+#   define VOLATILE
+#endif
+
+/* Single argument version, robust against whole program analysis. */
+static void GC_noop1(x)
+word x;
+{
+    static VOLATILE word sink;
+
+    sink = x;
+}
 
 /* Machine dependent parameters.  Some tuning parameters can be found	*/
 /* near the top of gc_private.h.					*/
