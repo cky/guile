@@ -710,7 +710,7 @@ scm_init_async ()
 {
   SCM a_thunk;
   scm_tc16_async = scm_newsmob (&async_smob);
-  symbol_signal = SCM_CAR (scm_sysintern ("signal", strlen ("signal")));
+  symbol_signal = SCM_CAR (scm_sysintern ("signal", SCM_UNDEFINED));
   scm_permanent_object (symbol_signal);
 
   /* These are in the opposite order of delivery priortity. 
@@ -738,7 +738,7 @@ scm_init_async ()
   a_thunk = scm_make_gsubr ("%alrm-thunk", 0, 0, 0, scm_sys_alrm_async_thunk);
   system_signal_asyncs[SCM_SIG_ORD(SCM_ALRM_SIGNAL)] = scm_system_async (a_thunk);
 
-  handler_var = scm_sysintern ("signal-handler", strlen ("signal"));
+  handler_var = scm_sysintern ("signal-handler", SCM_UNDEFINED);
   SCM_SETCDR (handler_var, SCM_BOOL_F);
   scm_permanent_object (handler_var);
 #include "async.x"
