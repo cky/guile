@@ -1,3 +1,16 @@
+2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Thanks to Matthias Köppe!
+
+	* configure.in: Check for rl_filename_completion_function.
+	* readline.c (s_scm_filename_completion_function): Use
+	rl_filename_completion_function instead of
+	filename_completion_function, if we have it.
+	(scm_init_readline): Use rl_compentry_func_t instead if Function
+	when _RL_FUNCTION_TYPEDEF is defined.
+
+	* readline.h (scm_clear_history): New prototype.
+	
 2001-06-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* readline.c (current_input_getc):  Mark unused parameters with

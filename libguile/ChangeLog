@@ -1,3 +1,16 @@
+2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* __scm.h (ptrdiff_t): Typedef to long when configure didn't find
+	it.
+
+	* tags.h: Include <stdint.h> when we have it.
+	(scm_bits_t): Changed to be a unsigned type.  Use uintptr_t when
+	available.  Else use "unsigned long".
+	(scm_signed_bits_t): New.
+
+	* numbers.h (SCM_SRS): Cast shiftee to scm_signed_bits_t.
+	(SCM_INUM): Cast result to scm_signed_bits_t.
+
 2001-06-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* mkstemp.c: Update path to #include file scmconfig.h.

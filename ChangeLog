@@ -1,3 +1,11 @@
+2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Check for header <stdint.h>.  Check for uintptr_t
+	type.  Use AC_CHECK_TYPES for this.  Do not caus ptrdiff_t to be
+	`#defined'.
+
+	* acconfig.h (ptrdiff_t): Removed.
+
 2001-06-05  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* configure.in: Generate examples/box-dynamic-module/Makefile.
