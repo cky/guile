@@ -44,8 +44,8 @@ SCM_API SCM scm_call_with_blocked_asyncs (SCM proc);
 SCM_API SCM scm_call_with_unblocked_asyncs (SCM proc);
 void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d);
 void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
-void scm_with_blocked_asyncs (void);
-void scm_with_unblocked_asyncs (void);
+void scm_frame_block_asyncs (void);
+void scm_frame_unblock_asyncs (void);
 SCM_API void scm_init_async (void);
 
 #if (SCM_ENABLE_DEPRECATED == 1)

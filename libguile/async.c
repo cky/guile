@@ -365,20 +365,20 @@ scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
 }
 
 void
-scm_with_blocked_asyncs ()
+scm_frame_block_asyncs ()
 {
-  scm_on_rewind (increase_block, NULL, SCM_F_WIND_EXPLICITLY);
-  scm_on_unwind (decrease_block, NULL, SCM_F_WIND_EXPLICITLY);
+  scm_frame_rewind (increase_block, NULL, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind (decrease_block, NULL, SCM_F_WIND_EXPLICITLY);
 }
 
 void
-scm_with_unblocked_asyncs ()
+scm_frame_unblock_asyncs ()
 {
   if (scm_root->block_asyncs == 0)
     scm_misc_error ("scm_with_unblocked_asyncs", 
 		    "asyncs already unblocked", SCM_EOL);
-  scm_on_rewind (decrease_block, NULL, SCM_F_WIND_EXPLICITLY);
-  scm_on_unwind (increase_block, NULL, SCM_F_WIND_EXPLICITLY);
+  scm_frame_rewind (decrease_block, NULL, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind (increase_block, NULL, SCM_F_WIND_EXPLICITLY);
 }
 
 
