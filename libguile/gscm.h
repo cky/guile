@@ -201,7 +201,7 @@
 /* {I/O}
  */
 
-#define gscm_print_obj			scm_iprin1
+#define gscm_print_obj			scm_prin1
 #define gscm_putc			scm_putc
 #define gscm_puts			scm_puts
 #define gscm_fwrite			scm_fwrite
