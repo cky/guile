@@ -1,3 +1,25 @@
+Wed Aug  7 14:14:46 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* Makefile.in (ancillary): Drop def.sed.
+
+	* posix.c (scm_init_posix): Use numeric values, rather than
+	CPP symbols, when defining the scheme values R_OK, W_OK, X_OK, and
+	F_OK.  The symbols aren't available on some systems, and I'm
+	pretty sure their values are fixed by common widespread practice.
+	* ioext.c (scm_init_ioext): Code here defined them too; remove it.
+
+	More functions unavailable on some systems.
+	* configure.in (AC_CHECK_FUNCS): Add ctermid, setpgid, setsid,
+	tcgetpgrp, tcsetpgrp, and waitpid to the list of functions to
+	check for.
+	* configure, scmconfig.h.in: Updated, using autoconf and autoheader.
+	* posix.c (scm_sys_ctermid, scm_sys_setpgid, scm_sys_setsid,
+	scm_sys_tcgetpgrp, scm_sys_tcsetpgrp, scm_sys_waitpid): Put the
+	bodies of these functions in "#ifdef HAVE_MUMBLE" clauses, with a
+	stub that signals an error as the #else.
+
+	* Makefile.in (ancillary): Drop acconfig-1.5.h; add acconfig.h.
+
 Wed Aug  7 06:28:42 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* Fixes motivated by Petr Adamek <adamek@mit.edu>:
@@ -28,8 +50,8 @@ Wed Aug  7 06:28:42 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* gc.c: include <malloc.h> not "malloc.h", likewise for unistd.h.
 
-	* async.c, strings.h, strports.c, struct.c, symbols.c, feature.c, genio.c, simpos.c, vports.c:
-	include string.h.
+	* async.c, strings.h, strports.c, struct.c, symbols.c, feature.c,
+	genio.c, simpos.c, vports.c: include string.h.
 
 	* socket.c, fdsocket.c: include string.h only if HAVE_STRING_H.
 
