@@ -1,5 +1,7 @@
 2001-04-22  Gary Houston  <ghouston@arglist.com>
 
+	* socket.c: attempted to improve the docstrings slightly.
+
 	* net_db.c: remove bogus "close" declaration.
 	(inet_aton declaration, scm_inet_aton, scm_inet_ntoa,
 	scm_inet_netof, scm_lnaof, scm_inet_makeaddr, INADDR_ANY etc.):

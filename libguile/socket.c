@@ -83,60 +83,60 @@
 
 
 SCM_DEFINE (scm_htons, "htons", 1, 0, 0, 
-            (SCM in),
-	    "Return a new integer from @var{value} by converting from host\n"
-	    "to network order. @var{value} must be within the range of a C\n"
-	    "unsigned short integer.")
+            (SCM value),
+	    "Convert a 16 bit quantity from host to network byte ordering.\n"
+	    "@var{value} is packed into 2 bytes, which are then converted\n"
+	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_htons
 {
   unsigned short c_in;
 
-  SCM_VALIDATE_INUM_COPY (1,in,c_in);
-  if (c_in != SCM_INUM (in))
-    SCM_OUT_OF_RANGE (1,in);
+  SCM_VALIDATE_INUM_COPY (1, value, c_in);
+  if (c_in != SCM_INUM (value))
+    SCM_OUT_OF_RANGE (1, value);
 
   return SCM_MAKINUM (htons (c_in));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_ntohs, "ntohs", 1, 0, 0, 
-            (SCM in),
-	    "Return a new integer from @var{value} by converting from\n"
-	    "network to host order.  @var{value} must be within the range of\n"
-	    "a C unsigned short integer.")
+            (SCM value),
+	    "Convert a 16 bit quantity from network to host byte ordering.\n"
+	    "@var{value} is packed into 2 bytes, which are then converted\n"
+	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_ntohs
 {
   unsigned short c_in;
 
-  SCM_VALIDATE_INUM_COPY (1,in,c_in);
-  if (c_in != SCM_INUM (in))
-    SCM_OUT_OF_RANGE (1,in);
+  SCM_VALIDATE_INUM_COPY (1, value, c_in);
+  if (c_in != SCM_INUM (value))
+    SCM_OUT_OF_RANGE (1, value);
 
   return SCM_MAKINUM (ntohs (c_in));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_htonl, "htonl", 1, 0, 0, 
-            (SCM in),
-	    "Return a new integer from @var{value} by converting from host\n"
-	    "to network order. @var{value} must be within the range of a\n"
-	    "32 bit unsigned integer.")
+            (SCM value),
+	    "Convert a 32 bit quantity from host to network byte ordering.\n"
+	    "@var{value} is packed into 4 bytes, which are then converted\n"
+	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_htonl
 {
-  uint32_t c_in = SCM_NUM2ULONG (1, in);
+  uint32_t c_in = SCM_NUM2ULONG (1, value);
 
   return scm_ulong2num (htonl (c_in));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0, 
-            (SCM in),
-	    "Return a new integer from @var{value} by converting from\n"
-	    "network to host order. @var{value} must be within the range of\n"
-	    "a 32 bit unsigned integer.")
+            (SCM value),
+	    "Convert a 32 bit quantity from network to host byte ordering.\n"
+	    "@var{value} is packed into 4 bytes, which are then converted\n"
+	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_ntohl
 {
-  uint32_t c_in = SCM_NUM2ULONG (1, in);
+  uint32_t c_in = SCM_NUM2ULONG (1, value);
 
   return scm_ulong2num (ntohl (c_in));
 }
@@ -149,8 +149,8 @@ extern int inet_aton ();
 
 SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
             (SCM address),
-	    "Converts a string containing an Internet host address in the\n"
-	    "traditional dotted decimal notation into an integer.\n"
+	    "Convert an IPv4 Internet address from printable string\n"
+	    "(dotted decimal notation) to an integer.  E.g.,\n\n"
 	    "@lisp\n"
 	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n"
 	    "@end lisp")
@@ -169,8 +169,8 @@ SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0,
 
 SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
             (SCM inetid),
-	    "Converts an integer Internet host address into a string with\n"
-	    "the traditional dotted decimal representation.\n"
+	    "Convert an IPv4 Internet address to a printable\n"
+	    "(dotted decimal notation) string.  E.g.,\n\n"
 	    "@lisp\n"
 	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\"\n"
 	    "@end lisp")
@@ -189,8 +189,8 @@ SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
 #ifdef HAVE_INET_NETOF
 SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0, 
             (SCM address),
-	    "Return the network number part of the given integer Internet\n"
-	    "address.\n"
+	    "Return the network number part of the given IPv4\n"
+	    "Internet address.  E.g.,\n\n"
 	    "@lisp\n"
 	    "(inet-netof 2130706433) @result{} 127\n"
 	    "@end lisp")
@@ -207,7 +207,8 @@ SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0,
 SCM_DEFINE (scm_lnaof, "inet-lnaof", 1, 0, 0, 
             (SCM address),
 	    "Return the local-address-with-network part of the given\n"
-	    "Internet address.\n"
+	    "IPv4 Internet address, using the obsolete class A/B/C system.\n"
+	    "E.g.,\n\n"
 	    "@lisp\n"
 	    "(inet-lnaof 2130706433) @result{} 1\n"
 	    "@end lisp")
@@ -223,9 +224,9 @@ SCM_DEFINE (scm_lnaof, "inet-lnaof", 1, 0, 0,
 #ifdef HAVE_INET_MAKEADDR
 SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
             (SCM net, SCM lna),
-	    "Makes an Internet host address by combining the network number\n"
+	    "Make an IPv4 Internet address by combining the network number\n"
 	    "@var{net} with the local-address-within-network number\n"
-	    "@var{lna}.\n"
+	    "@var{lna}.  E.g.,\n\n"
 	    "@lisp\n"
 	    "(inet-makeaddr 127 1) @result{} 2130706433\n"
 	    "@end lisp")
@@ -242,6 +243,8 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
 }
 #undef FUNC_NAME
 #endif
+
+#ifdef AF_INET6
 
 /* flip a 128 bit IPv6 address between host and network order.  */
 #ifdef WORDS_BIGENDIAN
@@ -336,10 +339,11 @@ static void ipv6_num_to_net (SCM src, char *dst)
 #ifdef HAVE_INET_PTON
 SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
             (SCM family, SCM address),
-	    "Convert a printable string network address into\n"
-	    "an integer.  Note that unlike the C version of this function,\n"
+	    "Convert a string containing a printable network address to\n"
+	    "an integer address.  Note that unlike the C version of this\n"
+	    "function,\n"
 	    "the result is an integer with normal host byte ordering.\n"
-	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  e.g.,\n"
+	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,\n\n"
 	    "@lisp\n"
 	    "(inet-pton AF_INET "127.0.0.1") @result{} 2130706433\n"
 	    "(inet-pton AF_INET6 "::1") @result{} 1\n"
@@ -370,10 +374,10 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
 #ifdef HAVE_INET_NTOP
 SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
             (SCM family, SCM address),
-	    "Convert an integer network address into a printable string.\n"
+	    "Convert a network address into a printable string.\n"
 	    "Note that unlike the C version of this function,\n"
 	    "the input is an integer with normal host byte ordering.\n"
-	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  e.g.,\n"
+	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,\n\n"
 	    "@lisp\n"
 	    "(inet-ntop AF_INET 2130706433) @result{} "127.0.0.1"\n"
 	    "(inet-ntop AF_INET6 (- (expt 2 128) 1)) @result{}\n"
@@ -405,6 +409,8 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
 #undef FUNC_NAME
 #endif
 
+#endif  /* AF_INET6 */
+
 SCM_SYMBOL (sym_socket, "socket");
 
 #define SCM_SOCK_FD_TO_PORT(fd) scm_fdes_to_port (fd, "r+0", sym_socket)
@@ -412,16 +418,14 @@ SCM_SYMBOL (sym_socket, "socket");
 SCM_DEFINE (scm_socket, "socket", 3, 0, 0,
             (SCM family, SCM style, SCM proto),
 	    "Return a new socket port of the type specified by @var{family},\n"
-	    "@var{style} and @var{protocol}.  All three parameters are\n"
+	    "@var{style} and @var{proto}.  All three parameters are\n"
 	    "integers.  Supported values for @var{family} are\n"
 	    "@code{AF_UNIX}, @code{AF_INET} and @code{AF_INET6}.\n"
 	    "Typical values for @var{style} are @code{SOCK_STREAM},\n"
-	    "@code{SOCK_DGRAM} and @code{SOCK_RAW}.\n"
-	    "\n"
-	    "@var{protocol} can be obtained from a protocol name using\n"
+	    "@code{SOCK_DGRAM} and @code{SOCK_RAW}.\n\n"
+	    "@var{proto} can be obtained from a protocol name using\n"
 	    "@code{getprotobyname}.  A value of zero specifies the default\n"
-	    "protocol, which is usually right.\n"
-	    "\n"
+	    "protocol, which is usually right.\n\n"
 	    "A single socket port cannot by used for communication until it\n"
 	    "has been connected to another socket.")
 #define FUNC_NAME s_scm_socket
@@ -442,10 +446,10 @@ SCM_DEFINE (scm_socket, "socket", 3, 0, 0,
 SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
             (SCM family, SCM style, SCM proto),
 	    "Return a pair of connected (but unnamed) socket ports of the\n"
-	    "type specified by @var{family}, @var{style} and @var{protocol}.\n"
+	    "type specified by @var{family}, @var{style} and @var{proto}.\n"
 	    "Many systems support only socket pairs of the @code{AF_UNIX}\n"
 	    "family.  Zero is likely to be the only meaningful value for\n"
-	    "@var{protocol}.")
+	    "@var{proto}.")
 #define FUNC_NAME s_scm_socketpair
 {
   int fam;
@@ -468,12 +472,11 @@ SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
 SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
             (SCM sock, SCM level, SCM optname),
 	    "Return the value of a particular socket option for the socket\n"
-	    "port @var{socket}.  @var{level} is an integer code for type of\n"
+	    "port @var{sock}.  @var{level} is an integer code for type of\n"
 	    "option being requested, e.g., @code{SOL_SOCKET} for\n"
 	    "socket-level options.  @var{optname} is an integer code for the\n"
 	    "option required and should be specified using one of the\n"
-	    "symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.\n"
-	    "\n"
+	    "symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.\n\n"
 	    "The returned value is typically an integer but @code{SO_LINGER}\n"
 	    "returns a pair of integers.")
 #define FUNC_NAME s_scm_getsockopt
@@ -534,8 +537,8 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 
 SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
             (SCM sock, SCM level, SCM optname, SCM value),
-	    "Sets the value of a particular socket option for the socket\n"
-	    "port @var{socket}.  @var{level} is an integer code for type of option\n"
+	    "Set the value of a particular socket option for the socket\n"
+	    "port @var{sock}.  @var{level} is an integer code for type of option\n"
 	    "being set, e.g., @code{SOL_SOCKET} for socket-level options.\n"
 	    "@var{optname} is an\n"
 	    "integer code for the option to set and should be specified using one of\n"
@@ -775,7 +778,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
   
 SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
             (SCM sock, SCM fam, SCM address, SCM args),
-	    "Initiates a connection from a socket using a specified address\n"
+	    "Initiate a connection from a socket using a specified address\n"
 	    "family to the address\n"
 	    "specified by @var{address} and possibly @var{args}.\n"
 	    "The format required for @var{address}\n"
@@ -819,20 +822,21 @@ SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
 
 SCM_DEFINE (scm_bind, "bind", 3, 0, 1,
             (SCM sock, SCM fam, SCM address, SCM args),
-	    "Assigns an address to the socket port @var{socket}.\n"
+	    "Assign an address to the socket port @var{sock}.\n"
 	    "Generally this only needs to be done for server sockets,\n"
 	    "so they know where to look for incoming connections.  A socket\n"
 	    "without an address will be assigned one automatically when it\n"
 	    "starts communicating.\n\n"
-	    "The format of @var{address} and @var{ARG} @dots{} depends on the family\n"
-	    "of the socket.\n\n"
+	    "The format of @var{address} and @var{args} depends\n"
+	    "on the family of the socket.\n\n"
 	    "For a socket of family @code{AF_UNIX}, only @var{address}\n"
-	    "is specified and must \n"
-	    "be a string with the filename where the socket is to be created.\n\n"
-	    "For a socket of family @code{AF_INET}, @var{address} must be an integer\n"
-	    "Internet host address and @var{arg} @dots{} must be a single integer\n"
-	    "port number.\n\n"
-	    "The values of the following variables can also be used for @var{address}:\n\n"
+	    "is specified and must be a string with the filename where\n"
+	    "the socket is to be created.\n\n"
+	    "For a socket of family @code{AF_INET}, @var{address}\n"
+	    "must be an integer IPv4 address and @var{args}\n"
+	    "must be a single integer port number.\n\n"
+	    "The values of the following variables can also be used for\n"
+	    "@var{address}:\n\n"
 	    "@defvar INADDR_ANY\n"
 	    "Allow connections from any address.\n"
 	    "@end defvar\n\n"
@@ -845,6 +849,11 @@ SCM_DEFINE (scm_bind, "bind", 3, 0, 1,
 	    "@defvar INADDR_NONE\n"
 	    "No address.\n"
 	    "@end defvar\n\n"
+	    "For a socket of family @code{AF_INET6}, @var{address}\n"
+	    "must be an integer IPv6 address and @var{args}\n"
+	    "may be up to three integers:\n"
+	    "port [flowinfo] [scope_id],\n"
+	    "where flowinfo and scope_id default to zero.\n\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_bind
 {
@@ -873,11 +882,12 @@ SCM_DEFINE (scm_bind, "bind", 3, 0, 1,
 
 SCM_DEFINE (scm_listen, "listen", 2, 0, 0,
             (SCM sock, SCM backlog),
-	    "This procedure enables @var{socket} to accept connection\n"
+	    "Enable @var{sock} to accept connection\n"
 	    "requests.  @var{backlog} is an integer specifying\n"
 	    "the maximum length of the queue for pending connections.\n"
-	    "If the queue fills, new clients will fail to connect until the\n"
-	    "server calls @code{accept} to accept a connection from the queue.\n\n"
+	    "If the queue fills, new clients will fail to connect until\n"
+	    "the server calls @code{accept} to accept a connection from\n"
+	    "the queue.\n\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_listen
 {
@@ -973,16 +983,17 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
 
 SCM_DEFINE (scm_accept, "accept", 1, 0, 0, 
             (SCM sock),
-	    "Accepts a connection on a bound, listening socket @var{socket}.  If there\n"
-	    "are no pending connections in the queue, it waits until\n"
-	    "one is available unless the non-blocking option has been set on the\n"
-	    "socket.\n\n"
+	    "Accept a connection on a bound, listening socket.\n"
+	    "If there\n"
+	    "are no pending connections in the queue, wait until\n"
+	    "one is available unless the non-blocking option has been\n"
+	    "set on the socket.\n\n"
 	    "The return value is a\n"
-	    "pair in which the CAR is a new socket port for the connection and\n"
-	    "the CDR is an object with address information about the client which\n"
-	    "initiated the connection.\n\n"
-	    "If the address is not available then the CDR will be an empty vector.\n\n"
-	    "@var{socket} does not become part of the\n"
+	    "pair in which the @emph{car} is a new socket port for the\n"
+	    "connection and\n"
+	    "the @emph{cdr} is an object with address information about the\n"
+	    "client which initiated the connection.\n\n"
+	    "@var{sock} does not become part of the\n"
 	    "connection and will continue to accept new requests.")
 #define FUNC_NAME s_scm_accept
 {
@@ -1001,24 +1012,19 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
   if (newfd == -1)
     SCM_SYSERROR;
   newsock = SCM_SOCK_FD_TO_PORT (newfd);
-  if (addr_size > 0)
-    address = scm_addr_vector (addr, FUNC_NAME);
-  else
-    address = SCM_BOOL_F;
-  
+  address = scm_addr_vector (addr, FUNC_NAME);
   return scm_cons (newsock, address);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0, 
             (SCM sock),
-	    "Return the address of @var{socket}, in the same form as the\n"
+	    "Return the address of @var{sock}, in the same form as the\n"
 	    "object returned by @code{accept}.  On many systems the address\n"
 	    "of a socket in the @code{AF_FILE} namespace cannot be read.")
 #define FUNC_NAME s_scm_getsockname
 {
   int fd;
-  SCM result;
   int addr_size = MAX_ADDR_SIZE;
   char max_addr[MAX_ADDR_SIZE];
   struct sockaddr *addr = (struct sockaddr *) max_addr;
@@ -1028,24 +1034,19 @@ SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0,
   fd = SCM_FPORT_FDES (sock);
   if (getsockname (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
-  if (addr_size > 0)
-    result = scm_addr_vector (addr, FUNC_NAME);
-  else
-    result = SCM_BOOL_F;
-  return result;
+  return scm_addr_vector (addr, FUNC_NAME);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0, 
             (SCM sock),
-	    "Return the address of the socket that the socket @var{socket}\n"
+	    "Return the address that @var{sock}\n"
 	    "is connected to, in the same form as the object returned by\n"
 	    "@code{accept}.  On many systems the address of a socket in the\n"
 	    "@code{AF_FILE} namespace cannot be read.")
 #define FUNC_NAME s_scm_getpeername
 {
   int fd;
-  SCM result;
   int addr_size = MAX_ADDR_SIZE;
   char max_addr[MAX_ADDR_SIZE];
   struct sockaddr *addr = (struct sockaddr *) max_addr;
@@ -1055,27 +1056,28 @@ SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0,
   fd = SCM_FPORT_FDES (sock);
   if (getpeername (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
-  if (addr_size > 0)
-    result = scm_addr_vector (addr, FUNC_NAME);
-  else
-    result = SCM_BOOL_F;
-  return result;
+  return scm_addr_vector (addr, FUNC_NAME);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
             (SCM sock, SCM buf, SCM flags),
-	    "Receives data from the socket port @var{socket}.  @var{socket} must already\n"
+	    "Receive data from a socket port.\n"
+	    "@var{sock} must already\n"
 	    "be bound to the address from which data is to be received.\n"
 	    "@var{buf} is a string into which\n"
-	    "the data will be written.  The size of @var{buf} limits the amount of\n"
+	    "the data will be written.  The size of @var{buf} limits\n"
+	    "the amount of\n"
 	    "data which can be received: in the case of packet\n"
-	    "protocols, if a packet larger than this limit is encountered then some data\n"
+	    "protocols, if a packet larger than this limit is encountered\n"
+	    "then some data\n"
 	    "will be irrevocably lost.\n\n"
 	    "The optional @var{flags} argument is a value or\n"
 	    "bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.\n\n"
-	    "The value returned is the number of bytes read from the socket.\n\n"
-	    "Note that the data is read directly from the socket file descriptor:\n"
+	    "The value returned is the number of bytes read from the\n"
+	    "socket.\n\n"
+	    "Note that the data is read directly from the socket file\n"
+	    "descriptor:\n"
 	    "any unread buffered port data is ignored.")
 #define FUNC_NAME s_scm_recv
 {
@@ -1098,13 +1100,17 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
 
 SCM_DEFINE (scm_send, "send", 2, 1, 0,
             (SCM sock, SCM message, SCM flags),
-	    "Transmits the string @var{message} on the socket port @var{socket}. \n"
-	    "@var{socket} must already be bound to a destination address.  The\n"
-	    "value returned is the number of bytes transmitted -- it's possible for\n"
-	    "this to be less than the length of @var{message} if the socket is\n"
-	    "set to be non-blocking.  The optional @var{flags} argument is a value or\n"
+	    "Transmit the string @var{message} on a socket port @var{sock}.\n"
+	    "@var{sock} must already be bound to a destination address.  The\n"
+	    "value returned is the number of bytes transmitted --\n"
+	    "it's possible for\n"
+	    "this to be less than the length of @var{message}\n"
+	    "if the socket is\n"
+	    "set to be non-blocking.  The optional @var{flags} argument\n"
+	    "is a value or\n"
 	    "bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.\n\n"
-	    "Note that the data is written directly to the socket file descriptor:\n"
+	    "Note that the data is written directly to the socket\n"
+	    "file descriptor:\n"
 	    "any unflushed buffered port data is ignored.")
 #define FUNC_NAME s_scm_send
 {
@@ -1127,25 +1133,23 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
 
 SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
             (SCM sock, SCM str, SCM flags, SCM start, SCM end),
-	    "Return data from the socket port @var{socket} and also\n"
+	    "Return data from the socket port @var{sock} and also\n"
 	    "information about where the data was received from.\n"
-	    "@var{socket} must already be bound to the address from which\n"
+	    "@var{sock} must already be bound to the address from which\n"
 	    "data is to be received.  @code{str}, is a string into which the\n"
 	    "data will be written.  The size of @var{str} limits the amount\n"
 	    "of data which can be received: in the case of packet protocols,\n"
 	    "if a packet larger than this limit is encountered then some\n"
-	    "data will be irrevocably lost.\n"
-	    "\n"
+	    "data will be irrevocably lost.\n\n"
 	    "The optional @var{flags} argument is a value or bitwise OR of\n"
-	    "@code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.\n"
-	    "\n"
+	    "@code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.\n\n"
 	    "The value returned is a pair: the @emph{car} is the number of\n"
 	    "bytes read from the socket and the @emph{cdr} an address object\n"
-	    "in the same form as returned by @code{accept}.\n"
-	    "\n"
+	    "in the same form as returned by @code{accept}.  The address\n"
+	    "will given as @code{#f} if not available, as is usually the\n"
+	    "case for stream sockets.\n\n"
 	    "The @var{start} and @var{end} arguments specify a substring of\n"
-	    "@var{str} to which the data should be written.\n"
-	    "\n"
+	    "@var{str} to which the data should be written.\n\n"
 	    "Note that the data is read directly from the socket file\n"
 	    "descriptor: any unread buffered port data is ignored.")
 #define FUNC_NAME s_scm_recvfrom
@@ -1178,7 +1182,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 			      addr, &addr_size));
   if (rv == -1)
     SCM_SYSERROR;
-  if (addr_size > 0 && addr->sa_family != AF_UNSPEC)
+  if (addr->sa_family != AF_UNSPEC)
     address = scm_addr_vector (addr, FUNC_NAME);
   else
     address = SCM_BOOL_F;
@@ -1189,15 +1193,22 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 
 SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
             (SCM sock, SCM message, SCM fam, SCM address, SCM args_and_flags),
-	    "Transmits the string @var{message} on the socket port @var{socket}.  The\n"
-	    "destination address is specified using the @var{family}, @var{address} and\n"
-	    "@var{arg} arguments, in a similar way to the @code{connect}\n"
-	    "procedure.  The\n"
-	    "value returned is the number of bytes transmitted -- it's possible for\n"
-	    "this to be less than the length of @var{message} if the socket is\n"
-	    "set to be non-blocking.  The optional @var{flags} argument is a value or\n"
+	    "Transmit the string @var{message} on the socket port\n"
+	    "@var{sock}.  The\n"
+	    "destination address is specified using the @var{fam},\n"
+	    "@var{address} and\n"
+	    "@var{args_and_flags} arguments, in a similar way to the\n"
+	    "@code{connect} procedure.  @var{args_and_flags} contains\n"
+	    "the usual connection arguments optionally followed by\n"
+	    "a flags argument, which is a value or\n"
 	    "bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.\n\n"
-	    "Note that the data is written directly to the socket file descriptor:\n"
+	    "The value returned is the number of bytes transmitted --\n"
+	    "it's possible for\n"
+	    "this to be less than the length of @var{message} if the\n"
+	    "socket is\n"
+	    "set to be non-blocking.\n"
+	    "Note that the data is written directly to the socket\n"
+	    "file descriptor:\n"
 	    "any unflushed buffered port data is ignored.")
 #define FUNC_NAME s_scm_sendto
 {
