@@ -23,6 +23,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/numbers.test			\
 	    tests/optargs.test			\
 	    tests/options.test			\
+	    tests/poe.test			\
 	    tests/popen.test			\
 	    tests/ports.test			\
 	    tests/posix.test			\
