@@ -131,6 +131,7 @@ scm_make_root (SCM parent)
     }
   
   root_state->active_asyncs = SCM_EOL;
+  root_state->block_asyncs = 0;
 
   SCM_REDEFER_INTS;
   SCM_NEWSMOB (root, scm_tc16_root, root_state);

@@ -109,6 +109,8 @@ typedef struct scm_root_state
 
   SCM active_asyncs;            /* The thunks to be run at the next
                                    safe point */
+  unsigned int block_asyncs;    /* Non-zero means that asyncs should 
+                                   not be run. */
 } scm_root_state;
 
 #define scm_stack_base			(scm_root->stack_base)
@@ -126,7 +128,6 @@ typedef struct scm_root_state
 #define scm_cur_outp			(scm_root->cur_outp)
 #define scm_cur_errp			(scm_root->cur_errp)
 #define scm_cur_loadp			(scm_root->cur_loadp)
-#define scm_active_asyncs               (scm_root->active_asyncs)
 
 #ifdef USE_THREADS
 #define scm_root ((scm_root_state *) SCM_THREAD_LOCAL_DATA)
