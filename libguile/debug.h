@@ -188,7 +188,7 @@ extern SCM scm_procedure_name SCM_P ((SCM proc));
 extern SCM scm_memoized_environment SCM_P ((SCM m));
 extern SCM scm_make_memoized SCM_P ((SCM exp, SCM env));
 extern SCM scm_memoized_p SCM_P ((SCM obj));
-extern SCM scm_single_step SCM_P ((SCM cont, SCM val));
+extern SCM scm_with_traps SCM_P ((SCM thunk));
 extern SCM scm_evaluator_traps SCM_P ((SCM setting));
 extern SCM scm_debug_options SCM_P ((SCM setting));
 extern SCM scm_unmemoize SCM_P ((SCM memoized));

@@ -56,6 +56,7 @@
 #include "strports.h"
 #include "read.h"
 #include "feature.h"
+#include "dynwind.h"
 
 #include "debug.h"
 
@@ -88,19 +89,43 @@ scm_debug_options (setting)
   return ans;
 }
 
-SCM_PROC (s_single_step, "single-step", 2, 0, 0, scm_single_step);
+SCM_PROC (s_with_traps, "with-traps", 1, 0, 0, scm_with_traps);
+
+static void
+with_traps_before (void *data)
+{
+  int *trap_flag = data;
+  *trap_flag = SCM_TRAPS_P;
+  SCM_TRAPS_P = 1;
+}
+
+static void
+with_traps_after (void *data)
+{
+  int *trap_flag = data;
+  SCM_TRAPS_P = *trap_flag;
+}
+
+static SCM
+with_traps_inner (void *data)
+{
+  SCM thunk = (SCM) data;
+  return scm_apply (thunk, SCM_EOL, SCM_EOL);
+}
 
 SCM
-scm_single_step (cont, val)
-     SCM cont;
-     SCM val;
+scm_with_traps (SCM thunk)
 {
-  SCM_DEFER_INTS;
-  SCM_ENTER_FRAME_P = SCM_EXIT_FRAME_P = 1;
-  SCM_RESET_DEBUG_MODE;
-  SCM_ALLOW_INTS;
-  scm_call_continuation (cont, val);
-  return SCM_BOOL_F; /* never returns */
+  int trap_flag;
+  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)),
+	      thunk,
+	      SCM_ARG1,
+	      s_with_traps);
+  return scm_internal_dynamic_wind (with_traps_before,
+				    with_traps_inner,
+				    with_traps_after,
+				    (void *) thunk,
+				    &trap_flag);
 }
 
 
