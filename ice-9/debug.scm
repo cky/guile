@@ -111,14 +111,11 @@
 (define-all)
 
 
-
-;;; A fix to get the error handling working together with the module system.
-;;;
-(variable-set! (builtin-variable 'debug-options) debug-options)
-
-
-
 ;;; {Trace}
+;;;
+;;; This code is just an experimental prototype (e. g., it is not
+;;; thread safe), but since it's at the same time useful, it's
+;;; included anyway.
 ;;;
 (define traced-procedures '())
 
@@ -161,42 +158,30 @@
 (add-hook! abort-hook (lambda () (set! trace-level 0)))
 
 (define (trace-entry key cont tail)
-  (dynamic-wind
-   (lambda ()
-     ;; We have to protect ourselves against the case that the user
-     ;; has chosen to trace a procedure used in the trace handler.
-     ;; Note that debug-disable is a very slow operation.
-     ;; This is not an ideal solution. *fixme*
-     (debug-disable 'trace))
-   (lambda ()
-     (let ((cep (current-error-port))
-	   (frame (last-stack-frame cont)))
-       (if (not tail)
-	   (set! trace-level (+ trace-level 1)))
-       (let indent ((n trace-level))
-	 (cond ((> n 1) (display "|  " cep) (indent (- n 1)))))
-       (display-application frame cep)
-       (newline cep)
-       ;; It's not necessary to call the continuation since
-       ;; execution will continue if the handler returns
-       ;(cont #f)
-       ))
-   (lambda ()
-     (debug-enable 'trace))))
+  (if (eq? (stack-id cont) 'repl-stack)
+      (let ((cep (current-error-port))
+	    (frame (last-stack-frame cont)))
+	(if (not tail)
+	    (set! trace-level (+ trace-level 1)))
+	(let indent ((n trace-level))
+	  (cond ((> n 1) (display "|  " cep) (indent (- n 1)))))
+	(display-application frame cep)
+	(newline cep)))
+  (debug-enable 'trace)
+  ;; It's not necessary to call the continuation since
+  ;; execution will continue if the handler returns
+  ;(cont #f)
+  )
 
 (define (trace-exit key cont retval)
-  (dynamic-wind
-   (lambda ()
-     (debug-disable 'trace))
-   (lambda ()
-     (let ((cep (current-error-port)))
-       (set! trace-level (- trace-level 1))
-       (let indent ((n trace-level))
-	 (cond ((> n 0) (display "|  " cep) (indent (- n 1)))))
-       (write retval cep)
-       (newline cep)))
-   (lambda ()
-     (debug-enable 'trace))))
+  (if (eq? (stack-id cont) 'repl-stack)
+      (let ((cep (current-error-port)))
+	(set! trace-level (- trace-level 1))
+	(let indent ((n trace-level))
+	  (cond ((> n 0) (display "|  " cep) (indent (- n 1)))))
+	(write retval cep)
+	(newline cep)))
+  (debug-enable 'trace))
 
 (define (display-application frame port)
   (display #\[ port)
@@ -208,6 +193,11 @@
 	  (write (car args) port)
 	  (loop (cdr args)))))
   (display #\] port))
+
+
+;;; A fix to get the error handling working together with the module system.
+;;;
+(variable-set! (builtin-variable 'debug-options) debug-options)
 
 
 

@@ -1,3 +1,9 @@
+Sat Mar  1 15:24:39 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* debug.scm (trace-entry, trace-exit): Check that we're on a repl
+ 	stack before printing traced frames; Re-enable trace flag at end
+ 	of handlers.
+
 Sat Mar  1 00:10:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* debug.scm: Add hook for reset of trace level at abort.
