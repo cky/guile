@@ -52,7 +52,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.17 2004-04-21 14:32:08 mvo Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.18 2004-07-07 12:17:41 mvo Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -432,6 +432,13 @@ system would be boring, and we do not wish to encourage people to write
 code which depends on its details anyway.  We do, however, present
 everything one need know to use Guile's data.
 
+This section is in limbo.  It used to document the 'low-level' C API
+of Guile that was used both by clients of libguile and by libguile
+itself.
+
+In the future, clients should only need to look into the sections
+@ref{Programming in C} and @ref{API Reference}.  This section will in
+the end only contain stuff about the internals of Guile.
 
 @menu
 * General Rules::               
@@ -663,25 +670,9 @@ character value.
 @node Boolean Data
 @subsubsection Booleans
 
-Here are functions and macros for operating on booleans.
-
-@deftypefn Macro SCM SCM_BOOL_T
-@deftypefnx Macro SCM SCM_BOOL_F
-The Scheme true and false values.
-@end deftypefn
-
-@deftypefn Macro int SCM_NFALSEP (@var{x})
-Convert the Scheme boolean value to a C boolean.  Since every object in
-Scheme except @code{#f} is true, this amounts to comparing @var{x} to
-@code{#f}; hence the name.
-@c Noel feels a chill here.
-@end deftypefn
-
-@deftypefn Macro SCM SCM_BOOL_NOT (@var{x})
-Return the boolean inverse of @var{x}.  If @var{x} is not a
-Scheme boolean, the result is undefined.
-@end deftypefn
-
+Booleans are represented as two specific immediate SCM values,
+@code{SCM_BOOL_T} and @code{SCM_BOOL_F}.  @xref{Booleans}, for more
+information.
 
 @node Unique Values
 @subsubsection Unique Values
