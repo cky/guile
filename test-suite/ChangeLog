@@ -1,4 +1,8 @@
-2001-02-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/alist.test:  Remove redundant test name prefix.
+
+2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* lib.scm (pass-if):  Tests shall return a boolean value.
 
