@@ -689,13 +689,37 @@ Use module system operations for all variables.
 That is, a call to `throw', `error', etc is now guaranteed to not
 return.
 
-** Bugfix for (ice-9 getopt-long)
+** Bugfixes for (ice-9 getopt-long)
 
-Parsing for options that are specified to have `optional' args now checks if
-the next element is an option instead of unconditionally taking it as the
+This module is now tested using test-suite/tests/getopt-long.test.
+The following bugs have been fixed:
+
+*** Parsing for options that are specified to have `optional' args now checks
+if the next element is an option instead of unconditionally taking it as the
 option arg.
 
-Also, this module is now tested using test-suite/tests/getopt-long.test.
+*** An error is now thrown for `--opt=val' when the option description
+does not specify `(value #t)' or `(value optional)'.  This condition used to
+be accepted w/o error, contrary to the documentation.
+
+*** The error message for unrecognized options is now more informative.
+It used to be "not a record", an artifact of the implementation.
+
+*** The error message for `--opt' terminating the arg list (no value), when
+`(value #t)' is specified, is now more informative.  It used to be "not enough
+args".
+
+*** "Clumped" single-char args now preserve trailing string, use it as arg.
+The expansion used to be like so:
+
+    ("-abc5d" "--xyz") => ("-a" "-b" "-c" "--xyz")
+
+Note that the "5d" is dropped.  Now it is like so:
+
+    ("-abc5d" "--xyz") => ("-a" "-b" "-c" "5d" "--xyz")
+
+This enables single-char options to have adjoining arguments as long as their
+constituent characters are not potential single-char options.
 
 * Changes to the C interface
 
