@@ -207,4 +207,30 @@ crash still occurs w/ "guile -s bug.scm" (cvs checkout on 2001/11/06).
 however, "guile -l bug.scm" works as expected.
 
 
+bug 10 -- embedded libltdl masks system version unconditionally
+reported-by: grib@linuxdevel.com / 2001-11-04
+fixed: not-yet
+
+Bill Gribble sez:
+> The guideline for when to use the convenience version of libltdl is
+> this:
+>
+> > In general you can safely use the convenience library in
+> > programs which don't depend on other libraries that might
+> > use libltdl too.
+>
+> So guile's use of the convenience library embodies an assumption about
+> programs which use guile: that they will not use libltdl except through
+> guile's wrapper (dynamic-link and friends).
+>
+> It seems like this is a bad assumption for guile to make, since it is
+> intended to be used as an extension language for many different kinds of
+> programs and not to put a priori restrictions on what they can do.
+> Especially when those restrictions are not documented.
+>
+> I would suggest that prior to the guile-1.6 release the use of the
+> convenience ltdl library be removed, instead depending on an installed
+> version of libltdl.
+
+
 [BUGS ends here]
