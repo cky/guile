@@ -1904,20 +1904,37 @@ dispatch:
       x = SCM_CDR (x);
 
     begin:
-      t.arg1 = x;
-      while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
+      /* If we are on toplevel with a lookup closure, we need to sync
+         with the current module. */
+      if (SCM_CONSP(env) && !SCM_CONSP(SCM_CAR(env)))
 	{
-	  if (SCM_IMP (SCM_CAR (x)))
+	  t.arg1 = x;
+	  while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
 	    {
-	      if (SCM_ISYMP (SCM_CAR (x)))
-		{
-		  x = scm_m_expand_body (x, env);
-		  goto begin;
-		}
+	      SCM_SETCAR (env, scm_current_module_lookup_closure ());
+	      SCM_CEVAL (SCM_CAR (x), env);
+	      x = t.arg1;
 	    }
-	  else
-	    SCM_CEVAL (SCM_CAR (x), env);
-	  x = t.arg1;
+	  /* once more, for the last form */
+	  SCM_SETCAR (env, scm_current_module_lookup_closure ());
+	}
+      else
+	{
+	  t.arg1 = x;
+	  while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
+	    {
+	      if (SCM_IMP (SCM_CAR (x)))
+		{
+		  if (SCM_ISYMP (SCM_CAR (x)))
+		    {
+		      x = scm_m_expand_body (x, env);
+		      goto begin;
+		    }
+		}
+	      else
+		SCM_CEVAL (SCM_CAR (x), env);
+	      x = t.arg1;
+	    }
 	}
 
     carloop:			/* scm_eval car of last form in list */
@@ -3782,7 +3799,46 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 #undef FUNC_NAME
 
 
+/* We have three levels of EVAL here:
+
+   - scm_i_eval (exp, env)
+
+     evaluates EXP in environment ENV.  ENV is a lexical environment
+     structure as used by the actual tree code evaluator.  When ENV is
+     a top-level environment, then changes to the current module are
+     tracked by modifying ENV so that it continues to be in sync with
+     the current module.
+
+   - scm_primitive_eval (exp)
+
+     evaluates EXP in the top-level environment as determined by the
+     current module.  This is done by constructing a suitable
+     environment and calling scm_i_eval.  Thus, changes to the
+     top-level module are tracked normally.
+
+   - scm_eval (exp, mod)
+
+     evaluates EXP while MOD is the current module.  Thius is done by
+     setting the current module to MOD, invoking scm_primitive_eval on
+     EXP, and then restoring the current module to the value it had
+     previously.  That is, while EXP is evaluated, changes to the
+     current module are tracked, but these changes do not persist when
+     scm_eval returns.
+
+  For each level of evals, there are two variants, distinguished by a
+  _x suffix: the ordinary variant does not modify EXP while the _x
+  variant can destructively modify EXP into something completely
+  unintelligible.  A Scheme data structure passed as EXP to one of the
+  _x variants should not ever be used again for anything.  So when in
+  doubt, use the ordinary variant.
+
+*/
+
 SCM scm_system_transformer;
+
+// XXX - scm_i_eval is meant to be useable for evaluation in
+// non-toplevel environments, for example when used by the debugger.
+// Can the system transform deal with this?
 
 SCM 
 scm_i_eval_x (SCM exp, SCM env)
@@ -3803,17 +3859,27 @@ scm_i_eval (SCM exp, SCM env)
 }
 
 SCM
-scm_eval_x (SCM exp, SCM module)
+scm_primitive_eval_x (SCM exp)
 {
-  return scm_i_eval_x (exp,
-		       scm_top_level_env (SCM_MODULE_EVAL_CLOSURE (module)));
+  SCM env = scm_top_level_env (scm_current_module_lookup_closure ());
+  return scm_i_eval_x (exp, env);
 }
+
+SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
+	    (SCM exp),
+	    "Evaluate @var{epx} in the top-level environment specified by\n"
+	    "the current module.")
+#define FUNC_NAME s_scm_primitive_eval
+{
+  SCM env = scm_top_level_env (scm_current_module_lookup_closure ());
+  return scm_i_eval (exp, env);
+}
+#undef FUNC_NAME
 
 /* Eval does not take the second arg optionally.  This is intentional
  * in order to be R5RS compatible, and to prepare for the new module
  * system, where we would like to make the choice of evaluation
- * environment explicit.
- */
+ * environment explicit.  */
 
 static void
 change_environment (void *data)
@@ -3823,22 +3889,6 @@ change_environment (void *data)
   SCM old_module = scm_current_module ();
   SCM_SETCDR (pair, old_module);
   scm_set_current_module (new_module);
-}
-
-
-static SCM
-inner_eval (void *data)
-{
-  SCM pair = SCM_PACK (data);
-  SCM exp = SCM_CAR (pair);
-  SCM env = SCM_CDR (pair);
-  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
-
-  exp = scm_copy_tree (exp);
-  if (SCM_NIMP (transformer))
-    exp = scm_apply (transformer, exp, scm_listofnull);
-
-  return SCM_XEVAL (exp, env);
 }
 
 
@@ -3852,23 +3902,46 @@ restore_environment (void *data)
   scm_set_current_module (old_module);
 }
 
+static SCM
+inner_eval_x (void *data)
+{
+  return scm_primitive_eval_x (SCM_PACK(data));
+}
+
+SCM
+scm_eval_x (SCM exp, SCM module)
+#define FUNC_NAME "eval!"
+{
+  SCM_VALIDATE_MODULE (2, module);
+
+  return scm_internal_dynamic_wind 
+    (change_environment, inner_eval_x, restore_environment,
+     (void *) SCM_UNPACK (exp),
+     (void *) SCM_UNPACK (scm_cons (module, SCM_BOOL_F)));
+}
+#undef FUNC_NAME
+
+static SCM
+inner_eval (void *data)
+{
+  return scm_primitive_eval (SCM_PACK(data));
+}
 
 SCM_DEFINE (scm_eval, "eval", 2, 0, 0, 
-           (SCM exp, SCM environment),
-	    "Evaluate @var{exp}, a list representing a Scheme expression, in the\n"
-	    "environment given by @var{environment specifier}.")
+	    (SCM exp, SCM module),
+	    "Evaluate @var{exp}, a list representing a Scheme expression,\n"
+            "in the top-level environment specified by @var{module}.\n"
+            "While @var{exp} is evaluated (using @var{primitive-eval}),\n"
+            "@var{module} is made the current module.  The current module\n"
+            "is reset to its previous value when @var{eval} returns.")
 #define FUNC_NAME s_scm_eval
 {
-  SCM env_closure;
-
-  SCM_VALIDATE_MODULE (2, environment);
-
-  env_closure = scm_top_level_env (SCM_MODULE_EVAL_CLOSURE (environment));
+  SCM_VALIDATE_MODULE (2, module);
 
   return scm_internal_dynamic_wind 
     (change_environment, inner_eval, restore_environment,
-     (void *) SCM_UNPACK (scm_cons (exp, env_closure)),
-     (void *) SCM_UNPACK (scm_cons (environment, SCM_BOOL_F)));
+     (void *) SCM_UNPACK (exp),
+     (void *) SCM_UNPACK (scm_cons (module, SCM_BOOL_F)));
 }
 #undef FUNC_NAME
 
@@ -3885,7 +3958,8 @@ SCM scm_top_level_lookup_closure_var;
 /* Avoid using this functionality altogether (except for implementing
  * libguile, where you can use scm_i_eval or scm_i_eval_x).
  *
- * Applications should use either C level scm_eval_x or Scheme scm_eval.  */
+ * Applications should use either C level scm_eval_x or Scheme
+ * scm_eval; or scm_primitive_eval_x or scm_primitive_eval.  */
 
 SCM 
 scm_eval_3 (SCM obj, int copyp, SCM env)
@@ -3898,9 +3972,11 @@ scm_eval_3 (SCM obj, int copyp, SCM env)
 
 SCM_DEFINE (scm_eval2, "eval2", 2, 0, 0,
            (SCM obj, SCM env_thunk),
-	    "Evaluate @var{exp}, a Scheme expression, in the environment designated\n"
-	    "by @var{lookup}, a symbol-lookup function.  @code{(eval exp)} is\n"
-	    "equivalent to @code{(eval2 exp *top-level-lookup-closure*)}.")
+	    "Evaluate @var{exp}, a Scheme expression, in the environment\n"
+	    "designated by @var{lookup}, a symbol-lookup function."
+	    "Do not use this version of eval, it does not play well\n"
+	    "with the module system.  Use @code{eval} or\n"
+	    "@code{primitive-eval} instead.")
 #define FUNC_NAME s_scm_eval2
 {
   return scm_i_eval (obj, scm_top_level_env (env_thunk));
