@@ -1,5 +1,16 @@
 2000-05-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.c (scm_divbigdig):  Removed outdated comment.
+
+	(scm_number_to_string, scm_string_to_number, scm_number_p,
+	scm_real_p, scm_integer_p, scm_inexact_p, scm_gr_p, scm_leq_p,
+	scm_geq_p, scm_make_rectangular, scm_make_polar,
+	scm_inexact_to_exact):  Added comments.
+
+	(add1, scm_init_numbers):  Removed add1.
+
+2000-05-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c (IS_INF):  The new test is x == x + 1.  The old test
 	x == x/2 did not work for zero values.  Thanks to Han-Wen Nienhuys
 	and Ivan Toshkov.

@@ -1689,16 +1689,8 @@ scm_mulbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn)
 }
 
 
-/* Sun's compiler complains about the fact that this function has an
-   ANSI prototype in numbers.h, but a K&R declaration here, and the
-   two specify different promotions for the third argument.  I'm going
-   to turn this into an ANSI declaration, and see if anyone complains
-   about it not being K&R.  */
-
 unsigned int
-scm_divbigdig (SCM_BIGDIG * ds,
-	       scm_sizet h,
-	       SCM_BIGDIG div)
+scm_divbigdig (SCM_BIGDIG * ds, scm_sizet h, SCM_BIGDIG div)
 {
   register unsigned long t2 = 0;
   while (h--)
@@ -2200,8 +2192,10 @@ big2str (SCM b, unsigned int radix)
 
 
 SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
-            (SCM x, SCM radix),
-	    "")
+            (SCM n, SCM radix),
+	    "Return a string holding the external representation of the\n"
+	    "number N in the given RADIX.  If N is inexact, a radix of 10\n"
+	    "will be used.")
 #define FUNC_NAME s_scm_number_to_string
 {
   int base;
@@ -2214,17 +2208,17 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
     SCM_ASSERT_RANGE (2, radix, base >= 2);
   }
 
-  if (SCM_INUMP (x)) {
+  if (SCM_INUMP (n)) {
     char num_buf [SCM_INTBUFLEN];
-    scm_sizet length = scm_iint2str (SCM_INUM (x), base, num_buf);
+    scm_sizet length = scm_iint2str (SCM_INUM (n), base, num_buf);
     return scm_makfromstr (num_buf, length, 0);
-  } else if (SCM_BIGP (x)) {
-    return big2str (x, (unsigned int) base);
-  } else if (SCM_INEXACTP (x)) {
+  } else if (SCM_BIGP (n)) {
+    return big2str (n, (unsigned int) base);
+  } else if (SCM_INEXACTP (n)) {
     char num_buf [SCM_FLOBUFLEN];
-    return scm_makfromstr (num_buf, iflo2str (x, num_buf), 0);
+    return scm_makfromstr (num_buf, iflo2str (n, num_buf), 0);
   } else {
-    SCM_WRONG_TYPE_ARG (1, x);
+    SCM_WRONG_TYPE_ARG (1, n);
   }
 }
 #undef FUNC_NAME
@@ -2778,18 +2772,24 @@ scm_istring2number (char *str, long len, long radix)
 
 
 SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
-            (SCM str, SCM radix),
-	    "")
+            (SCM string, SCM radix),
+	    "Returns a number of the maximally precise representation\n"
+	    "expressed by the given STRING. RADIX must be an exact integer,\n"
+	    "either 2, 8, 10, or 16. If supplied, RADIX is a default radix\n"
+	    "that may be overridden by an explicit radix prefix in STRING\n"
+	    "(e.g. \"#o177\"). If RADIX is not supplied, then the default\n"
+	    "radix is 10. If string is not a syntactically valid notation\n"
+	    "for a number, then `string->number' returns #f.  (r5rs)") 
 #define FUNC_NAME s_scm_string_to_number
 {
   SCM answer;
   int base;
-  SCM_VALIDATE_ROSTRING (1,str);
+  SCM_VALIDATE_ROSTRING (1,string);
   SCM_VALIDATE_INUM_MIN_DEF_COPY (2,radix,2,10,base);
-  answer = scm_istring2number (SCM_ROCHARS (str),
-			       SCM_ROLENGTH (str),
+  answer = scm_istring2number (SCM_ROCHARS (string),
+			       SCM_ROLENGTH (string),
                                base);
-  return scm_return_first (answer, str);
+  return scm_return_first (answer, string);
 }
 #undef FUNC_NAME
 /*** END strs->nums ***/
@@ -2839,46 +2839,45 @@ SCM_REGISTER_PROC (s_number_p, "number?", 1, 0, 0, scm_number_p);
 
 SCM_DEFINE (scm_number_p, "complex?", 1, 0, 0, 
             (SCM x),
-	    "")
+	    "Return #t if X is a complex number, #f else.  Note that the\n"
+	    "sets of real, rational and integer values form subsets of the\n"
+	    "set of complex numbers, i. e. the predicate will also be\n"
+	    "fulfilled if X is a real, rational or integer number.")
 #define FUNC_NAME s_scm_number_p
 {
-  if (SCM_INUMP (x))
-    return SCM_BOOL_T;
-  if (SCM_NUMP (x))
-    return SCM_BOOL_T;
-  return SCM_BOOL_F;
+  return SCM_BOOL (SCM_NUMBERP (x));
 }
 #undef FUNC_NAME
-
 
 
 SCM_REGISTER_PROC (s_real_p, "real?", 1, 0, 0, scm_real_p);
 
-
 SCM_DEFINE (scm_real_p, "rational?", 1, 0, 0, 
             (SCM x),
-	    "")
+	    "Return #t if X is a rational number, #f else.  Note that the\n"
+	    "set of integer values forms a subset of the set of rational\n"
+	    "numbers, i. e. the predicate will also be fulfilled if X is an\n"
+	    "integer number.")
 #define FUNC_NAME s_scm_real_p
 {
-  if (SCM_INUMP (x))
+  if (SCM_INUMP (x)) {
     return SCM_BOOL_T;
-  if (SCM_IMP (x))
+  } else if (SCM_IMP (x)) {
     return SCM_BOOL_F;
-  if (SCM_SLOPPY_REALP (x))
+  } else if (SCM_SLOPPY_REALP (x)) {
     return SCM_BOOL_T;
-#ifdef SCM_BIGDIG
-  if (SCM_BIGP (x))
+  } else if (SCM_BIGP (x)) {
     return SCM_BOOL_T;
-#endif
-  return SCM_BOOL_F;
+  } else {
+    return SCM_BOOL_F;
+  }
 }
 #undef FUNC_NAME
 
 
-
 SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0, 
             (SCM x),
-	    "")
+	    "Return #t if X is an integer number, #f else.")
 #define FUNC_NAME s_scm_integer_p
 {
   double r;
@@ -2886,10 +2885,8 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
     return SCM_BOOL_T;
   if (SCM_IMP (x))
     return SCM_BOOL_F;
-#ifdef SCM_BIGDIG
   if (SCM_BIGP (x))
     return SCM_BOOL_T;
-#endif
   if (!SCM_SLOPPY_INEXACTP (x))
     return SCM_BOOL_F;
   if (SCM_SLOPPY_COMPLEXP (x))
@@ -2902,10 +2899,9 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-
 SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0, 
             (SCM x),
-	    "")
+	    "Return #t if X is an inexact number, #f else.")
 #define FUNC_NAME s_scm_inexact_p
 {
   return SCM_BOOL (SCM_INEXACTP (x));
@@ -3026,7 +3022,8 @@ scm_less_p (SCM x, SCM y)
 
 SCM_DEFINE1 (scm_gr_p, ">", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "")
+	     "Return #t if the list of parameters is monotonically\n"
+	     "increasing.")
 #define FUNC_NAME s_scm_gr_p
 {
   return scm_less_p (y, x);
@@ -3036,7 +3033,8 @@ SCM_DEFINE1 (scm_gr_p, ">", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_leq_p, "<=", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "")
+	     "Return #t if the list of parameters is monotonically\n"
+	     "non-decreasing.")
 #define FUNC_NAME s_scm_leq_p
 {
   return SCM_BOOL_NOT (scm_less_p (y, x));
@@ -3046,7 +3044,8 @@ SCM_DEFINE1 (scm_leq_p, "<=", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_geq_p, ">=", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "")
+	     "Return #t if the list of parameters is monotonically\n"
+	     "non-increasing.")
 #define FUNC_NAME s_scm_geq_p
 {
   return SCM_BOOL_NOT (scm_less_p (x, y));
@@ -3877,7 +3876,7 @@ scm_two_doubles (SCM z1, SCM z2, const char *sstring, struct dpair *xy)
 
 SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
             (SCM z1, SCM z2),
-	    "")
+	    "") 
 #define FUNC_NAME s_scm_sys_expt
 {
   struct dpair xy;
@@ -3885,7 +3884,6 @@ SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
   return scm_make_real (pow (xy.x, xy.y));
 }
 #undef FUNC_NAME
-
 
 
 SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
@@ -3900,14 +3898,14 @@ SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
 #undef FUNC_NAME
 
 
-
 SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
-            (SCM z1, SCM z2),
-	    "")
+            (SCM real, SCM imaginary),
+	    "Return a complex number constructed of the given REAL and\n"
+	    "IMAGINARY parts.")
 #define FUNC_NAME s_scm_make_rectangular
 {
   struct dpair xy;
-  scm_two_doubles (z1, z2, FUNC_NAME, &xy);
+  scm_two_doubles (real, imaginary, FUNC_NAME, &xy);
   return scm_make_complex (xy.x, xy.y);
 }
 #undef FUNC_NAME
@@ -3916,7 +3914,7 @@ SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
 
 SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
             (SCM z1, SCM z2),
-	    "")
+	    "Return the complex number Z1 * e^(i * Z2).")
 #define FUNC_NAME s_scm_make_polar
 {
   struct dpair xy;
@@ -4014,7 +4012,7 @@ scm_angle (SCM z)
 
 SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0, 
             (SCM z),
-	    "")
+	    "Returns an exact number that is numerically closest to Z.")
 #define FUNC_NAME s_scm_inexact_to_exact
 {
   if (SCM_INUMP (z)) {
@@ -4284,15 +4282,6 @@ scm_num2ulong (SCM num, char *pos, const char *s_caller)
 }
 
 
-#ifndef DBL_DIG
-static void
-add1 (double f, double *fsum)
-{
-  *fsum = f + 1.0;
-}
-#endif
-
-
 void
 scm_init_numbers ()
 {
@@ -4305,13 +4294,14 @@ scm_init_numbers ()
   {				/* determine floating point precision */
     double f = 0.1;
     double fsum = 1.0 + f;
-    while (fsum != 1.0)
-      {
+    while (fsum != 1.0) {
+      if (++scm_dblprec > 20) {
+	fsum = 1.0;
+      } else {
 	f /= 10.0;
-	if (++scm_dblprec > 20)
-	  break;
-	add1 (f, &fsum);
+	fsum = f + 1.0;
       }
+    }
     scm_dblprec = scm_dblprec - 1;
   }
 #endif /* DBL_DIG */
