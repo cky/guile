@@ -22,6 +22,9 @@
 	* stime.c (_POSIX_C_SOURCE): Define to 199506L to get gmtime_r (in
 	particular on HP-UX).  Reported by Andreas Vögele.
 
+	* threads.c (scm_threads_mark_stacks): Correction sizet -> size_t.
+	Reported by Andreas Vögele.
+
 	* threads-plugin.h (SCM_MUTEX_MAXSIZE): Increase to 25*sizeof(long),
 	for the benefit of hpux11 where pthread_mutex_t is 88 bytes.  Reported
 	by Andreas Vögele.
