@@ -773,9 +773,9 @@ gc_mark_nimp:
 	    {
 	      SCM alist;
 	      alist = SCM_VELTS (ptr)[x];
-	      /* mark everything on the alist
-	       * except the keys or values, according to weak_values and weak_keys.
-	       */
+
+	      /* mark everything on the alist except the keys or
+	       * values, according to weak_values and weak_keys.  */
 	      while (   SCM_NIMP (alist)
 		     && SCM_CONSP (alist)
 		     && !SCM_GCMARKP (alist)
