@@ -1,3 +1,8 @@
+2000-10-05  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* vm/compile.scm (canon-formals): Use `values'.
+	(parse-lambda): Use `call-with-values'.
+
 2000-09-29  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* src/Makefile.am: Don't use guile-snarf to generate instruction
