@@ -8,7 +8,7 @@ Please send bug reports to bug-guile@prep.ai.mit.edu.
 
 Important Facts About Snapshots ======================================
 
-    please keep in mind that these sources are strictly experimental;
+    Please keep in mind that these sources are strictly experimental;
     they will usually not be well-tested, and may not even compile on
     some systems.  They may contain interfaces which will change.
     They will usually not be of sufficient quality for use by people

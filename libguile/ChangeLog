@@ -8,6 +8,12 @@ Tue Oct 15 05:34:10 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
  	functions, we instead let the print state reference a resizable
 	vector.
 
+Mon Oct 14 19:25:00 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* alist.c (scm_sloppy_assq, scm_sloppy_assv, scm_sloppy_assoc):
+	Don't crash when passed an improper list terminated by a
+	non-immediate value.
+
 Mon Oct 14 19:08:33 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Allocate data for structures on an eight-byte boundary, as
