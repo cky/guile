@@ -1,5 +1,5 @@
- /* Debugging extensions for Guile
- * Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000 Free Software Foundation
+/* Debugging extensions for Guile
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -543,16 +543,17 @@ SCM_SYNTAX(s_start_stack, "start-stack", scm_makacro, scm_m_start_stack);
 
 static SCM
 scm_m_start_stack (SCM exp, SCM env)
+#define FUNC_NAME s_start_stack
 {
   exp = SCM_CDR (exp);
-  SCM_ASSERT (SCM_ECONSP (exp)
-              && SCM_ECONSP (SCM_CDR (exp))
-	      && SCM_NULLP (SCM_CDDR (exp)),
-	      exp,
-	      SCM_WNA,
-	      s_start_stack);
+  if (!SCM_ECONSP (exp) 
+      || !SCM_ECONSP (SCM_CDR (exp))
+      || !SCM_NULLP (SCM_CDDR (exp)))
+    SCM_WRONG_NUM_ARGS ();
   return scm_start_stack (scm_eval_car (exp, env), SCM_CADR (exp), env);
 }
+#undef FUNC_NAME
+
 
 /* {Debug Objects}
  *

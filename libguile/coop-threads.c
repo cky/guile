@@ -47,7 +47,6 @@
 #include "libguile/validate.h"
 #include "libguile/coop-threads.h"
 #include "libguile/root.h"
-#include "libguile/strings.h"
 
 /* A counter of the current number of threads */
 size_t scm_thread_count = 0;

@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.28 2001-03-15 11:24:45 mgrabmue Exp $ */
+/* $Id: validate.h,v 1.29 2001-03-17 12:20:36 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -58,7 +58,7 @@
   do { scm_misc_error (FUNC_NAME, str, args); } while (0)
 
 #define SCM_WRONG_NUM_ARGS() \
-  do { scm_wrong_num_args (scm_makfrom0str (FUNC_NAME)); } while (0)
+  do { scm_error_num_args_subr (FUNC_NAME); } while (0)
 
 #define SCM_WRONG_TYPE_ARG(pos, obj) \
   do { scm_wrong_type_arg (FUNC_NAME, pos, obj); } while (0)

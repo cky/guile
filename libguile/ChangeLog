@@ -1,5 +1,16 @@
 2001-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* validate.h (SCM_WRONG_NUM_ARGS):  Call scm_error_num_args_subr
+	instead of scm_wrong_num_args.
+
+	* coop-threads.c:  Don't include libguile/strings.h.  (Was only
+	needed for former implementation of SCM_WRONG_NUM_ARGS.)
+
+	* debug.c (scm_m_start_stack):  Don't use SCM_ASSERT to check for
+	wrong-num-args errors.
+
+2001-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* error.[ch] (scm_error_num_args_subr):  New function.
 
 2001-03-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
