@@ -278,65 +278,16 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
 static SCM
 scm_from_ipv6 (const scm_t_uint8 *src)
 {
-  int i = 0;
-  const scm_t_uint8 *ptr = src;
-  int num_zero_bytes = 0;
-  scm_t_uint8 addr[16];
-
-  /* count leading zeros (since we know it's bigendian, they'll be first) */ 
-  while (i < 16)
-    {
-      if (*ptr) break;
-      num_zero_bytes++;
-      i++;
-    }
-
-  if (SCM_SIZEOF_UNSIGNED_LONG_LONG != 0) /* compiler should optimize this */
-    {
-      if ((16 - num_zero_bytes) <= sizeof (unsigned long long))
-        {
-          /* it fits */
-          unsigned long long x;
-          
-          FLIPCPY_NET_HOST_128(addr, src);
-#ifdef WORDS_BIGENDIAN
-          memcpy (&x, addr + (16 - sizeof (x)), sizeof (x));
-#else
-          memcpy (&x, addr, sizeof (x));
-#endif
-          return scm_from_ulong_long (x);
-        }
-    }
-  else
-    {
-      if ((16 - num_zero_bytes) <= sizeof (unsigned long))
-        {
-          /* this is just so that we use INUM where possible.  */
-          unsigned long x;
-
-          FLIPCPY_NET_HOST_128(addr, src);          
-#ifdef WORDS_BIGENDIAN
-          memcpy (&x, addr + (16 - sizeof (x)), sizeof (x));
-#else
-          memcpy (&x, addr, sizeof (x));
-#endif
-          return scm_from_ulong (x);
-        }
-    }
-  /* otherwise get the big hammer */
-  {
-    SCM result = scm_i_mkbig ();
-    
-    mpz_import (SCM_I_BIG_MPZ (result),
-                1, /* chunk */
-                1, /* big-endian chunk ordering */
-                16, /* chunks are 16 bytes long */
-                1, /* big-endian byte ordering */
-                0, /* "nails" -- leading unused bits per chunk */
-                src);
-    return scm_i_normbig (result);
-  }
-}  
+  SCM result = scm_i_mkbig ();
+  mpz_import (SCM_I_BIG_MPZ (result),
+              1,  /* chunk */
+              1,  /* big-endian chunk ordering */
+              16, /* chunks are 16 bytes long */
+              1,  /* big-endian byte ordering */
+              0,  /* "nails" -- leading unused bits per chunk */
+              src);
+  return scm_i_normbig (result);
+}
 
 /* convert a host ordered SCM integer to a 128 bit IPv6 address in
    network order.  */
