@@ -3362,10 +3362,9 @@ scm_sum (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_difference, "-", scm_tc7_asubr, scm_difference, g_difference);
-/* "If called without arguments, 0 is returned. Otherwise the sum of\n"
- * "all but the first argument are subtracted from the first\n"
- * "argument."
- */
+/* If called with one argument @var{z1}, -@var{z1} returned. Otherwise
+ * the sum of all but the first argument are subtracted from the first
+ * argument.  */
 #define FUNC_NAME s_difference
 SCM
 scm_difference (SCM x, SCM y)
@@ -3643,8 +3642,9 @@ scm_num2dbl (SCM a, const char *why)
 
 
 SCM_GPROC1 (s_divide, "/", scm_tc7_asubr, scm_divide, g_divide);
-/* "Divide the first argument by the product of the remaining arguments."
- */
+/* Divide the first argument by the product of the remaining
+   arguments.  If called with one argument @var{z1}, 1/@var{z1} is
+   returned.  */
 #define FUNC_NAME s_divide
 SCM
 scm_divide (SCM x, SCM y)

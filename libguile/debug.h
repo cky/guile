@@ -187,7 +187,6 @@ extern scm_bits_t scm_tc16_memoized;
 
 
 
-extern SCM scm_eval_string (SCM str);
 extern int scm_ready_p (void);
 extern void debug_print (SCM obj);
 extern SCM scm_debug_object_p (SCM obj);
