@@ -1,3 +1,7 @@
+2004-01-23  Han-Wen Nienhuys   <hanwen@xs4all.nl>
+
+	* eval.c (m_expand_body): remove stray variable new_body.
+
 2004-01-22  Marius Vollmer  <mvo@zagadka.de>
 
 	* eval.c (m_expand_body): Rewrite the expression in place (by

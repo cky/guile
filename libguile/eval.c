@@ -932,7 +932,6 @@ m_expand_body (const SCM forms, const SCM env)
       SCM letrec_tail;
       SCM letrec_expression;
       SCM new_letrec_expression;
-      SCM new_body;
 
       SCM bindings = SCM_EOL;
       for (definition_idx = definitions;
@@ -2244,6 +2243,7 @@ unmemocar (SCM form, SCM env)
 	  env = SCM_CAAR (env);
 	  for (ir = SCM_IDIST (c); ir != 0; --ir)
 	    env = SCM_CDR (env);
+
 	  SCM_SETCAR (form, SCM_ICDRP (c) ? env : SCM_CAR (env));
 	}
       return form;
