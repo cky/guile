@@ -1017,7 +1017,7 @@
 			(commawidth (format:par pars l 3 3 "commawidth")))
 		    (if mincol
 			(let ((numlen numstr-len)) ; calc. the output len of number
-			  (if (and (memq modifier '(at colon-at)) (> number 0))
+			  (if (and (memq modifier '(at colon-at)) (>= number 0))
 			      (set! numlen (+ numlen 1)))
 			  (if (memq modifier '(colon colon-at))
 			      (set! numlen (+ (quotient (- numstr-len 
@@ -1027,7 +1027,7 @@
 			  (if (> mincol numlen)
 			      (format:out-fill (- mincol numlen) padchar))))
 		    (if (and (memq modifier '(at colon-at))
-			     (> number 0))
+			     (>= number 0))
 			(format:out-char #\+))
 		    (if (memq modifier '(colon colon-at)) ; insert comma character
 			(let ((start (remainder numstr-len commawidth))
