@@ -1,3 +1,14 @@
+2003-10-06  Marius Vollmer  <mvo@zagadka.de>
+
+	* scheme-memory.texi: Added a short explanation of the GC and the
+	conservative stack scanning.
+	(scm_gc_protect_object, scm_gc_unprotect_object,
+	scm_permanent_object): New.
+
+	* data-rep.texi, scheme-memory.texi (scm_remember_upto_here_1,
+	scm_remember_upto_here_2): Moved from data-rep.texi to
+	scheme-memory.texi.
+	
 2003-10-02  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-io.texi (String Ports): In call-with-output-string, note proc
