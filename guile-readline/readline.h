@@ -20,24 +20,36 @@
  *
  */
 
+/* SCM_RL_API is a macro prepended to all function and data definitions
+   which should be exported or imported in the resulting dynamic link
+   library in the Win32 port. */
+
+#if defined (__SCM_RL_IMPORT__)
+# define SCM_RL_API __declspec (dllimport)
+#elif defined (__SCM_RL_EXPORT__) || defined (DLL_EXPORT)
+# define SCM_RL_API __declspec (dllexport)
+#else
+# define SCM_RL_API extern
+#endif
+
 #include "libguile/__scm.h"
 
-extern scm_t_option scm_readline_opts[];
+SCM_RL_API scm_t_option scm_readline_opts[];
 
 #define SCM_HISTORY_FILE_P     scm_readline_opts[0].val
 #define SCM_HISTORY_LENGTH     scm_readline_opts[1].val
 #define SCM_READLINE_BOUNCE_PARENS scm_readline_opts[2].val
 #define SCM_N_READLINE_OPTIONS 3
 
-extern SCM scm_readline_options (SCM setting);
-extern void scm_readline_init_ports (SCM inp, SCM outp);
-extern SCM scm_readline (SCM txt, SCM inp, SCM outp, SCM read_hook);
-extern SCM scm_add_history (SCM txt);
-extern SCM scm_clear_history (void);
-extern SCM scm_read_history (SCM file);
-extern SCM scm_write_history (SCM file);
-extern SCM scm_filename_completion_function (SCM text, SCM continuep);
-extern void scm_init_readline (void);
+SCM_RL_API SCM scm_readline_options (SCM setting);
+SCM_RL_API void scm_readline_init_ports (SCM inp, SCM outp);
+SCM_RL_API SCM scm_readline (SCM txt, SCM inp, SCM outp, SCM read_hook);
+SCM_RL_API SCM scm_add_history (SCM txt);
+SCM_RL_API SCM scm_clear_history (void);
+SCM_RL_API SCM scm_read_history (SCM file);
+SCM_RL_API SCM scm_write_history (SCM file);
+SCM_RL_API SCM scm_filename_completion_function (SCM text, SCM continuep);
+SCM_RL_API void scm_init_readline (void);
 
 #ifndef HAVE_RL_CLEANUP_AFTER_SIGNAL
 void rl_cleanup_after_signal ();
