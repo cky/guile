@@ -1,3 +1,8 @@
+2003-07-08  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (delete, delete!): Add more tests.
+	(delete-duplicates, delete-duplicates!): Add tests.
+
 2003-06-21  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (truncate, round, asinh, acosh, atanh): Add some

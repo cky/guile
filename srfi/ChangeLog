@@ -1,3 +1,11 @@
+2003-07-08  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.c, srfi-1.h (scm_srfi1_delete, scm_srfi1_delete_x,
+	scm_srfi1_delete_duplicates, scm_srfi1_delete_duplicates_x): New
+	functions.  scm_srfi1_delete_x is derived from scm_delete_x.
+	* srfi-1.scm (delete, delete!, delete-duplicates, delete-duplicates!):
+	Remove.
+
 2003-06-07  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-6.scm: #:re-export open-input-string, open-output-string and
