@@ -1,3 +1,16 @@
+Sun Oct  6 03:54:59 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (load): rewritten again.
+	Append "." to the default %load-path.
+	(feature?): new function: checks for a symbol in the features list.
+	(module-local-variable): remove apparently useless (caddr (list m v
+	...))
+	(%load-announce): minor formatting change.
+	(file-exists?): use access? if posix is featured.
+	(file-is-directory?): use stat if i/o-extensions is featured.
+	(try-module-autoload module-name): use file-exists? before 
+	file-is-directory?
+
 Sat Oct  5 18:54:03 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* boot-9.scm: Added conditional loading of threads.scm.

@@ -555,28 +555,40 @@
 ;;; !!!! these should be implemented using Tcl commands, not fports.
 ;;;
 
-(define (file-exists? str)
-  ;; we don't have false-if-exception (or defmacro) yet.
-  (let ((port (catch 'system-error (lambda () (open-file str OPEN_READ))
-		     (lambda args #f))))
-    (if port (begin (close-port port) #t)
-	#f)))
+(define (feature? feature)
+  (and (memq feature *features*) #t))
 
-(define (file-is-directory? str)
-  (let ((port (catch 'system-error
-		     (lambda () (open-file (string-append str "/.")
-					   OPEN_READ))
-		     (lambda args #f))))
-    (if port (begin (close-port port) #t)
-	#f)))
+(define file-exists?
+  (if (feature? 'posix)
+      (lambda (str)
+	(access? str F_OK))
+      (lambda (str)
+	(let ((port (catch 'system-error (lambda () (open-file str OPEN_READ))
+			   (lambda args #f))))
+	  (if port (begin (close-port port) #t)
+	      #f)))))
+
+(define file-is-directory?
+  (if (feature? 'i/o-extensions)
+      (lambda (str)
+	(> (logand S_IFDIR
+		   (vector-ref (stat str) 2))
+	   0))
+      (lambda (str)
+	(display str)
+	(newline)
+	(let ((port (catch 'system-error
+			   (lambda () (open-file (string-append str "/.")
+						 OPEN_READ))
+			   (lambda args #f))))
+	  (if port (begin (close-port port) #t)
+	      #f)))))
 
 (define (has-suffix? str suffix)
   (let ((sufl (string-length suffix))
 	(sl (string-length str)))
     (and (> sl sufl)
 	 (string=? (substring str (- sl sufl) sl) suffix))))
-
-
 
 
 ;;; {Error Handling}
@@ -657,7 +669,7 @@
 	   (let ((sig-pair (assoc n signal-messages)))
 	     (scm-error 'error-signal #f 
 			(cdr (or sig-pair
-				 (cons n "Unknow signal: %s")))
+				 (cons n "Unknown signal: %s")))
 			(if sig-pair
 			    #f
 			    (list n))
@@ -821,7 +833,6 @@
 	  (display ";;; ")
 	  (display "loading ")
 	  (display file)
-	  (display "...")
 	  (newline)
 	  (force-output)))))
 
@@ -832,7 +843,6 @@
 	  (display ";;; ")
 	  (display "...loaded ")
 	  (display file)
-	  (display ".")
 	  (newline)
 	  (force-output)))))
 
@@ -857,22 +867,36 @@
 ;  #t)
 
 (define (load name)
-  (current-module)
-  (%load-announce name)
-  (cond ((and (file-exists? name)
-	      (not (file-is-directory? name)))
-	 (primitive-load name #t read-sharp)
-	 (%load-announce-win name))
-	(else
-	 (let ((name.scm (string-append name (scheme-file-suffix))))
-	   (cond ((and (not (has-suffix? name (scheme-file-suffix)))
-		       (file-exists? name.scm)
-		       (not (file-is-directory? name.scm)))
-		  (primitive-load name.scm #t read-sharp)
-		  (%load-announce-win name.scm))
-		 (else
-		  (%try-load-path name #t read-sharp)
-		  (%load-announce-win name)))))))
+  (let* ((full-path-supplied (eq? (string-ref name 0) #\/))
+	 (full-path
+	  (cond (full-path-supplied
+		 (or (and (file-exists? name)
+			  (not (file-is-directory? name))
+			  name)
+		     (and (not (has-suffix? name (scheme-file-suffix)))
+			  (let ((name.scm
+				 (string-append name
+						(scheme-file-suffix))))
+			    (and (file-exists? name.scm)
+				 (not (file-is-directory? name.scm))
+				 name.scm)))))
+		(else
+		 ;; we find name before name.scm even if the latter
+		 ;; occurs earlier in %load-path (?).
+		 (or (%search-load-path name)
+		     (and (not (has-suffix? name (scheme-file-suffix)))
+			   (%search-load-path (string-append
+					       name
+					       (scheme-file-suffix)))))))))
+    (cond (full-path
+	   (%load-announce full-path)
+	   (primitive-load full-path #t read-sharp))
+	  (else
+	   (if full-path-supplied
+	       (scm-error 'misc-error "load" "Unable to find file %S"
+			  (list name) #f)
+	       (scm-error 'misc-error "load" "Unable to find file %S in %S"
+			  (list name %load-path) #f))))))
 
 
 ;;; {Transcendental Functions}
@@ -1468,12 +1492,13 @@
 ;;; If the symbol is not found at all, return #f.
 ;;;
 (define (module-local-variable m v)
-  (caddr
-   (list m v
+;  (caddr
+;   (list m v
 	 (let ((b (module-obarray-ref (module-obarray m) v)))
 	   (or (and (variable? b) b)
 	       (and (module-binder m)
-		    ((module-binder m) m v #f)))))))
+		    ((module-binder m) m v #f)))))
+;))
 
 ;; module-variable module symbol
 ;; 
@@ -1911,7 +1936,7 @@
 (define autoloads-in-progress '())
 
 (define (try-module-autoload module-name)
-  
+
   (define (sfx name) (string-append name (scheme-file-suffix)))
   (let* ((reverse-name (reverse module-name))
 	 (name (car reverse-name))
@@ -1935,8 +1960,8 @@
 			(and (or-map (lambda (f)
 				       (let ((full (in-vicinity d f)))
 					 full
-					 (and (not (file-is-directory? full))
-					      (file-exists? full)
+					 (and (file-exists? full)
+					      (not (file-is-directory? full))
 					      (begin
 						(save-module-excursion
 						 (lambda ()
@@ -3573,3 +3598,5 @@
     (define-module (guile) :use-module (ice-9 threads)))
 
 (define-module (guile))
+
+(append! %load-path (cons "." ()))
