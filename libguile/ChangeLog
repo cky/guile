@@ -1,5 +1,9 @@
 2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* fports.[ch] (scm_file_port_p):  New primitive.
+
+2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tags.h (scm_tc16_fport, scm_tc16_strport, scm_tc16_sfport):
 	These are now defined in fports.c, strports.c and vports.c.
 

@@ -262,6 +262,10 @@ Instead, use scm_c_memq or scm_memq, scm_memv, scm_member.
 Returns a boolean indicating whether X is a port.  Equivalent to
 `(or (input-port? X) (output-port? X))'.
 
+** New function: file-port?
+
+Determines whether a given object is a port that is related to a file.
+
 ** New function: port-for-each proc
 
 Apply PROC to each port in the Guile port table in turn.  The

@@ -77,6 +77,7 @@ extern SCM scm_setvbuf (SCM port, SCM mode, SCM size);
 extern void scm_evict_ports (int fd);
 extern SCM scm_open_file (SCM filename, SCM modes);
 extern SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
+extern SCM scm_file_port_p (SCM obj);
 extern void scm_init_fports (void);
 
 #endif  /* FPORTSH */

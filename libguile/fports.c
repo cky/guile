@@ -226,6 +226,17 @@ scm_evict_ports (int fd)
     }
 }
 
+
+SCM_DEFINE (scm_file_port_p, "file-port?", 1, 0, 0,
+	    (SCM obj),
+	    "Determine whether OBJ is a port that is related to a file.")
+#define FUNC_NAME s_scm_file_port_p
+{
+  return SCM_BOOL (SCM_FPORTP (obj));
+}
+#undef FUNC_NAME
+
+
 /* scm_open_file
  * Return a new port open on a given file.
  *
