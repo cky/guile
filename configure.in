@@ -1,7 +1,7 @@
 dnl   configuration script for Guile
 dnl   Process this file with autoconf to produce configure.
 dnl
-dnl  Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+dnl  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GUILE
 dnl
@@ -535,6 +535,11 @@ AC_CHECK_LIB(crypt, crypt)
 dnl GMP tests
 AC_CHECK_LIB([gmp], [__gmpz_init], ,
   [AC_MSG_ERROR([GNU MP not found, see http://swox.com/gmp])])
+
+# mpz_import is a macro so we need to include <gmp.h>
+AC_TRY_LINK([#include <gmp.h>],
+            [mpz_import (0, 0, 0, 0, 0, 0, 0);] , ,
+  [AC_MSG_ERROR([At least GNU MP 4.1 is required, see http://swox.com/gmp])])
 
 ### Some systems don't declare some functions.  On such systems, we
 ### need to at least provide our own K&R-style declarations.
