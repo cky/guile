@@ -151,7 +151,7 @@ of symbols (names) to Scheme objects.
 An environment is a mapping from identifiers (or symbols) to locations,
 i.e., a set of bindings.
 There are top-level environments and lexical environments.
-Environment in which a lambda is excuted is remembered as part of its
+The environment in which a lambda is executed is remembered as part of its
 definition.
 
 Within a module, all bindings are visible.  Certain bindings
@@ -496,55 +496,55 @@ The following procedures are available.
 Return the module that is the @emph{current module}.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_set_current_module (SCM module)
+@deftypefn {C Procedure} SCM scm_set_current_module (SCM @var{module})
 Set the current module to @var{module} and return the previous current
 module.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_call_with_current_module (SCM module, SCM (*func)(void *), void *data)
+@deftypefn {C Procedure} SCM scm_c_call_with_current_module (SCM @var{module}, SCM (*@var{func})(void *), void *@var{data})
 Call @var{func} and make @var{module} the current module during the
 call.  The argument @var{data} is passed to @var{func}.  The return
 value of @code{scm_c_call_with_current_module} is the return value of
 @var{func}.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_lookup (const char *name)
+@deftypefn {C Procedure} SCM scm_c_lookup (const char *@var{name})
 Return the variable bound to the symbol indicated by @var{name} in the
 current module.  If there is no such binding or the symbol is not
 bound to a variable, signal an error.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_lookup (SCM name)
+@deftypefn {C Procedure} SCM scm_lookup (SCM @var{name})
 Like @code{scm_c_lookup}, but the symbol is specified directly.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_module_lookup (SCM module, const char *name)
-@deftypefnx {C Procedure} SCM scm_module_lookup (SCM module, SCM name)
+@deftypefn {C Procedure} SCM scm_c_module_lookup (SCM @var{module}, const char *@var{name})
+@deftypefnx {C Procedure} SCM scm_module_lookup (SCM @var{module}, SCM @var{name})
 Like @code{scm_c_lookup} and @code{scm_lookup}, but the specified
 module is used instead of the current one.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_define (const char *name, SCM val)
+@deftypefn {C Procedure} SCM scm_c_define (const char *@var{name}, SCM @var{val})
 Bind the symbol indicated by @var{name} to a variable in the current
 module and set that variable to @var{val}.  When @var{name} is already
 bound to a variable, use that.  Else create a new variable.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_define (SCM name, SCM val)
+@deftypefn {C Procedure} SCM scm_define (SCM @var{name}, SCM @var{val})
 Like @code{scm_c_define}, but the symbol is specified directly.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_module_define (SCM module, const char *name, SCM val)
-@deftypefnx {C Procedure} SCM scm_module_define (SCM module, SCM name, SCM val)
+@deftypefn {C Procedure} SCM scm_c_module_define (SCM @var{module}, const char *@var{name}, SCM @var{val})
+@deftypefnx {C Procedure} SCM scm_module_define (SCM @var{module}, SCM @var{name}, SCM @var{val})
 Like @code{scm_c_define} and @code{scm_define}, but the specified
 module is used instead of the current one.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_module_reverse_lookup (SCM module, SCM variable)
+@deftypefn {C Procedure} SCM scm_module_reverse_lookup (SCM @var{module}, SCM @var{variable})
 Find the symbol that is bound to @var{variable} in @var{module}.  When no such binding is found, return @var{#f}.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_define_module (const char *name, void (*init)(void *), void *data)
+@deftypefn {C Procedure} SCM scm_c_define_module (const char *@var{name}, void (*@var{init})(void *), void *@var{data})
 Define a new module named @var{name} and make it current while
 @var{init} is called, passing it @var{data}.  Return the module.
 
@@ -556,25 +556,25 @@ When there already exists a module named @var{name}, it is used
 unchanged, otherwise, an empty module is created.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_resolve_module (const char *name)
+@deftypefn {C Procedure} SCM scm_c_resolve_module (const char *@var{name})
 Find the module name @var{name} and return it.  When it has not
 already been defined, try to auto-load it.  When it can't be found
 that way either, create an empty module.  The name is interpreted as
 for @code{scm_c_define_module}.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_resolve_module (SCM name)
+@deftypefn {C Procedure} SCM scm_resolve_module (SCM @var{name})
 Like @code{scm_c_resolve_module}, but the name is given as a real list
 of symbols.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_use_module (const char *name)
+@deftypefn {C Procedure} SCM scm_c_use_module (const char *@var{name})
 Add the module named @var{name} to the uses list of the current
 module, as with @code{(use-modules @var{name})}.  The name is
 interpreted as for @code{scm_c_define_module}.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_export (const char *name, ...)
+@deftypefn {C Procedure} SCM scm_c_export (const char *@var{name}, ...)
 Add the bindings designated by @var{name}, ... to the public interface
 of the current module.  The list of names is terminated by
 @code{NULL}.
@@ -607,7 +607,7 @@ to explicitly take advantage of it from within his program?  Of course,
 many operating systems that support shared libraries do just that, and
 chances are that Guile will allow you to access this feature from within
 your Scheme programs.  As you might have guessed already, this feature
-is called @dfn{dynamic linking}@footnote{Some people also refer to the
+is called @dfn{dynamic linking}.@footnote{Some people also refer to the
 final linking stage at program startup as `dynamic linking', so if you
 want to make yourself perfectly clear, it is probably best to use the
 more technical term @dfn{dlopening}, as suggested by Gordon Matzigkeit
@@ -805,18 +805,18 @@ example, we will only implement this for the @code{j0} function.
 
 @smallexample
 #include <math.h>
-#include <guile/gh.h>
+#include <libguile.h>
 
 SCM
 j0_wrapper (SCM x)
 @{
-  return gh_double2scm (j0 (gh_scm2double (x)));
+  return scm_double2num (j0 (scm_num2dbl (x, "j0")));
 @}
 
 void
 init_math_bessel ()
 @{
-  gh_new_procedure1_0 ("j0", j0_wrapper);
+  scm_c_define_gsubr ("j0", 1, 0, 0, j0_wrapper);
 @}
 @end smallexample
 
@@ -851,24 +851,33 @@ Fun, isn't it?  But we are only half way there.  This is what
 @code{apropos} has to say about @code{j0}:
 
 @smallexample
-(apropos 'j0)
-@print{} the-root-module: j0     #<primitive-procedure j0>
+(apropos "j0")
+@print{} (guile-user): j0     #<primitive-procedure j0>
 @end smallexample
 
 As you can see, @code{j0} is contained in the root module, where all
 the other Guile primitives like @code{display}, etc live.  In general,
 a primitive is put into whatever module is the @dfn{current module} at
-the time @code{gh_new_procedure} is called.
+the time @code{scm_c_define_gsubr} is called.
 
 A compiled module should have a specially named @dfn{module init
 function}.  Guile knows about this special name and will call that
 function automatically after having linked in the shared library.  For
-our example, we add the following code to @file{bessel.c}:
+our example, we replace @code{init_math_bessel} with the following code in
+@file{bessel.c}:
 
 @smallexample
-void scm_init_math_bessel_module ()
+void
+init_math_bessel (void *unused)
 @{
-   /* contents currently unavailable.  */
+  scm_c_define_gsubr ("j0", 1, 0, 0, j0_wrapper);
+  scm_c_export ("j0", NULL);
+@}
+
+void
+scm_init_math_bessel_module ()
+@{
+  scm_c_define_module ("math bessel", init_math_bessel, NULL);   
 @}
 @end smallexample
 
@@ -877,18 +886,19 @@ The general pattern for the name of a module init function is:
 individual hierarchical components are concatenated with underscores,
 followed by @samp{_module}.
 
-After @file{libbessel.so} has been rebuild, we need to place the shared
+After @file{libbessel.so} has been rebuilt, we need to place the shared
 library into the right place.
 
 Once the module has been correctly installed, it should be possible to
 use it like this:
 
 @smallexample
+guile> (load-extension "./libbessel.so" "scm_init_math_bessel_module")
 guile> (use-modules (math bessel))
 guile> (j0 2)
 0.223890779141236
-guile> (apropos 'j0)
-@print{} bessel: j0      #<primitive-procedure j0>
+guile> (apropos "j0")
+@print{} (math bessel): j0      #<primitive-procedure j0>
 @end smallexample
 
 That's it!
