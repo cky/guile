@@ -468,6 +468,19 @@ These functions will always succeed and will always return an exact
 number.
 @end deftypefn
 
+@deftypefn {C Function} void scm_to_mpz (SCM val, mpz_t rop)
+Assign @var{val} to the multiple precision integer @var{rop}.
+@var{val} must be an exact integer, otherwise an error will be
+signalled.  @var{rop} must have been initialized with @code{mpz_init}
+before this function is called.  When @var{rop} is no longer needed
+the occupied space must be freed with @code{mpz_clear}.
+@xref{Initializing Integers,,, gmp, GNU MP Manual}, for details.
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_from_mpz_t (mpz_t val)
+Return the @code{SCM} value that represents @var{val}.
+@end deftypefn
+
 @node Reals and Rationals
 @subsubsection Real and Rational Numbers
 @tpindex Real numbers
