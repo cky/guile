@@ -256,6 +256,14 @@ default.
 
 * Changes to Scheme functions and syntax
 
+** Character classifiers work for non-ASCII characters.
+
+The predicates `char-alphabetic?', `char-numeric?',
+`char-whitespace?', `char-lower?', `char-upper?' and `char-is-both?'
+no longer check whether their arguments are ASCII characters.
+Previously, a character would only be considered alphabetic when it
+was also ASCII, for example.
+
 ** Previously deprecated Scheme functions have been removed:
 
   tag - no replacement.
