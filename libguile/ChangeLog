@@ -1,5 +1,8 @@
 Wed Apr  9 18:01:20 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* acconfig.h: Added entry for PACKAGE.
+	* scmconfig.h.in: Regenerated.
+
 	Changes to work with automake-1.1n, which has better libtool support.
 	* Makefile.am: Use lib_LTLIBRARIES instead of lib_PROGRAMS.
 	Use libguile_la_LIBADD instead of libguile_la_LDADD.  (What's the
