@@ -1,3 +1,7 @@
+Thu Sep  5 09:56:50 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* README: Doc fixes.
+
 Fri Aug 30 16:56:27 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in (TAGS): Produce a single tags file for all of Guile.
