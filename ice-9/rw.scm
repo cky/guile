@@ -24,3 +24,5 @@
 
 (define-module (ice-9 rw)
   :export (read-string!/partial))
+
+(%init-rw-builtins)
