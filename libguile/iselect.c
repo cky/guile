@@ -69,7 +69,7 @@ extern void bzero (void *, size_t);
 #if LONG_MAX >> 16 == 0
 #define SCM_NLONGBITS(p) (bc[((unsigned char *)(p))[0]]\
 			  + bc[((unsigned char *)(p))[1]])
-#elif LONG_MAX >> 32 == 0
+#elif LONG_MAX >> 32 == 0 || LONG_MAX == 2147483647L /* bug in Sun CC 4.2 */
 #define SCM_NLONGBITS(p) (bc[((unsigned char *)(p))[0]]\
 			  + bc[((unsigned char *)(p))[1]]\
 			  + bc[((unsigned char *)(p))[2]]\
@@ -83,6 +83,8 @@ extern void bzero (void *, size_t);
 			  + bc[((unsigned char *)(p))[5]]\
 			  + bc[((unsigned char *)(p))[6]]\
 			  + bc[((unsigned char *)(p))[7]])
+#else
+#error Could not determine suitable definition for SCM_NLONGBITS
 #endif
 
 #ifdef HAVE_BZERO
