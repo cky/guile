@@ -2,17 +2,17 @@
 ;;;; Martin Grabmueller, 2001-05-07
 ;;;;
 ;;;; Copyright (C) 2001 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -161,7 +161,7 @@
      (string=? "bla|delim|fasel" (string-join '("bla" "fasel") "|delim|"
 					      'infix)))
 
-  (pass-if-exception "empty list, strict infix" 
+  (pass-if-exception "empty list, strict infix"
      exception:strict-infix-grammar
      (string-join '() "|delim|" 'strict-infix))
 
@@ -1021,3 +1021,21 @@
 
   (pass-if "upcase"
     (string=? "FOO" (string-map char-upcase "foo"))))
+
+(with-test-prefix "string-for-each"
+
+  (pass-if "copy"
+     (let* ((foo "foo")
+            (bar (make-string (string-length foo)))
+            (i 0))
+       (string-for-each
+        (lambda (c) (string-set! bar i c) (set! i (1+ i))) foo)
+       (string=? foo bar)))
+
+  (pass-if "index"
+     (let* ((foo "foo")
+            (bar (make-string (string-length foo))))
+       (string-for-each-index
+        (lambda (i) (string-set! bar i (string-ref foo i))) foo)
+       (string=? foo bar))))
+
