@@ -53,13 +53,24 @@ mirror site; the canonical location is "ftp://prep.ai.mit.edu/pub/gnu".
 
 * Changes to the procedure for linking libguile with your programs
 
-** You can now use the `guile-config' utility to link against Guile.
+** You can now use the `guile-config' utility to build programs that use Guile.
 
 Guile now includes a command-line utility called `guile-config', which
-writes to its standard output a list of flags which you must pass to
-the linker to link against the Guile library.  The flags include
-'-lguile' itself, and any other libraries the Guile library depends
-upon.
+can provide information about how to compile and link programs that
+use Guile.
+
+*** `guile-config compile' prints any C compiler flags needed to use Guile.
+You should include this command's output on the command line you use
+to compile C or C++ code that #includes the Guile header files.  It's
+usually just a `-I' flag to help the compiler find the Guile headers.
+
+
+*** `guile-config link' prints any linker flags necessary to link with Guile.
+This command writes to its standard output a list of flags which you
+must pass to the linker, if you want to link your code against the
+Guile library.  The flags include '-lguile' itself, any other
+libraries the Guile library depends upon, and any `-L' flags needed to
+help the linker find those libraries.
 
 For example, here is a Makefile rule that builds a program named 'foo'
 from the object files ${FOO_OBJECTS}, and links them against Guile:
