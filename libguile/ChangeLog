@@ -1,3 +1,8 @@
+2003-02-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* debug.c (scm_procedure_source): Handle all objects for which
+	procedure? is #t.  (Thanks to Bill Schottstaedt.)
+
 2003-01-23  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* futures.c (mark_futures): Don't need to mark data of recycled

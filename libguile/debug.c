@@ -1,5 +1,5 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,6 +64,7 @@
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/fluids.h"
+#include "libguile/objects.h"
 
 #include "libguile/validate.h"
 #include "libguile/debug.h"
@@ -374,6 +375,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
 #define FUNC_NAME s_scm_procedure_source
 {
   SCM_VALIDATE_NIM (1, proc);
+ again:
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     {
@@ -387,17 +389,34 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
 						       SCM_EOL,
 						       SCM_ENV (proc))));
     }
+  case scm_tcs_struct:
+    if (!SCM_I_OPERATORP (proc))
+      break;
+    goto procprop;
+  case scm_tc7_smob:
+    if (!SCM_SMOB_DESCRIPTOR (proc).apply)
+      break;
   case scm_tcs_subrs:
 #ifdef CCLO
   case scm_tc7_cclo:
 #endif
+  procprop:
     /* It would indeed be a nice thing if we supplied source even for
        built in procedures! */
     return scm_procedure_property (proc, scm_sym_source);
+  case scm_tc7_pws:
+    {
+      SCM src = scm_procedure_property (proc, scm_sym_source);
+      if (!SCM_FALSEP (src))
+	return src;
+      proc = SCM_PROCEDURE (proc);
+      goto again;
+    }
   default:
-    SCM_WRONG_TYPE_ARG (1, proc);
-    /* not reached */
+    ;
   }
+  SCM_WRONG_TYPE_ARG (1, proc);
+  return SCM_BOOL_F; /* not reached */
 }
 #undef FUNC_NAME
 
