@@ -302,9 +302,9 @@ scm_primitive_dup (SCM fd_or_port)
   return SCM_MAKINUM (newfd);
 }
 
-SCM_PROC (s_primitive_dup2, "primitive-dup2", 2, 0, 0, scm_primitive_dup2);
+SCM_PROC (s_dup_to_fdes, "dup->fdes", 1, 1, 0, scm_dup_to_fdes);
 SCM 
-scm_primitive_dup2 (SCM fd_or_port, SCM fd)
+scm_dup_to_fdes (SCM fd_or_port, SCM fd)
 {
   int oldfd, newfd, rv;
 
@@ -314,23 +314,31 @@ scm_primitive_dup2 (SCM fd_or_port, SCM fd)
   else
     {
       SCM_ASSERT (SCM_NIMP (fd_or_port) && SCM_OPPORTP (fd_or_port),
-		  fd_or_port, SCM_ARG1, s_primitive_dup2);
+		  fd_or_port, SCM_ARG1, s_dup_to_fdes);
       oldfd = fileno ((FILE *)SCM_STREAM (fd_or_port));
       if (oldfd == -1)
-	scm_syserror (s_primitive_dup2);
+	scm_syserror (s_dup_to_fdes);
     }
-  
-  SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG2, s_primitive_dup2);
-  newfd = SCM_INUM (fd);
-  if (oldfd == newfd)
+
+  if (SCM_UNBNDP (fd))
     {
-      SCM_ALLOW_INTS;
-      return fd;
+      SCM_SYSCALL (newfd = dup (oldfd));
+      if (newfd == -1)
+	scm_syserror (s_primitive_dup);
+      fd = SCM_MAKINUM (newfd);
     }
-  scm_evict_ports (newfd);	/* see scsh manual.  */
-  SCM_SYSCALL (rv = dup2 (oldfd, newfd));
-  if (rv == -1)
-    scm_syserror (s_primitive_dup2);
+  else
+    {
+      SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG2, s_dup_to_fdes);
+      newfd = SCM_INUM (fd);
+      if (oldfd != newfd)
+	{
+	  scm_evict_ports (newfd);	/* see scsh manual.  */
+	  SCM_SYSCALL (rv = dup2 (oldfd, newfd));
+	  if (rv == -1)
+	    scm_syserror (s_dup_to_fdes);
+	}
+    }
   SCM_ALLOW_INTS;
   return fd;
 }
@@ -434,23 +442,6 @@ scm_primitive_move_to_fdes (port, fd)
   SCM_SYSCALL (close (old_fd));  
   SCM_ALLOW_INTS;
   return SCM_BOOL_T;
-}
-
-#ifdef FD_SETTER
-#define SET_FILE_FD_FIELD(F,D) ((F)->FD_SETTER = (D))
-#endif
-
-void
-scm_setfileno (fs, fd)
-     FILE *fs;
-     int fd;
-{
-#ifdef SET_FILE_FD_FIELD
-  SET_FILE_FD_FIELD(fs, fd);
-#else
-  scm_misc_error ("scm_setfileno", "Not fully implemented on this platform",
-		  SCM_EOL);
-#endif
 }
 
 /* Return a list of ports using a given file descriptor.  */

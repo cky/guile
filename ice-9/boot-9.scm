@@ -768,7 +768,7 @@
 
 (define (move->fdes fd/port fd)
   (cond ((integer? fd/port)
-	 (primitive-dup2 fd/port fd)
+	 (dup->fdes fd/port fd)
 	 (close fd/port)
 	 fd)
 	(else
@@ -782,9 +782,7 @@
 	(set-port-revealed! port (- revealed 1)))))
 
 (define (dup->port port/fd mode . maybe-fd)
-  (let ((port (fdopen (if (pair? maybe-fd)
-			  (primitive-dup2 port/fd (car maybe-fd))
-			  (primitive-dup port/fd))
+  (let ((port (fdopen (apply dup->fdes port/fd maybe-fd)
 		      mode)))
     (if (pair? maybe-fd)
 	(set-port-revealed! port 1))
@@ -795,11 +793,6 @@
 
 (define (dup->outport port/fd . maybe-fd)
   (apply dup->port port/fd "w" maybe-fd))
-
-(define (dup->fdes port/fd . maybe-fd)
-  (if (pair? maybe-fd)
-      (primitive-dup2 port/fd (car maybe-fd))
-      (primitive-dup port/fd)))
 
 (define (dup port/fd . maybe-fd)
   (if (integer? port/fd)

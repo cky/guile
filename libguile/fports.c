@@ -55,34 +55,6 @@
 scm_sizet fwrite ();
 #endif
 
-
-#ifdef __IBMC__
-#include <io.h>
-#include <direct.h>
-#else
-#ifndef MSDOS
-#ifndef ultrix
-#ifndef vms
-#ifdef _DCC
-#include <ioctl.h>
-#define setbuf(stream, buf) setvbuf(stream, buf, _IONBF, 0)
-#else
-#ifdef MWC
-#include <sys/io.h>
-#else
-#ifndef THINK_C
-#ifndef ARM_ULIB
-#include <sys/ioctl.h>
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
-
-
 /* {Ports - file ports}
  * 
  */
@@ -93,14 +65,63 @@ SCM
 scm_setbuf0 (port)
      SCM port;
 {
+  /* NOSETBUF was provided by scm to allow unbuffered ports to be
+     avoided on systems where ungetc didn't work correctly.  See
+     comment in unif.c, which seems to be the only place where it
+     could still be a problem.  */
 #ifndef NOSETBUF
-#ifndef MSDOS
-#ifndef ultrix
-  SCM_SYSCALL (setbuf ((FILE *)SCM_STREAM (port), 0););
-#endif
-#endif
+  /*  SCM_SYSCALL (setbuf ((FILE *)SCM_STREAM (port), 0);); */
+  SCM_SYSCALL (setvbuf ((FILE *)SCM_STREAM (port), 0, _IONBF, 0););
 #endif
   return SCM_UNSPECIFIED;
+}
+
+SCM_PROC (s_setvbuf, "setvbuf", 2, 1, 0, scm_setvbuf);
+SCM
+scm_setvbuf (SCM port, SCM mode, SCM size)
+{
+  int rv;
+  int cmode, csize;
+
+  SCM_ASSERT (SCM_NIMP (port) && SCM_FPORTP (port), port, SCM_ARG1, s_setvbuf);
+  SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_setvbuf);
+  if (SCM_UNBNDP (size))
+    csize = 0;
+  else
+    {
+      SCM_ASSERT (SCM_INUMP (size), size, SCM_ARG3, s_setvbuf);
+      csize = SCM_INUM (size);
+    }
+  cmode = SCM_INUM (mode);
+  if (csize == 0 && cmode == _IOFBF)
+    cmode = _IONBF;
+  SCM_DEFER_INTS;
+  SCM_SYSCALL (rv = setvbuf ((FILE *)SCM_STREAM (port), 0, cmode, csize));
+  if (rv < 0)
+    scm_syserror (s_setvbuf);
+  if (cmode == _IONBF)
+    SCM_SETCAR (port, SCM_CAR (port) | SCM_BUF0);
+  else
+    SCM_SETCAR (port, (SCM_CAR (port) & ~SCM_BUF0));
+  SCM_ALLOW_INTS;
+  return SCM_UNSPECIFIED;
+}
+
+#ifdef FD_SETTER
+#define SET_FILE_FD_FIELD(F,D) ((F)->FD_SETTER = (D))
+#endif
+
+void
+scm_setfileno (fs, fd)
+     FILE *fs;
+     int fd;
+{
+#ifdef SET_FILE_FD_FIELD
+  SET_FILE_FD_FIELD(fs, fd);
+#else
+  scm_misc_error ("scm_setfileno", "Not fully implemented on this platform",
+		  SCM_EOL);
+#endif
 }
 
 /* Move ports with the specified file descriptor to new descriptors,
@@ -283,9 +304,8 @@ scm_fgets (port)
   char *p;		/* pointer to current buffer position */
   int   i     = 0;	/* index into current buffer position */
   int   limit = 80;	/* current size of buffer */
-  int   lp;
 
-  f = SCM_STREAM (port);
+  f = (FILE *) SCM_STREAM (port);
   if (feof (f))
     return NULL;
 
@@ -447,4 +467,7 @@ void
 scm_init_fports ()
 {
 #include "fports.x"
+  scm_sysintern ("_IOFBF", SCM_MAKINUM (_IOFBF));
+  scm_sysintern ("_IOLBF", SCM_MAKINUM (_IOLBF));
+  scm_sysintern ("_IONBF", SCM_MAKINUM (_IONBF));
 }

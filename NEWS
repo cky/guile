@@ -100,18 +100,6 @@ supplied port, otherwise returns an integer file descriptor.
 Returns a new port using the new file descriptor.  MODE supplies a 
 mode string for the port (as for `open-file').
 
-** primitive-dup PORT/FD
-Performs a dup system call on the file descriptor FD, or the file
-descriptor underlying PORT and returns a new integer file descriptor.
-
-** primitive-dup2 PORT/FD NEWFD
-
-Performs a dup2 system call on the file descriptor FD, or the file
-descriptor underlying PORT, using NEWFD (an integer) as the target
-file descriptor.  Any ports using NEWFD are moved to a different file
-descriptor and have their revealed counts set to zero.  The value
-returned is NEWFD.
-
 ** port->fdes PORT
 Returns the integer file descriptor underlying PORT.  As a
 side effect the revealed count of PORT is incremented.
@@ -126,10 +114,30 @@ Returns an existing output port which has FDES as its underlying file
 descriptor, if one exists, and increments its revealed count.
 Otherwise, returns a new output port with a revealed count of 1.
 
-** setenv [NAME] [VALUE]
+** setenv NAME VALUE
 If VALUE is `#f', removes NAME from the environment.  Otherwise 
 adds the string NAME=VALUE to the environment, replacing any previous
 value for NAME.
+
+** setvbuf PORT MODE [SIZE]
+     Set the buffering mode for PORT.  MODE can be:
+    `_IONBF'
+          non-buffered
+
+    `_IOLBF'
+          line buffered
+
+    `_IOFBF'
+          block buffered, using a newly allocated buffer of SIZE bytes.
+          However if SIZE is zero or unspecified, the port will be made
+          non-buffered.
+
+     This procedure should not be used after I/O has been performed with
+     the port.
+
+     Ports are usually block buffered by default, with a default buffer
+     size.  Procedures e.g., *Note open-file: File Ports, which accept a
+     mode string allow `0' to be added to request an unbuffered port.
 
 ** primitive-exit [STATUS]
 Terminates the current process without unwinding the Scheme stack.

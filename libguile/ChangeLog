@@ -1,3 +1,23 @@
+Tue Jul 29 01:03:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ioext.h: fix up prototypes.
+	* ioext.c (scm_dup_to_fdes): renamed from scm_primitive_dup2.
+	Scheme name is now dup->fdes.
+	(scm_dup_to_fdes): make the second argument optional and
+	fold in the functionality of scm_primitive_dup.
+	(scm_primitive_dup): deleted.
+
+Mon Jul 28 05:24:42 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* fports.h (SCM_P): prototypes for scm_setvbuf, scm_setfileno.
+	* fports.c (scm_setbuf0): don't disable the setbuf if MSDOS or
+	ultrix are defined.  Use setvbuf instead of setbuf.
+	(scm_setvbuf): new procedure.
+	(scm_init_fports): intern _IOFBF, _IOLBF, _IONBF.
+	(scm_setfileno): moved from ioext.c.
+	(scm_fgets): cast SCM_STREAM to (FILE *), remove unused lp variable.
+	(top of file): Delete 25 lines of probably obsolete CPP hair for MSDOS.
+
 Sun Jul 27 10:54:01 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* fluids.c (scm_fluid_p): New function.
