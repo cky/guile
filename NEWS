@@ -52,6 +52,12 @@ The new configure option `--enable-deprecated=LEVEL' and the
 environment variable GUILE_WARN_DEPRECATED control this mechanism.
 See INSTALL and README for more information.
 
+** Guile is much more likely to work on 64-bit architectures.
+
+Guile now compiles and passes "make check" with only two UNRESOLVED GC
+cases on Alpha based machines now.  Thanks to John Goerzen for the use
+of a test machine.
+
 ** New functions: setitimer and getitimer.
 
 These implement a fairly direct interface to the libc functions of the

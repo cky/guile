@@ -1,3 +1,28 @@
+2001-09-21  Rob Browning  <rlb@defaultvalue.org>
+
+	* srfi-14.h (SCM_CHARSET_GET): need 1L, not just 1 in "<<".
+
+	* srfi-14.c (SCM_CHARSET_SET): need 1L, not just 1 in "<<".
+	(scm_char_set_hash): val needs to be long, not just unsigned.
+	(scm_char_set): need 1L, not just 1 in "<<".
+	(scm_list_to_char_set): need 1L, not just 1 in "<<".
+	(scm_list_to_char_set_x): need 1L, not just 1 in "<<".
+	(scm_list_to_char_set_x): FUNC_NAME was wrong - added a _x.
+	(scm_string_to_char_set): string length var needed to be
+	scm_sizet, not int.
+	(scm_string_to_char_set): need 1L, not just 1 in "<<".
+	(scm_string_to_char_set_x): string length var needed to be
+	scm_sizet, not int.
+	(scm_string_to_char_set_x): need 1L, not just 1 in "<<".
+	(scm_char_set_filter): need 1L, not just 1 in "<<".
+	(scm_char_set_filter_x): need 1L, not just 1 in "<<".
+	(scm_ucs_range_to_char_set): need 1L, not just 1 in "<<".
+	(scm_ucs_range_to_char_set_x): need 1L, not just 1 in "<<".
+	(scm_char_set_adjoin): need 1L, not just 1 in "<<".
+	(scm_char_set_delete): need 1L, not just 1 in "<<".
+	(scm_char_set_adjoin_x): need 1L, not just 1 in "<<".
+	(scm_char_set_delete_x): need 1L, not just 1 in "<<".
+
 2001-09-12  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-1.scm (filter): change "caller" to "filter" in check-arg-type.

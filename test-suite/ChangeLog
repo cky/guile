@@ -1,3 +1,9 @@
+2001-09-21  Rob Browning  <rlb@defaultvalue.org>
+
+	* tests/numbers.test (fixnum-bit): compute dynamically.
+
+	* tests/bit-operations.test (fixnum-bit): compute dynamically.
+
 2001-09-07  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* tests/getopt-long.test ("apples-blimps-catalexis example",

@@ -1,3 +1,23 @@
+2001-09-21  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: really add version.h
+
+	* strings.h (SCM_SET_STRING_LENGTH): coerce "l" to a long.
+	Otherwise it fails on the alpha.  However, we might rather choose
+	this size conditionally.
+
+	* numbers.c (scm_gcd): change "k" to a long from an int.
+	Otherwise it fails on the alpha.  However, we might rather choose
+	this size conditionally.
+
+	* error.c (scm_wta): coerce char* to intptr_t before int
+	assignment.
+
+	* debug.c (debugobj_print): coerce scm_intprint arg 1 to long, not
+	int.
+
+	* chars.h (SCM_MAKE_CHAR): coerce value to intptr_t.
+
 2001-09-20  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* numbers.c (scm_integer_expt): Accept inexact integer in second

@@ -66,6 +66,13 @@ that user-visible changes are reflected in NEWS.
   - rewrite core macros (define-class et al) in C
   - define C API
 
+- Compile with --enable-error-on-warning without failure.  Requires a
+  number of fixes, including num2integral.i.c and on some platforms
+  gc_os_dep.c.  Also SCM_FIXABLE etc. will produce unavoidable
+  warnings on some platforms with some vars as written now.  i.e. on
+  alphas, SCM_FIXABLE(some_int) is always true.  We need more
+  conditional compilation or similar.
+
 - Move sample .gdbinit in HACKING to somewhere more appropriate (manual?).
 
 - Make sure we have appropriate interface numbers for shared
