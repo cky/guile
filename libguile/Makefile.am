@@ -74,8 +74,7 @@ gh_test_repl_SOURCES = gh_test_repl.c
 gh_test_repl_LDADD = ${check_ldadd}
 
 EXTRA_DIST = ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-    dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
-    PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
+    dynl-vms.c DYNAMIC-LINKING cpp_signal.c cpp_errno.c cpp_err_symbols.in \
     cpp_sig_symbols.in cpp_cnvt.awk \
     coop-threads.h.cygnus coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c \
     fsu-pthreads.h
