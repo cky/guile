@@ -1,3 +1,7 @@
+2001-11-10  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* BUGS (11): New.
+
 2001-11-07  Stefan Jahn  <stefan@lkcc.org>
 
 	* configure.in: Include `win32-socket.o' in the list of object
