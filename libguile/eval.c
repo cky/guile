@@ -3550,7 +3550,7 @@ check_map_args (SCM argv,
 	scm_out_of_range (who, ve[i]);
     }
 
-  scm_remember (&argv);
+  scm_remember_upto_here_1 (argv);
 }
 
 

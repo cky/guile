@@ -349,7 +349,9 @@ extern void * scm_must_realloc (void *where,
 extern void scm_done_malloc (long size);
 extern void scm_done_free (long size);
 extern void scm_must_free (void *obj);
-extern void scm_remember (SCM * ptr);
+extern void scm_remember_upto_here_1 (SCM obj);
+extern void scm_remember_upto_here_2 (SCM obj1, SCM obj2);
+extern void scm_remember_upto_here (SCM obj1, ...);
 extern SCM scm_return_first (SCM elt, ...);
 extern int scm_return_first_int (int x, ...);
 extern SCM scm_permanent_object (SCM obj);
@@ -370,6 +372,7 @@ extern void scm_init_gc (void);
 #define SCM_CLRGC8MARK(x) SCM_CLRGCMARK (x)
 #define SCM_GCTYP16(x) SCM_TYP16 (x)
 #define SCM_GCCDR(x) SCM_CDR (x)
+extern void scm_remember (SCM * ptr);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 

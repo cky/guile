@@ -2316,12 +2316,59 @@ SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
  */
 
 
+/*
+ * If within a function you need to protect one or more scheme objects from
+ * garbage collection, pass them as parameters to one of the
+ * scm_remember_upto_here* functions below.  These functions don't do
+ * anything, but since the compiler does not know that they are actually
+ * no-ops, it will generate code that calls these functions with the given
+ * parameters.  Therefore, you can be sure that the compiler will keep those
+ * scheme values alive (on the stack or in a register) up to the point where
+ * scm_remember_upto_here* is called.  In other words, place the call to
+ * scm_remember_upt_here* _behind_ the last code in your function, that
+ * depends on the scheme object to exist.
+ *
+ * Example: We want to make sure, that the string object str does not get
+ * garbage collected during the execution of 'some_function', because
+ * otherwise the characters belonging to str would be freed and
+ * 'some_function' might access freed memory.  To make sure that the compiler
+ * keeps str alive on the stack or in a register such that it is visible to
+ * the conservative gc we add the call to scm_remember_upto_here_1 _after_ the
+ * call to 'some_function'.  Note that this would not be necessary if str was
+ * used anyway after the call to 'some_function'.
+ *   char *chars = SCM_STRING_CHARS (str);
+ *   some_function (chars);
+ *   scm_remember_upto_here_1 (str);  // str will be alive up to this point.
+ */
+
+void
+scm_remember_upto_here_1 (SCM obj)
+{
+  /* Empty.  Protects a single object from garbage collection. */
+}
+
+void
+scm_remember_upto_here_2 (SCM obj1, SCM obj2)
+{
+  /* Empty.  Protects two objects from garbage collection. */
+}
+
+void
+scm_remember_upto_here (SCM obj, ...)
+{
+  /* Empty.  Protects any number of objects from garbage collection. */
+}
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 void
 scm_remember (SCM *ptr)
 {
   /* empty */ 
 }
 
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 /*
   These crazy functions prevent garbage collection

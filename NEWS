@@ -276,6 +276,16 @@ behaviour is undefined - it may even crash or loop endlessly.  Further, for
 the case that the object is not found in the list, scm_c_memq returns #f which
 is similar to scm_memq, but different from scm_sloppy_memq's behaviour.
 
+** New functions: scm_remember_upto_here_1, scm_remember_upto_here_2, 
+scm_remember_upto_here
+
+These functions replace the function scm_remember.
+
+** Deprecated function:  scm_remember
+
+Use one of the new functions scm_remember_upto_here_1,
+scm_remember_upto_here_2 or scm_remember_upto_here instead.
+
 ** New global variable scm_gc_running_p introduced.
 
 Use this variable to find out if garbage collection is being executed.  Up to

@@ -122,7 +122,7 @@ gh_set_substr (char *src, SCM dst, int start, int len)
   
   effective_length = ((unsigned) len < dst_len) ? len : dst_len;
   memmove (dst_ptr + start, src, effective_length);
-  scm_remember (&dst);
+  scm_remember_upto_here_1 (dst);
 }
 
 /* Return the symbol named SYMBOL_STR.  */
@@ -543,8 +543,7 @@ gh_scm2newstr (SCM str, int *lenp)
 				      "gh_scm2newstr");
   /* so we copy tmp_str to ret_str, which is what we will allocate */
   memcpy (ret_str, SCM_STRING_CHARS (str), len);
-  /* from now on we don't mind if str gets GC collected. */
-  scm_remember (&str);
+  scm_remember_upto_here_1 (str);
   /* now make sure we null-terminate it */
   ret_str[len] = '\0';
 
@@ -575,7 +574,7 @@ gh_get_substr (SCM src, char *dst, int start, int len)
   effective_length = (len < src_len) ? len : src_len;
   memcpy (dst + start, SCM_STRING_CHARS (src), effective_length * sizeof (char));
   /* FIXME: must signal an error if len > src_len */
-  scm_remember (&src);
+  scm_remember_upto_here_1 (src);
 }
 
 
@@ -600,8 +599,7 @@ gh_symbol2newstr (SCM sym, int *lenp)
 				      "gh_symbol2newstr");
   /* so we copy sym to ret_str, which is what we will allocate */
   memcpy (ret_str, SCM_SYMBOL_CHARS (sym), len);
-  /* from now on we don't mind if sym gets GC collected. */
-  scm_remember (&sym);
+  scm_remember_upto_here_1 (sym);
   /* now make sure we null-terminate it */
   ret_str[len] = '\0';
 

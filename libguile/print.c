@@ -578,7 +578,7 @@ taloop:
 		  }
 	      if (pos < end)
 		scm_lfwrite (str + pos, end - pos, port);
-	      scm_remember (&exp);
+	      scm_remember_upto_here_1 (exp);
 	      if (weird)
 		scm_lfwrite ("}#", 2, port);
 	      break;
