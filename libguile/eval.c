@@ -132,20 +132,34 @@ char *alloca ();
 
 SCM_REC_MUTEX (source_mutex);
 
+
+/* Lookup a given local variable in an environment.  The local variable is
+ * given as an iloc, that is a triple <frame, binding, last?>, where frame
+ * indicates the relative number of the environment frame (counting upwards
+ * from the innermost environment frame), binding indicates the number of the
+ * binding within the frame, and last? (which is extracted from the iloc using
+ * the macro SCM_ICDRP) indicates whether the binding forms the binding at the
+ * very end of the improper list of bindings.  */
 SCM *
 scm_ilookup (SCM iloc, SCM env)
 {
-  register long ir = SCM_IFRAME (iloc);
-  register SCM er = env;
-  for (; 0 != ir; --ir)
-    er = SCM_CDR (er);
-  er = SCM_CAR (er);
-  for (ir = SCM_IDIST (iloc); 0 != ir; --ir)
-    er = SCM_CDR (er);
+  unsigned int frame_nr = SCM_IFRAME (iloc);
+  unsigned int binding_nr = SCM_IDIST (iloc);
+  SCM frames = env;
+  SCM bindings;
+ 
+  for (; 0 != frame_nr; --frame_nr)
+    frames = SCM_CDR (frames);
+
+  bindings = SCM_CAR (frames);
+  for (; 0 != binding_nr; --binding_nr)
+    bindings = SCM_CDR (bindings);
+
   if (SCM_ICDRP (iloc))
-    return SCM_CDRLOC (er);
-  return SCM_CARLOC (SCM_CDR (er));
+    return SCM_CDRLOC (bindings);
+  return SCM_CARLOC (SCM_CDR (bindings));
 }
+
 
 /* The Lookup Car Race
     - by Eva Luator
