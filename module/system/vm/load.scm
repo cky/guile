@@ -31,10 +31,7 @@
     (if (or (not (file-exists? compiled))
 	    (> (stat:mtime (stat file)) (stat:mtime (stat compiled))))
 	(compile-file-in file #f (lookup-language 'gscheme) #:O))
-    (let ((bytes (make-uniform-vector (stat:size (stat compiled)) #\a)))
-      (call-with-input-file compiled
-	(lambda (p) (uniform-vector-read! bytes p)))
-      (vm-load (the-vm) bytes))))
+    (vm-load (the-vm) (load-dumpcode compiled))))
 
 (define (file-name-full-name filename)
   (let ((oldname (and (current-load-port)

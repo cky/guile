@@ -151,7 +151,7 @@
        (let ((bytes (stack->bytes stack))
 	     (objs (map car (reverse! object-alist))))
 	 (if toplevel
-	     (make-bootcode nlocs nexts bytes)
+	     (make-dumpcode nlocs nexts bytes)
 	     (make-bytespec nargs nrest nlocs nexts bytes objs)))))))
 
 (define (stack->bytes stack)

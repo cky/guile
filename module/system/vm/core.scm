@@ -33,36 +33,47 @@
 				  (module-obarray (current-module)))))
 
 ;;;
-;;; Bootcode interface
+;;; Dumpcode interface
 ;;;
 
-(export make-bootcode bootcode? bootcode-version
-	bootcode-nlocs bootcode-nexts bootcode-bytecode)
+(export make-dumpcode dumpcode? dumpcode-version
+	dumpcode-nlocs dumpcode-nexts dumpcode-bytecode
+	load-dumpcode save-dumpcode)
 
-(define *bootcode-cookie* (string-append "\0GBC-" (vm-version)))
+(define *dumpcode-cookie* (string-append "\0GBC-" (vm-version)))
 
-(define (make-bootcode nlocs nexts bytes)
-  (string-append *bootcode-cookie*
+(define (make-dumpcode nlocs nexts bytes)
+  (string-append *dumpcode-cookie*
 		 (integer->bytes nlocs)
 		 (integer->bytes nexts)
 		 bytes))
 
-(define (bootcode? x)
+(define (dumpcode? x)
   (and (string? x)
        (> (string-length x) 10)
        (string=? (substring x 1 4) "GBC")))
 
-(define (bootcode-version x)
+(define (dumpcode-version x)
   (substring x 5 8))
 
-(define (bootcode-nlocs x)
+(define (dumpcode-nlocs x)
   (bytes->integer x 8))
 
-(define (bootcode-nexts x)
+(define (dumpcode-nexts x)
   (bytes->integer x 9))
 
-(define (bootcode-bytecode x)
+(define (dumpcode-bytecode x)
   (substring x 10))
+
+(define (load-dumpcode file)
+  (let ((bytes (make-uniform-vector (stat:size (stat file)) #\a)))
+    (call-with-input-file file
+      (lambda (p) (uniform-vector-read! bytes p)))
+    bytes))
+
+(define (save-dumpcode dump file)
+  (call-with-output-file file
+    (lambda (out) (uniform-vector-write bytes out))))
 
 (define (integer->bytes n)
   (string (integer->char n)))

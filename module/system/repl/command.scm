@@ -303,7 +303,7 @@ Generate compiled code.
   (let ((x (apply repl-compile repl form opts)))
     (cond ((or (memq :e opts) (memq :t opts)) (puts x))
 	  ((memq :c opts) (pprint-glil x))
-	  (else (disassemble-bootcode x)))))
+	  (else (disassemble-dumpcode x)))))
 
 (define (compile-file repl file . opts)
   "compile-file [options] FILE
@@ -318,7 +318,7 @@ Disassemble a program."
 (define (disassemble-file repl file)
   "disassemble-file FILE
 Disassemble a file."
-  (disassemble-bootcode
+  (disassemble-dumpcode
    (load-file-in (->string file) repl.module repl.language)))
 
 (define (->string x)

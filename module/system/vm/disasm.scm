@@ -27,15 +27,15 @@
   :use-module (ice-9 format)
   :use-module (ice-9 receive)
   :use-module (ice-9 and-let-star)
-  :export (disassemble-bootcode disassemble-program))
+  :export (disassemble-dumpcode disassemble-program))
 
-(define (disassemble-bootcode bytes . opts)
-  (if (not (bootcode? bytes)) (error "Invalid bootcode"))
-  (format #t "Disassembly of bootcode:\n\n")
-  (format #t "Compiled for Guile VM ~A\n\n" (bootcode-version bytes))
+(define (disassemble-dumpcode dumpcode . opts)
+  (if (not (dumpcode? dumpcode)) (error "Invalid dumpcode"))
+  (format #t "Disassembly of dumpcode:\n\n")
+  (format #t "Compiled for Guile VM ~A\n\n" (dumpcode-version dumpcode))
   (format #t "nlocs = ~A  nexts = ~A\n\n"
-	  (bootcode-nlocs bytes) (bootcode-nexts bytes))
-  (disassemble-bytecode (bootcode-bytecode bytes) #f))
+	  (dumpcode-nlocs dumpcode) (dumpcode-nexts dumpcode))
+  (disassemble-bytecode (dumpcode-bytecode dumpcode) #f))
 
 (define (disassemble-program prog . opts)
   (let* ((arity (program-arity prog))
@@ -63,14 +63,14 @@
 
 (define (disassemble-bytecode bytes objs)
   (let ((decode (make-byte-decoder bytes))
-	(rest '()))
+	(programs '()))
     (do ((addr+code (decode) (decode)))
 	((not addr+code) (newline))
       (receive (addr code) addr+code
 	(match code
 	  (('load-program x)
 	   (let ((sym (gensym "")))
-	     (set! rest (acons sym x rest))
+	     (set! programs (acons sym x programs))
 	     (print-info addr (format #f "load-program #~A" sym) #f)))
 	  (else
 	   (let ((info (list->info code))
@@ -79,7 +79,7 @@
     (for-each (lambda (sym+bytes)
 		(format #t "Bytecode #~A:\n\n" (car sym+bytes))
 		(disassemble-bytecode (cdr sym+bytes) #f))
-	      (reverse! rest))))
+	      (reverse! programs))))
 
 (define (disassemble-objects objs)
   (display "Objects:\n\n")
@@ -109,13 +109,6 @@
 	       ((make-false) "#f")
 	       ((object-ref)
 		(if objs (object->string (vector-ref objs (car args))) #f))
-;;;	       ((local-ref local-set)
-;;;		;;'(ref x))
-;;;		#f)
-;;;	     ((module-ref module-set)
-;;;	      (let ((var (vector-ref objs (car args))))
-;;;		(list (if (eq? inst 'module-ref) 'ref 'set)
-;;;		      (if (pair? var) (car var) var))))
 	       (else #f)))))))
 
 (define (list->info list)
