@@ -1,3 +1,11 @@
+2004-12-01  mvo  <mvo@zagadka.de>
+
+	* boot-9.scm (app, %app): Renamed former to the latter.
+	Previously, 'app' was reserved in every module.  Now '%app' is
+	reserved, which is slightly better.  The real fix is to not use
+	'local-ref' etc to find modules.  Changed all uses.
+	* syncase.scm: Changed 'app' to '%app'.
+
 2004-11-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* arrays.scm: Do not use prototypes, use creator functions.
