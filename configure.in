@@ -55,9 +55,6 @@ AC_CHECK_LIB (rx, main)
 
 # Checks for dynamic linking
 
-xtra_PLUGIN_guile_libs=""
-AC_SUBST(xtra_PLUGIN_guile_libs)
-
 AC_CHECK_LIB(m, main)
 AC_CHECK_FUNC(gethostbyname)
 if test $ac_cv_func_gethostbyname = no; then
@@ -72,12 +69,10 @@ if test "$enable_dynamic_linking" = "yes"; then
 
 AC_CHECK_LIB(dl,dlopen)
 if test "$ac_cv_lib_dl_dlopen" = "yes"; then
-  xtra_PLUGIN_guile_libs="-lguile -ldl"
   AC_DEFINE(DYNAMIC_LINKING)
 else
 AC_CHECK_LIB(dld,dld_link)
 if test "$ac_cv_lib_dld_dld_link" = "yes"; then
-  xtra_PLUGIN_guile_libs="-lguile -ldld"
   AC_DEFINE(DYNAMIC_LINKING)
 else
 AC_CHECK_FUNCS(shl_load)
