@@ -1,0 +1,13 @@
+2002-07-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* COPYING, README, Makefile.am, lib.scm, guile-benchmark:  Copied
+	from the test-suite directory, renamed and adapted for use with
+	benchmarks.
+
+	* benchmarks/logand.bm, benchmarks/continuations.bm,
+	benchmarks/if.bm:  Added as initial fairly stupid examples for
+	benchmarks.
+
+2002-07-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* Log begins.
