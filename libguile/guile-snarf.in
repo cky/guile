@@ -20,36 +20,28 @@
 
 # Commentary:
 
-# Usage: guile-snarf [-d | -D] [-o OUTFILE] INFILE [CPP-OPTIONS ...]
-#
-# Process INFILE using the C pre-processor and some other programs.
-# Write output to a file named OUTFILE or to the standard output when no
-# OUTFILE has been specified or when OUTFILE is "-".
-#
-# If there are errors during processing, delete OUTFILE and exit with
-# non-zero status.
-#
+# Usage: guile-snarf [-o OUTFILE] [CPP-ARGS ...]
+ 
+# Initialization actions are extracted to OUTFILE or to standard
+# output when no OUTFILE has been specified or when OUTFILE is "-".
+# The C preprocessor is called with CPP-ARGS (which usually include a
+# input file) and the output is filtered for the actions.
+# 
+# If there are errors during processing, OUTFILE is deleted and the
+# program exits with non-zero status.
+# 
 # During snarfing, the pre-processor macro SCM_MAGIC_SNARFER is
-# defined.
-#
-# Optional arg "-d" means grep INFILE for deprecated macros and
-# issue a warning if any are found.  Alternatively, "-D" means
-# do the same thing but signal error and exit w/ non-zero status.
-#
-# If env var CPP is set, use its value instead of the C pre-processor
-# determined at Guile configure-time: "@CPP@".
+# defined.  You can use this to avoid including snarfer output files
+# that don't yet exist by writing code like this:
+# 
+#   #ifndef SCM_MAGIC_SNARFER
+#   #include "foo.x"
+#   #endif
+# 
+# If the environment variable CPP is set, use its value instead of the
+# C pre-processor determined at Guile configure-time: "@CPP@".
 
 # Code:
-
-## config
-
-deprecated_list="
- SCM_CONST_LONG
- SCM_VCELL
- SCM_VCELL_INIT
- SCM_GLOBAL_VCELL
- SCM_GLOBAL_VCELL_INIT
-"
 
 ## funcs
 
@@ -57,25 +49,9 @@ modern_snarf ()                         # writes stdout
 {
     ## Apparently, AIX's preprocessor is unhappy if you try to #include an
     ## empty file.
-    echo "/* source: $infile */" ;
     echo "/* cpp arguments: $@ */" ;
     ${cpp} -DSCM_MAGIC_SNARF_INITS -DSCM_MAGIC_SNARFER "$@" > ${temp} && cpp_ok_p=true
     grep "^ *\^ *\^" ${temp} | sed -e "s/^ *\^ *\^//" -e "s/\^\ *:\ *\^.*/;/"
-}
-
-grep_deprecated ()                      # $1 is the filename
-{
-regexp="(^greetings!spooks!hows!life)"
-for dep in `echo $deprecated_list` ; do
-    regexp="(^${dep}[^_A-Z])|${regexp}"
-done
-egrep -n ${regexp} $1 /dev/null > ${temp}
-if [ -s ${temp} ] ; then
-    if $grep_dep_exit_p ; then hey=ERROR ; else hey=WARNING ; fi
-    echo $0: $hey: deprecated macros found:
-    sed -e 's/.clean.c:/:/g' ${temp}
-    $grep_dep_exit_p && exit 1
-fi
 }
 
 ## main
@@ -86,17 +62,10 @@ if [ x"$1" = x--help ] ; then
         | sed -e 1,2d -e 's/^. *//g'
     exit 0
 fi
-case x"$1" in x-d) grep_dep_p=true ; grep_dep_exit_p=false ; shift ;;
-              x-D) grep_dep_p=true ; grep_dep_exit_p=true  ; shift ;;
-              *)   grep_dep_p=false                                ;;
-esac
 if [ x"$1" = x-o ]
-    then outfile=$2 ; shift ; shift ; infile=$1 ; shift
-    else outfile="-"; infile=$1 ; shift 
+    then outfile="$2" ; shift ; shift ;
+    else  outfile="-" ;
 fi
-
-[ x"$infile" = x ] && { echo $0: No input file ; exit 1 ; }
-[ ! -f "$infile" ] && { echo $0: No such file: $infile ; exit 1 ; }
 
 # set vars and handler -- handle CPP override
 cpp_ok_p=false
@@ -105,14 +74,11 @@ if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
 
 trap "rm -f $temp" 0 1 2 15
 
-if [ ! "$outfile" = "-" ]; then
-    modern_snarf "$@" $infile > $outfile
+if [ ! "$outfile" = "-" ] ; then
+    modern_snarf "$@" > $outfile
 else
-    modern_snarf "$@" $infile
+    modern_snarf "$@"
 fi
-
-# grep deprecated
-$grep_dep_p && grep_deprecated $infile
 
 # zonk outfile if errors occurred
 if $cpp_ok_p ; then
