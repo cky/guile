@@ -177,9 +177,9 @@ SCM_DEFINE (scm_registered_modules, "c-registered-modules", 0, 0, 0,
             (),
 	    "Return a list of the object code modules that have been imported into\n"
 	    "the current Guile process.  Each element of the list is a pair whose\n"
-	    "car is the name of the module (as it might be used by\n"
-	    "@code{use-modules}, for instance), and whose cdr is the function handle\n"
-	    "for that module's initializer function.")
+	    "car is the name of the module, and whose cdr is the function handle\n"
+	    "for that module's initializer function.  The name is the string that\n"
+	    "has been passed to scm_register_module_xxx.")
 #define FUNC_NAME s_scm_registered_modules
 {
     SCM res;
