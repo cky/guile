@@ -83,9 +83,13 @@ display_header (source, port)
     {
       scm_prin1 (fname, port, 0);
       scm_putc (':', port);
-      scm_prin1 (scm_source_property (source, scm_i_line) + 1, port, 0);
+      scm_intprint (SCM_INUM (scm_source_property (source, scm_i_line)) + 1,
+		    10,
+		    port);
       scm_putc (':', port);
-      scm_prin1 (scm_source_property (source, scm_i_column) + 1, port, 0);
+      scm_intprint (SCM_INUM (scm_source_property (source, scm_i_column)) + 1,
+		    10,
+		    port);
     }
   else
     scm_puts ("ERROR", port);
