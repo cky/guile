@@ -234,9 +234,9 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 	    Instead of getting bogged down, we let the mtrigger grow
 	    strongly with it.
 	   */
-	  float no_overflow_trigger = (float)(scm_mallocated * 110);
+	  float no_overflow_trigger = scm_mallocated * 110.0;
 
-	  no_overflow_trigger /= (float)  (100 - scm_i_minyield_malloc);
+	  no_overflow_trigger /= (float)  (100.0 - scm_i_minyield_malloc);
 	  scm_mtrigger =  (unsigned long) no_overflow_trigger;
 	  
 #ifdef DEBUGINFO

@@ -1,3 +1,8 @@
+2002-09-09  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* gc-malloc.c (scm_gc_register_collectable_memory): more overflow
+	protection.
+
 2002-09-08  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* inline.h: include stdio.h
