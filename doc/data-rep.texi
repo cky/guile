@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.2 1998-10-15 21:48:12 jimb Exp $
+@subtitle $Id: data-rep.texi,v 1.3 1998-10-15 22:06:34 jimb Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -1647,7 +1647,7 @@ Here is a sample build and interaction with the code from the
 zwingli:example-smob$ make CC=gcc
 gcc `guile-config compile`   -c image-type.c -o image-type.o
 gcc `guile-config compile`   -c myguile.c -o myguile.o
-gcc `guile-config link` image-type.o myguile.o -o myguile
+gcc image-type.o myguile.o `guile-config link` -o myguile
 zwingli:example-smob$ ./myguile
 guile> make-image
 #<primitive-procedure make-image>
