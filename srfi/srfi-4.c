@@ -56,7 +56,7 @@ typedef unsigned short int_u16;
 typedef signed short int_s16;
 typedef unsigned int int_u32;
 typedef signed int int_s32;
-#if HAVE_LONG_LONGS
+#ifdef HAVE_LONG_LONG
 #if SIZEOF_LONG == 8
 typedef unsigned long int_u64;
 typedef signed long int_s64;
@@ -64,7 +64,7 @@ typedef signed long int_s64;
 typedef unsigned long long int_u64;
 typedef signed long long int_s64;
 #endif /* SIZEOF_LONG */
-#endif /* HAVE_LONG_LONGS */
+#endif /* HAVE_LONG_LONG */
 typedef float float_f32;
 typedef double float_f64;
 
@@ -245,7 +245,7 @@ uvec_print (SCM uvec, SCM port, scm_print_state *pstate SCM_UNUSED)
 	break;
       }
 
-#if HAVE_LONG_LONGS
+#ifdef HAVE_LONG_LONG
     case SCM_UVEC_U64:
       {
 	int_u64 * p = (int_u64 *) SCM_UVEC_BASE (uvec);
@@ -1427,7 +1427,7 @@ SCM_DEFINE (scm_list_to_s32vector, "list->s32vector", 1, 0, 0,
 #undef FUNC_NAME
 
 
-#if HAVE_LONG_LONGS
+#ifdef HAVE_LONG_LONG
 
 /* ================================================================ */
 /* U64 procedures.                                                   */
@@ -1770,7 +1770,7 @@ SCM_DEFINE (scm_list_to_s64vector, "list->s64vector", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#endif /* HAVE_LONG_LONGS */
+#endif /* HAVE_LONG_LONG */
 
 
 /* ================================================================ */
