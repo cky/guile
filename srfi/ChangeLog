@@ -1,3 +1,7 @@
+2004-12-05  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm (filter-map): Change to a tail-recursive form.
+
 2004-10-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.scm, srfi-4.h, srfi-4.c: Moved content into core; only
