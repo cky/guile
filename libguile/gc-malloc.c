@@ -102,6 +102,12 @@ static int scm_i_minyield_malloc;
 static scm_t_mutex malloc_mutex;
 
 void
+scm_gc_malloc_prehistory ()
+{
+  scm_i_plugin_mutex_init (&malloc_mutex, 0);
+}
+
+void
 scm_gc_init_malloc (void)
 {
   scm_mtrigger = scm_getenv_int ("GUILE_INIT_MALLOC_LIMIT",
@@ -116,8 +122,6 @@ scm_gc_init_malloc (void)
 
   if (scm_mtrigger < 0)
     scm_mtrigger = SCM_DEFAULT_INIT_MALLOC_LIMIT;
-
-  scm_i_plugin_mutex_init (&malloc_mutex, 0);
 }
 
 
@@ -132,7 +136,7 @@ scm_realloc (void *mem, size_t size)
 
   scm_i_plugin_mutex_lock (&malloc_mutex);
   SCM_SYSCALL (ptr = realloc (mem, size));
-  scm_i_plugin_mutex_lock (&malloc_mutex);
+  scm_i_plugin_mutex_unlock (&malloc_mutex);
   if (ptr)
     return ptr;
 
