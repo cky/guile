@@ -330,20 +330,6 @@ typedef long scm_bits_t;
 
 #define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
 #define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))
-#define SCM_GCTYP16(x) 		(0xff7f & SCM_CELL_TYPE (x))
-
-
-
-/* Testing and Changing GC Marks in Various Standard Positions
- */
-#define SCM_GCCDR(x)		SCM_PACK(~1L & SCM_UNPACK (SCM_CDR (x)))
-#define SCM_GCMARKP(x) 		(1 & SCM_UNPACK (SCM_CDR (x)))
-#define SCM_GC8MARKP(x) 	(0x80 & SCM_CELL_TYPE (x))
-#define SCM_SETGCMARK(x) 	SCM_SETOR_CDR (x, 1)
-#define SCM_CLRGCMARK(x) 	SCM_SETAND_CDR (x, ~1L)
-#define SCM_SETGC8MARK(x) 	SCM_SETOR_CAR (x, 0x80)
-#define SCM_CLRGC8MARK(x) 	SCM_SETAND_CAR (x, ~0x80L)
-
 
 
 
