@@ -2686,6 +2686,97 @@
 
 (define load load-module)
 
+
+
+;;; {`cond-expand' for SRFI-0 support.}
+;;;
+;;; This syntactic form expands into different commands or
+;;; definitions, depending on the features provided by the Scheme
+;;; implementation.
+;;;
+;;; Syntax:
+;;;
+;;; <cond-expand>
+;;;   --> (cond-expand <cond-expand-clause>+)
+;;;     | (cond-expand <cond-expand-clause>* (else <command-or-definition>))
+;;; <cond-expand-clause>
+;;;   --> (<feature-requirement> <command-or-definition>*)
+;;; <feature-requirement>
+;;;   --> <feature-identifier>
+;;;     | (and <feature-requirement>*)
+;;;     | (or <feature-requirement>*)
+;;;     | (not <feature-requirement>)
+;;; <feature-identifier>
+;;;   --> <a symbol which is the name or alias of a SRFI>
+;;;
+;;; Additionally, this implementation provides the
+;;; <feature-identifier>s `guile' and `r5rs', so that programs can
+;;; determine the implementation type and the supported standard.
+;;;
+;;; Currently, the following feature identifiers are supported:
+;;;
+;;;   guile r5rs srfi-0 srfi-2 srfi-6 srfi-8 srfi-9 srfi-10 srfi-11 srfi-13
+;;;   srfi-14 srfi-17 srfi-19
+;;;
+;;; Remember to update the features list when adding more SRFIs.
+
+(define-macro (cond-expand clause . clauses)
+  (define features
+    '(guile r5rs srfi-0 srfi-2 srfi-6 srfi-8 srfi-9 srfi-10 srfi-11 srfi-13
+	    srfi-14 srfi-17 srfi-19))
+  (let ((clauses (cons clause clauses))
+	(syntax-error (lambda (cl)
+			(error "invalid clause in `cond-expand'" cl))))
+    (letrec
+	((test-clause
+	  (lambda (clause)
+	    (cond
+	      ((symbol? clause)
+	       (memq clause features))
+	      ((pair? clause)
+	       (cond
+		 ((eq? 'and (car clause))
+		  (let lp ((l (cdr clause)))
+		    (cond ((null? l)
+			   #t)
+			  ((pair? l)
+			   (and (test-clause (car l)) (lp (cdr l))))
+			  (else
+			   (syntax-error clause)))))
+		 ((eq? 'or (car clause))
+		  (let lp ((l (cdr clause)))
+		    (cond ((null? l)
+			   #f)
+			  ((pair? l)
+			   (or (test-clause (car l)) (lp (cdr l))))
+			  (else
+			   (syntax-error clause)))))
+		 ((eq? 'not (car clause))
+		  (cond ((not (pair? (cdr clause)))
+			 (syntax-error clause))
+			((pair? (cddr clause))
+			 ((syntax-error clause))))
+		  (not (test-clause (cadr clause))))
+		 (else
+		  (syntax-error clause))))
+	      (else
+	       (syntax-error clause))))))
+      (let lp ((c clauses))
+	(cond
+	  ((null? c)
+	   (error "Unfulfilled `cond-expand'"))
+	  ((not (pair? c))
+	   (syntax-error c))
+	  ((not (pair? (car c)))
+	   (syntax-error (car c)))
+	  ((test-clause (caar c))
+	   `(begin ,@(cdar c)))
+	  ((eq? (caar c) 'else)
+	   (if (pair? (cdr c))
+	     (syntax-error c))
+	   `(begin ,@(cdar c)))
+	  (else
+	   (lp (cdr c))))))))
 
 
 

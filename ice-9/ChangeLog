@@ -1,3 +1,8 @@
+2001-05-11  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* boot-9.scm: Added `cond-expand' (SRFI-0) for portable feature
+	checking.
+
 2001-05-10  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* boot-9.scm (resolve-module): Abstraction maintenance: Use
