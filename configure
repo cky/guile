@@ -4265,7 +4265,6 @@ fi
 rm -f conftest*
   fi
   cy_cv_threads_cflags="$CPPFLAGS $cy_cv_threads_cflags"
-  cy_cv_threads_libs="$LDFLAGS $LIBS $cy_cv_threads_libs"
   cy_cv_threads_package=$threads_package
   CPPFLAGS="$saved_CPP"
   LDFLAGS="$saved_LD"
@@ -4351,7 +4350,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:4355: checking for $ac_word" >&5
+echo "configure:4354: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_AWK'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
