@@ -116,6 +116,9 @@
 /* Define if h_errno is declared in netdb.h.  */
 #undef HAVE_H_ERRNO
 
+/* Define if uint32_t typedef is defined when netdb.h is include.  */
+#undef HAVE_UINT32_T
+
 /* Define if localtime caches the TZ setting.  */
 #undef LOCALTIME_CACHE
 

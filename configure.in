@@ -277,6 +277,16 @@ if test $guile_cv_have_h_errno = yes; then
   AC_DEFINE(HAVE_H_ERRNO)
 fi
 
+AC_MSG_CHECKING(whether netdb.h defines uint32_t)
+AC_CACHE_VAL(guile_cv_have_uint32_t,
+[AC_TRY_COMPILE([#include <netdb.h>],
+[uint32_t a;],
+guile_cv_have_uint32_t=yes, guile_cv_have_uint32_t=no)])
+AC_MSG_RESULT($guile_cv_have_uint32_t)
+if test $guile_cv_have_uint32_t = yes; then
+  AC_DEFINE(HAVE_UINT32_T)
+fi
+
 # included in rfc2553 but not in older implementations, e.g., glibc 2.1.3.
 AC_MSG_CHECKING(whether sockaddr_in6 has sin6_scope_id)
 AC_CACHE_VAL(guile_cv_have_sin6_scope_id,

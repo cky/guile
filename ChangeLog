@@ -1,3 +1,9 @@
+2001-05-04  Gary Houston  <ghouston@arglist.com>
+
+	* configure.in: check whether uint32_t is defined when netdb.h
+	is included.
+	acconfig.h: added HAVE_UINT32_T.
+
 2001-05-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Added handling of `--enable-deprecated'.
