@@ -82,7 +82,7 @@ scm_object_property (obj, key)
      SCM key;
 {
   SCM assoc;
-  assoc = scm_assq (key, SCM_CDR (scm_object_properties (obj)));
+  assoc = scm_assq (key, scm_object_properties (obj));
   return (SCM_NIMP (assoc) ? SCM_CDR (assoc) : SCM_BOOL_F);
 }
 
