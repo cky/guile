@@ -1,3 +1,10 @@
+2001-02-13  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* gc_os_dep.c: Do not include <linux/version.h>.  It makes no
+	sense to compile for a specific kernel version.  Do not include
+	<asm/signal.h> while defining __KERNEL__.  This hack should no
+	longer be needed and caused problems.
+
 2001-02-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (scm_ceval, scm_deval): use `SIDEVAL' instead of
