@@ -72,7 +72,6 @@ qtmdc_o = @qtmdc_o@
 qtmds_o = @qtmds_o@
 qtmds_s = @qtmds_s@
 target_libs = @target_libs@
-xtra_PLUGIN_guile_libs = @xtra_PLUGIN_guile_libs@
 
 AUTOMAKE_OPTIONS = foreign
 
