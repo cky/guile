@@ -1,3 +1,10 @@
+2002-12-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* threads.scm (par-map, par-for-each): Reimplemented using
+	joing-thread.
+	(parallel): Reimplemented using futures.
+	(n-par-map, n-for-each): New procedures.
+
 2002-12-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* optargs.scm (improper-list-copy): New.
