@@ -425,9 +425,9 @@ fport_fill_buffer (SCM port)
     return EOF;
   else
     {
-      pt->read_pos = pt->read_buf + 1;
+      pt->read_pos = pt->read_buf;
       pt->read_end = pt->read_buf + count;
-      return (*(pt->read_buf));
+      return *pt->read_buf;
     }
 }
 

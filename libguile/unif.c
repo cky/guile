@@ -1564,9 +1564,7 @@ loop:
 	    }
 	  else
 	    {
-	      int ch = scm_fill_buffer (port_or_fd);
-	      
-	      if (ch == EOF)
+	      if (scm_fill_buffer (port_or_fd) == EOF)
 		{
 		  if (remaining % sz != 0)
 		    {
@@ -1577,9 +1575,6 @@ loop:
 		  ans -= remaining / sz;
 		  break;
 		}
-
-	      *dest++ = ch;
-	      remaining--;
 	    }
 	}
       

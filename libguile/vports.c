@@ -117,7 +117,14 @@ sf_fill_buffer (SCM port)
   if (SCM_FALSEP (ans) || SCM_EOF_OBJECT_P (ans))
     return EOF;
   SCM_ASSERT (SCM_ICHRP (ans), ans, SCM_ARG1, "sf_fill_buffer");
-  return SCM_ICHR (ans);
+  {
+    scm_port *pt = SCM_PTAB_ENTRY (port);    
+
+    *pt->read_buf = SCM_ICHR (ans);
+    pt->read_pos = pt->read_buf;
+    pt->read_end = pt->read_buf + 1;
+    return *pt->read_buf;
+  }
 }
 
 

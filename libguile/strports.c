@@ -81,7 +81,7 @@ stfill_buffer (SCM port)
   if (pt->read_pos >= pt->read_end)
     return EOF;
   else
-    return scm_return_first (*(pt->read_pos++), port);
+    return scm_return_first (*pt->read_pos, port);
 }
 
 /* change the size of a port's string to new_size.  this doesn't

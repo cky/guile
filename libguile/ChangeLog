@@ -1,3 +1,24 @@
+1999-07-14  Gary Houston  <ghouston@easynet.co.uk>
+
+	* unif.c (scm_uniform_array_read_x), ports.c (scm_getc): increment
+	read_pos after scm_fill_buffer.
+
+	* ioext.c (scm_do_read_line): simplify by ignoring the fill_buffer
+	return char.
+
+	* vports.c (sf_fill_buffer), strports.c (stfill_buffer),
+	fports.c (fport_fill_buffer): implement the interface change.
+
+	* ports.c (scm_fill_buffer): interface change: no longer increments
+	read_pos past the character that's returned.  it seems clearer to
+	leave it to the caller to decide what to do (thanks Jim).
+	
+	* vports.c (sf_fill_buffer): put the read char into the buffer
+	as well as returning it.
+
+	* ports.c (scm_grow_port_cbuf): residue of this deleted procedure
+	deleted.
+
 1999-07-13  Gary Houston  <ghouston@easynet.co.uk>
 
 	* strports.c (scm_strprint_obj): simplify.  start with initial

@@ -333,27 +333,6 @@ scm_remove_from_port_table (port)
   scm_port_table_size--;
 }
 
-#if 0
-void
-scm_grow_port_cbuf (port, requested)
-  SCM port;
-  size_t requested;
-{
-  scm_port *p = SCM_PTAB_ENTRY (port);
-  int size = p->cbufend - p->cbuf;
-  int new_size = size * 3 / 2;
-  int count = p->cp - p->cbuf;
-
-  if (new_size < requested)
-    new_size = requested;
-  p = realloc (p, sizeof (*p) - SCM_INITIAL_CBUF_SIZE + new_size);
-  p->cp = p->cbuf + count;
-  p->bufend = p->cbuf + new_size;
-  scm_port_table[p->entry] = p;
-  SCM_SETPTAB_ENTRY (port, p);
-}
-#endif
- 
 #ifdef GUILE_DEBUG
 /* Undocumented functions for debugging.  */
 /* Return the number of ports in the table.  */
@@ -628,6 +607,9 @@ scm_read_char (port)
   return SCM_MAKICHR (c);
 }
 
+/* this should only be called when the read buffer is empty.  it
+   tries to refill the buffer.  it returns the first char from
+   the port, which is either EOF or *(pt->read_pos).  */
 int
 scm_fill_buffer (SCM port)
 {
@@ -641,7 +623,7 @@ scm_fill_buffer (SCM port)
       pt->read_end = pt->saved_read_end;
       pt->read_buf_size = pt->saved_read_buf_size;
       if (pt->read_pos < pt->read_end)
-	return *(pt->read_pos++);
+	return *(pt->read_pos);
     }
   return scm_ptobs[SCM_PTOBNUM (port)].fill_buffer (port);
 }
@@ -659,17 +641,16 @@ scm_getc (port)
       scm_ptobs[SCM_PTOBNUM (port)].fflush (port);
     }
   
-  if (pt->read_pos < pt->read_end)
-    {
-      c = *(pt->read_pos++);
-    }
-  else
-    {
-      c = scm_fill_buffer (port);
-    }
-
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_READ;
+
+  if (pt->read_pos >= pt->read_end)
+    {
+      if (scm_fill_buffer (port) == EOF)
+	return EOF;
+    }
+
+  c = *(pt->read_pos++);
 
   if (c == '\n')
     {

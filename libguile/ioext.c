@@ -176,7 +176,6 @@ scm_do_read_line (SCM port, int *len_p)
        the `+ 1' is for the final '\0'.  */
     unsigned char *buf = malloc (buf_size + 1);
     int buf_len = 0;
-    int c;
 
     for (;;)
       {
@@ -196,10 +195,8 @@ scm_do_read_line (SCM port, int *len_p)
 	if (end)
 	  break;
 
-	/* Get more characters.  I think having fill_buffer return a
-           character is not terribly graceful...  */
-	c = scm_fill_buffer (port);
-	if (c == EOF)
+	/* Get more characters.  */
+	if (scm_fill_buffer (port) == EOF)
 	  {
 	    /* If we're missing a final newline in the file, return
 	       what we did get, sans newline.  */
@@ -209,20 +206,6 @@ scm_do_read_line (SCM port, int *len_p)
 	    free (buf);
 	    return 0;
 	  }
-
-	/* ... because it makes us duplicate code here...  */
-	if (buf_len + 1 > buf_size)
-	  {
-	    int new_size = buf_size * 2;
-	    buf = realloc (buf, new_size + 1);
-	    buf_size = new_size;
-	  }
-
-	/* ... and this is really a duplication of the memcpy and
-           memchr calls, on a single-byte buffer.  */
-	buf[buf_len++] = c;
-	if (c == '\n')
-	  break;
 
 	/* Search the buffer for newlines.  */
 	if ((end = memchr (pt->read_pos, '\n',
