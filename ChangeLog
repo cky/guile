@@ -1,3 +1,7 @@
+Thu Dec 12 00:14:32 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* scsh: new directory.
+
 Mon Dec  2 17:33:04 1996  Tom Tromey  <tromey@cygnus.com>
 
 	* configure.in: Generate doc/guile-programmer/Makefile and
