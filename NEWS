@@ -8,17 +8,20 @@ Changes since Guile 1.3:
 
 * Changes to the stand-alone interpreter
 
+** New options interface: readline-options,
+readline-enable, readline-disable, readline-set!
+
 ** Command line history is now restored from and saved to file
 
-If readline is used and the read option `history-file' is enabled, the
-command line history is read from file when the interpreter is
+If readline is used and the readline option `history-file' is enabled,
+the command line history is read from file when the interpreter is
 entered, and written to file on exit.  The filename used can be
 specified with the environment variable GUILE_HISTORY.  Default file
 name is "$HOME/.guile_history".  Nothing special happens if errors
 occur during read or write.
 
 ** Command line history length can now be customized.
-Command line history length is now controlled by the read option
+Command line history length is now controlled by the readline option
 `history-length'.  Default is 200 lines.
 
 * Changes to Scheme functions and syntax
