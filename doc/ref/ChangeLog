@@ -1,3 +1,10 @@
+2004-08-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* api-data.texi (Strings): Document copy-on-write behavior and
+	mutation-sharing substrings.
+	(Symbols): Document scm_from_locale_symbol and
+	scm_from_locale_symboln.
+	
 2004-08-18  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Network Sockets and Communication): Add SOCK_RDM and
