@@ -302,7 +302,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 		}
 #endif
 #ifdef USE_THREADS
-	      if (SCM_CAR (vloc) != var)
+	      if (!SCM_EQ_P (SCM_CAR (vloc), var))
 		goto race;
 #endif
 	      SCM_SETCAR (vloc, iloc);
@@ -357,7 +357,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 #endif
 
 #ifdef USE_THREADS
-    if (SCM_CAR (vloc) != var)
+    if (!SCM_EQ_P (SCM_CAR (vloc), var))
       {
 	/* Some other thread has changed the very cell we are working
 	   on.  In effect, it must have done our job or messed it up
@@ -411,7 +411,7 @@ scm_unmemocar (SCM form, SCM env)
     {
       SCM sym =
 	scm_module_reverse_lookup (scm_env_module (env), SCM_GLOC_VAR (c));
-      if (sym == SCM_BOOL_F)
+      if (SCM_EQ_P (sym, SCM_BOOL_F))
 	sym = sym_three_question_marks;
       SCM_SETCAR (form, sym);
     }
@@ -639,7 +639,7 @@ scm_m_cond (SCM xorig, SCM env)
 SCM_SYNTAX(s_lambda, "lambda", scm_makmmacro, scm_m_lambda);
 SCM_GLOBAL_SYMBOL(scm_sym_lambda, s_lambda);
 
-/* Return #t if OBJ is `eq?' to one of the elements of LIST or to the
+/* Return true if OBJ is `eq?' to one of the elements of LIST or to the
    cdr of the last cons.  (Thus, LIST is not required to be a proper
    list and when OBJ also found in the improper ending.) */
 
@@ -649,7 +649,7 @@ scm_c_improper_memq (SCM obj, SCM list)
   for (; SCM_CONSP (list); list = SCM_CDR (list))
     {
       if (SCM_EQ_P (SCM_CAR (list), obj))
-	return SCM_BOOL_T;
+	return 1;
     }
   return SCM_EQ_P (list, obj);
 }
