@@ -1,0 +1,15 @@
+AC_INIT(src/guile-vm.c)
+AM_INIT_AUTOMAKE(guile-vm, 0.2)
+AM_CONFIG_HEADER(src/config.h)
+
+GUILE_FLAGS
+if test "`guile -c '(display (string>=? (version) "1.4.1"))'`" != "#t"; then
+  AC_MSG_ERROR([Your Guile is too old.  You need guile-1.4.1 or later.])
+fi
+
+AC_PROG_CC
+AC_PROG_LN_S
+AM_PROG_LIBTOOL
+AC_C_LABELS_AS_VALUES
+
+AC_OUTPUT(Makefile src/Makefile vm/Makefile doc/Makefile test/Makefile)

@@ -1,0 +1,402 @@
+Guile VM Specification					-*- outline -*-
+======================
+Updated: $Date: 2000/08/22 15:54:19 $
+
+* Introduction
+
+A Guile VM has a set of registers and its own stack memory.  Guile may
+have more than one VM's.  Each VM may execute at most one program at a
+time.  Guile VM is a CISC system so designed as to execute Scheme and
+other languages efficiently.
+
+** Registers
+
+  pc - Program counter    ;; ip (instruction poiner) is better?
+  sp - Stack pointer
+  bp - Base pointer
+  ac - Accumulator
+
+** Engine
+
+A VM may have one of three engines: reckless, regular, or debugging.
+Reckless engine is fastest but dangerous.  Regular engine is normally
+fail-safe and reasonably fast.  Debugging engine is safest and
+functional but very slow.
+
+** Memory
+
+Stack is the only memory that each VM owns.  The other memory is shared
+memory that is shared among every VM and other part of Guile.
+
+** Program
+
+A VM program consists of a bytecode that is executed and an environment
+in which execution is done.  Each program is allocated in the shared
+memory and may be executed by any VM.  A program may call other programs
+within a VM.
+
+** Instruction
+
+Guile VM has dozens of system instructions and (possibly) hundreds of
+functional instructions.  Some Scheme procedures such as cons and car
+are implemented as VM's builtin functions, which are very efficient.
+Other procedures defined outside of the VM are also considered as VM's
+functional features, since they do not change the state of VM.
+Procedures defined within the VM are called subprograms.
+
+Most instructions deal with the accumulator (ac).  The VM stores all
+results from functions in ac, instead of pushing them into the stack.
+I'm not sure whether this is a good thing or not.
+
+* Variable Management
+
+A program may have access to local variables, external variables, and
+top-level variables.
+
+** Local/external variables
+
+A stack is logically divided into several blocks during execution.  A
+"block" is such a unit that maintains local variables and dynamic chain.
+A "frame" is an upper level unit that maintains subprogram calls.
+
+             Stack
+  dynamic |          |  |        |
+    chain +==========+  -        =
+        | |local vars|  |        |
+        `-|block data|  | block  |
+         /|frame data|  |        |
+        | +----------+  -        |
+        | |local vars|  |        | frame
+        `-|block data|  |        |
+         /+----------+  -        |
+        | |local vars|  |        |
+        `-|block data|  |        |
+         /+==========+  -        =
+        | |local vars|  |        |
+        `-|block data|  |        |
+         /|frame data|  |        |
+        | +----------+  -        |
+        | |          |  |        |
+
+The first block of each frame may look like this:
+
+       Address  Data
+       -------  ----
+       xxx0028  Local variable 2
+       xxx0024  Local variable 1
+  bp ->xxx0020  Local variable 0
+       xxx001c  Local link       (block data)
+       xxx0018  External link    (block data)
+       xxx0014  Stack pointer    (block data)
+       xxx0010  Return address   (frame data)
+       xxx000c  Parent program   (frame data)
+
+The base pointer (bp) always points to the lowest address of local
+variables of the recent block.  Local variables are referred as "bp[n]".
+The local link field has a pointer to the dynamic parent of the block.
+The parent's variables are referred as "bp[-1][n]", and grandparent's
+are "bp[-1][-1][n]".  Thus, any local variable is represented by its
+depth and offset from the current bp.
+
+A variable may be "external", which is allocated in the shared memory.
+The external link field of a block has a pointer to such a variable set,
+which I call "fragment" (what should I call?).  A fragment has a set of
+variables and its own chain.
+
+    local                    external
+    chain|     |              chain
+       | +-----+     .--------, |
+       `-|block|--+->|fragment|-'
+        /+-----+  |  `--------'\,
+       `-|block|--'             |
+        /+-----+     .--------, |
+       `-|block|---->|fragment|-'
+         +-----+     `--------'
+         |     |
+
+An external variable is referred as "bp[-2]->variables[n]" or
+"bp[-2]->link->...->variables[n]".  This is also represented by a pair
+of depth and offset.  At any point of execution, the value of bp
+determines the current local link and external link, and thus the
+current environment of a program.
+
+Other data fields are described later.
+
+** Top-level variables
+
+Guile VM uses the same top-level variables as the regular Guile.  A
+program may have direct access to vcells.  Currently this is done by
+calling scm_intern0, but a program is possible to have any top-level
+environment defined by the current module.
+
+*** Scheme and VM variable
+
+Let's think about the following Scheme code as an example:
+
+  (define (foo a)
+    (lambda (b) (list foo a b)))
+
+In the lambda expression, "foo" is a top-level variable, "a" is an
+external variable, and "b" is a local variable.
+
+When a VM executes foo, it allocates a block for "a".  Since "a" may be
+externally referred from the closure, the VM creates a fragment with a
+copy of "a" in it.  When the VM evaluates the lambda expression, it
+creates a subprogram (closure), associating the fragment with the
+subprogram as its external environment.  When the closure is executed,
+its environment will look like this:
+
+      block          Top-level: foo
+  +-------------+
+  |local var: b |       fragment
+  +-------------+     .-----------,
+  |external link|---->|variable: a|
+  +-------------+     `-----------'
+
+The fragment remains as long as the closure exists.
+
+** Addressing mode
+
+Guile VM has five addressing modes:
+
+  o Real address
+  o Local position
+  o External position
+  o Top-level location
+  o Immediate object
+
+Real address points to the address in the real program and is only used
+with the program counter (pc).
+
+Local position and external position are represented as a pair of depth
+and offset from bp, as described above.  These are base relative
+addresses, and the real address may vary during execution.
+
+Top-level location is represented as a Guile's vcell.  This location is
+determined at loading time, so the use of this address is efficient.
+
+Immediate object is not an address but gives an instruction an Scheme
+object directly.
+
+[ We'll also need dynamic scope addressing to support Emacs Lisp? ]
+
+*** At a Glance
+
+Guile VM has a set of instructions for each instruction family.  `%load'
+is, for example, a family to load an object from memory and set the
+accumulator (ac).  There are four basic `%load' instructions:
+
+  %loadl - Local addressing
+  %loade - External addressing
+  %loadt - Top-level addressing
+  %loadi - Immediate addressing
+
+A possible program code may look like this:
+
+  %loadl (0 . 1)                ; ac = local[0][1]
+  %loade (2 . 3)                ; ac = external[2][3]
+  %loadt (foo . #<undefined>)   ; ac = #<undefined>
+  %loadi "hello"                ; ac = "hello"
+
+One instruction that uses real addressing is `%jump', which changes the
+value of the program counter:
+
+  %jump  0x80234ab8             ; pc = 0x80234ab8
+
+* Program Execution
+
+Overall procedure:
+
+ 1. A source program is compiled into a bytecode.
+
+ 2. A bytecode is given an environment and becomes a program.
+
+ 3. A VM starts execution, creating a frame for it.
+
+ 4. Whenever a program calls a subprogram, a new frame is created for it.
+
+ 5. When a program finishes execution, it returns a value, and the VM
+    continues execution of the parent program.
+
+ 6. When all programs terminated, the VM returns the final value and stops.
+
+** Environment
+
+Local variable:
+
+ (let ((a 1) (b 2) (c 3)) (+ a b c)) ->
+
+   %pushi 1       ; a
+   %pushi 2       ; b
+   %pushi 3       ; c
+   %bind  3       ; create local bindings
+   %pushl (0 . 0) ; local variable a
+   %pushl (0 . 1) ; local variable b
+   %pushl (0 . 2) ; local variable c
+   add    3       ; ac = a + b + c
+   %unbind        ; remove local bindings
+
+External variable:
+
+ (define foo (let ((n 0)) (lambda () n)))
+
+   %pushi 0                      ; n
+   %bind  1                      ; create local bindings
+   %export [0]                   ; make it an external variable
+   %make-program #<bytecode xxx> ; create a program in this environment
+   %unbind                       ; remove local bindings
+   %savet (foo . #<undefined>)   ; save the program in foo
+
+ (foo) ->
+
+   %loadt (foo . #<program xxx>) ; program has an external link
+   %call  0                      ; change the current external link
+   %loade (0 . 0)                ; external variable n
+   %return                       ; recover the external link
+
+Top-level variable:
+
+ foo ->
+
+   %loadt (foo . #<program xxx>) ; top-level variable foo
+
+** Flow control
+
+ (if #t 1 0) ->
+
+      %loadi      #t
+      %br-if-not  L1
+      %loadi      1
+      %jump       L2
+  L1: %loadi      0
+  L2: 
+
+** Function call
+
+Builtin function:
+
+ (1+ 2) ->
+
+   %loadi 2  ; ac = 2
+   1+        ; one argument
+
+ (+ 1 2) ->
+
+   %pushi 1  ; 1 -> stack
+   %loadi 2  ; ac = 2
+   add2      ; two argument
+
+ (+ 1 2 3) ->
+
+   %pushi 1  ; 1 -> stack
+   %pushi 2  ; 2 -> stack
+   %pushi 3  ; 3 -> stack
+   add    3  ; many argument
+
+External function:
+
+ (version) ->
+
+   %func0 (version . #<primitive-procedure version>) ; no argument
+
+ (display "hello") ->
+
+   %loadi "hello"
+   %func1 (display . #<primitive-procedure display>) ; one argument
+
+ (open-file "file" "w") ->
+
+   %pushi "file"
+   %loadi "w"
+   %func2 (open-file . #<primitive-procedure open-file>) ; two arguments
+
+ (equal 1 2 3)
+
+   %pushi 1
+   %pushi 2
+   %pushi 3
+   %loadi 3                                      ; the number of arguments
+   %func  (equal . #<primitive-procedure equal>) ; many arguments
+
+** Subprogram call
+
+ (define (plus a b) (+ a b))
+ (plus 1 2) ->
+
+   %pushi 1                       ; argument 1
+   %pushi 2                       ; argument 2
+   %loadt (plus . #<program xxx>) ; load the program
+   %call  2                       ; call it with two arguments
+   %pushl (0 . 0)                 ; argument 1
+   %loadl (0 . 1)                 ; argument 2
+   add2                           ; ac = 1 + 2
+   %return                        ; result is 3
+
+* Instruction Set
+
+The Guile VM instruction set is roughly divided two groups: system
+instructions and functional instructions.  System instructions control
+the execution of programs, while functional instructions provide many
+useful calculations.  By convention, system instructions begin with a
+letter `%'.
+
+** Environment control instructions
+
+- %alloc
+- %bind
+- %export
+- %unbind
+
+** Subprogram control instructions
+
+- %make-program
+- %call
+- %return
+
+** Data control instructinos
+
+- %push
+- %pushi
+- %pushl, %pushl:0:0, %pushl:0:1, %pushl:0:2, %pushl:0:3
+- %pushe, %pushe:0:0, %pushe:0:1, %pushe:0:2, %pushe:0:3
+- %pusht
+
+- %loadi
+- %loadl, %loadl:0:0, %loadl:0:1, %loadl:0:2, %loadl:0:3
+- %loade, %loade:0:0, %loade:0:1, %loade:0:2, %loade:0:3
+- %loadt
+
+- %savei
+- %savel, %savel:0:0, %savel:0:1, %savel:0:2, %savel:0:3
+- %savee, %savee:0:0, %savee:0:1, %savee:0:2, %savee:0:3
+- %savet
+
+** Flow control instructions
+
+- %br-if
+- %br-if-not
+- %jump
+
+** Function call instructions
+
+- %func, %func0, %func1, %func2
+
+** Scheme buitin functions
+
+- cons
+- car
+- cdr
+
+** Mathematical buitin functions
+
+- 1+
+- 1-
+- add, add2
+- sub, sub2, minus
+- mul2
+- div2
+- lt2
+- gt2
+- le2
+- ge2
+- num-eq2
