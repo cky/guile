@@ -1,4 +1,4 @@
-;;; generated 2002-05-09 23:02:40 UTC by scan-api -- do not edit!
+;;; generated 2002-05-11 19:43:06 UTC by scan-api -- do not edit!
 
 (
 (meta
@@ -7,7 +7,7 @@
   (guile . "pre-inst-guile")
   (libguileinterface . "15:0:0")
   (sofile . "libguile/.libs/libguile.so.15.0.0")
-  (groups C+scheme embedded-libltdl libguile-internal gdb coop gh g-fdes r-fdes scm k POSIX math guile-C-API)
+  (groups C+scheme embedded-libltdl libguile-internal gdb coop gh g-fdes r-fdes scm k POSIX math guile-C-API Scheme C)
 ) ;; end of meta
 (interface
 ($abs (groups math Scheme) (scan-data "#<primitive-procedure $abs>"))
