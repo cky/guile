@@ -436,8 +436,8 @@ scm_procedure_name (proc)
       if (SCM_FALSEP (name))
 	name = scm_procedure_property (proc, scm_i_name);
 #endif
-      if (SCM_FALSEP (name))
-	name = scm_procedure_property (proc, scm_i_inner_name);
+      if (SCM_FALSEP (name) && SCM_CLOSUREP (proc))
+	name = scm_reverse_lookup (SCM_ENV (proc), proc);
       return name;
     }
   }
@@ -521,6 +521,32 @@ scm_local_eval (exp, env)
     return scm_eval_3 (SCM_MEMOIZED_EXP (exp), 0, SCM_MEMOIZED_ENV (exp));
   }
   return scm_eval_3 (exp, 1, env);
+}
+
+#if 0
+SCM_PROC (s_reverse_lookup, "reverse-lookup", 2, 0, 0, scm_reverse_lookup);
+#endif
+
+SCM
+scm_reverse_lookup (SCM env, SCM data)
+{
+  SCM names, values;
+  while (SCM_NIMP (env) && SCM_CONSP (SCM_CAR (env)))
+    {
+      names = SCM_CAAR (env);
+      values = SCM_CDAR (env);
+      while (SCM_NIMP (names) && SCM_CONSP (names))
+	{
+	  if (SCM_CAR (values) == data)
+	    return SCM_CAR (names);
+	  names = SCM_CDR (names);
+	  values = SCM_CDR (values);
+	}
+      if (names != SCM_EOL && values == data)
+	return names;
+      env = SCM_CDR (env);
+    }
+  return SCM_BOOL_F;
 }
 
 SCM
