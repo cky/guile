@@ -1,3 +1,8 @@
+2002-03-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (bin_SCRIPTS): Revive this decl, w/ initial element
+	"guile-snarf" moved back from `noinst_SCRIPTS'.
+
 2002-03-08  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* srcprop.c (scm_set_source_property_x): If SRCPROPS obj already
@@ -96,7 +101,7 @@
 
 	* inet_aton.c, fports.c: Commented the inclusion of <winsock2.h>.
 
-	* deprecation.c (vsnprintf): Define to `_vsnprintf' for 
+	* deprecation.c (vsnprintf): Define to `_vsnprintf' for
 	Windows (MinGW).
 
 2002-02-26  Thien-Thi Nguyen  <ttn@giblet.glug.org>

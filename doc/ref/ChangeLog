@@ -1,3 +1,19 @@
+2002-03-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* tools.texi (Miscellaneous Tools): New node/chapter.
+	(Snarfing, Init Snarfing with guile-snarf, How guile-snarf works,
+	Macros guile-snarf recognizes, Doc Snarfing): New nodes/(sub)sections.
+	(Executable Modules): Now a section under "Miscellaneous Tools".
+
+	* guile.texi (Miscellaneous Tools): Add under "Part II".
+	Implement by including tools.texi.
+
+	* Makefile.am (guile_TEXINFOS): Add tools.texi.
+
+2002-03-07  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* tools.texi: New file.
+
 2002-03-03  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* autoconf.texi (Autoconf Background): Insert missing `of'.
