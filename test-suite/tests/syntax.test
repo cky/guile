@@ -23,6 +23,14 @@
 
 (define exception:bad-expression
   (cons 'syntax-error "Bad expression"))
+
+(define exception:missing/extra-expr
+  (cons 'misc-error "^missing or extra expression"))
+(define exception:missing-expr
+  (cons 'syntax-error "Missing expression"))
+(define exception:extra-expr
+  (cons 'syntax-error "Extra expression"))
+
 (define exception:bad-bindings
   (cons 'misc-error "^bad bindings"))
 (define exception:duplicate-bindings
@@ -33,6 +41,7 @@
   (cons 'misc-error "^bad formals"))
 (define exception:duplicate-formals
   (cons 'misc-error "^duplicate formals"))
+
 (define exception:missing-clauses
   (cons 'syntax-error "Missing clauses"))
 (define exception:misplaced-else-clause
@@ -43,10 +52,9 @@
   (cons 'syntax-error "Bad case labels"))
 (define exception:bad-cond-clause
   (cons 'syntax-error "Bad cond clause"))
+
 (define exception:bad-var
   (cons 'misc-error "^bad variable"))
-(define exception:missing/extra-expr
-  (cons 'misc-error "^missing or extra expression"))
 
 
 (with-test-prefix "expressions"
@@ -590,7 +598,7 @@
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(define)"
-      exception:missing/extra-expr
+      exception:missing-expr
       (eval '(define)
 	    (interaction-environment)))))
 

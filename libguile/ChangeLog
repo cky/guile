@@ -1,5 +1,16 @@
 2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (s_missing_expression, s_bad_variable): New static
+	identifiers.
+
+	(scm_m_define): Use ASSERT_SYNTAX to signal syntax errors.  Prefer
+	R5RS terminology for the naming of variables.  Be more specific
+	about the kind of error that was detected.  Make sure file name,
+	line number etc. are added to all freshly created expressions.
+	Avoid unnecessary consing when creating the memoized code.
+
+2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (s_extra_expression, s_misplaced_else_clause,
 	s_bad_cond_clause, s_missing_recipient): New static identifiers.
 

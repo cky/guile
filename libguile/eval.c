@@ -100,6 +100,10 @@ char *alloca ();
  * expression is expected, a 'Bad expression' error is signalled.  */
 static const char s_bad_expression[] = "Bad expression";
 
+/* If a form is detected that holds less expressions than are required in that
+ * contect, a 'Missing expression' error is signalled.  */
+static const char s_missing_expression[] = "Missing expression in";
+
 /* If a form is detected that holds more expressions than are allowed in that
  * contect, an 'Extra expression' error is signalled.  */
 static const char s_extra_expression[] = "Extra expression in";
@@ -142,6 +146,10 @@ static const char s_bad_cond_clause[] = "Bad cond clause";
  * not hold a recipient element for the test result, a 'Missing recipient'
  * error is signalled.  */
 static const char s_missing_recipient[] = "Missing recipient in";
+
+/* If in a position where a variable name is required some other object is
+ * detected, a 'Bad variable' error is signalled.  */
+static const char s_bad_variable[] = "Bad variable";
 
 
 /* Signal a syntax error.  We distinguish between the form that caused the
@@ -868,42 +876,60 @@ SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
 /* Dirk:FIXME:: We should provide an implementation for 'define' in the R5RS
  * module that does not implement this extension.  */
 SCM
-scm_m_define (SCM x, SCM env)
+scm_m_define (SCM expr, SCM env)
 {
-  SCM name;
-  x = SCM_CDR (x);
-  SCM_ASSYNT (scm_ilength (x) >= 2, s_expression, s_define);
-  name = SCM_CAR (x);
-  x = SCM_CDR (x);
-  while (SCM_CONSP (name))
+  SCM body;
+  SCM variable;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
+
+  body = SCM_CDR (cdr_expr);
+  variable = SCM_CAR (cdr_expr);
+  while (SCM_CONSP (variable))
     {
-      /* This while loop realizes function currying by variable nesting. */
-      SCM formals = SCM_CDR (name);
-      x = scm_list_1 (scm_cons2 (scm_sym_lambda, formals, x));
-      name = SCM_CAR (name);
+      /* This while loop realizes function currying by variable nesting.
+       * Variable is known to be a nested-variable.  In every iteration of the
+       * loop another level of lambda expression is created, starting with the
+       * innermost one.  */
+      const SCM formals = SCM_CDR (variable);
+      const SCM tail = scm_cons (formals, body);
+
+      /* Add source properties to each new lambda expression:  */
+      const SCM lambda = scm_cons_source (variable, scm_sym_lambda, tail);
+
+      body = scm_list_1 (lambda);
+      variable = SCM_CAR (variable);
     }
-  SCM_ASSYNT (SCM_SYMBOLP (name), s_variable, s_define);
-  SCM_ASSYNT (scm_ilength (x) == 1, s_expression, s_define);
+  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
+  ASSERT_SYNTAX (scm_ilength (body) == 1, s_expression, expr);
+
   if (SCM_TOP_LEVEL (env))
     {
       SCM var;
-      x = scm_eval_car (x, env);
+      const SCM value = scm_eval_car (body, env);
       if (SCM_REC_PROCNAMES_P)
 	{
-	  SCM tmp = x;
+	  SCM tmp = value;
 	  while (SCM_MACROP (tmp))
 	    tmp = SCM_MACRO_CODE (tmp);
 	  if (SCM_CLOSUREP (tmp)
 	      /* Only the first definition determines the name. */
 	      && SCM_FALSEP (scm_procedure_property (tmp, scm_sym_name)))
-	    scm_set_procedure_property_x (tmp, scm_sym_name, name);
+	    scm_set_procedure_property_x (tmp, scm_sym_name, variable);
 	}
-      var = scm_sym2var (name, scm_env_top_level (env), SCM_BOOL_T);
-      SCM_VARIABLE_SET (var, x);
+      var = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_T);
+      SCM_VARIABLE_SET (var, value);
       return SCM_UNSPECIFIED;
     }
   else
-    return scm_cons2 (SCM_IM_DEFINE, name, x);
+    {
+      SCM_SETCAR (expr, SCM_IM_DEFINE);
+      SCM_SETCAR (cdr_expr, variable);
+      SCM_SETCDR (cdr_expr, body);
+      return expr;
+    }
 }
 
 
