@@ -120,6 +120,15 @@ Return the next character available from @var{port}, updating
 characters are available, the end-of-file object is returned.
 @end deffn
 
+@deftypefn {C Function} size_t scm_c_read (SCM port, void *buffer, size_t size)
+Read up to @var{size} bytes from @var{port} and store them in
+@var{buffer}.  The return value is the number of bytes actually read,
+which can be less than @var{size} if end-of-file has been reached.
+
+Note that this function does not update @code{port-line} and
+@code{port-column} below.
+@end deftypefn
+
 @rnindex peek-char
 @deffn {Scheme Procedure} peek-char [port]
 @deffnx {C Function} scm_peek_char (port)
@@ -267,6 +276,13 @@ containing the formatted text. Does not add a trailing newline.
 @deffnx {C Function} scm_write_char (chr, port)
 Send character @var{chr} to @var{port}.
 @end deffn
+
+@deftypefn {C Function} void scm_c_write (SCM port, const void *buffer, size_t size)
+Write @var{size} bytes at @var{buffer} to @var{port}.
+
+Note that this function does not update @code{port-line} and
+@code{port-column} (@pxref{Reading}).
+@end deftypefn
 
 @findex fflush
 @deffn {Scheme Procedure} force-output [port]
