@@ -1,3 +1,10 @@
+2002-02-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (bin_PROGRAMS): Move `guile_filter_doc_snarfage'
+	to `noinst_PROGRAMS'.
+	(bin_SCRIPTS): Move all values to `noinst_SCRIPTS'; delete.
+	(noinst_PROGRAMS, noinst_SCRIPTS): New.
+
 2002-02-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* gc.h, gc.c (scm_gc_sweep): Issue deprecation warning when
