@@ -3014,27 +3014,6 @@
 
      ;; the protected thunk.
      (lambda ()
-
-       ;; If we've got readline, use it to prompt the user.  This is a
-       ;; kludge, but we'll fix it soon.  At least we only get
-       ;; readline involved when we're actually running the repl.
-       (if (and (memq 'readline *features*)
-		(isatty? (current-input-port))
-		(not (and (module-defined? the-root-module
-					   'use-emacs-interface)
-			  use-emacs-interface)))
-	   (let ((read-hook (lambda () (run-hook before-read-hook))))
-	     (set-current-input-port (readline-port))
-	     (set! repl-reader
-		   (lambda (prompt)
-		     (dynamic-wind
-		      (lambda ()
-			(set-readline-prompt! prompt "... ")
-			(set-readline-read-hook! read-hook))
-		      (lambda () (read))
-		      (lambda ()
-			(set-readline-prompt! "" "")
-			(set-readline-read-hook! #f)))))))
        (let ((status (scm-style-repl)))
 	 (run-hook exit-hook)
 	 status))
