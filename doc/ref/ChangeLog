@@ -1,3 +1,7 @@
+2002-03-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (guile_toc.html): Look for guile.texi in $(srcdir).
+
 2002-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-compound.texi, scheme-data.texi, new-docstrings.texi:
