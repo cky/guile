@@ -231,7 +231,7 @@ SCM_API void gh_newline (void);
 #endif
 
 #endif /* __GH_H */
-
+/* njrev: critical sections reviewed so far up to here */
 /*
   Local Variables:
   c-file-style: "gnu"

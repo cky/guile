@@ -354,7 +354,8 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 				      scm_from_ulong (bounds[2*i+1])),
 			    heap_segs);
     }
-  
+  /* njrev: can any of these scm_cons's or scm_list_n signal a memory
+     error?  If so we need a frame here. */
   answer =
     scm_list_n (scm_cons (sym_gc_time_taken,
 			  scm_from_ulong (local_scm_gc_time_taken)),
@@ -443,6 +444,13 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
   scm_gc_running_p = 1;
   scm_i_gc ("call");
+  /* njrev: It looks as though other places, e.g. scm_realloc,
+     can call scm_i_gc without acquiring the sweep mutex.  Does this
+     matter?  Also scm_i_gc (or its descendants) touch the
+     scm_sys_protects, which are protected in some cases
+     (e.g. scm_permobjs above in scm_gc_stats) by a critical section,
+     not by the sweep mutex.  Shouldn't all the GC-relevant objects be
+     protected in the same way? */
   scm_gc_running_p = 0;
   scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
   scm_c_hook_run (&scm_after_gc_c_hook, 0);
@@ -728,6 +736,8 @@ scm_gc_protect_object (SCM obj)
   SCM handle;
 
   /* This critical section barrier will be replaced by a mutex. */
+  /* njrev: Indeed; if my comment above is correct, there is the same
+     critsec/mutex inconsistency here. */
   SCM_CRITICAL_SECTION_START;
 
   handle = scm_hashq_create_handle_x (scm_protects, obj, scm_from_int (0));
@@ -751,6 +761,7 @@ scm_gc_unprotect_object (SCM obj)
   SCM handle;
 
   /* This critical section barrier will be replaced by a mutex. */
+  /* njrev: and again. */
   SCM_CRITICAL_SECTION_START;
 
   if (scm_gc_running_p)
@@ -788,10 +799,12 @@ scm_gc_register_root (SCM *p)
   SCM key = scm_from_ulong ((unsigned long) p);
 
   /* This critical section barrier will be replaced by a mutex. */
+  /* njrev: and again. */
   SCM_CRITICAL_SECTION_START;
 
   handle = scm_hashv_create_handle_x (scm_gc_registered_roots, key,
 				      scm_from_int (0));
+  /* njrev: note also that the above can probably signal an error */
   SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), scm_from_int (1)));
 
   SCM_CRITICAL_SECTION_END;
@@ -804,6 +817,7 @@ scm_gc_unregister_root (SCM *p)
   SCM key = scm_from_ulong ((unsigned long) p);
 
   /* This critical section barrier will be replaced by a mutex. */
+  /* njrev: and again. */
   SCM_CRITICAL_SECTION_START;
 
   handle = scm_hashv_get_handle (scm_gc_registered_roots, key);
