@@ -49,7 +49,7 @@ bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
 dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
-PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_signals \
+PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols \
 cpp_sig_symbols cpp_cnvt.awk
 
 ## FIXME: shouldn't directly generate file; instead generate temp file
