@@ -66,6 +66,7 @@
 #include "vectors.h"
 #include "strports.h"
 #include "ports.h"
+#include "feature.h"
 
 #include "regex-posix.h"
 
@@ -235,4 +236,6 @@ scm_init_regex_posix ()
 {
   scm_tc16_regex_t = scm_newsmob (&regex_t_smob);
 #include "regex-posix.x"
+
+  scm_add_feature ("regex");
 }
