@@ -12,7 +12,19 @@ Changes in Guile 1.2:
 
 * Changes to the procedure for linking libguile with your programs
 
-* Changes to Scheme functions
+* Changes to Scheme functions and syntax
+
+** Guile now supports a new R4RS-compliant syntax for keywords.  A
+token of the form #:NAME, where NAME has the same syntax as a Scheme
+symbol, is the external representation of the keyword named NAME.
+Keyword objects print using this syntax as well, so values containing
+keyword objects can be read back into Guile.
+
+Guile suports this read syntax, and uses this print syntax, regardless
+of the current setting of the `keyword' read option.  The `keyword'
+read option only controls whether Guile recognizes the `:NAME' syntax,
+which is incompatible with R4RS.  (R4RS says such token represent
+symbols.)
 
 ** Guile has regular expression support again.  Guile 1.0 included
 functions for matching regular expressions, based on the Rx library.
