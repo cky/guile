@@ -1,4 +1,4 @@
-/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -495,7 +495,7 @@ scm_compile_shell_switches (int argc, char **argv)
       else if (! strcmp (argv[i], "-e")) /* entry point */
 	{
 	  if (++i < argc)
-	    entry_point = scm_str2symbol (argv[i]);
+	    entry_point = scm_c_read_string (argv[i]);
 	  else
 	    scm_shell_usage (1, "missing argument to `-e' switch");
 	}
