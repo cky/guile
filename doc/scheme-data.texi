@@ -5092,7 +5092,6 @@ Convert the procedure list of @var{hook} to a list.
 @node Other Data Types
 @section Other Core Guile Data Types
 
-
 @c Local Variables:
 @c TeX-master: "guile.texi"
 @c End:
