@@ -1,3 +1,8 @@
+2004-07-09  Marius Vollmer  <mvo@zagadka.de>
+
+	* configure.in: Bugfix: set SCM_I_GSC_T_UINTMAX, not
+	SCM_I_GSC_T_INTMAX in two places.  Thanks to Andreas Vögele!
+
 2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* configure.in: When checking for suitable types for scm_t_int8,
