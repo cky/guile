@@ -183,14 +183,89 @@ scm_ilookup (iloc, env)
 }
 #endif
 
+#ifdef USE_THREADS
+
+/* The Lookup Car Race
+    - by Eva Luator
+
+   Memoization of variables and special forms is done while executing
+   the code for the first time.  As long as there is only one thread
+   everything is fine, but as soon as two threads execute the same
+   code concurrently `for the first time' they can come into conflict.
+
+   This memoization includes rewriting variable references into more
+   efficient forms and expanding macros.  Furthermore, macro expansion
+   includes `compiling' special forms like `let', `cond', etc. into
+   tree-code instructions.
+
+   There shouldn't normally be a problem with memoizing local and
+   global variable references (into ilocs and glocs), because all
+   threads will mutate the code in *exactly* the same way and (if I
+   read the C code correctly) it is not possible to observe a half-way
+   mutated cons cell.  The lookup procedure can handle this
+   transparently without any critical sections.
+
+   It is different with macro expansion, because macro expansion
+   happens outside of the lookup procedure and can't be
+   undone. Therefore it can't cope with it.  It has to indicate
+   failure when it detects a lost race and hope that the caller can
+   handle it.  Luckily, it turns out that this is the case.
+
+   An example to illustrate this: Suppose that the follwing form will
+   be memoized concurrently by two threads
+
+       (let ((x 12)) x)
+
+   Let's first examine the lookup of X in the body.  The first thread
+   decides that it has to find the symbol "x" in the environment and
+   starts to scan it.  Then the other thread takes over and actually
+   overtakes the first.  It looks up "x" and substitutes an
+   appropriate iloc for it.  Now the first thread continues and
+   completes its lookup.  It comes to exactly the same conclusions as
+   the second one and could - without much ado - just overwrite the
+   iloc with the same iloc.
+
+   But let's see what will happen when the race occurs while looking
+   up the symbol "let" at the start of the form.  It could happen that
+   the second thread interrupts the lookup of the first thread and not
+   only substitutes a gloc for it but goes right ahead and replaces it
+   with the compiled form (#@let* (x 12) x).  Now, when the first
+   thread completes its lookup, it would replace the #@let* with a
+   gloc pointing to the "let" binding, effectively reverting the form
+   to (let (x 12) x).  This is wrong.  It has to detect that it has
+   lost the race and the evaluator has to reconsider the changed form
+   completely.
+
+   This race condition could be resolved with some kind of traffic
+   light (like mutexes) around scm_lookupcar, but I think that it is
+   best to avoid them in this case.  They would serialize memoization
+   completely and because lookup involves calling arbitrary Scheme
+   code (via the lookup-thunk), threads could be blocked for an
+   arbitrary amount of time or even deadlock.  But with the current
+   solution a lot of unnecessary work is potentially done. */
+
+/* SCM_LOOKUPCAR1 is was SCM_LOOKUPCAR used to be but is allowed to
+   return NULL to indicate a failed lookup due to some race conditions
+   between threads.  This only happens when VLOC is the first cell of
+   a special form that will eventually be memoized (like `let', etc.)
+   In that case the whole lookup is bogus and the caller has to
+   reconsider the complete special form.
+
+   SCM_LOOKUPCAR is still there, of course.  It just calls
+   SCM_LOOKUPCAR1 and aborts on recieving NULL.  So SCM_LOOKUPCAR
+   should only be called when it is known that VLOC is not the first
+   pair of a special form.  Otherwise, use SCM_LOOKUPCAR1 and check
+   for NULL.  I think I've found the only place where this applies. */
+
+#endif /* USE_THREADS */
 
 SCM *
-scm_lookupcar (vloc, genv)
+scm_lookupcar1 (vloc, genv)
      SCM vloc;
      SCM genv;
 {
   SCM env = genv;
-  register SCM *al, fl, var = SCM_CAR (vloc);
+  register SCM *al, fl, var = SCM_CAR (vloc), var2 = var;
 #ifdef MEMOIZE_LOCALS
   register SCM iloc = SCM_ILOC00;
 #endif
@@ -205,6 +280,10 @@ scm_lookupcar (vloc, genv)
 	      if (fl == var)
 	      {
 #ifdef MEMOIZE_LOCALS
+#ifdef USE_THREADS
+		if (SCM_CAR (vloc) != var)
+		  goto race;
+#endif
 		SCM_SETCAR (vloc, iloc + SCM_ICDR);
 #endif
 		return SCM_CDRLOC (*al);
@@ -221,6 +300,10 @@ scm_lookupcar (vloc, genv)
 		  env = SCM_EOL;
 		  goto errout;
 		}
+#endif
+#ifdef USE_THREADS
+	      if (SCM_CAR (vloc) != var)
+		goto race;
 #endif
 	      SCM_SETCAR (vloc, iloc);
 #endif
@@ -262,12 +345,49 @@ scm_lookupcar (vloc, genv)
 		      scm_listify (var, SCM_UNDEFINED));
     }
 #endif
+#ifdef USE_THREADS
+  if (SCM_CAR (vloc) != var2)
+    {
+      /* Some other thread has changed the very cell we are working
+         on.  In effect, it must have done our job or messed it up
+         completely. */
+    race:
+      var = SCM_CAR (vloc);
+      if ((var & 7) == 1)
+	return SCM_GLOC_VAL_LOC (var);
+#ifdef MEMOIZE_LOCALS
+      if ((var & 127) == (127 & SCM_ILOC00))
+	return scm_ilookup (var, genv);
+#endif
+      /* We can't cope with anything else than glocs and ilocs.  When
+         a special form has been memoized (i.e. `let' into `#@let') we
+         return NULL and expect the calling function to do the right
+         thing.  For the evaluator, this means going back and redoing
+         the dispatch on the car of the form. */
+      return NULL;
+    }
+#endif /* USE_THREADS */
+
   SCM_SETCAR (vloc, var + 1);
   /* Except wait...what if the var is not a vcell,
-   * but syntax or something....
-   */
+   * but syntax or something....  */
   return SCM_CDRLOC (var);
 }
+
+#ifdef USE_THREADS
+SCM *
+scm_lookupcar (vloc, genv)
+     SCM vloc;
+     SCM genv;
+{
+  SCM *loc = scm_lookupcar1 (vloc, genv);
+  if (loc == NULL)
+    abort ();
+  return loc;
+}
+#else /* not USE_THREADS */
+#define scm_lookupcar scm_lookupcar1
+#endif
 
 #define unmemocar scm_unmemocar
 
@@ -1359,7 +1479,6 @@ scm_deval (x, env)
 {}
 #endif
 
-
 SCM 
 SCM_CEVAL (x, env)
      SCM x;
@@ -1369,7 +1488,7 @@ SCM_CEVAL (x, env)
     {
       SCM *lloc;
       SCM arg1;
-    } t;
+   } t;
   SCM proc, arg2;
 #ifdef DEVAL
   scm_debug_frame debug;
@@ -1441,8 +1560,8 @@ start:
 			       scm_cons (scm_unmemocopy (x, env), SCM_EOL)),
 		    0);
       }
-dispatch:
 #endif
+dispatch:
   SCM_ASYNC_TICK;
   switch (SCM_TYP7 (x))
     {
@@ -1822,7 +1941,18 @@ dispatch:
     case scm_tcs_cons_nimcar:
       if (SCM_SYMBOLP (SCM_CAR (x)))
 	{
+#ifdef USE_THREADS
+	  t.lloc = scm_lookupcar1 (x, env);
+	  if (t.lloc == NULL)
+	    {
+	      /* we have lost the race, start again. */
+	      goto dispatch;
+	    }
+	  proc = *t.lloc;
+#else
 	  proc = *scm_lookupcar (x, env);
+#endif
+
 	  if (SCM_IMP (proc))
 	    {
 	      unmemocar (x, env);
@@ -1833,7 +1963,9 @@ dispatch:
 	      unmemocar (x, env);
 
 	    handle_a_macro:
-	      t.arg1 = SCM_APPLY (SCM_CDR (proc), x, scm_cons (env, scm_listofnull));
+	      t.arg1 = SCM_APPLY (SCM_CDR (proc), x,
+				  scm_cons (env, scm_listofnull));
+
 	      switch ((int) (SCM_CAR (proc) >> 16))
 		{
 		case 2:
@@ -1842,6 +1974,7 @@ dispatch:
 #ifdef DEVAL
 		  if (!SCM_CLOSUREP (SCM_CDR (proc)))
 		    {
+
 #if 0 /* Top-level defines doesn't very often occur in backtraces */
 		      if (scm_m_define == SCM_SUBRF (SCM_CDR (proc)) && SCM_TOP_LEVEL (env))
 			/* Prevent memoizing result of define macro */
