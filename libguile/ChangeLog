@@ -1,3 +1,63 @@
+2004-11-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-4.h (scm_c_uniform_vector_ref, scm_c_uniform_vector_set_x):
+	New.
+	(scm_i_uniform_vector_creator): Removed.
+	(scm_i_generalized_vector_creator): New.
+	(scm_uniform_vector_length, scm_uniform_element_size): Do not
+	handle generalized vectors, only uniform numeric vectors.
+	(alloc_uvec): Do length check here...
+	(make_uvec): ...but not here.
+	(coerce_to_uvec): Use new generalized vector functions to handle
+	all kinds of vectors in one go.
+	
+	* tags.h (scm_tc7_bvect): Renamed to scm_tc7_unused7, renaming the
+	remaining scm_tc7_unused tags to get a neatly ordered list.
+
+	* eq.c, evalext.c, gc-card.c, gc-mark.c, objects.c, print.c: Do no
+	longer handle scm_tc7_bvect bitvectors.
+
+	* ramap.c: Use the new generalized vector functions to handle all
+	vector like things.
+
+	* vectors.h, vectors.c (scm_is_vector, scm_c_vector_length,
+	scm_c_vector_ref, scm_c_vector_set_x, scm_generalized_vector_p,
+	scm_generalized_vector_length, scm_generalized_vector_ref,
+	scm_generalized_vector_set_x, scm_generalized_vector_to_list,
+	scm_is_generalized_vector, scm_c_generalized_vector_length,
+	scm_c_generalized_vector_ref, scm_c_generalized_vector_set_x):
+	New.
+	
+	* unif.h, unif.c (scm_bitvector_p, scm_bitvector,
+	scm_make_bitvector, scm_bitvector_length, scm_bitvector_ref,
+	scm_bitvector_set_x, scm_list_to_bitvector, scm_bitvector_to_list,
+	scm_bitvector_fill_x, scm_is_bitvector, scm_c_make_bitvector,
+	scm_c_bitvector_length, scm_c_bitvector_ref,
+	scm_c_bitvector_set_x, scm_bitvector_elements,
+	scm_bitvector_release, scm_frame_bitvector_release,
+	scm_tc16_bitvector, bitvector_free, bitvector_print,
+	bitvector_equalp, count_ones, find_first_one): New.
+	(scm_bit_count, scm_bit_position, scm_bit_set_star_x,
+	scm_bit_count_star, scm_bit_invert_x, scm_istr2bve): Rewritten
+	using the new C API for bitvectors and maybe count_ones or
+	find_first_one, as appropriate.
+	(SCM_I_MAX_LENGTH, SCM_BITVECTOR_P, SCM_BITVECTOR_BASE,
+	SCM_SET_BITVECTOR_BASE, SCM_BITVECTOR_MAX_LENGTH,
+	SCM_BITVECTOR_LENGTH, SCM_MAKE_BITVECTOR_TAG,
+	SCM_SET_BITVECTOR_LENGTH): Removed.  Replaced all uses with the
+	new functions from above.
+	(scm_i_proc_make_vector, scm_i_proc_make_string,
+	scm_i_proc_make_bitvector): Made non-static for use in
+	scm_i_generalized_vector_creator.
+	(scm_make_u1vector): Removed, replaced by scm_make_bitvector.
+	(scm_make_uve): Validate that the created object is a generalized
+	vector.
+	(scm_i_legacy_tag): Removed.
+	(scm_i_print_array): Do it here.
+	(scm_raprin1): Only print enclosed arrays.
+
+	* Makefile.am (DOT_DOC_FILES): Added srfi-4.doc.
+
 2004-11-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.c (make_uvec): Use SCM_I_SIZE_MAX instead of SIZE_MAX for
