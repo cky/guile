@@ -3183,14 +3183,18 @@
 ;;;
 ;;; Currently, the following feature identifiers are supported:
 ;;;
-;;;   guile r5rs srfi-0
+;;;   guile r5rs srfi-0 srfi-6
 ;;;
 ;;; Remember to update the features list when adding more SRFIs.
 ;;;
 
 (define %cond-expand-features
   ;; Adjust the above comment when changing this.
-  '(guile r5rs srfi-0))
+  '(guile
+    r5rs
+    srfi-0   ;; cond-expand itself
+    srfi-6   ;; open-input-string etc, in the guile core
+    ))
 
 ;; This table maps module public interfaces to the list of features.
 ;;
