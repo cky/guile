@@ -1,3 +1,15 @@
+Wed Mar 19 04:50:34 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm: define accessor procedures for the objects returned
+	by getpw, getgr, gethost, getnet, getproto, getserv (e.g.,
+	passwd:name, where the first component is the name of the C structure
+ 	and the second is the unprefixed C member name.)
+
+Tue Mar 18 18:39:31 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+*	* boot-9.scm (setpwent, setgrent, sethostent, setnetent, setprotoent,
+	setservent): no longer take an argument, it was bogus.
+
 Thu Mar 13 00:13:41 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (scm-error): deleted, reimplemented in C.
