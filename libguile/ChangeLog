@@ -1,3 +1,11 @@
+1998-06-21  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* load.c (scm_internal_parse_path): Renamed from scm_parse_path.
+	(scm_parse_path, scm_search_path): New Scheme level procedures.
+
+	* load.h (scm_internal_parse_path, scm_parse_path,
+	scm_search_path): Declared.
+
 1998-06-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* filesys.c (dirname, basename): New procedures.
