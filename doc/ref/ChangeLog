@@ -1,3 +1,8 @@
+2004-02-15  Mikael Djurfeldt  <mdj@chunk.mit.edu>
+
+	* scheme-compound.texi (Hash Table Reference): Renamed hash-map
+	--> hash-map->list.
+
 2004-02-15  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-compound.texi (Hash Table Reference): In scm_hash_ref etc,

@@ -1,3 +1,7 @@
+2004-02-15  Mikael Djurfeldt  <mdj@chunk.mit.edu>
+
+	* configure.in: Use AC_PROG_LIBTOOL instead of AM_PROG_LIBTOOL.
+
 2004-01-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in (GUILE_FUNC_DECLARED), acinclude.m4

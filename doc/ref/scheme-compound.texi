@@ -2481,17 +2481,17 @@ create an entry for it with @var{init} as the value, and return that
 pair.
 @end deffn
 
-@deffn {Scheme Procedure} hash-map proc table
+@deffn {Scheme Procedure} hash-map->list proc table
 @deffnx {Scheme Procedure} hash-for-each proc table
-@deffnx {C Function} scm_hash_map (proc, table)
+@deffnx {C Function} scm_hash_map_to_list (proc, table)
 @deffnx {C Function} scm_hash_for_each (proc, table)
 Apply @var{proc} to the entries in the given hash @var{table}.  Each
-call is @code{(@var{proc} @var{key} @var{value})}.  @code{hash-map}
+call is @code{(@var{proc} @var{key} @var{value})}.  @code{hash-map->list}
 returns a list of the results from these calls, @code{hash-for-each}
 discards the results and returns an unspecified value.
 
 Calls are made over the table entries in an unspecified order, and for
-@code{hash-map} the order of the values in the returned list is
+@code{hash-map->list} the order of the values in the returned list is
 unspecified.  Results will be unpredictable if @var{table} is modified
 while iterating.
 
@@ -2499,7 +2499,7 @@ For example the following returns a new alist comprising all the
 entries from @code{mytable}, in no particular order.
 
 @example
-(hash-map cons mytable)
+(hash-map->list cons mytable)
 @end example
 @end deffn
 
