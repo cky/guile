@@ -449,32 +449,20 @@ coerce_to_uvec (int type, SCM obj)
     scm_wrong_type_arg_msg (NULL, 0, obj, "list or generalized vector");
 }
 
-static SCM *uvec_proc_vars[12] = {
-  &scm_i_proc_make_u8vector,
-  &scm_i_proc_make_s8vector,
-  &scm_i_proc_make_u16vector,
-  &scm_i_proc_make_s16vector,
-  &scm_i_proc_make_u32vector,
-  &scm_i_proc_make_s32vector,
-  &scm_i_proc_make_u64vector,
-  &scm_i_proc_make_s64vector,
-  &scm_i_proc_make_f32vector,
-  &scm_i_proc_make_f64vector,
-  &scm_i_proc_make_c32vector,
-  &scm_i_proc_make_c64vector
-};
+SCM_SYMBOL (scm_sym_a, "a");
+SCM_SYMBOL (scm_sym_b, "b");
 
 SCM
-scm_i_generalized_vector_creator (SCM v)
+scm_i_generalized_vector_type (SCM v)
 {
   if (scm_is_vector (v))
-    return scm_i_proc_make_vector;
+    return SCM_BOOL_T;
   else if (scm_is_string (v))
-    return scm_i_proc_make_string;
+    return scm_sym_a;
   else if (scm_is_bitvector (v))
-    return scm_i_proc_make_bitvector;
+    return scm_sym_b;
   else if (scm_is_uniform_vector (v))
-    return *(uvec_proc_vars[SCM_UVEC_TYPE(v)]);
+    return scm_from_locale_symbol (uvec_tags[SCM_UVEC_TYPE(v)]);
   else
     return SCM_BOOL_F;
 }
@@ -931,21 +919,6 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 #define CTYPE double
 #include "libguile/srfi-4.i.c"
 
-SCM scm_i_proc_make_u8vector;
-SCM scm_i_proc_make_s8vector;
-SCM scm_i_proc_make_u16vector;
-SCM scm_i_proc_make_s16vector;
-SCM scm_i_proc_make_u32vector;
-SCM scm_i_proc_make_s32vector;
-SCM scm_i_proc_make_u64vector;
-SCM scm_i_proc_make_s64vector;
-SCM scm_i_proc_make_f32vector;
-SCM scm_i_proc_make_f64vector;
-SCM scm_i_proc_make_c32vector;
-SCM scm_i_proc_make_c64vector;
-
-/* Create the smob type for homogeneous numeric vectors and install
-   the primitives.  */
 void
 scm_init_srfi_4 (void)
 {
@@ -953,24 +926,9 @@ scm_init_srfi_4 (void)
   scm_set_smob_equalp (scm_tc16_uvec, uvec_equalp);
   scm_set_smob_free (scm_tc16_uvec, uvec_free);
   scm_set_smob_print (scm_tc16_uvec, uvec_print);
+
 #include "libguile/srfi-4.x"
 
-#define GETPROC(tag) \
-  scm_i_proc_make_##tag##vector = \
-    scm_variable_ref (scm_c_lookup ("make-"#tag"vector"))
-
-  GETPROC (u8);
-  GETPROC (s8);
-  GETPROC (u16);
-  GETPROC (s16);
-  GETPROC (u32);
-  GETPROC (s32);
-  GETPROC (u64);
-  GETPROC (s64);
-  GETPROC (f32);
-  GETPROC (f64);
-  GETPROC (c32);
-  GETPROC (c64);
 }
 
 /* End of srfi-4.c.  */

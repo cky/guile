@@ -76,6 +76,9 @@ SCM_API scm_t_bits scm_tc16_enclosed_array;
 #define SCM_ARRAY_DIMS(a) ((scm_t_array_dim *)((char *) SCM_ARRAY_MEM (a) + sizeof (scm_t_array))) 
 
 SCM_API SCM scm_array_p (SCM v, SCM prot);
+SCM_API SCM scm_typed_array_p (SCM v, SCM type);
+SCM_API SCM scm_make_array (SCM fill, SCM bounds);
+SCM_API SCM scm_make_typed_array (SCM type, SCM fill, SCM bounds);
 SCM_API SCM scm_array_rank (SCM ra);
 SCM_API SCM scm_array_dimensions (SCM ra);
 SCM_API SCM scm_shared_array_root (SCM ra);
@@ -93,7 +96,12 @@ SCM_API SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd,
 SCM_API SCM scm_uniform_array_write (SCM v, SCM port_or_fd,
 				     SCM start, SCM end);
 SCM_API SCM scm_array_to_list (SCM v);
-SCM_API SCM scm_array_creator (SCM ra);
+SCM_API SCM scm_list_to_array (SCM ndim, SCM lst);
+SCM_API SCM scm_list_to_typed_array (SCM type, SCM ndim, SCM lst);
+SCM_API SCM scm_array_type (SCM ra);
+
+SCM_API int scm_is_array (SCM obj);
+SCM_API int scm_is_typed_array (SCM obj, SCM type);
 
 SCM_API SCM scm_i_read_array (SCM port, int c);
 
@@ -143,9 +151,6 @@ SCM_API SCM scm_shap2ra (SCM args, const char *what);
 SCM_API SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
 SCM_API SCM scm_ra2contig (SCM ra, int copy);
 
-SCM_API SCM scm_i_proc_make_vector;
-SCM_API SCM scm_i_proc_make_string;
-SCM_API SCM scm_i_proc_make_bitvector;
 SCM_API SCM scm_i_cvref (SCM v, size_t p, int enclosed);
 
 SCM_API void scm_init_unif (void);
