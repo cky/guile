@@ -171,10 +171,10 @@
 
 (define (rest-arg->keyword-binding-list rest-arg keywords allow-other-keys?)
   (if (null? rest-arg)
-      ()
+      '()
       (let loop ((first (car rest-arg))
 		 (rest (cdr rest-arg))
-		 (accum ()))
+		 (accum '()))
 	(let ((next (lambda (a)
 		      (if (null? (cdr rest))
 			  a

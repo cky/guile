@@ -1,5 +1,8 @@
 2001-03-05  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* optargs.scm (rest-arg->keyword-binding-list): Use "'()" instead
+	of "()".
+
 	* buffered-input.scm: New file, with guts of line buffered input
 	port implementation extracted from guile-readline/readline.scm.
 
