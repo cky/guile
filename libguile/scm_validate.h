@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.11 2000-01-06 18:02:16 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.12 2000-01-06 18:04:14 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -117,8 +117,8 @@
 #define SCM_VALIDATE_STRING(pos,str) SCM_MAKE_VALIDATE(pos,str,STRINGP)
 
 #define SCM_VALIDATE_STRINGORSUBSTR(pos,str) \
-  do { SCM_ASSERT(SCM_NIMP (str) && \
-       (SCM_SLOPPY_STRINGP (str) || SCM_SLOPPY_SUBSTRP(str)), str, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT(SCM_SLOPPY_STRINGP (str) || \
+                  SCM_SLOPPY_SUBSTRP(str), str, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_STRING_COPY(pos,str,cvar) \
   do { SCM_ASSERT(SCM_STRINGP (str), str, pos, FUNC_NAME); \
