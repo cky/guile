@@ -164,8 +164,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.tmp
 	@echo '#define SCM_BUILD_INFO { \' >> libpath.tmp
 	@echo '	{ "srcdir", "'"`cd @srcdir@; pwd`"'" }, \' >> libpath.tmp
-	@echo '	{ "top_srcdir", "'"`cd @top_srcdir@; pwd`"'" }, \' \
-		>> libpath.tmp
+	@echo ' { "top_srcdir",    "top_srcdir_absolute@" }, \' >> libpath.tmp
 	@echo '	{ "prefix",	   "@prefix@" }, \' >> libpath.tmp
 	@echo '	{ "exec_prefix",   "@exec_prefix@" }, \' >> libpath.tmp
 	@echo '	{ "bindir",	   "@bindir@" }, \' >> libpath.tmp
@@ -192,13 +191,14 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@mv libpath.tmp libpath.h
 
 
+snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
 SUFFIXES = .x .doc
 .c.x:
-	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
-	|| { rm $@; false; }
+	./guile-snarf $< $(snarfcppopts)
 .c.doc:
 	-(test -n "${AWK+set}" || AWK="@AWK@"; ${AWK} -f ./guile-func-name-check $<)
-	(./guile-snarf-docs $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< | \
+	(./guile-snarf-docs $(snarfcppopts) $< | \
 	./guile_filter_doc_snarfage$(EXEEXT) --filter-snarfage) > $@ || { rm $@; false; }
 
 $(DOT_X_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf.in
