@@ -1,3 +1,57 @@
+Wed Sep  4 00:55:49 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* PLUGIN/guile.config (xtra_cflags): Include .. in the header
+	search path, so we can find the <libguile/MUMBLE.h> headers.
+
+	* Makefile.in (ancillary): List aclocal.m4, for 'make dist'.
+
+	* Makefile.in (ALL_CFLAGS): Don't mention CFLAGS here; it's
+	implicit in the .c.o rule.
+	(.c.x): Don't mention ALL_CFLAGS here; its value is included in
+	$(CC) already.
+
+	Put the library path in a header file, instead of passing it on
+	the command line in every compilation.
+	* Makefile.in (libpath.h): New target.
+	(feature.o): Depend on libpath.h.
+	(clean): Delete libpath.h.
+	(ALL_CFLAGS): Don't use -DLIBRARY_PATH here.  Instead ...
+	* feature.c: ... #include "libpath.h" here.
+	* .cvsignore: Ignore libpath.h.
+
+	Don't install the unwashed masses of Guile header files in the
+	main #include path; put most of them in a subdirectory called
+	'libguile'.  This avoids naming conflicts between Guile header
+	files and system header files (of which there were a few).
+	* Makefile.in (pkgincludedir): Deleted.
+	(innerincludedir): New variable; this and $(includedir) are enough. 
+	(INCLUDE_CFLAGS): Search for headers in "-I$(srcdir)/..".
+	(installed_h_files): Divide this up.  Now this variable lists
+	those header files which should go into $(includedir) (i.e. appear
+	directly in the #include path), and ...
+	(inner_h_files): ... this new variable says which files appear in
+	a subdirectory, and are referred to as <libguile/mumble.h>.
+	(h_files): List them both.
+	(install): Create innerincludedir, not pkgincludedir.  Put
+	the installed_h_files and inner_h_files in their proper places.
+	(uninstall): Corresponding changes.
+	* alist.h, append.h, arbiters.h, async.h, boolean.h, chars.h,
+	continuations.h, debug.h, dynwind.h, error.h, eval.h, fdsocket.h,
+	feature.h, fports.h, gc.h, genio.h, gsubr.h, hash.h, init.h,
+	ioext.h, kw.h, libguile.h, list.h, markers.h, marksweep.h,
+	mbstrings.h, numbers.h, options.h, pairs.h, ports.h, posix.h,
+	print.h, procprop.h, procs.h, ramap.h, read.h, root.h,
+	sequences.h, smob.h, socket.h, srcprop.h, stackchk.h, stime.h,
+	strings.h, strop.h, strorder.h, strports.h, struct.h, symbols.h,
+	tag.h, throw.h, unif.h, variable.h, vectors.h, version.h,
+	vports.h, weaks.h: Find __scm.h in its new location.
+	* __scm.h: Find scmconfig.h and tags.h in their new locations
+	(they're both "inner" files).
+
+Tue Sep  3 20:27:35 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.in (.c.x): Remove duplicate use of $(ALL_CFLAGS).
+
 Mon Sep  2 15:22:40 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* socket.c: Don't include a prototype for inet_aton; just use a
