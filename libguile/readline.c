@@ -63,16 +63,19 @@ strdup (char *s)
 
 #ifndef HAVE_RL_CLEANUP_AFTER_SIGNAL
 
-/* This is readline functions added in release 2.3.  They will work
+/* These are readline functions added in release 2.3.  They will work
  * together with readline-2.1 and 2.2.  (The readline interface is
  * disabled for earlier releases.)
+ * They are declared static; if we want to use them elsewhere, then
+ * we need external declarations for them, but at the moment, I don't
+ * think anything else in Guile ought to use these.
  */
 
 extern void _rl_clean_up_for_exit ();
 extern void _rl_kill_kbd_macro ();
 extern int _rl_init_argument ();
 
-void
+static void
 rl_cleanup_after_signal ()
 {
 #ifdef HAVE_RL_CLEAR_SIGNALS
@@ -85,7 +88,7 @@ rl_cleanup_after_signal ()
   rl_pending_input = 0;
 }
 
-void
+static void
 rl_free_line_state ()
 {
   register HIST_ENTRY *entry;
@@ -260,8 +263,8 @@ scm_add_history (SCM text)
   return SCM_UNSPECIFIED;
 }
 
-static SCM subr_filename_completion_function;
-static char s_filename_completion_function[] = "filename-completion-function";
+
+SCM_PROC (s_filename_completion_function, "filename-completion-function", 2, 0, 0, scm_filename_completion_function);
 
 SCM
 scm_filename_completion_function (SCM text, SCM continuep)
@@ -317,10 +320,6 @@ void
 scm_init_readline ()
 {
 #include "readline.x"
-  subr_filename_completion_function
-    = scm_make_subr (s_filename_completion_function,
-		     scm_tc7_subr_2,
-		     scm_filename_completion_function);
   scm_readline_completion_function_var
     = scm_sysintern ("*readline-completion-function*", SCM_BOOL_F);
   rl_getc_function = current_input_getc;
