@@ -1,5 +1,8 @@
 2003-07-27  Marius Vollmer  <mvo@zagadka.de>
 
+	* print.c (scm_print_symbol_name): handle more weird characters by
+	escaping the symbol name properly.  Thanks to Paul Jarc!
+
 	* posix.h (scm_setgroups): New prototype.
 	* posix.c (scm_setgroups): New.  Thanks to Paul Jarc!
 	(scm_getgroups): Handle groups ids that don't fit into a fixnum.
