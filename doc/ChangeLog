@@ -1,5 +1,7 @@
 2001-05-05  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* AUTHORS: Added Martin Grabmueller.
+
 	* scheme-procedures.texi (Macros, Syntax Rules, Internal Macros):
 	New material.
 	(Syntax Case): New node, but currently empty.
