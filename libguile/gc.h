@@ -74,11 +74,11 @@ typedef scm_cell * SCM_CELLPTR;
  *  pointers to scm_vector elts, functions, &c are not munged.
  */
 #ifdef _UNICOS
-    #define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x) >> 3))
-    #define PTR2SCM(x) (SCM_PACK (((scm_bits_t) (x)) << 3))
+#  define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x) >> 3))
+#  define PTR2SCM(x) (SCM_PACK (((scm_bits_t) (x)) << 3))
 #else
-    #define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x)))
-    #define PTR2SCM(x) (SCM_PACK ((scm_bits_t) (x)))
+#  define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x)))
+#  define PTR2SCM(x) (SCM_PACK ((scm_bits_t) (x)))
 #endif /* def _UNICOS */
 
 
