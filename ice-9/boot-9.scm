@@ -497,6 +497,11 @@
   (make-record-type "values"
 		    '(values)))
 
+;;; These two are needed internally in boot-9.scm.
+;;; They shouldn't be visible outside this module.
+(define values? (record-predicate *values-rtd*))
+(define get-values (record-accessor *values-rtd* 'values))
+
 (define values
   (let ((make-values (record-constructor *values-rtd*)))
     (lambda x
@@ -506,13 +511,11 @@
 	  (make-values x)))))
 
 (define call-with-values
-  (let ((access-values (record-accessor *values-rtd* 'values))
-	(values-predicate? (record-predicate *values-rtd*)))
-    (lambda (producer consumer)
-      (let ((result (producer)))
-	(if (values-predicate? result)
-	    (apply consumer (access-values result))
-	    (consumer result))))))
+  (lambda (producer consumer)
+    (let ((result (producer)))
+      (if (values? result)
+	  (apply consumer (get-values result))
+	  (consumer result)))))
 
 (provide 'values)
 
@@ -1780,11 +1783,14 @@
 	  (kws (cdr args)))
     (beautify-user-module! module)
     (let loop ((kws kws)
-	       (reversed-interfaces '()))
+	       (reversed-interfaces '())
+	       (exports '()))
       (if (null? kws)
-	  (for-each (lambda (interface)
-		      (module-use! module interface))
-		    reversed-interfaces)
+	  (begin
+	    (for-each (lambda (interface)
+			(module-use! module interface))
+		      reversed-interfaces)
+	    (module-export! module exports))
 	  (let ((keyword (cond ((keyword? (car kws))
 				(keyword->symbol (car kws)))
 			       ((and (symbol? (car kws))
@@ -1814,7 +1820,8 @@
 			(module-ref interface (car (last-pair used-name))
 				    #f)))
 		   (loop (cddr kws)
-			 (cons interface reversed-interfaces)))))
+			 (cons interface reversed-interfaces)
+			 exports))))
 	      ((autoload)
 	       (if (not (and (pair? (cdr kws)) (pair? (cddr kws))))
 		   (error "unrecognized defmodule argument" kws))
@@ -1822,18 +1829,20 @@
 		     (cons (make-autoload-interface module
 						    (cadr kws)
 						    (caddr kws))
-			   reversed-interfaces)))
+			   reversed-interfaces)
+		     exports))
 	      ((no-backtrace)
 	       (set-system-module! module #t)
-	       (loop (cdr kws) reversed-interfaces))
+	       (loop (cdr kws) reversed-interfaces exports))
 	      ((pure)
 	       (purify-module! module)
-	       (loop (cdr kws) reversed-interfaces))
+	       (loop (cdr kws) reversed-interfaces exports))
 	      ((export)
 	       (if (not (pair? (cdr kws)))
 		   (error "unrecognized defmodule argument" kws))
-	       (module-export! module (cadr kws))
-	       (loop (cddr kws) reversed-interfaces))
+	       (loop (cddr kws)
+		     reversed-interfaces
+		     (append (cadr kws) exports)))
 	      (else	
 	       (error "unrecognized defmodule argument" kws))))))
     module))
@@ -2546,17 +2555,21 @@
 		    (repl-report-start-timing)
 		    (start-stack 'repl-stack (eval sourc))))
 
-	   (-print (lambda (result)
-		     (if (not scm-repl-silent)
-			 (begin
-			   (if (or scm-repl-print-unspecified
-				   (not (unspecified? result)))
-			       (begin
-				 (write result)
-				 (newline)))
-			   (if scm-repl-verbose
-			       (repl-report))
-			   (force-output)))))
+	   (-print (let ((maybe-print (lambda (result)
+					(if (or scm-repl-print-unspecified
+						(not (unspecified? result)))
+					    (begin
+					      (write result)
+					      (newline))))))
+		     (lambda (result)
+		       (if (not scm-repl-silent)
+			   (begin
+			     (if (values? result)
+				 (for-each maybe-print (get-values result))
+				 (maybe-print result))
+			     (if scm-repl-verbose
+				 (repl-report))
+			     (force-output))))))
 
 	   (-quit (lambda (args)
 		    (if scm-repl-verbose
