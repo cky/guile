@@ -113,6 +113,7 @@ refer to all Guile's other header files as <libguile/mumble.h>.
 Guile's installation procedure puts libguile.h in $(includedir), and
 the rest in $(includedir)/libguile.
 
+
 * Guile's delq, delv, delete functions, and their destructive
 counterparts, delq!, delv!, and delete!, now remove all matching
 elements from the list, not just the first.  This matches the behavior
