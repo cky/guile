@@ -1,3 +1,9 @@
+Sat Oct 25 02:54:11 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.am: Call the library libqthreads.a, not libqt.a.  The
+	old name conflicts with the Qt user interface toolkit.
+	* Makefile.in: Regenerated.
+
 Mon Sep 29 23:54:28 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* time/Makefile.in: Regenerated with automake 1.2c.

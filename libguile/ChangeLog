@@ -1,3 +1,19 @@
+Sat Oct 25 02:52:58 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	Minor problems with substring-related tag changes.
+	* symbols.h (SCM_SUBSTRP): Don't mask off the S bit; that's
+	exactly what we want to leave in to detect substrings.
+	(SCM_ROSTRINGP, ROUCHARS): Formatting tweaks.
+	* tags.h: Fix diagrams and comments describing the S tag bit;
+	remove vestigial remarks about the D tag bit.
+	(SCM_TYP7, SCM_TYP7S): Rephrased for readability.
+	* strings.c: Formatting tweaks.
+
+	* load.c (scm_init_load_path): Check GUILE_LOAD_PATH environment
+	variable first; then SCHEME_LOAD_PATH, with a warning message.
+	(scm_parse_path): New function.
+	* script.c: Doc fixes.
+
 Thu Oct 23 01:02:03 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	Readline support, from Daniel Risacher.

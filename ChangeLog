@@ -1,3 +1,11 @@
+Sat Oct 25 02:50:43 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	Call the QuickThreads library libqthreads.a, not libqt.a.  The old
+	name conflicts with the Qt user interface toolkit.
+	* threads.m4 (CY_AC_WITH_THREADS): Use new library name.
+	* configure.in: Same.
+	* aclocal.m4, configure: Regenerated.
+
 Thu Oct 23 00:58:06 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* configure.in: Check for the readline library, and the termcap
