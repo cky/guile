@@ -412,6 +412,7 @@ SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_dup2, "dup2", 2, 0, 0, 
             (SCM oldfd, SCM newfd),
 	    "A simple wrapper for the @code{dup2} system call.\n"
@@ -420,7 +421,7 @@ SCM_DEFINE (scm_dup2, "dup2", 2, 0, 0,
 	    "of @var{newfd}.  Both @var{oldfd} and @var{newfd} must\n"
 	    "be integers.\n"
 	    "Unlike for dup->fdes or primitive-move->fdes, no attempt\n"
-	    "is made to move away ports which are using @var{newfd}\n".
+	    "is made to move away ports which are using @var{newfd}.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_dup2
 {
