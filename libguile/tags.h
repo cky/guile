@@ -485,6 +485,7 @@ extern char *scm_isymnames[];   /* defined in print.c */
 #define SCM_IM_1_IFY		SCM_MAKISYM(30)
 #define SCM_IM_BIND		SCM_MAKISYM(31)
 
+#define SCM_IM_DELAY		SCM_MAKISYM(32)
 
 #define SCM_UNBNDP(x) 	(SCM_UNDEFINED==(x))
 
