@@ -252,8 +252,8 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   scm_t_port *pt;
   size_t str_len, c_pos;
 
-  SCM_ASSERT (SCM_STRINGP (str), str, SCM_ARG1, caller);
-  str_len = SCM_STRING_LENGTH (str);
+  SCM_ASSERT (SCM_I_STRINGP (str), str, SCM_ARG1, caller);
+  str_len = SCM_I_STRING_LENGTH (str);
   c_pos = scm_to_unsigned_integer (pos, 0, str_len);
 
   if (!((modes & SCM_WRTNG) || (modes & SCM_RDNG)))
@@ -264,7 +264,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   pt = SCM_PTAB_ENTRY(z);
   SCM_SETSTREAM (z, SCM_UNPACK (str));
   SCM_SET_CELL_TYPE(z, scm_tc16_strport|modes);
-  pt->write_buf = pt->read_buf = SCM_STRING_UCHARS (str);
+  pt->write_buf = pt->read_buf = SCM_I_STRING_UCHARS (str);
   pt->read_pos = pt->write_pos = pt->read_buf + c_pos;
   pt->write_buf_size = pt->read_buf_size = str_len;
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;
