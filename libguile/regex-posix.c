@@ -58,8 +58,18 @@
    the file is CPP'able (for dependency scanning) even on systems that
    don't have a <regex.h> header.  */
 #ifdef HAVE_REGCOMP
+#ifdef HAVE_REGEX_H
 #include <regex.h>
-#endif 
+#else
+#ifdef HAVE_RXPOSIX_H
+#include <rxposix.h>		/* GNU Rx library */
+#else
+#ifdef HAVE_RX_RXPOSIX_H
+#include <rx/rxposix.h>		/* GNU Rx library on Linux */
+#endif
+#endif
+#endif
+#endif
 
 #include "smob.h"
 #include "symbols.h"

@@ -1,5 +1,9 @@
 Sun Aug 24 01:25:35 1997  Mikael Djurfeldt  <mdj@kenneth>
 
+	* regex-posix.c: If <regex.h> can't be found, try <rxposix.h> or
+	<rx/rxposix.h>.  (This is in order to accomodate for the GNU Rx
+	library.)
+
 	* ramap.c (scm_ra_matchp, scm_array_fill_int, racp, ramap_1,
  	ramap_2o, scm_array_index_map_x, raeql_1, scm_array_equal_p),
  	unif.c (scm_vector_set_length_x, scm_uniform_vector_length,
