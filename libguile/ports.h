@@ -142,7 +142,7 @@ typedef struct scm_ptobfuns
 
 
 extern scm_ptobfuns *scm_ptobs;
-extern scm_sizet scm_numptob;
+extern int scm_numptob;
 extern int scm_port_table_room;
 
 
@@ -154,6 +154,7 @@ extern SCM scm_char_ready_p SCM_P ((SCM port));
 extern SCM scm_current_input_port SCM_P ((void));
 extern SCM scm_current_output_port SCM_P ((void));
 extern SCM scm_current_error_port SCM_P ((void));
+extern SCM scm_current_load_port SCM_P ((void));
 extern SCM scm_set_current_input_port SCM_P ((SCM port));
 extern SCM scm_set_current_output_port SCM_P ((SCM port));
 extern SCM scm_set_current_error_port SCM_P ((SCM port));
@@ -178,7 +179,9 @@ extern SCM scm_peek_char SCM_P ((SCM port));
 extern SCM scm_unread_char SCM_P ((SCM cobj, SCM port));
 extern char *scm_generic_fgets SCM_P ((SCM port, int *len));
 extern SCM scm_port_line SCM_P ((SCM port));
+extern SCM scm_set_port_line_x SCM_P ((SCM port, SCM line));
 extern SCM scm_port_column SCM_P ((SCM port));
+extern SCM scm_set_port_column_x SCM_P ((SCM port, SCM line));
 extern SCM scm_port_filename SCM_P ((SCM port));
 extern SCM scm_set_port_filename_x SCM_P ((SCM port, SCM filename));
 extern void scm_prinport SCM_P ((SCM exp, SCM port, char *type));

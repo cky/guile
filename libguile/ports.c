@@ -73,7 +73,7 @@
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
 scm_ptobfuns *scm_ptobs;
-scm_sizet scm_numptob;
+int scm_numptob;
 
 
 SCM 
