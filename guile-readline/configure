@@ -1616,7 +1616,7 @@ else
 #include <stdio.h>
 #include <readline/readline.h>
 int main() {
-rl_getc_function;
+printf ("%ld", (long) rl_getc_function)
 ; return 0; }
 EOF
 if { (eval echo configure:1623: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
