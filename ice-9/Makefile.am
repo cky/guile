@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 1998 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -28,7 +28,7 @@ ice9_sources = \
 	getopt-long.scm hcons.scm lineio.scm ls.scm mapping.scm		\
 	optargs.scm poe.scm popen.scm psyntax.pp psyntax.ss q.scm	\
 	r4rs.scm readline.scm regex.scm runq.scm session.scm slib.scm	\
-	string-fun.scm syncase.scm tags.scm threads.scm
+	streams.scm string-fun.scm syncase.scm tags.scm threads.scm
 
 # These should be installed, but not distributed.
 ice9_generated = version.scm
