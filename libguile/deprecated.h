@@ -323,9 +323,7 @@ SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 					   ^ (SCM_UNPACK (SCM_BOOL_T) \
 					      ^ SCM_UNPACK (SCM_BOOL_F))))
 
-#if 0
 SCM_API SCM SCM_MAKINUM (scm_t_signed_bits val);
-#endif
 
 void scm_i_init_deprecated (void);
 

@@ -68,7 +68,7 @@
 
 #define SCM_INUMP(x)	(2 & SCM_UNPACK (x))
 #define SCM_NINUMP(x) 	(!SCM_INUMP (x))
-#define SCM_MAKINUM(x) \
+#define SCM_I_MAKINUM(x) \
   (SCM_PACK ((((scm_t_signed_bits) (x)) << 2) + scm_tc2_int))
 #define SCM_INUM(x)     (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
 
@@ -79,7 +79,7 @@
 
 
 /* A name for 0. */
-#define SCM_INUM0 (SCM_MAKINUM (0))
+#define SCM_INUM0 (SCM_I_MAKINUM (0))
 
 /* SCM_MAXEXP is the maximum double precision exponent
  * SCM_FLTMAX is less than or scm_equal the largest single precision float

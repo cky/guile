@@ -1105,7 +1105,6 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
 }
 #undef FUNC_NAME
 
-#if 0
 SCM
 SCM_MAKINUM (scm_t_signed_bits val)
 {
@@ -1113,7 +1112,6 @@ SCM_MAKINUM (scm_t_signed_bits val)
     ("SCM_MAKINUM is deprecated.  Use scm_from_int or similar instead.");
   return scm_from_int (val);
 }
-#endif
 
 void
 scm_i_init_deprecated ()
