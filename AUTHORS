@@ -76,16 +76,18 @@ gh_eval.c        gh_io.c          gh_test_c.c
 In the subdirectory doc, wrote:
     appendices.texi gh.texi         guile-tut.texi
 
-Marius Vollmer:
+Marius Vollmer: Many changes throughout.
 In the subdirectory libguile, wrote:
-    fluids.c
-    fluids.h
+    fluids.c        fluids.h
+    deprecation.h   deprecation.c
 In the subdirectory libguile, rewrote:
     dynl.c	dynl-dl.c	dynl-shl.c
     dynl.h	dynl-dld.c
 In the subdirectory doc, changes to:
     data-rep.texi   intro.texi      posix.texi
     scheme-modules.texi
+In the subdirectory ice-9, wrote
+    and-let-star-compat.scm
 
 R. Kent Dybvig:
 In the subdirectory ice-9, wrote:
@@ -142,6 +144,10 @@ In the subdirectory doc, changes to:
     scheme-memory.texi              scheme-modules.texi
     scheme-options.texi             scheme-procedures.texi
     scheme-scheduling.texi          scheme-utility.texi
+In the subdirectory example, wrote
+    scripts  modules     safe
+    box      box-module  box-dynamic
+    
 
 Will Fitzgerald:
   wrote initial srfi/srfi-19.scm.
@@ -198,3 +204,55 @@ In the subdirectory doc, changes to:
     intro.texi			preface.texi
     scheme-modules.texi		scheme-procedures.texi
     scheme-scheduling.texi
+
+Robert Merkel:
+In the subdirectory doc, co-wrote:
+    guile.1
+
+Marc Feeley:
+In the subdirectory doc, wrote:
+    pretty-print.scm
+
+The file libguile/gc_os_dep.c is from the Boehm-Weiser conservative
+collector.  A lot of people have contributed to it, but probably not
+all to the code in gc_os_dep.c:
+
+    The SPARC specific code was contributed by Mark Weiser
+    (weiser@parc.xerox.com).  The Encore Multimax modifications were
+    supplied by Kevin Kenny (kenny@m.cs.uiuc.edu).  The adaptation to
+    the RT is largely due to Vernon Lee (scorpion@rice.edu), on
+    machines made available by IBM.  Much of the HP specific code and
+    a number of good suggestions for improving the generic code are
+    due to Walter Underwood (wunder@hp-ses.sde.hp.com).  Robert
+    Brazile (brazile@diamond.bbn.com) originally supplied the ULTRIX
+    code.  Al Dosser (dosser@src.dec.com) and Regis Cridlig
+    (Regis.Cridlig@cl.cam.ac.uk) subsequently provided updates and
+    information on variation between ULTRIX systems.  Parag Patel
+    (parag@netcom.com) supplied the A/UX code.  Jesper
+    Peterson(jep@mtiame.mtia.oz.au), Michel Schinz, and Martin
+    Tauchmann (martintauchmann@bigfoot.com) supplied the Amiga port.
+    Thomas Funke (thf@zelator.in-berlin.de(?)) and Brian D.Carlstrom
+    (bdc@clark.lcs.mit.edu) supplied the NeXT ports.  Douglas Steel
+    (doug@wg.icl.co.uk) provided ICL DRS6000 code.  Bill Janssen
+    (janssen@parc.xerox.com) supplied the SunOS dynamic loader
+    specific code. Manuel Serrano (serrano@cornas.inria.fr) supplied
+    linux and Sony News specific code.  Al Dosser provided Alpha/OSF/1
+    code.  He and Dave Detlefs(detlefs@src.dec.com) also provided
+    several generic bug fixes.  Alistair G. Crooks(agc@uts.amdahl.com)
+    supplied the NetBSD and 386BSD ports.  Jeffrey Hsu
+    (hsu@soda.berkeley.edu) provided the FreeBSD port.  Brent Benson
+    (brent@jade.ssd.csd.harris.com) ported the collector to a Motorola
+    88K processor running CX/UX (Harris NightHawk).  Ari Huttunen
+    (Ari.Huttunen@hut.fi) generalized the OS/2 port to nonIBM
+    development environments (a nontrivial task).  Patrick Beard
+    (beard@cs.ucdavis.edu) provided the initial MacOS port.  David
+    Chase, then at Olivetti Research, suggested several improvements.
+    Scott Schwartz (schwartz@groucho.cse.psu.edu) supplied some of the
+    code to save and print call stacks for leak detection on a SPARC.
+    Jesse Hull and John Ellis supplied the C++ interface code.  Zhong
+    Shao performed much of the experimentation that led to the current
+    typed allocation facility.  (His dynamic type inference code
+    hasn't made it into the released version of the collector, yet.)
+    (Blame for misinstallation of these modifications goes to the
+    first author, however.)
+
