@@ -1074,21 +1074,6 @@ scm_igc (const char *what)
 
   ++scm_gc_heap_lock;
 
-  /* flush dead entries from the continuation stack */
-  {
-    long x;
-    long bound;
-    SCM * elts;
-    elts = SCM_VELTS (scm_continuation_stack);
-    bound = SCM_VECTOR_LENGTH (scm_continuation_stack);
-    x = SCM_INUM (scm_continuation_stack_ptr);
-    while (x < bound)
-      {
-	elts[x] = SCM_BOOL_F;
-	++x;
-      }
-  }
-
   scm_c_hook_run (&scm_before_mark_c_hook, 0);
 
   clear_mark_space ();

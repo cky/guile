@@ -162,7 +162,6 @@ restart_stack (void *base)
   SCM_DFRAME (scm_rootcont) = scm_last_debug_frame = 0;
 #endif
   SCM_BASE (scm_rootcont) = base;
-  scm_continuation_stack_ptr = SCM_MAKINUM (0);
 }
 
 static void
@@ -187,13 +186,6 @@ start_stack (void *base)
     contregs->seq = 0;
     SCM_NEWSMOB (scm_rootcont, scm_tc16_continuation, contregs);
   }
-  /* The root continuation is further initialized by restart_stack. */
-
-  /* Create the look-aside stack for variables that are shared between
-   * captured continuations.
-   */
-  scm_continuation_stack = scm_c_make_vector (512, SCM_UNDEFINED);
-  /* The continuation stack is further initialized by restart_stack. */
 
   /* The remainder of stack initialization is factored out to another
    * function so that if this stack is ever exitted, it can be

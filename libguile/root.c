@@ -73,8 +73,6 @@ root_mark (SCM root)
 
   scm_gc_mark (s->rootcont);
   scm_gc_mark (s->dynwinds);
-  scm_gc_mark (s->continuation_stack);
-  scm_gc_mark (s->continuation_stack_ptr);
   scm_gc_mark (s->progargs);
   scm_gc_mark (s->exitval);
   scm_gc_mark (s->cur_inp);
@@ -122,8 +120,6 @@ scm_make_root (SCM parent)
       /* Initialize everything right now, in case a GC happens early.  */
       root_state->rootcont
 	= root_state->dynwinds
-	= root_state->continuation_stack
-	= root_state->continuation_stack_ptr
 	= root_state->progargs
 	= root_state->exitval
 	= root_state->cur_inp

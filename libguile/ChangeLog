@@ -1,3 +1,14 @@
+2001-09-15  Gary Houston  <ghouston@arglist.com>
+
+	* root.h (scm_root_state): removed the continuation_stack and
+	continuation_stack_ptr members, which have no apparent purpose.
+	(scm_continuation_stack, scm_continuation_stack_ptr): #defines
+	removed.
+	* root.c (root_mark), init.c (restart_stack, start_stack), gc
+	(scm_igc): remove all references to contination_stack and
+	continuation_stack_ptr, avoiding allocation of a vector and
+	useless processing during gc.
+
 2001-09-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* guardians.c (tconc_t, t_tconc):  Renamed tconc_t to t_tconc.

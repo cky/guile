@@ -89,8 +89,6 @@ typedef struct scm_root_state
 
   SCM rootcont;
   SCM dynwinds;
-  SCM continuation_stack;
-  SCM continuation_stack_ptr;
 #ifdef DEBUG_EXTENSIONS
   /* It is very inefficient to have this variable in the root state. */
   scm_t_debug_frame *last_debug_frame;
@@ -119,8 +117,6 @@ typedef struct scm_root_state
 
 #define scm_rootcont			(scm_root->rootcont)
 #define scm_dynwinds			(scm_root->dynwinds)
-#define scm_continuation_stack		(scm_root->continuation_stack)
-#define scm_continuation_stack_ptr	(scm_root->continuation_stack_ptr)
 #define scm_progargs			(scm_root->progargs)
 #ifdef USE_THREADS
 #define scm_last_debug_frame		(scm_root->last_debug_frame)
