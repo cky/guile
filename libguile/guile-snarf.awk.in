@@ -56,7 +56,9 @@ BEGIN { FS="|";
                       gsub(/.*@@@/,"",copy); 
 		      sub(/^[ \t]*"?/,"", copy);
 		      sub(/\"?[ \t]*@!!!.*$/,"", copy);
-                      gsub(/\\\"/,"\"",copy);
+                      gsub(/\\n\\n"?/,"\n",copy);
+                      gsub(/\\n"?[ \t]*$/,"",copy);
+                      gsub(/\\\"[ \t]*$/,"\"",copy);
                       gsub(/[ \t]*$/,"", copy);
                       if (copy != "") { print copy > dot_doc_file }
                 }
