@@ -84,7 +84,7 @@ suite?  Until it is fixed, it can be tagged as expected to fail.
 
 bug 5 -- uniform vector read-hash "e" clashes w/ exactness specification
 reported-by: kwright@gis.net / 2001-10-07
-fixed: not-yet
+fixed: 2001-10-14 (1.5.x, 1.7.x)
 
 Keith Wright sez:
 > Before getting into philosophy, I want to mention that while poking
@@ -108,10 +108,17 @@ Keith Wright sez:
 > >
 > >   * `#e', `#E' -- the number is exact
 
+2001-10-14  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* read.c (scm_lreadr): When user-defined hash procedure returns
+	SCM_UNSPECIFIED: Fall back to standard handling instead of raising
+	an exception.  (This prevents parsing of uniform vectors from
+	interfering with parsing of numbers.)
+
 
 bug 6 -- exactness prefix doesn't do nothing gracefully
 reported-by: kwright@gis.net / 2001-10-09
-fixed: not-yet
+fixed: 2001-10-14 (1.5.x, 1.7.x) (see bug 5)
 
 [this may be related to bug 5. --ttn]
 
