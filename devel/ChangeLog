@@ -1,3 +1,9 @@
+2000-05-25  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* README: New file.
+
+	* build/snarf-macros.text: New file.
+
 2000-05-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* policy/goals.text, policy/principles.text, policy/plans.text:
