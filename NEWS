@@ -4,12 +4,26 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@prep.ai.mit.edu.
 
+Changes since Guile 1.2:
+
+* Changes to the distribution
+
+* Changes to the stand-alone interpreter
+
+* Changes to the procedure for linking libguile with your programs
+
+* Changes to Scheme functions and syntax
 
 ** A new procedure primitive-exit can be used to terminate the current
 process without unwinding the Scheme stack.  This would usually be used
 after a fork.
 
-Changes in Guile 1.2:
+* Changes to the gh_ interface
+
+* Changes to the scm_ interface
+
+
+Changes in Guile 1.2 (released Tuesday, June 24 1997):
 
 * Changes to the distribution
 
@@ -490,7 +504,7 @@ returns #f.  This might be a more appropriate catch-all handler for
 new dynamic roots and threads.
 
 
-Changes in Guile 1.1 (Fri May 16 1997):
+Changes in Guile 1.1 (released Friday, May 16 1997):
 
 * Changes to the distribution.
 
