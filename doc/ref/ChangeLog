@@ -1,3 +1,8 @@
+2002-10-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* tools.texi (How guile-snarf works): Updated.
+	(Writing your own snarfing macros): New.
+
 2002-09-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-debug.texi (Debugging): Make sections into nodes.
