@@ -2529,13 +2529,6 @@
 (define (error-catching-loop thunk)
   (let ((status #f)
 	(interactive #t))
-    (set! set-batch-mode?! (lambda (arg)
-			     (cond (arg 
-				    (set! interactive #f)
-				    (restore-signals))
-				   (#t
-				    (error "sorry, not implemented")))))
-    (set! batch-mode? (lambda () (not interactive)))
     (define (loop first)
       (let ((next 
 	     (catch #t
@@ -2608,6 +2601,13 @@
 				 (else
 				  (apply bad-throw key args))))))))))
 	(if next (loop next) status)))
+    (set! set-batch-mode?! (lambda (arg)
+			     (cond (arg 
+				    (set! interactive #f)
+				    (restore-signals))
+				   (#t
+				    (error "sorry, not implemented")))))
+    (set! batch-mode? (lambda () (not interactive)))
     (loop (lambda () #t))))
 
 ;;(define the-last-stack (make-fluid)) Defined by scm_init_backtrace ()
