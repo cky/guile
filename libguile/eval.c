@@ -1112,32 +1112,53 @@ scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
   return x;
 }
 
+/* (@bind ((var exp) ...) body ...)
+
+  This will assign the values of the `exp's to the global variables
+  named by `var's (symbols, not evaluated), creating them if they
+  don't exist, executes body, and then restores the previous values of
+  the `var's.  Additionally, whenever control leaves body, the values
+  of the `var's are saved and restored when control returns.  It is an
+  error when a symbol appears more than once among the `var's.
+  All `exp's are evaluated before any `var' is set.
+
+  This of this as `let' for dynamic scope.
+
+  It is memoized into (#@bind ((var ...) . (reversed-val ...)) body ...).
+
+  XXX - also implement `@bind*'.
+*/
+
 SCM_SYNTAX (s_atbind, "@bind", scm_makmmacro, scm_m_atbind);
 
 SCM
 scm_m_atbind (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) > 1, scm_s_expression, "@bind");
+  SCM top_level = scm_env_top_level (env);
+  SCM vars = SCM_EOL;
+  SCM exps = SCM_EOL;
 
-  if (SCM_IMP (env))
-    env = SCM_BOOL_F;
-  else
-    {
-      while (SCM_NIMP (SCM_CDR (env)))
-	env = SCM_CDR (env);
-      env = SCM_CAR (env);
-      if (SCM_CONSP (env))
-	env = SCM_BOOL_F;
-    }
-  
+  SCM_ASSYNT (scm_ilength (x) > 1, scm_s_expression, s_atbind);
+
   x = SCM_CAR (x);
   while (SCM_NIMP (x))
     {
-      SCM_SETCAR (x, scm_sym2var (SCM_CAR (x), env, SCM_BOOL_T));
+      SCM rest;
+      SCM sym_exp = SCM_CAR (x);
+      SCM_ASSYNT (scm_ilength (sym_exp) == 2, scm_s_bindings, s_atbind);
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (sym_exp)), scm_s_bindings, s_atbind);
       x = SCM_CDR (x);
+      for (rest = x; SCM_NIMP (rest); rest = SCM_CDR (rest))
+	if (SCM_EQ_P (SCM_CAR (sym_exp), SCM_CAR (SCM_CAR (rest))))
+	  scm_misc_error (s_atbind, scm_s_duplicate_bindings, SCM_EOL);
+      vars = scm_cons (scm_sym2var (SCM_CAR (sym_exp), top_level, SCM_BOOL_T),
+		       vars);
+      exps = scm_cons (SCM_CADR (sym_exp), exps);
     }
-  return scm_cons (SCM_IM_BIND, SCM_CDR (xorig));
+  return scm_cons (SCM_IM_BIND,
+		   scm_cons (scm_cons (scm_reverse_x (vars, SCM_EOL), exps),
+			     SCM_CDDR (xorig)));
 }
 
 SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_makmmacro, scm_m_at_call_with_values);
@@ -2411,39 +2432,37 @@ dispatch:
 		  : SCM_INUM0)
 
 	case (SCM_ISYMNUM (SCM_IM_BIND)):
-	  x = SCM_CDR (x);
+	  {
+	    SCM vars, exps, vals;
 
-	  t.arg1 = SCM_CAR (x);
-	  arg2 = SCM_CDAR (env);
-	  while (SCM_NIMP (arg2))
-	    {
-	      proc = SCM_VARIABLE_REF (SCM_CAR (t.arg1));
-	      SCM_VARIABLE_SET (SCM_CAR (t.arg1), SCM_CAR (arg2));
-	      SCM_SETCAR (arg2, proc);
-	      t.arg1 = SCM_CDR (t.arg1);
-	      arg2 = SCM_CDR (arg2);
-	    }
-	  t.arg1 = SCM_CAR (x);
-	  scm_dynwinds = scm_acons (t.arg1, SCM_CDAR (env), scm_dynwinds);
-	  
-	  arg2 = x = SCM_CDR (x);
-	  while (!SCM_NULLP (arg2 = SCM_CDR (arg2)))
-	    {
-	      SIDEVAL (SCM_CAR (x), env);
-	      x = arg2;
-	    }
-	  proc = EVALCAR (x, env);
-	  
-	  scm_dynwinds = SCM_CDR (scm_dynwinds);
-	  arg2 = SCM_CDAR (env);
-	  while (SCM_NIMP (arg2))
-	    {
-	      SCM_VARIABLE_SET (SCM_CAR (t.arg1), SCM_CAR (arg2));
-	      t.arg1 = SCM_CDR (t.arg1);
-	      arg2 = SCM_CDR (arg2);
-	    }
+	    x = SCM_CDR (x);
+	    vars = SCM_CAAR (x);
+	    exps = SCM_CDAR (x);
 
-	  RETURN (proc);
+	    vals = SCM_EOL;
+
+	    while (SCM_NIMP (exps))
+	      {
+		vals = scm_cons (EVALCAR (exps, env), vals);
+		exps = SCM_CDR (exps);
+	      }
+	    
+	    scm_swap_bindings (vars, vals);
+	    scm_dynwinds = scm_acons (vars, vals, scm_dynwinds);
+	  
+	    arg2 = x = SCM_CDR (x);
+	    while (!SCM_NULLP (arg2 = SCM_CDR (arg2)))
+	      {
+		SIDEVAL (SCM_CAR (x), env);
+		x = arg2;
+	      }
+	    proc = EVALCAR (x, env);
+	  
+	    scm_dynwinds = SCM_CDR (scm_dynwinds);
+	    scm_swap_bindings (vars, vals);
+
+	    RETURN (proc)
+	  }
 	  
 	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
 	  {

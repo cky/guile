@@ -184,7 +184,7 @@ SCM_DEFINE (scm_wind_chain, "wind-chain", 0, 0, 0,
 #undef FUNC_NAME
 #endif
 
-static void
+void
 scm_swap_bindings (SCM vars, SCM vals)
 {
   SCM tmp;
