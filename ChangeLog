@@ -1,3 +1,8 @@
+2001-03-19  Gary Houston  <ghouston@arglist.com>
+
+	* check-guile.in: rename $parent to $srcdir.  if it's equal to "."
+	set it to `pwd`.
+
 2001-03-18  Gary Houston  <ghouston@arglist.com>
 
 	* check-guile.in: use @srcdir@ instead of @test_suite_dir@.  use
