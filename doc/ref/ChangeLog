@@ -1,3 +1,10 @@
+2004-09-26  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (Conversion to/from C): Braces {} around char* return.
+	* api-evaluation.texi (Block Comments): More cindex entries.
+
+	* guile.texi, misc-modules.texi (Streams): New section.
+
 2004-09-25  Marius Vollmer  <mvo@zagadka.de>
 
 	* libguile-smobs.texi, api-smobs.texi: More words abot what a free
