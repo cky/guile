@@ -1,3 +1,8 @@
+2001-08-24  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* tests/srfi-13.test (string-for-each, string-for-each-index):
+	Add tests.  (Thanks to Alex Shinn.)
+
 2001-08-22  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* tests/srfi-13.test (string-map): Swapped order of string and
