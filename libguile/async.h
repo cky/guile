@@ -51,7 +51,7 @@
 
 
 
-SCM_API unsigned int scm_mask_ints;
+#define scm_mask_ints (scm_root->block_asyncs != 0)
 
 
 
@@ -65,9 +65,18 @@ SCM_API SCM scm_system_async_mark_for_thread (SCM a, SCM thread);
 SCM_API void scm_i_queue_async_cell (SCM cell, scm_root_state *);
 SCM_API SCM scm_run_asyncs (SCM list_of_a);
 SCM_API SCM scm_noop (SCM args);
+SCM_API SCM scm_call_with_blocked_asyncs (SCM proc);
+SCM_API SCM scm_call_with_unblocked_asyncs (SCM proc);
+void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d);
+void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
+SCM_API void scm_init_async (void);
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 SCM_API SCM scm_unmask_signals (void);
 SCM_API SCM scm_mask_signals (void);
-SCM_API void scm_init_async (void);
+
+#endif
 
 #endif  /* SCM_ASYNC_H */
 

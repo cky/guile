@@ -49,6 +49,7 @@
 #include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/lang.h"
+#include "libguile/dynwind.h"
 #include "libguile/deprecation.h"
 
 #include "libguile/validate.h"
@@ -61,6 +62,10 @@
 #include <unistd.h>
 #endif
 
+/* This is not used for anything except checking that DEFER_INTS and
+   ALLOW_INTS are used properly.
+ */
+int scm_ints_disabled = 1;
 
 
 /* {Asynchronous Events}
@@ -91,11 +96,6 @@
  * implement yourself.
  */
 
-/* True between SCM_DEFER_INTS and SCM_ALLOW_INTS, and
- * when the interpreter is not running at all.
- */
-int scm_ints_disabled = 1;
-unsigned int scm_mask_ints = 1;
 
 
 
@@ -149,13 +149,11 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
       SCM_VALIDATE_CONS (1, list_of_a);
       a = SCM_CAR (list_of_a);
       VALIDATE_ASYNC (SCM_ARG1, a);
-      scm_mask_ints = 1;
       if (ASYNC_GOT_IT (a))
 	{
 	  SET_ASYNC_GOT_IT (a, 0);
 	  scm_call_0 (ASYNC_THUNK (a));
 	}
-      scm_mask_ints = 0;
       list_of_a = SCM_CDR (list_of_a);
     }
   return SCM_BOOL_T;
@@ -171,11 +169,11 @@ scm_async_click ()
 {
   SCM asyncs;
 
-  if (!scm_mask_ints)
+  if (scm_root->block_asyncs == 0)
     {
-      while (!SCM_NULLP(asyncs = scm_active_asyncs))
+      while (!SCM_NULLP(asyncs = scm_root->active_asyncs))
 	{
-	  scm_active_asyncs = SCM_EOL;
+	  scm_root->active_asyncs = SCM_EOL;
 	  do
 	    {
 	      SCM c = SCM_CDR (asyncs);
@@ -264,12 +262,20 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 
 
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0,
 	    (),
 	    "Unmask signals. The returned value is not specified.")
 #define FUNC_NAME s_scm_unmask_signals
 {
-  scm_mask_ints = 0;
+  scm_c_issue_deprecation_warning 
+    ("'unmask-signals' is deprecated.  "
+     "Use 'call-with-blocked-asyncs' instead.");
+
+  if (scm_root->block_asyncs == 0)
+    SCM_MISC_ERROR ("signals already unmasked", SCM_EOL);
+  scm_root->block_asyncs = 0;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -280,10 +286,81 @@ SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0,
 	    "Mask signals. The returned value is not specified.")
 #define FUNC_NAME s_scm_mask_signals
 {
-  scm_mask_ints = 1;
+  scm_c_issue_deprecation_warning 
+    ("'mask-signals' is deprecated.  Use 'call-with-blocked-asyncs' instead.");
+
+  if (scm_root->block_asyncs > 0)
+    SCM_MISC_ERROR ("signals already masked", SCM_EOL);
+  scm_root->block_asyncs = 1;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
+#endif /* SCM_DEBUG_DEPRECATED == 0 */
+
+static void
+increase_block (void *unused)
+{
+  scm_root->block_asyncs++;
+}
+
+static void
+decrease_block (void *unused)
+{
+  scm_root->block_asyncs--;
+}
+
+SCM_DEFINE (scm_call_with_blocked_asyncs, "call-with-blocked-asyncs", 1, 0, 0,
+	    (SCM proc),
+	    "Call @var{proc} with no arguments and block the execution\n"
+	    "of system asyncs by one level for the current thread while\n"
+	    "it is running.  Return the value returned by @var{proc}.\n")
+#define FUNC_NAME s_scm_call_with_blocked_asyncs
+{
+  return scm_internal_dynamic_wind (increase_block,
+				    (scm_t_inner) scm_call_0,
+				    decrease_block,
+				    proc, NULL);
+}
+#undef FUNC_NAME
+
+void *
+scm_c_call_with_blocked_asyncs (void *(*proc) (void *data), void *data)
+{
+  return scm_internal_dynamic_wind (increase_block,
+				    (scm_t_inner) proc,
+				    decrease_block,
+				    data, NULL);
+}
+
+
+SCM_DEFINE (scm_call_with_unblocked_asyncs, "call-with-unblocked-asyncs", 1, 0, 0,
+	    (SCM proc),
+	    "Call @var{proc} with no arguments and unblock the execution\n"
+	    "of system asyncs by one level for the current thread while\n"
+	    "it is running.  Return the value returned by @var{proc}.\n")
+#define FUNC_NAME s_scm_call_with_unblocked_asyncs
+{
+  if (scm_root->block_asyncs == 0)
+    SCM_MISC_ERROR ("asyncs already unblocked", SCM_EOL);
+  return scm_internal_dynamic_wind (decrease_block,
+				    (scm_t_inner) scm_call_0,
+				    increase_block,
+				    proc, NULL);
+}
+#undef FUNC_NAME
+
+void *
+scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
+{
+  if (scm_root->block_asyncs == 0)
+    scm_misc_error ("scm_c_call_with_unblocked_asyncs",
+		    "asyncs already unblocked", SCM_EOL);
+  return scm_internal_dynamic_wind (decrease_block,
+				     (scm_t_inner) proc,
+				    increase_block,
+				    data, NULL);
+}
 
 
 
