@@ -2,7 +2,7 @@
 
 #ifndef SCM_GUARDIANH
 #define SCM_GUARDIANH
-/*	Copyright (C) 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,10 +47,6 @@
 #include "libguile/__scm.h"
 
 SCM scm_make_guardian (void);
-
-/* these two are called by the GC: */
-void scm_guardian_gc_init (void);
-void scm_guardian_zombify(void);
 
 /* these are to be called from C: */
 void scm_guard (SCM guardian, SCM obj);
