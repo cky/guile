@@ -1,3 +1,7 @@
+2001-05-05  Rob Browning  <rlb@cs.utexas.edu>
+
+	* psyntax.ss: make sure emacs knows it's scheme code.
+
 2001-05-05  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (use-syntax): Change error message to say
