@@ -7,7 +7,7 @@
 2000-10-18  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* print.c (grow_ref_stack): Pass a INUM to scm_make_vector as the
-	size, not a naked int.  Thanks to Brat Knotwell!
+	size, not a naked int.  Thanks to Brad Knotwell!
 
 	* gc_os_dep.c (GC_noop1, GC_bool, TRUE, FALSE, VOLATILE):
 	Definitions copied from Boehm collector.
