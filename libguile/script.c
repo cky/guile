@@ -39,7 +39,7 @@
  */
 
 /* "script.c" argv tricks for `#!' scripts.
-   Author: Aubrey Jaffer */
+   Authors: Aubrey Jaffer and Jim Blandy */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -49,23 +49,8 @@
 
 #include "script.h"
 
-#ifdef __IBMC__
-#include <io.h>
-#endif /* def __IBMC__ */
-
-#ifdef linux
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>		/* for X_OK define */
-#endif /* def linux */
-#ifdef __svr4__
-#include <unistd.h>		/* for X_OK define */
-#else
-#ifdef __sgi__
-#include <unistd.h>		/* for X_OK define */
-#endif /* def __sgi__ */
-#endif /* def __svr4__ */
-#ifdef hpux
-#define const
-/**/
 #endif
 
 /* Concatentate str2 onto str1 at position n and return concatenated
@@ -146,11 +131,8 @@ scm_sep_init_try (path, sep, initname)
 #endif /* ndef X_OK */
 
 #ifdef unix
-#include <stdio.h>
-
 char *
-scm_find_executable (name)
-     const char *name;
+scm_find_executable (const char *name)
 {
   char tbuf[MAXPATHLEN];
   int i = 0;
@@ -197,142 +179,6 @@ dld_find_executable (file)
   return scm_cat_path (0L, file, 0L);
 }
 #endif /* def MSDOS */
-
-#if 0
-/* This code was originally borrowed from SCM; Guile sees things
-   differently.  */
-
-/* Given dld_find_executable()'s best guess for the pathname of this
-   executable, find (and verify the existence of) initname in the
-   implementation-vicinity of this program.  Returns a newly allocated
-   string if successful, 0 if not */
-
-char *
-scm_find_impl_file (exec_path, generic_name, initname, sep)
-     char *exec_path;
-     const char *generic_name, *initname, *sep;
-{
-  char *sepptr = strrchr (exec_path, sep[0]);
-  char *extptr = exec_path + strlen (exec_path);
-  char *path = 0;
-  /* fprintf(stderr, "dld_find_e %s\n", exec_path); fflush(stderr); */
-  if (sepptr)
-    {
-      long sepind = sepptr - exec_path + 1L;
-
-      /* In case exec_path is in the source directory, look first in
-         exec_path's directory. */
-      path = scm_cat_path (0L, exec_path, sepind - 1L);
-      path = scm_sep_init_try (path, sep, initname);
-      if (path)
-	return path;
-
-#ifdef MSDOS
-      if (!strcmp (extptr - 4, ".exe") || !strcmp (extptr - 4, ".com") ||
-	  !strcmp (extptr - 4, ".EXE") || !strcmp (extptr - 4, ".COM"))
-	extptr = extptr - 4;
-#endif /* def MSDOS */
-
-      if (generic_name &&
-	  !strncmp (exec_path + sepind, generic_name, extptr - exec_path))
-	generic_name = 0;
-
-      /* If exec_path is in directory "exe" or "bin": */
-      path = scm_cat_path (0L, exec_path, sepind - 1L);
-      sepptr = path + sepind - 4;
-      if (!strcmp (sepptr, "exe") || !strcmp (sepptr, "bin") ||
-	  !strcmp (sepptr, "EXE") || !strcmp (sepptr, "BIN"))
-	{
-	  char *peer;
-
-	  /* Look for initname in peer directory "lib". */
-	  if (path)
-	    {
-	      strncpy (sepptr, "lib", 3);
-	      path = scm_sep_init_try (path, sep, initname);
-	      if (path)
-		return path;
-	    }
-
-	  /* Look for initname in peer directories "lib" and "src" in
-	     subdirectory with the name of the executable (sans any type
-	     extension like .EXE). */
-	  for (peer = "lib"; !0; peer = "src")
-	    {
-	      path = scm_cat_path (0L, exec_path, extptr - exec_path + 0L);
-	      if (path)
-		{
-		  strncpy (path + sepind - 4, peer, 3);
-		  path[extptr - exec_path] = 0;
-		  path = scm_sep_init_try (path, sep, initname);
-		  if (path)
-		    return path;
-		}
-	      if (!strcmp (peer, "src"))
-		break;
-	    }
-
-	  if (generic_name)
-	    {
-
-	      /* Look for initname in peer directories "lib" and "src" in
-	         subdirectory with the generic name. */
-	      for (peer = "lib"; !0; peer = "src")
-		{
-		  path = scm_cat_path (0L, exec_path, sepind);
-		  if (path)
-		    {
-		      strncpy (path + sepind - 4, "lib", 3);
-		      path = scm_cat_path (path, generic_name, 0L);
-		      path = scm_sep_init_try (path, sep, initname);
-		      if (path)
-			return path;
-		    }
-		  if (!strcmp (peer, "src"))
-		    break;
-		}
-	    }
-	}
-
-#ifdef MSDOS
-      if (strlen (extptr))
-	{
-	  /* If exec_path has type extension, look in a subdirectory with
-	     the name of the executable sans the executable file's type
-	     extension. */
-	  path = scm_cat_path (0L, exec_path, extptr - exec_path + 0L);
-	  path = scm_sep_init_try (path, sep, initname);
-	  if (path)
-	    return path;
-
-	  if (generic_name)
-	    {
-
-	      /* Also look in generic_name subdirectory. */
-	      path = scm_cat_path (0L, exec_path, sepind);
-	      if (path)
-		path = scm_cat_path (path, generic_name, 0L);
-	      path = scm_sep_init_try (path, sep, initname);
-	      if (path)
-		return path;
-	    }
-	}
-#endif /* def MSDOS */
-    }
-  else
-    {
-
-      /* We don't have a parse-able exec_path.  The only path to try is
-         just initname. */
-      path = scm_cat_path (0L, initname, 0L);
-      if (path)
-	path = scm_try_path (path);
-      if (path)
-	return path;
-    }
-  return 0L;
-}
-#endif /* 0 */
 
 
 /* Read a \nnn-style escape.  We've just read the backslash.  */
