@@ -1,3 +1,10 @@
+Wed Aug 20 13:21:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* syncase.scm: Also turn off debugging evaluator and recording of
+	procedure names during loading of psyntax.pp.
+
+	* psyntax.pp: Removed leading blanks => 800K -> 100K.
+
 Tue Aug 19 02:39:41 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* syncase.scm: Don't tamper with debug mode setting when enabling
