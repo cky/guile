@@ -1670,6 +1670,11 @@
               (syntax-error (wrap (syntax id) w)
                 "identifier out of context"))
              (else (syntax-error (source-wrap e w s)))))))
+      ((_ (getter arg ...) val)
+       (build-application s
+			  (chi (syntax (setter getter)) r w)
+			  (map (lambda (e) (chi e r w))
+			       (syntax (arg ... val)))))
       (_ (syntax-error (source-wrap e w s))))))
 
 (global-extend 'begin 'begin '())
