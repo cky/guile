@@ -53,8 +53,7 @@ gtcltk-lib:
 	Guile and Tk, so we're providing this very simple-minded
 	interface until that's ready.
 
-
-The mailing list `guile@prep.ai.mit.edu' carries discussions,
-questions, and often answers, about Guile.  To subscribe, send mail to
-guile-request@prep.ai.mit.edu.  Of course, please send bug reports
-(and fixes!) to bug-guile@prep.ai.mit.edu.
+The mailing list `guile@cygnus.com' carries discussions, questions,
+and often answers, about Guile.  To subscribe, send mail to
+guile-request@cygnus.com.  Of course, please send bug reports (and
+fixes!) to bug-guile@prep.ai.mit.edu.
