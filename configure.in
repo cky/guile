@@ -646,6 +646,9 @@ case "$with_threads" in
   "no" | "null")
     with_threads=null
   ;;
+  "coop-pthreads" | "copt" )
+    with_threads="coop-pthreads"
+  ;;
   * )
     AC_MSG_ERROR(invalid value for --with-threads: $with_threads)
   ;;
@@ -661,8 +664,8 @@ case "${with_threads}" in
     ## correctly.  In that case, we fall back on null-threads.
     QTHREADS_CONFIGURE
    ;;
-  "null" )
-    THREAD_PACKAGE="null"
+  * )
+    THREAD_PACKAGE="${with_threads}"
    ;;
 esac
 
@@ -671,6 +674,10 @@ esac
 
 AC_DEFINE(USE_THREADS, 1, [Define if providing the thread API.])
 AC_LIBOBJ([threads])
+
+## Also, we always provide scm_internal_select.
+
+AC_DEFINE(GUILE_ISELECT, 1, [Define to implement scm_internal_select.])
 
 case "${THREAD_PACKAGE}" in
   "QT" )
@@ -688,16 +695,15 @@ case "${THREAD_PACKAGE}" in
       AC_CHECK_LIB(pthread, main)
     fi
 
-    ## Bring in scm_internal_select, if appropriate.
-    if test $ac_cv_func_gettimeofday = yes &&
-       test $ac_cv_func_select = yes; then
-      AC_DEFINE(GUILE_ISELECT, 1, [Define to implement scm_internal_select.])
-    fi
-
   ;;
   "null" | "" )
     AC_DEFINE(USE_NULL_THREADS, 1,
       [Define if using one-thread 'multi'threading.])
+  ;;
+  "coop-pthreads" )
+    AC_DEFINE(USE_COPT_THREADS, 1,
+      [Define if using coop-pthread multithreading.])
+    AC_CHECK_LIB(pthread, main)
   ;;
   * )
     AC_MSG_ERROR(invalid value for THREAD_PACKAGE: ${THREAD_PACKAGE})
