@@ -2495,6 +2495,19 @@
 	    (lambda v (cadr v)))))
 
 
+;;; {with-fluids}
+
+;; with-fluids is a convenience wrapper for the builtin procedure
+;; `with-fluids*'.  The syntax is just like `let':
+;;
+;;  (with-fluids ((fluid val)
+;;                ...)
+;;     body)
+
+(defmacro with-fluids (bindings . body)
+  `(with-fluids* (list ,@(map car bindings)) (list ,@(map cadr bindings))
+		 (lambda () ,@body)))
+
 
 
 ;;; {Macros}
