@@ -100,6 +100,24 @@ if test -z "$autoconf"; then
     echo "ERROR: Please install autoconf 2.53"
     exit 1
 fi
+################################################################
+
+#detect automake version
+
+
+# configure.in reqs autoconf-2.53; try to find it
+for suf in "-1.6" "1.6" ""  false; do
+  version=`automake$suf --version 2>/dev/null | head -1 | awk '{print $NF}' | awk -F. '{print $1 * 10 + $2}'`
+  if test "0$version" -eq 16; then
+    automake=automake$suf
+    break
+  fi
+done
+
+if test -z "$automake"; then
+    echo "ERROR: Please install automake 1.6.x"
+    exit 1
+fi
 
 
 ################################################################
@@ -110,15 +128,15 @@ $autoconf
 # file.  We need two mdate-sh, tho, one in doc/ref/ and one in
 # doc/tutorial/.  We run automake twice as a workaround.
 
-automake --add-missing
-automake --add-missing
+$automake --add-missing
+$automake --add-missing
 
 # Make sure that libltdl uses the same autoconf version as the rest.
 #
 echo "libltdl..."
 (cd libltdl && aclocal)
 (cd libltdl && autoconf)
-(cd libltdl && automake --gnu --add-missing)
+(cd libltdl && $automake --gnu --add-missing)
 
 echo "guile-readline..."
 (cd guile-readline && ./autogen.sh)

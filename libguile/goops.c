@@ -1872,7 +1872,7 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
       return SCM_BOOL_F;
     }
 
-  scm_remember_upto_here (tmp);
+  scm_remember_upto_here_1 (tmp);
   return (count == 1
 	  ? applicable
 	  : sort_applicable_methods (applicable, count, types));

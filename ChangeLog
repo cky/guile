@@ -1,3 +1,8 @@
+2002-07-22  Han-Wen  <hanwen@cs.uu.nl>
+
+	* autogen.sh (mscripts): find and check version number of
+	automake. Complain if 1.6 is not found.
+
 2002-07-20  Han-Wen  <hanwen@cs.uu.nl>
 
 	* autogen.sh (mscripts): find and check version number of
