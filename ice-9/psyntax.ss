@@ -298,11 +298,11 @@
 
 (define top-level-eval-hook
   (lambda (x)
-    (eval `(,noexpand ,x))))
+    (eval `(,noexpand ,x) (interaction-environment))))
 
 (define local-eval-hook
   (lambda (x)
-    (eval `(,noexpand ,x))))
+    (eval `(,noexpand ,x) (interaction-environment))))
 
 (define error-hook
   (lambda (who why what)
