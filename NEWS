@@ -99,6 +99,11 @@ Returns an existing output port which has FDES as its underlying file
 descriptor, if one exists, and increments its revealed count.
 Otherwise, returns a new output port with a revealed count of 1.
 
+** setenv [NAME] [VALUE]
+If VALUE is `#f', removes NAME from the environment.  Otherwise 
+adds the string NAME=VALUE to the environment, replacing any previous
+value for NAME.
+
 ** primitive-exit [STATUS]
 Terminates the current process without unwinding the Scheme stack.
 This would usually be used after a fork.

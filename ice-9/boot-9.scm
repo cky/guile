@@ -839,6 +839,11 @@
   (set-port-revealed! port (+ (port-revealed port) 1))
   (fileno port))
 
+(define (setenv name value)
+  (if value
+      (putenv (string-append name "=" value))
+      (putenv name)))
+
 
 ;;; {Load Paths}
 ;;;
