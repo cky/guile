@@ -1,3 +1,10 @@
+Mon Dec  9 18:36:50 1996  Jim Blandy  <jimb@duality.gnu.ai.mit.edu>
+
+	* backtrace.c (scm_display_error_message): Made non-static, and
+	renamed from display_error_message.
+	* backtrace.h (scm_display_error_message): Added extern decl.
+	* throw.c (uncaught_throw): Use it to display the error message.
+
 Mon Dec  9 10:10:38 1996  Tom Tromey  <tromey@cygnus.com>
 
 	* inet_aton.c: Use #if 0, not #ifdef 0.
