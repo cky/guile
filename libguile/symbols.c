@@ -146,6 +146,7 @@ scm_sym2vcell (sym, thunk, definep)
 	    {
 	      if (definep)
 		{
+		  /* Move handle from scm_weak_symhash to scm_symhash. */
 		  *lsymp = SCM_CDR (lsym);
 		  SCM_SETCDR (lsym, SCM_VELTS(scm_symhash)[scm_hash]);
 		  SCM_VELTS(scm_symhash)[scm_hash] = lsym;
@@ -160,7 +161,7 @@ scm_sym2vcell (sym, thunk, definep)
 }
 
 /* scm_sym2ovcell
- * looks up the symbol in an arbitrary obarray (defaulting to scm_symhash).
+ * looks up the symbol in an arbitrary obarray.
  */
 
 SCM 
@@ -394,8 +395,8 @@ SCM
 scm_symbol_p(x)
      SCM x;
 {
-	if SCM_IMP(x) return SCM_BOOL_F;
-	return SCM_SYMBOLP(x) ? SCM_BOOL_T : SCM_BOOL_F;
+  if SCM_IMP(x) return SCM_BOOL_F;
+  return SCM_SYMBOLP(x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 SCM_PROC(s_symbol_to_string, "symbol->string", 1, 0, 0, scm_symbol_to_string);
@@ -404,8 +405,8 @@ SCM
 scm_symbol_to_string(s)
      SCM s;
 {
-	SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, s_symbol_to_string);
-	return scm_makfromstr(SCM_CHARS(s), (scm_sizet)SCM_LENGTH(s), 0);
+  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, s_symbol_to_string);
+  return scm_makfromstr(SCM_CHARS(s), (scm_sizet)SCM_LENGTH(s), 0);
 }
 
 
@@ -444,9 +445,14 @@ scm_string_to_obarray_symbol(o, s, softp)
   SCM answer;
   int softness;
 
-  SCM_ASSERT(SCM_NIMP(s) && SCM_ROSTRINGP(s), s, SCM_ARG2, s_string_to_obarray_symbol);
-  SCM_ASSERT((o == SCM_BOOL_F) || (o == SCM_BOOL_T) || (SCM_NIMP(o) && SCM_VECTORP(o)),
-	 o, SCM_ARG1, s_string_to_obarray_symbol);
+  SCM_ASSERT(SCM_NIMP(s) && SCM_ROSTRINGP(s), s, SCM_ARG2,
+	     s_string_to_obarray_symbol);
+  SCM_ASSERT((o == SCM_BOOL_F)
+	     || (o == SCM_BOOL_T)
+	     || (SCM_NIMP(o) && SCM_VECTORP(o)),
+	     o,
+	     SCM_ARG1,
+	     s_string_to_obarray_symbol);
 
   softness = ((softp != SCM_UNDEFINED) && (softp != SCM_BOOL_F));
   /* iron out some screwy calling conventions */
@@ -455,7 +461,10 @@ scm_string_to_obarray_symbol(o, s, softp)
   else if (o == SCM_BOOL_T)
     o = SCM_BOOL_F;
     
-  vcell = scm_intern_obarray_soft (SCM_ROCHARS(s), (scm_sizet)SCM_ROLENGTH(s), o, softness);
+  vcell = scm_intern_obarray_soft (SCM_ROCHARS(s),
+				   (scm_sizet)SCM_ROLENGTH(s),
+				   o,
+				   softness);
   if (vcell == SCM_BOOL_F)
     return vcell;
   answer = SCM_CAR (vcell);
@@ -476,33 +485,33 @@ scm_intern_symbol(o, s)
      SCM o;
      SCM s;
 {
-        scm_sizet hval;
-	SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_intern_symbol);
-	if (o == SCM_BOOL_F)
-	  o = scm_symhash;
-	SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_intern_symbol);
-	hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
-	/* If the symbol is already interned, simply return. */
-	SCM_REDEFER_INTS;
-	{
-	  SCM lsym;
-	  SCM sym;
-	  for (lsym = SCM_VELTS (o)[hval];
-	       SCM_NIMP (lsym);
-	       lsym = SCM_CDR (lsym))
-	    {
-	      sym = SCM_CAR (lsym);
-	      if (SCM_CAR (sym) == s)
-		{
-		  SCM_REALLOW_INTS;
-		  return SCM_UNSPECIFIED;
-		}
-	    }
-	  SCM_VELTS (o)[hval] =
-	    scm_acons (s, SCM_UNDEFINED, SCM_VELTS (o)[hval]);
-	}
-	SCM_REALLOW_INTS;
-	return SCM_UNSPECIFIED;
+  scm_sizet hval;
+  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_intern_symbol);
+  if (o == SCM_BOOL_F)
+    o = scm_symhash;
+  SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_intern_symbol);
+  hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
+  /* If the symbol is already interned, simply return. */
+  SCM_REDEFER_INTS;
+  {
+    SCM lsym;
+    SCM sym;
+    for (lsym = SCM_VELTS (o)[hval];
+	 SCM_NIMP (lsym);
+	 lsym = SCM_CDR (lsym))
+      {
+	sym = SCM_CAR (lsym);
+	if (SCM_CAR (sym) == s)
+	  {
+	    SCM_REALLOW_INTS;
+	    return SCM_UNSPECIFIED;
+	  }
+      }
+    SCM_VELTS (o)[hval] =
+      scm_acons (s, SCM_UNDEFINED, SCM_VELTS (o)[hval]);
+  }
+  SCM_REALLOW_INTS;
+  return SCM_UNSPECIFIED;
 }
 
 SCM_PROC(s_unintern_symbol, "unintern-symbol", 2, 0, 0, scm_unintern_symbol);
@@ -512,36 +521,36 @@ scm_unintern_symbol(o, s)
      SCM o;
      SCM s;
 {
-        scm_sizet hval;
-	SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_unintern_symbol);
-	if (o == SCM_BOOL_F)
-	  o = scm_symhash;
-	SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_unintern_symbol);
-	hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
-	SCM_DEFER_INTS;
-	{
-	  SCM lsym_follow;
-	  SCM lsym;
-	  SCM sym;
-	  for (lsym = SCM_VELTS (o)[hval], lsym_follow = SCM_BOOL_F;
-	       SCM_NIMP (lsym);
-	       lsym_follow = lsym, lsym = SCM_CDR (lsym))
-	    {
-	      sym = SCM_CAR (lsym);
-	      if (SCM_CAR (sym) == s)
-		{
-		  /* Found the symbol to unintern. */
-		  if (lsym_follow == SCM_BOOL_F)
-		    SCM_VELTS(o)[hval] = lsym;
-		  else
-		    SCM_CDR(lsym_follow) = SCM_CDR(lsym);
-		  SCM_ALLOW_INTS;
-		  return SCM_BOOL_T;
-		}
-	    }
-	}
-	SCM_ALLOW_INTS;
-	return SCM_BOOL_F;
+  scm_sizet hval;
+  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_unintern_symbol);
+  if (o == SCM_BOOL_F)
+    o = scm_symhash;
+  SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_unintern_symbol);
+  hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
+  SCM_DEFER_INTS;
+  {
+    SCM lsym_follow;
+    SCM lsym;
+    SCM sym;
+    for (lsym = SCM_VELTS (o)[hval], lsym_follow = SCM_BOOL_F;
+	 SCM_NIMP (lsym);
+	 lsym_follow = lsym, lsym = SCM_CDR (lsym))
+      {
+	sym = SCM_CAR (lsym);
+	if (SCM_CAR (sym) == s)
+	  {
+	    /* Found the symbol to unintern. */
+	    if (lsym_follow == SCM_BOOL_F)
+	      SCM_VELTS(o)[hval] = lsym;
+	    else
+	      SCM_CDR(lsym_follow) = SCM_CDR(lsym);
+	    SCM_ALLOW_INTS;
+	    return SCM_BOOL_T;
+	  }
+      }
+  }
+  SCM_ALLOW_INTS;
+  return SCM_BOOL_F;
 }
 
 SCM_PROC(s_symbol_binding, "symbol-binding", 2, 0, 0, scm_symbol_binding);
