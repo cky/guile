@@ -121,6 +121,8 @@ extern scm_bits_t scm_tc16_observer;
 #define SCM_OBSERVER_PROC(x) \
   ((scm_environment_observer) SCM_CELL_WORD_3 (x))
 
+extern SCM scm_system_environment;
+
 extern void scm_error_environment_unbound (const char *, SCM, SCM) SCM_NORETURN;
 extern void scm_error_environment_immutable_binding (const char *, SCM, SCM) SCM_NORETURN;
 extern void scm_error_environment_immutable_location (const char *, SCM, SCM) SCM_NORETURN;

@@ -60,6 +60,8 @@ scm_bits_t scm_tc16_environment;
 scm_bits_t scm_tc16_observer;
 #define DEFAULT_OBARRAY_SIZE 137
 
+SCM scm_system_environment;
+
 
 
 /* error conditions */
@@ -2304,6 +2306,10 @@ scm_environments_prehistory ()
   scm_tc16_observer = scm_make_smob_type ("observer", 0);
   scm_set_smob_mark (scm_tc16_observer, observer_mark);
   scm_set_smob_print (scm_tc16_observer, observer_print);
+
+  /* create system environment */
+  scm_system_environment = scm_make_leaf_environment ();
+  scm_permanent_object (scm_system_environment);
 }
 
 

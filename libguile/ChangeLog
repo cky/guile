@@ -1,3 +1,14 @@
+2000-12-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* environments.[ch] (scm_system_environment):  New variable, will
+	replace scm_symhash soon.  We may decide for a better name and
+	also to split this up into a set of environments later.
+
+	(scm_environments_prehistory):  Initialize scm_system_environment.
+
+	* init.c (scm_init_guile_1):  scm_environments_prehistory requires
+	storage to be initialized.
+
 2000-12-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (change_environment, inner_eval, restore_environment):
