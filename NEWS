@@ -6,6 +6,64 @@ Please send Guile bug reports to bug-guile@prep.ai.mit.edu.
 
 Guile 1.0b3
 
+Changes since Thursday, September 5:
+
+* You can now run Guile without installing it.
+
+Previous versions of the interactive Guile interpreter (`guile')
+couldn't start up unless Guile's Scheme library had been installed;
+they used the value of the environment variable `SCHEME_LOAD_PATH'
+later on in the startup process, but not to find the startup code
+itself.  Now Guile uses `SCHEME_LOAD_PATH' in all searches for Scheme
+code.
+
+To run Guile without installing it, build it in the normal way, and
+then set the environment variable `SCHEME_LOAD_PATH' to a
+colon-separated list of directories, including the top-level directory
+of the Guile sources.  For example, if you unpacked Guile so that the
+full filename of this NEWS file is /home/jimb/guile-1.0b3/NEWS, then
+you might say
+
+	export SCHEME_LOAD_PATH=/home/jimb/my-scheme:/home/jimb/guile-1.0b3
+
+* Guile's header files should no longer conflict with your system's
+header files.
+
+In order to compile code which #included <libguile.h>, previous
+versions of Guile required you to add a directory containing all the
+Guile header files to your #include path.  This was a problem, since
+Guile's header files have names which conflict with many systems'
+header files.
+
+Now only <libguile.h> need appear in your #include path; you must
+refer to all Guile's other header files as <libguile/mumble.h>.
+Guile's installation procedure puts libguile.h in $(includedir), and
+the rest in $(includedir)/libguile.
+
+* The compiled-library-path function has been deleted from libguile.
+
+* A variable and two new functions have been added to libguile:
+
+** The variable %load-path now tells Guile which directories to search
+for Scheme code.  Its value is a list of strings, each of which names
+a directory.
+
+** (%search-load-path FILENAME) searches the directories listed in the
+value of the %load-path variable for a Scheme file named FILENAME.  If
+it finds a match, then it returns its full filename.  Otherwise, it
+returns #f.  %search-load-path will not return matches that refer to
+directories.
+
+** (%try-load-path FILENAME :optional CASE-INSENSITIVE-P SHARP)
+searches the directories listed in %load-path for a file named
+FILENAME, and loads it if it finds it.  If it can't read FILENAME for
+any reason, it throws an error.
+
+The arguments CASE-INSENSITIVE-P and SHARP are interpreted as by the
+%try-load function.
+
+
+
 This is the beginning of recorded history.
 
 
