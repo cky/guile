@@ -405,7 +405,7 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
     seed = scm_number_to_string (seed, SCM_UNDEFINED);
   SCM_VALIDATE_STRING (1,seed);
   return make_rstate (scm_c_make_rstate (SCM_ROCHARS (seed),
-					 SCM_LENGTH (seed)));
+					 SCM_STRING_LENGTH (seed)));
 }
 #undef FUNC_NAME
 
@@ -442,7 +442,7 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
 static void
 vector_scale (SCM v, double c)
 {
-  int n = SCM_LENGTH (v);
+  int n = SCM_INUM (scm_uniform_vector_length (v));
   if (SCM_VECTORP (v))
     while (--n >= 0)
       SCM_REAL_VALUE (SCM_VELTS (v)[n]) *= c;
@@ -455,7 +455,7 @@ static double
 vector_sum_squares (SCM v)
 {
   double x, sum = 0.0;
-  int n = SCM_LENGTH (v);
+  int n = SCM_INUM (scm_uniform_vector_length (v));
   if (SCM_VECTORP (v))
     while (--n >= 0)
       {
@@ -494,7 +494,7 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
   scm_random_normal_vector_x (v, state);
   vector_scale (v,
 		pow (scm_c_uniform01 (SCM_RSTATE (state)),
-		     1.0 / SCM_LENGTH (v))
+		     1.0 / SCM_INUM (scm_uniform_vector_length (v)))
 		/ sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
 }
@@ -535,7 +535,7 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2,state);
-  n = SCM_LENGTH (v);
+  n = SCM_INUM (scm_uniform_vector_length (v));
   if (SCM_VECTORP (v))
     while (--n >= 0)
       SCM_VELTS (v)[n] = scm_make_real (scm_c_normal01 (SCM_RSTATE (state)));

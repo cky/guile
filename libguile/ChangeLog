@@ -1,5 +1,14 @@
 2000-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* random.c (scm_seed_to_random_state):  Replace SCM_LENGTH with
+	the appropriate SCM_<type>_LENGTH macro.
+
+	(vector_scale, vector_sum_squares, scm_random_solid_sphere_x,
+	scm_random_normal_vector_x):  Use scm_uniform_vector_length to
+	determine the length of a vector object generically.
+
+2000-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* ramap.c (scm_array_fill_int, scm_array_index_map_x):  Replace
 	SCM_LENGTH with the appropriate SCM_<type>_LENGTH macro.
 
