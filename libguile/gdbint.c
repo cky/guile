@@ -106,8 +106,6 @@ do { \
 } while (0)
 
 
-#define MSG_GUILE_NOT_INITIALIZED "*** Guile not initialized ***"
-
 #define RESET_STRING { gdb_output_length = 0; }
 
 #define SEND_STRING(str) \
