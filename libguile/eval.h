@@ -60,12 +60,6 @@ SCM_API SCM scm_eval_options_interface (SCM setting);
  * 
  */
 #define SCM_ILOCP(n)		(SCM_ITAG8(n)==scm_tc8_iloc)
-#define SCM_ICDR		(0x00080000L)
-#define SCM_IFRINC		(0x00000100L)
-#define SCM_IFRAME(n) 		((long)((SCM_ICDR-SCM_IFRINC)>>8) \
-				 & (SCM_UNPACK (n) >> 8))
-#define SCM_IDIST(n) 		(SCM_UNPACK (n) >> 20)
-#define SCM_ICDRP(n) 		(SCM_ICDR & SCM_UNPACK (n))
 
 
 
@@ -199,6 +193,8 @@ SCM_API SCM scm_primitive_eval_x (SCM exp);
 SCM_API SCM scm_eval (SCM exp, SCM module);
 SCM_API SCM scm_eval_x (SCM exp, SCM module);
 
+SCM_API void scm_i_print_iloc (SCM /*iloc*/, SCM /*port*/);
+SCM_API void scm_i_print_isym (SCM /*isym*/, SCM /*port*/);
 SCM_API void scm_init_eval (void);
 
 

@@ -27,6 +27,23 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
+/* From eval.h: Macros for handling ilocs.  These were deprecated in guile
+ * 1.7.0 on 2004-04-22.  */
+#define SCM_IFRINC             (0x00000100L)
+#define SCM_ICDR               (0x00080000L)
+#define SCM_IFRAME(n)          ((long)((SCM_ICDR-SCM_IFRINC)>>8) \
+                                & (SCM_UNPACK (n) >> 8))
+#define SCM_IDIST(n)           (SCM_UNPACK (n) >> 20)
+#define SCM_ICDRP(n)           (SCM_ICDR & SCM_UNPACK (n))
+
+
+/* From tags.h: Macros to access internal symbol names of isyms.  Deprecated
+ * in guile 1.7.0 on 2004-04-22.  */
+SCM_API char *scm_isymnames[];
+#define SCM_ISYMNUM(n) 	       0
+#define SCM_ISYMCHARS(n)       "#@<deprecated>"
+
+
 /* From tags.h: Macro checking for two tc16 types that are allocated to differ
  * only in the 's'-bit.  Deprecated in guile 1.7.0 on 2003-09-21.  */
 #define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))

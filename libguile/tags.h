@@ -542,10 +542,6 @@ enum scm_tc8_tags
 
 #define SCM_ISYMP(n) 		(SCM_ITAG8 (n) == scm_tc8_isym)
 #define SCM_MAKISYM(n) 		SCM_MAKE_ITAG8 ((n), scm_tc8_isym)
-#define SCM_ISYMNUM(n) 		(SCM_ITAG8_DATA (n))
-
-SCM_API char *scm_isymnames[];   /* defined in print.c */
-#define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM (n)])
 
 #define SCM_IM_AND              SCM_MAKISYM (0)
 #define SCM_IM_BEGIN            SCM_MAKISYM (1)

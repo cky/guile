@@ -68,45 +68,6 @@ static const char *iflagnames[] =
   "#nil"
 };
 
-/* This table must agree with the list of SCM_IM_ constants in tags.h */
-char *scm_isymnames[] =
-{
-  /* Short instructions */
-
-  "#@and",
-  "#@begin",
-  "#@case",
-  "#@cond",
-  "#@do",
-  "#@if",
-  "#@lambda",
-  "#@let",
-  "#@let*",
-  "#@letrec",
-  "#@or",
-  "#@quote",
-  "#@set!",
-
-
-  /* Long instructions */
-
-  "#@define",
-  "#@apply",
-  "#@call-with-current-continuation",
-  "#@dispatch",
-  "#@slot-ref",
-  "#@slot-set!",
-  "#@delay",
-  "#@future",
-  "#@call-with-values",
-  "#@else",
-  "#@arrow",
-
-  /* Multi-language support */
-  "#@nil-cond",
-  "#@bind"
-};
-
 scm_t_option scm_print_opts[] = {
   { SCM_OPTION_SCM, "closure-hook", SCM_UNPACK (SCM_BOOL_F),
     "Hook for printing closures (should handle macros as well)." },
@@ -434,17 +395,13 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
         {
           scm_puts (iflagnames [SCM_IFLAGNUM (exp)], port);
         }
-      else if (SCM_ISYMP (exp)
-	       && ((size_t) SCM_ISYMNUM (exp) < (sizeof scm_isymnames / sizeof (char *))))
+      else if (SCM_ISYMP (exp))
         {
-	  scm_puts (SCM_ISYMCHARS (exp), port);
+          scm_i_print_isym (exp, port);
         }
       else if (SCM_ILOCP (exp))
 	{
-	  scm_puts ("#@", port);
-	  scm_intprint ((long) SCM_IFRAME (exp), 10, port);
-	  scm_putc (SCM_ICDRP (exp) ? '-' : '+', port);
-	  scm_intprint ((long) SCM_IDIST (exp), 10, port);
+          scm_i_print_iloc (exp, port);
 	}
       else
 	{

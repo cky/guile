@@ -47,6 +47,14 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
+/* From print.c: Internal symbol names of isyms.  Deprecated in guile 1.7.0 on
+ * 2004-04-22.  */
+char *scm_isymnames[] =
+{
+  "#@<deprecated>"
+};
+
+
 /* From eval.c: Error messages of the evaluator.  These were deprecated in
  * guile 1.7.0 on 2003-06-02.  */
 const char scm_s_expression[] = "missing or extra expression";

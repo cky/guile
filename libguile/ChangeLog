@@ -1,3 +1,27 @@
+2004-04-22  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	Hide the implementation of ilocs and isyms in eval.c.
+
+	* deprecated.h (SCM_IFRINC, SCM_ICDR, SCM_IFRAME, SCM_IDIST,
+	SCM_ICDRP), eval.c (SCM_IFRINC, SCM_ICDR, SCM_IFRAME, SCM_IDIST,
+	SCM_ICDRP), eval.h (SCM_ICDR, SCM_IFRINC, SCM_IFRAME, SCM_IDIST,
+	SCM_ICDRP): Deprecated and added to deprecated.h.  Moved from
+	eval.h to eval.c.
+
+	* deprecated.c (scm_isymnames), deprecated.h (scm_isymnames,
+	SCM_ISYMNUM, SCM_ISYMCHARS), eval.c (SCM_ISYMNUM, isymnames,
+	scm_unmemocopy, CEVAL), print.c (scm_isymnames), tags.h
+	(SCM_ISYMNUM, scm_isymnames, SCM_ISYMCHARS): Deprecated
+	scm_isymnames, SCM_ISYMNUM and SCM_ISYMCHARS and added to
+	deprecated.[hc].  Moved scm_isymnames from print.c to eval.c and
+	renamed to isymnames.  Moved SCM_ISYMNUM from tags.h to eval.c and
+	renamed to ISYMNUM.
+
+	* eval.c (scm_i_print_iloc, scm_i_print_isym), eval.h
+	(scm_i_print_iloc, scm_i_print_isym), print.c (scm_iprin1):
+	Extracted printing of ilocs and isyms to guile internal functions
+	scm_i_print_iloc, scm_i_print_isym of eval.c.
+
 2004-04-22  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_bit_extract): Use SCM_SRS for signed right shift.

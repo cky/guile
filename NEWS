@@ -1046,10 +1046,13 @@ used these functions, switch to scm_eval or scm_eval_x.
 
 ** Deprecated functions for unmemoization: scm_unmemocar
 
-** Deprecated macros for iloc handling: SCM_ILOC00, SCM_IDINC, SCM_IDSTMSK
+** Deprecated definitions for iloc and isym handling
 
-These macros were used in the implementation of the evaluator.  It's unlikely
-that they have been used by user code.
+SCM_ILOC00, SCM_IDINC, SCM_IDSTMSK, SCM_IFRINC, SCM_ICDR, SCM_IFRAME,
+SCM_IDIST, SCM_ICDRP, SCM_ISYMNUM, SCM_ISYMCHARS, scm_isymnames.
+
+These definitions were used in the implementation of the evaluator.  It's
+unlikely that they have been used by user code.
 
 ** Removed definitions: scm_lisp_nil, scm_lisp_t, s_nil_ify,
 scm_m_nil_ify, s_t_ify, scm_m_t_ify, s_0_cond, scm_m_0_cond, s_0_ify,

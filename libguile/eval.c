@@ -72,6 +72,7 @@ char *alloca ();
 #include "libguile/modules.h"
 #include "libguile/objects.h"
 #include "libguile/ports.h"
+#include "libguile/print.h"
 #include "libguile/procprop.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
@@ -324,8 +325,15 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
  * boolean value indicating whether the binding is the last binding in the
  * frame.
  */
+
 #define SCM_ILOC00		SCM_MAKE_ITAG8(0L, scm_tc8_iloc)
+#define SCM_IFRINC		(0x00000100L)
+#define SCM_ICDR		(0x00080000L)
 #define SCM_IDINC		(0x00100000L)
+#define SCM_IFRAME(n) 		((long)((SCM_ICDR-SCM_IFRINC)>>8) \
+				 & (SCM_UNPACK (n) >> 8))
+#define SCM_IDIST(n) 		(SCM_UNPACK (n) >> 20)
+#define SCM_ICDRP(n) 		(SCM_ICDR & SCM_UNPACK (n))
 #define SCM_IDSTMSK		(-SCM_IDINC)
 #define SCM_MAKE_ILOC(frame_nr, binding_nr, last_p) \
   SCM_PACK ( \
@@ -333,6 +341,15 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
     + ((binding_nr) << 20) \
     + ((last_p) ? SCM_ICDR : 0) \
     + scm_tc8_iloc )
+
+void
+scm_i_print_iloc (SCM iloc, SCM port)
+{
+  scm_puts ("#@", port);
+  scm_intprint ((long) SCM_IFRAME (iloc), 10, port);
+  scm_putc (SCM_ICDRP (iloc) ? '-' : '+', port);
+  scm_intprint ((long) SCM_IDIST (iloc), 10, port);
+}
 
 #if (SCM_DEBUG_DEBUGGING_SUPPORT == 1)
 
@@ -362,6 +379,54 @@ SCM_DEFINE (scm_dbg_iloc_p, "dbg-iloc?", 1, 0, 0,
 #undef FUNC_NAME
 
 #endif
+
+
+
+/* {Evaluator byte codes (isyms)}
+ */
+
+#define ISYMNUM(n) 		(SCM_ITAG8_DATA (n))
+
+/* This table must agree with the list of SCM_IM_ constants in tags.h */
+static const char *const isymnames[] =
+{
+  "#@and",
+  "#@begin",
+  "#@case",
+  "#@cond",
+  "#@do",
+  "#@if",
+  "#@lambda",
+  "#@let",
+  "#@let*",
+  "#@letrec",
+  "#@or",
+  "#@quote",
+  "#@set!",
+  "#@define",
+  "#@apply",
+  "#@call-with-current-continuation",
+  "#@dispatch",
+  "#@slot-ref",
+  "#@slot-set!",
+  "#@delay",
+  "#@future",
+  "#@call-with-values",
+  "#@else",
+  "#@arrow",
+  "#@nil-cond",
+  "#@bind"
+};
+
+void
+scm_i_print_isym (SCM isym, SCM port)
+{
+  const size_t isymnum = ISYMNUM (isym);
+  if (isymnum < (sizeof isymnames / sizeof (char *)))
+    scm_puts (isymnames[isymnum], port);
+  else
+    scm_ipruk ("isym", isym, port);
+}
 
 
 
@@ -2197,21 +2262,21 @@ scm_unmemocopy (SCM x, SCM env)
   p = scm_whash_lookup (scm_source_whash, x);
   if (SCM_ISYMP (SCM_CAR (x)))
     {
-      switch (SCM_ISYMNUM (SCM_CAR (x)))
+      switch (ISYMNUM (SCM_CAR (x)))
         {
-        case (SCM_ISYMNUM (SCM_IM_AND)):
+        case (ISYMNUM (SCM_IM_AND)):
           ls = z = scm_cons (scm_sym_and, SCM_UNSPECIFIED);
           break;
-        case (SCM_ISYMNUM (SCM_IM_BEGIN)):
+        case (ISYMNUM (SCM_IM_BEGIN)):
           ls = z = scm_cons (scm_sym_begin, SCM_UNSPECIFIED);
           break;
-        case (SCM_ISYMNUM (SCM_IM_CASE)):
+        case (ISYMNUM (SCM_IM_CASE)):
           ls = z = scm_cons (scm_sym_case, SCM_UNSPECIFIED);
           break;
-        case (SCM_ISYMNUM (SCM_IM_COND)):
+        case (ISYMNUM (SCM_IM_COND)):
           ls = z = scm_cons (scm_sym_cond, SCM_UNSPECIFIED);
           break;
-        case (SCM_ISYMNUM (SCM_IM_DO)):
+        case (ISYMNUM (SCM_IM_DO)):
           {
             /* format: (#@do (i1 ... ik) (nk ... n1) (test) (body) s1 ... sk),
              * where ix is an initializer for a local variable, nx is the name
@@ -2253,10 +2318,10 @@ scm_unmemocopy (SCM x, SCM env)
             x = scm_cons (SCM_BOOL_F, memoized_body);
             break;
           }
-        case (SCM_ISYMNUM (SCM_IM_IF)):
+        case (ISYMNUM (SCM_IM_IF)):
           ls = z = scm_cons (scm_sym_if, SCM_UNSPECIFIED);
           break;
-        case (SCM_ISYMNUM (SCM_IM_LET)):
+        case (ISYMNUM (SCM_IM_LET)):
           {
             /* format: (#@let (nk nk-1 ...) (i1 ... ik) b1 ...),
              * where nx is the name of a local variable, ix is an initializer
@@ -2274,7 +2339,7 @@ scm_unmemocopy (SCM x, SCM env)
             ls = scm_cons (scm_sym_let, z);
             break;
           }
-        case (SCM_ISYMNUM (SCM_IM_LETREC)):
+        case (ISYMNUM (SCM_IM_LETREC)):
           {
             /* format: (#@letrec (vn ... v2 v1) (i1 i2 ... in) b1 ...),
              * where vx is the name of a local variable, ix is an initializer
@@ -2292,7 +2357,7 @@ scm_unmemocopy (SCM x, SCM env)
             ls = scm_cons (scm_sym_letrec, z);
             break;
           }
-        case (SCM_ISYMNUM (SCM_IM_LETSTAR)):
+        case (ISYMNUM (SCM_IM_LETSTAR)):
           {
             SCM b, y;
             x = SCM_CDR (x);
@@ -2334,39 +2399,39 @@ scm_unmemocopy (SCM x, SCM env)
             ls = scm_cons (scm_sym_letstar, z);
             break;
           }
-        case (SCM_ISYMNUM (SCM_IM_OR)):
+        case (ISYMNUM (SCM_IM_OR)):
           ls = z = scm_cons (scm_sym_or, SCM_UNSPECIFIED);
           break;
-        case (SCM_ISYMNUM (SCM_IM_LAMBDA)):
+        case (ISYMNUM (SCM_IM_LAMBDA)):
           x = SCM_CDR (x);
           z = scm_cons (SCM_CAR (x), SCM_UNSPECIFIED);
           ls = scm_cons (scm_sym_lambda, z);
           env = SCM_EXTEND_ENV (SCM_CAR (x), SCM_EOL, env);
           break;
-        case (SCM_ISYMNUM (SCM_IM_QUOTE)):
+        case (ISYMNUM (SCM_IM_QUOTE)):
           ls = z = scm_cons (scm_sym_quote, SCM_UNSPECIFIED);
           break;
-        case (SCM_ISYMNUM (SCM_IM_SET_X)):
+        case (ISYMNUM (SCM_IM_SET_X)):
           ls = z = scm_cons (scm_sym_set_x, SCM_UNSPECIFIED);
           break;
-	case (SCM_ISYMNUM (SCM_IM_APPLY)):
+	case (ISYMNUM (SCM_IM_APPLY)):
 	  ls = z = scm_cons (scm_sym_atapply, SCM_UNSPECIFIED);
 	  break;
-	case (SCM_ISYMNUM (SCM_IM_CONT)):
+	case (ISYMNUM (SCM_IM_CONT)):
 	  ls = z = scm_cons (scm_sym_atcall_cc, SCM_UNSPECIFIED);
 	  break;
-	case (SCM_ISYMNUM (SCM_IM_DELAY)):
+	case (ISYMNUM (SCM_IM_DELAY)):
 	  ls = z = scm_cons (scm_sym_delay, SCM_UNSPECIFIED);
 	  x = SCM_CDR (x);
 	  break;
-	case (SCM_ISYMNUM (SCM_IM_FUTURE)):
+	case (ISYMNUM (SCM_IM_FUTURE)):
 	  ls = z = scm_cons (scm_sym_future, SCM_UNSPECIFIED);
 	  x = SCM_CDR (x);
 	  break;
-	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
+	case (ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
 	  ls = z = scm_cons (scm_sym_at_call_with_values, SCM_UNSPECIFIED);
 	  break;
-	case (SCM_ISYMNUM (SCM_IM_ELSE)):
+	case (ISYMNUM (SCM_IM_ELSE)):
 	  ls = z = scm_cons (scm_sym_else, SCM_UNSPECIFIED);
 	  break;
         default:
@@ -2927,9 +2992,9 @@ dispatch:
   SCM_TICK;
   if (SCM_ISYMP (SCM_CAR (x)))
     {
-      switch (SCM_ISYMNUM (SCM_CAR (x)))
+      switch (ISYMNUM (SCM_CAR (x)))
         {
-        case (SCM_ISYMNUM (SCM_IM_AND)):
+        case (ISYMNUM (SCM_IM_AND)):
           x = SCM_CDR (x);
           while (!SCM_NULLP (SCM_CDR (x)))
             {
@@ -2942,7 +3007,7 @@ dispatch:
           PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
           goto carloop;
 
-        case (SCM_ISYMNUM (SCM_IM_BEGIN)):
+        case (ISYMNUM (SCM_IM_BEGIN)):
           x = SCM_CDR (x);
           if (SCM_NULLP (x))
             RETURN (SCM_UNSPECIFIED);
@@ -3011,7 +3076,7 @@ dispatch:
           }
 
 
-        case (SCM_ISYMNUM (SCM_IM_CASE)):
+        case (ISYMNUM (SCM_IM_CASE)):
           x = SCM_CDR (x);
           {
             const SCM key = EVALCAR (x, env);
@@ -3044,7 +3109,7 @@ dispatch:
           RETURN (SCM_UNSPECIFIED);
 
 
-        case (SCM_ISYMNUM (SCM_IM_COND)):
+        case (ISYMNUM (SCM_IM_COND)):
           x = SCM_CDR (x);
           while (!SCM_NULLP (x))
             {
@@ -3083,7 +3148,7 @@ dispatch:
           RETURN (SCM_UNSPECIFIED);
 
 
-        case (SCM_ISYMNUM (SCM_IM_DO)):
+        case (ISYMNUM (SCM_IM_DO)):
           x = SCM_CDR (x);
           {
             /* Compute the initialization values and the initial environment.  */
@@ -3154,7 +3219,7 @@ dispatch:
           goto nontoplevel_begin;
 
 
-        case (SCM_ISYMNUM (SCM_IM_IF)):
+        case (ISYMNUM (SCM_IM_IF)):
           x = SCM_CDR (x);
           {
             SCM test_result = EVALCAR (x, env);
@@ -3170,7 +3235,7 @@ dispatch:
           goto carloop;
 
 
-        case (SCM_ISYMNUM (SCM_IM_LET)):
+        case (ISYMNUM (SCM_IM_LET)):
           x = SCM_CDR (x);
           {
             SCM init_forms = SCM_CADR (x);
@@ -3188,7 +3253,7 @@ dispatch:
           goto nontoplevel_begin;
 
 
-        case (SCM_ISYMNUM (SCM_IM_LETREC)):
+        case (ISYMNUM (SCM_IM_LETREC)):
           x = SCM_CDR (x);
           env = SCM_EXTEND_ENV (SCM_CAR (x), undefineds, env);
           x = SCM_CDR (x);
@@ -3208,7 +3273,7 @@ dispatch:
           goto nontoplevel_begin;
 
 
-        case (SCM_ISYMNUM (SCM_IM_LETSTAR)):
+        case (ISYMNUM (SCM_IM_LETSTAR)):
           x = SCM_CDR (x);
           {
             SCM bindings = SCM_CAR (x);
@@ -3231,7 +3296,7 @@ dispatch:
           goto nontoplevel_begin;
 
 
-        case (SCM_ISYMNUM (SCM_IM_OR)):
+        case (ISYMNUM (SCM_IM_OR)):
           x = SCM_CDR (x);
           while (!SCM_NULLP (SCM_CDR (x)))
             {
@@ -3245,15 +3310,15 @@ dispatch:
           goto carloop;
 
 
-        case (SCM_ISYMNUM (SCM_IM_LAMBDA)):
+        case (ISYMNUM (SCM_IM_LAMBDA)):
           RETURN (scm_closure (SCM_CDR (x), env));
 
 
-        case (SCM_ISYMNUM (SCM_IM_QUOTE)):
+        case (ISYMNUM (SCM_IM_QUOTE)):
           RETURN (SCM_CADR (x));
 
 
-        case (SCM_ISYMNUM (SCM_IM_SET_X)):
+        case (ISYMNUM (SCM_IM_SET_X)):
           x = SCM_CDR (x);
           {
             SCM *location;
@@ -3270,7 +3335,7 @@ dispatch:
           RETURN (SCM_UNSPECIFIED);
 
 
-	case (SCM_ISYMNUM (SCM_IM_APPLY)):
+	case (ISYMNUM (SCM_IM_APPLY)):
           /* Evaluate the procedure to be applied.  */
 	  x = SCM_CDR (x);
 	  proc = EVALCAR (x, env);
@@ -3321,7 +3386,7 @@ dispatch:
 	    }
 
 
-	case (SCM_ISYMNUM (SCM_IM_CONT)):
+	case (ISYMNUM (SCM_IM_CONT)):
 	  {
 	    int first;
 	    SCM val = scm_make_continuation (&first);
@@ -3340,19 +3405,18 @@ dispatch:
 	  }
 
 
-	case (SCM_ISYMNUM (SCM_IM_DELAY)):
+	case (ISYMNUM (SCM_IM_DELAY)):
 	  RETURN (scm_makprom (scm_closure (SCM_CDR (x), env)));
 
 
-	case (SCM_ISYMNUM (SCM_IM_FUTURE)):
+	case (ISYMNUM (SCM_IM_FUTURE)):
 	  RETURN (scm_i_make_future (scm_closure (SCM_CDR (x), env)));
 
 
-	  /* PLACEHOLDER for case (SCM_ISYMNUM (SCM_IM_DISPATCH)): The
-	     following code (type_dispatch) is intended to be the tail
-	     of the case clause for the internal macro
-	     SCM_IM_DISPATCH.  Please don't remove it from this
-	     location without discussing it with Mikael
+	  /* PLACEHOLDER for case (ISYMNUM (SCM_IM_DISPATCH)): The following
+	     code (type_dispatch) is intended to be the tail of the case
+	     clause for the internal macro SCM_IM_DISPATCH.  Please don't
+	     remove it from this location without discussing it with Mikael
 	     <djurfeldt@nada.kth.se>  */
 	  
 	  /* The type dispatch code is duplicated below
@@ -3484,7 +3548,7 @@ dispatch:
 	  }
 
 
-	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
+	case (ISYMNUM (SCM_IM_SLOT_REF)):
 	  x = SCM_CDR (x);
 	  {
 	    SCM instance = EVALCAR (x, env);
@@ -3493,7 +3557,7 @@ dispatch:
 	  }
 
 
-	case (SCM_ISYMNUM (SCM_IM_SLOT_SET_X)):
+	case (ISYMNUM (SCM_IM_SLOT_SET_X)):
 	  x = SCM_CDR (x);
 	  {
 	    SCM instance = EVALCAR (x, env);
@@ -3506,7 +3570,7 @@ dispatch:
 
 #if SCM_ENABLE_ELISP
 	  
-	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
+	case (ISYMNUM (SCM_IM_NIL_COND)):
 	  {
 	    SCM test_form = SCM_CDR (x);
 	    x = SCM_CDR (test_form);
@@ -3534,7 +3598,7 @@ dispatch:
 
 #endif /* SCM_ENABLE_ELISP */
 
-	case (SCM_ISYMNUM (SCM_IM_BIND)):
+	case (ISYMNUM (SCM_IM_BIND)):
 	  {
 	    SCM vars, exps, vals;
 
@@ -3566,7 +3630,7 @@ dispatch:
 	  }
 
 
-	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
+	case (ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
 	  {
             SCM producer;
 
