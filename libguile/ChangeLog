@@ -1,3 +1,8 @@
+2000-04-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* print.c: Removed promise to rewrite printer code before next
+	release.  :)
+
 2000-04-03  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* iselect.c (add_fd_sets): Insert empty statement after label.
