@@ -1,3 +1,11 @@
+Sun Sep 28 00:04:29 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* strports.c (scm_eval_string): Don't close the port.
+
+	* stime.c (bdtime2c): Use SCM_LENGTH, not scm_vector_length; the
+	former returns a nice normal integer.  (Thanks to Daniel
+	Risacher.)
+
 Sat Sep 27 20:19:34 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.am (libpath.h): Include the value of the THREAD_LIBS
