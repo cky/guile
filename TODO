@@ -13,10 +13,6 @@ Ownership is indicated by `[USERNAME]'.  Maintainers (w/ write privs) can
 indicate sponsorship by `[ACTUAL-OWNER:MAINTAINER]', where both elements are
 usernames.
 
-If you would like to suggest changes or contribute patches, please first email
-guile-devel@gnu.org to coordinate efforts.  If you distribute this file,
-please include the first line and check around on the Internet for updates.
-
 See also file HACKING.
 
 ------------------------------------------------------------------------------
