@@ -699,7 +699,8 @@ SCM_DEFINE (scm_delete, "delete", 2, 0, 0,
 
 SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
            (SCM item, SCM lst),
-	    "")
+	    "Like `delq!', but only deletes the first occurrence of ITEM from LST.\n"
+            "Tests for equality using `eq?'.  See also `delv1!' and `delete1!'.")
 #define FUNC_NAME s_scm_delq1_x
 {
   SCM walk;
@@ -724,8 +725,9 @@ SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
 
 
 SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
-           (SCM item, SCM lst),
-	    "")
+            (SCM item, SCM lst),
+	    "Like `delv!', but only deletes the first occurrence of ITEM from LST.\n"
+            "Tests for equality using `eqv?'.  See also `delq1!' and `delete1!'.")
 #define FUNC_NAME s_scm_delv1_x
 {
   SCM walk;
@@ -750,8 +752,9 @@ SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
 
 
 SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
-           (SCM item, SCM lst),
-	    "")
+            (SCM item, SCM lst),
+	    "Like `delete!', but only deletes the first occurrence of ITEM from LST.\n"
+            "Tests for equality using `equal?'.  See also `delq1!' and `delv1!'.")
 #define FUNC_NAME s_scm_delete1_x
 {
   SCM walk;
