@@ -166,37 +166,47 @@
 	  (return-or-push))
 
 	(define (translate-and . args)
-	  ;; #:and ARG1 ARG2...
+	  ;; #:and ARG1 ARG2... LAST
 	  ;;      ARG1
 	  ;;      %br-if-not L0
 	  ;;      ARG2
 	  ;;      %br-if-not L0
 	  ;;      ...
+	  ;;      LAST
 	  ;;  L0:
 	  (assert-for-each code? args)
-	  (let ((L0 (make-label)))
-	    (for-each (lambda (arg)
-			(trans-non-stack arg)
-			(push-code! '%br-if-not L0))
-		      args)
-	    (push-code! #:label L0))
+	  (let* ((list (reverse args))
+		 (last (car list))
+		 (ARGS (reverse! (cdr list))))
+	    (let ((L0 (make-label)))
+	      (for-each (lambda (arg)
+			  (trans-non-stack arg)
+			  (push-code! '%br-if-not L0))
+			args)
+	      (trans-non-stack last)
+	      (push-code! #:label L0)))
 	  (return-or-push))
 
 	(define (translate-or . args)
-	  ;; #:or ARG1 ARG2...
+	  ;; #:or ARG1 ARG2... LAST
 	  ;;      ARG1
 	  ;;      %br-if L0
 	  ;;      ARG2
 	  ;;      %br-if L0
 	  ;;      ...
+	  ;;      LAST
 	  ;;  L0:
 	  (assert-for-each code? args)
-	  (let ((L0 (make-label)))
-	    (for-each (lambda (arg)
-			(trans-non-stack arg)
-			(push-code! '%br-if L0))
-		      args)
-	    (push-code! #:label L0))
+	  (let* ((list (reverse args))
+		 (last (car list))
+		 (ARGS (reverse! (cdr list))))
+	    (let ((L0 (make-label)))
+	      (for-each (lambda (arg)
+			  (trans-non-stack arg)
+			  (push-code! '%br-if L0))
+			args)
+	      (trans-non-stack last)
+	      (push-code! #:label L0)))
 	  (return-or-push))
 
 	(define (translate-program nreqs restp code)
