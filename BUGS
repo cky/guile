@@ -134,4 +134,31 @@ Keith Wright sez:
 > of any number to at least do nothing successfully.)
 
 
+bug 7 -- readline configuration anomolies not handled gracefully
+reported-by: kwright@gis.net / 2001-10-17
+fixed: not-yet
+
+
+bug 8 -- install requires makeinfo
+reported-by: kwright@gis.net / 2001-10-17
+fixed: not-yet
+
+Keith Wright sez:
+> I got guile-1.5.4 and installed it on one machine with no problem.
+> On another I did ./configure;make as before and it died with:
+> 
+> > ...
+> > on.doc vports.doc weaks.doc        symbols-deprecated.doc regex-posix.doc ramap.doc unif.doc filesys.doc posix.doc net_db.doc socket.doc | ./guile-snarf-docs-texi > guile.texi \
+> > || { rm guile.texi; false; }
+> > rm -f guile-procedures.txt
+> > makeinfo --force -o guile-procedures.txt guile.texi || test -f guile-procedures.txt
+> > /bin/sh: makeinfo: command not found
+> > make[1]: *** [guile-procedures.txt] Error 1
+> > make[1]: Leaving directory `/home/kwright/build/guile-1.5.4/libguile'
+> > make: *** [all-recursive] Error 1
+> 
+> I get the impression that it is supposed to build without 'makeinfo',
+> if this is not so it should be mentioned in the README or INSTALL.
+
+
 [BUGS ends here]
