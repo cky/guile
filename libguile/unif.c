@@ -2399,6 +2399,9 @@ scm_i_tag_to_prototype (const char *tag, SCM port)
 	break;
       case 'c':
 	proto = scm_c_make_rectangular (0.0, 1.0);
+	instead = "c64";
+	break;
+      default:
 	instead = "???";
 	break;
       }
@@ -2635,6 +2638,8 @@ SCM_DEFINE (scm_array_creator, "array-creator", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#if SCM_ENABLE_DEPRECATED
+
 SCM_DEFINE (scm_array_prototype, "array-prototype", 1, 0, 0, 
            (SCM ra),
 	    "Return an object that would produce an array of the same type\n"
@@ -2675,6 +2680,7 @@ loop:
 }
 #undef FUNC_NAME
 
+#endif
 
 static SCM
 array_mark (SCM ptr)
