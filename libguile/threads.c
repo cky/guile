@@ -973,8 +973,7 @@ scm_threads_mark_stacks (void)
 			      ((size_t) sizeof scm_save_regs_gc_mark
 			       / sizeof (SCM_STACKITEM)));
 	  
-	  scm_mark_locations (((size_t) t->base,
-			       (size_t) stack_len));
+	  scm_mark_locations (t->base, (size_t) stack_len);
 #else
 	  stack_len = t->base - SCM_STACK_PTR (&t);
 	  
