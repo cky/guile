@@ -1,5 +1,8 @@
 2005-01-20  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* environments.c (obarray_enter, obarray_replace): Call
+	SCM_HASHTABLE_INCREMENT when adding a new entry.
+
 	* objects.c: Include goops.h for the scm_class_of prototype.
 
 	* hashtab.c (hashtable_size, HASHTABLE_SIZE_N): Restrict hashtable
