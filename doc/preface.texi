@@ -126,6 +126,31 @@ Guile, how to install it, where to find modules to work with Guile, and
 how to use the Guile debugger.
 
 
+@iftex
+@section Manual Conventions
+@end iftex
+
+@ifnottex
+@node Manual Conventions
+@chapter Conventions used in this Manual
+@end ifnottex
+
+We use some conventions in this manual.
+
+@itemize @bullet
+
+@item
+For some procedures, notably type predicates, we use "iff" to mean
+"if and only if".  The construct is usually something like: "Return
+VAL iff CONDITION", where VAL is usually "#t" or "non-#f".  This
+typically means that VAL is returned if CONDITION holds, and that #f is
+returned otherwise.
+
+@c Add other conventions here.
+
+@end itemize
+
+
 @c Local Variables:
 @c TeX-master: "guile.texi"
 @c End:
