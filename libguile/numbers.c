@@ -1246,7 +1246,7 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 #ifdef SCM_BIGDIG
   /* 0^0 == 1 according to R5RS */
   if (SCM_EQ_P (n, SCM_INUM0) || SCM_EQ_P (n, acc))
-    return SCM_EQ_P (k, SCM_INUM0)? acc : n;
+    return SCM_FALSEP (scm_zero_p(k)) ? n : acc;
   else if (SCM_EQ_P (n, SCM_MAKINUM (-1L)))
     return SCM_FALSEP (scm_even_p (k)) ? n : acc;
 #endif
