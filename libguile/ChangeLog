@@ -1,5 +1,11 @@
 2000-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.h (SCM_BIGP):  Don't use SCM_SMOB_PREDICATE in header
+	file:  Code using numbers should not be required to include
+	smob.h.
+
+2000-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* coop-threads.c.cygnus, coop-threads.h.cygnus, fsu-pthreads.h,
 	mit-pthreads.c, mit-pthreads.h:  Deleted.
 

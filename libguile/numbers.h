@@ -173,7 +173,7 @@
 
 #define SCM_NUMBERP(x) (SCM_INUMP(x) || SCM_NUMP(x))
 #define SCM_NUMP(x) (!SCM_IMP(x) && (0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_smob)
-#define SCM_BIGP(x) SCM_SMOB_PREDICATE (scm_tc16_big, x)
+#define SCM_BIGP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_big))
 #define SCM_BIGSIGNFLAG 0x10000L
 #define SCM_BIGSIZEFIELD 17
 #define SCM_BIGSIGN(x) (SCM_CELL_WORD_0 (x) & SCM_BIGSIGNFLAG)
