@@ -329,9 +329,11 @@ typedef long SCM;
 #define scm_tc7_vector		13
 #define scm_tc7_wvect		15
 
-/* a quad, two couples, two trists */
+/* couple */
 #define scm_tc7_string		21
 #define scm_tc7_substring	23
+
+/* 29 and 31 are free! */
 
 /* Many of the following should be turned
  * into structs or smobs.  We need back some
