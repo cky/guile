@@ -1,3 +1,8 @@
+2004-01-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* goops.scm (compute-get-n-set): Use '#:' in error message instead
+	of ':'.  Thanks to Richard Todd!
+
 2003-04-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (compute-getters-n-setters): Allow for primitive
