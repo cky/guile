@@ -1,3 +1,7 @@
+2005-04-02  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (lset-union): More tests.
+
 2005-03-26  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-13.test (string-index): Exercise 8-bit char in string.

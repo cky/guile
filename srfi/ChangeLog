@@ -1,3 +1,15 @@
+2005-04-02  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.c (scm_srfi1_count): Use scm_list_copy to make arg list,
+	instead of an inline loop.  Share final list check between all cases
+	to save some code.
+
+	* srfi-1.c (scm_srfi1_filter_map): Have 2-arg case share finalization
+	code of 1-arg case.
+
+	* srfi-1.scm (lset-union): Rewrite to accumulate result by consing in
+	the order specified by the SRFI.
+
 2005-03-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-60.c: Replaced SCM_INUMP with SCM_I_INUMP and SCM_INUM with
