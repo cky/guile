@@ -48,6 +48,9 @@
  * These may be defined or undefined.
  */
 
+/* New scheme for garbage collection */
+/* #define GUILE_NEW_GC_SCHEME */
+
 /* #define GUILE_DEBUG_FREELIST */
 
 /* If the compile FLAG `SCM_CAUTIOUS' is #defined then the number of
