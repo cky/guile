@@ -1718,12 +1718,23 @@ Convert between dates, times and days of the respective types.  For
 instance @code{time-tai->time-utc} accepts a @var{time} object of type
 @code{time-tai} and returns an object of type @code{time-utc}.
 
-For conversions to dates, @var{tz-offset} is seconds east of
-Greenwich.  The default is the local timezone, at the given time, as
-provided by the system.
-
 The @code{!} variants may modify their @var{time} argument to form
 their return.  The plain functions create a new object.
+
+For conversions to dates, @var{tz-offset} is seconds east of
+Greenwich.  The default is the local timezone, at the given time, as
+provided by the system, using @code{localtime} (@pxref{Time}).
+
+On 32-bit systems, @code{localtime} is limited to a 32-bit
+@code{time_t}, so a default @var{tz-offset} is only available for
+times between Dec 1901 and Jan 2038.  For prior dates an application
+might like to use the value in 1902, though some locations have zone
+changes prior to that.  For future dates an application might like to
+assume today's rules extend indefinitely.  But for correct daylight
+savings transitions it will be necessary to take an offset for the
+same day and time but a year in range and which has the same starting
+weekday and same leap/non-leap (to support rules like last Sunday in
+October).
 @end defun
 
 @node SRFI-19 Date to string
