@@ -88,10 +88,10 @@ swap_port (void *data)
 static SCM
 load (void *data)
 {
-  SCM port = (SCM) data, form;
+  SCM port = SCM_PACK (data);
   while (1)
     {
-      form = scm_read (port);
+      SCM form = scm_read (port);
       if (SCM_EOF_OBJECT_P (form))
 	break;
       scm_eval_x (form);
@@ -111,12 +111,11 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 {
   SCM hook = *scm_loc_load_hook;
   SCM_VALIDATE_ROSTRING (1,filename);
-  SCM_ASSERT (hook == SCM_BOOL_F
-	      || (scm_procedure_p (hook) == SCM_BOOL_T),
+  SCM_ASSERT (SCM_FALSEP (hook) || (SCM_TRUE_P (scm_procedure_p (hook))),
 	      hook, "value of %load-hook is neither a procedure nor #f",
 	      FUNC_NAME);
 
-  if (hook != SCM_BOOL_F)
+  if (! SCM_FALSEP (hook))
     scm_apply (hook, scm_listify (filename, SCM_UNDEFINED), SCM_EOL);
 
   { /* scope */
@@ -127,7 +126,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
     scm_internal_dynamic_wind (swap_port,
 			       load,
 			       swap_port,
-			       (void *) port,
+			       (void *) SCM_UNPACK (port),
 			       &save_port);
     scm_close_port (port);
   }

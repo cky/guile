@@ -85,7 +85,7 @@ static SCM module_prefix;
 static SCM
 scm_module_full_name (SCM name)
 {
-  if (SCM_CAR (name) == scm_sym_app)
+  if (SCM_EQ_P (SCM_CAR (name), scm_sym_app))
     return name;
   else
     return scm_append (SCM_LIST2 (module_prefix, name));

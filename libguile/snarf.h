@@ -116,8 +116,9 @@ $$$R STR | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ CFN @!!! \
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 SCM_HERE(\
 static const char RANAME[]=STR;\
-static SCM GF = 0 \
+static SCM GF \
 )SCM_INIT(\
+GF = SCM_PACK (0);  /* Dirk:FIXME:: Can we safely use #f instead of 0? */ \
 scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
 )
 
@@ -131,8 +132,9 @@ scm_make_subr (RANAME, TYPE, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN) \
 #define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF) \
 SCM_HERE(\
 static const char RANAME[]=STR; \
-static SCM GF = 0 \
+static SCM GF \
 )SCM_INIT(\
+GF = SCM_PACK (0);  /* Dirk:FIXME:: Can we safely use #f instead of 0? */ \
 scm_make_subr_with_generic (RANAME, TYPE, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
 )
 
@@ -141,35 +143,35 @@ SCM_HERE(static const char RANAME[]=STR)\
 SCM_INIT(scm_make_synt (RANAME, TYPE, CFN))
 
 #define SCM_SYMBOL(c_name, scheme_name) \
-SCM_HERE(static SCM c_name = SCM_BOOL_F) \
+SCM_HERE(static SCM c_name) \
 SCM_INIT(c_name = scm_permanent_object (SCM_CAR (scm_intern0 (scheme_name))))
 
 #define SCM_GLOBAL_SYMBOL(c_name, scheme_name) \
-SCM_HERE(SCM c_name = SCM_BOOL_F) \
+SCM_HERE(SCM c_name) \
 SCM_INIT(c_name = scm_permanent_object (SCM_CAR (scm_intern0 (scheme_name))))
 
 #define SCM_KEYWORD(c_name, scheme_name) \
-SCM_HERE(static SCM c_name = SCM_BOOL_F) \
+SCM_HERE(static SCM c_name) \
 SCM_INIT(c_name = scm_permanent_object (scm_c_make_keyword (scheme_name)))
 
 #define SCM_GLOBAL_KEYWORD(c_name, scheme_name) \
-SCM_HERE(SCM c_name = SCM_BOOL_F) \
+SCM_HERE(SCM c_name) \
 SCM_INIT(c_name = scm_permanent_object (scm_c_make_keyword (scheme_name)))
 
 #define SCM_VCELL(c_name, scheme_name) \
-SCM_HERE(static SCM c_name = SCM_BOOL_F) \
+SCM_HERE(static SCM c_name) \
 SCM_INIT(c_name = scm_permanent_object (scm_intern0 (scheme_name)); SCM_SETCDR (c_name, SCM_BOOL_F))
 
 #define SCM_GLOBAL_VCELL(c_name, scheme_name) \
-SCM_HERE(SCM c_name = SCM_BOOL_F) \
+SCM_HERE(SCM c_name) \
 SCM_INIT(c_name = scm_permanent_object (scm_intern0 (scheme_name)); SCM_SETCDR (c_name, SCM_BOOL_F))
 
 #define SCM_VCELL_INIT(c_name, scheme_name, init_val) \
-SCM_HERE(static SCM c_name = SCM_BOOL_F) \
+SCM_HERE(static SCM c_name) \
 SCM_INIT(c_name = scm_permanent_object (scm_intern0 (scheme_name)); SCM_SETCDR (c_name, init_val))
 
 #define SCM_GLOBAL_VCELL_INIT(c_name, scheme_name, init_val) \
-SCM_HERE(SCM c_name = SCM_BOOL_F) \
+SCM_HERE(SCM c_name) \
 SCM_INIT(c_name = scm_permanent_object (scm_intern0 (scheme_name)); SCM_SETCDR (c_name, init_val))
 
 #define SCM_CONST_LONG(c_name, scheme_name,value) \

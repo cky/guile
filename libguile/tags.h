@@ -73,7 +73,7 @@ typedef long scm_bits_t;
     typedef union { struct { scm_bits_t n; } n; } SCM;
     static SCM scm_pack(scm_bits_t b) { SCM s; s.n.n = b; return s; }
     #define SCM_UNPACK(x) ((x).n.n)
-    #define SCM_PACK(x) (scm_pack (x))
+    #define SCM_PACK(x) (scm_pack ((scm_bits_t) (x)))
 #elif defined (SCM_VOIDP_TEST)
 /* This is the default, which provides an intermediate level of compile time
  * type checking while still resulting in very efficient code.
@@ -88,7 +88,7 @@ typedef long scm_bits_t;
  */
     typedef scm_bits_t SCM;
     #define SCM_UNPACK(x) (x)
-    #define SCM_PACK(x) (x)
+    #define SCM_PACK(x) ((scm_bits_t) (x))
 #endif
 
 

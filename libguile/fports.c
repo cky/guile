@@ -127,9 +127,9 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
 
   pt->write_end = pt->write_buf + pt->write_buf_size;
   if (read_size > 0 || write_size > 0)
-    SCM_SETCAR (port, SCM_UNPACK_CAR (port) & ~SCM_BUF0);
+    SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) & ~SCM_BUF0);
   else
-    SCM_SETCAR (port, (SCM_UNPACK_CAR (port) | SCM_BUF0));
+    SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) | SCM_BUF0);
 }
 
 SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0, 
@@ -159,12 +159,12 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 
   if (cmode == _IOLBF)
     {
-      SCM_SETCAR (port, SCM_UNPACK_CAR (port) | SCM_BUFLINE);
+      SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) | SCM_BUFLINE);
       cmode = _IOFBF;
     }
   else
     {
-      SCM_SETCAR (port, SCM_UNPACK_CAR (port) ^ SCM_BUFLINE);
+      SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) ^ SCM_BUFLINE);
     }
 
   if (SCM_UNBNDP (size))
@@ -365,7 +365,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (port);
   SCM_SETPTAB_ENTRY (port, pt);
-  SCM_SETCAR (port, (scm_tc16_fport | mode_bits));
+  SCM_SET_CELL_TYPE (port, (scm_tc16_fport | mode_bits));
 
   {
     struct scm_fport *fp

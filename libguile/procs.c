@@ -96,7 +96,7 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
   scm_subr_table[entry].documentation = SCM_BOOL_F;
   
   SCM_SUBRF (z) = fcn;
-  SCM_SETCAR (z, (entry << 8) + type);
+  SCM_SET_CELL_TYPE (z, (entry << 8) + type);
   scm_subr_table_size++;
   
   if (set)
@@ -271,7 +271,7 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 #define FUNC_NAME s_scm_procedure_documentation
 {
   SCM code;
-  SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc) && SCM_NIMP (proc) && SCM_TYP7 (proc) != scm_tc7_contin,
+  SCM_ASSERT (SCM_TRUE_P (scm_procedure_p (proc)) && SCM_NIMP (proc) && SCM_TYP7 (proc) != scm_tc7_contin,
 	  proc, SCM_ARG1, FUNC_NAME);
   switch (SCM_TYP7 (proc))
     {
@@ -321,7 +321,7 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
   SCM_ENTER_A_SECTION;
   SCM_SET_CELL_OBJECT_1 (z, procedure);
   SCM_SET_CELL_OBJECT_2 (z, setter);
-  SCM_SETCAR (z, scm_tc7_pws);
+  SCM_SET_CELL_TYPE (z, scm_tc7_pws);
   SCM_EXIT_A_SECTION;
   return z;
 }

@@ -1,3 +1,87 @@
+2000-04-03  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* evalext.c (scm_definedp, scm_m_undefine), gc.c
+	(scm_mark_weak_vector_spines, scm_gc_sweep), hashtab.c
+	(scm_hashq_ref, scm_hashv_ref, scm_hash_ref, scm_hashx_ref),
+	keywords.c (scm_make_keyword_from_dash_symbol), lang.c
+	(scm_nil_eq), lang.h (SCM_NILP, SCM_NIL2EOL), load.c
+	(scm_primitive_load), modules.c (scm_module_full_name), objects.c
+	(scm_class_of, scm_mcache_lookup_cmethod, scm_make_class_object),
+	ports.c (scm_close_all_ports_except), ports.h (SCM_EOF_OBJECT_P),
+	print.c (scm_iprin1, scm_prin1, scm_iprlist, scm_simple_format),
+	print.h (SCM_PRINT_STATE_P), procprop.c (scm_i_procedure_arity,
+	scm_stand_in_scm_proc, scm_procedure_property,
+	scm_set_procedure_property_x), procs.c
+	(scm_procedure_documentation), read.c (scm_lreadr, scm_lreadparen,
+	scm_lreadrecparen, scm_read_hash_extend), script.c
+	(scm_compile_shell_switches), srcprop.c (scm_source_property,
+	scm_set_source_property_x), srcprop.h (SCM_WHASHFOUNDP), stacks.c
+	(read_frame, NEXT_FRAME, read_frames, narrow_stack,
+	scm_make_stack, scm_stack_id), strop.c (scm_i_index,
+	scm_string_index, scm_string_rindex), struct.c (scm_struct_init),
+	validate.h (SCM_VALIDATE_BOOL_COPY, SCM_VALIDATE_INUM_DEF,
+	SCM_VALIDATE_INUM_DEF_COPY, SCM_VALIDATE_PROC,
+	SCM_VALIDATE_ARRAY):  Don't use C operators to compare SCM values.
+
+	* feature.c (make_hook), keywords.c
+	(scm_make_keyword_from_dash_symbol), macros.c (scm_makacro,
+	scm_makmacro, scm_makmmacro), print.c (scm_iprin1,
+	scm_printer_apply, scm_port_with_print_state):  Smob data is of type
+	scm_bits_t.
+
+	* feature.c (print_hook), gc.c (scm_object_address), hash.c
+	(scm_ihashq, scm_ihashv), print.c (scm_iprin1, scm_ipruk), smob.c
+	(freeprint), struct.c (scm_print_struct):  Must unpack 
+	SCM values to access their raw contents.
+
+	* fluids.c (apply_thunk, scm_with_fluids), hashtab.c (fold_proc,
+	scm_hash_fold), load.c (load, scm_primitive_load):  Passing SCM
+	values via void * requires unpacking / packing.
+
+	* fports.c (scm_fport_buffer_add, scm_setvbuf), procs.h
+	(SCM_SUBRNUM, SCM_SET_SUBRNUM), srcprop.h (SRCPROPBRK, SRCBRKP):
+	Read and modify data bits in cell entry #0 using
+	SCM_{SET_}?CELL_WORD_0.
+
+	* fports.c (scm_fdes_to_port), gc.c (scm_gc_for_newcell,
+	scm_gc_sweep, init_heap_seg), init.c (start_stack), ports.c
+	(scm_void_port), procs.c (scm_make_subr_opt,
+	scm_make_procedure_with_setter), root.c (scm_internal_cwdr),
+	smob.c (scm_make_smob), strports.c (scm_mkstrport):  Use
+	SCM_SET_CELL_TYPE to write the cell type information.
+
+	* gc.c (scm_gc_mark):  Use SCM_CELL_OBJECT* to access SCM values
+	from cells that are no scheme pairs.
+
+	* gc.c (scm_gc_sweep), mallocs.c (prinmalloc), mallocs.h
+	(SCM_MALLOCDATA, SCM_SETMALLOCDATA), print.c (scm_ipruk), random.h
+	(SCM_RSTATE), root.h (SCM_ROOT_STATE), smob.c (scm_smob_free),
+	srcprop.c (freesrcprops), srcprop.h (SRCPROPPOS, SRCPROPFNAME,
+	SRCPROPCOPY, SRCPROPPLIST), struct.c (scm_make_struct,
+	scm_make_vtable_vtable):  Use SCM_{SET_}?CELL_WORD* to access cell
+	entries with raw data.
+
+	* gc.c (scm_init_storage), sort.c (applyless), strop.c
+	(scm_string_to_list):  Eliminate unnecessary casts to SCM.
+
+	* mallocs.c (scm_malloc_obj):  Store result of malloc as raw
+	data.
+
+	* ports.c (scm_close_all_ports_except):  Duplicate documentation
+	text removed.
+
+	* print.c (scm_iprin1):  Use SCM_ITAG3.
+
+	* procs.h (SCM_SET_SUBRNUM):  Fix shift direction.
+
+	* snarf.h (SCM_GPROC, SCM_GPROC1, SCM_SYMBOL, SCM_GLOBAL_SYMBOL,
+	SCM_KEYWORD, SCM_GLOBAL_KEYWORD, SCM_VCELL, SCM_GLOBAL_VCELL,
+	SCM_VCELL_INIT, SCM_GLOBAL_VCELL_INIT):  Don't initialize globals
+	and static variables at their point of declaration, but rather in
+	the init function.
+
+	* tags.h (SCM_PACK):  Automatically cast to scm_bits_t.
+
 2000-04-02  Gary Houston  <ghouston@arglist.com>
 
 	* guardians.c (TCONC_IN, scm_make_guardian): set the CDR of the

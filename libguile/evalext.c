@@ -96,12 +96,12 @@ SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
 	    {
 	      if (SCM_NCONSP (b))
 		{
-		  if (b == sym)
+		  if (SCM_EQ_P (b, sym))
 		    return SCM_BOOL_T;
 		  else
 		    break;
 		}
-	      if (SCM_CAR (b) == sym)
+	      if (SCM_EQ_P (SCM_CAR (b), sym))
 		return SCM_BOOL_T;
 	    }
 	}
@@ -110,7 +110,7 @@ SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
 			   SCM_BOOL_F);
     }
 	      
-  return (vcell == SCM_BOOL_F || SCM_UNBNDP (SCM_CDR (vcell))
+  return (SCM_FALSEP (vcell) || SCM_UNBNDP (SCM_CDR (vcell))
 	  ? SCM_BOOL_F
 	  : SCM_BOOL_T);
 }
@@ -125,7 +125,7 @@ scm_m_undefine (SCM x, SCM env)
   SCM arg1 = x;
   x = SCM_CDR (x);
   SCM_ASSYNT (SCM_TOP_LEVEL (env), arg1, "bad placement ", s_undefine);
-  SCM_ASSYNT (SCM_CONSP (x) && SCM_CDR (x) == SCM_EOL,
+  SCM_ASSYNT (SCM_CONSP (x) && SCM_NULLP (SCM_CDR (x)),
 	      arg1, scm_s_expression, s_undefine);
   x = SCM_CAR (x);
   SCM_ASSYNT (SCM_SYMBOLP (x), arg1, scm_s_variable, s_undefine);

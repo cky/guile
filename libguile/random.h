@@ -109,7 +109,7 @@ extern SCM scm_c_random_bignum (scm_rstate *, SCM m);
  * Scheme level interface
  */
 extern long scm_tc16_rstate;
-#define SCM_RSTATE(obj) ((scm_rstate *) SCM_CDR (obj))
+#define SCM_RSTATE(obj) ((scm_rstate *) SCM_CELL_WORD_1 (obj))
 #define SCM_RSTATEP(obj) (SCM_NIMP(obj) && (SCM_TYP16 (obj) == scm_tc16_rstate))
 
 extern unsigned char scm_masktab[256];

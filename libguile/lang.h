@@ -51,9 +51,9 @@
 extern SCM scm_lisp_nil;
 extern SCM scm_lisp_t;
 
-#define SCM_NILP(x) ((x) == scm_lisp_nil)
+#define SCM_NILP(x) (SCM_EQ_P ((x), scm_lisp_nil))
 #define SCM_NILNULLP(x) (SCM_NILP (x) || SCM_NULLP (x))
-#define SCM_NIL2EOL(x, tmp) ((tmp = (x)) == scm_lisp_nil ? SCM_EOL : tmp)
+#define SCM_NIL2EOL(x, tmp) (SCM_EQ_P ((tmp = (x)), scm_lisp_nil) ? SCM_EOL : tmp)
 #define SCM_EOL2NIL(x, tmp) (SCM_NULLP (tmp = (x)) ? scm_lisp_nil : tmp)
 #define SCM_EOL_IFY(x, tmp) (tmp = (x), SCM_NILP (tmp) ? SCM_EOL : tmp)
 #define SCM_NIL_IFY(x, tmp) (tmp = (x), SCM_NILP (tmp) ? scm_lisp_nil : tmp)

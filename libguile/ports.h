@@ -138,7 +138,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 
 
-#define SCM_EOF_OBJECT_P(x) ((x) == SCM_EOF_VAL)
+#define SCM_EOF_OBJECT_P(x) (SCM_EQ_P ((x), SCM_EOF_VAL))
 
 /* PORT FLAGS
  * A set of flags characterizes a port.

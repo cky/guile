@@ -64,7 +64,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   SCM_ASSERT (SCM_ROSTRINGP (*str), *str, SCM_ARG1, why);
   SCM_ASSERT (SCM_CHARP (chr), chr, SCM_ARG2, why);
 
-  if (sub_start == SCM_BOOL_F)
+  if (SCM_FALSEP (sub_start))
     sub_start = SCM_MAKINUM (0);
 
   SCM_ASSERT (SCM_INUMP (sub_start), sub_start, SCM_ARG3, why);
@@ -73,7 +73,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
       || lower > SCM_ROLENGTH (*str))
     scm_out_of_range (why, sub_start);
 
-  if (sub_end == SCM_BOOL_F)
+  if (SCM_FALSEP (sub_end))
     sub_end = SCM_MAKINUM (SCM_ROLENGTH (*str));
 
   SCM_ASSERT (SCM_INUMP (sub_end), sub_end, SCM_ARG4, why);
@@ -125,9 +125,9 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 {
   int pos;
   
-  if (frm == SCM_UNDEFINED)
+  if (SCM_UNBNDP (frm))
     frm = SCM_BOOL_F;
-  if (to == SCM_UNDEFINED)
+  if (SCM_UNBNDP (to))
     to = SCM_BOOL_F;
   pos = scm_i_index (&str, chr, 1, frm, to, FUNC_NAME);
   return (pos < 0
@@ -156,9 +156,9 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 {
   int pos;
   
-  if (frm == SCM_UNDEFINED)
+  if (SCM_UNBNDP (frm))
     frm = SCM_BOOL_F;
-  if (to == SCM_UNDEFINED)
+  if (SCM_UNBNDP (to))
     to = SCM_BOOL_F;
   pos = scm_i_index (&str, chr, -1, frm, to, FUNC_NAME);
   return (pos < 0
@@ -328,7 +328,7 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
   unsigned char *src;
   SCM_VALIDATE_ROSTRING (1,str);
   src = SCM_ROUCHARS (str);
-  for (i = SCM_ROLENGTH (str)-1;i >= 0;i--) res = scm_cons ((SCM)SCM_MAKE_CHAR (src[i]), res);
+  for (i = SCM_ROLENGTH (str)-1;i >= 0;i--) res = scm_cons (SCM_MAKE_CHAR (src[i]), res);
   return res;
 }
 #undef FUNC_NAME

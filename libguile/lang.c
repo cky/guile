@@ -137,7 +137,7 @@ SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr,
 "")
 #define FUNC_NAME s_scm_nil_eq
 {
-  return (((x==y)
+  return ((SCM_EQ_P (x, y)
 	   || (SCM_NILP (x) && (SCM_NULLP (y) || SCM_FALSEP (y)))
 	   || (SCM_NILP (y) && (SCM_NULLP (x) || SCM_FALSEP (x))))
 	  ? scm_lisp_t

@@ -177,7 +177,7 @@ start_stack (void *base)
   SCM_NEWCELL (scm_rootcont);
   SCM_SET_CONTREGS (scm_rootcont, scm_must_malloc (sizeof (scm_contregs),
 						   "continuation"));
-  SCM_SETCAR (scm_rootcont, scm_tc7_contin);
+  SCM_SET_CELL_TYPE (scm_rootcont, scm_tc7_contin);
   SCM_SEQ (scm_rootcont) = 0;
   /* The root continuation if further initialized by restart_stack. */
 

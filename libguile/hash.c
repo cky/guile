@@ -157,7 +157,7 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 unsigned int
 scm_ihashq (SCM obj, unsigned int n)
 {
-  return (((unsigned int) obj) >> 1) % n;
+  return (SCM_UNPACK (obj) >> 1) % n;
 }
 
 
@@ -192,7 +192,7 @@ scm_ihashv (SCM obj, unsigned int n)
   if (SCM_NUMP(obj))
     return (unsigned int) scm_hasher(obj, n, 10);
   else
-    return ((unsigned int)obj) % n;
+    return SCM_UNPACK (obj) % n;
 }
 
 

@@ -273,7 +273,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (z);
-  SCM_SETCAR (z, scm_tc16_strport | modes);
+  SCM_SET_CELL_TYPE (z, scm_tc16_strport | modes);
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, SCM_UNPACK (str));
   pt->write_buf = pt->read_buf = SCM_ROCHARS (str);

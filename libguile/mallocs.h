@@ -49,8 +49,8 @@
 extern int scm_tc16_malloc;
 
 #define SCM_MALLOCP(X)  (SCM_TYP16 (X) == scm_tc16_malloc)
-#define SCM_MALLOCDATA(obj) ((char *)SCM_CDR(obj))
-#define SCM_SETMALLOCDATA(obj, val) ((char *)SCM_SETCDR(obj, val))
+#define SCM_MALLOCDATA(obj) ((char *) SCM_CELL_WORD_1 (obj))
+#define SCM_SETMALLOCDATA(obj, val) (SCM_SET_CELL_WORD_1 (obj, val))
 
 
 

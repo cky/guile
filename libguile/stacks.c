@@ -201,7 +201,7 @@ read_frame (scm_debug_frame *dframe,long offset,scm_info_frame *iframe)
 	{
 	  /* Debug.vect ends with apply info. */
 	  --info;
-	  if (info[1].a.proc != SCM_UNDEFINED)
+	  if (!SCM_UNBNDP (info[1].a.proc))
 	    {
 	      flags |= SCM_FRAMEF_PROC;
 	      iframe->proc = info[1].a.proc;
@@ -237,7 +237,7 @@ get_applybody ()
 #define NEXT_FRAME(iframe, n, quit) \
 do { \
   if (SCM_NIMP (iframe->source) \
-      && SCM_MEMOIZED_EXP (iframe->source) == applybody) \
+      && SCM_EQ_P (SCM_MEMOIZED_EXP (iframe->source), applybody)) \
     { \
       iframe->source = SCM_BOOL_F; \
       if (SCM_FALSEP (iframe->proc)) \
@@ -317,7 +317,7 @@ read_frames (scm_debug_frame *dframe,long offset,int n,scm_info_frame *iframes)
 	      NEXT_FRAME (iframe, n, quit);
 	    }
 	}
-      else if (iframe->proc == scm_f_gsubr_apply)
+      else if (SCM_EQ_P (iframe->proc, scm_f_gsubr_apply))
 	/* Skip gsubr apply frames. */
 	continue;
       else
@@ -360,7 +360,7 @@ narrow_stack (SCM stack,int inner,SCM inner_key,int outer,SCM outer_key)
   int n = s->length;
   
   /* Cut inner part. */
-  if (inner_key == SCM_BOOL_T)
+  if (SCM_TRUE_P (inner_key))
     /* Cut all frames up to user module code */
     {
       for (i = 0; inner; ++i, --inner)
@@ -440,7 +440,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 0, 0, 1,
      scm_make_stack was given.  */
   /* just use dframe == scm_last_debug_frame 
      (from initialization of dframe, above) if obj is #t */
-  if (obj != SCM_BOOL_T)
+  if (!SCM_TRUE_P (obj))
     {
       SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, FUNC_NAME);
       if (SCM_DEBUGOBJP (obj))
@@ -519,7 +519,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 {
   scm_debug_frame *dframe;
   long offset = 0;
-  if (stack == SCM_BOOL_T)
+  if (SCM_TRUE_P (stack))
     dframe = scm_last_debug_frame;
   else
     {

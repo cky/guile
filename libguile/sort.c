@@ -384,7 +384,7 @@ closureless (SCM code, const void *a, const void *b)
 static int 
 applyless (SCM less, const void *a, const void *b)
 {
-  return SCM_NFALSEP (scm_apply ((SCM) less,
+  return SCM_NFALSEP (scm_apply (less,
 				 scm_cons (*(SCM *) a,
 					   scm_cons (*(SCM *) b, SCM_EOL)),
 				 SCM_EOL));

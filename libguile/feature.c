@@ -129,7 +129,7 @@ make_hook (SCM name, SCM n_args, const char *subr)
       n = SCM_INUM (n_args);
     }
   SCM_ASSERT (n >= 0 && n <= 16, n_args, SCM_OUTOFRANGE, subr);
-  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_LIST1 (name));
+  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_UNPACK (SCM_LIST1 (name)));
 }
 
 
@@ -145,7 +145,7 @@ print_hook (SCM hook, SCM port, scm_print_state *pstate)
     }
   scm_intprint (SCM_HOOK_ARITY (hook), 10, port);
   scm_putc (' ', port);
-  scm_intprint ((int)hook, 16, port);
+  scm_intprint (SCM_UNPACK (hook), 16, port);
   ls = SCM_HOOK_PROCEDURES (hook);
   while (SCM_NIMP (ls))
     {

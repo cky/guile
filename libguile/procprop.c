@@ -99,7 +99,7 @@ scm_i_procedure_arity (SCM proc)
       break;
 #ifdef CCLO
     case scm_tc7_cclo:
-      if (SCM_CCLO_SUBR (proc) == scm_f_gsubr_apply)
+      if (SCM_EQ_P (SCM_CCLO_SUBR (proc), scm_f_gsubr_apply))
 	{
 	  int type = SCM_INUM (SCM_GSUBR_TYPE (proc));
 	  a += SCM_GSUBR_REQ (type);
@@ -152,7 +152,7 @@ scm_stand_in_scm_proc(SCM proc)
 {
   SCM answer;
   answer = scm_assoc (proc, scm_stand_in_procs);
-  if (answer == SCM_BOOL_F)
+  if (SCM_FALSEP (answer))
     {
       answer = scm_closure (scm_listify (SCM_EOL, SCM_BOOL_F, SCM_UNDEFINED),
 			    SCM_EOL);
@@ -196,7 +196,7 @@ SCM_DEFINE (scm_procedure_property, "procedure-property", 2, 0, 0,
 #define FUNC_NAME s_scm_procedure_property
 {
   SCM assoc;
-  if (k == scm_sym_arity)
+  if (SCM_EQ_P (k, scm_sym_arity))
     {
       SCM arity;
       SCM_ASSERT (SCM_NFALSEP (arity = scm_i_procedure_arity (p)),
@@ -222,7 +222,7 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
   if (!SCM_CLOSUREP (p))
     p = scm_stand_in_scm_proc(p);
   SCM_VALIDATE_CLOSURE (1,p);
-  if (k == scm_sym_arity)
+  if (SCM_EQ_P (k, scm_sym_arity))
     SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
   assoc = scm_sloppy_assq (k, SCM_PROCPROPS (p));
   if (SCM_NIMP (assoc))

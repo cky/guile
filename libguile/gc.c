@@ -769,7 +769,7 @@ SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
 	    "returned by this function for @var{obj}")
 #define FUNC_NAME s_scm_object_address
 {
-  return scm_ulong2num ((unsigned long) obj);
+  return scm_ulong2num ((unsigned long) SCM_UNPACK (obj));
 }
 #undef FUNC_NAME
 
@@ -863,7 +863,7 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
   while (SCM_NULLP (cell));
   --scm_ints_disabled;
   *freelist = SCM_CDR (cell);
-  SCM_SETCAR (cell, scm_tc16_allocated);
+  SCM_SET_CELL_TYPE (cell, scm_tc16_allocated);
   return cell;
 }
 
@@ -1120,7 +1120,7 @@ gc_mark_nimp:
       if (SCM_GCMARKP (ptr))
 	break;
       SCM_SETGCMARK (ptr);
-      scm_gc_mark (SCM_CELL_WORD (ptr, 2));
+      scm_gc_mark (SCM_CELL_OBJECT_2 (ptr));
       ptr = SCM_GCCDR (ptr);
       goto gc_mark_loop;
     case scm_tcs_cons_gloc:
@@ -1512,7 +1512,7 @@ scm_mark_weak_vector_spines ()
 {
   SCM w;
 
-  for (w = scm_weak_vectors; w != SCM_EOL; w = SCM_WVECT_GC_CHAIN (w))
+  for (w = scm_weak_vectors; !SCM_NULLP (w); w = SCM_WVECT_GC_CHAIN (w))
     {
       if (SCM_IS_WHVEC_ANY (w))
 	{
@@ -1639,18 +1639,18 @@ scm_gc_sweep ()
 	    case scm_tcs_cons_gloc:
 	      if (SCM_GCMARKP (scmptr))
 		{
-		  if (SCM_CDR ((SCM) SCM_STRUCT_VTABLE_DATA (scmptr))
-		      == (SCM) 1)
-		    SCM_SETCDR ((SCM) SCM_STRUCT_VTABLE_DATA (scmptr),
-				(SCM) 0);
+		  if (SCM_CELL_WORD_1 ((SCM) SCM_STRUCT_VTABLE_DATA (scmptr))
+		      == 1)
+		    SCM_SET_CELL_WORD_1 ((SCM) SCM_STRUCT_VTABLE_DATA (scmptr),
+					 0);
 		  goto cmrkcontinue;
 		}
 	      {
 		SCM vcell;
 		vcell = (SCM) SCM_STRUCT_VTABLE_DATA (scmptr);
 
-		if ((SCM_CDR (vcell) == (SCM) 0)
-		    || (SCM_CDR (vcell)) == (SCM) 1)
+		if ((SCM_CELL_WORD_1 (vcell) == 0)
+		    || (SCM_CELL_WORD_1 (vcell) == 1))
 		  {
 		    scm_struct_free_t free
 		      = (scm_struct_free_t) ((SCM*) vcell)[scm_struct_i_free];
@@ -1846,7 +1846,7 @@ scm_gc_sweep ()
 		 critical that we mark this cell as freed; otherwise, the
 		 conservative collector might trace it as some other type
 		 of object.  */
-	      SCM_SETCAR (scmptr, scm_tc_free_cell);
+	      SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
 	      SCM_SETCDR (scmptr, nfreelist);
 	      nfreelist = scmptr;
 	    }
@@ -1911,7 +1911,7 @@ scm_gc_sweep ()
   /* Scan weak vectors. */
   {
     SCM *ptr, w;
-    for (w = scm_weak_vectors; w != SCM_EOL; w = SCM_WVECT_GC_CHAIN (w))
+    for (w = scm_weak_vectors; !SCM_NULLP (w); w = SCM_WVECT_GC_CHAIN (w))
       {
 	if (!SCM_IS_WHVEC_ANY (w))
 	  {
@@ -2235,7 +2235,7 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
 	  {
 	    SCM scmptr = PTR2SCM (ptr);
 
-	    SCM_SETCAR (scmptr, scm_tc_free_cell);
+	    SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
 	    SCM_SETCDR (scmptr, PTR2SCM (ptr + span));
 	    ptr += span;
 	  }
@@ -2684,15 +2684,15 @@ scm_init_storage (scm_sizet init_heap_size_1, scm_sizet init_heap_size_2)
   scm_listofnull = scm_cons (SCM_EOL, SCM_EOL);
   scm_nullstr = scm_makstr (0L, 0);
   scm_nullvect = scm_make_vector (SCM_INUM0, SCM_UNDEFINED);
-  scm_symhash = scm_make_vector ((SCM) SCM_MAKINUM (scm_symhash_dim), SCM_EOL);
-  scm_weak_symhash = scm_make_weak_key_hash_table ((SCM) SCM_MAKINUM (scm_symhash_dim));
-  scm_symhash_vars = scm_make_vector ((SCM) SCM_MAKINUM (scm_symhash_dim), SCM_EOL);
+  scm_symhash = scm_make_vector (SCM_MAKINUM (scm_symhash_dim), SCM_EOL);
+  scm_weak_symhash = scm_make_weak_key_hash_table (SCM_MAKINUM (scm_symhash_dim));
+  scm_symhash_vars = scm_make_vector (SCM_MAKINUM (scm_symhash_dim), SCM_EOL);
   scm_stand_in_procs = SCM_EOL;
   scm_permobjs = SCM_EOL;
   scm_protects = SCM_EOL;
   scm_asyncs = SCM_EOL;
-  scm_sysintern ("most-positive-fixnum", (SCM) SCM_MAKINUM (SCM_MOST_POSITIVE_FIXNUM));
-  scm_sysintern ("most-negative-fixnum", (SCM) SCM_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM));
+  scm_sysintern ("most-positive-fixnum", SCM_MAKINUM (SCM_MOST_POSITIVE_FIXNUM));
+  scm_sysintern ("most-negative-fixnum", SCM_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM));
 #ifdef SCM_BIGDIG
   scm_sysintern ("bignum-radix", SCM_MAKINUM (SCM_BIGRAD));
 #endif

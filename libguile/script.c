@@ -459,7 +459,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	  /* If we specified the -ds option, do_script points to the
 	     cdr of an expression like (load #f); we replace the car
 	     (i.e., the #f) with the script name.  */
-	  if (do_script != SCM_EOL)
+	  if (!SCM_NULLP (do_script))
 	    {
 	      SCM_SETCAR (do_script, scm_makfrom0str (argv[i]));
 	      do_script = SCM_EOL;
@@ -518,7 +518,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	{
 	  /* We put a dummy "load" expression, and let the -s put the
              filename in.  */
-	  if (do_script != SCM_EOL)
+	  if (!SCM_NULLP (do_script))
 	    scm_shell_usage (1, "the -ds switch may only be specified once");
 	  do_script = scm_cons (SCM_BOOL_F, SCM_EOL);
 	  tail = scm_cons (scm_cons (sym_load, do_script),
@@ -561,7 +561,7 @@ scm_compile_shell_switches (int argc, char **argv)
     }
 
   /* Check to make sure the -ds got a -s. */
-  if (do_script != SCM_EOL)
+  if (!SCM_NULLP (do_script))
     scm_shell_usage (1, "the `-ds' switch requires the use of `-s' as well");
 
   /* Make any remaining arguments available to the
@@ -575,7 +575,7 @@ scm_compile_shell_switches (int argc, char **argv)
   }
 
   /* Handle the `-e' switch, if it was specified.  */
-  if (entry_point != SCM_EOL)
+  if (!SCM_NULLP (entry_point))
     tail = scm_cons (scm_cons2 (entry_point,
 				scm_cons (sym_command_line, SCM_EOL),
 				SCM_EOL),

@@ -61,7 +61,7 @@ SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
 #define FUNC_NAME s_scm_makacro
 {
   SCM_VALIDATE_PROC (1,code);
-  SCM_RETURN_NEWSMOB (scm_tc16_macro, code);
+  SCM_RETURN_NEWSMOB (scm_tc16_macro, SCM_UNPACK (code));
 }
 #undef FUNC_NAME
 
@@ -83,7 +83,7 @@ SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0,
 #define FUNC_NAME s_scm_makmacro
 {
   SCM_VALIDATE_PROC (1,code);
-  SCM_RETURN_NEWSMOB (scm_tc16_macro | (1L << 16), code);
+  SCM_RETURN_NEWSMOB (scm_tc16_macro | (1L << 16), SCM_UNPACK (code));
 }
 #undef FUNC_NAME
 
@@ -105,7 +105,7 @@ SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0,
 #define FUNC_NAME s_scm_makmmacro
 {
   SCM_VALIDATE_PROC (1,code);
-  SCM_RETURN_NEWSMOB (scm_tc16_macro | (2L << 16), code);
+  SCM_RETURN_NEWSMOB (scm_tc16_macro | (2L << 16), SCM_UNPACK (code));
 }
 #undef FUNC_NAME
 

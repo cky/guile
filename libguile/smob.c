@@ -103,7 +103,7 @@ scm_free0 (SCM ptr)
 scm_sizet
 scm_smob_free (SCM obj)
 {
-  scm_must_free ((char *) SCM_CDR (obj));
+  scm_must_free ((char *) SCM_CELL_WORD_1 (obj));
   return scm_smobs[SCM_SMOBNUM (obj)].size;
 }
 
@@ -234,7 +234,7 @@ scm_make_smob (long tc)
 #endif
       SCM_SET_SMOB_DATA (z, scm_must_malloc (size, SCM_SMOBNAME (n)));
     }
-  SCM_SETCAR (z, tc);
+  SCM_SET_CELL_TYPE (z, tc);
   return z;
 }
 
@@ -249,7 +249,7 @@ freeprint (SCM exp,
 {
   char buf[100];
 
-  sprintf (buf, "#<freed cell %p; GC missed a reference>", (void *) exp);
+  sprintf (buf, "#<freed cell %p; GC missed a reference>", (void *) SCM_UNPACK (exp));
   scm_puts (buf, port);
 
   return 1;

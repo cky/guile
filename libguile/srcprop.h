@@ -63,7 +63,7 @@
 #define scm_whash_handle SCM
 
 #define scm_whash_get_handle(whash, key) scm_hash_fn_get_handle (whash, key, scm_ihashq, scm_sloppy_assq, 0)
-#define SCM_WHASHFOUNDP(h) ((h) != SCM_BOOL_F)
+#define SCM_WHASHFOUNDP(h) (!SCM_FALSEP (h))
 #define SCM_WHASHREF(whash, handle) SCM_CDR (handle)
 #define SCM_WHASHSET(whash, handle, obj) SCM_SETCDR (handle, obj)
 #define scm_whash_create_handle(whash, key) scm_hash_fn_create_handle_x (whash, key, SCM_UNSPECIFIED, scm_ihashq, scm_sloppy_assq, 0)
@@ -96,13 +96,13 @@ typedef struct scm_srcprops_chunk
 } scm_srcprops_chunk;
 
 #define SRCPROPSP(p) (SCM_NIMP(p) && (SCM_TYP16 (p) == scm_tc16_srcprops))
-#define SRCPROPBRK(p) (SCM_BOOL((1L << 16) & SCM_UNPACK_CAR (p)))
-#define SRCPROPPOS(p) ((scm_srcprops *) SCM_CDR (p))->pos
+#define SRCPROPBRK(p) (SCM_BOOL (SCM_CELL_WORD_0 (p) & (1L << 16)))
+#define SRCPROPPOS(p) ((scm_srcprops *) SCM_CELL_WORD_1 (p))->pos
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
-#define SRCPROPFNAME(p) ((scm_srcprops *) SCM_CDR (p))->fname
-#define SRCPROPCOPY(p) ((scm_srcprops *) SCM_CDR (p))->copy
-#define SRCPROPPLIST(p) ((scm_srcprops *) SCM_CDR (p))->plist
+#define SRCPROPFNAME(p) ((scm_srcprops *) SCM_CELL_WORD_1 (p))->fname
+#define SRCPROPCOPY(p) ((scm_srcprops *) SCM_CELL_WORD_1 (p))->copy
+#define SRCPROPPLIST(p) ((scm_srcprops *) SCM_CELL_WORD_1 (p))->plist
 #define SETSRCPROPBRK(p) (SCM_SETOR_CAR (p, (1L << 16)))
 #define CLEARSRCPROPBRK(p) SCM_SETAND_CAR (p, ~(1L << 16))
 #define SRCPROPMAKPOS(l,c) (((l) << 12) + (c))
@@ -112,7 +112,7 @@ typedef struct scm_srcprops_chunk
 
 #define SRCBRKP(x) (SCM_NIMP (t.arg1 = scm_whash_lookup (scm_source_whash, (x)))\
 		    && SRCPROPSP (t.arg1)\
-		    && ((1L << 16) & SCM_UNPACK (SCM_CAR (t.arg1))))
+		    && (SCM_CELL_WORD_0 (t.arg1) & (1L << 16)))
 
 #define PROCTRACEP(x) SCM_NFALSEP (scm_procedure_property (x, scm_sym_trace))
 

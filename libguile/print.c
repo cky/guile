@@ -297,7 +297,7 @@ void
 scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
 taloop:
-  switch (7 & (int) exp)
+  switch (SCM_ITAG3 (exp))
     {
     case 2:
     case 6:
@@ -328,9 +328,9 @@ taloop:
       else if (SCM_ILOCP (exp))
 	{
 	  scm_puts ("#@", port);
-	  scm_intprint ((long) SCM_IFRAME (exp), 10, port);
+	  scm_intprint (SCM_UNPACK (SCM_IFRAME (exp)), 10, port);
 	  scm_putc (SCM_ICDRP (exp) ? '-' : '+', port);
-	  scm_intprint ((long) SCM_IDIST (exp), 10, port);
+	  scm_intprint (SCM_UNPACK (SCM_IDIST (exp)), 10, port);
 	}
       else
 	goto idef;
@@ -359,7 +359,7 @@ taloop:
 		    goto print_struct;
 		  SCM_NEWSMOB (pwps,
 			       scm_tc16_port_with_ps,
-			       scm_cons (port, pstate->handle));
+			       SCM_UNPACK (scm_cons (port, pstate->handle)));
 		  scm_call_generic_2 (print, exp, pwps);
 		}
 	      else
@@ -620,7 +620,7 @@ taloop:
 	case scm_tc7_cclo:
 	  {
 	    SCM proc = SCM_CCLO_SUBR (exp);
-	    if (proc == scm_f_gsubr_apply)
+	    if (SCM_EQ_P (proc, scm_f_gsubr_apply))
 	      {
 		/* Print gsubrs as primitives */
 		SCM name = scm_procedure_name (exp);
@@ -728,7 +728,7 @@ scm_prin1 (SCM exp, SCM port, int writingp)
 	  SCM_SETCDR (print_state_pool, SCM_CDDR (print_state_pool));
 	}
       SCM_ALLOW_INTS;
-      if (handle == SCM_BOOL_F)
+      if (SCM_FALSEP (handle))
 	handle = scm_cons (make_print_state (), SCM_EOL);
       pstate_scm = SCM_CAR (handle);
     }
@@ -740,7 +740,7 @@ scm_prin1 (SCM exp, SCM port, int writingp)
   /* Return print state to pool if it has been created above and
      hasn't escaped to Scheme. */
 
-  if (handle != SCM_BOOL_F && !pstate->revealed)
+  if (!SCM_FALSEP (handle) && !pstate->revealed)
     {
       SCM_DEFER_INTS;
       SCM_SETCDR (handle, SCM_CDR (print_state_pool));
@@ -771,13 +771,13 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
   if (SCM_CELLP (ptr))
     {
       scm_puts (" (0x", port);
-      scm_intprint ((int) SCM_CAR (ptr), 16, port);
+      scm_intprint (SCM_CELL_WORD_0 (ptr), 16, port);
       scm_puts (" . 0x", port);
-      scm_intprint ((int) SCM_CDR (ptr), 16, port);
+      scm_intprint (SCM_CELL_WORD_1 (ptr), 16, port);
       scm_puts (") @", port);
     }
   scm_puts (" 0x", port);
-  scm_intprint ((int) ptr, 16, port);
+  scm_intprint (SCM_UNPACK (ptr), 16, port);
   scm_putc ('>', port);
 }
 
@@ -801,7 +801,7 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
   tortoise = exp;
   while (SCM_ECONSP (hare))
     {
-      if (hare == tortoise)
+      if (SCM_EQ_P (hare, tortoise))
 	goto fancy_printing;
       hare = SCM_CDR (hare);
       if (SCM_IMP (hare) || SCM_NECONSP (hare))
@@ -957,9 +957,9 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   char *start;
   char *p;
 
-  if (SCM_BOOL_T == destination) {
+  if (SCM_TRUE_P (destination)) {
     destination = scm_cur_outp;
-  } else if (SCM_BOOL_F == destination) {
+  } else if (SCM_FALSEP (destination)) {
     fReturnString = 1;
     destination = scm_mkstrport (SCM_INUM0, 
                           scm_make_string (SCM_INUM0, SCM_UNDEFINED),
@@ -1064,7 +1064,7 @@ scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *pstate)
 {
   SCM pwps;
   SCM pair = scm_cons (port, pstate->handle);
-  SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, pair);
+  SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, SCM_UNPACK (pair));
   pstate->revealed = 1;
   return scm_apply (proc, exp, scm_cons (pwps, scm_listofnull));
 }
@@ -1078,7 +1078,7 @@ SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0,
   SCM_VALIDATE_OPORT_VALUE (1,port);
   SCM_VALIDATE_PRINTSTATE (2,pstate);
   port = SCM_COERCE_OUTPORT (port);
-  SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, scm_cons (port, pstate));
+  SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, SCM_UNPACK (scm_cons (port, pstate)));
   return pwps;
 }
 #undef FUNC_NAME

@@ -99,8 +99,8 @@ marksrcprops (SCM obj)
 static scm_sizet
 freesrcprops (SCM obj)
 {
-  *((scm_srcprops **) SCM_CDR (obj)) = srcprops_freelist;
-  srcprops_freelist = (scm_srcprops *) SCM_CDR (obj);
+  *((scm_srcprops **) SCM_CELL_WORD_1 (obj)) = srcprops_freelist;
+  srcprops_freelist = (scm_srcprops *) SCM_CELL_WORD_1 (obj);
   return 0; /* srcprops_chunks are not freed until leaving guile */
 }
 
@@ -221,11 +221,11 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (SCM_IMP (p) || !SRCPROPSP (p))
     goto plist;
-  if      (scm_sym_breakpoint == key) p = SRCPROPBRK (p);
-  else if (scm_sym_line       == key) p = SCM_MAKINUM (SRCPROPLINE (p));
-  else if (scm_sym_column     == key) p = SCM_MAKINUM (SRCPROPCOL (p));
-  else if (scm_sym_filename   == key) p = SRCPROPFNAME (p);
-  else if (scm_sym_copy       == key) p = SRCPROPCOPY (p);
+  if      (SCM_EQ_P (scm_sym_breakpoint, key)) p = SRCPROPBRK (p);
+  else if (SCM_EQ_P (scm_sym_line,       key)) p = SCM_MAKINUM (SRCPROPLINE (p));
+  else if (SCM_EQ_P (scm_sym_column,     key)) p = SCM_MAKINUM (SRCPROPCOL (p));
+  else if (SCM_EQ_P (scm_sym_filename,   key)) p = SRCPROPFNAME (p);
+  else if (SCM_EQ_P (scm_sym_copy,       key)) p = SRCPROPCOPY (p);
   else
     {
       p = SRCPROPPLIST (p);
@@ -259,7 +259,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
       h = scm_whash_create_handle (scm_source_whash, obj);
       p = SCM_EOL;
     }
-  if (scm_sym_breakpoint == key)
+  if (SCM_EQ_P (scm_sym_breakpoint, key))
     {
       if (SCM_FALSEP (datum))
 	CLEARSRCPROPBRK (SRCPROPSP (p)
@@ -280,7 +280,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 							  SCM_UNDEFINED,
 							  p)));
     }
-  else if (scm_sym_line == key)
+  else if (SCM_EQ_P (scm_sym_line, key))
     {
       SCM_VALIDATE_INUM (3,datum);
       if (SRCPROPSP (p))
@@ -290,7 +290,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 		      scm_make_srcprops (SCM_INUM (datum), 0,
 					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
-  else if (scm_sym_column == key)
+  else if (SCM_EQ_P (scm_sym_column, key))
     {
       SCM_VALIDATE_INUM (3,datum);
       if (SRCPROPSP (p))
@@ -300,14 +300,14 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 		      scm_make_srcprops (0, SCM_INUM (datum),
 					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
-  else if (scm_sym_filename == key)
+  else if (SCM_EQ_P (scm_sym_filename, key))
     {
       if (SRCPROPSP (p))
 	SRCPROPFNAME (p) = datum;
       else
 	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, datum, SCM_UNDEFINED, p));
     }
-  else if (scm_sym_filename == key)
+  else if (SCM_EQ_P (scm_sym_filename, key))
     {
       if (SRCPROPSP (p))
 	SRCPROPCOPY (p) = datum;

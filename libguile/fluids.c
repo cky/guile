@@ -217,7 +217,7 @@ scm_swap_fluids_reverse (SCM fluids, SCM vals)
 static SCM
 apply_thunk (void *thunk)
 {
-  return scm_apply ((SCM) thunk, SCM_EOL, SCM_EOL);
+  return scm_apply (SCM_PACK (thunk), SCM_EOL, SCM_EOL);
 }
 
 SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0, 
@@ -228,7 +228,7 @@ SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0,
 	    "one after another.  @var{thunk} must be a procedure with no argument.")
 #define FUNC_NAME s_scm_with_fluids
 {
-  return scm_internal_with_fluids (fluids, values, apply_thunk, (void *)thunk);
+  return scm_internal_with_fluids (fluids, values, apply_thunk, (void *) SCM_UNPACK (thunk));
 }
 #undef FUNC_NAME
 

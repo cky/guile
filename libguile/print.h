@@ -60,8 +60,8 @@ extern scm_option scm_print_opts[];
 /* State information passed around during printing.
  */
 #define SCM_PRINT_STATE_P(obj) (SCM_STRUCTP(obj) \
-				&& (SCM_STRUCT_VTABLE(obj) \
-				    == scm_print_state_vtable))
+				&& (SCM_EQ_P (SCM_STRUCT_VTABLE(obj), \
+				              scm_print_state_vtable)))
 #define SCM_PRINT_STATE(obj) ((scm_print_state *) SCM_STRUCT_DATA (obj))
 
 #define RESET_PRINT_STATE(pstate) \

@@ -83,10 +83,10 @@ SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
 
   SCM_DEFER_INTS;
   vcell = scm_sym2ovcell_soft (symbol, scm_keyword_obarray);
-  if (vcell == SCM_BOOL_F)
+  if (SCM_FALSEP (vcell))
     {
       SCM keyword;
-      SCM_NEWSMOB (keyword, scm_tc16_keyword, symbol);
+      SCM_NEWSMOB (keyword, scm_tc16_keyword, SCM_UNPACK (symbol));
       scm_intern_symbol (scm_keyword_obarray, symbol);
       vcell = scm_sym2ovcell_soft (symbol, scm_keyword_obarray);
       SCM_SETCDR (vcell, keyword);

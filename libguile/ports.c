@@ -640,9 +640,6 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
 	    "Close all open file ports used by the interpreter\n"
 	    "except for those supplied as arguments.  This procedure\n"
 	    "is intended to be used before an exec call to close file descriptors\n"
-	    "which are not needed in the new process.Close all open file ports used by the interpreter\n"
-	    "except for those supplied as arguments.  This procedure\n"
-	    "is intended to be used before an exec call to close file descriptors\n"
 	    "which are not needed in the new process.")
 #define FUNC_NAME s_scm_close_all_ports_except
 {
@@ -659,7 +656,7 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
 	  SCM port = SCM_COERCE_OUTPORT (SCM_CAR (ports_ptr));
 	  if (i == 0)
             SCM_VALIDATE_OPPORT (SCM_ARG1,port);
-	  if (port == thisport)
+	  if (SCM_EQ_P (port, thisport))
 	    found = 1;
 	  ports_ptr = SCM_CDR (ports_ptr);
 	}
@@ -1342,7 +1339,7 @@ scm_void_port (char *mode_str)
   scm_port_non_buffer (pt);
   SCM_SETPTAB_ENTRY (answer, pt);
   SCM_SETSTREAM (answer, 0);
-  SCM_SETCAR (answer, scm_tc16_void_port | mode_bits);
+  SCM_SET_CELL_TYPE (answer, scm_tc16_void_port | mode_bits);
   SCM_ALLOW_INTS;
   return answer;
 }

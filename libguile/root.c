@@ -272,7 +272,7 @@ scm_internal_cwdr (scm_catch_body_t body, void *body_data,
 		      scm_must_malloc (sizeof (scm_contregs),
 				       "inferior root continuation"));
 #endif
-    SCM_SETCAR (new_rootcont, scm_tc7_contin);
+    SCM_SET_CELL_TYPE (new_rootcont, scm_tc7_contin);
     SCM_DYNENV (new_rootcont) = SCM_EOL;
     SCM_BASE (new_rootcont) = stack_start;
     SCM_SEQ (new_rootcont) = ++n_dynamic_roots;

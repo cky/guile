@@ -200,7 +200,7 @@ SCM_DEFINE (scm_hashq_ref, "hashq-ref", 2, 1, 0,
 	    "supplied).  Uses `eq?' for equality testing.")
 #define FUNC_NAME s_scm_hashq_ref
 {
-  if (dflt == SCM_UNDEFINED)
+  if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
   return scm_hash_fn_ref (table, obj, dflt, scm_ihashq, scm_sloppy_assq, 0);
 }
@@ -268,7 +268,7 @@ SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
 	    "supplied).  Uses `eqv?' for equality testing.")
 #define FUNC_NAME s_scm_hashv_ref
 {
-  if (dflt == SCM_UNDEFINED)
+  if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
   return scm_hash_fn_ref (table, obj, dflt, scm_ihashv, scm_sloppy_assv, 0);
 }
@@ -334,7 +334,7 @@ SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
 	    "supplied).  Uses `equal?' for equality testing.")
 #define FUNC_NAME s_scm_hash_ref
 {
-  if (dflt == SCM_UNDEFINED)
+  if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
   return scm_hash_fn_ref (table, obj, dflt, scm_ihash, scm_sloppy_assoc, 0);
 }
@@ -469,7 +469,7 @@ SCM_DEFINE (scm_hashx_ref, "hashx-ref", 4, 1, 0,
 #define FUNC_NAME s_scm_hashx_ref
 {
   struct scm_ihashx_closure closure;
-  if (dflt == SCM_UNDEFINED)
+  if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
   closure.hash = hash;
   closure.assoc = assoc;
@@ -514,7 +514,7 @@ scm_hashx_remove_x (SCM hash,SCM assoc,SCM delete,SCM table,SCM obj)
 static SCM
 fold_proc (void *proc, SCM key, SCM data, SCM value)
 {
-  return scm_apply ((SCM) proc, SCM_LIST3 (key, data, value), SCM_EOL);
+  return scm_apply (SCM_PACK (proc), SCM_LIST3 (key, data, value), SCM_EOL);
 }
 
 SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0, 
@@ -531,7 +531,7 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
 {
   SCM_VALIDATE_PROC (1,proc);
   SCM_VALIDATE_VECTOR (3,table);
-  return scm_internal_hash_fold (fold_proc, (void *) proc, init, table);
+  return scm_internal_hash_fold (fold_proc, (void *) SCM_UNPACK (proc), init, table);
 }
 #undef FUNC_NAME
 

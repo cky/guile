@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.2 2000-03-19 19:01:14 cmm Exp $ */
+/* $Id: validate.h,v 1.3 2000-04-03 08:47:51 dirk Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -98,7 +98,7 @@
 
 #define SCM_VALIDATE_BOOL_COPY(pos,flag,cvar) \
   do { SCM_ASSERT(SCM_BOOLP(flag), flag, pos, FUNC_NAME); \
-       cvar = (SCM_BOOL_T == flag)? 1: 0; } while (0)
+       cvar = (SCM_TRUE_P (flag))? 1: 0; } while (0)
 
 #define SCM_VALIDATE_CHAR(pos,scm) SCM_MAKE_VALIDATE(pos,scm,ICHRP)
 
@@ -162,11 +162,11 @@
        SCM_ASSERT_RANGE(pos,k,(cvar >= min)); } while (0)
 
 #define SCM_VALIDATE_INUM_DEF(pos,k,default) \
-  do { if (SCM_UNDEFINED==k) k = SCM_MAKINUM(default); \
+  do { if (SCM_UNBNDP (k)) k = SCM_MAKINUM(default); \
        else SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_INUM_DEF_COPY(pos,k,default,cvar) \
-  do { if (SCM_UNDEFINED==k) { k = SCM_MAKINUM(default); cvar=default; } \
+  do { if (SCM_UNBNDP (k)) { k = SCM_MAKINUM(default); cvar=default; } \
        else { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); cvar = SCM_INUM(k); } } while (0)
 
 /* [low,high) */
@@ -230,7 +230,7 @@
 #define SCM_VALIDATE_CLOSURE(pos,obj) SCM_MAKE_VALIDATE(pos,obj,CLOSUREP)
 
 #define SCM_VALIDATE_PROC(pos,proc) \
-  do { SCM_ASSERT ( SCM_BOOL_T == scm_procedure_p(proc), proc, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT ( SCM_TRUE_P (scm_procedure_p(proc)), proc, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_NULLORCONS(pos,env) \
   do { SCM_ASSERT (SCM_NULLP (env) || SCM_CONSP (env), env, pos, FUNC_NAME); } while (0)
@@ -270,7 +270,7 @@
 
 #define SCM_VALIDATE_ARRAY(pos,v) \
   do { SCM_ASSERT (SCM_NIMP (v) && \
-                   SCM_BOOL_F != scm_array_p(v,SCM_UNDEFINED), \
+                   !SCM_FALSEP (scm_array_p(v,SCM_UNDEFINED)), \
                    v, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_VECTOR(pos,v) SCM_MAKE_VALIDATE(pos,v,VECTORP)

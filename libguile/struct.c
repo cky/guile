@@ -196,7 +196,7 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 #endif
 
 	case 'u':
-	  if ((prot != 'r' && prot != 'w') || inits == SCM_EOL)
+	  if ((prot != 'r' && prot != 'w') || SCM_NULLP (inits))
 	    *mem = 0;
 	  else
 	    {
@@ -208,7 +208,7 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 	  break;
 
 	case 'p':
-	  if ((prot != 'r' && prot != 'w') || inits == SCM_EOL)
+	  if ((prot != 'r' && prot != 'w') || SCM_NULLP (inits))
 	    *mem = SCM_BOOL_F;
 	  else
 	    {
@@ -409,7 +409,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
     data = scm_alloc_struct (basic_size + tail_elts,
 			     scm_struct_n_extra_words,
 			     "make-struct");
-  SCM_SETCDR (handle, data);
+  SCM_SET_CELL_WORD_1 (handle, data);
   SCM_SETCAR (handle, ((SCM)SCM_STRUCT_DATA (vtable)) + scm_tc3_cons_gloc);
   scm_struct_init (handle, tail_elts, init);
   SCM_ALLOW_INTS;
@@ -498,7 +498,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   data = scm_alloc_struct (basic_size + tail_elts,
 			   scm_struct_n_extra_words,
 			   "make-vtable-vtable");
-  SCM_SETCDR (handle, data);
+  SCM_SET_CELL_WORD_1 (handle, data);
   SCM_SETCAR (handle, ((SCM)data) + scm_tc3_cons_gloc);
   SCM_STRUCT_LAYOUT (handle) = layout;
   scm_struct_init (handle, tail_elts, scm_cons (layout, init));
@@ -758,9 +758,9 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
       else
 	scm_puts ("struct", port);
       scm_putc (' ', port);
-      scm_intprint ((int) vtable, 16, port);
+      scm_intprint (SCM_UNPACK (vtable), 16, port);
       scm_putc (':', port);
-      scm_intprint ((int)exp, 16, port);
+      scm_intprint (SCM_UNPACK (exp), 16, port);
       scm_putc ('>', port);
     }
 }
