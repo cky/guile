@@ -813,6 +813,7 @@ SCM_REGISTER_PROC(s_array_copy_in_order_x, "array-copy-in-order!", 2, 0, 0, scm_
 
 SCM_DEFINE (scm_array_copy_x, "array-copy!", 2, 0, 0,
 	    (SCM src, SCM dst),
+	    "@deffnx primitive array-copy-in-order! src dst\n"
 	    "Copies every element from vector or array @var{source} to the\n"
 	    "corresponding element of @var{destination}.  @var{destination} must have\n"
 	    "the same rank as @var{source}, and be at least as large in each\n"
@@ -1495,6 +1496,7 @@ SCM_REGISTER_PROC(s_array_map_in_order_x, "array-map-in-order!", 2, 0, 1, scm_ar
 
 SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	    (SCM ra0, SCM proc, SCM lra),
+	    "@deffnx primitive array-map-in-order! ra0 proc . lra\n"
 	    "@var{array1}, @dots{} must have the same number of dimensions as\n"
 	    "@var{array0} and have a range for each index which includes the range\n"
 	    "for the corresponding index in @var{array0}.  @var{proc} is applied to\n"

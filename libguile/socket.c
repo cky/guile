@@ -696,7 +696,8 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
 	    "The optional @var{flags} argument is a value or\n"
 	    "bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.\n\n"
 	    "The value returned is the number of bytes read from the socket.\n\n"
-	    "Note that the data is read directly from the socket file descriptor:any unread buffered port data is ignored.")
+	    "Note that the data is read directly from the socket file descriptor:\n"
+	    "any unread buffered port data is ignored.")
 #define FUNC_NAME s_scm_recv
 {
   int rv;

@@ -1198,8 +1198,8 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
 	    "being created.\n\n"
 	    "E.g.,\n"
 	    "@example\n"
-	    "(mknod \"/dev/fd0\" 'block-special #o660 (+ (* 2 256) 2))"
-	    "@end example\n"
+	    "(mknod \"/dev/fd0\" 'block-special #o660 (+ (* 2 256) 2))\n"
+	    "@end example\n\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_mknod
 {

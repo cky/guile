@@ -220,7 +220,8 @@ SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0,
 
 SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
            (void),
-	    "Returns the number of seconds since 1970-01-01 00:00:00 UTC, excludingleap seconds.")
+	    "Returns the number of seconds since 1970-01-01 00:00:00 UTC, excluding\n"
+	    "leap seconds.")
 #define FUNC_NAME s_scm_current_time
 {
   timet timv;
@@ -660,7 +661,7 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
 	    "but the time zone components\n"
 	    "are not usefully set.\n"
 	    "The CDR reports the number of characters from @var{string} which\n"
-	    "vwere used for the conversion.")
+	    "were used for the conversion.")
 #define FUNC_NAME s_scm_strptime
 {
   struct tm t;
