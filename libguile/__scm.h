@@ -147,7 +147,8 @@
  *
  * Note:  Some SCM_DEBUG_XXX options are not settable at configure time.
  * To change the value of such options you will have to edit this header
- * file or give -DSCM_DEBUG_XXX options to make.
+ * file or give suitable options to make, like:
+ *   make all CFLAGS="-DSCM_DEBUG_XXX=1 ..."
  */
 
 
@@ -156,6 +157,15 @@
  */
 #ifndef SCM_DEBUG_DEPRECATED
 #define SCM_DEBUG_DEPRECATED 0
+#endif
+
+/* Use this for _compile time_ type checking only, since the compiled result
+ * will be quite inefficient.  The right way to make use of this option is to
+ * do a 'make clean; make CFLAGS=-DSCM_DEBUG_TYPING_STRICTNESS=1', fix your
+ * errors, and then do 'make clean; make'.
+*/
+#ifndef SCM_DEBUG_TYPING_STRICTNESS
+#define SCM_DEBUG_TYPING_STRICTNESS 0
 #endif
 
 

@@ -63,40 +63,21 @@
  * SCM_INUMP (SCM_CAR (x)) can give wrong answers.
  */
 
+/* SCM_SRS is signed right shift */
+#if (-1 == (((-1) << 2) + 2) >> 2)
+# define SCM_SRS(x, y) ((x) >> (y))
+#else
+# define SCM_SRS(x, y) ((SCM_UNPACK (x) < 0) ? ~((~SCM_UNPACK (x)) >> (y)) : (SCM_UNPACK (x) >> (y)))
+#endif /* (-1 == (((-1) << 2) + 2) >> 2) */
+
+
 #define SCM_INUMP(x)	(2 & SCM_UNPACK (x))
 #define SCM_NINUMP(x) 	(!SCM_INUMP (x))
-
-#ifdef __TURBOC__
-/* shifts of more than one are done by a library call, single shifts are
- * performed in registers
- */
-# define SCM_MAKINUM(x) (SCM_PACK ((((x) << 1) << 1) + 2L))
-#else
-# define SCM_MAKINUM(x) (SCM_PACK (((x) << 2) + 2L))
-#endif /* def __TURBOC__ */
+#define SCM_MAKINUM(x)  (SCM_PACK (((x) << 2) + 2L))
+#define SCM_INUM(x)     (SCM_SRS (SCM_UNPACK (x), 2))
 
 
-/* SCM_SRS is signed right shift */
-/* SCM_INUM makes a C int from an SCM immediate number. */
-/* Turbo C++ v1.0 has a bug with right shifts of signed longs!
- * It is believed to be fixed in Turbo C++ v1.01
- */
-#if (-1==(((-1)<<2)+2)>>2) && (__TURBOC__ != 0x295)
-# define SCM_SRS(x, y) ((x) >> y)
-# ifdef __TURBOC__
-#  define SCM_INUM(x) ((SCM_UNPACK (x) >>1) >>1)
-# else
-#  define SCM_INUM(x) SCM_SRS (SCM_UNPACK (x), 2)
-# endif /* def __TURBOC__ */
-#else
-# define SCM_SRS(x, y)\
- ((SCM_UNPACK (x) < 0) ? ~( (~SCM_UNPACK (x)) >> y) : (SCM_UNPACK (x) >> y))
-# define SCM_INUM(x) SCM_SRS (SCM_UNPACK (x), 2)
-#endif /*  (-1==(((-1)<<2)+2)>>2) && (__TURBOC__ != 0x295) */
-
-
-/* A name for 0.
- */
+/* A name for 0. */
 #define SCM_INUM0 (SCM_MAKINUM (0))
 
 

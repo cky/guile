@@ -265,11 +265,7 @@ scm_remainder (SCM x, SCM y)
       if (yy == 0) {
 	scm_num_overflow (s_remainder);
       } else {
-#if (__TURBOC__ == 1)
-	long z = SCM_INUM (x) % (yy < 0 ? -yy : yy);
-#else
 	long z = SCM_INUM (x) % yy;
-#endif
 	return SCM_MAKINUM (z);
       }
     } else if (SCM_BIGP (y)) {
@@ -310,11 +306,7 @@ scm_modulo (SCM x, SCM y)
       if (yy == 0) {
 	scm_num_overflow (s_modulo);
       } else {
-#if (__TURBOC__ == 1)
-	long z = ((yy < 0) ? -xx : xx) % yy;
-#else
 	long z = xx % yy;
-#endif
 	return SCM_MAKINUM (((yy < 0) ? (z > 0) : (z < 0)) ? z + yy : z);
       }
     } else if (SCM_BIGP (y)) {

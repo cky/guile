@@ -1,5 +1,24 @@
 2000-05-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* Makefile.am:  Let 'make clean' remove *.x and *.doc files.
+
+	* __scm.h:  Improved explanation of giving options to make.
+
+	* __scm.h (SCM_DEBUG_TYPING_STRICTNESS), tags.h
+	(SCM_STRICT_TYPING, SCM_DEBUG_TYPING_STRICTNESS):  Renamed
+	SCM_STRICT_TYPING to SCM_DEBUG_TYPING_STRICTNESS and moved the
+	corresponding declaration and comment to __scm.h.
+
+	* _scm.h (errno), gc.h (SCM_CELLPTR, SCM_PTR_LT), numbers.c
+	(scm_remainder, scm_modulo), numbers.h (SCM_SRS, SCM_MAKINUM,
+	SCM_INUM):  Removed conditionally compiled code for Turbo C.
+
+	* gdbint.c (gdb_maybe_valid_type_p):  Eliminated call to scm_tag.
+	That check can be assumed to be redundant except for very rare
+	conditions that actually indicate broken heap data.
+
+2000-05-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c (scm_logcount, scm_integer_length):  Reordered
 	dispatch sequence.
 

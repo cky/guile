@@ -54,7 +54,6 @@
 
 
 
-/* #define SCM_STRICT_TYPING */
 /* #define SCM_VOIDP_TEST    */
 
 /* In the beginning was the Word:
@@ -64,12 +63,7 @@ typedef long scm_bits_t;
 /* But as external interface, we use SCM, which may, according to the desired
  * level of type checking, be defined in several ways:
  */
-#if defined (SCM_STRICT_TYPING)
-/* Use this for _compile time_ type checking only, since the compiled result
- * will be quite inefficient.  The right way to make use of this mode is to do
- * a 'make clean' of your project, 'make all CFLAGS=-DSCM_STRICT_TYPING', fix
- * your errors, and then do 'make clean; make all'.
-*/
+#if (SCM_DEBUG_TYPING_STRICTNESS == 1)
     typedef union { struct { scm_bits_t n; } n; } SCM;
     static SCM scm_pack(scm_bits_t b) { SCM s; s.n.n = b; return s; }
     #define SCM_UNPACK(x) ((x).n.n)

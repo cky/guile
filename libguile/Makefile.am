@@ -224,7 +224,4 @@ MOSTLYCLEANFILES = \
 	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
 
-CLEANFILES = libpath.h
-
-DISTCLEANFILES = *.x *.doc
-
+CLEANFILES = libpath.h *.x *.doc

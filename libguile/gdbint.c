@@ -168,9 +168,7 @@ remark_port (SCM port)
 int
 gdb_maybe_valid_type_p (SCM value)
 {
-  if (SCM_IMP (value) || scm_cellp (value))
-    return (! SCM_EQ_P (scm_tag (value), SCM_MAKINUM (-1)));
-  return 0;
+  return SCM_IMP (value) || scm_cellp (value);
 }
 
 

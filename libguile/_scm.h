@@ -121,12 +121,6 @@
     extern int errno;
 # endif /* def ARM_ULIB */
 #endif /* ndef MSDOS */
-#ifdef __TURBOC__
-# if (__TURBOC__==1)
- /* Needed for TURBOC V1.0 */
- extern int errno;
-# endif /*  (__TURBOC__==1) */
-#endif /* def __TURBOC__ */
 
 
 

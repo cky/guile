@@ -63,11 +63,7 @@ typedef struct scm_cell
 /* SCM_CELLPTR is a pointer to a cons cell which may be compared or
  * differenced.
  */
-#if !defined (__TURBOC__) || defined (__TOS__) || defined (PROT386)
-    typedef scm_cell * SCM_CELLPTR;
-#else
-    typedef scm_cell huge * SCM_CELLPTR;
-#endif
+typedef scm_cell * SCM_CELLPTR;
 
 
 /* Cray machines have pointers that are incremented once for each word,
@@ -134,21 +130,12 @@ typedef struct scm_cell
  * same scm_array).
  */
 
-#if !defined(__TURBOC__) || defined(__TOS__)
-    #ifdef nosve
-        #define SCM_PTR_MASK 0xffffffffffff
-        #define SCM_PTR_LT(x, y)\
-                    (((int) (x) & SCM_PTR_MASK) < ((int) (y) & SCM_PTR_MASK))
-    #else
-        #define SCM_PTR_LT(x, y) ((x) < (y))
-    #endif /* def nosve */
-#else /* defined(__TURBOC__) && !defined(__TOS__) */
-    #ifdef PROT386
-        #define SCM_PTR_LT(x, y) (((long) (x)) < ((long) (y)))
-    #else
-        #define SCM_PTR_LT(x, y) ((x) < (y))
-    #endif /* def PROT386 */
-#endif /*  defined(__TURBOC__) && !defined(__TOS__) */
+#ifdef nosve
+    #define SCM_PTR_MASK      0xffffffffffff
+    #define SCM_PTR_LT(x, y)  (((int) (x) & SCM_PTR_MASK) < ((int) (y) & SCM_PTR_MASK))
+#else
+    #define SCM_PTR_LT(x, y)  ((x) < (y))
+#endif /* def nosve */
 
 #define SCM_PTR_GT(x, y) SCM_PTR_LT (y, x)
 #define SCM_PTR_LE(x, y) (!SCM_PTR_GT (x, y))
