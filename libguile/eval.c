@@ -1748,6 +1748,7 @@ scm_option scm_debug_opts[] = {
     "Record procedure names at definition." },
   { SCM_OPTION_BOOLEAN, "backwards", 0,
     "Display backtrace in anti-chronological order." },
+  { SCM_OPTION_INTEGER, "width", 79, "Maximal width of backtrace." },
   { SCM_OPTION_INTEGER, "indent", 10, "Maximal indentation in backtrace." },
   { SCM_OPTION_INTEGER, "frames", 3,
     "Maximum number of tail-recursive frames in backtrace." },

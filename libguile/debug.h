@@ -73,14 +73,15 @@ extern scm_option scm_debug_opts[];
 #define SCM_TRACE_P		scm_debug_opts[2].val
 #define SCM_REC_PROCNAMES_P	scm_debug_opts[3].val
 #define SCM_BACKWARDS_P		scm_debug_opts[4].val
-#define SCM_BACKTRACE_INDENT   	scm_debug_opts[5].val
-#define SCM_N_FRAMES		scm_debug_opts[6].val
-#define SCM_BACKTRACE_MAXDEPTH	scm_debug_opts[7].val
-#define SCM_BACKTRACE_DEPTH	scm_debug_opts[8].val
-#define SCM_BACKTRACE_P		scm_debug_opts[9].val
-#define SCM_DEVAL_P		scm_debug_opts[10].val
-#define SCM_STACK_LIMIT		scm_debug_opts[11].val
-#define SCM_N_DEBUG_OPTIONS 12
+#define SCM_BACKTRACE_WIDTH   	scm_debug_opts[5].val
+#define SCM_BACKTRACE_INDENT   	scm_debug_opts[6].val
+#define SCM_N_FRAMES		scm_debug_opts[7].val
+#define SCM_BACKTRACE_MAXDEPTH	scm_debug_opts[8].val
+#define SCM_BACKTRACE_DEPTH	scm_debug_opts[9].val
+#define SCM_BACKTRACE_P		scm_debug_opts[10].val
+#define SCM_DEVAL_P		scm_debug_opts[11].val
+#define SCM_STACK_LIMIT		scm_debug_opts[12].val
+#define SCM_N_DEBUG_OPTIONS 13
 
 extern SCM (*scm_ceval_ptr) SCM_P ((SCM exp, SCM env));
 
