@@ -99,10 +99,10 @@ extern char *strptime ();
 
 /* This should be figured out by autoconf.  */
 #if ! defined(CLKTCK) && defined(CLK_TCK)
-#  define CLKTCK CLK_TCK
+#  define CLKTCK ((int) CLK_TCK)
 #endif
 #if ! defined(CLKTCK) && defined(CLOCKS_PER_SEC)
-#  define CLKTCK CLOCKS_PER_SEC
+#  define CLKTCK ((int) CLOCKS_PER_SEC)
 #endif
 #if ! defined(CLKTCK)
 #  define CLKTCK 60

@@ -93,7 +93,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif
 
 
 #if HAVE_DIRENT_H
@@ -117,6 +119,26 @@
 #if defined (S_IFSOCK) && ! defined (S_ISSOCK)
 #define S_ISSOCK(mode) (((mode) & S_IFMT) == S_IFSOCK)
 #endif
+
+/* The MinGW gcc does not define the S_ISSOCK macro. Any other native Windows
+   compiler like BorlandC or MSVC has none of these macros defined. */
+#ifdef __MINGW32__
+# define S_ISSOCK(mode) (0)
+#endif
+#if defined (__BORLANDC__) || defined (_MSC_VER)
+# define S_ISBLK(mode) (0)
+# define S_ISFIFO(mode) (((mode) & _S_IFMT) == _S_IFIFO)
+# define S_ISCHR(mode) (((mode) & _S_IFMT) == _S_IFCHR)
+# define S_ISDIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
+# define S_ISREG(mode) (((mode) & _S_IFMT) == _S_IFREG)
+#endif
+
+/* Some more definitions for the native Windows port. */
+#ifdef __MINGW32__
+# define mkdir(path, mode) mkdir (path)
+# define fsync(fd) _commit (fd)
+# define fchmod(fd, mode) (-1)
+#endif /* __MINGW32__ */
 
 
 
@@ -125,6 +147,7 @@
 /* {Permissions}
  */
 
+#ifdef HAVE_CHOWN
 SCM_DEFINE (scm_chown, "chown", 3, 0, 0, 
             (SCM object, SCM owner, SCM group),
 	    "Change the ownership and group of the file referred to by @var{object} to\n"
@@ -167,6 +190,7 @@ SCM_DEFINE (scm_chown, "chown", 3, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+#endif /* HAVE_CHOWN */
 
 
 SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
@@ -561,6 +585,7 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 /* {Modifying Directories}
  */
 
+#ifdef HAVE_LINK
 SCM_DEFINE (scm_link, "link", 2, 0, 0,
             (SCM oldpath, SCM newpath),
 	    "Creates a new name @var{newpath} in the file system for the\n"
@@ -582,6 +607,7 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+#endif /* HAVE_LINK */
 
 
 
@@ -1145,6 +1171,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 
 
 
+#ifdef HAVE_FCNTL
 SCM_DEFINE (scm_fcntl, "fcntl", 2, 1, 0,
             (SCM object, SCM cmd, SCM value),
 	    "Apply @var{command} to the specified file descriptor or the underlying\n"
@@ -1199,6 +1226,7 @@ SCM_DEFINE (scm_fcntl, "fcntl", 2, 1, 0,
   return SCM_MAKINUM (rv);
 }
 #undef FUNC_NAME
+#endif /* HAVE_FCNTL */
 
 SCM_DEFINE (scm_fsync, "fsync", 1, 0, 0, 
             (SCM object),
@@ -1368,12 +1396,22 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
   len = SCM_STRING_LENGTH (filename);
 
   i = len - 1;
+#ifdef __MINGW32__
+  while (i >= 0 && (s[i] == '/' || s[i] == '\\')) --i;
+  while (i >= 0 && (s[i] != '/' || s[i] != '\\')) --i;
+  while (i >= 0 && (s[i] == '/' || s[i] == '\\')) --i;
+#else
   while (i >= 0 && s[i] == '/') --i;
   while (i >= 0 && s[i] != '/') --i;
   while (i >= 0 && s[i] == '/') --i;
+#endif /* ndef __MINGW32__ */
   if (i < 0)
     {
+#ifdef __MINGW32__
+      if (len > 0 && (s[0] == '/' || s[0] == '\\'))
+#else
       if (len > 0 && s[0] == '/')
+#endif /* ndef __MINGW32__ */
 	return scm_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
       else
 	return scm_dot_string;
@@ -1407,15 +1445,27 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
       j = SCM_STRING_LENGTH (suffix) - 1;
     }
   i = len - 1;
+#ifdef __MINGW32__
+  while (i >= 0 && (f[i] == '/' || f[i] == '\\')) --i;
+#else
   while (i >= 0 && f[i] == '/') --i;
+#endif /* ndef __MINGW32__ */
   end = i;
   while (i >= 0 && j >= 0 && f[i] == s[j]) --i, --j;
   if (j == -1)
     end = i;
+#ifdef __MINGW32__
+  while (i >= 0 && (f[i] != '/' || f[i] != '\\')) --i;
+#else
   while (i >= 0 && f[i] != '/') --i;
+#endif /* ndef __MINGW32__ */
   if (i == end)
     {
+#ifdef __MINGW32__
+      if (len > 0 && (f[0] == '/' || f[i] == '\\'))
+#else
       if (len > 0 && f[0] == '/')
+#endif /* ndef __MINGW32__ */
 	return scm_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
       else
 	return scm_dot_string;

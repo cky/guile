@@ -68,6 +68,12 @@ size_t fwrite ();
 #include <errno.h>
 
 #include "libguile/iselect.h"
+/* Some defines for Windows. */
+#ifdef __MINGW32__
+# include <sys/stat.h>
+# include <winsock2.h>
+# define ftruncate(fd, size) chsize (fd, size)
+#endif /* __MINGW32__ */
 
 
 scm_t_bits scm_tc16_fport;
@@ -349,6 +355,46 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 #undef FUNC_NAME
 
 
+#ifdef __MINGW32__
+/*
+ * Try getting the appropiate file flags for a given file descriptor
+ * under Windows. This incorporates some fancy operations because Windows
+ * differentiates between file, pipe and socket descriptors.
+ */
+#ifndef O_ACCMODE
+# define O_ACCMODE 0x0003
+#endif
+
+static int getflags (int fdes)
+{
+  int flags = 0;
+  struct stat buf;
+  int error, optlen = sizeof (int);
+
+  /* Is this a socket ? */
+  if (getsockopt (fdes, SOL_SOCKET, SO_ERROR, (void *) &error, &optlen) >= 0)
+    flags = O_RDWR;
+  /* Maybe a regular file ? */
+  else if (fstat (fdes, &buf) < 0)
+    flags = -1;
+  else
+    {
+      /* Or an anonymous pipe handle ? */
+      if (buf.st_mode & 0x1000 /* _O_SHORT_LIVED */)
+	flags = O_RDWR;
+      /* stdin ? */
+      else if (fdes == 0 && isatty (fdes))
+	flags = O_RDONLY;
+      /* stdout / stderr ? */
+      else if ((fdes == 1 || fdes == 2) && isatty (fdes))
+	flags = O_WRONLY;
+      else
+	flags = buf.st_mode;
+    }
+  return flags;
+}
+#endif /* __MINGW32__ */
+
 /* Building Guile ports from a file descriptor.  */
 
 /* Build a Scheme port from an open file descriptor `fdes'.
@@ -366,7 +412,11 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
   int flags;
 
   /* test that fdes is valid.  */
+#ifdef __MINGW32__
+  flags = getflags (fdes);
+#else
   flags = fcntl (fdes, F_GETFL, 0);
+#endif
   if (flags == -1)
     SCM_SYSERROR;
   flags &= O_ACCMODE;
@@ -456,9 +506,11 @@ fport_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
       scm_putc (' ', port);
       fdes = (SCM_FSTREAM (exp))->fdes;
       
+#ifdef HAVE_TTYNAME
       if (isatty (fdes))
 	scm_puts (ttyname (fdes), port);
       else
+#endif /* HAVE_TTYNAME */
 	scm_intprint (fdes, 10, port);
     }
   else
@@ -595,7 +647,7 @@ static void write_all (SCM port, const void *data, size_t remaining)
 
   while (remaining > 0)
     {
-      ssize_t done;
+      size_t done;
 
       SCM_SYSCALL (done = write (fdes, data, remaining));
 

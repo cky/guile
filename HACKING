@@ -103,8 +103,6 @@ For more information on SSH, see http://www.cs.hut.fi/ssh.
 The Guile sources live in several modules:
 
   - guile-core --- the interpreter, QuickThreads, and ice-9
-  - guile-doc --- documentation in progress.  When complete, this will
-	be incorporated into guile-core.
   - guile-tcltk --- the Guile/Tk interface
   - guile-tk --- the new Guile/Tk interface, based on STk's modified Tk
   - guile-rgx-ctax --- the Guile/Rx interface, and the ctax implementation

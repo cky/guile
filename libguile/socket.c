@@ -63,6 +63,9 @@
 #include <unistd.h>
 #endif
 #include <sys/types.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
 #ifdef HAVE_UNIX_DOMAIN_SOCKETS
 #include <sys/un.h>
@@ -70,6 +73,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#endif
 
 #if defined (HAVE_UNIX_DOMAIN_SOCKETS) && !defined (SUN_LEN)
 #define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path) \
@@ -523,7 +527,7 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 	  return scm_cons (scm_long2num (ling->l_onoff),
 			   scm_long2num (ling->l_linger));
 #else
-	  return scm_cons (scm_long2num (*(int *) optval)
+	  return scm_cons (scm_long2num (*(int *) optval),
 			   SCM_MAKINUM (0));
 #endif
 	}

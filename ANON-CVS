@@ -46,7 +46,6 @@ To check out a CVS working directory:
 The modules available for checkout are:
 
   guile-core --- The scheme interpreter itself.
-  guile-doc --- Guile documentation-in-progress.
   guile-tcltk --- An interface between Guile and Tcl/Tk.
   guile-scsh --- An incomplete port of SCSH 0.4.4 to Guile.
   guile-rgx-ctax --- This has been discontinued; use Andrew Archibald's

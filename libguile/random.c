@@ -91,6 +91,10 @@ scm_t_rng scm_the_rng;
 
 #define A 2131995753UL
 
+#ifndef M_PI
+#define M_PI 3.14159265359
+#endif
+
 #if SIZEOF_LONG > 4
 #if SIZEOF_INT > 4
 #define LONG32 unsigned short
@@ -100,7 +104,11 @@ scm_t_rng scm_the_rng;
 #define LONG64 unsigned long
 #else
 #define LONG32 unsigned long
+#ifdef __MINGW32__
+#define LONG64 unsigned __int64
+#else
 #define LONG64 unsigned long long
+#endif
 #endif
 
 #if SIZEOF_LONG > 4 || defined (HAVE_LONG_LONGS)

@@ -91,7 +91,20 @@ extern char *ttyname();
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+
+#ifdef __MINGW32__
+/* Some defines for Windows here. */
+# define pipe(fd) _pipe (fd, 256, O_BINARY)
+#endif /* __MINGW32__ */
 
 #if HAVE_SYS_WAIT_H
 # include <sys/wait.h>
@@ -107,8 +120,12 @@ extern char *ttyname();
 
 extern char ** environ;
 
+#ifdef HAVE_GRP_H
 #include <grp.h>
+#endif
+#ifdef HAVE_SYS_UTSNAME_H
 #include <sys/utsname.h>
+#endif
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -247,7 +264,7 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 #undef FUNC_NAME  
 #endif
 
-
+#ifdef HAVE_GETPWENT
 SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
             (SCM user),
 	    "Look up an entry in the user database.  @var{obj} can be an integer,\n"
@@ -298,6 +315,7 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   return result;
 }
 #undef FUNC_NAME
+#endif /* HAVE_GETPWENT */
 
 
 #ifdef HAVE_SETPWENT
@@ -318,7 +336,7 @@ SCM_DEFINE (scm_setpwent, "setpw", 0, 1, 0,
 #endif
 
 
-
+#ifdef HAVE_GETGRENT
 /* Combines getgrgid and getgrnam.  */
 SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
             (SCM name),
@@ -375,7 +393,7 @@ SCM_DEFINE (scm_setgrent, "setgr", 0, 1, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
+#endif /* HAVE_GETGRENT */
 
 
 SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
@@ -407,8 +425,13 @@ SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
   SCM_VALIDATE_INUM (1,pid);
   SCM_VALIDATE_INUM (2,sig);
   /* Signal values are interned in scm_init_posix().  */
+#ifdef HAVE_KILL
   if (kill ((int) SCM_INUM (pid), (int) SCM_INUM (sig)) != 0)
-    SCM_SYSERROR;
+#else
+  if ((int) SCM_INUM (pid) == getpid ())
+    if (raise ((int) SCM_INUM (sig)) != 0)
+#endif
+      SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -472,6 +495,7 @@ SCM_DEFINE (scm_waitpid, "waitpid", 1, 1, 0,
 #undef FUNC_NAME
 #endif /* HAVE_WAITPID */
 
+#ifndef __MINGW32__
 SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0, 
             (SCM status),
 	    "Return the exit status value, as would be set if a process\n"
@@ -528,7 +552,9 @@ SCM_DEFINE (scm_status_stop_sig, "status:stop-sig", 1, 0, 0,
     return SCM_BOOL_F;
 }
 #undef FUNC_NAME
+#endif /* __MINGW32__ */
 
+#ifdef HAVE_GETPPID
 SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
             (),
 	    "Return an integer representing the process ID of the parent\n"
@@ -538,9 +564,10 @@ SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
   return SCM_MAKINUM (0L + getppid ());
 }
 #undef FUNC_NAME
+#endif /* HAVE_GETPPID */
 
 
-
+#ifndef __MINGW32__
 SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
             (),
 	    "Return an integer representing the current real user ID.")
@@ -549,6 +576,7 @@ SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
   return SCM_MAKINUM (0L + getuid ());
 }
 #undef FUNC_NAME
+#endif /* __MINGW32__ */
 
 
 
@@ -578,7 +606,6 @@ SCM_DEFINE (scm_geteuid, "geteuid", 0, 0, 0,
 #endif
 }
 #undef FUNC_NAME
-
 
 
 SCM_DEFINE (scm_getegid, "getegid", 0, 0, 0,
@@ -675,6 +702,8 @@ SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0,
 #undef FUNC_NAME
 #endif
 
+
+#ifdef HAVE_GETPGRP
 SCM_DEFINE (scm_getpgrp, "getpgrp", 0, 0, 0,
             (),
 	    "Return an integer representing the current process group ID.\n"
@@ -686,6 +715,8 @@ SCM_DEFINE (scm_getpgrp, "getpgrp", 0, 0, 0,
   return SCM_MAKINUM (fn (0));
 }
 #undef FUNC_NAME
+#endif /* HAVE_GETPGRP */
+
 
 #ifdef HAVE_SETPGID
 SCM_DEFINE (scm_setpgid, "setpgid", 2, 0, 0, 
@@ -724,6 +755,7 @@ SCM_DEFINE (scm_setsid, "setsid", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SETSID */
 
+#ifdef HAVE_TTYNAME
 SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0, 
             (SCM port),
 	    "Return a string with the name of the serial terminal device\n"
@@ -745,6 +777,7 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
   return (scm_makfrom0str (ans));
 }
 #undef FUNC_NAME
+#endif /* HAVE_TTYNAME */
 
 #ifdef HAVE_CTERMID
 SCM_DEFINE (scm_ctermid, "ctermid", 0, 0, 0,
@@ -947,6 +980,7 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_FORK
 SCM_DEFINE (scm_fork, "primitive-fork", 0, 0, 0,
             (),
 	    "Creates a new \"child\" process by duplicating the current \"parent\" process.\n"
@@ -963,6 +997,7 @@ SCM_DEFINE (scm_fork, "primitive-fork", 0, 0, 0,
   return SCM_MAKINUM (0L+pid);
 }
 #undef FUNC_NAME
+#endif /* HAVE_FORK */
 
 #ifdef HAVE_UNAME
 SCM_DEFINE (scm_uname, "uname", 0, 0, 0,

@@ -58,6 +58,7 @@ Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN  */
    interface in your main program.  This is necessary if the interface
    is defined in a library, such as Guile. */
 
+#ifndef __MINGW32__
 #define GDB_INTERFACE \
 void *gdb_interface[] = { \
   &gdb_options, \
@@ -71,6 +72,27 @@ void *gdb_interface[] = { \
   (void *) gdb_print, \
   (void *) gdb_binding \
 }
+#else /* __MINGW32__ */
+/* Because the following functions are imported from a DLL (some kind of
+   shared library) these are NO static initializers. That is why you need to
+   define them and assign the functions and data items at run time. */
+#define GDB_INTERFACE \
+void *gdb_interface[] = \
+  { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+#define GDB_INTERFACE_INIT \
+  do { \
+    gdb_interface[0] = &gdb_options; \
+    gdb_interface[1] = &gdb_language; \
+    gdb_interface[2] = &gdb_result; \
+    gdb_interface[3] = &gdb_output; \
+    gdb_interface[4] = &gdb_output_length; \
+    gdb_interface[5] = (void *) gdb_maybe_valid_type_p; \
+    gdb_interface[6] = (void *) gdb_read; \
+    gdb_interface[7] = (void *) gdb_eval; \
+    gdb_interface[8] = (void *) gdb_print; \
+    gdb_interface[9] = (void *) gdb_binding; \
+  } while (0);
+#endif /* __MINGW32__ */
 
 /* GDB_OPTIONS is a set of flags informing gdb what features are present
    in the interface.  Currently only one option is supported: */

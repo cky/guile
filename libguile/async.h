@@ -1,7 +1,7 @@
 /* classes: h_files */
 
-#ifndef ASYNCH
-#define ASYNCH
+#ifndef SCM_ASYNC_H
+#define SCM_ASYNC_H
 /* Copyright (C) 1995, 96, 97, 98, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -70,7 +70,7 @@ extern SCM scm_unmask_signals (void);
 extern SCM scm_mask_signals (void);
 extern void scm_init_async (void);
 
-#endif  /* ASYNCH */
+#endif  /* SCM_ASYNC_H */
 
 /*
   Local Variables:

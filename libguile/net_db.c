@@ -66,12 +66,17 @@
 #endif
 
 #include <sys/types.h>
+
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 
-#ifndef HAVE_H_ERRNO
+#if !defined (HAVE_H_ERRNO) && !defined (__MINGW32__)
 /* h_errno not found in netdb.h, maybe this will help.  */
 extern int h_errno;
 #endif

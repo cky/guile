@@ -192,7 +192,7 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(io.h libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h sys/utime.h time.h unistd.h utime.h)
+AC_CHECK_HEADERS(io.h libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h sys/utime.h time.h unistd.h utime.h pwd.h winsock2.h grp.h sys/utsname.h)
 GUILE_HEADER_LIBC_WITH_UNISTD
 
 AC_TYPE_GETGROUPS
@@ -232,7 +232,7 @@ AC_SUBST(INCLTDL)
 AC_SUBST(LIBLTDL)
 AC_SUBST(DLPREOPEN)
 
-AC_CHECK_FUNCS(ctermid ftime fchown getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit)
+AC_CHECK_FUNCS(ctermid ftime fchown getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork)
 
 AC_CHECK_HEADERS(crypt.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)

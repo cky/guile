@@ -74,6 +74,14 @@ int usleep ();
 
 #endif
 
+#ifdef __MINGW32__
+#include <windows.h>
+#define alarm(sec) (0)
+/* This weird comma expression is because Sleep is void under Windows. */
+#define sleep(sec) (Sleep ((sec) * 1000), 0)
+#define kill(pid, sig) raise (sig)
+#endif
+
 
 
 /* SIGRETTYPE is the type that signal handlers return.  See <signal.h> */
@@ -298,12 +306,16 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
     case SIGFPE:
     case SIGILL:
     case SIGSEGV:
+#ifdef SIGBUS
     case SIGBUS:
+#endif
     case SIGABRT:
 #if defined(SIGIOT) && (SIGIOT != SIGABRT)
     case SIGIOT:
 #endif
+#ifdef SIGTRAP
     case SIGTRAP:
+#endif
 #ifdef SIGEMT
     case SIGEMT:
 #endif

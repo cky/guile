@@ -1,3 +1,59 @@
+2001-06-26  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* ports.c (scm_output_port_p): Use result of SCM_COERCE_OUTPORT.
+
+	The following set of changes makes compiling Guile under various
+	Windows compilers easier.  Compilation under GNU systems should
+	not be affected at all.
+
+	Thanks to Stefan Jahn for all necessary information, patches and
+	testing.
+	
+	* posix.c: Conditialize getpwent, getgrent, kill, getppid, getuid,
+	getpgrp, ttyname, primitive-fork and some header inclusion for
+	Windows.
+
+	* random.c: Define M_PI, if not predefined and use __int64 for
+	LONG64 under Windows.
+
+	* scmsigs.c: Emulate some functions (alarm, sleep, kill) under
+	Windows and conditionalize some signal names.
+
+	* socket.c (scm_getsockopt): Added missing comma.  
+	Include socket library header under Windows.
+
+	* stime.c (CLKTCK): Add cast to int, to make it compile under
+	Windows.
+
+	* ports.c (truncate): New function, compiled only under Windows.
+
+	* net_db.c: Do not declare errno under Windows.
+
+	* iselect.h, inet_aton.c: Include socket library headers under
+	Windows.
+
+	* guile.c (inner_main): Under Windows, initialize socket library
+	and initialize gdb_interface data structures.
+
+	* gdb_interface.h: Under Windows, gdb_interface cannot be
+	initialized statically.  Initialize at runtime instead.
+
+	* fports.c (write_all): ssize_t -> size_t.
+	(fport_print): Conditionalize call to ttyname().
+	(getflags): New function, compiled only under Windows.
+
+	* filesys.c: Conditionalize inclusion of <pwd.h>.  Conditionalize
+	primitives chown, link, fcntl.
+	(scm_basename, scm_dirname): Under Windows, handle \ as well as /
+	as path seperator.
+
+	* backtrace.c: Include <io.h> under Windows.
+
+	* async.h (ASYNCH, SCM_ASYNC_H): Rename <foo>H to SCM_<foo>_H.
+
+	* _scm.h: Added preprocessor conditional for __MINGW32__ for errno
+	declaration.
+
 2001-06-27  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* eval.c (scm_call_0, scm_call_1, scm_call_2, scm_call_3,

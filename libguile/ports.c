@@ -77,6 +77,11 @@
 #include <sys/ioctl.h>
 #endif
 
+#ifdef __MINGW32__
+#include <fcntl.h>
+#define ftruncate(fd, size) chsize (fd, size)
+#endif
+
 
 /* The port kind table --- a dynamically resized array of port types.  */
 
@@ -802,7 +807,7 @@ SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
 	    "@code{port?}.")
 #define FUNC_NAME s_scm_output_port_p
 {
-  SCM_COERCE_OUTPORT (x);
+  x = SCM_COERCE_OUTPORT (x);
   return SCM_BOOL (SCM_OUTPUT_PORT_P (x));
 }
 #undef FUNC_NAME
@@ -1324,6 +1329,20 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
   return scm_long2num (rv);
 }
 #undef FUNC_NAME
+
+#ifdef __MINGW32__
+/* Define this function since it is not supported under Windows. */
+static int truncate (char *file, int length)
+{
+  int ret = -1, fdes;
+  if ((fdes = open (file, O_BINARY | O_WRONLY)) != -1)
+    {
+      ret = chsize (fdes, length);
+      close (fdes);
+    }
+  return ret;
+}
+#endif /* __MINGW32__ */
 
 SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
             (SCM object, SCM length),
