@@ -101,7 +101,7 @@ int scm_tc16_variable;
 static scm_smobfuns variable_smob = {scm_markvar, free_var, prin_var, 0};
 
 
-static SCM variable_sym;
+static SCM anonymous_variable_sym;
 
 
 static SCM make_vcell_variable SCM_P ((SCM vcell));
@@ -119,7 +119,7 @@ make_vcell_variable (vcell)
   return answer;
 }
 
-SCM_PROC(s_make_variable, "make-variable", 2, 0, 0, scm_make_variable);
+SCM_PROC(s_make_variable, "make-variable", 1, 1, 0, scm_make_variable);
 
 SCM
 scm_make_variable (init, name_hint)
@@ -127,6 +127,10 @@ scm_make_variable (init, name_hint)
      SCM name_hint;
 {
   SCM val_cell;
+  
+  if (name_hint == SCM_UNDEFINED)
+    name_hint = anonymous_variable_sym;
+
   SCM_NEWCELL(val_cell);
   SCM_DEFER_INTS;
   SCM_CAR(val_cell) = name_hint;
@@ -145,7 +149,7 @@ scm_make_undefined_variable (name_hint)
   SCM vcell;
 
   if (name_hint == SCM_UNDEFINED)
-    name_hint = variable_sym;
+    name_hint = anonymous_variable_sym;
 
   SCM_NEWCELL (vcell);
   SCM_DEFER_INTS;
@@ -239,7 +243,7 @@ void
 scm_init_variable ()
 {
   scm_tc16_variable = scm_newsmob (&variable_smob);
-  variable_sym = SCM_CAR (scm_sysintern ("anonymous-variable", SCM_UNDEFINED));
+  anonymous_variable_sym = SCM_CAR (scm_sysintern ("anonymous-variable", SCM_UNDEFINED));
 #include "variable.x"
 }
 
