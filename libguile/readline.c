@@ -74,6 +74,44 @@ redisplay ()
   /* promptp = 1; */
 }
 
+SCM_PROC (s_readline, "readline", 0, 4, 0, scm_readline);
+
+int in_readline = 0;
+#ifdef USE_THREADS
+scm_mutex_t reentry_barrier_mutex;
+#endif
+
+static void
+reentry_barrier ()
+{
+  int reentryp = 0;
+#ifdef USE_THREADS
+  /* We should rather use scm_mutex_try_lock when it becomes available */
+  scm_mutex_lock (&reentry_barrier_mutex);
+#endif
+  if (in_readline)
+    reentryp = 1;
+  else
+    ++in_readline;
+#ifdef USE_THREADS
+  scm_mutex_unlock (&reentry_barrier_mutex);
+#endif
+  if (reentryp)
+    scm_misc_error (s_readline, "readline is not reentrant", SCM_EOL);
+}
+
+static SCM
+handle_error (void *data, SCM tag, SCM args)
+{
+  (*rl_deprep_term_function) ();
+#ifdef HAVE_RL_CLEAR_SIGNALS
+  rl_clear_signals ();
+#endif
+  --in_readline;
+  scm_handle_by_throw (data, tag, args);
+  return SCM_UNSPECIFIED; /* never reached */
+}
+
 static SCM
 internal_readline (SCM text)
 {
@@ -93,62 +131,66 @@ internal_readline (SCM text)
   return ret;
 }
 
-static SCM
-handle_error (void *data, SCM tag, SCM args)
-{
-  (*rl_deprep_term_function) ();
-#ifdef HAVE_RL_CLEAR_SIGNALS
-  rl_clear_signals ();
-#endif
-  scm_handle_by_throw (data, tag, args);
-  return SCM_UNSPECIFIED; /* never reached */
-}
-
-SCM_PROC (s_readline, "readline", 0, 4, 0, scm_readline);
-
-/*fixme* Need to add mutex so that only one thread at a time
-  will access readline */
 SCM
 scm_readline (SCM text, SCM inp, SCM outp, SCM read_hook)
 {
+  SCM ans;
+  
+  reentry_barrier ();
+  
   before_read = SCM_BOOL_F;
+
   if (!SCM_UNBNDP (text))
     {
-      SCM_ASSERT (SCM_NIMP (text) && SCM_STRINGP (text),
-		  text,
-		  SCM_ARG1,
-		  s_readline);
+      if (!(SCM_NIMP (text) && SCM_STRINGP (text)))
+	{
+	  --in_readline;
+	  scm_wrong_type_arg (s_readline, SCM_ARG1, text);
+	}
       SCM_COERCE_SUBSTR (text);
     }
+  
   if (SCM_UNBNDP (inp))
     inp = scm_cur_inp;
+  
   if (SCM_UNBNDP (outp))
     outp = scm_cur_outp;
+  
   if (!(SCM_UNBNDP (read_hook) || SCM_FALSEP (read_hook)))
     {
-      SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (read_hook)),
-		  read_hook,
-		  SCM_ARG2,
-		  s_readline);
+      if (!(SCM_NFALSEP (scm_thunk_p (read_hook))))
+	{
+	  --in_readline;
+	  scm_wrong_type_arg (s_readline, SCM_ARG4, read_hook);
+	}
       before_read = read_hook;
     }
+  
   if (!(SCM_NIMP (inp) && SCM_OPINFPORTP (inp)))
-    scm_misc_error (s_readline,
-		    "Input port is not open or not a file port",
-		    SCM_EOL);
+    {
+      --in_readline;
+      scm_misc_error (s_readline,
+		      "Input port is not open or not a file port",
+		      SCM_EOL);
+    }
   if (!(SCM_NIMP (outp) && SCM_OPOUTFPORTP (outp)))
-    scm_misc_error (s_readline,
-		    "Output port is not open or not a file port",
-		    SCM_EOL);
+    {
+      --in_readline;
+      scm_misc_error (s_readline,
+		      "Output port is not open or not a file port",
+		      SCM_EOL);
+    }
 
   input_port = inp;
   rl_instream = (FILE *) SCM_STREAM (inp);
   rl_outstream = (FILE *) SCM_STREAM (outp);
 
-  return scm_internal_catch (SCM_BOOL_T,
-			     (scm_catch_body_t) internal_readline,
-			     (void *) text,
-			     handle_error, 0);
+  ans = scm_internal_catch (SCM_BOOL_T,
+			    (scm_catch_body_t) internal_readline,
+			    (void *) text,
+			    handle_error, 0);
+  --in_readline;
+  return ans;
 }
 
 SCM_PROC (s_add_history, "add-history", 1, 0, 0, scm_add_history);
@@ -233,6 +275,9 @@ scm_init_readline ()
   rl_getc_function = current_input_getc;
   rl_redisplay_function = redisplay;
   rl_completion_entry_function = (Function*) completion_function;
+#ifdef USE_THREADS
+  scm_mutex_init (&reentry_barrier_mutex);
+#endif
   scm_add_feature ("readline");
 }
 
