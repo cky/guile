@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.7 2002-03-29 20:25:23 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.8 2002-08-08 21:47:53 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -961,7 +961,7 @@ Return the name of the subr @var{x}.  The result is undefined if
 @var{x} is not a subr.
 @end deftypefn
 
-@deftypefun SCM scm_make_gsubr (char *@var{name}, int @var{req}, int @var{opt}, int @var{rest}, SCM (*@var{function})())
+@deftypefun SCM scm_c_define_gsubr (char *@var{name}, int @var{req}, int @var{opt}, int @var{rest}, SCM (*@var{function})())
 Create a new subr object named @var{name}, based on the C function
 @var{function}, make it visible to Scheme the value of as a global
 variable named @var{name}, and return the subr object.
@@ -986,8 +986,8 @@ combinations of required, optional, and rest arguments.  For example, a
 subr can take one required argument, or one required and one optional
 argument, but a subr can't take one required and two optional arguments.
 It's bizarre, but that's the way the interpreter was written.  If the
-arguments to @code{scm_make_gsubr} do not fit one of the predefined
-patterns, then @code{scm_make_gsubr} will return a compiled closure
+arguments to @code{scm_c_define_gsubr} do not fit one of the predefined
+patterns, then @code{scm_c_define_gsubr} will return a compiled closure
 object instead of a subr object.
 @end deftypefun
 
@@ -1048,22 +1048,23 @@ represented and used at the C level.
 
 In fact, there are two basic C data types to represent objects in Guile:
 
-@itemize @bullet
-@item
+@deftp {Data type} SCM
 @code{SCM} is the user level abstract C type that is used to represent
 all of Guile's Scheme objects, no matter what the Scheme object type is.
 No C operation except assignment is guaranteed to work with variables of
 type @code{SCM}, so you should only use macros and functions to work
 with @code{SCM} values.  Values are converted between C data types and
 the @code{SCM} type with utility functions and macros.
+@end deftp
+@cindex SCM data type
 
-@item
+@deftp {Data type} scm_t_bits
 @code{scm_t_bits} is an integral data type that is guaranteed to be
 large enough to hold all information that is required to represent any
 Scheme object.  While this data type is mostly used to implement Guile's
 internals, the use of this type is also necessary to write certain kinds
 of extensions to Guile.
-@end itemize
+@end deftp
 
 @menu
 * Relationship between SCM and scm_t_bits::

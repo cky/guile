@@ -735,6 +735,17 @@ Close the directory stream @var{stream}.
 The return value is unspecified.
 @end deffn
 
+Here is an example showing how to display all the entries in a
+directory:
+
+@lisp
+(define dir (opendir "/usr/lib"))
+(do ((entry (readdir dir) (readdir dir)))
+    ((eof-object? entry))
+  (display entry)(newline))
+(closedir dir)
+@end lisp
+
 @deffn {Scheme Procedure} sync
 @deffnx {C Function} scm_sync ()
 Flush the operating system disk buffers.
@@ -791,6 +802,11 @@ Return the base name of the file name @var{filename}. The
 base name is the file name without any directory components.
 If @var{suffix} is provided, and is equal to the end of
 @var{basename}, it is removed also.
+
+@lisp
+(basename "/tmp/test.xml" ".xml")
+@result{} "test"
+@end lisp
 @end deffn
 
 
@@ -1021,6 +1037,11 @@ specifications introduced by a @code{%} character.  The formatting of
 month and day names is dependent on the current locale.  The value returned
 is the formatted string.
 @xref{Formatting Date and Time, , , libc, The GNU C Library Reference Manual}.)
+
+@lisp
+(strftime "%c" (localtime (current-time)))
+@result{} "Mon Mar 11 20:17:43 2002"
+@end lisp
 @end deffn
 
 @deffn {Scheme Procedure} strptime format string
@@ -1663,6 +1684,14 @@ be the value of @code{OPEN_READ} or @code{OPEN_WRITE}.
 
 @deffn {Scheme Procedure} open-input-pipe command
 Equivalent to @code{open-pipe} with mode @code{OPEN_READ}.
+
+@lisp
+(read-line (open-input-pipe "date"))
+@result{} "Mon Mar 11 20:10:44 GMT 2002"
+
+(waitpid WAIT_ANY)
+@result{} (24160 . 0)
+@end lisp
 @end deffn
 
 @deffn {Scheme Procedure} open-output-pipe command
@@ -1686,6 +1715,7 @@ close a pipe, but doesn't return the status.
 * Network Address Conversion::
 * Network Databases::
 * Network Sockets and Communication::
+* Internet Socket Examples::
 @end menu
 
 @node Network Address Conversion
@@ -1827,6 +1857,14 @@ found, an error will be thrown to one of the keys:
 @code{no-data}, corresponding to the equivalent @code{h_error} values.
 Unusual conditions may result in errors thrown to the
 @code{system-error} or @code{misc_error} keys.
+
+@lisp
+(gethost "www.gnu.org")
+@result{} #("www.gnu.org" () 2 4 (3353880842))
+
+(gethostbyname "www.emacs.org")
+@result{} #("emacs.org" ("www.emacs.org") 2 4 (1073448978))
+@end lisp
 @end deffn
 
 The following procedures may be used to step through the host
@@ -2000,6 +2038,14 @@ database does not match this name, a system error is signalled.
 The @code{getserv} procedure will take either a service name or number
 as its first argument; if given no arguments, it behaves like
 @code{getservent} (see below).
+
+@lisp
+(getserv "imap" "tcp")
+@result{} #("imap2" ("imap") 143 "tcp")
+
+(getservbyport 88 "udp")
+@result{} #("kerberos" ("kerberos5" "krb5") 88 "udp")
+@end lisp
 @end deffn
 
 The following procedures may be used to step through the service
@@ -2389,6 +2435,74 @@ These procedures are inconvenient to use at present, but consider:
       (uniform-vector-read! v port)
       (ntohl (uniform-vector-ref v 0)))))
 @end example
+
+
+@node Internet Socket Examples
+@subsection Network Socket Examples
+
+The following sections give examples of how to use network sockets.
+
+@menu
+* Internet Socket Client::
+* Internet Socket Server::
+@end menu
+
+
+@node Internet Socket Client
+@subsubsection Internet Socket Client Example
+
+@cindex socket client example
+The following example demonstrates an Internet socket client.
+It connects to the HTTP daemon running on the local machine and
+returns the contents of the root index URL.
+
+@example
+(let ((s (socket AF_INET SOCK_STREAM 0)))
+  (connect s AF_INET (inet-aton "127.0.0.1") 80)
+  (display "GET / HTTP/1.0\r\n\r\n" s)
+
+  (do ((line (read-line s) (read-line s)))
+      ((eof-object? line))
+    (display line)
+    (newline)))
+@end example
+
+
+@node Internet Socket Server
+@subsubsection Internet Socket Server Example
+
+@cindex socket server example
+The following example shows a simple Internet server which listens on
+port 2904 for incoming connections and sends a greeting back to the
+client.
+
+@example
+(let ((s (socket AF_INET SOCK_STREAM 0)))
+  (setsockopt s SOL_SOCKET SO_REUSEADDR 1)
+  ;; Specific address?
+  ;; (bind s AF_INET (inet-aton "127.0.0.1") 2904)
+  (bind s AF_INET INADDR_ANY 2904)
+  (listen s 5)
+
+  (simple-format #t "Listening for clients in pid: ~S" (getpid))
+  (newline)
+
+  (while #t
+         (let* ((client-connection (accept s))
+                (client-details (cdr client-connection))
+                (client (car client-connection)))
+           (simple-format #t "Got new client connection: ~S"
+                          client-details)
+           (newline)
+           (simple-format #t "Client address: ~S"
+                          (gethostbyaddr
+                           (sockaddr:addr client-details)))
+           (newline)
+           ;; Send back the greeting to the client port
+           (display "Hello client\r\n" client)
+           (close client))))
+@end example
+
 
 @node System Identification
 @section System Identification

@@ -552,69 +552,60 @@ When using the low level procedures to do your dynamic linking, you have
 complete control over which library is loaded when and what gets done
 with it.
 
-@deffn {Scheme Procedure} dynamic-link filename
-@deffnx {C Function} scm_dynamic_link (filename)
-Find the shared object (shared library) denoted by
-@var{filename} and link it into the running Guile
-application.  The returned
-scheme object is a ``handle'' for the library which can
-be passed to @code{dynamic-func}, @code{dynamic-call} etc.
+@deffn {Scheme Procedure} dynamic-link library
+@deffnx {C Function} scm_dynamic_link (library)
+Find the shared library denoted by @var{library} (a string) and link it
+into the running Guile application.  When everything works out, return a
+Scheme object suitable for representing the linked object file.
+Otherwise an error is thrown.  How object files are searched is system
+dependent.
 
-Searching for object files is system dependent.  Normally,
-if @var{filename} does have an explicit directory it will
-be searched for in locations
-such as @file{/usr/lib} and @file{/usr/local/lib}.
+Normally, @var{library} is just the name of some shared library file
+that will be searched for in the places where shared libraries usually
+reside, such as in @file{/usr/lib} and @file{/usr/local/lib}.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-object? obj
 @deffnx {C Function} scm_dynamic_object_p (obj)
-Return @code{#t} if @var{obj} is a dynamic object handle,
-or @code{#f} otherwise.
+Return @code{#t} if @var{obj} is a dynamic library handle, or @code{#f}
+otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-unlink dobj
 @deffnx {C Function} scm_dynamic_unlink (dobj)
-Unlink a dynamic object from the application, if possible.  The
-object must have been linked by @code{dynamic-link}, with 
-@var{dobj} the corresponding handle.  After this procedure
-is called, the handle can no longer be used to access the
-object.
+Unlink the indicated object file from the application.  The
+argument @var{dobj} must have been obtained by a call to
+@code{dynamic-link}.  After @code{dynamic-unlink} has been
+called on @var{dobj}, its content is no longer accessible.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-func name dobj
 @deffnx {C Function} scm_dynamic_func (name, dobj)
-Return a ``handle'' for the function @var{name} in the
-shared object referred to by @var{dobj}.  The handle
-can be passed to @code{dynamic-call} to actually
-call the function.
+Search the dynamic object @var{dobj} for the C function
+indicated by the string @var{name} and return some Scheme
+handle that can later be used with @code{dynamic-call} to
+actually call the function.
 
-Regardless whether your C compiler prepends an underscore
-@samp{_} to the global names in a program, you should
-@strong{not} include this underscore in @var{name}
-since it will be added automatically when necessary.
+Regardless whether your C compiler prepends an underscore @samp{_} to
+the global names in a program, you should @strong{not} include this
+underscore in @var{function}.  Guile knows whether the underscore is
+needed or not and will add it when necessary.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-call func dobj
 @deffnx {C Function} scm_dynamic_call (func, dobj)
-Call a C function in a dynamic object.  Two styles of
-invocation are supported:
-
-@itemize @bullet
-@item @var{func} can be a function handle returned by
-@code{dynamic-func}.  In this case @var{dobj} is
-ignored
-@item @var{func} can be a string with the name of the
-function to call, with @var{dobj} the handle of the
-dynamic object in which to find the function.
-This is equivalent to
+Call the C function indicated by @var{func} and @var{dobj}.
+The function is passed no arguments and its return value is
+ignored.  When @var{function} is something returned by
+@code{dynamic-func}, call that function and ignore @var{dobj}.
+When @var{func} is a string , look it up in @var{dynobj}; this
+is equivalent to
 @smallexample
-
 (dynamic-call (dynamic-func @var{func} @var{dobj}) #f)
 @end smallexample
-@end itemize
 
-In either case, the function is passed no arguments
-and its return value is ignored.
+Interrupts are deferred while the C function is executing (with
+@code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-args-call func dobj args
@@ -634,7 +625,10 @@ converted to a Scheme number and returned from the call to
 @code{dynamic-args-call}.
 @end deffn
 
-Here is a small example that may work on GNU/Linux:
+When dynamic linking is disabled or not supported on your system,
+the above functions throw errors, but they are still available.
+
+Here is a small example that works on GNU/Linux:
 
 @smallexample
 (define libc-obj (dynamic-link "libc.so"))

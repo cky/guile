@@ -32,7 +32,7 @@ you must follow so that the garbage collector can do its job.
 @deffnx {C Function} scm_gc ()
 Scans all of SCM objects and reclaims for further use those that are
 no longer accessible.  You normally don't need to call this function
-explicitely.  It is called automatically when appropriate.
+explicitly.  It is called automatically when appropriate.
 @end deffn
 
 @deffn {Scheme Procedure} gc-stats
