@@ -3,7 +3,7 @@
 #ifndef SCM_OBJECTS_H
 #define SCM_OBJECTS_H
 
-/* Copyright (C) 1996,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1999,2000,2001, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -221,7 +221,8 @@ SCM_API SCM *scm_smob_class;
 SCM_API SCM scm_no_applicable_method;
 
 /* Goops functions. */
-SCM_API SCM scm_make_extended_class (char *type_name);
+SCM_API SCM scm_make_extended_class (char *type_name, int applicablep);
+SCM_API void scm_i_inherit_applicable (SCM c);
 SCM_API void scm_make_port_classes (long ptobnum, char *type_name);
 SCM_API void scm_change_object_class (SCM, SCM, SCM);
 SCM_API SCM scm_memoize_method (SCM x, SCM args);

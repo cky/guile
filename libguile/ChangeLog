@@ -1,3 +1,19 @@
+2003-03-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.c (make_class_from_template): New fourth arg:
+	applicablep.
+	(scm_class_extended_generic_with_setter, scm_class_self): Fixed
+	cpls.
+
+	* smob.c (scm_set_smob_apply): Call scm_i_inherit_applicable.
+
+	* goops.c, objects.c, objects.h (scm_make_extended_class): New
+	second arg: applicablep.
+	(scm_i_inherit_applicable): New function.
+
+	* goops.c, goops.h (scm_class_applicable,
+	scm_class_extended_accessor): New classes.
+
 2003-03-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* procs.c (scm_procedure_documentation): Removed redundant

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -190,7 +190,8 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 		  SCM name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
 		  SCM class = scm_make_extended_class (!SCM_FALSEP (name)
 						       ? SCM_SYMBOL_CHARS (name)
-						       : 0);
+						       : 0,
+						       SCM_I_OPERATORP (x));
 		  SCM_SET_STRUCT_TABLE_CLASS (SCM_CDR (handle), class);
 		  return class;
 		}

@@ -184,6 +184,7 @@ typedef struct scm_t_method {
 SCM_API SCM scm_class_top;
 SCM_API SCM scm_class_object;
 SCM_API SCM scm_class_class;
+SCM_API SCM scm_class_applicable;
 SCM_API SCM scm_class_entity;
 SCM_API SCM scm_class_entity_with_setter;
 SCM_API SCM scm_class_generic;
@@ -191,6 +192,7 @@ SCM_API SCM scm_class_generic_with_setter;
 SCM_API SCM scm_class_accessor;
 SCM_API SCM scm_class_extended_generic;
 SCM_API SCM scm_class_extended_generic_with_setter;
+SCM_API SCM scm_class_extended_accessor;
 SCM_API SCM scm_class_method;
 SCM_API SCM scm_class_simple_method;
 SCM_API SCM scm_class_accessor_method;

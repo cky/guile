@@ -135,10 +135,12 @@ static SCM scm_goops_lookup_closure;
 
 /* Some classes are defined in libguile/objects.c. */
 SCM scm_class_top, scm_class_object, scm_class_class;
+SCM scm_class_applicable;
 SCM scm_class_entity, scm_class_entity_with_setter;
 SCM scm_class_generic, scm_class_generic_with_setter;
 SCM scm_class_accessor;
 SCM scm_class_extended_generic, scm_class_extended_generic_with_setter;
+SCM scm_class_extended_accessor;
 SCM scm_class_method;
 SCM scm_class_simple_method, scm_class_accessor_method;
 SCM scm_class_procedure_class;
@@ -2240,6 +2242,26 @@ SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
  *
  ******************************************************************************/
 
+static void
+fix_cpl (SCM c, SCM before, SCM after)
+{
+  SCM cpl = SCM_SLOT (c, scm_si_cpl);
+  SCM ls = scm_c_memq (after, cpl);
+  SCM tail = scm_delq1_x (before, SCM_CDR (ls));
+  if (SCM_FALSEP (ls))
+    /* if this condition occurs, fix_cpl should not be applied this way */
+    abort ();
+  SCM_SETCAR (ls, before);
+  SCM_SETCDR (ls, scm_cons (after, tail));
+  {
+    SCM dslots = SCM_SLOT (c, scm_si_direct_slots);
+    SCM slots = build_slots_list (maplist (dslots), cpl);
+    SCM g_n_s = compute_getters_n_setters (slots);
+    SCM_SET_SLOT (c, scm_si_slots, slots);
+    SCM_SET_SLOT (c, scm_si_getters_n_setters, g_n_s);
+  }
+}
+
 
 static void
 make_stdcls (SCM *var, char *name, SCM meta, SCM super, SCM slots)
@@ -2299,7 +2321,7 @@ create_standard_classes (void)
 	       scm_class_class, scm_class_foreign_slot,	   SCM_EOL);
   make_stdcls (&scm_class_self,		   "<self-slot>",
 	       scm_class_class,
-	       scm_list_2 (scm_class_foreign_slot, scm_class_read_only),
+	       scm_class_read_only,
 	       SCM_EOL);
   make_stdcls (&scm_class_protected_opaque, "<protected-opaque-slot>",
 	       scm_class_class,
@@ -2356,8 +2378,12 @@ create_standard_classes (void)
   make_stdcls (&scm_class_accessor_method, "<accessor-method>",
 	       scm_class_class, scm_class_simple_method,   amethod_slots);
   SCM_SET_CLASS_FLAGS (scm_class_accessor_method, SCM_CLASSF_ACCESSOR_METHOD);
+  make_stdcls (&scm_class_applicable,	   "<applicable>",
+	       scm_class_class, scm_class_top, SCM_EOL);
   make_stdcls (&scm_class_entity,	   "<entity>",
-	       scm_class_entity_class, scm_class_object,   SCM_EOL);
+	       scm_class_entity_class,
+	       scm_list_2 (scm_class_object, scm_class_applicable),
+	       SCM_EOL);
   make_stdcls (&scm_class_entity_with_setter, "<entity-with-setter>",
 	       scm_class_entity_class, scm_class_entity,   SCM_EOL);
   make_stdcls (&scm_class_generic,	   "<generic>",
@@ -2377,11 +2403,19 @@ create_standard_classes (void)
   make_stdcls (&scm_class_extended_generic_with_setter,
 	       "<extended-generic-with-setter>",
 	       scm_class_entity_class,
-	       scm_list_2 (scm_class_extended_generic,
-			   scm_class_entity_with_setter),
+	       scm_list_2 (scm_class_generic_with_setter,
+			   scm_class_extended_generic),
 	       SCM_EOL);
   SCM_SET_CLASS_FLAGS (scm_class_extended_generic_with_setter,
 		       SCM_CLASSF_PURE_GENERIC);
+  make_stdcls (&scm_class_extended_accessor, "<extended-accessor>",
+	       scm_class_entity_class,
+	       scm_list_2 (scm_class_accessor,
+			   scm_class_extended_generic_with_setter),
+	       SCM_EOL);
+  fix_cpl (scm_class_extended_accessor,
+	   scm_class_extended_generic, scm_class_generic);
+  SCM_SET_CLASS_FLAGS (scm_class_extended_accessor, SCM_CLASSF_PURE_GENERIC);
 
   /* Primitive types classes */
   make_stdcls (&scm_class_boolean, 	   "<boolean>",
@@ -2413,7 +2447,7 @@ create_standard_classes (void)
   make_stdcls (&scm_class_unknown,	   "<unknown>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_procedure,	   "<procedure>",
-	       scm_class_procedure_class, scm_class_top,   SCM_EOL);
+	       scm_class_procedure_class, scm_class_applicable, SCM_EOL);
   make_stdcls (&scm_class_procedure_with_setter, "<procedure-with-setter>",
 	       scm_class_procedure_class, scm_class_procedure, SCM_EOL);
   make_stdcls (&scm_class_primitive_generic, "<primitive-generic>",
@@ -2437,7 +2471,7 @@ create_standard_classes (void)
  **********************************************************************/
 
 static SCM
-make_class_from_template (char *template, char *type_name, SCM supers)
+make_class_from_template (char *template, char *type_name, SCM supers, int applicablep)
 {
   SCM class, name;
   if (type_name)
@@ -2449,7 +2483,9 @@ make_class_from_template (char *template, char *type_name, SCM supers)
   else
     name = SCM_GOOPS_UNBOUND;
 
-  class = scm_permanent_object (scm_basic_make_class (scm_class_class,
+  class = scm_permanent_object (scm_basic_make_class (applicablep
+						      ? scm_class_procedure_class
+						      : scm_class_class,
 						      name,
 						      supers,
 						      SCM_EOL));
@@ -2462,11 +2498,49 @@ make_class_from_template (char *template, char *type_name, SCM supers)
 }
 
 SCM
-scm_make_extended_class (char *type_name)
+scm_make_extended_class (char *type_name, int applicablep)
 {
   return make_class_from_template ("<%s>",
 				   type_name,
-				   scm_list_1 (scm_class_top));
+				   scm_list_1 (applicablep
+					       ? scm_class_applicable
+					       : scm_class_top),
+				   applicablep);
+}
+
+void
+scm_i_inherit_applicable (SCM c)
+{
+  if (!SCM_SUBCLASSP (c, scm_class_applicable))
+    {
+      SCM dsupers = SCM_SLOT (c, scm_si_direct_supers);
+      SCM cpl = SCM_SLOT (c, scm_si_cpl);
+      /* patch scm_class_applicable into direct-supers */
+      SCM top = scm_c_memq (scm_class_top, dsupers);
+      if (SCM_FALSEP (top))
+	dsupers = scm_append (scm_list_2 (dsupers,
+					  scm_list_1 (scm_class_applicable)));
+      else
+	{
+	  SCM_SETCAR (top, scm_class_applicable);
+	  SCM_SETCDR (top, scm_cons (scm_class_top, SCM_CDR (top)));
+	}
+      SCM_SET_SLOT (c, scm_si_direct_supers, dsupers);
+      /* patch scm_class_applicable into cpl */
+      top = scm_c_memq (scm_class_top, cpl);
+      if (SCM_FALSEP (top))
+	abort ();
+      else
+	{
+	  SCM_SETCAR (top, scm_class_applicable);
+	  SCM_SETCDR (top, scm_cons (scm_class_top, SCM_CDR (top)));
+	}
+      /* add class to direct-subclasses of scm_class_applicable */
+      SCM_SET_SLOT (scm_class_applicable,
+		    scm_si_direct_subclasses,
+		    scm_cons (c, SCM_SLOT (scm_class_applicable,
+					   scm_si_direct_subclasses)));
+    }
 }
 
 static void
@@ -2485,7 +2559,8 @@ create_smob_classes (void)
 
   for (i = 0; i < scm_numsmob; ++i)
     if (!scm_smob_class[i])
-      scm_smob_class[i] = scm_make_extended_class (SCM_SMOBNAME (i));
+      scm_smob_class[i] = scm_make_extended_class (SCM_SMOBNAME (i),
+						   scm_smobs[i].apply != 0);
 }
 
 void
@@ -2493,20 +2568,24 @@ scm_make_port_classes (long ptobnum, char *type_name)
 {
   SCM c, class = make_class_from_template ("<%s-port>",
 					   type_name,
-					   scm_list_1 (scm_class_port));
+					   scm_list_1 (scm_class_port),
+					   0);
   scm_port_class[SCM_IN_PCLASS_INDEX + ptobnum]
     = make_class_from_template ("<%s-input-port>",
 				type_name,
-				scm_list_2 (class, scm_class_input_port));
+				scm_list_2 (class, scm_class_input_port),
+				0);
   scm_port_class[SCM_OUT_PCLASS_INDEX + ptobnum]
     = make_class_from_template ("<%s-output-port>",
 				type_name,
-				scm_list_2 (class, scm_class_output_port));
+				scm_list_2 (class, scm_class_output_port),
+				0);
   scm_port_class[SCM_INOUT_PCLASS_INDEX + ptobnum]
     = c
     = make_class_from_template ("<%s-input-output-port>",
 				type_name,
-				scm_list_2 (class, scm_class_input_output_port));
+				scm_list_2 (class, scm_class_input_output_port),
+				0);
   /* Patch cpl (since this tree is too complex for the C level compute-cpl) */
   SCM_SET_SLOT (c, scm_si_cpl,
 		scm_cons2 (c, class, SCM_SLOT (scm_class_input_output_port, scm_si_cpl)));
@@ -2526,13 +2605,14 @@ create_port_classes (void)
 }
 
 static SCM
-make_struct_class (void *closure SCM_UNUSED, SCM key SCM_UNUSED,
-		   SCM data, SCM prev SCM_UNUSED)
+make_struct_class (void *closure SCM_UNUSED,
+		   SCM vtable, SCM data, SCM prev SCM_UNUSED)
 {
   if (!SCM_FALSEP (SCM_STRUCT_TABLE_NAME (data)))
     SCM_SET_STRUCT_TABLE_CLASS (data,
 				scm_make_extended_class
-				(SCM_SYMBOL_CHARS (SCM_STRUCT_TABLE_NAME (data))));
+				(SCM_SYMBOL_CHARS (SCM_STRUCT_TABLE_NAME (data)),
+				 SCM_CLASS_FLAGS (vtable) & SCM_CLASSF_OPERATOR));
   return SCM_UNSPECIFIED;
 }
 
