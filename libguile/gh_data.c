@@ -178,7 +178,8 @@ gh_scm2newstr (SCM str, int *lenp)
 
   len = SCM_LENGTH (str);
 
-  ret_str = (char *) malloc ((len + 1) * sizeof (char));
+  ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
+				      "gh_scm2newstr");
   /* so we copy tmp_str to ret_str, which is what we will allocate */
   memcpy (ret_str, SCM_CHARS (str), len);
   /* now make sure we null-terminate it */
@@ -239,7 +240,8 @@ gh_symbol2newstr (SCM sym, int *lenp)
 
   len = SCM_LENGTH (sym);
 
-  ret_str = (char *) malloc ((len + 1) * sizeof (char));
+  ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
+				      "gh_symbol2newstr");
   /* so we copy tmp_str to ret_str, which is what we will allocate */
   memcpy (ret_str, SCM_CHARS (sym), len);
   /* now make sure we null-terminate it */
