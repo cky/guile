@@ -380,7 +380,36 @@
      "He who receives an idea from me, receives instruction"
      15)))
 
-
+;; Test port-line and port-column for output ports
+
+(define (test-output-line-counter text final-column)
+  (with-test-prefix "port-line and port-column for output ports"
+    (let ((port (open-output-string)))
+      (pass-if "at beginning of input"
+	       (and (= (port-line port) 0)
+		    (= (port-column port) 0)))
+      (write-char #\x port)
+      (pass-if "after writing one character"
+	       (and (= (port-line port) 0)
+		    (= (port-column port) 1)))
+      (write-char #\newline port)
+      (pass-if "after writing first newline char"
+	       (and (= (port-line port) 1)
+		    (= (port-column port) 0)))
+      (display text port)
+      (pass-if "line count is 5 at end"
+	       (= (port-line port) 5))
+      (pass-if "column is correct at end"
+	       (= (port-column port) final-column)))))
+
+(test-output-line-counter
+ (string-append "He who receives an idea from me, receives instruction\n"
+		"himself without lessening mine; as he who lights his\n"
+		"taper at mine, receives light without darkening me.\n"
+		"  --- Thomas Jefferson\n"
+		"no newline here")
+ 15)
+
 ;;;; testing read-delimited and friends
 
 (with-test-prefix "read-delimited!"
