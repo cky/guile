@@ -1006,7 +1006,7 @@ scm_select (reads, writes, excepts, secs, usecs)
 int 
 scm_input_waiting_p (f, caller)
      FILE *f;
-     char *caller;
+     const char *caller;
 {
   if (feof (f))
     return 1;
@@ -1038,7 +1038,7 @@ scm_input_waiting_p (f, caller)
 int
 scm_input_waiting_p (f, caller)
      FILE *f;
-     char *caller;
+     const char *caller;
 {
   /* Can we return an end-of-file character? */
   if (feof (f))

@@ -230,7 +230,7 @@ scm_sym2ovcell (sym, obarray)
 
 SCM 
 scm_intern_obarray_soft (name, len, obarray, softness)
-     char *name;
+     const char *name;
      scm_sizet len;
      SCM obarray;
      int softness;
@@ -330,7 +330,7 @@ scm_intern_obarray_soft (name, len, obarray, softness)
 
 SCM
 scm_intern_obarray (name, len, obarray)
-     char *name;
+     const char *name;
      scm_sizet len;
      SCM obarray;
 {
@@ -340,7 +340,7 @@ scm_intern_obarray (name, len, obarray)
 
 SCM 
 scm_intern (name, len)
-     char *name;
+     const char *name;
      scm_sizet len;
 {
   return scm_intern_obarray (name, len, scm_symhash);
@@ -349,7 +349,7 @@ scm_intern (name, len)
 
 SCM
 scm_intern0 (name)
-     char * name;
+     const char * name;
 {
   return scm_intern (name, strlen (name));
 }
@@ -358,7 +358,7 @@ scm_intern0 (name)
 /* Intern the symbol named NAME in scm_symhash, NAME is null-terminated.  */
 SCM 
 scm_sysintern0_no_module_lookup (name)
-     char *name;
+     const char *name;
 {
   SCM easy_answer;
   SCM_DEFER_INTS;
@@ -395,7 +395,7 @@ int scm_can_use_top_level_lookup_closure_var;
  */
 SCM
 scm_sysintern (name, val)
-     char *name;
+     const char *name;
      SCM val;
 {
   SCM vcell = scm_sysintern0 (name);
@@ -405,7 +405,7 @@ scm_sysintern (name, val)
 
 SCM
 scm_sysintern0 (name)
-     char *name;
+     const char *name;
 {
   SCM lookup_proc;
   if (scm_can_use_top_level_lookup_closure_var && 
@@ -425,7 +425,7 @@ scm_sysintern0 (name)
    NAME in the current module.  */
 SCM
 scm_symbol_value0 (name)
-     char *name;
+     const char *name;
 {
   /* This looks silly - we look up the symbol twice.  But it is in
      fact necessary given the current module system because the module

@@ -467,7 +467,7 @@ long
 scm_aind (ra, args, what)
      SCM ra;
      SCM args;
-     char *what;
+     const char *what;
 {
   SCM ind;
   register long j;
@@ -519,7 +519,7 @@ static char s_bad_spec[] = "Bad scm_array dimension";
 SCM 
 scm_shap2ra (args, what)
      SCM args;
-     char *what;
+     const char *what;
 {
   scm_array_dim *s;
   SCM ra, spec, sp;

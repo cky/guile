@@ -80,7 +80,7 @@ extern scm_option scm_read_opts[];
 extern SCM scm_read_options SCM_P ((SCM setting));
 extern SCM scm_read SCM_P ((SCM port));
 extern char * scm_grow_tok_buf SCM_P ((SCM * tok_buf));
-extern int scm_flush_ws SCM_P ((SCM port, char *eoferr));
+extern int scm_flush_ws SCM_P ((SCM port, const char *eoferr));
 extern int scm_casei_streq SCM_P ((char * s1, char * s2));
 extern SCM scm_lreadr SCM_P ((SCM * tok_buf, SCM port, SCM *copy));
 extern scm_sizet scm_read_token SCM_P ((int ic, SCM * tok_buf, SCM port, int weird));

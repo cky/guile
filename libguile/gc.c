@@ -369,7 +369,7 @@ scm_gc_stats ()
 
 void 
 scm_gc_start (what)
-     char *what;
+     const char *what;
 {
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ());
   scm_gc_cells_collected = 0;
@@ -437,7 +437,7 @@ scm_gc_for_newcell ()
 
 void
 scm_igc (what)
-     char *what;
+     const char *what;
 {
   int j;
 
@@ -1427,7 +1427,7 @@ scm_gc_sweep ()
 char *
 scm_must_malloc (len, what)
      scm_sizet len;
-     char *what;
+     const char *what;
 {
   char *ptr;
   scm_sizet size = len;
@@ -1470,7 +1470,7 @@ char *
 scm_must_realloc (char *where,
 		  scm_sizet olen,
 		  scm_sizet len,
-		  char *what)
+		  const char *what)
 {
   char *ptr;
   scm_sizet size = len;

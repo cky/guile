@@ -264,7 +264,7 @@ scm_ramapc (cproc, data, ra0, lra, what)
      SCM data;
      SCM ra0;
      SCM lra;
-     char *what;
+     const char *what;
 {
   SCM inds, z;
   SCM vra0, ra1, vra1;

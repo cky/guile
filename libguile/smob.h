@@ -72,7 +72,7 @@ extern scm_smobfuns *scm_smobs;
 #include "libguile/markers.h"
 
 
-extern long scm_newsmob SCM_P ((scm_smobfuns *smob));
+extern long scm_newsmob SCM_P ((const scm_smobfuns *smob));
 extern void scm_smob_prehistory SCM_P ((void));
 
 #endif  /* SMOBH */

@@ -49,7 +49,8 @@
 
 
 extern int scm_ra_matchp SCM_P ((SCM ra0, SCM ras));
-extern int scm_ramapc SCM_P ((int (*cproc) (), SCM data, SCM ra0, SCM lra, char *what));
+extern int scm_ramapc SCM_P ((int (*cproc) (), SCM data, SCM ra0, SCM lra,
+			      const char *what));
 extern int scm_array_fill_int SCM_P ((SCM ra, SCM fill, SCM ignore));
 extern SCM scm_array_fill_x SCM_P ((SCM ra, SCM fill));
 extern SCM scm_array_copy_x SCM_P ((SCM src, SCM dst));

@@ -51,8 +51,8 @@
 
 static void *
 sysdep_dynl_link (fname, subr)
-     char *fname;
-     char *subr;
+     const char *fname;
+     const char *subr;
 {
     shl_t shl;
     
@@ -71,7 +71,7 @@ sysdep_dynl_link (fname, subr)
 static void
 sysdep_dynl_unlink (handle, subr)
      void *handle;
-     char *subr;
+     const char *subr;
 {
   if (shl_unload ((shl_t) handle))
     {
@@ -82,9 +82,9 @@ sysdep_dynl_unlink (handle, subr)
 
 static void *
 sysdep_dynl_func (symb, handle, subr)
-     char *symb;
+     const char *symb;
      void *handle;
-     char *subr;
+     const char *subr;
 {
     int status, i;
     struct shl_symbol *sym;

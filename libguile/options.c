@@ -121,7 +121,7 @@ scm_options (arg, options, n, s)
      SCM arg;
      scm_option options[];
      int n;
-     char *s;
+     const char *s;
 {
   int i, docp = (!SCM_UNBNDP (arg)
 		 && !SCM_NULLP (arg)

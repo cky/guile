@@ -259,7 +259,7 @@ static char tzvar[3] = "TZ";
 extern char ** environ;
 
 static char **
-setzone (SCM zone, int pos, char *subr)
+setzone (SCM zone, int pos, const char *subr)
 {
   char **oldenv = 0;
 
@@ -284,7 +284,7 @@ setzone (SCM zone, int pos, char *subr)
 }
 
 static void
-restorezone (SCM zone, char **oldenv, char *subr)
+restorezone (SCM zone, char **oldenv, const char *subr)
 {
   if (!SCM_UNBNDP (zone))
     {
@@ -380,7 +380,7 @@ scm_gmtime (SCM time)
 
 /* copy time components from a Scheme object to a struct tm.  */
 static void
-bdtime2c (SCM sbd_time, struct tm *lt, int pos, char *subr)
+bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 {
   SCM_ASSERT (SCM_NIMP (sbd_time) && SCM_VECTORP (sbd_time)
 	      && SCM_LENGTH (sbd_time) == 11

@@ -311,7 +311,7 @@ extern SCM scm_min SCM_P ((SCM x, SCM y));
 extern SCM scm_sum SCM_P ((SCM x, SCM y));
 extern SCM scm_difference SCM_P ((SCM x, SCM y));
 extern SCM scm_product SCM_P ((SCM x, SCM y));
-extern double scm_num2dbl SCM_P ((SCM a, char * why));
+extern double scm_num2dbl SCM_P ((SCM a, const char * why));
 extern SCM scm_divide SCM_P ((SCM x, SCM y));
 extern double scm_asinh SCM_P ((double x));
 extern double scm_acosh SCM_P ((double x));
@@ -334,9 +334,11 @@ extern double scm_big2dbl SCM_P ((SCM b));
 extern SCM scm_long2num SCM_P ((long sl));
 extern SCM scm_long_long2num SCM_P ((long_long sl));
 extern SCM scm_ulong2num SCM_P ((unsigned long sl));
-extern long scm_num2long SCM_P ((SCM num, char *pos, char *s_caller));
-extern long_long scm_num2long_long SCM_P ((SCM num, char *pos, char *s_caller));
-extern unsigned long scm_num2ulong SCM_P ((SCM num, char *pos, char *s_caller));
+extern long scm_num2long SCM_P ((SCM num, char *pos, const char *s_caller));
+extern long_long scm_num2long_long SCM_P ((SCM num, char *pos,
+					   const char *s_caller));
+extern unsigned long scm_num2ulong SCM_P ((SCM num, char *pos,
+					   const char *s_caller));
 extern void scm_init_numbers SCM_P ((void));
 
 #endif  /* NUMBERSH */

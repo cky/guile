@@ -64,8 +64,8 @@ extern int errno;
 void
 scm_error (key, subr, message, args, rest)
      SCM key;
-     char *subr;
-     char *message;
+     const char *subr;
+     const char *message;
      SCM args;
      SCM rest;
 {
@@ -122,7 +122,7 @@ scm_strerror (SCM err)
 SCM_SYMBOL (scm_system_error_key, "system-error");
 void
 scm_syserror (subr)
-     char *subr;
+     const char *subr;
 {
   scm_error (scm_system_error_key,
 	     subr,
@@ -134,8 +134,8 @@ scm_syserror (subr)
 
 void
 scm_syserror_msg (subr, message, args, eno)
-     char *subr;
-     char *message;
+     const char *subr;
+     const char *message;
      SCM args;
      int eno;
 {
@@ -148,7 +148,7 @@ scm_syserror_msg (subr, message, args, eno)
 
 void
 scm_sysmissing (subr)
-     char *subr;
+     const char *subr;
 {
 #ifdef ENOSYS
   scm_error (scm_system_error_key,
@@ -168,7 +168,7 @@ scm_sysmissing (subr)
 SCM_SYMBOL (scm_num_overflow_key, "numerical-overflow");
 void
 scm_num_overflow (subr)
-  char *subr;
+  const char *subr;
 {
   scm_error (scm_num_overflow_key,
 	     subr,
@@ -180,7 +180,7 @@ scm_num_overflow (subr)
 SCM_SYMBOL (scm_out_of_range_key, "out-of-range");
 void
 scm_out_of_range (subr, bad_value)
-     char *subr;
+     const char *subr;
      SCM bad_value;
 {
   scm_error (scm_out_of_range_key,
@@ -205,7 +205,7 @@ scm_wrong_num_args (proc)
 SCM_SYMBOL (scm_arg_type_key, "wrong-type-arg");
 void
 scm_wrong_type_arg (subr, pos, bad_value)
-     char *subr;
+     const char *subr;
      int pos;
      SCM bad_value;
 {
@@ -221,7 +221,7 @@ scm_wrong_type_arg (subr, pos, bad_value)
 SCM_SYMBOL (scm_memory_alloc_key, "memory-allocation-error");
 void
 scm_memory_error (subr)
-     char *subr;
+     const char *subr;
 {
   scm_error (scm_memory_alloc_key,
 	     subr,
@@ -233,8 +233,8 @@ scm_memory_error (subr)
 SCM_SYMBOL (scm_misc_error_key, "misc-error");
 void
 scm_misc_error (subr, message, args)
-     char *subr;
-     char *message;
+     const char *subr;
+     const char *message;
      SCM args;
 {
   scm_error (scm_misc_error_key, subr, message, args, SCM_BOOL_F);
@@ -244,8 +244,8 @@ scm_misc_error (subr, message, args)
 SCM
 scm_wta (arg, pos, s_subr)
      SCM arg;
-     char *pos;
-     char *s_subr;
+     const char *pos;
+     const char *s_subr;
 {
   if (!s_subr || !*s_subr)
     s_subr = NULL;

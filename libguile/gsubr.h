@@ -59,7 +59,8 @@
 
 extern SCM scm_f_gsubr_apply;
 
-extern SCM scm_make_gsubr SCM_P ((char *name, int req, int opt, int rst, SCM (*fcn)()));
+extern SCM scm_make_gsubr SCM_P ((const char *name, int req, int opt, int rst,
+				  SCM (*fcn)()));
 extern SCM scm_gsubr_apply SCM_P ((SCM args));
 extern void scm_init_gsubr SCM_P ((void));
 

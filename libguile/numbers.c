@@ -3832,7 +3832,7 @@ scm_product (x, y)
 double
 scm_num2dbl (a, why)
      SCM a;
-     char *why;
+     const char *why;
 {
   if (SCM_INUMP (a))
     return (double) SCM_INUM (a);
@@ -4205,15 +4205,15 @@ struct dpair
   double x, y;
 };
 
-static void scm_two_doubles SCM_P ((SCM z1,
-				    SCM z2,
-				    char *sstring,
-				    struct dpair * xy));
+static void scm_two_doubles (SCM z1,
+			     SCM z2,
+			     const char *sstring,
+			     struct dpair * xy);
 
 static void
 scm_two_doubles (z1, z2, sstring, xy)
      SCM z1, z2;
-     char *sstring;
+     const char *sstring;
      struct dpair *xy;
 {
   if (SCM_INUMP (z1))
@@ -4635,7 +4635,7 @@ long
 scm_num2long (num, pos, s_caller)
      SCM num;
      char *pos;
-     char *s_caller;
+     const char *s_caller;
 {
   long res;
   if (SCM_INUMP (num))
@@ -4688,7 +4688,7 @@ long_long
 scm_num2long_long (num, pos, s_caller)
      SCM num;
      char *pos;
-     char *s_caller;
+     const char *s_caller;
 {
   long_long res;
   if (SCM_INUMP (num))
@@ -4732,7 +4732,7 @@ unsigned long
 scm_num2ulong (num, pos, s_caller)
      SCM num;
      char *pos;
-     char *s_caller;
+     const char *s_caller;
 {
   unsigned long res;
   if (SCM_INUMP (num))

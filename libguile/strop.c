@@ -27,7 +27,7 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 
 
-static int scm_i_index SCM_P ((SCM * str, SCM chr, int direction, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why));
+static int scm_i_index SCM_P ((SCM * str, SCM chr, int direction, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, const char * why));
 
 /* implements index if direction > 0 otherwise rindex.  */
 static int
@@ -42,7 +42,7 @@ scm_i_index (str, chr, direction, sub_start, sub_end, pos, pos2, pos3, pos4,
      int pos2;
      int pos3;
      int pos4;
-     char * why;
+     const char * why;
 {
   unsigned char * p;
   int x;

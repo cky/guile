@@ -128,7 +128,7 @@ scm_grow_tok_buf (tok_buf)
 int 
 scm_flush_ws (port, eoferr)
      SCM port;
-     char *eoferr;
+     const char *eoferr;
 {
   register int c;
   while (1)

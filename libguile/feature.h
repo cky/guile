@@ -46,7 +46,7 @@
 
 #include "libguile/__scm.h"
 
-extern void scm_add_feature (char* str);
+extern void scm_add_feature (const char* str);
 extern SCM scm_program_arguments (void);
 extern void scm_set_program_arguments (int argc, char **argv, char *first);
 extern SCM scm_make_hook (SCM n_args);

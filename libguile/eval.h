@@ -118,13 +118,13 @@ extern SCM scm_eval_options_interface SCM_P ((SCM setting));
 #define SCM_EXTEND_ENV scm_acons
 
 
-extern char scm_s_expression[];
-extern char scm_s_test[];
-extern char scm_s_body[];
-extern char scm_s_bindings[];
-extern char scm_s_variable[];
-extern char scm_s_clauses[];
-extern char scm_s_formals[];
+extern const char scm_s_expression[];
+extern const char scm_s_test[];
+extern const char scm_s_body[];
+extern const char scm_s_bindings[];
+extern const char scm_s_variable[];
+extern const char scm_s_clauses[];
+extern const char scm_s_formals[];
 
 extern SCM scm_i_dot;
 extern SCM scm_i_quote;

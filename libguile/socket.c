@@ -67,12 +67,12 @@
 
 
 SCM_SYMBOL (sym_socket, "socket");
-static SCM scm_sock_fd_to_port SCM_P ((int fd, char *proc));
+static SCM scm_sock_fd_to_port SCM_P ((int fd, const char *proc));
 
 static SCM
 scm_sock_fd_to_port (fd, proc)
      int fd;
-     char *proc;
+     const char *proc;
 {
   SCM result;
   FILE *f;
@@ -318,7 +318,7 @@ scm_shutdown (sock, how)
    size returns the size of the structure allocated.  */
 
 
-static struct sockaddr * scm_fill_sockaddr SCM_P ((int fam, SCM address, SCM *args, int which_arg, char *proc, scm_sizet *size));
+static struct sockaddr * scm_fill_sockaddr SCM_P ((int fam, SCM address, SCM *args, int which_arg, const char *proc, scm_sizet *size));
 
 static struct sockaddr *
 scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
@@ -326,7 +326,7 @@ scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
      SCM address;
      SCM *args;
      int which_arg;
-     char *proc;
+     const char *proc;
      scm_sizet *size;
 {
   switch (fam)
@@ -443,12 +443,12 @@ scm_listen (sock, backlog)
 
 /* Put the components of a sockaddr into a new SCM vector.  */
 
-static SCM scm_addr_vector SCM_P ((struct sockaddr *address, char *proc));
+static SCM scm_addr_vector SCM_P ((struct sockaddr *address, const char *proc));
 
 static SCM
 scm_addr_vector (address, proc)
      struct sockaddr *address;
-     char *proc;
+     const char *proc;
 {
   short int fam = address->sa_family;
   SCM result;

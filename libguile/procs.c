@@ -55,7 +55,7 @@
 
 SCM 
 scm_make_subr_opt (name, type, fcn, set)
-     char *name;
+     const char *name;
      int type;
      SCM (*fcn) ();
      int set;
@@ -79,7 +79,7 @@ scm_make_subr_opt (name, type, fcn, set)
 
 SCM 
 scm_make_subr (name, type, fcn)
-     char *name;
+     const char *name;
      int type;
      SCM (*fcn) ();
 {
@@ -222,7 +222,7 @@ scm_procedure_documentation (proc)
 
 void
 scm_init_iprocs(subra, type)
-     scm_iproc *subra;
+     const scm_iproc *subra;
      int type;
 {
   for(;subra->scm_string; subra++)

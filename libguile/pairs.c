@@ -119,7 +119,7 @@ scm_set_cdr_x (pair, value)
 
 
 
-static scm_iproc cxrs[] = 
+static const scm_iproc cxrs[] = 
 {
   {"car", 0},
   {"cdr", 0},

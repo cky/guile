@@ -59,24 +59,25 @@ extern int scm_ints_disabled;
 #define SCM_NORETURN
 #endif
 
-extern void scm_error SCM_P ((SCM key, char *subr, char *message,
+extern void scm_error SCM_P ((SCM key, const char *subr, const char *message,
 			      SCM args, SCM rest)) SCM_NORETURN;
 extern SCM scm_error_scm SCM_P ((SCM key, SCM subr, SCM message,
 			      SCM args, SCM rest)) SCM_NORETURN;
 extern SCM scm_strerror (SCM err);
-extern void scm_syserror SCM_P ((char *subr)) SCM_NORETURN;
-extern void scm_syserror_msg SCM_P ((char *subr, char *message, SCM args,
-				     int eno)) SCM_NORETURN;
-extern void scm_sysmissing SCM_P ((char *subr)) SCM_NORETURN;
-extern void scm_num_overflow SCM_P ((char *subr)) SCM_NORETURN;
-extern void scm_out_of_range SCM_P ((char *subr, SCM bad_value)) SCM_NORETURN;
+extern void scm_syserror SCM_P ((const char *subr)) SCM_NORETURN;
+extern void scm_syserror_msg SCM_P ((const char *subr, const char *message,
+				     SCM args, int eno)) SCM_NORETURN;
+extern void scm_sysmissing SCM_P ((const char *subr)) SCM_NORETURN;
+extern void scm_num_overflow SCM_P ((const char *subr)) SCM_NORETURN;
+extern void scm_out_of_range SCM_P ((const char *subr, SCM bad_value))
+     SCM_NORETURN;
 extern void scm_wrong_num_args SCM_P ((SCM proc)) SCM_NORETURN;
-extern void scm_wrong_type_arg SCM_P ((char *subr, int pos, SCM bad_value))
-                                     SCM_NORETURN;
-extern void scm_memory_error SCM_P ((char *subr)) SCM_NORETURN;
-extern void scm_misc_error SCM_P ((char *subr, char *message, SCM args))
-				 SCM_NORETURN;
-extern SCM scm_wta SCM_P ((SCM arg, char *pos, char *s_subr));
+extern void scm_wrong_type_arg SCM_P ((const char *subr, int pos,
+				       SCM bad_value)) SCM_NORETURN;
+extern void scm_memory_error SCM_P ((const char *subr)) SCM_NORETURN;
+extern void scm_misc_error SCM_P ((const char *subr, const char *message,
+				   SCM args)) SCM_NORETURN;
+extern SCM scm_wta SCM_P ((SCM arg, const char *pos, const char *s_subr));
 extern void scm_init_error SCM_P ((void));
 
 #endif  /* ERRORH */

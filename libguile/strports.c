@@ -131,7 +131,7 @@ scm_mkstrport (pos, str, modes, caller)
      SCM pos;
      SCM str;
      long modes;
-     char * caller;
+     const char * caller;
 {
   SCM z;
   SCM stream;

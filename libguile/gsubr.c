@@ -63,7 +63,7 @@ SCM scm_f_gsubr_apply;
 
 SCM
 scm_make_gsubr(name, req, opt, rst, fcn)
-     char *name;
+     const char *name;
      int req;
      int opt;
      int rst;

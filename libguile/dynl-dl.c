@@ -55,8 +55,8 @@
 
 static void *
 sysdep_dynl_link (fname, subr)
-     char *fname;
-     char *subr;
+     const char *fname;
+     const char *subr;
 {
     void *handle = dlopen (fname, DLOPEN_MODE);
     if (NULL == handle)
@@ -70,7 +70,7 @@ sysdep_dynl_link (fname, subr)
 static void
 sysdep_dynl_unlink (handle, subr)
      void *handle;
-     char *subr;
+     const char *subr;
 {
     if (dlclose (handle))
       {
@@ -81,9 +81,9 @@ sysdep_dynl_unlink (handle, subr)
    
 static void *
 sysdep_dynl_func (symb, handle, subr)
-     char *symb;
+     const char *symb;
      void *handle;
-     char *subr;
+     const char *subr;
 {
     void *fptr;
     char *err;

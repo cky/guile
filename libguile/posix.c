@@ -720,7 +720,7 @@ scm_tcsetpgrp (port, pgid)
 /* Copy exec args from an SCM vector into a new C array.  */
 
 static char **
-scm_convert_exec_args (SCM args, int pos, char *subr)
+scm_convert_exec_args (SCM args, int pos, const char *subr)
 {
   char **execargv;
   int num_args;
@@ -787,7 +787,7 @@ scm_execlp (filename, args)
 }
 
 static char **
-environ_list_to_c (SCM envlist, int arg, char *proc)
+environ_list_to_c (SCM envlist, int arg, const char *proc)
 {
   int num_strings;
   char **result;

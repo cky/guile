@@ -75,13 +75,13 @@ maybe_drag_in_eprintf ()
    This code probably belongs into strings.c */
 
 static char **scm_make_argv_from_stringlist SCM_P ((SCM args, int *argcp,
-						    char *subr, int argn));
+						    const char *subr, int argn));
 
 static char **
 scm_make_argv_from_stringlist (args, argcp, subr, argn)
      SCM args;
      int *argcp;
-     char *subr;
+     const char *subr;
      int argn;
 {
     char **argv;
@@ -124,12 +124,12 @@ scm_must_free_argv(argv)
 /* Coerce an arbitrary readonly-string into a zero-terminated string.
  */
 
-static SCM scm_coerce_rostring SCM_P ((SCM rostr, char *subr, int argn));
+static SCM scm_coerce_rostring SCM_P ((SCM rostr, const char *subr, int argn));
 
 static SCM
 scm_coerce_rostring (rostr, subr, argn)
      SCM rostr;
-     char *subr;
+     const char *subr;
      int argn;
 {
     SCM_ASSERT (SCM_NIMP (rostr) && SCM_ROSTRINGP (rostr), rostr, argn, subr);
@@ -229,9 +229,10 @@ scm_clear_registered_modules ()
  */
 
 static void sysdep_dynl_init SCM_P ((void));
-static void *sysdep_dynl_link SCM_P ((char *filename, char *subr));
-static void sysdep_dynl_unlink SCM_P ((void *handle, char *subr));
-static void *sysdep_dynl_func SCM_P ((char *symbol, void *handle, char *subr));
+static void *sysdep_dynl_link SCM_P ((const char *filename, const char *subr));
+static void sysdep_dynl_unlink SCM_P ((void *handle, const char *subr));
+static void *sysdep_dynl_func SCM_P ((const char *symbol, void *handle,
+				      const char *subr));
 
 #ifdef HAVE_DLOPEN
 #include "dynl-dl.c"
@@ -260,8 +261,8 @@ no_dynl_error (subr)
     
 static void *
 sysdep_dynl_link (filename, subr)
-     char *filename;
-     char *subr;
+     const char *filename;
+     const char *subr;
 {
     no_dynl_error (subr);
     return NULL;
@@ -364,11 +365,11 @@ scm_dynamic_link (fname)
     return z;
 }
 
-static struct dynl_obj *get_dynl_obj SCM_P ((SCM obj, char *subr, int argn));
+static struct dynl_obj *get_dynl_obj SCM_P ((SCM obj, const char *subr, int argn));
 static struct dynl_obj *
 get_dynl_obj (dobj, subr, argn)
      SCM dobj;
-     char *subr;
+     const char *subr;
      int argn;
 {
     struct dynl_obj *d;

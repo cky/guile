@@ -47,7 +47,7 @@
 
 long scm_tc16_macro;
 
-static scm_smobfuns macrosmob = {scm_markcdr, scm_free0};
+static const scm_smobfuns macrosmob = {scm_markcdr, scm_free0};
 
 SCM_PROC(s_makacro, "procedure->syntax", 1, 0, 0, scm_makacro);
 
@@ -160,7 +160,7 @@ scm_macro_transformer (m)
 
 SCM
 scm_make_synt (name, macroizer, fcn)
-     char *name;
+     const char *name;
      SCM (*macroizer) ();
      SCM (*fcn) ();
 {

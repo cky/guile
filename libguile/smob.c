@@ -62,7 +62,7 @@ scm_smobfuns *scm_smobs;
 
 long 
 scm_newsmob (smob)
-     scm_smobfuns *smob;
+     const scm_smobfuns *smob;
 {
   char *tmp;
   if (255 <= scm_numsmob)
@@ -102,7 +102,7 @@ freeprint (SCM exp,
 }
 
 
-static scm_smobfuns freecell =
+static const scm_smobfuns freecell =
 {
   0,
   scm_free0,
@@ -110,7 +110,7 @@ static scm_smobfuns freecell =
   0
 };
 
-static scm_smobfuns flob =
+static const scm_smobfuns flob =
 {
   0,
   /*flofree*/ 0,
@@ -118,7 +118,7 @@ static scm_smobfuns flob =
   scm_floequal
 };
 
-static scm_smobfuns bigob =
+static const scm_smobfuns bigob =
 {
   0,
   /*bigfree*/ 0,

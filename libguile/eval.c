@@ -426,13 +426,13 @@ scm_eval_car (pair, env)
  * some memoized forms have different syntax 
  */
 
-char scm_s_expression[] = "missing or extra expression";
-char scm_s_test[] = "bad test";
-char scm_s_body[] = "bad body";
-char scm_s_bindings[] = "bad bindings";
-char scm_s_variable[] = "bad variable";
-char scm_s_clauses[] = "bad or missing clauses";
-char scm_s_formals[] = "bad formals";
+const char scm_s_expression[] = "missing or extra expression";
+const char scm_s_test[] = "bad test";
+const char scm_s_body[] = "bad body";
+const char scm_s_bindings[] = "bad bindings";
+const char scm_s_variable[] = "bad variable";
+const char scm_s_clauses[] = "bad or missing clauses";
+const char scm_s_formals[] = "bad formals";
 
 SCM scm_i_dot, scm_i_arrow, scm_i_else, scm_i_unquote, scm_i_uq_splicing, scm_i_apply;
 
@@ -3318,7 +3318,7 @@ scm_eval_x (obj)
 	       scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var)));
 }
 
-static scm_smobfuns promsmob = {scm_markcdr, scm_free0, prinprom};
+static const scm_smobfuns promsmob = {scm_markcdr, scm_free0, prinprom};
 
 
 /* At this point, scm_deval and scm_dapply are generated.
