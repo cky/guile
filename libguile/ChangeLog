@@ -1,3 +1,13 @@
+2001-08-17  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* gc.c: Fix omission bug: Add `heap_segment' forward decl
+	(proto) in the case when either `GUILE_DEBUG' or
+	`GUILE_DEBUG_FREELIST' preprocessor symbols are defined.
+
+	(map_free_list): Fix typo: Ref `f' correctly.
+
+	Thanks to Chris Cramer.
+
 2001-08-15  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (libguile_la_LDFLAGS): use libtool interface version
@@ -82,7 +92,7 @@
 2001-07-29  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Removed vcell slot from structs.
-	
+
 	* struct.h (scm_vtable_index_vcell): Removed.  Renumbered
 	subsequent indices.
 
@@ -104,7 +114,7 @@
 2001-07-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	"Glocs" have been removed.
-	
+
 	* tags.h: Update tag system docs.
 	(scm_tc3_cons_gloc): Renamed to scm_tc3_struct.  Changed all uses.
 	(scm_tcs_cons_gloc): Renamed to scm_tcs_struct.  Changed all uses.
@@ -117,7 +127,7 @@
 
 	* print.c (scm_iprin1): Remove printing of glocs.  Do not try to
 	tell glocs from structs.
-	
+
 	* gc.c (scm_gc_mark, scm_gc_sweep): Remove handling of glocs.
 
 	* eval.c (scm_m_atbind): Make a list of variables, not glocs.
@@ -130,7 +140,7 @@
 	(scm_m_atfop): Memoize as a variable, not as a gloc.
 	(scm_eval_args, scm_deval_args): Do not handle glocs.
 	(scm_ceval, scm_deval): Likewise.
-	
+
 	* eval.h (SCM_XEVALCAR): Do not test for glocs.
 	(SCM_GLOC_VAR, SCM_GLOC_VAL, SCM_GLOC_SET_VAL, SCM_GLOC_VAL_LOC):
 	Removed.
@@ -143,10 +153,10 @@
 
 	* __scm.h (SCM_CAUTIOS, SCM_RECKLESS): Update comments.
 
-	
+
 	* gc_os_dep.c (GC_noop1): Moved into the same #if/#endif context
 	where it is needed.
-	
+
 2001-07-25  Gary Houston  <ghouston@arglist.com>
 
 	* numbers.c (scm_logand, scm_logior, scm_logxor): adjusted the
@@ -186,7 +196,7 @@
 	(variable_equal_p): Removed.
 	(make_variable): Construct a tc7 object instead of a smob.
 	(scm_init_variable): Do not register smob.
-	
+
 2001-07-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tags.h: Include inttypes.h when we have it.
@@ -196,7 +206,7 @@
 	* tags.h (SCM_UNBOUND): Make it the 34th isym/iflag, the 33th slot
 	is taken by the new SCM_IM_CALL_WITH_VALUES.
 	* print.c (scm_isymnames): Update table accordingly.
-	
+
 2001-07-22  Gary Houston  <ghouston@arglist.com>
 
 	* regex-posix.c (s_scm_regexp_exec): use scm_long2num not
