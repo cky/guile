@@ -1,3 +1,10 @@
+2002-01-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* psyntax.ss (datum->syntax-object): Removed assertion in
+	datum->syntax-object that checked if the first argument, a
+	syntax-object, is an identifier.  This was a unconvenient and
+	unnecessary restriction.  Thanks to Dorai Sitaram!
+
 2002-01-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	More options for pretty-print.  Thanks to Matthias Köppe!
