@@ -36,11 +36,6 @@
      (cond ((< n 10)
 	    (let ((abbrev (string->symbol (format #f "~A:~A" inst n))))
 	      (if (instruction? abbrev) (list abbrev) code)))
-	   ((> n 255)
-	    (let ((double (string->symbol (format #f "~A*2" inst))))
-	      (if (instruction? double)
-		  (list double (quotient n 256) (modulo n 256))
-		  (apply error "Index out of range:" code))))
 	   (else code)))
     (else code)))
 
@@ -91,7 +86,8 @@
     (else #f)))
 
 (define (code->bytes code)
-  (let* ((inst (car code))
+  (let* ((code (code-pack code))
+	 (inst (car code))
 	 (rest (cdr code))
 	 (head (make-string 1 (integer->char (instruction->opcode inst))))
 	 (len (instruction-length inst)))

@@ -223,47 +223,51 @@ VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 
 #define BR(p)					\
 {						\
-  signed char offset = FETCH ();		\
+  int h = FETCH ();				\
+  int l = FETCH ();				\
+  signed short offset = (h << 8) + l;		\
   if (p)					\
     ip += offset;				\
   DROP ();					\
   NEXT;						\
 }
 
-VM_DEFINE_INSTRUCTION (br_if, "br-if", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (br, "br", 2, 0, 0)
+{
+  int h = FETCH ();
+  int l = FETCH ();
+  ip += (signed short) (h << 8) + l;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (br_if, "br-if", 2, 0, 0)
 {
   BR (!SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_not, "br-if-not", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (br_if_not, "br-if-not", 2, 0, 0)
 {
   BR (SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_eq, "br-if-eq", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (br_if_eq, "br-if-eq", 2, 0, 0)
 {
   BR (SCM_EQ_P (sp[0], sp--[1]));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_not_eq, "br-if-not-eq", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (br_if_not_eq, "br-if-not-eq", 2, 0, 0)
 {
   BR (!SCM_EQ_P (sp[0], sp--[1]));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_null, "br-if-null", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (br_if_null, "br-if-null", 2, 0, 0)
 {
   BR (SCM_NULLP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_not_null, "br-if-not-null", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (br_if_not_null, "br-if-not-null", 2, 0, 0)
 {
   BR (!SCM_NULLP (*sp));
-}
-
-VM_DEFINE_INSTRUCTION (jump, "jump", 1, 0, 0)
-{
-  ip += (signed char) FETCH ();
-  NEXT;
 }
 
 
@@ -305,8 +309,10 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
 	LOCAL_SET (i, SCM_UNDEFINED);
 
       /* Create external variables */
+      CACHE_EXTERNAL ();
       for (i = 0; i < bp->nexts; i++)
 	CONS (external, SCM_UNDEFINED, external);
+      SYNC_EXTERNAL ();
 
       ENTER_HOOK ();
       APPLY_HOOK ();
@@ -454,6 +460,7 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
   /* Restore the last program */
   program = SCM_VM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
+  CACHE_EXTERNAL ();
   PUSH (ret);
   NEXT;
 }

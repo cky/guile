@@ -64,10 +64,11 @@ make_vm_heap_frame (SCM *fp)
 {
   struct scm_vm_heap_frame *p =
     scm_must_malloc (sizeof (struct scm_vm_heap_frame), "make_vm_heap_frame");
-  p->fp           = fp;
-  p->program      = SCM_UNDEFINED;
-  p->variables    = SCM_UNDEFINED;
-  p->dynamic_link = SCM_UNDEFINED;
+  p->fp            = fp;
+  p->program       = SCM_UNDEFINED;
+  p->variables     = SCM_UNDEFINED;
+  p->dynamic_link  = SCM_UNDEFINED;
+  p->external_link = SCM_UNDEFINED;
   SCM_RETURN_NEWSMOB (scm_tc16_vm_heap_frame, p);
 }
 
@@ -77,7 +78,8 @@ vm_heap_frame_mark (SCM obj)
   struct scm_vm_heap_frame *p = SCM_VM_HEAP_FRAME_DATA (obj);
   scm_gc_mark (p->program);
   scm_gc_mark (p->variables);
-  return p->dynamic_link;
+  scm_gc_mark (p->dynamic_link);
+  return p->external_link;
 }
 
 /* Scheme interface */
@@ -143,6 +145,23 @@ SCM_DEFINE (scm_frame_dynamic_link, "frame-dynamic-link", 1, 0, 0,
     }
 
   return p->dynamic_link;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_frame_external_link, "frame-external-link", 1, 0, 0,
+	    (SCM frame),
+	    "")
+#define FUNC_NAME s_scm_frame_external_link
+{
+  struct scm_vm_heap_frame *p;
+
+  SCM_VALIDATE_VM_HEAP_FRAME (1, frame);
+  p = SCM_VM_HEAP_FRAME_DATA (frame);
+
+  if (SCM_UNBNDP (p->external_link))
+    p->external_link = SCM_VM_FRAME_EXTERNAL_LINK (p->fp);
+
+  return p->external_link;
 }
 #undef FUNC_NAME
 
@@ -213,7 +232,7 @@ vm_cont_free (SCM obj)
  * VM Internal functions
  */
 
-SCM_SYMBOL (sym_vm_engine, "vm-engine");
+SCM_SYMBOL (sym_vm_run, "vm-run");
 SCM_SYMBOL (sym_vm_error, "vm-error");
 
 static scm_byte_t *
@@ -307,7 +326,7 @@ vm_mark (SCM obj)
       for (; sp >= upper; sp--)
 	if (SCM_NIMP (*sp))
 	  scm_gc_mark (*sp);
-      fp = SCM_VM_STACK_ADDRESS (*sp);		/* dynamic link */
+      fp = SCM_VM_STACK_ADDRESS (sp[-1]);	/* dynamic link */
       /* Mark frame variables + program */
       for (sp -= 2; sp >= lower; sp--)
 	if (SCM_NIMP (*sp))
@@ -337,7 +356,7 @@ scm_vm_apply (SCM vm, SCM program, SCM args)
 #define FUNC_NAME "scm_vm_apply"
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return vm_engine (vm, program, args);
+  return vm_run (vm, program, args);
 }
 #undef FUNC_NAME
 

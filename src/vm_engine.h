@@ -132,8 +132,17 @@
 #define CACHE_PROGRAM()				\
 {						\
   bp = SCM_PROGRAM_DATA (program);		\
-  objects  = SCM_VELTS (bp->objs);		\
-  external = bp->external;			\
+  objects = SCM_VELTS (bp->objs);		\
+}
+
+#define CACHE_EXTERNAL()			\
+{						\
+  external = fp[bp->nargs + bp->nlocs];		\
+}
+
+#define SYNC_EXTERNAL()				\
+{						\
+  fp[bp->nargs + bp->nlocs] = external;		\
 }
 
 #define SYNC_BEFORE_GC()			\
@@ -280,17 +289,18 @@ do {						\
   SCM dl = SCM_VM_MAKE_STACK_ADDRESS (fp);	\
   ip = bp->base;				\
   fp = sp - bp->nargs + 1;			\
-  sp = sp + bp->nlocs + 2;			\
+  sp = sp + bp->nlocs + 3;			\
   CHECK_OVERFLOW ();				\
-  sp[0]  = dl;					\
-  sp[-1] = ra;					\
+  sp[0]  = ra;					\
+  sp[-1] = dl;					\
+  sp[-2] = bp->external;			\
 }
 
 #define FREE_FRAME()				\
 {						\
   SCM *new_sp = fp - 2;				\
   sp = fp + bp->nargs + bp->nlocs;		\
-  ip = SCM_VM_BYTE_ADDRESS (sp[0]);		\
+  ip = SCM_VM_BYTE_ADDRESS (sp[2]);		\
   fp = SCM_VM_STACK_ADDRESS (sp[1]);		\
   sp = new_sp;					\
 }

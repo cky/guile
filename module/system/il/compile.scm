@@ -136,14 +136,14 @@
 	 ;;     TEST
 	 ;;     (br-if-not L1)
 	 ;;     THEN
-	 ;;     (jump L2)
+	 ;;     (br L2)
 	 ;; L1: ELSE
 	 ;; L2:
 	 (let ((L1 (make-label)) (L2 (make-label)))
 	   (comp-push test)
 	   (push-code! (make-<glil-branch> 'br-if-not L1))
 	   (comp-tail then)
-	   (if (not tail) (push-code! (make-<glil-branch> 'jump L2)))
+	   (if (not tail) (push-code! (make-<glil-branch> 'br L2)))
 	   (push-code! (make-<glil-label> L1))
 	   (comp-tail else)
 	   (if (not tail) (push-code! (make-<glil-label> L2)))))

@@ -20,8 +20,8 @@
 ;;; Code:
 
 (define-module (system vm load)
-  :use-module (system vm core)
   :autoload (system base language) (compile-file-in lookup-language)
+  :use-module (system vm core)
   :use-module (ice-9 regex)
   :export (load/compile))
 

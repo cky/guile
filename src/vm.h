@@ -61,10 +61,11 @@
  */
 
 /*
-   |                  | <- fp + bp->nargs + bp->nlocs + 2
+   |                  | <- fp + bp->nargs + bp->nlocs + 3
    +------------------+    = SCM_VM_FRAME_UPPER_ADDRESS (fp)
+   | Return address   |
    | Dynamic link     |
-   | Return address   | <- fp + bp->nargs + bp->nlocs
+   | External link    | <- fp + bp->nargs + bp->nlocs
    | Local varialbe 1 |    = SCM_VM_FRAME_DATA_ADDRESS (fp)
    | Local variable 0 | <- fp + bp->nargs
    | Argument 1       |
@@ -74,15 +75,16 @@
    |                  |
 */
 
-#define SCM_VM_FRAME_LOWER_ADDRESS(fp)	(fp - 1)
 #define SCM_VM_FRAME_DATA_ADDRESS(fp)			\
   (fp + SCM_PROGRAM_NARGS (SCM_VM_FRAME_PROGRAM (fp))	\
       + SCM_PROGRAM_NLOCS (SCM_VM_FRAME_PROGRAM (fp)))
 #define SCM_VM_FRAME_UPPER_ADDRESS(fp)			\
-  (SCM_VM_FRAME_DATA_ADDRESS (fp) + 2)
+  (SCM_VM_FRAME_DATA_ADDRESS (fp) + 3)
+#define SCM_VM_FRAME_LOWER_ADDRESS(fp)	(fp - 1)
 
+#define SCM_VM_FRAME_RETURN_ADDRESS(fp)	SCM_VM_FRAME_DATA_ADDRESS (fp)[2]
 #define SCM_VM_FRAME_DYNAMIC_LINK(fp)	SCM_VM_FRAME_DATA_ADDRESS (fp)[1]
-#define SCM_VM_FRAME_RETURN_ADDRESS(fp)	SCM_VM_FRAME_DATA_ADDRESS (fp)[0]
+#define SCM_VM_FRAME_EXTERNAL_LINK(fp)	SCM_VM_FRAME_DATA_ADDRESS (fp)[0]
 #define SCM_VM_FRAME_VARIABLE(fp,i)	fp[i]
 #define SCM_VM_FRAME_PROGRAM(fp)	fp[-1]
 
@@ -95,6 +97,7 @@ struct scm_vm_heap_frame {
   SCM program;
   SCM variables;
   SCM dynamic_link;
+  SCM external_link;
 };
 
 extern scm_bits_t scm_tc16_vm_heap_frame;
@@ -106,6 +109,7 @@ extern scm_bits_t scm_tc16_vm_heap_frame;
 #define SCM_VM_HEAP_FRAME_PROGRAM(f)	SCM_VM_HEAP_FRAME_DATA (f)->program
 #define SCM_VM_HEAP_FRAME_VARIABLES(f)	SCM_VM_HEAP_FRAME_DATA (f)->variables
 #define SCM_VM_HEAP_FRAME_DYNAMIC_LINK(f) SCM_VM_HEAP_FRAME_DATA (f)->dynamic_link
+#define SCM_VM_HEAP_FRAME_EXTERNAL_LINK(f) SCM_VM_HEAP_FRAME_DATA (f)->external_link
 
 /*
  * VM

@@ -159,25 +159,21 @@ VM_DEFINE_LOADER (load_program, "load-program")
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (link, "link", 0, 2, 1)
+VM_DEFINE_INSTRUCTION (link, "link", 0, 1, 1)
 {
-  if (!SCM_FALSEP (sp[-1]))
-    {
-      sp[-1] = scm_c_env_vcell (sp[-1], sp[0], 1);
-      sp--;
-    }
-  else
-    {
-      /* Temporary hack that supports the current module system */
-      SCM mod = scm_current_module ();
-      SCM var = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
-					 *sp, SCM_BOOL_F);
-      if (SCM_FALSEP (var))
-	/* Create a new variable if not defined yet */
-	var = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
-				       *sp, SCM_BOOL_T);
-      *--sp = SCM_VARVCELL (var);
-    }
+#if 0
+  sp[-1] = scm_c_env_vcell (sp[-1], sp[0], 1);
+  sp--;
+#endif
+  /* Temporary hack that supports the current module system */
+  SCM mod = scm_current_module ();
+  SCM var = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
+				     *sp, SCM_BOOL_F);
+  if (SCM_FALSEP (var))
+    /* Create a new variable if not defined yet */
+    var = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
+				   *sp, SCM_BOOL_T);
+  *sp = SCM_VARVCELL (var);
   NEXT;
 }
 

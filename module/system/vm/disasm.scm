@@ -44,7 +44,8 @@
 	 (nlocs (caddr arity))
 	 (nexts (cadddr arity))
 	 (bytes (program-bytecode prog))
-	 (objs  (program-objects prog)))
+	 (objs  (program-objects prog))
+	 (exts  (program-external prog)))
     ;; Disassemble this bytecode
     (format #t "Disassembly of ~A:\n\n" prog)
     (format #t "nargs = ~A  nrest = ~A  nlocs = ~A  nexts = ~A\n\n"
@@ -53,6 +54,8 @@
     (disassemble-bytecode bytes objs)
     (if (> (vector-length objs) 0)
 	(disassemble-objects objs))
+    (if (pair? exts)
+	(disassemble-externals exts))
     ;; Disassemble other bytecode in it
     (for-each
      (lambda (x)
@@ -89,6 +92,15 @@
       (let ((info (object->string (vector-ref objs n))))
 	(print-info n info #f)))))
 
+(define (disassemble-externals exts)
+  (display "Externals:\n\n")
+  (let ((len (length exts)))
+    (do ((n 0 (1+ n))
+	 (l exts (cdr l)))
+	((null? l) (newline))
+      (let ((info (object->string (car l))))
+	(print-info n info #f)))))
+
 (define (disassemble-meta meta)
   (display "Meta info:\n\n")
   (for-each (lambda (data)
@@ -98,11 +110,12 @@
 
 (define (original-value addr code objs)
   (define (branch-code? code)
-    (string-match "^(br|jump)" (symbol->string (car code))))
+    (string-match "^br" (symbol->string (car code))))
   (let ((code (code-unpack code)))
     (cond ((code->object code) => object->string)
 	  ((branch-code? code)
-	   (format #f "-> ~A" (+ addr (cadr code) 2)))
+	   (let ((offset (+ (* (cadr code) 256) (caddr code))))
+	     (format #f "-> ~A" (+ addr offset 3))))
 	  (else
 	   (let ((inst (car code)) (args (cdr code)))
 	     (case inst

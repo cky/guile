@@ -41,7 +41,7 @@
 (define-structure (venv parent nexts closure?))
 (define-structure (vmod id))
 (define-structure (vlink module name))
-(define-structure (bytespec nargs nrest nlocs nexts bytes objs))
+(define-structure (bytespec nargs nrest nlocs nexts bytes objs closure?))
 
 
 ;;;
@@ -74,33 +74,17 @@
 	   (label-alist '())
 	   (object-alist '()))
        (define (push-code! code)
-	 (set! stack (optimizing-push code stack)))
+	 (set! stack (cons (code->bytes code) stack)))
        (define (push-object! x)
 	 (cond ((object->code x) => push-code!)
-	       (toplevel
-		;; top-level object-dump
-		(cond ((object-assoc x object-alist) =>
-		       (lambda (obj+index)
-			 (cond ((not (cdr obj+index))
-				(set-cdr! obj+index nlocs)
-				(set! nlocs (+ nlocs 1))))
-			 (push-code! `(local-ref ,(cdr obj+index)))))
-		      (else
-		       (set! object-alist (acons x #f object-alist))
-		       (push-code! `(object-dump ,x)))))
+	       (toplevel (dump-object! push-code! x))
 	       (else
-		;; local object-ref
 		(let ((i (cond ((object-assoc x object-alist) => cdr)
 			       (else
 				(let ((i (length object-alist)))
 				  (set! object-alist (acons x i object-alist))
 				  i)))))
 		  (push-code! `(object-ref ,i))))))
-       (define (label-ref key)
-	 (assq-ref label-alist key))
-       (define (label-set key)
-	 (let ((addr (apply + (map length stack))))
-	   (set! label-alist (assq-set! label-alist key addr))))
        (define (generate-code x)
 	 (match x
 	   (($ <vm-asm> venv)
@@ -108,7 +92,7 @@
 	    (if (venv-closure? venv) (push-code! `(make-closure))))
 
 	   (($ <glil-void>)
-	    (push-code! `(void)))
+	    (push-code! '(void)))
 
 	   (($ <glil-const> x)
 	    (push-object! x))
@@ -139,11 +123,14 @@
 		(push-code! '(variable-set))))
 
 	   (($ <glil-label> label)
-	    (label-set label))
+	    (define (byte-length x)
+	      (cond ((string? x) (string-length x))
+		    (else 3)))
+	    (let ((addr (apply + (map byte-length stack))))
+	      (set! label-alist (assq-set! label-alist label addr))))
 
 	   (($ <glil-branch> inst label)
-	    (let ((setter (lambda (addr) (- (label-ref label) addr))))
-	      (push-code! (list inst setter))))
+	    (set! stack (cons (list inst label) stack)))
 
 	   (($ <glil-call> inst nargs)
 	    (if (instruction? inst)
@@ -158,73 +145,31 @@
        ;;
        ;; main
        (for-each generate-code body)
-       (if toplevel
-	   ;; top-level
-	   (let ((new '()))
-	     (define (push-code! x)
-	       (set! new (cons x new)))
-	     (do ((stack (reverse! stack) (cdr stack)))
-		 ((null? stack)
-		  (make-dumpcode nlocs nexts (stack->bytes (reverse! new))))
-	       (if (eq? (caar stack) 'object-dump)
-		   (let ((x (cadar stack)))
-		     (dump-object! push-code! x)
-		     (cond ((object-assoc x object-alist) =>
-			    (lambda (obj+index)
-			      (cond ((cdr obj+index) =>
-				     (lambda (n)
-				       (push-code! '(dup))
-				       (push-code! `(local-set ,n)))))))))
-		   (push-code! (car stack)))))
-	   ;; closures
-	   (let ((bytes (stack->bytes (reverse! stack)))
-		 (objs (map car (reverse! object-alist))))
-	     (make-bytespec nargs nrest nlocs nexts bytes objs)))))))
+       (let ((bytes (stack->bytes (reverse! stack) label-alist)))
+	 (if toplevel
+	     (make-dumpcode nlocs nexts bytes)
+	     (let ((objs (map car (reverse! object-alist))))
+	       (make-bytespec nargs nrest nlocs nexts bytes objs
+			      (venv-closure? venv)))))))))
 
 (define (object-assoc x alist)
   (if (vlink? x) (assoc x alist) (assq x alist)))
 
-(define (stack->bytes stack)
+(define (stack->bytes stack label-alist)
   (let loop ((result '()) (stack stack) (addr 0))
     (if (null? stack)
 	(apply string-append (reverse! result))
-	(let* ((orig (car stack))
-	       (addr (+ addr (length orig)))
-	       (code (if (and (pair? (cdr orig)) (procedure? (cadr orig)))
-			 `(,(car orig) ,((cadr orig) addr))
-			 orig)))
-	  (loop (cons (code->bytes code) result) (cdr stack) addr)))))
-
-
-;;;
-;;; Bytecode optimization
-;;;
-
-(define *optimization-table*
-  '((not       (not       . not-not)
-	       (eq?       . not-eq?)
-	       (null?     . not-null?)
-	       (not-not   . not)
-	       (not-eq?   . eq?)
-	       (not-null? . null?))
-    (br-if     (not       . br-if-not)
-	       (eq?       . br-if-eq)
-	       (null?     . br-if-null)
-	       (not-not   . br-if)
-	       (not-eq?   . br-if-not-eq)
-	       (not-null? . br-if-not-null))
-    (br-if-not (not       . br-if)
-	       (eq?       . br-if-not-eq)
-	       (null?     . br-if-not-null)
-	       (not-not   . br-if-not)
-	       (not-eq?   . br-if-eq)
-	       (not-null? . br-if-null))))
-
-(define (optimizing-push code stack)
-  (let ((alist (assq-ref *optimization-table* (car code))))
-    (cond ((and alist (pair? stack) (assq-ref alist (caar stack))) =>
-	   (lambda (inst) (cons (cons inst (cdr code)) (cdr stack))))
-	  (else (cons (code-pack code) stack)))))
+	(let ((bytes (car stack)))
+	  (if (pair? bytes)
+	      (let* ((offset (- (assq-ref label-alist (cadr bytes))
+				(+ addr 3)))
+		     (n (if (< offset 0) (+ offset 65536) offset)))
+		(set! bytes (code->bytes (list (car bytes)
+					       (quotient n 256)
+					       (modulo n 256))))))
+	  (loop (cons bytes result)
+		(cdr stack)
+		(+ addr (string-length bytes)))))))
 
 
 ;;;
@@ -239,7 +184,7 @@
      ((object->code x) => push-code!)
      ((bytespec? x)
       (match x
-	(($ bytespec nargs nrest nlocs nexts bytes objs)
+	(($ bytespec nargs nrest nlocs nexts bytes objs closure?)
 	 ;; dump parameters
 	 (cond
 	  ((and (< nargs 4) (< nlocs 8) (< nexts 4))
@@ -264,7 +209,7 @@
 	 ;; dump bytecode
 	 (push-code! `(load-program ,bytes)))))
      ((vlink? x)
-      (dump! (vlink-module x))
+      ;;; (dump! (vlink-module x))  ;; FIXME: no module support now
       (dump! (vlink-name x))
       (push-code! `(link)))
      ((vmod? x)

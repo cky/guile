@@ -28,23 +28,6 @@
 
 
 ;;;
-;;; Macro expander
-;;;
-
-(define (expand x)
-  (expand-macro x (current-module)))
-
-(define (expand-macro x m)
-  (if (pair? x)
-      (let* ((s (car x))
-	     (v (and (symbol? s) (module-defined? m s) (module-ref m s))))
-	(if (defmacro? v)
-	    (expand-macro (apply (defmacro-transformer v) (cdr x)) m)
-	    (cons (expand-macro (car x) m) (expand-macro (cdr x) m))))
-      x))
-
-
-;;;
 ;;; Translator
 ;;;
 
@@ -111,10 +94,22 @@
 					  (_loop ,@(map translate update)))))))
 		    (_loop ,@(map translate init))))))
       (else
-       (let ((prim (and (symbol? head) (symbol-append '@ head))))
-	 (if (and prim (ghil-primitive? prim))
-	     (cons prim (map translate rest))
-	     (cons (translate head) (map translate rest))))))))
+       (let ((e (expand x)))
+	 (if (eq? e x)
+	     (let ((prim (and (symbol? head) (symbol-append '@ head))))
+	       (if (and prim (ghil-primitive? prim))
+		   (cons prim (map translate rest))
+		   (cons (translate head) (map translate rest))))
+	     (translate e)))))))
+
+(define (expand x)
+  (if (and (symbol? (car x))
+	   (module-defined? (current-module) (car x)))
+      (let ((v (module-ref (current-module) (car x))))
+	(if (defmacro? v)
+	    (apply (defmacro-transformer v) (cdr x))
+	    x))
+      x))
 
 
 ;;;
@@ -125,7 +120,6 @@
   :title	"Guile Scheme"
   :version	"0.4"
   :reader	read
-  :expander	expand
   :translator	translate
   :printer	write
   )

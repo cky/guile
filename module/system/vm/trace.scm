@@ -20,6 +20,7 @@
 ;;; Code:
 
 (define-module (system vm trace)
+  :use-syntax (system base syntax)
   :use-module (system vm core)
   :use-module (system vm frame)
   :use-module (ice-9 format)
@@ -49,7 +50,7 @@
       (case (car opts)
 	((:s) (format #t "~20S" (vm-fetch-stack vm)))
 	((:v) (format #t "~20S" (frame-variables frame)))
-	((:e) (format #t "~20S" (program-external (frame-program frame))))))))
+	((:e) (format #t "~20A" (object->string (frame-external-link frame))))))))
 
 (define (trace-apply vm)
   (if (vm-option vm 'trace-first)

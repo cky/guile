@@ -44,7 +44,7 @@
 #include "vm_engine.h"
 
 static SCM
-vm_engine (SCM vm, SCM program, SCM args)
+vm_run (SCM vm, SCM program, SCM args)
 #define FUNC_NAME "vm-engine"
 {
   /* VM registers */
@@ -55,7 +55,7 @@ vm_engine (SCM vm, SCM program, SCM args)
   /* Cache variables */
   struct scm_vm *vp = SCM_VM_DATA (vm);	/* VM data pointer */
   struct scm_program *bp = NULL;	/* program base pointer */
-  SCM external;				/* external environment */
+  SCM external = SCM_EOL;		/* external environment */
   SCM *objects = NULL;			/* constant objects */
   SCM *stack_base = vp->stack_base;	/* stack base address */
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
@@ -161,7 +161,7 @@ vm_engine (SCM vm, SCM program, SCM args)
   vm_error:
     SYNC_ALL ();
     scm_ithrow (sym_vm_error,
-		SCM_LIST4 (sym_vm_engine, err_msg, err_args,
+		SCM_LIST4 (sym_vm_run, err_msg, err_args,
 			   scm_vm_current_frame (vm)),
 		1);
   }
