@@ -1745,8 +1745,9 @@ static char cnt_tab[16] =
 {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 
 SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
-           (SCM b, SCM bitvector),
-	    "Returns the number of occurrences of the boolean B in BITVECTOR.")
+	    (SCM b, SCM bitvector),
+	    "Returns the number of occurrences of the boolean @var{b} in\n"
+	    "@var{bitvector}.")
 #define FUNC_NAME s_scm_bit_count
 {
   SCM_VALIDATE_BOOL (1, b);
@@ -1845,14 +1846,15 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 
 
 SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
-           (SCM v, SCM kv, SCM obj),
-	    "If uve is a bit-vector @var{bv} and uve must be of the same length.  If\n"
-	    "@var{bool} is @code{#t}, uve is OR'ed into @var{bv}; If @var{bool} is @code{#f}, the\n"
-	    "inversion of uve is AND'ed into @var{bv}.\n\n"
-	    "If uve is a unsigned integer vector all the elements of uve must be\n"
-	    "between 0 and the @code{LENGTH} of @var{bv}.  The bits of @var{bv}\n"
-	    "corresponding to the indexes in uve are set to @var{bool}.\n\n"
-	    "The return value is unspecified.")
+	    (SCM v, SCM kv, SCM obj),
+	    "If uve is a bit-vector @var{bv} and uve must be of the same\n"
+	    "length.  If @var{bool} is @code{#t}, uve is OR'ed into\n"
+	    "@var{bv}; If @var{bool} is @code{#f}, the inversion of uve is\n"
+	    "AND'ed into @var{bv}.\n\n"
+	    "If uve is a unsigned integer vector all the elements of uve\n"
+	    "must be between 0 and the @code{length} of @var{bv}.  The bits\n"
+	    "of @var{bv} corresponding to the indexes in uve are set to\n"
+	    "@var{bool}.  The return value is unspecified.")
 #define FUNC_NAME s_scm_bit_set_star_x
 {
   register long i, k, vlen;
