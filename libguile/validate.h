@@ -358,7 +358,7 @@
 #define SCM_VALIDATE_VECTOR_OR_DVECTOR(pos, v) \
   do { \
     SCM_ASSERT ((SCM_VECTORP (v) \
-                || (!SCM_IMP (v) && SCM_TYP7 (v) == scm_tc7_dvect)), \
+                || (scm_is_true (scm_f64vector_p (v)))), \
                 v, pos, FUNC_NAME); \
   } while (0)
 
