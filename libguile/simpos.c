@@ -93,6 +93,16 @@ scm_getenv(nam)
   return (val) ? scm_makfromstr(val, (scm_sizet)strlen(val), 0) : SCM_BOOL_F;
 }
 
+/* I have a feeling this whole arrangement below is a bad idea.  One
+   should always test for the presence or absence of a particular
+   feature, instead of checking the system name.  Older versions of a
+   system may lack features posessed by new ones, and a feature
+   appearing on one system will soon appear on others.  And autoconf
+   provides the mechanisms for detecting features.  -JimB  */
+
+#ifdef _AIX
+# define SYSTNAME "AIX"
+#endif
 #ifdef vms
 # define SYSTNAME "VMS"
 #endif
