@@ -64,6 +64,7 @@ maybe_drag_in_eprintf ()
   SCM_CRITICAL_SECTION_END were used: they are mentioned here in case
   somebody is grepping for thread problems ;)
 */
+/* njrev: not threadsafe, protection needed as described above */
 
 static void *
 sysdep_dynl_link (const char *fname, const char *subr)
