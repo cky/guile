@@ -1,3 +1,12 @@
+2001-06-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* extensions.c (scm_c_register_extension): Allow NULL as library
+	name.
+	(load_extension): Ignore NULL library names when comparing.
+	
+	* hash.c (scm_hasher): Use SCM_UNPACK in the case labels so that
+	non-pointers are being compared.  Thanks to Alexander Klimov!
+
 2001-06-04  Gary Houston  <ghouston@arglist.com>
 
 	* rw.c (scm_write_string_partial): new procedure implementing
@@ -5,6 +14,12 @@
 	* rw.h: declare scm_write_string_partial.
 	
 2001-06-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* keywords.c (keyword_print): Substract 1 from length of symbol
+	name, accounting for the silly dash.
+
+	* dynl.c (scm_registered_modules, scm_clear_registered_modules):
+	Do not emit deprecation warning.
 
 	Added exception notice to all files.
 

@@ -1,3 +1,25 @@
+2001-06-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (module-ensure-local-variable!): Renamed from
+	`module-ensure-variable!'.  Make sure that there really is a local
+	variable, not just a visible one.
+	(module-ensure-variable!): See above.
+	(module-export!): Behave like always when deprecated features are
+	enabled, but issue a warning when re-exporting a variable.  When
+	deprecated features are disabled, only export local variables,
+	creating them uninitialized when they don't yet exist.
+	(module-re-export!): New.  Use this for re-exporting imported
+	variables.
+	(re-export): New, to go with `module-re-export!'.
+	
+	* format.scm: Added kluge at top that keeps `export' from
+	re-exporting the `format' variable of the `(guile)' module.
+
+2001-06-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (named-module-use!, top-repl): Use resolve-interface
+	instead of resolve-module to get at the used module.
+
 2001-06-04  Gary Houston  <ghouston@arglist.com>
 
 	* rw.scm: export write-string/partial.

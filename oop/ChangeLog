@@ -1,3 +1,8 @@
+2001-06-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* goops.scm: Use `re-export' instead of `export' when re-exporting
+	`class-of'.
+
 2001-05-19  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* goops.scm: Call `%init-goops-builtins' instead of using the
