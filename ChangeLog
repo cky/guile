@@ -1,3 +1,8 @@
+2003-05-12  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (SCM_I_GSC_STACK_GROWS_UP): Fix missing comma in
+	AC_TRY_RUN.
+
 2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* libguile.h: Removed uses of DEBUG_EXTENSIONS to fix compile
