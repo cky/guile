@@ -1,4 +1,4 @@
-;;; $Id: doc.scm,v 1.1 1999-12-13 03:19:11 gjb Exp $
+;;; $Id: doc.scm,v 1.2 1999-12-15 16:32:36 gjb Exp $
 ;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@
     (if (string? (car zz)) (display (car zz) port) (write (car zz) port))))
 
 (define-public doc-files
-  (list (string-append (library-dir) "/guile-procedures.txt")
+  (list (string-append (%library-dir) "/guile-procedures.txt")
 	"./guile-procedures.txt"))
 
 (define-public (hook-documentation hook)
