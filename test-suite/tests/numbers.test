@@ -1955,4 +1955,19 @@
 	 (i 0  (1+ i)))
 	((> i 256))
       (pass-if n
+	(= i (logcount n)))))
+
+  (with-test-prefix "2^i"
+    (do ((n 1 (ash n 1))
+	 (i 0  (1+ i)))
+	((> i 256))
+      (pass-if n
+	(= 1 (logcount n)))))
+
+  (with-test-prefix "2^i-1"
+    (do ((n 0 (1+ (ash n 1)))
+	 (i 0  (1+ i)))
+	((> i 256))
+      (pass-if n
 	(= i (logcount n))))))
+
