@@ -212,7 +212,7 @@ If STREAM has infinite length this procedure will not terminate."
         (f (stream-car stream))
         (stream-for-each-one f (stream-cdr stream)))))
 
-(define (stream-for-each-may f streams)
+(define (stream-for-each-many f streams)
   (if (not (or-map stream-null? streams))
       (begin
         (apply f (map stream-car streams))
