@@ -172,7 +172,7 @@ AC_MINIX
 AM_PROG_CC_STDC
 AM_PROG_LIBTOOL
 
-AC_CHECK_PROG(have_makeinfo, maakeinfo, yes, no)
+AC_CHECK_PROG(have_makeinfo, makeinfo, yes, no)
 AM_CONDITIONAL(HAVE_MAKEINFO, test "$have_makeinfo" = yes)
 
 AC_C_CONST
