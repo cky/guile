@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.7 2000-04-17 02:55:00 mdj Exp $ */
+/* $Id: validate.h,v 1.8 2000-04-17 03:17:02 mdj Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -159,10 +159,19 @@
 
 #define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE (pos, z, REALP)
 
-#define SCM_VALIDATE_REAL_COPY(pos, z, cvar)		\
-  do {							\
-    SCM_ASSERT (SCM_REALP (z), z, pos, FUNC_NAME);	\
-    cvar = SCM_REAL_VALUE (z);				\
+#define SCM_VALIDATE_NUMBER_COPY(pos, z, cvar)	\
+  do {						\
+    if (SCM_INUMP (z))				\
+      cvar = (double) SCM_INUM (z);		\
+    else if (SCM_REALP (z))			\
+      cvar = SCM_REAL_VALUE (z);		\
+    else if (SCM_BIGP (z))			\
+      cvar = scm_big2dbl (z);			\
+    else					\
+      {						\
+	cvar = 0.0;				\
+        SCM_WTA (pos, z);			\
+      }						\
   } while (0)
 
 #define SCM_VALIDATE_INUM(pos, k) SCM_MAKE_VALIDATE (pos, k, INUMP)
