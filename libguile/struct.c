@@ -133,10 +133,8 @@ scm_make_struct_layout (fields)
 
 
 
-static void init_struct SCM_P ((SCM handle, int tail_elts, SCM inits));
-
-static void
-init_struct (handle, tail_elts, inits)
+void
+scm_struct_init (handle, tail_elts, inits)
      SCM handle;
      int tail_elts;
      SCM inits;
@@ -179,7 +177,7 @@ init_struct (handle, tail_elts, inits)
 	    *mem = 0;
 	  else
 	    {
-	      *mem = scm_num2long (SCM_CAR (inits), SCM_ARGn, "init_struct");
+	      *mem = scm_num2long (SCM_CAR (inits), SCM_ARGn, "scm_struct_init");
 	      inits = SCM_CDR (inits);
 	    }
 	  break;
@@ -190,7 +188,7 @@ init_struct (handle, tail_elts, inits)
 	    *mem = 0;
 	  else
 	    {
-	      *mem = scm_num2ulong (SCM_CAR (inits), SCM_ARGn, "init_struct");
+	      *mem = scm_num2ulong (SCM_CAR (inits), SCM_ARGn, "scm_struct_init");
 	      inits = SCM_CDR (inits);
 	    }
 	  break;
@@ -212,7 +210,7 @@ init_struct (handle, tail_elts, inits)
 	    *((double *)mem) = 0.0;
 	  else
 	    {
-	      *mem = scm_num2dbl (SCM_CAR (inits), "init_struct");
+	      *mem = scm_num2dbl (SCM_CAR (inits), "scm_struct_init");
 	      inits = SCM_CDR (inits);
 	    }
 	  fields_desc += 2;
@@ -312,25 +310,21 @@ scm_struct_vtable_p (x)
      Ugh.  */
 
 
-static SCM *alloc_struct SCM_P ((int n_words, char *who));
-
-static SCM *
-alloc_struct (n_words, who)
-     int n_words;
-     char *who;
+SCM *
+scm_alloc_struct (int n_words, int n_extra, char *who)
 {
-  int size = sizeof (SCM) * (n_words + scm_struct_n_extra_words) + 7;
+  int size = sizeof (SCM) * (n_words + n_extra) + 7;
   SCM *block = (SCM *) scm_must_malloc (size, who);
 
   /* Adjust the pointer to hide the extra words.  */
-  SCM *p = block + scm_struct_n_extra_words;
+  SCM *p = block + n_extra;
 
   /* Adjust it even further so it's aligned on an eight-byte boundary.  */
   p = (SCM *) (((SCM) p + 7) & ~7);
 
   /* Initialize a few fields as described above.  */
   p[scm_struct_i_ptr] = (SCM) block;
-  p[scm_struct_i_n_words] = (SCM) (scm_struct_n_extra_words + n_words);
+  p[scm_struct_i_n_words] = (SCM) (n_words + n_extra);
   p[scm_struct_i_tag] = struct_num++;
 
   return p;
@@ -361,10 +355,23 @@ scm_make_struct (vtable, tail_array_size, init)
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  data = alloc_struct (basic_size + tail_elts, "make-struct");
+  if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
+    {
+      data = scm_alloc_struct (basic_size + tail_elts,
+			       scm_struct_n_extra_words + 4,
+			       "make-struct");
+      data[scm_struct_i_proc + 0] = SCM_BOOL_F;
+      data[scm_struct_i_proc + 1] = SCM_BOOL_F;
+      data[scm_struct_i_proc + 2] = SCM_BOOL_F;
+      data[scm_struct_i_proc + 3] = SCM_BOOL_F;
+    }
+  else
+    data = scm_alloc_struct (basic_size + tail_elts,
+			     scm_struct_n_extra_words,
+			     "make-struct");
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)SCM_STRUCT_DATA (vtable)) + scm_tc3_cons_gloc);
-  init_struct (handle, tail_elts, init);
+  scm_struct_init (handle, tail_elts, init);
   SCM_ALLOW_INTS;
   return handle;
 }
@@ -399,11 +406,13 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  data = alloc_struct (basic_size + tail_elts, "make-vtable-vtable");
+  data = scm_alloc_struct (basic_size + tail_elts,
+			   scm_struct_n_extra_words,
+			   "make-vtable-vtable");
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)data) + scm_tc3_cons_gloc);
   SCM_STRUCT_LAYOUT (handle) = layout;
-  init_struct (handle, tail_elts, scm_cons (layout, init));
+  scm_struct_init (handle, tail_elts, scm_cons (layout, init));
   SCM_ALLOW_INTS;
   return handle;
 }
