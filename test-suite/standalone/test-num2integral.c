@@ -20,16 +20,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-/* if you need to change this, change numbers.c as well */
-#if SCM_SIZEOF_LONG_LONG != 0
-# ifndef LLONG_MAX
-#  define ULLONG_MAX ((unsigned long long) (-1))
-#  define LLONG_MAX ((long long) (ULLONG_MAX >> 1))
-#  define LLONG_MIN (~LLONG_MAX)
-# endif
-#endif
-
-
 SCM out_of_range_handler (void *data, SCM key, SCM args);
 SCM call_num2long_long_body (void *data);
 SCM call_num2ulong_long_body (void *data);
@@ -61,31 +51,31 @@ test_long_long ()
 {
 #if SCM_SIZEOF_LONG_LONG != 0
   {
-    SCM n = scm_long_long2num (LLONG_MIN);
+    SCM n = scm_long_long2num (SCM_I_LLONG_MIN);
     long long result = scm_num2long_long(n, 0, "main");
-    assert (result == LLONG_MIN);
+    assert (result == SCM_I_LLONG_MIN);
   }
 
   /* LLONG_MIN - 1 */
   {
-    SCM n = scm_difference (scm_long_long2num (LLONG_MIN), SCM_MAKINUM(1));
+    SCM n = scm_difference (scm_long_long2num (SCM_I_LLONG_MIN), scm_from_int (1));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
     assert (scm_is_true (caught));
   }
 
-  /* LLONG_MIN + LLONG_MIN/2 */
+  /* SCM_I_LLONG_MIN + SCM_I_LLONG_MIN/2 */
   {
-    SCM n = scm_sum (scm_long_long2num (LLONG_MIN),
-                     scm_long_long2num (LLONG_MIN / 2));
+    SCM n = scm_sum (scm_long_long2num (SCM_I_LLONG_MIN),
+                     scm_long_long2num (SCM_I_LLONG_MIN / 2));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
     assert (scm_is_true (caught));
   }
 
-  /* LLONG_MAX + 1 */
+  /* SCM_I_LLONG_MAX + 1 */
   {
-    SCM n = scm_sum (scm_long_long2num (LLONG_MAX), SCM_MAKINUM(1));
+    SCM n = scm_sum (scm_long_long2num (SCM_I_LLONG_MAX), scm_from_int (1));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
     assert (scm_is_true (caught));
@@ -93,7 +83,7 @@ test_long_long ()
 
   /* 2^1024 */
   {
-    SCM n = scm_ash (SCM_MAKINUM (1), SCM_MAKINUM (1024));
+    SCM n = scm_ash (scm_from_int (1), scm_from_int (1024));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
     assert (scm_is_true (caught));
@@ -101,8 +91,8 @@ test_long_long ()
 
   /* -2^1024 */
   {
-    SCM n = scm_difference (SCM_MAKINUM (0),
-                            scm_ash (SCM_MAKINUM (1), SCM_MAKINUM (1024)));
+    SCM n = scm_difference (scm_from_int (0),
+                            scm_ash (scm_from_int (1), scm_from_int (1024)));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
     assert (scm_is_true (caught));
@@ -117,22 +107,22 @@ test_ulong_long ()
 #if SCM_SIZEOF_LONG_LONG != 0
 
   {
-    SCM n = scm_ulong_long2num (ULLONG_MAX);
+    SCM n = scm_ulong_long2num (SCM_I_ULLONG_MAX);
     unsigned long long result = scm_num2ulong_long(n, 0, "main");
-    assert (result == ULLONG_MAX);
+    assert (result == SCM_I_ULLONG_MAX);
   }
 
   /* -1 */
   {
-    SCM n = SCM_MAKINUM (-1);
+    SCM n = scm_from_int (-1);
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2ulong_long_body, &n,
                                      out_of_range_handler, NULL);
     assert (scm_is_true (caught));
   }
 
-  /* ULLONG_MAX + 1 */
+  /* SCM_I_ULLONG_MAX + 1 */
   {
-    SCM n = scm_sum (scm_ulong_long2num (ULLONG_MAX), SCM_MAKINUM(1));
+    SCM n = scm_sum (scm_ulong_long2num (SCM_I_ULLONG_MAX), scm_from_int (1));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2ulong_long_body, &n,
                                      out_of_range_handler, NULL);
     assert (scm_is_true (caught));
@@ -140,7 +130,7 @@ test_ulong_long ()
 
   /* 2^1024 */
   {
-    SCM n = scm_ash (SCM_MAKINUM (1), SCM_MAKINUM (1024));
+    SCM n = scm_ash (scm_from_int (1), scm_from_int (1024));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
     assert (scm_is_true (caught));
