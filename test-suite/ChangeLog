@@ -1,8 +1,14 @@
 1999-06-09  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* tests/ports.test ("line counter"): Verify that we do eventually
+	get EOF on the port --- don't just read forever.
+
 	* lib.scm (full-reporter): The test name is the cadr of the
 	result, not the cdr.  I'm not macho enough to handle run-time
 	typechecking.
+
+	* lib.scm (print-counts): XFAILS are "expected failures", not
+	"unexpected failures."
 
 	* lib.scm, guile-test, paths.scm: Log begins.
 
