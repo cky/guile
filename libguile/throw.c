@@ -265,7 +265,7 @@ make_lazy_catch (struct lazy_catch *c)
 
 /* Exactly like scm_internal_catch, except:
    - It does not unwind the stack (this is the major difference).
-   - If handler returns, its value is returned from the throw.  */
+   - The handler is not allowed to return.  */
 SCM
 scm_internal_lazy_catch (SCM tag, scm_catch_body_t body, void *body_data, scm_catch_handler_t handler, void *handler_data)
 {
@@ -558,8 +558,9 @@ SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
 SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
 	    (SCM key, SCM thunk, SCM handler),
 	    "This behaves exactly like @code{catch}, except that it does\n"
-	    "not unwind the stack (this is the major difference), and if\n"
-	    "handler returns, its value is returned from the throw.")
+	    "not unwind the stack.  The @var{handler} procedure is not "
+	    "allowed to return, it must throw to another catch, or "
+	    "otherwise exit non-locally.")
 #define FUNC_NAME s_scm_lazy_catch
 {
   struct scm_body_thunk_data c;
@@ -596,7 +597,6 @@ SCM_DEFINE (scm_throw, "throw", 1, 0, 1,
 #define FUNC_NAME s_scm_throw
 {
   SCM_VALIDATE_SYMBOL (1,key);
-  /* May return if handled by lazy catch. */
   return scm_ithrow (key, args, 1);
 }
 #undef FUNC_NAME
@@ -657,7 +657,6 @@ scm_ithrow (SCM key, SCM args, int noreturn)
   if (SCM_LAZY_CATCH_P (jmpbuf))
     {
       struct lazy_catch *c = (struct lazy_catch *) SCM_CELL_WORD_1 (jmpbuf);
-      SCM oldwinds = scm_dynwinds;
       SCM handle, answer;
       scm_dowinds (wind_goal, (scm_ilength (scm_dynwinds)
 			       - scm_ilength (wind_goal)));
@@ -666,13 +665,7 @@ scm_ithrow (SCM key, SCM args, int noreturn)
       scm_dynwinds = SCM_CDR (scm_dynwinds);
       SCM_REALLOW_INTS;
       answer = (c->handler) (c->handler_data, key, args);
-      SCM_REDEFER_INTS;
-      SCM_SETCDR (handle, scm_dynwinds);
-      scm_dynwinds = handle;
-      SCM_REALLOW_INTS;
-      scm_dowinds (oldwinds, (scm_ilength (scm_dynwinds)
-			      - scm_ilength (oldwinds)));
-      return answer;
+      scm_misc_error ("throw", "lazy-catch handler did return.", SCM_EOL);
     }
 
   /* Otherwise, it's a normal catch.  */
@@ -684,16 +677,15 @@ scm_ithrow (SCM key, SCM args, int noreturn)
       jbr = (struct jmp_buf_and_retval *)JBJMPBUF (jmpbuf);
       jbr->throw_tag = key;
       jbr->retval = args;
+#ifdef DEBUG_EXTENSIONS
+      scm_last_debug_frame = SCM_JBDFRAME (jmpbuf);
+#endif
+      longjmp (*JBJMPBUF (jmpbuf), 1);
     }
 
   /* Otherwise, it's some random piece of junk.  */
   else
     abort ();
-
-#ifdef DEBUG_EXTENSIONS
-  scm_last_debug_frame = SCM_JBDFRAME (jmpbuf);
-#endif
-  longjmp (*JBJMPBUF (jmpbuf), 1);
 }
 
 
