@@ -153,6 +153,17 @@
     (if pair
 	(symbol-pset! sym (delq! pair (symbol-pref sym))))))
 
+;;; {General Properties}
+
+;; This is a more modern interface to properties.  It will replace all
+;; other property-like things eventually.
+
+(define (make-object-property)
+  (let ((prop (primitive-make-property #f)))
+    (make-procedure-with-setter
+     (lambda (obj) (primitive-property-ref prop obj))
+     (lambda (obj val) (primitive-property-set! prop obj val)))))
+
 
 
 ;;; {Line and Delimited I/O}
