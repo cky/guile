@@ -924,10 +924,8 @@ scm_getc (SCM port)
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->rw_active == SCM_PORT_WRITE)
-    {
-      /* may be marginally faster than calling scm_flush.  */
-      scm_ptobs[SCM_PTOBNUM (port)].flush (port);
-    }
+    /* may be marginally faster than calling scm_flush.  */
+    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
   
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_READ;
@@ -940,19 +938,19 @@ scm_getc (SCM port)
 
   c = *(pt->read_pos++);
 
-  if (c == '\n')
+  switch (c)
     {
-      SCM_INCLINE (port);
+      case '\n':
+        SCM_INCLINE (port);
+        break;
+      case '\t':
+        SCM_TABCOL (port);
+        break;
+      default:
+        SCM_INCCOL (port);
+        break;
     }
-  else if (c == '\t')
-    {
-      SCM_TABCOL (port);
-    }
-  else
-    {
-      SCM_INCCOL (port);
-    }
-
+ 
   return c;
 }
 
