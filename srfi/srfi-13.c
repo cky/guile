@@ -379,7 +379,7 @@ SCM_DEFINE (scm_string_copyS, "string-copy", 1, 2, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
 				    2, start, cstart,
 				    3, end, cend);
-  return scm_makfromstr (cstr + start, cend - cstart, 0);
+  return scm_makfromstr (cstr + cstart, cend - cstart, 0);
   
 }
 #undef FUNC_NAME

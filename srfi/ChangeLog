@@ -1,3 +1,7 @@
+2001-05-08  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-13.c (scm_string_copyS): Fixed nasty bug.
+
 2001-05-05  Rob Browning  <rlb@cs.utexas.edu>
 
 	* Makefile.am (srfi_DATA): added srfi-19.scm.
