@@ -66,7 +66,7 @@ scm_c_issue_deprecation_warning (const char *msg)
   if (SCM_BOOLP (issued_msgs))
     issued_msgs = SCM_BOOL_T;
   else
-    scm_issue_deprecation_warning (SCM_LIST1 (scm_makfrom0str (msg)));
+    scm_issue_deprecation_warning (scm_list_1 (scm_makfrom0str (msg)));
 }
 
 SCM_DEFINE(scm_issue_deprecation_warning,

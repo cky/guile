@@ -970,7 +970,7 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
 #endif
     default:
       scm_misc_error (proc, "Unrecognised address family: ~A",
-		      SCM_LIST1 (SCM_MAKINUM (fam)));
+		      scm_list_1 (SCM_MAKINUM (fam)));
     }
   return result;
 }

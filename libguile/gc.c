@@ -841,18 +841,18 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   local_scm_gc_cells_swept = scm_gc_cells_swept_acc;
   local_scm_gc_cells_marked = scm_gc_cells_marked_acc;
 
-  answer = scm_listify (scm_cons (sym_gc_time_taken, scm_ulong2num (local_scm_gc_time_taken)),
-			scm_cons (sym_cells_allocated, scm_ulong2num (local_scm_cells_allocated)),
-			scm_cons (sym_heap_size, scm_ulong2num (local_scm_heap_size)),
-			scm_cons (sym_mallocated, scm_ulong2num (local_scm_mallocated)),
-			scm_cons (sym_mtrigger, scm_ulong2num (local_scm_mtrigger)),
-			scm_cons (sym_times, scm_ulong2num (local_scm_gc_times)),
-                        scm_cons (sym_gc_mark_time_taken, scm_ulong2num (local_scm_gc_mark_time_taken)),
-                        scm_cons (sym_gc_sweep_time_taken, scm_ulong2num (local_scm_gc_sweep_time_taken)),
-                        scm_cons (sym_cells_marked, scm_i_dbl2big (local_scm_gc_cells_marked)),
-                        scm_cons (sym_cells_swept, scm_i_dbl2big (local_scm_gc_cells_swept)),
-			scm_cons (sym_heap_segments, heap_segs),
-			SCM_UNDEFINED);
+  answer = scm_list_n (scm_cons (sym_gc_time_taken, scm_ulong2num (local_scm_gc_time_taken)),
+		       scm_cons (sym_cells_allocated, scm_ulong2num (local_scm_cells_allocated)),
+		       scm_cons (sym_heap_size, scm_ulong2num (local_scm_heap_size)),
+		       scm_cons (sym_mallocated, scm_ulong2num (local_scm_mallocated)),
+		       scm_cons (sym_mtrigger, scm_ulong2num (local_scm_mtrigger)),
+		       scm_cons (sym_times, scm_ulong2num (local_scm_gc_times)),
+		       scm_cons (sym_gc_mark_time_taken, scm_ulong2num (local_scm_gc_mark_time_taken)),
+		       scm_cons (sym_gc_sweep_time_taken, scm_ulong2num (local_scm_gc_sweep_time_taken)),
+		       scm_cons (sym_cells_marked, scm_i_dbl2big (local_scm_gc_cells_marked)),
+		       scm_cons (sym_cells_swept, scm_i_dbl2big (local_scm_gc_cells_swept)),
+		       scm_cons (sym_heap_segments, heap_segs),
+		       SCM_UNDEFINED);
   SCM_ALLOW_INTS;
   return answer;
 }

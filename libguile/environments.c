@@ -816,7 +816,7 @@ update_catch_handler (void *ptr, SCM tag, SCM args)
   SCM observer = data->observer;
   SCM message = scm_makfrom0str ("Observer `~A' signals `~A' error: ~S");
 
-  return scm_cons (message, SCM_LIST3 (observer, tag, args));
+  return scm_cons (message, scm_list_3 (observer, tag, args));
 }
 
 

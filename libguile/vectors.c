@@ -244,10 +244,10 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 #define FUNC_NAME s_vector_set_x
 {
   SCM_GASSERTn (SCM_VECTORP (v),
-		g_vector_set_x, SCM_LIST3 (v, k, obj),
+		g_vector_set_x, scm_list_3 (v, k, obj),
 		SCM_ARG1, s_vector_set_x);
   SCM_GASSERTn (SCM_INUMP (k),
-		g_vector_set_x, SCM_LIST3 (v, k, obj),
+		g_vector_set_x, scm_list_3 (v, k, obj),
 		SCM_ARG2, s_vector_set_x);
   SCM_ASSERT_RANGE (2, k, SCM_INUM (k) < SCM_VECTOR_LENGTH (v) && SCM_INUM (k) >= 0);
   SCM_VELTS(v)[(long) SCM_INUM(k)] = obj;

@@ -130,7 +130,7 @@ SCM_DEFINE (scm_variable_ref, "variable-ref", 1, 0, 0,
   SCM_VALIDATE_VARIABLE (1, var);
   val = SCM_VARIABLE_REF (var);
   if (val == SCM_UNDEFINED)
-    SCM_MISC_ERROR ("variable is unbound: ~S", SCM_LIST1 (var));
+    SCM_MISC_ERROR ("variable is unbound: ~S", scm_list_1 (var));
   return val;
 }
 #undef FUNC_NAME

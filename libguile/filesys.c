@@ -574,7 +574,8 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
       int en = errno;
 
       SCM_SYSERROR_MSG ("~A: ~S",
-			SCM_LIST2 (scm_makfrom0str (strerror (errno)), object),
+			scm_list_2 (scm_makfrom0str (strerror (errno)),
+				    object),
 			en);
     }
   return scm_stat2scm (&stat_temp);
@@ -753,7 +754,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
 
   SCM_VALIDATE_DIR (1, port);
   if (!SCM_DIR_OPEN_P (port))
-    SCM_MISC_ERROR ("Directory ~S is not open.", SCM_LIST1 (port));
+    SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
 
   errno = 0;
   SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CELL_WORD_1 (port)));
@@ -774,7 +775,7 @@ SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
 {
   SCM_VALIDATE_DIR (1, port);
   if (!SCM_DIR_OPEN_P (port))
-    SCM_MISC_ERROR ("Directory ~S is not open.", SCM_LIST1 (port));
+    SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
 
   rewinddir ((DIR *) SCM_CELL_WORD_1 (port));
 
@@ -1162,9 +1163,9 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     if (rv < 0)
       SCM_SYSERROR;
   }
-  return SCM_LIST3 (retrieve_select_type (&read_set, read_ports_ready, reads),
-		    retrieve_select_type (&write_set, write_ports_ready, writes),
-		    retrieve_select_type (&except_set, SCM_EOL, excepts));
+  return scm_list_3 (retrieve_select_type (&read_set, read_ports_ready, reads),
+		     retrieve_select_type (&write_set, write_ports_ready, writes),
+		     retrieve_select_type (&except_set, SCM_EOL, excepts));
 }
 #undef FUNC_NAME
 #endif /* HAVE_SELECT */
@@ -1325,7 +1326,7 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
       int en = errno;
 
       SCM_SYSERROR_MSG ("~A: ~S",
-			SCM_LIST2 (scm_makfrom0str (strerror (errno)), str),
+			scm_list_2 (scm_makfrom0str (strerror (errno)), str),
 			en);
     }
   return scm_stat2scm(&stat_temp);

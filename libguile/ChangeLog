@@ -1,3 +1,15 @@
+2001-06-28  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* list.h (scm_list_1, scm_list_2, scm_list_3, scm_list_4, scm_list_5,
+	scm_list_n): New functions.
+	(SCM_LIST0, SCM_LIST1, SCM_LIST2, SCM_LIST3, SCM_LIST4, SCM_LIST5,
+	SCM_LIST6, SCM_LIST7, SCM_LIST8, SCM_LIST9, scm_listify): Deprecated.
+	(lots of files): Use the new functions.
+	
+	* goops.c (CALL_GF1, CALL_GF2, CALL_GF3, CALL_GF4): Use scm_call_N.
+
+	* strings.c: #include "libguile/deprecation.h".
+
 2001-06-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* read.c (scm_lreadr): When reading a hash token, check for a

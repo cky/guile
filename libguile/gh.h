@@ -188,7 +188,7 @@ SCM gh_lookup (const char *sname);
 SCM gh_module_lookup (SCM module, const char *sname);
 
 SCM gh_cons(SCM x, SCM y);
-#define gh_list scm_listify
+#define gh_list scm_list_n
 unsigned long gh_length(SCM l);
 SCM gh_append(SCM args);
 SCM gh_append2(SCM l1, SCM l2);

@@ -48,26 +48,13 @@
 
 
 
-#define SCM_LIST0 SCM_EOL
-#define SCM_LIST1(e0) scm_cons ((e0), SCM_EOL)
-#define SCM_LIST2(e0, e1) scm_cons2 ((e0), (e1), SCM_EOL)
-#define SCM_LIST3(e0, e1, e2) scm_cons ((e0), SCM_LIST2 ((e1), (e2)))
-#define SCM_LIST4(e0, e1, e2, e3)\
-     scm_cons2 ((e0), (e1), SCM_LIST2 ((e2), (e3)))
-#define SCM_LIST5(e0, e1, e2, e3, e4)\
-     scm_cons ((e0), SCM_LIST4 ((e1), (e2), (e3), (e4)))
-#define SCM_LIST6(e0, e1, e2, e3, e4, e5)\
-     scm_cons2 ((e0), (e1), SCM_LIST4 ((e2), (e3), (e4), (e5)))
-#define SCM_LIST7(e0, e1, e2, e3, e4, e5, e6)\
-     scm_cons ((e0), SCM_LIST6 ((e1), (e2), (e3), (e4), (e5), (e6)))
-#define SCM_LIST8(e0, e1, e2, e3, e4, e5, e6, e7)\
-     scm_cons2 ((e0), (e1), SCM_LIST6 ((e2), (e3), (e4), (e5), (e6), (e7)))
-#define SCM_LIST9(e0, e1, e2, e3, e4, e5, e6, e7, e8)\
-     scm_cons ((e0),\
-	       SCM_LIST8 ((e1), (e2), (e3), (e4), (e5), (e6), (e7), (e8)))
-
+extern SCM scm_list_1 (SCM e1);
+extern SCM scm_list_2 (SCM e1, SCM e2);
+extern SCM scm_list_3 (SCM e1, SCM e2, SCM e3);
+extern SCM scm_list_4 (SCM e1, SCM e2, SCM e3, SCM e4);
+extern SCM scm_list_5 (SCM e1, SCM e2, SCM e3, SCM e4, SCM e5);
+extern SCM scm_list_n (SCM elt, ...);
 extern SCM scm_list_head (SCM lst, SCM k);
-extern SCM scm_listify (SCM elt, ...);
 extern SCM scm_list (SCM objs);
 extern SCM scm_cons_star (SCM arg, SCM objs);
 extern SCM scm_null_p (SCM x);
@@ -102,6 +89,26 @@ extern void scm_init_list (void);
 
 
 #if (SCM_DEBUG_DEPRECATED == 0)
+
+#define SCM_LIST0 SCM_EOL
+#define SCM_LIST1(e0) scm_cons ((e0), SCM_EOL)
+#define SCM_LIST2(e0, e1) scm_cons2 ((e0), (e1), SCM_EOL)
+#define SCM_LIST3(e0, e1, e2) scm_cons ((e0), SCM_LIST2 ((e1), (e2)))
+#define SCM_LIST4(e0, e1, e2, e3)\
+     scm_cons2 ((e0), (e1), SCM_LIST2 ((e2), (e3)))
+#define SCM_LIST5(e0, e1, e2, e3, e4)\
+     scm_cons ((e0), SCM_LIST4 ((e1), (e2), (e3), (e4)))
+#define SCM_LIST6(e0, e1, e2, e3, e4, e5)\
+     scm_cons2 ((e0), (e1), SCM_LIST4 ((e2), (e3), (e4), (e5)))
+#define SCM_LIST7(e0, e1, e2, e3, e4, e5, e6)\
+     scm_cons ((e0), SCM_LIST6 ((e1), (e2), (e3), (e4), (e5), (e6)))
+#define SCM_LIST8(e0, e1, e2, e3, e4, e5, e6, e7)\
+     scm_cons2 ((e0), (e1), SCM_LIST6 ((e2), (e3), (e4), (e5), (e6), (e7)))
+#define SCM_LIST9(e0, e1, e2, e3, e4, e5, e6, e7, e8)\
+     scm_cons ((e0),\
+	       SCM_LIST8 ((e1), (e2), (e3), (e4), (e5), (e6), (e7), (e8)))
+
+#define scm_listify scm_list_n
 
 extern SCM scm_sloppy_memq (SCM x, SCM lst);
 extern SCM scm_sloppy_memv (SCM x, SCM lst);

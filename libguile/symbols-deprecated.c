@@ -112,7 +112,7 @@ scm_sym2ovcell (SCM sym, SCM obarray)
   answer = scm_sym2ovcell_soft (sym, obarray);
   if (!SCM_FALSEP (answer))
     return answer;
-  SCM_MISC_ERROR ("uninterned symbol: ~S", SCM_LIST1 (sym));
+  SCM_MISC_ERROR ("uninterned symbol: ~S", scm_list_1 (sym));
   return SCM_UNSPECIFIED;		/* not reached */
 }
 #undef FUNC_NAME

@@ -90,7 +90,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
     len = SCM_STRING_LENGTH (fields);
     if (len % 2 == 1)
       SCM_MISC_ERROR ("odd length field specification: ~S", 
-		      SCM_LIST1 (fields));
+		      scm_list_1 (fields));
 
     field_desc = SCM_STRING_CHARS (fields);
 
@@ -108,7 +108,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    break;
 	  default:
 	    SCM_MISC_ERROR ("unrecognized field type: ~S", 
-			    SCM_LIST1 (SCM_MAKE_CHAR (field_desc[x])));
+			    scm_list_1 (SCM_MAKE_CHAR (field_desc[x])));
 	  }
 
 	switch (field_desc[x + 1])
@@ -131,14 +131,14 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    break;
 	  default:
 	    SCM_MISC_ERROR ("unrecognized ref specification: ~S",
-			    SCM_LIST1 (SCM_MAKE_CHAR (field_desc[x + 1])));
+			    scm_list_1 (SCM_MAKE_CHAR (field_desc[x + 1])));
 	  }
 #if 0
 	if (field_desc[x] == 'd')
 	  {
 	    if (field_desc[x + 2] != '-')
 	      SCM_MISC_ERROR ("missing dash field at position ~A",
-			      SCM_LIST1 (SCM_MAKINUM (x / 2)));
+			      scm_list_1 (SCM_MAKINUM (x / 2)));
 	    x += 2;
 	    goto recheck_ref;
 	  }
@@ -539,7 +539,8 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   SCM_VALIDATE_INUM (2, tail_array_size);
   SCM_VALIDATE_REST_ARGUMENT (init);
 
-  fields = scm_string_append (SCM_LIST2 (required_vtable_fields, user_fields));
+  fields = scm_string_append (scm_list_2 (required_vtable_fields,
+					  user_fields));
   layout = scm_make_struct_layout (fields);
   basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
@@ -601,13 +602,13 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 	  if ((ref == 'R') || (ref == 'W'))
 	    field_type = 'u';
 	  else
-	    SCM_MISC_ERROR ("ref denied for field ~A", SCM_LIST1 (pos));
+	    SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
 	}
     }
   else if (fields_desc[SCM_SYMBOL_LENGTH (layout) - 1] != 'O')    
     field_type = fields_desc[SCM_SYMBOL_LENGTH (layout) - 2];
   else
-    SCM_MISC_ERROR ("ref denied for field ~A", SCM_LIST1 (pos));
+    SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
   
   switch (field_type)
     {
@@ -633,7 +634,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 
     default:
       SCM_MISC_ERROR ("unrecognized field type: ~S",
-		      SCM_LIST1 (SCM_MAKE_CHAR (field_type)));
+		      scm_list_1 (SCM_MAKE_CHAR (field_type)));
     }
 
   return answer;
@@ -673,12 +674,12 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
       field_type = fields_desc[p * 2];
       set_x = fields_desc [p * 2 + 1];
       if (set_x != 'w')
-	SCM_MISC_ERROR ("set! denied for field ~A", SCM_LIST1 (pos));
+	SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
     }
   else if (fields_desc[SCM_SYMBOL_LENGTH (layout) - 1] == 'W')    
     field_type = fields_desc[SCM_SYMBOL_LENGTH (layout) - 2];
   else
-    SCM_MISC_ERROR ("set! denied for field ~A", SCM_LIST1 (pos));
+    SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
   
   switch (field_type)
     {
@@ -705,7 +706,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 
     default:
       SCM_MISC_ERROR ("unrecognized field type: ~S",
-		      SCM_LIST1 (SCM_MAKE_CHAR (field_type)));
+		      scm_list_1 (SCM_MAKE_CHAR (field_type)));
     }
 
   return val;

@@ -68,7 +68,7 @@ void scm_error_pair_access (SCM non_pair)
     {
       running = 1;
       scm_simple_format (scm_current_error_port (),
-			 message, SCM_LIST1 (non_pair));
+			 message, scm_list_1 (non_pair));
       abort ();
     }
 }

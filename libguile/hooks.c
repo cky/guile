@@ -252,7 +252,7 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
   rest = scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook));
   SCM_SET_HOOK_PROCEDURES (hook,
 			   (!SCM_UNBNDP (append_p) && !SCM_FALSEP (append_p)
-			    ? scm_append_x (SCM_LIST2 (rest, SCM_LIST1 (proc)))
+			    ? scm_append_x (scm_list_2 (rest, scm_list_1 (proc)))
 			    : scm_cons (proc, rest)));
   return SCM_UNSPECIFIED;
 }
@@ -294,7 +294,7 @@ SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1,
   SCM_VALIDATE_HOOK (1,hook);
   if (scm_ilength (args) != SCM_HOOK_ARITY (hook))
     SCM_MISC_ERROR ("Hook ~S requires ~A arguments",
-		    SCM_LIST2 (hook,SCM_MAKINUM (SCM_HOOK_ARITY (hook))));
+		    scm_list_2 (hook, SCM_MAKINUM (SCM_HOOK_ARITY (hook))));
   scm_c_run_hook (hook, args);
   return SCM_UNSPECIFIED;
 }

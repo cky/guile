@@ -230,7 +230,7 @@ guardian_apply (SCM guardian, SCM obj, SCM throw_p)
 {
   if (DESTROYED_P (GUARDIAN (guardian)))
     scm_misc_error ("guard", "attempted use of destroyed guardian: ~A",
-                    SCM_LIST1 (guardian));
+                    scm_list_1 (guardian));
   
   if (!SCM_UNBNDP (obj))
     return scm_guard (guardian, obj,
@@ -266,7 +266,7 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
               if (throw_p)
                 scm_misc_error ("guard",
                                 "object is already greedily guarded: ~A",
-                                SCM_LIST1 (obj));
+                                scm_list_1 (obj));
               else
                 return SCM_BOOL_F;
             }
@@ -401,7 +401,8 @@ SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0,
   if (DESTROYED_P (g))
     {
       SCM_ALLOW_INTS;
-      SCM_MISC_ERROR ("guardian is already destroyed: ~A", SCM_LIST1 (guardian));
+      SCM_MISC_ERROR ("guardian is already destroyed: ~A",
+		      scm_list_1 (guardian));
     }
 
   if (GREEDY_P (g))

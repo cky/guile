@@ -153,7 +153,7 @@ scm_flush_ws (SCM port, const char *eoferr)
 	    if (!SCM_FALSEP (SCM_FILENAME (port)))
 	      scm_misc_error (eoferr,
 			      "end of file in ~A",
-			      SCM_LIST1 (SCM_FILENAME (port)));
+			      scm_list_1 (SCM_FILENAME (port)));
 	    else
 	      scm_misc_error (eoferr, "end of file", SCM_EOL);
 	  }
@@ -457,7 +457,7 @@ scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
 	  }
 	unkshrp:
 	scm_misc_error (s_scm_read, "Unknown # object: ~S",
-			SCM_LIST1 (SCM_MAKE_CHAR (c)));
+			scm_list_1 (SCM_MAKE_CHAR (c)));
 	}
 
     case '"':

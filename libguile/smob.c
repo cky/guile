@@ -200,7 +200,7 @@ scm_smob_apply_1_030 (SCM smob, SCM a1)
 static SCM
 scm_smob_apply_1_001 (SCM smob, SCM a1)
 {
-  return SCM_SMOB_APPLY1 (smob, SCM_LIST1 (a1));
+  return SCM_SMOB_APPLY1 (smob, scm_list_1 (a1));
 }
 
 static SCM
@@ -230,13 +230,13 @@ scm_smob_apply_2_030 (SCM smob, SCM a1, SCM a2)
 static SCM
 scm_smob_apply_2_001 (SCM smob, SCM a1, SCM a2)
 {
-  return SCM_SMOB_APPLY1 (smob, SCM_LIST2 (a1, a2));
+  return SCM_SMOB_APPLY1 (smob, scm_list_2 (a1, a2));
 }
 
 static SCM
 scm_smob_apply_2_011 (SCM smob, SCM a1, SCM a2)
 {
-  return SCM_SMOB_APPLY2 (smob, a1, SCM_LIST1 (a2));
+  return SCM_SMOB_APPLY2 (smob, a1, scm_list_1 (a2));
 }
 
 static SCM

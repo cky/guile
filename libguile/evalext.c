@@ -63,8 +63,8 @@ scm_m_generalized_set_x (SCM xorig, SCM env SCM_UNUSED)
   if (SCM_SYMBOLP (SCM_CAR (x)))
     return scm_cons (SCM_IM_SET_X, x);
   else if (SCM_CONSP (SCM_CAR (x)))
-    return scm_cons (SCM_LIST2 (scm_sym_setter, SCM_CAAR (x)),
-		     scm_append (SCM_LIST2 (SCM_CDAR (x), SCM_CDR (x))));
+    return scm_cons (scm_list_2 (scm_sym_setter, SCM_CAAR (x)),
+		     scm_append (scm_list_2 (SCM_CDAR (x), SCM_CDR (x))));
   else
     scm_misc_error (scm_s_set_x, scm_s_variable, SCM_EOL);
 }

@@ -243,9 +243,9 @@ scm_init_load_path ()
   SCM path = SCM_EOL;
 
 #ifdef SCM_LIBRARY_DIR
-  path = SCM_LIST3 (scm_makfrom0str (SCM_SITE_DIR),
-		    scm_makfrom0str (SCM_LIBRARY_DIR),
-		    scm_makfrom0str (SCM_PKGDATA_DIR));
+  path = scm_list_3 (scm_makfrom0str (SCM_SITE_DIR),
+		     scm_makfrom0str (SCM_LIBRARY_DIR),
+		     scm_makfrom0str (SCM_PKGDATA_DIR));
 #endif /* SCM_LIBRARY_DIR */
 
   path = scm_internal_parse_path (getenv ("GUILE_LOAD_PATH"), path);
@@ -453,7 +453,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
       SCM_MISC_ERROR ((absolute
 		       ? "Unable to load file ~S"
 		       : "Unable to find file ~S in load path"),
-		      SCM_LIST1 (filename));
+		      scm_list_1 (filename));
     }
 
   return scm_primitive_load (full_filename);
@@ -507,12 +507,12 @@ init_build_info ()
 void
 scm_init_load ()
 {
-  scm_listofnullstr = scm_permanent_object (SCM_LIST1 (scm_nullstr));
+  scm_listofnullstr = scm_permanent_object (scm_list_1 (scm_nullstr));
   scm_loc_load_path = SCM_VARIABLE_LOC (scm_c_define ("%load-path", SCM_EOL));
   scm_loc_load_extensions
     = SCM_VARIABLE_LOC (scm_c_define ("%load-extensions",
-				    SCM_LIST2 (scm_makfrom0str (".scm"),
-					       scm_nullstr)));
+				    scm_list_2 (scm_makfrom0str (".scm"),
+						scm_nullstr)));
   scm_loc_load_hook = SCM_VARIABLE_LOC (scm_c_define ("%load-hook", SCM_BOOL_F));
 
   init_build_info ();

@@ -232,7 +232,7 @@ continuation_apply (SCM cont, SCM args)
       || continuation->base != rootcont->base)
     {
       SCM_MISC_ERROR ("continuation from wrong top level: ~S", 
-		      SCM_LIST1 (cont));
+		      scm_list_1 (cont));
     }
   
   scm_dowinds (continuation->dynenv,

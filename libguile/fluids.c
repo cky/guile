@@ -253,7 +253,7 @@ SCM
 scm_c_with_fluid (SCM fluid, SCM value, SCM (*cproc) (), void *cdata)
 #define FUNC_NAME "scm_c_with_fluid"
 {
-  return scm_c_with_fluids (SCM_LIST1 (fluid), SCM_LIST1 (value),
+  return scm_c_with_fluids (scm_list_1 (fluid), SCM_LIST1 (value),
 			    cproc, cdata);
 }
 #undef FUNC_NAME

@@ -50,7 +50,9 @@
 #include "libguile/chars.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/deprecation.h"
 #include "libguile/validate.h"
+
 
 
 /* {Strings}

@@ -2523,7 +2523,7 @@ dispatch:
       proc = x;
     badfun:
       /* scm_everr (x, env,...) */
-      scm_misc_error (NULL, "Wrong type to apply: ~S", SCM_LIST1 (proc));
+      scm_misc_error (NULL, "Wrong type to apply: ~S", scm_list_1 (proc));
     case scm_tc7_vector:
     case scm_tc7_wvect:
 #ifdef HAVE_ARRAYS

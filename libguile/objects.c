@@ -344,19 +344,19 @@ scm_call_generic_0 (SCM gf)
 SCM
 scm_call_generic_1 (SCM gf, SCM a1)
 {
-  return scm_apply_generic (gf, SCM_LIST1 (a1));
+  return scm_apply_generic (gf, scm_list_1 (a1));
 }
 
 SCM
 scm_call_generic_2 (SCM gf, SCM a1, SCM a2)
 {
-  return scm_apply_generic (gf, SCM_LIST2 (a1, a2));
+  return scm_apply_generic (gf, scm_list_2 (a1, a2));
 }
 
 SCM
 scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
 {
-  return scm_apply_generic (gf, SCM_LIST3 (a1, a2, a3));
+  return scm_apply_generic (gf, scm_list_3 (a1, a2, a3));
 }
 
 SCM_DEFINE (scm_entity_p, "entity?", 1, 0, 0, 
@@ -460,7 +460,7 @@ scm_i_make_class_object (SCM meta,
   SCM layout = scm_make_struct_layout (layout_string);
   c = scm_make_struct (meta,
 		       SCM_INUM0,
-		       SCM_LIST4 (layout, SCM_BOOL_F, SCM_EOL, SCM_EOL));
+		       scm_list_4 (layout, SCM_BOOL_F, SCM_EOL, SCM_EOL));
   SCM_SET_CLASS_FLAGS (c, flags);
   return c;
 }
@@ -493,7 +493,7 @@ SCM_DEFINE (scm_make_subclass_object, "make-subclass-object", 2, 0, 0,
   /* Convert symbol->string */
   pl = scm_mem2string (SCM_SYMBOL_CHARS (pl), SCM_SYMBOL_LENGTH (pl));
   return scm_i_make_class_object (SCM_STRUCT_VTABLE (class),
-				  scm_string_append (SCM_LIST2 (pl, layout)),
+				  scm_string_append (scm_list_2 (pl, layout)),
 				  SCM_CLASS_FLAGS (class));
 }
 #undef FUNC_NAME
@@ -503,16 +503,16 @@ scm_init_objects ()
 {
   SCM ms = scm_makfrom0str (SCM_METACLASS_STANDARD_LAYOUT);
   SCM mt = scm_make_vtable_vtable (ms, SCM_INUM0,
-				   SCM_LIST3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
+				   scm_list_3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
   
   SCM os = scm_makfrom0str (SCM_METACLASS_OPERATOR_LAYOUT);
   SCM ot = scm_make_vtable_vtable (os, SCM_INUM0,
-				   SCM_LIST3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
+				   scm_list_3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
   
   SCM es = scm_makfrom0str (SCM_ENTITY_LAYOUT);
   SCM el = scm_make_struct_layout (es);
   SCM et = scm_make_struct (mt, SCM_INUM0,
-			    SCM_LIST4 (el, SCM_BOOL_F, SCM_EOL, SCM_EOL));
+			    scm_list_4 (el, SCM_BOOL_F, SCM_EOL, SCM_EOL));
 
   scm_c_define ("<class>", mt);
   scm_metaclass_standard = mt;

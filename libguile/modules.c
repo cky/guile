@@ -170,7 +170,7 @@ scm_c_define_module (const char *name,
 		     void (*init)(void *), void *data)
 {
   SCM module = scm_call_1 (SCM_VARIABLE_REF (process_define_module_var),
-			   SCM_LIST1 (convert_module_name (name)));
+			   scm_list_1 (convert_module_name (name)));
   if (init)
     scm_c_call_with_current_module (module, (SCM (*)(void*))init, data);
   return module;
@@ -180,7 +180,7 @@ void
 scm_c_use_module (const char *name)
 {
   scm_call_1 (SCM_VARIABLE_REF (process_use_modules_var),
-	      SCM_LIST1 (convert_module_name (name)));
+	      scm_list_1 (convert_module_name (name)));
 }
 
 static SCM module_export_x_var;
@@ -440,7 +440,7 @@ scm_sym2var (SCM sym, SCM proc, SCM definep)
     }
 
   if (var != SCM_BOOL_F && !SCM_VARIABLEP (var))
-    SCM_MISC_ERROR ("~S is not bound to a variable", SCM_LIST1 (sym));
+    SCM_MISC_ERROR ("~S is not bound to a variable", scm_list_1 (sym));
 
   return var;
 }
@@ -461,7 +461,7 @@ scm_module_lookup (SCM module, SCM sym)
 
   var = scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
   if (SCM_FALSEP (var))
-    SCM_MISC_ERROR ("unbound variable: ~S", SCM_LIST1 (sym));
+    SCM_MISC_ERROR ("unbound variable: ~S", scm_list_1 (sym));
   return var;
 }
 #undef FUNC_NAME
@@ -478,7 +478,7 @@ scm_lookup (SCM sym)
   SCM var = 
     scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_F);
   if (SCM_FALSEP (var))
-    scm_misc_error ("scm_lookup", "unbound variable: ~S", SCM_LIST1 (sym));
+    scm_misc_error ("scm_lookup", "unbound variable: ~S", scm_list_1 (sym));
   return var;
 }
 
@@ -639,7 +639,7 @@ scm_post_boot_init_modules ()
 
 #if SCM_DEBUG_DEPRECATED == 0
 
-  module_prefix = PERM (SCM_LIST2 (scm_sym_app, scm_sym_modules));
+  module_prefix = PERM (scm_list_2 (scm_sym_app, scm_sym_modules));
   make_modules_in_var = PERM (scm_c_lookup ("make-modules-in"));
   root_module_lookup_closure =
     PERM (scm_module_lookup_closure (SCM_VARIABLE_REF (the_root_module_var)));
@@ -669,7 +669,7 @@ scm_module_full_name (SCM name)
   if (SCM_EQ_P (SCM_CAR (name), scm_sym_app))
     return name;
   else
-    return scm_append (SCM_LIST2 (module_prefix, name));
+    return scm_append (scm_list_2 (module_prefix, name));
 }
 
 SCM

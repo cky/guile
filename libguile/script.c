@@ -565,11 +565,8 @@ scm_compile_shell_switches (int argc, char **argv)
 	  if (scm_ilength (srfis) <= 0)
 	    scm_shell_usage (1, "invalid SRFI specification");
 	  srfis = scm_reverse_x (srfis, SCM_UNDEFINED);
-	  tail = scm_cons (scm_listify
-			   (sym_use_srfis,
-			    scm_listify (scm_sym_quote, 
-					 srfis, SCM_UNDEFINED),
-			    SCM_UNDEFINED),
+	  tail = scm_cons (scm_list_2 (sym_use_srfis,
+				       scm_list_2 (scm_sym_quote, srfis)),
 			   tail);
 	}
 

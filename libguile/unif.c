@@ -2222,7 +2222,8 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
   if (l2ra (lst, ra, SCM_ARRAY_BASE (ra), 0))
     return ra;
   else
-    badlst:SCM_MISC_ERROR ("Bad scm_array contents list: ~S", SCM_LIST1 (lst));
+    badlst:SCM_MISC_ERROR ("Bad scm_array contents list: ~S",
+			   scm_list_1 (lst));
 }
 #undef FUNC_NAME
 

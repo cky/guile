@@ -155,9 +155,7 @@ scm_i_procedure_arity (SCM proc)
     default:
       return SCM_BOOL_F;
     }
-  return SCM_LIST3 (SCM_MAKINUM (a),
-		    SCM_MAKINUM (o),
-		    SCM_BOOL(r));
+  return scm_list_3 (SCM_MAKINUM (a), SCM_MAKINUM (o), SCM_BOOL(r));
 }
 
 static SCM
@@ -167,7 +165,7 @@ scm_stand_in_scm_proc(SCM proc)
   answer = scm_assoc (proc, scm_stand_in_procs);
   if (SCM_FALSEP (answer))
     {
-      answer = scm_closure (SCM_LIST2 (SCM_EOL, SCM_BOOL_F), SCM_EOL);
+      answer = scm_closure (scm_list_2 (SCM_EOL, SCM_BOOL_F), SCM_EOL);
       scm_stand_in_procs = scm_acons (proc, answer, scm_stand_in_procs);
     }
   else

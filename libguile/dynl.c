@@ -254,7 +254,7 @@ sysdep_dynl_link (const char *fname, const char *subr)
       SCM_ALLOW_INTS;
       fn = scm_makfrom0str (fname);
       msg = scm_makfrom0str (lt_dlerror ());
-      scm_misc_error (subr, "file: ~S, message: ~S", SCM_LIST2 (fn, msg));
+      scm_misc_error (subr, "file: ~S, message: ~S", scm_list_2 (fn, msg));
     }
   return (void *) handle;
 }

@@ -60,8 +60,54 @@
 
 /* creating lists */
 
+#define SCM_I_CONS(cell,x,y)			\
+do {						\
+  SCM_NEWCELL (cell);				\
+  SCM_SET_CELL_OBJECT_0 (cell, x);		\
+  SCM_SET_CELL_OBJECT_1 (cell, y);		\
+} while (0)
+
 SCM
-scm_listify (SCM elt, ...)
+scm_list_1 (SCM e1)
+{
+  SCM c1;
+  SCM_I_CONS (c1, e1, SCM_EOL);
+  return c1;
+}
+
+SCM
+scm_list_2 (SCM e1, SCM e2)
+{
+  SCM c1, c2;
+  SCM_I_CONS (c2, e2, SCM_EOL);
+  SCM_I_CONS (c1, e1, c2);
+  return c1;
+}
+
+SCM
+scm_list_3 (SCM e1, SCM e2, SCM e3)
+{
+  SCM c1, c2, c3;
+  SCM_I_CONS (c3, e3, SCM_EOL);
+  SCM_I_CONS (c2, e2, c3);
+  SCM_I_CONS (c1, e1, c2);
+  return c1;
+}
+
+SCM
+scm_list_4 (SCM e1, SCM e2, SCM e3, SCM e4)
+{
+  return scm_cons2 (e1, e2, scm_list_2 (e3, e4));
+}
+
+SCM
+scm_list_5 (SCM e1, SCM e2, SCM e3, SCM e4, SCM e5)
+{
+  return scm_cons2 (e1, e2, scm_list_3 (e3, e4, e5));
+}
+
+SCM
+scm_list_n (SCM elt, ...)
 {
   va_list foo;
   SCM answer = SCM_EOL;
@@ -286,7 +332,7 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
     tortoise = SCM_CDR(tortoise);
   }
   while (! SCM_EQ_P (hare, tortoise));
-  SCM_MISC_ERROR ("Circular structure in position 1: ~S", SCM_LIST1 (lst));
+  SCM_MISC_ERROR ("Circular structure in position 1: ~S", scm_list_1 (lst));
 }
 #undef FUNC_NAME
 
@@ -315,7 +361,7 @@ SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
       tortoise = SCM_CDR (tortoise);
     }
   while (! SCM_EQ_P (hare, tortoise));
-  SCM_MISC_ERROR ("Circular structure in position 1: ~S", SCM_LIST1 (lst));
+  SCM_MISC_ERROR ("Circular structure in position 1: ~S", scm_list_1 (lst));
 }
 #undef FUNC_NAME
 

@@ -220,7 +220,7 @@ scm_gsubr_apply (SCM args)
   if (n > SCM_GSUBR_MAX)
     scm_misc_error (FUNC_NAME, 
 		    "Function ~S has illegal arity ~S.", 
-		    SCM_LIST2 (self, SCM_MAKINUM (n)));
+		    scm_list_2 (self, SCM_MAKINUM (n)));
 #endif
   args = SCM_CDR (args);
   for (i = 0; i < SCM_GSUBR_REQ (typ); i++) {

@@ -483,7 +483,7 @@ scm_remove_from_port_table (SCM port)
   long i = p->entry;
 
   if (i >= scm_t_portable_size)
-    SCM_MISC_ERROR ("Port not in table: ~S", SCM_LIST1 (port));
+    SCM_MISC_ERROR ("Port not in table: ~S", scm_list_1 (port));
   if (p->putback_buf)
     scm_must_free (p->putback_buf);
   scm_must_free (p);

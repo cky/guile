@@ -973,16 +973,15 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	    start = p + 1;
 	    continue;
 	  default:
-	    scm_misc_error (s_scm_simple_format, 
-		"FORMAT: Unsupported format option ~~~A - use (ice-9 format) instead",
-		SCM_LIST1 (SCM_MAKE_CHAR (*p)));
+	    SCM_MISC_ERROR ("FORMAT: Unsupported format option ~~~A - use (ice-9 format) instead",
+			    scm_list_1 (SCM_MAKE_CHAR (*p)));
 	    
 	  }
 
 
 	if (!SCM_CONSP (args))
-	  scm_misc_error (s_scm_simple_format, "FORMAT: Missing argument for ~~~A",
-			  SCM_LIST1 (SCM_MAKE_CHAR (*p)));
+	  SCM_MISC_ERROR ("FORMAT: Missing argument for ~~~A",
+			  scm_list_1 (SCM_MAKE_CHAR (*p)));
 			  		
 	scm_lfwrite (start, p - start - 1, destination);
 	scm_prin1 (SCM_CAR (args), destination, writingp);
@@ -992,8 +991,8 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 
   scm_lfwrite (start, p - start, destination);
   if (args != SCM_EOL)
-    scm_misc_error (s_scm_simple_format, 
-		    "FORMAT: ~A superfluous arguments", SCM_LIST1 (scm_length (args)));
+    SCM_MISC_ERROR ("FORMAT: ~A superfluous arguments",
+		    scm_list_1 (scm_length (args)));
 
   if (fReturnString)
     answer = scm_strport_to_string (destination);
@@ -1110,7 +1109,7 @@ scm_init_print ()
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
   vtable = scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
   layout = scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT));
-  type = scm_make_struct (vtable, SCM_INUM0, SCM_LIST1 (layout));
+  type = scm_make_struct (vtable, SCM_INUM0, scm_list_1 (layout));
   scm_set_struct_vtable_name_x (type, scm_str2symbol ("print-state"));
   print_state_pool = scm_permanent_object (scm_cons (type, SCM_EOL));
 

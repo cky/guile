@@ -59,27 +59,27 @@ gh_length (SCM l)
    them all together into a single list, which is returned.  This is
    equivalent to the Scheme procedure (append list1 list2 ...) */
 SCM
-gh_append(SCM args)
+gh_append (SCM args)
 {
-  return scm_append(args);
+  return scm_append (args);
 }
 
 SCM
-gh_append2(SCM l1, SCM l2)
+gh_append2 (SCM l1, SCM l2)
 {
-  return scm_append(scm_listify(l1, l2, SCM_UNDEFINED));
+  return scm_append (scm_list_2 (l1, l2));
 }
 
 SCM
 gh_append3(SCM l1, SCM l2, SCM l3)
 {
-  return scm_append(scm_listify(l1, l2, l3, SCM_UNDEFINED));
+  return scm_append (scm_list_3 (l1, l2, l3));
 }
 
 SCM
-gh_append4(SCM l1, SCM l2, SCM l3, SCM l4)
+gh_append4 (SCM l1, SCM l2, SCM l3, SCM l4)
 {
-  return scm_append(scm_listify(l1, l2, l3, l4, SCM_UNDEFINED));
+  return scm_append (scm_list_4 (l1, l2, l3, l4));
 }
 
 /* gh_reverse() is defined as a macro in gh.h */
