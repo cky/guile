@@ -224,7 +224,7 @@ cwdr_outer_body (void *data, SCM jmpbuf)
   struct cwdr_body_data *c = (struct cwdr_body_data *) data;
 
   return scm_internal_catch (SCM_BOOL_T,
-			     cwdr_inner_body, &c,
+			     cwdr_inner_body, c,
 			     scm_handle_by_proc, &c->handler);
 }
 
