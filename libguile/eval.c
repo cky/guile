@@ -151,6 +151,22 @@ static const char s_missing_recipient[] = "Missing recipient in";
  * detected, a 'Bad variable' error is signalled.  */
 static const char s_bad_variable[] = "Bad variable";
 
+/* Bindings for forms like 'let' and 'do' have to be given in a proper,
+ * possibly empty list.  If any other object is detected in a place where a
+ * list of bindings was required, a 'Bad bindings' error is signalled.  */
+static const char s_bad_bindings[] = "Bad bindings";
+
+/* Depending on the syntactic context, a binding has to be in the format
+ * (<variable> <expression>) or (<variable> <expression1> <expression2>).
+ * If anything else is detected in a place where a binding was expected, a
+ * 'Bad binding' error is signalled.  */
+static const char s_bad_binding[] = "Bad binding";
+
+/* If the exit form of a 'do' expression is not in the format
+ *   (<test> <expression> ...)
+ * a 'Bad exit clause' error is signalled.  */
+static const char s_bad_exit_clause[] = "Bad exit clause";
+
 
 /* Signal a syntax error.  We distinguish between the form that caused the
  * error and the enclosing expression.  The error message will print out as
@@ -966,64 +982,79 @@ scm_m_delay (SCM expr, SCM env)
 }
 
 
+SCM_SYNTAX(s_do, "do", scm_i_makbimacro, scm_m_do);
+SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
+
 /* DO gets the most radically altered syntax.  The order of the vars is
  * reversed here.  In contrast, the order of the inits and steps is reversed
  * during the evaluation:
 
    (do ((<var1> <init1> <step1>)
-   (<var2> <init2>)
-   ... )
-   (<test> <return>)
-   <body>)
+        (<var2> <init2>)
+        ... )
+       (<test> <return>)
+     <body>)
 
    ;; becomes
 
    (#@do (<init1> <init2> ... <initn>)
-   (varn ... var2 var1)
-   (<test> <return>)
-   (<body>)
-   <step1> <step2> ... <stepn>) ;; missing steps replaced by var
+         (varn ... var2 var1)
+         (<test> <return>)
+         (<body>)
+     <step1> <step2> ... <stepn>) ;; missing steps replaced by var
  */
-
-SCM_SYNTAX(s_do, "do", scm_i_makbimacro, scm_m_do);
-SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
-
 SCM 
-scm_m_do (SCM xorig, SCM env SCM_UNUSED)
+scm_m_do (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM bindings;
-  SCM x = SCM_CDR (xorig);
-  SCM vars = SCM_EOL;
-  SCM inits = SCM_EOL;
-  SCM *initloc = &inits;
-  SCM steps = SCM_EOL;
-  SCM *steploc = &steps;
-  SCM_ASSYNT (scm_ilength (x) >= 2, s_test, "do");
-  bindings = SCM_CAR (x);
-  SCM_ASSYNT (scm_ilength (bindings) >= 0, s_bindings, "do");
-  while (!SCM_NULLP (bindings))
+  SCM variables = SCM_EOL;
+  SCM init_forms = SCM_EOL;
+  SCM step_forms = SCM_EOL;
+  SCM binding_idx;
+  SCM cddr_expr;
+  SCM exit_clause;
+  SCM commands;
+  SCM tail;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
+
+  /* Collect variables, init and step forms. */
+  binding_idx = SCM_CAR (cdr_expr);
+  ASSERT_SYNTAX_2 (scm_ilength (binding_idx) >= 0,
+                   s_bad_bindings, binding_idx, expr);
+  for (; !SCM_NULLP (binding_idx); binding_idx = SCM_CDR (binding_idx))
     {
-      SCM binding = SCM_CAR (bindings);
-      long len = scm_ilength (binding);
-      SCM_ASSYNT (len == 2 || len == 3, s_bindings, "do");
+      const SCM binding = SCM_CAR (binding_idx);
+      const long length = scm_ilength (binding);
+      ASSERT_SYNTAX_2 (length == 2 || length == 3,
+                       s_bad_binding, binding, expr);
+
       {
-	SCM name = SCM_CAR (binding);
-	SCM init = SCM_CADR (binding);
-	SCM step = (len == 2) ? name : SCM_CADDR (binding);
-	SCM_ASSYNT (SCM_SYMBOLP (name), s_variable, "do");
-	vars = scm_cons (name, vars);
-	*initloc = scm_list_1 (init);
-	initloc = SCM_CDRLOC (*initloc);
-	*steploc = scm_list_1 (step);
-	steploc = SCM_CDRLOC (*steploc);
-	bindings = SCM_CDR (bindings);
+        const SCM name = SCM_CAR (binding);
+        const SCM init = SCM_CADR (binding);
+        const SCM step = (length == 2) ? name : SCM_CADDR (binding);
+        ASSERT_SYNTAX_2 (SCM_SYMBOLP (name), s_bad_variable, name, expr);
+        variables = scm_cons (name, variables);
+        init_forms = scm_cons (init, init_forms);
+        step_forms = scm_cons (step, step_forms);
       }
     }
-  x = SCM_CDR (x);
-  SCM_ASSYNT (scm_ilength (SCM_CAR (x)) >= 1, s_test, "do");
-  x = scm_cons2 (SCM_CAR (x), SCM_CDR (x), steps);
-  x = scm_cons2 (inits, vars, x);
-  return scm_cons (SCM_IM_DO, x);
+  init_forms = scm_reverse_x (init_forms, SCM_UNDEFINED);
+  step_forms = scm_reverse_x (step_forms, SCM_UNDEFINED);
+
+  /* Memoize the test form and the exit sequence. */
+  cddr_expr = SCM_CDR (cdr_expr);
+  exit_clause = SCM_CAR (cddr_expr);
+  ASSERT_SYNTAX_2 (scm_ilength (exit_clause) >= 1,
+                   s_bad_exit_clause, exit_clause, expr);
+
+  commands = SCM_CDR (cddr_expr);
+  tail = scm_cons2 (exit_clause, commands, step_forms);
+  tail = scm_cons2 (init_forms, variables, tail);
+  SCM_SETCAR (expr, SCM_IM_DO);
+  SCM_SETCDR (expr, tail);
+  return expr;
 }
 
 
