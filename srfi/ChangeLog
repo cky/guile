@@ -1,3 +1,14 @@
+2004-08-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-13.h, srfi-13.c: (scm_substring_shared): Renamed to
+	scm_substring_sharedS.
+
+	* srfi-14.c, srfi-13.c: Adapted to new internal string and symbol
+	API.
+
+	* srfi-13.scm (substring/shared): Export as replacement since we
+	now have a version in the core.
+
 2004-08-15  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-39.scm: New, from Jose A Ortega Ruiz.  Thanks!

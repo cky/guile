@@ -1,3 +1,74 @@
+2004-08-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+        New string implementation, with copy-on-write strings and
+	mutation-sharing substrings, and a new internal string API.
+	Symbols can now share memory with strings.
+	
+	* tags.h (scm_tc7_stringbuf): New tag.
+
+	* strings.h, strings.c: (scm_i_string_chars, scm_i_string_length,
+	scm_i_string_writable_chars, scm_i_string_stop_writing): New, to
+	replace SCM_I_STRING_CHARS and SCM_I_STRING_LENGTH.  Updated all
+	uses.
+	(scm_i_make_string, scm_c_make_string): New, to replace
+	scm_allocate_string.  Updated all uses.
+	(SCM_STRINGP, SCM_STRING_CHARS, SCM_STRING_UCHARS,
+	SCM_STRING_LENGTH): Deprecated.
+	(scm_allocate_string, scm_take_str, scm_take0str, scm_mem2string,
+	scm_str2string, scm_makfrom0str, scm_makfrom0str_opt):
+	Discouraged.  Replaced all uses with scm_from_locale_string or
+	similar, as appropriate.
+	(scm_c_string_length, scm_c_string_ref, scm_c_string_set_x,
+	scm_c_substring, scm_c_substring_shared, scm_c_substring_copy,
+	scm_substring_shared, scm_substring_copy): New.
+
+	* symbols.c, symbols.h (SCM_SYMBOLP, SCM_SYMBOL_FUNC,
+	SCM_SET_SYMBOL_FUNC, SCM_SYMBOL_PROPS, SCM_SET_SYMBOL_PROPS,
+	SCM_SYMBOL_HASH, SCM_SYMBOL_INTERNED_P, scm_mem2symbol,
+	scm_str2symbol, scm_mem2uninterned_symbol): Discouraged.
+	(SCM_SYMBOL_LENGTH, SCM_SYMBOL_CHARS, scm_c_symbol2str):
+	Deprecated.
+	(SCM_MAKE_SYMBOL_TAG, SCM_SET_SYMBOL_LENGTH, SCM_SET_SYMBOL_CHARS,
+	SCM_PROP_SLOTS, SCM_SET_PROP_SLOTS): Removed.
+	(scm_is_symbol, scm_from_locale_symbol, scm_from_locale_symboln):
+	New, to replace scm_str2symbol and scm_mem2symbol, respectively.
+	Updated all uses.
+	(scm_gensym): Generate only the number suffix in the buffer, just
+	string-append the prefix.
+
+	* error.c (scm_memory_error): Do not try to throw, just abort.
+	Throwing will not work anyway.
+
+	* gh.h, gh-data.c (gh_set_substr): Made src const.
+
+	* ports.c (scm_i_mode_bits_n): New, for counted strings.
+	(scm_mode_bits): Use it.
+	(scm_c_port_for_each): Blocking GC does not seem to work, allocate
+	a vector normally and fill that instead of consing a list with a
+	blocked GC.
+
+	* read.c (scm_i_casei_streq): New, for counted strings.
+
+	* threads.c (gc_section_count): Removed, thread-sleeping can not
+	be nested.
+	(scm_i_thread_put_to_sleep): Call scm_i_leave_guile before locking
+	admin mutex so that we can be put to sleep by other threads while
+	blocking on that mutex.  Lock all the heap mutex of all threads,
+	including ourselves.
+	(scm_i_thread_wake_up): Unlock all threads, including ourselves,
+	call scm_i_enter_guile.
+	(scm_thread_mark_stacks): Expect all threads to be suspended.
+	
+	* gc.h, gc.c (scm_i_gc_admin_mutex): New, to protect
+	scm_gc_mallocated, for now.
+	(scm_init_storage): Initialize it.
+	* gc-malloc.c (descrease_mtrigger, increase_mtrigger): Use it.
+	
+	* gc-mark.c (scm_gc_mark_dependencies): Call scm_i_string_mark,
+	scm_i_stringbuf_mark and scm_i_symbol_mark, as appropriate.
+	* gc-card.c (scm_i_sweep_card):  Call scm_i_string_free,
+	scm_i_stringbuf_free and scm_i_symbol_free, as appropriate.
+
 2004-08-18  Kevin Ryde  <user42@zip.com.au>
 
 	* arbiters.c (FETCH_STORE): New macro.
