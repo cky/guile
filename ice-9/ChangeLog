@@ -1,3 +1,9 @@
+Thu May 29 02:36:48 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* regex.scm: Add a module declaration.  Use DEFINE-PUBLIC everywhere.
+	* boot-9.scm: If the `regex' feature is present, use the module
+	(ice-9 regex).
+
 Tue May 27 22:48:14 1997  Tim Pierce  <twp@twp.tezcat.com>
 
 	* regex.scm: New file.

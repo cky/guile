@@ -1,3 +1,9 @@
+Thu May 29 02:47:36 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* regex-posix.c (scm_init_regex_posix): Register the "regex"
+	feature, to help boot-9.scm decide whether to import the regex
+	module. 
+
 Thu May 29 02:19:40 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* eval.c: Include scmconfig.h at the beginning of the file so that
