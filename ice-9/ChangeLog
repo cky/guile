@@ -1,3 +1,8 @@
+2003-09-19  Kevin Ryde  <user42@zip.com.au>
+
+	* popen.scm (open-process): Correction to previous fdes closing
+	change, need to watch out for stdin==stderr or stdout==stderr.
+
 2003-09-15  Marius Vollmer  <mvo@zagadka.de>
 
 	* format.scm (format): Rewritten as a big letrec to make it
