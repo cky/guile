@@ -1,5 +1,10 @@
 2000-06-13  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* strings.c: #include <string.h>. (Thanks to Bill Schottstaedt.)
+
+	* net_db.c (scm_resolv_error): Only use macro NETDB_INTERNAL if
+	defined. It isn't on sgi irix 5.3.  (Thanks to Bill Schottstaedt.)
+
 	* Makefile.am (.c.doc): Pipe output (the .x contents) to /dev/null.
 
 2000-06-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
