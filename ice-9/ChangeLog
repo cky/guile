@@ -1,3 +1,15 @@
+Thu Jan 16 17:07:03 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Added dynamic linking of modules. See libguile/DYNAMIC-LINKING.
+
+	* boot-9.scm (split-c-module-name, convert-c-registered-modules,
+ 	init-dynamic-module, dynamic-maybe-call,
+ 	find-and-link-dynamic-module, link-dynamic-module,
+ 	try-module-dynamic-link, registered-modules): New definitions for
+ 	dynamic linking of modules.
+	(resolve-module): Try to dynamically link the requested module
+ 	after failing to load it as Scheme code.
+
 Wed Jan  8 05:50:14 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (getservbyport, getservbyname): remove stray %.
