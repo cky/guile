@@ -148,9 +148,9 @@ SCM_DEFINE (scm_socket, "socket", 3, 0, 0,
             (SCM family, SCM style, SCM proto),
 	    "Return a new socket port of the type specified by @var{family},\n"
 	    "@var{style} and @var{protocol}.  All three parameters are\n"
-	    "integers.  Typical values for @var{family} are the values of\n"
-	    "@code{AF_UNIX} and @code{AF_INET}.  Typical values for\n"
-	    "@var{style} are the values of @code{SOCK_STREAM},\n"
+	    "integers.  Supported values for @var{family} are\n"
+	    "@code{AF_UNIX}, @code{AF_INET} and @code{AF_INET6}.\n"
+	    "Typical values for @var{style} are @code{SOCK_STREAM},\n"
 	    "@code{SOCK_DGRAM} and @code{SOCK_RAW}.\n"
 	    "\n"
 	    "@var{protocol} can be obtained from a protocol name using\n"
@@ -407,31 +407,106 @@ SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
 static struct sockaddr *
 scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 		   const char *proc, int *size)
+#define FUNC_NAME proc
 {
   switch (fam)
     {
     case AF_INET:
       {
-	SCM isport;
 	struct sockaddr_in *soka;
+	unsigned long addr;
+	int port;
 
-	SCM_ASSERT (SCM_CONSP (*args), *args, 
-		    which_arg + 1, proc);
-	isport = SCM_CAR (*args);
-	SCM_ASSERT (SCM_INUMP (isport), isport, which_arg + 1, proc);
+	SCM_VALIDATE_ULONG_COPY (which_arg, address, addr);
+	SCM_VALIDATE_CONS (which_arg + 1, *args);
+	SCM_VALIDATE_INUM_COPY (which_arg + 1, SCM_CAR (*args), port);
+	*args = SCM_CDR (*args);
 	soka = (struct sockaddr_in *) malloc (sizeof (struct sockaddr_in));
 	if (!soka)
 	  scm_memory_error (proc);
-	/* e.g., for BSDs which don't like invalid sin_len.  */
-	memset (soka, 0, sizeof (struct sockaddr_in));
+	/* 4.4BSD-style interface includes sin_len member and defines SIN_LEN,
+	   4.3BSD  does not.  */
+#ifdef SIN_LEN
+	soka->sin_len = sizeof (struct sockaddr_in);
+#endif
 	soka->sin_family = AF_INET;
-	soka->sin_addr.s_addr =
-	  htonl (scm_num2ulong (address, which_arg, proc));
-	*args = SCM_CDR (*args);
-	soka->sin_port = htons (SCM_INUM (isport));
+	soka->sin_addr.s_addr = htonl (addr);
+	soka->sin_port = htons (port);
 	*size = sizeof (struct sockaddr_in);
 	return (struct sockaddr *) soka;
       }
+#ifdef AF_INET6
+    case AF_INET6:
+      {
+	/* see RFC2553.  */
+	int port;
+	struct sockaddr_in6 *soka;
+	unsigned long flowinfo = 0;
+	unsigned long scope_id = 0;
+
+	if (SCM_INUMP (address))
+	  SCM_ASSERT_RANGE (which_arg, address, SCM_INUM (address) >= 0);
+	else
+	  {
+	    SCM_VALIDATE_BIGINT (which_arg, address);
+	    SCM_ASSERT_RANGE (which_arg, address,
+			      !SCM_BIGSIGN (address)
+			      && (SCM_BITSPERDIG
+				  * SCM_NUMDIGS (address) <= 128));
+	  }
+	SCM_VALIDATE_CONS (which_arg + 1, *args);
+	SCM_VALIDATE_INUM_COPY (which_arg + 1, SCM_CAR (*args), port);
+	*args = SCM_CDR (*args);
+	if (SCM_CONSP (*args))
+	  {
+	    SCM_VALIDATE_ULONG_COPY (which_arg + 2, SCM_CAR (*args), flowinfo);
+	    *args = SCM_CDR (*args);
+	    if (SCM_CONSP (*args))
+	      {
+		SCM_VALIDATE_ULONG_COPY (which_arg + 3, SCM_CAR (*args),
+					 scope_id);
+		*args = SCM_CDR (*args);
+	      }
+	  }
+	soka = (struct sockaddr_in6 *) malloc (sizeof (struct sockaddr_in6));
+	if (!soka)
+	  scm_memory_error (proc);
+#ifdef SIN_LEN6
+	soka->sin6_len = sizeof (struct sockaddr_in6);
+#endif
+	soka->sin6_family = AF_INET6;
+	if (SCM_INUMP (address))
+	  {
+	    uint32_t addr = htonl (SCM_INUM (address));
+
+	    memset (soka->sin6_addr.s6_addr, 0, 12);
+	    memcpy (soka->sin6_addr.s6_addr + 12, &addr, 4);
+	  }
+	else
+	  {
+	    scm_sizet i;
+
+	    memset (soka->sin6_addr.s6_addr, 0, 16);
+	    memcpy (soka->sin6_addr.s6_addr, SCM_BDIGITS (address), 
+		    SCM_NUMDIGS (address) * (SCM_BITSPERDIG / 8));
+#ifndef WORDS_BIGENDIAN
+	    /* flip to network order.  */
+	    for (i = 0; i < 8; i++)
+	      {
+		char c = soka->sin6_addr.s6_addr[i];
+		
+		soka->sin6_addr.s6_addr[i] = soka->sin6_addr.s6_addr[15 - i];
+		soka->sin6_addr.s6_addr[15 - i] = c;
+	      }
+#endif
+	  }
+	soka->sin6_port = port;
+	soka->sin6_flowinfo = flowinfo;
+	soka->sin6_scope_id = scope_id;
+	*size = sizeof (struct sockaddr_in6);
+	return (struct sockaddr *) soka;
+      }
+#endif
 #ifdef HAVE_UNIX_DOMAIN_SOCKETS
     case AF_UNIX:
       {
@@ -462,19 +537,26 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
       scm_out_of_range (proc, SCM_MAKINUM (fam));
     }
 }
+#undef FUNC_NAME
   
 SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
             (SCM sock, SCM fam, SCM address, SCM args),
-	    "Initiates a connection from @var{socket} to the address\n"
-	    "specified by @var{address} and possibly @var{arg @dots{}}.  The format\n"
-	    "required for @var{address}\n"
-	    "and @var{arg} @dots{} depends on the family of the socket.\n\n"
+	    "Initiates a connection from a socket using a specified address\n"
+	    "family to the address\n"
+	    "specified by @var{address} and possibly @var{args}.\n"
+	    "The format required for @var{address}\n"
+	    "and @var{args} depends on the family of the socket.\n\n"
 	    "For a socket of family @code{AF_UNIX},\n"
-	    "only @code{address} is specified and must be a string with the\n"
+	    "only @var{address} is specified and must be a string with the\n"
 	    "filename where the socket is to be created.\n\n"
 	    "For a socket of family @code{AF_INET},\n"
-	    "@code{address} must be an integer Internet host address and @var{arg} @dots{}\n"
-	    "must be a single integer port number.\n\n"
+	    "@var{address} must be an integer IPv4 host address and\n"
+	    "@var{args} must be a single integer port number.\n\n"
+	    "For a socket of family @code{AF_INET6},\n"
+	    "@var{address} must be an integer IPv6 host address and\n"
+	    "@var{args} may be up to three integers:\n"
+	    "port [flowinfo] [scope_id],\n"
+	    "where flowinfo and scope_id default to zero.\n\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_connect
 {
@@ -906,6 +988,9 @@ scm_init_socket ()
 #ifdef AF_INET
   scm_sysintern ("AF_INET", SCM_MAKINUM (AF_INET));
 #endif
+#ifdef AF_INET6
+  scm_sysintern ("AF_INET6", SCM_MAKINUM (AF_INET6));
+#endif
 
 #ifdef PF_UNSPEC
   scm_sysintern ("PF_UNSPEC", SCM_MAKINUM (PF_UNSPEC));
@@ -915,6 +1000,9 @@ scm_init_socket ()
 #endif
 #ifdef PF_INET
   scm_sysintern ("PF_INET", SCM_MAKINUM (PF_INET));
+#endif
+#ifdef PF_INET6
+  scm_sysintern ("PF_INET6", SCM_MAKINUM (PF_INET6));
 #endif
 
   /* socket types.  */

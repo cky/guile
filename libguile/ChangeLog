@@ -1,3 +1,14 @@
+2001-04-17  Gary Houston  <ghouston@arglist.com>
+
+	* some initial support for IPv6:
+	
+	* socket.c (scm_fill_sockaddr): improve the argument validation.
+	don't allocate memory until all args are checked.  instead of
+	unconditional memset of soka, try setting sin_len to 0 if
+	SIN_LEN is defined.  add support for AF_INET6.  define FUNC_NAME.
+	(scm_socket, scm_connect): extend docstrings for IPv6.
+	(scm_init_socket): intern AF_INET6 and PF_INET6.
+
 2001-04-17  Niibe Yutaka  <gniibe@m17n.org>
 
 	* srcprop.c (scm_make_srcprops): Added SCM_ALLOW_INTS which
