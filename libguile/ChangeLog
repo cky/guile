@@ -1,3 +1,12 @@
+1997-10-20  Mark Galassi  <rosalia@nis.lanl.gov>
+
+	* gh.h: gh_vector_set -> gh_vector_set_x
+
+1997-10-20  Mark Galassi  <rosalia@nis.lanl.gov>
+
+	* gh_data.c (gh_vector_set_x): changed name to make it consistent
+	with the ! -> _x mapping when going from Scheme to C.
+
 1997-10-19  Mark Galassi  <rosalia@cygnus.com>
 
 	* gh.h (gh_reverse): 

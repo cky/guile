@@ -298,8 +298,8 @@ output port.  Corresponds to the scheme level `write'.
 
 Several major changes.  In particular, gh_vector() now resembles
 (vector ...) (with a caveat -- see manual), and gh_make_vector() now
-exists and behaves like (make-vector ...).  gh_vref() and gh_vset()
-have been renamed gh_vector_set() and gh_vector_ref().  Some missing
+exists and behaves like (make-vector ...).  gh_vset() and gh_vref()
+have been renamed gh_vector_set_x() and gh_vector_ref().  Some missing
 vector-related gh_ functions have been implemented.
 
 ** pair and list routines

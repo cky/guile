@@ -276,7 +276,7 @@ gh_make_vector (SCM len, SCM fill)
 
 /* set the given element of the given vector to the given value */
 SCM 
-gh_vector_set (SCM vec, SCM pos, SCM val)
+gh_vector_set_x (SCM vec, SCM pos, SCM val)
 {
   return scm_vector_set_x (vec, pos, val);
 }
