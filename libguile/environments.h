@@ -176,7 +176,8 @@ extern SCM scm_eval_environment_set_imported_x (SCM env, SCM imported);
 extern void *scm_type_import_environment;
 
 #define SCM_IMPORT_ENVIRONMENT_P(env) \
-  (SCM_ENVIRONMENT_FUNCS (env) == scm_type_import_environment)
+  (SCM_ENVIRONMENT_P (env) \
+   && SCM_ENVIRONMENT_FUNCS (env) == scm_type_import_environment)
 
 extern SCM scm_make_import_environment (SCM imports, SCM conflict_proc);
 extern SCM scm_import_environment_p (SCM env);
@@ -188,7 +189,8 @@ extern SCM scm_import_environment_set_imports_x (SCM env, SCM imports);
 extern void *scm_type_export_environment;
 
 #define SCM_EXPORT_ENVIRONMENT_P(env) \
-  (SCM_ENVIRONMENT_FUNCS (env) == scm_type_export_environment)
+  (SCM_ENVIRONMENT_P (env) \
+   && SCM_ENVIRONMENT_FUNCS (env) == scm_type_export_environment)
 
 extern SCM scm_make_export_environment (SCM private, SCM signature);
 extern SCM scm_export_environment_p (SCM env);

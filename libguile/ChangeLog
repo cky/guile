@@ -1,3 +1,9 @@
+2000-08-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* environments.h (SCM_IMPORT_ENVIRONMENT_P,
+	SCM_EXPORT_ENVIRONMENT_P):  Before fetching the environment
+	functions, make sure that we really got an environment.
+
 2000-09-03  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* validate.h (SCM_VALIDATE_NUMBER_DEF_COPY): New macro.
