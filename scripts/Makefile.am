@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2001 Free Software Foundation, Inc.
+##  	Copyright (C) 2002 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -34,7 +34,8 @@ scripts_sources =		\
 	read-scheme-source	\
 	read-text-outline	\
 	use2dot                 \
-	snarf-check-and-output-texi
+	snarf-check-and-output-texi \
+	summarize-guile-TODO
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)
