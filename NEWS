@@ -46,6 +46,19 @@ in backtraces.
 
 * Changes to Scheme functions and syntax
 
+** The function `dynamic-link' now takes optional keyword arguments.
+   The only keyword argument that is currently defined is `:global
+   BOOL'.  With it, you can control whether the shared library will be
+   linked in global mode or not.  In global mode, the symbols from the
+   linked library can be used to resolve references from other
+   dynamically linked libraries.  In non-global mode, the linked
+   library is essentially invisible and can only be accessed via
+   `dynamic-func', etc.  The default is now to link in global mode.
+   Previously, the default has been non-global mode.
+
+   The `#:global' keyword is only effective on platforms that support
+   the dlopen family of functions.
+
 ** New function `provided?'
 
  - Function: provided? FEATURE

@@ -64,8 +64,9 @@ listundefs ()
 }
 
 static void *
-sysdep_dynl_link (fname, subr)
+sysdep_dynl_link (fname, int flags, subr)
      const char *fname;
+     int flags;
      const char *subr;
 {
     int status;

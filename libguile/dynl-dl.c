@@ -54,11 +54,13 @@
 #endif
 
 static void *
-sysdep_dynl_link (fname, subr)
+sysdep_dynl_link (fname, flags, subr)
      const char *fname;
+     int flags;
      const char *subr;
 {
-    void *handle = dlopen (fname, DLOPEN_MODE);
+    void *handle = dlopen (fname, (DLOPEN_MODE 
+				   | (flags & DYNL_GLOBAL)? RTLD_GLOBAL : 0));
     if (NULL == handle)
       {
 	SCM_ALLOW_INTS;

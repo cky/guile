@@ -50,8 +50,9 @@
 #include <string.h>
 
 static void *
-sysdep_dynl_link (fname, subr)
+sysdep_dynl_link (fname, flags, subr)
      const char *fname;
+     int flags;
      const char *subr;
 {
     shl_t shl;
