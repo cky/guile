@@ -1256,6 +1256,19 @@
 	  (module-modified m)
 	  answer))))
 
+;; module-ensure-variable! module symbol
+;;
+;; ensure that there is a variable in MODULE for SYMBOL.  If there is
+;; no binding for SYMBOL, create a new undefined variable.  Return
+;; that variable.
+;;
+(define (module-ensure-variable! module symbol)
+  (or (module-variable module symbol)
+      (let ((var (make-undefined-variable)))
+	(variable-set-name-hint! var symbol)
+	(module-add! module symbol var)
+	var)))
+
 ;; module-add! module symbol var
 ;;
 ;; ensure a particular variable for V in the local namespace of M.
@@ -2745,10 +2758,8 @@
 (define (module-export! m names)
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
-		;; Make sure there is a local variable:
-		(module-define! m name (module-ref m name #f))
-		;; Make sure that local is exported:
-		(module-add! public-i name (module-variable m name)))
+		(let ((var (module-ensure-variable! m name)))
+		  (module-add! public-i name var)))
 	      names)))
 
 (defmacro export names
