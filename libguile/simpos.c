@@ -106,7 +106,7 @@ scm_getenv(nam)
 #ifdef vms
 # define SYSTNAME "VMS"
 #endif
-#ifdef unix
+#if defined (unix) || defined (__unix)
 # define SYSTNAME "UNIX"
 #endif
 #ifdef MWC

@@ -75,10 +75,11 @@
 #  endif
 # endif
 
+/* This should be figured out by autoconf.  */
 #ifdef CLK_TCK
 # define CLKTCK CLK_TCK
 # ifdef CLOCKS_PER_SEC
-#  ifdef unix
+#  if defined (unix) || defined (__unix)
 #   ifndef ARM_ULIB
 #    include <sys/times.h>
 #   endif
