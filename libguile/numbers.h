@@ -228,7 +228,9 @@ extern SCM scm_adjbig (SCM b, scm_sizet nlen);
 extern SCM scm_normbig (SCM b);
 extern SCM scm_copybig (SCM b, int sign);
 extern SCM scm_long2big (long n);
+#ifdef HAVE_LONG_LONGS
 extern SCM scm_long_long2big (long_long n);
+#endif
 extern SCM scm_2ulong2big (unsigned long * np);
 extern SCM scm_ulong2big (unsigned long n);
 extern int scm_bigcomp (SCM x, SCM y);
@@ -289,11 +291,13 @@ extern SCM scm_trunc (SCM x);
 extern SCM scm_dbl2big (double d);
 extern double scm_big2dbl (SCM b);
 extern SCM scm_long2num (long sl);
-extern SCM scm_long_long2num (long_long sl);
 extern SCM scm_ulong2num (unsigned long sl);
 extern long scm_num2long (SCM num, char *pos, const char *s_caller);
+#ifdef HAVE_LONG_LONGS
+extern SCM scm_long_long2num (long_long sl);
 extern long_long scm_num2long_long (SCM num, char *pos,
                                     const char *s_caller);
+#endif
 extern unsigned long scm_num2ulong (SCM num, char *pos,
                                     const char *s_caller);
 extern void scm_init_numbers (void);
