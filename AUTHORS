@@ -242,6 +242,12 @@ Marc Feeley:
 In the subdirectory doc, wrote:
     pretty-print.scm
 
+Matthias Koeppe:
+In the subdirectory test-suite/tests, wrote
+    format.test, srfi-19.test, optargs.test
+In the subdirectory test-suite/tests, changes to
+    ports.test
+
 The file libguile/gc_os_dep.c is from the Boehm-Weiser conservative
 collector.  A lot of people have contributed to it, but probably not
 all to the code in gc_os_dep.c:

@@ -1,3 +1,7 @@
+2001-06-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (system-error-errno): New.
+
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* common-list.scm (remove-if, remove-if-not): Fix typo: use

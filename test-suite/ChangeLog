@@ -1,3 +1,11 @@
+2001-06-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+        Thanks to Matthias Köppe!
+
+	* tests/ports.test: New test for output port line counts.
+	* tests/format.test, tests/optargs.test, tests/srfi-19.test: New
+	files.
+
 2001-05-28  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* tests/symbols.test ("gensym"): New tests for long gensym
