@@ -1,3 +1,20 @@
+2001-06-02  Rob Browning  <rlb@cs.utexas.edu>
+
+	* .cvsignore: add guile_filter_doc_snarfage guile-snarf-docs
+	guile-snarf-docs-texi.
+
+	* fports.c: HAVE_ST_BLKSIZE changed to
+	HAVE_STRUCT_STAT_ST_BLKSIZE.
+	(scm_fport_buffer_add): HAVE_ST_BLKSIZE changed to
+	HAVE_STRUCT_STAT_ST_BLKSIZE.
+
+	* filesys.c (scm_stat2scm): HAVE_ST_RDEV changed to
+	HAVE_STRUCT_STAT_ST_RDEV.
+	(scm_stat2scm): HAVE_ST_BLKSIZE changed to
+	HAVE_STRUCT_STAT_ST_BLKSIZE.
+	(scm_stat2scm): HAVE_ST_BLOCKS changed to
+	HAVE_STRUCT_STAT_ST_BLOCKS.
+
 2001-06-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* strports.c (scm_eval_string): Use scm_primitive_eval_x instead

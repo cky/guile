@@ -1,3 +1,19 @@
+2001-06-02  Rob Browning  <rlb@cs.utexas.edu>
+
+	* configure.in: changes for autoconf 2.50.
+	(AC_PREREQ): require at least autoconf 2.50.
+	(AC_INIT): no longer takes an arg.
+	(AC_CONFIG_SRCDIR): takes arg AC_INIT used to take.
+	(AC_STRUCT_ST_RDEV): changed -> AC_CHECK_MEMBERS.
+	(AC_STRUCT_ST_BLKSIZE): deprecated -> AC_CHECK_MEMBERS.
+	(AC_STRUCT_ST_BLOCKS): use it rather than our version.
+	(AC_CONFIG_FILES): now generated files go here, not in AC_OUTPUT.
+	(AC_CONFIG_COMMANDS): now actions go here, not in AC_OUTPUT.
+	(AC_OUTPUT): no longer takes args.
+	
+	* acinclude.m4: AC_LANG not a variable now -- use __cplusplus
+	unconditionally .
+
 2001-06-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Check for mkstemp via AC_REPLACE_FUNCS.  Thanks to
