@@ -1,3 +1,8 @@
+Tue Jan 21 17:28:40 1997  Mark Galassi  <rosalia@sarastro.lanl.gov>
+
+	* newdoc/ref/guile-ref.texi: started checking in parts of the
+	manual re-write.
+
 Sat Jan 11 14:40:17 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* ltconfig, ltmain.sh: New files for libtool support. libguile,
