@@ -351,8 +351,55 @@ scm_set_port_revealed_x (port, rcount)
   return SCM_UNSPECIFIED;
 }
 
+/* Return the flags that characterize a port based on the mode
+ * string used to open a file for that port.
+ *
+ * See PORT FLAGS in scm.h
+ */
+
+long
+scm_mode_bits (modes)
+     char *modes;
+{
+  return (SCM_OPN
+	  | (strchr (modes, 'r') || strchr (modes, '+') ? SCM_RDNG : 0)
+	  | (   strchr (modes, 'w')
+	     || strchr (modes, 'a')
+	     || strchr (modes, '+') ? SCM_WRTNG : 0)
+	  | (strchr (modes, '0') ? SCM_BUF0 : 0));
+}
+
+
+/* Return the mode flags from an open port.
+ * Some modes such as "append" are only used when opening
+ * a file and are not returned here.  */
+
+SCM_PROC(s_port_mode, "port-mode", 1, 0, 0, scm_port_mode);
+
+SCM
+scm_port_mode (port)
+     SCM port;
+{
+  char modes[3];
+  modes[0] = '\0';
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPPORTP (port), port, SCM_ARG1, s_port_mode);  
+  if (SCM_CAR (port) & SCM_RDNG) {
+    if (SCM_CAR (port) & SCM_WRTNG)
+      strcpy (modes, "r+");
+    else
+      strcpy (modes, "r");
+  }
+  else if (SCM_CAR (port) & SCM_WRTNG)
+    strcpy (modes, "w");
+  if (SCM_CAR (port) & SCM_BUF0)
+    strcat (modes, "0");
+  return scm_makfromstr (modes, strlen (modes), 0);
+}
+
+
 /* scm_close_port
  * Call the close operation on a port object. 
+ * see also scm_close.
  */
 SCM_PROC(s_close_port, "close-port", 1, 0, 0, scm_close_port);
 
@@ -361,17 +408,26 @@ scm_close_port (port)
      SCM port;
 {
   scm_sizet i;
+  int rv;
+
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, s_close_port);
   if (SCM_CLOSEDP (port))
-    return SCM_UNSPECIFIED;
+    return SCM_BOOL_F;
   i = SCM_PTOBNUM (port);
   SCM_DEFER_INTS;
   if (scm_ptobs[i].fclose)
-    SCM_SYSCALL ((scm_ptobs[i].fclose) (SCM_STREAM (port)));
+    {
+      SCM_SYSCALL (rv = (scm_ptobs[i].fclose) (SCM_STREAM (port)));
+      /* ports with a closed file descriptor can be reclosed without error.  */
+      if (rv < 0 && errno != EBADF)
+	scm_syserror (s_close_port);
+    }
+  else
+    rv = 0;
   scm_remove_from_port_table (port);
   SCM_SETAND_CAR (port, ~SCM_OPN);
   SCM_ALLOW_INTS;
-  return SCM_UNSPECIFIED;
+  return (rv < 0) ? SCM_BOOL_F : SCM_BOOL_T;
 }
 
 SCM_PROC(s_close_all_ports_except, "close-all-ports-except", 0, 0, 1, scm_close_all_ports_except);

@@ -60,7 +60,6 @@ extern SCM scm_isatty_p SCM_P ((SCM port));
 extern SCM scm_fdopen SCM_P ((SCM fdes, SCM modes));
 extern SCM scm_primitive_move_to_fdes SCM_P ((SCM port, SCM fd));
 extern void scm_setfileno SCM_P ((FILE *fs, int fd));
-extern void scm_evict_ports SCM_P ((int fd));
 extern SCM scm_fdes_to_ports SCM_P ((SCM fd));
 extern void scm_init_ioext SCM_P ((void));
 

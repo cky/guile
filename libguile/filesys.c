@@ -261,6 +261,28 @@ scm_open (path, flags, mode)
   return newpt;
 }
 
+SCM_PROC (s_close, "close", 1, 0, 0, scm_close);
+SCM
+scm_close (SCM fd_or_port)
+{
+  int rv;
+  int fd;
+
+  if (SCM_NIMP (fd_or_port) && SCM_PORTP (fd_or_port))
+    return scm_close_port (fd_or_port);
+  SCM_ASSERT (SCM_INUMP (fd_or_port), fd_or_port, SCM_ARG1, s_close);
+  fd = SCM_INUM (fd_or_port);
+  SCM_DEFER_INTS;
+  scm_evict_ports (fd);		/* see scsh manual.  */
+  SCM_SYSCALL (rv = close (SCM_INUM (fd)));
+  /* following scsh, closing an already closed file descriptor is
+     not an error.  */
+  if (rv < 0 && errno != EBADF)
+    scm_syserror (s_close);
+  SCM_ALLOW_INTS;
+  return (rv < 0) ? SCM_BOOL_F : SCM_BOOL_T;
+}
+
 
 /* {Files}
  */

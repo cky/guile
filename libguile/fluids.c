@@ -118,9 +118,13 @@ static
 int next_fluid_num ()
 {
   int n;
+#ifdef USE_THREADS
   SCM_THREAD_CRITICAL_SECTION_START;
+#endif
   n = n_fluids++;
+#ifdef USE_THREADS
   SCM_THREAD_CRITICAL_SECTION_END;
+#endif
   return n;
 }
 

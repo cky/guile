@@ -425,28 +425,6 @@ scm_setfileno (fs, fd)
 #endif
 }
 
-/* Move ports with the specified file descriptor to new descriptors,
- * reseting the revealed count to 0.
- * Should be called with SCM_DEFER_INTS active.
- */
-
-void
-scm_evict_ports (fd)
-     int fd;
-{
-  int i;
-
-  for (i = 0; i < scm_port_table_size; i++)
-    {
-      if (SCM_FPORTP (scm_port_table[i]->port)
-	  && fileno ((FILE *)SCM_STREAM (scm_port_table[i]->port)) == fd)
-	{
-	  scm_setfileno ((FILE *)SCM_STREAM (scm_port_table[i]->port), dup (fd));
-	  scm_set_port_revealed_x (scm_port_table[i]->port, SCM_MAKINUM (0));
-	}
-    }
-}
-
 /* Return a list of ports using a given file descriptor.  */
 SCM_PROC(s_fdes_to_ports, "fdes->ports", 1, 0, 0, scm_fdes_to_ports);
 

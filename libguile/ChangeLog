@@ -1,4 +1,22 @@
+Sun Jul 20 03:55:49 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* fluids.c (next_fluid_num): don't do
+	SCM_THREAD_CRITICAL_SECTION_START/END unless USE_THREADS is defined.
+
+	* ports.h: prototypes too.
+	* ports.c (scm_mode_bits, scm_port_mode): moved from fports.c.
+
+	* fports.h: prototype too.
+	* fports.c (scm_evict_ports): moved from ioext.c.
+
 Sat Jul 19 04:56:52 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ports.c (scm_close_port): return a boolean instead of unspecified.
+	throw an error if an error other than EBADF occurs.
+
+	* filesys.h: scm_close prototype.
+	* filesys.c (scm_close): new procedure, can close file descriptors
+	and ports (scsh compatible).
 
 	* ports.c (scm_flush_all_ports): SCM_PROC incorrectly allowed an
 	optional argument.

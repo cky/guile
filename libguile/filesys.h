@@ -58,6 +58,7 @@ extern SCM scm_chown SCM_P ((SCM path, SCM owner, SCM group));
 extern SCM scm_chmod SCM_P ((SCM port_or_path, SCM mode));
 extern SCM scm_umask SCM_P ((SCM mode));
 extern SCM scm_open SCM_P ((SCM path, SCM flags, SCM mode));
+extern SCM scm_close (SCM fd_or_port);
 extern SCM scm_stat SCM_P ((SCM fd_or_path));
 extern SCM scm_link SCM_P ((SCM oldpath, SCM newpath));
 extern SCM scm_rename SCM_P ((SCM oldname, SCM newname));

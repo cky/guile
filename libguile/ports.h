@@ -177,6 +177,8 @@ extern SCM scm_pt_member SCM_P ((SCM member));
 extern int scm_revealed_count SCM_P ((SCM port));
 extern SCM scm_port_revealed SCM_P ((SCM port));
 extern SCM scm_set_port_revealed_x SCM_P ((SCM port, SCM rcount));
+extern long scm_mode_bits SCM_P ((char *modes));
+extern SCM scm_port_mode SCM_P ((SCM port));
 extern SCM scm_close_port SCM_P ((SCM port));
 extern SCM scm_close_all_ports_except SCM_P ((SCM ports));
 extern SCM scm_input_port_p SCM_P ((SCM x));

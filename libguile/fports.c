@@ -103,24 +103,27 @@ scm_setbuf0 (port)
   return SCM_UNSPECIFIED;
 }
 
-/* Return the flags that characterize a port based on the mode
- * string used to open a file for that port.
- *
- * See PORT FLAGS in scm.h
+/* Move ports with the specified file descriptor to new descriptors,
+ * reseting the revealed count to 0.
+ * Should be called with SCM_DEFER_INTS active.
  */
 
-long
-scm_mode_bits (modes)
-     char *modes;
+void
+scm_evict_ports (fd)
+     int fd;
 {
-  return (SCM_OPN
-	  | (strchr (modes, 'r') || strchr (modes, '+') ? SCM_RDNG : 0)
-	  | (   strchr (modes, 'w')
-	     || strchr (modes, 'a')
-	     || strchr (modes, '+') ? SCM_WRTNG : 0)
-	  | (strchr (modes, '0') ? SCM_BUF0 : 0));
-}
+  int i;
 
+  for (i = 0; i < scm_port_table_size; i++)
+    {
+      if (SCM_FPORTP (scm_port_table[i]->port)
+	  && fileno ((FILE *)SCM_STREAM (scm_port_table[i]->port)) == fd)
+	{
+	  scm_setfileno ((FILE *)SCM_STREAM (scm_port_table[i]->port), dup (fd));
+	  scm_set_port_revealed_x (scm_port_table[i]->port, SCM_MAKINUM (0));
+	}
+    }
+}
 
 /* scm_open_file
  * Return a new port open on a given file.
@@ -214,33 +217,6 @@ scm_stdio_to_port (file, mode, name)
   SCM_ALLOW_INTS;
   scm_set_port_revealed_x (port, SCM_MAKINUM (1));
   return port;
-}
-
-
-/* Return the mode flags from an open port.
- * Some modes such as "append" are only used when opening
- * a file and are not returned here.  */
-
-SCM_PROC(s_port_mode, "port-mode", 1, 0, 0, scm_port_mode);
-
-SCM
-scm_port_mode (port)
-     SCM port;
-{
-  char modes[3];
-  modes[0] = '\0';
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPPORTP (port), port, SCM_ARG1, s_port_mode);  
-  if (SCM_CAR (port) & SCM_RDNG) {
-    if (SCM_CAR (port) & SCM_WRTNG)
-      strcpy (modes, "r+");
-    else
-      strcpy (modes, "r");
-  }
-  else if (SCM_CAR (port) & SCM_WRTNG)
-    strcpy (modes, "w");
-  if (SCM_CAR (port) & SCM_BUF0)
-    strcat (modes, "0");
-  return scm_makfromstr (modes, strlen (modes), 0);
 }
 
 
