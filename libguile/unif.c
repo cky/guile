@@ -49,6 +49,10 @@
 */
 
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -116,7 +120,7 @@ scm_uniform_element_size (SCM obj)
       result = sizeof (short);
       break;
 
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       result = sizeof (long long);
       break;
@@ -205,7 +209,7 @@ scm_make_uve (long k, SCM prot)
 	  i = sizeof (short) * k;
 	  type = scm_tc7_svect;
 	}
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
       else if (s == 'l')
 	{
 	  i = sizeof (long long) * k;
@@ -269,7 +273,7 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
       return SCM_MAKINUM (SCM_UVECTOR_LENGTH (v));
@@ -324,7 +328,7 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
  	  protp = SCM_SYMBOLP (prot)
  	    && (1 == SCM_SYMBOL_LENGTH (prot))
  	    && ('s' == SCM_SYMBOL_CHARS (prot)[0]);
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
  	case scm_tc7_llvect:
  	  protp = SCM_SYMBOLP (prot)
  	    && (1 == SCM_SYMBOL_LENGTH (prot))
@@ -370,7 +374,7 @@ SCM_DEFINE (scm_array_rank, "array-rank", 1, 0, 0,
     case scm_tc7_fvect:
     case scm_tc7_cvect:
     case scm_tc7_dvect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
     case scm_tc7_svect:
@@ -413,7 +417,7 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
     case scm_tc7_cvect:
     case scm_tc7_dvect:
     case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
       return scm_cons (scm_uniform_vector_length (ra), SCM_EOL);
@@ -822,7 +826,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
       if (SCM_NULLP (args) || !SCM_NULLP (SCM_CDR (args)))
@@ -939,7 +943,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
     case scm_tc7_vector:
     case scm_tc7_wvect:
     case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
       s->lbnd = 0;
@@ -1057,7 +1061,7 @@ tail:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
     case scm_tc7_vector:
@@ -1154,7 +1158,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 
     case scm_tc7_svect:
       return SCM_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       return scm_long_long2num (((long long *) SCM_CELL_WORD_1 (v))[pos]);
 #endif
@@ -1199,7 +1203,7 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
       return scm_long2num(((signed long *) SCM_VELTS (v))[pos]);
     case scm_tc7_svect:
       return SCM_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       return scm_long_long2num (((long long *) SCM_CELL_WORD_1 (v))[pos]);
 #endif
@@ -1325,7 +1329,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((short *) SCM_UVECTOR_BASE (v))[pos] = SCM_INUM (obj);
       break;
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       ((long long *) SCM_UVECTOR_BASE (v))[pos]
 	= scm_num2long_long (obj, SCM_ARG2, FUNC_NAME);
@@ -1393,7 +1397,7 @@ SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
       return ra;
@@ -1543,7 +1547,7 @@ loop:
       base = (char *) SCM_UVECTOR_BASE (v);
       sz = sizeof (short);
       break;
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       base = (char *) SCM_UVECTOR_BASE (v);
       sz = sizeof (long long);
@@ -1709,7 +1713,7 @@ loop:
       base = (char *) SCM_UVECTOR_BASE (v);
       sz = sizeof (short);
       break;
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       base = (char *) SCM_UVECTOR_BASE (v);
       sz = sizeof (long long);
@@ -2140,7 +2144,7 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 	  res = scm_cons(scm_short2num (data[k]), res);
 	return res;
       }
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       {
 	long long *data = (long long *)SCM_VELTS(v);
@@ -2509,7 +2513,7 @@ tail:
     case scm_tc7_svect:
       scm_putc ('h', port);
       break;
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       scm_putc ('l', port);
       break;
@@ -2565,7 +2569,7 @@ loop:
       return SCM_MAKINUM (-1L);
     case scm_tc7_svect:
       return scm_str2symbol ("s");
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       return scm_str2symbol ("l");
 #endif
