@@ -1,3 +1,8 @@
+2000-06-14  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* gc.c (scm_unprotect_object): fix a nasty typo bug (thanks to
+ 	Dirk Herrmann).
+
 2000-06-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* socket.c (scm_getsockopt): Changed type for `optlen' from int to

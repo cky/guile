@@ -2143,7 +2143,7 @@ scm_protect_object (SCM obj)
   SCM handle;
   
   /* This critical section barrier will be replaced by a mutex. */
-  SCM_DEFER_INTS;
+  SCM_REDEFER_INTS;
   
   handle = scm_hashq_get_handle (scm_protects, obj);
 
@@ -2152,7 +2152,7 @@ scm_protect_object (SCM obj)
   else
     SCM_SETCDR (handle, SCM_MAKINUM (SCM_INUM (SCM_CDR (handle)) + 1));
   
-  SCM_ALLOW_INTS;
+  SCM_REALLOW_INTS;
   
   return obj;
 }
@@ -2168,20 +2168,20 @@ scm_unprotect_object (SCM obj)
   SCM handle;
   
   /* This critical section barrier will be replaced by a mutex. */
-  SCM_DEFER_INTS;
+  SCM_REDEFER_INTS;
   
   handle = scm_hashq_get_handle (scm_protects, obj);
 
   if (SCM_NIMP (handle))
     {
-      int count = SCM_INUM (SCM_CAR (handle)) - 1;
+      int count = SCM_INUM (SCM_CDR (handle)) - 1;
       if (count <= 0)
         scm_hashq_remove_x (scm_protects, obj);
       else
         SCM_SETCDR (handle, SCM_MAKINUM (count));
     }
 
-  SCM_ALLOW_INTS;
+  SCM_REALLOW_INTS;
 
   return obj;
 }
