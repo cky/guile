@@ -218,6 +218,7 @@ typedef unsigned long scm_t_c_bvec_long;
 #define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 (x, t)
 
 
+
 /* Freelists consist of linked cells where the type entry holds the value
  * scm_tc_free_cell and the second entry holds a pointer to the next cell of
  * the freelist.  Due to this structure, freelist cells are not cons cells
@@ -245,7 +246,11 @@ typedef unsigned long scm_t_c_bvec_long;
 
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
-SCM_API unsigned int scm_debug_cell_accesses_p;
+/* Set this to != 0 if every cell that is accessed shall be checked:
+ */
+SCM_API int scm_debug_cell_accesses_p;
+SCM_API int scm_expensive_debug_cell_accesses_p;
+SCM_API int scm_debug_cells_gc_interval ;
 #endif
 
 SCM_API int scm_block_gc;
@@ -274,10 +279,11 @@ SCM_API size_t scm_max_segment_size;
   Deprecated scm_freelist, scm_master_freelist.
   No warning; this is not a user serviceable part.
  */
-SCM_API SCM scm_i_freelist;
-SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist;
-SCM_API SCM scm_i_freelist2;
-SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist2;
+extern SCM scm_i_freelist;
+extern struct scm_t_cell_type_statistics scm_i_master_freelist;
+extern SCM scm_i_freelist2;
+extern struct scm_t_cell_type_statistics scm_i_master_freelist2;
+
 
 SCM_API unsigned long scm_gc_cells_swept;
 SCM_API unsigned long scm_gc_cells_collected;

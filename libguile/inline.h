@@ -50,10 +50,6 @@
 */
 
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-#include <stdio.h>
-#endif
-
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 
@@ -64,14 +60,13 @@ SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 
 #ifdef HAVE_INLINE
 
-
-
 #ifndef EXTERN_INLINE
 #define EXTERN_INLINE extern inline
 #endif
 
 extern unsigned scm_newcell2_count;
 extern unsigned scm_newcell_count;
+
 
 
 EXTERN_INLINE
@@ -137,6 +132,10 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
 #endif
 
 
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+  if (scm_expensive_debug_cell_accesses_p )
+    scm_i_expensive_validation_check (z);
+#endif
   
   return z;
 }
@@ -200,6 +199,8 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 
   return z;
 }
+
+
 
 #endif
 #endif

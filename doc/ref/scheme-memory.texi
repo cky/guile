@@ -76,6 +76,7 @@ For really specialized needs, take at look at
 @code{scm_gc_unregister_collectable_memory}.
 
 @deftypefn {C Function} void *scm_malloc (size_t @var{size})
+@deftypefnx {C Function} void *scm_calloc (size_t @var{size})
 Allocate @var{size} bytes of memory and return a pointer to it.  When
 @var{size} is 0, return @code{NULL}.  When not enough memory is
 available, signal an error.  This function runs the GC to free up some
@@ -85,6 +86,9 @@ The memory is allocated by the libc @code{malloc} function and can be
 freed with @code{free}.  There is no @code{scm_free} function to go
 with @code{scm_malloc} to make it easier to pass memory back and forth
 between different modules.
+
+The function @code{scm_calloc} is similar to @code{scm_malloc}, but
+initializes the block of memory to zero as well.
 @end deftypefn
 
 @deftypefn {C Function} void *scm_realloc (void *@var{mem}, size_t @var{new_size})
@@ -97,6 +101,9 @@ and allocates a new block of size @var{new_size}.
 When not enough memory is available, signal an error.  This function
 runs the GC to free up some memory when it deems it appropriate.
 @end deftypefn
+
+
+
 
 @deftypefn {C Function} void scm_gc_register_collectable_memory (void *@var{mem}, size_t @var{size}, const char *@var{what})
 Informs the GC that the memory at @var{mem} of size @var{size} can
@@ -127,11 +134,13 @@ much less efficiently than it could.
 
 @deftypefn {C Function} void *scm_gc_malloc (size_t @var{size}, const char *@var{what})
 @deftypefnx {C Function} void *scm_gc_realloc (void *@var{mem}, size_t @var{old_size}, size_t @var{new_size}, const char *@var{what});
-Like @code{scm_malloc} or @code{scm_realloc}, but also call
-@code{scm_gc_register_collectable_memory}.  Note that you need to pass
-the old size of a reallocated memory block as well.  See below for a
-motivation.
+@deftypefnx {C Function} void *scm_gc_calloc (size_t @var{size}, const char *@var{what})
+Like @code{scm_malloc}, @code{scm_realloc} or @code{scm_calloc}, but
+also call @code{scm_gc_register_collectable_memory}.  Note that you
+need to pass the old size of a reallocated memory block as well.  See
+below for a motivation.
 @end deftypefn
+
 
 @deftypefn {C Function} void scm_gc_free (void *@var{mem}, size_t @var{size}, const char *@var{what})
 Like @code{free}, but also call @code{scm_gc_unregister_collectable_memory}.

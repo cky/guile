@@ -86,12 +86,13 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, int span)
   int offset =SCM_MAX (SCM_GC_CARD_N_HEADER_CELLS, span);
   int free_count  = 0;
 
+  ++ scm_gc_running_p;
+
   /*
     I tried something fancy with shifting by one bit every word from
     the bitvec in turn, but it wasn't any faster, but quite bit
     hairier.
    */
-
   for (p += offset; p < end; p += span, offset += span)
     {
       SCM scmptr = PTR2SCM(p);
@@ -273,6 +274,8 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, int span)
       *free_list = PTR2SCM (p);
       free_count ++;
     }
+
+  --scm_gc_running_p;
   return free_count;
 }
 #undef FUNC_NAME
@@ -301,6 +304,7 @@ scm_init_card_freelist (scm_t_cell *  card, SCM *free_list, int span)
 }
 
 
+
 #if 0
 /*
   These functions are meant to be called from GDB as a debug aid.
@@ -317,6 +321,16 @@ typedef struct scm_t_list_cell_struct {
   scm_t_bits car;  
   struct scm_t_list_cell_struct * cdr;
 } scm_t_list_cell;
+
+
+typedef struct scm_t_double_cell
+{
+  scm_t_bits word_0;
+  scm_t_bits word_1;
+  scm_t_bits word_2;
+  scm_t_bits word_3;
+} scm_t_double_cell;
+
 
 int
 scm_gc_marked_p (SCM obj)

@@ -139,7 +139,7 @@ scm_mark_subr_table ()
   long i;
   for (i = 0; i < scm_subr_table_size; ++i)
     {
-      SCM_SET_GC_MARK (scm_subr_table[i].name);
+      scm_gc_mark (scm_subr_table[i].name);
       if (scm_subr_table[i].generic && *scm_subr_table[i].generic)
 	scm_gc_mark (*scm_subr_table[i].generic);
       if (SCM_NIMP (scm_subr_table[i].properties))

@@ -142,9 +142,9 @@ cause aborts in long running programs.
 The new functions are more symmetrical and do not need cooperation
 from smob free routines, among other improvements.
 
-The new functions are scm_malloc, scm_realloc, scm_strdup,
-scm_strndup, scm_gc_malloc, scm_gc_calloc, scm_gc_realloc, scm_gc_free,
-scm_gc_register_collectable_memory, and
+The new functions are scm_malloc, scm_realloc, scm_calloc, scm_strdup,
+scm_strndup, scm_gc_malloc, scm_gc_calloc, scm_gc_realloc,
+scm_gc_free, scm_gc_register_collectable_memory, and
 scm_gc_unregister_collectable_memory.  Refer to the manual for more
 details and for upgrading instructions.
 

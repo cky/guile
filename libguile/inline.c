@@ -39,10 +39,13 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+#include <stdio.h> 
 #include "libguile/scmconfig.h"
 
-
+#ifndef HAVE_INLINE
 #define HAVE_INLINE
+#endif
+
 #define EXTERN_INLINE
 #undef SCM_INLINE_H
 

@@ -236,5 +236,6 @@ void scm_gc_init_malloc (void);
 void scm_gc_init_freelist (void);
 void scm_gc_init_segments (void);
 void scm_gc_init_mark (void);
-     
+
+
 #endif

@@ -90,53 +90,87 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 
 unsigned int scm_gc_running_p = 0;
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-
 /* Set this to != 0 if every cell that is accessed shall be checked:
  */
-unsigned int scm_debug_cell_accesses_p = 1;
+int scm_debug_cell_accesses_p = 0;
+int scm_expensive_debug_cell_accesses_p = 0;
 
 /* Set this to 0 if no additional gc's shall be performed, otherwise set it to
  * the number of cell accesses after which a gc shall be called.
  */
-static unsigned int debug_cells_gc_interval = 0;
+int scm_debug_cells_gc_interval = 0;
 
-
-/* Assert that the given object is a valid reference to a valid cell.  This
- * test involves to determine whether the object is a cell pointer, whether
- * this pointer actually points into a heap segment and whether the cell
- * pointed to is not a free cell.  Further, additional garbage collections may
- * get executed after a user defined number of cell accesses.  This helps to
- * find places in the C code where references are dropped for extremely short
- * periods.
+/*
+  Global variable, so you can switch it off at runtime by setting
+  scm_i_cell_validation_already_running.
  */
+int scm_i_cell_validation_already_running ;
+
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+
+
+/*
+  
+  Assert that the given object is a valid reference to a valid cell.  This
+  test involves to determine whether the object is a cell pointer, whether
+  this pointer actually points into a heap segment and whether the cell
+  pointed to is not a free cell.  Further, additional garbage collections may
+  get executed after a user defined number of cell accesses.  This helps to
+  find places in the C code where references are dropped for extremely short
+  periods.
+
+*/
+
+
+void
+scm_i_expensive_validation_check (SCM cell)
+{
+  if (!scm_in_heap_p (cell))
+    {
+      fprintf (stderr, "scm_assert_cell_valid: this object does not live in the heap: %lux\n",
+	       (unsigned long) SCM_UNPACK (cell));
+      abort ();
+    }
+
+  /* If desired, perform additional garbage collections after a user
+   * defined number of cell accesses.
+   */
+  if (scm_debug_cells_gc_interval)
+    {
+      static unsigned int counter = 0;
+
+      if (counter != 0)
+	{
+	  --counter;
+	}
+      else
+	{
+	  counter = scm_debug_cells_gc_interval;
+	  scm_igc ("scm_assert_cell_valid");
+	}
+    }
+}
 
 void
 scm_assert_cell_valid (SCM cell)
 {
-  static unsigned int already_running = 0;
-
-  if (!already_running)
+  if (!scm_i_cell_validation_already_running && scm_debug_cell_accesses_p)
     {
-      already_running = 1;  /* set to avoid recursion */
+      scm_i_cell_validation_already_running = 1;  /* set to avoid recursion */
 
       /*
-	During GC, no user-code should be run, and the guile core should
-	use non-protected accessors.
-       */
+	During GC, no user-code should be run, and the guile core
+	should use non-protected accessors.
+      */
       if (scm_gc_running_p)
-	abort();
+	return;
 
       /*
-	Only scm_in_heap_p is wildly expensive. 
-       */
-      if (scm_debug_cell_accesses_p)
-	if (!scm_in_heap_p (cell))
-	  {
-	    fprintf (stderr, "scm_assert_cell_valid: this object does not live in the heap: %lux\n",
-		     (unsigned long) SCM_UNPACK (cell));
-	    abort ();
-	  }
+	Only scm_in_heap_p and rescanning the heap is wildly
+	expensive.
+      */
+      if (scm_expensive_debug_cell_accesses_p)
+	scm_i_expensive_validation_check (cell);
       
       if (!SCM_GC_MARK_P (cell))
 	{
@@ -148,54 +182,47 @@ scm_assert_cell_valid (SCM cell)
 	  abort ();
 	}
 
-
-      /* If desired, perform additional garbage collections after a user
-       * defined number of cell accesses.
-       */
-      if (scm_debug_cell_accesses_p && debug_cells_gc_interval)
-	{
-	  static unsigned int counter = 0;
-
-	  if (counter != 0)
-	    {
-	      --counter;
-	    }
-	  else
-	    {
-	      counter = debug_cells_gc_interval;
-	      scm_igc ("scm_assert_cell_valid");
-	    }
-	}
-      already_running = 0;  /* re-enable */
+      scm_i_cell_validation_already_running = 0;  /* re-enable */
     }
 }
+
 
 
 SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 	    (SCM flag),
 	    "If @var{flag} is @code{#f}, cell access checking is disabled.\n"
-	    "If @var{flag} is @code{#t}, cell access checking is enabled,\n"
+	    "If @var{flag} is @code{#t}, cheap cell access checking is enabled,\n"
 	    "but no additional calls to garbage collection are issued.\n"
-	    "If @var{flag} is a number, cell access checking is enabled,\n"
+	    "If @var{flag} is a number, strict cell access checking is enabled,\n"
 	    "with an additional garbage collection after the given\n"
 	    "number of cell accesses.\n"
 	    "This procedure only exists when the compile-time flag\n"
 	    "@code{SCM_DEBUG_CELL_ACCESSES} was set to 1.")
 #define FUNC_NAME s_scm_set_debug_cell_accesses_x
 {
-  if (SCM_FALSEP (flag)) {
-    scm_debug_cell_accesses_p = 0;
-  } else if (SCM_EQ_P (flag, SCM_BOOL_T)) {
-    debug_cells_gc_interval = 0;
-    scm_debug_cell_accesses_p = 1;
-  } else if (SCM_INUMP (flag)) {
-    long int f = SCM_INUM (flag);
-    if (f <= 0) SCM_OUT_OF_RANGE (1, flag);
-    debug_cells_gc_interval = f;
-    scm_debug_cell_accesses_p = 1;
-  } else {
-    SCM_WRONG_TYPE_ARG (1, flag);
-  }
+  if (SCM_FALSEP (flag))
+    {
+      scm_debug_cell_accesses_p = 0;
+    }
+  else if (SCM_EQ_P (flag, SCM_BOOL_T))
+    {
+      scm_debug_cells_gc_interval = 0;
+      scm_debug_cell_accesses_p = 1;
+      scm_expensive_debug_cell_accesses_p = 0;
+    }
+  else if (SCM_INUMP (flag))
+    {
+      long int f = SCM_INUM (flag);
+      if (f <= 0)
+	SCM_OUT_OF_RANGE (1, flag);
+      scm_debug_cells_gc_interval = f;
+      scm_debug_cell_accesses_p = 1;
+      scm_expensive_debug_cell_accesses_p = 1;
+    }
+  else
+    {
+      SCM_WRONG_TYPE_ARG (1, flag);
+    }
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -497,6 +524,8 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
   --scm_ints_disabled;
 
   *free_cells = SCM_FREE_CELL_CDR (cell);
+
+
   return cell;
 }
 
@@ -525,7 +554,7 @@ scm_igc (const char *what)
   /* During the critical section, only the current thread may run. */
   SCM_CRITICAL_SECTION_START;
 
-  if (!scm_stack_base || scm_block_gc)
+  if (!scm_root || !scm_stack_base || scm_block_gc)
     {
       --scm_gc_running_p;
       return;
@@ -585,15 +614,13 @@ scm_igc (const char *what)
   SCM_CRITICAL_SECTION_END;
   scm_c_hook_run (&scm_after_gc_c_hook, 0);
   --scm_gc_running_p;
+
+  /*
+    For debugging purposes, you could do
+    scm_i_sweep_all_segments("debug"), but then the remains of the
+    cell aren't left to analyse.
+   */
 }
-
-
-
-
-
-
-
-
 
 
 /* {GC Protection Helper Functions}
@@ -939,7 +966,7 @@ mark_gc_async (void * hook_data SCM_UNUSED,
    * after-gc-hook.
    */
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
-  if (debug_cells_gc_interval == 0)
+  if (scm_debug_cells_gc_interval == 0)
     scm_system_async_mark (gc_async);
 #else
   scm_system_async_mark (gc_async);

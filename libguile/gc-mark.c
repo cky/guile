@@ -83,9 +83,6 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include <unistd.h>
 #endif
 
-
-
-
 #ifdef __ia64__
 # define SCM_MARK_BACKING_STORE() do {                                \
     ucontext_t ctx;                                                   \
@@ -101,6 +98,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 # define SCM_MARK_BACKING_STORE()
 #endif
 
+
 /*
   Entry point for this file.
  */
@@ -108,10 +106,10 @@ void
 scm_mark_all (void)
 {
   long j;
-
+  
   
   scm_i_clear_mark_space ();
-
+  
 #ifndef USE_THREADS
 
   /* Mark objects on the C stack. */
@@ -157,11 +155,13 @@ scm_mark_all (void)
 	  }
       }
   }
+  
 
   /* FIXME: we should have a means to register C functions to be run
    * in different phases of GC
    */
   scm_mark_subr_table ();
+
 
 #ifndef USE_THREADS
   scm_gc_mark (scm_root->handle);
@@ -170,7 +170,6 @@ scm_mark_all (void)
 
 /* {Mark/Sweep}
  */
-
 
 /*
   Mark an object precisely, then recurse.
@@ -182,7 +181,9 @@ scm_gc_mark (SCM ptr)
     return ;
   
   if (SCM_GC_MARK_P (ptr))
-    return;
+    {
+      return;
+    }
 
   SCM_SET_GC_MARK (ptr);
   scm_gc_mark_dependencies (ptr);
@@ -475,13 +476,17 @@ gc_mark_loop:
   }
   
  if (SCM_GC_MARK_P (ptr))
+  {
     return;
-
+  }
+  
   SCM_SET_GC_MARK (ptr);
+
   goto   scm_mark_dependencies_again;
   
 }
 #undef FUNC_NAME
+
 
 
 
@@ -569,5 +574,4 @@ scm_gc_init_mark(void)
   scm_set_smob_mark (scm_tc16_allocated, allocated_mark);
 #endif
 }
-
 

@@ -546,6 +546,7 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist, policy_on_erro
 }
 
 
+
 void
 scm_i_make_initial_segment (size_t init_heap_size, scm_t_cell_type_statistics *freelist)
 {
@@ -568,4 +569,3 @@ scm_i_make_initial_segment (size_t init_heap_size, scm_t_cell_type_statistics *f
     freelist->min_yield = (freelist->heap_size * freelist->min_yield_fraction
 			    / 100);
 }
-
