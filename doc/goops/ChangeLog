@@ -1,3 +1,9 @@
+2002-11-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* goops.texi (Top): Say "Indices" before index nodes in main menu.
+	(Index): Removed (it was empty).  Generally remove unnecessary
+	padding text that looks bad in HTML.
+
 2002-04-17  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (CLEANFILES): Added goops.tmp, goops.cps.

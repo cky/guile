@@ -72,27 +72,13 @@ are preserved on all copies.
 @node Top, Introduction, (dir), (dir)
 
 @menu
-[When the manual is completed, this will be a flat index in the style of
- the Emacs manual.  More nodes will turn up under parts I-III.]
-
-Part I: Preliminaries
-
 * Introduction::
 * Getting Started::
-
-Part II: Reference Manual
-
 * Reference Manual::
-
-Part III: GOOPS Meta Object Protocol
-
 * MOP Specification::
-
-The GOOPS tutorial
 
 * Tutorial::
 
-* Index::
 * Concept Index::
 * Function and Variable Index::
 @end menu
@@ -102,7 +88,12 @@ The GOOPS tutorial
 @end iftex
 
 @node Introduction, Getting Started, Top, Top
+@iftex
 @section Introduction
+@end iftex
+@ifnottex
+@chapter Introduction
+@end ifnottex
 
 @goops{} is the object oriented extension to @guile{}. Its
 implementation is derived from @w{STk-3.99.3} by Erick Gallesio and
@@ -119,7 +110,12 @@ meta object protocol, in the spirit of the one defined for CLOS
 (@cite{Gregor Kiczales: A Metaobject Protocol}).
 
 @node Getting Started, Reference Manual, Introduction, Top
+@iftex
 @section Getting Started
+@end iftex
+@ifnottex
+@chapter Getting Started
+@end ifnottex
 
 @menu
 * Running GOOPS::
@@ -2781,14 +2777,11 @@ theoretically handle adding methods to further types of target.
 @code{no-next-method}
 @end itemize
 
-@node Tutorial, Index, MOP Specification, Top
+@node Tutorial, Concept Index, MOP Specification, Top
 @chapter Tutorial
 @include goops-tutorial.texi
 
-@node Index, Concept Index, Tutorial, Top
-@chapter Index
-@page
-@node     Concept Index, Function and Variable Index, Index, Top
+@node     Concept Index, Function and Variable Index, Tutorial, Top
 @unnumberedsec Concept Index
 
 @printindex cp
