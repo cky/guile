@@ -99,7 +99,7 @@ scm_i_mem2symbol (SCM str)
     SCM l;
 
     for (l = SCM_HASHTABLE_BUCKETS (symbols) [hash];
-	 !SCM_NULLP (l);
+	 !scm_is_null (l);
 	 l = SCM_CDR (l))
       {
 	SCM sym = SCM_CAAR (l);

@@ -422,18 +422,18 @@ SCM_REGISTER_PROC (s_reverse_lookup, "reverse-lookup", 2, 0, 0, scm_reverse_look
 SCM
 scm_reverse_lookup (SCM env, SCM data)
 {
-  while (SCM_CONSP (env) && SCM_CONSP (SCM_CAR (env)))
+  while (scm_is_pair (env) && scm_is_pair (SCM_CAR (env)))
     {
       SCM names = SCM_CAAR (env);
       SCM values = SCM_CDAR (env);
-      while (SCM_CONSP (names))
+      while (scm_is_pair (names))
 	{
 	  if (scm_is_eq (SCM_CAR (values), data))
 	    return SCM_CAR (names);
 	  names = SCM_CDR (names);
 	  values = SCM_CDR (values);
 	}
-      if (!SCM_NULLP (names) && scm_is_eq (values, data))
+      if (!scm_is_null (names) && scm_is_eq (values, data))
 	return names;
       env = SCM_CDR (env);
     }
@@ -463,9 +463,9 @@ scm_m_start_stack (SCM exp, SCM env)
 #define FUNC_NAME s_start_stack
 {
   exp = SCM_CDR (exp);
-  if (!SCM_CONSP (exp) 
-      || !SCM_CONSP (SCM_CDR (exp))
-      || !SCM_NULLP (SCM_CDDR (exp)))
+  if (!scm_is_pair (exp) 
+      || !scm_is_pair (SCM_CDR (exp))
+      || !scm_is_null (SCM_CDDR (exp)))
     SCM_WRONG_NUM_ARGS ();
   return scm_start_stack (scm_eval_car (exp, env), SCM_CADR (exp), env);
 }

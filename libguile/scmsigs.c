@@ -104,7 +104,7 @@ take_signal (int signum)
       SCM handler = SCM_VECTOR_REF(signal_cell_handlers, signum);
       SCM thread = SCM_VECTOR_REF(signal_handler_threads, signum);
       scm_root_state *root = scm_i_thread_root (thread);
-      if (SCM_CONSP (cell))
+      if (scm_is_pair (cell))
 	{
 	  SCM_SETCAR (cell, handler);
 	  root->pending_asyncs = 1;
@@ -148,7 +148,7 @@ scm_delq_spine_x (SCM cell, SCM list)
   
   while (!scm_is_eq (cell, s))
     {
-      if (SCM_NULLP (s))
+      if (scm_is_null (s))
 	return list;
       prev = s;
       s = SCM_CDR (s);

@@ -3,7 +3,7 @@
 #ifndef SCM_STACKS_H
 #define SCM_STACKS_H
 
-/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,7 @@ SCM_API SCM scm_stack_type;
 #define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> length)
 
 #define SCM_FRAMEP(obj) \
-  (SCM_CONSP (obj) && SCM_STACKP (SCM_CAR (obj)) \
+  (scm_is_pair (obj) && SCM_STACKP (SCM_CAR (obj)) \
    && scm_is_unsigned_integer (SCM_CDR (obj), \
                                0, SCM_STACK_LENGTH (SCM_CAR (obj))-1))
 

@@ -204,7 +204,7 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
       switch (SCM_TYP7 (obj))
 	{
 	case scm_tcs_closures:
-	  return scm_from_bool (!SCM_CONSP (SCM_CLOSURE_FORMALS (obj)));
+	  return scm_from_bool (!scm_is_pair (SCM_CLOSURE_FORMALS (obj)));
 	case scm_tc7_subr_0:
 	case scm_tc7_subr_1o:
 	case scm_tc7_lsubr:
@@ -255,7 +255,7 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
     {
     case scm_tcs_closures:
       code = SCM_CLOSURE_BODY (proc);
-      if (SCM_NULLP (SCM_CDR (code)))
+      if (scm_is_null (SCM_CDR (code)))
 	return SCM_BOOL_F;
       code = SCM_CAR (code);
       if (scm_is_string (code))

@@ -317,7 +317,7 @@ maybe_close_port (void *data, SCM port)
 {
   SCM except = (SCM)data;
 
-  while (!SCM_NULLP (except))
+  while (!scm_is_null (except))
     {
       SCM p = SCM_COERCE_OUTPORT (SCM_CAR (except));
       if (scm_is_eq (p, port))
@@ -341,7 +341,7 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
   SCM p;
   SCM_VALIDATE_REST_ARGUMENT (ports);
   
-  for (p = ports; !SCM_NULLP (p); p = SCM_CDR (p))
+  for (p = ports; !scm_is_null (p); p = SCM_CDR (p))
     SCM_VALIDATE_OPPORT (SCM_ARG1, SCM_COERCE_OUTPORT (SCM_CAR (p)));
 
   scm_c_port_for_each (maybe_close_port, ports);
@@ -445,7 +445,7 @@ SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
   scm_c_issue_deprecation_warning
     ("'sloppy-memq' is deprecated.  Use 'memq' instead.");
 
-  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
+  for(;  scm_is_pair (lst);  lst = SCM_CDR(lst))
     {
       if (scm_is_eq (SCM_CAR (lst), x))
 	return lst;
@@ -465,7 +465,7 @@ SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
   scm_c_issue_deprecation_warning
     ("'sloppy-memv' is deprecated.  Use 'memv' instead.");
 
-  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
+  for(;  scm_is_pair (lst);  lst = SCM_CDR(lst))
     {
       if (! scm_is_false (scm_eqv_p (SCM_CAR (lst), x)))
 	return lst;
@@ -485,7 +485,7 @@ SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
   scm_c_issue_deprecation_warning
     ("'sloppy-member' is deprecated.  Use 'member' instead.");
 
-  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
+  for(;  scm_is_pair (lst);  lst = SCM_CDR(lst))
     {
       if (! scm_is_false (scm_equal_p (SCM_CAR (lst), x)))
 	return lst;

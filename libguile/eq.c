@@ -147,7 +147,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     return SCM_BOOL_F;
   if (SCM_IMP (y))
     return SCM_BOOL_F;
-  if (SCM_CONSP (x) && SCM_CONSP (y))
+  if (scm_is_pair (x) && scm_is_pair (y))
     {
       if (scm_is_false (scm_equal_p (SCM_CAR (x), SCM_CAR (y))))
 	return SCM_BOOL_F;

@@ -165,7 +165,7 @@ scm_i_rehash (SCM table,
   for (i = 0; i < old_size; ++i)
     {
       SCM ls = SCM_VELTS (buckets)[i], handle;
-      while (!SCM_NULLP (ls))
+      while (!scm_is_null (ls))
 	{
 	  unsigned long h;
 	  handle = SCM_CAR (ls);
@@ -215,7 +215,7 @@ scan_weak_hashtables (void *dummy1 SCM_UNUSED,
 {
   SCM *next = &weak_hashtables;
   SCM h = *next;
-  while (!SCM_NULLP (h))
+  while (!scm_is_null (h))
     {
       if (!SCM_GC_MARK_P (h))
 	*next = h = SCM_HASHTABLE_NEXT (h);
@@ -230,7 +230,7 @@ scan_weak_hashtables (void *dummy1 SCM_UNUSED,
 	    {
 	      SCM *next_spine = (SCM *) &SCM_HASHTABLE_BUCKETS (h)[i];
 	      for (alist = *next_spine;
-		   !SCM_NULLP (alist);
+		   !scm_is_null (alist);
 		   alist = SCM_CDR (alist))
 		if ((weak_car && UNMARKED_CELL_P (SCM_CAAR (alist)))
 		    || (weak_cdr && UNMARKED_CELL_P (SCM_CDAR (alist))))
@@ -266,7 +266,7 @@ rehash_after_gc (void *dummy1 SCM_UNUSED,
 		 void *dummy2 SCM_UNUSED,
 		 void *dummy3 SCM_UNUSED)
 {
-  if (!SCM_NULLP (to_rehash))
+  if (!scm_is_null (to_rehash))
     {
       SCM first = to_rehash, last, h;
       /* important to clear to_rehash here so that we don't get stuck
@@ -282,7 +282,7 @@ rehash_after_gc (void *dummy1 SCM_UNUSED,
 			"rehash_after_gc");
 	  last = h;
 	  h = SCM_HASHTABLE_NEXT (h);
-	} while (!SCM_NULLP (h));
+	} while (!scm_is_null (h));
       /* move tables back to weak_hashtables */
       SCM_SET_HASHTABLE_NEXT (last, weak_hashtables);
       weak_hashtables = first;
@@ -487,7 +487,7 @@ scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned long (*hash_fn)(),
                  SCM (*assoc_fn)(), void * closure)
 {
   SCM it = scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure);
-  if (SCM_CONSP (it))
+  if (scm_is_pair (it))
     return SCM_CDR (it);
   else
     return dflt;
@@ -912,12 +912,12 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
   for (i = 0; i < n; ++i)
     {
       SCM ls = SCM_VELTS (buckets)[i], handle;
-      while (!SCM_NULLP (ls))
+      while (!scm_is_null (ls))
 	{
-	  if (!SCM_CONSP (ls))
+	  if (!scm_is_pair (ls))
 	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
 	  handle = SCM_CAR (ls);
-	  if (!SCM_CONSP (handle))
+	  if (!scm_is_pair (handle))
 	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
 	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
 	  ls = SCM_CDR (ls);
@@ -950,12 +950,12 @@ scm_internal_hash_for_each_handle (SCM (*fn) (), void *closure, SCM table)
   for (i = 0; i < n; ++i)
     {
       SCM ls = SCM_VELTS (buckets)[i], handle;
-      while (!SCM_NULLP (ls))
+      while (!scm_is_null (ls))
 	{
-	  if (!SCM_CONSP (ls))
+	  if (!scm_is_pair (ls))
 	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
 	  handle = SCM_CAR (ls);
-	  if (!SCM_CONSP (handle))
+	  if (!scm_is_pair (handle))
 	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
 	  fn (closure, handle);
 	  ls = SCM_CDR (ls);

@@ -468,11 +468,11 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 
   /* Narrow the stack according to the arguments given to scm_make_stack. */
   SCM_VALIDATE_REST_ARGUMENT (args);
-  while (n > 0 && !SCM_NULLP (args))
+  while (n > 0 && !scm_is_null (args))
     {
       inner_cut = SCM_CAR (args);
       args = SCM_CDR (args);
-      if (SCM_NULLP (args)) 
+      if (scm_is_null (args)) 
 	{
 	  outer_cut = SCM_INUM0;
 	} 

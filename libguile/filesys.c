@@ -1225,7 +1225,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 
   /* if there's a port with a ready buffer, don't block, just
      check for ready file descriptors.  */
-  if (!SCM_NULLP (read_ports_ready) || !SCM_NULLP (write_ports_ready))
+  if (!scm_is_null (read_ports_ready) || !scm_is_null (write_ports_ready))
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;

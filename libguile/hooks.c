@@ -183,7 +183,7 @@ SCM_DEFINE (scm_hook_empty_p, "hook-empty?", 1, 0, 0,
 #define FUNC_NAME s_scm_hook_empty_p
 {
   SCM_VALIDATE_HOOK (1, hook);
-  return scm_from_bool (SCM_NULLP (SCM_HOOK_PROCEDURES (hook)));
+  return scm_from_bool (scm_is_null (SCM_HOOK_PROCEDURES (hook)));
 }
 #undef FUNC_NAME
 

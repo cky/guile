@@ -620,7 +620,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	  struct linger ling;
 	  long lv;
 
-	  SCM_ASSERT (SCM_CONSP (value), value, SCM_ARG4, FUNC_NAME);
+	  SCM_ASSERT (scm_is_pair (value), value, SCM_ARG4, FUNC_NAME);
 	  lv = SCM_NUM2LONG (4, SCM_CAR (value));
 	  ling.l_onoff = (int) lv;
 	  SCM_ASSERT_RANGE (SCM_ARG4, value, ling.l_onoff == lv);
@@ -633,7 +633,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	  int ling;
 	  long lv;
 
-	  SCM_ASSERT (SCM_CONSP (value), value, SCM_ARG4, FUNC_NAME);
+	  SCM_ASSERT (scm_is_pair (value), value, SCM_ARG4, FUNC_NAME);
 	  /* timeout is ignored, but may as well validate it.  */
 	  lv = SCM_NUM2LONG (4, SCM_CDR (value));
 	  ling = (int) lv;
@@ -755,11 +755,11 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	SCM_VALIDATE_CONS (which_arg + 1, *args);
 	port = scm_to_int (SCM_CAR (*args));
 	*args = SCM_CDR (*args);
-	if (SCM_CONSP (*args))
+	if (scm_is_pair (*args))
 	  {
 	    SCM_VALIDATE_ULONG_COPY (which_arg + 2, SCM_CAR (*args), flowinfo);
 	    *args = SCM_CDR (*args);
-	    if (SCM_CONSP (*args))
+	    if (scm_is_pair (*args))
 	      {
 		SCM_VALIDATE_ULONG_COPY (which_arg + 3, SCM_CAR (*args),
 					 scope_id);
@@ -1299,7 +1299,7 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
   fd = SCM_FPORT_FDES (sock);
   soka = scm_fill_sockaddr (scm_to_int (fam), address, &args_and_flags, 4,
 			    FUNC_NAME, &size);
-  if (SCM_NULLP (args_and_flags))
+  if (scm_is_null (args_and_flags))
     flg = 0;
   else
     {

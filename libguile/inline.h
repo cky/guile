@@ -3,7 +3,7 @@
 #ifndef SCM_INLINE_H
 #define SCM_INLINE_H
 
-/* Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -75,7 +75,7 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
    */
   SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist);
 
-  if (SCM_NULLP (*freelist))
+  if (scm_is_null (*freelist))
     z = scm_gc_for_newcell (&scm_i_master_freelist, freelist);
   else
     {
@@ -164,7 +164,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   SCM z;
   SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist2);
 
-  if (SCM_NULLP (*freelist))
+  if (scm_is_null (*freelist))
     z = scm_gc_for_newcell (&scm_i_master_freelist2, freelist);
   else
     {

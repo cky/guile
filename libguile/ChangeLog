@@ -1,7 +1,17 @@
-2004-09-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+2004-09-22  Marius Vollmer  <mvo@zagadka.de>
 
-	* pairs.h (scm_car, scm_cdr, scm_i_chase_pairs, SCM_I_A_PAT,
-	SCM_I_D_PAT, etc, scm_caar, scm_cadr, etc): New.
+	* discouraged.h, tags.h (SCM_CONSP, SCM_NCONSP): Moved to
+	discouraged.h.  Replaced all uses with scm_is_pair.
+	(SCM_I_CONSP): New name for SCM_CONSP.
+
+	* pairs.h, pairs.c (scm_is_pair, scm_is_null, scm_car, scm_cdr,
+	scm_i_chase_pairs, SCM_I_A_PAT, SCM_I_D_PAT, etc, scm_caar,
+	scm_cadr, etc): New.
+	(SCM_NULLP, SCM_NNULLP): Moved to discouraged.h.  Replaced all
+	uses with scm_is_null.
+
+	* eval.c (scm_eval, scm_apply, call_cxr_1): Use scm_i_chase_pairs
+	instead of explicit code.
 
 2004-09-22  Marius Vollmer  <mvo@zagadka.de>
 

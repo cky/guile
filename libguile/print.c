@@ -140,7 +140,7 @@ SCM_DEFINE (scm_current_pstate, "current-pstate", 0, 0, 0,
 	    "included in @code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_current_pstate
 {
-  if (!SCM_NULLP (print_state_pool))
+  if (!scm_is_null (print_state_pool))
     return SCM_CAR (print_state_pool);
   else
     return SCM_BOOL_F;
@@ -170,7 +170,7 @@ scm_make_print_state ()
 
   /* First try to allocate a print state from the pool */
   scm_i_plugin_mutex_lock (&print_state_mutex);
-  if (!SCM_NULLP (print_state_pool))
+  if (!scm_is_null (print_state_pool))
     {
       answer = SCM_CAR (print_state_pool);
       print_state_pool = SCM_CDR (print_state_pool);
@@ -239,11 +239,11 @@ print_circref (SCM port, scm_print_state *pstate, SCM ref)
   register long i;
   long self = pstate->top - 1;
   i = pstate->top - 1;
-  if (SCM_CONSP (pstate->ref_stack[i]))
+  if (scm_is_pair (pstate->ref_stack[i]))
     {
       while (i > 0)
 	{
-	  if (!SCM_CONSP (pstate->ref_stack[i - 1])
+	  if (!scm_is_pair (pstate->ref_stack[i - 1])
 	      || !scm_is_eq (SCM_CDR (pstate->ref_stack[i - 1]), 
 			     pstate->ref_stack[i]))
 	    break;
@@ -685,7 +685,7 @@ scm_prin1 (SCM exp, SCM port, int writingp)
     {
       /* First try to allocate a print state from the pool */
       scm_i_plugin_mutex_lock (&print_state_mutex);
-      if (!SCM_NULLP (print_state_pool))
+      if (!scm_is_null (print_state_pool))
 	{
 	  handle = print_state_pool;
 	  print_state_pool = SCM_CDR (print_state_pool);
@@ -763,12 +763,12 @@ scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate)
      O(depth * N) instead of O(N^2). */
   hare = SCM_CDR (exp);
   tortoise = exp;
-  while (SCM_CONSP (hare))
+  while (scm_is_pair (hare))
     {
       if (scm_is_eq (hare, tortoise))
 	goto fancy_printing;
       hare = SCM_CDR (hare);
-      if (!SCM_CONSP (hare))
+      if (!scm_is_pair (hare))
 	break;
       hare = SCM_CDR (hare);
       tortoise = SCM_CDR (tortoise);
@@ -776,7 +776,7 @@ scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate)
   
   /* No cdr cycles intrinsic to this list */
   scm_iprin1 (SCM_CAR (exp), port, pstate);
-  for (exp = SCM_CDR (exp); SCM_CONSP (exp); exp = SCM_CDR (exp))
+  for (exp = SCM_CDR (exp); scm_is_pair (exp); exp = SCM_CDR (exp))
     {
       register long i;
 
@@ -805,7 +805,7 @@ fancy_printing:
     
     scm_iprin1 (SCM_CAR (exp), port, pstate);
     exp = SCM_CDR (exp); --n;
-    for (; SCM_CONSP (exp); exp = SCM_CDR (exp))
+    for (; scm_is_pair (exp); exp = SCM_CDR (exp))
       {
 	register unsigned long i;
 
@@ -974,7 +974,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	  }
 
 
-	if (!SCM_CONSP (args))
+	if (!scm_is_pair (args))
 	  SCM_MISC_ERROR ("FORMAT: Missing argument for ~~~A",
 			  scm_list_1 (SCM_MAKE_CHAR (*p)));
 			  		

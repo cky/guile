@@ -54,7 +54,7 @@ static SCM
 enqueue (SCM q, SCM t)
 {
   SCM c = scm_cons (t, SCM_EOL);
-  if (SCM_NULLP (SCM_CDR (q)))
+  if (scm_is_null (SCM_CDR (q)))
     SCM_SETCDR (q, c);
   else
     SCM_SETCDR (SCM_CAR (q), c);
@@ -66,7 +66,7 @@ static void
 remqueue (SCM q, SCM c)
 {
   SCM p, prev = q;
-  for (p = SCM_CDR (q); !SCM_NULLP (p); p = SCM_CDR (p))
+  for (p = SCM_CDR (q); !scm_is_null (p); p = SCM_CDR (p))
     {
       if (scm_is_eq (p, c))
 	{
@@ -84,12 +84,12 @@ static SCM
 dequeue (SCM q)
 {
   SCM c = SCM_CDR (q);
-  if (SCM_NULLP (c))
+  if (scm_is_null (c))
     return SCM_BOOL_F;
   else
     {
       SCM_SETCDR (q, SCM_CDR (c));
-      if (SCM_NULLP (SCM_CDR (q)))
+      if (scm_is_null (SCM_CDR (q)))
 	SCM_SETCAR (q, SCM_EOL);
       return SCM_CAR (c);
     }
@@ -841,7 +841,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
   
   if (!SCM_UNBNDP (t))
     {
-      if (SCM_CONSP (t))
+      if (scm_is_pair (t))
 	{
 	  SCM_VALIDATE_UINT_COPY (3, SCM_CAR (t), waittime.tv_sec);
 	  SCM_VALIDATE_UINT_COPY (3, SCM_CDR (t), waittime.tv_nsec);
@@ -938,7 +938,7 @@ scm_threads_mark_stacks (void)
 {
   volatile SCM c;
 
-  for (c = all_threads; !SCM_NULLP (c); c = SCM_CDR (c))
+  for (c = all_threads; !scm_is_null (c); c = SCM_CDR (c))
     {
       scm_thread *t = SCM_THREAD_DATA (SCM_CAR (c));
       if (!THREAD_INITIALIZED_P (t))
@@ -1164,7 +1164,7 @@ scm_i_thread_put_to_sleep ()
       threads = all_threads;
       /* Signal all threads to go to sleep */
       scm_i_thread_go_to_sleep = 1;
-      for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
+      for (; !scm_is_null (threads); threads = SCM_CDR (threads))
 	{
 	  scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
 	  scm_i_plugin_mutex_lock (&t->heap_mutex);
@@ -1178,7 +1178,7 @@ scm_i_thread_invalidate_freelists ()
 {
   /* Don't need to lock thread_admin_mutex here since we are single threaded */
   SCM threads = all_threads;
-  for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
+  for (; !scm_is_null (threads); threads = SCM_CDR (threads))
     if (SCM_CAR (threads) != cur_thread)
       {
 	scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
@@ -1194,7 +1194,7 @@ scm_i_thread_wake_up ()
       SCM threads;
       threads = all_threads;
       scm_i_plugin_cond_broadcast (&wake_up_cond);
-      for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
+      for (; !scm_is_null (threads); threads = SCM_CDR (threads))
 	{
 	  scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
 	  scm_i_plugin_mutex_unlock (&t->heap_mutex);

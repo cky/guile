@@ -381,7 +381,7 @@ display_frame_expr (char *hdr, SCM exp, char *tlr, int indentation, SCM sport, S
     {
       pstate->length = print_params[i].length;
       ptob->seek (sport, 0, SEEK_SET);
-      if (SCM_CONSP (exp))
+      if (scm_is_pair (exp))
 	{
 	  pstate->level = print_params[i].level - 1;
 	  scm_iprlist (hdr, exp, tlr[0], sport, pstate);
@@ -607,14 +607,14 @@ display_frame (SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_
     /* Display a special form. */
     {
       SCM source = SCM_FRAME_SOURCE (frame);
-      SCM copy = (SCM_CONSP (source) 
+      SCM copy = (scm_is_pair (source) 
 		  ? scm_source_property (source, scm_sym_copy)
 		  : SCM_BOOL_F);
       SCM umcopy = (SCM_MEMOIZEDP (source)
 		    ? scm_i_unmemoize_expr (source)
 		    : SCM_BOOL_F);
       display_frame_expr ("(",
-			  SCM_CONSP (copy) ? copy : umcopy,
+			  scm_is_pair (copy) ? copy : umcopy,
 			  ")",
 			  nfield + 1 + indentation,
 			  sport,

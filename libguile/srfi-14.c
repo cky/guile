@@ -100,7 +100,7 @@ SCM_DEFINE (scm_char_set_eq, "char-set=", 0, 0, 1,
 
   SCM_VALIDATE_REST_ARGUMENT (char_sets);
 
-  while (!SCM_NULLP (char_sets))
+  while (!scm_is_null (char_sets))
     {
       SCM csi = SCM_CAR (char_sets);
       long *csi_data;
@@ -130,7 +130,7 @@ SCM_DEFINE (scm_char_set_leq, "char-set<=", 0, 0, 1,
 
   SCM_VALIDATE_REST_ARGUMENT (char_sets);
 
-  while (!SCM_NULLP (char_sets))
+  while (!scm_is_null (char_sets))
     {
       SCM csi = SCM_CAR (char_sets);
       long *csi_data;
@@ -441,7 +441,7 @@ SCM_DEFINE (scm_char_set, "char-set", 0, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (rest);
   cs = make_char_set (FUNC_NAME);
   p = (long *) SCM_SMOB_DATA (cs);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       int c;
 
@@ -474,7 +474,7 @@ SCM_DEFINE (scm_list_to_char_set, "list->char-set", 1, 1, 0,
       cs = scm_char_set_copy (base_cs);
     }
   p = (long *) SCM_SMOB_DATA (cs);
-  while (!SCM_NULLP (list))
+  while (!scm_is_null (list))
     {
       SCM chr = SCM_CAR (list);
       int c;
@@ -501,7 +501,7 @@ SCM_DEFINE (scm_list_to_char_set_x, "list->char-set!", 2, 0, 0,
   SCM_VALIDATE_LIST (1, list);
   SCM_VALIDATE_SMOB (2, base_cs, charset);
   p = (long *) SCM_SMOB_DATA (base_cs);
-  while (!SCM_NULLP (list))
+  while (!scm_is_null (list))
     {
       SCM chr = SCM_CAR (list);
       int c;
@@ -908,7 +908,7 @@ SCM_DEFINE (scm_char_set_adjoin, "char-set-adjoin", 1, 0, 1,
   cs = scm_char_set_copy (cs);
 
   p = (long *) SCM_SMOB_DATA (cs);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       SCM chr = SCM_CAR (rest);
       int c;
@@ -936,7 +936,7 @@ SCM_DEFINE (scm_char_set_delete, "char-set-delete", 1, 0, 1,
   cs = scm_char_set_copy (cs);
 
   p = (long *) SCM_SMOB_DATA (cs);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       SCM chr = SCM_CAR (rest);
       int c;
@@ -963,7 +963,7 @@ SCM_DEFINE (scm_char_set_adjoin_x, "char-set-adjoin!", 1, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   p = (long *) SCM_SMOB_DATA (cs);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       SCM chr = SCM_CAR (rest);
       int c;
@@ -990,7 +990,7 @@ SCM_DEFINE (scm_char_set_delete_x, "char-set-delete!", 1, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   p = (long *) SCM_SMOB_DATA (cs);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       SCM chr = SCM_CAR (rest);
       int c;
@@ -1039,7 +1039,7 @@ SCM_DEFINE (scm_char_set_union, "char-set-union", 0, 0, 1,
 
   res = make_char_set (FUNC_NAME);
   p = (long *) SCM_SMOB_DATA (res);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       int k;
       SCM cs = SCM_CAR (rest);
@@ -1064,7 +1064,7 @@ SCM_DEFINE (scm_char_set_intersection, "char-set-intersection", 0, 0, 1,
 
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
-  if (SCM_NULLP (rest))
+  if (scm_is_null (rest))
     res = make_char_set (FUNC_NAME);
   else
     {
@@ -1075,7 +1075,7 @@ SCM_DEFINE (scm_char_set_intersection, "char-set-intersection", 0, 0, 1,
       p = (long *) SCM_SMOB_DATA (res);
       rest = SCM_CDR (rest);
 
-      while (SCM_CONSP (rest))
+      while (scm_is_pair (rest))
 	{
 	  int k;
 	  SCM cs = SCM_CAR (rest);
@@ -1109,7 +1109,7 @@ SCM_DEFINE (scm_char_set_difference, "char-set-difference", 1, 0, 1,
 
   res = scm_char_set_copy (cs1);
   p = (long *) SCM_SMOB_DATA (res);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       int k;
       SCM cs = SCM_CAR (rest);
@@ -1134,7 +1134,7 @@ SCM_DEFINE (scm_char_set_xor, "char-set-xor", 0, 0, 1,
 
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
-  if (SCM_NULLP (rest))
+  if (scm_is_null (rest))
     res = make_char_set (FUNC_NAME);
   else
     {
@@ -1145,7 +1145,7 @@ SCM_DEFINE (scm_char_set_xor, "char-set-xor", 0, 0, 1,
       p = (long *) SCM_SMOB_DATA (res);
       rest = SCM_CDR (rest);
 
-      while (SCM_CONSP (rest))
+      while (scm_is_pair (rest))
 	{
 	  SCM cs = SCM_CAR (rest);
 	  long *cs_data;
@@ -1182,7 +1182,7 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection, "char-set-diff+intersection", 1
   res2 = make_char_set (FUNC_NAME);
   p = (long *) SCM_SMOB_DATA (res1);
   q = (long *) SCM_SMOB_DATA (res2);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       int k;
       SCM cs = SCM_CAR (rest);
@@ -1233,7 +1233,7 @@ SCM_DEFINE (scm_char_set_union_x, "char-set-union!", 1, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   p = (long *) SCM_SMOB_DATA (cs1);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       int k;
       SCM cs = SCM_CAR (rest);
@@ -1261,7 +1261,7 @@ SCM_DEFINE (scm_char_set_intersection_x, "char-set-intersection!", 1, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   p = (long *) SCM_SMOB_DATA (cs1);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       int k;
       SCM cs = SCM_CAR (rest);
@@ -1289,7 +1289,7 @@ SCM_DEFINE (scm_char_set_difference_x, "char-set-difference!", 1, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   p = (long *) SCM_SMOB_DATA (cs1);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       int k;
       SCM cs = SCM_CAR (rest);
@@ -1326,7 +1326,7 @@ SCM_DEFINE (scm_char_set_xor_x, "char-set-xor!", 1, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   p = (long *) SCM_SMOB_DATA (cs1);
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       int k;
       SCM cs = SCM_CAR (rest);
@@ -1373,7 +1373,7 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection_x, "char-set-diff+intersection!"
       p[k] &= ~q[k];
       q[k] = t & q[k];
     }
-  while (!SCM_NULLP (rest))
+  while (!scm_is_null (rest))
     {
       SCM cs = SCM_CAR (rest);
       long *r;

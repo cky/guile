@@ -159,14 +159,14 @@ static SCM scm_sys_goops_loaded (void);
 static SCM
 map (SCM (*proc) (SCM), SCM ls)
 {
-  if (SCM_NULLP (ls))
+  if (scm_is_null (ls))
     return ls;
   else
     {
       SCM res = scm_cons (proc (SCM_CAR (ls)), SCM_EOL);
       SCM h = res;
       ls = SCM_CDR (ls);
-      while (!SCM_NULLP (ls))
+      while (!scm_is_null (ls))
 	{
 	  SCM_SETCDR (h, scm_cons (proc (SCM_CAR (ls)), SCM_EOL));
 	  h = SCM_CDR (h);
@@ -180,7 +180,7 @@ static SCM
 filter_cpl (SCM ls)
 {
   SCM res = SCM_EOL;
-  while (!SCM_NULLP (ls))
+  while (!scm_is_null (ls))
     {
       SCM el = SCM_CAR (ls);
       if (scm_is_false (scm_c_memq (el, res)))
@@ -215,7 +215,7 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
 {
   SCM tmp;
 
-  if (SCM_NULLP (l))
+  if (scm_is_null (l))
     return res;
 
   tmp = SCM_CAAR (l);
@@ -235,7 +235,7 @@ build_slots_list (SCM dslots, SCM cpl)
 {
   register SCM res = dslots;
 
-  for (cpl = SCM_CDR (cpl); !SCM_NULLP (cpl); cpl = SCM_CDR (cpl))
+  for (cpl = SCM_CDR (cpl); !scm_is_null (cpl); cpl = SCM_CDR (cpl))
     res = scm_append (scm_list_2 (SCM_SLOT (SCM_CAR (cpl),
 					    scm_si_direct_slots),
 				  res));
@@ -248,9 +248,9 @@ static SCM
 maplist (SCM ls)
 {
   SCM orig = ls;
-  while (!SCM_NULLP (ls))
+  while (!scm_is_null (ls))
     {
-      if (!SCM_CONSP (SCM_CAR (ls)))
+      if (!scm_is_pair (SCM_CAR (ls)))
 	SCM_SETCAR (ls, scm_cons (SCM_CAR (ls), SCM_EOL));
       ls = SCM_CDR (ls);
     }
@@ -291,11 +291,11 @@ compute_getters_n_setters (SCM slots)
   SCM *cdrloc = &res;
   long i   = 0;
 
-  for (  ; !SCM_NULLP (slots); slots = SCM_CDR (slots))
+  for (  ; !scm_is_null (slots); slots = SCM_CDR (slots))
     {
       SCM init = SCM_BOOL_F;
       SCM options = SCM_CDAR (slots);
-      if (!SCM_NULLP (options))
+      if (!scm_is_null (options))
 	{
 	  init = scm_get_keyword (k_init_value, options, 0);
 	  if (init)
@@ -392,13 +392,13 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 
   /* See for each slot how it must be initialized */
   for (;
-       !SCM_NULLP (slots);
+       !scm_is_null (slots);
        get_n_set = SCM_CDR (get_n_set), slots = SCM_CDR (slots))
     {
       SCM slot_name  = SCM_CAR (slots);
       SCM slot_value = 0;
 
-      if (!SCM_NULLP (SCM_CDR (slot_name)))
+      if (!scm_is_null (SCM_CDR (slot_name)))
 	{
 	  /* This slot admits (perhaps) to be initialized at creation time */
 	  long n = scm_ilength (SCM_CDR (slot_name));
@@ -456,9 +456,9 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
  */
 #define SCM_GNS_INSTANCE_ALLOCATED_P(gns)	\
   (SCM_I_INUMP (SCM_CDDR (gns))			\
-   || (SCM_CONSP (SCM_CDDR (gns))		\
-       && SCM_CONSP (SCM_CDDDR (gns))		\
-       && SCM_CONSP (SCM_CDDDDR (gns))))
+   || (scm_is_pair (SCM_CDDR (gns))		\
+       && scm_is_pair (SCM_CDDDR (gns))		\
+       && scm_is_pair (SCM_CDDDDR (gns))))
 #define SCM_GNS_INDEX(gns)			\
   (SCM_I_INUMP (SCM_CDDR (gns))			\
    ? SCM_I_INUM (SCM_CDDR (gns))		\
@@ -497,7 +497,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 
   layout = scm_i_make_string (n, &s);
   i = 0;
-  while (SCM_CONSP (getters_n_setters))
+  while (scm_is_pair (getters_n_setters))
     {
       if (SCM_GNS_INSTANCE_ALLOCATED_P (SCM_CAR (getters_n_setters)))
 	{
@@ -505,7 +505,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 	  int len, index, size;
 	  char p, a;
 
-	  if (i >= n || !SCM_CONSP (slots))
+	  if (i >= n || !scm_is_pair (slots))
 	    goto inconsistent;
 	  
 	  /* extract slot type */
@@ -559,7 +559,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
       slots = SCM_CDR (slots);
       getters_n_setters = SCM_CDR (getters_n_setters);
     }
-  if (!SCM_NULLP (slots))
+  if (!scm_is_null (slots))
     {
     inconsistent:
       SCM_MISC_ERROR ("inconsistent getters-n-setters", SCM_EOL);
@@ -579,9 +579,9 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
   SCM ls = dsupers;
   long flags = 0;
   SCM_VALIDATE_INSTANCE (1, class);
-  while (!SCM_NULLP (ls))
+  while (!scm_is_null (ls))
     {
-      SCM_ASSERT (SCM_CONSP (ls)
+      SCM_ASSERT (scm_is_pair (ls)
 		  && SCM_INSTANCEP (SCM_CAR (ls)),
 		  dsupers,
 		  SCM_ARG2,
@@ -661,7 +661,7 @@ scm_basic_basic_make_class (SCM class, SCM name, SCM dsupers, SCM dslots)
   /* Add this class in the direct-subclasses slot of dsupers */
   {
     SCM tmp;
-    for (tmp = dsupers; !SCM_NULLP (tmp); tmp = SCM_CDR (tmp))
+    for (tmp = dsupers; !scm_is_null (tmp); tmp = SCM_CDR (tmp))
       SCM_SET_SLOT (SCM_CAR (tmp), scm_si_direct_subclasses,
 		    scm_cons (z, SCM_SLOT (SCM_CAR (tmp),
 					   scm_si_direct_subclasses)));
@@ -926,7 +926,7 @@ SCM fold_downward_gf_methods (SCM method_lists, SCM gf)
 {
   SCM gfs = scm_slot_ref (gf, sym_extended_by);
   method_lists = scm_cons (scm_slot_ref (gf, sym_methods), method_lists);
-  while (!SCM_NULLP (gfs))
+  while (!scm_is_null (gfs))
     {
       method_lists = fold_downward_gf_methods (method_lists, SCM_CAR (gfs));
       gfs = SCM_CDR (gfs);
@@ -940,7 +940,7 @@ SCM fold_upward_gf_methods (SCM method_lists, SCM gf)
   if (SCM_IS_A_P (gf, scm_class_extended_generic))
     {
       SCM gfs = scm_slot_ref (gf, sym_extends);
-      while (!SCM_NULLP (gfs))
+      while (!scm_is_null (gfs))
 	{
 	  SCM methods = scm_slot_ref (SCM_CAR (gfs), sym_methods);
 	  method_lists = fold_upward_gf_methods (scm_cons (methods,
@@ -1110,7 +1110,7 @@ static SCM
 slot_definition_using_name (SCM class, SCM slot_name)
 {
   register SCM slots = SCM_SLOT (class, scm_si_getters_n_setters);
-  for (; !SCM_NULLP (slots); slots = SCM_CDR (slots))
+  for (; !scm_is_null (slots); slots = SCM_CDR (slots))
     if (SCM_CAAR (slots) == slot_name)
       return SCM_CAR (slots);
   return SCM_BOOL_F;
@@ -1205,7 +1205,7 @@ test_slot_existence (SCM class SCM_UNUSED, SCM obj, SCM slot_name)
 {
   register SCM l;
 
-  for (l = SCM_ACCESSORS_OF (obj); !SCM_NULLP (l); l = SCM_CDR (l))
+  for (l = SCM_ACCESSORS_OF (obj); !scm_is_null (l); l = SCM_CDR (l))
     if (scm_is_eq (SCM_CAAR (l), slot_name))
       return SCM_BOOL_T;
 
@@ -1647,10 +1647,10 @@ SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0
   if (scm_is_true (used_by))
     {
       SCM methods = SCM_SLOT (gf, scm_si_methods);
-      for (; SCM_CONSP (used_by); used_by = SCM_CDR (used_by))
+      for (; scm_is_pair (used_by); used_by = SCM_CDR (used_by))
 	scm_sys_invalidate_method_cache_x (SCM_CAR (used_by));
       clear_method_cache (gf);
-      for (; SCM_CONSP (methods); methods = SCM_CDR (methods))
+      for (; scm_is_pair (methods); methods = SCM_CDR (methods))
 	SCM_SET_SLOT (SCM_CAR (methods), scm_si_code_table, SCM_EOL);
     }
   {
@@ -1681,7 +1681,7 @@ SCM_DEFINE (scm_enable_primitive_generic_x, "enable-primitive-generic!", 0, 0, 1
 #define FUNC_NAME s_scm_enable_primitive_generic_x
 {
   SCM_VALIDATE_REST_ARGUMENT (subrs);
-  while (!SCM_NULLP (subrs))
+  while (!scm_is_null (subrs))
     {
       SCM subr = SCM_CAR (subrs);
       SCM_ASSERT (scm_subr_p (subr) && SCM_SUBR_GENERIC (subr),
@@ -1810,8 +1810,8 @@ more_specificp (SCM m1, SCM m2, SCM const *targs)
    *
    */
   for (i=0, s1=SPEC_OF(m1), s2=SPEC_OF(m2); ; i++, s1=SCM_CDR(s1), s2=SCM_CDR(s2)) {
-    if (SCM_NULLP(s1)) return 1;
-    if (SCM_NULLP(s2)) return 0;
+    if (scm_is_null(s1)) return 1;
+    if (scm_is_null(s2)) return 0;
     if (SCM_CAR(s1) != SCM_CAR(s2)) {
       register SCM l, cs1 = SCM_CAR(s1), cs2 = SCM_CAR(s2);
 
@@ -1940,29 +1940,29 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
   else
     types = p = buffer;
 
-  for (  ; !SCM_NULLP (args); args = SCM_CDR (args))
+  for (  ; !scm_is_null (args); args = SCM_CDR (args))
     *p++ = scm_class_of (SCM_CAR (args));
   
   /* Build a list of all applicable methods */
-  for (l = scm_generic_function_methods (gf); !SCM_NULLP (l); l = SCM_CDR (l))
+  for (l = scm_generic_function_methods (gf); !scm_is_null (l); l = SCM_CDR (l))
     {
       fl = SPEC_OF (SCM_CAR (l));
       /* Only accept accessors which match exactly in first arg. */
       if (SCM_ACCESSORP (SCM_CAR (l))
-	  && (SCM_NULLP (fl) || types[0] != SCM_CAR (fl)))
+	  && (scm_is_null (fl) || types[0] != SCM_CAR (fl)))
 	continue;
       for (i = 0; ; i++, fl = SCM_CDR (fl))
 	{
 	  if (SCM_INSTANCEP (fl)
 	      /* We have a dotted argument list */
-	      || (i >= len && SCM_NULLP (fl)))
+	      || (i >= len && scm_is_null (fl)))
 	    {	/* both list exhausted */
 	      applicable = scm_cons (SCM_CAR (l), applicable);
 	      count     += 1;
 	      break;
 	    }
 	  if (i >= len
-	      || SCM_NULLP (fl)
+	      || scm_is_null (fl)
 	      || !applicablep (types[i], SCM_CAR (fl)))
 	    break;
 	}
@@ -2166,7 +2166,7 @@ SCM_DEFINE (scm_find_method, "find-method", 0, 0, 1,
 
   gf = SCM_CAR(l); l = SCM_CDR(l);
   SCM_VALIDATE_GENERIC (1, gf);
-  if (SCM_NULLP (SCM_SLOT (gf, scm_si_methods)))
+  if (scm_is_null (SCM_SLOT (gf, scm_si_methods)))
     SCM_MISC_ERROR ("no methods for generic ~S", scm_list_1 (gf));
 
   return scm_compute_applicable_methods (gf, l, len - 1, 1);
@@ -2188,7 +2188,7 @@ SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
   /* Verify that all the arguments of targs are classes and place them in a vector*/
   v = scm_c_make_vector (len, SCM_EOL);
 
-  for (i = 0, l = targs; !SCM_NULLP (l); i++, l = SCM_CDR (l)) {
+  for (i = 0, l = targs; !scm_is_null (l); i++, l = SCM_CDR (l)) {
     SCM_ASSERT (SCM_CLASSP (SCM_CAR (l)), targs, SCM_ARG3, FUNC_NAME);
     SCM_VECTOR_SET (v, i, SCM_CAR(l));
   }
@@ -2232,7 +2232,7 @@ make_stdcls (SCM *var, char *name, SCM meta, SCM super, SCM slots)
 
    *var = scm_permanent_object (scm_basic_make_class (meta,
 						      tmp,
-						      SCM_CONSP (super)
+						      scm_is_pair (super)
 						      ? super
 						      : scm_list_1 (super),
 						      slots));
@@ -2627,7 +2627,7 @@ scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
 {
   SCM name, class;
   name = scm_from_locale_symbol (s_name);
-  if (SCM_NULLP (supers))
+  if (scm_is_null (supers))
     supers = scm_list_1 (scm_class_foreign_object);
   class = scm_basic_basic_make_class (meta, name, supers, SCM_EOL);
   scm_sys_inherit_magic_x (class, supers);

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
 #include "libguile/lang.h"
 
 #include "libguile/validate.h"
+#include "libguile/pairs.h"
 #include "libguile/alist.h"
 
 
@@ -49,10 +50,10 @@ SCM_DEFINE (scm_sloppy_assq, "sloppy-assq", 2, 0, 0,
 	    "Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assq
 {
-  for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
+  for (; scm_is_pair (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR (alist);
-      if (SCM_CONSP (tmp) && scm_is_eq (SCM_CAR (tmp), key))
+      if (scm_is_pair (tmp) && scm_is_eq (SCM_CAR (tmp), key))
 	return tmp;
     }
   return SCM_BOOL_F;
@@ -67,10 +68,10 @@ SCM_DEFINE (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
 	    "Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assv
 {
-  for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
+  for (; scm_is_pair (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR (alist);
-      if (SCM_CONSP (tmp)
+      if (scm_is_pair (tmp)
 	  && scm_is_true (scm_eqv_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
@@ -85,10 +86,10 @@ SCM_DEFINE (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
 	    "Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assoc
 {
-  for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
+  for (; scm_is_pair (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR (alist);
-      if (SCM_CONSP (tmp)
+      if (scm_is_pair (tmp)
 	  && scm_is_true (scm_equal_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
@@ -113,10 +114,10 @@ SCM_DEFINE (scm_assq, "assq", 2, 0, 0,
 #define FUNC_NAME s_scm_assq
 {
   SCM ls = alist;
-  for (; SCM_CONSP (ls); ls = SCM_CDR (ls)) 
+  for(; scm_is_pair (ls); ls = SCM_CDR (ls)) 
     {
       SCM tmp = SCM_CAR (ls);
-      SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
+      SCM_ASSERT_TYPE (scm_is_pair (tmp), alist, SCM_ARG2, FUNC_NAME,
 		       "association list");
       if (scm_is_eq (SCM_CAR (tmp), key))
 	return tmp;
@@ -134,10 +135,10 @@ SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
 #define FUNC_NAME s_scm_assv
 {
   SCM ls = alist;
-  for(; SCM_CONSP (ls); ls = SCM_CDR (ls)) 
+  for(; scm_is_pair (ls); ls = SCM_CDR (ls)) 
     {
       SCM tmp = SCM_CAR (ls);
-      SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
+      SCM_ASSERT_TYPE (scm_is_pair (tmp), alist, SCM_ARG2, FUNC_NAME,
 		       "association list");
       if (scm_is_true (scm_eqv_p (SCM_CAR (tmp), key)))
 	return tmp;
@@ -155,10 +156,10 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
 #define FUNC_NAME s_scm_assoc
 {
   SCM ls = alist;
-  for(; SCM_CONSP (ls); ls = SCM_CDR (ls)) 
+  for(; scm_is_pair (ls); ls = SCM_CDR (ls)) 
     {
       SCM tmp = SCM_CAR (ls);
-      SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
+      SCM_ASSERT_TYPE (scm_is_pair (tmp), alist, SCM_ARG2, FUNC_NAME,
 		       "association list");
       if (scm_is_true (scm_equal_p (SCM_CAR (tmp), key)))
 	return tmp;
@@ -201,7 +202,7 @@ SCM_DEFINE (scm_assq_ref, "assq-ref", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assq (key, alist);
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     {
       return SCM_CDR (handle);
     }
@@ -218,7 +219,7 @@ SCM_DEFINE (scm_assv_ref, "assv-ref", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assv (key, alist);
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     {
       return SCM_CDR (handle);
     }
@@ -235,7 +236,7 @@ SCM_DEFINE (scm_assoc_ref, "assoc-ref", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assoc (key, alist);
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     {
       return SCM_CDR (handle);
     }
@@ -264,7 +265,7 @@ SCM_DEFINE (scm_assq_set_x, "assq-set!", 3, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assq (key, alist);
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     {
       SCM_SETCDR (handle, val);
       return alist;
@@ -282,7 +283,7 @@ SCM_DEFINE (scm_assv_set_x, "assv-set!", 3, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assv (key, alist);
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     {
       SCM_SETCDR (handle, val);
       return alist;
@@ -300,7 +301,7 @@ SCM_DEFINE (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assoc (key, alist);
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     {
       SCM_SETCDR (handle, val);
       return alist;
@@ -324,7 +325,7 @@ SCM_DEFINE (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assq (key, alist);
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     alist = scm_delq1_x (handle, alist);
 
   return alist;
@@ -340,7 +341,7 @@ SCM_DEFINE (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assv (key, alist);
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     alist = scm_delq1_x (handle, alist);
 
   return alist;
@@ -356,7 +357,7 @@ SCM_DEFINE (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assoc (key, alist);
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     alist = scm_delq1_x (handle, alist);
 
   return alist;

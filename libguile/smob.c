@@ -242,7 +242,7 @@ scm_smob_apply_2_error (SCM smob, SCM a1 SCM_UNUSED, SCM a2 SCM_UNUSED)
 static SCM
 scm_smob_apply_3_030 (SCM smob, SCM a1, SCM a2, SCM rst)
 {
-  if (!SCM_NULLP (SCM_CDR (rst)))
+  if (!scm_is_null (SCM_CDR (rst)))
     scm_wrong_num_args (smob);
   return SCM_SMOB_APPLY3 (smob, a1, a2, SCM_CAR (rst));
 }

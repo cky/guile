@@ -512,9 +512,9 @@ scm_igc (const char *what)
   fprintf (stderr,"gc reason %s\n", what);
   
   fprintf (stderr,
-	   SCM_NULLP (*SCM_FREELIST_LOC (scm_i_freelist))
+	   scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist))
 	   ? "*"
-	   : (SCM_NULLP (*SCM_FREELIST_LOC (scm_i_freelist2)) ? "o" : "m"));
+	   : (scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist2)) ? "o" : "m"));
 #endif
 
   /* During the critical section, only the current thread may run. */

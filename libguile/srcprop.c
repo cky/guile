@@ -156,7 +156,7 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
   SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
-  else if (!SCM_CONSP (obj))
+  else if (!scm_is_pair (obj))
     SCM_WRONG_TYPE_ARG (1, obj);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (SRCPROPSP (p))
@@ -179,7 +179,7 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
   SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
-  else if (!SCM_CONSP (obj))
+  else if (!scm_is_pair (obj))
     SCM_WRONG_TYPE_ARG(1, obj);
   handle = scm_hashq_create_handle_x (scm_source_whash, obj, plist);
   SCM_SETCDR (handle, plist);
@@ -197,7 +197,7 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
-  else if (!SCM_CONSP (obj))
+  else if (!scm_is_pair (obj))
     SCM_WRONG_TYPE_ARG (1, obj);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (!SRCPROPSP (p))
@@ -229,7 +229,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
   SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
-  else if (!SCM_CONSP (obj))
+  else if (!scm_is_pair (obj))
     SCM_WRONG_TYPE_ARG (1, obj);
   h = scm_whash_get_handle (scm_source_whash, obj);
   if (SCM_WHASHFOUNDP (h))

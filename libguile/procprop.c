@@ -105,14 +105,14 @@ scm_i_procedure_arity (SCM proc)
       goto loop;
     case scm_tcs_closures:
       proc = SCM_CLOSURE_FORMALS (proc);
-      if (SCM_NULLP (proc))
+      if (scm_is_null (proc))
 	break;
-      while (SCM_CONSP (proc))
+      while (scm_is_pair (proc))
 	{
 	  ++a;
 	  proc = SCM_CDR (proc);
 	}
-      if (!SCM_NULLP (proc))
+      if (!scm_is_null (proc))
 	r = 1;
       break;
     case scm_tcs_struct:

@@ -329,7 +329,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
   if (SCM_NULL_OR_NIL_P (items))
     return SCM_BOOL_T;
 
-  if (SCM_CONSP (items))
+  if (scm_is_pair (items))
     {
       len = scm_ilength (items); /* also checks that it's a pure list */
       SCM_ASSERT_RANGE (1, items, len >= 0);
@@ -581,7 +581,7 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
   if (SCM_NULL_OR_NIL_P (items))
     return items;
 
-  if (SCM_CONSP (items))
+  if (scm_is_pair (items))
     {
       const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
@@ -612,7 +612,7 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
   if (SCM_NULL_OR_NIL_P (items))
     return items;
 
-  if (SCM_CONSP (items))
+  if (scm_is_pair (items))
     {
       const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
       long len;
@@ -723,7 +723,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
   if (SCM_NULL_OR_NIL_P (items))
     return items;
 
-  if (SCM_CONSP (items))
+  if (scm_is_pair (items))
     {
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
       return scm_merge_list_step (&items, cmp, less, len);
@@ -761,7 +761,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
   if (SCM_NULL_OR_NIL_P (items))
     return items;
 
-  if (SCM_CONSP (items))
+  if (scm_is_pair (items))
     {
       long len;			/* list/vector length */      
   

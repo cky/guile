@@ -47,14 +47,14 @@ SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
       register SCM b;
       for (; SCM_NIMP (frames); frames = SCM_CDR (frames))
 	{
-	  SCM_ASSERT (SCM_CONSP (frames), env, SCM_ARG2, FUNC_NAME);
+	  SCM_ASSERT (scm_is_pair (frames), env, SCM_ARG2, FUNC_NAME);
 	  b = SCM_CAR (frames);
 	  if (scm_is_true (scm_procedure_p (b)))
 	    break;
-	  SCM_ASSERT (SCM_CONSP (b), env, SCM_ARG2, FUNC_NAME);
+	  SCM_ASSERT (scm_is_pair (b), env, SCM_ARG2, FUNC_NAME);
 	  for (b = SCM_CAR (b); SCM_NIMP (b); b = SCM_CDR (b))
 	    {
-	      if (!SCM_CONSP (b))
+	      if (!scm_is_pair (b))
 		{
 		  if (scm_is_eq (b, sym))
 		    return SCM_BOOL_T;
@@ -93,7 +93,7 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
       return SCM_BOOL_T;
     case scm_tc3_imm24:
 	/* characters, booleans, other immediates */
-      return scm_from_bool (!SCM_NULLP (obj));
+      return scm_from_bool (!scm_is_null (obj));
     case scm_tc3_cons:
       switch (SCM_TYP7 (obj))
 	{

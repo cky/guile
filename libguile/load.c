@@ -368,7 +368,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
   /* This simplifies the loop below a bit.
    */
-  if (SCM_NULLP (extensions))
+  if (scm_is_null (extensions))
     extensions = scm_listofnullstr;
 
   buf.buf_len = 512;
@@ -377,7 +377,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
   /* Try every path element.
    */
-  for (; SCM_CONSP (path); path = SCM_CDR (path))
+  for (; scm_is_pair (path); path = SCM_CDR (path))
     {
       SCM dir = SCM_CAR (path);
       SCM exts;
@@ -399,7 +399,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
       sans_ext_len = buf.ptr - buf.buf;
 
       /* Try every extension. */
-      for (exts = extensions; SCM_CONSP (exts); exts = SCM_CDR (exts))
+      for (exts = extensions; scm_is_pair (exts); exts = SCM_CDR (exts))
 	{
 	  SCM ext = SCM_CAR (exts);
 	  struct stat mode;

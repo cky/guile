@@ -197,7 +197,7 @@ scm_gsubr_apply (SCM args)
 #endif
   args = SCM_CDR (args);
   for (i = 0; i < SCM_GSUBR_REQ (typ); i++) {
-    if (SCM_NULLP (args))
+    if (scm_is_null (args))
       scm_wrong_num_args (SCM_SNAME (SCM_GSUBR_PROC (self)));
     v[i] = SCM_CAR(args);
     args = SCM_CDR(args);
@@ -212,7 +212,7 @@ scm_gsubr_apply (SCM args)
   }
   if (SCM_GSUBR_REST(typ))
     v[i] = args;
-  else if (!SCM_NULLP (args))
+  else if (!scm_is_null (args))
     scm_wrong_num_args (SCM_SNAME (SCM_GSUBR_PROC (self)));
   switch (n) {
   case 2: return (*fcn)(v[0], v[1]);

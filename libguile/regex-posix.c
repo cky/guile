@@ -162,7 +162,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
      turn off REG_EXTENDED flag (on by default). */
   cflags = REG_EXTENDED;
   flag = flags;
-  while (!SCM_NULLP (flag))
+  while (!scm_is_null (flag))
     {
       if (scm_to_int (SCM_CAR (flag)) == REG_BASIC)
 	cflags &= ~REG_EXTENDED;

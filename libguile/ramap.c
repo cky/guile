@@ -988,7 +988,7 @@ scm_ra_sum (SCM ra0, SCM ras)
   unsigned long i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if (!SCM_NULLP(ras))
+  if (!scm_is_null(ras))
     {
       SCM ra1 = SCM_CAR (ras);
       unsigned long i1 = SCM_ARRAY_BASE (ra1);
@@ -1027,7 +1027,7 @@ scm_ra_difference (SCM ra0, SCM ras)
   unsigned long i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if (SCM_NULLP (ras))
+  if (scm_is_null (ras))
     {
       switch (SCM_TYP7 (ra0))
 	{
@@ -1083,7 +1083,7 @@ scm_ra_product (SCM ra0, SCM ras)
   unsigned long i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if (!SCM_NULLP (ras))
+  if (!scm_is_null (ras))
     {
       SCM ra1 = SCM_CAR (ras);
       unsigned long i1 = SCM_ARRAY_BASE (ra1);
@@ -1134,7 +1134,7 @@ scm_ra_divide (SCM ra0, SCM ras)
   unsigned long i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if (SCM_NULLP (ras))
+  if (scm_is_null (ras))
     {
       switch (SCM_TYP7 (ra0))
 	{
@@ -1220,7 +1220,7 @@ ramap (SCM ra0, SCM proc, SCM ras)
   long n = SCM_ARRAY_DIMS (ra0)->ubnd;
   long base = SCM_ARRAY_BASE (ra0) - i * inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if (SCM_NULLP (ras))
+  if (scm_is_null (ras))
     for (; i <= n; i++)
       scm_array_set_x (ra0, scm_call_0 (proc), scm_from_long (i * inc + base));
   else
@@ -1232,7 +1232,7 @@ ramap (SCM ra0, SCM proc, SCM ras)
       long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
       ras = SCM_CDR (ras);
-      if (SCM_NULLP(ras))
+      if (scm_is_null(ras))
 	ras = scm_nullvect;
       else
 	{
@@ -1430,7 +1430,7 @@ ramap_2o (SCM ra0, SCM proc, SCM ras)
   ra0 = SCM_ARRAY_V (ra0);
   ra1 = SCM_ARRAY_V (ra1);
   ras = SCM_CDR (ras);
-  if (SCM_NULLP (ras))
+  if (scm_is_null (ras))
     {
       if (scm_tc7_vector == SCM_TYP7 (ra0)
 	  || scm_tc7_wvect == SCM_TYP7 (ra0))
@@ -1474,7 +1474,7 @@ ramap_a (SCM ra0, SCM proc, SCM ras)
   unsigned long i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if (SCM_NULLP (ras))
+  if (scm_is_null (ras))
     for (; n-- > 0; i0 += inc0)
       scm_array_set_x (ra0, SCM_SUBRF (proc) (RVREF (ra0, i0, e0), SCM_UNDEFINED), scm_from_ulong (i0));
   else
@@ -1532,14 +1532,14 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	for (p = ra_rpsubrs; p->name; p++)
 	  if (scm_is_eq (proc, p->sproc))
 	    {
-	      while (!SCM_NULLP (lra) && !SCM_NULLP (SCM_CDR (lra)))
+	      while (!scm_is_null (lra) && !scm_is_null (SCM_CDR (lra)))
 		{
 		  scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, FUNC_NAME);
 		  lra = SCM_CDR (lra);
 		}
 	      return SCM_UNSPECIFIED;
 	    }
-	while (!SCM_NULLP (lra) && !SCM_NULLP (SCM_CDR (lra)))
+	while (!scm_is_null (lra) && !scm_is_null (SCM_CDR (lra)))
 	  {
 	    scm_ramapc (ramap_rp, proc, ra0, lra, FUNC_NAME);
 	    lra = SCM_CDR (lra);
@@ -1547,7 +1547,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	return SCM_UNSPECIFIED;
       }
     case scm_tc7_asubr:
-      if (SCM_NULLP (lra))
+      if (scm_is_null (lra))
 	{
 	  SCM prot, fill = SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED);
 	  if (SCM_I_INUMP(fill))
@@ -1572,7 +1572,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	    if (!scm_is_eq (ra0, ra1) 
 		|| (SCM_ARRAYP(ra0) && !SCM_ARRAY_CONTP(ra0)))
 	      goto gencase;
-	  for (tail = SCM_CDR (lra); !SCM_NULLP (tail); tail = SCM_CDR (tail))
+	  for (tail = SCM_CDR (lra); !scm_is_null (tail); tail = SCM_CDR (tail))
 	    {
 	      ra1 = SCM_CAR (tail);
 	      if (scm_is_eq (v0, ra1) 
@@ -1613,7 +1613,7 @@ rafe (SCM ra0, SCM proc, SCM ras)
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   long n = SCM_ARRAY_DIMS (ra0)->ubnd;
   ra0 = SCM_ARRAY_V (ra0);
-  if (SCM_NULLP (ras))
+  if (scm_is_null (ras))
     for (; i <= n; i++, i0 += inc0)
       scm_call_1 (proc, scm_cvref (ra0, i0, SCM_UNDEFINED));
   else
@@ -1625,7 +1625,7 @@ rafe (SCM ra0, SCM proc, SCM ras)
       long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
       ras = SCM_CDR (ras);
-      if (SCM_NULLP(ras))
+      if (scm_is_null(ras))
 	ras = scm_nullvect;
       else
 	{

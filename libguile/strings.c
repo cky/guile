@@ -552,7 +552,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
   }
 
   result = scm_i_make_string (len, &data);
-  while (len > 0 && SCM_CONSP (chrs))
+  while (len > 0 && scm_is_pair (chrs))
     {
       SCM elt = SCM_CAR (chrs);
 
@@ -563,7 +563,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
     }
   if (len > 0)
     scm_misc_error (NULL, "list changed while constructing string", SCM_EOL);
-  if (!SCM_NULLP (chrs))
+  if (!scm_is_null (chrs))
     scm_wrong_type_arg_msg (NULL, 0, chrs, "proper list");
 
   return result;
@@ -780,14 +780,14 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   char *data;
 
   SCM_VALIDATE_REST_ARGUMENT (args);
-  for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) 
+  for (l = args; !scm_is_null (l); l = SCM_CDR (l)) 
     {
       s = SCM_CAR (l);
       SCM_VALIDATE_STRING (SCM_ARGn, s);
       i += scm_i_string_length (s);
     }
   res = scm_i_make_string (i, &data);
-  for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) 
+  for (l = args; !scm_is_null (l); l = SCM_CDR (l)) 
     {
       size_t len;
       s = SCM_CAR (l);
@@ -941,7 +941,7 @@ scm_i_allocate_string_pointers (SCM list)
   /* The list might be have been modified in another thread, so
      we check LIST before each access.
    */
-  for (i = 0; i < len && SCM_CONSP (list); i++)
+  for (i = 0; i < len && scm_is_pair (list); i++)
     {
       result[i] = scm_to_locale_string (SCM_CAR (list));
       list = SCM_CDR (list);

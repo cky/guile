@@ -46,7 +46,7 @@ static void
 enqueue (SCM q, SCM t)
 {
   SCM c = scm_cons (t, SCM_EOL);
-  if (SCM_NULLP (SCM_CAR (q)))
+  if (scm_is_null (SCM_CAR (q)))
     SCM_SETCAR (q, c);
   else
     SCM_SETCDR (SCM_CDR (q), c);
@@ -57,12 +57,12 @@ static SCM
 dequeue (SCM q)
 {
   SCM c = SCM_CAR (q);
-  if (SCM_NULLP (c))
+  if (scm_is_null (c))
     return SCM_BOOL_F;
   else
     {
       SCM_SETCAR (q, SCM_CDR (c));
-      if (SCM_NULLP (SCM_CAR (q)))
+      if (scm_is_null (SCM_CAR (q)))
 	SCM_SETCDR (q, SCM_EOL);
       return SCM_CAR (c);
     }
@@ -546,7 +546,7 @@ scm_call_with_new_thread (SCM argl)
   /* Check arguments. */
   {
     register SCM args = argl;
-    if (!SCM_CONSP (args))
+    if (!scm_is_pair (args))
       SCM_WRONG_NUM_ARGS ();
     thunk = SCM_CAR (args);
     SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)),
@@ -554,14 +554,14 @@ scm_call_with_new_thread (SCM argl)
 		SCM_ARG1,
 		s_call_with_new_thread);
     args = SCM_CDR (args);
-    if (!SCM_CONSP (args))
+    if (!scm_is_pair (args))
       SCM_WRONG_NUM_ARGS ();
     handler = SCM_CAR (args);
     SCM_ASSERT (scm_is_true (scm_procedure_p (handler)),
 		handler,
 		SCM_ARG2,
 		s_call_with_new_thread);
-    if (!SCM_NULLP (SCM_CDR (args)))
+    if (!scm_is_null (SCM_CDR (args)))
       SCM_WRONG_NUM_ARGS ();
   }
 
@@ -738,7 +738,7 @@ scm_timed_wait_condition_variable (SCM cv, SCM mx, SCM t)
 	      s_wait_condition_variable);
   if (!SCM_UNBNDP (t))
     {
-      if (SCM_CONSP (t))
+      if (scm_is_pair (t))
 	{
 	  SCM_VALIDATE_UINT_COPY (3, SCM_CAR(t), waittime.tv_sec);
 	  SCM_VALIDATE_UINT_COPY (3, SCM_CDR(t), waittime.tv_nsec);
@@ -858,7 +858,7 @@ void
 scm_threads_mark_stacks (void)
 {
   volatile SCM c;
-  for (c = all_threads; !SCM_NULLP (c); c = SCM_CDR (c))
+  for (c = all_threads; !scm_is_null (c); c = SCM_CDR (c))
     {
       scm_copt_thread *t = SCM_THREAD_DATA (SCM_CAR (c));
       if (t->base == NULL)

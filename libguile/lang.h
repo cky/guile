@@ -3,7 +3,7 @@
 #ifndef SCM_LANG_H
 #define SCM_LANG_H
 
-/* Copyright (C) 1998 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -38,7 +38,7 @@ SCM_API void scm_init_lang (void);
 
 #endif /* ! SCM_ENABLE_ELISP */
 
-#define SCM_NULL_OR_NIL_P(x) (SCM_NULLP (x) || SCM_NILP (x))
+#define SCM_NULL_OR_NIL_P(x) (scm_is_null (x) || SCM_NILP (x))
 
 #endif  /* SCM_LANG_H */
 

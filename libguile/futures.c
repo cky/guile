@@ -55,7 +55,7 @@ static SCM
 count (SCM ls)
 {
   int n = 0;
-  while (!SCM_NULLP (ls))
+  while (!scm_is_null (ls))
     {
       ++n;
       ls = SCM_FUTURE_NEXT (ls);
@@ -169,9 +169,9 @@ scm_i_make_future (SCM thunk)
   scm_mutex_lock (&future_admin_mutex);
   while (1)
     {
-      if (!SCM_NULLP (old))
+      if (!scm_is_null (old))
 	UNLINK (old, future);
-      else if (!SCM_NULLP (young))
+      else if (!scm_is_null (young))
 	UNLINK (young, future);
       else
 	{
@@ -244,7 +244,7 @@ SCM_DEFINE (scm_future_ref, "future-ref", 1, 0, 0,
 static void
 kill_futures (SCM victims)
 {
-  while (!SCM_NULLP (victims))
+  while (!scm_is_null (victims))
     {
       SCM future;
       UNLINK (victims, future);
@@ -257,7 +257,7 @@ static void
 cleanup_undead ()
 {
   SCM next = undead, *nextloc = &undead;
-  while (!SCM_NULLP (next))
+  while (!scm_is_null (next))
     {
       if (scm_mutex_trylock (SCM_FUTURE_MUTEX (next)))
 	goto next;
@@ -284,7 +284,7 @@ cleanup_undead ()
 static void
 mark_futures (SCM futures)
 {
-  while (!SCM_NULLP (futures))
+  while (!scm_is_null (futures))
     {
       SCM_SET_GC_MARK (futures);
       futures = SCM_FUTURE_NEXT (futures);
@@ -310,7 +310,7 @@ scan_futures (void *dummy1, void *dummy2, void *dummy3)
 
   next = futures;
   nextloc = &futures;
-  while (!SCM_NULLP (next))
+  while (!scm_is_null (next))
     {
       if (!SCM_GC_MARK_P (next))
 	goto free;
@@ -319,7 +319,7 @@ scan_futures (void *dummy1, void *dummy2, void *dummy3)
       next = *nextloc;
     }
   goto exit;
-  while (!SCM_NULLP (next))
+  while (!scm_is_null (next))
     {
       if (SCM_GC_MARK_P (next))
 	{

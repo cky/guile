@@ -531,7 +531,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
   SCM slot;
 
   for (lsym = SCM_HASHTABLE_BUCKETS (obarray)[hash];
-       !SCM_NULLP (lsym);
+       !scm_is_null (lsym);
        lsym = SCM_CDR (lsym))
     {
       SCM old_entry = SCM_CAR (lsym);
@@ -561,7 +561,7 @@ obarray_retrieve (SCM obarray, SCM sym)
   SCM lsym;
 
   for (lsym = SCM_HASHTABLE_BUCKETS (obarray)[hash];
-       !SCM_NULLP (lsym);
+       !scm_is_null (lsym);
        lsym = SCM_CDR (lsym))
     {
       SCM entry = SCM_CAR (lsym);
@@ -584,7 +584,7 @@ obarray_remove (SCM obarray, SCM sym)
   SCM table_entry = SCM_HASHTABLE_BUCKETS (obarray)[hash];
   SCM handle = scm_sloppy_assq (sym, table_entry);
 
-  if (SCM_CONSP (handle))
+  if (scm_is_pair (handle))
     {
       SCM new_table_entry = scm_delq1_x (handle, table_entry);
       SCM_SET_HASHTABLE_BUCKET (obarray, hash, new_table_entry);
@@ -675,7 +675,7 @@ core_environments_unobserve (SCM env, SCM observer)
 	? CORE_ENVIRONMENT_WEAK_OBSERVERS (env)
 	: CORE_ENVIRONMENT_OBSERVERS (env);
 
-      if (!SCM_NULLP (l))
+      if (!scm_is_null (l))
 	{
 	  SCM rest = SCM_CDR (l);
 	  SCM first = handling_weaks
@@ -694,7 +694,7 @@ core_environments_unobserve (SCM env, SCM observer)
 	  do {
 	    SCM rest = SCM_CDR (l);
 
-	    if (!SCM_NULLP (rest)) 
+	    if (!scm_is_null (rest)) 
 	      {
 		SCM next = handling_weaks
 		  ? SCM_CDAR (l)
@@ -708,7 +708,7 @@ core_environments_unobserve (SCM env, SCM observer)
 	      }
 
 	    l = rest;
-	  } while (!SCM_NULLP (l));
+	  } while (!scm_is_null (l));
 	}
     }
 
@@ -807,7 +807,7 @@ core_environments_broadcast (SCM env)
 	? CORE_ENVIRONMENT_WEAK_OBSERVERS (env)
 	: CORE_ENVIRONMENT_OBSERVERS (env);
 
-      for (; !SCM_NULLP (observers); observers = SCM_CDR (observers))
+      for (; !scm_is_null (observers); observers = SCM_CDR (observers))
 	{
           struct update_data data;
 	  SCM observer = handling_weaks
@@ -827,7 +827,7 @@ core_environments_broadcast (SCM env)
 	}
     }
 
-  if (!SCM_NULLP (errors))
+  if (!scm_is_null (errors))
     {
       /* Dirk:FIXME:: As soon as scm_misc_error is fixed to handle the name
        * parameter correctly it should not be necessary any more to also pass
@@ -888,7 +888,7 @@ leaf_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
     {
       SCM l;
       for (l = SCM_HASHTABLE_BUCKETS (obarray)[i];
-	   !SCM_NULLP (l);
+	   !scm_is_null (l);
 	   l = SCM_CDR (l))
 	{
 	  SCM binding = SCM_CAR (l);
@@ -1114,7 +1114,7 @@ eval_environment_lookup (SCM env, SCM sym, int for_write)
 
       SCM entry = SCM_CDR (binding);
 
-      if (SCM_CONSP (entry))
+      if (scm_is_pair (entry))
 	{
 	  /* The entry in the obarray is a cached location. */
 
@@ -1133,7 +1133,7 @@ eval_environment_lookup (SCM env, SCM sym, int for_write)
 	      SCM source_env = CACHED_SOURCE_ENVIRONMENT (entry);
 	      SCM location = SCM_ENVIRONMENT_CELL (source_env, sym, 1);
 
-	      if (SCM_CONSP (location))
+	      if (scm_is_pair (location))
 		{
 		  SET_CACHED_MUTABILITY (entry, MUTABLE);
 		  return location;
@@ -1173,7 +1173,7 @@ eval_environment_lookup (SCM env, SCM sym, int for_write)
 
 	  if (!SCM_UNBNDP (location))
 	    {
-	      if (SCM_CONSP (location))
+	      if (scm_is_pair (location))
 		{
 		  SCM mutability = for_write ? MUTABLE : UNKNOWN;
 		  SCM entry = scm_cons2 (location, mutability, source_env);
@@ -1203,7 +1203,7 @@ eval_environment_ref (SCM env, SCM sym)
 {
   SCM location = eval_environment_lookup (env, sym, 0);
 
-  if (SCM_CONSP (location))
+  if (scm_is_pair (location))
     return SCM_CDR (location);
   else if (!SCM_UNBNDP (location))
     return SCM_ENVIRONMENT_REF (location, sym);
@@ -1273,7 +1273,7 @@ eval_environment_set_x (SCM env, SCM sym, SCM val)
 {
   SCM location = eval_environment_lookup (env, sym, 1);
 
-  if (SCM_CONSP (location))
+  if (scm_is_pair (location))
     {
       SCM_SETCDR (location, val);
       return SCM_ENVIRONMENT_SUCCESS;
@@ -1300,7 +1300,7 @@ eval_environment_cell (SCM env, SCM sym, int for_write)
 {
   SCM location = eval_environment_lookup (env, sym, for_write);
 
-  if (SCM_CONSP (location))
+  if (scm_is_pair (location))
     return location;
   else if (SCM_ENVIRONMENT_P (location))
     return SCM_ENVIRONMENT_LOCATION_NO_CELL;
@@ -1559,7 +1559,7 @@ import_environment_lookup (SCM env, SCM sym)
   SCM result = SCM_UNDEFINED;
   SCM l;
 
-  for (l = imports; !SCM_NULLP (l); l = SCM_CDR (l))
+  for (l = imports; !scm_is_null (l); l = SCM_CDR (l))
     {
       SCM imported = SCM_CAR (l);
 
@@ -1567,14 +1567,14 @@ import_environment_lookup (SCM env, SCM sym)
 	{
 	  if (SCM_UNBNDP (result))
 	    result = imported;
-	  else if (SCM_CONSP (result))
+	  else if (scm_is_pair (result))
 	    result = scm_cons (imported, result);
 	  else
 	    result = scm_cons2 (imported, result, SCM_EOL);
 	}
     }
 
-  if (SCM_CONSP (result))
+  if (scm_is_pair (result))
     return scm_reverse (result);
   else
     return result;
@@ -1601,7 +1601,7 @@ import_environment_ref (SCM env, SCM sym)
     {
       return SCM_UNDEFINED;
     }
-  else if (SCM_CONSP (owner))
+  else if (scm_is_pair (owner))
     {
       SCM resolve = import_environment_conflict (env, sym, owner);
 
@@ -1630,7 +1630,7 @@ import_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
   scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
   SCM data = SCM_CDDDR (extended_data);
 
-  if (SCM_CONSP (owner) && scm_is_eq (SCM_CAR (owner), imported_env))
+  if (scm_is_pair (owner) && scm_is_eq (SCM_CAR (owner), imported_env))
     owner = import_environment_conflict (import_env, symbol, owner);
 
   if (SCM_ENVIRONMENT_P (owner))
@@ -1648,7 +1648,7 @@ import_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM ini
   SCM result = init;
   SCM l;
 
-  for (l = IMPORT_ENVIRONMENT (env)->imports; !SCM_NULLP (l); l = SCM_CDR (l))
+  for (l = IMPORT_ENVIRONMENT (env)->imports; !scm_is_null (l); l = SCM_CDR (l))
     {
       SCM imported_env = SCM_CAR (l);
       SCM extended_data = scm_cons (env, scm_cons2 (imported_env, proc_as_nr, data));
@@ -1691,7 +1691,7 @@ import_environment_set_x (SCM env, SCM sym, SCM val)
     {
       return SCM_UNDEFINED;
     }
-  else if (SCM_CONSP (owner))
+  else if (scm_is_pair (owner))
     {
       SCM resolve = import_environment_conflict (env, sym, owner);
 
@@ -1718,7 +1718,7 @@ import_environment_cell (SCM env, SCM sym, int for_write)
     {
       return SCM_UNDEFINED;
     }
-  else if (SCM_CONSP (owner))
+  else if (scm_is_pair (owner))
     {
       SCM resolve = import_environment_conflict (env, sym, owner);
 
@@ -1881,20 +1881,20 @@ SCM_DEFINE (scm_import_environment_set_imports_x, "import-environment-set-import
   SCM l;
 
   SCM_ASSERT (SCM_IMPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
-  for (l = imports; SCM_CONSP (l); l = SCM_CDR (l))
+  for (l = imports; scm_is_pair (l); l = SCM_CDR (l))
     {
       SCM obj = SCM_CAR (l);
       SCM_ASSERT (SCM_ENVIRONMENT_P (obj), imports, SCM_ARG2, FUNC_NAME);
     }
-  SCM_ASSERT (SCM_NULLP (l), imports, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_null (l), imports, SCM_ARG2, FUNC_NAME);
 
-  for (l = body->import_observers; !SCM_NULLP (l); l = SCM_CDR (l))
+  for (l = body->import_observers; !scm_is_null (l); l = SCM_CDR (l))
     {
       SCM obs = SCM_CAR (l);
       SCM_ENVIRONMENT_UNOBSERVE (env, obs);
     }
 
-  for (l = imports; !SCM_NULLP (l); l = SCM_CDR (l))
+  for (l = imports; !scm_is_null (l); l = SCM_CDR (l))
     {
       SCM imp = SCM_CAR (l);
       SCM obs = SCM_ENVIRONMENT_OBSERVE (imp, import_environment_observer, env, 1);
@@ -1962,7 +1962,7 @@ export_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM ini
   SCM result = init;
   SCM l;
 
-  for (l = body->signature; !SCM_NULLP (l); l = SCM_CDR (l))
+  for (l = body->signature; !scm_is_null (l); l = SCM_CDR (l))
     {
       SCM symbol = SCM_CAR (l);
       SCM value = SCM_ENVIRONMENT_REF (body->private, symbol);
@@ -2235,7 +2235,7 @@ export_environment_parse_signature (SCM signature, const char* caller)
   SCM result = SCM_EOL;
   SCM l;
 
-  for (l = signature; SCM_CONSP (l); l = SCM_CDR (l))
+  for (l = signature; scm_is_pair (l); l = SCM_CDR (l))
     {
       SCM entry = SCM_CAR (l);
 
@@ -2253,12 +2253,12 @@ export_environment_parse_signature (SCM signature, const char* caller)
 	  SCM mutability;
 	  SCM l2;
 
-	  SCM_ASSERT (SCM_CONSP (entry), entry, SCM_ARGn, caller);
+	  SCM_ASSERT (scm_is_pair (entry), entry, SCM_ARGn, caller);
 	  SCM_ASSERT (scm_is_symbol (SCM_CAR (entry)), entry, SCM_ARGn, caller);
 
 	  sym = SCM_CAR (entry);
 
-	  for (l2 = SCM_CDR (entry); SCM_CONSP (l2); l2 = SCM_CDR (l2))
+	  for (l2 = SCM_CDR (entry); scm_is_pair (l2); l2 = SCM_CDR (l2))
 	    {
 	      SCM attribute = SCM_CAR (l2);
 	      if (scm_is_eq (attribute, symbol_immutable_location))
@@ -2268,7 +2268,7 @@ export_environment_parse_signature (SCM signature, const char* caller)
 	      else
 		SCM_ASSERT (0, entry, SCM_ARGn, caller);
 	    }
-	  SCM_ASSERT (SCM_NULLP (l2), entry, SCM_ARGn, caller);
+	  SCM_ASSERT (scm_is_null (l2), entry, SCM_ARGn, caller);
 	  SCM_ASSERT (!mutable || !immutable, entry, SCM_ARGn, caller);
 
 	  if (!mutable && !immutable)
@@ -2279,7 +2279,7 @@ export_environment_parse_signature (SCM signature, const char* caller)
 	  result = scm_cons (new_entry, result);
 	}
     }
-  SCM_ASSERT (SCM_NULLP (l), signature, SCM_ARGn, caller);
+  SCM_ASSERT (scm_is_null (l), signature, SCM_ARGn, caller);
 
   /* Dirk:FIXME:: Now we know that signature is syntactically correct.  There
    * are, however, no checks for symbols entered twice with contradicting

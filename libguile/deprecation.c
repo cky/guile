@@ -106,7 +106,7 @@ SCM_DEFINE(scm_issue_deprecation_warning,
       SCM nl = scm_from_locale_string ("\n");
       SCM msgs_nl = SCM_EOL;
       char *c_msgs;
-      while (SCM_CONSP (msgs))
+      while (scm_is_pair (msgs))
 	{
 	  if (msgs_nl != SCM_EOL)
 	    msgs_nl = scm_cons (nl, msgs_nl);

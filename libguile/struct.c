@@ -172,7 +172,7 @@ scm_struct_init (SCM handle, SCM layout, scm_t_bits * mem, int tail_elts, SCM in
 #endif
 
 	case 'u':
-	  if ((prot != 'r' && prot != 'w') || SCM_NULLP (inits))
+	  if ((prot != 'r' && prot != 'w') || scm_is_null (inits))
 	    *mem = 0;
 	  else
 	    {
@@ -182,7 +182,7 @@ scm_struct_init (SCM handle, SCM layout, scm_t_bits * mem, int tail_elts, SCM in
 	  break;
 
 	case 'p':
-	  if ((prot != 'r' && prot != 'w') || SCM_NULLP (inits))
+	  if ((prot != 'r' && prot != 'w') || scm_is_null (inits))
 	    *mem = SCM_UNPACK (SCM_BOOL_F);
 	  else
 	    {
@@ -357,7 +357,7 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
     {
       /* Mark vtables in GC chain.  GC mark set means delay freeing. */
       SCM chain = newchain;
-      while (!SCM_NULLP (chain))
+      while (!scm_is_null (chain))
 	{
 	  SCM vtable = SCM_STRUCT_VTABLE (chain);
 	  if (SCM_STRUCT_GC_CHAIN (vtable) != 0 && vtable != chain)
@@ -367,7 +367,7 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
       /* Free unmarked structs.  */
       chain = newchain;
       newchain = SCM_EOL;
-      while (!SCM_NULLP (chain))
+      while (!scm_is_null (chain))
 	{
 	  SCM obj = chain;
 	  chain = SCM_STRUCT_GC_CHAIN (chain);
@@ -390,7 +390,7 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
 	    }
 	}
     }
-  while (!SCM_NULLP (newchain));
+  while (!scm_is_null (newchain));
   return 0;
 }
 

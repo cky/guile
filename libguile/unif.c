@@ -310,7 +310,7 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
           break;
  	case scm_tc7_vector:
  	case scm_tc7_wvect:
- 	  protp = SCM_NULLP(prot);
+ 	  protp = scm_is_null(prot);
           break;
  	default:
  	  /* no default */
@@ -466,7 +466,7 @@ scm_aind (SCM ra, SCM args, const char *what)
 	scm_error_num_args_subr (what);
       return pos + (scm_to_long (args) - s->lbnd) * (s->inc);
     }
-  while (k && SCM_CONSP (args))
+  while (k && scm_is_pair (args))
     {
       ind = SCM_CAR (args);
       args = SCM_CDR (args);
@@ -479,7 +479,7 @@ scm_aind (SCM ra, SCM args, const char *what)
       k--;
       s++;
     }
-  if (k != 0 || !SCM_NULLP (args))
+  if (k != 0 || !scm_is_null (args))
     scm_error_num_args_subr (what);
 
   return pos;
@@ -517,7 +517,7 @@ scm_shap2ra (SCM args, const char *what)
   ra = scm_make_ra (ndim);
   SCM_ARRAY_BASE (ra) = 0;
   s = SCM_ARRAY_DIMS (ra);
-  for (; !SCM_NULLP (args); s++, args = SCM_CDR (args))
+  for (; !scm_is_null (args); s++, args = SCM_CDR (args))
     {
       spec = SCM_CAR (args);
       if (scm_is_integer (spec))
@@ -530,13 +530,13 @@ scm_shap2ra (SCM args, const char *what)
 	}
       else
 	{
-	  if (!SCM_CONSP (spec) || !scm_is_integer (SCM_CAR (spec)))
+	  if (!scm_is_pair (spec) || !scm_is_integer (SCM_CAR (spec)))
 	    scm_misc_error (what, s_bad_spec, SCM_EOL);
 	  s->lbnd = scm_to_long (SCM_CAR (spec));
 	  sp = SCM_CDR (spec);
-	  if (!SCM_CONSP (sp) 
+	  if (!scm_is_pair (sp) 
 	      || !scm_is_integer (SCM_CAR (sp))
-	      || !SCM_NULLP (SCM_CDR (sp)))
+	      || !scm_is_null (SCM_CDR (sp)))
 	    scm_misc_error (what, s_bad_spec, SCM_EOL);
 	  s->ubnd = scm_to_long (SCM_CAR (sp));
 	  s->inc = 1;
@@ -571,7 +571,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
       return answer;
     }
   
-  SCM_ASSERT (SCM_NULLP (dims) || SCM_CONSP (dims),
+  SCM_ASSERT (scm_is_null (dims) || scm_is_pair (dims),
               dims, SCM_ARG1, FUNC_NAME);
   ra = scm_shap2ra (dims, FUNC_NAME);
   SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
@@ -797,7 +797,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
-      if (SCM_NULLP (args) || !SCM_NULLP (SCM_CDR (args)))
+      if (scm_is_null (args) || !scm_is_null (SCM_CDR (args)))
 	SCM_WRONG_NUM_ARGS ();
       SCM_VALIDATE_INT_COPY (SCM_ARG2, SCM_CAR (args), i);
       SCM_ASSERT_RANGE (SCM_ARG2, SCM_CAR (args), i == 0);
@@ -885,7 +885,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   int ndim, j, k, ninr, noutr;
 
   SCM_VALIDATE_REST_ARGUMENT (axes);
-  if (SCM_NULLP (axes))
+  if (scm_is_null (axes))
       axes = scm_cons ((SCM_ARRAYP (ra) ? scm_from_size_t (SCM_ARRAY_NDIM (ra) - 1) : SCM_INUM0), SCM_EOL);
   ninr = scm_ilength (axes);
   if (ninr < 0)
@@ -993,7 +993,7 @@ tail:
       pos = SCM_ARRAY_BASE (v);
       if (!k)
 	{
-	  SCM_ASRTGO (SCM_NULLP (ind), wna);
+	  SCM_ASRTGO (scm_is_null (ind), wna);
 	  ind = SCM_INUM0;
 	}
       else
@@ -1033,7 +1033,7 @@ tail:
     case scm_tc7_wvect:
       {
 	unsigned long length = scm_to_ulong (scm_uniform_vector_length (v));
-	SCM_ASRTGO (SCM_NULLP (args) && scm_is_integer (ind), wna);
+	SCM_ASRTGO (scm_is_null (args) && scm_is_integer (ind), wna);
 	return scm_from_bool(pos >= 0 && pos < length);
       }
     }
@@ -1055,7 +1055,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 
   if (SCM_IMP (v))
     {
-      SCM_ASRTGO (SCM_NULLP (args), badarg);
+      SCM_ASRTGO (scm_is_null (args), badarg);
       return v;
     }
   else if (SCM_ARRAYP (v))
@@ -1068,9 +1068,9 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       unsigned long int length;
       if (SCM_NIMP (args))
 	{
-	  SCM_ASSERT (SCM_CONSP (args), args, SCM_ARG2, FUNC_NAME);
+	  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG2, FUNC_NAME);
 	  pos = scm_to_long (SCM_CAR (args));
-	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (args)), wna);
+	  SCM_ASRTGO (scm_is_null (SCM_CDR (args)), wna);
 	}
       else
 	{
@@ -1082,7 +1082,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
   switch SCM_TYP7 (v)
     {
     default:
-      if (SCM_NULLP (args))
+      if (scm_is_null (args))
  return v;
     badarg:
       SCM_WRONG_TYPE_ARG (1, v);
@@ -1239,9 +1239,9 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
   else
     {
       unsigned long int length;
-      if (SCM_CONSP (args))
+      if (scm_is_pair (args))
 	{
-	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (args)), wna);
+	  SCM_ASRTGO (scm_is_null (SCM_CDR (args)), wna);
 	  pos = scm_to_long (SCM_CAR (args));
 	}
       else
@@ -2221,7 +2221,7 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
     }
   ra = scm_dimensions_to_uniform_array (scm_reverse (shp), prot,
 					SCM_UNDEFINED);
-  if (SCM_NULLP (shp))
+  if (scm_is_null (shp))
     {
       SCM_ASRTGO (1 == scm_ilength (lst), badlst);
       scm_array_set_x (ra, SCM_CAR (lst), SCM_EOL);
@@ -2249,31 +2249,31 @@ l2ra (SCM lst, SCM ra, unsigned long base, unsigned long k)
   register long n = (1 + SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd);
   int ok = 1;
   if (n <= 0)
-    return (SCM_NULLP (lst));
+    return (scm_is_null (lst));
   if (k < SCM_ARRAY_NDIM (ra) - 1)
     {
       while (n--)
 	{
-	  if (!SCM_CONSP (lst))
+	  if (!scm_is_pair (lst))
 	    return 0;
 	  ok = ok && l2ra (SCM_CAR (lst), ra, base, k + 1);
 	  base += inc;
 	  lst = SCM_CDR (lst);
 	}
-      if (!SCM_NULLP (lst))
+      if (!scm_is_null (lst))
  return 0;
     }
   else
     {
       while (n--)
 	{
-	  if (!SCM_CONSP (lst))
+	  if (!scm_is_pair (lst))
 	    return 0;
 	  scm_array_set_x (SCM_ARRAY_V (ra), SCM_CAR (lst), scm_from_ulong (base));
 	  base += inc;
 	  lst = SCM_CDR (lst);
 	}
-      if (!SCM_NULLP (lst))
+      if (!scm_is_null (lst))
 	return 0;
     }
   return ok;

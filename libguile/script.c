@@ -453,7 +453,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	  /* If we specified the -ds option, do_script points to the
 	     cdr of an expression like (load #f); we replace the car
 	     (i.e., the #f) with the script name.  */
-	  if (!SCM_NULLP (do_script))
+	  if (!scm_is_null (do_script))
 	    {
 	      SCM_SETCAR (do_script, scm_from_locale_string (argv[i]));
 	      do_script = SCM_EOL;
@@ -526,7 +526,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	{
 	  /* We put a dummy "load" expression, and let the -s put the
              filename in.  */
-	  if (!SCM_NULLP (do_script))
+	  if (!scm_is_null (do_script))
 	    scm_shell_usage (1, "the -ds switch may only be specified once");
 	  do_script = scm_cons (SCM_BOOL_F, SCM_EOL);
 	  tail = scm_cons (scm_cons (sym_load, do_script),
@@ -615,7 +615,7 @@ scm_compile_shell_switches (int argc, char **argv)
     }
 
   /* Check to make sure the -ds got a -s. */
-  if (!SCM_NULLP (do_script))
+  if (!scm_is_null (do_script))
     scm_shell_usage (1, "the `-ds' switch requires the use of `-s' as well");
 
   /* Make any remaining arguments available to the
@@ -626,7 +626,7 @@ scm_compile_shell_switches (int argc, char **argv)
   scm_c_define ("use-emacs-interface", scm_from_bool (use_emacs_interface));
 
   /* Handle the `-e' switch, if it was specified.  */
-  if (!SCM_NULLP (entry_point))
+  if (!scm_is_null (entry_point))
     tail = scm_cons (scm_cons2 (entry_point,
 				scm_cons (sym_command_line, SCM_EOL),
 				SCM_EOL),
@@ -650,7 +650,7 @@ scm_compile_shell_switches (int argc, char **argv)
 
   /* add the user-specified load path here, so it won't be in effect
      during the loading of the user's customization file. */
-  if(!SCM_NULLP(user_load_path)) 
+  if(!scm_is_null(user_load_path)) 
     {
       tail = scm_append_x( scm_cons2(user_load_path, tail, SCM_EOL) );
     }

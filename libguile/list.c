@@ -120,10 +120,10 @@ SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1,
 #define FUNC_NAME s_scm_cons_star
 {
   SCM_VALIDATE_REST_ARGUMENT (rest);
-  if (!SCM_NULLP (rest))
+  if (!scm_is_null (rest))
     {
       SCM prev = arg = scm_cons (arg, rest);
-      while (!SCM_NULLP (SCM_CDR (rest)))
+      while (!scm_is_null (SCM_CDR (rest)))
 	{
 	  prev = rest;
 	  rest = SCM_CDR (rest);
@@ -171,11 +171,11 @@ scm_ilength(SCM sx)
 
   do {
     if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (!SCM_CONSP (hare)) return -1;
+    if (!scm_is_pair (hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
     if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (!SCM_CONSP (hare)) return -1;
+    if (!scm_is_pair (hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
     /* For every two steps the hare takes, the tortoise takes one.  */
@@ -224,7 +224,7 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
 #define FUNC_NAME s_scm_append
 {
   SCM_VALIDATE_REST_ARGUMENT (args);
-  if (SCM_NULLP (args)) {
+  if (scm_is_null (args)) {
     return SCM_EOL;
   } else {
     SCM res = SCM_EOL;
@@ -232,8 +232,8 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
     SCM arg = SCM_CAR (args);
     int argnum = 1;
     args = SCM_CDR (args);
-    while (!SCM_NULLP (args)) {
-      while (SCM_CONSP (arg)) {
+    while (!scm_is_null (args)) {
+      while (scm_is_pair (arg)) {
 	*lloc = scm_cons (SCM_CAR (arg), SCM_EOL);
 	lloc = SCM_CDRLOC (*lloc);
 	arg = SCM_CDR (arg);
@@ -262,7 +262,7 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
   SCM ret, *loc;
   SCM_VALIDATE_REST_ARGUMENT (lists);
 
-  if (SCM_NULLP (lists))
+  if (scm_is_null (lists))
     return SCM_EOL;
 
   loc = &ret;
@@ -272,7 +272,7 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
       *loc = arg;
 
       lists = SCM_CDR (lists);
-      if (SCM_NULLP (lists))
+      if (scm_is_null (lists))
         return ret;
 
       if (!SCM_NULL_OR_NIL_P (arg))
@@ -300,10 +300,10 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
   SCM_VALIDATE_CONS (SCM_ARG1, lst);
   do {
     SCM ahead = SCM_CDR(hare);
-    if (!SCM_CONSP (ahead)) return hare;
+    if (!scm_is_pair (ahead)) return hare;
     hare = ahead;
     ahead = SCM_CDR(hare);
-    if (!SCM_CONSP (ahead)) return hare;
+    if (!scm_is_pair (ahead)) return hare;
     hare = ahead;
     tortoise = SCM_CDR(tortoise);
   }
@@ -327,11 +327,11 @@ SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
 
   do {
       if (SCM_NULL_OR_NIL_P(hare)) return result;
-      SCM_ASSERT(SCM_CONSP(hare), lst, 1, FUNC_NAME);
+      SCM_ASSERT(scm_is_pair(hare), lst, 1, FUNC_NAME);
       result = scm_cons (SCM_CAR (hare), result);
       hare = SCM_CDR (hare);
       if (SCM_NULL_OR_NIL_P(hare)) return result;
-      SCM_ASSERT(SCM_CONSP(hare), lst, 1, FUNC_NAME);
+      SCM_ASSERT(scm_is_pair(hare), lst, 1, FUNC_NAME);
       result = scm_cons (SCM_CAR (hare), result);
       hare = SCM_CDR (hare);
       tortoise = SCM_CDR (tortoise);
@@ -384,7 +384,7 @@ SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
   SCM lst = list;
   unsigned long int i;
   i = scm_to_ulong (k);
-  while (SCM_CONSP (lst)) {
+  while (scm_is_pair (lst)) {
     if (i == 0)
       return SCM_CAR (lst);
     else {
@@ -407,7 +407,7 @@ SCM_DEFINE (scm_list_set_x, "list-set!", 3, 0, 0,
 {
   SCM lst = list;
   unsigned long int i = scm_to_ulong (k);
-  while (SCM_CONSP (lst)) {
+  while (scm_is_pair (lst)) {
     if (i == 0) {
       SCM_SETCAR (lst, val);
       return val;
@@ -453,7 +453,7 @@ SCM_DEFINE (scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
 {
   SCM lst = list;
   size_t i = scm_to_size_t (k);
-  while (SCM_CONSP (lst)) {
+  while (scm_is_pair (lst)) {
     if (i == 0) {
       SCM_SETCDR (lst, val);
       return val;
@@ -502,7 +502,7 @@ SCM_DEFINE (scm_list_head, "list-head", 2, 0, 0,
 SCM
 scm_i_finite_list_copy (SCM list)
 {
-  if (!SCM_CONSP (list))
+  if (!scm_is_pair (list))
     {
       return list;
     }
@@ -511,7 +511,7 @@ scm_i_finite_list_copy (SCM list)
       SCM tail;
       const SCM result = tail = scm_list_1 (SCM_CAR (list));
       list = SCM_CDR (list);
-      while (SCM_CONSP (list))
+      while (scm_is_pair (list))
         {
           const SCM new_tail = scm_list_1 (SCM_CAR (list));
           SCM_SETCDR (tail, new_tail);
@@ -540,7 +540,7 @@ SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0,
   fill_here = &newlst;
   from_here = lst;
 
-  while (SCM_CONSP (from_here))
+  while (scm_is_pair (from_here))
     {
       SCM c;
       c = scm_cons (SCM_CAR (from_here), SCM_CDR (from_here));
@@ -650,7 +650,7 @@ SCM_DEFINE (scm_delq_x, "delq!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_CONSP (walk);
+       scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
       if (scm_is_eq (SCM_CAR (walk), item))
@@ -674,7 +674,7 @@ SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_CONSP (walk);
+       scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
       if (! scm_is_false (scm_eqv_p (SCM_CAR (walk), item)))
@@ -699,7 +699,7 @@ SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_CONSP (walk);
+       scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
       if (! scm_is_false (scm_equal_p (SCM_CAR (walk), item)))
@@ -767,7 +767,7 @@ SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_CONSP (walk);
+       scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
       if (scm_is_eq (SCM_CAR (walk), item))
@@ -795,7 +795,7 @@ SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_CONSP (walk);
+       scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
       if (! scm_is_false (scm_eqv_p (SCM_CAR (walk), item)))
@@ -823,7 +823,7 @@ SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_CONSP (walk);
+       scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
       if (! scm_is_false (scm_equal_p (SCM_CAR (walk), item)))
@@ -859,7 +859,7 @@ SCM_DEFINE (scm_filter, "filter", 2, 0, 0,
   SCM_VALIDATE_LIST (2, list);
   
   for (prev = &res, walk = list;
-       SCM_CONSP (walk);
+       scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
       if (scm_is_true (call (pred, SCM_CAR (walk))))
@@ -885,7 +885,7 @@ SCM_DEFINE (scm_filter_x, "filter!", 2, 0, 0,
   SCM_VALIDATE_LIST (2, list);
   
   for (prev = &list, walk = list;
-       SCM_CONSP (walk);
+       scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
       if (scm_is_true (call (pred, SCM_CAR (walk))))

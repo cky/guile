@@ -73,7 +73,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	return scm_class_char;
       else if (scm_is_bool (x))
         return scm_class_boolean;
-      else if (SCM_NULLP (x))
+      else if (scm_is_null (x))
         return scm_class_null;
       else
         return scm_class_unknown;
@@ -178,7 +178,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 		}
 	    }
 	default:
-	  if (SCM_CONSP (x))
+	  if (scm_is_pair (x))
 	    return scm_class_pair;
 	  else
 	    return scm_class_unknown;
@@ -256,14 +256,14 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       methods = SCM_CADR (z);
       i = 0;
       ls = args;
-      if (!SCM_NULLP (ls))
+      if (!scm_is_null (ls))
 	do
 	  {
 	    i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
 		 [scm_si_hashsets + hashset];
 	    ls = SCM_CDR (ls);
 	  }
-	while (j-- && !SCM_NULLP (ls));
+	while (j-- && !scm_is_null (ls));
       i &= mask;
       end = i;
     }
@@ -274,7 +274,7 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       long j = n;
       z = SCM_VELTS (methods)[i];
       ls = args; /* list of arguments */
-      if (!SCM_NULLP (ls))
+      if (!scm_is_null (ls))
 	do
 	  {
 	    /* More arguments than specifiers => CLASS != ENV */
@@ -283,9 +283,9 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 	    ls = SCM_CDR (ls);
 	    z = SCM_CDR (z);
 	  }
-	while (j-- && !SCM_NULLP (ls));
+	while (j-- && !scm_is_null (ls));
       /* Fewer arguments than specifiers => CAR != ENV */
-      if (SCM_NULLP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z)))
+      if (scm_is_null (SCM_CAR (z)) || scm_is_pair (SCM_CAR (z)))
 	return z;
     next_method:
       i = (i + 1) & mask;

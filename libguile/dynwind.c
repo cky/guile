@@ -164,7 +164,7 @@ scm_frame_end (void)
      encounter #<winder> entries on the way.
    */
 
-  while (SCM_CONSP (scm_dynwinds))
+  while (scm_is_pair (scm_dynwinds))
     {
       SCM entry = SCM_CAR (scm_dynwinds);
       scm_dynwinds = SCM_CDR (scm_dynwinds);
@@ -308,7 +308,7 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 	  /* key = #t | symbol | thunk | list of variables */
 	  if (SCM_NIMP (wind_key))
 	    {
-	      if (SCM_CONSP (wind_key))
+	      if (scm_is_pair (wind_key))
 		{
 		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
 		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
@@ -342,7 +342,7 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 	  wind_key = SCM_CAR (wind_elt);
 	  if (SCM_NIMP (wind_key))
 	    {
-	      if (SCM_CONSP (wind_key))
+	      if (scm_is_pair (wind_key))
 		{
 		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
 		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));

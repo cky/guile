@@ -280,7 +280,7 @@ scm_i_casei_streq (const char *s1, const char *s2, size_t len2)
 static SCM
 recsexpr (SCM obj, long line, int column, SCM filename)
 {
-  if (!SCM_CONSP(obj)) {
+  if (!scm_is_pair(obj)) {
     return obj;
   } else {
     SCM tmp = obj, copy;
@@ -293,7 +293,7 @@ recsexpr (SCM obj, long line, int column, SCM filename)
 	  {
 	    copy = scm_cons (recsexpr (SCM_CAR (obj), line, column, filename),
 			     SCM_UNDEFINED);
-	    while ((tmp = SCM_CDR (tmp)) && SCM_CONSP (tmp))
+	    while ((tmp = SCM_CDR (tmp)) && scm_is_pair (tmp))
 	      {
 		SCM_SETCDR (copy, scm_cons (recsexpr (SCM_CAR (tmp),
 						      line,
@@ -307,7 +307,7 @@ recsexpr (SCM obj, long line, int column, SCM filename)
 	else
 	  {
 	    recsexpr (SCM_CAR (obj), line, column, filename);
-	    while ((tmp = SCM_CDR (tmp)) && SCM_CONSP (tmp))
+	    while ((tmp = SCM_CDR (tmp)) && scm_is_pair (tmp))
 	      recsexpr (SCM_CAR (tmp), line, column, filename);
 	    copy = SCM_UNDEFINED;
 	  }
@@ -358,7 +358,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       if (SCM_ELISP_VECTORS_P)
 	{
 	  p = scm_i_lreadparen (tok_buf, port, s_vector, copy, ']');
-	  return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
+	  return scm_is_null (p) ? scm_nullvect : scm_vector (p);
 	}
       goto read_token;
 #endif
@@ -422,7 +422,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	{
 	case '(':
 	  p = scm_i_lreadparen (tok_buf, port, s_vector, copy, ')');
-	  return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
+	  return scm_is_null (p) ? scm_nullvect : scm_vector (p);
 
 	case 't':
 	case 'T':
@@ -807,7 +807,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
   /* Build the head of the list structure. */
   ans = tl = scm_cons (tmp, SCM_EOL);
   if (SCM_COPY_SOURCE_P)
-    ans2 = tl2 = scm_cons (SCM_CONSP (tmp)
+    ans2 = tl2 = scm_cons (scm_is_pair (tmp)
 			   ? *copy
 			   : tmp,
 			   SCM_EOL);
@@ -820,7 +820,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 	{
 	  SCM_SETCDR (tl, tmp = scm_lreadr (tok_buf, port, copy));
 	  if (SCM_COPY_SOURCE_P)
-	    SCM_SETCDR (tl2, scm_cons (SCM_CONSP (tmp)
+	    SCM_SETCDR (tl2, scm_cons (scm_is_pair (tmp)
 				       ? *copy
 				       : tmp,
 				       SCM_EOL));
@@ -835,7 +835,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 
       if (SCM_COPY_SOURCE_P)
 	{
-	  SCM new_tail2 = scm_cons (SCM_CONSP (tmp) ? *copy : tmp, SCM_EOL);
+	  SCM new_tail2 = scm_cons (scm_is_pair (tmp) ? *copy : tmp, SCM_EOL);
 	  SCM_SETCDR (tl2, new_tail2);
 	  tl2 = new_tail2;
 	}
@@ -881,7 +881,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
   prev = SCM_BOOL_F;
   while (1)
     {
-      if (SCM_NULLP (this))
+      if (scm_is_null (this))
 	{
 	  /* not found, so add it to the beginning.  */
 	  if (scm_is_true (proc))
@@ -928,7 +928,7 @@ scm_get_hash_procedure (int c)
 
   while (1)
     {
-      if (SCM_NULLP (rest))
+      if (scm_is_null (rest))
 	return SCM_BOOL_F;
   
       if (SCM_CHAR (SCM_CAAR (rest)) == c)

@@ -87,7 +87,7 @@ scm_mark_all (void)
     for (i = 0; i < SCM_HASHTABLE_N_BUCKETS (scm_gc_registered_roots); ++i)
       {
 	SCM l = SCM_HASHTABLE_BUCKETS (scm_gc_registered_roots)[i];
-	for (; !SCM_NULLP (l); l = SCM_CDR (l))
+	for (; !scm_is_null (l); l = SCM_CDR (l))
 	  {
 	    SCM *p = (SCM *) (scm_to_ulong (SCM_CAAR (l)));
 	    scm_gc_mark (*p);
@@ -300,9 +300,9 @@ scm_gc_mark_dependencies (SCM p)
 
 	      /* mark everything on the alist except the keys or
 	       * values, according to weak_values and weak_keys.  */
-	      while (   SCM_CONSP (alist)
+	      while (   scm_is_pair (alist)
 		     && !SCM_GC_MARK_P (alist)
-		     && SCM_CONSP (SCM_CAR (alist)))
+		     && scm_is_pair (SCM_CAR (alist)))
 		{
 		  SCM kvpair;
 		  SCM next_alist;

@@ -245,7 +245,7 @@ scm_timed_wait_condition_variable (SCM c, SCM m, SCM t)
 	      s_wait_condition_variable);
   if (!SCM_UNBNDP (t))
     {
-      if (SCM_CONSP (t))
+      if (scm_is_pair (t))
 	{
 	  SCM_VALIDATE_UINT_COPY (3, SCM_CAR(t), waittime.tv_sec);
 	  SCM_VALIDATE_UINT_COPY (3, SCM_CDR(t), waittime.tv_usec);

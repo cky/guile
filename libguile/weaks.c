@@ -264,7 +264,7 @@ scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
 {
   SCM w;
 
-  for (w = scm_weak_vectors; !SCM_NULLP (w); w = SCM_WVECT_GC_CHAIN (w))
+  for (w = scm_weak_vectors; !scm_is_null (w); w = SCM_WVECT_GC_CHAIN (w))
     {
       if (SCM_IS_WHVEC_ANY (w))
 	{
@@ -281,9 +281,9 @@ scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
 	      SCM alist;
 
 	      alist = ptr[j];
-	      while (   SCM_CONSP (alist)
+	      while (   scm_is_pair (alist)
 		     && !SCM_GC_MARK_P (alist)
-		     && SCM_CONSP  (SCM_CAR (alist)))
+		     && scm_is_pair  (SCM_CAR (alist)))
 		{
 		  SCM_SET_GC_MARK (alist);
 		  SCM_SET_GC_MARK (SCM_CAR (alist));
@@ -304,7 +304,7 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
 		       void *dummy3 SCM_UNUSED)
 {
   SCM *ptr, w;
-  for (w = scm_weak_vectors; !SCM_NULLP (w); w = SCM_WVECT_GC_CHAIN (w))
+  for (w = scm_weak_vectors; !scm_is_null (w); w = SCM_WVECT_GC_CHAIN (w))
     {
       if (!SCM_IS_WHVEC_ANY (w))
 	{
@@ -336,8 +336,8 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
 	      fixup = ptr + j;
 	      alist = *fixup;
 
-	      while (SCM_CONSP (alist)
-		     && SCM_CONSP (SCM_CAR (alist)))
+	      while (scm_is_pair (alist)
+		     && scm_is_pair (SCM_CAR (alist)))
 		{
 		  SCM key;
 		  SCM value;

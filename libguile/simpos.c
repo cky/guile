@@ -114,10 +114,10 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
 "Example: (system* \"echo\" \"foo\" \"bar\")")
 #define FUNC_NAME s_scm_system_star
 {
-  if (SCM_NULLP (args))
+  if (scm_is_null (args))
     SCM_WRONG_NUM_ARGS ();
 
-  if (SCM_CONSP (args))
+  if (scm_is_pair (args))
     {
       SCM oldint;
       SCM oldquit;

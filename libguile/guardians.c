@@ -494,7 +494,7 @@ mark_and_zombify (t_guardian *g)
   /* Mark the cells of the live list (yes, the cells in the list, we
      don't care about objects pointed to by the list cars, since we
      know they are already marked).  */
-  for (pair = g->live.head; !SCM_NULLP (pair); pair = SCM_CDR (pair))
+  for (pair = g->live.head; !scm_is_null (pair); pair = SCM_CDR (pair))
     SCM_SET_GC_MARK (pair);
 }
 
@@ -567,7 +567,7 @@ whine_about_self_centered_zombies (void *dummy1 SCM_UNUSED,
 				   void *dummy2 SCM_UNUSED,
 				   void *dummy3 SCM_UNUSED)
 {
-  if (!SCM_NULLP (self_centered_zombies))
+  if (!scm_is_null (self_centered_zombies))
     {
       SCM pair;
       
@@ -575,7 +575,7 @@ whine_about_self_centered_zombies (void *dummy1 SCM_UNUSED,
                 scm_cur_errp);
       scm_newline (scm_cur_errp);
       for (pair = self_centered_zombies;
-           !SCM_NULLP (pair); pair = SCM_CDR (pair))
+           !scm_is_null (pair); pair = SCM_CDR (pair))
         {
           scm_display (SCM_CAR (pair), scm_cur_errp);
           scm_newline (scm_cur_errp);

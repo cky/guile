@@ -217,10 +217,10 @@ scm_top_level_env (SCM thunk)
 SCM
 scm_env_top_level (SCM env)
 {
-  while (SCM_CONSP (env))
+  while (scm_is_pair (env))
     {
       SCM car_env = SCM_CAR (env);
-      if (!SCM_CONSP (car_env) && scm_is_true (scm_procedure_p (car_env)))
+      if (!scm_is_pair (car_env) && scm_is_true (scm_procedure_p (car_env)))
 	return car_env;
       env = SCM_CDR (env);
     }
@@ -297,7 +297,7 @@ module_variable (SCM module, SCM sym)
   {
     /* 3. Search the use list */
     SCM uses = SCM_MODULE_USES (module);
-    while (SCM_CONSP (uses))
+    while (scm_is_pair (uses))
       {
 	b = module_variable (SCM_CAR (uses), sym);
 	if (SCM_BOUND_THING_P (b))
@@ -399,7 +399,7 @@ SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
   SCM_VALIDATE_MODULE (SCM_ARG1, module);
   /* Search the use list */
   uses = SCM_MODULE_USES (module);
-  while (SCM_CONSP (uses))
+  while (scm_is_pair (uses))
     {
       SCM _interface = SCM_CAR (uses);
       /* 1. Check module obarray */
@@ -578,7 +578,7 @@ scm_module_reverse_lookup (SCM module, SCM variable)
   for (i = 0; i < n; ++i)
     {
       SCM ls = SCM_HASHTABLE_BUCKETS (obarray)[i], handle;
-      while (!SCM_NULLP (ls))
+      while (!scm_is_null (ls))
 	{
 	  handle = SCM_CAR (ls);
 	  if (SCM_CDR (handle) == variable)
@@ -591,7 +591,7 @@ scm_module_reverse_lookup (SCM module, SCM variable)
    */
   {
     SCM uses = SCM_MODULE_USES (module);
-    while (SCM_CONSP (uses))
+    while (scm_is_pair (uses))
       {
 	SCM sym = scm_module_reverse_lookup (SCM_CAR (uses), variable);
 	if (scm_is_true (sym))

@@ -187,12 +187,12 @@ change_option_setting (SCM args, scm_t_option options[], unsigned int n, const c
 		  break;
 		case SCM_OPTION_INTEGER:
 		  args = SCM_CDR (args);
-		  SCM_ASSERT (SCM_CONSP (args), args, SCM_ARG1, s);
+		  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG1, s);
 		  flags[i] = scm_to_size_t (SCM_CAR (args));
 		  break;
 		case SCM_OPTION_SCM:
 		  args = SCM_CDR (args);
-		  SCM_ASSERT (SCM_CONSP (args), args, SCM_ARG1, s);
+		  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG1, s);
 		  flags[i] = SCM_UNPACK (SCM_CAR (args));
 		  break;
 		}
@@ -229,7 +229,7 @@ scm_options (SCM args, scm_t_option options[], unsigned int n, const char *s)
 {
   if (SCM_UNBNDP (args))
     return get_option_setting (options, n);
-  else if (!SCM_NULL_OR_NIL_P (args) && !SCM_CONSP (args))
+  else if (!SCM_NULL_OR_NIL_P (args) && !scm_is_pair (args))
     /* Dirk:FIXME:: This criterion should be improved.  IMO it is better to
      * demand that args is #t if documentation should be shown than to say
      * that every argument except a list will print out documentation.  */

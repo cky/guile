@@ -577,10 +577,10 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 
   /* Search the wind list for an appropriate catch.
      "Waiter, please bring us the wind list." */
-  for (winds = scm_dynwinds; SCM_CONSP (winds); winds = SCM_CDR (winds))
+  for (winds = scm_dynwinds; scm_is_pair (winds); winds = SCM_CDR (winds))
     {
       dynpair = SCM_CAR (winds);
-      if (SCM_CONSP (dynpair))
+      if (scm_is_pair (dynpair))
 	{
 	  SCM this_key = SCM_CAR (dynpair);
 
@@ -592,14 +592,14 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
   /* If we didn't find anything, print a message and abort the process
      right here.  If you don't want this, establish a catch-all around
      any code that might throw up. */
-  if (SCM_NULLP (winds))
+  if (scm_is_null (winds))
     {
       scm_handle_by_message (NULL, key, args);
       abort ();
     }
 
   /* If the wind list is malformed, bail.  */
-  if (!SCM_CONSP (winds))
+  if (!scm_is_pair (winds))
     abort ();
       
   jmpbuf = SCM_CDR (dynpair);

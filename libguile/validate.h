@@ -115,10 +115,14 @@
     SCM_ASSERT_TYPE (SCM_ ## pred (var), var, pos, FUNC_NAME, #pred); \
   } while (0)
 
-#define SCM_MAKE_VALIDATE_MSG(pos, var, pred, msg) \
+#define SCM_I_MAKE_VALIDATE_MSG2(pos, var, pred, msg) \
   do { \
-    SCM_ASSERT_TYPE (SCM_ ## pred (var), var, pos, FUNC_NAME, msg); \
+    SCM_ASSERT_TYPE (pred (var), var, pos, FUNC_NAME, msg); \
   } while (0)
+
+#define SCM_MAKE_VALIDATE_MSG(pos, var, pred, msg) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, var, SCM_ ## pred, msg)
+
 
 
 
@@ -214,11 +218,14 @@
       } \
   } while (0)
 
-#define SCM_VALIDATE_NULL(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, NULLP, "null")
+#define SCM_VALIDATE_NULL(pos, scm) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_null, "empty list")
 
-#define SCM_VALIDATE_NULL_OR_NIL(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, NULL_OR_NIL_P, "null")
+#define SCM_VALIDATE_NULL_OR_NIL(pos, scm) \
+  SCM_MAKE_VALIDATE_MSG (pos, scm, NULL_OR_NIL_P, "empty list")
 
-#define SCM_VALIDATE_CONS(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, CONSP, "pair")
+#define SCM_VALIDATE_CONS(pos, scm) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_pair, "pair")
 
 #define SCM_VALIDATE_LIST(pos, lst) \
   do { \
@@ -244,15 +251,15 @@
 
 #define SCM_VALIDATE_ALISTCELL(pos, alist) \
   do { \
-    SCM_ASSERT (SCM_CONSP (alist) && SCM_CONSP (SCM_CAR (alist)), \
+    SCM_ASSERT (scm_is_pair (alist) && scm_is_pair (SCM_CAR (alist)), \
                 alist, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_ALISTCELL_COPYSCM(pos, alist, cvar) \
   do { \
-    SCM_ASSERT (SCM_CONSP (alist), alist, pos, FUNC_NAME); \
+    SCM_ASSERT (scm_is_pair (alist), alist, pos, FUNC_NAME); \
     cvar = SCM_CAR (alist); \
-    SCM_ASSERT (SCM_CONSP (cvar), alist, pos, FUNC_NAME); \
+    SCM_ASSERT (scm_is_pair (cvar), alist, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_OPORT_VALUE(pos, port) \
@@ -291,7 +298,7 @@
 
 #define SCM_VALIDATE_NULLORCONS(pos, env) \
   do { \
-    SCM_ASSERT (SCM_NULLP (env) || SCM_CONSP (env), env, pos, FUNC_NAME); \
+    SCM_ASSERT (scm_is_null (env) || scm_is_pair (env), env, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_HOOK(pos, a) SCM_MAKE_VALIDATE_MSG (pos, a, HOOKP, "hook")

@@ -291,7 +291,7 @@ SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0,
   {
     
     data += i;
-    while (i > 0 && SCM_CONSP (chrs))
+    while (i > 0 && scm_is_pair (chrs))
       {
 	SCM elt = SCM_CAR (chrs);
 
@@ -391,7 +391,7 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
   switch (gram)
     {
     case GRAM_INFIX:
-      if (!SCM_NULLP (ls))
+      if (!scm_is_null (ls))
 	len = (strings > 0) ? ((strings - 1) * del_len) : 0;
       break;
     case GRAM_STRICT_INFIX:
@@ -406,7 +406,7 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
     }
 
   tmp = ls;
-  while (SCM_CONSP (tmp))
+  while (scm_is_pair (tmp))
     {
       len += scm_c_string_length (SCM_CAR (tmp));
       tmp = SCM_CDR (tmp);
@@ -419,16 +419,16 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
     {
     case GRAM_INFIX:
     case GRAM_STRICT_INFIX:
-      while (SCM_CONSP (tmp))
+      while (scm_is_pair (tmp))
 	{
 	  append_string (&p, &len, SCM_CAR (tmp));
-	  if (!SCM_NULLP (SCM_CDR (tmp)) && del_len > 0)
+	  if (!scm_is_null (SCM_CDR (tmp)) && del_len > 0)
 	    append_string (&p, &len, delimiter);
 	  tmp = SCM_CDR (tmp);
 	}
       break;
     case GRAM_SUFFIX:
-      while (SCM_CONSP (tmp))
+      while (scm_is_pair (tmp))
 	{
 	  append_string (&p, &len, SCM_CAR (tmp));
 	  if (del_len > 0)
@@ -437,7 +437,7 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
 	}
       break;
     case GRAM_PREFIX:
-      while (SCM_CONSP (tmp))
+      while (scm_is_pair (tmp))
 	{
 	  if (del_len > 0)
 	    append_string (&p, &len, delimiter);

@@ -149,7 +149,7 @@ scm_async_click ()
   if (scm_root->block_asyncs == 0)
     {
       SCM asyncs;
-      while (!SCM_NULLP(asyncs = scm_root->active_asyncs))
+      while (!scm_is_null(asyncs = scm_root->active_asyncs))
 	{
 	  scm_root->active_asyncs = SCM_EOL;
 	  do
@@ -157,9 +157,9 @@ scm_async_click ()
 	      scm_call_0 (SCM_CAR (asyncs));
 	      asyncs = SCM_CDR (asyncs);
 	    }
-	  while (!SCM_NULLP(asyncs));
+	  while (!scm_is_null(asyncs));
 	}
-      for (asyncs = scm_root->signal_asyncs; !SCM_NULLP(asyncs);
+      for (asyncs = scm_root->signal_asyncs; !scm_is_null(asyncs);
 	   asyncs = SCM_CDR (asyncs))
 	{
 	  if (scm_is_true (SCM_CAR (asyncs)))
