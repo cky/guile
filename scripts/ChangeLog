@@ -2,6 +2,8 @@
 
 	* read-rfc822: New script.
 
+	* Makefile.am (scripts_sources): Add api-diff and read-rfc822.
+
 2002-05-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* scan-api (scan-api): Fix bug: No longer omit `C' and `Scheme' in
