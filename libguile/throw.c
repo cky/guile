@@ -172,14 +172,21 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
       THROW_ARGS is the list of arguments the user passed to the THROW
          function.
 
-   BODY_DATA is just a pointer we pass through to BODY.
-   HANDLER_DATA is just a pointer we pass through to HANDLER.
-   We don't actually use either of those pointers otherwise ourselves.
-   The idea is that, if our caller wants to communicate something to
-   BODY or HANDLER, it can pass a pointer to it as MUMBLE_DATA, which
-   BODY and HANDLER can then use.  Think of it as a way to make BODY
-   and HANDLER closures, not just functions; MUMBLE_DATA points to the
-   enclosed variables.  */
+   BODY_DATA is just a pointer we pass through to BODY.  HANDLER_DATA
+   is just a pointer we pass through to HANDLER.  We don't actually
+   use either of those pointers otherwise ourselves.  The idea is
+   that, if our caller wants to communicate something to BODY or
+   HANDLER, it can pass a pointer to it as MUMBLE_DATA, which BODY and
+   HANDLER can then use.  Think of it as a way to make BODY and
+   HANDLER closures, not just functions; MUMBLE_DATA points to the
+   enclosed variables.
+
+   Of course, it's up to the caller to make sure that any data a
+   MUMBLE_DATA needs is protected from GC.  A common way to do this is
+   to make MUMBLE_DATA a pointer to data stored in an automatic
+   structure variable; since the collector must scan the stack for
+   references anyway, this assures that any references in MUMBLE_DATA
+   will be found.  */
 
 SCM
 scm_internal_catch (tag, body, body_data, handler, handler_data)
@@ -297,6 +304,112 @@ scm_catch (tag, thunk, handler)
 			     scm_handle_by_proc, &handler);
 }
 
+
+/* The smob tag for lazy_catch smobs.  */
+static long tc16_lazy_catch;
+
+/* This is the structure we put on the wind list for a lazy catch.  It
+   stores the handler function to call, and the data pointer to pass
+   through to it.  It's not a Scheme closure, but it is a function
+   with data, so the term "closure" is appropriate in its broader
+   sense.
+
+   (We don't need anything like this in the "eager" catch code,
+   because the same C frame runs both the body and the handler.)  */
+struct lazy_catch {
+  scm_catch_handler_t handler;
+  void *handler_data;
+};
+
+static SCM
+mark_lazy_catch (SCM closure)
+{
+  return SCM_BOOL_F;
+}
+
+static scm_sizet
+free_lazy_catch (SCM closure)
+{
+  /* These live on the stack.  */
+  return 0;
+}
+
+/* Strictly speaking, we could just pass a zero for our print
+   function, because we don't need to print them.  They should never
+   appear in normal data structures, only in the wind list.  However,
+   it might be nice for debugging someday... */
+static int
+print_lazy_catch (SCM closure, SCM port, scm_print_state *pstate)
+{
+  struct lazy_catch *c = (struct lazy_catch *) SCM_CDR (closure);
+  char buf[200];
+
+  sprintf (buf, "#<lazy-catch 0x%lx 0x%lx>",
+	   (long) c->handler, (long) c->handler_data);
+  scm_gen_puts (scm_regular_string, buf, port);
+
+  return 1;
+}
+
+static scm_smobfuns lazy_catch_funs = {
+  mark_lazy_catch, free_lazy_catch, print_lazy_catch, 0
+};
+
+
+/* Given a pointer to a lazy catch structure, return a smob for it,
+   suitable for inclusion in the wind list.  ("Ah yes, a Château
+   Gollombiere '72, no?").  */
+static SCM
+make_lazy_catch (struct lazy_catch *c)
+{
+  SCM smob;
+
+  SCM_NEWCELL (smob);
+  SCM_SETCDR (smob, c);
+  SCM_SETCAR (smob, tc16_lazy_catch);
+
+  return smob;
+}
+
+#define SCM_LAZY_CATCH_P(obj) \
+  (SCM_NIMP (obj) && (SCM_CAR (obj) == tc16_lazy_catch))
+
+
+/* Exactly like scm_internal_catch, except:
+   - It does not unwind the stack (this is the major difference).
+   - If handler returns, its value is returned from the throw.
+   - BODY always receives #f as its JMPBUF argument (since there's no
+     jmpbuf associated with a lazy catch, because we don't unwind the
+     stack.)  */
+SCM
+scm_internal_lazy_catch (tag, body, body_data, handler, handler_data)
+     SCM tag;
+     scm_catch_body_t body;
+     void *body_data;
+     scm_catch_handler_t handler;
+     void *handler_data;
+{
+  SCM lazy_catch, answer;
+  struct lazy_catch c;
+
+  c.handler = handler;
+  c.handler_data = handler_data;
+  lazy_catch = make_lazy_catch (&c);
+
+  SCM_REDEFER_INTS;
+  scm_dynwinds = scm_acons (tag, lazy_catch, scm_dynwinds);
+  SCM_REALLOW_INTS;
+
+  answer = (*body) (body_data, SCM_BOOL_F);
+
+  SCM_REDEFER_INTS;
+  scm_dynwinds = SCM_CDR (scm_dynwinds);
+  SCM_REALLOW_INTS;
+
+  return answer;
+}
+
+
 SCM_PROC(s_lazy_catch, "lazy-catch", 3, 0, 0, scm_lazy_catch);
 SCM
 scm_lazy_catch (tag, thunk, handler)
@@ -304,19 +417,26 @@ scm_lazy_catch (tag, thunk, handler)
      SCM thunk;
      SCM handler;
 {
-  SCM answer;
+  struct scm_body_thunk_data c;
+
   SCM_ASSERT ((SCM_NIMP(tag) && SCM_SYMBOLP(tag))
 	      || (tag == SCM_BOOL_T),
 	      tag, SCM_ARG1, s_lazy_catch);
-  SCM_REDEFER_INTS;
-  scm_dynwinds = scm_acons (tag, handler, scm_dynwinds);
-  SCM_REALLOW_INTS;
-  answer = scm_apply (thunk, SCM_EOL, SCM_EOL);
-  SCM_REDEFER_INTS;
-  scm_dynwinds = SCM_CDR (scm_dynwinds);
-  SCM_REALLOW_INTS;
-  return answer;
+
+  c.tag = tag;
+  c.body_proc = thunk;
+
+  /* scm_internal_lazy_catch takes care of all the mechanics of
+     setting up a lazy catch tag; we tell it to call scm_body_thunk to
+     run the body, and scm_handle_by_proc to deal with any throws to
+     this catch.  The former receives a pointer to c, telling it how
+     to behave.  The latter receives a pointer to HANDLER, so it knows
+     who to call.  */
+  return scm_internal_lazy_catch (tag,
+				  scm_body_thunk, &c, 
+				  scm_handle_by_proc, &handler);
 }
+
 
 /* The user has thrown to an uncaught key --- print a message and die.
    At boot time, we establish a catch-all that uses this as its handler.
@@ -435,6 +555,7 @@ scm_ithrow (key, args, noreturn)
       if (winds == SCM_EOL)
 	abort ();
 
+      /* If the wind list is malformed, bail.  */
       if (SCM_IMP (winds) || SCM_NCONSP (winds))
 	abort ();
       
@@ -459,31 +580,45 @@ scm_ithrow (key, args, noreturn)
        SCM_CDAR (wind_goal) != jmpbuf;
        wind_goal = SCM_CDR (wind_goal))
     ;
-  if (!SCM_JMPBUFP (jmpbuf))
+
+  /* Is a lazy catch?  In wind list entries for lazy catches, the key
+     is bound to a lazy_catch smob, not a jmpbuf.  */
+  if (SCM_LAZY_CATCH_P (jmpbuf))
     {
+      struct lazy_catch *c = (struct lazy_catch *) SCM_CDR (jmpbuf);
       SCM oldwinds = scm_dynwinds;
       SCM handle, answer;
-      scm_dowinds (wind_goal, scm_ilength (scm_dynwinds) - scm_ilength (wind_goal));
+      scm_dowinds (wind_goal, (scm_ilength (scm_dynwinds)
+			       - scm_ilength (wind_goal)));
       SCM_REDEFER_INTS;
       handle = scm_dynwinds;
       scm_dynwinds = SCM_CDR (scm_dynwinds);
       SCM_REALLOW_INTS;
-      answer = scm_apply (jmpbuf, scm_cons (key, args), SCM_EOL);
+      answer = (c->handler) (c->handler_data, key, args);
       SCM_REDEFER_INTS;
       SCM_SETCDR (handle, scm_dynwinds);
       scm_dynwinds = handle;
       SCM_REALLOW_INTS;
-      scm_dowinds (oldwinds, scm_ilength (scm_dynwinds) - scm_ilength (oldwinds));
+      scm_dowinds (oldwinds, (scm_ilength (scm_dynwinds)
+			      - scm_ilength (oldwinds)));
       return answer;
     }
-  else
+
+  /* Otherwise, it's a normal catch.  */
+  else if (SCM_JMPBUFP (jmpbuf))
     {
       struct jmp_buf_and_retval * jbr;
-      scm_dowinds (wind_goal, scm_ilength (scm_dynwinds) - scm_ilength (wind_goal));
+      scm_dowinds (wind_goal, (scm_ilength (scm_dynwinds)
+			       - scm_ilength (wind_goal)));
       jbr = (struct jmp_buf_and_retval *)JBJMPBUF (jmpbuf);
       jbr->throw_tag = key;
       jbr->retval = args;
     }
+
+  /* Otherwise, it's some random piece of junk.  */
+  else
+    abort ();
+
 #ifdef DEBUG_EXTENSIONS
   scm_last_debug_frame = SCM_JBDFRAME (jmpbuf);
 #endif
@@ -495,5 +630,6 @@ void
 scm_init_throw ()
 {
   scm_tc16_jmpbuffer = scm_newsmob (&jbsmob);
+  tc16_lazy_catch = scm_newsmob (&lazy_catch_funs);
 #include "throw.x"
 }
