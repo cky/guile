@@ -1,6 +1,6 @@
 /* dynl.c - dynamic linking
  *
- * Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+ * Copyright (C) 1990-1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,12 +58,12 @@ maybe_drag_in_eprintf ()
   assert (!maybe_drag_in_eprintf);
 }
 
+#include <stdio.h>
+
 #include "_scm.h"
 #include "dynl.h"
 #include "genio.h"
 #include "smob.h"
-
-#ifdef DYNAMIC_LINKING
 
 /* Converting a list of SCM strings into a argv-style array.  You must
    have ints disabled for the whole lifetime of the created argv (from
@@ -169,8 +169,12 @@ scm_register_module_xxx (module_name, init_func)
 	}
 
     md = (struct moddata *)malloc (sizeof (struct moddata));
-    if (md == NULL)
+    if (md == NULL) {
+	fprintf (stderr,
+		 "guile: can't register module (%s): not enough memory",
+		 module_name);
 	return;
+    }
 
     md->module_name = module_name;
     md->init_func = init_func;
@@ -231,9 +235,49 @@ static void *sysdep_dynl_func SCM_P ((char *symbol, void *handle, char *subr));
 #else
 #ifdef HAVE_DLD
 #include "dynl-dld.c"
-#else /* no dynamic linking available */
-/* configure should not have defined DYNAMIC_LINKING in this case */
-#error Dynamic linking not implemented for your system.
+#else 
+
+/* no dynamic linking available, throw errors. */
+
+static void
+sysdep_dynl_init ()
+{
+}
+
+static void
+no_dynl_error (subr)
+     char *subr;
+{
+    scm_misc_error (subr, "dynamic linking not available", SCM_EOL);
+}
+    
+static void *
+sysdep_dynl_link (filename, subr)
+     char *filename;
+     char *subr;
+{
+    no_dynl_error (subr);
+    return NULL;
+}
+
+static void 
+sysdep_dynl_unlink (handle, subr)
+     void *handle;
+     char *subr;
+{
+    no_dynl_error (subr);
+}
+
+static void *
+sysdep_dynl_func (symbol, handle, subr)
+     char *symbol;
+     void *handle;
+     char *subr;
+{
+    no_dynl_error (subr);
+    return NULL;
+}
+
 #endif
 #endif
 #endif
@@ -346,7 +390,7 @@ scm_dynamic_func (SCM symb, SCM dobj)
     symb = scm_coerce_rostring (symb, s_dynamic_func, SCM_ARG1);
     d = get_dynl_obj (dobj, s_dynamic_func, SCM_ARG2);
 
-    func = sysdep_dynl_func (d->handle, SCM_CHARS (symb), s_dynamic_func);
+    func = sysdep_dynl_func (SCM_CHARS (symb), d->handle, s_dynamic_func);
     return scm_ulong2num ((unsigned long)func);
 }
 
@@ -395,13 +439,3 @@ scm_init_dynamic_linking ()
     sysdep_dynl_init ();
 #include "dynl.x"
 }
-
-#else /* not DYNAMIC_LINKING */
-
-void
-scm_init_dynamic_linking ()
-{
-#include "dynl.x"
-}
-
-#endif /* not DYNAMIC_LINKING */
