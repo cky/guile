@@ -249,7 +249,8 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
                setprotoent  getprotoent  endprotoent  dnl
                setservent   getservent   endservent   dnl
                getnetbyaddr getnetbyname dnl
-	       inet_lnaof inet_makeaddr inet_netof hstrerror)
+	       inet_lnaof inet_makeaddr inet_netof hstrerror dnl
+	       inet_pton inet_ntop)
 
 dnl Some systems do not declare this.  Some systems do declare it, as a
 dnl macro.  With cygwin it may be in a DLL.

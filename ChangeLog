@@ -1,3 +1,7 @@
+2001-04-22  Gary Houston  <ghouston@arglist.com>
+
+	* configure.in: check for inet_pton and inet_ntop.
+
 2001-04-20  Gary Houston  <ghouston@arglist.com>
 
 	* acconfig.h: include HAVE_SIN6_SCOPE_ID.
