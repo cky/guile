@@ -553,6 +553,49 @@
 	     (loop (f (car l)) (cdr l))))))
 
 
+;;; {Hooks}
+;;;
+;;; Warning: Hooks are now first class objects and add-hook! and remove-hook!
+;;; procedures.  This interface is only provided for backward compatibility
+;;; and will be removed.
+;;;
+(if (not (defined? 'new-run-hooks))
+    (begin
+      (define new-run-hooks run-hooks)
+      (define new-add-hook! add-hook!)
+      (define new-remove-hook! remove-hook!)))
+
+(define (run-hooks hook)
+  (if (and (pair? hook) (eq? (car hook) 'hook))
+      (new-run-hooks hook)
+      (for-each (lambda (thunk) (thunk)) hook)))
+
+(define add-hook!
+  (procedure->memoizing-macro
+    (lambda (exp env)
+      (let ((hook (local-eval (cadr exp) env)))
+	(if (and (pair? hook) (eq? (car hook) 'hook))
+	    `(new-add-hook! ,@(cdr exp))
+	    (begin
+	      (display "Warning: Old style hooks\n" (current-error-port))
+	      `(let ((thunk ,(caddr exp)))
+		 (if (not (memq thunk ,(cadr exp)))
+		     (set! ,(cadr exp)
+			   (cons thunk ,(cadr exp)))))))))))
+
+(define remove-hook!
+  (procedure->memoizing-macro
+    (lambda (exp env)
+      (let ((hook (local-eval (cadr exp) env)))
+	(if (and (pair? hook) (eq? (car hook) 'hook))
+	    `(new-remove-hook! ,@(cdr exp))
+	    (begin
+	      (display "Warning: Old style hooks\n" (current-error-port))
+	      `(let ((thunk ,(caddr exp)))
+		     (set! ,(cadr exp)
+			   (delq! thunk ,(cadr exp))))))))))
+
+
 ;;; {Files}
 ;;;
 ;;; If no one can explain this comment to me by 31 Jan 1998, I will
