@@ -3367,10 +3367,32 @@ SCM
 scm_top_level_env (thunk)
      SCM thunk;
 {
-  if (SCM_IMP(thunk))
+  if (SCM_IMP (thunk))
     return SCM_EOL;
   else
-    return scm_cons(thunk, (SCM)SCM_EOL);
+    return scm_cons (thunk, SCM_EOL);
+}
+
+SCM
+scm_top_level_lookup_closure (SCM env)
+{
+  if (SCM_IMP (env))
+    return SCM_BOOL_F;
+  else
+    return SCM_CAR (scm_last_pair (env));
+}
+
+SCM_SYMBOL (scm_sym_system_module, "system-module");
+
+SCM
+scm_system_module_env_p (SCM env)
+{
+  SCM proc = scm_top_level_lookup_closure (env);
+  return ((SCM_NFALSEP (proc)
+	   && SCM_NFALSEP (scm_procedure_property (proc,
+						   scm_sym_system_module)))
+	  ? SCM_BOOL_T
+	  : SCM_BOOL_F);
 }
 
 SCM_PROC(s_eval2, "eval2", 2, 0, 0, scm_eval2);
@@ -3380,7 +3402,7 @@ scm_eval2 (obj, env_thunk)
      SCM obj;
      SCM env_thunk;
 {
-  return scm_eval_3 (obj, 1, scm_top_level_env(env_thunk));
+  return scm_eval_3 (obj, 1, scm_top_level_env (env_thunk));
 }
 
 SCM_PROC(s_eval, "eval", 1, 0, 0, scm_eval);
@@ -3389,8 +3411,10 @@ SCM
 scm_eval (obj)
      SCM obj;
 {
-  return
-    scm_eval_3(obj, 1, scm_top_level_env(SCM_CDR(scm_top_level_lookup_closure_var)));
+  return scm_eval_3 (obj,
+		     1,
+		     scm_top_level_env
+		     (SCM_CDR (scm_top_level_lookup_closure_var)));
 }
 
 /* SCM_PROC(s_eval_x, "eval!", 1, 0, 0, scm_eval_x); */
@@ -3399,10 +3423,10 @@ SCM
 scm_eval_x (obj)
      SCM obj;
 {
-  return
-    scm_eval_3(obj,
-	       0,
-	       scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var)));
+  return scm_eval_3 (obj,
+		     0,
+		     scm_top_level_env
+		     (SCM_CDR (scm_top_level_lookup_closure_var)));
 }
 
 static const scm_smobfuns promsmob = {scm_markcdr, scm_free0, prinprom};
