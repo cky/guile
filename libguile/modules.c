@@ -52,6 +52,7 @@
 #include "libguile/hashtab.h"
 #include "libguile/struct.h"
 #include "libguile/variable.h"
+#include "libguile/fluids.h"
 
 #include "libguile/modules.h"
 
@@ -69,7 +70,7 @@ static SCM the_module;
 SCM
 scm_selected_module ()
 {
-  return SCM_CDR (the_module);
+  return scm_fluid_ref (SCM_CDR (the_module));
 }
 
 static SCM set_current_module;
