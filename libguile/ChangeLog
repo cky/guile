@@ -1,3 +1,9 @@
+Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* print.c (s_scm_current_pstate): Do not segfault when the
+	print_state_pool is unitialized in `current-pstate', and better
+	verify its state before altering it in scm_make_print_state().
+
 2000-06-18  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* scmsigs.c (s_scm_sigaction): guard the SIGIOT case with an
