@@ -123,6 +123,11 @@ This is an implementation of SRFI-26.
 This is an implementation of SRFI-31 which provides a special form
 `rec' for recursive evaluation.
 
+** The modules (srfi srfi-13) and (srfi srfi-14) have been merged with
+   the core, making their functionality always available.
+
+The are still available, tho.
+
 ** Guile now includes its own version of libltdl.
 
 We now use a modified version of libltdl that allows us to make

@@ -1,3 +1,32 @@
+2004-08-25  Marius Vollmer  <mvo@zagadka.de>
+
+	Moved SRFI-13 and SRFI-14 into the core, taking over the role of
+	strop.c.
+
+	* srfi-13.c, srfi-13.h, srfi-14.c, srfi-14.h: New files.
+	* strop.h, strop.c: Removed, they are now empty.
+	* Makefile.am: Updated for new and removed files.
+	
+	* symbols.h, symbols.c (scm_string_ci_to_symbol): Moved here, next
+	to scm_string_to_symbol.
+
+	* chars.c (scm_char_alphabetic_p, scm_char_numeric_p,
+	scm_char_whitespace_p, scm_upper_case_p, scm_lower_case_p,
+	scm_char_is_both_p): Use scm_char_set_contains_p with the proper
+	charset instead of libc functions.
+
+	* strorder.c (scm_string_equal_p, scm_string_ci_equal_p,
+	scm_string_less_p, scm_string_leq_p, scm_string_gr_p,
+	scm_string_geq_p, scm_string_ci_less_p, scm_string_ci_leq_p,
+	scm_string_ci_gr_p, scm_string_ci_geq_p): Use scm_string_eq, etc
+	instead of explicit code.
+	
+	* deprecated.c, load.c, posix.c, unif.c, symbols.c: Include
+	"srfi-13.h" instead of "strop.h".
+
+	* init.c (scm_init_guile_1): Call scm_init_srfi_13 and
+	scm_init_srfi_14.  Do not call scm_init_strop.
+
 2004-08-24  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* numbers.c (scm_inf_p): Synced docstring back from manual.

@@ -1,3 +1,13 @@
+2004-08-25  Marius Vollmer  <mvo@zagadka.de>
+
+	SRFI-13 and SRFI-14 have been moved into the core.
+	
+	* srfi-13.scm, srfi-14.scm: Simply re-export the relevant
+	bindings.
+
+	* srfi-13.h, srfi-13.c, srfi-14.h, srfi-14.c: Removed all real
+	content except for the init functions.
+	
 2004-08-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-13.h, srfi-13.c: (scm_substring_shared): Renamed to

@@ -1,3 +1,8 @@
+2004-08-25  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/strings.test: Two more tests for double indirect substring
+	modification.
+
 2004-08-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* lib.scm (exception:used-before-define): New.
