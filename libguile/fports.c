@@ -137,8 +137,19 @@ scm_setvbuf (SCM port, SCM mode, SCM size)
 	      s_setvbuf);
   SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_setvbuf);
   cmode = SCM_INUM (mode);
-  if (cmode != _IONBF && cmode != _IOFBF)
+  if (cmode != _IONBF && cmode != _IOFBF && cmode != _IOLBF)
     scm_out_of_range (s_setvbuf, mode);
+
+  if (cmode == _IOLBF)
+    {
+      SCM_SETCAR (port, SCM_CAR (port) | SCM_BUFLINE);
+      cmode = _IOFBF;
+    }
+  else
+    {
+      SCM_SETCAR (port, SCM_CAR (port) ^ SCM_BUFLINE);
+    }
+
   if (SCM_UNBNDP (size))
     {
       if (cmode == _IOFBF)
@@ -153,6 +164,7 @@ scm_setvbuf (SCM port, SCM mode, SCM size)
       if (csize < 0 || (cmode == _IONBF && csize > 0))
 	scm_out_of_range (s_setvbuf, size);
     }
+
   pt = SCM_PTAB_ENTRY (port);
 
   /* silently discards buffered chars.  */
@@ -250,6 +262,7 @@ scm_open_file (filename, modes)
 	  break;
 	case '0':  /* unbuffered: handled later.  */
 	case 'b':  /* 'binary' mode: ignored.  */
+	case 'l':  /* line buffered: handled during output.  */
 	  break;
 	default:
 	  scm_out_of_range (s_open_file, modes);
@@ -476,14 +489,16 @@ fport_write (SCM port, void *data, size_t size)
   else 
     {
       const char *input = (char *) data;
-      while (size > 0)
+      size_t remaining = size;
+
+      while (remaining > 0)
 	{
 	  int space = pt->write_end - pt->write_pos;
-	  int write_len = (size > space) ? space : size;
+	  int write_len = (remaining > space) ? space : remaining;
 
 	  memcpy (pt->write_pos, input, write_len);
 	  pt->write_pos += write_len;
-	  size -= write_len;
+	  remaining -= write_len;
 	  input += write_len;
 	  if (write_len == space)
 	    fport_flush (port);

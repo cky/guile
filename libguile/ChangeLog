@@ -1,3 +1,9 @@
+1999-08-19  Gary Houston  <ghouston@easynet.co.uk>
+
+	* fports.c (fport_write): fix line-buffering mode again.
+	(scm_open_file): recognise 'l' for line-buffering.
+	(scm_setvbuf): recognise _IOLBF for line-buffering.
+
 1999-08-19  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* Makefile.am (libguile_la_LDFLAGS): Increased the version number
