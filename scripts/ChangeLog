@@ -1,3 +1,7 @@
+2001-06-25  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* snarf-check-and-output-texi: rewrite.
+
 2001-05-31  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* snarf-check-and-output-texi: new file.
