@@ -1,3 +1,8 @@
+2004-10-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* autogen.sh: Added explicit invocation of libtoolize before
+	autoreconf so that libltdl/ is updated as well.
+
 2004-10-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
         Removed usage of libguile-ltdl.
