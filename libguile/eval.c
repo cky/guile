@@ -1061,6 +1061,7 @@ unmemocopy (x, env)
 	  ls = z = scm_cons (scm_i_atcall_cc, SCM_UNSPECIFIED);
 	  goto loop;
 	default:
+	  /* appease the Sun compiler god: */ ;
 	}
     unmemo:
     default:
