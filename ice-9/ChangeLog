@@ -1,3 +1,9 @@
+2001-06-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm: Use `begin-deprecated' instead of testing
+	`include-deprecated-features' when conditionally using the (ice-9
+	rdelim) module.  See below.
+
 2001-06-10  Gary Houston  <ghouston@arglist.com>
 
 	* boot-9.scm: use the (ice-9 rdelim) module if
