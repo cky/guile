@@ -45,7 +45,6 @@
 
 
 #include "libguile/__scm.h"
-#include "smob.h"
 
 
 
@@ -82,7 +81,7 @@ struct scm_port_table
 };
 
 extern struct scm_port_table **scm_port_table;
-extern scm_port_table_size; /* Number of ports in scm_port_table.  */
+extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 
 
@@ -133,6 +132,24 @@ extern scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_TABCOL(port)  	{SCM_COL (port) += (SCM_COL (port) + 1) % 8;}
 
 
+
+
+
+typedef struct scm_ptobfuns
+{
+  SCM (*mark) ();
+  int (*free) ();
+  int (*print) ();
+  SCM (*equalp) ();
+  int (*fputc) ();
+  int (*fputs) ();
+  scm_sizet (*fwrite) ();
+  int (*fflush) ();
+  int (*fgetc) ();
+  int (*fclose) ();
+} scm_ptobfuns;
+
+#define SCM_PTOBNUM(x) (0x0ff & (SCM_CAR(x)>>8));
 
 
 
