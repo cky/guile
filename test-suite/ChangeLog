@@ -1,3 +1,7 @@
+2005-02-12  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (reduce, reduce-right): New tests.
+
 2005-02-11  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/fractions.test (ash): Remove tests of ash on fractions, not

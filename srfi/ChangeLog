@@ -1,3 +1,9 @@
+2005-02-12  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm (reduce, reduce-right): Don't call f with ridentity, use
+	it only if lst is empty, per srfi and intended optimization reduce
+	represents over fold.
+
 2005-02-04  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (list=): Correction to arguments passed to given elt=,
