@@ -10,7 +10,8 @@
 	The purpose of this set of changes is to regularize Guile's usage
 	of ANSI C integral types, with the following ideas in mind:
 
-	- SCM does not nesessarily has to be long.
+	- SCM does not nesessarily have to be long.
+	- long is not nesessarily enough to store pointers.
 	- long is not nesessarily the same size as int.
 
 	The changes are incomplete and possibly buggy.  Please test on
@@ -82,7 +83,7 @@
 	scm_num2uint, scm_num2bits, scm_num2ubits, scm_num2ptrdiff,
 	scm_num2size): new functions.
 
-	* modules.c (scm_module_reverse_lookup): i, n: int -> scm_bits_t.x
+	* modules.c (scm_module_reverse_lookup): i, n: int -> scm_bits_t.
 
 	* load.c: change int -> size_t in various places (where the
 	variable is used to store a string length).
@@ -100,7 +101,7 @@
 
 	* goops.[hc]: various {int,long} -> scm_bits_t changes.
 
-	* gh_data.c (gh_scm2double): no loss of precision any more.
+	* gh_data.c (gh_num2int): no loss of precision any more.
 
 	* gh.h (gh_str2scm): len: int -> size_t
 	(gh_{get,set}_substr): start: int -> scm_bits_t,
@@ -173,7 +174,7 @@
 	(scm_contregs_t.num_stack_items): ulong -> scm_ubits_t
 
 	* continuations.c (scm_make_continuation): change the type of
-	stack_size form long to scm_bits_t.
+	stack_size from long to scm_bits_t.
 
 	* ports.h: type renaming:
 	scm_port_rw_active -> scm_port_rw_active_t (and made a typedef)
@@ -185,11 +186,11 @@
 	(scm_port_t.putback_buf_size): int -> size_t.
 
 	* __scm.h (long_long, ulong_long): deprecated (they pollute the
-	global namespace and have little value besides that).
+	global namespace and have little value beside that).
 	(SCM_BITS_LENGTH): new, is the bit size of scm_bits_t (i.e. of an
 	SCM handle).
 	(ifdef spaghetti): include sys/types.h and sys/stdtypes.h, if they
-	exist (for size_t & ptrdiff_t)
+	exist (for size_t & ptrdiff_t).
 	(scm_sizet): deprecated.
 
 	* Makefile.am (noinst_HEADERS): add num2integral.i.c
