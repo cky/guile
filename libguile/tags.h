@@ -305,6 +305,9 @@ typedef void * SCM;
 #define SCM_CELLP(x) 	(!SCM_NCELLP (x))
 #define SCM_NCELLP(x) 	((sizeof (scm_cell) - 1) & SCM_UNPACK (x))
 
+#define SCM_DOUBLE_CELLP(x) 	(!SCM_NDOUBLE_CELLP (x))
+#define SCM_NDOUBLE_CELLP(x) 	((2 * sizeof (scm_cell) - 1) & SCM_UNPACK (x))
+
 /* See numbers.h for macros relating to immediate integers.
  */
 

@@ -1,3 +1,25 @@
+2000-03-18  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* tags.h: (SCM_DOUBLE_CELLP, SCM_NDOUBLE_CELLP): new macros.
+
+	* gc.h: (typedef struct scm_freelist_t) remove from here.
+
+	* gc.c: (CELL_UP, CELL_DN) make these macros take additional
+ 	parameter (the span).
+	(CLUSTER_SIZE_IN_BYTES, ALIGNMENT_SLACK) new macros.
+	(typedef struct scm_freelist_t) move here from gc.h, it had no
+ 	business being externally visible.
+	(typedef struct scm_heap_seg_data_t) renamed from
+ 	scm_heap_seg_data, to be style-compliant.
+	(scm_mark_locations) if the possible pointer points to a
+ 	multy-cell, check that it's properly aligned.
+	(init_heap_seg) alighn multy-cells properly, work with the
+ 	assumption that the segment size divides cleanly by cluster size
+ 	(so that there's no spill).
+	(round_to_cluster_size) new function.
+	(alloc_some_heap, make_initial_segment) use round_to_cluster_size
+ 	to satisfy the new init_heap_seg invariant.
+
 2000-03-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* _scm.h:  Don't include async.h everywhere...
@@ -69,13 +91,13 @@
 	GUILE_INIT_SEGMENT_SIZE_2, GUILE_GC_TRIGGER_2
 
 2000-03-16  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
-	
+
 	* __scm.h (GC_FREE_SEGMENTS): Disable this until we have made
 	freeing of segment work with the new GC scheme.  (Thanks to
 	Michael Livshin.)  Oops, also happened to make GUILE_NEW_GC_SCHEME
 	the default, but I'll let this change stay in CVS Guile since this
 	code is not expected to contain serious bugs.
-	
+
 2000-03-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* gc.c, gc.h (scm_map_free_list): Define also if GUILE_DEBUG is
@@ -98,7 +120,7 @@ Wed Mar 15 08:27:04 2000  Greg J. Badros  <gjb@cs.washington.edu>
 Wed Mar 15 08:24:58 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* Makefile.am: Separate out DOT_X_FILES and DOT_DOC_FILES, and
-	generate the latter from the concrete listing of the former.  Then 
+	generate the latter from the concrete listing of the former.  Then
 	make guile-procedures.txt depend on DOT_DOC_FILES instead of
 	*.doc, so that rebuilding it works.
 
@@ -130,7 +152,7 @@ Wed Mar 15 08:12:14 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	The following change to init.c is only enabled if Guile was
 	configured with --enable-guile-debug.
-	
+
 	* init.c (scm_i_getenv_int): New function.
 	(scm_boot_guile_1): Use the environment variables
 	GUILE_INIT_HEAP_SIZE, GUILE_INIT_HEAP_SIZE2 to select heap size if
@@ -264,7 +286,7 @@ Wed Mar 15 08:12:14 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* async.c, async.h: made async representation a double cell.
 
 	* dynl.c: made dynamic_obj representation a double cell.
-	
+
 2000-03-13  Gary Houston  <ghouston@arglist.com>
 
 	* ports.c (flush_void_port): renamed to flush_port_default.
@@ -294,7 +316,7 @@ Wed Mar 15 08:12:14 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	that we can't use autoconf for this.  Autoconf itself relies on
 	the existence of `sed' somewhere on your path.)  (Thanks to Dirk
 	Herrman.)
-	
+
 2000-03-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* Makefile.am (libguile_la_SOURCES): Moved iselect.c here from
@@ -364,10 +386,10 @@ Sun Mar 12 13:26:30 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* struct.c, coop-threads.c: SCM_ASSCM/ASWORD fixes.
 
 2000-03-12  Marius Vollmer  <mvo@zagadka.ping.de>
-	
+
 	* init.c (scm_standard_stream_to_port): Check whether the file
 	descriptor is valid and substitute "/dev/null" when not.
-	
+
 2000-03-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* coop-defs.h (struct timespec): Conditionally defined.
@@ -383,14 +405,14 @@ Sun Mar 12 13:26:30 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	code.  It moves things to better places, makes arguments more
 	consistent with the POSIX API (which is used in GNOME's glib), and
 	adds new functionality.
-	
+
 	* readline.c (scm_init_readline): Added new arg to scm_init_mutex.
 
 	* coop-defs.h (scm_mutex_trylock): New macro: alias for
 	coop_mutex_trylock.
 	(scm_cond_init): Changed definition to
 	coop_new_condition_variable_init.
-	
+
 	* coop.c: #include <errno.h>
 	(coop_timeout_qinsert): Moved here from iselect.c
 	(coop_new_mutex_init, coop_new_condition_variable_init): New
@@ -434,7 +456,7 @@ Sun Mar 12 13:26:30 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 Thu Mar  9 11:33:25 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
-	* vectors.h (SCM_VELTS_AS_STACKITEMS): Added this macro to help in 
+	* vectors.h (SCM_VELTS_AS_STACKITEMS): Added this macro to help in
 	eliminating some warnings.
 
 	* unif.c, strports.c, print.c, options.c: Fix some warnings on
@@ -450,7 +472,7 @@ Thu Mar  9 11:33:25 2000  Greg J. Badros  <gjb@cs.washington.edu>
        storing tags and immediates (now a long int).  Introduced
        SCM_ASWORD and SCM_ASSCM for conversion. Fixed various dubious
        code in the process: arbiter.c (use macros), unif.c (scm_array_p),
-       
+
 Wed Mar  8 10:15:59 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* numbers.c:  Use SCM_VALIDATE_LONG_COPY, and longs, not ints, in
@@ -493,7 +515,7 @@ Thu Mar  2 15:13:25 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 Thu Mar  2 12:38:30 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
-	* list.c: Moved append docs to append! Thanks Dirk Hermann.  Also, 
+	* list.c: Moved append docs to append! Thanks Dirk Hermann.  Also,
 	added append docs from R4RS.
 
 	* strings.c: Docstring typo fix, + eliminate unneeded IMP tests.
@@ -501,7 +523,7 @@ Thu Mar  2 12:38:30 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* chars.h: Provide SCM_CHARP, SCM_CHAR, SCM_MAKE_CHAR and
 	deprecate SCM_ICHRP, SCM_ICHR, SCM_MAKICHR.  Thanks Dirk Hermann!
- 
+
 	* *.h, *.c: Use SCM_CHARP, SCM_CHAR, SCM_MAKE_CHAR throughout.
 	Drop use of SCM_P for function prototypes... assume an ANSI C
 	compiler.  Thanks Dirk Hermann!
@@ -516,7 +538,7 @@ Sat Feb 19 12:20:12 2000  Greg J. Badros  <gjb@cs.washington.edu>
 Sun Feb 13 19:11:42 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* arbiters.c, eq.c, gc.c, guardians.c, list.c, ports.c, print.c,
-	regex-posix.c, scmsigs.c, stime.c, strings.c, variable.c, stime.c, 
+	regex-posix.c, scmsigs.c, stime.c, strings.c, variable.c, stime.c,
 	strings.c, variable.c:  Added lots of documentation, cleaned up
 	some existing documentation.  Occasionally changed formal params
 	to match docs.  Also folded an #ifdef into the inners of a
@@ -576,7 +598,7 @@ Sun Feb  6 20:26:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* strings.h: don't use SCM_P.  don't include <string.h>.
 	* error.c, gh_data.c, ports.c, script.c, strop.c: include <string.h>.
-	
+
 	* strings.c (scm_string_ref): make the 2nd argument compulsory.
 	previously it defaulted to zero for no good reason that I can see.
 	use a local variable for SCM_INUM (k).  replace
@@ -602,7 +624,7 @@ Sun Feb  6 20:26:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	"select" tests port buffers for the ability to provide input
 	or accept output.  Previously only the underlying file descriptors
 	were checked.  Rewrote the docstring.
- 
+
 Thu Jan 27 10:14:25 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* vectors.c, symbols.c, strorder.c: Documentation cut and pasted
@@ -624,13 +646,13 @@ Wed Jan 26 17:33:52 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 Wed Jan 26 10:02:11 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
-	* tag.c:  Added doc for `tag', but mark as deprecated since Mikael 
+	* tag.c:  Added doc for `tag', but mark as deprecated since Mikael
 	suggests removing tag.c altogether (and using a new `class-of'
 	instead).
 
 	* strings.c:  Added documentation from Gregg A. Reynolds.  Edited
 	a bit by me to use FOO instead of @var{foo} and to have the
-	summary come before preconditions on input.  Also dropped trailing 
+	summary come before preconditions on input.  Also dropped trailing
 	(rnrs) note.
 
 	* gsubr.c: Do not use SCM_DEFINE for `gsubr-apply'. Register the
@@ -652,7 +674,7 @@ Tue Jan 25 17:15:47 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* eq.c: Added docs for eq?, eqv? equal? abridged from R4RS.
 
 	* boolean.c: Added docs for `not', `boolean?' (by hand).
-	
+
 Tue Jan 25 13:28:56 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* random.c: Added documentation, from SLIB page:
@@ -666,7 +688,7 @@ Mon Jan 24 17:50:20 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 2000-01-23  Gary Houston  <ghouston@arglist.com>
 
-	* filesys.c (scm_chown): omit port/fdes support if HAVE_FCHOWN is 
+	* filesys.c (scm_chown): omit port/fdes support if HAVE_FCHOWN is
 	not defined (thanks to Richard Y. Kim).
 
 Thu Jan 20 13:00:38 2000  Greg J. Badros  <gjb@cs.washington.edu>
@@ -713,7 +735,7 @@ Tue Jan 18 13:21:08 2000  Mikael Djurfeldt  <mdj@r11n07-s.pdc.kth.se>
 	   stacks.c, stime.c, strings.c, strop.c, strports.c, struct.c,
 	   symbols.c, throw.c, unif.c, vectors.c, version.c, vports.c,
 	   weaks.c: Converted docstrings to ANSI C format.
-	
+
 	* filesys.c (scm_chmod), simpos.c (scm_system), version
 	(scm_version), vports (scm_make_soft_port): Escape " occuring
 	inside docstring.
@@ -749,7 +771,7 @@ Tue Jan 11 18:24:18 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* guile-doc-snarf.in: Use new $fullfilename for running
 	guile-func-name-check, and put "$fullfilename" and "$filename" in
 	quotes at uses to make sure re-splitting on whitespace does not
-	occur (so filenames w/ embedded whitespace would work okay, though 
+	occur (so filenames w/ embedded whitespace would work okay, though
 	I sure hope we never have to deal with that! :-) ).  Thanks to
 	Mikael for pointing out the source_dir != build_dir was broken.
 
@@ -827,7 +849,7 @@ Tue Jan 11 13:44:07 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* ramap.c: Fix #if 0'd out code to be syntactically acceptable to
 	guile-func-name-check.
 
-	* guile-doc-snarf.in: Run guile-func-name-check on the file before 
+	* guile-doc-snarf.in: Run guile-func-name-check on the file before
 	doing the snarf.
 
 Tue Jan 11 11:31:10 2000  Greg J. Badros  <gjb@cs.washington.edu>
@@ -852,7 +874,7 @@ Tue Jan 11 10:41:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* print.h, print.c (scm_simple_format): Added `simple-format'
 	primitive.  It's the old scm_display_error, with ARGS now a rest
-	parameter, and the destination first instead of last (and a couple 
+	parameter, and the destination first instead of last (and a couple
 	new capabilities inspired by `format' -- #t as destination means
 	current-output-port, #f means return the formatted text as a
 	string.
@@ -873,7 +895,7 @@ Tue Jan 11 10:41:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* dynl.c: Use ANSI prototypes.
 	(sysdep_dynl_link): Use lt_dlopenext instead of lt_dlopen.
 	* scmconfig.h.in: Do not change, as it is automatically generated.
-	
+
     1999-07-25  Thomas Tanner  <tanner@ffii.org>
 
 	    * dynl-dl.c, dynl-dld.c, dynl-shl.c, dynl-vms.c: deleted
@@ -910,12 +932,12 @@ Tue Jan 11 10:41:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	scm_lookupcar1: throw an error with key 'unbound-variable instead
 	of 'misc-error when an unbound variable is encountered.
 
-	* filesys.c (scm_mkdir, scm_rmdir, scm_getcwd, scm_select, 
+	* filesys.c (scm_mkdir, scm_rmdir, scm_getcwd, scm_select,
 	scm_symlink, scm_readlink, scm_lstat),
 	posix.c (scm_setpgid, scm_setsid, scm_ctermid, scm_tcgetpgrp,
 	scm_tcsetpgrp, scm_uname, scm_setlocale, scm_mknod, scm_nice,
 	scm_sync),
-	simpos.c (scm_system), 
+	simpos.c (scm_system),
 	stime.c (scm_times, scm_strptime):
 	move the HAVE_XXX feature tests out of the procedure bodies.
 	don't use SCM_SYSMISSING.
@@ -939,9 +961,9 @@ Fri Jan  7 15:50:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* scm_validate.h (SCM_OUT_OF_RANGE): Use scm_out_of_range_pos to
 	report the position of the argument.
 
-	* error.h, error.c (scm_out_of_range_pos):  Added this function to 
+	* error.h, error.c (scm_out_of_range_pos):  Added this function to
 	take extra "pos" argument, the position number of the errant
-	argument. 
+	argument.
 
 	* debug.c: Use SCM_OUT_OF_RANGE instead of scm_out_of_range.
 
@@ -980,7 +1002,7 @@ Thu Jan  6 11:22:53 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 Thu Jan  6 11:21:49 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
-	* alist.c: Do not report mismatch errors on some uses of `tmp' (do 
+	* alist.c: Do not report mismatch errors on some uses of `tmp' (do
 	this by using SCM_ARG2 instead of `2' in the SCM_VALIDATE_CONS
 	macro call.
 
@@ -1043,7 +1065,7 @@ Wed Jan  5 10:50:39 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	formal in the current argument snarfing check.
 
 	* snarf.h: Give new definition of SCM_ASSERT when in
-	snarfing mode to output a lexically-identifiable sequence that the 
+	snarfing mode to output a lexically-identifiable sequence that the
 	guile-snarf.awk script uses to verify argument/position matching.
 
 	* ramap.c: Remove extraneous #undef FUNC_NAME.
@@ -1051,7 +1073,7 @@ Wed Jan  5 10:50:39 2000  Greg J. Badros  <gjb@cs.washington.edu>
 Wed Jan  5 08:36:38 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* guile-doc-snarf.awk.in: Removed -- guile-snarf.awk.in is the
-	current version of the same functionality; it writes the .x output 
+	current version of the same functionality; it writes the .x output
 	to stdout instead of directly into the file.
 
 Wed Jan  5 08:15:04 2000  Greg J. Badros  <gjb@cs.washington.edu>
@@ -1083,7 +1105,7 @@ Tue Jan  4 14:21:35 2000  Greg J. Badros  <gjb@cs.washington.edu>
 Mon Jan  3 08:30:02 2000  Greg Harvey  <Greg.Harvey@thezone.net> (applied --01/03/00 gjb)
 
 	* gc.c (scm_debug_newcell): Added SCM_SETCAR of the newly
-	allocated cell. 
+	allocated cell.
 
 	* pairs.h: Added a comment about the need for the SCM_SETCAR in
 	SCM_NEWCELL macro.

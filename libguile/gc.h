@@ -3,17 +3,17 @@
 #ifndef GCH
 #define GCH
 /* Copyright (C) 1995, 96, 98, 99, 2000 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -60,56 +60,23 @@
 			: SCM_GCMARKP(x))
 #define SCM_NMARKEDP(x) (!SCM_MARKEDP(x))
 
-extern struct scm_heap_seg_data *scm_heap_table;
+extern struct scm_heap_seg_data_t *scm_heap_table;
 extern int scm_n_heap_segs;
 extern int scm_take_stdin;
 extern int scm_block_gc;
 extern int scm_gc_heap_lock;
 
 
-typedef struct scm_freelist_t {
-  /* collected cells */
-  SCM cells;
-#ifdef GUILE_NEW_GC_SCHEME
-  /* number of cells left to collect before cluster is full */
-  unsigned int left_to_collect;
-  /* a list of freelists, each of size gc_trigger,
-     except the last one which may be shorter */
-  SCM clusters;
-  SCM *clustertail;
-  /* this is the number of cells in each cluster, including the spine cell */
-  int cluster_size;
-  /* set to grow the heap when we run out of clusters
-   */
-  int grow_heap_p;
-  /* minimum number of objects allocated before GC is triggered
-   */
-  int gc_trigger;
-  /* defines gc_trigger as percent of heap size
-   * 0 => constant trigger
-   */
-  int gc_trigger_fraction;
-#endif
-  /* number of cells per object on this list */
-  int span;
-  /* number of collected cells during last GC */
-  int collected;
-  /* total number of cells in heap segments
-   * belonging to this list.
-   */
-  int heap_size;
-} scm_freelist_t;
-
 extern scm_sizet scm_max_segment_size;
 extern SCM_CELLPTR scm_heap_org;
 #ifdef GUILE_NEW_GC_SCHEME
 extern SCM scm_freelist;
-extern scm_freelist_t scm_master_freelist;
+extern struct scm_freelist_t scm_master_freelist;
 extern SCM scm_freelist2;
-extern scm_freelist_t scm_master_freelist2;
+extern struct scm_freelist_t scm_master_freelist2;
 #else
-extern scm_freelist_t scm_freelist;
-extern scm_freelist_t scm_freelist2;
+extern struct scm_freelist_t scm_freelist;
+extern struct scm_freelist_t scm_freelist2;
 #endif
 extern unsigned long scm_gc_cells_collected;
 extern unsigned long scm_gc_malloc_collected;
@@ -136,14 +103,14 @@ extern SCM scm_gc_stats (void);
 extern void scm_gc_start (const char *what);
 extern void scm_gc_end (void);
 extern SCM scm_gc (void);
-extern void scm_gc_for_alloc (scm_freelist_t *freelist);
+extern void scm_gc_for_alloc (struct scm_freelist_t *freelist);
 #ifdef GUILE_NEW_GC_SCHEME
-extern SCM scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist);
+extern SCM scm_gc_for_newcell (struct scm_freelist_t *master, SCM *freelist);
 #if 0
-extern void scm_alloc_cluster (scm_freelist_t *master);
+extern void scm_alloc_cluster (struct scm_freelist_t *master);
 #endif
 #else
-extern SCM scm_gc_for_newcell (scm_freelist_t *freelist);
+extern SCM scm_gc_for_newcell (struct scm_freelist_t *freelist);
 #endif
 extern void scm_igc (const char *what);
 extern void scm_gc_mark (SCM p);
