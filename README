@@ -46,7 +46,7 @@ Example Session
      3    add
      4    return
 
-  gscheme@guile> 
+  gscheme@guile> (define (add x y) (+ x y))
   gscheme@guile> (add 1 2)
   $2 = 3
   gscheme@guile> ,x add			;; Disassemble
