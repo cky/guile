@@ -24,9 +24,9 @@
 (define exception:bad-expression
   (cons 'syntax-error "Bad expression"))
 
-(define exception:missing/extra-expr
+(define exception:missing/extra-expr-misc
   (cons 'misc-error "^missing or extra expression"))
-(define exception:missing/extra-expr-syntax
+(define exception:missing/extra-expr
   (cons 'syntax-error "missing or extra expression"))
 (define exception:missing-expr
   (cons 'syntax-error "Missing expression"))
@@ -89,7 +89,7 @@
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "empty parentheses \"()\""
-      exception:missing/extra-expr
+      exception:missing/extra-expr-misc
       (eval '()
 	    (interaction-environment)))))
 
@@ -433,12 +433,12 @@
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(if)"
-      exception:missing/extra-expr-syntax
+      exception:missing/extra-expr
       (eval '(if)
 	    (interaction-environment)))
 
     (pass-if-exception "(if 1 2 3 4)"
-      exception:missing/extra-expr-syntax
+      exception:missing/extra-expr
       (eval '(if 1 2 3 4)
 	    (interaction-environment)))))
 
@@ -611,17 +611,17 @@
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(set!)"
-      exception:missing/extra-expr
+      exception:missing/extra-expr-misc
       (eval '(set!)
 	    (interaction-environment)))
 
     (pass-if-exception "(set! 1)"
-      exception:missing/extra-expr
+      exception:missing/extra-expr-misc
       (eval '(set! 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(set! 1 2 3)"
-      exception:missing/extra-expr
+      exception:missing/extra-expr-misc
       (eval '(set! 1 2 3)
 	    (interaction-environment))))
 

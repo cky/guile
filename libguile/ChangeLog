@@ -1,5 +1,23 @@
 2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c: Sorted include files alphabetically.
+
+	(scm_m_begin): Added comment.
+
+	(scm_m_or): Use ASSERT_SYNTAX to signal syntax errors.  Avoid
+	unnecessary consing when creating the memoized code.
+
+	(iqq, scm_m_quasiquote, scm_m_quote): Use ASSERT_SYNTAX to signal
+	syntax errors.  Be more specific about the kind of error that was
+	detected.
+
+	(scm_m_quote, unmemocopy): As an optimization, vector constants
+	are now inserted unquoted into the memoized code.  During
+	unmemoization the quotes are added again to provide syntactically
+	correct code.
+
+2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_m_let, scm_m_letstar, scm_m_letrec,
 	scm_m_expand_body, check_bindings): Extracted syntax checking of
 	bindings to new static function check_bindings.

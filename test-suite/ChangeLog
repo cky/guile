@@ -1,5 +1,16 @@
 2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/syntax.test (exception:missing/extra-expr,
+	exception:missing/extra-expr-misc): Renamed
+	exception:missing/extra-expr to exception:missing/extra-expr-misc.
+
+	(exception:missing/extra-expr-syntax,
+	exception:missing/extra-expr): Renamed
+	exception:missing/extra-expr-syntax to
+	exception:missing/extra-expr.
+
+2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* lib.scm (exception:bad-variable): New.
 
 	* tests/syntax.test (exception:bad-binding,

@@ -54,36 +54,36 @@ char *alloca ();
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/alist.h"
+#include "libguile/async.h"
+#include "libguile/continuations.h"
 #include "libguile/debug.h"
 #include "libguile/dynwind.h"
-#include "libguile/alist.h"
 #include "libguile/eq.h"
-#include "libguile/continuations.h"
+#include "libguile/feature.h"
+#include "libguile/fluids.h"
 #include "libguile/futures.h"
-#include "libguile/strings.h"
-#include "libguile/throw.h"
-#include "libguile/smob.h"
+#include "libguile/goops.h"
+#include "libguile/hash.h"
+#include "libguile/hashtab.h"
+#include "libguile/lang.h"
 #include "libguile/list.h"
 #include "libguile/macros.h"
+#include "libguile/modules.h"
+#include "libguile/objects.h"
+#include "libguile/ports.h"
 #include "libguile/procprop.h"
-#include "libguile/hashtab.h"
-#include "libguile/hash.h"
+#include "libguile/root.h"
+#include "libguile/smob.h"
 #include "libguile/srcprop.h"
 #include "libguile/stackchk.h"
-#include "libguile/objects.h"
-#include "libguile/async.h"
-#include "libguile/feature.h"
-#include "libguile/modules.h"
-#include "libguile/ports.h"
-#include "libguile/root.h"
-#include "libguile/vectors.h"
-#include "libguile/fluids.h"
-#include "libguile/goops.h"
-#include "libguile/values.h"
-
+#include "libguile/strings.h"
+#include "libguile/throw.h"
 #include "libguile/validate.h"
+#include "libguile/values.h"
+#include "libguile/vectors.h"
+
 #include "libguile/eval.h"
-#include "libguile/lang.h"
 
 
 
@@ -755,7 +755,9 @@ SCM
 scm_m_begin (SCM expr, SCM env SCM_UNUSED)
 {
   const SCM cdr_expr = SCM_CDR (expr);
-
+  /* Dirk:FIXME:: An empty begin clause is not generally allowed by R5RS.
+   * That means, there should be a distinction between uses of begin where an
+   * empty clause is OK and where it is not.  */
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
 
   SCM_SETCAR (expr, SCM_IM_BEGIN);
@@ -1359,14 +1361,23 @@ SCM_SYNTAX (s_or, "or", scm_i_makbimacro, scm_m_or);
 SCM_GLOBAL_SYMBOL (scm_sym_or, s_or);
 
 SCM
-scm_m_or (SCM xorig, SCM env SCM_UNUSED)
+scm_m_or (SCM expr, SCM env SCM_UNUSED)
 {
-  long len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 0, s_test, s_or);
-  if (len >= 1)
-    return scm_cons (SCM_IM_OR, SCM_CDR (xorig));
+  const SCM cdr_expr = SCM_CDR (expr);
+  const long length = scm_ilength (cdr_expr);
+
+  ASSERT_SYNTAX (length >= 0, s_bad_expression, expr);
+
+  if (length == 0)
+    {
+      /* Special case:  (or) is replaced by #f. */
+      return SCM_BOOL_F;
+    }
   else
-    return SCM_BOOL_F;
+    {
+      SCM_SETCAR (expr, SCM_IM_OR);
+      return expr;
+    }
 }
 
 
@@ -1382,17 +1393,17 @@ iqq (SCM form, SCM env, unsigned long int depth)
 {
   if (SCM_CONSP (form))
     {
-      SCM tmp = SCM_CAR (form);
+      const SCM tmp = SCM_CAR (form);
       if (SCM_EQ_P (tmp, scm_sym_quasiquote))
 	{
-	  SCM args = SCM_CDR (form);
-	  SCM_ASSYNT (scm_ilength (args) == 1, s_expression, s_quasiquote);
+	  const SCM args = SCM_CDR (form);
+	  ASSERT_SYNTAX (scm_ilength (args) == 1, s_expression, form);
 	  return scm_list_2 (tmp, iqq (SCM_CAR (args), env, depth + 1));
 	}
       else if (SCM_EQ_P (tmp, scm_sym_unquote))
 	{
-	  SCM args = SCM_CDR (form);
-	  SCM_ASSYNT (scm_ilength (args) == 1, s_expression, s_quasiquote);
+	  const SCM args = SCM_CDR (form);
+	  ASSERT_SYNTAX (scm_ilength (args) == 1, s_expression, form);
 	  if (depth - 1 == 0)
 	    return scm_eval_car (args, env);
 	  else
@@ -1401,13 +1412,14 @@ iqq (SCM form, SCM env, unsigned long int depth)
       else if (SCM_CONSP (tmp)
 	       && SCM_EQ_P (SCM_CAR (tmp), scm_sym_uq_splicing))
 	{
-	  SCM args = SCM_CDR (tmp);
-	  SCM_ASSYNT (scm_ilength (args) == 1, s_expression, s_quasiquote);
+	  const SCM args = SCM_CDR (tmp);
+	  ASSERT_SYNTAX (scm_ilength (args) == 1, s_expression, form);
 	  if (depth - 1 == 0)
 	    {
-	      SCM list = scm_eval_car (args, env);
-	      SCM rest = SCM_CDR (form);
-	      SCM_ASSYNT (scm_ilength (list) >= 0, s_splicing, s_quasiquote);
+	      const SCM list = scm_eval_car (args, env);
+	      const SCM rest = SCM_CDR (form);
+	      ASSERT_SYNTAX_2 (scm_ilength (list) >= 0,
+			       s_splicing, list, form);
 	      return scm_append (scm_list_2 (list, iqq (rest, env, depth)));
 	    }
 	  else
@@ -1433,11 +1445,12 @@ iqq (SCM form, SCM env, unsigned long int depth)
 }
 
 SCM 
-scm_m_quasiquote (SCM xorig, SCM env)
+scm_m_quasiquote (SCM expr, SCM env)
 {
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 1, s_expression, s_quasiquote);
-  return iqq (SCM_CAR (x), env, 1);
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
+  return iqq (SCM_CAR (cdr_expr), env, 1);
 }
 
 
@@ -1445,10 +1458,26 @@ SCM_SYNTAX (s_quote, "quote", scm_i_makbimacro, scm_m_quote);
 SCM_GLOBAL_SYMBOL (scm_sym_quote, s_quote);
 
 SCM
-scm_m_quote (SCM xorig, SCM env SCM_UNUSED)
+scm_m_quote (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, s_expression, s_quote);
-  return scm_cons (SCM_IM_QUOTE, SCM_CDR (xorig));
+  SCM quotee;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
+  quotee = SCM_CAR (cdr_expr);
+  if (SCM_IMP (quotee) && !SCM_NULLP (quotee))
+    return quotee;
+  else if (SCM_VECTORP (quotee))
+    return quotee;
+#if 0
+  /* The following optimization would be possible if all variable references
+   * were resolved during memoization:  */
+  else if (SCM_SYMBOLP (quotee))
+    return quotee;
+#endif
+  SCM_SETCAR (expr, SCM_IM_QUOTE);
+  return expr;
 }
 
 
@@ -1868,8 +1897,14 @@ unmemocopy (SCM x, SCM env)
 {
   SCM ls, z;
   SCM p;
-  if (!SCM_CONSP (x))
+
+  if (SCM_VECTORP (x))
+    {
+      return scm_list_2 (scm_sym_quote, x);
+    }
+  else if (!SCM_CONSP (x))
     return x;
+
   p = scm_whash_lookup (scm_source_whash, x);
   switch (SCM_ITAG7 (SCM_CAR (x)))
     {
