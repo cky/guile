@@ -59,6 +59,62 @@
     (make-regexp "xyz" regexp/icase 'abc)))
 
 ;;;
+;;; regexp-quote
+;;;
+
+(with-test-prefix "regexp-quote"
+
+  (pass-if-exception "no args" exception:wrong-num-args
+    (regexp-quote))
+
+  (pass-if-exception "bad string arg" exception:wrong-type-arg
+    (regexp-quote 'blah))
+
+  (let ((lst `((regexp/basic    ,regexp/basic)
+	       (regexp/extended ,regexp/extended)))
+	;; string of all characters, except #\nul which doesn't work because
+	;; it's the usual end-of-string for the underlying C regexec()
+	(allchars (list->string (map integer->char
+				     (cdr (iota char-code-limit))))))
+    (for-each
+     (lambda (elem)
+       (let ((name (car  elem))
+	     (flag (cadr elem)))
+
+	 (with-test-prefix name
+
+	   ;; try on each individual character, except #\nul
+	   (do ((i 1 (1+ i)))
+	       ((>= i char-code-limit))
+	     (let* ((c (integer->char i))
+		    (s (string c))
+		    (q (regexp-quote s)))
+	       (pass-if (list "char" i c s q)
+		 (let ((m (regexp-exec (make-regexp q flag) s)))
+		   (and (= 0 (match:start m))
+			(= 1 (match:end m)))))))
+
+	   ;; try on pattern "aX" where X is each character, except #\nul
+	   ;; this exposes things like "?" which are special only when they
+	   ;; follow a pattern to repeat or whatever ("a" in this case)
+	   (do ((i 1 (1+ i)))
+	       ((>= i char-code-limit))
+	     (let* ((c (integer->char i))
+		    (s (string #\a c))
+		    (q (regexp-quote s)))
+	       (pass-if (list "string \"aX\"" i c s q)
+		 (let ((m (regexp-exec (make-regexp q flag) s)))
+		   (and (= 0 (match:start m))
+			(= 2 (match:end m)))))))
+
+	   (pass-if "string of all chars"
+	     (let ((m (regexp-exec (make-regexp (regexp-quote allchars)
+						flag) allchars)))
+	       (and (= 0 (match:start m))
+		    (= (string-length allchars) (match:end m))))))))
+     lst)))
+
+;;;
 ;;; regexp-substitute
 ;;;
 
