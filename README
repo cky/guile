@@ -87,14 +87,14 @@ are the following:
 Autoconf 2.13 --- a system for automatically generating `configure'
 	scripts from templates which list the non-portable features a
 	program would like to use.  Available in
-	"ftp://prep.ai.mit.edu/pub/gnu".
+	"ftp://ftp.gnu.org/pub/gnu/autoconf"
 
 Automake 1.4 --- a system for automatically generating Makefiles that
 	conform to the (rather Byzantine) GNU coding standards.  The
 	nice thing is that it takes care of hairy targets like 'make
 	dist' and 'make distclean', and automatically generates
 	Makefile dependencies.  Automake is available in
-	"ftp://prep.ai.mit.edu/pub/gnu".
+	"ftp://ftp.gnu.org/pub/gnu/automake"
 
 	Before using automake, you may need to copy `threads.m4' and
 	`guile.m4' from the top directory of the Guile core disty to

@@ -1,3 +1,24 @@
+1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Remove readline support, to avoid copyright confusion.
+	* Makefile.in: Remove readline files from lists.
+	* init.c: Don't initialize readline.
+	* scmconfig.h.in: Regenerated.
+
+	* numbers.c (s_bignum): Renamed to s_bignum, and made static.
+	Libguile should not be exporting random little strings.
+	* numbers.h (s_bignum): Extern declaration removed.
+
+	More const changes from Ken Raeburn.
+	* numbers.c (scm_s_bignum, fx): Now const.
+	(scm_logtab, scm_ilentab, s_adjbig): Now static and const.
+	* numbers.h (scm_s_bignum): Update declaration.
+	* eval.c (bodycheck): Argument WHAT now points to const.
+	* snarf.h (SCM_SYNTAX): Name is const.
+
+	* eval.c (scm_i_let): Make this globally visible, to avoid dynamic
+	linking crashes on NetBSD.  (Thanks to Ken Raeburn.)
+
 1999-03-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* numbers.c (isfinite): Define this macro if not defined: Return a

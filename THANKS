@@ -1,8 +1,9 @@
 The Guile core distribution:
 
-Michael Livshin implemented Dybvig's Guardians.
-Ken Raeburn made Guile use `const' in some appropriate places.
 Greg Harvey made readline highlight matching parenthesis.
+Michael Livshin implemented Dybvig's Guardians.
+Russ McManus contributed a command-line argument parser (ice-9 getopt-long).
+Ken Raeburn made Guile use `const' in some appropriate places.
 
 Bug reports and fixes from:
 
@@ -20,6 +21,7 @@ Bug reports and fixes from:
      Nicolas Neuss
    Thien-Thi Nguyen
      Richard Polton
+         Ken Raeburn
      Telford Tendys
      Bernard Urban
          Jim Wilson

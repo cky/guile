@@ -1,3 +1,19 @@
+1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Remove all automatic readline support, to avoid copyright
+	confusion.
+	* INSTALL: Update text.
+	* NEWS: Explain the situation.
+	* configure.in: Remove configury for readline and its supporting
+	libraries.
+	* configure: Regenerated.
+
+	* README: Change URL's for automake and autoconf.
+
+	* Makefile.in, aclocal.m4: Regenerated with automake 1.4.
+	Mikael's getting different results than I am because he's got
+	libtool 1.2f installed, which I can't get my hands on.
+
 1999-03-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* New libtool: 1.2f
