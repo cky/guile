@@ -1,3 +1,9 @@
+1998-12-05  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* smob.c (freeprint): New function.
+	(freecell): Use it to print freed objects, for slightly easier
+ 	debugging.
+
 1998-12-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* backtrace.c (display_frame): Made more robust.  Doesn't throw an
