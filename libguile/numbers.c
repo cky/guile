@@ -3383,7 +3383,7 @@ scm_max (SCM x, SCM y)
     {
       if (SCM_UNBNDP (x))
 	SCM_WTA_DISPATCH_0 (g_max, s_max);
-      else if (SCM_NUMBERP (x))
+      else if (SCM_INUMP(x) || SCM_BIGP(x) || SCM_REALP(x) || SCM_FRACTIONP(x))
 	return x;
       else
 	SCM_WTA_DISPATCH_1 (g_max, x, SCM_ARG1, s_max);
@@ -3532,7 +3532,7 @@ scm_min (SCM x, SCM y)
     {
       if (SCM_UNBNDP (x))
 	SCM_WTA_DISPATCH_0 (g_min, s_min);
-      else if (SCM_NUMBERP (x))
+      else if (SCM_INUMP(x) || SCM_BIGP(x) || SCM_REALP(x) || SCM_FRACTIONP(x))
 	return x;
       else
 	SCM_WTA_DISPATCH_1 (g_min, x, SCM_ARG1, s_min);
