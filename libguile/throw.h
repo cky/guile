@@ -47,21 +47,8 @@
 #include "libguile/__scm.h"
 
 
-
-
-#ifdef __STDC__
-extern SCM scm_catch (SCM tag, SCM thunk, SCM handler);
-extern SCM scm_ithrow (SCM key, SCM args, int noreturn);
-extern SCM scm_throw (SCM key, SCM args);
-extern void scm_init_throw (void);
-
-#else /* STDC */
-extern SCM scm_catch ();
-extern SCM scm_ithrow ();
-extern SCM scm_throw ();
-extern void scm_init_throw ();
-
-#endif /* STDC */
-
-
+extern SCM scm_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
+extern SCM scm_ithrow SCM_P ((SCM key, SCM args, int noreturn));
+extern SCM scm_throw SCM_P ((SCM key, SCM args));
+extern void scm_init_throw SCM_P ((void));
 #endif  /* THROWH */
