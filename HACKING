@@ -70,5 +70,19 @@ until we have the necessary papers.
 - When you make substantial changes to a file, add the current year to
 the list of years in the copyright notice at the top of the file.
 
+- [From Mikael Djurfeldt] When working on the Guile internals, it is
+quite often practical to implement a scheme-level procedure which
+helps you examine the feature you're working on.
+
+Examples of such procedures are: pt-size, debug-hand and
+current-pstate.
+
+I've now put #ifdef GUILE_DEBUG around all such procedures, so that
+they are not compiled into the "normal" Guile library.  Please do the
+same when you add new procedures/C functions for debugging purpose.
+
+You can define the GUILE_DEBUG flag by passing --enable-guile-debug to
+the configure script.
+
 
 Jim Blandy
