@@ -1,3 +1,7 @@
+2004-02-22  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (max, min): Exercise some complex num cases.
+
 2004-02-18  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/fractions.test: Added copyright notice of Michael Stoll,
