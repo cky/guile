@@ -15,7 +15,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "libguile/scmconfig.h"
 #endif
 
 #include <sys/types.h>
