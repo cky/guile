@@ -454,7 +454,7 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
    we are snarfing;  thus we can tell the
    difference between the use of an actual
    number vs. the use of one of these macros --
-   actual numbers in SCM_VALIDATE_*/SCM_ASSERT
+   actual numbers in SCM_VALIDATE_* and SCM_ASSERT
    constructs must match the formal argument name,
    but using SCM_ARG* avoids the test */
 
