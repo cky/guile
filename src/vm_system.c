@@ -85,12 +85,6 @@ VM_DEFINE_INSTRUCTION (void, "void", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (mark, "mark", 0, 0, 1)
-{
-  PUSH (SCM_UNDEFINED);
-  NEXT;
-}
-
 VM_DEFINE_INSTRUCTION (make_true, "make-true", 0, 0, 1)
 {
   PUSH (SCM_BOOL_T);
@@ -318,7 +312,6 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
   if (!SCM_FALSEP (scm_procedure_p (program)))
     {
       POP_LIST (nargs);
-      SYNC_BEFORE_GC ();
       *sp = scm_apply (program, *sp, SCM_EOL);
       program = SCM_VM_FRAME_PROGRAM (fp);
       NEXT;
@@ -401,7 +394,6 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
   if (!SCM_FALSEP (scm_procedure_p (program)))
     {
       POP_LIST (nargs);
-      SYNC_BEFORE_GC ();
       *sp = scm_apply (program, *sp, SCM_EOL);
       program = SCM_VM_FRAME_PROGRAM (fp);
       goto vm_return;
@@ -433,7 +425,7 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
   RETURN_HOOK ();
   FREE_FRAME ();
 
-  /* Cache the last program */
+  /* Restore the last program */
   program = SCM_VM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
   PUSH (ret);

@@ -169,7 +169,6 @@ VM_DEFINE_FUNCTION (vector, "vector", -1)
 {
   ARGSN (n);
   POP_LIST (n);
-  SYNC_BEFORE_GC ();
   *sp = scm_vector (*sp);
   NEXT;
 }
