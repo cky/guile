@@ -110,7 +110,19 @@ static unsigned int scm_desired_switch_rate = 0;
 int scm_asyncs_pending_p = 0;
 #endif
 
-static long scm_tc16_async;
+static long tc16_async;
+
+
+
+/* cmm: this has SCM_ prefix because SCM_MAKE_VALIDATE expects it.
+   this is ugly.  */
+#define SCM_ASYNCP(X) (SCM_NIMP(X) && (tc16_async == SCM_GCTYP16 (X)))
+
+#define VALIDATE_ASYNC(pos,a) SCM_MAKE_VALIDATE(pos, a, ASYNCP)
+
+#define ASYNC_GOT_IT(X)        (SCM_CELL_WORD_0 (X) >> 16)
+#define SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 (X, (SCM_CELL_WORD_0 (X) & ((1 << 16) - 1)) | ((V) << 16)))
+#define ASYNC_THUNK(X)         SCM_CELL_OBJECT_1 (X)
 
 
 
@@ -123,7 +135,7 @@ scm_asyncs_pending ()
   while (pos != SCM_EOL)
     {
       SCM a = SCM_CAR (pos);
-      if (SCM_ASYNC_GOT_IT (a))
+      if (ASYNC_GOT_IT (a))
 	return 1;
       pos = SCM_CDR (pos);
     }
@@ -218,8 +230,7 @@ scm_async_click ()
 
   /*
      if (owe_tick)
-       scm_async_mark (system_signal_asyncs[SCM_SIG_ORD(SCM_TICK_SIGNAL)]);
-     */
+       scm_async_mark (system_signal_asyncs[SCM_SIG_ORD(SCM_TICK_SIGNAL)]); */
 
   SCM_DEFER_INTS;
   if (scm_tick_rate && scm_switch_rate)
@@ -283,7 +294,7 @@ scm_async_click ()
 static SCM
 mark_async (SCM obj)
 {
-  return SCM_ASYNC_THUNK (obj);
+  return ASYNC_THUNK (obj);
 }
 
 
@@ -293,7 +304,7 @@ SCM_DEFINE (scm_async, "async", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_async
 {
-  SCM_RETURN_NEWSMOB (scm_tc16_async, SCM_UNPACK (thunk));
+  SCM_RETURN_NEWSMOB (tc16_async, SCM_UNPACK (thunk));
 }
 #undef FUNC_NAME
 
@@ -319,11 +330,11 @@ SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_async_mark
 {
-  SCM_VALIDATE_ASYNC (1,a);
+  VALIDATE_ASYNC (1, a);
 #ifdef GUILE_OLD_ASYNC_CLICK
-  SCM_SET_ASYNC_GOT_IT (a, 1);
+  SET_ASYNC_GOT_IT (a, 1);
 #else
-  SCM_SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
+  SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
 #endif
   return SCM_UNSPECIFIED;
 }
@@ -335,14 +346,14 @@ SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_system_async_mark
 {
-  SCM_VALIDATE_ASYNC (1, a);
+  VALIDATE_ASYNC (1, a);
   SCM_REDEFER_INTS;
 #ifdef GUILE_OLD_ASYNC_CLICK
-  SCM_SET_ASYNC_GOT_IT (a, 1);
+  SET_ASYNC_GOT_IT (a, 1);
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
   scm_async_clock = 1;
 #else
-  SCM_SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
+  SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
 #endif
   SCM_REALLOW_INTS;
   return SCM_UNSPECIFIED;
@@ -366,12 +377,12 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
       SCM a;
       SCM_VALIDATE_CONS (1, list_of_a);
       a = SCM_CAR (list_of_a);
-      SCM_VALIDATE_ASYNC (SCM_ARG1,a);
+      VALIDATE_ASYNC (SCM_ARG1, a);
       scm_mask_ints = 1;
-      if (SCM_ASYNC_GOT_IT (a))
+      if (ASYNC_GOT_IT (a))
 	{
-	  SCM_SET_ASYNC_GOT_IT (a, 0);
-	  scm_apply (SCM_ASYNC_THUNK (a), SCM_EOL, SCM_EOL);
+	  SET_ASYNC_GOT_IT (a, 0);
+	  scm_apply (ASYNC_THUNK (a), SCM_EOL, SCM_EOL);
 	}
       scm_mask_ints = 0;
       list_of_a = SCM_CDR (list_of_a);
@@ -481,7 +492,7 @@ void
 scm_init_async ()
 {
   SCM a_thunk;
-  scm_tc16_async = scm_make_smob_type_mfpe ("async", 0,
+  tc16_async = scm_make_smob_type_mfpe ("async", 0,
                                            mark_async, NULL, NULL, NULL);
   scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
   a_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, scm_sys_gc_async_thunk);

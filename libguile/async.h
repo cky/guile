@@ -51,13 +51,6 @@
 
 
 
-#define SCM_ASYNCP(X) 	(SCM_NIMP(X) && (scm_tc16_async == SCM_GCTYP16 (X)))
-
-#define SCM_ASYNC_GOT_IT(X)        (SCM_CELL_WORD_0 (X) >> 16)
-#define SCM_SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 (X, (SCM_CELL_WORD_0 (X) & ((1 << 16) - 1)) | ((V) << 16)))
-#define SCM_ASYNC_THUNK(X)         SCM_CELL_OBJECT_1 (X)
-
-
 
 extern unsigned int scm_mask_ints;
 extern SCM scm_gc_async;

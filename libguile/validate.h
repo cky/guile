@@ -1,16 +1,16 @@
-/* $Id: validate.h,v 1.3 2000-04-03 08:47:51 dirk Exp $ */
+/* $Id: validate.h,v 1.4 2000-04-05 15:28:28 cmm Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -98,7 +98,7 @@
 
 #define SCM_VALIDATE_BOOL_COPY(pos,flag,cvar) \
   do { SCM_ASSERT(SCM_BOOLP(flag), flag, pos, FUNC_NAME); \
-       cvar = (SCM_TRUE_P (flag))? 1: 0; } while (0)
+       cvar = SCM_TRUE_P (flag) ? 1 : 0; } while (0)
 
 #define SCM_VALIDATE_CHAR(pos,scm) SCM_MAKE_VALIDATE(pos,scm,ICHRP)
 
@@ -210,12 +210,6 @@
 #define SCM_VALIDATE_SMOB(pos,obj,type) \
   do { SCM_ASSERT ((SCM_NIMP(obj) && SCM_TYP16 (obj) == scm_tc16_ ## type), obj, pos, FUNC_NAME); } while (0)
 
-#define SCM_VALIDATE_ASYNC(pos,a) SCM_MAKE_VALIDATE(pos,a,ASYNCP)
-
-#define SCM_VALIDATE_ASYNC_COPY(pos,a,cvar) \
-  do { SCM_ASSERT (SCM_ASYNCP (a), a, pos, FUNC_NAME); \
-       cvar = SCM_ASYNC(a); } while (0)
-
 #define SCM_VALIDATE_THREAD(pos,a) SCM_MAKE_VALIDATE(pos,a,THREADP)
 
 #define SCM_VALIDATE_THUNK(pos,thunk) \
@@ -230,7 +224,7 @@
 #define SCM_VALIDATE_CLOSURE(pos,obj) SCM_MAKE_VALIDATE(pos,obj,CLOSUREP)
 
 #define SCM_VALIDATE_PROC(pos,proc) \
-  do { SCM_ASSERT ( SCM_TRUE_P (scm_procedure_p(proc)), proc, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT (SCM_TRUE_P (scm_procedure_p (proc)), proc, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_NULLORCONS(pos,env) \
   do { SCM_ASSERT (SCM_NULLP (env) || SCM_CONSP (env), env, pos, FUNC_NAME); } while (0)
@@ -278,7 +272,7 @@
 #define SCM_VALIDATE_VECTOR_OR_DVECTOR(pos,v) \
   do { SCM_ASSERT ((SCM_VECTORP (v) ||  \
                     (SCM_NIMP (v) && SCM_TYP7 (v) == scm_tc7_dvect)), \
-                   v, pos, FUNC_NAME); } while (0) 
+                   v, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_STRUCT(pos,v) SCM_MAKE_VALIDATE(pos,v,STRUCTP)
 

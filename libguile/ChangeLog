@@ -1,3 +1,11 @@
+2000-04-05  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* async.[ch]: unexpose low-level async access macros (thanks to
+ 	Dirk Herrmann).
+
+	* validate.h: move async validation macros to async.c (nobody else
+ 	needs them anyway), and rename them.
+
 2000-04-04  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* async.h: kill the scm_async_t struct.  having a heap cell
