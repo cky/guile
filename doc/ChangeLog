@@ -1,5 +1,8 @@
 2001-03-09  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* Makefile.am: Change HTML to HTMLDOC, now that we're part of a
+	wider distribution.
+
 	Moving documentation files from guile-doc and guile-doc into
 	guile-core/doc:
 

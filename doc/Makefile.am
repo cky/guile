@@ -37,7 +37,7 @@ goops_TEXINFOS = goops-tutorial.texi hierarchy.eps hierarchy.txt
 
 # Optionally support building an HTML version of the reference manual.
 
-if HTML
+if HTMLDOC
 
 htmldir = $(prefix)/html/guile-$(VERSION)
 

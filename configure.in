@@ -74,6 +74,28 @@ AC_ARG_ENABLE(regex,
   [  --disable-regex         omit regular expression interfaces],,
   enable_regex=yes)
 
+AC_ARG_ENABLE(htmldoc,
+  [  --enable-htmldoc        build HTML documentation as well as Info],
+  [if test "$enable_htmldoc" = "" || test "$enable_htmldoc" = y || test "$enable_htmldoc" = yes; then
+     htmldoc_enabled=yes
+     AC_PATH_PROG(TEXI2HTML, texi2html, not found)
+     if test "$TEXI2HTML" = "not found"; then
+       echo
+       echo Building HTML documentation requires the \`texi2html\' program,
+       echo which appears not to be present on your machine.
+       echo
+       echo \`texi2html\' is available from
+       echo 'http://www.mathematik.uni-kl.de/~obachman/Texi2html/.'
+       echo
+       echo In the meantime, to build the guile-doc distribution
+       echo without HTML enabled, please rerun \`./configure\' without
+       echo the \`--enable-htmldoc\' option.
+       exit -1
+     fi
+   fi])
+
+AM_CONDITIONAL(HTMLDOC, test x$htmldoc_enabled = xyes)
+
 dnl The --disable-debug used to control these two.  But now they are
 dnl a required part of the distribution.
 AC_DEFINE(DEBUG_EXTENSIONS)
