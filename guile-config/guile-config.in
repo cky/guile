@@ -123,10 +123,6 @@
 ;;; now, we're just going to reach into Guile's configuration info and
 ;;; hack it out.
 (define (build-link args)
-  (if (> (length args) 0)
-      (error
-       (string-append program-name
-		      " link: arguments to subcommand not yet implemented")))
 
   ;; If PATH has the form FOO/libBAR.a, return the substring
   ;; BAR, otherwise return #f.
@@ -138,6 +134,11 @@
 	       (string=? (make-shared-substring base (- len 2)) ".a"))
 	  (make-shared-substring base 3 (- len 2))
 	  #f)))
+
+  (if (> (length args) 0)
+      (error
+       (string-append program-name
+		      " link: arguments to subcommand not yet implemented")))
 
   (let* ((flags
 	  (let loop ((libs
