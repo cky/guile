@@ -6,6 +6,7 @@ The Guile core distribution:
 
 Bug reports and fixes from:
 
+ Aleksandar Bakic
      Marcus Daniels
        Fred Fish
    Jesse N. Glick
@@ -16,6 +17,7 @@ Christopher Lee
         Jim Ravan
       Larry Schwimmer
       Radey Shouman
+     Maciej Stachowiak
        Greg Troxel
     Bernard Urban
 
