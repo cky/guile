@@ -151,7 +151,6 @@ typedef scm_t_c_hook scm_c_hook_t;
 typedef scm_t_catch_body scm_catch_body_t;
 typedef scm_t_catch_handler scm_catch_handler_t;
 typedef scm_t_complex scm_complex_t;
-typedef scm_t_cond scm_cond_t;
 typedef scm_t_contregs scm_contregs_t;
 typedef scm_t_debug_frame scm_debug_frame_t;
 typedef scm_t_debug_info scm_debug_info_t;
@@ -161,9 +160,7 @@ typedef scm_t_guard scm_guard_t;
 typedef scm_t_i_rstate scm_i_rstate_t;
 typedef scm_t_info_frame scm_info_frame_t;
 typedef scm_t_inner scm_inner_t;
-typedef scm_t_key scm_key_t;
 typedef scm_t_method scm_method_t;
-typedef scm_t_mutex scm_mutex_t;
 typedef scm_t_option scm_option_t;
 typedef scm_t_port_rw_active scm_port_rw_active_t;
 typedef scm_t_port scm_port_t;
@@ -176,6 +173,14 @@ typedef scm_t_srcprops scm_srcprops_t;
 typedef scm_t_stack scm_stack_t;
 typedef scm_t_struct_free scm_struct_free_t;
 typedef scm_t_subr_entry scm_subr_entry_t;
+
+#ifdef USE_THREADS
+
+typedef scm_t_cond scm_cond_t;
+typedef scm_t_key scm_key_t;
+typedef scm_t_mutex scm_mutex_t;
+
+#endif
 
 #endif /* !SCM_DEBUG_DEPRECATED */
 
