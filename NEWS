@@ -157,6 +157,23 @@ the readability of argument checking.
 
 ** All (nearly?) K&R prototypes for functions replaced with ANSI C equivalents.
 
+** New macros: SCM_PACK, SCM_UNPACK, SCM_UNPACK_CAR
+
+Compose/decompose an SCM value.
+
+The SCM type is now defined as void * on most architectures.  This
+makes it easier to find several types of bugs, for example when SCM
+values are treated as integers without conversion.  Values of the SCM
+type should be treated as "atomic" values.  These macros are used when
+composing/decomposing an SCM value, either because you want to access
+individual bits, or because you want to treat it as an integer value.
+
+E.g., in order to set bit 7 in an SCM value x, use the expression
+
+  SCM_PACK (SCM_UNPACK (x) | 0x80)
+
+SCM_UNPACK_CAR (X) is defined as SCM_UNPACK (SCM_CAR (X))
+
 ** Port internals: the rw_random variable in the scm_port structure
 must be set to non-zero in any random access port.  In recent Guile
 releases it was only set for bidirectional random-access ports.
