@@ -186,7 +186,6 @@ SCM_API scm_t_trampoline_2 scm_trampoline_2 (SCM proc);
 SCM_API SCM scm_nconc2last (SCM lst);
 SCM_API SCM scm_apply (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_dapply (SCM proc, SCM arg1, SCM args);
-SCM_API SCM scm_m_expand_body (SCM xorig, SCM env);
 SCM_API SCM scm_macroexp (SCM x, SCM env);
 SCM_API SCM scm_map (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_for_each (SCM proc, SCM arg1, SCM args);
@@ -209,6 +208,9 @@ SCM_API void scm_init_eval (void);
 #if (SCM_ENABLE_DEPRECATED == 1)
 
 SCM_API SCM scm_m_undefine (SCM x, SCM env);
+
+/* Deprecated in guile 1.7.0 on 2003-11-09.  */
+SCM_API SCM scm_m_expand_body (SCM xorig, SCM env);
 
 #endif
 

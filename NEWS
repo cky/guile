@@ -117,7 +117,7 @@ while the scripting code runs single-threadedly.
 We now use a modified version of libltdl that allows us to make
 improvements to it without having to rely on libtool releases.
 
-* Changes to the standalone interpreter
+* Changes to the stand-alone interpreter
 
 ** New command line option `--no-debug'.
 
@@ -894,6 +894,12 @@ SCM_EVALIM, SCM_XEVAL, SCM_XEVALCAR
 These macros were used in the implementation of the evaluator.  It's unlikely
 that they have been used by user code.
 
+** Deprecated helper functions for evaluation and application:
+scm_m_expand_body
+
+These functions were used in the implementation of the evaluator.  It's
+unlikely that they have been used by user code.
+
 ** Deprecated macros for iloc handling: SCM_ILOC00, SCM_IDINC, SCM_IDSTMSK
 
 These macros were used in the implementation of the evaluator.  It's unlikely
@@ -908,7 +914,7 @@ SCM_IM_1_IFY, SCM_GC_SET_ALLOCATED, scm_debug_newcell,
 scm_debug_newcell2, SCM_HUP_SIGNAL, SCM_INT_SIGNAL, SCM_FPE_SIGNAL,
 SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, SCM_ALRM_SIGNAL, SCM_GC_SIGNAL,
 SCM_TICK_SIGNAL, SCM_SIG_ORD, SCM_ORD_SIG, SCM_NUM_SIGS,
-*top-level-lookup-closure*, scm_top_level_lookup_closure_var,
+scm_top_level_lookup_closure_var, *top-level-lookup-closure*,
 scm_system_transformer, scm_eval_3, scm_eval2,
 root_module_lookup_closure, SCM_SLOPPY_STRINGP, SCM_RWSTRINGP,
 scm_read_only_string_p, scm_make_shared_substring, scm_tc7_substring,
@@ -931,6 +937,7 @@ scm_istring2number, scm_vtable_index_vcell, scm_si_vcell, SCM_ECONSP,
 SCM_NECONSP, SCM_GLOC_VAR, SCM_GLOC_VAL, SCM_GLOC_SET_VAL,
 SCM_GLOC_VAL_LOC, scm_make_gloc, scm_gloc_p, scm_tc16_variable
 
+
 Changes since Guile 1.4:
 
 * Changes to the distribution

@@ -1,3 +1,13 @@
+2003-11-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c, eval.h (scm_m_expand_body, m_expand_body): Deprecated
+	public use of scm_m_expand_body in eval.h.  In eval.c, renamed
+	scm_m_expand_body to m_expand_body and made it static.  Added
+	deprecated wrapper scm_m_expand_body.
+
+	(scm_eval_body, SCM_CEVAL, SCM_APPLY): Use m_expand_body instead
+	of scm_m_expand_body.
+
 2003-11-09  Kevin Ryde  <user42@zip.com.au>
 
 	* dynl.c (scm_dynamic_unlink): Need scm_list_1 on error message

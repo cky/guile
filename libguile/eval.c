@@ -58,6 +58,7 @@ char *alloca ();
 #include "libguile/async.h"
 #include "libguile/continuations.h"
 #include "libguile/debug.h"
+#include "libguile/deprecation.h"
 #include "libguile/dynwind.h"
 #include "libguile/eq.h"
 #include "libguile/feature.h"
@@ -1827,8 +1828,8 @@ scm_m_undefine (SCM expr, SCM env)
 #endif
 
 
-SCM
-scm_m_expand_body (SCM xorig, SCM env)
+static SCM
+m_expand_body (const SCM xorig, const SCM env)
 {
   SCM x = SCM_CDR (xorig), defs = SCM_EOL;
 
@@ -1887,6 +1888,19 @@ scm_m_expand_body (SCM xorig, SCM env)
 
   return xorig;
 }
+
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+/* Deprecated in guile 1.7.0 on 2003-11-09.  */
+SCM
+scm_m_expand_body (SCM exprs, SCM env)
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_m_expand_body' is deprecated.");
+  return m_expand_body (exprs, env);
+}
+
+#endif
 
 
 SCM
@@ -2301,7 +2315,7 @@ scm_eval_body (SCM code, SCM env)
 	      scm_rec_mutex_lock (&source_mutex);
 	      /* check for race condition */
 	      if (SCM_ISYMP (SCM_CAR (code)))
-		code = scm_m_expand_body (code, env);
+		code = m_expand_body (code, env);
 	      scm_rec_mutex_unlock (&source_mutex);
 	      goto again;
 	    }
@@ -2699,7 +2713,7 @@ dispatch:
 		  scm_rec_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (x)))
-		    x = scm_m_expand_body (x, env);
+		    x = m_expand_body (x, env);
 		  scm_rec_mutex_unlock (&source_mutex);
 		  goto nontoplevel_begin;
 		}
@@ -4350,7 +4364,7 @@ tail:
 		  scm_rec_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (proc)))
-		    proc = scm_m_expand_body (proc, args);
+		    proc = m_expand_body (proc, args);
 		  scm_rec_mutex_unlock (&source_mutex);
 		  goto again;
 		}
