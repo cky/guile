@@ -523,7 +523,7 @@ decimal IP address where the UI server is running; default is
 
 (define (install-breakpoints x bpinfo)
   (define (install-recursive x)
-    (if (list? x)
+    (if (and (list? x) (not (null? x)))
 	(begin
 	  ;; Check source properties of x itself.
 	  (let* ((infokey (cons (source-property x 'line)
@@ -619,12 +619,17 @@ decimal IP address where the UI server is running; default is
 		   ;; Do the evaluation(s).
 		   (let loop2 ((m (cadr work))
 			       (exprs (cddr work))
-			       (results '()))
+			       (results '())
+			       (n 1))
 		     (if (null? exprs)
 			 (write-form `(eval-results ,correlator ,@results))
 			 (loop2 m
 				(cdr exprs)
-				(append results (gds-eval (car exprs) m))))))
+				(append results (gds-eval (car exprs) m
+							  (if (and (null? (cdr exprs))
+								   (= n 1))
+							      #f n)))
+				(+ n 1)))))
 		 (trc 'eval-thread depth thread-number "work done")
 		 ;; Tell the subthread that it should now exit.
 		 (set! subthread-needed? #f)
@@ -643,7 +648,7 @@ decimal IP address where the UI server is running; default is
       ;; Tell the front end this thread is ready.
       (write-form `(thread-status eval ,thread-number exiting)))))
 
-(define (gds-eval x m)
+(define (gds-eval x m part)
   ;; Consumer to accept possibly multiple values and present them for
   ;; Emacs as a list of strings.
   (define (value-consumer . values)
@@ -653,10 +658,14 @@ decimal IP address where the UI server is running; default is
 	       (with-output-to-string (lambda () (write value))))
 	     values)))
   ;; Now do evaluation.
-  (let ((value #f))
+  (let ((intro (if part
+		   (format #f ";;; Evaluating subexpression ~A" part)
+		   ";;; Evaluating"))
+	(value #f))
     (let* ((do-eval (if m
 			(lambda ()
-			  (display "Evaluating in module ")
+			  (display intro)
+			  (display " in module ")
 			  (write (module-name m))
 			  (newline)
 			  (set! value
@@ -665,7 +674,8 @@ decimal IP address where the UI server is running; default is
 								 (eval x m)))
 				  value-consumer)))
 			(lambda ()
-			  (display "Evaluating in current module ")
+			  (display intro)
+			  (display " in current module ")
 			  (write (module-name (current-module)))
 			  (newline)
 			  (set! value

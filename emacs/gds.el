@@ -24,6 +24,9 @@
 (require 'widget)
 (require 'wid-edit)
 (require 'scheme)
+(require 'cl)
+(require 'comint)
+(require 'info)
 
 
 ;;;; Customization group setup.
@@ -43,9 +46,18 @@
 ;; the buffer position of the start of the next unread form.
 (defvar gds-read-cursor nil)
 
+;; The guile executable used by the GDS server and captive client
+;; processes.
+(defcustom gds-guile-program "guile"
+  "*The guile executable used by GDS, specifically by its server and
+captive client processes."
+  :type 'string
+  :group 'gds)
+
 (defun gds-start ()
   "Start (or restart, if already running) the GDS subprocess."
   (interactive)
+  (gds-kill-captive)
   (if gds-process (gds-shutdown))
   (with-current-buffer (get-buffer-create "*GDS Process*")
     (erase-buffer)
@@ -53,7 +65,7 @@
 	  (let ((process-connection-type nil)) ; use a pipe
 	    (start-process "gds"
 			   (current-buffer)
-			   "guile"
+			   gds-guile-program
 			   "-q"
 			   "--debug"
 			   "-c"
@@ -364,7 +376,8 @@ The function is called with one argument, the CLIENT in question."
 (define-derived-mode gds-mode
   scheme-mode
   "Guile Interaction"
-  "Major mode for interacting with a Guile client application.")
+  "Major mode for interacting with a Guile client application."
+  (widget-minor-mode 1))
 
 (defvar gds-client nil
   "GDS client's port number.")
@@ -409,9 +422,9 @@ The function is called with one argument, the CLIENT in question."
 	(gds-client-buffer client 'name '("(GDS buffer killed)"))))))
 
 ;; Get the current buffer's associated client's value of SYM.
-(defun gds-client-ref (sym)
-  (and gds-client
-       (let ((buf (assq gds-client gds-buffers)))
+(defun gds-client-ref (sym &optional client)
+  (and (or client gds-client)
+       (let ((buf (assq (or client gds-client) gds-buffers)))
 	 (and buf
 	      (cdr buf)
 	      (buffer-live-p (cdr buf))
@@ -449,7 +462,6 @@ The function is called with one argument, the CLIENT in question."
 	  (t
 	   (error "Bad GDS view %S" view)))
     ;; Finish off.
-    (widget-setup)
     (force-mode-line-update t)))
 
 (defun gds-update-buffers-in-a-while ()
@@ -549,12 +561,17 @@ the following symbols.
   "Last help or evaluation results.")
 (make-variable-buffer-local 'gds-results)
 
+(defcustom gds-heading-face 'info-menu-header
+  "*Face used for headings in Guile Interaction buffers."
+  :type 'face
+  :group 'gds)
+
 (defun gds-insert-interaction ()
   (erase-buffer)
   ;; Insert stuff for interacting with a running (non-blocked) Guile
   ;; client.
-  (widget-insert (buffer-name)
-		 ", "
+  (gds-heading-insert (buffer-name))
+  (widget-insert " "
 		 (cdr (assq gds-status
 			    '((running . "running (cannot accept input)")
 			      (waiting-for-input . "waiting for input")
@@ -562,7 +579,7 @@ the following symbols.
 			      (closed . "closed"))))
 		 ", in "
 		 gds-current-module
-		 "\n")
+		 "\n\n")
   (widget-create 'push-button
 		 :notify (function gds-sigint)
 		 "SIGINT")
@@ -578,18 +595,28 @@ the following symbols.
   (widget-create 'editable-field
 		 :notify (function gds-set-exception-keys)
 		 gds-exception-keys)
+  ;; Evaluation report area.
+  (widget-insert "\n")
+  (gds-heading-insert "Recent Evaluations")
+  (widget-insert "  To run an evaluation, see the Guile->Evaluate menu.\n")
+  (if gds-results
+      (widget-insert "\n" (cdr gds-results)))
   (let ((evals gds-evals-in-progress))
-    (if evals
-	(widget-insert "\nEvaluations in progress:\n"))
     (while evals
+      (widget-insert "\n" (cddar evals) " - running ")
       (let ((w (widget-create 'push-button
 			      :notify (function gds-interrupt-eval)
 			      "Interrupt")))
-	(widget-put w :thread-number (caar evals))
-	(widget-insert " " (cddar evals) "\n"))
-      (setq evals (cdr evals))))
-  (if gds-results
-      (widget-insert "\n" (cdr gds-results))))
+	(widget-put w :thread-number (caar evals)))
+      (widget-insert "\n")
+      (setq evals (cdr evals)))))
+
+(defun gds-heading-insert (text)
+  (let ((start (point)))
+    (widget-insert text)
+    (let ((o (make-overlay start (point))))
+      (overlay-put o 'face gds-heading-face)
+      (overlay-put o 'evaporate t))))
 
 (defun gds-sigint (w &rest ignore)
   (interactive)
@@ -1113,6 +1140,14 @@ isn't yet known to Guile."
       client)))
 
 (defun gds-choose-client (client)
+  ;; Only keep the supplied client number if it is still valid.
+  (if (integerp client)
+      (setq client (gds-client-ref 'gds-client client)))
+  ;; Only keep the current buffer's setting of `gds-client' if it is
+  ;; still valid.
+  (if gds-client
+      (setq gds-client (gds-client-ref 'gds-client)))
+  
   (or ;; If client is an integer, it is the port number of the
       ;; intended client.
       (if (integerp client)
@@ -1196,6 +1231,7 @@ region's code."
   "Evaluate the supplied EXPR (a string)."
   (interactive "sEvaluate expression: \nP")
   (setq client (gds-choose-client client))
+  (set-text-properties 0 (length expr) nil expr)
   (gds-send (format "eval (%S . %S) #f \"Emacs expression\" 0 0 () %S"
 		    (or correlator 'expression)
 		    (gds-abbreviated expr)
@@ -1264,6 +1300,7 @@ region's code."
 		  "Guile apropos (regexp): ")))
      (list (if (zerop (length val)) sym val)
 	   current-prefix-arg)))
+  (set-text-properties 0 (length regex) nil regex)
   (gds-eval-expression (format "(apropos %S)" regex) client 'help))
 
 (defvar gds-completion-results nil)
@@ -1386,9 +1423,7 @@ Used for determining the default for the next `gds-load-file'.")
 (define-key scheme-mode-map "\C-x\e " 'gds-delete-source-breakpoint)
 
 
-;;;; GDS (Guile Interaction) mode keymap and menu items.
-
-(set-keymap-parent gds-mode-map widget-keymap)
+;;;; Guile Interaction mode keymap and menu items.
 
 (define-key gds-mode-map "M" (function gds-query-modules))
 
@@ -1541,10 +1576,6 @@ Used for determining the default for the next `gds-load-file'.")
   :type 'boolean
   :group 'gds)
 
-(if (and gds-autostart-server
-	 (not gds-process))
-    (gds-start))
-
 
 ;;;; `Captive' Guile - a Guile process that is started when needed to
 ;;;; provide help, completion, evaluations etc.
@@ -1566,7 +1597,7 @@ Used for determining the default for the next `gds-load-file'.")
       nil
     (let ((process-connection-type nil))
       (setq gds-captive (make-comint "captive-guile"
-				     "guile"
+				     gds-guile-program
 				     nil
 				     "-q")))
     (let ((proc (get-buffer-process gds-captive)))
@@ -1583,6 +1614,13 @@ Used for determining the default for the next `gds-load-file'.")
 	    (kill-process (get-buffer-process gds-captive))
 	    (accept-process-output gds-process 0 200))
 	(error))))
+
+
+;;;; If requested, autostart the server after loading.
+
+(if (and gds-autostart-server
+	 (not gds-process))
+    (gds-start))
 
 
 ;;;; The end!

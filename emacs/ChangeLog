@@ -1,3 +1,28 @@
+2004-02-21  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el: Add requirements: cl, comint, info.
+	(gds-guile-program): New.
+	(gds-start): When starting or restarting, kill captive if it
+	exists.  Use gds-guile-program instead of just "guile".
+	(gds-mode): Use widget minor mode.
+	(gds-client-ref): New optional client arg.
+	(gds-update-buffers): Don't call widget-setup.
+	(gds-heading-face): New.
+	(gds-insert-interaction): Various prettifications.
+	(gds-heading-insert): New.
+	(gds-choose-client): Check that numbers in client and gds-client
+	are still valid.
+	(gds-eval-expression, gds-apropos): Remove text properties from
+	expression to evaluate.
+	(gds-mode-map): Don't set widget-mode-map as parent.
+	(gds-start-captive): Use gds-guile-program instead of just
+	"guile".
+
+	* gds-client.scm (install-breakpoints): Bugfix: avoid null lists
+	in traversal.
+	(eval-thread, gds-eval): Where expression has multiple parts,
+	modify output to say which part is being evaluated.
+
 2004-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* Makefile.am (TAGS_FILES): Use this variable instead of
