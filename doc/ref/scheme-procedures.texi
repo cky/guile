@@ -573,6 +573,7 @@ For example:
 
 @node Syntax Rules
 @section The R5RS @code{syntax-rules} System
+@cindex R5RS syntax-rules system
 
 R5RS defines an alternative system for macro and syntax transformations
 using the keywords @code{define-syntax}, @code{let-syntax},
