@@ -569,7 +569,7 @@
 (define method
   (letrec ((specializers
 	    (lambda (ls)
-	      (cond ((null? ls) '('()))
+	      (cond ((null? ls) (list (list 'quote '())))
 		    ((pair? ls) (cons (if (pair? (car ls))
 					  (cadar ls)
 					  '<top>)

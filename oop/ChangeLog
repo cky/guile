@@ -1,3 +1,8 @@
+2003-01-18  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (method): Construct a new copy of the constant '('())
+	for every macro invocation.
+
 2003-01-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (upgrade-generic-with-setter,
