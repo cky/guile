@@ -50,7 +50,7 @@ typedef SCM (*gh_eval_t) (void *data, SCM jmpbuf);
 SCM
 gh_eval_str (const char *scheme_code)
 {
-  return scm_eval_0str (scheme_code);
+  return scm_c_eval_string (scheme_code);
 }
 
 /* evaluate the file by passing it to the lower level scm_primitive_load() */
