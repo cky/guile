@@ -338,7 +338,7 @@ taloop:
     case 1:
       /* gloc */
       scm_puts ("#@", port);
-      exp = SCM_CAR (exp - 1);
+      exp = SCM_GLOC_SYM (exp);
       goto taloop;
     default:
     idef:
@@ -349,7 +349,7 @@ taloop:
 	{
 	case scm_tcs_cons_gloc:
 
-	  if (SCM_CDR (SCM_CAR (exp) - 1L) == 0)
+	  if (SCM_CDR ((SCM) SCM_STRUCT_VTABLE_DATA (exp)) == (SCM) 0)
 	    {
 	      ENTER_NESTED_DATA (pstate, exp, circref);
 	      if (SCM_OBJ_CLASS_FLAGS (exp) & SCM_CLASSF_GOOPS)
