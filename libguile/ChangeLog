@@ -1,5 +1,9 @@
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* alloca.c: Use scm_must_malloc to obtain storage.  Hopefully this
+	works; I can't conveniently test it myself.  (Thanks to Dvid
+	Tillman for the bug report.)
+
 	* init.c: Doc fixes.
 
 	* init.c (invoke_main_func): Load the startup files (boot-9.scm)
