@@ -621,7 +621,7 @@ which are not needed in the new process.")
 	{
 	  SCM port = SCM_COERCE_OUTPORT (SCM_CAR (ports_ptr));
 	  if (i == 0)
-            SCM_VALIDATE_OPPORT(1,port);
+            SCM_VALIDATE_OPPORT(SCM_ARG1,port);
 	  if (port == thisport)
 	    found = 1;
 	  ports_ptr = SCM_CDR (ports_ptr);
