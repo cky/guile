@@ -382,14 +382,7 @@
       (pass-if-exception "-129" exception:out-of-range
 	(begin (array-set! a -129 0) #t))
       (pass-if-exception "128" exception:out-of-range
-	(begin (array-set! a 128 0) #t))
-
-      (pass-if "#\\nul"
-	(begin (array-set! a #\nul 0) #t))
-      (pass-if "#\\del"
-	(begin (array-set! a #\del 0) #t))
-      (pass-if "char 255"
-	(begin (array-set! a (integer->char 255) 0) #t))))
+	(begin (array-set! a 128 0) #t))))
 
   (with-test-prefix "short"
 
@@ -482,21 +475,4 @@
       (pass-if "-128"
 	(begin
 	  (array-set! a -128 0)
-	  (= -128 (uniform-vector-ref a 0))))
-
-      (pass-if "#\\nul"
-	(begin
-	  (array-set! a #\nul 0)
-	  (= 0 (uniform-vector-ref a 0))))
-      (pass-if "#\\del"
-	(begin
-	  (array-set! a #\del 0)
-	  (= 127 (uniform-vector-ref a 0))))
-      (pass-if "char 255"
-	(begin
-	  (array-set! a (integer->char 255) 0)
-	  (= -1 (uniform-vector-ref a 0))))
-      (pass-if "char 128"
-	(begin
-	  (array-set! a (integer->char 128) 0)
 	  (= -128 (uniform-vector-ref a 0)))))))
