@@ -1,3 +1,13 @@
+2004-01-04  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-1 Filtering and Partitioning): For partition
+	and partition!, emphasise the multi-value return, note partition may
+	share a tail with the given list.
+
+	* srfi-modules.texi (SRFI-1 Searching, SRFI-1 Deleting, SRFI-1
+	Association Lists): Note how member, delete, delete! and assoc extend
+	the corresponding core functions.
+
 2003-11-25  Kevin Ryde  <user42@zip.com.au>
 
 	* tools.texi (Macros guile-snarf recognizes): Correction to GOOPS
