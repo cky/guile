@@ -1,3 +1,10 @@
+2004-06-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* eval.c (scm_macroexp, macroexp): Renamed scm_macroexp to
+	macroexp and made static.  Added new version of scm_macroexp that
+	emits a deprecation warning and then calls macroexp.
+	(scm_m_undefine): Issue deprecation warning.
+	
 2004-05-30  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (lookup_global_symbol, literal_p, try_macro_lookup):
