@@ -1,3 +1,13 @@
+2000-09-10  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* src/vm_system.c (push_list): New instruction.
+	* src/vm_engine.c (VM_NAME): Don't validate VM and PROGRAM.
+	* src/vm.c (scm_vm_apply): New procedure.
+	(apply_program): New function.
+	(init_program_type): Set the apply function for the program type.
+
+	* src/vm.c (lookup_variable): Use scm_eval_closure_lookup.
+
 2000-09-03  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* src/vm_system.c (tail_call): Use SCM_TICK at the beginning.
