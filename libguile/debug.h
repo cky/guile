@@ -209,8 +209,6 @@ extern SCM scm_make_debugobj (scm_t_debug_frame *debug);
 extern void scm_init_debug (void);
 
 #ifdef GUILE_DEBUG
-extern SCM scm_make_gloc (SCM var, SCM env);
-extern SCM scm_gloc_p (SCM obj);
 extern SCM scm_make_iloc (SCM frame, SCM binding, SCM cdrp);
 extern SCM scm_iloc_p (SCM obj);
 extern SCM scm_memcons (SCM car, SCM cdr, SCM env);

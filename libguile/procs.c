@@ -198,7 +198,7 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
   if (SCM_NIMP (obj))
     switch (SCM_TYP7 (obj))
       {
-      case scm_tcs_cons_gloc:
+      case scm_tcs_struct:
 	if (!SCM_I_OPERATORP (obj))
 	  break;
       case scm_tcs_closures:

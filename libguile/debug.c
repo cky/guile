@@ -196,17 +196,6 @@ scm_make_memoized (SCM exp, SCM env)
  *     specified, the top-level environment of the current module will
  *     be assumed.  All environments must match.
  *
- * - procedure: make-gloc VARIABLE [ENV]
- *
- *     Return a gloc, encapsulated in a memoized object.
- *
- *     (Glocs can't exist in normal list structures, since they will
- *     be mistaken for structs.)
- *
- * - procedure: gloc? OBJECT
- *
- *     Return #t if OBJECT is a memoized gloc.
- *
  * - procedure: make-iloc FRAME BINDING CDRP
  *
  *     Return an iloc referring to frame no. FRAME, binding
@@ -251,32 +240,6 @@ scm_make_memoized (SCM exp, SCM env)
 
 #include "libguile/variable.h"
 #include "libguile/procs.h"
-
-SCM_DEFINE (scm_make_gloc, "make-gloc", 1, 1, 0, 
-            (SCM var, SCM env),
-	    "Create a gloc for variable @var{var} in the environment\n"
-	    "@var{env}.")
-#define FUNC_NAME s_scm_make_gloc
-{
-  SCM_VALIDATE_VARIABLE (1,var);
-  if (SCM_UNBNDP (env))
-    env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
-  else
-    SCM_VALIDATE_NULLORCONS (2,env);
-  return scm_make_memoized (SCM_PACK (SCM_UNPACK (var) + scm_tc3_cons_gloc), env);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_gloc_p, "gloc?", 1, 0, 0, 
-            (SCM obj),
-	    "Return @code{#t} if @var{obj} is a gloc.")
-#define FUNC_NAME s_scm_gloc_p
-{
-  return
-    SCM_BOOL (SCM_MEMOIZEDP (obj) 
-	      && ((SCM_UNPACK(SCM_MEMOIZED_EXP(obj))&7) == scm_tc3_cons_gloc));
-}
-#undef FUNC_NAME
 
 SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
             (SCM frame, SCM binding, SCM cdrp),
@@ -538,8 +501,8 @@ scm_m_start_stack (SCM exp, SCM env)
 #define FUNC_NAME s_start_stack
 {
   exp = SCM_CDR (exp);
-  if (!SCM_ECONSP (exp) 
-      || !SCM_ECONSP (SCM_CDR (exp))
+  if (!SCM_CONSP (exp) 
+      || !SCM_CONSP (SCM_CDR (exp))
       || !SCM_NULLP (SCM_CDDR (exp)))
     SCM_WRONG_NUM_ARGS ();
   return scm_start_stack (scm_eval_car (exp, env), SCM_CADR (exp), env);

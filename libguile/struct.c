@@ -402,8 +402,8 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
 	    }
 	  else
 	    {
-	      scm_t_bits word0 = SCM_CELL_WORD_0 (obj) - scm_tc3_cons_gloc;
-	      /* access as struct */
+	      /* XXX - use less explicit code. */
+	      scm_t_bits word0 = SCM_CELL_WORD_0 (obj) - scm_tc3_struct;
 	      scm_t_bits * vtable_data = (scm_t_bits *) word0;
 	      scm_t_bits * data = SCM_STRUCT_DATA (obj);
 	      scm_t_struct_free free_struct_data
@@ -470,7 +470,8 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   SCM_SET_CELL_WORD_1 (handle, data);
   SCM_SET_STRUCT_GC_CHAIN (handle, 0);
   scm_struct_init (handle, layout, data, tail_elts, init);
-  SCM_SET_CELL_WORD_0 (handle, (scm_t_bits) SCM_STRUCT_DATA (vtable) + scm_tc3_cons_gloc);
+  SCM_SET_CELL_WORD_0 (handle,
+		       (scm_t_bits) SCM_STRUCT_DATA (vtable) + scm_tc3_struct);
   SCM_ALLOW_INTS;
   return handle;
 }
@@ -551,7 +552,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   SCM_SET_STRUCT_GC_CHAIN (handle, 0);
   data [scm_vtable_index_layout] = SCM_UNPACK (layout);
   scm_struct_init (handle, layout, data, tail_elts, scm_cons (layout, init));
-  SCM_SET_CELL_WORD_0 (handle, (scm_t_bits) data + scm_tc3_cons_gloc);
+  SCM_SET_CELL_WORD_0 (handle, (scm_t_bits) data + scm_tc3_struct);
   SCM_ALLOW_INTS;
   return handle;
 }

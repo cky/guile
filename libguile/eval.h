@@ -115,9 +115,7 @@ extern SCM scm_eval_options_interface (SCM setting);
 			   ? SCM_EVALIM2(x) \
 			   : (*scm_ceval_ptr) ((x), (env)))
 #define SCM_XEVALCAR(x, env) (SCM_NCELLP (SCM_CAR (x)) \
-			      ? (SCM_IMP (SCM_CAR (x)) \
-				 ? SCM_EVALIM (SCM_CAR (x), env) \
-				 : SCM_GLOC_VAL (SCM_CAR (x))) \
+			      ? SCM_EVALIM (SCM_CAR (x), env) \
 			      : (SCM_SYMBOLP (SCM_CAR (x)) \
 			         ? *scm_lookupcar (x, env, 1) \
 			         : (*scm_ceval_ptr) (SCM_CAR (x), env)))
@@ -181,16 +179,6 @@ extern SCM scm_sym_set_x;
 extern SCM scm_sym_args;
 
 extern SCM scm_f_apply;
-
-/* A resolved global variable reference in the CAR position
- * of a list is stored (in code only) as a pointer to a variable with a 
- * tag of 1.  This is called a "gloc".
- */
-
-#define SCM_GLOC_VAR(x)        (SCM_PACK(SCM_UNPACK(x)-scm_tc3_cons_gloc))
-#define SCM_GLOC_VAL(x)        (SCM_VARIABLE_REF (SCM_GLOC_VAR (x)))
-#define SCM_GLOC_SET_VAL(x, y) (SCM_VARIABLE_SET (SCM_GLOC_VAR (x), y))
-#define SCM_GLOC_VAL_LOC(x)    (SCM_VARIABLE_LOC (SCM_GLOC_VAR (x)))
 
 
 

@@ -397,7 +397,6 @@ SCM_GPROC(s_display, "display", 1, 1, 0, scm_display, g_display);
 void 
 scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
-taloop:
   switch (SCM_ITAG3 (exp))
     {
     case scm_tc3_closure:
@@ -451,39 +450,30 @@ taloop:
 	  scm_ipruk ("immediate", exp, port);
 	}
       break;
-    case scm_tc3_cons_gloc:
-      /* gloc */
-      scm_puts ("#@", port);
-      exp = scm_module_reverse_lookup (scm_current_module (),
-				       SCM_GLOC_VAR (exp));
-      goto taloop;
     case scm_tc3_cons:
       switch (SCM_TYP7 (exp))
 	{
-	case scm_tcs_cons_gloc:
-
-	  if (SCM_STRUCT_VTABLE_DATA (exp) [scm_vtable_index_vcell] == 0)
-	    {
-	      ENTER_NESTED_DATA (pstate, exp, circref);
-	      if (SCM_OBJ_CLASS_FLAGS (exp) & SCM_CLASSF_GOOPS)
-		{
-		  SCM pwps, print = pstate->writingp ? g_write : g_display;
-		  if (!print)
-		    goto print_struct;
-		  SCM_NEWSMOB (pwps,
-			       scm_tc16_port_with_ps,
-			       SCM_UNPACK (scm_cons (port, pstate->handle)));
-		  scm_call_generic_2 (print, exp, pwps);
-		}
-	      else
-		{
-		print_struct:
-		  scm_print_struct (exp, port, pstate);
-		}
-	      EXIT_NESTED_DATA (pstate);
-	      break;
-	    }
-
+	case scm_tcs_struct:
+	  {
+	    ENTER_NESTED_DATA (pstate, exp, circref);
+	    if (SCM_OBJ_CLASS_FLAGS (exp) & SCM_CLASSF_GOOPS)
+	      {
+		SCM pwps, print = pstate->writingp ? g_write : g_display;
+		if (!print)
+		  goto print_struct;
+		SCM_NEWSMOB (pwps,
+			     scm_tc16_port_with_ps,
+			     SCM_UNPACK (scm_cons (port, pstate->handle)));
+		scm_call_generic_2 (print, exp, pwps);
+	      }
+	    else
+	      {
+	      print_struct:
+		scm_print_struct (exp, port, pstate);
+	      }
+	    EXIT_NESTED_DATA (pstate);
+	  }
+	  break;
 	case scm_tcs_cons_imcar:
 	case scm_tcs_cons_nimcar:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
@@ -754,9 +744,7 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
 }
 
 
-/* Print a list.  The list may be either a list of ordinary data, or it may be
-   a list that represents code.  Lists that represent code may contain gloc
-   cells.
+/* Print a list.
  */
 void 
 scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
@@ -772,12 +760,12 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
      O(depth * N) instead of O(N^2). */
   hare = SCM_CDR (exp);
   tortoise = exp;
-  while (SCM_ECONSP (hare))
+  while (SCM_CONSP (hare))
     {
       if (SCM_EQ_P (hare, tortoise))
 	goto fancy_printing;
       hare = SCM_CDR (hare);
-      if (SCM_IMP (hare) || SCM_NECONSP (hare))
+      if (SCM_IMP (hare) || SCM_NCONSP (hare))
 	break;
       hare = SCM_CDR (hare);
       tortoise = SCM_CDR (tortoise);
@@ -785,7 +773,7 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
   
   /* No cdr cycles intrinsic to this list */
   scm_iprin1 (SCM_CAR (exp), port, pstate);
-  for (exp = SCM_CDR (exp); SCM_ECONSP (exp); exp = SCM_CDR (exp))
+  for (exp = SCM_CDR (exp); SCM_CONSP (exp); exp = SCM_CDR (exp))
     {
       register long i;
 
@@ -814,7 +802,7 @@ fancy_printing:
     
     scm_iprin1 (SCM_CAR (exp), port, pstate);
     exp = SCM_CDR (exp); --n;
-    for (; SCM_ECONSP (exp); exp = SCM_CDR (exp))
+    for (; SCM_CONSP (exp); exp = SCM_CDR (exp))
       {
 	register unsigned long i;
 

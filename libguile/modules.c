@@ -627,7 +627,7 @@ scm_post_boot_init_modules ()
 #define PERM(x) scm_permanent_object(x)
 
   SCM module_type = SCM_VARIABLE_REF (scm_c_lookup ("module-type"));
-  scm_module_tag = (SCM_CELL_WORD_1 (module_type) + scm_tc3_cons_gloc);
+  scm_module_tag = (SCM_CELL_WORD_1 (module_type) + scm_tc3_struct);
 
   resolve_module_var = PERM (scm_c_lookup ("resolve-module"));
   process_define_module_var = PERM (scm_c_lookup ("process-define-module"));

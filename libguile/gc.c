@@ -1257,63 +1257,40 @@ gc_mark_loop_first_time:
       RECURSE (SCM_SETTER (ptr));
       ptr = SCM_PROCEDURE (ptr);
       goto_gc_mark_loop;
-    case scm_tcs_cons_gloc:
+    case scm_tcs_struct:
       {
-	/* Dirk:FIXME:: The following code is super ugly: ptr may be a
-	 * struct or a gloc.  If it is a gloc, the cell word #0 of ptr
-	 * is the address of a scm_tc16_variable smob.  If it is a
-	 * struct, the cell word #0 of ptr is a pointer to a struct
-	 * vtable data region. (The fact that these are accessed in
-	 * the same way restricts the possibilites to change the data
-	 * layout of structs or heap cells.)  To discriminate between
-	 * the two, it is guaranteed that the scm_vtable_index_vcell
-	 * element of the prospective vtable is always zero.  For a
-	 * gloc, this location has the CDR of the variable smob, which
-	 * is guaranteed to be non-zero.
-	 */
-	scm_t_bits word0 = SCM_CELL_WORD_0 (ptr) - scm_tc3_cons_gloc;
-	scm_t_bits * vtable_data = (scm_t_bits *) word0; /* access as struct */
-	if (vtable_data [scm_vtable_index_vcell] != 0)
+	/* XXX - use less explicit code. */
+	scm_t_bits word0 = SCM_CELL_WORD_0 (ptr) - scm_tc3_struct;
+	scm_t_bits * vtable_data = (scm_t_bits *) word0;
+	SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
+	long len = SCM_SYMBOL_LENGTH (layout);
+	char * fields_desc = SCM_SYMBOL_CHARS (layout);
+	scm_t_bits * struct_data = (scm_t_bits *) SCM_STRUCT_DATA (ptr);
+
+	if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
 	  {
-            /* ptr is a gloc */
-            SCM gloc_car = SCM_PACK (word0);
-            RECURSE (gloc_car);
-            ptr = SCM_CDR (ptr);
-            goto gc_mark_loop;
-          }
-        else
-          {
-            /* ptr is a struct */
-            SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
-            long len = SCM_SYMBOL_LENGTH (layout);
-            char * fields_desc = SCM_SYMBOL_CHARS (layout);
-            scm_t_bits * struct_data = (scm_t_bits *) SCM_STRUCT_DATA (ptr);
-
-            if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
-              {
-                RECURSE (SCM_PACK (struct_data[scm_struct_i_procedure]));
-                RECURSE (SCM_PACK (struct_data[scm_struct_i_setter]));
-              }
-            if (len)
-              {
-                long x;
-
-                for (x = 0; x < len - 2; x += 2, ++struct_data)
-                  if (fields_desc[x] == 'p')
-                    RECURSE (SCM_PACK (*struct_data));
-                if (fields_desc[x] == 'p')
-                  {
-                    if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
-                      for (x = *struct_data++; x; --x, ++struct_data)
-                        RECURSE (SCM_PACK (*struct_data));
-                    else
-                      RECURSE (SCM_PACK (*struct_data));
-                  }
-              }
-            /* mark vtable */
-            ptr = SCM_PACK (vtable_data [scm_vtable_index_vtable]);
-            goto_gc_mark_loop;
+	    RECURSE (SCM_PACK (struct_data[scm_struct_i_procedure]));
+	    RECURSE (SCM_PACK (struct_data[scm_struct_i_setter]));
 	  }
+	if (len)
+	  {
+	    long x;
+	    
+	    for (x = 0; x < len - 2; x += 2, ++struct_data)
+	      if (fields_desc[x] == 'p')
+		RECURSE (SCM_PACK (*struct_data));
+	    if (fields_desc[x] == 'p')
+	      {
+		if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
+		  for (x = *struct_data++; x; --x, ++struct_data)
+		    RECURSE (SCM_PACK (*struct_data));
+		else
+		  RECURSE (SCM_PACK (*struct_data));
+	      }
+	  }
+	/* mark vtable */
+	ptr = SCM_PACK (vtable_data [scm_vtable_index_vtable]);
+	goto_gc_mark_loop;
       }
       break;
     case scm_tcs_closures:
@@ -1748,28 +1725,15 @@ scm_gc_sweep ()
 
 	  switch SCM_TYP7 (scmptr)
             {
-	    case scm_tcs_cons_gloc:
+	    case scm_tcs_struct:
 	      {
-		/* Dirk:FIXME:: Again, super ugly code:  scmptr may be a
-		 * struct or a gloc.  See the corresponding comment in
-		 * scm_gc_mark.
+		/* Structs need to be freed in a special order.
+		 * This is handled by GC C hooks in struct.c.
 		 */
-		scm_t_bits word0 = (SCM_CELL_WORD_0 (scmptr)
-				    - scm_tc3_cons_gloc);
-		/* access as struct */
-		scm_t_bits * vtable_data = (scm_t_bits *) word0;
-		if (vtable_data[scm_vtable_index_vcell] == 0)
-		  {
-		    /* Structs need to be freed in a special order.
-		     * This is handled by GC C hooks in struct.c.
-		     */
-		    SCM_SET_STRUCT_GC_CHAIN (scmptr, scm_structs_to_free);
-		    scm_structs_to_free = scmptr;
-                    continue;
-		  }
-		/* fall through so that scmptr gets collected */
+		SCM_SET_STRUCT_GC_CHAIN (scmptr, scm_structs_to_free);
+		scm_structs_to_free = scmptr;
 	      }
-	      break;
+	      continue;
 	    case scm_tcs_cons_imcar:
 	    case scm_tcs_cons_nimcar:
 	    case scm_tcs_closures:

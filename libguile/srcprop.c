@@ -218,7 +218,7 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
 #ifndef SCM_RECKLESS
-  else if (SCM_NECONSP (obj))
+  else if (SCM_NCONSP (obj))
     SCM_WRONG_TYPE_ARG (1, obj);
 #endif
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);

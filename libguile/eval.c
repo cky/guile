@@ -156,10 +156,8 @@ char *alloca ();
 			     : SCM_CEVAL (SCM_CAR (x), env))
 
 #define EVALCAR(x, env) (!SCM_CELLP (SCM_CAR (x)) \
-			? (SCM_IMP (SCM_CAR (x)) \
-			   ? SCM_EVALIM (SCM_CAR (x), env) \
-			   : SCM_GLOC_VAL (SCM_CAR (x))) \
-			: EVALCELLCAR (x, env))
+			 ? SCM_EVALIM (SCM_CAR (x), env) \
+			 : EVALCELLCAR (x, env))
 
 #define EXTEND_ENV SCM_EXTEND_ENV
 
@@ -197,7 +195,7 @@ scm_ilookup (SCM iloc, SCM env)
    tree-code instructions.
 
    There shouldn't normally be a problem with memoizing local and
-   global variable references (into ilocs and glocs), because all
+   global variable references (into ilocs and variables), because all
    threads will mutate the code in *exactly* the same way and (if I
    read the C code correctly) it is not possible to observe a half-way
    mutated cons cell.  The lookup procedure can handle this
@@ -205,11 +203,11 @@ scm_ilookup (SCM iloc, SCM env)
 
    It is different with macro expansion, because macro expansion
    happens outside of the lookup procedure and can't be
-   undone. Therefore it can't cope with it.  It has to indicate
-   failure when it detects a lost race and hope that the caller can
-   handle it.  Luckily, it turns out that this is the case.
+   undone. Therefore the lookup procedure can't cope with it.  It has
+   to indicate failure when it detects a lost race and hope that the
+   caller can handle it.  Luckily, it turns out that this is the case.
 
-   An example to illustrate this: Suppose that the follwing form will
+   An example to illustrate this: Suppose that the following form will
    be memoized concurrently by two threads
 
        (let ((x 12)) x)
@@ -226,13 +224,13 @@ scm_ilookup (SCM iloc, SCM env)
    But let's see what will happen when the race occurs while looking
    up the symbol "let" at the start of the form.  It could happen that
    the second thread interrupts the lookup of the first thread and not
-   only substitutes a gloc for it but goes right ahead and replaces it
-   with the compiled form (#@let* (x 12) x).  Now, when the first
-   thread completes its lookup, it would replace the #@let* with a
-   gloc pointing to the "let" binding, effectively reverting the form
-   to (let (x 12) x).  This is wrong.  It has to detect that it has
-   lost the race and the evaluator has to reconsider the changed form
-   completely.
+   only substitutes a variable for it but goes right ahead and
+   replaces it with the compiled form (#@let* (x 12) x).  Now, when
+   the first thread completes its lookup, it would replace the #@let*
+   with a variable containing the "let" binding, effectively reverting
+   the form to (let (x 12) x).  This is wrong.  It has to detect that
+   it has lost the race and the evaluator has to reconsider the
+   changed form completely.
 
    This race condition could be resolved with some kind of traffic
    light (like mutexes) around scm_lookupcar, but I think that it is
@@ -370,15 +368,13 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	   completely. */
       race:
 	var = SCM_CAR (vloc);
-	if (SCM_ITAG3 (var) == scm_tc3_cons_gloc)
-	  return SCM_GLOC_VAL_LOC (var);
 	if (SCM_VARIABLEP (var))
 	  return SCM_VARIABLE_LOC (var);
 #ifdef MEMOIZE_LOCALS
 	if (SCM_ITAG7 (var) == SCM_ITAG7 (SCM_ILOC00))
 	  return scm_ilookup (var, genv);
 #endif
-	/* We can't cope with anything else than glocs and ilocs.  When
+	/* We can't cope with anything else than variables and ilocs.  When
 	   a special form has been memoized (i.e. `let' into `#@let') we
 	   return NULL and expect the calling function to do the right
 	   thing.  For the evaluator, this means going back and redoing
@@ -415,15 +411,7 @@ scm_unmemocar (SCM form, SCM env)
   if (SCM_IMP (form))
     return form;
   c = SCM_CAR (form);
-  if (SCM_ITAG3 (c) == scm_tc3_cons_gloc)
-    {
-      SCM sym =
-	scm_module_reverse_lookup (scm_env_module (env), SCM_GLOC_VAR (c));
-      if (SCM_EQ_P (sym, SCM_BOOL_F))
-	sym = sym_three_question_marks;
-      SCM_SETCAR (form, sym);
-    }
-  else if (SCM_VARIABLEP (c))
+  if (SCM_VARIABLEP (c))
     {
       SCM sym =
 	scm_module_reverse_lookup (scm_env_module (env), c);
@@ -839,7 +827,7 @@ iqq (SCM form, SCM env, long depth)
       --depth;
     label:
       form = SCM_CDR (form);
-      SCM_ASSERT (SCM_ECONSP (form) && SCM_NULLP (SCM_CDR (form)),
+      SCM_ASSERT (SCM_CONSP (form) && SCM_NULLP (SCM_CDR (form)),
                   form, SCM_ARG1, s_quasiquote);
       if (0 == depth)
 	return evalcar (form, env);
@@ -1120,7 +1108,7 @@ scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
   var = scm_symbol_fref (SCM_CAR (x));
   SCM_ASSYNT (SCM_VARIABLEP (var),
 	      "Symbol's function definition is void", NULL);
-  SCM_SET_CELL_WORD_0 (x, SCM_UNPACK (var) + scm_tc3_cons_gloc);
+  SCM_SETCAR (x, var);
   return x;
 }
 
@@ -1146,7 +1134,7 @@ scm_m_atbind (SCM xorig, SCM env)
   x = SCM_CAR (x);
   while (SCM_NIMP (x))
     {
-      SCM_SET_CELL_WORD_0 (x, SCM_UNPACK (scm_sym2var (SCM_CAR (x), env, SCM_BOOL_T)) + scm_tc3_cons_gloc);
+      SCM_SETCAR (x, scm_sym2var (SCM_CAR (x), env, SCM_BOOL_T));
       x = SCM_CDR (x);
     }
   return scm_cons (SCM_IM_BIND, SCM_CDR (xorig));
@@ -1291,7 +1279,7 @@ unmemocopy (SCM x, SCM env)
 #ifdef DEBUG_EXTENSIONS
   SCM p;
 #endif
-  if (SCM_NCELLP (x) || SCM_NECONSP (x))
+  if (SCM_NCELLP (x) || SCM_NCONSP (x))
     return x;
 #ifdef DEBUG_EXTENSIONS
   p = scm_whash_lookup (scm_source_whash, x);
@@ -1459,7 +1447,7 @@ unmemocopy (SCM x, SCM env)
 			  env);
     }
 loop:
-  while (SCM_CELLP (x = SCM_CDR (x)) && SCM_ECONSP (x))
+  while (SCM_CELLP (x = SCM_CDR (x)) && SCM_CONSP (x))
     {
       if (SCM_ISYMP (SCM_CAR (x)))
 	/* skip body markers */
@@ -1528,40 +1516,17 @@ SCM
 scm_eval_args (SCM l, SCM env, SCM proc)
 {
   SCM results = SCM_EOL, *lloc = &results, res;
-  while (!SCM_IMP (l))
+  while (SCM_CONSP (l))
     {
-#ifdef SCM_CAUTIOUS
-      if (SCM_CONSP (l))
-	{
-	  if (SCM_IMP (SCM_CAR (l)))
-	    res = SCM_EVALIM (SCM_CAR (l), env);
-	  else
-	    res = EVALCELLCAR (l, env);
-	}
-      else if (SCM_TYP3 (l) == scm_tc3_cons_gloc)
-	{
-	  scm_t_bits vcell =
-	    SCM_STRUCT_VTABLE_DATA (l) [scm_vtable_index_vcell];
-	  if (vcell == 0)
-	    res = SCM_CAR (l); /* struct planted in code */
-	  else
-	    res = SCM_GLOC_VAL (SCM_CAR (l));
-	}
-      else
-	goto wrongnumargs;
-#else
       res = EVALCAR (l, env);
-#endif
+
       *lloc = scm_cons (res, SCM_EOL);
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
 #ifdef SCM_CAUTIOUS
   if (!SCM_NULLP (l))
-    {
-    wrongnumargs:
-      scm_wrong_num_args (proc);
-    }
+    scm_wrong_num_args (proc);
 #endif
   return results;
 }
@@ -1758,40 +1723,17 @@ SCM
 scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 {
   SCM *results = lloc, res;
-  while (!SCM_IMP (l))
+  while (SCM_CONSP (l))
     {
-#ifdef SCM_CAUTIOUS
-      if (SCM_CONSP (l))
-	{
-	  if (SCM_IMP (SCM_CAR (l)))
-	    res = SCM_EVALIM (SCM_CAR (l), env);
-	  else
-	    res = EVALCELLCAR (l, env);
-	}
-      else if (SCM_TYP3 (l) == scm_tc3_cons_gloc)
-	{
-	  scm_t_bits vcell =
-	    SCM_STRUCT_VTABLE_DATA (l) [scm_vtable_index_vcell];
-	  if (vcell == 0)
-	    res = SCM_CAR (l); /* struct planted in code */
-	  else
-	    res = SCM_GLOC_VAL (SCM_CAR (l));
-	}
-      else
-	goto wrongnumargs;
-#else
       res = EVALCAR (l, env);
-#endif
+
       *lloc = scm_cons (res, SCM_EOL);
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
 #ifdef SCM_CAUTIOUS
   if (!SCM_NULLP (l))
-    {
-    wrongnumargs:
-      scm_wrong_num_args (proc);
-    }
+    scm_wrong_num_args (proc);
 #endif
   return *results;
 }
@@ -2014,7 +1956,7 @@ dispatch:
       if (!SCM_CELLP (SCM_CAR (x)))
 	{
 	  x = SCM_CAR (x);
-	  RETURN (SCM_IMP (x) ? SCM_EVALIM (x, env) : SCM_GLOC_VAL (x))
+	  RETURN (SCM_EVALIM (x, env))
 	}
 
       if (SCM_SYMBOLP (SCM_CAR (x)))
@@ -2208,9 +2150,6 @@ dispatch:
 	  else
 	    t.lloc = scm_lookupcar (x, env, 1);
 	  break;
-	case scm_tc3_cons_gloc:
-	  t.lloc = SCM_GLOC_VAL_LOC (proc);
-	  break;
 #ifdef MEMOIZE_LOCALS
 	case scm_tc3_imm24:
 	  t.lloc = scm_ilookup (proc, env);
@@ -2309,8 +2248,8 @@ dispatch:
 	    arg2 = *scm_ilookup (proc, env);
 	  else if (SCM_NCONSP (proc))
 	    {
-	      if (SCM_NCELLP (proc))
-		arg2 = SCM_GLOC_VAL (proc);
+	      if (SCM_VARIABLEP (proc))
+		arg2 = SCM_VARIABLE_REF (proc);
 	      else
 		arg2 = *scm_lookupcar (SCM_CDR (x), env, 1);
 	    }
@@ -2477,9 +2416,8 @@ dispatch:
 	  arg2 = SCM_CDAR (env);
 	  while (SCM_NIMP (arg2))
 	    {
-	      proc = SCM_GLOC_VAL (SCM_CAR (t.arg1));
-	      SCM_SETCDR (SCM_PACK (SCM_UNPACK (SCM_CAR (t.arg1)) - 1L),
-			  SCM_CAR (arg2));
+	      proc = SCM_VARIABLE_REF (SCM_CAR (t.arg1));
+	      SCM_VARIABLE_SET (SCM_CAR (t.arg1), SCM_CAR (arg2));
 	      SCM_SETCAR (arg2, proc);
 	      t.arg1 = SCM_CDR (t.arg1);
 	      arg2 = SCM_CDR (arg2);
@@ -2499,8 +2437,7 @@ dispatch:
 	  arg2 = SCM_CDAR (env);
 	  while (SCM_NIMP (arg2))
 	    {
-	      SCM_SETCDR (SCM_PACK (SCM_UNPACK (SCM_CAR (t.arg1)) - 1L),
-			  SCM_CAR (arg2));
+	      SCM_VARIABLE_SET (SCM_CAR (t.arg1), SCM_CAR (arg2));
 	      t.arg1 = SCM_CDR (t.arg1);
 	      arg2 = SCM_CDR (arg2);
 	    }
@@ -2557,6 +2494,7 @@ dispatch:
     case scm_tc7_cclo:
     case scm_tc7_pws:
     case scm_tcs_subrs:
+    case scm_tcs_struct:
       RETURN (x);
 
     case scm_tc7_variable:
@@ -2573,25 +2511,7 @@ dispatch:
 #endif
       break;
 #endif /* ifdef MEMOIZE_LOCALS */
-
       
-    case scm_tcs_cons_gloc: {
-      scm_t_bits vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
-      if (vcell == 0) {
-	/* This is a struct implanted in the code, not a gloc. */
-	RETURN (x);
-      } else {
-	proc = SCM_GLOC_VAL (SCM_CAR (x));
-	SCM_ASRTGO (SCM_NIMP (proc), badfun);
-#ifndef SCM_RECKLESS
-#ifdef SCM_CAUTIOUS
-	goto checkargs;
-#endif
-#endif
-      }
-      break;
-    }
-
     case scm_tcs_cons_nimcar:
       orig_sym = SCM_CAR (x);
       if (SCM_SYMBOLP (orig_sym))
@@ -2733,7 +2653,7 @@ evapply:
 	x = SCM_CODE (proc);
 	env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), SCM_EOL, SCM_ENV (proc));
 	goto nontoplevel_cdrxbegin;
-      case scm_tcs_cons_gloc: /* really structs, not glocs */
+      case scm_tcs_struct:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
 	    x = SCM_ENTITY_PROCEDURE (proc);
@@ -2785,14 +2705,6 @@ evapply:
 	t.arg1 = SCM_EVALIM (SCM_CAR (x), env);
       else
 	t.arg1 = EVALCELLCAR (x, env);
-    }
-  else if (SCM_TYP3 (x) == scm_tc3_cons_gloc)
-    {
-      scm_t_bits vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
-      if (vcell == 0)
-	t.arg1 = SCM_CAR (x); /* struct planted in code */
-      else
-	t.arg1 = SCM_GLOC_VAL (SCM_CAR (x));
     }
   else
     goto wrongnumargs;
@@ -2888,7 +2800,7 @@ evapply:
 	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), scm_cons (t.arg1, SCM_EOL), SCM_ENV (proc));
 #endif
 	  goto nontoplevel_cdrxbegin;
-	case scm_tcs_cons_gloc: /* really structs, not glocs */
+	case scm_tcs_struct:
 	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	    {
 	      x = SCM_ENTITY_PROCEDURE (proc);
@@ -2935,14 +2847,6 @@ evapply:
 	arg2 = SCM_EVALIM (SCM_CAR (x), env);
       else
 	arg2 = EVALCELLCAR (x, env);
-    }
-  else if (SCM_TYP3 (x) == scm_tc3_cons_gloc)
-    {
-      scm_t_bits vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
-      if (vcell == 0)
-	arg2 = SCM_CAR (x); /* struct planted in code */
-      else
-	arg2 = SCM_GLOC_VAL (SCM_CAR (x));
     }
   else
     goto wrongnumargs;
@@ -2992,7 +2896,7 @@ evapply:
 								 proc))),
 			     SCM_EOL));
 #endif
-	case scm_tcs_cons_gloc: /* really structs, not glocs */
+	case scm_tcs_struct:
 	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	    {
 	      x = SCM_ENTITY_PROCEDURE (proc);
@@ -3058,7 +2962,7 @@ evapply:
 	}
     }
 #ifdef SCM_CAUTIOUS
-    if (SCM_IMP (x) || SCM_NECONSP (x))
+    if (SCM_IMP (x) || SCM_NCONSP (x))
       goto wrongnumargs;
 #endif
 #ifdef DEVAL
@@ -3206,7 +3110,7 @@ evapply:
 	x = SCM_CODE (proc);
 	goto nontoplevel_cdrxbegin;
 #endif /* DEVAL */
-      case scm_tcs_cons_gloc: /* really structs, not glocs */
+      case scm_tcs_struct:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
 #ifdef DEVAL
@@ -3649,7 +3553,7 @@ tail:
       debug.vect[0].a.proc = proc;
 #endif
       goto tail;
-    case scm_tcs_cons_gloc: /* really structs, not glocs */
+    case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	{
 #ifdef DEVAL

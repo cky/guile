@@ -1313,7 +1313,7 @@ wrap_init (SCM class, SCM *m, long n)
   SCM_SET_STRUCT_GC_CHAIN (z, 0);
   SCM_SET_CELL_WORD_1 (z, m);
   SCM_SET_CELL_WORD_0 (z, (scm_t_bits) SCM_STRUCT_DATA (class)
-		          | scm_tc3_cons_gloc);
+		          | scm_tc3_struct);
 
   return z;
 }
@@ -2594,7 +2594,7 @@ scm_wrap_object (SCM class, void *data)
   SCM_NEWCELL2 (z);
   SCM_SETCDR (z, SCM_PACK ((scm_t_bits) data));
   SCM_SET_STRUCT_GC_CHAIN (z, 0);
-  SCM_SETCAR (z, SCM_UNPACK (SCM_CDR (class)) | scm_tc3_cons_gloc);
+  SCM_SETCAR (z, SCM_UNPACK (SCM_CDR (class)) | scm_tc3_struct);
   return z;
 }
 

@@ -117,20 +117,24 @@ typedef signed long scm_t_signed_bits;
  * only (i.e., programmers must keep track of any SCM variables they
  * create that don't contain ordinary scheme values).
  *
- * All immediates and non-immediates must have a 0 in bit 0.  Only
- * non-object values can have a 1 in bit 0.  In some cases, bit 0 of a
- * word in the heap is used for the GC tag so during garbage
- * collection, that bit might be 1 even in an immediate or
- * non-immediate value.  In other cases, bit 0 of a word in the heap
- * is used to tag a pointer to a GLOC (VM global variable address) or
- * the header of a struct.  But whenever an SCM variable holds a
- * normal Scheme value, bit 0 is 0.
+ * All immediates and pointers to cells of non-immediates have a 0 in
+ * bit 0.  All non-immediates that are not pairs have a 1 in bit 0 of
+ * the first word of their cell.  This is how pairs are distinguished
+ * from other non-immediates; a pair can have a immediate in its car
+ * (thus a 0 in bit 0), or a pointer to the cell of a non-immediate
+ * (again, this pointer has a 0 in bit 0).
  *
- * Immediates and non-immediates are distinguished by bits two and four.
- * Immediate values must have a 1 in at least one of those bits.  Does
- * this (or any other detail of tagging) seem arbitrary?  Try changing it!
- * (Not always impossible but it is fair to say that many details of tags
- * are mutually dependent).  */
+ * Immediates and non-immediates are distinguished by bits 1 and 2.
+ * Immediate values must have a 1 in at least one of those bits.
+ * Consequently, a pointer to a cell of a non-immediate must have
+ * zeros in bits 1 and 2.  Together with the requirement from above
+ * that bit 0 must also be zero, this means that pointers to cells of
+ * non-immediates must have their three low bits all zero.  This in
+ * turn means that cells must be aligned on a 8 byte boundary, which
+ * is just right for two 32bit numbers (surprise, surprise).  Does
+ * this (or any other detail of tagging) seem arbitrary?  Try changing
+ * it!  (Not always impossible but it is fair to say that many details
+ * of tags are mutually dependent).  */
 
 #define SCM_IMP(x) 		(6 & SCM_UNPACK (x))
 #define SCM_NIMP(x) 		(!SCM_IMP (x))
@@ -142,17 +146,17 @@ typedef signed long scm_t_signed_bits;
  *
  *
  * 0		Most objects except...
- * 1 		...glocs and structs (this tag valid only in a SCM_CAR or
- *		in the header of a struct's data).
+ * 1 		... structs (this tag is valid only in the header
+ *              of a struct's data, as with all odd tags).
  *
  * 00		heap addresses and many immediates (not integers)
- * 01		glocs/structs, some tc7_ codes
+ * 01		structs, some tc7_ codes
  * 10		immediate integers
  * 11		various tc7_ codes including, tc16_ codes.
  *
  *
  * 000		heap address
- * 001		glocs/structs
+ * 001		structs
  * 010		integer
  * 011		closure
  * 100		immediates
@@ -191,33 +195,35 @@ typedef signed long scm_t_signed_bits;
  * with the 13 immediates above being some of the most interesting.
  *
  * Also noteworthy are the groups of 16 7-bit instructions implied by
- * some of the 3-bit tags.   For example, closure references consist
- * of an 8-bit aligned address tagged with 011.  There are 16 identical 7-bit
- * instructions, all ending 011, which are invoked by evaluating closures.
+ * some of the 3-bit tags.  For example, closure references consist of
+ * an 8-byte aligned address tagged with 011.  There are 16 identical
+ * 7-bit instructions, all ending 011, which are invoked by evaluating
+ * closures.
  *
  * In other words, if you hand the evaluator a closure, the evaluator
- * treats the closure as a graph of virtual machine instructions.
- * A closure is a pair with a pointer to the body of the procedure
- * in the CDR and a pointer to the environment of the closure in the CAR.
+ * treats the closure as a graph of virtual machine instructions.  A
+ * closure is a pair with a pointer to the body of the procedure in
+ * the CDR and a pointer to the environment of the closure in the CAR.
  * The environment pointer is tagged 011 which implies that the least
- * significant 7 bits of the environment pointer also happen to be
- * a virtual machine instruction we could call "SELF" (for self-evaluating
- * object).
+ * significant 7 bits of the environment pointer also happen to be a
+ * virtual machine instruction we could call "SELF" (for
+ * self-evaluating object).
  *
- * A less trivial example are the 16 instructions ending 000.  If those
- * bits tag the CAR of a pair, then evidently the pair is an ordinary
- * cons pair and should be evaluated as a procedure application.  The sixteen,
- * 7-bit 000 instructions are all "NORMAL-APPLY"  (Things get trickier.
- * For example, if the CAR of a procedure application is a symbol, the NORMAL-APPLY
- * instruction will, as a side effect, overwrite that CAR with a new instruction
- * that contains a cached address for the variable named by the symbol.)
+ * A less trivial example are the 16 instructions ending 000.  If
+ * those bits tag the CAR of a pair, then evidently the pair is an
+ * ordinary cons pair and should be evaluated as a procedure
+ * application.  The sixteen, 7-bit 000 instructions are all
+ * "NORMAL-APPLY" (Things get trickier.  For example, if the CAR of a
+ * procedure application is a symbol, the NORMAL-APPLY instruction
+ * will, as a side effect, overwrite that CAR with a new instruction
+ * that contains a cached address for the variable named by the
+ * symbol.)
  *
  * Here is a summary of tags in the CAR of a non-immediate:
  *
  *   HEAP CELL:	G=gc_mark; 1 during mark, 0 other times.
  *
  * cons	   ..........SCM car..............0  ...........SCM cdr.............G
- * gloc    ..........SCM vcell..........001  ...........SCM cdr.............G
  * struct  ..........void * type........001  ...........void * data.........G
  * closure ..........SCM code...........011  ...........SCM env.............G
  * tc7	   ......24.bits of data...Gxxxx1S1  ..........void *data............
@@ -284,17 +290,6 @@ typedef signed long scm_t_signed_bits;
 #define SCM_CONSP(x)  (!SCM_IMP (x) && ((1 & SCM_CELL_TYPE (x)) == 0))
 #define SCM_NCONSP(x) (!SCM_CONSP (x))
 
-
-/* SCM_ECONSP should be used instead of SCM_CONSP at places where GLOCS
- * can be expected to occur.
- */
-#define SCM_ECONSP(x) \
-  (!SCM_IMP (x) \
-   && (SCM_CONSP (x) \
-       || (SCM_TYP3 (x) == 1 \
-	   && (SCM_STRUCT_VTABLE_DATA (x)[scm_vtable_index_vcell] != 0))))
-#define SCM_NECONSP(x) (!SCM_ECONSP (x))
-
 
 
 #define SCM_CELLP(x) 	(((sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
@@ -303,11 +298,11 @@ typedef signed long scm_t_signed_bits;
 /* See numbers.h for macros relating to immediate integers.
  */
 
-#define SCM_ITAG3(x) 		(7 & SCM_UNPACK (x))
-#define SCM_TYP3(x) 		(7 & SCM_CELL_TYPE (x))
-#define scm_tc3_cons		0
-#define scm_tc3_cons_gloc	1
-#define scm_tc3_int_1		2
+#define SCM_ITAG3(x) 		 (7 & SCM_UNPACK (x))
+#define SCM_TYP3(x) 		 (7 & SCM_CELL_TYPE (x))
+#define scm_tc3_cons	 	 0
+#define scm_tc3_struct    	 1
+#define scm_tc3_int_1		 2
 #define scm_tc3_closure		 3
 #define scm_tc3_imm24		 4
 #define scm_tc3_tc7_1		 5
@@ -497,8 +492,10 @@ extern char *scm_isymnames[];   /* defined in print.c */
 
 
 
-/* Dispatching aids: */
+/* Dispatching aids:
 
+   When switching on SCM_TYP7 of a SCM value, use these fake case
+   labels to catch types that use fewer than 7 bits for tagging.  */
 
 /* For cons pairs with immediate values in the CAR
  */
@@ -523,20 +520,22 @@ extern char *scm_isymnames[];   /* defined in print.c */
  case 64:case 72:case 80:case 88:\
  case 96:case 104:case 112:case 120
 
-/* A CONS_GLOC occurs in code.  It's CAR is a pointer to the
- * CDR of a variable.  The low order bits of the CAR are 001.
- * The CDR of the gloc is the code continuation.
+/* For structs
  */
-#define scm_tcs_cons_gloc 1:case 9:case 17:case 25:\
+#define scm_tcs_struct 1:case 9:case 17:case 25:\
  case 33:case 41:case 49:case 57:\
  case 65:case 73:case 81:case 89:\
  case 97:case 105:case 113:case 121
 
+/* For closures
+ */
 #define scm_tcs_closures   3:case 11:case 19:case 27:\
  case 35:case 43:case 51:case 59:\
  case 67:case 75:case 83:case 91:\
  case 99:case 107:case 115:case 123
 
+/* For subrs
+ */
 #define scm_tcs_subrs scm_tc7_asubr:case scm_tc7_subr_0:case scm_tc7_subr_1:case scm_tc7_cxr:\
  case scm_tc7_subr_3:case scm_tc7_subr_2:case scm_tc7_rpsubr:case scm_tc7_subr_1o:\
  case scm_tc7_subr_2o:case scm_tc7_lsubr_2:case scm_tc7_lsubr

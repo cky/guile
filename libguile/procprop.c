@@ -137,7 +137,7 @@ scm_i_procedure_arity (SCM proc)
       if (!SCM_NULLP (proc))
 	r = 1;
       break;
-    case scm_tcs_cons_gloc:
+    case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	{
 	  r = 1;

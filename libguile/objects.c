@@ -168,8 +168,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 				    ? SCM_INOUT_PCLASS_INDEX | SCM_PTOBNUM (x)
 				    : SCM_OUT_PCLASS_INDEX | SCM_PTOBNUM (x))
 				 : SCM_IN_PCLASS_INDEX | SCM_PTOBNUM (x))];
-	case scm_tcs_cons_gloc:
-	  /* must be a struct */
+	case scm_tcs_struct:
 	  if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS_VALID)
 	    return SCM_CLASS_OF (x);
 	  else if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS)
@@ -204,7 +203,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	    return scm_class_unknown;
 	}
 
-    case scm_tc3_cons_gloc:
+    case scm_tc3_struct:
     case scm_tc3_tc7_1:
     case scm_tc3_tc7_2:
     case scm_tc3_closure:

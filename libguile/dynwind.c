@@ -185,15 +185,15 @@ SCM_DEFINE (scm_wind_chain, "wind-chain", 0, 0, 0,
 #endif
 
 static void
-scm_swap_bindings (SCM glocs, SCM vals)
+scm_swap_bindings (SCM vars, SCM vals)
 {
   SCM tmp;
   while (SCM_NIMP (vals))
     {
-      tmp = SCM_GLOC_VAL (SCM_CAR (glocs));
-      SCM_GLOC_SET_VAL (SCM_CAR (glocs), SCM_CAR (vals));
+      tmp = SCM_VARIABLE_REF (SCM_CAR (vars));
+      SCM_VARIABLE_SET (SCM_CAR (vars), SCM_CAR (vals));
       SCM_SETCAR (vals, tmp);
-      glocs = SCM_CDR (glocs);
+      vars = SCM_CDR (vars);
       vals = SCM_CDR (vals);
     }
 }
@@ -219,13 +219,16 @@ scm_dowinds (SCM to, long delta)
 #endif
 	{
 	  wind_key = SCM_CAR (wind_elt);
-	  /* key = #t | symbol | thunk | list of glocs | list of fluids */
+	  /* key = #t | symbol | thunk | list of variables | list of fluids */
 	  if (SCM_NIMP (wind_key))
 	    {
-	      if (SCM_TYP3 (wind_key) == scm_tc3_cons_gloc)
-		scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-	      else if (SCM_TYP3 (wind_key) == scm_tc3_cons)
-		scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
+	      if (SCM_CONSP (wind_key))
+		{
+		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
+		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
+		  else if (SCM_FLUIDP (SCM_CAR (wind_key)))
+		    scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
+		}
 	      else if (SCM_GUARDSP (wind_key))
 		SCM_BEFORE_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
 	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
@@ -254,10 +257,13 @@ scm_dowinds (SCM to, long delta)
 	  wind_key = SCM_CAR (wind_elt);
 	  if (SCM_NIMP (wind_key))
 	    {
-	      if (SCM_TYP3 (wind_key) == scm_tc3_cons_gloc)
-		scm_swap_bindings (wind_key, from);
-	      else if (SCM_TYP3 (wind_key) == scm_tc3_cons)
-		scm_swap_fluids_reverse (wind_key, from);
+	      if (SCM_CONSP (wind_key))
+		{
+		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
+		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
+		  else if (SCM_FLUIDP (SCM_CAR (wind_key)))
+		    scm_swap_fluids_reverse (wind_key, SCM_CDR (wind_elt));
+		}
 	      else if (SCM_GUARDSP (wind_key))
 		SCM_AFTER_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
 	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)

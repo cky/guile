@@ -63,7 +63,7 @@
 #define scm_struct_i_size	-1 /* Instance size */
 #define scm_struct_i_flags	-1 /* Upper 12 bits used as flags */
 #define scm_vtable_index_layout  0 /* A symbol describing the physical arrangement of this type. */
-#define scm_vtable_index_vcell   1 /* An opaque word, managed by the garbage collector.  */
+#define scm_vtable_index_vcell   1 /* XXX - remove this, it is unused. */
 #define scm_vtable_index_vtable  2 /* A pointer to the handle for this vtable. */
 #define scm_vtable_index_printer 3 /* A printer for this struct type. */
 #define scm_vtable_offset_user   4 /* Where do user fields start? */
@@ -75,10 +75,9 @@ typedef size_t (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
 #define SCM_STRUCTF_LIGHT  (1L << 31) /* Light representation
 					 (no hidden words) */
 
-/* Dirk:FIXME:: the SCM_STRUCTP predicate is also fulfilled for glocs */
-#define SCM_STRUCTP(X)  		(SCM_NIMP(X) && (SCM_TYP3(X) == scm_tc3_cons_gloc))
+#define SCM_STRUCTP(X)  		(SCM_NIMP(X) && (SCM_TYP3(X) == scm_tc3_struct))
 #define SCM_STRUCT_DATA(X) 		((scm_t_bits *) SCM_CELL_WORD_1 (X))
-#define SCM_STRUCT_VTABLE_DATA(X)       ((scm_t_bits *) (SCM_CELL_WORD_0 (X) - scm_tc3_cons_gloc))
+#define SCM_STRUCT_VTABLE_DATA(X)       ((scm_t_bits *) (SCM_CELL_WORD_0 (X) - scm_tc3_struct))
 
 #define SCM_STRUCT_LAYOUT(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout]))
 #define SCM_SET_STRUCT_LAYOUT(X, v)     (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout] = SCM_UNPACK (v))
