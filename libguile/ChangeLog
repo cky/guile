@@ -1,3 +1,10 @@
+2000-04-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* ports.c (scm_port_print):  The port data is read as raw data.
+
+	* ports.h (SCM_TC2PTOBNUM, SCM_PTOBNUM):  Fix SCM/scm_bits_t
+	mismatch.
+
 2000-04-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL), objects.c (scm_mcache_lookup_cmethod,

@@ -199,8 +199,8 @@ typedef struct scm_ptob_descriptor
 
 } scm_ptob_descriptor;
 
-#define SCM_TC2PTOBNUM(x) (0x0ff & (SCM_UNPACK(x) >> 8))
-#define SCM_PTOBNUM(x) (SCM_TC2PTOBNUM (SCM_CAR (x)))
+#define SCM_TC2PTOBNUM(x) (0x0ff & ((x) >> 8))
+#define SCM_PTOBNUM(x) (SCM_TC2PTOBNUM (SCM_CELL_TYPE (x)))
 /* SCM_PTOBNAME can be 0 if name is missing */
 #define SCM_PTOBNAME(ptobnum) scm_ptobs[ptobnum].name
 
