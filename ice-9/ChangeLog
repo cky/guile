@@ -1,6 +1,7 @@
 2001-02-25  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* match.scm: New file, including Andrew K. Wright's pattern matcher.
+	* Makefile.am (ice9_sources): Added match.scm.
 
 2001-02-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
