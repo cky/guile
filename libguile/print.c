@@ -320,9 +320,7 @@ taloop:
 
 	  if (SCM_CDR (SCM_CAR (exp) - 1L) == 0)
 	    {
-	      scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1, port);
-	      scm_intprint(exp, 16, port);
-	      scm_gen_putc ('>', port);
+	      scm_print_struct (exp, port, pstate);
 	      break;
 	    }
 

@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "chars.h"
+#include "genio.h"
 
 #include "struct.h"
 
@@ -434,7 +435,7 @@ scm_struct_ref (handle, pos)
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = data[- scm_struct_n_extra_words] - scm_struct_n_extra_words;
+  n_fields = data[scm_struct_i_n_words] - scm_struct_n_extra_words;
   
   SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, s_struct_ref);
 
@@ -516,7 +517,7 @@ scm_struct_set_x (handle, pos, val)
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = data[- scm_struct_n_extra_words] - scm_struct_n_extra_words;
+  n_fields = data[scm_struct_i_n_words] - scm_struct_n_extra_words;
 
   SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, s_struct_set_x);
 
@@ -595,6 +596,41 @@ scm_struct_vtable_tag (handle)
 
 
 
+void
+scm_print_struct (exp, port, pstate)
+     SCM exp;
+     SCM port;
+     scm_print_state *pstate;
+{
+#if 0 /* XXX - too verbose */
+  SCM * data;
+  SCM layout;
+  int p;
+  int n_fields;
+  unsigned char * fields_desc;
+  unsigned char field_type;
+  
+  layout = SCM_STRUCT_LAYOUT (exp);
+  data = SCM_STRUCT_DATA (exp);
+
+  fields_desc = (unsigned char *)SCM_CHARS (layout);
+  n_fields = data[scm_struct_i_n_words] - scm_struct_n_extra_words;
+
+  scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1, port);
+  for (p = 0; p < n_fields; p++)
+    {
+      if (fields_desc[2*p] == 'p')
+	scm_iprin1 (data[p], port, pstate);
+      if (p < n_fields-1)
+	scm_gen_putc (' ', port);
+    }
+  scm_gen_putc ('>', port);
+#else
+  scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1, port);
+  scm_intprint (exp, 16, port);
+  scm_gen_putc ('>', port);
+#endif
+}
 
 void
 scm_init_struct ()

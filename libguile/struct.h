@@ -45,6 +45,7 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/print.h"
 
 
 
@@ -81,6 +82,7 @@ extern SCM scm_struct_ref SCM_P ((SCM handle, SCM pos));
 extern SCM scm_struct_set_x SCM_P ((SCM handle, SCM pos, SCM val));
 extern SCM scm_struct_vtable SCM_P ((SCM handle));
 extern SCM scm_struct_vtable_tag SCM_P ((SCM handle));
+extern void scm_print_struct SCM_P ((SCM exp, SCM port, scm_print_state *));
 extern void scm_init_struct SCM_P ((void));
 
 #endif  /* STRUCTH */
