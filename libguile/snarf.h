@@ -1,3 +1,4 @@
+
 /* classes: h_files */
 
 /* Macros for snarfing initialization actions from C source. */
@@ -109,13 +110,22 @@
 %%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, SCM_BOOL_F)
 #endif
 
+#ifndef SCM_MAGIC_SNARFER
+#define SCM_VCELL_INIT(c_name, scheme_name, init_val) \
+	static SCM c_name = SCM_BOOL_F
+#else
+#define SCM_VCELL_INIT(C_NAME, SCHEME_NAME, init_val) \
+%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, init_val)
+#endif
 
 #ifndef SCM_MAGIC_SNARFER
-#define SCM_CONST_LONG(C_NAME, SCHEME_NAME,VALUE) \
-	static SCM C_NAME = SCM_BOOL_F
+#define SCM_GLOBAL_VCELL_INIT(c_name, scheme_name, init_val) \
+	SCM c_name = SCM_BOOL_F
 #else
-#define SCM_CONST_LONG(C_NAME, SCHEME_NAME,VALUE) \
-%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, scm_long2num (VALUE))
+#define SCM_GLOBAL_VCELL_INIT(C_NAME, SCHEME_NAME, init_val) \
+%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, init_val)
 #endif
+
+#define SCM_CONST_LONG(C_NAME, SCHEME_NAME,VALUE) SCM_VCELL_INIT(C_NAME, SCHEME_NAME, scm_long2num(VALUE));
 
 #endif /* LIBGUILE_SNARF_H */
