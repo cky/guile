@@ -22,11 +22,12 @@ srcdir=@srcdir@
 subdirs=@existingdirs@
 dist_dirs=${subdirs} doc
 
-DISTFILES =	README \
-		ANNOUNCE \
-		INSTALL \
-		COPYING \
+DISTFILES =	COPYING \
+		ChangeLog \
 		GUILE-VERSION \
+		INSTALL \
+		NEWS \
+		README \
 		TODO \
 		Makefile.in \
 		configure \
