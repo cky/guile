@@ -69,7 +69,7 @@
 
 /* SCM_SRS is signed right shift */
 #if (-1 == (((-1) << 2) + 2) >> 2)
-# define SCM_SRS(x, y) ((x) >> (y))
+# define SCM_SRS(x, y) ((scm_signed_bits_t)(x) >> (y))
 #else
 # define SCM_SRS(x, y) ((SCM_UNPACK (x) < 0) ? ~((~SCM_UNPACK (x)) >> (y)) : (SCM_UNPACK (x) >> (y)))
 #endif /* (-1 == (((-1) << 2) + 2) >> 2) */
@@ -78,7 +78,7 @@
 #define SCM_INUMP(x)	(2 & SCM_UNPACK (x))
 #define SCM_NINUMP(x) 	(!SCM_INUMP (x))
 #define SCM_MAKINUM(x)  (SCM_PACK (((x) << 2) + 2L))
-#define SCM_INUM(x)     (SCM_SRS (SCM_UNPACK (x), 2))
+#define SCM_INUM(x)     ((scm_signed_bits_t)(SCM_SRS (SCM_UNPACK (x), 2)))
 
 
 /* SCM_FIXABLE is true if its long argument can be encoded in an SCM_INUM. */
