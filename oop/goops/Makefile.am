@@ -27,7 +27,7 @@ goops_sources =							\
     dispatch.scm internal.scm save.scm stklos.scm util.scm      \
     old-define-method.scm
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/oop/goops
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/oop/goops
 subpkgdata_DATA = $(goops_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 
