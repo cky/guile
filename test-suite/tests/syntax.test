@@ -20,6 +20,8 @@
 
 (define exception:bad-bindings
   (cons 'misc-error "^bad bindings"))
+(define exception:duplicate-bindings
+  (cons 'misc-error "^duplicate bindings"))
 (define exception:bad-body
   (cons 'misc-error "^bad body"))
 (define exception:bad-formals
@@ -100,16 +102,19 @@
       (let ((x 1))))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let)"
       exception:bad-body
       (let))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let 1)"
       exception:bad-body
       (let 1))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let (x))"
       exception:bad-body
       (let (x))))
@@ -130,10 +135,12 @@
 
     (pass-if-exception "(let ((1 2)) 3)"
       exception:bad-var
-      (let ((1 2)) 3))
+      (let ((1 2)) 3)))
 
-    (expect-fail-exception "(let ((x 1) (x 2)) x)"
-      exception:bad-bindings
+  (with-test-prefix "duplicate bindings"
+
+    (pass-if-exception "(let ((x 1) (x 2)) x)"
+      exception:duplicate-bindings
       (let ((x 1) (x 2)) x))))
 
 (with-test-prefix "named let"
@@ -149,6 +156,7 @@
       (let x ((y 1))))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let x (y))"
       exception:bad-body
       (let x (y)))))
@@ -166,16 +174,19 @@
       (let* ((x 1))))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let*)"
       exception:bad-body
       (let*))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let* 1)"
       exception:bad-body
       (let* 1))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let* (x))"
       exception:bad-body
       (let* (x))))
@@ -204,10 +215,12 @@
 
     (pass-if-exception "(let* ((1 2)) 3)"
       exception:bad-var
-      (let* ((1 2)) 3))
+      (let* ((1 2)) 3)))
 
-    (expect-fail-exception "(let* ((x 1) (x 2)) x)"
-      exception:bad-bindings
+  (with-test-prefix "duplicate bindings"
+
+    (pass-if-exception "(let* ((x 1) (x 2)) x)"
+      exception:duplicate-bindings
       (let* ((x 1) (x 2)) x))))
 
 (with-test-prefix "letrec"
@@ -230,16 +243,19 @@
       (letrec ((x 1))))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(letrec)"
       exception:bad-body
       (letrec))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(letrec 1)"
       exception:bad-body
       (letrec 1))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(letrec (x))"
       exception:bad-body
       (letrec (x))))
@@ -268,10 +284,12 @@
 
     (pass-if-exception "(letrec ((1 2)) 3)"
       exception:bad-var
-      (letrec ((1 2)) 3))
+      (letrec ((1 2)) 3)))
 
-    (expect-fail-exception "(letrec ((x 1) (x 2)) x)"
-      exception:bad-bindings
+  (with-test-prefix "duplicate bindings"
+
+    (pass-if-exception "(letrec ((x 1) (x 2)) x)"
+      exception:duplicate-bindings
       (letrec ((x 1) (x 2)) x))))
 
 (with-test-prefix "if"
