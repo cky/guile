@@ -1,13 +1,13 @@
 @page
 @node R5RS Index
-@chapter R5RS Index
+@unnumbered R5RS Index
 
 @printindex rn
 
 
 @page
 @node Guile Extensions Index
-@chapter Guile Extensions Index
+@unnumbered Guile Extensions Index
 
 @printindex ge
 

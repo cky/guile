@@ -64,7 +64,7 @@ If you do not wish that, delete this exception notice.  */
 /*
 xSCM_DEFINE (scm_i_index, "i-index", 2, 2, 0,
            (SCM str, SCM chr, SCM frm, SCM to),
-	   "@deftypefn {Internal C Function} {static int} scm_i_index (SCM *@var{str}, \n"
+	   "@deftypefn {Internal C Function} {static int} scm_i_index (SCM *@var{str},\n"
 	   "SCM @var{chr}, int @var{direction}, SCM @var{sub_start}, SCM @var{sub_end}, char *@var{why})
 	   "This is a workhorse function that performs either an @code{index} or\n"
 	   "@code{rindex} function, depending on the value of @var{direction}."

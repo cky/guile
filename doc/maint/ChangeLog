@@ -1,3 +1,13 @@
+2001-11-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.texi: Replaced by libguile version (after automatically
+	updating docstrings in the reference manual).
+
+	* docstring.el (docstring-manual-directory): Added "/ref" to end.
+	(docstring-manual-files): Now calculated automatically, since by
+	definition all the .texi files in doc/ref are reference manual
+	files.
+
 2001-04-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* guile.texi: Automated docstring merging.

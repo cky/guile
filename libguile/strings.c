@@ -211,7 +211,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 	    "Return a newly allocated string of\n"
             "length @var{k}.  If @var{chr} is given, then all elements of\n"
 	    "the string are initialized to @var{chr}, otherwise the contents\n"
-	    "of the @var{string} are unspecified.\n")
+	    "of the @var{string} are unspecified.")
 #define FUNC_NAME s_scm_make_string
 {
   if (SCM_INUMP (k))

@@ -1,0 +1,199 @@
+@page
+@node Programming Options
+@chapter Programming Options in Guile
+
+What does it mean to program using Guile?
+
+If you are an application developer, and want to combine Guile in some
+way with your application, there is a range of possibilities available
+to you@dots{}
+
+@itemize @bullet
+@item
+You could choose to write your whole application in Scheme (or one of
+the other high level languages that Guile supports through translation),
+and simply use Guile as an interpreter (and hopefully in the future a
+compiler) for Scheme.
+
+@item
+You could write a small amount of C code that implements domain-specific
+@dfn{primitive} functions for your application and connects these to the
+Scheme level of Guile, and then write the rest of your application,
+using these application-specific primitives, in Scheme.
+
+@item
+You could write almost all of your application in C, and only call out
+to Guile occasionally for specific actions such as reading a
+configuration file or executing a user-specified extension.
+@end itemize
+
+Underlying these choices are two basic questions.
+
+@itemize @bullet
+@item
+Which parts of the application do you write in C, and which in Scheme
+(or another high level translated language)?
+
+@item
+How do you design the interface between the C and Scheme parts of your
+application?
+@end itemize
+
+These are of course design questions, and the right design for any given
+application will always depend upon the particular requirements that you
+are trying to meet.  In the Guile world, however, there are some
+generally applicable considerations that can help you when searching for
+the answers.
+
+@menu
+* Available Functionality::     What functionality is already available?
+* Basic Constraints::           Functional and performance constraints.
+* Style Choices::               Your preferred programming style.
+* Program Control::             What controls program execution?
+* User Programming::            How about application users?
+@end menu
+
+
+@node Available Functionality
+@section What Functionality is Already Available?
+
+Suppose, for the sake of argument, that you would prefer to write your
+whole application in Scheme.  Then the API available to you consists of:
+
+@itemize @bullet
+@item
+standard Scheme
+
+@item
+plus the extensions to standard Scheme provided by
+Guile in its core distribution
+
+@item
+plus any additional functionality that you or others have packaged so
+that it can be loaded as a Guile Scheme module.
+@end itemize
+
+A module in the last category can either be a pure Scheme module --- in
+other words a collection of utility procedures coded in Scheme --- or a
+module that provides a Scheme interface to an extension library coded in
+C --- in other words a nice package where someone else has done the work
+of wrapping up some useful C code for you.  The set of available modules
+is growing quickly and already includes such useful examples as
+@code{(gtk gtk)}, which makes Gtk+ drawing functions available in
+Scheme, and @code{(database postgres)}, which provides SQL access to a
+Postgres database.
+
+In practice, therefore, it is quite feasible that your application can
+be implemented by combining together a selection of pre-existing modules
+with new application code written in Scheme, and approach may
+suffice for the application that you want to write.
+
+If it does not suffice, because the functionality that your application
+needs is not already available in this form (and assuming that it's
+impossible or unacceptable for performance reasons to write the new
+functionality in Scheme), you will need to write some C code.
+
+@itemize @bullet
+@item
+If the required function is already written (e.g. in a library), you
+only need a little glue to connect it to the world of Guile.
+
+@item
+If not, you need to write the basic code as well.
+@end itemize
+
+In either case, two general considerations are important.  Firstly, what
+is the interface by which the functionality is presented to the Scheme
+world?  Does the interface consist only of function calls (for example,
+a simple drawing interface), or does it need to include @dfn{objects} of
+some kind that can be passed between C and Scheme and manipulated by
+both worlds.  Secondly, how does the lifetime and memory management of
+objects in the C code relate to the garbage collection governed approach
+of Scheme objects?  In the case where the basic C code is not already
+written, most of the difficulties of memory management can be avoided by
+using Guile's C interface features from the start.
+
+For further information, tips and guidelines on writing C code for
+Guile, or for connecting existing C code to the Guile world, see
+REFFIXME.
+
+
+@node Basic Constraints
+@section Functional and Performance Constraints
+
+
+@node Style Choices
+@section Your Preferred Programming Style
+
+
+@node Program Control
+@section What Controls Program Execution?
+
+What indeed?
+
+
+@node User Programming
+@section How About Application Users?
+
+So far we have considered what Guile programming means for an
+application developer.  But what if you are instead @emph{using} an
+existing Guile-based application, and want to know what your
+options are for programming and extending this application?
+
+The answer to this question varies from one application to another,
+because the options available depend inevitably on whether the
+application developer has provided any hooks for you to hang your own
+code on and, if there are such hooks, what they allow you to
+do.@footnote{Of course, in the world of free software, you always have
+the freedom to modify the application's source code to your own
+requirements.  Here we are concerned with the extension options that the
+application has provided for without your needing to modify its source
+code.}  For example@dots{}
+
+@itemize @bullet
+@item
+If the application permits you to load and execute any Guile code, the
+world is your oyster.  You can extend the application in any way that
+you choose.
+
+@item
+A more cautious application might allow you to load and execute Guile
+code, but only in a @dfn{safe} environment, where the interface
+available is restricted by the application from the standard Guile API.
+
+@item
+Or a really fearful application might not provide a hook to really
+execute user code at all, but just use Scheme syntax as a convenient way
+for users to specify application data or configuration options.
+@end itemize
+
+In the last two cases, what you can do is, by definition, restricted by
+the application, and you should refer to the application's own manual to
+find out your options.
+
+The most well known example of the first case is Emacs, with its
+extension language Emacs Lisp: as well as being a text editor, Emacs
+supports the loading and execution of arbitrary Emacs Lisp code.  The
+result of such openness has been dramatic: Emacs now benefits from
+user-contributed Emacs Lisp libraries that extend the basic editing
+function to do everything from reading news to psychoanalysis and
+playing adventure games.  The only limitation is that extensions are
+restricted to the functionality provided by Emacs's built-in set of
+primitive operations.  For example, you can interact and display data by
+manipulating the contents of an Emacs buffer, but you can't popup and
+draw a window with a layout that is totally different to the Emacs
+standard.
+
+This situation with a Guile application that supports the loading of
+arbitrary user code is similar, except perhaps even more so, because
+Guile also supports the loading of extension libraries written in C.
+This last point enables user code to add new primitive operations to
+Guile, and so to bypass the limitation present in Emacs Lisp.
+
+At this point, the distinction between an application developer and an
+application user becomes rather blurred.  Instead of seeing yourself as
+a user extending an application, you could equally well say that you are
+developing a new application of your own using some of the primitive
+functionality provided by the original application.  As such, all the
+discussions of the preceding sections of this chapter are relevant to
+how you can proceed with developing your extension.

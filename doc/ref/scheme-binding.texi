@@ -233,7 +233,7 @@ bound in expression, you can use the @code{bound?} macro from the module
 
 @c NJFIXME explain [env]
 @deffn primitive defined? sym [env]
-Return @code{#t} if @var{sym} is defined in the top-level environment.
+Return @code{#t} if @var{sym} is defined in the lexical environment @var{env}.  When @var{env} is not specified, look in the top-level environment as defined by the current module.
 @end deffn
 
 

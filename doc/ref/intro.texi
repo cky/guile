@@ -1,4 +1,5 @@
-@c $Id: intro.texi,v 1.2 2001-08-27 21:25:44 ossau Exp $
+@c $Id: intro.texi,v 1.3 2001-11-11 15:01:51 ossau Exp $
+
 
 @page
 @node What is Guile?
@@ -49,6 +50,7 @@ Tcl and Perl by translating them to Scheme code.  This means that users
 can program applications which use Guile in the language of their
 choice, rather than having the tastes of the application's author
 imposed on them.
+
 
 @page
 @node Whirlwind Tour
@@ -582,6 +584,7 @@ guile> (exit)
 $
 @end example
 
+
 @node Writing Extensions for Guile
 @section Writing Extensions for Guile
 
@@ -623,6 +626,7 @@ by Guile.
 @menu
 * A Sample Guile Extension::
 @end menu
+
 
 @node A Sample Guile Extension
 @subsection A Sample Guile Extension
@@ -688,6 +692,7 @@ environment variable.
 To see how these Guile extensions via shared libraries relate to the
 module system, see below @xref{Intro to Modules and Extensions}.
 
+
 @node Guile Modules
 @section Guile Modules
 
@@ -701,12 +706,12 @@ anyway.  Guile will provide reasonable backwards compatability.)
 Details on the module system beyond this introductory material can be found in
 @xref{Modules}.
 
-
 @menu
 * Intro to Using Guile Modules::
 * Intro to Writing New Modules::
 * Intro to Modules and Extensions::
 @end menu
+
 
 @node Intro to Using Guile Modules
 @subsection Intro to Using Existing Modules
@@ -847,6 +852,110 @@ a module.  You need to explicitly list the ones you want to export in
 There is also a way to manipulate the module system from C but only
 Scheme files can be autoloaded.  Thus, we recommend that you define
 your modules in Scheme.
+
+
+@page
+@node Obtaining and Installing Guile
+@chapter Obtaining and Installing Guile
+
+Here is the information you will need to get and install Guile and extra
+packages and documentation you might need or find interesting.
+
+@menu
+* The Basic Guile Package::      
+* Packages not shipped with Guile::  
+@end menu
+
+
+@node The Basic Guile Package
+@section The Basic Guile Package
+
+Guile can be obtained from the main GNU archive site
+@url{ftp://prep.ai.mit.edu/pub/gnu} or any of its mirrors.  The file
+will be named guile-version.tar.gz.  The current version is
+@value{VERSION}, so the file you should grab is:
+
+@url{ftp://prep.ai.mit.edu/pub/gnu/guile-@value{VERSION}.tar.gz}
+
+To unbundle Guile use the instruction
+@example
+zcat guile-@value{VERSION}.tar.gz | tar xvf -
+@end example
+which will create a directory called @file{guile-@value{VERSION}} with
+all the sources.  You can look at the file @file{INSTALL} for detailed
+instructions on how to build and install Guile, but you should be able
+to just do
+@example
+cd guile-@value{VERSION}
+./configure
+make install
+@end example
+
+This will install the Guile executable @file{guile}, the Guile library
+@file{libguile.a} and various associated header files and support
+libraries. It will also install the Guile tutorial and reference manual.
+
+@c [[include instructions for getting R5RS]]
+
+Since this manual frequently refers to the Scheme ``standard'', also
+known as R5RS, or the
+@iftex
+``Revised$^5$ Report on the Algorithmic Language Scheme'',
+@end iftex
+@ifinfo
+``Revised^5 Report on the Algorithmic Language Scheme'',
+@end ifinfo
+we have included the report in the Guile distribution;
+@xref{Top, , Introduction, r5rs, Revised(5) Report on the Algorithmic
+Language Scheme}.
+This will also be installed in your info directory.
+
+
+@node Packages not shipped with Guile
+@section Packages not shipped with Guile
+
+We ship the Guile tutorial and reference manual with the Guile
+distribution.  Since the Scheme standard (R5RS) is a stable document, we
+ship that too.
+
+Here are references (usually World Wide Web URLs) to some other freely
+redistributable documents and packages which you might find useful if
+you are using Guile.
+
+@table @strong
+@item SCSH
+the Scheme Shell.  Gary Houston has ported SCSH to Guile.  The relevant
+chapter (@pxref{The Scheme shell (scsh)}) has references to the SCSH web
+page with all its documentation.
+
+@item SLIB
+a portable Scheme library maintained by Aubrey Jaffer.  SLIB can be
+obtained by ftp from @url{ftp://prep.ai.mit.edu/pub/gnu/jacal/}.
+
+The SLIB package should be unpacked somewhere in Guile's load path.  It
+will typically be unpacked in @file{/usr/local/share/guile/site}, so
+that it will be @file{/usr/local/share/guile/site/slib}.
+
+Guile might have been installed with a different prefix, in which case
+the load path can be checked from inside the interpreter with:
+
+@smalllisp
+guile> %load-path
+("/usr/local/share/guile/site" "/usr/local/share/guile/1.3a" "/usr/local/share/guile" ".")
+@end smalllisp
+
+The relevant chapter (@pxref{SLIB}) has details on how to use SLIB with
+Guile.
+
+@item JACAL
+a symbolic math package by Aubrey Jaffer.  The latest version of Jacal
+can be obtained from @url{ftp://prep.ai.mit.edu/pub/gnu/jacal/}, and
+should be unpacked in @file{/usr/local/share/guile/site/slib} so that
+it will be in @file{/usr/local/share/guile/site/slib/jacal}.
+
+The relevant section (@pxref{JACAL}) has details on how to use Jacal.
+@end table
+
 
 @page
 @node Reporting Bugs

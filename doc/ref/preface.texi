@@ -6,8 +6,8 @@ This reference manual documents Guile, GNU's Ubiquitous Intelligent
 Language for Extensions.  It describes how to use Guile in many useful
 and interesting ways.
 
-This is edition 1.0 of the reference manual, and corresponds to Guile
-version @value{VERSION}.
+This is edition @value{MANUAL_EDITION} of the reference manual, and
+corresponds to Guile version @value{VERSION}.
 @end iftex
 
 
@@ -74,56 +74,73 @@ do not wish that, delete this exception notice.
 @chapter Layout of this Manual
 @end ifnottex
 
-This manual is divided into five parts.
+The manual is divided into three parts.
 
 @strong{Part I: Introduction to Guile} provides an overview of what
 Guile is and how you can use it.  A whirlwind tour shows how Guile can
 be used interactively and as a script interpreter, how to link Guile
 into your own applications, and how to write modules of interpreted and
-compiled code for use with Guile.  All of the ideas introduced here are
-documented in full by the later parts of the manual.
+compiled code for use with Guile.  Everything introduced here is
+documented again and in full by the later parts of the manual.  This
+part also explains how to obtain and install new versions of Guile, and
+how to report bugs effectively.
 
-@strong{Part II: Guile Scheme} documents the core Scheme language and
-features that Guile implements.  Although the basis for this is the
-Scheme language described in R5RS, this part of the manual does not
-assume any prior familiarity with R5RS in particular, or with Scheme in
-general.  Basic Scheme concepts, standard aspects of the Scheme language
-and Guile extensions on top of R5RS are all documented from scratch, and
-organized by functionality rather than by the defining standards.
+@strong{Part II: Programming with Guile} documents all aspects of
+practical programming using Guile.  This covers both the Scheme level
+--- where we provide an introduction to the key ideas of the Scheme
+language --- and use of Guile's @code{scm} interface to write new
+primitives and objects in C, and to incorporate Guile into a C
+application.  It also covers the use of Guile as a POSIX compliant
+script interpreter, and how to use the Guile debugger.
 
-@strong{Part III: Guile Modules} describes some important modules,
+@c @strong{Part V: Extending Applications Using Guile} explains the options
+@c available for using Guile as a application extension language.  At the
+@c simpler end of the scale, an application might use Guile to define some
+@c application-specific primitives in C and then load an application Scheme
+@c file.  In this case most of the application code is written on the
+@c Scheme level, and uses the application-specific primitives as an
+@c extension to standard Scheme.  At the other end of the scale, an
+@c application might be predominantly written in C --- with its main
+@c control loop implemented in C --- but make occasional forays into Scheme
+@c to, say, read configuration data or run user-defined customization code.
+@c This part of the manual covers the complete range of application
+@c extension options.
+
+@strong{Part III: Guile API Reference} documents Guile's core API.  Most
+of the variables and procedures in Guile's core programming interface
+are available in both Scheme and C, and are related systematically such
+that the C interface can be inferred from the Scheme interface and vice
+versa.  Therefore this part of the manual documents the Guile API in
+functionality-based groups with the Scheme and C interfaces presented
+side by side.  Where the Scheme and C interfaces for a particular
+functional area do differ --- which is sometimes inevitable, given the
+differences in the structure of the two languages --- this is pointed
+out and explained.  In all cases the overriding principle is that all
+the reference documentation for a given functional area is grouped
+together.
+
+@c the core Scheme language and features that Guile implements.  Although
+@c the basis for this is the Scheme language described in R5RS, this part
+@c of the manual does not assume any prior familiarity with R5RS in
+@c particular, or with Scheme in general.  Basic Scheme concepts, standard
+@c aspects of the Scheme language and Guile extensions on top of R5RS are
+@c all documented from scratch, and organized by functionality rather than
+@c by the defining standards.
+
+@strong{Part IV: Guile Modules} describes some important modules,
 distributed as part of the Guile distribution, that extend the
-functionality provided by the Guile Scheme core, most notably:
+functionality provided by the Guile Scheme core.  Two important examples
+are:
 
 @itemize @bullet
 @item
 the POSIX module, which provides Scheme level procedures for system and
-network programming, conforming to the POSIX standard
+network programming that conform to the POSIX standard
 
 @item
 the SLIB module, which makes Aubrey Jaffer's portable Scheme library
 available for use in Guile.
 @end itemize
-
-@strong{Part IV: Guile Scripting} documents the use of Guile as a script
-interpreter, and illustrates this with a series of examples.
-
-@strong{Part V: Extending Applications Using Guile} explains the options
-available for using Guile as a application extension language.  At the
-simpler end of the scale, an application might use Guile to define some
-application-specific primitives in C and then load an application Scheme
-file.  In this case most of the application code is written on the
-Scheme level, and uses the application-specific primitives as an
-extension to standard Scheme.  At the other end of the scale, an
-application might be predominantly written in C --- with its main
-control loop implemented in C --- but make occasional forays into Scheme
-to, say, read configuration data or run user-defined customization code.
-This part of the manual covers the complete range of application
-extension options.
-
-Finally, the appendices explain how to obtain the latest version of
-Guile, how to install it, where to find modules to work with Guile, and
-how to use the Guile debugger.
 
 
 @iftex

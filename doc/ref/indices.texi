@@ -1,3 +1,4 @@
+@page
 @node Concept Index
 @unnumbered Concept Index
 
@@ -41,9 +42,6 @@ in the section @xref{Transforming Scheme name to C name}.
 
 
 @page
-@c Spell out this node fully, because it is the last real node
-@c in the top-level menu.  Leaving off the pointers here causes
-@c spurious makeinfo errors.
 @node Type Index
 @unnumbered Type Index
 

@@ -12,6 +12,7 @@
 * Block Reading and Writing::   Reading and writing blocks of text.
 * Default Ports::               Defaults for input, output and errors.
 * Port Types::                  Types of port and how to make them.
+* I/O Extensions::              Using and extending ports in C.
 @end menu
 
 
@@ -119,8 +120,20 @@ unread characters will be read again in last-in first-out order.  If
 @end deffn
 
 @deffn primitive drain-input port
-Drain @var{port}'s read buffers (including any pushed-back
-characters) and return the content as a single string.
+This procedure clears a port's input buffers, similar
+to the way that force-output clears the output buffer.  The
+contents of the buffers are returned as a single string, e.g.,
+
+@lisp
+(define p (open-input-file ...))
+(drain-input p) => empty string, nothing buffered yet.
+(unread-char (read-char p) p)
+(drain-input p) => initial chars from p, up to the buffer size.
+@end lisp
+
+Draining the buffers may be useful for cleanly finishing
+buffered I/O so that the file descriptor can be used directly
+for further input.
 @end deffn
 
 @deffn primitive port-column port
@@ -419,7 +432,7 @@ The Block-string-I/O module can be accessed with:
 It currently contains procedures that help to implement the
 @code{(scsh rw)} module in guile-scsh.
 
-@deffn primitive read-string!/partial str [port_or_fdes start end]
+@deffn primitive read-string!/partial str [port_or_fdes [start [end]]]
 Read characters from a port or file descriptor into a
 string @var{str}.  A port must have an underlying file
 descriptor --- a so-called fport.  This procedure is
@@ -828,6 +841,221 @@ Create and return a new void port.  A void port acts like
 modes for this port: see the documentation for @code{open-file} in
 @ref{File Ports}.
 @end deffn
+
+
+@node I/O Extensions
+@section Using and Extending Ports in C
+
+@menu
+* C Port Interface:: Using ports from C.
+* Port Implementation:: How to implement a new port type in C.
+@end menu
+
+
+@node C Port Interface
+@subsection C Port Interface
+
+This section describes how to use Scheme ports from C.
+
+@subsubsection Port basics
+
+There are two main data structures.  A port type object (ptob) is of
+type @code{scm_ptob_descriptor}.  A port instance is of type
+@code{scm_port}.  Given an @code{SCM} variable which points to a port,
+the corresponding C port object can be obtained using the
+@code{SCM_PTAB_ENTRY} macro.  The ptob can be obtained by using
+@code{SCM_PTOBNUM} to give an index into the @code{scm_ptobs}
+global array.
+
+@subsubsection Port buffers
+
+An input port always has a read buffer and an output port always has a
+write buffer.  However the size of these buffers is not guaranteed to be
+more than one byte (e.g., the @code{shortbuf} field in @code{scm_port}
+which is used when no other buffer is allocated).  The way in which the
+buffers are allocated depends on the implementation of the ptob.  For
+example in the case of an fport, buffers may be allocated with malloc
+when the port is created, but in the case of an strport the underlying
+string is used as the buffer.
+
+@subsubsection The @code{rw_random} flag
+
+Special treatment is required for ports which can be seeked at random.
+Before various operations, such as seeking the port or changing from
+input to output on a bidirectional port or vice versa, the port
+implemention must be given a chance to update its state.  The write
+buffer is updated by calling the @code{flush} ptob procedure and the
+input buffer is updated by calling the @code{end_input} ptob procedure.
+In the case of an fport, @code{flush} causes buffered output to be
+written to the file descriptor, while @code{end_input} causes the
+descriptor position to be adjusted to account for buffered input which
+was never read.
+
+The special treatment must be performed if the @code{rw_random} flag in
+the port is non-zero.
+
+@subsubsection The @code{rw_active} variable
+
+The @code{rw_active} variable in the port is only used if
+@code{rw_random} is set.  It's defined as an enum with the following
+values:
+
+@table @code
+@item SCM_PORT_READ
+the read buffer may have unread data.
+
+@item SCM_PORT_WRITE
+the write buffer may have unwritten data.
+
+@item SCM_PORT_NEITHER
+neither the write nor the read buffer has data.
+@end table
+
+@subsubsection Reading from a port.
+
+To read from a port, it's possible to either call existing libguile
+procedures such as @code{scm_getc} and @code{scm_read_line} or to read
+data from the read buffer directly.  Reading from the buffer involves
+the following steps:
+
+@enumerate
+@item
+Flush output on the port, if @code{rw_active} is @code{SCM_PORT_WRITE}.
+
+@item
+Fill the read buffer, if it's empty, using @code{scm_fill_input}.
+
+@item Read the data from the buffer and update the read position in
+the buffer.  Steps 2) and 3) may be repeated as many times as required.
+
+@item Set rw_active to @code{SCM_PORT_READ} if @code{rw_random} is set.
+
+@item update the port's line and column counts.
+@end enumerate
+
+@subsubsection Writing to a port.
+
+To write data to a port, calling @code{scm_lfwrite} should be sufficient for
+most purposes.  This takes care of the following steps:
+
+@enumerate
+@item
+End input on the port, if @code{rw_active} is @code{SCM_PORT_READ}.
+
+@item
+Pass the data to the ptob implementation using the @code{write} ptob
+procedure.  The advantage of using the ptob @code{write} instead of
+manipulating the write buffer directly is that it allows the data to be
+written in one operation even if the port is using the single-byte
+@code{shortbuf}.
+
+@item
+Set @code{rw_active} to @code{SCM_PORT_WRITE} if @code{rw_random}
+is set.
+@end enumerate
+
+
+@node Port Implementation
+@subsection Port Implementation
+
+This section describes how to implement a new port type in C.
+
+As described in the previous section, a port type object (ptob) is
+a structure of type @code{scm_ptob_descriptor}.  A ptob is created by
+calling @code{scm_make_port_type}.
+
+All of the elements of the ptob, apart from @code{name}, are procedures
+which collectively implement the port behaviour.  Creating a new port
+type mostly involves writing these procedures.
+
+@code{scm_make_port_type} initializes three elements of the structure
+(@code{name}, @code{fill_input} and @code{write}) from its arguments.
+The remaining elements are initialized with default values and can be
+set later if required.
+
+@table @code
+@item name
+A pointer to a NUL terminated string: the name of the port type.  This
+is the only element of @code{scm_ptob_descriptor} which is not
+a procedure.  Set via the first argument to @code{scm_make_port_type}.
+
+@item mark
+Called during garbage collection to mark any SCM objects that a port
+object may contain.  It doesn't need to be set unless the port has
+@code{SCM} components.  Set using @code{scm_set_port_mark}.
+
+@item free
+Called when the port is collected during gc.  It
+should free any resources used by the port.
+Set using @code{scm_set_port_free}.
+
+@item print
+Called when @code{write} is called on the port object, to print a
+port description.  e.g., for an fport it may produce something like:
+@code{#<input: /etc/passwd 3>}.   Set using @code{scm_set_port_print}.
+
+@item equalp
+Not used at present.  Set using @code{scm_set_port_equalp}.
+
+@item close
+Called when the port is closed, unless it was collected during gc.  It
+should free any resources used by the port.
+Set using @code{scm_set_port_close}.
+
+@item write
+Accept data which is to be written using the port.  The port implementation
+may choose to buffer the data instead of processing it directly.
+Set via the third argument to @code{scm_make_port_type}.
+
+@item flush
+Complete the processing of buffered output data.  Reset the value of
+@code{rw_active} to @code{SCM_PORT_NEITHER}.
+Set using @code{scm_set_port_flush}.
+
+@item end_input
+Perform any synchronisation required when switching from input to output
+on the port.  Reset the value of @code{rw_active} to @code{SCM_PORT_NEITHER}.
+Set using @code{scm_set_port_end_input}.
+
+@item fill_input
+Read new data into the read buffer and return the first character.  It
+can be assumed that the read buffer is empty when this procedure is called.
+Set via the second argument to @code{scm_make_port_type}.
+
+@item input_waiting
+Return a lower bound on the number of bytes that could be read from the
+port without blocking.  It can be assumed that the current state of
+@code{rw_active} is @code{SCM_PORT_NEITHER}.
+Set using @code{scm_set_port_input_waiting}.
+
+@item seek
+Set the current position of the port.  The procedure can not make
+any assumptions about the value of @code{rw_active} when it's
+called.  It can reset the buffers first if desired by using something
+like:
+
+@example
+      if (pt->rw_active == SCM_PORT_READ)
+	scm_end_input (object);
+      else if (pt->rw_active == SCM_PORT_WRITE)
+	ptob->flush (object);
+@end example
+
+However note that this will have the side effect of discarding any data
+in the unread-char buffer, in addition to any side effects from the
+@code{end_input} and @code{flush} ptob procedures.  This is undesirable
+when seek is called to measure the current position of the port, i.e.,
+@code{(seek p 0 SEEK_CUR)}.  The libguile fport and string port
+implementations take care to avoid this problem.
+
+The procedure is set using @code{scm_set_port_seek}.
+
+@item truncate
+Truncate the port data to be specified length.  It can be assumed that the
+current state of @code{rw_active} is @code{SCM_PORT_NEITHER}.
+Set using @code{scm_set_port_truncate}.
+
+@end table
 
 
 @c Local Variables:

@@ -374,7 +374,7 @@ SCM_DEFINE (scm_guardian_destroyed_p, "guardian-destroyed?", 1, 0, 0,
 
 SCM_DEFINE (scm_guardian_greedy_p, "guardian-greedy?", 1, 0, 0,
             (SCM guardian),
-            "Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.\n")
+            "Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_guardian_greedy_p  
 {
   return SCM_BOOL (GREEDY_P (GUARDIAN_DATA (guardian)));

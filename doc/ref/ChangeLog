@@ -1,3 +1,61 @@
+2001-11-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.texi (Top): Added new chapter `Programming Options'.
+
+	* program.texi: New file.
+
+	* Makefile.am (guile_TEXINFOS): Added program.texi.
+
+2001-11-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-memory.texi, scheme-io.texi, scheme-debug.texi,
+	scheme-data.texi, scheme-binding.texi, posix.texi,
+	new-docstrings.texi: Automatic updates from improved libguile
+	docstrings.
+
+2001-11-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* preface.texi: Use MANUAL_EDITION variable.
+	(Manual Layout): Updated to reflect reorg.
+
+	* guile.texi (MANUAL_EDITION): New variable, with value
+	incremented from 1.0 to 1.1 to reflect the reorg described here.
+	(Top): Use MANUAL_EDITION variable.
+
+	* scheme-indices.texi (R5RS Index, Guile Extensions Index): Use
+	@unnumbered rather than @chapter for these indices.
+
+	* guile.texi (Top): A little top-level reshuffling, with the aims
+	that: (1) the `Guile Scheme' (reference) part of the manual
+	becomes the `Guile API Reference', and covers both Scheme and C
+	interfaces; (2) non-API-reference material such as the `Basic
+	Ideas in Scheme' chapter is collected together to form a new part
+	`Programming with Guile'.  This new part will contain general
+	documentation on using and programming Guile in both Scheme and C,
+	including - for example - awareness of GC when C programming, how
+	to use the snarf macros, how to debug ...
+	(Top): Move inclusion of scheme-indices.texi so that all indices
+	appear together in the printed manual.
+
+	* Makefile.am (guile_TEXINFOS): Removed appendices.texi, added
+	debugging.texi.
+	
+	* appendices.texi: Removed.
+
+	* debugging.texi (Debugger User Interface): New file, same as the
+	material that used to be in appendices.texi, but now a chapter in
+	Part II rather than an appendix.
+
+	* appendices.texi (Obtaining and Installing Guile): Moved to
+	become a chapter in ...
+	* intro.texi: ... Part I: Introduction to Guile.
+
+	* scm.texi (I/O Extensions): Moved to become a section of ...
+	* scheme-io.texi (Input and Output): ... this chapter.
+
+	* scm.texi (Handling Errors): Moved to become a section of ...
+	* scheme-control.texi (Control Mechanisms): ... this chapter.
+
 2001-11-06  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* srfi-modules.texi (SRFI-19, SRFI-19 Constants, SRFI-19 Current

@@ -202,7 +202,7 @@ Return @code{#t} if @var{obj} is an operator.
 @end deffn
 
 @deffn primitive set-object-procedure! obj proc
-Return the object procedure of @var{obj} to @var{proc}.
+Set the object procedure of @var{obj} to @var{proc}.
 @var{obj} must be either an entity or an operator.
 @end deffn
 

@@ -1328,7 +1328,7 @@ SCM_DEFINE (scm_sync, "sync", 0, 0, 0,
 SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0, 
             (SCM key, SCM salt),
 	    "Encrypt @var{key} using @var{salt} as the salt value to the\n"
-	    "crypt(3) library call\n")
+	    "crypt(3) library call.")
 #define FUNC_NAME s_scm_crypt
 {
   char * p;

@@ -304,9 +304,11 @@ If @var{l} does not hold a value for @var{key}, the value
 @end deffn
 
 @deffn primitive slot-ref-using-class class obj slot_name
+
 @end deffn
 
 @deffn primitive slot-set-using-class! class obj slot_name value
+
 @end deffn
 
 @deffn primitive class-of x
@@ -319,33 +321,43 @@ on the C level which depends on the loaded GOOPS modules.
 @end deffn
 
 @deffn primitive %method-more-specific? m1 m2 targs
+
 @end deffn
 
 @deffn primitive find-method . l
+
 @end deffn
 
 @deffn primitive primitive-generic-generic subr
+
 @end deffn
 
 @deffn primitive enable-primitive-generic! . subrs
+
 @end deffn
 
 @deffn primitive generic-capability? proc
+
 @end deffn
 
 @deffn primitive %invalidate-method-cache! gf
+
 @end deffn
 
 @deffn primitive %invalidate-class class
+
 @end deffn
 
 @deffn primitive %modify-class old new
+
 @end deffn
 
 @deffn primitive %modify-instance old new
+
 @end deffn
 
 @deffn primitive %set-object-setter! obj setter
+
 @end deffn
 
 @deffn primitive %allocate-instance class initargs
@@ -367,9 +379,11 @@ Set the slot named @var{slot_name} of @var{obj} to @var{value}.
 @end deffn
 
 @deffn primitive slot-exists-using-class? class obj slot_name
+
 @end deffn
 
 @deffn primitive slot-bound-using-class? class obj slot_name
+
 @end deffn
 
 @deffn primitive %fast-slot-set! obj index value
@@ -460,9 +474,11 @@ Return @code{#t} if @var{obj} is an instance.
 @end deffn
 
 @deffn primitive %inherit-magic! class dsupers
+
 @end deffn
 
 @deffn primitive %prep-layout! class
+
 @end deffn
 
 @deffn primitive %initialize-object obj initargs
@@ -529,4 +545,57 @@ is the first call to @code{issue-deprecation-warning} with
 this specific @var{msg}.  Do nothing otherwise.
 The argument @var{msgs} should be a list of strings;
 they are printed in turn, each one followed by a newline.
+@end deffn
+
+@deffn primitive valid-object-procedure? proc
+Return @code{#t} iff @var{proc} is a procedure that can be used with @code{set-object-procedure}.  It is always valid to use a closure constructed by @code{lambda}.
+@end deffn
+
+@deffn primitive %get-pre-modules-obarray
+Return the obarray that is used for all new bindings before the module system is booted.  The first call to @code{set-current-module} will boot the module system.
+@end deffn
+
+@deffn primitive standard-interface-eval-closure module
+Return a interface eval closure for the module @var{module}. Such a closure does not allow new bindings to be added.
+@end deffn
+
+@deffn primitive env-module env
+Return the module of @var{ENV}, a lexical environment.
+@end deffn
+
+@deffn primitive load-extension lib init
+Load and initilize the extension designated by LIB and INIT.
+When there is no pre-registered function for LIB/INIT, this is
+equivalent to
+
+@lisp
+(dynamic-call INIT (dynamic-link LIB))
+@end lisp
+
+When there is a pre-registered function, that function is called
+instead.
+
+Normally, there is no pre-registered function.  This option exists
+only for situations where dynamic linking is unavailable or unwanted.
+In that case, you would statically link your program with the desired
+library, and register its init function right after Guile has been
+initialized.
+
+LIB should be a string denoting a shared library without any file type
+suffix such as ".so".  The suffix is provided automatically.  It
+should also not contain any directory components.  Libraries that
+implement Guile Extensions should be put into the normal locations for
+shared libraries.  We recommend to use the naming convention
+libguile-bla-blum for a extension related to a module `(bla blum)'.
+
+The normal way for a extension to be used is to write a small Scheme
+file that defines a module, and to load the extension into this
+module.  When the module is auto-loaded, the extension is loaded as
+well.  For example,
+
+@lisp
+(define-module (bla blum))
+
+(load-extension "libguile-bla-blum" "bla_init_blum")
+@end lisp
 @end deffn

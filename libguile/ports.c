@@ -364,7 +364,7 @@ SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
 SCM_DEFINE (scm_current_output_port, "current-output-port", 0, 0, 0,
 	    (),
             "Return the current output port.  This is the default port used\n"
-	    "by many output procedures.  Initially, \n"
+	    "by many output procedures.  Initially,\n"
 	    "@code{current-output-port} returns the @dfn{standard output} in\n"
 	    "Unix and C terminology.")
 #define FUNC_NAME s_scm_current_output_port
@@ -724,7 +724,7 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 	    "@var{proc} is applied exactly once to every port that exists\n"
 	    "in the system at the time @var{port-for-each} is invoked.\n"
 	    "Changes to the port table while @var{port-for-each} is running\n"
-	    "have no effect as far as @var{port-for-each} is concerned.\n") 
+	    "have no effect as far as @var{port-for-each} is concerned.") 
 #define FUNC_NAME s_scm_port_for_each
 {
   long i;
@@ -819,7 +819,7 @@ SCM_DEFINE (scm_eof_object_p, "eof-object?", 1, 0, 0,
 SCM_DEFINE (scm_force_output, "force-output", 0, 1, 0,
            (SCM port),
 	    "Flush the specified output port, or the current output port if @var{port}\n"
-	    "is omitted.  The current output buffer contents are passed to the \n"
+	    "is omitted.  The current output buffer contents are passed to the\n"
 	    "underlying port implementation (e.g., in the case of fports, the\n"
 	    "data will be written to the file and the output buffer will be cleared.)\n"
 	    "It has no effect on an unbuffered port.\n\n"

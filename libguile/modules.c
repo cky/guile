@@ -77,7 +77,7 @@ static void scm_post_boot_init_modules (void);
 
 SCM_DEFINE (scm_set_current_module, "set-current-module", 1, 0, 0,
 	    (SCM module),
-	    "Set the current module to @var{module} and return"
+	    "Set the current module to @var{module} and return\n"
 	    "the previous current module.")
 #define FUNC_NAME s_scm_set_current_module
 {

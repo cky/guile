@@ -1,3 +1,28 @@
+2001-11-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* extensions.c (scm_load_extension): Canonicalize docstring
+	whitespace.
+
+	* unif.c (scm_uniform_array_write), ports.c
+	(scm_current_output_port, scm_force_output), dynwind.c
+	(scm_dynamic_wind), scmsigs.c (scm_setitimer, scm_getitimer),
+	filesys.c (scm_open, scm_lstat), struct.c
+	(scm_make_struct_layout), random.c (scm_random,
+	scm_random_solid_sphere_x, scm_random_hollow_sphere_x, strop.c
+	(scm_i_index): Remove superfluous whitespace from end of docstring
+	lines.
+
+	* filesys.c (scm_select), guardians.c (scm_guardian_greedy_p),
+	strings.c (scm_make_string), variable.c (scm_make_variable,
+	scm_make_undefined_variable, scm_variable_p, scm_variable_set_x,
+	scm_variable_bound_p), scmsigs.c (scm_setitimer, scm_getitimer),
+	posix.c (scm_crypt), struct.c (scm_make_vtable_vtable), hashtab.c
+	(scm_hash_fold), ports.c (scm_port_for_each): Remove superfluous
+	newline at end of docstrings.
+
+	* modules.c (scm_set_current_module): Add missing newline to
+	docstring.
+
 2001-11-07  Stefan Jahn  <stefan@lkcc.org>
 
 	* win32-socket.[ch]: New files.  Defines Winsock-API error codes

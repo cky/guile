@@ -336,7 +336,7 @@ SCM_DEFINE (scm_open, "open", 2, 1, 0,
 	    "Open the file read-only.\n"
 	    "@end defvar\n"
 	    "@defvar O_WRONLY\n"
-	    "Open the file write-only. \n"
+	    "Open the file write-only.\n"
 	    "@end defvar\n"
 	    "@defvar O_RDWR\n"
 	    "Open the file read/write.\n"
@@ -1129,8 +1129,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 	    "The @var{usecs} argument is not supported.\n"
 	    "Multiple values are returned instead of a list.\n"
 	    "Duplicates in the input vectors appear only once in output.\n"
-	    "An additional @code{select!} interface is provided.\n"
-	    )
+	    "An additional @code{select!} interface is provided.")
 #define FUNC_NAME s_scm_select
 {
   struct timeval timeout;
@@ -1387,7 +1386,7 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
 SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0, 
             (SCM str),
 	    "Similar to @code{stat}, but does not follow symbolic links, i.e.,\n"
-	    "it will return information about a symbolic link itself, not the \n"
+	    "it will return information about a symbolic link itself, not the\n"
 	    "file it points to.  @var{path} must be a string.")
 #define FUNC_NAME s_scm_lstat
 {

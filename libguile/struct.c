@@ -72,7 +72,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    "type, the second a field protection.  Allowed types are 'p' for\n"
 	    "GC-protected Scheme data, 'u' for unprotected binary data, and 's' for\n"
 	    "a field that points to the structure itself.    Allowed protections\n"
-	    "are 'w' for mutable fields, 'r' for read-only fields, and 'o' for opaque \n"
+	    "are 'w' for mutable fields, 'r' for read-only fields, and 'o' for opaque\n"
 	    "fields.  The last field protection specification may be capitalized to\n"
 	    "indicate that the field is a tail-array.")
 #define FUNC_NAME s_scm_make_struct_layout
@@ -521,7 +521,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 	    "(define (make-ball type owner) (make-struct type 0 owner))\n\n"
 	    "(define ball (make-ball green 'Nisse))\n"
 	    "ball @result{} #<a green ball owned by Nisse>\n"
-	    "@end lisp\n")
+	    "@end lisp")
 #define FUNC_NAME s_scm_make_vtable_vtable
 {
   SCM fields;

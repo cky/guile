@@ -956,32 +956,33 @@ Return the hyperbolic arctangent of @var{x}.
 @subsection Bitwise Operations
 
 @deffn primitive logand n1 n2
-Return the integer which is the bit-wise AND of the two integer
-arguments.
+Return the bitwise AND of the integer arguments.
 
 @lisp
-(number->string (logand #b1100 #b1010) 2)
-   @result{} "1000"
+(logand) @result{} -1
+(logand 7) @result{} 7
+(logand #b111 #b011 #b001) @result{} 1
 @end lisp
 @end deffn
 
 @deffn primitive logior n1 n2
-Return the integer which is the bit-wise OR of the two integer
-arguments.
+Return the bitwise OR of the integer arguments.
 
 @lisp
-(number->string (logior #b1100 #b1010) 2)
-   @result{} "1110"
+(logior) @result{} 0
+(logior 7) @result{} 7
+(logior #b000 #b001 #b011) @result{} 3
 @end lisp
 @end deffn
 
 @deffn primitive logxor n1 n2
-Return the integer which is the bit-wise XOR of the two integer
-arguments.
-
+Return the bitwise XOR of the integer arguments.  A bit is
+set in the result if it is set in an odd number of arguments.
 @lisp
-(number->string (logxor #b1100 #b1010) 2)
-   @result{} "110"
+(logxor) @result{} 0
+(logxor 7) @result{} 7
+(logxor #b000 #b001 #b011) @result{} 2
+(logxor #b000 #b001 #b011 #b011) @result{} 1
 @end lisp
 @end deffn
 
@@ -1468,16 +1469,17 @@ Split the string @var{str} into the a list of the substrings delimited
 by appearances of the character @var{chr}.  Note that an empty substring
 between separator characters will result in an empty string in the
 result list.
+
 @lisp
-(string-split "root:x:0:0:root:/root:/bin/bash" #\:)
+(string-split "root:x:0:0:root:/root:/bin/bash" #:)
 @result{}
 ("root" "x" "0" "0" "root" "/root" "/bin/bash")
 
-(string-split "::" #\:)
+(string-split "::" #:)
 @result{}
 ("" "" "")
 
-(string-split "" #\:)
+(string-split "" #:)
 @result{}
 ("")
 @end lisp
@@ -1554,7 +1556,7 @@ y
 @deffnx primitive substring-move-left! str1 start1 end1 str2 start2
 @deffnx primitive substring-move-right! str1 start1 end1 str2 start2
 Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
-into @var{str2} beginning at position @var{end2}.
+into @var{str2} beginning at position @var{start2}.
 @code{substring-move-right!} begins copying from the rightmost character
 and moves left, and @code{substring-move-left!} copies from the leftmost
 character moving right.
@@ -1916,6 +1918,20 @@ Match the compiled regular expression @var{rx} against
 provided, begin matching from that position in the string.
 Return a match structure describing the results of the match,
 or @code{#f} if no match could be found.
+
+The @var{flags} arguments change the matching behavior.
+The following flags may be supplied:
+
+@table @code
+@item regexp/notbol
+Operator @samp{^} always fails (unless @code{regexp/newline}
+is used).  Use this when the beginning of the string should
+not be considered the beginning of a line.
+@item regexp/noteol
+Operator @samp{$} always fails (unless @code{regexp/newline}
+is used).  Use this when the end of the string should not be
+considered the end of a line.
+@end table
 @end deffn
 
 @deffn primitive regexp? obj
@@ -2394,7 +2410,7 @@ part of an object returned as the value of a literal expression
 Report on Scheme}) or by a call to the @code{read} procedure,
 and its name contains alphabetic characters, then the string
 returned will contain characters in the implementation's
-preferred standard case--some implementations will prefer
+preferred standard case---some implementations will prefer
 upper case, others lower case.  If the symbol was returned by
 @code{string->symbol}, the case of characters in the string
 returned will be the same as the case in the string that was
@@ -2541,20 +2557,12 @@ Return the built-in variable with the name @var{name}.
 Then use @code{variable-ref} to access its value.
 @end deffn
 
-@deffn primitive make-undefined-variable [name-hint]
-Return a variable object initialized to an undefined value.
-If given, uses @var{name-hint} as its internal (debugging)
-name, otherwise just treat it as an anonymous variable.
-Remember, of course, that multiple bindings to the same
-variable may exist, so @var{name-hint} is just that---a hint.
+@deffn primitive make-undefined-variable
+Return a variable that is initially unbound.
 @end deffn
 
-@deffn primitive make-variable init [name-hint]
-Return a variable object initialized to value @var{init}.
-If given, uses @var{name-hint} as its internal (debugging)
-name, otherwise just treat it as an anonymous variable.
-Remember, of course, that multiple bindings to the same
-variable may exist, so @var{name-hint} is just that---a hint.
+@deffn primitive make-variable init
+Return a variable initialized to value @var{init}.
 @end deffn
 
 @deffn primitive variable-bound? var
@@ -2576,7 +2584,7 @@ value. Return an unspecified value.
 
 @deffn primitive variable? obj
 Return @code{#t} iff @var{obj} is a variable object, else
-return @code{#f}
+return @code{#f}.
 @end deffn
 
 

@@ -1457,26 +1457,35 @@ all platforms.
 @end deffn
 
 @deffn primitive setitimer which_timer interval_seconds interval_microseconds value_seconds value_microseconds
-
 Set the timer specified by @var{which_timer} according to the given
 @var{interval_seconds}, @var{interval_microseconds},
-@var{value_seconds}, and @var{value_microseconds} values, and return
-information about the timer's previous setting. The timers available
-are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL}, and @code{ITIMER_PROF},
-and the return value will be a list of two cons pairs representing the
+@var{value_seconds}, and @var{value_microseconds} values.
+
+Return information about the timer's previous setting.
+Errors are handled as described in the guile info pages under ``POSIX
+Interface Conventions''.
+
+The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL},
+and @code{ITIMER_PROF}.
+
+The return value will be a list of two cons pairs representing the
 current state of the given timer.  The first pair is the seconds and
-microseconds of the timer @code{it_interval}, and the second pair is the
-seconds and microseconds of the timer @code{it_value}.
+microseconds of the timer @code{it_interval}, and the second pair is
+the seconds and microseconds of the timer @code{it_value}.
 @end deffn
 
 @deffn primitive getitimer which_timer
-Return information about the timer specified by @var{which_timer}.  The
-timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL}, and
-@code{ITIMER_PROF}, and the return value will be a list of two cons
-pairs representing the current state of the given timer.  The first pair
-is the seconds and microseconds of the timer @code{it_interval}, and the
-second pair is the seconds and microseconds of the timer
-@code{it_value}.
+Return information about the timer specified by @var{which_timer}
+Errors are handled as described in the guile info pages under ``POSIX
+Interface Conventions''.
+
+The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL},
+and @code{ITIMER_PROF}.
+
+The return value will be a list of two cons pairs representing the
+current state of the given timer.  The first pair is the seconds and
+microseconds of the timer @code{it_interval}, and the second pair is
+the seconds and microseconds of the timer @code{it_value}.
 @end deffn
 
 
@@ -2310,7 +2319,7 @@ documentation before using them.
 
 @deffn primitive crypt key salt
 Encrypt @var{key} using @var{salt} as the salt value to the
-crypt(3) library call
+crypt(3) library call.
 @end deffn
 
 @code{getpass} is no encryption procedure at all, but it is often used

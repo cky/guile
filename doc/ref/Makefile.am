@@ -23,7 +23,7 @@ AUTOMAKE_OPTIONS = gnu
 
 info_TEXINFOS = guile.texi
 
-guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
+guile_TEXINFOS = preface.texi intro.texi program.texi scheme-intro.texi \
 	scheme-ideas.texi scheme-data.texi scheme-procedures.texi \
 	scheme-utility.texi scheme-binding.texi scheme-control.texi \
 	scheme-io.texi scheme-evaluation.texi scheme-memory.texi \
@@ -31,7 +31,7 @@ guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
 	scheme-translation.texi scheme-debug.texi deprecated.texi \
 	scheme-reading.texi scheme-indices.texi slib.texi posix.texi \
 	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi \
-	appendices.texi indices.texi script-getopt.texi data-rep.texi \
+	debugging.texi indices.texi script-getopt.texi data-rep.texi \
 	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi
 
 # Optionally support building an HTML version of the reference manual.

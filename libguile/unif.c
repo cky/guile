@@ -1656,7 +1656,7 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
 	    "The optional arguments @var{start}\n"
 	    "and @var{end} allow\n"
 	    "a specified region of a vector (or linearized array) to be written.\n\n"
-	    "The number of objects actually written is returned. \n"
+	    "The number of objects actually written is returned.\n"
 	    "@var{port-or-fdes} may be\n"
 	    "omitted, in which case it defaults to the value returned by\n"
 	    "@code{(current-output-port)}.")

@@ -57,7 +57,7 @@
 
 ;;; Code:
 
-(defvar docstring-manual-directory (expand-file-name "~/Guile/cvs/guile-core/doc")
+(defvar docstring-manual-directory (expand-file-name "~/Guile/cvs/guile-core/doc/ref")
   "*The directory containing the Texinfo source for the Guile reference manual.")
 
 (defvar docstring-tracking-root (expand-file-name "~/Guile/cvs/guile-core/doc/maint")
@@ -72,37 +72,8 @@ for module (a b c) is expected to be in the file
 For each entry in this list, the snarfed docstring file for module (a
 b c) is looked for in the file <entry>/a/b/c.texi.")
 
-(defvar docstring-manual-files '("appendices.texi"
-				 "deprecated.texi"
-				 "expect.texi"
-				 "gh.texi"
-				 "goops.texi"
-				 "guile.texi"
-				 "indices.texi"
-				 "intro.texi"
-				 "posix.texi"
-				 "scheme-binding.texi"
-				 "scheme-control.texi"
-				 "scheme-data.texi"
-				 "scheme-debug.texi"
-				 "scheme-evaluation.texi"
-				 "scheme-ideas.texi"
-				 "scheme-indices.texi"
-				 "scheme-intro.texi"
-				 "scheme-io.texi"
-				 "scheme-memory.texi"
-				 "scheme-modules.texi"
-				 "scheme-options.texi"
-				 "scheme-procedures.texi"
-				 "scheme-reading.texi"
-				 "scheme-scheduling.texi"
-				 "scheme-translation.texi"
-				 "scheme-utility.texi"
-				 "scm.texi"
-				 "scripts.texi"
-				 "scsh.texi"
-				 "slib.texi"
-				 "tcltk.texi")
+(defvar docstring-manual-files
+  (directory-files docstring-manual-directory nil "\\.texi$" t)
   "List of Texinfo source files that comprise the Guile reference manual.")
 
 (defvar docstring-new-docstrings-file "new-docstrings.texi"

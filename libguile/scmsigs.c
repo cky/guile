@@ -434,13 +434,13 @@ SCM_DEFINE (scm_setitimer, "setitimer", 5, 0, 0,
             "Errors are handled as described in the guile info pages under ``POSIX\n"
             "Interface Conventions''.\n"
             "\n"
-            "The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL}, \n"
+            "The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL},\n"
             "and @code{ITIMER_PROF}.\n"
             "\n"
             "The return value will be a list of two cons pairs representing the\n"
             "current state of the given timer.  The first pair is the seconds and\n"
             "microseconds of the timer @code{it_interval}, and the second pair is\n"
-            "the seconds and microseconds of the timer @code{it_value}.\n")
+            "the seconds and microseconds of the timer @code{it_value}.")
 #define FUNC_NAME s_scm_setitimer
 {
   int rv;
@@ -475,13 +475,13 @@ SCM_DEFINE (scm_getitimer, "getitimer", 1, 0, 0,
             "Errors are handled as described in the guile info pages under ``POSIX\n"
             "Interface Conventions''.\n"
             "\n"
-            "The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL}, \n"
+            "The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL},\n"
             "and @code{ITIMER_PROF}.\n"
             "\n"
             "The return value will be a list of two cons pairs representing the\n"
             "current state of the given timer.  The first pair is the seconds and\n"
             "microseconds of the timer @code{it_interval}, and the second pair is\n"
-            "the seconds and microseconds of the timer @code{it_value}.\n")
+            "the seconds and microseconds of the timer @code{it_value}.")
 #define FUNC_NAME s_scm_getitimer
 {
   int rv;

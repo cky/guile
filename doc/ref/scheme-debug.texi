@@ -173,8 +173,8 @@ Return the identifier given to @var{stack} by @code{start-stack}.
 Return the length of @var{stack}.
 @end deffn
 
-@deffn primitive stack-ref stack i
-Return the @var{i}'th frame from @var{stack}.
+@deffn primitive stack-ref stack index
+Return the @var{index}'th frame from @var{stack}.
 @end deffn
 
 @deffn primitive stack? obj
