@@ -450,7 +450,7 @@ scm_init_scmsigs ()
       */
 #ifdef HAVE_SIGINTERRUPT
       siginterrupt (i, 0);
-#elif defined SA_RESTART
+#elif defined(SA_RESTART)
       {
 	struct sigaction action;
 
