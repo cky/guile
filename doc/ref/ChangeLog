@@ -1,3 +1,20 @@
+2003-11-19  Marius Vollmer  <mvo@zagadka.de>
+
+	* scheme-data.texi: Include exact rationals.
+
+	From Stephen Compall.  Thanks!
+	
+        * intro.texi (What is Guile?): Add @acronym for POSIX, R5RS, GUI,
+	and HTTP.  Conclude linking libguile.  Say what one can find *for*.
+
+        * preface.texi (Manual Conventions): Double-quote some statements
+	formerly single-quoted.  Remove some redundant quotes around code.
+	Clarify meaning of `iff' further for those that didn't get it the
+	first time 'round (like me).  Make graphical indicators samples,
+	not code.  Put results of evaluation on the same line as @result
+	symbols.  Use @print example as example of total usage, and remind
+	readers not to forget the difference.
+
 2003-11-17  Marius Vollmer  <mvo@zagadka.de>
 
 	* scheme-modules.texi: Document '@' and '@@'.
