@@ -29,6 +29,14 @@
 /* picks up scmconfig.h too */
 #include "libguile/__scm.h"
 
+#if HAVE_INTTYPES_H
+# include <inttypes.h>  /* for INTPTR_MAX and friends */
+#else
+# if HAVE_STDINT_H
+#  include <stdint.h>   /* for INTPTR_MAX and friends */
+# endif
+#endif
+
 /* In the beginning was the Word:
  */
 #if SCM_SIZEOF_INTPTR_T != 0 && defined(INTPTR_MAX) && defined(INTPTR_MIN)
