@@ -152,6 +152,16 @@ SCM_MUTEX (stringbuf_write_mutex);
 
 #define IS_STRING(str)        (SCM_NIMP(str) && SCM_TYP7(str) == STRING_TAG)
 
+/* Mutation-sharing substrings
+ */
+
+#define SH_STRING_TAG       (scm_tc7_string + 0x100)
+
+#define SH_STRING_STRING(sh) (SCM_CELL_OBJECT_1(sh))
+/* START and LENGTH as for STRINGs. */
+
+#define IS_SH_STRING(str)   (SCM_CELL_TYPE(str)==SH_STRING_TAG)
+
 SCM
 scm_i_make_string (size_t len, char **charsp)
 {
@@ -175,27 +185,63 @@ validate_substring_args (SCM str, size_t start, size_t end)
     scm_out_of_range (NULL, scm_from_size_t (end));
 }
 
+static inline void
+get_str_buf_start (SCM *str, SCM *buf, size_t *start)
+{
+  *start = STRING_START (*str);
+  if (IS_SH_STRING (*str))
+    {
+      *str = SH_STRING_STRING (*str);
+      *start += STRING_START (*str);
+    }
+  *buf = STRING_STRINGBUF (*str);
+}
+
 SCM
 scm_i_substring (SCM str, size_t start, size_t end)
 {
-  SCM buf = STRING_STRINGBUF (str);
+  SCM buf;
+  size_t str_start;
+  get_str_buf_start (&str, &buf, &str_start);
   scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
   SET_STRINGBUF_SHARED (buf);
   scm_i_plugin_mutex_unlock (&stringbuf_write_mutex);
   return scm_double_cell (STRING_TAG, SCM_UNPACK(buf),
-			  (scm_t_bits)start, (scm_t_bits) end - start);
+			  (scm_t_bits)str_start + start,
+			  (scm_t_bits) end - start);
 }
 
 SCM
 scm_i_substring_copy (SCM str, size_t start, size_t end)
 {
   size_t len = end - start;
-  SCM buf = STRING_STRINGBUF (str);
+  SCM buf;
+  size_t str_start;
+  get_str_buf_start (&str, &buf, &str_start);
   SCM my_buf = make_stringbuf (len);
-  memcpy (STRINGBUF_CHARS (my_buf), STRINGBUF_CHARS (buf) + start, len);
+  memcpy (STRINGBUF_CHARS (my_buf),
+	  STRINGBUF_CHARS (buf) + str_start + start, len);
   scm_remember_upto_here_1 (buf);
   return scm_double_cell (STRING_TAG, SCM_UNPACK(my_buf),
 			  (scm_t_bits)0, (scm_t_bits) len);
+}
+
+SCM
+scm_i_substring_shared (SCM str, size_t start, size_t end)
+{
+  if (start == 0 && end == STRING_LENGTH (str))
+    return str;
+  else 
+    {
+      size_t len = end - start;
+      if (IS_SH_STRING (str))
+	{
+	  start += STRING_START (str);
+	  str = SH_STRING_STRING (str);
+	}
+      return scm_double_cell (SH_STRING_TAG, SCM_UNPACK(str),
+			      (scm_t_bits)start, (scm_t_bits) len);
+    }
 }
 
 SCM
@@ -210,29 +256,6 @@ scm_c_substring_copy (SCM str, size_t start, size_t end)
 {
   validate_substring_args (str, start, end);
   return scm_i_substring_copy (str, start, end);
-}
-
-/* Mutation-sharing substrings
- */
-
-#define SH_STRING_TAG       (scm_tc7_string + 0x100)
-
-#define SH_STRING_STRING(sh) (SCM_CELL_OBJECT_1(sh))
-/* START and LENGTH as for STRINGs. */
-
-#define IS_SH_STRING(str)   (SCM_CELL_TYPE(str)==SH_STRING_TAG)
-
-SCM
-scm_i_substring_shared (SCM str, size_t start, size_t end)
-{
-  if (start == 0 && end == STRING_LENGTH (str))
-    return str;
-  else
-    {
-      SCM res = scm_double_cell (SH_STRING_TAG, SCM_UNPACK(str),
-				 (scm_t_bits)start, (scm_t_bits) end - start);
-      return res;
-    }
 }
 
 SCM
@@ -269,13 +292,8 @@ const char *
 scm_i_string_chars (SCM str)
 {
   SCM buf;
-  size_t start = STRING_START(str);
-  if (IS_SH_STRING (str))
-    {
-      str = SH_STRING_STRING (str);
-      start += STRING_START (str);
-    }
-  buf = STRING_STRINGBUF (str);
+  size_t start;
+  get_str_buf_start (&str, &buf, &start);
   return STRINGBUF_CHARS (buf) + start;
 }
 
@@ -283,13 +301,8 @@ char *
 scm_i_string_writable_chars (SCM str)
 {
   SCM buf;
-  size_t start = STRING_START(str);
-  if (IS_SH_STRING (str))
-    {
-      str = SH_STRING_STRING (str);
-      start += STRING_START (str);
-    }
-  buf = STRING_STRINGBUF (str);
+  size_t start;
+  get_str_buf_start (&str, &buf, &start);
   scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
   if (STRINGBUF_SHARED (buf))
     {
@@ -461,7 +474,7 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0,
 SCM_DEFINE (scm_sys_stringbuf_hist, "%stringbuf-hist", 0, 0, 0,
 	    (void),
 	    "")
-#define FUNC_NAME s_scm_sys_string_dump
+#define FUNC_NAME s_scm_sys_stringbuf_hist
 {
   int i;
   for (i = 0; i < 1000; i++)
@@ -660,15 +673,16 @@ SCM_DEFINE (scm_substring_copy, "substring/copy", 2, 1, 0,
             "0 <= @var{start} <= @var{end} <= (string-length @var{str}).")
 #define FUNC_NAME s_scm_substring_copy
 {
-  size_t len, from, to;
+  /* For the Scheme version, START is mandatory, but for the C
+     version, it is optional.  See scm_string_copy in srfi-13.c for a
+     rationale.
+  */
+
+  size_t from, to;
 
   SCM_VALIDATE_STRING (1, str);
-  len = scm_i_string_length (str);
-  from = scm_to_unsigned_integer (start, 0, len);
-  if (SCM_UNBNDP (end))
-    to = len;
-  else
-    to = scm_to_unsigned_integer (end, from, len);
+  scm_i_get_substring_spec (scm_i_string_length (str),
+			    start, &from, end, &to);
   return scm_i_substring_copy (str, from, to);
 }
 #undef FUNC_NAME
