@@ -105,7 +105,7 @@ scm_threads_mark_stacks (void)
 	  /* Active thread */
 	  /* stack_len is long rather than sizet in order to guarantee
 	     that &stack_len is long aligned */
-#ifdef SCM_STACK_GROWS_UP
+#if SCM_STACK_GROWS_UP
 	  long stack_len = ((SCM_STACKITEM *) (&thread) -
 			    (SCM_STACKITEM *) thread->base);
 	  
@@ -152,7 +152,7 @@ scm_threads_mark_stacks (void)
       else
 	{
 	  /* Suspended thread */
-#ifdef SCM_STACK_GROWS_UP
+#if SCM_STACK_GROWS_UP
 	  long stack_len = ((SCM_STACKITEM *) (thread->sp) -
 			    (SCM_STACKITEM *) thread->base);
 
