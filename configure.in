@@ -45,7 +45,7 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h sys/utime.h time.h unistd.h utime.h)
+AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h regex.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h sys/utime.h time.h unistd.h utime.h)
 GUILE_HEADER_LIBC_WITH_UNISTD
 
 AC_TYPE_GETGROUPS
@@ -88,6 +88,29 @@ fi
 
 AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid)
 
+dnl <GNU-WIN32 hacks>
+
+AC_CHECK_HEADER(sys/un.h, have_sys_un_h=1)
+if test -n "$have_sys_un_h" ; then
+AC_DEFINE(HAVE_UNIX_DOMAIN_SOCKETS)
+fi
+
+AC_CHECK_FUNCS(socketpair getgroups setpwent pause tzset)
+
+cp confdefs.h confdefs.h.bak
+for func in sethostent endhostent getnetent setnetent endnetent getprotoent endprotoent getservent endservent getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof ; do
+cp confdefs.h.bak confdefs.h
+cat >> confdefs.h << EOF 
+#ifdef __CYGWIN32__
+#define $func cygwin32_$func
+#endif
+EOF
+AC_CHECK_FUNC($func)
+done
+cp confdefs.h.bak confdefs.h
+
+dnl </GNU-WIN32 hacks>
+
 AC_CACHE_CHECK([for restartable system calls], scm_cv_restarts,
 	if test $ac_cv_func_sigaction = yes; then
 		[AC_TRY_COMPILE([#include <signal.h>],
@@ -101,7 +124,9 @@ if test $scm_cv_restarts = yes; then
 	AC_DEFINE(HAVE_RESTARTS)
 fi
 
-AC_CHECK_FUNCS(regcomp, [LIBOBJS="regex-posix.o $LIBOBJS"])
+if test "$ac_cv_header_regex_h" = yes; then
+  AC_CHECK_FUNCS(regcomp, [LIBOBJS="regex-posix.o $LIBOBJS"])
+fi
 
 AC_REPLACE_FUNCS(inet_aton putenv strerror)
 
