@@ -1,3 +1,12 @@
+2001-06-07  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-1.scm (fold, fold-pair): Fixed a buggy call to apply.
+	(delete-duplicates): Now the first occurrence of an element is
+	retained, as required.
+	(member, assoc): Fixed wrong order of equality predicate
+	application.
+	
+
 2001-06-06  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* README: Update.

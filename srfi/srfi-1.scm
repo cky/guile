@@ -57,6 +57,7 @@
 ;;; Code:
 
 (define-module (srfi srfi-1)
+  :use-module (ice-9 session)
   :use-module (ice-9 receive))
 
 (export 
@@ -516,7 +517,7 @@
 	    knil
 	    (let ((cars (map car lists))
 		  (cdrs (map cdr lists)))
-	      (f (apply kons cars (list knil)) cdrs))))))
+	      (f (apply kons (append! cars (list knil))) cdrs))))))
 
 (define (fold-right kons knil clist1 . rest)
   (if (null? rest)
@@ -540,7 +541,7 @@
 	(if (any null? lists)
 	    knil
 	    (let ((tails (map cdr lists)))
-	      (f (apply kons lists (list knil)) tails))))))
+	      (f (apply kons (append! lists (list knil))) tails))))))
 
 
 (define (pair-fold-right kons knil clist1 . rest)
@@ -806,7 +807,7 @@
     (let lp ((l list))
       (if (null? l)
 	#f
-	(if (l= (car l) x)
+	(if (l= x (car l))
 	  l
 	  (lp (cdr l)))))))
 
@@ -837,7 +838,14 @@
 		  #t
 		  (lp1 (cdr l2)))))
 	  (lp0 (cdr l1))
-	  (cons (car l1) (cdr l1)))))))
+	  (cons (car l1) (lp0 (cdr l1))))))))
+
+(define (delete-duplicates list . rest)
+  (let ((l= (if (pair? rest) (car rest) equal?)))
+    (let lp ((list list))
+      (if (null? list) 
+	'()
+	(cons (car list) (lp (delete (car list) (cdr list) l=)))))))
 
 (define (delete-duplicates! list . rest)
   (let ((l= (if (pair? rest) (car rest) equal?)))
@@ -850,7 +858,7 @@
     (let lp ((a alist))
       (if (null? a)
 	#f
-	(if (k= (caar a) key)
+	(if (k= key (caar a))
 	  (car a)
 	  (lp (cdr a)))))))
 
@@ -861,7 +869,7 @@
   (let lp ((a alist))
     (if (null? a)
       '()
-      (cons (cons (caar a) (cdar a)) (lp (cdr a))))))
+      (acons (caar a) (cdar a) (lp (cdr a))))))
 
 (define (alist-delete key alist . rest)
   (let ((k= (if (pair? rest) (car rest) equal?)))
