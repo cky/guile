@@ -1,3 +1,14 @@
+2001-04-06  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* threads.scm: Update copyright.
+
+	Use `export' and `export-syntax' instead of
+	`define-public' and `defmacro-public'.
+
+	(make-thread): Rename first arg to `proc'; nfc.
+	(begin-thread, monitor): Rename second arg to `rest'; nfc.
+	(with-mutex): Rename second arg to `body'; nfc.
+
 2001-04-06  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (warn-autoload-deprecation): Close parenthesis in
@@ -151,7 +162,7 @@
 	(named-module-use!): New function.
 	(top-repl): Do not use `define-module'.  Use equivalent low-level
 	means instead.
-	
+
 2001-02-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (scm-style-repl): Use `primitive-eval' instead of
@@ -162,12 +173,12 @@
 
 	* and-let-star-compat.scm: Display the warning to the
 	`current-error-port'.
-	
+
 2001-02-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Avoid the use of "*" in file names for the benefit of lesser
 	operating systems.
-	
+
 	* and-let-star.scm, and-let*.scm: Renamed `and-let*.scm' to
 	`and-let-star.scm'.  Updated module name as well.
 	* and-let-star-compat.scm: New file, installed as `and-let*.scm'.
@@ -176,7 +187,7 @@
 	(install-data-local): Install "and-let-star-compat.scm" as
 	"and-let*.scm", ignoring errors.
 	(EXTRA_DIST): Distribute `and-let-star-compat.scm'.
-	
+
 2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	This patch fixes a problem reported by Martin Grabmueller about
@@ -274,7 +285,7 @@
 	Pirotte for the bug report).
 	standard file descriptors 0, 1, 2 in the child process
 	are now set up from current-input-port etc., where possible.
-	
+
 2000-10-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* syncase.scm (eval):  string=? requires a string argument.
@@ -400,7 +411,7 @@
 
 	* safe-r5rs.scm (eval): Removed definition.
 
-	* emacs.scm (emacs-eval-request): 
+	* emacs.scm (emacs-eval-request):
 	(emacs-symdoc): (This procedure needs updating!)
 
 2000-08-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
@@ -461,7 +472,7 @@
 	(process-define-module): New define-module options: pure, export.
 	See NEWS.
 	(scm-style-repl): Added optional module argument.
-	
+
 	* null.scm, r5rs.scm, safe-r5rs.scm, safe.scm: New modules.
 
 2000-06-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
@@ -599,7 +610,7 @@ Tue Jun  6 09:21:28 2000  Greg J. Badros  <gregb@go2net.com>
 
 2000-04-03  Michael Livshin  <mlivshin@bigfoot.com>
 
-	* streams.scm (stream-fold, stream-for-each): don't use named let, 
+	* streams.scm (stream-fold, stream-for-each): don't use named let,
 	because it prevents the gc from junking the stream argument.
 
 Thu Mar  9 08:05:08 2000  Greg J. Badros  <gjb@cs.washington.edu>
@@ -619,7 +630,7 @@ Wed Mar  1 12:21:02 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 Sun Feb 13 18:03:19 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
-	* slib.scm: Rename software-type to slib:software-type and make it 
+	* slib.scm: Rename software-type to slib:software-type and make it
 	public.
 
 	* r4rs.scm: Added documentation; largely cut and pasted from R4RS
@@ -669,7 +680,7 @@ Tue Jan 11 10:49:22 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 1999-12-15  Gary Houston  <ghouston@freewire.co.uk>
 
-	* slib.scm (library-vicinity, home-vicinity, 
+	* slib.scm (library-vicinity, home-vicinity,
 	scheme-implementation-type, scheme-implemenation-version):
 	use define-public to export from the module.
 
@@ -687,7 +698,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* popen.scm, slib.scm: Added some docstrings for procedures that
 	were primitives that I encountered in posix.texi.
-	
+
 1999-11-19  Gary Houston  <ghouston@freewire.co.uk>
 
 	* Makefile.am (ice9_sources): add arrays.scm.
@@ -716,7 +727,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	* boot-9.scm (load-user-init): check that the posix feature is
 	available before using getpw and getuid.
 	(top-repl): don't install handlers for SIGINT etc., without posix.
-	(file-is-directory?): use 'posix instead of i/o-extensions to 
+	(file-is-directory?): use 'posix instead of i/o-extensions to
 	check for stat.
 	(load-user-init): use file-exists? and file-is-directory? to
 	check for .guile, instead of stat.
@@ -728,7 +739,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	posix.scm, networking.scm: new files.  Move definitions from
 	boot-9.scm if they are only useful with posix/networking available.
-	
+
 	* Makefile.am (ice9_sources): add posix.scm, networking.scm.
 
 1999-09-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
@@ -792,7 +803,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	readline is used by the repl run by this thread.
 	(handle-system-error): Print "Backtrace:" before backtrace since
 	this is no longer done by display-backtrace.
-	
+
 	* debug.scm (frame-number->index): Optionally take stack as
 	argument.
 
@@ -804,7 +815,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	("backtrace"): Use builtin backtrace printing.
 	Use (ice-9 debug).
 	Use readline conditionally.
-	
+
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* regex.scm (fold-matches, list-matches): New functions.
@@ -824,7 +835,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	* Makefile.am: Removed mention of readline.scm.
 
 	* Makefile.in: Regenerated.
-	
+
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Delete the test which compares the configuration date of libguile
@@ -859,7 +870,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 1999-08-29  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* boot-9.scm (try-module-autoload): Use %search-load-path.
-	
+
 1999-08-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* boot-9.scm: Removed old style hooks.
@@ -930,7 +941,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	that was introduced to fix the $ problem:
 
 	* expect.scm (expect): call the match proc an extra time at end
-	of file and set the eof? argument appropriately.  call 
+	of file and set the eof? argument appropriately.  call
 	expect-eof-proc only if the last call didn't match.
 	* expect.scm (expect-strings): change port to eof? in match proc.
 	* expect.scm (expect-regexec): take an eof indicator as an argument
@@ -954,9 +965,9 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* popen.scm: applied fixes from Greg Harvey.  use a guardian
 	and a gc-thunk so that cleanup is done if a pipe is garbage
-	collected or closed with close-port.  use a weak hash-table instead of 
+	collected or closed with close-port.  use a weak hash-table instead of
 	an alist.
-	
+
 	1999-03-20  Gary Houston  <ghouston@easynet.co.uk>
 
 	* expect.scm (expect): call the match proc with the port instead.
@@ -966,7 +977,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	from the port when it may not be needed.  hence:
 	(expect-strings-exec-flags): new variable/parameter, supplies
 	flags for regexp-exec.	if this includes regexp/noteol, then
-	automatic regexp/noteol handling (requiring an extra peeked char) 
+	automatic regexp/noteol handling (requiring an extra peeked char)
 	is enabled.  default is regexp/noteol.
 	(expect-strings-compile-flags): new variable/parameter, supplies
 	flags for make-regexp.	default is regexp/newline.
@@ -996,8 +1007,8 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	error catching loop after quit received.
 	(top-repl): flush all ports when the repl terminates.
 
-	* boot-9.scm (error-catching-loop): flush all ports before 
-	primitive exit if non-interactive. 
+	* boot-9.scm (error-catching-loop): flush all ports before
+	primitive exit if non-interactive.
 	force-output on current-error-port if interactive.
 
 	* boot-9.scm (reopen-file): deleted.
@@ -1029,7 +1040,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* Makefile.am: Add string-case.scm and format.scm to ice9_sources.
 	* Makefile.in: Regenerated.
-	
+
 	* string-case.scm: New file, brought in from SLIB, and adapted to
 	Guile's module system.
 
@@ -1044,7 +1055,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	modern CL behavior.
 	(format:num->cardinal): Don't assume that an elseless if returns
 	'() when the condition is false.
- 
+
 1999-04-17  Jim Blandy	<jimb@savonarola.red-bean.com>
 
 	* Makefile.in: Regenerated.
@@ -1075,7 +1086,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	load a module (e.g. with `use-modules') work until source is
 	actually found for the module (e.g. because the correct catalog
 	has been added to the load path).
-	
+
 	Use try-load-module.
 
 1999-03-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
@@ -1124,7 +1135,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	Modules which doesn't have the :no-backtrace specifier are user
 	modules.
-	
+
 	A stack frame is classified as a user frame if it has source code
 	associated with it and if this source code can be proven to come
 	from a user module.  If it can be proven to come from a system
@@ -1184,7 +1195,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 1999-02-09  Maciej Stachowiak  <mstachow@alum.mit.edu>
 
-	* optargs.scm: New file. 
+	* optargs.scm: New file.
 	* Makefile.am (ice9_sources): Add optargs.scm here. Makefile.in
 	not regenerated because I don't have the right version of Automake.
 
@@ -1287,7 +1298,7 @@ Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	* boot-9.scm (init-dynamic-module): Remove module from
 	registered-modules as soon as possible in case we are recursively
 	invoked; Set public interface before doing the dynamic-call.
-	
+
 	* boot-9.scm (map-in-order): Removed (replaced by scm_serial_map).
 	(abort-hook, before-error-hook, after-error-hook,
 	before-backtrace-hook, after-backtrace-hook, before-read-hook,
@@ -1545,7 +1556,7 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: Antirevert Jim's readline code which he reverted
 	19971027 and adapt it to the current readline interface.
-	
+
 	* boot-9.scm (top-repl): Only enable readline if not using the
 	Emacs interface; Only use repl prompt when using the readline port
 	from repl-read.	 (We don't want to see it when calling `read'.)
@@ -1567,12 +1578,12 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* nonblocking.scm: Removed.  libguile is now inherently
 	nonblocking through the use of scm_internal_select.
-	
+
 	* emacs.scm: Removed use of nonblocking.scm.
 
 	* gwish.scm, gtcl.scm: Removed.	 tcltk.scm has made these
 	obsolete.
-	
+
 1998-04-15  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* runq.scm (runq-control): Corrected spelling of enqueue!.
@@ -1686,7 +1697,7 @@ Wed Oct	 8 03:16:01 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* (error-catching-loop): new local variable "interactive".  if
 	#f, abort terminates the process.
-	(set-batch-mode?!, batch-mode?): new closures, defined in 
+	(set-batch-mode?!, batch-mode?): new closures, defined in
 	error-catching-loop.  the names are from scsh.
 
 1997-10-06  Marius Vollmer  <mvo@zagadka.ping.de>
@@ -1817,7 +1828,7 @@ Wed Sep 10 20:12:45 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	Added hack to transfer syntactic information from the builtin
 	variable `define' to the slib version if module (ice-9 slib) has
 	been loaded.
-	
+
 Fri Sep	 5 05:47:36 1997  Mikael Djurfeldt  <mdj@faun.nada.kth.se>
 
 	* syncase.scm (sc-interface, sc-expand): Removed hook setup.
@@ -2030,7 +2041,7 @@ Mon Jun 23 16:13:38 1997  Jim Blandy  <jimb@floss.red-bean.com>
 	Plug in read-path-list-notation as the parser for #/ lists,
 	instead of the anonymous lambda form calling parse-path-symbol.
 	(Thanks to Maurizio Vitale.)
-	
+
 	* boot-9.scm (make-list): Remove the definition of this function
 	from the (ice-9 common-list) module; make the `init' argument
 	optional in the	scm module's definition, to match the deleted
@@ -2099,7 +2110,7 @@ Wed Jun	 4 23:27:16 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 	commented out printing code.
 	(record-type-name, record-type-fields): Adjusted slot offsets.
 	(%print-module): Reduce argument list to "mod" and "port".
-	
+
 Tue Jun	 3 17:04:18 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* slib.scm (identity): New function, used by SLIB.
@@ -2110,7 +2121,7 @@ Sat May 31 18:57:12 1997  Gary Houston	<ghouston@actrix.gen.nz>
 	don't define ticks-interrupt etc.
 	top-repl: install signal handlers for SIGINT, SIGFPE, SIGSEGV, SIGBUS
 	during call to scm-style-repl.
-	
+
 Fri May 30 18:08:10 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* slib.scm (slib:load): Use primitive-load-path instead of
@@ -2186,14 +2197,14 @@ Wed Apr 30 15:25:15 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 	* boot-9.scm (link-dynamic-module): Do not catch errors from
 	dynamic-link and dynamic-call.	When the shared library exists it
 	is now assumed to be suitable for a dynamic C module.
-	
+
 Fri Apr 25 21:21:35 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (process-use-modules): New function to support the
 	use-modules macro
 	(use-modules): throw an error iff one of the requested modules
 	can't be found.
-	
+
 Tue Apr 29 06:54:46 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm: don't define timer-thunk or gc-thunk.
@@ -2230,7 +2241,7 @@ Tue Apr	 1 17:46:49 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* expect.scm (expect-select): correct the millisecond timeout
 	arithmetic (from Marko.Kohtala@ntc.nokia.com).
-	
+
 Mon Mar 31 03:23:19 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (open-input-pipe, open-output-pipe): defined here
@@ -2354,7 +2365,7 @@ Sat Mar	 1 00:10:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (error-catching-loop): Added handling of apply-frame
 	and exit-frame exceptions.
-	
+
 	* boot-9.scm (assert-repl-prompt, the-prompt-string): Removed.
 	(set-repl-prompt!): Setter for repl prompt.
 	(scm-style-repl): If prompt is #f, don't prompt; if prompt is a
@@ -2482,14 +2493,14 @@ Wed Nov 27 14:16:14 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 	* boot-9.scm (macroexpand-1, macroexpand), slib.scm
 	(slib:features), r4rs.scm (%load-verbosely): "defined?" is now a
 	function, use it accordingly.
-	
+
 Thu Nov 21 11:12:10 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	It's an "eval closure", not an "eval thunk."  A thunk is a
 	function of no arguments.
 	* boot-9.scm (module-type): Rename module field.
 	(make-module, eval-in-module, make-root-module,
-	set-current-module): Uses changed. 
+	set-current-module): Uses changed.
 	(module-eval-closure, set-module-eval-closure!,
 	root-module-closure): Renamed from module-eval-thunk,
 	set-module-eval-thunk!, root-module-thunk.
@@ -2508,37 +2519,37 @@ Sat Nov	 2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	debug.scm).  But during development we want to have them also
 	*inside* boot-9.scm.  Therefore, two lines are added at the
 	beginning of boot-9.scm to enable these.
-	
+
 	Call `provide' so that `records' are included among the
 	`*features*'.
-	
+
 	The scheme for saving the stack has been adjusted: save-stack is
 	now commonly available for saving the stack.  Calling `save-stack'
 	sets a flag `stack-saved?' which prevents overwriting the stack.
 	`stack-saved?' is reset at `abort'.
-	
+
 	Spelling correction: seperate --> separate.
-	
+
 	Removed `:'s that had creeped into some comments.
-	
+
 	The repl now doesn't print #<unspecified> results any longer
 	If the user wants to see this, he can do
 	(assert-repl-print-unspecified #t) in his startup file.
-	
+
 	The user now gets a friendly message instead of a backtrace at
 	error.
-	
+
 	Added `before-read-hook'.
-	
+
 	Load module (ice-9 emacs) if option `-e' was specified.
-	
+
 	(provide): New function.
-	
+
 	(error): Save stack at entry, so that Guile entrails won't show up
 	in backtraces.
-	
+
 	(backtrace): New function.
-	
+
 	(save-stack): Can now take arbitrary number of stack narrowing
 	specifier pairs.  The first specifier in a pair controls inner
 	border, the second the outer border.  A number means cut that
@@ -2551,15 +2562,15 @@ Sat Nov	 2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	* slib.scm (slib:load): Adapt to the new behavior of
 	primitive-load: It doesn't any longer try both with and without
 	".scm" extension.  (We don't want to use %search-load-path here.)
-	
+
 	(implementation-vicinity): New function.  slib requires it
-	
+
 	(library-vicinity): Updated.
-	
+
 	Load "require.scm" in the library-vicinity.
-	
+
 	(install-require-vicinity, install-require-module): New functions.
-	
+
 Mon Oct 28 17:56:29 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm (load-from-path): New function.
@@ -2675,7 +2686,7 @@ Mon Oct 14 22:20:30 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 Mon Oct 14 06:05:42 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* Makefile.in: Added threads.scm.
-	
+
 Mon Oct 14 04:21:51 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* debug.scm (make-enable, make-disable): Simplified.
@@ -2706,7 +2717,7 @@ Sun Oct	 6 03:54:59 1996  Gary Houston	<ghouston@actrix.gen.nz>
 	(%load-announce): minor formatting change.
 	(file-exists?): use access? if posix is featured.
 	(file-is-directory?): use stat if i/o-extensions is featured.
-	(try-module-autoload module-name): use file-exists? before 
+	(try-module-autoload module-name): use file-exists? before
 	file-is-directory?
 
 Sat Oct	 5 18:54:03 1996  Mikael Djurfeldt  <mdj@kenneth>
@@ -2895,7 +2906,7 @@ Tue Aug 20 07:31:39 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* poe.scm (funcq-memo): Renamed weak-hash-table -->
 	weak-key-hash-table.
-	
+
 Sat Aug	 3 06:16:35 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (*null-device*): global constant from goonix.

@@ -1,3 +1,11 @@
+2001-04-06  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* scheme-scheduling.texi (Higher level thread
+	procedures): Replace some instances of `@var' with `@code'.
+
+	* scheme-scheduling.texi (Higher level thread
+	procedures): Rewrite.
+
 2001-04-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-data.texi (Alphabetic Case Mapping),
@@ -160,10 +168,10 @@
 	* .cvsignore, Makefile.am, README: Merged.
 
 	* sources: New subdirectory.
-	
+
 	Both the following files are about to be replaced by files from
 	guile-doc/ref.
-	
+
 	* texinfo.tex: Removed.
 
 	* data-rep.texi: Removed.
@@ -193,7 +201,7 @@
 
 	* data-rep.texi (Garbage Collection): Fix "accomodate" spelling
 	mistake.
-	
+
 2000-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* data-rep.tex:  Removed documentation for SCM_OUTOFRANGE.
@@ -253,7 +261,7 @@ Fri Jun 25 22:21:43 1999  Greg Badros  <gjb@cs.washington.edu>
 	* data-rep.texi: Updated SMOB docs to talk about
  	scm_make_smob_type_mfpe, SCM_RETURN_NEWSMOB, SCM_NEWSMOB function
  	and macros.
-	
+
 1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.in: Regenerated.
@@ -283,7 +291,7 @@ Fri Jun 25 22:21:43 1999  Greg Badros  <gjb@cs.washington.edu>
 	* Makefile.am (EXAMPLE_SMOB_FILES, dist-hook): New variable and
 	target, to get the example-smob directory into the distribution.
 	* Makefile.in: Regenerated.
-	
+
 1998-10-08  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* .cvsignore: New file, containing data-rep.info.  I'm not sure
