@@ -1,3 +1,11 @@
+2004-06-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* Makefile.am: Removed home-grown code for HTML generation.
+	Automake does it for us now.
+	(goops_TEXINFOS): Added hierarchy.png
+
+	* hierarchy.png: New file.
+
 2004-05-19  Kevin Ryde  <user42@zip.com.au>
 
 	* Makefile.am (CLEANFILES): Remove, goops.tmp goops.cps cleaned by
