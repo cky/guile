@@ -123,39 +123,39 @@ SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
 
 
 
-static const scm_iproc cxrs[] = 
+static const char * cxrs[] = 
 {
-  {"car", 0},
-  {"cdr", 0},
-  {"caar", 0},
-  {"cadr", 0},
-  {"cdar", 0},
-  {"cddr", 0},
-  {"caaar", 0},
-  {"caadr", 0},
-  {"cadar", 0},
-  {"caddr", 0},
-  {"cdaar", 0},
-  {"cdadr", 0},
-  {"cddar", 0},
-  {"cdddr", 0},
-  {"caaaar", 0},
-  {"caaadr", 0},
-  {"caadar", 0},
-  {"caaddr", 0},
-  {"cadaar", 0},
-  {"cadadr", 0},
-  {"caddar", 0},
-  {"cadddr", 0},
-  {"cdaaar", 0},
-  {"cdaadr", 0},
-  {"cdadar", 0},
-  {"cdaddr", 0},
-  {"cddaar", 0},
-  {"cddadr", 0},
-  {"cdddar", 0},
-  {"cddddr", 0},
-  {0, 0}
+  "car",
+  "cdr",
+  "caar",
+  "cadr",
+  "cdar",
+  "cddr",
+  "caaar",
+  "caadr",
+  "cadar",
+  "caddr",
+  "cdaar",
+  "cdadr",
+  "cddar",
+  "cdddr",
+  "caaaar",
+  "caaadr",
+  "caadar",
+  "caaddr",
+  "cadaar",
+  "cadadr",
+  "caddar",
+  "cadddr",
+  "cdaaar",
+  "cdaadr",
+  "cdadar",
+  "cdaddr",
+  "cddaar",
+  "cddadr",
+  "cdddar",
+  "cddddr",
+  0
 };
 
 
@@ -163,7 +163,11 @@ static const scm_iproc cxrs[] =
 void
 scm_init_pairs ()
 {
-  scm_init_iprocs (cxrs, scm_tc7_cxr);
+  unsigned int subnr = 0;
+
+  for (subnr = 0; cxrs [subnr]; subnr++)
+    scm_make_subr(cxrs [subnr], scm_tc7_cxr, NULL);
+
 #include "libguile/pairs.x"
 }
 

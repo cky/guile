@@ -1,3 +1,14 @@
+2000-04-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* pairs.c (cxrs, scm_init_pairs):  Simplify initialization of
+	c[ad]+r functions.
+
+	* procs.c (scm_init_iprocs), procs.h (scm_subr, scm_iproc,
+	scm_dsubr, scm_init_iprocs):  Removed.
+
+	* procs.h (SCM_SUBRF, SCM_DSUBRF):  Access the cell words
+	directly instead of casting a cell to a C struct.
+
 2000-04-22  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	Better modularization of GC extensions through new C level GC

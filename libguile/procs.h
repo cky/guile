@@ -55,24 +55,6 @@
 /* Subrs 
  */
 
-typedef struct scm_subr
-{
-  long sname;
-  SCM (*cproc) ();
-} scm_subr;
-
-typedef struct scm_iproc
-{
-  char *scm_string;
-  SCM (*cproc) ();
-} scm_iproc;
-
-typedef struct scm_dsubr
-{
-  long sname;
-  double (*dproc) ();
-} scm_dsubr;
-
 typedef struct
 {
   SCM handle;			/* link back to procedure object */
@@ -89,8 +71,8 @@ typedef struct
         SCM_SET_CELL_WORD_0 (subr, (num << 8) + SCM_TYP7 (subr))
 #define SCM_SUBR_ENTRY(x) (scm_subr_table[SCM_SUBRNUM (x)])
 #define SCM_SNAME(x) (SCM_SUBR_ENTRY (x).name)
-#define SCM_SUBRF(x) (((scm_subr *)(SCM2PTR(x)))->cproc)
-#define SCM_DSUBRF(x) (((scm_dsubr *)(SCM2PTR(x)))->dproc)
+#define SCM_SUBRF(x) ((SCM (*)()) SCM_CELL_WORD_1 (x))
+#define SCM_DSUBRF(x) ((double (*)()) SCM_CELL_WORD_1 (x))
 #define SCM_CCLO_SUBR(x) (SCM_VELTS(x)[0])
 
 #define SCM_SUBR_GENERIC(x) (SCM_SUBR_ENTRY (x).generic)
@@ -189,7 +171,6 @@ extern SCM scm_procedure_with_setter_p (SCM obj);
 extern SCM scm_make_procedure_with_setter (SCM procedure, SCM setter);
 extern SCM scm_procedure (SCM proc);
 extern SCM scm_setter (SCM proc);
-extern void scm_init_iprocs (const scm_iproc *subra, int type);
 extern void scm_init_subr_table (void);
 extern void scm_init_procs (void);
 

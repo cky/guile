@@ -371,16 +371,6 @@ scm_setter (SCM proc)
 
 
 void
-scm_init_iprocs(const scm_iproc *subra, int type)
-{
-  for(;subra->scm_string; subra++)
-    scm_make_subr(subra->scm_string,
-		  type,
-		  subra->cproc);
-}
-
-
-void
 scm_init_subr_table ()
 {
   scm_subr_table
