@@ -1,3 +1,9 @@
+Sat Aug 30 18:56:19 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* unif.c (scm_shap2ra): tighten the checking of the array dimension
+	specifier, since (2) or (2 . 3) would cause SEGV.
+	(scm_transpose_array): more argument checking fixes.
+
 Wed Aug 27 17:44:44 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.in: Regenerated, so it uses "tar", not "gtar".

@@ -128,16 +128,11 @@ scm_string_rindex (str, chr, frm, to)
     frm = SCM_BOOL_F;
   if (to == SCM_UNDEFINED)
     to = SCM_BOOL_F;
-  pos = scm_i_index (&str, chr, -1, frm, to, SCM_ARG1, SCM_ARG2, SCM_ARG3, SCM_ARG4, s_string_index);
+  pos = scm_i_index (&str, chr, -1, frm, to, SCM_ARG1, SCM_ARG2, SCM_ARG3, SCM_ARG4, s_string_rindex);
   return (pos < 0
 	  ? SCM_BOOL_F
 	  : SCM_MAKINUM (pos));
 }
-
-
-
-
-
  
 SCM_PROC(s_substring_move_left_x, "substring-move-left!", 2, 0, 1, scm_substring_move_left_x);
 

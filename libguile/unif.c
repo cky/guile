@@ -536,18 +536,21 @@ scm_shap2ra (args, what)
       if (SCM_IMP (spec))
 
 	{
-	  SCM_ASSERT (SCM_INUMP (spec) && SCM_INUM (spec) >= 0, spec, s_bad_spec, what);
+	  SCM_ASSERT (SCM_INUMP (spec) && SCM_INUM (spec) >= 0, spec,
+		      s_bad_spec, what);
 	  s->lbnd = 0;
 	  s->ubnd = SCM_INUM (spec) - 1;
 	  s->inc = 1;
 	}
       else
 	{
-	  SCM_ASSERT (SCM_CONSP (spec) && SCM_INUMP (SCM_CAR (spec)), spec, s_bad_spec, what);
+	  SCM_ASSERT (SCM_CONSP (spec) && SCM_INUMP (SCM_CAR (spec)), spec,
+		      s_bad_spec, what);
 	  s->lbnd = SCM_INUM (SCM_CAR (spec));
 	  sp = SCM_CDR (spec);
-	  SCM_ASSERT (SCM_INUMP (SCM_CAR (sp)) && SCM_NULLP (SCM_CDR (sp)),
-		  spec, s_bad_spec, what);
+	  SCM_ASSERT (SCM_NIMP (sp) && SCM_CONSP (sp)
+		      && SCM_INUMP (SCM_CAR (sp)) && SCM_NULLP (SCM_CDR (sp)),
+		      spec, s_bad_spec, what);
 	  s->ubnd = SCM_INUM (SCM_CAR (sp));
 	  s->inc = 1;
 	}
@@ -802,7 +805,7 @@ scm_transpose_array (args)
   switch (SCM_TYP7 (ra))
     {
     default:
-    badarg:scm_wta (ra, (char *) SCM_ARGn, s_transpose_array);
+    badarg:scm_wta (ra, (char *) SCM_ARG1, s_transpose_array);
     case scm_tc7_bvect:
     case scm_tc7_string:
     case scm_tc7_byvect:
@@ -831,9 +834,11 @@ scm_transpose_array (args)
       ndim = 0;
       for (k = 0; k < SCM_ARRAY_NDIM (ra); k++)
 	{
+	  SCM_ASSERT (SCM_INUMP (ve[k]), ve[k], (SCM_ARG2 + k),
+		      s_transpose_array);
 	  i = SCM_INUM (ve[k]);
-	  SCM_ASSERT (SCM_INUMP (ve[k]) && i >= 0 && i < SCM_ARRAY_NDIM (ra),
-		  ve[k], SCM_ARG2, s_transpose_array);
+	  SCM_ASSERT (i >= 0 && i < SCM_ARRAY_NDIM (ra), ve[k],
+		      SCM_OUTOFRANGE, s_transpose_array);
 	  if (ndim < i)
 	    ndim = i;
 	}
@@ -870,7 +875,7 @@ scm_transpose_array (args)
 	      r->inc += s->inc;
 	    }
 	}
-      SCM_ASSERT (ndim <= 0, args, "bad argument scm_list", s_transpose_array);
+      SCM_ASSERT (ndim <= 0, args, "bad argument list", s_transpose_array);
       scm_ra_set_contp (res);
       return res;
     }
@@ -2109,7 +2114,7 @@ scm_array_to_list (v)
 }
 
 
-static char s_bad_ralst[] = "Bad scm_array contents scm_list";
+static char s_bad_ralst[] = "Bad scm_array contents list";
 
 static int l2ra SCM_P ((SCM lst, SCM ra, scm_sizet base, scm_sizet k));
 
