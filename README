@@ -122,7 +122,8 @@ Mikael Djurfeldt designed and implemented:
 * stack overflow detection,
 * the GDB patches to support debugging mixed Scheme/C code,
 * the original implementation of weak hash tables,
-* the `threads' interface (rewriting Anthony Green's work), and
+* enhancements to the `threads' interface (based on Anthony Green's
+  work), and
 * detection of circular references during printing.
 
 Mark Galassi contributed the Guile high-level functions (gh_*), and
@@ -132,8 +133,8 @@ process of revision.)
 Anthony Green wrote the original version of `threads', the interface
 between Guile and qt.
 
-Gary Houston wrote the Unix system call support, including the socket
-support, and did a lot of work on the error handling code.
+Gary Houston wrote much of the Unix system call support, including the
+socket support, and did a lot of work on the error handling code.
 
 Tom Lord librarified SCM, yielding Guile.  He wrote Guile's operating
 system, Ice-9, and connected Guile to Tcl/Tk and the `rx' regular
