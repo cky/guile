@@ -365,7 +365,6 @@ static int
 closureless (SCM code, const void *a, const void *b)
 {
   SCM env, next;
-  SCM_ASSERT (*(SCM *)b != 0, SCM_BOOL_F, "Bug!", "closureless");
   env  = SCM_EXTEND_ENV (SCM_CAR (SCM_CODE (code)),
 			 scm_cons (*(SCM *) a,
 				   scm_cons (*(SCM *) b, SCM_EOL)),
