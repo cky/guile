@@ -1,3 +1,9 @@
+1998-07-28  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* qthreads.m4 (QTHREADS_CONFIGURE): We *can* use AC_REQUIRE here
+	to get AC_PROG_LN_S.
+	* aclocal.m4, configure: Regenerated.
+
 1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	Clean up thread configuration.
