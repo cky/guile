@@ -1320,7 +1320,8 @@
 ;;
 (define module-type
   (make-record-type 'module
-		    '(obarray uses binder eval-closure transformer name kind)
+		    '(obarray uses binder eval-closure transformer name kind
+			      observers weak-observers observer-id)
 		    %print-module))
 
 ;; make-module &opt size uses binder
@@ -1353,7 +1354,10 @@
 	     "Lazy-binder expected to be a procedure or #f." binder))
 
 	(let ((module (module-constructor (make-vector size '())
-					  uses binder #f #f #f #f)))
+					  uses binder #f #f #f #f
+					  '()
+					  (make-weak-value-hash-table 31)
+					  0)))
 
 	  ;; We can't pass this as an argument to module-constructor,
 	  ;; because we need it to close over a pointer to the module
@@ -1383,6 +1387,11 @@
 (define set-module-name! (record-modifier module-type 'name))
 (define module-kind (record-accessor module-type 'kind))
 (define set-module-kind! (record-modifier module-type 'kind))
+(define module-observers (record-accessor module-type 'observers))
+(define set-module-observers! (record-modifier module-type 'observers))
+(define module-weak-observers (record-accessor module-type 'weak-observers))
+(define module-observer-id (record-accessor module-type 'observer-id))
+(define set-module-observer-id! (record-modifier module-type 'observer-id))
 (define module? (record-predicate module-type))
 
 (define set-module-eval-closure!
@@ -1396,6 +1405,32 @@
 
 (define (eval-in-module exp module)
   (eval2 exp (module-eval-closure module)))
+
+
+;;; {Observer protocol}
+;;;
+
+(define (module-observe module proc)
+  (set-module-observers! module (cons proc (module-observers module)))
+  (cons module proc))
+
+(define (module-observe-weak module proc)
+  (let ((id (module-observer-id module)))
+    (hash-set! (module-weak-observers module) id proc)
+    (set-module-observer-id! module (+ 1 id))
+    (cons module id)))
+
+(define (module-unobserve token)
+  (let ((module (car token))
+	(id (cdr token)))
+    (if (integer? id)
+	(hash-remove! (module-weak-observers module) id)
+	(set-module-observers! module (delq1! id (module-observers module)))))
+  *unspecified*)
+
+(define (module-modified! m)
+  (for-each (lambda (proc) (proc m)) (module-observers m))
+  (hash-fold (lambda (id proc res) (proc m)) #f (module-weak-observers m)))
 
 
 ;;; {Module Searching in General}
@@ -1587,12 +1622,16 @@
 ;;
 (define (module-make-local-var! m v)
   (or (let ((b (module-obarray-ref (module-obarray m) v)))
-	(and (variable? b) b))
+	(and (variable? b)
+	     (begin
+	       (module-modified! m)
+	       b)))
       (and (module-binder m)
 	   ((module-binder m) m v #t))
       (begin
 	(let ((answer (make-undefined-variable v)))
 	  (module-obarray-set! (module-obarray m) v answer)
+	  (module-modified! m)
 	  answer))))
 
 ;; module-add! module symbol var
@@ -1602,17 +1641,20 @@
 (define (module-add! m v var)
   (if (not (variable? var))
       (error "Bad variable to module-add!" var))
-  (module-obarray-set! (module-obarray m) v var))
+  (module-obarray-set! (module-obarray m) v var)
+  (module-modified! m))
 
 ;; module-remove! 
 ;; 
 ;; make sure that a symbol is undefined in the local namespace of M.
 ;;
 (define (module-remove! m v)
-  (module-obarray-remove!  (module-obarray m) v))
+  (module-obarray-remove!  (module-obarray m) v)
+  (module-modified! m))
 
 (define (module-clear! m)
-  (vector-fill! (module-obarray m) '()))
+  (vector-fill! (module-obarray m) '())
+  (module-modified! m))
 
 ;; MODULE-FOR-EACH -- exported
 ;; 
@@ -1789,7 +1831,9 @@
 (define (module-define! module name value)
   (let ((variable (module-local-variable module name)))
     (if variable
-	(variable-set! variable value)
+	(begin
+	  (variable-set! variable value)
+	  (module-modified! module))
 	(module-add! module name (make-variable value name)))))
 
 ;; MODULE-DEFINED? -- exported
@@ -1807,7 +1851,8 @@
 ;; 
 (define (module-use! module interface)
   (set-module-uses! module
-		    (cons interface (delq! interface (module-uses module)))))
+		    (cons interface (delq! interface (module-uses module))))
+  (module-modified! module))
 
 
 ;;; {Recursive Namespaces}
