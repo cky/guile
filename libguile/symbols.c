@@ -47,6 +47,7 @@
 #include "variable.h"
 #include "alist.h"
 #include "mbstrings.h"
+#include "weaks.h"
 
 #include "symbols.h"
 
@@ -692,6 +693,10 @@ msymbolize (s)
   SCM_SETCDR (string, SCM_EOL);
   SCM_SETCAR (string, SCM_EOL);
   SCM_SYMBOL_PROPS (s) = SCM_EOL;
+  /* If it's a tc7_ssymbol, it comes from scm_symhash */
+  SCM_SYMBOL_HASH (s) = scm_strhash (SCM_UCHARS (s),
+				     (scm_sizet) SCM_LENGTH (s),
+				     SCM_LENGTH (scm_symhash));
 }
 
 
@@ -766,7 +771,62 @@ scm_symbol_hash (s)
      SCM s;
 {
   SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, s_symbol_hash);
+  if (SCM_TYP7(s) == scm_tc7_ssymbol)
+    msymbolize (s);
   return SCM_MAKINUM ((unsigned long)s ^ SCM_SYMBOL_HASH (s));
+}
+
+
+static void copy_and_prune_obarray SCM_P ((SCM from, SCM to));
+
+static void
+copy_and_prune_obarray (from, to)
+     SCM from;
+     SCM to;
+{
+  int i;
+  int length = SCM_LENGTH (from);
+  for (i = 0; i < length; ++i)
+    {
+      SCM head = SCM_VELTS (from)[i]; /* GC protection */
+      SCM ls = head;
+      SCM res = SCM_EOL;
+      SCM *lloc = &res;
+      while (SCM_NIMP (ls))
+	{
+	  if (!SCM_UNBNDP (SCM_CDAR (ls)))
+	    {
+	      *lloc = scm_cons (SCM_CAR (ls), SCM_EOL);
+	      lloc = SCM_CDRLOC (*lloc);
+	    }
+	  ls = SCM_CDR (ls);
+	}
+      SCM_VELTS (to)[i] = res;
+    }
+}
+
+
+SCM_PROC(s_builtin_bindings, "builtin-bindings", 0, 0, 0, scm_builtin_bindings);
+
+SCM
+scm_builtin_bindings ()
+{
+  int length = SCM_LENGTH (scm_symhash);
+  SCM obarray = scm_make_vector (SCM_MAKINUM (length), SCM_EOL, SCM_UNDEFINED);
+  copy_and_prune_obarray (scm_symhash, obarray);
+  return obarray;
+}
+
+
+SCM_PROC(s_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0, scm_builtin_weak_bindings);
+
+SCM
+scm_builtin_weak_bindings ()
+{
+  int length = SCM_LENGTH (scm_weak_symhash);
+  SCM obarray = scm_make_doubly_weak_hash_table (SCM_MAKINUM (length));
+  copy_and_prune_obarray (scm_weak_symhash, obarray);
+  return obarray;
 }
 
 

@@ -1,3 +1,17 @@
+Wed Mar  5 23:31:21 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* tags.h (SCM_ECONSP, SCM_NECONSP): Bugfix: Discriminate structs
+	from pairs with a GLOC in the car.
+
+	* symbols.c (msymbolize): Bugfix: Also initialize SCM_SYMBOL_HASH,
+	otherwise `symbol-hash' will behave badly.
+	(scm_symbol_hash): Bugfix: Must msymbolize if tc7_ssymbol, othwise
+	we get segmentation fault!
+
+	* symbols.c: Added #include "weaks.h".  New functions
+ 	`builtin-bindings' and `builtin-weak-bindings'.  (These will be
+ 	moved to an extraneous library when we split libguile.)
+
 Tue Mar  4 19:50:07 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* filesys.c (scm_stat): stat now takes fport arguments too as

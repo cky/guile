@@ -279,8 +279,12 @@ typedef long SCM;
  * There are two places to fix where structures and glocs can be confused.
  * !!!
  */
-#define SCM_ECONSP(x) (SCM_CONSP(x) || (1==SCM_TYP3(x)))
-#define SCM_NECONSP(x) (SCM_NCONSP(x) && (1 != SCM_TYP3(x)))
+#define SCM_ECONSP(x) (SCM_CONSP (x) \
+		       || (SCM_TYP3(x) == 1 \
+                           && SCM_CDR (SCM_CAR (x) - 1) != 0))
+#define SCM_NECONSP(x) (SCM_NCONSP(x) \
+			&& (SCM_TYP3(x) != 1 \
+			    || SCM_CDR (SCM_CAR (x) - 1) == 0))
 
 
 
