@@ -1,3 +1,15 @@
+2004-02-12  Kevin Ryde  <user42@zip.com.au>
+
+	* ramap.c (scm_array_fill_x): For fvect and dvect, use scm_num2dbl to
+	convert args the same way that array-set! does.
+
+	* unif.c (scm_make_uve, scm_array_p): Allow fraction 1/3 as prototype
+	for dvect.
+	(scm_array_p): Add missing "break"s in switch, fix llvect test look
+	for "l" not "s", fix dvect to be false for singp(prot) since such a
+	value is for fvect.
+	(scm_array_prototype): Return 1/3 for dvect, rather than 0.33..33.
+
 2004-02-10  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* read.c (scm_read_opts): Change `escaped-parens' to
