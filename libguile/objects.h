@@ -230,7 +230,8 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
 extern SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
 extern SCM scm_entity_p (SCM obj);
 extern SCM scm_operator_p (SCM obj);
-extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);
+extern SCM scm_valid_object_procedure_p (SCM proc);
+extern SCM scm_set_object_procedure_x (SCM obj, SCM proc);
 #ifdef GUILE_DEBUG
 extern SCM scm_object_procedure (SCM obj);
 #endif

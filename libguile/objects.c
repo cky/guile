@@ -374,9 +374,35 @@ SCM_DEFINE (scm_operator_p, "operator?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+/* XXX - What code requires the object procedure to be only of certain
+         types? */
+
+SCM_DEFINE (scm_valid_object_procedure_p, "valid-object-procedure?", 1, 0, 0,
+	    (SCM proc),
+	    "Return @code{#t} iff @var{proc} is a procedure that can be used "
+	    "with @code{set-object-procedure}.  It is always valid to use "
+            "a closure constructed by @code{lambda}.")
+#define FUNC_NAME s_scm_valid_object_procedure_p
+{
+  if (SCM_IMP (proc))
+    return SCM_BOOL_F;
+  switch (SCM_TYP7 (proc))
+    {
+    default:
+      return SCM_BOOL_F;
+    case scm_tcs_closures:
+    case scm_tc7_subr_1:
+    case scm_tc7_subr_2:
+    case scm_tc7_subr_3:
+    case scm_tc7_lsubr_2:
+      return SCM_BOOL_T;
+    }
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0, 
             (SCM obj, SCM proc),
-	    "Return the object procedure of @var{obj} to @var{proc}.\n"
+	    "Set the object procedure of @var{obj} to @var{proc}.\n"
 	    "@var{obj} must be either an entity or an operator.")
 #define FUNC_NAME s_scm_set_object_procedure_x
 {
@@ -388,7 +414,7 @@ SCM_DEFINE (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0,
 	      obj,
 	      SCM_ARG1,
               FUNC_NAME);
-  SCM_VALIDATE_PROC (2,proc);
+  SCM_ASSERT (scm_valid_object_procedure_p (proc), proc, SCM_ARG2, FUNC_NAME);
   if (SCM_I_ENTITYP (obj))
     SCM_SET_ENTITY_PROCEDURE (obj, proc);
   else
