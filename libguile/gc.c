@@ -2506,9 +2506,12 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
   scm_listofnull = scm_cons (SCM_EOL, SCM_EOL);
   scm_nullstr = scm_makstr (0L, 0);
   scm_nullvect = scm_make_vector (SCM_INUM0, SCM_UNDEFINED);
-  scm_symhash = scm_make_vector (SCM_MAKINUM (scm_symhash_dim), SCM_EOL);
-  scm_weak_symhash = scm_make_weak_key_hash_table (SCM_MAKINUM (scm_symhash_dim));
-  scm_symhash_vars = scm_make_vector (SCM_MAKINUM (scm_symhash_dim), SCM_EOL);
+
+#define DEFAULT_SYMHASH_SIZE 277
+  scm_symhash = scm_make_vector (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE), SCM_EOL);
+  scm_weak_symhash = scm_make_weak_key_hash_table (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE));
+  scm_symhash_vars = scm_make_vector (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE), SCM_EOL);
+
   scm_stand_in_procs = SCM_EOL;
   scm_permobjs = SCM_EOL;
   scm_protects = scm_make_vector (SCM_MAKINUM (31), SCM_EOL);

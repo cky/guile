@@ -58,6 +58,7 @@
 
 long scm_tc16_environment;
 long scm_tc16_observer;
+#define DEFAULT_OBARRAY_SIZE 137
 
 
 
@@ -1036,7 +1037,7 @@ SCM_DEFINE (scm_make_leaf_environment, "make-leaf-environment", 0, 0, 0,
   env = scm_make_environment (body);
 
   core_environments_init (&body->base, &leaf_environment_funcs);
-  body->obarray = scm_make_vector (SCM_MAKINUM (scm_symhash_dim), SCM_EOL);  
+  body->obarray = scm_make_vector (SCM_MAKINUM (DEFAULT_OBARRAY_SIZE), SCM_EOL);  
 
   return env;
 }
@@ -1428,7 +1429,7 @@ SCM_DEFINE (scm_make_eval_environment, "make-eval-environment", 2, 0, 0,
   env = scm_make_environment (body);
 
   core_environments_init (&body->base, &eval_environment_funcs);
-  body->obarray = scm_make_vector (SCM_MAKINUM (scm_symhash_dim), SCM_EOL);  
+  body->obarray = scm_make_vector (SCM_MAKINUM (DEFAULT_OBARRAY_SIZE), SCM_EOL);  
   body->imported = imported;
   body->imported_observer
     = SCM_ENVIRONMENT_OBSERVE (imported, eval_environment_observer, env, 1);

@@ -50,8 +50,6 @@
 #include "libguile/__scm.h"
 
 
-extern int scm_symhash_dim;
-
 /* SCM_SYMBOL_LENGTH(SYM) is the length of SYM's name in characters, and
  * SCM_SYMBOL_CHARS(SYM) is the address of the first character of SYM's name.
  */

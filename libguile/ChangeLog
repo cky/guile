@@ -1,3 +1,23 @@
+2000-12-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* environments.c (DEFAULT_OBARRAY_SIZE), gc.c
+	(DEFAULT_SYMHASH_SIZE):  Added to locally determine arbitrary
+	default values for obarrays, thus removing the dependency from
+	scm_symhash_dim.
+
+	* environments.c (scm_make_leaf_environment,
+	scm_make_eval_environment), gc.c (scm_init_storage):  Don't use
+	scm_symhash_dim.
+
+	* symbols.c (NUM_HASH_BUCKETS), symbols.[ch] (scm_symhash_dim):
+	Removed.
+
+	* symbols.c (scm_sym2vcell, scm_sysintern0_no_module_lookup):
+	Eliminate a redundant SCM_IMP test.
+
+	(scm_sym2vcell, scm_sysintern0_no_module_lookup):
+	Don't assume a fixed obarray size any more.  
+
 2000-12-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_init_gc):  gc_async is already protected from gc,

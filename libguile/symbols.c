@@ -66,12 +66,6 @@
 
 
 
-/* NUM_HASH_BUCKETS is the number of symbol scm_hash table buckets. 
- */
-#define NUM_HASH_BUCKETS 137
-
-
-
 static char *
 duplicate_string (const char * src, unsigned long length)
 {
@@ -109,9 +103,6 @@ scm_string_hash (const unsigned char *str, scm_sizet len)
 }
 
 
-int scm_symhash_dim = NUM_HASH_BUCKETS;
-
-
 /* scm_sym2vcell
  * looks up the symbol in the symhash table. 
  */
@@ -131,24 +122,23 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
 
       if (SCM_FALSEP (var))
 	return SCM_BOOL_F;
+      else if (SCM_VARIABLEP (var))
+	return SCM_VARVCELL (var);
       else
-	{
-	  if (SCM_IMP(var) || !SCM_VARIABLEP (var))
-	    scm_wta (sym, "strangely interned symbol? ", "");
-	  return SCM_VARVCELL (var);
-	}
+	scm_wta (sym, "strangely interned symbol? ", "");
     }
   else
     {
       SCM lsym;
       SCM * lsymp;
-      SCM z;
-      scm_sizet hash = SCM_SYMBOL_HASH (sym) % scm_symhash_dim;
+      scm_sizet hash1;
+      scm_sizet hash2;
 
       SCM_DEFER_INTS;
-      for (lsym = SCM_VELTS (scm_symhash)[hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
+      hash1 = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (scm_symhash);
+      for (lsym = SCM_VELTS (scm_symhash)[hash1]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
 	{
-	  z = SCM_CAR (lsym);
+	  SCM z = SCM_CAR (lsym);
 	  if (SCM_EQ_P (SCM_CAR (z), sym))
 	    {
 	      SCM_ALLOW_INTS;
@@ -156,19 +146,20 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
 	    }
 	}
 
-      for (lsym = *(lsymp = &SCM_VELTS (scm_weak_symhash)[hash]);
+      hash2 = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (scm_weak_symhash);
+      for (lsym = *(lsymp = &SCM_VELTS (scm_weak_symhash)[hash2]);
 	   SCM_NIMP (lsym);
 	   lsym = *(lsymp = SCM_CDRLOC (lsym)))
 	{
-	  z = SCM_CAR (lsym);
+	  SCM z = SCM_CAR (lsym);
 	  if (SCM_EQ_P (SCM_CAR (z), sym))
 	    {
 	      if (SCM_NFALSEP (definep))
 		{
 		  /* Move handle from scm_weak_symhash to scm_symhash. */
 		  *lsymp = SCM_CDR (lsym);
-		  SCM_SETCDR (lsym, SCM_VELTS(scm_symhash)[hash]);
-		  SCM_VELTS(scm_symhash)[hash] = lsym;
+		  SCM_SETCDR (lsym, SCM_VELTS(scm_symhash)[hash1]);
+		  SCM_VELTS(scm_symhash)[hash1] = lsym;
 		}
 	      SCM_ALLOW_INTS;
 	      return z;
@@ -363,7 +354,7 @@ scm_sysintern0_no_module_lookup (const char *name)
       SCM lsym;
       scm_sizet len = strlen (name);
       scm_sizet raw_hash = scm_string_hash ((unsigned char *) name, len);
-      scm_sizet hash = raw_hash % scm_symhash_dim;
+      scm_sizet hash = raw_hash % SCM_VECTOR_LENGTH (scm_symhash);
 
       SCM_NEWCELL2 (lsym);
       SCM_SET_SYMBOL_CHARS (lsym, name);

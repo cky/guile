@@ -322,6 +322,8 @@ Use SCM_CDR instead of SCM_GCCDR.
 
 ** Removed function:  scm_struct_init
 
+** Removed variable:  scm_symhash_dim
+
 ** Renamed function: scm_make_cont has been replaced by
 scm_make_continuation, which has a different interface.
 
