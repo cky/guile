@@ -149,6 +149,7 @@ typedef struct coop_c {
 typedef coop_c scm_cond_t;
 
 extern int coop_condition_variable_init (coop_c*);
+extern int coop_condition_variable_wait (coop_c*);
 extern int coop_condition_variable_wait_mutex (coop_c*, coop_m*);
 extern int coop_condition_variable_signal (coop_c*);
 extern int coop_condition_variable_destroy (coop_c*);
@@ -159,10 +160,25 @@ extern int coop_condition_variable_destroy (coop_c*);
 
 extern coop_t *coop_global_curr;       	/* Currently-executing thread. */
 
+extern void coop_join (coop_t *t);
 extern void coop_yield (void);
 
 extern size_t scm_switch_counter;
 extern size_t scm_thread_count;
+
+
+/* Some iselect functions.  */ 
+
+/* I'm not sure whether these three declarations should be here.
+   They're really defined in iselect.c, so you'd think they'd go in
+   iselect.h, but they use coop_t, defined above, which uses things
+   defined in iselect.h.  Basically, we're making at best a flailing
+   (and failing) attempt at modularity here, and I don't have time to
+   rethink this at the moment.  This code awaits a Hero.  --JimB */
+extern coop_t *coop_next_runnable_thread (void);
+extern coop_t *coop_wait_for_runnable_thread_now (struct timeval *);
+extern coop_t *coop_wait_for_runnable_thread (void);
+
 
 
 

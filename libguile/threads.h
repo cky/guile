@@ -76,6 +76,20 @@ SCM scm_threads_monitor SCM_P ((void));
 SCM scm_spawn_thread (scm_catch_body_t body, void *body_data,
 		      scm_catch_handler_t handler, void *handler_data);
 
+/* The C versions of the Scheme-visible thread functions.  */
+#ifdef USE_COOP_THREADS
+extern SCM scm_single_thread_p (void);
+#endif
+extern SCM scm_yield (void);
+extern SCM scm_call_with_new_thread (SCM argl);
+extern SCM scm_join_thread (SCM t);
+extern SCM scm_make_mutex (void);
+extern SCM scm_lock_mutex (SCM m);
+extern SCM scm_unlock_mutex (SCM m);
+extern SCM scm_make_condition_variable (void);
+extern SCM scm_wait_condition_variable (SCM cond, SCM mutex);
+extern SCM scm_signal_condition_variable (SCM cond);
+
 #if 0
 /* These don't work any more.  */ 
 #ifdef USE_MIT_PTHREADS

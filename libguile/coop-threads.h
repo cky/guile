@@ -80,7 +80,7 @@
 typedef void (coop_userf_t)(void *p0);
 
 /* Call this before any other primitives. */
-extern void coop_init();
+extern void coop_init (void);
 
 /* When one or more threads are created by the main thread,
    the system goes multithread when this is called.  It is done

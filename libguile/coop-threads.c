@@ -56,10 +56,10 @@ size_t scm_switch_counter = SCM_THREAD_SWITCH_COUNT;
 coop_m scm_critical_section_mutex;
 
 #ifdef __STDC__
-size_t
+static size_t
 scm_threads_free_thread (SCM t)
 #else
-size_t
+static size_t
 scm_threads_free_thread (t)
      SCM t;
 #endif
@@ -69,10 +69,10 @@ scm_threads_free_thread (t)
 }
 
 #ifdef __STDC__
-size_t
+static size_t
 scm_threads_free_mutex (SCM m)
 #else
-size_t
+static size_t
 scm_threads_free_mutex (m)
      SCM m;
 #endif
@@ -82,10 +82,10 @@ scm_threads_free_mutex (m)
 }
 
 #ifdef __STDC__
-size_t
+static size_t
 scm_threads_free_condvar (SCM c)
 #else
-size_t
+static size_t
 scm_threads_free_condvar (c)
      SCM c;
 #endif

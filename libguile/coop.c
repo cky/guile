@@ -40,14 +40,32 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.10 1998-04-24 23:36:02 mdj Exp $ */
+/* $Id: coop.c,v 1.11 1998-10-03 13:33:52 jimb Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
+
+#ifdef HAVE_UNISTD_H 
+#include <unistd.h>
+#endif
 
 #include <qt.h>
 #include "eval.h"
 
-/* #define COOP_STKSIZE (0x10000) */
+/* Provide declarations for these, if the system does not.  */
+
+#if defined(MISSING_SLEEP_DECL)
+extern unsigned int sleep (unsigned int);
+#endif
+
+#if defined(MISSING_USLEEP_DECL)
+#ifdef USLEEP_RETURNS_VOID
+extern void usleep (unsigned);
+#else
+extern int usleep (unsigned);
+#endif
+#endif
+
+/* #define COOP_STKSIZE (0x10000) */
 #define COOP_STKSIZE (scm_eval_stack)
 
 /* `alignment' must be a power of 2. */
@@ -190,9 +208,7 @@ coop_init()
    and there are sleeping threads - wait until one wakes up. Otherwise,
    return NULL. */
 
-#ifdef GUILE_ISELECT
-extern coop_t *coop_next_runnable_thread ();
-#else
+#ifndef GUILE_ISELECT
 #ifdef __STDC__
 coop_t *
 coop_next_runnable_thread()
