@@ -1,3 +1,11 @@
+2001-09-04  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* TODO:
+	Use outline mode instead of text.
+	Reword protocol explanation.
+	Add "make error-signalling functions more consistent" to Eventually.
+	Move some C-related GOOPS tasks to 1.8.0, take ownership.
+
 2001-08-31  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* HACKING (Sample GDB Initialization File): New section.
