@@ -1,3 +1,16 @@
+2003-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-control.texi (Dynamic Wind): Untabify.
+	(Multiple Values): Use @result.
+	Reported by Stephen Compall <s11@member.fsf.org>.
+
+	* scheme-control.texi (Continuations): Rewrite with more detail.
+
+	* scheme-scheduling.texi (System asyncs): Add index entries for C
+	functions.
+
+	* scheme-scheduling.texi (Parallel Forms): New section.
+
 2003-07-18  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-compound.texi (List Constructors): In list, use "elem1
