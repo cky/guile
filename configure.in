@@ -478,17 +478,6 @@ dnl Tell guile-config what flags guile users should link against.
 GUILE_LIBS="$LDFLAGS $THREAD_LIBS_INSTALLED $LIBS"
 AC_SUBST(GUILE_LIBS)
 
-dnl timestamping the interpreter and scheme libraries:
-dnl
-dnl Help us notice when we're running one version of the Guile
-dnl interpreter against a different version of the ice-9 Scheme code.
-dnl This will definitely detect version skew due to differing
-dnl snapshots and releases, but may not catch skew for the developers.
-dnl Hopefully it will not detect skew when there is none; if that
-dnl happens, the warnings will be useless, and we should remove this.
-GUILE_STAMP="`date`"
-AC_SUBST(GUILE_STAMP)
-
 AC_SUBST(AWK)
 AC_SUBST(LIBLOBJS)
 
