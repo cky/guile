@@ -1,5 +1,9 @@
 1998-10-03    <jimb@savonarola.red-bean.com>
 
+	* configure.in: Check for a missing `sleep' declaration.
+	* acconfig.h (MISSING_SLEEP_DECL): Provide some text for this.
+	* configure: Regenerated.
+
 	* configure.in: Don't use the canonical host name to decide
 	whether `bzero' and `usleep' have declarations --- that's going
 	back to the bad old days before autoconf.  Remove the call to

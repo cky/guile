@@ -1,3 +1,26 @@
+1998-10-03    <jimb@savonarola.red-bean.com>
+
+	Get rid of warnings from the cooperative threading system.
+	* threads.h (scm_single_thread_p, scm_yield,
+	scm_call_with_new_thread, scm_join_thread, scm_make_mutex,
+	scm_lock_mutex, scm_unlock_mutex, scm_make_condition_variable,
+	scm_wait_condition_variable, scm_signal_condition_variable): Add
+	prototypes for these Scheme-visible functions.
+	* coop-defs.h (coop_next_runnable_thread,
+	coop_wait_for_runnable_thread_now, coop_wait_for_runnable_thread):
+	Prototypes for these here, even though they're from iselect.c.
+	(coop_condition_variable_wait, coop_join): Add prototypes.
+	* coop-threads.c (scm_threads_free_thread, scm_threads_free_mutex,
+	scm_threads_free_condvar): Make these smob functions static.
+	* coop-threads.h (coop_init): Give this a real prototype.
+	* coop.c: #include <unistd.h>, if we have it, for `usleep' and `sleep'.
+	(coop_next_runnable_thread): No need to provide prototype; it's in 
+	coop-defs.h.
+
+	* scmconfig.h.in: .detarenegeR
+
+	* iselect.c, threads.c: Doc fixes.
+
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated with a patched automake, to get

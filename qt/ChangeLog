@@ -1,3 +1,8 @@
+1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: Regenerated with a patched automake, to get
+	dependency generation right when using EGCS.
+
 1998-09-29  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* stp.h (stp_create): Doc fix.
