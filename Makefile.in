@@ -153,12 +153,14 @@ realclean:
 
 #`TAGS'
 #     Update a tags table for this program.
+#     We could allow each subdirectory to create its own TAGS file,
+#     and then use etags' --include option to incorporate them all by
+#     reference into a top-level TAGS file, but the --include option
+#     seems to be deprecated, and this works fine.
 TAGS:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} TAGS; \
-		cd ..  ;\
-	done
+	etags \
+	  --regex='/SCM_PROC[^"]*"[^"]*"/' \
+	  `find . -name '*.[ch]' -o -name '*.scm'`
 
 #`info'
 #     Generate any info files needed.  The best way to write the rules
