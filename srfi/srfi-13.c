@@ -2106,10 +2106,10 @@ SCM_DEFINE (scm_string_downcaseS, "string-downcase", 1, 2, 0,
 static SCM
 string_titlecase_x (SCM str, int start, int end)
 {
-  char * sz;
+  unsigned char * sz;
   int i, in_word = 0;
 
-  sz = SCM_STRING_CHARS (str);
+  sz = SCM_STRING_UCHARS (str);
   for(i = start; i < end;  i++)
     {
       if (!SCM_FALSEP (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i]))))
