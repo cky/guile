@@ -41,6 +41,19 @@
 	   (= (string-length (format "~@F~20T" 1)) 20)))
 
 ;;;
+;;; misc
+;;;
+
+(with-test-prefix "format"
+
+  ;; in guile 1.6.4 and earlier, excess arguments were an error, but this
+  ;; changed to follow the common lisp spec
+  (pass-if "excess arguments ignored A"
+    (string=? (format #f "" 1 2 3 4) ""))
+  (pass-if "excess arguments ignored B"
+    (string=? (format #f "~a ~a" 1 2 3 4) "1 2")))
+
+;;;
 ;;; ~d
 ;;;
 
@@ -50,6 +63,7 @@
 
     (pass-if "-1"
       (string=? (format #f "~@d" -1) "-1"))
+
     ;; in guile 1.6.4 and earlier, ~@d gave "0" but we think "+0" is what the
     ;; common lisp spec intendes
     (pass-if "+0"
