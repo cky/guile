@@ -201,10 +201,15 @@ dynl_obj_print (SCM exp, SCM port, scm_print_state *pstate)
 
 SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0, 
             (SCM filename),
-	    "Open the dynamic library called @var{filename}.  A library\n"
-	    "handle representing the opened library is returned; this handle\n"
-	    "should be used as the @var{dobj} argument to the following\n"
-	    "functions.")
+	    "Find the shared object (shared library) denoted by\n"
+	    "@var{filename} and link it into the running Guile\n"
+	    "application.  The returned\n"
+	    "scheme object is a ``handle'' for the library which can\n"
+	    "be passed to @code{dynamic-func}, @code{dynamic-call} etc.\n\n"
+	    "Searching for object files is system dependent.  Normally,\n"
+	    "if @var{filename} does have an explicit directory it will\n"
+	    "be searched for in locations\n"
+	    "such as @file{/usr/lib} and @file{/usr/local/lib}.")
 #define FUNC_NAME s_scm_dynamic_link
 {
   void *handle;
@@ -218,8 +223,8 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0,
 
 SCM_DEFINE (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0, 
             (SCM obj),
-	    "Return @code{#t} if @var{obj} is a dynamic library handle, or @code{#f}\n"
-	    "otherwise.")
+	    "Return @code{#t} if @var{obj} is a dynamic object handle,\n"
+	    "or @code{#f} otherwise.")
 #define FUNC_NAME s_scm_dynamic_object_p
 {
   return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_dynamic_obj, obj));
@@ -229,10 +234,11 @@ SCM_DEFINE (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0,
 
 SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0, 
             (SCM dobj),
-	    "Unlink the indicated object file from the application.  The\n"
-	    "argument @var{dobj} must have been obtained by a call to\n"
-	    "@code{dynamic-link}.  After @code{dynamic-unlink} has been\n"
-	    "called on @var{dobj}, its content is no longer accessible.")
+	    "Unlink a dynamic object from the application, if possible.  The\n"
+	    "object must have been linked by @code{dynamic-link}, with \n"
+	    "@var{dobj} the corresponding handle.  After this procedure\n"
+	    "is called, the handle can no longer be used to access the\n"
+	    "object.")
 #define FUNC_NAME s_scm_dynamic_unlink
 {
   /*fixme* GC-problem */
@@ -250,14 +256,14 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
 
 SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0, 
             (SCM name, SCM dobj),
-	    "Search the dynamic object @var{dobj} for the C function\n"
-	    "indicated by the string @var{name} and return some Scheme\n"
-	    "handle that can later be used with @code{dynamic-call} to\n"
-	    "actually call the function.\n\n"
-	    "Regardless whether your C compiler prepends an underscore @samp{_} to\n"
-	    "the global names in a program, you should @strong{not} include this\n"
-	    "underscore in @var{function}.  Guile knows whether the underscore is\n"
-	    "needed or not and will add it when necessary.")
+	    "Return a ``handle'' for the function @var{name} in the\n"
+	    "shared object referred to by @var{dobj}.  The handle\n"
+	    "can be passed to @code{dynamic-call} to actually\n"
+	    "call the function.\n\n"
+	    "Regardless whether your C compiler prepends an underscore\n"
+	    "@samp{_} to the global names in a program, you should\n"
+	    "@strong{not} include this underscore in @var{name}\n"
+	    "since it will be added automatically when necessary.")
 #define FUNC_NAME s_scm_dynamic_func
 {
   /* The returned handle is formed by casting the address of the function to a

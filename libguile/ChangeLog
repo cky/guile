@@ -1,3 +1,7 @@
+2002-07-10  Gary Houston  <ghouston@arglist.com>
+
+	* dynl.c: docstring editing.
+
 2002-07-09  Gary Houston  <ghouston@arglist.com>
 
 	* dynl.c (scm_dynamic_call): docstring editing.
