@@ -1,3 +1,10 @@
+2000-01-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Optimization: Reverse order of
+	scm_stack_checking_enabled_p and SCM_STACK_OVERFLOW_P => speed
+	gain 4-6% for eval1 benchmark on one machine.  (Thanks to Brad
+	Knotwell.)
+
 Mon Jan  3 08:30:02 2000  Greg Harvey  <Greg.Harvey@thezone.net> (applied --01/03/00 gjb)
 
 	* gc.c (scm_debug_newcell): Added SCM_SETCAR of the newly
