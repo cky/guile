@@ -1,3 +1,12 @@
+Sat Jan 11 14:47:00 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+ 	* configure.in: Replaced AC_PROG_RANLIB with AM_PROG_LIBTOOL.
+	* Makefile.am: Made libguile into a libtool library.
+	* PLUGIN/guile.config: Removed "-L ../libguile" from xtra_cflags.
+  	Set libtool_libs to indicate that libguile is a libtool library.
+  	See guile/ChangeLog for details.
+	* .cvsignore: ignore "*.lo", the libtool library objects.
+
 Wed Jan  8 06:54:54 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* net_db.c (scm_getserv): add missing SCM_ALLOW_INTS.
@@ -78,7 +87,7 @@ Sat Dec 28 13:55:58 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* read.c (scm_lreadr): Encountering EOF after skipping a SCSH
  	style block comment is no longer considered an error.
-
+	
 Fri Dec 27 13:44:23 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* PLUGIN/guile.libs.in: New file.
