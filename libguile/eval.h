@@ -96,7 +96,6 @@ extern SCM scm_i_else;
 extern SCM scm_i_unquote;
 extern SCM scm_i_uq_splicing;
 extern SCM scm_i_apply;
-extern SCM scm_i_name;
 
 
 /* A resolved global variable reference in the CAR position

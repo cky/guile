@@ -67,7 +67,7 @@ extern scm_option scm_print_opts[];
 #define SCM_WRITINGP(pstate) ((pstate)->writingp)
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
-#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwpwuwuwuwpW"
+#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwpwuwuwurpW"
 typedef struct scm_print_state {
   SCM handle;			/* Struct handle */
   unsigned long writingp;	/* Writing? */

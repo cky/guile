@@ -1,3 +1,32 @@
+Mon Oct 14 17:07:55 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* init.c (scm_boot_guile_1): Moved scm_init_struct in front of
+	scm_init_stacks.
+
+	* debug.h (SCM_VOIDFRAME, SCM_VOIDFRAMEP): New macros.
+	(scm_debug_info): New member: id.
+
+	* stacks.c: Stacks are now represented as structs; Stacks have an
+ 	id given to them by `start-stack'.
+	(scm_last_stack_frame): Added predicates `stack?' and `frame?'.
+
+	* stacks.h: Added declarations of scm_stack_p and scm_frame_p;
+	Changed stack representation.
+
+	* debug.c (scm_procedure_name): Try procedure property `name' for
+	compiled closures aswell.
+
+	* gc.c (scm_init_storage): Initialize scm_stand_in_procs to SCM_EOL.
+
+	* eval.c: scm_i_name moved to gsubr.c
+	(scm_m_define): Record names of all kinds of procedure
+	objects.  (Earlier, only closures were recorded.)
+
+	* procprop.h: Added declaration of scm_i_name.
+
+	* gsubr.c: Added global scm_i_name.  Added #include "procprop.h".
+	(scm_make_gsubr): Record names of compiled closures.
+	
 Mon Oct 14 04:21:51 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* debug.c, debug.h: Removed obsolete code.

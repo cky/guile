@@ -860,7 +860,7 @@ scm_init_print ()
 {
   SCM vtable, type;
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
-  vtable = scm_make_vtable_vtable (scm_make_struct_layout (scm_makfrom0str ("")), SCM_INUM0, SCM_EOL);
+  vtable = scm_make_vtable_vtable (scm_make_struct_layout (scm_nullstr), SCM_INUM0, SCM_EOL);
   type = scm_make_struct (vtable,
 			  SCM_INUM0,
 			  scm_cons (scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT)),
