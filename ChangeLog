@@ -1,3 +1,9 @@
+Sat Jun 21 00:14:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* ltmain.sh (line 1191): Don't forget 'test' in if statement.
+
+	* ltconfig, ltmain.sh: libtoolized, using libtool 0.9h.
+
 Wed Jun 11 00:34:01 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* ltconfig, ltmain.sh, config.guess: New files from libtool 0.9g.

@@ -1,3 +1,31 @@
+Sat Jun 21 00:25:03 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	Make things compile neatly under Sun's C compiler.
+	* dynl.c (scm_dynamic_func): Cast return value from sysdep_dynl_func.
+	* extchrs.c (xmbtowc): Make the second arg a normal char, not
+	unsigned, because that's what the ANSI function takes.
+	* extchrs.h (xmbtowc): Corresponding change to prototype.
+	* genio.c (scm_gen_getc): Make buf plain chars.  Nobody wants
+	uchars here.
+	* mbstrings.c (scm_mb_ilength): Use ANSI arg syntax.  Make DATA
+	argument plain char *.
+	* strings.c (scm_string): Use SCM_ROCHARS, since c is a plain
+	char.
+	* tag.c (scm_tag): Remove unreachable statement.
+	* unif.c (scm_array_to_list): If we want to shift a 1 bit to the
+	top of the word, it should be unsigned.
+
+	* eval.c (scm_lookupcar1): Don't declare var2 unless USE_THREADS
+	is defined, to avoid warnings; it's only used in the
+	conflict-checking code.  Which might go away anyway.
+	(SCM_CEVAL): All goto's targeting the `dispatch' label are in
+	conditionals; put the label definition in an #if too, to stifle
+	warnings.
+
+	* Makefile.am (EXTRA_DIST): Include ChangeLog-gh and
+	ChangeLog-threads in the distribution.
+	* Makefile.in: Regenerated.
+
 Fri Jun 20 10:03:41 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
 
 	* guile-snarf.in: Changed regexp to support CPPs that insert
