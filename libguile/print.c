@@ -379,7 +379,7 @@ taloop:
 	     macro closures as well. */
 	  if (SCM_FALSEP (scm_procedure_p (SCM_PRINT_CLOSURE))
 	      || SCM_FALSEP (scm_printer_apply (SCM_PRINT_CLOSURE,
-						exp, port, pstate)));
+						exp, port, pstate)))
 	  {
 	    SCM name, code, env;
 	    if (SCM_TYP16 (exp) == scm_tc16_macro)
