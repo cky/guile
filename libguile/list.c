@@ -259,42 +259,51 @@ scm_last_pair(sx)
 /* reversing lists */
 
 SCM_PROC (s_reverse, "reverse", 1, 0, 0, scm_reverse);
+
 SCM
-scm_reverse(lst)
-     SCM lst;
+scm_reverse (SCM ls)
 {
-	SCM res = SCM_EOL;
-	SCM p = lst;
-	for(;SCM_NIMP(p);p = SCM_CDR(p)) {
-		SCM_ASSERT(SCM_CONSP(p), lst, SCM_ARG1, s_reverse);
-		res = scm_cons(SCM_CAR(p), res);
-	}
-	SCM_ASSERT(SCM_NULLP(p), lst, SCM_ARG1, s_reverse);
-	return res;
+  SCM res = SCM_EOL;
+  SCM p = ls, t = ls;
+  while (SCM_NIMP (p))
+    {
+      SCM_ASSERT (SCM_CONSP (p), ls, SCM_ARG1, s_reverse);
+      res = scm_cons (SCM_CAR (p), res);
+      p = SCM_CDR (p);
+      if (SCM_IMP (p))
+	break;
+      SCM_ASSERT (SCM_CONSP (p), ls, SCM_ARG1, s_reverse);
+      res = scm_cons (SCM_CAR (p), res);
+      p = SCM_CDR (p);
+      t = SCM_CDR (t);
+      if (t == p)
+	scm_misc_error (s_reverse, "Circular structure: %S", SCM_LIST1 (ls));
+    }
+  SCM_ASSERT (SCM_NULLP (p), ls, SCM_ARG1, s_reverse);
+  return res;
 }
 
 SCM_PROC (s_reverse_x, "reverse!", 1, 1, 0, scm_reverse_x);
 SCM
-scm_reverse_x (lst, newtail)
-     SCM lst;
-     SCM newtail;
+scm_reverse_x (ls, new_tail)
+     SCM ls;
+     SCM new_tail;
 {
   SCM old_tail;
-  if (newtail == SCM_UNDEFINED)
-    newtail = SCM_EOL;
+  SCM_ASSERT (scm_ilength (ls) >= 0, ls, SCM_ARG1, s_reverse_x);
+  if (SCM_UNBNDP (new_tail))
+    new_tail = SCM_EOL;
+  else
+    SCM_ASSERT (scm_ilength (new_tail) >= 0, new_tail, SCM_ARG2, s_reverse_x);
 
- loop:
-  if (!(SCM_NIMP (lst) && SCM_CONSP (lst)))
-    return lst;
-
-  old_tail = SCM_CDR (lst);
-  SCM_SETCDR (lst, newtail);
-  if (SCM_NULLP (old_tail))
-    return lst;
-
-  newtail = lst;
-  lst = old_tail;
-  goto loop;
+  while (SCM_NIMP (ls))
+    {
+      old_tail = SCM_CDR (ls);
+      SCM_SETCDR (ls, new_tail);
+      new_tail = ls;
+      ls = old_tail;
+    }
+  return new_tail;
 }
 
 
