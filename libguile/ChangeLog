@@ -1,3 +1,19 @@
+2001-06-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* struct.h (SCM_STRUCT_VTABLE_FLAGS):  New macro.
+
+	* goops.h (SCM_NUMBER_OF_SLOTS):  Removed bogus `\´ at the end of
+	the macro definition.
+
+	(SCM_CLASSP, SCM_INSTANCEP, SCM_PUREGENERICP, SCM_ACCESSORP,
+	SCM_SIMPLEMETHODP, SCM_FASTMETHODP):  Use SCM_STRUCT_VTABLE_FLAGS
+	instead of SCM_INST_TYPE.
+
+	(SCM_ACCESSORP, SCM_SIMPLEMETHODP, SCM_FASTMETHODP):  Make sure
+	the object is a struct before accessing its struct flags.
+
+	(SCM_INST_TYPE, SCM_SIMPLEMETHODP, SCM_FASTMETHODP): Deprecated.
+
 2001-06-10  Gary Houston  <ghouston@arglist.com>
 
 	* rdelim.c (scm_init_rdelim_builtins): don't try to activate the

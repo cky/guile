@@ -86,6 +86,8 @@ typedef size_t (*scm_struct_free_t) (scm_bits_t * vtable, scm_bits_t * data);
 #define SCM_SET_STRUCT_LAYOUT(X, v)     (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout] = SCM_UNPACK (v))
 
 #define SCM_STRUCT_VTABLE(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_vtable]))
+#define SCM_STRUCT_VTABLE_FLAGS(X) \
+  (SCM_STRUCT_VTABLE_DATA (X) [scm_struct_i_flags])
 #define SCM_STRUCT_PRINTER(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_printer]))
 #define SCM_SET_STRUCT_PRINTER(x, v)\
    (SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_printer] = SCM_UNPACK (v))

@@ -117,45 +117,44 @@ typedef struct scm_method_t {
 				  & SCM_CLASSF_MASK)
 
 #define SCM_INST(x)	       SCM_STRUCT_DATA (x)
-#define SCM_INST_TYPE(x)       SCM_OBJ_CLASS_FLAGS (x)
-/* Also defined in libguuile/objects.c */
+
+/* Also defined in libguile/objects.c */
 #define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
 #define SCM_ACCESSORS_OF(x)    (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x)[scm_si_getters_n_setters]))
-#define SCM_NUMBER_OF_SLOTS(x)\
+#define SCM_NUMBER_OF_SLOTS(x) \
  (SCM_UNPACK (SCM_STRUCT_DATA (x)[scm_struct_i_n_words]) \
-  - scm_struct_n_extra_words) \
+  - scm_struct_n_extra_words)
+
+#define SCM_CLASSP(x) \
+  (SCM_STRUCTP (x) && SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_METACLASS)
+#define SCM_VALIDATE_CLASS(pos, x) SCM_MAKE_VALIDATE (pos, x, CLASSP)
 
 #define SCM_INSTANCEP(x) \
-  (SCM_STRUCTP (x) && (SCM_INST_TYPE (x) & SCM_CLASSF_GOOPS))
+  (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_GOOPS))
 #define SCM_VALIDATE_INSTANCE(pos, x) SCM_MAKE_VALIDATE (pos, x, INSTANCEP)
 
 #define SCM_PUREGENERICP(x) \
-  (SCM_STRUCTP (x) && (SCM_INST_TYPE(x) & SCM_CLASSF_PURE_GENERIC))
+  (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_PURE_GENERIC))
 #define SCM_VALIDATE_PUREGENERIC(pos, x) SCM_MAKE_VALIDATE (pos, x, PUREGENERICP)
 
-#define SCM_SIMPLEMETHODP(x)   (SCM_INST_TYPE(x) & SCM_CLASSF_SIMPLE_METHOD)
-#define SCM_ACCESSORP(x)       (SCM_INST_TYPE(x) & SCM_CLASSF_ACCESSOR_METHOD)
+#define SCM_ACCESSORP(x) \
+  (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_ACCESSOR_METHOD))
 #define SCM_VALIDATE_ACCESSOR(pos, x) SCM_MAKE_VALIDATE (pos, x, ACCESSORP)
-#define SCM_FASTMETHODP(x)     (SCM_INST_TYPE(x) \
-				& (SCM_CLASSF_ACCESSOR_METHOD \
-				   | SCM_CLASSF_SIMPLE_METHOD))
 
 #define SCM_SLOT(x, i)         (SCM_PACK (SCM_INST (x) [i]))
 #define SCM_SET_SLOT(x, i, v)  (SCM_INST (x) [i] = SCM_UNPACK (v))
 #define SCM_SET_HASHSET(c, i, h)  (SCM_INST (c) [scm_si_hashsets + (i)] = (h))
-#define SCM_SUBCLASSP(c1, c2)  (!SCM_FALSEP (scm_c_memq (c2, SCM_SLOT (c1, scm_si_cpl))))
-#define SCM_IS_A_P(x, c)       (SCM_NIMP (x) \
-				&& SCM_INSTANCEP (x) \
-				&& SCM_SUBCLASSP (SCM_CLASS_OF (x), c))
 
-#define SCM_CLASSP(x)   (SCM_STRUCTP (x) \
-			&& SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_METACLASS)
-#define SCM_VALIDATE_CLASS(pos, x) SCM_MAKE_VALIDATE (pos, x, CLASSP)
-#define SCM_GENERICP(x) (SCM_INSTANCEP (x) \
-			&& SCM_SUBCLASSP (SCM_CLASS_OF (x), scm_class_generic))
+#define SCM_SUBCLASSP(c1, c2)  (!SCM_FALSEP (scm_c_memq (c2, SCM_SLOT (c1, scm_si_cpl))))
+#define SCM_IS_A_P(x, c) \
+  (SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), c))
+
+#define SCM_GENERICP(x) \
+  (SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), scm_class_generic))
 #define SCM_VALIDATE_GENERIC(pos, x) SCM_MAKE_VALIDATE (pos, x, GENERICP)
-#define SCM_METHODP(x)  (SCM_INSTANCEP (x) \
-			&& SCM_SUBCLASSP(SCM_CLASS_OF(x), scm_class_method))
+
+#define SCM_METHODP(x) \
+  (SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), scm_class_method))
 #define SCM_VALIDATE_METHOD(pos, x) SCM_MAKE_VALIDATE (pos, x, METHODP)
 
 #define SCM_MCACHE_N_SPECIALIZED(C) SCM_CADDR (C)
@@ -285,5 +284,18 @@ SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs);
 
 SCM scm_init_goops_builtins (void);
 void scm_init_goops (void); 
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define SCM_INST_TYPE(x)       SCM_OBJ_CLASS_FLAGS (x)
+#define SCM_SIMPLEMETHODP(x) \
+  (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_SIMPLE_METHOD))
+#define SCM_FASTMETHODP(x) \
+  (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) \
+                       & (SCM_CLASSF_ACCESSOR_METHOD \
+			  | SCM_CLASSF_SIMPLE_METHOD)))
+
+
+#endif
 
 #endif /* SCM_GOOPS_H */
