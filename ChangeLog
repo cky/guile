@@ -1,3 +1,8 @@
+Tue Jan 18 12:55:15 2000  Mikael Djurfeldt  <mdj@r11n07-s.pdc.kth.se>
+
+	* acinclude.m4 (AC_LIBLTDL_CONVENIENCE): Add $(top_srcdir)/libltdl
+	instead of $(top_builddir)/libltdl to includepath.
+
 2000-01-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* emacs: New subdirectory for elisp tools.
