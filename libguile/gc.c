@@ -2026,7 +2026,7 @@ int scm_n_heap_segs = 0;
 
 #define INIT_CARD(card, span) \
     do { \
-      SCM_GC_CARD_BVEC (card) = get_bvec (); \
+      SCM_GC_SET_CARD_BVEC (card, get_bvec ()); \
       if ((span) == 2) \
         SCM_GC_SET_CARD_DOUBLECELL (card); \
     } while (0)

@@ -1366,7 +1366,7 @@ SCM_DEFINE (scm_sys_set_object_setter_x, "%set-object-setter!", 2, 0, 0,
 	      SCM_ARG1,
 	      FUNC_NAME);
   if (SCM_I_ENTITYP (obj))
-    SCM_ENTITY_SETTER (obj) = setter;
+    SCM_SET_ENTITY_SETTER (obj, setter);
   else
     SCM_OPERATOR_CLASS (obj)->setter = setter;
   return SCM_UNSPECIFIED;
@@ -1545,7 +1545,8 @@ scm_make_method_cache (SCM gf)
 static void
 clear_method_cache (SCM gf)
 {
-  SCM_ENTITY_PROCEDURE (gf) = scm_make_method_cache (gf);
+  SCM cache = scm_make_method_cache (gf);
+  SCM_SET_ENTITY_PROCEDURE (gf, cache);
   SCM_SLOT (gf, scm_si_used_by) = SCM_BOOL_F;
 }
 

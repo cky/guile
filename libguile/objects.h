@@ -94,6 +94,8 @@
 #define SCM_SET_ENTITY_PROCEDURE(obj,v) \
         (SCM_STRUCT_DATA (obj) [scm_struct_i_procedure] = SCM_UNPACK (v))
 #define SCM_ENTITY_SETTER(obj) (SCM_PACK (SCM_STRUCT_DATA (obj)[scm_struct_i_setter]))
+#define SCM_SET_ENTITY_SETTER(obj, v) \
+        (SCM_STRUCT_DATA (obj) [scm_struct_i_setter] = SCM_UNPACK (v))
 
 #define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
 #define SCM_SET_CLASS_INSTANCE_SIZE(c, s) \

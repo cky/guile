@@ -1,3 +1,23 @@
+2001-01-11  Michael Livshin  <mlivshin@bigfoot.com>
+
+	from Matthias Köppe:
+	
+	* objects.h (SCM_SET_ENTITY_SETTER): new macro.  SCM_ENTITY_SETTER
+	casts its result, so doesn't yield an lvalue per ANSI C.
+
+	* goops.c (s_scm_sys_set_object_setter_x): use
+	SCM_SET_ENTITY_SETTER.
+	(clear_method_cache): use SCM_SET_ENTITY_PROCEDURE.
+
+	* gc.h (SCM_GC_SET_CARD_BVEC): new macro.  SCM_GC_CARD_BVEC casts
+	its result, so doesn't yield an lvalue per ANSI C.
+	(SCM_GC_SET_CARD_FLAGS): ditto for SCM_GC_GET_CARD_FLAGS.
+	(SCM_GC_CLR_CARD_FLAGS): redefined in terms of
+	SCM_GC_SET_CARD_FLAGS.
+	(SCM_GC_SET_CARD_FLAG, SCM_GC_CLR_CARD_FLAGS): ditto.
+
+	* gc.c (INIT_CARD): use the explicit setter macro to set the bvec.
+
 2001-01-08  Gary Houston  <ghouston@arglist.com>
 
 	* validate.h (SCM_VALIDATE_SUBSTRING_SPEC_COPY): new macro.

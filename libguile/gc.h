@@ -94,14 +94,19 @@ typedef scm_cell * SCM_CELLPTR;
     SCM_PTR_LT ((scm_cell *) (x), SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS)
 
 #define SCM_GC_CARD_BVEC(card)  ((scm_c_bvec_limb_t *) ((card)->word_0))
+#define SCM_GC_SET_CARD_BVEC(card, bvec) \
+    ((card)->word_0 = (scm_bits_t) (bvec))
 
 #define SCM_GC_GET_CARD_FLAGS(card) ((long) ((card)->word_1))
-#define SCM_GC_SET_CARD_FLAGS(card, flags) (SCM_GC_GET_CARD_FLAGS (card) = (flags))
-#define SCM_GC_CLR_CARD_FLAGS(card) (SCM_GC_GET_CARD_FLAGS (card) = 0L)
+#define SCM_GC_SET_CARD_FLAGS(card, flags) \
+    ((card)->word_1 = (scm_bits_t) (flags))
+#define SCM_GC_CLR_CARD_FLAGS(card) (SCM_GC_SET_CARD_FLAGS (card, 0L))
 
 #define SCM_GC_GET_CARD_FLAG(card, shift) (SCM_GC_GET_CARD_FLAGS (card) & (1L << (shift)))
-#define SCM_GC_SET_CARD_FLAG(card, shift) (SCM_GC_GET_CARD_FLAGS (card) |= (1L << (shift)))
-#define SCM_GC_CLR_CARD_FLAG(card, shift) (SCM_GC_GET_CARD_FLAGS (card) &= ~(1L << (shift)))
+#define SCM_GC_SET_CARD_FLAG(card, shift) \
+    (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) | (1L << (shift))))
+#define SCM_GC_CLR_CARD_FLAG(card, shift) \
+    (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) & ~(1L << (shift))))
 
 #define SCM_GC_CARDF_DOUBLECELL 0
 
