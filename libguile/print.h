@@ -54,14 +54,40 @@ extern scm_option scm_print_opts[];
 #define SCM_PRINT_SOURCE_P	((int) scm_print_opts[1].val)
 #define SCM_N_PRINT_OPTIONS 2
 
+/* State information passed around during printing.
+ */
+#define RESET_PRINT_STATE(pstate) \
+{ \
+  pstate->list_offset = 0; \
+  pstate->top = 0; \
+}
+
+#define SCM_WRITINGP(pstate) ((pstate)->writingp)
+#define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
+
+#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwpwuwuwuwpW"
+typedef struct scm_print_state {
+  SCM handle;			/* Struct handle */
+  unsigned long writingp;	/* Writing? */
+  unsigned long fancyp;		/* Fancy printing? */
+  unsigned long level;		/* Max level */
+  unsigned long length;		/* Max number of objects per level */
+  SCM hot_ref;			/* Hot reference */
+  unsigned long list_offset;
+  unsigned long top;		/* Top of reference stack */
+  unsigned long ceiling;	/* Max size of reference stack */
+  unsigned long n_refs;		/* Size of struct tail array */
+  SCM ref_stack[1];		/* Stack of references used during
+				   circular reference detection */
+} scm_print_state;
+
 #ifdef __STDC__
 extern SCM scm_print_options (SCM setting);
 extern void scm_intprint (long n, int radix, SCM port);
 extern void scm_ipruk (char *hdr, SCM ptr, SCM port);
-extern void scm_prlist (char *hdr, SCM exp, char tlr, SCM port, int writing);
-extern void scm_iprlist (char *hdr, SCM exp, char tlr, SCM port, int writing);
-extern void scm_prin1 (SCM exp, SCM port, int writing);
-extern void scm_iprin1 (SCM exp, SCM port, int writing);
+extern void scm_iprlist (char *hdr, SCM exp, char tlr, SCM port, scm_print_state *pstate);
+extern void scm_prin1 (SCM exp, SCM port, int writingp);
+extern void scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate);
 extern SCM scm_write (SCM obj, SCM port);
 extern SCM scm_display (SCM obj, SCM port);
 extern SCM scm_newline(SCM port);
@@ -72,7 +98,6 @@ extern void scm_init_print (void);
 extern SCM scm_print_options ();
 extern void scm_intprint ();
 extern void scm_ipruk ();
-extern void scm_prlist ();
 extern void scm_iprlist ();
 extern void scm_prin1 ();
 extern void scm_iprin1 ();
