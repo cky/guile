@@ -1,3 +1,10 @@
+2005-02-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* hashtab.c (scm_i_rehash): Cope with the case that a GC modifies
+	the hashtable.
+	(scm_hash_fn_create_handle_x): Likewise.
+	* vectors.h (SCM_I_SET_WVECT_TYPE): New, for use in scm_i_rehash.
+	
 2005-02-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* unif.c (prototype_to_type): Bugfix: Don't compare prototype to
