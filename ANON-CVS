@@ -39,15 +39,19 @@ To check out a CVS working directory:
    This should create a new directory `guile-core' in your current
    directory, and populate it with the current Guile sources.
 
+   To check out all modules use:
+
+    $ cvs -z 9 -d :pserver:anoncvs@subversions.gnu.org:/cvs checkout guile
+
 4) In the top directory of the source tree, run the command `./autogen.sh'.
    This builds the configure script, Makefile.in, and other derived files
    used by the build system.
 
-The modules available for checkout are:
+The modules available for checkout include:
 
   guile-core --- The scheme interpreter itself.
   guile-tcltk --- An interface between Guile and Tcl/Tk.
-  guile-scsh --- An incomplete port of SCSH 0.4.4 to Guile.
+  guile-scsh --- An incomplete port of scsh to Guile.
   guile-rgx-ctax --- This has been discontinued; use Andrew Archibald's
 	  distribution instead:
     ftp://ftp.red-bean.com/pub/guile/contrib/misc/guile-lang-allover-0.1.tar.gz

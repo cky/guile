@@ -195,8 +195,14 @@ Automake macros, in ${prefix}/share/aclocal:
 
 Documentation in Info format, in ${prefix}/info:
 
- data-rep.info --- an essay on how to write C code that works with
- 	Guile Scheme values.
+ guile --- Guile reference manual.
+
+ guile-tut --- Guile tutorial.
+
+ GOOPS --- GOOPS reference manual.
+
+ r5rs --- Revised(5) Report on the Algorithmic Language Scheme.
+
 
 The Guile source tree is laid out as follows:
 
