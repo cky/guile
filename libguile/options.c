@@ -294,9 +294,7 @@ scm_init_options ()
 {
   scm_gc_register_root (&protected_objects);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/options.x"
-#endif
 }
 
 /*

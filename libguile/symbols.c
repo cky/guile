@@ -417,9 +417,7 @@ void
 scm_init_symbols ()
 {
   gensym_counter = 0;
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/symbols.x"
-#endif
 }
 
 /*

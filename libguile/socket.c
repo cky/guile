@@ -1396,9 +1396,7 @@ scm_init_socket ()
 
   scm_add_feature ("socket");
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/socket.x"
-#endif
 }
 
 

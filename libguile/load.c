@@ -503,9 +503,7 @@ scm_init_load ()
 
   init_build_info ();
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/load.x"
-#endif
 }
 
 /*

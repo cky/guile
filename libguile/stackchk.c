@@ -101,9 +101,7 @@ scm_stack_report ()
 void
 scm_init_stackchk ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/stackchk.x"
-#endif
 }
 
 /*

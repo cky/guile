@@ -518,9 +518,7 @@ scm_init_objects ()
   SCM_SET_CLASS_DESTRUCTOR (et, scm_struct_free_entity);
   scm_c_define ("<entity>", et);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/objects.x"
-#endif
 }
 
 /*

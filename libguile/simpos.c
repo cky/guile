@@ -132,9 +132,7 @@ SCM_DEFINE (scm_primitive_exit, "primitive-exit", 0, 1, 0,
 void
 scm_init_simpos ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/simpos.x"
-#endif
 }
 
 

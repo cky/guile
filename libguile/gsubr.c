@@ -288,9 +288,7 @@ scm_init_gsubr()
   scm_c_define_gsubr ("gsubr-2-1-l", 2, 1, 1, gsubr_21l); /* example */
 #endif
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/gsubr.x"
-#endif
 }
 
 /*

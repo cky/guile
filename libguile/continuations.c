@@ -312,9 +312,7 @@ scm_init_continuations ()
   scm_set_smob_free (scm_tc16_continuation, continuation_free);
   scm_set_smob_print (scm_tc16_continuation, continuation_print);
   scm_set_smob_apply (scm_tc16_continuation, continuation_apply, 0, 0, 1);
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/continuations.x"
-#endif
 }
 
 /*

@@ -275,9 +275,7 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
 SCM 
 scm_init_rw_builtins ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/rw.x"
-#endif
 
   return SCM_UNSPECIFIED;
 }

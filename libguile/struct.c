@@ -820,9 +820,7 @@ scm_init_struct ()
   scm_c_define ("vtable-index-printer",
 		SCM_MAKINUM (scm_vtable_index_printer));
   scm_c_define ("vtable-offset-user", SCM_MAKINUM (scm_vtable_offset_user));
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/struct.x"
-#endif
 }
 
 /*

@@ -114,9 +114,7 @@ void
 scm_init_objprop ()
 {
   scm_object_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (511));
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/objprop.x"
-#endif
 }
 
 

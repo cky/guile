@@ -956,9 +956,7 @@ SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0,
 void
 scm_init_sort ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/sort.x"
-#endif
 
   scm_add_feature ("sort");
 }

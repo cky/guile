@@ -413,9 +413,7 @@ scm_init_dynamic_linking ()
   scm_set_smob_mark (scm_tc16_dynamic_obj, dynl_obj_mark);
   scm_set_smob_print (scm_tc16_dynamic_obj, dynl_obj_print);
   sysdep_dynl_init ();
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/dynl.x"
-#endif
 }
 
 /*

@@ -185,9 +185,7 @@ scm_init_deprecation ()
       atexit (print_deprecation_summary);
     }
 #endif
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/deprecation.x"
-#endif
 }
 
 /*

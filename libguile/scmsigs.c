@@ -618,9 +618,7 @@ scm_init_scmsigs ()
   scm_c_define ("ITIMER_PROF", SCM_MAKINUM (ITIMER_PROF));
 #endif /* defined(HAVE_SETITIMER) || defined(HAVE_GETITIMER) */
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/scmsigs.x"
-#endif
 }
 
 

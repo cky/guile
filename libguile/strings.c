@@ -408,9 +408,7 @@ scm_init_strings ()
 {
   scm_nullstr = scm_allocate_string (0);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/strings.x"
-#endif
 }
 
 

@@ -146,9 +146,7 @@ SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0,
 void
 scm_init_variable ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/variable.x"
-#endif
 }
 
 /*

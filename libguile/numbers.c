@@ -4616,9 +4616,7 @@ scm_init_numbers ()
   check_sanity ();
 #endif
   
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/numbers.x"
-#endif
 }
 
 /*

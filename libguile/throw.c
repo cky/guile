@@ -697,9 +697,7 @@ scm_init_throw ()
   tc16_lazy_catch = scm_make_smob_type ("lazy-catch", 0);
   scm_set_smob_print (tc16_lazy_catch, lazy_catch_print);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/throw.x"
-#endif
 }
 
 /*

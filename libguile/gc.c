@@ -2866,9 +2866,7 @@ scm_init_gc ()
 
   scm_c_hook_add (&scm_after_gc_c_hook, mark_gc_async, NULL, 0);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/gc.x"
-#endif
 }
 
 #endif /*MARK_DEPENDENCIES*/

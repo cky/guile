@@ -530,9 +530,7 @@ SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0,
 void
 scm_init_strop ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/strop.x"
-#endif
 }
 
 /*

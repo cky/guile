@@ -322,9 +322,7 @@ scm_init_hooks ()
   scm_tc16_hook = scm_make_smob_type ("hook", 0);
   scm_set_smob_mark (scm_tc16_hook, scm_markcdr);
   scm_set_smob_print (scm_tc16_hook, hook_print);
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/hooks.x"
-#endif
 }
 
 /*

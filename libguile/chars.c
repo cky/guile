@@ -404,9 +404,7 @@ int scm_n_charnames = sizeof (scm_charnames) / sizeof (char *);
 void
 scm_init_chars ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/chars.x"
-#endif
 }
 
 

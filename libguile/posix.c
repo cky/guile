@@ -1730,9 +1730,7 @@ scm_init_posix ()
 #endif
 
 #include "libguile/cpp_sig_symbols.c"
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/posix.x"
-#endif
 }
 
 /*

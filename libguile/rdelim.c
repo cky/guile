@@ -283,9 +283,7 @@ SCM_DEFINE (scm_write_line, "write-line", 1, 1, 0,
 SCM
 scm_init_rdelim_builtins (void)
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/rdelim.x"
-#endif
 
   return SCM_UNSPECIFIED;
 }

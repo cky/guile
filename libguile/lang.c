@@ -155,9 +155,7 @@ void
 scm_init_lang ()
 {
 #if 0
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/lang.x"
-#endif
   scm_make_synt ("nil-while", scm_makacro, scm_m_while);
 #endif
 

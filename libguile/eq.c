@@ -202,9 +202,7 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 void
 scm_init_eq ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/eq.x"
-#endif
 }
 
 

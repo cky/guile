@@ -163,9 +163,7 @@ void
 scm_init_extensions ()
 {
   registered_extensions = NULL;
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/extensions.x"
-#endif
 }
 
 /*

@@ -2060,9 +2060,7 @@ scm_init_ramap ()
   init_raprocs (ra_asubrs);
   scm_c_define_subr (s_array_equal_p, scm_tc7_rpsubr, scm_array_equal_p);
   scm_smobs[SCM_TC2SMOBNUM (scm_tc16_array)].equalp = scm_raequal;
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/ramap.x"
-#endif
   scm_add_feature (s_scm_array_for_each);
 }
 

@@ -126,9 +126,7 @@ scm_init_feature()
   
   scm_c_define ("char-code-limit", SCM_MAKINUM (SCM_CHAR_CODE_LIMIT));
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/feature.x"
-#endif
 }
 
 /*

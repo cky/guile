@@ -138,9 +138,7 @@ scm_init_keywords ()
   scm_set_smob_print (scm_tc16_keyword, keyword_print);
 
   scm_keyword_obarray = scm_c_make_hash_table (256);
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/keywords.x"
-#endif
 }
 
 

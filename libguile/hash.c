@@ -271,9 +271,7 @@ SCM_DEFINE (scm_hash, "hash", 2, 0, 0,
 void
 scm_init_hash ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/hash.x"
-#endif
 }
 
 

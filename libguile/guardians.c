@@ -630,9 +630,7 @@ scm_init_guardians ()
   greedily_guarded_whash =
     scm_permanent_object (scm_make_doubly_weak_hash_table (SCM_MAKINUM (31)));
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/guardians.x"
-#endif
 }
 
 /*

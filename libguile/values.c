@@ -106,9 +106,7 @@ scm_init_values (void)
 
   scm_add_feature ("values");
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/values.x"
-#endif
 }
 
 /*

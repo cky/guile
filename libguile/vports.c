@@ -219,9 +219,7 @@ scm_init_vports ()
 {
   scm_tc16_sfport = scm_make_sfptob ();
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/vports.x"
-#endif
 }
 
 /*

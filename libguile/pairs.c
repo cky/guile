@@ -175,9 +175,7 @@ scm_init_pairs ()
   for (subnr = 0; cxrs [subnr]; subnr++)
     scm_c_define_subr (cxrs [subnr], scm_tc7_cxr, NULL);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/pairs.x"
-#endif
 }
 
 

@@ -147,9 +147,7 @@ void
 scm_init_evalext ()
 {
   scm_make_synt (scm_s_set_x, scm_makmmacro, scm_m_generalized_set_x);
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/evalext.x"
-#endif
 }
 
 /*

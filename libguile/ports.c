@@ -1569,9 +1569,7 @@ scm_init_ports ()
 
   scm_tc16_void_port = scm_make_port_type ("void", fill_input_void_port, 
 					   write_void_port);
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/ports.x"
-#endif
 }
 
 /*

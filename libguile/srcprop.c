@@ -339,9 +339,7 @@ scm_init_srcprop ()
   scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (2047));
   scm_c_define ("source-whash", scm_source_whash);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/srcprop.x"
-#endif
 }
 
 void

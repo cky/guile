@@ -867,9 +867,7 @@ scm_init_fports ()
   scm_c_define ("_IOLBF", SCM_MAKINUM (_IOLBF));
   scm_c_define ("_IONBF", SCM_MAKINUM (_IONBF));
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/fports.x"
-#endif
 }
 
 /*

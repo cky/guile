@@ -781,9 +781,7 @@ scm_init_stacks ()
 					     scm_cons (stack_layout,
 						       SCM_EOL)));
   scm_set_struct_vtable_name_x (scm_stack_type, scm_str2symbol ("stack"));
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/stacks.x"
-#endif
 }
 
 /*

@@ -339,9 +339,7 @@ scm_init_vectors ()
 {
   scm_nullvect = scm_c_make_vector (0, SCM_UNDEFINED);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/vectors.x"
-#endif
 }
 
 

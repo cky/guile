@@ -4285,9 +4285,7 @@ scm_init_eval ()
   /* acros */
   /* end of acros */
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/eval.x"
-#endif
   
   scm_add_feature ("delay");
 }

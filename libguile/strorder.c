@@ -292,9 +292,7 @@ SCM_DEFINE1 (scm_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr,
 void
 scm_init_strorder ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/strorder.x"
-#endif
 }
 
 

@@ -717,9 +717,7 @@ scm_init_stime()
   if (!scm_my_base) scm_my_base = mytime();
 
   scm_add_feature ("current-time");
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/stime.x"
-#endif
 }
 
 

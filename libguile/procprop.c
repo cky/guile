@@ -246,9 +246,7 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 void
 scm_init_procprop ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/procprop.x"
-#endif
 }
 
 

@@ -282,9 +282,7 @@ scm_init_dynwind ()
 {
   tc16_guards = scm_make_smob_type ("guards", 0);
   scm_set_smob_print (tc16_guards, guards_print);
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/dynwind.x"
-#endif
 }
 
 /*

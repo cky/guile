@@ -230,9 +230,7 @@ scm_init_macros ()
   scm_tc16_macro = scm_make_smob_type ("macro", 0);
   scm_set_smob_mark (scm_tc16_macro, scm_markcdr);
   scm_set_smob_print (scm_tc16_macro, macro_print);
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/macros.x"
-#endif
 }
 
 /*
