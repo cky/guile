@@ -98,3 +98,18 @@
 
     (pass-if "direct superclass"
       (equal? (class-direct-supers <class>) (list <object>)))))
+
+(with-test-prefix "defining classes"
+
+  (with-test-prefix "define-class"
+
+    (pass-if "creating a new binding"
+      (eval '(define <foo> #f) (current-module))
+      (eval '(undefine <foo>) (current-module))
+      (eval '(define-class <foo> ()) (current-module))
+      (eval '(is-a? <foo> <class>) (current-module)))
+
+    (pass-if "overwriting a binding to a non-class"
+      (eval '(define <foo> #f) (current-module))
+      (eval '(define-class <foo> ()) (current-module))
+      (eval '(is-a? <foo> <class>) (current-module)))))

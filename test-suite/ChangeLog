@@ -1,3 +1,7 @@
+2002-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/goops.test: Added tests for define-class.
+
 2002-05-07  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tests/numbers.test (/): Expect divison by an inexact zero to

@@ -235,23 +235,17 @@
 		 `(begin
 		    ;; define accessors
 		    ,@(pre-definitions (slots exp) env)
-		 
-		    ,(if (defined? name env)
-		      
-			 ;; redefine an old class
-			 `(define ,name
-			    (let ((old ,name)
-				  (new (class ,@(cddr exp) #:name ',name)))
-			      (if (and (is-a? old <class>)
-				       ;; Prevent redefinition of non-objects
-				       (memq <object>
-					     (class-precedence-list old)))
-				  (class-redefinition old new)
-				  new)))
-		      
-			 ;; define a new class
-			 `(define ,name
-			    (class ,@(cddr exp) #:name ',name)))))))))))
+		    ;; update the current-module
+		    (let* ((class (class ,@(cddr exp) #:name ',name))
+			   (var (module-ensure-local-variable!
+				 (current-module) ',name))
+			   (old (and (variable-bound? var)
+				     (variable-ref var))))
+		      (if (and old
+			       (is-a? old <class>)
+			       (memq <object> (class-precedence-list old)))
+			  (variable-set! var (class-redefinition old class))
+			  (variable-set! var class)))))))))))
 
 (define standard-define-class define-class)
 
