@@ -58,41 +58,45 @@
 	     (let ((,c (read-char ,port)))
 	       (if expect-char-proc
 		   (expect-char-proc ,c))
-	       (cond ((eof-object? ,c)
-		      (if expect-eof-proc
-			  (expect-eof-proc ,s)
-			  #f))
+	       (if (not (eof-object? ,c))
+		   (set! ,s (string-append ,s (string ,c))))
+	       (cond
+		;; this expands to clauses where the car invokes the match proc and
+		;; the cdr is the return value from expect if the proc matched.
+		,@(let next-expr ((tests (map car clauses))
+				  (exprs (map cdr clauses))
+				  (body '()))
+		    (cond
+		     ((null? tests)
+		      (reverse body))
 		     (else
-		      (set! ,s (string-append ,s (string ,c)))
-		      (cond
-		       ,@(let next-expr ((tests (map car clauses))
-					 (exprs (map cdr clauses))
-					 (body '()))
-			   (cond
-			    ((null? tests)
-			     (reverse body))
+		      (next-expr
+		       (cdr tests)
+		       (cdr exprs)
+		       (cons
+			`((,(car tests) ,s (eof-object? ,c))
+			  ,@(cond ((null? (car exprs))
+				   '())
+				  ((eq? (caar exprs) '=>)
+				   (if (not (= (length (car exprs))
+					       2))
+				       (scm-error 'misc-error
+						  "expect"
+						  "bad recipient: %S"
+						  (list (car exprs))
+						  #f)
+				       `((apply ,(cadar exprs)
+						(,(car tests) ,s ,port)))))
+				  (else 
+				   (car exprs))))
+			body)))))
+		;; if none of the clauses matched the current string.
+		(else (cond ((eof-object? ,c)
+			     (if expect-eof-proc
+				 (expect-eof-proc ,s)
+				 #f))
 			    (else
-			     (next-expr
-			      (cdr tests)
-			      (cdr exprs)
-			      (cons
-			       `((,(car tests) ,s ,port)
-				 ,@(cond ((null? (car exprs))
-					  '())
-					 ((eq? (caar exprs) '=>)
-					  (if (not (= (length (car exprs))
-						      2))
-					      (scm-error 'misc-error
-							 "expect"
-							 "bad recipient: %S"
-							 (list (car exprs))
-							 #f)
-					      `((apply ,(cadar exprs)
-						       (,(car tests) ,s ,port)))))
-					 (else 
-					  (car exprs))))
-			       body)))))
-		       (else (next-char)))))))))))
+			     (next-char)))))))))))
 
 
 (define-public expect-strings-compile-flags regexp/newline)
@@ -115,9 +119,8 @@
 						 ,(car tests)
 						 expect-strings-compile-flags))
 				      defs)
-				(cons `((lambda (s port)
-					  (expect-regexec
-					   ,rxname s port))
+				(cons `((lambda (s eof?)
+					  (expect-regexec ,rxname s eof?))
 					,@(car exprs))
 				      body))))))))
 
@@ -133,14 +136,14 @@
 	 (pair? (car (select (list port) '() '()
 			     relative))))))
 
-;;; return a regexp match as a list of strings, for the => syntax.
-(define-public (expect-regexec rx s port)
+;;; match a string against a regexp, returning a list of strings (required
+;;; by the => syntax) or #f.  called once each time a character is added
+;;; to s (eof? will be #f), and once when eof is reached (with eof? #t).
+(define-public (expect-regexec rx s eof?)
   ;; if expect-strings-exec-flags contains regexp/noteol,
-  ;; check whether at EOF.  if so, remove regexp/noteol
-  (let* ((eof-next? 
-	  (and (logand expect-strings-exec-flags regexp/noteol)
-	       (eof-object? (peek-char port))))
-	 (flags (if eof-next?
+  ;; remove it for the eof test.
+  (let* ((flags (if (and eof?
+			 (logand expect-strings-exec-flags regexp/noteol))
 		    (logxor expect-strings-exec-flags regexp/noteol)
 		    expect-strings-exec-flags))
 	 (match (regexp-exec rx s 0 flags)))
