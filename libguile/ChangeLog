@@ -1,8 +1,17 @@
-2000-03-12  Marius Vollmer  <mvo@zagadka.ping.de>
+2000-03-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* numbers.h (SCM_SRS, SCM_INUM): Corrected SCM_ASSCM/ASWORD fixes.
+
+	* alist.c, eval.c, net_db.c, posix.c, print.c, snarf.h, struct.c,
+	tags.h: Fixed copyright notices.
+
+	* struct.c, coop-threads.c: SCM_ASSCM/ASWORD fixes.
+
+2000-03-12  Marius Vollmer  <mvo@zagadka.ping.de>
+	
 	* init.c (scm_standard_stream_to_port): Check whether the file
 	descriptor is valid and substitute "/dev/null" when not.
-
+	
 2000-03-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* coop-defs.h (struct timespec): Conditionally defined.
@@ -36,7 +45,7 @@
 	configure.in?
 	(coop_condition_variable_timed_wait_mutex): New function.
 	(coop_key_create, coop_setspecific, coop_getspecific,
-	coop_key_delete, 
+	coop_key_delete): New functions.
 
 	* iselect.c (coop_timout_qinsert): Moved to coop.c
 
