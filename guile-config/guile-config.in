@@ -140,36 +140,36 @@
        (string-append program-name
 		      " link: arguments to subcommand not yet implemented")))
 
-  (let ((flags
-	 (let loop ((libs
-		     ;; Get the string of linker flags we used to build
-		     ;; Guile, and break it up into a list.
-		     (separate-fields-discarding-char #\space
-						      (get-build-info 'LIBS)
-						      list)))
+  (let* ((flags
+	  (let loop ((libs
+		      ;; Get the string of linker flags we used to build
+		      ;; Guile, and break it up into a list.
+		      (separate-fields-discarding-char #\space
+						       (get-build-info 'LIBS)
+						       list)))
 
-	   (cond
-	    ((null? libs) '())
+	    (cond
+	     ((null? libs) '())
 
-	    ;; Turn any "FOO/libBAR.a" elements into "-lBAR".
-	    ((match-lib (car libs))
-	     => (lambda (bar)
-		  (cons (string-append "-l" bar)
-			(loop (cdr libs)))))
+	     ;; Turn any "FOO/libBAR.a" elements into "-lBAR".
+	     ((match-lib (car libs))
+	      => (lambda (bar)
+		   (cons (string-append "-l" bar)
+			 (loop (cdr libs)))))
+
+	     ;; Remove any empty strings that may have seeped in there.
+	     ((string=? (car libs) "") (loop (cdr libs)))
 	    
-	    ;; Remove any empty strings that may have seeped in there.
-	    ((string=? (car libs) "") (loop (cdr libs)))
-	    
-	     (else (cons (car libs) (loop (cdr libs))))))))
+	     (else (cons (car libs) (loop (cdr libs)))))))
 
-    ;; Include libguile itself in the list, along with the
-    ;; directory it was installed in.
-    (let (flags (cons (string-append "-L" (get-build-info 'libdir))
-		      (cons "-lguile" flags)))
+	 ;; Include libguile itself in the list, along with the
+	 ;; directory it was installed in.
+	 (flags (cons (string-append "-L" (get-build-info 'libdir))
+		      (cons "-lguile" flags))))
 
-      ;; Display the flags, separated by spaces.
-      (display-separated flags)
-      (newline))))
+    ;; Display the flags, separated by spaces.
+    (display-separated flags)
+    (newline)))
 
 (define (help-link)
   (let ((dle display-line-error))
