@@ -1,7 +1,9 @@
 2002-08-10  Gary Houston  <ghouston@arglist.com>
 
-	* new section Primitive Procedures, documentation for
-	scm_c_make_gsubr and scm_c_define_gsubr.
+	* scheme-procedures.texi: new section Primitive Procedures,
+	documentation for scm_c_make_gsubr and scm_c_define_gsubr.
+	* scheme-modules.texi (Compiled Code Modules): replace
+	gh_new_procedure with scm_c_define_gsubr.
 
 2002-08-08  Neil Jerram  <neil@ossau.uklinux.net>
 

@@ -679,19 +679,17 @@ the Guile contrib archive to make @file{libffi} accessible from Guile.
 @node Compiled Code Modules
 @subsection Putting Compiled Code into Modules
 
-@c FIXME::martin: Change all gh_ references to their scm_ equivalents.
-
-The new primitives that you add to Guile with @code{gh_new_procedure}
-or with any of the other mechanisms are normally placed into the same
-module as all the other builtin procedures (like @code{display}).
-However, it is also possible to put new primitives into their own
-module.
+The new primitives that you add to Guile with
+@code{scm_c_define_gsubr} (@pxref{Primitive Procedures}) or with any
+of the other mechanisms are placed into the @code{(guile-user)} module
+by default.  However, it is also possible to put new primitives into
+other modules.
 
 The mechanism for doing so is not very well thought out and is likely to
 change when the module system of Guile itself is revised, but it is
 simple and useful enough to document it as it stands.
 
-What @code{gh_new_procedure} and the functions used by the snarfer
+What @code{scm_c_define_gsubr} and the functions used by the snarfer
 really do is to add the new primitives to whatever module is the
 @emph{current module} when they are called.  This is analogous to the
 way Scheme code is put into modules: the @code{define-module} expression
@@ -701,7 +699,7 @@ current module while the rest of the file is evaluated.  The
 this current module.
 
 Therefore, all we need to do is to make sure that the right module is
-current when calling @code{gh_new_procedure} for our new primitives.
+current when calling @code{scm_c_define_gsubr} for our new primitives.
 
 @node Dynamic Linking and Compiled Code Modules
 @subsection Dynamic Linking and Compiled Code Modules
