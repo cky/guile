@@ -1,5 +1,12 @@
 2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (EXTEND_ENV): Eliminated.
+
+	(unmemocopy, SCM_CEVAL, SCM_APPLY): Use SCM_EXTEND_ENV instead of
+	EXTEND_ENV.
+
+2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* __scm.h (SCM_DEBUG_DEBUGGER_SUPPORT): New compile-time option.
 
 	* gc.card.c (scm_gc_marked_p): Fixed compiler warning when
@@ -21,7 +28,7 @@
 
 2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* list.c (scm_ilength, scm_last_pair), unif.c (l2ra):Prefer
+	* list.c (scm_ilength, scm_last_pair), unif.c (l2ra): Prefer
 	!SCM_CONSP over SCM_NCONSP.  Now, guile itself does not include
 	any calls to SCM_NCONSP any more.
 

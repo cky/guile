@@ -130,8 +130,6 @@ char *alloca ();
 			    ? *scm_lookupcar (x, env, 1) \
 			    : SCM_CEVAL (SCM_CAR (x), env)))
 
-#define EXTEND_ENV SCM_EXTEND_ENV
-
 SCM_REC_MUTEX (source_mutex);
 
 SCM *
@@ -1334,7 +1332,7 @@ unmemocopy (SCM x, SCM env)
 	names = SCM_CAR (x);
 	x = SCM_CDR (x);
 	inits = scm_reverse (unmemocopy (SCM_CAR (x), env));
-	env = EXTEND_ENV (names, SCM_EOL, env);
+	env = SCM_EXTEND_ENV (names, SCM_EOL, env);
 	x = SCM_CDR (x);
 	test = unmemocopy (SCM_CAR (x), env);
 	x = SCM_CDR (x);
@@ -1377,7 +1375,7 @@ unmemocopy (SCM x, SCM env)
 	names = SCM_CAR (x);
 	x = SCM_CDR (x);
 	inits = scm_reverse (unmemocopy (SCM_CAR (x), env));
-	env = EXTEND_ENV (names, SCM_EOL, env);
+	env = SCM_EXTEND_ENV (names, SCM_EOL, env);
 
 	bindings = build_binding_list (names, inits);
 	z = scm_cons (bindings, SCM_UNSPECIFIED);
@@ -1393,7 +1391,7 @@ unmemocopy (SCM x, SCM env)
 
 	x = SCM_CDR (x);
 	names = SCM_CAR (x);
-	env = EXTEND_ENV (names, SCM_EOL, env);
+	env = SCM_EXTEND_ENV (names, SCM_EOL, env);
 	x = SCM_CDR (x);
 	inits = scm_reverse (unmemocopy (SCM_CAR (x), env));
 
@@ -1410,14 +1408,14 @@ unmemocopy (SCM x, SCM env)
 	y = SCM_EOL;
 	if SCM_IMP (b)
 	  {
-	    env = EXTEND_ENV (SCM_EOL, SCM_EOL, env);
+	    env = SCM_EXTEND_ENV (SCM_EOL, SCM_EOL, env);
 	    goto letstar;
 	  }
 	y = z = scm_acons (SCM_CAR (b),
 			   unmemocar (
 	scm_cons (unmemocopy (SCM_CADR (b), env), SCM_EOL), env),
 			   SCM_UNSPECIFIED);
-	env = EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
+	env = SCM_EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
 	b = SCM_CDDR (b);
 	if (SCM_IMP (b))
 	  {
@@ -1433,7 +1431,7 @@ unmemocopy (SCM x, SCM env)
 	    scm_list_1 (unmemocopy (SCM_CADR (b), env)), env),
 				      SCM_UNSPECIFIED));
 	    z = SCM_CDR (z);
-	    env = EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
+	    env = SCM_EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
 	    b = SCM_CDDR (b);
 	  }
 	while (SCM_NIMP (b));
@@ -1450,7 +1448,7 @@ unmemocopy (SCM x, SCM env)
       x = SCM_CDR (x);
       z = scm_cons (SCM_CAR (x), SCM_UNSPECIFIED);
       ls = scm_cons (scm_sym_lambda, z);
-      env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, env);
+      env = SCM_EXTEND_ENV (SCM_CAR (x), SCM_EOL, env);
       break;
     case SCM_BIT7 (SCM_IM_QUOTE):
       ls = z = scm_cons (scm_sym_quote, SCM_UNSPECIFIED);
@@ -2123,7 +2121,7 @@ dispatch:
 	    init_values = scm_cons (EVALCAR (init_forms, env), init_values);
 	    init_forms = SCM_CDR (init_forms);
 	  }
-	env = EXTEND_ENV (SCM_CAR (x), init_values, env);
+	env = SCM_EXTEND_ENV (SCM_CAR (x), init_values, env);
       }
       x = SCM_CDDR (x);
       {
@@ -2168,7 +2166,9 @@ dispatch:
 		  SCM value = EVALCAR (temp_forms, env);
 		  step_values = scm_cons (value, step_values);
 		}
-	      env = EXTEND_ENV (SCM_CAAR (env), step_values, SCM_CDR (env));
+	      env = SCM_EXTEND_ENV (SCM_CAAR (env),
+                                    step_values,
+                                    SCM_CDR (env));
 	    }
 
 	    test_result = EVALCAR (test_form, env);
@@ -2209,7 +2209,7 @@ dispatch:
 	    init_forms = SCM_CDR (init_forms);
 	  }
 	while (!SCM_NULLP (init_forms));
-	env = EXTEND_ENV (SCM_CAR (x), init_values, env);
+	env = SCM_EXTEND_ENV (SCM_CAR (x), init_values, env);
       }
       x = SCM_CDDR (x);
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -2218,7 +2218,7 @@ dispatch:
 
     case SCM_BIT7 (SCM_IM_LETREC):
       x = SCM_CDR (x);
-      env = EXTEND_ENV (SCM_CAR (x), undefineds, env);
+      env = SCM_EXTEND_ENV (SCM_CAR (x), undefineds, env);
       x = SCM_CDR (x);
       {
 	SCM init_forms = SCM_CAR (x);
@@ -2241,14 +2241,14 @@ dispatch:
       {
 	SCM bindings = SCM_CAR (x);
 	if (SCM_NULLP (bindings))
-	  env = EXTEND_ENV (SCM_EOL, SCM_EOL, env);
+	  env = SCM_EXTEND_ENV (SCM_EOL, SCM_EOL, env);
 	else
 	  {
 	    do
 	      {
 		SCM name = SCM_CAR (bindings);
 		SCM init = SCM_CDR (bindings);
-		env = EXTEND_ENV (name, EVALCAR (init, env), env);
+		env = SCM_EXTEND_ENV (name, EVALCAR (init, env), env);
 		bindings = SCM_CDR (init);
 	      }
 	    while (!SCM_NULLP (bindings));
@@ -2333,7 +2333,7 @@ dispatch:
 		ENTER_APPLY;
 		/* Copy argument list */
 		if (SCM_NULL_OR_NIL_P (arg1))
-		  env = EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
+		  env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
 		else
 		  {
 		    SCM args = scm_list_1 (SCM_CAR (arg1));
@@ -2346,7 +2346,7 @@ dispatch:
 			tail = new_tail;
 			arg1 = SCM_CDR (arg1);
 		      }
-		    env = EXTEND_ENV (formals, args, SCM_ENV (proc));
+		    env = SCM_EXTEND_ENV (formals, args, SCM_ENV (proc));
 		  }
 	      
 		x = SCM_CLOSURE_BODY (proc);
@@ -2538,7 +2538,7 @@ dispatch:
 	    apply_cmethod: /* inputs: z, arg1 */
 	      {
 		SCM formals = SCM_CMETHOD_FORMALS (z);
-		env = EXTEND_ENV (formals, arg1, SCM_CMETHOD_ENV (z));
+		env = SCM_EXTEND_ENV (formals, arg1, SCM_CMETHOD_ENV (z));
 		x = SCM_CMETHOD_BODY (z);
 		goto nontoplevel_begin;
 	      }
@@ -2833,7 +2833,9 @@ evapply: /* inputs: x, proc */
 	  goto umwrongnumargs;
       case scm_tcs_closures:
 	x = SCM_CLOSURE_BODY (proc);
-	env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), SCM_EOL, SCM_ENV (proc));
+	env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                              SCM_EOL,
+                              SCM_ENV (proc));
 	goto nontoplevel_begin;
       case scm_tcs_struct:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
@@ -2962,9 +2964,13 @@ evapply: /* inputs: x, proc */
 	    /* clos1: */
 	    x = SCM_CLOSURE_BODY (proc);
 #ifdef DEVAL
-	    env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), debug.info->a.args, SCM_ENV (proc));
+	    env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                                  debug.info->a.args,
+                                  SCM_ENV (proc));
 #else
-	    env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), scm_list_1 (arg1), SCM_ENV (proc));
+	    env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                                  scm_list_1 (arg1),
+                                  SCM_ENV (proc));
 #endif
 	    goto nontoplevel_begin;
 	  case scm_tcs_struct:
@@ -3107,12 +3113,13 @@ evapply: /* inputs: x, proc */
 	  case scm_tcs_closures:
 	    /* clos2: */
 #ifdef DEVAL
-	    env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-			      debug.info->a.args,
-			      SCM_ENV (proc));
+	    env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                                  debug.info->a.args,
+                                  SCM_ENV (proc));
 #else
-	    env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-			      scm_list_2 (arg1, arg2), SCM_ENV (proc));
+	    env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                                  scm_list_2 (arg1, arg2),
+                                  SCM_ENV (proc));
 #endif
 	    x = SCM_CLOSURE_BODY (proc);
 	    goto nontoplevel_begin;
@@ -3180,9 +3187,9 @@ evapply: /* inputs: x, proc */
 	    goto umwrongnumargs;
 	case scm_tcs_closures:
 	  SCM_SET_ARGSREADY (debug);
-	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-			    debug.info->a.args,
-			    SCM_ENV (proc));
+	  env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                                debug.info->a.args,
+                                SCM_ENV (proc));
 	  x = SCM_CLOSURE_BODY (proc);
 	  goto nontoplevel_begin;
 #else /* DEVAL */
@@ -3243,11 +3250,11 @@ evapply: /* inputs: x, proc */
 #ifdef DEVAL
 	  SCM_SET_ARGSREADY (debug);
 #endif
-	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-			    scm_cons2 (arg1,
-				       arg2,
-				       scm_eval_args (x, env, proc)),
-			    SCM_ENV (proc));
+	  env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                                scm_cons2 (arg1,
+                                           arg2,
+                                           scm_eval_args (x, env, proc)),
+                                SCM_ENV (proc));
 	  x = SCM_CLOSURE_BODY (proc);
 	  goto nontoplevel_begin;
 #endif /* DEVAL */
@@ -3646,7 +3653,9 @@ tail:
 	  SCM_SETCDR (tl, arg1);
 	}
       
-      args = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), args, SCM_ENV (proc));
+      args = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                             args,
+                             SCM_ENV (proc));
       proc = SCM_CLOSURE_BODY (proc);
     again:
       arg1 = SCM_CDR (proc);
