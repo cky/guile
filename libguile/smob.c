@@ -317,6 +317,7 @@ scm_make_smob_type (char *name, scm_sizet size)
       scm_smobs[scm_numsmob].apply_1 = 0;
       scm_smobs[scm_numsmob].apply_2 = 0;
       scm_smobs[scm_numsmob].apply_3 = 0;
+      scm_smobs[scm_numsmob].gsubr_type = 0;
       scm_numsmob++;
     }
   SCM_ALLOW_INTS;
@@ -470,12 +471,12 @@ scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst)
       apply_3 = scm_smob_apply_3_error; break;
     }
 
-  scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type; /* Used in procprop.c */
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply = apply;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_0 = apply_0;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_1 = apply_1;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_2 = apply_2;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_3 = apply_3;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type;
 }
 
 void

@@ -1,3 +1,11 @@
+2000-12-07  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* smob.h (SCM_SMOB_APPLICABLE_P, SCM_SMOB_APPLY_0,
+	SCM_SMOB_APPLY_1, SCM_SMOB_APPLY_2, SCM_SMOB_APPLY_3): New macros.
+	* eval.c (SCM_CEVAL, SCM_APPLY): Use macros above.
+	* procprop.c (scm_i_procedure_arity): Ditto.
+	* smob.c (scm_make_smob_type): Initialize gsubr_type.
+
 2000-12-06  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* smob.h (scm_smob_descriptor): New fields `apply_0', `apply_1',

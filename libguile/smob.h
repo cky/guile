@@ -57,12 +57,12 @@ typedef struct scm_smob_descriptor
   scm_sizet (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
-  int gsubr_type;
   SCM (*apply) ();
   SCM (*apply_0) (SCM);
   SCM (*apply_1) (SCM, SCM);
   SCM (*apply_2) (SCM, SCM, SCM);
   SCM (*apply_3) (SCM, SCM, SCM, SCM);
+  int gsubr_type; /* Used in procprop.c */
 } scm_smob_descriptor;
 
 
@@ -119,6 +119,11 @@ do { \
 #define SCM_SMOB_PREDICATE(tag, obj)	(SCM_NIMP (obj) \
 					 && SCM_TYP16 (obj) == (tag))
 #define SCM_SMOB_DESCRIPTOR(x)		(scm_smobs[SCM_SMOBNUM (x)])
+#define SCM_SMOB_APPLICABLE_P(x)	(SCM_SMOB_DESCRIPTOR (x).apply)
+#define SCM_SMOB_APPLY_0(x)		(SCM_SMOB_DESCRIPTOR (x).apply_0 (x))
+#define SCM_SMOB_APPLY_1(x,a1)		(SCM_SMOB_DESCRIPTOR (x).apply_1 (x, (a1)))
+#define SCM_SMOB_APPLY_2(x,a1,a2)	(SCM_SMOB_DESCRIPTOR (x).apply_2 (x, (a1), (a2)))
+#define SCM_SMOB_APPLY_3(x,a1,a2,rst)	(SCM_SMOB_DESCRIPTOR (x).apply_3 (x, (a1), (a2), (rst)))
 
 extern int scm_numsmob;
 extern scm_smob_descriptor *scm_smobs;

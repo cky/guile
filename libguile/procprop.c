@@ -98,7 +98,7 @@ scm_i_procedure_arity (SCM proc)
       r = 1;
       break;
     case scm_tc7_smob:
-      if (SCM_SMOB_DESCRIPTOR (proc).apply)
+      if (SCM_SMOB_APPLICABLE_P (proc))
 	{
 	  int type = SCM_SMOB_DESCRIPTOR (proc).gsubr_type;
 	  a += SCM_GSUBR_REQ (type);
