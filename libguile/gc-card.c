@@ -301,6 +301,123 @@ scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
 }
 
 
+void
+scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)
+{
+  scm_t_c_bvec_long *bitvec = SCM_GC_CARD_BVEC(p);
+  scm_t_cell * end = p + SCM_GC_CARD_N_CELLS;
+  int span = seg->span;
+  int offset = SCM_MAX (SCM_GC_CARD_N_HEADER_CELLS, span);
+
+  for (p += offset; p < end; p += span, offset += span)
+    {
+      SCM scmptr = PTR2SCM (p);
+      if (!SCM_C_BVEC_GET (bitvec, offset))
+        continue;
+
+      scm_t_bits tag = SCM_TYP7 (scmptr);
+      if (tag  == scm_tc7_smob)
+	{
+	  tag = SCM_TYP16(scmptr);
+	}
+      else
+	switch (tag) 
+	{
+	case scm_tcs_cons_imcar:
+	  tag = scm_tc2_int;
+	  break;
+	case scm_tcs_cons_nimcar:
+	  tag = scm_tc3_cons;
+	  break;
+	}
+      
+      SCM tag_as_scm = scm_from_int (tag);
+      SCM current = scm_hashq_ref (hashtab, tag_as_scm, SCM_I_MAKINUM (0));
+
+      scm_hashq_set_x (hashtab, tag_as_scm,
+		       scm_from_int (scm_to_int (current) + 1));
+    }
+}
+
+
+char const *
+scm_i_tag_name (scm_t_bits tag)
+{
+  if (tag >= 255)
+    {
+      if (tag == scm_tc_free_cell)
+	return "free cell";
+
+      {
+	int k = 0xff & (tag >> 8);
+	return (scm_smobs[k].name);
+      }
+    }
+  
+  switch (tag) /* 7 bits */
+    {
+    case scm_tcs_struct:
+      return "struct";
+    case scm_tcs_cons_imcar:
+      return "cons (immediate car)";
+    case scm_tcs_cons_nimcar:
+      return "cons (non-immediate car)";
+    case scm_tcs_closures:
+      return "closures";
+    case scm_tc7_pws:
+      return "pws";
+    case scm_tc7_wvect:
+      return "weak vector";
+    case scm_tc7_vector:
+      return "vector";
+#ifdef CCLO
+    case scm_tc7_cclo:
+      return "compiled closure";
+#endif
+    case scm_tc7_number:
+      switch (tag)
+	{
+	case scm_tc16_real:
+	  return "real";
+	  break;
+	case scm_tc16_big:
+	  return "bignum";
+	  break;
+	case scm_tc16_complex:
+	  return "complex number";
+	  break;
+	case scm_tc16_fraction:
+	  return "fraction";
+	  break;
+	}
+      break;
+    case scm_tc7_string:
+      return "string";
+      break;
+    case scm_tc7_stringbuf:
+      return "string buffer";
+      break;
+    case scm_tc7_symbol:
+      return "symbol";
+      break;
+    case scm_tc7_variable:
+      return "variable";
+      break;
+    case scm_tcs_subrs:
+      return "subrs";
+      break;
+    case scm_tc7_port:
+      return "port";
+      break;
+    case scm_tc7_smob:
+      return "smob";		/* should not occur. */
+      break; 
+    }
+
+  return "unknown type";
+}
+
+
 #if (SCM_DEBUG_DEBUGGING_SUPPORT == 1)
 
 typedef struct scm_dbg_t_list_cell {

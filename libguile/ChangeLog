@@ -1,3 +1,16 @@
+2005-01-27  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* gc.c (s_scm_gc_live_object_stats): return alist, not hashtable.
+
+	* gc-segment.c (scm_i_all_segments_statistics): new function.
+	(scm_i_heap_segment_statistics): new function
+
+	* gc.c (s_scm_gc_live_object_stats): new GUILE callable: return
+	statistics on the number of live objects of each type.
+
+	* gc-card.c (scm_i_tag_name):  new function.
+	(scm_i_card_statistics): new function. 
+
 2005-01-24  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_setlocale): Force errno=EINVAL for an error, since
@@ -977,6 +990,8 @@
 	segment to scm_max_segment_size.
 
 2004-10-08  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* gc.c (scm_igc): put scm_gc_running-- before running hooks.
 
 	* inline.h (scm_double_cell): abort if GC running.
 	(scm_cell): idem.

@@ -1078,6 +1078,11 @@ the C variables that control garbage collection.  The environment
 variables GUILE_MAX_SEGMENT_SIZE, GUILE_INIT_SEGMENT_SIZE_2,
 GUILE_INIT_SEGMENT_SIZE_1, and GUILE_MIN_YIELD_2 should be used.
 
+For understanding the memory usage of a GUILE program, the routine
+gc-live-object-stats returns an alist containing the number of live
+objects for every type.
+
+
 ** The function scm_definedp has been renamed to scm_defined_p
 
 The name scm_definedp is deprecated.

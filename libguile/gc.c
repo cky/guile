@@ -276,6 +276,29 @@ unsigned scm_newcell2_count;
 
 /* {Scheme Interface to GC}
  */
+static SCM
+tag_table_to_type_alist (void *closure, SCM key, SCM val, SCM acc)
+{
+  scm_t_bits c_tag = scm_to_int (key);
+  key = scm_from_locale_string (scm_i_tag_name (c_tag));  
+  return scm_cons (scm_cons (key, val), acc);
+}
+
+SCM_DEFINE (scm_gc_live_object_stats, "gc-live-object-stats", 0, 0, 0,
+            (),
+	    "Return an alist of statistics of the current live objects. ")
+#define FUNC_NAME s_scm_gc_live_object_stats
+{
+  SCM tab = scm_make_hash_table (scm_from_int (57));
+  scm_i_all_segments_statistics (tab);
+  
+  SCM alist
+    = scm_internal_hash_fold (&tag_table_to_type_alist, NULL, SCM_EOL, tab);
+  
+  return alist;
+}
+#undef FUNC_NAME     
+
 extern int scm_gc_malloc_yield_percentage;
 SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
             (),
@@ -528,11 +551,20 @@ scm_igc (const char *what)
 
   gc_start_stats (what);
 
+
+  
   if (scm_gc_heap_lock)
     /* We've invoked the collector while a GC is already in progress.
        That should never happen.  */
     abort ();
 
+  /*
+    Set freelists to NULL so scm_cons() always triggers gc, causing
+    the above abort() to be triggered.
+  */
+  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
+  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
+  
   ++scm_gc_heap_lock;
 
   /*

@@ -212,6 +212,9 @@ extern size_t scm_i_heap_segment_table_size;
 
 int scm_i_init_card_freelist (scm_t_cell * card, SCM *free_list,scm_t_heap_segment*);
 int scm_i_sweep_card (scm_t_cell * card, SCM *free_list, scm_t_heap_segment*);
+void scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg);
+char const *scm_i_tag_name (scm_t_bits tag); /* MOVEME */
+
 int scm_i_initialize_heap_segment_data (scm_t_heap_segment * segment, size_t requested);
 int scm_i_segment_card_count (scm_t_heap_segment * seg);
 int scm_i_segment_cell_count (scm_t_heap_segment * seg);
@@ -220,6 +223,8 @@ void scm_i_clear_segment_mark_space (scm_t_heap_segment *seg);
 scm_t_heap_segment * scm_i_make_empty_heap_segment (scm_t_cell_type_statistics*);
 SCM scm_i_sweep_some_cards (scm_t_heap_segment *seg);
 void scm_i_sweep_segment (scm_t_heap_segment * seg);
+
+void scm_i_heap_segment_statistics (scm_t_heap_segment *seg, SCM tab);
 
      
 int scm_i_insert_segment (scm_t_heap_segment * seg);
@@ -230,6 +235,7 @@ void scm_i_sweep_segments (void);
 SCM scm_i_sweep_some_segments (scm_t_cell_type_statistics * fl);
 void scm_i_reset_segments (void);
 void scm_i_sweep_all_segments (char const *reason);
+SCM scm_i_all_segments_statistics (SCM hashtab);
 void scm_i_make_initial_segment (int init_heap_size, scm_t_cell_type_statistics *freelist);
 
 extern long int scm_i_deprecated_memory_return;

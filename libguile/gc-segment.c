@@ -52,6 +52,19 @@ scm_i_make_empty_heap_segment (scm_t_cell_type_statistics *fl)
 }
 
 
+void
+scm_i_heap_segment_statistics (scm_t_heap_segment *seg, SCM tab)
+{
+  scm_t_cell *p = seg->bounds[0];
+  while (p <  seg->bounds[1])
+    {
+      scm_i_card_statistics (p, tab, seg); 
+      p += SCM_GC_CARD_N_CELLS;
+    }
+}
+
+
+
 /*
   Fill SEGMENT with memory both for data and mark bits.
 
@@ -331,8 +344,6 @@ scm_i_sweep_some_segments (scm_t_cell_type_statistics * fl)
 }
 
 
-
-
 void
 scm_i_reset_segments (void)
 {
@@ -343,6 +354,26 @@ scm_i_reset_segments (void)
       seg->next_free_card = seg->bounds[0];
     }
 }
+
+/*
+  Return a hashtab with counts of live objects, with tags as keys.
+ */
+
+
+SCM
+scm_i_all_segments_statistics (SCM tab)
+{
+  int i = 0;
+  for (; i < scm_i_heap_segment_table_size; i++)
+    {
+      scm_t_heap_segment * seg = scm_i_heap_segment_table[i];
+      scm_i_heap_segment_statistics (seg, tab);
+    }
+
+  return tab;
+}
+
+
 
 
 /*
