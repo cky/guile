@@ -92,12 +92,14 @@ extern scm_i_rstate *scm_i_copy_rstate (scm_i_rstate *);
 /*
  * Random number library functions
  */
-extern scm_rstate *scm_i_make_rstate (char *, int);
-extern double scm_i_uniform01 (scm_rstate *);
-extern double scm_i_normal01 (scm_rstate *);
-extern double scm_i_exp1 (scm_rstate *);
-extern unsigned long scm_i_random (unsigned long m, scm_rstate *);
-extern SCM scm_i_random_bignum (SCM m, scm_rstate *);
+extern scm_rstate *scm_c_make_rstate (char *, int);
+extern scm_rstate *scm_c_default_rstate (void);
+#define scm_c_uniform32(RSTATE) scm_the_rng.random_bits (RSTATE)
+extern double scm_c_uniform01 (scm_rstate *);
+extern double scm_c_normal01 (scm_rstate *);
+extern double scm_c_exp1 (scm_rstate *);
+extern unsigned long scm_c_random (scm_rstate *, unsigned long m);
+extern SCM scm_c_random_bignum (scm_rstate *, SCM m);
 
 
 /*

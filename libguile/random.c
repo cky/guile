@@ -175,7 +175,7 @@ scm_i_copy_rstate (scm_i_rstate *state)
  */
 
 scm_rstate *
-scm_i_make_rstate (char *seed, int n)
+scm_c_make_rstate (char *seed, int n)
 {
   scm_rstate *state = malloc (scm_the_rng.rstate_size);
   if (state == 0)
@@ -187,8 +187,17 @@ scm_i_make_rstate (char *seed, int n)
   return state;
 }
 
+scm_rstate *
+scm_c_default_rstate ()
+{
+  SCM state = SCM_CDR (scm_var_random_state);
+  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
+	      state, "*random-state* contains bogus random state", 0);
+  return SCM_RSTATE (state);
+}
+
 inline double
-scm_i_uniform01 (scm_rstate *state)
+scm_c_uniform01 (scm_rstate *state)
 {
   double x = (double) scm_the_rng.random_bits (state) / (double) 0xffffffffUL;
   return ((x + (double) scm_the_rng.random_bits (state))
@@ -196,7 +205,7 @@ scm_i_uniform01 (scm_rstate *state)
 }
 
 double
-scm_i_normal01 (scm_rstate *state)
+scm_c_normal01 (scm_rstate *state)
 {
   if (state->reserved0)
     {
@@ -207,8 +216,8 @@ scm_i_normal01 (scm_rstate *state)
     {
       double r, a, n;
       
-      r = sqrt (-2.0 * log (scm_i_uniform01 (state)));
-      a = 2.0 * M_PI * scm_i_uniform01 (state);
+      r = sqrt (-2.0 * log (scm_c_uniform01 (state)));
+      a = 2.0 * M_PI * scm_c_uniform01 (state);
       
       n = r * sin (a);
       state->reserved1 = r * cos (a);
@@ -219,15 +228,15 @@ scm_i_normal01 (scm_rstate *state)
 }
 
 double
-scm_i_exp1 (scm_rstate *state)
+scm_c_exp1 (scm_rstate *state)
 {
-  return - log (scm_i_uniform01 (state));
+  return - log (scm_c_uniform01 (state));
 }
 
 unsigned char scm_masktab[256];
 
 unsigned long
-scm_i_random (unsigned long m, scm_rstate *state)
+scm_c_random (scm_rstate *state, unsigned long m)
 {
   unsigned int r, mask;
   mask = (m < 0x100
@@ -242,7 +251,7 @@ scm_i_random (unsigned long m, scm_rstate *state)
 }
 
 SCM
-scm_i_random_bignum (SCM m, scm_rstate *state)
+scm_c_random_bignum (scm_rstate *state, SCM m)
 {
   SCM b;
   int i, nd;
@@ -349,14 +358,14 @@ scm_random (SCM n, SCM state)
     {
       unsigned long m = SCM_INUM (n);
       SCM_ASSERT (m > 0, n, SCM_ARG1, s_random);
-      return SCM_MAKINUM (scm_i_random (m, SCM_RSTATE (state)));
+      return SCM_MAKINUM (scm_c_random (SCM_RSTATE (state), m));
     }
   SCM_ASSERT (SCM_NIMP (n), n, SCM_ARG1, s_random);
   if (SCM_REALP (n))
-    return scm_makdbl (SCM_REALPART (n) * scm_i_uniform01 (SCM_RSTATE (state)),
+    return scm_makdbl (SCM_REALPART (n) * scm_c_uniform01 (SCM_RSTATE (state)),
 		       0.0);
   SCM_ASSERT (SCM_TYP16 (n) == scm_tc16_bigpos, n, SCM_ARG1, s_random);
-  return scm_i_random_bignum (n, SCM_RSTATE (state));
+  return scm_c_random_bignum (SCM_RSTATE (state), n);
 }
 
 SCM_PROC (s_copy_random_state, "copy-random-state", 0, 1, 0, scm_copy_random_state);
@@ -384,7 +393,7 @@ scm_seed_to_random_state (SCM seed)
 	      seed,
 	      SCM_ARG1,
 	      s_seed_to_random_state);
-  return make_rstate (scm_i_make_rstate (SCM_ROCHARS (seed),
+  return make_rstate (scm_c_make_rstate (SCM_ROCHARS (seed),
 					 SCM_LENGTH (seed)));
 }
 
@@ -399,7 +408,7 @@ scm_random_uniform (SCM state)
 	      state,
 	      SCM_ARG1,
 	      s_random_uniform);
-  return scm_makdbl (scm_i_uniform01 (SCM_RSTATE (state)), 0.0);
+  return scm_makdbl (scm_c_uniform01 (SCM_RSTATE (state)), 0.0);
 }
 
 static void
@@ -455,7 +464,7 @@ scm_random_solid_sphere_x (SCM v, SCM state)
 	      s_random_solid_sphere_x);
   scm_random_normal_vector_x (v, state);
   vector_scale (v,
-		pow (scm_i_uniform01 (SCM_RSTATE (state)),
+		pow (scm_c_uniform01 (SCM_RSTATE (state)),
 		     1.0 / SCM_LENGTH (v))
 		/ sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
@@ -491,7 +500,7 @@ scm_random_normal (SCM state)
 	      state,
 	      SCM_ARG1,
 	      s_random_normal);
-  return scm_makdbl (scm_i_normal01 (SCM_RSTATE (state)), 0.0);
+  return scm_makdbl (scm_c_normal01 (SCM_RSTATE (state)), 0.0);
 }
 
 SCM_PROC (s_random_normal_vector_x, "random:normal-vector!", 1, 1, 0, scm_random_normal_vector_x);
@@ -512,10 +521,10 @@ scm_random_normal_vector_x (SCM v, SCM state)
   n = SCM_LENGTH (v);
   if (SCM_VECTORP (v))
     while (--n >= 0)
-      SCM_VELTS (v)[n] = scm_makdbl (scm_i_normal01 (SCM_RSTATE (state)), 0.0);
+      SCM_VELTS (v)[n] = scm_makdbl (scm_c_normal01 (SCM_RSTATE (state)), 0.0);
   else
     while (--n >= 0)
-      ((double *) SCM_VELTS (v))[n] = scm_i_normal01 (SCM_RSTATE (state));
+      ((double *) SCM_VELTS (v))[n] = scm_c_normal01 (SCM_RSTATE (state));
   return SCM_UNSPECIFIED;
 }
 
@@ -530,7 +539,7 @@ scm_random_exp (SCM state)
 	      state,
 	      SCM_ARG1,
 	      s_random_exp);
-  return scm_makdbl (scm_i_exp1 (SCM_RSTATE (state)), 0.0);
+  return scm_makdbl (scm_c_exp1 (SCM_RSTATE (state)), 0.0);
 }
 
 void
