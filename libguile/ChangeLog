@@ -1,3 +1,16 @@
+2001-06-30  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* gh_eval.c (gh_eval_str): Use scm_c_eval_string instead of
+	scm_eval_0str.
+
+	* load.c, load.h (scm_c_primitive_load,
+	scm_c_primitive_load_path): New.
+
+	* strports.c, strports.h (scm_c_read_string): Renamed from
+	scm_read_0str.  Also, added "const" qualifier to argument.
+	(scm_c_eval_string): Renamed from scm_eval_0str.
+	(scm_read_0str, scm_eval_0str): Deprecated.
+
 2001-06-28  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* fluids.c (scm_c_with_fluid): Use scm_list_1() instead of
