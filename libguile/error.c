@@ -60,8 +60,6 @@
 
 extern int errno;
 
-void (*scm_error_callback) () = 0;
-
 /* All errors should pass through here.  */
 void
 scm_error (key, subr, message, args, rest)
@@ -72,9 +70,6 @@ scm_error (key, subr, message, args, rest)
      SCM rest;
 {
   SCM arg_list;
-  if (scm_error_callback)
-    (*scm_error_callback) (key, subr, message, args, rest);
-
   arg_list = scm_listify (subr ? scm_makfrom0str (subr) : SCM_BOOL_F,
 			  message ? scm_makfrom0str (message) : SCM_BOOL_F,
 			  args,

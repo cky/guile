@@ -208,6 +208,13 @@ value for NAME.
 
 * Changes to the scm_ interface
 
+** The hook scm_error_callback has been removed.  It was originally
+intended as a way for the user to install his own error handler.  But
+that method works badly since it intervenes between throw and catch,
+thereby changing the semantics of expressions like (catch #t ...).
+The correct way to do it is to use one of the C level catch functions
+in throw.c: scm_internal_catch/lazy_catch/stack_catch.
+
 
 Changes in Guile 1.2 (released Tuesday, June 24 1997):
 

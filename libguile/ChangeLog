@@ -1,3 +1,7 @@
+Mon Aug 25 13:47:25 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* error.c, error.h (scm_error_callback): Removed (see NEWS).
+
 Sun Aug 24 01:25:35 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* regex-posix.c: If <regex.h> can't be found, try <rxposix.h> or
