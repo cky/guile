@@ -2388,41 +2388,40 @@ dispatch:
           PREP_APPLY (proc, SCM_EOL);
           x = SCM_CDR (x);
           arg1 = EVALCAR (x, env);
+
+        apply_proc:
+          /* Go here to tail-apply a procedure.  PROC is the procedure and
+           * ARG1 is the list of arguments. PREP_APPLY must have been called
+           * before jumping to apply_proc.  */
 	  if (SCM_CLOSUREP (proc))
 	    {
-	    apply_closure:
-	      /* Go here to tail-call a closure.  PROC is the closure
-		 and ARG1 is the list of arguments.  Do not forget to
-		 call PREP_APPLY. */
-	      {
-		SCM formals = SCM_CLOSURE_FORMALS (proc);
+              SCM formals = SCM_CLOSURE_FORMALS (proc);
 #ifdef DEVAL
-		debug.info->a.args = arg1;
+              debug.info->a.args = arg1;
 #endif
-		if (scm_badargsp (formals, arg1))
-		  scm_wrong_num_args (proc);
-		ENTER_APPLY;
-		/* Copy argument list */
-		if (SCM_NULL_OR_NIL_P (arg1))
-		  env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
-		else
-		  {
-		    SCM args = scm_list_1 (SCM_CAR (arg1));
-		    SCM tail = args;
-		    arg1 = SCM_CDR (arg1);
-		    while (!SCM_NULL_OR_NIL_P (arg1))
-		      {
-			SCM new_tail = scm_list_1 (SCM_CAR (arg1));
-			SCM_SETCDR (tail, new_tail);
-			tail = new_tail;
-			arg1 = SCM_CDR (arg1);
-		      }
-		    env = SCM_EXTEND_ENV (formals, args, SCM_ENV (proc));
-		  }
-	      
-		x = SCM_CLOSURE_BODY (proc);
-		goto nontoplevel_begin;
-	      }
+              if (scm_badargsp (formals, arg1))
+                scm_wrong_num_args (proc);
+              ENTER_APPLY;
+              /* Copy argument list */
+              if (SCM_NULL_OR_NIL_P (arg1))
+                env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
+              else
+                {
+                  SCM args = scm_list_1 (SCM_CAR (arg1));
+                  SCM tail = args;
+                  arg1 = SCM_CDR (arg1);
+                  while (!SCM_NULL_OR_NIL_P (arg1))
+                    {
+                      SCM new_tail = scm_list_1 (SCM_CAR (arg1));
+                      SCM_SETCDR (tail, new_tail);
+                      tail = new_tail;
+                      arg1 = SCM_CDR (arg1);
+                    }
+                  env = SCM_EXTEND_ENV (formals, args, SCM_ENV (proc));
+                }
+
+              x = SCM_CLOSURE_BODY (proc);
+              goto nontoplevel_begin;
 	    }
 	  else
 	    {
@@ -2680,21 +2679,19 @@ dispatch:
 
 	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
 	  {
-	    proc = SCM_CDR (x);
-	    x = EVALCAR (proc, env);
-	    proc = SCM_CDR (proc);
-	    proc = EVALCAR (proc, env);
-	    arg1 = SCM_APPLY (x, SCM_EOL, SCM_EOL);
+            SCM producer;
+
+	    x = SCM_CDR (x);
+	    producer = EVALCAR (x, env);
+	    x = SCM_CDR (x);
+	    proc = EVALCAR (x, env);  /* proc is the consumer. */
+	    arg1 = SCM_APPLY (producer, SCM_EOL, SCM_EOL);
 	    if (SCM_VALUESP (arg1))
 	      arg1 = scm_struct_ref (arg1, SCM_INUM0);
 	    else
 	      arg1 = scm_list_1 (arg1);
-	    if (SCM_CLOSUREP (proc))
-	      {
-		PREP_APPLY (proc, arg1);
-		goto apply_closure;
-	      }
-	    return SCM_APPLY (proc, arg1, SCM_EOL);
+            PREP_APPLY (proc, arg1);
+            goto apply_proc;
 	  }
 
 

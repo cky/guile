@@ -1,5 +1,11 @@
 2003-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (SCM_CEVAL): Improved readability of call-with-values
+	execution.  Generalize apply_closure to apply_proc and use that
+	for call-with-values.
+
+2003-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (SCM_CEVAL): Avoid one level of indirection when applying
 	a non closure.
 
