@@ -1157,7 +1157,30 @@
   (expect-fail (= (+ 1 fixnum-max) fixnum-max))
   (expect-fail (= fixnum-min (- fixnum-min 1)))
   (expect-fail (= (- fixnum-min 1) fixnum-min))
-  (expect-fail (= (+ fixnum-max 1) (- fixnum-min 1))))
+  (expect-fail (= (+ fixnum-max 1) (- fixnum-min 1)))
+
+  (pass-if (not (= +nan.0 +nan.0)))
+  (pass-if (not (= 0 +nan.0)))
+  (pass-if (not (= +nan.0 0)))
+  (pass-if (not (= 1 +nan.0)))
+  (pass-if (not (= +nan.0 1)))
+  (pass-if (not (= -1 +nan.0)))
+  (pass-if (not (= +nan.0 -1)))
+
+  (pass-if (not (= (ash 1 256) +nan.0)))
+  (pass-if (not (= +nan.0 (ash 1 256))))
+  (pass-if (not (= (- (ash 1 256)) +nan.0)))
+  (pass-if (not (= +nan.0 (- (ash 1 256)))))
+
+  (pass-if (not (= (ash 1 8192) +nan.0)))
+  (pass-if (not (= +nan.0 (ash 1 8192))))
+  (pass-if (not (= (- (ash 1 8192)) +nan.0)))
+  (pass-if (not (= +nan.0 (- (ash 1 8192)))))
+
+  ;; in gmp prior to 4.2, mpz_cmp_d ended up treating NaN as 3*2^1023, make
+  ;; sure we've avoided that
+  (pass-if (not (= (ash 3 1023) +nan.0)))
+  (pass-if (not (= +nan.0 (ash 3 1023)))))
 
 ;;;
 ;;; <
@@ -1486,7 +1509,34 @@
       (< (- fixnum-min 1) fixnum-min))
 
     (pass-if "n = fixnum-min - 1"
-      (not (< (- fixnum-min 1) (- fixnum-min 1))))))
+      (not (< (- fixnum-min 1) (- fixnum-min 1)))))
+
+  (pass-if (not (< +nan.0 +nan.0)))
+  (pass-if (not (< 0 +nan.0)))
+  (pass-if (not (< +nan.0 0)))
+  (pass-if (not (< 1 +nan.0)))
+  (pass-if (not (< +nan.0 1)))
+  (pass-if (not (< -1 +nan.0)))
+  (pass-if (not (< +nan.0 -1)))
+
+  (pass-if (not (< (ash 1 256) +nan.0)))
+  (pass-if (not (< +nan.0 (ash 1 256))))
+  (pass-if (not (< (- (ash 1 256)) +nan.0)))
+  (pass-if (not (< +nan.0 (- (ash 1 256)))))
+  
+  (pass-if (not (< (ash 1 8192) +nan.0)))
+  (pass-if (not (< +nan.0 (ash 1 8192))))
+  (pass-if (not (< (- (ash 1 8192)) +nan.0)))
+  (pass-if (not (< +nan.0 (- (ash 1 8192)))))
+
+  ;; in gmp prior to 4.2, mpz_cmp_d ended up treating NaN as 3*2^1023, make
+  ;; sure we've avoided that
+  (pass-if (not (< (ash 3 1023) +nan.0)))
+  (pass-if (not (< (1+ (ash 3 1023)) +nan.0)))
+  (pass-if (not (< (1- (ash 3 1023)) +nan.0)))
+  (pass-if (not (< +nan.0 (ash 3 1023))))
+  (pass-if (not (< +nan.0 (1+ (ash 3 1023)))))
+  (pass-if (not (< +nan.0 (1- (ash 3 1023))))))
 
 ;;;
 ;;; >
