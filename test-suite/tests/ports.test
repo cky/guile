@@ -136,6 +136,20 @@
 	      (eof-object? (read-char port))))
    (delete-file filename)))
 
+;;; line buffering mode.
+(catch-test-errors 
+ (let* ((filename (test-file))
+	(port (open-file filename "wl"))
+	(test-string "one line more or less"))
+   (write-line test-string port)
+   (let* ((in-port (open-input-file filename))
+	  (line (read-line in-port)))
+     (close-port in-port)
+     (close-port port)
+     (pass-if "file: line buffering"
+	      (string=? line test-string)))
+   (delete-file filename)))
+
 
 ;;;; Pipe ports.
 

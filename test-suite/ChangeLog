@@ -1,3 +1,7 @@
+1999-08-19  Gary Houston  <ghouston@easynet.co.uk>
+
+	* tests/ports.test: test line-buffering of fports.
+
 1999-08-18  Gary Houston  <ghouston@easynet.co.uk>
 
 	* tests/ports.test: tests for NUL and non-ASCII chars to fports.
