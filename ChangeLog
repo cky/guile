@@ -1,5 +1,10 @@
 1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* doc: New subdirectory.
+	* Makefile.am (SUBDIRS): List it.
+	* configure.in (AC_OUTPUT): Build its Makefile.
+	* configure, Makefile.in: Regenerated.
+
 	* guile.m4 (GUILE_FLAGS): New macro.
 
 	* guile.m4 (AM_INIT_GUILE_MODULE): Deleted; it doesn't do anything

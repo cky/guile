@@ -1,0 +1,9 @@
+1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* New directory for documentation.
+	* README: New file.
+	* data-rep.texi: It's not a real manual, but it's better than
+	nothing.
+	* Makefile.am, Makefile.in, data-rep.info, data-rep.texi,
+ 	mdate-sh, stamp-vti, texinfo.tex, version.texi: The usual support
+ 	files.
