@@ -1,3 +1,7 @@
+2001-03-17  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* time.scm: New file.
+
 2001-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* oldprint.scm:  Removed.
