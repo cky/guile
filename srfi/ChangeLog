@@ -1,3 +1,8 @@
+2001-06-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-8.scm: Use `re-export-syntax' to correctly re-export
+	`receive'.
+
 2001-06-18  Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>
 
         The SRFI-19 implementation was completely broken.  Already the
