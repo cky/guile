@@ -124,6 +124,9 @@ isinf (double x)
 #define xmpz_cmp_d(z, d)  mpz_cmp_d (z, d)
 #endif
 
+/* For reference, sparc solaris 7 has infinities (IEEE) but doesn't have
+   isinf.  It does have finite and isnan though, hence the use of those.
+   fpclass would be a possibility on that system too.  */
 static int
 xisinf (double x)
 {
