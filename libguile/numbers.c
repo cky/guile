@@ -116,10 +116,10 @@ isinf (double x)
 #endif
 
 
-/* mpz_cmp_d only recognises infinities in gmp 4.2 and up.
-   For prior versions use an explicit check here.  */
-#if __GNU_MP_VERSION < 4                                        \
-  || (__GNU_MP_VERSION == 4 && __GNU_MP_VERSION_MINOR < 2)
+/* mpz_cmp_d in gmp 4.1.3 doesn't recognise infinities, so xmpz_cmp_d uses
+   an explicit check.  In some future gmp (don't know what version number),
+   mpz_cmp_d is supposed to do this itself.  */
+#if 1
 #define xmpz_cmp_d(z, d)                                \
   (xisinf (d) ? (d < 0.0 ? 1 : -1) : mpz_cmp_d (z, d))
 #else
@@ -244,23 +244,29 @@ scm_i_dbl2num (double u)
    with R5RS exact->inexact.
 
    The approach is to use mpz_get_d to pick out the high DBL_MANT_DIG bits
-   (ie. it truncates towards zero), then adjust to get the closest double by
-   examining the next lower bit and adding 1 if necessary.
+   (ie. truncate towards zero), then adjust to get the closest double by
+   examining the next lower bit and adding 1 (to the absolute value) if
+   necessary.
 
-   Note that bignums exactly half way between representable doubles are
-   rounded to the next higher absolute value (ie. away from zero).  This
-   seems like an adequate interpretation of R5RS "numerically closest", and
-   it's easier and faster than a full "nearest-even" style.
+   Bignums exactly half way between representable doubles are rounded to the
+   next higher absolute value (ie. away from zero).  This seems like an
+   adequate interpretation of R5RS "numerically closest", and it's easier
+   and faster than a full "nearest-even" style.
 
-   The bit test is done on the absolute value of the mpz_t, which means we
-   must use mpz_getlimbn.  mpz_tstbit is not right, it treats negatives as
-   twos complement.
+   The bit test must be done on the absolute value of the mpz_t, which means
+   we need to use mpz_getlimbn.  mpz_tstbit is not right, it treats
+   negatives as twos complement.
 
-   Prior to GMP 4.2, the rounding done by mpz_get_d was unspecified.  It
-   happened to follow the hardware rounding mode, but on the absolute value
-   of its operand.  This is not what we want, so we put the high
-   DBL_MANT_DIG bits into a temporary.  This extra init/clear is a slowdown,
-   but doesn't matter too much since it's only for older GMP.  */
+   In current gmp 4.1.3, mpz_get_d rounding is unspecified.  It ends up
+   following the hardware rounding mode, but applied to the absolute value
+   of the mpz_t operand.  This is not what we want so we put the high
+   DBL_MANT_DIG bits into a temporary.  In some future gmp, don't know when,
+   mpz_get_d is supposed to always truncate towards zero.
+
+   ENHANCE-ME: The temporary init+clear to force the rounding in gmp 4.1.3
+   is a slowdown.  It'd be faster to pick out the relevant high bits with
+   mpz_getlimbn if we could be bothered coding that, and if the new
+   truncating gmp doesn't come out.  */
 
 double
 scm_i_big2dbl (SCM b)
@@ -270,10 +276,9 @@ scm_i_big2dbl (SCM b)
 
   bits = mpz_sizeinbase (SCM_I_BIG_MPZ (b), 2);
 
-#if __GNU_MP_VERSION < 4                                        \
-  || (__GNU_MP_VERSION == 4 && __GNU_MP_VERSION_MINOR < 2)
+#if 1
   {
-    /* GMP prior to 4.2, force truncate towards zero */
+    /* Current GMP, eg. 4.1.3, force truncation towards zero */
     mpz_t  tmp;
     if (bits > DBL_MANT_DIG)
       {
@@ -289,7 +294,7 @@ scm_i_big2dbl (SCM b)
       }
   }
 #else
-  /* GMP 4.2 and up */
+  /* Future GMP */
   result = mpz_get_d (SCM_I_BIG_MPZ (b));
 #endif
 
