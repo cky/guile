@@ -1,3 +1,19 @@
+1998-11-09  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* debug.h (SCM_MACROFRAME, SCM_MACROFRAMEP): New frame type.
+
+	* eval.c (SCM_CEVAL): Mark macro frames at `handle_a_macro' so
+	that we can identify these in a backtrace.  (This change doesn't
+	introduce any significant speed penalty.)
+
+	* eval.c: Added note about `serial-map' using scm_map.
+
+	* read.c, read.h (scm_read_options, scm_read_opts): Removed
+	readline options.  They should reside in their own options array.
+	
+	* readline.c, readline.h (scm_readline_options,
+	scm_readline_opts): Moved readline options here.
+
 1998-11-07  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* readline.c (scm_read_history, scm_write_history): Bugfix: Use
@@ -40,7 +56,8 @@
 	* read.c, read.h (history-length, history-file): New read options.
 	(scm_read_options): Stifle history to history length.
 
-	* readline.c (read-history, write-history): New procedures.
+	* readline.c (scm_read_history, scm_write_history): New
+	procedures.
 
 1998-10-31  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
@@ -56,23 +73,24 @@
 	* evalext.c, evalext.h: New files.  Contain non-R5RS things
 	having to do with evaluation.
 	
-	* evalext.c (serial-map): New procedure: Version of `map' which
-	guarantees that the procedure is applied to the lists in serial
-	order.
-	(sequence->list): New syntax: Version of `begin' which returns a
-	list of the results of the body forms instead of the result of the
-	last body form.
+	* evalext.c (scm_serial_map): New procedure: Version of `map'
+	which guarantees that the procedure is applied to the lists in
+	serial order.
+	(scm_m_sequence_to_list): New syntax: Version of `begin' which
+	returns a list of the results of the body forms instead of the
+	result of the last body form.
 	(scm_definedp, scm_m_undefine): Moved from eval.c
 
 	* evalext.h (scm_m_sequence_to_list): Added declaration.
 
 	* macros.c, macros.h: New files.
-	(procedure->syntax, procedure->macro, procedure->memoizing-macro,
-	macro?, macro-type, macro-name, macro-transformer): Moved from
-	eval.c
+	(scm_procedure_to_syntax, scm_procedure_to_macro,
+	scm_procedure_to_memoizing_macro, scm_macro_p, scm_macro_type,
+	scm_macro_name, scm_macro_transformer): Moved from eval.c
 	(scm_make_synt): Moved from eval.c
 
-	* procs.c, procs.h (procedure-documentation): Moved from eval.c.
+	* procs.c, procs.h (scm_procedure_documentation): Moved from
+	eval.c.
 
 	* init.c (scm_boot_guile_1): Added calls to scm_init_macros and
 	scm_init_evalext.
