@@ -667,129 +667,93 @@ scm_unread_char (cobj, port)
   return cobj;
 }
 
-SCM_PROC (s_port_line, "port-line", 0, 1, 0, scm_port_line);
+SCM_PROC (s_port_line, "port-line", 1, 0, 0, scm_port_line);
 
 SCM 
 scm_port_line (port)
      SCM port;
 {
-  SCM p;
-
   port = SCM_COERCE_OUTPORT (port);
-
-  p = ((port == SCM_UNDEFINED)
-       ? scm_cur_inp
-       : port);
-  if (!(SCM_NIMP (p) && SCM_PORTP (p)))
-    return SCM_BOOL_F;
-  else
-    return SCM_MAKINUM (SCM_LINUM (p));
+  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
+	      port,
+	      SCM_ARG1,
+	      s_port_line);
+  return SCM_MAKINUM (SCM_LINUM (port));
 }
 
-SCM_PROC (s_set_port_line_x, "set-port-line!", 1, 1, 0, scm_set_port_line_x);
+SCM_PROC (s_set_port_line_x, "set-port-line!", 2, 0, 0, scm_set_port_line_x);
 
 SCM 
 scm_set_port_line_x (port, line)
      SCM port;
      SCM line;
 {
-  if (line == SCM_UNDEFINED)
-    {
-      line = port;
-      port = scm_cur_inp;
-    }
-  else
-    {
-     port = SCM_COERCE_OUTPORT (port);
-     SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
-		 port,
-		 SCM_ARG1,
-		 s_set_port_line_x);
-    }
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
+	      port,
+	      SCM_ARG1,
+	      s_set_port_line_x);
+  SCM_ASSERT (SCM_INUMP (line), line, SCM_ARG2, s_set_port_line_x);
   return SCM_PTAB_ENTRY (port)->line_number = SCM_INUM (line);
 }
 
-SCM_PROC (s_port_column, "port-column", 0, 1, 0, scm_port_column);
+SCM_PROC (s_port_column, "port-column", 1, 0, 0, scm_port_column);
 
 SCM
 scm_port_column  (port)
      SCM port;
 {
-  SCM p;
-
   port = SCM_COERCE_OUTPORT (port);
-
-  p = ((port == SCM_UNDEFINED)
-       ? scm_cur_inp
-       : port);
-  if (!(SCM_NIMP (p) && SCM_PORTP (p)))
-    return SCM_BOOL_F;
-  else
-    return SCM_MAKINUM (SCM_COL (p));
+  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
+	      port,
+	      SCM_ARG1,
+	      s_port_column);
+  return SCM_MAKINUM (SCM_COL (port));
 }
 
-SCM_PROC (s_set_port_column_x, "set-port-column!", 1, 1, 0, scm_set_port_column_x);
+SCM_PROC (s_set_port_column_x, "set-port-column!", 2, 0, 0, scm_set_port_column_x);
 
 SCM 
 scm_set_port_column_x (port, column)
      SCM port;
      SCM column;
 {
-  if (column == SCM_UNDEFINED)
-    {
-      column = port;
-      port = scm_cur_inp;
-    }
-  else
-    {
-      port = SCM_COERCE_OUTPORT (port);
-      SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
-		  port,
-		  SCM_ARG1,
-		  s_set_port_column_x);
-    }
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
+	      port,
+	      SCM_ARG1,
+	      s_set_port_column_x);
+  SCM_ASSERT (SCM_INUMP (column), column, SCM_ARG2, s_set_port_column_x);
   return SCM_PTAB_ENTRY (port)->column_number = SCM_INUM (column);
 }
 
-SCM_PROC (s_port_filename, "port-filename", 0, 1, 0, scm_port_filename);
+SCM_PROC (s_port_filename, "port-filename", 1, 0, 0, scm_port_filename);
 
 SCM 
 scm_port_filename (port)
      SCM port;
 {
-  SCM p;
-  
   port = SCM_COERCE_OUTPORT (port);
-
-  p = ((port == SCM_UNDEFINED)
-       ? scm_cur_inp
-       : port);
-  if (!(SCM_NIMP (p) && SCM_PORTP (p)))
-    return SCM_BOOL_F;
-  else
-    return SCM_PTAB_ENTRY (p)->file_name;
+  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
+	      port,
+	      SCM_ARG1,
+	      s_port_filename);
+  return SCM_PTAB_ENTRY (port)->file_name;
 }
 
-SCM_PROC (s_set_port_filename_x, "set-port-filename!", 1, 1, 0, scm_set_port_filename_x);
+SCM_PROC (s_set_port_filename_x, "set-port-filename!", 2, 0, 0, scm_set_port_filename_x);
 
 SCM 
 scm_set_port_filename_x (port, filename)
      SCM port;
      SCM filename;
 {
-  if (filename == SCM_UNDEFINED)
-    {
-      filename = port;
-      port = scm_cur_inp;
-    }
-  else
-    {
-      port = SCM_COERCE_OUTPORT (port);
-      SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
-		  port,
-		  SCM_ARG1,
-		  s_set_port_filename_x);
-    }
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
+	      port,
+	      SCM_ARG1,
+	      s_set_port_filename_x);
+  /* We allow the user to set the filename to whatever he likes.  */
   return SCM_PTAB_ENTRY (port)->file_name = filename;
 }
 
