@@ -2347,7 +2347,7 @@ Return a hash value for @var{symbol}.
 @deffnx {C Function} scm_gensym (prefix)
 Create a new symbol with a name constructed from a prefix and
 a counter value. The string @var{prefix} can be specified as
-an optional argument. Default prefix is @code{g}.  The counter
+an optional argument. Default prefix is @code{ g}.  The counter
 is increased by 1 at each call. There is no provision for
 resetting the counter.
 @end deffn

@@ -1,5 +1,8 @@
 2002-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-compound.texi, scheme-data.texi, new-docstrings.texi:
+	Automatic updates from snarfed libguile docstrings.
+
 	* data-rep.texi, guile.texi, scheme-evaluation.texi,
 	scheme-options.texi, scheme-translation.texi: Various minor
 	enhancements ported from the stable CVS branch.

@@ -679,3 +679,13 @@ well.  For example,
 (load-extension "libguile-bla-blum" "bla_init_blum")
 @end lisp
 @end deffn
+
+@deffn {Scheme Procedure} single-active-thread?
+implemented by the C function "scm_single_thread_p"
+@end deffn
+
+@deffn {Scheme Procedure} object-address obj
+@deffnx {C Function} scm_object_address (obj)
+Return an integer that for the lifetime of @var{obj} is uniquely
+returned by this function for @var{obj}
+@end deffn

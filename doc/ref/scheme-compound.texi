@@ -1343,7 +1343,7 @@ not an array, @code{0} is returned.
 @end deffn
 
 @deffn {Scheme Procedure} array->list v
-@deffnx {C Function} scm_t_arrayo_list (v)
+@deffnx {C Function} scm_array_to_list (v)
 Return a list consisting of all the elements, in order, of
 @var{array}.
 @end deffn
