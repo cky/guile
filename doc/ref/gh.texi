@@ -904,7 +904,7 @@ Use @code{SCM_DEFER_INTS} and @code{SCM_ALLOW_INTS} instead.  Note that
 these macros are used without parentheses, as in @code{SCM_DEFER_INTS;}.
 
 @item @code{gh_bool2scm}
-Use @code{SCM_BOOL} instead.
+Use @code{scm_from_bool} instead.
 
 @item @code{gh_ulong2scm}
 Use @code{scm_ulong2num} instead.
