@@ -1,3 +1,8 @@
+2001-02-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (eval-when, eval-case): Renamed `eval-when' to
+	`eval-case', everywhere.
+
 2001-02-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (define-public): Removed spurious call to
