@@ -1,8 +1,5 @@
 @c module-for-docstring (guile)
 
 
-@deffn {Scheme Procedure} inf? n
-@deffnx {C Function} scm_inf_p (n)
-Return @code{#t} if @var{n} is infinite, @code{#f}
-otherwise.
-@end deffn
+
+
