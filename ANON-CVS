@@ -23,12 +23,12 @@ To check out a CVS working directory:
 
 1) Install CVS version 1.9 or later on your system.
 2) Log into the CVS server:
-     $ cvs -d :pserver:anoncvs@egcs.cygnus.com:/cvs/guile login
+     $ cvs -d :pserver:anoncvs@anoncvs.cygnus.com:/cvs/guile login
    At the prompt for `CVS password:', type `anoncvs'.
    Once you have logged in, your password is saved in ~/.cvspass, and you
    will not need to enter it again.
 3) Check out a module:
-     $ cvs -z 9 -d :pserver:anoncvs@egcs.cygnus.com:/cvs/guile checkout guile-core
+     $ cvs -z 9 -d :pserver:anoncvs@anoncvs.cygnus.com:/cvs/guile checkout guile-core
    This should create a new directory `guile-core' in your current
    directory, and populate it with the current Guile sources.
 
