@@ -1,3 +1,8 @@
+2004-04-18  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_max, scm_min): For big/real, use SCM_SWAP rather than
+	explicit swapping code.
+
 2004-04-15  Kevin Ryde  <user42@zip.com.au>
 
 	* cpp_sig_symbols.in: Add SIGSYS.
