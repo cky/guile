@@ -82,7 +82,7 @@ extern void _rl_clean_up_for_exit ();
 extern void _rl_kill_kbd_macro ();
 extern int _rl_init_argument ();
 
-static void
+void
 rl_cleanup_after_signal ()
 {
 #ifdef HAVE_RL_CLEAR_SIGNALS
@@ -95,7 +95,7 @@ rl_cleanup_after_signal ()
   rl_pending_input = 0;
 }
 
-static void
+void
 rl_free_line_state ()
 {
   register HIST_ENTRY *entry;
@@ -218,6 +218,32 @@ stream_from_fport (SCM port, char *mode, const char *subr)
   return f;
 }
 
+void
+scm_readline_init_ports (SCM inp, SCM outp)
+{
+  if (SCM_UNBNDP (inp))
+    inp = scm_cur_inp;
+  
+  if (SCM_UNBNDP (outp))
+    outp = scm_cur_outp;
+  
+  if (!(SCM_NIMP (inp) && SCM_OPINFPORTP (inp))) {
+    scm_misc_error (0,
+                    "Input port is not open or not a file port",
+                    SCM_EOL);
+  }
+
+  if (!(SCM_NIMP (outp) && SCM_OPOUTFPORTP (outp))) {
+    scm_misc_error (0,
+                    "Output port is not open or not a file port",
+                    SCM_EOL);
+  }
+
+  input_port = inp;
+  rl_instream = stream_from_fport (inp, "r", s_readline);
+  rl_outstream = stream_from_fport (outp, "w", s_readline);
+}
+
 SCM
 scm_readline (SCM text, SCM inp, SCM outp, SCM read_hook)
 {
@@ -237,12 +263,24 @@ scm_readline (SCM text, SCM inp, SCM outp, SCM read_hook)
       SCM_COERCE_SUBSTR (text);
     }
   
-  if (SCM_UNBNDP (inp))
-    inp = scm_cur_inp;
+  if (!((SCM_UNBNDP (inp) && SCM_NIMP (scm_cur_inp) && SCM_OPINFPORTP (inp))
+	|| SCM_NIMP (inp) && SCM_OPINFPORTP (inp)))
+    {
+      --in_readline;
+      scm_misc_error (s_readline,
+		      "Input port is not open or not a file port",
+		      SCM_EOL);
+    }
   
-  if (SCM_UNBNDP (outp))
-    outp = scm_cur_outp;
-  
+  if (!((SCM_UNBNDP (outp) && SCM_NIMP (scm_cur_outp) && SCM_OPINFPORTP (outp))
+	|| (SCM_NIMP (outp) && SCM_OPOUTFPORTP (outp))))
+    {
+      --in_readline;
+      scm_misc_error (s_readline,
+		      "Output port is not open or not a file port",
+		      SCM_EOL);
+    }
+
   if (!(SCM_UNBNDP (read_hook) || SCM_FALSEP (read_hook)))
     {
       if (!(SCM_NFALSEP (scm_thunk_p (read_hook))))
@@ -252,25 +290,8 @@ scm_readline (SCM text, SCM inp, SCM outp, SCM read_hook)
 	}
       before_read = read_hook;
     }
-  
-  if (!(SCM_NIMP (inp) && SCM_OPINFPORTP (inp)))
-    {
-      --in_readline;
-      scm_misc_error (s_readline,
-		      "Input port is not open or not a file port",
-		      SCM_EOL);
-    }
-  if (!(SCM_NIMP (outp) && SCM_OPOUTFPORTP (outp)))
-    {
-      --in_readline;
-      scm_misc_error (s_readline,
-		      "Output port is not open or not a file port",
-		      SCM_EOL);
-    }
 
-  input_port = inp;
-  rl_instream = stream_from_fport (inp, "r", s_readline);
-  rl_outstream = stream_from_fport (outp, "w", s_readline);
+  scm_readline_init_ports (inp, outp);
 
   ans = scm_internal_catch (SCM_BOOL_T,
 			    (scm_catch_body_t) internal_readline,
@@ -474,7 +495,7 @@ scm_init_readline ()
   rl_completion_entry_function = (Function*) completion_function;
   rl_basic_word_break_characters = "\t\n\"'`;()";
 #ifdef USE_THREADS
-  scm_mutex_init (&reentry_barrier_mutex);
+  scm_mutex_init (&reentry_barrier_mutex, NULL);
 #endif
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts,

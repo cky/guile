@@ -30,11 +30,17 @@ extern scm_option scm_readline_opts[];
 #define SCM_N_READLINE_OPTIONS 3
 
 extern SCM scm_readline_options (SCM setting);
+extern void scm_readline_init_ports (SCM inp, SCM outp);
 extern SCM scm_readline (SCM txt, SCM inp, SCM outp, SCM read_hook);
 extern SCM scm_add_history (SCM txt);
 extern SCM scm_read_history (SCM file);
 extern SCM scm_write_history (SCM file);
 extern SCM scm_filename_completion_function (SCM text, SCM continuep);
 extern void scm_init_readline (void);
+
+#ifndef HAVE_RL_CLEANUP_AFTER_SIGNAL
+void rl_cleanup_after_signal ();
+void rl_free_line_state ();
+#endif
 
 #endif
