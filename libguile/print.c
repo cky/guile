@@ -52,6 +52,7 @@
 #include "weaks.h"
 #include "unif.h"
 #include "alist.h"
+#include "struct.h"
 
 #include "print.h"
 
@@ -126,85 +127,144 @@ scm_print_options (setting)
  */
 
 /* Detection of circular references.
+ *
+ * Due to other constraints in the implementation, this code has bad
+ * time complexity (O (depth * N)), The printer code will be
+ * completely rewritten before next release of Guile.  The new code
+ * will be O(N).
  */
-typedef struct ref_stack {
-  SCM vector;
-  SCM *top;
-  SCM *ceiling;
-  SCM *floor;
-} ref_stack;
-
-#define RESET_REF_STACK(stack) { stack.top = stack.floor; }
-#define PUSH_REF(stack, obj, label) \
+#define PUSH_REF(pstate, obj) \
 { \
-  register SCM *ref; \
-  for (ref = stack.floor; ref < stack.top; ++ref) \
-    if (*ref == (obj)) \
+  pstate->ref_stack[pstate->top++] = (obj); \
+  if (pstate->top == pstate->ceiling) \
+    grow_ref_stack (pstate); \
+}
+
+#define ENTER_NESTED_DATA(pstate, obj, label) \
+{ \
+  register int i; \
+  for (i = 0; i < pstate->top; ++i) \
+    if (pstate->ref_stack[i] == (obj)) \
       goto label; \
-  *stack.top++ = (obj); \
-  if (stack.top == stack.ceiling) \
-    grow_ref_stack (&stack); \
+  if (pstate->fancyp) \
+    { \
+      if (pstate->top - pstate->list_offset >= pstate->level) \
+	{ \
+	  scm_gen_putc ('#', port); \
+	  return; \
+	} \
+    } \
+  PUSH_REF(pstate, obj); \
 } \
 
-#define POP_REF(stack) { --stack.top; }
-#define SAVE_REF_STACK(stack, save) \
-{ \
-  save = stack.floor - SCM_VELTS (stack.vector); \
-  stack.floor = stack.top; \
-} \
+#define EXIT_NESTED_DATA(pstate) { --pstate->top; }
 
-#define RESTORE_REF_STACK(stack, save) \
-{ stack.floor = SCM_VELTS (stack.vector) + save; }
+static SCM print_state_pool;
 
+#if 1 /* Used for debugging purposes */
+SCM_PROC(s_current_pstate, "current-pstate", 0, 0, 0, scm_current_pstate);
 #ifdef __STDC__
-static void
-init_ref_stack (ref_stack *stack)
+SCM
+scm_current_pstate (void)
 #else
-static void
-init_ref_stack (stack)
-     ref_stack *stack;
+SCM
+scm_current_pstate ()
 #endif
 {
-  stack->vector = scm_permanent_object (scm_make_vector (SCM_MAKINUM (30L),
-							 SCM_UNDEFINED,
-							 SCM_UNDEFINED));
-  stack->top = stack->floor = SCM_VELTS (stack->vector);
-  stack->ceiling = stack->floor + SCM_LENGTH (stack->vector);
+  return SCM_CADR (print_state_pool);
+}
+#endif
+
+#define PSTATE_SIZE 50L
+
+#ifdef __STDC__
+SCM
+scm_make_print_state (void)
+#else
+SCM
+scm_make_print_state ()
+#endif
+{
+  return scm_make_struct (SCM_CAR (print_state_pool), /* pstate type */
+			  SCM_MAKINUM (PSTATE_SIZE),
+			  SCM_EOL);
 }
 
 #ifdef __STDC__
 static void
-grow_ref_stack (ref_stack *stack)
+grow_ref_stack (scm_print_state *pstate)
 #else
 static void
-grow_ref_stack (stack)
-     ref_stack *stack;
+grow_ref_stack (pstate)
+     scm_print_state *pstate;
 #endif
 {
-  int offset, new_size = 2 * SCM_LENGTH (stack->vector);
-  SCM *old_velts = SCM_VELTS (stack->vector);
-  scm_vector_set_length_x (stack->vector, SCM_MAKINUM (new_size));
-  offset = SCM_VELTS (stack->vector) - old_velts;
-  stack->top += offset;
-  stack->floor += offset;
-  stack->ceiling = SCM_VELTS (stack->vector) + new_size;
+  int i, size = pstate->ceiling;
+  int total_size;
+  SCM handle;
+  SCM *data;
+  SCM_DEFER_INTS;
+  handle = pstate->handle;
+  data = (SCM *) pstate - scm_struct_n_extra_words;
+  total_size = ((SCM *) pstate)[scm_struct_i_n_words];
+  data = (SCM *) scm_must_realloc ((char *) data,
+				   total_size,
+				   total_size + size,
+				   "grow_ref_stack");
+  pstate = (scm_print_state *) (data + scm_struct_n_extra_words);
+  ((SCM *) pstate)[scm_struct_i_n_words] = total_size + size;
+  pstate->ceiling += size;
+  for (i = size; i < pstate->ceiling; ++i)
+    pstate->ref_stack[i] = SCM_BOOL_F;
+  SCM_SETCDR (handle, pstate);
+  SCM_ALLOW_INTS;
 }
 
+#ifdef __STDC__
+static void
+print_circref (SCM port, scm_print_state *pstate, SCM ref)
+#else
+static void
+print_circref (port, pstate, ref)
+     SCM port;
+     scm_print_state *pstate;
+     SCM ref;
+#endif
+{
+  register int i;
+  int self = pstate->top - 1;
+  i = pstate->top - 1;
+  if (SCM_CONSP (pstate->ref_stack[i]))
+    {
+      while (i > 0)
+	{
+	  if (SCM_NCONSP (pstate->ref_stack[i - 1])
+	      || SCM_CDR (pstate->ref_stack[i - 1]) != pstate->ref_stack[i])
+	    break;
+	  --i;
+	}
+      self = i;
+    }
+  for (i = pstate->top - 1; 1; --i)
+    if (pstate->ref_stack[i] == ref)
+      break;
+  scm_gen_putc ('#', port);
+  scm_intprint (i - self, 10, port);
+  scm_gen_putc ('#', port);
+}
 
-/* Print generally.  Handles both write and display according to WRITING.
+/* Print generally.  Handles both write and display according to PSTATE.
  */
 
-static ref_stack pstack;
-
 #ifdef __STDC__
 void 
-scm_iprin1 (SCM exp, SCM port, int writing)
+scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 #else
 void 
-scm_iprin1 (exp, port, writing)
+scm_iprin1 (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   register long i;
@@ -219,7 +279,7 @@ taloop:
       if (SCM_ICHRP (exp))
 	{
 	  i = SCM_ICHR (exp);
-	  scm_put_wchar (i, port, writing);
+	  scm_put_wchar (i, port, SCM_WRITINGP (pstate));
 
 	}
       else if (SCM_IFLAGP (exp)
@@ -259,22 +319,22 @@ taloop:
 
 	case scm_tcs_cons_imcar:
 	case scm_tcs_cons_nimcar:
-	  PUSH_REF (pstack, exp, circref);
-	  scm_iprlist ("(", exp, ')', port, writing);
-	  POP_REF (pstack);
+	  ENTER_NESTED_DATA (pstate, exp, circref);
+	  scm_iprlist ("(", exp, ')', port, pstate);
+	  EXIT_NESTED_DATA (pstate);
 	  break;
 	circref:
-	  scm_gen_write (scm_regular_string, "#<circ ref>", sizeof ("#<circ ref>") - 1, port);
+	  print_circref (port, pstate, exp);
 	  break;
 	case scm_tcs_closures:
 	  if (SCM_NFALSEP (scm_procedure_p (SCM_PRINT_CLOSURE)))
 	    {
 	      SCM ans = scm_cons2 (exp, port,
-				   scm_cons (writing ? SCM_BOOL_T : SCM_BOOL_F, SCM_EOL));
-	      int save;
-	      SAVE_REF_STACK (pstack, save);
+				   scm_cons (SCM_WRITINGP (pstate)
+					     ? SCM_BOOL_T
+					     : SCM_BOOL_F,
+					     SCM_EOL));
 	      ans = scm_apply (SCM_PRINT_CLOSURE, ans, SCM_EOL);
-	      RESTORE_REF_STACK (pstack, save);
 	    }
 	  else
 	    {
@@ -287,14 +347,16 @@ taloop:
 		  scm_gen_puts (scm_regular_string, SCM_ROCHARS (name), port);
 		  scm_gen_putc (' ', port);
 		}
-	      scm_iprin1 (SCM_CAR (code), port, writing);
+	      scm_iprin1 (SCM_CAR (code), port, pstate);
 	      if (SCM_PRINT_SOURCE_P)
 		{
 		  code = scm_unmemocopy (SCM_CDR (code),
 					 SCM_EXTEND_ENV (SCM_CAR (code),
 							 SCM_EOL,
 							 SCM_ENV (exp)));
-		  scm_iprlist (" ", code, '>', port, writing);
+		  ENTER_NESTED_DATA (pstate, exp, circref);
+		  scm_iprlist (" ", code, '>', port, pstate);
+		  EXIT_NESTED_DATA (pstate);
 		}
 	      else
 		scm_gen_putc ('>', port);
@@ -302,11 +364,11 @@ taloop:
 	  break;
 	case scm_tc7_mb_string:
 	case scm_tc7_mb_substring:
-	  scm_print_mb_string (exp, port, writing);
+	  scm_print_mb_string (exp, port, SCM_WRITINGP (pstate));
 	  break;
 	case scm_tc7_substring:
 	case scm_tc7_string:
-	  if (writing)
+	  if (SCM_WRITINGP (pstate))
 	    {
 	      scm_gen_putc ('"', port);
 	      for (i = 0; i < SCM_ROLENGTH (exp); ++i)
@@ -412,7 +474,7 @@ taloop:
 	      break;
 	    }
 	case scm_tc7_wvect:
-	  PUSH_REF (pstack, exp, circref);
+	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  if (SCM_IS_WHVEC (exp))
 	    scm_gen_puts (scm_regular_string, "#wh(", port);
 	  else
@@ -420,22 +482,22 @@ taloop:
 	  goto common_vector_printer;
 
 	case scm_tc7_vector:
-	  PUSH_REF (pstack, exp, circref);
+	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  scm_gen_puts (scm_regular_string, "#(", port);
 	common_vector_printer:
 	  for (i = 0; i + 1 < SCM_LENGTH (exp); ++i)
 	    {
 	      /* CHECK_INTS; */
-	      scm_iprin1 (SCM_VELTS (exp)[i], port, writing);
+	      scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
 	      scm_gen_putc (' ', port);
 	    }
 	  if (i < SCM_LENGTH (exp))
 	    {
 	      /* CHECK_INTS; */
-	      scm_iprin1 (SCM_VELTS (exp)[i], port, writing);
+	      scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
 	    }
 	  scm_gen_putc (')', port);
-	  POP_REF (pstack);
+	  EXIT_NESTED_DATA (pstate);
 	  break;
 	case scm_tc7_bvect:
 	case scm_tc7_byvect:
@@ -448,7 +510,7 @@ taloop:
 #ifdef LONGLONGS
 	case scm_tc7_llvect:
 #endif
-	  scm_raprin1 (exp, port, writing);
+	  scm_raprin1 (exp, port, pstate);
 	  break;
 	case scm_tcs_subrs:
 	  scm_gen_puts (scm_regular_string, "#<primitive-procedure ", port);
@@ -461,7 +523,7 @@ taloop:
 #ifdef CCLO
 	case scm_tc7_cclo:
 	  scm_gen_puts (scm_regular_string, "#<compiled-closure ", port);
-	  scm_iprin1 (SCM_CCLO_SUBR (exp), port, writing);
+	  scm_iprin1 (SCM_CCLO_SUBR (exp), port, pstate);
 	  scm_gen_putc ('>', port);
 	  break;
 #endif
@@ -474,19 +536,21 @@ taloop:
 	  break;
 	case scm_tc7_port:
 	  i = SCM_PTOBNUM (exp);
-	  if (i < scm_numptob && scm_ptobs[i].print && (scm_ptobs[i].print) (exp, port, writing))
+	  if (i < scm_numptob
+	      && scm_ptobs[i].print
+	      && (scm_ptobs[i].print) (exp, port, pstate))
 	    break;
 	  goto punk;
 	case scm_tc7_smob:
-	  PUSH_REF (pstack, exp, circref);
+	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  i = SCM_SMOBNUM (exp);
 	  if (i < scm_numsmob && scm_smobs[i].print
-	      && (scm_smobs[i].print) (exp, port, writing))
+	      && (scm_smobs[i].print) (exp, port, pstate))
 	    {
-	      POP_REF (pstack);
+	      EXIT_NESTED_DATA (pstate);
 	      break;
 	    }
-	  POP_REF (pstack);
+	  EXIT_NESTED_DATA (pstate);
 	default:
 	punk:
 	  scm_ipruk ("type", exp, port);
@@ -494,19 +558,45 @@ taloop:
     }
 }
 
+/* Print states are necessary for circular reference safe printing.
+ * They are also expensive to allocate.  Therefore print states are
+ * kept in a pool so that they can be reused.
+ */
 #ifdef __STDC__
 void 
-scm_prin1 (SCM exp, SCM port, int writing)
+scm_prin1 (SCM exp, SCM port, int writingp)
 #else
 void 
-scm_prin1 (exp, port, writing)
+scm_prin1 (exp, port, writingp)
      SCM exp;
      SCM port;
-     int writing;
+     int writingp;
 #endif
 {
-  RESET_REF_STACK (pstack);
-  scm_iprin1 (exp, port, writing);
+  SCM handle = 0; /* Will GC protect the handle whilst unlinked */
+  scm_print_state *pstate;
+
+  /* First try to allocate a print state from the pool */
+  SCM_DEFER_INTS;
+  if (SCM_NNULLP (SCM_CDR (print_state_pool)))
+    {
+      handle = SCM_CDR (print_state_pool);
+      SCM_SETCDR (print_state_pool, SCM_CDDR (print_state_pool));
+    }
+  SCM_ALLOW_INTS;
+  
+  if (!handle)
+    handle = scm_cons (scm_make_print_state (), SCM_EOL);
+
+  pstate = (scm_print_state *) SCM_STRUCT_DATA (SCM_CAR (handle));
+  pstate->writingp = writingp;
+  scm_iprin1 (exp, port, pstate);
+
+  /* Return print state to pool */
+  SCM_DEFER_INTS;
+  SCM_SETCDR (handle, SCM_CDR (print_state_pool));
+  SCM_SETCDR (print_state_pool, handle);
+  SCM_ALLOW_INTS;
 }
 
 
@@ -558,64 +648,114 @@ scm_ipruk (hdr, ptr, port)
 /* Print a list.
  */
 
-static ref_stack lstack;
-
 #ifdef __STDC__
 void 
-scm_iprlist (char *hdr, SCM exp, char tlr, SCM port, int writing)
+scm_iprlist (char *hdr, SCM exp, char tlr, SCM port, scm_print_state *pstate)
 #else
 void 
-scm_iprlist (hdr, exp, tlr, port, writing)
+scm_iprlist (hdr, exp, tlr, port, pstate)
      char *hdr;
      SCM exp;
      char tlr;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
+  register int i;
+  register SCM hare, tortoise;
+  int floor = pstate->top - 2;
   scm_gen_puts (scm_regular_string, hdr, port);
   /* CHECK_INTS; */
-  scm_iprin1 (SCM_CAR (exp), port, writing);
-  RESET_REF_STACK (lstack);
-  PUSH_REF (lstack, exp, circref);
+  if (pstate->fancyp)
+    goto fancy_printing;
+  
+  /* Run a hare and tortoise so that total time complexity will be
+     O(depth * N) instead of O(N^2). */
+  hare = SCM_CDR (exp);
+  tortoise = exp;
+  while (SCM_NIMP (hare))
+    {
+      if (hare == tortoise)
+	goto fancy_printing;
+      hare = SCM_CDR (hare);
+      if (SCM_IMP (hare))
+	break;
+      hare = SCM_CDR (hare);
+      tortoise = SCM_CDR (tortoise);
+    }
+  
+  /* No cdr cycles intrinsic to this list */
+  scm_iprin1 (SCM_CAR (exp), port, pstate);
   exp = SCM_CDR (exp);
   for (; SCM_NIMP (exp); exp = SCM_CDR (exp))
     {
       if (SCM_NECONSP (exp))
 	break;
-      PUSH_REF (lstack, exp, circref);
+      for (i = floor; i >= 0; --i)
+	if (pstate->ref_stack[i] == exp)
+	  goto circref;
+      PUSH_REF (pstate, exp);
       scm_gen_putc (' ', port);
       /* CHECK_INTS; */
-      scm_iprin1 (SCM_CAR (exp), port, writing);
+      scm_iprin1 (SCM_CAR (exp), port, pstate);
     }
   if (SCM_NNULLP (exp))
     {
       scm_gen_puts (scm_regular_string, " . ", port);
-      scm_iprin1 (exp, port, writing);
+      scm_iprin1 (exp, port, pstate);
     }
+
 end:
   scm_gen_putc (tlr, port);
+  pstate->top = floor + 2;
   return;
-circref:
-  scm_gen_puts (scm_regular_string, " . #<circ ref>", port);
+  
+fancy_printing:
+  {
+    int n = pstate->length;
+    
+    scm_iprin1 (SCM_CAR (exp), port, pstate);
+    exp = SCM_CDR (exp); --n;
+    for (; SCM_NIMP (exp); exp = SCM_CDR (exp))
+      {
+	if (SCM_NECONSP (exp))
+	  break;
+	for (i = 0; i < pstate->top; ++i)
+	  if (pstate->ref_stack[i] == exp)
+	    goto fancy_circref;
+	if (pstate->fancyp)
+	  {
+	    if (n == 0)
+	      {
+		scm_gen_puts (scm_regular_string, " ...", port);
+		goto skip_tail;
+	      }
+	    else
+	      --n;
+	  }
+	PUSH_REF(pstate, exp);
+	++pstate->list_offset;
+	scm_gen_putc (' ', port);
+	/* CHECK_INTS; */
+	scm_iprin1 (SCM_CAR (exp), port, pstate);
+      }
+  }
+  if (SCM_NNULLP (exp))
+    {
+      scm_gen_puts (scm_regular_string, " . ", port);
+      scm_iprin1 (exp, port, pstate);
+    }
+skip_tail:
+  pstate->list_offset -= pstate->top - floor - 2;
   goto end;
-}
 
-#ifdef __STDC__
-void 
-scm_prlist (char *hdr, SCM exp, char tlr, SCM port, int writing)
-#else
-void 
-scm_prlist (hdr, exp, tlr, port, writing)
-     char *hdr;
-     SCM exp;
-     char tlr;
-     SCM port;
-     int writing;
-#endif
-{
-  RESET_REF_STACK (pstack);
-  scm_iprlist (hdr, exp, tlr, port, writing);
+fancy_circref:
+  pstate->list_offset -= pstate->top - floor - 2;
+  
+circref:
+  scm_gen_puts (scm_regular_string, " . ", port);
+  print_circref (port, pstate, exp);
+  goto end;
 }
 
 
@@ -735,8 +875,13 @@ void
 scm_init_print ()
 #endif
 {
+  SCM vtable, type;
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
-  init_ref_stack (&pstack);
-  init_ref_stack (&lstack);
+  vtable = scm_make_vtable_vtable (scm_make_struct_layout (scm_makfrom0str ("")), SCM_INUM0, SCM_EOL);
+  type = scm_make_struct (vtable,
+			  SCM_INUM0,
+			  scm_cons (scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT)),
+				    SCM_EOL));
+  print_state_pool = scm_permanent_object (scm_cons (type, SCM_EOL));
 #include "print.x"
 }
