@@ -63,7 +63,78 @@
     (set! x (* 0.5 x))
     (set! n (1+ n)))
   x)
-    
+
+;; `quotient' but rounded towards -infinity, like `modulo' or `ash' do
+;; note only positive D supported (that's all that's currently required)
+(define-public (quotient-floor n d)
+  (if (negative? n)
+      (quotient (- n d -1) d)  ;; neg/pos
+      (quotient n d)))         ;; pos/pos
+
+;;;
+;;; ash
+;;;
+
+(with-test-prefix "ash"
+
+  (pass-if "documented?"
+    (documented? ash))
+
+  (pass-if (eqv? 0 (ash 0 0)))
+  (pass-if (eqv? 0 (ash 0 1)))
+  (pass-if (eqv? 0 (ash 0 1000)))
+  (pass-if (eqv? 0 (ash 0 -1)))
+  (pass-if (eqv? 0 (ash 0 -1000)))
+
+  (pass-if (eqv? 1 (ash 1 0)))
+  (pass-if (eqv? 2 (ash 1 1)))
+  (pass-if (eqv? 340282366920938463463374607431768211456 (ash 1 128)))
+  (pass-if (eqv? 0 (ash 1 -1)))
+  (pass-if (eqv? 0 (ash 1 -1000)))
+
+  (pass-if (eqv? -1 (ash -1 0)))
+  (pass-if (eqv? -2 (ash -1 1)))
+  (pass-if (eqv? -340282366920938463463374607431768211456 (ash -1 128)))
+  (pass-if (eqv? -1 (ash -1 -1)))
+  (pass-if (eqv? -1 (ash -1 -1000)))
+
+  (pass-if (eqv? -3 (ash -3 0)))
+  (pass-if (eqv? -6 (ash -3 1)))
+  (pass-if (eqv? -1020847100762815390390123822295304634368 (ash -3 128)))
+  (pass-if (eqv? -2 (ash -3 -1)))
+  (pass-if (eqv? -1 (ash -3 -1000)))
+
+  (pass-if (eqv? -6 (ash -23 -2)))
+
+  (pass-if (eqv? most-positive-fixnum       (ash most-positive-fixnum 0)))
+  (pass-if (eqv? (* 2 most-positive-fixnum) (ash most-positive-fixnum 1)))
+  (pass-if (eqv? (* 4 most-positive-fixnum) (ash most-positive-fixnum 2)))
+  (pass-if
+      (eqv? (* most-positive-fixnum 340282366920938463463374607431768211456)
+	    (ash most-positive-fixnum 128)))
+  (pass-if (eqv? (quotient most-positive-fixnum 2)
+		 (ash most-positive-fixnum -1)))
+  (pass-if (eqv? 0 (ash most-positive-fixnum -1000)))
+
+  (let ((mpf4 (quotient most-positive-fixnum 4)))
+    (pass-if (eqv? (* 2 mpf4) (ash mpf4 1)))
+    (pass-if (eqv? (* 4 mpf4) (ash mpf4 2)))
+    (pass-if (eqv? (* 8 mpf4) (ash mpf4 3))))
+
+  (pass-if (eqv? most-negative-fixnum       (ash most-negative-fixnum 0)))
+  (pass-if (eqv? (* 2 most-negative-fixnum) (ash most-negative-fixnum 1)))
+  (pass-if (eqv? (* 4 most-negative-fixnum) (ash most-negative-fixnum 2)))
+  (pass-if
+      (eqv? (* most-negative-fixnum 340282366920938463463374607431768211456)
+	    (ash most-negative-fixnum 128)))
+  (pass-if (eqv? (quotient-floor most-negative-fixnum 2)
+		 (ash most-negative-fixnum -1)))
+  (pass-if (eqv? -1 (ash most-negative-fixnum -1000)))
+
+  (let ((mnf4 (quotient-floor most-negative-fixnum 4)))
+    (pass-if (eqv? (* 2 mnf4) (ash mnf4 1)))
+    (pass-if (eqv? (* 4 mnf4) (ash mnf4 2)))
+    (pass-if (eqv? (* 8 mnf4) (ash mnf4 3)))))
 
 ;;;
 ;;; exact?
