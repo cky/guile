@@ -1721,13 +1721,13 @@ Return the string @var{s1}, but with the characters
 @var{start2} @dots{} @var{end2} from @var{s2}.
 @end deffn
 
-@deffn {Scheme Procedure} string-tokenize s [token_char start end]
+@deffn {Scheme Procedure} string-tokenize s [token-set start end]
 Split the string @var{s} into a list of substrings, where each
-substring is a maximal non-empty contiguous sequence of
-characters equal to the character @var{token_char}, or
-whitespace, if @var{token_char} is not given.  If
-@var{token_char} is a character set, it is used for finding the
-token borders.
+substring is a maximal non-empty contiguous sequence of characters
+from the character set @var{token_set}, which defaults to an
+equivalent of @code{char-set:graphic}.  If @var{start} or @var{end}
+indices are provided, they restrict @code{string-tokenize} to
+operating on the indicated substring of @var{s}.
 @end deffn
 
 
