@@ -96,6 +96,7 @@ SCM gh_new_procedure4_0(char *proc_name, SCM (*fn)());
 SCM gh_new_procedure5_0(char *proc_name, SCM (*fn)());
 
 /* C to Scheme conversion */
+SCM gh_int2scmb(int x);		/* this is being phased out */
 SCM gh_bool2scm(int x);
 SCM gh_int2scm(int x);
 SCM gh_ulong2scm(unsigned long x);
@@ -164,7 +165,9 @@ SCM gh_vset(SCM vec, SCM pos, SCM val);
 SCM gh_vref(SCM vec, SCM pos);
 SCM gh_vector_set_x(SCM vec, SCM pos, SCM val);
 SCM gh_vector_ref(SCM vec, SCM pos);
-unsigned long gh_vector_length(SCM v);
+unsigned long gh_vector_length (SCM v);
+unsigned long gh_uniform_vector_length (SCM v);
+SCM gh_uniform_vector_ref (SCM v, SCM ilist);
 #define gh_list_to_vector(ls) scm_vector(ls)
 #define gh_vector_to_list(v) scm_vector_to_list(ls)
 
