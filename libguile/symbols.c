@@ -857,11 +857,13 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 2, 0,
 {
   SCM new;
   if (SCM_UNBNDP (name))
-    name = gensym_prefix;
+    new = gensym_prefix;
   else
-    SCM_VALIDATE_SYMBOL (1, name);
+    {
+      SCM_VALIDATE_SYMBOL (1, name);
+      new = scm_symbol_to_string (name);
+    }
 
-  new = name;
   if (SCM_UNBNDP (obarray))
     {
       obarray = SCM_BOOL_F;
