@@ -2139,10 +2139,12 @@
 (define scm-repl-verbose #f)
 (define (assert-repl-verbosity v) (set! scm-repl-verbose v))
 
-(define scm-repl-prompt #t)
-(define (assert-repl-prompt v) (set! scm-repl-prompt v))
+(define scm-repl-prompt "guile> ")
 
-(define the-prompt-string "guile> ")
+(define (set-repl-prompt! v) (set! scm-repl-prompt v))
+
+(define apply-frame-handler #f)
+(define exit-frame-handler #f)
 
 (define (error-catching-loop thunk)
   (define (loop first)
@@ -2165,9 +2167,16 @@
 		      #f)
 		    (lambda () (mask-signals))))
 
-		 (lambda args
-		   (save-stack 1)
-		   (apply throw args))))
+		 (lambda (key . args)
+		   (cond ((eq? key 'apply-frame)
+			  (and apply-frame-handler
+			       (apply apply-frame-handler key args)))
+			 ((eq? key 'exit-frame)
+			  (and exit-frame-handler
+			       (apply exit-frame-handler key args)))
+			 (else
+			  (save-stack 2)
+			  (apply throw key args))))))
 	     
 	     (lambda (key . args)
 	       (case key
@@ -2224,7 +2233,7 @@
 		 ((tk-stack)
 		  (apply make-stack #t save-stack tk-stack-mark narrowing))
 		 ((#t)
-		  (apply make-stack #t save-stack narrowing))
+		  (apply make-stack #t save-stack 0 1 narrowing))
 		 (else (let ((id (stack-id #t)))
 			 (and (procedure? id)
 			      (apply make-stack #t save-stack id narrowing))))))
@@ -2303,7 +2312,11 @@
 	   (-read (lambda ()
 		    (if scm-repl-prompt
 			(begin
-			  (display the-prompt-string)
+			  (display (cond ((string? scm-repl-prompt)
+					  scm-repl-prompt)
+					 ((thunk? scm-repl-prompt)
+					  (scm-repl-prompt))
+					 (else "> ")))
 			  (force-output)
 			  (repl-report-reset)))
 		    (and before-read-hook (before-read-hook))

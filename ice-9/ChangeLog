@@ -1,4 +1,27 @@
-Fri Feb 28 00:00:50 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Sat Mar  1 00:10:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+*	* debug.scm: *Warning* This feature is a bit premature.  I add
+ 	it anyway because 1. it is very useful, and, 2. you can start
+	making it less premature by complaining to me and by modifying
+	the source! :-)
+	(trace): Given one or more procedure objects, trace each one.
+  	Given no arguments, show all traced procedures.
+	(untrace): Given one or more procedure objects, untrace each one.
+  	Given no arguments, untrace all traced procedures.  The tracing in
+ 	Guile have an advantage to most other systems: We don't create new
+ 	procedure objects, but mark the procedure objects themselves.
+  	This means that also anonymous and internal procedures can be
+ 	traced.
+
+	* boot-9.scm (error-catching-loop): Added handling of apply-frame
+	and exit-frame exceptions.
+	
+*	* boot-9.scm (assert-repl-prompt, the-prompt-string): Removed.
+	(set-repl-prompt!): Setter for repl prompt.
+	(scm-style-repl): If prompt is #f, don't prompt; if prompt is a
+ 	string, display it; if prompt is a thunk, call it and display its
+ 	result; otherwise display "> ".
+  	(Change suggested by Roland Orre <orre@nada.kth.se>.)
 
 	* r4rs.scm (%load-verbosely): Reverted change to
  	`module-defined?', since the module system isn't bootstrapped when

@@ -116,5 +116,99 @@
 ;;;
 (variable-set! (builtin-variable 'debug-options) debug-options)
 
+
+
+;;; {Trace}
+;;;
+(define traced-procedures '())
+
+(define-public (trace . args)
+  (if (null? args)
+      (nameify traced-procedures)
+      (begin
+	(for-each (lambda (proc)
+		    (set-procedure-property! proc 'trace #t)
+		    (if (not (memq proc traced-procedures))
+			(set! traced-procedures
+			      (cons proc traced-procedures))))
+		  args)
+	(set! apply-frame-handler trace-entry)
+	(set! exit-frame-handler trace-exit)
+	(set! trace-level 0)
+	(debug-enable 'trace)
+	(nameify args))))
+
+(define-public (untrace . args)
+  (if (and (null? args)
+	   (not (null? traced-procedures)))
+      (apply untrace traced-procedures)
+      (begin
+	(for-each (lambda (proc)
+		    (set-procedure-property! proc 'trace #f)
+		    (set! traced-procedures (delq! proc traced-procedures)))
+		  args)
+	(if (null? traced-procedures)
+	    (debug-disable 'trace))
+	(nameify args))))
+
+(define (nameify ls)
+  (map (lambda (proc)
+	 (let ((name (procedure-name proc)))
+	   (or name proc)))
+       ls))
+
+(define trace-level 0)
+
+(define (trace-entry key cont tail)
+  (dynamic-wind
+   (lambda ()
+     ;; We have to protect ourselves against the case that the user
+     ;; has chosen to trace a procedure used in the trace handler.
+     ;; Note that debug-disable is a very slow operation.
+     ;; This is not an ideal solution. *fixme*
+     (debug-disable 'trace))
+   (lambda ()
+     (let ((cep (current-error-port))
+	   (frame (last-stack-frame cont)))
+       (if (not tail)
+	   (set! trace-level (+ trace-level 1)))
+       (let indent ((n trace-level))
+	 (cond ((> n 1) (display "|  " cep) (indent (- n 1)))))
+       (display-application frame cep)
+       (newline cep)
+       ;; It's not necessary to call the continuation since
+       ;; execution will continue if the handler returns
+       ;(cont #f)
+       ))
+   (lambda ()
+     (debug-enable 'trace))))
+
+(define (trace-exit key cont retval)
+  (dynamic-wind
+   (lambda ()
+     (debug-disable 'trace))
+   (lambda ()
+     (let ((cep (current-error-port)))
+       (set! trace-level (- trace-level 1))
+       (let indent ((n trace-level))
+	 (cond ((> n 0) (display "|  " cep) (indent (- n 1)))))
+       (write retval cep)
+       (newline cep)))
+   (lambda ()
+     (debug-enable 'trace))))
+
+(define (display-application frame port)
+  (display #\[ port)
+  (display (car (unmemoize (frame-source frame))) port)
+  (let loop ((args (frame-arguments frame)))
+    (if (not (null? args))
+	(begin
+	  (display #\space port)
+	  (write (car args) port)
+	  (loop (cdr args)))))
+  (display #\] port))
+
+
+
 (debug-enable 'debug)
 (read-enable 'positions)
