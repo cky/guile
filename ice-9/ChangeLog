@@ -1,3 +1,7 @@
+2001-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* oldprint.scm:  Removed.
+
 2001-03-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* arrays.scm (make-array): Added quote in front of ().
