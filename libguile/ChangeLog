@@ -1,3 +1,29 @@
+2005-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* hashtab.h, hashtab.c (SCM_HASHTAB_BUCKET_LOC): Removed.
+	(scan_weak_hashtables): Rewrote its use with SCM_HASHTAB_BUCKET
+	and SCM_SET_HASHTAB_BUCKET.
+
+	* print.h, print.c (scm_print_state, SCM_PRINT_STATE_LAYOUT):
+	Removed ref_stack field.
+	(PSTATE_STACK_REF, PSTATE_STACK_SET): New, for accessing the stack
+	of a print state.  Use them everywhere instead of ref_stack.
+	
+	* srfi-4.c: Include deprecation.h.
+
+	* vectors.h, vectors.c, unif.h, unif.c, deprecated.h,
+	deprecated.c, eq.c
+	(SCM_BITVEC_REF, SCM_BITVEC_SET, SCM_BITVEC_CLR): Removed.
+	(scm_vector_elements, scm_vector_writable_elements,
+	scm_generalized_vector_get_handle): Moved to vectors.[hc] from
+	unif.[hc].
+	(SCM_SIMPLE_VECTOR_LOC): Removed.
+	(SCM_VECTOR_MAX_LENGTH, SCM_VECTOR_LENGTH, SCM_VELTS,
+	SCM_WRITABLE_VELTS, SCM_VECTOR_REF, SCM_VECTOR_SET,
+	scm_vector_equal_p): Moved from vectors.[hc] to deprecated.[hc].
+	(scm_vector_equal_p, scm_i_vector_equal_p): Renamed former to
+	latter.  Changed use in eq.c.
+	
 2005-01-07  Marius Vollmer  <mvo@zagadka.de>
 
 	Make the uniform vector routines also deal with one dimensional
