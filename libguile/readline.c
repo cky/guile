@@ -50,12 +50,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-static SCM
-apply (SCM a)
-{
-  return scm_apply (SCM_CAR (a), SCM_CDR (a), SCM_EOL);
-}
-
 static int promptp;
 static SCM input_port;
 static SCM before_read;
@@ -63,13 +57,10 @@ static SCM before_read;
 static int
 current_input_getc (FILE *in)
 {
-  SCM_STACKITEM mark;
   SCM ans;
   if (promptp && SCM_NIMP (before_read))
     {
-      scm_internal_cwdr ((scm_catch_body_t) apply,
-			 (void *) SCM_LIST1 (before_read),
-			 scm_handle_by_throw, 0, &mark);
+      scm_apply (before_read, SCM_EOL, SCM_EOL);
       promptp = 0;
     }
   ans = scm_getc (input_port);
@@ -128,18 +119,18 @@ scm_readline (SCM text, SCM inp, SCM outp, SCM read_hook)
 		  SCM_ARG1,
 		  s_readline);
       SCM_COERCE_SUBSTR (text);
-      if (SCM_UNBNDP (inp))
-	inp = scm_cur_inp;
-      else if (SCM_UNBNDP (outp))
-	outp = scm_cur_outp;
-      else if (!(SCM_UNBNDP (read_hook) || SCM_FALSEP (read_hook)))
-	{
-	  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (read_hook)),
-		      read_hook,
-		      SCM_ARG2,
-		      s_readline);
-	  before_read = read_hook;
-	}
+    }
+  if (SCM_UNBNDP (inp))
+    inp = scm_cur_inp;
+  if (SCM_UNBNDP (outp))
+    outp = scm_cur_outp;
+  if (!(SCM_UNBNDP (read_hook) || SCM_FALSEP (read_hook)))
+    {
+      SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (read_hook)),
+		  read_hook,
+		  SCM_ARG2,
+		  s_readline);
+      before_read = read_hook;
     }
   if (!(SCM_NIMP (inp) && SCM_OPINFPORTP (inp)))
     scm_misc_error (s_readline,
@@ -154,7 +145,6 @@ scm_readline (SCM text, SCM inp, SCM outp, SCM read_hook)
   rl_instream = (FILE *) SCM_STREAM (inp);
   rl_outstream = (FILE *) SCM_STREAM (outp);
 
-  rl_initialize ();
   return scm_internal_catch (SCM_BOOL_T,
 			     (scm_catch_body_t) internal_readline,
 			     (void *) text,
@@ -206,7 +196,6 @@ SCM scm_readline_completion_function_var;
 static char *
 completion_function (char *text, int continuep)
 {
-  SCM_STACKITEM mark;
   SCM compfunc = SCM_CDR (scm_readline_completion_function_var);
   SCM res;
 
@@ -216,11 +205,7 @@ completion_function (char *text, int continuep)
     {
       SCM t = scm_makfrom0str (text);
       SCM c = continuep ? SCM_BOOL_T : SCM_BOOL_F;
-      res = scm_internal_cwdr ((scm_catch_body_t) apply,
-			       (void *) SCM_LIST3 (compfunc, t, c),
-			       scm_handle_by_throw,
-			       0,
-			       &mark);
+      res = scm_apply (compfunc, SCM_LIST2 (t, c), SCM_EOL);
   
       if (SCM_FALSEP (res))
 	return NULL;
