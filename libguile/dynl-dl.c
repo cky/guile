@@ -60,7 +60,7 @@ sysdep_dynl_link (fname, flags, subr)
      const char *subr;
 {
     void *handle = dlopen (fname, (DLOPEN_MODE 
-				   | (flags & DYNL_GLOBAL)? RTLD_GLOBAL : 0));
+				   | ((flags & DYNL_GLOBAL)? RTLD_GLOBAL : 0)));
     if (NULL == handle)
       {
 	SCM_ALLOW_INTS;
