@@ -65,6 +65,7 @@
 #include "libguile/modules.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
+#include "libguile/fluids.h"
 
 #include "libguile/validate.h"
 #include "libguile/debug.h"
