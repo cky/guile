@@ -900,7 +900,7 @@ fat_mutex_trylock (fat_mutex *m, int *resp)
 }
 
 SCM_DEFINE (scm_try_mutex, "try-mutex", 1, 0, 0,
-	    (SCM mx),
+	    (SCM mutex),
 "Try to lock @var{mutex}. If the mutex is already locked by someone "
 "else, return @code{#f}.  Else lock the mutex and return @code{#t}. ")
 #define FUNC_NAME s_scm_try_mutex
@@ -908,9 +908,9 @@ SCM_DEFINE (scm_try_mutex, "try-mutex", 1, 0, 0,
   char *msg;
   int res;
 
-  SCM_VALIDATE_MUTEX (1, mx);
+  SCM_VALIDATE_MUTEX (1, mutex);
   
-  msg = fat_mutex_trylock (SCM_MUTEX_DATA (mx), &res);
+  msg = fat_mutex_trylock (SCM_MUTEX_DATA (mutex), &res);
   if (msg)
     scm_misc_error (NULL, msg, SCM_EOL);
   return scm_from_bool (res);
