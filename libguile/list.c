@@ -99,7 +99,7 @@ SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1,
             (SCM arg, SCM rest),
 	    "Like @code{list}, but the last arg provides the tail of the\n"
 	    "constructed list, returning @code{(cons @var{arg1} (cons\n"
-	    "@var{arg2} (cons @dots{} @var{argn}))).  Requires at least one\n"
+	    "@var{arg2} (cons @dots{} @var{argn})))}.  Requires at least one\n"
 	    "argument.  If given one argument, that argument is returned as\n"
 	    "result.  This function is called @code{list*} in some other\n"
 	    "Schemes and in Common LISP.")

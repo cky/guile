@@ -1,3 +1,10 @@
+2001-03-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* strop.c (scm_string_index): Fix docstring line break
+	regression.
+
+	* list.c (scm_cons_star): Fix docstring typo.
+
 2001-03-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_init_storage), gdbint.c (scm_init_gdbint), numbers.c
