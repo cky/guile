@@ -49,4 +49,5 @@ EXTRA_DIST = guile-test lib.scm $(SCM_TESTS)
 dist-hook:
 	for d in $(SCM_TESTS_DIRS); do \
 	  cp -pR $(srcdir)/$$d $(distdir)/$$d; \
+          rm -rf $(distdir)/$$d/CVS; \
         done
