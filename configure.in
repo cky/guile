@@ -139,11 +139,11 @@ fi
 if test "$ac_cv_header_regex_h" = yes ||
    test "$ac_cv_header_rxposix_h" = yes ||
    test "$ac_cv_header_rx_rxposix_h" = yes; then
-  unset ac_cv_func_regcomp
+  ac_cv_func_regcomp=
   AC_CHECK_FUNC(regcomp, [LIBOBJS="regex-posix.o $LIBOBJS"])
   if test "$ac_cv_func_regcomp" != yes; then
     AC_CHECK_LIB(rx, main)
-    unset ac_cv_func_regcomp
+    ac_cv_func_regcomp=
     AC_CHECK_FUNC(regcomp, [LIBOBJS="regex-posix.o $LIBOBJS"])
   fi
   dnl The following should not be necessary, but for some reason

@@ -2672,7 +2672,7 @@ fi
 if test "$ac_cv_header_regex_h" = yes ||
    test "$ac_cv_header_rxposix_h" = yes ||
    test "$ac_cv_header_rx_rxposix_h" = yes; then
-  unset ac_cv_func_regcomp
+  ac_cv_func_regcomp=
   echo $ac_n "checking for regcomp""... $ac_c" 1>&6
 echo "configure:2678: checking for regcomp" >&5
 if eval "test \"`echo '$''{'ac_cv_func_regcomp'+set}'`\" = set"; then
@@ -2765,7 +2765,7 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-    unset ac_cv_func_regcomp
+    ac_cv_func_regcomp=
     echo $ac_n "checking for regcomp""... $ac_c" 1>&6
 echo "configure:2771: checking for regcomp" >&5
 if eval "test \"`echo '$''{'ac_cv_func_regcomp'+set}'`\" = set"; then
