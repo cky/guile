@@ -52,6 +52,8 @@
 #include "libguile/rw.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
+#include "libguile/modules.h"
+#include "libguile/strports.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
