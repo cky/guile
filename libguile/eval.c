@@ -2680,11 +2680,29 @@ scm_ilookup (SCM iloc, SCM env)
 SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
 
 static void error_unbound_variable (SCM symbol) SCM_NORETURN;
+static void error_defined_variable (SCM symbol) SCM_NORETURN;
+
+/* Call this for variables that are unfound.
+ */
 static void
 error_unbound_variable (SCM symbol)
 {
   scm_error (scm_unbound_variable_key, NULL,
 	     "Unbound variable: ~S",
+	     scm_list_1 (symbol), SCM_BOOL_F);
+}
+
+/* Call this for variables that are found but contain SCM_UNDEFINED.
+ */
+static void
+error_defined_variable (SCM symbol)
+{
+  /* We use the 'unbound-variable' key here as well, since it
+     basically is the same kind of error, with a slight variation in
+     the displayed message.
+  */
+  scm_error (scm_unbound_variable_key, NULL,
+	     "Undefined variable: ~S",
 	     scm_list_1 (symbol), SCM_BOOL_F);
 }
 
@@ -2791,10 +2809,7 @@ scm_lookupcar1 (SCM vloc, SCM genv, int check)
 	  if (scm_is_eq (SCM_CAR (fl), var))
 	    {
 	      if (SCM_UNBNDP (SCM_CAR (*al)))
-		{
-		  env = SCM_EOL;
-		  goto errout;
-		}
+		error_defined_variable (var);
 	      if (!scm_is_eq (SCM_CAR (vloc), var))
 		goto race;
 	      SCM_SETCAR (vloc, iloc);
