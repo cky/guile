@@ -1,3 +1,8 @@
+2001-06-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (version.texi, version-tutorial.texi): Removed
+	kluges to build them unconditionally.
+
 2001-06-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gh.texi (scm transition summary): New node for summary of how to

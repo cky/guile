@@ -1,3 +1,8 @@
+2001-06-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* autogen.sh: Added message about what to do next.  Tell them to
+	use `--enable-maintainer-mode'.
+
 2001-06-25  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* HACKING: mention flex.
