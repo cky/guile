@@ -262,24 +262,22 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
     }
   if (SCM_EQ_P (scm_sym_breakpoint, key))
     {
-      if (SCM_FALSEP (datum))
-	CLEARSRCPROPBRK (SRCPROPSP (p)
-			 ? p
-			 : SCM_WHASHSET (scm_source_whash, h,
-					 scm_make_srcprops (0,
-							    0,
-							    SCM_UNDEFINED,
-							    SCM_UNDEFINED,
-							    p)));
+      if (SRCPROPSP (p))
+	{
+	  if (SCM_FALSEP (datum))
+	    CLEARSRCPROPBRK (p);
+	  else
+	    SETSRCPROPBRK (p);
+	}
       else
-	SETSRCPROPBRK (SRCPROPSP (p)
-		       ? p
-		       : SCM_WHASHSET (scm_source_whash, h,
-				       scm_make_srcprops (0,
-							  0,
-							  SCM_UNDEFINED,
-							  SCM_UNDEFINED,
-							  p)));
+	{
+	  SCM sp = scm_make_srcprops (0, 0, SCM_UNDEFINED, SCM_UNDEFINED, p);
+	  SCM_WHASHSET (scm_source_whash, h, sp);
+	  if (SCM_FALSEP (datum))
+	    CLEARSRCPROPBRK (sp);
+	  else
+	    SETSRCPROPBRK (sp);
+	}
     }
   else if (SCM_EQ_P (scm_sym_line, key))
     {

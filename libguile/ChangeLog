@@ -1,5 +1,11 @@
 2000-07-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	read.c (scm_lreadrecparen), srcprop.c (scm_set_source_property_x):
+	SCM_SETCDR and SCM_WHASHSET macros don't deliver a return value.
+	Thanks to Han-Wen Nienhuys for the bug report.
+
+2000-07-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* root.[ch] (scm_call_catching_errors):  Deprecated.
 
 	* root.c (scm_init_root):  Initialize the root smob type using the

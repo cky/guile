@@ -666,6 +666,8 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 			   SCM_EOL);
   while (')' != (c = scm_flush_ws (port, name)))
     {
+      SCM new_tail;
+
       scm_ungetc (c, port);
       if (SCM_EQ_P (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
 	{
@@ -679,12 +681,17 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 	    scm_wta (SCM_UNDEFINED, "missing close paren", "");
 	  goto exit;
 	}
-      tl = SCM_SETCDR (tl, scm_cons (tmp, SCM_EOL));
+
+      new_tail = scm_cons (tmp, SCM_EOL);
+      SCM_SETCDR (tl, new_tail);
+      tl = new_tail;
+
       if (SCM_COPY_SOURCE_P)
-	tl2 = SCM_SETCDR (tl2, scm_cons (SCM_CONSP (tmp)
-					 ? *copy
-					 : tmp,
-					 SCM_EOL));
+	{
+	  SCM new_tail2 = scm_cons (SCM_CONSP (tmp) ? *copy : tmp, SCM_EOL);
+	  SCM_SETCDR (tl2, new_tail2);
+	  tl2 = new_tail2;
+	}
     }
 exit:
   scm_whash_insert (scm_source_whash,
