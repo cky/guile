@@ -494,6 +494,31 @@
 
 
 
+;;; {Multiple return values}
+
+(define *values-rtd*
+  (make-record-type "values"
+		    '(values)))
+
+(define values
+  (let ((make-values (record-constructor *values-rtd*)))
+    (lambda x
+      (if (and (not (null? x))
+	       (null? (cdr x)))
+	  (car x)
+	  (make-values x)))))
+
+(define call-with-values
+  (let ((access-values (record-accessor *values-rtd* 'values))
+	(values-predicate? (record-predicate *values-rtd*)))
+    (lambda (producer consumer)
+      (let ((result (producer)))
+	(if (values-predicate? result)
+	    (apply consumer (access-values result))
+	    (consumer result))))))
+
+
+
 ;;; {and-map, or-map, and map-in-order}
 ;;;
 ;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
