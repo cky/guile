@@ -20,11 +20,8 @@
 
 (use-modules (test-suite lib))
 
-;; FIXME:  As soon as guile supports immutable strings, this has to be
-;; replaced with the appropriate error type and message.
-(define exception:immutable-string
-  (cons 'some-error-type "^trying to modify an immutable string"))
-
+(define exception:read-only-string
+  (cons 'misc-error "^string is read-only"))
 
 (with-test-prefix "string=?"
 
@@ -78,8 +75,8 @@
 
 (with-test-prefix "string-set!"
 
-  (expect-fail-exception "string constant"
-    exception:immutable-string
+  (pass-if-exception "string constant"
+    exception:read-only-string
     (string-set! "abc" 1 #\space)))
 
 (with-test-prefix "substring-move!"
@@ -103,7 +100,7 @@
 	   (string=? str2 "fooFOOfoo"))))
 
   (pass-if "modify double indirectly"
-    (let* ((str1 "foofoofoo")
+    (let* ((str1 (string-copy "foofoofoo"))
 	   (str2 (substring/shared str1 2 7)))
       (string-upcase! (substring/shared str2 1 4))
       (string=? str1 "fooFOOfoo")))
