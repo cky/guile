@@ -367,11 +367,10 @@ lsubrless (SCM less, const void *a, const void *b)
 static int 
 closureless (SCM code, const void *a, const void *b)
 {
-  SCM env, next;
-  env  = SCM_EXTEND_ENV (SCM_CAR (SCM_CODE (code)),
-			 scm_cons (*(SCM *) a,
-				   scm_cons (*(SCM *) b, SCM_EOL)),
-			 SCM_ENV (code));
+  SCM env = SCM_EXTEND_ENV (SCM_CAR (SCM_CODE (code)),
+			    scm_cons (*(SCM *) a,
+				      scm_cons (*(SCM *) b, SCM_EOL)),
+			    SCM_ENV (code));
   /* Evaluate the closure body */
   return SCM_NFALSEP (scm_eval_body (SCM_CDR (SCM_CODE (code)), env));
 }				/* closureless */
