@@ -1,3 +1,7 @@
+2000-03-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* coop.c (coop_create): Set `specific' field, not `data' to NULL.
+
 2000-03-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* smob.h (SCM_NEWSMOB, SCM_NEWSMOB2, SCM_NEWSMOB3, SCM_SMOB_DATA,
