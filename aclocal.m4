@@ -245,11 +245,11 @@ dnl This may not necessarily be built yet - so just check for the
 dnl header files.
 dnl
   if test "$use_threads" = yes || test "$use_threads" = qt; then
-     # Look for qt in source directory.  This is a hack: we look in
-     # "./qt" because this check might be run at the top level.
-     if test -f $srcdir/../qt/qt.c || test -f $srcdir/qt/qt.c; then
+     # Look for qt in source directory. 
+     if test -f $srcdir/qt/qt.c; then
+	qtsrcdir="`(cd $srcdir; pwd)`/qt"
 	threads_package=COOP
-	cy_cv_threads_cflags="-I$srcdir/../qt -I../qt"
+	cy_cv_threads_cflags="-I$qtsrcdir -I../qt"
 	cy_cv_threads_libs="../qt/libqt.a"
      fi
   else
