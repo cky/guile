@@ -264,6 +264,28 @@ scm_add_history (SCM text)
 }
 
 
+SCM_PROC (s_read_history, "read-history", 1, 0, 0, scm_read_history);
+
+SCM
+scm_read_history (SCM file)
+{
+  SCM_ASSERT (SCM_NIMP (file) && SCM_STRINGP (file),
+	      file, SCM_ARG1, s_read_history);
+  return read_history (SCM_CHARS (file)) ? SCM_BOOL_F : SCM_BOOL_T;
+}
+
+
+SCM_PROC (s_write_history, "write-history", 1, 0, 0, scm_write_history);
+
+SCM
+scm_write_history (SCM file)
+{
+  SCM_ASSERT (SCM_NIMP (file) && SCM_STRINGP (file),
+	      file, SCM_ARG1, s_write_history);
+  return write_history (SCM_CHARS (file)) ? SCM_BOOL_F : SCM_BOOL_T;
+}
+
+
 SCM_PROC (s_filename_completion_function, "filename-completion-function", 2, 0, 0, scm_filename_completion_function);
 
 SCM
