@@ -1,5 +1,32 @@
+1999-06-15  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* stime.c (bdtime2c): Initialize lt->gmtoff and lt->tm_zone from
+	sbd_time.  (Thanks to Eric Hanchrow.)
+
+	Fix from Ken Raeburn <raeburn@raeburn.org>:
+	* weaks.c (scm_make_weak_vector): Add another extra slot before
+	vector contents, to be used only during garbage collection.
+	* weaks.h (SCM_WVECT_GC_CHAIN): New macro to access it.
+	* gc.c (scm_weak_vectors): Now a SCM instead of a SCM*, and now
+	static.
+	(scm_weak_size, scm_n_weak): Deleted.
+	(scm_igc): Use SCM_WVECT_GC_CHAIN to build up a chain of weak
+	vectors without allocating new storage during GC, using
+	scm_weak_vectors as the head of the chain.
+	(scm_mark_weak_vector_spines): Walk SCM_WVECT_GC_CHAIN chain
+	instead of stepping through an array.
+	(scm_gc_sweep): Update offset used to find start of weak vector to
+	free it.
+	(scm_init_storage): Set scm_weak_vectors to EOL.
+
+	Fix from Ken Raeburn <raeburn@raeburn.org>:
+	* gc.c (already_in_gc): New variable.
+	(scm_igc): Set and clear already_in_gc; abort if it's set at
+	entry.
+
 1999-06-14  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	Fix from Gary Houston:
 	* fports.c (local_seek): Signal an error if the seek fails.
 	* ports.c (scm_lseek): Don't check return value of port's seek
 	function; it's its job to signal an error if there's a problem.
