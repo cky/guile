@@ -1,3 +1,10 @@
+2001-02-15  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* dump.c (scm_undump): Use SCM_CARLOC/SCM_CDRLOC to obtain the
+	address of car/cdr.  (Thanks to Dirk Herrmann)
+	Use scm_sizet to obtain the length of strings.
+	(Thanks to Matthias Koeppe)
+
 2001-02-15  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* symbols.c (scm_mem2symbol): Put a empty statement after the

@@ -408,7 +408,7 @@ scm_dump (SCM obj, SCM dstate)
     case scm_tc7_vector:
       {
 	int i;
-	int len = SCM_VECTOR_LENGTH (obj);
+	scm_bits_t len = SCM_VECTOR_LENGTH (obj);
 	SCM *base = SCM_VELTS (obj);
 	scm_store_word (scm_tc7_vector, dstate);
 	scm_store_word (len, dstate);
@@ -458,8 +458,8 @@ scm_undump (SCM dstate)
     {
       SCM_NEWCELL (obj);
       /* cdr was stored first */
-      scm_restore_object ((SCM *) &SCM_CDR (obj), dstate);
-      scm_restore_object ((SCM *) &SCM_CAR (obj), dstate);
+      scm_restore_object (SCM_CDRLOC (obj), dstate);
+      scm_restore_object (SCM_CARLOC (obj), dstate);
       goto store_object;
     }
 
@@ -467,7 +467,7 @@ scm_undump (SCM dstate)
     {
     case scm_tc7_symbol:
       {
-	int len;
+	scm_sizet len;
 	const char *mem;
 	scm_restore_string (&mem, &len, dstate);
 	obj = scm_mem2symbol (mem, len);
@@ -475,7 +475,7 @@ scm_undump (SCM dstate)
       }
     case scm_tc7_string:
       {
-	int len;
+	scm_sizet len;
 	const char *mem;
 	scm_restore_string (&mem, &len, dstate);
 	obj = scm_makfromstr (mem, len, 0);
