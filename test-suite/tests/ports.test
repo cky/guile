@@ -18,7 +18,8 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (test-suite lib))
+(use-modules (test-suite lib)
+	     (ice-9 popen))
 
 (define (display-line . args)
   (for-each display args)
@@ -81,7 +82,7 @@
 (catch-test-errors
  (let* ((pipe (open-pipe "echo 'Howdy there, partner!'" "r"))
 	(in-string (read-all pipe)))
-   (close-port pipe)
+   (close-pipe pipe)
    (pass-if "pipe: read"
 	    (equal? in-string "Howdy there, partner!\n"))))
 
@@ -91,7 +92,7 @@
 	(pipe (open-pipe (string-append "grep Mommy > " filename) "w")))
    (display "Now Jimmy lives on a mushroom cloud\n" pipe)
    (display "Mommy, why does everybody have a bomb?\n" pipe)
-   (close-port pipe)
+   (close-pipe pipe)
    (let ((in-string (read-file filename)))
      (pass-if "pipe: write"
 	      (equal? in-string "Mommy, why does everybody have a bomb?\n")))
