@@ -68,12 +68,10 @@
    Applied to the full name of the file.  */
 static SCM *scm_loc_load_hook;
 
-SCM_PROC(s_primitive_load, "primitive-load", 1, 2, 0, scm_primitive_load);
+SCM_PROC(s_primitive_load, "primitive-load", 1, 0, 0, scm_primitive_load);
 SCM 
-scm_primitive_load (filename, case_insensitive_p, sharp)
+scm_primitive_load (filename)
      SCM filename;
-     SCM case_insensitive_p;
-     SCM sharp;
 {
   SCM hook = *scm_loc_load_hook;
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
@@ -92,7 +90,7 @@ scm_primitive_load (filename, case_insensitive_p, sharp)
 			  scm_makfromstr ("r", (scm_sizet) sizeof (char), 0));
     while (1)
       {
-	form = scm_read (port, case_insensitive_p, sharp);
+	form = scm_read (port);
 	if (SCM_EOF_VAL == form)
 	  break;
 	scm_eval_x (form);
@@ -277,12 +275,10 @@ scm_sys_search_load_path (filename)
 }
 
 
-SCM_PROC(s_primitive_load_path, "primitive-load-path", 1, 2, 0, scm_primitive_load_path);
+SCM_PROC(s_primitive_load_path, "primitive-load-path", 1, 0, 0, scm_primitive_load_path);
 SCM 
-scm_primitive_load_path (filename, case_insensitive_p, sharp)
+scm_primitive_load_path (filename)
      SCM filename;
-     SCM case_insensitive_p;
-     SCM sharp;
 {
   SCM full_filename;
 
@@ -302,7 +298,7 @@ scm_primitive_load_path (filename, case_insensitive_p, sharp)
 		      scm_listify (filename, SCM_UNDEFINED));
     }
 
-  return scm_primitive_load (full_filename, case_insensitive_p, sharp);
+  return scm_primitive_load (full_filename);
 }
 
 /* The following function seems trivial - and indeed it is.  Its
@@ -312,15 +308,13 @@ scm_primitive_load_path (filename, case_insensitive_p, sharp)
 
 SCM_SYMBOL (scm_end_of_file_key, "end-of-file");
 
-SCM_PROC (s_read_and_eval_x, "read-and-eval!", 0, 3, 0, scm_read_and_eval_x);
+SCM_PROC (s_read_and_eval_x, "read-and-eval!", 0, 1, 0, scm_read_and_eval_x);
 
 SCM
-scm_read_and_eval_x (port, case_insensitive_p, sharp)
+scm_read_and_eval_x (port)
      SCM port;
-     SCM case_insensitive_p;
-     SCM sharp;
 {
-  SCM form = scm_read (port, case_insensitive_p, sharp);
+  SCM form = scm_read (port);
   if (form == SCM_EOF_VAL)
     scm_ithrow (scm_end_of_file_key, SCM_EOL, 1);
   return scm_eval_x (form);

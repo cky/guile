@@ -242,7 +242,7 @@ scm_read_0str (expr)
   SCM form;
 
   /* Read expressions from that port; ignore the values.  */
-  form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F);
+  form = scm_read (port);
 
   scm_close_port (port);
   return form;
@@ -262,7 +262,7 @@ scm_eval_0str (expr)
   SCM ans = SCM_EOL;
 
   /* Read expressions from that port; ignore the values.  */
-  while ((form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F)) != SCM_EOF_VAL)
+  while ((form = scm_read (port)) != SCM_EOF_VAL)
     ans = scm_eval_x (form);
 
   scm_close_port (port);

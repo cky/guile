@@ -58,15 +58,13 @@
 
 
 
-#define default_case_i 0
-
-
-
 scm_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "copy", 0,
     "Copy source code expressions." },
   { SCM_OPTION_BOOLEAN, "positions", 0,
-    "Record positions of source code expressions." }
+    "Record positions of source code expressions." },
+  { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
+    "Convert symbols to lower case."}
 };
 
 SCM_PROC (s_read_options, "read-options-interface", 0, 1, 0, scm_read_options);
@@ -84,17 +82,17 @@ scm_read_options (setting)
   return ans;
 }
 
-SCM_PROC (s_read, "read", 0, 3, 0, scm_read);
+/* Association list mapping extra hash characters to procedures.  */
+static SCM scm_read_hash_procedures = SCM_EOL;
+
+SCM_PROC (s_read, "read", 0, 1, 0, scm_read);
 
 SCM 
-scm_read (port, case_insensitive_p, sharp)
+scm_read (port)
      SCM port;
-     SCM case_insensitive_p;
-     SCM sharp;
 {
   int c;
   SCM tok_buf, copy;
-  int case_i;
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
@@ -104,20 +102,13 @@ scm_read (port, case_insensitive_p, sharp)
 		SCM_ARG1,
 		s_read);
 
-  case_i = (SCM_UNBNDP (case_insensitive_p)
-	    ? default_case_i
-	    : (case_insensitive_p == SCM_BOOL_F));
-  
-  if (SCM_UNBNDP (sharp))
-    sharp = SCM_BOOL_F;
-
   c = scm_flush_ws (port, (char *) NULL);
   if (EOF == c)
     return SCM_EOF_VAL;
   scm_gen_ungetc (c, port);
 
   tok_buf = scm_makstr (30L, 0);
-  return scm_lreadr (&tok_buf, port, case_i, sharp, &copy);
+  return scm_lreadr (&tok_buf, port, &copy);
 }
 
 
@@ -266,21 +257,21 @@ skip_scsh_block_comment (port)
     }
 }
 
+static SCM
+scm_get_hash_procedure SCM_P ((int c));
 
 static char s_list[]="list";
 
 SCM 
-scm_lreadr (tok_buf, port, case_i, sharp, copy)
+scm_lreadr (tok_buf, port, copy)
      SCM *tok_buf;
      SCM port;
-     int case_i;
-     SCM sharp;
      SCM *copy;
 {
   int c;
   scm_sizet j;
   SCM p;
-
+				  
 tryagain:
   c = scm_flush_ws (port, s_read);
 tryagain_no_flush_ws:
@@ -291,8 +282,8 @@ tryagain_no_flush_ws:
 
     case '(':
       return SCM_RECORD_POSITIONS_P
-	     ? scm_lreadrecparen (tok_buf, port, s_list, case_i, sharp, copy)
-	     : scm_lreadparen (tok_buf, port, s_list, case_i, sharp, copy);
+	     ? scm_lreadrecparen (tok_buf, port, s_list, copy)
+	     : scm_lreadparen (tok_buf, port, s_list, copy);
     case ')':
       scm_wta (SCM_UNDEFINED, "unexpected \")\"", "read");
       goto tryagain;
@@ -314,7 +305,7 @@ tryagain_no_flush_ws:
 	}
     recquote:
       p = scm_cons2 (p,
-		     scm_lreadr (tok_buf, port, case_i, sharp, copy),
+		     scm_lreadr (tok_buf, port, copy),
 		     SCM_EOL);
       if (SCM_RECORD_POSITIONS_P)
 	scm_whash_insert (scm_source_whash,
@@ -334,7 +325,7 @@ tryagain_no_flush_ws:
       switch (c)
 	{
 	case '(':
-	  p = scm_lreadparen (tok_buf, port, "vector", case_i, sharp, copy);
+	  p = scm_lreadparen (tok_buf, port, "vector", copy);
 	  return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
 
 	case 't':
@@ -369,7 +360,7 @@ tryagain_no_flush_ws:
 	  goto tryagain_no_flush_ws;
 
 	case '*':
-	  j = scm_read_token (c, tok_buf, port, case_i, 0);
+	  j = scm_read_token (c, tok_buf, port, 0);
 	  p = scm_istr2bve (SCM_CHARS (*tok_buf) + 1, (long) (j - 1));
 	  if (SCM_NFALSEP (p))
 	    return p;
@@ -377,7 +368,7 @@ tryagain_no_flush_ws:
 	    goto unkshrp;
 
 	case '{':
-	  j = scm_read_token (c, tok_buf, port, case_i, 1);
+	  j = scm_read_token (c, tok_buf, port, 1);
 	  p = scm_intern (SCM_CHARS (*tok_buf), j);
 	  if (SCM_PORT_REPRESENTATION (port) != scm_regular_port)
 	    scm_set_symbol_multi_byte_x (SCM_CAR (p), SCM_BOOL_T);
@@ -385,7 +376,7 @@ tryagain_no_flush_ws:
 
 	case '\\':
 	  c = scm_gen_getc (port);
-	  j = scm_read_token (c, tok_buf, port, case_i, 0);
+	  j = scm_read_token (c, tok_buf, port, 0);
 	  if (j == 1)
 	    return SCM_MAKICHR (c);
 	  if (c >= '0' && c < '8')
@@ -403,22 +394,27 @@ tryagain_no_flush_ws:
 
 	default:
 	callshrp:
-	  if (SCM_NIMP (sharp))
-	    {
-	      int line = SCM_LINUM (port);
-	      int column = SCM_COL (port) - 2;
-	      SCM got;
-	      got = scm_apply (sharp,
-			       SCM_MAKICHR (c),
-			       scm_acons (port, SCM_EOL, SCM_EOL));
-	      if (SCM_UNSPECIFIED == got)
-		goto unkshrp;
-	      if (SCM_RECORD_POSITIONS_P)
-		return *copy = recsexpr (got, line, column,
-					 SCM_FILENAME (port));
-	      else
-		return got;
-	    }
+	  {
+	    SCM sharp = scm_get_hash_procedure (c);
+
+	    if (SCM_NIMP (sharp))
+	      {
+		int line = SCM_LINUM (port);
+		int column = SCM_COL (port) - 2;
+		SCM got;
+
+		got = scm_apply (sharp,
+				 SCM_MAKICHR (c),
+				 scm_acons (port, SCM_EOL, SCM_EOL));
+		if (SCM_UNSPECIFIED == got)
+		  goto unkshrp;
+		if (SCM_RECORD_POSITIONS_P)
+		  return *copy = recsexpr (got, line, column,
+					   SCM_FILENAME (port));
+		else
+		  return got;
+	      }
+	  }
 	unkshrp:
 	  scm_misc_error (s_read, "Unknown # object: %S",
 			  scm_listify (SCM_MAKICHR (c), SCM_UNDEFINED));
@@ -494,7 +490,7 @@ tryagain_no_flush_ws:
     case '-':
     case '+':
     num:
-      j = scm_read_token (c, tok_buf, port, case_i, 0);
+      j = scm_read_token (c, tok_buf, port, 0);
       p = scm_istring2number (SCM_CHARS (*tok_buf), (long) j, 10L);
       if (SCM_NFALSEP (p))
 	return p;
@@ -511,14 +507,14 @@ tryagain_no_flush_ws:
       goto tok;
 
     case ':':
-      j = scm_read_token ('-', tok_buf, port, case_i, 0);
+      j = scm_read_token ('-', tok_buf, port, 0);
       p = scm_intern (SCM_CHARS (*tok_buf), j);
       if (SCM_PORT_REPRESENTATION (port) != scm_regular_port)
 	scm_set_symbol_multi_byte_x (SCM_CAR (p), SCM_BOOL_T);
       return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
 
     default:
-      j = scm_read_token (c, tok_buf, port, case_i, 0);
+      j = scm_read_token (c, tok_buf, port, 0);
       /* fallthrough */
 
     tok:
@@ -534,18 +530,17 @@ _Pragma ("noopt");		/* # pragma _CRI noopt */
 #endif
 
 scm_sizet 
-scm_read_token (ic, tok_buf, port, case_i, weird)
+scm_read_token (ic, tok_buf, port, weird)
      int ic;
      SCM *tok_buf;
      SCM port;
-     int case_i;
      int weird;
 {
   register scm_sizet j;
   register int c;
   register char *p;
 
-  c = ic;
+  c = (SCM_CASE_INSENSITIVE_P ? scm_downcase(ic) : ic);
   p = SCM_CHARS (*tok_buf);
 
   if (weird)
@@ -623,7 +618,7 @@ scm_read_token (ic, tok_buf, port, case_i, weird)
 	default:
 	default_case:
 	  {
-	    c = (case_i ? scm_downcase(c) : c);
+	    c = (SCM_CASE_INSENSITIVE_P ? scm_downcase(c) : c);
 	    if (SCM_PORT_REPRESENTATION(port) == scm_regular_port)
 	      {
 		p[j] = c;
@@ -649,12 +644,10 @@ _Pragma ("opt");		/* # pragma _CRI opt */
 #endif
 
 SCM 
-scm_lreadparen (tok_buf, port, name, case_i, sharp, copy)
+scm_lreadparen (tok_buf, port, name, copy)
      SCM *tok_buf;
      SCM port;
      char *name;
-     int case_i;
-     SCM sharp;
      SCM *copy;
 {
   SCM tmp;
@@ -666,9 +659,9 @@ scm_lreadparen (tok_buf, port, name, case_i, sharp, copy)
   if (')' == c)
     return SCM_EOL;
   scm_gen_ungetc (c, port);
-  if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy)))
+  if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
     {
-      ans = scm_lreadr (tok_buf, port, case_i, sharp, copy);
+      ans = scm_lreadr (tok_buf, port, copy);
     closeit:
       if (')' != (c = scm_flush_ws (port, name)))
 	scm_wta (SCM_UNDEFINED, "missing close paren", "");
@@ -678,9 +671,9 @@ scm_lreadparen (tok_buf, port, name, case_i, sharp, copy)
   while (')' != (c = scm_flush_ws (port, name)))
     {
       scm_gen_ungetc (c, port);
-      if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy)))
+      if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
 	{
-	  SCM_SETCDR (tl, scm_lreadr (tok_buf, port, case_i, sharp, copy));
+	  SCM_SETCDR (tl, scm_lreadr (tok_buf, port, copy));
 	  goto closeit;
 	}
       SCM_SETCDR (tl, scm_cons (tmp, SCM_EOL));
@@ -691,12 +684,10 @@ scm_lreadparen (tok_buf, port, name, case_i, sharp, copy)
 
 
 SCM 
-scm_lreadrecparen (tok_buf, port, name, case_i, sharp, copy)
+scm_lreadrecparen (tok_buf, port, name, copy)
      SCM *tok_buf;
      SCM port;
      char *name;
-     int case_i;
-     SCM sharp;
      SCM *copy;
 {
   register int c;
@@ -711,9 +702,9 @@ scm_lreadrecparen (tok_buf, port, name, case_i, sharp, copy)
   if (')' == c)
     return SCM_EOL;
   scm_gen_ungetc (c, port);
-  if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy)))
+  if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
     {
-      ans = scm_lreadr (tok_buf, port, case_i, sharp, copy);
+      ans = scm_lreadr (tok_buf, port, copy);
       if (')' != (c = scm_flush_ws (port, name)))
 	scm_wta (SCM_UNDEFINED, "missing close paren", "");
       return ans;
@@ -728,9 +719,9 @@ scm_lreadrecparen (tok_buf, port, name, case_i, sharp, copy)
   while (')' != (c = scm_flush_ws (port, name)))
     {
       scm_gen_ungetc (c, port);
-      if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy)))
+      if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
 	{
-	  SCM_SETCDR (tl, tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy));
+	  SCM_SETCDR (tl, tmp = scm_lreadr (tok_buf, port, copy));
 	  if (SCM_COPY_SOURCE_P)
 	    SCM_SETCDR (tl2, scm_cons (SCM_NIMP (tmp) && SCM_CONSP (tmp)
 				       ? *copy
@@ -763,7 +754,44 @@ exit:
 
 
 
+/* Register a procedure for extended # object processing and the character
+   that will trigger it.  */
+SCM_PROC (s_read_hash_extend, "read-hash-extend", 2, 0, 0, scm_read_hash_extend);
+SCM
+scm_read_hash_extend (chr, proc)
+     SCM chr;
+     SCM proc;
+{
+  SCM_ASSERT (SCM_ICHRP(chr), chr, SCM_ARG1, s_read_hash_extend);
+  SCM_ASSERT (SCM_NIMP(proc), proc, SCM_ARG2, s_read_hash_extend);
 
+  /* We are making every member of this list a permanent object.
+     Is that bad?  */
+  SCM_DEFER_INTS;
+  scm_read_hash_procedures = scm_cons (scm_cons (chr, proc),
+				       scm_read_hash_procedures);
+  scm_permanent_object (scm_read_hash_procedures);
+  SCM_ALLOW_INTS;
+  return SCM_UNSPECIFIED;
+}
+
+/* Recover the read-hash procedure corresponding to char c.  */
+static SCM
+scm_get_hash_procedure (c)
+     int c;
+{
+  SCM rest = scm_read_hash_procedures;
+  while (1)
+    {
+      if (SCM_NULLP (rest))
+	return SCM_BOOL_F;
+  
+      if (SCM_ICHR (SCM_CAAR (rest)) == c)
+	return SCM_CDAR (rest);
+     
+      rest = SCM_CDR (rest);
+    }
+}
 
 void
 scm_init_read ()

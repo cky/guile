@@ -47,14 +47,11 @@
 
 
 extern void scm_init_load_path SCM_P ((void));
-extern SCM scm_primitive_load SCM_P ((SCM filename, SCM casep, SCM sharp));
+extern SCM scm_primitive_load SCM_P ((SCM filename));
 extern SCM scm_sys_package_data_dir SCM_P ((void));
 extern SCM scm_sys_search_load_path SCM_P ((SCM filename));
-extern SCM scm_primitive_load_path SCM_P ((SCM filename, SCM casep,
-					   SCM sharp));
-extern SCM scm_read_and_eval_x SCM_P ((SCM port,
-				       SCM case_insensitive_p,
-				       SCM sharp));
+extern SCM scm_primitive_load_path SCM_P ((SCM filename));
+extern SCM scm_read_and_eval_x SCM_P ((SCM port));
 extern void scm_init_load SCM_P ((void));
 
 #endif  /* LOADH */

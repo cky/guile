@@ -1,3 +1,37 @@
+Sat Mar  8 00:27:05 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* strports.c (scm_read_0str, scm_eval_0str): update scm_read usage.
+
+	* gdbint.c (gdb_read): update scm_lreadr usage.
+
+	* load.h: update prototypes.
+
+	* load.c (scm_primitive_load, scm_read_and_eval_x,
+	scm_primitive_load_path): remove case_insensitive_p, sharp arguments.
+
+	* read.h: add prototype for scm_read_hash_extend.  Change args for
+	other prototypes.
+	
+	* read.c (scm_read_hash_procedures): new variable.
+	(scm_read_hash_extend): new procedure.
+	(scm_get_hash_procedure): new procedure.
+*	(scm_lreadr): use scm_get_hash_procedure instead of an argument
+	for extended # processing.
+	(scm_read, scm_lreadr, scm_lreadrecparen, scm_lreadparen,
+	scm_read_token): remove case_i, sharp arguments.  Change callers.
+
+Fri Mar  7 08:58:21 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* read.h (SCM_N_READ_OPTIONS): increase to 3.
+	(SCM_CASE_INSENSITIVE_P): define.
+
+	* read.c: add case-insensitive option to scm_read_opts.
+*	(scm_read_token): use SCM_CASE_INSENSITIVE_P instead of an argument
+	to determine whether to convert symbol case.
+	(default_case_i): definition removed.
+	* read.c (scm_read_token): if case_i, downcase ic before doing
+	anything with it.
+
 Sat Mar  8 03:49:03 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* configure.in: Added configuration option `guile-debug'.

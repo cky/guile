@@ -215,7 +215,7 @@ gdb_read (str)
   /* Read one object */
   tok_buf_mark_p = SCM_GC8MARKP (tok_buf);
   SCM_CLRGC8MARK (tok_buf);
-  ans = scm_lreadr (&tok_buf, gdb_input_port, 0, SCM_BOOL_F, &ans);
+  ans = scm_lreadr (&tok_buf, gdb_input_port, &ans);
   if (SCM_GC_P)
     {
       if (SCM_NIMP (ans))
