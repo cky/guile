@@ -1,0 +1,16 @@
+;;;; interp.test --- tests for bugs in the Guile interpreter -*- scheme -*-
+;;;; We'll put a copyright on this as soon as it's big enough to copyright.
+
+(pass-if "Internal defines 1"
+	 (letrec ((foo (lambda (arg)
+			 (or arg (and (procedure? foo)
+				      (foo 99))))))
+	   (define bar (foo #f))
+	   (foo #f)))
+
+(pass-if "Internal defines 2"
+	 (letrec ((foo 77)
+		  (bar #f)
+		  (retfoo (lambda () foo)))
+	   (define baz (retfoo))
+	   (retfoo)))
