@@ -851,10 +851,12 @@ AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos trunc)
 
 # C99 specifies isinf and isnan as macros.
 # HP-UX provides only macros, no functions.
-# Glibc 2.3.2 provides both macros and functions.
+# glibc 2.3.2 provides both macros and functions.
+# IRIX 6.5 and Solaris 8 only provide functions.
 #
-# We're concerned that some systems may have only functions, the following
-# tests are designed to detect both functions and macros.
+# The following tests detect isinf and isnan either as functions or as
+# macros from <math.h>.  Plain AC_CHECK_FUNCS is insufficient, it doesn't
+# use <math.h> so doesn't detect on macro-only systems like HP-UX.
 #
 AC_MSG_CHECKING([for isinf])
 AC_LINK_IFELSE(
