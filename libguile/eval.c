@@ -92,9 +92,6 @@ char *alloca ();
 static SCM canonicalize_define (SCM expr);
 static SCM *scm_lookupcar1 (SCM vloc, SCM genv, int check);
 
-/* prototype in eval.h is not given under --disable-deprecated */
-SCM_API SCM scm_macroexp (SCM x, SCM env);
-
 
 
 /* {Syntax Errors}
@@ -747,6 +744,49 @@ m_expand_body (const SCM forms, const SCM env)
     }
 }
 
+static SCM
+macroexp (SCM x, SCM env)
+{
+  SCM res, proc, orig_sym;
+
+  /* Don't bother to produce error messages here.  We get them when we
+     eventually execute the code for real. */
+
+ macro_tail:
+  orig_sym = SCM_CAR (x);
+  if (!SCM_SYMBOLP (orig_sym))
+    return x;
+
+  {
+    SCM *proc_ptr = scm_lookupcar1 (x, env, 0);
+    if (proc_ptr == NULL)
+      {
+	/* We have lost the race. */
+	goto macro_tail;
+      }
+    proc = *proc_ptr;
+  }
+  
+  /* Only handle memoizing macros.  `Acros' and `macros' are really
+     special forms and should not be evaluated here. */
+
+  if (!SCM_MACROP (proc)
+      || (SCM_MACRO_TYPE (proc) != 2 && !SCM_BUILTIN_MACRO_P (proc)))
+    return x;
+
+  SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of lookupcar */
+  res = scm_call_2 (SCM_MACRO_CODE (proc), x, env);
+  
+  if (scm_ilength (res) <= 0)
+    res = scm_list_2 (SCM_IM_BEGIN, res);
+      
+  SCM_DEFER_INTS;
+  SCM_SETCAR (x, SCM_CAR (res));
+  SCM_SETCDR (x, SCM_CDR (res));
+  SCM_ALLOW_INTS;
+
+  goto macro_tail;
+}
 
 /* Start of the memoizers for the standard R5RS builtin macros.  */
 
@@ -1732,7 +1772,7 @@ scm_m_generalized_set_x (SCM expr, SCM env)
 	 (begin <atom>).  In that case, <atom> must be a symbol or a
 	 variable and we memoize to (set! <atom> ...).
       */
-      exp_target = scm_macroexp (target, env);
+      exp_target = macroexp (target, env);
       if (SCM_EQ_P (SCM_CAR (exp_target), SCM_IM_BEGIN)
 	  && !SCM_NULLP (SCM_CDR (exp_target))
 	  && SCM_NULLP (SCM_CDDR (exp_target)))
@@ -1911,6 +1951,9 @@ scm_m_undefine (SCM expr, SCM env)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
 
+  scm_c_issue_deprecation_warning
+    ("`undefine' is deprecated.\n");
+
   variable = SCM_CAR (cdr_expr);
   ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
   location = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_F);
@@ -1921,49 +1964,12 @@ scm_m_undefine (SCM expr, SCM env)
   return SCM_UNSPECIFIED;
 }
 
-
 SCM
 scm_macroexp (SCM x, SCM env)
 {
-  SCM res, proc, orig_sym;
-
-  /* Don't bother to produce error messages here.  We get them when we
-     eventually execute the code for real. */
-
- macro_tail:
-  orig_sym = SCM_CAR (x);
-  if (!SCM_SYMBOLP (orig_sym))
-    return x;
-
-  {
-    SCM *proc_ptr = scm_lookupcar1 (x, env, 0);
-    if (proc_ptr == NULL)
-      {
-	/* We have lost the race. */
-	goto macro_tail;
-      }
-    proc = *proc_ptr;
-  }
-  
-  /* Only handle memoizing macros.  `Acros' and `macros' are really
-     special forms and should not be evaluated here. */
-
-  if (!SCM_MACROP (proc)
-      || (SCM_MACRO_TYPE (proc) != 2 && !SCM_BUILTIN_MACRO_P (proc)))
-    return x;
-
-  SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of lookupcar */
-  res = scm_call_2 (SCM_MACRO_CODE (proc), x, env);
-  
-  if (scm_ilength (res) <= 0)
-    res = scm_list_2 (SCM_IM_BEGIN, res);
-      
-  SCM_DEFER_INTS;
-  SCM_SETCAR (x, SCM_CAR (res));
-  SCM_SETCDR (x, SCM_CDR (res));
-  SCM_ALLOW_INTS;
-
-  goto macro_tail;
+  scm_c_issue_deprecation_warning
+    ("`scm_macroexp' is deprecated.");
+  return macroexp (x, env);
 }
 
 #endif
