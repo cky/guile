@@ -79,15 +79,42 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
 SCM
 INTEGRAL2NUM (ITYPE n)
 {
-  if (sizeof (ITYPE) < sizeof (scm_t_signed_bits)
-      ||
-#ifndef UNSIGNED  
-      SCM_FIXABLE (n)
+  /* Determine at compile time whether we need to porferm the FIXABLE
+     test or not.  This is not done to get more optimal code out of
+     the compiler (it can figure this out on its already), but to
+     avoid a spurious warning. 
+  */
+
+#ifdef NEED_CHECK
+#undef NEED_CHECK
+#endif
+
+#ifdef NO_PREPRO_MAGIC
+#define NEED_CHECK
 #else
-      SCM_POSFIXABLE (n)
-#endif 
-      )
+#ifdef UNSIGNED
+#if MAX_VALUE > SCM_MOST_POSITIVE_FIXNUM
+#define NEED_CHECK
+#endif
+#else
+#if MIN_VALUE<SCM_MOST_NEGATIVE_FIXNUM || MAX_VALUE>SCM_MOST_POSITIVE_FIXNUM
+#define NEED_CHECK
+#endif
+#endif
+#endif
+
+#ifndef UNSIGNED
+#ifdef NEED_CHECK
+  if (SCM_FIXABLE (n))
+#endif
+#else
+#ifdef NEED_CHECK
+  if (SCM_FIXABLE (n))
+#endif
+#endif
     return SCM_MAKINUM ((scm_t_signed_bits) n);
+
+#undef NEED_CHECK
 
 #ifdef SCM_BIGDIG
   return INTEGRAL2BIG (n);
@@ -152,6 +179,7 @@ INTEGRAL2BIG (ITYPE n)
 #undef ITYPE
 #undef MIN_VALUE
 #undef MAX_VALUE
+#undef NO_PREPRO_MAGIC
 
 /*
   Local Variables:
