@@ -1,3 +1,8 @@
+Tue Oct  7 09:37:24 1997  Mark Galassi  <rosalia@cygnus.com>
+
+	* gh_data.c (gh_bool2scm): new function which replaces
+	gh_int2scmb(), which is now tagged as obsolete.
+
 1997-10-03  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* print.h (SCM_PRINT_STATE_P): Removed SCM_NIMP test.  (NIMP

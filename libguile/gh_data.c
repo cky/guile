@@ -48,7 +48,12 @@
 
 /* data conversion C->scheme */
 SCM 
-gh_int2scmb (int x)
+gh_int2scmb (int x)		/* this is being phased out */
+{
+  return (x ? SCM_BOOL_T : SCM_BOOL_F);
+}
+SCM 
+gh_bool2scm (int x)
 {
   return (x ? SCM_BOOL_T : SCM_BOOL_F);
 }
