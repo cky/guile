@@ -1572,9 +1572,16 @@ void *scm_get_stack_base()
 {
     int dummy;
     ptr_t sp = (ptr_t)(&dummy);
-    ptr_t trunc_sp = (ptr_t)((word)sp & ~(GC_page_size - 1));
-    word size = GC_get_writable_length(trunc_sp, 0);
-   
+    ptr_t trunc_sp;
+    word size;
+    static word GC_page_size = 0;
+    if (!GC_page_size) {
+        SYSTEM_INFO sysinfo;
+        GetSystemInfo(&sysinfo);
+        GC_page_size = sysinfo.dwPageSize;
+    }
+    trunc_sp = (ptr_t)((word)sp & ~(GC_page_size - 1));
+    size = GC_get_writable_length(trunc_sp, 0);
     return(trunc_sp + size);
 }
 
