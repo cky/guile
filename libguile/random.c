@@ -40,26 +40,6 @@
 
 /* Author: Mikael Djurfeldt <djurfeldt@nada.kth.se> */
 
-/* We need this to get the definitions for HAVE_ALLOCA_H, etc.  */
-#include "scmconfig.h"
-
-/* AIX requires this to be the first thing in the file.  The #pragma
-   directive is indented so pre-ANSI compilers will ignore it, rather
-   than choke on it.  */
-#ifndef __GNUC__
-# if HAVE_ALLOCA_H
-#  include <alloca.h>
-# else
-#  ifdef _AIX
- #pragma alloca
-#  else
-#   ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#   endif
-#  endif
-# endif
-#endif
-
 #include "_scm.h"
 
 #include <math.h>
@@ -196,9 +176,9 @@ scm_i_copy_rstate (scm_i_rstate *state)
 inline double
 scm_i_uniform01 (scm_rstate *state)
 {
-  double x = (double) scm_the_rng.random_bits (state) / (double) 0xFFFFFFFFUL;
+  double x = (double) scm_the_rng.random_bits (state) / (double) 0xffffffffUL;
   return ((x + (double) scm_the_rng.random_bits (state))
-	  / (double) 0xFFFFFFFFUL);
+	  / (double) 0xffffffffUL);
 }
 
 double
@@ -212,13 +192,13 @@ scm_i_normal01 (scm_rstate *state)
   else
     {
       double r, a, n;
-      state->reserved0 = 1;
       
       r = sqrt (-2.0 * log (scm_i_uniform01 (state)));
       a = 2.0 * M_PI * scm_i_uniform01 (state);
       
       n = r * sin (a);
       state->reserved1 = r * cos (a);
+      state->reserved0 = 1;
       
       return n;
     }
@@ -239,10 +219,10 @@ scm_i_random (unsigned long m, scm_rstate *state)
   mask = (m < 0x100
 	  ? scm_masktab[m]
 	  : (m < 0x10000
-	     ? scm_masktab[m >> 8] << 8 | 0xFF
+	     ? scm_masktab[m >> 8] << 8 | 0xff
 	     : (m < 0x1000000
-		? scm_masktab[m >> 16] << 16 | 0xFFFF
-		: scm_masktab[m >> 24] << 24 | 0xFFFFFF)));
+		? scm_masktab[m >> 16] << 16 | 0xffff
+		: scm_masktab[m >> 24] << 24 | 0xffffff)));
   while ((r = scm_the_rng.random_bits (state) & mask) >= m);
   return r;
 }
@@ -261,7 +241,7 @@ scm_i_random_bignum (SCM m, scm_rstate *state)
     {
       /* fix most significant 16 bits */
       unsigned short s = SCM_BDIGITS (m)[nd - 1];
-      mask = s < 0x100 ? scm_masktab[s] : scm_masktab[s >> 8] << 8 | 0xFF;
+      mask = s < 0x100 ? scm_masktab[s] : scm_masktab[s >> 8] << 8 | 0xff;
     }
   else
 #endif
@@ -271,10 +251,10 @@ scm_i_random_bignum (SCM m, scm_rstate *state)
       mask = (w < 0x10000
 	      ? (w < 0x100
 		 ? scm_masktab[w]
-		 : scm_masktab[w >> 8] << 8 | 0xFF)
+		 : scm_masktab[w >> 8] << 8 | 0xff)
 	      : (w < 0x1000000
-		 ? scm_masktab[w >> 16] << 16 | 0xFFFF
-		 : scm_masktab[w >> 24] << 24 | 0xFFFFFF));
+		 ? scm_masktab[w >> 16] << 16 | 0xffff
+		 : scm_masktab[w >> 24] << 24 | 0xffffff));
     }
   b = scm_mkbig (nd, 0);
   bits = (LONG32 *) SCM_BDIGITS (b);
