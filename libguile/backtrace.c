@@ -636,6 +636,7 @@ struct display_backtrace_args {
   SCM port;
   SCM first;
   SCM depth;
+  SCM highlight_objects;
 };
 
 static SCM
@@ -695,6 +696,7 @@ display_backtrace_body (struct display_backtrace_args *a)
   pstate = SCM_PRINT_STATE (print_state);
   pstate->writingp = 1;
   pstate->fancyp = 1;
+  pstate->highlight_objects = a->highlight_objects;
 
   /* First find out if it's reasonable to do indentation. */
   if (SCM_BACKWARDS_P)
@@ -747,14 +749,15 @@ display_backtrace_body (struct display_backtrace_args *a)
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_display_backtrace, "display-backtrace", 2, 2, 0, 
-	    (SCM stack, SCM port, SCM first, SCM depth),
+SCM_DEFINE (scm_display_backtrace_with_highlights, "display-backtrace",
+	    2, 3, 0, 
+	    (SCM stack, SCM port, SCM first, SCM depth, SCM highlights),
 	    "Display a backtrace to the output port @var{port}. @var{stack}\n"
 	    "is the stack to take the backtrace from, @var{first} specifies\n"
 	    "where in the stack to start and @var{depth} how much frames\n"
 	    "to display. Both @var{first} and @var{depth} can be @code{#f},\n"
 	    "which means that default values will be used.")
-#define FUNC_NAME s_scm_display_backtrace
+#define FUNC_NAME s_scm_display_backtrace_with_highlights
 {
   struct display_backtrace_args a;
   struct display_error_handler_data data;
@@ -762,6 +765,10 @@ SCM_DEFINE (scm_display_backtrace, "display-backtrace", 2, 2, 0,
   a.port  = port;
   a.first = first;
   a.depth = depth;
+  if (SCM_UNBNDP (highlights))
+    a.highlight_objects = SCM_EOL;
+  else
+    a.highlight_objects = highlights;
   data.mode = "backtrace";
   data.port = port;
   scm_internal_catch (SCM_BOOL_T,
@@ -771,24 +778,36 @@ SCM_DEFINE (scm_display_backtrace, "display-backtrace", 2, 2, 0,
 }
 #undef FUNC_NAME
 
+SCM
+scm_display_backtrace (SCM stack, SCM port, SCM first, SCM depth)
+{
+  return scm_display_backtrace_with_highlights (stack, port, first, depth,
+						SCM_EOL);
+}
+
 SCM_VARIABLE (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
 
-SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0, 
-	    (),
+SCM_DEFINE (scm_backtrace_with_highlights, "backtrace", 0, 1, 0, 
+	    (SCM highlights),
 	    "Display a backtrace of the stack saved by the last error\n"
 	    "to the current output port.")
-#define FUNC_NAME s_scm_backtrace
+#define FUNC_NAME s_scm_backtrace_with_highlights
 {
   SCM the_last_stack =
     scm_fluid_ref (SCM_VARIABLE_REF (scm_the_last_stack_fluid_var));
+
+  if (SCM_UNBNDP (highlights))
+    highlights = SCM_EOL;
+
   if (scm_is_true (the_last_stack))
     {
       scm_newline (scm_cur_outp);
       scm_puts ("Backtrace:\n", scm_cur_outp);
-      scm_display_backtrace (the_last_stack,
-			     scm_cur_outp,
-			     SCM_UNDEFINED,
-			     SCM_UNDEFINED);
+      scm_display_backtrace_with_highlights (the_last_stack,
+					     scm_cur_outp,
+					     SCM_BOOL_F,
+					     SCM_BOOL_F,
+					     highlights);
       scm_newline (scm_cur_outp);
       if (scm_is_false (SCM_VARIABLE_REF (scm_has_shown_backtrace_hint_p_var))
 	  && !SCM_BACKTRACE_P)
@@ -807,6 +826,12 @@ SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
+SCM
+scm_backtrace (void)
+{
+  return scm_backtrace_with_highlights (SCM_EOL);
+}
 
 
 
