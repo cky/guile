@@ -929,6 +929,37 @@ next read operation will work on the pushed back characters.
 If unread-char is called multiple times, the unread characters will be
 read again in last-in first-out order.
 
+** the procedures uniform-array-read! and uniform-array-write! now
+work on any kind of port, not just ports which are open on a file.
+
+** now 'l' in a port mode requests line buffering.
+
+** new procedure: ftruncate PORT [LENGTH]
+Truncates PORT after LENGTH bytes, or at the current position if
+LENGTH is omitted.  Works on random-access file and string ports.
+
+** new procedure: lseek PORT/FDES OFFSET WHENCE
+The arguments are the same as for the old fseek procedure, but it
+works on string ports as well as random-access file ports.
+
+** the fseek procedure now works on string ports, since it has been
+redefined using lseek.
+
+** the setvbuf procedure now uses a default size if mode is _IOFBF and
+size is not supplied.
+
+** the newline procedure no longer flushes the port if it's not
+line-buffered: previously it did if it was the current output port.
+
+** open-pipe and close-pipe are no longer primitive procedures, but
+an emulation can be obtained using `(use-modules (ice-9 popen))'.
+
+** the freopen procedure has been removed.
+
+** new procedure: drain-input PORT
+Drains PORT's read buffers (including any pushed-back characters)
+and returns the contents as a single string.
+
 ** New function: map-in-order PROC LIST1 LIST2 ...
 Version of `map' which guarantees that the procedure is applied to the
 lists in serial order.
@@ -966,6 +997,13 @@ pointer is NULL, a new array is malloced (the old behaviour).
 New functions.
 
 * Changes to the scm_ interface
+
+** The interfaces for using I/O ports and implementing port types
+(ptobs) have changed significantly.  The new interface is based on
+shared access to buffers and a new set of ptob procedures.
+
+** scm_strport_to_string: New function: creates a new string from
+a string port's buffer.
 
 ** Plug in interface for random number generators
 The variable `scm_the_rng' in random.c contains a value and three
@@ -1045,6 +1083,7 @@ Return a sample from the exp(1) distribution.
 
 *** Function: unsigned long scm_i_random (unsigned long M, scm_rstate *STATE)
 Return a sample from the discrete uniform(0,M) distribution.
+
 
 
 Changes in Guile 1.3 (released Monday, October 19, 1998):
