@@ -144,7 +144,7 @@ typedef struct {
   SCM c;
 } scm_t_cond;
 
-SCM_API int scm_cond_init (scm_t_cond *c);
+SCM_API int scm_cond_init (scm_t_cond *c, int *cattr);
 SCM_API int scm_cond_wait (scm_t_cond *c, scm_t_mutex *m);
 SCM_API int scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m,
 				const struct timespec *abstime);

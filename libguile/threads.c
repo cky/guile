@@ -203,7 +203,7 @@ scm_mutex_destroy (scm_t_mutex *m)
 }
 
 SCM_API int
-scm_cond_init (scm_t_cond *c)
+scm_cond_init (scm_t_cond *c, int *cattr)
 {
   scm_gc_protect_object (c->c = scm_make_condition_variable ());
   return 0;

@@ -1,3 +1,8 @@
+2002-11-07  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* threads.c, threads.h (scm_cond_init): Undo unintentional API
+	change.
+
 2002-11-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* coop.c (coop_next_runnable_thread): Removed, wich should have
