@@ -76,7 +76,7 @@ scm_strhash (str, len, n)
       scm_sizet i = 5;
       unsigned long h = 264 % n;
       while (i--)
-	h = ((h << 8) + ((unsigned) (scm_downcase[str[h % len]]))) % n;
+	h = ((h << 8) + ((unsigned) (scm_downcase (str[h % len])))) % n;
       return h;
     }
   else
@@ -84,7 +84,7 @@ scm_strhash (str, len, n)
       scm_sizet i = len;
       unsigned long h = 0;
       while (i)
-	h = ((h << 8) + ((unsigned) (scm_downcase[str[--i]]))) % n;
+	h = ((h << 8) + ((unsigned) (scm_downcase (str[--i])))) % n;
       return h;
     }
 }
