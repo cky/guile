@@ -1,3 +1,8 @@
+2000-09-14  Gary Houston  <ghouston@arglist.com>
+
+	* print.c (scm_iprin1): write the ascii delete character as #\del
+	instead of '#\', so it can be read back.  like in SCM.
+
 2000-09-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* symbols.c (duplicate_string): Don't try to copy the byte after

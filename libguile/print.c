@@ -317,6 +317,10 @@ taloop:
 	      scm_puts ("#\\", port);
 	      if ((i >= 0) && (i <= ' ') && scm_charnames[i])
 		scm_puts (scm_charnames[i], port);
+#ifndef EBCDIC
+	      else if (i == '\177')
+		scm_puts (scm_charnames[scm_n_charnames - 1], port);
+#endif
 	      else if (i < 0 || i > '\177')
 		scm_intprint (i, 8, port);
 	      else
