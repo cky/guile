@@ -118,9 +118,19 @@ form around the code performing the heavy computations (typically a
 C code primitive), enabling the computations to run in parallel
 while the scripting code runs single-threadedly.
 
-** New module (srfi srfi-26)
+** Support for require-extension, SRFI-55, has been added.
 
-This is an implementation of SRFI-26.
+The SRFI-55 special form `require-extension' has been added.  It is
+available at startup, and provides a portable way to load Scheme
+extensions.  SRFI-55 only requires support for one type of extension,
+"srfi"; so a set of SRFIs may be loaded via (require-extension (srfi 1
+13 14)).
+
+** New module (srfi srfi-26) provides support for `cut' and `cute'.
+
+The (srfi srfi-26) module is an implementation of SRFI-26 which
+provides the `cut' and `cute' syntax.  These may be used to specialize
+parameters without currying.
 
 ** New module (srfi srfi-31)
 

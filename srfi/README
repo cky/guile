@@ -7,7 +7,7 @@ stand for, please refer to the SRFI homepage at
 
 SRFI-0: cond-expand
 
-  Supported by default, no module needs to get used.
+  Supported by default, no module required.
 
 SRFI-1: List Library
 
@@ -94,3 +94,7 @@ SRFI-39: Parameter objects
 
   Exports: make-parameter, with-parameters*.
   Exports syntax: parameterize.
+
+SRFI-55: require-extension
+
+  Supported by default, no module required.

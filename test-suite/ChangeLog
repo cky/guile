@@ -1,3 +1,10 @@
+2005-02-12  Rob Browning  <rlb@defaultvalue.org>
+
+	* standalone/test-require-extension: new test script.
+
+	* standalone/Makefile.am (check_SCRIPTS): add test-require-extension.
+	(TESTS): add test-require-extension.
+
 2005-02-12  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (reduce, reduce-right): New tests.

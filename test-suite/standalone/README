@@ -12,7 +12,7 @@ If you want to use a scheme script, prefix it as follows:
   !#
 
 Makefile.am will arrange for all tests (scripts or executables) to be
-run under pre-inst-guile-env so tht the PATH, LD_LIBRARY_PATH, and
+run under pre-inst-guile-env so that the PATH, LD_LIBRARY_PATH, and
 GUILE_LOAD_PATH will be augmented appropriately.
 
 The Makefile.am has an example of creating a shared library to be used
