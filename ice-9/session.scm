@@ -27,11 +27,6 @@
 
 (define (id x) x)
 
-(define (vector-for-each proc vector)
-  (do ((i (+ -1 (vector-length vector)) (+ -1 i)))
-      ((negative? i))
-    (proc (vector-ref vector i))))
-
 (define-public (apropos rgx . options)
   "Search for bindings: apropos regexp {options= 'full 'shadow 'value}"
   (if (zero? (string-length rgx))
@@ -60,7 +55,7 @@
 		  )
 	     (for-each
 	      (lambda (obarray get-ref)
-		(vector-for-each
+		(array-for-each
 		 (lambda (oblist)
 		   (for-each
 		    (lambda (x)
@@ -86,3 +81,35 @@
 		 obarray))
 	      obarrays get-refs)))
 	 modules))))
+
+(define-public (apropos-internal rgx)
+  "Return a list of accessible variable names."
+  (let ((match (make-regexp rgx))
+	(modules (cons (current-module)
+		       (module-uses (current-module))))
+	(recorded (make-vector 61 '()))
+	(vars '(#f)))
+    (let ((last vars))
+      (for-each
+       (lambda (module)
+	 (for-each
+	  (lambda (obarray)
+	    (array-for-each
+	     (lambda (oblist)
+	       (for-each
+		(lambda (x)
+		  (if (and (regexp-exec match (car x))
+			   (not (hashq-get-handle recorded (car x))))
+		      (begin
+			(set-cdr! last (cons (car x) '()))
+			(set! last (cdr last))
+			(hashq-set! recorded (car x) #t))))
+		oblist))
+	     obarray))
+	  (if (or (eq? module the-scm-module)
+		  (eq? module the-root-module))
+	      (list (builtin-weak-bindings)
+		    (builtin-bindings))
+	      (list (module-obarray module)))))
+       modules))
+    (cdr vars)))

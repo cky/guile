@@ -1,7 +1,22 @@
-Thu Aug 21 11:30:08 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Sun Aug 24 01:03:10 1997  Mikael Djurfeldt  <mdj@kenneth>
 
-	* emacs.scm (emacs-load): New argument: interactivep: when
-	non-false, send back results to Emacs.
+	* session.scm (vector-for-each): Removed.
+	(apropos): vector-for-each --> array-for-each.
+	(apropos-internal): New function.  Return list of accessible
+	symbols matching regexp.
+
+	* debug.scm (frame-number->index): New function.  Convert frame
+	number (as displayed in the backtrace) to frame index (to be used
+	in stack-ref).
+
+	* emacs.scm (emacs-load): New arguments: interactivep: when
+ 	non-false, send back results to Emacs; colnum: Column number;
+	Use modules (ice-9 debug) and (ice-9 session);
+	(no-stack, no-source): New simple-actions;
+	(result-to-emacs): New procedure. Sends data to Emacs via the
+	result protocol;
+	(get-frame-source, emacs-select-frame, emacs-frame-eval,
+	emacs-symdoc): New procedures.
 
 Wed Aug 20 13:21:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
