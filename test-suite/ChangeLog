@@ -1,6 +1,7 @@
 2004-12-06  Kevin Ryde  <user42@zip.com.au>
 
-	* tests/srfi-1.test (alist-copy): New tests.
+	* tests/srfi-1.test (alist-copy, alist-delete, break, span): New
+	tests.
 
 2004-12-05  Kevin Ryde  <user42@zip.com.au>
 
