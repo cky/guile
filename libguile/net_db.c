@@ -110,7 +110,7 @@ static void scm_resolv_error (const char *subr, SCM bad_value)
 #ifdef HAVE_HSTRERROR
       errmsg = (const char *) hstrerror (h_errno);
 #endif
-      scm_error (key, subr, errmsg, scm_cons (bad_value, SCM_EOL), SCM_EOL);
+      scm_error (key, subr, errmsg, SCM_BOOL_F, SCM_EOL);
     }
 }
 
