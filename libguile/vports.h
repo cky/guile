@@ -46,11 +46,6 @@
 
 #include "libguile/__scm.h"
 
-extern scm_ptobfuns scm_sfptob;
-
-
-
-
 
 
 extern SCM scm_make_soft_port SCM_P ((SCM pv, SCM modes));

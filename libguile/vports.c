@@ -59,19 +59,6 @@
  */
 
 
-
-static int prinsfpt SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
-static int 
-prinsfpt (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
-{
-  scm_prinport (exp, port, "soft");
-  return !0;
-}
-
 static void
 sfflush (SCM port)
 {
@@ -93,11 +80,6 @@ sfflush (SCM port)
 	  scm_apply (f, SCM_EOL, SCM_EOL);
       }
     }
-}
-
-static void
-sf_read_flush (SCM port, int offset)
-{
 }
 
 /* string output proc (element 1) is no longer called.  */
@@ -170,33 +152,18 @@ scm_make_soft_port (pv, modes)
 }
 
 
-static int 
-noop0 (SCM port)
+void scm_make_sfptob (void); /* Called from ports.c */
+
+void
+scm_make_sfptob ()
 {
-  return 0;
+  long tc = scm_make_port_type ("soft", sf_fill_buffer, sfflush);
+  scm_set_ptob_mark (tc, scm_markstream);
+  scm_set_ptob_close (tc, sfclose);
 }
-
-
-scm_ptobfuns scm_sfptob =
-{
-  scm_markstream,
-  noop0,
-  prinsfpt,
-  0,
-  sfflush,
-  sf_read_flush,
-  sfclose,
-  sf_fill_buffer,
-  0,
-  0,
-  0,
-};
-
-
 
 void
 scm_init_vports ()
 {
 #include "vports.x"
 }
-
