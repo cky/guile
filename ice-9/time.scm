@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -38,8 +38,10 @@
          (result (proc))
          (tms-end (times))
          (gc-end (gc-run-time)))
+    ;; FIXME: We would probably like format ~f to accept rationals, but
+    ;; currently it doesn't so we force to a flonum with exact->inexact.
     (define (get proc start end)
-      (/ (- (proc end) (proc start)) internal-time-units-per-second))
+      (exact->inexact (/ (- (proc end) (proc start)) internal-time-units-per-second)))
     (display "clock utime stime cutime cstime gctime\n")
     (format #t "~5,2F ~5,2F ~5,2F ~6,2F ~6,2F ~6,2F\n"
             (get tms:clock tms-start tms-end)
