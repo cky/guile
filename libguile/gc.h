@@ -214,7 +214,7 @@ typedef unsigned long scm_t_c_bvec_long;
   (SCM_GC_SET_CELL_OBJECT ((x), 1, (v)))
 
 
-#define SCM_CELL_OBJECT_LOC(x, n) (&SCM_CELL_OBJECT ((x), (n)))
+#define SCM_CELL_OBJECT_LOC(x, n) (SCM_VALIDATE_CELL((x), &SCM_GC_CELL_OBJECT ((x), (n))))
 #define SCM_CARLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 0))
 #define SCM_CDRLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 1))
 
