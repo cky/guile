@@ -1,3 +1,7 @@
+2001-08-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* __scm.h (SCM_ENABLE_VCELLS): Fix spelling mistake in comment.
+	
 2001-08-17  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* gc.c: Fix omission bug: Add `heap_segment' forward decl
