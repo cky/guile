@@ -81,7 +81,7 @@ It can be extracted with the function @code{system-error-errno}:
  (lambda ()
    (mkdir "/this-ought-to-fail-if-I'm-not-root"))
  (lambda stuff
-   (let ((errno (system-error-errno 4)))
+   (let ((errno (system-error-errno stuff)))
      (cond
       ((= errno EACCES)
        (display "You're not allowed to do that."))
