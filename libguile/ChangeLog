@@ -1,5 +1,15 @@
 Tue Sep 10 14:01:46 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	Use SCM_P instead of PROTO; the latter intrudes on the user's
+	namespace.
+	* params.h: Deleted; definition of SCM_P moved to...
+	* __scm.h: ... here, where it replaces PROTO macro.
+	* libguile.h, smob.h: Don't #include "params.h".
+	* continuations.c, error.h, feature.h, gc.c, gc.h, init.h, load.h,
+	smob.h: Fix prototypes accordingly.
+	* Makefile.in: Update dependencies.
+	(inner_h_files): Remove params.h.
+
 	* gc.c: #include "gc.h"; every module should include its header,
 	to let the compiler cross-check the declarations against the
 	definitions.
