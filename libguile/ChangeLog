@@ -1,5 +1,11 @@
 Tue Jan  7 18:11:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* configure.in: When checking for struct linger, #include
+	<sys/types.h> as well as <sys/socket.h>.  I've never known
+	<sys/types.h> to cause any portability problems, and Solaris's
+	<sys/socket.h> needs it.
+	* configure: Rebuilt.
+
 	I think the Sun compiler has chosen a perverse way to interpret
 	ANSI declarations combined with K&R definitions.  We'll
 	appease it a little bit.  But when it invades France, we fight.
