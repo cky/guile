@@ -44,8 +44,3 @@
 		 (list n)
 		 '()))
   scheme-report-interface)
-
-(define interaction-interface (resolve-interface '(guile-user)))
-
-(define (interaction-environment)
-  interaction-interface)
