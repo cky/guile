@@ -70,7 +70,8 @@ VM_DEFINE_INSTRUCTION (drop, "drop", 0, 0, 0)
 
 VM_DEFINE_INSTRUCTION (dup, "dup", 0, 0, 1)
 {
-  PUSH (*sp);
+  SCM x = *sp;
+  PUSH (x);
   NEXT;
 }
 

@@ -173,6 +173,7 @@
 			    (lambda (obj+index)
 			      (cond ((cdr obj+index) =>
 				     (lambda (n)
+				       (push-code! '(dup))
 				       (push-code! `(local-set ,n)))))))))
 		   (push-code! (car stack)))))
 	   ;; closures
