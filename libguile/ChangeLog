@@ -1,3 +1,10 @@
+2000-09-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* symbols.c (scm_intern_obarray_soft,
+	scm_sysintern0_no_module_lookup):  Make sure that symbol
+	properties initially form an empty list.  Thanks to Keisuke
+	Nishida for pointing this out.
+
 2000-09-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* throw.c (scm_handle_by_message):  Added a FIXME comment.
