@@ -22,8 +22,6 @@
   :no-backtrace
   )
 
-(define receive
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      `(call-with-values (lambda () ,(caddr exp))
-	 (lambda ,(cadr exp) ,@(cdddr exp))))))
+(define-macro (receive vars vals . body)
+  `(call-with-values (lambda () ,vals)
+     (lambda ,vars ,@body)))
