@@ -8,7 +8,20 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
-** New SRFI modules:
+** As per RELEASE directions, deprecated items have been removed
+
+*** Macros removed
+
+  SCM_INPORTP, SCM_OUTPORTP SCM_ICHRP, SCM_ICHR, SCM_MAKICHR
+  SCM_SETJMPBUF SCM_NSTRINGP SCM_NRWSTRINGP SCM_NVECTORP
+
+*** Functions removed
+
+  scm_sysmissing
+
+  gc-thunk - replaced by after-gc-hook.
+
+** New SRFI modules have been added:
 
 (srfi srfi-2) exports and-let*.
 
@@ -984,11 +997,6 @@ an exception with a key of 'unbound-variable instead of 'misc-error.
 
 ** The initial default output port is now unbuffered if it's using a
 tty device.  Previously in this situation it was line-buffered.
-
-** gc-thunk is deprecated
-
-gc-thunk will be removed in next release of Guile.  It has been
-replaced by after-gc-hook.
 
 ** New hook: after-gc-hook
 

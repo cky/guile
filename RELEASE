@@ -9,7 +9,7 @@ for."
 
 * Remove compatability module (ice-9 and-let*) eventually (when a
   major release with the real module (ice-9 and-let-star) has been out
-  long enough, probably release 1.6).
+  long enough, probably release 1.8).
 
 * Deprecate `read-only-string?'.
 
@@ -17,12 +17,7 @@ After signal handling and threading have been fixed:
 - remove the code corresponding to GUILE_OLD_ASYNC_CLICK and the corresponding
   GUILE_OLD_ASYNC_CLICK macro.
 
-In release 1.5:
-- remove deprecated macros: SCM_INPORTP, SCM_OUTPORTP, SCM_CRDY, SCM_ICHRP,
-  SCM_ICHR, SCM_MAKICHR, SCM_SETJMPBUF, SCM_NSTRINGP, SCM_NRWSTRINGP,
-  SCM_NVECTORP
-- remove gc-thunk (It has been replaced by after-gc-hook.)
-- remove scm_sysmissing
+In release 1.6.0:
 - remove gh_int2scmb (replaced by gh_bool2scm)
 - remove scm_fseek (replaced by scm_seek)
 - remove scm_tag
@@ -39,7 +34,7 @@ In release 1.5:
   SCM_REALPART, scm_makdbl, SCM_SINGP, SCM_NUM2DBL, SCM_NO_BIGDIG
 - remove deprecated macro from tags.h: SCM_DOUBLE_CELLP
 
-In release 1.6:
+In release 1.8.0:
 - remove support for autoloading compiled-code modules:
     try-module-linked
     try-module-dynamic-link

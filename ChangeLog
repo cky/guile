@@ -1,3 +1,12 @@
+2001-04-27  Rob Browning  <rlb@cs.utexas.edu>
+
+	* GUILE-VERSION (GUILE_MINOR_VERSION): change to 5.0, switching to
+	the new odd/even ustable/stable version numbering scheme.
+	(LIBGUILEQTHREADS_MAJOR_VERSION): change to 10 to match Debian and
+	libguile.  In the future, libguile and libguileqthreads may not
+	stay in sync.  This still doesn't appear to affect
+	libguileqthreads, but we'll fix that next.
+
 2001-04-25  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* configure.in: Don't treat srfi directory specially, just create

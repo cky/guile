@@ -2,11 +2,18 @@ This is not a Guile release; it is a source tree retrieved via
 anonymous CVS or as a nightly snapshot at some random time after the
 Guile 1.4 release.
 
-This is version 1.4.1 of Guile, Project GNU's extension language
-library.  Guile is an interpreter for Scheme, packaged as a library
-that you can link into your applications to give them their own
-scripting language.  Guile will eventually support other languages as
-well, giving users of Guile-based applications a choice of languages.
+This is a 1.5 development version of Guile, Project GNU's extension
+language library.  Guile is an interpreter for Scheme, packaged as a
+library that you can link into your applications to give them their
+own scripting language.  Guile will eventually support other languages
+as well, giving users of Guile-based applications a choice of
+languages.
+
+Guile versions with an odd middle number, i.e. 1.5.* are unstable
+development versions.  Even middle numbers indicate stable versions.
+This has been the case since the 1.3.* series.
+
+The next stable release will be version 1.6.0.
 
 Please send bug reports to bug-guile@gnu.org.
 
@@ -174,4 +181,3 @@ The mailing list `guile-user@gnu.org' carries discussions, questions,
 and often answers, about Guile.  To subscribe, use the Mailman mailing
 list interface at <http://mail.gnu.org/mailman/listinfo/guile-user>
 Of course, please send bug reports (and fixes!) to bug-guile@gnu.org.
-
