@@ -1,5 +1,7 @@
 2004-09-24  Marius Vollmer  <mvo@zagadka.de>
 
+	* smob.c, smob.h (scm_assert_smob_type): New.
+
 	* Makefile.am (guile_CFLAGS, guile_LDFLAGS, libguile_la_CFLAGS, ):
 	Include GUILE_CFLAGS.
 	(libguile_la_LIBADD): Removed THREAD_LIBS_LOCAL, which is unused
