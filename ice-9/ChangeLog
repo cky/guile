@@ -1,3 +1,14 @@
+2000-11-06  Gary Houston  <ghouston@arglist.com>
+
+	* popen.scm (open-process): bug fix: don't use
+	close-all-ports-except to close ports in the child process, since
+	it causes port buffers to be flushed.  they may be flushed again
+	in the parent, causing duplicate output.  use a more elaborate
+	method for setting up the child descriptors (thanks to David
+	Pirotte for the bug report).
+	standard file descriptors 0, 1, 2 in the child process
+	are now set up from current-input-port etc., where possible.
+	
 2000-10-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* syncase.scm (eval):  string=? requires a string argument.

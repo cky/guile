@@ -12,6 +12,10 @@
 ;; a weak hash-table to store the process ids.
 (define-public port/pid-table (make-weak-key-hash-table 31))
 
+(define (ensure-fdes port mode)
+  (or (false-if-exception (fileno port))
+      (open-fdes *null-device* mode)))
+
 ;; run a process connected to an input or output port.
 ;; mode: OPEN_READ or OPEN_WRITE.
 ;; returns port/pid pair.
@@ -23,10 +27,61 @@
       (cond ((= pid 0)
 	     ;; child
 	     (set-batch-mode?! #t)
-	     (close-all-ports-except (if reading (cdr p) (car p)))
-	     (move->fdes (if reading (cdr p) (car p))
-			 (if reading 1 0))
-	     (apply execlp prog prog args))
+
+	     ;; select the three file descriptors to be used as
+	     ;; standard descriptors 0, 1, 2 for the new process.  one
+	     ;; is the pipe to the parent, the other two are taken
+	     ;; from the current Scheme input/output/error ports if
+	     ;; possible.
+
+	     (let ((input-fdes (if reading
+				   (ensure-fdes (current-input-port)
+						O_RDONLY)
+				   (fileno (car p))))
+		   (output-fdes (if reading
+				    (fileno (cdr p))
+				    (ensure-fdes (current-output-port)
+						 O_WRONLY)))
+		   (error-fdes (ensure-fdes (current-error-port)
+					    O_WRONLY)))
+
+	       ;; close all file descriptors in ports inherited from
+	       ;; the parent except for the three selected above.
+	       ;; this is to avoid causing problems for other pipes in
+	       ;; the parent.
+
+	       ;; use low-level system calls, not close-port or the
+	       ;; scsh routines, to avoid side-effects such as
+	       ;; flushing port buffers or evicting ports.
+
+	       (port-for-each (lambda (pt-entry)
+				(false-if-exception
+				 (let ((pt-fileno (fileno pt-entry)))
+				   (if (not (or (= pt-fileno input-fdes)
+						(= pt-fileno output-fdes)
+						(= pt-fileno error-fdes)))
+				       (close-fdes pt-fileno))))))
+
+	       ;; copy the three selected descriptors to the standard
+	       ;; descriptors 0, 1, 2.  note that it's possible that
+	       ;; output-fdes or input-fdes is equal to error-fdes.
+
+	       (cond ((not (= input-fdes 0))
+		      (if (= output-fdes 0)
+			  (set! output-fdes (dup->fdes 0)))
+		      (if (= error-fdes 0)
+			  (set! error-fdes (dup->fdes 0)))
+		      (dup2 input-fdes 0)))
+
+	       (cond ((not (= output-fdes 1))
+		      (if (= error-fdes 1)
+			  (set! error-fdes (dup->fdes 1)))
+		      (dup2 output-fdes 1)))
+
+	       (dup2 error-fdes 2)
+		     
+	       (apply execlp prog prog args)))
+
 	    (else
 	     ;; parent
 	     (if reading
