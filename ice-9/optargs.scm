@@ -294,7 +294,8 @@
 				    `((if (not (null? ,rest-gensym))
 					  (error "Too many arguments.")))
 				    '())
-			      ,@BODY)))
+			      (let ()
+				,@BODY))))
 	   `(lambda (,@non-optional-args . ,(if rest-arg rest-arg '()))
 	      ,@BODY))))))
 
