@@ -122,46 +122,47 @@ scm_vector_set_length_x (SCM vect, SCM len)
   return vect;
 }
 
-GUILE_PROC(scm_vector_p, "vector?", 1, 0, 0, 
-           (SCM x),
+GUILE_PROC (scm_vector_p, "vector?", 1, 0, 0, 
+	    (SCM x),
 "")
 #define FUNC_NAME s_scm_vector_p
 {
-  if (SCM_IMP(x)) return SCM_BOOL_F;
-  return SCM_BOOL(SCM_VECTORP(x));
+  if (SCM_IMP (x))
+    return SCM_BOOL_F;
+  return SCM_BOOL (SCM_VECTORP (x));
 }
 #undef FUNC_NAME
 
-SCM_GPROC(s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vector_length);
+SCM_GPROC (s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vector_length);
 
 SCM
-scm_vector_length(SCM v)
+scm_vector_length (SCM v)
 {
-  SCM_GASSERT1(SCM_VECTORP(v),
-	       g_vector_length, v, SCM_ARG1, s_vector_length);
-  return SCM_MAKINUM(SCM_LENGTH(v));
+  SCM_GASSERT1 (SCM_VECTORP(v),
+		g_vector_length, v, SCM_ARG1, s_vector_length);
+  return SCM_MAKINUM (SCM_LENGTH (v));
 }
 
-SCM_REGISTER_PROC(s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
+SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
 
-GUILE_PROC(scm_vector, "vector", 0, 0, 1, 
-           (SCM l),
+GUILE_PROC (scm_vector, "vector", 0, 0, 1, 
+	    (SCM l),
 "")
 #define FUNC_NAME s_scm_vector
 {
   SCM res;
   register SCM *data;
   int i;
-  SCM_VALIDATE_LIST_COPYLEN(1,l,i);
-  res = scm_make_vector (SCM_MAKINUM(i), SCM_UNSPECIFIED);
-  data = SCM_VELTS(res);
-  for(;i && SCM_NIMP(l);--i, l = SCM_CDR(l))
-    *data++ = SCM_CAR(l);
+  SCM_VALIDATE_LIST_COPYLEN (1,l,i);
+  res = scm_make_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
+  data = SCM_VELTS (res);
+  for(; i && SCM_NIMP(l); --i, l = SCM_CDR (l))
+    *data++ = SCM_CAR (l);
   return res;
 }
 #undef FUNC_NAME
 
-SCM_GPROC(s_vector_ref, "vector-ref", 2, 0, 0, scm_vector_ref, g_vector_ref);
+SCM_GPROC (s_vector_ref, "vector-ref", 2, 0, 0, scm_vector_ref, g_vector_ref);
 
 SCM
 scm_vector_ref (SCM v, SCM k)
@@ -175,20 +176,20 @@ scm_vector_ref (SCM v, SCM k)
   return SCM_VELTS (v)[(long) SCM_INUM (k)];
 }
 
-SCM_GPROC(s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x, g_vector_set_x);
+SCM_GPROC (s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x, g_vector_set_x);
 
 SCM
-scm_vector_set_x(SCM v, SCM k, SCM obj)
+scm_vector_set_x (SCM v, SCM k, SCM obj)
 {
-  SCM_GASSERTn (SCM_VECTORP(v),
+  SCM_GASSERTn (SCM_VECTORP (v),
 		g_vector_set_x, SCM_LIST3 (v, k, obj),
 		SCM_ARG1, s_vector_set_x);
-  SCM_GASSERTn (SCM_INUMP(k),
+  SCM_GASSERTn (SCM_INUMP (k),
 		g_vector_set_x, SCM_LIST3 (v, k, obj),
 		SCM_ARG2, s_vector_set_x);
-  SCM_ASSERT ((SCM_INUM(k) < SCM_LENGTH(v)) && (SCM_INUM(k) >= 0),
+  SCM_ASSERT ((SCM_INUM (k) < SCM_LENGTH (v)) && (SCM_INUM (k) >= 0),
 	      k, SCM_OUTOFRANGE, s_vector_set_x);
-  SCM_VELTS(v)[((long) SCM_INUM(k))] = obj;
+  SCM_VELTS(v)[(long) SCM_INUM(k)] = obj;
   return obj;
 }
 
