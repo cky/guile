@@ -190,7 +190,7 @@ SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
 
   SCM_DEFER_INTS;
   if ((timv = time (0)) == -1)
-    SCM_SYSERROR;
+    SCM_MISC_ERROR ("current time not available", SCM_EOL);
   SCM_ALLOW_INTS;
   return scm_long2num((long) timv);
 }
