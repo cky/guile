@@ -1,3 +1,8 @@
+2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops.scm (standard-define-class):  Changed definition to form
+	a 'real' macro definition.
+
 2002-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops.scm (define-generic, define-accessor):  Make sure that

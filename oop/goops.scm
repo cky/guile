@@ -247,7 +247,8 @@
 			  (variable-set! var (class-redefinition old class))
 			  (variable-set! var class)))))))))))
 
-(define standard-define-class define-class)
+(defmacro standard-define-class args
+  `(define-class ,@args))
 
 ;;; (class (SUPER ...) SLOT-DEFINITION ... OPTION ...)
 ;;;
