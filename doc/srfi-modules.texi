@@ -17,6 +17,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-0::                      cond-expand
 * SRFI-1::                      List library.
 * SRFI-2::                      and-let*.
+* SRFI-4::                      Homogeneous numeric vector datatypes.
 * SRFI-6::                      Basic String Ports.
 * SRFI-8::                      receive.
 * SRFI-9::                      define-record-type.
@@ -832,6 +833,131 @@ returns the value of @var{x}.
 @result{}
 1
 @end lisp
+
+
+@node SRFI-4
+@section SRFI-4 - Homogeneous numeric vector datatypes.
+
+@c FIXME::martin: Review me!
+
+SRFI-4 defines a set of datatypes for vectors whose elements are all
+of the same numeric type.  Vectors for signed and unsigned exact
+integer or inexact real numbers in several precisions are available.
+
+Procedures similar to the vector procedures (@pxref{Vectors}) are
+provided for handling these homogeneous vectors, but they are distinct
+datatypes.
+
+The reason for providing this set of datatypes is that with the
+limitation (all elements must have the same type), it is possible to
+implement them much more memory-efficient than normal, heterogenous
+vectors.
+
+If you want to use these datatypes and the corresponding procedures,
+you have to use the module @code{(srfi srfi-4)}.
+
+Ten vector data types are provided: Unsigned and signed integer values
+with 8, 16, 32 and 64 bits and floating point values with 32 and 64
+bits.  In the following descriptions, the tags @code{u8}, @code{s8},
+@code{u16}, @code{s16}, @code{u32}, @code{s32}, @code{u64},
+@code{s64}, @code{f32}, @code{f64}, respectively, are used for
+denoting the various types.
+
+@menu
+* SRFI-4 - Read Syntax::        How to write homogeneous vector literals.
+* SRFI-4 - Procedures::         Available homogeneous vector procedures.
+@end menu
+
+
+@node SRFI-4 - Read Syntax
+@subsection SRFI-4 - Read Syntax
+
+Homogeneous numeric vectors have an external representation (read
+syntax) similar to normal Scheme vectors, but with an additional tag
+telling the vector's type.
+
+@lisp
+#u16(1 2 3)
+@end lisp
+
+denotes a homogeneous numeric vector of three elements, which are the
+values 1, 2 and 3, represented as 16-bit unsigned integers.
+Correspondingly,
+
+@lisp
+#f64(3.1415 2.71)
+@end lisp
+
+denotes a vector of two elements, which are the values 3.1415 and
+2.71, represented as floating-point values of 64 bit precision.
+
+Please note that the read syntax for floating-point vectors conflicts
+with Standard Scheme, because there @code{#f} is defined to be the
+literal false value.  That means, that with the loaded SRFI-4 module,
+it is not possible to enter some list like
+
+@lisp
+'(1 #f3)
+@end lisp
+
+and hope that it will be parsed as a three-element list with the
+elements 1, @code{#f} and 3.  In normal use, this should be no
+problem, because people tend to terminate tokens sensibly when writing
+Scheme expressions.
+
+@node SRFI-4 - Procedures
+@subsection SRFI-4 Procedures
+
+The procedures listed in this section are provided for all homogeneous
+numeric vector datatypes.  For brevity, they are not all documented,
+but a summary of the procedures is given.  In the following
+descriptions, you can replace @code{TAG} by any of the datatype
+indicators @code{u8}, @code{s8}, @code{u16}, @code{s16}, @code{u32},
+@code{s32}, @code{u64}, @code{s64}, @code{f32} and @code{f64}.
+
+For example, you can use the procedures @code{u8vector?},
+@code{make-s8vector}, @code{u16vector}, @code{u32vector-length},
+@code{s64vector-ref}, @code{f32vector-set!} or @code{f64vector->list}.
+
+@deffn primitive TAGvector? obj
+Return @code{#t} if @var{obj} is a homogeneous numeric vector of type
+@code{TAG}.
+@end deffn
+
+@deffn primitive make-TAGvector n [value]
+Create a newly allocated homogeneous numeric vector of type
+@code{TAG}, which can hold @var{n} elements.  If @var{value} is given,
+the vector is initialized with the value, otherwise, the contents of
+the returned vector is not specified.
+@end deffn
+
+@deffn primitive TAGvector value1 @dots{}
+Create a newly allocated homogeneous numeric vector of type
+@code{TAG}. The returned vector is as long as the number of arguments
+given, and is initialized with the argument values.
+@end deffn
+
+@deffn primitive TAGvector-length TAGvec
+Return the number of elements in @var{TAGvec}.
+@end deffn
+
+@deffn primitive TAGvector-ref TAGvec i
+Return the element at index @var{i} in @var{TAGvec}.
+@end deffn
+
+@deffn primitive TAGvector-ref TAGvec i value
+Set the element at index @var{i} in @var{TAGvec} to @var{value}.  The
+return value is not specified.
+@end deffn
+
+@deffn primitive TAGvector->list TAGvec
+Return a newly allocated list holding all elements of @var{TAGvec}.
+@end deffn
+
+@deffn primitive list->TAGvector lst
+Return a newly allocated homogeneous numeric vector of type @code{TAG},
+initialized with the elements of the list @var{lst}.
+@end deffn
 
 
 @node SRFI-6

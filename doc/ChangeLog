@@ -1,3 +1,8 @@
+2001-06-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-modules.texi (SRFI-4): Added documentation for the new
+	module (srfi srfi-4).
+
 2001-06-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gh.texi (scm transition summary): Refer to scm_mem2string
