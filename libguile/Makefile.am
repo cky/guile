@@ -55,7 +55,7 @@ BUILT_SOURCES = \
     fluids.x fports.x gc.x gdbint.x gh_data.x gh_eval.x			\
     gh_funcs.x gh_init.x gh_io.x gh_list.x gh_predicates.x gsubr.x	\
     guardians.x hash.x hashtab.x init.x ioext.x iselect.x keywords.x	\
-    list.x load.x macros.x mallocs.x modules.x net_db.x			\
+    lang.x list.x load.x macros.x mallocs.x modules.x net_db.x		\
     numbers.x objects.x objprop.x options.x pairs.x ports.x posix.x	\
     print.x procprop.x procs.x random.x ramap.x read.x regex-posix.x	\
     root.x scmsigs.x script.x simpos.x smob.x socket.x sort.x		\
@@ -65,7 +65,7 @@ BUILT_SOURCES = \
 
 EXTRA_libguile_la_SOURCES = _scm.h \
     strerror.c inet_aton.c putenv.c \
-    threads.c alloca.c \
+    threads.c alloca.c lang.c \
     regex-posix.c iselect.c
 
 ## This is kind of nasty... there are ".c" files that we don't want to
@@ -90,7 +90,7 @@ modinclude_HEADERS = \
     continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h	\
     evalext.h feature.h filesys.h fports.h gc.h gdb_interface.h		\
     gdbint.h genio.h gsubr.h guardians.h hash.h hashtab.h init.h	\
-    ioext.h keywords.h kw.h list.h load.h macros.h mallocs.h 		\
+    ioext.h keywords.h kw.h lang.h list.h load.h macros.h mallocs.h 	\
     modules.h net_db.h numbers.h objects.h objprop.h options.h pairs.h	\
     ports.h posix.h regex-posix.h print.h procprop.h procs.h random.h	\
     ramap.h read.h root.h scmsigs.h script.h simpos.h smob.h socket.h	\
