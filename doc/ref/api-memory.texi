@@ -80,6 +80,7 @@ this mechanism.
 @deffnx {C Function} scm_gc_stats ()
 Return an association list of statistics about Guile's current
 use of storage.
+@end deffn
 
 @deffn {Scheme Procedure} gc-live-object-stats
 @deffnx {C Function} scm_gc_live_object_stats ()
@@ -92,9 +93,6 @@ If @var{x}'s mark bit is already set, return immediately.  This function
 must only be called during the mark-phase of garbage collection,
 typically from a smob @emph{mark} function.
 @end deftypefun
-
-
-@end deffn
 
 
 @node Memory Blocks
