@@ -594,15 +594,8 @@ specific condition.  Partitioning a list means to make two groups of
 list elements, one which contains the elements satisfying a condition,
 and the other for the elements which don't.
 
-@deffn {Scheme Procedure} filter pred lst
-@deffnx {Scheme Procedure} filter! pred lst
-Return a list containing all elements from @var{lst} which satisfy the
-predicate @var{pred}.  The elements in the result list have the same
-order as in @var{lst}.  The order in which @var{pred} is applied to
-the list elements is not specified.
-
-@code{filter!} is allowed, but not required to modify the structure of
-@end deffn
+The @code{filter} and @code{filter!} functions are implemented in the
+Guile core, @xref{List Modification}.
 
 @deffn {Scheme Procedure} partition pred lst
 @deffnx {Scheme Procedure} partition! pred lst

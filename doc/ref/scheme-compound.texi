@@ -461,6 +461,16 @@ Like @code{delete!}, but only deletes the first occurrence of
 @code{equal?}.  See also @code{delq1!} and @code{delv1!}.
 @end deffn
 
+@deffn {Scheme Procedure} filter pred lst
+@deffnx {Scheme Procedure} filter! pred lst
+Return a list containing all elements from @var{lst} which satisfy the
+predicate @var{pred}.  The elements in the result list have the same
+order as in @var{lst}.  The order in which @var{pred} is applied to
+the list elements is not specified.
+
+@code{filter!} is allowed, but not required to modify the structure of
+@end deffn
+
 @node List Searching
 @subsection List Searching
 
