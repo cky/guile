@@ -58,7 +58,7 @@
 #endif
 #define SCM_SET_STRING_CHARS(s, c) (SCM_SET_CELL_WORD_1 ((s), (c)))
 #define SCM_STRING_MAX_LENGTH ((1L << 24) - 1)
-#define SCM_STRING_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_STRING_LENGTH(x) (((size_t) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SET_STRING_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), ((l) << 8) + scm_tc7_string))
 
 #define SCM_STRING_COERCE_0TERMINATION_X(x) \
@@ -71,12 +71,12 @@ extern SCM scm_string_p (SCM x);
 extern SCM scm_read_only_string_p (SCM x);
 extern SCM scm_string (SCM chrs);
 extern SCM scm_makfromstrs (int argc, char **argv);
-extern SCM scm_take_str (char *s, int len);
+extern SCM scm_take_str (char *s, size_t len);
 extern SCM scm_take0str (char *s);
-extern SCM scm_makfromstr (const char *src, scm_sizet len, int);
+extern SCM scm_makfromstr (const char *src, size_t len, int);
 extern SCM scm_makfrom0str (const char *src);
 extern SCM scm_makfrom0str_opt (const char *src);
-extern SCM scm_allocate_string (scm_sizet len);
+extern SCM scm_allocate_string (size_t len);
 extern SCM scm_make_string (SCM k, SCM chr);
 extern SCM scm_string_length (SCM str);
 extern SCM scm_string_ref (SCM str, SCM k);
@@ -100,7 +100,7 @@ extern void scm_init_strings (void);
      ? (char *) SCM_CELL_WORD_1 (SCM_CDDR (x)) + SCM_INUM (SCM_CADR (x)) \
      : (char *) SCM_CELL_WORD_1 (x))
 extern SCM scm_make_shared_substring (SCM str, SCM frm, SCM to);
-extern SCM scm_makstr (long len, int);
+extern SCM scm_makstr (size_t len, int);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 

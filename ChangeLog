@@ -1,3 +1,12 @@
+2001-05-23  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* configure.in: configury for SCM_[U]BITS_T, some more sizeofs.
+	also, make sure that the integral type choosen to represent an SCM
+	has exactly the same size as a void pointer.
+
+	* acconfig.h: add undefs for SCM_BITS_T, SCM_UBITS_T,
+	SCM_SIZEOF_BITS_T, ptrdiff_t.
+
 2001-05-16  Rob Browning  <rlb@cs.utexas.edu>
 
 	* configure.in: add AC_SUBST for GUILE_MICRO_VERSION.

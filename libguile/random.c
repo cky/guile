@@ -73,7 +73,7 @@
  * scm_init_random().
  */
 
-scm_rng scm_the_rng;
+scm_rng_t scm_the_rng;
 
 
 /*
@@ -106,7 +106,7 @@ scm_rng scm_the_rng;
 #if SIZEOF_LONG > 4 || defined (HAVE_LONG_LONGS)
 
 unsigned long
-scm_i_uniform32 (scm_i_rstate *state)
+scm_i_uniform32 (scm_i_rstate_t *state)
 {
   LONG64 x = (LONG64) A * state->w + state->c;
   LONG32 w = x & 0xffffffffUL;
@@ -132,7 +132,7 @@ scm_i_uniform32 (scm_i_rstate *state)
 #define H(x) ((x) >> 16)
 
 unsigned long
-scm_i_uniform32 (scm_i_rstate *state)
+scm_i_uniform32 (scm_i_rstate_t *state)
 {
   LONG32 x1 = L (A) * L (state->w);
   LONG32 x2 = L (A) * H (state->w);
@@ -148,7 +148,7 @@ scm_i_uniform32 (scm_i_rstate *state)
 #endif
 
 void
-scm_i_init_rstate (scm_i_rstate *state, char *seed, int n)
+scm_i_init_rstate (scm_i_rstate_t *state, char *seed, int n)
 {
   LONG32 w = 0L;
   LONG32 c = 0L;
@@ -167,10 +167,10 @@ scm_i_init_rstate (scm_i_rstate *state, char *seed, int n)
   state->c = c;
 }
 
-scm_i_rstate *
-scm_i_copy_rstate (scm_i_rstate *state)
+scm_i_rstate_t *
+scm_i_copy_rstate (scm_i_rstate_t *state)
 {
-  scm_rstate *new_state = malloc (scm_the_rng.rstate_size);
+  scm_rstate_t *new_state = malloc (scm_the_rng.rstate_size);
   if (new_state == 0)
     scm_memory_error ("rstate");
   return memcpy (new_state, state, scm_the_rng.rstate_size);
@@ -181,10 +181,10 @@ scm_i_copy_rstate (scm_i_rstate *state)
  * Random number library functions
  */
 
-scm_rstate *
+scm_rstate_t *
 scm_c_make_rstate (char *seed, int n)
 {
-  scm_rstate *state = malloc (scm_the_rng.rstate_size);
+  scm_rstate_t *state = malloc (scm_the_rng.rstate_size);
   if (state == 0)
     scm_memory_error ("rstate");
   state->reserved0 = 0;
@@ -193,7 +193,7 @@ scm_c_make_rstate (char *seed, int n)
 }
 
 
-scm_rstate *
+scm_rstate_t *
 scm_c_default_rstate ()
 #define FUNC_NAME "scm_c_default_rstate"
 {
@@ -206,7 +206,7 @@ scm_c_default_rstate ()
 
 
 inline double
-scm_c_uniform01 (scm_rstate *state)
+scm_c_uniform01 (scm_rstate_t *state)
 {
   double x = (double) scm_the_rng.random_bits (state) / (double) 0xffffffffUL;
   return ((x + (double) scm_the_rng.random_bits (state))
@@ -214,7 +214,7 @@ scm_c_uniform01 (scm_rstate *state)
 }
 
 double
-scm_c_normal01 (scm_rstate *state)
+scm_c_normal01 (scm_rstate_t *state)
 {
   if (state->reserved0)
     {
@@ -237,7 +237,7 @@ scm_c_normal01 (scm_rstate *state)
 }
 
 double
-scm_c_exp1 (scm_rstate *state)
+scm_c_exp1 (scm_rstate_t *state)
 {
   return - log (scm_c_uniform01 (state));
 }
@@ -245,7 +245,7 @@ scm_c_exp1 (scm_rstate *state)
 unsigned char scm_masktab[256];
 
 unsigned long
-scm_c_random (scm_rstate *state, unsigned long m)
+scm_c_random (scm_rstate_t *state, unsigned long m)
 {
   unsigned int r, mask;
   mask = (m < 0x100
@@ -260,7 +260,7 @@ scm_c_random (scm_rstate *state, unsigned long m)
 }
 
 SCM
-scm_c_random_bignum (scm_rstate *state, SCM m)
+scm_c_random_bignum (scm_rstate_t *state, SCM m)
 {
   SCM b;
   int i, nd;
@@ -292,7 +292,7 @@ scm_c_random_bignum (scm_rstate *state, SCM m)
 		 ? scm_masktab[w >> 16] << 16 | 0xffff
 		 : scm_masktab[w >> 24] << 24 | 0xffffff));
     }
-  b = scm_mkbig (nd, 0);
+  b = scm_i_mkbig (nd, 0);
   bits = (LONG32 *) SCM_BDIGITS (b);
   do
     {
@@ -322,7 +322,7 @@ scm_c_random_bignum (scm_rstate *state, SCM m)
       /* now fill up the rest of the bignum */
       while (i)
 	bits[--i] = scm_the_rng.random_bits (state);
-      b = scm_normbig (b);
+      b = scm_i_normbig (b);
       if (SCM_INUMP (b))
 	return b;
     } while (scm_bigcomp (b, m) <= 0);
@@ -336,12 +336,12 @@ scm_c_random_bignum (scm_rstate *state, SCM m)
 scm_bits_t scm_tc16_rstate;
 
 static SCM
-make_rstate (scm_rstate *state)
+make_rstate (scm_rstate_t *state)
 {
   SCM_RETURN_NEWSMOB (scm_tc16_rstate, state);
 }
 
-static scm_sizet
+static size_t
 rstate_free (SCM rstate)
 {
   free (SCM_RSTATE (rstate));
@@ -568,12 +568,12 @@ scm_init_random ()
 {
   int i, m;
   /* plug in default RNG */
-  scm_rng rng =
+  scm_rng_t rng =
   {
-    sizeof (scm_i_rstate),
+    sizeof (scm_i_rstate_t),
     (unsigned long (*)()) scm_i_uniform32,
     (void (*)())          scm_i_init_rstate,
-    (scm_rstate *(*)())    scm_i_copy_rstate
+    (scm_rstate_t *(*)())    scm_i_copy_rstate
   };
   scm_the_rng = rng;
   

@@ -1,3 +1,192 @@
+2001-05-24  Michael Livshin  <mlivshin@bigfoot.com>
+
+	The purpose of this set of changes is to regularize Guile's usage
+	of ANSI C integral types, with the following ideas in mind:
+
+	- SCM does not nesessarily has to be long.
+	- long is not nesessarily the same size as int.
+
+	The changes are incomplete and possibly buggy.  Please test on
+	something exotic.
+
+	* validate.h
+	(SCM_NUM2{SIZE,PTRDIFF,SHORT,USHORT,BITS,UBITS,INT,UINT}[_DEF]):
+	new macros.
+
+	* unif.h: type renaming:
+	scm_array -> scm_array_t
+	scm_array_dim -> scm_array_dim_t
+	the old names are deprecated, all in-Guile uses changed.
+
+	* tags.h (scm_ubits_t): new typedef, representing unsigned
+	scm_bits_t.
+
+	* stacks.h: type renaming:
+	scm_info_frame -> scm_info_frame_t
+	scm_stack -> scm_stack_t
+	the old names are deprecated, all in-Guile uses changed.
+
+	* srcprop.h: type renaming:
+	scm_srcprops -> scm_srcprops_t
+	scm_srcprops_chunk -> scm_srcprops_chunk_t
+	the old names are deprecated, all in-Guile uses changed.
+
+	* gsubr.c, procs.c, print.c, ports.c, read.c, rdelim.c, ramap.c,
+	rw.c, smob.c, sort.c, srcprop.c, stacks.c, strings.c, strop.c,
+	strorder.c, strports.c, struct.c, symbols.c, unif.c, values.c,
+	vectors.c, vports.c, weaks.c:
+	various int/size_t -> size_t/scm_bits_t changes.
+
+	* random.h: type renaming:
+	scm_rstate -> scm_rstate_t
+	scm_rng -> scm_rng_t
+	scm_i_rstate -> scm_i_rstate_t
+	the old names are deprecated, all in-Guile uses changed.
+
+	* procs.h: type renaming:
+	scm_subr_entry -> scm_subr_entry_t
+	the old name is deprecated, all in-Guile uses changed.
+
+	* options.h (scm_option_t.val): unsigned long -> scm_bits_t.
+	type renaming:
+	scm_option -> scm_option_t
+	the old name is deprecated, all in-Guile uses changed.
+
+	* objects.c: various long -> scm_bits_t changes.
+	(scm_i_make_class_object): flags: unsigned long -> scm_ubits_t
+
+	* numbers.h (SCM_FIXNUM_BIT): deprecated, renamed to
+	SCM_I_FIXNUM_BIT.
+
+	* num2integral.i.c: new file, multiply included by numbers.c, used
+	to "templatize" the various integral <-> num conversion routines.
+
+	* numbers.c (scm_mkbig, scm_big2num, scm_adjbig, scm_normbig,
+	scm_copybig, scm_2ulong2big, scm_dbl2big, scm_big2dbl):
+	deprecated.
+	(scm_i_mkbig, scm_i_big2inum, scm_i_adjbig, scm_i_normbig,
+	scm_i_copybig, scm_i_short2big, scm_i_ushort2big, scm_i_int2big,
+	scm_i_uint2big, scm_i_long2big, scm_i_ulong2big, scm_i_bits2big,
+	scm_i_ubits2big, scm_i_size2big, scm_i_ptrdiff2big,
+	scm_i_long_long2big, scm_i_ulong_long2big, scm_i_dbl2big,
+	scm_i_big2dbl, scm_short2num, scm_ushort2num, scm_int2num,
+	scm_uint2num, scm_bits2num, scm_ubits2num, scm_size2num,
+	scm_ptrdiff2num, scm_num2short, scm_num2ushort, scm_num2int,
+	scm_num2uint, scm_num2bits, scm_num2ubits, scm_num2ptrdiff,
+	scm_num2size): new functions.
+
+	* modules.c (scm_module_reverse_lookup): i, n: int -> scm_bits_t.x
+
+	* load.c: change int -> size_t in various places (where the
+	variable is used to store a string length).
+	(search-path): call scm_done_free, not scm_done_malloc.
+
+	* list.c (scm_ilength): return a scm_bits_t, not long.
+	some other {int,long} -> scm_bits_t changes.
+
+	* hashtab.c: various [u]int -> scm_bits_t changes.
+	scm_ihashx_closure -> scm_ihashx_closure_t (and made a typedef).
+	(scm_ihashx): n: uint -> scm_bits_t
+	use scm_bits2num instead of scm_ulong2num.
+
+	* gsubr.c: various int -> scm_bits_t changes.
+
+	* goops.[hc]: various {int,long} -> scm_bits_t changes.
+
+	* gh_data.c (gh_scm2double): no loss of precision any more.
+
+	* gh.h (gh_str2scm): len: int -> size_t
+	(gh_{get,set}_substr): start: int -> scm_bits_t,
+	len: int -> size_t
+	(gh_<num>2scm): n: int -> scm_bits_t
+	(gh_*vector_length): return scm_[u]size_t, not unsigned long.
+	(gh_length): return scm_bits_t, not unsigned long.
+
+	* gc.[hc]: various small changes relating to many things stopping
+	being long and starting being scm_[u]bits_t instead.
+	scm_mallocated should no longer wrap around.
+
+	* fports.h: type renaming:
+	scm_fport -> scm_fport_t
+	the old name is deprecated, all in-Guile uses changed.
+
+	* fports.c (fport_fill_input): count: int -> scm_bits_t
+	(fport_flush): init_size, remaining, count: int -> scm_bits_t
+
+	* debug.h (scm_lookup_cstr, scm_lookup_soft, scm_evstr): removed
+	those prototypes, as the functions they prototype don't exist.
+
+	* fports.c (default_buffer_size): int -> size_t
+	(scm_fport_buffer_add): read_size, write_size: int -> scm_bits_t
+	default_size: int -> size_t
+	(scm_setvbuf): csize: int -> scm_bits_t
+
+	* fluids.c (n_fluids): int -> scm_bits_t
+	(grow_fluids): old_length, i: int -> scm_bits_t
+	(next_fluid_num, scm_fluid_ref, scm_fluid_set_x): n: int ->
+	scm_bits_t
+	(scm_c_with_fluids): flen, vlen: int -> scm_bits_t
+
+	* filesys.c (s_scm_open_fdes): changed calls to SCM_NUM2LONG to
+	the new and shiny SCM_NUM2INT.
+
+	* extensions.c: extension -> extension_t (and made a typedef).
+
+	* eval.h (SCM_IFRAME): cast to scm_bits_t, not int.  just so
+	there are no nasty surprises if/when the various deeply magic tag
+	bits move somewhere else.
+
+	* eval.c: changed the locals used to store results of SCM_IFRAME,
+	scm_ilength and such to be of type scm_bits_t (and not int/long).
+	(iqq): depth, edepth: int -> scm_bits_t
+	(scm_eval_stack): int -> scm_bits_t
+	(SCM_CEVAL): various vars are not scm_bits_t instead of int.
+	(check_map_args, scm_map, scm_for_each): len: long -> scm_bits_t
+	i: int -> scm_bits_t
+
+	* environments.c: changed the many calls to scm_ulong2num to
+	scm_ubits2num.
+	(import_environment_fold): proc_as_ul: ulong -> scm_ubits_t
+
+	* dynwind.c (scm_dowinds): delta: long -> scm_bits_t
+
+	* debug.h: type renaming:
+	scm_debug_info -> scm_debug_info_t
+	scm_debug_frame -> scm_debug_frame_t
+	the old names are deprecated, all in-Guile uses changed.
+	(scm_debug_eframe_size): int -> scm_bits_t
+
+	* debug.c (scm_init_debug): use scm_c_define instead of the
+	deprecated scm_define.
+
+	* continuations.h: type renaming:
+	scm_contregs -> scm_contregs_t
+	the old name is deprecated, all in-Guile uses changed.
+	(scm_contregs_t.num_stack_items): size_t -> scm_bits_t
+	(scm_contregs_t.num_stack_items): ulong -> scm_ubits_t
+
+	* continuations.c (scm_make_continuation): change the type of
+	stack_size form long to scm_bits_t.
+
+	* ports.h: type renaming:
+	scm_port_rw_active -> scm_port_rw_active_t (and made a typedef)
+	scm_port -> scm_port_t
+	scm_ptob_descriptor -> scm_ptob_descriptor_t
+	the old names are deprecated, all in-Guile uses changed.
+	(scm_port_t.entry): int -> scm_bits_t.
+	(scm_port_t.line_number): int -> long.
+	(scm_port_t.putback_buf_size): int -> size_t.
+
+	* __scm.h (long_long, ulong_long): deprecated (they pollute the
+	global namespace and have little value besides that).
+	(SCM_BITS_LENGTH): new, is the bit size of scm_bits_t (i.e. of an
+	SCM handle).
+	(ifdef spaghetti): include sys/types.h and sys/stdtypes.h, if they
+	exist (for size_t & ptrdiff_t)
+	(scm_sizet): deprecated.
+
+	* Makefile.am (noinst_HEADERS): add num2integral.i.c
+
 2001-05-23  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* snarf.h (SCM_CONST_LONG): Use SCM_VCELL_INIT instead of

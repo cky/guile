@@ -243,8 +243,8 @@ SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0,
 
   SCM_VALIDATE_STRING (1, path);
   SCM_STRING_COERCE_0TERMINATION_X (path);
-  iflags = SCM_NUM2LONG (2, flags);
-  imode = SCM_NUM2LONG_DEF (3, mode, 0666);
+  iflags = SCM_NUM2INT (2, flags);
+  imode = SCM_NUM2INT_DEF (3, mode, 0666);
   SCM_SYSCALL (fd = open (SCM_STRING_CHARS (path), iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
@@ -286,7 +286,7 @@ SCM_DEFINE (scm_open, "open", 2, 1, 0,
   int iflags;
 
   fd = SCM_INUM (scm_open_fdes (path, flags, mode));
-  iflags = SCM_NUM2LONG (2, flags);
+  iflags = SCM_NUM2INT (2, flags);
   if (iflags & O_RDWR)
     {
       if (iflags & O_APPEND)
@@ -795,7 +795,7 @@ scm_dir_print (SCM exp, SCM port, scm_print_state *pstate)
 }
 
 
-static scm_sizet 
+static size_t 
 scm_dir_free (SCM p)
 {
   if (SCM_DIR_OPEN_P (p))
@@ -832,7 +832,7 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
 #define FUNC_NAME s_scm_getcwd
 {
   char *rv;
-  scm_sizet size = 100;
+  size_t size = 100;
   char *wd;
   SCM result;
 
@@ -879,7 +879,7 @@ set_element (SELECT_TYPE *set, SCM *ports_ready, SCM element, int pos)
       if (pos == SCM_ARG1)
 	{
 	  /* check whether port has buffered input.  */
-	  scm_port *pt = SCM_PTAB_ENTRY (element);
+	  scm_port_t *pt = SCM_PTAB_ENTRY (element);
       
 	  if (pt->read_pos < pt->read_end)
 	    use_buf = 1;
@@ -887,7 +887,7 @@ set_element (SELECT_TYPE *set, SCM *ports_ready, SCM element, int pos)
       else if (pos == SCM_ARG2)
 	{
 	  /* check whether port's output buffer has room.  */
-	  scm_port *pt = SCM_PTAB_ENTRY (element);
+	  scm_port_t *pt = SCM_PTAB_ENTRY (element);
 
 	  /* > 1 since writing the last byte in the buffer causes flush.  */
 	  if (pt->write_end - pt->write_pos > 1)

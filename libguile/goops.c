@@ -131,7 +131,7 @@
 #define SCM_GOOPS_UNBOUNDP(x) ((x) == SCM_GOOPS_UNBOUND)
 
 static int goops_loaded_p = 0;
-static scm_rstate *goops_rstate;
+static scm_rstate_t *goops_rstate;
 
 static SCM scm_goops_lookup_closure;
 
@@ -314,7 +314,7 @@ compute_getters_n_setters (SCM slots)
 {
   SCM res = SCM_EOL;
   SCM *cdrloc = &res;
-  long i   = 0;
+  scm_bits_t i   = 0;
 
   for (  ; SCM_NNULLP(slots); slots = SCM_CDR(slots))
     {
@@ -345,9 +345,9 @@ compute_getters_n_setters (SCM slots)
 
 /*fixme* Manufacture keywords in advance */
 SCM
-scm_i_get_keyword (SCM key, SCM l, int len, SCM default_value, const char *subr)
+scm_i_get_keyword (SCM key, SCM l, scm_bits_t len, SCM default_value, const char *subr)
 {
-  unsigned int i;
+  scm_bits_t i;
 
   for (i = 0; i != len; i += 2)
     {
@@ -375,7 +375,7 @@ SCM_DEFINE (scm_get_keyword, "get-keyword", 3, 0, 0,
 	    "@var{default_value} is returned.")
 #define FUNC_NAME s_scm_get_keyword
 {
-  int len;
+  scm_bits_t len;
 
   SCM_ASSERT (SCM_KEYWORDP (key), key, SCM_ARG1, FUNC_NAME);
   len = scm_ilength (l);
@@ -400,7 +400,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 {
   SCM tmp, get_n_set, slots;
   SCM class       = SCM_CLASS_OF (obj);
-  int n_initargs;
+  scm_bits_t n_initargs;
 
   SCM_VALIDATE_INSTANCE (1, obj);
   n_initargs = scm_ilength (initargs);
@@ -420,7 +420,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
       if (SCM_NIMP (SCM_CDR (slot_name)))
 	{
 	  /* This slot admits (perhaps) to be initialized at creation time */
-	  int n = scm_ilength (SCM_CDR (slot_name));
+	  scm_bits_t n = scm_ilength (SCM_CDR (slot_name));
 	  if (n & 1) /* odd or -1 */
 	    SCM_MISC_ERROR ("class contains bogus slot definition: ~S",
 			    SCM_LIST1 (slot_name));
@@ -479,7 +479,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_sys_prep_layout_x
 {
-  int i, n, len;
+  scm_bits_t i, n, len;
   char *s, p, a;
   SCM nfields, slots, type;
 
@@ -543,7 +543,7 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
 #define FUNC_NAME s_scm_sys_inherit_magic_x
 {
   SCM ls = dsupers;
-  long flags = 0;
+  scm_bits_t flags = 0;
   SCM_VALIDATE_INSTANCE (1, class);
   while (SCM_NNULLP (ls))
     {
@@ -560,7 +560,7 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
     SCM_SET_CLASS_DESTRUCTOR (class, scm_struct_free_entity);
   else
     {
-      int n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
+      scm_bits_t n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
 #if 0
       /*
        * We could avoid calling scm_must_malloc in the allocation code
@@ -998,7 +998,7 @@ SCM_DEFINE (scm_sys_fast_slot_ref, "%fast-slot-ref", 2, 0, 0,
 	    "Return the slot value with index @var{index} from @var{obj}.")
 #define FUNC_NAME s_scm_sys_fast_slot_ref
 {
-  register long i;
+  register scm_bits_t i;
 
   SCM_VALIDATE_INSTANCE (1, obj);
   SCM_VALIDATE_INUM (2, index);
@@ -1015,7 +1015,7 @@ SCM_DEFINE (scm_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0,
 	    "@var{value}.")
 #define FUNC_NAME s_scm_sys_fast_slot_set_x
 {
-  register long i;
+  register scm_bits_t i;
 
   SCM_VALIDATE_INSTANCE (1, obj);
   SCM_VALIDATE_INUM (2, index);
@@ -1279,10 +1279,10 @@ SCM_DEFINE (scm_slots_exists_p, "slot-exists?", 2, 0, 0,
 static void clear_method_cache (SCM);
 
 static SCM
-wrap_init (SCM class, SCM *m, int n)
+wrap_init (SCM class, SCM *m, scm_bits_t n)
 {
   SCM z;
-  int i;
+  scm_bits_t i;
   
   /* Set all slots to unbound */
   for (i = 0; i < n; i++)
@@ -1303,7 +1303,7 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
 #define FUNC_NAME s_scm_sys_allocate_instance
 {
   SCM *m;
-  int n;
+  scm_bits_t n;
 
   SCM_VALIDATE_CLASS (1, class);
 
@@ -1343,7 +1343,7 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
   /* Class objects */
   if (SCM_CLASS_FLAGS (class) & SCM_CLASSF_METACLASS)
     {
-      int i;
+      scm_bits_t i;
 
       /* allocate class object */
       SCM z = scm_make_struct (class, SCM_INUM0, SCM_EOL);
@@ -1463,16 +1463,16 @@ SCM_DEFINE (scm_sys_invalidate_class, "%invalidate-class", 1, 0, 0,
  */
 
 static SCM **hell;
-static int n_hell = 1;		/* one place for the evil one himself */
-static int hell_size = 4;
+static scm_bits_t n_hell = 1;		/* one place for the evil one himself */
+static scm_bits_t hell_size = 4;
 #ifdef USE_THREADS
 static scm_mutex_t hell_mutex;
 #endif
 
-static int
+static scm_bits_t
 burnin (SCM o)
 {
-  int i;
+  scm_bits_t i;
   for (i = 1; i < n_hell; ++i)
     if (SCM_INST (o) == hell[i])
       return i;
@@ -1488,7 +1488,7 @@ go_to_hell (void *o)
 #endif
   if (n_hell == hell_size)
     {
-      int new_size = 2 * hell_size;
+      scm_bits_t new_size = 2 * hell_size;
       hell = scm_must_realloc (hell, hell_size, new_size, "hell");
       hell_size = new_size;
     }
@@ -1668,7 +1668,7 @@ static int
 more_specificp (SCM m1, SCM m2, SCM *targs)
 {
   register SCM s1, s2;
-  register int i;
+  register scm_bits_t i;
   /* 
    * Note: 
    *   m1 and m2 can have != length (i.e. one can be one element longer than the 
@@ -1706,9 +1706,9 @@ more_specificp (SCM m1, SCM m2, SCM *targs)
 #define BUFFSIZE 32		/* big enough for most uses */
 
 static SCM
-scm_i_vector2list (SCM l, int len)
+scm_i_vector2list (SCM l, scm_bits_t len)
 {
-  int j;
+  size_t j;
   SCM z = scm_c_make_vector (len, SCM_UNDEFINED);
   
   for (j = 0; j < len; j++, l = SCM_CDR (l)) {
@@ -1718,9 +1718,9 @@ scm_i_vector2list (SCM l, int len)
 }
 
 static SCM
-sort_applicable_methods (SCM method_list, int size, SCM *targs)
+sort_applicable_methods (SCM method_list, scm_bits_t size, SCM *targs)
 {
-  int i, j, incr;
+  scm_bits_t i, j, incr;
   SCM *v, vector = SCM_EOL;
   SCM buffer[BUFFSIZE];
   SCM save = method_list;
@@ -1782,10 +1782,10 @@ sort_applicable_methods (SCM method_list, int size, SCM *targs)
 }
 
 SCM
-scm_compute_applicable_methods (SCM gf, SCM args, int len, int find_method_p)
+scm_compute_applicable_methods (SCM gf, SCM args, scm_bits_t len, int find_method_p)
 {
-  register int i;
-  int count = 0;
+  register scm_bits_t i;
+  scm_bits_t count = 0;
   SCM l, fl, applicable = SCM_EOL;
   SCM save = args;
   SCM buffer[BUFFSIZE], *types, *p;
@@ -1853,7 +1853,7 @@ SCM
 scm_sys_compute_applicable_methods (SCM gf, SCM args)
 #define FUNC_NAME s_sys_compute_applicable_methods
 {
-  int n;
+  scm_bits_t n;
   SCM_VALIDATE_GENERIC (1, gf);
   n = scm_ilength (args);
   SCM_ASSERT (n >= 0, args, SCM_ARG2, FUNC_NAME);
@@ -1991,7 +1991,7 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 #define FUNC_NAME s_scm_make
 {
   SCM class, z;
-  int len = scm_ilength (args);
+  scm_bits_t len = scm_ilength (args);
 
   if (len <= 0 || (len & 1) == 0)
     SCM_WRONG_NUM_ARGS ();
@@ -2084,7 +2084,7 @@ SCM_DEFINE (scm_find_method, "find-method", 0, 0, 1,
 #define FUNC_NAME s_scm_find_method
 {
   SCM gf;
-  int len = scm_ilength (l);
+  scm_bits_t len = scm_ilength (l);
 
   if (len == 0)
     SCM_WRONG_NUM_ARGS ();
@@ -2104,7 +2104,7 @@ SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
 #define FUNC_NAME s_scm_sys_method_more_specific_p
 {
   SCM l, v;
-  int i, len;
+  scm_bits_t i, len;
 
   SCM_VALIDATE_METHOD (1, m1);
   SCM_VALIDATE_METHOD (2, m2);
@@ -2357,7 +2357,7 @@ scm_make_extended_class (char *type_name)
 static void
 create_smob_classes (void)
 {
-  int i;
+  scm_bits_t i;
 
   scm_smob_class = (SCM *) malloc (255 * sizeof (SCM));
   for (i = 0; i < 255; ++i)
@@ -2374,7 +2374,7 @@ create_smob_classes (void)
 }
 
 void
-scm_make_port_classes (int ptobnum, char *type_name)
+scm_make_port_classes (scm_bits_t ptobnum, char *type_name)
 {
   SCM c, class = make_class_from_template ("<%s-port>",
 					   type_name,
@@ -2401,7 +2401,7 @@ scm_make_port_classes (int ptobnum, char *type_name)
 static void
 create_port_classes (void)
 {
-  int i;
+  scm_bits_t i;
 
   scm_port_class = (SCM *) malloc (3 * 256 * sizeof (SCM));
   for (i = 0; i < 3 * 256; ++i)
@@ -2551,7 +2551,7 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
     }
   }
   {  
-    int n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
+    scm_bits_t n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
 
     SCM_SLOT (class, scm_si_nfields)
       = SCM_MAKINUM (n + 1);

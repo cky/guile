@@ -161,6 +161,12 @@ AC_C_BIGENDIAN
 
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
+
+dnl by the pre C9X ANSI C standards, size_t & ptrdiff_t have to be
+dnl representable by a standard integral type.  since the largest 
+dnl integer type in the pre-C9X ANSI C standards is long...
+AC_CHECK_TYPE(ptrdiff_t, long)
+
 AC_CACHE_CHECK([for long longs], scm_cv_long_longs,
 	       AC_TRY_COMPILE(,
 			      [long long a],
@@ -168,13 +174,32 @@ AC_CACHE_CHECK([for long longs], scm_cv_long_longs,
 			      scm_cv_long_longs=no))
 if test "$scm_cv_long_longs" = yes; then
   AC_DEFINE(HAVE_LONG_LONGS)
+  AC_CHECK_SIZEOF(long long)
+fi
+
+AC_CHECK_SIZEOF(void *)
+
+if test "$ac_cv_sizeof_long" -eq "$ac_cv_sizeof_void_p"; then
+  AC_DEFINE(SCM_BITS_T, long)
+  AC_DEFINE(SCM_UBITS_T, unsigned long)
+  AC_DEFINE(SCM_SIZEOF_BITS_T, SIZEOF_LONG)
+elif test \( "$scm_cv_long_longs" = yes \) -a \( "$ac_cv_sizeof_long_long" -eq "$ac_cv_sizeof_void_p" \); then
+  AC_DEFINE(SCM_BITS_T, long long)
+  AC_DEFINE(SCM_UBITS_T, unsigned long long)
+  AC_DEFINE(SCM_SIZEOF_BITS_T, SIZEOF_LONG_LONG)
+elif test "$ac_cv_sizeof_int" -eq "$ac_cv_sizeof_void_p"; then
+  AC_DEFINE(SCM_BITS_T, int)
+  AC_DEFINE(SCM_UBITS_T, unsigned int)
+  AC_DEFINE(SCM_SIZEOF_BITS_T, SIZEOF_INT)
+else
+  AC_MSG_ERROR(cannot find an integral type capable of storing a pointer: "$ac_cv_sizeof_void_p" bytes)
 fi
 
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(io.h libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h sys/utime.h time.h unistd.h utime.h)
+AC_CHECK_HEADERS(io.h libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h sys/utime.h time.h unistd.h utime.h)
 GUILE_HEADER_LIBC_WITH_UNISTD
 
 AC_TYPE_GETGROUPS

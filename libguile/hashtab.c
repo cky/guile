@@ -55,17 +55,20 @@
 
 
 SCM
-scm_c_make_hash_table (unsigned long k)
+scm_c_make_hash_table (scm_bits_t k)
 {
   return scm_c_make_vector (k, SCM_EOL);
 }
 
 
 SCM
-scm_hash_fn_get_handle (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn)(),void * closure)
+scm_hash_fn_get_handle (SCM table, SCM obj,
+                        scm_bits_t (*hash_fn) (),
+                        SCM (*assoc_fn) (),
+                        void *closure)
 #define FUNC_NAME "scm_hash_fn_get_handle"
 {
-  unsigned int k;
+  scm_bits_t k;
   SCM h;
 
   SCM_VALIDATE_VECTOR (1, table);
@@ -81,11 +84,13 @@ scm_hash_fn_get_handle (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_
 
 
 SCM
-scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned int (*hash_fn)(),
-                             SCM (*assoc_fn)(),void * closure)
+scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
+                             scm_bits_t (*hash_fn) (),
+                             SCM (*assoc_fn) (),
+                             void *closure)
 #define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
-  unsigned int k;
+  scm_bits_t k;
   SCM it;
 
   SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_create_handle_x");
@@ -116,8 +121,10 @@ scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned int (*hash_fn)(
 
 
 SCM 
-scm_hash_fn_ref (SCM table,SCM obj,SCM dflt,unsigned int (*hash_fn)(),
-                 SCM (*assoc_fn)(),void * closure)
+scm_hash_fn_ref (SCM table, SCM obj, SCM dflt,
+                 scm_bits_t (*hash_fn) (),
+                 SCM (*assoc_fn) (),
+                 void *closure)
 {
   SCM it = scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure);
   if (SCM_CONSP (it))
@@ -130,8 +137,10 @@ scm_hash_fn_ref (SCM table,SCM obj,SCM dflt,unsigned int (*hash_fn)(),
 
 
 SCM 
-scm_hash_fn_set_x (SCM table,SCM obj,SCM val,unsigned int (*hash_fn)(),
-                   SCM (*assoc_fn)(),void * closure)
+scm_hash_fn_set_x (SCM table, SCM obj, SCM val,
+                   scm_bits_t (*hash_fn) (),
+                   SCM (*assoc_fn) (),
+                   void * closure)
 {
   SCM it;
 
@@ -145,10 +154,13 @@ scm_hash_fn_set_x (SCM table,SCM obj,SCM val,unsigned int (*hash_fn)(),
 
 
 SCM 
-scm_hash_fn_remove_x (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn)(),
-                      SCM (*delete_fn)(),void * closure)
+scm_hash_fn_remove_x (SCM table, SCM obj,
+                      scm_bits_t (*hash_fn) (),
+                      SCM (*assoc_fn) (),
+                      SCM (*delete_fn) (),
+                      void *closure)
 {
-  unsigned int k;
+  scm_bits_t k;
   SCM h;
 
   SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_remove_x");
@@ -366,22 +378,22 @@ SCM_DEFINE (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
 
 
 
-struct scm_ihashx_closure
+typedef struct scm_ihashx_closure_t
 {
   SCM hash;
   SCM assoc;
   SCM delete;
-};
+} scm_ihashx_closure_t;
 
 
 
-static unsigned int
-scm_ihashx (SCM obj,unsigned int n,struct scm_ihashx_closure * closure)
+static scm_bits_t
+scm_ihashx (SCM obj, scm_bits_t n, scm_ihashx_closure_t *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
   answer = scm_apply (closure->hash,
-		      SCM_LIST2 (obj, scm_ulong2num ((unsigned long)n)),
+		      SCM_LIST2 (obj, scm_bits2num (n)),
 		      SCM_EOL);
   SCM_ALLOW_INTS;
   return SCM_INUM (answer);
@@ -390,7 +402,7 @@ scm_ihashx (SCM obj,unsigned int n,struct scm_ihashx_closure * closure)
 
 
 static SCM
-scm_sloppy_assx (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
+scm_sloppy_assx (SCM obj, SCM alist, scm_ihashx_closure_t *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
@@ -405,7 +417,7 @@ scm_sloppy_assx (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
 
 
 static SCM
-scm_delx_x (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
+scm_delx_x (SCM obj, SCM alist, scm_ihashx_closure_t *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
@@ -428,7 +440,7 @@ SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0,
 	    "@code{assoc}, @code{assq} or @code{assv}.")
 #define FUNC_NAME s_scm_hashx_get_handle
 {
-  struct scm_ihashx_closure closure;
+  scm_ihashx_closure_t closure;
   closure.hash = hash;
   closure.assoc = assoc;
   return scm_hash_fn_get_handle (table, key, scm_ihashx, scm_sloppy_assx,
@@ -447,7 +459,7 @@ SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0,
 	    "@code{assoc}, @code{assq} or @code{assv}.")
 #define FUNC_NAME s_scm_hashx_create_handle_x
 {
-  struct scm_ihashx_closure closure;
+  scm_ihashx_closure_t closure;
   closure.hash = hash;
   closure.assoc = assoc;
   return scm_hash_fn_create_handle_x (table, key, init, scm_ihashx,
@@ -470,7 +482,7 @@ SCM_DEFINE (scm_hashx_ref, "hashx-ref", 4, 1, 0,
 	    "equivalent to @code{hashx-ref hashq assq table key}.")
 #define FUNC_NAME s_scm_hashx_ref
 {
-  struct scm_ihashx_closure closure;
+  scm_ihashx_closure_t closure;
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
   closure.hash = hash;
@@ -496,7 +508,7 @@ SCM_DEFINE (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
 	    "equivalent to @code{hashx-set!  hashq assq table key}.")
 #define FUNC_NAME s_scm_hashx_set_x
 {
-  struct scm_ihashx_closure closure;
+  scm_ihashx_closure_t closure;
   closure.hash = hash;
   closure.assoc = assoc;
   return scm_hash_fn_set_x (table, key, val, scm_ihashx, scm_sloppy_assx,
@@ -507,9 +519,9 @@ SCM_DEFINE (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
 
 
 SCM
-scm_hashx_remove_x (SCM hash,SCM assoc,SCM delete,SCM table,SCM obj)
+scm_hashx_remove_x (SCM hash, SCM assoc, SCM delete, SCM table, SCM obj)
 {
-  struct scm_ihashx_closure closure;
+  scm_ihashx_closure_t closure;
   closure.hash = hash;
   closure.assoc = assoc;
   closure.delete = delete;
@@ -543,7 +555,7 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
 SCM
 scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 {
-  int i, n = SCM_VECTOR_LENGTH (table);
+  scm_bits_t i, n = SCM_VECTOR_LENGTH (table);
   SCM result = init;
   for (i = 0; i < n; ++i)
     {

@@ -81,7 +81,7 @@ charset_print (SCM charset, SCM port, scm_print_state *pstate)
 
 
 /* Smob free hook for character sets. */
-static scm_sizet
+static size_t
 charset_free (SCM charset)
 {
   return scm_smob_free (charset);

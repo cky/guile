@@ -67,7 +67,7 @@
  */
 
 #define MAX_SMOB_COUNT 256
-int scm_numsmob;
+scm_bits_t scm_numsmob;
 scm_smob_descriptor scm_smobs[MAX_SMOB_COUNT];
 
 /* {Mark}
@@ -100,13 +100,13 @@ scm_markcdr (SCM ptr)
 /* {Free}
  */
 
-scm_sizet 
+size_t 
 scm_free0 (SCM ptr)
 {
   return 0;
 }
 
-scm_sizet
+size_t
 scm_smob_free (SCM obj)
 {
   scm_must_free ((char *) SCM_CELL_WORD_1 (obj));
@@ -119,7 +119,7 @@ scm_smob_free (SCM obj)
 int
 scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
 {
-  unsigned int n = SCM_SMOBNUM (exp);
+  size_t n = SCM_SMOBNUM (exp);
   scm_puts ("#<", port);
   scm_puts (SCM_SMOBNAME (n) ? SCM_SMOBNAME (n) : "smob", port);
   scm_putc (' ', port);
@@ -286,10 +286,10 @@ scm_smob_apply_3_error (SCM smob, SCM a1, SCM a2, SCM rst)
 
 
 scm_bits_t 
-scm_make_smob_type (char *name, scm_sizet size)
+scm_make_smob_type (char *name, size_t size)
 #define FUNC_NAME "scm_make_smob_type"
 {
-  unsigned int new_smob;
+  size_t new_smob;
 
   SCM_ENTER_A_SECTION;  /* scm_numsmob */
   new_smob = scm_numsmob;
@@ -323,7 +323,7 @@ scm_set_smob_mark (scm_bits_t tc, SCM (*mark) (SCM))
 }
 
 void
-scm_set_smob_free (scm_bits_t tc, scm_sizet (*free) (SCM))
+scm_set_smob_free (scm_bits_t tc, size_t (*free) (SCM))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].free = free;
 }
@@ -453,8 +453,8 @@ scm_set_smob_apply (scm_bits_t tc, SCM (*apply) (),
 SCM
 scm_make_smob (scm_bits_t tc)
 {
-  int n = SCM_TC2SMOBNUM (tc);
-  scm_sizet size = scm_smobs[n].size;
+  size_t n = SCM_TC2SMOBNUM (tc);
+  size_t size = scm_smobs[n].size;
   SCM z;
   SCM_NEWCELL (z);
   if (size != 0)
@@ -481,13 +481,13 @@ scm_make_smob (scm_bits_t tc)
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 long
-scm_make_smob_type_mfpe (char *name, scm_sizet size,
+scm_make_smob_type_mfpe (char *name, size_t size,
                         SCM (*mark) (SCM),
-                        scm_sizet (*free) (SCM),
+                        size_t (*free) (SCM),
                         int (*print) (SCM, SCM, scm_print_state *),
                         SCM (*equalp) (SCM, SCM))
 {
-  long answer = scm_make_smob_type (name, size);
+  scm_bits_t answer = scm_make_smob_type (name, size);
   scm_set_smob_mfpe (answer, mark, free, print, equalp);
   return answer;
 }
@@ -495,7 +495,7 @@ scm_make_smob_type_mfpe (char *name, scm_sizet size,
 void
 scm_set_smob_mfpe (long tc, 
 		   SCM (*mark) (SCM),
-		   scm_sizet (*free) (SCM),
+		   size_t (*free) (SCM),
 		   int (*print) (SCM, SCM, scm_print_state *),
 		   SCM (*equalp) (SCM, SCM))
 {
@@ -526,7 +526,7 @@ free_print (SCM exp, SCM port, scm_print_state *pstate)
 void
 scm_smob_prehistory ()
 {
-  unsigned int i;
+  size_t i;
   scm_bits_t tc;
 
   scm_numsmob = 0;

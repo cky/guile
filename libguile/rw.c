@@ -111,13 +111,13 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 #define FUNC_NAME s_scm_read_string_x_partial
 {
   char *dest;
-  long read_len;
-  long chars_read = 0;
+  scm_bits_t read_len;
+  scm_bits_t chars_read = 0;
   int fdes;
 
   {
-    long offset;
-    long last;
+    scm_bits_t offset;
+    scm_bits_t last;
 
     SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, dest, 3, start, offset,
 				      4, end, last);

@@ -1,4 +1,4 @@
-#!/bogus-path/guile \
+#!../libguile/guile \
 -e main -s
 !#
 

@@ -63,7 +63,11 @@ typedef struct
 				 * *generic == 0 until first method
 				 */
   SCM properties;		/* procedure properties */
-} scm_subr_entry;
+} scm_subr_entry_t;
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+# define scm_subr_entry scm_subr_entry_t
+#endif
 
 #define SCM_SUBRNUM(subr) (SCM_CELL_WORD_0 (subr) >> 8)
 #define SCM_SET_SUBRNUM(subr, num) \
@@ -153,21 +157,21 @@ typedef struct
 #define SCM_PROCEDURE(obj) SCM_CELL_OBJECT_1 (obj)
 #define SCM_SETTER(obj) SCM_CELL_OBJECT_2 (obj)
 
-extern scm_subr_entry *scm_subr_table;
-extern int scm_subr_table_size;
-extern int scm_subr_table_room;
+extern scm_subr_entry_t *scm_subr_table;
+extern scm_bits_t scm_subr_table_size;
+extern scm_bits_t scm_subr_table_room;
 
 
 
 extern void scm_mark_subr_table (void);
 extern void scm_free_subr_entry (SCM subr);
-extern SCM scm_c_make_subr (const char *name, int type, SCM (*fcn)());
-extern SCM scm_c_make_subr_with_generic (const char *name, int type,
+extern SCM scm_c_make_subr (const char *name, scm_bits_t type, SCM (*fcn)());
+extern SCM scm_c_make_subr_with_generic (const char *name, scm_bits_t type,
 					 SCM (*fcn)(), SCM *gf);
-extern SCM scm_c_define_subr (const char *name, int type, SCM (*fcn)());
-extern SCM scm_c_define_subr_with_generic (const char *name, int type,
+extern SCM scm_c_define_subr (const char *name, scm_bits_t type, SCM (*fcn)());
+extern SCM scm_c_define_subr_with_generic (const char *name, scm_bits_t type,
 					   SCM (*fcn)(), SCM *gf);
-extern SCM scm_makcclo (SCM proc, long len);
+extern SCM scm_makcclo (SCM proc, size_t len);
 extern SCM scm_procedure_p (SCM obj);
 extern SCM scm_closure_p (SCM obj);
 extern SCM scm_thunk_p (SCM obj);

@@ -48,14 +48,14 @@ xSCM_DEFINE (scm_i_index, "i-index", 2, 2, 0,
 	   "@code{rindex} function, depending on the value of @var{direction}."
 */
 /* implements index if direction > 0 otherwise rindex.  */
-static int
+static scm_bits_t
 scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
 	     SCM sub_end, const char *why)
 {
   unsigned char * p;
-  int x;
-  int lower;
-  int upper;
+  scm_bits_t x;
+  scm_bits_t lower;
+  scm_bits_t upper;
   int ch;
 
   SCM_ASSERT (SCM_STRINGP (*str), *str, SCM_ARG1, why);
@@ -116,7 +116,7 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_string_index
 {
-  int pos;
+  scm_bits_t pos;
 
   if (SCM_UNBNDP (frm))
     frm = SCM_BOOL_F;
@@ -146,7 +146,7 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_string_rindex
 {
-  int pos;
+  scm_bits_t pos;
 
   if (SCM_UNBNDP (frm))
     frm = SCM_BOOL_F;
@@ -238,7 +238,7 @@ SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
 	    "are different strings, it does not matter which function you use.")
 #define FUNC_NAME s_scm_substring_move_x
 {
-  long s1, s2, e, len;
+  scm_bits_t s1, s2, e, len;
 
   SCM_VALIDATE_STRING (1,str1);
   SCM_VALIDATE_INUM_COPY (2,start1,s1);
@@ -274,7 +274,7 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_substring_fill_x
 {
-  long i, e;
+  scm_bits_t i, e;
   char c;
   SCM_VALIDATE_STRING (1,str);
   SCM_VALIDATE_INUM_COPY (2,start,i);
@@ -313,7 +313,7 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
 	    "concerned.")
 #define FUNC_NAME s_scm_string_to_list
 {
-  long i;
+  scm_bits_t i;
   SCM res = SCM_EOL;
   unsigned char *src;
   SCM_VALIDATE_STRING (1,str);
@@ -352,7 +352,7 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
 #define FUNC_NAME s_scm_string_fill_x
 {
   register char *dst, c;
-  register long k;
+  register scm_bits_t k;
   SCM_VALIDATE_STRING_COPY (1,str,dst);
   SCM_VALIDATE_CHAR_COPY (2,chr,c);
   for (k = SCM_STRING_LENGTH (str)-1;k >= 0;k--) dst[k] = c;
@@ -366,7 +366,7 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
 static SCM
 string_upcase_x (SCM v)
 {
-  unsigned long k;
+  scm_bits_t k;
 
   for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
     SCM_STRING_UCHARS (v) [k] = scm_upcase (SCM_STRING_UCHARS (v) [k]);
@@ -411,7 +411,7 @@ SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0,
 static SCM
 string_downcase_x (SCM v)
 {
-  unsigned long k;
+  scm_bits_t k;
 
   for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
     SCM_STRING_UCHARS (v) [k] = scm_downcase (SCM_STRING_UCHARS (v) [k]);
@@ -457,7 +457,8 @@ static SCM
 string_capitalize_x (SCM str)
 {
   char *sz;
-  int i, len, in_word=0;
+  scm_bits_t i, len;
+  int in_word=0;
 
   len = SCM_STRING_LENGTH(str);
   sz = SCM_STRING_CHARS (str);
@@ -531,7 +532,7 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_string_split
 {
-  int idx, last_idx;
+  scm_bits_t idx, last_idx;
   char * p;
   int ch;
   SCM res = SCM_EOL;

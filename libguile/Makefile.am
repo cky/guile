@@ -101,10 +101,10 @@ OMIT_DEPENDENCIES = libguile.h ltdl.h \
     axp.h hppa.h i386.h ksr.h m88k.h mips.h sparc.h vax.h
 
 ## This is kind of nasty... there are ".c" files that we don't want to
-## compile, since they are #included in threads.c.  So instead we list
-## them here.  Perhaps we can deal with them normally once the merge
-## seems to be working.
-noinst_HEADERS = coop-threads.c coop-threads.h coop.c
+## compile, since they are #included.  So instead we list them here.
+## Perhaps we can deal with them normally once the merge seems to be
+## working.
+noinst_HEADERS = coop-threads.c coop-threads.h coop.c num2integral.i.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL)

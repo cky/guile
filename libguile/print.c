@@ -127,7 +127,7 @@ char *scm_isymnames[] =
   "#<unbound>"
 };
 
-scm_option scm_print_opts[] = {
+scm_option_t scm_print_opts[] = {
   { SCM_OPTION_SCM, "closure-hook", SCM_UNPACK (SCM_BOOL_F),
     "Hook for printing closures (should handle macros as well)." },
   { SCM_OPTION_BOOLEAN, "source", 0,
@@ -282,8 +282,8 @@ grow_ref_stack (scm_print_state *pstate)
 static void
 print_circref (SCM port,scm_print_state *pstate,SCM ref)
 {
-  register int i;
-  int self = pstate->top - 1;
+  register scm_bits_t i;
+  scm_bits_t self = pstate->top - 1;
   i = pstate->top - 1;
   if (SCM_CONSP (pstate->ref_stack[i]))
     {
@@ -358,9 +358,9 @@ taloop:
       else if (SCM_ILOCP (exp))
 	{
 	  scm_puts ("#@", port);
-	  scm_intprint (SCM_IFRAME (exp), 10, port);
+	  scm_intprint ((long) SCM_IFRAME (exp), 10, port);
 	  scm_putc (SCM_ICDRP (exp) ? '-' : '+', port);
-	  scm_intprint (SCM_IDIST (exp), 10, port);
+	  scm_intprint ((long) SCM_IDIST (exp), 10, port);
 	}
       else
 	{
@@ -438,7 +438,7 @@ taloop:
 	case scm_tc7_string:
 	  if (SCM_WRITINGP (pstate))
 	    {
-	      scm_sizet i;
+	      size_t i;
 
 	      scm_putc ('"', port);
 	      for (i = 0; i < SCM_STRING_LENGTH (exp); ++i)
@@ -458,13 +458,13 @@ taloop:
 	  break;
 	case scm_tc7_symbol:
 	    {
-	      int pos;
-	      int end;
-	      int len;
+	      size_t pos;
+	      size_t end;
+	      size_t len;
 	      char * str;
 	      int weird;
 	      int maybe_weird;
-	      int mw_pos = 0;
+	      size_t mw_pos = 0;
 
 	      len = SCM_SYMBOL_LENGTH (exp);
 	      str = SCM_SYMBOL_CHARS (exp);
@@ -548,8 +548,8 @@ taloop:
 	  scm_puts ("#(", port);
 	common_vector_printer:
 	  {
-	    register long i;
-	    int last = SCM_VECTOR_LENGTH (exp) - 1;
+	    register scm_bits_t i;
+	    scm_bits_t last = SCM_VECTOR_LENGTH (exp) - 1;
 	    int cutp = 0;
 	    if (pstate->fancyp && SCM_VECTOR_LENGTH (exp) > pstate->length)
 	      {
@@ -749,7 +749,7 @@ void
 scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
 {
   register SCM hare, tortoise;
-  int floor = pstate->top - 2;
+  scm_bits_t floor = pstate->top - 2;
   scm_puts (hdr, port);
   /* CHECK_INTS; */
   if (pstate->fancyp)
@@ -774,7 +774,7 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
   scm_iprin1 (SCM_CAR (exp), port, pstate);
   for (exp = SCM_CDR (exp); SCM_ECONSP (exp); exp = SCM_CDR (exp))
     {
-      register int i;
+      register scm_bits_t i;
 
       for (i = floor; i >= 0; --i)
 	if (SCM_EQ_P (pstate->ref_stack[i], exp))
@@ -797,13 +797,13 @@ end:
   
 fancy_printing:
   {
-    int n = pstate->length;
+    scm_bits_t n = pstate->length;
     
     scm_iprin1 (SCM_CAR (exp), port, pstate);
     exp = SCM_CDR (exp); --n;
     for (; SCM_ECONSP (exp); exp = SCM_CDR (exp))
       {
-	register unsigned long i;
+	register scm_ubits_t i;
 
 	for (i = 0; i < pstate->top; ++i)
 	  if (SCM_EQ_P (pstate->ref_stack[i], exp))

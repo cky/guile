@@ -90,7 +90,7 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
 {
   SCM res;
   SCM *data;
-  long i;
+  scm_bits_t i;
 
   /* Dirk:FIXME:: In case of multiple threads, the list might get corrupted
      while the vector is being created. */
@@ -235,8 +235,7 @@ scm_mark_weak_vector_spines (void *dummy1, void *dummy2, void *dummy3)
 	{
 	  SCM *ptr;
 	  SCM obj;
-	  int j;
-	  int n;
+	  scm_bits_t j, n;
 
 	  obj = w;
 	  ptr = SCM_VELTS (w);
@@ -280,8 +279,8 @@ scm_scan_weak_vectors (void *dummy1, void *dummy2, void *dummy3)
       else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
 	{
 	  SCM obj = w;
-	  register long n = SCM_VECTOR_LENGTH (w);
-	  register long j;
+	  register scm_bits_t n = SCM_VECTOR_LENGTH (w);
+	  register scm_bits_t j;
           int weak_keys = SCM_IS_WHVEC (obj) || SCM_IS_WHVEC_B (obj);
           int weak_values = SCM_IS_WHVEC_V (obj) || SCM_IS_WHVEC_B (obj);
 

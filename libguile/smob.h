@@ -52,9 +52,9 @@
 typedef struct scm_smob_descriptor
 {
   char *name;
-  scm_sizet size;
+  size_t size;
   SCM (*mark) (SCM);
-  scm_sizet (*free) (SCM);
+  size_t (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
   SCM (*apply) ();
@@ -124,15 +124,15 @@ do { \
 #define SCM_SMOB_APPLY_2(x,a1,a2)	(SCM_SMOB_DESCRIPTOR (x).apply_2 (x, (a1), (a2)))
 #define SCM_SMOB_APPLY_3(x,a1,a2,rst)	(SCM_SMOB_DESCRIPTOR (x).apply_3 (x, (a1), (a2), (rst)))
 
-extern int scm_numsmob;
+extern scm_bits_t scm_numsmob;
 extern scm_smob_descriptor scm_smobs[];
 
 
 
 extern SCM scm_mark0 (SCM ptr);
 extern SCM scm_markcdr (SCM ptr);
-extern scm_sizet scm_free0 (SCM ptr);
-extern scm_sizet scm_smob_free (SCM obj);
+extern size_t scm_free0 (SCM ptr);
+extern size_t scm_smob_free (SCM obj);
 extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
 
 /* The following set of functions is the standard way to create new
@@ -143,10 +143,10 @@ extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
  * values using `scm_set_smob_xxx'.
  */
 
-extern scm_bits_t scm_make_smob_type (char *name, scm_sizet size);
+extern scm_bits_t scm_make_smob_type (char *name, size_t size);
 
 extern void scm_set_smob_mark (scm_bits_t tc, SCM (*mark) (SCM));
-extern void scm_set_smob_free (scm_bits_t tc, scm_sizet (*free) (SCM));
+extern void scm_set_smob_free (scm_bits_t tc, size_t (*free) (SCM));
 extern void scm_set_smob_print (scm_bits_t tc,
 				int (*print) (SCM, SCM, scm_print_state*));
 extern void scm_set_smob_equalp (scm_bits_t tc, SCM (*equalp) (SCM, SCM));
@@ -165,15 +165,15 @@ extern void scm_smob_prehistory (void);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
-extern long scm_make_smob_type_mfpe (char *name, scm_sizet size,
+extern long scm_make_smob_type_mfpe (char *name, size_t size,
                                     SCM (*mark) (SCM),
-                                    scm_sizet (*free) (SCM),
+                                    size_t (*free) (SCM),
                                     int (*print) (SCM, SCM, scm_print_state*),
                                     SCM (*equalp) (SCM, SCM));
 
 extern void scm_set_smob_mfpe (long tc, 
 			       SCM (*mark) (SCM),
-			       scm_sizet (*free) (SCM),
+			       size_t (*free) (SCM),
 			       int (*print) (SCM, SCM, scm_print_state*),
 			       SCM (*equalp) (SCM, SCM));
 

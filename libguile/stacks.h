@@ -55,24 +55,29 @@
 /* {Frames and stacks}
  */
 
-typedef struct scm_info_frame {
+typedef struct scm_info_frame_t {
   /* SCM flags; */
   scm_bits_t flags;
   SCM source;
   SCM proc;
   SCM args;
-} scm_info_frame;
-#define SCM_FRAME_N_SLOTS (sizeof (scm_info_frame) / sizeof (SCM))
+} scm_info_frame_t;
+#define SCM_FRAME_N_SLOTS (sizeof (scm_info_frame_t) / sizeof (SCM))
 
-#define SCM_STACK(obj) ((scm_stack *) SCM_STRUCT_DATA (obj))
+#define SCM_STACK(obj) ((scm_stack_t *) SCM_STRUCT_DATA (obj))
 #define SCM_STACK_LAYOUT "pwuourpW"
-typedef struct scm_stack {
+typedef struct scm_stack_t {
   SCM id;			/* Stack id */
-  scm_info_frame *frames;	/* Info frames */
-  unsigned int length;		/* Stack length */
-  unsigned int tail_length;
-  scm_info_frame tail[1];
-} scm_stack;
+  scm_info_frame_t *frames;	/* Info frames */
+  scm_bits_t length;		/* Stack length */
+  scm_bits_t tail_length;
+  scm_info_frame_t tail[1];
+} scm_stack_t;
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+# define scm_info_frame scm_info_frame_t
+# define scm_stack scm_stack_t
+#endif
 
 extern SCM scm_stack_type;
 

@@ -185,7 +185,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
     scm_resolv_error (FUNC_NAME, host);
   
   ve[0] = scm_makfromstr (entry->h_name, 
-			  (scm_sizet) strlen (entry->h_name), 0);
+			  (size_t) strlen (entry->h_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->h_aliases);
   ve[2] = SCM_MAKINUM (entry->h_addrtype + 0L);
   ve[3] = SCM_MAKINUM (entry->h_length + 0L);
@@ -257,7 +257,7 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
     }
   if (!entry)
     SCM_SYSERROR_MSG ("no such network ~A", SCM_LIST1 (net), errno);
-  ve[0] = scm_makfromstr (entry->n_name, (scm_sizet) strlen (entry->n_name), 0);
+  ve[0] = scm_makfromstr (entry->n_name, (size_t) strlen (entry->n_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);
   ve[2] = SCM_MAKINUM (entry->n_addrtype + 0L);
   ve[3] = scm_ulong2num (entry->n_net + 0L);
@@ -307,7 +307,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
     }
   if (!entry)
     SCM_SYSERROR_MSG ("no such protocol ~A", SCM_LIST1 (protocol), errno);
-  ve[0] = scm_makfromstr (entry->p_name, (scm_sizet) strlen (entry->p_name), 0);
+  ve[0] = scm_makfromstr (entry->p_name, (size_t) strlen (entry->p_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->p_aliases);
   ve[2] = SCM_MAKINUM (entry->p_proto + 0L);
   return ans;
@@ -323,10 +323,10 @@ scm_return_entry (struct servent *entry)
 
   ans = scm_c_make_vector (4, SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
-  ve[0] = scm_makfromstr (entry->s_name, (scm_sizet) strlen (entry->s_name), 0);
+  ve[0] = scm_makfromstr (entry->s_name, (size_t) strlen (entry->s_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->s_aliases);
   ve[2] = SCM_MAKINUM (ntohs (entry->s_port) + 0L);
-  ve[3] = scm_makfromstr (entry->s_proto, (scm_sizet) strlen (entry->s_proto), 0);
+  ve[3] = scm_makfromstr (entry->s_proto, (size_t) strlen (entry->s_proto), 0);
   return ans;
 }
 

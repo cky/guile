@@ -224,7 +224,7 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 {
   SCM ans;
   int ngroups;
-  scm_sizet size;
+  size_t size;
   GETGROUPS_T *groups;
 
   ngroups = getgroups (0, NULL);
@@ -831,7 +831,7 @@ scm_convert_exec_args (SCM args, int argn, const char *subr)
   for (i = 0; !SCM_NULLP (args); args = SCM_CDR (args), ++i)
     {
       SCM arg = SCM_CAR (args);
-      scm_sizet len;
+      size_t len;
       char *dst;
       char *src;
 

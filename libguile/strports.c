@@ -86,7 +86,7 @@ scm_bits_t scm_tc16_strport;
 static int
 stfill_buffer (SCM port)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
   
   if (pt->read_pos >= pt->read_end)
     return EOF;
@@ -97,13 +97,13 @@ stfill_buffer (SCM port)
 /* change the size of a port's string to new_size.  this doesn't
    change read_buf_size.  */
 static void 
-st_resize_port (scm_port *pt, off_t new_size)
+st_resize_port (scm_port_t *pt, off_t new_size)
 {
   SCM old_stream = SCM_PACK (pt->stream);
   SCM new_stream = scm_allocate_string (new_size);
-  unsigned long int old_size = SCM_STRING_LENGTH (old_stream);
-  unsigned long int min_size = min (old_size, new_size);
-  unsigned long int i;
+  size_t old_size = SCM_STRING_LENGTH (old_stream);
+  size_t min_size = min (old_size, new_size);
+  size_t i;
 
   off_t index = pt->write_pos - pt->write_buf;
 
@@ -130,7 +130,7 @@ st_resize_port (scm_port *pt, off_t new_size)
 static void
 st_flush (SCM port)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->write_pos == pt->write_end)
     {
@@ -148,7 +148,7 @@ st_flush (SCM port)
 static void
 st_write (SCM port, const void *data, size_t size)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
   const char *input = (char *) data;
 
   while (size > 0)
@@ -168,7 +168,7 @@ st_write (SCM port, const void *data, size_t size)
 static void
 st_end_input (SCM port, int offset)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
   
   if (pt->read_pos - pt->read_buf < offset)
     scm_misc_error ("st_end_input", "negative position", SCM_EOL);
@@ -180,7 +180,7 @@ st_end_input (SCM port, int offset)
 static off_t
 st_seek (SCM port, off_t offset, int whence)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
   off_t target;
 
   if (pt->rw_active == SCM_PORT_READ && offset == 0 && whence == SEEK_CUR)
@@ -252,7 +252,7 @@ st_seek (SCM port, off_t offset, int whence)
 static void
 st_truncate (SCM port, off_t length)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (length > pt->write_buf_size)
     st_resize_port (pt, length);
@@ -270,8 +270,8 @@ SCM
 scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 {
   SCM z;
-  scm_port *pt;
-  int str_len;
+  scm_port_t *pt;
+  size_t str_len;
 
   SCM_ASSERT (SCM_INUMP(pos) && SCM_INUM(pos) >= 0, pos, SCM_ARG1, caller);
   SCM_ASSERT (SCM_STRINGP (str), str, SCM_ARG1, caller);
@@ -304,7 +304,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 /* create a new string from a string port's buffer.  */
 SCM scm_strport_to_string (SCM port)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->rw_active == SCM_PORT_WRITE)
     st_flush (port);

@@ -58,21 +58,26 @@
         bit  15 is the SCM_ARRAY_FLAG_CONTIGUOUS flag
         bits 16-31 hold the smob type id: scm_tc16_array
    CDR: pointer to a malloced block containing an scm_array structure
-        followed by an scm_array_dim structure for each dimension.
+        followed by an scm_array_dim_t structure for each dimension.
 */
 
-typedef struct scm_array
+typedef struct scm_array_t
 {
   SCM v;  /* the contents of the array, e.g., a vector or uniform vector.  */
-  scm_sizet base;
-} scm_array;
+  scm_bits_t base;
+} scm_array_t;
 
-typedef struct scm_array_dim
+typedef struct scm_array_dim_t
 {
-  long lbnd;
-  long ubnd;
-  long inc;
-} scm_array_dim;
+  scm_bits_t lbnd;
+  scm_bits_t ubnd;
+  scm_bits_t inc;
+} scm_array_dim_t;
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+# define scm_array scm_array_t
+# define scm_array_dim scm_array_dim_t
+#endif
 
 extern scm_bits_t scm_tc16_array;
 
@@ -83,35 +88,37 @@ extern scm_bits_t scm_tc16_array;
 #endif
 
 #define SCM_ARRAYP(a) 	    SCM_TYP16_PREDICATE (scm_tc16_array, a)
-#define SCM_ARRAY_NDIM(x)   ((scm_sizet) (SCM_CELL_WORD_0 (x) >> 17))
+#define SCM_ARRAY_NDIM(x)   ((size_t) ((scm_ubits_t) (SCM_CELL_WORD_0 (x)) >> 17))
 #define SCM_ARRAY_CONTP(x)  (SCM_CELL_WORD_0 (x) & SCM_ARRAY_FLAG_CONTIGUOUS)
 #define SCM_SET_ARRAY_CONTIGUOUS_FLAG(x) \
   (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) | SCM_ARRAY_FLAG_CONTIGUOUS))
 #define SCM_CLR_ARRAY_CONTIGUOUS_FLAG(x) \
   (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) & ~SCM_ARRAY_FLAG_CONTIGUOUS))
 
-#define SCM_ARRAY_MEM(a)  ((scm_array *) SCM_CELL_WORD_1 (a))
+#define SCM_ARRAY_MEM(a)  ((scm_array_t *) SCM_CELL_WORD_1 (a))
 #define SCM_ARRAY_V(a) 	  (SCM_ARRAY_MEM (a)->v)
 #define SCM_ARRAY_BASE(a) (SCM_ARRAY_MEM (a)->base)
-#define SCM_ARRAY_DIMS(a) ((scm_array_dim *)((char *) SCM_ARRAY_MEM (a) + sizeof (scm_array))) 
+#define SCM_ARRAY_DIMS(a) ((scm_array_dim_t *)((char *) SCM_ARRAY_MEM (a) + sizeof (scm_array))) 
+
+#define SCM_I_MAX_LENGTH  ((scm_ubits_t)((scm_bits_t)-1) >> 8)
 
 #define SCM_UVECTOR_BASE(x) ((void *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_UVECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
-#define SCM_UVECTOR_MAX_LENGTH (0xffffffL)
-#define SCM_UVECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_UVECTOR_MAX_LENGTH SCM_I_MAX_LENGTH
+#define SCM_UVECTOR_LENGTH(x) (((scm_ubits_t) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SET_UVECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), ((l) << 8) + (t)))
 
 #define SCM_BITVECTOR_P(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_bvect))
 #define SCM_BITVECTOR_BASE(x) ((void *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_BITVECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
-#define SCM_BITVECTOR_MAX_LENGTH (0xffffffL)
-#define SCM_BITVECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_BITVECTOR_MAX_LENGTH SCM_I_MAX_LENGTH
+#define SCM_BITVECTOR_LENGTH(x) (((scm_ubits_t) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SET_BITVECTOR_LENGTH(v, l) (SCM_SET_CELL_WORD_0 ((v), ((l) << 8) + scm_tc7_bvect))
 
 
 
-extern scm_sizet scm_uniform_element_size (SCM obj);
-extern SCM scm_make_uve (long k, SCM prot);
+extern size_t scm_uniform_element_size (SCM obj);
+extern SCM scm_make_uve (scm_bits_t k, SCM prot);
 extern SCM scm_uniform_vector_length (SCM v);
 extern SCM scm_array_p (SCM v, SCM prot);
 extern SCM scm_array_rank (SCM ra);
@@ -119,7 +126,7 @@ extern SCM scm_array_dimensions (SCM ra);
 extern SCM scm_shared_array_root (SCM ra);
 extern SCM scm_shared_array_offset (SCM ra);
 extern SCM scm_shared_array_increments (SCM ra);
-extern long scm_aind (SCM ra, SCM args, const char *what);
+extern scm_bits_t scm_aind (SCM ra, SCM args, const char *what);
 extern SCM scm_make_ra (int ndim);
 extern SCM scm_shap2ra (SCM args, const char *what);
 extern SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
@@ -129,7 +136,7 @@ extern SCM scm_transpose_array (SCM ra, SCM args);
 extern SCM scm_enclose_array (SCM ra, SCM axes);
 extern SCM scm_array_in_bounds_p (SCM v, SCM args);
 extern SCM scm_uniform_vector_ref (SCM v, SCM args);
-extern SCM scm_cvref (SCM v, scm_sizet pos, SCM last);
+extern SCM scm_cvref (SCM v, scm_bits_t pos, SCM last);
 extern SCM scm_array_set_x (SCM v, SCM obj, SCM args);
 extern SCM scm_array_contents (SCM ra, SCM strict);
 extern SCM scm_ra2contig (SCM ra, int copy);
@@ -140,7 +147,7 @@ extern SCM scm_bit_position (SCM item, SCM v, SCM k);
 extern SCM scm_bit_set_star_x (SCM v, SCM kv, SCM obj);
 extern SCM scm_bit_count_star (SCM v, SCM kv, SCM obj);
 extern SCM scm_bit_invert_x (SCM v);
-extern SCM scm_istr2bve (char *str, long len);
+extern SCM scm_istr2bve (char *str, scm_bits_t len);
 extern SCM scm_array_to_list (SCM v);
 extern SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
 extern int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);

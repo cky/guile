@@ -64,7 +64,7 @@ SCM_DEFINE1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
 	    "characters.")
 #define FUNC_NAME s_scm_string_equal_p
 {
-  scm_sizet length;
+  size_t length;
 
   SCM_VALIDATE_STRING (1, s1);
   SCM_VALIDATE_STRING (2, s2);
@@ -74,7 +74,7 @@ SCM_DEFINE1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
     {
       unsigned char *c1 = SCM_STRING_UCHARS (s1) + length - 1;
       unsigned char *c2 = SCM_STRING_UCHARS (s2) + length - 1;
-      scm_sizet i;
+      size_t i;
 
       /* comparing from back to front typically finds mismatches faster */
       for (i = 0; i != length; ++i, --c1, --c2)
@@ -99,7 +99,7 @@ SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
 	    "return @code{#f}.")
 #define FUNC_NAME s_scm_string_ci_equal_p
 {
-  scm_sizet length;
+  size_t length;
 
   SCM_VALIDATE_STRING (1, s1);
   SCM_VALIDATE_STRING (2, s2);
@@ -109,7 +109,7 @@ SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
     {
       unsigned char *c1 = SCM_STRING_UCHARS (s1) + length - 1;
       unsigned char *c2 = SCM_STRING_UCHARS (s2) + length - 1;
-      scm_sizet i;
+      size_t i;
 
       /* comparing from back to front typically finds mismatches faster */
       for (i = 0; i != length; ++i, --c1, --c2)
@@ -131,7 +131,7 @@ SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
 static SCM
 string_less_p (SCM s1, SCM s2)
 {
-  scm_sizet i, length1, length2, lengthm;
+  size_t i, length1, length2, lengthm;
   unsigned char *c1, *c2;
 
   length1 = SCM_STRING_LENGTH (s1);
@@ -211,7 +211,7 @@ SCM_DEFINE1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
 static SCM
 string_ci_less_p (SCM s1, SCM s2)
 {
-  scm_sizet i, length1, length2, lengthm;
+  size_t i, length1, length2, lengthm;
   unsigned char *c1, *c2;
 
   length1 = SCM_STRING_LENGTH (s1);

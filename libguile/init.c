@@ -142,6 +142,7 @@
 #include "libguile/vports.h"
 #include "libguile/weaks.h"
 #include "libguile/guardians.h"
+#include "libguile/extensions.h"
 
 #include "libguile/init.h"
 
@@ -188,7 +189,7 @@ start_stack (void *base)
   /* Create an object to hold the root continuation.
    */
   {
-    scm_contregs *contregs = scm_must_malloc (sizeof (scm_contregs),
+    scm_contregs_t *contregs = scm_must_malloc (sizeof (scm_contregs_t),
 					      "continuation");
     contregs->num_stack_items = 0;
     contregs->seq = 0;
@@ -228,7 +229,7 @@ fixconfig (char *s1,char *s2,int s)
 static void
 check_config (void)
 {
-  scm_sizet j;
+  size_t j;
 
   j = HEAP_SEG_SIZE;
   if (HEAP_SEG_SIZE != j)

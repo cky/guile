@@ -70,7 +70,7 @@
 #define scm_vtable_index_printer 3 /* A printer for this struct type. */
 #define scm_vtable_offset_user   4 /* Where do user fields start? */
 
-typedef scm_sizet (*scm_struct_free_t) (scm_bits_t * vtable, scm_bits_t * data);
+typedef size_t (*scm_struct_free_t) (scm_bits_t * vtable, scm_bits_t * data);
 
 #define SCM_STRUCTF_MASK   (0xFFF << 20)
 #define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
@@ -106,10 +106,10 @@ extern SCM scm_structs_to_free;
 
 
 extern scm_bits_t * scm_alloc_struct (int n_words, int n_extra, char * who);
-extern scm_sizet scm_struct_free_0 (scm_bits_t * vtable, scm_bits_t * data);
-extern scm_sizet scm_struct_free_light (scm_bits_t * vtable, scm_bits_t * data);
-extern scm_sizet scm_struct_free_standard (scm_bits_t * vtable, scm_bits_t * data);
-extern scm_sizet scm_struct_free_entity (scm_bits_t * vtable, scm_bits_t * data);
+extern size_t scm_struct_free_0 (scm_bits_t * vtable, scm_bits_t * data);
+extern size_t scm_struct_free_light (scm_bits_t * vtable, scm_bits_t * data);
+extern size_t scm_struct_free_standard (scm_bits_t * vtable, scm_bits_t * data);
+extern size_t scm_struct_free_entity (scm_bits_t * vtable, scm_bits_t * data);
 extern SCM scm_make_struct_layout (SCM fields);
 extern SCM scm_struct_p (SCM x);
 extern SCM scm_struct_vtable_p (SCM x);
@@ -119,7 +119,7 @@ extern SCM scm_struct_ref (SCM handle, SCM pos);
 extern SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
 extern SCM scm_struct_vtable (SCM handle);
 extern SCM scm_struct_vtable_tag (SCM handle);
-extern unsigned int scm_struct_ihashq (SCM obj, unsigned int n);
+extern scm_bits_t scm_struct_ihashq (SCM obj, scm_bits_t n);
 extern SCM scm_struct_create_handle (SCM obj);
 extern SCM scm_struct_vtable_name (SCM vtable);
 extern SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);

@@ -75,7 +75,7 @@ static scm_bits_t scm_tc16_sfport;
 static void
 sf_flush (SCM port)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
   SCM stream = SCM_PACK (pt->stream);
 
   if (pt->write_pos > pt->write_buf)
@@ -121,7 +121,7 @@ sf_fill_input (SCM port)
     return EOF;
   SCM_ASSERT (SCM_CHARP (ans), ans, SCM_ARG1, "sf_fill_input");
   {
-    scm_port *pt = SCM_PTAB_ENTRY (port);    
+    scm_port_t *pt = SCM_PTAB_ENTRY (port);    
 
     *pt->read_buf = SCM_CHAR (ans);
     pt->read_pos = pt->read_buf;
@@ -190,7 +190,7 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_make_soft_port
 {
-  scm_port *pt;
+  scm_port_t *pt;
   SCM z;
   SCM_VALIDATE_VECTOR_LEN (1,pv,5);
   SCM_VALIDATE_STRING (2, modes);

@@ -55,7 +55,7 @@
 #define SCM_VECTOR_BASE(x) ((scm_bits_t *) SCM_CELL_WORD_1 (x))
 #define SCM_SET_VECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
 #define SCM_VECTOR_MAX_LENGTH ((1L << 24) - 1)
-#define SCM_VECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_VECTOR_LENGTH(x) (((scm_ubits_t) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SET_VECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), ((l) << 8) + (t)))
 
 #define SCM_VELTS(x) ((SCM *) SCM_CELL_WORD_1 (x))
@@ -67,14 +67,14 @@
 /*
   bit vectors
  */
-#define SCM_BITVEC_REF(a, i) ((SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) & (1L<<((i)%SCM_LONG_BIT))) ? 1 : 0)
-#define SCM_BITVEC_SET(a, i) SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) |= (1L<<((i)%SCM_LONG_BIT))
-#define SCM_BITVEC_CLR(a, i) SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) &= ~(1L<<((i)%SCM_LONG_BIT))
+#define SCM_BITVEC_REF(a, i) ((SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_BITS_LENGTH]) & (1L<<((i)%SCM_BITS_LENGTH))) ? 1 : 0)
+#define SCM_BITVEC_SET(a, i) SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_BITS_LENGTH]) |= (1L<<((i)%SCM_BITS_LENGTH))
+#define SCM_BITVEC_CLR(a, i) SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_BITS_LENGTH]) &= ~(1L<<((i)%SCM_BITS_LENGTH))
 
 
 
 
-extern SCM scm_c_make_vector (unsigned long int k, SCM fill);
+extern SCM scm_c_make_vector (size_t k, SCM fill);
 
 extern SCM scm_vector_p (SCM x);
 extern SCM scm_vector_length (SCM v);

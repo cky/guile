@@ -60,21 +60,21 @@ extern double floor();
 #endif
 
 
-unsigned long 
-scm_string_hash (const unsigned char *str, scm_sizet len)
+scm_bits_t 
+scm_string_hash (const unsigned char *str, size_t len)
 {
   if (len > 5)
     {
-      scm_sizet i = 5;
-      unsigned long h = 264;
+      size_t i = 5;
+      scm_bits_t h = 264;
       while (i--)
 	h = (h << 8) + (unsigned) str[h % len];
       return h;
     }
   else
     {
-      scm_sizet i = len;
-      unsigned long h = 0;
+      size_t i = len;
+      scm_bits_t h = 0;
       while (i)
 	h = (h << 8) + (unsigned) str[--i];
       return h;
@@ -86,8 +86,8 @@ scm_string_hash (const unsigned char *str, scm_sizet len)
 /* Dirk:FIXME:: scm_hasher could be made static. */
 
 
-unsigned long
-scm_hasher(SCM obj, unsigned long n, scm_sizet d)
+scm_bits_t
+scm_hasher (SCM obj, scm_bits_t n, size_t d)
 {
   switch (SCM_ITAG3 (obj)) {
   case scm_tc3_int_1: 
@@ -95,7 +95,7 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
     return SCM_INUM(obj) % n;   /* SCM_INUMP(obj) */
   case scm_tc3_imm24:
     if (SCM_CHARP(obj))
-      return (unsigned)(scm_downcase(SCM_CHAR(obj))) % n;
+      return (scm_ubits_t) (scm_downcase(SCM_CHAR(obj))) % n;
     switch (SCM_UNPACK (obj)) {
 #ifndef SICP
     case SCM_EOL: 
@@ -122,22 +122,22 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
     default: 
       return 263 % n;
     case scm_tc7_smob:
-      switch SCM_TYP16(obj) {
+      switch SCM_TYP16 (obj) {
       case scm_tc16_big:
-        return SCM_INUM(scm_modulo(obj, SCM_MAKINUM(n)));
+        return SCM_INUM (scm_modulo (obj, SCM_MAKINUM (n)));
       default: 
 	return 263 % n;
       case scm_tc16_real:
 	{
-	  double r = SCM_REAL_VALUE(obj);
-	  if (floor(r)==r) {
+	  double r = SCM_REAL_VALUE (obj);
+	  if (floor (r) == r) {
 	    obj = scm_inexact_to_exact (obj);
-	    if SCM_IMP(obj) return SCM_INUM(obj) % n;
-	    return SCM_INUM(scm_modulo(obj, SCM_MAKINUM(n)));
+	    if SCM_IMP (obj) return SCM_INUM (obj) % n;
+	    return SCM_INUM (scm_modulo (obj, SCM_MAKINUM (n)));
 	  }
 	}
       case scm_tc16_complex:
-	obj = scm_number_to_string(obj, SCM_MAKINUM(10));
+	obj = scm_number_to_string (obj, SCM_MAKINUM (10));
       }
     case scm_tc7_string:
     case scm_tc7_substring:
@@ -147,26 +147,27 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
     case scm_tc7_wvect:
     case scm_tc7_vector:
       {
-	scm_sizet len = SCM_VECTOR_LENGTH(obj);
+	size_t len = SCM_VECTOR_LENGTH(obj);
 	SCM *data = SCM_VELTS(obj);
-	if (len>5)
+	if (len > 5)
 	  {
-	    scm_sizet i = d/2;
-	    unsigned long h = 1;
-	    while (i--) h = ((h<<8) + (scm_hasher(data[h % len], n, 2))) % n;
+	    size_t i = d/2;
+	    scm_bits_t h = 1;
+	    while (i--) h = ((h << 8) + (scm_hasher (data[h % len], n, 2))) % n;
 	    return h;
 	  }
 	else
 	  {
-	    scm_sizet i = len;
-	    unsigned long h = (n)-1;
-	    while (i--) h = ((h<<8) + (scm_hasher(data[i], n, d/len))) % n;
+	    size_t i = len;
+	    scm_bits_t h = (n)-1;
+	    while (i--) h = ((h << 8) + (scm_hasher (data[i], n, d/len))) % n;
 	    return h;
 	  }
       }
     case scm_tcs_cons_imcar: 
     case scm_tcs_cons_nimcar:
-      if (d) return (scm_hasher(SCM_CAR(obj), n, d/2)+scm_hasher(SCM_CDR(obj), n, d/2)) % n;
+      if (d) return (scm_hasher (SCM_CAR (obj), n, d/2)
+                     + scm_hasher (SCM_CDR (obj), n, d/2)) % n;
       else return 1;
     case scm_tc7_port:
       return ((SCM_RDNG & SCM_CELL_WORD_0 (obj)) ? 260 : 261) % n;
@@ -181,8 +182,8 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 
 
 
-unsigned int
-scm_ihashq (SCM obj, unsigned int n)
+scm_bits_t
+scm_ihashq (SCM obj, scm_bits_t n)
 {
   return (SCM_UNPACK (obj) >> 1) % n;
 }
@@ -211,14 +212,14 @@ SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
 
 
 
-unsigned int
-scm_ihashv (SCM obj, unsigned int n)
+scm_bits_t
+scm_ihashv (SCM obj, scm_bits_t n)
 {
   if (SCM_CHARP(obj))
-    return ((unsigned int)(scm_downcase(SCM_CHAR(obj)))) % n; /* downcase!?!! */
+    return ((scm_ubits_t)(scm_downcase(SCM_CHAR(obj)))) % n; /* downcase!?!! */
 
   if (SCM_NUMP(obj))
-    return (unsigned int) scm_hasher(obj, n, 10);
+    return (scm_bits_t) scm_hasher(obj, n, 10);
   else
     return SCM_UNPACK (obj) % n;
 }
@@ -247,10 +248,10 @@ SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
 
 
 
-unsigned int
-scm_ihash (SCM obj, unsigned int n)
+scm_bits_t
+scm_ihash (SCM obj, scm_bits_t n)
 {
-  return (unsigned int)scm_hasher (obj, n, 10);
+  return (scm_bits_t) scm_hasher (obj, n, 10);
 }
 
 SCM_DEFINE (scm_hash, "hash", 2, 0, 0,

@@ -50,6 +50,7 @@
 #include "libguile/root.h"
 
 #include "libguile/gsubr.h"
+#include "libguile/deprecation.h"
 
 /*
  * gsubr.c
@@ -210,19 +211,19 @@ SCM
 scm_gsubr_apply (SCM args)
 #define FUNC_NAME "scm_gsubr_apply"
 {
-  SCM self = SCM_CAR(args);
-  SCM (*fcn)() = SCM_SUBRF(SCM_GSUBR_PROC(self));
+  SCM self = SCM_CAR (args);
+  SCM (*fcn)() = SCM_SUBRF (SCM_GSUBR_PROC (self));
   SCM v[SCM_GSUBR_MAX];
-  int typ = SCM_INUM(SCM_GSUBR_TYPE(self));
-  int i, n = SCM_GSUBR_REQ(typ) + SCM_GSUBR_OPT(typ) + SCM_GSUBR_REST(typ);
+  scm_bits_t typ = SCM_INUM (SCM_GSUBR_TYPE (self));
+  scm_bits_t i, n = SCM_GSUBR_REQ (typ) + SCM_GSUBR_OPT (typ) + SCM_GSUBR_REST (typ);
 #if 0
   if (n > SCM_GSUBR_MAX)
     scm_misc_error (FUNC_NAME, 
 		    "Function ~S has illegal arity ~S.", 
 		    SCM_LIST2 (self, SCM_MAKINUM (n)));
 #endif
-  args = SCM_CDR(args);
-  for (i = 0; i < SCM_GSUBR_REQ(typ); i++) {
+  args = SCM_CDR (args);
+  for (i = 0; i < SCM_GSUBR_REQ (typ); i++) {
 #ifndef SCM_RECKLESS
     if (SCM_NULLP (args))
       scm_wrong_num_args (SCM_SNAME (SCM_GSUBR_PROC (self)));
@@ -230,9 +231,9 @@ scm_gsubr_apply (SCM args)
     v[i] = SCM_CAR(args);
     args = SCM_CDR(args);
   }
-  for (; i < SCM_GSUBR_REQ(typ) + SCM_GSUBR_OPT(typ); i++) {
-    if (SCM_NIMP(args)) {
-      v[i] = SCM_CAR(args);
+  for (; i < SCM_GSUBR_REQ (typ) + SCM_GSUBR_OPT (typ); i++) {
+    if (SCM_NIMP (args)) {
+      v[i] = SCM_CAR (args);
       args = SCM_CDR(args);
     }
     else

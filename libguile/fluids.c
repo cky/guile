@@ -56,7 +56,7 @@
 #define INITIAL_FLUIDS 10
 #include "libguile/validate.h"
 
-static volatile int n_fluids;
+static volatile scm_bits_t n_fluids;
 scm_bits_t scm_tc16_fluid;
 
 SCM
@@ -69,7 +69,7 @@ static void
 grow_fluids (scm_root_state *root_state, int new_length)
 {
   SCM old_fluids, new_fluids;
-  int old_length, i;
+  scm_bits_t old_length, i;
 
   old_fluids = root_state->fluids;
   old_length = SCM_VECTOR_LENGTH (old_fluids);
@@ -104,10 +104,10 @@ fluid_print (SCM exp, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-static int
+static scm_bits_t
 next_fluid_num ()
 {
-  int n;
+  scm_bits_t n;
   SCM_CRITICAL_SECTION_START;
   n = n_fluids++;
   SCM_CRITICAL_SECTION_END;
@@ -125,7 +125,7 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
 	    "in its own dynamic root, you can use fluids for thread local storage.")
 #define FUNC_NAME s_scm_make_fluid
 {
-  int n;
+  scm_bits_t n;
 
   n = next_fluid_num ();
   SCM_RETURN_NEWSMOB (scm_tc16_fluid, n);
@@ -149,7 +149,7 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_fluid_ref
 {
-  int n;
+  scm_bits_t n;
 
   SCM_VALIDATE_FLUID (1, fluid);
 
@@ -166,7 +166,7 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 	    "Set the value associated with @var{fluid} in the current dynamic root.")
 #define FUNC_NAME s_scm_fluid_set_x
 {
-  int n;
+  scm_bits_t n;
 
   SCM_VALIDATE_FLUID (1, fluid);
   n = SCM_FLUID_NUM (fluid);
@@ -234,7 +234,7 @@ scm_c_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
 #define FUNC_NAME "scm_c_with_fluids"
 {
   SCM ans;
-  int flen, vlen;
+  scm_bits_t flen, vlen;
 
   SCM_VALIDATE_LIST_COPYLEN (1, fluids, flen);
   SCM_VALIDATE_LIST_COPYLEN (2, values, vlen);

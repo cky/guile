@@ -60,29 +60,29 @@
 /* {Procedures}
  */
 
-scm_subr_entry *scm_subr_table;
+scm_subr_entry_t *scm_subr_table;
 
 /* libguile contained approx. 700 primitive procedures on 24 Aug 1999. */
 
 /* Increased to 800 on 2001-05-07 -- Guile now has 779 primitives on
    startup, 786 with guile-readline.  'martin */
 
-int scm_subr_table_size = 0;
-int scm_subr_table_room = 800;
+scm_bits_t scm_subr_table_size = 0;
+scm_bits_t scm_subr_table_room = 800;
 
 SCM 
-scm_c_make_subr (const char *name, int type, SCM (*fcn) ())
+scm_c_make_subr (const char *name, scm_bits_t type, SCM (*fcn) ())
 {
   register SCM z;
-  int entry;
+  scm_bits_t entry;
 
   if (scm_subr_table_size == scm_subr_table_room)
     {
-      scm_sizet new_size = scm_subr_table_room * 3 / 2;
+      scm_bits_t new_size = scm_subr_table_room * 3 / 2;
       void *new_table
 	= scm_must_realloc ((char *) scm_subr_table,
-			    sizeof (scm_subr_entry) * scm_subr_table_room,
-			    sizeof (scm_subr_entry) * new_size, 
+			    sizeof (scm_subr_entry_t) * scm_subr_table_room,
+			    sizeof (scm_subr_entry_t) * new_size, 
 			    "scm_subr_table");
       scm_subr_table = new_table;
       scm_subr_table_room = new_size;
@@ -104,7 +104,7 @@ scm_c_make_subr (const char *name, int type, SCM (*fcn) ())
 }
 
 SCM
-scm_c_define_subr (const char *name, int type, SCM (*fcn) ())
+scm_c_define_subr (const char *name, scm_bits_t type, SCM (*fcn) ())
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
   scm_define (SCM_SUBR_ENTRY(subr).name, subr);
@@ -116,7 +116,7 @@ scm_c_define_subr (const char *name, int type, SCM (*fcn) ())
 void
 scm_free_subr_entry (SCM subr)
 {
-  int entry = SCM_SUBRNUM (subr);
+  scm_bits_t entry = SCM_SUBRNUM (subr);
   /* Move last entry in table to the free position */
   scm_subr_table[entry] = scm_subr_table[scm_subr_table_size - 1];
   SCM_SET_SUBRNUM (scm_subr_table[entry].handle, entry);
@@ -125,7 +125,7 @@ scm_free_subr_entry (SCM subr)
 
 SCM
 scm_c_make_subr_with_generic (const char *name, 
-			      int type, SCM (*fcn) (), SCM *gf)
+			      scm_bits_t type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
   SCM_SUBR_ENTRY(subr).generic = gf;
@@ -134,7 +134,7 @@ scm_c_make_subr_with_generic (const char *name,
 
 SCM
 scm_c_define_subr_with_generic (const char *name, 
-				int type, SCM (*fcn) (), SCM *gf)
+				scm_bits_t type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr_with_generic (name, type, fcn, gf);
   scm_define (SCM_SUBR_ENTRY(subr).name, subr);
@@ -144,7 +144,7 @@ scm_c_define_subr_with_generic (const char *name,
 void
 scm_mark_subr_table ()
 {
-  int i;
+  scm_bits_t i;
   for (i = 0; i < scm_subr_table_size; ++i)
     {
       SCM_SETGCMARK (scm_subr_table[i].name);
@@ -158,7 +158,7 @@ scm_mark_subr_table ()
 
 #ifdef CCLO
 SCM 
-scm_makcclo (SCM proc, long len)
+scm_makcclo (SCM proc, size_t len)
 {
   scm_bits_t *base = scm_must_malloc (len * sizeof (scm_bits_t), "compiled-closure");
   unsigned long i;
@@ -390,8 +390,8 @@ void
 scm_init_subr_table ()
 {
   scm_subr_table
-    = ((scm_subr_entry *)
-       scm_must_malloc (sizeof (scm_subr_entry) * scm_subr_table_room,
+    = ((scm_subr_entry_t *)
+       scm_must_malloc (sizeof (scm_subr_entry_t) * scm_subr_table_room,
 			"scm_subr_table"));
 }
 

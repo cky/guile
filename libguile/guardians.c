@@ -175,7 +175,7 @@ guardian_mark (SCM ptr)
 }
 
 
-static scm_sizet
+static size_t
 guardian_free (SCM ptr)
 {
   scm_must_free (GUARDIAN (ptr));

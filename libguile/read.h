@@ -67,7 +67,7 @@
 
 #define SCM_WHITE_SPACES  SCM_SINGLE_SPACES: case '\t'
 
-extern scm_option scm_read_opts[];
+extern scm_option_t scm_read_opts[];
 
 #define SCM_COPY_SOURCE_P      scm_read_opts[0].val
 #define SCM_RECORD_POSITIONS_P scm_read_opts[1].val
@@ -83,7 +83,7 @@ extern char * scm_grow_tok_buf (SCM * tok_buf);
 extern int scm_flush_ws (SCM port, const char *eoferr);
 extern int scm_casei_streq (char * s1, char * s2);
 extern SCM scm_lreadr (SCM * tok_buf, SCM port, SCM *copy);
-extern scm_sizet scm_read_token (int ic, SCM * tok_buf, SCM port, int weird);
+extern size_t scm_read_token (int ic, SCM * tok_buf, SCM port, int weird);
 extern SCM scm_lreadparen (SCM * tok_buf, SCM port, char *name, SCM *copy);
 extern SCM scm_lreadrecparen (SCM * tok_buf, SCM port, char *name, SCM *copy);
 extern SCM scm_read_hash_extend (SCM chr, SCM proc);

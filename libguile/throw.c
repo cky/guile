@@ -79,7 +79,7 @@ static scm_bits_t tc16_jmpbuffer;
 #define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
 #define SETJBJMPBUF(x,v)        (SCM_SET_CELL_WORD_1 ((x), (v)))
 #ifdef DEBUG_EXTENSIONS
-#define SCM_JBDFRAME(x)         ((scm_debug_frame *) SCM_CELL_WORD_2 (x))
+#define SCM_JBDFRAME(x)         ((scm_debug_frame_t *) SCM_CELL_WORD_2 (x))
 #define SCM_SETJBDFRAME(x,v)    (SCM_SET_CELL_WORD_2 ((x), (v)))
 #endif
 

@@ -48,21 +48,22 @@
 
 #include "libguile/extensions.h"
 
-struct extension {
-  struct extension *next;
+typedef struct extension_t
+{
+  struct extension_t *next;
   const char *lib;
   const char *init;
   void (*func)(void *);
   void *data;
-};
+} extension_t;
 
-static struct extension *registered_extensions;
+static extension_t *registered_extensions;
 
 void
 scm_c_register_extension (const char *lib, const char *init,
 			  void (*func) (void *), void *data)
 {
-  struct extension *ext = scm_must_malloc (sizeof(struct extension),
+  extension_t *ext = scm_must_malloc (sizeof(extension_t),
 					   "scm_register_extension");
   ext->lib = scm_must_strdup (lib);
   ext->init = scm_must_strdup (init);
@@ -78,7 +79,7 @@ load_extension (SCM lib, SCM init)
 {
   /* Search the registry. */
   {
-    struct extension *ext;
+    extension_t *ext;
 
     for (ext = registered_extensions; ext; ext = ext->next)
       if (!strcmp (ext->lib, SCM_STRING_CHARS (lib))

@@ -62,8 +62,8 @@
  * SCM_INUMP (SCM_CAR (x)) can give wrong answers.
  */
 
-#define SCM_FIXNUM_BIT (SCM_LONG_BIT - 2)
-#define SCM_MOST_POSITIVE_FIXNUM ((1L << (SCM_FIXNUM_BIT - 1)) - 1)
+#define SCM_I_FIXNUM_BIT (SCM_BITS_LENGTH - 2)
+#define SCM_MOST_POSITIVE_FIXNUM ((1L << (SCM_I_FIXNUM_BIT - 1)) - 1)
 #define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM - 1)
 
 
@@ -115,7 +115,7 @@
 /* SCM_INTBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an exact immediate.
  */
-#define SCM_INTBUFLEN (5 + SCM_LONG_BIT)
+#define SCM_INTBUFLEN (5 + SCM_BITS_LENGTH)
 
 
 
@@ -154,9 +154,10 @@
 # endif /* def _UNICOS */
 
 # define SCM_BIGRAD (1L << SCM_BITSPERDIG)
-# define SCM_DIGSPERLONG ((scm_sizet)((sizeof(long)*SCM_CHAR_BIT+SCM_BITSPERDIG-1)/SCM_BITSPERDIG))
-# define SCM_BIGUP(x) ((unsigned long)(x) << SCM_BITSPERDIG)
-# define SCM_LONGLONGBIGUP(x) ((ulong_long)(x) << SCM_BITSPERDIG)
+# define SCM_DIGSPERLONG ((size_t)((sizeof(long)*SCM_CHAR_BIT+SCM_BITSPERDIG-1)/SCM_BITSPERDIG))
+# define SCM_I_BIGUP(type, x) ((type)(x) << SCM_BITSPERDIG)
+# define SCM_BIGUP(x) SCM_I_BIGUP (unsigned long, x)
+# define SCM_LONGLONGBIGUP(x) SCM_I_BIGUP (unsigned long long, x)
 # define SCM_BIGDN(x) ((x) >> SCM_BITSPERDIG)
 # define SCM_BIGLO(x) ((x) & (SCM_BIGRAD-1))
 #endif /* def BIGNUMS */
@@ -176,7 +177,7 @@
 #define SCM_BIGSIGN(x) (SCM_CELL_WORD_0 (x) & SCM_BIGSIGNFLAG)
 #define SCM_BDIGITS(x) ((SCM_BIGDIG *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_BIGNUM_BASE(n, b) (SCM_SET_CELL_WORD_1 ((n), (b)))
-#define SCM_NUMDIGS(x) ((scm_sizet) (SCM_CELL_WORD_0 (x) >> SCM_BIGSIZEFIELD))
+#define SCM_NUMDIGS(x) ((size_t) ((scm_ubits_t) SCM_CELL_WORD_0 (x) >> SCM_BIGSIZEFIELD))
 #define SCM_SETNUMDIGS(x, v, sign) \
   SCM_SET_CELL_WORD_0 (x, \
 	      scm_tc16_big \
@@ -220,24 +221,49 @@ extern SCM scm_ash (SCM n, SCM cnt);
 extern SCM scm_bit_extract (SCM n, SCM start, SCM end);
 extern SCM scm_logcount (SCM n);
 extern SCM scm_integer_length (SCM n);
-extern SCM scm_mkbig (scm_sizet nlen, int sign);
-extern SCM scm_big2inum (SCM b, scm_sizet l);
-extern SCM scm_adjbig (SCM b, scm_sizet nlen);
+extern SCM scm_i_mkbig (size_t nlen, int sign);
+extern SCM scm_i_big2inum (SCM b, size_t l);
+extern SCM scm_i_adjbig (SCM b, size_t nlen);
+extern SCM scm_i_normbig (SCM b);
+extern SCM scm_i_copybig (SCM b, int sign);
+extern SCM scm_i_short2big (short n);
+extern SCM scm_i_ushort2big (unsigned short n);
+extern SCM scm_i_int2big (int n);
+extern SCM scm_i_uint2big (unsigned int n);
+extern SCM scm_i_long2big (long n);
+extern SCM scm_i_ulong2big (unsigned long n);
+extern SCM scm_i_bits2big (scm_bits_t n);
+extern SCM scm_i_ubits2big (scm_ubits_t n);
+extern SCM scm_i_size2big (size_t n);
+extern SCM scm_i_ptrdiff2big (ptrdiff_t n);
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+extern SCM scm_big2inum (SCM b, size_t l);
+extern SCM scm_mkbig (size_t nlen, int sign);
+extern SCM scm_adjbig (SCM b, size_t len);
 extern SCM scm_normbig (SCM b);
 extern SCM scm_copybig (SCM b, int sign);
-extern SCM scm_long2big (long n);
-#ifdef HAVE_LONG_LONGS
-extern SCM scm_long_long2big (long_long n);
+
+#define SCM_FIXNUM_BIT SCM_I_FIXNUM_BIT
 #endif
+
+#ifdef HAVE_LONG_LONGS
+extern SCM scm_i_long_long2big (long long n);
+extern SCM scm_i_ulong_long2big (unsigned long long n);
+#endif
+
+#if (SCM_DEBUG_DEPRECATED == 0)
 extern SCM scm_2ulong2big (unsigned long * np);
-extern SCM scm_ulong2big (unsigned long n);
+#endif
+
 extern int scm_bigcomp (SCM x, SCM y);
 extern long scm_pseudolong (long x);
 extern void scm_longdigs (long x, SCM_BIGDIG digs[]);
-extern SCM scm_addbig (SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int sgny);
-extern SCM scm_mulbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn);
-extern unsigned int scm_divbigdig (SCM_BIGDIG *ds, scm_sizet h, SCM_BIGDIG div);
-extern scm_sizet scm_iint2str (long num, int rad, char *p);
+extern SCM scm_addbig (SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int sgny);
+extern SCM scm_mulbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn);
+extern unsigned int scm_divbigdig (SCM_BIGDIG *ds, size_t h, SCM_BIGDIG div);
+extern size_t scm_iint2str (long num, int rad, char *p);
 extern SCM scm_number_to_string (SCM x, SCM radix);
 extern int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);
 extern int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
@@ -286,21 +312,57 @@ extern SCM scm_magnitude (SCM z);
 extern SCM scm_angle (SCM z);
 extern SCM scm_inexact_to_exact (SCM z);
 extern SCM scm_trunc (SCM x);
+extern SCM scm_i_dbl2big (double d);
+
+#if (SCM_DEBUG_DEPRECATED == 0)
 extern SCM scm_dbl2big (double d);
+#endif
+
+extern double scm_i_big2dbl (SCM b);
+
+#if (SCM_DEBUG_DEPRECATED == 0)
 extern double scm_big2dbl (SCM b);
-extern SCM scm_long2num (long sl);
-extern SCM scm_ulong2num (unsigned long sl);
+#endif
+
+extern SCM scm_short2num (short n);
+extern SCM scm_ushort2num (unsigned short n);
+extern SCM scm_int2num (int n);
+extern SCM scm_uint2num (unsigned int n);
+extern SCM scm_long2num (long n);
+extern SCM scm_ulong2num (unsigned long n);
+extern SCM scm_bits2num (scm_bits_t n);
+extern SCM scm_ubits2num (scm_ubits_t n);
+extern SCM scm_size2num (size_t n);
+extern SCM scm_ptrdiff2num (ptrdiff_t n);
+extern short scm_num2short (SCM num, unsigned long int pos,
+                            const char *s_caller);
+extern unsigned short scm_num2ushort (SCM num, unsigned long int pos,
+                                      const char *s_caller);
+extern int scm_num2int (SCM num, unsigned long int pos,
+                        const char *s_caller);
+extern unsigned int scm_num2uint (SCM num, unsigned long int pos,
+                                  const char *s_caller);
 extern long scm_num2long (SCM num, unsigned long int pos,
 			  const char *s_caller);
-#ifdef HAVE_LONG_LONGS
-extern SCM scm_long_long2num (long_long sl);
-extern long_long scm_num2long_long (SCM num, unsigned long int pos,
-                                    const char *s_caller);
-extern ulong_long scm_num2ulong_long (SCM num, unsigned long int pos,
-				      const char *s_caller);
-#endif
 extern unsigned long scm_num2ulong (SCM num, unsigned long int pos,
                                     const char *s_caller);
+extern scm_bits_t scm_num2bits (SCM num, unsigned long int pos,
+                                const char *s_caller);
+extern scm_ubits_t scm_num2ubits (SCM num, unsigned long int pos,
+                                  const char *s_caller);
+extern ptrdiff_t scm_num2ptrdiff (SCM num, unsigned long int pos,
+                                  const char *s_caller);
+extern size_t scm_num2size (SCM num, unsigned long int pos,
+                            const char *s_caller);
+#ifdef HAVE_LONG_LONGS
+extern SCM scm_long_long2num (long long sl);
+extern SCM scm_ulong_long2num (unsigned long long sl);
+extern long long scm_num2long_long (SCM num, unsigned long int pos,
+                                    const char *s_caller);
+extern unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
+				      const char *s_caller);
+#endif
+
 extern void scm_init_numbers (void);
 
 #endif  /* NUMBERSH */

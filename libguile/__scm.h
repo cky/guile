@@ -211,8 +211,11 @@
 /* Some auto-generated .h files contain unused prototypes
  * that need these typedefs.
  */
+
+#if (SCM_DEBUG_DEPRECATED == 0)
 typedef long long long_long;
 typedef unsigned long long ulong_long;
+#endif
 
 #endif /* HAVE_LONG_LONGS */
 
@@ -252,6 +255,8 @@ typedef unsigned long long ulong_long;
 # define SCM_LONG_BIT (SCM_CHAR_BIT * sizeof (long) / sizeof (char))
 #endif
 
+#define SCM_BITS_LENGTH (SCM_CHAR_BIT * SCM_SIZEOF_BITS_T)
+
 #ifdef UCHAR_MAX
 # define SCM_CHAR_CODE_LIMIT (UCHAR_MAX + 1L)
 #else
@@ -262,17 +267,18 @@ typedef unsigned long long ulong_long;
 
 #ifdef STDC_HEADERS
 # include <stdlib.h>
-# ifdef AMIGA
+# if HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+# endif
+# if HAVE_SYS_STDTYPES_H
+#  include <sys/stdtypes.h>
+# endif
 #  include <stddef.h>
-# endif /* def AMIGA */
-# define scm_sizet size_t
-#else
-# ifdef _SIZE_T
-#  define scm_sizet size_t
-# else
-#  define scm_sizet unsigned int
-# endif /* def _SIZE_T */
 #endif /* def STDC_HEADERS */
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+# define scm_sizet size_t
+#endif
 
 
 

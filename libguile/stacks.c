@@ -92,11 +92,11 @@
  * Representation:
  *
  * The stack is represented as a struct with an id slot and a tail
- * array of scm_info_frame structs.
+ * array of scm_info_frame_t structs.
  *
  * A frame is represented as a pair where the car contains a stack and
  * the cdr an inum.  The inum is an index to the first SCM value of
- * the scm_info_frame struct.
+ * the scm_info_frame_t struct.
  *
  * Stacks
  *   Constructor
@@ -129,7 +129,7 @@
  */
 
 /* Stacks often contain pointers to other items on the stack; for
-   example, each scm_debug_frame structure contains a pointer to the
+   example, each scm_debug_frame_t structure contains a pointer to the
    next frame out.  When we capture a continuation, we copy the stack
    into the heap, and just leave all the pointers unchanged.  This
    makes it simple to restore the continuation --- just copy the stack
@@ -143,30 +143,30 @@
    OFFSET) is a pointer to the copy in the continuation of the
    original referent, cast to an scm_debug_MUMBLE *.  */
 #define RELOC_INFO(ptr, offset) \
-  ((scm_debug_info *) ((SCM_STACKITEM *) (ptr) + (offset)))
+  ((scm_debug_info_t *) ((SCM_STACKITEM *) (ptr) + (offset)))
 #define RELOC_FRAME(ptr, offset) \
-  ((scm_debug_frame *) ((SCM_STACKITEM *) (ptr) + (offset)))
+  ((scm_debug_frame_t *) ((SCM_STACKITEM *) (ptr) + (offset)))
 
 
 /* Count number of debug info frames on a stack, beginning with
  * DFRAME.  OFFSET is used for relocation of pointers when the stack
  * is read from a continuation.
  */
-static int
-stack_depth (scm_debug_frame *dframe,long offset,SCM *id,int *maxp)
+static scm_bits_t
+stack_depth (scm_debug_frame_t *dframe,scm_bits_t offset,SCM *id,int *maxp)
 {
-  int n;
-  int max_depth = SCM_BACKTRACE_MAXDEPTH;
+  scm_bits_t n;
+  scm_bits_t max_depth = SCM_BACKTRACE_MAXDEPTH;
   for (n = 0;
        dframe && !SCM_VOIDFRAMEP (*dframe) && n < max_depth;
        dframe = RELOC_FRAME (dframe->prev, offset))
     {
       if (SCM_EVALFRAMEP (*dframe))
 	{
-	  scm_debug_info * info = RELOC_INFO (dframe->info, offset);
+	  scm_debug_info_t * info = RELOC_INFO (dframe->info, offset);
 	  n += (info - dframe->vect) / 2 + 1;
 	  /* Data in the apply part of an eval info frame comes from previous
-	     stack frame if the scm_debug_info vector is overflowed. */
+	     stack frame if the scm_debug_info_t vector is overflowed. */
 	  if ((((info - dframe->vect) & 1) == 0)
 	      && SCM_OVERFLOWP (*dframe)
 	      && !SCM_UNBNDP (info[1].a.proc))
@@ -185,12 +185,12 @@ stack_depth (scm_debug_frame *dframe,long offset,SCM *id,int *maxp)
 /* Read debug info from DFRAME into IFRAME.
  */
 static void
-read_frame (scm_debug_frame *dframe,long offset,scm_info_frame *iframe)
+read_frame (scm_debug_frame_t *dframe,scm_bits_t offset,scm_info_frame_t *iframe)
 {
   scm_bits_t flags = SCM_UNPACK (SCM_INUM0); /* UGh. */
   if (SCM_EVALFRAMEP (*dframe))
     {
-      scm_debug_info * info = RELOC_INFO (dframe->info, offset);
+      scm_debug_info_t * info = RELOC_INFO (dframe->info, offset);
       if ((info - dframe->vect) & 1)
 	{
 	  /* Debug.vect ends with apply info. */
@@ -246,16 +246,16 @@ do { \
 } while (0)
 
 
-/* Fill the scm_info_frame vector IFRAME with data from N stack frames
+/* Fill the scm_info_frame_t vector IFRAME with data from N stack frames
  * starting with the first stack frame represented by debug frame
  * DFRAME.
  */
 
-static int
-read_frames (scm_debug_frame *dframe,long offset,int n,scm_info_frame *iframes)
+static scm_bits_t
+read_frames (scm_debug_frame_t *dframe,scm_bits_t offset,scm_bits_t n,scm_info_frame_t *iframes)
 {
-  scm_info_frame *iframe = iframes;
-  scm_debug_info *info;
+  scm_info_frame_t *iframe = iframes;
+  scm_debug_info_t *info;
   static SCM applybody = SCM_UNDEFINED;
   
   /* The value of applybody has to be setup after r4rs.scm has executed. */
@@ -280,7 +280,7 @@ read_frames (scm_debug_frame *dframe,long offset,int n,scm_info_frame *iframes)
 	  if ((info - dframe->vect) & 1)
 	    --info;
 	  /* Data in the apply part of an eval info frame comes from
-	     previous stack frame if the scm_debug_info vector is overflowed. */
+	     previous stack frame if the scm_debug_info_t vector is overflowed. */
 	  else if (SCM_OVERFLOWP (*dframe)
 		   && !SCM_UNBNDP (info[1].a.proc))
 	    {
@@ -345,11 +345,11 @@ read_frames (scm_debug_frame *dframe,long offset,int n,scm_info_frame *iframes)
  */
 
 static void
-narrow_stack (SCM stack,int inner,SCM inner_key,int outer,SCM outer_key)
+narrow_stack (SCM stack,scm_bits_t inner,SCM inner_key,scm_bits_t outer,SCM outer_key)
 {
-  scm_stack *s = SCM_STACK (stack);
-  int i;
-  int n = s->length;
+  scm_stack_t *s = SCM_STACK (stack);
+  scm_bits_t i;
+  scm_bits_t n = s->length;
   
   /* Cut inner part. */
   if (SCM_EQ_P (inner_key, SCM_BOOL_T))
@@ -421,10 +421,11 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 	    "resulting stack will be narrowed.")
 #define FUNC_NAME s_scm_make_stack
 {
-  int n, maxp, size;
-  scm_debug_frame *dframe = scm_last_debug_frame;
-  scm_info_frame *iframe;
-  long offset = 0;
+  scm_bits_t n, size;
+  int maxp;
+  scm_debug_frame_t *dframe = scm_last_debug_frame;
+  scm_info_frame_t *iframe;
+  scm_bits_t offset = 0;
   SCM stack, id;
   SCM inner_cut, outer_cut;
 
@@ -436,10 +437,10 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
     {
       SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, FUNC_NAME);
       if (SCM_DEBUGOBJP (obj))
-	dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (obj);
+	dframe = (scm_debug_frame_t *) SCM_DEBUGOBJ_FRAME (obj);
       else if (SCM_CONTINUATIONP (obj))
 	{
-	  offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_contregs))
+	  offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_contregs_t))
 		    - SCM_BASE (obj));
 #ifndef STACK_GROWS_UP
 	  offset += SCM_CONTINUATION_LENGTH (obj);
@@ -512,18 +513,18 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 	    "Return the identifier given to @var{stack} by @code{start-stack}.")
 #define FUNC_NAME s_scm_stack_id
 {
-  scm_debug_frame *dframe;
-  long offset = 0;
+  scm_debug_frame_t *dframe;
+  scm_bits_t offset = 0;
   if (SCM_EQ_P (stack, SCM_BOOL_T))
     dframe = scm_last_debug_frame;
   else
     {
       SCM_VALIDATE_NIM (1,stack);
       if (SCM_DEBUGOBJP (stack))
-	dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (stack);
+	dframe = (scm_debug_frame_t *) SCM_DEBUGOBJ_FRAME (stack);
       else if (SCM_CONTINUATIONP (stack))
 	{
-	  offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (stack) + sizeof (scm_contregs))
+	  offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (stack) + sizeof (scm_contregs_t))
 		    - SCM_BASE (stack));
 #ifndef STACK_GROWS_UP
 	  offset += SCM_CONTINUATION_LENGTH (stack);
@@ -586,16 +587,16 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
 	    "debug object or a continuation.")
 #define FUNC_NAME s_scm_last_stack_frame
 {
-  scm_debug_frame *dframe;
-  long offset = 0;
+  scm_debug_frame_t *dframe;
+  scm_bits_t offset = 0;
   SCM stack;
   
   SCM_VALIDATE_NIM (1,obj);
   if (SCM_DEBUGOBJP (obj))
-    dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (obj);
+    dframe = (scm_debug_frame_t *) SCM_DEBUGOBJ_FRAME (obj);
   else if (SCM_CONTINUATIONP (obj))
     {
-      offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_contregs))
+      offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_contregs_t))
 		- SCM_BASE (obj));
 #ifndef STACK_GROWS_UP
       offset += SCM_CONTINUATION_LENGTH (obj);
@@ -616,7 +617,7 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
   SCM_STACK (stack) -> length = 1;
   SCM_STACK (stack) -> frames = &SCM_STACK (stack) -> tail[0];
   read_frame (dframe, offset,
-	      (scm_info_frame *) &SCM_STACK (stack) -> frames[0]);
+	      (scm_info_frame_t *) &SCM_STACK (stack) -> frames[0]);
   
   return scm_cons (stack, SCM_INUM0);;
 }
@@ -671,7 +672,7 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
 	    "@var{frame} is the first frame in its stack.")
 #define FUNC_NAME s_scm_frame_previous
 {
-  int n;
+  scm_bits_t n;
   SCM_VALIDATE_FRAME (1,frame);
   n = SCM_INUM (SCM_CDR (frame)) + 1;
   if (n >= SCM_STACK_LENGTH (SCM_CAR (frame)))
@@ -687,7 +688,7 @@ SCM_DEFINE (scm_frame_next, "frame-next", 1, 0, 0,
 	    "@var{frame} is the last frame in its stack.")
 #define FUNC_NAME s_scm_frame_next
 {
-  int n;
+  scm_bits_t n;
   SCM_VALIDATE_FRAME (1,frame);
   n = SCM_INUM (SCM_CDR (frame)) - 1;
   if (n < 0)

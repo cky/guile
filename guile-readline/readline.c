@@ -71,7 +71,7 @@ SCM_DEFINE (scm_readline_options, "readline-options-interface", 0, 1, 0,
 static char *
 strdup (char *s)
 {
-  int len = strlen (s);
+  size_t len = strlen (s);
   char *new = malloc (len + 1);
   strcpy (new, s);
   return new;

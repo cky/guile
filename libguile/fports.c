@@ -59,7 +59,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #else
-scm_sizet fwrite ();
+size_t fwrite ();
 #endif
 #ifdef HAVE_ST_BLKSIZE
 #include <sys/stat.h>
@@ -74,20 +74,20 @@ scm_bits_t scm_tc16_fport;
 
 
 /* default buffer size, used if the O/S won't supply a value.  */
-static const int default_buffer_size = 1024;
+static const size_t default_buffer_size = 1024;
 
 /* create FPORT buffer with specified sizes (or -1 to use default size or
    0 for no buffer.  */
 static void
-scm_fport_buffer_add (SCM port, int read_size, int write_size)
+scm_fport_buffer_add (SCM port, scm_bits_t read_size, scm_bits_t write_size)
 #define FUNC_NAME "scm_fport_buffer_add"
 {
-  struct scm_fport *fp = SCM_FSTREAM (port);
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_fport_t *fp = SCM_FSTREAM (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (read_size == -1 || write_size == -1)
     {
-      int default_size;
+      size_t default_size;
 #ifdef HAVE_ST_BLKSIZE
       struct stat st;
       
@@ -148,8 +148,9 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 	    "@end table")
 #define FUNC_NAME s_scm_setvbuf
 {
-  int cmode, csize;
-  scm_port *pt;
+  int cmode;
+  scm_bits_t csize;
+  scm_port_t *pt;
 
   port = SCM_COERCE_OUTPORT (port);
 
@@ -202,7 +203,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 void
 scm_evict_ports (int fd)
 {
-  int i;
+  scm_bits_t i;
 
   for (i = 0; i < scm_port_table_size; i++)
     {
@@ -210,7 +211,7 @@ scm_evict_ports (int fd)
 
       if (SCM_FPORTP (port))
 	{
-	  struct scm_fport *fp = SCM_FSTREAM (port);
+	  scm_fport_t *fp = SCM_FSTREAM (port);
 
 	  if (fp->fdes == fd)
 	    {
@@ -361,7 +362,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
 {
   long mode_bits = scm_mode_bits (mode);
   SCM port;
-  scm_port *pt;
+  scm_port_t *pt;
   int flags;
 
   /* test that fdes is valid.  */
@@ -383,8 +384,8 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
   SCM_SET_CELL_TYPE (port, (scm_tc16_fport | mode_bits));
 
   {
-    struct scm_fport *fp
-      = (struct scm_fport *) scm_must_malloc (sizeof (struct scm_fport),
+    scm_fport_t *fp
+      = (scm_fport_t *) scm_must_malloc (sizeof (scm_fport_t),
 					      FUNC_NAME);
 
     fp->fdes = fdes;
@@ -504,9 +505,9 @@ static void fport_flush (SCM port);
 static int
 fport_fill_input (SCM port)
 {
-  int count;
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  struct scm_fport *fp = SCM_FSTREAM (port);
+  scm_bits_t count;
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_fport_t *fp = SCM_FSTREAM (port);
 
 #ifdef GUILE_ISELECT
   fport_wait_for_input (port);
@@ -527,8 +528,8 @@ fport_fill_input (SCM port)
 static off_t
 fport_seek (SCM port, off_t offset, int whence)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  struct scm_fport *fp = SCM_FSTREAM (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_fport_t *fp = SCM_FSTREAM (port);
   off_t rv;
   off_t result;
 
@@ -579,7 +580,7 @@ fport_seek (SCM port, off_t offset, int whence)
 static void
 fport_truncate (SCM port, off_t length)
 {
-  struct scm_fport *fp = SCM_FSTREAM (port);
+  scm_fport_t *fp = SCM_FSTREAM (port);
 
   if (ftruncate (fp->fdes, length) == -1)
     scm_syserror ("ftruncate");
@@ -610,7 +611,7 @@ static void
 fport_write (SCM port, const void *data, size_t size)
 {
   /* this procedure tries to minimize the number of writes/flushes.  */
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->write_buf == &pt->shortbuf
       || (pt->write_pos == pt->write_buf && size >= pt->write_buf_size))
@@ -671,22 +672,22 @@ extern int terminating;
 static void
 fport_flush (SCM port)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  struct scm_fport *fp = SCM_FSTREAM (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_fport_t *fp = SCM_FSTREAM (port);
   unsigned char *ptr = pt->write_buf;
-  int init_size = pt->write_pos - pt->write_buf;
-  int remaining = init_size;
+  scm_bits_t init_size = pt->write_pos - pt->write_buf;
+  scm_bits_t remaining = init_size;
 
   while (remaining > 0)
     {
-      int count;
+      scm_bits_t count;
 
       SCM_SYSCALL (count = write (fp->fdes, ptr, remaining));
       if (count < 0)
 	{
 	  /* error.  assume nothing was written this call, but
 	     fix up the buffer for any previous successful writes.  */
-	  int done = init_size - remaining;
+	  scm_bits_t done = init_size - remaining;
 	      
 	  if (done > 0)
 	    {
@@ -729,8 +730,8 @@ fport_flush (SCM port)
 static void
 fport_end_input (SCM port, int offset)
 {
-  struct scm_fport *fp = SCM_FSTREAM (port);
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_fport_t *fp = SCM_FSTREAM (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
   
   offset += pt->read_end - pt->read_pos;
 
@@ -748,8 +749,8 @@ fport_end_input (SCM port, int offset)
 static int
 fport_close (SCM port)
 {
-  struct scm_fport *fp = SCM_FSTREAM (port);
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_fport_t *fp = SCM_FSTREAM (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
   int rv;
 
   fport_flush (port);
@@ -773,7 +774,7 @@ fport_close (SCM port)
   return rv;
 }
 
-static scm_sizet
+static size_t
 fport_free (SCM port)
 {
   fport_close (port);

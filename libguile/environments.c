@@ -479,7 +479,7 @@ environment_mark (SCM env)
 }
 
 
-static scm_sizet
+static size_t
 environment_free (SCM env)
 {
   return (*(SCM_ENVIRONMENT_FUNCS (env)->free)) (env);
@@ -508,7 +508,7 @@ observer_mark (SCM observer)
 static int
 observer_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM address = scm_ubits2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<observer ", port);
@@ -535,7 +535,7 @@ observer_print (SCM type, SCM port, scm_print_state *pstate)
 static SCM
 obarray_enter (SCM obarray, SCM symbol, SCM data)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (symbol) % SCM_VECTOR_LENGTH (obarray);
+  size_t hash = SCM_SYMBOL_HASH (symbol) % SCM_VECTOR_LENGTH (obarray);
   SCM entry = scm_cons (symbol, data);
   SCM slot = scm_cons (entry, SCM_VELTS (obarray)[hash]);
   SCM_VELTS (obarray)[hash] = slot;
@@ -551,7 +551,7 @@ obarray_enter (SCM obarray, SCM symbol, SCM data)
 static SCM
 obarray_replace (SCM obarray, SCM symbol, SCM data)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (symbol) % SCM_VECTOR_LENGTH (obarray);
+  size_t hash = SCM_SYMBOL_HASH (symbol) % SCM_VECTOR_LENGTH (obarray);
   SCM new_entry = scm_cons (symbol, data);
   SCM lsym;
   SCM slot;
@@ -579,7 +579,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
 static SCM
 obarray_retrieve (SCM obarray, SCM sym)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
+  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
   SCM lsym;
 
   for (lsym = SCM_VELTS (obarray)[hash]; !SCM_NULLP (lsym); lsym = SCM_CDR (lsym))
@@ -600,7 +600,7 @@ obarray_retrieve (SCM obarray, SCM sym)
 static SCM
 obarray_remove (SCM obarray, SCM sym)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
+  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
   SCM lsym;
   SCM *lsymp;
 
@@ -623,8 +623,8 @@ obarray_remove (SCM obarray, SCM sym)
 static void
 obarray_remove_all (SCM obarray)
 {
-  scm_sizet size = SCM_VECTOR_LENGTH (obarray);
-  scm_sizet i;
+  size_t size = SCM_VECTOR_LENGTH (obarray);
+  size_t i;
 
   for (i = 0; i < size; i++)
     {
@@ -906,7 +906,7 @@ leaf_environment_ref (SCM env, SCM sym)
 static SCM
 leaf_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
 {
-  scm_sizet i;
+  size_t i;
   SCM result = init;
   SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
 
@@ -991,7 +991,7 @@ leaf_environment_mark (SCM env)
 }
 
 
-static scm_sizet
+static size_t
 leaf_environment_free (SCM env)
 {
   core_environments_finalize (env);
@@ -1004,7 +1004,7 @@ leaf_environment_free (SCM env)
 static int
 leaf_environment_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM address = scm_ubits2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<leaf environment ", port);
@@ -1040,7 +1040,7 @@ SCM_DEFINE (scm_make_leaf_environment, "make-leaf-environment", 0, 0, 0,
 	    "will be mutable.")
 #define FUNC_NAME s_scm_make_leaf_environment
 {
-  scm_sizet size = sizeof (struct leaf_environment);
+  size_t size = sizeof (struct leaf_environment);
   struct leaf_environment *body = scm_must_malloc (size, FUNC_NAME);
   SCM env;
 
@@ -1246,7 +1246,7 @@ eval_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
   if (!SCM_ENVIRONMENT_BOUND_P (local, symbol))
     {
       SCM proc_as_nr = SCM_CADR (extended_data);
-      unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, 0, NULL);
+      scm_ubits_t proc_as_ul = scm_num2ubits (proc_as_nr, 0, NULL);
       scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
       SCM data = SCM_CDDR (extended_data);
 
@@ -1264,7 +1264,7 @@ eval_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
 {
   SCM local = EVAL_ENVIRONMENT (env)->local;
   SCM imported = EVAL_ENVIRONMENT (env)->imported;
-  SCM proc_as_nr = scm_ulong2num ((unsigned long int) proc);
+  SCM proc_as_nr = scm_ubits2num ((scm_ubits_t) proc);
   SCM extended_data = scm_cons2 (local, proc_as_nr, data);
   SCM tmp_result = scm_c_environment_fold (imported, eval_environment_folder, extended_data, init);
 
@@ -1352,7 +1352,7 @@ eval_environment_mark (SCM env)
 }
 
 
-static scm_sizet
+static size_t
 eval_environment_free (SCM env)
 {
   core_environments_finalize (env);
@@ -1365,7 +1365,7 @@ eval_environment_free (SCM env)
 static int
 eval_environment_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM address = scm_ubits2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<eval environment ", port);
@@ -1652,7 +1652,7 @@ import_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
   SCM imported_env = SCM_CADR (extended_data);
   SCM owner = import_environment_lookup (import_env, symbol);
   SCM proc_as_nr = SCM_CADDR (extended_data);
-  unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, 0, NULL);
+  scm_ubits_t proc_as_ul = scm_num2ubits (proc_as_nr, 0, NULL);
   scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
   SCM data = SCM_CDDDR (extended_data);
 
@@ -1670,7 +1670,7 @@ import_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
 static SCM
 import_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
 {
-  SCM proc_as_nr = scm_ulong2num ((unsigned long int) proc);
+  SCM proc_as_nr = scm_ubits2num ((scm_ubits_t) proc);
   SCM result = init;
   SCM l;
 
@@ -1768,7 +1768,7 @@ import_environment_mark (SCM env)
 }
 
 
-static scm_sizet
+static size_t
 import_environment_free (SCM env)
 {
   core_environments_finalize (env);
@@ -1781,7 +1781,7 @@ import_environment_free (SCM env)
 static int
 import_environment_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM address = scm_ubits2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<import environment ", port);
@@ -1846,7 +1846,7 @@ SCM_DEFINE (scm_make_import_environment, "make-import-environment", 2, 0, 0,
 	    "if one of its imported environments changes.")
 #define FUNC_NAME s_scm_make_import_environment
 {
-  scm_sizet size = sizeof (struct import_environment);
+  size_t size = sizeof (struct import_environment);
   struct import_environment *body = scm_must_malloc (size, FUNC_NAME);
   SCM env;
 
@@ -2071,7 +2071,7 @@ export_environment_mark (SCM env)
 }
 
 
-static scm_sizet
+static size_t
 export_environment_free (SCM env)
 {
   core_environments_finalize (env);
@@ -2084,7 +2084,7 @@ export_environment_free (SCM env)
 static int
 export_environment_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ulong2num (SCM_UNPACK (type));
+  SCM address = scm_ubits2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<export environment ", port);
@@ -2164,7 +2164,7 @@ SCM_DEFINE (scm_make_export_environment, "make-export-environment", 2, 0, 0,
 	    "if the bindings in private change.")
 #define FUNC_NAME s_scm_make_export_environment
 {
-  scm_sizet size;
+  size_t size;
   struct export_environment *body;
   SCM env;
 

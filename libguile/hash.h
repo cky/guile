@@ -48,13 +48,13 @@
 
 
 
-extern unsigned long scm_string_hash (const unsigned char *str, scm_sizet len);
-extern unsigned long scm_hasher (SCM obj, unsigned long n, scm_sizet d);
-extern unsigned int scm_ihashq (SCM obj, unsigned int n);
+extern scm_bits_t scm_string_hash (const unsigned char *str, size_t len);
+extern scm_bits_t scm_hasher (SCM obj, scm_bits_t n, size_t d);
+extern scm_bits_t scm_ihashq (SCM obj, scm_bits_t n);
 extern SCM scm_hashq (SCM obj, SCM n);
-extern unsigned int scm_ihashv (SCM obj, unsigned int n);
+extern scm_bits_t scm_ihashv (SCM obj, scm_bits_t n);
 extern SCM scm_hashv (SCM obj, SCM n);
-extern unsigned int scm_ihash (SCM obj, unsigned int n);
+extern scm_bits_t scm_ihash (SCM obj, scm_bits_t n);
 extern SCM scm_hash (SCM obj, SCM n);
 extern void scm_init_hash (void);
 

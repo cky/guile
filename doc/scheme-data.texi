@@ -4143,7 +4143,7 @@ length.  If @var{bool} is @code{#t}, uve is OR'ed into
 @var{bv}; If @var{bool} is @code{#f}, the inversion of uve is
 AND'ed into @var{bv}.
 
-If uve is a unsigned integer vector all the elements of uve
+If uve is a unsigned long integer vector all the elements of uve
 must be between 0 and the @code{length} of @var{bv}.  The bits
 of @var{bv} corresponding to the indexes in uve are set to
 @var{bool}.  The return value is unspecified.

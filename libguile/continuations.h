@@ -50,7 +50,7 @@
 /* a continuation SCM is a non-immediate pointing to a heap cell with:
    word 0: bits 0-15: unused.
            bits 16-31: smob type tag: scm_tc16_continuation.
-   word 1: malloc block containing an scm_contregs structure with a
+   word 1: malloc block containing an scm_contregs_t structure with a
            tail array of SCM_STACKITEM.  the size of the array is stored
 	   in the num_stack_items field of the structure.
 */
@@ -63,20 +63,24 @@ typedef struct
   jmp_buf jmpbuf;
   SCM dynenv;
   SCM_STACKITEM *base;      /* base of the live stack, before it was saved.  */
-  scm_sizet num_stack_items; /* size of the saved stack.  */
-  unsigned long seq;         /* dynamic root identifier.  */
+  scm_bits_t num_stack_items; /* size of the saved stack.  */
+  scm_ubits_t seq;         /* dynamic root identifier.  */
 
 #ifdef DEBUG_EXTENSIONS
   /* the most recently created debug frame on the live stack, before
      it was saved.  */
-  struct scm_debug_frame *dframe;
+  struct scm_debug_frame_t *dframe;
 #endif
   SCM_STACKITEM stack[1];    /* copied stack of size num_stack_items.  */ 
-} scm_contregs;
+} scm_contregs_t;
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+# define scm_contregs scm_contregs_t
+#endif
 
 #define SCM_CONTINUATIONP(x)	SCM_TYP16_PREDICATE (scm_tc16_continuation, x)
 
-#define SCM_CONTREGS(x)		((scm_contregs *) SCM_CELL_WORD_1 (x))
+#define SCM_CONTREGS(x)		((scm_contregs_t *) SCM_CELL_WORD_1 (x))
 
 #define SCM_CONTINUATION_LENGTH(x) (SCM_CONTREGS (x)->num_stack_items)
 #define SCM_SET_CONTINUATION_LENGTH(x,n)\

@@ -195,7 +195,7 @@ hook_print (SCM hook, SCM port, scm_print_state *pstate)
 
 
 SCM
-scm_create_hook (const char* name, int n_args)
+scm_create_hook (const char *name, int n_args)
 {
   SCM hook = make_hook (SCM_MAKINUM (n_args), "scm_create_hook");
   scm_c_define (name, hook);

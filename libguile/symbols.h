@@ -55,11 +55,11 @@
  */
 
 #define SCM_SYMBOLP(x)              (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_symbol))
-#define SCM_SYMBOL_LENGTH(x)        (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_SYMBOL_LENGTH(x)        (((scm_ubits_t) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SET_SYMBOL_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), ((l) << 8) + scm_tc7_symbol))
 #define SCM_SYMBOL_CHARS(x)         ((char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_SYMBOL_CHARS(s, c)  (SCM_SET_CELL_WORD_1 ((s), (c)))
-#define SCM_SYMBOL_HASH(X)          ((unsigned long) SCM_CELL_WORD_2 (X))
+#define SCM_SYMBOL_HASH(X)          ((scm_ubits_t) SCM_CELL_WORD_2 (X))
 #define SCM_SET_SYMBOL_HASH(X, v)   (SCM_SET_CELL_WORD_2 ((X), (v)))
 
 #define SCM_PROP_SLOTS(X)           (SCM_CELL_WORD_3 (X))
@@ -74,7 +74,7 @@
 #ifdef GUILE_DEBUG
 extern SCM scm_sys_symbols (void);
 #endif
-extern SCM scm_mem2symbol (const char*, scm_sizet);
+extern SCM scm_mem2symbol (const char*, size_t);
 extern SCM scm_str2symbol (const char*);
 
 extern SCM scm_symbol_p (SCM x);
@@ -103,7 +103,7 @@ extern void scm_init_symbols (void);
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
 #define SCM_LENGTH_MAX (0xffffffL)
-#define SCM_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_LENGTH(x) (((scm_ubits_t) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SETLENGTH(x, v, t) (SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + (t)))
 #define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
 			  || (SCM_TYP7(x) == scm_tc7_symbol)))
@@ -129,9 +129,9 @@ extern void scm_init_symbols (void);
 extern SCM scm_sym2vcell (SCM sym, SCM thunk, SCM definep);
 extern SCM scm_sym2ovcell_soft (SCM sym, SCM obarray);
 extern SCM scm_sym2ovcell (SCM sym, SCM obarray);
-extern SCM scm_intern_obarray_soft (const char *name, scm_sizet len, SCM obarray, unsigned int softness);
-extern SCM scm_intern_obarray (const char *name, scm_sizet len, SCM obarray);
-extern SCM scm_intern (const char *name, scm_sizet len);
+extern SCM scm_intern_obarray_soft (const char *name, size_t len, SCM obarray, unsigned int softness);
+extern SCM scm_intern_obarray (const char *name, size_t len, SCM obarray);
+extern SCM scm_intern (const char *name, size_t len);
 extern SCM scm_intern0 (const char *name);
 extern SCM scm_sysintern (const char *name, SCM val);
 extern SCM scm_sysintern0 (const char *name);

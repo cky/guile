@@ -109,7 +109,7 @@ scm_threads_mark_stacks (void)
 	  /* This assumes that all registers are saved into the jmp_buf */
 	  setjmp (scm_save_regs_gc_mark);
 	  scm_mark_locations ((SCM_STACKITEM *) scm_save_regs_gc_mark,
-			      ((scm_sizet) sizeof scm_save_regs_gc_mark
+			      ((size_t) sizeof scm_save_regs_gc_mark
 			       / sizeof (SCM_STACKITEM)));
 	  
 	  scm_mark_locations (((size_t) thread->base,
@@ -130,7 +130,7 @@ scm_threads_mark_stacks (void)
 	  /* This assumes that all registers are saved into the jmp_buf */
 	  setjmp (scm_save_regs_gc_mark);
 	  scm_mark_locations ((SCM_STACKITEM *) scm_save_regs_gc_mark,
-			      ((scm_sizet) sizeof scm_save_regs_gc_mark
+			      ((size_t) sizeof scm_save_regs_gc_mark
 			       / sizeof (SCM_STACKITEM)));
 	  
 	  scm_mark_locations ((SCM_STACKITEM *) &thread,

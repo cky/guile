@@ -79,7 +79,7 @@ gh_char2scm (char c)
  return SCM_MAKE_CHAR (c);
 }
 SCM 
-gh_str2scm (const char *s, int len)
+gh_str2scm (const char *s, size_t len)
 {
   return scm_makfromstr (s, len, 0);
 }
@@ -95,20 +95,20 @@ gh_str02scm (const char *s)
    If START + LEN is off the end of DST, signal an out-of-range
    error.  */
 void 
-gh_set_substr (char *src, SCM dst, int start, int len)
+gh_set_substr (char *src, SCM dst, scm_bits_t start, size_t len)
 {
   char *dst_ptr;
-  unsigned long dst_len;
-  unsigned long effective_length;
+  size_t dst_len;
+  size_t effective_length;
 
   SCM_ASSERT (SCM_STRINGP (dst), dst, SCM_ARG3, "gh_set_substr");
 
   dst_ptr = SCM_STRING_CHARS (dst);
   dst_len = SCM_STRING_LENGTH (dst);
-  SCM_ASSERT (len >= 0 && (unsigned) len <= dst_len,
+  SCM_ASSERT (len >= 0 && len <= dst_len,
 	      dst, SCM_ARG4, "gh_set_substr");
   
-  effective_length = ((unsigned) len < dst_len) ? len : dst_len;
+  effective_length = (len < dst_len) ? len : dst_len;
   memmove (dst_ptr + start, src, effective_length);
   scm_remember_upto_here_1 (dst);
 }
@@ -121,22 +121,22 @@ gh_symbol2scm (const char *symbol_str)
 }
 
 SCM
-gh_ints2scm (const int *d, int n)
+gh_ints2scm (const int *d, scm_bits_t n)
 {
-  int i;
+  scm_bits_t i;
   SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
   SCM *velts = SCM_VELTS(v);
 
   for (i = 0; i < n; ++i)
-    velts[i] = (SCM_FIXABLE (d[i]) ? SCM_MAKINUM (d[i]) : scm_long2big (d[i]));
+    velts[i] = (SCM_FIXABLE (d[i]) ? SCM_MAKINUM (d[i]) : scm_i_long2big (d[i]));
 
   return v;
 }
 
 SCM
-gh_doubles2scm (const double *d, int n)
+gh_doubles2scm (const double *d, scm_bits_t n)
 {
-  int i;
+  scm_bits_t i;
   SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
   SCM *velts = SCM_VELTS(v);
 
@@ -150,7 +150,7 @@ gh_doubles2scm (const double *d, int n)
    you arrange for the elements to be protected from GC while you
    initialize the vector.  */
 static SCM
-makvect (char* m, int len, int type)
+makvect (char *m, size_t len, int type)
 {
   SCM ans;
   SCM_NEWCELL (ans);
@@ -162,7 +162,7 @@ makvect (char* m, int len, int type)
 }
 
 SCM
-gh_chars2byvect (const char *d, int n)
+gh_chars2byvect (const char *d, scm_bits_t n)
 {
   char *m = scm_must_malloc (n * sizeof (char), "vector");
   memcpy (m, d, n * sizeof (char));
@@ -170,7 +170,7 @@ gh_chars2byvect (const char *d, int n)
 }
 
 SCM
-gh_shorts2svect (const short *d, int n)
+gh_shorts2svect (const short *d, scm_bits_t n)
 {
   char *m = scm_must_malloc (n * sizeof (short), "vector");
   memcpy (m, d, n * sizeof (short));
@@ -178,7 +178,7 @@ gh_shorts2svect (const short *d, int n)
 }
 
 SCM
-gh_longs2ivect (const long *d, int n)
+gh_longs2ivect (const long *d, scm_bits_t n)
 {
   char *m = scm_must_malloc (n * sizeof (long), "vector");
   memcpy (m, d, n * sizeof (long));
@@ -186,7 +186,7 @@ gh_longs2ivect (const long *d, int n)
 }
 
 SCM
-gh_ulongs2uvect (const unsigned long *d, int n)
+gh_ulongs2uvect (const unsigned long *d, scm_bits_t n)
 {
   char *m = scm_must_malloc (n * sizeof (unsigned long), "vector");
   memcpy (m, d, n * sizeof (unsigned long));
@@ -194,7 +194,7 @@ gh_ulongs2uvect (const unsigned long *d, int n)
 }
 
 SCM
-gh_floats2fvect (const float *d, int n)
+gh_floats2fvect (const float *d, scm_bits_t n)
 {
   char *m = scm_must_malloc (n * sizeof (float), "vector");
   memcpy (m, d, n * sizeof (float));
@@ -202,7 +202,7 @@ gh_floats2fvect (const float *d, int n)
 }
 
 SCM
-gh_doubles2dvect (const double *d, int n)
+gh_doubles2dvect (const double *d, scm_bits_t n)
 {
   char *m = scm_must_malloc (n * sizeof (double), "vector");
   memcpy (m, d, n * sizeof (double));
@@ -229,8 +229,7 @@ gh_scm2long (SCM obj)
 int 
 gh_scm2int (SCM obj)
 {
-  /* NOTE: possible loss of precision here */
-  return (int) scm_num2long (obj, SCM_ARG1, "gh_scm2int");
+  return (int) scm_num2int (obj, SCM_ARG1, "gh_scm2int");
 }
 double 
 gh_scm2double (SCM obj)
@@ -252,8 +251,8 @@ gh_scm2char (SCM obj)
 char *
 gh_scm2chars (SCM obj, char *m)
 {
-  int i, n;
-  long v;
+  scm_bits_t i, n;
+  scm_bits_t v;
   SCM val;
   if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
@@ -312,8 +311,8 @@ gh_scm2chars (SCM obj, char *m)
 short *
 gh_scm2shorts (SCM obj, short *m)
 {
-  int i, n;
-  long v;
+  scm_bits_t i, n;
+  scm_bits_t v;
   SCM val;
   if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
@@ -363,7 +362,7 @@ gh_scm2shorts (SCM obj, short *m)
 long *
 gh_scm2longs (SCM obj, long *m)
 {
-  int i, n;
+  scm_bits_t i, n;
   SCM val;
   if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
@@ -413,7 +412,7 @@ gh_scm2longs (SCM obj, long *m)
 float *
 gh_scm2floats (SCM obj, float *m)
 {
-  int i, n;
+  scm_bits_t i, n;
   SCM val;
   if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
@@ -476,7 +475,7 @@ gh_scm2floats (SCM obj, float *m)
 double *
 gh_scm2doubles (SCM obj, double *m)
 {
-  int i, n;
+  scm_bits_t i, n;
   SCM val;
   if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
@@ -549,10 +548,10 @@ gh_scm2doubles (SCM obj, double *m)
    function always copies the complete contents of STR, and sets
    *LEN_P to the true length of the string (when LEN_P is non-null).  */
 char *
-gh_scm2newstr (SCM str, int *lenp)
+gh_scm2newstr (SCM str, size_t *lenp)
 {
   char *ret_str;
-  int len;
+  size_t len;
 
   SCM_ASSERT (SCM_STRINGP (str), str, SCM_ARG3, "gh_scm2newstr");
 
@@ -584,9 +583,9 @@ gh_scm2newstr (SCM str, int *lenp)
    region to fit the string.  If truncation occurs, the corresponding
    area of DST is left unchanged.  */
 void 
-gh_get_substr (SCM src, char *dst, int start, int len)
+gh_get_substr (SCM src, char *dst, scm_bits_t start, size_t len)
 {
-  int src_len, effective_length;
+  size_t src_len, effective_length;
   SCM_ASSERT (SCM_STRINGP (src), src, SCM_ARG3, "gh_get_substr");
 
   src_len = SCM_STRING_LENGTH (src);
@@ -606,10 +605,10 @@ gh_get_substr (SCM src, char *dst, int start, int len)
    caller is responsible for freeing it.  If out of memory, NULL is
    returned.*/
 char *
-gh_symbol2newstr (SCM sym, int *lenp)
+gh_symbol2newstr (SCM sym, size_t *lenp)
 {
   char *ret_str;
-  int len;
+  size_t len;
 
   SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG3, "gh_scm2newsymbol");
 
@@ -656,20 +655,20 @@ gh_vector_ref (SCM vec, SCM pos)
 }
 
 /* returns the length of the given vector */
-unsigned long 
+scm_bits_t
 gh_vector_length (SCM v)
 {
-  return gh_scm2ulong (scm_vector_length (v));
+  return (size_t) SCM_VECTOR_LENGTH (v);
 }
 
 #ifdef HAVE_ARRAYS
 /* uniform vector support */
 
 /* returns the length as a C unsigned long integer */
-unsigned long
+scm_ubits_t
 gh_uniform_vector_length (SCM v)
 {
-  return gh_scm2ulong (scm_uniform_vector_length (v));
+  return SCM_UVECTOR_LENGTH (v);
 }
 
 /* gets the given element from a uniform vector; ilist is a list (or

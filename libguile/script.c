@@ -74,14 +74,14 @@ scm_cat_path (char *str1, const char *str2, long n)
     n = strlen (str2);
   if (str1)
     {
-      long len = strlen (str1);
-      str1 = (char *) realloc (str1, (scm_sizet) (len + n + 1));
+      size_t len = strlen (str1);
+      str1 = (char *) realloc (str1, (size_t) (len + n + 1));
       if (!str1)
 	return 0L;
       strncat (str1 + len, str2, n);
       return str1;
     }
-  str1 = (char *) malloc ((scm_sizet) (n + 1));
+  str1 = (char *) malloc ((size_t) (n + 1));
   if (!str1)
     return 0L;
   str1[0] = 0;
@@ -233,9 +233,9 @@ static char *
 script_read_arg (FILE *f)
 #define FUNC_NAME "script_read_arg"
 {
-  int size = 7;
+  size_t size = 7;
   char *buf = malloc (size + 1);
-  int len = 0;
+  size_t len = 0;
 
   if (! buf)
     return 0;

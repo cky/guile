@@ -171,7 +171,7 @@ scm_make_root (SCM parent)
 #if 0
 SCM scm_exitval;		/* INUM with return value */
 #endif
-static int n_dynamic_roots = 0;
+static scm_bits_t n_dynamic_roots = 0;
 
 
 /* cwdr fills out both of these structures, and then passes a pointer
@@ -253,7 +253,7 @@ scm_internal_cwdr (scm_catch_body_t body, void *body_data,
 
     SCM_REDEFER_INTS;
     {
-      scm_contregs *contregs = scm_must_malloc (sizeof (scm_contregs),
+      scm_contregs_t *contregs = scm_must_malloc (sizeof (scm_contregs_t),
 						"inferior root continuation");
 
       contregs->num_stack_items = 0;

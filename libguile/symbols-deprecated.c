@@ -78,7 +78,7 @@ SCM
 scm_sym2ovcell_soft (SCM sym, SCM obarray)
 {
   SCM lsym, z;
-  scm_sizet hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
+  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
 
   scm_c_issue_deprecation_warning ("`scm_sym2ovcell_soft' is deprecated. "
 				   "Use hashtables instead.");
@@ -139,11 +139,11 @@ scm_sym2ovcell (SCM sym, SCM obarray)
 
 
 SCM 
-scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int softness)
+scm_intern_obarray_soft (const char *name,size_t len,SCM obarray,unsigned int softness)
 {
   SCM symbol = scm_mem2symbol (name, len);
-  scm_sizet raw_hash = SCM_SYMBOL_HASH (symbol);
-  scm_sizet hash;
+  size_t raw_hash = SCM_SYMBOL_HASH (symbol);
+  size_t hash;
   SCM lsym;
 
   scm_c_issue_deprecation_warning ("`scm_intern_obarray_soft' is deprecated. "
@@ -184,7 +184,7 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int
 
 
 SCM
-scm_intern_obarray (const char *name,scm_sizet len,SCM obarray)
+scm_intern_obarray (const char *name,size_t len,SCM obarray)
 {
   scm_c_issue_deprecation_warning ("`scm_intern_obarray' is deprecated. "
 				   "Use hashtables instead.");
@@ -194,7 +194,7 @@ scm_intern_obarray (const char *name,scm_sizet len,SCM obarray)
 
 
 SCM 
-scm_intern (const char *name,scm_sizet len)
+scm_intern (const char *name,size_t len)
 {
   scm_c_issue_deprecation_warning ("`scm_intern' is deprecated. "
 				   "Use scm_c_define or scm_c_lookup instead.");
@@ -328,7 +328,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
 	    "with this name is already present.")
 #define FUNC_NAME s_scm_intern_symbol
 {
-  scm_sizet hval;
+  size_t hval;
   SCM_VALIDATE_SYMBOL (2,s);
   if (SCM_FALSEP (o))
     return SCM_UNSPECIFIED;
@@ -369,7 +369,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_unintern_symbol
 {
-  scm_sizet hval;
+  size_t hval;
 
   scm_c_issue_deprecation_warning ("`unintern-symbol' is deprecated. "
 				   "Use hashtables instead.");

@@ -66,7 +66,7 @@
 
 SCM_SYMBOL (scm_keyword_prefix, "prefix");
 
-scm_option scm_read_opts[] = {
+scm_option_t scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "copy", 0,
     "Copy source code expressions." },
   { SCM_OPTION_BOOLEAN, "positions", 0,
@@ -126,9 +126,9 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
 char *
 scm_grow_tok_buf (SCM *tok_buf)
 {
-  unsigned long int oldlen = SCM_STRING_LENGTH (*tok_buf);
+  size_t oldlen = SCM_STRING_LENGTH (*tok_buf);
   SCM newstr = scm_allocate_string (2 * oldlen);
-  unsigned long int i;
+  size_t i;
 
   for (i = 0; i != oldlen; ++i)
     SCM_STRING_CHARS (newstr) [i] = SCM_STRING_CHARS (*tok_buf) [i];
@@ -203,7 +203,7 @@ scm_casei_streq (char *s1, char *s2)
 #define recsexpr(obj, line, column, filename) (obj)
 #else
 static SCM
-recsexpr (SCM obj,int line,int column,SCM filename)
+recsexpr (SCM obj, long line, int column, SCM filename)
 {
   if (!SCM_CONSP(obj)) {
     return obj;
@@ -286,7 +286,7 @@ scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
 #define FUNC_NAME "scm_lreadr"
 {
   int c;
-  scm_sizet j;
+  size_t j;
   SCM p;
 				  
 tryagain:
@@ -535,10 +535,10 @@ tryagain_no_flush_ws:
 _Pragma ("noopt");		/* # pragma _CRI noopt */
 #endif
 
-scm_sizet 
+size_t 
 scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 {
-  register scm_sizet j;
+  register size_t j;
   register int c;
   register char *p;
 

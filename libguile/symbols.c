@@ -87,10 +87,10 @@ SCM_DEFINE (scm_sys_symbols, "%symbols", 0, 0, 0,
 
 
 SCM
-scm_mem2symbol (const char *name, scm_sizet len)
+scm_mem2symbol (const char *name, size_t len)
 {
-  scm_sizet raw_hash = scm_string_hash ((const unsigned char *) name, len);
-  scm_sizet hash = raw_hash % SCM_VECTOR_LENGTH (symbols);
+  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len);
+  size_t hash = raw_hash % SCM_VECTOR_LENGTH (symbols);
 
   {
     /* Try to find the symbol in the symbols table */
@@ -104,7 +104,7 @@ scm_mem2symbol (const char *name, scm_sizet len)
 	    && SCM_SYMBOL_LENGTH (sym) == len)
 	  {
 	    char *chrs = SCM_SYMBOL_CHARS (sym);
-	    scm_sizet i = len;
+	    size_t i = len;
 
 	    while (i != 0)
 	      {
@@ -236,7 +236,7 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
 {
   char buf[MAX_PREFIX_LENGTH + SCM_INTBUFLEN];
   char *name = buf;
-  int len;
+  size_t len;
   if (SCM_UNBNDP (prefix))
     {
       name[0] = 'g';

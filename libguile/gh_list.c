@@ -45,7 +45,7 @@
 #include "libguile/gh.h"
 
 /* returns the length of a list */
-unsigned long 
+scm_bits_t
 gh_length (SCM l)
 {
   return gh_scm2ulong (scm_length (l));
@@ -58,22 +58,26 @@ gh_length (SCM l)
 /* gh_append() takes a args, which is a list of lists, and appends
    them all together into a single list, which is returned.  This is
    equivalent to the Scheme procedure (append list1 list2 ...) */
-SCM gh_append(SCM args)
+SCM
+gh_append(SCM args)
 {
   return scm_append(args);
 }
 
-SCM gh_append2(SCM l1, SCM l2)
+SCM
+gh_append2(SCM l1, SCM l2)
 {
   return scm_append(scm_listify(l1, l2, SCM_UNDEFINED));
 }
 
-SCM gh_append3(SCM l1, SCM l2, SCM l3)
+SCM
+gh_append3(SCM l1, SCM l2, SCM l3)
 {
   return scm_append(scm_listify(l1, l2, l3, SCM_UNDEFINED));
 }
 
-SCM gh_append4(SCM l1, SCM l2, SCM l3, SCM l4)
+SCM
+gh_append4(SCM l1, SCM l2, SCM l3, SCM l4)
 {
   return scm_append(scm_listify(l1, l2, l3, l4, SCM_UNDEFINED));
 }

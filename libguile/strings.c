@@ -96,7 +96,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
   SCM result;
 
   {
-    long i = scm_ilength (chrs);
+    scm_bits_t i = scm_ilength (chrs);
 
     SCM_ASSERT (i >= 0, chrs, SCM_ARGn, FUNC_NAME);
     result = scm_allocate_string (i);
@@ -121,7 +121,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 SCM 
-scm_makstr (long len, int dummy)
+scm_makstr (size_t len, int dummy)
 #define FUNC_NAME "scm_makstr"
 {
   SCM s;
@@ -153,7 +153,7 @@ scm_makfromstrs (int argc, char **argv)
   if (0 > i)
     for (i = 0; argv[i]; i++);
   while (i--)
-    lst = scm_cons (scm_makfromstr (argv[i], (scm_sizet) strlen (argv[i]), 0), lst);
+    lst = scm_cons (scm_makfromstr (argv[i], (size_t) strlen (argv[i]), 0), lst);
   return lst;
 }
 
@@ -167,7 +167,7 @@ scm_makfromstrs (int argc, char **argv)
    strings by claiming they're shared substrings of a string we just
    made up.  */
 SCM
-scm_take_str (char *s, int len)
+scm_take_str (char *s, size_t len)
 #define FUNC_NAME "scm_take_str"
 {
   SCM answer;
@@ -192,7 +192,7 @@ scm_take0str (char *s)
 }
 
 SCM 
-scm_makfromstr (const char *src, scm_sizet len, int dummy)
+scm_makfromstr (const char *src, size_t len, int dummy)
 {
   SCM s = scm_allocate_string (len);
   char *dst = SCM_STRING_CHARS (s);
@@ -206,7 +206,7 @@ SCM
 scm_makfrom0str (const char *src)
 {
   if (!src) return SCM_BOOL_F;
-  return scm_makfromstr (src, (scm_sizet) strlen (src), 0);
+  return scm_makfromstr (src, (size_t) strlen (src), 0);
 }
 
 
@@ -218,7 +218,7 @@ scm_makfrom0str_opt (const char *src)
 
 
 SCM
-scm_allocate_string (scm_sizet len)
+scm_allocate_string (size_t len)
 #define FUNC_NAME "scm_allocate_string"
 {
   char *mem;
@@ -248,7 +248,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 {
   if (SCM_INUMP (k))
     {
-      long int i = SCM_INUM (k);
+      scm_bits_t i = SCM_INUM (k);
       SCM res;
 
       SCM_ASSERT_RANGE (1, k, i >= 0);
@@ -290,7 +290,7 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
 	    "indexing. @var{k} must be a valid index of @var{str}.")
 #define FUNC_NAME s_scm_string_ref
 {
-  int idx;
+  scm_bits_t idx;
 
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_INUM_COPY (2, k, idx);
@@ -330,8 +330,8 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
             "0 <= @var{start} <= @var{end} <= (string-length @var{str}).")
 #define FUNC_NAME s_scm_substring
 {
-  long int from;
-  long int to;
+  scm_bits_t from;
+  scm_bits_t to;
 
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_INUM (2, start);
@@ -342,7 +342,7 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
   to = SCM_INUM (end);
   SCM_ASSERT_RANGE (3, end, from <= to && to <= SCM_STRING_LENGTH (str));
 
-  return scm_makfromstr (&SCM_STRING_CHARS (str)[from], (scm_sizet) (to - from), 0);
+  return scm_makfromstr (&SCM_STRING_CHARS (str)[from], (size_t) (to - from), 0);
 }
 #undef FUNC_NAME
 
@@ -354,7 +354,7 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 #define FUNC_NAME s_scm_string_append
 {
   SCM res;
-  register long i = 0;
+  size_t i = 0;
   register SCM l, s;
   register unsigned char *data;
 
@@ -393,8 +393,8 @@ SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
 	    "occupies the same storage space as @var{str}.")
 #define FUNC_NAME s_scm_make_shared_substring
 {
-  long f;
-  long t;
+  scm_bits_t f;
+  scm_bits_t t;
   SCM answer;
   SCM len_str;
 
@@ -411,7 +411,7 @@ SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
   SCM_DEFER_INTS;
   if (SCM_SUBSTRP (str))
     {
-      long offset;
+      scm_bits_t offset;
       offset = SCM_INUM (SCM_SUBSTR_OFFSET (str));
       f += offset;
       t += offset;

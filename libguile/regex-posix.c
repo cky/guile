@@ -93,7 +93,7 @@
 
 scm_bits_t scm_tc16_regex;
 
-static scm_sizet
+static size_t
 regex_free (SCM obj)
 {
   regfree (SCM_RGX (obj));

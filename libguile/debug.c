@@ -521,8 +521,8 @@ SCM
 scm_start_stack (SCM id, SCM exp, SCM env)
 {
   SCM answer;
-  scm_debug_frame vframe;
-  scm_debug_info vframe_vect_body;
+  scm_debug_frame_t vframe;
+  scm_debug_info_t vframe_vect_body;
   vframe.prev = scm_last_debug_frame;
   vframe.status = SCM_VOIDFRAME;
   vframe.vect = &vframe_vect_body;
@@ -576,7 +576,7 @@ SCM_DEFINE (scm_debug_object_p, "debug-object?", 1, 0, 0,
 
 
 SCM
-scm_make_debugobj (scm_debug_frame *frame)
+scm_make_debugobj (scm_debug_frame_t *frame)
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -619,23 +619,23 @@ scm_init_debug ()
   scm_set_smob_print (scm_tc16_debugobj, debugobj_print);
 
 #ifdef GUILE_DEBUG
-  scm_define ("SCM_IM_AND", SCM_IM_AND);
-  scm_define ("SCM_IM_BEGIN", SCM_IM_BEGIN);
-  scm_define ("SCM_IM_CASE", SCM_IM_CASE);
-  scm_define ("SCM_IM_COND", SCM_IM_COND);
-  scm_define ("SCM_IM_DO", SCM_IM_DO);
-  scm_define ("SCM_IM_IF", SCM_IM_IF);
-  scm_define ("SCM_IM_LAMBDA", SCM_IM_LAMBDA);
-  scm_define ("SCM_IM_LET", SCM_IM_LET);
-  scm_define ("SCM_IM_LETSTAR", SCM_IM_LETSTAR);
-  scm_define ("SCM_IM_LETREC", SCM_IM_LETREC);
-  scm_define ("SCM_IM_OR", SCM_IM_OR);
-  scm_define ("SCM_IM_QUOTE", SCM_IM_QUOTE);
-  scm_define ("SCM_IM_SET_X", SCM_IM_SET_X);
-  scm_define ("SCM_IM_DEFINE", SCM_IM_DEFINE);
-  scm_define ("SCM_IM_APPLY", SCM_IM_APPLY);
-  scm_define ("SCM_IM_CONT", SCM_IM_CONT);
-  scm_define ("SCM_IM_DISPATCH", SCM_IM_DISPATCH);
+  scm_c_define ("SCM_IM_AND", SCM_IM_AND);
+  scm_c_define ("SCM_IM_BEGIN", SCM_IM_BEGIN);
+  scm_c_define ("SCM_IM_CASE", SCM_IM_CASE);
+  scm_c_define ("SCM_IM_COND", SCM_IM_COND);
+  scm_c_define ("SCM_IM_DO", SCM_IM_DO);
+  scm_c_define ("SCM_IM_IF", SCM_IM_IF);
+  scm_c_define ("SCM_IM_LAMBDA", SCM_IM_LAMBDA);
+  scm_c_define ("SCM_IM_LET", SCM_IM_LET);
+  scm_c_define ("SCM_IM_LETSTAR", SCM_IM_LETSTAR);
+  scm_c_define ("SCM_IM_LETREC", SCM_IM_LETREC);
+  scm_c_define ("SCM_IM_OR", SCM_IM_OR);
+  scm_c_define ("SCM_IM_QUOTE", SCM_IM_QUOTE);
+  scm_c_define ("SCM_IM_SET_X", SCM_IM_SET_X);
+  scm_c_define ("SCM_IM_DEFINE", SCM_IM_DEFINE);
+  scm_c_define ("SCM_IM_APPLY", SCM_IM_APPLY);
+  scm_c_define ("SCM_IM_CONT", SCM_IM_CONT);
+  scm_c_define ("SCM_IM_DISPATCH", SCM_IM_DISPATCH);
 #endif
   scm_add_feature ("debug-extensions");
 

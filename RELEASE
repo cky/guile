@@ -99,6 +99,14 @@ After signal handling and threading have been fixed:
 - remove scm_strprint_obj
 - remove SCM_CONST_LONG
 - remove scm_wta
+- remove deprecated typedefs: long_long, ulong_long, scm_sizet
+- remove deprecated macros: scm_contregs, scm_port_rw_active,
+  scm_port, scm_ptob_descriptor, scm_debug_info, scm_debug_frame,
+  scm_fport, SCM_FIXNUM_BIT, scm_option, scm_subr_entry, scm_rstate,
+  scm_rng, scm_i_rstate, scm_srcprops, scm_srcprops_chunk,
+  scm_info_frame, scm_stack, scm_array, scm_array_dim.
+- remove deprecated functions: scm_mkbig, scm_big2num, scm_adjbig,
+  scm_normbig, scm_copybig, scm_2ulong2big, scm_dbl2big, scm_big2dbl.
 
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new

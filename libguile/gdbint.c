@@ -277,7 +277,7 @@ gdb_print (SCM obj)
       scm_write (obj, gdb_output_port);
       scm_truncate_file (gdb_output_port, SCM_UNDEFINED);
       {
-	scm_port *pt = SCM_PTAB_ENTRY (gdb_output_port);
+	scm_port_t *pt = SCM_PTAB_ENTRY (gdb_output_port);
 
 	scm_flush (gdb_output_port);
 	*(pt->write_buf + pt->read_buf_size) = 0;

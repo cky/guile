@@ -124,7 +124,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
   { /* scope */
     SCM port, save_port;
     port = scm_open_file (filename,
-			  scm_makfromstr ("r", (scm_sizet) sizeof (char), 0));
+			  scm_makfromstr ("r", (size_t) sizeof (char), 0));
     save_port = port;
     scm_internal_dynamic_wind (swap_port,
 			       load,
@@ -349,7 +349,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
   { /* scope */
     SCM result = SCM_BOOL_F;
-    int buf_size = max_path_len + 1 + filename_len + max_ext_len + 1;
+    size_t buf_size = max_path_len + 1 + filename_len + max_ext_len + 1;
     char *buf = SCM_MUST_MALLOC (buf_size);
 
     /* This simplifies the loop below a bit.  */
@@ -360,7 +360,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
        proper list of strings.  */
     for (; !SCM_NULLP (path); path = SCM_CDR (path))
       {
-	int len;
+	size_t len;
 	SCM dir = SCM_CAR (path);
 	SCM exts;
 
@@ -377,7 +377,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 	for (exts = extensions; !SCM_NULLP (exts); exts = SCM_CDR (exts))
 	  {
 	    SCM ext = SCM_CAR (exts);
-	    int ext_len = SCM_STRING_LENGTH (ext);
+	    size_t ext_len = SCM_STRING_LENGTH (ext);
 	    struct stat mode;
 
 	    /* Concatenate the extension. */
@@ -397,7 +397,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
   end:
     scm_must_free (buf);
-    scm_done_malloc (- buf_size);
+    scm_done_free (buf_size);
     SCM_ALLOW_INTS;
     return result;
   }
@@ -495,7 +495,7 @@ init_build_info ()
 {
   static struct { char *name; char *value; } info[] = SCM_BUILD_INFO;
   SCM *loc = SCM_VARIABLE_LOC (scm_c_define ("%guile-build-info", SCM_EOL));
-  unsigned int i;
+  scm_bits_t i;
 
   for (i = 0; i < (sizeof (info) / sizeof (info[0])); i++)
     *loc = scm_acons (scm_str2symbol (info[i].name),

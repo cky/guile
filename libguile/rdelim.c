@@ -78,13 +78,13 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 	    "a delimiter, this value is @code{#f}.")
 #define FUNC_NAME s_scm_read_delimited_x
 {
-  long j;
+  size_t j;
   char *buf;
-  long cstart;
-  long cend;
+  size_t cstart;
+  size_t cend;
   int c;
   char *cdelims;
-  int num_delims;
+  size_t num_delims;
 
   SCM_VALIDATE_STRING_COPY (1, delims, cdelims);
   num_delims = SCM_STRING_LENGTH (delims);
@@ -97,7 +97,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 
   for (j = cstart; j < cend; j++)
     {  
-      int k;
+      size_t k;
 
       c = scm_getc (port);
       for (k = 0; k < num_delims; k++)
@@ -122,9 +122,9 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 #undef FUNC_NAME
 
 static unsigned char *
-scm_do_read_line (SCM port, int *len_p)
+scm_do_read_line (SCM port, size_t *len_p)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
   unsigned char *end;
 
   /* I thought reading lines was simple.  Mercy me.  */
@@ -134,7 +134,7 @@ scm_do_read_line (SCM port, int *len_p)
   if ((end = memchr (pt->read_pos, '\n', (pt->read_end - pt->read_pos)))
 	   != 0)
     {
-      int buf_len = (end + 1) - pt->read_pos;
+      size_t buf_len = (end + 1) - pt->read_pos;
       /* Allocate a buffer of the perfect size.  */
       unsigned char *buf = scm_must_malloc (buf_len + 1, "%read-line");
 
@@ -151,18 +151,18 @@ scm_do_read_line (SCM port, int *len_p)
   {
     /* When live, len is always the number of characters in the
        current buffer that are part of the current line.  */
-    int len = (pt->read_end - pt->read_pos);
-    int buf_size = (len < 50) ? 60 : len * 2;
+    size_t len = (pt->read_end - pt->read_pos);
+    size_t buf_size = (len < 50) ? 60 : len * 2;
     /* Invariant: buf always has buf_size + 1 characters allocated;
        the `+ 1' is for the final '\0'.  */
     unsigned char *buf = scm_must_malloc (buf_size + 1, "%read-line");
-    int buf_len = 0;
+    size_t buf_len = 0;
 
     for (;;)
       {
 	if (buf_len + len > buf_size)
 	  {
-	    int new_size = (buf_len + len) * 2;
+	    size_t new_size = (buf_len + len) * 2;
 	    buf = scm_must_realloc (buf, buf_size + 1, new_size + 1,
 				    "%read-line");
 	    buf_size = new_size;
@@ -223,9 +223,9 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 	    "@code{(#<eof> . #<eof>)}.")
 #define FUNC_NAME s_scm_read_line
 {
-  scm_port *pt;
+  scm_port_t *pt;
   char *s;
-  int slen;
+  size_t slen;
   SCM line, term;
 
   if (SCM_UNBNDP (port))
@@ -247,7 +247,7 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 	  term = SCM_MAKE_CHAR ('\n');
 	  s[slen-1] = '\0';
 	  line = scm_take_str (s, slen-1);
-	  scm_done_malloc (-1);
+	  scm_done_free (1);
 	  SCM_INCLINE (port);
 	}
       else

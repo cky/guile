@@ -84,7 +84,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 
   { /* scope */
     char * field_desc;
-    scm_sizet len;
+    size_t len;
     int x;
 
     len = SCM_STRING_LENGTH (fields);
@@ -331,20 +331,20 @@ scm_alloc_struct (int n_words, int n_extra, char *who)
   return p;
 }
 
-scm_sizet
+size_t
 scm_struct_free_0 (scm_bits_t * vtable, scm_bits_t * data)
 {
   return 0;
 }
 
-scm_sizet
+size_t
 scm_struct_free_light (scm_bits_t * vtable, scm_bits_t * data)
 {
   scm_must_free (data);
   return vtable [scm_struct_i_size] & ~SCM_STRUCTF_MASK;
 }
 
-scm_sizet
+size_t
 scm_struct_free_standard (scm_bits_t * vtable, scm_bits_t * data)
 {
   size_t n = (data[scm_struct_i_n_words] + scm_struct_n_extra_words)
@@ -353,7 +353,7 @@ scm_struct_free_standard (scm_bits_t * vtable, scm_bits_t * data)
   return n;
 }
 
-scm_sizet
+size_t
 scm_struct_free_entity (scm_bits_t * vtable, scm_bits_t * data)
 {
   size_t n = (data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
@@ -736,8 +736,8 @@ SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0,
  * how to associate names with vtables.
  */
 
-unsigned int
-scm_struct_ihashq (SCM obj, unsigned int n)
+scm_bits_t
+scm_struct_ihashq (SCM obj, scm_bits_t n)
 {
   /* The length of the hash table should be a relative prime it's not
      necessary to shift down the address.  */

@@ -49,9 +49,9 @@
 
 
 #define SCM_GSUBR_MAKTYPE(req, opt, rst) ((req)|((opt)<<4)|((rst)<<8))
-#define SCM_GSUBR_REQ(x) ((int)(x)&0xf)
-#define SCM_GSUBR_OPT(x) (((int)(x)&0xf0)>>4)
-#define SCM_GSUBR_REST(x) ((int)(x)>>8)
+#define SCM_GSUBR_REQ(x) ((scm_bits_t)(x)&0xf)
+#define SCM_GSUBR_OPT(x) (((scm_bits_t)(x)&0xf0)>>4)
+#define SCM_GSUBR_REST(x) ((scm_bits_t)(x)>>8)
 
 #define SCM_GSUBR_MAX 10
 #define SCM_GSUBR_TYPE(cclo) (SCM_CCLO_REF ((cclo), 1))

@@ -201,11 +201,11 @@ scm_swap_bindings (SCM glocs, SCM vals)
 }
 
 void 
-scm_dowinds (SCM to, long delta)
+scm_dowinds (SCM to, scm_bits_t delta)
 {
  tail:
   if (SCM_EQ_P (to, scm_dynwinds));
-  else if (0 > delta)
+  else if (delta < 0)
     {
       SCM wind_elt;
       SCM wind_key;

@@ -96,7 +96,7 @@ typedef struct scm_root_state
   SCM continuation_stack_ptr;
 #ifdef DEBUG_EXTENSIONS
   /* It is very inefficient to have this variable in the root state. */
-  scm_debug_frame *last_debug_frame;
+  scm_debug_frame_t *last_debug_frame;
 #endif
 
   SCM progargs;			/* vestigial */

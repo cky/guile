@@ -162,7 +162,7 @@ char *alloca ();
 SCM *
 scm_ilookup (SCM iloc, SCM env)
 {
-  register int ir = SCM_IFRAME (iloc);
+  register scm_bits_t ir = SCM_IFRAME (iloc);
   register SCM er = env;
   for (; 0 != ir; --ir)
     er = SCM_CDR (er);
@@ -419,7 +419,7 @@ scm_unmemocar (SCM form, SCM env)
 #ifdef DEBUG_EXTENSIONS
   else if (SCM_ILOCP (c))
     {
-      int ir;
+      scm_bits_t ir;
 
       for (ir = SCM_IFRAME (c); ir != 0; --ir)
 	env = SCM_CDR (env);
@@ -536,7 +536,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_if, s_if);
 SCM 
 scm_m_if (SCM xorig, SCM env)
 {
-  int len = scm_ilength (SCM_CDR (xorig));
+  scm_bits_t len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 2 && len <= 3, scm_s_expression, "if");
   return scm_cons (SCM_IM_IF, SCM_CDR (xorig));
 }
@@ -563,7 +563,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_and, s_and);
 SCM 
 scm_m_and (SCM xorig, SCM env)
 {
-  int len = scm_ilength (SCM_CDR (xorig));
+  scm_bits_t len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, scm_s_test, s_and);
   if (len >= 1)
     return scm_cons (SCM_IM_AND, SCM_CDR (xorig));
@@ -577,7 +577,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_or,s_or);
 SCM 
 scm_m_or (SCM xorig, SCM env)
 {
-  int len = scm_ilength (SCM_CDR (xorig));
+  scm_bits_t len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, scm_s_test, s_or);
   if (len >= 1)
     return scm_cons (SCM_IM_OR, SCM_CDR (xorig));
@@ -615,7 +615,7 @@ SCM
 scm_m_cond (SCM xorig, SCM env)
 {
   SCM arg1, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
-  int len = scm_ilength (x);
+  scm_bits_t len = scm_ilength (x);
   SCM_ASSYNT (len >= 1, scm_s_clauses, s_cond);
   while (SCM_NIMP (x))
     {
@@ -705,7 +705,7 @@ SCM
 scm_m_letstar (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig), arg1, proc, vars = SCM_EOL, *varloc = &vars;
-  int len = scm_ilength (x);
+  scm_bits_t len = scm_ilength (x);
   SCM_ASSYNT (len >= 2, scm_s_body, s_letstar);
   proc = SCM_CAR (x);
   SCM_ASSYNT (scm_ilength (proc) >= 0, scm_s_bindings, s_letstar);
@@ -747,7 +747,7 @@ scm_m_do (SCM xorig, SCM env)
   SCM x = SCM_CDR (xorig), arg1, proc;
   SCM vars = SCM_EOL, inits = SCM_EOL, steps = SCM_EOL;
   SCM *initloc = &inits, *steploc = &steps;
-  int len = scm_ilength (x);
+  scm_bits_t len = scm_ilength (x);
   SCM_ASSYNT (len >= 2, scm_s_test, "do");
   proc = SCM_CAR (x);
   SCM_ASSYNT (scm_ilength (proc) >= 0, scm_s_bindings, "do");
@@ -780,7 +780,7 @@ scm_m_do (SCM xorig, SCM env)
 #define evalcar scm_eval_car
 
 
-static SCM iqq (SCM form, SCM env, int depth);
+static SCM iqq (SCM form, SCM env, scm_bits_t depth);
 
 SCM_SYNTAX(s_quasiquote, "quasiquote", scm_makacro, scm_m_quasiquote);
 SCM_GLOBAL_SYMBOL(scm_sym_quasiquote, s_quasiquote);
@@ -795,15 +795,15 @@ scm_m_quasiquote (SCM xorig, SCM env)
 
 
 static SCM 
-iqq (SCM form, SCM env, int depth)
+iqq (SCM form, SCM env, scm_bits_t depth)
 {
   SCM tmp;
-  int edepth = depth;
+  scm_bits_t edepth = depth;
   if (SCM_IMP (form))
     return form;
   if (SCM_VECTORP (form))
     {
-      long i = SCM_VECTOR_LENGTH (form);
+      scm_bits_t i = SCM_VECTOR_LENGTH (form);
       SCM *data = SCM_VELTS (form);
       tmp = SCM_EOL;
       for (; --i >= 0;)
@@ -1043,7 +1043,7 @@ SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
 SCM
 scm_m_nil_cond (SCM xorig, SCM env)
 {
-  int len = scm_ilength (SCM_CDR (xorig));
+  scm_bits_t len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 1 && (len & 1) == 1, scm_s_expression, "nil-cond");
   return scm_cons (SCM_IM_NIL_COND, SCM_CDR (xorig));
 }
@@ -1071,7 +1071,7 @@ SCM_SYNTAX (s_0_cond, "0-cond", scm_makmmacro, scm_m_0_cond);
 SCM
 scm_m_0_cond (SCM xorig, SCM env)
 {
-  int len = scm_ilength (SCM_CDR (xorig));
+  scm_bits_t len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 1 && (len & 1) == 1, scm_s_expression, "0-cond");
   return scm_cons (SCM_IM_0_COND, SCM_CDR (xorig));
 }
@@ -1651,24 +1651,24 @@ SCM (*scm_ceval_ptr) (SCM x, SCM env);
  */
 
 #ifndef USE_THREADS
-scm_debug_frame *scm_last_debug_frame;
+scm_debug_frame_t *scm_last_debug_frame;
 #endif
 
 /* scm_debug_eframe_size is the number of slots available for pseudo
  * stack frames at each real stack frame.
  */
 
-int scm_debug_eframe_size;
+scm_bits_t scm_debug_eframe_size;
 
 int scm_debug_mode, scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 
-int scm_eval_stack;
+scm_bits_t scm_eval_stack;
 
-scm_option scm_eval_opts[] = {
+scm_option_t scm_eval_opts[] = {
   { SCM_OPTION_INTEGER, "stack", 22000, "Size of thread stacks (in machine words)." }
 };
 
-scm_option scm_debug_opts[] = {
+scm_option_t scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "cheap", 1,
     "*Flyweight representation of the stack at traps." },
   { SCM_OPTION_BOOLEAN, "breakpoints", 0, "*Check for breakpoints." },
@@ -1689,7 +1689,7 @@ scm_option scm_debug_opts[] = {
   { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (measured in words; 0 = no check)." }
 };
 
-scm_option scm_evaluator_trap_table[] = {
+scm_option_t scm_evaluator_trap_table[] = {
   { SCM_OPTION_BOOLEAN, "traps", 0, "Enable evaluator traps." },
   { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
   { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
@@ -1823,17 +1823,17 @@ SCM_CEVAL (SCM x, SCM env)
    } t;
   SCM proc, arg2, orig_sym;
 #ifdef DEVAL
-  scm_debug_frame debug;
-  scm_debug_info *debug_info_end;
+  scm_debug_frame_t debug;
+  scm_debug_info_t *debug_info_end;
   debug.prev = scm_last_debug_frame;
   debug.status = scm_debug_eframe_size;
   /*
-   * The debug.vect contains twice as much scm_debug_info frames as the
+   * The debug.vect contains twice as much scm_debug_info_t frames as the
    * user has specified with (debug-set! frames <n>).
    *
    * Even frames are eval frames, odd frames are apply frames.
    */
-  debug.vect = (scm_debug_info *) alloca (scm_debug_eframe_size
+  debug.vect = (scm_debug_info_t *) alloca (scm_debug_eframe_size
 					  * sizeof (debug.vect[0]));
   debug.info = debug.vect;
   debug_info_end = debug.vect + scm_debug_eframe_size;
@@ -2303,7 +2303,7 @@ dispatch:
 	   * cuts down execution time for type dispatch to 50%.
 	   */
 	  {
-	    int i, n, end, mask;
+	    scm_bits_t i, n, end, mask;
 	    SCM z = SCM_CDDR (x);
 	    n = SCM_INUM (SCM_CAR (z)); /* maximum number of specializers */
 	    proc = SCM_CADR (z);
@@ -2318,8 +2318,8 @@ dispatch:
 	    else
 	      {
 		/* Compute a hash value */
-		int hashset = SCM_INUM (proc);
-		int j = n;
+		scm_bits_t hashset = SCM_INUM (proc);
+		scm_bits_t j = n;
 		mask = SCM_INUM (SCM_CAR (z = SCM_CDDR (z)));
 		proc = SCM_CADR (z);
 		i = 0;
@@ -2339,7 +2339,7 @@ dispatch:
 	    /* Search for match  */
 	    do
 	      {
-		int j = n;
+		scm_bits_t j = n;
 		z = SCM_VELTS (proc)[i];
 		t.arg1 = arg2; /* list of arguments */
 		if (SCM_NIMP (t.arg1))
@@ -2797,7 +2797,7 @@ evapply:
 #ifdef SCM_BIGDIG
 	      if (SCM_BIGP (t.arg1))
 		{
-		  RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_big2dbl (t.arg1))));
+		  RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (t.arg1))));
 		}
 #endif
 	    floerr:
@@ -3313,8 +3313,8 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
 {
 #ifdef DEBUG_EXTENSIONS
 #ifdef DEVAL
-  scm_debug_frame debug;
-  scm_debug_info debug_vect_body;
+  scm_debug_frame_t debug;
+  scm_debug_info_t debug_vect_body;
   debug.prev = scm_last_debug_frame;
   debug.status = SCM_APPLYFRAME;
   debug.vect = &debug_vect_body;
@@ -3419,7 +3419,7 @@ tail:
 	    }
 #ifdef SCM_BIGDIG
 	  if (SCM_BIGP (arg1))
-	      RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_big2dbl (arg1))))
+	      RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))))
 #endif
 	floerr:
 	  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
@@ -3631,18 +3631,18 @@ ret:
    and claim that the i'th element of ARGV is WHO's i+2'th argument.  */
 static inline void
 check_map_args (SCM argv,
-		long len,
+		scm_bits_t len,
 		SCM gf,
 		SCM proc,
 		SCM args,
 		const char *who)
 {
   SCM *ve = SCM_VELTS (argv);
-  int i;
+  scm_bits_t i;
 
   for (i = SCM_VECTOR_LENGTH (argv) - 1; i >= 1; i--)
     {
-      int elt_len = scm_ilength (ve[i]);
+      scm_bits_t elt_len = scm_ilength (ve[i]);
 
       if (elt_len < 0)
 	{
@@ -3673,7 +3673,7 @@ SCM
 scm_map (SCM proc, SCM arg1, SCM args)
 #define FUNC_NAME s_map
 {
-  long i, len;
+  scm_bits_t i, len;
   SCM res = SCM_EOL;
   SCM *pres = &res;
   SCM *ve = &args;		/* Keep args from being optimized away. */
@@ -3722,7 +3722,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 #define FUNC_NAME s_for_each
 {
   SCM *ve = &args;		/* Keep args from being optimized away. */
-  long i, len;
+  scm_bits_t i, len;
   len = scm_ilength (arg1);
   SCM_GASSERTn (len >= 0, g_for_each, scm_cons2 (proc, arg1, args),
 		SCM_ARG2, s_for_each);
@@ -3861,7 +3861,7 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
     return obj;
   if (SCM_VECTORP (obj))
     {
-      scm_sizet i = SCM_VECTOR_LENGTH (obj);
+      size_t i = SCM_VECTOR_LENGTH (obj);
       ans = scm_c_make_vector (i, SCM_UNSPECIFIED);
       while (i--)
 	SCM_VELTS (ans)[i] = scm_copy_tree (SCM_VELTS (obj)[i]);

@@ -54,13 +54,17 @@
 
 
 /* struct allocated for each buffered FPORT.  */
-struct scm_fport {
+typedef struct scm_fport_t {
   int fdes;			/* file descriptor.  */
-};
+} scm_fport_t;
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+# define scm_fport scm_fport_t
+#endif
 
 extern scm_bits_t scm_tc16_fport;
 
-#define SCM_FSTREAM(x) ((struct scm_fport *) SCM_STREAM (x))
+#define SCM_FSTREAM(x) ((scm_fport_t *) SCM_STREAM (x))
 #define SCM_FPORT_FDES(x) (SCM_FSTREAM (x)->fdes)
 
 #define SCM_FPORTP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_fport))

@@ -84,8 +84,8 @@ SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
 SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 
 scm_bits_t scm_tc16_srcprops;
-static scm_srcprops_chunk *srcprops_chunklist = 0;
-static scm_srcprops *srcprops_freelist = 0;
+static scm_srcprops_chunk_t *srcprops_chunklist = 0;
+static scm_srcprops_t *srcprops_freelist = 0;
 
 
 static SCM
@@ -97,11 +97,11 @@ srcprops_mark (SCM obj)
 }
 
 
-static scm_sizet
+static size_t
 srcprops_free (SCM obj)
 {
-  *((scm_srcprops **) SCM_CELL_WORD_1 (obj)) = srcprops_freelist;
-  srcprops_freelist = (scm_srcprops *) SCM_CELL_WORD_1 (obj);
+  *((scm_srcprops_t **) SCM_CELL_WORD_1 (obj)) = srcprops_freelist;
+  srcprops_freelist = (scm_srcprops_t *) SCM_CELL_WORD_1 (obj);
   return 0; /* srcprops_chunks are not freed until leaving guile */
 }
 
@@ -120,19 +120,19 @@ srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
 
 
 SCM
-scm_make_srcprops (int line, int col, SCM filename, SCM copy, SCM plist)
+scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
 {
-  register scm_srcprops *ptr;
+  register scm_srcprops_t *ptr;
   SCM_DEFER_INTS;
   if ((ptr = srcprops_freelist) != NULL)
-    srcprops_freelist = *(scm_srcprops **)ptr;
+    srcprops_freelist = *(scm_srcprops_t **)ptr;
   else
     {
-      int i;
-      scm_srcprops_chunk *mem;
-      scm_sizet n = sizeof (scm_srcprops_chunk)
-	            + sizeof (scm_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
-      SCM_SYSCALL (mem = (scm_srcprops_chunk *) malloc (n));
+      size_t i;
+      scm_srcprops_chunk_t *mem;
+      size_t n = sizeof (scm_srcprops_chunk_t)
+	            + sizeof (scm_srcprops_t) * (SRCPROPS_CHUNKSIZE - 1);
+      SCM_SYSCALL (mem = (scm_srcprops_chunk_t *) malloc (n));
       if (mem == NULL)
 	scm_memory_error ("srcprops");
       scm_mallocated += n;
@@ -140,9 +140,9 @@ scm_make_srcprops (int line, int col, SCM filename, SCM copy, SCM plist)
       srcprops_chunklist = mem;
       ptr = &mem->srcprops[0];
       for (i = 1; i < SRCPROPS_CHUNKSIZE - 1; ++i)
-	*(scm_srcprops **)&ptr[i] = &ptr[i + 1];
-      *(scm_srcprops **)&ptr[SRCPROPS_CHUNKSIZE - 1] = 0;
-      srcprops_freelist = (scm_srcprops *) &ptr[1];
+	*(scm_srcprops_t **)&ptr[i] = &ptr[i + 1];
+      *(scm_srcprops_t **)&ptr[SRCPROPS_CHUNKSIZE - 1] = 0;
+      srcprops_freelist = (scm_srcprops_t *) &ptr[1];
     }
   ptr->pos = SRCPROPMAKPOS (line, col);
   ptr->fname = filename;
@@ -344,13 +344,13 @@ scm_init_srcprop ()
 void
 scm_finish_srcprop ()
 {
-  register scm_srcprops_chunk *ptr = srcprops_chunklist, *next;
+  register scm_srcprops_chunk_t *ptr = srcprops_chunklist, *next;
   while (ptr)
     {
       next = ptr->next;
       free ((char *) ptr);
-      scm_mallocated -= sizeof (scm_srcprops_chunk)
-	                + sizeof (scm_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
+      scm_mallocated -= sizeof (scm_srcprops_chunk_t)
+	                + sizeof (scm_srcprops_t) * (SRCPROPS_CHUNKSIZE - 1);
       ptr = next;
     }
 }

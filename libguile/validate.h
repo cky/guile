@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.31 2001-04-10 07:57:05 dirk Exp $ */
+/* $Id: validate.h,v 1.32 2001-05-24 00:50:51 cmm Exp $ */
 /* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -61,7 +61,50 @@
 #define SCM_WRONG_TYPE_ARG(pos, obj) \
   do { scm_wrong_type_arg (FUNC_NAME, pos, obj); } while (0)
 
+#define SCM_NUM2SIZE(pos, arg) (scm_num2size (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2SIZE_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2size (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2PTRDIFF(pos, arg) (scm_num2ptrdiff (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2PTRDIFF_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2ptrdiff (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2SHORT(pos, arg) (scm_num2short (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2SHORT_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2short (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2USHORT(pos, arg) (scm_num2ushort (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2USHORT_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2ushort (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2BITS(pos, arg) (scm_num2bits (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2BITS_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2bits (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2UBITS(pos, arg) (scm_num2ubits (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2UBITS_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2ubits (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2INT(pos, arg) (scm_num2int (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2INT_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2int (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2UINT(pos, arg) (scm_num2uint (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2UINT_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2uint (arg, pos, FUNC_NAME))
+
 #define SCM_NUM2ULONG(pos, arg) (scm_num2ulong (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2ULONG_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2ulong (arg, pos, FUNC_NAME))
 
 #define SCM_NUM2LONG(pos, arg) (scm_num2long (arg, pos, FUNC_NAME))
 
@@ -70,6 +113,15 @@
 
 #define SCM_NUM2LONG_LONG(pos, arg) \
   (scm_num2long_long (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2LONG_LONG_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2long_long (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2ULONG_LONG(pos, arg) \
+  (scm_num2ulong_long (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2ULONG_LONG_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_num2ulong_long (arg, pos, FUNC_NAME))
 
 #define SCM_OUT_OF_RANGE(pos, arg) \
   do { scm_out_of_range_pos (FUNC_NAME, arg, SCM_MAKINUM (pos)); } while (0)
@@ -395,7 +447,7 @@
     else if (SCM_REALP (z))			\
       cvar = SCM_REAL_VALUE (z);		\
     else if (SCM_BIGP (z))			\
-      cvar = scm_big2dbl (z);			\
+      cvar = scm_i_big2dbl (z);			\
     else					\
       {						\
 	cvar = 0.0;				\

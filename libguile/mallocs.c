@@ -40,7 +40,7 @@
 scm_bits_t scm_tc16_malloc;
 
 
-static scm_sizet
+static size_t
 malloc_free (SCM ptr)
 {
   if (SCM_MALLOCDATA (ptr))
@@ -60,7 +60,7 @@ malloc_print (SCM exp, SCM port, scm_print_state *pstate)
 
 
 SCM
-scm_malloc_obj (scm_sizet n)
+scm_malloc_obj (size_t n)
 {
   scm_bits_t mem = n ? (scm_bits_t) malloc (n) : 0;
   if (n && !mem)

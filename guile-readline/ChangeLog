@@ -1,3 +1,7 @@
+2001-05-23  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* readline.c (strdup): make `len' a size_t.
+
 2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* readline.c (completion_function): Use SCM_VARIABLE_REF to access

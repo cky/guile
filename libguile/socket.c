@@ -307,7 +307,7 @@ static SCM ipv6_net_to_num (const char *src)
     }
   else
     {
-      result = scm_mkbig (big_digits, 0);
+      result = scm_i_mkbig (big_digits, 0);
       memcpy (SCM_BDIGITS (result), addr, big_digits * bytes_per_dig);
     }
   return result;
@@ -497,8 +497,8 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
   char optval[sizeof (struct linger)];
   int optlen = sizeof (struct linger);
 #else
-  char optval[sizeof (scm_sizet)];
-  int optlen = sizeof (scm_sizet);
+  char optval[sizeof (size_t)];
+  int optlen = sizeof (size_t);
 #endif
   int ilevel;
   int ioptname;
@@ -538,7 +538,7 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 #endif
 	    )
 	  {
-	    return scm_long2num (*(scm_sizet *) optval);
+	    return scm_long2num (*(size_t *) optval);
 	  }
     }
   return scm_long2num (*(int *) optval);
@@ -565,7 +565,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 #ifdef HAVE_STRUCT_LINGER
   char optval[sizeof (struct linger)];
 #else
-  char optval[sizeof (scm_sizet)];
+  char optval[sizeof (size_t)];
 #endif
   int ilevel, ioptname;
 
@@ -624,8 +624,8 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	  {
 	    long lv = SCM_NUM2LONG (4, value);
 
-	    optlen = (int) sizeof (scm_sizet);
-	    (*(scm_sizet *) optval) = (scm_sizet) lv;
+	    optlen = (int) sizeof (size_t);
+	    (*(size_t *) optval) = (size_t) lv;
 	  }
     }
   if (optlen == -1)
@@ -961,7 +961,7 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
 	ve = SCM_VELTS (result);
 	ve[0] = scm_ulong2num ((unsigned long) fam);
 	ve[1] = scm_makfromstr (nad->sun_path,
-				(scm_sizet) strlen (nad->sun_path), 0);
+				(size_t) strlen (nad->sun_path), 0);
       }
       break;
 #endif

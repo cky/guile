@@ -338,7 +338,7 @@ display_frame_expr (char *hdr,SCM exp,char *tlr,int indentation,SCM sport,SCM po
 {
   SCM string;
   int i = 0, n;
-  scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (sport);
+  scm_ptob_descriptor_t *ptob = scm_ptobs + SCM_PTOBNUM (sport);
   do
     {
       pstate->length = print_params[i].length;

@@ -86,8 +86,8 @@
  * Indexes into this table are used when generating type
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
-scm_ptob_descriptor *scm_ptobs;
-int scm_numptob;
+scm_ptob_descriptor_t *scm_ptobs;
+scm_bits_t scm_numptob;
 
 /* GC marker for a port with stream of SCM type.  */
 SCM 
@@ -128,10 +128,10 @@ scm_make_port_type (char *name,
   SCM_DEFER_INTS;
   SCM_SYSCALL (tmp = (char *) realloc ((char *) scm_ptobs,
 				       (1 + scm_numptob)
-				       * sizeof (scm_ptob_descriptor)));
+				       * sizeof (scm_ptob_descriptor_t)));
   if (tmp)
     {
-      scm_ptobs = (scm_ptob_descriptor *) tmp;
+      scm_ptobs = (scm_ptob_descriptor_t *) tmp;
 
       scm_ptobs[scm_numptob].name = name;
       scm_ptobs[scm_numptob].mark = 0;
@@ -171,7 +171,7 @@ scm_set_port_mark (long tc, SCM (*mark) (SCM))
 }
 
 void
-scm_set_port_free (long tc, scm_sizet (*free) (SCM))
+scm_set_port_free (long tc, size_t (*free) (SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].free = free;
 }
@@ -246,7 +246,7 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
 	    "interactive port that has no ready characters.}")
 #define FUNC_NAME s_scm_char_ready_p
 {
-  scm_port *pt;
+  scm_port_t *pt;
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
@@ -264,7 +264,7 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
     return SCM_BOOL_T;
   else
     {
-      scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+      scm_ptob_descriptor_t *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
       
       if (ptob->input_waiting)
 	return SCM_BOOL(ptob->input_waiting (port));
@@ -278,7 +278,7 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
    into memory starting at dest.  returns the number of chars moved.  */
 size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
   size_t chars_read = 0;
   size_t from_buf = min (pt->read_end - pt->read_pos, read_len);
 
@@ -313,8 +313,8 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 #define FUNC_NAME s_scm_drain_input
 {
   SCM result;
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  int count;
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_bits_t count;
 
   SCM_VALIDATE_OPINPORT (1,port);
 
@@ -422,32 +422,32 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
 
 /* The port table --- an array of pointers to ports.  */
 
-scm_port **scm_port_table;
+scm_port_t **scm_port_table;
 
-int scm_port_table_size = 0;	/* Number of ports in scm_port_table.  */
-int scm_port_table_room = 20;	/* Size of the array.  */
+scm_bits_t scm_port_table_size = 0;	/* Number of ports in scm_port_table.  */
+scm_bits_t scm_port_table_room = 20;	/* Size of the array.  */
 
 /* Add a port to the table.  */
 
-scm_port *
+scm_port_t *
 scm_add_to_port_table (SCM port)
 #define FUNC_NAME "scm_add_to_port_table"
 {
-  scm_port *entry;
+  scm_port_t *entry;
 
   if (scm_port_table_size == scm_port_table_room)
     {
       /* initial malloc is in gc.c.  this doesn't use scm_must_malloc etc.,
 	 since it can never be freed during gc.  */
       void *newt = realloc ((char *) scm_port_table,
-			    (scm_sizet) (sizeof (scm_port *)
+			    (size_t) (sizeof (scm_port_t *)
 					 * scm_port_table_room * 2));
       if (newt == NULL)
 	scm_memory_error ("scm_add_to_port_table");
-      scm_port_table = (scm_port **) newt;
+      scm_port_table = (scm_port_t **) newt;
       scm_port_table_room *= 2;
     }
-  entry = (scm_port *) scm_must_malloc (sizeof (scm_port), FUNC_NAME);
+  entry = (scm_port_t *) scm_must_malloc (sizeof (scm_port_t), FUNC_NAME);
 
   entry->port = port;
   entry->entry = scm_port_table_size;
@@ -474,8 +474,8 @@ void
 scm_remove_from_port_table (SCM port)
 #define FUNC_NAME "scm_remove_from_port_table"
 {
-  scm_port *p = SCM_PTAB_ENTRY (port);
-  int i = p->entry;
+  scm_port_t *p = SCM_PTAB_ENTRY (port);
+  scm_bits_t i = p->entry;
 
   if (i >= scm_port_table_size)
     SCM_MISC_ERROR ("Port not in table: ~S", SCM_LIST1 (port));
@@ -515,7 +515,7 @@ SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
 	    "@code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_pt_member
 {
-  int i;
+  scm_bits_t i;
   SCM_VALIDATE_INUM_COPY (1,index,i);
   if (i < 0 || i >= scm_port_table_size)
     return SCM_BOOL_F;
@@ -526,7 +526,7 @@ SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
 #endif
 
 void
-scm_port_non_buffer (scm_port *pt)
+scm_port_non_buffer (scm_port_t *pt)
 {
   pt->read_pos = pt->read_buf = pt->read_end = &pt->shortbuf;
   pt->write_buf = pt->write_pos = &pt->shortbuf;
@@ -649,7 +649,7 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
 	    "descriptors.")
 #define FUNC_NAME s_scm_close_port
 {
-  scm_sizet i;
+  size_t i;
   int rv;
 
   port = SCM_COERCE_OUTPORT (port);
@@ -709,7 +709,7 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 	    "have no effect as far as @var{port-for-each} is concerned.\n") 
 #define FUNC_NAME s_scm_port_for_each
 {
-  int i;
+  scm_bits_t i;
   SCM ports;
 
   SCM_VALIDATE_PROC (1, proc);
@@ -752,7 +752,7 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
 	    "Use port-for-each instead.")
 #define FUNC_NAME s_scm_close_all_ports_except
 {
-  int i = 0;
+  scm_bits_t i = 0;
   SCM_VALIDATE_REST_ARGUMENT (ports);
   while (i < scm_port_table_size)
     {
@@ -872,7 +872,7 @@ SCM_DEFINE (scm_flush_all_ports, "flush-all-ports", 0, 0, 0,
 	    "all open output ports.  The return value is unspecified.")
 #define FUNC_NAME s_scm_flush_all_ports
 {
-  int i;
+  size_t i;
 
   for (i = 0; i < scm_port_table_size; i++)
     {
@@ -907,7 +907,7 @@ SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
 int
 scm_fill_input (SCM port)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->read_buf == pt->putback_buf)
     {
@@ -926,7 +926,7 @@ int
 scm_getc (SCM port)
 {
   int c;
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->rw_active == SCM_PORT_WRITE)
     {
@@ -982,10 +982,10 @@ scm_puts (const char *s, SCM port)
  */
 
 void 
-scm_lfwrite (const char *ptr, scm_sizet size, SCM port)
+scm_lfwrite (const char *ptr, size_t size, SCM port)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_ptob_descriptor_t *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_READ)
     scm_end_input (port);
@@ -1004,11 +1004,11 @@ scm_lfwrite (const char *ptr, scm_sizet size, SCM port)
  *
  * Warning: Doesn't update port line and column counts!  */
 
-scm_sizet
-scm_c_read (SCM port, void *buffer, scm_sizet size)
+size_t
+scm_c_read (SCM port, void *buffer, size_t size)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  scm_sizet n_read = 0, n_available;
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  size_t n_read = 0, n_available;
 
   if (pt->rw_active == SCM_PORT_WRITE)
     scm_ptobs[SCM_PTOBNUM (port)].flush (port);
@@ -1058,10 +1058,10 @@ scm_c_read (SCM port, void *buffer, scm_sizet size)
  */
 
 void 
-scm_c_write (SCM port, const void *ptr, scm_sizet size)
+scm_c_write (SCM port, const void *ptr, size_t size)
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_ptob_descriptor_t *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_READ)
     scm_end_input (port);
@@ -1075,15 +1075,15 @@ scm_c_write (SCM port, const void *ptr, scm_sizet size)
 void 
 scm_flush (SCM port)
 {
-  scm_sizet i = SCM_PTOBNUM (port);
+  scm_bits_t i = SCM_PTOBNUM (port);
   (scm_ptobs[i].flush) (port);
 }
 
 void
 scm_end_input (SCM port)
 {
-  int offset;
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_bits_t offset;
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->read_buf == pt->putback_buf)
     {
@@ -1106,7 +1106,7 @@ void
 scm_ungetc (int c, SCM port)
 #define FUNC_NAME "scm_ungetc"
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->read_buf == pt->putback_buf)
     /* already using the put-back buffer.  */
@@ -1115,7 +1115,7 @@ scm_ungetc (int c, SCM port)
       if (pt->read_end == pt->read_buf + pt->read_buf_size
 	  && pt->read_buf == pt->read_pos)
 	{
-	  int new_size = pt->read_buf_size * 2;
+	  size_t new_size = pt->read_buf_size * 2;
 	  unsigned char *tmp = (unsigned char *)
 	    scm_must_realloc (pt->putback_buf, pt->read_buf_size, new_size,
 			      FUNC_NAME);
@@ -1302,7 +1302,7 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
     SCM_OUT_OF_RANGE (3, whence);
   if (SCM_OPPORTP (fd_port))
     {
-      scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (fd_port);
+      scm_ptob_descriptor_t *ptob = scm_ptobs + SCM_PTOBNUM (fd_port);
 
       if (!ptob->seek)
 	SCM_MISC_ERROR ("port is not seekable", 
@@ -1355,8 +1355,8 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
     }
   else if (SCM_OPOUTPORTP (object))
     {
-      scm_port *pt = SCM_PTAB_ENTRY (object);
-      scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
+      scm_port_t *pt = SCM_PTAB_ENTRY (object);
+      scm_ptob_descriptor_t *ptob = scm_ptobs + SCM_PTOBNUM (object);
       
       if (!ptob->truncate)
 	SCM_MISC_ERROR ("port is not truncatable", SCM_EOL);
@@ -1505,7 +1505,7 @@ void
 scm_ports_prehistory ()
 {
   scm_numptob = 0;
-  scm_ptobs = (scm_ptob_descriptor *) malloc (sizeof (scm_ptob_descriptor));
+  scm_ptobs = (scm_ptob_descriptor_t *) malloc (sizeof (scm_ptob_descriptor_t));
 }
 
 
@@ -1529,7 +1529,7 @@ scm_void_port (char *mode_str)
 {
   int mode_bits;
   SCM answer;
-  scm_port * pt;
+  scm_port_t * pt;
 
   SCM_NEWCELL (answer);
   SCM_DEFER_INTS;

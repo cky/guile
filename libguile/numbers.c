@@ -54,10 +54,11 @@
 
 #include "libguile/validate.h"
 #include "libguile/numbers.h"
+#include "libguile/deprecation.h"
 
 
 
-static SCM scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn, int modes);
+static SCM scm_divbigbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn, int modes);
 static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 
 
@@ -161,7 +162,7 @@ scm_abs (SCM x)
       return SCM_MAKINUM (-xx);
     } else {
 #ifdef SCM_BIGDIG
-      return scm_long2big (-xx);
+      return scm_i_long2big (-xx);
 #else
       scm_num_overflow (s_abs);
 #endif
@@ -170,7 +171,7 @@ scm_abs (SCM x)
     if (!SCM_BIGSIGN (x)) {
       return x;
     } else {
-      return scm_copybig (x, 0);
+      return scm_i_copybig (x, 0);
     }
   } else if (SCM_REALP (x)) {
     return scm_make_real (fabs (SCM_REAL_VALUE (x)));
@@ -198,7 +199,7 @@ scm_quotient (SCM x, SCM y)
 	  return SCM_MAKINUM (z);
 	} else {
 #ifdef SCM_BIGDIG
-	  return scm_long2big (z);
+	  return scm_i_long2big (z);
 #else
 	  scm_num_overflow (s_quotient);
 #endif
@@ -227,9 +228,9 @@ scm_quotient (SCM x, SCM y)
 	long z = yy < 0 ? -yy : yy;
 	
 	if (z < SCM_BIGRAD) {
-	  SCM sw = scm_copybig (x, SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0));
+	  SCM sw = scm_i_copybig (x, SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0));
 	  scm_divbigdig (SCM_BDIGITS (sw), SCM_NUMDIGS (sw), (SCM_BIGDIG) z);
-	  return scm_normbig (sw);
+	  return scm_i_normbig (sw);
 	} else {
 #ifndef SCM_DIGSTOOBIG
 	  long w = scm_pseudolong (z);
@@ -421,7 +422,7 @@ scm_gcd (SCM x, SCM y)
 	return SCM_MAKINUM (result);
       } else {
 #ifdef SCM_BIGDIG
-	return scm_long2big (result);
+	return scm_i_long2big (result);
 #else
 	scm_num_overflow (s_gcd);
 #endif
@@ -435,7 +436,7 @@ scm_gcd (SCM x, SCM y)
   } else if (SCM_BIGP (x)) {
   big_gcd:
     if (SCM_BIGSIGN (x))
-      x = scm_copybig (x, 0);
+      x = scm_i_copybig (x, 0);
   newy:
     if (SCM_INUMP (y)) {
       if (SCM_EQ_P (y, SCM_INUM0)) {
@@ -445,7 +446,7 @@ scm_gcd (SCM x, SCM y)
       }
     } else if (SCM_BIGP (y)) {
       if (SCM_BIGSIGN (y))
-	y = scm_copybig (y, 0);
+	y = scm_i_copybig (y, 0);
       switch (scm_bigcomp (x, y))
 	{
 	case -1:  /* x > y */
@@ -555,18 +556,18 @@ scm_lcm (SCM n1, SCM n2)
 #ifdef SCM_BIGDIG
 
 SCM scm_copy_big_dec(SCM b, int sign);
-SCM scm_copy_smaller(SCM_BIGDIG *x, scm_sizet nx, int zsgn);
-SCM scm_big_ior(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy);
-SCM scm_big_xor(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy);
-SCM scm_big_and(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int zsgn);
-SCM scm_big_test(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy);
+SCM scm_copy_smaller(SCM_BIGDIG *x, size_t nx, int zsgn);
+SCM scm_big_ior(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy);
+SCM scm_big_xor(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy);
+SCM scm_big_and(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int zsgn);
+SCM scm_big_test(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy);
 
 SCM scm_copy_big_dec(SCM b, int sign)
 {
   long num = -1;
-  scm_sizet nx = SCM_NUMDIGS(b);
-  scm_sizet i = 0;
-  SCM ans = scm_mkbig(nx, sign);
+  size_t nx = SCM_NUMDIGS(b);
+  size_t i = 0;
+  SCM ans = scm_i_mkbig(nx, sign);
   SCM_BIGDIG *src = SCM_BDIGITS(b), *dst = SCM_BDIGITS(ans);
   if SCM_BIGSIGN(b) do {
     num += src[i];
@@ -578,11 +579,11 @@ SCM scm_copy_big_dec(SCM b, int sign)
   return ans;
 }
 
-SCM scm_copy_smaller(SCM_BIGDIG *x, scm_sizet nx, int zsgn)
+SCM scm_copy_smaller(SCM_BIGDIG *x, size_t nx, int zsgn)
 {
   long num = -1;
-  scm_sizet i = 0;
-  SCM z = scm_mkbig(nx, zsgn);
+  size_t i = 0;
+  SCM z = scm_i_mkbig(nx, zsgn);
   SCM_BIGDIG *zds = SCM_BDIGITS(z);
   if (zsgn) do {
     num += x[i];
@@ -593,12 +594,12 @@ SCM scm_copy_smaller(SCM_BIGDIG *x, scm_sizet nx, int zsgn)
   return z;
 }
 
-SCM scm_big_ior(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
+SCM scm_big_ior(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy)
 /* Assumes nx <= SCM_NUMDIGS(bigy) */
 /* Assumes xsgn equals either 0 or SCM_BIGSIGNFLAG */
 {
   long num = -1;
-  scm_sizet i = 0, ny = SCM_NUMDIGS(bigy);
+  size_t i = 0, ny = SCM_NUMDIGS(bigy);
   SCM z = scm_copy_big_dec (bigy, xsgn & SCM_BIGSIGN (bigy));
   SCM_BIGDIG *zds = SCM_BDIGITS(z);
   if (xsgn) {
@@ -615,7 +616,7 @@ SCM scm_big_ior(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
       num = SCM_BIGDN(num);
       if (!num) return z;
     }
-    scm_adjbig(z, 1 + ny);		/* OOPS, overflowed into next digit. */
+    scm_i_adjbig(z, 1 + ny);		/* OOPS, overflowed into next digit. */
     SCM_BDIGITS(z)[ny] = 1;
     return z;
   }
@@ -623,12 +624,12 @@ SCM scm_big_ior(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
   return z;
 }
 
-SCM scm_big_xor(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
+SCM scm_big_xor(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy)
 /* Assumes nx <= SCM_NUMDIGS(bigy) */
 /* Assumes xsgn equals either 0 or SCM_BIGSIGNFLAG */
 {
   long num = -1;
-  scm_sizet i = 0, ny = SCM_NUMDIGS(bigy);
+  size_t i = 0, ny = SCM_NUMDIGS(bigy);
   SCM z = scm_copy_big_dec(bigy, xsgn ^ SCM_BIGSIGN(bigy));
   SCM_BIGDIG *zds = SCM_BDIGITS(z);
   if (xsgn) do {
@@ -647,19 +648,19 @@ SCM scm_big_xor(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
       num += zds[i];
       zds[i++] = SCM_BIGLO(num);
       num = SCM_BIGDN(num);
-      if (!num) return scm_normbig(z);
+      if (!num) return scm_i_normbig(z);
     }
   }
-  return scm_normbig(z);
+  return scm_i_normbig(z);
 }
 
-SCM scm_big_and(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int zsgn)
+SCM scm_big_and(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int zsgn)
 /* Assumes nx <= SCM_NUMDIGS(bigy) */
 /* Assumes xsgn equals either 0 or SCM_BIGSIGNFLAG */
 /* return sign equals either 0 or SCM_BIGSIGNFLAG */
 {
   long num = -1;
-  scm_sizet i = 0;
+  size_t i = 0;
   SCM z;
   SCM_BIGDIG *zds;
   if (xsgn==zsgn) {
@@ -683,7 +684,7 @@ SCM scm_big_and(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int zsgn)
       num += zds[i];
       zds[i++] = SCM_BIGLO(num);
       num = SCM_BIGDN(num);
-      if (!num) return scm_normbig(z);
+      if (!num) return scm_i_normbig(z);
     }
   }
   else if (xsgn) {
@@ -694,15 +695,15 @@ SCM scm_big_and(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int zsgn)
       carry = (mask >= SCM_BIGRAD) ? 1 : 0;
     } while (++i < nx);
   } else do zds[i] = zds[i] & x[i]; while (++i < nx);
-  return scm_normbig(z);
+  return scm_i_normbig(z);
 }
 
-SCM scm_big_test(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
+SCM scm_big_test(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy)
 /* Assumes nx <= SCM_NUMDIGS(bigy) */
 /* Assumes xsgn equals either 0 or SCM_BIGSIGNFLAG */
 {
   SCM_BIGDIG *y;
-  scm_sizet i = 0;
+  size_t i = 0;
   long num = -1;
   if (SCM_BIGSIGN(bigy) & xsgn) return SCM_BOOL_T;
   if (SCM_NUMDIGS(bigy) != nx && xsgn) return SCM_BOOL_T;
@@ -1062,9 +1063,9 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
       return SCM_BOOL_F;
     } else if (SCM_BIGSIGN (j)) {
       long num = -1;
-      scm_sizet i = 0;
+      size_t i = 0;
       SCM_BIGDIG * x = SCM_BDIGITS (j);
-      scm_sizet nx = iindex / SCM_BITSPERDIG;
+      size_t nx = iindex / SCM_BITSPERDIG;
       while (1) {
 	num += x[i];
 	if (nx == i++) {
@@ -1225,7 +1226,7 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
     long int in = SCM_INUM (n);
     unsigned long int bits = iend - istart;
 
-    if (in < 0 && bits >= SCM_FIXNUM_BIT)
+    if (in < 0 && bits >= SCM_I_FIXNUM_BIT)
       {
 	/* Since we emulate two's complement encoded numbers, this special
 	 * case requires us to produce a result that has more bits than can be
@@ -1235,10 +1236,10 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 	goto generalcase;
       }
 
-    if (istart < SCM_FIXNUM_BIT)
+    if (istart < SCM_I_FIXNUM_BIT)
       {
 	in = in >> istart;
-	if (bits < SCM_FIXNUM_BIT)
+	if (bits < SCM_I_FIXNUM_BIT)
 	  return SCM_MAKINUM (in & ((1L << bits) - 1));
 	else /* we know: in >= 0 */
 	  return SCM_MAKINUM (in);
@@ -1304,7 +1305,7 @@ SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
       return scm_logcount (scm_difference (SCM_MAKINUM (-1L), n));
     } else {
       unsigned long int c = 0;
-      scm_sizet i = SCM_NUMDIGS (n);
+      size_t i = SCM_NUMDIGS (n);
       SCM_BIGDIG * ds = SCM_BDIGITS (n);
       while (i--) {
 	SCM_BIGDIG d;
@@ -1379,7 +1380,7 @@ SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
 static const char s_bignum[] = "bignum";
 
 SCM
-scm_mkbig (scm_sizet nlen, int sign)
+scm_i_mkbig (size_t nlen, int sign)
 {
   SCM v;
   /* Cast to long int to avoid signed/unsigned comparison warnings.  */
@@ -1395,9 +1396,8 @@ scm_mkbig (scm_sizet nlen, int sign)
   return v;
 }
 
-
 SCM
-scm_big2inum (SCM b, scm_sizet l)
+scm_i_big2inum (SCM b, size_t l)
 {
   unsigned long num = 0;
   SCM_BIGDIG *tmp = SCM_BDIGITS (b);
@@ -1413,13 +1413,12 @@ scm_big2inum (SCM b, scm_sizet l)
   return b;
 }
 
-
-static const char s_adjbig[] = "scm_adjbig";
+static const char s_adjbig[] = "scm_i_adjbig";
 
 SCM
-scm_adjbig (SCM b, scm_sizet nlen)
+scm_i_adjbig (SCM b, size_t nlen)
 {
-  scm_sizet nsiz = nlen;
+  size_t nsiz = nlen;
   if (((nsiz << SCM_BIGSIZEFIELD) >> SCM_BIGSIZEFIELD) != nlen)
     scm_memory_error (s_adjbig);
 
@@ -1438,13 +1437,11 @@ scm_adjbig (SCM b, scm_sizet nlen)
   return b;
 }
 
-
-
 SCM
-scm_normbig (SCM b)
+scm_i_normbig (SCM b)
 {
 #ifndef _UNICOS
-  scm_sizet nlen = SCM_NUMDIGS (b);
+  size_t nlen = SCM_NUMDIGS (b);
 #else
   int nlen = SCM_NUMDIGS (b); /* unsigned nlen breaks on Cray when nlen => 0 */
 #endif
@@ -1452,137 +1449,30 @@ scm_normbig (SCM b)
   while (nlen-- && !zds[nlen]);
   nlen++;
   if (nlen * SCM_BITSPERDIG / SCM_CHAR_BIT <= sizeof (SCM))
-    if (SCM_INUMP (b = scm_big2inum (b, (scm_sizet) nlen)))
+    if (SCM_INUMP (b = scm_i_big2inum (b, (size_t) nlen)))
       return b;
   if (SCM_NUMDIGS (b) == nlen)
     return b;
-  return scm_adjbig (b, (scm_sizet) nlen);
+  return scm_i_adjbig (b, (size_t) nlen);
 }
 
-
-
 SCM
-scm_copybig (SCM b, int sign)
+scm_i_copybig (SCM b, int sign)
 {
-  scm_sizet i = SCM_NUMDIGS (b);
-  SCM ans = scm_mkbig (i, sign);
+  size_t i = SCM_NUMDIGS (b);
+  SCM ans = scm_i_mkbig (i, sign);
   SCM_BIGDIG *src = SCM_BDIGITS (b), *dst = SCM_BDIGITS (ans);
   while (i--)
     dst[i] = src[i];
   return ans;
 }
 
-
-
-SCM
-scm_long2big (long n)
-{
-  scm_sizet i = 0;
-  SCM_BIGDIG *digits;
-  SCM ans = scm_mkbig (SCM_DIGSPERLONG, n < 0);
-  digits = SCM_BDIGITS (ans);
-  if (n < 0)
-    n = -n;
-  while (i < SCM_DIGSPERLONG)
-    {
-      digits[i++] = SCM_BIGLO (n);
-      n = SCM_BIGDN ((unsigned long) n);
-    }
-  return ans;
-}
-
-#ifdef HAVE_LONG_LONGS
-
-SCM
-scm_long_long2big (long_long n)
-{
-  scm_sizet i;
-  SCM_BIGDIG *digits;
-  SCM ans;
-  int n_digits;
-
-  {
-    long tn;
-    tn = (long) n;
-    if ((long long) tn == n)
-      return scm_long2big (tn);
-  }
-
-  {
-    long_long tn;
-
-    for (tn = n, n_digits = 0;
-	 tn;
-	 ++n_digits, tn = SCM_BIGDN ((ulong_long) tn))
-      ;
-  }
-
-  i = 0;
-  ans = scm_mkbig (n_digits, n < 0);
-  digits = SCM_BDIGITS (ans);
-  if (n < 0)
-    n = -n;
-  while (i < n_digits)
-    {
-      digits[i++] = SCM_BIGLO (n);
-      n = SCM_BIGDN ((ulong_long) n);
-    }
-  return ans;
-}
-#endif /* HAVE_LONG_LONGS */
-
-
-SCM
-scm_2ulong2big (unsigned long *np)
-{
-  unsigned long n;
-  scm_sizet i;
-  SCM_BIGDIG *digits;
-  SCM ans;
-
-  ans = scm_mkbig (2 * SCM_DIGSPERLONG, 0);
-  digits = SCM_BDIGITS (ans);
-
-  n = np[0];
-  for (i = 0; i < SCM_DIGSPERLONG; ++i)
-    {
-      digits[i] = SCM_BIGLO (n);
-      n = SCM_BIGDN ((unsigned long) n);
-    }
-  n = np[1];
-  for (i = 0; i < SCM_DIGSPERLONG; ++i)
-    {
-      digits[i + SCM_DIGSPERLONG] = SCM_BIGLO (n);
-      n = SCM_BIGDN ((unsigned long) n);
-    }
-  return ans;
-}
-
-
-
-SCM
-scm_ulong2big (unsigned long n)
-{
-  scm_sizet i = 0;
-  SCM_BIGDIG *digits;
-  SCM ans = scm_mkbig (SCM_DIGSPERLONG, 0);
-  digits = SCM_BDIGITS (ans);
-  while (i < SCM_DIGSPERLONG)
-    {
-      digits[i++] = SCM_BIGLO (n);
-      n = SCM_BIGDN (n);
-    }
-  return ans;
-}
-
-
-
 int
 scm_bigcomp (SCM x, SCM y)
 {
   int xsign = SCM_BIGSIGN (x);
   int ysign = SCM_BIGSIGN (y);
-  scm_sizet xlen, ylen;
+  size_t xlen, ylen;
 
   /* Look at the signs, first.  */
   if (ysign < xsign)
@@ -1627,7 +1517,7 @@ scm_pseudolong (long x)
     SCM_BIGDIG bd[SCM_DIGSPERLONG];
   }
   p;
-  scm_sizet i = 0;
+  size_t i = 0;
   if (x < 0)
     x = -x;
   while (i < SCM_DIGSPERLONG)
@@ -1645,7 +1535,7 @@ scm_pseudolong (long x)
 void
 scm_longdigs (long x, SCM_BIGDIG digs[])
 {
-  scm_sizet i = 0;
+  size_t i = 0;
   if (x < 0)
     x = -x;
   while (i < SCM_DIGSPERLONG)
@@ -1659,13 +1549,13 @@ scm_longdigs (long x, SCM_BIGDIG digs[])
 
 
 SCM
-scm_addbig (SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int sgny)
+scm_addbig (SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int sgny)
 {
   /* Assumes nx <= SCM_NUMDIGS(bigy) */
   /* Assumes xsgn and sgny scm_equal either 0 or SCM_BIGSIGNFLAG */
   long num = 0;
-  scm_sizet i = 0, ny = SCM_NUMDIGS (bigy);
-  SCM z = scm_copybig (bigy, SCM_BIGSIGN (bigy) ^ sgny);
+  size_t i = 0, ny = SCM_NUMDIGS (bigy);
+  SCM z = scm_i_copybig (bigy, SCM_BIGSIGN (bigy) ^ sgny);
   SCM_BIGDIG *zds = SCM_BDIGITS (z);
   if (xsgn ^ SCM_BIGSIGN (z))
     {
@@ -1734,21 +1624,21 @@ scm_addbig (SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int sgny)
 	}
       if (num)
 	{
-	  z = scm_adjbig (z, ny + 1);
+	  z = scm_i_adjbig (z, ny + 1);
 	  SCM_BDIGITS (z)[ny] = num;
 	  return z;
 	}
     }
-  return scm_normbig (z);
+  return scm_i_normbig (z);
 }
 
 
 SCM
-scm_mulbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn)
+scm_mulbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn)
 {
-  scm_sizet i = 0, j = nx + ny;
+  size_t i = 0, j = nx + ny;
   unsigned long n = 0;
-  SCM z = scm_mkbig (j, sgn);
+  SCM z = scm_i_mkbig (j, sgn);
   SCM_BIGDIG *zds = SCM_BDIGITS (z);
   while (j--)
     zds[j] = 0;
@@ -1772,12 +1662,12 @@ scm_mulbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn)
 	}
     }
   while (++i < nx);
-  return scm_normbig (z);
+  return scm_i_normbig (z);
 }
 
 
 unsigned int
-scm_divbigdig (SCM_BIGDIG * ds, scm_sizet h, SCM_BIGDIG div)
+scm_divbigdig (SCM_BIGDIG * ds, size_t h, SCM_BIGDIG div)
 {
   register unsigned long t2 = 0;
   while (h--)
@@ -1800,7 +1690,7 @@ scm_divbigint (SCM x, long z, int sgn, int mode)
     {
       register unsigned long t2 = 0;
       register SCM_BIGDIG *ds = SCM_BDIGITS (x);
-      scm_sizet nd = SCM_NUMDIGS (x);
+      size_t nd = SCM_NUMDIGS (x);
       while (nd--)
 	t2 = (SCM_BIGUP (t2) + ds[nd]) % z;
       if (mode && t2)
@@ -1825,14 +1715,14 @@ scm_divbigint (SCM x, long z, int sgn, int mode)
 
 
 static SCM
-scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn, int modes)
+scm_divbigbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn, int modes)
 {
   /* modes description
      0  remainder
      1  scm_modulo
      2  quotient
      3  quotient but returns SCM_UNDEFINED if division is not exact. */
-  scm_sizet i = 0, j = 0;
+  size_t i = 0, j = 0;
   long num = 0;
   unsigned long t2 = 0;
   SCM z, newy;
@@ -1842,7 +1732,7 @@ scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn
     switch (modes)
       {
       case 0:			/* remainder -- just return x */
-	z = scm_mkbig (nx, sgn);
+	z = scm_i_mkbig (nx, sgn);
 	zds = SCM_BDIGITS (z);
 	do
 	  {
@@ -1851,7 +1741,7 @@ scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn
 	while (++i < nx);
 	return z;
       case 1:			/* scm_modulo -- return y-x */
-	z = scm_mkbig (ny, sgn);
+	z = scm_i_mkbig (ny, sgn);
 	zds = SCM_BDIGITS (z);
 	do
 	  {
@@ -1889,7 +1779,7 @@ scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn
 	return SCM_UNDEFINED;   /* the division is not exact */
       }
 
-  z = scm_mkbig (nx == ny ? nx + 2 : nx + 1, sgn);
+  z = scm_i_mkbig (nx == ny ? nx + 2 : nx + 1, sgn);
   zds = SCM_BDIGITS (z);
   if (nx == ny)
     zds[nx + 1] = 0;
@@ -1898,7 +1788,7 @@ scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn
   if (y[ny - 1] < (SCM_BIGRAD >> 1))
     {				/* normalize operands */
       d = SCM_BIGRAD / (y[ny - 1] + 1);
-      newy = scm_mkbig (ny, 0);
+      newy = scm_i_mkbig (ny, 0);
       yds = SCM_BDIGITS (newy);
       while (j < ny)
 	{
@@ -2012,9 +1902,9 @@ scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn
  doadj:
   for (j = ny; j && !zds[j - 1]; --j);
   if (j * SCM_BITSPERDIG <= sizeof (SCM) * SCM_CHAR_BIT)
-    if (SCM_INUMP (z = scm_big2inum (z, j)))
+    if (SCM_INUMP (z = scm_i_big2inum (z, j)))
       return z;
-  return scm_adjbig (z, j);
+  return scm_i_adjbig (z, j);
 }
 #endif
 
@@ -2033,11 +1923,11 @@ static const double fx[] =
 
 
 
-static scm_sizet
+static size_t
 idbl2str (double f, char *a)
 {
   int efmt, dpt, d, i, wp = scm_dblprec;
-  scm_sizet ch = 0;
+  size_t ch = 0;
   int exp = 0;
 
   if (f == 0.0)
@@ -2173,10 +2063,10 @@ idbl2str (double f, char *a)
 }
 
 
-static scm_sizet
+static size_t
 iflo2str (SCM flt, char *str)
 {
-  scm_sizet i;
+  size_t i;
   if (SCM_SLOPPY_REALP (flt))
     i = idbl2str (SCM_REAL_VALUE (flt), str);
   else
@@ -2197,11 +2087,11 @@ iflo2str (SCM flt, char *str)
    characters in the result. 
    rad is output base
    p is destination: worst case (base 2) is SCM_INTBUFLEN  */
-scm_sizet
+size_t
 scm_iint2str (long num, int rad, char *p)
 {
-  scm_sizet j = 1;
-  scm_sizet i;
+  size_t j = 1;
+  size_t i;
   unsigned long n = (num < 0) ? -num : num;
 
   for (n /= rad; n > 0; n /= rad)
@@ -2232,14 +2122,14 @@ scm_iint2str (long num, int rad, char *p)
 static SCM
 big2str (SCM b, unsigned int radix)
 {
-  SCM t = scm_copybig (b, 0);	/* sign of temp doesn't matter */
+  SCM t = scm_i_copybig (b, 0);	/* sign of temp doesn't matter */
   register SCM_BIGDIG *ds = SCM_BDIGITS (t);
-  scm_sizet i = SCM_NUMDIGS (t);
-  scm_sizet j = radix == 16 ? (SCM_BITSPERDIG * i) / 4 + 2
+  size_t i = SCM_NUMDIGS (t);
+  size_t j = radix == 16 ? (SCM_BITSPERDIG * i) / 4 + 2
     : radix >= 10 ? (SCM_BITSPERDIG * i * 241L) / 800 + 2
     : (SCM_BITSPERDIG * i) + 2;
-  scm_sizet k = 0;
-  scm_sizet radct = 0;
+  size_t k = 0;
+  size_t radct = 0;
   SCM_BIGDIG radpow = 1, radmod = 0;
   SCM ss = scm_allocate_string (j);
   char *s = SCM_STRING_CHARS (ss), c;
@@ -2297,7 +2187,7 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
 
   if (SCM_INUMP (n)) {
     char num_buf [SCM_INTBUFLEN];
-    scm_sizet length = scm_iint2str (SCM_INUM (n), base, num_buf);
+    size_t length = scm_iint2str (SCM_INUM (n), base, num_buf);
     return scm_makfromstr (num_buf, length, 0);
   } else if (SCM_BIGP (n)) {
     return big2str (n, (unsigned int) base);
@@ -2335,7 +2225,7 @@ scm_bigprint (SCM exp, SCM port, scm_print_state *pstate)
 {
 #ifdef SCM_BIGDIG
   exp = big2str (exp, (unsigned int) 10);
-  scm_lfwrite (SCM_STRING_CHARS (exp), (scm_sizet) SCM_STRING_LENGTH (exp), port);
+  scm_lfwrite (SCM_STRING_CHARS (exp), (size_t) SCM_STRING_LENGTH (exp), port);
 #else
   scm_ipruk ("bignum", exp, port);
 #endif
@@ -2412,9 +2302,9 @@ scm_small_istr2int (char *str, long len, long radix)
 SCM
 scm_istr2int (char *str, long len, long radix)
 {
-  scm_sizet j;
-  register scm_sizet k, blen = 1;
-  scm_sizet i = 0;
+  size_t j;
+  register size_t k, blen = 1;
+  size_t i = 0;
   int c;
   SCM res;
   register SCM_BIGDIG *ds;
@@ -2441,7 +2331,7 @@ scm_istr2int (char *str, long len, long radix)
       if (++i == (unsigned) len)
 	return SCM_BOOL_F;	/* bad if lone `+' or `-' */
     }
-  res = scm_mkbig (j, '-' == str[0]);
+  res = scm_i_mkbig (j, '-' == str[0]);
   ds = SCM_BDIGITS (res);
   for (k = j; k--;)
     ds[k] = 0;
@@ -2494,11 +2384,11 @@ scm_istr2int (char *str, long len, long radix)
     }
   while (i < (unsigned) len);
   if (blen * SCM_BITSPERDIG / SCM_CHAR_BIT <= sizeof (SCM))
-    if (SCM_INUMP (res = scm_big2inum (res, blen)))
+    if (SCM_INUMP (res = scm_i_big2inum (res, blen)))
       return res;
   if (j == blen)
     return res;
-  return scm_adjbig (res, blen);
+  return scm_i_adjbig (res, blen);
 }
 
 SCM
@@ -3047,9 +2937,9 @@ scm_num_eq_p (SCM x, SCM y)
     } else if (SCM_BIGP (y)) {
       return SCM_BOOL (0 == scm_bigcomp (x, y));
     } else if (SCM_REALP (y)) {
-      return SCM_BOOL (scm_big2dbl (x) == SCM_REAL_VALUE (y));
+      return SCM_BOOL (scm_i_big2dbl (x) == SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
-      return SCM_BOOL ((scm_big2dbl (x) == SCM_COMPLEX_REAL (y))
+      return SCM_BOOL ((scm_i_big2dbl (x) == SCM_COMPLEX_REAL (y))
 		       && (0.0 == SCM_COMPLEX_IMAG (y)));
     } else {
       SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
@@ -3058,7 +2948,7 @@ scm_num_eq_p (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return SCM_BOOL (SCM_REAL_VALUE (x) == (double) SCM_INUM (y));
     } else if (SCM_BIGP (y)) {
-      return SCM_BOOL (SCM_REAL_VALUE (x) == scm_big2dbl (y));
+      return SCM_BOOL (SCM_REAL_VALUE (x) == scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
       return SCM_BOOL (SCM_REAL_VALUE (x) == SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3072,7 +2962,7 @@ scm_num_eq_p (SCM x, SCM y)
       return SCM_BOOL ((SCM_COMPLEX_REAL (x) == (double) SCM_INUM (y))
 		       && (SCM_COMPLEX_IMAG (x) == 0.0));
     } else if (SCM_BIGP (y)) {
-      return SCM_BOOL ((SCM_COMPLEX_REAL (x) == scm_big2dbl (y))
+      return SCM_BOOL ((SCM_COMPLEX_REAL (x) == scm_i_big2dbl (y))
 		       && (SCM_COMPLEX_IMAG (x) == 0.0));
     } else if (SCM_REALP (y)) {
       return SCM_BOOL ((SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y))
@@ -3114,7 +3004,7 @@ scm_less_p (SCM x, SCM y)
     } else if (SCM_BIGP (y)) {
       return SCM_BOOL (1 == scm_bigcomp (x, y));
     } else if (SCM_REALP (y)) {
-      return SCM_BOOL (scm_big2dbl (x) < SCM_REAL_VALUE (y));
+      return SCM_BOOL (scm_i_big2dbl (x) < SCM_REAL_VALUE (y));
     } else {
       SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
     }
@@ -3122,7 +3012,7 @@ scm_less_p (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return SCM_BOOL (SCM_REAL_VALUE (x) < (double) SCM_INUM (y));
     } else if (SCM_BIGP (y)) {
-      return SCM_BOOL (SCM_REAL_VALUE (x) < scm_big2dbl (y));
+      return SCM_BOOL (SCM_REAL_VALUE (x) < scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
       return SCM_BOOL (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y));
     } else {
@@ -3283,7 +3173,7 @@ scm_max (SCM x, SCM y)
     } else if (SCM_BIGP (y)) {
       return (1 == scm_bigcomp (x, y)) ? y : x;
     } else if (SCM_REALP (y)) {
-      double z = scm_big2dbl (x);
+      double z = scm_i_big2dbl (x);
       return (z <= SCM_REAL_VALUE (y)) ? y : scm_make_real (z);
     } else {
       SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
@@ -3293,7 +3183,7 @@ scm_max (SCM x, SCM y)
       double z = SCM_INUM (y);
       return (SCM_REAL_VALUE (x) < z) ? scm_make_real (z) : x;
     } else if (SCM_BIGP (y)) {
-      double z = scm_big2dbl (y);
+      double z = scm_i_big2dbl (y);
       return (SCM_REAL_VALUE (x) < z) ? scm_make_real (z) : x;
     } else if (SCM_REALP (y)) {
       return (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y)) ? y : x;
@@ -3341,7 +3231,7 @@ scm_min (SCM x, SCM y)
     } else if (SCM_BIGP (y)) {
       return (-1 == scm_bigcomp (x, y)) ? y : x;
     } else if (SCM_REALP (y)) {
-      double z = scm_big2dbl (x);
+      double z = scm_i_big2dbl (x);
       return (z < SCM_REAL_VALUE (y)) ? scm_make_real (z) : y;
     } else {
       SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
@@ -3351,7 +3241,7 @@ scm_min (SCM x, SCM y)
       double z = SCM_INUM (y);
       return (SCM_REAL_VALUE (x) <= z) ? x : scm_make_real (z);
     } else if (SCM_BIGP (y)) {
-      double z = scm_big2dbl (y);
+      double z = scm_i_big2dbl (y);
       return (SCM_REAL_VALUE (x) <= z) ? x : scm_make_real (z);
     } else if (SCM_REALP (y)) {
       return (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y)) ? x : y;
@@ -3390,7 +3280,7 @@ scm_sum (SCM x, SCM y)
 	return SCM_MAKINUM (z);
       } else {
 #ifdef SCM_BIGDIG
-	return scm_long2big (z);
+	return scm_i_long2big (z);
 #else  /* SCM_BIGDIG */
 	return scm_make_real ((double) z);
 #endif /* SCM_BIGDIG */ 
@@ -3429,9 +3319,9 @@ scm_sum (SCM x, SCM y)
       return scm_addbig (SCM_BDIGITS (x), SCM_NUMDIGS (x), 
 			 SCM_BIGSIGN (x), y, 0);
     } else if (SCM_REALP (y)) {
-      return scm_make_real (scm_big2dbl (x) + SCM_REAL_VALUE (y));
+      return scm_make_real (scm_i_big2dbl (x) + SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (scm_big2dbl (x) + SCM_COMPLEX_REAL (y),
+      return scm_make_complex (scm_i_big2dbl (x) + SCM_COMPLEX_REAL (y),
 			       SCM_COMPLEX_IMAG (y));
     } else {
       SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
@@ -3440,7 +3330,7 @@ scm_sum (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) + SCM_INUM (y));
     } else if (SCM_BIGP (y)) {
-      return scm_make_real (SCM_REAL_VALUE (x) + scm_big2dbl (y));
+      return scm_make_real (SCM_REAL_VALUE (x) + scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) + SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3454,7 +3344,7 @@ scm_sum (SCM x, SCM y)
       return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_INUM (y),
 			       SCM_COMPLEX_IMAG (x));
     } else if (SCM_BIGP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) + scm_big2dbl (y),
+      return scm_make_complex (SCM_COMPLEX_REAL (x) + scm_i_big2dbl (y),
 			       SCM_COMPLEX_IMAG (x));
     } else if (SCM_REALP (y)) {
       return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_REAL_VALUE (y),
@@ -3489,16 +3379,16 @@ scm_difference (SCM x, SCM y)
 	return SCM_MAKINUM (xx);
       } else {
 #ifdef SCM_BIGDIG
-	return scm_long2big (xx);
+	return scm_i_long2big (xx);
 #else
 	return scm_make_real ((double) xx);
 #endif
       }
     } else if (SCM_BIGP (x)) {
-      SCM z = scm_copybig (x, !SCM_BIGSIGN (x));
+      SCM z = scm_i_copybig (x, !SCM_BIGSIGN (x));
       unsigned int digs = SCM_NUMDIGS (z);
       unsigned int size = digs * SCM_BITSPERDIG / SCM_CHAR_BIT;
-      return size <= sizeof (SCM) ? scm_big2inum (z, digs) : z;
+      return size <= sizeof (SCM) ? scm_i_big2inum (z, digs) : z;
     } else if (SCM_REALP (x)) {
       return scm_make_real (-SCM_REAL_VALUE (x));
     } else if (SCM_COMPLEXP (x)) {
@@ -3517,7 +3407,7 @@ scm_difference (SCM x, SCM y)
 	return SCM_MAKINUM (z);
       } else {
 #ifdef SCM_BIGDIG
-	return scm_long2big (z);
+	return scm_i_long2big (z);
 #else
 	return scm_make_real ((double) z);
 #endif
@@ -3561,9 +3451,9 @@ scm_difference (SCM x, SCM y)
 	: scm_addbig (SCM_BDIGITS (y), SCM_NUMDIGS (y),
 		      SCM_BIGSIGN (y) ^ SCM_BIGSIGNFLAG, x, 0);
     } else if (SCM_REALP (y)) {
-      return scm_make_real (scm_big2dbl (x) - SCM_REAL_VALUE (y));
+      return scm_make_real (scm_i_big2dbl (x) - SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (scm_big2dbl (x) - SCM_COMPLEX_REAL (y),
+      return scm_make_complex (scm_i_big2dbl (x) - SCM_COMPLEX_REAL (y),
 			       - SCM_COMPLEX_IMAG (y));
     } else {
       SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
@@ -3572,7 +3462,7 @@ scm_difference (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) - SCM_INUM (y));
     } else if (SCM_BIGP (y)) {
-      return scm_make_real (SCM_REAL_VALUE (x) - scm_big2dbl (y));
+      return scm_make_real (SCM_REAL_VALUE (x) - scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) - SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3586,7 +3476,7 @@ scm_difference (SCM x, SCM y)
       return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_INUM (y),
 			       SCM_COMPLEX_IMAG (x));
     } else if (SCM_BIGP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) - scm_big2dbl (y),
+      return scm_make_complex (SCM_COMPLEX_REAL (x) - scm_i_big2dbl (y),
 			       SCM_COMPLEX_IMAG (x));
     } else if (SCM_REALP (y)) {
       return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_REAL_VALUE (y),
@@ -3689,9 +3579,9 @@ scm_product (SCM x, SCM y)
 			 SCM_BDIGITS (y), SCM_NUMDIGS (y),
 			 SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y));
     } else if (SCM_REALP (y)) {
-      return scm_make_real (scm_big2dbl (x) * SCM_REAL_VALUE (y));
+      return scm_make_real (scm_i_big2dbl (x) * SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
-      double z = scm_big2dbl (x);
+      double z = scm_i_big2dbl (x);
       return scm_make_complex (z * SCM_COMPLEX_REAL (y),
 			       z * SCM_COMPLEX_IMAG (y));
     } else {
@@ -3701,7 +3591,7 @@ scm_product (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return scm_make_real (SCM_INUM (y) * SCM_REAL_VALUE (x));
     } else if (SCM_BIGP (y)) {
-      return scm_make_real (scm_big2dbl (y) * SCM_REAL_VALUE (x));
+      return scm_make_real (scm_i_big2dbl (y) * SCM_REAL_VALUE (x));
     } else if (SCM_REALP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) * SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3715,7 +3605,7 @@ scm_product (SCM x, SCM y)
       return scm_make_complex (SCM_INUM (y) * SCM_COMPLEX_REAL (x),
 			       SCM_INUM (y) * SCM_COMPLEX_IMAG (x));
     } else if (SCM_BIGP (y)) {
-      double z = scm_big2dbl (y);
+      double z = scm_i_big2dbl (y);
       return scm_make_complex (z * SCM_COMPLEX_REAL (x),
 			       z * SCM_COMPLEX_IMAG (x));
     } else if (SCM_REALP (y)) {
@@ -3742,7 +3632,7 @@ scm_num2dbl (SCM a, const char *why)
   if (SCM_INUMP (a)) {
     return (double) SCM_INUM (a);
   } else if (SCM_BIGP (a)) {
-    return scm_big2dbl (a);
+    return scm_i_big2dbl (a);
   } else if (SCM_REALP (a)) {
     return (SCM_REAL_VALUE (a));
   } else {
@@ -3771,7 +3661,7 @@ scm_divide (SCM x, SCM y)
 	return scm_make_real (1.0 / (double) SCM_INUM (x));
       }
     } else if (SCM_BIGP (x)) {
-      return scm_make_real (1.0 / scm_big2dbl (x));
+      return scm_make_real (1.0 / scm_i_big2dbl (x));
     } else if (SCM_REALP (x)) {
       return scm_make_real (1.0 / SCM_REAL_VALUE (x));
     } else if (SCM_COMPLEXP (x)) {
@@ -3798,14 +3688,14 @@ scm_divide (SCM x, SCM y)
 	  return SCM_MAKINUM (z);
 	} else {
 #ifdef SCM_BIGDIG
-	  return scm_long2big (z);
+	  return scm_i_long2big (z);
 #else
 	  return scm_make_real ((double) xx / (double) yy);
 #endif
 	}
       }
     } else if (SCM_BIGP (y)) {
-      return scm_make_real ((double) xx / scm_big2dbl (y));
+      return scm_make_real ((double) xx / scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
       return scm_make_real ((double) xx / SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3830,11 +3720,11 @@ scm_divide (SCM x, SCM y)
       } else {
 	long z = yy < 0 ? -yy : yy;
 	if (z < SCM_BIGRAD) {
-	  SCM w = scm_copybig (x, SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0));
+	  SCM w = scm_i_copybig (x, SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0));
 	  return scm_divbigdig (SCM_BDIGITS (w), SCM_NUMDIGS (w),
 				(SCM_BIGDIG) z)
-	    ? scm_make_real (scm_big2dbl (x) / (double) yy)
-	    : scm_normbig (w);
+	    ? scm_make_real (scm_i_big2dbl (x) / (double) yy)
+	    : scm_i_normbig (w);
 	} else {
 	  SCM w;
 #ifndef SCM_DIGSTOOBIG
@@ -3851,7 +3741,7 @@ scm_divide (SCM x, SCM y)
 #endif
 	  return (!SCM_UNBNDP (w)) 
 	    ? w 
-	    : scm_make_real (scm_big2dbl (x) / (double) yy);
+	    : scm_make_real (scm_i_big2dbl (x) / (double) yy);
 	}
       }
     } else if (SCM_BIGP (y)) {
@@ -3860,11 +3750,11 @@ scm_divide (SCM x, SCM y)
 			     SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y), 3);
       return (!SCM_UNBNDP (w)) 
 	? w 
-	: scm_make_real (scm_big2dbl (x) / scm_big2dbl (y));
+	: scm_make_real (scm_i_big2dbl (x) / scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
-      return scm_make_real (scm_big2dbl (x) / SCM_REAL_VALUE (y));
+      return scm_make_real (scm_i_big2dbl (x) / SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
-      a = scm_big2dbl (x);
+      a = scm_i_big2dbl (x);
       goto complex_div;
     } else {
       SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
@@ -3874,7 +3764,7 @@ scm_divide (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return scm_make_real (rx / (double) SCM_INUM (y));
     } else if (SCM_BIGP (y)) {
-      return scm_make_real (rx / scm_big2dbl (y));
+      return scm_make_real (rx / scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
       return scm_make_real (rx / SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3890,7 +3780,7 @@ scm_divide (SCM x, SCM y)
       double d = SCM_INUM (y);
       return scm_make_complex (rx / d, ix / d);
     } else if (SCM_BIGP (y)) {
-      double d = scm_big2dbl (y);
+      double d = scm_i_big2dbl (y);
       return scm_make_complex (rx / d, ix / d);
     } else if (SCM_REALP (y)) {
       double d = SCM_REAL_VALUE (y);
@@ -4047,7 +3937,7 @@ scm_two_doubles (SCM x, SCM y, const char *sstring, struct dpair *xy)
   if (SCM_INUMP (x)) {
     xy->x = SCM_INUM (x);
   } else if (SCM_BIGP (x)) {
-    xy->x = scm_big2dbl (x);
+    xy->x = scm_i_big2dbl (x);
   } else if (SCM_REALP (x)) {
     xy->x = SCM_REAL_VALUE (x);
   } else {
@@ -4057,7 +3947,7 @@ scm_two_doubles (SCM x, SCM y, const char *sstring, struct dpair *xy)
   if (SCM_INUMP (y)) {
     xy->y = SCM_INUM (y);
   } else if (SCM_BIGP (y)) {
-    xy->y = scm_big2dbl (y);
+    xy->y = scm_i_big2dbl (y);
   } else if (SCM_REALP (y)) {
     xy->y = SCM_REAL_VALUE (y);
   } else {
@@ -4176,7 +4066,7 @@ scm_magnitude (SCM z)
       return SCM_MAKINUM (-zz);
     } else {
 #ifdef SCM_BIGDIG
-      return scm_long2big (-zz);
+      return scm_i_long2big (-zz);
 #else
       scm_num_overflow (s_magnitude);
 #endif
@@ -4185,7 +4075,7 @@ scm_magnitude (SCM z)
     if (!SCM_BIGSIGN (z)) {
       return z;
     } else {
-      return scm_copybig (z, 0);
+      return scm_i_copybig (z, 0);
     }
   } else if (SCM_REALP (z)) {
     return scm_make_real (fabs (SCM_REAL_VALUE (z)));
@@ -4243,7 +4133,7 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
       return SCM_MAKINUM (lu);
 #ifdef SCM_BIGDIG
     } else if (isfinite (u)) {
-      return scm_dbl2big (u);
+      return scm_i_dbl2big (u);
 #endif
     } else {
       scm_num_overflow (s_scm_inexact_to_exact);
@@ -4259,9 +4149,9 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 /* d must be integer */
 
 SCM
-scm_dbl2big (double d)
+scm_i_dbl2big (double d)
 {
-  scm_sizet i = 0;
+  size_t i = 0;
   long c;
   SCM_BIGDIG *digits;
   SCM ans;
@@ -4271,7 +4161,7 @@ scm_dbl2big (double d)
       u /= SCM_BIGRAD;
       i++;
     }
-  ans = scm_mkbig (i, d < 0);
+  ans = scm_i_mkbig (i, d < 0);
   digits = SCM_BDIGITS (ans);
   while (i--)
     {
@@ -4287,13 +4177,11 @@ scm_dbl2big (double d)
   return ans;
 }
 
-
-
 double
-scm_big2dbl (SCM b)
+scm_i_big2dbl (SCM b)
 {
   double ans = 0.0;
-  scm_sizet i = SCM_NUMDIGS (b);
+  size_t i = SCM_NUMDIGS (b);
   SCM_BIGDIG *digits = SCM_BDIGITS (b);
   while (i--)
     ans = digits[i] + SCM_BIGRAD * ans;
@@ -4301,111 +4189,101 @@ scm_big2dbl (SCM b)
     return - ans;
   return ans;
 }
+
 #endif
-
-
-SCM
-scm_long2num (long sl)
-{
-  if (!SCM_FIXABLE (sl))
-    {
-#ifdef SCM_BIGDIG
-      return scm_long2big (sl);
-#else
-      return scm_make_real ((double) sl);
-#endif
-    }
-  return SCM_MAKINUM (sl);
-}
-
 
 #ifdef HAVE_LONG_LONGS
-
-SCM
-scm_long_long2num (long_long sl)
-{
-  if (!SCM_FIXABLE (sl))
-    {
-#ifdef SCM_BIGDIG
-      return scm_long_long2big (sl);
-#else
-      return scm_make_real ((double) sl);
+# ifndef LLONG_MAX
+#  define ULLONG_MAX ((unsigned long long) (-1))
+#  define LLONG_MAX ((long long) (ULLONG_MAX >> 1))
+#  define LLONG_MIN (~LLONG_MAX)
+# endif
 #endif
-    }
-  else
-    {
-      /* we know that sl fits into an inum */
-      return SCM_MAKINUM ((scm_bits_t) sl);
-    }
-}
 
-#endif /* HAVE_LONG_LONGS */
+#define SIZE_MAX ((size_t) (-1))
+/* the below is not really guaranteed to work (I think), but probably does: */
+#define PTRDIFF_MIN ((ptrdiff_t) ((ptrdiff_t)1 << (sizeof (ptrdiff_t) * 8 - 1)))
+#define PTRDIFF_MAX (~ PTRDIFF_MIN)
 
+#define NUM2INTEGRAL scm_num2short
+#define INTEGRAL2NUM scm_short2num
+#define INTEGRAL2BIG scm_i_short2big
+#define ITYPE short
+#define MIN_VALUE SHRT_MIN
+#define MAX_VALUE SHRT_MAX
+#include "libguile/num2integral.i.c"
 
-SCM
-scm_ulong2num (unsigned long sl)
-{
-  if (!SCM_POSFIXABLE (sl))
-    {
-#ifdef SCM_BIGDIG
-      return scm_ulong2big (sl);
-#else
-      return scm_make_real ((double) sl);
-#endif
-    }
-  return SCM_MAKINUM (sl);
-}
+#define NUM2INTEGRAL scm_num2ushort
+#define INTEGRAL2NUM scm_ushort2num
+#define INTEGRAL2BIG scm_i_ushort2big
+#define UNSIGNED
+#define ITYPE unsigned short
+#define MAX_VALUE USHRT_MAX
+#include "libguile/num2integral.i.c"
 
+#define NUM2INTEGRAL scm_num2int
+#define INTEGRAL2NUM scm_int2num
+#define INTEGRAL2BIG scm_i_int2big
+#define ITYPE int
+#define MIN_VALUE INT_MIN
+#define MAX_VALUE INT_MAX
+#include "libguile/num2integral.i.c"
 
-long
-scm_num2long (SCM num, unsigned long int pos, const char *s_caller)
-{
-  if (SCM_INUMP (num)) {
-    return SCM_INUM (num);
-  } else if (SCM_BIGP (num)) {
-    long int res;
-    /* can't use res directly in case num is -2^31.  */
-    unsigned long int pos_res = 0;
-    unsigned long int old_res = 0;
-    scm_sizet l;
+#define NUM2INTEGRAL scm_num2uint
+#define INTEGRAL2NUM scm_uint2num
+#define INTEGRAL2BIG scm_i_uint2big
+#define UNSIGNED
+#define ITYPE unsigned int
+#define MAX_VALUE UINT_MAX
+#include "libguile/num2integral.i.c"
 
-    for (l = SCM_NUMDIGS (num); l--;) {
-      pos_res = SCM_BIGUP (pos_res) + SCM_BDIGITS (num)[l];
-      if (pos_res >= old_res) {
-	old_res = pos_res;
-      } else {
-	/* overflow. */
-	scm_out_of_range (s_caller, num);
-      }
-    }
-    if (SCM_BIGSIGN (num)) {
-      res = -pos_res;
-      if (res <= 0) {
-	return res;
-      } else {
-	scm_out_of_range (s_caller, num);
-      }
-    } else {
-      res = pos_res;
-      if (res >= 0) {
-	return res;
-      } else {
-	scm_out_of_range (s_caller, num);
-      }
-    }
-  } else if (SCM_REALP (num)) {
-    double u = SCM_REAL_VALUE (num);
-    long int res = u;
-    if ((double) res == u) {
-      return res;
-    } else {
-      scm_out_of_range (s_caller, num);
-    }
-  } else {
-    scm_wrong_type_arg (s_caller, pos, num);
-  }
-}
+#define NUM2INTEGRAL scm_num2long
+#define INTEGRAL2NUM scm_long2num
+#define INTEGRAL2BIG scm_i_long2big
+#define ITYPE long
+#define MIN_VALUE LONG_MIN
+#define MAX_VALUE LONG_MAX
+#include "libguile/num2integral.i.c"
 
+#define NUM2INTEGRAL scm_num2ulong
+#define INTEGRAL2NUM scm_ulong2num
+#define INTEGRAL2BIG scm_i_ulong2big
+#define UNSIGNED
+#define ITYPE unsigned long
+#define MAX_VALUE ULONG_MAX
+#include "libguile/num2integral.i.c"
+
+#define NUM2INTEGRAL scm_num2bits
+#define INTEGRAL2NUM scm_bits2num
+#define INTEGRAL2BIG scm_i_bits2big
+#define ITYPE scm_bits_t
+#define MIN_VALUE ((scm_bits_t) ((scm_ubits_t)1 << (sizeof (scm_bits_t) - 1)))
+#define MAX_VALUE (~MIN_VALUE)
+#include "libguile/num2integral.i.c"
+
+#define NUM2INTEGRAL scm_num2ubits
+#define INTEGRAL2NUM scm_ubits2num
+#define INTEGRAL2BIG scm_i_ubits2big
+#define UNSIGNED
+#define ITYPE scm_ubits_t
+#define MAX_VALUE ((scm_ubits_t) ((scm_bits_t) (-1)))
+#include "libguile/num2integral.i.c"
+
+#define NUM2INTEGRAL scm_num2ptrdiff
+#define INTEGRAL2NUM scm_ptrdiff2num
+#define INTEGRAL2BIG scm_i_ptrdiff2big
+#define ITYPE ptrdiff_t
+#define MIN_VALUE PTRDIFF_MIN
+#define MAX_VALUE PTRDIFF_MAX
+#include "libguile/num2integral.i.c"
+
+#define NUM2INTEGRAL scm_num2size
+#define INTEGRAL2NUM scm_size2num
+#define INTEGRAL2BIG scm_i_size2big
+#define UNSIGNED
+#define ITYPE size_t
+#define MAX_VALUE SIZE_MAX
+#include "libguile/num2integral.i.c"
 
 #ifdef HAVE_LONG_LONGS
 
@@ -4413,133 +4291,80 @@ scm_num2long (SCM num, unsigned long int pos, const char *s_caller)
 #define ULONG_LONG_MAX (~0ULL)
 #endif
 
-long_long
-scm_num2long_long (SCM num, unsigned long int pos, const char *s_caller)
-{
-  if (SCM_INUMP (num)) {
-    return SCM_INUM (num);
-  } else if (SCM_BIGP (num)) {
-    long long res;
-    /* can't use res directly in case num is -2^63.  */
-    unsigned long long int pos_res = 0;
-    scm_sizet l;
+#define NUM2INTEGRAL scm_num2long_long
+#define INTEGRAL2NUM scm_long_long2num
+#define INTEGRAL2BIG scm_i_long_long2big
+#define ITYPE long long
+#define MIN_VALUE LLONG_MIN
+#define MAX_VALUE LLONG_MAX
+#include "libguile/num2integral.i.c"
 
-    for (l = SCM_NUMDIGS (num); l--;) {
-      if (pos_res > SCM_BIGDN(ULONG_LONG_MAX))
-	scm_out_of_range (s_caller, num);
-      pos_res = SCM_LONGLONGBIGUP (pos_res) + SCM_BDIGITS (num)[l];
-    }
-    if (SCM_BIGSIGN (num)) {
-      res = -pos_res;
-      if (res <= 0) {
-	return res;
-      } else {
-	scm_out_of_range (s_caller, num);
-      }
-    } else {
-      res = pos_res;
-      if (res >= 0) {
-	return res;
-      } else {
-	scm_out_of_range (s_caller, num);
-      }
-    }
-  } else if (SCM_REALP (num)) {
-    double u = SCM_REAL_VALUE (num);
-    long long int res = u;
-    if ((double) res == u) {
-      return res;
-    } else {
-      scm_out_of_range (s_caller, num);
-    }
-  } else {
-    scm_wrong_type_arg (s_caller, pos, num);
-  }
-}
-
-ulong_long
-scm_num2ulong_long (SCM num, unsigned long int pos, const char *s_caller)
-{
-  if (SCM_INUMP (num)) 
-    {
-      long long nnum = SCM_INUM (num);
-      if (nnum >= 0)
-	return nnum;
-      else
-	scm_out_of_range (s_caller, num);
-    }
-  else if (SCM_BIGP (num)) 
-    {
-      unsigned long long res = 0;
-      scm_sizet l;
-
-      if (SCM_BIGSIGN (num))
-	scm_out_of_range (s_caller, num);
-
-      for (l = SCM_NUMDIGS (num); l--;) {
-	if (res > SCM_BIGDN(ULONG_LONG_MAX))
-	  scm_out_of_range (s_caller, num);
-	res = SCM_LONGLONGBIGUP (res) + SCM_BDIGITS (num)[l];
-      }
-      return res;
-    }
-  else if (SCM_REALP (num)) 
-    {
-      double u = SCM_REAL_VALUE (num);
-      unsigned long long int res = u;
-      if ((double) res == u)
-	return res;
-      else
-	scm_out_of_range (s_caller, num);
-    }
-  else
-    scm_wrong_type_arg (s_caller, pos, num);
-}
+#define NUM2INTEGRAL scm_num2ulong_long
+#define INTEGRAL2NUM scm_ulong_long2num
+#define INTEGRAL2BIG scm_i_ulong_long2big
+#define UNSIGNED
+#define ITYPE unsigned long long
+#define MAX_VALUE ULLONG_MAX
+#include "libguile/num2integral.i.c"
 
 #endif /* HAVE_LONG_LONGS */
 
+#ifdef GUILE_DEBUG
 
-unsigned long
-scm_num2ulong (SCM num, unsigned long int pos, const char *s_caller)
+#define CHECK(type, v) \
+  do { \
+    if ((v) != scm_num2##type (scm_##type##2num (v), 1, "check_sanity")) \
+      abort (); \
+  } while (0);
+
+static void
+check_sanity ()
 {
-  if (SCM_INUMP (num)) {
-    long nnum = SCM_INUM (num);
-    if (nnum >= 0) {
-      return nnum;
-    } else {
-      scm_out_of_range (s_caller, num);
-    }
-  } else if (SCM_BIGP (num)) {
-    unsigned long int res = 0;
-    scm_sizet l;
-    
-    if (SCM_BIGSIGN (num))
-      scm_out_of_range (s_caller, num);
-      
-    for (l = SCM_NUMDIGS (num); l--;) {
-      if (res > SCM_BIGDN(ULONG_MAX))
-	scm_out_of_range (s_caller, num);
-      res = SCM_BIGUP (res) + SCM_BDIGITS (num)[l];
-    }
-    return res;
-  } else if (SCM_REALP (num)) {
-    double u = SCM_REAL_VALUE (num);
-    unsigned long int res = u;
-    if ((double) res == u) {
-      return res;
-    } else {
-      scm_out_of_range (s_caller, num);
-    }
-  } else {
-    scm_wrong_type_arg (s_caller, pos, num);
-  }
+  CHECK (short, 0);
+  CHECK (ushort, 0U);
+  CHECK (int, 0);
+  CHECK (uint, 0U);
+  CHECK (long, 0L);
+  CHECK (ulong, 0UL);
+  CHECK (size, 0);
+  CHECK (ptrdiff, 0);
+
+  CHECK (short, -1);
+  CHECK (int, -1);
+  CHECK (long, -1L);
+  CHECK (ptrdiff, -1);
+
+  CHECK (short, SHRT_MAX);
+  CHECK (short, SHRT_MIN);
+  CHECK (ushort, USHRT_MAX);
+  CHECK (int, INT_MAX);
+  CHECK (int, INT_MIN);
+  CHECK (uint, UINT_MAX);
+  CHECK (long, LONG_MAX);
+  CHECK (long, LONG_MIN);
+  CHECK (ulong, ULONG_MAX);
+  CHECK (size, SIZE_MAX);
+  CHECK (ptrdiff, PTRDIFF_MAX);
+  CHECK (ptrdiff, PTRDIFF_MIN);
+
+#ifdef HAVE_LONG_LONGS
+  CHECK (long_long, 0LL);
+  CHECK (ulong_long, 0ULL);
+
+  CHECK (long_long, -1LL);
+
+  CHECK (long_long, LLONG_MAX);
+  CHECK (long_long, LLONG_MIN);
+  CHECK (ulong_long, ULLONG_MAX);
+#endif
 }
 
+#endif
 
 void
 scm_init_numbers ()
 {
-  abs_most_negative_fixnum = scm_long2big (- SCM_MOST_NEGATIVE_FIXNUM);
+  abs_most_negative_fixnum = scm_i_long2big (- SCM_MOST_NEGATIVE_FIXNUM);
   scm_permanent_object (abs_most_negative_fixnum);
 
   /* It may be possible to tune the performance of some algorithms by using
@@ -4571,10 +4396,103 @@ scm_init_numbers ()
     scm_dblprec = scm_dblprec - 1;
   }
 #endif /* DBL_DIG */
+
+#ifdef GUILE_DEBUG
+  check_sanity ();
+#endif
+  
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/numbers.x"
 #endif
 }
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+SCM
+scm_mkbig (size_t len, int sign)
+{
+  scm_c_issue_deprecation_warning ("`scm_mkbig' is deprecated. "
+                                   "Use `scm_i_mkbig' instead.");
+  return scm_i_mkbig (len, sign);
+}
+
+SCM
+scm_big2inum (SCM b, size_t l)
+{
+  scm_c_issue_deprecation_warning ("`scm_big2inum' is deprecated. "
+                                   "Use `scm_i_big2num' instead.");
+  return scm_i_big2inum (b, l);
+}
+
+SCM
+scm_adjbig (SCM b, size_t nlen)
+{
+  scm_c_issue_deprecation_warning ("`scm_adjbig' is deprecated. "
+                                   "Use `scm_i_adjbig' instead.");
+  return scm_i_adjbig (b, nlen);
+}
+
+SCM
+scm_normbig (SCM b)
+{
+  scm_c_issue_deprecation_warning ("`scm_normbig' is deprecated. "
+                                   "Use `scm_i_normbig' instead.");
+  return scm_i_normbig (b);
+}
+
+SCM
+scm_copybig (SCM b, int sign)
+{
+  scm_c_issue_deprecation_warning ("`scm_copybig' is deprecated. "
+                                   "Use `scm_i_copybig' instead.");
+  return scm_i_copybig (b, sign);
+}
+
+SCM
+scm_2ulong2big (unsigned long *np)
+{
+  unsigned long n;
+  size_t i;
+  SCM_BIGDIG *digits;
+  SCM ans;
+
+  ans = scm_i_mkbig (2 * SCM_DIGSPERLONG, 0);
+  digits = SCM_BDIGITS (ans);
+
+  n = np[0];
+  for (i = 0; i < SCM_DIGSPERLONG; ++i)
+    {
+      digits[i] = SCM_BIGLO (n);
+      n = SCM_BIGDN ((unsigned long) n);
+    }
+  n = np[1];
+  for (i = 0; i < SCM_DIGSPERLONG; ++i)
+    {
+      digits[i + SCM_DIGSPERLONG] = SCM_BIGLO (n);
+      n = SCM_BIGDN ((unsigned long) n);
+    }
+  return ans;
+}
+
+SCM
+scm_dbl2big (double d)
+{
+  scm_c_issue_deprecation_warning ("`scm_dbl2big' is deprecated. "
+				   "Use `scm_dbl2num' instead,"
+                                   "or `scm_i_dbl2big'.");
+  return scm_i_dbl2big (d);
+}
+
+double
+scm_big2dbl (SCM b)
+{
+  scm_c_issue_deprecation_warning ("`scm_big2dbl' is deprecated. "
+                                   "Use `scm_num2dbl' instead,"
+                                   "or `scm_i_big2dbl'.");
+  return scm_i_big2dbl (b);
+}
+
+#endif
 
 /*
   Local Variables:

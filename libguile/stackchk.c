@@ -72,7 +72,7 @@ scm_report_stack_overflow ()
 
 #endif
 
-long 
+long
 scm_stack_size (SCM_STACKITEM *start)
 {
   SCM_STACKITEM stack;

@@ -90,7 +90,7 @@ SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
 #define FUNC_NAME s_scm_redirect_port
 {
   int ans, oldfd, newfd;
-  struct scm_fport *fp;
+  scm_fport_t *fp;
 
   old = SCM_COERCE_OUTPORT (old);
   new = SCM_COERCE_OUTPORT (new);
@@ -102,9 +102,9 @@ SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
   newfd = fp->fdes;
   if (oldfd != newfd)
     {
-      scm_port *pt = SCM_PTAB_ENTRY (new);
-      scm_port *old_pt = SCM_PTAB_ENTRY (old);
-      scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (new)];
+      scm_port_t *pt = SCM_PTAB_ENTRY (new);
+      scm_port_t *old_pt = SCM_PTAB_ENTRY (old);
+      scm_ptob_descriptor_t *ptob = &scm_ptobs[SCM_PTOBNUM (new)];
 
       /* must flush to old fdes.  */
       if (pt->rw_active == SCM_PORT_WRITE)
@@ -203,7 +203,11 @@ SCM_DEFINE (scm_fileno, "fileno", 1, 0, 0,
 /* GJB:FIXME:: why does this not throw
    an error if the arg is not a port?
    This proc as is would be better names isattyport?
-   if it is not going to assume that the arg is a port */
+   if it is not going to assume that the arg is a port
+
+   [cmm] I don't see any problem with the above.  why should a type
+   predicate assume _anything_ about its argument?
+*/
 SCM_DEFINE (scm_isatty_p, "isatty?", 1, 0, 0, 
             (SCM port),
 	    "Return @code{#t} if @var{port} is using a serial non--file\n"
@@ -257,7 +261,7 @@ SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
 	    "required value or @code{#t} if it was moved.")
 #define FUNC_NAME s_scm_primitive_move_to_fdes
 {
-  struct scm_fport *stream;
+  scm_fport_t *stream;
   int old_fd;
   int new_fd;
   int rv;
@@ -293,14 +297,14 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
 {
   SCM result = SCM_EOL;
   int int_fd;
-  int i;
+  scm_bits_t i;
   
   SCM_VALIDATE_INUM_COPY (1,fd,int_fd);
 
   for (i = 0; i < scm_port_table_size; i++)
     {
       if (SCM_OPFPORTP (scm_port_table[i]->port)
-	  && ((struct scm_fport *) scm_port_table[i]->stream)->fdes == int_fd)
+	  && ((scm_fport_t *) scm_port_table[i]->stream)->fdes == int_fd)
 	result = scm_cons (scm_port_table[i]->port, result);
     }
   return result;
