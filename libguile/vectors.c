@@ -293,7 +293,7 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
       velts[j] = SCM_UNPACK (fill);
 
     SCM_SETCHARS (v, velts);
-    SCM_SETLENGTH (v, i, scm_tc7_vector);
+    SCM_SET_VECTOR_LENGTH (v, i, scm_tc7_vector);
   }
   SCM_ALLOW_INTS;
 

@@ -63,10 +63,11 @@ SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
 	    "@var{fill}. The default value for @var{fill} is the empty list.")
 #define FUNC_NAME s_scm_make_weak_vector
 {
+  /* Dirk:FIXME:: We should probably rather use a double cell for weak vectors. */
   SCM v;
   v = scm_make_vector (scm_sum (k, SCM_MAKINUM (2)), fill);
   SCM_DEFER_INTS;
-  SCM_SETLENGTH(v, SCM_INUM (k), scm_tc7_wvect);
+  SCM_SET_VECTOR_LENGTH (v, SCM_INUM (k), scm_tc7_wvect);
   SCM_SETVELTS(v, SCM_VELTS(v) + 2);
   SCM_VELTS(v)[-2] = SCM_EOL;
   SCM_UNPACK (SCM_VELTS (v)[-1]) = 0;

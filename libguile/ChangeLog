@@ -1,5 +1,12 @@
 2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* vectors.c (scm_make_vector), weaks.c (scm_make_weak_vector):
+	Use SCM_SET_VECTOR_LENGTH instead of SCM_SETLENGTH.
+
+	* vectors.h (SCM_SET_VECTOR_LENGTH):  Added.
+
+2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* dynl.c (scm_make_argv_from_stringlist), filesys.c (scm_dirname,
 	scm_basename), gh_data.c (gh_scm2newstr, gh_get_substr), hash.c
 	(scm_hasher), load.c (scm_parse_path, scm_search_path,
