@@ -84,7 +84,8 @@ extern scm_option_t scm_debug_opts[];
 #define SCM_BACKTRACE_P		scm_debug_opts[10].val
 #define SCM_DEVAL_P		scm_debug_opts[11].val
 #define SCM_STACK_LIMIT		scm_debug_opts[12].val
-#define SCM_N_DEBUG_OPTIONS 13
+#define SCM_SHOW_FILE_NAME	scm_debug_opts[13].val
+#define SCM_N_DEBUG_OPTIONS 14
 
 extern SCM (*scm_ceval_ptr) (SCM exp, SCM env);
 
@@ -186,9 +187,6 @@ extern scm_bits_t scm_tc16_memoized;
 
 
 
-extern SCM * scm_lookup_cstr (char *str, int len, SCM env);
-extern SCM * scm_lookup_soft (SCM var, SCM genv);
-extern SCM scm_evstr (char *str);
 extern SCM scm_eval_string (SCM str);
 extern int scm_ready_p (void);
 extern void debug_print (SCM obj);
