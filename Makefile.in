@@ -19,8 +19,8 @@ VERSION = @GUILE_VERSION@
 SHELL = /bin/sh
 
 srcdir=@srcdir@
-subdirs=@existingdirs@
-dist_dirs=${subdirs} doc
+subdirs=@build_subdirs@
+dist_dirs=@existingdirs@ doc
 
 DISTFILES =	COPYING \
 		ChangeLog \
