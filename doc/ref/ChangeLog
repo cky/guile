@@ -1,3 +1,8 @@
+2002-01-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* intro.texi (Linking Programs With Guile): Fix typo (superfluous
+	`do').  Thanks to Fabrice Bauzac.
+
 2002-01-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* intro.texi: Spell check.  Thanks to Fabrice Bauzac.
