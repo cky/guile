@@ -300,7 +300,7 @@ SCM_API SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs);
 SCM_API SCM scm_init_goops_builtins (void);
 SCM_API void scm_init_goops (void); 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
+#if (SCM_ENABLE_DEPRECATED == 1)
 
 #define SCM_INST_TYPE(x)       SCM_OBJ_CLASS_FLAGS (x)
 #define SCM_SIMPLEMETHODP(x) \
