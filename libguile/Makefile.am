@@ -144,8 +144,9 @@ modinclude_DATA = scmconfig.h
 bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf-docs \
     guile-snarf-docs-texi guile-func-name-check
 
-EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads cpp_signal.c	\
-    cpp_errno.c cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk \
+EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
+    ChangeLog-1996-1999 ChangeLog-2000 cpp_signal.c			\
+    cpp_errno.c cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk	\
     c-tokenize.lex
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
