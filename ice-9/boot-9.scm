@@ -2010,32 +2010,12 @@
 	 (let ((didit #f))
 	   (dynamic-wind
 	    (lambda () (autoload-in-progress! dir-hint name))
-	    (lambda () 
-	      (let loop ((dirs %load-path))
-		(and (not (null? dirs))
-		     (or
-		      (let ((d (car dirs))
-			    (trys (list
-				   dir-hint
-				   (sfx dir-hint)
-				   (in-vicinity dir-hint name)
-				   (in-vicinity dir-hint (sfx name)))))
-			(and (or-map (lambda (f)
-				       (let ((full (in-vicinity d f)))
-					 full
-					 (and (file-exists? full)
-					      (not (file-is-directory? full))
-					      (begin
-						(save-module-excursion
-						 (lambda ()
-						   (load (string-append
-							  d "/" f))))
-						#t))))
-				     trys)
-			     (begin
-			       (set! didit #t)
-			       #t)))
-		      (loop (cdr dirs))))))
+	    (lambda ()
+	      (let ((full (%search-load-path (in-vicinity dir-hint name))))
+		(if full
+		    (begin
+		      (save-module-excursion (lambda () (primitive-load full)))
+		      (set! didit #t)))))
 	    (lambda () (set-autoloaded! dir-hint name didit)))
 	   didit))))
 
