@@ -88,6 +88,7 @@
 #include "libguile/mallocs.h"
 #include "libguile/markers.h"
 #include "libguile/mbstrings.h"
+#include "libguile/net_db.h"
 #include "libguile/numbers.h"
 #include "libguile/objprop.h"
 #include "libguile/options.h"
