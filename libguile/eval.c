@@ -1341,7 +1341,7 @@ unmemocopy (SCM x, SCM env)
 	    : f;
 	/* build transformed binding list */
 	z = SCM_EOL;
-	do
+	while (SCM_NIMP (v))
 	  {
 	    z = scm_acons (SCM_CAR (v),
 			   scm_cons (SCM_CAR (e),
@@ -1353,7 +1353,6 @@ unmemocopy (SCM x, SCM env)
 	    e = SCM_CDR (e);
 	    s = SCM_CDR (s);
 	  }
-	while (SCM_NIMP (v));
 	z = scm_cons (z, SCM_UNSPECIFIED);
 	SCM_SETCDR (ls, z);
 	if (SCM_EQ_P (SCM_CAR (ls), scm_sym_do))
