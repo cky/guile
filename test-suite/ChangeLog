@@ -1,3 +1,10 @@
+2003-08-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/numbers.test: Eliminated misuses of expect-fail.  It
+	should only be used in cases, where guile has a known bug.  It
+	should not be used in cases where an expression is expected to
+	return #f as its correct result.
+
 2003-08-09  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srcprop.test: New file.

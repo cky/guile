@@ -77,13 +77,13 @@
   (pass-if (documented? odd?))  
   (pass-if (odd? 1))
   (pass-if (odd? -1))
-  (expect-fail (odd? 0))
-  (expect-fail (odd? 2))
-  (expect-fail (odd? -2))
+  (pass-if (not (odd? 0)))
+  (pass-if (not (odd? 2)))
+  (pass-if (not (odd? -2)))
   (pass-if (odd? (+ (* 2 fixnum-max) 1)))
-  (expect-fail (odd? (* 2 fixnum-max)))
+  (pass-if (not (odd? (* 2 fixnum-max))))
   (pass-if (odd? (- (* 2 fixnum-min) 1)))
-  (expect-fail (odd? (* 2 fixnum-min))))
+  (pass-if (not (odd? (* 2 fixnum-min)))))
 
 ;;;
 ;;; even?
@@ -94,11 +94,11 @@
   (pass-if (even? 2))
   (pass-if (even? -2))
   (pass-if (even? 0))
-  (expect-fail (even? 1))
-  (expect-fail (even? -1))
-  (expect-fail (even? (+ (* 2 fixnum-max) 1)))
+  (pass-if (not (even? 1)))
+  (pass-if (not (even? -1)))
+  (pass-if (not (even? (+ (* 2 fixnum-max) 1))))
   (pass-if (even? (* 2 fixnum-max)))
-  (expect-fail (even? (- (* 2 fixnum-min) 1)))
+  (pass-if (not (even? (- (* 2 fixnum-min) 1))))
   (pass-if (even? (* 2 fixnum-min))))
 
 ;;;
@@ -111,10 +111,10 @@
   ;; FIXME: what are the expected behaviors?
   ;; (pass-if (inf? (/ 1.0 0.0))
   ;; (pass-if (inf? (/ 1 0.0))
-  (expect-fail (inf? 0))
-  (expect-fail (inf? 42.0))
-  (expect-fail (inf? (+ fixnum-max 1)))
-  (expect-fail (inf? (- fixnum-min 1))))
+  (pass-if (not (inf? 0)))
+  (pass-if (not (inf? 42.0)))
+  (pass-if (not (inf? (+ fixnum-max 1))))
+  (pass-if (not (inf? (- fixnum-min 1)))))
 
 ;;;
 ;;; nan? and nan
@@ -124,10 +124,10 @@
   (pass-if (documented? nan?))
   (pass-if (nan? (nan)))
   ;; FIXME: other ways we should be able to generate NaN?
-  (expect-fail (nan? 0))
-  (expect-fail (nan? 42.0))
-  (expect-fail (nan? (+ fixnum-max 1)))
-  (expect-fail (nan? (- fixnum-min 1))))
+  (pass-if (not (nan? 0)))
+  (pass-if (not (nan? 42.0)))
+  (pass-if (not (nan? (+ fixnum-max 1))))
+  (pass-if (not (nan? (- fixnum-min 1)))))
 
 ;;;
 ;;; abs
@@ -1031,13 +1031,13 @@
   (pass-if (number? (+ 1 fixnum-max)))
   (pass-if (number? (- 1 fixnum-min)))
   (pass-if (number? 3+4i))
-  (expect-fail (number? #\a))
-  (expect-fail (number? "a"))
-  (expect-fail (number? (make-vector 0)))
-  (expect-fail (number? (cons 1 2)))
-  (expect-fail (number? #t))
-  (expect-fail (number? (lambda () #t)))
-  (expect-fail (number? (current-input-port))))
+  (pass-if (not (number? #\a)))
+  (pass-if (not (number? "a")))
+  (pass-if (not (number? (make-vector 0))))
+  (pass-if (not (number? (cons 1 2))))
+  (pass-if (not (number? #t)))
+  (pass-if (not (number? (lambda () #t))))
+  (pass-if (not (number? (current-input-port)))))
 
 ;;;
 ;;; complex?
@@ -1052,13 +1052,13 @@
   (pass-if (complex? (- 1 fixnum-min)))
   (pass-if (complex? 1.3))
   (pass-if (complex? 3+4i))
-  (expect-fail (complex? #\a))
-  (expect-fail (complex? "a"))
-  (expect-fail (complex? (make-vector 0)))
-  (expect-fail (complex? (cons 1 2)))
-  (expect-fail (complex? #t))
-  (expect-fail (complex? (lambda () #t)))
-  (expect-fail (complex? (current-input-port))))
+  (pass-if (not (complex? #\a)))
+  (pass-if (not (complex? "a")))
+  (pass-if (not (complex? (make-vector 0))))
+  (pass-if (not (complex? (cons 1 2))))
+  (pass-if (not (complex? #t)))
+  (pass-if (not (complex? (lambda () #t))))
+  (pass-if (not (complex? (current-input-port)))))
 
 ;;;
 ;;; real?
@@ -1072,14 +1072,14 @@
   (pass-if (real? (+ 1 fixnum-max)))
   (pass-if (real? (- 1 fixnum-min)))
   (pass-if (real? 1.3))
-  (expect-fail (real? 3+4i))
-  (expect-fail (real? #\a))
-  (expect-fail (real? "a"))
-  (expect-fail (real? (make-vector 0)))
-  (expect-fail (real? (cons 1 2)))
-  (expect-fail (real? #t))
-  (expect-fail (real? (lambda () #t)))
-  (expect-fail (real? (current-input-port))))
+  (pass-if (not (real? 3+4i)))
+  (pass-if (not (real? #\a)))
+  (pass-if (not (real? "a")))
+  (pass-if (not (real? (make-vector 0))))
+  (pass-if (not (real? (cons 1 2))))
+  (pass-if (not (real? #t)))
+  (pass-if (not (real? (lambda () #t))))
+  (pass-if (not (real? (current-input-port)))))
 
 ;;;
 ;;; rational? (same as real? right now)
@@ -1093,14 +1093,14 @@
   (pass-if (rational? (+ 1 fixnum-max)))
   (pass-if (rational? (- 1 fixnum-min)))
   (pass-if (rational? 1.3))
-  (expect-fail (rational? 3+4i))
-  (expect-fail (rational? #\a))
-  (expect-fail (rational? "a"))
-  (expect-fail (rational? (make-vector 0)))
-  (expect-fail (rational? (cons 1 2)))
-  (expect-fail (rational? #t))
-  (expect-fail (rational? (lambda () #t)))
-  (expect-fail (rational? (current-input-port))))
+  (pass-if (not (rational? 3+4i)))
+  (pass-if (not (rational? #\a)))
+  (pass-if (not (rational? "a")))
+  (pass-if (not (rational? (make-vector 0))))
+  (pass-if (not (rational? (cons 1 2))))
+  (pass-if (not (rational? #t)))
+  (pass-if (not (rational? (lambda () #t))))
+  (pass-if (not (rational? (current-input-port)))))
 
 ;;;
 ;;; integer?
@@ -1115,15 +1115,15 @@
   (pass-if (integer? (- 1 fixnum-min)))
   (pass-if (and (= 3+0i (round 3+0i)) (integer? 3+0i)))
   (pass-if (and (= 1.0 (round 1.0)) (integer? 1.0)))
-  (expect-fail (integer? 1.3))
-  (expect-fail (integer? 3+4i))
-  (expect-fail (integer? #\a))
-  (expect-fail (integer? "a"))
-  (expect-fail (integer? (make-vector 0)))
-  (expect-fail (integer? (cons 1 2)))
-  (expect-fail (integer? #t))
-  (expect-fail (integer? (lambda () #t)))
-  (expect-fail (integer? (current-input-port))))
+  (pass-if (not (integer? 1.3)))
+  (pass-if (not (integer? 3+4i)))
+  (pass-if (not (integer? #\a)))
+  (pass-if (not (integer? "a")))
+  (pass-if (not (integer? (make-vector 0))))
+  (pass-if (not (integer? (cons 1 2))))
+  (pass-if (not (integer? #t)))
+  (pass-if (not (integer? (lambda () #t))))
+  (pass-if (not (integer? (current-input-port)))))
 
 ;;;
 ;;; inexact?
@@ -1131,20 +1131,20 @@
 
 (with-test-prefix "inexact?"
   (pass-if (documented? inexact?))
-  (expect-fail (inexact? 0))
-  (expect-fail (inexact? 7))
-  (expect-fail (inexact? -7))
-  (expect-fail (inexact? (+ 1 fixnum-max)))
-  (expect-fail (inexact? (- 1 fixnum-min)))
+  (pass-if (not (inexact? 0)))
+  (pass-if (not (inexact? 7)))
+  (pass-if (not (inexact? -7)))
+  (pass-if (not (inexact? (+ 1 fixnum-max))))
+  (pass-if (not (inexact? (- 1 fixnum-min))))
   (pass-if (inexact? 1.3))
   (pass-if (inexact? 3.1+4.2i))
-  (expect-fail (inexact? #\a))
-  (expect-fail (inexact? "a"))
-  (expect-fail (inexact? (make-vector 0)))
-  (expect-fail (inexact? (cons 1 2)))
-  (expect-fail (inexact? #t))
-  (expect-fail (inexact? (lambda () #t)))
-  (expect-fail (inexact? (current-input-port))))
+  (pass-if (not (inexact? #\a)))
+  (pass-if (not (inexact? "a")))
+  (pass-if (not (inexact? (make-vector 0))))
+  (pass-if (not (inexact? (cons 1 2))))
+  (pass-if (not (inexact? #t)))
+  (pass-if (not (inexact? (lambda () #t))))
+  (pass-if (not (inexact? (current-input-port)))))
 
 ;;;
 ;;; =
@@ -1157,12 +1157,12 @@
   (pass-if (= -7 -7))
   (pass-if (= (+ 1 fixnum-max) (+ 1 fixnum-max)))
   (pass-if (= (- 1 fixnum-min) (- 1 fixnum-min)))
-  (expect-fail (= 0 1))
-  (expect-fail (= fixnum-max (+ 1 fixnum-max)))
-  (expect-fail (= (+ 1 fixnum-max) fixnum-max))
-  (expect-fail (= fixnum-min (- fixnum-min 1)))
-  (expect-fail (= (- fixnum-min 1) fixnum-min))
-  (expect-fail (= (+ fixnum-max 1) (- fixnum-min 1)))
+  (pass-if (not (= 0 1)))
+  (pass-if (not (= fixnum-max (+ 1 fixnum-max))))
+  (pass-if (not (= (+ 1 fixnum-max) fixnum-max)))
+  (pass-if (not (= fixnum-min (- fixnum-min 1))))
+  (pass-if (not (= (- fixnum-min 1) fixnum-min)))
+  (pass-if (not (= (+ fixnum-max 1) (- fixnum-min 1))))
 
   (pass-if (not (= (ash 1 256) +inf.0)))
   (pass-if (not (= +inf.0 (ash 1 256))))
@@ -1606,12 +1606,12 @@
 (with-test-prefix "zero?"
   (expect-fail (documented? zero?))
   (pass-if (zero? 0))
-  (expect-fail (zero? 7))
-  (expect-fail (zero? -7))
-  (expect-fail (zero? (+ 1 fixnum-max)))
-  (expect-fail (zero? (- 1 fixnum-min)))
-  (expect-fail (zero? 1.3))
-  (expect-fail (zero? 3.1+4.2i)))
+  (pass-if (not (zero? 7)))
+  (pass-if (not (zero? -7)))
+  (pass-if (not (zero? (+ 1 fixnum-max))))
+  (pass-if (not (zero? (- 1 fixnum-min))))
+  (pass-if (not (zero? 1.3)))
+  (pass-if (not (zero? 3.1+4.2i))))
 
 ;;;
 ;;; positive?
@@ -1622,10 +1622,10 @@
   (pass-if (positive? 1))
   (pass-if (positive? (+ fixnum-max 1)))
   (pass-if (positive? 1.3))
-  (expect-fail (positive? 0))
-  (expect-fail (positive? -1))
-  (expect-fail (positive? (- fixnum-min 1)))
-  (expect-fail (positive? -1.3)))
+  (pass-if (not (positive? 0)))
+  (pass-if (not (positive? -1)))
+  (pass-if (not (positive? (- fixnum-min 1))))
+  (pass-if (not (positive? -1.3))))
 
 ;;;
 ;;; negative?
@@ -1633,10 +1633,10 @@
 
 (with-test-prefix "negative?"
   (expect-fail (documented? negative?))
-  (expect-fail (negative? 1))
-  (expect-fail (negative? (+ fixnum-max 1)))
-  (expect-fail (negative? 1.3))
-  (expect-fail (negative? 0))
+  (pass-if (not (negative? 1)))
+  (pass-if (not (negative? (+ fixnum-max 1))))
+  (pass-if (not (negative? 1.3)))
+  (pass-if (not (negative? 0)))
   (pass-if (negative? -1))
   (pass-if (negative? (- fixnum-min 1)))
   (pass-if (negative? -1.3)))
