@@ -693,7 +693,11 @@ SCM_DEFINE (scm_close_output_port, "close-output-port", 1, 0, 0,
 SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 	    (SCM proc),
 	    "Apply @var{proc} to each port in the Guile port table\n"
-	    "in turn.  The return value is unspecified.")
+	    "in turn.  The return value is unspecified.  More specifically,\n"
+	    "@var{proc} is applied exactly once to every port that exists\n"
+	    "in the system at the time @var{port-for-each} is invoked.\n"
+	    "Changes to the port table while @var{port-for-each} is running\n"
+	    "have no effect as far as @var{port-for-each} is concerned.\n") 
 #define FUNC_NAME s_scm_port_for_each
 {
   int i;
