@@ -62,6 +62,7 @@
 #include "eval.h"
 #include "feature.h"
 #include "filesys.h"
+#include "fluids.h"
 #include "fports.h"
 #include "gc.h"
 #include "gdbint.h"
@@ -143,7 +144,9 @@ scm_start_stack (base)
   scm_system_transformer = SCM_BOOL_F;
 
   scm_the_last_stack_var = SCM_BOOL_F;
-  
+
+  scm_root->fluids = scm_make_initial_fluids ();
+
   /* Create an object to hold the root continuation.
    */
   SCM_NEWCELL (scm_rootcont);
@@ -397,6 +400,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_dynwind ();
       scm_init_eq ();
       scm_init_error ();
+      scm_init_fluids ();
       scm_init_fports ();
       scm_init_filesys ();
       scm_init_gc ();
