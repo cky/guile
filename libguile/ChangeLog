@@ -1,3 +1,8 @@
+2000-01-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* fports.c, list.c: Converted docstrings to ANSI C format and
+	escaped " occurring inside string literals.
+
 Tue Jan 18 13:21:08 2000  Mikael Djurfeldt  <mdj@r11n07-s.pdc.kth.se>
 
 	* posix.c (scm_mknod): Escape " occuring inside docstring.
