@@ -187,8 +187,8 @@ static SCM module_export_x_var;
 static SCM
 scm_export (SCM module, SCM namelist)
 {
-  scm_call_2 (SCM_VARIABLE_REF (module_export_x_var),
-	      module, namelist);
+  return scm_call_2 (SCM_VARIABLE_REF (module_export_x_var),
+		     module, namelist);
 }
 
 
