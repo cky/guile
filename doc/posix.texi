@@ -1837,9 +1837,9 @@ required.  The arguments and return values are thus in host order.
 @deffn primitive socket family style proto
 Return a new socket port of the type specified by @var{family},
 @var{style} and @var{protocol}.  All three parameters are
-integers.  Typical values for @var{family} are the values of
-@code{AF_UNIX} and @code{AF_INET}.  Typical values for
-@var{style} are the values of @code{SOCK_STREAM},
+integers.  Supported values for @var{family} are
+@code{AF_UNIX}, @code{AF_INET} and @code{AF_INET6}.
+Typical values for @var{style} are @code{SOCK_STREAM},
 @code{SOCK_DGRAM} and @code{SOCK_RAW}.
 @var{protocol} can be obtained from a protocol name using
 @code{getprotobyname}.  A value of zero specifies the default
@@ -1902,18 +1902,25 @@ The return value is unspecified.
 @end deffn
 
 @deffn primitive connect sock fam address . args
-Initiates a connection from @var{socket} to the address
-specified by @var{address} and possibly @var{arg @dots{}}.  The format
-required for @var{address}
-and @var{arg} @dots{} depends on the family of the socket.
+Initiates a connection from a socket using a specified address
+family to the address
+specified by @var{address} and possibly @var{args}.
+The format required for @var{address}
+and @var{args} depends on the family of the socket.
 
 For a socket of family @code{AF_UNIX},
-only @code{address} is specified and must be a string with the
+only @var{address} is specified and must be a string with the
 filename where the socket is to be created.
 
 For a socket of family @code{AF_INET},
-@code{address} must be an integer Internet host address and @var{arg} @dots{}
-must be a single integer port number.
+@var{address} must be an integer IPv4 host address and
+@var{args} must be a single integer port number.
+
+For a socket of family @code{AF_INET6},
+@var{address} must be an integer IPv6 host address and
+@var{args} may be up to three integers:
+port [flowinfo] [scope_id],
+where flowinfo and scope_id default to zero.
 
 The return value is unspecified.
 @end deffn

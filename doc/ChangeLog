@@ -1,5 +1,8 @@
 2001-04-22  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* posix.texi (Network Sockets and Communication): Automatic
+	docstring updates for `socket' and `connect'.  (For IPV6 support.)
+
 	* scheme-io.texi: Remove old docstring comments referring to
 	r4rs.scm.
 

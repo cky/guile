@@ -442,13 +442,13 @@ Return the source of the procedure @var{proc}.
 @end deffn
 
 procedure-environment
-@c snarfed from debug.c:456
+@c snarfed from debug.c:455
 @deffn primitive procedure-environment proc
 Return the environment of the procedure @var{proc}.
 @end deffn
 
 local-eval
-@c snarfed from debug.c:488
+@c snarfed from debug.c:487
 @deffn primitive local-eval exp [env]
 Evaluate @var{exp} in its environment.  If @var{env} is supplied,
 it is the environment in which to evaluate @var{exp}.  Otherwise,
@@ -457,7 +457,7 @@ is implicit).
 @end deffn
 
 debug-object?
-@c snarfed from debug.c:575
+@c snarfed from debug.c:574
 @deffn primitive debug-object? obj
 Return @code{#t} if @var{obj} is a debug object.
 @end deffn
@@ -1475,7 +1475,7 @@ If @var{suffix} is privided, and is equal to the end of
 @end deffn
 
 make-fluid
-@c snarfed from fluids.c:128
+@c snarfed from fluids.c:124
 @deffn primitive make-fluid
 Return a newly created fluid.
 Fluids are objects of a certain type (a smob) that can hold one SCM
@@ -1487,14 +1487,14 @@ in its own dynamic root, you can use fluids for thread local storage.
 @end deffn
 
 fluid?
-@c snarfed from fluids.c:142
+@c snarfed from fluids.c:137
 @deffn primitive fluid? obj
 Return @code{#t} iff @var{obj} is a fluid; otherwise, return
 @code{#f}.
 @end deffn
 
 fluid-ref
-@c snarfed from fluids.c:153
+@c snarfed from fluids.c:148
 @deffn primitive fluid-ref fluid
 Return the value associated with @var{fluid} in the current
 dynamic root.  If @var{fluid} has not been set, then return
@@ -1502,13 +1502,13 @@ dynamic root.  If @var{fluid} has not been set, then return
 @end deffn
 
 fluid-set!
-@c snarfed from fluids.c:170
+@c snarfed from fluids.c:165
 @deffn primitive fluid-set! fluid value
 Set the value associated with @var{fluid} in the current dynamic root.
 @end deffn
 
 with-fluids*
-@c snarfed from fluids.c:229
+@c snarfed from fluids.c:224
 @deffn primitive with-fluids* fluids values thunk
 Set @var{fluids} to @var{values} temporary, and call @var{thunk}.
 @var{fluids} must be a list of fluids and @var{values} must be the same
@@ -1601,7 +1601,7 @@ no longer accessible.
 @end deffn
 
 unhash-name
-@c snarfed from gc.c:2303
+@c snarfed from gc.c:2306
 @deffn primitive unhash-name name
 Flushes the glocs for @var{name}, or all glocs if @var{name}
 is @code{#t}.
@@ -2790,7 +2790,7 @@ signalled.
 @end deffn
 
 procedure->syntax
-@c snarfed from macros.c:61
+@c snarfed from macros.c:106
 @deffn primitive procedure->syntax code
 Return a @dfn{macro} which, when a symbol defined to this value
 appears as the first symbol in an expression, returns the
@@ -2799,7 +2799,7 @@ environment.
 @end deffn
 
 procedure->macro
-@c snarfed from macros.c:84
+@c snarfed from macros.c:129
 @deffn primitive procedure->macro code
 Return a @dfn{macro} which, when a symbol defined to this value
 appears as the first symbol in an expression, evaluates the
@@ -2817,7 +2817,7 @@ passed to @var{code}.  For example:
 @end deffn
 
 procedure->memoizing-macro
-@c snarfed from macros.c:107
+@c snarfed from macros.c:152
 @deffn primitive procedure->memoizing-macro code
 Return a @dfn{macro} which, when a symbol defined to this value
 appears as the first symbol in an expression, evaluates the
@@ -2835,14 +2835,14 @@ passed to @var{proc}.  For example:
 @end deffn
 
 macro?
-@c snarfed from macros.c:119
+@c snarfed from macros.c:164
 @deffn primitive macro? obj
 Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
 syntax transformer.
 @end deffn
 
 macro-type
-@c snarfed from macros.c:137
+@c snarfed from macros.c:182
 @deffn primitive macro-type m
 Return one of the symbols @code{syntax}, @code{macro} or
 @code{macro!}, depending on whether @var{m} is a syntax
@@ -2852,13 +2852,13 @@ returned.
 @end deffn
 
 macro-name
-@c snarfed from macros.c:155
+@c snarfed from macros.c:200
 @deffn primitive macro-name m
 Return the name of the macro @var{m}.
 @end deffn
 
 macro-transformer
-@c snarfed from macros.c:166
+@c snarfed from macros.c:211
 @deffn primitive macro-transformer m
 Return the transformer of the macro @var{m}.
 @end deffn
@@ -4350,7 +4350,7 @@ and @code{print-options}.
 @end deffn
 
 simple-format
-@c snarfed from print.c:976
+@c snarfed from print.c:909
 @deffn primitive simple-format destination message . args
 Write @var{message} to @var{destination}, defaulting to
 the current output port.
@@ -4366,26 +4366,26 @@ containing the formatted text. Does not add a trailing newline.
 @end deffn
 
 newline
-@c snarfed from print.c:1041
+@c snarfed from print.c:974
 @deffn primitive newline [port]
 Send a newline to @var{port}.
 @end deffn
 
 write-char
-@c snarfed from print.c:1056
+@c snarfed from print.c:989
 @deffn primitive write-char chr [port]
 Send character @var{chr} to @var{port}.
 @end deffn
 
 port-with-print-state
-@c snarfed from print.c:1110
+@c snarfed from print.c:1043
 @deffn primitive port-with-print-state port pstate
 Create a new port which behaves like @var{port}, but with an
 included print state @var{pstate}.
 @end deffn
 
 get-print-state
-@c snarfed from print.c:1125
+@c snarfed from print.c:1058
 @deffn primitive get-print-state port
 Return the print state of the port @var{port}. If @var{port}
 has no associated print state, @code{#f} is returned.
@@ -4435,7 +4435,7 @@ Return @code{#t} if @var{obj} is a thunk.
 @end deffn
 
 procedure-documentation
-@c snarfed from procs.c:283
+@c snarfed from procs.c:282
 @deffn primitive procedure-documentation proc
 Return the documentation string associated with @code{proc}.  By
 convention, if a procedure contains more than one expression and the
@@ -4444,21 +4444,21 @@ documentation for that procedure.
 @end deffn
 
 procedure-with-setter?
-@c snarfed from procs.c:319
+@c snarfed from procs.c:318
 @deffn primitive procedure-with-setter? obj
 Return @code{#t} if @var{obj} is a procedure with an
 associated setter procedure.
 @end deffn
 
 make-procedure-with-setter
-@c snarfed from procs.c:329
+@c snarfed from procs.c:328
 @deffn primitive make-procedure-with-setter procedure setter
 Create a new procedure which behaves like @var{procedure}, but
 with the associated setter @var{setter}.
 @end deffn
 
 procedure
-@c snarfed from procs.c:348
+@c snarfed from procs.c:347
 @deffn primitive procedure proc
 Return the procedure of @var{proc}, which must be either a
 procedure with setter, or an operator struct.
@@ -4978,9 +4978,9 @@ a C unsigned long integer.
 @deffn primitive socket family style proto
 Return a new socket port of the type specified by @var{family},
 @var{style} and @var{protocol}.  All three parameters are
-integers.  Typical values for @var{family} are the values of
-@code{AF_UNIX} and @code{AF_INET}.  Typical values for
-@var{style} are the values of @code{SOCK_STREAM},
+integers.  Supported values for @var{family} are
+@code{AF_UNIX}, @code{AF_INET} and @code{AF_INET6}.
+Typical values for @var{style} are @code{SOCK_STREAM},
 @code{SOCK_DGRAM} and @code{SOCK_RAW}.
 @var{protocol} can be obtained from a protocol name using
 @code{getprotobyname}.  A value of zero specifies the default
@@ -5029,7 +5029,7 @@ The return value is unspecified.
 @end deffn
 
 shutdown
-@c snarfed from socket.c:385
+@c snarfed from socket.c:403
 @deffn primitive shutdown sock how
 Sockets can be closed simply by using @code{close-port}. The
 @code{shutdown} procedure allows reception or tranmission on a
@@ -5051,26 +5051,33 @@ The return value is unspecified.
 @end deffn
 
 connect
-@c snarfed from socket.c:478
+@c snarfed from socket.c:569
 @deffn primitive connect sock fam address . args
-Initiates a connection from @var{socket} to the address
-specified by @var{address} and possibly @var{arg @dots{}}.  The format
-required for @var{address}
-and @var{arg} @dots{} depends on the family of the socket.
+Initiates a connection from a socket using a specified address
+family to the address
+specified by @var{address} and possibly @var{args}.
+The format required for @var{address}
+and @var{args} depends on the family of the socket.
 
 For a socket of family @code{AF_UNIX},
-only @code{address} is specified and must be a string with the
+only @var{address} is specified and must be a string with the
 filename where the socket is to be created.
 
 For a socket of family @code{AF_INET},
-@code{address} must be an integer Internet host address and @var{arg} @dots{}
-must be a single integer port number.
+@var{address} must be an integer IPv4 host address and
+@var{args} must be a single integer port number.
+
+For a socket of family @code{AF_INET6},
+@var{address} must be an integer IPv6 host address and
+@var{args} may be up to three integers:
+port [flowinfo] [scope_id],
+where flowinfo and scope_id default to zero.
 
 The return value is unspecified.
 @end deffn
 
 bind
-@c snarfed from socket.c:532
+@c snarfed from socket.c:623
 @deffn primitive bind sock fam address . args
 Assigns an address to the socket port @var{socket}.
 Generally this only needs to be done for server sockets,
@@ -5111,7 +5118,7 @@ The return value is unspecified.
 @end deffn
 
 listen
-@c snarfed from socket.c:565
+@c snarfed from socket.c:656
 @deffn primitive listen sock backlog
 This procedure enables @var{socket} to accept connection
 requests.  @var{backlog} is an integer specifying
@@ -5123,7 +5130,7 @@ The return value is unspecified.
 @end deffn
 
 accept
-@c snarfed from socket.c:641
+@c snarfed from socket.c:793
 @deffn primitive accept sock
 Accepts a connection on a bound, listening socket @var{socket}.  If there
 are no pending connections in the queue, it waits until
@@ -5142,7 +5149,7 @@ connection and will continue to accept new requests.
 @end deffn
 
 getsockname
-@c snarfed from socket.c:672
+@c snarfed from socket.c:824
 @deffn primitive getsockname sock
 Return the address of @var{socket}, in the same form as the
 object returned by @code{accept}.  On many systems the address
@@ -5150,7 +5157,7 @@ of a socket in the @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 getpeername
-@c snarfed from socket.c:699
+@c snarfed from socket.c:851
 @deffn primitive getpeername sock
 Return the address of the socket that the socket @var{socket}
 is connected to, in the same form as the object returned by
@@ -5159,7 +5166,7 @@ is connected to, in the same form as the object returned by
 @end deffn
 
 recv!
-@c snarfed from socket.c:734
+@c snarfed from socket.c:886
 @deffn primitive recv! sock buf [flags]
 Receives data from the socket port @var{socket}.  @var{socket} must already
 be bound to the address from which data is to be received.
@@ -5179,7 +5186,7 @@ any unread buffered port data is ignored.
 @end deffn
 
 send
-@c snarfed from socket.c:763
+@c snarfed from socket.c:915
 @deffn primitive send sock message [flags]
 Transmits the string @var{message} on the socket port @var{socket}.
 @var{socket} must already be bound to a destination address.  The
@@ -5193,7 +5200,7 @@ any unflushed buffered port data is ignored.
 @end deffn
 
 recvfrom!
-@c snarfed from socket.c:805
+@c snarfed from socket.c:957
 @deffn primitive recvfrom! sock str [flags [start [end]]]
 Return data from the socket port @var{socket} and also
 information about where the data was received from.
@@ -5215,7 +5222,7 @@ descriptor: any unread buffered port data is ignored.
 @end deffn
 
 sendto
-@c snarfed from socket.c:856
+@c snarfed from socket.c:1008
 @deffn primitive sendto sock message fam address . args_and_flags
 Transmits the string @var{message} on the socket port @var{socket}.  The
 destination address is specified using the @var{family}, @var{address} and
@@ -5323,27 +5330,27 @@ list elements. This is a stable sort.
 @end deffn
 
 source-properties
-@c snarfed from srcprop.c:171
+@c snarfed from srcprop.c:172
 @deffn primitive source-properties obj
 Return the source property association list of @var{obj}.
 @end deffn
 
 set-source-properties!
-@c snarfed from srcprop.c:194
+@c snarfed from srcprop.c:195
 @deffn primitive set-source-properties! obj plist
 Install the association list @var{plist} as the source property
 list for @var{obj}.
 @end deffn
 
 source-property
-@c snarfed from srcprop.c:214
+@c snarfed from srcprop.c:215
 @deffn primitive source-property obj key
 Return the source property specified by @var{key} from
 @var{obj}'s source property list.
 @end deffn
 
 set-source-property!
-@c snarfed from srcprop.c:247
+@c snarfed from srcprop.c:248
 @deffn primitive set-source-property! obj key datum
 Set the source property of object @var{obj}, which is specified by
 @var{key} to @var{datum}.  Normally, the key will be a symbol.
@@ -5664,7 +5671,7 @@ concatenation of the given strings, @var{args}.
 make-shared-substring
 @c snarfed from strings.c:393
 @deffn primitive make-shared-substring str [start [end]]
-Return a shared substring of @var{str}.  The semantics are the
+Return a shared substring of @var{str}.  The arguments are the
 same as for the @code{substring} function: the shared substring
 returned includes all of the text from @var{str} between
 indexes @var{start} (inclusive) and @var{end} (exclusive).  If
@@ -6661,7 +6668,7 @@ Return a list consisting of all the elements, in order, of
 @end deffn
 
 list->uniform-array
-@c snarfed from unif.c:2175
+@c snarfed from unif.c:2183
 @deffn primitive list->uniform-array ndim prot lst
 @deffnx procedure list->uniform-vector prot lst
 Return a uniform array of the type indicated by prototype
@@ -6671,7 +6678,7 @@ done.
 @end deffn
 
 array-prototype
-@c snarfed from unif.c:2526
+@c snarfed from unif.c:2534
 @deffn primitive array-prototype ra
 Return an object that would produce an array of the same type
 as @var{array}, if used as the @var{prototype} for
