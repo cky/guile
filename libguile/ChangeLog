@@ -1,3 +1,27 @@
+Thu Jan  6 09:54:33 2000  Dirk Herrmann <dirk@ida.ing.tu-bs.de> --gjb applied
+
+	* scm_validate.h: Remove some redundant NIMP tests.
+
+	* alist.c: minimize scope of the tmp variables, and initialize
+ 	them when declared. The strange SCM_NIMP tests are replaced by
+ 	SCM_CONSP tests that more closely reflect the intended semantics.
+  	However, we don't get a performance penalty here, because the
+ 	SCM_CONSP test was performed by the ALISTCELL test anyway.  * The
+ 	extremely ugly use of ASRTGO macros was removed: The calls to
+ 	ASRTGO were not encapsulated by "#ifndef SCM_RECKLESS", but got a
+ 	label parameter that only exists when SCM_RECKLESS is not defined.
+  	This works, because ASRTGO itself is defined in a way that it only
+ 	makes use of the label parameter if SCM_RECKLESS is not defined
+ 	(shudder!).  Does guile make at all use of the possibility to
+ 	define SCM_RECKLESS?  * Codesize is likely to be reduced, since
+ 	instead of two calls to SCM_ASSERT performed by the ALISTCELL test
+ 	we now only get one test.
+
+	* list.c: Use SCM_NNULLP, not SCM_NIMP as appropriate.  Also use
+ 	SCM_NULLP instead of SCM_IMP.  Drop use of "register" keyword on
+ 	some variables in `list?'.  Fix `reverse' and `reverse!'
+ 	primitives to handle improper lists better.
+
 Wed Jan  5 11:24:53 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* *.[ch]: Whitespace changes -- added space after SCM_VALIDATE_*
