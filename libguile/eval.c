@@ -1240,9 +1240,8 @@ scm_option scm_debug_opts[] = {
   { SCM_OPTION_INTEGER, "maxdepth", 1000,
     "Maximal number of stored backtrace frames." },
   { SCM_OPTION_INTEGER, "depth", 20, "Maximal length of printed backtrace." },
-  { SCM_OPTION_BOOLEAN, "backtrace", 1,
-    "Show backtrace on error (use debugging evaluator)." },
-  { SCM_OPTION_BOOLEAN, "deval", 0, "Use the debugging evaluator." },
+  { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
+  { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
   { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (0 = no check)." }
 };
 
@@ -2808,7 +2807,7 @@ scm_eval (obj)
     scm_eval_3(obj, 1, scm_top_level_env(SCM_CDR(scm_top_level_lookup_thunk_var)));
 }
 
-SCM_PROC(s_eval_x, "eval!", 1, 0, 0, scm_eval_x);
+/* SCM_PROC(s_eval_x, "eval!", 1, 0, 0, scm_eval_x); */
 
 SCM
 scm_eval_x (obj)
