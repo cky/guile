@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@
 #include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/lang.h"
+#include "libguile/deprecation.h"
 
 #include "libguile/validate.h"
 #include "libguile/async.h"
@@ -64,28 +65,30 @@
 
 /* {Asynchronous Events}
  *
+ * There are two kinds of asyncs: system asyncs and user asyncs.  The
+ * two kinds have some concepts in commen but work slightly
+ * differently and are not interchangeable.
  *
- * Async == thunk + mark.
+ * System asyncs are used to run arbitrary code at the next safe point
+ * in a specified thread.  You can use them to trigger execution of
+ * Scheme code from signal handlers or to interrupt a thread, for
+ * example.
  *
- * Setting the mark guarantees future execution of the thunk.  More
- * than one set may be satisfied by a single execution.
+ * Each thread has a list of 'activated asyncs', which is a normal
+ * Scheme list of procedures with zero arguments.  When a thread
+ * executes a SCM_ASYNC_TICK statement (which is included in
+ * SCM_TICK), it will call all procedures on this list.
  *
- * scm_tick_clock decremented once per SCM_ALLOW_INTS.
- * Async execution triggered by SCM_ALLOW_INTS when scm_tick_clock drops to 0.
- * Async execution prevented by scm_mask_ints != 0.
+ * Also, a thread will wake up when a procedure is added to its list
+ * of active asyncs and call them.  After that, it will go to sleep
+ * again.  (Not implemented yet.)
  *
- * If the clock reaches 0 when scm_mask_ints != 0, then reset the clock
- * to 1.
  *
- * If the clock reaches 0 any other time, run marked asyncs.
- *
- * From a unix signal handler, mark a corresponding async and set the clock
- * to 1.   Do SCM_REDEFER_INTS;/SCM_REALLOW_INTS so that if the signal handler is not
- * called in the dynamic scope of a critical section, it is excecuted immediately.
- *
- * Overall, closely timed signals of a particular sort may be combined.  Pending signals
- * are delivered in a fixed priority order, regardless of arrival order.
- *
+ * User asyncs are a little data structure that consists of a
+ * procedure of zero arguments and a mark.  There are functions for
+ * setting the mark of a user async and for calling all procedures of
+ * marked asyncs in a given list.  Nothing you couldn't quickly
+ * implement yourself.
  */
 
 /* True between SCM_DEFER_INTS and SCM_ALLOW_INTS, and
@@ -94,23 +97,11 @@
 int scm_ints_disabled = 1;
 unsigned int scm_mask_ints = 1;
 
-#ifdef GUILE_OLD_ASYNC_CLICK
-unsigned int scm_async_clock = 20;
-static unsigned int scm_async_rate = 20;
+
 
-static unsigned int scm_tick_clock = 0;
-static unsigned int scm_tick_rate = 0;
-static unsigned int scm_desired_tick_rate = 0;
-static unsigned int scm_switch_clock = 0;
-static unsigned int scm_switch_rate = 0;
-static unsigned int scm_desired_switch_rate = 0;
-#else
-int scm_asyncs_pending_p = 0;
-#endif
+/* User asyncs. */
 
 static scm_t_bits tc16_async;
-
-
 
 /* cmm: this has SCM_ prefix because SCM_MAKE_VALIDATE expects it.
    this is ugly.  */
@@ -121,168 +112,11 @@ static scm_t_bits tc16_async;
 #define SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 ((X), SCM_TYP16 (X) | ((V) << 16)))
 #define ASYNC_THUNK(X)         SCM_CELL_OBJECT_1 (X)
 
-
-
-#ifdef GUILE_OLD_ASYNC_CLICK
-int
-scm_asyncs_pending ()
-{
-  SCM pos;
-  pos = scm_asyncs;
-  while (!SCM_NULL_OR_NIL_P (pos))
-    {
-      SCM a = SCM_CAR (pos);
-      if (ASYNC_GOT_IT (a))
-	return 1;
-      pos = SCM_CDR (pos);
-    }
-  return 0;
-}
-
-
-void
-scm_async_click ()
-{
-  int owe_switch;
-  int owe_tick;
-
-  if (!scm_switch_rate)
-    {
-      owe_switch = 0;
-      scm_switch_clock = scm_switch_rate = scm_desired_switch_rate;
-      scm_desired_switch_rate = 0;
-    }
-  else
-    {
-      owe_switch = (scm_async_rate >= scm_switch_clock);
-      if (owe_switch)
-	{
-	  if (scm_desired_switch_rate)
-	    {
-	      scm_switch_clock = scm_switch_rate = scm_desired_switch_rate;
-	      scm_desired_switch_rate = 0;
-	    }
-	  else
-	    scm_switch_clock = scm_switch_rate;
-	}
-      else
-	{
-	  if (scm_desired_switch_rate)
-	    {
-	      scm_switch_clock = scm_switch_rate = scm_desired_switch_rate;
-	      scm_desired_switch_rate = 0;
-	    }
-	  else
-	    scm_switch_clock -= scm_async_rate;
-	}
-    }
-
-  if (scm_mask_ints)
-    {
-      if (owe_switch)
-	scm_switch ();
-      scm_async_clock = 1;
-      return;;
-    }
-
-  if (!scm_tick_rate)
-    {
-      unsigned int r;
-      owe_tick = 0;
-      r = scm_desired_tick_rate;
-      if (r)
-	{
-	  scm_desired_tick_rate = 0;
-	  scm_tick_rate = r;
-	  scm_tick_clock = r;
-	}
-    }
-  else
-    {
-      owe_tick = (scm_async_rate >= scm_tick_clock);
-      if (owe_tick)
-	{
-	  scm_tick_clock = scm_tick_rate = scm_desired_tick_rate;
-	  scm_desired_tick_rate = 0;
-	}
-      else
-	{
-	  if (scm_desired_tick_rate)
-	    {
-	      scm_tick_clock = scm_tick_rate = scm_desired_tick_rate;
-	      scm_desired_tick_rate = 0;
-	    }
-	  else
-	    scm_tick_clock -= scm_async_rate;
-	}
-    }
-
-  SCM_DEFER_INTS;
-  if (scm_tick_rate && scm_switch_rate)
-    {
-      scm_async_rate = min (scm_tick_clock,  scm_switch_clock);
-      scm_async_clock = scm_async_rate;
-    }
-  else if (scm_tick_rate)
-    {
-      scm_async_clock = scm_async_rate = scm_tick_clock;
-    }
-  else if (scm_switch_rate)
-    {
-      scm_async_clock = scm_async_rate = scm_switch_clock;
-    }
-  else
-    scm_async_clock = scm_async_rate = 1 << 16;
-  SCM_ALLOW_INTS_ONLY;
-
- tail:
-  scm_run_asyncs (scm_asyncs);
-
-  SCM_DEFER_INTS;
-  if (scm_asyncs_pending ())
-    {
-      SCM_ALLOW_INTS_ONLY;
-      goto tail;
-    }
-  SCM_ALLOW_INTS;
-
-  if (owe_switch)
-    scm_switch ();
-}
-
-void
-scm_switch ()
-{
-#if 0 /* Thread switching code should probably reside here, but the
-         async switching code doesn't seem to work, so it's put in the
-         SCM_DEFER_INTS macro instead. /mdj */
-  SCM_THREAD_SWITCHING_CODE;
-#endif
-}
-
-#else
-
-void
-scm_async_click ()
-{
-  if (!scm_mask_ints)
-    do
-      scm_run_asyncs (scm_asyncs);
-    while (scm_asyncs_pending_p);
-}
-
-#endif
-
-
-
-
 static SCM
-async_mark (SCM obj)
+async_gc_mark (SCM obj)
 {
   return ASYNC_THUNK (obj);
 }
-
-
 
 SCM_DEFINE (scm_async, "async", 1, 0, 0,
 	    (SCM thunk),
@@ -293,70 +127,22 @@ SCM_DEFINE (scm_async, "async", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
-            (SCM thunk),
-	    "Create a new async for the procedure @var{thunk}.  Also\n"
-	    "add it to the system's list of active async objects.")
-#define FUNC_NAME s_scm_system_async
-{
-  SCM it = scm_async (thunk);
-  scm_asyncs = scm_cons (it, scm_asyncs);
-  return it;
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0,
             (SCM a),
 	    "Mark the async @var{a} for future execution.")
 #define FUNC_NAME s_scm_async_mark
 {
   VALIDATE_ASYNC (1, a);
-#ifdef GUILE_OLD_ASYNC_CLICK
   SET_ASYNC_GOT_IT (a, 1);
-#else
-  SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
-#endif
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
-
-SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0,
-           (SCM a),
-	    "Mark the async @var{a} for future execution.")
-#define FUNC_NAME s_scm_system_async_mark
-{
-  VALIDATE_ASYNC (1, a);
-  SCM_REDEFER_INTS;
-#ifdef GUILE_OLD_ASYNC_CLICK
-  SET_ASYNC_GOT_IT (a, 1);
-  scm_async_rate = 1 + scm_async_rate - scm_async_clock;
-  scm_async_clock = 1;
-#else
-  SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
-#endif
-  SCM_REALLOW_INTS;
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-void
-scm_system_async_mark_from_signal_handler (SCM a)
-{
-  SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
-}
 
 SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 	    (SCM list_of_a),
 	    "Execute all thunks from the asyncs of the list @var{list_of_a}.")
 #define FUNC_NAME s_scm_run_asyncs
 {
-#ifdef GUILE_OLD_ASYNC_CLICK
-  if (scm_mask_ints)
-    return SCM_BOOL_F;
-#else
-  scm_asyncs_pending_p = 0;
-#endif
   while (! SCM_NULL_OR_NIL_P (list_of_a))
     {
       SCM a;
@@ -378,6 +164,78 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 
 
 
+/* System asyncs. */
+
+void
+scm_async_click ()
+{
+  SCM asyncs;
+
+  if (!scm_mask_ints)
+    {
+      while (!SCM_NULLP(asyncs = scm_active_asyncs))
+	{
+	  scm_active_asyncs = SCM_EOL;
+	  do
+	    {
+	      SCM c = SCM_CDR (asyncs);
+	      SCM_SETCDR (asyncs, SCM_EOL);
+	      scm_call_0 (SCM_CAR (asyncs));
+	      asyncs = c;
+	    }
+	  while (!SCM_NULLP(asyncs));
+	}
+    }
+}
+
+SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
+            (SCM thunk),
+	    "This function is deprecated.  You can use @var{thunk} directly\n"
+            "instead of explicitely creating a asnc object.\n")
+#define FUNC_NAME s_scm_system_async
+{
+  scm_c_issue_deprecation_warning 
+    ("'system-async' is deprecated.  "
+     "Use the procedure directly with 'system-async-mark'.");
+  return thunk;
+}
+#undef FUNC_NAME
+
+void
+scm_i_queue_async_cell (SCM c, scm_root_state *root)
+{
+  if (SCM_CDR (c) == SCM_EOL)
+    {
+      SCM_SETCDR (c, root->active_asyncs);
+      root->active_asyncs = c;
+    }
+}
+
+SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
+           (SCM proc, SCM thread),
+	    "Register the procedure @var{proc} for future execution\n"
+            "in @var{thread}.  When @var{thread} is not specified,\n"
+	    "use the current thread.")
+#define FUNC_NAME s_scm_system_async_mark_for_thread
+{
+  scm_i_queue_async_cell (scm_cons (proc, SCM_EOL),
+			  (SCM_UNBNDP (thread)
+			   ? scm_root
+			   : scm_i_thread_root (thread)));
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM
+scm_system_async_mark (SCM proc)
+#define FUNC_NAME s_scm_system_async_mark_for_thread
+{
+  return scm_system_async_mark_for_thread (proc, SCM_UNDEFINED);
+}
+#undef FUNC_NAME
+
+
+
 
 SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 	    (SCM args),
@@ -390,45 +248,6 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 }
 #undef FUNC_NAME
 
-
-
-
-#ifdef GUILE_OLD_ASYNC_CLICK
-
-SCM_DEFINE (scm_set_tick_rate, "set-tick-rate", 1, 0, 0,
-	    (SCM n),
-	    "Set the rate of async ticks to @var{n}. Return the old rate\n"
-	    "value.")
-#define FUNC_NAME s_scm_set_tick_rate
-{
-  unsigned int old_n = scm_tick_rate;
-  SCM_VALIDATE_INUM (1, n);
-  scm_desired_tick_rate = SCM_INUM (n);
-  scm_async_rate = 1 + scm_async_rate - scm_async_clock;
-  scm_async_clock = 1;
-  return SCM_MAKINUM (old_n);
-}
-#undef FUNC_NAME
-
-
-
-
-SCM_DEFINE (scm_set_switch_rate, "set-switch-rate", 1, 0, 0,
-	    (SCM n),
-	    "Set the async switch rate to @var{n}. Return the old value\n"
-	    "of the switch rate.")
-#define FUNC_NAME s_scm_set_switch_rate
-{
-  unsigned int old_n = scm_switch_rate;
-  SCM_VALIDATE_INUM (1, n);
-  scm_desired_switch_rate = SCM_INUM (n);
-  scm_async_rate = 1 + scm_async_rate - scm_async_clock;
-  scm_async_clock = 1;
-  return SCM_MAKINUM (old_n);
-}
-#undef FUNC_NAME
-
-#endif
 
 
 
@@ -460,7 +279,7 @@ scm_init_async ()
 {
   scm_asyncs = SCM_EOL;
   tc16_async = scm_make_smob_type ("async", 0);
-  scm_set_smob_mark (tc16_async, async_mark);
+  scm_set_smob_mark (tc16_async, async_gc_mark);
 
 #include "libguile/async.x"
 }
