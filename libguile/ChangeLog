@@ -1,3 +1,31 @@
+1999-05-23  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* smob.c, smob.h (scm_make_smob_type): New interface to smob
+	types (supersedes scm_newsmob).
+	(scm_set_smob_mark, scm_set_smob_free, scm_set_smob_print,
+	scm_set_smob_equalp): New functions.  Sets smob functions.
+	(SCM_NEWSMOB): New macro.  Creates smob objects.
+	(scm_make_smob): New function.  Creates smob objects and
+	mallocates memory.
+	(scm_smob_free, scm_smob_print): Default free and print
+	functions.
+	
+	* Makefile.am: Removed markers.c, markers.x, markers.h.
+
+	* markers.c, markers.h: Removed.  (Contents moved to smob.c,
+	smob.h.)
+
+	* arbiters.c, async.c, regex-posix.c: Use new smob interface.
+
+	* eval.c, fports.c, libguile.h, ports.c: Removed #include
+	"markers.h".
+
+	* fluids.c, guardians.c, srcprop.c, threads.c: Added #include
+	"genio.h".
+
+	* regex-posix.c, regex-posix.h: Renamed scm_tc16_regex_t -->
+	scm_tc16_regex.
+	
 1999-05-09  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* strop.c (scm_string_capitalize_x): Use the SCM object `s' in
