@@ -56,6 +56,7 @@
 /* Smob type code for character sets.  */
 extern int scm_tc16_charset;
 
+void scm_c_init_srfi_14 (void);
 void scm_init_srfi_14 (void);
 
 SCM scm_char_set_p (SCM obj);

@@ -90,7 +90,7 @@
  char-set:full
  )
 
-(dynamic-call "scm_init_srfi_13_14" (dynamic-link "libguile-srfi-srfi-13-14"))
+(dynamic-call "scm_init_srfi_14" (dynamic-link "libguile-srfi-srfi-13-14"))
 
 (define (->char-set x)
   (cond

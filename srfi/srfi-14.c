@@ -1348,13 +1348,24 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection_x, "char-set-diff+intersection!"
 
 
 void
+scm_c_init_srfi_14 (void)
+{
+  static initialized = 0;
+
+  if (!initialized)
+    {
+      scm_tc16_charset = scm_make_smob_type ("character-set", 
+					     SCM_CHARSET_SIZE * sizeof (long));
+      scm_set_smob_free (scm_tc16_charset, charset_free);
+      scm_set_smob_print (scm_tc16_charset, charset_print);
+      initialized = 1;
+    }
+}
+
+void
 scm_init_srfi_14 (void)
 {
-  scm_tc16_charset = scm_make_smob_type ("character-set", 
-					 SCM_CHARSET_SIZE * sizeof (long));
-  scm_set_smob_free (scm_tc16_charset, charset_free);
-  scm_set_smob_print (scm_tc16_charset, charset_print);
-
+  scm_c_init_srfi_14 ();
 #ifndef SCM_MAGIC_SNARFER
 #include "srfi/srfi-14.x"
 #endif

@@ -3026,30 +3026,8 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 void
 scm_init_srfi_13 (void)
 {
+  scm_c_init_srfi_14 ();
 #ifndef SCM_MAGIC_SNARFER
 #include "srfi/srfi-13.x"
 #endif
-}
-
-
-void
-scm_init_srfi_13_14 (void)
-{
-  static int initialized = 0;
-
-  if (!initialized)
-    {
-      SCM srfi_13_module = scm_make_module (scm_read_0str ("(srfi srfi-13)"));
-      SCM srfi_14_module = scm_make_module (scm_read_0str ("(srfi srfi-14)"));
-      SCM old_module;
-
-      initialized = 1;
-
-      old_module = scm_set_current_module (srfi_13_module);
-      scm_init_srfi_13 ();
-      scm_set_current_module (srfi_14_module);
-      scm_init_srfi_14 ();
-
-      scm_set_current_module (old_module);
-    }
 }
