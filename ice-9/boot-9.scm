@@ -2122,8 +2122,7 @@
 		    (lambda ()
 		      (lazy-catch #t
 				  (lambda ()
-				    (dynamic-wind
-				     (lambda () (unmask-signals))
+				    (call-with-unblocked-asyncs
 				     (lambda ()
 				       (with-traps
 					(lambda ()
@@ -2137,8 +2136,7 @@
 					  (set! first #f)
 					  (let loop ((v (thunk)))
 					    (loop (thunk)))
-					  #f)))
-				     (lambda () (mask-signals))))
+					  #f)))))
 
 				  lazy-handler-dispatch))
 
@@ -2194,7 +2192,8 @@
 				   (#t
 				    (error "sorry, not implemented")))))
     (set! batch-mode? (lambda () (not interactive)))
-    (loop (lambda () #t))))
+    (call-with-blocked-asyncs
+     (lambda () (loop (lambda () #t))))))
 
 ;;(define the-last-stack (make-fluid)) Defined by scm_init_backtrace ()
 (define before-signal-stack (make-fluid))
@@ -2872,7 +2871,7 @@
 				    ;; Make a backup copy of the stack
 				    (fluid-set! before-signal-stack
 						(fluid-ref the-last-stack))
-				    (save-stack 1)
+				    (save-stack 2)
 				    (scm-error 'signal
 					       #f
 					       msg
