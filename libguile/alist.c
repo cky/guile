@@ -147,12 +147,14 @@ predicate is in use), then @code{#f} is returned.  These functions
 return the entire alist entry found (i.e. both the key and the value).")
 #define FUNC_NAME s_scm_assq
 {
-  SCM tmp;
-  for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
-    SCM_VALIDATE_ALISTCELL_COPYSCM (2,alist,tmp);
-    if (SCM_CAR(tmp)==key) return tmp;
-  }
-  SCM_VALIDATE_NULL (2,alist);
+  for (; SCM_CONSP(alist); alist = SCM_CDR(alist)) 
+    {
+      SCM tmp = SCM_CAR(alist);
+      SCM_VALIDATE_CONS(2, tmp);
+      if (SCM_CAR(tmp) == key) 
+       return tmp;
+    }
+  SCM_VALIDATE_NULL(2, alist);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -163,17 +165,14 @@ SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
 "Behaves like @code{assq} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv
 {
-  SCM tmp;
-  for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
-    SCM_ASRTGO(SCM_CONSP(alist), badlst);
-    tmp = SCM_CAR(alist);
-    SCM_ASRTGO(SCM_CONSP(tmp), badlst);
-    if SCM_NFALSEP(scm_eqv_p(SCM_CAR(tmp), key)) return tmp;
-  }
-# ifndef SCM_RECKLESS
-  if (!(SCM_NULLP(alist)))
-    badlst: SCM_WTA(2,alist);
-# endif
+  for(; SCM_CONSP(alist); alist = SCM_CDR(alist)) 
+    {
+      SCM tmp = SCM_CAR(alist);
+      SCM_VALIDATE_CONS(2, tmp);
+      if SCM_NFALSEP(scm_eqv_p(SCM_CAR(tmp), key))
+       return tmp;
+    }
+  SCM_VALIDATE_NULL(2, alist);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -184,12 +183,14 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
 "Behaves like @code{assq} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc
 {
-  SCM tmp;
-  for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
-    SCM_VALIDATE_ALISTCELL_COPYSCM (2,alist,tmp);
-    if SCM_NFALSEP(scm_equal_p(SCM_CAR(tmp), key)) return tmp;
-  }
-  SCM_VALIDATE_NULL (2,alist);
+  for(; SCM_CONSP(alist); alist = SCM_CDR(alist)) 
+    {
+      SCM tmp = SCM_CAR(alist);
+      SCM_VALIDATE_CONS(2, tmp);
+      if SCM_NFALSEP(scm_equal_p(SCM_CAR(tmp), key)) 
+       return tmp;
+    }
+  SCM_VALIDATE_NULL(2, alist);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME

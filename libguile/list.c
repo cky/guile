@@ -97,10 +97,10 @@ SCM_DEFINE (scm_list_star, "list*", 1, 0, 1,
 "")
 #define FUNC_NAME s_scm_list_star
 {
-  if (SCM_NIMP (rest))
+  if (SCM_NNULLP (rest))
     {
       SCM prev = arg = scm_cons (arg, rest);
-      while (SCM_NIMP (SCM_CDR (rest)))
+      while (SCM_NNULLP (SCM_CDR (rest)))
 	{
 	  prev = rest;
 	  rest = SCM_CDR (rest);
@@ -141,16 +141,16 @@ SCM_DEFINE (scm_list_p, "list?", 1, 0, 0,
 long
 scm_ilength(SCM sx)
 {
-  register long i = 0;
-  register SCM tortoise = sx;
-  register SCM hare = sx;
+  long i = 0;
+  SCM tortoise = sx;
+  SCM hare = sx;
 
   do {
-    if (SCM_IMP(hare)) return SCM_NULLP(hare) ? i : -1;
+    if (SCM_NULLP(hare)) return i;
     if (SCM_NCONSP(hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
-    if (SCM_IMP(hare)) return SCM_NULLP(hare) ? i : -1;
+    if (SCM_NULLP(hare)) return i;
     if (SCM_NCONSP(hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
@@ -203,8 +203,7 @@ performed.  Return a pointer to the mutated list.")
       return res;
     }
     SCM_VALIDATE_CONS (SCM_ARGn, args);
-    for(;SCM_NIMP(arg);arg = SCM_CDR(arg)) {
-      SCM_VALIDATE_CONS (SCM_ARGn, arg);
+    for (; SCM_CONSP(arg); arg = SCM_CDR(arg)) {
       *lloc = scm_cons(SCM_CAR(arg), SCM_EOL);
       lloc = SCM_CDRLOC(*lloc);
     }
@@ -234,28 +233,29 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
 
 
 SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0, 
-           (SCM sx),
+           (SCM lst),
 "Return a pointer to the last pair in @var{lst}, signalling an error if
 @var{lst} is circular.")
 #define FUNC_NAME s_scm_last_pair
 {
-  register SCM res = sx;
-  register SCM x;
+  SCM tortoise = lst;
+  SCM hare = lst;
 
-  if (SCM_NULLP (sx))
+  if (SCM_NULLP (lst))
     return SCM_EOL;
 
-  SCM_VALIDATE_CONS (SCM_ARG1,res);
-  while (!0) {
-    x = SCM_CDR(res);
-    if (SCM_IMP(x) || SCM_NCONSP(x)) return res;
-    res = x;
-    x = SCM_CDR(res);
-    if (SCM_IMP(x) || SCM_NCONSP(x)) return res;
-    res = x;
-    sx = SCM_CDR(sx);
-    SCM_ASSERT(x != sx, sx, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_CONS (SCM_ARG1, lst);
+  do {
+    SCM ahead = SCM_CDR(hare);
+    if (SCM_NCONSP(ahead)) return hare;
+    hare = ahead;
+    ahead = SCM_CDR(hare);
+    if (SCM_NCONSP(ahead)) return hare;
+    hare = ahead;
+    tortoise = SCM_CDR(tortoise);
   }
+  while (hare != tortoise);
+  scm_misc_error (FUNC_NAME, "Circular structure in position 1: %S", SCM_LIST1 (lst));
 }
 #undef FUNC_NAME
 
@@ -263,7 +263,32 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
 /* reversing lists */
 
 SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
-            (SCM ls),
+            (SCM lst),
+"")
+#define FUNC_NAME s_scm_reverse
+{
+  SCM result = SCM_EOL;
+  SCM tortoise = lst;
+  SCM hare = lst;
+
+  do {
+      if (SCM_NULLP(hare)) return result;
+      SCM_ASSERT(SCM_CONSP(hare), lst, 1, FUNC_NAME);
+      result = scm_cons (SCM_CAR (hare), result);
+      hare = SCM_CDR (hare);
+      if (SCM_NULLP(hare)) return result;
+      SCM_ASSERT(SCM_CONSP(hare), lst, 1, FUNC_NAME);
+      result = scm_cons (SCM_CAR (hare), result);
+      hare = SCM_CDR (hare);
+      tortoise = SCM_CDR (tortoise);
+    }
+  while (hare != tortoise);
+  scm_misc_error (FUNC_NAME, "Circular structure in position 1: %S", SCM_LIST1 (lst));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
+            (SCM lst, SCM new_tail),
 "A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r4rs,
 The Revised^4 Report on Scheme}).  The cdr of each cell in @var{lst} is
 modified to point to the previous list element.  Return a pointer to the
@@ -275,48 +300,20 @@ the tail.  Therefore, the @var{lst} symbol to which the head of the
 original list was bound now points to the tail.  To ensure that the head
 of the modified list is not lost, it is wise to save the return value of
 @code{reverse!}")
-#define FUNC_NAME s_scm_reverse
-{
-  SCM res = SCM_EOL;
-  SCM p = ls, t = ls;
-  while (SCM_NIMP (p))
-    {
-      SCM_VALIDATE_CONS (1,ls);
-      res = scm_cons (SCM_CAR (p), res);
-      p = SCM_CDR (p);
-      if (SCM_IMP (p))
-	break;
-      SCM_VALIDATE_CONS (1,ls);
-      res = scm_cons (SCM_CAR (p), res);
-      p = SCM_CDR (p);
-      t = SCM_CDR (t);
-      if (t == p)
-	scm_misc_error (FUNC_NAME, "Circular structure: %S", SCM_LIST1 (ls));
-    }
-  ls = p;
-  SCM_VALIDATE_NULL (1,ls);
-  return res;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
-            (SCM ls, SCM new_tail),
-"")
 #define FUNC_NAME s_scm_reverse_x
 {
-  SCM old_tail;
-  SCM_ASSERT (scm_ilength (ls) >= 0, ls, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_ilength (lst) >= 0, lst, SCM_ARG1, FUNC_NAME);
   if (SCM_UNBNDP (new_tail))
     new_tail = SCM_EOL;
   else
     SCM_ASSERT (scm_ilength (new_tail) >= 0, new_tail, SCM_ARG2, FUNC_NAME);
 
-  while (SCM_NIMP (ls))
+  while (SCM_NNULLP (lst))
     {
-      old_tail = SCM_CDR (ls);
-      SCM_SETCDR (ls, new_tail);
-      new_tail = ls;
-      ls = old_tail;
+      SCM old_tail = SCM_CDR (lst);
+      SCM_SETCDR (lst, new_tail);
+      new_tail = lst;
+      lst = old_tail;
     }
   return new_tail;
 }
