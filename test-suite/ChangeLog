@@ -1,5 +1,8 @@
 2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* tests/regexp.test (regexp-substitute/global): Do not test with
+	empty regexp.  Empty regexps do not work on NetBSD.
+
 	* tests/syncase.test (basic syncase macro): Added.
 
 2002-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
