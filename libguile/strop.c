@@ -410,12 +410,12 @@ SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0,
 static SCM
 string_capitalize_x (SCM str)
 {
-  char *sz;
+  unsigned char *sz;
   long i, len;
   int in_word=0;
 
   len = SCM_STRING_LENGTH(str);
-  sz = SCM_STRING_CHARS (str);
+  sz = SCM_STRING_UCHARS (str);
   for(i=0; i<len;  i++) {
     if (!SCM_FALSEP (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i])))) {
       if(!in_word) {
