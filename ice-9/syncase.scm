@@ -19,6 +19,8 @@
 (define-module (ice-9 syncase)
   :use-module (ice-9 debug))
 
+
+
 (define-public (void) *unspecified*)
 
 (define andmap
