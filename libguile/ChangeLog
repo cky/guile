@@ -1,3 +1,12 @@
+1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* sort.c (closureless): Use scm_eval_body.
+
+	* eval.c (SCM_APPLY): Fixed serious evaluator bug: If a closure
+	with a symbol as last form was first called normally and then via
+	`map' or some other mechanism using primitive apply, an ILOC was
+	returned.
+
 1999-08-26  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	This change extends the representation of primitive procedures
