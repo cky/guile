@@ -1,3 +1,104 @@
+2001-03-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* async.c (scm_asyncs_pending):  Don't use != to compare SCM
+	values.
+
+	* async.c (scm_system_async), variable.c (scm_make_variable,
+	scm_make_undefined_variable):  Use scm_cons to create a pair.
+
+	* debug.c (scm_reverse_lookup):  Perform proper type checking.
+	Remove suspicious use of SCM_SLOPPY_CONSP.
+
+	* eq.c (scm_equal_p), tags.h (SCM_ECONSP):  Use SCM_CONSP instead
+	of SCM_SLOPPY_CONSP.  A sane compiler should be able to perform
+	the corresponding optimization.
+
+	* eval.c (iqq):  Use proper type check.
+
+	(scm_m_expand_body):  Remove redundant type checks.
+
+	(promise_print):  Don't access promise cells as pairs.
+
+	* eval.c (EVALCAR, iqq, scm_m_expand_body, scm_eval_args,
+	scm_deval_args SCM_CEVAL), guardians.c (scm_guard), hashtab.c
+	(scm_internal_hash_fold), print.c (scm_iprlist):  Use !SCM_CELLP
+	for SCM_NCELLP, !SCM_CONSP for SCM_NCONSP, !SCM_IMP for SCM_NIMP,
+	!SCM_FALSEP for SCM_NFALSEP, !SCM_NULLP for SCM_NNULLP
+
+	* eval.c (scm_m_define, scm_macroexp, SCM_CEVAL), print.c
+	(scm_iprin1):  Use new macro predicate and accessors.
+
+	* eval.h (scm_tc16_macro):  Removed declaration.  It is declared
+	in macros.h.
+
+	* eval.h (EVALH), macros.h (MACROSH), ports.h (PORTSH), procs.h
+	(PROCSH), tags.h (TAGSH), variable.h (VARIABLEH):  Renamed to
+	SCM_EVAL_H, SCM_MACROS_H, SCM_PORTS_H, SCM_PROCS_H, SCM_TAGS_H and
+	SCM_VARIABLE_H.  Even the macros that are used to inhibit
+	including a header file twice should be in the SCM_ namespace.
+
+	* fluids.c (scm_swap_fluids, scm_swap_fluids_reverse),
+	properties.c (scm_primitive_property_ref,
+	scm_primitive_property_del_x):  Prefer stronger predicates like
+	SCM_NULLP or SCM_FALSEP over SCM_IMP.
+
+	* gc.c (MARK):  Use proper macros to access procedure-with-setter
+	cell elements and closure cell elements.
+
+	(gc_sweep_freelist_finish, scm_gc_sweep, init_heap_seg):  Don't
+	access free cells as pairs.
+
+	(scm_unprotect_object):  scm_hashq_get_handle returns #f if
+	no hashtab entry is found.
+
+	* gc.c (scm_gc_sweep), ports.c (scm_close_port):  Use new macro
+	SCM_CLR_PORT_OPEN_FLAG.
+
+	* guardians.c (TCONC_IN), print.c (scm_free_print_state):  Don't
+	use SCM_SET_C[AD]R for uninitialized cells.
+
+	* hashtab.c (scm_hash_fn_get_handle):  Use SCM_VALIDATE_VECTOR.
+	If the hashtable has no slots, return #f instead of '().  This
+	unifies the return value with most assoc-functions.
+
+	(scm_hash_fn_ref):  Use proper type check.
+
+	(scm_hashq_get_handle, scm_hashv_get_handle, scm_hash_get_handle):
+	Removed references to non-existing functions from documentation.
+
+	* keywords.c (scm_keyword_dash_symbol):  Use proper macros to
+	access keyword cell elements.
+
+	* macros.h (SCM_MACROP, SCM_MACRO_TYPE, SCM_MACRO_CODE):  New
+	macros.
+
+	* ports.h (SCM_CLR_PORT_OPEN_FLAG):  New macro.
+
+	* print.c (scm_iprlist):  Added comment.  Improved loop
+	conditions.
+
+	* procs.h (SCM_ENV, SCM_SETENV):  Don't access closure cells as
+	pairs.
+
+	* smob.c (scm_markcdr):  Don't access smob cells as pairs.
+
+	* tags.h (SCM_SLOPPY_CONSP, SCM_SLOPPY_NCONSP):  Deprecated.
+
+	* throw.c (ACTIVATEJB, DEACTIVATEJB):  Don't access jump buffer
+	cells as pairs.
+
+	* variable.c (variable_print, variable_equalp, scm_variable_ref,
+	scm_variable_set_x):  Use proper macros to access variable cell
+	elements.
+
+	(scm_variable_bound_p):  Don't use SCM_NEGATE_BOOL.
+
+	* variable.h (SCM_VARVCELL):  Don't access variable cells as
+	pairs.
+
+	* vectors.c (scm_vector), weaks.c (scm_weak_vector):  Simplified,
+	added FIXME comment, removed register specifier.
+
 2001-03-29  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* goops.c, goops.h (scm_init_oop_goops_goopscore_module): Deprecated.
