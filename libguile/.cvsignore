@@ -26,6 +26,7 @@ guile-func-name-check
 guile-procedures.txt
 guile-snarf
 guile-snarf.awk
+guile.texi
 libpath.h
 libtool
 scmconfig.h
