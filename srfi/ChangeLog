@@ -4,6 +4,8 @@
 	delete!, assoc): don't export until the new bindings have been
 	created.  otherwise "export" thinks they are being re-exported and
 	a deprecation warning is produced.
+	(map-in-order): defined and exported, to support lists of unequal
+	length.
 
 2001-07-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 

@@ -169,7 +169,7 @@
  append-map
  append-map!
  map!
- ;; map-in-order			<= in the core
+ ;; map-in-order  ; exported below
  pair-for-each
  filter-map
 
@@ -608,6 +608,8 @@
 	'()
 	(cons (apply f (map1 car l)) (lp (map1 cdr l)))))))
 
+;; extended to lists of unequal length.
+(define map-in-order map)
 
 ;; This `for-each' is extended from the standard `for-each'.  It
 ;; allows argument lists of different length, so that the shortest
@@ -1028,4 +1030,4 @@
 
 ;; extended versions of builtin procedures.  exporting is delayed until the
 ;; new bindings have been created.
-(export iota map for-each list-index member delete delete! assoc)
+(export iota map map-in-order for-each list-index member delete delete! assoc)
