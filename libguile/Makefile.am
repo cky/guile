@@ -156,6 +156,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 		>> libpath.tmp
 	@echo '	{ "guileversion", "@GUILE_VERSION@" }, \' >> libpath.tmp
 	@echo '	{ "libguileversion", "@LIBGUILE_VERSION@" }, \' >> libpath.tmp
+	@echo '	{ "LIBS",	   "@GUILE_LIBS@" }, \' >> libpath.tmp
 	@echo '}' >> libpath.tmp
 	@mv libpath.tmp libpath.h
 
