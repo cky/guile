@@ -1,3 +1,15 @@
+Sun Mar  2 05:25:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (error-catching-loop thunk): use a status variable to
+	return the quit args.
+	(scm-style-repl): call -quit, passing return value from
+	error-catching-repl.  Make -quit return its args.
+	stand-along-repl: comment out, since it seems unused.
+	(top-repl): convert the value returned by scm-style-repl to
+	an integer and return it.
+	
+	(error-catching-loop thunk): discard trailing junk after a (quit).
+
 Sat Mar  1 15:24:39 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: Removed the old printer code.

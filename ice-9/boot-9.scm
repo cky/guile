@@ -2058,66 +2058,74 @@
 (define abort-hook '())
 
 (define (error-catching-loop thunk)
-  (define (loop first)
-    (let ((next 
-	   (catch #t
+  (let ((status #f))
+    (define (loop first)
+      (let ((next 
+	     (catch #t
 
-	     (lambda ()
-	       (lazy-catch #t
-                 (lambda ()
-		   (dynamic-wind
-		    (lambda () (unmask-signals))
 		    (lambda ()
-		      (first)
-				   
-		      ;; This line is needed because mark doesn't do closures quite right.
-		      ;; Unreferenced locals should be collected.
-		      ;;
-		      (set! first #f)
-		      (let loop ((v (thunk)))
-			(loop (thunk)))
-		      #f)
-		    (lambda () (mask-signals))))
+		      (lazy-catch #t
+				  (lambda ()
+				    (dynamic-wind
+				     (lambda () (unmask-signals))
+				     (lambda ()
+				       (first)
+				       
+				       ;; This line is needed because mark
+				       ;; doesn't do closures quite right.
+				       ;; Unreferenced locals should be
+				       ;; collected.
+				       ;;
+				       (set! first #f)
+				       (let loop ((v (thunk)))
+					 (loop (thunk)))
+				       #f)
+				     (lambda () (mask-signals))))
 
-		 lazy-handler-dispatch))
-	     
-	     (lambda (key . args)
-	       (case key
-		 ((quit)
-		  (force-output)
-		  #f)
+				  lazy-handler-dispatch))
+		    
+		    (lambda (key . args)
+		      (case key
+			((quit)
+			 (read-line)	; discard trailing junk and linefeed.
+			 (force-output)
+			 (set! status args)
+			 #f)
 
-		 ((switch-repl)
-		  (apply throw 'switch-repl args))
+			((switch-repl)
+			 (apply throw 'switch-repl args))
 
-		 ((abort)
-		  ;; This is one of the closures that require
-		  ;; (set! first #f) above
-		  ;;
-		  (lambda ()
-		    (run-hooks abort-hook)
-		    (force-output)
-		    (display "ABORT: "  (current-error-port))
-		    (write args (current-error-port))
-		    (newline (current-error-port))
-		    (if (and (not has-shown-debugger-hint?)
-			     (not (memq 'backtrace (debug-options-interface)))
-			     (stack? the-last-stack))
-			(begin
-			  (newline (current-error-port))
-			  (display "Type \"(backtrace)\" to get more information.\n" (current-error-port))
-			  (set! has-shown-debugger-hint? #t)))
-		    (set! stack-saved? #f)))
+			((abort)
+			 ;; This is one of the closures that require
+			 ;; (set! first #f) above
+			 ;;
+			 (lambda ()
+			   (run-hooks abort-hook)
+			   (force-output)
+			   (display "ABORT: "  (current-error-port))
+			   (write args (current-error-port))
+			   (newline (current-error-port))
+			   (if (and (not has-shown-debugger-hint?)
+				    (not (memq 'backtrace
+					       (debug-options-interface)))
+				    (stack? the-last-stack))
+			       (begin
+				 (newline (current-error-port))
+				 (display
+				  "Type \"(backtrace)\" to get more information.\n"
+				  (current-error-port))
+				 (set! has-shown-debugger-hint? #t)))
+			   (set! stack-saved? #f)))
 
-		 (else
-		  ;; This is the other cons-leak closure...
-		  (lambda ()
-		    (cond ((= (length args) 4)
-			   (apply handle-system-error key args))
-			  (else
-			   (apply bad-throw key args))))))))))
-      (and next (loop next))))
-  (loop (lambda () #t)))
+			(else
+			 ;; This is the other cons-leak closure...
+			 (lambda ()
+			   (cond ((= (length args) 4)
+				  (apply handle-system-error key args))
+				 (else
+				  (apply bad-throw key args))))))))))
+	(if next (loop next) status)))
+    (loop (lambda () #t))))
 
 ;;(define the-last-stack #f) Defined by scm_init_backtrace ()
 (define stack-saved? #f)
@@ -2252,13 +2260,13 @@
 			       (repl-report))
 			   (force-output)))))
 
-	   (-quit (lambda ()
+	   (-quit (lambda (args)
 		    (if scm-repl-verbose
 			(begin
 			  (display ";;; QUIT executed, repl exitting")
 			  (newline)
 			  (repl-report)))
-		    #t))
+		    args))
 
 	   (-abort (lambda ()
 		     (if scm-repl-verbose
@@ -2268,15 +2276,17 @@
 			   (repl-report)))
 		     (repl -read -eval -print))))
 
-    (error-catching-repl -read
-			 -eval
-			 -print)))
+    (let ((status (error-catching-repl -read
+				       -eval
+				       -print)))
+      (-quit status))))
+  
 
-(define (stand-alone-repl)
-  (let ((oport (current-input-port)))
-    (set-current-input-port *stdin*)
-    (scm-style-repl)
-    (set-current-input-port oport)))
+;(define (stand-alone-repl)
+;  (let ((oport (current-input-port)))
+;    (set-current-input-port *stdin*)
+;    (scm-style-repl)
+;    (set-current-input-port oport)))
 
 
 
@@ -2444,7 +2454,16 @@
 ;; (set-current-output-port outp)
 ;; (set-current-error-port errp)
 
-(define (top-repl) (scm-style-repl))
+(define (top-repl) 
+  ;; scm-style-repl returns the list of arguments from quit: convert to
+  ;; an integer status and return.
+  (let ((quit-args (scm-style-repl)))
+    (if (null? quit-args)
+	0
+	(let ((cqa (car quit-args)))
+	  (cond ((number? cqa) cqa)
+		((eq? cqa #f) 1)
+		(else 0))))))
 
 (defmacro false-if-exception (expr)
   `(catch #t (lambda () ,expr)
