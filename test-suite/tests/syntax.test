@@ -675,6 +675,22 @@
 	    (outer-break)
 	    (unreachable)))
 	(unreachable))
+      #t)
+    
+    (pass-if "from recursive"
+      (let ((outer-break #f))
+	(define (r n)
+	  (while #t
+	    (if (eq? n 'outer)
+		(begin
+		  (set! outer-break break)
+		  (r 'inner))
+		(begin
+		  (outer-break)
+		  (unreachable))))
+	  (if (eq? n 'inner)
+	      (error "broke only from inner loop")))
+	(r 'outer))
       #t))
   
   (with-test-prefix "continue"
@@ -717,4 +733,25 @@
 	    (while #t
 	      (outer-continue)
 	      (unreachable)))))
+      #t)
+    
+    (pass-if "from recursive"
+      (let ((outer-continue #f))
+	(define (r n)
+	  (let ((cond  (make-iterations-cond 3))
+		(first #t))
+	    (while (begin
+		     (if (and (not first)
+			      (eq? n 'inner))
+			 (error "continued only to inner loop"))
+		     (cond))
+	      (set! first #f)
+	      (if (eq? n 'outer)
+		  (begin
+		    (set! outer-continue continue)
+		    (r 'inner))
+		  (begin
+		    (outer-continue)
+		    (unreachable))))))
+	(r 'outer))
       #t)))
