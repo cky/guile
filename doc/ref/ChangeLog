@@ -1,3 +1,11 @@
+2005-01-10  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi: Various index entries.
+	(SRFI-19 Introduction): Note MJD basis is 2400000.5.
+	(SRFI-19 Date): In date-second, clarify leap second usage.  In
+	date-year, note negatives for B.C. and no zero.  In current-date,
+	don't let it read like it's just UTC which is returned.
+
 2005-01-08  Kevin Ryde  <user42@zip.com.au>
 
 	* api-modules.texi (Creating Guile Modules): Expand define-modules
