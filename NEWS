@@ -6,7 +6,7 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since the stable branch:
 
-** Variables have no longer a special behavior for `equal?'. 
+** Variables have no longer a special behavior for `equal?'.
 
 Previously, comparing two variables with `equal?' would recursivly
 compare their values.  This is no longer done.  Variables are now only
@@ -680,6 +680,14 @@ Use module system operations for all variables.
 
 That is, a call to `throw', `error', etc is now guaranteed to not
 return.
+
+** Bugfix for (ice-9 getopt-long)
+
+Parsing for options that are specified to have `optional' args now checks if
+the next element is an option instead of unconditionally taking it as the
+option arg.
+
+Also, this module is now tested using test-suite/tests/getopt-long.test.
 
 * Changes to the C interface
 

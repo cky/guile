@@ -220,7 +220,7 @@ In the top-level directory, wrote:
 In the subdirectory ice-9, changes to:
     boot-9.scm		documentation.scm	emacs.scm
     ls.scm		session.scm		string-fun.scm
-    threads.scm
+    threads.scm		getopt-long.scm
 In the subdirectory scripts, wrote:
     Makefile.am		PROGRAM
     display-commentary	generate-autoload
@@ -236,8 +236,10 @@ In the subdirectory doc, changes to:
     scheme-scheduling.texi
 In the subdirectory test-suite, changes to:
     guile-test		lib.scm
+In the subdirectory test-suite/tests, wrote:
+    exceptions.test     getopt-long.test
 In the subdirectory test-suite/tests, changes to:
-    exceptions.test	eval.test
+    eval.test
 
 Robert Merkel:
 In the subdirectory doc, co-wrote:
