@@ -158,6 +158,9 @@
 /* Define if you want support for dynamic linking. */
 #undef DYNAMIC_LINKING
 
+/* Define if the operating system can restart system calls.  */
+#undef HAVE_RESTARTS
+
 /* Define if you have the ctermid function.  */
 #undef HAVE_CTERMID
 
@@ -226,6 +229,9 @@
 
 /* Define if you have the shl_load function.  */
 #undef HAVE_SHL_LOAD
+
+/* Define if you have the sigaction function.  */
+#undef HAVE_SIGACTION
 
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR

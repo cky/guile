@@ -40,6 +40,14 @@ of SCSH's regular expression functions.  They are:
 
 * Changes to the scm_ interface
 
+* Changes to system call interfaces:
+
+** The value returned by `raise' is now unspecified.  It throws an exception
+if an error occurs.
+
+** A new procedure `sigaction' can be used to install signal handlers
+(documentation to be provided).
+
 
 Changes in Guile 1.1 (Fri May 16 1997):
 

@@ -67,13 +67,11 @@ scm_system(cmd)
   SCM_ASSERT(SCM_NIMP(cmd) && SCM_ROSTRINGP(cmd), cmd, SCM_ARG1, s_system);
   if (SCM_ROSTRINGP (cmd))
     cmd = scm_makfromstr (SCM_ROCHARS (cmd), SCM_ROLENGTH (cmd), 0);
-  scm_ignore_signals();
 # ifdef AZTEC_C
   cmd = SCM_MAKINUM(Execute(SCM_ROCHARS(cmd), 0, 0));
 # else
   cmd = SCM_MAKINUM(0L+system(SCM_ROCHARS(cmd)));
 # endif
-  scm_unignore_signals();
   return cmd;
 }
 #endif

@@ -72,3 +72,6 @@
 
 /* Define if you want support for dynamic linking. */
 #undef DYNAMIC_LINKING
+
+/* Define if the operating system can restart system calls.  */
+#undef HAVE_RESTARTS

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,25 +100,7 @@ static unsigned int scm_switch_clock = 0;
 static unsigned int scm_switch_rate = 0;
 static unsigned int scm_desired_switch_rate = 0;
 
-static SCM system_signal_asyncs[SCM_NUM_SIGS];
-static SCM handler_var;
-static SCM symbol_signal;
-
-
-struct scm_async
-{
-  int got_it;			/* needs to be delivered? */
-  SCM thunk;			/* the handler. */
-};
-
-
 static long scm_tc16_async;
-
-#define SCM_ASYNCP(X) 	(scm_tc16_async == SCM_GCTYP16 (X))
-#define SCM_ASYNC(X) 	((struct scm_async *)SCM_CDR (X))
-
-
-
 
 
 
@@ -281,29 +263,7 @@ scm_switch ()
 #endif
 }
 
-
-
-static void scm_deliver_signal SCM_P ((int num));
-
-static void
-scm_deliver_signal (num)
-     int num;
-{
-  SCM handler;
-  handler = SCM_CDR (handler_var);
-  if (handler != SCM_BOOL_F)
-    scm_apply (handler, SCM_MAKINUM (num), scm_listofnull);
-  else
-    {
-      scm_mask_ints = 0;
-      scm_throw (symbol_signal,
-			   scm_listify (SCM_MAKINUM (num), SCM_UNDEFINED));
-    }
-}
-
-
 
-
 
 static int print_async SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 
@@ -514,66 +474,6 @@ scm_set_switch_rate (n)
 
 
 
-
-static SCM scm_sys_hup_async_thunk SCM_P ((void));
-
-static SCM
-scm_sys_hup_async_thunk ()
-{
-  scm_deliver_signal (SCM_HUP_SIGNAL);
-  return SCM_BOOL_F;
-}
-
-
-static SCM scm_sys_int_async_thunk SCM_P ((void));
-
-static SCM
-scm_sys_int_async_thunk ()
-{
-  scm_deliver_signal (SCM_INT_SIGNAL);
-  return SCM_BOOL_F;
-}
-
-
-static SCM scm_sys_fpe_async_thunk SCM_P ((void));
-
-static SCM
-scm_sys_fpe_async_thunk ()
-{
-  scm_deliver_signal (SCM_FPE_SIGNAL);
-  return SCM_BOOL_F;
-}
-
-
-static SCM scm_sys_bus_async_thunk SCM_P ((void));
-
-static SCM
-scm_sys_bus_async_thunk ()
-{
-  scm_deliver_signal (SCM_BUS_SIGNAL);
-  return SCM_BOOL_F;
-}
-
-
-static SCM scm_sys_segv_async_thunk SCM_P ((void));
-
-static SCM
-scm_sys_segv_async_thunk ()
-{
-  scm_deliver_signal (SCM_SEGV_SIGNAL);
-  return SCM_BOOL_F;
-}
-
-
-static SCM scm_sys_alrm_async_thunk SCM_P ((void));
-
-static SCM
-scm_sys_alrm_async_thunk ()
-{
-  scm_deliver_signal (SCM_ALRM_SIGNAL);
-  return SCM_BOOL_F;
-}
-
 /* points to the GC system-async, so that scm_gc_end can find it.  */
 SCM scm_gc_async;
 
@@ -593,32 +493,6 @@ scm_sys_gc_async_thunk (void)
 	scm_apply (proc, SCM_EOL, SCM_EOL);
     }
   return SCM_UNSPECIFIED;
-}
-
-
-
-SCM
-scm_take_signal (n)
-     int n;
-{
-  SCM ignored;
-  if (!scm_ints_disabled)
-    {
-      /* For reasons of speed, the SCM_NEWCELL macro doesn't defer
-	 interrupts.  Instead, it first sets its argument to point to
-	 the first cell in the list, and then advances the freelist
-	 pointer to the next cell.  Now, if this procedure is
-	 interrupted, the only anomalous state possible is to have
-	 both SCM_NEWCELL's argument and scm_freelist pointing to the
-	 same cell.  To deal with this case, we always throw away the
-	 first cell in scm_freelist here.
-
-	 At least, that's the theory.  I'm not convinced that that's
-	 the only anomalous path we need to worry about.  */
-      SCM_NEWCELL (ignored);
-    }
-  scm_system_async_mark (system_signal_asyncs[SCM_SIG_ORD(n)]);
-  return SCM_BOOL_F;
 }
 
 
@@ -649,39 +523,10 @@ scm_init_async ()
 {
   SCM a_thunk;
   scm_tc16_async = scm_newsmob (&async_smob);
-  symbol_signal = SCM_CAR (scm_sysintern ("signal", SCM_UNDEFINED));
-  scm_permanent_object (symbol_signal);
-
-  /* These are in the opposite order of delivery priortity. 
-   *
-   * Error conditions are given low priority:
-   */
-  a_thunk = scm_make_gsubr ("%hup-thunk", 0, 0, 0, scm_sys_hup_async_thunk);
-  system_signal_asyncs[SCM_SIG_ORD(SCM_HUP_SIGNAL)] = scm_system_async (a_thunk);
-  a_thunk = scm_make_gsubr ("%int-thunk", 0, 0, 0, scm_sys_int_async_thunk);
-  system_signal_asyncs[SCM_SIG_ORD(SCM_INT_SIGNAL)] = scm_system_async (a_thunk);
-  a_thunk = scm_make_gsubr ("%fpe-thunk", 0, 0, 0, scm_sys_fpe_async_thunk);
-  system_signal_asyncs[SCM_SIG_ORD(SCM_FPE_SIGNAL)] = scm_system_async (a_thunk);
-  a_thunk = scm_make_gsubr ("%bus-thunk", 0, 0, 0, scm_sys_bus_async_thunk);
-  system_signal_asyncs[SCM_SIG_ORD(SCM_BUS_SIGNAL)] = scm_system_async (a_thunk);
-  a_thunk = scm_make_gsubr ("%segv-thunk", 0, 0, 0, scm_sys_segv_async_thunk);
-  system_signal_asyncs[SCM_SIG_ORD(SCM_SEGV_SIGNAL)] = scm_system_async (a_thunk);
 
   scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
   a_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, scm_sys_gc_async_thunk);
   scm_gc_async = scm_system_async (a_thunk);
 
-  /* Clock and PC driven conditions are given highest priority. */
-  /*
-    a_thunk = scm_make_gsubr ("%tick-thunk", 0, 0, 0, scm_sys_tick_async_thunk);
-    system_signal_asyncs[SCM_SIG_ORD(SCM_TICK_SIGNAL)] = scm_system_async (a_thunk);
-    */
-
-  a_thunk = scm_make_gsubr ("%alrm-thunk", 0, 0, 0, scm_sys_alrm_async_thunk);
-  system_signal_asyncs[SCM_SIG_ORD(SCM_ALRM_SIGNAL)] = scm_system_async (a_thunk);
-
-  handler_var = scm_sysintern ("signal-handler", SCM_UNDEFINED);
-  SCM_SETCDR (handler_var, SCM_BOOL_F);
-  scm_permanent_object (handler_var);
 #include "async.x"
 }

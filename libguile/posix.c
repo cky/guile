@@ -811,7 +811,7 @@ scm_uname ()
   SCM ans = scm_make_vector(SCM_MAKINUM(5), SCM_UNSPECIFIED, SCM_BOOL_F);
   SCM *ve = SCM_VELTS (ans);
   SCM_DEFER_INTS;
-  if (uname (&buf))
+  if (uname (&buf) < 0)
     scm_syserror (s_uname);
   ve[0] = scm_makfrom0str (buf.sysname);
   ve[1] = scm_makfrom0str (buf.nodename);
@@ -921,9 +921,7 @@ scm_open_pipe (pipestr, modes)
     modes = scm_makfromstr (SCM_ROCHARS (modes), SCM_ROLENGTH (modes), 0);
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
-  scm_ignore_signals ();
   SCM_SYSCALL (f = popen (SCM_ROCHARS (pipestr), SCM_ROCHARS (modes)));
-  scm_unignore_signals ();
   if (!f)
     scm_syserror (s_open_pipe);
   pt = scm_add_to_port_table (z);

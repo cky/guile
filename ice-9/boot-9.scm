@@ -568,76 +568,6 @@
     (or (and default (apply default key args))
 	(apply error "unhandled-exception:" key args))))
 
-;; mostly obsolete.
-;; A number of internally defined error types were represented
-;; as integers.  Here is the mapping to symbolic names
-;; and error messages.
-;;
-;(define %%system-errors
-;  '((-1 UNKNOWN "Unknown error")
-;    (0 ARGn  "Wrong type argument to ")
-;    (1 ARG1  "Wrong type argument in position 1 to ")
-;    (2 ARG2  "Wrong type argument in position 2 to ")
-;    (3 ARG3  "Wrong type argument in position 3 to ")
-;    (4 ARG4  "Wrong type argument in position 4 to ")
-;    (5 ARG5  "Wrong type argument in position 5 to ")
-;    (6 ARG5  "Wrong type argument in position 5 to ")
-;    (7 ARG5  "Wrong type argument in position 5 to ")
-;    (8 WNA "Wrong number of arguments to ")
-;    (9 OVFLOW "Numerical overflow to ")
-;    (10 OUTOFRANGE "Argument out of range to ")
-;    (11 NALLOC "Could not allocate to ")
-;    (12 STACK_OVFLOW "Stack overflow")
-;    (13 EXIT "Exit (internal error?).")
-;    (14 HUP_SIGNAL "hang-up")
-;    (15 INT_SIGNAL "user interrupt")
-;    (16 FPE_SIGNAL "arithmetic error")
-;    (17 BUS_SIGNAL "bus error")
-;    (18 SEGV_SIGNAL "segmentation violation")
-;    (19 ALRM_SIGNAL "alarm")
-;    (20 GC_SIGNAL "gc")
-;    (21 TICK_SIGNAL "tick")))
-
-
-(define (alarm-thunk) #t)
-
-(define (signal-handler n)
-  (let* (
-	 ;; these numbers are set in libguile, not the same as those 
-	 ;; interned in posix.c for SIGSEGV etc.
-	 ;;
-	 (signal-messages `((14 . "hang-up")
-			    (15 . "user interrupt")
-			    (16 . "arithmetic error")
-			    (17 . "bus error")
-			    (18 . "segmentation violation"))))
-    (cond
-     ((= n 21)	(unmask-signals) (timer-thunk))
-     ((= n 20)	(unmask-signals) (gc-thunk))
-     ((= n 19)	(unmask-signals) (alarm-thunk))
-     (else (set! the-last-stack
-		 (make-stack #t
-			     (list-ref (list %hup-thunk
-					     %int-thunk
-					     %fpe-thunk
-					     %bus-thunk
-					     %segv-thunk)
-				       (- n 14))
-			     1))
-	   (set! stack-saved? #t)
-	   (if (not (and (memq 'debug (debug-options-interface))
-			 (eq? (stack-id the-last-stack) 'repl-stack)))
-	       (set! the-last-stack #f))
-	   (unmask-signals)
-	   (let ((sig-pair (assoc n signal-messages)))
-	     (scm-error 'error-signal #f 
-			(cdr (or sig-pair
-				 (cons n "Unknown signal: %s")))
-			(if sig-pair
-			    #f
-			    (list n))
-			(list n)))))))
-
 
 ;;; {Non-polymorphic versions of POSIX functions}
 
@@ -910,21 +840,6 @@
   (/ (log arg) (log 10)))
 
 
-;;; {User Settable Hooks}
-;;;
-;;; Parts of the C code check the bindings of these variables.
-;;; 
-
-(define ticks-interrupt #f)
-(define user-interrupt #f)
-(define alarm-interrupt #f)
-(define out-of-storage #f)
-(define could-not-open #f)
-(define end-of-program #f)
-(define hang-up #f)
-(define arithmetic-error #f)
-
-
 
 ;;; {Reader Extensions}
 ;;;
@@ -978,31 +893,6 @@
 				       (string-index ")" look))))
 			  '()
 			  (parse-path-symbol (read port))))))
-
-;(define (read-sharp c port)
-;  (define (barf)
-;    (error "unknown # object" c))
-
-;  (case c
-;    ((#\/) (let ((look (peek-char port)))
-;	     (if (or (eof-object? look)
-;		     (and (char? look)
-;			  (or (char-whitespace? look)
-;			      (string-index ")" look))))
-;		 '()
-;		 (parse-path-symbol (read port #t read-sharp)))))
-;    ((#\') (read port #t read-sharp))
-;    ((#\.) (eval (read port #t read-sharp)))
-;    ((#\b) (read:uniform-vector #t port))
-;    ((#\a) (read:uniform-vector #\a port))
-;    ((#\u) (read:uniform-vector 1 port))
-;    ((#\e) (read:uniform-vector -1 port))
-;    ((#\s) (read:uniform-vector 1.0 port))
-;    ((#\i) (read:uniform-vector 1/3 port))
-;    ((#\c) (read:uniform-vector 0+i port))
-;    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-;     (read:array c port))
-;    (else (barf))))
 
 (define (read:array digit port)
   (define chr0 (char->integer #\0))
@@ -2424,13 +2314,6 @@
       (-quit status))))
   
 
-;(define (stand-alone-repl)
-;  (let ((oport (current-input-port)))
-;    (set-current-input-port *stdin*)
-;    (scm-style-repl)
-;    (set-current-input-port oport)))
-
-
 
 ;;; {IOTA functions: generating lists of numbers}
 
@@ -2603,8 +2486,47 @@
 ;; (set-current-output-port outp)
 ;; (set-current-error-port errp)
 
+;; this is just (scm-style-repl) with a wrapper to install and remove 
+;; signal handlers.
 (define (top-repl) 
-  (scm-style-repl))
+  (let ((old-handlers #f)
+	(signals `((,SIGINT . "User interrupt")
+		   (,SIGFPE . "Arithmetic error")
+		   (,SIGBUS . "Bad memory access (bus error)")
+		   (,SIGSEGV . "Bad memory access (Segmentation violation)"))))
+
+    (dynamic-wind
+
+     ;; call at entry
+     (lambda ()
+       (let ((make-handler (lambda (msg)
+			     (lambda (sig)
+			       (scm-error 'signal
+					  #f
+					  msg
+					  #f
+					  (list sig))))))
+	 (set! old-handlers
+	       (map (lambda (sig-msg)
+		      (sigaction (car sig-msg)
+				 (make-handler (cdr sig-msg))))
+		    signals))))
+
+     ;; the protected thunk.
+     (lambda ()
+       (scm-style-repl))
+
+     ;; call at exit.
+     (lambda ()
+       (map (lambda (sig-msg old-handler)
+	      (if (not (car old-handler))
+		  ;; restore original C handler.
+		  (sigaction (car sig-msg) #f)
+		  ;; restore Scheme handler, SIG_IGN or SIG_DFL.
+		  (sigaction (car sig-msg)
+			     (car old-handler)
+			     (cdr old-handler))))
+			 signals old-handlers)))))
 
 (defmacro false-if-exception (expr)
   `(catch #t (lambda () ,expr)

@@ -473,8 +473,6 @@ scm_boot_guile_1 (base, closure)
   setjmp_val = setjmp (SCM_JMPBUF (scm_rootcont));
   if (!setjmp_val)
     {
-      scm_init_signals ();
-
       scm_set_program_arguments (closure->argc, closure->argv, 0);
       scm_internal_catch (SCM_BOOL_T, invoke_main_func, closure,
 			  scm_handle_by_message, 0);

@@ -2,7 +2,7 @@
 
 #ifndef ASYNCH
 #define ASYNCH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,16 @@
 
 
 
+#define SCM_ASYNCP(X) 	(scm_tc16_async == SCM_GCTYP16 (X))
+#define SCM_ASYNC(X) 	((struct scm_async *)SCM_CDR (X))
+
+struct scm_async
+{
+  int got_it;			/* needs to be delivered? */
+  SCM thunk;			/* the handler. */
+};
+
+
 
 extern unsigned int scm_mask_ints;
 extern SCM scm_gc_async;
@@ -63,7 +73,6 @@ extern SCM scm_run_asyncs SCM_P ((SCM list_of_a));
 extern SCM scm_noop SCM_P ((SCM args));
 extern SCM scm_set_tick_rate SCM_P ((SCM n));
 extern SCM scm_set_switch_rate SCM_P ((SCM n));
-extern SCM scm_take_signal SCM_P ((int n));
 extern SCM scm_unmask_signals SCM_P ((void));
 extern SCM scm_mask_signals SCM_P ((void));
 extern void scm_init_async SCM_P ((void));

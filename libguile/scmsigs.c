@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,8 @@
 #include <signal.h>
 #include "_scm.h"
 
+#include "async.h"
+#include "eval.h"
 #include "scmsigs.h"
 
 #ifdef HAVE_UNISTD_H
@@ -53,10 +55,6 @@
 
 
 
-#if (__TURBOC__==1)
-#define signal ssignal		/* Needed for TURBOC V1.0 */
-#endif
-
 #ifdef USE_MIT_PTHREADS
 #undef signal
 #define signal pthread_signal
@@ -64,81 +62,254 @@
 
 
 
-/* SIGRETTYPE is the type that signal handlers return.  See <signal.h>*/
+/* SIGRETTYPE is the type that signal handlers return.  See <signal.h> */
 
 #ifdef RETSIGTYPE
-#define SIGRETTYPE RETSIGTYPE
+# define SIGRETTYPE RETSIGTYPE
 #else
-#ifdef STDC_HEADERS
-#if (__TURBOC__==1)
-#define SIGRETTYPE int
-#else
-#define SIGRETTYPE void
-#endif
-#else
-#ifdef linux
-#define SIGRETTYPE void
-#else
-#define SIGRETTYPE int
-#endif
-#endif
-#endif
-
-#ifdef vms
-#ifdef __GNUC__
-#define SIGRETTYPE int
-#endif
+# ifdef STDC_HEADERS
+#  define SIGRETTYPE void
+# else
+#  define SIGRETTYPE int
+# endif
 #endif
 
 
 
-#define SIGFN(NAME, SCM_NAME, SIGNAL) \
-static SIGRETTYPE \
-NAME (sig) \
-     int sig; \
-{ \
-  signal (SIGNAL, NAME); \
-  scm_take_signal (SCM_NAME); \
+/* take_signal is installed as the C signal handler whenever a Scheme
+   handler is set.  when a signal arrives, take_signal marks the corresponding
+   element of got_signal and marks signal_async.  the thunk in signal_async
+   (sys_deliver_signals) will be run at the next opportunity, outside a
+   critical section. sys_deliver_signals runs each Scheme handler for
+   which got_signal is set.  */
+
+static SCM signal_async;
+
+static char got_signal[NSIG];
+
+/* a Scheme vector of handler procedures.  */
+static SCM *signal_handlers;
+
+/* saves the original C handlers, when a new handler is installed.
+   set to SIG_ERR if the original handler is installed.  */
+#ifdef HAVE_SIGACTION
+static struct sigaction orig_handlers[NSIG];
+#else
+static SIGRETTYPE (*orig_handlers)(int)[NSIG];
+#endif
+
+static SIGRETTYPE
+take_signal (int signum)
+{
+  SCM ignored;
+  if (!scm_ints_disabled)
+    {
+      /* For reasons of speed, the SCM_NEWCELL macro doesn't defer
+	 interrupts.  Instead, it first sets its argument to point to
+	 the first cell in the list, and then advances the freelist
+	 pointer to the next cell.  Now, if this procedure is
+	 interrupted, the only anomalous state possible is to have
+	 both SCM_NEWCELL's argument and scm_freelist pointing to the
+	 same cell.  To deal with this case, we always throw away the
+	 first cell in scm_freelist here.
+
+	 At least, that's the theory.  I'm not convinced that that's
+	 the only anomalous path we need to worry about.  */
+      SCM_NEWCELL (ignored);
+    }
+  got_signal[signum] = 1;
+#if HAVE_SIGACTION
+  /* unblock the signal before the scheme handler gets to run, since
+     it may use longjmp to escape (i.e., throw an exception).  */
+  {
+    sigset_t set;
+    sigemptyset (&set);
+    sigaddset (&set, signum);
+    sigprocmask (SIG_UNBLOCK, &set, NULL);
+  }
+#endif
+  scm_system_async_mark (signal_async);
 }
 
-#ifdef SIGHUP
-SIGFN(scm_hup_signal, SCM_HUP_SIGNAL, SIGHUP)
-#endif
+static SCM
+sys_deliver_signals (void)
+{
+  int i;
 
-#ifdef SIGINT
-SIGFN(scm_int_signal, SCM_INT_SIGNAL, SIGINT)
+  for (i = 0; i < NSIG; i++)
+    {
+      if (got_signal[i])
+	{
+	  scm_apply (SCM_VELTS (*signal_handlers)[i], 
+		     scm_listify (SCM_MAKINUM (i), SCM_UNDEFINED),
+		     SCM_EOL);
+	  got_signal[i] = 0;
+#ifndef HAVE_SIGACTION
+	  signal (i, take_signal);
 #endif
-
-#ifdef SIGFPE
-SIGFN(scm_fpe_signal, SCM_FPE_SIGNAL, SIGFPE)
-#endif
-
-#ifdef SIGBUS
-SIGFN(scm_bus_signal, SCM_BUS_SIGNAL, SIGBUS)
-#endif
-
-#ifdef SIGSEGV
-SIGFN(scm_segv_signal, SCM_SEGV_SIGNAL, SIGSEGV)
-#endif
-
-#ifdef SIGALRM
-SIGFN(scm_alrm_signal, SCM_ALRM_SIGNAL, SIGALRM)
-#endif
-
-#define FAKESIGFN(NAME, SCM_NAME) \
-static SIGRETTYPE \
-NAME (sig) \
-     int sig; \
-{ \
-  scm_take_signal (SCM_NAME); \
+	}
+    }
+  return SCM_UNSPECIFIED;
 }
 
-#if 0
-/* !!! */
-FAKESIGFN(scm_gc_signal, SCM_GC_SIGNAL)
-FAKESIGFN(scm_tick_signal, SCM_TICK_SIGNAL)
+/* user interface for installation of signal handlers.  */
+SCM_PROC(s_sigaction, "sigaction", 1, 2, 0, scm_sigaction);
+SCM
+scm_sigaction (SCM signum, SCM handler, SCM flags)
+{
+  int csig;
+#ifdef HAVE_SIGACTION
+  struct sigaction action;
+  struct sigaction old_action;
+#else
+  SIGRETTYPE (* chandler) (int);
+  SIGRETTYPE (* old_chandler) (int);
 #endif
-
+  int query_only = 0;
+  int save_handler = 0;
+  SCM *scheme_handlers = SCM_VELTS (*signal_handlers);
+  SCM old_handler;
+
+  SCM_ASSERT (SCM_INUMP (signum), signum, SCM_ARG1, s_sigaction);
+  csig = SCM_INUM (signum);
+#ifdef HAVE_SIGACTION
+  /* always use restartable system calls if available.  */
+#ifdef SA_RESTART
+  action.sa_flags = SA_RESTART;
+#else
+  action.sa_flags = 0;
+#endif
+  if (!SCM_UNBNDP (flags))
+    {
+      SCM_ASSERT (SCM_INUMP (flags), flags, SCM_ARG3, s_sigaction);
+      action.sa_flags |= SCM_INUM (flags);
+    }
+  sigemptyset (&action.sa_mask);
+#endif
+  SCM_DEFER_INTS;
+  old_handler = scheme_handlers[csig];
+  if (SCM_UNBNDP (handler))
+    query_only = 1;
+  else if (SCM_INUMP (handler))
+    {
+      if (SCM_INUM (handler) == (int) SIG_DFL
+	  || SCM_INUM (handler) == (int) SIG_IGN)
+	{
+#ifdef HAVE_SIGACTION
+	  action.sa_handler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
+#else
+	  chandler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
+#endif
+	  scheme_handlers[csig] = SCM_BOOL_F;
+	}
+      else
+	scm_out_of_range (s_sigaction, handler);
+    }
+  else if (SCM_FALSEP (handler))
+    {
+      /* restore the default handler.  */
+#ifdef HAVE_SIGACTION
+      if (orig_handlers[csig].sa_handler == SIG_ERR)
+	query_only = 1;
+      else
+	{
+	  action = orig_handlers[csig];
+	  orig_handlers[csig].sa_handler = SIG_ERR;
+	  scheme_handlers[csig] = SCM_BOOL_F;
+	}
+#else
+      if (orig_handlers[csig] == SIG_ERR)
+	query_only = 1;
+      else
+	{
+	  chandler = orig_handlers[csig];
+	  orig_handlers[csig] = SIG_ERR;
+	  scheme_handlers[csig] = SCM_BOOL_F;
+	}
+#endif
+    } 
+  else
+    {
+      SCM_ASSERT (SCM_NIMP (handler), handler, SCM_ARG2, s_sigaction);
+#ifdef HAVE_SIGACTION
+      action.sa_handler = take_signal;
+      if (orig_handlers[csig].sa_handler == SIG_ERR)
+	save_handler = 1;
+#else
+      chandler = take_signal;
+      if (orig_handlers[csig] == SIG_ERR)
+	save_handler = 1;
+#endif
+      scheme_handlers[csig] = handler;
+    }
+#ifdef HAVE_SIGACTION
+  if (query_only)
+    {
+      if (sigaction (csig, 0, &old_action) == -1)
+	scm_syserror (s_sigaction);
+    }
+  else
+    {
+      if (sigaction (csig, &action , &old_action) == -1)
+	scm_syserror (s_sigaction);
+      if (save_handler)
+	orig_handlers[csig] = old_action;
+    }
+  if (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN)
+    old_handler = SCM_MAKINUM ((int) old_action.sa_handler);
+  SCM_ALLOW_INTS;
+  return scm_cons (old_handler, SCM_MAKINUM (old_action.sa_flags));
+#else
+  if (query_only)
+    {
+      if ((old_chandler = signal (csig, SIG_IGN)) == SIG_ERR)
+	scm_syserror (s_sigaction);
+      if (signal (csig, old_chandler) == SIG_ERR)
+	scm_syserror (s_sigaction);
+    }
+  else
+    {
+      if ((old_chandler = signal (csig, chandler)) == SIG_ERR)
+	scm_syserror (s_sigaction);
+      if (save_handler)
+	orig_handlers[csig] = old_chandler;
+    }
+  if (old_chandler == SIG_DFL || old_chandler == SIG_IGN)
+    old_handler = SCM_MAKINUM ((int) old_chandler);
+  SCM_ALLOW_INTS;
+  return scm_cons (old_handler, SCM_MAKINUM (0));
+#endif
+}
+
+SCM_PROC (s_restore_signals, "restore-signals", 0, 0, 0, scm_restore_signals);
+SCM
+scm_restore_signals (void)
+{
+  int i;
+  SCM *scheme_handlers = SCM_VELTS (*signal_handlers);  
+
+  for (i = 0; i < NSIG; i++)
+    {
+#ifdef HAVE_SIGACTION
+      if (orig_handlers[i].sa_handler != SIG_ERR)
+	{
+	  if (sigaction (i, &orig_handlers[i], NULL) == -1)
+	    scm_syserror (s_restore_signals);
+	  orig_handlers[i].sa_handler = SIG_ERR;
+	  scheme_handlers[i] = SCM_BOOL_F;
+	}
+#else
+      if (orig_handlers[i] != SIG_ERR)
+	{
+	  if (signal (i, orig_handlers[i]) == SIG_ERR)
+	    scm_syserror (s_restore_signals);
+	  orig_handlers[i] = SIG_ERR;
+	  scheme_handlers[i] = SCM_BOOL_F;
+	}
+#endif
+    }
+  return SCM_UNSPECIFIED;
+}
 
 SCM_PROC(s_alarm, "alarm", 1, 0, 0, scm_alarm);
 
@@ -148,10 +319,9 @@ scm_alarm (i)
 {
   unsigned int j;
   SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_alarm);
-  SCM_SYSCALL (j = alarm (SCM_INUM (i)));
+  j = alarm (SCM_INUM (i));
   return SCM_MAKINUM (j);
 }
-
 
 SCM_PROC(s_pause, "pause", 0, 0, 0, scm_pause);
 
@@ -170,11 +340,7 @@ scm_sleep (i)
 {
   unsigned int j;
   SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_sleep);
-#ifdef __HIGHC__
-  SCM_SYSCALL(j = 0; sleep(SCM_INUM(i)););
-#else
-  SCM_SYSCALL(j = sleep(SCM_INUM(i)););
-#endif
+  j = sleep (SCM_INUM(i));
   return SCM_MAKINUM (j);
 }
 
@@ -185,184 +351,50 @@ scm_raise(sig)
      SCM sig;
 {
   SCM_ASSERT(SCM_INUMP(sig), sig, SCM_ARG1, s_raise);
-# ifdef vms
-  return SCM_MAKINUM(gsignal((int)SCM_INUM(sig)));
-# else
-  return kill (getpid(), (int)SCM_INUM(sig)) ? SCM_BOOL_F : SCM_BOOL_T;
-# endif
-}
-
-
-#ifdef SIGHUP
-static SIGRETTYPE (*oldhup) ();
-#endif
-
-#ifdef SIGINT
-static SIGRETTYPE (*oldint) ();
-#endif
-
-#ifdef SIGFPE
-static SIGRETTYPE (*oldfpe) ();
-#endif
-
-#ifdef SIGBUS
-static SIGRETTYPE (*oldbus) ();
-#endif
-
-#ifdef SIGSEGV			/* AMIGA lacks! */
-static SIGRETTYPE (*oldsegv) ();
-#endif
-
-#ifdef SIGALRM
-static SIGRETTYPE (*oldalrm) ();
-#endif
-
-#ifdef SIGPIPE
-static SIGRETTYPE (*oldpipe) ();
-#endif
-
-
-
-void 
-scm_init_signals ()
-{
-#ifdef SIGINT
-  oldint = signal (SIGINT, scm_int_signal);
-#endif
-#ifdef SIGHUP
-  oldhup = signal (SIGHUP, scm_hup_signal);
-#endif
-#ifdef SIGFPE
-  oldfpe = signal (SIGFPE, scm_fpe_signal);
-#endif
-#ifdef SIGBUS
-  oldbus = signal (SIGBUS, scm_bus_signal);
-#endif
-#ifdef SIGSEGV			/* AMIGA lacks! */
-  oldsegv = signal (SIGSEGV, scm_segv_signal);
-#endif
-#ifdef SIGALRM
-  alarm (0);			/* kill any pending ALRM interrupts */
-  oldalrm = signal (SIGALRM, scm_alrm_signal);
-#endif
-#ifdef SIGPIPE
-  oldpipe = signal (SIGPIPE, SIG_IGN);
-#endif
-#ifdef ultrix
-  siginterrupt (SIGINT, 1);
-  siginterrupt (SIGALRM, 1);
-  siginterrupt (SIGHUP, 1);
-  siginterrupt (SIGPIPE, 1);
-#endif /* ultrix */
-}
-
-/* This is used in preparation for a possible fork().  Ignore all
-   signals before the fork so that child will catch only if it
-   establishes a handler */
-
-void 
-scm_ignore_signals ()
-{
-#ifdef ultrix
-  siginterrupt (SIGINT, 0);
-  siginterrupt (SIGALRM, 0);
-  siginterrupt (SIGHUP, 0);
-  siginterrupt (SIGPIPE, 0);
-#endif /* ultrix */
-  signal (SIGINT, SIG_IGN);
-#ifdef SIGHUP
-  signal (SIGHUP, SIG_DFL);
-#endif
-#ifdef SCM_FLOATS
-  signal (SIGFPE, SIG_DFL);
-#endif
-#ifdef SIGBUS
-  signal (SIGBUS, SIG_DFL);
-#endif
-#ifdef SIGSEGV			/* AMIGA lacks! */
-  signal (SIGSEGV, SIG_DFL);
-#endif
-  /* Some documentation claims that ALRMs are cleared accross forks.
-     If this is not always true then the value returned by alarm(0)
-     will have to be saved and scm_unignore_signals() will have to
-     reinstate it. */
-  /* This code should be neccessary only if the forked process calls
-     alarm() without establishing a handler:
-     #ifdef SIGALRM
-     oldalrm = signal(SIGALRM, SIG_DFL);
-     #endif */
-  /* These flushes are per warning in man page on fork(). */
-  fflush (stdout);
-  fflush (stderr);
-}
-
-
-void 
-scm_unignore_signals ()
-{
-  signal (SIGINT, scm_int_signal);
-#ifdef SIGHUP
-  signal (SIGHUP, scm_hup_signal);
-#endif
-#ifdef SCM_FLOATS
-  signal (SIGFPE, scm_fpe_signal);
-#endif
-#ifdef SIGBUS
-  signal (SIGBUS, scm_bus_signal);
-#endif
-#ifdef SIGSEGV			/* AMIGA lacks! */
-  signal (SIGSEGV, scm_segv_signal);
-#endif
-#ifdef SIGALRM
-  signal (SIGALRM, scm_alrm_signal);
-#endif
-#ifdef ultrix
-  siginterrupt (SIGINT, 1);
-  siginterrupt (SIGALRM, 1);
-  siginterrupt (SIGHUP, 1);
-  siginterrupt (SIGPIPE, 1);
-#endif /* ultrix */
-}
-
-SCM_PROC (s_restore_signals, "restore-signals", 0, 0, 0, scm_restore_signals);
-
-SCM
-scm_restore_signals ()
-{
-#ifdef ultrix
-  siginterrupt (SIGINT, 0);
-  siginterrupt (SIGALRM, 0);
-  siginterrupt (SIGHUP, 0);
-  siginterrupt (SIGPIPE, 0);
-#endif /* ultrix */
-  signal (SIGINT, oldint);
-#ifdef SIGHUP
-  signal (SIGHUP, oldhup);
-#endif
-#ifdef SCM_FLOATS
-  signal (SIGFPE, oldfpe);
-#endif
-#ifdef SIGBUS
-  signal (SIGBUS, oldbus);
-#endif
-#ifdef SIGSEGV			/* AMIGA lacks! */
-  signal (SIGSEGV, oldsegv);
-#endif
-#ifdef SIGPIPE
-  signal (SIGPIPE, oldpipe);
-#endif
-#ifdef SIGALRM
-  alarm (0);			/* kill any pending ALRM interrupts */
-  signal (SIGALRM, oldalrm);
-#endif
+  SCM_DEFER_INTS;
+  if (kill (getpid (), (int) SCM_INUM (sig)) != 0)
+    scm_syserror (s_raise);
+  SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
 
-
+
 
 void
 scm_init_scmsigs ()
 {
+  SCM thunk;
+  int i;
+
+  signal_handlers =
+    SCM_CDRLOC (scm_sysintern ("signal-handlers",
+			       scm_make_vector (SCM_MAKINUM (NSIG),
+						SCM_BOOL_F,
+						SCM_BOOL_F)));
+  thunk = scm_make_gsubr ("%deliver-signals", 0, 0, 0,
+			  sys_deliver_signals);
+  signal_async = scm_system_async (thunk);
+
+  for (i = 0; i < NSIG; i++)
+    {
+      got_signal[i] = 0;
+#ifdef HAVE_SIGACTION
+      orig_handlers[i].sa_handler = SIG_ERR;
+#else
+      orig_handlers[i] = SIG_ERR;
+#endif
+    }
+
+  scm_sysintern ("NSIG", scm_long2num (NSIG));
+  scm_sysintern ("SIG_IGN", scm_long2num ((long) SIG_IGN));
+  scm_sysintern ("SIG_DFL", scm_long2num ((long) SIG_DFL));
+#ifdef SA_NOCLDSTOP
+  scm_sysintern ("SA_NOCLDSTOP", scm_long2num (SA_NOCLDSTOP));
+#endif
+#ifdef SA_RESTART
+  scm_sysintern ("SA_RESTART", scm_long2num (SA_RESTART));
+#endif
+
 #include "scmsigs.x"
 }
 

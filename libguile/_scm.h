@@ -76,7 +76,18 @@
  */
 #include <errno.h>
 
-/* SCM_SYSCALL retries system calls that have been interrupted (EINTR) */
+/* SCM_SYSCALL retries system calls that have been interrupted (EINTR).
+   However this can be avoided if the operating system can restart
+   system calls automatically.  We assume this is the case if
+   sigaction is available and SA_RESTART is defined; they will be used
+   when installing signal handlers.
+   */
+
+#ifdef HAVE_RESTARTS
+#define SCM_SYSCALL(line) line
+#endif
+
+#ifndef SCM_SYSCALL
 #ifdef vms
 # ifndef __GNUC__
 #  include <ssdef.h>
@@ -84,6 +95,7 @@
 	while(EVMSERR==errno && (vaxc$errno>>3)==(SS$_CONTROLC>>3))
 # endif /* ndef __GNUC__ */
 #endif /* def vms */
+#endif /* ndef SCM_SYSCALL  */
 
 #ifndef SCM_SYSCALL
 # ifdef EINTR
@@ -94,7 +106,7 @@
 #endif /* ndef SCM_SYSCALL */
 
 #ifndef SCM_SYSCALL
-# define SCM_SYSCALL(line) {line;}
+# define SCM_SYSCALL(line) line;
 #endif /* ndef SCM_SYSCALL */
 
 #ifndef MSDOS

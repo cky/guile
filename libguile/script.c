@@ -614,6 +614,8 @@ scm_compile_shell_switches (int argc, char **argv)
 	 quit.  */
       tail = scm_cons (scm_cons (sym_quit, SCM_EOL),
 		   tail);
+      /* Allow asyncs (signal handlers etc.) to be run.  */
+      scm_mask_ints = 0;
     }
   {
     /* We want a path only containing directories from SCHEME_LOAD_PATH,

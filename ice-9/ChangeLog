@@ -1,3 +1,10 @@
+Sat May 31 18:57:12 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm: signal-handler, alarm-thunk: removed.
+	don't define ticks-interrupt etc.
+	top-repl: install signal handlers for SIGINT, SIGFPE, SIGSEGV, SIGBUS
+	during call to scm-style-repl.
+	
 Fri May 30 18:08:10 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* slib.scm (slib:load): Use primitive-load-path instead of

@@ -1,3 +1,32 @@
+Sat May 31 18:57:51 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* scmsigs.h, async.h: updated.
+	
+	* _scm.h: if HAVE_RESTARTS is defined then don't use a SYSCALL
+	loop.
+
+	* posix.c (scm_uname): interpret only negative values as an error.
+  	Solaris normally returns a positive value.
+
+	* script.c (scm_compile_shell_switches): if we are not going into
+	an interactive repl, set scm_mask_ints to zero so that asyncs can
+	run.
+
+	* simpos.c (scm_system):  don't ignore/unignore signals around
+	the "system" call.
+
+	* posix.c (scm_open_pipe): don't ignore/unignore signals around
+	the "popen" call.
+
+	* init.c (scm_boot_guile_1): don't call scm_init_signals, it's
+	done in boot-9.scm instead.
+
+	* scmsigs.c, async.c: Major rewriting of signal handling code.
+	(scm_sigaction): new procedure.
+ 	(scm_sleep): don't wrap sleep in SCM_SYSCALL, it would mess up the
+	timing.
+	(scm_raise): return unspecified, throw error on failure.
+
 Thu May 29 02:47:36 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* regex-posix.c (scm_init_regex_posix): Register the "regex"

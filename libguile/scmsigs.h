@@ -2,7 +2,7 @@
 
 #ifndef SCMSIGSH
 #define SCMSIGSH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,14 +47,12 @@
 
 
 
+extern SCM scm_sigaction (SCM signum, SCM handler, SCM flags);
+extern SCM scm_restore_signals SCM_P ((void));
 extern SCM scm_alarm SCM_P ((SCM i));
 extern SCM scm_pause SCM_P ((void));
 extern SCM scm_sleep SCM_P ((SCM i));
 extern SCM scm_raise SCM_P ((SCM sig));
-extern void scm_init_signals SCM_P ((void));
-extern void scm_ignore_signals SCM_P ((void));
-extern void scm_unignore_signals SCM_P ((void));
-extern SCM scm_restore_signals SCM_P ((void));
 extern void scm_init_scmsigs SCM_P ((void));
 
 #endif  /* SCMSIGSH */
