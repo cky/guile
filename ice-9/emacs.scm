@@ -143,7 +143,7 @@
 		)
 	      (lambda (key . args)
 		(cond ((eq? key 'end-of-chunk)
-		       (set! the-last-stack #f)
+		       (fluid-set! the-last-stack #f)
 		       (set! stack-saved? #t)
 		       (scm-error 'misc-error
 				  #f
@@ -167,12 +167,13 @@
 
 ;;*fixme* Not necessary to use flags no-stack and no-source
 (define (get-frame-source frame)
-  (if (or (not the-last-stack)
-	  (>= frame (stack-length the-last-stack)))
+  (if (or (not (fluid-ref the-last-stack))
+	  (>= frame (stack-length (fluid-ref the-last-stack))))
       (begin
 	(no-stack)
 	#f)
-      (let* ((frame (stack-ref the-last-stack (frame-number->index frame)))
+      (let* ((frame (stack-ref (fluid-ref the-last-stack)
+			       (frame-number->index frame)))
 	     (source (frame-source frame)))
 	(or source
 	    (begin (no-source)
