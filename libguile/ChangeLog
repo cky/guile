@@ -1,3 +1,14 @@
+2000-07-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.h (SCM_CELL_WORD, SCM_CELL_OBJECT):  Treat the referenced
+	object as const in order to make the compiler warn about code like
+	SCM_CELL_WORD (x, n) = y.  Instead, SCM_SET_CELL_WORD (x, n, y)
+	should be used.
+
+	(SCM_CELL_WORD_LOC, SCM_CARLOC, SCM_CDRLOC):  Return the address
+	as an address to a non-const object, since these macros are used
+	to allow direct write access to objects.
+
 2000-07-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* hashtab.c (scm_hash_fn_create_handle_x):  Signal an error if the

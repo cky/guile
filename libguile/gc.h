@@ -92,33 +92,29 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_VALIDATE_CELL(cell, expr) expr
 #endif
 
-#define SCM_CELL_WORD(x, n)					\
-    SCM_VALIDATE_CELL ((x),					\
-		       ((scm_bits_t *) SCM2PTR (x)) [n])
+#define SCM_CELL_WORD(x, n) \
+  SCM_VALIDATE_CELL ((x), ((const scm_bits_t *) SCM2PTR (x)) [n])
 #define SCM_CELL_WORD_0(x) SCM_CELL_WORD (x, 0)
 #define SCM_CELL_WORD_1(x) SCM_CELL_WORD (x, 1)
 #define SCM_CELL_WORD_2(x) SCM_CELL_WORD (x, 2)
 #define SCM_CELL_WORD_3(x) SCM_CELL_WORD (x, 3)
 
-#define SCM_CELL_OBJECT(x, n)						\
-    SCM_VALIDATE_CELL ((x),						\
-		       SCM_PACK (((scm_bits_t *) SCM2PTR (x)) [n]))
+#define SCM_CELL_OBJECT(x, n) \
+  SCM_VALIDATE_CELL ((x), SCM_PACK (((const scm_bits_t *) SCM2PTR (x)) [n]))
 #define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT (x, 0)
 #define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT (x, 1)
 #define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT (x, 2)
 #define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT (x, 3)
 
-#define SCM_SET_CELL_WORD(x, n, v)					    \
-    SCM_VALIDATE_CELL ((x),						    \
-		       ((scm_bits_t *) SCM2PTR (x)) [n] = (scm_bits_t) (v))
+#define SCM_SET_CELL_WORD(x, n, v) \
+  SCM_VALIDATE_CELL ((x), ((scm_bits_t *) SCM2PTR (x)) [n] = (scm_bits_t) (v))
 #define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD (x, 0, v)
 #define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD (x, 1, v)
 #define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD (x, 2, v)
 #define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD (x, 3, v)
 
-#define SCM_SET_CELL_OBJECT(x, n, v)					  \
-    SCM_VALIDATE_CELL ((x),						  \
-		       ((scm_bits_t *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
+#define SCM_SET_CELL_OBJECT(x, n, v) \
+  SCM_VALIDATE_CELL ((x), ((scm_bits_t *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
 #define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT (x, 0, v)
 #define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT (x, 1, v)
 #define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT (x, 2, v)
@@ -136,9 +132,9 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_SETOR_CDR(x, y)\
   (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y))))
 
-#define SCM_CELL_WORD_LOC(x, n) (&SCM_CELL_WORD (x, n))
-#define SCM_CARLOC(x) ((SCM *) (&(((scm_bits_t *) SCM2PTR (x)) [0])))
-#define SCM_CDRLOC(x) ((SCM *) (&(((scm_bits_t *) SCM2PTR (x)) [1])))
+#define SCM_CELL_WORD_LOC(x, n) ((scm_bits_t *) & SCM_CELL_WORD (x, n))
+#define SCM_CARLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 0))
+#define SCM_CDRLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 1))
 
 
 /* SCM_PTR_LT and friends define how to compare two SCM_CELLPTRs (which may
