@@ -123,14 +123,14 @@ typedef unsigned long ulong_long;
 
 
 /* Write prototype declarations like this:
-     int foo PROTO ((int a, int b));
+     int foo SCM_P ((int a, int b));
    At definitions, use K&R style declarations, but make sure there's a
    declarative prototype (as above) in scope.  This will give you
    argument type checking, when available, and be harmless otherwise.  */
 #ifdef __STDC__
-#  define PROTO(x) x
+#  define SCM_P(x) x
 #else
-#  define PROTO(x) (x)
+#  define SCM_P(x) (x)
 #endif
 
 

@@ -70,28 +70,28 @@ extern long scm_mtrigger;
 
 
 
-extern SCM scm_gc_stats PROTO ((void));
-extern void scm_gc_start PROTO ((char *what));
-extern void scm_gc_end PROTO ((void));
-extern SCM scm_gc PROTO ((void));
-extern void scm_gc_for_alloc PROTO ((int ncells, SCM * freelistp));
-extern SCM scm_gc_for_newcell PROTO ((void));
-extern void scm_igc PROTO ((char *what));
-extern void scm_gc_mark PROTO ((SCM p));
-extern void scm_mark_locations PROTO ((SCM_STACKITEM x[], scm_sizet n));
-extern int scm_cellp PROTO ((SCM value));
-extern void scm_gc_sweep PROTO ((void));
-extern char * scm_must_malloc PROTO ((long len, char *what));
-extern char * scm_must_realloc PROTO ((char *where, long olen, long len,
+extern SCM scm_gc_stats SCM_P ((void));
+extern void scm_gc_start SCM_P ((char *what));
+extern void scm_gc_end SCM_P ((void));
+extern SCM scm_gc SCM_P ((void));
+extern void scm_gc_for_alloc SCM_P ((int ncells, SCM * freelistp));
+extern SCM scm_gc_for_newcell SCM_P ((void));
+extern void scm_igc SCM_P ((char *what));
+extern void scm_gc_mark SCM_P ((SCM p));
+extern void scm_mark_locations SCM_P ((SCM_STACKITEM x[], scm_sizet n));
+extern int scm_cellp SCM_P ((SCM value));
+extern void scm_gc_sweep SCM_P ((void));
+extern char * scm_must_malloc SCM_P ((long len, char *what));
+extern char * scm_must_realloc SCM_P ((char *where, long olen, long len,
 				       char *what));
-extern void scm_must_free PROTO ((char *obj));
-extern void scm_remember PROTO ((SCM * ptr));
-extern SCM scm_return_first PROTO ((SCM elt, ...));
-extern SCM scm_permanent_object PROTO ((SCM obj));
-extern SCM scm_protect_object PROTO ((SCM obj));
-extern SCM scm_unprotect_object PROTO ((SCM obj));
-extern int scm_init_storage PROTO ((long init_heap_size));
-extern void scm_init_gc PROTO ((void));
+extern void scm_must_free SCM_P ((char *obj));
+extern void scm_remember SCM_P ((SCM * ptr));
+extern SCM scm_return_first SCM_P ((SCM elt, ...));
+extern SCM scm_permanent_object SCM_P ((SCM obj));
+extern SCM scm_protect_object SCM_P ((SCM obj));
+extern SCM scm_unprotect_object SCM_P ((SCM obj));
+extern int scm_init_storage SCM_P ((long init_heap_size));
+extern void scm_init_gc SCM_P ((void));
 
 #include "libguile/marksweep.h"
 #endif  /* GCH */

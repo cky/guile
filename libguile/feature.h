@@ -49,8 +49,8 @@
 
 extern SCM *scm_loc_features;
 
-extern void scm_add_feature PROTO((char* str));
-extern SCM scm_program_arguments  PROTO((void));
-extern void scm_init_feature PROTO((void));
+extern void scm_add_feature SCM_P((char* str));
+extern SCM scm_program_arguments  SCM_P((void));
+extern void scm_init_feature SCM_P((void));
 
 #endif  /* FEATUREH */

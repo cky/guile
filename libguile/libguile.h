@@ -90,7 +90,6 @@
 #include "libguile/numbers.h"
 #include "libguile/objprop.h"
 #include "libguile/options.h"
-#include "libguile/params.h"
 #include "libguile/ports.h"
 #include "libguile/posix.h"
 #include "libguile/print.h"

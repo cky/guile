@@ -187,9 +187,9 @@ struct scm_heap_seg_data
 
 
 
-static void scm_mark_weak_vector_spines PROTO ((void));
-static scm_sizet init_heap_seg PROTO ((SCM_CELLPTR, scm_sizet, int, SCM *));
-static void alloc_some_heap PROTO ((int, SCM *));
+static void scm_mark_weak_vector_spines SCM_P ((void));
+static scm_sizet init_heap_seg SCM_P ((SCM_CELLPTR, scm_sizet, int, SCM *));
+static void alloc_some_heap SCM_P ((int, SCM *));
 
 
 

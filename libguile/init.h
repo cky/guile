@@ -58,10 +58,10 @@ enum scm_boot_status
 
 
 
-extern void scm_start_stack PROTO ((void *base,
+extern void scm_start_stack SCM_P ((void *base,
 				    FILE *in, FILE *out, FILE *err));
-extern void scm_restart_stack PROTO ((void * base));
-extern int scm_boot_guile PROTO ((char **result,
+extern void scm_restart_stack SCM_P ((void * base));
+extern int scm_boot_guile SCM_P ((char **result,
 				  int argc, char **argv,
 				  FILE *in, FILE *out, FILE *err,
 				  void (*init_func) (),

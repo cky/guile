@@ -51,8 +51,8 @@ extern SCM system_error_sym;
 
 
 
-extern void scm_error PROTO ((SCM key, char *subr, char *message, SCM args, SCM rest));
-extern void (*scm_error_callback) PROTO ((SCM key, char *subr, char *message, SCM args, SCM rest));
+extern void scm_error SCM_P ((SCM key, char *subr, char *message, SCM args, SCM rest));
+extern void (*scm_error_callback) SCM_P ((SCM key, char *subr, char *message, SCM args, SCM rest));
 
 #ifdef __STDC__
 extern int scm_handle_it (int i);

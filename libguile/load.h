@@ -46,10 +46,10 @@
 #include "libguile/__scm.h"
 
 
-extern void scm_init_load_path PROTO ((void));
-extern SCM scm_sys_try_load PROTO ((SCM filename, SCM casep, SCM sharp));
-extern SCM scm_sys_search_load_path PROTO ((SCM filename));
-extern SCM scm_sys_try_load_path PROTO ((SCM filename, SCM casep, SCM sharp));
-extern void scm_init_load PROTO ((void));
+extern void scm_init_load_path SCM_P ((void));
+extern SCM scm_sys_try_load SCM_P ((SCM filename, SCM casep, SCM sharp));
+extern SCM scm_sys_search_load_path SCM_P ((SCM filename));
+extern SCM scm_sys_try_load_path SCM_P ((SCM filename, SCM casep, SCM sharp));
+extern void scm_init_load SCM_P ((void));
 
 #endif  /* LOADH */

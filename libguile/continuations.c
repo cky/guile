@@ -124,7 +124,7 @@ scm_make_cont (answer)
 }
 
 
-void scm_dynthrow PROTO ((SCM *a));
+void scm_dynthrow SCM_P ((SCM *a));
 
 /* Grow the stack so that there is room */
 /* to copy in the continuation.  Then */
