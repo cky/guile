@@ -229,10 +229,14 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 	    "use the current thread.")
 #define FUNC_NAME s_scm_system_async_mark_for_thread
 {
+#ifdef USE_THREADS
   scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F),
 			  (SCM_UNBNDP (thread)
 			   ? scm_root
 			   : scm_i_thread_root (thread)));
+#else
+  scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F), scm_root);
+#endif
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

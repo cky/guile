@@ -129,9 +129,14 @@ take_signal (int signum)
 {
   if (signum >= 0 && signum < NSIG)
     {
+#ifdef USE_THREADS
       SCM thread = SCM_VECTOR_REF (signal_handler_threads, signum);
       scm_i_queue_async_cell (SCM_VECTOR_REF(signal_handler_cells, signum),
 			      scm_i_thread_root (thread));
+#else
+      scm_i_queue_async_cell (SCM_VECTOR_REF(signal_handler_cells, signum),
+			      scm_root);
+#endif
     }
 #ifndef HAVE_SIGACTION
   signal (signum, take_signal);
@@ -213,11 +218,17 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
       action.sa_flags |= SCM_INUM (flags);
     }
   sigemptyset (&action.sa_mask);
+#endif
+
+#ifdef USE_THREAD
   if (SCM_UNBNDP (thread))
     thread = scm_current_thread ();
   else
     SCM_VALIDATE_THREAD (4, thread);
+#else
+  thread = SCM_BOOL_F;
 #endif
+
   SCM_DEFER_INTS;
   old_handler = SCM_VECTOR_REF(*signal_handlers, csig);
   if (SCM_UNBNDP (handler))
