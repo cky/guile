@@ -1,3 +1,8 @@
+2000-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* guile-config.in (display-line-port):  Make sure all output is
+	sent to the given port.  Thanks to I. N. Golubev for the patch.
+
 2000-01-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (EXTRA_DIST): Added "guile.m4".

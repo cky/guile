@@ -255,7 +255,7 @@
 (define (display-line-port port . args)
   (for-each (lambda (arg) (display arg port))
 	    args)
-  (newline))
+  (newline port))
 
 (define (display-separated args)
   (let loop ((args args))
