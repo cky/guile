@@ -187,6 +187,16 @@
       (set! *readline-completion-function* apropos-completion-function)
       ))
 
+(define-public (call-with-readline-completion-function completer thunk)
+  "With @var{completer} as readline completion function, call @var{thunk}."
+  (let ((old-completer *readline-completion-function*))
+    (dynamic-wind
+	(lambda ()
+	  (set! *readline-completion-function* completer))
+	thunk
+	(lambda ()
+	  (set! *readline-completion-function* old-completer)))))
+
 (define-public (activate-readline)
   (if (and (isatty? (current-input-port))
 	   (not (and (module-defined? the-root-module 'use-emacs-interface)

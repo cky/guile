@@ -1,3 +1,7 @@
+2001-08-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* readline.scm (call-with-readline-completion-function): New.
+
 2001-07-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* Makefile.am, readline.scm: Updated copyright notice.
