@@ -1887,26 +1887,39 @@
   (pass-if-exception "complex/frac" exception:wrong-type-arg
     (max 1+i 123/456))
 
-  (pass-if (= 456.0 (max 123.0 456.0)))
-  (pass-if (= 456.0 (max 456.0 123.0)))
-
   (let ((big*2 (* fixnum-max 2))
         (big*3 (* fixnum-max 3))
         (big*4 (* fixnum-max 4))
         (big*5 (* fixnum-max 5)))
-    
-    (pass-if (= +inf.0 (max big*5  +inf.0)))
-    (pass-if (= +inf.0 (max +inf.0 big*5)))
-    (pass-if (= big*5  (max big*5  -inf.0)))
-    (pass-if (= big*5  (max -inf.0 big*5)))
 
-    (pass-if (nan? (max 123 +nan.0)))
-    (pass-if (nan? (max big*5 +nan.0)))
-    (pass-if (nan? (max 123.0 +nan.0)))
-    (pass-if (nan? (max +nan.0 123)))
-    (pass-if (nan? (max +nan.0 big*5)))
-    (pass-if (nan? (max +nan.0 123.0)))
-    (pass-if (nan? (max +nan.0 +nan.0))))
+    (with-test-prefix "inum / real"
+      (pass-if (nan? (max 123 +nan.0))))
+
+    (with-test-prefix "real / inum"
+      (pass-if (nan? (max +nan.0 123))))
+
+    (with-test-prefix "big / real"
+      (pass-if (nan? (max big*5 +nan.0)))
+      (pass-if (= big*5  (max big*5 -inf.0)))
+      (pass-if (= +inf.0 (max big*5 +inf.0)))
+      (pass-if (= 1.0 (max (- big*5) 1.0)))
+      (pass-if (inexact? (max big*5 1.0)))
+      (pass-if (= (exact->inexact big*5) (max big*5 1.0))))
+
+    (with-test-prefix "real / big"
+      (pass-if (nan? (max +nan.0 big*5)))
+      (pass-if (= +inf.0 (max +inf.0 big*5)))
+      (pass-if (= big*5  (max -inf.0 big*5)))
+      (pass-if (= 1.0 (max 1.0 (- big*5))))
+      (pass-if (inexact? (max 1.0 big*5)))
+      (pass-if (= (exact->inexact big*5) (max 1.0 big*5))))
+
+    (with-test-prefix "real / real"
+      (pass-if (nan? (max 123.0 +nan.0)))
+      (pass-if (nan? (max +nan.0 123.0)))
+      (pass-if (nan? (max +nan.0 +nan.0)))
+      (pass-if (= 456.0 (max 123.0 456.0)))
+      (pass-if (= 456.0 (max 456.0 123.0)))))
 
   ;; in gmp prior to 4.2, mpz_cmp_d ended up treating Inf as 2^1024, make
   ;; sure we've avoided that
@@ -1916,9 +1929,9 @@
 	      (pass-if (list +inf.0 b)
 		(= +inf.0 (max b +inf.0)))
 	      (pass-if (list b -inf.0)
-		(= b (max b -inf.0)))
+		(= (exact->inexact b) (max b -inf.0)))
 	      (pass-if (list -inf.0 b)
-		(= b (max b -inf.0))))
+		(= (exact->inexact b) (max b -inf.0))))
 	    (list (1- (ash 1 1024))
 		  (ash 1 1024)
 		  (1+ (ash 1 1024))
@@ -1962,14 +1975,11 @@
   (pass-if-exception "complex/frac" exception:wrong-type-arg
     (min 1+i 123/456))
 
-  (pass-if (= 123.0 (min 123.0 456.0)))
-  (pass-if (= 123.0 (min 456.0 123.0)))
-
   (let ((big*2 (* fixnum-max 2))
         (big*3 (* fixnum-max 3))
         (big*4 (* fixnum-max 4))
         (big*5 (* fixnum-max 5)))
-    
+
     (expect-fail (documented? max))
     (pass-if (= 1 (min 7 3 1 5)))
     (pass-if (= 1 (min 1 7 3 5)))
@@ -1986,27 +1996,44 @@
         (= (- fixnum-min 1) (min (- fixnum-min 1) 2 4 3 (* 2 fixnum-max))))
     (pass-if
         (= (- fixnum-min 1) (min 2 4 3 (* 2 fixnum-max) (- fixnum-min 1))))
-    
-    (pass-if (= big*5  (min big*5  +inf.0)))
-    (pass-if (= big*5  (min +inf.0 big*5)))
-    (pass-if (= -inf.0 (min big*5  -inf.0)))
-    (pass-if (= -inf.0 (min -inf.0 big*5)))
 
-    (pass-if (nan? (min 123 +nan.0)))
-    (pass-if (nan? (min big*5 +nan.0)))
-    (pass-if (nan? (min 123.0 +nan.0)))
-    (pass-if (nan? (min +nan.0 123)))
-    (pass-if (nan? (min +nan.0 big*5)))
-    (pass-if (nan? (min +nan.0 123.0)))
-    (pass-if (nan? (min +nan.0 +nan.0))))
-  
+    (with-test-prefix "inum / real"
+      (pass-if (nan? (min 123 +nan.0))))
+
+    (with-test-prefix "real / inum"
+      (pass-if (nan? (min +nan.0 123))))
+
+    (with-test-prefix "big / real"
+      (pass-if (nan? (min big*5 +nan.0)))
+      (pass-if (= big*5  (min big*5  +inf.0)))
+      (pass-if (= -inf.0 (min big*5  -inf.0)))
+      (pass-if (= 1.0 (min big*5 1.0)))
+      (pass-if (inexact? (min (- big*5) 1.0)))
+      (pass-if (= (exact->inexact (- big*5)) (min (- big*5) 1.0))))
+
+    (with-test-prefix "real / big"
+      (pass-if (nan? (min +nan.0 big*5)))
+      (pass-if (= big*5  (min +inf.0 big*5)))
+      (pass-if (= -inf.0 (min -inf.0 big*5)))
+      (pass-if (= 1.0 (min 1.0 big*5)))
+      (pass-if (inexact? (min 1.0 (- big*5))))
+      (pass-if (= (exact->inexact (- big*5)) (min 1.0 (- big*5)))))
+
+    (with-test-prefix "real / real"
+      (pass-if (nan? (min 123.0 +nan.0)))
+      (pass-if (nan? (min +nan.0 123.0)))
+      (pass-if (nan? (min +nan.0 +nan.0)))
+      (pass-if (= 123.0 (min 123.0 456.0)))
+      (pass-if (= 123.0 (min 456.0 123.0)))))
+
+
   ;; in gmp prior to 4.2, mpz_cmp_d ended up treating Inf as 2^1024, make
   ;; sure we've avoided that
   (for-each (lambda (b)
 	      (pass-if (list b +inf.0)
-		(= b (min b +inf.0)))
+		(= (exact->inexact b) (min b +inf.0)))
 	      (pass-if (list +inf.0 b)
-		(= b (min b +inf.0)))
+		(= (exact->inexact b) (min b +inf.0)))
 	      (pass-if (list b -inf.0)
 		(= -inf.0 (min b -inf.0)))
 	      (pass-if (list -inf.0 b)
