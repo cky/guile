@@ -78,6 +78,12 @@ formal argument.  If there are exactly @var{n} actual arguments, the
 empty list is stored into the location of the last formal argument.
 @end table
 
+The list in @var{variable} or @var{variablen+1} is always newly
+created and the procedure can modify it if desired.  This is the case
+even when the procedure is invoked via @code{apply}, the required part
+of the list argument there will be copied (@pxref{Fly Evaluation,,
+Procedures for On the Fly Evaluation}).
+
 @var{body} is a sequence of Scheme expressions which are evaluated in
 order when the procedure is invoked.
 @end deffn
