@@ -192,8 +192,13 @@ error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
-guile-procedures.txt: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
-	cat *.doc > $@
+guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
+	echo "@paragraphindent 0" > $@
+	cat *.doc >> $@
+
+guile-procedures.txt: guile.texi
+	rm -f $@
+	makeinfo --force -o $@ $< || test -f $@
 
 pkgdata_DATA = guile-procedures.txt
 

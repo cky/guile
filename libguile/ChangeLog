@@ -1,5 +1,17 @@
 2000-09-29  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* Makefile.am (guile-procedures.txt): Insert a new rule such that
+	the output from guile-snarf.awk is processed by makeinfo to
+	produce guile-procedures.txt.
+
+	* guile-snarf.awk.in: Modify the way we snarf docstrings such that
+	the output is Texinfo-compliant and suitable for post-processing
+	with makeinfo.  (Trim leading "./" from C file name if
+	present; reformat procedure prototype line in @deffn format;
+	improve representation of args to show optional and rest args;
+	explicitly quote quotation marks where they are used inside an AWK
+	regexp.)
+
 	* net_db.c (scm_inet_ntoa): Docstring fix: missing newline
 	inserted.
 

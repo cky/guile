@@ -32,6 +32,7 @@ BEGIN { FS="|";
 		 sub(/^[ \t]*/,"",location);
 		 sub(/[ \t]*$/,"",location);
 		 sub(/: /,":",location);
+		 sub(/^\.\//,"",location);
 		 # Now whittle copy down to just the $1 field
 		 #   (but do not use $1, since it hasn't been
                  #    altered by the above regexps)
@@ -40,29 +41,53 @@ BEGIN { FS="|";
 		 # Now `copy' contains the nice scheme proc "prototype", e.g.
 		 # (set-car! pair value)
 		 # print copy > "/dev/stderr";  # for debugging
+		 sub(/^\(/,"",copy);
+		 sub(/\)[ \t]*$/,"",copy);
 		 proc_and_args = copy;
 		 curr_function_proto = copy;
+		 proc_name = copy;
+		 sub(/ .*$/,"",proc_name);
 		 sub(/[^ \n]* /,"",proc_and_args);
-		 sub(/\)[ \t]*/,"",proc_and_args);
 		 split(proc_and_args,args," ");
 		 # now args is an array of the arguments
 		 # args[1] is the formal name of the first argument, etc.
 		 if (numargs != numactuals && !registering) 
-		   { print location ":*** `" copy "' is improperly registered as having " numactuals " arguments" > std_err; }
-		 print "\n" copy (registering?")":"") > dot_doc_file ; }
+		   { print location ":*** `" curr_function_proto "' is improperly registered as having " numactuals " arguments" > std_err; }
+		 # Build a nicer function prototype than curr_function_proto
+		 # that shows optional and rest arguments.
+		 nicer_function_proto = proc_name;
+		 if (!registering) {
+    		   optional_args_tail = "";
+		   for (i = 1; i <= $2; i++) {
+		     nicer_function_proto = nicer_function_proto " " args[i];
+		   }
+		   for (; i <= $2 + $3; i++) {
+		     nicer_function_proto = nicer_function_proto " [" args[i];
+		     optional_args_tail = optional_args_tail "]";
+		   }
+		   nicer_function_proto = nicer_function_proto optional_args_tail;
+		   if ($4 != 0) {
+		     nicer_function_proto = nicer_function_proto " . " args[i];
+		   }
+                 }
+		 # Now produce Texinfo format output.
+		 print "\n" proc_name > dot_doc_file;
+		 print "@c snarfed from " location > dot_doc_file;
+		 print "@deffn primitive " nicer_function_proto > dot_doc_file;
+}
 
 /SCM_SNARF_DOCSTRING_START/,/SCM_SNARF_DOCSTRING_END.*$/ { copy = $0; 
                       gsub(/.*SCM_SNARF_DOCSTRING_START/,"",copy); 
-		      sub(/^[ \t]*"?/,"", copy);
+		      sub(/^[ \t]*\"?/,"", copy);
 		      sub(/\"?[ \t]*SCM_SNARF_DOCSTRING_END.*$/,"", copy);
-                      gsub(/\\n\\n"?/,"\n",copy);
-                      gsub(/\\n"?[ \t]*$/,"",copy);
-                      gsub(/\\\"[ \t]*$/,"\"",copy);
+                      gsub(/\\n\\n\"?/,"\n",copy);
+                      gsub(/\\n\"?[ \t]*$/,"",copy);
+                      gsub(/\\\"/,"\"",copy);
                       gsub(/[ \t]*$/,"", copy);
                       if (copy != "") { print copy > dot_doc_file }
                 }
 
-/SCM_SNARF_DOCSTRING_END[ \t]/ { print "[" location "]" >> dot_doc_file; }
+/SCM_SNARF_DOCSTRING_END[ \t]/ { print "@end deffn" >> dot_doc_file; }
 
 /\*&\*&\*&\*SCM_ARG_BETTER_BE_IN_POSITION/ { copy = $0;
          sub(/.*\*&\*&\*&\*SCM_ARG_BETTER_BE_IN_POSITION\([ \t]*/,"",copy);
