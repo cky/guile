@@ -2198,6 +2198,94 @@
 
 
 
+;;; {Run-time options}
+
+((let* ((names '((debug-options-interface
+		  (debug-options debug-enable debug-disable)
+		  (debug-set!))
+	       
+		 (evaluator-traps-interface
+		  (traps trap-enable trap-disable)
+		  (trap-set!))
+		
+		 (read-options-interface
+		  (read-options read-enable read-disable)
+		  (read-set!))
+		
+		 (print-options-interface
+		  (print-options print-enable print-disable)
+		  (print-set!))
+		 ))
+	(option-name car)
+	(option-value cadr)
+	(option-documentation caddr)
+
+	(print-option (lambda (option)
+			(display (option-name option))
+			(if (< (string-length
+				(symbol->string (option-name option)))
+			       8)
+			    (display #\tab))
+			(display #\tab)
+			(display (option-value option))
+			(display #\tab)
+			(display (option-documentation option))
+			(newline)))
+
+	;; Below follows the macros defining the run-time option interfaces.
+
+	(make-options (lambda (interface)
+			`(lambda args
+			   (cond ((null? args) (,interface))
+				 ((pair? (car args))
+				  (,interface (car args)) (,interface))
+				 (else (for-each print-option
+						 (,interface #t)))))))
+
+	(make-enable (lambda (interface)
+		       `(lambda flags
+			  (,interface (append flags (,interface)))
+			  (,interface))))
+
+	(make-disable (lambda (interface)
+			`(lambda flags
+			   (let ((options (,interface)))
+			     (for-each (lambda (flag)
+					 (set! options (delq! flag options)))
+				       flags)
+			     (,interface options)
+			     (,interface)))))
+
+	(make-set! (lambda (interface)
+		     `((name exp)
+		       (,'quasiquote
+			(begin (,interface (append (,interface)
+						   (list '(,'unquote name)
+							 (,'unquote exp))))
+			       (,interface))))))
+	)
+   (procedure->macro
+     (lambda (exp env)
+       (cons 'begin
+	     (apply append
+		    (map (lambda (group)
+			   (let ((interface (car group)))
+			     (append (map (lambda (name constructor)
+					    `(define ,name
+					       ,(constructor interface)))
+					  (cadr group)
+					  (list make-options
+						make-enable
+						make-disable))
+				     (map (lambda (name constructor)
+					    `(defmacro ,name
+					       ,@(constructor interface)))
+					  (caddr group)
+					  (list make-set!)))))
+			 names)))))))
+
+
+
 ;;; {Running Repls}
 ;;;
 

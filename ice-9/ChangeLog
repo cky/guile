@@ -1,3 +1,9 @@
+Sun Sep 28 21:40:24 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* debug.scm: Moved options interface procedures to boot-9.scm.
+
+	* boot-9.scm: Define options interface procedures here instead.
+
 Sat Sep 27 20:19:20 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* boot-9.scm (separate-fields-discarding-char,
