@@ -1,3 +1,18 @@
+2005-03-08  Marius Vollmer  <mvo@zagadka.de>
+
+	libltdl is no longer distributed.  We expect it to be installed
+	already.
+	
+	* configure.in: Do not call AC_LIBLTDL_INSTALLABLE.  Use
+	AC_CHECK_LIB instead. Do not subst LTDLINCL and LIBLTDL.  Do not
+	add "-DLIBLTDL_DLL_IMPORT" on MINGW32.
+
+	* Makefile.am (SUBDIRS): Removed libltdl.
+
+	* README: Talk about required external packages.
+
+	* autogen.sh: Do not call libtoolize.
+
 2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* configure.in: Do not check for fast or recursive mutexes.  Check

@@ -1,3 +1,11 @@
+2005-03-08  Marius Vollmer  <mvo@zagadka.de>
+
+	libltdl is no longer distributed.  We expect it to be installed
+	already.
+	
+	* Makefile.am (INCLUDES): Removed @LTDLINCL@.
+	(libguile_la_LIBADD): Removed @LIBLTDL@.
+
 2005-03-07  Marius Vollmer  <mvo@zagadka.de>
 
 	* threads.h, async.h, threads.c (SCM_CRITICAL_SECTION_START,
