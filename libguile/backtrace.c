@@ -604,6 +604,8 @@ display_backtrace_body(struct display_backtrace_args *a)
       display_frame (frame, nfield, indentation, sport, a->port, pstate);
     }
 
+  scm_remember_upto_here_1 (print_state);
+  
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

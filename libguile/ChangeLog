@@ -1,3 +1,10 @@
+2001-03-31  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* backtrace.c (display_backtrace_body): since the `print_state'
+	variable is not used (instead its data field is used directly as
+	`pstate'), protect it from the hungry compiler optimizations.
+	thanks to Bill Schottstaedt for the report.
+
 2001-03-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.[ch] (scm_tc16_allocated):  New type tag for allocated cells.
