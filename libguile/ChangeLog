@@ -1,5 +1,18 @@
 1998-09-06  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* print.c (scm_iprin1): Rather than having one i, and using it in
+	several places, declare a fresh i local to each block where it is
+	used, and give it a signedness appropriate to its use in each case.
+	(scm_iprlist): Same.
+
+	* print.c (scm_iprin1): Add cast to avoid unsigned/signed
+	comparison warnings.
+
+	* print.c (ENTER_NESTED_DATA): Make i an unsigned long, to avoid
+	signed/unsigned clashes.
+
+	* posix.h (scm_tmpnam): Added prototype.
+
 	* objects.h (scm_set_object_procedure_x, scm_make_class_object,
  	scm_make_subclass_object): Add external prototypes.
 
