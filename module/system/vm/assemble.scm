@@ -76,16 +76,26 @@
        (define (push-code! code)
 	 (set! stack (optimizing-push code stack)))
        (define (push-object! x)
-	 (cond (toplevel (dump-object! push-code! x))
-	       ((object->code x) => push-code!)
+	 (cond ((object->code x) => push-code!)
+	       (toplevel
+		;; top-level object-dump
+		(cond ((object-assoc x object-alist) =>
+		       (lambda (obj+index)
+			 (cond ((not (cdr obj+index))
+				(set-cdr! obj+index nlocs)
+				(set! nlocs (+ nlocs 1))))
+			 (push-code! `(local-ref ,(cdr obj+index)))))
+		      (else
+		       (set! object-alist (acons x #f object-alist))
+		       (push-code! `(object-dump ,x)))))
 	       (else
-		(let ((index (or (if (vlink? x)
-				     (assoc-ref object-alist x)
-				     (assq-ref object-alist x))
-				 (let ((i (length object-alist)))
-				   (set! object-alist (acons x i object-alist))
-				   i))))
-		  (push-code! `(object-ref ,index))))))
+		;; local object-ref
+		(let ((i (cond ((object-assoc x object-alist) => cdr)
+			       (else
+				(let ((i (length object-alist)))
+				  (set! object-alist (acons x i object-alist))
+				  i)))))
+		  (push-code! `(object-ref ,i))))))
        (define (label-ref key)
 	 (assq-ref label-alist key))
        (define (label-set key)
@@ -106,7 +116,7 @@
 	   (($ <glil-argument> op index)
 	    (if (eq? op 'ref)
 		(push-code! `(local-ref ,index)))
-		(push-code! `(local-set ,index)))
+	    (push-code! `(local-set ,index)))
 
 	   (($ <glil-local> op index)
 	    (if (eq? op 'ref)
@@ -123,7 +133,7 @@
 		     (push-code! `(external-set ,(+ n index)))))))
 
 	   (($ <glil-module> op module name)
-	    (push-object! (make-vlink #f name))  ;; FIXME: (make-vmod module)
+	    (push-object! (make-vlink #f name))	;; FIXME: (make-vmod module)
 	    (if (eq? op 'ref)
 		(push-code! '(variable-ref))
 		(push-code! '(variable-set))))
@@ -148,14 +158,33 @@
        ;;
        ;; main
        (for-each generate-code body)
-       (let ((bytes (stack->bytes stack))
-	     (objs (map car (reverse! object-alist))))
-	 (if toplevel
-	     (make-dumpcode nlocs nexts bytes)
+       (if toplevel
+	   ;; top-level
+	   (let ((new '()))
+	     (define (push-code! x)
+	       (set! new (cons x new)))
+	     (do ((stack (reverse! stack) (cdr stack)))
+		 ((null? stack)
+		  (make-dumpcode nlocs nexts (stack->bytes (reverse! new))))
+	       (if (eq? (caar stack) 'object-dump)
+		   (let ((x (cadar stack)))
+		     (dump-object! push-code! x)
+		     (cond ((object-assoc x object-alist) =>
+			    (lambda (obj+index)
+			      (cond ((cdr obj+index) =>
+				     (lambda (n)
+				       (push-code! `(local-set ,n)))))))))
+		   (push-code! (car stack)))))
+	   ;; closures
+	   (let ((bytes (stack->bytes (reverse! stack)))
+		 (objs (map car (reverse! object-alist))))
 	     (make-bytespec nargs nrest nlocs nexts bytes objs)))))))
 
+(define (object-assoc x alist)
+  (if (vlink? x) (assoc x alist) (assq x alist)))
+
 (define (stack->bytes stack)
-  (let loop ((result '()) (stack (reverse! stack)) (addr 0))
+  (let loop ((result '()) (stack stack) (addr 0))
     (if (null? stack)
 	(apply string-append (reverse! result))
 	(let* ((orig (car stack))
