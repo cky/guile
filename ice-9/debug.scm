@@ -88,7 +88,6 @@
 	(let indent ((n trace-level))
 	  (cond ((> n 1) (display "|  " cep) (indent (- n 1)))))
 	(display-application frame cep)))
-  (debug-enable 'trace)
   ;; It's not necessary to call the continuation since
   ;; execution will continue if the handler returns
   ;(cont #f)
@@ -101,8 +100,7 @@
 	(let indent ((n trace-level))
 	  (cond ((> n 0) (display "|  " cep) (indent (- n 1)))))
 	(write retval cep)
-	(newline cep)))
-  (debug-enable 'trace))
+	(newline cep))))
 
 
 ;;; A fix to get the error handling working together with the module system.
