@@ -3,17 +3,17 @@
 #ifndef TAGSH
 #define TAGSH
 /*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -40,11 +40,11 @@
  *
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  
+ * If you do not wish that, delete this exception notice.
  */
 
 
-/** This file defines the format of SCM values and cons pairs.  
+/** This file defines the format of SCM values and cons pairs.
  ** It is here that tag bits are assigned for various purposes.
  **/
 
@@ -106,11 +106,11 @@ typedef long SCM;
 #define SCM_NIMP(x) 		(!SCM_IMP(x))
 
 /* Here is a summary of tagging in SCM values as they might occur in
- * SCM variables or in the heap. 
+ * SCM variables or in the heap.
  *
  * low bits    meaning
  *
- * 
+ *
  * 0		Most objects except...
  * 1 		...glocs and structs (this tag valid only in a SCM_CAR or
  *		in the header of a struct's data).
@@ -134,7 +134,7 @@ typedef long SCM;
  * 100 --- IMMEDIATES
  *
  * Looking at the seven final bits of an immediate:
- * 
+ *
  * 0000-100	short instruction
  * 0001-100	short instruction
  * 0010-100	short instruction
@@ -152,7 +152,7 @@ typedef long SCM;
  * 1110-100	immediate characters
  * 1111-100	ilocs
  *
- * Some of the 0110100 immediates are long instructions (they dispatch 
+ * Some of the 0110100 immediates are long instructions (they dispatch
  * in two steps compared to one step for a short instruction).
  * The two steps are, (1) dispatch on 7 bits to the long instruction
  * handler, (2) dispatch on 7 additional bits.
@@ -196,8 +196,13 @@ typedef long SCM;
  *
  * 101 & 111 --- tc7_ types
  *
- *		tc7_tags are 7 bit tags ending in 1x1.  These tags occur
- *		only in the CAR of heap cells.
+ *		tc7_tags are 7 bit tags ending in 1x1.  These tags
+ *		occur only in the CAR of heap cells, and have the
+ *		handy property that all bits of the CAR above the
+ *		bottom eight can be used to store a length, thus
+ *		saving a word in the body itself.  Thus, we use them
+ *		for strings, symbols, and vectors (among other
+ *		things).
  *
  *		SCM_LENGTH returns the bits in "length" (see the diagram).
  *		SCM_CHARS returns the data cast to "char *"
@@ -208,24 +213,35 @@ typedef long SCM;
  *		that applies to a particular type, see the header file
  *		for that type.
  *
+ *              Sometimes we choose the bottom seven bits carefully,
+ *              so that the 4- and 1-valued bits (called the D and S
+ *              bits) can be masked off to reveal a common type.
+ *
  *		TYP7S(X) returns TYP7, but masking out the option bit S.
  *		TYP7D(X) returns TYP7, but masking out the option bit D.
  *		TYP7SD(X) masks out both option bits.
  *
+ *              For example, all strings have 001 in the 'xxx' bits in
+ *              the diagram above, the D bit says whether it's a
+ *              substring, and the S bit says whether it's a multibyte
+ *              character string.
+ *
  *		for example:
  *						      D S
- *			scm_tc7_string    	= Gxxx0101
- *			scm_tc7_mb_string 	= Gxxx0111
- *			scm_tc7_substring	= Gxxx1101
- *			scm_tc7_mb_substring	= Gxxx1111
+ *			scm_tc7_string    	= G0010101
+ *			scm_tc7_mb_string 	= G0010111
+ *			scm_tc7_substring	= G0011101
+ *			scm_tc7_mb_substring	= G0011111
  *
- *		TYP7S turns tc7_mb_string into tc7_string and 
+ *		TYP7DS turns all string tags into tc7_string; thus,
+ *		testing TYP7DS against tc7_string is a quick way to
+ *		test for any kind of string.
+ *
+ *		TYP7S turns tc7_mb_string into tc7_string and
  *		tc7_mb_substring into tc7_substring.
  *
- *		TYP7D turns tc7_mb_substring into tc7_mb_string and 
+ *		TYP7D turns tc7_mb_substring into tc7_mb_string and
  *		tc7_substring into tc7_string.
- *
- *		TYP7DS turns all string tags into tc7_string.
  *
  *		Some TC7 types are subdivided into 256 subtypes giving
  *		rise to the macros:
@@ -237,8 +253,7 @@ typedef long SCM;
  *		TYP16S functions similarly wrt to TYP16 as TYP7S to TYP7,
  *		but a different option bit is used (bit 2 for TYP7S,
  *		bit 8 for TYP16S).
- *
- */
+ * */
 
 
 
@@ -249,7 +264,7 @@ typedef long SCM;
  * figure out Xs type.   X may be a cons pair, in which case the
  * value SCM_CAR (x) will be either an immediate or non-immediate value.
  * X may be something other than a cons pair, in which case the value SCM_CAR (x)
- * will be a non-object value.  
+ * will be a non-object value.
  *
  * All immediates and non-immediates have a 0 in bit 0.  We additionally preserve
  * the invariant that all non-object values stored in the SCM_CAR of a non-immediate
@@ -272,7 +287,7 @@ typedef long SCM;
 #define SCM_CELLP(x) 	(!SCM_NCELLP(x))
 #define SCM_NCELLP(x) 	((sizeof(scm_cell)-1) & (int)(x))
 
-/* See numbers.h for macros relating to immediate integers. 
+/* See numbers.h for macros relating to immediate integers.
  */
 
 #define SCM_ITAG3(x) 		(7 & (int)x)
@@ -400,14 +415,14 @@ typedef long SCM;
 #define scm_tc_dblc		(scm_tc16_flo|SCM_REAL_PART|SCM_IMAG_PART)
 
 
-/* Smob types 2 and 3: 
+/* Smob types 2 and 3:
  */
 #define scm_tc16_bigpos		0x027f
 #define scm_tc16_bigneg		0x037f
 
 
 
-/* {Immediate Values} 
+/* {Immediate Values}
  */
 
 enum scm_tags
@@ -436,7 +451,7 @@ enum scm_tags
 #define SCM_MAKISYM(n) 		(((n)<<9)+0x74L)
 #define SCM_MAKIFLAG(n) 	(((n)<<9)+0x174L)
 
-/* This table must agree with the declarations 
+/* This table must agree with the declarations
  * in repl.c: {Names of immediate symbols}.
  *
  * These are used only in eval but their values
@@ -476,7 +491,7 @@ enum scm_tags
  */
 
 
-/* For cons pairs with immediate values in the CAR 
+/* For cons pairs with immediate values in the CAR
  */
 
 #define scm_tcs_cons_imcar 2:case 4:case 6:case 10:\

@@ -220,6 +220,28 @@ scm_sym2ovcell (sym, obarray)
   return SCM_UNSPECIFIED;		/* not reached */
 }
 
+/* Intern a symbol whose name is the LEN characters at NAME in OBARRAY.
+
+   OBARRAY should be a vector of lists, indexed by the name's hash
+   value, modulo OBARRAY's length.  Each list has the form 
+   ((SYMBOL . VALUE) ...), where SYMBOL is a symbol, and VALUE is the
+   value associated with that symbol (in the current module?  in the
+   system module?)
+
+   To "intern" a symbol means: if OBARRAY already contains a symbol by
+   that name, return its (SYMBOL . VALUE) pair; otherwise, create a
+   new symbol, add the pair (SYMBOL . SCM_UNDEFINED) to the
+   appropriate list of the OBARRAY, and return the pair.
+
+   If softness is non-zero, don't create a symbol if it isn't already
+   in OBARRAY; instead, just return #f.
+
+   If OBARRAY is SCM_BOOL_F, create a symbol listed in no obarray and
+   return (SYMBOL . SCM_UNDEFINED).
+
+   If OBARRAY is scm_symhash, and that doesn't contain the symbol,
+   check scm_weak_symhash instead.  */
+
 #ifdef __STDC__
 SCM 
 scm_intern_obarray_soft (char *name, scm_sizet len, SCM obarray, int softness)
@@ -251,8 +273,12 @@ scm_intern_obarray_soft (name, len, obarray, softness)
 
   scm_hash = scm_strhash (tmp, i, SCM_LENGTH(obarray));
 
+  /* softness == -1 used to mean that it was known that the symbol
+     wasn't already in the obarray.  I don't think there are any
+     callers that use that case any more, but just in case...
+     -- JimB, Oct 1996  */
   if (softness == -1)
-    goto mustintern_symbol;
+    abort ();
 
  retry_new_obarray:
   for (lsym = SCM_VELTS (obarray)[scm_hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
@@ -287,7 +313,6 @@ scm_intern_obarray_soft (name, len, obarray, softness)
       return SCM_BOOL_F;
     }
 
- mustintern_symbol:
   lsym = scm_makfromstr (name, len, SCM_SYMBOL_SLOTS);
 
   SCM_SETLENGTH (lsym, (long) len, scm_tc7_msymbol);
@@ -363,6 +388,8 @@ scm_intern0 (name)
 }
 
 
+/* Intern the symbol named NAME in scm_symhash, and give it the value VAL.
+   NAME is null-terminated.  */
 #ifdef __STDC__
 SCM 
 scm_sysintern (char *name, SCM val)

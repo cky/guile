@@ -49,6 +49,31 @@
 
 extern int scm_symhash_dim;
 
+/* SCM_LENGTH(SYM) is the length of SYM's name in characters, and
+   SCM_CHARS(SYM) is the address of the first character of SYM's name.
+
+   Beyond that, there are two kinds of symbols: ssymbols and msymbols,
+   distinguished by the 'S' bit in the type.
+
+   Ssymbols are just uniquified strings.  They have a length, chars,
+   and that's it.  They use the scm_tc7_ssymbol tag (S bit clear).
+
+   Msymbols are symbols with extra slots.  These slots hold a property
+   list and a function value (for Emacs Lisp compatibility), a hash
+   code, and a flag to indicate whether their name contains multibyte
+   characters.  They use the scm_tc7_msymbol tag.
+
+   We'd like SCM_CHARS to work on msymbols just as it does on
+   ssymbols, so we'll have it point to the symbol's name as usual, and
+   store a pointer to the slots just before the name in memory.  Thus,
+   you have to do some casting and pointer arithmetic to find the
+   slots; see the SCM_SLOTS macro.
+
+   In practice, the slots always live just before the pointer to them.
+   So why not ditch the pointer, and use negative indices to refer to
+   the slots?  That's a good question; ask the author.  I think it was
+   the cognac.  */
+
 #define SCM_SYMBOLP(x) (SCM_TYP7S(x)==scm_tc7_ssymbol)
 #define SCM_LENGTH(x) (((unsigned long)SCM_CAR(x))>>8)
 #define SCM_LENGTH_MAX (0xffffffL)
