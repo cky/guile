@@ -107,7 +107,8 @@ Spiffing checklist:
 * Commit all changes to the CVS repository.
 * Build a test distribution.
   + BEFORE doing 'make dist', configure the source tree for build
-    in the same tree with configuration option --with-threads.
+    in the same tree with configuration options
+    --enable-maintainer-mode --enable-debug-malloc --with-threads.
   + Make sure that readline was enabled correctly.
   + Build the tree.
     (If the above steps are not done, the dependencies won't be properly

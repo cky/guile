@@ -1,5 +1,11 @@
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* Makefile.am (ACLOCAL): Define as ./guile-aclocal.sh.
+	(The rule will cd to $(top_srcdir).)
+
+	* configure.in (EXTRA_DOT_DOC_FILES): Create from LIBOBJS and
+	substitute it into libguile/Makefile.
+
 	* HACKING: Updated recommended libtool version to be 1.3.5.
 
 	* RELEASE: Say that we should update HACKING to reflect the

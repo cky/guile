@@ -59,14 +59,14 @@ DOT_X_FILES =								\
     hooks.x init.x ioext.x iselect.x keywords.x lang.x list.x load.x	\
     macros.x mallocs.x modules.x net_db.x numbers.x objects.x		\
     objprop.x options.x pairs.x ports.x posix.x print.x procprop.x	\
-    procs.x random.x read.x regex-posix.x root.x scmsigs.x		\
+    procs.x random.x read.x root.x scmsigs.x				\
     script.x simpos.x smob.x socket.x sort.x srcprop.x stackchk.x	\
     stacks.x stime.x strings.x strop.x strorder.x strports.x struct.x	\
     symbols.x tag.x throw.x variable.x vectors.x			\
     version.x vports.x weaks.x
 
 EXTRA_DOT_X_FILES = debug-malloc.x filesys.x net_db.x posix.x ramap.x	\
-                    socket.x threads.x unif.x
+                    regex-posix.x socket.x threads.x unif.x
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 

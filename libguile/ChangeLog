@@ -1,5 +1,9 @@
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* Makefile.am (EXTRA_DOT_X_FILES, EXTRA_DOT_DOC_FILES): New
+	variables.
+	(guile-procedures.txt): Depend on EXTRA_DOT_DOC_FILES.
+
 	* snarf.h (SCM_SNARF_HERE, SCM_SNARF_INIT, SCM_SNARF_DOCS):
 	Renamed from SCM_HERE, SCM_INIT, SCM_DOCS.
 
