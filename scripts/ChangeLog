@@ -1,3 +1,13 @@
+2002-01-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (scripts_sources): Add frisk.
+	(list): New target.
+	(overview): Also report module interfaces.
+
+	* use2dot: Rewrite using (scripts frisk).
+
+	* frisk: Initial revision.
+
 2002-01-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* snarf-guile-m4-docs: New script.
