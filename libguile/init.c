@@ -45,7 +45,6 @@
 
 /* Everybody has an init function.  */
 #include "alist.h"
-#include "append.h"
 #include "arbiters.h"
 #include "async.h"
 #include "backtrace.h"
@@ -92,7 +91,6 @@
 #include "read.h"
 #include "scmsigs.h"
 #include "script.h"
-#include "sequences.h"
 #include "simpos.h"
 #include "smob.h"
 #include "socket.h"
@@ -390,7 +388,6 @@ scm_boot_guile_1 (base, closure)
       scm_init_gsubr ();
       scm_init_feature ();
       scm_init_alist ();
-      scm_init_append ();
       scm_init_arbiters ();
       scm_init_async ();
       scm_init_backtrace ();
@@ -441,7 +438,6 @@ scm_boot_guile_1 (base, closure)
       scm_init_load ();
       scm_init_print ();	/* Requires struct */
       scm_init_read ();
-      scm_init_sequences ();
       scm_init_stime ();
       scm_init_strings ();
       scm_init_strorder ();

@@ -54,7 +54,6 @@
 #include "libguile/pairs.h"
 
 #include "libguile/alist.h"
-#include "libguile/append.h"
 #include "libguile/arbiters.h"
 #include "libguile/async.h"
 #include "libguile/boolean.h"
@@ -100,7 +99,6 @@
 #include "libguile/root.h"
 #include "libguile/scmsigs.h"
 #include "libguile/script.h"
-#include "libguile/sequences.h"
 #include "libguile/simpos.h"
 #include "libguile/snarf.h"
 #include "libguile/socket.h"

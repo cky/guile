@@ -77,9 +77,7 @@ char *alloca ();
 #include <stdio.h>
 #include "_scm.h"
 #include "debug.h"
-#include "append.h"
 #include "alist.h"
-#include "sequences.h"
 #include "eq.h"
 #include "continuations.h"
 #include "throw.h"

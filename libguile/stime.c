@@ -43,7 +43,6 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "feature.h"
-#include "sequences.h"
 
 #include "stime.h"
 
@@ -392,7 +391,7 @@ static void
 bdtime2c (SCM sbd_time, struct tm *lt, int pos, char *subr)
 {
   SCM_ASSERT (SCM_NIMP (sbd_time) && SCM_VECTORP (sbd_time)
-	      && scm_obj_length (sbd_time) == 11
+	      && scm_vector_length (sbd_time) == 11
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[0]) 
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[1])
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[2])

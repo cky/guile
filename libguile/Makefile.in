@@ -65,8 +65,10 @@ GUILE_VERSION = @GUILE_VERSION@
 LD = @LD@
 LIBLOBJS = @LIBLOBJS@
 LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
+NM = @NM@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 VERSION = @VERSION@
@@ -91,14 +93,14 @@ guile_SOURCES = guile.c
 guile_LDADD = libguile.la ${THREAD_LIBS}
 
 libguile_la_SOURCES = \
-    alist.c append.c appinit.c arbiters.c async.c boolean.c chars.c \
+    alist.c appinit.c arbiters.c async.c boolean.c chars.c \
     continuations.c dynl.c dynwind.c eq.c error.c eval.c extchrs.c \
     feature.c filesys.c fports.c gc.c gdbint.c genio.c gh_data.c gh_eval.c \
     gh_funcs.c gh_init.c gh_io.c gh_list.c gh_predicates.c gsubr.c hash.c \
     hashtab.c init.c ioext.c kw.c list.c load.c mallocs.c markers.c \
     mbstrings.c net_db.c numbers.c objprop.c options.c pairs.c ports.c \
     posix.c print.c procprop.c procs.c ramap.c read.c root.c scmsigs.c \
-    script.c sequences.c simpos.c smob.c socket.c stackchk.c stime.c \
+    script.c simpos.c smob.c socket.c stackchk.c stime.c \
     strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c \
     throw.c unif.c variable.c vectors.c version.c vports.c weaks.c \
     fluids.c
@@ -122,14 +124,14 @@ pkginclude_HEADERS = gh.h
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
-modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
+modinclude_HEADERS = __scm.h alist.h arbiters.h async.h \
     backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h \
     eq.h error.h eval.h extchrs.h feature.h filesys.h fports.h gc.h \
     gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h \
     ioext.h kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
     numbers.h objprop.h options.h pairs.h ports.h posix.h regex-posix.h print.h \
     procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h script.h \
-    sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
+    simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
     tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
     weaks.h snarf.h threads.h coop-defs.h fluids.h
@@ -172,18 +174,17 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I.
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libguile_la_OBJECTS =  alist.lo append.lo appinit.lo arbiters.lo \
-async.lo boolean.lo chars.lo continuations.lo dynl.lo dynwind.lo eq.lo \
-error.lo eval.lo extchrs.lo feature.lo filesys.lo fports.lo gc.lo \
-gdbint.lo genio.lo gh_data.lo gh_eval.lo gh_funcs.lo gh_init.lo \
-gh_io.lo gh_list.lo gh_predicates.lo gsubr.lo hash.lo hashtab.lo \
-init.lo ioext.lo kw.lo list.lo load.lo mallocs.lo markers.lo \
-mbstrings.lo net_db.lo numbers.lo objprop.lo options.lo pairs.lo \
-ports.lo posix.lo print.lo procprop.lo procs.lo ramap.lo read.lo \
-root.lo scmsigs.lo script.lo sequences.lo simpos.lo smob.lo socket.lo \
-stackchk.lo stime.lo strings.lo strop.lo strorder.lo strports.lo \
-struct.lo symbols.lo tag.lo throw.lo unif.lo variable.lo vectors.lo \
-version.lo vports.lo weaks.lo fluids.lo
+libguile_la_OBJECTS =  alist.lo appinit.lo arbiters.lo async.lo \
+boolean.lo chars.lo continuations.lo dynl.lo dynwind.lo eq.lo error.lo \
+eval.lo extchrs.lo feature.lo filesys.lo fports.lo gc.lo gdbint.lo \
+genio.lo gh_data.lo gh_eval.lo gh_funcs.lo gh_init.lo gh_io.lo \
+gh_list.lo gh_predicates.lo gsubr.lo hash.lo hashtab.lo init.lo \
+ioext.lo kw.lo list.lo load.lo mallocs.lo markers.lo mbstrings.lo \
+net_db.lo numbers.lo objprop.lo options.lo pairs.lo ports.lo posix.lo \
+print.lo procprop.lo procs.lo ramap.lo read.lo root.lo scmsigs.lo \
+script.lo simpos.lo smob.lo socket.lo stackchk.lo stime.lo strings.lo \
+strop.lo strorder.lo strports.lo struct.lo symbols.lo tag.lo throw.lo \
+unif.lo variable.lo vectors.lo version.lo vports.lo weaks.lo fluids.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 guile_OBJECTS =  guile.o
@@ -214,7 +215,7 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP = --best
-DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/append.P .deps/appinit.P \
+DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/appinit.P \
 .deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
 .deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynl.P \
 .deps/dynwind.P .deps/eq.P .deps/error.P .deps/eval.P .deps/extchrs.P \
@@ -229,11 +230,11 @@ DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/append.P .deps/appinit.P \
 .deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
 .deps/procprop.P .deps/procs.P .deps/putenv.P .deps/ramap.P \
 .deps/read.P .deps/regex-posix.P .deps/root.P .deps/scmsigs.P \
-.deps/script.P .deps/sequences.P .deps/simpos.P .deps/smob.P \
-.deps/socket.P .deps/srcprop.P .deps/stackchk.P .deps/stacks.P \
-.deps/stime.P .deps/strerror.P .deps/strings.P .deps/strop.P \
-.deps/strorder.P .deps/strports.P .deps/struct.P .deps/symbols.P \
-.deps/tag.P .deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
+.deps/script.P .deps/simpos.P .deps/smob.P .deps/socket.P \
+.deps/srcprop.P .deps/stackchk.P .deps/stacks.P .deps/stime.P \
+.deps/strerror.P .deps/strings.P .deps/strop.P .deps/strorder.P \
+.deps/strports.P .deps/struct.P .deps/symbols.P .deps/tag.P \
+.deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
 .deps/vectors.P .deps/version.P .deps/vports.P .deps/weaks.P
 SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES) $(guile_SOURCES) $(gh_test_c_SOURCES) $(gh_test_repl_SOURCES)
 OBJECTS = $(libguile_la_OBJECTS) $(guile_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test_repl_OBJECTS)
