@@ -1,3 +1,17 @@
+1999-09-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+*	* debugger.scm: New file: Initial version of the Guile debugger
+	written by Chris Hanson.  (The debugger isn't finished, but is
+	included in Guile anyway since it is already quite useful.)
+
+*	* boot-9.scm (top-repl): Use (ice-9 debug) (ice-9 debugger) (ice-9
+	session) (ice-9 threads) (ice-9 regex) from guile-user only if
+	top-repl is called.  This makes startup time for scripts 30% of
+	what it was before...  Removed redundant code for loading of
+	readline.
+
+	* Makefile.am (ice9_sources): Added debugger.scm.
+
 1999-08-29  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* boot-9.scm (try-module-autoload): Use %search-load-path.
