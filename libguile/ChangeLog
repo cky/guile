@@ -1,3 +1,10 @@
+1999-03-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* numbers.c (isfinite): Define this macro if not defined: Return a
+	non-zero value if X is finite.  (From ISO C 9x standard.)
+	(scm_inexact_to_exact): Bugfix: Don't pass NaNs to scm_dbl2big.
+	(Thanks to Jon Trowbridge and Greg Harvey.)
+
 1999-03-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* keywords.c (scm_tc16_kw): Added for backward compatibility.
