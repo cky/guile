@@ -1,3 +1,13 @@
+2001-05-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (begin-deprecated): New.
+	(call-with-deprecation): Removed.
+	(id): Use `issue-deprecation-warning' instead of
+	`call-with-deprecation'.  Wrap definition in `begin-deprecated'.
+	(eval-in-module): Manifest deprecation via `begin-deprecation' and
+	`issue-deprecation-warning'.
+	(warn-autoload-deprecation): Deactivated.
+	
 2001-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (the-module, set-current-module, current-module):
