@@ -1,7 +1,12 @@
 2003-11-17  Marius Vollmer  <mvo@zagadka.de>
 
+	* hash.c (scm_string_hash): New hashing algorithm that takes the
+	complete string into account.
+
 	* eval.c (scm_m_generalized_set_x): Macroexpand the target when it
 	is a list.  This allows (@ ...) to work with set!.
+	(scm_m_generalized_set_x): Use ASSERT_SYNTAX_2 instead of
+	SCM_ASSYNT.
 
 	* script.c (scm_compile_shell_switches): Use scm_c_read_string for
 	the "-e" option instead of scm_str2symbol.  This allows things

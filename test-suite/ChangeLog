@@ -1,3 +1,8 @@
+2003-11-17  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/srfi-17.test: Expect a "Bad variable" error for (set! #f
+	1).
+
 2003-11-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test: Tests that check for the correct handling of
