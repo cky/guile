@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -473,7 +473,7 @@ scm_aind (SCM ra, SCM args, const char *what)
 	scm_error_num_args_subr (what);
       return pos + (SCM_INUM (args) - s->lbnd) * (s->inc);
     }
-  while (k && !SCM_NULLP (args))
+  while (k && SCM_CONSP (args))
     {
       ind = SCM_CAR (args);
       args = SCM_CDR (args);
