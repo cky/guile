@@ -265,8 +265,8 @@ SCM_DEFINE (scm_integer_to_char, "integer->char", 1, 0, 0,
 "Return the character at position N in the Ascii sequence.")
 #define FUNC_NAME s_scm_integer_to_char
 {
-  unsigned long ni = 0xffff & SCM_NUM2ULONG (1,n);
-  return SCM_MAKICHR(ni);
+  SCM_VALIDATE_INUM_RANGE (1, n, 0, 256);
+  return SCM_MAKICHR (SCM_INUM (n));
 }
 #undef FUNC_NAME
 
