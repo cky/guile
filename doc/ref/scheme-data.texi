@@ -310,18 +310,37 @@ For example, a C @code{int} can be handled with @code{scm_to_int} and
 @code{scm_from_int}.  Guile also defines a few C integer types of its
 own, to help with differences between systems.
 
-  C integer types that are not covered can be
-handled with the generic @code{scm_to_signed_integer} and
-@code{scm_from_signed_integer} for signed types, or with
-@code{scm_to_unsigned_integer} and @code{scm_from_unsigned_integer}
-for unsigned types.
+C integer types that are not covered can be handled with the generic
+@code{scm_to_signed_integer} and @code{scm_from_signed_integer} for
+signed types, or with @code{scm_to_unsigned_integer} and
+@code{scm_from_unsigned_integer} for unsigned types.
+
+Scheme integers can be exact and inexact.  For example, a number
+written as @code{3.0} with an explicit decimal-point is inexact, but
+it is also an integer.  The functions @code{integer?} and
+@code{scm_is_integer} report true for such a number, but the functions
+@code{scm_is_signed_integer} and @code{scm_is_unsigned_integer} only
+allow exact integers and thus report false.  Likewise, the conversion
+functions like @code{scm_to_signed_integer} only accept exact
+integers.
+
+The motivation for this behavior is that the inexactness of a number
+should not be lost silently.  If you want to allow inexact integers,
+you can explicitely insert a call to @code{inexact->exact} or to its C
+equivalent @code{scm_inexact_to_exact}.  (Only inexact integers will
+be converted by this call into exact integers; inexact non-integers
+will become exact fractions.)
 
 @deffn {Scheme Procedure} integer? x
 @deffnx {C Function} scm_integer_p (x)
-Return @code{#t} if @var{x} is an integer number, else @code{#f}.
+Return @code{#t} if @var{x} is an exactor inexact integer number, else
+@code{#f}.
 
 @lisp
 (integer? 487)
+@result{} #t
+
+(integer? 3.0)
 @result{} #t
 
 (integer? -3.4)
@@ -360,8 +379,8 @@ to use them directly instead of the types provided by Guile.
 
 @deftypefn  {C Function} int scm_is_signed_integer (SCM x, scm_t_intmax min, scm_t_intmax max)
 @deftypefnx {C Function} int scm_is_unsigned_integer (SCM x, scm_t_uintmax min, scm_t_uintmax max)
-Return @code{1} when @var{x} represents an integer that is between
-@var{min} and @var{max}, inclusive.
+Return @code{1} when @var{x} represents an exact integer that is
+between @var{min} and @var{max}, inclusive.
 
 These functions can be used to check whether a @code{SCM} value will
 fit into a given range, such as the range of a given C integer type.
@@ -371,16 +390,16 @@ type, use one of the conversion functions directly.
 
 @deftypefn  {C Function} scm_t_intmax scm_to_signed_integer (SCM x, scm_t_intmax min, scm_t_intmax max)
 @deftypefnx {C Function} scm_t_uintmax scm_to_unsigned_integer (SCM x, scm_t_uintmax min, scm_t_uintmax max)
-When @var{x} represents an integer that is between @var{min} and
+When @var{x} represents an exact integer that is between @var{min} and
 @var{max} inclusive, return that integer.  Else signal an error,
-either a `wrong-type' error when @var{x} is not an integer, or an
-`out-of-range' error when it doesn't fit the given range.
+either a `wrong-type' error when @var{x} is not an exact integer, or
+an `out-of-range' error when it doesn't fit the given range.
 @end deftypefn
 
 @deftypefn  {C Function} SCM scm_from_signed_integer (scm_t_intmax x)
 @deftypefnx {C Function} SCM scm_from_unsigned_integer (scm_t_uintmax x)
-Return the @code{SCM} value that represents the integer @var{x}.
-This function will always succeed.
+Return the @code{SCM} value that represents the integer @var{x}.  This
+function will always succeed and will always return an exact number.
 @end deftypefn
 
 @deftypefn  {C Function} char scm_to_char (SCM x)
@@ -392,7 +411,7 @@ This function will always succeed.
 @deftypefnx {C Function} {unsigned int} scm_to_uint (SCM x)
 @deftypefnx {C Function} long scm_to_long (SCM x)
 @deftypefnx {C Function} {unsigned long} scm_to_ulong (SCM x)
-@deftypefnx {C Function} long long scm_to_long_long (SCM x)
+@deftypefnx {C Function} {long long} scm_to_long_long (SCM x)
 @deftypefnx {C Function} {unsigned long long} scm_to_ulong_long (SCM x)
 @deftypefnx {C Function} size_t scm_to_size_t (SCM x)
 @deftypefnx {C Function} ssize_t scm_to_ssize_t (SCM x)
@@ -406,9 +425,9 @@ This function will always succeed.
 @deftypefnx {C Function} scm_t_uint64 scm_to_uint64 (SCM x)
 @deftypefnx {C Function} scm_t_intmax scm_to_intmax (SCM x)
 @deftypefnx {C Function} scm_t_uintmax scm_to_uintmax (SCM x)
-When @var{x} represents an integer that fits into the indicated C
-type, return that integer.  Else signal an error, either a
-`wrong-type' error when @var{x} is not an integer, or an
+When @var{x} represents an exact integer that fits into the indicated
+C type, return that integer.  Else signal an error, either a
+`wrong-type' error when @var{x} is not an exact integer, or an
 `out-of-range' error when it doesn't fit the given range.
 
 The functions @code{scm_to_long_long}, @code{scm_to_ulong_long},
@@ -440,7 +459,8 @@ the corresponding types are.
 @deftypefnx {C Function} SCM scm_from_intmax (scm_t_intmax x)
 @deftypefnx {C Function} SCM scm_from_uintmax (scm_t_uintmax x)
 Return the @code{SCM} value that represents the integer @var{x}.
-These functions will always succeed.
+These functions will always succeed and will always return an exact
+number.
 @end deftypefn
 
 @node Reals and Rationals
@@ -845,7 +865,7 @@ The C comparison functions below always takes two arguments, while the
 Scheme functions can take an arbitrary number.  Also keep in mind that
 the C functions return one of the Scheme boolean values
 @code{SCM_BOOL_T} or @code{SCM_BOOL_F} which are both true as far as C
-is concerned.  Thus, always write @code{SCM_NFALSEP (scm_num_eq_p (x,
+is concerned.  Thus, always write @code{scm_is_true (scm_num_eq_p (x,
 y))} when testing the two Scheme numbers @code{x} and @code{y} for
 equality, for example.
 
