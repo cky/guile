@@ -749,6 +749,12 @@ scm_gc_unprotect_object (SCM obj)
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
 
+  if (scm_gc_running_p)
+    {
+      fprintf (stderr, "scm_unprotect_object called during GC.\n");
+      abort ();
+    }
+  
   handle = scm_hashq_get_handle (scm_protects, obj);
 
   if (scm_is_false (handle))
