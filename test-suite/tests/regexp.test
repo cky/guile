@@ -59,6 +59,18 @@
     (make-regexp "xyz" regexp/icase 'abc)))
 
 ;;;
+;;; match:string
+;;;
+
+(with-test-prefix "match:string"
+
+  (pass-if "foo"
+    (string=? "foo" (match:string (string-match ".*" "foo"))))
+
+  (pass-if "foo offset 1"
+    (string=? "foo" (match:string (string-match ".*" "foo" 1)))))
+
+;;;
 ;;; regexp-quote
 ;;;
 
