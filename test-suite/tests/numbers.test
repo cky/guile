@@ -1164,6 +1164,18 @@
   (expect-fail (= (- fixnum-min 1) fixnum-min))
   (expect-fail (= (+ fixnum-max 1) (- fixnum-min 1)))
 
+  (pass-if (not (= (ash 1 256) +inf.0)))
+  (pass-if (not (= +inf.0 (ash 1 256))))
+  (pass-if (not (= (ash 1 256) -inf.0)))
+  (pass-if (not (= -inf.0 (ash 1 256))))
+
+  ;; in gmp prior to 4.2, mpz_cmp_d ended up treating Inf as 2^1024, make
+  ;; sure we've avoided that
+  (pass-if (not (= (ash 1 1024) +inf.0)))
+  (pass-if (not (= +inf.0 (ash 1 1024))))
+  (pass-if (not (= (- (ash 1 1024)) -inf.0)))
+  (pass-if (not (= -inf.0 (- (ash 1 1024)))))
+
   (pass-if (not (= +nan.0 +nan.0)))
   (pass-if (not (= 0 +nan.0)))
   (pass-if (not (= +nan.0 0)))
@@ -1516,6 +1528,26 @@
     (pass-if "n = fixnum-min - 1"
       (not (< (- fixnum-min 1) (- fixnum-min 1)))))
 
+  (pass-if (< (ash 1 256) +inf.0))
+  (pass-if (not (< +inf.0 (ash 1 256))))
+  (pass-if (not (< (ash 1 256) -inf.0)))
+  (pass-if (< -inf.0 (ash 1 256)))
+
+  ;; in gmp prior to 4.2, mpz_cmp_d ended up treating Inf as 2^1024, make
+  ;; sure we've avoided that
+  (pass-if (< (1- (ash 1 1024)) +inf.0))
+  (pass-if (<     (ash 1 1024)  +inf.0))
+  (pass-if (< (1+ (ash 1 1024)) +inf.0))
+  (pass-if (not (< +inf.0 (1- (ash 1 1024)))))
+  (pass-if (not (< +inf.0     (ash 1 1024))))
+  (pass-if (not (< +inf.0 (1+ (ash 1 1024)))))
+  (pass-if (< -inf.0 (- (1- (ash 1 1024)))))
+  (pass-if (< -inf.0 (-     (ash 1 1024))))
+  (pass-if (< -inf.0 (- (1+ (ash 1 1024)))))
+  (pass-if (not (< (- (1- (ash 1 1024))) -inf.0)))
+  (pass-if (not (< (-     (ash 1 1024))  -inf.0)))
+  (pass-if (not (< (- (1+ (ash 1 1024))) -inf.0)))
+
   (pass-if (not (< +nan.0 +nan.0)))
   (pass-if (not (< 0 +nan.0)))
   (pass-if (not (< +nan.0 0)))
@@ -1613,6 +1645,35 @@
 ;;; max
 ;;;
 
+(with-test-prefix "max"
+  (let ((big*2 (* fixnum-max 2))
+        (big*3 (* fixnum-max 3))
+        (big*4 (* fixnum-max 4))
+        (big*5 (* fixnum-max 5)))
+    
+    (pass-if (= +inf.0 (max big*5  +inf.0)))
+    (pass-if (= +inf.0 (max +inf.0 big*5)))
+    (pass-if (= big*5  (max big*5  -inf.0)))
+    (pass-if (= big*5  (max -inf.0 big*5))))
+
+  ;; in gmp prior to 4.2, mpz_cmp_d ended up treating Inf as 2^1024, make
+  ;; sure we've avoided that
+  (for-each (lambda (b)
+	      (pass-if (list b +inf.0)
+		(= +inf.0 (max b +inf.0)))
+	      (pass-if (list +inf.0 b)
+		(= +inf.0 (max b +inf.0)))
+	      (pass-if (list b -inf.0)
+		(= b (max b -inf.0)))
+	      (pass-if (list -inf.0 b)
+		(= b (max b -inf.0))))
+	    (list (1- (ash 1 1024))
+		  (ash 1 1024)
+		  (1+ (ash 1 1024))
+		  (- (1- (ash 1 1024)))
+		  (- (ash 1 1024))
+		  (- (1+ (ash 1 1024))))))
+
 ;;;
 ;;; min
 ;;;
@@ -1640,8 +1701,31 @@
     (pass-if
         (= (- fixnum-min 1) (min (- fixnum-min 1) 2 4 3 (* 2 fixnum-max))))
     (pass-if
-        (= (- fixnum-min 1) (min 2 4 3 (* 2 fixnum-max) (- fixnum-min 1))))))
+        (= (- fixnum-min 1) (min 2 4 3 (* 2 fixnum-max) (- fixnum-min 1))))
     
+    (pass-if (= big*5  (min big*5  +inf.0)))
+    (pass-if (= big*5  (min +inf.0 big*5)))
+    (pass-if (= -inf.0 (min big*5  -inf.0)))
+    (pass-if (= -inf.0 (min -inf.0 big*5))))
+  
+  ;; in gmp prior to 4.2, mpz_cmp_d ended up treating Inf as 2^1024, make
+  ;; sure we've avoided that
+  (for-each (lambda (b)
+	      (pass-if (list b +inf.0)
+		(= b (min b +inf.0)))
+	      (pass-if (list +inf.0 b)
+		(= b (min b +inf.0)))
+	      (pass-if (list b -inf.0)
+		(= -inf.0 (min b -inf.0)))
+	      (pass-if (list -inf.0 b)
+		(= -inf.0 (min b -inf.0))))
+	    (list (1- (ash 1 1024))
+		  (ash 1 1024)
+		  (1+ (ash 1 1024))
+		  (- (1- (ash 1 1024)))
+		  (- (ash 1 1024))
+		  (- (1+ (ash 1 1024))))))
+
 ;;;
 ;;; +
 ;;;
