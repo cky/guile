@@ -87,6 +87,7 @@
 #include "ramap.h"
 #include "read.h"
 #include "scmsigs.h"
+#include "script.h"
 #include "sequences.h"
 #include "simpos.h"
 #include "smob.h"
