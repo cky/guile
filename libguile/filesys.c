@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,12 @@
 #include "iselect.h"
 
 #include "filesys.h"
+
 
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
+
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>

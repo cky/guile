@@ -356,6 +356,9 @@
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
 
+/* Define if you have the <io.h> header file.  */
+#undef HAVE_IO_H
+
 /* Define if you have the <libc.h> header file.  */
 #undef HAVE_LIBC_H
 
