@@ -1,3 +1,16 @@
+2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Support for native Win32.  Thanks to Stefan Jahn!
+	
+        * check-guile.in: Replaced `ln -s' by `@LN_S@' to supports
+        build systems which do not have symbolic links.
+        * configure.in: Define AC_LIBTOOL_WIN32_DLL to build clean dlls
+        on Win32 platforms.
+        Checking for `ws2_32.dll', `winsock2.h', add `uname.o' and
+        `dirent.o' and define extra compiler flags necessary to build
+        clean dlls.
+        Check for `regcomp()' inside `-lregex'.
+
 2001-10-26  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* BUGS (7, 8): New.

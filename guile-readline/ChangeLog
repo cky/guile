@@ -1,3 +1,20 @@
+2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Support for native Win32.  Thanks to Stefan Jahn!
+	
+        * Makefile.am: Put `-export-dynamic -no-undefined' into LDFLAGS
+        and add the library `libguile.la' to support linkers which do not
+        allow unresolved symbols inside shared libraries.
+
+        * configure.in: Define AC_LIBTOOL_WIN32_DLL to build clean dlls
+        on Win32 platforms.
+        Define extra compiler flags necessary to build clean dlls.
+
+        * readline.c: Include `io.h' and exclude `sys/time.h' for MinGW.
+
+        * readline.h: Defintion of SCM_RL_API.  Prefixed each exported
+        symbol with SCM_RL_API.
+
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* readline.c (scm_readline, scm_add_history,
