@@ -1,5 +1,5 @@
 ;;; Author: Russ McManus
-;;; $Id: getopt-long.scm,v 1.4 2001-06-03 23:29:45 mvo Exp $
+;;; $Id: getopt-long.scm,v 1.5 2001-08-02 10:26:52 ttn Exp $
 ;;;
 ;;; Copyright (C) 1998, 2001 Free Software Foundation, Inc.
 ;;;
@@ -190,147 +190,147 @@
 (begin (define
          option-spec->name
          (lambda
-           (obj)
+             (obj)
            (if (option-spec? obj)
                (vector-ref obj 1)
                (slib:error
-                 (quote option-spec->name)
-                 ": bad record"
-                 obj))))
+                (quote option-spec->name)
+                ": bad record"
+                obj))))
        (define
          option-spec->value
          (lambda
-           (obj)
+             (obj)
            (if (option-spec? obj)
                (vector-ref obj 2)
                (slib:error
-                 (quote option-spec->value)
-                 ": bad record"
-                 obj))))
+                (quote option-spec->value)
+                ": bad record"
+                obj))))
        (define
          option-spec->value-required?
          (lambda
-           (obj)
+             (obj)
            (if (option-spec? obj)
                (vector-ref obj 3)
                (slib:error
-                 (quote option-spec->value-required?)
-                 ": bad record"
-                 obj))))
+                (quote option-spec->value-required?)
+                ": bad record"
+                obj))))
        (define
          option-spec->single-char
          (lambda
-           (obj)
+             (obj)
            (if (option-spec? obj)
                (vector-ref obj 4)
                (slib:error
-                 (quote option-spec->single-char)
-                 ": bad record"
-                 obj))))
+                (quote option-spec->single-char)
+                ": bad record"
+                obj))))
        (define
          option-spec->predicate-ls
          (lambda
-           (obj)
+             (obj)
            (if (option-spec? obj)
                (vector-ref obj 5)
                (slib:error
-                 (quote option-spec->predicate-ls)
-                 ": bad record"
-                 obj))))
+                (quote option-spec->predicate-ls)
+                ": bad record"
+                obj))))
        (define
          option-spec->parse-ls
          (lambda
-           (obj)
+             (obj)
            (if (option-spec? obj)
                (vector-ref obj 6)
                (slib:error
-                 (quote option-spec->parse-ls)
-                 ": bad record"
-                 obj))))
+                (quote option-spec->parse-ls)
+                ": bad record"
+                obj))))
        (define
          set-option-spec-name!
          (lambda
-           (obj val)
+             (obj val)
            (if (option-spec? obj)
                (vector-set! obj 1 val)
                (slib:error
-                 (quote set-option-spec-name!)
-                 ": bad record"
-                 obj))))
+                (quote set-option-spec-name!)
+                ": bad record"
+                obj))))
        (define
          set-option-spec-value!
          (lambda
-           (obj val)
+             (obj val)
            (if (option-spec? obj)
                (vector-set! obj 2 val)
                (slib:error
-                 (quote set-option-spec-value!)
-                 ": bad record"
-                 obj))))
+                (quote set-option-spec-value!)
+                ": bad record"
+                obj))))
        (define
          set-option-spec-value-required?!
          (lambda
-           (obj val)
+             (obj val)
            (if (option-spec? obj)
                (vector-set! obj 3 val)
                (slib:error
-                 (quote set-option-spec-value-required?!)
-                 ": bad record"
-                 obj))))
+                (quote set-option-spec-value-required?!)
+                ": bad record"
+                obj))))
        (define
          set-option-spec-single-char!
          (lambda
-           (obj val)
+             (obj val)
            (if (option-spec? obj)
                (vector-set! obj 4 val)
                (slib:error
-                 (quote set-option-spec-single-char!)
-                 ": bad record"
-                 obj))))
+                (quote set-option-spec-single-char!)
+                ": bad record"
+                obj))))
        (define
          set-option-spec-predicate-ls!
          (lambda
-           (obj val)
+             (obj val)
            (if (option-spec? obj)
                (vector-set! obj 5 val)
                (slib:error
-                 (quote set-option-spec-predicate-ls!)
-                 ": bad record"
-                 obj))))
+                (quote set-option-spec-predicate-ls!)
+                ": bad record"
+                obj))))
        (define
          set-option-spec-parse-ls!
          (lambda
-           (obj val)
+             (obj val)
            (if (option-spec? obj)
                (vector-set! obj 6 val)
                (slib:error
-                 (quote set-option-spec-parse-ls!)
-                 ": bad record"
-                 obj))))
+                (quote set-option-spec-parse-ls!)
+                ": bad record"
+                obj))))
        (define
          option-spec?
          (lambda
-           (obj)
+             (obj)
            (and (vector? obj)
                 (= (vector-length obj) 7)
                 (eq? (vector-ref obj 0) (quote option-spec)))))
        (define
          make-option-spec
          (lambda
-           (option-spec->name
-             option-spec->value
-             option-spec->value-required?
-             option-spec->single-char
-             option-spec->predicate-ls
-             option-spec->parse-ls)
+             (option-spec->name
+              option-spec->value
+              option-spec->value-required?
+              option-spec->single-char
+              option-spec->predicate-ls
+              option-spec->parse-ls)
            (vector
-             (quote option-spec)
-             option-spec->name
-             option-spec->value
-             option-spec->value-required?
-             option-spec->single-char
-             option-spec->predicate-ls
-             option-spec->parse-ls))))
+            (quote option-spec)
+            option-spec->name
+            option-spec->value
+            option-spec->value-required?
+            option-spec->single-char
+            option-spec->predicate-ls
+            option-spec->parse-ls))))
 
 
 ;;;
@@ -394,80 +394,102 @@
 		      (let ((key (car ls))
 			    (val (cadr ls)))
 			(cond ((and (eq? key 'required?) val)
-			       ;; required values are implemented as a predicate
-			       (parse-iter (make-option-spec (option-spec->name spec)
-							     (option-spec->value spec)
-							     (option-spec->value-required? spec)
-							     (option-spec->single-char spec)
-							     (cons (make-option-required-predicate)
-								   (option-spec->predicate-ls spec))
-							     (cdr parse-ls))))
-			      ;; if the value is not required, then don't add a predicate,
+			       ;; required values implemented as a predicate
+			       (parse-iter
+                                (make-option-spec
+                                 (option-spec->name spec)
+                                 (option-spec->value spec)
+                                 (option-spec->value-required? spec)
+                                 (option-spec->single-char spec)
+                                 (cons (make-option-required-predicate)
+                                       (option-spec->predicate-ls spec))
+                                 (cdr parse-ls))))
+			      ;; if value not required, don't add predicate,
 			      ((eq? key 'required?)
-			       (parse-iter (make-option-spec (option-spec->name spec)
-							     (option-spec->value spec)
-							     (option-spec->value-required? spec)
-							     (option-spec->single-char spec)
-							     (option-spec->predicate-ls spec)
-							     (cdr parse-ls))))
+			       (parse-iter
+                                (make-option-spec
+                                 (option-spec->name spec)
+                                 (option-spec->value spec)
+                                 (option-spec->value-required? spec)
+                                 (option-spec->single-char spec)
+                                 (option-spec->predicate-ls spec)
+                                 (cdr parse-ls))))
 			      ;; handle value specification
 			      ((eq? key 'value)
 			       (cond ((eq? val #t)
-				      ;; when value is required, add a predicate to that effect
-				      ;; and record the fact in value-required? field.
-				      (parse-iter (make-option-spec (option-spec->name spec)
-								    (option-spec->value spec)
-								    #t
-								    (option-spec->single-char spec)
-								    (cons (make-required-value-fn)
-									  (option-spec->predicate-ls spec))
-								    (cdr parse-ls))))
+				      ;; when value is required, add a
+				      ;; predicate to that effect and record
+				      ;; the fact in value-required? field.
+				      (parse-iter
+                                       (make-option-spec
+                                        (option-spec->name spec)
+                                        (option-spec->value spec)
+                                        #t
+                                        (option-spec->single-char spec)
+                                        (cons (make-required-value-fn)
+                                              (option-spec->predicate-ls spec))
+                                        (cdr parse-ls))))
 				     ((eq? val #f)
-				      ;; when the value is not allowed, add a predicate to that effect.
-				      ;; one can detect that a value is not supplied by checking the option
-				      ;; value against #f.
-				      (parse-iter (make-option-spec (option-spec->name spec)
-								    (option-spec->value spec)
-								    #f
-								    (option-spec->single-char spec)
-								    (cons (make-not-allowed-value-fn)
-									  (option-spec->predicate-ls spec))
-								    (cdr parse-ls))))
+				      ;; when the value is not allowed, add a
+				      ;; predicate to that effect.  one can
+				      ;; detect that a value is not supplied
+				      ;; by checking the option value against
+				      ;; #f.
+				      (parse-iter
+                                       (make-option-spec
+                                        (option-spec->name spec)
+                                        (option-spec->value spec)
+                                        #f
+                                        (option-spec->single-char spec)
+                                        (cons (make-not-allowed-value-fn)
+                                              (option-spec->predicate-ls spec))
+                                        (cdr parse-ls))))
 				     ((eq? val 'optional)
-				      ;; for optional values, don't add a predicate.  do, however
-				      ;; put the value 'optional in the value-required? field.  this
-				      ;; setting checks whether optional values are 'greedy'.  set
-				      ;; to #f to make optional value clauses 'non-greedy'.
-
-				      (parse-iter (make-option-spec (option-spec->name spec)
-								    (option-spec->value spec)
-								    'optional
-								    (option-spec->single-char spec)
-								    (option-spec->predicate-ls spec)
-								    (cdr parse-ls))))
+				      ;; for optional values, don't add a
+				      ;; predicate.  do, however put the value
+				      ;; 'optional in the value-required?
+				      ;; field.  this setting checks whether
+				      ;; optional values are 'greedy'.  set to
+				      ;; #f to make optional value clauses
+				      ;; 'non-greedy'.
+				      (parse-iter
+                                       (make-option-spec
+                                        (option-spec->name spec)
+                                        (option-spec->value spec)
+                                        'optional
+                                        (option-spec->single-char spec)
+                                        (option-spec->predicate-ls spec)
+                                        (cdr parse-ls))))
 				     (#t
 				      ;; error case
-				      (error "Bad value specification for option:" (cons key val)))))
-			      ;; specify which single char is defined for this option.
+				      (error "Bad value specification for option:"
+                                             (cons key val)))))
+			      ;; specify single char defined for this option.
 			      ((eq? key 'single-char)
 			       (if (not (single-char-value? val))
-				   (error "Not a single-char-value:" val " for option:" key)
-				   (parse-iter (make-option-spec (option-spec->name spec)
-								 (option-spec->value spec)
-								 (option-spec->value-required? spec)
-								 val
-								 (option-spec->predicate-ls spec)
-								 (cdr parse-ls)))))
+				   (error "Not a single-char-value:"
+                                          val " for option:" key)
+				   (parse-iter
+                                    (make-option-spec
+                                     (option-spec->name spec)
+                                     (option-spec->value spec)
+                                     (option-spec->value-required? spec)
+                                     val
+                                     (option-spec->predicate-ls spec)
+                                     (cdr parse-ls)))))
 			      ((eq? key 'predicate)
 			       (if (procedure? val)
-				   (parse-iter (make-option-spec (option-spec->name spec)
-								 (option-spec->value spec)
-								 (option-spec->value-required? spec)
-								 (option-spec->single-char spec)
-								 (cons (make-user-predicate val)
-								       (option-spec->predicate-ls spec))
-								 (cdr parse-ls)))
-				   (error "Bad predicate specified for option:" (cons key val))))))))))))
+				   (parse-iter
+                                    (make-option-spec
+                                     (option-spec->name spec)
+                                     (option-spec->value spec)
+                                     (option-spec->value-required? spec)
+                                     (option-spec->single-char spec)
+                                     (cons (make-user-predicate val)
+                                           (option-spec->predicate-ls spec))
+                                     (cdr parse-ls)))
+				   (error "Bad predicate specified for option:"
+                                          (cons key val))))))))))))
     (if (or (not (pair? desc))
 	    (string? (car desc)))
 	(error "Bad option specification:" desc))
@@ -514,26 +536,30 @@ is the list to not process."
 	    ((is-short-opt? (car opt-ls))
 	     (let* ((orig-str (car opt-ls))
 		    (match-pair (vector-ref response 2))
-		    (match-str (substring orig-str (car match-pair) (cdr match-pair))))
+		    (match-str (substring orig-str (car match-pair)
+                                          (cdr match-pair))))
 	       (if (= (string-length match-str) 1)
 		   (iter (cdr opt-ls)
 			 (cons (string-append "-" match-str) ret-ls))
-		   (iter (cons (string-append "-" (substring match-str 1)) (cdr opt-ls))
-			 (cons (string-append "-" (substring match-str 0 1)) ret-ls)))))
+		   (iter (cons (string-append "-" (substring match-str 1))
+                               (cdr opt-ls))
+			 (cons (string-append "-" (substring match-str 0 1))
+                               ret-ls)))))
 	    (#t (iter (cdr opt-ls)
 		      (cons (car opt-ls) ret-ls)))))
     (iter opt-ls '())))
 
 (define (process-short-option specifications argument-ls alist)
   "Process a single short option that appears at the front of the ARGUMENT-LS,
-according to SPECIFICATIONS.  Returns #f is there is no such argument.  Otherwise
-returns a pair whose car is the list of remaining arguments, and whose cdr is a
-new association list, constructed by adding a pair to the supplied ALIST.
-The pair on the front of the returned association list describes the  option
-found at the head of ARGUMENT-LS.  The way this routine currently works, an
-option that never takes a value that is followed by a non option will cause
-an error, which is probably a bug.  To fix the bug the option specification
-needs to record whether the option ever can take a value."
+according to SPECIFICATIONS.  Returns #f is there is no such argument.
+Otherwise returns a pair whose car is the list of remaining arguments, and
+whose cdr is a new association list, constructed by adding a pair to the
+supplied ALIST.  The pair on the front of the returned association list
+describes the option found at the head of ARGUMENT-LS.  The way this routine
+currently works, an option that never takes a value that is followed by a non
+option will cause an error, which is probably a bug.  To fix the bug the
+option specification needs to record whether the option ever can take a
+value."
   (define (short-option->char option)
     (string-ref option 1))
   (define (is-short-option? option)
@@ -543,29 +569,36 @@ needs to record whether the option ever can take a value."
 	(regexp-exec long-opt-no-value-rx option)))
   (define (find-matching-spec option)
     (let ((key (short-option->char option)))
-      (find-if (lambda (spec) (eq? key (option-spec->single-char spec))) specifications)))
+      (find-if (lambda (spec)
+                 (eq? key (option-spec->single-char spec))) specifications)))
   (let ((option (car argument-ls)))
     (if (is-short-option? option)
 	(let ((spec (find-matching-spec option)))
 	  (if spec
-	      (let* ((next-value (if (null? (cdr argument-ls)) #f (cadr argument-ls)))
+	      (let* ((next-value (if (null? (cdr argument-ls))
+                                     #f
+                                     (cadr argument-ls)))
 		     (option-value (if (and next-value
 					    (not (is-short-option? next-value))
 					    (not (is-long-option? next-value))
 					    (option-spec->value-required? spec))
 				       next-value
 				       #t))
-		     (new-alist (cons (cons (option-spec->name spec) option-value) alist)))
+		     (new-alist (cons (cons (option-spec->name spec)
+                                            option-value)
+                                      alist)))
 		(cons (if (eq? option-value #t)
-			  (cdr argument-ls)   ; there was one value specified, skip just one
-			  (cddr argument-ls)) ; there must have been a value specified, skip two
+			  (cdr argument-ls) ; one value, skip just one
+			  (cddr argument-ls)) ; must be a value, skip two
 		      new-alist))
 	      (error "No such option:" option)))
 	#f)))
 
 (define (process-long-option specifications argument-ls alist)
   (define (find-matching-spec key)
-    (find-if (lambda (spec) (eq? key (option-spec->name spec))) specifications))
+    (find-if (lambda (spec)
+               (eq? key (option-spec->name spec)))
+             specifications))
   (define (split-long-option option)
     ;; returns a pair whose car is a symbol naming the option, cdr is
     ;; the option value.  as a special case, if the option value is
@@ -577,27 +610,50 @@ needs to record whether the option ever can take a value."
 	  ;; Maybe we need to grab a value from argument-ls.  To find
 	  ;; out we need to refer to the option-spec.
 	  (let* ((key-pair (vector-ref resp 2))
-		 (key (string->symbol (substring option (car key-pair) (cdr key-pair))))
+		 (key (string->symbol
+                       (substring option (car key-pair) (cdr key-pair))))
 		 (spec (find-matching-spec key)))
-	    (cons key (if (option-spec->value-required? spec) #f #t)))
+            (let* ((req (option-spec->value-required? spec))
+                   (retval (cons key (if req #f #t))))
+              ;; this is a fucking kludge, i hate it.  it's necessary because
+              ;; the protocol (return #f to indicate next element is an option
+              ;; arg) is insufficient.  needs redesign.  why am i checking in
+              ;; such ugliness?  read moby dick!  -ttn
+              (and (eq? 'optional req)
+                   (set-object-property! retval 'optional #t))
+              retval))
 	  (let ((resp (regexp-exec long-opt-with-value-rx option)))
 	    ;; Aha, we've found a long option with an equal sign.  The
 	    ;; option value is simply the value to the right of the
 	    ;; equal sign.
 	    (if resp
 		(let* ((key-pair (vector-ref resp 2))
-		       (key (string->symbol (substring option (car key-pair) (cdr key-pair))))
+		       (key (string->symbol
+                             (substring option
+                                        (car key-pair) (cdr key-pair))))
 		       (value-pair (vector-ref resp 3))
-		       (value (substring option (car value-pair) (cdr value-pair))))
+		       (value (substring option
+                                         (car value-pair) (cdr value-pair))))
 		  (cons key value))
-		  #f)))))
+                #f)))))
   (let* ((option (car argument-ls))
 	 (pair (split-long-option option)))
     (cond ((and pair (eq? (cdr pair) #f))
-	   (if (null? (cdr argument-ls))
-	       (error "Not enough options.")
-	       (cons (cddr argument-ls)
-		     (cons (cons (car pair) (cadr argument-ls)) alist))))
+           (cond ((and (null? (cdr argument-ls))
+                       (not (object-property pair 'optional)))
+                  (error "Not enough options."))
+                 ((null? (cdr argument-ls))
+                  (cons '() (cons (cons (car pair) #t) alist)))
+                 ((let* ((next (cadr argument-ls))
+                         (m (or (regexp-exec short-opt-rx next)
+                                (regexp-exec long-opt-with-value-rx next)
+                                (regexp-exec long-opt-no-value-rx next))))
+                    (and m (object-property pair 'optional)))
+                  (cons (cdr argument-ls)
+                        (cons (cons (car pair) #t) alist)))
+                 (else
+                  (cons (cddr argument-ls)
+                        (cons (cons (car pair) (cadr argument-ls)) alist)))))
 	  (pair
 	   (cons (cdr argument-ls) (cons pair alist)))
 	  (else #f))))
@@ -611,7 +667,8 @@ needs to record whether the option ever can take a value."
 	      (let ((argument-ls (car pair))
 		    (alist (cdr pair)))
 		(iter argument-ls alist rest-ls))
-	      (let ((pair (process-long-option specifications argument-ls alist)))
+	      (let ((pair (process-long-option
+                           specifications argument-ls alist)))
 		(if pair
 		    (let ((argument-ls (car pair))
 			  (alist (cdr pair)))
@@ -659,11 +716,12 @@ to add a 'single-char' clause to the option description."
     (let* ((opt-pair (process-options specifications split-ls))
 	   (alist (car opt-pair))
 	   (rest-ls (append (cdr opt-pair) non-split-ls)))
-      ;; loop through the returned alist, and set the values into the specifications
+      ;; loop through returned alist, set values into specifications
       (for-each (lambda (pair)
 		  (let* ((key (car pair))
 			 (val (cdr pair))
-			 (spec (find-if (lambda (spec) (eq? key (option-spec->name spec)))
+			 (spec (find-if (lambda (spec)
+                                          (eq? key (option-spec->name spec)))
 					specifications)))
 		    (if spec (set-option-spec-value! spec val))))
 		alist)
