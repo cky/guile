@@ -199,8 +199,7 @@ where OPTIONSET is one of debug, read, eval, print
 			       (eq? module the-root-module)))
 		  (name (module-name module))
 		  (obarrays (if builtin
-				(list (builtin-weak-bindings)
-				      (builtin-bindings))
+				(list (builtin-bindings))
 				(list (module-obarray module))))
 		  (get-refs (if builtin
 				(list id id)
@@ -278,10 +277,8 @@ Fourth arg FOLDER is one of
 	       (cond ((or (eq? module the-scm-module)
 			  (eq? module the-root-module))
 		      (hash-fold obarray-filter
-				 (hash-fold obarray-filter
-					    data
-					    (builtin-bindings))
-				 (builtin-weak-bindings)))
+				 data
+				 (builtin-bindings)))
 		     (module (hash-fold module-filter
 					data
 					(module-obarray module)))

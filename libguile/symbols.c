@@ -82,6 +82,67 @@ duplicate_string (const char * src, unsigned long length)
  */
 
 
+SCM
+scm_mem2symbol (const char *name, scm_sizet len)
+{
+  scm_sizet raw_hash = scm_string_hash ((const unsigned char *) name, len);
+  scm_sizet hash = raw_hash % SCM_VECTOR_LENGTH (scm_symbols);
+
+  {
+    /* Try to find the symbol in the scm_symbols table */
+
+    SCM l;
+
+    for (l = SCM_VELTS (scm_symbols) [hash]; !SCM_NULLP (l); l = SCM_CDR (l))
+      {
+	SCM sym = SCM_CAAR (l);
+	if (SCM_SYMBOL_HASH (sym) == raw_hash && SCM_SYMBOL_LENGTH (sym) == len)
+	  {
+	    char *chrs = SCM_SYMBOL_CHARS (sym);
+	    scm_sizet i = len;
+
+	    while (i != 0)
+	      {
+		--i;
+		if (name[i] != chrs[i])
+		  goto next_symbol;
+	      }
+
+	    return sym;
+	  }
+      next_symbol:
+      }
+  }
+
+  {
+    /* The symbol was not found - create it. */
+
+    SCM symbol;
+    SCM cell;
+    SCM slot;
+
+    SCM_NEWCELL2 (symbol);
+    SCM_SET_SYMBOL_CHARS (symbol, duplicate_string (name, len));
+    SCM_SET_SYMBOL_HASH (symbol, raw_hash);
+    SCM_SET_PROP_SLOTS (symbol, scm_cons (SCM_BOOL_F, SCM_EOL));
+    SCM_SET_SYMBOL_LENGTH (symbol, (long) len);
+
+    cell = scm_cons (symbol, SCM_UNDEFINED);
+    slot = SCM_VELTS (scm_symbols) [hash];
+    SCM_VELTS (scm_symbols) [hash] = scm_cons (cell, slot);
+
+    return symbol;
+  }
+}
+
+
+SCM
+scm_str2symbol (const char *str)
+{
+  return scm_mem2symbol (str, strlen (str));
+}
+
+
 /* scm_sym2vcell
  * looks up the symbol in the symhash table. 
  */
@@ -109,13 +170,11 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
   else
     {
       SCM lsym;
-      SCM * lsymp;
-      scm_sizet hash1;
-      scm_sizet hash2;
+      scm_sizet hash;
 
       SCM_DEFER_INTS;
-      hash1 = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (scm_symhash);
-      for (lsym = SCM_VELTS (scm_symhash)[hash1]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
+      hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (scm_symhash);
+      for (lsym = SCM_VELTS (scm_symhash)[hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
 	{
 	  SCM z = SCM_CAR (lsym);
 	  if (SCM_EQ_P (SCM_CAR (z), sym))
@@ -125,27 +184,21 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
 	    }
 	}
 
-      hash2 = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (scm_weak_symhash);
-      for (lsym = *(lsymp = &SCM_VELTS (scm_weak_symhash)[hash2]);
-	   SCM_NIMP (lsym);
-	   lsym = *(lsymp = SCM_CDRLOC (lsym)))
+      if (!SCM_FALSEP (definep))
 	{
-	  SCM z = SCM_CAR (lsym);
-	  if (SCM_EQ_P (SCM_CAR (z), sym))
-	    {
-	      if (SCM_NFALSEP (definep))
-		{
-		  /* Move handle from scm_weak_symhash to scm_symhash. */
-		  *lsymp = SCM_CDR (lsym);
-		  SCM_SETCDR (lsym, SCM_VELTS(scm_symhash)[hash1]);
-		  SCM_VELTS(scm_symhash)[hash1] = lsym;
-		}
-	      SCM_ALLOW_INTS;
-	      return z;
-	    }
+	  SCM cell = scm_cons (sym, SCM_UNDEFINED);
+	  SCM slot = SCM_VELTS (scm_symhash) [hash];
+
+	  SCM_VELTS (scm_symhash) [hash] = scm_cons (cell, slot);
+
+	  SCM_ALLOW_INTS;
+	  return cell;
 	}
-      SCM_ALLOW_INTS;
-      return scm_wta (sym, "uninterned symbol? ", "");
+      else
+	{
+	  SCM_ALLOW_INTS;
+	  return SCM_BOOL_F;
+	}
     }
 }
 
@@ -203,109 +256,48 @@ scm_sym2ovcell (SCM sym, SCM obarray)
    in OBARRAY; instead, just return #f.
 
    If OBARRAY is SCM_BOOL_F, create a symbol listed in no obarray and
-   return (SYMBOL . SCM_UNDEFINED).
-
-   If OBARRAY is scm_symhash, and that doesn't contain the symbol,
-   check scm_weak_symhash instead.  */
+   return (SYMBOL . SCM_UNDEFINED).  */
 
 
 SCM 
 scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int softness)
 {
-  scm_sizet raw_hash = scm_string_hash ((unsigned char *) name, len);
+  SCM symbol = scm_mem2symbol (name, len);
+  scm_sizet raw_hash = SCM_SYMBOL_HASH (symbol);
   scm_sizet hash;
   SCM lsym;
 
-  SCM_REDEFER_INTS;
-
   if (SCM_FALSEP (obarray))
     {
-      hash = raw_hash % 1019;
-      goto uninterned_symbol;
+      if (softness)
+	return SCM_BOOL_F;
+      else
+	return scm_cons (symbol, SCM_UNDEFINED);
     }
 
   hash = raw_hash % SCM_VECTOR_LENGTH (obarray);
 
- retry_new_obarray:
   for (lsym = SCM_VELTS (obarray)[hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
     {
-      scm_sizet i;
       SCM a = SCM_CAR (lsym);
       SCM z = SCM_CAR (a);
-      char *tmp = SCM_SYMBOL_CHARS (z);
-      if (SCM_SYMBOL_HASH (z) != raw_hash)
-	goto trynext;
-      if (SCM_SYMBOL_LENGTH (z) != len)
-	goto trynext;
-      for (i = len; i--;)
-	if (name[i] != tmp[i])
-	  goto trynext;
-      {
-	SCM_REALLOW_INTS;
+      if (SCM_EQ_P (z, symbol))
 	return a;
-      }
-    trynext:;
-    }
-
-  if (SCM_EQ_P (obarray, scm_symhash))
-    {
-      obarray = scm_weak_symhash;
-      goto retry_new_obarray;
     }
   
- uninterned_symbol:
   if (softness)
     {
-      SCM_REALLOW_INTS;
       return SCM_BOOL_F;
-    }
-
-  SCM_NEWCELL2 (lsym);
-  SCM_SET_SYMBOL_CHARS (lsym, duplicate_string (name, len));
-  SCM_SET_SYMBOL_HASH (lsym, raw_hash);
-  SCM_SET_PROP_SLOTS (lsym, scm_cons (SCM_BOOL_F, SCM_EOL));
-  SCM_SET_SYMBOL_LENGTH (lsym, (long) len);
-
-  if (SCM_FALSEP (obarray))
-    {
-      SCM answer;
-      SCM_REALLOW_INTS;
-      SCM_NEWCELL (answer);
-      SCM_DEFER_INTS;
-      SCM_SETCAR (answer, lsym);
-      SCM_SETCDR (answer, SCM_UNDEFINED);
-      SCM_REALLOW_INTS;
-      return answer;
     }
   else
     {
-      SCM a;
-      SCM b;
+      SCM cell = scm_cons (symbol, SCM_UNDEFINED);
+      SCM slot = SCM_VELTS (obarray) [hash];
 
-      SCM_NEWCELL (a);
-      SCM_NEWCELL (b);
-      SCM_SETCAR (a, lsym);
-      SCM_SETCDR (a, SCM_UNDEFINED);
-      SCM_SETCAR (b, a);
-      SCM_SETCDR (b, SCM_VELTS(obarray)[hash]);
-      SCM_VELTS(obarray)[hash] = b;
-      SCM_REALLOW_INTS;
-      return SCM_CAR (b);
+      SCM_VELTS (obarray) [hash] = scm_cons (cell, slot);
+
+      return cell;
     }
-}
-
-
-SCM
-scm_mem2symbol (const char *mem, scm_sizet len)
-{
-  return SCM_CAR (scm_intern_obarray_soft (mem, len, scm_symhash, 0));
-}
-
-
-SCM
-scm_str2symbol (const char *str)
-{
-  return SCM_CAR (scm_intern_obarray_soft (str, strlen (str), scm_symhash, 0));
 }
 
 
@@ -334,9 +326,10 @@ scm_intern0 (const char * name)
 SCM 
 scm_sysintern0_no_module_lookup (const char *name)
 {
+  scm_sizet len = strlen (name);
   SCM easy_answer;
   SCM_DEFER_INTS;
-  easy_answer = scm_intern_obarray_soft (name, strlen (name), scm_symhash, 1);
+  easy_answer = scm_intern_obarray_soft (name, len, scm_symhash, 1);
   if (SCM_NIMP (easy_answer))
     {
       SCM_ALLOW_INTS;
@@ -344,21 +337,15 @@ scm_sysintern0_no_module_lookup (const char *name)
     }
   else
     {
-      SCM lsym;
-      scm_sizet len = strlen (name);
-      scm_sizet raw_hash = scm_string_hash ((unsigned char *) name, len);
+      SCM symbol = scm_mem2symbol (name, len);
+      scm_sizet raw_hash = SCM_SYMBOL_HASH (symbol);
       scm_sizet hash = raw_hash % SCM_VECTOR_LENGTH (scm_symhash);
+      SCM cell = scm_cons (symbol, SCM_UNDEFINED);
+      SCM slot = SCM_VELTS (scm_symhash) [hash];
 
-      SCM_NEWCELL2 (lsym);
-      SCM_SET_SYMBOL_CHARS (lsym, name);
-      SCM_SET_SYMBOL_HASH (lsym, raw_hash);
-      SCM_SET_PROP_SLOTS (lsym, scm_cons (SCM_BOOL_F, SCM_EOL));
-      SCM_SET_SYMBOL_LENGTH (lsym, (long) len);
-
-      lsym = scm_cons (lsym, SCM_UNDEFINED);
-      SCM_VELTS (scm_symhash)[hash] = scm_cons (lsym, SCM_VELTS (scm_symhash)[hash]);
+      SCM_VELTS (scm_symhash) [hash] = scm_cons (cell, slot);
       SCM_ALLOW_INTS;
-      return lsym;
+      return cell;
     }
 }
 
@@ -399,10 +386,8 @@ scm_symbol_value0 (const char *name)
   /* This looks silly - we look up the symbol twice.  But it is in
      fact necessary given the current module system because the module
      lookup closures are written in scheme which needs real symbols. */
-  SCM symbol = scm_intern_obarray_soft (name, strlen (name), scm_symhash, 0);
-  SCM vcell = scm_sym2vcell (SCM_CAR (symbol),
-			     SCM_TOP_LEVEL_LOOKUP_CLOSURE,
-			     SCM_BOOL_F);
+  SCM symbol = scm_str2symbol (name);
+  SCM vcell = scm_sym2vcell (symbol, SCM_TOP_LEVEL_LOOKUP_CLOSURE, SCM_BOOL_F);
   if (SCM_FALSEP (vcell))
     return SCM_UNDEFINED;
   return SCM_CDR (vcell);
@@ -632,8 +617,6 @@ SCM_DEFINE (scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell_soft (s, o);
-  if (SCM_IMP (vcell) && SCM_EQ_P (o, scm_symhash))
-    vcell = scm_sym2ovcell_soft (s, scm_weak_symhash);
   return (SCM_NIMP(vcell)
 	  ? SCM_BOOL_T
 	  : SCM_BOOL_F);
@@ -777,18 +760,6 @@ SCM_DEFINE (scm_builtin_bindings, "builtin-bindings", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-
-SCM_DEFINE (scm_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0, 
-            (),
-	    "")
-#define FUNC_NAME s_scm_builtin_weak_bindings
-{
-  int length = SCM_VECTOR_LENGTH (scm_weak_symhash);
-  SCM obarray = scm_make_doubly_weak_hash_table (SCM_MAKINUM (length));
-  copy_and_prune_obarray (scm_weak_symhash, obarray);
-  return obarray;
-}
-#undef FUNC_NAME
 
 #define MAX_PREFIX_LENGTH 30
 

@@ -207,6 +207,10 @@ effect of flushing buffers.  port-for-each is more flexible.
 the child process from the current Scheme ports, instead of using the
 current values of file descriptors 0, 1, and 2 in the parent process.
 
+** Removed function:  builtin-weak-bindings
+
+There is no such concept as a weak binding any more.
+
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface

@@ -2521,7 +2521,7 @@ scm_init_storage ()
 
 #define DEFAULT_SYMHASH_SIZE 277
   scm_symhash = scm_make_vector (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE), SCM_EOL);
-  scm_weak_symhash = scm_make_weak_key_hash_table (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE));
+  scm_symbols = scm_make_weak_key_hash_table (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE));
   scm_symhash_vars = scm_make_vector (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE), SCM_EOL);
 
   scm_stand_in_procs = SCM_EOL;

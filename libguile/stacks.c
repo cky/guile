@@ -222,9 +222,9 @@ read_frame (scm_debug_frame *dframe,long offset,scm_info_frame *iframe)
 static SCM
 get_applybody ()
 {
-  SCM proc = SCM_CDR (scm_sym2vcell (scm_sym_apply, SCM_BOOL_F, SCM_BOOL_F));
-  if (SCM_CLOSUREP (proc))
-    return SCM_CADR (SCM_CODE (proc));
+  SCM cell = scm_sym2vcell (scm_sym_apply, SCM_BOOL_F, SCM_BOOL_F);
+  if (SCM_CONSP (cell) && SCM_CLOSUREP (SCM_CDR (cell)))
+    return SCM_CADR (SCM_CODE (SCM_CDR (cell)));
   else
     return SCM_UNDEFINED;
 }

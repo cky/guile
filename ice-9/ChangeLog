@@ -1,5 +1,10 @@
 2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* session.scm (apropos, apropos-fold):  There are no weak bindings
+	any more.
+
+2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* boot-9.scm (top-repl):  Lookup 'use-emacs-interface in
 	the-root-module.
 

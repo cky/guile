@@ -1,5 +1,40 @@
 2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_init_storage), root.h (scm_weak_symhash, scm_symbols):
+	Removed the former scm_weak_symhash hash table.  Added scm_symbols
+	hash table.
+
+	* stacks.c (get_applybody):  scm_sym2vcell may return #f.
+
+	* symbols.c (scm_mem2symbol):  This function is now responsible
+	for creating symbol objects and storing them in the global
+	scm_symbols hash table.
+
+	(scm_str2symbol):  Rewritten in terms of scm_mem2symbol.
+
+	(scm_sym2vcell):  For system bindings, there is now only one
+	obarray - scm_symhash.  If scm_sym2vcell is called to look up a
+	symbol that can't be found and shall not be created, #f is
+	returned.  Most callers of scm_sym2vcell have expected this
+	behaviour anyway.
+
+	(scm_intern_obarray_soft):  Removed reference to scm_weak_symhash
+	from comment.
+
+	(scm_intern_obarray_soft, scm_sysintern0_no_module_lookup):  These
+	functions are not responsible for symbol creation any more, only
+	for creation of bindings.
+
+	(scm_symbol_value0):  Don't use scm_intern_obarray_soft to create
+	a symbol object.
+
+	(scm_symbol_interned_p):  scm_weak_symhash is removed.
+
+	* symbols.[ch] (scm_builtin_weak_bindings):  Removed.  There are
+	no weak bindings any more.
+
+2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* hooks.c (scm_create_hook), script.c
 	(scm_compile_shell_switches), snarf.h (SCM_VCELL,
 	SCM_GLOBAL_VCELL, SCM_VCELL_INIT, SCM_GLOBAL_VCELL_INIT):  Create
