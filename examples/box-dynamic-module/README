@@ -66,8 +66,8 @@ guile> (use-modules (box-mixed))
 guile> (define bl  (make-box-list 1 2 3)) 
 guile> bl
 (#<box 1> #<box 2> #<box 3>)
-guile> (box-map (lambda (el) (make-box-list (list el))) bl)
-(#<box (#<box (1)>)> #<box (#<box (2)>)> #<box (#<box (3)>)>)
+guile> (box-map 1+ bl)
+(#<box 2> #<box 3> #<box 4>)
 guile> (quit)
 $
 

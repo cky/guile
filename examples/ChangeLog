@@ -1,3 +1,8 @@
+2001-06-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* box-dynamic-module/README: Use a better example for box-map, as
+	suggested by Thomas Wawrzinek.
+
 2001-06-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scripts/README, scripts/hello.scm, safe/untrusted.scm,
