@@ -1,3 +1,8 @@
+1999-03-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* session.scm (system-module): New procedure.  Used to switch a
+	module between system and user state.
+
 1999-03-16  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* session.scm (apropos-internal): Rewritten using hash-fold.
