@@ -185,7 +185,7 @@ scm_unmemoize (m)
      SCM m;
 {
   SCM_ASSERT (SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
-  return scm_unmemocopy (SCM_MEMOEXP (m), SCM_MEMOENV (m));
+  return scm_unmemocopy (SCM_MEMOIZED_EXP (m), SCM_MEMOIZED_ENV (m));
 }
 
 SCM_PROC (s_memoized_environment, "memoized-environment", 1, 0, 0, scm_memoized_environment);
@@ -195,7 +195,7 @@ scm_memoized_environment (m)
      SCM m;
 {
   SCM_ASSERT (SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
-  return SCM_MEMOENV (m);
+  return SCM_MEMOIZED_ENV (m);
 }
 
 SCM_PROC (s_procedure_name, "procedure-name", 1, 0, 0, scm_procedure_name);
@@ -284,6 +284,7 @@ scm_procedure_environment (proc)
   }
 }
 
+
 
 /* Eval in a local environment.  We would like to have the ability to
  * evaluate in a specified local environment, but due to the memoization
@@ -301,30 +302,24 @@ scm_local_eval (exp, env)
   return scm_eval_3 (exp, 1, env);
 }
 
-/* {Stack Frames}
- *
- * The stack is a list of stackframes, from root to current.
- *
- * A stackframe is a list of virtual stackframes, which occur due to
- * the evaluators tail recursion.  A virtual stackframe normally
- * corresponds to an eval/apply pair, but macros and special forms
- * (which are implemented as macros in scm...) only have eval
- * information and apply calls leads to apply only frames.
- *
- * A virtual stackframe is either a property list or the symbol
- * ... which marks the location of virtual stackframes which could not
- * be stored with the current debug-depth.
- *
- * Property	Type		Description
- *
- * These three only present in eval frames:
- *
- * sexpr	memoized	Source code expression and environment.
- * proc		procedure	The procedure being applied.
- *				(Not present if pre-apply state.)
- * args		list		The arguments evaluated so far.
- * eval-args	boolean		True if evaluation of arguments not finished.
- */
+static char s_start_stack[] = "start-stack";
+SCM
+scm_m_start_stack (exp, env)
+     SCM exp;
+     SCM env;
+{
+  SCM answer;
+  scm_debug_frame *old = scm_last_debug_frame;
+  exp = SCM_CDR (exp);
+  SCM_ASSERT (SCM_NIMP (exp) && SCM_CONSP (exp) && SCM_NULLP (SCM_CDR (exp)),
+	      exp,
+	      SCM_WNA,
+	      s_start_stack);
+  scm_last_debug_frame = 0;
+  answer = scm_eval_car (exp, env);
+  scm_last_debug_frame = old;
+  return answer;
+}
 
 /* {Debug Objects}
  *
@@ -332,10 +327,6 @@ scm_local_eval (exp, env)
  */
 
 long scm_tc16_debugobj;
-
-#define DEBUGOBJP(x) (scm_tc16_debugobj == SCM_TYP16 (x))
-#define DBGFRAME(x) SCM_CDR (x)
-
 
 static int prindebugobj SCM_P ((SCM obj, SCM port, scm_print_state *pstate));
 
@@ -346,7 +337,7 @@ prindebugobj (obj, port, pstate)
      scm_print_state *pstate;
 {
   scm_gen_puts (scm_regular_string, "#<debug-object ", port);
-  scm_intprint (DBGFRAME (obj), 16, port);
+  scm_intprint (SCM_DEBUGOBJ_FRAME (obj), 16, port);
   scm_gen_putc ('>', port);
   return 1;
 }
@@ -360,7 +351,7 @@ SCM
 scm_debug_object_p (obj)
      SCM obj;
 {
-  return SCM_NIMP (obj) && DEBUGOBJP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_NIMP (obj) && SCM_DEBUGOBJP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 
@@ -372,169 +363,10 @@ scm_make_debugobj (frame)
   SCM_DEFER_INTS;
   SCM_NEWCELL (z);
   SCM_CAR (z) = scm_tc16_debugobj;
-  DBGFRAME (z) = (SCM) frame;
+  SCM_DEBUGOBJ_FRAME (z) = (SCM) frame;
   SCM_ALLOW_INTS;
   return z;
 }
-
-
-static SCM _scm_stack_frame_to_plist SCM_P ((scm_debug_frame *frame, long offset));
-
-static SCM
-_scm_stack_frame_to_plist (frame, offset)
-     scm_debug_frame *frame;
-     long offset;
-{
-  int size;
-  scm_debug_info *info;
-  if (SCM_EVALFRAMEP (*frame))
-    {
-      size = frame->status & SCM_MAX_FRAME_SIZE;
-      info = (scm_debug_info *) (*((SCM_STACKITEM **) &frame->vect[size]) + offset);
-      if ((info - frame->vect) & 1)
-	{
-	  /* Debug.vect ends with apply info. */
-	  SCM p;
-	  --info;
-	  if (info[1].a.proc == SCM_UNDEFINED)
-	    p = SCM_EOL;
-	  else
-	    p = scm_acons (scm_i_proc,
-			   info[1].a.proc,
-			   scm_acons (scm_i_args,
-				      info[1].a.args,
-				      SCM_ARGS_READY_P (*frame)
-				      ? SCM_EOL
-				      : scm_acons (scm_i_eval_args,
-						   SCM_BOOL_T,
-						   SCM_EOL)));
-	  return scm_acons (scm_i_source,
-			    scm_make_memoized (info[0].e.exp, info[0].e.env),
-			    p);
-	}
-      else
-	/* Debug.vect ends with eval info. */
-	return scm_acons (scm_i_source,
-			  scm_make_memoized (info[0].e.exp, info[0].e.env),
-			  SCM_EOL);
-    }
-  else
-    return scm_acons (scm_i_proc,
-		      frame->vect[0].a.proc,
-		      scm_acons (scm_i_args, frame->vect[0].a.args, SCM_EOL));
-}
-
-SCM_PROC (s_last_stack_frame, "last-stack-frame", 1, 0, 0, scm_last_stack_frame);
-
-SCM
-scm_last_stack_frame (obj)
-     SCM obj;
-{
-  scm_debug_frame *frame;
-  long offset = 0;
-  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_last_stack_frame);
-  if (scm_tc16_debugobj == SCM_TYP16 (obj))
-    frame = (scm_debug_frame *) DBGFRAME (obj);
-  else if (scm_tc7_contin == SCM_TYP7 (obj))
-    {
-      frame = SCM_DFRAME (obj);
-      offset = (SCM_STACKITEM *) (SCM_CHARS (obj) + sizeof (regs)) - SCM_BASE (obj);
-#ifndef STACK_GROWS_UP
-      offset += SCM_LENGTH (obj);
-#endif
-    }
-  else scm_wta (obj, (char *) SCM_ARG1, s_last_stack_frame);
-  if (!frame)
-    return SCM_BOOL_F;
-  return _scm_stack_frame_to_plist ((scm_debug_frame *) ((SCM_STACKITEM *) frame + offset), offset);
-}
-
-/* Make a scheme object of the current evaluation stack.
- */
-
-SCM_PROC (s_expr_stack, "expr-stack", 0, 1, 0, scm_expr_stack);
-
-SCM
-scm_expr_stack (obj)
-     SCM obj;
-{
-  SCM frs = SCM_EOL, vfrs, p;
-  int size;
-  int max_vfrs = SCM_BACKTRACE_DEPTH;
-  scm_debug_info *info;
-  scm_debug_frame *frame;
-  long offset = 0;
-  if (SCM_UNBNDP (obj))
-    frame = scm_last_debug_frame;
-  else
-    {
-      SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_expr_stack);
-      if (scm_tc16_debugobj == SCM_TYP16 (obj))
-	frame = (scm_debug_frame *) DBGFRAME (obj);
-      else if (scm_tc7_contin == SCM_TYP7 (obj))
-	{
-	  frame = SCM_DFRAME (obj);
-	  offset = (SCM_STACKITEM *) (SCM_CHARS (obj) + sizeof (regs)) - SCM_BASE (obj);
-#ifndef STACK_GROWS_UP
-	  offset += SCM_LENGTH (obj);
-#endif
-	}
-      else scm_wta (obj, (char *) SCM_ARG1, s_expr_stack);
-    }
-  for (; frame && max_vfrs > 0; frame = frame->prev)
-    {
-      frame = (scm_debug_frame *) ((SCM_STACKITEM *) frame + offset);
-      p = _scm_stack_frame_to_plist (frame, offset);
-      if (SCM_EVALFRAMEP (*frame))
-	{
-	  size = frame->status & SCM_MAX_FRAME_SIZE;
-	  info = (scm_debug_info *) (*((SCM_STACKITEM **) &frame->vect[size]) + offset);
-	  vfrs = SCM_EOL;
-	  if ((info - frame->vect) & 1)
-	    --info;
-	  /* Data in the apply part of an eval info frame comes from
-	     previous stack frame if the scm_debug_info vector is overflowed. */
-	  else if (SCM_OVERFLOWP (*frame)
-		   && !SCM_UNBNDP (info[1].a.proc))
-	    {
-	      vfrs = scm_cons (p, SCM_EOL);
-	      --max_vfrs;
-	      p = scm_acons (scm_i_proc,
-			     info[1].a.proc,
-			     scm_acons (scm_i_args, info[1].a.args, SCM_EOL));
-	    }
-	  info -= 2;
-	  vfrs = scm_cons (p, vfrs);
-	  --max_vfrs;
-	  if (SCM_OVERFLOWP (*frame))
-	    vfrs = scm_cons (scm_i_more, vfrs);
-	  while (info >= frame->vect)
-	    {
-	      p = SCM_EOL;
-	      if (!SCM_UNBNDP (info[1].a.proc))
-		p = scm_acons (scm_i_proc,
-			       info[1].a.proc,
-			       scm_acons (scm_i_args, info[1].a.args, SCM_EOL));
-	      p = scm_acons (scm_i_source,
-			     scm_make_memoized (info[0].e.exp, info[0].e.env),
-			     p);
-	      info -= 2;
-	      vfrs = scm_cons (p, vfrs);
-	      --max_vfrs;
-	    }
-	}
-      else
-	{
-	  vfrs = scm_cons (p, SCM_EOL);
-	  --max_vfrs;
-	}
-      frs = scm_cons (vfrs, frs);
-    }
-  if (max_vfrs <= 0)
-    frs = scm_cons (scm_i_more, frs);
-  return frs;
-}
-
 
 
 
@@ -556,6 +388,8 @@ scm_init_debug ()
   scm_i_args = SCM_CAR (scm_sysintern ("args", SCM_UNDEFINED));
   scm_i_eval_args = SCM_CAR (scm_sysintern ("eval-args", SCM_UNDEFINED));
 
+  scm_make_synt (s_start_stack, scm_makacro, scm_m_start_stack);
+  
   scm_add_feature ("debug-extensions");
 
 #include "debug.x"
