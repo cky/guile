@@ -237,7 +237,7 @@
  */
 
 /* an = the number of arguments */
-#define VM_SETUP_ARGS(PROG,NREQS,RESTP)				\
+#define VM_FRAME_INIT_ARGS(PROG,NREQS,RESTP)			\
 {								\
   if (RESTP)							\
     /* have a rest argument */					\
@@ -260,49 +260,66 @@
     }								\
 }
 
-#define VM_EXPORT_ARGS(FP,PROG)					\
-{								\
-  int *exts = SCM_PROGRAM_EXTS (PROG);				\
-  if (exts)							\
-    {								\
-      int n = exts[0];						\
-      while (n-- > 0)						\
-	SCM_VM_EXTERNAL_VARIABLE (SCM_PROGRAM_ENV (PROG), n)	\
-	  = SCM_VM_FRAME_VARIABLE (FP, exts[n + 1]);	\
-    }								\
-}
-
-#undef VM_FRAME_INIT_VARIABLES
+#undef VM_FRAME_INIT_LOCAL_VARIABLES
 #if VM_INIT_LOCAL_VARIABLES
 /* This is necessary when creating frame objects for debugging */
-#define VM_FRAME_INIT_VARIABLES(FP,NVARS)		\
+#define VM_FRAME_INIT_LOCAL_VARIABLES(FP,NVARS)		\
 {							\
   int i;						\
   for (i = 0; i < NVARS; i++)				\
     SCM_VM_FRAME_VARIABLE (FP, i) = SCM_UNDEFINED;	\
 }
 #else
-#define VM_FRAME_INIT_VARIABLES(FP,NVARS)
+#define VM_FRAME_INIT_LOCAL_VARIABLES(FP,NVARS)
 #endif
+
+#define VM_FRAME_INIT_EXTERNAL_VARIABLES(FP,PROG)	\
+{							\
+  int *exts = SCM_PROGRAM_EXTS (PROG);			\
+  if (exts)						\
+    {							\
+      /* Export variables */				\
+      int n = exts[0];					\
+      while (n-- > 0)					\
+	SCM_VM_EXTERNAL_VARIABLE (ext, n)		\
+	  = SCM_VM_FRAME_VARIABLE (FP, exts[n + 1]);	\
+    }							\
+}
 
 #define VM_NEW_FRAME(FP,PROG,DL,SP,RA)					  \
 {									  \
   int nvars = SCM_PROGRAM_NVARS (PROG); /* the number of local vars */	  \
   int nreqs = SCM_PROGRAM_NREQS (PROG); /* the number of required args */ \
   int restp = SCM_PROGRAM_RESTP (PROG); /* have a rest argument or not */ \
+  int nexts = SCM_PROGRAM_NEXTS (PROG);	/* the number of external vars */ \
 									  \
-  VM_SETUP_ARGS (PROG, nreqs, restp);					  \
+  VM_FRAME_INIT_ARGS (PROG, nreqs, restp);				  \
+									  \
+  /* Allocate the new frame */						  \
   if (sp - nvars - SCM_VM_FRAME_DATA_SIZE < stack_base - 1)		  \
     SCM_MISC_ERROR ("FIXME: Stack overflow", SCM_EOL);			  \
   sp -= nvars + SCM_VM_FRAME_DATA_SIZE;					  \
   FP = sp + SCM_VM_FRAME_DATA_SIZE + 1;					  \
+									  \
+  /* Setup the new external frame */					  \
+  if (!SCM_FALSEP (SCM_PROGRAM_ENV (PROG)))				  \
+    ext = SCM_PROGRAM_ENV (PROG);	/* Use program's environment */	  \
+  if (nexts)								  \
+    {									  \
+      SCM new = SCM_VM_MAKE_EXTERNAL (nexts); /* new external */	  \
+      SCM_VM_EXTERNAL_LINK (new) = ext;					  \
+      ext = new;							  \
+    }									  \
+									  \
+  /* Setup the new frame */						  \
   SCM_VM_FRAME_SIZE (FP) = SCM_MAKINUM (nvars);				  \
   SCM_VM_FRAME_PROGRAM (FP) = PROG;					  \
   SCM_VM_FRAME_DYNAMIC_LINK (FP) = DL;					  \
+  SCM_VM_FRAME_EXTERNAL_LINK (FP) = ext;				  \
   SCM_VM_FRAME_STACK_POINTER (FP) = SP;					  \
   SCM_VM_FRAME_RETURN_ADDRESS (FP) = RA;				  \
-  VM_FRAME_INIT_VARIABLES (FP, nvars);					  \
-  VM_EXPORT_ARGS (FP, PROG);						  \
+  VM_FRAME_INIT_LOCAL_VARIABLES (FP, nvars);				  \
+  VM_FRAME_INIT_EXTERNAL_VARIABLES (FP, PROG);				  \
 }
 
 

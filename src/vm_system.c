@@ -47,14 +47,12 @@
  * Variable access
  */
 
-#undef LOCAL_VAR
 #define LOCAL_VAR(OFFSET)	SCM_VM_FRAME_VARIABLE (fp, OFFSET)
 
-#undef EXTERNAL_FOCUS
 #define EXTERNAL_FOCUS(DEPTH)				\
 {							\
   int depth = DEPTH;					\
-  env = SCM_PROGRAM_ENV (SCM_VM_FRAME_PROGRAM (fp));	\
+  env = ext;						\
   while (depth-- > 0)					\
    {							\
      VM_ASSERT_LINK (env);				\
@@ -62,16 +60,12 @@
    }							\
 }
 
-#undef EXTERNAL_VAR
 #define EXTERNAL_VAR(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (env, OFFSET)
-#undef EXTERNAL_VAR0
-#define EXTERNAL_VAR0(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (SCM_PROGRAM_ENV (SCM_VM_FRAME_PROGRAM (fp)), OFFSET)
-#define EXTERNAL_VAR1(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (SCM_VM_EXTERNAL_LINK (SCM_PROGRAM_ENV (SCM_VM_FRAME_PROGRAM (fp))), OFFSET)
-#define EXTERNAL_VAR2(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (SCM_VM_EXTERNAL_LINK (SCM_VM_EXTERNAL_LINK (SCM_PROGRAM_ENV (SCM_VM_FRAME_PROGRAM (fp)))), OFFSET)
+#define EXTERNAL_VAR0(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (ext, OFFSET)
+#define EXTERNAL_VAR1(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (SCM_VM_EXTERNAL_LINK (ext), OFFSET)
+#define EXTERNAL_VAR2(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (SCM_VM_EXTERNAL_LINK (SCM_VM_EXTERNAL_LINK (ext)), OFFSET)
 
-#undef TOPLEVEL_VAR
 #define TOPLEVEL_VAR(CELL)		SCM_CDR (CELL)
-#undef TOPLEVEL_VAR_SET
 #define TOPLEVEL_VAR_SET(CELL,OBJ)	SCM_SETCDR (CELL, OBJ)
 
 
@@ -399,7 +393,7 @@ SCM_DEFINE_INSTRUCTION (jump, "%jump", INST_ADDR)
 SCM_DEFINE_INSTRUCTION (make_program, "%make-program", INST_CODE)
 {
   SYNC (); /* must be called before GC */
-  RETURN (SCM_MAKE_PROGRAM (FETCH (), SCM_VM_FRAME_PROGRAM (fp)));
+  RETURN (SCM_MAKE_PROGRAM (FETCH (), SCM_VM_FRAME_EXTERNAL_LINK (fp)));
 }
 
 /* Before:
@@ -487,7 +481,7 @@ SCM_DEFINE_INSTRUCTION (tail_call, "%tail-call", INST_INUM)
 	  int nvars = SCM_PROGRAM_NVARS (ac); /* the number of local vars */
 	  int nreqs = SCM_PROGRAM_NREQS (ac); /* the number of require args */
 	  int restp = SCM_PROGRAM_RESTP (ac); /* have a rest argument */
-	  VM_SETUP_ARGS (ac, nreqs, restp);
+	  VM_FRAME_INIT_ARGS (ac, nreqs, restp);
 
 	  /* Move arguments */
 	  nreqs += restp;
@@ -497,7 +491,7 @@ SCM_DEFINE_INSTRUCTION (tail_call, "%tail-call", INST_INUM)
 	      POP (obj);
 	      SCM_VM_FRAME_VARIABLE (fp, nvars++) = obj;
 	    }
-	  VM_EXPORT_ARGS (fp, ac);
+	  VM_FRAME_INIT_EXTERNAL_VARIABLES (fp, ac);
 	}
       else
 	/* Dynamic return call */
@@ -545,5 +539,6 @@ SCM_DEFINE_INSTRUCTION (return, "%return", INST_NONE)
   fp = SCM_VM_ADDRESS (SCM_VM_FRAME_DYNAMIC_LINK (last_fp));
   sp = SCM_VM_ADDRESS (SCM_VM_FRAME_STACK_POINTER (last_fp));
   pc = SCM_VM_ADDRESS (SCM_VM_FRAME_RETURN_ADDRESS (last_fp));
+  ext = SCM_VM_FRAME_EXTERNAL_LINK (fp);
   NEXT;
 }

@@ -188,13 +188,14 @@ extern SCM scm_program_base (SCM program);
 
 /* VM frame is allocated in the stack */
 /* NOTE: Modify make_vm_frame and VM_NEW_FRAME too! */
-#define SCM_VM_FRAME_DATA_SIZE		5
+#define SCM_VM_FRAME_DATA_SIZE		6
 #define SCM_VM_FRAME_VARIABLE(FP,N)	(FP[N])
 #define SCM_VM_FRAME_SIZE(FP)		(FP[-1])
 #define SCM_VM_FRAME_PROGRAM(FP)	(FP[-2])
 #define SCM_VM_FRAME_DYNAMIC_LINK(FP)	(FP[-3])
-#define SCM_VM_FRAME_STACK_POINTER(FP)	(FP[-4])
-#define SCM_VM_FRAME_RETURN_ADDRESS(FP)	(FP[-5])
+#define SCM_VM_FRAME_EXTERNAL_LINK(FP)	(FP[-4])
+#define SCM_VM_FRAME_STACK_POINTER(FP)	(FP[-5])
+#define SCM_VM_FRAME_RETURN_ADDRESS(FP)	(FP[-6])
 
 
 /*

@@ -61,24 +61,24 @@ VM_NAME (SCM vm, SCM program)
 #define FUNC_NAME "vm-engine"
 {
   /* Copies of VM registers */
-  SCM ac = SCM_PACK (0);
-  SCM *pc = NULL;
-  SCM *sp = NULL;
-  SCM *fp = NULL;
+  SCM ac = SCM_PACK (0);	/* accumulator */
+  SCM *pc = NULL;		/* program counter */
+  SCM *sp = NULL;		/* stack pointer */
+  SCM *fp = NULL;		/* frame pointer */
 
-  /* Stack boundaries */
-  SCM *stack_base = NULL;
-  SCM *stack_limit = NULL;
+  /* Cache variables */
+  struct scm_vm *vmp = NULL;	/* the VM data pointer */
+  SCM ext = SCM_BOOL_F;		/* the current external frame */
+  SCM *stack_base = NULL;	/* stack base address */
+  SCM *stack_limit = NULL;	/* stack limit address */
 
   /* Function arguments */
   int an = 0;
   SCM a2 = SCM_PACK (0);
   SCM a3 = SCM_PACK (0);
 
-  /* Miscellaneous variables */
+  /* Internal variables */
   SCM dynwinds = SCM_EOL;
-  struct scm_vm *vmp = NULL;
-
 #if VM_USE_HOOK
   SCM hook_args = SCM_LIST1 (vm);
 #endif

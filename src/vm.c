@@ -44,7 +44,7 @@
 #include "vm.h"
 
 /* default stack size in the number of SCM */
-#define VM_DEFAULT_STACK_SIZE	(1 * 1024)   /* = 128KB */
+#define VM_DEFAULT_STACK_SIZE	(16 * 1024)   /* = 64KB */
 #define VM_MAXIMUM_STACK_SIZE	(1024 * 1024) /* = 4MB */
 
 /* I sometimes use this for debugging. */
@@ -526,21 +526,9 @@ SCM_DEFINE (scm_bytecode_decode, "bytecode-decode", 1, 0, 0,
 static long scm_program_tag;
 
 static SCM
-make_program (SCM bytecode, SCM parent)
+make_program (SCM code, SCM env)
 {
-  SCM env = SCM_PROGRAM_P (parent) ? SCM_PROGRAM_ENV (parent) : SCM_BOOL_F;
-  int nexts = SCM_BYTECODE_NEXTS (bytecode);
-
-  if (nexts)
-    {
-      SCM tmp = SCM_VM_MAKE_EXTERNAL (nexts);
-      SCM_VM_EXTERNAL_LINK (tmp) = env;
-      env = tmp;
-    }
-
-  SCM_RETURN_NEWSMOB2 (scm_program_tag,
-		       SCM_UNPACK (bytecode),
-		       SCM_UNPACK (env));
+  SCM_RETURN_NEWSMOB2 (scm_program_tag, SCM_UNPACK (code), SCM_UNPACK (env));
 }
 
 static SCM
@@ -629,16 +617,6 @@ SCM_DEFINE (scm_program_base, "program-base", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_program_external, "program-external", 1, 0, 0,
-	    (SCM program),
-"")
-#define FUNC_NAME s_scm_program_external
-{
-  SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_ENV (program);
-}
-#undef FUNC_NAME
-
 
 /*
  * VM Frame
@@ -652,6 +630,7 @@ struct scm_vm_frame {
   SCM program;
   SCM variables;
   SCM dynamic_link;
+  SCM external_link;
   SCM stack_pointer;
   SCM return_address;
 };
@@ -668,6 +647,7 @@ make_vm_frame (SCM *fp)
   struct scm_vm_frame *p = scm_must_malloc (sizeof (*p), "make_vm_frame");
   p->program        = SCM_VM_FRAME_PROGRAM (fp);
   p->dynamic_link   = SCM_VM_FRAME_DYNAMIC_LINK (fp);
+  p->external_link  = SCM_VM_FRAME_EXTERNAL_LINK (fp);
   p->stack_pointer  = SCM_VM_FRAME_STACK_POINTER (fp);
   p->return_address = SCM_VM_FRAME_RETURN_ADDRESS (fp);
 
@@ -688,6 +668,7 @@ mark_vm_frame (SCM frame)
   struct scm_vm_frame *p = SCM_VM_FRAME_DATA (frame);
   scm_gc_mark (p->program);
   scm_gc_mark (p->dynamic_link);
+  scm_gc_mark (p->external_link);
   return p->variables;
 }
 
@@ -736,6 +717,16 @@ SCM_DEFINE (scm_frame_dynamic_link, "frame-dynamic-link", 1, 0, 0,
 {
   SCM_VALIDATE_VM_FRAME (1, frame);
   return SCM_VM_FRAME_DATA (frame)->dynamic_link;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_frame_external_link, "frame-external-link", 1, 0, 0,
+	    (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_external_link
+{
+  SCM_VALIDATE_VM_FRAME (1, frame);
+  return SCM_VM_FRAME_DATA (frame)->external_link;
 }
 #undef FUNC_NAME
 
