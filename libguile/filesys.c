@@ -426,8 +426,6 @@ scm_stat (object)
   int fdes;
   struct stat stat_temp;
 
-  object = SCM_COERCE_OUTPORT (object);
-
   SCM_DEFER_INTS;
   if (SCM_INUMP (object) || (SCM_NIMP (object) && SCM_OPFPORTP (object)))
     {
@@ -435,7 +433,7 @@ scm_stat (object)
 	fdes = SCM_INUM (object);
       else
 	{
-	  fdes = fileno ((FILE *) SCM_STREAM (object));
+	  fdes = fileno ((FILE *) SCM_STREAM (SCM_COERCE_OUTPORT (object)));
 	  if (fdes == -1)
 	    scm_syserror (s_stat);
 	}
