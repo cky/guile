@@ -9,3 +9,7 @@ extensible via Guile, this is a good place to start.  Make builds the
 `info' manual by default, designed to be read on-line; if you want to
 print it out, go to the `doc' subdirectory of the tree you're building
 in, and run `make data-rep.ps'.
+
+The file `oldfmt.c' contains a function which can be used by
+application writers to support both old-style and new-style error
+format strings.
