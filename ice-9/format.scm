@@ -12,6 +12,7 @@
 ; Version 3.0
 
 (define-module (ice-9 format)
+  :use-module (ice-9 and-let-star)
   :autoload (ice-9 pretty-print) (pretty-print))
 
 (begin-deprecated
@@ -182,6 +183,8 @@
   (set! format:port port)		; global port for output routines
   (set! format:case-conversion #f)	; modifier case conversion procedure
   (set! format:flush-output #f)		; ~! reset
+  (and-let* ((col (port-column port)))	; get current column from port
+    (set! format:output-col col))
   (let ((arg-pos (format:format-work fmt args))
 	(arg-len (length args)))
     (cond
