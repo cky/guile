@@ -3848,7 +3848,7 @@ scm_trampoline_0 (SCM proc)
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
-	if (SCM_NULLP (formals) || SCM_SYMBOLP (formals))
+	if (SCM_NULLP (formals) || !SCM_CONSP (formals))
 	  return scm_i_call_closure_0;
 	else
 	  return 0;
@@ -3961,8 +3961,8 @@ scm_trampoline_1 (SCM proc)
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
-	if ((SCM_CONSP (formals) && SCM_NULLP (SCM_CDR (formals)))
-	    || SCM_SYMBOLP (formals))
+	if (!SCM_NULLP (formals)
+	    && (!SCM_CONSP (formals) || !SCM_CONSP (SCM_CDR (formals))))
 	  return call_closure_1;
 	else
 	  return 0;
@@ -4037,9 +4037,11 @@ scm_trampoline_2 (SCM proc)
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
-	if (!SCM_CONSP (formals)
-	    || (SCM_CONSP (SCM_CDR (formals))
-		&& SCM_NULLP (SCM_CDDR (formals))))
+	if (!SCM_NULLP (formals)
+	    && (!SCM_CONSP (formals)
+		|| (!SCM_NULLP (SCM_CDR (formals))
+		    && (!SCM_CONSP (SCM_CDR (formals))
+			|| !SCM_CONSP (SCM_CDDR (formals))))))
 	  return call_closure_2;
 	else
 	  return 0;

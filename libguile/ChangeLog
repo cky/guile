@@ -1,3 +1,8 @@
+2003-02-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* eval.c (scm_trampoline_0, scm_trampoline_1, scm_trampoline_2):
+	Fixed formals tests for closures.  (Thanks to Kevin Ryde.)
+
 2003-02-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* debug.c (scm_procedure_source): Handle all objects for which
