@@ -1,3 +1,20 @@
+2000-09-10  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* modules.c: Use applicable smobs for eval closures instead of
+	compiled closures.  Include "libguile/smob.h".
+	(f_eval_closure): Removed.
+	(scm_eval_closure_tag): New variable.
+	(scm_eval_closure_lookup): Renamed from eval_closure.
+	This function now takes a smob instead of a compiled closure.
+	(scm_standard_eval_closure): Create a smob instead of a compiled
+	closure.
+	(scm_init_modules): Initialize the eval closure type as a smob.
+	* modules.h (SCM_EVAL_CLOSURE_P): New macro.
+	(scm_eval_closure_tag, scm_eval_closure_lookup): Declare.
+	* symbols.c: Include "libguile/smob.h".
+	(scm_sym2vcell): Call scm_eval_closure_lookup directly if THUNK
+	is an eval closure.
+
 2000-09-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* Makefile.am (.x.doc): Bugfix: Added $(srcdir) to path in order
