@@ -1,7 +1,7 @@
 #!/bin/sh
 # Extract the initialization actions from source files.
 #
-#  Copyright (C) 1996, 97, 98, 99, 2000, 2001, 2002 Free Software Foundation, Inc.
+#  Copyright (C) 1996, 97, 98, 99, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ fi
 
 # set vars and handler -- handle CPP override
 cpp_ok_p=false
-temp="/tmp/snarf.$$"
+temp=`mktemp -t guile-snarf.XXXXXX` || exit 1
 if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
 
 trap "rm -f $temp" 0 1 2 15
