@@ -271,14 +271,19 @@
 (define (get-offset obj list)
   (- (length list) (length (memq obj list))))
 
-(define-generic env-variable-address)
-
-(define-method (env-variable-address (env <vm:env>) (var <vm:local-var>))
+(define-public (env-variable-address env var)
   (env-finalize! env)
+  (cond ((local-variable? var)
+	 (env-local-variable-address env var))
+	((external-variable? var)
+	 (env-external-variable-address env var))
+	(else
+	 (error "Wrong type argument: ~S" var))))
+
+(define (env-local-variable-address env var)
   (get-offset (variable-location var) (env-locations env)))
 
-(define-method (env-variable-address (env <vm:env>) (var <vm:external-var>))
-  (env-finalize! env)
+(define (env-external-variable-address env var)
   (let loop ((depth 0) (env env))
     (let ((list (env-externals env)))
       (cond ((null? list)
