@@ -1139,7 +1139,7 @@ echo "$ac_t""$host" 1>&6
 
 
 case "$host" in
-i386-*-*|i486-*-*|i586-*-*)
+i345686-*-*)
 	qtmds_s=$srcdir/md/i386.s
 	qtmd_h=$srcdir/md/i386.h
 	qtmdc_c=$srcdir/md/null.c 

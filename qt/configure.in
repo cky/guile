@@ -17,7 +17,7 @@ fi
 AC_CANONICAL_HOST
 
 case "$host" in
-i386-*-*|i486-*-*|i586-*-*)
+i[3456]86-*-*)
 	qtmds_s=$srcdir/md/i386.s
 	qtmd_h=$srcdir/md/i386.h
 	qtmdc_c=$srcdir/md/null.c 
