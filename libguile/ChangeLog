@@ -1,5 +1,8 @@
 1999-08-19  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* Makefile.am (libguile_la_LDFLAGS): Increased the version number
+	of libguile to 5.0.
+
 	* eval.c (SCM_APPLY), sort.c (closureless): Expand body when
 	evaluating closures.
 
