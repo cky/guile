@@ -451,19 +451,20 @@ will try each extension automatically.
 @end deffn
 
 @defvar %load-hook
-A procedure to be run whenever @code{primitive-load} is called.  If this
-procedure is defined, it will be called with the filename argument that
-was passed to @code{primitive-load}.
+A procedure to be called @code{(%load-hook @var{filename})} whenever a
+file is loaded, or @code{#f} for no such call.  @code{%load-hook} is
+used by all of the above loading functions (@code{load},
+@code{load-path}, @code{primitive-load} and
+@code{primitive-load-path}).
+
+For example an application can set this to show what's loaded,
 
 @example
-(define %load-hook (lambda (file)
-                     (display "Loading ")
-                     (display file)
-                     (write-line "...."))) @result{} undefined
+(set! %load-hook (lambda (filename)
+                   (format #t "Loading ~a ...\n" filename)))
 (load-from-path "foo.scm")
-@print{} Loading /usr/local/share/guile/site/foo.scm....
+@print{} Loading /usr/local/share/guile/site/foo.scm ...
 @end example
-
 @end defvar
 
 @deffn {Scheme Procedure} current-load-port
