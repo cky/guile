@@ -582,9 +582,15 @@ AC_SUBST(EXTRA_DEFS)
 
 AC_SUBST(DLPREOPEN)
 
-AC_CHECK_HEADERS([assert.h])
+# Reasons for testing:
+#   crt_externs.h - Darwin specific
+#
+AC_CHECK_HEADERS([assert.h crt_externs.h])
 
-AC_CHECK_FUNCS([ctermid ftime fchown getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex unsetenv])
+# Reasons for testing:
+#   _NSGetEnviron - Darwin specific
+#
+AC_CHECK_FUNCS([ctermid ftime fchown getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex unsetenv _NSGetEnviron])
 
 AC_CHECK_HEADERS(crypt.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
