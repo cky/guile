@@ -1622,7 +1622,51 @@ scm_bigprint(exp, port, pstate)
 /*** END nums->strs ***/
 
 /*** STRINGS -> NUMBERS ***/
-#ifdef SCM_BIGDIG
+
+static SCM
+scm_small_istr2int(str, len, radix)
+     char *str;
+     long len;
+     long radix;
+{
+  register long n = 0, ln;
+  register int c;
+  register int i = 0;
+  int lead_neg = 0;
+  if (0 >= len) return SCM_BOOL_F;	/* zero scm_length */
+  switch (*str) {		/* leading sign */
+  case '-': lead_neg = 1;
+  case '+': if (++i==len) return SCM_BOOL_F; /* bad if lone `+' or `-' */
+  }
+
+  do {
+    switch (c = str[i++]) {
+    case DIGITS:
+      c = c - '0';
+      goto accumulate;
+    case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+      c = c-'A'+10;
+      goto accumulate;
+    case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+      c = c-'a'+10;
+    accumulate:
+      if (c >= radix) return SCM_BOOL_F; /* bad digit for radix */
+      ln = n;
+      n = n * radix - c;
+      /* Negation is a workaround for HP700 cc bug */
+      if (n > ln || (-n > -SCM_MOST_NEGATIVE_FIXNUM)) goto ovfl;
+      break;
+    default:
+      return SCM_BOOL_F;		/* not a digit */
+    }
+  } while (i < len);
+  if (!lead_neg) if ((n = -n) > SCM_MOST_POSITIVE_FIXNUM) goto ovfl;
+  return SCM_MAKINUM(n);
+ ovfl:				/* overflow scheme integer */
+  return SCM_BOOL_F;
+}
+
+
 #ifdef __STDC__
 SCM
 scm_istr2int(char *str, long len, long radix)
@@ -1643,6 +1687,12 @@ scm_istr2int(str, len, radix)
   register unsigned long t2;
 
   if (0 >= len) return SCM_BOOL_F;	/* zero scm_length */
+
+  /* Short numbers we parse directly into an int, to avoid the overhead 
+     of creating a bignum.  */
+  if (len < 6)
+    return scm_small_istr2int (str, len, radix);
+
   if (16==radix) j = 1+(4*len*sizeof(char))/(SCM_BITSPERDIG);
   else if (10 <= radix)
     j = 1+(84*len*sizeof(char))/(SCM_BITSPERDIG*25);
@@ -1688,58 +1738,6 @@ scm_istr2int(str, len, radix)
   if (j==blen) return res;
   return scm_adjbig(res, blen);
 }
-#else
-
-
-
-#ifdef __STDC__
-SCM
-scm_istr2int(char *str, long len, long radix)
-#else
-SCM
-scm_istr2int(str, len, radix)
-     char *str;
-     long len;
-     long radix;
-#endif
-{
-  register long n = 0, ln;
-  register int c;
-  register int i = 0;
-  int lead_neg = 0;
-  if (0 >= len) return SCM_BOOL_F;	/* zero scm_length */
-  switch (*str) {		/* leading sign */
-  case '-': lead_neg = 1;
-  case '+': if (++i==len) return SCM_BOOL_F; /* bad if lone `+' or `-' */
-  }
-
-  do {
-    switch (c = str[i++]) {
-    case DIGITS:
-      c = c - '0';
-      goto accumulate;
-    case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
-      c = c-'A'+10;
-      goto accumulate;
-    case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
-      c = c-'a'+10;
-    accumulate:
-      if (c >= radix) return SCM_BOOL_F; /* bad digit for radix */
-      ln = n;
-      n = n * radix - c;
-      /* Negation is a workaround for HP700 cc bug */
-      if (n > ln || (-n > -SCM_MOST_NEGATIVE_FIXNUM)) goto ovfl;
-      break;
-    default:
-      return SCM_BOOL_F;		/* not a digit */
-    }
-  } while (i < len);
-  if (!lead_neg) if ((n = -n) > SCM_MOST_POSITIVE_FIXNUM) goto ovfl;
-  return SCM_MAKINUM(n);
- ovfl:				/* overflow scheme integer */
-  return SCM_BOOL_F;
-}
-#endif
 
 #ifdef SCM_FLOATS
 #ifdef __STDC__
