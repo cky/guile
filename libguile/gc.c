@@ -314,7 +314,7 @@ map_free_list (scm_freelist_t *master, SCM freelist)
   int last_seg = -1, count = 0;
   SCM f;
 
-  for (f = freelist; SCM_NIMP (f); f = SCM_CDR (f))
+  for (f = freelist; !SCM_NULLP (f); f = SCM_FREE_CELL_CDR (f))
     {
       int this_seg = which_seg (f);
 
@@ -365,8 +365,8 @@ free_list_length (char *title, int i, SCM freelist)
 {
   SCM ls;
   int n = 0;
-  for (ls = freelist; SCM_NNULLP (ls); ls = SCM_CDR (ls))
-    if (SCM_CELL_TYPE (ls) == scm_tc_free_cell)
+  for (ls = freelist; !SCM_NULLP (ls); ls = SCM_FREE_CELL_CDR (ls))
+    if (SCM_FREE_CELL_P (ls))
       ++n;
     else
       {
@@ -441,8 +441,8 @@ scm_check_freelist (SCM freelist)
   SCM f;
   int i = 0;
 
-  for (f = freelist; SCM_NIMP (f); f = SCM_CDR (f), i++)
-    if (SCM_CAR (f) != (SCM) scm_tc_free_cell)
+  for (f = freelist; !SCM_NULLP (f); f = SCM_FREE_CELL_CDR (f), i++)
+    if (!SCM_FREE_CELL_P (f))
       {
 	fprintf (stderr, "Bad cell in freelist on newcell %lu: %d'th elt\n",
 		 scm_newcell_count, i);
@@ -479,13 +479,13 @@ scm_debug_newcell (void)
 
   /* The rest of this is supposed to be identical to the SCM_NEWCELL
      macro.  */
-  if (SCM_IMP (scm_freelist))
+  if (SCM_NULLP (scm_freelist))
     new = scm_gc_for_newcell (&scm_master_freelist, &scm_freelist);
   else
     {
       new = scm_freelist;
-      scm_freelist = SCM_CDR (scm_freelist);
-      SCM_SETCAR (new, scm_tc16_allocated);
+      scm_freelist = SCM_FREE_CELL_CDR (scm_freelist);
+      SCM_SET_FREE_CELL_TYPE (new, scm_tc16_allocated);
     }
 
   return new;
@@ -505,13 +505,13 @@ scm_debug_newcell2 (void)
 
   /* The rest of this is supposed to be identical to the SCM_NEWCELL
      macro.  */
-  if (SCM_IMP (scm_freelist2))
+  if (SCM_NULLP (scm_freelist2))
     new = scm_gc_for_newcell (&scm_master_freelist2, &scm_freelist2);
   else
     {
       new = scm_freelist2;
-      scm_freelist2 = SCM_CDR (scm_freelist2);
-      SCM_SETCAR (new, scm_tc16_allocated);
+      scm_freelist2 = SCM_FREE_CELL_CDR (scm_freelist2);
+      SCM_SET_FREE_CELL_TYPE (new, scm_tc16_allocated);
     }
 
   return new;
@@ -534,7 +534,7 @@ static unsigned long
 freelist_length (SCM freelist)
 {
   int n;
-  for (n = 0; SCM_NNULLP (freelist); freelist = SCM_CDR (freelist))
+  for (n = 0; !SCM_NULLP (freelist); freelist = SCM_FREE_CELL_CDR (freelist))
     ++n;
   return n;
 }
@@ -741,8 +741,8 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
     }
   while (SCM_NULLP (cell));
   --scm_ints_disabled;
-  *freelist = SCM_CDR (cell);
-  SCM_SET_CELL_TYPE (cell, scm_tc16_allocated);
+  *freelist = SCM_FREE_CELL_CDR (cell);
+  SCM_SET_FREE_CELL_TYPE (cell, scm_tc16_allocated);
   return cell;
 }
 
@@ -919,7 +919,7 @@ gc_mark_loop:
     return;
 
 gc_mark_nimp:
-  if (SCM_NCELLP (ptr))
+  if (!SCM_CELLP (ptr))
     SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
 
   switch (SCM_TYP7 (ptr))
@@ -1264,7 +1264,6 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 		  scm_gc_mark (* (SCM *) &x[m]);
 		break;
 	      }
-
 	  }
       }
 }
@@ -1321,7 +1320,7 @@ gc_sweep_freelist_finish (scm_freelist_t *freelist)
 {
   int collected;
   *freelist->clustertail = freelist->cells;
-  if (SCM_NNULLP (freelist->cells))
+  if (!SCM_NULLP (freelist->cells))
     {
       SCM c = freelist->cells;
       SCM_SETCAR (c, SCM_CDR (c));
@@ -1574,7 +1573,7 @@ scm_gc_sweep ()
 	      SCM_MISC_ERROR ("unknown type", SCM_EOL);
 	    }
 #if 0
-	  if (SCM_CAR (scmptr) == (SCM) scm_tc_free_cell)
+	  if (SCM_FREE_CELL_P (scmptr))
 	    exit (2);
 #endif
 	  if (!--left_to_collect)
@@ -1594,7 +1593,7 @@ scm_gc_sweep ()
 		 conservative collector might trace it as some other type
 		 of object.  */
 	      SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
-	      SCM_SETCDR (scmptr, nfreelist);
+	      SCM_SET_FREE_CELL_CDR (scmptr, nfreelist);
 	      nfreelist = scmptr;
 	    }
 
@@ -1930,11 +1929,11 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
 	    SCM scmptr = PTR2SCM (ptr);
 
 	    SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
-	    SCM_SETCDR (scmptr, PTR2SCM (ptr + span));
+	    SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (ptr + span));
 	    ptr += span;
 	  }
 
-	SCM_SETCDR (PTR2SCM (ptr - span), SCM_EOL);
+	SCM_SET_FREE_CELL_CDR (PTR2SCM (ptr - span), SCM_EOL);
       }
 
     /* Patch up the last cluster pointer in the segment

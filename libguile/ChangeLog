@@ -1,5 +1,21 @@
 2000-07-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.h (SCM_SET_FREE_CELL_TYPE, SCM_SET_FREE_CELL_CDR,
+	SCM_FREE_CELL_P, SCM_FREE_CELL_CDR):  Added since free cells
+	should not be accessed via SCM_C[AD]R.  Further, using dedicated
+	macros to access free cells allows all other cell accessing macros
+	to treat acesses to free cells as errors, thus enabling better
+	error checks for cell accesses.  SCM_FREE_CELL_P is supposed to
+	replace SCM_FREEP some time.
+
+	* gc.h (SCM_NEWCELL, SCM_NEWCELL2), gc.c (map_free_list,
+	free_list_length, scm_check_freelist, scm_debug_newcell,
+	scm_debug_newcell2, freelist_length, scm_gc_for_newcell,
+	scm_gc_mark, scm_gc_sweep, init_heap_seg):  Only use the dedicated
+	cell accessors when accessing free cells.
+
+2000-07-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.h (SCM_CELL_WORD, SCM_CELL_OBJECT):  Treat the referenced
 	object as const in order to make the compiler warn about code like
 	SCM_CELL_WORD (x, n) = y.  Instead, SCM_SET_CELL_WORD (x, n, y)

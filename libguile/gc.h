@@ -146,12 +146,20 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_PTR_GE(x, y) (!SCM_PTR_LT (x, y))
 
 
-/* Dirk:FIXME:: */
 /* Freelists consist of linked cells where the type entry holds the value
  * scm_tc_free_cell and the second entry holds a pointer to the next cell of
  * the freelist.  Due to this structure, freelist cells are not cons cells
  * and thus may not be accessed using SCM_CAR and SCM_CDR.
  */
+
+#define SCM_FREE_CELL_P(x) \
+  (!SCM_IMP (x) && (* (const scm_bits_t *) SCM2PTR (x) == scm_tc_free_cell))
+#define SCM_FREE_CELL_CDR(x) \
+  (((const scm_bits_t *) SCM2PTR (x)) [1])
+#define SCM_SET_FREE_CELL_TYPE(x, v) \
+  (((scm_bits_t *) SCM2PTR (x)) [0] = (v))
+#define SCM_SET_FREE_CELL_CDR(x, v) \
+  (((scm_bits_t *) SCM2PTR (x)) [1] = (v))
 
 /* the allocated thing:  The car of new cells is set to
    scm_tc16_allocated to avoid the fragile state of newcells wrt the
@@ -174,8 +182,8 @@ typedef scm_cell * SCM_CELLPTR;
           else \
             { \
                _into = scm_freelist; \
-               scm_freelist = SCM_CDR (scm_freelist); \
-               SCM_SET_CELL_TYPE (_into, scm_tc16_allocated); \
+               scm_freelist = SCM_FREE_CELL_CDR (scm_freelist); \
+               SCM_SET_FREE_CELL_TYPE (_into, scm_tc16_allocated); \
             } \
         } while(0)
 #define SCM_NEWCELL2(_into) \
@@ -186,14 +194,14 @@ typedef scm_cell * SCM_CELLPTR;
           else \
             { \
                _into = scm_freelist2; \
-               scm_freelist2 = SCM_CDR (scm_freelist2); \
-               SCM_SET_CELL_TYPE (_into, scm_tc16_allocated); \
+               scm_freelist2 = SCM_FREE_CELL_CDR (scm_freelist2); \
+               SCM_SET_FREE_CELL_TYPE (_into, scm_tc16_allocated); \
             } \
         } while(0)
 #endif
 
 
-#define SCM_FREEP(x) (SCM_NIMP (x) && (SCM_CELL_TYPE (x) == scm_tc_free_cell))
+#define SCM_FREEP(x) (SCM_FREE_CELL_P (x))
 #define SCM_NFREEP(x) (!SCM_FREEP (x))
 
 /* 1. This shouldn't be used on immediates.
