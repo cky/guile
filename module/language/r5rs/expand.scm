@@ -66,20 +66,16 @@
 (define remprop symbol-property-remove!)
 
 (define syncase-module (current-module))
+(define guile-eval eval)
+(define (eval x)
+  (if (and (pair? x) (equal? (car x) "noexpand"))
+      (cdr x)
+      (guile-eval x syncase-module)))
 
-(define (sc-eval x) (eval x syncase-module))
+(define guile-error error)
+(define (error who format-string why what)
+  (guile-error why what))
 
-(load "psyntax.scm")
+(load "psyntax.pp")
 
 (define expand sc-expand)
-
-(define (rebuild)
-  (call-with-input-file "psyntax.ss"
-    (lambda (in)
-      (call-with-output-file "psyntax.scm"
-	(lambda (out)
-	  (do ((obj (read in) (read in)))
-	      ((eof-object? obj))
-	    (write (sc-expand obj 'c '(eval load compile)) out)))))))
-
-;(rebuild)

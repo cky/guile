@@ -8198,8 +8198,8 @@
                           (cadr g765)
                           (g400 g765 '() g764 g763 g761 g762))))
                   (g263 (g264 '((top))) (cons g762 (g265 '((top)))))))
-               'c
-               '(eval load compile)
+               'e
+               '(eval)
                ((lambda (g766) (begin (g366 g766 '*top*) g766))
                 (g304 '() '() '()))))
             (set! identifier? (lambda (g705) (g255 g705)))

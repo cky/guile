@@ -432,11 +432,17 @@
 
 (define annotation? (lambda (x) #f))
 
-(define top-level-eval-hook sc-eval)
+(define top-level-eval-hook
+  (lambda (x)
+    (eval `(,noexpand ,x))))
 
-(define local-eval-hook sc-eval)
+(define local-eval-hook
+  (lambda (x)
+    (eval `(,noexpand ,x))))
 
-(define error-hook (lambda (who why what) (error why what)))
+(define error-hook
+  (lambda (who why what)
+    (error who "~a ~s" why what)))
 
 (define-syntax gensym-hook
   (syntax-rules ()
