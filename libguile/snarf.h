@@ -191,7 +191,7 @@ SCM_SNARF_INIT(c_name = scm_permanent_object (scm_c_define (scheme_name, init_va
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 #define SCM_CONST_LONG(c_name, scheme_name,value) \
-SCM_VARIABLE_INIT(c_name, scheme_name, scm_long2num(value))
+SCM_VCELL_INIT(c_name, scheme_name, scm_long2num(value))
 
 #define SCM_VCELL(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
