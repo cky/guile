@@ -1,3 +1,9 @@
+2004-04-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* tests/elisp.test: Wrap tests in module (test-suite
+	test-<file-name without .test>), following a practice that was
+	used on a couple of files already.
+
 2004-04-28  Kevin Ryde  <user42@zip.com.au>
 
 	* standalone/test-num2integral.c (test_long_long): Exercise
