@@ -1,6 +1,30 @@
+;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+;;;; 
+
+
 ;;; Portable implementation of syntax-case
 ;;; Extracted from Chez Scheme Version 5.9f
 ;;; Authors: R. Kent Dybvig, Oscar Waddell, Bob Hieb, Carl Bruggeman
+
+;;; Modified by Mikael Djurfeldt <djurfeldt@nada.kth.se> according
+;;; to the ChangeLog distributed in the same directory as this file:
+;;; 1997-08-19, 1997-09-03, 1997-09-10, 2000-08-13, 2000-08-24,
+;;; 2000-09-12, 2001-03-08
 
 ;;; Copyright (c) 1992-1997 Cadence Research Systems
 ;;; Permission to copy this software, in whole or in part, to use this
@@ -12,7 +36,6 @@
 ;;; OR FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL THE
 ;;; AUTHORS BE LIABLE FOR CONSEQUENTIAL OR INCIDENTAL DAMAGES OF ANY
 ;;; NATURE WHATSOEVER.
-
 
 ;;; Before attempting to port this code to a new implementation of
 ;;; Scheme, please read the notes below carefully.
