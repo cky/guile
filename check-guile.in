@@ -8,41 +8,35 @@
 # ./check-guile numbers.test
 # ./check-guile -i /usr/local/bin/guile
 # ./check-guile -i /usr/local/bin/guile numbers.test
-#
-# Dependencies: dirname sed
 
-build_dir=`pwd`
+# this script runs in the top-level build-dir.
 srcdir=@srcdir@
-if [ x"$srcdir" = x. ]; then
-    srcdir=$build_dir
-fi
 TEST_SUITE_DIR=$srcdir/test-suite
 
 if [ x"$1" = x-i ] ; then
     guile=$2
     shift
     shift
-    glp=
+    GUILE_LOAD_PATH=$TEST_SUITE_DIR
 else
-    guile=$build_dir/libguile/guile
-    glp=$srcdir
+    guile=libguile/guile
+    GUILE_LOAD_PATH=$srcdir:$TEST_SUITE_DIR
 fi
+export GUILE_LOAD_PATH
 
 if [ -f "$guile" -a -x "$guile" ] ; then
     echo Testing $guile ... "$@"
-    if [ x"$glp" = x ] ; then
-        glp=`$guile -c "(for-each write-line %load-path)"`
-        glp=`echo $glp | sed 's/ /:/g'`:$srcdir
-    fi
-    GUILE_LOAD_PATH=$glp
-    export GUILE_LOAD_PATH
-    echo with GUILE_LOAD_PATH: $GUILE_LOAD_PATH
+    echo with GUILE_LOAD_PATH=$GUILE_LOAD_PATH
 else
     echo ERROR: Cannot execute $guile
     exit 1
 fi
 
-cd $TEST_SUITE_DIR
-exec $guile -e main -s guile-test --test-suite $TEST_SUITE_DIR/tests --log-file $build_dir/check-guile.log "$@"
+# documentation searching ignores GUILE_LOAD_PATH.
+if [ ! -e guile-procedures.txt ]; then
+   ln -s libguile/guile-procedures.txt .
+fi
+
+exec "$guile" -e main -s "$TEST_SUITE_DIR/guile-test" --test-suite "$TEST_SUITE_DIR/tests" --log-file check-guile.log "$@"
 
 # check-guile ends here

@@ -3,6 +3,13 @@
 	* check-guile.in: rename $parent to $srcdir.  if it's equal to "."
 	set it to `pwd`.
 
+	* check-guile.in: 16 documentation tests were failing if "make
+	check" was run before Guile had been installed with the current
+	--prefix.  made various changes to the script so that it runs
+	without a cd to the test-suite directory.  For the -i option,
+	don't point GUILE_LOAD_PATH to the current directory, but let it
+	use it's own scheme library.
+
 2001-03-18  Gary Houston  <ghouston@arglist.com>
 
 	* check-guile.in: use @srcdir@ instead of @test_suite_dir@.  use

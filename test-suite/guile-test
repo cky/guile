@@ -76,7 +76,7 @@
 
 ;;; User configurable settings:
 (define default-test-suite
-  (string-append (getenv "HOME") "/guile-core/test-suite"))
+  (string-append (getenv "HOME") "/bogus-path/test-suite"))
 
 
 (use-modules (test-suite lib)
@@ -86,6 +86,8 @@
 
 ;;; Variables that will receive their actual values later.
 (define test-suite default-test-suite)
+
+(define tmp-dir #f)
 
 
 ;;; General utilities, that probably should be in a library somewhere.
@@ -126,11 +128,10 @@
 ;;; The test driver.
 
 
-;;; Localizing test files and temporary data files relative to the
-;;; test suite directory.
+;;; Localizing test files and temporary data files.
 
 (define (data-file-name filename)
-  (in-vicinity test-suite filename))
+  (in-vicinity tmp-dir filename))
 
 (define (test-file-name test)
   (in-vicinity test-suite test))
@@ -174,6 +175,11 @@
 	  (or (opt 'test-suite #f)
 	      (getenv "TEST_SUITE_DIR")
 	      default-test-suite))
+
+    ;; directory where temporary files are created.
+    ;; when run from "make check", this must be under the build-dir,
+    ;; not the src-dir.
+    (set! tmp-dir (getcwd))
 
     (let* ((tests
 	    (let ((foo (opt '() '())))
