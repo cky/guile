@@ -1,3 +1,8 @@
+2003-11-25  Kevin Ryde  <user42@zip.com.au>
+
+	* tools.texi (Macros guile-snarf recognizes): Correction to GOOPS
+	cross reference.
+
 2003-11-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* scheme-data.texi: Include exact rationals.
