@@ -979,6 +979,12 @@ scm_i_get_substring_spec (size_t len,
 		  
 #if SCM_ENABLE_DEPRECATED
 
+/* When these definitions are removed, it becomes reasonable to use
+   read-only strings for string literals.  For that, change the reader
+   to create string literals with scm_c_substring_read_only instead of
+   with scm_c_substring_copy.
+*/
+
 int
 SCM_STRINGP (SCM str)
 {
@@ -1004,6 +1010,15 @@ SCM_STRING_CHARS (SCM str)
 		    "SCM_STRING_CHARS does not work with shared substrings.",
 		    SCM_EOL);
 
+  /* We explicitely test for read-only strings to produce a better
+     error message.
+  */
+
+  if (IS_RO_STRING (str))
+    scm_misc_error (NULL, 
+		    "SCM_STRING_CHARS does not work with read-only strings.",
+		    SCM_EOL);
+    
   /* The following is still wrong, of course...
    */
   chars = scm_i_string_writable_chars (str);
