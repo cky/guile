@@ -55,7 +55,8 @@
 #define SCM_SET_VECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
 #define SCM_VECTOR_MAX_LENGTH ((1L << 24) - 1)
 #define SCM_VECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
-#define SCM_SET_VECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), ((l) << 8) + (t)))
+#define SCM_MAKE_VECTOR_TAG(l,t)  (((l) << 8) + (t))
+#define SCM_SET_VECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), SCM_MAKE_VECTOR_TAG(l,t)))
 
 #define SCM_VELTS(x) ((SCM *) SCM_CELL_WORD_1 (x))
 #define SCM_VELTS_AS_STACKITEMS(x) ((SCM_STACKITEM *) SCM_CELL_WORD_1 (x))
