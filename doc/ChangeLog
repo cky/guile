@@ -1,3 +1,9 @@
+2001-07-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-data.texi (Hook Reference): Removed documentation for
+	`make-hook-with-name', which does note exist.  Added note about
+	unspecified return values to all procedure documentation
+
 2001-07-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-modules.texi (SRFI-1 Fold and Map): Documented extended
