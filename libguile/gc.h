@@ -79,6 +79,7 @@ extern SCM scm_gc_for_newcell PROTO ((void));
 extern void scm_igc PROTO ((char *what));
 extern void scm_gc_mark PROTO ((SCM p));
 extern void scm_mark_locations PROTO ((SCM_STACKITEM x[], scm_sizet n));
+extern int scm_cellp PROTO ((SCM value));
 extern void scm_gc_sweep PROTO ((void));
 extern char * scm_must_malloc PROTO ((long len, char *what));
 extern char * scm_must_realloc PROTO ((char *where, long olen, long len,
