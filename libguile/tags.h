@@ -39,24 +39,30 @@
 
 /* In the beginning was the Word:
  */
-#if SCM_SIZEOF_INTPTR_T != 0 && defined(INTPTR_MAX) && defined(INTPTR_MIN)
+/* On Solaris 7 and 8, /usr/include/sys/int_limits.h defines
+   INTPTR_MAX and UINTPTR_MAX to empty, INTPTR_MIN is not defined.
+   To avoid uintptr_t and intptr_t in this case we require
+   UINTPTR_MAX-0 != 0 etc.  */
+#if SCM_SIZEOF_INTPTR_T != 0 && defined(INTPTR_MAX) && defined(INTPTR_MIN) \
+  && INTPTR_MAX-0 != 0 && INTPTR_MIN-0 != 0 \
+  && SCM_SIZEOF_UINTPTR_T != 0 && defined(UINTPTR_MAX) && UINTPTR_MAX-0 != 0
+
 typedef intptr_t scm_t_signed_bits;
 #define SCM_T_SIGNED_BITS_MAX INTPTR_MAX
 #define SCM_T_SIGNED_BITS_MIN INTPTR_MIN
-#else
-typedef signed long scm_t_signed_bits;
-#define SCM_T_SIGNED_BITS_MAX LONG_MAX
-#define SCM_T_SIGNED_BITS_MIN LONG_MIN
-#endif
-
-#if SCM_SIZEOF_UINTPTR_T != 0 && defined(UINTPTR_MAX)
 typedef uintptr_t scm_t_bits;
 #define SIZEOF_SCM_T_BITS SCM_SIZEOF_UINTPTR_T
 #define SCM_T_BITS_MAX UINTPTR_MAX
+
 #else
+
+typedef signed long scm_t_signed_bits;
+#define SCM_T_SIGNED_BITS_MAX LONG_MAX
+#define SCM_T_SIGNED_BITS_MIN LONG_MIN
 typedef unsigned long scm_t_bits;
 #define SIZEOF_SCM_T_BITS SCM_SIZEOF_UNSIGNED_LONG
 #define SCM_T_BITS_MAX ULONG_MAX
+
 #endif
 
 /* But as external interface, we use SCM, which may, according to the desired
