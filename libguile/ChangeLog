@@ -1,3 +1,10 @@
+2004-10-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* private-gc.h (SCM_DEFAULT_MAX_SEGMENT_SIZE): Increase to 20 Mib.
+
+	* gc-segment.c (scm_i_get_new_heap_segment): Limit size of new
+	segment to scm_max_segment_size.
+
 2004-10-08  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* inline.h (scm_double_cell): abort if GC running.

@@ -1,3 +1,8 @@
+2004-10-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* api-smobs.texi (smob mark function): List admissible functions
+	to call.
+
 2004-10-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-data.texi: Removed primitive keyword section, updated
