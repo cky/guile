@@ -1,5 +1,8 @@
 2003-09-12  Marius Vollmer  <mvo@zagadka.de>
 
+	* __scm.h (SCM_FENCE): Use __memory_barrier with the Intel
+	compiler on IA64.
+
 	* hashtab.h (scm_tc16_hashtable): Added "extern" declaration.
 
 	* modules.c (scm_module_reverse_lookup): Check that the obarray
