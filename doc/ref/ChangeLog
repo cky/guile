@@ -1,5 +1,8 @@
 2002-09-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* intro.texi: Updated GNu ftp server name.  Use "-lguile" instead
+	of "libguile.a".  Some small fixes/improvements.
+	
 	* scheme-reading.texi: Added www.schemers.org.  Removed foldoc,
 	it's too generic.  Updated 'teach yourself ...' URL.
 
