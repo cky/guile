@@ -1,3 +1,13 @@
+2003-06-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tags.h (scm_tc2_int): Added.
+
+	* tags.h (scm_tc3_int_1, scm_tc3_int_2): Expressed in terms of
+	scm_tc2_int.
+
+	* tags.h (scm_tcs_cons_imcar, scm_tcs_cons_nimcar, scm_tcs_struct,
+	scm_tcs_closures): Hard coded values replaced by symbolic ones.
+
 2003-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c: Partially undid my patch from 2003-05-31.  This patch

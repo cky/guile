@@ -260,15 +260,17 @@ typedef unsigned long scm_t_bits;
 /* See numbers.h for macros relating to immediate integers.
  */
 
+#define scm_tc2_int              2
+
 #define SCM_ITAG3(x) 		 (7 & SCM_UNPACK (x))
 #define SCM_TYP3(x) 		 (7 & SCM_CELL_TYPE (x))
 #define scm_tc3_cons	 	 0
 #define scm_tc3_struct    	 1
-#define scm_tc3_int_1		 2
+#define scm_tc3_int_1		 (scm_tc2_int + 0)
 #define scm_tc3_closure		 3
 #define scm_tc3_imm24		 4
 #define scm_tc3_tc7_1		 5
-#define scm_tc3_int_2		 6
+#define scm_tc3_int_2		 (scm_tc2_int + 4)
 #define scm_tc3_tc7_2		 7
 
 
@@ -338,18 +340,19 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_port		125
 
 
-/* There are 256 smob subtypes.  Here are the first four.
+/* There are 256 smob subtypes.  [**] If you change scm_tc7_smob, you must
+ * also change the places it is hard coded in this file and possibly others.
+ * Dirk:FIXME:: Any hard coded reference to scm_tc7_smob must be replaced by a
+ * symbolic reference.
  */
-
 #define scm_tc7_smob		127 /* DO NOT CHANGE [**] */
 
-/* [**] If you change scm_tc7_smob, you must also change
- * the places it is hard coded in this file and possibly others.
+
+/* Here are the first four smob subtypes.
  */
 
-
-/* scm_tc_free_cell is also the 0th smob type.  We place this
- * in free cells to tell the conservative marker not to trace it.
+/* scm_tc_free_cell is the 0th smob type.  We place this in free cells to tell
+ * the conservative marker not to trace it.
  */
 #define scm_tc_free_cell	(scm_tc7_smob + 0 * 256L)
 
@@ -411,7 +414,7 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 #define SCM_IM_OR		SCM_MAKSPCSYM (10)
 #define SCM_IM_QUOTE		SCM_MAKSPCSYM (11)
 #define SCM_IM_SET_X		SCM_MAKSPCSYM (12)
-#define SCM_IM_DEFINE		SCM_MAKSPCSYM (13)
+#define SCM_IM_DEFINE           SCM_MAKSPCSYM (13)
 #define SCM_IM_APPLY		SCM_MAKISYM (14)
 #define SCM_IM_CONT		SCM_MAKISYM (15)
 #define SCM_BOOL_F		SCM_MAKIFLAG (16)
@@ -459,39 +462,83 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 /* For cons pairs with immediate values in the CAR
  */
 
-#define scm_tcs_cons_imcar 2:case 4:case 6:case 10:\
- case 12:case 14:case 18:case 20:\
- case 22:case 26:case 28:case 30:\
- case 34:case 36:case 38:case 42:\
- case 44:case 46:case 50:case 52:\
- case 54:case 58:case 60:case 62:\
- case 66:case 68:case 70:case 74:\
- case 76:case 78:case 82:case 84:\
- case 86:case 90:case 92:case 94:\
- case 98:case 100:case 102:case 106:\
- case 108:case 110:case 114:case 116:\
- case 118:case 122:case 124:case 126
+#define scm_tcs_cons_imcar \
+       scm_tc2_int + 0:   case scm_tc2_int + 4:   case scm_tc3_imm24 + 0:\
+  case scm_tc2_int + 8:   case scm_tc2_int + 12:  case scm_tc3_imm24 + 8:\
+  case scm_tc2_int + 16:  case scm_tc2_int + 20:  case scm_tc3_imm24 + 16:\
+  case scm_tc2_int + 24:  case scm_tc2_int + 28:  case scm_tc3_imm24 + 24:\
+  case scm_tc2_int + 32:  case scm_tc2_int + 36:  case scm_tc3_imm24 + 32:\
+  case scm_tc2_int + 40:  case scm_tc2_int + 44:  case scm_tc3_imm24 + 40:\
+  case scm_tc2_int + 48:  case scm_tc2_int + 52:  case scm_tc3_imm24 + 48:\
+  case scm_tc2_int + 56:  case scm_tc2_int + 60:  case scm_tc3_imm24 + 56:\
+  case scm_tc2_int + 64:  case scm_tc2_int + 68:  case scm_tc3_imm24 + 64:\
+  case scm_tc2_int + 72:  case scm_tc2_int + 76:  case scm_tc3_imm24 + 72:\
+  case scm_tc2_int + 80:  case scm_tc2_int + 84:  case scm_tc3_imm24 + 80:\
+  case scm_tc2_int + 88:  case scm_tc2_int + 92:  case scm_tc3_imm24 + 88:\
+  case scm_tc2_int + 96:  case scm_tc2_int + 100: case scm_tc3_imm24 + 96:\
+  case scm_tc2_int + 104: case scm_tc2_int + 108: case scm_tc3_imm24 + 104:\
+  case scm_tc2_int + 112: case scm_tc2_int + 116: case scm_tc3_imm24 + 112:\
+  case scm_tc2_int + 120: case scm_tc2_int + 124: case scm_tc3_imm24 + 120
 
 /* For cons pairs with non-immediate values in the SCM_CAR
  */
-#define scm_tcs_cons_nimcar 0:case 8:case 16:case 24:\
- case 32:case 40:case 48:case 56:\
- case 64:case 72:case 80:case 88:\
- case 96:case 104:case 112:case 120
+#define scm_tcs_cons_nimcar \
+       scm_tc3_cons + 0:\
+  case scm_tc3_cons + 8:\
+  case scm_tc3_cons + 16:\
+  case scm_tc3_cons + 24:\
+  case scm_tc3_cons + 32:\
+  case scm_tc3_cons + 40:\
+  case scm_tc3_cons + 48:\
+  case scm_tc3_cons + 56:\
+  case scm_tc3_cons + 64:\
+  case scm_tc3_cons + 72:\
+  case scm_tc3_cons + 80:\
+  case scm_tc3_cons + 88:\
+  case scm_tc3_cons + 96:\
+  case scm_tc3_cons + 104:\
+  case scm_tc3_cons + 112:\
+  case scm_tc3_cons + 120
 
 /* For structs
  */
-#define scm_tcs_struct 1:case 9:case 17:case 25:\
- case 33:case 41:case 49:case 57:\
- case 65:case 73:case 81:case 89:\
- case 97:case 105:case 113:case 121
+#define scm_tcs_struct \
+       scm_tc3_struct + 0:\
+  case scm_tc3_struct + 8:\
+  case scm_tc3_struct + 16:\
+  case scm_tc3_struct + 24:\
+  case scm_tc3_struct + 32:\
+  case scm_tc3_struct + 40:\
+  case scm_tc3_struct + 48:\
+  case scm_tc3_struct + 56:\
+  case scm_tc3_struct + 64:\
+  case scm_tc3_struct + 72:\
+  case scm_tc3_struct + 80:\
+  case scm_tc3_struct + 88:\
+  case scm_tc3_struct + 96:\
+  case scm_tc3_struct + 104:\
+  case scm_tc3_struct + 112:\
+  case scm_tc3_struct + 120
 
 /* For closures
  */
-#define scm_tcs_closures   3:case 11:case 19:case 27:\
- case 35:case 43:case 51:case 59:\
- case 67:case 75:case 83:case 91:\
- case 99:case 107:case 115:case 123
+#define scm_tcs_closures \
+       scm_tc3_closure + 0:\
+  case scm_tc3_closure + 8:\
+  case scm_tc3_closure + 16:\
+  case scm_tc3_closure + 24:\
+  case scm_tc3_closure + 32:\
+  case scm_tc3_closure + 40:\
+  case scm_tc3_closure + 48:\
+  case scm_tc3_closure + 56:\
+  case scm_tc3_closure + 64:\
+  case scm_tc3_closure + 72:\
+  case scm_tc3_closure + 80:\
+  case scm_tc3_closure + 88:\
+  case scm_tc3_closure + 96:\
+  case scm_tc3_closure + 104:\
+  case scm_tc3_closure + 112:\
+  case scm_tc3_closure + 120
 
 /* For subrs
  */
