@@ -1,3 +1,59 @@
+2003-03-25  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: big overhaul to shift us to have separate private,
+	config.h, and public, scmconfig.h, configuration headers.  Added a
+	fair amount of code to track down new required types: scm_t_uint8,
+	scm_t_uint16, scm_t_uint32, scm_t_int8, scm_t_int16, scm_t_int32,
+	and to detect optional types scm_t_uint64, scm_t_in64, long long,
+	unsigned long long, scm_t_ptrdiff, intptr_t, and uintptr_t.
+	(SCM_I_GSC_T_PTRDIFF): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_NEEDS_INTTYPES_H): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_NEEDS_STDINT_H): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_T_UINT8): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_T_UINT16): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_T_UINT32): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_T_UINT64): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_T_INT8): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_T_INT16): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_T_INT32): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_T_INT64): gen-scmconfig.h.in AC_SUBST var.
+	(USE_PTHREAD_THREADS): removed - handled by gen-scmconfig.c.
+	(USE_NULL_THREADS): removed - handled by gen-scmconfig.c.
+	(USE_COOP_THREADS): removed - handled by gen-scmconfig.c.
+	(SCM_I_GSC_USE_PTHREAD_THREADS): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_USE_NULL_THREADS): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_USE_COOP_THREADS): gen-scmconfig.h.in AC_SUBST var.
+	(STACK_GROWS_UP): removed - handled by gen-scmconfig.c.
+	(SCM_I_GSC_STACK_GROWS_UP): gen-scmconfig.h.in AC_SUBST var.
+	(GUILE_DEBUG_FREELIST): removed - handled by gen-scmconfig.c.
+	(SCM_I_GSC_GUILE_DEBUG_FREELIST): gen-scmconfig.h.in AC_SUBST var.
+	(GUILE_DEBUG): removed - handled by gen-scmconfig.c.
+	(SCM_I_GSC_GUILE_DEBUG): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_ENABLE_DEPRECATED): removed - handled by gen-scmconfig.c.
+	(SCM_I_GSC_ENABLE_DEPRECATED): gen-scmconfig.h.in AC_SUBST var.
+	(HAVE_ARRAYS): removed - handled by gen-scmconfig.c.
+	(SCM_I_GSC_HAVE_ARRAYS): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_ENABLE_ELISP): removed - handled by gen-scmconfig.c.
+	(SCM_I_GSC_ENABLE_ELISP): gen-scmconfig.h.in AC_SUBST var.
+	(SCM_I_GSC_C_INLINE): gen-scmconfig.h.in AC_SUBST var.
+	(DEBUG_EXTENSIONS): removed - handled by gen-scmconfig.c.
+	(READER_EXTENSIONS): removed - handled by gen-scmconfig.c.
+	(USE_THREADS): removed - handled by gen-scmconfig.c.
+	(GUILE_ISELECT): removed - handled by gen-scmconfig.c.
+	(DYNAMIC_LINKING): removed - handled by gen-scmconfig.c.
+
+	* README: merge information from INSTALL and remove at least some
+	of the stale bits.
+
+	* LICENSE: new file -- we should change this to the LGPL soon and
+	add COPYING.LIB to the distribution.
+
+	* autogen.sh: call autoreconf with --force.  This may fix the
+	"order" problem below without having to have two calls.
+
+	* INSTALL: use the automake installed INSTALL file.  The Guile
+	specific instructions are now in README.
+
 2003-03-21  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* autogen.sh: Invoke autoreconf twice since the required files do

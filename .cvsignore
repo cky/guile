@@ -1,7 +1,3 @@
-depcomp
-install-sh
-missing
-mkinstalldirs
 BUGS
 Makefile
 Makefile.in
@@ -10,6 +6,7 @@ autom4te.cache
 benchmark-guile
 check-guile
 check-guile.log
+confdefs.h
 config.build-subdirs
 config.cache
 config.guess
@@ -19,10 +16,16 @@ config.log
 config.status
 config.sub
 configure
+conftest
+conftest.c
+depcomp
 guile-*.tar.gz
 guile-tools
+install-sh
 libtool
 ltconfig
 ltmain.sh
+missing
+mkinstalldirs
 pre-inst-guile
 stamp-h1
