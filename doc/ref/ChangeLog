@@ -1,3 +1,12 @@
+2002-08-05  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* intro.texi, srfi-modules.texi: Added (use-modules (ice-9
+	rdelim)) to an example that uses read-line.  Thanks to Ralf
+	Mattes!
+
+	* scheme-memory.texi: Added an introductory blurb about GC that I
+	had lying around.
+
 2002-08-02  Gary Houston  <ghouston@arglist.com>
 
 	* scheme-modules.texi: split "Scheme and modules" into
