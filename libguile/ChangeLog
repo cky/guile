@@ -1,3 +1,39 @@
+Sun Dec 19 10:22:34 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* threads.c, mit-pthreads.c, list.c, coop.c:  Remove K&R
+	prototypes; just use ANSI C prototypes.  I'm not sure how
+	mit-pthreads.c ever compiled -- it still doesn't for me, but the
+	normal make procedure does not try to build it anyway (even
+	--with-threads I get the other threads code building) so I'm not
+	too worried about it.
+
+Sat Dec 18 16:58:34 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* tags.h (SCM_CONSP, SCM_NCONSP): Define these in terms of
+	SCM_SLOPPY_CONSP and SCM_SLOPPY_NCONSP.  (SCM_CONSP) Define this
+	in terms of SCM_SLOPPY_NCONSP instead of repeating the
+	expression.
+
+	* symbols.h (SCM_SLOPPY_SUBSTRP, SCM_SUBSTRP): Added former, and
+	define latter in terms of sloppy variant.
+
+	* strings.h (SCM_SLOPPY_STRINGP, SCM_STRINGP): Added former, and
+	define latter in terms of sloppy variant.
+
+	* scm_validate.h (SCM_MAKE_VALIDATE): Added this macro to factor
+ 	out the commonality of the various basic SCM_VALIDATE_foop
+ 	macros. Use SCM_MAKE_VALIDATE macro where possible.  Fix
+ 	SCM_VALIDATE_INT_COPY to not use scm_num2ulong -- that does
+ 	coercion to an integer which is more advanced than desired and
+ 	SCM_NUM2ULONG provides that functionality.  Use SCM_ASSERT_RANGE
+ 	appropriately for the various _MIN, _MAX, _RANGE macros.  Drop
+ 	some superfluous "SCM_NIMP &&" where possible. Eliminate obsoleted
+ 	SCM_VALIDATE_NIMCONS (SCM_VALIDATE_CONS now does the NIMP test as
+ 	part of its SCM_CONSP test).
+
+	* socket.c, ports.c, pairs.c, list.c, lang.c, async.c: Use
+	SCM_VALIDATE_CONS, not obsoleted SCM_VALIDATE_NIMCONS. 
+
 Sat Dec 18 15:33:05 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* dynl.c: Added #include "scm_validate.h"
