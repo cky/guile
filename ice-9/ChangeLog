@@ -1,3 +1,11 @@
+1999-03-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (try-load-module): New procedure.  Broken out from
+	resolve-module.
+	(resolve-module): Bugfix: Make it possible for a module at a
+	deeper level (x y z) to depend on a module on a higher (x y).
+	Use try-load-module.
+
 1999-03-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* session.scm (system-module): New procedure.  Used to switch a
