@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,7 +104,7 @@ SCM gh_str2scm(const char *s, int len);
 SCM gh_str02scm(const char *s);
 void gh_set_substr(char *src, SCM dst, int start, int len);
 SCM gh_symbol2scm(const char *symbol_str);
-SCM gh_ints2scm(int *d, int n);
+SCM gh_ints2scm(const int *d, int n);
 
 #ifdef HAVE_ARRAYS
 SCM gh_chars2byvect(const char *d, int n);

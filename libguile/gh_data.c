@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -131,7 +131,7 @@ gh_symbol2scm (const char *symbol_str)
 }
 
 SCM
-gh_ints2scm (int *d, int n)
+gh_ints2scm (const int *d, int n)
 {
   int i;
   SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
