@@ -325,8 +325,8 @@ typedef unsigned long scm_t_bits;
  * tc8 (for objects with tc3==100):
  *   00000-100:  special objects ('flags')
  *   00001-100:  characters
- *   00010-100:  evaluator byte codes ('ilocs')
- *   00011-100:  evaluator byte codes ('isyms')
+ *   00010-100:  evaluator byte codes ('isyms')
+ *   00011-100:  evaluator byte codes ('ilocs')
  *
  *
  * Summary of type codes on the heap

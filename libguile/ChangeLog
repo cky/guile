@@ -1,3 +1,24 @@
+2004-04-22  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* eval.c (s_macro_keyword): New static identifier.
+
+	(scm_m_define): Change order to first create binding and
+	evaluating the expression afterwards.
+
+	(scm_m_set_x): Memoize complete set! expression.  Only leave
+	symbols if no binding exists at memoization time.  Throw error if
+	assigning to a syntactic keyword.
+
+	(lazy_memoize_variable): New function.
+
+	(CEVAL): When execution set!, perform lazy memoization if
+	unmemoized symbol is detected.
+
+	* modules.c (module_variable): Return variables with unbound
+	value.
+
+	* tags.h: Fix comment.
+
 2004-04-25  Kevin Ryde  <user42@zip.com.au>
 
 	* chars.c (scm_char_upcase, scm_char_downcase, scm_c_upcase,
@@ -245,7 +266,6 @@
 
 	(copy_tree): Corrected typo in comment.
 
->>>>>>> 1.2042
 2004-03-28  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* eval.c (s_scm_copy_tree): idem.

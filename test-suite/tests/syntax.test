@@ -592,6 +592,16 @@
 
 (with-test-prefix "top-level define"
 
+  (pass-if "binding is created before expression is evaluated"
+    (= (eval '(begin
+                (define foo
+                  (begin
+                    (set! foo 1)
+                    (+ foo 1)))
+                foo)
+             (interaction-environment))
+       2))
+
   (with-test-prefix "currying"
 
     (pass-if "(define ((foo)) #f)"

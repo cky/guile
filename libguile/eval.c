@@ -144,6 +144,10 @@ static const char s_mixed_body_forms[] = "Mixed definitions and expressions in";
  * is signalled.  */
 static const char s_bad_define[] = "Bad define placement";
 
+/* If a macro keyword is detected in a place where macro keywords are not
+ * allowed, a 'Misplaced syntactic keyword' error is signalled.  */
+static const char s_macro_keyword[] = "Misplaced syntactic keyword";
+
 /* Case or cond expressions must have at least one clause.  If a case or cond
  * expression without any clauses is detected, a 'Missing clauses' error is
  * signalled.  */
@@ -1194,6 +1198,10 @@ canonicalize_define (const SCM expr)
   return expr;
 }
 
+/* According to section 5.2.1 of R5RS we first have to make sure that the
+ * variable is bound, and then perform the (set! variable expression)
+ * operation.  This means, that within the expression we may already assign
+ * values to variable: (define foo (begin (set! foo 1) (+ foo 1)))  */
 SCM
 scm_m_define (SCM expr, SCM env)
 {
@@ -1203,10 +1211,10 @@ scm_m_define (SCM expr, SCM env)
     const SCM canonical_definition = canonicalize_define (expr);
     const SCM cdr_canonical_definition = SCM_CDR (canonical_definition);
     const SCM variable = SCM_CAR (cdr_canonical_definition);
-    const SCM body = SCM_CDR (cdr_canonical_definition);
-    const SCM value = scm_eval_car (body, env);
+    const SCM location
+      = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_T);
+    const SCM value = scm_eval_car (SCM_CDR (cdr_canonical_definition), env);
 
-    SCM var;
     if (SCM_REC_PROCNAMES_P)
       {
         SCM tmp = value;
@@ -1218,8 +1226,7 @@ scm_m_define (SCM expr, SCM env)
           scm_set_procedure_property_x (tmp, scm_sym_name, variable);
       }
 
-    var = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_T);
-    SCM_VARIABLE_SET (var, value);
+    SCM_VARIABLE_SET (location, value);
 
     return SCM_UNSPECIFIED;
   }
@@ -1779,15 +1786,23 @@ SCM
 scm_m_set_x (SCM expr, SCM env SCM_UNUSED)
 {
   SCM variable;
+  SCM new_variable;
 
   const SCM cdr_expr = SCM_CDR (expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
   variable = SCM_CAR (cdr_expr);
-  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable) || SCM_VARIABLEP (variable),
-		   s_bad_variable, variable, expr);
+
+  /* Memoize the variable form. */
+  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
+  new_variable = lookup_symbol (variable, env);
+  ASSERT_SYNTAX (!SCM_MACROP (new_variable), s_macro_keyword, variable);
+  /* Leave the memoization of unbound symbols to lazy memoization: */
+  if (SCM_UNBNDP (new_variable))
+    new_variable = variable;
 
   SCM_SETCAR (expr, SCM_IM_SET_X);
+  SCM_SETCAR (cdr_expr, new_variable);
   return expr;
 }
 
@@ -2612,6 +2627,22 @@ static SCM deval (SCM x, SCM env);
 SCM_REC_MUTEX (source_mutex);
 
 
+/* During execution, look up a symbol in the top level of the given local
+ * environment and return the corresponding variable object.  If no binding
+ * for the symbol can be found, an 'Unbound variable' error is signalled.  */
+static SCM
+lazy_memoize_variable (const SCM symbol, const SCM environment)
+{
+  const SCM top_level = scm_env_top_level (environment);
+  const SCM variable = scm_sym2var (symbol, top_level, SCM_BOOL_F);
+
+  if (SCM_FALSEP (variable))
+    error_unbound_variable (symbol);
+  else
+    return variable;
+}
+
+
 SCM
 scm_eval_car (SCM pair, SCM env)
 {
@@ -3327,8 +3358,13 @@ dispatch:
               location = scm_ilookup (variable, env);
             else if (SCM_VARIABLEP (variable))
               location = SCM_VARIABLE_LOC (variable);
-            else /* (SCM_SYMBOLP (variable)) is known to be true */
-              location = scm_lookupcar (x, env, 1);
+            else
+              {
+                /* (SCM_SYMBOLP (variable)) is known to be true */
+                variable = lazy_memoize_variable (variable, env);
+                SCM_SETCAR (x, variable);
+                location = SCM_VARIABLE_LOC (variable);
+              }
             x = SCM_CDR (x);
             *location = EVALCAR (x, env);
           }
