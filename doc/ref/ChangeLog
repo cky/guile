@@ -1,3 +1,7 @@
+2003-06-14  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-data.texi (Arithmetic): round is to nearest even.
+
 2003-06-12  Kevin Ryde  <user42@zip.com.au>
 
 	* data-rep.texi (Remembering During Operations): New section.
