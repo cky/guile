@@ -2076,7 +2076,16 @@ idbl2str (double f, char *a)
   int exp = 0;
 
   if (f == 0.0)
-    goto zero;			/*{a[0]='0'; a[1]='.'; a[2]='0'; return 3;} */
+    {
+#ifdef HAVE_COPYSIGN
+      double sgn = copysign (1.0, f);
+
+      if (sgn < 0.0)
+	a[ch++] = '-';
+#endif
+
+      goto zero;	/*{a[0]='0'; a[1]='.'; a[2]='0'; return 3;} */
+    }
 
   if (xisinf (f))
     {
