@@ -2688,6 +2688,7 @@ dispatch:
 	    return SCM_APPLY (proc, t.arg1, SCM_EOL);
 	  }
 
+
 	default:
 	  goto badfun;
 	}
@@ -2734,19 +2735,21 @@ dispatch:
 #endif
       break;
 #endif /* ifdef MEMOIZE_LOCALS */
-      
+
     case scm_tcs_cons_nimcar:
       orig_sym = SCM_CAR (x);
       if (SCM_SYMBOLP (orig_sym))
 	{
 #ifdef USE_THREADS
-	  t.lloc = scm_lookupcar1 (x, env, 1);
-	  if (t.lloc == NULL)
-	    {
-	      /* we have lost the race, start again. */
-	      goto dispatch;
-	    }
-	  proc = *t.lloc;
+	  {
+	    SCM *location = scm_lookupcar1 (x, env, 1);
+	    if (location == NULL)
+	      {
+		/* we have lost the race, start again. */
+		goto dispatch;
+	      }
+	    proc = *location;
+	  }
 #else
 	  proc = *scm_lookupcar (x, env, 1);
 #endif

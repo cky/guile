@@ -1,3 +1,9 @@
+2002-03-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SCM_CEVAL): Got rid of the last reference to t.lloc.
+	The next step will be to remove the union 't' and simplify the
+	code of SCM_CEVAL that way.
+
 2002-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* iselect.c (collisionp, gnfds, greadfds, gwritefds, gexceptfds,
