@@ -51,19 +51,25 @@
 
 
 
+#define SCM_INITIAL_CBUF_SIZE 4
+
 struct scm_port_table 
 {
   SCM port;			/* Open port.  */
+  int entry;			/* Index in port table. */
   int revealed;			/* 0 not revealed, > 1 revealed.
 				 * Revealed ports do not get GC'd.
 				 */
 
   SCM stream;
-  SCM file_name;		/* debugging support.  */
-  int unchr;			/* pushed back character, if any */
 
+  SCM file_name;		/* debugging support.  */
   int line_number;		/* debugging support.  */
   int column_number;		/* debugging support.  */
+
+  char *cp;			/* where to put and get unget chars */
+  char *cbufend;		/* points after this struct */
+  char cbuf[SCM_INITIAL_CBUF_SIZE]; /* must be last: may grow */
 };
 
 extern struct scm_port_table **scm_port_table;
@@ -112,10 +118,41 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_REVEALED(x) SCM_PTAB_ENTRY(x)->revealed
 #define SCM_SETREVEALED(x,s) (SCM_PTAB_ENTRY(x)->revealed = s)
 #define SCM_CRDYP(port) (SCM_CAR (port) & SCM_CRDY)
-#define SCM_CLRDY(port) {SCM_SETAND_CAR (port, SCM_CUC);}
 #define SCM_SETRDY(port) {SCM_SETOR_CAR (port, SCM_CRDY);}
-#define SCM_CUNGET(c,port) {SCM_PTAB_ENTRY(port)->unchr = c; SCM_SETRDY(port);}
-#define SCM_CGETUN(port) (SCM_PTAB_ENTRY(port)->unchr)
+#define SCM_CUNGET(c, port) \
+{ \
+  if (SCM_CRDYP (port)) \
+    { \
+      if (++SCM_PTAB_ENTRY (port)->cp == SCM_PTAB_ENTRY (port)->cbufend) \
+	scm_grow_port_cbuf (port, 1); \
+      *SCM_PTAB_ENTRY (port)->cp = c; \
+    } \
+  else \
+    { \
+      SCM_PTAB_ENTRY (port)->cbuf[0] = c; \
+      SCM_SETRDY (port); \
+    } \
+} \
+
+#define SCM_CGETUN(port) (*SCM_PTAB_ENTRY (port)->cp)
+#define SCM_CLRDY(port) \
+{ \
+  SCM_PTAB_ENTRY (port)->cp = SCM_PTAB_ENTRY (port)->cbuf; \
+  SCM_SETAND_CAR (port, SCM_CUC); \
+} \
+
+#define SCM_TRY_CLRDY(port) \
+{ \
+  if (SCM_PTAB_ENTRY (port)->cp == SCM_PTAB_ENTRY (port)->cbuf) \
+    SCM_SETAND_CAR (port, SCM_CUC); \
+  else \
+    --SCM_PTAB_ENTRY (port)->cp; \
+} \
+
+/* Returns number of unread characters in a port.
+   Returns wrong answer if SCM_CRDYP is false. */
+#define SCM_N_READY_CHARS(port) \
+(SCM_PTAB_ENTRY (port)->cp - SCM_PTAB_ENTRY (port)->cbuf + 1)
 
 #define SCM_INCLINE(port)  	{SCM_LINUM (port) += 1; SCM_COL (port) = 0;}
 #define SCM_INCCOL(port)  	{SCM_COL (port) += 1;}
@@ -165,6 +202,7 @@ extern SCM scm_set_current_output_port SCM_P ((SCM port));
 extern SCM scm_set_current_error_port SCM_P ((SCM port));
 extern struct scm_port_table * scm_add_to_port_table SCM_P ((SCM port));
 extern void scm_remove_from_port_table SCM_P ((SCM port));
+extern void scm_grow_port_cbuf SCM_P ((SCM port, size_t requested));
 extern SCM scm_pt_size SCM_P ((void));
 extern SCM scm_pt_member SCM_P ((SCM member));
 extern int scm_revealed_count SCM_P ((SCM port));
@@ -182,6 +220,7 @@ extern SCM scm_flush_all_ports SCM_P ((void));
 extern SCM scm_read_char SCM_P ((SCM port));
 extern SCM scm_peek_char SCM_P ((SCM port));
 extern SCM scm_unread_char SCM_P ((SCM cobj, SCM port));
+extern SCM scm_unread_string SCM_P ((SCM str, SCM port));
 extern char *scm_generic_fgets SCM_P ((SCM port, int *len));
 extern SCM scm_port_line SCM_P ((SCM port));
 extern SCM scm_set_port_line_x SCM_P ((SCM port, SCM line));
