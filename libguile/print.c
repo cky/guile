@@ -1035,6 +1035,7 @@ scm_init_print ()
 			       (SCM (*) ()) print_state_printer,
 			       0 /* Don't bind the name. */);
   type = scm_make_struct (vtable, SCM_INUM0, SCM_LIST2 (layout, printer));
+  scm_set_struct_vtable_name_x (type, SCM_CAR (scm_intern0 ("print-state")));
   print_state_pool = scm_permanent_object (scm_cons (type, SCM_EOL));
 
   scm_print_state_vtable = type;
