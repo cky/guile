@@ -2,7 +2,7 @@
 
 #ifndef FEATUREH
 #define FEATUREH
-/*	Copyright (C) 1995, 1996, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,30 +49,9 @@
 
 #include "libguile/__scm.h"
 
-#define SCM_HOOKP(x) (SCM_NIMP(x) && (SCM_TYP16 (x) == scm_tc16_hook))
-#define SCM_HOOK_ARITY(hook) (SCM_UNPACK_CAR (hook) >> 16)
-#define SCM_HOOK_NAME(hook) SCM_CADR (hook)
-#define SCM_HOOK_PROCEDURES(hook) SCM_CDDR (hook)
-#define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SETCDR (SCM_CDR (hook), procs)
-
-extern long scm_tc16_hook;
-
 extern void scm_add_feature (const char* str);
 extern SCM scm_program_arguments (void);
 extern void scm_set_program_arguments (int argc, char **argv, char *first);
-extern SCM scm_make_hook (SCM n_args);
-extern SCM scm_make_hook_with_name (SCM name, SCM n_args);
-extern SCM scm_create_hook (const char* name, int n_args);
-extern void scm_free_hook (SCM hook);
-extern SCM scm_make_named_hook (const char* name, int n_args);
-extern SCM scm_hook_p (SCM x);
-extern SCM scm_hook_empty_p (SCM hook);
-extern SCM scm_add_hook_x (SCM hook, SCM thunk, SCM appendp);
-extern SCM scm_remove_hook_x (SCM hook, SCM thunk);
-extern SCM scm_reset_hook_x (SCM hook);
-extern SCM scm_run_hook (SCM hook, SCM args);
-extern void scm_c_run_hook (SCM hook, SCM args);
-extern SCM scm_hook_to_list (SCM hook);
 extern void scm_init_feature (void);
 
 #endif  /* FEATUREH */
