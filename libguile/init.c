@@ -436,7 +436,7 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
 #endif
     if (!setjmp_val)
       {
-	SCM last;
+	SCM last = SCM_UNDEFINED;
 	scm_init_signals ();
 
 	/* Call the initialization function passed in by the user, if
