@@ -1,3 +1,8 @@
+2000-10-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* coop-defs.h (coop_key_create): Don't use the C++ keyword
+	`destructor' in prototype.  Thanks to Martin Baulig!
+
 2000-10-02  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* guile-func-name-check.in: now should not confuse SCO nawk
