@@ -1,3 +1,9 @@
+2003-02-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* hashtab.c: Undid thread safety.  (We decided that it's better to
+	let the user explicitly protect the tables (or not) according what
+	is suitable for the application.)
+
 2003-02-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* hashtab.c (scm_hash_fn_remove_x, scm_internal_hash_fold): Made

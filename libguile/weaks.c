@@ -183,7 +183,7 @@ SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0,
 #define FUNC_NAME s_scm_make_weak_key_hash_table
 {
   if (SCM_UNBNDP (size))
-    return scm_vector_to_hash_table (allocate_weak_vector (1, SCM_MAKINUM (37),
+    return scm_vector_to_hash_table (allocate_weak_vector (1, SCM_MAKINUM (31),
 							   SCM_EOL, FUNC_NAME));
   else
     return allocate_weak_vector (1, size, SCM_EOL, FUNC_NAME);
@@ -198,7 +198,7 @@ SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 0, 1, 
 #define FUNC_NAME s_scm_make_weak_value_hash_table
 {
   if (SCM_UNBNDP (size))
-    return scm_vector_to_hash_table (allocate_weak_vector (2, SCM_MAKINUM (37),
+    return scm_vector_to_hash_table (allocate_weak_vector (2, SCM_MAKINUM (31),
 							   SCM_EOL, FUNC_NAME));
   else
     return allocate_weak_vector (2, size, SCM_EOL, FUNC_NAME);
@@ -213,7 +213,7 @@ SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 #define FUNC_NAME s_scm_make_doubly_weak_hash_table
 {
   if (SCM_UNBNDP (size))
-    return scm_vector_to_hash_table (allocate_weak_vector (3, SCM_MAKINUM (37),
+    return scm_vector_to_hash_table (allocate_weak_vector (3, SCM_MAKINUM (31),
 							   SCM_EOL, FUNC_NAME));
   else
     return allocate_weak_vector (3, size, SCM_EOL, FUNC_NAME);
