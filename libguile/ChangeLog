@@ -1,3 +1,8 @@
+2001-11-23  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* modules.c (scm_c_use_module): Adapt to changes to
+	`process-use-modules'.
+
 2001-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (scm_divide):  Fix more division by zero errors.
