@@ -22,7 +22,7 @@
 
 #include "libguile/__scm.h"
 
-extern scm_option scm_readline_opts[];
+extern scm_option_t scm_readline_opts[];
 
 #define SCM_HISTORY_FILE_P     scm_readline_opts[0].val
 #define SCM_HISTORY_LENGTH     scm_readline_opts[1].val

@@ -42,7 +42,7 @@
 #include "libguile/validate.h"
 #include "guile-readline/readline.h"
 
-scm_option scm_readline_opts[] = {
+scm_option_t scm_readline_opts[] = {
   { SCM_OPTION_BOOLEAN, "history-file", 1,
     "Use history file." },
   { SCM_OPTION_INTEGER, "history-length", 200,
@@ -277,7 +277,7 @@ stream_from_fport (SCM port, char *mode, const char *subr)
   int fd;
   FILE *f;
 
-  fd = dup (((struct scm_fport *) SCM_STREAM (port))->fdes);
+  fd = dup (((struct scm_fport_t *) SCM_STREAM (port))->fdes);
   if (fd == -1)
     {
       --in_readline;
