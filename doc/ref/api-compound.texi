@@ -2877,10 +2877,9 @@ of tools for using either association lists or hash tables.
 @subsection Association Lists
 @tpindex Association Lists
 @tpindex Alist
-
-@cindex Association List
-@cindex Alist
-@cindex Database
+@cindex association List
+@cindex alist
+@cindex aatabase
 
 An association list is a conventional data structure that is often used
 to implement simple key-value databases.  It consists of a list of
