@@ -1,3 +1,8 @@
+1999-10-26  Mark Galassi  <rosalia@lanl.gov>
+
+	* gh.h, gh_data.c (gh_symbol2scm): changed gh_symbol2scm() to take
+	a const char * argument, upon suggestion from Lynn Winebarger.
+
 1999-10-26  Gary Houston  <ghouston@freewire.co.uk>
 
 	* strports.c (st_end_input): avoid dubious pointer arithmetic.

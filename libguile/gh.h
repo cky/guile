@@ -106,7 +106,7 @@ SCM gh_char2scm(char c);
 SCM gh_str2scm(char *s, int len);
 SCM gh_str02scm(char *s);
 void gh_set_substr(char *src, SCM dst, int start, int len);
-SCM gh_symbol2scm(char *symbol_str);
+SCM gh_symbol2scm(const char *symbol_str);
 SCM gh_ints2scm(int *d, int n);
 SCM gh_chars2byvect(char *d, int n);
 SCM gh_shorts2svect(short *d, int n);
