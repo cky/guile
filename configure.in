@@ -178,6 +178,7 @@ dnl If these types don't exist on this platform, they are replaced by
 dnl "unsigned long" and "long", respectively.
 
 AC_CHECK_HEADERS(stdint.h)
+AC_CHECK_HEADERS(inttypes.h)
 AC_CHECK_TYPES([uintptr_t, ptrdiff_t])
 
 AC_CACHE_CHECK([for long longs], scm_cv_long_longs,
