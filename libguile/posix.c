@@ -1189,15 +1189,26 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
   char *ptr;
 
   SCM_VALIDATE_STRING (1, str);
-  /* must make a new copy to be left in the environment, safe from gc.  */
-  ptr = malloc (SCM_STRING_LENGTH (str) + 1);
-  if (ptr == NULL)
-    SCM_MEMORY_ERROR;
-  strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
-  ptr[SCM_STRING_LENGTH (str)] = 0;
-  rv = putenv (ptr);
-  if (rv < 0)
-    SCM_SYSERROR;
+
+  if (strchr (SCM_STRING_CHARS (str), '=') == NULL)
+    {
+      /* No '=' in argument means we should remove the variable from
+	 the environment.  Not all putenvs understand this.  To be
+	 safe, we do it explicitely using unsetenv. */
+      unsetenv (SCM_STRING_CHARS (str));
+    }
+  else
+    {
+      /* must make a new copy to be left in the environment, safe from gc.  */
+      ptr = malloc (SCM_STRING_LENGTH (str) + 1);
+      if (ptr == NULL)
+	SCM_MEMORY_ERROR;
+      strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
+      ptr[SCM_STRING_LENGTH (str)] = 0;
+      rv = putenv (ptr);
+      if (rv < 0)
+	SCM_SYSERROR;
+    }
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
