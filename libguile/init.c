@@ -449,8 +449,6 @@ scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
   scm_boot_guile_1 (&dummy, &c);
 }
 
-extern void *scm_get_stack_base ();
-
 void
 scm_init_guile ()
 {
