@@ -1,3 +1,8 @@
+2002-02-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* __scm.h (HAVE_UINTPTR_T): Only define if UINTPTR_T attributes
+	are defined: UINTPTR_MAX, INTPTR_MAX, INTPTR_MIN.
+
 2002-01-31  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* symbols.c (scm_gensym): Use " g" as default prefix, not "g".
@@ -8,7 +13,7 @@
 2002-01-31  Stefan Jahn  <stefan@lkcc.org>
 
 	* convert.c, convert.h, convert.i.c: New files containing C
-	array to Scheme conversion helpers meant to be replacement 
+	array to Scheme conversion helpers meant to be replacement
 	functions for the deprecated gh interface.
 
 	* Makefile.am: Setup rules for new `convert.*' files.
@@ -18,21 +23,21 @@
 	* symbols.c (scm_c_symbol2str): New function, replacement for
 	`gh_scm2newsymbol()'.
 
-	* strings.c (scm_c_substring2str): New function.  Proper 
+	* strings.c (scm_c_substring2str): New function.  Proper
 	replacement for `gh_get_substr()'.
 
 	* socket.c: Include `stdint.h' if available for the `uint32_t'
 	declaration.
 
-	* scmsigs.c (s_scm_sigaction): Initialize `chandler' (inhibits 
+	* scmsigs.c (s_scm_sigaction): Initialize `chandler' (inhibits
 	compiler warning).
 
 	* backtrace.c: Include `lang.h' for GUILE_DEBUG conditional.
 
 2002-01-22  Neil Jerram  <neil@ossau.uklinux.net>
-	
+
 	Other changes unrelated to Elisp...
-	
+
 	* eval.c (scm_m_if): Use s_if rather than repeating string literal
 	"if".
 	(comments): Fix a few typos.
@@ -60,7 +65,7 @@
 	* eval.c, eval.h, init.c, lang.c, lang.h: Use SCM_ENABLE_ELISP to
 	conditionalize compilation and initialization of Elisp support
 	function.
-	
+
 	* alist.c (scm_assq, scm_assv, scm_assoc), async.c
 	(scm_asyncs_pending, scm_run_asyncs, noop), backtrace.c
 	(scm_set_print_params_x), dynl.c (scm_make_argv_from_stringlist),
@@ -76,7 +81,7 @@
 
 	* boolean.c (scm_not): Use `SCM_FALSEP || SCM_NILP' instead of
 	just SCM_FALSEP.
-	
+
 	* boolean.c (scm_boolean_p): Use `SCM_BOOLP || SCM_NILP' instead
 	of just SCM_BOOLP.
 
@@ -123,7 +128,7 @@
 	(SCM_ELISP_NIL): New IFLAG.
 
 	* validate.h (SCM_VALIDATE_NULL_OR_NIL): New.
-	
+
 2002-01-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c:  Removed outdated references to "everr".  Improved some
@@ -179,7 +184,7 @@
 2001-12-08  Stefan Jahn  <stefan@lkcc.org>
 
 	* strings.c (scm_c_string2str): New function.  Converts a
-	given Scheme string into a C string.  Also put in two 
+	given Scheme string into a C string.  Also put in two
 	THINKME's regarding the malloc policy for the missing converter
 	routines.
 
@@ -206,7 +211,7 @@
 2001-11-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* vectors.h (SCM_MAKE_VECTOR_TAG): New.
-	* unif.h (SCM_MAKE_BITVECTOR_TAG, SCM_MAKE_UVECTOR_TAG): New. 
+	* unif.h (SCM_MAKE_BITVECTOR_TAG, SCM_MAKE_UVECTOR_TAG): New.
 	* symbols.h (SCM_MAKE_SYMBOL_TAG): New.
 	* strings.h (SCM_MAKE_STRING_TAG): New.
 	* procs.h (SCM_MAKE_CCLO_TAG): New.
@@ -226,7 +231,7 @@
 
 	Deprecated SCM_NEWCELL and SCM_NEWCELL2.  Added scm_alloc_cell and
 	scm_alloc_double_cell in their place.
-	
+
 	* gc.h (SCM_GC_SET_ALLOCATED, scm_debug_newcell,
 	scm_debug_newcell2, scm_tc16_allocated): Removed from header.
 	(scm_deprecated_newcell, scm_deprecated_newcell2): New.
@@ -240,11 +245,11 @@
 	(scm_init_gc): Do it here.
 	(allocated_mark): New, from old code.
 	(scm_deprecated_newcell, scm_deprecated_newcell2): New.
-	
-	* inline.c, inline.h: New files.
-	* Makefile.am: Added them in all the right places. 
 
-	* _scm.h: Include "libguile/inline.h". 
+	* inline.c, inline.h: New files.
+	* Makefile.am: Added them in all the right places.
+
+	* _scm.h: Include "libguile/inline.h".
 
 	* alist.c, coop-threads.c, debug.c, environments.c, eval.c,
 	fports.c, gh_data.c, goops.c, guardians.c, lang.c, list.c,
@@ -278,19 +283,19 @@
 
 	* Makefile.am (install-exec-hook): Prepend $(DESTDIR) to filename.
 	Thanks to Eric Gillespie, Jr!
-	
+
 2001-11-21  Stefan Jahn  <stefan@lkcc.org>
 
-	* win32-socket.c (getservent, setservent, endservent, 
-	getprotoent, setprotoent, endprotoent): New functions.  
+	* win32-socket.c (getservent, setservent, endservent,
+	getprotoent, setprotoent, endprotoent): New functions.
 	Appropriate replacements for M$-Windows.
 
 	* numbers.c (SIZE_MAX, PTRDIFF_MAX, PTRDIFF_MIN): Reintroduced
 	these definitions for GUILE_DEBUG.
 
 	* net_db.c: Include "win32-socket.h" if compiling with a native
-	M$-Windows compiler.  Include some pieces of code (protoent and 
-	servent interface) protected by HAVE_* macros when using a 
+	M$-Windows compiler.  Include some pieces of code (protoent and
+	servent interface) protected by HAVE_* macros when using a
 	native M$-Windows compiler.
 
 2001-11-20  Marius Vollmer  <mvo@zagadka.ping.de>
