@@ -193,7 +193,7 @@ scm_display_error (stack, port, subr, message, args, rest)
       if (!(SCM_NIMP (source) && SCM_MEMOIZEDP (source)))
 	source = SCM_FRAME_SOURCE (SCM_FRAME_PREV (current_frame));
       if (SCM_FRAME_PROC_P (current_frame)
-	  && scm_procedure_p (SCM_FRAME_PROC (current_frame)))
+	  && scm_procedure_p (SCM_FRAME_PROC (current_frame)) == SCM_BOOL_T)
 	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
     }
   if (!(SCM_NIMP (pname) && SCM_ROSTRINGP (pname)))
