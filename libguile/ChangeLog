@@ -80,9 +80,9 @@ Sat Aug 16 18:42:15 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 Wed Aug 13 15:38:44 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-*	* gh_io.c (gh_write): New function.
+	* gh_io.c (gh_write): New function.
 
-*	* gh_eval.c (catch_with_saved_stack): Removed.  Replaced by:
+	* gh_eval.c (catch_with_saved_stack): Removed.  Replaced by:
 	throw.c (scm_internal_stack_catch): New sibling to the other catch
 	functions.  Code moved from gh_eval.c.
 	throw.h: Added header.
