@@ -1,3 +1,9 @@
+1999-09-16  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* regex.scm (regexp-substitute/global): Handle the end of the
+	match list and an empty match list identically.  (Thanks to Greg
+	Badros.)
+
 1999-09-15  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* debugger.scm ("evaluate"): Replaced `write-line' with calls to
