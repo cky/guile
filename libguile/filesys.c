@@ -116,6 +116,10 @@
 # endif
 #endif
 
+/* Ultrix has S_IFSOCK, but no S_ISSOCK.  Ipe!  */
+#if defined (S_IFSOCK) && ! defined (S_ISSOCK)
+#define S_ISSOCK(mode) (((mode) & S_IFMT) == S_IFSOCK)
+#endif
 
 
 
