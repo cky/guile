@@ -91,6 +91,7 @@ char *alloca ();
 #include "stackchk.h"
 #include "objects.h"
 #include "feature.h"
+#include "modules.h"
 
 #include "eval.h"
 
@@ -853,19 +854,6 @@ scm_m_delay (xorig, env)
 				   env));
 }
 
-
-SCM
-scm_env_top_level (env)
-     SCM env;
-{
-  while (SCM_NIMP(env))
-    {
-      if (SCM_BOOL_T == scm_procedure_p (SCM_CAR(env)))
-	return SCM_CAR(env);
-      env = SCM_CDR (env);
-    }
-  return SCM_BOOL_F;
-}
 
 SCM_SYNTAX(s_define, "define", scm_makmmacro, scm_m_define);
 SCM_SYMBOL(scm_i_define, s_define);
@@ -3360,39 +3348,6 @@ scm_eval_3 (obj, copyp, env)
   else if (copyp)
     obj = scm_copy_tree (obj);
   return SCM_XEVAL (obj, env);
-}
-
-
-SCM
-scm_top_level_env (thunk)
-     SCM thunk;
-{
-  if (SCM_IMP (thunk))
-    return SCM_EOL;
-  else
-    return scm_cons (thunk, SCM_EOL);
-}
-
-SCM
-scm_top_level_lookup_closure (SCM env)
-{
-  if (SCM_IMP (env))
-    return SCM_BOOL_F;
-  else
-    return SCM_CAR (scm_last_pair (env));
-}
-
-SCM_SYMBOL (scm_sym_system_module, "system-module");
-
-SCM
-scm_system_module_env_p (SCM env)
-{
-  SCM proc = scm_top_level_lookup_closure (env);
-  return ((SCM_NFALSEP (proc)
-	   && SCM_NFALSEP (scm_procedure_property (proc,
-						   scm_sym_system_module)))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
 }
 
 SCM_PROC(s_eval2, "eval2", 2, 0, 0, scm_eval2);
