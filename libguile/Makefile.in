@@ -1,0 +1,736 @@
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+host_alias = @host_alias@
+host_triplet = @host@
+AS = @AS@
+AWK = @AWK@
+CC = @CC@
+CPP = @CPP@
+DLLTOOL = @DLLTOOL@
+GUILE_LIBS = @GUILE_LIBS@
+GUILE_MAJOR_VERSION = @GUILE_MAJOR_VERSION@
+GUILE_MINOR_VERSION = @GUILE_MINOR_VERSION@
+GUILE_VERSION = @GUILE_VERSION@
+LD = @LD@
+LIBLOBJS = @LIBLOBJS@
+LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
+MAINT = @MAINT@
+MAKEINFO = @MAKEINFO@
+NM = @NM@
+OBJDUMP = @OBJDUMP@
+PACKAGE = @PACKAGE@
+QTHREAD_LTLIBS = @QTHREAD_LTLIBS@
+RANLIB = @RANLIB@
+THREAD_CPPFLAGS = @THREAD_CPPFLAGS@
+THREAD_LIBS_INSTALLED = @THREAD_LIBS_INSTALLED@
+THREAD_LIBS_LOCAL = @THREAD_LIBS_LOCAL@
+THREAD_PACKAGE = @THREAD_PACKAGE@
+VERSION = @VERSION@
+qtdmdb_s = @qtdmdb_s@
+qthread_asflags = @qthread_asflags@
+qtmd_h = @qtmd_h@
+qtmdc_c = @qtmdc_c@
+qtmds_s = @qtmds_s@
+
+AUTOMAKE_OPTIONS = foreign
+
+INCLUDES = -I.. -I$(srcdir)/.. ${THREAD_CPPFLAGS}
+
+ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/'
+
+lib_LTLIBRARIES = libguile.la
+bin_PROGRAMS = guile
+
+guile_SOURCES = guile.c
+guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
+
+libguile_la_SOURCES =      alist.c arbiters.c async.c backtrace.c boolean.c chars.c		    continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c	    evalext.c feature.c fluids.c fports.c gc.c gdbint.c	    gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c		    gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c		    ioext.c keywords.c lang.c list.c load.c macros.c mallocs.c		    modules.c numbers.c objects.c objprop.c options.c pairs.c	    ports.c print.c procprop.c procs.c ramap.c random.c read.c	    root.c scmsigs.c script.c simpos.c smob.c sort.c		    srcprop.c stackchk.c stacks.c stime.c strings.c strop.c strorder.c	    strports.c struct.c symbols.c tag.c throw.c unif.c variable.c	    vectors.c version.c vports.c weaks.c
+
+
+BUILT_SOURCES =      cpp_err_symbols.c cpp_sig_symbols.c libpath.h alist.x arbiters.x	    async.x backtrace.x boolean.x chars.x continuations.x debug.x	    dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x filesys.x	    fluids.x fports.x gc.x gsubr.x					    guardians.x hash.x hashtab.x init.x ioext.x iselect.x keywords.x	    lang.x list.x load.x macros.x mallocs.x modules.x net_db.x		    numbers.x objects.x objprop.x options.x pairs.x ports.x posix.x	    print.x procprop.x procs.x random.x ramap.x read.x regex-posix.x	    root.x scmsigs.x script.x simpos.x smob.x socket.x sort.x		    srcprop.x stackchk.x stacks.x stime.x strings.x strop.x strorder.x	    strports.x struct.x symbols.x tag.x threads.x throw.x unif.x	    variable.x vectors.x version.x vports.x weaks.x
+
+
+EXTRA_libguile_la_SOURCES = _scm.h		    alloca.c inet_aton.c memmove.c putenv.c strerror.c	    threads.c regex-posix.c iselect.c     filesys.c posix.c net_db.c socket.c
+
+
+noinst_HEADERS = coop-threads.c coop-threads.h coop.c
+
+libguile_la_DEPENDENCIES = @LIBLOBJS@
+libguile_la_LIBADD = @LIBLOBJS@
+libguile_la_LDFLAGS = -version-info 7:0 -export-dynamic
+
+include_HEADERS = libguile.h
+
+# These are headers visible as <guile/mumble.h> 
+pkginclude_HEADERS = gh.h
+
+# These are headers visible as <libguile/mumble.h>.
+modincludedir = $(includedir)/libguile
+modinclude_HEADERS =      __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h	    continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h	    evalext.h feature.h filesys.h fports.h gc.h gdb_interface.h		    gdbint.h genio.h gsubr.h guardians.h hash.h hashtab.h init.h	    ioext.h keywords.h kw.h lang.h list.h load.h macros.h mallocs.h 	    modules.h net_db.h numbers.h objects.h objprop.h options.h pairs.h	    ports.h posix.h regex-posix.h print.h procprop.h procs.h random.h	    ramap.h read.h root.h scmsigs.h script.h simpos.h smob.h socket.h	    sort.h srcprop.h stackchk.h stacks.h stime.h strings.h strop.h	    strorder.h strports.h struct.h symbols.h tag.h tags.h throw.h	    unif.h variable.h vectors.h version.h vports.h weaks.h snarf.h	    threads.h coop-defs.h fluids.h iselect.h
+
+
+modinclude_DATA = scmconfig.h
+
+bin_SCRIPTS = guile-snarf
+
+check_ldadd = libguile.la ${THREAD_LIBS_LOCAL}
+check_PROGRAMS = gh_test_c gh_test_repl
+gh_test_c_SOURCES = gh_test_c.c
+gh_test_c_LDADD = ${check_ldadd}
+gh_test_repl_SOURCES = gh_test_repl.c
+gh_test_repl_LDADD = ${check_ldadd}
+
+EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads dynl-dl.c     dynl-dld.c dynl-shl.c dynl-vms.c DYNAMIC-LINKING cpp_signal.c cpp_errno.c     cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk coop-threads.h.cygnus     coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c fsu-pthreads.h
+
+
+SUFFIXES = .x
+
+MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
+MOSTLYCLEANFILES =  	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
+
+
+CLEANFILES = libpath.h
+
+DISTCLEANFILES = *.x
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = scmconfig.h
+CONFIG_CLEAN_FILES =  guile-snarf versiondat.h
+LTLIBRARIES =  $(lib_LTLIBRARIES)
+
+
+DEFS = @DEFS@ -I. -I$(srcdir) -I.
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libguile_la_OBJECTS =  alist.lo arbiters.lo async.lo backtrace.lo \
+boolean.lo chars.lo continuations.lo debug.lo dynl.lo dynwind.lo eq.lo \
+error.lo eval.lo evalext.lo feature.lo fluids.lo fports.lo gc.lo \
+gdbint.lo gh_data.lo gh_eval.lo gh_funcs.lo gh_init.lo gh_io.lo \
+gh_list.lo gh_predicates.lo gsubr.lo guardians.lo hash.lo hashtab.lo \
+init.lo ioext.lo keywords.lo lang.lo list.lo load.lo macros.lo \
+mallocs.lo modules.lo numbers.lo objects.lo objprop.lo options.lo \
+pairs.lo ports.lo print.lo procprop.lo procs.lo ramap.lo random.lo \
+read.lo root.lo scmsigs.lo script.lo simpos.lo smob.lo sort.lo \
+srcprop.lo stackchk.lo stacks.lo stime.lo strings.lo strop.lo \
+strorder.lo strports.lo struct.lo symbols.lo tag.lo throw.lo unif.lo \
+variable.lo vectors.lo version.lo vports.lo weaks.lo
+PROGRAMS =  $(bin_PROGRAMS)
+
+guile_OBJECTS =  guile.o
+guile_DEPENDENCIES =  libguile.la
+guile_LDFLAGS = 
+gh_test_c_OBJECTS =  gh_test_c.o
+gh_test_c_DEPENDENCIES =  libguile.la
+gh_test_c_LDFLAGS = 
+gh_test_repl_OBJECTS =  gh_test_repl.o
+gh_test_repl_DEPENDENCIES =  libguile.la
+gh_test_repl_LDFLAGS = 
+SCRIPTS =  $(bin_SCRIPTS)
+
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+DATA =  $(modinclude_DATA)
+
+HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) $(noinst_HEADERS) \
+$(pkginclude_HEADERS)
+
+DIST_COMMON =  ./stamp-h.in COPYING ChangeLog Makefile.am Makefile.in \
+guile-snarf.in scmconfig.h.in versiondat.h.in
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = tar
+GZIP_ENV = --best
+DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/arbiters.P .deps/async.P \
+.deps/backtrace.P .deps/boolean.P .deps/chars.P .deps/continuations.P \
+.deps/cpp_err_symbols.P .deps/cpp_sig_symbols.P .deps/debug.P \
+.deps/dynl.P .deps/dynwind.P .deps/eq.P .deps/error.P .deps/eval.P \
+.deps/evalext.P .deps/feature.P .deps/filesys.P .deps/fluids.P \
+.deps/fports.P .deps/gc.P .deps/gdbint.P .deps/gh_data.P \
+.deps/gh_eval.P .deps/gh_funcs.P .deps/gh_init.P .deps/gh_io.P \
+.deps/gh_list.P .deps/gh_predicates.P .deps/gh_test_c.P \
+.deps/gh_test_repl.P .deps/gsubr.P .deps/guardians.P .deps/guile.P \
+.deps/hash.P .deps/hashtab.P .deps/inet_aton.P .deps/init.P \
+.deps/ioext.P .deps/iselect.P .deps/keywords.P .deps/lang.P \
+.deps/list.P .deps/load.P .deps/macros.P .deps/mallocs.P \
+.deps/memmove.P .deps/modules.P .deps/net_db.P .deps/numbers.P \
+.deps/objects.P .deps/objprop.P .deps/options.P .deps/pairs.P \
+.deps/ports.P .deps/posix.P .deps/print.P .deps/procprop.P \
+.deps/procs.P .deps/putenv.P .deps/ramap.P .deps/random.P .deps/read.P \
+.deps/regex-posix.P .deps/root.P .deps/scmsigs.P .deps/script.P \
+.deps/simpos.P .deps/smob.P .deps/socket.P .deps/sort.P .deps/srcprop.P \
+.deps/stackchk.P .deps/stacks.P .deps/stime.P .deps/strerror.P \
+.deps/strings.P .deps/strop.P .deps/strorder.P .deps/strports.P \
+.deps/struct.P .deps/symbols.P .deps/tag.P .deps/threads.P \
+.deps/throw.P .deps/unif.P .deps/variable.P .deps/vectors.P \
+.deps/version.P .deps/vports.P .deps/weaks.P
+SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES) $(guile_SOURCES) $(gh_test_c_SOURCES) $(gh_test_repl_SOURCES)
+OBJECTS = $(libguile_la_OBJECTS) $(guile_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test_repl_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .lo .o .s .x
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign libguile/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+scmconfig.h: stamp-h
+	@if test ! -f $@; then \
+		rm -f stamp-h; \
+		$(MAKE) stamp-h; \
+	else :; fi
+stamp-h: $(srcdir)/scmconfig.h.in $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES= CONFIG_HEADERS=libguile/scmconfig.h \
+	     $(SHELL) ./config.status
+	@echo timestamp > stamp-h 2> /dev/null
+$(srcdir)/scmconfig.h.in: @MAINTAINER_MODE_TRUE@$(srcdir)/stamp-h.in
+	@if test ! -f $@; then \
+		rm -f $(srcdir)/stamp-h.in; \
+		$(MAKE) $(srcdir)/stamp-h.in; \
+	else :; fi
+$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOHEADER)
+	@echo timestamp > $(srcdir)/stamp-h.in 2> /dev/null
+
+mostlyclean-hdr:
+
+clean-hdr:
+
+distclean-hdr:
+	-rm -f scmconfig.h
+
+maintainer-clean-hdr:
+guile-snarf: $(top_builddir)/config.status guile-snarf.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+versiondat.h: $(top_builddir)/config.status versiondat.h.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+mostlyclean-libLTLIBRARIES:
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+
+distclean-libLTLIBRARIES:
+
+maintainer-clean-libLTLIBRARIES:
+
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.S.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+
+maintainer-clean-libtool:
+
+libguile.la: $(libguile_la_OBJECTS) $(libguile_la_DEPENDENCIES)
+	$(LINK) -rpath $(libdir) $(libguile_la_LDFLAGS) $(libguile_la_OBJECTS) $(libguile_la_LIBADD) $(LIBS)
+
+mostlyclean-binPROGRAMS:
+
+clean-binPROGRAMS:
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+
+distclean-binPROGRAMS:
+
+maintainer-clean-binPROGRAMS:
+
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	  else :; fi; \
+	done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	done
+
+mostlyclean-checkPROGRAMS:
+
+clean-checkPROGRAMS:
+	-test -z "$(check_PROGRAMS)" || rm -f $(check_PROGRAMS)
+
+distclean-checkPROGRAMS:
+
+maintainer-clean-checkPROGRAMS:
+
+guile: $(guile_OBJECTS) $(guile_DEPENDENCIES)
+	@rm -f guile
+	$(LINK) $(guile_LDFLAGS) $(guile_OBJECTS) $(guile_LDADD) $(LIBS)
+
+gh_test_c: $(gh_test_c_OBJECTS) $(gh_test_c_DEPENDENCIES)
+	@rm -f gh_test_c
+	$(LINK) $(gh_test_c_LDFLAGS) $(gh_test_c_OBJECTS) $(gh_test_c_LDADD) $(LIBS)
+
+gh_test_repl: $(gh_test_repl_OBJECTS) $(gh_test_repl_DEPENDENCIES)
+	@rm -f gh_test_repl
+	$(LINK) $(gh_test_repl_LDFLAGS) $(gh_test_repl_OBJECTS) $(gh_test_repl_LDADD) $(LIBS)
+
+install-binSCRIPTS: $(bin_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else if test -f $(srcdir)/$$p; then \
+	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else :; fi; fi; \
+	done
+
+uninstall-binSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	done
+
+install-modincludeDATA: $(modinclude_DATA)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(modincludedir)
+	@list='$(modinclude_DATA)'; for p in $$list; do \
+	  if test -f $(srcdir)/$$p; then \
+	    echo " $(INSTALL_DATA) $(srcdir)/$$p $(DESTDIR)$(modincludedir)/$$p"; \
+	    $(INSTALL_DATA) $(srcdir)/$$p $(DESTDIR)$(modincludedir)/$$p; \
+	  else if test -f $$p; then \
+	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(modincludedir)/$$p"; \
+	    $(INSTALL_DATA) $$p $(DESTDIR)$(modincludedir)/$$p; \
+	  fi; fi; \
+	done
+
+uninstall-modincludeDATA:
+	@$(NORMAL_UNINSTALL)
+	list='$(modinclude_DATA)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(modincludedir)/$$p; \
+	done
+
+install-includeHEADERS: $(include_HEADERS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(includedir)
+	@list='$(include_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
+	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p"; \
+	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p; \
+	done
+
+uninstall-includeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	list='$(include_HEADERS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(includedir)/$$p; \
+	done
+
+install-modincludeHEADERS: $(modinclude_HEADERS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(modincludedir)
+	@list='$(modinclude_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
+	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(modincludedir)/$$p"; \
+	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(modincludedir)/$$p; \
+	done
+
+uninstall-modincludeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	list='$(modinclude_HEADERS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(modincludedir)/$$p; \
+	done
+
+install-pkgincludeHEADERS: $(pkginclude_HEADERS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(pkgincludedir)
+	@list='$(pkginclude_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
+	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(pkgincludedir)/$$p"; \
+	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(pkgincludedir)/$$p; \
+	done
+
+uninstall-pkgincludeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	list='$(pkginclude_HEADERS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(pkgincludedir)/$$p; \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS:  $(HEADERS) $(SOURCES) scmconfig.h.in $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)scmconfig.h.in$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags scmconfig.h.in $$unique $(LISP) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = libguile
+
+distdir: $(DISTFILES)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(top_distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign libguile/Makefile
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+
+DEPS_MAGIC := $(shell mkdir .deps > /dev/null 2>&1 || :)
+
+-include $(DEP_FILES)
+
+mostlyclean-depend:
+
+clean-depend:
+
+distclean-depend:
+	-rm -rf .deps
+
+maintainer-clean-depend:
+
+%.o: %.c
+	@echo '$(COMPILE) -c $<'; \
+	$(COMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-cp .deps/$(*F).pp .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm .deps/$(*F).pp
+
+%.lo: %.c
+	@echo '$(LTCOMPILE) -c $<'; \
+	$(LTCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
+	  < .deps/$(*F).pp > .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm -f .deps/$(*F).pp
+info-am:
+info: info-am
+dvi-am:
+dvi: dvi-am
+check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
+	$(MAKE) $(AM_MAKEFLAGS) check-local
+check: check-am
+installcheck-am:
+installcheck: installcheck-am
+all-recursive-am: scmconfig.h
+	$(MAKE) $(AM_MAKEFLAGS) all-recursive
+
+install-exec-am: install-libLTLIBRARIES install-binPROGRAMS \
+		install-binSCRIPTS
+install-exec: install-exec-am
+
+install-data-am: install-modincludeDATA install-includeHEADERS \
+		install-modincludeHEADERS install-pkgincludeHEADERS
+install-data: install-data-am
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-am
+uninstall-am: uninstall-libLTLIBRARIES uninstall-binPROGRAMS \
+		uninstall-binSCRIPTS uninstall-modincludeDATA \
+		uninstall-includeHEADERS uninstall-modincludeHEADERS \
+		uninstall-pkgincludeHEADERS
+uninstall: uninstall-am
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(SCRIPTS) $(DATA) \
+		$(HEADERS) scmconfig.h
+all-redirect: all-am
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs:
+	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) \
+		$(DESTDIR)$(bindir) $(DESTDIR)$(modincludedir) \
+		$(DESTDIR)$(includedir) $(DESTDIR)$(modincludedir) \
+		$(DESTDIR)$(pkgincludedir)
+
+
+mostlyclean-generic:
+	-test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
+
+clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
+
+maintainer-clean-generic:
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+mostlyclean-am:  mostlyclean-hdr mostlyclean-libLTLIBRARIES \
+		mostlyclean-compile mostlyclean-libtool \
+		mostlyclean-binPROGRAMS mostlyclean-checkPROGRAMS \
+		mostlyclean-tags mostlyclean-depend mostlyclean-generic
+
+mostlyclean: mostlyclean-am
+
+clean-am:  clean-hdr clean-libLTLIBRARIES clean-compile clean-libtool \
+		clean-binPROGRAMS clean-checkPROGRAMS clean-tags \
+		clean-depend clean-generic mostlyclean-am
+
+clean: clean-am
+
+distclean-am:  distclean-hdr distclean-libLTLIBRARIES distclean-compile \
+		distclean-libtool distclean-binPROGRAMS \
+		distclean-checkPROGRAMS distclean-tags distclean-depend \
+		distclean-generic clean-am
+	-rm -f libtool
+
+distclean: distclean-am
+
+maintainer-clean-am:  maintainer-clean-hdr \
+		maintainer-clean-libLTLIBRARIES \
+		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-binPROGRAMS \
+		maintainer-clean-checkPROGRAMS maintainer-clean-tags \
+		maintainer-clean-depend maintainer-clean-generic \
+		distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-am
+
+.PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
+mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
+clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
+uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
+distclean-compile clean-compile maintainer-clean-compile \
+mostlyclean-libtool distclean-libtool clean-libtool \
+maintainer-clean-libtool mostlyclean-binPROGRAMS distclean-binPROGRAMS \
+clean-binPROGRAMS maintainer-clean-binPROGRAMS uninstall-binPROGRAMS \
+install-binPROGRAMS mostlyclean-checkPROGRAMS distclean-checkPROGRAMS \
+clean-checkPROGRAMS maintainer-clean-checkPROGRAMS uninstall-binSCRIPTS \
+install-binSCRIPTS uninstall-modincludeDATA install-modincludeDATA \
+uninstall-includeHEADERS install-includeHEADERS \
+uninstall-modincludeHEADERS install-modincludeHEADERS \
+uninstall-pkgincludeHEADERS install-pkgincludeHEADERS tags \
+mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
+distdir mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info-am info dvi-am dvi check-local check \
+check-am installcheck-am installcheck all-recursive-am install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+
+
+check-local:
+	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_c; echo
+	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_repl; echo
+
+libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	@echo "Generating libpath.h..." 
+	@rm -f libpath.tmp
+	@echo '/* generated by Makefile */' > libpath.tmp
+	@echo '#define SCM_PKGDATA_DIR "$(pkgdatadir)"' >> libpath.tmp
+	@echo '#define SCM_LIBRARY_DIR "$(pkgdatadir)/$(VERSION)"'>>libpath.tmp
+	@echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.tmp
+	@echo '#define SCM_BUILD_INFO { \' >> libpath.tmp
+	@echo '	{ "srcdir", "'"`cd @srcdir@; pwd`"'" }, \' >> libpath.tmp
+	@echo '	{ "top_srcdir", "'"`cd @top_srcdir@; pwd`"'" }, \' \
+		>> libpath.tmp
+	@echo '	{ "prefix",	   "@prefix@" }, \' >> libpath.tmp
+	@echo '	{ "exec_prefix",   "@exec_prefix@" }, \' >> libpath.tmp
+	@echo '	{ "bindir",	   "@bindir@" }, \' >> libpath.tmp
+	@echo '	{ "sbindir",	   "@sbindir@" }, \' >> libpath.tmp
+	@echo '	{ "libexecdir",	   "@libexecdir@" }, \' >> libpath.tmp
+	@echo '	{ "datadir",	   "@datadir@" }, \' >> libpath.tmp
+	@echo '	{ "sysconfdir",	   "@sysconfdir@" }, \' >> libpath.tmp
+	@echo '	{ "sharedstatedir", "@sharedstatedir@" }, \' >> libpath.tmp
+	@echo '	{ "localstatedir", "@localstatedir@" }, \' >> libpath.tmp
+	@echo '	{ "libdir",	   "@libdir@" }, \' >> libpath.tmp
+	@echo '	{ "infodir",	   "@infodir@" }, \' >> libpath.tmp
+	@echo '	{ "mandir",	   "@mandir@" }, \' >> libpath.tmp
+	@echo '	{ "includedir",	   "@includedir@" }, \' >> libpath.tmp
+	@echo '	{ "pkgdatadir",	   "$(datadir)/@PACKAGE@" }, \' >> libpath.tmp
+	@echo '	{ "pkglibdir",	   "$(libdir)/@PACKAGE@" }, \' >> libpath.tmp
+	@echo '	{ "pkgincludedir", "$(includedir)/@PACKAGE@" }, \' \
+		>> libpath.tmp
+	@echo '	{ "LIBS",	   "@GUILE_LIBS@" }, \' >> libpath.tmp
+	@echo '}' >> libpath.tmp
+	@mv libpath.tmp libpath.h
+.c.x:
+	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	|| { rm $@; false; }
+
+cpp_err_symbols.c: cpp_err_symbols.in
+	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols.in > \
+		cpp_err_symbols.tmp
+	mv cpp_err_symbols.tmp cpp_err_symbols.c
+
+cpp_sig_symbols.c: cpp_sig_symbols.in
+	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_sig_symbols.in > \
+		cpp_sig_symbols.tmp
+	mv cpp_sig_symbols.tmp cpp_sig_symbols.c
+
+check_signals:
+	gcc -undef -dM -E $(srcdir)/cpp_signal.c | egrep ' SIG[A-Z]+' \
+	  | cut -f2 -d' ' | sort > cpp_sig_symbols_here
+	diff -u $(srcdir)/cpp_sig_symbols.in cpp_sig_symbols_here \
+          | egrep '^\+S' \
+	  | cut -c2- > cpp_sig_symbols_diff
+	if test -s cpp_sig_symbols_diff ; then \
+	  cat $(srcdir)/cpp_sig_symbols.in cpp_sig_symbols_diff \
+	    | sort > cpp_sig_symbols_new ;\
+	  echo "cpp_sig_symbols_new has the following additions:" ;\
+	  cat cpp_sig_symbols_diff ;\
+	else echo "No new symbols found."; \
+	fi
+
+check_errnos:
+	gcc -undef -dM -E $(srcdir)/cpp_errno.c | egrep ' E.+' \
+	  | cut -f2 -d' ' | sort > cpp_err_symbols_here
+	diff -u $(srcdir)/cpp_err_symbols.in cpp_err_symbols_here \
+          | egrep '^\+E' \
+	  | cut -c2- > cpp_err_symbols_diff
+	if test -s cpp_err_symbols_diff ; then \
+	  cat $(srcdir)/cpp_err_symbols.in cpp_err_symbols_diff \
+	    | sort > cpp_err_symbols_new ;\
+	  echo "cpp_err_symbols_new has the following additions:" ;\
+	  cat cpp_err_symbols_diff ;\
+	else echo "No new symbols found."; \
+	fi
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
