@@ -1,19 +1,20 @@
 /* classes: h_files */
 
-#ifndef FPORTSH
-#define FPORTSH
-/*	Copyright (C) 1995,1996,1997,1998,1999, 2000, 2001 Free Software Foundation, Inc.
- * 
+#ifndef SCM_FPORTS_H
+#define SCM_FPORTS_H
+
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -56,10 +57,6 @@ typedef struct scm_t_fport {
   int fdes;			/* file descriptor.  */
 } scm_t_fport;
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_fport scm_t_fport
-#endif
-
 extern scm_t_bits scm_tc16_fport;
 
 #define SCM_FSTREAM(x) ((scm_t_fport *) SCM_STREAM (x))
@@ -82,7 +79,7 @@ extern SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
 extern SCM scm_file_port_p (SCM obj);
 extern void scm_init_fports (void);
 
-#endif  /* FPORTSH */
+#endif  /* SCM_FPORTS_H */
 
 /*
   Local Variables:

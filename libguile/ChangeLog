@@ -1,5 +1,36 @@
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* continuations.h (scm_contregs), debug.h (scm_debug_info,
+	scm_debug_frame, SCM_DSIDEVAL), filesys.h (SCM_OPDIRP), fports.h
+	(scm_fport), options.h (scm_option), snarf.h (SCM_CONST_LONG,
+	SCM_VCELL, SCM_GLOBAL_VCELL, SCM_VCELL_INIT,
+	SCM_GLOBAL_VCELL_INIT), srcprop.h (scm_srcprops,
+	scm_srcprops_chunk), stacks.h (scm_info_frame, scm_stack), unif.h
+	(scm_array, scm_array_dim, SCM_ARRAY_CONTIGUOUS, SCM_HUGE_LENGTH),
+	validate.h (SCM_FUNC_NAME, SCM_WTA, RETURN_SCM_WTA,
+	SCM_VALIDATE_NUMBER_COPY, SCM_VALIDATE_NUMBER_DEF_COPY,
+	SCM_VALIDATE_STRINGORSUBSTR, SCM_VALIDATE_ROSTRING,
+	SCM_VALIDATE_ROSTRING_COPY, SCM_VALIDATE_NULLORROSTRING_COPY,
+	SCM_VALIDATE_RWSTRING, SCM_VALIDATE_OPDIR): Removed.
+
+	* continuations.h (CONTINUATIONSH, SCM_CONTINUATIONS_H), filesys.h
+	(FILESYSH, SCM_FILESYS_H), fports.h (FPORTSH, SCM_FPORTS_H),
+	options.h (OPTIONSH, SCM_OPTIONS_H), regex-posix.h (REGEXPOSIXH,
+	SCM_REGEX_POSIX_H), snarf.h (LIBGUILE_SNARF_H, SCM_SNARF_H),
+	srcprop.h (SCM_SOURCE_PROPERTIES_H, SCM_SRCPROP_H), unif.h
+	(SCM_UNIFORM_VECTORS_H, SCM_UNIF_H), validate.h (SCM_VALIDATE_H__,
+	SCM_VALIDATE_H): Renamed the macros that are defined to inhibit
+	double inclusion of the same headers to the SCM_<filename>_H
+	format.
+
+	* debug.h (SCM_RESET_DEBUG_MODE), regex-posix.h (SCM_RGXP),
+	srcprop.h (SRCBRKP, PROCTRACEP), struct.h (SCM_STRUCTP),
+	validate.h (SCM_VALIDATE_THUNK, SCM_VALIDATE_ARRAY,
+	SCM_VALIDATE_VECTOR_OR_DVECTOR, SCM_VALIDATE_VTABLE): Prefer
+	!SCM_<foo> over SCM_N<foo>.
+
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* _scm.h (_SCMH, SCM__SCM_H), alist.h (ALISTH, SCM_ALIST_H),
 	arbiters.h (ARBITERSH, SCM_ARBITERS_H), backtrace.h (BACKTRACEH,
 	SCM_BACKTRACE_H), boolean.h (BOOLEANH, SCM_BOOLEAN_H), chars.h

@@ -1,20 +1,20 @@
 /* classes: h_files */
 
-#ifndef REGEXPOSIXH
-#define REGEXPOSIXH
+#ifndef SCM_REGEX_POSIX_H
+#define SCM_REGEX_POSIX_H
 
-/*	Copyright (C) 1997,1998, 2000, 2001 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1997,1998,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -42,22 +42,22 @@
  *
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  
- */
+ * If you do not wish that, delete this exception notice.  */
 
+
 
 #include "libguile/__scm.h"
 
 extern scm_t_bits scm_tc16_regex;
 #define SCM_RGX(X)	((regex_t *) SCM_CELL_WORD_1 (X))
-#define SCM_RGXP(X)	(SCM_NIMP (X) && (SCM_CELL_TYPE (X) == scm_tc16_regex))
+#define SCM_RGXP(X)	(!SCM_IMP (X) && (SCM_CELL_TYPE (X) == scm_tc16_regex))
 
 extern SCM scm_make_regexp (SCM pat, SCM flags);
 SCM scm_regexp_p (SCM x);
 extern SCM scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags);
 extern void scm_init_regex_posix (void);
 
-#endif
+#endif  /* SCM_REGEX_POSIX_H */
 
 /*
   Local Variables:

@@ -1,19 +1,20 @@
 /* classes: h_files */
 
-#ifndef OPTIONSH
-#define OPTIONSH
-/*	Copyright (C) 1995,1996, 2000, 2001 Free Software Foundation
- * 
+#ifndef SCM_OPTIONS_H
+#define SCM_OPTIONS_H
+
+/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -45,6 +46,7 @@
  *
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
+
 
 
 #include "libguile/__scm.h"
@@ -64,9 +66,6 @@ typedef struct scm_t_option
   char *doc;
 } scm_t_option;
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_option scm_t_option
-#endif
 
 #define SCM_OPTION_BOOLEAN 0
 #define SCM_OPTION_INTEGER 1
@@ -77,7 +76,7 @@ extern SCM scm_options (SCM new_mode, scm_t_option options[], int n, const char 
 extern void scm_init_opts (SCM (*func) (SCM), scm_t_option options[], int n);
 extern void scm_init_options (void);
 
-#endif /* OPTIONSH */
+#endif  /* SCM_OPTIONS_H */
 
 /*
   Local Variables:

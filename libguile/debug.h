@@ -2,18 +2,19 @@
 
 #ifndef SCM_DEBUG_H
 #define SCM_DEBUG_H
-/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation
- * 
+
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -97,11 +98,11 @@ extern int scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 #define SCM_RESET_DEBUG_MODE \
 do {\
   CHECK_ENTRY = (SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P)\
-    && SCM_NFALSEP (SCM_ENTER_FRAME_HDLR);\
+    && !SCM_FALSEP (SCM_ENTER_FRAME_HDLR);\
   CHECK_APPLY = (SCM_APPLY_FRAME_P || SCM_TRACE_P)\
-    && SCM_NFALSEP (SCM_APPLY_FRAME_HDLR);\
+    && !SCM_FALSEP (SCM_APPLY_FRAME_HDLR);\
   CHECK_EXIT = (SCM_EXIT_FRAME_P || SCM_TRACE_P)\
-    && SCM_NFALSEP (SCM_EXIT_FRAME_HDLR);\
+    && !SCM_FALSEP (SCM_EXIT_FRAME_HDLR);\
   scm_debug_mode = SCM_DEVAL_P || CHECK_ENTRY || CHECK_APPLY || CHECK_EXIT;\
   scm_ceval_ptr = scm_debug_mode ? scm_deval : scm_ceval;\
 } while (0)
@@ -125,11 +126,6 @@ typedef struct scm_t_debug_frame
   scm_t_debug_info *vect;
   scm_t_debug_info *info;
 } scm_t_debug_frame;
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_debug_info scm_t_debug_info
-# define scm_debug_frame scm_t_debug_frame
-#endif
 
 #ifndef USE_THREADS
 extern scm_t_debug_frame *scm_last_debug_frame;
@@ -165,7 +161,6 @@ extern scm_t_debug_frame *scm_last_debug_frame;
 #define SCM_CLEAR_MACROEXP(x) ((x).status &= ~SCM_MACROEXPF)
 
 #define SCM_DEBUGGINGP scm_debug_mode
-#define SCM_DSIDEVAL(x, env) if NIMP(x) scm_deval((x), (env))
 
 /* {Debug Objects}
  */
@@ -217,7 +212,7 @@ extern SCM scm_proc_to_mem (SCM obj);
 extern SCM scm_debug_hang (SCM obj);
 #endif /*GUILE_DEBUG*/
 
-#endif /* SCM_DEBUG_H */
+#endif  /* SCM_DEBUG_H */
 
 /*
   Local Variables:

@@ -1,19 +1,20 @@
 /* classes: h_files */
 
-#ifndef SCM_SOURCE_PROPERTIES_H
-#define SCM_SOURCE_PROPERTIES_H
-/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation
- * 
+#ifndef SCM_SRCPROP_H
+#define SCM_SRCPROP_H
+
+/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -93,11 +94,6 @@ typedef struct scm_t_srcprops_chunk
   scm_t_srcprops srcprops[1];
 } scm_t_srcprops_chunk;
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_srcprops scm_t_srcprops
-# define scm_srcprops_chunk scm_t_srcprops_chunk
-#endif
-
 #define SCM_SOURCE_PROPERTY_FLAG_BREAK (1L << 16)
 
 #define SRCPROPSP(p) (SCM_TYP16_PREDICATE (scm_tc16_srcprops, p))
@@ -120,11 +116,11 @@ typedef struct scm_t_srcprops_chunk
 #define SETSRCPROPLINE(p,l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
 #define SETSRCPROPCOL(p,c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
 
-#define SRCBRKP(x) (SCM_NIMP (t.arg1 = scm_whash_lookup (scm_source_whash, (x)))\
+#define SRCBRKP(x) (!SCM_IMP (t.arg1 = scm_whash_lookup (scm_source_whash, (x)))\
 		    && SRCPROPSP (t.arg1)\
 		    && (SCM_CELL_WORD_0 (t.arg1) & (1L << 16)))
 
-#define PROCTRACEP(x) SCM_NFALSEP (scm_procedure_property (x, scm_sym_trace))
+#define PROCTRACEP(x) (!SCM_FALSEP (scm_procedure_property (x, scm_sym_trace)))
 
 extern SCM scm_sym_filename;
 extern SCM scm_sym_copy;
@@ -144,7 +140,7 @@ extern SCM scm_set_source_properties_x (SCM obj, SCM props);
 extern void scm_finish_srcprop (void);
 extern void scm_init_srcprop (void);
 
-#endif /* SCM_SOURCE_PROPERTIES_H */
+#endif  /* SCM_SRCPROP_H */
 
 /*
   Local Variables:

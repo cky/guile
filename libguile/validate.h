@@ -1,3 +1,8 @@
+/* classes: h_files */
+
+#ifndef SCM_VALIDATE_H
+#define SCM_VALIDATE_H
+
 /* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,8 +46,7 @@
 
 /* Written by Greg J. Badros <gjb@cs.washington.edu>, Dec-1999 */
 
-#ifndef SCM_VALIDATE_H__
-#define SCM_VALIDATE_H__
+
 
 #define SCM_SYSERROR do { scm_syserror (FUNC_NAME); } while (0)
 
@@ -344,7 +348,7 @@
 
 #define SCM_VALIDATE_THUNK(pos, thunk) \
   do { \
-    SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
+    SCM_ASSERT (!SCM_FALSEP (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_SYMBOL(pos, sym) SCM_MAKE_VALIDATE (pos, sym, SYMBOLP)
@@ -412,7 +416,7 @@
 
 #define SCM_VALIDATE_ARRAY(pos,v) \
   do { \
-    SCM_ASSERT (SCM_NIMP (v) \
+    SCM_ASSERT (!SCM_IMP (v) \
                 && !SCM_FALSEP (scm_array_p (v, SCM_UNDEFINED)), \
                 v, pos, FUNC_NAME); \
   } while (0)
@@ -422,7 +426,7 @@
 #define SCM_VALIDATE_VECTOR_OR_DVECTOR(pos, v) \
   do { \
     SCM_ASSERT ((SCM_VECTORP (v) \
-                || (SCM_NIMP (v) && SCM_TYP7 (v) == scm_tc7_dvect)), \
+                || (!SCM_IMP (v) && SCM_TYP7 (v) == scm_tc7_dvect)), \
                 v, pos, FUNC_NAME); \
   } while (0)
 
@@ -430,7 +434,7 @@
 
 #define SCM_VALIDATE_VTABLE(pos, v) \
   do { \
-    SCM_ASSERT (SCM_NIMP (v) && SCM_NFALSEP (scm_struct_vtable_p (v)), \
+    SCM_ASSERT (!SCM_IMP (v) && !SCM_FALSEP (scm_struct_vtable_p (v)), \
                 v, pos, FUNC_NAME); \
   } while (0)
 
@@ -439,73 +443,7 @@
     SCM_ASSERT (SCM_VECTORP (v) && len == SCM_VECTOR_LENGTH (v), v, pos, FUNC_NAME); \
   } while (0)
 
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-#define SCM_FUNC_NAME (scm_makfrom0str (FUNC_NAME))
-
-#define SCM_WTA(pos, scm) \
-  do { scm_wta (scm, (char *) pos, FUNC_NAME); } while (0)
-
-#define RETURN_SCM_WTA(pos, scm) \
-  do { return scm_wta (scm, (char *) pos, FUNC_NAME); } while (0)
-
-#define SCM_VALIDATE_NUMBER_COPY(pos, z, cvar)	\
-  do {						\
-    if (SCM_INUMP (z))				\
-      cvar = (double) SCM_INUM (z);		\
-    else if (SCM_REALP (z))			\
-      cvar = SCM_REAL_VALUE (z);		\
-    else if (SCM_BIGP (z))			\
-      cvar = scm_i_big2dbl (z);			\
-    else					\
-      {						\
-	cvar = 0.0;				\
-        SCM_WRONG_TYPE_ARG (pos, z);		\
-      }						\
-  } while (0)
-
-#define SCM_VALIDATE_NUMBER_DEF_COPY(pos, number, def, cvar)	\
-  do {								\
-    if (SCM_UNBNDP (number))					\
-      cvar = def;						\
-    else							\
-      SCM_VALIDATE_NUMBER_COPY(pos, number, cvar);		\
-  } while (0)
-
-#define SCM_VALIDATE_STRINGORSUBSTR SCM_VALIDATE_STRING
-
-#define SCM_VALIDATE_ROSTRING(pos, str) SCM_MAKE_VALIDATE (pos, str, ROSTRINGP)
-
-#define SCM_VALIDATE_ROSTRING_COPY(pos, str, cvar) \
-  do { \
-    SCM_ASSERT (SCM_ROSTRINGP (str), str, pos, FUNC_NAME); \
-    cvar = SCM_ROCHARS (str); \
-  } while (0)
-
-#define SCM_VALIDATE_NULLORROSTRING_COPY(pos, str, cvar) \
-  do { \
-    SCM_ASSERT (SCM_FALSEP (str) || SCM_ROSTRINGP (str), \
-                str, pos, FUNC_NAME); \
-    if (SCM_FALSEP(str)) \
-      cvar = NULL; \
-    else \
-      cvar = SCM_ROCHARS(str); \
-  } while (0)
-
-#define SCM_VALIDATE_RWSTRING(pos, str) \
-  do { \
-    SCM_ASSERT (SCM_STRINGP (str), str, pos, FUNC_NAME); \
-    if (!SCM_RWSTRINGP (str)) \
-      scm_misc_error (FUNC_NAME, "argument is a read-only string", str); \
-  } while (0)
-
-#define SCM_VALIDATE_OPDIR(pos, port) SCM_MAKE_VALIDATE (pos, port, OPDIRP)
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
-#endif
+#endif  /* SCM_VALIDATE_H */
 
 /*
   Local Variables:

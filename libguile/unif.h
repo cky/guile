@@ -1,19 +1,20 @@
 /* classes: h_files */
 
-#ifndef SCM_UNIFORM_VECTORS_H
-#define SCM_UNIFORM_VECTORS_H
+#ifndef SCM_UNIF_H
+#define SCM_UNIF_H
+
 /* Copyright (C) 1995,1996,1997,1999,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -72,18 +73,9 @@ typedef struct scm_t_array_dim
   long inc;
 } scm_t_array_dim;
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_array scm_t_array
-# define scm_array_dim scm_t_array_dim
-#endif
-
 extern scm_t_bits scm_tc16_array;
 
 #define SCM_ARRAY_FLAG_CONTIGUOUS (1 << 16)
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-#define SCM_ARRAY_CONTIGUOUS SCM_ARRAY_FLAG_CONTIGUOUS
-#endif
 
 #define SCM_ARRAYP(a) 	    SCM_TYP16_PREDICATE (scm_tc16_array, a)
 #define SCM_ARRAY_NDIM(x)   ((size_t) (SCM_CELL_WORD_0 (x) >> 17))
@@ -152,20 +144,7 @@ extern int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
 extern SCM scm_array_prototype (SCM ra);
 extern void scm_init_unif (void);
 
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-/* apparently it's possible to have more than SCM_LENGTH_MAX elements
-   in an array: if the length is SCM_LENGTH_MAX then the SCM_VELTS
-   block begins with the true length (a long int).  I wonder if it
-   works.  */
-#define SCM_HUGE_LENGTH(x)\
-  (SCM_LENGTH_MAX==SCM_LENGTH(x) ? *((long *)SCM_VELTS(x)) : SCM_LENGTH(x))
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
-#endif  /* SCM_UNIFORM_VECTORS_H */
+#endif  /* SCM_UNIF_H */
 
 /*
   Local Variables:

@@ -1,22 +1,20 @@
 /* classes: h_files */
 
-/* Macros for snarfing initialization actions from C source. */
+#ifndef SCM_SNARF_H
+#define SCM_SNARF_H
 
-#ifndef LIBGUILE_SNARF_H
-#define LIBGUILE_SNARF_H
-
-/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -46,8 +44,9 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-
 
+
+/* Macros for snarfing initialization actions from C source. */
 
 #if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
 
@@ -191,36 +190,12 @@ SCM_SNARF_INIT(c_name = scm_permanent_object (scm_c_define (scheme_name, init_va
 SCM_SNARF_HERE(SCM c_name) \
 SCM_SNARF_INIT(c_name = scm_permanent_object (scm_c_define (scheme_name, init_val));)
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-#define SCM_CONST_LONG(c_name, scheme_name,value) \
-SCM_VCELL_INIT(c_name, scheme_name, scm_long2num(value))
-
-#define SCM_VCELL(c_name, scheme_name) \
-SCM_SNARF_HERE(static SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_sysintern (scheme_name, SCM_BOOL_F));)
-
-#define SCM_GLOBAL_VCELL(c_name, scheme_name) \
-SCM_SNARF_HERE(SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_sysintern (scheme_name, SCM_BOOL_F));)
-
-#define SCM_VCELL_INIT(c_name, scheme_name, init_val) \
-SCM_SNARF_HERE(static SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_sysintern (scheme_name, init_val));)
-
-#define SCM_GLOBAL_VCELL_INIT(c_name, scheme_name, init_val) \
-SCM_SNARF_HERE(SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_sysintern (scheme_name, init_val));)
-
-#endif /* (SCM_DEBUG_DEPRECATED == 0) */
-
 #ifdef SCM_MAGIC_SNARF_DOCS
 #undef SCM_ASSERT
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) ^^ argpos _arg _pos __LINE__ ^^
 #endif /* SCM_MAGIC_SNARF_DOCS */
 
-#endif /* LIBGUILE_SNARF_H */
-
+#endif  /* SCM_SNARF_H */
 
 /*
   Local Variables:
