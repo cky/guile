@@ -1,6 +1,7 @@
 The Guile core distribution:
 
-Gary Houston contributed a new, more efficient implementation of I/O ports.
+Gary Houston contributed a new, more efficient implementation of I/O ports,
+    and hacked on (ice-9 expect).
 Michael Livshin implemented Dybvig's Guardians.
 Russ McManus contributed a command-line argument parser (ice-9 getopt-long).
 Ken Raeburn made Guile use `const' in some appropriate places.
