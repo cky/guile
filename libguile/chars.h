@@ -87,16 +87,6 @@ extern int scm_upcase (unsigned int c);
 extern int scm_downcase (unsigned int c);
 extern void scm_init_chars (void);
 
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-#define SCM_ICHRP(x) SCM_CHARP(x)
-#define SCM_ICHR(x) SCM_CHAR(x)
-#define SCM_MAKICHR(x) SCM_MAKE_CHAR(x)
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 #endif  /* SCM_CHARSH */
 
 /*
