@@ -208,4 +208,67 @@
 
   )
 
+(with-test-prefix "apples-blimps-catalexis example"
+
+  (define (test8 . args)
+    (equal? (sort (getopt-long (cons "foo" args)
+                               '((apples    (single-char #\a))
+                                 (blimps    (single-char #\b) (value #t))
+                                 (catalexis (single-char #\c) (value #t))))
+                  (lambda (a b)
+                    (cond ((null? (car a)) #t)
+                          ((null? (car b)) #f)
+                          (else (string<? (symbol->string (car a))
+                                          (symbol->string (car b)))))))
+            '((())
+              (apples . #t)
+              (blimps . "bang")
+              (catalexis . "couth"))))
+
+  (pass-if "normal 1" (test8 "-a" "-b" "bang" "-c" "couth"))
+  (pass-if "normal 2" (test8 "-ab" "bang" "-c" "couth"))
+  (pass-if "normal 3" (test8 "-ac" "couth" "-b" "bang"))
+
+  (pass-if-exception "bad ordering causes missing option"
+                     exception:option-must-have-arg
+                     (test8 "-abc" "couth" "bang"))
+
+  )
+
+(with-test-prefix "multiple occurrances"
+
+  (define (test9 . args)
+    (equal? (getopt-long (cons "foo" args)
+                         '((inc (single-char #\I) (value #t))
+                           (foo (single-char #\f))))
+            '((()) (inc . "2") (foo . #t) (inc . "1"))))
+
+  ;; terminology:
+  ;; sf -- single-char free
+  ;; sa -- single-char abutted
+  ;; lf -- long free
+  ;; la -- long abutted (using "=")
+
+  (pass-if "sf/sf" (test9 "-I" "1" "-f" "-I" "2"))
+  (pass-if "sa/sa" (test9 "-I1" "-f" "-I2"))
+  (pass-if "sf/sa" (test9 "-I" "1" "-f" "-I2"))
+  (pass-if "sa/sf" (test9 "-I1" "-f" "-I" "2"))
+
+  (pass-if "lf/lf" (test9 "--inc" "1" "-f" "--inc" "2"))
+  (pass-if "la/la" (test9 "--inc=1" "-f" "--inc=2"))
+  (pass-if "lf/la" (test9 "--inc" "1" "-f" "--inc=2"))
+  (pass-if "la/lf" (test9 "--inc=1" "-f" "--inc" "2"))
+
+  (pass-if "sf/lf" (test9 "-I" "1" "-f" "--inc" "2"))
+  (pass-if "lf/sf" (test9 "--inc" "1" "-f" "-I" "2"))
+  (pass-if "sf/la" (test9 "-I" "1" "-f" "--inc=2"))
+  (pass-if "la/sf" (test9 "--inc=1" "-f" "-I" "2"))
+
+  (pass-if "sa/lf" (test9 "-I1" "-f" "--inc" "2"))
+  (pass-if "lf/sa" (test9 "--inc" "1" "-f" "-I2"))
+  (pass-if "sa/la" (test9 "-I1" "-f" "--inc=2"))
+  (pass-if "la/sa" (test9 "--inc=1" "-f" "-I2"))
+
+  )
+
 ;;; getopt-long.test ends here
