@@ -19,7 +19,7 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
-AUTOMAKE_OPTIONS = foreign
+SUBDIRS = ice-9
 
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@ @EXTRA_DEFS@
@@ -42,32 +42,16 @@ BUILT_SOURCES = readline.x
 
 pkginclude_HEADERS = readline.h
 
-ice9dir = $(datadir)/guile/$(GUILE_EFFECTIVE_VERSION)/ice-9
-ice9_DATA = readline.scm
-
 snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 SUFFIXES = .x
 .c.x:
 	$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
-EXTRA_DIST = $(ice9_DATA) LIBGUILEREADLINE-VERSION
-TAGS_FILES = $(ice9_DATA)
+EXTRA_DIST = LIBGUILEREADLINE-VERSION
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 CLEANFILES = *.x
-
-ice-9/readline.scm:
-	-rm ice-9/readline.scm
-	-rmdir ice-9
-	mkdir ice-9
-	cd ice-9 && ln -s ../readline.scm
-
-all-local: ice-9/readline.scm
-
-clean-local:
-	rm -f ice-9/readline.scm
-	-rmdir ice-9
 
 dist-hook:
 	(temp="/tmp/mangle-deps.$$$$"; \
@@ -76,3 +60,4 @@ dist-hook:
 	 | sed -e 's|\$$(srcdir)/\(\.\./libguile/\(libpath\|scmconfig\|versiondat\)\)|\1|g' \
 	 | sed -e 's|\.\./guile-readline/\([a-z_-]*\.x\)|\1|g' > $$temp \
 	 && chmod u+w $(distdir)/Makefile.in && cp -p $$temp $(distdir)/Makefile.in)
+
