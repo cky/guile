@@ -370,6 +370,8 @@ extern void * scm_must_malloc (scm_sizet len, const char *what);
 extern void * scm_must_realloc (void *where,
 				scm_sizet olen, scm_sizet len,
 				const char *what);
+extern char *scm_must_strdup (const char *str);
+extern char *scm_must_strndup (const char *str, unsigned long n);
 extern void scm_done_malloc (long size);
 extern void scm_done_free (long size);
 extern void scm_must_free (void *obj);

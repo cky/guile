@@ -1985,6 +1985,20 @@ scm_must_realloc (void *where,
   scm_memory_error (what);
 }
 
+char *
+scm_must_strndup (const char *str, unsigned long length)
+{
+  char * dst = scm_must_malloc (length + 1, "scm_must_strndup");
+  memcpy (dst, str, length);
+  dst[length] = 0;
+  return dst;
+}
+
+char *
+scm_must_strdup (const char *str)
+{
+  return scm_must_strndup (str, strlen (str));
+}
 
 void
 scm_must_free (void *obj)
