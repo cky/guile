@@ -24,6 +24,8 @@ In release 1.5:
 - remove gh_int2scmb (replaced by gh_bool2scm)
 - remove scm_fseek (replaced by scm_seek)
 - remove scm_tag
+- remove code related to the name property of hooks.  Also, check init.c,
+  since the dependency between hooks and objprop will then be eliminated.
 Dirk:FIXME:: look into deprecated things in numbers.h and tags.h, don't forget
 to update NEWS accordingly.
 

@@ -136,16 +136,6 @@
 		       (and (eq? (car val) 'i-sunk-your-battleship)
 			    (eq? (cdr val) 'no-way!)))))
 
-  (pass-if "make-hook-with-name"
-	   (catch-error-returning-false 
-	    #t
-	    (let ((x (make-hook-with-name 'x 1)))
-	      (add-hook! x proc1))))
-  (pass-if "make-hook-with-name: bad name"
-	   (catch-error-returning-true
-	    'wrong-type-arg
-	    (define x (make-hook-with-name '(a b) 1))))
-
   (with-test-prefix "remove-hook!"
 		    (pass-if ""
 			     (let ((x (make-hook 1)))

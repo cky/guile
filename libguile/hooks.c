@@ -49,6 +49,7 @@
 
 #include "libguile/eval.h"
 #include "libguile/ports.h"
+#include "libguile/objprop.h"
 #include "libguile/procprop.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
@@ -142,32 +143,30 @@ scm_c_hook_run (scm_c_hook_t *hook, void *data)
  * A hook is basically a list of procedures to be called at well defined
  * points in time.
  *
- * Hook name and arity are not full members of this type and therefore
- * lack accessors.  They exist to aid debugging and are not intended
- * to be used in programs.
- *
+ * Hook arity is not a full member of this type and therefore lacks an
+ * accessor.  It exists to aid debugging and is not intended to be used in
+ * programs.
  */
 
 long scm_tc16_hook;
 
 
 static SCM
-make_hook (SCM name, SCM n_args, const char *subr)
+make_hook (SCM n_args, const char *subr)
 {
   int n;
-  SCM_ASSERT (SCM_FALSEP (name) || SCM_SYMBOLP (name),
-	      name,
-	      SCM_ARG1,
-	      subr);
+
   if (SCM_UNBNDP (n_args))
-    n = 0;
+    {
+      n = 0;
+    }
   else
     {
       SCM_ASSERT (SCM_INUMP (n_args), n_args, SCM_ARGn, subr);
       n = SCM_INUM (n_args);
+      SCM_ASSERT (n >= 0 && n <= 16, n_args, SCM_OUTOFRANGE, subr);
     }
-  SCM_ASSERT (n >= 0 && n <= 16, n_args, SCM_OUTOFRANGE, subr);
-  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_UNPACK (SCM_LIST1 (name)));
+  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_EOL);
 }
 
 
@@ -176,11 +175,6 @@ print_hook (SCM hook, SCM port, scm_print_state *pstate)
 {
   SCM ls, name;
   scm_puts ("#<hook ", port);
-  if (SCM_NFALSEP (SCM_HOOK_NAME (hook)))
-    {
-      scm_iprin1 (SCM_HOOK_NAME (hook), port, pstate);
-      scm_putc (' ', port);
-    }
   scm_intprint (SCM_HOOK_ARITY (hook), 10, port);
   scm_putc (' ', port);
   scm_intprint (SCM_UNPACK (hook), 16, port);
@@ -204,22 +198,34 @@ SCM
 scm_create_hook (const char* name, int n_args)
 {
   SCM vcell = scm_sysintern0 (name);
-  SCM hook = make_hook (SCM_CAR (vcell), SCM_MAKINUM (n_args),
-			"scm_create_hook");
+  SCM hook = make_hook (SCM_MAKINUM (n_args), "scm_create_hook");
   SCM_SETCDR (vcell, hook);
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+  scm_set_object_property_x (hook, scm_makfrom0str ("name"), scm_makfrom0str (name));
   scm_protect_object (vcell);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
   return hook;
 }
 
+
+#if (SCM_DEBUG_DEPRECATED == 0)
 
 SCM_DEFINE (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0, 
             (SCM name, SCM n_args),
 "")
 #define FUNC_NAME s_scm_make_hook_with_name
 {
-  return make_hook (name, n_args, FUNC_NAME);
+  SCM hook = make_hook (n_args, FUNC_NAME);
+  scm_set_object_property_x (hook, scm_makfrom0str ("name"), name);
+  return hook;
 }
 #undef FUNC_NAME
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 
 SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0, 
@@ -227,7 +233,7 @@ SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0,
 "")
 #define FUNC_NAME s_scm_make_hook
 {
-  return make_hook (SCM_BOOL_F, n_args, FUNC_NAME);
+  return make_hook (n_args, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -271,7 +277,7 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
     scm_wrong_type_arg (FUNC_NAME, 2, proc);
   rest = scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook));
   SCM_SET_HOOK_PROCEDURES (hook,
-			   (!SCM_UNBNDP (append_p) && SCM_NFALSEP (append_p)
+			   (!SCM_UNBNDP (append_p) && !SCM_FALSEP (append_p)
 			    ? scm_append_x (SCM_LIST2 (rest, SCM_LIST1 (proc)))
 			    : scm_cons (proc, rest)));
   return SCM_UNSPECIFIED;

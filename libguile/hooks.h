@@ -98,16 +98,13 @@ extern void *scm_c_hook_run (scm_c_hook_t *hook, void *data);
 
 #define SCM_HOOKP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_hook))
 #define SCM_HOOK_ARITY(hook) (SCM_CELL_WORD_0 (hook) >> 16)
-#define SCM_HOOK_NAME(hook) SCM_CADR (hook)
-#define SCM_HOOK_PROCEDURES(hook) SCM_CDDR (hook)
-#define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SETCDR (SCM_CDR (hook), procs)
+#define SCM_HOOK_PROCEDURES(hook) SCM_CELL_OBJECT_1 (hook)
+#define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SET_CELL_OBJECT_1 ((hook), (procs))
 
 extern long scm_tc16_hook;
 
 extern SCM scm_make_hook (SCM n_args);
-extern SCM scm_make_hook_with_name (SCM name, SCM n_args);
 extern SCM scm_create_hook (const char* name, int n_args);
-extern void scm_free_hook (SCM hook);
 extern SCM scm_hook_p (SCM x);
 extern SCM scm_hook_empty_p (SCM hook);
 extern SCM scm_add_hook_x (SCM hook, SCM thunk, SCM appendp);
@@ -117,6 +114,16 @@ extern SCM scm_run_hook (SCM hook, SCM args);
 extern void scm_c_run_hook (SCM hook, SCM args);
 extern SCM scm_hook_to_list (SCM hook);
 extern void scm_init_hooks (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+/* Use scm_set_object_property_x to set the name property of a hook: */
+#define SCM_HOOK_NAME(h) scm_object_property (h, scm_makfrom0str ("name"))
+extern SCM scm_make_hook_with_name (SCM name, SCM n_args);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* HOOKSH */
 

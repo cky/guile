@@ -1,3 +1,7 @@
+2000-05-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/hooks.test:  make-hook-with-name is deprecated.
+
 2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/list.test, tests/numbers.test:  Added.

@@ -1,3 +1,18 @@
+2000-05-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.c (scm_init_gc):  Protect scm_after_gc_hook, since this will
+	soon not be done by scm_create_hook any longer.
+
+	* hooks.c (make_hook, print_hook, scm_create_hook,
+	scm_make_hook_with_name, scm_make_hook), hooks.h (SCM_HOOK_NAME,
+	SCM_HOOK_PROCEDURES, SCM_SET_HOOK_PROCEDURES,
+	scm_make_hook_with_name), init.c (scm_boot_guile_1):  Hooks no
+	longer have names.  As an intermediate solution, the name
+	predicate is emulated via object properties, but use of this
+	feature is deprecated.
+
+	* hooks.h (scm_free_hook):  Removed, as it is never defined.
+
 2000-05-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.[ch] (SCM_POSFIXABLE, SCM_NEGFIXABLE, SCM_FIXABLE):

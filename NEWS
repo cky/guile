@@ -234,6 +234,11 @@ E.g., in order to set bit 7 in an SCM value x, use the expression
 
   SCM_PACK (SCM_UNPACK (x) | 0x80)
 
+** The name property of hooks is deprecated.
+Thus, the use of SCM_HOOK_NAME and scm_make_hook_with_name is deprecated.
+
+You can emulate this feature by using object properties.
+
 ** Deprecated macros: SCM_INPORTP, SCM_OUTPORTP, SCM_CRDY, SCM_ICHRP, 
 SCM_ICHR, SCM_MAKICHR, SCM_SETJMPBUF, SCM_NSTRINGP, SCM_NRWSTRINGP,
 SCM_NVECTORP
