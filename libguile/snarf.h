@@ -80,6 +80,9 @@ SCM FNAME ARGLIST
 #if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
 /* for C++ snarfing */
 
+#undef SCM_ASSERT
+#define SCM_ASSERT(_cond, _arg, _pos, _subr) *&*&*&*SCM_ARG_BETTER_BE_IN_POSITION(_arg,_pos,__LINE__)
+
 #define GUILE_PROC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 %%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)(...)) FNAME); \
 $$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
@@ -106,6 +109,9 @@ $$$R STR | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ CFN @!!!
 
 #else
 /* for ANSI C snarfing, not C++ */
+
+#undef SCM_ASSERT
+#define SCM_ASSERT(_cond, _arg, _pos, _subr) *&*&*&*SCM_ARG_BETTER_BE_IN_POSITION(_arg,_pos,__LINE__)
 
 #define GUILE_PROC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 %%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)()) FNAME); \
