@@ -84,7 +84,10 @@
  *
  */
 
-
+/* True between SCM_DEFER_INTS and SCM_ALLOW_INTS, and
+ * when the interpreter is not running at all.
+ */
+int scm_ints_disabled = 1;
 
 unsigned int scm_async_clock = 20;
 static unsigned int scm_async_rate = 20;

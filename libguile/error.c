@@ -58,69 +58,7 @@
  */
 
 
-/* True between SCM_DEFER_INTS and SCM_ALLOW_INTS, and
- * when the interpreter is not running at all.
- */
-int scm_ints_disabled = 1;
-
 extern int errno;
-
-static void err_head SCM_P ((char *str));
-
-static void 
-err_head (str)
-     char *str;
-{
-  int oerrno = errno;
-  if (SCM_NIMP (scm_cur_outp))
-    scm_fflush (scm_cur_outp);
-  scm_gen_putc ('\n', scm_cur_errp);
-#if 0
-  if (SCM_BOOL_F != *scm_loc_loadpath)
-    {
-      scm_prin1 (*scm_loc_loadpath, scm_cur_errp, 1);
-      scm_gen_puts (scm_regular_string, ", line ", scm_cur_errp);
-      scm_intprint ((long) scm_linum, 10, scm_cur_errp);
-      scm_gen_puts (scm_regular_string, ": ", scm_cur_errp);
-    }
-#endif
-  scm_fflush (scm_cur_errp);
-  errno = oerrno;
-  if (scm_cur_errp == scm_def_errp)
-    {
-      if (errno > 0)
-	perror (str);
-      fflush (stderr);
-      return;
-    }
-}
-
-
-SCM_PROC(s_errno, "errno", 0, 1, 0, scm_errno);
-SCM
-scm_errno (arg)
-     SCM arg;
-{
-  int old = errno;
-  if (!SCM_UNBNDP (arg))
-    {
-      if (SCM_FALSEP (arg))
-	errno = 0;
-      else
-	errno = SCM_INUM (arg);
-    }
-  return SCM_MAKINUM (old);
-}
-
-SCM_PROC(s_perror, "perror", 1, 0, 0, scm_perror);
-SCM 
-scm_perror (arg)
-     SCM arg;
-{
-  SCM_ASSERT (SCM_NIMP (arg) && SCM_STRINGP (arg), arg, SCM_ARG1, s_perror);
-  err_head (SCM_CHARS (arg));
-  return SCM_UNSPECIFIED;
-}
 
 void (*scm_error_callback) () = 0;
 

@@ -1,3 +1,15 @@
+Sat Mar 15 01:11:40 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* posix.c (scm_uname): throw an error if uname fails instead
+	of returning errno.
+
+	* error.h (scm_errno, scm_perror): obsolete prototypes removed.
+
+	* error.c (err_head, scm_errno, scm_perror): obsolete procedures
+	removed.
+
+	* async.c (scm_ints_disabled): definition moved from error.c.
+
 Sat Mar 15 00:06:08 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* acconfig.h: Removed PACKAGE.

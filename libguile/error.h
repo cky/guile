@@ -59,9 +59,6 @@ extern int scm_ints_disabled;
 #define SCM_NORETURN
 #endif
 
-
-extern SCM scm_errno SCM_P ((SCM arg));
-extern SCM scm_perror SCM_P ((SCM arg));
 extern void scm_error SCM_P ((SCM key, char *subr, char *message,
 			      SCM args, SCM rest)) SCM_NORETURN;
 extern void (*scm_error_callback) SCM_P ((SCM key, char *subr,

@@ -773,8 +773,9 @@ scm_uname ()
   struct utsname buf;
   SCM ans = scm_make_vector(SCM_MAKINUM(5), SCM_UNSPECIFIED, SCM_BOOL_F);
   SCM *ve = SCM_VELTS (ans);
+  SCM_DEFER_INTS;
   if (uname (&buf))
-    return SCM_MAKINUM (errno);
+    scm_syserror (s_uname);
   ve[0] = scm_makfrom0str (buf.sysname);
   ve[1] = scm_makfrom0str (buf.nodename);
   ve[2] = scm_makfrom0str (buf.release);
@@ -784,6 +785,7 @@ scm_uname ()
    a linux special?
   ve[5] = scm_makfrom0str (buf.domainname);
 */
+  SCM_ALLOW_INTS;
   return ans;
 #else
   scm_sysmissing (s_uname);
