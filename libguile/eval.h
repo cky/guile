@@ -105,6 +105,7 @@ extern SCM scm_i_apply;
 
 #define SCM_GLOC_SYM(x) (SCM_CAR((x)-1L))
 #define SCM_GLOC_VAL(x) (SCM_CDR((x)-1L))
+#define SCM_GLOC_VAL_LOC(x) (SCM_CDRLOC((x)-1L))
 
 
 
