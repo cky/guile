@@ -1,3 +1,8 @@
+2000-09-20  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* libguile.h: #include "libguile/environments.h" and
+	"libguile/properties.h".
+
 2000-09-17  Gary Houston  <ghouston@arglist.com>
 
 	* configure.in, acconfig.h: remove the GCSE test: it doesn't seem
