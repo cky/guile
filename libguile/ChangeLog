@@ -993,6 +993,12 @@
 
 	* numbers.c (scm_adjbig): Ditto.
 
+Tue Apr 18 08:22:41 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* validate.h: Do not cast to (unsigned) in SCM_VALIDATE_INUM_RANGE 
+	when testing high-end of the range.  Mikael Djurfeldt noticed this 
+	anomaly -- thanks Mikael!
+
 2000-04-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* unif.c (l2ra):  Don't eliminate the call to scm_array_set_x
