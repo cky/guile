@@ -186,9 +186,20 @@ SCM_SYMBOL (sym_gc_time_taken, "gc-time-taken");
 
 struct scm_heap_seg_data
 {
-  SCM_CELLPTR bounds[2];	/* lower and upper */
-  SCM *freelistp;		/* the value of this may be shared */
-  int ncells;			/* per object in this segment */
+  /* lower and upper bounds of the segment */
+  SCM_CELLPTR bounds[2];
+
+  /* address of the head-of-freelist pointer for this segment's cells.
+     All segments usually point to the same one, scm_freelist.  */
+  SCM *freelistp;
+
+  /* number of SCM words per object in this segment */
+  int ncells;
+
+  /* If SEG_DATA->valid is non-zero, the conservative marking
+     functions will apply SEG_DATA->valid to the purported pointer and
+     SEG_DATA, and mark the object iff the function returns non-zero.
+     At the moment, I don't think anyone uses this.  */
   int (*valid) ();
 };
 
@@ -199,6 +210,100 @@ static void scm_mark_weak_vector_spines SCM_P ((void));
 static scm_sizet init_heap_seg SCM_P ((SCM_CELLPTR, scm_sizet, int, SCM *));
 static void alloc_some_heap SCM_P ((int, SCM *));
 
+
+
+/* Debugging functions.  */
+
+#ifdef DEBUG_FREELIST
+
+/* Return the number of the heap segment containing CELL.  */
+static int
+which_seg (SCM cell)
+{
+  int i;
+
+  for (i = 0; i < scm_n_heap_segs; i++)
+    if (SCM_PTR_LE (scm_heap_table[i].bounds[0], (SCM_CELLPTR) cell)
+	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], (SCM_CELLPTR) cell))
+      return i;
+  fprintf (stderr, "which_seg: can't find segment containing cell %lx\n",
+	   cell);
+  abort ();
+}
+
+
+SCM_PROC (s_map_free_list, "map-free-list", 0, 0, 0, scm_map_free_list);
+SCM
+scm_map_free_list ()
+{
+  int last_seg = -1, count = 0;
+  SCM f;
+  
+  fprintf (stderr, "%d segments total\n", scm_n_heap_segs);
+  for (f = scm_freelist; SCM_NIMP (f); f = SCM_CDR (f))
+    {
+      int this_seg = which_seg (f);
+
+      if (this_seg != last_seg)
+	{
+	  if (last_seg != -1)
+	    fprintf (stderr, "  %5d cells in segment %d\n", count, last_seg);
+	  last_seg = this_seg;
+	  count = 0;
+	}
+      count++;
+    }
+  if (last_seg != -1)
+    fprintf (stderr, "  %5d cells in segment %d\n", count, last_seg);
+
+  fflush (stderr);
+
+  return SCM_UNSPECIFIED;
+}
+
+
+/* Number of calls to SCM_NEWCELL since startup.  */
+static unsigned long scm_newcell_count;
+
+/* Search freelist for anything that isn't marked as a free cell.
+   Abort if we find something.  */
+static void
+scm_check_freelist ()
+{
+  SCM f;
+  int i = 0;
+
+  for (f = scm_freelist; SCM_NIMP (f); f = SCM_CDR (f), i++)
+    if (SCM_CAR (f) != (SCM) scm_tc_free_cell)
+      {
+	fprintf (stderr, "Bad cell in freelist on newcell %lu: %d'th elt\n",
+		 scm_newcell_count, i);
+	fflush (stderr);
+	abort ();
+      }
+}
+
+static int scm_debug_check_freelist = 0;
+void
+scm_debug_newcell (SCM *into)
+{
+  scm_newcell_count++;
+  if (scm_debug_check_freelist)
+    scm_check_freelist ();
+
+  /* The rest of this is supposed to be identical to the SCM_NEWCELL
+     macro.  */
+  if (SCM_IMP (scm_freelist))
+    *into = scm_gc_for_newcell ();
+  else
+    {
+      *into = scm_freelist;
+      scm_freelist = SCM_CDR (scm_freelist);
+      ++scm_cells_allocated;
+    }
+}
+
+#endif /* DEBUG_FREELIST */
 
 
 
@@ -931,16 +1036,26 @@ scm_gc_sweep ()
 
   n = 0;
   m = 0;
-  i = 0;
 
-  while (i < scm_n_heap_segs)
+  /* Reset all free list pointers.  We'll reconstruct them completely
+     while scanning.  */
+  for (i = 0; i < scm_n_heap_segs; i++)
+    *scm_heap_table[i].freelistp = SCM_EOL;
+
+  for (i = 0; i < scm_n_heap_segs; i++)
     {
+      /* Unmarked cells go onto the front of the freelist this heap
+	 segment points to.  Rather than updating the real freelist
+	 pointer as we go along, we accumulate the new head in
+	 nfreelist.  Then, if it turns out that the entire segment is
+	 free, we free (i.e., malloc's free) the whole segment, and
+	 simply don't assign nfreelist back into the real freelist.  */
       hp_freelist = scm_heap_table[i].freelistp;
-      nfreelist = SCM_EOL;
+      nfreelist = *hp_freelist;
+
       span = scm_heap_table[i].ncells;
       ptr = CELL_UP (scm_heap_table[i].bounds[0]);
       seg_size = CELL_DN (scm_heap_table[i].bounds[1]) - ptr;
-      ++i;
       for (j = seg_size + span; j -= span; ptr += span)
 	{
 #ifdef SCM_POINTERS_MUNGED
@@ -1146,14 +1261,11 @@ scm_gc_sweep ()
 	  if (SCM_CAR (scmptr) == (SCM) scm_tc_free_cell)
 	    exit (2);
 #endif
+	  /* Stick the new cell on the front of nfreelist.  */
 	  SCM_SETCAR (scmptr, (SCM) scm_tc_free_cell);
 	  SCM_SETCDR (scmptr, nfreelist);
 	  nfreelist = scmptr;
-#if 0
-	  if ((nfreelist < scm_heap_table[0].bounds[0]) ||
-	      (nfreelist >= scm_heap_table[0].bounds[1]))
-	    exit (1);
-#endif
+
 	  continue;
 	c8mrkcontinue:
 	  SCM_CLRGC8MARK (scmptr);
@@ -1165,16 +1277,23 @@ scm_gc_sweep ()
       if (n == seg_size)
 	{
 	  scm_heap_size -= seg_size;
-	  free ((char *) scm_heap_table[i - 1].bounds[0]);
-	  scm_heap_table[i - 1].bounds[0] = 0;
-	  for (j = i; j < scm_n_heap_segs; j++)
+	  free ((char *) scm_heap_table[i].bounds[0]);
+	  scm_heap_table[i].bounds[0] = 0;
+	  for (j = i + 1; j < scm_n_heap_segs; j++)
 	    scm_heap_table[j - 1] = scm_heap_table[j];
 	  scm_n_heap_segs -= 1;
-	  i -= 1;		/* need to scan segment just moved. */
+	  i--;		/* We need to scan the segment just moved.  */
 	}
       else
 #endif /* ifdef GC_FREE_SEGMENTS */
+	/* Update the real freelist pointer to point to the head of
+           the list of free cells we've built for this segment.  */
 	*hp_freelist = nfreelist;
+
+#ifdef DEBUG_FREELIST
+      scm_check_freelist ();
+      scm_map_free_list ();
+#endif
 
       scm_gc_cells_collected += n;
       n = 0;
