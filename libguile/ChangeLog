@@ -1,5 +1,25 @@
 2001-01-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	This patch was sent by Martin Grabmueller and makes sure that
+	parameter errors are reported correctly by the lexicographic
+	ordering predicates.
+
+	* strorder.c (string_less_p, string_ci_less_p):  New functions.
+
+	(scm_string_less_p, scm_string_ci_less_p):  Extracted the core
+	functionality into string_less_p, string_ci_less_p respectively.
+	The remaining code is just a wrapper to do the parameter
+	checking.
+
+	(scm_string_leq_p, scm_string_gr_p, scm_string_geq_p):  Check the
+	parameters and call string_less_p instead of scm_string_less_p.
+
+	(scm_string_ci_leq_p, scm_string_ci_gr_p, scm_string_ci_geq_p):
+	Check the parameters and call string_less_ci_p instead of
+	scm_string_ci_less_p.
+
+2001-01-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	This patch modifies scm_display_error to perform parameter
 	checking.  Thanks to Neil Jerram for the bug report.
 

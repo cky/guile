@@ -124,17 +124,13 @@ SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
 #undef FUNC_NAME
 
 
-SCM_DEFINE1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
-             (SCM s1, SCM s2),
-	     "Lexicographic ordering predicate; returns @t{#t} if @var{s1}\n"
-	     "is lexicographically less than @var{s2}.  (r5rs)")
-#define FUNC_NAME s_scm_string_less_p
+/* Helper function for the lexicographic ordering predicates.
+ * No argument checking is performed.  */
+static SCM
+string_less_p (SCM s1, SCM s2)
 {
   scm_sizet i, length1, length2, lengthm;
   unsigned char *c1, *c2;
-
-  SCM_VALIDATE_STRING (1, s1);
-  SCM_VALIDATE_STRING (2, s2);
 
   length1 = SCM_STRING_LENGTH (s1);
   length2 = SCM_STRING_LENGTH (s2);
@@ -150,6 +146,19 @@ SCM_DEFINE1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
 
   return SCM_BOOL (length1 < length2);
 }
+
+
+SCM_DEFINE1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+	     "Lexicographic ordering predicate; returns @t{#t} if @var{s1}\n"
+	     "is lexicographically less than @var{s2}.  (r5rs)")
+#define FUNC_NAME s_scm_string_less_p
+{
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  return string_less_p (s1, s2);
+}
 #undef FUNC_NAME
 
 
@@ -159,7 +168,10 @@ SCM_DEFINE1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
 	     "is lexicographically less than or equal to @var{s2}.  (r5rs)")
 #define FUNC_NAME s_scm_string_leq_p
 {
-  return SCM_BOOL_NOT (scm_string_less_p (s2, s1));
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  return SCM_BOOL_NOT (string_less_p (s2, s1));
 }
 #undef FUNC_NAME
 
@@ -170,7 +182,10 @@ SCM_DEFINE1 (scm_string_gr_p, "string>?", scm_tc7_rpsubr,
 	     "is lexicographically greater than @var{s2}.  (r5rs)")
 #define FUNC_NAME s_scm_string_gr_p
 {
-  return scm_string_less_p (s2, s1);
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  return string_less_p (s2, s1);
 }
 #undef FUNC_NAME
 
@@ -181,23 +196,21 @@ SCM_DEFINE1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
 	     "is lexicographically greater than or equal to @var{s2}.  (r5rs)")
 #define FUNC_NAME s_scm_string_geq_p
 {
-  return SCM_BOOL_NOT (scm_string_less_p (s1, s2));
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  return SCM_BOOL_NOT (string_less_p (s1, s2));
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
-             (SCM s1, SCM s2),
-	     "Case insensitive lexicographic ordering predicate; \n"
-	     "returns @t{#t} if @var{s1} is lexicographically less than\n"
-	     "@var{s2} regardless of case.  (r5rs)")
-#define FUNC_NAME s_scm_string_ci_less_p
+/* Helper function for the case insensitive lexicographic ordering
+ * predicates.  No argument checking is performed.  */
+static SCM
+string_ci_less_p (SCM s1, SCM s2)
 {
   scm_sizet i, length1, length2, lengthm;
   unsigned char *c1, *c2;
-
-  SCM_VALIDATE_STRING (1, s1);
-  SCM_VALIDATE_STRING (2, s2);
 
   length1 = SCM_STRING_LENGTH (s1);
   length2 = SCM_STRING_LENGTH (s2);
@@ -213,6 +226,20 @@ SCM_DEFINE1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
 
   return SCM_BOOL (length1 < length2);
 }
+
+
+SCM_DEFINE1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+	     "Case insensitive lexicographic ordering predicate; \n"
+	     "returns @t{#t} if @var{s1} is lexicographically less than\n"
+	     "@var{s2} regardless of case.  (r5rs)")
+#define FUNC_NAME s_scm_string_ci_less_p
+{
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  return string_ci_less_p (s1, s2);
+}
 #undef FUNC_NAME
 
 
@@ -223,7 +250,10 @@ SCM_DEFINE1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
 	     "or equal to @var{s2} regardless of case.  (r5rs)")
 #define FUNC_NAME s_scm_string_ci_leq_p
 {
-  return SCM_BOOL_NOT (scm_string_ci_less_p (s2, s1));
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  return SCM_BOOL_NOT (string_ci_less_p (s2, s1));
 }
 #undef FUNC_NAME
 
@@ -235,7 +265,10 @@ SCM_DEFINE1 (scm_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr,
 	     "@var{s2} regardless of case.  (r5rs)")
 #define FUNC_NAME s_scm_string_ci_gr_p
 {
-  return scm_string_ci_less_p (s2, s1);
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  return string_ci_less_p (s2, s1);
 }
 #undef FUNC_NAME
 
@@ -247,7 +280,10 @@ SCM_DEFINE1 (scm_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr,
 	     "or equal to @var{s2} regardless of case.  (r5rs)")
 #define FUNC_NAME s_scm_string_ci_geq_p
 {
-  return SCM_BOOL_NOT (scm_string_ci_less_p (s1, s2));
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  return SCM_BOOL_NOT (string_ci_less_p (s1, s2));
 }
 #undef FUNC_NAME
 
