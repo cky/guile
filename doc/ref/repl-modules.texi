@@ -12,7 +12,8 @@
 
 @cindex readline
 @cindex command line history
-Guile comes with an interface module to the readline library.  This
+Guile comes with an interface module to the readline library
+(@pxref{Top,,, readline, GNU Readline Library}).  This
 makes interactive use much more convenient, because of the command-line
 editing features of readline.  Using @code{(ice-9 readline)}, you can
 navigate through the current input line with the cursor keys, retrieve
@@ -59,12 +60,27 @@ will be stored in a history and can be recalled later using the
 cursor-up and -down keys.  Readline also understands the Emacs keys for
 navigating through the command line and history.
 
+@cindex @file{.guile_history}
 When you quit your Guile session by evaluating @code{(quit)} or pressing
 Ctrl-D, the history will be saved to the file @file{.guile_history} and
 read in when you start Guile for the next time.  Thus you can start a
 new Guile session and still have the (probably long-winded) definition
 expressions available.
 
+@cindex @env{GUILE_HISTORY}
+@cindex @file{.inputrc}
+You can specify a different history file by setting the environment
+variable @env{GUILE_HISTORY}.  And you can make Guile specific
+customizations to your @file{.inputrc} by testing for application
+@samp{Guile} (@pxref{Conditional Init Constructs,,, readline, GNU
+Readline Library}).  For instance to define a key inserting a matched
+pair of parentheses,
+
+@example
+$if Guile
+  "\C-o": "()\C-b"
+$endif
+@end example
 
 @node Readline Options
 @subsection Readline Options
