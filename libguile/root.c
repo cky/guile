@@ -210,6 +210,7 @@ cwdr (proc, a1, args, handler, stack_start)
   old_winds = scm_dynwinds;
   scm_dowinds (SCM_EOL, scm_ilength (scm_dynwinds));
 #ifdef DEBUG_EXTENSIONS
+  SCM_DFRAME (old_rootcont) = scm_last_debug_frame;
   scm_last_debug_frame = 0;
 #endif
   
@@ -218,10 +219,10 @@ cwdr (proc, a1, args, handler, stack_start)
   
   scm_dowinds (old_winds, - scm_ilength (old_winds));
   SCM_REDEFER_INTS;
-  scm_rootcont = old_rootcont;
 #ifdef DEBUG_EXTENSIONS
-  scm_last_debug_frame = SCM_DFRAME (scm_rootcont);
+  scm_last_debug_frame = SCM_DFRAME (old_rootcont);
 #endif
+  scm_rootcont = old_rootcont;
   SCM_REALLOW_INTS;
   scm_ints_disabled = old_ints_disabled;
   return answer;
@@ -285,9 +286,7 @@ scm_call_catching_errors (thunk, err_filter, closure)
   SCM_DFRAME (scm_rootcont) = scm_last_debug_frame;
 #endif
   i = setjmp (SCM_JMPBUF (scm_rootcont));
-#ifdef STACK_CHECKING
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
-#endif
   if (!i)
     {
       scm_gc_heap_lock = 0;
