@@ -1,3 +1,7 @@
+1999-09-02  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* configure.in: Test for presence of function on_exit.
+
 1999-09-01  James Blandy  <jimb@mule.m17n.org>
 
 	* configure.in: Use AC_REPLACE_FUNCS to grab libguile/memmove.c if

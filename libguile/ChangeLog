@@ -1,3 +1,8 @@
+1999-09-02  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* gc.c (cleanup, scm_init_storage): Use on_exit if present and
+	atexit not available.  (sunos4.1.4 needs it.)
+
 1999-09-01  James Blandy  <jimb@mule.m17n.org>
 
 	I take it all back --- bcopy does handle overlapping source and
