@@ -1,3 +1,8 @@
+2001-09-30  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* BUGS: New file.
+	* Makefile.am (EXTRA_DIST): Add BUGS file.
+
 2001-09-25  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* TODO: Add bugfix item to "Eventually".
