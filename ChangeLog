@@ -1,3 +1,8 @@
+2000-09-20  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* src/vm_scheme.c (cons): Bug fixed.
+	* src/vm_system.c (br_if_null): Set ac = SCM_BOOL_T if null.
+
 2000-09-11  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* autogen.sh: Run aclocal with check where guile.m4 is installed.
