@@ -77,7 +77,9 @@ or diff -u).  Don't include a patch for ChangeLog; such patches don't
 apply cleanly, since we've probably changed the top of ChangeLog too.
 Instead, provide the unaltered text at the top of your patch.
 
-- For proper credit, also make sure you update the AUTHORS file.
+- For proper credit, also make sure you update the AUTHORS file
+(for new files for which you've assigned copyright to the FSF), or
+the THANKS file (for everything else).
 
 Please don't include patches for generated files like configure,
 aclocal.m4, or any Makefile.in.  Such patches are often large, and
