@@ -1,0 +1,187 @@
+@page
+@node Debugging
+@chapter Internal Debugging Interface
+
+--- The name of this chapter needs to clearly distinguish it
+    from the appendix describing the debugger UI.  The intro
+    should have a pointer to the UI appendix.
+
+@deffn primitive display-error stack port subr message args rest
+Display an error message to the output port @var{port}.
+@var{stack} is the saved stack for the error, @var{subr} is
+the name of the procedure in which the error occured and
+@var{message} is the actual error message, which may contain
+formatting instructions. These will format the arguments in
+the list @var{args} accordingly.  @var{rest} is currently
+ignored.
+@end deffn
+
+@deffn primitive display-application frame [port [indent]]
+Display a procedure application @var{frame} to the output port
+@var{port}. @var{indent} specifies the indentation of the
+output.
+@end deffn
+
+@deffn primitive display-backtrace stack port [first [depth]]
+Display a backtrace to the output port @var{port}. @var{stack}
+is the stack to take the backtrace from, @var{first} specifies
+where in the stack to start and @var{depth} how much frames
+to display. Both @var{first} and @var{depth} can be @code{#f},
+which means that default values will be used.
+@end deffn
+
+@deffn primitive backtrace
+Display a backtrace of the stack saved by the last error
+to the current output port.
+@end deffn
+
+@deffn primitive malloc-stats
+Return an alist ((@var{what} . @var{n}) ...) describing number
+of malloced objects.
+@var{what} is the second argument to @code{scm_must_malloc},
+@var{n} is the number of objects of that type currently
+allocated.
+@end deffn
+
+@deffn primitive debug-options-interface [setting]
+Option interface for the debug options. Instead of using
+this procedure directly, use the procedures @code{debug-enable},
+@code{debug-disable}, @code{debug-set!} and @var{debug-options}.
+@end deffn
+
+@deffn primitive with-traps thunk
+Call @var{thunk} with traps enabled.
+@end deffn
+
+@deffn primitive memoized? obj
+Return @code{#t} if @var{obj} is memoized.
+@end deffn
+
+@deffn primitive unmemoize m
+Unmemoize the memoized expression @var{m},
+@end deffn
+
+@deffn primitive memoized-environment m
+Return the environment of the memoized expression @var{m}.
+@end deffn
+
+@deffn primitive procedure-name proc
+Return the name of the procedure @var{proc}
+@end deffn
+
+@deffn primitive procedure-source proc
+Return the source of the procedure @var{proc}.
+@end deffn
+
+@deffn primitive procedure-environment proc
+Return the environment of the procedure @var{proc}.
+@end deffn
+
+@deffn primitive debug-object? obj
+Return @code{#t} if @var{obj} is a debug object.
+@end deffn
+
+@deffn primitive frame-arguments frame
+Return the arguments of @var{frame}.
+@end deffn
+
+@deffn primitive frame-evaluating-args? frame
+Return @code{#t} if @var{frame} contains evaluated arguments.
+@end deffn
+
+@deffn primitive frame-next frame
+Return the next frame of @var{frame}, or @code{#f} if
+@var{frame} is the last frame in its stack.
+@end deffn
+
+@deffn primitive frame-number frame
+Return the frame number of @var{frame}.
+@end deffn
+
+@deffn primitive frame-overflow? frame
+Return @code{#t} if @var{frame} is an overflow frame.
+@end deffn
+
+@deffn primitive frame-previous frame
+Return the previous frame of @var{frame}, or @code{#f} if
+@var{frame} is the first frame in its stack.
+@end deffn
+
+@deffn primitive frame-procedure frame
+Return the procedure for @var{frame}, or @code{#f} if no
+procedure is associated with @var{frame}.
+@end deffn
+
+@deffn primitive frame-procedure? frame
+Return @code{#t} if a procedure is associated with @var{frame}.
+@end deffn
+
+@deffn primitive frame-real? frame
+Return @code{#t} if @var{frame} is a real frame.
+@end deffn
+
+@deffn primitive frame-source frame
+Return the source of @var{frame}.
+@end deffn
+
+@deffn primitive frame? obj
+Return @code{#t} if @var{obj} is a stack frame.
+@end deffn
+
+@deffn primitive last-stack-frame obj
+Return a stack which consists of a single frame, which is the
+last stack frame for @var{obj}. @var{obj} must be either a
+debug object or a continuation.
+@end deffn
+
+@deffn primitive make-stack obj . args
+Create a new stack. If @var{obj} is @code{#t}, the current
+evaluation stack is used for creating the stack frames,
+otherwise the frames are taken from @var{obj} (which must be
+either a debug object or a continuation).
+
+@var{args} should be a list containing any combination of
+integer, procedure and @code{#t} values.
+
+These values specify various ways of cutting away uninteresting
+stack frames from the top and bottom of the stack that
+@code{make-stack} returns.  They come in pairs like this:
+@code{(@var{inner_cut_1} @var{outer_cut_1} @var{inner_cut_2}
+@var{outer_cut_2} @dots{})}.
+
+Each @var{inner_cut_N} can be @code{#t}, an integer, or a
+procedure.  @code{#t} means to cut away all frames up to but
+excluding the first user module frame.  An integer means to cut
+away exactly that number of frames.  A procedure means to cut
+away all frames up to but excluding the application frame whose
+procedure matches the specified one.
+
+Each @var{outer_cut_N} can be an integer or a procedure.  An
+integer means to cut away that number of frames.  A procedure
+means to cut away frames down to but excluding the application
+frame whose procedure matches the specified one.
+
+If the @var{outer_cut_N} of the last pair is missing, it is
+taken as 0.
+@end deffn
+
+@deffn primitive stack-id stack
+Return the identifier given to @var{stack} by @code{start-stack}.
+@end deffn
+
+@deffn primitive stack-length stack
+Return the length of @var{stack}.
+@end deffn
+
+@deffn primitive stack-ref stack i
+Return the @var{i}'th frame from @var{stack}.
+@end deffn
+
+@deffn primitive stack? obj
+Return @code{#t} if @var{obj} is a calling stack.
+@end deffn
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

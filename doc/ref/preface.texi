@@ -1,0 +1,182 @@
+@iftex
+@page
+@unnumbered Preface
+
+This reference manual documents Guile, GNU's Ubiquitous Intelligent
+Language for Extensions.  It describes how to use Guile in many useful
+and interesting ways.
+
+This is edition 1.0 of the reference manual, and corresponds to Guile
+version @value{VERSION}.
+@end iftex
+
+
+@iftex
+@section The Guile License
+@end iftex
+
+@ifnottex
+@node Guile License
+@chapter The Guile License
+@end ifnottex
+
+The license of Guile consists of the GNU GPL plus a special statement
+giving blanket permission to link with non-free software.  This is the
+license statement as found in any individual file that it applies to:
+
+@quotation
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this software; see the file COPYING.  If not, write to the Free
+Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+02111-1307 USA
+
+As a special exception, the Free Software Foundation gives permission
+for additional uses of the text contained in its release of GUILE.
+
+The exception is that, if you link the GUILE library with other files to
+produce an executable, this does not by itself cause the resulting
+executable to be covered by the GNU General Public License.  Your use of
+that executable is in no way restricted on account of linking the GUILE
+library code into it.
+
+This exception does not however invalidate any other reasons why the
+executable file might be covered by the GNU General Public License.
+
+This exception applies only to the code released by the Free Software
+Foundation under the name GUILE.  If you copy code from other Free
+Software Foundation releases into a copy of GUILE, as the General Public
+License permits, the exception does not apply to the code that you add
+in this way.  To avoid misleading anyone as to the status of such
+modified files, you must delete this exception notice from them.
+
+If you write modifications of your own for GUILE, it is your choice
+whether to permit this exception to apply to your modifications.  If you
+do not wish that, delete this exception notice.
+@end quotation
+
+
+@iftex
+@section Layout of this Manual
+@end iftex
+
+@ifnottex
+@node Manual Layout
+@chapter Layout of this Manual
+@end ifnottex
+
+This manual is divided into five parts.
+
+@strong{Part I: Introduction to Guile} provides an overview of what
+Guile is and how you can use it.  A whirlwind tour shows how Guile can
+be used interactively and as a script interpreter, how to link Guile
+into your own applications, and how to write modules of interpreted and
+compiled code for use with Guile.  All of the ideas introduced here are
+documented in full by the later parts of the manual.
+
+@strong{Part II: Guile Scheme} documents the core Scheme language and
+features that Guile implements.  Although the basis for this is the
+Scheme language described in R5RS, this part of the manual does not
+assume any prior familiarity with R5RS in particular, or with Scheme in
+general.  Basic Scheme concepts, standard aspects of the Scheme language
+and Guile extensions on top of R5RS are all documented from scratch, and
+organized by functionality rather than by the defining standards.
+
+@strong{Part III: Guile Modules} describes some important modules,
+distributed as part of the Guile distribution, that extend the
+functionality provided by the Guile Scheme core, most notably:
+
+@itemize @bullet
+@item
+the POSIX module, which provides Scheme level procedures for system and
+network programming, conforming to the POSIX standard
+
+@item
+the SLIB module, which makes Aubrey Jaffer's portable Scheme library
+available for use in Guile.
+@end itemize
+
+@strong{Part IV: Guile Scripting} documents the use of Guile as a script
+interpreter, and illustrates this with a series of examples.
+
+@strong{Part V: Extending Applications Using Guile} explains the options
+available for using Guile as a application extension language.  At the
+simpler end of the scale, an application might use Guile to define some
+application-specific primitives in C and then load an application Scheme
+file.  In this case most of the application code is written on the
+Scheme level, and uses the application-specific primitives as an
+extension to standard Scheme.  At the other end of the scale, an
+application might be predominantly written in C --- with its main
+control loop implemented in C --- but make occasional forays into Scheme
+to, say, read configuration data or run user-defined customization code.
+This part of the manual covers the complete range of application
+extension options.
+
+Finally, the appendices explain how to obtain the latest version of
+Guile, how to install it, where to find modules to work with Guile, and
+how to use the Guile debugger.
+
+
+@iftex
+@section Manual Conventions
+@end iftex
+
+@ifnottex
+@node Manual Conventions
+@chapter Conventions used in this Manual
+@end ifnottex
+
+We use some conventions in this manual.
+
+@itemize @bullet
+
+@item
+For some procedures, notably type predicates, we use @dfn{iff} to
+mean `if and only if'.  The construct is usually something like:
+`Return @var{val} iff @var{condition}', where @var{val} is usually
+`@code{#t}' or `non-@code{#f}'.  This typically means that @var{val}
+is returned if @var{condition} holds, and that @samp{#f} is returned
+otherwise.
+@cindex iff
+
+@item
+In examples and procedure descriptions and all other places where the
+evaluation of Scheme expression is shown, we use some notation for
+denoting the output and evaluation results of expressions.
+
+The symbol @code{@result{}} is used to tell which value is returned by
+an evaluation:
+
+@lisp
+(+ 1 2)
+@result{}
+3
+@end lisp
+
+Some procedures produce some output besides returning a value.  This
+is denoted by the symbol @code{@print{}}.
+
+@lisp
+(begin (display 1) (newline) 'hooray)
+@print{} 1
+@result{}
+hooray
+@end lisp
+
+@c Add other conventions here.
+
+@end itemize
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

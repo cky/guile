@@ -1,0 +1,532 @@
+
+@c module (guile)
+
+@deffn primitive environment? obj
+Return @code{#t} if @var{obj} is an environment, or @code{#f}
+otherwise.
+@end deffn
+
+@deffn primitive environment-bound? env sym
+Return @code{#t} if @var{sym} is bound in @var{env}, or
+@code{#f} otherwise.
+@end deffn
+
+@deffn primitive environment-ref env sym
+Return the value of the location bound to @var{sym} in
+@var{env}. If @var{sym} is unbound in @var{env}, signal an
+@code{environment:unbound} error.
+@end deffn
+
+@deffn primitive environment-fold env proc init
+Iterate over all the bindings in @var{env}, accumulating some
+value.
+For each binding in @var{env}, apply @var{proc} to the symbol
+bound, its value, and the result from the previous application
+of @var{proc}.
+Use @var{init} as @var{proc}'s third argument the first time
+@var{proc} is applied.
+If @var{env} contains no bindings, this function simply returns
+@var{init}.
+If @var{env} binds the symbol sym1 to the value val1, sym2 to
+val2, and so on, then this procedure computes:
+@lisp
+  (proc sym1 val1
+        (proc sym2 val2
+              ...
+              (proc symn valn
+                    init)))
+@end lisp
+Each binding in @var{env} will be processed exactly once.
+@code{environment-fold} makes no guarantees about the order in
+which the bindings are processed.
+Here is a function which, given an environment, constructs an
+association list representing that environment's bindings,
+using environment-fold:
+@lisp
+  (define (environment->alist env)
+    (environment-fold env
+                      (lambda (sym val tail)
+                        (cons (cons sym val) tail))
+                      '()))
+@end lisp
+@end deffn
+
+@deffn primitive environment-define env sym val
+Bind @var{sym} to a new location containing @var{val} in
+@var{env}. If @var{sym} is already bound to another location
+in @var{env} and the binding is mutable, that binding is
+replaced.  The new binding and location are both mutable. The
+return value is unspecified.
+If @var{sym} is already bound in @var{env}, and the binding is
+immutable, signal an @code{environment:immutable-binding} error.
+@end deffn
+
+@deffn primitive environment-undefine env sym
+Remove any binding for @var{sym} from @var{env}. If @var{sym}
+is unbound in @var{env}, do nothing.  The return value is
+unspecified.
+If @var{sym} is already bound in @var{env}, and the binding is
+immutable, signal an @code{environment:immutable-binding} error.
+@end deffn
+
+@deffn primitive environment-set! env sym val
+If @var{env} binds @var{sym} to some location, change that
+location's value to @var{val}.  The return value is
+unspecified.
+If @var{sym} is not bound in @var{env}, signal an
+@code{environment:unbound} error.  If @var{env} binds @var{sym}
+to an immutable location, signal an
+@code{environment:immutable-location} error.
+@end deffn
+
+@deffn primitive environment-cell env sym for_write
+Return the value cell which @var{env} binds to @var{sym}, or
+@code{#f} if the binding does not live in a value cell.
+The argument @var{for-write} indicates whether the caller
+intends to modify the variable's value by mutating the value
+cell.  If the variable is immutable, then
+@code{environment-cell} signals an
+@code{environment:immutable-location} error.
+If @var{sym} is unbound in @var{env}, signal an
+@code{environment:unbound} error.
+If you use this function, you should consider using
+@code{environment-observe}, to be notified when @var{sym} gets
+re-bound to a new value cell, or becomes undefined.
+@end deffn
+
+@deffn primitive environment-observe env proc
+Whenever @var{env}'s bindings change, apply @var{proc} to
+@var{env}.
+This function returns an object, token, which you can pass to
+@code{environment-unobserve} to remove @var{proc} from the set
+of procedures observing @var{env}.  The type and value of
+token is unspecified.
+@end deffn
+
+@deffn primitive environment-observe-weak env proc
+This function is the same as environment-observe, except that
+the reference @var{env} retains to @var{proc} is a weak
+reference. This means that, if there are no other live,
+non-weak references to @var{proc}, it will be
+garbage-collected, and dropped from @var{env}'s
+list of observing procedures.
+@end deffn
+
+@deffn primitive environment-unobserve token
+Cancel the observation request which returned the value
+@var{token}.  The return value is unspecified.
+If a call @code{(environment-observe env proc)} returns
+@var{token}, then the call @code{(environment-unobserve token)}
+will cause @var{proc} to no longer be called when @var{env}'s
+bindings change.
+@end deffn
+
+@deffn primitive make-leaf-environment
+Create a new leaf environment, containing no bindings.
+All bindings and locations created in the new environment
+will be mutable.
+@end deffn
+
+@deffn primitive leaf-environment? object
+Return @code{#t} if object is a leaf environment, or @code{#f}
+otherwise.
+@end deffn
+
+@deffn primitive make-eval-environment local imported
+Return a new environment object eval whose bindings are the
+union of the bindings in the environments @var{local} and
+@var{imported}, with bindings from @var{local} taking
+precedence. Definitions made in eval are placed in @var{local}.
+Applying @code{environment-define} or
+@code{environment-undefine} to eval has the same effect as
+applying the procedure to @var{local}.
+Note that eval incorporates @var{local} and @var{imported} by
+reference:
+If, after creating eval, the program changes the bindings of
+@var{local} or @var{imported}, those changes will be visible
+in eval.
+Since most Scheme evaluation takes place in eval environments,
+they transparently cache the bindings received from @var{local}
+and @var{imported}. Thus, the first time the program looks up
+a symbol in eval, eval may make calls to @var{local} or
+@var{imported} to find their bindings, but subsequent
+references to that symbol will be as fast as references to
+bindings in finite environments.
+In typical use, @var{local} will be a finite environment, and
+@var{imported} will be an import environment
+@end deffn
+
+@deffn primitive eval-environment? object
+Return @code{#t} if object is an eval environment, or @code{#f}
+otherwise.
+@end deffn
+
+@deffn primitive eval-environment-local env
+Return the local environment of eval environment @var{env}.
+@end deffn
+
+@deffn primitive eval-environment-set-local! env local
+Change @var{env}'s local environment to @var{local}.
+@end deffn
+
+@deffn primitive eval-environment-imported env
+Return the imported environment of eval environment @var{env}.
+@end deffn
+
+@deffn primitive eval-environment-set-imported! env imported
+Change @var{env}'s imported environment to @var{imported}.
+@end deffn
+
+@deffn primitive make-import-environment imports conflict_proc
+Return a new environment @var{imp} whose bindings are the union
+of the bindings from the environments in @var{imports};
+@var{imports} must be a list of environments. That is,
+@var{imp} binds a symbol to a location when some element of
+@var{imports} does.
+If two different elements of @var{imports} have a binding for
+the same symbol, the @var{conflict-proc} is called with the
+following parameters:  the import environment, the symbol and
+the list of the imported environments that bind the symbol.
+If the @var{conflict-proc} returns an environment @var{env},
+the conflict is considered as resolved and the binding from
+@var{env} is used.  If the @var{conflict-proc} returns some
+non-environment object, the conflict is considered unresolved
+and the symbol is treated as unspecified in the import
+environment.
+The checking for conflicts may be performed lazily, i. e. at
+the moment when a value or binding for a certain symbol is
+requested instead of the moment when the environment is
+created or the bindings of the imports change.
+All bindings in @var{imp} are immutable. If you apply
+@code{environment-define} or @code{environment-undefine} to
+@var{imp}, Guile will signal an
+ @code{environment:immutable-binding} error. However,
+notice that the set of bindings in @var{imp} may still change,
+if one of its imported environments changes.
+@end deffn
+
+@deffn primitive import-environment? object
+Return @code{#t} if object is an import environment, or
+@code{#f} otherwise.
+@end deffn
+
+@deffn primitive import-environment-imports env
+Return the list of environments imported by the import
+environment @var{env}.
+@end deffn
+
+@deffn primitive import-environment-set-imports! env imports
+Change @var{env}'s list of imported environments to
+@var{imports}, and check for conflicts.
+@end deffn
+
+@deffn primitive make-export-environment private signature
+Return a new environment @var{exp} containing only those
+bindings in private whose symbols are present in
+@var{signature}. The @var{private} argument must be an
+environment.
+
+The environment @var{exp} binds symbol to location when
+@var{env} does, and symbol is exported by @var{signature}.
+
+@var{signature} is a list specifying which of the bindings in
+@var{private} should be visible in @var{exp}. Each element of
+@var{signature} should be a list of the form:
+  (symbol attribute ...)
+where each attribute is one of the following:
+@table @asis
+@item the symbol @code{mutable-location}
+  @var{exp} should treat the
+  location bound to symbol as mutable. That is, @var{exp}
+  will pass calls to @code{environment-set!} or
+  @code{environment-cell} directly through to private.
+@item the symbol @code{immutable-location}
+  @var{exp} should treat
+  the location bound to symbol as immutable. If the program
+  applies @code{environment-set!} to @var{exp} and symbol, or
+  calls @code{environment-cell} to obtain a writable value
+  cell, @code{environment-set!} will signal an
+  @code{environment:immutable-location} error. Note that, even
+  if an export environment treats a location as immutable, the
+  underlying environment may treat it as mutable, so its
+  value may change.
+@end table
+It is an error for an element of signature to specify both
+@code{mutable-location} and @code{immutable-location}. If
+neither is specified, @code{immutable-location} is assumed.
+
+As a special case, if an element of signature is a lone
+symbol @var{sym}, it is equivalent to an element of the form
+@code{(sym)}.
+
+All bindings in @var{exp} are immutable. If you apply
+@code{environment-define} or @code{environment-undefine} to
+@var{exp}, Guile will signal an
+@code{environment:immutable-binding} error. However,
+notice that the set of bindings in @var{exp} may still change,
+if the bindings in private change.
+@end deffn
+
+@deffn primitive export-environment? object
+Return @code{#t} if object is an export environment, or
+@code{#f} otherwise.
+@end deffn
+
+@deffn primitive export-environment-private env
+Return the private environment of export environment @var{env}.
+@end deffn
+
+@deffn primitive export-environment-set-private! env private
+Change the private environment of export environment @var{env}.
+@end deffn
+
+@deffn primitive export-environment-signature env
+Return the signature of export environment @var{env}.
+@end deffn
+
+@deffn primitive export-environment-set-signature! env signature
+Change the signature of export environment @var{env}.
+@end deffn
+
+@deffn primitive %compute-slots class
+Return a list consisting of the names of all slots belonging to
+class @var{class}, i. e. the slots of @var{class} and of all of
+its superclasses.
+@end deffn
+
+@deffn primitive get-keyword key l default_value
+Determine an associated value for the keyword @var{key} from
+the list @var{l}.  The list @var{l} has to consist of an even
+number of elements, where, starting with the first, every
+second element is a keyword, followed by its associated value.
+If @var{l} does not hold a value for @var{key}, the value
+@var{default_value} is returned.
+@end deffn
+
+@deffn primitive slot-ref-using-class class obj slot_name
+@end deffn
+
+@deffn primitive slot-set-using-class! class obj slot_name value
+@end deffn
+
+@deffn primitive class-of x
+Return the class of @var{x}.
+@end deffn
+
+@deffn primitive %goops-loaded
+Announce that GOOPS is loaded and perform initialization
+on the C level which depends on the loaded GOOPS modules.
+@end deffn
+
+@deffn primitive %method-more-specific? m1 m2 targs
+@end deffn
+
+@deffn primitive find-method . l
+@end deffn
+
+@deffn primitive primitive-generic-generic subr
+@end deffn
+
+@deffn primitive enable-primitive-generic! . subrs
+@end deffn
+
+@deffn primitive generic-capability? proc
+@end deffn
+
+@deffn primitive %invalidate-method-cache! gf
+@end deffn
+
+@deffn primitive %invalidate-class class
+@end deffn
+
+@deffn primitive %modify-class old new
+@end deffn
+
+@deffn primitive %modify-instance old new
+@end deffn
+
+@deffn primitive %set-object-setter! obj setter
+@end deffn
+
+@deffn primitive %allocate-instance class initargs
+Create a new instance of class @var{class} and initialize it
+from the arguments @var{initargs}.
+@end deffn
+
+@deffn primitive slot-exists? obj slot_name
+Return @code{#t} if @var{obj} has a slot named @var{slot_name}.
+@end deffn
+
+@deffn primitive slot-bound? obj slot_name
+Return @code{#t} if the slot named @var{slot_name} of @var{obj}
+is bound.
+@end deffn
+
+@deffn primitive slot-set! obj slot_name value
+Set the slot named @var{slot_name} of @var{obj} to @var{value}.
+@end deffn
+
+@deffn primitive slot-exists-using-class? class obj slot_name
+@end deffn
+
+@deffn primitive slot-bound-using-class? class obj slot_name
+@end deffn
+
+@deffn primitive %fast-slot-set! obj index value
+Set the slot with index @var{index} in @var{obj} to
+@var{value}.
+@end deffn
+
+@deffn primitive %fast-slot-ref obj index
+Return the slot value with index @var{index} from @var{obj}.
+@end deffn
+
+@deffn primitive @@assert-bound-ref obj index
+Like @code{assert-bound}, but use @var{index} for accessing
+the value from @var{obj}.
+@end deffn
+
+@deffn primitive assert-bound value obj
+Return @var{value} if it is bound, and invoke the
+@var{slot-unbound} method of @var{obj} if it is not.
+@end deffn
+
+@deffn primitive unbound? obj
+Return @code{#t} if @var{obj} is unbound.
+@end deffn
+
+@deffn primitive make-unbound
+Return the unbound value.
+@end deffn
+
+@deffn primitive accessor-method-slot-definition obj
+Return the slot definition of the accessor @var{obj}.
+@end deffn
+
+@deffn primitive method-procedure obj
+Return the procedure of the method @var{obj}.
+@end deffn
+
+@deffn primitive method-specializers obj
+Return specializers of the method @var{obj}.
+@end deffn
+
+@deffn primitive method-generic-function obj
+Return the generic function fot the method @var{obj}.
+@end deffn
+
+@deffn primitive generic-function-methods obj
+Return the methods of the generic function @var{obj}.
+@end deffn
+
+@deffn primitive generic-function-name obj
+Return the name of the generic function @var{obj}.
+@end deffn
+
+@deffn primitive class-environment obj
+Return the environment of the class @var{obj}.
+@end deffn
+
+@deffn primitive class-slots obj
+Return the slot list of the class @var{obj}.
+@end deffn
+
+@deffn primitive class-precedence-list obj
+Return the class precedence list of the class @var{obj}.
+@end deffn
+
+@deffn primitive class-direct-methods obj
+Return the direct methods of the class @var{obj}
+@end deffn
+
+@deffn primitive class-direct-subclasses obj
+Return the direct subclasses of the class @var{obj}.
+@end deffn
+
+@deffn primitive class-direct-slots obj
+Return the direct slots of the class @var{obj}.
+@end deffn
+
+@deffn primitive class-direct-supers obj
+Return the direct superclasses of the class @var{obj}.
+@end deffn
+
+@deffn primitive class-name obj
+Return the class name of @var{obj}.
+@end deffn
+
+@deffn primitive instance? obj
+Return @code{#t} if @var{obj} is an instance.
+@end deffn
+
+@deffn primitive %inherit-magic! class dsupers
+@end deffn
+
+@deffn primitive %prep-layout! class
+@end deffn
+
+@deffn primitive %initialize-object obj initargs
+Initialize the object @var{obj} with the given arguments
+@var{initargs}.
+@end deffn
+
+@deffn primitive make . args
+Make a new object.  @var{args} must contain the class and
+all necessary initialization information.
+@end deffn
+
+@deffn primitive slot-ref obj slot_name
+Return the value from @var{obj}'s slot with the name
+@var{slot_name}.
+@end deffn
+
+@deffn primitive builtin-bindings
+Create and return a copy of the global symbol table, removing all
+unbound symbols.
+@end deffn
+
+@deffn primitive %tag-body body
+Internal GOOPS magic---don't use this function!
+@end deffn
+
+@deffn primitive list*
+scm_cons_star
+@end deffn
+
+@deffn primitive set-current-module module
+Set the current module to @var{module} and return
+the previous current module.
+@end deffn
+
+@deffn primitive current-module
+Return the current module.
+@end deffn
+
+@deffn primitive c-clear-registered-modules
+Destroy the list of modules registered with the current Guile process.
+The return value is unspecified.  @strong{Warning:} this function does
+not actually unlink or deallocate these modules, but only destroys the
+records of which modules have been loaded.  It should therefore be used
+only by module bookkeeping operations.
+@end deffn
+
+@deffn primitive c-registered-modules
+Return a list of the object code modules that have been imported into
+the current Guile process.  Each element of the list is a pair whose
+car is the name of the module, and whose cdr is the function handle
+for that module's initializer function.  The name is the string that
+has been passed to scm_register_module_xxx.
+@end deffn
+
+@deffn primitive include-deprecated-features
+Return @code{#t} iff deprecated features should be included
+in public interfaces.
+@end deffn
+
+@deffn primitive issue-deprecation-warning . msgs
+Output @var{msgs} to @code{(current-error-port)} when this
+is the first call to @code{issue-deprecation-warning} with
+this specific @var{msg}.  Do nothing otherwise.
+The argument @var{msgs} should be a list of strings;
+they are printed in turn, each one followed by a newline.
+@end deffn

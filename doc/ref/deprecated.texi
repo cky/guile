@@ -1,0 +1,138 @@
+@page
+@node Deprecated
+@chapter Deprecated
+
+@menu
+* Shared And Read Only Strings::
+@end menu
+
+
+@node Shared And Read Only Strings
+@section Shared And Read Only Strings
+
+The procedures described in this section are deprecated because explicit
+shared substrings are planned to disappear from Guile.
+
+Instead, all strings will be implemented using sharing internally,
+combined with a copy-on-write strategy.  Once internal string sharing
+and copy-on-write have been implemented, it will be unnecessary to
+preserve the concept of read only strings.
+
+@menu
+* Shared Substrings::           Strings which share memory with each other.
+* Read Only Strings::           Treating certain non-strings as strings.
+@end menu
+
+
+@node Shared Substrings
+@subsection Shared Substrings
+
+Whenever you extract a substring using @code{substring}, the Scheme
+interpreter allocates a new string and copies data from the old string.
+This is expensive, but @code{substring} is so convenient for
+manipulating text that programmers use it often.
+
+Guile Scheme provides the concept of the @dfn{shared substring} to
+improve performance of many substring-related operations.  A shared
+substring is an object that mostly behaves just like an ordinary
+substring, except that it actually shares storage space with its parent
+string.
+
+@deffn primitive make-shared-substring str [start [end]]
+Return a shared substring of @var{str}.  The arguments are the
+same as for the @code{substring} function: the shared substring
+returned includes all of the text from @var{str} between
+indexes @var{start} (inclusive) and @var{end} (exclusive).  If
+@var{end} is omitted, it defaults to the end of @var{str}.  The
+shared substring returned by @code{make-shared-substring}
+occupies the same storage space as @var{str}.
+@end deffn
+
+Example:
+
+@example
+(define foo "the quick brown fox")
+(define bar (make-shared-substring some-string 4 9))
+
+foo => "t h e   q u i c k   b r o w n   f o x"
+bar =========> |---------|
+@end example
+
+The shared substring @var{bar} is not given its own storage space.
+Instead, the Guile interpreter notes internally that @var{bar} points to
+a portion of the memory allocated to @var{foo}.  However, @var{bar}
+behaves like an ordinary string in most respects: it may be used with
+string primitives like @code{string-length}, @code{string-ref},
+@code{string=?}.  Guile makes the necessary translation between indices
+of @var{bar} and indices of @var{foo} automatically.
+
+@example
+(string-length? bar) @result{} 5	; bar only extends from indices 4 to 9
+(string-ref bar 3)  @result{} #\c	; same as (string-ref foo 7)
+(make-shared-substring bar 2)
+  @result{} "ick"			; can even make a shared substring!
+@end example
+
+Because creating a shared substring does not require allocating new
+storage from the heap, it is a very fast operation.  However, because it
+shares memory with its parent string, a change to the contents of the
+parent string will implicitly change the contents of its shared
+substrings.
+
+@example
+(string-set! foo 7 #\r)
+bar @result{} "quirk"
+@end example
+
+Guile considers shared substrings to be immutable.  This is because
+programmers might not always be aware that a given string is really a
+shared substring, and might innocently try to mutate it without
+realizing that the change would affect its parent string.  (We are
+currently considering a "copy-on-write" strategy that would permit
+modifying shared substrings without affecting the parent string.)
+
+In general, shared substrings are useful in circumstances where it is
+important to divide a string into smaller portions, but you do not
+expect to change the contents of any of the strings involved.
+
+
+@node Read Only Strings
+@subsection Read Only Strings
+
+In previous versions of Guile, there was the idea that some string-based
+primitives such as @code{string-append} could equally accept symbols as
+arguments.  For example, one could write
+
+@lisp
+(string-append '/home/ 'vigilia)
+@end lisp
+
+@noindent
+and get @code{"/home/vigilia"} as the result.  The term @dfn{read only
+string} was adopted to describe the argument type expected by such
+primitives.
+
+This idea has now been removed.  The predicate @code{read-only-string?}
+still exists, but deprecated, and is equivalent to
+
+@lisp
+(lambda (x) (or (string? x) (symbol? x)))
+@end lisp
+
+@noindent
+But no Guile primitives now use @code{read-only-string?} to validate
+their arguments.
+
+String-based primitives such as @code{string-append}
+now require strings:
+
+@lisp
+(string-append '/home/ 'vigilia)
+@result{}
+ERROR: Wrong type argument (expecting STRINGP): /home/
+@end lisp
+
+@deffn primitive read-only-string? obj
+Return @code{#t} if @var{obj} is either a string or a symbol,
+otherwise return @code{#f}.
+@end deffn

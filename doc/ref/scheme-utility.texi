@@ -1,0 +1,295 @@
+@page
+@node Utility Functions
+@chapter General Utility Functions
+
+@c FIXME::martin: Review me!
+
+This chapter contains information about procedures which are not cleanly
+tied to a specific data type.  Because of their wide range of
+applications, they are collected in a @dfn{utlity} chapter.
+
+@menu
+* Equality::                    When are two values `the same'?
+* Property Lists::              Managing metainformation about Scheme objects.
+* Primitive Properties::        A modern low-level interface to object properties.
+* Sorting::                     Sort utility procedures.
+* Copying::                     Copying deep structures.
+* General Conversion::          Converting objects to strings.
+@end menu
+
+
+@node Equality
+@section Equality
+
+@c FIXME::martin: Review me!
+
+@cindex sameness
+@cindex equality
+
+Three different kinds of @dfn{sameness} are defined in Scheme.
+
+@itemize @bullet
+@item
+Two values can refer to exactly the same object.
+
+@item
+Two objects can have the same @dfn{value}.
+
+@item
+Two objects can be structurally equivalent.
+@end itemize
+
+The differentiation between these three kinds is important, because
+determining whether two values are the same objects is very efficient,
+while determining structural equivalence can be quite expensive
+(consider comparing two very long lists).  Therefore, three different
+procedures for testing for equality are provided, which correspond to
+the three kinds of @dfn{sameness} defined above.
+
+@rnindex eq?
+@deffn primitive eq? x y
+Return @code{#t} iff @var{x} references the same object as @var{y}.
+@code{eq?} is similar to @code{eqv?} except that in some cases it is
+capable of discerning distinctions finer than those detectable by
+@code{eqv?}.
+@end deffn
+
+@rnindex eqv?
+@deffn primitive eqv? x y
+The @code{eqv?} procedure defines a useful equivalence relation on objects.
+Briefly, it returns @code{#t} if @var{x} and @var{y} should normally be
+regarded as the same object.  This relation is left slightly open to
+interpretation, but works for comparing immediate integers, characters,
+and inexact numbers.
+@end deffn
+
+@rnindex equal?
+@deffn primitive equal? x y
+Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.
+@code{equal?} recursively compares the contents of pairs,
+vectors, and strings, applying @code{eqv?} on other objects such as
+numbers and symbols.  A rule of thumb is that objects are generally
+@code{equal?}  if they print the same.  @code{equal?} may fail to
+terminate if its arguments are circular data structures.
+@end deffn
+
+
+@node Property Lists
+@section Property Lists
+
+Every object in the system can have a @dfn{property list} that may
+be used for information about that object.  For example, a
+function may have a property list that includes information about
+the source file in which it is defined.
+
+Property lists are implemented as assq lists (@pxref{Association Lists}).
+
+Currently, property lists are implemented differently for procedures and
+closures than for other kinds of objects.  Therefore, when manipulating
+a property list associated with a procedure object, use the
+@code{procedure} functions; otherwise, use the @code{object} functions.
+
+@deffn primitive object-properties obj
+@deffnx primitive procedure-properties obj
+Return @var{obj}'s property list.
+@end deffn
+
+@deffn primitive set-object-properties! obj alist
+@deffnx primitive set-procedure-properties! obj alist
+Set @var{obj}'s property list to @var{alist}.
+@end deffn
+
+@deffn primitive object-property obj key
+@deffnx primitive procedure-property obj key
+Return the property of @var{obj} with name @var{key}.
+@end deffn
+
+@deffn primitive set-object-property! obj key value
+@deffnx primitive set-procedure-property! obj key value
+In @var{obj}'s property list, set the property named @var{key}
+to @var{value}.
+@end deffn
+
+[Interface bug:  there should be a second level of interface in which
+the user provides a "property table" that is possibly private.]
+
+
+@node Primitive Properties
+@section Primitive Properties
+
+@deffn primitive primitive-make-property not_found_proc
+Create a @dfn{property token} that can be used with
+@code{primitive-property-ref} and @code{primitive-property-set!}.
+See @code{primitive-property-ref} for the significance of
+@var{not_found_proc}.
+@end deffn
+
+@deffn primitive primitive-property-ref prop obj
+Return the property @var{prop} of @var{obj}.  When no value
+has yet been associated with @var{prop} and @var{obj}, call
+@var{not-found-proc} instead (see @code{primitive-make-property})
+and use its return value.  That value is also associated with
+@var{obj} via @code{primitive-property-set!}.  When
+@var{not-found-proc} is @code{#f}, use @code{#f} as the
+default value of @var{prop}.
+@end deffn
+
+@deffn primitive primitive-property-set! prop obj val
+Associate @var{code} with @var{prop} and @var{obj}.
+@end deffn
+
+@deffn primitive primitive-property-del! prop obj
+Remove any value associated with @var{prop} and @var{obj}.
+@end deffn
+
+
+@node Sorting
+@section Sorting
+
+@c FIXME::martin: Review me!
+
+@cindex sorting
+@cindex sorting lists
+@cindex sorting vectors
+
+Sorting is very important in computer programs.  Therefore, Guile comes
+with several sorting procedures built-in.  As always, procedures with
+names ending in @code{!} are side-effecting, that means that they may
+modify their parameters in order to produce their results.
+
+The first group of procedures can be used to merge two lists (which must
+be already sorted on their own) and produce sorted lists containing
+all elements of the input lists.
+
+@deffn primitive merge alist blist less
+Take two lists @var{alist} and @var{blist} such that
+@code{(sorted? alist less?)} and @code{(sorted? blist less?)} and
+returns a new list in which the elements of @var{alist} and
+@var{blist} have been stably interleaved so that
+@code{(sorted? (merge alist blist less?) less?)}.
+@end deffn
+
+@deffn primitive merge! alist blist less
+Takes two lists @var{alist} and @var{blist} such that
+@code{(sorted? alist less?)} and @code{(sorted? blist less?)} and
+returns a new list in which the elements of @var{alist} and
+@var{blist} have been stably interleaved so that
+ @code{(sorted? (merge alist blist less?) less?)}.
+This is the destructive variant of @code{merge}
+Note:  this does _not_ accept vectors.
+@end deffn
+
+The following procedures can operate on sequences which are either
+vectors or list.  According to the given arguments, they return sorted
+vectors or lists, respectively.  The first of the following procedures
+determines whether a sequence is already sorted, the other sort a given
+sequence.  The variants with names starting with @code{stable-} are
+special in that they maintain a special property of the input sequences:
+If two or more elements are the same according to the comparison
+predicate, they are left in the same order as they appeared in the
+input.
+
+@deffn primitive sorted? items less
+Return @code{#t} iff @var{items} is a list or a vector such that
+for all 1 <= i <= m, the predicate @var{less} returns true when
+applied to all elements i - 1 and i
+@end deffn
+
+@deffn primitive sort items less
+Sort the sequence @var{items}, which may be a list or a
+vector.  @var{less} is used for comparing the sequence
+elements.  This is not a stable sort.
+@end deffn
+
+@deffn primitive sort! items less
+Sort the sequence @var{items}, which may be a list or a
+vector.  @var{less} is used for comparing the sequence
+elements.  The sorting is destructive, that means that the
+input sequence is modified to produce the sorted result.
+This is not a stable sort.
+@end deffn
+
+@deffn primitive stable-sort items less
+Sort the sequence @var{items}, which may be a list or a
+vector. @var{less} is used for comparing the sequence elements.
+This is a stable sort.
+@end deffn
+
+@deffn primitive stable-sort! items less
+Sort the sequence @var{items}, which may be a list or a
+vector. @var{less} is used for comparing the sequence elements.
+The sorting is destructive, that means that the input sequence
+is modified to produce the sorted result.
+This is a stable sort.
+@end deffn
+
+The procedures in the last group only accept lists or vectors as input,
+as their names indicate.
+
+@deffn primitive sort-list items less
+Sort the list @var{items}, using @var{less} for comparing the
+list elements. This is a stable sort.
+@end deffn
+
+@deffn primitive sort-list! items less
+Sort the list @var{items}, using @var{less} for comparing the
+list elements. The sorting is destructive, that means that the
+input list is modified to produce the sorted result.
+This is a stable sort.
+@end deffn
+
+@deffn primitive restricted-vector-sort! vec less startpos endpos
+Sort the vector @var{vec}, using @var{less} for comparing
+the vector elements.  @var{startpos} and @var{endpos} delimit
+the range of the vector which gets sorted.  The return value
+is not specified.
+@end deffn
+
+
+@node Copying
+@section Copying Deep Structures
+
+@c FIXME::martin: Review me!
+
+The procedures for copying lists (@pxref{Lists}) only produce a flat
+copy of the input list, and currently Guile does not even contain
+procedures for copying vectors.  @code{copy-tree} can be used for these
+application, as it does not only copy the spine of a list, but also
+copies any pairs in the cars of the input lists.
+
+@deffn primitive copy-tree obj
+Recursively copy the data tree that is bound to @var{obj}, and return a
+pointer to the new data structure.  @code{copy-tree} recurses down the
+contents of both pairs and vectors (since both cons cells and vector
+cells may point to arbitrary objects), and stops recursing when it hits
+any other object.
+@end deffn
+
+
+@node General Conversion
+@section General String Conversion
+
+@c FIXME::martin: Review me!
+
+When debugging Scheme programs, but also for providing a human-friendly
+interface, a procedure for converting any Scheme object into string
+format is very useful.  Conversion from/to strings can of course be done
+with specialized procedures when the data type of the object to convert
+is known, but with this procedure, it is often more comfortable.
+
+@code{object->string} converts an object by using a print procedure for
+writing to a string port, and then returning the resulting string.
+Converting an object back from the string is only possible if the object
+type has a read syntax and the read syntax is preserved by the printing
+procedure.
+
+@deffn primitive object->string obj [printer]
+Return a Scheme string obtained by printing @var{obj}.
+Printing function can be specified by the optional second
+argument @var{printer} (default: @code{write}).
+@end deffn
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

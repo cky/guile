@@ -1,0 +1,55 @@
+@page
+@node Scheme Intro
+@chapter Introduction to Guile Scheme
+
+Guile's core language is Scheme, which is specified and described in the
+series of reports known as @dfn{RnRS}.  @dfn{RnRS} is shorthand for the
+@iftex
+@dfn{Revised$^n$ Report on the Algorithmic Language Scheme}.
+@end iftex
+@ifnottex
+@dfn{Revised^n Report on the Algorithmic Language Scheme}.
+@end ifnottex
+The current latest revision of RnRS is version 5
+(@pxref{Top,R5RS,,r5rs}), and Guile 1.4 is fully compliant with the
+Scheme specification in this revision.
+
+But Guile, like most Scheme implementations, also goes beyond R5RS in
+many ways, because R5RS does not give specifications (or even
+recommendations) regarding many issues that are important in practical
+programming.  Some of the areas where Guile extends R5RS are:
+
+@itemize @bullet
+@item
+Guile's interactive documentation system
+
+@item
+Guile's support for POSIX-compliant network programming
+
+@item
+GOOPS -- Guile's framework for object oriented programming.
+@end itemize
+
+@menu
+* Scheme Layout::               The layout of this part of the manual.
+@end menu
+
+
+@node Scheme Layout
+@section Layout
+
+This part of the reference manual documents all of Guile's core
+Scheme-level language and features in functionally-related groups.
+Where a particular section of the manual includes both R5RS-compliant
+parts and Guile-specific extensions, the text indicates which parts of
+the documentation describe R5RS behaviour and which parts describe Guile
+extensions.
+
+For a breakdown of Guile's core language and features in terms of what
+is R5RS-compliant and what is Guile-specific, see the corresponding
+indices: @ref{R5RS Index} and @ref{Guile Extensions Index}.
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

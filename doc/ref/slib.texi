@@ -1,0 +1,105 @@
+@page
+@node SLIB
+@chapter SLIB
+
+Before the the SLIB facilities can be used, the following Scheme
+expression must be executed:
+
+@smalllisp
+(use-modules (ice-9 slib))
+@end smalllisp
+
+@code{require} can then be used as described in
+@ref{Top, , SLIB, slib, The SLIB Manual}.
+
+For example:
+
+@smalllisp
+guile> (use-modules (ice-9 slib))
+guile> (require 'primes)
+guile> (probably-prime? 13)
+@end smalllisp
+
+@menu
+* SLIB installation::
+* JACAL::
+@end menu
+
+@node SLIB installation
+@section SLIB installation
+
+The following seems to work, at least with slib 2c7:
+
+@enumerate
+@item
+Unpack slib somewhere, e.g., /usr/local/lib/slib.
+
+@item
+Create a symlink in the Guile site directory to slib, e.g.,:
+
+@example
+ln -s /usr/local/lib/slib /usr/local/share/guile/site/slib
+@end example
+
+@item
+Use Guile to create the catalogue file, e.g.,:
+
+@example
+# guile
+guile> (use-modules (ice-9 slib))
+guile> (load "/usr/local/lib/slib/mklibcat.scm")
+guile> (quit)
+@end example
+
+The catalogue data should now be in
+@code{/usr/local/share/guile/site/slibcat}.
+
+If instead you get an error such as:
+
+@example
+Unbound variable: scheme-implementation-type
+@end example
+
+then a solution is to get a newer version of Guile,
+or to modify ice-9/slib.scm to use define-public for the
+offending variables.
+
+@item
+Install the documentation:
+
+@example
+cd /usr/local/lib/slib
+rm /usr/local/info/slib.info*
+cp slib.info /usr/local/info
+install-info slib.info /usr/local/info/dir
+@end example
+@end enumerate
+
+@node JACAL
+@section JACAL
+
+@cindex Jaffer, Aubrey
+@cindex symbolic math
+@cindex math -- symbolic
+Jacal is a symbolic math package written in Scheme by Aubrey Jaffer.  It
+is usually installed as an extra package in SLIB (@pxref{Packages not
+shipped with Guile}).
+
+You can use Guile's interface to SLIB to invoke Jacal:
+
+@smalllisp
+(use-modules (ice-9 slib))
+(slib:load "math")
+(math)
+@end smalllisp
+
+@noindent
+For complete documentation on Jacal, please read the Jacal manual.  If
+it has been installed on line, you can look at @ref{Top, , Jacal, jacal,
+The SLIB Manual}.  Otherwise you can find it on the web at
+@url{http://www-swiss.ai.mit.edu/~jaffer/JACAL.html}
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

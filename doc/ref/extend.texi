@@ -1,0 +1,44 @@
+@page
+@node Libguile Intro
+@chapter Using Guile as an Extension Language
+
+The chapters in this part of the manual explain how to use Guile as a
+powerful application extension language.
+
+An important change for the 1.6.x series of Guile releases is that the
+GH interface is now deprecated.  For the reasoning behind this decision,
+see @xref{GH deprecation}.  The GH interface will continue to be
+supported for the 1.6.x and 1.8.x release series, but will be dropped
+thereafter, so developers are encouraged to switch progressively to the
+scm interface.  The last chapter in this part of the manual (@pxref{GH})
+documents both how to use GH and how to switch from GH to scm.
+
+The Guile developers believe that clarification of the GH vs. scm
+debate, and the consequent deprecation of the GH interface, are in the
+long term interests of the project.  However it does create an
+unfortunate situation for developers who want to start a project using
+Guile and so read the manual to find out how to proceed.  They will
+discover that the GH interface, although quite well documented, is
+deprecated, but that there is almost no adequate documentation for its
+theoretical replacement, the scm interface.  Moreover, the scm interface
+still has the odd few rough edges which need smoothing down.
+
+Therefore, although deprecated, it is quite OK to continue to use the GH
+interface if you feel uncomfortable with the `scm_' interface as it
+stands today.  By the time that support for GH is dropped, we plan to
+have thoroughly documented the `scm_' interface, and to have enhanced it
+such that conversion from GH to the `scm_' interface will be very
+straightforward, and probably mostly automated.
+
+As far as documentation of the scm interface is concerned, the current
+position is that it is a bit confused, but that the situation should
+improve rapidly once the 1.6.0 release is out.  The plan is to refocus
+the bulk of Part II, currently ``Guile Scheme'', as the ``Guile API
+Reference'' so that it covers both Scheme and C interfaces.  (This makes
+sense because almost all of Guile's primitive procedures on the Scheme
+level --- e.g. @code{memq} --- are also available as C level primitives
+in the scm interface --- e.g. @code{scm_memq}.)  There will then remain
+a certain amount of Scheme-specific (such as the ``Basic Ideas''
+chapter) and C-specific documentation (such as SMOB usage and
+interaction with the garbage collector) to collect into corresponding
+chapters.

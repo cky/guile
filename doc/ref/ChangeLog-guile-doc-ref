@@ -1,0 +1,890 @@
+2001-03-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Moving texinfo files from guile-doc/ref into guile-core/doc:
+
+	* env.texi, indices.texi, mbapi.texi, mltext.texi, scripts.texi,
+	scsh.texi, tcltk.texi, hierarchy.txt, scheme-indices.texi,
+	slib.texi, deprecated.texi, scheme-binding.texi, appendices.texi,
+	scheme-intro.texi, goops.texi, extend.texi, gh.texi, intro.texi,
+	preface.texi, scm.texi, goops-tutorial.texi, hierarchy.eps,
+	r4rs.texi, r5rs.texi, texinfo.tex, scheme-reading.texi,
+	data-rep.texi, scheme-utility.texi, posix.texi,
+	scheme-control.texi, scheme-debug.texi, scheme-evaluation.texi,
+	scheme-io.texi, scheme-memory.texi, scheme-modules.texi,
+	scheme-options.texi, scheme-procedures.texi,
+	scheme-scheduling.texi, scheme-translation.texi, guile.texi,
+	scheme-data.texi, scheme-ideas.texi, expect.texi: Removed.
+
+2001-02-28  Gary Houston  <ghouston@arglist.com>
+
+	* expect.texi (Expect): add missing eof? argument in example code.
+
+2001-02-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.texi, scheme-data.texi, scheme-ideas.texi: Remove the code
+	that set paragraph indent to zero, then add @noindent to several
+	places that need not to be indented.
+
+2001-02-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi (File System, Time), scheme-control.texi
+	(Exceptions), scheme-data.texi (Complex, Primitive Numerics,
+	Random, String Fun, Symbols and Variables, Lists, Bit Vectors,
+	Hooks), scheme-debug.texi (Debugging), scheme-evaluation.texi
+	(Reader Extensions, Scheme Read, Fly Evaluation, Loading,
+	Evaluator Options), scheme-io.texi (Reading, Writing, Default
+	Ports, File Ports), scheme-memory.texi (Garbage Collection,
+	Guardians, Objects), scheme-modules.texi (The Guile module
+	system), scheme-options.texi (Install Config),
+	scheme-procedures.texi (Procedure Properties, Procedures with
+	Setters), scheme-scheduling.texi (Arbiters, Asyncs),
+	scheme-translation.texi (Emacs Lisp Support): Automatic docstring
+	updates.
+
+	* scheme-io.texi (Binary IO): New node.
+
+	* scheme-control.texi (Multiple Values): New node.
+
+2001-02-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-utility.texi (Sorting), scheme-procedures.texi (Procedure
+	Properties), scheme-memory.texi (Guardians), scheme-io.texi
+	(Line/Delimited), scheme-data.texi (String Fun, Symbols and
+	Variables, Vtables), posix.texi (Ports and File Descriptors, File
+	System, Network Sockets and Communication): Automatic docstring
+	updates.
+
+2001-02-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* data-rep.texi: Preserve, in comments beginning `@c essay',
+	material from the standalone version of this essay which is very
+	soon to be retired from its current location at
+	guile-core/doc/data-rep.texi.
+
+	* data-rep.texi: Incorporate recent changes to smob example
+	documentation from the standalone version of this essay.
+
+2001-02-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-reading.texi (Further Reading): Add reference to online
+	version of SICP.
+
+2001-01-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Further changes to get everything to build to dvi with the latest
+	texinfo.tex.
+
+	* texinfo.tex: Replaced by latest version from ftp.gnu.org.
+	
+	* r5rs.texi (Binding constructs): Remove @c inside @t{...} at
+	lines 2207-2209.
+	(Lexical structure): Remove @c inside @t{...} at line 7517.
+
+	* r4rs.texi (Example): Remove @c inside @t{...} at lines 6557 and
+	6569.
+
+2001-01-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scm.texi (Handling Errors): Improved markup.
+	(snarfing): Deleted.
+
+	* data-rep.texi: File copied here from sources directory and
+	integrated into the reference manual structure.
+	
+	* extend.texi (Libguile Intro): New file, new node, to introduce
+	new Part.
+
+	* guile.texi: Merged Parts V and VI into a single Part: "Extending
+	Applications Using Guile".  Improved some top level node names and
+	descriptions.  Include extend.texi and data-rep.texi.
+
+	* preface.texi (Manual Layout): Updated according to merge of
+	Parts V and VI.
+	
+	* gh.texi: Restructured into a single chapter.
+
+	* scm.texi (C Port Interface, Port Implementation): Moved here
+	from scheme-io.texi.
+
+	* scheme-io.texi (Default Ports): Renamed from `Port
+	Environment'.
+	(Port Internals): Contents moved to scm.texi.
+
+	* r5rs.texi: Changes to allow building of r5rs.dvi from r5rs.texi.
+	Aubrey Jaffer's view - which I agree with - is that, given that
+	people have the option of building r5rs.dvi from the original
+	LaTeX distribution for R5RS, it is not worth fixing his master
+	copy of r5rs.texi and the tool which autogenerates it.  On the
+	other hand, it is a marginal convenience for people to be able to
+	build hardcopy from r5rs.texi, even if the results are less good
+	than with the original LaTeX.  Hence the following fixes.
+	(lines 714, 725, 728, 1614, 2258): Remove invalid parentheses from
+	@deffn statements.
+	(line 2316): Change @deffnx to @deffn, and insert `@end deffn' to
+	terminate preceding @deffn.
+	(line 7320): Insert `@c ' at beginning of lines that are intended
+	to be @ignore'd.
+
+	* guile.texi, r4rs.texi, r5rs.texi: Align @direntry descriptions
+	to start in column 32.
+
+2001-01-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* intro.texi: Licensing and Layout material moved to
+	preface.texi.
+	(Whirlwind Tour): New chapter as top level for preexisting
+	sections.
+
+	* guile.texi: Various minor changes to improve the structure at
+	the beginning of the reference manual.
+
+	* preface.texi: New file, to split out "prefatory material".
+	Initially with Licensing and Layout material taken from
+	intro.texi.
+
+	* Makefile.am (dist_texis): Add preface.texi.
+
+2001-01-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* intro.texi: Change R4RS everywhere to R5RS.
+	(What is Guile?): Change "compiling" to "translating".
+
+2001-01-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* appendices.texi (Internals): Content merged into Symbols and
+	Variables node of scheme-data.texi.
+	(Reporting Bugs): Moved to manual Part I.
+	
+	* guile.texi: Inserted new Part for `Guile Modules' as distinct
+	from core Guile Scheme language/features.  Other parts renumbered
+	correspondingly.  Module chapters moved into new part.
+	
+	* intro.texi (Reporting Bugs): Node moved here from
+	appendices.texi.
+	
+	* posix.texi (POSIX): Node name changed from `POSIX System Calls
+	and Networking'.
+	
+	* scheme-data.texi (Symbols and Variables): Added texinfo markup
+	to docstrings that didn't have it.  Expanded snarfed argument
+	names like `o' and `s' to `obarray' and `string'.
+	
+	* scheme-debug.texi (Debugging): Node name changed from `Internal
+	Debugging Interface'.
+
+	* scheme-evaluation.texi (Fly Evaluation): Moved doc for
+	`interaction-environment' here (previously under module doc).
+
+	* scheme-memory.texi: Structure reorganization.
+	
+	* scheme-modules.texi: Structure reorganization.  Removed empty
+	subsections `First-class Variables' and `First-class Modules'.
+	
+	* scheme-options.texi (Options and Config): Node name changed from
+	`Options'.
+	(Install Config) Node name changed from `Configuration Data'.
+
+	* scheme-scheduling.texi (Scheduling): Node name changed from
+	`Threads and Dynamic Roots'.
+
+	* scheme-translation.texi (Translation): New top level node for
+	translation documentation.
+
+2001-01-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-exceptions.texi: Removed.
+	
+	* Makefile.am (dist_texis): Removed scheme-exceptions.texi.
+
+	* guile.texi (Top): Renamed/redescribed some top level nodes.  No
+	longer include scheme-exceptions.texi.
+
+	* scheme-control.texi: Merge material that was previously in
+	scheme-exceptions.texi.
+	
+	* posix.texi: Updated close-port reference.
+
+	* scheme-binding.texi, scheme-control.texi,
+	scheme-evaluation.texi, scheme-intro.texi, scheme-io.texi,
+	scheme-procedures.texi, scheme-utility.texi: Massaged into desired
+	structure.
+
+	* scheme-data.texi (Generic Data Types): Changed to "Data Types".
+	(Numbers) Introduction streamlined.
+	(Complex Numbers) New material.
+	
+2001-01-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi, scheme-io.texi, scheme-memory.texi,
+	scheme-options.texi: Where a single docstring documents more than
+	one primitive, add a docstring comment for each additionally
+	documented primitive.
+
+	* scheme-modules.texi: Update docstring for dynamic-func.
+	
+	* scheme-data.texi (Numbers, Numerical Tower, Integers, Reals and
+	Rationals, Number Syntax): New material.
+
+	* deprecated.texi (Deprecated): Remove obsolete MD5 comment line.
+
+2000-12-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (Numbers): Documentation added for scientific
+	functions.
+
+	* Makefile.am (dist_texis): Updated following split of scheme.texi
+	into per-chapter files.
+
+2000-12-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (Booleans): Written.
+	(Numbers): Introduction written, primitives organized into
+	subsections.
+
+2000-12-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (Generic Data Types): Added chapter
+	introduction.
+	(Bitwise Operations, Random): Moved underneath Numbers.
+	(Other Data Types): New placeholder section for data types that
+	are documented elsewhere.
+
+	* scheme-indices.texi, scheme-reading.texi: Added Local Variables
+	block.
+
+2000-12-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	This change replaces scheme.texi, which is unmanageably large, by
+	a set of smaller one-per-chapter files.  The set and ordering of
+	the new files reflects the intended top level structure of the
+	Guile Scheme part of the reference manual.  This structure is not
+	yet all reflected in the combined Texinfo/Info, though, because I
+	haven't yet fixed the @node levels appropriately.
+	
+	* scheme.texi: Removed, after dividing content into new files.
+
+	* scheme-procedures.texi, scheme-utility.texi,
+	scheme-binding.texi, scheme-control.texi, scheme-io.texi,
+	scheme-evaluation.texi, scheme-exceptions.texi,
+	scheme-memory.texi, scheme-modules.texi, scheme-scheduling.texi,
+	scheme-options.texi, scheme-translation.texi, scheme-debug.texi,
+	slib.texi: New files.
+
+	* guile.texi: @include new files instead of scheme.texi.  Reorder
+	existing top level nodes.
+	
+2000-12-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi: Remove @page breaks (following demotion).
+
+	* guile.texi (Top), scheme-ideas.texi: Demote everything one level
+	so that previous chapters About Data, About Procedures, About
+	Expressions and About Closure are now combined into a single
+	Scheme Ideas chapter.  Add overall chapter introduction.  Fix up
+	top level nodes accordingly.
+
+	* guile.texi (Top), scheme.texi, scheme-data.texi: Gather material
+	for Generic Data Types chapter into a new file
+	(scheme-data.texi).  @include new file in guile.texi.  Fix up top
+	level nodes accordingly.  (This changes demotes all the affected
+	material by one level, except for that which was already grouped
+	together under the Data Structures node.)
+	
+	* guile.texi (Top): @include new files.
+
+	* scheme-intro.texi, scheme-ideas.texi: New files.
+
+	* scheme.texi (Guile and R5RS Scheme): Moved introductory chapter
+	to its own file	(scheme-intro.texi).
+	(About Closure) Chapter completed.
+	(About Data, About Procedures, About Expressions, About Closure):
+	Ideas chapters moved to their own file (scheme-ideas.texi);
+	scheme.texi was just getting too large!
+
+2000-11-09  Gary Houston  <ghouston@arglist.com>
+
+	* posix.texi (Ports and File Descriptors): updated
+	close-all-ports-except.
+
+2000-11-07  Gary Houston  <ghouston@arglist.com>
+
+	* posix.texi (Ports and File Descriptors): added dup2, close-fdes
+	and port-for-each.
+	(Pipes): synchronise open-input-pipe, open-output-pipe with
+	popen.scm.
+
+2000-11-04  Gary Houston  <ghouston@arglist.com>
+
+	* scheme.texi (Generic Port Operations): "port?" added.
+
+2000-11-03  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme.texi (About Expressions): New material about evaluation
+	and program execution.
+
+	* scheme.texi (About Procedures): Minor textual improvements.
+
+2000-10-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme.texi (About Expressions, About Closure): Placeholder
+	structure for remaining introductory Scheme material.
+
+	* guile.texi (Top): Shorten some menu item lines to fit on a
+	single console line.
+
+2000-10-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-indices.texi (R5RS Index, Guile Extensions Index): Print
+	new indices.
+
+	* guile.texi: Define new R5RS and Guile extension indices.
+
+2000-10-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme.texi (Guile and R5RS Scheme): Filled in examples of Guile
+	extensions.
+	(About Procedures): New introductory material.
+
+	* scheme-reading.texi: New file.
+
+	* scheme-indices.texi: New file.
+
+	* intro.texi (Scripting Examples): Added @* to fix TeX overfull
+	hboxes (twice).
+	(end of file): Added Local Variables block for TeX-master
+	variable.
+
+	* scheme.texi (R4RS Scheme): Node changed to "Guile and R5RS
+	Scheme".  Content changed to indicate that we plan to document
+	both standard Scheme and Guile extensions.
+	(About Data, About Procedures, About Expressions): New Scheme
+	introductory material chapters.
+	(Options): Moved material on Options into its own chapter.
+	(Coding With Keywords): New subsection; extends material on use of
+	keywords to include examples of and references to (ice-9 optargs).
+	(passim): Change many uses of @example to @lisp, since the
+	formatting seems to come out better in TeX.
+	(Optional Arguments): New placeholder chapter (empty).
+	(end of file): Added Local Variables block for TeX-master
+	variable.
+
+	* guile.texi (Top): "R4RS Scheme" node changed to "Guile and R5RS
+	Scheme".  Added Scheme introductory chapters: About Data, About
+	Procedures and About Expressions.  New Options chapter for options
+	material.  New Optional Arguments chapter as placeholder for
+	(ice-9 optargs) material.  New chapter for "Further Reading".  New
+	chapters for indices showing what is standard Scheme and what is
+	Guile extension.
+
+2000-10-25  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* Makefile.am: Added goops.texi and new files to dist_texis.
+
+	* goops.texi, goops-tutorial.texi, hierarchy.eps, hierarchy.txt:
+	New files.
+
+2000-10-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gh.texi (Starting and controlling the interpreter): Removed
+	obsolete note about boot-9.scm not being loaded by gh_enter.
+	(Thanks to Chris Cramer for pointing this out.)
+
+2000-10-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.texi, scheme.texi, posix.texi: Simplified docstring
+	comments: (i) they new refer to the Texinfo-format file that is
+	generated by snarfing when libguile is built, rather than to
+	individual C files in the libguile source; (ii) there is no longer
+	a need to keep MD5 digest values for the corresponding source
+	docstring, since I'm now using a different mechanism for keeping
+	track of source material changes.
+
+	* scheme.texi (Lists): Use "@example" in docstring for append.
+
+	* guile.texi, scheme.texi (Primitive Properties): New chapter,
+	documenting new primitive property primitives.
+
+2000-09-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scm.texi (I/O internals): Add full stops (periods) after
+	standalone uses of @xref.
+
+	* scheme.texi (Structure Layout): Doc for make-struct-layout
+	changed to remove reference to "read-only" strings, which no
+	longer exist.
+	(Structure Basics): Use @pxref rather than @xref for parenthetical
+	reference.
+	(Dynamic Roots): Use @code rather than @var for code, in doc for
+	call-with-dynamic-root.
+	(Low level thread primitives): Ditto call-with-new-thread.
+	(Higher level thread procedures): Ditto call-with-new-thread.
+	(Symbols and Variables): Docs for gensym and symbol-hash updated
+	according to libguile changes.
+
+	* posix.texi (Generic Port Operations): Synchronized docstring
+	for unread-string.
+
+	* gh.texi (Defining new Scheme procedures in C): Avoid texinfo
+	warning by using @code rather than @var for code.
+
+	* scheme.texi: Lots more docstring comments added, and docs
+	synchronized with libguile source.
+	(interaction-environment, make-struct, make-vtable-vtable): Newer,
+	better doc taken from source file.
+	(cons-source): New docstring written.
+	(Vectors): New section added.
+	(Random, Symbols and Variables): New chapters.
+	
+	* posix.texi: Lots more docstring comments added.
+	(pipe, tzset) Newer, better documentation taken from source file.
+	
+	* deprecated.texi: New file, for documenting features that are
+	deprecated and so planned to disappear.
+
+	* guile.texi (Procedures, Reading and Writing, Random, Sorting,
+	Symbols and Variables, Deprecated): New chapters in the Scheme
+	part of the reference manual, to hold docstrings that don't
+	currently fit anywhere else.
+
+2000-08-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi (Pipes): open-pipe and close-pipe are procedures (in
+	ice-9/popen.scm), not primitives.
+
+	* scheme.texi (Generic Port Operations): Remove doc for
+	port-revealed and set-port-revealed!, since these are covered in
+	posix.texi.
+
+	* posix.texi: Inserted docstring synchronization comments and
+	synchronized docstrings for all primitives defined in posix.c,
+	simpos.c, scmsigs.c, stime.c.
+	(Ports and File Descriptors) Similarly synchronized port-revealed
+	and set-port-revealed!.
+	
+2000-08-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme.texi: Lots more docstrings added.
+
+	* guile.texi (Top): More new chapters: Pairs, Objects, Guardians,
+	Emacs Lisp Support.
+
+	* scheme.texi (Numbers): New chapter containing docs (many still
+	empty right now) for numerical primitives.
+
+	* guile.texi (Top): Add chapter for numerical primitives.
+
+2000-08-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi (Ports and File Descriptors): Docstring for select
+	substantially changed by update from libguile source.
+
+	* scheme.texi, posix.texi: Lots more primitive docstrings added.
+
+	* guile.texi (Top): Removed empty Reflection chapter, added new
+	Hooks chapter.
+
+	* scheme.texi: Added docstrings for all Guile primitives from
+	libguile files from arbiters.c to error.c.
+	(Reflection): Empty chapter removed.
+
+	* guile.texi (Top): New chapters "Booleans" and "Equality"
+	(temporary - until we improve the overall organization).
+
+	* scheme.texi (Uniform Arrays): Fix "indentical" typo.
+
+2000-08-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme.texi: Removed superfluous "@c docstring end" markers -
+	docstring.el now uses "@end deffn" to find the end of the
+	docstring.
+	Added a lot more docstring comments, and synced up docstrings with
+	libguile - all libguile primitives documented in scheme.texi now
+	have docstring comments and are up to date.
+	(Evaluation): Updated docstring for eval and eval-string (now
+	R5RS-compliant).
+
+	* intro.texi (Guile Scripts): Added a couple of blank lines.
+
+2000-08-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme.texi: Add docstring comments and sync up existing
+	docstrings with libguile source - complete as far as Association
+	Lists.
+	(Keywords): Fill out and improve documentation about
+	keywords.
+	
+	* guile.texi: Set paragraph indent to zero.
+
+2000-08-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scm.texi (libguile error handling): Add note (text supplied by
+	Gary Houston) giving a pointer on how to do C exception handling
+	since scm_error_callback was removed.
+
+2000-08-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* scm.texi (libguile error handling):  Removed reference to
+	scm_error_callback, which is not available any more since
+	guile-1.3.  Thanks to Juli-Manel Merino Vidal and to Gary Houston
+	for pointing this out.
+
+2000-07-31  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scm.texi (Relationship between Scheme and C functions):
+	Expand.  (Contributed by Thien-Thi Nguyen <ttn@gnu.org>.)
+
+2000-07-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme.texi (Association Lists): New, more complete
+	documentation.
+	* guile.texi: New top-level manual file based on guile-ref.texi
+	but modified to reflect the better organization suggested in
+	sources/jimb-org.texi.
+	* expect.texi: New file to separate out Expect doc.
+	* indices.texi: New file to separate indices from appendices.
+	* intro.texi: Invoking Guile and Meta Switch nodes moved to Guile
+	Scripting part (scripts.texi).  Manual layout node moved to end of
+	introduction.
+	* posix.texi: All nodes downgraded one level.  Expect, SCSH and
+	Tcl/Tk nodes moved to dedicated files.
+	* scheme.texi: Stuff moved around in accordance with
+	sources/jimb-org.texi reorganization (cvs diff totally confused,
+	I'm afraid).
+	* scsh.texi: New file to separate out SCSH doc.
+	* scripts.texi: New file to separate out Guile scripting doc.
+	* tcltk.texi: New file to separate out Tcl/Tk interface doc.
+	* Makefile.am: Changed guile-ref to guile; more distribution
+	texis.
+	* Makefile.in: Changed guile-ref to guile; more distribution
+	texis.
+	
+
+2000-05-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* posix.texi (Conventions): Added example on how to retrieve errno
+	value from a system-exception.  Thanks to Eric Hanchrow!
+
+2000-05-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* intro.texi: Added chapter about Guile's license.
+	* guile-ref.texi: Updated menu.
+
+1999-12-15  Gary Houston  <ghouston@freewire.co.uk>
+
+	* scheme.texi (SLIB installation): new node.
+
+1999-12-06  Gary Houston  <ghouston@freewire.co.uk>
+
+	* r4rs.texi: tweaked the dircategory/direntry for compatibility
+	with the r5 version.
+	guile-ref.texi: tweaked the dircategory.
+	* Makefile.am (info_TEXINFOS): add r5rs.texi.
+	* r5rs.texi: new file, lifted from Aubrey Jaffer's site.
+
+1999-12-04  Gary Houston  <ghouston@freewire.co.uk>
+
+	* scheme.texi (Generic Port Operations): add "port-closed?".
+
+1999-11-22  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* mbapi.texi: Don't promise any behavior on ill-formed text.
+
+1999-11-19  Gary Houston  <ghouston@freewire.co.uk>
+
+	* scheme.texi: rewrote the intros in the array nodes.
+
+1999-11-18  Gary Houston  <ghouston@freewire.co.uk>
+
+	* posix.texi (Network Sockets and Communication): add htons etc.
+	(Ports and File Descriptors, Network Sockets and Communication):
+	suggest setvbuf instead of duplicate-port for converting
+	unbuffered ports to buffered.
+
+	* scheme.texi (Uniform Array): add missing array types to the
+	table.
+
+1999-11-17  Gary Houston  <ghouston@freewire.co.uk>
+
+	* posix.texi (Network Databases): updated.
+
+1999-10-24  Gary Houston  <ghouston@freewire.co.uk>
+
+	* scheme.texi (String Ports): add with-output-to-string and
+	with-input-from-string.
+	(Port Implementation): update for ptob seek.
+
+1999-10-18  Gary Houston  <ghouston@freewire.co.uk>
+
+	* scheme.texi (C Port Interface): update the description of 
+	the rw_random port flag.
+
+1999-09-22  Gary Houston  <ghouston@freewire.co.uk>
+
+	* scheme.texi: added a bit of documentation for port internals.
+
+1999-09-12  Gary Houston  <ghouston@easynet.co.uk>
+
+	* posix.texi (File System): make that "directory-stream?".
+
+1999-09-11  Gary Houston  <ghouston@easynet.co.uk>
+
+	* posix.texi (File System): added "directory?".
+
+1999-09-06  James Blandy  <jimb@mule.m17n.org>
+
+	* mbapi.texi, mltext.texi: New files, describing interfaces for
+	dealing with multilingual code.
+
+1999-07-25  Gary Houston  <ghouston@easynet.co.uk>
+
+	* scheme.texi, posix.texi: updated for changes in the I/O system
+	and expect macros.
+
+1999-01-25  Mark Galassi  <rosalia@cygnus.com>
+
+	* scheme.texi (General option interface): applied a typo fix.
+	Thanks to Eric Hanchrow (offby1@blarg.net).
+
+1998-11-01  Mark Galassi  <rosalia@cygnus.com>
+
+	* scheme.texi (Weak References): incorporated David Lutterkort's
+	chapter on Weak References, which is based on Mikael's email
+	message exchange with with Michael Livshin.
+
+1998-10-29  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* scheme.texi: Corrected shell commands in example.  (Thanks to
+	Chris Bitmead.)
+
+1998-10-25  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* gh.texi (C to Scheme, Scheme to C): Completed entries about
+	vector conversions.
+
+1998-08-26  Mark Galassi  <rosalia@cygnus.com>
+
+	* gh.texi (Starting and controlling the interpreter): modified the
+	gh_enter() docs in response to some good comments from Dirk
+	Herrmann: now they address the issue of loading ice-9/boot-9.scm,
+	and include Dirk's hackaround for the problem until we fix it
+	properly.
+
+1998-04-29  Mark Galassi  <rosalia@cygnus.com>
+
+	* scheme.texi (Dynamic Linking from Marius): added Marius's new
+	chapter on dynamic linking; there is still a section in dynamic
+	linking (written by Tim maybe?), and I have to examine how to
+	resolve that.
+
+1998-03-30  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* scheme.texi (Port Operations): Changed entry for port-column and
+	port-line.  (Thanks to Per Bothner.)
+
+1998-02-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* scheme.texi (Exceptions): Adjusted documentation to reflect the
+	removal of the (catch #f ...) mechanism.
+
+1998-01-28  Mark Galassi  <rosalia@nis.lanl.gov>
+
+	* guile-ref.texi: changed @dircategory to "Scheme Programming".
+	It seems to be the consensus.
+
+1998-01-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gh.texi (C to Scheme): Added documentation for gh_doubles2scm
+	and gh_doubles2dvect.
+	(Scheme to C): Added documentation for gh_scm2doubles.
+
+1998-01-15  Mark Galassi  <rosalia@nis.lanl.gov>
+
+	* gh.texi (Calling Scheme procedures from C): removed
+	gh_make_subr() since Mikael pointed out that it is gone from
+	Guile.  I don't remember its history any more, but I don't think
+	anyone is missing it.
+
+1998-01-03  Tim Pierce  <twp@skepsis.com>
+
+	* scheme.texi (Evaluation): Several corrections supplied by MDJ.
+
+Sat Dec 27 19:02:36 1997  Tim Pierce  <twp@skepsis.com>
+
+	* appendices.texi (Internals, Symbols): New nodes.
+	* scheme.texi (Configuration Data): New node.
+
+1997-12-27  Tim Pierce  <twp@skepsis.com>
+
+	* guile-ref.texi (Bitwise Operations): New description.
+
+1997-12-24  Tim Pierce  <twp@skepsis.com>
+
+	* scheme.texi (Port Operations, Evaluation): New nodes.
+
+1997-12-13  Tim Pierce  <twp@skepsis.com>
+
+	* scheme.texi, posix.texi: Documented each procedure as `procedure',
+	`primitive' or `syntax' as appropriate.
+	(Records): Change record-type-field-names to record-type-fields.
+	(Low level thread primitives): Change with-new-thread to
+	call-with-new-thread. 
+
+Sun Dec  7 22:47:22 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* posix.texi (Processes): add "system" procedure.
+
+1997-11-23  Mark Galassi  <rosalia@cygnus.com>
+
+	* gh.texi (Starting and controlling the interpreter): added
+	documentation for gh_repl() -- gh_repl() has changed since I saw
+	the scm_shell() routine.
+
+1997-11-19  Tim Pierce  <twp@twp.tezcat.com>
+
+	* scheme.texi (String Fun): New node.
+	(Hash Tables): Added `get-handle' and `create-handle!' docs.
+
+	* posix.texi (Networking Databases): Add docs for gethost, getnet,
+	getserv, getproto.  Expanded on miscellaneous docs.
+
+1997-11-18  Tim Pierce  <twp@twp.tezcat.com>
+
+	* posix.texi: New file; moved docs for POSIX interface here.
+	* Makefile.am: Add posix.texi.
+	* Makefile.in: Regenerated.
+	* guile-ref.texi: Reorganize top-level menu.  @include posix.texi.
+	* scheme.texi: Moved many nodes around, some restructuring
+	(e.g. new "Data Structures" node for records, structures, arrays,
+	hash tables, and so on).
+
+1997-10-19  Mark Galassi  <rosalia@cygnus.com>
+
+	* gh.texi (Calling Scheme procedures from C): added many routines
+	as I go through R4RS and try to complete the gh_ interface.
+
+Wed Oct  8 04:51:54 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	*  scheme.texi (Dynamic Roots): added batch mode procedures.
+
+1997-10-03  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* scheme.texi (Vtables): Changed 0 --> @code{vtable-index-layout};
+	Changed @code{struct-vtable-offset} --> @code{vtable-offset-user};
+	Added short note about the print call-back initializer.  (This
+	section is in need of review.  However, we shoudn't spend much
+	time on it since the structs will be replaced by something
+	equivalent, but with a different interface.}
+
+Sun Sep 28 00:02:35 1997  Mark Galassi  <rosalia@nis.lanl.gov>
+
+	* scheme.texi (Keywords): very small re-organization to take
+	advantage of the fact that read-options is now documented in
+	another chapter.
+
+Thu Sep 25 23:37:02 1997  Mark Galassi  <rosalia@nis.lanl.gov>
+
+	* scheme.texi (Guile options interface): renamed the symbol case
+ 	section to "Guile options interface".  "Reader options" is now a
+ 	subsection of that.  I've finally figured a lot of how options
+ 	work, thanks to discovering Mikael's comments in options.c and an
+ 	old note from Mikael to Jim describing it.
+	(Guile options interface): reorganized the individual option
+ 	groups.  This section (on options) of the manual is now reasonably
+	complete, unless I am completely missing something.
+
+Wed Sep 24 15:25:03 1997  Mark Galassi  <rosalia@nis.lanl.gov>
+
+	* scheme.texi (The Guile module system): Added a bit more to this
+	chapter, mostly the more user-friendly (use-modules (ice-9
+	module-name)) approach.
+	(Symbol case): tried to write something about this, but it will
+	need to be reviewed by someone who understands the big picture of
+	read options.  I also think the section name should be changed to
+	something like "Read options".
+
+Sun Sep 21 18:45:57 1997  Mark Galassi  <rosalia@nis.lanl.gov>
+
+	* scheme.texi (SLIB): some little details, including splitting off
+	what does in the installation chapter.  Also added a section on
+	Jacal, which has some open issues.
+
+	* appendices.texi (Packages not shipped with Guile): added this
+ 	section to describe getting resources on SCSH, SLIB and Jacal (and
+ 	who knows what else in the future).
+
+Sat Aug 30 19:31:22 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* scheme.texi (Uniform Array): mention start and end arguments 
+	for uniform-array-read! and uniform-array-write.
+
+Sat Aug 23 19:05:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* guile-ref.texi (Top): corresponding changes.
+	* scheme.texi (Exception Handling): add scm-error, strerror.
+	(Exceptions): renamed from Exception Handling.
+	(Exceptions): deleted empty section.
+
+Mon Aug 18 16:11:43 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* texinfo.tex: Installed from texinfo release 3.11.
+
+Fri Aug 15 08:14:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* scheme.texi (file system): added truncate-file.
+	chown, fcntl, fseek, ftell updated.
+	(ports vs file descriptors): added fsync, open, open-fdes.
+	(time): added times.
+
+Sun Aug 10 07:39:55 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* scheme.texi (processes): added execle.
+
+Tue Jul 29 02:01:21 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* setvbuf added.  primitive-dup[2] removed.
+
+Sat Jul 26 04:25:40 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* various close and dup procedures added, plus setenv.
+
+Sat Jul 19 04:04:50 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* scheme.texi (signals): new section.
+	(processes): primitive-exit.
+	(ports vs. file descriptors): force-output, flush-all-ports.
+	fcntl from NEWS.
+
+Fri Jul 18 07:58:52 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* scheme.texi (SLIB): update initialization details.
+	(expect): likewise.
+	(The Scheme shell (scsh)): likewise.
+
+Fri Jun 27 00:31:25 1997  Tim Pierce  <twp@twp.tezcat.com>
+
+	* scheme.texi (Regexp Functions): Add docs for make-regexp flags
+	regexp/icase, regexp/newline, regexp/basic, regexp/extended.
+
+Mon Jun 23 12:35:57 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
+
+	* appendices.texi (debugger user interface): new text.
+	(Single-Step, Trace, Backtrace): new nodes.
+
+	* scheme.texi: Many revised nodes, some new ones.
+
+ 	(Binary Numeric Operations, Input/Output Ports, File Ports, Soft
+	Ports, String Ports): Imported documentation from SCM and SLIB manuals.
+
+	(Association Lists and Hash Tables, Dictionary Types, Association
+	Lists, Hash Tables): New nodes.
+	(Dictionaries in general): Removed.
+
+	(Regular Expressions): Replaced.
+	(Rx Interface): New node, renamed from old `Regular Expressions'.
+	(Regexp Functions, Match Functions, Backslash Escapes): new nodes.
+
+	(Property Lists): new node with documentation for both object and
+	procedure properties.
+	(Object Properties): removed.
+	* guile-ref.texi: change `Object Properties' to `Property Lists'.
+

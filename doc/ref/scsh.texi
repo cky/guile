@@ -1,0 +1,25 @@
+@page
+@node The Scheme shell (scsh)
+@chapter The Scheme shell (scsh)
+
+An incomplete port of the Scheme shell (scsh) 0.5.1 is available for
+Guile.  The idea is to allow Scheme code using scsh interfaces to be run
+inside the Guile interpreter.
+
+For information about scsh on the Web see
+@url{http://www-swiss.ai.mit.edu/scsh/scsh.html}.
+The original scsh is available by ftp from
+@url{ftp://swiss-ftp.ai.mit.edu:/pub/su}.
+
+The scsh code is distributed as a separate module, guile-scsh,
+which must be installed somewhere in Guile's load path before
+it can be used.  This is similar to the installation
+of slib (you may want to install that first, since it's needed before
+scsh can run in Guile: see @ref{SLIB} for details).
+
+This port of scsh does not currently use the Guile module system, but
+can be initialized with:
+
+@smalllisp
+(load-from-path "scsh/init")
+@end smalllisp

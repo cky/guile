@@ -1,0 +1,291 @@
+@page
+@node Pretty Printing
+@chapter Pretty Printing
+
+@c FIXME::martin: Review me!
+
+@cindex pretty printing
+The module @code{(ice-9 pretty-print)} provides the procedure
+@code{pretty-print}, which provides nicely formatted output of Scheme
+objects.  This is especially useful for deeply nested or complex data
+structures, such as lists and vectors.
+
+The module is loaded by simply saying.
+
+@lisp
+(use-modules (ice-9 pretty-print))
+@end lisp
+
+This makes the procedure @code{pretty-print} available.  As an example
+how @code{pretty-print} will format the output, see the following:
+
+@lisp
+(pretty-print '(define (foo) (lambda (x)
+(cond ((zero? x) #t) ((negative? x) -x) (else (if (= x 1) 2 (* x x x)))))))
+@print{}
+(define (foo)
+  (lambda (x)
+    (cond ((zero? x) #t)
+          ((negative? x) -x)
+          (else (if (= x 1) 2 (* x x x))))))
+@end lisp
+
+@deffn procedure pretty-print obj [port]
+Print the textual representation of the Scheme object @var{obj} to
+@var{port}.  @var{port} defaults to the current output port, if not
+given.
+@end deffn
+
+Beware: Since @code{pretty-print} uses it's own write procedure, it's
+output will not be the same as for example the output of @code{write}.
+Consider the following example.
+
+@lisp
+(write (lambda (x) x))
+@print{}
+#<procedure #f (x)>
+
+(pretty-print (lambda (x) x))
+@print{}
+#[procedure]
+@end lisp
+
+The reason is that @code{pretty-print} does not know as much about
+Guile's object types as the builtin procedures.  This is particularly
+important for smobs, for which a write procedure can be defined and be
+used by @code{write}, but not by @code{pretty-print}.
+
+@page
+@node Formatted Output
+@chapter Formatted Output
+
+@c FIXME::martin: Review me!
+
+@cindex format
+@cindex formatted output
+Outputting messages or other texts which are composed of literal
+strings, variable contents, newlines and other formatting can be
+cumbersome, when only the standard procedures like @code{display},
+@code{write} and @code{newline} are available.  Additionally, one
+often wants to collect the output in strings.  With the standard
+routines, the user is required to set up a string port, add this port
+as a parameter to the output procedure calls and then retrieve the
+resulting string from the string port.
+
+The @code{format} procedure, to be found in module @code{(ice-9
+format)}, can do all this, and even more.  If you are a C programmer,
+you can think of this procedure as Guile's @code{fprintf}.
+
+@deffn procedure format destination format-string args @dots{}
+The first parameter is the @var{destination}, it determines where the
+output of @code{format} will go.
+
+@table @asis
+@item @code{#t}
+Send the formatted output to the current output port and return
+@code{#t}.
+
+@item @code{#f}
+Return the formatted output as a string.
+
+@item Any number value
+Send the formatted output to the current error port and return
+@code{#t}.
+
+@item A valid output port
+Send the formatted output to the port @var{destination} and return
+@code{#t}.
+@end table
+
+The second parameter is the format string.  It has a similar function
+to the format string in calls to @code{printf} or @code{fprintf} in C.
+It is output to the specified destination, but all escape sequences
+are replaced by the results of formatting the corresponding sequence.
+
+Note that escape sequences are marked with the character @code{~}
+(tilde), and not with a @code{%} (percent sign), as in C.
+
+The escape sequences in the following table are supported.  When there
+appears ``corresponding @var{arg}', that means any of the additional
+arguments, after dropping all arguments which have been used up by
+escape sequences which have been processed earlier.  Some of the
+format characters (the characters following the tilde) can be prefixed
+by @code{:}, @code{@@}, or @code{:@@}, to modify the behaviour of the
+format character.  How the modified behaviour differs from the default
+behaviour is described for every character in the table where
+appropriate.
+
+@table @code
+@item ~~
+Output a single @code{~} (tilde) character.
+
+@item ~%
+Output a newline character, thus advancing to the next output line.
+
+@item ~&
+Start a new line, that is, output a newline character if not already
+at the statr of a line.
+
+@item ~_
+Output a single space character.
+
+@item ~/
+Output a single tabulator character.
+
+@item ~|
+Output a page separator (formfeed) character.
+
+@item ~t
+Advance to the next tabulator position.
+
+@item ~y
+Pretty-print the correspinding @var{arg}.
+
+@item ~a
+Output the corresponding @var{arg} like @code{display}.
+
+@item ~s
+Output the corresponding @var{arg} like @code{write}.
+
+@item ~d
+Output the corresponding @var{arg} as a decimal number.
+
+@item ~x
+Output the corresponding @var{arg} as a hexadecimal number.
+
+@item ~o
+Output the corresponding @var{arg} as an octal number.
+
+@item ~b
+Output the corresponding @var{arg} as a binary number.
+
+@item ~r
+Output the corresponding @var{arg} as a number word, e.g. 10 prints as
+@code{ten}.  If prefixed with @code{:}, @code{tenth} is printed, if
+prefixed with @code{:@@}, roman numbers are printed.
+
+@item ~f
+Output the corresponding @var{arg} as a fixed format floating point
+number, such as @code{1.34}.
+
+@item ~e
+Output the corresponding @var{arg} in exponential notation, such as
+@code{1.34E+0}.
+
+@item ~g
+%% FIXME::martin: There must be a difference.  Does anybody know?
+Like @code{~f}.  
+
+@item ~$
+Like @code{~f}, but only with two digits after the decimal point.
+
+@item ~i
+Output the corresponding @var{arg} as a complex number.
+
+@item ~c
+Output the corresponding @var{arg} as a character.  If prefixed with
+@code{@@}, it is printed like with @code{write}.  If prefixed with
+@code{:}, control characters are treated specially, for example
+@code{#\newline} will be printed as @code{^J}.
+
+@item ~p
+``Plural''.  If the corresponding @var{arg} is 1, nothing is printed
+(or @code{y} if prefixed with @code{@@} or @code{:@@}), otherwise
+@code{s} is printed (or @code{ies} if prefixed with @code{@@} or
+@code{:@@}).
+
+@item ~?, ~k
+Take the corresponding argument as a format string, and the following
+argument as a list of values.  Then format the values with respect to
+the format string.
+
+@item ~!
+Flush the output to the output port.
+
+@item ~#\newline (tilde-newline)
+@c FIXME::martin: I don't understand this from the source.
+Continuation lines.
+
+@item ~*
+Argument jumping. Navigate in the argument list as specified by the
+corresponding argument.  If prefixed with @code{:}, jump backwards in
+the argument list, if prefixed by @code{:@@}, jump to the parameter
+with the absolute index, otherwise jump forward in the argument list.
+
+@item ~(
+Case conversion begin.  If prefixed by @code{:}, the following output
+string will be capitalized, if prefixed by @code{@@}, the first
+character will be capitalized, if prefixed by @code{:@@} it will be
+upcased and otherwise it will be downcased.  Conversion stops when the
+``Case conversion end'' @code{~)}sequence is encountered.
+
+@item ~)
+Case conversion end.  Stop any case conversion currently in effect.
+
+@item ~[
+@c FIXME::martin: I don't understand this from the source.
+Conditional begin.
+
+@item ~;
+@c FIXME::martin: I don't understand this from the source.
+Conditional separator.
+
+@item ~]
+@c FIXME::martin: I don't understand this from the source.
+Conditional end.
+
+@item ~@{
+@c FIXME::martin: I don't understand this from the source.
+Iteration begin.
+
+@item ~@}
+@c FIXME::martin: I don't understand this from the source.
+Iteration end.
+
+@item ~^
+@c FIXME::martin: I don't understand this from the source.
+Up and out.
+
+@item ~'
+@c FIXME::martin: I don't understand this from the source.
+Character parameter.
+
+@item ~0 @dots{} ~9, ~-, ~+
+@c FIXME::martin: I don't understand this from the source.
+Numeric parameter.
+
+@item ~v
+@c FIXME::martin: I don't understand this from the source.
+Variable parameter from next argument.
+
+@item ~#
+Parameter is number of remaining args.  The number of the remaining
+arguments is prepended to the list of unprocessed arguments.
+
+@item ~,
+@c FIXME::martin: I don't understand this from the source.
+Parameter separators.
+
+@item ~q
+Inquiry message.  Insert a copyright message into the output.
+@end table
+
+If any type conversions should fail (for example when using an escape
+sequence for number output, but the argument is a string), an error
+will be signalled.
+@end deffn
+
+You may have noticed that Guile contains a @code{format} procedure
+even when the module @code{(ice-9 format)} is not loaded.  The default
+@code{format} procedure does not support all escape sequences
+documented in this chapter, and will signal an error if you try to use
+one of them.  The reason for providing two versions of @code{format}
+is that the full-featured module is fairly large and requires some
+time to get loaded.  So the Guile maintainers decided not to load the
+large version of @code{format} by default, so that the start-up time
+of the interpreter is not unnecessarily increased.
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

@@ -1,0 +1,66 @@
+*** NOTE: This information needs updating! ***
+
+P - procedure
+L - local procedure
+S - syntax
+G - generic
+M - method
+
+define-class (S)
+  make-class (S)
+    ensure-metaclass (P)
+      ensure-metaclass-with-supers (P)
+        make (G)
+    ensure-class (P)
+      make (G)
+      class-redefinition (G)
+        remove-class-accessors (G)
+	update-direct-method (G)
+	update-direct-subclass (G)
+
+define-generic (S)
+  make-generic-function (S)
+    ensure-generic-function (P)
+      make (G)
+
+define-method (S)
+  ensure-method (P)
+    ensure-generic-function (P)
+      make (G)
+    make (G)
+    add-method (P)
+
+method (S)
+  ensure-method (P)
+
+initialize (class) (M)
+  compute-cpl (P)
+  compute-slots (G)
+  compute-getters-n-setters (P)
+    compute-slot-init-function (L)
+    compute-get-n-set (G)
+  compute-slot-accessors (P)
+    ensure-method (P)
+  %inherit-magic! (P)
+  %prep-layout! (P)
+
+initialize (generic) (M)
+  make (G)
+
+change-class (G)
+  change-object-class (P)
+    update-instance-for-different-class (G)
+
+make = make-instance (G)
+  allocate-instance (G)
+    %allocate-instance (P)
+  initialize (G)
+    %initialize-object (P)
+
+apply-generic (G)
+  compute-applicable-methods (G)
+    find-method (P)
+  sort-applicable-methods (G)
+    sort (P)
+  apply-methods (G)
+    apply-method (G)

@@ -1,0 +1,27 @@
+@page
+@node Further Reading
+@chapter Further Reading
+
+@itemize @bullet
+@item
+Dorai Sitaram's online Scheme tutorial, @dfn{Teach Yourself Scheme in
+Fixnum Days}, at
+@url{http://www.cs.rice.edu/~dorai/t-y-scheme/t-y-scheme.html}.
+Includes a nice explanation of continuations.
+
+@item
+@url{http://wombat.doc.ic.ac.uk/foldoc/}.
+
+@item
+The complete text of @dfn{Structure and Interpretation of Computer
+Programs}, the classic introduction to computer science and Scheme by
+Hal Abelson, Jerry Sussman and Julie Sussman, is now available online at
+@url{http://mitpress.mit.edu/sicp/sicp.html}.  This site also provides
+teaching materials related to the book, and all the source code used in
+the book, in a form suitable for loading and running.
+@end itemize
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
