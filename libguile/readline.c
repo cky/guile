@@ -50,57 +50,135 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+static int
+current_input_getc ()
+{
+  return scm_getc (scm_cur_inp);
+}
+
 SCM_PROC (s_readline, "readline", 0, 1, 0, scm_readline);
+
 SCM
-scm_readline (SCM txt)
+scm_readline (SCM text)
 {
   SCM ret;
   char* s;
   char* prompt;
 
-  if (! SCM_UNBNDP (txt))
+  if (! SCM_UNBNDP (text))
     {
-      SCM_ASSERT ((SCM_NIMP(txt) && SCM_STRINGP(txt)), txt, SCM_ARG1,
+      SCM_ASSERT ((SCM_NIMP(text) && SCM_STRINGP(text)), text, SCM_ARG1,
 		  s_readline);
-      SCM_COERCE_SUBSTR (txt);
+      SCM_COERCE_SUBSTR (text);
     }
 
-  SCM_DEFER_INTS;
-  prompt = SCM_UNBNDP (txt) ? "" : SCM_CHARS (txt);
+  prompt = SCM_UNBNDP (text) ? "" : SCM_CHARS (text);
 
-  s = readline(prompt);
+  s = readline (prompt);
   if (s)
-    ret = gh_str02scm(s);
+    ret = scm_makfrom0str (s);
   else 
     ret = SCM_EOF_VAL;
 
   free (s);
-  SCM_ALLOW_INTS;
 
   return ret;
 }
 
 SCM_PROC (s_add_history, "add-history", 1, 0, 0, scm_add_history);
+
 SCM
-scm_add_history (SCM txt)
+scm_add_history (SCM text)
 {
   char* s;
-  SCM_ASSERT ((SCM_NIMP(txt) && SCM_STRINGP(txt)), txt, SCM_ARG1,
+  SCM_ASSERT ((SCM_NIMP(text) && SCM_STRINGP(text)), text, SCM_ARG1,
 	      s_add_history);
-  SCM_COERCE_SUBSTR (txt);
+  SCM_COERCE_SUBSTR (text);
 
   SCM_DEFER_INTS;
-  s = SCM_CHARS(txt);
-  add_history(s);
+  s = SCM_CHARS (text);
+  add_history (strdup (s));
   SCM_ALLOW_INTS;
 
   return SCM_UNSPECIFIED;
 }
 
+static SCM subr_filename_completion_function;
+static char s_filename_completion_function[] = "filename-completion-function";
+
+SCM
+scm_filename_completion_function (SCM text, SCM continuep)
+{
+  char *s;
+  SCM ans;
+  SCM_ASSERT (SCM_NIMP (text) && SCM_STRINGP (text),
+	      text,
+	      SCM_ARG1,
+	      s_filename_completion_function);
+  SCM_COERCE_SUBSTR (text);
+  s = filename_completion_function (SCM_CHARS (text), SCM_NFALSEP (continuep));
+  ans = scm_makfrom0str (s);
+  free (s);
+  return ans;
+}
+
+/*
+ * The following has been modified from code contributed by
+ * Andrew Archibald <aarchiba@undergrad.math.uwaterloo.ca>
+ */
+
+SCM scm_readline_completion_function_var;
+
+static SCM
+apply (SCM a)
+{
+  return scm_apply (SCM_CAR (a), SCM_CDR (a), SCM_EOL);
+}
+
+static char *
+completion_function (char *text, int continuep)
+{
+  SCM_STACKITEM mark;
+  SCM compfunc = SCM_CDR (scm_readline_completion_function_var);
+  SCM res;
+
+  if (SCM_FALSEP (compfunc))
+    return NULL; /* #f => completion disabled */
+  else
+    {
+      SCM t = scm_makfrom0str (text);
+      SCM c = continuep ? SCM_BOOL_T : SCM_BOOL_F;
+      res = scm_internal_cwdr ((scm_catch_body_t) apply,
+			       (void *) SCM_LIST3 (compfunc, t, c),
+			       scm_handle_by_throw,
+			       0,
+			       &mark);
+  
+      if (SCM_FALSEP (res))
+	return NULL;
+  
+      if (!(SCM_NIMP (res) && SCM_STRINGP (res)))
+	scm_misc_error (s_readline,
+			"Completion function returned bogus value: %S",
+			SCM_LIST1 (res));
+      SCM_COERCE_SUBSTR (res);
+      return strdup (SCM_CHARS (res));
+    }
+}
+
+
 void
 scm_init_readline ()
 {
 #include "readline.x"
+  subr_filename_completion_function
+    = scm_make_subr (s_filename_completion_function,
+		     scm_tc7_subr_2,
+		     scm_filename_completion_function);
+  scm_readline_completion_function_var
+    = scm_sysintern ("*readline-completion-function*", SCM_BOOL_F);
+  rl_getc_function = current_input_getc;
+  rl_completion_entry_function = (Function*) completion_function;
   scm_add_feature ("readline");
 }
 
