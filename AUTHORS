@@ -131,6 +131,12 @@ Rob Browning:
   ported srfi/srfi-19.scm to Guile.
 
 Martin Grabmueller:
+In the subdirectory libguile, changes to:
+    backtrace.c     eval.c       strorder.c   script.c
+    strop.c         strop.h      struct.c     macros.c
+    numbers.c       posix.h      posix.c      symbols.c
+    gh_data.c       strports.h   strports.c   validate.h
+    and changed many docstrings throughout.
 In the subdirectory srfi, wrote:
     srfi-9.scm
     srfi-10.scm
@@ -156,7 +162,8 @@ In the subdirectory doc, changes to:
 In the subdirectory example, wrote
     scripts  modules     safe
     box      box-module  box-dynamic
-    
+In the subdirectory test-suite/tests, wrote:
+    srfi-9.test     srfi-10.test    srfi-13.test
 
 Will Fitzgerald:
   wrote initial srfi/srfi-19.scm.
