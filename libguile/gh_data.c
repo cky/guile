@@ -143,15 +143,39 @@ gh_ints2scm (int *d, int n)
 {
   SCM *m;
   int i;
-  for (i = 0; i < n; ++i)
-    SCM_ASSERT (d[i] >= SCM_INUM (LONG_MIN) && d[i] <= SCM_INUM (LONG_MAX),
-		SCM_MAKINUM (d[i]),
-		SCM_OUTOFRANGE,
-		"gh_ints2scm");
   m = (SCM*) scm_must_malloc (n * sizeof (SCM), "vector");
   for (i = 0; i < n; ++i)
-    m[i] = SCM_MAKINUM (d[i]);
+    m[i] = (d[i] >= SCM_MOST_NEGATIVE_FIXNUM
+	    && d[i] <= SCM_MOST_POSITIVE_FIXNUM
+	    ? SCM_MAKINUM (d[i])
+	    : scm_long2big (d[i]));
   return makvect ((char *) m, n, scm_tc7_vector);
+}
+
+SCM
+gh_doubles2scm (double *d, int n)
+{
+  SCM *m = (SCM*) scm_must_malloc (n * sizeof (SCM), "vector");
+  int i;
+  for (i = 0; i < n; ++i)
+    m[i] = scm_makdbl (d[i], 0.0);
+  return makvect ((char *) m, n, scm_tc7_vector);
+}
+
+SCM
+gh_chars2byvect (char *d, int n)
+{
+  char *m = scm_must_malloc (n * sizeof (char), "vector");
+  memcpy (m, d, n * sizeof (char));
+  return makvect (m, n, scm_tc7_byvect);
+}
+
+SCM
+gh_shorts2svect (short *d, int n)
+{
+  char *m = scm_must_malloc (n * sizeof (short), "vector");
+  memcpy (m, d, n * sizeof (short));
+  return makvect (m, n, scm_tc7_svect);
 }
 
 SCM
@@ -170,17 +194,17 @@ gh_ulongs2uvect (unsigned long *d, int n)
   return makvect (m, n, scm_tc7_uvect);
 }
 
-SCM
-gh_doubles2scm (double *d, int n)
-{
-  SCM *m = (SCM*) scm_must_malloc (n * sizeof (SCM), "vector");
-  int i;
-  for (i = 0; i < n; ++i)
-    m[i] = scm_makdbl (d[i], 0.0);
-  return makvect ((char *) m, n, scm_tc7_vector);
-}
-
 #ifdef SCM_FLOATS
+#ifdef SCM_SINGLES
+SCM
+gh_floats2fvect (float *d, int n)
+{
+  char *m = scm_must_malloc (n * sizeof (float), "vector");
+  memcpy (m, d, n * sizeof (float));
+  return makvect (m, n, scm_tc7_fvect);
+}
+#endif
+
 SCM
 gh_doubles2dvect (double *d, int n)
 {
@@ -223,13 +247,14 @@ gh_scm2char (SCM obj)
   return SCM_ICHR (obj);
 }
 
-/* Convert a vector, weak vector or uniform vector into a malloced
-   array of doubles. */
-double*
-gh_scm2doubles (SCM obj)
+/* Convert a vector, weak vector, string, substring or uniform vector
+   into an array of chars.  If result array in arg 2 is NULL, malloc a
+   new one. */
+char *
+gh_scm2chars (SCM obj, char *m)
 {
   int i, n;
-  double *m = 0;
+  long v;
   SCM val;
   if (!SCM_NIMP (obj))
     scm_wrong_type_arg (0, 0, obj);
@@ -238,35 +263,228 @@ gh_scm2doubles (SCM obj)
     case scm_tc7_vector:
     case scm_tc7_wvect:
       n = SCM_LENGTH (obj);
-      m = (double*) malloc (n * sizeof (double));
+      for (i = 0; i < n; ++i)
+	{
+	  val = SCM_VELTS (obj)[i];
+	  if (SCM_INUMP (val))
+	    {
+	      v = SCM_INUM (val);
+	      if (v < -128 || v > 255)
+		scm_out_of_range (0, obj);
+	    }
+	  else
+	    scm_wrong_type_arg (0, 0, obj);
+	}
+      if (m == 0)
+	m = (char *) malloc (n * sizeof (char));
+      for (i = 0; i < n; ++i)
+	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
+      break;
+    case scm_tc7_byvect:
+    case scm_tc7_string:
+    case scm_tc7_substring:
+      n = SCM_LENGTH (obj);
+      if (m == 0)
+	m = (char *) malloc (n * sizeof (char));
+      memcpy (m, SCM_VELTS (obj), n * sizeof (char));
+      break;
+    default:
+      scm_wrong_type_arg (0, 0, obj);
+    }
+  return m;
+}
+
+/* Convert a vector, weak vector or uniform vector into an array of
+   shorts.  If result array in arg 2 is NULL, malloc a new one. */
+short *
+gh_scm2shorts (SCM obj, short *m)
+{
+  int i, n;
+  long v;
+  SCM val;
+  if (!SCM_NIMP (obj))
+    scm_wrong_type_arg (0, 0, obj);
+  switch (SCM_TYP7 (obj))
+    {
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
+      n = SCM_LENGTH (obj);
+      for (i = 0; i < n; ++i)
+	{
+	  val = SCM_VELTS (obj)[i];
+	  if (SCM_INUMP (val))
+	    {
+	      v = SCM_INUM (val);
+	      if (v < -32768 || v > 65535)
+		scm_out_of_range (0, obj);
+	    }
+	  else
+	    scm_wrong_type_arg (0, 0, obj);
+	}
+      if (m == 0)
+	m = (short *) malloc (n * sizeof (short));
+      for (i = 0; i < n; ++i)
+	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
+      break;
+    case scm_tc7_svect:
+      n = SCM_LENGTH (obj);
+      if (m == 0)
+	m = (short *) malloc (n * sizeof (short));
+      memcpy (m, SCM_VELTS (obj), n * sizeof (short));
+      break;
+    default:
+      scm_wrong_type_arg (0, 0, obj);
+    }
+  return m;
+}
+
+/* Convert a vector, weak vector or uniform vector into an array of
+   longs.  If result array in arg 2 is NULL, malloc a new one. */
+long *
+gh_scm2longs (SCM obj, long *m)
+{
+  int i, n;
+  SCM val;
+  if (!SCM_NIMP (obj))
+    scm_wrong_type_arg (0, 0, obj);
+  switch (SCM_TYP7 (obj))
+    {
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
+      n = SCM_LENGTH (obj);
+      for (i = 0; i < n; ++i)
+	{
+	  val = SCM_VELTS (obj)[i];
+	  if (!SCM_INUMP (val) && !(SCM_NIMP (val) && SCM_BIGP (val)))
+	    scm_wrong_type_arg (0, 0, obj);
+	}
+      if (m == 0)
+	m = (long *) malloc (n * sizeof (long));
+      for (i = 0; i < n; ++i)
+	{
+	  val = SCM_VELTS (obj)[i];
+	  m[i] = SCM_INUMP (val) ? SCM_INUM (val) : scm_num2long (val, 0, 0);
+	}
+      break;
+    case scm_tc7_ivect:
+    case scm_tc7_uvect:
+      n = SCM_LENGTH (obj);
+      if (m == 0)
+	m = (long *) malloc (n * sizeof (long));
+      memcpy (m, SCM_VELTS (obj), n * sizeof (long));
+      break;
+    default:
+      scm_wrong_type_arg (0, 0, obj);
+    }
+  return m;
+}
+
+/* Convert a vector, weak vector or uniform vector into an array of
+   floats.  If result array in arg 2 is NULL, malloc a new one. */
+float *
+gh_scm2floats (SCM obj, float *m)
+{
+  int i, n;
+  SCM val;
+  if (!SCM_NIMP (obj))
+    scm_wrong_type_arg (0, 0, obj);
+  switch (SCM_TYP7 (obj))
+    {
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
+      n = SCM_LENGTH (obj);
+      for (i = 0; i < n; ++i)
+	{
+	  val = SCM_VELTS (obj)[i];
+	  if (!SCM_INUMP (val)
+	      && !(SCM_NIMP (val) && (SCM_BIGP (val) || SCM_REALP (val))))
+	    scm_wrong_type_arg (0, 0, val);
+	}
+      if (m == 0)
+	m = (float *) malloc (n * sizeof (float));
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
 	  if (SCM_INUMP (val))
 	    m[i] = SCM_INUM (val);
-	  else if (SCM_NIMP (val) && SCM_REALP (val))
-	    m[i] = SCM_REALPART (val);
+	  else if (SCM_BIGP (val))
+	    m[i] = scm_num2long (val, 0, 0);
 	  else
-	    {
-	      free (m);
-	      scm_wrong_type_arg (0, 0, val);
-	    }
+	    m[i] = SCM_REALPART (val);
 	}
       break;
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
       n = SCM_LENGTH (obj);
-      m = (double*) malloc (n * sizeof (double));
-      for (i = 0; i < n; ++i)
-	m[i] = ((float*) SCM_VELTS (obj))[i];
+      if (m == 0)
+	m = (float *) malloc (n * sizeof (float));
+      memcpy (m, (float *) SCM_VELTS (obj), n * sizeof (float));
       break;
 #endif
     case scm_tc7_dvect:
       n = SCM_LENGTH (obj);
-      m = (double*) malloc (n * sizeof (double));
+      if (m == 0)
+	m = (float*) malloc (n * sizeof (float));
       for (i = 0; i < n; ++i)
-	m[i] = ((double*) SCM_VELTS (obj))[i];
+	m[i] = ((double *) SCM_VELTS (obj))[i];
+      break;
+#endif
+    default:
+      scm_wrong_type_arg (0, 0, obj);
+    }
+  return m;
+}
+
+/* Convert a vector, weak vector or uniform vector into an array of
+   doubles.  If result array in arg 2 is NULL, malloc a new one. */
+double *
+gh_scm2doubles (SCM obj, double *m)
+{
+  int i, n;
+  SCM val;
+  if (!SCM_NIMP (obj))
+    scm_wrong_type_arg (0, 0, obj);
+  switch (SCM_TYP7 (obj))
+    {
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
+      n = SCM_LENGTH (obj);
+      for (i = 0; i < n; ++i)
+	{
+	  val = SCM_VELTS (obj)[i];
+	  if (!SCM_INUMP (val)
+	      && !(SCM_NIMP (val) && (SCM_BIGP (val) || SCM_REALP (val))))
+	    scm_wrong_type_arg (0, 0, val);
+	}
+      if (m == 0)
+	m = (double *) malloc (n * sizeof (double));
+      for (i = 0; i < n; ++i)
+	{
+	  val = SCM_VELTS (obj)[i];
+	  if (SCM_INUMP (val))
+	    m[i] = SCM_INUM (val);
+	  else if (SCM_BIGP (val))
+	    m[i] = scm_num2long (val, 0, 0);
+	  else
+	    m[i] = SCM_REALPART (val);
+	}
+      break;
+#ifdef SCM_FLOATS
+#ifdef SCM_SINGLES
+    case scm_tc7_fvect:
+      n = SCM_LENGTH (obj);
+      if (m == 0)
+	m = (double *) malloc (n * sizeof (double));
+      for (i = 0; i < n; ++i)
+	m[i] = ((float *) SCM_VELTS (obj))[i];
+      break;
+#endif
+    case scm_tc7_dvect:
+      n = SCM_LENGTH (obj);
+      if (m == 0)
+	m = (double*) malloc (n * sizeof (double));
+      memcpy (m, SCM_VELTS (obj), n * sizeof (double));
       break;
 #endif
     default:

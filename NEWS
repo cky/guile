@@ -6,6 +6,18 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.3:
 
+* Changes to the gh_ interface
+
+** gh_scm2doubles
+
+Now takes a second argument which is the result array.  If this
+pointer is NULL, a new array is malloced (the old behaviour).
+
+** gh_chars2byvect, gh_shorts2svect, gh_floats2fvect, gh_scm2chars,
+   gh_scm2shorts, gh_scm2longs, gh_scm2floats
+
+New functions.
+
 
 Changes in Guile 1.3 (released Monday, October 19, 1998):
 

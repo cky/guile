@@ -1,3 +1,22 @@
+1998-10-26  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* numbers.c (num2long): As a software archeologist, I'm proud of
+	this finding! :) Preliminary dating suggests an almost 4 year old
+	remnant from the SCM ancestor.  The sample has been removed from
+	the finding site and is now safely stored in the repository.
+
+	* numbers.h: Removed prototype for num2long.
+
+	* unif.c (scm_array_set_x): Use scm_num2long instead of num2long.
+
+	* gh_data.c (gh_scm2doubles): Make it possible to pass result
+	array as second arg.
+	(gh_chars2byvect, gh_shorts2svect, gh_floats2fvect, gh_scm2chars,
+	gh_scm2shorts, gh_scm2longs, gh_scm2floats): New functions.
+	* gh.h: Updated and added prototypes.
+
+	* gh_data.c (gh_ints2scm): Handle integers outside INUM limits.
+
 1998-10-24  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* gc.h: Remove all uses of SCM_P.  (Thanks to Richard Polton.)

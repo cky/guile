@@ -3617,44 +3617,6 @@ scm_num2long(num, pos, s_caller)
 
 
 
-
-
-long
-num2long(num, pos, s_caller)
-     SCM num;
-     char *pos;
-     char *s_caller;
-{
-  long res;
-  if SCM_INUMP(num) {
-    res = SCM_INUM((long)num);
-    return res;
-  }
-  SCM_ASRTGO(SCM_NIMP(num), errout);
-#ifdef SCM_FLOATS
-  if SCM_REALP(num) {
-    double u = SCM_REALPART(num);
-    if (((SCM_MOST_NEGATIVE_FIXNUM * 4) <= u)
-	&& (u <= (SCM_MOST_POSITIVE_FIXNUM * 4 + 3))) {
-      res = u;
-      return res;
-    }
-  }
-#endif
-#ifdef SCM_BIGDIG
-  if SCM_BIGP(num) {
-    scm_sizet l = SCM_NUMDIGS(num);
-    SCM_ASRTGO(SCM_DIGSPERLONG >= l, errout);
-    res = 0;
-    for(;l--;) res = SCM_BIGUP(res) + SCM_BDIGITS(num)[l];
-    return res;
-  }
-#endif
- errout: scm_wta(num, pos, s_caller);
-  return SCM_UNSPECIFIED;
-}
-
-
 #ifdef LONGLONGS
 
 long_long

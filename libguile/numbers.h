@@ -330,7 +330,6 @@ extern SCM scm_long2num SCM_P ((long sl));
 extern SCM scm_long_long2num SCM_P ((long_long sl));
 extern SCM scm_ulong2num SCM_P ((unsigned long sl));
 extern long scm_num2long SCM_P ((SCM num, char *pos, char *s_caller));
-extern long num2long SCM_P ((SCM num, char *pos, char *s_caller));
 extern long_long scm_num2long_long SCM_P ((SCM num, char *pos, char *s_caller));
 extern unsigned long scm_num2ulong SCM_P ((SCM num, char *pos, char *s_caller));
 extern void scm_init_numbers SCM_P ((void));

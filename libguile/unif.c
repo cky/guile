@@ -1311,7 +1311,7 @@ scm_array_set_x (v, obj, args)
   case scm_tc7_uvect:
     SCM_VELTS(v)[pos] = scm_num2ulong(obj, (char *)SCM_ARG2, s_array_set_x); break;
   case scm_tc7_ivect:
-    SCM_VELTS(v)[pos] = num2long(obj, (char *)SCM_ARG2, s_array_set_x); break;
+    SCM_VELTS(v)[pos] = scm_num2long(obj, (char *)SCM_ARG2, s_array_set_x); break;
 # endif
       break;
 

@@ -108,10 +108,15 @@ SCM gh_str02scm(char *s);
 void gh_set_substr(char *src, SCM dst, int start, int len);
 SCM gh_symbol2scm(char *symbol_str);
 SCM gh_ints2scm(int *d, int n);
+SCM gh_chars2byvect(char *d, int n);
+SCM gh_shorts2svect(short *d, int n);
 SCM gh_longs2ivect(long *d, int n);
 SCM gh_ulongs2uvect(unsigned long *d, int n);
 SCM gh_doubles2scm(double *d, int n);
 #ifdef SCM_FLOATS
+#ifdef SCM_SINGLES
+SCM gh_floats2fvect(float *d, int n);
+#endif
 SCM gh_doubles2dvect(double *d, int n);
 #endif
 
@@ -126,7 +131,11 @@ double gh_scm2double(SCM obj);
 char *gh_scm2newstr(SCM str, int *lenp);
 void gh_get_substr(SCM src, char *dst, int start, int len);
 char *gh_symbol2newstr(SCM sym, int *lenp);
-double *gh_scm2doubles(SCM vector);
+char *gh_scm2chars(SCM vector, char *result);
+short *gh_scm2shorts(SCM vector, short *result);
+long *gh_scm2longs(SCM vector, long *result);
+float *gh_scm2floats(SCM vector, float *result);
+double *gh_scm2doubles(SCM vector, double *result);
 
 /* type predicates: tell you if an SCM object has a given type */
 int gh_boolean_p(SCM val);
