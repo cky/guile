@@ -1,3 +1,9 @@
+2003-03-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* Makefile.am (EXTRA_DIST): Added "scmconfig.h.top".
+	(scmconfig.h): Get "scmconfig.h.top" from $(srcdir) so that VPATH
+	builds work.
+	
 2003-03-25  Rob Browning  <rlb@defaultvalue.org>
 
 	* win32-socket.h: #include "libguile/__scm.h".  Replace usage of
