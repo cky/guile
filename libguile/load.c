@@ -136,6 +136,12 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM
+scm_c_primitive_load (const char *filename)
+{
+  return scm_primitive_load (scm_makfrom0str (filename));
+}
+
 
 /* Builtin path to scheme library files. */
 #ifdef SCM_PKGDATA_DIR
@@ -459,6 +465,12 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
   return scm_primitive_load (full_filename);
 }
 #undef FUNC_NAME
+
+SCM
+scm_c_primitive_load_path (const char *filename)
+{
+  return scm_primitive_load_path (scm_makfrom0str (filename));
+}
 
 #if SCM_DEBUG_DEPRECATED == 0
 

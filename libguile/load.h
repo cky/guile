@@ -50,12 +50,14 @@ extern SCM scm_internal_parse_path (char *path, SCM tail);
 extern SCM scm_parse_path (SCM path, SCM tail);
 extern void scm_init_load_path (void);
 extern SCM scm_primitive_load (SCM filename);
+extern SCM scm_c_primitive_load (const char *filename);
 extern SCM scm_sys_package_data_dir (void);
 extern SCM scm_sys_library_dir (void);
 extern SCM scm_sys_site_dir (void);
 extern SCM scm_search_path (SCM path, SCM filename, SCM exts);
 extern SCM scm_sys_search_load_path (SCM filename);
 extern SCM scm_primitive_load_path (SCM filename);
+extern SCM scm_c_primitive_load_path (const char *filename);
 extern SCM scm_read_and_eval_x (SCM port);
 extern void scm_init_load (void);
 
