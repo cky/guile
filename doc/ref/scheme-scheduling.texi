@@ -12,6 +12,7 @@ reviewed and largely reorganized.]
 * Dynamic Roots::               Root frames of execution.
 * Threads::                     Multiple threads of execution.
 * Fluids::                      Thread-local variables.
+* Futures::                     Delayed execution in new threads.
 @end menu
 
 
@@ -646,6 +647,37 @@ evaluated and @var{fluid} must yield a fluid.  @var{body...} is
 executed inside a @code{dynamic-wind} and the fluids are set/restored
 when control enter or leaves the established dynamic extent.
 @end deffn
+
+
+@node Futures
+@section Futures
+@cindex futures
+
+Futures are a convenient way to run a calculation in a new thread, and
+only wait for the result when it's actually needed.
+
+Futures are similar to promises (@pxref{Delayed Evaluation}), in that
+they allow mainline code to continue immediately.  But @code{delay}
+doesn't evaluate at all until forced, whereas @code{future} starts
+immediately in a new thread.
+
+@deffn {syntax} future expr
+Begin evaluating @var{expr} in a new thread, and return a ``future''
+object representing the calculation.
+@end deffn
+
+@deffn {Scheme Procedure} make-future thunk
+@deffnx {C Function} scm_make_future (thunk)
+Begin evaluating the call @code{(@var{thunk})} in a new thread, and
+return a ``future'' object representing the calculation.
+@end deffn
+
+@deffn {Scheme Procedure} future-ref f
+@deffnx {C Function} scm_future_ref (f)
+Return the value computed by the future @var{f}.  If @var{f} has not
+yet finished executing then wait for it to do so.
+@end deffn
+
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
