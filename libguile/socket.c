@@ -356,9 +356,10 @@ scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
 	soka = (struct sockaddr_un *)
 	  scm_must_malloc (sizeof (struct sockaddr_un), proc);
 	soka->sun_family = AF_UNIX;
-	SCM_ASSERT (SCM_NIMP (address) && SCM_STRINGP (address), address,
-		which_arg, proc);
-	memcpy (soka->sun_path, SCM_CHARS (address), 1 + SCM_LENGTH (address));
+	SCM_ASSERT (SCM_NIMP (address) && SCM_ROSTRINGP (address), address,
+		    which_arg, proc);
+	memcpy (soka->sun_path, SCM_ROCHARS (address),
+		1 + SCM_ROLENGTH (address));
 	*size = sizeof (struct sockaddr_un);
 	return (struct sockaddr *) soka;
       }
@@ -599,7 +600,7 @@ scm_send (sock, message, flags)
   int flg;
 
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_send);
-  SCM_ASSERT (SCM_NIMP (message) && SCM_STRINGP (message), message, SCM_ARG2, s_send);
+  SCM_ASSERT (SCM_NIMP (message) && SCM_ROSTRINGP (message), message, SCM_ARG2, s_send);
   fd = fileno ((FILE *)SCM_STREAM (sock));
 
   if (SCM_UNBNDP (flags))
@@ -607,7 +608,7 @@ scm_send (sock, message, flags)
   else
     flg = scm_num2ulong (flags, (char *) SCM_ARG3, s_send);
 
-  SCM_SYSCALL (rv = send (fd, SCM_CHARS (message), SCM_LENGTH (message), flg));
+  SCM_SYSCALL (rv = send (fd, SCM_ROCHARS (message), SCM_ROLENGTH (message), flg));
   if (rv == -1)
     scm_syserror (s_send);
   return SCM_MAKINUM (rv);
@@ -697,7 +698,8 @@ scm_sendto (sock, message, fam, address, args_and_flags)
   scm_sizet size;
 
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_sendto);
-  SCM_ASSERT (SCM_NIMP (message) && SCM_STRINGP (message), message, SCM_ARG2, s_sendto);
+  SCM_ASSERT (SCM_NIMP (message) && SCM_ROSTRINGP (message), message,
+	      SCM_ARG2, s_sendto);
   SCM_ASSERT (SCM_INUMP (fam), fam, SCM_ARG3, s_sendto);
   fd = fileno ((FILE *)SCM_STREAM (sock));
   SCM_DEFER_INTS;
@@ -711,8 +713,8 @@ scm_sendto (sock, message, fam, address, args_and_flags)
 	      args_and_flags, SCM_ARG5, s_sendto);
       flg = scm_num2ulong (SCM_CAR (args_and_flags), (char *) SCM_ARG5, s_sendto);
     }
-  SCM_SYSCALL (rv = sendto (fd, SCM_CHARS (message), SCM_LENGTH (message), flg,
-			soka, size));
+  SCM_SYSCALL (rv = sendto (fd, SCM_ROCHARS (message), SCM_ROLENGTH (message),
+			    flg, soka, size));
   if (rv == -1)
     scm_syserror (s_sendto);
   scm_must_free ((char *) soka);

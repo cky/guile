@@ -1,3 +1,18 @@
+Thu Mar 13 21:28:25 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ioext.c (scm_read_delimited_x): use RO string macros for delims.
+	(scm_freopen): use RO string macros for filename and modes.
+	(scm_duplicate_port, scm_fdopen): use RO string macros for modes.
+
+	* posix.c (scm_getgrgid): simplify conversion of name to C string.
+	(scm_mknod): use RO string macros for path.
+
+	* socket.c (scm_fill_sockaddr, scm_send, scm_sendto):
+	use SCM_ROSTRINGP, SCM_ROCHARS, SCM_ROLENGTH.
+	
+	* net_db.c (scm_gethost, scm_getnet, scm_getproto, scm_getserv):
+	use SCM_ROSTRINGP and SCM_ROCHARS.
+
 Thu Mar 13 18:31:33 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* unif.c (scm_array_set_x): Cast ICHR (obj) to char if storing in

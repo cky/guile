@@ -79,10 +79,10 @@ scm_read_delimited_x (delims, buf, gobble, port, start, end)
   char *cdelims;
   int num_delims;
 
-  SCM_ASSERT (SCM_NIMP (delims) && SCM_STRINGP (delims),
+  SCM_ASSERT (SCM_NIMP (delims) && SCM_ROSTRINGP (delims),
 	      delims, SCM_ARG1, s_read_delimited_x);
-  cdelims = SCM_CHARS (delims);
-  num_delims = SCM_LENGTH (delims);
+  cdelims = SCM_ROCHARS (delims);
+  num_delims = SCM_ROLENGTH (delims);
   SCM_ASSERT (SCM_NIMP (buf) && SCM_STRINGP (buf),
 	      buf, SCM_ARG2, s_read_delimited_x);
   cbuf = SCM_CHARS (buf);
@@ -203,11 +203,14 @@ scm_freopen (filename, modes, port)
      SCM port;
 {
   FILE *f;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_STRINGP (filename), filename, SCM_ARG1, s_freopen);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_STRINGP (modes), modes, SCM_ARG2, s_freopen);
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
+	      SCM_ARG1, s_freopen);
+  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
+	      s_freopen);
   SCM_DEFER_INTS;
   SCM_ASSERT (SCM_NIMP (port) && SCM_FPORTP (port), port, SCM_ARG3, s_freopen);
-  SCM_SYSCALL (f = freopen (SCM_CHARS (filename), SCM_CHARS (modes), (FILE *)SCM_STREAM (port)));
+  SCM_SYSCALL (f = freopen (SCM_ROCHARS (filename), SCM_ROCHARS (modes),
+			    (FILE *)SCM_STREAM (port)));
   if (!f)
     {
       SCM p;
@@ -218,9 +221,9 @@ scm_freopen (filename, modes, port)
     }
   else
     {
-      SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes)));
+      SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
       SCM_SETSTREAM (port, (SCM)f);
-      SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes)));
+      SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
       if (SCM_BUF0 & SCM_CAR (port))
 	scm_setbuf0 (port);
     }
@@ -241,8 +244,10 @@ scm_duplicate_port (oldpt, modes)
   int newfd;
   FILE *f;
   SCM newpt;
-  SCM_ASSERT (SCM_NIMP (oldpt) && SCM_OPPORTP (oldpt), oldpt, SCM_ARG1, s_duplicate_port);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_STRINGP (modes), modes, SCM_ARG2, s_duplicate_port);
+  SCM_ASSERT (SCM_NIMP (oldpt) && SCM_OPPORTP (oldpt), oldpt, SCM_ARG1,
+	      s_duplicate_port);
+  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
+	      s_duplicate_port);
   SCM_NEWCELL (newpt);
   SCM_DEFER_INTS;
   oldfd = fileno ((FILE *)SCM_STREAM (oldpt));
@@ -251,7 +256,7 @@ scm_duplicate_port (oldpt, modes)
   SCM_SYSCALL (newfd = dup (oldfd));
   if (newfd == -1)
     scm_syserror (s_duplicate_port);
-  f = fdopen (newfd, SCM_CHARS (modes));
+  f = fdopen (newfd, SCM_ROCHARS (modes));
   if (!f)
     {
       SCM_SYSCALL (close (newfd));
@@ -261,7 +266,7 @@ scm_duplicate_port (oldpt, modes)
     struct scm_port_table * pt;
     pt = scm_add_to_port_table (newpt);
     SCM_SETPTAB_ENTRY (newpt, pt);
-    SCM_SETCAR (newpt, scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes)));
+    SCM_SETCAR (newpt, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
     if (SCM_BUF0 & SCM_CAR (newpt))
       scm_setbuf0 (newpt);
     SCM_SETSTREAM (newpt, (SCM)f);
@@ -340,15 +345,16 @@ scm_fdopen (fdes, modes)
   struct scm_port_table * pt;
 
   SCM_ASSERT (SCM_INUMP (fdes), fdes, SCM_ARG1, s_fdopen);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_STRINGP (modes), modes, SCM_ARG2, s_fdopen);
+  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
+	      s_fdopen);
   SCM_NEWCELL (port);
   SCM_DEFER_INTS;
-  f = fdopen (SCM_INUM (fdes), SCM_CHARS (modes));
+  f = fdopen (SCM_INUM (fdes), SCM_ROCHARS (modes));
   if (f == NULL)
     scm_syserror (s_fdopen);
   pt = scm_add_to_port_table (port);
   SCM_SETPTAB_ENTRY (port, pt);
-  SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes)));
+  SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
   if (SCM_BUF0 & SCM_CAR (port))
     scm_setbuf0 (port);
   SCM_SETSTREAM (port, (SCM)f);

@@ -353,10 +353,9 @@ scm_getgrgid (name)
     SCM_SYSCALL (entry = getgrgid (SCM_INUM (name)));
   else
     {
-      SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name, SCM_ARG1, s_getgrgid);
-      if (SCM_SUBSTRP (name))
-	name = scm_makfromstr (SCM_ROCHARS (name), SCM_ROLENGTH (name), 0);
-      SCM_SYSCALL (entry = getgrnam (SCM_CHARS (name)));
+      SCM_ASSERT (SCM_NIMP (name) && SCM_ROSTRINGP (name), name, SCM_ARG1,
+		  s_getgrgid);
+      SCM_SYSCALL (entry = getgrnam (SCM_ROCHARS (name)));
     }
   if (!entry)
     scm_syserror (s_getgrgid);
@@ -698,8 +697,8 @@ scm_convert_exec_args (args)
       scm_sizet len;
       char *dst;
       char *src;
-      SCM_ASSERT (SCM_NIMP (SCM_CAR (args)) && SCM_ROSTRINGP (SCM_CAR (args)), SCM_CAR (args),
-	      "wrong type in SCM_ARG", "exec arg");
+      SCM_ASSERT (SCM_NIMP (SCM_CAR (args)) && SCM_ROSTRINGP (SCM_CAR (args)),
+		  SCM_CAR (args), "wrong type in SCM_ARG", "exec arg");
       len = 1 + SCM_ROLENGTH (SCM_CAR (args));
       dst = (char *) scm_must_malloc ((long) len, s_ttyname);
       src = SCM_ROCHARS (SCM_CAR (args));
@@ -739,9 +738,11 @@ scm_execlp (args)
 {
   char **execargv;
   SCM filename = SCM_CAR (args);
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename, SCM_ARG1, s_execlp);
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
+	      SCM_ARG1, s_execlp);
   if (SCM_SUBSTRP (filename))
-    filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_ROLENGTH (filename), 0);
+    filename = scm_makfromstr (SCM_ROCHARS (filename),
+			       SCM_ROLENGTH (filename), 0);
   args = SCM_CDR (args);
   execargv = scm_convert_exec_args (args);
   execvp (SCM_ROCHARS (filename), execargv);
@@ -814,8 +815,9 @@ scm_environ (env)
 	{
 	  int len;
 	  char *src;
-	  SCM_ASSERT (SCM_NIMP (SCM_CAR (env)) && SCM_ROSTRINGP (SCM_CAR (env)), env, SCM_ARG1,
-		  s_environ);
+	  SCM_ASSERT (SCM_NIMP (SCM_CAR (env))
+		      && SCM_ROSTRINGP (SCM_CAR (env)),
+		      env, SCM_ARG1, s_environ);
 	  len = 1 + SCM_ROLENGTH (SCM_CAR (env));
 	  new_environ[i] = scm_must_malloc ((long) len, s_environ);
 	  src = SCM_ROCHARS (SCM_CAR (env));
@@ -867,10 +869,13 @@ scm_open_pipe (pipestr, modes)
   register SCM z;
   struct scm_port_table * pt;
 
-  SCM_ASSERT (SCM_NIMP (pipestr) && SCM_ROSTRINGP (pipestr), pipestr, SCM_ARG1, s_open_pipe);
+  SCM_ASSERT (SCM_NIMP (pipestr) && SCM_ROSTRINGP (pipestr), pipestr,
+	      SCM_ARG1, s_open_pipe);
   if (SCM_SUBSTRP (pipestr))
-    pipestr = scm_makfromstr (SCM_ROCHARS (pipestr), SCM_ROLENGTH (pipestr), 0);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2, s_open_pipe);
+    pipestr = scm_makfromstr (SCM_ROCHARS (pipestr),
+			      SCM_ROLENGTH (pipestr), 0);
+  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
+	      s_open_pipe);
   if (SCM_SUBSTRP (modes))
     modes = scm_makfromstr (SCM_ROCHARS (modes), SCM_ROLENGTH (modes), 0);
   SCM_NEWCELL (z);
@@ -920,7 +925,8 @@ scm_utime (pathname, actime, modtime)
   int rv;
   struct utimbuf utm_tmp;
 
-  SCM_ASSERT (SCM_NIMP (pathname) && SCM_STRINGP (pathname), pathname, SCM_ARG1, s_utime);
+  SCM_ASSERT (SCM_NIMP (pathname) && SCM_STRINGP (pathname), pathname,
+	      SCM_ARG1, s_utime);
 
   if (SCM_UNBNDP (actime))
     SCM_SYSCALL (time (&utm_tmp.actime));
@@ -947,7 +953,8 @@ scm_access (path, how)
 {
   int rv;
 
-  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1, s_access);
+  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1,
+	      s_access);
   if (SCM_SUBSTRP (path))
     path = scm_makfromstr (SCM_ROCHARS (path), SCM_ROLENGTH (path), 0);
   SCM_ASSERT (SCM_INUMP (how), how, SCM_ARG2, s_access);
@@ -1002,7 +1009,8 @@ scm_setlocale (category, locale)
     }
   else
     {
-      SCM_ASSERT (SCM_NIMP (locale) && SCM_STRINGP (locale), locale, SCM_ARG2, s_setlocale);
+      SCM_ASSERT (SCM_NIMP (locale) && SCM_STRINGP (locale), locale,
+		  SCM_ARG2, s_setlocale);
       clocale = SCM_CHARS (locale);
     }
 
@@ -1032,9 +1040,11 @@ scm_strftime (format, stime)
   char *fmt;
   int len;
 
-  SCM_ASSERT (SCM_NIMP (format) && SCM_STRINGP (format), format, SCM_ARG1, s_strftime);
-  SCM_ASSERT (SCM_NIMP (stime) && SCM_VECTORP (stime) && scm_obj_length (stime) == 9,
-	  stime, SCM_ARG2, s_strftime);
+  SCM_ASSERT (SCM_NIMP (format) && SCM_STRINGP (format), format, SCM_ARG1,
+	      s_strftime);
+  SCM_ASSERT (SCM_NIMP (stime) && SCM_VECTORP (stime)
+	      && scm_obj_length (stime) == 9,
+	      stime, SCM_ARG2, s_strftime);
 
   fmt = SCM_ROCHARS (format);
   len = SCM_ROLENGTH (format);
@@ -1080,10 +1090,12 @@ scm_strptime (format, string)
   char *fmt, *str, *rest;
   int n;
 
-  SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1, s_strptime);
+  SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1,
+	      s_strptime);
   if (SCM_SUBSTRP (format))
     format =  scm_makfromstr (SCM_ROCHARS (format), SCM_ROLENGTH (format), 0);
-  SCM_ASSERT (SCM_NIMP (string) && SCM_ROSTRINGP (string), string, SCM_ARG2, s_strptime);
+  SCM_ASSERT (SCM_NIMP (string) && SCM_ROSTRINGP (string), string, SCM_ARG2,
+	      s_strptime);
   if (SCM_SUBSTRP (string))
     string =  scm_makfromstr (SCM_ROCHARS (string), SCM_ROLENGTH (string), 0);
 
@@ -1143,10 +1155,10 @@ scm_mknod(path, mode, dev)
 {
 #ifdef HAVE_MKNOD
   int val;
-  SCM_ASSERT(SCM_NIMP(path) && SCM_STRINGP(path), path, SCM_ARG1, s_mknod);
+  SCM_ASSERT(SCM_NIMP(path) && SCM_ROSTRINGP(path), path, SCM_ARG1, s_mknod);
   SCM_ASSERT(SCM_INUMP(mode), mode, SCM_ARG2, s_mknod);
   SCM_ASSERT(SCM_INUMP(dev), dev, SCM_ARG3, s_mknod);
-  SCM_SYSCALL(val = mknod(SCM_CHARS(path), SCM_INUM(mode), SCM_INUM(dev)));
+  SCM_SYSCALL(val = mknod(SCM_ROCHARS(path), SCM_INUM(mode), SCM_INUM(dev)));
   if (val != 0)
     scm_syserror (s_mknod);
   return SCM_UNSPECIFIED;

@@ -171,10 +171,10 @@ scm_gethost (name)
     }
   else
 #endif
-  if (SCM_NIMP (name) && SCM_STRINGP (name))
+  if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
       SCM_DEFER_INTS;
-      entry = gethostbyname (SCM_CHARS (name));
+      entry = gethostbyname (SCM_ROCHARS (name));
     }
   else
     {
@@ -222,10 +222,10 @@ scm_getnet (name)
       SCM_DEFER_INTS;
       entry = getnetent ();
     }
-  else if (SCM_NIMP (name) && SCM_STRINGP (name))
+  else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
       SCM_DEFER_INTS;
-      entry = getnetbyname (SCM_CHARS (name));
+      entry = getnetbyname (SCM_ROCHARS (name));
     }
   else
     {
@@ -261,10 +261,10 @@ scm_getproto (name)
       SCM_DEFER_INTS;
       entry = getprotoent ();
     }
-  else if (SCM_NIMP (name) && SCM_STRINGP (name))
+  else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
       SCM_DEFER_INTS;
-      entry = getprotobyname (SCM_CHARS (name));
+      entry = getprotobyname (SCM_ROCHARS (name));
     }
   else
     {
@@ -319,17 +319,17 @@ scm_getserv (name, proto)
       SCM_ALLOW_INTS;
       return scm_return_entry (entry);
     }
-  SCM_ASSERT (SCM_NIMP (proto) && SCM_STRINGP (proto), proto, SCM_ARG2, s_getserv);
-  if (SCM_NIMP (name) && SCM_STRINGP (name))
+  SCM_ASSERT (SCM_NIMP (proto) && SCM_ROSTRINGP (proto), proto, SCM_ARG2, s_getserv);
+  if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
       SCM_DEFER_INTS;
-      entry = getservbyname (SCM_CHARS (name), SCM_CHARS (proto));
+      entry = getservbyname (SCM_ROCHARS (name), SCM_ROCHARS (proto));
     }
   else
     {
       SCM_ASSERT (SCM_INUMP (name), name, SCM_ARG1, s_getserv);
       SCM_DEFER_INTS;
-      entry = getservbyport (htons (SCM_INUM (name)), SCM_CHARS (proto));
+      entry = getservbyport (htons (SCM_INUM (name)), SCM_ROCHARS (proto));
     }
   if (!entry)
     scm_syserror (s_getserv);
