@@ -1,4 +1,7 @@
-Thu May 15 16:22:33 1997  Jim Blandy  <jimb@floss.cyclic.com>
+Fri May 16 03:06:08 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* script.c (scm_shell_usage): Pass FATAL to exit.  There's no
+	reason not to give the user the option.
 
 	* net_db.c (scm_gethost, scm_getnet, scm_getproto, scm_getserv):
 	Return #f on end-of-file when scanning table (i.e. when called
