@@ -809,7 +809,7 @@
 
 (define (load name)
   (start-stack 'load-stack
-	       (primitive-load name #t read-sharp)))
+	       (primitive-load-path name #t read-sharp)))
 
 
 ;;; {Transcendental Functions}
