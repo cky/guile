@@ -12,7 +12,7 @@ filename=`basename $fullfilename`
 #  because the makefile redirects output to the .x file
 #  which creates the file before the inclusion occurs)
 # --12/12/99 gjb
-no_ext=`echo $filename | /bin/sed 's/\.[^.]*$//g'`
+no_ext=`echo $filename | sed 's/\.[^.]*$//g'`
 dot_doc=${no_ext}.doc
 
 temp="/tmp/snarf.$$"
