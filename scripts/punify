@@ -34,8 +34,8 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;
 ;; Example:
 ;; $ wc ./punify ; ./punify ./punify | wc
-;;     81     355    2622 ./punify
-;;      0      34     694
+;;     89     384    3031 ./punify
+;;      0      42     920
 ;;
 ;; TODO: Read from stdin.
 ;;       Handle vectors.
@@ -47,21 +47,29 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
   :export (punify))
 
 (define (write-punily form)
-  (if (and (list? form) (not (null? form)))
-      (let ((first (car form)))
-        (display "(")
-        (write-punily first)
-        (let loop ((ls (cdr form)) (last-was-list? (list? first)))
-          (if (null? ls)
-              (display ")")
-              (let* ((new-first (car ls))
-                     (this-is-list? (list? new-first)))
-                (and (not last-was-list?)
-                     (not this-is-list?)
-                     (display " "))
-                (write-punily new-first)
-                (loop (cdr ls) this-is-list?)))))
-      (write form)))
+  (cond ((and (list? form) (not (null? form)))
+         (let ((first (car form)))
+           (display "(")
+           (write-punily first)
+           (let loop ((ls (cdr form)) (last-was-list? (list? first)))
+             (if (null? ls)
+                 (display ")")
+                 (let* ((new-first (car ls))
+                        (this-is-list? (list? new-first)))
+                   (and (not last-was-list?)
+                        (not this-is-list?)
+                        (display " "))
+                   (write-punily new-first)
+                   (loop (cdr ls) this-is-list?))))))
+        ((and (symbol? form)
+              (let ((ls (string->list (symbol->string form))))
+                (and (char=? (car ls) #\:)
+                     (not (memq #\space ls))
+                     (list->string (cdr ls)))))
+         => (lambda (symbol-name-after-colon)
+              (display #\:)
+              (display symbol-name-after-colon)))
+        (else (write form))))
 
 (define (punify-one file)
   (with-input-from-file file
