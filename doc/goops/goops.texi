@@ -2372,17 +2372,30 @@ as done by @code{scm-error}.
 @node Object Comparisons
 @subsection Object Comparisons
 
-@deffn generic object-eqv?
-@deffnx method object-eqv? ((x <top>) (y <top>))
-@deffnx generic object-equal?
-@deffnx method object-equal? ((x <top>) (y <top>))
+@deffn generic eqv?
+@deffnx method eqv? ((x <top>) (y <top>))
+@deffnx generic equal?
+@deffnx method equal? ((x <top>) (y <top>))
+@deffnx generic =
+@deffnx method = ((x <number>) (y <number>))
 Generic functions and default (unspecialized) methods for comparing two
 GOOPS objects.
 
-The default methods always return @code{#f}.  Application class authors
-may wish to define specialized methods for @code{object-eqv?} and
-@code{object-equal?} that compare instances of the same class for
-equality in whatever sense is useful to the application.
+The default method for @code{eqv?} returns @code{#t} for all values
+that are equal in the sense defined by R5RS and the Guile reference
+manual, otherwise @code{#f}.  The default method for @code{equal?}
+returns @code{#t} or @code{#f} in the sense defined by R5RS and the
+Guile reference manual.  If no such comparison is defined,
+@code{equal?} returns the result of a call to @code{eqv?}.  The
+default method for = returns @code{#t} if @var{x} and @var{y} are
+numerically equal, otherwise @code{#f}.
+
+Application class authors may wish to define specialized methods for
+@code{eqv?}, @code{equal?} and @code{=} that compare instances of the
+same class for equality in whatever sense is useful to the
+application.  Such methods will only be called if the arguments have
+the same class and the result of the comparison isn't defined by R5RS
+and the Guile reference manual.
 @end deffn
 
 @node Cloning Objects
