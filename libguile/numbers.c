@@ -1367,20 +1367,24 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 
 SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             (SCM n, SCM cnt),
-	    "The function ash performs an arithmetic shift left by @var{cnt}\n"
-	    "bits (or shift right, if @var{cnt} is negative).  'Arithmetic'\n"
-	    "means, that the function does not guarantee to keep the bit\n"
-	    "structure of @var{n}, but rather guarantees that the result\n"
-	    "will always be rounded towards minus infinity.  Therefore, the\n"
-	    "results of ash and a corresponding bitwise shift will differ if\n"
-	    "@var{n} is negative.\n"
+	    "Return @var{n} shifted left by @var{cnt} bits, or shifted right\n"
+	    "if @var{cnt} is negative.  This is an ``arithmetic'' shift.\n"
 	    "\n"
-	    "Formally, the function returns an integer equivalent to\n"
-	    "@code{(inexact->exact (floor (* @var{n} (expt 2 @var{cnt}))))}.\n"
+	    "This is effectively a multiplication by 2^@var{cnt}}, and when\n"
+	    "@var{cnt} is negative it's a division, rounded towards negative\n"
+	    "infinity.  (Note that this is not the same rounding as\n"
+	    "@code{quotient} does.)\n"
+	    "\n"
+	    "With @var{n} viewed as an infinite precision twos complement,\n"
+	    "@code{ash} means a left shift introducing zero bits, or a right\n"
+	    "shift dropping bits.\n"
 	    "\n"
 	    "@lisp\n"
 	    "(number->string (ash #b1 3) 2)     @result{} \"1000\"\n"
 	    "(number->string (ash #b1010 -1) 2) @result{} \"101\"\n"
+	    "\n"
+	    ";; -23 is bits ...11101001, -6 is bits ...111010\n"
+	    "(ash -23 -2) @result{} -6\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_ash
 {
