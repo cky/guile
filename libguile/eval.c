@@ -137,9 +137,12 @@ static const char s_missing_body_expression[] = "Missing body expression in";
  * expressions may be grouped arbitraryly with begin, but it is not allowed to
  * mix definitions and expressions.  If a define form in a body mixes
  * definitions and expressions, a 'Mixed definitions and expressions' error is
- * signalled.
- */
+ * signalled.  */
 static const char s_mixed_body_forms[] = "Mixed definitions and expressions in";
+/* Definitions are only allowed on the top level and at the start of a body.
+ * If a definition is detected anywhere else, a 'Bad define placement' error
+ * is signalled.  */
+static const char s_bad_define[] = "Bad define placement";
 
 /* Case or cond expressions must have at least one clause.  If a case or cond
  * expression without any clauses is detected, a 'Missing clauses' error is
@@ -746,9 +749,7 @@ scm_eval_car (SCM pair, SCM env)
  * just the body itself, but prefixed with an ISYM that denotes to what kind
  * of outer construct this body belongs: (<ISYM> <expr> ...).  A lambda body
  * starts with SCM_IM_LAMBDA, for example, a body of a let starts with
- * SCM_IM_LET, etc.  The one exception is a body that belongs to a letrec that
- * has been formed by rewriting internal defines: It starts with SCM_IM_DEFINE
- * (instead of SCM_IM_LETREC).
+ * SCM_IM_LET, etc.
  *
  * It is assumed that the calling expression has already made sure that the
  * body is a proper list.  */
@@ -1197,38 +1198,32 @@ canonicalize_define (const SCM expr)
 SCM
 scm_m_define (SCM expr, SCM env)
 {
-  SCM canonical_definition;
-  SCM cdr_canonical_definition;
-  SCM body;
+  ASSERT_SYNTAX (SCM_TOP_LEVEL (env), s_bad_define, expr);
 
-  canonical_definition = canonicalize_define (expr);
-  cdr_canonical_definition = SCM_CDR (canonical_definition);
-  body = SCM_CDR (cdr_canonical_definition);
+  {
+    const SCM canonical_definition = canonicalize_define (expr);
+    const SCM cdr_canonical_definition = SCM_CDR (canonical_definition);
+    const SCM variable = SCM_CAR (cdr_canonical_definition);
+    const SCM body = SCM_CDR (cdr_canonical_definition);
+    const SCM value = scm_eval_car (body, env);
 
-  if (SCM_TOP_LEVEL (env))
-    {
-      SCM var;
-      const SCM variable = SCM_CAR (cdr_canonical_definition);
-      const SCM value = scm_eval_car (body, env);
-      if (SCM_REC_PROCNAMES_P)
-	{
-	  SCM tmp = value;
-	  while (SCM_MACROP (tmp))
-	    tmp = SCM_MACRO_CODE (tmp);
-	  if (SCM_CLOSUREP (tmp)
-	      /* Only the first definition determines the name. */
-	      && SCM_FALSEP (scm_procedure_property (tmp, scm_sym_name)))
-	    scm_set_procedure_property_x (tmp, scm_sym_name, variable);
-	}
-      var = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_T);
-      SCM_VARIABLE_SET (var, value);
-      return SCM_UNSPECIFIED;
-    }
-  else
-    {
-      SCM_SETCAR (canonical_definition, SCM_IM_DEFINE);
-      return canonical_definition;
-    }
+    SCM var;
+    if (SCM_REC_PROCNAMES_P)
+      {
+        SCM tmp = value;
+        while (SCM_MACROP (tmp))
+          tmp = SCM_MACRO_CODE (tmp);
+        if (SCM_CLOSUREP (tmp)
+            /* Only the first definition determines the name. */
+            && SCM_FALSEP (scm_procedure_property (tmp, scm_sym_name)))
+          scm_set_procedure_property_x (tmp, scm_sym_name, variable);
+      }
+
+    var = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_T);
+    SCM_VARIABLE_SET (var, value);
+
+    return SCM_UNSPECIFIED;
+  }
 }
 
 
@@ -2266,8 +2261,8 @@ scm_unmemocar (SCM form, SCM env)
 #endif
 
 
-static SCM
-unmemocopy (SCM x, SCM env)
+SCM
+scm_unmemocopy (SCM x, SCM env)
 {
   SCM ls, z;
   SCM p;
@@ -2304,16 +2299,16 @@ unmemocopy (SCM x, SCM env)
 	SCM names, inits, test, memoized_body, steps, bindings;
 
 	x = SCM_CDR (x);
-	inits = scm_reverse (unmemocopy (SCM_CAR (x), env));
+	inits = scm_reverse (scm_unmemocopy (SCM_CAR (x), env));
 	x = SCM_CDR (x);
 	names = SCM_CAR (x);
 	env = SCM_EXTEND_ENV (names, SCM_EOL, env);
 	x = SCM_CDR (x);
-	test = unmemocopy (SCM_CAR (x), env);
+	test = scm_unmemocopy (SCM_CAR (x), env);
 	x = SCM_CDR (x);
 	memoized_body = SCM_CAR (x);
 	x = SCM_CDR (x);
-	steps = scm_reverse (unmemocopy (x, env));
+	steps = scm_reverse (scm_unmemocopy (x, env));
 
 	/* build transformed binding list */
 	bindings = SCM_EOL;
@@ -2349,7 +2344,7 @@ unmemocopy (SCM x, SCM env)
 	x = SCM_CDR (x);
 	rnames = SCM_CAR (x);
 	x = SCM_CDR (x);
-	rinits = scm_reverse (unmemocopy (SCM_CAR (x), env));
+	rinits = scm_reverse (scm_unmemocopy (SCM_CAR (x), env));
 	env = SCM_EXTEND_ENV (rnames, SCM_EOL, env);
 
 	bindings = build_binding_list (rnames, rinits);
@@ -2368,7 +2363,7 @@ unmemocopy (SCM x, SCM env)
 	rnames = SCM_CAR (x);
 	env = SCM_EXTEND_ENV (rnames, SCM_EOL, env);
 	x = SCM_CDR (x);
-	rinits = scm_reverse (unmemocopy (SCM_CAR (x), env));
+	rinits = scm_reverse (scm_unmemocopy (SCM_CAR (x), env));
 
 	bindings = build_binding_list (rnames, rinits);
 	z = scm_cons (bindings, SCM_UNSPECIFIED);
@@ -2388,7 +2383,7 @@ unmemocopy (SCM x, SCM env)
 	  }
 	y = z = scm_acons (SCM_CAR (b),
 			   unmemocar (
-	scm_cons (unmemocopy (SCM_CADR (b), env), SCM_EOL), env),
+	scm_cons (scm_unmemocopy (SCM_CADR (b), env), SCM_EOL), env),
 			   SCM_UNSPECIFIED);
 	env = SCM_EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
 	b = SCM_CDDR (b);
@@ -2403,7 +2398,7 @@ unmemocopy (SCM x, SCM env)
 	  {
 	    SCM_SETCDR (z, scm_acons (SCM_CAR (b),
 				      unmemocar (
-	    scm_list_1 (unmemocopy (SCM_CADR (b), env)), env),
+	    scm_list_1 (scm_unmemocopy (SCM_CADR (b), env)), env),
 				      SCM_UNSPECIFIED));
 	    z = SCM_CDR (z);
 	    env = SCM_EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
@@ -2435,19 +2430,6 @@ unmemocopy (SCM x, SCM env)
       z = SCM_CAR (x);
       switch (SCM_ISYMNUM (z))
 	{
-        case (SCM_ISYMNUM (SCM_IM_DEFINE)):
-          {
-            SCM n;
-            x = SCM_CDR (x);
-            n = SCM_CAR (x);
-            z = scm_cons (n, SCM_UNSPECIFIED);
-            ls = scm_cons (scm_sym_define, z);
-            if (!SCM_NULLP (env))
-              env = scm_cons (scm_cons (scm_cons (n, SCM_CAAR (env)),
-                                        SCM_CDAR (env)),
-                              SCM_CDR (env));
-            break;
-          }
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
 	  ls = z = scm_cons (scm_sym_atapply, SCM_UNSPECIFIED);
 	  goto loop;
@@ -2472,7 +2454,7 @@ unmemocopy (SCM x, SCM env)
 	  /* appease the Sun compiler god: */ ;
 	}
     default:
-      ls = z = unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
+      ls = z = unmemocar (scm_cons (scm_unmemocopy (SCM_CAR (x), env),
 				    SCM_UNSPECIFIED),
 			  env);
     }
@@ -2483,7 +2465,7 @@ loop:
       SCM form = SCM_CAR (x);
       if (!SCM_ISYMP (form))
 	{
-	  SCM copy = scm_cons (unmemocopy (form, env), SCM_UNSPECIFIED);
+	  SCM copy = scm_cons (scm_unmemocopy (form, env), SCM_UNSPECIFIED);
 	  SCM_SETCDR (z, unmemocar (copy, env));
 	  z = SCM_CDR (z);
 	}
@@ -2498,17 +2480,6 @@ loop:
   if (!SCM_FALSEP (p))
     scm_whash_insert (scm_source_whash, ls, p);
   return ls;
-}
-
-SCM
-scm_unmemocopy (SCM x, SCM env)
-{
-  if (!SCM_NULLP (env))
-    /* Make a copy of the lowest frame to protect it from
-       modifications by SCM_IM_DEFINE */
-    return unmemocopy (x, scm_cons (SCM_CAR (env), SCM_CDR (env)));
-  else
-    return unmemocopy (x, env);
 }
 
 
@@ -3280,20 +3251,13 @@ dispatch:
 	{
 
 
-        case (SCM_ISYMNUM (SCM_IM_DEFINE)):
-          /* Top level defines are handled directly by the memoizer and thus
-           * will never generate memoized code with SCM_IM_DEFINE.  Internal
-           * defines which occur at valid positions will be transformed into
-           * letrec expressions.  Thus, whenever the executor detects
-           * SCM_IM_DEFINE, this must come from an internal definition at an
-           * illegal position.  */ 
-          scm_misc_error (NULL, "Bad define placement", SCM_EOL);
-
-
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
+          /* Evaluate the procedure to be applied.  */
 	  x = SCM_CDR (x);
 	  proc = EVALCAR (x, env);
           PREP_APPLY (proc, SCM_EOL);
+
+          /* Evaluate the argument holding the list of arguments */
           x = SCM_CDR (x);
           arg1 = EVALCAR (x, env);
 
@@ -3349,7 +3313,7 @@ dispatch:
 	      {
 		arg1 = val;
 		proc = SCM_CDR (x);
-		proc = scm_eval_car (proc, env);
+		proc = EVALCAR (proc, env);
 		PREP_APPLY (proc, scm_list_1 (arg1));
 		ENTER_APPLY;
 		goto evap1;
@@ -3679,8 +3643,7 @@ dispatch:
 	      SCM_SET_MACROEXP (debug);
 #endif
 	      arg1 = SCM_APPLY (SCM_MACRO_CODE (proc), x,
-				  scm_cons (env, scm_listofnull));
-
+                                scm_cons (env, scm_listofnull));
 #ifdef DEVAL
 	      SCM_CLEAR_MACROEXP (debug);
 #endif
@@ -4172,7 +4135,7 @@ evapply: /* inputs: x, proc */
 	      arg1 = SCM_SUBRF(proc)(arg1, EVALCAR(x, env));
 	      x = SCM_CDR(x);
 	    }
-	  while (SCM_NIMP (x));
+	  while (!SCM_NULLP (x));
 	  RETURN (arg1);
 	case scm_tc7_rpsubr:
 	  if (SCM_FALSEP (SCM_SUBRF (proc) (arg1, arg2)))
@@ -4185,7 +4148,7 @@ evapply: /* inputs: x, proc */
 	      arg2 = arg1;
 	      x = SCM_CDR (x);
 	    }
-	  while (SCM_NIMP (x));
+	  while (!SCM_NULLP (x));
 	  RETURN (SCM_BOOL_T);
 	case scm_tc7_lsubr_2:
 	  RETURN (SCM_SUBRF (proc) (arg1, arg2, scm_eval_args (x, env, proc)));
@@ -5467,6 +5430,7 @@ SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
 /* Eval does not take the second arg optionally.  This is intentional
  * in order to be R5RS compatible, and to prepare for the new module
  * system, where we would like to make the choice of evaluation
@@ -5481,7 +5445,6 @@ change_environment (void *data)
   SCM_SETCDR (pair, old_module);
   scm_set_current_module (new_module);
 }
-
 
 static void
 restore_environment (void *data)
