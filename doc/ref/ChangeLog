@@ -1,3 +1,14 @@
+2004-02-18  Marius Vollmer  <mvo@zagadka.de>
+
+	* guile.texi: Replaced list of authors with "The Guile
+	Developers".
+
+	* preface.texi (Contributors to the Manual): New section.
+
+	* scheme-evaluation.texi (Expression Syntax): Use an empty name
+	for the function call syntax definition.  Otherwise, TeX complains
+	about unbalanced parenthesis.
+
 2004-02-18  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-evaluation.texi (Expression Syntax): Fill section with
