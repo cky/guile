@@ -1,3 +1,9 @@
+2000-06-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* Makefile.am: Removed old test code.
+
+	* gh_test_c.c, gh_test_repl.c: Removed.
+
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* iselect.c (SCM_NLONGBITS): Add workaround for the Sun 4.2
