@@ -1,3 +1,9 @@
+2002-05-22  Marius Vollmer  <mvo@zagadka.ping.de>
+
+        From John W. Eaton  <jwe@bevo.che.wisc.edu>
+
+	* numbers.c (idbl2str): Don't omit sign when printing negative zero.
+
 2002-05-14  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* gc_os_dep.c: For I386/OPENBSD, allow for `__i386__'

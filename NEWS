@@ -50,6 +50,21 @@ For example
 Two new predicates 'inf?' and 'nan?' can be used to test for the
 special values.
 
+** Inexact zero can have a sign.
+
+Guile can now distinguish between plus and minus inexact zero, if your
+platform supports this, too.  The two zeros are equal according to
+'=', but not according to 'eqv?'.  For example
+
+    (- 0.0)
+    => -0.0
+
+    (= 0.0 (- 0.0))
+    => #t
+
+    (eqv? 0.0 (- 0.0))
+    => #f
+
 ** We now have uninterned symbols.
 
 The new function 'make-symbol' will return a uninterned symbol.  This
