@@ -381,6 +381,20 @@ first containing the first elements of each lists and the second
 containing the second elements of each lists, and so on.
 @end deffn
 
+@deffn {Scheme Procedure} count pred lst1 @dots{} lstN
+Return a count of the number of times @var{pred} returns true when
+called on elements from the given lists.
+
+@var{pred} is called with @var{N} parameters @code{(@var{pred}
+@var{elem1} @dots{} @var{elemN})}, each element being from the
+corresponding @var{lst1} @dots{} @var{lstN}.  The first call is with
+the first element of each list, the second with the second element
+from each, and so on.
+
+Counting stops when the end of the shortest list is reached.  At least
+one list must be non-circular.
+@end deffn
+
 
 @node SRFI-1 Fold and Map
 @subsection Fold, Unfold & Map
