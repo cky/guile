@@ -72,13 +72,13 @@ SCM_REGISTER_PROC (s_srfi1_concatenate_x, "concatenate!", 1, 0, 0, scm_append_x)
 
 
 SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
-            (SCM pred, SCM lst1, SCM rest),
+            (SCM pred, SCM list1, SCM rest),
 	    "Return a count of the number of times @var{pred} returns true\n"
 	    "when called on elements from the given lists.\n"
 	    "\n"
 	    "@var{pred} is called with @var{N} parameters @code{(@var{pred}\n"
 	    "@var{elem1} @dots{} @var{elemN})}, each element being from the\n"
-	    "corresponding @var{lst1} @dots{} @var{lstN}.  The first call is\n"
+	    "corresponding @var{list1} @dots{} @var{lstN}.  The first call is\n"
 	    "with the first element of each list, the second with the second\n"
 	    "element from each, and so on.\n"
 	    "\n"
@@ -98,37 +98,37 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
       pred_tramp = scm_trampoline_1 (pred);
       SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
 
-      for ( ; SCM_CONSP (lst1); lst1 = SCM_CDR (lst1))
-        count += scm_is_true (pred_tramp (pred, SCM_CAR (lst1)));
+      for ( ; SCM_CONSP (list1); list1 = SCM_CDR (list1))
+        count += scm_is_true (pred_tramp (pred, SCM_CAR (list1)));
 
     end_lst1:
-      SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst1), lst1, SCM_ARG2, FUNC_NAME,
+      SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (list1), list1, SCM_ARG2, FUNC_NAME,
                        "list");
     }
   else if (SCM_CONSP (rest) && SCM_NULLP (SCM_CDR (rest)))
     {
       /* two lists */
       scm_t_trampoline_2 pred_tramp;
-      SCM lst2;
+      SCM list2;
 
       pred_tramp = scm_trampoline_2 (pred);
       SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
 
-      lst2 = SCM_CAR (rest);
+      list2 = SCM_CAR (rest);
       for (;;)
         {
-          if (! SCM_CONSP (lst1))
+          if (! SCM_CONSP (list1))
             goto end_lst1;
-          if (! SCM_CONSP (lst2))
+          if (! SCM_CONSP (list2))
             {
-              SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst2), lst2, SCM_ARG3,
+              SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (list2), list2, SCM_ARG3,
                                FUNC_NAME, "list");
               break;
             }
           count += scm_is_true (pred_tramp
-				(pred, SCM_CAR (lst1), SCM_CAR (lst2)));
-          lst1 = SCM_CDR (lst1);
-          lst2 = SCM_CDR (lst2);
+				(pred, SCM_CAR (list1), SCM_CAR (list2)));
+          list1 = SCM_CDR (list1);
+          list2 = SCM_CDR (list2);
         }
     }
   else
@@ -138,7 +138,7 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
       int  argnum;
 
       /* lstlst is a list of the list arguments */
-      lstlst = scm_cons (lst1, rest);
+      lstlst = scm_cons (list1, rest);
 
       /* args is the argument list to pass to pred, same length as lstlst,
          re-used for each call */

@@ -954,13 +954,15 @@ scm_threads_mark_stacks (void)
 	  abort ();
 	}
 
+      {
 #if SCM_STACK_GROWS_UP
-      long stack_len = t->top - t->base;
-      scm_mark_locations (t->base, stack_len);
+	long stack_len = t->top - t->base;
+	scm_mark_locations (t->base, stack_len);
 #else
-      long stack_len = t->base - t->top;
-      scm_mark_locations (t->top, stack_len);
+	long stack_len = t->base - t->top;
+	scm_mark_locations (t->top, stack_len);
 #endif
+      }
       scm_mark_locations ((SCM_STACKITEM *) t->regs,
 			  ((size_t) sizeof(t->regs)
 			   / sizeof (SCM_STACKITEM)));

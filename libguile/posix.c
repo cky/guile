@@ -1268,7 +1268,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       /* On e.g. Win32 hosts putenv() called with 'name=' removes the
 	 environment variable 'name'. */
       int e;
-      ptr = scm_malloc (len + 2);
+      char *ptr = scm_malloc (len + 2);
       strcpy (ptr, c_str);
       strcpy (ptr+len, "=");
       rv = putenv (ptr);

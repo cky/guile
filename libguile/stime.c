@@ -19,7 +19,9 @@
 
 
 #define _GNU_SOURCE  /* ask glibc for everything, in particular strptime */
+#ifndef __MINGW32__
 #define _POSIX_C_SOURCE 199506L  /* for gmtime_r prototype */
+#endif
 
 #if HAVE_CONFIG_H
 #  include <config.h>
@@ -509,7 +511,9 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   scm_frame_begin (0);
 
   bdtime2c (sbd_time, &lt, SCM_ARG1, FUNC_NAME);
+#if HAVE_STRUCT_TM_TM_ZONE
   scm_frame_free ((char *)lt.tm_zone);
+#endif
 
   SCM_DEFER_INTS;
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
@@ -642,7 +646,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 	   some OSs, e.g., Solaris.  */
 	SCM zone =
 	  scm_string_append (scm_cons (velts[10],
-				       scm_cons (scm_makfrom0str ("0"),
+				       scm_cons (scm_from_locale_string ("0"),
 						 SCM_EOL)));
 
 	have_zone = 1;

@@ -215,10 +215,10 @@ SCM
 scm_i_substring_copy (SCM str, size_t start, size_t end)
 {
   size_t len = end - start;
-  SCM buf;
+  SCM buf, my_buf;
   size_t str_start;
   get_str_buf_start (&str, &buf, &str_start);
-  SCM my_buf = make_stringbuf (len);
+  my_buf = make_stringbuf (len);
   memcpy (STRINGBUF_CHARS (my_buf),
 	  STRINGBUF_CHARS (buf) + str_start + start, len);
   scm_remember_upto_here_1 (buf);
@@ -732,9 +732,10 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   res = scm_i_make_string (i, &data);
   for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) 
     {
+      size_t len;
       s = SCM_CAR (l);
       SCM_VALIDATE_STRING (SCM_ARGn, s);
-      size_t len = scm_i_string_length (s);
+      len = scm_i_string_length (s);
       memcpy (data, scm_i_string_chars (s), len);
       data += len;
       scm_remember_upto_here_1 (s);

@@ -894,6 +894,9 @@ int main () { return (isinf(0.0) != 0); }],
 AC_MSG_CHECKING([for isnan])
 AC_LINK_IFELSE(
 [#include <math.h>
+#ifdef __MINGW32__
+#define isnan _isnan
+#endif
 int main () { return (isnan(0.0) != 0); }],
   [AC_MSG_RESULT([yes])
    AC_DEFINE(HAVE_ISNAN, 1,

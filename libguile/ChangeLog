@@ -1,3 +1,26 @@
+2004-09-03  Stefan Jahn  <stefan@lkcc.org>
+
+	* threads.c (scm_threads_mark_stacks):  Fixed local variable
+	definitions.
+
+	* strings.c (scm_i_substring_copy, s_scm_string_append): Fixed
+	local variable definitions.
+
+	* stime.c (_POSIX_C_SOURCE):  Do not define this item on
+	MinGW32 because it conflicts with its pthread headers.
+	(s_scm_mktime): Consider the HAVE_STRUCT_TM_TM_ZONE define.
+	(s_scm_strftime): Using scm_from_locale_string() instead of
+	scm_makfrom0str().
+
+	* posix.c (s_scm_putenv): Fixed typo in the !HAVE_UNSETENV
+	part.
+
+	* numbers.c (scm_init_numbers): Removed check_sanity() call
+	inside GUILE_DEBUG.  The function has been removed somewhen...
+
+	* filesys.c (_POSIX_C_SOURCE): Do not define this item on
+	MinGW32 because it conflicts with its pthread headers.
+
 2004-08-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* strings.c (SCM_STRINGP): Accept all strings.

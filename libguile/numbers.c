@@ -5848,10 +5848,6 @@ scm_init_numbers ()
       scm_dblprec[10-2] = (DBL_DIG > 20) ? 20 : DBL_DIG;
 #endif
 
-#ifdef GUILE_DEBUG
-  check_sanity ();
-#endif
-
   exactly_one_half = scm_permanent_object (scm_divide (SCM_I_MAKINUM (1),
 						       SCM_I_MAKINUM (2)));
 #include "libguile/numbers.x"

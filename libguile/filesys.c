@@ -18,7 +18,9 @@
 
 
 #define _GNU_SOURCE              /* ask glibc for everything */
+#ifndef __MINGW32__
 #define _POSIX_C_SOURCE 199506L  /* for readdir_r elsewhere */
+#endif
 
 #if HAVE_CONFIG_H
 #  include <config.h>

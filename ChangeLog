@@ -1,3 +1,8 @@
+2004-09-03  Stefan Jahn  <stefan@lkcc.org>
+
+	* configure.in (isinf): Let configure find the isinf() function
+	on MinGW32 systems.
+
 2004-08-27  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_MEMBERS): Add struct sockaddr.sin_len and
