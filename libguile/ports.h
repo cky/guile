@@ -46,6 +46,8 @@
 
 #include "libguile/__scm.h"
 
+#include "libguile/print.h"
+
 
 
 enum scm_port_representation_type
