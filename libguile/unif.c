@@ -469,7 +469,6 @@ scm_aind (ra, args, what)
   register scm_sizet k = SCM_ARRAY_NDIM (ra);
   scm_array_dim *s = SCM_ARRAY_DIMS (ra);
   if (SCM_INUMP (args))
-
     {
       SCM_ASSERT (1 == k, scm_makfrom0str (what), SCM_WNA, NULL);
       return pos + (SCM_INUM (args) - s->lbnd) * (s->inc);
@@ -1041,14 +1040,13 @@ scm_uniform_vector_ref (v, args)
      SCM args;
 {
   long pos;
-  if (SCM_IMP (v))
 
+  if (SCM_IMP (v))
     {
       SCM_ASRTGO (SCM_NULLP (args), badarg);
       return v;
     }
   else if (SCM_ARRAYP (v))
-
     {
       pos = scm_aind (v, args, s_uniform_vector_ref);
       v = SCM_ARRAY_V (v);
@@ -1075,7 +1073,9 @@ scm_uniform_vector_ref (v, args)
     default:
       if (SCM_NULLP (args))
  return v;
-    badarg:scm_wta (v, (char *) SCM_ARG1, s_uniform_vector_ref);
+    badarg:
+      scm_wta (v, (char *) SCM_ARG1, s_uniform_vector_ref);
+      abort ();
     outrng:scm_out_of_range (s_uniform_vector_ref, SCM_MAKINUM (pos));
     wna: scm_wrong_num_args (scm_makfrom0str (s_uniform_vector_ref));
     case scm_tc7_smob:
@@ -1236,7 +1236,6 @@ scm_array_set_x (v, obj, args)
   long pos;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_ARRAYP (v))
-
     {
       pos = scm_aind (v, args, s_array_set_x);
       v = SCM_ARRAY_V (v);
@@ -1244,7 +1243,6 @@ scm_array_set_x (v, obj, args)
   else
     {
       if (SCM_NIMP (args))
-
 	{
 	  SCM_ASSERT (SCM_CONSP (args) && SCM_INUMP (SCM_CAR (args)), args, SCM_ARG2, s_array_set_x);
 	  pos = SCM_INUM (SCM_CAR (args));
@@ -1259,8 +1257,9 @@ scm_array_set_x (v, obj, args)
     }
   switch (SCM_TYP7 (v))
     {
-    default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_array_set_x);
+    default: badarg1:
+      scm_wta (v, (char *) SCM_ARG1, s_array_set_x);
+      abort ();
     outrng:scm_out_of_range (s_array_set_x, SCM_MAKINUM (pos));
     wna: scm_wrong_num_args (scm_makfrom0str (s_array_set_x));
     case scm_tc7_smob:		/* enclosed */
@@ -1439,18 +1438,20 @@ scm_uniform_array_read_x (ra, port)
      SCM ra;
      SCM port;
 {
-  SCM cra, v = ra;
+  SCM cra = SCM_UNDEFINED, v = ra;
   long sz, len, ans;
   long start = 0;
+
   if (SCM_UNBNDP (port))
- port = scm_cur_inp;
+    port = scm_cur_inp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINFPORTP (port), port, SCM_ARG2, s_uniform_array_read_x);
+    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINFPORTP (port), port, SCM_ARG2,
+		s_uniform_array_read_x);
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
+
   len = SCM_LENGTH (v);
 loop:
-  switch SCM_TYP7
-    (v)
+  switch SCM_TYP7 (v)
     {
     default:
     badarg1:scm_wta (v, (char *) SCM_ARG1, s_uniform_array_read_x);
@@ -1495,19 +1496,25 @@ loop:
       break;
 #endif
     }
+
   /* An ungetc before an fread will not work on some systems if setbuf(0).
      do #define NOSETBUF in scmfig.h to fix this. */
   if (SCM_CRDYP (port))
-
     {				/* UGGH!!! */
       ungetc (SCM_CGETUN (port), (FILE *)SCM_STREAM (port));
       SCM_CLRDY (port);		/* Clear ungetted char */
     }
-  SCM_SYSCALL (ans = fread (SCM_CHARS (v) + start * sz, (scm_sizet) sz, (scm_sizet) len, (FILE *)SCM_STREAM (port)));
+
+  SCM_SYSCALL (ans = fread (SCM_CHARS (v) + start * sz,
+			    (scm_sizet) sz, (scm_sizet) len,
+			    (FILE *)SCM_STREAM (port)));
+
   if (SCM_TYP7 (v) == scm_tc7_bvect)
     ans *= SCM_LONG_BIT;
+
   if (v != ra && cra != ra)
     scm_array_copy_x (cra, ra);
+
   return SCM_MAKINUM (ans);
 }
 

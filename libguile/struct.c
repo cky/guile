@@ -142,7 +142,7 @@ init_struct (handle, tail_elts, inits)
   SCM layout;
   SCM * data;
   unsigned char * fields_desc;
-  unsigned char prot;
+  unsigned char prot = 0;
   int n_fields;
   SCM * mem;
   int tailp = 0;
@@ -456,6 +456,7 @@ scm_struct_ref (handle, pos)
   else
     {
       SCM_ASSERT (0, pos, "ref denied", s_struct_ref);
+      abort ();
     }
   
   switch (field_type)
@@ -532,6 +533,7 @@ scm_struct_set_x (handle, pos, val)
   else
     {
       SCM_ASSERT (0, pos, "set_x denied", s_struct_ref);
+      abort ();
     }
   
   switch (field_type)
