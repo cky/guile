@@ -1,6 +1,6 @@
 ;;;; posix.test --- Test suite for Guile POSIX functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -20,6 +20,32 @@
 (use-modules (test-suite lib))
 
 
+;;
+;; execl
+;;
+
+(with-test-prefix "execl"
+  (pass-if-exception "./nosuchprog" '(system-error . ".*")
+    (execl "./nosuchprog" "./nosuchprog" "some arg")))
+  
+;;
+;; execlp
+;;
+
+(with-test-prefix "execlp"
+  (pass-if-exception "./nosuchprog" '(system-error . ".*")
+    (execlp "./nosuchprog" "./nosuchprog" "some arg")))
+  
+;;
+;; execle
+;;
+
+(with-test-prefix "execle"
+  (pass-if-exception "./nosuchprog" '(system-error . ".*")
+    (execle "./nosuchprog" '() "./nosuchprog" "some arg"))
+  (pass-if-exception "./nosuchprog" '(system-error . ".*")
+    (execle "./nosuchprog" '("FOO=1" "BAR=2") "./nosuchprog" "some arg")))
+  
 ;;
 ;; putenv
 ;;
