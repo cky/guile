@@ -17,6 +17,9 @@
 
 ;;;; Deprecated definitions.
 
+(define substring-move-left! substring-move!)
+(define substring-move-right! substring-move!)
+
 ;; This method of dynamically linking Guile Extensions is deprecated.
 ;; Use `load-extension' explicitely from Scheme code instead.
 
