@@ -1,3 +1,8 @@
+2001-05-28  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* srfi-19.scm: removed a stray open parenthesis. (thanks to
+	Matthias Köppe for the report).
+
 2001-05-23  Rob Browning  <rlb@cs.utexas.edu>
 
 	* srfi-19.scm (:optional): renamed to optional to avoid reader

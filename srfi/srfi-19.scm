@@ -603,8 +603,6 @@
   t)
 
 
-  (
-
 ;; gives the julian day which starts at noon.
 (define (priv:encode-julian-day-number day month year)
   (let* ((a (quotient (- 14 month) 12))
