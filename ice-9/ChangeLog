@@ -1,3 +1,8 @@
+1997-10-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (inherit-print-state): If NEW-PORT contains a
+	print-state, throw it away.
+
 1997-10-03  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* boot-9.scm (struct-layout): Use `vtable-index-layout' instead of
