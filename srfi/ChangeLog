@@ -1,3 +1,8 @@
+2003-07-14  Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>
+
+	* srfi-1.c, srfi-1.h (scm_srfi1_partition), srfi-1.scm (partition):
+	Re-implement in C to avoid stack overflows for long input lists.
+
 2003-07-08  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.c, srfi-1.h (scm_srfi1_delete, scm_srfi1_delete_x,
