@@ -124,13 +124,13 @@
 
 SCM_DEFINE (scm_chown, "chown", 3, 0, 0, 
             (SCM object, SCM owner, SCM group),
-	    "Change the ownership and group of the file referred to by @var{obj} to\n"
-	    "the integer userid values @var{owner} and @var{group}.  @var{obj} can be\n"
-	    "a string containing a file name or a port or integer file descriptor\n"
-	    "which is open on the file (in which case fchown is used as the underlying\n"
-	    "system call).  The return value\n"
+	    "Change the ownership and group of the file referred to by @var{object} to\n"
+	    "the integer values @var{owner} and @var{group}.  @var{object} can be\n"
+	    "a string containing a file name or, if the platform\n"
+	    "supports fchown, a port or integer file descriptor\n"
+	    "which is open on the file.  The return value\n"
 	    "is unspecified.\n\n"
-	    "If @var{obj} is a symbolic link, either the\n"
+	    "If @var{object} is a symbolic link, either the\n"
 	    "ownership of the link or the ownership of the referenced file will be\n"
 	    "changed depending on the operating system (lchown is\n"
 	    "unsupported at present).  If @var{owner} or @var{group} is specified\n"
@@ -138,21 +138,21 @@ SCM_DEFINE (scm_chown, "chown", 3, 0, 0,
 #define FUNC_NAME s_scm_chown
 {
   int rv;
-  int fdes;
 
   object = SCM_COERCE_OUTPORT (object);
 
   SCM_VALIDATE_INUM (2,owner);
   SCM_VALIDATE_INUM (3,group);
+#ifdef HAVE_FCHOWN
   if (SCM_INUMP (object) || (SCM_OPFPORTP (object)))
     {
-      if (SCM_INUMP (object))
-	fdes = SCM_INUM (object);
-      else
-	fdes = SCM_FPORT_FDES (object);
+      int fdes = SCM_INUMP (object) ? SCM_INUM (object)
+	: SCM_FPORT_FDES (object);
+
       SCM_SYSCALL (rv = fchown (fdes, SCM_INUM (owner), SCM_INUM (group)));
     }
   else
+#endif
     {
       SCM_VALIDATE_ROSTRING(1,object);
       SCM_COERCE_SUBSTR (object);
@@ -821,6 +821,7 @@ static int
 set_element (SELECT_TYPE *set, SCM element, int arg)
 {
   int fd;
+
   element = SCM_COERCE_OUTPORT (element);
   if (SCM_OPFPORTP (element))
     fd = SCM_FPORT_FDES (element);

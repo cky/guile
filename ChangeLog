@@ -1,3 +1,7 @@
+2000-01-23  Gary Houston  <ghouston@arglist.com>
+
+	* configure.in: check for fchown.
+
 Tue Jan 18 12:55:15 2000  Mikael Djurfeldt  <mdj@r11n07-s.pdc.kth.se>
 
 	* acinclude.m4 (AC_LIBLTDL_CONVENIENCE): Add $(top_srcdir)/libltdl

@@ -1,3 +1,8 @@
+2000-01-23  Gary Houston  <ghouston@arglist.com>
+
+	* filesys.c (scm_chown): omit port/fdes support if HAVE_FCHOWN is 
+	not defined (thanks to Richard Y. Kim).
+
 Thu Jan 20 13:00:38 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* Makefile.in: Removed, this is auto-generated.
