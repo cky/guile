@@ -812,6 +812,9 @@ used only during port creation are not retained.
 Return the filename associated with @var{port}.  This function returns
 the strings "standard input", "standard output" and "standard error"
 when called on the current input, output and error ports respectively.
+
+@var{port} must be open, @code{port-filename} cannot be used once the
+port is closed.
 @end deffn
 
 @deffn {Scheme Procedure} set-port-filename! port filename
