@@ -620,6 +620,46 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
+	    (SCM pred, SCM list),
+	    "Partition the elements of @var{list} with predicate @var{pred}.\n"
+	    "Return two values: the list of elements satifying @var{pred} and\n"
+	    "the list of elements @emph{not} satisfying @var{pred}.  The order\n"
+	    "of the output lists follows the order of @var{list}.  @var{list}\n"
+	    "is not mutated.  One of the output lists may share memory with @var{list}.\n")
+#define FUNC_NAME s_scm_srfi1_partition
+{
+  /* In this implementation, the output lists don't share memory with
+     list, because it's probably not worth the effort. */
+  scm_t_trampoline_1 call = scm_trampoline_1(pred);
+  SCM kept = scm_cons(SCM_EOL, SCM_EOL);
+  SCM kept_tail = kept;
+  SCM dropped = scm_cons(SCM_EOL, SCM_EOL);
+  SCM dropped_tail = dropped;
+  
+  SCM_ASSERT(call, pred, 2, FUNC_NAME);
+  
+  for (; !SCM_NULL_OR_NIL_P (list); list = SCM_CDR(list)) {
+    SCM elt = SCM_CAR(list);
+    SCM new_tail = scm_cons(SCM_CAR(list), SCM_EOL);
+    if (SCM_NFALSEP(call(pred, elt))) {
+      SCM_SETCDR(kept_tail, new_tail);
+      kept_tail = new_tail;
+    }
+    else {
+      SCM_SETCDR(dropped_tail, new_tail);
+      dropped_tail = new_tail;
+    }
+  }
+  /* re-use the initial conses for the values list */
+  SCM_SETCAR(kept, SCM_CDR(kept));
+  SCM_SETCDR(kept, dropped);
+  SCM_SETCAR(dropped, SCM_CDR(dropped));
+  SCM_SETCDR(dropped, SCM_EOL);
+  return scm_values(kept);
+}
+#undef FUNC_NAME
+
 void
 scm_init_srfi_1 (void)
 {

@@ -662,15 +662,6 @@
 
 ;;; Filtering & partitioning
 
-(define (partition pred list)
-  (if (null? list)
-    (values '() '())
-    (if (pred (car list))
-      (receive (in out) (partition pred (cdr list))
-	       (values (cons (car list) in) out))
-      (receive (in out) (partition pred (cdr list))
-	       (values in (cons (car list) out))))))
-
 (define (remove pred list)
   (filter (lambda (x) (not (pred x))) list))
 

@@ -40,6 +40,7 @@ SCM_SRFI1_API SCM scm_srfi1_map (SCM proc, SCM arg1, SCM args);
 SCM_SRFI1_API SCM scm_srfi1_for_each (SCM proc, SCM arg1, SCM args);
 SCM_SRFI1_API SCM scm_srfi1_member (SCM obj, SCM ls, SCM pred);
 SCM_SRFI1_API SCM scm_srfi1_assoc (SCM key, SCM alist, SCM pred);
+SCM_SRFI1_API SCM scm_srfi1_partition (SCM pred, SCM list);
 
 SCM_SRFI1_API void scm_init_srfi_1 (void);
 
