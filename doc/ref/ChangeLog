@@ -1,3 +1,13 @@
+2005-02-04  Kevin Ryde  <user42@zip.com.au>
+
+	* api-io.texi (File Ports): In port-filename, cannot use after close.
+
+	* posix.texi (Time): In mktime, clarify fields of sbd-time used, and
+	the handling of tm:isdst.
+
+	* srfi-modules.texi (SRFI-0): Add srfi-4, srfi-13 and srfi-14 now in
+	the core.
+
 2005-01-29  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Signals): In sigaction, add SA_NOCLDSTOP, make it
