@@ -52,6 +52,9 @@
 #include <unistd.h>
 #endif
 
+#if defined(DECLARE_USLEEP) || (defined(GUILE_ISELECT) && !defined(HAVE_USLEEP))
+extern int usleep (unsigned);
+#endif
 
 
 
@@ -351,6 +354,20 @@ scm_sleep (i)
   j = sleep (SCM_INUM(i));
   return SCM_MAKINUM (j);
 }
+
+#if defined(GUILE_ISELECT) || defined(HAVE_USLEEP)
+SCM_PROC(s_usleep, "usleep", 1, 0, 0, scm_usleep);
+
+SCM 
+scm_usleep (i)
+     SCM i;
+{
+  int j;
+  SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_usleep);
+  j = usleep (SCM_INUM(i));
+  return SCM_MAKINUM (j);
+}
+#endif
 
 SCM_PROC(s_raise, "raise", 1, 0, 0, scm_raise);
 
