@@ -1,5 +1,10 @@
 2003-09-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* unit.c (scm_cvref): Eliminate unnecessary uses of SCM_NIMP,
+	SCM_SLOPPY_REALP and SCM_SLOPPY_COMPLEXP.
+
+2003-09-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.h (SCM_MAKINUM): Define in terms of scm_tc2_int.
 
 	(SCM_INEXACTP, SCM_REALP, SCM_COMPLEXP): Define in terms of the

@@ -1184,21 +1184,21 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
       return scm_long_long2num (((long long *) SCM_CELL_WORD_1 (v))[pos]);
 #endif
     case scm_tc7_fvect:
-      if (SCM_NIMP (last) && !SCM_EQ_P (last, scm_flo0) && SCM_SLOPPY_REALP (last))
+      if (SCM_REALP (last) && !SCM_EQ_P (last, scm_flo0))
 	{
 	  SCM_REAL_VALUE (last) = ((float *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
 	}
       return scm_make_real (((float *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_dvect:
-      if (SCM_NIMP (last) && !SCM_EQ_P (last, scm_flo0) && SCM_SLOPPY_REALP (last))
+      if (SCM_REALP (last) && !SCM_EQ_P (last, scm_flo0))
 	{
 	  SCM_REAL_VALUE (last) = ((double *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
 	}
       return scm_make_real (((double *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_cvect:
-      if (SCM_NIMP (last) && SCM_SLOPPY_COMPLEXP (last))
+      if (SCM_COMPLEXP (last))
 	{
 	  SCM_COMPLEX_REAL (last) = ((double *) SCM_CELL_WORD_1 (v))[2 * pos];
 	  SCM_COMPLEX_IMAG (last) = ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1];
