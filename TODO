@@ -99,5 +99,9 @@ that user-visible changes are reflected in NEWS.
 - in boot-9.scm:
   remove deprecated function `feature?´.
 
+- gc.c and gc.h:
+  remove deprecated macros SCM_NEWCELL and SCM_NEWCELL2 together with
+  their support staffing scm_deprecated_newcell,
+  scm_deprecated_newcell2, scm_tc16_allocated, mark_allocated.
 
 [TODO ends here]

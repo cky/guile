@@ -57,6 +57,14 @@ linking to the Guile DLL in Windows.
 There are also SCM_RL_IMPORT, QT_IMPORT, SCM_SRFI1314_IMPORT, and
 SCM_SRFI4_IMPORT, for the corresponding libraries.
 
+** SCM_NEWCELL and SCM_NEWCELL2 have been deprecated.
+
+Use the new functions scm_alloc_cell and scm_alloc_double_cell
+instead.  The old macros had problems because with them allocation and
+initialization was separated and the GC could sometimes observe half
+initialized cells.  Only careful coding by the user of SCM_NEWCELL and
+SCM_NEWCELL2 could make this safe and efficient.
+
 Changes since Guile 1.4:
 
 * Changes to the distribution
