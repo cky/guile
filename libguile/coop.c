@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.20 2000-03-29 01:57:40 mdj Exp $ */
+/* $Id: coop.c,v 1.21 2000-03-29 10:43:18 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -542,9 +542,9 @@ coop_condition_variable_destroy (coop_c *c)
 
 /* 1K room for the cond wait routine */
 #ifdef SCM_STACK_GROWS_UP
-#define COOP_STACK_ROOM (512)
+#define COOP_STACK_ROOM (256)
 #else
-#define COOP_STACK_ROOM (-512)
+#define COOP_STACK_ROOM (-256)
 #endif
 
 static void *
@@ -570,13 +570,17 @@ coop_create (coop_userf_t *f, void *pu)
 #ifdef GUILE_PTHREAD_COMPAT
   t = coop_qget (&coop_deadq);
   if (t)
-    t->sp = t->base;
+    {
+      t->sp = t->base;
+      t->specific = 0;
+      t->n_keys = 0;
+    }
   else
 #endif
     {
       t = malloc (sizeof (coop_t));
 
-      t->data = NULL;
+      t->specific = NULL;
       t->n_keys = 0;
 #ifdef GUILE_PTHREAD_COMPAT
       pthread_cond_init (&t->dummy_cond, NULL);
@@ -653,13 +657,12 @@ coop_aborthelp (qt_t *sp, void *old, void *null)
   oldthread->base = NULL;
 #endif
 
-  if (oldthread->data)
-    free (oldthread->data);
+  if (oldthread->specific)
+    free (oldthread->specific);
 #ifndef GUILE_PTHREAD_COMPAT
   free (oldthread->sto);
   free (oldthread);
 #else
-  oldthread->n_keys = 0;
   coop_qput (&coop_deadq, oldthread);
 #endif
   
