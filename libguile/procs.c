@@ -182,6 +182,37 @@ scm_thunk_p (obj)
   return SCM_BOOL_F;
 }
 
+SCM_PROC(s_procedure_documentation, "procedure-documentation", 1, 0, 0, scm_procedure_documentation);
+
+SCM 
+scm_procedure_documentation (proc)
+     SCM proc;
+{
+  SCM code;
+  SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc) && SCM_NIMP (proc) && SCM_TYP7 (proc) != scm_tc7_contin,
+	  proc, SCM_ARG1, s_procedure_documentation);
+  switch (SCM_TYP7 (proc))
+    {
+    case scm_tcs_closures:
+      code = SCM_CDR (SCM_CODE (proc));
+      if (SCM_IMP (SCM_CDR (code)))
+	return SCM_BOOL_F;
+      code = SCM_CAR (code);
+      if (SCM_IMP (code))
+	return SCM_BOOL_F;
+      if (SCM_STRINGP (code))
+	return code;
+    default:
+      return SCM_BOOL_F;
+/*
+  case scm_tcs_subrs:
+#ifdef CCLO
+  case scm_tc7_cclo:
+#endif
+*/
+    }
+}
+
 
 
 void
