@@ -70,6 +70,9 @@
    waiting to be read.  */
 #undef FILE_CNT_READPTR
 
+/* Define this if your system defines S_ISLNK in sys/stat.h */
+#undef HAVE_S_ISLNK
+
 /* Define this if your system defines struct linger, for use with the
    getsockopt and setsockopt system calls.  */
 #undef HAVE_STRUCT_LINGER
