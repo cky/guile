@@ -13,3 +13,4 @@ guile-*.tar.gz
 libtool
 ltconfig
 ltmain.sh
+check-guile
