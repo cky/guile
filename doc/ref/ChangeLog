@@ -1,3 +1,10 @@
+2004-08-24  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	Ran a (docstring-process-module "(guile)") and moved entries from
+	new-docstrings.texi to their appropriate place.
+	
+	* api-undocumented.texi: New file.
+
 2004-08-21  Marius Vollmer  <mvo@zagadka.de>
 
         From Richard Todd, Thanks!
