@@ -89,7 +89,7 @@
   (do ((k i (+ k 1)))
       ((= k n))
     (write-char (string-ref str k) format:port))
-  (set! format:output-col (+ format:output-col n)))
+  (set! format:output-col (+ format:output-col (- n i))))
 
 ;(define (format:out-fill n ch)       ; this allocates a new string
 ;  (format:out-str (make-string n ch)))
