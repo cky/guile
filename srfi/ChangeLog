@@ -1,6 +1,8 @@
 2004-12-05  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (filter-map): Change to a tail-recursive form.
+	(append-map, append-map!): Rewrite as simple "concatenate map" forms,
+	for tail recursiveness.
 
 2004-10-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
