@@ -3,6 +3,10 @@ Thu Nov 28 00:23:55 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 	* eval.c (scm_definedp): Use top_level_lookup_closure_var
 	and not top_level_lookup_thunk_var.
 
+Wed Nov 27 22:04:19 1996  Jim Blandy  <jimb@baalperazim.frob.com>
+
+	* Makefile.in (ancillary): List ChangeLog-scm, not ChangeLog.scm.
+
 Wed Nov 27 14:14:56 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (scm_definedp): Incompatibly changed to be a builtin
