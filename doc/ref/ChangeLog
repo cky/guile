@@ -3,7 +3,6 @@
 	* Makefile.am (CLEANFILES): Added guile.cps, guile.fns, guile.rns,
 	guile.tps, guile.vrs, guile.tmp.
 
-
 2002-04-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-intro.texi (Scheme Layout): Remove reference to defunct
