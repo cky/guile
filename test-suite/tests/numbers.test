@@ -1952,11 +1952,27 @@
         (big*4 (* fixnum-max 4))
         (big*5 (* fixnum-max 5)))
 
+    (with-test-prefix "inum / frac"
+      (pass-if (= 3 (max 3 5/2)))
+      (pass-if (= 5/2 (max 2 5/2))))
+
+    (with-test-prefix "frac / inum"
+      (pass-if (= 3 (max 5/2 3)))
+      (pass-if (= 5/2 (max 5/2 2))))
+
     (with-test-prefix "inum / real"
       (pass-if (nan? (max 123 +nan.0))))
 
     (with-test-prefix "real / inum"
       (pass-if (nan? (max +nan.0 123))))
+
+    (with-test-prefix "big / frac"
+      (pass-if (= big*2 (max big*2 5/2)))
+      (pass-if (= 5/2 (max (- big*2) 5/2))))
+
+    (with-test-prefix "frac / big"
+      (pass-if (= big*2 (max 5/2 big*2)))
+      (pass-if (= 5/2 (max 5/2 (- big*2)))))
 
     (with-test-prefix "big / real"
       (pass-if (nan? (max big*5 +nan.0)))
@@ -1973,6 +1989,12 @@
       (pass-if (= 1.0 (max 1.0 (- big*5))))
       (pass-if (inexact? (max 1.0 big*5)))
       (pass-if (= (exact->inexact big*5) (max 1.0 big*5))))
+
+    (with-test-prefix "frac / frac"
+      (pass-if (= 2/3 (max 1/2 2/3)))
+      (pass-if (= 2/3 (max 2/3 1/2)))
+      (pass-if (= -1/2 (max -1/2 -2/3)))
+      (pass-if (= -1/2 (max -2/3 -1/2))))
 
     (with-test-prefix "real / real"
       (pass-if (nan? (max 123.0 +nan.0)))
@@ -2057,11 +2079,27 @@
     (pass-if
         (= (- fixnum-min 1) (min 2 4 3 (* 2 fixnum-max) (- fixnum-min 1))))
 
+    (with-test-prefix "inum / frac"
+      (pass-if (= 5/2 (min 3 5/2)))
+      (pass-if (= 2   (min 2 5/2))))
+
+    (with-test-prefix "frac / inum"
+      (pass-if (= 5/2 (min 5/2 3)))
+      (pass-if (= 2   (min 5/2 2))))
+
     (with-test-prefix "inum / real"
       (pass-if (nan? (min 123 +nan.0))))
 
     (with-test-prefix "real / inum"
       (pass-if (nan? (min +nan.0 123))))
+
+    (with-test-prefix "big / frac"
+      (pass-if (= 5/2       (min big*2 5/2)))
+      (pass-if (= (- big*2) (min (- big*2) 5/2))))
+
+    (with-test-prefix "frac / big"
+      (pass-if (= 5/2       (min 5/2 big*2)))
+      (pass-if (= (- big*2) (min 5/2 (- big*2)))))
 
     (with-test-prefix "big / real"
       (pass-if (nan? (min big*5 +nan.0)))
@@ -2078,6 +2116,12 @@
       (pass-if (= 1.0 (min 1.0 big*5)))
       (pass-if (inexact? (min 1.0 (- big*5))))
       (pass-if (= (exact->inexact (- big*5)) (min 1.0 (- big*5)))))
+
+    (with-test-prefix "frac / frac"
+      (pass-if (= 1/2 (min 1/2 2/3)))
+      (pass-if (= 1/2 (min 2/3 1/2)))
+      (pass-if (= -2/3 (min -1/2 -2/3)))
+      (pass-if (= -2/3 (min -2/3 -1/2))))
 
     (with-test-prefix "real / real"
       (pass-if (nan? (min 123.0 +nan.0)))
