@@ -1,8 +1,6 @@
 /* Wrapper to implement ANSI C's memmove using BSD's bcopy. */
 /* This function is in the public domain.  --Per Bothner. */
 
-/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
-   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 #include <sys/types.h>
 

@@ -40,8 +40,6 @@
  * If you do not wish that, delete this exception notice.
  */
 
-/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
-   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 

@@ -31,8 +31,6 @@
  * SUCH DAMAGE.
  */
 
-/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
-   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";

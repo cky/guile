@@ -21,8 +21,6 @@
    allocating any.  It is a good idea to use alloca(0) in
    your main control loop, etc. to force garbage collection.  */
 
-/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
-   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 #ifdef HAVE_CONFIG_H
 #include "libguile/scmconfig.h"

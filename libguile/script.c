@@ -41,8 +41,6 @@
 /* "script.c" argv tricks for `#!' scripts.
    Authors: Aubrey Jaffer and Jim Blandy */
 
-/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
-   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 #include <stdio.h>
 #include <errno.h>

@@ -46,8 +46,6 @@
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
 
-/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
-   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
