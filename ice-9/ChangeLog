@@ -1,5 +1,10 @@
 2003-11-11  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* debugger.scm: Change ui-* calls to gds-*.
+	(debug-on-error): Debug if throw key is in specified syms, not if
+	it isn't!  Also throw 'abort after debugging, so as to skip the
+	REPL's backtrace.
+
 	* debugger/behaviour.scm (*trap*): New variable, stores trap type.
 	(before-enter-frame-hook, before-apply-frame-hook,
 	before-exit-frame-hook): Set here.

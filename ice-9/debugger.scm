@@ -19,9 +19,9 @@
 (define-module (ice-9 debugger)
   #:use-module (ice-9 debugger command-loop)
   #:use-module (ice-9 debugger state)
-  #:use-module (ice-9 debugger ui-client)
   #:use-module (ice-9 debugger utils)
   #:use-module (ice-9 format)
+  #:use-module (emacs gds-client)
   #:export (debug-stack
 	    debug
 	    debug-last-error
@@ -121,8 +121,8 @@ Indicates that the debugger should display an introductory message.
 			(display "There is 1 frame on the stack.\n\n")
 			(format #t "There are ~A frames on the stack.\n\n" ssize))))
 	      (write-state-short state)
-	      (if (ui-connected?)
-		  (ui-command-loop state)
+	      (if (gds-connected?)
+		  (gds-command-loop state)
 		  (debugger-command-loop state)))))))))
 
 (define (debug)
@@ -163,10 +163,12 @@ Indicates that the debugger should display an introductory message.
   (set! lazy-handler-dispatch
 	(if syms
 	    (lambda (key . args)
-	      (or (memq key syms)
-		  (debug-stack (make-stack #t lazy-handler-dispatch)
-			       #:with-introduction
-			       #:continuable))
+	      (if (memq key syms)
+		  (begin
+		    (debug-stack (make-stack #t lazy-handler-dispatch)
+				 #:with-introduction
+				 #:continuable)
+		    (throw 'abort key)))
 	      (apply default-lazy-handler key args))
 	    default-lazy-handler)))
 
