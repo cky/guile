@@ -90,6 +90,9 @@ scm_list_n (SCM elt, ...)
   var_start (foo, elt);
   while (! SCM_UNBNDP (elt))
     {
+      if (SCM_NIMP (elt))
+	SCM_VALIDATE_CELL(elt, 0);
+      
       *pos = scm_cons (elt, SCM_EOL);
       pos = SCM_CDRLOC (*pos);
       elt = va_arg (foo, SCM);
