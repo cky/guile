@@ -1694,7 +1694,7 @@ integer in decimal giving the lower bound of a dimension.  There is one
 @code{<@@lower>} for each dimension.  When all lower bounds are zero,
 all @code{<@@lower>} parts are omitted.
 
-The @code{<:len>} part is a @sampe{:} character followed by an unsigned
+The @code{<:len>} part is a @samp{:} character followed by an unsigned
 integer in decimal giving the length of a dimension.  Like for the lower
 bounds, there is one @code{<:len>} for ech dimension, and the
 @code{<:len>} part always follows the @code{<@@lower>} part for a
