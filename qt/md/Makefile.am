@@ -19,7 +19,7 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
-AUTOMAKE_OPTIONS = foreign
+AUTOMAKE_OPTIONS = gnu
 
 EXTRA_DIST = _sparc.s _sparc_b.s axp.1.Makefile axp.2.Makefile \
 axp.Makefile axp.README axp.c axp.h axp.s axp_b.s default.Makefile \
