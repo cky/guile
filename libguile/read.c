@@ -67,7 +67,18 @@ scm_option scm_read_opts[] = {
     "Convert symbols to lower case."},
   { SCM_OPTION_SCM, "keywords", SCM_BOOL_F,
     "Style of keyword recognition: #f or 'prefix"}
+#ifdef HAVE_RL_GETC_FUNCTION
+  ,
+  { SCM_OPTION_BOOLEAN, "history-file", 1,
+    "Use history file." },
+  { SCM_OPTION_INTEGER, "history-length", 200,
+    "History length." }
+#endif /* HAVE_RL_GETC_FUNCTION */
 };
+
+#ifdef HAVE_RL_GETC_FUNCTION
+extern void stifle_history (int max);
+#endif
 
 SCM_PROC (s_read_options, "read-options-interface", 0, 1, 0, scm_read_options);
 
@@ -81,6 +92,9 @@ scm_read_options (setting)
 			 s_read_options);
   if (SCM_COPY_SOURCE_P)
     SCM_RECORD_POSITIONS_P = 1;
+#ifdef HAVE_RL_GETC_FUNCTION
+  stifle_history (SCM_HISTORY_LENGTH);
+#endif
   return ans;
 }
 

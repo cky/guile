@@ -73,7 +73,13 @@ extern scm_option scm_read_opts[];
 #define SCM_RECORD_POSITIONS_P scm_read_opts[1].val
 #define SCM_CASE_INSENSITIVE_P scm_read_opts[2].val
 #define SCM_KEYWORD_STYLE      scm_read_opts[3].val
+#ifndef HAVE_RL_GETC_FUNCTION
 #define SCM_N_READ_OPTIONS 4
+#else
+#define SCM_HISTORY_FILE_P     scm_read_opts[4].val
+#define SCM_HISTORY_LENGTH     scm_read_opts[5].val
+#define SCM_N_READ_OPTIONS 6
+#endif /* HAVE_RL_GETC_FUNCTION */
 
 
 
