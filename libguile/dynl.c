@@ -129,6 +129,8 @@ scm_must_free_argv(char **argv)
   free (argv);
 }
 
+#if SCM_DEBUG_DEPRECATED == 0
+
 /* Module registry
  */
 
@@ -149,6 +151,9 @@ void
 scm_register_module_xxx (char *module_name, void *init_func)
 {
   struct moddata *md;
+
+  scm_c_issue_deprecation_warning 
+    ("`scm_register_module_xxx' is deprecated.  Use extensions instead.");
 
   /* XXX - should we (and can we) DEFER_INTS here? */
 
@@ -186,6 +191,9 @@ SCM_DEFINE (scm_registered_modules, "c-registered-modules", 0, 0, 0,
   SCM res;
   struct moddata *md;
 
+  scm_c_issue_deprecation_warning 
+    ("`registered-modules' is deprecated.  Use extensions instead.");
+
   res = SCM_EOL;
   for (md = registered_mods; md; md = md->link)
     res = scm_cons (scm_cons (scm_makfrom0str (md->module_name),
@@ -206,6 +214,9 @@ SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0,
 {
   struct moddata *md1, *md2;
 
+  scm_c_issue_deprecation_warning 
+    ("`c-clear-registered-modules' is deprecated.  Use extensions instead.");
+
   SCM_DEFER_INTS;
 
   for (md1 = registered_mods; md1; md1 = md2)
@@ -219,6 +230,8 @@ SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
+#endif /* !SCM_DEBUG_DEPRECATED */
 
 /* Dispatch to the system dependent files
  *
