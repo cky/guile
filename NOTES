@@ -17,6 +17,9 @@ CONVENTIONS: ChangeLog format. (Reverse chronological order.)
 
 Sun Mar  9 15:45:14 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* We need to discuss the long-term solution to Guile configuration
+	and customization.
+
 	* Some day when more important stuff (module system, threads, Tk
 	interface etc) has been completed, we should split up SCM's
 	ChangeLog among us, and go through all changes since the birth of
