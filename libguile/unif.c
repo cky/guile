@@ -2221,7 +2221,7 @@ l2ra (SCM lst, SCM ra, unsigned long base, unsigned long k)
 	  base += inc;
 	  lst = SCM_CDR (lst);
 	}
-      if (SCM_NNULLP (lst))
+      if (!SCM_NULLP (lst))
  return 0;
     }
   else
@@ -2234,7 +2234,7 @@ l2ra (SCM lst, SCM ra, unsigned long base, unsigned long k)
 	  base += inc;
 	  lst = SCM_CDR (lst);
 	}
-      if (SCM_NNULLP (lst))
+      if (!SCM_NULLP (lst))
 	return 0;
     }
   return ok;

@@ -123,7 +123,7 @@ SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1,
   if (!SCM_NULLP (rest))
     {
       SCM prev = arg = scm_cons (arg, rest);
-      while (SCM_NNULLP (SCM_CDR (rest)))
+      while (!SCM_NULLP (SCM_CDR (rest)))
 	{
 	  prev = rest;
 	  rest = SCM_CDR (rest);

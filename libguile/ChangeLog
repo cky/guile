@@ -1,5 +1,12 @@
 2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* list.c (scm_cons_star), ramap.c (scm_ra_sum, scm_ra_product,
+	scm_array_map_x), unif.c (l2ra): Prefer !SCM_NULLP over
+	SCM_NNULLP.  Now, guile itself does not include any calls to
+	SCM_NNULLP any more.
+
+2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (unmemocopy, SCM_APPLY, scm_map, scm_for_each,
 	scm_copy_tree): Place assignment expressions which are part of
 	other expressions into an expression of their own.

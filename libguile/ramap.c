@@ -981,7 +981,7 @@ scm_ra_sum (SCM ra0, SCM ras)
   unsigned long i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if (SCM_NNULLP(ras))
+  if (!SCM_NULLP(ras))
     {
       SCM ra1 = SCM_CAR (ras);
       unsigned long i1 = SCM_ARRAY_BASE (ra1);
@@ -1076,7 +1076,7 @@ scm_ra_product (SCM ra0, SCM ras)
   unsigned long i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if (SCM_NNULLP (ras))
+  if (!SCM_NULLP (ras))
     {
       SCM ra1 = SCM_CAR (ras);
       unsigned long i1 = SCM_ARRAY_BASE (ra1);
@@ -1528,14 +1528,14 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	for (p = ra_rpsubrs; p->name; p++)
 	  if (SCM_EQ_P (proc, p->sproc))
 	    {
-	      while (SCM_NNULLP (lra) && SCM_NNULLP (SCM_CDR (lra)))
+	      while (!SCM_NULLP (lra) && !SCM_NULLP (SCM_CDR (lra)))
 		{
 		  scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, FUNC_NAME);
 		  lra = SCM_CDR (lra);
 		}
 	      return SCM_UNSPECIFIED;
 	    }
-	while (SCM_NNULLP (lra) && SCM_NNULLP (SCM_CDR (lra)))
+	while (!SCM_NULLP (lra) && !SCM_NULLP (SCM_CDR (lra)))
 	  {
 	    scm_ramapc (ramap_rp, proc, ra0, lra, FUNC_NAME);
 	    lra = SCM_CDR (lra);
@@ -1568,7 +1568,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	    if (!SCM_EQ_P (ra0, ra1) 
 		|| (SCM_ARRAYP(ra0) && !SCM_ARRAY_CONTP(ra0)))
 	      goto gencase;
-	  for (tail = SCM_CDR (lra); SCM_NNULLP (tail); tail = SCM_CDR (tail))
+	  for (tail = SCM_CDR (lra); !SCM_NULLP (tail); tail = SCM_CDR (tail))
 	    {
 	      ra1 = SCM_CAR (tail);
 	      if (SCM_EQ_P (v0, ra1) 
