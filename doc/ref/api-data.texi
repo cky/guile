@@ -2772,19 +2772,30 @@ Return all but the last @var{n} characters of @var{s}.
 @end deffn
 
 @deffn {Scheme Procedure} string-pad s len [chr [start [end]]]
+@deffnx {Scheme Procedure} string-pad-right s len [chr [start [end]]]
 @deffnx {C Function} scm_string_pad (s, len, chr, start, end)
-Take that characters from @var{start} to @var{end} from the
-string @var{s} and return a new string, right-padded by the
-character @var{chr} to length @var{len}.  If the resulting
-string is longer than @var{len}, it is truncated on the right.
-@end deffn
-
-@deffn {Scheme Procedure} string-pad-right s len [chr [start [end]]]
 @deffnx {C Function} scm_string_pad_right (s, len, chr, start, end)
-Take that characters from @var{start} to @var{end} from the
-string @var{s} and return a new string, left-padded by the
-character @var{chr} to length @var{len}.  If the resulting
-string is longer than @var{len}, it is truncated on the left.
+Take characters @var{start} to @var{end} from the string @var{s} and
+either pad with @var{char} or truncate them to give @var{len}
+characters.
+
+@code{string-pad} pads or truncates on the left, so for example
+
+@example
+(string-pad "x" 3)     @result{} "  x"
+(string-pad "abcde" 3) @result{} "cde"
+@end example
+
+@code{string-pad-right} pads or truncates on the right, so for example
+
+@example
+(string-pad-right "x" 3)     @result{} "x  "
+(string-pad-right "abcde" 3) @result{} "abc"
+@end example
+
+The return string may share storage with @var{s}, or it can be @var{s}
+itself (if @var{start} to @var{end} is the whole string and it's
+already @var{len} characters).
 @end deffn
 
 @deffn {Scheme Procedure} string-trim s [char_pred [start [end]]]
