@@ -1,3 +1,15 @@
+Tue Sep 30 13:12:48 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	Suggestion and script from Maciej Stachowiak:
+	* boot-9.scm: Split off modules into separate, autoloadable files.
+	This reduces startup time from 10.5s to 5.5s (user cpu).
+	* calling.scm, common-list.scm, ls.scm, q.scm, runq.scm,
+ 	string-fun.scm: New files, containing stuff that used to be in
+	boot-9.scm.
+	* Makefile.am (ice9_sources): List new files here, for
+	distribution and installation.
+	* Makefile.in: Regenerated.
+
 Mon Sep 29 23:53:55 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.in: Regenerated with automake 1.2c.
