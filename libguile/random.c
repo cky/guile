@@ -261,10 +261,10 @@ scm_i_random_bignum (SCM m, scm_rstate *state)
 #endif
     {
       /* fix most significant 32 bits */
-#if SIZEOF_INT == 4 && defined (WORDS_BIGENDIAN)
+#if SIZEOF_INT == 4
       w = SCM_BDIGITS (m)[nd - 1] << 16 | SCM_BDIGITS (m)[nd - 2];
 #else
-      w = ((LONG32 *) SCM_BDIGITS (m))[nd / 2 - 1];
+      w = SCM_BDIGITS (m)[nd - 1];
 #endif
       mask = (w < 0x10000
 	      ? (w < 0x100
@@ -291,11 +291,13 @@ scm_i_random_bignum (SCM m, scm_rstate *state)
 #endif
 	{
 	  /* fix most significant 32 bits */
-	  i /= 2;
-#if SIZEOF_INT == 4 && defined (WORDS_BIGENDIAN)
+#if SIZEOF_INT == 4
 	  w = scm_the_rng.random_bits (state) & mask;
-	  bits[--i] = (w & 0xffff) << 16 | w >> 16;
+	  ((SCM_BIGDIG*) bits)[i - 2] = w & 0xffff;
+	  ((SCM_BIGDIG*) bits)[i - 1] = w >> 16;
+	  i = i / 2 - 1;
 #else
+	  i /= 2;
 	  bits[--i] = scm_the_rng.random_bits (state) & mask;
 #endif
 	}
