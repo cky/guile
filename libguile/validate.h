@@ -353,11 +353,14 @@
                 v, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_VECTOR(pos, v) SCM_MAKE_VALIDATE_MSG (pos, v, VECTORP, "vector")
+#define SCM_VALIDATE_VECTOR(pos, v) \
+  do { \
+    SCM_ASSERT (scm_is_simple_vector (v), v, pos, FUNC_NAME); \
+  } while (0)
 
 #define SCM_VALIDATE_VECTOR_OR_DVECTOR(pos, v) \
   do { \
-    SCM_ASSERT ((SCM_VECTORP (v) \
+    SCM_ASSERT ((scm_is_simple_vector (v) \
                 || (scm_is_true (scm_f64vector_p (v)))), \
                 v, pos, FUNC_NAME); \
   } while (0)
