@@ -1,0 +1,13 @@
+2001-05-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* box-module: New directory, similar to box, but defines the
+	primitives in a module (box-module) instead of defining them
+	globally.
+
+	* safe: New directory, explaining some aspects of using safe
+	environments for evaluation.
+
+2001-05-29  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* New directory for Guile example code.
+

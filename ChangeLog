@@ -1,3 +1,10 @@
+2001-05-31  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* Makefile.am (EXTRA_DIST): New subdirectory `examples'.
+
+	* configure.in: Added all Makefiles in the `examples' directory to
+	AC_OUTPUT.
+
 2001-05-31  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* configure.in: generate guile-snarf-docs & guile-snarf-docs-texi.
