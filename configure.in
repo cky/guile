@@ -759,7 +759,10 @@ AC_REPLACE_FUNCS(inet_aton putenv strerror memmove mkstemp)
 
 AC_CHECK_HEADERS(floatingpoint.h ieeefp.h nan.h)
 
-AC_CHECK_FUNCS(finite isinf isnan copysign)
+# asinh, acosh, atanh and trunc (all in -lm) are only C99 standard and older
+# systems generally don't have them.
+#
+AC_CHECK_FUNCS(asinh acosh atanh copysign finite isinf isnan trunc)
 
 # When testing for the presence of alloca, we need to add alloca.o
 # explicitly to LIBOBJS to make sure that it is translated to
