@@ -143,6 +143,7 @@ SCM_API SCM scm_ra2contig (SCM ra, int copy);
 SCM_API SCM scm_i_proc_make_vector;
 SCM_API SCM scm_i_proc_make_string;
 SCM_API SCM scm_i_proc_make_bitvector;
+SCM_API SCM scm_i_cvref (SCM v, size_t p, int enclosed);
 
 SCM_API void scm_init_unif (void);
 

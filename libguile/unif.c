@@ -870,7 +870,7 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
 }
 #undef FUNC_NAME
 
-static SCM 
+SCM 
 scm_i_cvref (SCM v, size_t pos, int enclosed)
 {
   if (enclosed)
