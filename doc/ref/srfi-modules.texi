@@ -220,12 +220,17 @@ Return a circular list containing the given arguments @var{elt1}
 @end deffn
 
 @deffn {Scheme Procedure} iota count [start step]
-Return a list containing @var{count} elements, where each element is
-calculated as follows:
+Return a list containing @var{count} numbers, starting from
+@var{start} and adding @var{step} each time.  The default @var{start}
+is 0, the default @var{step} is 1.  For example,
 
-@var{start} + (@var{count} - 1) * @var{step}
+@example
+(iota 6)        @result{} (0 1 2 3 4 5)
+(iota 4 2.5 -2) @result{} (2.5 0.5 -1.5 -3.5)
+@end example
 
-@var{start} defaults to 0 and @var{step} defaults to 1.
+This function takes its name from the corresponding primitive in the
+APL language.
 @end deffn
 
 
