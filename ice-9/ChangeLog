@@ -1,3 +1,10 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* format.scm (format:format-work): Use #\tab and #\page instead of
+	slib:form-feed and slib:tab.  (Thanks to Ceri Storey.)
+
+	* format.scm (format:abort): Call error, not slib:error.
+
 1999-09-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 *	* boot-9.scm (using-readline?): New procedure: Returns #t if

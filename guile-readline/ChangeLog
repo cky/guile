@@ -4,6 +4,8 @@
 
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* aclocal.m4: Regenerated with newer libtool macros.
+
 	* Makefile.am (DISTCLEANFILES): Get rid of .x files.
 	* Makefile.in: Regenerated.
 	(Thanks to Keisuke Nishida.)

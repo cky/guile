@@ -1,3 +1,16 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* tests/strings.test: Add test for substring-move! argument checking.
+
+	* lib.scm (signals-error?, signals-error?*): New macro and function.
+	* tests/reader.test: Use them.
+
+	* tests/interp.test: Add copyright notice.
+
+	* tests/reader.test: New test file.
+
+	* tests/regexp.test: New test file.
+
 1999-09-06  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* tests/interp.test: Added tests for evaluation of closure bodies.

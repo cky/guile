@@ -1,5 +1,11 @@
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* strop.c (scm_substring_move_x): Signal an error if start1
+	doesn't come before end1.  (Thanks to Karoly Lorentey).
+
+	* numbers.c (scm_istr2flo): Don't call SCM_INEXP without first
+	calling SCM_NIMP.  (Thanks to Karoly Lorentey).
+
 	* version.c (scm_libguile_config_stamp): Deleted.  See
 	corresponding change to ../ice-9/boot-9.scm.
 	* version.h: Delete prototype.
