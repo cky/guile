@@ -1,3 +1,7 @@
+1999-06-19  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* tests/interp.test: New file.
+
 1999-06-15  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* tests/time.test: New test file.
