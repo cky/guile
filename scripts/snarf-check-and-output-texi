@@ -42,7 +42,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 (define *manual-flag* #f)
 
 (define (snarf-check-and-output-texi . flags)
-  (if (memq '--manual flags)
+  (if (member "--manual" flags)
       (set! *manual-flag* #t))
   (process-stream (current-input-port)))
 
