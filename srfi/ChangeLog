@@ -1,3 +1,8 @@
+2002-03-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* srfi-13.c, srfi-14.c, srfi-4.c:
+	Retire inclusion guard macro SCM_MAGIC_SNARFER.
+
 2002-03-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srfi-13.c (string_titlecase_x): Treat characters as unsigned so
