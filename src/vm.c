@@ -395,6 +395,15 @@ SCM_DEFINE (scm_vm_next_hook, "vm-next-hook", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_vm_break_hook, "vm-break-hook", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_break_hook
+{
+  VM_DEFINE_HOOK (SCM_VM_BREAK_HOOK);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_vm_enter_hook, "vm-enter-hook", 1, 0, 0,
 	    (SCM vm),
 	    "")

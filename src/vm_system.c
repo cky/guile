@@ -63,6 +63,12 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
   return ret;
 }
 
+VM_DEFINE_INSTRUCTION (break, "break", 0, 0, 0)
+{
+  BREAK_HOOK ();
+  NEXT;
+}
+
 VM_DEFINE_INSTRUCTION (drop, "drop", 0, 0, 0)
 {
   DROP ();

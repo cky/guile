@@ -4,12 +4,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -48,11 +48,12 @@
 #define SCM_VM_BOOT_HOOK	0
 #define SCM_VM_HALT_HOOK	1
 #define SCM_VM_NEXT_HOOK	2
-#define SCM_VM_ENTER_HOOK	3
-#define SCM_VM_APPLY_HOOK	4
-#define SCM_VM_EXIT_HOOK	5
-#define SCM_VM_RETURN_HOOK	6
-#define SCM_VM_NUM_HOOKS	7
+#define SCM_VM_BREAK_HOOK	3
+#define SCM_VM_ENTER_HOOK	4
+#define SCM_VM_APPLY_HOOK	5
+#define SCM_VM_EXIT_HOOK	6
+#define SCM_VM_RETURN_HOOK	7
+#define SCM_VM_NUM_HOOKS	8
 
 struct scm_vm {
   scm_byte_t *ip;		/* instruction pointer */

@@ -89,6 +89,9 @@
   (let ((m (string-match "\\.[^.]*$" file)))
     (string-append (if m (match:prefix m) file) ".go")))
 
+(define-public (scheme-eval x e)
+  (vm-load (the-vm) (compile-in x e scheme)))
+
 
 ;;;
 ;;; Scheme compiler interface
