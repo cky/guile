@@ -1,3 +1,8 @@
+2000-07-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gh.g:  Don't include <stdio.h>.  Thanks to Han-Wen Nienhuys for
+	the hint.
+
 2000-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL,

@@ -47,8 +47,6 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
-
 #include <libguile.h>
 
 /* gcc has extern inline functions that are basically as fast as macros */
