@@ -1,3 +1,8 @@
+1998-03-28  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* throw.c (handler_message): Print message on current error port
+	instead of default error port.  (Thanks to Maciej Stachowiak.)
+
 Mon Mar  2 21:35:02 1998  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ports.c (scm_add_to_port_table): allocate in units of 

@@ -474,7 +474,7 @@ static void
 handler_message (void *handler_data, SCM tag, SCM args)
 {
   char *prog_name = (char *) handler_data;
-  SCM p = scm_def_errp;
+  SCM p = scm_cur_errp;
 
   if (! prog_name)
     prog_name = "guile";
