@@ -1,26 +1,6 @@
-The Guile core distribution:
-
 The Guile maintainer is Jim ("Miserable old dodderer") Blandy.
 
 Thanks to:
-- Mikael ("Lazy dog") Djurfeldt, for his work on GOOPS, last-minute
-  fixes to the 1.3.2 release, and just generally being really energetic
-  and helpful.
-- Chris Hanson, for writing the debugger
-- Gary Houston, for continuing work on the I/O system.
-- Tom Tromey, for Automake therapy (the code and its users alike).
-- Greg Harvey, for work on the Guile web pages.
-- Marius Vollmer, for extensive kibbitzing, and keeping Mikael company.
 
 Bug reports and fixes from:
 
-Greg Badros                     Keisuke Nishida
-Robert Bihlmeyer                Ken Raeburn
-Rodney Brown                    Julian Satchell
-Ian Grant                       Jorgen Schaefer   
-Dirk Herrmann                   Bill Schottstaedt 
-Anders Holst                    Ceri Storey       
-Michael Livshin                 Suzuki Toshiya    
-Karoly Lorentey                 Tom Tromey        
-Han-Wen Nienhuys                Bernard Urban     
-Jan Nieuwenhuizen
