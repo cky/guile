@@ -1,3 +1,17 @@
+1999-08-30  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* gc.c (scm_init_storage): Skip registration of cleanup on systems
+	which lack atexit.  (Is it important that cleanup is made
+	properly? Maybe we should replace all `exit' with `scm_exit' and
+	call cleanup there?)
+
+	* struct.c, struct.h (scm_struct_free_0, scm_struct_free_light,
+	scm_struct_free_standard, scm_struct_free_entity): Declared to
+	return scm_sizet instead of size_t.
+
+	* gdbint.c, strports.c: #include <unistd.h>.  (SEEK_SET is defined
+	there on sunos4.1.4.)
+
 1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* numbers.c (scm_lcm): Bugfix: BIGDIG --> SCM_BIGDIG;

@@ -1,3 +1,7 @@
+1999-08-30  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* configure.in: Test for atexit.
+
 1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* acinclude.m4: Updated.  (Thanks to Karl Eichwalder.)
@@ -5,7 +9,7 @@
 	* configure.in: Test for presence of S_ISLNK in sys/stat.h.
 	(Thanks to Bernard Urban.)
 	Test for memmove and bcopy.  (Thanks to
-po	suzukis@file.phys.tohoku.ac.jp.)
+	suzukis@file.phys.tohoku.ac.jp.)
 
 	* acconfig.h: Added HAVE_S_ISLNK.
 
