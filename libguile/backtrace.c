@@ -303,7 +303,6 @@ display_frame_expr (hdr, exp, tlr, indentation, sport, port, pstate)
     }
   else
     scm_iprin1 (exp, port, pstate);
-  scm_putc ('\n', port);
 }
 
 static void display_application SCM_P ((SCM frame, int indentation, SCM sport, SCM port, scm_print_state *pstate));
@@ -413,6 +412,7 @@ display_frame (frame, nfield, indentation, sport, port, pstate)
 			  port,
 			  pstate);
     }
+  scm_putc ('\n', port);
 
   /* Announce missing frames? */
   if (SCM_BACKWARDS_P && SCM_FRAME_OVERFLOW_P (frame))
