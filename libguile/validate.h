@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.19 2000-10-30 11:42:26 dirk Exp $ */
+/* $Id: validate.h,v 1.20 2000-11-22 09:16:06 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -130,13 +130,6 @@
   do { \
     SCM_ASSERT (SCM_STRINGP (str), str, pos, FUNC_NAME); \
     cvar = SCM_STRING_CHARS(str); \
-  } while (0)
-
-#define SCM_VALIDATE_RWSTRING(pos, str) \
-  do { \
-    SCM_ASSERT (SCM_STRINGP (str), str, pos, FUNC_NAME); \
-    if (!SCM_RWSTRINGP (str)) \
-      scm_misc_error (FUNC_NAME, "argument is a read-only string", str); \
   } while (0)
 
 #define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE (pos, z, REALP)
@@ -414,6 +407,13 @@
       cvar = NULL; \
     else \
       cvar = SCM_ROCHARS(str); \
+  } while (0)
+
+#define SCM_VALIDATE_RWSTRING(pos, str) \
+  do { \
+    SCM_ASSERT (SCM_STRINGP (str), str, pos, FUNC_NAME); \
+    if (!SCM_RWSTRINGP (str)) \
+      scm_misc_error (FUNC_NAME, "argument is a read-only string", str); \
   } while (0)
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
