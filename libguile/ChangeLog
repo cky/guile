@@ -1,3 +1,12 @@
+Mon Sep 23 00:42:15 1996  Mikael Djurfeldt  <mdj@kenneth>
+
+*	* print.c (scm_iprin1, scm_prin1, scm_iprlist): Circular
+ 	references now have a new appearance which is more compact and
+	also gives a clue about what the target of the reference is.
+	By setting parameters in the print state, more fancy printing can
+	be achieved.  This is used by the (not yet commited) backtrace
+	code.
+
 Sun Sep 22 17:10:06 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* eval.c, numbers.h, unif.h, smob.h, srcprop.c: Added #include

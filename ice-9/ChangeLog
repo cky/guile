@@ -1,3 +1,9 @@
+Mon Sep 23 00:16:31 1996  Mikael Djurfeldt  <mdj@kenneth>
+
+	* boot-9.scm (warn, scm-style-repl): Use C printer instead of `print'.
+	(make-record-type type-name fields): Temporarily remove support
+	for printing of records (not possible yet with C printer).
+
 Fri Sep 20 00:24:27 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (file-exists?, file-is-directory): catch only
