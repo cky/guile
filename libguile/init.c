@@ -62,7 +62,7 @@ scm_start_stack (base, in, out, err)
 
   scm_stack_base = base;
 
-  /* Create standar ports from stdio files, if requested to do so.
+  /* Create standard ports from stdio files, if requested to do so.
    */
 
   if (!in)
@@ -150,6 +150,9 @@ scm_restart_stack (base)
   scm_dynwinds = SCM_EOL;
   SCM_DYNENV (scm_rootcont) = SCM_EOL;
   SCM_THROW_VALUE (scm_rootcont) = SCM_EOL;
+#ifdef DEBUG_EXTENSIONS
+  SCM_DFRAME (scm_rootcont) = last_debug_info_frame = 0;
+#endif
   SCM_BASE (scm_rootcont) = base;
   scm_continuation_stack_ptr = SCM_MAKINUM (0);
 }
@@ -289,6 +292,9 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_boolean ();
       scm_init_chars ();
       scm_init_continuations ();
+#ifdef DEBUG_EXTENSIONS
+      scm_init_debug ();
+#endif
       scm_init_dynwind ();
       scm_init_eq ();
       scm_init_error ();
@@ -305,6 +311,11 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_mallocs ();
       scm_init_numbers ();
       scm_init_objprop ();
+#if DEBUG_EXTENSIONS
+      /* Excluding this until it's really needed makes the binary
+       * smaller after linking.  */
+      scm_init_options ();
+#endif
       scm_init_pairs ();
       scm_init_ports ();
       scm_init_posix ();
@@ -312,6 +323,9 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_procprop ();
       scm_init_scmsigs ();
       scm_init_socket ();
+#ifdef DEBUG_EXTENSIONS
+      scm_init_srcprop ();
+#endif
       scm_init_stackchk ();
       scm_init_strports ();
       scm_init_struct ();
