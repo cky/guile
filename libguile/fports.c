@@ -61,7 +61,7 @@
 #else
 size_t fwrite ();
 #endif
-#ifdef HAVE_ST_BLKSIZE
+#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
 #include <sys/stat.h>
 #endif
 
@@ -88,7 +88,7 @@ scm_fport_buffer_add (SCM port, long read_size, int write_size)
   if (read_size == -1 || write_size == -1)
     {
       size_t default_size;
-#ifdef HAVE_ST_BLKSIZE
+#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
       struct stat st;
       
       default_size = (fstat (fp->fdes, &st) == -1) ? default_buffer_size
