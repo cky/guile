@@ -1,5 +1,7 @@
 2001-04-22  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* README: Note removal of r4rs, and provide a reference.
+
 	* scheme-control.texi (Exceptions): Extended documentation.
 	(Continuations): Correct "except" typo, and fix reference to
 	Exceptions node.  Plus minor review changes.

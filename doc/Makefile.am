@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-info_TEXINFOS = guile.texi r4rs.texi r5rs.texi goops.texi guile-tut.texi
+info_TEXINFOS = guile.texi r5rs.texi goops.texi guile-tut.texi
 
 guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
 	scheme-ideas.texi scheme-data.texi scheme-procedures.texi \
