@@ -2501,6 +2501,16 @@ entries from @code{mytable}, in no particular order.
 @end example
 @end deffn
 
+@deffn {Scheme Procedure} hash-for-each-handle proc table
+@deffnx {C Function} scm_hash_for_each_handle (proc, table)
+Apply @var{proc} to the entries in the given hash @var{table}.  Each
+call is @code{(@var{proc} @var{handle})}, where @var{handle} is a
+@code{(@var{key} . @var{value})} pair. Return an unspecified value.
+
+@code{hash-for-each-handle} differs from @code{hash-for-each} only in
+the argument list of @var{proc}.
+@end deffn
+
 @deffn {Scheme Procedure} hash-fold proc init table
 @deffnx {C Function} scm_hash_fold (proc, init, table)
 Accumulate a result by applying @var{proc} to the elements of the

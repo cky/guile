@@ -1,3 +1,8 @@
+2004-02-15  Mikael Djurfeldt  <mdj@chunk.mit.edu>
+
+	* scheme-compound.texi (Hash Table Reference): Wrote a new entry
+	for hash-for-each-handle.
+
 2004-02-16  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-compound.texi (Sloppy Alist Functions): Amend error messages
