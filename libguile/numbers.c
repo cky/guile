@@ -1236,7 +1236,7 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 
 SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0, 
             (SCM n),
-	    "Return the integer which is the 2s-complement of the integer\n"
+	    "Return the integer which is the ones-complement of the integer\n"
 	    "argument.\n"
 	    "\n"
 	    "@lisp\n"
