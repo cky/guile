@@ -1,3 +1,10 @@
+1999-08-12  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.c (scm_seek): one more: was scm_lseek.  Also changed the
+	Scheme name from lseek to seek, but lseek was added recently so
+	it shouldn't be a big problem.
+	* ports.c, gdbint.c, ioext.c: changed callers.
+
 1999-08-11  Gary Houston  <ghouston@easynet.co.uk>
 
 	* fports.c (fport_input_waiting): if select is used, return 1

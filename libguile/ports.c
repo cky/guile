@@ -978,9 +978,9 @@ scm_unread_string (str, port)
   return str;
 }
 
-SCM_PROC (s_lseek, "lseek", 3, 0, 0, scm_lseek);
+SCM_PROC (s_seek, "seek", 3, 0, 0, scm_seek);
 SCM 
-scm_lseek (SCM object, SCM offset, SCM whence)
+scm_seek (SCM object, SCM offset, SCM whence)
 {
   off_t off;
   off_t rv;
@@ -988,18 +988,18 @@ scm_lseek (SCM object, SCM offset, SCM whence)
 
   object = SCM_COERCE_OUTPORT (object);
 
-  off = scm_num2long (offset, (char *)SCM_ARG2, s_lseek);
-  SCM_ASSERT (SCM_INUMP (whence), whence, SCM_ARG3, s_lseek);
+  off = scm_num2long (offset, (char *)SCM_ARG2, s_seek);
+  SCM_ASSERT (SCM_INUMP (whence), whence, SCM_ARG3, s_seek);
   how = SCM_INUM (whence);
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
-    scm_out_of_range (s_lseek, whence);
+    scm_out_of_range (s_seek, whence);
   if (SCM_NIMP (object) && SCM_OPPORTP (object))
     {
       scm_port *pt = SCM_PTAB_ENTRY (object);
       scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
 
       if (!ptob->seek)
-	scm_misc_error (s_lseek, "port is not seekable",
+	scm_misc_error (s_seek, "port is not seekable",
 			scm_cons (object, SCM_EOL));
       else
 	{
@@ -1013,10 +1013,10 @@ scm_lseek (SCM object, SCM offset, SCM whence)
     }
   else /* file descriptor?.  */
     {
-      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_lseek);
+      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_seek);
       rv = lseek (SCM_INUM (object), off, how);
       if (rv == -1)
-	scm_syserror (s_lseek);
+	scm_syserror (s_seek);
     }
   return scm_long2num (rv);
 }
@@ -1037,7 +1037,7 @@ scm_truncate_file (SCM object, SCM length)
       if (SCM_NIMP (object) && SCM_ROSTRINGP (object))
 	scm_wrong_num_args (scm_makfrom0str (s_truncate_file));
       
-      length = scm_lseek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
+      length = scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
     }
   c_length = scm_num2long (length, (char *)SCM_ARG2, s_truncate_file);
   if (c_length < 0)

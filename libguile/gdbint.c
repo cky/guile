@@ -205,10 +205,10 @@ gdb_read (str)
     }
   SCM_BEGIN_FOREIGN_BLOCK;
   unmark_port (gdb_input_port);
-  scm_lseek (gdb_input_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
+  scm_seek (gdb_input_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
   scm_puts (str, gdb_input_port);
   scm_truncate_file (gdb_input_port, SCM_UNDEFINED);
-  scm_lseek (gdb_input_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
+  scm_seek (gdb_input_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
   /* Read one object */
   tok_buf_mark_p = SCM_GC8MARKP (tok_buf);
   SCM_CLRGC8MARK (tok_buf);
@@ -267,7 +267,7 @@ gdb_print (obj)
   RESET_STRING;
   SCM_BEGIN_FOREIGN_BLOCK;
   /* Reset stream */
-  scm_lseek (gdb_output_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
+  scm_seek (gdb_output_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
   scm_write (obj, gdb_output_port);
   scm_truncate_file (gdb_output_port, SCM_UNDEFINED);
   SEND_STRING (SCM_CHARS (SCM_STREAM (gdb_output_port)));

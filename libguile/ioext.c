@@ -299,7 +299,7 @@ SCM
 scm_ftell (object)
      SCM object;
 {
-  return scm_lseek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
+  return scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
 }
 
 SCM_PROC (s_fseek, "fseek", 3, 0, 0, scm_fseek);
@@ -310,7 +310,7 @@ scm_fseek (object, offset, whence)
      SCM offset;
      SCM whence;
 {
-  scm_lseek (object, offset, whence);
+  scm_seek (object, offset, whence);
 
   return SCM_UNSPECIFIED;
 }

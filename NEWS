@@ -1040,12 +1040,12 @@ work on any kind of port, not just ports which are open on a file.
 as file ports.  If the size argument is omitted, the current
 file position is used.
 
-** new procedure: lseek PORT/FDES OFFSET WHENCE
+** new procedure: seek PORT/FDES OFFSET WHENCE
 The arguments are the same as for the old fseek procedure, but it
 works on string ports as well as random-access file ports.
 
 ** the fseek procedure now works on string ports, since it has been
-redefined using lseek.
+redefined using seek.
 
 ** the setvbuf procedure now uses a default size if mode is _IOFBF and
 size is not supplied.
