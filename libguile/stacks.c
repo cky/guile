@@ -585,8 +585,8 @@ scm_frame_procedure (frame)
 	      SCM_ARG1,
 	      s_frame_procedure);
   return (SCM_FRAME_PROC_P (frame)
-	  ? SCM_BOOL_F
-	  : SCM_FRAME_PROC (frame));
+	  ? SCM_FRAME_PROC (frame)
+	  : SCM_BOOL_F);
 }
 
 SCM_PROC(s_frame_arguments, "frame-arguments", 1, 0, 0, scm_frame_arguments);

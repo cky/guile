@@ -1,3 +1,8 @@
+1997-12-02  Tim Pierce  <twp@skepsis.com>
+
+	* stacks.c (scm_frame_procedure): Reverse the logic in the return
+	statement.  (Thanks to Doug Evans for pointing this out.)
+
 1997-12-01  Tim Pierce  <twp@skepsis.com>
 
 	* scmconfig.h.in: Regenerated for USCORE change in ../acconfig.h.
