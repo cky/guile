@@ -1,3 +1,8 @@
+2005-01-28  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/syntax.test (while): Tests running in empty environment are
+	now "unresolved" due to workaround in while implementation.
+
 2005-01-24  Kevin Ryde  <user42@zip.com.au>
 
 	* standalone/test-unwind.c (check_cont): Cast rewindable to long, to
