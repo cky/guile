@@ -171,8 +171,16 @@ variable %load-path.
 It now complies with SRFI-4 and the weird prototype based uniform
 array creation has been deprecated.  See the manual for more details.
 
-A non-compatible change is that characters can no longer be stored
-into byte arrays.
+Some non-compatible changes have been made: 
+ - characters can no longer be stored into byte arrays.
+ - strings and bit vectors are no longer considered to be uniform vectors.
+
+There is the new notion of 'generalized vectors' and corresponding
+procedures like 'generalized-vector-ref'.  Generalized vectors include
+strings bitvectors, ordinary vectors, and uniform numeric vectors.
+
+Arrays use generalized vectors their storage, so that you still have
+arrays of characters, bits, etc.
 
 ** There is now support for copy-on-write substrings, mutation-sharing
    substrings and read-only strings.
