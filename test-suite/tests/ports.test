@@ -150,6 +150,23 @@
 	      (string=? line test-string)))
    (delete-file filename)))
 
+;;; ungetting characters and strings.
+(catch-test-errors
+ (with-input-from-string "walk on the moon\nmoon"
+			 (lambda ()
+			   (read-char)
+			   (unread-char #\a (current-input-port))
+			   (pass-if "unread-char"
+				    (char=? (read-char) #\a))
+			   (read-line)
+			   (let ((replacenoid "chicken enchilada"))
+			     (unread-char #\newline (current-input-port))
+			     (unread-string replacenoid (current-input-port))
+			     (pass-if "unread-string"
+				      (string=? (read-line) replacenoid)))
+			   (pass-if "unread residue"
+				    (string=? (read-line) "moon")))))
+
 
 ;;;; Pipe ports.
 

@@ -1,3 +1,7 @@
+1999-08-29  Gary Houston  <ghouston@easynet.co.uk>
+
+	* tests/ports.test: test unread-char and unread-string.
+
 1999-08-19  Gary Houston  <ghouston@easynet.co.uk>
 
 	* tests/ports.test: test line-buffering of fports.
