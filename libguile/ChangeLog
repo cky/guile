@@ -1,5 +1,16 @@
 2000-10-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_igc):  Remove references to scm_vector_set_length_x.
+
+	(scm_gc_sweep):  SCM_CONTREGS is never NULL.
+
+	* gc.c (scm_gc_sweep), vectors.c (scm_make_vector):  Don't
+	allocate/free memory for zero length vectors.
+
+	* vectors.[ch] (scm_vector_set_length_x):  Deprecated.
+
+2000-10-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* alist.c (scm_assq_ref):  Add a suggestion about how to deal with
 	this function when the API gets reviewed.
 

@@ -47,6 +47,7 @@ In release 1.6:
   SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
   SCM_ORD_SIG, SCM_NUM_SIGS, SCM_SLOPPY_STRINGP, SCM_VALIDATE_STRINGORSUBSTR,
   SCM_FREEP, SCM_NFREEP
+- remove scm_vector_set_length_x
 - remove function scm_call_catching_errors
   (replaced by catch functions from throw.[ch])
 - remove support for "#&" reader syntax in (ice-9 optargs).

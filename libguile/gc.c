@@ -1025,14 +1025,7 @@ scm_igc (const char *what)
 
 #ifndef USE_THREADS
 
-  /* Protect from the C stack.  This must be the first marking
-   * done because it provides information about what objects
-   * are "in-use" by the C code.   "in-use" objects are  those
-   * for which the information about length and base address must
-   * remain usable.   This requirement is stricter than a liveness
-   * requirement -- in particular, it constrains the implementation
-   * of scm_vector_set_length_x.
-   */
+  /* Mark objects on the C stack. */
   SCM_FLUSH_REGISTER_WINDOWS;
   /* This assumes that all registers are saved into the jmp_buf */
   setjmp (scm_save_regs_gc_mark);
@@ -1056,10 +1049,6 @@ scm_igc (const char *what)
   scm_threads_mark_stacks ();
 
 #endif /* USE_THREADS */
-
-  /* FIXME: insert a phase to un-protect string-data preserved
-   * in scm_vector_set_length_x.
-   */
 
   j = SCM_NUM_PROTECTS;
   while (j--)
@@ -1615,9 +1604,15 @@ scm_gc_sweep ()
               scm_must_free (SCM_VECTOR_BASE (scmptr) - 2);
               break;
 	    case scm_tc7_vector:
-	      m += (SCM_VECTOR_LENGTH (scmptr) * sizeof (SCM));
-	      scm_must_free (SCM_VECTOR_BASE (scmptr));
-	      break;
+	      {
+		unsigned long int length = SCM_VECTOR_LENGTH (scmptr);
+		if (length > 0)
+		  {
+		    m += length * sizeof (scm_bits_t);
+		    scm_must_free (SCM_VECTOR_BASE (scmptr));
+		  }
+		break;
+	      }
 #ifdef CCLO
 	    case scm_tc7_cclo:
 	      m += (SCM_CCLO_LENGTH (scmptr) * sizeof (SCM));
@@ -1656,15 +1651,8 @@ scm_gc_sweep ()
 	    case scm_tc7_contin:
 	      m += SCM_CONTINUATION_LENGTH (scmptr) * sizeof (SCM_STACKITEM)
 		   + sizeof (scm_contregs);
-	      if (SCM_CONTREGS (scmptr))
-		{
-		  scm_must_free (SCM_CONTREGS (scmptr));
-		  break;
-		}
-	      else
-		{
-		  continue;
-		}
+	      scm_must_free (SCM_CONTREGS (scmptr));
+	      break;
 	    case scm_tcs_subrs:
               /* the various "subrs" (primitives) are never freed */
 	      continue;

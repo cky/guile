@@ -55,6 +55,12 @@
 #include "libguile/unif.h"
 
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+/* The function scm_vector_set_length_x will disappear in the next release of
+ * guile.
+ */
+
 /* 
  * This complicates things too much if allowed on any array.
  * C code can safely call it on arrays known to be used in a single
@@ -128,6 +134,8 @@ scm_vector_set_length_x (SCM vect, SCM len)
   SCM_REALLOW_INTS;
   return vect;
 }
+
+#endif /* (SCM_DEBUG_DEPRECATED == 0) */
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
 	    (SCM obj),
@@ -263,22 +271,32 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
 #define FUNC_NAME s_scm_make_vector
 {
   SCM v;
-  register long i;
-  register long j;
-  register SCM *velts;
+  unsigned long int i;
+  scm_bits_t *velts;
 
-  SCM_VALIDATE_INUM_MIN (1,k,0);
-  if (SCM_UNBNDP(fill))
+  SCM_VALIDATE_INUM_MIN (1, k, 0);
+  if (SCM_UNBNDP (fill))
     fill = SCM_UNSPECIFIED;
-  i = SCM_INUM(k);
-  SCM_NEWCELL(v);
+
+  i = SCM_INUM (k);
+  SCM_NEWCELL (v);
+
+  velts = (i != 0)
+    ? scm_must_malloc (i * sizeof (scm_bits_t), FUNC_NAME)
+    : NULL;
+
   SCM_DEFER_INTS;
-  SCM_SETCHARS(v, scm_must_malloc(i?(long)(i*sizeof(SCM)):1L, FUNC_NAME));
-  velts = SCM_VELTS(v);
-  for (j = 0; j < i; ++j)
-    velts[j] = fill;
-  SCM_SETLENGTH(v, i, scm_tc7_vector);
+  {
+    unsigned long int j;
+
+    for (j = 0; j != i; ++j)
+      velts[j] = SCM_UNPACK (fill);
+
+    SCM_SETCHARS (v, velts);
+    SCM_SETLENGTH (v, i, scm_tc7_vector);
+  }
   SCM_ALLOW_INTS;
+
   return v;
 }
 #undef FUNC_NAME
@@ -390,8 +408,6 @@ void
 scm_init_vectors ()
 {
 #include "libguile/vectors.x"
-  /*
-    scm_make_subr (s_resizuve, scm_tc7_subr_2, scm_vector_set_length_x); */
 }
 
 

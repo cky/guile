@@ -71,7 +71,6 @@
 
 
 
-extern SCM scm_vector_set_length_x (SCM vect, SCM len);
 extern SCM scm_vector_p (SCM x);
 extern SCM scm_vector_length (SCM v);
 extern SCM scm_vector (SCM l);
@@ -92,6 +91,7 @@ extern void scm_init_vectors (void);
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 #define SCM_NVECTORP(x) (!SCM_VECTORP (x))
+extern SCM scm_vector_set_length_x (SCM vect, SCM len);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 

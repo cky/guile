@@ -159,6 +159,10 @@ Use scm_catch or scm_lazy_catch from throw.[ch] instead.
 
 Use scm_string_hash instead.
 
+** Deprecated function:  scm_vector_set_length_x
+
+Instead, create a fresh vector of the desired size and copy the contents.
+
 ** scm_gensym has changed prototype
 
 scm_gensym now only takes one argument.
