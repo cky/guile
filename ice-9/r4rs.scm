@@ -1,7 +1,7 @@
 ;;;; r4rs.scm --- definitions needed for libguile to be R4RS compliant
 ;;;; Jim Blandy <jimb@cyclic.com> --- October 1996
 
-;;;; 	Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -71,8 +71,6 @@ file with the given name already exists, the effect is unspecified."
   "Open file with name STR for both input and output."
   (open-file str OPEN_BOTH))
 
-(define close-input-port close-port)
-(define close-output-port close-port)
 (define close-io-port close-port)
 
 (define (call-with-input-file str proc)
