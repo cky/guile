@@ -1,3 +1,10 @@
+2004-11-10  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-4.h, srfi-4.c: Do not include <libguile.h>, include the
+	needed files directly.  Include config.h, <unistd.h> and <io.h>
+	when available.
+	(scm_uniform_vector_read_x, scm_uniform_vector_write): New.
+
 2004-11-09  Marius Vollmer  <mvo@zagadka.de>
 
 	* gh_data.c (gh_uniform_vector_length): Properly use
