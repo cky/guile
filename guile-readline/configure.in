@@ -1,0 +1,40 @@
+AC_INIT(readline.c)
+AM_INIT_AUTOMAKE(guile-readline, 0.0)
+
+AC_PROG_CC
+AM_PROG_LIBTOOL
+
+dnl Should we check for curses, terminfo, and termlib, too?
+for termlib in ncurses termcap ; do
+   AC_CHECK_LIB(${termlib}, tgoto, 
+                [LIBS="-l${termlib} $LIBS"; break])
+done
+
+AC_CHECK_LIB(readline, main)
+if test $ac_cv_lib_readline_main = no; then
+  AC_MSG_ERROR([libreadline was not found on your system.])
+fi
+
+AC_CHECK_FUNCS(rl_clear_signals rl_cleanup_after_signal)
+
+AC_CACHE_CHECK([for rl_getc_function pointer in readline],
+		 ac_cv_var_rl_getc_function,
+		 [AC_TRY_LINK([
+#include <stdio.h>
+#include <readline/readline.h>],
+			      [rl_getc_function;],
+			      [ac_cv_var_rl_getc_function=yes],
+			      [ac_cv_var_rl_getc_function=no])])
+if test "${ac_cv_var_rl_getc_function}" = "yes"; then
+  AC_DEFINE(HAVE_RL_GETC_FUNCTION)
+fi
+
+if test $ac_cv_lib_readline_main = yes \
+        -a $ac_cv_var_rl_getc_function = no; then
+  AC_MSG_WARN([Warning: libreadline is too old on your system.  You need])
+  AC_MSG_WARN([readline version 2.1 or later.])
+fi
+
+AC_CHECK_FUNCS(strdup)
+
+AC_OUTPUT(Makefile)

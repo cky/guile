@@ -1,0 +1,20 @@
+1999-07-23  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Checked everything into CVS.
+
+1999-07-22  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* readline.c (stream_from_fport): New function.
+	(scm_readline): Use it to for the input and output ports.  Close
+	the streams after readline returns.
+	(handle_error): Close them also when an error occured.
+
+1999-06-17  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* readline.h, readline.c: Removed exception notice from copyright
+	statement.
+
+1999-05-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Started guile-readline package.  Files are copied from old
+	guile-core package and slightly modified.
