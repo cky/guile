@@ -1,3 +1,29 @@
+2001-03-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* values.h (scm_values_vtable, SCM_VALUESP): Moved here so that
+	eval.c can use it.
+	(scm_call_with_values): Removed.
+	* values.c (values_vtable, scm_values_vtable): Added "scm_" prefix
+	so that it can be exported.
+	(scm_call_with_values): Removed.
+	
+	* tags.h (SCM_IM_CALL_WITH_VALUES): New isym.
+	* eval.c: Include "libguile/values.h"
+	(scm_m_at_call_with_values, scm_sym_at_call_with_values):
+	New.
+	(unmemocopy, scm_ceval, scm_deval): Handle new isym.
+	* eval.h (scm_sym_at_call_with_values, scm_m_at_call_with_values):
+	New delcarations to support above change.
+
+	* eval.c (scm_primitive_eval_x, scm_primitive_eval): Fix syntax
+	errors with last change.
+	
+2001-03-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c (scm_primitive_eval_x, scm_primitive_eval, scm_i_eval_x,
+	scm_i_eval): Moved the application of the system transformer from
+	scm_i_eval to scm_primitive_eval.
+
 2001-03-23  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile-snarf.awk.in: Substitute "\\" with "\" in .doc output.
