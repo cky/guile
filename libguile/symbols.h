@@ -103,6 +103,7 @@ extern SCM scm_symbol_hash (SCM s);
 extern SCM scm_builtin_bindings (void);
 extern SCM scm_gensym (SCM prefix);
 extern SCM scm_gentemp (SCM prefix, SCM obarray);
+extern void scm_symbols_prehistory (void);
 extern void scm_init_symbols (void);
 
 

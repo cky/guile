@@ -1,3 +1,7 @@
+2000-12-16  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* symbols.h (scm_symbols_prehistory): Added prototype.
+
 2000-12-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* environments.[ch] (scm_system_environment):  New variable, will
