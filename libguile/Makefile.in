@@ -711,6 +711,12 @@ read.o: read.c extchrs.h _scm.h __scm.h scmconfig.h \
  symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
  chars.h genio.h eval.h unif.h mbstrings.h symbols.h kw.h \
  alist.h srcprop.h hashtab.h hash.h read.h read.x
+root.o: root.c _scm.h __scm.h scmconfig.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h eval.h \
+ throw.h smob.h ports.h genio.h debug.h stackchk.h dynwind.h \
+ markers.h pairs.h root.x
 scmsigs.o: scmsigs.c _scm.h __scm.h scmconfig.h \
  tags.h error.h __scm.h print.h \
  options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
