@@ -1,3 +1,8 @@
+1999-03-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* session.scm (apropos-internal): Modified to comply with new
+	argument order for hash-fold.
+
 1999-03-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (try-load-module): New procedure.  Broken out from

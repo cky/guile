@@ -1,3 +1,8 @@
+1999-03-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* hashtab.c, hashtab.h (scm_hash_fold, scm_internal_hash_fold):
+	Place the table argument last.
+
 1999-03-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* modules.c: #include "procprop.h"
