@@ -3,7 +3,7 @@
 	* api-data.texi: Added scm_is_real, scm_is_rational,
 	scm_to_double, scm_from_double, numerator, and denominator.  Added
 	scm_is_complex, scm_is_number, scm_c_make_rectangular,
-	scm_c_make_polar, scm_c_rela_part, scm_c_imag_part,
+	scm_c_make_polar, scm_c_real_part, scm_c_imag_part,
 	scm_c_magnitude, and scm_c_angle.
 	
 2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
