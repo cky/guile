@@ -90,9 +90,9 @@ Spiffing checklist:
 * Rebuild all generated files in the source tree:
   + Install the .m4 files where aclocal will find them.
   + Run aclocal.
-  + Run automake.
   + Run autoconf.
   + Run autoheader.
+  + Run automake.
 * Verify that Guile builds and runs in your working directory.
 * Run the test suite, in guile-modules/test-suite.
 * Commit all changes to the CVS repository.
