@@ -148,6 +148,32 @@ libraries are kept.  On most Unix systems, this will be
 #undef FUNC_NAME
 #endif /* SCM_PKGDATA_DIR */
 
+#ifdef SCM_LIBRARY_DIR
+GUILE_PROC (scm_sys_library_dir, "%library-dir", 0,0,0,
+            (),
+"Return the directory where the Guile Scheme library files are installed.
+E.g., may return \"/usr/share/guile/1.3.5\".")
+#define FUNC_NAME s_scm_sys_library_dir
+{
+  return scm_makfrom0str(SCM_LIBRARY_DIR);
+}
+#undef FUNC_NAME
+#endif /* SCM_LIBRARY_DIR */
+
+#ifdef SCM_SITE_DIR
+GUILE_PROC (scm_sys_site_dir, "%site-dir", 0,0,0,
+            (),
+"Return the directory where the Guile site files are installed.
+E.g., may return \"/usr/share/guile/site\".")
+#define FUNC_NAME s_scm_sys_site_dir
+{
+  return scm_makfrom0str(SCM_SITE_DIR);
+}
+#undef FUNC_NAME
+#endif /* SCM_SITE_DIR */
+
+
+
 
 /* Initializing the load path, and searching it.  */
 
@@ -201,35 +227,6 @@ GUILE_PROC (scm_parse_path, "parse-path", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_library_dir, "library-dir", 0,0,0,
-            (),
-"Return the directory where the Guile Scheme library files are installed.
-E.g., may return \"/usr/share/guile/1.3.5\".")
-#define FUNC_NAME s_scm_library_dir
-{
-  return scm_makfrom0str(SCM_LIBRARY_DIR);
-}
-#undef FUNC_NAME
-
-GUILE_PROC (scm_pkgdata_dir, "pkgdata-dir", 0,0,0,
-            (),
-"Return the directory where the Guile package files are installed.
-E.g., may return \"/usr/share/guile\".")
-#define FUNC_NAME s_scm_pkgdata_dir
-{
-  return scm_makfrom0str(SCM_PKGDATA_DIR);
-}
-#undef FUNC_NAME
-
-GUILE_PROC (scm_site_dir, "site-dir", 0,0,0,
-            (),
-"Return the directory where the Guile site files are installed.
-E.g., may return \"/usr/share/guile/site\".")
-#define FUNC_NAME s_scm_site_dir
-{
-  return scm_makfrom0str(SCM_SITE_DIR);
-}
-#undef FUNC_NAME
 
 /* Initialize the global variable %load-path, given the value of the
    SCM_SITE_DIR and SCM_LIBRARY_DIR preprocessor symbols and the

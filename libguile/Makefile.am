@@ -104,7 +104,7 @@ modinclude_HEADERS = \
 ## and not a header -- headers are included in the distribution.
 modinclude_DATA = scmconfig.h
 
-bin_SCRIPTS = guile-snarf guile-doc-snarf guile-doc-snarf.awk
+bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf.awk
 
 check_ldadd = libguile.la ${THREAD_LIBS_LOCAL}
 check_PROGRAMS = gh_test_c gh_test_repl
@@ -160,7 +160,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 
 SUFFIXES = .x .doc
 .c.x:
-	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
+	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 .c.doc:
 	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \

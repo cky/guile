@@ -312,8 +312,7 @@ GUILE_PROC (scm_memcons, "memcons", 2, 1, 0,
     {
       /*fixme* environments may be two different but equal top-level envs */
       if (!SCM_UNBNDP (env) && SCM_MEMOIZED_ENV (car) != env)
-	scm_misc_error (s_scm_memcons,
-			"environment mismatch arg1 <-> arg3",
+	SCM_MISC_ERROR ("environment mismatch arg1 <-> arg3",
 			scm_cons2 (car, env, SCM_EOL));
       else
 	env = SCM_MEMOIZED_ENV (car);
@@ -322,8 +321,7 @@ GUILE_PROC (scm_memcons, "memcons", 2, 1, 0,
   if (SCM_NIMP (cdr) && SCM_MEMOIZEDP (cdr))
     {
       if (!SCM_UNBNDP (env) && SCM_MEMOIZED_ENV (cdr) != env)
-	scm_misc_error (s_scm_memcons,
-			"environment mismatch arg2 <-> arg3",
+	SCM_MISC_ERROR ("environment mismatch arg2 <-> arg3",
 			scm_cons2 (cdr, env, SCM_EOL));
       else
 	env = SCM_MEMOIZED_ENV (cdr);
@@ -332,10 +330,7 @@ GUILE_PROC (scm_memcons, "memcons", 2, 1, 0,
   if (SCM_UNBNDP (env))
     env = scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var));
   else
-    SCM_ASSERT (SCM_NULLP (env) || (SCM_NIMP (env) && SCM_CONSP (env)),
-		env,
-		SCM_ARG3,
-		s_scm_make_iloc);
+    SCM_VALIDATE_NULLORCONS(3,env);
   return scm_make_memoized (scm_cons (car, cdr), env);
 }
 #undef FUNC_NAME
@@ -350,8 +345,7 @@ GUILE_PROC (scm_mem_to_proc, "mem->proc", 1, 0, 0,
   env = SCM_MEMOIZED_ENV (obj);
   obj = SCM_MEMOIZED_EXP (obj);
   if (!(SCM_NIMP (obj) && SCM_CAR (obj) == SCM_IM_LAMBDA))
-    scm_misc_error (s_scm_mem_to_proc,
-		    "expected lambda expression",
+    SCM_MISC_ERROR ("expected lambda expression",
 		    scm_cons (obj, SCM_EOL));
   return scm_closure (SCM_CDR (obj), env);
 }

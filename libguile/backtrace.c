@@ -285,10 +285,10 @@ static print_params_t default_print_params[] = {
 static print_params_t *print_params = default_print_params;
 
 #ifdef GUILE_DEBUG
-GUILE_PROC(set_print_params_x, "set-print-params!", 1, 0, 0,
+GUILE_PROC(scm_set_print_params_x, "set-print-params!", 1, 0, 0,
            (SCM params),
 "")
-#define FUNC_NAME s_set_print_params_x
+#define FUNC_NAME s_scm_set_print_params_x
 {
   int i, n = scm_ilength (params);
   SCM ls;
@@ -302,7 +302,7 @@ GUILE_PROC(set_print_params_x, "set-print-params!", 1, 0, 0,
 		&& SCM_INUM (SCM_CADAR (ls)) >= 0,
 		params,
 		SCM_ARG2,
-		s_set_print_params_x);
+		s_scm_set_print_params_x);
   new_params = scm_must_malloc (n * sizeof (print_params_t),
 				FUNC_NAME);
   if (print_params != default_print_params)
