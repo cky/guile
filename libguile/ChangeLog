@@ -1,5 +1,12 @@
 2005-01-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* unif.c (scm_list_to_typed_array): Allow the specification of the
+	upper bound as well.  This is needed for empty arrays.
+	(l2ra): Give needed number of elements in error message.
+	(scm_i_print_array): Print length information for arrays that need
+	it.
+	(scm_i_read_array): Parse it.
+	
 	* deprecated.h, deprecated.c (SCM_CHARS, SCM_UCHARS, SCM_LENGTH,
 	scm_i_object_chars, scm_i_object_length): Brought back from the
 	dead.
