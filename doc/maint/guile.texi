@@ -199,6 +199,15 @@ Mark the async @var{a} for future execution.
 Execute all thunks from the asyncs of the list @var{list_of_a}.
 @end deffn
 
+system-async
+@c snarfed from async.c:180
+@deffn {Scheme Procedure} system-async thunk
+@deffnx {C Function} scm_system_async (thunk)
+This function is deprecated.  You can use @var{thunk} directly
+instead of explicitely creating an async object.
+
+@end deffn
+
 system-async-mark
 @c snarfed from async.c:222
 @deffn {Scheme Procedure} system-async-mark proc [thread]
@@ -220,6 +229,20 @@ signal handlers.
 @deffnx {C Function} scm_noop (args)
 Do nothing.  When called without arguments, return @code{#f},
 otherwise return the first argument.
+@end deffn
+
+unmask-signals
+@c snarfed from async.c:268
+@deffn {Scheme Procedure} unmask-signals
+@deffnx {C Function} scm_unmask_signals ()
+Unmask signals. The returned value is not specified.
+@end deffn
+
+mask-signals
+@c snarfed from async.c:286
+@deffn {Scheme Procedure} mask-signals
+@deffnx {C Function} scm_mask_signals ()
+Mask signals. The returned value is not specified.
 @end deffn
 
 call-with-blocked-asyncs
@@ -525,11 +548,196 @@ is implicit).
 Return @code{#t} if @var{obj} is a debug object.
 @end deffn
 
+issue-deprecation-warning
+@c snarfed from deprecation.c:99
+@deffn {Scheme Procedure} issue-deprecation-warning . msgs
+@deffnx {C Function} scm_issue_deprecation_warning (msgs)
+Output @var{msgs} to @code{(current-error-port)} when this is the first call to @code{issue-deprecation-warning} with this specific @var{msgs}.  Do nothing otherwise. The argument @var{msgs} should be a list of strings; they are printed in turn, each one followed by a newline.
+@end deffn
+
 include-deprecated-features
 @c snarfed from deprecation.c:144
 @deffn {Scheme Procedure} include-deprecated-features
 @deffnx {C Function} scm_include_deprecated_features ()
 Return @code{#t} iff deprecated features should be included in public interfaces.
+@end deffn
+
+substring-move-left!
+@c snarfed from deprecated.c:69
+@deffn {Scheme Procedure} substring-move-left!
+implemented by the C function "scm_substring_move_x"
+@end deffn
+
+substring-move-right!
+@c snarfed from deprecated.c:71
+@deffn {Scheme Procedure} substring-move-right!
+implemented by the C function "scm_substring_move_x"
+@end deffn
+
+c-registered-modules
+@c snarfed from deprecated.c:174
+@deffn {Scheme Procedure} c-registered-modules
+@deffnx {C Function} scm_registered_modules ()
+Return a list of the object code modules that have been imported into
+the current Guile process.  Each element of the list is a pair whose
+car is the name of the module, and whose cdr is the function handle
+for that module's initializer function.  The name is the string that
+has been passed to scm_register_module_xxx.
+@end deffn
+
+c-clear-registered-modules
+@c snarfed from deprecated.c:195
+@deffn {Scheme Procedure} c-clear-registered-modules
+@deffnx {C Function} scm_clear_registered_modules ()
+Destroy the list of modules registered with the current Guile process.
+The return value is unspecified.  @strong{Warning:} this function does
+not actually unlink or deallocate these modules, but only destroys the
+records of which modules have been loaded.  It should therefore be used
+only by module bookkeeping operations.
+@end deffn
+
+close-all-ports-except
+@c snarfed from deprecated.c:338
+@deffn {Scheme Procedure} close-all-ports-except . ports
+@deffnx {C Function} scm_close_all_ports_except (ports)
+[DEPRECATED] Close all open file ports used by the interpreter
+except for those supplied as arguments.  This procedure
+was intended to be used before an exec call to close file descriptors
+which are not needed in the new process.  However it has the
+undesirable side effect of flushing buffers, so it's deprecated.
+Use port-for-each instead.
+@end deffn
+
+variable-set-name-hint!
+@c snarfed from deprecated.c:355
+@deffn {Scheme Procedure} variable-set-name-hint! var hint
+@deffnx {C Function} scm_variable_set_name_hint (var, hint)
+Do not use this function.
+@end deffn
+
+builtin-variable
+@c snarfed from deprecated.c:368
+@deffn {Scheme Procedure} builtin-variable name
+@deffnx {C Function} scm_builtin_variable (name)
+Do not use this function.
+@end deffn
+
+sloppy-memq
+@c snarfed from deprecated.c:442
+@deffn {Scheme Procedure} sloppy-memq x lst
+@deffnx {C Function} scm_sloppy_memq (x, lst)
+This procedure behaves like @code{memq}, but does no type or error checking.
+Its use is recommended only in writing Guile internals,
+not for high-level Scheme programs.
+@end deffn
+
+sloppy-memv
+@c snarfed from deprecated.c:462
+@deffn {Scheme Procedure} sloppy-memv x lst
+@deffnx {C Function} scm_sloppy_memv (x, lst)
+This procedure behaves like @code{memv}, but does no type or error checking.
+Its use is recommended only in writing Guile internals,
+not for high-level Scheme programs.
+@end deffn
+
+sloppy-member
+@c snarfed from deprecated.c:482
+@deffn {Scheme Procedure} sloppy-member x lst
+@deffnx {C Function} scm_sloppy_member (x, lst)
+This procedure behaves like @code{member}, but does no type or error checking.
+Its use is recommended only in writing Guile internals,
+not for high-level Scheme programs.
+@end deffn
+
+read-and-eval!
+@c snarfed from deprecated.c:504
+@deffn {Scheme Procedure} read-and-eval! [port]
+@deffnx {C Function} scm_read_and_eval_x (port)
+Read a form from @var{port} (standard input by default), and evaluate it
+(memoizing it in the process) in the top-level environment.  If no data
+is left to be read from @var{port}, an @code{end-of-file} error is
+signalled.
+@end deffn
+
+string->obarray-symbol
+@c snarfed from deprecated.c:794
+@deffn {Scheme Procedure} string->obarray-symbol o s [softp]
+@deffnx {C Function} scm_string_to_obarray_symbol (o, s, softp)
+Intern a new symbol in @var{obarray}, a symbol table, with name
+@var{string}.
+
+If @var{obarray} is @code{#f}, use the default system symbol table.  If
+@var{obarray} is @code{#t}, the symbol should not be interned in any
+symbol table; merely return the pair (@var{symbol}
+. @var{#<undefined>}).
+
+The @var{soft?} argument determines whether new symbol table entries
+should be created when the specified symbol is not already present in
+@var{obarray}.  If @var{soft?} is specified and is a true value, then
+new entries should not be added for symbols not already present in the
+table; instead, simply return @code{#f}.
+@end deffn
+
+intern-symbol
+@c snarfed from deprecated.c:832
+@deffn {Scheme Procedure} intern-symbol o s
+@deffnx {C Function} scm_intern_symbol (o, s)
+Add a new symbol to @var{obarray} with name @var{string}, bound to an
+unspecified initial value.  The symbol table is not modified if a symbol
+with this name is already present.
+@end deffn
+
+unintern-symbol
+@c snarfed from deprecated.c:874
+@deffn {Scheme Procedure} unintern-symbol o s
+@deffnx {C Function} scm_unintern_symbol (o, s)
+Remove the symbol with name @var{string} from @var{obarray}.  This
+function returns @code{#t} if the symbol was present and @code{#f}
+otherwise.
+@end deffn
+
+symbol-binding
+@c snarfed from deprecated.c:919
+@deffn {Scheme Procedure} symbol-binding o s
+@deffnx {C Function} scm_symbol_binding (o, s)
+Look up in @var{obarray} the symbol whose name is @var{string}, and
+return the value to which it is bound.  If @var{obarray} is @code{#f},
+use the global symbol table.  If @var{string} is not interned in
+@var{obarray}, an error is signalled.
+@end deffn
+
+symbol-bound?
+@c snarfed from deprecated.c:972
+@deffn {Scheme Procedure} symbol-bound? o s
+@deffnx {C Function} scm_symbol_bound_p (o, s)
+Return @code{#t} if @var{obarray} contains a symbol with name
+@var{string} bound to a defined value.  This differs from
+@var{symbol-interned?} in that the mere mention of a symbol
+usually causes it to be interned; @code{symbol-bound?}
+determines whether a symbol has been given any meaningful
+value.
+@end deffn
+
+symbol-set!
+@c snarfed from deprecated.c:999
+@deffn {Scheme Procedure} symbol-set! o s v
+@deffnx {C Function} scm_symbol_set_x (o, s, v)
+Find the symbol in @var{obarray} whose name is @var{string}, and rebind
+it to @var{value}.  An error is signalled if @var{string} is not present
+in @var{obarray}.
+@end deffn
+
+gentemp
+@c snarfed from deprecated.c:1032
+@deffn {Scheme Procedure} gentemp [prefix [obarray]]
+@deffnx {C Function} scm_gentemp (prefix, obarray)
+Create a new symbol with a name unique in an obarray.
+The name is constructed from an optional string @var{prefix}
+and a counter value.  The default prefix is @code{t}.  The
+@var{obarray} is specified as a second optional argument.
+Default is the system obarray where all normal symbols are
+interned.  The counter is increased by 1 at each
+call.  There is no provision for resetting the counter.
 @end deffn
 
 dynamic-link
@@ -2791,6 +2999,24 @@ result of applying @var{code} to the expression and the
 environment.
 @end deffn
 
+procedure->macro
+@c snarfed from macros.c:146
+@deffn {Scheme Procedure} procedure->macro code
+@deffnx {C Function} scm_makmacro (code)
+Return a @dfn{macro} which, when a symbol defined to this value
+appears as the first symbol in an expression, evaluates the
+result of applying @var{code} to the expression and the
+environment.  For example:
+
+@lisp
+(define trace
+  (procedure->macro
+   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
+
+(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).
+@end lisp
+@end deffn
+
 macro?
 @c snarfed from macros.c:165
 @deffn {Scheme Procedure} macro? obj
@@ -3042,7 +3268,7 @@ Return @var{n} raised to the integer exponent
 @c snarfed from numbers.c:1679
 @deffn {Scheme Procedure} integer-expt n k
 @deffnx {C Function} scm_integer_expt (n, k)
-Return @var{n} raised to the non-negative integer exponent
+Return @var{n} raised to the exact integer exponent
 @var{k}.
 
 @lisp
@@ -3054,7 +3280,7 @@ Return @var{n} raised to the non-negative integer exponent
 @end deffn
 
 ash
-@c snarfed from numbers.c:1785
+@c snarfed from numbers.c:1769
 @deffn {Scheme Procedure} ash n cnt
 @deffnx {C Function} scm_ash (n, cnt)
 Return @var{n} shifted left by @var{cnt} bits, or shifted right
@@ -3079,7 +3305,7 @@ shift dropping bits.
 @end deffn
 
 bit-extract
-@c snarfed from numbers.c:1825
+@c snarfed from numbers.c:1809
 @deffn {Scheme Procedure} bit-extract n start end
 @deffnx {C Function} scm_bit_extract (n, start, end)
 Return the integer composed of the @var{start} (inclusive)
@@ -3095,7 +3321,7 @@ through @var{end} (exclusive) bits of @var{n}.  The
 @end deffn
 
 logcount
-@c snarfed from numbers.c:1904
+@c snarfed from numbers.c:1888
 @deffn {Scheme Procedure} logcount n
 @deffnx {C Function} scm_logcount (n)
 Return the number of bits in integer @var{n}.  If integer is
@@ -3114,7 +3340,7 @@ representation are counted.  If 0, 0 is returned.
 @end deffn
 
 integer-length
-@c snarfed from numbers.c:1952
+@c snarfed from numbers.c:1936
 @deffn {Scheme Procedure} integer-length n
 @deffnx {C Function} scm_integer_length (n)
 Return the number of bits necessary to represent @var{n}.
@@ -3130,7 +3356,7 @@ Return the number of bits necessary to represent @var{n}.
 @end deffn
 
 number->string
-@c snarfed from numbers.c:2275
+@c snarfed from numbers.c:2259
 @deffn {Scheme Procedure} number->string n [radix]
 @deffnx {C Function} scm_number_to_string (n, radix)
 Return a string holding the external representation of the
@@ -3139,7 +3365,7 @@ inexact, a radix of 10 will be used.
 @end deffn
 
 string->number
-@c snarfed from numbers.c:2958
+@c snarfed from numbers.c:2942
 @deffn {Scheme Procedure} string->number string [radix]
 @deffnx {C Function} scm_string_to_number (string, radix)
 Return a number of the maximally precise representation
@@ -3153,7 +3379,7 @@ syntactically valid notation for a number, then
 @end deffn
 
 number?
-@c snarfed from numbers.c:3021
+@c snarfed from numbers.c:3005
 @deffn {Scheme Procedure} number? x
 @deffnx {C Function} scm_number_p (x)
 Return @code{#t} if @var{x} is a number, @code{#f}
@@ -3161,7 +3387,7 @@ otherwise.
 @end deffn
 
 complex?
-@c snarfed from numbers.c:3034
+@c snarfed from numbers.c:3018
 @deffn {Scheme Procedure} complex? x
 @deffnx {C Function} scm_complex_p (x)
 Return @code{#t} if @var{x} is a complex number, @code{#f}
@@ -3172,7 +3398,7 @@ rational or integer number.
 @end deffn
 
 real?
-@c snarfed from numbers.c:3047
+@c snarfed from numbers.c:3031
 @deffn {Scheme Procedure} real? x
 @deffnx {C Function} scm_real_p (x)
 Return @code{#t} if @var{x} is a real number, @code{#f}
@@ -3182,7 +3408,7 @@ fulfilled if @var{x} is an integer number.
 @end deffn
 
 rational?
-@c snarfed from numbers.c:3060
+@c snarfed from numbers.c:3044
 @deffn {Scheme Procedure} rational? x
 @deffnx {C Function} scm_rational_p (x)
 Return @code{#t} if @var{x} is a rational number, @code{#f}
@@ -3192,7 +3418,7 @@ fulfilled if @var{x} is an integer number.
 @end deffn
 
 integer?
-@c snarfed from numbers.c:3083
+@c snarfed from numbers.c:3067
 @deffn {Scheme Procedure} integer? x
 @deffnx {C Function} scm_integer_p (x)
 Return @code{#t} if @var{x} is an integer number, @code{#f}
@@ -3200,7 +3426,7 @@ else.
 @end deffn
 
 inexact?
-@c snarfed from numbers.c:3108
+@c snarfed from numbers.c:3093
 @deffn {Scheme Procedure} inexact? x
 @deffnx {C Function} scm_inexact_p (x)
 Return @code{#t} if @var{x} is an inexact number, @code{#f}
@@ -3208,35 +3434,35 @@ else.
 @end deffn
 
 truncate
-@c snarfed from numbers.c:4955
+@c snarfed from numbers.c:4940
 @deffn {Scheme Procedure} truncate x
 @deffnx {C Function} scm_truncate_number (x)
 Round the number @var{x} towards zero.
 @end deffn
 
 round
-@c snarfed from numbers.c:4971
+@c snarfed from numbers.c:4956
 @deffn {Scheme Procedure} round x
 @deffnx {C Function} scm_round_number (x)
 Round the number @var{x} towards the nearest integer. When it is exactly halfway between two integers, round towards the even one.
 @end deffn
 
 floor
-@c snarfed from numbers.c:4997
+@c snarfed from numbers.c:4982
 @deffn {Scheme Procedure} floor x
 @deffnx {C Function} scm_floor (x)
 Round the number @var{x} towards minus infinity.
 @end deffn
 
 ceiling
-@c snarfed from numbers.c:5028
+@c snarfed from numbers.c:5013
 @deffn {Scheme Procedure} ceiling x
 @deffnx {C Function} scm_ceiling (x)
 Round the number @var{x} towards infinity.
 @end deffn
 
 $expt
-@c snarfed from numbers.c:5137
+@c snarfed from numbers.c:5122
 @deffn {Scheme Procedure} $expt x y
 @deffnx {C Function} scm_sys_expt (x, y)
 Return @var{x} raised to the power of @var{y}. This
@@ -3244,7 +3470,7 @@ procedure does not accept complex arguments.
 @end deffn
 
 $atan2
-@c snarfed from numbers.c:5153
+@c snarfed from numbers.c:5138
 @deffn {Scheme Procedure} $atan2 x y
 @deffnx {C Function} scm_sys_atan2 (x, y)
 Return the arc tangent of the two arguments @var{x} and
@@ -3255,7 +3481,7 @@ procedure does not accept complex arguments.
 @end deffn
 
 make-rectangular
-@c snarfed from numbers.c:5181
+@c snarfed from numbers.c:5166
 @deffn {Scheme Procedure} make-rectangular real imaginary
 @deffnx {C Function} scm_make_rectangular (real, imaginary)
 Return a complex number constructed of the given @var{real} and
@@ -3263,21 +3489,21 @@ Return a complex number constructed of the given @var{real} and
 @end deffn
 
 make-polar
-@c snarfed from numbers.c:5205
+@c snarfed from numbers.c:5190
 @deffn {Scheme Procedure} make-polar x y
 @deffnx {C Function} scm_make_polar (x, y)
 Return the complex number @var{x} * e^(i * @var{y}).
 @end deffn
 
 inexact->exact
-@c snarfed from numbers.c:5408
+@c snarfed from numbers.c:5393
 @deffn {Scheme Procedure} inexact->exact z
 @deffnx {C Function} scm_inexact_to_exact (z)
 Return an exact number that is numerically closest to @var{z}.
 @end deffn
 
 rationalize
-@c snarfed from numbers.c:5445
+@c snarfed from numbers.c:5430
 @deffn {Scheme Procedure} rationalize x err
 @deffnx {C Function} scm_rationalize (x, err)
 Return an exact number that is within @var{err} of @var{x}.
@@ -3644,7 +3870,7 @@ characters are available, the end-of-file object is returned.
 @end deffn
 
 peek-char
-@c snarfed from ports.c:1281
+@c snarfed from ports.c:1297
 @deffn {Scheme Procedure} peek-char [port]
 @deffnx {C Function} scm_peek_char (port)
 Return the next character available from @var{port},
@@ -3664,7 +3890,7 @@ to @code{read-char} would have hung.
 @end deffn
 
 unread-char
-@c snarfed from ports.c:1304
+@c snarfed from ports.c:1320
 @deffn {Scheme Procedure} unread-char cobj [port]
 @deffnx {C Function} scm_unread_char (cobj, port)
 Place @var{char} in @var{port} so that it will be read by the
@@ -3674,7 +3900,7 @@ not supplied, the current input port is used.
 @end deffn
 
 unread-string
-@c snarfed from ports.c:1327
+@c snarfed from ports.c:1343
 @deffn {Scheme Procedure} unread-string str port
 @deffnx {C Function} scm_unread_string (str, port)
 Place the string @var{str} in @var{port} so that its characters will be
@@ -3684,7 +3910,7 @@ unread characters will be read again in last-in first-out order.  If
 @end deffn
 
 seek
-@c snarfed from ports.c:1366
+@c snarfed from ports.c:1382
 @deffn {Scheme Procedure} seek fd_port offset whence
 @deffnx {C Function} scm_seek (fd_port, offset, whence)
 Sets the current position of @var{fd/port} to the integer
@@ -3713,7 +3939,7 @@ that the current position of a port can be obtained using:
 @end deffn
 
 truncate-file
-@c snarfed from ports.c:1424
+@c snarfed from ports.c:1440
 @deffn {Scheme Procedure} truncate-file object [length]
 @deffnx {C Function} scm_truncate_file (object, length)
 Truncates the object referred to by @var{object} to at most
@@ -3725,7 +3951,7 @@ position.  The return value is unspecified.
 @end deffn
 
 port-line
-@c snarfed from ports.c:1484
+@c snarfed from ports.c:1500
 @deffn {Scheme Procedure} port-line port
 @deffnx {C Function} scm_port_line (port)
 Return the current line number for @var{port}.
@@ -3737,7 +3963,7 @@ non-programmers.
 @end deffn
 
 set-port-line!
-@c snarfed from ports.c:1496
+@c snarfed from ports.c:1512
 @deffn {Scheme Procedure} set-port-line! port line
 @deffnx {C Function} scm_set_port_line_x (port, line)
 Set the current line number for @var{port} to @var{line}.  The
@@ -3745,7 +3971,7 @@ first line of a file is 0.
 @end deffn
 
 port-column
-@c snarfed from ports.c:1515
+@c snarfed from ports.c:1531
 @deffn {Scheme Procedure} port-column port
 @deffnx {C Function} scm_port_column (port)
 Return the current column number of @var{port}.
@@ -3759,7 +3985,7 @@ what non-programmers will find most natural.)
 @end deffn
 
 set-port-column!
-@c snarfed from ports.c:1527
+@c snarfed from ports.c:1543
 @deffn {Scheme Procedure} set-port-column! port column
 @deffnx {C Function} scm_set_port_column_x (port, column)
 Set the current column of @var{port}.  Before reading the first
@@ -3767,7 +3993,7 @@ character on a line the column should be 0.
 @end deffn
 
 port-filename
-@c snarfed from ports.c:1541
+@c snarfed from ports.c:1557
 @deffn {Scheme Procedure} port-filename port
 @deffnx {C Function} scm_port_filename (port)
 Return the filename associated with @var{port}.  This function returns
@@ -3776,7 +4002,7 @@ when called on the current input, output and error ports respectively.
 @end deffn
 
 set-port-filename!
-@c snarfed from ports.c:1555
+@c snarfed from ports.c:1571
 @deffn {Scheme Procedure} set-port-filename! port filename
 @deffnx {C Function} scm_set_port_filename_x (port, filename)
 Change the filename associated with @var{port}, using the current input
@@ -3786,7 +4012,7 @@ source of data, but only the value that is returned by
 @end deffn
 
 %make-void-port
-@c snarfed from ports.c:1649
+@c snarfed from ports.c:1665
 @deffn {Scheme Procedure} %make-void-port mode
 @deffnx {C Function} scm_sys_make_void_port (mode)
 Create and return a new void port.  A void port acts like
@@ -4134,7 +4360,7 @@ Any whitespace before the next token is discarded.
 @end deffn
 
 read-hash-extend
-@c snarfed from read.c:866
+@c snarfed from read.c:873
 @deffn {Scheme Procedure} read-hash-extend chr proc
 @deffnx {C Function} scm_read_hash_extend (chr, proc)
 Install the procedure @var{proc} for reading expressions
@@ -4762,7 +4988,7 @@ Return @code{#t} if @var{frame} is an overflow frame.
 @end deffn
 
 get-internal-real-time
-@c snarfed from stime.c:117
+@c snarfed from stime.c:119
 @deffn {Scheme Procedure} get-internal-real-time
 @deffnx {C Function} scm_get_internal_real_time ()
 Return the number of time units since the interpreter was
@@ -4770,7 +4996,7 @@ started.
 @end deffn
 
 times
-@c snarfed from stime.c:164
+@c snarfed from stime.c:166
 @deffn {Scheme Procedure} times
 @deffnx {C Function} scm_times ()
 Return an object with information about real and processor
@@ -4797,7 +5023,7 @@ terminated child processes.
 @end deffn
 
 get-internal-run-time
-@c snarfed from stime.c:196
+@c snarfed from stime.c:198
 @deffn {Scheme Procedure} get-internal-run-time
 @deffnx {C Function} scm_get_internal_run_time ()
 Return the number of time units of processor time used by the
@@ -4806,7 +5032,7 @@ included but subprocesses are not.
 @end deffn
 
 current-time
-@c snarfed from stime.c:213
+@c snarfed from stime.c:215
 @deffn {Scheme Procedure} current-time
 @deffnx {C Function} scm_current_time ()
 Return the number of seconds since 1970-01-01 00:00:00 UTC,
@@ -4814,7 +5040,7 @@ excluding leap seconds.
 @end deffn
 
 gettimeofday
-@c snarfed from stime.c:231
+@c snarfed from stime.c:234
 @deffn {Scheme Procedure} gettimeofday
 @deffnx {C Function} scm_gettimeofday ()
 Return a pair containing the number of seconds and microseconds
@@ -4824,7 +5050,7 @@ operating system.
 @end deffn
 
 localtime
-@c snarfed from stime.c:335
+@c snarfed from stime.c:350
 @deffn {Scheme Procedure} localtime time [zone]
 @deffnx {C Function} scm_localtime (time, zone)
 Return an object representing the broken down components of
@@ -4835,7 +5061,7 @@ optionally specified by @var{zone} (a string), otherwise the
 @end deffn
 
 gmtime
-@c snarfed from stime.c:420
+@c snarfed from stime.c:435
 @deffn {Scheme Procedure} gmtime time
 @deffnx {C Function} scm_gmtime (time)
 Return an object representing the broken down components of
@@ -4844,7 +5070,7 @@ Return an object representing the broken down components of
 @end deffn
 
 mktime
-@c snarfed from stime.c:498
+@c snarfed from stime.c:513
 @deffn {Scheme Procedure} mktime sbd_time [zone]
 @deffnx {C Function} scm_mktime (sbd_time, zone)
 @var{bd-time} is an object representing broken down time and @code{zone}
@@ -4858,7 +5084,7 @@ as @var{bd-time} but with normalized values.
 @end deffn
 
 tzset
-@c snarfed from stime.c:581
+@c snarfed from stime.c:598
 @deffn {Scheme Procedure} tzset
 @deffnx {C Function} scm_tzset ()
 Initialize the timezone from the TZ environment variable
@@ -4868,7 +5094,7 @@ timezone.
 @end deffn
 
 strftime
-@c snarfed from stime.c:598
+@c snarfed from stime.c:615
 @deffn {Scheme Procedure} strftime format stime
 @deffnx {C Function} scm_strftime (format, stime)
 Formats a time specification @var{time} using @var{template}.  @var{time}
@@ -4881,7 +5107,7 @@ is the formatted string.
 @end deffn
 
 strptime
-@c snarfed from stime.c:696
+@c snarfed from stime.c:713
 @deffn {Scheme Procedure} strptime format string
 @deffnx {C Function} scm_strptime (format, string)
 Performs the reverse action to @code{strftime}, parsing
@@ -4897,20 +5123,20 @@ which were used for the conversion.
 @end deffn
 
 string?
-@c snarfed from strings.c:494
+@c snarfed from strings.c:495
 @deffn {Scheme Procedure} string? obj
 @deffnx {C Function} scm_string_p (obj)
 Return @code{#t} if @var{obj} is a string, else @code{#f}.
 @end deffn
 
 list->string
-@c snarfed from strings.c:502
+@c snarfed from strings.c:503
 @deffn {Scheme Procedure} list->string
 implemented by the C function "scm_string"
 @end deffn
 
 string
-@c snarfed from strings.c:508
+@c snarfed from strings.c:509
 @deffn {Scheme Procedure} string . chrs
 @deffnx {Scheme Procedure} list->string chrs
 @deffnx {C Function} scm_string (chrs)
@@ -4919,7 +5145,7 @@ Return a newly allocated string composed of the arguments,
 @end deffn
 
 make-string
-@c snarfed from strings.c:546
+@c snarfed from strings.c:547
 @deffn {Scheme Procedure} make-string k [chr]
 @deffnx {C Function} scm_make_string (k, chr)
 Return a newly allocated string of
@@ -4929,14 +5155,14 @@ of the @var{string} are unspecified.
 @end deffn
 
 string-length
-@c snarfed from strings.c:572
+@c snarfed from strings.c:573
 @deffn {Scheme Procedure} string-length string
 @deffnx {C Function} scm_string_length (string)
 Return the number of characters in @var{string}.
 @end deffn
 
 string-ref
-@c snarfed from strings.c:591
+@c snarfed from strings.c:592
 @deffn {Scheme Procedure} string-ref str k
 @deffnx {C Function} scm_string_ref (str, k)
 Return character @var{k} of @var{str} using zero-origin
@@ -4944,7 +5170,7 @@ indexing. @var{k} must be a valid index of @var{str}.
 @end deffn
 
 string-set!
-@c snarfed from strings.c:614
+@c snarfed from strings.c:615
 @deffn {Scheme Procedure} string-set! str k chr
 @deffnx {C Function} scm_string_set_x (str, k, chr)
 Store @var{chr} in element @var{k} of @var{str} and return
@@ -4953,7 +5179,7 @@ an unspecified value. @var{k} must be a valid index of
 @end deffn
 
 substring
-@c snarfed from strings.c:650
+@c snarfed from strings.c:651
 @deffn {Scheme Procedure} substring str start [end]
 @deffnx {C Function} scm_substring (str, start, end)
 Return a newly allocated string formed from the characters
@@ -4966,7 +5192,7 @@ exact integers satisfying:
 @end deffn
 
 substring/copy
-@c snarfed from strings.c:673
+@c snarfed from strings.c:674
 @deffn {Scheme Procedure} substring/copy str start [end]
 @deffnx {C Function} scm_substring_copy (str, start, end)
 Return a newly allocated string formed from the characters
@@ -4979,7 +5205,7 @@ exact integers satisfying:
 @end deffn
 
 substring/shared
-@c snarfed from strings.c:697
+@c snarfed from strings.c:698
 @deffn {Scheme Procedure} substring/shared str start [end]
 @deffnx {C Function} scm_substring_shared (str, start, end)
 Return string that indirectly refers to the characters
@@ -4992,7 +5218,7 @@ exact integers satisfying:
 @end deffn
 
 string-append
-@c snarfed from strings.c:716
+@c snarfed from strings.c:717
 @deffn {Scheme Procedure} string-append . args
 @deffnx {C Function} scm_string_append (args)
 Return a newly allocated string whose characters form the
@@ -5000,7 +5226,7 @@ concatenation of the given strings, @var{args}.
 @end deffn
 
 string-null?
-@c snarfed from srfi-13.c:71
+@c snarfed from srfi-13.c:62
 @deffn {Scheme Procedure} string-null? str
 @deffnx {C Function} scm_string_null_p (str)
 Return @code{#t} if @var{str}'s length is zero, and
@@ -5013,7 +5239,7 @@ y                    @result{} "foo"
 @end deffn
 
 string-any
-@c snarfed from srfi-13.c:91
+@c snarfed from srfi-13.c:90
 @deffn {Scheme Procedure} string-any char_pred s [start [end]]
 @deffnx {C Function} scm_string_any (char_pred, s, start, end)
 Check if the predicate @var{pred} is true for any character in
@@ -5030,7 +5256,7 @@ case.
 @end deffn
 
 string-every
-@c snarfed from srfi-13.c:150
+@c snarfed from srfi-13.c:153
 @deffn {Scheme Procedure} string-every char_pred s [start [end]]
 @deffnx {C Function} scm_string_every (char_pred, s, start, end)
 Check if the predicate @var{pred} is true for every character
@@ -5051,7 +5277,7 @@ case.
 @end deffn
 
 string-tabulate
-@c snarfed from srfi-13.c:202
+@c snarfed from srfi-13.c:209
 @deffn {Scheme Procedure} string-tabulate proc len
 @deffnx {C Function} scm_string_tabulate (proc, len)
 @var{proc} is an integer->char procedure.  Construct a string
@@ -5061,14 +5287,14 @@ produce the corresponding string element.  The order in which
 @end deffn
 
 string->list
-@c snarfed from srfi-13.c:234
+@c snarfed from srfi-13.c:241
 @deffn {Scheme Procedure} string->list str [start [end]]
 @deffnx {C Function} scm_substring_to_list (str, start, end)
 Convert the string @var{str} into a list of characters.
 @end deffn
 
 reverse-list->string
-@c snarfed from srfi-13.c:271
+@c snarfed from srfi-13.c:280
 @deffn {Scheme Procedure} reverse-list->string chrs
 @deffnx {C Function} scm_reverse_list_to_string (chrs)
 An efficient implementation of @code{(compose string->list
@@ -5080,7 +5306,7 @@ reverse)}:
 @end deffn
 
 string-join
-@c snarfed from srfi-13.c:324
+@c snarfed from srfi-13.c:347
 @deffn {Scheme Procedure} string-join ls [delimiter [grammar]]
 @deffnx {C Function} scm_string_join (ls, delimiter, grammar)
 Append the string in the string list @var{ls}, using the string
@@ -5104,7 +5330,7 @@ Insert the separator before each list element.
 @end deffn
 
 string-copy
-@c snarfed from srfi-13.c:480
+@c snarfed from srfi-13.c:481
 @deffn {Scheme Procedure} string-copy str [start [end]]
 @deffnx {C Function} scm_srfi13_substring_copy (str, start, end)
 Return a freshly allocated copy of the string @var{str}.  If
@@ -5113,7 +5339,7 @@ given, @var{start} and @var{end} delimit the portion of
 @end deffn
 
 string-copy!
-@c snarfed from srfi-13.c:507
+@c snarfed from srfi-13.c:508
 @deffn {Scheme Procedure} string-copy! target tstart s [start [end]]
 @deffnx {C Function} scm_string_copy_x (target, tstart, s, start, end)
 Copy the sequence of characters from index range [@var{start},
@@ -5126,7 +5352,7 @@ string.
 @end deffn
 
 substring-move!
-@c snarfed from srfi-13.c:536
+@c snarfed from srfi-13.c:538
 @deffn {Scheme Procedure} substring-move! str1 start1 end1 str2 start2
 @deffnx {C Function} scm_substring_move_x (str1, start1, end1, str2, start2)
 Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
@@ -5135,35 +5361,35 @@ into @var{str2} beginning at position @var{start2}.
 @end deffn
 
 string-take
-@c snarfed from srfi-13.c:545
+@c snarfed from srfi-13.c:547
 @deffn {Scheme Procedure} string-take s n
 @deffnx {C Function} scm_string_take (s, n)
 Return the @var{n} first characters of @var{s}.
 @end deffn
 
 string-drop
-@c snarfed from srfi-13.c:555
+@c snarfed from srfi-13.c:557
 @deffn {Scheme Procedure} string-drop s n
 @deffnx {C Function} scm_string_drop (s, n)
 Return all but the first @var{n} characters of @var{s}.
 @end deffn
 
 string-take-right
-@c snarfed from srfi-13.c:565
+@c snarfed from srfi-13.c:567
 @deffn {Scheme Procedure} string-take-right s n
 @deffnx {C Function} scm_string_take_right (s, n)
 Return the @var{n} last characters of @var{s}.
 @end deffn
 
 string-drop-right
-@c snarfed from srfi-13.c:577
+@c snarfed from srfi-13.c:579
 @deffn {Scheme Procedure} string-drop-right s n
 @deffnx {C Function} scm_string_drop_right (s, n)
 Return all but the last @var{n} characters of @var{s}.
 @end deffn
 
 string-pad
-@c snarfed from srfi-13.c:592
+@c snarfed from srfi-13.c:594
 @deffn {Scheme Procedure} string-pad s len [chr [start [end]]]
 @deffnx {C Function} scm_string_pad (s, len, chr, start, end)
 Take that characters from @var{start} to @var{end} from the
@@ -5173,7 +5399,7 @@ string is longer than @var{len}, it is truncated on the right.
 @end deffn
 
 string-pad-right
-@c snarfed from srfi-13.c:632
+@c snarfed from srfi-13.c:634
 @deffn {Scheme Procedure} string-pad-right s len [chr [start [end]]]
 @deffnx {C Function} scm_string_pad_right (s, len, chr, start, end)
 Take that characters from @var{start} to @var{end} from the
@@ -5183,7 +5409,7 @@ string is longer than @var{len}, it is truncated on the left.
 @end deffn
 
 string-trim
-@c snarfed from srfi-13.c:686
+@c snarfed from srfi-13.c:687
 @deffn {Scheme Procedure} string-trim s [char_pred [start [end]]]
 @deffnx {C Function} scm_string_trim (s, char_pred, start, end)
 Trim @var{s} by skipping over all characters on the left
@@ -5207,7 +5433,7 @@ trimmed.
 @end deffn
 
 string-trim-right
-@c snarfed from srfi-13.c:762
+@c snarfed from srfi-13.c:763
 @deffn {Scheme Procedure} string-trim-right s [char_pred [start [end]]]
 @deffnx {C Function} scm_string_trim_right (s, char_pred, start, end)
 Trim @var{s} by skipping over all characters on the rightt
@@ -5232,7 +5458,7 @@ trimmed.
 @end deffn
 
 string-trim-both
-@c snarfed from srfi-13.c:838
+@c snarfed from srfi-13.c:839
 @deffn {Scheme Procedure} string-trim-both s [char_pred [start [end]]]
 @deffnx {C Function} scm_string_trim_both (s, char_pred, start, end)
 Trim @var{s} by skipping over all characters on both sides of
@@ -5257,7 +5483,7 @@ trimmed.
 @end deffn
 
 string-fill!
-@c snarfed from srfi-13.c:925
+@c snarfed from srfi-13.c:926
 @deffn {Scheme Procedure} string-fill! str chr [start [end]]
 @deffnx {C Function} scm_substring_fill_x (str, chr, start, end)
 Stores @var{chr} in every element of the given @var{str} and
@@ -5265,7 +5491,7 @@ returns an unspecified value.
 @end deffn
 
 string-compare
-@c snarfed from srfi-13.c:975
+@c snarfed from srfi-13.c:978
 @deffn {Scheme Procedure} string-compare s1 s2 proc_lt proc_eq proc_gt [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_compare (s1, s2, proc_lt, proc_eq, proc_gt, start1, end1, start2, end2)
 Apply @var{proc_lt}, @var{proc_eq}, @var{proc_gt} to the
@@ -5277,7 +5503,7 @@ largest index @var{i} such that for every 0 <= @var{j} <
 @end deffn
 
 string-compare-ci
-@c snarfed from srfi-13.c:1018
+@c snarfed from srfi-13.c:1032
 @deffn {Scheme Procedure} string-compare-ci s1 s2 proc_lt proc_eq proc_gt [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_compare_ci (s1, s2, proc_lt, proc_eq, proc_gt, start1, end1, start2, end2)
 Apply @var{proc_lt}, @var{proc_eq}, @var{proc_gt} to the
@@ -5290,7 +5516,7 @@ character comparison is done case-insensitively.
 @end deffn
 
 string=
-@c snarfed from srfi-13.c:1056
+@c snarfed from srfi-13.c:1083
 @deffn {Scheme Procedure} string= s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_eq (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} and @var{s2} are not equal, a true
@@ -5298,7 +5524,7 @@ value otherwise.
 @end deffn
 
 string<>
-@c snarfed from srfi-13.c:1095
+@c snarfed from srfi-13.c:1122
 @deffn {Scheme Procedure} string<> s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_neq (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} and @var{s2} are equal, a true
@@ -5306,7 +5532,7 @@ value otherwise.
 @end deffn
 
 string<
-@c snarfed from srfi-13.c:1138
+@c snarfed from srfi-13.c:1165
 @deffn {Scheme Procedure} string< s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_lt (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} is greater or equal to @var{s2}, a
@@ -5314,7 +5540,7 @@ true value otherwise.
 @end deffn
 
 string>
-@c snarfed from srfi-13.c:1181
+@c snarfed from srfi-13.c:1208
 @deffn {Scheme Procedure} string> s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_gt (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} is less or equal to @var{s2}, a
@@ -5322,7 +5548,7 @@ true value otherwise.
 @end deffn
 
 string<=
-@c snarfed from srfi-13.c:1224
+@c snarfed from srfi-13.c:1251
 @deffn {Scheme Procedure} string<= s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_le (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} is greater to @var{s2}, a true
@@ -5330,7 +5556,7 @@ value otherwise.
 @end deffn
 
 string>=
-@c snarfed from srfi-13.c:1267
+@c snarfed from srfi-13.c:1294
 @deffn {Scheme Procedure} string>= s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_ge (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} is less to @var{s2}, a true value
@@ -5338,7 +5564,7 @@ otherwise.
 @end deffn
 
 string-ci=
-@c snarfed from srfi-13.c:1311
+@c snarfed from srfi-13.c:1338
 @deffn {Scheme Procedure} string-ci= s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_ci_eq (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} and @var{s2} are not equal, a true
@@ -5347,7 +5573,7 @@ case-insensitively.
 @end deffn
 
 string-ci<>
-@c snarfed from srfi-13.c:1355
+@c snarfed from srfi-13.c:1382
 @deffn {Scheme Procedure} string-ci<> s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_ci_neq (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} and @var{s2} are equal, a true
@@ -5356,7 +5582,7 @@ case-insensitively.
 @end deffn
 
 string-ci<
-@c snarfed from srfi-13.c:1399
+@c snarfed from srfi-13.c:1426
 @deffn {Scheme Procedure} string-ci< s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_ci_lt (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} is greater or equal to @var{s2}, a
@@ -5365,7 +5591,7 @@ case-insensitively.
 @end deffn
 
 string-ci>
-@c snarfed from srfi-13.c:1443
+@c snarfed from srfi-13.c:1470
 @deffn {Scheme Procedure} string-ci> s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_ci_gt (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} is less or equal to @var{s2}, a
@@ -5374,7 +5600,7 @@ case-insensitively.
 @end deffn
 
 string-ci<=
-@c snarfed from srfi-13.c:1487
+@c snarfed from srfi-13.c:1514
 @deffn {Scheme Procedure} string-ci<= s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_ci_le (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} is greater to @var{s2}, a true
@@ -5383,7 +5609,7 @@ case-insensitively.
 @end deffn
 
 string-ci>=
-@c snarfed from srfi-13.c:1531
+@c snarfed from srfi-13.c:1558
 @deffn {Scheme Procedure} string-ci>= s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_ci_ge (s1, s2, start1, end1, start2, end2)
 Return @code{#f} if @var{s1} is less to @var{s2}, a true value
@@ -5392,21 +5618,21 @@ case-insensitively.
 @end deffn
 
 string-hash
-@c snarfed from srfi-13.c:1576
+@c snarfed from srfi-13.c:1603
 @deffn {Scheme Procedure} string-hash s [bound [start [end]]]
 @deffnx {C Function} scm_substring_hash (s, bound, start, end)
 Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
 @end deffn
 
 string-hash-ci
-@c snarfed from srfi-13.c:1593
+@c snarfed from srfi-13.c:1620
 @deffn {Scheme Procedure} string-hash-ci s [bound [start [end]]]
 @deffnx {C Function} scm_substring_hash_ci (s, bound, start, end)
 Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
 @end deffn
 
 string-prefix-length
-@c snarfed from srfi-13.c:1605
+@c snarfed from srfi-13.c:1632
 @deffn {Scheme Procedure} string-prefix-length s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_prefix_length (s1, s2, start1, end1, start2, end2)
 Return the length of the longest common prefix of the two
@@ -5414,7 +5640,7 @@ strings.
 @end deffn
 
 string-prefix-length-ci
-@c snarfed from srfi-13.c:1634
+@c snarfed from srfi-13.c:1664
 @deffn {Scheme Procedure} string-prefix-length-ci s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_prefix_length_ci (s1, s2, start1, end1, start2, end2)
 Return the length of the longest common prefix of the two
@@ -5422,7 +5648,7 @@ strings, ignoring character case.
 @end deffn
 
 string-suffix-length
-@c snarfed from srfi-13.c:1663
+@c snarfed from srfi-13.c:1696
 @deffn {Scheme Procedure} string-suffix-length s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_suffix_length (s1, s2, start1, end1, start2, end2)
 Return the length of the longest common suffix of the two
@@ -5430,7 +5656,7 @@ strings.
 @end deffn
 
 string-suffix-length-ci
-@c snarfed from srfi-13.c:1692
+@c snarfed from srfi-13.c:1728
 @deffn {Scheme Procedure} string-suffix-length-ci s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_suffix_length_ci (s1, s2, start1, end1, start2, end2)
 Return the length of the longest common suffix of the two
@@ -5438,35 +5664,35 @@ strings, ignoring character case.
 @end deffn
 
 string-prefix?
-@c snarfed from srfi-13.c:1720
+@c snarfed from srfi-13.c:1759
 @deffn {Scheme Procedure} string-prefix? s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_prefix_p (s1, s2, start1, end1, start2, end2)
 Is @var{s1} a prefix of @var{s2}?
 @end deffn
 
 string-prefix-ci?
-@c snarfed from srfi-13.c:1749
+@c snarfed from srfi-13.c:1791
 @deffn {Scheme Procedure} string-prefix-ci? s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_prefix_ci_p (s1, s2, start1, end1, start2, end2)
 Is @var{s1} a prefix of @var{s2}, ignoring character case?
 @end deffn
 
 string-suffix?
-@c snarfed from srfi-13.c:1778
+@c snarfed from srfi-13.c:1823
 @deffn {Scheme Procedure} string-suffix? s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_suffix_p (s1, s2, start1, end1, start2, end2)
 Is @var{s1} a suffix of @var{s2}?
 @end deffn
 
 string-suffix-ci?
-@c snarfed from srfi-13.c:1807
+@c snarfed from srfi-13.c:1855
 @deffn {Scheme Procedure} string-suffix-ci? s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_suffix_ci_p (s1, s2, start1, end1, start2, end2)
 Is @var{s1} a suffix of @var{s2}, ignoring character case?
 @end deffn
 
 string-index
-@c snarfed from srfi-13.c:1848
+@c snarfed from srfi-13.c:1899
 @deffn {Scheme Procedure} string-index s char_pred [start [end]]
 @deffnx {C Function} scm_string_index (s, char_pred, start, end)
 Search through the string @var{s} from left to right, returning
@@ -5485,7 +5711,7 @@ is in the set @var{char_pred}, if it is a character set.
 @end deffn
 
 string-index-right
-@c snarfed from srfi-13.c:1907
+@c snarfed from srfi-13.c:1964
 @deffn {Scheme Procedure} string-index-right s char_pred [start [end]]
 @deffnx {C Function} scm_string_index_right (s, char_pred, start, end)
 Search through the string @var{s} from right to left, returning
@@ -5504,7 +5730,7 @@ is in the set if @var{char_pred} is a character set.
 @end deffn
 
 string-rindex
-@c snarfed from srfi-13.c:1966
+@c snarfed from srfi-13.c:2029
 @deffn {Scheme Procedure} string-rindex s char_pred [start [end]]
 @deffnx {C Function} scm_string_rindex (s, char_pred, start, end)
 Search through the string @var{s} from right to left, returning
@@ -5523,7 +5749,7 @@ is in the set if @var{char_pred} is a character set.
 @end deffn
 
 string-skip
-@c snarfed from srfi-13.c:1986
+@c snarfed from srfi-13.c:2051
 @deffn {Scheme Procedure} string-skip s char_pred [start [end]]
 @deffnx {C Function} scm_string_skip (s, char_pred, start, end)
 Search through the string @var{s} from left to right, returning
@@ -5543,7 +5769,7 @@ is not in the set if @var{char_pred} is a character set.
 @end deffn
 
 string-skip-right
-@c snarfed from srfi-13.c:2047
+@c snarfed from srfi-13.c:2118
 @deffn {Scheme Procedure} string-skip-right s char_pred [start [end]]
 @deffnx {C Function} scm_string_skip_right (s, char_pred, start, end)
 Search through the string @var{s} from right to left, returning
@@ -5563,7 +5789,7 @@ is not in the set if @var{char_pred} is a character set.
 @end deffn
 
 string-count
-@c snarfed from srfi-13.c:2107
+@c snarfed from srfi-13.c:2185
 @deffn {Scheme Procedure} string-count s char_pred [start [end]]
 @deffnx {C Function} scm_string_count (s, char_pred, start, end)
 Return the count of the number of characters in the string
@@ -5582,7 +5808,7 @@ is in the set @var{char_pred}, if it is a character set.
 @end deffn
 
 string-contains
-@c snarfed from srfi-13.c:2162
+@c snarfed from srfi-13.c:2242
 @deffn {Scheme Procedure} string-contains s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_contains (s1, s2, start1, end1, start2, end2)
 Does string @var{s1} contain string @var{s2}?  Return the index
@@ -5592,7 +5818,7 @@ indicated substrings.
 @end deffn
 
 string-contains-ci
-@c snarfed from srfi-13.c:2203
+@c snarfed from srfi-13.c:2288
 @deffn {Scheme Procedure} string-contains-ci s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_contains_ci (s1, s2, start1, end1, start2, end2)
 Does string @var{s1} contain string @var{s2}?  Return the index
@@ -5603,7 +5829,7 @@ case-insensitively.
 @end deffn
 
 string-upcase!
-@c snarfed from srfi-13.c:2261
+@c snarfed from srfi-13.c:2352
 @deffn {Scheme Procedure} string-upcase! str [start [end]]
 @deffnx {C Function} scm_substring_upcase_x (str, start, end)
 Destructively upcase every character in @code{str}.
@@ -5617,14 +5843,14 @@ y
 @end deffn
 
 string-upcase
-@c snarfed from srfi-13.c:2282
+@c snarfed from srfi-13.c:2373
 @deffn {Scheme Procedure} string-upcase str [start [end]]
 @deffnx {C Function} scm_substring_upcase (str, start, end)
 Upcase every character in @code{str}.
 @end deffn
 
 string-downcase!
-@c snarfed from srfi-13.c:2328
+@c snarfed from srfi-13.c:2420
 @deffn {Scheme Procedure} string-downcase! str [start [end]]
 @deffnx {C Function} scm_substring_downcase_x (str, start, end)
 Destructively downcase every character in @var{str}.
@@ -5640,14 +5866,14 @@ y
 @end deffn
 
 string-downcase
-@c snarfed from srfi-13.c:2349
+@c snarfed from srfi-13.c:2441
 @deffn {Scheme Procedure} string-downcase str [start [end]]
 @deffnx {C Function} scm_substring_downcase (str, start, end)
 Downcase every character in @var{str}.
 @end deffn
 
 string-titlecase!
-@c snarfed from srfi-13.c:2404
+@c snarfed from srfi-13.c:2497
 @deffn {Scheme Procedure} string-titlecase! str [start [end]]
 @deffnx {C Function} scm_string_titlecase_x (str, start, end)
 Destructively titlecase every first character in a word in
@@ -5655,14 +5881,14 @@ Destructively titlecase every first character in a word in
 @end deffn
 
 string-titlecase
-@c snarfed from srfi-13.c:2420
+@c snarfed from srfi-13.c:2513
 @deffn {Scheme Procedure} string-titlecase str [start [end]]
 @deffnx {C Function} scm_string_titlecase (str, start, end)
 Titlecase every first character in a word in @var{str}.
 @end deffn
 
 string-capitalize!
-@c snarfed from srfi-13.c:2445
+@c snarfed from srfi-13.c:2535
 @deffn {Scheme Procedure} string-capitalize! str
 @deffnx {C Function} scm_string_capitalize_x (str)
 Upcase the first character of every word in @var{str}
@@ -5676,7 +5902,7 @@ y                      @result{} "Hello World"
 @end deffn
 
 string-capitalize
-@c snarfed from srfi-13.c:2457
+@c snarfed from srfi-13.c:2547
 @deffn {Scheme Procedure} string-capitalize str
 @deffnx {C Function} scm_string_capitalize (str)
 Return a freshly allocated string with the characters in
@@ -5685,7 +5911,7 @@ capitalized.
 @end deffn
 
 string-reverse
-@c snarfed from srfi-13.c:2488
+@c snarfed from srfi-13.c:2578
 @deffn {Scheme Procedure} string-reverse str [start [end]]
 @deffnx {C Function} scm_string_reverse (str, start, end)
 Reverse the string @var{str}.  The optional arguments
@@ -5694,7 +5920,7 @@ operate on.
 @end deffn
 
 string-reverse!
-@c snarfed from srfi-13.c:2512
+@c snarfed from srfi-13.c:2603
 @deffn {Scheme Procedure} string-reverse! str [start [end]]
 @deffnx {C Function} scm_string_reverse_x (str, start, end)
 Reverse the string @var{str} in-place.  The optional arguments
@@ -5703,7 +5929,7 @@ operate on.  The return value is unspecified.
 @end deffn
 
 string-append/shared
-@c snarfed from srfi-13.c:2535
+@c snarfed from srfi-13.c:2625
 @deffn {Scheme Procedure} string-append/shared . ls
 @deffnx {C Function} scm_string_append_shared (ls)
 Like @code{string-append}, but the result may share memory
@@ -5711,7 +5937,7 @@ with the argument strings.
 @end deffn
 
 string-concatenate
-@c snarfed from srfi-13.c:2556
+@c snarfed from srfi-13.c:2646
 @deffn {Scheme Procedure} string-concatenate ls
 @deffnx {C Function} scm_string_concatenate (ls)
 Append the elements of @var{ls} (which must be strings)
@@ -5720,7 +5946,7 @@ allocated string.
 @end deffn
 
 string-concatenate-reverse
-@c snarfed from srfi-13.c:2578
+@c snarfed from srfi-13.c:2668
 @deffn {Scheme Procedure} string-concatenate-reverse ls [final_string [end]]
 @deffnx {C Function} scm_string_concatenate_reverse (ls, final_string, end)
 Without optional arguments, this procedure is equivalent to
@@ -5739,7 +5965,7 @@ Guaranteed to return a freshly allocated string.
 @end deffn
 
 string-concatenate/shared
-@c snarfed from srfi-13.c:2647
+@c snarfed from srfi-13.c:2685
 @deffn {Scheme Procedure} string-concatenate/shared ls
 @deffnx {C Function} scm_string_concatenate_shared (ls)
 Like @code{string-concatenate}, but the result may share memory
@@ -5747,7 +5973,7 @@ with the strings in the list @var{ls}.
 @end deffn
 
 string-concatenate-reverse/shared
-@c snarfed from srfi-13.c:2658
+@c snarfed from srfi-13.c:2696
 @deffn {Scheme Procedure} string-concatenate-reverse/shared ls [final_string [end]]
 @deffnx {C Function} scm_string_concatenate_reverse_shared (ls, final_string, end)
 Like @code{string-concatenate-reverse}, but the result may
@@ -5755,7 +5981,7 @@ share memory with the the strings in the @var{ls} arguments.
 @end deffn
 
 string-map
-@c snarfed from srfi-13.c:2671
+@c snarfed from srfi-13.c:2709
 @deffn {Scheme Procedure} string-map proc s [start [end]]
 @deffnx {C Function} scm_string_map (proc, s, start, end)
 @var{proc} is a char->char procedure, it is mapped over
@@ -5764,7 +5990,7 @@ string elements is not specified.
 @end deffn
 
 string-map!
-@c snarfed from srfi-13.c:2704
+@c snarfed from srfi-13.c:2739
 @deffn {Scheme Procedure} string-map! proc s [start [end]]
 @deffnx {C Function} scm_string_map_x (proc, s, start, end)
 @var{proc} is a char->char procedure, it is mapped over
@@ -5774,7 +6000,7 @@ modified in-place, the return value is not specified.
 @end deffn
 
 string-fold
-@c snarfed from srfi-13.c:2731
+@c snarfed from srfi-13.c:2766
 @deffn {Scheme Procedure} string-fold kons knil s [start [end]]
 @deffnx {C Function} scm_string_fold (kons, knil, s, start, end)
 Fold @var{kons} over the characters of @var{s}, with @var{knil}
@@ -5784,7 +6010,7 @@ result of @var{kons}' application.
 @end deffn
 
 string-fold-right
-@c snarfed from srfi-13.c:2760
+@c snarfed from srfi-13.c:2797
 @deffn {Scheme Procedure} string-fold-right kons knil s [start [end]]
 @deffnx {C Function} scm_string_fold_right (kons, knil, s, start, end)
 Fold @var{kons} over the characters of @var{s}, with @var{knil}
@@ -5794,7 +6020,7 @@ result of @var{kons}' application.
 @end deffn
 
 string-unfold
-@c snarfed from srfi-13.c:2803
+@c snarfed from srfi-13.c:2842
 @deffn {Scheme Procedure} string-unfold p f g seed [base [make_final]]
 @deffnx {C Function} scm_string_unfold (p, f, g, seed, base, make_final)
 @itemize @bullet
@@ -5818,7 +6044,7 @@ It defaults to @code{(lambda (x) )}.
 @end deffn
 
 string-unfold-right
-@c snarfed from srfi-13.c:2866
+@c snarfed from srfi-13.c:2905
 @deffn {Scheme Procedure} string-unfold-right p f g seed [base [make_final]]
 @deffnx {C Function} scm_string_unfold_right (p, f, g, seed, base, make_final)
 @itemize @bullet
@@ -5842,7 +6068,7 @@ It defaults to @code{(lambda (x) )}.
 @end deffn
 
 string-for-each
-@c snarfed from srfi-13.c:2913
+@c snarfed from srfi-13.c:2952
 @deffn {Scheme Procedure} string-for-each proc s [start [end]]
 @deffnx {C Function} scm_string_for_each (proc, s, start, end)
 @var{proc} is mapped over @var{s} in left-to-right order.  The
@@ -5850,7 +6076,7 @@ return value is not specified.
 @end deffn
 
 string-for-each-index
-@c snarfed from srfi-13.c:2937
+@c snarfed from srfi-13.c:2978
 @deffn {Scheme Procedure} string-for-each-index proc s [start [end]]
 @deffnx {C Function} scm_string_for_each_index (proc, s, start, end)
 @var{proc} is mapped over @var{s} in left-to-right order.  The
@@ -5858,7 +6084,7 @@ return value is not specified.
 @end deffn
 
 xsubstring
-@c snarfed from srfi-13.c:2967
+@c snarfed from srfi-13.c:3010
 @deffn {Scheme Procedure} xsubstring s from [to [start [end]]]
 @deffnx {C Function} scm_xsubstring (s, from, to, start, end)
 This is the @emph{extended substring} procedure that implements
@@ -5874,7 +6100,7 @@ defaults to @var{from} + (@var{end} - @var{start}).
 @end deffn
 
 string-xcopy!
-@c snarfed from srfi-13.c:3010
+@c snarfed from srfi-13.c:3056
 @deffn {Scheme Procedure} string-xcopy! target tstart s sfrom [sto [start [end]]]
 @deffnx {C Function} scm_string_xcopy_x (target, tstart, s, sfrom, sto, start, end)
 Exactly the same as @code{xsubstring}, but the extracted text
@@ -5885,7 +6111,7 @@ cannot copy a string on top of itself.
 @end deffn
 
 string-replace
-@c snarfed from srfi-13.c:3058
+@c snarfed from srfi-13.c:3105
 @deffn {Scheme Procedure} string-replace s1 s2 [start1 [end1 [start2 [end2]]]]
 @deffnx {C Function} scm_string_replace (s1, s2, start1, end1, start2, end2)
 Return the string @var{s1}, but with the characters
@@ -5894,7 +6120,7 @@ Return the string @var{s1}, but with the characters
 @end deffn
 
 string-tokenize
-@c snarfed from srfi-13.c:3093
+@c snarfed from srfi-13.c:3142
 @deffn {Scheme Procedure} string-tokenize s [token_set [start [end]]]
 @deffnx {C Function} scm_string_tokenize (s, token_set, start, end)
 Split the string @var{s} into a list of substrings, where each
@@ -5907,7 +6133,7 @@ of @var{s}.
 @end deffn
 
 string-split
-@c snarfed from srfi-13.c:3157
+@c snarfed from srfi-13.c:3208
 @deffn {Scheme Procedure} string-split str chr
 @deffnx {C Function} scm_string_split (str, chr)
 Split the string @var{str} into the a list of the substrings delimited
@@ -5931,7 +6157,7 @@ result list.
 @end deffn
 
 string-filter
-@c snarfed from srfi-13.c:3195
+@c snarfed from srfi-13.c:3246
 @deffn {Scheme Procedure} string-filter s char_pred [start [end]]
 @deffnx {C Function} scm_string_filter (s, char_pred, start, end)
 Filter the string @var{s}, retaining only those characters that
@@ -5942,7 +6168,7 @@ character set, it is tested for membership.
 @end deffn
 
 string-delete
-@c snarfed from srfi-13.c:3265
+@c snarfed from srfi-13.c:3318
 @deffn {Scheme Procedure} string-delete s char_pred [start [end]]
 @deffnx {C Function} scm_string_delete (s, char_pred, start, end)
 Filter the string @var{s}, retaining only those characters that
@@ -6688,7 +6914,7 @@ Set the name of the vtable @var{vtable} to @var{name}.
 @end deffn
 
 symbol?
-@c snarfed from symbols.c:158
+@c snarfed from symbols.c:156
 @deffn {Scheme Procedure} symbol? obj
 @deffnx {C Function} scm_symbol_p (obj)
 Return @code{#t} if @var{obj} is a symbol, otherwise return
@@ -6696,7 +6922,7 @@ Return @code{#t} if @var{obj} is a symbol, otherwise return
 @end deffn
 
 symbol-interned?
-@c snarfed from symbols.c:168
+@c snarfed from symbols.c:166
 @deffn {Scheme Procedure} symbol-interned? symbol
 @deffnx {C Function} scm_symbol_interned_p (symbol)
 Return @code{#t} if @var{symbol} is interned, otherwise return
@@ -6704,14 +6930,14 @@ Return @code{#t} if @var{symbol} is interned, otherwise return
 @end deffn
 
 make-symbol
-@c snarfed from symbols.c:180
+@c snarfed from symbols.c:178
 @deffn {Scheme Procedure} make-symbol name
 @deffnx {C Function} scm_make_symbol (name)
 Return a new uninterned symbol with the name @var{name}.  The returned symbol is guaranteed to be unique and future calls to @code{string->symbol} will not return it.
 @end deffn
 
 symbol->string
-@c snarfed from symbols.c:212
+@c snarfed from symbols.c:210
 @deffn {Scheme Procedure} symbol->string s
 @deffnx {C Function} scm_symbol_to_string (s)
 Return the name of @var{symbol} as a string.  If the symbol was
@@ -6740,7 +6966,7 @@ standard case is lower case:
 @end deffn
 
 string->symbol
-@c snarfed from symbols.c:242
+@c snarfed from symbols.c:240
 @deffn {Scheme Procedure} string->symbol string
 @deffnx {C Function} scm_string_to_symbol (string)
 Return the symbol whose name is @var{string}. This procedure
@@ -6766,7 +6992,7 @@ standard case is lower case:
 @end deffn
 
 string-ci->symbol
-@c snarfed from symbols.c:254
+@c snarfed from symbols.c:252
 @deffn {Scheme Procedure} string-ci->symbol str
 @deffnx {C Function} scm_string_ci_to_symbol (str)
 Return the symbol whose name is @var{str}.  @var{str} is
@@ -6775,7 +7001,7 @@ is currently reading symbols case-insensitively.
 @end deffn
 
 gensym
-@c snarfed from symbols.c:271
+@c snarfed from symbols.c:269
 @deffn {Scheme Procedure} gensym [prefix]
 @deffnx {C Function} scm_gensym (prefix)
 Create a new symbol with a name constructed from a prefix and
@@ -6786,35 +7012,35 @@ resetting the counter.
 @end deffn
 
 symbol-hash
-@c snarfed from symbols.c:297
+@c snarfed from symbols.c:295
 @deffn {Scheme Procedure} symbol-hash symbol
 @deffnx {C Function} scm_symbol_hash (symbol)
 Return a hash value for @var{symbol}.
 @end deffn
 
 symbol-fref
-@c snarfed from symbols.c:307
+@c snarfed from symbols.c:305
 @deffn {Scheme Procedure} symbol-fref s
 @deffnx {C Function} scm_symbol_fref (s)
 Return the contents of @var{symbol}'s @dfn{function slot}.
 @end deffn
 
 symbol-pref
-@c snarfed from symbols.c:318
+@c snarfed from symbols.c:316
 @deffn {Scheme Procedure} symbol-pref s
 @deffnx {C Function} scm_symbol_pref (s)
 Return the @dfn{property list} currently associated with @var{symbol}.
 @end deffn
 
 symbol-fset!
-@c snarfed from symbols.c:329
+@c snarfed from symbols.c:327
 @deffn {Scheme Procedure} symbol-fset! s val
 @deffnx {C Function} scm_symbol_fset_x (s, val)
 Change the binding of @var{symbol}'s function slot.
 @end deffn
 
 symbol-pset!
-@c snarfed from symbols.c:341
+@c snarfed from symbols.c:339
 @deffn {Scheme Procedure} symbol-pset! s val
 @deffnx {C Function} scm_symbol_pset_x (s, val)
 Change the binding of @var{symbol}'s property slot.
@@ -6912,21 +7138,21 @@ Wake up all threads that are waiting for @var{cv}.
 @end deffn
 
 current-thread
-@c snarfed from threads.c:1103
+@c snarfed from threads.c:1105
 @deffn {Scheme Procedure} current-thread
 @deffnx {C Function} scm_current_thread ()
 Return the thread that called this function.
 @end deffn
 
 all-threads
-@c snarfed from threads.c:1112
+@c snarfed from threads.c:1114
 @deffn {Scheme Procedure} all-threads
 @deffnx {C Function} scm_all_threads ()
 Return a list of all threads.
 @end deffn
 
 thread-exited?
-@c snarfed from threads.c:1127
+@c snarfed from threads.c:1129
 @deffn {Scheme Procedure} thread-exited? thread
 @deffnx {C Function} scm_thread_exited_p (thread)
 Return @code{#t} iff @var{thread} has exited.
@@ -7838,7 +8064,7 @@ as @var{array}, if used as the @var{prototype} for
 @end deffn
 
 chown
-@c snarfed from filesys.c:220
+@c snarfed from filesys.c:222
 @deffn {Scheme Procedure} chown object owner group
 @deffnx {C Function} scm_chown (object, owner, group)
 Change the ownership and group of the file referred to by @var{object} to
@@ -7856,7 +8082,7 @@ as @code{-1}, then that ID is not changed.
 @end deffn
 
 chmod
-@c snarfed from filesys.c:258
+@c snarfed from filesys.c:260
 @deffn {Scheme Procedure} chmod object mode
 @deffnx {C Function} scm_chmod (object, mode)
 Changes the permissions of the file referred to by @var{obj}.
@@ -7869,7 +8095,7 @@ The return value is unspecified.
 @end deffn
 
 umask
-@c snarfed from filesys.c:290
+@c snarfed from filesys.c:292
 @deffn {Scheme Procedure} umask [mode]
 @deffnx {C Function} scm_umask (mode)
 If @var{mode} is omitted, returns a decimal number representing the current
@@ -7880,7 +8106,7 @@ E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.
 @end deffn
 
 open-fdes
-@c snarfed from filesys.c:312
+@c snarfed from filesys.c:314
 @deffn {Scheme Procedure} open-fdes path flags [mode]
 @deffnx {C Function} scm_open_fdes (path, flags, mode)
 Similar to @code{open} but return a file descriptor instead of
@@ -7888,7 +8114,7 @@ a port.
 @end deffn
 
 open
-@c snarfed from filesys.c:353
+@c snarfed from filesys.c:355
 @deffn {Scheme Procedure} open path flags [mode]
 @deffnx {C Function} scm_open (path, flags, mode)
 Open the file named by @var{path} for reading and/or writing.
@@ -7921,7 +8147,7 @@ for additional flags.
 @end deffn
 
 close
-@c snarfed from filesys.c:391
+@c snarfed from filesys.c:393
 @deffn {Scheme Procedure} close fd_or_port
 @deffnx {C Function} scm_close (fd_or_port)
 Similar to close-port (@pxref{Closing, close-port}),
@@ -7932,7 +8158,7 @@ their revealed counts set to zero.
 @end deffn
 
 close-fdes
-@c snarfed from filesys.c:418
+@c snarfed from filesys.c:420
 @deffn {Scheme Procedure} close-fdes fd
 @deffnx {C Function} scm_close_fdes (fd)
 A simple wrapper for the @code{close} system call.
@@ -7943,7 +8169,7 @@ The return value is unspecified.
 @end deffn
 
 stat
-@c snarfed from filesys.c:620
+@c snarfed from filesys.c:622
 @deffn {Scheme Procedure} stat object
 @deffnx {C Function} scm_stat (object)
 Return an object containing various information about the file
@@ -8005,7 +8231,7 @@ An integer representing the access permission bits.
 @end deffn
 
 link
-@c snarfed from filesys.c:682
+@c snarfed from filesys.c:684
 @deffn {Scheme Procedure} link oldpath newpath
 @deffnx {C Function} scm_link (oldpath, newpath)
 Creates a new name @var{newpath} in the file system for the
@@ -8015,7 +8241,7 @@ system.
 @end deffn
 
 rename-file
-@c snarfed from filesys.c:720
+@c snarfed from filesys.c:722
 @deffn {Scheme Procedure} rename-file oldname newname
 @deffnx {C Function} scm_rename (oldname, newname)
 Renames the file specified by @var{oldname} to @var{newname}.
@@ -8023,14 +8249,14 @@ The return value is unspecified.
 @end deffn
 
 delete-file
-@c snarfed from filesys.c:737
+@c snarfed from filesys.c:739
 @deffn {Scheme Procedure} delete-file str
 @deffnx {C Function} scm_delete_file (str)
 Deletes (or "unlinks") the file specified by @var{path}.
 @end deffn
 
 mkdir
-@c snarfed from filesys.c:754
+@c snarfed from filesys.c:756
 @deffn {Scheme Procedure} mkdir path [mode]
 @deffnx {C Function} scm_mkdir (path, mode)
 Create a new directory named by @var{path}.  If @var{mode} is omitted
@@ -8040,7 +8266,7 @@ umask.  Otherwise they are set to the decimal value specified with
 @end deffn
 
 rmdir
-@c snarfed from filesys.c:781
+@c snarfed from filesys.c:783
 @deffn {Scheme Procedure} rmdir path
 @deffnx {C Function} scm_rmdir (path)
 Remove the existing directory named by @var{path}.  The directory must
@@ -8048,7 +8274,7 @@ be empty for this to succeed.  The return value is unspecified.
 @end deffn
 
 directory-stream?
-@c snarfed from filesys.c:805
+@c snarfed from filesys.c:807
 @deffn {Scheme Procedure} directory-stream? obj
 @deffnx {C Function} scm_directory_stream_p (obj)
 Return a boolean indicating whether @var{object} is a directory
@@ -8056,7 +8282,7 @@ stream as returned by @code{opendir}.
 @end deffn
 
 opendir
-@c snarfed from filesys.c:816
+@c snarfed from filesys.c:818
 @deffn {Scheme Procedure} opendir dirname
 @deffnx {C Function} scm_opendir (dirname)
 Open the directory specified by @var{path} and return a directory
@@ -8064,7 +8290,7 @@ stream.
 @end deffn
 
 readdir
-@c snarfed from filesys.c:837
+@c snarfed from filesys.c:839
 @deffn {Scheme Procedure} readdir port
 @deffnx {C Function} scm_readdir (port)
 Return (as a string) the next directory entry from the directory stream
@@ -8073,7 +8299,7 @@ end of file object is returned.
 @end deffn
 
 rewinddir
-@c snarfed from filesys.c:876
+@c snarfed from filesys.c:878
 @deffn {Scheme Procedure} rewinddir port
 @deffnx {C Function} scm_rewinddir (port)
 Reset the directory port @var{stream} so that the next call to
@@ -8081,7 +8307,7 @@ Reset the directory port @var{stream} so that the next call to
 @end deffn
 
 closedir
-@c snarfed from filesys.c:893
+@c snarfed from filesys.c:895
 @deffn {Scheme Procedure} closedir port
 @deffnx {C Function} scm_closedir (port)
 Close the directory stream @var{stream}.
@@ -8089,7 +8315,7 @@ The return value is unspecified.
 @end deffn
 
 chdir
-@c snarfed from filesys.c:943
+@c snarfed from filesys.c:945
 @deffn {Scheme Procedure} chdir str
 @deffnx {C Function} scm_chdir (str)
 Change the current working directory to @var{path}.
@@ -8097,14 +8323,14 @@ The return value is unspecified.
 @end deffn
 
 getcwd
-@c snarfed from filesys.c:958
+@c snarfed from filesys.c:960
 @deffn {Scheme Procedure} getcwd
 @deffnx {C Function} scm_getcwd ()
 Return the name of the current working directory.
 @end deffn
 
 select
-@c snarfed from filesys.c:1159
+@c snarfed from filesys.c:1161
 @deffn {Scheme Procedure} select reads writes excepts [secs [usecs]]
 @deffnx {C Function} scm_select (reads, writes, excepts, secs, usecs)
 This procedure has a variety of uses: waiting for the ability
@@ -8139,7 +8365,7 @@ An additional @code{select!} interface is provided.
 @end deffn
 
 fcntl
-@c snarfed from filesys.c:1297
+@c snarfed from filesys.c:1299
 @deffn {Scheme Procedure} fcntl object cmd [value]
 @deffnx {C Function} scm_fcntl (object, cmd, value)
 Apply @var{command} to the specified file descriptor or the underlying
@@ -8170,7 +8396,7 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 @end deffn
 
 fsync
-@c snarfed from filesys.c:1329
+@c snarfed from filesys.c:1331
 @deffn {Scheme Procedure} fsync object
 @deffnx {C Function} scm_fsync (object)
 Copies any unwritten data for the specified output file descriptor to disk.
@@ -8180,7 +8406,7 @@ The return value is unspecified.
 @end deffn
 
 symlink
-@c snarfed from filesys.c:1354
+@c snarfed from filesys.c:1356
 @deffn {Scheme Procedure} symlink oldpath newpath
 @deffnx {C Function} scm_symlink (oldpath, newpath)
 Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
@@ -8188,7 +8414,7 @@ Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
 @end deffn
 
 readlink
-@c snarfed from filesys.c:1373
+@c snarfed from filesys.c:1375
 @deffn {Scheme Procedure} readlink path
 @deffnx {C Function} scm_readlink (path)
 Return the value of the symbolic link named by @var{path} (a
@@ -8196,7 +8422,7 @@ string), i.e., the file that the link points to.
 @end deffn
 
 lstat
-@c snarfed from filesys.c:1415
+@c snarfed from filesys.c:1417
 @deffn {Scheme Procedure} lstat str
 @deffnx {C Function} scm_lstat (str)
 Similar to @code{stat}, but does not follow symbolic links, i.e.,
@@ -8205,7 +8431,7 @@ file it points to.  @var{path} must be a string.
 @end deffn
 
 copy-file
-@c snarfed from filesys.c:1438
+@c snarfed from filesys.c:1440
 @deffn {Scheme Procedure} copy-file oldfile newfile
 @deffnx {C Function} scm_copy_file (oldfile, newfile)
 Copy the file specified by @var{path-from} to @var{path-to}.
@@ -8213,7 +8439,7 @@ The return value is unspecified.
 @end deffn
 
 dirname
-@c snarfed from filesys.c:1501
+@c snarfed from filesys.c:1503
 @deffn {Scheme Procedure} dirname filename
 @deffnx {C Function} scm_dirname (filename)
 Return the directory name component of the file name
@@ -8222,7 +8448,7 @@ component, @code{.} is returned.
 @end deffn
 
 basename
-@c snarfed from filesys.c:1544
+@c snarfed from filesys.c:1546
 @deffn {Scheme Procedure} basename filename [suffix]
 @deffnx {C Function} scm_basename (filename, suffix)
 Return the base name of the file name @var{filename}. The
@@ -8678,43 +8904,60 @@ modification time to the current time.
 @end deffn
 
 access?
-@c snarfed from posix.c:1219
+@c snarfed from posix.c:1236
 @deffn {Scheme Procedure} access? path how
 @deffnx {C Function} scm_access (path, how)
-Return @code{#t} if @var{path} corresponds to an existing file
-and the current process has the type of access specified by
-@var{how}, otherwise @code{#f}.  @var{how} should be specified
-using the values of the variables listed below.  Multiple
-values can be combined using a bitwise or, in which case
-@code{#t} will only be returned if all accesses are granted.
+Test accessibility of a file under the real UID and GID of the
+calling process.  The return is @code{#t} if @var{path} exists
+and the permissions requested by @var{how} are all allowed, or
+@code{#f} if not.
 
-Permissions are checked using the real id of the current
-process, not the effective id, although it's the effective id
-which determines whether the access would actually be granted.
+@var{how} is an integer which is one of the following values,
+or a bitwise-OR (@code{logior}) of multiple values.
 
 @defvar R_OK
-test for read permission.
+Test for read permission.
 @end defvar
 @defvar W_OK
-test for write permission.
+Test for write permission.
 @end defvar
 @defvar X_OK
-test for execute permission.
+Test for execute permission.
 @end defvar
 @defvar F_OK
-test for existence of the file.
+Test for existence of the file.  This is implied by each of the
+other tests, so there's no need to combine it with them.
 @end defvar
+
+It's important to note that @code{access?} does not simply
+indicate what will happen on attempting to read or write a
+file.  In normal circumstances it does, but in a set-UID or
+set-GID program it doesn't because @code{access?} tests the
+real ID, whereas an open or execute attempt uses the effective
+ID.
+
+A program which will never run set-UID/GID can ignore the
+difference between real and effective IDs, but for maximum
+generality, especially in library functions, it's best not to
+use @code{access?} to predict the result of an open or execute,
+instead simply attempt that and catch any exception.
+
+The main use for @code{access?} is to let a set-UID/GID program
+determine what the invoking user would have been allowed to do,
+without the greater (or perhaps lesser) privileges afforded by
+the effective ID.  For more on this, see ``Testing File
+Access'' in The GNU C Library Reference Manual.
 @end deffn
 
 getpid
-@c snarfed from posix.c:1232
+@c snarfed from posix.c:1249
 @deffn {Scheme Procedure} getpid
 @deffnx {C Function} scm_getpid ()
 Return an integer representing the current process ID.
 @end deffn
 
 putenv
-@c snarfed from posix.c:1249
+@c snarfed from posix.c:1266
 @deffn {Scheme Procedure} putenv str
 @deffnx {C Function} scm_putenv (str)
 Modifies the environment of the current process, which is
@@ -8731,7 +8974,7 @@ The return value is unspecified.
 @end deffn
 
 setlocale
-@c snarfed from posix.c:1333
+@c snarfed from posix.c:1350
 @deffn {Scheme Procedure} setlocale category [locale]
 @deffnx {C Function} scm_setlocale (category, locale)
 If @var{locale} is omitted, return the current value of the
@@ -8746,7 +8989,7 @@ the locale will be set using environment variables.
 @end deffn
 
 mknod
-@c snarfed from posix.c:1376
+@c snarfed from posix.c:1393
 @deffn {Scheme Procedure} mknod path type perms dev
 @deffnx {C Function} scm_mknod (path, type, perms, dev)
 Creates a new special file, such as a file corresponding to a device.
@@ -8767,7 +9010,7 @@ The return value is unspecified.
 @end deffn
 
 nice
-@c snarfed from posix.c:1422
+@c snarfed from posix.c:1439
 @deffn {Scheme Procedure} nice incr
 @deffnx {C Function} scm_nice (incr)
 Increment the priority of the current process by @var{incr}.  A higher
@@ -8776,7 +9019,7 @@ The return value is unspecified.
 @end deffn
 
 sync
-@c snarfed from posix.c:1436
+@c snarfed from posix.c:1457
 @deffn {Scheme Procedure} sync
 @deffnx {C Function} scm_sync ()
 Flush the operating system disk buffers.
@@ -8784,7 +9027,7 @@ The return value is unspecified.
 @end deffn
 
 crypt
-@c snarfed from posix.c:1467
+@c snarfed from posix.c:1488
 @deffn {Scheme Procedure} crypt key salt
 @deffnx {C Function} scm_crypt (key, salt)
 Encrypt @var{key} using @var{salt} as the salt value to the
@@ -8792,7 +9035,7 @@ crypt(3) library call.
 @end deffn
 
 chroot
-@c snarfed from posix.c:1499
+@c snarfed from posix.c:1520
 @deffn {Scheme Procedure} chroot path
 @deffnx {C Function} scm_chroot (path)
 Change the root directory to that specified in @var{path}.
@@ -8803,7 +9046,7 @@ root directory.
 @end deffn
 
 getlogin
-@c snarfed from posix.c:1533
+@c snarfed from posix.c:1554
 @deffn {Scheme Procedure} getlogin
 @deffnx {C Function} scm_getlogin ()
 Return a string containing the name of the user logged in on
@@ -8812,7 +9055,7 @@ information cannot be obtained.
 @end deffn
 
 cuserid
-@c snarfed from posix.c:1551
+@c snarfed from posix.c:1572
 @deffn {Scheme Procedure} cuserid
 @deffnx {C Function} scm_cuserid ()
 Return a string containing a user name associated with the
@@ -8821,7 +9064,7 @@ information cannot be obtained.
 @end deffn
 
 getpriority
-@c snarfed from posix.c:1577
+@c snarfed from posix.c:1598
 @deffn {Scheme Procedure} getpriority which who
 @deffnx {C Function} scm_getpriority (which, who)
 Return the scheduling priority of the process, process group
@@ -8837,7 +9080,7 @@ specified processes.
 @end deffn
 
 setpriority
-@c snarfed from posix.c:1611
+@c snarfed from posix.c:1632
 @deffn {Scheme Procedure} setpriority which who prio
 @deffnx {C Function} scm_setpriority (which, who, prio)
 Set the scheduling priority of the process, process group
@@ -8856,7 +9099,7 @@ The return value is not specified.
 @end deffn
 
 getpass
-@c snarfed from posix.c:1636
+@c snarfed from posix.c:1657
 @deffn {Scheme Procedure} getpass prompt
 @deffnx {C Function} scm_getpass (prompt)
 Display @var{prompt} to the standard error output and read
@@ -8869,7 +9112,7 @@ characters is disabled.
 @end deffn
 
 flock
-@c snarfed from posix.c:1741
+@c snarfed from posix.c:1762
 @deffn {Scheme Procedure} flock file operation
 @deffnx {C Function} scm_flock (file, operation)
 Apply or remove an advisory lock on an open file.
@@ -8892,7 +9135,7 @@ file descriptor or an open file descriptor port.
 @end deffn
 
 sethostname
-@c snarfed from posix.c:1766
+@c snarfed from posix.c:1787
 @deffn {Scheme Procedure} sethostname name
 @deffnx {C Function} scm_sethostname (name)
 Set the host name of the current processor to @var{name}. May
@@ -8901,7 +9144,7 @@ specified.
 @end deffn
 
 gethostname
-@c snarfed from posix.c:1784
+@c snarfed from posix.c:1805
 @deffn {Scheme Procedure} gethostname
 @deffnx {C Function} scm_gethostname ()
 Return the host name of the current processor.
@@ -9213,7 +9456,7 @@ The return value is unspecified.
 @end deffn
 
 connect
-@c snarfed from socket.c:842
+@c snarfed from socket.c:840
 @deffn {Scheme Procedure} connect sock fam address . args
 @deffnx {C Function} scm_connect (sock, fam, address, args)
 Initiate a connection from a socket using a specified address
@@ -9240,7 +9483,7 @@ The return value is unspecified.
 @end deffn
 
 bind
-@c snarfed from socket.c:901
+@c snarfed from socket.c:899
 @deffn {Scheme Procedure} bind sock fam address . args
 @deffnx {C Function} scm_bind (sock, fam, address, args)
 Assign an address to the socket port @var{sock}.
@@ -9289,7 +9532,7 @@ The return value is unspecified.
 @end deffn
 
 listen
-@c snarfed from socket.c:934
+@c snarfed from socket.c:932
 @deffn {Scheme Procedure} listen sock backlog
 @deffnx {C Function} scm_listen (sock, backlog)
 Enable @var{sock} to accept connection
@@ -9303,7 +9546,7 @@ The return value is unspecified.
 @end deffn
 
 accept
-@c snarfed from socket.c:1046
+@c snarfed from socket.c:1044
 @deffn {Scheme Procedure} accept sock
 @deffnx {C Function} scm_accept (sock)
 Accept a connection on a bound, listening socket.
@@ -9323,7 +9566,7 @@ connection and will continue to accept new requests.
 @end deffn
 
 getsockname
-@c snarfed from socket.c:1073
+@c snarfed from socket.c:1071
 @deffn {Scheme Procedure} getsockname sock
 @deffnx {C Function} scm_getsockname (sock)
 Return the address of @var{sock}, in the same form as the
@@ -9332,7 +9575,7 @@ of a socket in the @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 getpeername
-@c snarfed from socket.c:1095
+@c snarfed from socket.c:1093
 @deffn {Scheme Procedure} getpeername sock
 @deffnx {C Function} scm_getpeername (sock)
 Return the address that @var{sock}
@@ -9342,7 +9585,7 @@ is connected to, in the same form as the object returned by
 @end deffn
 
 recv!
-@c snarfed from socket.c:1130
+@c snarfed from socket.c:1128
 @deffn {Scheme Procedure} recv! sock buf [flags]
 @deffnx {C Function} scm_recv (sock, buf, flags)
 Receive data from a socket port.
@@ -9368,7 +9611,7 @@ any unread buffered port data is ignored.
 @end deffn
 
 send
-@c snarfed from socket.c:1173
+@c snarfed from socket.c:1171
 @deffn {Scheme Procedure} send sock message [flags]
 @deffnx {C Function} scm_send (sock, message, flags)
 Transmit the string @var{message} on a socket port @var{sock}.
@@ -9387,7 +9630,7 @@ any unflushed buffered port data is ignored.
 @end deffn
 
 recvfrom!
-@c snarfed from socket.c:1224
+@c snarfed from socket.c:1222
 @deffn {Scheme Procedure} recvfrom! sock str [flags [start [end]]]
 @deffnx {C Function} scm_recvfrom (sock, str, flags, start, end)
 Return data from the socket port @var{sock} and also
@@ -9416,7 +9659,7 @@ descriptor: any unread buffered port data is ignored.
 @end deffn
 
 sendto
-@c snarfed from socket.c:1289
+@c snarfed from socket.c:1287
 @deffn {Scheme Procedure} sendto sock message fam address . args_and_flags
 @deffnx {C Function} scm_sendto (sock, message, fam, address, args_and_flags)
 Transmit the string @var{message} on the socket port
