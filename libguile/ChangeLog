@@ -1,3 +1,22 @@
+Sat Sep 27 20:19:34 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.am (libpath.h): Include the value of the THREAD_LIBS
+	makefile variable as a build parameter called LIBS.  The
+	build-guile program will use this, for the time being.
+	* Makefile.in: Regenerated.
+
+	Thanks to Shiro Kawai:
+	* gc.c (scm_gc_mark): Pass NULL to scm_wta as the subroutine name.
+	* ports.h (scm_ptobfuns): The fgets method returns a char *, not
+	an SCM.
+
+	* Makefile.in: Regenerated with automake 1.2a.
+
+	* script.c (scm_compile_shell_switches): If we hit the -c or --
+	arguments, don't set the car of (command-line) to scm_usage_name,
+	the prettified name of the guile executable; give it the full
+	path, the way shells usually handle $0. 
+
 Wed Sep 24 22:09:52 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* ramap.c (scm_array_map): Renamed to scm_array_map_x.  Removed

@@ -1,3 +1,8 @@
+Sat Sep 27 23:14:13 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.in, md/Makefile.in, time/Makefile.in: Regenerated with
+	automake 1.2a.
+
 Thu Aug 28 23:49:19 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.in, md/Makefile.in, time/Makefile.in: Regenerated.

@@ -1,0 +1,5 @@
+Sat Sep 27 23:15:26 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* New directory --- the build-guile command, intended to help
+	people build Guile-based applications.
+	* Makefile.am, Makefile.in, build-guile.in: New files.
