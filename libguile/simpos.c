@@ -68,11 +68,13 @@ extern int system();
 #ifdef HAVE_SYSTEM
 SCM_DEFINE (scm_system, "system", 0, 1, 0, 
            (SCM cmd),
-	    "Executes @var{cmd} using the operating system's \"command processor\".\n"
-	    "Under Unix this is usually the default shell @code{sh}.  The value\n"
-	    "returned is @var{cmd}'s exit status as returned by @code{waitpid}, which\n"
-	    "can be interpreted using the functions above.\n\n"
-	    "If @code{system} is called without arguments, it returns a boolean\n"
+	    "Execute @var{cmd} using the operating system's \"command\n"
+	    "processor\".  Under Unix this is usually the default shell\n"
+	    "@code{sh}.  The value returned is @var{cmd}'s exit status as\n"
+	    "returned by @code{waitpid}, which can be interpreted using the\n"
+	    "functions above.\n"
+	    "\n"
+	    "If @code{system} is called without arguments, return a boolean\n"
 	    "indicating whether the command processor is available.")
 #define FUNC_NAME s_scm_system
 {

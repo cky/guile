@@ -418,8 +418,8 @@ scm_symbol_value0 (const char *name)
 
 SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0, 
 	    (SCM obj),
-	    "Returns @code{#t} if @var{obj} is a symbol, otherwise returns\n"
-	    "@code{#f}. (r5rs)")
+	    "Return @code{#t} if @var{obj} is a symbol, otherwise return\n"
+	    "@code{#f}.")
 #define FUNC_NAME s_scm_symbol_p
 {
   return SCM_BOOL (SCM_SYMBOLP (obj));
@@ -428,24 +428,26 @@ SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0,
 
 SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0, 
            (SCM s),
-	    "Returns the name of @var{symbol} as a string.  If the symbol\n"
-	    "was part of an object returned as the value of a literal\n"
-	    "expression (section @pxref{Literal expressions,,,r4rs, The\n"
-	    "Revised^4 Report on Scheme}) or by a call to the @code{read}\n"
-	    "procedure, and its name contains alphabetic characters, then\n"
-	    "the string returned will contain characters in the\n"
-	    "implementation's preferred standard case---some implementations\n"
-	    "will prefer upper case, others lower case.  If the symbol was\n"
-	    "returned by @code{string->symbol}, the case of characters in\n"
-	    "the string returned will be the same as the case in the string\n"
-	    "that was passed to @code{string->symbol}.  It is an error to\n"
-	    "apply mutation procedures like @code{string-set!} to strings\n"
-	    "returned by this procedure. (r5rs)\n\n"
+	    "Return the name of @var{symbol} as a string.  If the symbol was\n"
+	    "part of an object returned as the value of a literal expression\n"
+	    "(section @pxref{Literal expressions,,,r4rs, The Revised^4\n"
+	    "Report on Scheme}) or by a call to the @code{read} procedure,\n"
+	    "and its name contains alphabetic characters, then the string\n"
+	    "returned will contain characters in the implementation's\n"
+	    "preferred standard case---some implementations will prefer\n"
+	    "upper case, others lower case.  If the symbol was returned by\n"
+	    "@code{string->symbol}, the case of characters in the string\n"
+	    "returned will be the same as the case in the string that was\n"
+	    "passed to @code{string->symbol}.  It is an error to apply\n"
+	    "mutation procedures like @code{string-set!} to strings returned\n"
+	    "by this procedure.\n"
+	    "\n"
 	    "The following examples assume that the implementation's\n"
-	    "standard case is lower case:\n\n"
+	    "standard case is lower case:\n"
+	    "\n"
 	    "@lisp\n"
-	    "(symbol->string 'flying-fish) @result{} \"flying-fish\"\n"
-	    "(symbol->string 'Martin)      @result{}  \"martin\"\n"
+	    "(symbol->string 'flying-fish)    @result{} \"flying-fish\"\n"
+	    "(symbol->string 'Martin)         @result{}  \"martin\"\n"
 	    "(symbol->string\n"
 	    "   (string->symbol \"Malvina\")) @result{} \"Malvina\"\n"
 	    "@end lisp")
@@ -458,14 +460,17 @@ SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0,
 
 
 SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0, 
-           (SCM s),
-	    "Returns the symbol whose name is @var{string}. This procedure\n"
+	    (SCM string),
+	    "Return the symbol whose name is @var{string}. This procedure\n"
 	    "can create symbols with names containing special characters or\n"
 	    "letters in the non-standard case, but it is usually a bad idea\n"
-	    "to create such because in some implementations of Scheme they\n"
-	    "cannot be read as themselves.  See @code{symbol->string}.\n\n"
+	    "to create such symbols because in some implementations of\n"
+	    "Scheme they cannot be read as themselves.  See\n"
+	    "@code{symbol->string}.\n"
+	    "\n"
 	    "The following examples assume that the implementation's\n"
-	    "standard case is lower case:\n\n"
+	    "standard case is lower case:\n"
+	    "\n"
 	    "@lisp\n"
 	    "(eq? 'mISSISSIppi 'mississippi) @result{} #t\n"
 	    "(string->symbol \"mISSISSIppi\") @result{} @r{the symbol with name \"mISSISSIppi\"}\n"
@@ -478,8 +483,9 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_string_to_symbol
 {
-  SCM_VALIDATE_STRING (1, s);
-  return scm_mem2symbol (SCM_STRING_CHARS (s), SCM_STRING_LENGTH (s));
+  SCM_VALIDATE_STRING (1, string);
+  return scm_mem2symbol (SCM_STRING_CHARS (string),
+			 SCM_STRING_LENGTH (string));
 }
 #undef FUNC_NAME
 

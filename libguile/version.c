@@ -83,11 +83,11 @@ SCM_DEFINE (scm_version, "version", 0, 0, 0,
 	    "@deffnx primitive minor-version\n"
 	    "Return a string describing Guile's version number, or its major or minor\n"
 	    "version numbers, respectively.\n\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(version) @result{} \"1.3a\"\n"
 	    "(major-version) @result{} \"1\"\n"
 	    "(minor-version) @result{} \"3a\"\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_version
 {
   return scm_makfrom0str (GUILE_VERSION);

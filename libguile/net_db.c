@@ -89,11 +89,11 @@ extern int h_errno;
 
 SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
             (SCM address),
-	    "Converts a string containing an Internet host address in the traditional\n"
-	    "dotted decimal notation into an integer.\n\n"
-	    "@smalllisp\n"
-	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n\n"
-	    "@end smalllisp")
+	    "Converts a string containing an Internet host address in the\n"
+	    "traditional dotted decimal notation into an integer.\n"
+	    "@lisp\n"
+	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_inet_aton
 {
   struct in_addr soka;
@@ -109,11 +109,11 @@ SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0,
 
 SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
             (SCM inetid),
-	    "Converts an integer Internet host address into a string with the\n"
-	    "traditional dotted decimal representation.\n\n"
-	    "@smalllisp\n"
+	    "Converts an integer Internet host address into a string with\n"
+	    "the traditional dotted decimal representation.\n"
+	    "@lisp\n"
 	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\"\n"
-	    "@end smalllisp")
+	    "@end lisp")
 #define FUNC_NAME s_scm_inet_ntoa
 {
   struct in_addr addr;
@@ -129,10 +129,11 @@ SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
 #ifdef HAVE_INET_NETOF
 SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0, 
             (SCM address),
-	    "Returns the network number part of the given integer Internet address.\n\n"
-	    "@smalllisp\n"
+	    "Return the network number part of the given integer Internet\n"
+	    "address.\n"
+	    "@lisp\n"
 	    "(inet-netof 2130706433) @result{} 127\n"
-	    "@end smalllisp")
+	    "@end lisp")
 #define FUNC_NAME s_scm_inet_netof
 {
   struct in_addr addr;
@@ -145,11 +146,11 @@ SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0,
 #ifdef HAVE_INET_LNAOF
 SCM_DEFINE (scm_lnaof, "inet-lnaof", 1, 0, 0, 
             (SCM address),
-	    "Returns the local-address-with-network part of the given Internet\n"
-	    "address.\n\n"
-	    "@smalllisp\n"
+	    "Return the local-address-with-network part of the given\n"
+	    "Internet address.\n"
+	    "@lisp\n"
 	    "(inet-lnaof 2130706433) @result{} 1\n"
-	    "@end smalllisp")
+	    "@end lisp")
 #define FUNC_NAME s_scm_lnaof
 {
   struct in_addr addr;
@@ -162,11 +163,12 @@ SCM_DEFINE (scm_lnaof, "inet-lnaof", 1, 0, 0,
 #ifdef HAVE_INET_MAKEADDR
 SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
             (SCM net, SCM lna),
-	    "Makes an Internet host address by combining the network number @var{net}\n"
-	    "with the local-address-within-network number @var{lna}.\n\n"
-	    "@smalllisp\n"
+	    "Makes an Internet host address by combining the network number\n"
+	    "@var{net} with the local-address-within-network number\n"
+	    "@var{lna}.\n"
+	    "@lisp\n"
 	    "(inet-makeaddr 127 1) @result{} 2130706433\n"
-	    "@end smalllisp")
+	    "@end lisp")
 #define FUNC_NAME s_scm_inet_makeaddr
 {
   struct in_addr addr;

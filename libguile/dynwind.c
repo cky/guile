@@ -70,60 +70,66 @@
 
 
 SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
-           (SCM thunk1, SCM thunk2, SCM thunk3),
-	    "All three arguments must be 0-argument procedures.\n\n"
-	    "@var{in-guard} is called, then @var{thunk}, then @var{out-guard}.\n\n"
-	    "If, any time during the execution of @var{thunk}, the continuation\n"
-	    "of the @code{dynamic-wind} expression is escaped non-locally, @var{out-guard}\n"
-	    "is called.   If the continuation of the dynamic-wind is re-entered,\n"
-	    "@var{in-guard} is called.   Thus @var{in-guard} and @var{out-guard} may\n"
-	    "be called any number of times.\n\n"
-	    "@example\n"
+           (SCM in_guard, SCM thunk, SCM out_guard),
+	    "All three arguments must be 0-argument procedures.\n"
+	    "@var{in_guard} is called, then @var{thunk}, then\n"
+	    "@var{out_guard}.\n"
+	    "\n"
+	    "If, any time during the execution of @var{thunk}, the\n"
+	    "continuation of the @code{dynamic_wind} expression is escaped\n"
+	    "non-locally, @var{out_guard} is called.  If the continuation of\n"
+	    "the dynamic-wind is re-entered, @var{in_guard} is called.  Thus\n"
+	    "@var{in_guard} and @var{out_guard} may be called any number of\n"
+	    "times.\n"
+	    "@lisp\n"
 	    "(define x 'normal-binding)\n"
-	    "@result{} x\n\n"
+	    "@result{} x\n"
 	    "(define a-cont  (call-with-current-continuation \n"
 	    "		  (lambda (escape)\n"
 	    "		     (let ((old-x x))\n"
 	    "		       (dynamic-wind\n"
 	    "			  ;; in-guard:\n"
 	    "			  ;;\n"
-	    "			  (lambda () (set! x 'special-binding))\n\n"
+	    "			  (lambda () (set! x 'special-binding))\n"
+	    "\n"
 	    "			  ;; thunk\n"
 	    "			  ;;\n"
 	    "		 	  (lambda () (display x) (newline)\n"
 	    "				     (call-with-current-continuation escape)\n"
 	    "				     (display x) (newline)\n"
-	    "				     x)\n\n"
+	    "				     x)\n"
+	    "\n"
 	    "			  ;; out-guard:\n"
 	    "			  ;;\n"
-	    "			  (lambda () (set! x old-x)))))))\n\n"
+	    "			  (lambda () (set! x old-x)))))))\n"
+	    "\n"
 	    ";; Prints: \n"
 	    "special-binding\n"
 	    ";; Evaluates to:\n"
-	    "@result{} a-cont\n\n"
+	    "@result{} a-cont\n"
 	    "x\n"
-	    "@result{} normal-binding\n\n"
+	    "@result{} normal-binding\n"
 	    "(a-cont #f)\n"
 	    ";; Prints:\n"
 	    "special-binding\n"
 	    ";; Evaluates to:\n"
-	    "@result{} a-cont  ;; the value of the (define a-cont...)\n\n"
+	    "@result{} a-cont  ;; the value of the (define a-cont...)\n"
 	    "x\n"
-	    "@result{} normal-binding\n\n"
+	    "@result{} normal-binding\n"
 	    "a-cont\n"
 	    "@result{} special-binding\n"
-	    "@end example\n")
+	    "@end lisp")
 #define FUNC_NAME s_scm_dynamic_wind
 {
   SCM ans;
-  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk3)),
-	      thunk3,
+  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (out_guard)),
+	      out_guard,
 	      SCM_ARG3, FUNC_NAME);
-  scm_apply (thunk1, SCM_EOL, SCM_EOL);
-  scm_dynwinds = scm_acons (thunk1, thunk3, scm_dynwinds);
-  ans = scm_apply (thunk2, SCM_EOL, SCM_EOL);
+  scm_apply (in_guard, SCM_EOL, SCM_EOL);
+  scm_dynwinds = scm_acons (in_guard, out_guard, scm_dynwinds);
+  ans = scm_apply (thunk, SCM_EOL, SCM_EOL);
   scm_dynwinds = SCM_CDR (scm_dynwinds);
-  scm_apply (thunk3, SCM_EOL, SCM_EOL);
+  scm_apply (out_guard, SCM_EOL, SCM_EOL);
   return ans;
 }
 #undef FUNC_NAME

@@ -243,12 +243,12 @@ SCM_DEFINE (scm_file_port_p, "file-port?", 1, 0, 0,
  * Return the new port.
  */
 SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
-           (SCM filename, SCM modes),
-	    "Open the file whose name is @var{string}, and return a port\n"
+           (SCM filename, SCM mode),
+	    "Open the file whose name is @var{filename}, and return a port\n"
 	    "representing that file.  The attributes of the port are\n"
-	    "determined by the @var{mode} string.  The way in \n"
-	    "which this is interpreted is similar to C stdio:\n\n"
-	    "The first character must be one of the following:\n\n"
+	    "determined by the @var{mode} string.  The way in which this is\n"
+	    "interpreted is similar to C stdio.  The first character must be\n"
+	    "one of the following:\n"
 	    "@table @samp\n"
 	    "@item r\n"
 	    "Open an existing file for input.\n"
@@ -256,48 +256,49 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	    "Open a file for output, creating it if it doesn't already exist\n"
 	    "or removing its contents if it does.\n"
 	    "@item a\n"
-	    "Open a file for output, creating it if it doesn't already exist.\n"
-	    "All writes to the port will go to the end of the file.\n"
+	    "Open a file for output, creating it if it doesn't already\n"
+	    "exist.  All writes to the port will go to the end of the file.\n"
 	    "The \"append mode\" can be turned off while the port is in use\n"
 	    "@pxref{Ports and File Descriptors, fcntl}\n"
-	    "@end table\n\n"
-	    "The following additional characters can be appended:\n\n"
+	    "@end table\n"
+	    "The following additional characters can be appended:\n"
 	    "@table @samp\n"
 	    "@item +\n"
 	    "Open the port for both input and output.  E.g., @code{r+}: open\n"
 	    "an existing file for both input and output.\n"
 	    "@item 0\n"
-	    "Create an \"unbuffered\" port.  In this case input and output operations\n"
-	    "are passed directly to the underlying port implementation without\n"
-	    "additional buffering.  This is likely to slow down I/O operations.\n"
-	    "The buffering mode can be changed while a port is in use\n"
-	    "@pxref{Ports and File Descriptors, setvbuf}\n"
+	    "Create an \"unbuffered\" port.  In this case input and output\n"
+	    "operations are passed directly to the underlying port\n"
+	    "implementation without additional buffering.  This is likely to\n"
+	    "slow down I/O operations.  The buffering mode can be changed\n"
+	    "while a port is in use @pxref{Ports and File Descriptors,\n"
+	    "setvbuf}\n"
 	    "@item l\n"
 	    "Add line-buffering to the port.  The port output buffer will be\n"
 	    "automatically flushed whenever a newline character is written.\n"
-	    "@end table\n\n"
-	    "In theory we could create read/write ports which were buffered in one\n"
-	    "direction only.  However this isn't included in the current interfaces.\n\n"
-	    "If a file cannot be opened with the access requested,\n"
-	    "@code{open-file} throws an exception.")
+	    "@end table\n"
+	    "In theory we could create read/write ports which were buffered\n"
+	    "in one direction only.  However this isn't included in the\n"
+	    "current interfaces.  If a file cannot be opened with the access\n"
+	    "requested, @code{open-file} throws an exception.")
 #define FUNC_NAME s_scm_open_file
 {
   SCM port;
   int fdes;
   int flags = 0;
   char *file;
-  char *mode;
+  char *md;
   char *ptr;
 
   SCM_VALIDATE_STRING (1, filename);
-  SCM_VALIDATE_STRING (2, modes);
+  SCM_VALIDATE_STRING (2, mode);
   SCM_STRING_COERCE_0TERMINATION_X (filename);
-  SCM_STRING_COERCE_0TERMINATION_X (modes);
+  SCM_STRING_COERCE_0TERMINATION_X (mode);
 
   file = SCM_STRING_CHARS (filename);
-  mode = SCM_STRING_CHARS (modes);
+  md = SCM_STRING_CHARS (mode);
 
-  switch (*mode)
+  switch (*md)
     {
     case 'r':
       flags |= O_RDONLY;
@@ -309,9 +310,9 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
       flags |= O_WRONLY | O_CREAT | O_APPEND;
       break;
     default:
-      scm_out_of_range (FUNC_NAME, modes);
+      scm_out_of_range (FUNC_NAME, mode);
     }
-  ptr = mode + 1;
+  ptr = md + 1;
   while (*ptr != '\0')
     {
       switch (*ptr)
@@ -328,7 +329,7 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	case 'l':  /* line buffered: handled during output.  */
 	  break;
 	default:
-	  scm_out_of_range (FUNC_NAME, modes);
+	  scm_out_of_range (FUNC_NAME, mode);
 	}
       ptr++;
     }
@@ -341,7 +342,7 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 			scm_cons (scm_makfrom0str (strerror (en)),
 				  scm_cons (filename, SCM_EOL)), en);
     }
-  port = scm_fdes_to_port (fdes, mode, filename);
+  port = scm_fdes_to_port (fdes, md, filename);
   return port;
 }
 #undef FUNC_NAME

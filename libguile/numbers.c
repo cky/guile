@@ -746,13 +746,13 @@ SCM scm_big_test(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
 
 SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
-	     "Returns the integer which is the bit-wise AND of the two integer\n"
-	     "arguments.\n\n"
-	     "Example:\n"
-	     "@lisp\n"
-	     "(number->string (logand #b1100 #b1010) 2)\n"
-	     "   @result{} \"1000\"\n"
-	     "@end lisp")
+	    "Return the integer which is the bit-wise AND of the two integer\n"
+	    "arguments.\n"
+	    "\n"
+	    "@lisp\n"
+	    "(number->string (logand #b1100 #b1010) 2)\n"
+	    "   @result{} \"1000\"\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_logand
 {
   long int nn1;
@@ -833,13 +833,13 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 
 SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
              (SCM n1, SCM n2),
-	     "Returns the integer which is the bit-wise OR of the two integer\n"
-	     "arguments.\n\n"
-	     "Example:\n"
-	     "@lisp\n"
-	     "(number->string (logior #b1100 #b1010) 2)\n"
-	     "   @result{} \"1110\"\n"
-	     "@end lisp")
+	    "Return the integer which is the bit-wise OR of the two integer\n"
+	    "arguments.\n"
+	    "\n"
+	    "@lisp\n"
+	    "(number->string (logior #b1100 #b1010) 2)\n"
+	    "   @result{} \"1110\"\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_logior
 {
   long int nn1;
@@ -919,13 +919,13 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 
 SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
              (SCM n1, SCM n2),
-	     "Returns the integer which is the bit-wise XOR of the two integer\n"
-	     "arguments.\n\n"
-	     "Example:\n"
-	     "@lisp\n"
-	     "(number->string (logxor #b1100 #b1010) 2)\n"
-	     "   @result{} \"110\"\n"
-	     "@end lisp")
+	    "Return the integer which is the bit-wise XOR of the two integer\n"
+	    "arguments.\n"
+	    "\n"
+	    "@lisp\n"
+	    "(number->string (logxor #b1100 #b1010) 2)\n"
+	    "   @result{} \"110\"\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_logxor
 {
   long int nn1;
@@ -989,54 +989,54 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
 
 
 SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
-            (SCM n1, SCM n2),
-	    "@example\n"
+            (SCM j, SCM k),
+	    "@lisp\n"
 	    "(logtest j k) @equiv{} (not (zero? (logand j k)))\n\n"
 	    "(logtest #b0100 #b1011) @result{} #f\n"
 	    "(logtest #b0100 #b0111) @result{} #t\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_logtest
 {
-  long int nn1;
+  long int nj;
 
-  if (SCM_INUMP (n1)) {
-    nn1 = SCM_INUM (n1);
-    if (SCM_INUMP (n2)) {
-      long nn2 = SCM_INUM (n2);
-      return SCM_BOOL (nn1 & nn2);
-    } else if (SCM_BIGP (n2)) {
+  if (SCM_INUMP (j)) {
+    nj = SCM_INUM (j);
+    if (SCM_INUMP (k)) {
+      long nk = SCM_INUM (k);
+      return SCM_BOOL (nj & nk);
+    } else if (SCM_BIGP (k)) {
     intbig: 
       {
 # ifndef SCM_DIGSTOOBIG
-	long z = scm_pseudolong (nn1);
+	long z = scm_pseudolong (nj);
 	return scm_big_test ((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, 
-			     (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
+			     (nj < 0) ? SCM_BIGSIGNFLAG : 0, k);
 # else
 	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
-	scm_longdigs (nn1, zdigs);
+	scm_longdigs (nj, zdigs);
 	return scm_big_test (zdigs, SCM_DIGSPERLONG, 
-			     (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
+			     (nj < 0) ? SCM_BIGSIGNFLAG : 0, k);
 # endif
       }
     } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, k);
     }
-  } else if (SCM_BIGP (n1)) {
-    if (SCM_INUMP (n2)) {
-      SCM_SWAP (n1, n2);
-      nn1 = SCM_INUM (n1);
+  } else if (SCM_BIGP (j)) {
+    if (SCM_INUMP (k)) {
+      SCM_SWAP (j, k);
+      nj = SCM_INUM (j);
       goto intbig;
-    } else if (SCM_BIGP (n2)) {
-      if (SCM_NUMDIGS (n1) > SCM_NUMDIGS (n2)) {
-	SCM_SWAP (n1, n2);
+    } else if (SCM_BIGP (k)) {
+      if (SCM_NUMDIGS (j) > SCM_NUMDIGS (k)) {
+	SCM_SWAP (j, k);
       }
-      return scm_big_test (SCM_BDIGITS (n1), SCM_NUMDIGS (n1), 
-			   SCM_BIGSIGN (n1), n2);
+      return scm_big_test (SCM_BDIGITS (j), SCM_NUMDIGS (j), 
+			   SCM_BIGSIGN (j), k);
     } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, k);
     }
   } else {
-    SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, j);
   }
 }
 #undef FUNC_NAME
@@ -1044,14 +1044,14 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 
 SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
             (SCM index, SCM j),
-	    "@example\n"
+	    "@lisp\n"
 	    "(logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)\n\n"
 	    "(logbit? 0 #b1101) @result{} #t\n"
 	    "(logbit? 1 #b1101) @result{} #f\n"
 	    "(logbit? 2 #b1101) @result{} #t\n"
 	    "(logbit? 3 #b1101) @result{} #t\n"
 	    "(logbit? 4 #b1101) @result{} #f\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_logbit_p
 {
   unsigned long int iindex;
@@ -1092,14 +1092,15 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 
 SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0, 
             (SCM n),
-	    "Returns the integer which is the 2s-complement of the integer argument.\n\n"
-	    "Example:\n"
+	    "Return the integer which is the 2s-complement of the integer\n"
+	    "argument.\n"
+	    "\n"
 	    "@lisp\n"
 	    "(number->string (lognot #b10000000) 2)\n"
 	    "   @result{} \"-10000001\"\n"
 	    "(number->string (lognot #b0) 2)\n"
 	    "   @result{} \"-1\"\n"
-	    "@end lisp\n")
+	    "@end lisp")
 #define FUNC_NAME s_scm_lognot
 {
   return scm_difference (SCM_MAKINUM (-1L), n);
@@ -1108,8 +1109,9 @@ SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0,
 
 SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
             (SCM n, SCM k),
-	    "Returns @var{n} raised to the non-negative integer exponent @var{k}.\n\n"
-	    "Example:\n"
+	    "Return @var{n} raised to the non-negative integer exponent\n"
+	    "@var{k}.\n"
+	    "\n"
 	    "@lisp\n"
 	    "(integer-expt 2 5)\n"
 	    "   @result{} 32\n"
@@ -1148,21 +1150,20 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 
 SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             (SCM n, SCM cnt),
-	    "The function ash performs an arithmetic shift left by @var{CNT}\n"
-	    "bits (or shift right, if @var{cnt} is negative).\n"
-	    "'Arithmetic' means, that the function does not guarantee to\n"
-	    "keep the bit structure of @var{n}, but rather guarantees that\n"
-	    "the result will always be rounded towards minus infinity.\n"
-	    "Therefore, the results of ash and a corresponding bitwise\n"
-	    "shift will differ if N is negative.\n\n"
+	    "The function ash performs an arithmetic shift left by @var{cnt}\n"
+	    "bits (or shift right, if @var{cnt} is negative).  'Arithmetic'\n"
+	    "means, that the function does not guarantee to keep the bit\n"
+	    "structure of @var{n}, but rather guarantees that the result\n"
+	    "will always be rounded towards minus infinity.  Therefore, the\n"
+	    "results of ash and a corresponding bitwise shift will differ if\n"
+	    "@var{n} is negative.\n"
+	    "\n"
 	    "Formally, the function returns an integer equivalent to\n"
-	    "@code{(inexact->exact (floor (* @var{n} (expt 2 @var{cnt}))))}.\n\n"
-	    "Example:\n"
+	    "@code{(inexact->exact (floor (* @var{n} (expt 2 @var{cnt}))))}.\n"
+	    "\n"
 	    "@lisp\n"
-	    "(number->string (ash #b1 3) 2)\n"
-	    "   @result{} \"1000\"\n"
-	    "(number->string (ash #b1010 -1) 2)\n"
-	    "   @result{} \"101\"\n"
+	    "(number->string (ash #b1 3) 2)     @result{} \"1000\"\n"
+	    "(number->string (ash #b1010 -1) 2) @result{} \"101\"\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_ash
 {
@@ -1207,10 +1208,10 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 
 SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
             (SCM n, SCM start, SCM end),
-	    "Returns the integer composed of the @var{start} (inclusive) through\n"
-	    "@var{end} (exclusive) bits of @var{n}.  The @var{start}th bit becomes\n"
-	    "the 0-th bit in the result.@refill\n\n"
-	    "Example:\n"
+	    "Return the integer composed of the @var{start} (inclusive)\n"
+	    "through @var{end} (exclusive) bits of @var{n}.  The\n"
+	    "@var{start}th bit becomes the 0-th bit in the result.\n"
+	    "\n"
 	    "@lisp\n"
 	    "(number->string (bit-extract #b1101101010 0 4) 2)\n"
 	    "   @result{} \"1010\"\n"
@@ -1276,11 +1277,11 @@ static const char scm_logtab[] = {
 
 SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
             (SCM n),
-	    "Returns the number of bits in integer @var{n}.  If integer is positive,\n"
-	    "the 1-bits in its binary representation are counted.  If negative, the\n"
-	    "0-bits in its two's-complement binary representation are counted.  If 0,\n"
-	    "0 is returned.\n\n"
-	    "Example:\n"
+	    "Return the number of bits in integer @var{n}.  If integer is\n"
+	    "positive, the 1-bits in its binary representation are counted.\n"
+	    "If negative, the 0-bits in its two's-complement binary\n"
+	    "representation are counted.  If 0, 0 is returned.\n"
+	    "\n"
 	    "@lisp\n"
 	    "(logcount #b10101010)\n"
 	    "   @result{} 4\n"
@@ -1330,8 +1331,8 @@ static const char scm_ilentab[] = {
 
 SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
             (SCM n),
-	    "Returns the number of bits neccessary to represent @var{n}.\n\n"
-	    "Example:\n"
+	    "Return the number of bits neccessary to represent @var{n}.\n"
+	    "\n"
 	    "@lisp\n"
 	    "(integer-length #b10101010)\n"
 	    "   @result{} 8\n"
@@ -2863,7 +2864,7 @@ scm_istring2number (char *str, long len, long radix)
 
 SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
             (SCM string, SCM radix),
-	    "Returns a number of the maximally precise representation\n"
+	    "Return a number of the maximally precise representation\n"
 	    "expressed by the given @var{string}. @var{radix} must be an\n"
 	    "exact integer, either 2, 8, 10, or 16. If supplied, @var{radix}\n"
 	    "is a default radix that may be overridden by an explicit radix\n"
@@ -4228,7 +4229,7 @@ scm_angle (SCM z)
 
 SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0, 
             (SCM z),
-	    "Returns an exact number that is numerically closest to @var{z}.")
+	    "Return an exact number that is numerically closest to @var{z}.")
 #define FUNC_NAME s_scm_inexact_to_exact
 {
   if (SCM_INUMP (z)) {

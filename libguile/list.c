@@ -194,19 +194,19 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
             (SCM args),
 	    "Return a list consisting of the elements the lists passed as\n"
 	    "arguments.\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(append '(x) '(y))          @result{}  (x y)\n"
 	    "(append '(a) '(b c d))      @result{}  (a b c d)\n"
 	    "(append '(a (b)) '((c)))    @result{}  (a (b) (c))\n"
-	    "@end example\n"
+	    "@end lisp\n"
 	    "The resulting list is always newly allocated, except that it\n"
 	    "shares structure with the last list argument.  The last\n"
 	    "argument may actually be any object; an improper list results\n"
 	    "if the last argument is not a proper list.\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(append '(a b) '(c . d))    @result{}  (a b c . d)\n"
 	    "(append '() 'a)             @result{}  a\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_append
 {
   SCM_VALIDATE_REST_ARGUMENT (args);
@@ -235,25 +235,26 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
 
 
 SCM_DEFINE (scm_append_x, "append!", 0, 0, 1, 
-            (SCM args),
-	    "A destructive version of @code{append} (@pxref{Pairs and Lists,,,r4rs,\n"
-	    "The Revised^4 Report on Scheme}).  The cdr field of each list's final\n"
-	    "pair is changed to point to the head of the next list, so no consing is\n"
-	    "performed.  Return a pointer to the mutated list.")
+            (SCM lists),
+	    "A destructive version of @code{append} (@pxref{Pairs and\n"
+	    "Lists,,,r4rs, The Revised^4 Report on Scheme}).  The cdr field\n"
+	    "of each list's final pair is changed to point to the head of\n"
+	    "the next list, so no consing is performed.  Return a pointer to\n"
+	    "the mutated list.")
 #define FUNC_NAME s_scm_append_x
 {
-  SCM_VALIDATE_REST_ARGUMENT (args);
+  SCM_VALIDATE_REST_ARGUMENT (lists);
   while (1) {
-    if (SCM_NULLP (args)) {
+    if (SCM_NULLP (lists)) {
       return SCM_EOL;
     } else {
-      SCM arg = SCM_CAR (args);
-      args = SCM_CDR (args);
-      if (SCM_NULLP (args)) {
+      SCM arg = SCM_CAR (lists);
+      lists = SCM_CDR (lists);
+      if (SCM_NULLP (lists)) {
 	return arg;
       } else if (!SCM_NULLP (arg)) {
 	SCM_VALIDATE_CONS (SCM_ARG1, arg);
-	SCM_SETCDR (scm_last_pair (arg), scm_append_x (args));
+	SCM_SETCDR (scm_last_pair (arg), scm_append_x (lists));
 	return arg;
       }
     }
@@ -565,7 +566,7 @@ SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 /* The function scm_c_memq returns the first sublist of list whose car is
  * 'eq?' obj, where the sublists of list are the non-empty lists returned by
  * (list-tail list k) for k less than the length of list.  If obj does not
- * occur in list, then #f (not the empty list) is returned.  (r5rs)
+ * occur in list, then #f (not the empty list) is returned.
  * List must be a proper list, otherwise scm_c_memq may crash or loop
  * endlessly.
  */

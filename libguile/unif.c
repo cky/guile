@@ -251,8 +251,8 @@ scm_make_uve (long k, SCM prot)
 
 
 SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
-           (SCM v),
-	    "Returns the number of elements in @var{uve}.")
+	    (SCM v),
+	    "Return the number of elements in @var{uve}.")
 #define FUNC_NAME s_scm_uniform_vector_length
 {
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
@@ -284,9 +284,9 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
 
 SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
            (SCM v, SCM prot),
-	    "Returns @code{#t} if the @var{obj} is an array, and @code{#f} if not.\n\n"
-	    "The @var{prototype} argument is used with uniform arrays and is described\n"
-	    "elsewhere.")
+	    "Return @code{#t} if the @var{obj} is an array, and @code{#f} if\n"
+	    "not.  The @var{prototype} argument is used with uniform arrays\n"
+	    "and is described elsewhere.")
 #define FUNC_NAME s_scm_array_p
 {
   int nprot;
@@ -356,8 +356,8 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
 
 SCM_DEFINE (scm_array_rank, "array-rank", 1, 0, 0, 
            (SCM ra),
-	    "Returns the number of dimensions of @var{obj}.  If @var{obj} is not an\n"
-	    "array, @code{0} is returned.")
+	    "Return the number of dimensions of @var{obj}.  If @var{obj} is\n"
+	    "not an array, @code{0} is returned.")
 #define FUNC_NAME s_scm_array_rank
 {
   if (SCM_IMP (ra))
@@ -393,9 +393,9 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
            (SCM ra),
 	    "@code{Array-dimensions} is similar to @code{array-shape} but replaces\n"
 	    "elements with a @code{0} minimum with one greater than the maximum. So:\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(array-dimensions (make-array 'foo '(-1 3) 5)) @result{} ((-1 3) 5)\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_array_dimensions
 {
   SCM res = SCM_EOL;
@@ -578,12 +578,12 @@ scm_shap2ra (SCM args, const char *what)
 }
 
 SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 0,
-           (SCM dims, SCM prot, SCM fill),
+	    (SCM dims, SCM prot, SCM fill),
 	    "@deffnx primitive make-uniform-vector length prototype [fill]\n"
-	    "Creates and returns a uniform array or vector of type corresponding to\n"
-	    "@var{prototype} with dimensions @var{dims} or length @var{length}.  If\n"
-	    "@var{fill} is supplied, it's used to fill the array, otherwise \n"
-	    "@var{prototype} is used.")
+	    "Create and return a uniform array or vector of type\n"
+	    "corresponding to @var{prototype} with dimensions @var{dims} or\n"
+	    "length @var{length}.  If @var{fill} is supplied, it's used to\n"
+	    "fill the array, otherwise @var{prototype} is used.")
 #define FUNC_NAME s_scm_dimensions_to_uniform_array
 {
   scm_sizet k;
@@ -660,7 +660,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	    "the new array into coordinates in the old array.  A @var{mapper} must be\n"
 	    "linear, and its range must stay within the bounds of the old array, but\n"
 	    "it can be otherwise arbitrary.  A simple example:\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(define fred (make-array #f 8 8))\n"
 	    "(define freds-diagonal\n"
 	    "  (make-shared-array fred (lambda (i) (list i i)) 8))\n"
@@ -669,7 +669,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	    "(define freds-center\n"
 	    "  (make-shared-array fred (lambda (i j) (list (+ 3 i) (+ 3 j))) 2 2))\n"
 	    "(array-ref freds-center 0 0) @result{} foo\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_make_shared_array
 {
   SCM ra;
@@ -783,23 +783,25 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 /* args are RA . DIMS */
 SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1, 
            (SCM ra, SCM args),
-	    "Returns an array sharing contents with @var{array}, but with dimensions\n"
-	    "arranged in a different order.  There must be one @var{dim} argument for\n"
-	    "each dimension of @var{array}.  @var{dim0}, @var{dim1}, @dots{} should\n"
-	    "be integers between 0 and the rank of the array to be returned.  Each\n"
-	    "integer in that range must appear at least once in the argument list.\n\n"
-	    "The values of @var{dim0}, @var{dim1}, @dots{} correspond to dimensions\n"
-	    "in the array to be returned, their positions in the argument list to\n"
-	    "dimensions of @var{array}.  Several @var{dim}s may have the same value,\n"
-	    "in which case the returned array will have smaller rank than\n"
-	    "@var{array}.\n\n"
-	    "examples:\n"
-	    "@example\n"
+	    "Return an array sharing contents with @var{array}, but with\n"
+	    "dimensions arranged in a different order.  There must be one\n"
+	    "@var{dim} argument for each dimension of @var{array}.\n"
+	    "@var{dim0}, @var{dim1}, @dots{} should be integers between 0\n"
+	    "and the rank of the array to be returned.  Each integer in that\n"
+	    "range must appear at least once in the argument list.\n"
+	    "\n"
+	    "The values of @var{dim0}, @var{dim1}, @dots{} correspond to\n"
+	    "dimensions in the array to be returned, their positions in the\n"
+	    "argument list to dimensions of @var{array}.  Several @var{dim}s\n"
+	    "may have the same value, in which case the returned array will\n"
+	    "have smaller rank than @var{array}.\n"
+	    "\n"
+	    "@lisp\n"
 	    "(transpose-array '#2((a b) (c d)) 1 0) @result{} #2((a c) (b d))\n"
 	    "(transpose-array '#2((a b) (c d)) 0 0) @result{} #1(a d)\n"
 	    "(transpose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 1 0) @result{}\n"
 	    "                #2((a 4) (b 5) (c 6))\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_transpose_array
 {
   SCM res, vargs, *ve = &vargs;
@@ -903,12 +905,12 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
 	    "@code{eq?}.  The value returned by @var{array-prototype} when given an\n"
 	    "enclosed array is unspecified.\n\n"
 	    "examples:\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1) @result{}\n"
 	    "   #<enclosed-array (#1(a d) #1(b e) #1(c f)) (#1(1 4) #1(2 5) #1(3 6))>\n\n"
 	    "(enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 0) @result{}\n"
 	    "   #<enclosed-array #2((a 1) (d 4)) #2((b 2) (e 5)) #2((c 3) (f 6))>\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_enclose_array
 {
   SCM axv, res, ra_inr;
@@ -991,7 +993,8 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
 
 SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1, 
            (SCM v, SCM args),
-	    "Returns @code{#t} if its arguments would be acceptable to array-ref.")
+	    "Return @code{#t} if its arguments would be acceptable to\n"
+	    "@code{array-ref}.")
 #define FUNC_NAME s_scm_array_in_bounds_p
 {
   SCM ind = SCM_EOL;
@@ -1076,7 +1079,8 @@ SCM_REGISTER_PROC(s_array_ref, "array-ref", 1, 0, 1, scm_uniform_vector_ref);
 SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
            (SCM v, SCM args),
 	    "@deffnx primitive array-ref v . args\n"
-	    "Returns the element at the @code{(index1, index2)} element in @var{array}.")
+	    "Return the element at the @code{(index1, index2)} element in\n"
+	    "@var{array}.")
 #define FUNC_NAME s_scm_uniform_vector_ref
 {
   long pos;
@@ -1770,7 +1774,7 @@ static char cnt_tab[16] =
 
 SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 	    (SCM b, SCM bitvector),
-	    "Returns the number of occurrences of the boolean @var{b} in\n"
+	    "Return the number of occurrences of the boolean @var{b} in\n"
 	    "@var{bitvector}.")
 #define FUNC_NAME s_scm_bit_count
 {
@@ -1808,9 +1812,9 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 
 SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
            (SCM item, SCM v, SCM k),
-	    "Returns the minimum index of an occurrence of @var{bool} in @var{bv}\n"
-	    "which is at least @var{k}.  If no @var{bool} occurs within the specified\n"
-	    "range @code{#f} is returned.")
+	    "Return the minimum index of an occurrence of @var{bool} in\n"
+	    "@var{bv} which is at least @var{k}.  If no @var{bool} occurs\n"
+	    "within the specified range @code{#f} is returned.")
 #define FUNC_NAME s_scm_bit_position
 {
   long i, lenw, xbits, pos;
@@ -1928,10 +1932,10 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 
 SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
            (SCM v, SCM kv, SCM obj),
-	    "Returns\n"
-	    "@example\n"
+	    "Return\n"
+	    "@lisp\n"
 	    "(bit-count (bit-set*! (if bool bv (bit-invert! bv)) uve #t) #t).\n"
-	    "@end example\n"
+	    "@end lisp\n"
 	    "@var{bv} is not modified.")
 #define FUNC_NAME s_scm_bit_count_star
 {
@@ -2074,7 +2078,8 @@ ra2l (SCM ra,scm_sizet base,scm_sizet k)
 
 SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0, 
            (SCM v),
-	    "Returns a list consisting of all the elements, in order, of @var{array}.")
+	    "Return a list consisting of all the elements, in order, of\n"
+	    "@var{array}.")
 #define FUNC_NAME s_scm_array_to_list
 {
   SCM res = SCM_EOL;
@@ -2164,9 +2169,10 @@ static int l2ra(SCM lst, SCM ra, scm_sizet base, scm_sizet k);
 SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
            (SCM ndim, SCM prot, SCM lst),
 	    "@deffnx procedure list->uniform-vector prot lst\n"
-	    "Returns a uniform array of the type indicated by prototype @var{prot}\n"
-	    "with elements the same as those of @var{lst}.  Elements must be of the\n"
-	    "appropriate type, no coercions are done.")
+	    "Return a uniform array of the type indicated by prototype\n"
+	    "@var{prot} with elements the same as those of @var{lst}.\n"
+	    "Elements must be of the appropriate type, no coercions are\n"
+	    "done.")
 #define FUNC_NAME s_scm_list_to_uniform_array
 {
   SCM shp = SCM_EOL;
@@ -2515,8 +2521,8 @@ tail:
 
 SCM_DEFINE (scm_array_prototype, "array-prototype", 1, 0, 0, 
            (SCM ra),
-	    "Returns an object that would produce an array of the same type as\n"
-	    "@var{array}, if used as the @var{prototype} for\n"
+	    "Return an object that would produce an array of the same type\n"
+	    "as @var{array}, if used as the @var{prototype} for\n"
 	    "@code{make-uniform-array}.")
 #define FUNC_NAME s_scm_array_prototype
 {

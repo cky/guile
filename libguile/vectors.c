@@ -138,8 +138,8 @@ scm_vector_set_length_x (SCM vect, SCM len)
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
 	    (SCM obj),
-	    "Returns @code{#t} if @var{obj} is a vector, otherwise returns\n"
-	    "@code{#f}. (r5rs)")
+	    "Return @code{#t} if @var{obj} is a vector, otherwise return\n"
+	    "@code{#f}.")
 #define FUNC_NAME s_scm_vector_p
 {
   if (SCM_IMP (obj))
@@ -149,7 +149,7 @@ SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_GPROC (s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vector_length);
-/* Returns the number of elements in @var{vector} as an exact integer. (r5rs) */
+/* Returns the number of elements in @var{vector} as an exact integer.  */
 SCM
 scm_vector_length (SCM v)
 {
@@ -170,10 +170,11 @@ SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
 SCM_DEFINE (scm_vector, "vector", 0, 0, 1, 
 	    (SCM l),
 	    "@deffnx primitive list->vector l\n"
-	    "Returns a newly allocated vector whose elements contain the\n"
-	    "given arguments.  Analogous to @code{list}. (r5rs)\n\n"
+	    "Return a newly allocated vector whose elements contain the\n"
+	    "given arguments.  Analogous to @code{list}.\n"
+	    "\n"
 	    "@lisp\n"
-	    "(vector 'a 'b 'c) @result{}  #(a b c)\n"
+	    "(vector 'a 'b 'c) @result{} #(a b c)\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_vector
 {
@@ -257,9 +258,10 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 
 SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
             (SCM k, SCM fill),
-	    "Returns a newly allocated vector of @var{k} elements.  If a second\n"
-	    "argument is given, then each element is initialized to @var{fill}.\n"
-	    "Otherwise the initial contents of each element is unspecified. (r5rs)")
+	    "Return a newly allocated vector of @var{k} elements.  If a\n"
+	    "second argument is given, then each element is initialized to\n"
+	    "@var{fill}.  Otherwise the initial contents of each element is\n"
+	    "unspecified.")
 #define FUNC_NAME s_scm_make_vector
 {
   if (SCM_UNBNDP (fill))
@@ -309,9 +311,10 @@ scm_c_make_vector (unsigned long int k, SCM fill)
 
 
 SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0, 
-           (SCM v),
-	    "@samp{Vector->list} returns a newly allocated list of the\n"
-	    "objects contained in the elements of @var{vector}.  (r5rs)\n\n"
+	    (SCM v),
+	    "Return a newly allocated list of the objects contained in the\n"
+	    "elements of @var{vector}.\n"
+	    "\n"
 	    "@lisp\n"
 	    "(vector->list '#(dah dah didah)) @result{}  (dah dah didah)\n"
 	    "(list->vector '(dididit dah)) @result{}  #(dididit dah)\n"
@@ -330,9 +333,9 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
 
 
 SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
-            (SCM v, SCM fill_x),
-	    "Stores @var{fill} in every element of @var{vector}.\n"
-	    "The value returned by @code{vector-fill!} is unspecified. (r5rs)")
+            (SCM v, SCM fill),
+	    "Store @var{fill} in every element of @var{vector}.  The value\n"
+	    "returned by @code{vector-fill!} is unspecified.")
 #define FUNC_NAME s_scm_vector_fill_x
 {
   register long i;
@@ -340,7 +343,7 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
   SCM_VALIDATE_VECTOR (1,v);
   data = SCM_VELTS(v);
   for(i = SCM_VECTOR_LENGTH(v) - 1; i >= 0; i--)
-    data[i] = fill_x;
+    data[i] = fill;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

@@ -503,7 +503,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 	    "sub-system: one vtable-vtable working as the root and one or several\n"
 	    "\"types\", each with a set of \"instances\".  (The vtable-vtable should be\n"
 	    "compared to the class <class> which is the class of itself.)\n\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(define ball-root (make-vtable-vtable \"pr\" 0))\n\n"
 	    "(define (make-ball-type ball-color)\n"
 	    "  (make-struct ball-root 0\n"
@@ -520,7 +520,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 	    "(define (make-ball type owner) (make-struct type 0 owner))\n\n"
 	    "(define ball (make-ball green 'Nisse))\n"
 	    "ball @result{} #<a green ball owned by Nisse>\n"
-	    "@end example\n")
+	    "@end lisp\n")
 #define FUNC_NAME s_scm_make_vtable_vtable
 {
   SCM fields;

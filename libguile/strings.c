@@ -58,7 +58,7 @@
 
 SCM_DEFINE (scm_string_p, "string?", 1, 0, 0, 
 	    (SCM obj),
-	    "Returns @code{#t} iff @var{obj} is a string, else returns\n"
+	    "Return @code{#t} iff @var{obj} is a string, else returns\n"
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_string_p
 {
@@ -77,12 +77,12 @@ SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0,
 	    "Return true if @var{obj} can be read as a string,\n\n"
 	    "This illustrates the difference between @code{string?} and\n"
 	    "@code{read-only-string?}:\n\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(string? \"a string\") @result{} #t\n"
 	    "(string? 'a-symbol) @result{} #f\n\n"
 	    "(read-only-string? \"a string\") @result{} #t\n"
 	    "(read-only-string? 'a-symbol) @result{} #t\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_read_only_string_p
 {
   return SCM_BOOL(SCM_ROSTRINGP (obj));
@@ -96,7 +96,7 @@ SCM_REGISTER_PROC (s_scm_list_to_string, "list->string", 1, 0, 0, scm_string);
 SCM_DEFINE (scm_string, "string", 0, 0, 1, 
             (SCM chrs),
 	    "@deffnx primitive list->string chrs\n"
-	    "Returns a newly allocated string composed of the arguments,\n"
+	    "Return a newly allocated string composed of the arguments,\n"
 	    "@var{chrs}.")
 #define FUNC_NAME s_scm_string
 {
@@ -390,14 +390,14 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
  */
 
 SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
-           (SCM str, SCM frm, SCM to),
-	    "Return a shared substring of @var{str}.  The semantics are the same as\n"
-	    "for the @code{substring} function: the shared substring returned\n"
-	    "includes all of the text from @var{str} between indexes @var{start}\n"
-	    "(inclusive) and @var{end} (exclusive).  If @var{end} is omitted, it\n"
-	    "defaults to the end of @var{str}.  The shared substring returned by\n"
-	    "@code{make-shared-substring} occupies the same storage space as\n"
-	    "@var{str}.")
+	    (SCM str, SCM start, SCM end),
+	    "Return a shared substring of @var{str}.  The semantics are the\n"
+	    "same as for the @code{substring} function: the shared substring\n"
+	    "returned includes all of the text from @var{str} between\n"
+	    "indexes @var{start} (inclusive) and @var{end} (exclusive).  If\n"
+	    "@var{end} is omitted, it defaults to the end of @var{str}.  The\n"
+	    "shared substring returned by @code{make-shared-substring}\n"
+	    "occupies the same storage space as @var{str}.")
 #define FUNC_NAME s_scm_make_shared_substring
 {
   long f;
@@ -406,11 +406,11 @@ SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
   SCM len_str;
 
   SCM_VALIDATE_ROSTRING (1,str);
-  SCM_VALIDATE_INUM_DEF_COPY (2,frm,0,f);
-  SCM_VALIDATE_INUM_DEF_COPY (3,to,SCM_ROLENGTH(str),t);
+  SCM_VALIDATE_INUM_DEF_COPY (2,start,0,f);
+  SCM_VALIDATE_INUM_DEF_COPY (3,end,SCM_ROLENGTH(str),t);
 
-  SCM_ASSERT_RANGE (2,frm,(f >= 0));
-  SCM_ASSERT_RANGE (3,to, (f <= t) && (t <= SCM_ROLENGTH (str)));
+  SCM_ASSERT_RANGE (2,start,(f >= 0));
+  SCM_ASSERT_RANGE (3,end, (f <= t) && (t <= SCM_ROLENGTH (str)));
 
   SCM_NEWCELL (answer);
   SCM_NEWCELL (len_str);

@@ -68,14 +68,14 @@ SCM_DEFINE (scm_object_properties, "object-properties", 1, 0, 0,
 
 
 SCM_DEFINE (scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
-           (SCM obj, SCM plist),
+	    (SCM obj, SCM alist),
 	    "@deffnx primitive set-procedure-properties! obj alist\n"
 	    "Set @var{obj}'s property list to @var{alist}.")
 #define FUNC_NAME s_scm_set_object_properties_x
 {
-  SCM handle = scm_hashq_create_handle_x (scm_object_whash, obj, plist);
-  SCM_SETCDR (handle, plist);
-  return plist;
+  SCM handle = scm_hashq_create_handle_x (scm_object_whash, obj, alist);
+  SCM_SETCDR (handle, alist);
+  return alist;
 }
 #undef FUNC_NAME
 
@@ -92,10 +92,10 @@ SCM_DEFINE (scm_object_property, "object-property", 2, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
-           (SCM obj, SCM key, SCM val),
+	    (SCM obj, SCM key, SCM value),
 	    "@deffnx primitive set-procedure-property! obj key value\n"
-	    "In @var{obj}'s property list, set the property named @var{key} to\n"
-	    "@var{value}.")
+	    "In @var{obj}'s property list, set the property named @var{key}\n"
+	    "to @var{value}.")
 #define FUNC_NAME s_scm_set_object_property_x
 {
   SCM h;
@@ -104,14 +104,14 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
   SCM_DEFER_INTS;
   assoc = scm_assq (key, SCM_CDR (h));
   if (SCM_NIMP (assoc))
-    SCM_SETCDR (assoc, val);
+    SCM_SETCDR (assoc, value);
   else
     {
-      assoc = scm_acons (key, val, SCM_CDR (h));
+      assoc = scm_acons (key, value, SCM_CDR (h));
       SCM_SETCDR (h, assoc);
     }
   SCM_ALLOW_INTS;
-  return val;
+  return value;
 }
 #undef FUNC_NAME
 

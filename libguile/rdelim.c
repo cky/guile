@@ -268,13 +268,13 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 
 SCM_DEFINE (scm_write_line, "write-line", 1, 1, 0,
             (SCM obj, SCM port),
-	    "Display @var{obj} and a newline character to @var{port}.  If @var{port}\n"
-	    "is not specified, @code{(current-output-port)} is used.  This function\n"
-	    "is equivalent to:\n\n"
-	    "@smalllisp\n"
+	    "Display @var{obj} and a newline character to @var{port}.  If\n"
+	    "@var{port} is not specified, @code{(current-output-port)} is\n"
+	    "used.  This function is equivalent to:\n"
+	    "@lisp\n"
 	    "(display obj [port])\n"
 	    "(newline [port])\n"
-	    "@end smalllisp")
+	    "@end lisp")
 #define FUNC_NAME s_scm_write_line
 {
   scm_display (obj, port);

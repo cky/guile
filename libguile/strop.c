@@ -104,21 +104,16 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 	    "@var{str}.  The optional integer arguments @var{frm} and\n"
 	    "@var{to} limit the search to a portion of the string.  This\n"
 	    "procedure essentially implements the @code{index} or\n"
-	    "@code{strchr} functions from the C library.\n\n"
-            "(qdocs:) Returns\n"
-	    "the index of @var{char} in @var{str}, or @code{#f} if the\n"
-	    "@var{char} isn't in @var{str}. If @var{frm} is given and not\n"
-	    "@code{#f}, it is used as the starting index; if @var{to} is\n"
-	    "given and not @code{#f}, it is used as the ending index\n"
-	    "(exclusive).\n\n"
-	    "@example\n"
+	    "@code{strchr} functions from the C library.\n"
+	    "\n"
+	    "@lisp\n"
 	    "(string-index \"weiner\" #\\e)\n"
 	    "@result{} 1\n\n"
 	    "(string-index \"weiner\" #\\e 2)\n"
 	    "@result{} 4\n\n"
 	    "(string-index \"weiner\" #\\e 2 4)\n"
 	    "@result{} #f\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_string_index
 {
   int pos;
@@ -136,20 +131,19 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 
 SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
-	    "Like @code{string-index}, but search from the right of the string rather\n"
-	    "than from the left.  This procedure essentially implements the\n"
-	    "@code{rindex} or @code{strrchr} functions from the C library.\n\n"
-	    "(qdocs:) The same as @code{string-index}, except it gives the rightmost occurance\n"
-	    "of @var{char} in the range [@var{frm}, @var{to}-1], which defaults to\n"
-	    "the entire string.\n\n"
-	    "@example\n"
+	    "Like @code{string-index}, but search from the right of the\n"
+	    "string rather than from the left.  This procedure essentially\n"
+	    "implements the @code{rindex} or @code{strrchr} functions from\n"
+	    "the C library.\n"
+	    "\n"
+	    "@lisp\n"
 	    "(string-rindex \"weiner\" #\\e)\n"
 	    "@result{} 4\n\n"
 	    "(string-rindex \"weiner\" #\\e 2 4)\n"
 	    "@result{} #f\n\n"
 	    "(string-rindex \"weiner\" #\\e 2 5)\n"
 	    "@result{} 4\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_string_rindex
 {
   int pos;
@@ -179,7 +173,7 @@ Moves a substring of @var{str1}, from @var{start1} to @var{end1}
 (@var{end1} is exclusive), into @var{str2}, starting at
 @var{start2}. Allows overlapping strings.
 
-@example
+@lisp
 (define x (make-string 10 #\a))
 (define y "bcd")
 (substring-move-left! x 2 5 y 0)
@@ -198,7 +192,7 @@ y
 (substring-move-left! y 2 5 y 3)
 y
 @result{} "abccccg"
-@end example
+@end lisp
 */
 
 /*
@@ -210,7 +204,7 @@ it hasn't made it into the guile tree].
 
 Does much the same thing as @code{substring-move-left!}, except it
 starts moving at the end of the sequence, rather than the beginning.
-@example
+@lisp
 (define y "abcdefg")
 (substring-move-right! y 2 5 y 0)
 y
@@ -220,7 +214,7 @@ y
 (substring-move-right! y 2 5 y 3)
 y
 @result{} "abccdeg"
-@end example
+@end lisp
 */ 
 
 SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0, 
@@ -269,15 +263,15 @@ SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
 
 SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
            (SCM str, SCM start, SCM end, SCM fill),
-	    "Change every character in @var{str} between @var{start} and @var{end} to\n"
-	    "@var{fill-char}.\n\n"
-	    "(qdocs:) Destructively fills @var{str}, from @var{start} to @var{end}, with @var{fill}.\n\n"
-	    "@example\n"
+	    "Change every character in @var{str} between @var{start} and\n"
+	    "@var{end} to @var{fill}.\n"
+	    "\n"
+	    "@lisp\n"
 	    "(define y \"abcdefg\")\n"
 	    "(substring-fill! y 1 3 #\\r)\n"
 	    "y\n"
 	    "@result{} \"arrdefg\"\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_substring_fill_x
 {
   long i, e;
@@ -296,15 +290,13 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 
 SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0, 
            (SCM str),
-	    "Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}\n"
-	    "otherwise.\n\n"
-	    "(qdocs:) Returns @code{#t} if @var{str} is empty, else returns @code{#f}.\n\n"
-	    "@example\n"
-	    "(string-null? \"\")\n"
-	    "@result{} #t\n\n"
-	    "(string-null? y)\n"
-	    "@result{} #f\n"
-	    "@end example")
+	    "Return @code{#t} if @var{str}'s length is nonzero, and\n"
+	    "@code{#f} otherwise.\n"
+	    "@lisp\n"
+	    "(string-null? \"\")  @result{} #t\n"
+	    "y                    @result{} \"foo\"\n"
+	    "(string-null? y)     @result{} #f\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_string_null_p
 {
   SCM_VALIDATE_STRING (1,str);
@@ -343,7 +335,7 @@ string_copy (SCM str)
 
 SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0, 
 	    (SCM str),
-	    "Returns a newly allocated copy of the given @var{string}. (r5rs)")
+	    "Return a newly allocated copy of the given @var{string}.")
 #define FUNC_NAME s_scm_string_copy
 {
   SCM_VALIDATE_STRING (1, str);
@@ -355,8 +347,8 @@ SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0,
 
 SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
            (SCM str, SCM chr),
-	    "Stores @var{char} in every element of the given @var{string} and returns an\n"
-	    "unspecified value.  (r5rs)")
+	    "Store @var{char} in every element of the given @var{string} and\n"
+	    "return an unspecified value.")
 #define FUNC_NAME s_scm_string_fill_x
 {
   register char *dst, c;

@@ -55,9 +55,10 @@ scm_bits_t scm_tc16_macro;
 
 SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
             (SCM code),
-	    "Returns a @dfn{macro} which, when a symbol defined to this value\n"
-            "appears as the first symbol in an expression, returns the result\n"
-            "of applying @var{code} to the expression and the environment.")
+	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
+	    "appears as the first symbol in an expression, returns the\n"
+	    "result of applying @var{code} to the expression and the\n"
+	    "environment.")
 #define FUNC_NAME s_scm_makacro
 {
   SCM_VALIDATE_PROC (1,code);
@@ -68,18 +69,19 @@ SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
 
 SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0, 
            (SCM code),
-	    "Returns a @dfn{macro} which, when a symbol defined to this value\n"
-	    "appears as the first symbol in an expression, evaluates the result\n"
-	    "of applying @var{code} to the expression and the environment.\n"
-	    "The value returned from @var{code} which has been passed to\n"
-	    "@code{procedure->memoizing-macro} replaces the form passed to\n"
-	    "@var{code}.  For example:\n\n"
-	    "@example\n"
+	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
+	    "appears as the first symbol in an expression, evaluates the\n"
+	    "result of applying @var{code} to the expression and the\n"
+	    "environment.  The value returned from @var{code} which has been\n"
+	    "passed to @code{procedure->memoizing-macro} replaces the form\n"
+	    "passed to @var{code}.  For example:\n"
+	    "\n"
+	    "@lisp\n"
 	    "(define trace\n"
 	    "  (procedure->macro\n"
 	    "   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))\n\n"
 	    "(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_makmacro
 {
   SCM_VALIDATE_PROC (1,code);
@@ -90,18 +92,19 @@ SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0,
 
 SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
            (SCM code),
-	    "Returns a @dfn{macro} which, when a symbol defined to this value\n"
-            "appears as the first symbol in an expression, evaluates the result\n"
-            "of applying @var{proc} to the expression and the environment.\n"
-            "The value returned from @var{proc} which has been passed to\n"
-            "@code{procedure->memoizing-macro} replaces the form passed to\n"
-            "@var{proc}.  For example:\n\n"
-            "@example\n"
-            "(define trace\n"
-            "  (procedure->macro\n"
-            "   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))\n\n"
-            "(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).\n"
-            "@end example")
+	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
+	    "appears as the first symbol in an expression, evaluates the\n"
+	    "result of applying @var{proc} to the expression and the\n"
+	    "environment.  The value returned from @var{proc} which has been\n"
+	    "passed to @code{procedure->memoizing-macro} replaces the form\n"
+	    "passed to @var{proc}.  For example:\n"
+	    "\n"
+	    "@lisp\n"
+	    "(define trace\n"
+	    "  (procedure->macro\n"
+	    "   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))\n\n"
+	    "(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_makmmacro
 {
   SCM_VALIDATE_PROC (1,code);
@@ -127,10 +130,11 @@ SCM_SYMBOL (scm_sym_mmacro, "macro!");
 
 SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0, 
             (SCM m),
-	    "Return one of the symbols @code{syntax}, @code{macro} or @code{macro!},\n"
-	    "depending on whether @var{obj} is a syntax tranformer, a regular macro,\n"
-	    "or a memoizing macro, respectively.  If @var{obj} is not a macro,\n"
-	    "@code{#f} is returned.")
+	    "Return one of the symbols @code{syntax}, @code{macro} or\n"
+	    "@code{macro!}, depending on whether @var{m} is a syntax\n"
+	    "tranformer, a regular macro, or a memoizing macro,\n"
+	    "respectively.  If @var{m} is not a macro, @code{#f} is\n"
+	    "returned.")
 #define FUNC_NAME s_scm_macro_type
 {
   if (!SCM_TYP16_PREDICATE (scm_tc16_macro, m))

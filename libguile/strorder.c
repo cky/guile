@@ -54,14 +54,14 @@
 
 SCM_DEFINE1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Lexicographic equality predicate; \n"
-	     "Returns @code{#t} if the two strings are the same length and\n"
-	     "contain the same characters in the same positions, otherwise\n"
-	     "returns @code{#f}. (r5rs)\n\n"
-	     "The procedure @code{string-ci=?} treats upper and lower case\n"
-	     "letters as though they were the same character, but\n"
-	     "@code{string=?} treats upper and lower case as distinct\n"
-	     "characters.")
+	    "Lexicographic equality predicate; return @code{#t} if the two\n"
+	    "strings are the same length and contain the same characters in\n"
+	    "the same positions, otherwise return @code{#f}.\n"
+	    "\n"
+	    "The procedure @code{string-ci=?} treats upper and lower case\n"
+	    "letters as though they were the same character, but\n"
+	    "@code{string=?} treats upper and lower case as distinct\n"
+	    "characters.")
 #define FUNC_NAME s_scm_string_equal_p
 {
   scm_sizet length;
@@ -93,10 +93,10 @@ SCM_DEFINE1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Case-insensitive string equality predicate; returns @code{#t}\n"
-	     "if the two strings are the same length and their component\n"
-	     "characters match (ignoring case) at each position; otherwise\n"
-	     "returns @code{#f}. (r5rs)")
+	    "Case-insensitive string equality predicate; return @code{#t} if\n"
+	    "the two strings are the same length and their component\n"
+	    "characters match (ignoring case) at each position; otherwise\n"
+	    "return @code{#f}.")
 #define FUNC_NAME s_scm_string_ci_equal_p
 {
   scm_sizet length;
@@ -152,8 +152,8 @@ string_less_p (SCM s1, SCM s2)
 
 SCM_DEFINE1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Lexicographic ordering predicate; returns @code{#t} if\n"
-	     "@var{s1} is lexicographically less than @var{s2}.  (r5rs)")
+	    "Lexicographic ordering predicate; return @code{#t} if @var{s1}\n"
+	    "is lexicographically less than @var{s2}.")
 #define FUNC_NAME s_scm_string_less_p
 {
   SCM_VALIDATE_STRING (1, s1);
@@ -166,9 +166,8 @@ SCM_DEFINE1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Lexicographic ordering predicate; returns @code{#t} if\n"
-	     "@var{s1} is lexicographically less than or equal to @var{s2}.\n"
-	     "(r5rs)")
+	    "Lexicographic ordering predicate; return @code{#t} if @var{s1}\n"
+	    "is lexicographically less than or equal to @var{s2}.")
 #define FUNC_NAME s_scm_string_leq_p
 {
   SCM_VALIDATE_STRING (1, s1);
@@ -181,8 +180,8 @@ SCM_DEFINE1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_string_gr_p, "string>?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Lexicographic ordering predicate; returns @code{#t} if\n"
-	     "@var{s1} is lexicographically greater than @var{s2}.  (r5rs)")
+	    "Lexicographic ordering predicate; return @code{#t} if @var{s1}\n"
+	    "is lexicographically greater than @var{s2}.")
 #define FUNC_NAME s_scm_string_gr_p
 {
   SCM_VALIDATE_STRING (1, s1);
@@ -195,9 +194,8 @@ SCM_DEFINE1 (scm_string_gr_p, "string>?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Lexicographic ordering predicate; returns @code{#t} if\n"
-	     "@var{s1} is lexicographically greater than or equal to\n"
-	     "@var{s2}.  (r5rs)")
+	    "Lexicographic ordering predicate; return @code{#t} if @var{s1}\n"
+	    "is lexicographically greater than or equal to @var{s2}.")
 #define FUNC_NAME s_scm_string_geq_p
 {
   SCM_VALIDATE_STRING (1, s1);
@@ -234,9 +232,9 @@ string_ci_less_p (SCM s1, SCM s2)
 
 SCM_DEFINE1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Case insensitive lexicographic ordering predicate;\n"
-	     "returns @code{#t} if @var{s1} is lexicographically less than\n"
-	     "@var{s2} regardless of case.  (r5rs)")
+	    "Case insensitive lexicographic ordering predicate; return\n"
+	    "@code{#t} if @var{s1} is lexicographically less than @var{s2}\n"
+	    "regardless of case.")
 #define FUNC_NAME s_scm_string_ci_less_p
 {
   SCM_VALIDATE_STRING (1, s1);
@@ -249,9 +247,9 @@ SCM_DEFINE1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Case insensitive lexicographic ordering predicate;\n"
-	     "returns @code{#t} if @var{s1} is lexicographically less than\n"
-	     "or equal to @var{s2} regardless of case.  (r5rs)")
+	    "Case insensitive lexicographic ordering predicate; return\n"
+	    "@code{#t} if @var{s1} is lexicographically less than or equal\n"
+	    "to @var{s2} regardless of case.")
 #define FUNC_NAME s_scm_string_ci_leq_p
 {
   SCM_VALIDATE_STRING (1, s1);
@@ -264,9 +262,9 @@ SCM_DEFINE1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Case insensitive lexicographic ordering predicate;\n"
-	     "returns @code{#t} if @var{s1} is lexicographically greater\n"
-	     "than @var{s2} regardless of case.  (r5rs)")
+	    "Case insensitive lexicographic ordering predicate; return\n"
+	    "@code{#t} if @var{s1} is lexicographically greater than\n"
+	    "@var{s2} regardless of case.")
 #define FUNC_NAME s_scm_string_ci_gr_p
 {
   SCM_VALIDATE_STRING (1, s1);
@@ -279,9 +277,9 @@ SCM_DEFINE1 (scm_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
-	     "Case insensitive lexicographic ordering predicate;\n"
-	     "returns @code{#t} if @var{s1} is lexicographically greater\n"
-	     "than or equal to @var{s2} regardless of case.  (r5rs)")
+	    "Case insensitive lexicographic ordering predicate; return\n"
+	    "@code{#t} if @var{s1} is lexicographically greater than or\n"
+	    "equal to @var{s2} regardless of case.")
 #define FUNC_NAME s_scm_string_ci_geq_p
 {
   SCM_VALIDATE_STRING (1, s1);

@@ -186,19 +186,19 @@ SCM_SYMBOL (sym_write_pipe, "write pipe");
 
 SCM_DEFINE (scm_pipe, "pipe", 0, 0, 0,
             (),
-	    "Returns a newly created pipe: a pair of ports which are linked\n"
-	    "together on the local machine.  The CAR is the input port and\n"
-	    "the CDR is the output port.  Data written (and flushed) to the\n"
-	    "output port can be read from the input port.\n"
-	    "Pipes are commonly used for communication with a newly\n"
-	    "forked child process.  The need to flush the output port\n"
-	    "can be avoided by making it unbuffered using @code{setvbuf}.\n\n"
-	    "Writes occur atomically provided the size of the data in\n"
-	    "bytes is not greater than the value of @code{PIPE_BUF}\n"
-	    "Note that the output port is likely to block if too much data\n"
-	    "(typically equal to @code{PIPE_BUF}) has been written but not\n"
-	    "yet read from the input port\n"
-	    )
+	    "Return a newly created pipe: a pair of ports which are linked\n"
+	    "together on the local machine.  The @emph{car} is the input\n"
+	    "port and the @emph{cdr} is the output port.  Data written (and\n"
+	    "flushed) to the output port can be read from the input port.\n"
+	    "Pipes are commonly used for communication with a newly forked\n"
+	    "child process.  The need to flush the output port can be\n"
+	    "avoided by making it unbuffered using @code{setvbuf}.\n"
+	    "\n"
+	    "Writes occur atomically provided the size of the data in bytes\n"
+	    "is not greater than the value of @code{PIPE_BUF}.  Note that\n"
+	    "the output port is likely to block if too much data (typically\n"
+	    "equal to @code{PIPE_BUF}) has been written but not yet read\n"
+	    "from the input port.")
 #define FUNC_NAME s_scm_pipe
 {
   int fd[2], rv;
@@ -218,7 +218,8 @@ SCM_DEFINE (scm_pipe, "pipe", 0, 0, 0,
 #ifdef HAVE_GETGROUPS
 SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
             (),
-	    "Returns a vector of integers representing the current supplimentary group IDs.")
+	    "Return a vector of integers representing the current\n"
+	    "supplimentary group IDs.")
 #define FUNC_NAME s_scm_getgroups
 {
   SCM ans;
@@ -473,9 +474,9 @@ SCM_DEFINE (scm_waitpid, "waitpid", 1, 1, 0,
 
 SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0, 
             (SCM status),
-	    "Returns the exit status value, as would be\n"
-	    "set if a process ended normally through a\n"
-	    "call to @code{exit} or @code{_exit}, if any, otherwise @code{#f}.")
+	    "Return the exit status value, as would be set if a process\n"
+	    "ended normally through a call to @code{exit} or @code{_exit},\n"
+	    "if any, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_status_exit_val
 {
   int lstatus;
@@ -494,8 +495,8 @@ SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0,
 
 SCM_DEFINE (scm_status_term_sig, "status:term-sig", 1, 0, 0, 
             (SCM status),
-	    "Returns the signal number which terminated the\n"
-	    "process, if any, otherwise @code{#f}.")
+	    "Return the signal number which terminated the process, if any,\n"
+	    "otherwise @code{#f}.")
 #define FUNC_NAME s_scm_status_term_sig
 {
   int lstatus;
@@ -512,8 +513,8 @@ SCM_DEFINE (scm_status_term_sig, "status:term-sig", 1, 0, 0,
 
 SCM_DEFINE (scm_status_stop_sig, "status:stop-sig", 1, 0, 0, 
             (SCM status),
-	    "Returns the signal number which stopped the\n"
-	    "process, if any, otherwise @code{#f}.")
+	    "Return the signal number which stopped the process, if any,\n"
+	    "otherwise @code{#f}.")
 #define FUNC_NAME s_scm_status_stop_sig
 {
   int lstatus;
@@ -530,7 +531,8 @@ SCM_DEFINE (scm_status_stop_sig, "status:stop-sig", 1, 0, 0,
 
 SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
             (),
-	    "Returns an integer representing the process ID of the parent process.")
+	    "Return an integer representing the process ID of the parent\n"
+	    "process.")
 #define FUNC_NAME s_scm_getppid
 {
   return SCM_MAKINUM (0L + getppid ());
@@ -541,7 +543,7 @@ SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
 
 SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
             (),
-	    "Returns an integer representing the current real user ID.")
+	    "Return an integer representing the current real user ID.")
 #define FUNC_NAME s_scm_getuid
 {
   return SCM_MAKINUM (0L + getuid ());
@@ -552,7 +554,7 @@ SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
 
 SCM_DEFINE (scm_getgid, "getgid", 0, 0, 0,
             (),
-	    "Returns an integer representing the current real group ID.")
+	    "Return an integer representing the current real group ID.")
 #define FUNC_NAME s_scm_getgid
 {
   return SCM_MAKINUM (0L + getgid ());
@@ -563,10 +565,10 @@ SCM_DEFINE (scm_getgid, "getgid", 0, 0, 0,
 
 SCM_DEFINE (scm_geteuid, "geteuid", 0, 0, 0,
             (),
-	    "Returns an integer representing the current effective user ID.\n"
+	    "Return an integer representing the current effective user ID.\n"
 	    "If the system does not support effective IDs, then the real ID\n"
-	    "is returned.  @code{(feature? 'EIDs)} reports whether the system\n"
-	    "supports effective IDs.")
+	    "is returned.  @code{(feature? 'EIDs)} reports whether the\n"
+	    "system supports effective IDs.")
 #define FUNC_NAME s_scm_geteuid
 {
 #ifdef HAVE_GETEUID
@@ -581,10 +583,10 @@ SCM_DEFINE (scm_geteuid, "geteuid", 0, 0, 0,
 
 SCM_DEFINE (scm_getegid, "getegid", 0, 0, 0,
             (),
-	    "Returns an integer representing the current effective group ID.\n"
+	    "Return an integer representing the current effective group ID.\n"
 	    "If the system does not support effective IDs, then the real ID\n"
-	    "is returned.  @code{(feature? 'EIDs)} reports whether the system\n"
-	    "supports effective IDs.")
+	    "is returned.  @code{(feature? 'EIDs)} reports whether the\n"
+	    "system supports effective IDs.")
 #define FUNC_NAME s_scm_getegid
 {
 #ifdef HAVE_GETEUID
@@ -675,7 +677,7 @@ SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0,
 
 SCM_DEFINE (scm_getpgrp, "getpgrp", 0, 0, 0,
             (),
-	    "Returns an integer representing the current process group ID.\n"
+	    "Return an integer representing the current process group ID.\n"
 	    "This is the POSIX definition, not BSD.")
 #define FUNC_NAME s_scm_getpgrp
 {
@@ -724,8 +726,8 @@ SCM_DEFINE (scm_setsid, "setsid", 0, 0, 0,
 
 SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0, 
             (SCM port),
-	    "Returns a string with the name of the serial terminal device underlying\n"
-	    "@var{port}.")
+	    "Return a string with the name of the serial terminal device\n"
+	    "underlying @var{port}.")
 #define FUNC_NAME s_scm_ttyname
 {
   char *ans;
@@ -747,8 +749,8 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
 #ifdef HAVE_CTERMID
 SCM_DEFINE (scm_ctermid, "ctermid", 0, 0, 0,
             (),
-	    "Returns a string containing the file name of the controlling terminal\n"
-	    "for the current process.")
+	    "Return a string containing the file name of the controlling\n"
+	    "terminal for the current process.")
 #define FUNC_NAME s_scm_ctermid
 {
   char *result = ctermid (NULL);
@@ -762,9 +764,10 @@ SCM_DEFINE (scm_ctermid, "ctermid", 0, 0, 0,
 #ifdef HAVE_TCGETPGRP
 SCM_DEFINE (scm_tcgetpgrp, "tcgetpgrp", 1, 0, 0, 
             (SCM port),
-	    "Returns the process group ID of the foreground\n"
-	    "process group associated with the terminal open on the file descriptor\n"
-	    "underlying @var{port}.\n\n"
+	    "Return the process group ID of the foreground process group\n"
+	    "associated with the terminal open on the file descriptor\n"
+	    "underlying @var{port}.\n"
+	    "\n"
 	    "If there is no foreground process group, the return value is a\n"
 	    "number greater than 1 that does not match the process group ID\n"
 	    "of any existing process group.  This can happen if all of the\n"
@@ -964,8 +967,8 @@ SCM_DEFINE (scm_fork, "primitive-fork", 0, 0, 0,
 #ifdef HAVE_UNAME
 SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
             (),
-	    "Returns an object with some information about the computer system the\n"
-	    "program is running on.")
+	    "Return an object with some information about the computer\n"
+	    "system the program is running on.")
 #define FUNC_NAME s_scm_uname
 {
   struct utsname buf;
@@ -989,12 +992,13 @@ SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
 
 SCM_DEFINE (scm_environ, "environ", 0, 1, 0, 
             (SCM env),
-	    "If @var{env} is omitted, returns the current environment as a list of strings.\n"
-	    "Otherwise it sets the current environment, which is also the\n"
-	    "default environment for child processes, to the supplied list of strings.\n"
-	    "Each member of @var{env} should be of the form\n"
-	    "@code{NAME=VALUE} and values of @code{NAME} should not be duplicated.\n"
-	    "If @var{env} is supplied then the return value is unspecified.")
+	    "If @var{env} is omitted, return the current environment (in the\n"
+	    "Unix sense) as a list of strings.  Otherwise set the current\n"
+	    "environment, which is also the default environment for child\n"
+	    "processes, to the supplied list of strings.  Each member of\n"
+	    "@var{env} should be of the form @code{NAME=VALUE} and values of\n"
+	    "@code{NAME} should not be duplicated.  If @var{env} is supplied\n"
+	    "then the return value is unspecified.")
 #define FUNC_NAME s_scm_environ
 {
   if (SCM_UNBNDP (env))
@@ -1028,11 +1032,11 @@ SCM_DEFINE (scm_environ, "environ", 0, 1, 0,
 
 SCM_DEFINE (scm_tmpnam, "tmpnam", 0, 0, 0,
             (),
-	    "tmpnam returns a name in the file system that does not match\n"
-	    "any existing file.  However there is no guarantee that\n"
-	    "another process will not create the file after tmpnam\n"
-	    "is called.  Care should be taken if opening the file,\n"
-	    "e.g., use the O_EXCL open flag or use @code{mkstemp!} instead.")
+	    "Return a name in the file system that does not match any\n"
+	    "existing file.  However there is no guarantee that another\n"
+	    "process will not create the file after @code{tmpnam} is called.\n"
+	    "Care should be taken if opening the file, e.g., use the\n"
+	    "@code{O_EXCL} open flag or use @code{mkstemp!} instead.")
 #define FUNC_NAME s_scm_tmpnam
 {
   char name[L_tmpnam];
@@ -1050,12 +1054,11 @@ SCM_DEFINE (scm_tmpnam, "tmpnam", 0, 0, 0,
 
 SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 	    (SCM tmpl),
-	    "mkstemp creates a new unique file in the file system and\n"
-	    "returns a new buffered port open for reading and writing to\n"
-	    "the file.  @var{tmpl} is a string specifying where the\n"
-	    "file should be created: it must end with @code{XXXXXX}\n"
-	    "and will be changed in place to return the name of the\n"
-	    "temporary file.\n")
+	    "Create a new unique file in the file system and returns a new\n"
+	    "buffered port open for reading and writing to the file.\n"
+	    "@var{tmpl} is a string specifying where the file should be\n"
+	    "created: it must end with @code{XXXXXX} and will be changed in\n"
+	    "place to return the name of the temporary file.")
 #define FUNC_NAME s_scm_mkstemp
 {
   char *c_tmpl;
@@ -1072,18 +1075,16 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 
 SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
             (SCM pathname, SCM actime, SCM modtime),
-	    "@code{utime} sets the access and modification times for\n"
-	    "the file named by @var{path}.  If @var{actime} or @var{modtime}\n"
-	    "is not supplied, then the current time is used.\n"
-	    "@var{actime} and @var{modtime}\n"
-	    "must be integer time values as returned by the @code{current-time}\n"
-	    "procedure.\n\n"
-	    "E.g.,\n\n"
-	    "@smalllisp\n"
+	    "@code{utime} sets the access and modification times for the\n"
+	    "file named by @var{path}.  If @var{actime} or @var{modtime} is\n"
+	    "not supplied, then the current time is used.  @var{actime} and\n"
+	    "@var{modtime} must be integer time values as returned by the\n"
+	    "@code{current-time} procedure.\n"
+	    "@lisp\n"
 	    "(utime \"foo\" (- (current-time) 3600))\n"
-	    "@end smalllisp\n\n"
-	    "will set the access time to one hour in the past and the modification\n"
-	    "time to the current time.")
+	    "@end lisp\n"
+	    "will set the access time to one hour in the past and the\n"
+	    "modification time to the current time.")
 #define FUNC_NAME s_scm_utime
 {
   int rv;
@@ -1110,17 +1111,17 @@ SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
 
 SCM_DEFINE (scm_access, "access?", 2, 0, 0,
             (SCM path, SCM how),
-	    "Returns @code{#t} if @var{path} corresponds to an existing\n"
-	    "file and the current process\n"
-	    "has the type of access specified by @var{how}, otherwise \n"
-	    "@code{#f}.\n"
-	    "@var{how} should be specified\n"
-	    "using the values of the variables listed below.  Multiple values can\n"
-	    "be combined using a bitwise or, in which case @code{#t} will only\n"
-	    "be returned if all accesses are granted.\n\n"
-	    "Permissions are checked using the real id of the current process,\n"
-	    "not the effective id, although it's the effective id which determines\n"
-	    "whether the access would actually be granted.\n\n"
+	    "Return @code{#t} if @var{path} corresponds to an existing file\n"
+	    "and the current process has the type of access specified by\n"
+	    "@var{how}, otherwise @code{#f}.  @var{how} should be specified\n"
+	    "using the values of the variables listed below.  Multiple\n"
+	    "values can be combined using a bitwise or, in which case\n"
+	    "@code{#t} will only be returned if all accesses are granted.\n"
+	    "\n"
+	    "Permissions are checked using the real id of the current\n"
+	    "process, not the effective id, although it's the effective id\n"
+	    "which determines whether the access would actually be granted.\n"
+	    "\n"
 	    "@defvar R_OK\n"
 	    "test for read permission.\n"
 	    "@end defvar\n"
@@ -1147,7 +1148,7 @@ SCM_DEFINE (scm_access, "access?", 2, 0, 0,
 
 SCM_DEFINE (scm_getpid, "getpid", 0, 0, 0,
             (),
-	    "Returns an integer representing the current process ID.")
+	    "Return an integer representing the current process ID.")
 #define FUNC_NAME s_scm_getpid
 {
   return SCM_MAKINUM ((unsigned long) getpid ());
@@ -1187,15 +1188,15 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 #ifdef HAVE_SETLOCALE
 SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
             (SCM category, SCM locale),
-	    "If @var{locale} is omitted, returns the current value of the specified\n"
-	    "locale category \n"
-	    "as a system-dependent string.\n"
-	    "@var{category} should be specified using the values @code{LC_COLLATE},\n"
-	    "@code{LC_ALL} etc.\n\n"
-	    "Otherwise the specified locale category is set to\n"
-	    "the string @var{locale}\n"
-	    "and the new value is returned as a system-dependent string.  If @var{locale}\n"
-	    "is an empty string, the locale will be set using envirionment variables.")
+	    "If @var{locale} is omitted, return the current value of the\n"
+	    "specified locale category as a system-dependent string.\n"
+	    "@var{category} should be specified using the values\n"
+	    "@code{LC_COLLATE}, @code{LC_ALL} etc.\n"
+	    "\n"
+	    "Otherwise the specified locale category is set to the string\n"
+	    "@var{locale} and the new value is returned as a\n"
+	    "system-dependent string.  If @var{locale} is an empty string,\n"
+	    "the locale will be set using envirionment variables.")
 #define FUNC_NAME s_scm_setlocale
 {
   char *clocale;
@@ -1233,9 +1234,9 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
 	    "to.  Its exact interpretation depends on the kind of special file\n"
 	    "being created.\n\n"
 	    "E.g.,\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(mknod \"/dev/fd0\" 'block-special #o660 (+ (* 2 256) 2))\n"
-	    "@end example\n\n"
+	    "@end lisp\n\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_mknod
 {

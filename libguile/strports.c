@@ -365,21 +365,21 @@ SCM_DEFINE (scm_call_with_output_string, "call-with-output-string", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_call_with_input_string, "call-with-input-string", 2, 0, 0,
-           (SCM str, SCM proc),
-	    "Calls the one-argument procedure @var{proc} with a newly created input\n"
-	    "port from which @var{string}'s contents may be read.  The value yielded\n"
-	    "by the @var{proc} is returned.")
+           (SCM string, SCM proc),
+	    "Calls the one-argument procedure @var{proc} with a newly\n"
+	    "created input port from which @var{string}'s contents may be\n"
+	    "read.  The value yielded by the @var{proc} is returned.")
 #define FUNC_NAME s_scm_call_with_input_string
 {
-  SCM p = scm_mkstrport(SCM_INUM0, str, SCM_OPN | SCM_RDNG, FUNC_NAME);
+  SCM p = scm_mkstrport(SCM_INUM0, string, SCM_OPN | SCM_RDNG, FUNC_NAME);
   return scm_apply (proc, p, scm_listofnull);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_open_input_string, "open-input-string", 1, 0, 0,
 	    (SCM str),
-	    "Takes a string and returns an input port that delivers\n"
-	    "characters from the string. The port can be closed by\n"
+	    "Take a string and return an input port that delivers characters\n"
+	    "from the string. The port can be closed by\n"
 	    "@code{close-input-port}, though its storage will be reclaimed\n"
 	    "by the garbage collector if it becomes inaccessible.")
 #define FUNC_NAME s_scm_open_input_string
@@ -391,7 +391,7 @@ SCM_DEFINE (scm_open_input_string, "open-input-string", 1, 0, 0,
 
 SCM_DEFINE (scm_open_output_string, "open-output-string", 0, 0, 0, 
 	    (void),
-	    "Returns an output port that will accumulate characters for\n"
+	    "Return an output port that will accumulate characters for\n"
 	    "retrieval by @code{get-output-string}. The port can be closed\n"
 	    "by the procedure @code{close-output-port}, though its storage\n"
 	    "will be reclaimed by the garbage collector if it becomes\n"
@@ -411,7 +411,7 @@ SCM_DEFINE (scm_open_output_string, "open-output-string", 0, 0, 0,
 SCM_DEFINE (scm_get_output_string, "get-output-string", 1, 0, 0, 
 	    (SCM port),
 	    "Given an output port created by @code{open-output-string},\n"
-	    "returns a string consisting of the characters that have been\n"
+	    "return a string consisting of the characters that have been\n"
 	    "output to the port so far.")
 #define FUNC_NAME s_scm_get_output_string
 {

@@ -138,7 +138,8 @@ timet scm_your_base = 0;
 
 SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
            (),
-	    "Returns the number of time units since the interpreter was started.")
+	    "Return the number of time units since the interpreter was\n"
+	    "started.")
 #define FUNC_NAME s_scm_get_internal_real_time
 {
 #ifdef HAVE_FTIME
@@ -163,9 +164,10 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 #ifdef HAVE_TIMES
 SCM_DEFINE (scm_times, "times", 0, 0, 0,
             (void),
-	    "Returns an object with information about real and processor time.\n"
-	    "The following procedures accept such an object as an argument and\n"
-	    "return a selected component:\n\n"
+	    "Return an object with information about real and processor\n"
+	    "time.  The following procedures accept such an object as an\n"
+	    "argument and return a selected component:\n"
+	    "\n"
 	    "@table @code\n"
 	    "@item tms:clock\n"
 	    "The current real time, expressed as time units relative to an\n"
@@ -173,12 +175,14 @@ SCM_DEFINE (scm_times, "times", 0, 0, 0,
 	    "@item tms:utime\n"
 	    "The CPU time units used by the calling process.\n"
 	    "@item tms:stime\n"
-	    "The CPU time units used by the system on behalf of the calling process.\n"
+	    "The CPU time units used by the system on behalf of the calling\n"
+	    "process.\n"
 	    "@item tms:cutime\n"
-	    "The CPU time units used by terminated child processes of the calling\n"
-	    "process, whose status has been collected (e.g., using @code{waitpid}).\n"
+	    "The CPU time units used by terminated child processes of the\n"
+	    "calling process, whose status has been collected (e.g., using\n"
+	    "@code{waitpid}).\n"
 	    "@item tms:cstime\n"
-	    "Similarly, the CPU times units used by the system on behalf of \n"
+	    "Similarly, the CPU times units used by the system on behalf of\n"
 	    "terminated child processes.\n"
 	    "@end table")
 #define FUNC_NAME s_scm_times
@@ -210,8 +214,9 @@ scm_c_get_internal_run_time ()
 
 SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0,
            (void),
-	    "Returns the number of time units of processor time used by the interpreter.\n"
-	    "Both \"system\" and \"user\" time are included but subprocesses are not.")
+	    "Return the number of time units of processor time used by the\n"
+	    "interpreter.  Both @emph{system} and @emph{user} time are\n"
+	    "included but subprocesses are not.")
 #define FUNC_NAME s_scm_get_internal_run_time
 {
   return scm_long2num (scm_c_get_internal_run_time ());
@@ -220,8 +225,8 @@ SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0,
 
 SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
            (void),
-	    "Returns the number of seconds since 1970-01-01 00:00:00 UTC, excluding\n"
-	    "leap seconds.")
+	    "Return the number of seconds since 1970-01-01 00:00:00 UTC,\n"
+	    "excluding leap seconds.")
 #define FUNC_NAME s_scm_current_time
 {
   timet timv;
@@ -236,9 +241,10 @@ SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
 
 SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
             (void),
-	    "Returns a pair containing the number of seconds and microseconds since\n"
-	    "1970-01-01 00:00:00 UTC, excluding leap seconds.  Note: whether true\n"
-	    "microsecond resolution is available depends on the operating system.")
+	    "Return a pair containing the number of seconds and microseconds\n"
+	    "since 1970-01-01 00:00:00 UTC, excluding leap seconds.  Note:\n"
+	    "whether true microsecond resolution is available depends on the\n"
+	    "operating system.")
 #define FUNC_NAME s_scm_gettimeofday
 {
 #ifdef HAVE_GETTIMEOFDAY
@@ -334,11 +340,11 @@ restorezone (SCM zone, char **oldenv, const char *subr)
 
 SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
             (SCM time, SCM zone),
-	    "Returns an object representing the broken down components of @var{time},\n"
-	    "an integer like the one returned by @code{current-time}.  The time zone\n"
-	    "for the calculation is optionally specified by @var{zone} (a string),\n"
-	    "otherwise the @code{TZ} environment variable or the system default is\n"
-	    "used.")
+	    "Return an object representing the broken down components of\n"
+	    "@var{time}, an integer like the one returned by\n"
+	    "@code{current-time}.  The time zone for the calculation is\n"
+	    "optionally specified by @var{zone} (a string), otherwise the\n"
+	    "@code{TZ} environment variable or the system default is used.")
 #define FUNC_NAME s_scm_localtime
 {
   timet itime;
@@ -408,9 +414,9 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
 
 SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
             (SCM time),
-	    "Returns an object representing the broken down components of @var{time},\n"
-	    "an integer like the one returned by @code{current-time}.  The values\n"
-	    "are calculated for UTC.")
+	    "Return an object representing the broken down components of\n"
+	    "@var{time}, an integer like the one returned by\n"
+	    "@code{current-time}.  The values are calculated for UTC.")
 #define FUNC_NAME s_scm_gmtime
 {
   timet itime;

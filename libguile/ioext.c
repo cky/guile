@@ -165,15 +165,16 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0, 
-            (SCM object),
-	    "Returns an integer representing the current position of @var{fd/port},\n"
-	    "measured from the beginning.  Equivalent to:\n"
-	    "@smalllisp\n"
+            (SCM fd_port),
+	    "Return an integer representing the current position of\n"
+	    "@var{fd/port}, measured from the beginning.  Equivalent to:\n"
+	    "\n"
+	    "@lisp\n"
 	    "(seek port 0 SEEK_CUR)\n"
-	    "@end smalllisp")
+	    "@end lisp")
 #define FUNC_NAME s_scm_ftell
 {
-  return scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
+  return scm_seek (fd_port, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
 }
 #undef FUNC_NAME
 
@@ -181,12 +182,12 @@ SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0,
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 SCM_DEFINE (scm_fseek, "fseek", 3, 0, 0,
-            (SCM object, SCM offset, SCM whence),
-	    "Obsolete.  Almost the same as seek, above, but the return value is\n"
-	    "unspecified.")
+            (SCM fd_port, SCM offset, SCM whence),
+	    "Obsolete.  Almost the same as @code{seek}, but the return value\n"
+	    "is unspecified.")
 #define FUNC_NAME s_scm_fseek
 {
-  scm_seek (object, offset, whence);
+  scm_seek (fd_port, offset, whence);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -242,7 +243,9 @@ SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
 
 SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0, 
             (SCM fd_or_port, SCM fd),
-	    "Returns an integer file descriptor.")
+	    "Return a new integer file descriptor referring to the open file\n"
+	    "designated by @var{fd_or_port}, which must be either an open\n"
+	    "file port or a file descriptor.")
 #define FUNC_NAME s_scm_dup_to_fdes
 {
   int oldfd, newfd, rv;
@@ -307,8 +310,8 @@ SCM_DEFINE (scm_dup2, "dup2", 2, 0, 0,
 
 SCM_DEFINE (scm_fileno, "fileno", 1, 0, 0, 
             (SCM port),
-	    "Returns the integer file descriptor underlying @var{port}.\n"
-	    "Does not change its revealed count.")
+	    "Return the integer file descriptor underlying @var{port}.  Does\n"
+	    "not change its revealed count.")
 #define FUNC_NAME s_scm_fileno
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -323,8 +326,8 @@ SCM_DEFINE (scm_fileno, "fileno", 1, 0, 0,
    if it is not going to assume that the arg is a port */
 SCM_DEFINE (scm_isatty_p, "isatty?", 1, 0, 0, 
             (SCM port),
-	    "Returns @code{#t} if @var{port} is using a serial\n"
-	    "non-file device, otherwise @code{#f}.")
+	    "Return @code{#t} if @var{port} is using a serial non--file\n"
+	    "device, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_isatty_p
 {
   int rv;
@@ -343,10 +346,10 @@ SCM_DEFINE (scm_isatty_p, "isatty?", 1, 0, 0,
 
 SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
             (SCM fdes, SCM modes),
-	    "Returns a new port based on the file descriptor @var{fdes}.\n"
-	    "Modes are given by the string @var{modes}.  The revealed count of the port\n"
-	    "is initialized to zero.  The modes string is the same as that accepted\n"
-	    "by @ref{File Ports, open-file}.")
+	    "Return a new port based on the file descriptor @var{fdes}.\n"
+	    "Modes are given by the string @var{modes}.  The revealed count\n"
+	    "of the port is initialized to zero.  The modes string is the\n"
+	    "same as that accepted by @ref{File Ports, open-file}.")
 #define FUNC_NAME s_scm_fdopen
 {
   SCM_VALIDATE_INUM (1,fdes);
@@ -403,8 +406,9 @@ SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
 /* Return a list of ports using a given file descriptor.  */
 SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
            (SCM fd),
-	    "Returns a list of existing ports which have @var{fdes} as an\n"
-	    "underlying file descriptor, without changing their revealed counts.")
+	    "Return a list of existing ports which have @var{fdes} as an\n"
+	    "underlying file descriptor, without changing their revealed\n"
+	    "counts.")
 #define FUNC_NAME s_scm_fdes_to_ports
 {
   SCM result = SCM_EOL;

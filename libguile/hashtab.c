@@ -191,7 +191,7 @@ SCM_DEFINE (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
 
 
 SCM_DEFINE (scm_hashq_ref, "hashq-ref", 2, 1, 0,
-            (SCM table, SCM obj, SCM dflt),
+            (SCM table, SCM key, SCM dflt),
 	    "Look up @var{key} in the hash table @var{table}, and return the\n"
 	    "value (if any) associated with it.  If @var{key} is not found,\n"
 	    "return @var{default} (or @code{#f} if no @var{default} argument\n"
@@ -200,31 +200,32 @@ SCM_DEFINE (scm_hashq_ref, "hashq-ref", 2, 1, 0,
 {
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
-  return scm_hash_fn_ref (table, obj, dflt, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_ref (table, key, dflt, scm_ihashq, scm_sloppy_assq, 0);
 }
 #undef FUNC_NAME
 
 
 
 SCM_DEFINE (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
-            (SCM table, SCM obj, SCM val),
+            (SCM table, SCM key, SCM val),
 	    "Find the entry in @var{table} associated with @var{key}, and\n"
 	    "store @var{value} there. Uses @code{eq?} for equality testing.")
 #define FUNC_NAME s_scm_hashq_set_x
 {
-  return scm_hash_fn_set_x (table, obj, val, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_set_x (table, key, val, scm_ihashq, scm_sloppy_assq, 0);
 }
 #undef FUNC_NAME
 
 
 
 SCM_DEFINE (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
-            (SCM table, SCM obj),
+            (SCM table, SCM key),
 	    "Remove @var{key} (and any value associated with it) from\n"
 	    "@var{table}.  Uses @code{eq?} for equality tests.")
 #define FUNC_NAME s_scm_hashq_remove_x
 {
-  return scm_hash_fn_remove_x (table, obj, scm_ihashq, scm_sloppy_assq, scm_delq_x, 0);
+  return scm_hash_fn_remove_x (table, key, scm_ihashq, scm_sloppy_assq,
+			       scm_delq_x, 0);
 }
 #undef FUNC_NAME
 
@@ -251,13 +252,14 @@ SCM_DEFINE (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hashv_create_handle_x
 {
-  return scm_hash_fn_create_handle_x (table, key, init, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_create_handle_x (table, key, init, scm_ihashv,
+				      scm_sloppy_assv, 0);
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
-            (SCM table, SCM obj, SCM dflt),
+            (SCM table, SCM key, SCM dflt),
 	    "Look up @var{key} in the hash table @var{table}, and return the\n"
 	    "value (if any) associated with it.  If @var{key} is not found,\n"
 	    "return @var{default} (or @code{#f} if no @var{default} argument\n"
@@ -266,30 +268,31 @@ SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
 {
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
-  return scm_hash_fn_ref (table, obj, dflt, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_ref (table, key, dflt, scm_ihashv, scm_sloppy_assv, 0);
 }
 #undef FUNC_NAME
 
 
 
 SCM_DEFINE (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
-            (SCM table, SCM obj, SCM val),
+            (SCM table, SCM key, SCM val),
 	    "Find the entry in @var{table} associated with @var{key}, and\n"
 	    "store @var{value} there. Uses @code{eqv?} for equality testing.")
 #define FUNC_NAME s_scm_hashv_set_x
 {
-  return scm_hash_fn_set_x (table, obj, val, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_set_x (table, key, val, scm_ihashv, scm_sloppy_assv, 0);
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
-            (SCM table, SCM obj),
+            (SCM table, SCM key),
 	    "Remove @var{key} (and any value associated with it) from\n"
 	    "@var{table}.  Uses @code{eqv?} for equality tests.")
 #define FUNC_NAME s_scm_hashv_remove_x
 {
-  return scm_hash_fn_remove_x (table, obj, scm_ihashv, scm_sloppy_assv, scm_delv_x, 0);
+  return scm_hash_fn_remove_x (table, key, scm_ihashv, scm_sloppy_assv,
+			       scm_delv_x, 0);
 }
 #undef FUNC_NAME
 
@@ -321,7 +324,7 @@ SCM_DEFINE (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
 
 
 SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
-            (SCM table, SCM obj, SCM dflt),
+            (SCM table, SCM key, SCM dflt),
 	    "Look up @var{key} in the hash table @var{table}, and return the\n"
 	    "value (if any) associated with it.  If @var{key} is not found,\n"
 	    "return @var{default} (or @code{#f} if no @var{default} argument\n"
@@ -330,32 +333,33 @@ SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
 {
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
-  return scm_hash_fn_ref (table, obj, dflt, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_ref (table, key, dflt, scm_ihash, scm_sloppy_assoc, 0);
 }
 #undef FUNC_NAME
 
 
 
 SCM_DEFINE (scm_hash_set_x, "hash-set!", 3, 0, 0,
-            (SCM table, SCM obj, SCM val),
+            (SCM table, SCM key, SCM val),
 	    "Find the entry in @var{table} associated with @var{key}, and\n"
 	    "store @var{value} there. Uses @code{equal?} for equality\n"
 	    "testing.")
 #define FUNC_NAME s_scm_hash_set_x
 {
-  return scm_hash_fn_set_x (table, obj, val, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_set_x (table, key, val, scm_ihash, scm_sloppy_assoc, 0);
 }
 #undef FUNC_NAME
 
 
 
 SCM_DEFINE (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
-            (SCM table, SCM obj),
+            (SCM table, SCM key),
 	    "Remove @var{key} (and any value associated with it) from\n"
 	    "@var{table}.  Uses @code{equal?} for equality tests.")
 #define FUNC_NAME s_scm_hash_remove_x
 {
-  return scm_hash_fn_remove_x (table, obj, scm_ihash, scm_sloppy_assoc, scm_delete_x, 0);
+  return scm_hash_fn_remove_x (table, key, scm_ihash, scm_sloppy_assoc,
+			       scm_delete_x, 0);
 }
 #undef FUNC_NAME
 
@@ -415,11 +419,11 @@ scm_delx_x (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
 
 
 SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0, 
-            (SCM hash, SCM assoc, SCM table, SCM obj),
-	    "This behaves the same way as the corresponding @code{-get-handle}\n"
-	    "function, but uses @var{hasher} as a\n"
-	    "hash function and @var{assoc} to compare keys.  @code{hasher} must\n"
-	    "be a function that takes two arguments, a key to be hashed and a\n"
+            (SCM hash, SCM assoc, SCM table, SCM key),
+	    "This behaves the same way as the corresponding\n"
+	    "@code{-get-handle} function, but uses @var{hash} as a hash\n"
+	    "function and @var{assoc} to compare keys.  @code{hash} must be\n"
+	    "a function that takes two arguments, a key to be hashed and a\n"
 	    "table size.  @code{assoc} must be an associator function, like\n"
 	    "@code{assoc}, @code{assq} or @code{assv}.")
 #define FUNC_NAME s_scm_hashx_get_handle
@@ -427,17 +431,18 @@ SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0,
   struct scm_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
-  return scm_hash_fn_get_handle (table, obj, scm_ihashx, scm_sloppy_assx, (void *)&closure);
+  return scm_hash_fn_get_handle (table, key, scm_ihashx, scm_sloppy_assx,
+				 (void *)&closure);
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0, 
-            (SCM hash, SCM assoc, SCM table, SCM obj, SCM init),
-	    "This behaves the same way as the corresponding @code{-create-handle}\n"
-	    "function, but uses @var{hasher} as a\n"
-	    "hash function and @var{assoc} to compare keys.  @code{hasher} must\n"
-	    "be a function that takes two arguments, a key to be hashed and a\n"
+            (SCM hash, SCM assoc, SCM table, SCM key, SCM init),
+	    "This behaves the same way as the corresponding\n"
+	    "@code{-create-handle} function, but uses @var{hash} as a hash\n"
+	    "function and @var{assoc} to compare keys.  @code{hash} must be\n"
+	    "a function that takes two arguments, a key to be hashed and a\n"
 	    "table size.  @code{assoc} must be an associator function, like\n"
 	    "@code{assoc}, @code{assq} or @code{assv}.")
 #define FUNC_NAME s_scm_hashx_create_handle_x
@@ -445,22 +450,24 @@ SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0,
   struct scm_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
-  return scm_hash_fn_create_handle_x (table, obj, init, scm_ihashx, scm_sloppy_assx, (void *)&closure);
+  return scm_hash_fn_create_handle_x (table, key, init, scm_ihashx,
+				      scm_sloppy_assx, (void *)&closure);
 }
 #undef FUNC_NAME
 
 
 
 SCM_DEFINE (scm_hashx_ref, "hashx-ref", 4, 1, 0, 
-            (SCM hash, SCM assoc, SCM table, SCM obj, SCM dflt),
+            (SCM hash, SCM assoc, SCM table, SCM key, SCM dflt),
 	    "This behaves the same way as the corresponding @code{ref}\n"
-	    "function, but uses @var{hasher} as a\n"
-	    "hash function and @var{assoc} to compare keys.  @code{hasher} must\n"
-	    "be a function that takes two arguments, a key to be hashed and a\n"
-	    "table size.  @code{assoc} must be an associator function, like\n"
-	    "@code{assoc}, @code{assq} or @code{assv}.\n\n"
-	    "By way of illustration, @code{hashq-ref table key} is equivalent\n"
-	    "to @code{hashx-ref hashq assq table key}.")
+	    "function, but uses @var{hash} as a hash function and\n"
+	    "@var{assoc} to compare keys.  @code{hash} must be a function\n"
+	    "that takes two arguments, a key to be hashed and a table size.\n"
+	    "@code{assoc} must be an associator function, like @code{assoc},\n"
+	    "@code{assq} or @code{assv}.\n"
+	    "\n"
+	    "By way of illustration, @code{hashq-ref table key} is\n"
+	    "equivalent to @code{hashx-ref hashq assq table key}.")
 #define FUNC_NAME s_scm_hashx_ref
 {
   struct scm_ihashx_closure closure;
@@ -468,7 +475,8 @@ SCM_DEFINE (scm_hashx_ref, "hashx-ref", 4, 1, 0,
     dflt = SCM_BOOL_F;
   closure.hash = hash;
   closure.assoc = assoc;
-  return scm_hash_fn_ref (table, obj, dflt, scm_ihashx, scm_sloppy_assx, (void *)&closure);
+  return scm_hash_fn_ref (table, key, dflt, scm_ihashx, scm_sloppy_assx,
+			  (void *)&closure);
 }
 #undef FUNC_NAME
 
@@ -476,21 +484,23 @@ SCM_DEFINE (scm_hashx_ref, "hashx-ref", 4, 1, 0,
 
 
 SCM_DEFINE (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
-            (SCM hash, SCM assoc, SCM table, SCM obj, SCM val),
+            (SCM hash, SCM assoc, SCM table, SCM key, SCM val),
 	    "This behaves the same way as the corresponding @code{set!}\n"
-	    "function, but uses @var{hasher} as a\n"
-	    "hash function and @var{assoc} to compare keys.  @code{hasher} must\n"
-	    "be a function that takes two arguments, a key to be hashed and a\n"
-	    "table size.  @code{assoc} must be an associator function, like\n"
-	    "@code{assoc}, @code{assq} or @code{assv}.\n\n"
-	    "By way of illustration, @code{hashq-set! table key} is equivalent\n"
-	    "to @code{hashx-set! hashq assq table key}.")
+	    "function, but uses @var{hash} as a hash function and\n"
+	    "@var{assoc} to compare keys.  @code{hash} must be a function\n"
+	    "that takes two arguments, a key to be hashed and a table size.\n"
+	    "@code{assoc} must be an associator function, like @code{assoc},\n"
+	    "@code{assq} or @code{assv}.\n"
+	    "\n"
+	    " By way of illustration, @code{hashq-set! table key} is\n"
+	    "equivalent to @code{hashx-set!  hashq assq table key}.")
 #define FUNC_NAME s_scm_hashx_set_x
 {
   struct scm_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
-  return scm_hash_fn_set_x (table, obj, val, scm_ihashx, scm_sloppy_assx, (void *)&closure);
+  return scm_hash_fn_set_x (table, key, val, scm_ihashx, scm_sloppy_assx,
+			    (void *)&closure);
 }
 #undef FUNC_NAME
 

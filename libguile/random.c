@@ -415,7 +415,8 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
 
 SCM_DEFINE (scm_random_uniform, "random:uniform", 0, 1, 0, 
             (SCM state),
-            "Returns a uniformly distributed inexact real random number in [0,1).")
+	    "Return a uniformly distributed inexact real random number in\n"
+	    "[0,1).")
 #define FUNC_NAME s_scm_random_uniform
 {
   if (SCM_UNBNDP (state))
@@ -427,10 +428,10 @@ SCM_DEFINE (scm_random_uniform, "random:uniform", 0, 1, 0,
 
 SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0, 
             (SCM state),
-            "Returns an inexact real in a normal distribution.\n"
-            "The distribution used has mean 0 and standard deviation 1.\n"
-            "For a normal distribution with mean m and standard deviation\n"
-            "d use @code{(+ m (* d (random:normal)))}.")
+	    "Return an inexact real in a normal distribution.  The\n"
+	    "distribution used has mean 0 and standard deviation 1.  For a\n"
+	    "normal distribution with mean m and standard deviation d use\n"
+	    "@code{(+ m (* d (random:normal)))}.")
 #define FUNC_NAME s_scm_random_normal
 {
   if (SCM_UNBNDP (state))
@@ -550,8 +551,9 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
 
 SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0, 
             (SCM state),
-            "Returns an inexact real in an exponential distribution with mean 1.\n"
-            "For an exponential distribution with mean u use (* u (random:exp)).")
+	    "Return an inexact real in an exponential distribution with mean\n"
+	    "1.  For an exponential distribution with mean u use (* u\n"
+	    "(random:exp)).")
 #define FUNC_NAME s_scm_random_exp
 {
   if (SCM_UNBNDP (state))

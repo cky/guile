@@ -1686,19 +1686,19 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 	    "turn, storing the result in the corresponding element.  The value\n"
 	    "returned and the order of application are unspecified.\n\n"
 	    "One can implement @var{array-indexes} as\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(define (array-indexes array)\n"
 	    "    (let ((ra (apply make-array #f (array-shape array))))\n"
 	    "      (array-index-map! ra (lambda x x))\n"
 	    "      ra))\n"
-	    "@end example\n"
+	    "@end lisp\n"
 	    "Another example:\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "(define (apl:index-generator n)\n"
 	    "    (let ((v (make-uniform-vector n 1)))\n"
 	    "      (array-index-map! v (lambda (i) i))\n"
 	    "      v))\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_array_index_map_x
 {
   scm_sizet i;
@@ -1979,11 +1979,12 @@ scm_raequal (SCM ra0, SCM ra1)
 /* GJB:FIXME:: Why not use SCM_DEFINE1 for array-equal? */
 SCM_DEFINE1 (scm_array_equal_p, "array-equal?", scm_tc7_rpsubr,
 	     (SCM ra0, SCM ra1),
-	     "Returns @code{#t} iff all arguments are arrays with the same shape, the\n"
-	     "same type, and have corresponding elements which are either\n"
-	     "@code{equal?}  or @code{array-equal?}.  This function differs from\n"
-	     "@code{equal?} in that a one dimensional shared array may be\n"
-	     "@var{array-equal?} but not @var{equal?} to a vector or uniform vector.")
+	    "Return @code{#t} iff all arguments are arrays with the same\n"
+	    "shape, the same type, and have corresponding elements which are\n"
+	    "either @code{equal?}  or @code{array-equal?}.  This function\n"
+	    "differs from @code{equal?} in that a one dimensional shared\n"
+	    "array may be @var{array-equal?} but not @var{equal?} to a\n"
+	    "vector or uniform vector.")
 #define FUNC_NAME s_scm_array_equal_p
 {
 }

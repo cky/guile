@@ -514,37 +514,41 @@ scm_handle_by_throw (void *handler_data, SCM tag, SCM args)
 /* the Scheme-visible CATCH and LAZY-CATCH functions */
 
 SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
-           (SCM tag, SCM thunk, SCM handler),
+	    (SCM key, SCM thunk, SCM handler),
 	    "Invoke @var{thunk} in the dynamic context of @var{handler} for\n"
-	    "exceptions matching @var{key}.  If thunk throws to the symbol @var{key},\n"
-	    "then @var{handler} is invoked this way:\n\n"
-	    "@example\n"
+	    "exceptions matching @var{key}.  If thunk throws to the symbol\n"
+	    "@var{key}, then @var{handler} is invoked this way:\n"
+	    "@lisp\n"
 	    "(handler key args ...)\n"
-	    "@end example\n\n"
-	    "@var{key} is a symbol or #t.\n\n"
-	    "@var{thunk} takes no arguments.  If @var{thunk} returns normally, that\n"
-	    "is the return value of @code{catch}.\n\n"
-	    "Handler is invoked outside the scope of its own @code{catch}.  If\n"
-	    "@var{handler} again throws to the same key, a new handler from further\n"
-	    "up the call chain is invoked.\n\n"
-	    "If the key is @code{#t}, then a throw to @emph{any} symbol will match\n"
-	    "this call to @code{catch}.")
+	    "@end lisp\n"
+	    "\n"
+	    "@var{key} is a symbol or @code{#t}.\n"
+	    "\n"
+	    "@var{thunk} takes no arguments.  If @var{thunk} returns\n"
+	    "normally, that is the return value of @code{catch}.\n"
+	    "\n"
+	    "Handler is invoked outside the scope of its own @code{catch}.\n"
+	    "If @var{handler} again throws to the same key, a new handler\n"
+	    "from further up the call chain is invoked.\n"
+	    "\n"
+	    "If the key is @code{#t}, then a throw to @emph{any} symbol will\n"
+	    "match this call to @code{catch}.")
 #define FUNC_NAME s_scm_catch
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP (tag) || SCM_EQ_P (tag, SCM_BOOL_T),
-	      tag, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_SYMBOLP (key) || SCM_EQ_P (key, SCM_BOOL_T),
+	      key, SCM_ARG1, FUNC_NAME);
 
-  c.tag = tag;
+  c.tag = key;
   c.body_proc = thunk;
 
   /* scm_internal_catch takes care of all the mechanics of setting up
-     a catch tag; we tell it to call scm_body_thunk to run the body,
+     a catch key; we tell it to call scm_body_thunk to run the body,
      and scm_handle_by_proc to deal with any throws to this catch.
      The former receives a pointer to c, telling it how to behave.
      The latter receives a pointer to HANDLER, so it knows who to call.  */
-  return scm_internal_catch (tag,
+  return scm_internal_catch (key,
 			     scm_body_thunk, &c, 
 			     scm_handle_by_proc, &handler);
 }
@@ -552,7 +556,7 @@ SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
 
 
 SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
-           (SCM tag, SCM thunk, SCM handler),
+	    (SCM key, SCM thunk, SCM handler),
 	    "This behaves exactly like @code{catch}, except that it does\n"
 	    "not unwind the stack (this is the major difference), and if\n"
 	    "handler returns, its value is returned from the throw.")
@@ -560,19 +564,19 @@ SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP (tag) || SCM_EQ_P (tag, SCM_BOOL_T),
-	      tag, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_SYMBOLP (key) || SCM_EQ_P (key, SCM_BOOL_T),
+	      key, SCM_ARG1, FUNC_NAME);
 
-  c.tag = tag;
+  c.tag = key;
   c.body_proc = thunk;
 
   /* scm_internal_lazy_catch takes care of all the mechanics of
-     setting up a lazy catch tag; we tell it to call scm_body_thunk to
+     setting up a lazy catch key; we tell it to call scm_body_thunk to
      run the body, and scm_handle_by_proc to deal with any throws to
      this catch.  The former receives a pointer to c, telling it how
      to behave.  The latter receives a pointer to HANDLER, so it knows
      who to call.  */
-  return scm_internal_lazy_catch (tag,
+  return scm_internal_lazy_catch (key,
 				  scm_body_thunk, &c, 
 				  scm_handle_by_proc, &handler);
 }

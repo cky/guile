@@ -1,3 +1,109 @@
+2001-04-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	The following changes make the documentation more consistent.
+	
+	* rdelim.c (scm_write_line), posix.c (scm_utime), ports.c
+	(scm_seek), net_db.c (scm_inet_aton, scm_inet_ntoa),
+	(scm_inet_netof, scm_lnaof, scm_inet_makeaddr), ioext.c
+	(scm_ftell): Changed @smalllisp ... @end smalllisp to @lisp
+	... @end lisp.
+
+	* vports.c (scm_make_soft_port), version.c (scm_version), unif.c
+	(scm_array_dimensions, scm_make_shared_array),
+	(scm_transpose_array, scm_enclose_array, scm_bit_count_star),
+	throw.c (scm_catch), struct.c (scm_make_vtable_vtable), strop.c
+	(scm_string_rindex, scm_string_index, scm_substring_fill_x),
+	(scm_string_null_p), strings.c (scm_read_only_string_p), root.c
+	(scm_call_with_dynamic_root), ramap.c (scm_array_index_map_x),
+	posix.c (scm_mknod), numbers.c (scm_logtest, scm_logbit_p),
+	macros.c (scm_makmmacro), list.c (scm_append), environments.c
+	(scm_environment_fold), dynwind.c (s_scm_dynamic_wind): Changed
+	@example ... @end example to @lisp ... @end lisp.
+
+	* weaks.c (scm_weak_vector): Corrected docstring.
+
+	* hashtab.c (scm_hashq_ref, scm_hashq_set_x, scm_hashq_remove_x),
+	(scm_hashv_ref, scm_hashv_set_x, scm_hashv_remove_x),
+	(scm_hash_ref, scm_hash_set_x, scm_hash_remove_x, scm_hashx_ref),
+	(scm_hashx_set_x, scm_hashx_get_handle),
+	(scm_hashx_create_handle_x), regex-posix.c (scm_make_regexp),
+	(scm_regexp_exec, scm_regexp_p), numbers.c (scm_logtest),
+	vectors.c (scm_vector_fill_x), strings.c
+	(scm_make_shared_substring), symbols.c (scm_string_to_symbol),
+	objprop.c (scm_set_object_properties_x):
+	(scm_set_object_property_x), throw.c (scm_catch, scm_lazy_catch),
+	strports.c (scm_call_with_input_string), ports.c
+	(scm_truncate_file), ioext.c (scm_ftell), ports.c (scm_seek),
+	list.c (scm_append_x), dynwind.c (scm_dynamic_wind), error.c
+	(scm_error_scm), vports.c (scm_make_soft_port), weaks.c
+	(scm_make_weak_vector,scm_weak_vector_p),
+	(scm_make_weak_key_hash_table, scm_make_weak_value_hash_table),
+	(scm_make_doubly_weak_hash_table, scm_weak_key_hash_table_p),
+	(scm_weak_value_hash_table_p, scm_doubly_weak_hash_table_p),
+	macros.c (scm_macro_type), dynl.c (scm_dynamic_link),
+	(scm_dynamic_unlink, scm_dynamic_call, scm_dynamic_args_call):
+	Made parameter names match documentation by renaming parameters
+	and/or fixing docstrings.
+	
+	* numbers.c (scm_ash): Corrected Texinfo markup.
+
+	* strop.c (scm_string_index, scm_string_rindex),
+	(scm_substring_fill_x, scm_string_null_p): Removed `qdocs'.
+
+	* vports.c (scm_make_soft_port), unif.c
+	(scm_uniform_vector_length, scm_array_p, scm_array_rank),
+	(scm_dimensions_to_uniform_array, scm_transpose_array),
+	(scm_array_in_bounds_p, scm_uniform_vector_ref),
+	(scm_bit_count, scm_bit_position, scm_bit_count_star),
+	(scm_array_to_list, scm_list_to_uniform_array),
+	(scm_array_prototype, symbols.c (scm_string_to_symbol), strports.c
+	(scm_open_input_string, scm_open_output_string),
+	(scm_get_output_string), strop.c (scm_string_copy),
+	(scm_string_fill_x), strings.c (scm_string_p, scm_string), stime.c
+	(scm_get_internal_real_time, scm_times),
+	(scm_get_internal_run_time, scm_current_time, scm_gettimeofday),
+	(scm_localtime, scm_gmtime), socket.c (scm_htons, scm_ntohs),
+	(scm_htonl, scm_ntohl, scm_socket, scm_socketpair),
+	(scm_getsockopt, scm_getsockname, scm_getpeername, scm_recvfrom),
+	simpos.c (scm_system), random.c (scm_random_uniform),
+	(scm_random_normal, scm_random_exp), ramap.c
+	(scm_array_equal_p), posix.c (scm_pipe, scm_getgroups),
+	(scm_status_exit_val, scm_status_term_sig, scm_status_stop_sig),
+	(scm_getppid, scm_getuid, scm_getgid, scm_geteuid, scm_getegid),
+	(scm_getpgrp, scm_ttyname, scm_ctermid, scm_tcgetpgrp, scm_uname),
+	(scm_environ, scm_tmpnam, scm_mkstemp, scm_access, scm_getpid),
+	(scm_setlocale), ports.c (scm_char_ready_p, scm_drain_input),
+	(scm_pt_size, scm_pt_member, scm_port_revealed, scm_port_mode),
+	(scm_close_port, scm_input_port_p, scm_output_port_p, scm_port_p),
+	(scm_port_closed_p, scm_eof_object_p, scm_read_char),
+	(scm_peek_char), pairs.c (scm_pair_p, scm_cons), numbers.c
+	(scm_logand, scm_logior, scm_logxor, scm_lognot),
+	(scm_integer_expt, scm_bit_extract, scm_logcount),
+	(scm_integer_length, scm_string_to_number, scm_inexact_to_exact),
+	net_db.c (scm_inet_netof, scm_lnaof), modules.c
+	(scm_interaction_environment), macros.c (scm_makacro),
+	(scm_makmacro, scm_makmmacro), keywords.c (scm_keyword_p), ioext.c
+	(scm_ftell, scm_dup_to_fdes, scm_fileno, scm_isatty_p),
+	(scm_fdopen, scm_fdes_to_ports), gc.c (scm_gc_stats), fluids.c
+	(scm_fluid_ref), filesys.c (scm_open_fdes),
+	(scm_stat, scm_directory_stream_p, scm_getcwd, scm_readlink):
+	Docstring correction: `Returns' -> `Return'
+
+	* gc.c (scm_set_debug_cell_accesses_x): 
+	(s_scm_gc_set_debug_check_freelist_x): 
+	* fluids.c (scm_fluid_p): Added texinfo markup.
+
+	* error.c (scm_strerror): Made docstring more precise.
+
+	* vectors.c (scm_vector_p, scm_vector, scm_make_vector),
+	(scm_vector_to_list, _scm_vector_fill_x), symbols.c
+	(scm_symbol_p, scm_symbol_to_string), strorder.c
+	(scm_string_equal_p, scm_string_ci_equal_p, scm_string_less_p),
+	(scm_string_leq_p, scm_string_gr_p, scm_string_geq_p),
+	(scm_string_ci_less_p, scm_string_ci_leq_p, scm_string_ci_gr_p):
+	(scm_string_ci_geq_p), strop.c (scm_string_copy),
+	(scm_string_fill_x): Removed `(r5rs)' from docstrings.
+
 2001-04-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (MARK):  Re-introduce a cheap sanity test for non debug

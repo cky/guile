@@ -147,10 +147,11 @@ sf_close (SCM port)
 
 SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
            (SCM pv, SCM modes),
-	    "Returns a port capable of receiving or delivering characters as\n"
+	    "Return a port capable of receiving or delivering characters as\n"
 	    "specified by the @var{modes} string (@pxref{File Ports,\n"
-	    "open-file}).  @var{vector} must be a vector of length 6.  Its components\n"
-	    "are as follows:\n\n"
+	    "open-file}).  @var{pv} must be a vector of length 5.  Its\n"
+	    "components are as follows:\n"
+	    "\n"
 	    "@enumerate 0\n"
 	    "@item\n"
 	    "procedure accepting one character for output\n"
@@ -162,15 +163,19 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
 	    "thunk for getting one character\n"
 	    "@item\n"
 	    "thunk for closing port (not by garbage collection)\n"
-	    "@end enumerate\n\n"
+	    "@end enumerate\n"
+	    "\n"
 	    "For an output-only port only elements 0, 1, 2, and 4 need be\n"
-	    "procedures.  For an input-only port only elements 3 and 4 need be\n"
-	    "procedures.  Thunks 2 and 4 can instead be @code{#f} if there is no useful\n"
-	    "operation for them to perform.\n\n"
-	    "If thunk 3 returns @code{#f} or an @code{eof-object} (@pxref{Input,\n"
-	    "eof-object?, ,r4rs, The Revised^4 Report on Scheme}) it indicates that\n"
-	    "the port has reached end-of-file.  For example:\n\n"
-	    "@example\n"
+	    "procedures.  For an input-only port only elements 3 and 4 need\n"
+	    "be procedures.  Thunks 2 and 4 can instead be @code{#f} if\n"
+	    "there is no useful operation for them to perform.\n"
+	    "\n"
+	    "If thunk 3 returns @code{#f} or an @code{eof-object}\n"
+	    "(@pxref{Input, eof-object?, ,r4rs, The Revised^4 Report on\n"
+	    "Scheme}) it indicates that the port has reached end-of-file.\n"
+	    "For example:\n"
+	    "\n"
+	    "@lisp\n"
 	    "(define stdout (current-output-port))\n"
 	    "(define p (make-soft-port\n"
 	    "           (vector\n"
@@ -179,9 +184,10 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
 	    "            (lambda () (display \".\" stdout))\n"
 	    "            (lambda () (char-upcase (read-char)))\n"
 	    "            (lambda () (display \"@@\" stdout)))\n"
-	    "           \"rw\"))\n\n"
+	    "           \"rw\"))\n"
+	    "\n"
 	    "(write p p) @result{} #<input-output: soft 8081e20>\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_make_soft_port
 {
   scm_port *pt;

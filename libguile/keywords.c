@@ -109,7 +109,8 @@ scm_c_make_keyword (char *s)
 
 SCM_DEFINE (scm_keyword_p, "keyword?", 1, 0, 0, 
             (SCM obj),
-	    "Returns @code{#t} if the argument @var{obj} is a keyword, else @code{#f}.")
+	    "Return @code{#t} if the argument @var{obj} is a keyword, else\n"
+	    "@code{#f}.")
 #define FUNC_NAME s_scm_keyword_p
 {
   return SCM_BOOL (SCM_KEYWORDP (obj));

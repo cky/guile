@@ -138,7 +138,8 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
 
 SCM_DEFINE (scm_fluid_p, "fluid?", 1, 0, 0, 
 	    (SCM obj),
-	    "Return #t iff @var{obj} is a fluid; otherwise, return #f.")
+	    "Return @code{#t} iff @var{obj} is a fluid; otherwise, return\n"
+	    "@code{#f}.")
 #define FUNC_NAME s_scm_fluid_p
 {
   return SCM_BOOL(SCM_FLUIDP (obj));
@@ -147,8 +148,9 @@ SCM_DEFINE (scm_fluid_p, "fluid?", 1, 0, 0,
 
 SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
 	    (SCM fluid),
-	    "Return the value associated with @var{fluid} in the current dynamic root.\n"
-	    "If @var{fluid} has not been set, then this returns #f.")
+	    "Return the value associated with @var{fluid} in the current\n"
+	    "dynamic root.  If @var{fluid} has not been set, then return\n"
+	    "@code{#f}.")
 #define FUNC_NAME s_scm_fluid_ref
 {
   int n;

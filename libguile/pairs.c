@@ -56,9 +56,9 @@
 
 SCM_DEFINE (scm_cons, "cons", 2, 0, 0,
 	    (SCM x, SCM y),
-            "Returns a newly allocated pair whose car is @var{x} and whose cdr is\n"
-            "@var{y}.  The pair is guaranteed to be different (in the sense of\n"
-            "@code{eqv?}) from every previously existing object.")
+	    "Return a newly allocated pair whose car is @var{x} and whose\n"
+	    "cdr is @var{y}.  The pair is guaranteed to be different (in the\n"
+	    "sense of @code{eq?}) from every previously existing object.")
 #define FUNC_NAME s_scm_cons
 {
   SCM z;
@@ -90,7 +90,8 @@ scm_cons2 (SCM w, SCM x, SCM y)
 
 SCM_DEFINE (scm_pair_p, "pair?", 1, 0, 0, 
             (SCM x),
-            "Returns @code{#t} if @var{x} is a pair; otherwise returns @code{#f}.")
+	    "Return @code{#t} if @var{x} is a pair; otherwise return\n"
+	    "@code{#f}.")
 #define FUNC_NAME s_scm_pair_p
 {
   return SCM_BOOL (SCM_CONSP (x));

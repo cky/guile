@@ -56,17 +56,18 @@
 
 
 SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
-           (SCM k, SCM fill),
+	    (SCM size, SCM fill),
 	    "Return a weak vector with @var{size} elements. If the optional\n"
-	    "argument @var{fill} is given, all entries in the vector will be set to\n"
-	    "@var{fill}. The default value for @var{fill} is the empty list.")
+	    "argument @var{fill} is given, all entries in the vector will be\n"
+	    "set to @var{fill}. The default value for @var{fill} is the\n"
+	    "empty list.")
 #define FUNC_NAME s_scm_make_weak_vector
 {
   /* Dirk:FIXME:: We should probably rather use a double cell for weak vectors. */
   SCM v;
-  v = scm_make_vector (scm_sum (k, SCM_MAKINUM (2)), fill);
+  v = scm_make_vector (scm_sum (size, SCM_MAKINUM (2)), fill);
   SCM_DEFER_INTS;
-  SCM_SET_VECTOR_LENGTH (v, SCM_INUM (k), scm_tc7_wvect);
+  SCM_SET_VECTOR_LENGTH (v, SCM_INUM (size), scm_tc7_wvect);
   SCM_SETVELTS(v, SCM_VELTS(v) + 2);
   SCM_VELTS(v)[-2] = SCM_EOL;
   SCM_UNPACK (SCM_VELTS (v)[-1]) = 0;
@@ -81,10 +82,10 @@ SCM_REGISTER_PROC(s_list_to_weak_vector, "list->weak-vector", 1, 0, 0, scm_weak_
 SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1, 
            (SCM l),
 	    "@deffnx primitive list->weak-vector l\n"
-	    "Construct a weak vector from a list: @code{weak-vector} uses the list of\n"
-	    "its arguments while @code{list->weak-vector} uses its only argument\n"
-	    "@var{l} (a list) to construct a weak vector the same way\n"
-	    "@code{vector->list} would.")
+	    "Construct a weak vector from a list: @code{weak-vector} uses\n"
+	    "the list of its arguments while @code{list->weak-vector} uses\n"
+	    "its only argument @var{l} (a list) to construct a weak vector\n"
+	    "the same way @code{list->vector} would.")
 #define FUNC_NAME s_scm_weak_vector
 {
   SCM res;
@@ -110,12 +111,12 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
 
 
 SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0, 
-           (SCM x),
+	    (SCM obj),
 	    "Return @code{#t} if @var{obj} is a weak vector. Note that all\n"
 	    "weak hashes are also weak vectors.")
 #define FUNC_NAME s_scm_weak_vector_p
 {
-  return SCM_BOOL(SCM_WVECTP (x) && !SCM_IS_WHVEC (x));
+  return SCM_BOOL(SCM_WVECTP (obj) && !SCM_IS_WHVEC (obj));
 }
 #undef FUNC_NAME
 
@@ -126,18 +127,20 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, 
-           (SCM k),
+	    (SCM size),
 	    "@deffnx primitive make-weak-value-hash-table size\n"
 	    "@deffnx primitive make-doubly-weak-hash-table size\n"
-	    "Return a weak hash table with @var{size} buckets. As with any hash\n"
-	    "table, choosing a good size for the table requires some caution.\n\n"
-	    "You can modify weak hash tables in exactly the same way you would modify\n"
-	    "regular hash tables. (@pxref{Hash Tables})")
+	    "Return a weak hash table with @var{size} buckets. As with any\n"
+	    "hash table, choosing a good size for the table requires some\n"
+	    "caution.\n"
+	    "\n"
+	    "You can modify weak hash tables in exactly the same way you\n"
+	    "would modify regular hash tables. (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_key_hash_table
 {
   SCM v;
-  SCM_VALIDATE_INUM (1,k);
-  v = scm_make_weak_vector (k, SCM_EOL);
+  SCM_VALIDATE_INUM (1, size);
+  v = scm_make_weak_vector (size, SCM_EOL);
   SCM_DEFER_INTS;
   SCM_UNPACK (SCM_VELTS (v)[-1]) = 1;
   SCM_ALLOW_INTS;
@@ -147,14 +150,14 @@ SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 0, 
-            (SCM k),
+            (SCM size),
 	    "Return a hash table with weak values with @var{size} buckets.\n"
 	    "(@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_value_hash_table
 {
   SCM v;
-  SCM_VALIDATE_INUM (1,k);
-  v = scm_make_weak_vector (k, SCM_EOL);
+  SCM_VALIDATE_INUM (1, size);
+  v = scm_make_weak_vector (size, SCM_EOL);
   SCM_DEFER_INTS;
   SCM_UNPACK (SCM_VELTS (v)[-1]) = 2;
   SCM_ALLOW_INTS;
@@ -165,14 +168,14 @@ SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 
 
 
 SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, 
-            (SCM k),
+            (SCM size),
 	    "Return a hash table with weak keys and values with @var{size}\n"
 	    "buckets.  (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_doubly_weak_hash_table
 {
   SCM v;
-  SCM_VALIDATE_INUM (1,k);
-  v = scm_make_weak_vector (k, SCM_EOL);
+  SCM_VALIDATE_INUM (1, size);
+  v = scm_make_weak_vector (size, SCM_EOL);
   SCM_DEFER_INTS;
   SCM_UNPACK (SCM_VELTS (v)[-1]) = 3;
   SCM_ALLOW_INTS;
@@ -181,7 +184,7 @@ SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
-           (SCM x),
+           (SCM obj),
 	    "@deffnx primitive weak-value-hash-table? obj\n"
 	    "@deffnx primitive doubly-weak-hash-table? obj\n"
 	    "Return @code{#t} if @var{obj} is the specified weak hash\n"
@@ -189,27 +192,27 @@ SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0,
 	    "nor a weak value hash table.")
 #define FUNC_NAME s_scm_weak_key_hash_table_p
 {
-  return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC(x));
+  return SCM_BOOL(SCM_WVECTP (obj) && SCM_IS_WHVEC(obj));
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0, 
-            (SCM x),
-	    "Return @code{#t} if @var{x} is a weak value hash table.")
+            (SCM obj),
+	    "Return @code{#t} if @var{obj} is a weak value hash table.")
 #define FUNC_NAME s_scm_weak_value_hash_table_p
 {
-  return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC_V(x));
+  return SCM_BOOL(SCM_WVECTP (obj) && SCM_IS_WHVEC_V(obj));
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0, 
-            (SCM x),
-	    "Return @code{#t} if @var{x} is a doubly weak hash table.")
+            (SCM obj),
+	    "Return @code{#t} if @var{obj} is a doubly weak hash table.")
 #define FUNC_NAME s_scm_doubly_weak_hash_table_p
 {
-  return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC_B (x));
+  return SCM_BOOL(SCM_WVECTP (obj) && SCM_IS_WHVEC_B (obj));
 }
 #undef FUNC_NAME
 

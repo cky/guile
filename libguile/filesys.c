@@ -233,8 +233,8 @@ SCM_DEFINE (scm_umask, "umask", 0, 1, 0,
 
 SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0, 
             (SCM path, SCM flags, SCM mode),
-	    "Similar to @code{open} but returns a file descriptor instead of a\n"
-	    "port.")
+	    "Similar to @code{open} but return a file descriptor instead of\n"
+	    "a port.")
 #define FUNC_NAME s_scm_open_fdes
 {
   int fd;
@@ -466,23 +466,26 @@ scm_stat2scm (struct stat *stat_temp)
 
 SCM_DEFINE (scm_stat, "stat", 1, 0, 0, 
             (SCM object),
-	    "Returns an object containing various information\n"
-	    "about the file determined by @var{obj}.\n"
-	    "@var{obj} can be a string containing a file name or a port or integer file\n"
-	    "descriptor which is open on a file (in which case @code{fstat} is used\n"
-	    "as the underlying system call).\n\n"
-	    "The object returned by @code{stat} can be passed as a single parameter\n"
-	    "to the following procedures, all of which return integers:\n\n"
+	    "Return an object containing various information about the file\n"
+	    "determined by @var{obj}.  @var{obj} can be a string containing\n"
+	    "a file name or a port or integer file descriptor which is open\n"
+	    "on a file (in which case @code{fstat} is used as the underlying\n"
+	    "system call).\n"
+	    "\n"
+	    "The object returned by @code{stat} can be passed as a single\n"
+	    "parameter to the following procedures, all of which return\n"
+	    "integers:\n"
+	    "\n"
 	    "@table @code\n"
 	    "@item stat:dev\n"
 	    "The device containing the file.\n"
 	    "@item stat:ino\n"
-	    "The file serial number, which distinguishes this file from all other\n"
-	    "files on the same device.\n"
+	    "The file serial number, which distinguishes this file from all\n"
+	    "other files on the same device.\n"
 	    "@item stat:mode\n"
-	    "The mode of the file.  This includes file type information\n"
-	    "and the file permission bits.  See @code{stat:type} and @code{stat:perms}\n"
-	    "below.\n"
+	    "The mode of the file.  This includes file type information and\n"
+	    "the file permission bits.  See @code{stat:type} and\n"
+	    "@code{stat:perms} below.\n"
 	    "@item stat:nlink\n"
 	    "The number of hard links to the file.\n"
 	    "@item stat:uid\n"
@@ -501,18 +504,21 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 	    "@item stat:ctime\n"
 	    "The last modification time for the attributes of the file.\n"
 	    "@item stat:blksize\n"
-	    "The optimal block size for reading or writing the file, in bytes.\n"
+	    "The optimal block size for reading or writing the file, in\n"
+	    "bytes.\n"
 	    "@item stat:blocks\n"
-	    "The amount of disk space that the file occupies measured in units of\n"
-	    "512 byte blocks.\n"
-	    "@end table\n\n"
+	    "The amount of disk space that the file occupies measured in\n"
+	    "units of 512 byte blocks.\n"
+	    "@end table\n"
+	    "\n"
 	    "In addition, the following procedures return the information\n"
-	    "from stat:mode in a more convenient form:\n\n"
+	    "from stat:mode in a more convenient form:\n"
+	    "\n"
 	    "@table @code\n"
 	    "@item stat:type\n"
 	    "A symbol representing the type of file.  Possible values are\n"
-	    "regular, directory, symlink, block-special, char-special,\n"
-	    "fifo, socket and unknown\n"
+	    "regular, directory, symlink, block-special, char-special, fifo,\n"
+	    "socket and unknown\n"
 	    "@item stat:perms\n"
 	    "An integer representing the access permission bits.\n"
 	    "@end table")
@@ -685,8 +691,8 @@ scm_bits_t scm_tc16_dir;
 
 SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
             (SCM obj),
-	    "Returns a boolean indicating whether @var{object} is a directory stream\n"
-	    "as returned by @code{opendir}.")
+	    "Return a boolean indicating whether @var{object} is a directory\n"
+	    "stream as returned by @code{opendir}.")
 #define FUNC_NAME s_scm_directory_stream_p
 {
   return SCM_BOOL (SCM_DIRP (obj));
@@ -822,7 +828,7 @@ SCM_DEFINE (scm_chdir, "chdir", 1, 0, 0,
 #ifdef HAVE_GETCWD
 SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
             (),
-	    "Returns the name of the current working directory.")
+	    "Return the name of the current working directory.")
 #define FUNC_NAME s_scm_getcwd
 {
   char *rv;
@@ -1247,9 +1253,8 @@ SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
 #ifdef HAVE_READLINK
 SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0, 
             (SCM path),
-	    "Returns the value of the symbolic link named by\n"
-	    "@var{path} (a string), i.e., the\n"
-	    "file that the link points to.")
+	    "Return the value of the symbolic link named by @var{path} (a\n"
+	    "string), i.e., the file that the link points to.")
 #define FUNC_NAME s_scm_readlink
 {
   int rv;

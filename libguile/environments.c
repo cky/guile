@@ -209,26 +209,26 @@ SCM_DEFINE (scm_environment_fold, "environment-fold", 3, 0, 0,
 	    "@var{init}.\n"
 	    "If @var{env} binds the symbol sym1 to the value val1, sym2 to\n"
 	    "val2, and so on, then this procedure computes:\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "  (proc sym1 val1\n"
 	    "        (proc sym2 val2\n"
 	    "              ...\n"
 	    "              (proc symn valn\n"
 	    "                    init)))\n"
-	    "@end example\n"
+	    "@end lisp\n"
 	    "Each binding in @var{env} will be processed exactly once.\n"
 	    "@code{environment-fold} makes no guarantees about the order in\n"
 	    "which the bindings are processed.\n"
 	    "Here is a function which, given an environment, constructs an\n"
 	    "association list representing that environment's bindings,\n"
 	    "using environment-fold:\n"
-	    "@example\n"
+	    "@lisp\n"
 	    "  (define (environment->alist env)\n"
 	    "    (environment-fold env\n"
 	    "                      (lambda (sym val tail)\n"
 	    "                        (cons (cons sym val) tail))\n"
 	    "                      '()))\n"
-	    "@end example")
+	    "@end lisp")
 #define FUNC_NAME s_scm_environment_fold
 {
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);

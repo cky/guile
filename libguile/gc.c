@@ -151,10 +151,10 @@ scm_assert_cell_valid (SCM cell)
 
 SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 	    (SCM flag),
-	    "If FLAG is #f, cell access checking is disabled.\n"
-	    "If FLAG is #t, cell access checking is enabled.\n"
-	    "This procedure only exists because the compile-time flag\n"
-	    "SCM_DEBUG_CELL_ACCESSES was set to 1.\n")
+	    "If @var{flag} is @code{#f}, cell access checking is disabled.\n"
+	    "If @var{flag} is @code{#t}, cell access checking is enabled.\n"
+	    "This procedure only exists when the compile-time flag\n"
+	    "@code{SCM_DEBUG_CELL_ACCESSES} was set to 1.")
 #define FUNC_NAME s_scm_set_debug_cell_accesses_x
 {
   if (SCM_FALSEP (flag)) {
@@ -644,9 +644,9 @@ scm_check_freelist (SCM freelist)
 
 SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1, 0, 0,
             (SCM flag),
-            "If FLAG is #t, check the freelist for consistency on each cell allocation.\n"
-            "This procedure only exists because the GUILE_DEBUG_FREELIST \n"
-            "compile-time flag was selected.\n")
+	    "If @var{flag} is @code{#t}, check the freelist for consistency\n"
+	    "on each cell allocation.  This procedure only exists when the\n"
+	    "@code{GUILE_DEBUG_FREELIST} compile-time flag was selected.")
 #define FUNC_NAME s_scm_gc_set_debug_check_freelist_x
 {
   /* [cmm] I did a double-take when I read this code the first time.
@@ -745,7 +745,8 @@ compute_cells_allocated ()
 
 SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
             (),
-	    "Returns an association list of statistics about Guile's current use of storage.  ")
+	    "Return an association list of statistics about Guile's current\n"
+	    "use of storage.")
 #define FUNC_NAME s_scm_gc_stats
 {
   int i;

@@ -350,18 +350,19 @@ dynl_obj_print (SCM exp, SCM port, scm_print_state *pstate)
 
 
 SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0, 
-            (SCM fname),
-	    "Open the dynamic library @var{library-file}.  A library handle\n"
-	    "representing the opened library is returned; this handle should be used\n"
-	    "as the @var{lib} argument to the following functions.")
+            (SCM filename),
+	    "Open the dynamic library called @var{filename}.  A library\n"
+	    "handle representing the opened library is returned; this handle\n"
+	    "should be used as the @var{dobj} argument to the following\n"
+	    "functions.")
 #define FUNC_NAME s_scm_dynamic_link
 {
   void *handle;
 
-  SCM_VALIDATE_STRING (1, fname);
-  SCM_STRING_COERCE_0TERMINATION_X (fname);
-  handle = sysdep_dynl_link (SCM_STRING_CHARS (fname), FUNC_NAME);
-  SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (fname), handle);
+  SCM_VALIDATE_STRING (1, filename);
+  SCM_STRING_COERCE_0TERMINATION_X (filename);
+  handle = sysdep_dynl_link (SCM_STRING_CHARS (filename), FUNC_NAME);
+  SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (filename), handle);
 }
 #undef FUNC_NAME
 
@@ -379,13 +380,10 @@ SCM_DEFINE (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0,
 
 SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0, 
             (SCM dobj),
-	    "Unlink the library represented by @var{library-handle},\n"
-	    "and remove any imported symbols from the address space.\n"
-	    "GJB:FIXME:DOC: 2nd version below:\n"
 	    "Unlink the indicated object file from the application.  The\n"
-	    "argument @var{dynobj} must have been obtained by a call to\n"
+	    "argument @var{dobj} must have been obtained by a call to\n"
 	    "@code{dynamic-link}.  After @code{dynamic-unlink} has been\n"
-	    "called on @var{dynobj}, its content is no longer accessible.")
+	    "called on @var{dobj}, its content is no longer accessible.")
 #define FUNC_NAME s_scm_dynamic_unlink
 {
   /*fixme* GC-problem */
@@ -442,19 +440,14 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
 
 SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0, 
             (SCM func, SCM dobj),
-	    "Call @var{lib-thunk}, a procedure of no arguments.  If @var{lib-thunk}\n"
-	    "is a string, it is assumed to be a symbol found in the dynamic library\n"
-	    "@var{lib} and is fetched with @code{dynamic-func}.  Otherwise, it should\n"
-	    "be a function handle returned by a previous call to @code{dynamic-func}.\n"
-	    "The return value is unspecified.\n"
-	    "GJB:FIXME:DOC 2nd version below\n"
-	    "Call the C function indicated by @var{function} and @var{dynobj}.  The\n"
-	    "function is passed no arguments and its return value is ignored.  When\n"
-	    "@var{function} is something returned by @code{dynamic-func}, call that\n"
-	    "function and ignore @var{dynobj}.  When @var{function} is a string (or\n"
-	    "symbol, etc.), look it up in @var{dynobj}; this is equivalent to\n\n"
+	    "Call the C function indicated by @var{func} and @var{dobj}.\n"
+	    "The function is passed no arguments and its return value is\n"
+	    "ignored.  When @var{function} is something returned by\n"
+	    "@code{dynamic-func}, call that function and ignore @var{dobj}.\n"
+	    "When @var{func} is a string , look it up in @var{dynobj}; this\n"
+	    "is equivalent to\n"
 	    "@smallexample\n"
-	    "(dynamic-call (dynamic-func @var{function} @var{dynobj} #f))\n"
+	    "(dynamic-call (dynamic-func @var{func} @var{dobj} #f))\n"
 	    "@end smallexample\n\n"
 	    "Interrupts are deferred while the C function is executing (with\n"
 	    "@code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).")
@@ -474,24 +467,18 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
 
 SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
             (SCM func, SCM dobj, SCM args),
-	    "Call @var{proc}, a dynamically loaded function, passing it the argument\n"
-	    "list @var{args} (a list of strings).  As with @code{dynamic-call},\n"
-	    "@var{proc} should be either a function handle or a string, in which case\n"
-	    "it is first fetched from @var{lib} with @code{dynamic-func}.\n\n"
-	    "@var{proc} is assumed to return an integer, which is used as the return\n"
-	    "value from @code{dynamic-args-call}.\n\n"
-	    "GJB:FIXME:DOC 2nd version below\n"
-	    "Call the C function indicated by @var{function} and @var{dynobj}, just\n"
-	    "like @code{dynamic-call}, but pass it some arguments and return its\n"
-	    "return value.  The C function is expected to take two arguments and\n"
-	    "return an @code{int}, just like @code{main}:\n\n"
+	    "Call the C function indicated by @var{func} and @var{dobj},\n"
+	    "just like @code{dynamic-call}, but pass it some arguments and\n"
+	    "return its return value.  The C function is expected to take\n"
+	    "two arguments and return an @code{int}, just like @code{main}:\n"
 	    "@smallexample\n"
 	    "int c_func (int argc, char **argv);\n"
 	    "@end smallexample\n\n"
-	    "The parameter @var{args} must be a list of strings and is converted into\n"
-	    "an array of @code{char *}.  The array is passed in @var{argv} and its\n"
-	    "size in @var{argc}.  The return value is converted to a Scheme number\n"
-	    "and returned from the call to @code{dynamic-args-call}.")
+	    "The parameter @var{args} must be a list of strings and is\n"
+	    "converted into an array of @code{char *}.  The array is passed\n"
+	    "in @var{argv} and its size in @var{argc}.  The return value is\n"
+	    "converted to a Scheme number and returned from the call to\n"
+	    "@code{dynamic-args-call}.")
 #define FUNC_NAME s_scm_dynamic_args_call
 {
   int (*fptr) (int argc, char **argv);
