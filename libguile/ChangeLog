@@ -1,3 +1,7 @@
+2002-09-01  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* snarf.h (SCM_DEFINE_PUBLIC): New.
+
 2002-08-30  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* socket.c (scm_addr_vector): Added size of address to arguments.

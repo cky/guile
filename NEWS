@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.  -*- text -*-
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -103,9 +103,14 @@ during evaluation, but prior to evaluation.
 
 * Changes to the C interface
 
+** New snarfer macro SCM_DEFINE_PUBLIC.
+
+This is like SCM_DEFINE, but also calls scm_c_export for the defined
+function in the init section.
+
 ** The SCM_VELTS macros now returns a read-only vector. For writing,
-use the new macros SCM_WRITABLE_VELTS, SCM_SET_VECTOR_LENGTH.  The use
-of SCM_WRITABLE_VELTS is discouraged, though.
+use the new macros SCM_WRITABLE_VELTS, SCM_VECTOR_SET.  The use of
+SCM_WRITABLE_VELTS is discouraged, though.
 
 ** Garbage collector rewrite.
 
