@@ -1,3 +1,7 @@
+2003-04-14  Rob Browning  <rlb@defaultvalue.org>
+
+	* tags.h: scm_t_intptr should have been intptr_t.
+
 2003-04-13  Rob Browning  <rlb@defaultvalue.org>
 
 	* __scm.h (SCM_FLUSH_REGISTER_WINDOWS): don't just rely on "sparc"
