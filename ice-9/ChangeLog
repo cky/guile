@@ -1,6 +1,9 @@
 Sun Oct 27 07:47:03 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
-	* boot-9.scm (stat:dev etc.) accessor functions	for stat components.
+	* boot-9.scm (stat:dev, stat:ino, stat:mode, stat:nlink, stat:uid,
+	stat:gid, stat:rdev, stat:size, stat:atime, stat:mtime,
+	stat:ctime, stat:blksize, stat:blocks) accessor functions for stat
+	components.
 	(file-is-directory?): use stat:type.
 
 Fri Oct 25 03:34:47 1996  Jim Blandy  <jimb@floss.cyclic.com>
