@@ -160,7 +160,8 @@ scm_internal_dynamic_wind (scm_guard_t before,
 {
   SCM guards, ans;
   before (guard_data);
-  SCM_NEWSMOB3 (guards, tc16_guards, before, after, guard_data);
+  SCM_NEWSMOB3 (guards, tc16_guards, (scm_bits_t) before, 
+		(scm_bits_t) after, (scm_bits_t) guard_data);
   scm_dynwinds = scm_acons (guards, SCM_BOOL_F, scm_dynwinds);
   ans = inner (inner_data);
   scm_dynwinds = SCM_CDR (scm_dynwinds);
@@ -198,7 +199,7 @@ void
 scm_dowinds (SCM to, long delta)
 {
  tail:
-  if (scm_dynwinds == to);
+  if (SCM_EQ_P (to, scm_dynwinds));
   else if (0 > delta)
     {
       SCM wind_elt;

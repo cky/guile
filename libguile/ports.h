@@ -161,15 +161,16 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_OUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_WRTNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_WRTNG)))
 #define SCM_OPENP(x) (SCM_NIMP(x) && (SCM_OPN & SCM_UNPACK_CAR (x)))
 #define SCM_CLOSEDP(x) (!SCM_OPENP(x))
-#define SCM_PTAB_ENTRY(x) ((scm_port *) SCM_CDR(x))
-#define SCM_SETPTAB_ENTRY(x,ent) SCM_SETCDR ((x), (SCM)(ent))
-#define SCM_STREAM(x) SCM_PTAB_ENTRY(x)->stream
-#define SCM_SETSTREAM(x,s) (SCM_PTAB_ENTRY(x)->stream = (SCM) s)
-#define SCM_FILENAME(x) SCM_PTAB_ENTRY(x)->file_name
-#define SCM_LINUM(x) SCM_PTAB_ENTRY(x)->line_number
-#define SCM_COL(x) SCM_PTAB_ENTRY(x)->column_number
-#define SCM_REVEALED(x) SCM_PTAB_ENTRY(x)->revealed
-#define SCM_SETREVEALED(x,s) (SCM_PTAB_ENTRY(x)->revealed = s)
+
+#define SCM_PTAB_ENTRY(x)         ((scm_port *) SCM_CELL_WORD_1 (x))
+#define SCM_SETPTAB_ENTRY(x,ent)  (SCM_SET_CELL_WORD_1 ((x), (ent)))
+#define SCM_STREAM(x)             (SCM_PTAB_ENTRY(x)->stream)
+#define SCM_SETSTREAM(x,s)        (SCM_PTAB_ENTRY(x)->stream = (SCM) (s))
+#define SCM_FILENAME(x)           (SCM_PTAB_ENTRY(x)->file_name)
+#define SCM_LINUM(x)              (SCM_PTAB_ENTRY(x)->line_number)
+#define SCM_COL(x)                (SCM_PTAB_ENTRY(x)->column_number)
+#define SCM_REVEALED(x)           (SCM_PTAB_ENTRY(x)->revealed)
+#define SCM_SETREVEALED(x,s)      (SCM_PTAB_ENTRY(x)->revealed = (s))
 
 #define SCM_INCLINE(port)  	{SCM_LINUM (port) += 1; SCM_COL (port) = 0;}
 #define SCM_INCCOL(port)  	{SCM_COL (port) += 1;}

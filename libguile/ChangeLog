@@ -1,3 +1,21 @@
+2000-03-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* arbiters.c (scm_make_arbiter), async.c (scm_async), dynwind.c
+	(scm_internal_dynamic_wind):  Smob data is always of type
+	scm_bits_t.
+
+	* arbiters.c (SCM_ARB_LOCKED, SCM_LOCK_ARB, SCM_UNLOCK_ARB):
+	Access the locking information in cell entry 0 with
+	SCM_{SET_}?CELL_WORD_0 instead of SCM_*CAR.
+
+	* async.c (scm_run_asyncs):  Use SCM_NULLP to test for the empty
+	list.
+
+	* dynwind.c (scm_dowinds):  Use SCM_EQ_P to compare SCM values.
+
+	* ports.h (SCM_PTAB_ENTRY, SCM_SETPTAB_ENTRY):  Access the ptab
+	entry data using SCM_{SET_}?CELL_WORD_1 instead of SCM_{SET}?CDR.
+
 2000-03-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* alist.c (scm_sloppy_assq, scm_assq), eq.c (scm_eq_p, scm_eqv_p,

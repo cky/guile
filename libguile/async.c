@@ -298,7 +298,7 @@ SCM_DEFINE (scm_async, "async", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_async
 {
-  SCM_RETURN_NEWSMOB2 (scm_tc16_async, 0, thunk);
+  SCM_RETURN_NEWSMOB2 (scm_tc16_async, 0, SCM_UNPACK (thunk));
 }
 #undef FUNC_NAME
 
@@ -368,7 +368,7 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 #else
   scm_asyncs_pending_p = 0;
 #endif
-  while (list_of_a != SCM_EOL)
+  while (! SCM_NULLP (list_of_a))
     {
       SCM a;
       struct scm_async * it;

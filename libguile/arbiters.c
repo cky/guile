@@ -63,9 +63,9 @@
 static long scm_tc16_arbiter;
 
 
-#define SCM_ARB_LOCKED(arb) ((SCM_UNPACK_CAR (arb)) & (1L << 16))
-#define SCM_LOCK_ARB(arb) SCM_SETCAR (arb, (SCM) (scm_tc16_arbiter | (1L << 16)));
-#define SCM_UNLOCK_ARB(arb) SCM_SETCAR (arb, (SCM) scm_tc16_arbiter);
+#define SCM_ARB_LOCKED(arb)  ((SCM_CELL_WORD_0 (arb)) & (1L << 16))
+#define SCM_LOCK_ARB(arb)    (SCM_SET_CELL_WORD_0 ((arb), scm_tc16_arbiter | (1L << 16)));
+#define SCM_UNLOCK_ARB(arb)  (SCM_SET_CELL_WORD_0 ((arb), scm_tc16_arbiter));
 
 static int 
 prinarb (SCM exp, SCM port, scm_print_state *pstate)
@@ -84,7 +84,7 @@ SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0,
 "Arbiters are a way to achieve process synchronization.")
 #define FUNC_NAME s_scm_make_arbiter
 {
-  SCM_RETURN_NEWSMOB (scm_tc16_arbiter, name);
+  SCM_RETURN_NEWSMOB (scm_tc16_arbiter, SCM_UNPACK (name));
 }
 #undef FUNC_NAME
 
