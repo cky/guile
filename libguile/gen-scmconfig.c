@@ -34,6 +34,13 @@
 
    Notes and guidelines:
 
+   - use 1 and 0 for public #defines instead of "def and undef",
+     i.e. use #define SCM_HAVE_FOO rather than just not defining
+     SCM_HAVE_FOO whenever possible.  See GNU Coding Guidelines for
+     rationale.  The only notable non-deprecated exceptions to this
+     rule are GUILE_DEBUG and GUILE_DEBUG_FREELIST which do not follow
+     this convention in order to retain backward compatibility.
+
    - in the code below, be *VERY* careful not to use or rely on any
      runtime-dynamic information below.  For example, you cannot use
      sizeof (FOO), but must use static information like SIZEOF_BAR
@@ -159,7 +166,7 @@ main (int argc, char *argv[])
 
   pf("\n");
 #ifdef STDC_HEADERS
-  pf ("#define SCM_HAVE_STDC_HEADERS 1 /* defined or undefined */\n");
+  pf ("#define SCM_HAVE_STDC_HEADERS 1 /* 0 or 1 */\n");
   pf ("#include <stdlib.h>\n");
 # if HAVE_SYS_TYPES_H
   pf ("#include <sys/types.h>\n");
@@ -169,38 +176,38 @@ main (int argc, char *argv[])
 # endif
   pf ("#include <stddef.h>\n");
 #else /* STDC_HEADERS */
-  pf ("/* #undef SCM_HAVE_STDC_HEADERS */");
+  pf ("#define SCM_HAVE_STDC_HEADERS 0 /* 0 or 1 */");
 #endif /* def STDC_HEADERS */
 
   pf("\n");
 #ifdef HAVE_SYS_SELECT_H
-  pf ("#define SCM_HAVE_SYS_SELECT_H 1 /* defined or undefined */\n");
+  pf ("#define SCM_HAVE_SYS_SELECT_H 1 /* 0 or 1 */\n");
 #else
-  pf ("/* #undef SCM_HAVE_SYS_SELECT_H */\n");
+  pf ("#define SCM_HAVE_SYS_SELECT_H 0 /* 0 or 1 */\n");
 #endif
 
 #ifdef HAVE_FLOATINGPOINT_H
-  pf ("#define SCM_HAVE_FLOATINGPOINT_H 1 /* defined or undefined */\n");
+  pf ("#define SCM_HAVE_FLOATINGPOINT_H 1 /* 0 or 1 */\n");
 #else
-  pf ("/* #undef SCM_HAVE_FLOATINGPOINT_H */\n");
+  pf ("#define SCM_HAVE_FLOATINGPOINT_H 0 /* 0 or 1 */\n");
 #endif
 
 #ifdef HAVE_IEEEFP_H
-  pf ("#define SCM_HAVE_IEEEFP_H 1 /* defined or undefined */\n");
+  pf ("#define SCM_HAVE_IEEEFP_H 1 /* 0 or 1 */\n");
 #else
-  pf ("/* #undef SCM_HAVE_IEEEFP_H */\n");
+  pf ("#define SCM_HAVE_IEEEFP_H 0 /* 0 or 1 */\n");
 #endif
 
 #ifdef HAVE_NAN_H
-  pf ("#define SCM_HAVE_NAN_H 1 /* defined or undefined */\n");
+  pf ("#define SCM_HAVE_NAN_H 1 /* 0 or 1 */\n");
 #else
-  pf ("/* #undef SCM_HAVE_NAN_H */\n");
+  pf ("#define SCM_HAVE_NAN_H 0 /* 0 or 1 */\n");
 #endif
 
 #ifdef HAVE_WINSOCK2_H
-  pf ("#define SCM_HAVE_WINSOCK2_H 1 /* defined or undefined */\n");
+  pf ("#define SCM_HAVE_WINSOCK2_H 1 /* 0 or 1 */\n");
 #else
-  pf ("/* #undef SCM_HAVE_WINSOCK2_H */\n");
+  pf ("#define SCM_HAVE_WINSOCK2_H 0 /* 0 or 1 */\n");
 #endif
 
 
@@ -212,7 +219,7 @@ main (int argc, char *argv[])
   else
     pf ("/* #undef GUILE_DEBUG */\n");
   
-  /*** GUILE_DEBUG_FREELIST (defined or undefined) ***/
+  /*** GUILE_DEBUG_FREELIST (deined or undefined) ***/
   pf ("\n");
   pf ("/* Define this to debug the free list (helps w/ GC bugs). */\n");
   if (SCM_I_GSC_GUILE_DEBUG_FREELIST)
@@ -226,29 +233,21 @@ main (int argc, char *argv[])
   pf ("/* (value will be 0 or 1). */\n");
   pf ("#define SCM_ENABLE_DEPRECATED %d\n", SCM_I_GSC_ENABLE_DEPRECATED);
 
-  /*** SCM_ENABLE_ELISP (defined or undefined) ***/
+  /*** SCM_ENABLE_ELISP (0 or 1) ***/
   pf ("\n");
-  pf ("/* Define this for Elisp support (in addition to Scheme). */\n");
-  if (SCM_I_GSC_ENABLE_ELISP)
-    pf ("#define SCM_ENABLE_ELISP 1 /* defined or undefined */\n");
-  else
-    pf ("/* #undef SCM_ENABLE_ELISP */\n");
+  pf ("/* Set to 1 to add Elisp support (in addition to Scheme). */\n");
+  pf ("#define SCM_ENABLE_ELISP %d /* 0 or 1 */\n", SCM_I_GSC_ENABLE_ELISP);
 
-  /*** SCM_HAVE_ARRAYS (defined or undefined) ***/
+  /*** SCM_HAVE_ARRAYS (0 or 1) ***/
   pf ("\n");
-  pf ("/* Define this to add support for arrays and uniform arrays. */\n");
-  if (SCM_I_GSC_HAVE_ARRAYS)
-    pf ("#define SCM_HAVE_ARRAYS 1 /* defined or undefined */\n");
-  else
-    pf ("/* #undef SCM_HAVE_ARRAYS */\n");
+  pf ("/* Set to 1 to add support for arrays and uniform arrays. */\n");
+  pf ("#define SCM_HAVE_ARRAYS %d /* 0 or 1 */\n", SCM_I_GSC_HAVE_ARRAYS);
 
-  /*** SCM_STACK_GROWS_UP (defined or undefined) ***/
+  /*** SCM_STACK_GROWS_UP (0 or 1) ***/
   pf ("\n");
-  pf ("/* Define this to add support for arrays and uniform arrays. */\n");
-  if (SCM_I_GSC_STACK_GROWS_UP)
-    pf ("#define SCM_STACK_GROWS_UP 1 /* defined or undefined */\n");
-  else
-    pf ("/* #undef SCM_STACK_GROWS_UP */\n");
+  pf ("/* Set to 1 if the stack grows up, 0 otherwise. */\n");
+  pf ("#define SCM_STACK_GROWS_UP %d /* 0 or 1 */\n",
+      SCM_I_GSC_STACK_GROWS_UP);
 
   /*** SCM_C_INLINE (defined to appropriate string or undefined) ***/
   pf ("\n");
@@ -288,26 +287,28 @@ main (int argc, char *argv[])
   pf ("typedef %s scm_t_uint32;\n", SCM_I_GSC_T_UINT32);
 
   pf ("\n");
-  pf ("/* 64-bit integer -- if available SCM_T_INT64 will be defined and\n"
-      "   scm_t_int64 will be a suitable type. */\n");
+  pf ("/* 64-bit integer -- if available SCM_HAVE_T_INT64 will be 1 and\n"
+      "   scm_t_int64 will be a suitable type, otherwise SCM_HAVE_T_INT64\n"
+      "   will be 0. */\n");
   if (SCM_I_GSC_T_INT64)
   {
-    pf ("#define SCM_HAVE_T_INT64 1\n");
+    pf ("#define SCM_HAVE_T_INT64 1 /* 0 or 1 */\n");
     pf ("typedef %s scm_t_int64;\n", SCM_I_GSC_T_INT64);
   }
   else
-    pf ("/* #undef SCM_HAVE_T_INT64 */\n");
+    pf ("#define SCM_HAVE_T_INT64 0 /* 0 or 1 */\n");
 
   pf ("\n");
-  pf ("/* 64-bit unsigned integer -- if available SCM_T_INT64 will be\n"
-      "   defined and scm_t_uint64 will be a suitable type. */\n");
+  pf ("/* 64-bit unsigned integer -- if available SCM_HAVE_T_UINT64 will\n"
+      "   be 1 and scm_t_uint64 will be a suitable type, otherwise\n"
+      "   SCM_HAVE_T_UINT64 will be 0. */\n");
   if (SCM_I_GSC_T_UINT64)
   {
-    pf ("#define SCM_HAVE_T_UINT64 1\n");
+    pf ("#define SCM_HAVE_T_UINT64 1 /* 0 or 1 */\n");
     pf ("typedef %s scm_t_uint64;\n", SCM_I_GSC_T_UINT64);
   }
   else
-    pf ("/* #undef SCM_HAVE_T_UINT64 */\n");
+    pf ("#define SCM_HAVE_T_UINT64 0 /* 0 or 1 */\n");
 
   pf ("\n");
   pf ("/* scm_t_ptrdiff_t and size, always defined -- defined to long if\n"
@@ -341,23 +342,17 @@ main (int argc, char *argv[])
   pf ("\n");
   pf ("/*** Threading model (scmconfig.h support not finished) ***/\n");
 
-  pf ("/* Define if using pthread multithreading. */\n");
-  if (SCM_I_GSC_USE_PTHREAD_THREADS)
-    pf ("#define SCM_USE_PTHREAD_THREADS 1 /* defined or undefined */\n");
-  else
-    pf ("/* #undef SCM_USE_PTHREAD_THREADS */\n");
+  pf ("/* Define to 1 if using pthread multithreading. */\n");
+  pf ("#define SCM_USE_PTHREAD_THREADS %d /* 0 or 1 */\n",
+      SCM_I_GSC_USE_PTHREAD_THREADS);
 
-  pf ("/* Define if using one-thread 'multi'threading. */\n");
-  if (SCM_I_GSC_USE_NULL_THREADS)
-    pf ("#define SCM_USE_NULL_THREADS 1 /* defined or undefined */\n");
-  else
-    pf ("/* #undef SCM_USE_NULL_THREADS */\n");
+  pf ("/* Define to 1 if using one-thread 'multi'threading. */\n");
+  pf ("#define SCM_USE_NULL_THREADS %d /* 0 or 1 */\n",
+      SCM_I_GSC_USE_NULL_THREADS);
 
   pf ("/* FIXME: what is this used for now? */\n");
-  if (SCM_I_GSC_USE_COOP_THREADS)
-    pf ("#define SCM_USE_COOP_THREADS 1 /* defined or undefined */\n");
-  else
-    pf ("/* #undef SCM_USE_COOP_THREADS */\n");
+  pf ("#define SCM_USE_COOP_THREADS %d /* 0 or 1 */\n",
+      SCM_I_GSC_USE_COOP_THREADS);
 
 #if USE_DLL_IMPORT
   pf ("\n");
