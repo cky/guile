@@ -965,12 +965,31 @@ scm_seek (SCM object, SCM offset, SCM whence)
 			scm_cons (object, SCM_EOL));
       else
 	{
-	  if (pt->rw_active == SCM_PORT_READ)
-	    scm_end_input (object);
-	  else if (pt->rw_active == SCM_PORT_WRITE)
-	    ptob->flush (object);
+	  /* there's no need to worry about what happens to the buffers
+	     if the port isn't random-access: seek will fail anyway.  */
+	  if (off == 0 && how == SEEK_CUR)
+	    {
+	      /* special case to avoid discarding put-back chars when
+		 reading current position.  */
+	      rv = ptob->seek (object, off, how);
+	      if (pt->rw_active == SCM_PORT_READ)
+		{
+		  rv -= pt->read_end - pt->read_pos;
+		  if (pt->read_buf == pt->putback_buf)
+		    rv -= pt->saved_read_end - pt->saved_read_pos;
+		}
+	      else if (pt->rw_active == SCM_PORT_WRITE)
+		rv += pt->write_pos - pt->write_buf;
+	    }
+	  else
+	    {
+	      if (pt->rw_active == SCM_PORT_READ)
+		scm_end_input (object);
+	      else if (pt->rw_active == SCM_PORT_WRITE)
+		ptob->flush (object);
 	  
-	  rv = ptob->seek (object, off, how);
+	      rv = ptob->seek (object, off, how);
+	    }
 	}
     }
   else /* file descriptor?.  */
