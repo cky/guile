@@ -1,26 +1,26 @@
-;;;; 	Copyright (C) 1997, 2000 Free Software Foundation, Inc.
-;;;; 
+;;;; 	Copyright (C) 1997, 2000, 2001 Free Software Foundation, Inc.
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
-;;;; 
+;;;;
 
 
 (define-module (ice-9 session)
   :use-module (ice-9 documentation)
   :use-module (ice-9 regex)
-  )
+  :use-module (ice-9 rdelim))
 
 
 
@@ -54,10 +54,36 @@ You don't seem to have regular expressions installed.\n"))
 			(if (not doc)
 			    (simple-format #t "No documentation found for ~S\n"
 					   (cadr name))
-			    (write-line doc))))
+                            (write-line doc))))
+                     ((and (list? name)
+                           (and-map symbol? name)
+                           (not (null? name))
+                           (not (eq? (car name) 'quote)))
+                      (let ((doc (module-commentary name)))
+                        (if (not doc)
+                            (simple-format
+                             #t "No commentary found for module ~S\n" name)
+                            (begin
+                              (display name) (write-line " commentary:")
+                              (write-line doc)))))
 		     (else
 		      (help-usage)))
 	       *unspecified*))))))
+
+(define (module-filename name)          ; fixme: better way? / done elsewhere?
+  (let* ((name (map symbol->string name))
+         (reverse-name (reverse name))
+	 (leaf (car reverse-name))
+	 (dir-hint-module-name (reverse (cdr reverse-name)))
+	 (dir-hint (apply string-append
+                          (map (lambda (elt)
+                                 (string-append elt "/"))
+                               dir-hint-module-name))))
+    (%search-load-path (in-vicinity dir-hint leaf))))
+
+(define (module-commentary name)
+  (cond ((module-filename name) => file-commentary)
+        (else #f)))
 
 (define (help-doc term regexp)
   (let ((entries (apropos-fold (lambda (module name object data)
@@ -178,8 +204,6 @@ where OPTIONSET is one of debug, read, eval, print
 ;;; Author: Roland Orre <orre@nada.kth.se>
 ;;;
 
-(define (id x) x)
-
 (define-public (apropos rgx . options)
   "Search for bindings: apropos regexp {options= 'full 'shadow 'value}"
   (if (zero? (string-length rgx))
@@ -202,7 +226,7 @@ where OPTIONSET is one of debug, read, eval, print
 			       (builtin-bindings)
 			       (module-obarray module)))
 		  (get-ref (if builtin
-			       id
+			       identity
 			       variable-ref)))
 	     (array-for-each
 	      (lambda (oblist)
