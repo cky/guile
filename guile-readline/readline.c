@@ -495,7 +495,7 @@ scm_init_readline ()
   rl_completion_entry_function = (Function*) completion_function;
   rl_basic_word_break_characters = "\t\n\"'`;()";
 #ifdef USE_THREADS
-  scm_mutex_init (&reentry_barrier_mutex, NULL);
+  scm_mutex_init (&reentry_barrier_mutex);
 #endif
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts,
