@@ -2694,15 +2694,11 @@ scm_init_goops (void)
   scm_set_current_module (old_module);
 }
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
 void
 scm_init_oop_goops_goopscore_module ()
 {
   scm_register_module_xxx ("oop goops goopscore", (void *) scm_init_goops);
 }
-
-#endif /* (SCM_DEBUG_DEPRECATED == 0) */
 
 /*
   Local Variables:
