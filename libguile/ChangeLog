@@ -1,4 +1,48 @@
-2000-08-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+2000-08-11  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* eval.c (scm_eval): Backward incompatible change: Now takes an
+	environment specifier as second arg.  `eval' hereby becomes R5RS
+	compatible.
+	(scm_i_eval_x, scm_i_eval): New functions (replace
+	scm_eval_3).
+	(scm_eval2, scm_eval_3): Deprecated.
+	(scm_top_level_lookup_closure_var): Deprecated.
+
+	* eval.h: #include "struct.h".
+
+	* evalext.c (scm_definedp): Have to work before module system is
+	booted.
+
+	* modules.h (SCM_MODULEP, SCM_VALIDATE_MODULE,
+	SCM_MODULE_OBARRAY, SCM_MODULE_USES, SCM_MODULE_BINDER,
+	SCM_MODULE_EVAL_CLOSURE): New macros.
+	(scm_module_index_obarray, scm_module_index_uses,
+	scm_module_index_binder, scm_module_index_eval_closure): New
+	constants; #include "validate.h".
+	
+	* modules.c (scm_module_tag, scm_module_system_booted_p): New
+	globals.
+	(scm_post_boot_init_modules): Initialize scm_module_tag.
+	(scm_interaction_environment): New primitive.
+
+	* symbols.c (scm_can_use_top_level_lookup_closure_var): Removed.
+	#include "modules.h".
+
+	* strports.c (scm_eval_string): Evaluate in
+	scm_interaction_environment ().
+
+	* script.c (scm_shell): Pass scm_the_root_module () as second arg
+	to new scm_eval_x.
+
+	* load.c (load): Use `scm_selected_module' to compute second arg
+	to new scm_i_eval_x; Don't call it if module system hasn't booted.
+	(scm_read_and_eval_x): Deprecated.
+	#include "modules.h".
+
+	* debug.c (scm_local_eval): Use scm_i_eval and scm_i_eval_x.
+	(scm_start_stack): Use scm_i_eval.
+
+	* strports.c: #include "modules.h".
 
 	* print.c (scm_simple_format): Be case-insensitive for ~A and ~S
 	directives.

@@ -17,6 +17,13 @@ After signal handling and threading have been fixed:
   GUILE_OLD_ASYNC_CLICK macro.
 
 In release 1.5:
+- remove deprecated variables:
+    scm_top_level_lookup_closure_var
+- remove deprecated functions:
+    eval.c: scm_eval2, scm_eval_3
+    load.c: scm_read_and_eval_x
+- remove deprecated procedures:
+    boot-9.scm:eval-in-module
 - remove deprecated macros: SCM_INPORTP, SCM_OUTPORTP, SCM_CRDY, SCM_ICHRP,
   SCM_ICHR, SCM_MAKICHR, SCM_SETJMPBUF, SCM_NSTRINGP, SCM_NRWSTRINGP,
   SCM_NVECTORP

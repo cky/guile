@@ -1,4 +1,24 @@
+2000-08-11  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* boot-9.scm (record-constructor, record-accessor,
+	record-modifier, scm-style-repl): Add second arg to eval.
+	(read-hash-extend #\.): Ditto.  (This is actually a bugfix!)
+	(eval-in-module): Redefined to be eval and deprecated.
+
+	* syncase.scm (eval): Add second arg both in definition and use.
+
+	* slib.scm (slib:eval): Use eval instead of eval-in-module.
+	(defmacro:eval): Eval in (interaction-environment).
+
+	* safe-r5rs.scm (eval): Removed definition.
+
+	* emacs.scm (emacs-eval-request): 
+	(emacs-symdoc): (This procedure needs updating!)
+
 2000-08-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* boot-9.scm: Added note about dependency in modules.h to
+	definition of module-type.
 
 	* Makefile.am (ice9_sources): Added receive.scm, srfi-8.scm.
 
