@@ -41,6 +41,36 @@
 	   (= (string-length (format "~@F~20T" 1)) 20)))
 
 ;;;
+;;; ~d
+;;;
+
+(with-test-prefix "~d decimal integer"
+
+  (with-test-prefix "~@d"
+
+    (pass-if "-1"
+      (string=? (format #f "~@d" -1) "-1"))
+    ;; in guile 1.6.4 and earlier, ~@d gave "0" but we think "+0" is what the
+    ;; common lisp spec intendes
+    (pass-if "+0"
+      (string=? (format #f "~@d" 0) "+0"))
+
+    (pass-if "+1"
+      (string=? (format #f "~@d" 1) "+1"))))
+
+;;;
+;;; ~t
+;;;
+
+(with-test-prefix "~t column advance"
+
+  ;; in guile 1.6.4 and earlier, a newline as a fill character didn't zero
+  ;; the column number, making a subsequent ~t wrong
+  (pass-if "newline as fill character"
+    (string=? (format #f "~6,'\nd~8tX" 123)
+	      "\n\n\n123     X")))
+
+;;;
 ;;; ~{
 ;;;
 
