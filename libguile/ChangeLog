@@ -1,3 +1,19 @@
+Fri Mar  7 19:38:18 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Added code sections for handling of asubrs
+	with 3 or more args internally to the evaluator.  This is mainly
+	because we don't want to pass entry and exit points of the
+	debug support twice, but it also seems to increase the speed of
+	the evaluator for such calls (e. g. (+ 1 2 3)).
+
+*	* backtrace.c (scm_display_application): New procedure:
+	display-application; Set fancy printing parameters individually
+	for different types of display (backtrace, error, application).
+	(These should of course be customizable!)
+
+	* debug.h (SCM_RESET_DEBUG_MODE): Bugfix: The old code didn't
+ 	clear the CHECK-flags.
+
 Thu Mar  6 00:53:02 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* tags.h, eval.c (iqq): Fixes to comments about SCM_ECONSP.
