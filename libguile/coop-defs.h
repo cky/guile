@@ -85,9 +85,7 @@ struct qt_t;
 
 typedef struct coop_t {
   struct qt_t *sp;       /* QuickThreads handle. */
-#ifndef GUILE_PTHREAD_COMPAT
   void *sto;             /* `malloc'-allocated stack. */
-#endif
 
   struct coop_t *next;    /* Next thread in the queue. */
 
