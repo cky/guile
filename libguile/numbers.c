@@ -859,7 +859,7 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, SCM_BIGSIGNFLAG);
 	}
 # else
-	SCM_BIGDIG zdigs [DIGSPERLONG];
+	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
 	scm_longdigs (nn1, zdigs);
 	if ((!(nn1 < 0)) && !SCM_BIGSIGN (n2)) {
 	  return scm_big_ior (zdigs, SCM_DIGSPERLONG, 
