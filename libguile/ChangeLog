@@ -1,5 +1,9 @@
 Wed Sep 24 22:09:52 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* ramap.c (scm_array_map): Renamed to scm_array_map_x.  Removed
+ 	Scheme-level name `array-map' and renamed `serial-array-map' to
+ 	`serial-array-map!'.
+
 	* backtrace.c: Introduced exception handlers which now enclose
 	`display-error' and `display-backtrace' so that error reporting
 	won't get into infinite loops if an error occurs during displaying

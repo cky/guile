@@ -1645,34 +1645,33 @@ ramap_a (ra0, proc, ras)
   return 1;
 }
 
-SCM_PROC(s_serial_array_map, "serial-array-map", 2, 0, 1, scm_array_map);
-SCM_PROC(s_array_map, "array-map", 2, 0, 1, scm_array_map);
-SCM_PROC(s_array_map_x, "array-map!", 2, 0, 1, scm_array_map);
+SCM_PROC(s_serial_array_map_x, "serial-array-map!", 2, 0, 1, scm_array_map_x);
+SCM_PROC(s_array_map_x, "array-map!", 2, 0, 1, scm_array_map_x);
 
 SCM
-scm_array_map (ra0, proc, lra)
+scm_array_map_x (ra0, proc, lra)
      SCM ra0;
      SCM proc;
      SCM lra;
 {
-  SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc), proc, SCM_ARG2, s_array_map);
+  SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc), proc, SCM_ARG2, s_array_map_x);
   switch (SCM_TYP7 (proc))
       {
       default:
       gencase:
-	scm_ramapc (ramap, proc, ra0, lra, s_array_map);
+	scm_ramapc (ramap, proc, ra0, lra, s_array_map_x);
 	return SCM_UNSPECIFIED;
       case scm_tc7_subr_1:
-	scm_ramapc (ramap_1, proc, ra0, lra, s_array_map);
+	scm_ramapc (ramap_1, proc, ra0, lra, s_array_map_x);
 	return SCM_UNSPECIFIED;
       case scm_tc7_subr_2:
       case scm_tc7_subr_2o:
-	scm_ramapc (ramap_2o, proc, ra0, lra, s_array_map);
+	scm_ramapc (ramap_2o, proc, ra0, lra, s_array_map_x);
 	return SCM_UNSPECIFIED;
       case scm_tc7_cxr:
 	if (!SCM_SUBRF (proc))
 	  goto gencase;
-	scm_ramapc (ramap_cxr, proc, ra0, lra, s_array_map);
+	scm_ramapc (ramap_cxr, proc, ra0, lra, s_array_map_x);
 	return SCM_UNSPECIFIED;
       case scm_tc7_rpsubr:
 	{
@@ -1685,14 +1684,14 @@ scm_array_map (ra0, proc, lra)
 	      {
 		while (SCM_NNULLP (lra) && SCM_NNULLP (SCM_CDR (lra)))
 		  {
-		    scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, s_array_map);
+		    scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, s_array_map_x);
 		    lra = SCM_CDR (lra);
 		  }
 		return SCM_UNSPECIFIED;
 	      }
 	  while (SCM_NNULLP (lra) && SCM_NNULLP (SCM_CDR (lra)))
 	    {
-	      scm_ramapc (ramap_rp, proc, ra0, lra, s_array_map);
+	      scm_ramapc (ramap_rp, proc, ra0, lra, s_array_map_x);
 	      lra = SCM_CDR (lra);
 	    }
 	  return SCM_UNSPECIFIED;
@@ -1733,22 +1732,22 @@ scm_array_map (ra0, proc, lra)
 	      if (proc == p->sproc)
 		{
 		  if (ra0 != SCM_CAR (lra))
-		    scm_ramapc (scm_array_identity, SCM_UNDEFINED, ra0, scm_cons (SCM_CAR (lra), SCM_EOL), s_array_map);
+		    scm_ramapc (scm_array_identity, SCM_UNDEFINED, ra0, scm_cons (SCM_CAR (lra), SCM_EOL), s_array_map_x);
 		  lra = SCM_CDR (lra);
 		  while (1)
 		    {
-		      scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, s_array_map);
+		      scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, s_array_map_x);
 		      if (SCM_IMP (lra) || SCM_IMP (SCM_CDR (lra)))
 			return SCM_UNSPECIFIED;
 		      lra = SCM_CDR (lra);
 		    }
 		}
-	    scm_ramapc (ramap_2o, proc, ra0, lra, s_array_map);
+	    scm_ramapc (ramap_2o, proc, ra0, lra, s_array_map_x);
 	    lra = SCM_CDR (lra);
 	    if SCM_NIMP
 	      (lra)
 		for (lra = SCM_CDR (lra); SCM_NIMP (lra); lra = SCM_CDR (lra))
-		  scm_ramapc (ramap_a, proc, ra0, lra, s_array_map);
+		  scm_ramapc (ramap_a, proc, ra0, lra, s_array_map_x);
 	  }
 	return SCM_UNSPECIFIED;
       }

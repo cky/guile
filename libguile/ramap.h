@@ -63,7 +63,7 @@ extern int scm_ra_difference SCM_P ((SCM ra0, SCM ras));
 extern int scm_ra_product SCM_P ((SCM ra0, SCM ras));
 extern int scm_ra_divide SCM_P ((SCM ra0, SCM ras));
 extern int scm_array_identity SCM_P ((SCM src, SCM dst));
-extern SCM scm_array_map SCM_P ((SCM ra0, SCM proc, SCM lra));
+extern SCM scm_array_map_x SCM_P ((SCM ra0, SCM proc, SCM lra));
 extern SCM scm_array_for_each SCM_P ((SCM proc, SCM ra0, SCM lra));
 extern SCM scm_array_index_map_x SCM_P ((SCM ra, SCM proc));
 extern SCM scm_raequal SCM_P ((SCM ra0, SCM ra1));
