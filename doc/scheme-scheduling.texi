@@ -309,29 +309,29 @@ and signals are unmasked with @code{unmask-signals}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "make-thread")
-@deffn macro make-thread fn [args@dots{}]
-Apply @var{fn} to @var{args} in a new thread formed by
-@code{call-with-new-thread} using @var{%thread-handler} as the error
+@deffn macro make-thread proc [args@dots{}]
+Apply @var{proc} to @var{args} in a new thread formed by
+@code{call-with-new-thread} using @code{%thread-handler} as the error
 handler.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "begin-thread")
 @deffn macro begin-thread first [rest@dots{}]
 Evaluate forms @var{first} and @var{rest} in a new thread formed by
-@code{call-with-new-thread} using @var{%thread-handler} as the error
+@code{call-with-new-thread} using @code{%thread-handler} as the error
 handler.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "with-mutex")
 @deffn macro with-mutex m [body@dots{}]
 Lock mutex @var{m}, evaluate @var{body}, and then unlock @var{m}.
-These sub-operations form the branches of a @var{dynamic-wind}.
+These sub-operations form the branches of a @code{dynamic-wind}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "monitor")
 @deffn macro monitor first [rest@dots{}]
 Evaluate forms @var{first} and @var{rest} under a newly created
-anonymous mutex, using @var{with-mutex}.
+anonymous mutex, using @code{with-mutex}.
 
 [FIXME: Is there any way to access the mutex?]
 @end deffn
