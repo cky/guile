@@ -1010,8 +1010,16 @@ scm_getc (SCM port)
 
   switch (c)
     {
+      case '\a':
+        break;
+      case '\b':
+        SCM_DECCOL (port);
+        break;
       case '\n':
         SCM_INCLINE (port);
+        break;
+      case '\r':
+        SCM_ZEROCOL (port);
         break;
       case '\t':
         SCM_TABCOL (port);
@@ -1053,8 +1061,16 @@ scm_lfwrite (const char *ptr, size_t size, SCM port)
   ptob->write (port, ptr, size);
 
   for (; size; ptr++, size--) {
-    if (*ptr == '\n') {
+    if (*ptr == '\a') {
+    }
+    else if (*ptr == '\b') {
+      SCM_DECCOL(port);
+    }
+    else if (*ptr == '\n') {
       SCM_INCLINE(port);
+    }
+    else if (*ptr == '\r') {
+      SCM_ZEROCOL(port);
     }
     else if (*ptr == '\t') {
       SCM_TABCOL(port);
