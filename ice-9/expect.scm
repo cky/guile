@@ -48,7 +48,7 @@
 ;;   variables: expect-port, expect-timeout, expect-timeout-proc,
 ;;              expect-eof-proc, expect-char-proc,
 ;;              expect-strings-compile-flags, expect-strings-exec-flags,
-;;      macros: expect
+;;      macros: expect, expect-strings
 
 ;;; Code:
 
