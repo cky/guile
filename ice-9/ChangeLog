@@ -1,3 +1,8 @@
+2001-11-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* format.scm (string-index, list-head): Removed, we already these
+	in the core.
+
 2001-11-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (turn-on-debugging): New function, to be used by
