@@ -288,7 +288,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   else
     str = scm_c_substring (str, 0, str_len);
 
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   z = scm_new_port_table_entry (scm_tc16_strport);
   pt = SCM_PTAB_ENTRY(z);
   SCM_SETSTREAM (z, SCM_UNPACK (str));
@@ -301,7 +301,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 
   pt->rw_random = 1;
 
-  scm_mutex_unlock (&scm_i_port_table_mutex);
+  pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   /* ensure write_pos is writable. */
   if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)

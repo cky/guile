@@ -144,6 +144,7 @@ Perhaps this would work better with an explicit markstack?
 
 
 */
+
 void
 scm_gc_mark_dependencies (SCM p)
 #define FUNC_NAME "scm_gc_mark_dependencies"
@@ -154,7 +155,7 @@ scm_gc_mark_dependencies (SCM p)
 
   ptr = p;
  scm_mark_dependencies_again:
-  
+
   cell_type = SCM_GC_CELL_TYPE (ptr);
   switch (SCM_ITAG7 (cell_type))
     {
@@ -414,15 +415,16 @@ gc_mark_loop:
 	abort();
       }
   }
-  
- if (SCM_GC_MARK_P (ptr))
-  {
-    return;
-  }
+
+  if (SCM_GC_MARK_P (ptr))
+    {
+      return;
+    }
   
   SCM_SET_GC_MARK (ptr);
+  
 
-  goto   scm_mark_dependencies_again;
+  goto scm_mark_dependencies_again;
   
 }
 #undef FUNC_NAME

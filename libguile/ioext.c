@@ -280,14 +280,14 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
 
   int_fd = scm_to_int (fd);
 
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   for (i = 0; i < scm_i_port_table_size; i++)
     {
       if (SCM_OPFPORTP (scm_i_port_table[i]->port)
 	  && ((scm_t_fport *) scm_i_port_table[i]->stream)->fdes == int_fd)
 	result = scm_cons (scm_i_port_table[i]->port, result);
     }
-  scm_mutex_unlock (&scm_i_port_table_mutex);
+  pthread_mutex_unlock (&scm_i_port_table_mutex);
   return result;
 }
 #undef FUNC_NAME    

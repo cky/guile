@@ -508,9 +508,9 @@ do { \
    (private or global, with unwind where necessary), and remove the
    remaining DEFER/ALLOWs.  */
 
-#define SCM_DEFER_INTS scm_rec_mutex_lock (&scm_i_defer_mutex);
+#define SCM_DEFER_INTS do { } while (0);
 
-#define SCM_ALLOW_INTS scm_rec_mutex_unlock (&scm_i_defer_mutex);
+#define SCM_ALLOW_INTS do { } while (0);
 
 #define SCM_REDEFER_INTS SCM_DEFER_INTS
 

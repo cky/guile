@@ -194,14 +194,14 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
   SCM_ASSERT ((vlen == 5) || (vlen == 6), pv, 1, FUNC_NAME);
   SCM_VALIDATE_STRING (2, modes);
   
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   z = scm_new_port_table_entry (scm_tc16_sfport);
   pt = SCM_PTAB_ENTRY (z);
   scm_port_non_buffer (pt);
   SCM_SET_CELL_TYPE (z, scm_tc16_sfport | scm_i_mode_bits (modes));
 
   SCM_SETSTREAM (z, SCM_UNPACK (pv));
-  scm_mutex_unlock (&scm_i_port_table_mutex);
+  pthread_mutex_unlock (&scm_i_port_table_mutex);
   return z;
 }
 #undef FUNC_NAME

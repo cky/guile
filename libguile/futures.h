@@ -29,8 +29,8 @@
 
 typedef struct scm_t_future {
   SCM data;
-  scm_t_mutex mutex;
-  scm_t_cond cond;
+  pthread_mutex_t mutex;
+  pthread_cond_t cond;
   int status;
   int die_p;
 } scm_t_future;

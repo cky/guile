@@ -111,7 +111,7 @@ typedef struct
 
 SCM_API scm_t_port **scm_i_port_table;
 SCM_API long scm_i_port_table_size; /* Number of ports in scm_i_port_table.  */
-SCM_API scm_t_mutex scm_i_port_table_mutex;
+SCM_API pthread_mutex_t scm_i_port_table_mutex;
 
 #define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
 

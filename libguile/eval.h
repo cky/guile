@@ -71,8 +71,7 @@ SCM_API SCM scm_eval_options_interface (SCM setting);
   (SCM_F_PROMISE_COMPUTED & SCM_SMOB_FLAGS (promise))
 #define SCM_SET_PROMISE_COMPUTED(promise) \
   SCM_SET_SMOB_FLAGS ((promise), SCM_F_PROMISE_COMPUTED)
-#define SCM_PROMISE_MUTEX(promise) \
-  ((scm_t_rec_mutex *) SCM_SMOB_DATA_2 (promise))
+#define SCM_PROMISE_MUTEX     SCM_SMOB_OBJECT_2
 #define SCM_PROMISE_DATA      SCM_SMOB_OBJECT
 #define SCM_SET_PROMISE_DATA  SCM_SET_SMOB_OBJECT
 

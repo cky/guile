@@ -46,7 +46,6 @@ root_mark (SCM root)
   scm_gc_mark (s->rootcont);
   scm_gc_mark (s->dynwinds);
   scm_gc_mark (s->progargs);
-  scm_gc_mark (s->exitval);
   scm_gc_mark (s->cur_inp);
   scm_gc_mark (s->cur_outp);
   scm_gc_mark (s->cur_errp);
@@ -91,7 +90,6 @@ scm_make_root (SCM parent)
       root_state->rootcont
 	= root_state->dynwinds
 	= root_state->progargs
-	= root_state->exitval
 	= root_state->cur_inp
 	= root_state->cur_outp
 	= root_state->cur_errp
@@ -345,6 +343,10 @@ scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler)
 }
 
 
+
+/* Initialized in scm_threads_prehistory.
+ */
+pthread_key_t scm_i_root_key;
 
 void
 scm_init_root ()
