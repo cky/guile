@@ -1,9 +1,0 @@
-Some Notes on Testing
----------------------
-
-To not alarm users, "make check" (which runs "check-guile" which
-runs "test-suite/guile-test") does not fail on UNRESOLVED tests.
-
-Maintainers who want to be more strict should use:
-
-  ./check-guile --flag-unresolved
