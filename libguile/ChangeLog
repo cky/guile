@@ -1,3 +1,26 @@
+Wed Oct 30 00:31:55 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* ports.c: #include "filesys.h"
+	(scm_char_ready_p): input_waiting renamed and moved to filesys.c.
+
+	* filesys.c, filesys.h (scm_input_waiting_p): Moved from ports.c.
+  	Motivation: This is system specific code which is related to file
+ 	I/O.  It also may use select.  Added code by Gary Houston to
+ 	detect presence of character in stdio buffers.
+
+	* libguile.h: #include "libguile/libpath.h"
+
+	* Makefile.in (libpath.h): Renamed definition of: LIBRARY_PATH -->
+ 	SCM_LIBRARY_DIR; Added definitions of: SCM_PKGDATA_DIR,
+ 	SCM_SITE_DIR; Install libpath.h among the other include files.
+
+	* load.c, load.h (scm_sys_package_data_dir): New function.
+
+Mon Oct 28 11:43:41 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* stacks.h: Bugfix: Don't use tail-array length field as stack
+	length field!  This screwed up GC.
+
 Tue Oct 29 14:55:40 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* snarf.h: New file.
