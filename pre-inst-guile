@@ -1,0 +1,84 @@
+#!/bin/sh
+
+#	Copyright (C) 2002 Free Software Foundation
+#
+#   This file is part of GUILE.
+#
+#   GUILE is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as
+#   published by the Free Software Foundation; either version 2, or
+#   (at your option) any later version.
+#
+#   GUILE is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public
+#   License along with GUILE; see the file COPYING.  If not, write
+#   to the Free Software Foundation, Inc., 59 Temple Place, Suite
+#   330, Boston, MA 02111-1307 USA
+
+# Commentary:
+
+# Usage: pre-inst-guile TOP-BUILDDIR [ARGS]
+#
+# This script arranges for the environment to support, and eventaully execs,
+# the uninstalled binary guile executable located somewhere under libguile/,
+# passing ARGS to it.  In the process, env var GUILE is clobbered, and the
+# following env vars are modified (but not clobbered):
+#   GUILE_LOAD_PATH
+#   LTDL_LOAD_PATH
+#
+# WARNING: This script is *NOT* a "drop in" replacement for $bindir/guile;
+#          it is intended only for use in building/testing.
+
+# Code:
+
+subdirs_with_ltlibs="srfi guile-readline"       # maintain me
+
+# determine absolute top_srcdir
+[ x"$top_srcdir" = x ] && case $0 in */*) top_srcdir=`dirname $0` ;; esac
+if [ x"$top_srcdir" = x ] ; then
+    echo $0: could not determine top_srcdir
+    exit 1
+fi
+top_srcdir=`(cd $top_srcdir ; pwd)`
+
+# determine absolute top_builddir
+if [ x"$1" = x ] ; then
+    echo $0: could not determine top_builddir
+    exit 1
+fi
+top_builddir=`(cd $1 ; pwd)`
+shift
+
+# handle GUILE_LOAD_PATH (no clobber)
+if [ x"$GUILE_LOAD_PATH" = x ] ; then
+    GUILE_LOAD_PATH="${top_srcdir}"
+else
+    case "$GUILE_LOAD_PATH" in *${top_srcdir}*) ;;
+      *) GUILE_LOAD_PATH="${top_srcdir}:$GUILE_LOAD_PATH" ;;
+    esac
+fi
+export GUILE_LOAD_PATH
+
+# handle LTDL_LIBRARY_PATH (no clobber)
+ltdl_prefix=""
+for dir in $subdirs_with_ltlibs ; do
+    ltdl_prefix="${top_builddir}/${dir}:${ltdl_prefix}"
+done
+LTDL_LIBRARY_PATH="${ltdl_prefix}$LTDL_LIBRARY_PATH"
+export LTDL_LIBRARY_PATH
+
+# set GUILE (clobber)
+GUILE=${top_builddir}/libguile/guile
+export GUILE
+
+# do it
+exec $GUILE "$@"
+
+# never reached
+exit 1
+
+# pre-inst-guile ends here

@@ -1,0 +1,47 @@
+THEORY
+
+	The pre-installed guile interpreter can be used if has access to
+	the proper shared libraries and scheme modules, which can be
+	arranged by tweaking GUILE_LOAD_PATH and LTDL_LIBRARY_PATH env
+	vars, respectively.
+
+
+GENERAL PRACTICE
+
+	To invoke the guile interpreter before installing it (and its
+	support files), call ${top_srcdir}/pre-inst-guile w/ first arg
+	${top_builddir}, where you would normally call guile.
+
+	Similarly, for scripts/* (normally found by guile-tools), set
+	env var GUILE to the above combination.
+
+	See commentary in ${top_srcdir}/pre-inst-guile for more info.
+
+
+SPECIFIC PRACTICE
+
+	Include the following line in any Makefile.am with rules that
+	need to call the pre-installed guile interpreter:
+
+	include $(top_srcdir)/pre-inst-guile.am
+
+	This causes Automake to include a makefile fragment that defines
+	two vars: `preinstguile' and `preinstguiletool'.  The following
+	examples show how these vars are used:
+
+	display-sum5:
+		$(preinstguile) -c '(display (+ 1 2 3 4 5))'
+
+	display-deps-dotty:
+		$(preinstguiletool)/use2dot *.scm
+
+	Note the particular syntax of `preinstguiletool' usage.
+
+
+KNOWN USAGE
+
+	check-guile.in
+	doc/ref/Makefile.am
+	libguile/Makefile.am
+	ice-9/Makefile.am
+	scripts/Makefile.am
