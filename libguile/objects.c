@@ -38,6 +38,8 @@
 
 #include "libguile/validate.h"
 #include "libguile/objects.h"
+#include "libguile/goops.h"
+
 
 
 SCM scm_metaclass_standard;
