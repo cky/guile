@@ -63,14 +63,19 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
   char *cdelims;
   size_t num_delims;
 
-  SCM_VALIDATE_STRING_COPY (1, delims, cdelims);
-  num_delims = SCM_STRING_LENGTH (delims);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, str, buf, 5, start, cstart,
-				    6, end, cend);
+  SCM_VALIDATE_STRING (1, delims);
+  cdelims = SCM_I_STRING_CHARS (delims);
+  num_delims = SCM_I_STRING_LENGTH (delims);
+
+  SCM_VALIDATE_STRING (2, str);
+  buf = SCM_I_STRING_CHARS (str);
+  scm_i_get_substring_spec (SCM_I_STRING_LENGTH (str),
+			    start, &cstart, end, &cend);
+
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT (4,port);
+    SCM_VALIDATE_OPINPORT (4, port);
 
   for (j = cstart; j < cend; j++)
     {  
@@ -85,16 +90,16 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 		scm_ungetc (c, port);
 
 	      return scm_cons (SCM_MAKE_CHAR (c),
-			       scm_from_long (j - cstart));
+			       scm_from_size_t (j - cstart));
 	    }
 	}
       if (c == EOF)
 	return scm_cons (SCM_EOF_VAL, 
-			 scm_from_long (j - cstart));
+			 scm_from_size_t (j - cstart));
 
       buf[j] = c;
     }
-  return scm_cons (SCM_BOOL_F, scm_from_long (j - cstart));
+  return scm_cons (SCM_BOOL_F, scm_from_size_t (j - cstart));
 }
 #undef FUNC_NAME
 
