@@ -1,3 +1,8 @@
+2003-09-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eq.c (scm_equal_p): Use SCM_TYP7 to check if an object is of
+	type string, not SCM_TYP7S.
+
 2003-09-03  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_lognot): Correction to docstring, ones-complement not

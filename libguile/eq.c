@@ -143,7 +143,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
       y = SCM_CDR(y);
       goto tailrecurse;
     }
-  if (SCM_TYP7S (x) == scm_tc7_string && SCM_TYP7S (y) == scm_tc7_string)
+  if (SCM_TYP7 (x) == scm_tc7_string && SCM_TYP7 (y) == scm_tc7_string)
     return scm_string_equal_p (x, y);
   /* This ensures that types and scm_length are the same.  */
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
