@@ -96,11 +96,11 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
     default: 
       return 263 % n;
     case scm_tc7_smob:
+      return 263 % n;
+    case scm_tc7_number:
       switch SCM_TYP16 (obj) {
       case scm_tc16_big:
         return SCM_INUM (scm_modulo (obj, SCM_MAKINUM (n)));
-      default: 
-	return 263 % n;
       case scm_tc16_real:
 	{
 	  double r = SCM_REAL_VALUE (obj);
@@ -110,9 +110,12 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
 	    return SCM_INUM (scm_modulo (obj, SCM_MAKINUM (n)));
 	  }
 	}
+        /* Fall through */
       case scm_tc16_complex:
 	obj = scm_number_to_string (obj, SCM_MAKINUM (10));
+        /* Fall through */
       }
+      /* Fall through */
     case scm_tc7_string:
       return scm_string_hash (SCM_STRING_UCHARS (obj), SCM_STRING_LENGTH (obj)) % n;
     case scm_tc7_symbol:

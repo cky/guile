@@ -280,6 +280,9 @@ scm_gc_mark_dependencies (SCM p)
     case scm_tc7_string:
       break;
 
+    case scm_tc7_number:
+      break;
+
     case scm_tc7_wvect:
       SCM_SET_WVECT_GC_CHAIN (ptr, scm_weak_vectors);
       scm_weak_vectors = ptr;
@@ -373,10 +376,6 @@ scm_gc_mark_dependencies (SCM p)
 	  /* We have detected a free cell.  This can happen if non-object data
 	   * on the C stack points into guile's heap and is scanned during
 	   * conservative marking.  */
-	  break;
-	case scm_tc16_big:
-	case scm_tc16_real:
-	case scm_tc16_complex:
 	  break;
 	default:
 	  i = SCM_SMOBNUM (ptr);

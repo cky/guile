@@ -173,6 +173,21 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 		       "vector");
 	  break;
 #endif
+	case scm_tc7_number:
+	  switch SCM_TYP16 (scmptr)
+            {
+            case scm_tc16_real:
+              break;
+            case scm_tc16_big:
+              mpz_clear (SCM_I_BIG_MPZ (scmptr));
+              /* nothing else to do here since the mpz is in a double cell */
+              break;
+	    case scm_tc16_complex:
+	      scm_gc_free (SCM_COMPLEX_MEM (scmptr), sizeof (scm_t_complex),
+			   "complex");
+	      break;
+            }
+          break;
 	case scm_tc7_string:
 	  scm_gc_free (SCM_STRING_CHARS (scmptr), 
 		       SCM_STRING_LENGTH (scmptr) + 1, "string");
@@ -232,15 +247,6 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	  switch SCM_TYP16 (scmptr)
 	    {
 	    case scm_tc_free_cell:
-	    case scm_tc16_real:
-	      break;
-            case scm_tc16_big:
-              mpz_clear (SCM_I_BIG_MPZ (scmptr));
-              /* nothing else to do here since the mpz is in a double cell */
-              break;
-	    case scm_tc16_complex:
-	      scm_gc_free (SCM_COMPLEX_MEM (scmptr), sizeof (scm_t_complex),
-			   "complex");
 	      break;
 	    default:
 	      {

@@ -102,6 +102,15 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  return scm_class_vector;
 	case scm_tc7_string:
 	  return scm_class_string;
+        case scm_tc7_number:
+          switch SCM_TYP16 (x) {
+          case scm_tc16_big:
+            return scm_class_integer;
+          case scm_tc16_real:
+            return scm_class_real;
+          case scm_tc16_complex:
+            return scm_class_complex;
+          }
 	case scm_tc7_asubr:
 	case scm_tc7_subr_0:
 	case scm_tc7_subr_1:

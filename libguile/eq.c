@@ -166,6 +166,16 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     {
     default:
       break;
+    case scm_tc7_number:
+      switch SCM_TYP16 (x)
+        {
+        case scm_tc16_big:
+          return scm_bigequal (x, y);
+        case scm_tc16_real:
+          return scm_real_equalp (x, y);
+        case scm_tc16_complex:
+          return scm_complex_equalp (x, y);
+        }
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return scm_vector_equal_p (x, y);

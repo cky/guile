@@ -448,7 +448,7 @@ scm_make_smob (scm_t_bits tc)
 }
 
 
-/* {Initialization for i/o types, float, bignum, the type of free cells}
+/* {Initialization for the type of free cells}
  */
 
 static int
@@ -491,21 +491,9 @@ scm_smob_prehistory ()
       scm_smobs[i].gsubr_type = 0;
     }
 
-  /* WARNING: These scm_make_smob_type calls must be done in this order */
+  /* WARNING: This scm_make_smob_type call must be done first.  */
   tc = scm_make_smob_type ("free", 0);
   scm_set_smob_print (tc, free_print);
-
-  tc = scm_make_smob_type ("big", 0);  /* freed in gc */
-  scm_set_smob_print (tc, scm_bigprint);
-  scm_set_smob_equalp (tc, scm_bigequal);
-
-  tc = scm_make_smob_type ("real", 0);	/* freed in gc */
-  scm_set_smob_print (tc, scm_print_real);
-  scm_set_smob_equalp (tc, scm_real_equalp);
-
-  tc = scm_make_smob_type ("complex", 0);  /* freed in gc */
-  scm_set_smob_print (tc, scm_print_complex);
-  scm_set_smob_equalp (tc, scm_complex_equalp);
 }
 
 /*

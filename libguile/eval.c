@@ -2790,6 +2790,7 @@ dispatch:
     case scm_tc7_llvect:
 #endif
 #endif
+    case scm_tc7_number:
     case scm_tc7_string:
     case scm_tc7_smob:
     case scm_tcs_closures:

@@ -76,7 +76,7 @@
   #define SCM_I_NUMTAG(x) \
     (SCM_INUMP(x) ? SCM_I_NUMTAG_INUM \
        : (SCM_IMP(x) ? SCM_I_NUMTAG_NOTNUM \
-         : (((0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_smob) ? SCM_TYP16(x) \
+         : (((0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_number) ? SCM_TYP16(x) \
            : SCM_I_NUMTAG_NOTNUM)))
 */
 

@@ -113,6 +113,7 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 	case scm_tc7_llvect:
 #endif
 #endif
+	case scm_tc7_number:
 	case scm_tc7_string:
 	case scm_tc7_smob:
 	case scm_tc7_cclo:

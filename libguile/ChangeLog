@@ -1,5 +1,24 @@
 2003-09-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	This set of patches introduces a new tc7 code scm_tc7_number for
+	numbers.  Bignums, reals and complex numbers are turned from smobs
+	into subtypes of scm_tc7_number.
+
+	* tags.h (scm_tc7_number): New.
+
+	* eq.c (scm_equal_p), eval.c (SCM_CEVAL), evalext.c
+	(scm_self_evaluating_p), gc-card.c (scm_i_sweep_card), gc-mark.c
+	(scm_gc_mark_dependencies), goops.c (create_smob_classes), hash.c
+	(scm_hasher), numbers.c, numbers.h (SCM_NUMP), objects.c
+	(scm_class_of), print.c (scm_iprin1), smob.c
+	(scm_smob_prehistory): Don't handle bignums, reals and complex
+	numbers as subtypes of scm_tc7_smob any more.
+
+	* numbers.h, tags.h (scm_tc16_big, scm_tc16_real,
+	scm_tc16_complex): Moved definitions from tags.h to numbers.h.
+
+2003-09-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c (scm_make_complex), gc-card.c (scm_i_sweep_card): Use
 	sizeof (scm_t_complex) to determine the memory size of the
 	malloc'd area for complex numbers.

@@ -353,21 +353,17 @@ typedef unsigned long scm_t_bits;
  *   cases.  Thus, their tc7-codes are chosen to only differ in one bit.  This
  *   makes it possible to check an object at the same time for being a vector
  *   or a weak vector by comparing its tc7 code with that bit masked (using
- *   the TYP7S macro).  Two more special tc7-codes are of interest:  ports and
- *   smobs in fact each represent collections of types, which are subdivided
- *   using tc16-codes.
+ *   the TYP7S macro).  Three more special tc7-codes are of interest:
+ *   numbers, ports and smobs in fact each represent collections of types,
+ *   which are subdivided using tc16-codes.
  *
  * tc16 (for tc7==scm_tc7_smob):
  *   The largest part of the space of smob types is not subdivided in a
  *   predefined way, since smobs can be added arbitrarily by user C code.
  *   However, while Guile also defines a number of smob types throughout,
- *   there are four smob types for which Guile assumes that they are declared
- *   first and thus get known-in-advance tc16-codes.  These are
- *   scm_tc_free_cell, scm_tc16_big, scm_tc16_real and scm_tc16_complex.  The
- *   reason of requiring fixed tc16-codes for these types is performance.  For
- *   the same reason, scm_tc16_real and scm_tc16_complex are given tc16-codes
- *   that only differ in one bit: This way, checking if an object is an
- *   inexact number can be done quickly (using the TYP16S macro)
+ *   there is one smob type, namely scm_tc_free_cell, for which Guile assumes
+ *   that it is declared first and thus gets a known-in-advance tc16-code.
+ *   The reason of requiring a fixed tc16-code for this type is performance.
  */
 
 
@@ -425,7 +421,7 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_wvect		15
 
 #define scm_tc7_string		21
-/* free                         23 */
+#define scm_tc7_number		23
 
 /* Many of the following should be turned
  * into structs or smobs.  We need back some
@@ -476,16 +472,11 @@ typedef unsigned long scm_t_bits;
 
 #define SCM_TYP16_PREDICATE(tag, x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
 
-/* Here are the first four smob subtypes.  */
+/* Here is the first smob subtype.  */
 
 /* scm_tc_free_cell is the 0th smob type.  We place this in free cells to tell
  * the conservative marker not to trace it.  */
 #define scm_tc_free_cell	(scm_tc7_smob + 0 * 256L)
-
-/* Smob type 1 to 3 (note the dependency on the predicate SCM_NUMP)  */
-#define scm_tc16_big		(scm_tc7_smob + 1 * 256L)
-#define scm_tc16_real           (scm_tc7_smob + 2 * 256L)
-#define scm_tc16_complex        (scm_tc7_smob + 3 * 256L)
 
 
 /* {Immediate Values}

@@ -516,6 +516,19 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	      scm_putc ('>', port);
 	    }
 	  break;
+	case scm_tc7_number:
+          switch SCM_TYP16 (exp) {
+          case scm_tc16_big:
+            scm_bigprint (exp, port, pstate);
+            break;
+          case scm_tc16_real:
+            scm_print_real (exp, port, pstate);
+            break;
+          case scm_tc16_complex:
+            scm_print_complex (exp, port, pstate);
+            break;
+          }
+	  break;
 	case scm_tc7_string:
 	  if (SCM_WRITINGP (pstate))
 	    {
