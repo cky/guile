@@ -2,6 +2,7 @@ Tue Dec 17 16:19:07 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* numbers.c (scm_fuck): Procedure removed; looks like old test
 	code.
+	* numbers.h: Prototype removed.
 	
 Mon Dec 16 18:20:32 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
