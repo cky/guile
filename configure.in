@@ -256,9 +256,12 @@ AC_CACHE_VAL(scm_cv_fd_setter,
 			[stdout->_file = 1],
 			scm_cv_fd_setter="_file",
 	AC_TRY_COMPILE([#include <stdio.h>],
+			[stdout->__file = 1],
+			scm_cv_fd_setter="__file",
+	AC_TRY_COMPILE([#include <stdio.h>],
 			[stdout->_fileno = 1],
 			scm_cv_fd_setter="_fileno",
-			scm_cv_fd_setter="")))
+			scm_cv_fd_setter=""))))
 
 if test "$scm_cv_fd_setter"; then
 	AC_MSG_RESULT($scm_cv_fd_setter)
@@ -271,7 +274,7 @@ fi
 # How to find out whether a FILE structure contains buffered data.
 # From Tk we have the following list:
 #		_cnt:		Most UNIX systems
-#		__cnt:		HPUX
+#		__cnt:		HPUX and SCO
 #		_r:		BSD
 #		readCount:	Sprite
 #	Or, in GNU libc there are two fields, _gptr and _egptr, which
@@ -285,12 +288,15 @@ AC_CACHE_VAL(scm_cv_struct_file_count,
 			[FILE *f = stdin; f->_cnt = 0],
 			scm_cv_struct_file_count="_cnt",
 	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->__cnt = 0],
+			scm_cv_struct_file_count="__cnt",
+	AC_TRY_COMPILE([#include <stdio.h>],
 			[FILE *f = stdin; f->_r = 0],
 			scm_cv_struct_file_count="_r",
 	AC_TRY_COMPILE([#include <stdio.h>],
 			[FILE *f = stdin; f->readCount = 0],
 			scm_cv_struct_file_count="readCount",
-	scm_cv_struct_file_count=""))))
+	scm_cv_struct_file_count="")))))
 if test "$scm_cv_struct_file_count"; then
 	AC_MSG_RESULT($scm_cv_struct_file_count)
 	AC_DEFINE_UNQUOTED(FILE_CNT_FIELD, $scm_cv_struct_file_count)
