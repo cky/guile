@@ -1,3 +1,25 @@
+2003-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (s_bad_define): New static identifier.
+
+	(m_body): Fixed comment.
+
+	(scm_m_define): Don't generate memoized code for definitions that
+	are not on the top level.  As a consequence, no memoized code at
+	all is generated for definitions any more: Top level definitions
+	are executed immediately during memoization and internal
+	definitions are handled separately in m_expand_body.
+
+	(scm_unmemocopy, unmemocopy): Removed code for unmemoizing
+	definitions.  Consequently, there is no unmemoizing code any more
+	that might modify the environment.  Thus, the old scm_unmemocopy
+	is removed and the old unmemocopy is renamed to scm_unmemocopy.
+
+	(SCM_CEVAL): The SCM_IM_DEFINE keyword can no longer occur in
+	memoized code.  Call EVALCAR for continuations.  Prefer !SCM_NULLP
+	over SCM_NIMP in places, where the argument is known to be part of
+	a proper list.
+
 2003-11-21  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_abs): Allocate a new real only for negatives, as done
