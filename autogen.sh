@@ -21,7 +21,7 @@ fi
 : found workbook at $workbook
 workbook=`(cd $workbook ; pwd)`
 
-workbookdistfiles="ANON-CVS HACKING INSTALL SNAPSHOTS"
+workbookdistfiles="ANON-CVS HACKING SNAPSHOTS"
 for f in $workbookdistfiles ; do
     rm -f $f
     ln -s $workbook/build/dist-files/$f $f
