@@ -7,7 +7,7 @@
 
 1998-12-10  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-	* boot-9.scm (environment->module): New procedure.
+	* boot-9.scm (environment-module): New procedure.
 
 1998-12-07  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
