@@ -7,6 +7,7 @@
 	`search-documentation-files'.
 	(apropos-fold-accessible, apropos-fold-all): Use `identity'
 	instead of `(lambda (x) x)'.  "An identity edit", ha ha.
+	(help-usage): Mention support for "(help 'NAME)".
 
 	* documentation.scm: Fix documentation for Guile Documentation
 	Format Version 2: Mention required terminating newlines.
