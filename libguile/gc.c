@@ -767,6 +767,77 @@ scm_mark_locations (x, n)
 }
 
 
+/* The following is a C predicate which determines if an SCM value can be
+   regarded as a pointer to a cell on the heap.  The code is duplicated
+   from scm_mark_locations.  */
+
+#ifdef __STDC__
+int
+scm_cellp (SCM value)
+#else
+int
+scm_cellp (value)
+     SCM value;
+#endif
+{
+  register int i, j;
+  register SCM_CELLPTR ptr;
+  
+  if SCM_CELLP (*(SCM **) & value)
+    {
+      ptr = (SCM_CELLPTR) SCM2PTR ((*(SCM **) & value));
+      i = 0;
+      j = scm_n_heap_segs - 1;
+      if (   SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
+	     && SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
+	{
+	  while (i <= j)
+	    {
+	      int seg_id;
+	      seg_id = -1;
+	      if (   (i == j)
+		     || SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr))
+		seg_id = i;
+	      else if (SCM_PTR_LE (scm_heap_table[j].bounds[0], ptr))
+		seg_id = j;
+	      else
+		{
+		  int k;
+		  k = (i + j) / 2;
+		  if (k == i)
+		    break;
+		  if (SCM_PTR_GT (scm_heap_table[k].bounds[1], ptr))
+		    {
+		      j = k;
+		      ++i;
+		      if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr))
+			continue;
+		      else
+			break;
+		    }
+		  else if (SCM_PTR_LE (scm_heap_table[k].bounds[0], ptr))
+		    {
+		      i = k;
+		      --j;
+		      if (SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
+			continue;
+		      else
+			break;
+		    }
+		}
+	      if (   !scm_heap_table[seg_id].valid
+		     || scm_heap_table[seg_id].valid (ptr,
+						      &scm_heap_table[seg_id]))
+		return 1;
+	      break;
+	    }
+
+	}
+    }
+  return 0;
+}
+
+
 static void
 scm_mark_weak_vector_spines ()
 {
