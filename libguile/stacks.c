@@ -223,8 +223,6 @@ read_frame (dframe, offset, iframe)
   iframe->flags = flags;
 }
 
-SCM_SYMBOL (scm_sym_apply, "apply");
-
 /* Look up the first body form of the apply closure.  We'll use this
    below to prevent it from being displayed.
 */
