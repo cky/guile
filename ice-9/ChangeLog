@@ -1,3 +1,65 @@
+1999-06-09  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Makefile.am (ice9_sources): Add popen.scm to list.
+	* Makefile.in: Regenerated.
+
+	Gary Houston's open-buffer port patches:
+
+	1999-04-01  Gary Houston  <ghouston@easynet.co.uk>
+
+	* popen.scm: applied fixes from Greg Harvey.  use a guardian
+	and a gc-thunk so that cleanup is done if a pipe is garbage
+	collected or closed with close-port.  use a weak hash-table instead of 
+	an alist.
+	
+	1999-03-20  Gary Houston  <ghouston@easynet.co.uk>
+
+*	* expect.scm (expect): call the match proc with the port instead.
+	(expect-strings): use peek-char to get the next char.  this has
+	the advantage of getting the handling of $ "correct", but the
+	disadvantage of needing to get (and maybe block for) an extra character
+	from the port when it may not be needed.  hence:
+*	(expect-strings-exec-flags): new variable/parameter, supplies
+	flags for regexp-exec.  if this includes regexp/noteol, then
+	automatic regexp/noteol handling (requiring an extra peeked char) 
+	is enabled.  default is regexp/noteol.
+*       (expect-strings-compile-flags): new variable/parameter, supplies
+	flags for make-regexp.  default is regexp/newline.
+
+	1999-03-15  Gary Houston  <ghouston@easynet.co.uk>
+
+*	* expect.scm (expect): call the match proc with an extra char,
+	peeked from the stream.
+	(expect-strings): build a match proc which takes the extra char.
+	(expect-regexec): take an extra arg "eof-next?" and use it
+	to decide whether the regexp/noteol flag should be added.
+
+	1999-02-26  Gary Houston  <ghouston@easynet.co.uk>
+
+	* boot-9.scm (top-repl): don't flush all ports at exit.
+	(error-catching-loop): likewise.
+
+	1998-12-23  Gary Houston  <ghouston@easynet.co.uk>
+
+	* boot-9.scm (scm-style-repl): -read: don't call
+	consume-trailing-whitespace if val is eof object.  Allows
+	exiting repl with single control-D.
+
+	1998-12-06  Gary Houston  <ghouston@easynet.co.uk>
+
+	* boot-9.scm (error-catching-loop): don't force output within
+	error catching loop after quit received.
+	(top-repl): flush all ports when the repl terminates.
+
+	* boot-9.scm (error-catching-loop): flush all ports before 
+	primitive exit if non-interactive. 
+	force-output on current-error-port if interactive.
+
+	* boot-9.scm (reopen-file): deleted.
+	* popen.scm (open-output-pipe, open-input-pipe): moved from
+	boot-9.scm.
+	* popen.scm: new file.
+
 1999-06-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
        * boot-9.scm (iota):  replaced by a tail recursive version.

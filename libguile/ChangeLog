@@ -1,3 +1,373 @@
+1999-06-09  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* gc.c (scm_igc): Check for scm_mallocated underflow.  Otherwise,
+	it shows up as terrible performance, as we GC constantly.
+
+	* ioext.c (scm_do_read_line): Rewritten to use memchr to find the
+	newline.  A bit faster, and definitely hairier.
+	(scm_read_line): Count newlines here instead.
+
+	* strings.c (scm_take_str): New function.
+	(scm_take0str): Reimplement in terms of scm_take_str.  * strings.h
+	(scm_take_str): New declaration.  * ioext.c (scm_read_line): Use
+	scm_take_str, to avoid copying the string.
+
+	Add some simple-minded support for line buffered ports.
+	* ports.h (SCM_BUFLINE): New flag for ports.
+	* init.c (scm_init_standard_ports): Request line-buffering on
+	the standard output port.
+*	* ports.c (scm_mode_bits): Recognize 'l' as a request for line
+	buffering.
+	(scm_putc, scm_puts, scm_lfwrite): If the port is line-buffered,
+	and there's a newline to be written, flush the port.
+
+	Gary Houston's open-buffer port patches:
+
+	1999-04-26  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.c: (scm_lseek): clear buffers even if just reading current
+	position.
+
+	* fports.c (local_fclose): call local_fflush unconditionally.
+	(various): don't use the scm_must... memory procs.
+
+	1999-04-25  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.h (scm_port): make read_pos a pointer to const.
+	strports.c: take care of rw_active and rw_randow.
+	fports.c: scm_fport_drain_input: removed.  do it all in ports.c.
+	strports.c (scm_mkstrport): check that pos is reasonable.	
+	ioext.c (scm_ftell, scm_fseek): use lseek.
+	(SCM_CLEAR_BUFFERS): macro deleted.  
+	ioext.c (redirect_port: use ptob fflush, read_flush.
+	ports.h (scm_ptobfuns): add ftruncate.
+	ports.c (scm_newptob): set ftruncate.
+	adjust ptob tables.
+*	ports.c (scm_ftruncate): new procedure.
+	fports.c (local_ftrunate), strports.c (str_ftruncate): new procs.
+	strports.c (st_seek, st_grow_port): new procs.
+	fports.h (scm_port): change size types from int to off_t.
+	ports.c (scm_init_ports): initialise the seek symbols here
+	instead of in ioext.c.
+	strports.c (scm_call_with_output_string): start with an empty
+	string, so seek and ftruncate can be used.
+
+	gdbint.c: adjust string port usage.
+	
+	1999-04-24  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.h (scm_ptobfuns): add a read_flush procedure which is the
+	equivalent to fflush for the read buffer.
+	* ports.c (scm_newptob): set read_flush.
+	ports.c (void_port_ptob): set read_flush.
+	fports.c (local_read_flush): new proc.  add to ptob.
+	strport.c (st_read_flush): likewise.
+	vport.c (sf_read_flush): likewise.
+	fports.h (struct scm_fport): remove random member.  there's nothing
+	left but fdes.  leaving it as a struct to allow for future changes.
+	fports.c: replace usage of scm_fport::random with scm_port::rw_random.
+	ports.c: (scm_putc, scm_puts, scm_lfwrite): call the read_flush
+	ptob proc if the read buffer is filled.
+
+	1999-04-23  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.h (scm_port): add a rw_random member and replace 
+	reading and writing members with rw_active member.
+	SCM_PORT_READ/SCM_PORT_WRITE: new values.
+
+	1999-04-22  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.h (struct scm_port_table): add writing and reading members
+	to replace write_needs_seek: it isn't good enough for non-fports.
+	ports.c, ioext.c, fports.c: corresponding changes.
+	(struct scm_port_table): give it a typedef and rename to scm_port.
+	ports.c, fports.c, strports.c, vports.c, ioext.c, ports.h:
+	corresponding changes.
+	
+	1999-04-20  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.c (scm_newptob): bugfix: set seek member.
+*	* (scm_lseek): new procedure, using code from ioext.c:scm_fseek
+	and generalised to all port types.
+
+	1999-04-18  Gary Houston  <ghouston@easynet.co.uk>
+
+	* scmsigs.c (scm_init_scmsigs): set the SA_RESTART flag for all 
+	signals (it was only being done for handlers installed from Scheme). 
+	Otherwise (for example) SIGSTOP followed by SIGCONT on an interpreter
+	waiting for input caused an EINTR error from read.
+
+	1999-04-07  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.h (struct scm_port_table): make all the char members 
+	unsigned, so they convert to int without becoming negative if large.
+
+	1999-03-14  Gary Houston  <ghouston@easynet.co.uk>
+
+	* fports.c (scm_fdes_wait_for_input): forgot to check compilation
+	with threads enabled.  rename this procedure to 
+	fport_wait_for_input and take a port instead of a fdes.
+	use scm_fport_input_waiting_p instead of scm_fdes_waiting_p.
+
+	* readline.c (scm_readline): Applied a patch from Greg Harvey to
+	get readline support working again: use fdopen to get FILE objects.
+
+	1999-02-26  Gary Houston  <ghouston@easynet.co.uk>
+
+	* gc.c (scm_init_storage): install an atexit proc to flush the
+	ports.
+	(cleanup): the new proc.  it sets a global variable which can be
+	checked by the ptob flush procs to avoid trying to throw
+	exceptions during exit.  not very pleasant but it seems more reliable.
+	* fports.c (local_fflush): check terminating variable and if set
+	don't throw exception.
+	* CHECKME: that the atexit proc is installed if unexec used.
+
+	* throw.c (scm_handle_by_message): don't flush all ports here.
+	it still causes bus errors.
+	
+	* fports.h (SCM_FPORT_CLEAR_BUFFERS): rename to SCM_CLEAR_BUFFERS
+	and move to ioext.c.
+
+	* fports.c (scm_fdes_waiting_p): merged into fport_input_waiting_p.
+
+	* ports.c (scm_char_ready_p): check the port buffer and call the
+	ptob entry if needed.
+
+	* ports.h (scm_ptobfuns): input_waiting_p added.  change all the
+	ptob initialisers.  use it in char-ready
+
+	* ioext.c (scm_do_read_line): moved from ports.c.  make it static.
+
+	* vports.c (sfflush): modified to write a char (since softports
+	currently use shortbuf.)
+
+	* fports.c (scm_standard_stream_to_port): moved to init.c and
+	made static.
+
+	* init.c (scm_init_standard_ports): make stdout and stderr
+	unbuffered if connected to a terminal.  with stdio they
+	were line-buffered by default.
+
+	(scm_ptobfuns): fputc, fputs, fwrite, fgetc, fgets removed.
+	update ptob tables.
+
+	* ports.h (scm_ptobfuns): change fflush return to void.
+	change flush proc definitions.
+
+	* strports.c (scm_call_with_output_string): get size from
+	buffer instead of port stream.
+	(scm_strprint_obj): likewise.
+	(st_flush): new proc.
+
+	* ports.h (struct scm_port_table): added write_end member,
+	as an optimisation.  set it where write_buf_size is set.
+
+	* ports.h (struct scm_port_table): change stream from void *
+	back to SCM.  SCM presumably must be large enough to hold a
+	pointer (and probably vice versa but who knows.)
+	(SCM_SSTREAM): deleted.  change users back to SCM_STREAM.
+
+	(scm_puts): rewritten
+	* fports.c (local_ffwrite, local_fputs): removed.
+	* strports.c (stputc, stputs, stwrite): dyked out (FIXME)
+	* vports.c (sfputc, sfputs, sfwrite) likewise.
+	* ports.c (write_void_port, puts_void_port): removed.
+	(putc_void_port, getc_void_port, fgets_void_port): likewise.
+
+	* ports.c (scm_lfwrite): rewritten using fport.c version.
+
+	* fports.c (local_fputc): deleted.
+
+	* ports.c (scm_add_to_port_table): initialise write_needs_seek.
+
+	* ports.h (scm_ptobfuns): add seek function pointer.
+	* fports.c: set it to local_seek, new procedure.
+	
+
+	* fports.h (SCM_MAYBE_DRAIN_INPUT): moved to ports.c.
+	use ptob for seek. take ptob instead of fport arg.
+
+	* ports.h (struct scm_port_table): new member write_needs_seek,
+	replaces reading member in fport struct.
+
+	* vports.c (sfgetc): store the getted char into the buffer.
+	rename to sf_fill_buffer and install it for fill-buffer in ptob.
+	the Scheme interface is still a	procedure that gets a char.
+	(scm_make_soft_port): set up the port buffer (shortbuf).
+
+	* fports.c (local_fgetc, local_fgets): deleted.
+	* strports.c (stgetc): likewise.
+	* ports.c: scm_generic_fgets: likewise.
+
+	* ports.h (scm_ptobfuns): add fill_buffer.
+	* ports.c (scm_newptob): assign it.
+	* strports.c (scm_mkstrport): set up the buffer.
+	put just the string into the stream, not cons (pos stream).
+	(stfill_buffer): new proc.
+
+	* ports.h: fport buffer moved into port table: to be
+	used for all port types.
+
+	1998-12-20  Gary Houston  <ghouston@easynet.co.uk>
+
+	* throw.c (scm_handle_by_message): flush ports at exit.
+
+	* socket.c (scm_sock_fd_to_port): use scm_fdes_to_port.
+	(scm_getsockopt, scm_setsockopt, scm_shutdown, scm_connect,
+	scm_bind, scm_listen, scm_accept, scm_getsockname,
+	scm_getpeername, scm_recv, scm_send, scm_recvfrom,
+	scm_sendto,
+	use SCM_FPORT_FDES.  use SCM_OPFPORTP not SCM_FPORTP.
+
+	* posix.c (scm_getgroups): use SCM_ALLOW/DEFER_INTS.
+	(scm_ttyname): use SCM_FPORT_FDES.
+	(scm_tcgetpgrp, scm_tcsetpgrp): likewise.
+
+	* filesys.c (scm_chown): use SCM_FPORT_FDES.
+	(scm_chmod, scm_stat, scm_truncate_file: likewise.
+
+	* ioext.c (scm_isatty_p): use SCM_FPORT_FDES.
+	(scm_fdes_to_ports): modified.
+	(scm_fdopen): use scm_fdes_to_port.
+
+	* ports.c (scm_init_ports): don't try to flush ports using
+	atexit().  it's too late, errors will cause SEGV.
+
+	* fports.c (scm_fport_buffer_add): new procedure.
+
+	* fports.h (SCM_FDES_RANDOM_P): new macro.  use it in 
+	scm_fdes_to_port and scm_redirect_port.
+
+	* ioext.c (scm_redirect_port): use setvbuf to set buffers in the
+	new port.  reset fp->random.
+
+	* fports.c (scm_fdes_to_port), ports.c (scm_void_port),
+	filesys.c (scm_opendir):
+	restore defer interrupts while the port is constructed.
+*	(scm_setvbuf): if mode is _IOFBF and size is not supplied,
+	derive buffer size from fdes or use a default.
+	(scm_fdes_to_port): use setvbuf instead of creating the buffers
+	directly.
+
+	vports.c (various places): use SCM_SSTREAM.
+	strports.c: likewise.
+	* gdbint.c: likewise.
+	* ports.h (SCM_SSTREAM): new macro.
+
+	* fports.c (scm_input_waiting_p): use scm_return_first, since port
+	may be removed from the stack by the tail call to scm_fdes_waiting_p.
+
+	* fports.h (SCM_CLEAR_BUFFERS): new macro.
+
+	* filesys.c (scm_fsync): use SCM_FDES.
+
+	* ports.c (scm_force_output): call scm_fflush.
+
+	* print.c (scm_newline): don't check errno for EPIPE (it wouldn't
+*	reach this point.)  don't flush port (if scm_cur_outp).
+
+	* fports.h (SCM_FPORT_FDES): new macro.
+
+	* filesys.c (scm_fcntl): get fdes from fport.
+	(set_element, get_element): likewise.
+
+	* vports.c (sfflush): don't need to set errno.
+
+	* ports.c: install scm_flush_all_ports to be run on exit.
+
+	* filesys.c (scm_open): adjust port_mode for O_APPEND and O_CREAT.
+
+	ports.c fports.c ioext.c posix.c socket.c net_db.c filesys.c:
+	removed all uses of SCM_DEFER/ALLOW ints for now.  they were mainly
+	just protecting errno.  some may need to be put back.
+	
+	* scmsigs.c (take_signal): save and restore errno while this
+	proc runs.
+
+        *fports.c (print_pipe_port, local_pclose, scm_pipob): deleted.
+*	open-pipe, close-pipe are emulated in (ice-9 popen)
+	ports.c (scm_ports_prehistory): don't init scm_pipob.
+	ports.h (scm_tc16_pipe): deleted.
+	posix.c (scm_open_pipe, scm_close_pipe): deleted.
+	
+        * ioext.c (scm_primitive_move_to_fdes): use fport.
+	* fport.c (scm_fport_fill_buffer): flush write buffer if needed.
+	change arg type from scm_fport to SCM port.
+	fport.h (SCM_SETFDES): removed.
+	(SCM_MAYBE_DRAIN_INPUT): new macro.
+	
+	* fport.h (struct scm_fport): added 'random'.
+	fport.c (scm_open_file): set random if lseek works.
+
+	* ioext.c (scm_dup_to_fdes): use SCM_FSTREAM.
+	(scm_ftell): always use lseek and account for the buffer.
+	(scm_fileno): use fport buffer.
+	(scm_fseek): clear fport buffers.  always use lseek.
+
+	* posix.c (scm_pipe): use fport buffer.
+	* unif.c: include fports.h instead of genio.h.
+	* fports.c (scm_fdes_wait_for_input, scm_fport_fill_buffer): new
+	procedures.
+	(local_fgetc): use them.
+	(local_ffwrite): use buffer.
+	(local_fgets): use buffer.
+	(scm_setbuf0): deleted.
+	(scm_setvbuf): set the buffer.
+	(scm_setfileno): deleted.
+	(scm_evict_ports): set fdes directly.
+*	(scm_freopen): deleted.  doesn't seem useful in Guile.
+	(scm_stdio_to_port): deleted.
+	fports.h (struct scm_fport): add shortbuf member to avoid separate
+	code for unbuffered ports.
+	(SCM_FPORTP, SCM_OPFPORTP, SCM_OPINFPORTP, SCM_OPOUTFPORTP): moved
+	from ports.h.
+
+	* genio.c, genio.h: move contents into ports.c, ports.h.  The
+	division wasn't useful.
+
+	* fports.c, fports.h (scm_fport_drain_input): new procedure.
+	* ports.c (scm_drain_input): call scm_fport_drain_input.
+	* scm_fdes_waiting_p: new procedure.
+	* fports.c (scm_fdes_to_port): allocate read and/or write buffers.
+	(scm_input_waiting_p): check the buffer.
+	(local_fgetc, local_fflush, local_fputc): likewise.
+
+	* fports.h (scm_fport): read/write_buf,_pos,_buf_end,,_buf_size:
+	new members.
+	* init.c (scm_init_standard_ports): pass fdes instead of FILE *.
+
+*	* ports.c (scm_drain_input): new procedure.
+	ports.h: prototype.
+	* fports.c (FPORT_READ_SAFE, FPORT_WRITE_SAFE, FPORT_ALL_OKAY,
+	pre_read, pre_write): removed.
+	(local_fputc, local_fputs, local_ffwrite): use write, not stdio.
+	(scm_standard_stream_to_port): change first arg from FILE * to
+	int fdes.
+	(local_fflush): flush fdes, not FILE *.
+	* fports.h (SCM_NOFTELL): removed.
+	* genio.c, ports.c: don't include filesys.h.
+	* genio.c (scm_getc): don't use scm_internal_select if FPORT.
+	do it in fports.c:local_fgetc.
+	* genio.c: don't use SCM_SYSCALL when calling ptob procedures.
+	do it where it's needed in the port smobs.
+	* filesys.c (scm_input_waiting_p): moved to fports.c, stdio
+	  buffer support removed.  take SCM arg, not FILE *.
+	* filesys.h: prototype moved too.
+	* fports.c (scm_fdes_to_port): new procedure.
+	(local_fgetc): use read not fgetc.
+	(local_fclose): use close, not fclose.
+	(local_fgets): use read, not fgets
+	* fports.h: prototype for scm_fdes_to_port.
+	* fports.h (scm_fport): new struct.
+	* fports.c (scm_open_file): use open, not fopen.
+	#include fcntl.h
+	* ports.h (struct scm_port_table): change stream from SCM to void *.
+	* ports.c (scm_add_to_port_table): check for memory allocation error.
+	(scm_prinport): remove MSDOS hair.
+	(scm_void_port): set stream to 0 instead of SCM_BOOL_F.
+	(scm_close_port): don't throw errors: do it in fports.c.
+
 1999-06-04  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* numbers.c: Added #include "feature.h".

@@ -1,9 +1,10 @@
 The Guile core distribution:
 
-Greg Harvey made readline highlight matching parenthesis.
+Gary Houston contributed a new, more efficient implementation of I/O ports.
 Michael Livshin implemented Dybvig's Guardians.
 Russ McManus contributed a command-line argument parser (ice-9 getopt-long).
 Ken Raeburn made Guile use `const' in some appropriate places.
+Greg Harvey made readline highlight matching parenthesis.
 
 Bug reports and fixes from:
 
