@@ -723,7 +723,6 @@
 (define (getprotoent) (getproto))
 (define (getpwent) (getpw))
 (define (getservent) (getserv))
-(define (reopen-file . args) (apply freopen args))
 (define (setgrent) (setgr #f))
 (define (sethostent) (sethost #t))
 (define (setnetent) (setnet #t))
@@ -807,9 +806,6 @@
 
 (define (file-position . args) (apply ftell args))
 (define (file-set-position . args) (apply fseek args))
-
-(define (open-input-pipe command) (open-pipe command OPEN_READ))
-(define (open-output-pipe command) (open-pipe command OPEN_WRITE))
 
 (define (move->fdes fd/port fd)
   (cond ((integer? fd/port)
@@ -2570,7 +2566,6 @@
 		    (lambda (key . args)
 		      (case key
 			((quit)
-			 (force-output)
 			 (set! status args)
 			 #f)
 
@@ -2583,22 +2578,26 @@
 			 ;;
 			 (lambda ()
 			   (run-hook abort-hook)
-			   (force-output)
+			   (force-output (current-output-port))
 			   (display "ABORT: "  (current-error-port))
 			   (write args (current-error-port))
 			   (newline (current-error-port))
 			   (if interactive
-			       (if (and (not has-shown-debugger-hint?)
-					(not (memq 'backtrace
-						   (debug-options-interface)))
-					(stack? (fluid-ref the-last-stack)))
-				   (begin
-				     (newline (current-error-port))
-				     (display
-				      "Type \"(backtrace)\" to get more information.\n"
-				      (current-error-port))
-				     (set! has-shown-debugger-hint? #t)))
-			       (primitive-exit 1))
+			       (begin
+				 (if (and
+				      (not has-shown-debugger-hint?)
+				      (not (memq 'backtrace
+						 (debug-options-interface)))
+				      (stack? (fluid-ref the-last-stack)))
+				     (begin
+				       (newline (current-error-port))
+				       (display
+					"Type \"(backtrace)\" to get more information.\n"
+					(current-error-port))
+				       (set! has-shown-debugger-hint? #t)))
+				 (force-output (current-error-port)))
+			       (begin
+				 (primitive-exit 1)))
 			   (set! stack-saved? #f)))
 
 			(else
@@ -2739,7 +2738,7 @@
 			     (repl-reader prompt))))
 
 		      ;; As described in R4RS, the READ procedure updates the
-		      ;; port to point to the first characetr past the end of
+		      ;; port to point to the first character past the end of
 		      ;; the external representation of the object.  This
 		      ;; means that it doesn't consume the newline typically
 		      ;; found after an expression.  This means that, when
@@ -2748,7 +2747,9 @@
 		      ;; breakpoints kind of useless.  So, consume any
 		      ;; trailing newline here, as well as any whitespace
 		      ;; before it.
-		      (consume-trailing-whitespace)
+		      ;; But not if EOF, for control-D.
+		      (if (not (eof-object? val))
+			  (consume-trailing-whitespace))
 		      (run-hook after-read-hook)
 		      (if (eof-object? val)
 			  (begin
