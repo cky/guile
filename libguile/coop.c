@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.7 1998-03-30 21:02:31 mdj Exp $ */
+/* $Id: coop.c,v 1.8 1998-04-12 23:34:40 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -48,7 +48,7 @@
 #include "eval.h"
 
 /* #define COOP_STKSIZE (0x10000) */
-#define COOP_STKSIZE (SCM_EVAL_STACK)
+#define COOP_STKSIZE (scm_eval_stack)
 
 /* `alignment' must be a power of 2. */
 #define COOP_STKALIGN(sp, alignment) \

@@ -1422,8 +1422,10 @@ int scm_debug_eframe_size;
 
 int scm_debug_mode, scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 
+int scm_eval_stack;
+
 scm_option scm_eval_opts[] = {
-  { SCM_OPTION_INTEGER, "stack", 0x10000, "Size of thread stacks." }
+  { SCM_OPTION_INTEGER, "stack", 22000, "Size of thread stacks (in machine words)." }
 };
 
 scm_option scm_debug_opts[] = {
@@ -1443,7 +1445,7 @@ scm_option scm_debug_opts[] = {
   { SCM_OPTION_INTEGER, "depth", 20, "Maximal length of printed backtrace." },
   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
-  { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (0 = no check)." }
+  { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (measured in words; 0 = no check)." }
 };
 
 scm_option scm_evaluator_trap_table[] = {
@@ -1464,6 +1466,7 @@ scm_eval_options_interface (setting)
 		     scm_eval_opts,
 		     SCM_N_EVAL_OPTIONS,
 		     s_eval_options_interface);
+  scm_eval_stack = SCM_EVAL_STACK * sizeof (void *);
   SCM_ALLOW_INTS;
   return ans;
 }
