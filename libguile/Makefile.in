@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.2a from Makefile.am
+# Makefile.in generated automatically by automake 1.2c from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -271,7 +271,7 @@ mostlyclean-hdr:
 clean-hdr:
 
 distclean-hdr:
-	rm -f scmconfig.h
+	-rm -f scmconfig.h
 
 maintainer-clean-hdr:
 guile-snarf: $(top_builddir)/config.status guile-snarf.in
@@ -280,7 +280,7 @@ guile-snarf: $(top_builddir)/config.status guile-snarf.in
 mostlyclean-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
-	test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
 
 distclean-libLTLIBRARIES:
 
@@ -306,12 +306,12 @@ uninstall-libLTLIBRARIES:
 	$(COMPILE) -c $<
 
 mostlyclean-compile:
-	rm -f *.o core
+	-rm -f *.o core
 
 clean-compile:
 
 distclean-compile:
-	rm -f *.tab.c
+	-rm -f *.tab.c
 
 maintainer-clean-compile:
 
@@ -319,10 +319,10 @@ maintainer-clean-compile:
 	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
 
 mostlyclean-libtool:
-	rm -f *.lo
+	-rm -f *.lo
 
 clean-libtool:
-	rm -rf .libs
+	-rm -rf .libs
 
 distclean-libtool:
 
@@ -334,7 +334,7 @@ libguile.la: $(libguile_la_OBJECTS) $(libguile_la_DEPENDENCIES)
 mostlyclean-binPROGRAMS:
 
 clean-binPROGRAMS:
-	test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
 distclean-binPROGRAMS:
 
@@ -359,7 +359,7 @@ uninstall-binPROGRAMS:
 mostlyclean-checkPROGRAMS:
 
 clean-checkPROGRAMS:
-	test -z "$(check_PROGRAMS)" || rm -f $(check_PROGRAMS)
+	-test -z "$(check_PROGRAMS)" || rm -f $(check_PROGRAMS)
 
 distclean-checkPROGRAMS:
 
@@ -473,7 +473,7 @@ mostlyclean-tags:
 clean-tags:
 
 distclean-tags:
-	rm -f TAGS ID
+	-rm -f TAGS ID
 
 maintainer-clean-tags:
 
@@ -484,6 +484,7 @@ subdir = libguile
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
 	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign libguile/Makefile
 	@for file in $(DISTFILES); do \
@@ -507,7 +508,7 @@ clean-depend:
 distclean-depend:
 
 maintainer-clean-depend:
-	rm -rf .deps
+	-rm -rf .deps
 
 .deps/%.P: %.c
 	@echo "Computing dependencies for $<..."
@@ -542,19 +543,19 @@ installdirs:
 
 
 mostlyclean-generic:
-	test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
+	-test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
 
 clean-generic:
-	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
-	rm -f Makefile $(DISTCLEANFILES)
-	rm -f config.cache config.log stamp-h stamp-h[0-9]*
-	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-rm -f Makefile $(DISTCLEANFILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 
 maintainer-clean-generic:
-	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
-	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean:  mostlyclean-hdr mostlyclean-libLTLIBRARIES \
 		mostlyclean-compile mostlyclean-libtool \
 		mostlyclean-binPROGRAMS mostlyclean-checkPROGRAMS \
@@ -568,8 +569,8 @@ distclean:  distclean-hdr distclean-libLTLIBRARIES distclean-compile \
 		distclean-libtool distclean-binPROGRAMS \
 		distclean-checkPROGRAMS distclean-tags distclean-depend \
 		distclean-generic clean
-	rm -f config.status
-	rm -f libtool
+	-rm -f config.status
+	-rm -f libtool
 
 maintainer-clean:  maintainer-clean-hdr maintainer-clean-libLTLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
