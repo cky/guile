@@ -1,3 +1,48 @@
+Thu Aug 15 02:05:14 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* libguile.h: #include "objprop.h"; I guess this was forgotten.
+
+	* init.c (scm_boot_guile): Don't call scm_init_rgx; it's a plugin,
+	and should be called by the final client.
+
+Wed Aug 14 21:41:37 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* gc.h: Use the PROTO macro when declaring functions.
+	* gc.c: Use the PROTO macro when declaring static functions.
+  	Remove the CPP hair around function definitions.
+
+	* gc.c (scm_init_storage): Initialize scm_asyncs.
+
+	* libguile.h: #include "__scm.h" before testing the STDC_HEADERS
+	preprocessor symbol; "__scm.h" is where it might get #defined.
+	* __scm.h: Similar: #include <scmconfig.h> before testing
+	HAVE_LIMITS_H.
+
+	* __scm.h: It's HAVE_LIMITS_H, not HAVE_LIMITSH.
+	
+Fri Aug  9 11:09:28 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+*	* init.c (scm_boot_guile): Add init_func argument; call
+	(*init_func) instead of calling scm_appinit; it's ucky to
+	hard-code names for the user's procedures.
+	* init.h (scm_boot_guile): Adjust declaration.
+
+	* __scm.h (PROTO): New macro, for declaring functions with
+	prototypes.
+
+	* init.h (scm_start_stack, scm_restart_stack): Use PROTO;
+	eliminate all the __STDC__ conditionals.
+	(scm_boot_guile): Add declaration.
+	* init.c (scm_start_stack, scm_restart_stack, scm_boot_guile):
+	Remove __STDC__ conditionals around function definitions; the
+	declarations in init.h will provide the same information, more
+	usefully.
+
+	* __scm.h (SCM_SYSMISSING): When we don't have ENOSYS, don't
+	complain about it in the error message; the error message is
+	adequate without that note, and there's nothing the user can do
+	about it.
+
 Wed Aug  7 14:14:46 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* Makefile.in (ancillary): Drop def.sed.
@@ -90,16 +135,16 @@ Sat Aug  3 01:27:14 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ioext.c (scm_sys_fdopen): fix the port-table assignment.
 
-	* fports.c (scm_open_file): don't return #f, throw error.
+*	* fports.c (scm_open_file): don't return #f, throw error.
 
-	* ioext.c (fileno): renamed from %fileno.
+*	* ioext.c (fileno): renamed from %fileno.
 	(soft-fileno): deleted.
 
 	* ports.c (scm_port_revealed): don't need to check for -1 from
 	scm_revealed_count.
 	(scm_set_port_revealed_x): return unspecified, not #f.
 
-	* ioext.c (primitive-move->fdes): return #t or #f, not 1 or 0.
+*	* ioext.c (primitive-move->fdes): return #t or #f, not 1 or 0.
 
 	* fdsocket.c: getsockopt, setsockopt: use HAVE_STRUCT_LINGER.
 
@@ -132,10 +177,10 @@ Thu Aug  1 08:22:24 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 Wed Jul 31 23:43:05 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
-	* numbers.c: rename %expt -> $expt, %atan2 -> $atan2, as it must
+*	* numbers.c: rename %expt -> $expt, %atan2 -> $atan2, as it must
 	have been once.
 
-	* posix.c, ioext.c, socket.c, fdsocket.c, files.c, filesys.c, simpos.c:
+*	* posix.c, ioext.c, socket.c, fdsocket.c, files.c, filesys.c, simpos.c:
 	Remove leading % from scheme names.
 	Do not return error values, call SCM_SYSERROR or similar.
 
