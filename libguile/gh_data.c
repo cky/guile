@@ -255,9 +255,12 @@ gh_scm2double (SCM obj)
 }
 char 
 gh_scm2char (SCM obj)
+#define FUNC_NAME "gh_scm2char"
 {
+  SCM_VALIDATE_CHAR (SCM_ARG1, obj);
   return SCM_CHAR (obj);
 }
+#undef FUNC_NAME;
 
 /* Convert a vector, weak vector, string, substring or uniform vector
    into an array of chars.  If result array in arg 2 is NULL, malloc a
