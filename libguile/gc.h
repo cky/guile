@@ -55,8 +55,8 @@
 
 typedef struct scm_cell
 {
-  SCM car;
-  SCM cdr;
+  scm_bits_t word_0;
+  scm_bits_t word_1;
 } scm_cell;
 
 
@@ -89,25 +89,25 @@ typedef struct scm_cell
 /* Low level cell data accessing macros:
  */
 
-#define SCM_CELL_WORD(x, n) (SCM_UNPACK (((SCM *) SCM2PTR (x))[n]))
+#define SCM_CELL_WORD(x, n) (((scm_bits_t *) SCM2PTR (x)) [n])
 #define SCM_CELL_WORD_0(x) SCM_CELL_WORD (x, 0)
 #define SCM_CELL_WORD_1(x) SCM_CELL_WORD (x, 1)
 #define SCM_CELL_WORD_2(x) SCM_CELL_WORD (x, 2)
 #define SCM_CELL_WORD_3(x) SCM_CELL_WORD (x, 3)
 
-#define SCM_CELL_OBJECT(x, n) (((SCM *) SCM2PTR (x))[n])
+#define SCM_CELL_OBJECT(x, n) (SCM_PACK (((scm_bits_t *) SCM2PTR (x)) [n]))
 #define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT (x, 0)
 #define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT (x, 1)
 #define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT (x, 2)
 #define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT (x, 3)
 
-#define SCM_SET_CELL_WORD(x, n, v) ((((SCM *) SCM2PTR (x))[n]) = SCM_PACK (v))
+#define SCM_SET_CELL_WORD(x, n, v) ((((scm_bits_t *) SCM2PTR (x)) [n]) = (scm_bits_t) (v))
 #define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD (x, 0, v)
 #define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD (x, 1, v)
 #define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD (x, 2, v)
 #define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD (x, 3, v)
 
-#define SCM_SET_CELL_OBJECT(x, n, v) ((((SCM *) SCM2PTR (x))[n]) = v)
+#define SCM_SET_CELL_OBJECT(x, n, v) ((((scm_bits_t *) SCM2PTR (x)) [n]) = SCM_UNPACK (v))
 #define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT (x, 0, v)
 #define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT (x, 1, v)
 #define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT (x, 2, v)
@@ -116,14 +116,14 @@ typedef struct scm_cell
 #define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
 #define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 (x, t)
 
-#define SCM_SETAND_CAR(x, y)\
-  (SCM_CAR (x) = SCM_PACK (SCM_UNPACK (SCM_CAR (x)) & (y)))
+#define SCM_SETAND_CAR(x, y) \
+  (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) & (y))))
 #define SCM_SETAND_CDR(x, y)\
-  (SCM_CDR (x) = SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y)))
+  (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y))))
 #define SCM_SETOR_CAR(x, y)\
-  (SCM_CAR (x) = SCM_PACK (SCM_UNPACK (SCM_CAR (x)) | (y)))
+  (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) | (y))))
 #define SCM_SETOR_CDR(x, y)\
-  (SCM_CDR (x) = SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y)))
+  (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y))))
 
 #define SCM_CELL_WORD_LOC(x, n) (&SCM_CELL_WORD (x, n))
 #define SCM_CARLOC(x) (&SCM_CAR (x))

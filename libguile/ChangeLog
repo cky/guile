@@ -1,5 +1,15 @@
 2000-05-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.h (scm_cell, SCM_CELL_WORD, SCM_CELL_OBJECT,
+	SCM_SET_CELL_WORD, SCM_SET_CELL_OBJECT):  Scheme cells now consist
+	of two scm_bits_t values instead of two SCM values, because it is
+	legal for cell entries to hold values that are not scheme objects.
+
+	(SCM_SETAND_CAR, SCM_SETAND_CDR, SCM_SETOR_CAR, SCM_SETOR_CDR):
+	Use SCM_SETC[AD]R to modify contents of pairs.
+
+2000-05-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c (IS_INF, isfinite):  Added FIXME comment.
 
 	(scm_abs, scm_magnitude):  Make these two independent of each
