@@ -406,11 +406,54 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
       k = SCM_ARRAY_NDIM (ra);
       s = SCM_ARRAY_DIMS (ra);
       while (k--)
-	res = scm_cons (s[k].lbnd ? scm_cons2 (SCM_MAKINUM (s[k].lbnd), SCM_MAKINUM (s[k].ubnd), SCM_EOL) :
-			SCM_MAKINUM (1 + (s[k].ubnd))
-			, res);
+	res = scm_cons (s[k].lbnd
+			? scm_cons2 (SCM_MAKINUM (s[k].lbnd),
+				     SCM_MAKINUM (s[k].ubnd),
+				     SCM_EOL)
+			: SCM_MAKINUM (1 + s[k].ubnd),
+			res);
       return res;
     }
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_shared_array_root, "shared-array-root", 1, 0, 0, 
+           (SCM ra),
+	    "Return the root vector of a shared array.")
+#define FUNC_NAME s_scm_shared_array_root
+{
+  SCM_ASSERT (SCM_ARRAYP (ra), ra, SCM_ARG1, FUNC_NAME);
+  return SCM_ARRAY_V (ra);
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_shared_array_offset, "shared-array-offset", 1, 0, 0, 
+           (SCM ra),
+	    "Return the root vector index of the first element in the array.")
+#define FUNC_NAME s_scm_shared_array_offset
+{
+  SCM_ASSERT (SCM_ARRAYP (ra), ra, SCM_ARG1, FUNC_NAME);
+  return SCM_MAKINUM (SCM_ARRAY_BASE (ra));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_shared_array_increments, "shared-array-increments", 1, 0, 0, 
+           (SCM ra),
+	    "For each dimension, return the distance between elements in the root vector.")
+#define FUNC_NAME s_scm_shared_array_increments
+{
+  SCM res = SCM_EOL;
+  scm_sizet k;
+  scm_array_dim *s;
+  SCM_ASSERT (SCM_ARRAYP (ra), ra, SCM_ARG1, FUNC_NAME);
+  k = SCM_ARRAY_NDIM (ra);
+  s = SCM_ARRAY_DIMS (ra);
+  while (k--)
+    res = scm_cons (SCM_MAKINUM (s[k].inc), res);
+  return res;
 }
 #undef FUNC_NAME
 
