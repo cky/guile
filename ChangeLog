@@ -3,7 +3,7 @@ Mon May 26 12:14:20 1997  Jim Blandy  <jimb@floss.cyclic.com>
 	* configure.in: We don't need to add fileblocks.o to LIBOBJS if
  	struct stat doesn't have the st_blocks field.  We take care of
  	that case in the code.  Replace AC_STRUCT_ST_BLOCKS with its
- 	definition, edited appropriately.
+ 	definition, edited appropriately.  (Bernard URBAN)
 	* configure: Regenerated.
 
 Sat May 17 13:49:28 1997  Jim Blandy  <jimb@floss.cyclic.com>

@@ -4,7 +4,7 @@ Mon May 26 12:37:30 1997  Jim Blandy  <jimb@floss.cyclic.com>
  	here; apparently it's not quite right to have const in a prototype
  	and then use a K&R declaration.  I wonder if stuff like this will
  	go away if we compile with -Wrequire-prototypes, or whatever that
- 	is...  (thanks to Bernard URBAN)
+ 	is...  (Bernard URBAN)
 
 	* scmhob.h: New text from Bernard URBAN.
 
