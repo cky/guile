@@ -166,14 +166,13 @@ scm_grow_tok_buf (SCM *tok_buf)
 
 /* Consume an SCSH-style block comment.  Assume that we've already
    read the initial `#!', and eat characters until we get a
-   newline/exclamation-point/sharp-sign/newline sequence. 
-
-   A carriage return is also reocgnized as a newline. */
+   exclamation-point/sharp-sign sequence. 
+*/
 
 static void
 skip_scsh_block_comment (SCM port)
 {
-  int state = 0;
+  int bang_seen = 0;
 
   for (;;)
     {
@@ -183,16 +182,12 @@ skip_scsh_block_comment (SCM port)
 	scm_input_error ("skip_block_comment", port, 
 			 "unterminated `#! ... !#' comment", SCM_EOL);
 
-      if (state == 1 && c == '!')
-	state = 2;
-      else if (state == 2 && c == '#')
-	state = 3;
-      else if (state == 3 && (c == '\n' || c == '\r'))
+      if (c == '!')
+	bang_seen = 1;
+      else if (c == '#' && bang_seen)
 	return;
-      else if (c == '\n' || c == '\r')
-	state = 1;
       else
-	state = 0;
+	bang_seen = 0;
     }
 }
 
