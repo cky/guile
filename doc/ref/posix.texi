@@ -304,12 +304,16 @@ Pipes are commonly used for communication with a newly forked
 child process.  The need to flush the output port can be
 avoided by making it unbuffered using @code{setvbuf}.
 
-@vindex PIPE_BUF
-Writes occur atomically provided the size of the data in bytes
-is not greater than the value of @code{PIPE_BUF}.  Note that
-the output port is likely to block if too much data (typically
-equal to @code{PIPE_BUF}) has been written but not yet read
-from the input port.
+@defvar PIPE_BUF
+A write of up to @code{PIPE_BUF} many bytes to a pipe is atomic,
+meaning when done it goes into the pipe instantaneously and as a
+contiguous block (@pxref{Pipe Atomicity,, Atomicity of Pipe I/O, libc,
+The GNU C Library Reference Manual}).
+@end defvar
+
+Note that the output port is likely to block if too much data has been
+written but not yet read from the input port.  Typically the capacity
+is @code{PIPE_BUF} bytes.
 @end deffn
 
 The next group of procedures perform a @code{dup2}
