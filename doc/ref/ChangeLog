@@ -1,3 +1,16 @@
+2004-01-20  Kevin Ryde  <user42@zip.com.au>
+
+	* preface.texi (Guile License): Note readline is GPL and manual has
+	its own copying terms.  Describe briefly what the licenses mean in
+	practice.
+
+	* scheme-scheduling.texi (Higher level thread procedures): In monitor,
+	don't let "newly created" suggest a mutex created on every evaluation.
+	Note what "monitor" means.
+
+	* slib.texi (SLIB): Note `system' redefined by (ice-9 slib).  Tweak
+	`require' example.
+
 2004-01-11  Kevin Ryde  <user42@zip.com.au>
 
 	* misc-modules.texi (Queues): New chapter.
