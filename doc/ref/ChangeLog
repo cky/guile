@@ -10,6 +10,13 @@
 	promise? and force a bit, describe recursive forcing of a promise by
 	its own code.
 
+	* scheme-io.texi (Ports): Add notes on garbage collection, and on
+	explicitly closing file ports.
+	(File Ports): Cross reference Ports node on explicit closing.
+
+	* posix.texi (Network Sockets and Communication): Cross reference
+	Ports node on explicit closing.
+
 	* scheme-scheduling.texi (Futures): New section.
 
 	* srfi-modules.texi (SRFI-13 Miscellaneous): In string-replace, note
