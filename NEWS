@@ -135,6 +135,10 @@ provided.  Use 'make html'.
 
 * Changes to the stand-alone interpreter
 
+** New command line option `-L'.
+
+This option adds a directory to the front of the load path.
+
 ** New command line option `--no-debug'.
 
 Specifying `--no-debug' on the command line will keep the debugging

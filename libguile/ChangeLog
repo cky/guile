@@ -1,3 +1,18 @@
+2004-08-22  Marius Vollmer  <mvo@zagadka.de>
+
+	* strings.c (get_str_buf_start): New helper function.
+	(scm_i_substring, scm_i_substring_copy, scm_i_substring_shared,
+	scm_i_string_char, scm_i_string_writable_chars): Use it.
+	(scm_i_substring_copy): Make START argument optional for C
+	callers, for upcoming SRFI-13 integration.
+	
+2004-08-21  Marius Vollmer  <mvo@zagadka.de>
+
+        From Richard Todd, Thanks!
+	
+	* script.c (scm_compile_shell_switches): added '-L' switch to add
+	to the %load-path.
+	
 2004-08-21  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (unmemoize_exprs): When dropping internal body markers
