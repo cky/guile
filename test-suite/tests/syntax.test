@@ -27,7 +27,7 @@
 (define exception:missing/extra-expr
   (cons 'misc-error "^missing or extra expression"))
 (define exception:missing/extra-expr-syntax
-  (cons 'syntax-error "^missing or extra expression"))
+  (cons 'syntax-error "missing or extra expression"))
 (define exception:missing-expr
   (cons 'syntax-error "Missing expression"))
 (define exception:extra-expr
