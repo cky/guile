@@ -1,3 +1,8 @@
+2002-11-17  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* strports.c (scm_eval_string_in_module): Validate second arg to
+	be a module.  Thanks to Arno Peters!
+
 2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* .cvsignore: remove goops.c
