@@ -1,3 +1,8 @@
+2005-01-14  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (User Information): Note cuserid gone from POSIX.
+	Prompted by Roland Besserer.
+
 2005-01-10  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi: Various index entries.
