@@ -919,17 +919,16 @@ Use @code{scm_make_real} instead.
 Use @code{SCM_MAKE_CHAR} instead.
 
 @item @code{gh_str2scm}
-Use @code{scm_mem2string} instead.
+Use @code{scm_from_locale_stringn} instead.
 
 @item @code{gh_str02scm}
-Use @code{scm_makfrom0str} instead.
+Use @code{scm_from_locale_string} instead.
 
 @item @code{gh_set_substr}
 No direct scm equivalent.  [FIXME]
 
 @item @code{gh_symbol2scm}
-Use @code{scm_str2symbol} instead.  [FIXME: inconsistent naming,
-should be @code{scm_str02symbol}.]
+Use @code{scm_from_locale_symbol} instead.
 
 @item @code{gh_ints2scm} and @code{gh_doubles2scm}
 Use @code{scm_c_ints2scm} and @code{scm_c_doubles2scm} instead.
@@ -956,29 +955,20 @@ Use @code{scm_to_ulong} instead.
 Use @code{scm_to_long} instead.
 
 @item @code{gh_scm2double}
-Replace @code{gh_scm2double (@var{obj})} by
-@example
-scm_num2dbl (@var{obj}, @var{str})
-@end example
-where @var{str} is a C string that describes the context of the call.
+Use @code{scm_to_double} instead.
 
 @item @code{gh_scm2char}
 Use @code{scm_to_char} instead.
 
 @item @code{gh_scm2newstr}
-Instead of @code{gh_scm2newstr (@var{obj}, @var{lenp})} use
-@code{scm_c_string2str (@var{obj}, @var{str}, @var{lenp})}.  With the 
-additional @var{str} argument the user can pass a pre-allocated memory 
-chunk or leave it passing NULL.
+Use @code{scm_to_locale_string} or similar instead.
 
 @item @code{gh_get_substr}
-Use the @code{scm_c_substring2str (@var{obj}, @var{str}, @var{start}, 
-@var{len})} function instead.
+Use @code{scm_c_substring} together with @code{scm_to_locale_string}
+or similar instead.
 
 @item @code{gh_symbol2newstr}
-Use the @code{scm_c_symbol2str (@var{obj}, @var{str}, @var{lenp})} function
-instead.  With the additional @var{str} argument the user can pass a 
-pre-allocated memory chunk or leave it passing NULL.
+Use @code{scm_symbol_to_string} together with @code{scm_to_locale_string} or similar instead.
 
 @item @code{gh_scm2chars}
 Use @code{scm_c_scm2chars} instead.
@@ -993,46 +983,31 @@ Use @code{scm_c_floats2scm} and @code{scm_c_doubles2scm} instead.
 Use @code{scm_is_bool} instead.
 
 @item @code{gh_symbol_p}
-Use the @code{SCM_SYMBOLP} macro instead, or replace @code{gh_symbol_p
-(@var{obj})} by
-@example
-scm_is_true (scm_symbol_p (@var{obj}))
-@end example
+Use @code{scm_is_symbol} instead.
 
 @item @code{gh_char_p}
-Use the @code{SCM_CHARP} macro instead, or replace @code{gh_char_p
-(@var{obj})} by
+Replace @code{gh_char_p (@var{obj})} by
 @example
 scm_is_true (scm_char_p (@var{obj}))
 @end example
 
 @item @code{gh_vector_p}
-Use the @code{SCM_VECTORP} macro instead, or replace @code{gh_vector_p
-(@var{obj})} by
+Replace @code{gh_vector_p (@var{obj})} by
 @example
 scm_is_true (scm_vector_p (@var{obj}))
 @end example
 
 @item @code{gh_pair_p}
-Use the @code{SCM_CONSP} macro instead, or replace @code{gh_pair_p
-(@var{obj})} by
+Replace @code{gh_pair_p (@var{obj})} by
 @example
 scm_is_true (scm_pair_p (@var{obj}))
 @end example
 
 @item @code{gh_number_p}
-Use the @code{SCM_NUMBERP} macro instead, or replace @code{gh_number_p
-(@var{obj})} by
-@example
-scm_is_true (scm_number_p (@var{obj}))
-@end example
+Use @code{scm_is_number} instead.
 
 @item @code{gh_string_p}
-Use the @code{SCM_STRINGP} macro instead, or replace @code{gh_string_p
-(@var{obj})} by
-@example
-scm_is_true (scm_string_p (@var{obj}))
-@end example
+Use @code{scm_is_string} instead.
 
 @item @code{gh_procedure_p}
 Replace @code{gh_procedure_p (@var{obj})} by
@@ -1047,8 +1022,7 @@ scm_is_true (scm_list_p (@var{obj}))
 @end example
 
 @item @code{gh_inexact_p}
-Use the @code{SCM_INEXACTP} macro instead, or replace @code{gh_inexact_p
-(@var{obj})} by
+Replace @code{gh_inexact_p (@var{obj})} by
 @example
 scm_is_true (scm_inexact_p (@var{obj}))
 @end example
