@@ -1,3 +1,22 @@
+2000-03-12  Gary Houston  <ghouston@arglist.com>
+
+	* fports.c (scm_fdes_to_port): call fcntl F_GETFL to test that
+	the fdes is valid before doing anything else.  check that
+	the file descriptor supports the modes required.
+	(scm_fport_buffer_add): don't throw an error if fstat doesn't
+	work: just use the default buffer size.
+
+	* throw.c: change an outdated comment about scm_internal_catch
+	BODY: it doesn't take a jumpbuf arg.
+
+	* init.c (scm_standard_stream_to_port): install a handler in case
+	scm_fdes_to_port throws an error.  don't check here whether the
+	file descriptor is valid, since scm_fdes_to_port will do that.
+	set the revealed count depending on whether the port got the
+	standard file descriptor.
+	(stream_body_data): new type.
+	(stream_body, stream_handler): new procs.
+
 2000-03-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* stacks.c, stacks.h, struct.c, tags.h, unif.c (scm_bits_t):
