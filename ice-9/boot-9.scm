@@ -2652,7 +2652,7 @@
   (define keys 
     ;; sym     key      quote?
     '((:select #:select #t)
-      (:rename #:rename #f)))
+      (:renamer #:renamer #f)))
   (if (not (pair? (car spec)))
       `(',spec)
       `(',(car spec)
