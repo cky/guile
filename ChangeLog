@@ -1,3 +1,8 @@
+2003-04-06  Marius Vollmer  <mvo@zagadka.de>
+
+	* configure.in: Check for mpz_import, which is required but only
+	available in GMP 4.1.
+
 2003-04-05  Marius Vollmer  <mvo@zagadka.de>
 
 	* Changed license terms to the plain LGPL thru-out.
