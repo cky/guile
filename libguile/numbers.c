@@ -1,5 +1,5 @@
-/*      Copyright (C) 1995,1996,1997,1998, 1999, 2000 Free Software Foundation, Inc.
-
+/* Copyright (C) 1995,1996,1997,1998,1999,2000 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -3426,16 +3426,17 @@ scm_sum (SCM x, SCM y)
 	{
 	intbig:
 	  {
+	    long i = SCM_INUM (x);
 #  ifndef SCM_DIGSTOOBIG
-	    long z = scm_pseudolong (SCM_INUM (x));
+	    long z = scm_pseudolong (i);
 	    return scm_addbig ((SCM_BIGDIG *) & z,
 			       SCM_DIGSPERLONG,
-			       (x < 0) ? SCM_BIGSIGNFLAG : 0,
+			       (i < 0) ? SCM_BIGSIGNFLAG : 0,
 			       y, 0);
 #  else  /* SCM_DIGSTOOBIG */
 	    SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
-	    scm_longdigs (SCM_INUM (x), zdigs);
-	    return scm_addbig (zdigs, SCM_DIGSPERLONG, (x < 0) ? SCM_BIGSIGNFLAG : 0,
+	    scm_longdigs (i, zdigs);
+	    return scm_addbig (zdigs, SCM_DIGSPERLONG, (i < 0) ? SCM_BIGSIGNFLAG : 0,
 			       y, 0);
 #  endif /* SCM_DIGSTOOBIG */
 	  }
@@ -3580,15 +3581,16 @@ scm_difference (SCM x, SCM y)
       SCM_ASRTGO (SCM_NIMP (y), bady);
       if (SCM_BIGP (y))
 	{
+	  long i = SCM_INUM (x);
 #ifndef SCM_DIGSTOOBIG
-	  long z = scm_pseudolong (SCM_INUM (x));
+	  long z = scm_pseudolong (i);
 	  return scm_addbig ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG,
-			     (x < 0) ? SCM_BIGSIGNFLAG : 0,
+			     (i < 0) ? SCM_BIGSIGNFLAG : 0,
 			     y, SCM_BIGSIGNFLAG);
 #else
 	  SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
-	  scm_longdigs (SCM_INUM (x), zdigs);
-	  return scm_addbig (zdigs, SCM_DIGSPERLONG, (x < 0) ? SCM_BIGSIGNFLAG : 0,
+	  scm_longdigs (i, zdigs);
+	  return scm_addbig (zdigs, SCM_DIGSPERLONG, (i < 0) ? SCM_BIGSIGNFLAG : 0,
 			     y, SCM_BIGSIGNFLAG);
 #endif
 	}

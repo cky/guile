@@ -263,7 +263,7 @@
   SCM_SETCAR (x, \
 	      scm_tc16_big \
 	      | ((sign) ? SCM_BIGSIGNFLAG : 0) \
-	      | (((v) + 0L) << 17)) \
+	      | (((v) + 0L) << SCM_BIGSIZEFIELD))
 
 
 

@@ -1,5 +1,14 @@
 2000-03-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.h (SCM_SETNUMDIGS):  Use SCM_BIGSIZEFIELD macro for
+	shifting, not constant.  Thanks to Dale P. Smith.
+
+	* numbers.c (scm_sum, scm_difference):  Don't test a SCM value
+	for being less than zero.  Decode it to a C value first.  Again,
+	thank you Dale.
+
+2000-03-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.h, ramap.c, struct.h, vectors.h:  Don't use SCM2PTR for
 	non scheme values.  If raw data is stored in SCM variables, it has
 	to be accessed using SCM_UNPACK until a better solution is found.
