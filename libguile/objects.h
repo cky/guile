@@ -219,13 +219,13 @@ extern SCM (*scm_memoize_method) (SCM x, SCM args);
 extern SCM scm_class_of (SCM obj);
 extern SCM scm_mcache_lookup_cmethod (SCM cache, SCM args);
 extern SCM scm_mcache_compute_cmethod (SCM cache, SCM args);
-extern SCM scm_call_generic_0 (SCM gf);
 /* The following are declared in __scm.h
+extern SCM scm_call_generic_0 (SCM gf);
 extern SCM scm_call_generic_1 (SCM gf, SCM a1);
 extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
+extern SCM scm_apply_generic (SCM gf, SCM args);
 */
 extern SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
-extern SCM scm_apply_generic (SCM gf, SCM args);
 extern SCM scm_entity_p (SCM obj);
 extern SCM scm_operator_p (SCM obj);
 extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);

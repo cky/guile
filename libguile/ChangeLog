@@ -1,3 +1,8 @@
+2000-04-10  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* objects.h: Don't redeclare scm_call_generic_0 and
+	scm_apply_generic.  (Thanks to Tal Tversky.)
+
 2000-04-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* hash.c (scm_hasher):  Use symbolic names for the tc3 constants.
