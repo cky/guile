@@ -647,6 +647,9 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
   tm_init (tm_yday);
 #undef tm_init
 
+  /* GNU glibc strptime() "%s" is affected by the current timezone, since it
+     reads a UTC time_t value and converts with localtime_r() to set the tm
+     fields, hence the use of SCM_DEFER_INTS.  */
   t.tm_isdst = -1;
   SCM_DEFER_INTS;
   if ((rest = strptime (str, fmt, &t)) == NULL)
