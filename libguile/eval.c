@@ -518,7 +518,7 @@ scm_m_quote (xorig, env)
 
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
 	      xorig, scm_s_expression, s_quote);
-  return scm_cons_source (xorig, SCM_IM_QUOTE, x);
+  return scm_cons (SCM_IM_QUOTE, x);
 }
 
 
@@ -533,7 +533,7 @@ scm_m_begin (xorig, env)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 1,
 	      xorig, scm_s_expression, s_begin);
-  return scm_cons_source (xorig, SCM_IM_BEGIN, SCM_CDR (xorig));
+  return scm_cons (SCM_IM_BEGIN, SCM_CDR (xorig));
 }
 
 SCM_SYNTAX(s_if, "if", scm_makmmacro, scm_m_if);
@@ -546,7 +546,7 @@ scm_m_if (xorig, env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 2 && len <= 3, xorig, scm_s_expression, "if");
-  return scm_cons_source (xorig, SCM_IM_IF, SCM_CDR (xorig));
+  return scm_cons (SCM_IM_IF, SCM_CDR (xorig));
 }
 
 
@@ -564,7 +564,7 @@ scm_m_set_x (xorig, env)
   SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, scm_s_set_x);
   SCM_ASSYNT (SCM_NIMP (SCM_CAR (x)) && SCM_SYMBOLP (SCM_CAR (x)),
 	      xorig, scm_s_variable, scm_s_set_x);
-  return scm_cons_source (xorig, SCM_IM_SET_X, x);
+  return scm_cons (SCM_IM_SET_X, x);
 }
 
 
@@ -617,7 +617,7 @@ scm_m_and (xorig, env)
   int len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, xorig, scm_s_test, s_and);
   if (len >= 1)
-    return scm_cons_source (xorig, SCM_IM_AND, SCM_CDR (xorig));
+    return scm_cons (SCM_IM_AND, SCM_CDR (xorig));
   else
     return SCM_BOOL_T;
 }
@@ -633,7 +633,7 @@ scm_m_or (xorig, env)
   int len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, xorig, scm_s_test, s_or);
   if (len >= 1)
-    return scm_cons_source (xorig, SCM_IM_OR, SCM_CDR (xorig));
+    return scm_cons (SCM_IM_OR, SCM_CDR (xorig));
   else
     return SCM_BOOL_F;
 }
@@ -657,7 +657,7 @@ scm_m_case (xorig, env)
 		  || scm_i_else == SCM_CAR (proc),
 		  xorig, scm_s_clauses, s_case);
     }
-  return scm_cons_source (xorig, SCM_IM_CASE, cdrx);
+  return scm_cons (SCM_IM_CASE, cdrx);
 }
 
 
@@ -689,7 +689,7 @@ scm_m_cond (xorig, env)
 		    xorig, "bad recipient", s_cond);
       x = SCM_CDR (x);
     }
-  return scm_cons_source (xorig, SCM_IM_COND, cdrx);
+  return scm_cons (SCM_IM_COND, cdrx);
 }
 
 SCM_SYNTAX(s_lambda, "lambda", scm_makmmacro, scm_m_lambda);
@@ -734,12 +734,8 @@ scm_m_lambda (xorig, env)
     }
 
  memlambda:
-  return scm_cons_source (xorig,
-			  SCM_IM_LAMBDA,
-			  scm_cons (SCM_CAR (x),
-				    scm_m_body (SCM_IM_LAMBDA,
-						SCM_CDR (x),
-						s_lambda)));
+  return scm_cons2 (SCM_IM_LAMBDA, SCM_CAR (x),
+		    scm_m_body (SCM_IM_LAMBDA, SCM_CDR (x), s_lambda));
 }
 
 SCM_SYNTAX(s_letstar,"let*", scm_makmmacro, scm_m_letstar);
@@ -768,12 +764,8 @@ scm_m_letstar (xorig, env)
     }
   x = scm_cons (vars, SCM_CDR (x));
 
-  return scm_cons_source (xorig,
-			  SCM_IM_LETSTAR,
-			  scm_cons (SCM_CAR (x),
-				    scm_m_body (SCM_IM_LETSTAR,
-						SCM_CDR (x),
-						"let*")));
+  return scm_cons2 (SCM_IM_LETSTAR, SCM_CAR (x),
+		    scm_m_body (SCM_IM_LETSTAR, SCM_CDR (x), s_letstar));
 }
 
 /* DO gets the most radically altered syntax
@@ -827,7 +819,7 @@ scm_m_do (xorig, env)
   x = scm_cons2 (SCM_CAR (x), SCM_CDR (x), steps);
   x = scm_cons2 (vars, inits, x);
   bodycheck (xorig, SCM_CARLOC (SCM_CDR (SCM_CDR (x))), "do");
-  return scm_cons_source (xorig, SCM_IM_DO, x);
+  return scm_cons (SCM_IM_DO, x);
 }
 
 /* evalcar is small version of inline EVALCAR when we don't care about
@@ -1008,11 +1000,8 @@ scm_m_letrec1 (op, imm, xorig, env)
     }
   while (SCM_NIMP (proc = SCM_CDR (proc)));
 
-  return scm_cons_source (xorig, op,
-			  scm_cons (vars,
-				    scm_cons (inits,
-					      scm_m_body (imm, SCM_CDR (x),
-							  what))));
+  return scm_cons2 (op, vars,
+		    scm_cons (inits, scm_m_body (imm, SCM_CDR (x), what)));
 }
 
 SCM_SYNTAX(s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
@@ -1027,12 +1016,10 @@ scm_m_letrec (xorig, env)
   SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_letrec);
   
   if (SCM_NULLP (SCM_CAR (x)))   /* null binding, let* faster */
-    return scm_m_letstar (scm_cons_source (xorig,
-					   SCM_CAR (xorig),
-					   scm_cons (SCM_EOL,
-						     scm_m_body (SCM_IM_LETREC,
-								 SCM_CDR (x),
-								 "letrec"))),
+    return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), SCM_EOL,
+				     scm_m_body (SCM_IM_LETREC,
+						 SCM_CDR (x),
+						 s_letrec)),
 			  env);
   else
     return scm_m_letrec1 (SCM_IM_LETREC, SCM_IM_LETREC, xorig, env);
@@ -1058,12 +1045,10 @@ scm_m_let (xorig, env)
 	  && SCM_CONSP (SCM_CAR (proc)) && SCM_NULLP (SCM_CDR (proc))))
     {
       /* null or single binding, let* is faster */
-      return scm_m_letstar (scm_cons_source (xorig,
-					     SCM_CAR (xorig),
-					     scm_cons (proc,
-						       scm_m_body (SCM_IM_LET,
-								   SCM_CDR (x),
-								   "let"))),
+      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), proc,
+				       scm_m_body (SCM_IM_LET,
+						   SCM_CDR (x),
+						   s_let)),
 			    env);
     }
 
@@ -1128,7 +1113,7 @@ scm_m_cont (xorig, env)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
 	      xorig, scm_s_expression, s_atcall_cc);
-  return scm_cons_source (xorig, SCM_IM_CONT, SCM_CDR (xorig));
+  return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
 }
 
 /* Multi-language support */
@@ -1256,7 +1241,10 @@ scm_m_expand_body (SCM xorig, SCM env)
       if (!SCM_SYMBOLP (SCM_CAR (form)))
 	break;
  
-      form = scm_macroexp (scm_cons (SCM_CAR (form), SCM_CDR (form)), env);
+      form = scm_macroexp (scm_cons_source (form,
+					    SCM_CAR (form),
+					    SCM_CDR (form)),
+			   env);
 
       if (SCM_IM_DEFINE == SCM_CAR (form))
 	{
