@@ -1,3 +1,12 @@
+2004-04-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* srfi-17.scm (setter, car, cdr etc.): When within one define
+	expression a new variable in the local module is defined in terms
+	of an equally named variable from some other module, use @ to
+	refer to the variable in the other module.  This is necessary due
+	to section 5.2.1 of R5RS: In a define expression first the new
+	binding is created and then the expression is evaluated.
+
 2004-04-24  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-11.scm (let-values): Use make-symbol rather than gensym, for

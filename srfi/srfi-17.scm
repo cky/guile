@@ -59,7 +59,7 @@
 
 (define setter
   (getter-with-setter
-   setter
+   (@ (guile) setter)
    (lambda args
      (error "Setting setters is not supported for a good reason."))))
 
@@ -69,37 +69,106 @@
   (lambda (obj value)
     (setter (location obj) value)))
 
-(define car (getter-with-setter car set-car!))
-(define cdr (getter-with-setter cdr set-cdr!))
-(define caar (getter-with-setter caar (compose-setter set-car! car)))
-(define cadr (getter-with-setter cadr (compose-setter set-car! cdr)))
-(define cdar (getter-with-setter cdar (compose-setter set-cdr! car)))
-(define cddr (getter-with-setter cddr (compose-setter set-cdr! cdr)))
-(define caaar (getter-with-setter caaar (compose-setter set-car! caar)))
-(define caadr (getter-with-setter caadr (compose-setter set-car! cadr)))
-(define cadar (getter-with-setter cadar (compose-setter set-car! cdar)))
-(define caddr (getter-with-setter caddr (compose-setter set-car! cddr)))
-(define cdaar (getter-with-setter cdaar (compose-setter set-cdr! caar)))
-(define cdadr (getter-with-setter cdadr (compose-setter set-cdr! cadr)))
-(define cddar (getter-with-setter cddar (compose-setter set-cdr! cdar)))
-(define cdddr (getter-with-setter cdddr (compose-setter set-cdr! cddr)))
-(define caaaar (getter-with-setter caaaar (compose-setter set-car! caaar)))
-(define caaadr (getter-with-setter caaadr (compose-setter set-car! caadr)))
-(define caadar (getter-with-setter caadar (compose-setter set-car! cadar)))
-(define caaddr (getter-with-setter caaddr (compose-setter set-car! caddr)))
-(define cadaar (getter-with-setter cadaar (compose-setter set-car! cdaar)))
-(define cadadr (getter-with-setter cadadr (compose-setter set-car! cdadr)))
-(define caddar (getter-with-setter caddar (compose-setter set-car! cddar)))
-(define cadddr (getter-with-setter cadddr (compose-setter set-car! cdddr)))
-(define cdaaar (getter-with-setter cdaaar (compose-setter set-cdr! caaar)))
-(define cdaadr (getter-with-setter cdaadr (compose-setter set-cdr! caadr)))
-(define cdadar (getter-with-setter cdadar (compose-setter set-cdr! cadar)))
-(define cdaddr (getter-with-setter cdaddr (compose-setter set-cdr! caddr)))
-(define cddaar (getter-with-setter cddaar (compose-setter set-cdr! cdaar)))
-(define cddadr (getter-with-setter cddadr (compose-setter set-cdr! cdadr)))
-(define cdddar (getter-with-setter cdddar (compose-setter set-cdr! cddar)))
-(define cddddr (getter-with-setter cddddr (compose-setter set-cdr! cdddr)))
-(define string-ref (getter-with-setter string-ref string-set!))
-(define vector-ref (getter-with-setter vector-ref vector-set!))
+(define car
+  (getter-with-setter (@ (guile) car)
+                      set-car!))
+(define cdr
+  (getter-with-setter (@ (guile) cdr)
+                      set-cdr!))
+
+(define caar
+  (getter-with-setter (@ (guile) caar)
+                      (compose-setter set-car! (@ (guile) car))))
+(define cadr
+  (getter-with-setter (@ (guile) cadr)
+                      (compose-setter set-car! (@ (guile) cdr))))
+(define cdar
+  (getter-with-setter (@ (guile) cdar)
+                      (compose-setter set-cdr! (@ (guile) car))))
+(define cddr
+  (getter-with-setter (@ (guile) cddr)
+                      (compose-setter set-cdr! (@ (guile) cdr))))
+
+(define caaar
+  (getter-with-setter (@ (guile) caaar)
+                      (compose-setter set-car! (@ (guile) caar))))
+(define caadr
+  (getter-with-setter (@ (guile) caadr)
+                      (compose-setter set-car! (@ (guile) cadr))))
+(define cadar
+  (getter-with-setter (@ (guile) cadar)
+                      (compose-setter set-car! (@ (guile) cdar))))
+(define caddr
+  (getter-with-setter (@ (guile) caddr)
+                      (compose-setter set-car! (@ (guile) cddr))))
+(define cdaar
+  (getter-with-setter (@ (guile) cdaar)
+                      (compose-setter set-cdr! (@ (guile) caar))))
+(define cdadr
+  (getter-with-setter (@ (guile) cdadr)
+                      (compose-setter set-cdr! (@ (guile) cadr))))
+(define cddar
+  (getter-with-setter (@ (guile) cddar)
+                      (compose-setter set-cdr! (@ (guile) cdar))))
+(define cdddr
+  (getter-with-setter (@ (guile) cdddr)
+                      (compose-setter set-cdr! (@ (guile) cddr))))
+
+(define caaaar
+  (getter-with-setter (@ (guile) caaaar)
+                      (compose-setter set-car! (@ (guile) caaar))))
+(define caaadr
+  (getter-with-setter (@ (guile) caaadr)
+                      (compose-setter set-car! (@ (guile) caadr))))
+(define caadar
+  (getter-with-setter (@ (guile) caadar)
+                      (compose-setter set-car! (@ (guile) cadar))))
+(define caaddr
+  (getter-with-setter (@ (guile) caaddr)
+                      (compose-setter set-car! (@ (guile) caddr))))
+(define cadaar
+  (getter-with-setter (@ (guile) cadaar)
+                      (compose-setter set-car! (@ (guile) cdaar))))
+(define cadadr
+  (getter-with-setter (@ (guile) cadadr)
+                      (compose-setter set-car! (@ (guile) cdadr))))
+(define caddar
+  (getter-with-setter (@ (guile) caddar)
+                      (compose-setter set-car! (@ (guile) cddar))))
+(define cadddr
+  (getter-with-setter (@ (guile) cadddr)
+                      (compose-setter set-car! (@ (guile) cdddr))))
+(define cdaaar
+  (getter-with-setter (@ (guile) cdaaar)
+                      (compose-setter set-cdr! (@ (guile) caaar))))
+(define cdaadr
+  (getter-with-setter (@ (guile) cdaadr)
+                      (compose-setter set-cdr! (@ (guile) caadr))))
+(define cdadar
+  (getter-with-setter (@ (guile) cdadar)
+                      (compose-setter set-cdr! (@ (guile) cadar))))
+(define cdaddr
+  (getter-with-setter (@ (guile) cdaddr)
+                      (compose-setter set-cdr! (@ (guile) caddr))))
+(define cddaar
+  (getter-with-setter (@ (guile) cddaar)
+                      (compose-setter set-cdr! (@ (guile) cdaar))))
+(define cddadr
+  (getter-with-setter (@ (guile) cddadr)
+                      (compose-setter set-cdr! (@ (guile) cdadr))))
+(define cdddar
+  (getter-with-setter (@ (guile) cdddar)
+                      (compose-setter set-cdr! (@ (guile) cddar))))
+(define cddddr
+  (getter-with-setter (@ (guile) cddddr)
+                      (compose-setter set-cdr! (@ (guile) cdddr))))
+
+(define string-ref
+  (getter-with-setter (@ (guile) string-ref)
+                      string-set!))
+
+(define vector-ref
+  (getter-with-setter (@ (guile) vector-ref)
+                      vector-set!))
 
 ;;; srfi-17.scm ends here
