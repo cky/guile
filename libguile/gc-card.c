@@ -81,9 +81,28 @@ SCM scm_i_structs_to_free;
   It would be cleaner to have a separate function sweep_value(), but
   that is too slow (functions with switch statements can't be
   inlined).
-  
- */
 
+
+
+  
+  NOTE:
+
+  This function is quite efficient. However, for many types of cells,
+  allocation and a de-allocation involves calling malloc() and
+  free().
+
+  This is costly for small objects (due to malloc/free overhead.)
+  (should measure this).
+
+  It might also be bad for threads: if several threads are allocating
+  strings concurrently, then mallocs for both threads may have to
+  fiddle with locks.
+
+  It might be interesting to add a separate memory pool for small
+  objects to each freelist.
+
+  --hwn.
+ */
 int
 scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 #define FUNC_NAME "sweep_card"

@@ -1,3 +1,9 @@
+2002-12-10  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* modules.c (scm_export): new function
+
+	* gc-card.c: add a note about malloc()/free() overhead.
+
 2002-12-10  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
 	* Makefile.am (c-tokenize.$(OBJEXT)): Don't look for c-tokenize.c

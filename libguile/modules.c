@@ -115,6 +115,10 @@ scm_c_call_with_current_module (SCM module,
   return scm_c_with_fluid (the_module, module, func, data);
 }
 
+
+/*
+  convert "A B C" to scheme list (A B C)
+ */
 static SCM
 convert_module_name (const char *name)
 {
@@ -177,6 +181,16 @@ scm_c_use_module (const char *name)
 static SCM module_export_x_var;
 
 
+/*
+  TODO: should export this function? --hwn.
+ */
+static SCM
+scm_export (SCM module, SCM namelist)
+{
+  scm_call_2 (SCM_VARIABLE_REF (module_export_x_var),
+	      module, namelist);
+}
+
 
 /*
   @code{scm_c_export}(@var{name-list})
@@ -189,7 +203,6 @@ static SCM module_export_x_var;
     scm_c_export ("add-double-record", "bamboozle-money", NULL);
   @end example
 */
-
 void
 scm_c_export (const char *name, ...)
 {
@@ -208,10 +221,10 @@ scm_c_export (const char *name, ...)
 	  tail = SCM_CDRLOC (*tail);
 	}
       va_end (ap);
-      scm_call_2 (SCM_VARIABLE_REF (module_export_x_var),
-		  scm_current_module (), names);
+      scm_export (scm_current_module(), names);
     }
 }
+
 
 /* Environments */
 
