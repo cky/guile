@@ -1,3 +1,8 @@
+Sun Jun  1 07:58:41 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* scmsigs.c (sys_deliver_signals): bug fix: reset got_signal[i]
+	before applying the handler in case it doesn't return.
+
 Sat May 31 18:57:51 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* scmsigs.h, async.h: updated.

@@ -140,13 +140,13 @@ sys_deliver_signals (void)
     {
       if (got_signal[i])
 	{
-	  scm_apply (SCM_VELTS (*signal_handlers)[i], 
-		     scm_listify (SCM_MAKINUM (i), SCM_UNDEFINED),
-		     SCM_EOL);
 	  got_signal[i] = 0;
 #ifndef HAVE_SIGACTION
 	  signal (i, take_signal);
 #endif
+	  scm_apply (SCM_VELTS (*signal_handlers)[i], 
+		     scm_listify (SCM_MAKINUM (i), SCM_UNDEFINED),
+		     SCM_EOL);
 	}
     }
   return SCM_UNSPECIFIED;
