@@ -927,11 +927,7 @@ SCM_STRINGP (SCM str)
   scm_c_issue_deprecation_warning
     ("SCM_STRINGP is deprecated.  Use scm_is_string instead.");
   
-  /* We don't accept shared substrings here since they are not
-     null-terminated.
-  */
-
-  return IS_STRING (str) && !IS_SH_STRING (str);
+  return scm_is_string (str);
 }
 
 char *
@@ -942,7 +938,15 @@ SCM_STRING_CHARS (SCM str)
   scm_c_issue_deprecation_warning
     ("SCM_STRING_CHARS is deprecated.  See the manual for alternatives.");
 
-  /* The following is wrong, of course...
+  /* We don't accept shared substrings here since they are not
+     null-terminated.
+  */
+  if (IS_SH_STRING (str))
+    scm_misc_error (NULL, 
+		    "SCM_STRING_CHARS does not work with shared substrings.",
+		    SCM_EOL);
+
+  /* The following is still wrong, of course...
    */
   chars = scm_i_string_writable_chars (str);
   scm_i_string_stop_writing ();
