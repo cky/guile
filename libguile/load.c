@@ -440,8 +440,7 @@ the list of search paths, an error is signalled.")
     {
       int absolute = (SCM_ROLENGTH (filename) >= 1
 		      && SCM_ROCHARS (filename)[0] == '/');
-      scm_misc_error (FUNC_NAME,
-		      (absolute
+      SCM_MISC_ERROR ((absolute
 		       ? "Unable to load file ~S"
 		       : "Unable to find file ~S in load path"),
 		      scm_listify (filename, SCM_UNDEFINED));

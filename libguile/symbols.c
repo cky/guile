@@ -395,7 +395,7 @@ scm_sysintern0 (const char *name)
       SCM sym = SCM_CAR (scm_intern0 (name));
       SCM vcell = scm_sym2vcell (sym, lookup_proc, SCM_BOOL_T);
       if (vcell == SCM_BOOL_F)
-	  scm_misc_error ("sysintern", "can't define variable", sym);
+	  scm_misc_error ("sysintern0", "can't define variable", sym);
       return vcell;
     }
   else

@@ -348,8 +348,7 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
       struct scm_async * it;
       SCM_VALIDATE_CONS (1,list_of_a);
       a = SCM_CAR (list_of_a);
-      SCM_ASSERT (SCM_ASYNCP (a), a, SCM_ARG1, FUNC_NAME);
-      it = SCM_ASYNC (a);
+      SCM_VALIDATE_ASYNC_COPY (SCM_ARG1,a,it);
       scm_mask_ints = 1;
       if (it->got_it)
 	{
@@ -371,9 +370,7 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 "")
 #define FUNC_NAME s_scm_noop
 {
-  return (SCM_NULLP (args)
-	  ? SCM_BOOL_F
-	  : SCM_CAR (args));
+  return (SCM_NULLP (args) ? SCM_BOOL_F : SCM_CAR (args));
 }
 #undef FUNC_NAME
 

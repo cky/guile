@@ -967,7 +967,6 @@ Does not add a trailing newline.")
   SCM_VALIDATE_STRING(2,message);
   SCM_VALIDATE_LIST(3,args);
 
-  SCM_COERCE_SUBSTR (message);
   start = SCM_ROCHARS (message);
   for (p = start; *p != '\0'; ++p)
     if (*p == '~')
@@ -993,7 +992,7 @@ Does not add a trailing newline.")
   if (fReturnString)
     answer = scm_strport_to_string (destination);
 
-  return answer;
+  return scm_return_first(answer,message);
 }
 #undef FUNC_NAME
 

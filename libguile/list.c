@@ -255,7 +255,7 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
     tortoise = SCM_CDR(tortoise);
   }
   while (hare != tortoise);
-  scm_misc_error (FUNC_NAME, "Circular structure in position 1: ~S", SCM_LIST1 (lst));
+  SCM_MISC_ERROR ("Circular structure in position 1: ~S", SCM_LIST1 (lst));
 }
 #undef FUNC_NAME
 
@@ -283,7 +283,7 @@ SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
       tortoise = SCM_CDR (tortoise);
     }
   while (hare != tortoise);
-  scm_misc_error (FUNC_NAME, "Circular structure in position 1: ~S", SCM_LIST1 (lst));
+  SCM_MISC_ERROR ("Circular structure in position 1: ~S", SCM_LIST1 (lst));
 }
 #undef FUNC_NAME
 

@@ -454,7 +454,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 0, 0, 1,
 	}
       else
 	{
-	  scm_wta (obj, (char *) SCM_ARG1, FUNC_NAME);
+	  SCM_WTA (SCM_ARG1, obj);
 	  abort ();
 	}
     }

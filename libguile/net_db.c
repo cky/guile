@@ -360,7 +360,7 @@ given.")
       entry = getnetbyaddr (netnum, AF_INET);
     }
   if (!entry)
-    scm_syserror_msg (FUNC_NAME, "no such network ~A",
+    SCM_SYSERROR_MSG ("no such network ~A",
 		      scm_listify (name, SCM_UNDEFINED), errno);
   ve[0] = scm_makfromstr (entry->n_name, (scm_sizet) strlen (entry->n_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);

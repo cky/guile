@@ -354,10 +354,9 @@ If a file cannot be opened with the access requested,
     {
       int en = errno;
 
-      scm_syserror_msg (FUNC_NAME, "~A: ~S",
+      SCM_SYSERROR_MSG ("~A: ~S",
 			scm_cons (scm_makfrom0str (strerror (en)),
-				  scm_cons (filename, SCM_EOL)),
-			en);
+				  scm_cons (filename, SCM_EOL)), en);
     }
   port = scm_fdes_to_port (fdes, mode, filename);
   return port;

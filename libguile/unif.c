@@ -1487,7 +1487,7 @@ loop:
   switch SCM_TYP7 (v)
     {
     default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, FUNC_NAME);
+    badarg1:SCM_WTA (SCM_ARG1,v);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       cra = scm_ra2contig (ra, 0);
@@ -1578,9 +1578,7 @@ loop:
 		{
 		  if (remaining % sz != 0)
 		    {
-		      scm_misc_error (FUNC_NAME,
-				      "unexpected EOF",
-				      SCM_EOL);
+		      SCM_MISC_ERROR ("unexpected EOF", SCM_EOL);
 		    }
 		  ans -= remaining / sz;
 		  break;

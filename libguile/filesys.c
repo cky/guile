@@ -529,11 +529,10 @@ An integer representing the access permission bits.
     {
       int en = errno;
 
-      scm_syserror_msg (FUNC_NAME, "~A: ~S",
+      SCM_SYSERROR_MSG ("~A: ~S",
 			scm_listify (scm_makfrom0str (strerror (errno)),
 				     object,
-				     SCM_UNDEFINED),
-			en);
+				     SCM_UNDEFINED), en);
     }
   return scm_stat2scm (&stat_temp);
 }
@@ -1179,11 +1178,10 @@ file it points to.  @var{path} must be a string.")
     {
       int en = errno;
 
-      scm_syserror_msg (FUNC_NAME, "~A: ~S",
+      SCM_SYSERROR_MSG ("~A: ~S",
 			scm_listify (scm_makfrom0str (strerror (errno)),
 				     str,
-				     SCM_UNDEFINED),
-			en);
+				     SCM_UNDEFINED), en);
     }
   return scm_stat2scm(&stat_temp);
 }

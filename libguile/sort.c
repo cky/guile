@@ -229,7 +229,7 @@ quicksort (void *const pbase,
 		  left_ptr += size;
 		  /* The comparison predicate may be buggy */
 		  if (left_ptr > hi)
-		    scm_misc_error (0, s_buggy_less, SCM_EOL);
+		    scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 		}
 
 	      while ((*cmp) (less, (void *) pivot, (void *) right_ptr))
@@ -237,7 +237,7 @@ quicksort (void *const pbase,
 		  right_ptr -= size;
 		  /* The comparison predicate may be buggy */
 		  if (right_ptr < lo)
-		    scm_misc_error (0, s_buggy_less, SCM_EOL);
+		    scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 		}
 
 	      if (left_ptr < right_ptr)
@@ -321,7 +321,7 @@ quicksort (void *const pbase,
 	    tmp_ptr -= size;
 	    /* The comparison predicate may be buggy */
 	    if (tmp_ptr < base_ptr)
-	      scm_misc_error (0, s_buggy_less, SCM_EOL);
+	      scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 	  }
 
 	tmp_ptr += size;

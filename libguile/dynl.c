@@ -378,7 +378,7 @@ as the @var{lib} argument to the following functions.")
 	rest = SCM_CDR (rest);
 	
 	if (!SCM_CONSP (rest))
-	  scm_misc_error (FUNC_NAME, "keyword without value", SCM_EOL);
+	  SCM_MISC_ERROR ("keyword without value", SCM_EOL);
 	
 	val = SCM_CAR (rest);
 	rest = SCM_CDR (rest);
@@ -389,7 +389,7 @@ as the @var{lib} argument to the following functions.")
 	      flags &= ~DYNL_GLOBAL;
 	  }
 	else
-	  scm_misc_error (FUNC_NAME, "unknown keyword argument: ~A",
+	  SCM_MISC_ERROR ("unknown keyword argument: ~A",
 			  scm_cons (kw, SCM_EOL));
       }
 

@@ -280,8 +280,7 @@ SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1,
   if (SCM_UNBNDP (args))
     args = SCM_EOL;
   if (scm_ilength (args) != SCM_HOOK_ARITY (hook))
-    scm_misc_error (FUNC_NAME,
-		    "Hook ~S requires ~A arguments",
+    SCM_MISC_ERROR ("Hook ~S requires ~A arguments",
 		    SCM_LIST2 (hook,SCM_MAKINUM (SCM_HOOK_ARITY (hook))));
   scm_c_run_hook (hook, args);
   return SCM_UNSPECIFIED;
