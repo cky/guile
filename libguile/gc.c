@@ -2274,7 +2274,8 @@ alloc_some_heap (scm_freelist_t *freelist, policy_on_error error_policy)
 
 SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
             (SCM name),
-	    "")
+	    "Flushes the glocs for @var{name}, or all glocs if @var{name}\n"
+	    "is @code{#t}.")
 #define FUNC_NAME s_scm_unhash_name
 {
   int x;
