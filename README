@@ -49,3 +49,9 @@ gtcltk-lib:
 	which will make possible a clean, direct interface between
 	Guile and Tk, so we're providing this very simple-minded
 	interface until that's ready.
+
+
+The mailing list `guile@prep.ai.mit.edu' carries discussions,
+questions, and often answers, about Guile.  To subscribe, send mail to
+guile-request@prep.ai.mit.edu.  Of course, please send bug reports
+(and fixes!) to bug-guile@prep.ai.mit.edu.
