@@ -1,3 +1,10 @@
+Thu Jun  5 16:38:19 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* struct.c (init_struct): Forget to mention this in the "Wed Jun 4
+ 	23:47:01 1997" changelog: Slots are now initialized with `#f' by
+ 	default and not `()'.  `#f' is the canonical non-value in Scheme,
+ 	right?
+
 Wed Jun  4 23:47:01 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* struct.c (struct_printer): New variable that holds a handle on

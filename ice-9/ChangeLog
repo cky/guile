@@ -1,3 +1,8 @@
+Fri Jun  6 14:37:18 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (struct-printer): Bugfix: Check the layout of the
+ 	vtable and not the one of the struct.
+
 Wed Jun  4 23:27:16 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (struct-layout, %struct-printer-tag, struct-printer,
