@@ -61,7 +61,7 @@ SCM_DEFINE (scm_char_p, "char?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_char_eq_p, "char=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_char_eq_p, "char=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "Return #t iff X is the same character as Y, else #f.")
 #define FUNC_NAME s_scm_char_eq_p
@@ -73,7 +73,7 @@ GUILE_PROC1 (scm_char_eq_p, "char=?", scm_tc7_rpsubr,
 #undef FUNC_NAME
 
 
-GUILE_PROC1 (scm_char_less_p, "char<?", scm_tc7_rpsubr, 
+SCM_DEFINE1 (scm_char_less_p, "char<?", scm_tc7_rpsubr, 
              (SCM x, SCM y),
 "Return #t iff X is less than Y in the Ascii sequence, else #f.")
 #define FUNC_NAME s_scm_char_less_p
@@ -84,7 +84,7 @@ GUILE_PROC1 (scm_char_less_p, "char<?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_char_leq_p, "char<=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_char_leq_p, "char<=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "Return #t iff X is less than or equal to Y in the Ascii sequence, else #f.")
 #define FUNC_NAME s_scm_char_leq_p
@@ -95,7 +95,7 @@ GUILE_PROC1 (scm_char_leq_p, "char<=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_char_gr_p, "char>?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_char_gr_p, "char>?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "Return #t iff X is greater than Y in the Ascii sequence, else #f.")
 #define FUNC_NAME s_scm_char_gr_p
@@ -106,7 +106,7 @@ GUILE_PROC1 (scm_char_gr_p, "char>?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_char_geq_p, "char>=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_char_geq_p, "char>=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "Return #t iff X is greater than or equal to Y in the Ascii sequence, else #f.")
 #define FUNC_NAME s_scm_char_geq_p
@@ -117,7 +117,7 @@ GUILE_PROC1 (scm_char_geq_p, "char>=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "Return #t iff X is the same character as Y ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_eq_p
@@ -128,7 +128,7 @@ GUILE_PROC1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "Return #t iff X is less than Y in the Ascii sequence ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_less_p
@@ -139,7 +139,7 @@ GUILE_PROC1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "Return #t iff X is less than or equal to Y in the Ascii sequence ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_leq_p
@@ -150,7 +150,7 @@ GUILE_PROC1 (scm_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "Return #t iff X is greater than Y in the Ascii sequence ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_gr_p
@@ -161,7 +161,7 @@ GUILE_PROC1 (scm_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "Return #t iff X is greater than or equal to Y in the Ascii sequence ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_geq_p

@@ -510,7 +510,7 @@ scm_lcm (SCM n1, SCM n2)
 #endif
 
 #ifndef scm_long2num
-GUILE_PROC1 (scm_logand, "logand", scm_tc7_asubr,
+SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
 "Returns the integer which is the bit-wise AND of the two integer
 arguments.
@@ -534,7 +534,7 @@ Example:
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_logior, "logior", scm_tc7_asubr,
+SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
              (SCM n1, SCM n2),
 "Returns the integer which is the bit-wise OR of the two integer
 arguments.
@@ -559,7 +559,7 @@ Example:
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_logxor, "logxor", scm_tc7_asubr,
+SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
              (SCM n1, SCM n2),
 "Returns the integer which is the bit-wise XOR of the two integer
 arguments.
@@ -611,7 +611,7 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 
 #else
 
-GUILE_PROC1 (scm_logand, "logand", scm_tc7_asubr,
+SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
 "")
 #define FUNC_NAME s_scm_logand
@@ -629,7 +629,7 @@ GUILE_PROC1 (scm_logand, "logand", scm_tc7_asubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_logior, "logior", scm_tc7_asubr,
+SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
              (SCM n1, SCM n2),
 "")
 #define FUNC_NAME s_scm_logior
@@ -647,7 +647,7 @@ GUILE_PROC1 (scm_logior, "logior", scm_tc7_asubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_logxor, "logxor", scm_tc7_asubr,
+SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
              (SCM n1, SCM n2),
 "")
 #define FUNC_NAME s_scm_logxor
@@ -2844,7 +2844,7 @@ scm_less_p (SCM x, SCM y)
 }
 
 
-GUILE_PROC1 (scm_gr_p, ">", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_gr_p, ">", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_gr_p
@@ -2855,7 +2855,7 @@ GUILE_PROC1 (scm_gr_p, ">", scm_tc7_rpsubr,
 
 
 
-GUILE_PROC1 (scm_leq_p, "<=", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_leq_p, "<=", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_leq_p
@@ -2866,7 +2866,7 @@ GUILE_PROC1 (scm_leq_p, "<=", scm_tc7_rpsubr,
 
 
 
-GUILE_PROC1 (scm_geq_p, ">=", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_geq_p, ">=", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_geq_p

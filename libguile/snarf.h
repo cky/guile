@@ -56,7 +56,7 @@
 #define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST
-#define GUILE_PROC1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
+#define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
 static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST
 
@@ -87,7 +87,7 @@ SCM FNAME ARGLIST
 %%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)(...)) FNAME); \
 $$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
 
-#define GUILE_PROC1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
+#define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
 %%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME); \
 $$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
 
@@ -117,7 +117,7 @@ $$$R STR | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ CFN @!!!
 %%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)()) FNAME); \
 $$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
 
-#define GUILE_PROC1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
+#define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
 %%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME); \
 $$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
 

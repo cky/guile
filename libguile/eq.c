@@ -54,7 +54,7 @@
 #include "scm_validate.h"
 #include "eq.h"
 
-GUILE_PROC1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_eq_p
@@ -64,7 +64,7 @@ GUILE_PROC1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
 #undef FUNC_NAME
 
 
-GUILE_PROC1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_eqv_p
@@ -89,7 +89,7 @@ GUILE_PROC1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 #undef FUNC_NAME
 
 
-GUILE_PROC1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_equal_p

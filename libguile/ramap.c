@@ -2041,8 +2041,8 @@ scm_raequal (SCM ra0, SCM ra1)
 }
 
 #if 0
-/* GJB:FIXME:: Why not use GUILE_PROC1 for array-equal? */
-GUILE_PROC1(scm_array_equal_p, "array-equal?", scm_tc7_rpsubr,
+/* GJB:FIXME:: Why not use SCM_DEFINE1 for array-equal? */
+SCM_DEFINE1 (scm_array_equal_p, "array-equal?", scm_tc7_rpsubr,
             (SCM ra0, SCM ra1),
 "Returns @code{#t} iff all arguments are arrays with the same shape, the
 same type, and have corresponding elements which are either

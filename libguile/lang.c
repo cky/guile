@@ -131,7 +131,7 @@ scm_m_while (SCM exp, SCM env)
 
 /* GJB:FIXME:: why does this return scm_nil instead of SCM_BOOL_F?
    Could use SCM_BOOL, below, otherwise */
-GUILE_PROC1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr, 
+SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr, 
              (SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_nil_eq

@@ -51,7 +51,7 @@
 #include "strorder.h"
 
 
-GUILE_PROC1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_equal_p
@@ -75,7 +75,7 @@ GUILE_PROC1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_ci_equal_p
@@ -99,7 +99,7 @@ GUILE_PROC1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_less_p
@@ -131,7 +131,7 @@ GUILE_PROC1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_leq_p
@@ -140,7 +140,7 @@ GUILE_PROC1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_string_gr_p, "string>?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_gr_p, "string>?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_gr_p
@@ -149,7 +149,7 @@ GUILE_PROC1 (scm_string_gr_p, "string>?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_geq_p
@@ -158,7 +158,7 @@ GUILE_PROC1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_ci_less_p
@@ -182,7 +182,7 @@ GUILE_PROC1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_ci_leq_p
@@ -191,7 +191,7 @@ GUILE_PROC1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_ci_gr_p
@@ -200,7 +200,7 @@ GUILE_PROC1 (scm_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC1 (scm_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 "")
 #define FUNC_NAME s_scm_string_ci_geq_p
