@@ -1,9 +1,10 @@
 2000-05-21  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.h (SCM_[SET_]CELL_{WORD,OBJECT}, SCM_VALIDATE_CELL): brought
-	the yucky, ugly and nasty conditional compilation back.  sorry,
-	but it was either that or requiring GAWK to build Guile.
-	removed the code that implemented the old GC scheme.
+ 	the yucky, ugly and nasty conditional compilation back.  sorry,
+ 	but it was either that or requiring GAWK to build Guile.
+	(lots of places): removed the code that implemented the old GC
+ 	scheme.
 
 	* init.c (scm_boot_guile_1): removed the code conditioned on
  	!GUILE_NEW_GC_SCHEME.
@@ -14,10 +15,13 @@
  	implementation to more efficient (at least in the time complexity
  	sense).  the calls should now also be thread-safe -- I suspect
  	that people expect them to be.  (thanks to Han-Wen Nienhuys)
-	removed the code that implemented the old GC scheme.
+	(lots of places): removed the code that implemented the old GC
+ 	scheme.
 
 	* hashtab.c (scm_hash_fn_create_handle_x): add missing
-	SCM_REALLOW_INTS before return.
+	SCM_REALLOW_INTS before return.  I really wonder about the
+	possible interactions between hashtables, threads & GC.  it
+	doesn't look healthy at all. 
 
 2000-05-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
