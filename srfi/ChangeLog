@@ -1,3 +1,12 @@
+2004-07-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-13.c, srfi-14.c, srfi-4.c: Changed all uses of
+	SCM_VALIDATE_INUM, SCM_VALIDATE_INUM_COPY, SCM_VALIDATE_BIGINT,
+	SCM_VALIDATE_INUM_MIN, SCM_VALIDATE_INUM_MIN_COPY,
+	SCM_VALIDATE_INUM_MIN_DEF_COPY,SCM_VALIDATE_INUM_DEF,
+	SCM_VALIDATE_INUM_DEF_COPY, SCM_VALIDATE_INUM_RANGE,
+	SCM_VALIDATE_INUM_RANGE_COPY to scm_to_size_t or similar.
+
 2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-1.c, srfi-13.c, srfi-14.c, srfi-4.c: Replaced all uses of
