@@ -51,4 +51,21 @@
 (with-test-prefix "continuations"
 
   (pass-if "throwing to a rewound catch context"
-    (eq? (dont-crash-please) 'no-reentry)))
+    (eq? (dont-crash-please) 'no-reentry))
+
+  (let ((dopts (debug-options)))
+    (debug-enable 'debug)
+
+    (pass-if "make a stack from a continuation"
+      (stack? (call-with-current-continuation make-stack)))
+
+    (pass-if "get a continuation's stack ID"
+      (let ((id (call-with-current-continuation stack-id)))
+	(or (boolean? id) (symbol? id))))
+
+    (pass-if "get a continuation's innermost frame"
+      (pair? (call-with-current-continuation last-stack-frame)))
+
+    (debug-options dopts))
+
+)

@@ -1,3 +1,8 @@
+2004-12-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* tests/continuations.test (continuations): Moved continuation /
+	stack tests here, and added save and restore of debug options.
+
 2004-12-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tests/eval.test: News tests for making stacks from

@@ -245,27 +245,5 @@
       exception:wrong-type-arg
       (+ (delay (* 3 7)) 13))))
 
-;;;
-;;; continuations
-;;;
-
-(with-test-prefix "continuation"
-
-  (with-test-prefix "stacks/debugging"
-
-    (debug-enable 'debug)
-
-    (pass-if "make-stack"
-      (stack? (call-with-current-continuation make-stack)))
-
-    (pass-if "stack-id"
-      (let ((id (call-with-current-continuation stack-id)))
-	(or (boolean? id) (symbol? id))))
-
-    (pass-if "last-stack-frame"
-      (pair? (call-with-current-continuation last-stack-frame)))
-
-    ))
-
 
 ;;; eval.test ends here
