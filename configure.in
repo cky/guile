@@ -970,15 +970,13 @@ if test "$cross_compiling" = "yes"; then
 else
   GUILE_FOR_BUILD='$(preinstguile)'
 fi   
-AC_ARG_WITH(guile-for-build,
-  [  --with-guile-for-build=guile  native guile executable, to be used during build])
-test -n "$with_guile_for_build" && GUILE_FOR_BUILD="$with_guile_for_build"
 
 ## AC_MSG_CHECKING("if we are cross compiling")
 ## AC_MSG_RESULT($cross_compiling)
 if test "$cross_compiling" = "yes"; then
    AC_MSG_RESULT($GUILE_FOR_BUILD)
 fi
+AC_ARG_VAR(GUILE_FOR_BUILD,[guile for build system])
 AC_SUBST(GUILE_FOR_BUILD)
   			
 ## If we're using GCC, ask for aggressive warnings.
