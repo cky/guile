@@ -1,5 +1,10 @@
 2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* alist.c (scm_acons):  Use SCM{_SET}?_CELL_OBJECT as long as a
+	cell is not known to be a valid pair.
+
+2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (ASRTSYNTAX, scm_m_body, scm_m_letrec1):  Removed
 	ASRTSYNTAX.  Using SCM_ASSYNT instead.
 
