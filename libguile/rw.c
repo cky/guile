@@ -43,6 +43,10 @@
 
 /* This is the C part of the (ice-9 rw) module.  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <errno.h>
 #include <string.h>
 
