@@ -1380,7 +1380,7 @@ word x;
 
 # if defined(LINUX) && !defined(POWERPC)
 
-#if 0 
+# if 0 
 #   include <linux/version.h>
 #   if (LINUX_VERSION_CODE <= 0x10400)
       /* Ugly hack to get struct sigcontext_struct definition.  Required  */
@@ -1390,9 +1390,10 @@ word x;
 #     define __KERNEL__
 #     include <asm/signal.h>
 #     undef __KERNEL__
-#endif
+#  endif
 
-#   else
+#  else
+
       /* Kernels prior to 2.1.1 defined struct sigcontext_struct instead of */
       /* struct sigcontext.  libc6 (glibc2) uses "struct sigcontext" in     */
       /* prototypes, so we have to include the top-level sigcontext.h to    */
