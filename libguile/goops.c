@@ -618,7 +618,7 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-void
+static void
 prep_hashsets (SCM class)
 {
   unsigned int i;
@@ -1609,7 +1609,7 @@ SCM_SYMBOL (sym_no_method, "no-method");
 
 static SCM list_of_no_method;
 
-SCM_SYMBOL (scm_sym_args, "args");
+SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
 
 SCM
 scm_make_method_cache (SCM gf)
