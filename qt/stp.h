@@ -31,7 +31,7 @@ extern void stp_init();
 extern void stp_start (void);
 
 /* Create a thread and make it runable.  When the thread starts
-   running it will call `f' with arguments `p0' and `p1'. */
+   running it will call `f' with the argument `p0'. */
 
 extern void stp_create (stp_userf_t *f, void *p0);
 
