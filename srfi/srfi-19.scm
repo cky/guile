@@ -60,8 +60,15 @@
 (define-module (srfi srfi-19)
   :use-module (srfi srfi-6)
   :use-module (srfi srfi-8)
-  :use-module (srfi srfi-9)
-  :export (;; Constants
+  :use-module (srfi srfi-9))
+
+(begin-deprecated
+ ;; Prevent `export' from re-exporting core bindings.  This behaviour
+ ;; of `export' is deprecated and will disappear in one of the next
+ ;; releases.
+ (define current-time #f))
+
+(export ;; Constants
            time-duration
            time-monotonic
            time-process
@@ -147,7 +154,7 @@
            time-utc->time-tai!
            ;; Date to string/string to date converters.
            date->string
-           string->date))
+           string->date)
 
 (cond-expand-provide (current-module) '(srfi-19))
 
