@@ -42,6 +42,8 @@
 /* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
+/* #define DEBUGINFO */
+
 
 #include <stdio.h>
 #include "_scm.h"
@@ -255,6 +257,7 @@ long scm_mallocated = 0;
 unsigned long scm_gc_cells_collected;
 #ifdef GUILE_NEW_GC_SCHEME
 unsigned long scm_gc_yield;
+static unsigned long scm_gc_yield_1 = 0; /* previous GC yield */
 #endif
 unsigned long scm_gc_malloc_collected;
 unsigned long scm_gc_ports_collected;
@@ -733,6 +736,7 @@ scm_gc_start (const char *what)
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ());
   scm_gc_cells_collected = 0;
 #ifdef GUILE_NEW_GC_SCHEME
+  scm_gc_yield_1 = scm_gc_yield;
   scm_gc_yield = (scm_cells_allocated
 		  + master_cells_allocated (&scm_master_freelist)
 		  + master_cells_allocated (&scm_master_freelist2));
@@ -800,8 +804,12 @@ adjust_gc_trigger (scm_freelist_t *freelist)
    */
   if (freelist->gc_trigger_fraction)
     {
+      /* Pick largest of last two yields. */
+      int yield = (scm_gc_yield_1 > scm_gc_yield
+		   ? scm_gc_yield_1
+		   : scm_gc_yield);
       int delta = ((SCM_HEAP_SIZE * freelist->gc_trigger_fraction / 100)
-		   - scm_gc_yield);
+		   - yield);
 #ifdef DEBUGINFO
       fprintf (stderr, " after GC = %d, delta = %d\n",
 	       scm_cells_allocated,
@@ -832,6 +840,12 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
 	    }
 	  else
 	    {
+#ifdef DEBUGINFO
+	      fprintf (stderr, "allocated = %d, ",
+		       scm_cells_allocated
+		       + master_cells_allocated (&scm_master_freelist)
+		       + master_cells_allocated (&scm_master_freelist2));
+#endif
 	      scm_igc ("cells");
 	      adjust_gc_trigger (master);
 	    }
