@@ -215,7 +215,7 @@ make_print_state (void)
   pstate->ref_vect = scm_make_vector (SCM_MAKINUM (PSTATE_SIZE),
 				      SCM_UNDEFINED);
   pstate->ref_stack = SCM_VELTS (pstate->ref_vect);
-  pstate->ceiling = SCM_LENGTH (pstate->ref_vect);
+  pstate->ceiling = SCM_VECTOR_LENGTH (pstate->ref_vect);
   return print_state;
 }
 
@@ -259,9 +259,18 @@ scm_free_print_state (SCM print_state)
 static void
 grow_ref_stack (scm_print_state *pstate)
 {
-  int new_size = 2 * pstate->ceiling;
-  scm_vector_set_length_x (pstate->ref_vect, SCM_MAKINUM (new_size));
-  pstate->ref_stack = SCM_VELTS (pstate->ref_vect);
+  unsigned long int old_size = SCM_VECTOR_LENGTH (pstate->ref_vect);
+  SCM *old_elts = SCM_VELTS (pstate->ref_vect);
+  unsigned long int new_size = 2 * pstate->ceiling;
+  SCM new_vect = scm_make_vector (new_size, SCM_UNDEFINED);
+  SCM *new_elts = SCM_VELTS (new_vect);
+  unsigned long int i;
+
+  for (i = 0; i != old_size; ++i)
+    new_elts [i] = old_elts [i];
+
+  pstate->ref_vect = new_vect;
+  pstate->ref_stack = new_elts;
   pstate->ceiling = new_size;
 }
 
@@ -494,7 +503,7 @@ taloop:
 	      int maybe_weird;
 	      int mw_pos = 0;
 
-	      len = SCM_LENGTH (exp);
+	      len = SCM_SYMBOL_LENGTH (exp);
 	      str = SCM_SYMBOL_CHARS (exp);
 	      scm_remember (&exp);
 	      pos = 0;
@@ -577,9 +586,9 @@ taloop:
 	common_vector_printer:
 	  {
 	    register long i;
-	    int last = SCM_LENGTH (exp) - 1;
+	    int last = SCM_VECTOR_LENGTH (exp) - 1;
 	    int cutp = 0;
-	    if (pstate->fancyp && SCM_LENGTH (exp) > pstate->length)
+	    if (pstate->fancyp && SCM_VECTOR_LENGTH (exp) > pstate->length)
 	      {
 		last = pstate->length - 1;
 		cutp = 1;
@@ -662,7 +671,7 @@ taloop:
 	  break;
 	case scm_tc7_contin:
 	  scm_puts ("#<continuation ", port);
-	  scm_intprint (SCM_LENGTH (exp), 10, port);
+	  scm_intprint (SCM_CONTINUATION_LENGTH (exp), 10, port);
 	  scm_puts (" @ ", port);
 	  scm_intprint ((long) SCM_CONTREGS (exp), 16, port);
 	  scm_putc ('>', port);

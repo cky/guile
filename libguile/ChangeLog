@@ -1,5 +1,13 @@
 2000-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* print.c (make_print_state, scm_iprin1):  Replace SCM_LENGTH with
+	the appropriate SCM_<type>_LENGTH macro.
+
+	(grow_ref_stack):  Don't call scm_vector_set_length_x to resize
+	the print stack.
+
+2000-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c (big2str):  Avoid redundant copying.
 
 	(scm_bigprint):  Use SCM_STRING_LENGTH instead of SCM_LENGTH.
