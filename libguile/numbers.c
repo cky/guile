@@ -1820,7 +1820,11 @@ scm_number_to_string (x, radix)
   if (SCM_UNBNDP (radix))
     radix = SCM_MAKINUM (10L);
   else
-    SCM_ASSERT (SCM_INUMP (radix), radix, SCM_ARG2, s_number_to_string);
+    {
+      SCM_ASSERT (SCM_INUMP (radix), radix, SCM_ARG2, s_number_to_string);
+      SCM_ASSERT (SCM_INUM (radix) >= 2, radix, SCM_OUTOFRANGE,
+		  s_number_to_string);
+    }
 #ifdef SCM_FLOATS
   if (SCM_NINUMP (x))
     {
