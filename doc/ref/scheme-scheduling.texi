@@ -689,7 +689,8 @@ yet finished executing then wait for it to do so.
 
 
 @node Parallel Forms
-@section Parallel Forms
+@section Parallel forms
+@cindex parallel forms
 
 The functions described in this section are available from
 
