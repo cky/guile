@@ -80,43 +80,46 @@ static scm_t_bits tc16_dynamic_state;
 static SCM all_dynamic_states = SCM_EOL;
 static SCM all_fluids = SCM_EOL;
 
-/* Make sure that the dynamic state STATE has the right size.  This
-   must be called while being single threaded and while
-   fluid_admin_mutex is held.
-*/
-static void
-ensure_state_size (SCM state)
-{
-  SCM fluids = DYNAMIC_STATE_FLUIDS (state);
-  size_t len = SCM_SIMPLE_VECTOR_LENGTH (fluids), i;
-
-  if (len != allocated_fluids_len)
-    {
-      SCM new_fluids = scm_c_make_vector (allocated_fluids_len, SCM_BOOL_F);
-      for (i = 0; i < len; i++)
-	SCM_SIMPLE_VECTOR_SET (new_fluids, i,
-			       SCM_SIMPLE_VECTOR_REF (fluids, i));
-      SET_DYNAMIC_STATE_FLUIDS (state, new_fluids);
-    }
-}
-
 /* Make sure that all states have the right size.  This must be called
    while fluid_admin_mutex is held.
 */
 static void
-ensure_all_state_sizes ()
+resize_all_states ()
 {
-  SCM state;
+  SCM new_vectors, state;
 
-  scm_frame_begin (0);
-  scm_i_frame_single_threaded ();
+  /* Replacing the vector of a dynamic state must be done atomically:
+     the old values must be copied into the new vector and the new
+     vector must be installed without someone modifying the old vector
+     concurrently.  Since accessing a fluid should be lock-free, we
+     need to put all threads to sleep when replacing a vector.
+     However, when being single threaded, it is best not to do much.
+     Therefore, we allocate the new vectors before going single
+     threaded.
+  */
 
-  scm_gc ();
+  new_vectors = SCM_EOL;
   for (state = all_dynamic_states; !scm_is_null (state);
        state = DYNAMIC_STATE_NEXT (state))
-    ensure_state_size (state);
+    new_vectors = scm_cons (scm_c_make_vector (allocated_fluids_len,
+					       SCM_BOOL_F),
+			    new_vectors);
 
-  scm_frame_end ();
+  scm_i_thread_put_to_sleep ();
+  for (state = all_dynamic_states; !scm_is_null (state);
+       state = DYNAMIC_STATE_NEXT (state))
+    {
+      SCM old_fluids = DYNAMIC_STATE_FLUIDS (state);
+      SCM new_fluids = SCM_CAR (new_vectors);
+      size_t i, old_len = SCM_SIMPLE_VECTOR_LENGTH (old_fluids);
+
+      for (i = 0; i < old_len; i++)
+	SCM_SIMPLE_VECTOR_SET (new_fluids, i,
+			       SCM_SIMPLE_VECTOR_REF (old_fluids, i));
+      SET_DYNAMIC_STATE_FLUIDS (state, new_fluids);
+      new_vectors = SCM_CDR (new_vectors);
+    }
+  scm_i_thread_wake_up ();
 }
 
 /* This is called during GC, that is, while being single threaded.
@@ -236,7 +239,7 @@ next_fluid_num ()
       /* Now allocated_fluids and allocated_fluids_len are valid again
 	 and we can allow GCs to occur.
       */
-      ensure_all_state_sizes ();
+      resize_all_states ();
     }
   
   allocated_fluids_num += 1;
@@ -265,8 +268,10 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
   /* The GC must not run until the fluid is properly entered into the
      list.
   */
+  scm_i_scm_pthread_mutex_lock (&fluid_admin_mutex);
   SET_FLUID_NEXT (fluid, all_fluids);
   all_fluids = fluid;
+  scm_i_pthread_mutex_unlock (&fluid_admin_mutex);
 
   return fluid;
 }
@@ -495,10 +500,11 @@ SCM_DEFINE (scm_make_dynamic_state, "make-dynamic-state", 0, 1, 0,
   /* The GC must not run until the state is properly entered into the
      list. 
   */
+  scm_i_scm_pthread_mutex_lock (&fluid_admin_mutex);
   SET_DYNAMIC_STATE_NEXT (state, all_dynamic_states);
   all_dynamic_states = state;
+  scm_i_pthread_mutex_unlock (&fluid_admin_mutex);
 
-  //fprintf (stderr, "new state %p\n", state);
   return state;
 }
 #undef FUNC_NAME
