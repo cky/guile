@@ -1,6 +1,6 @@
 ;;; srfi-6.scm --- Basic String Ports
 
-;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,8 @@
 
 ;;; Code:
 
-(define-module (srfi srfi-6))
+(define-module (srfi srfi-6)
+  #:re-export (open-input-string open-output-string get-output-string))
 
 ;; Currently, guile provides these functions by default, so no action
 ;; is needed, and this file is just a placeholder.
