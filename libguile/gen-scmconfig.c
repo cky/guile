@@ -276,8 +276,21 @@ main (int argc, char *argv[])
       "   be more likely to be what you want */\n");
   pf ("#define SCM_SIZEOF_LONG_LONG %d\n", SIZEOF_LONG_LONG);
   pf ("#define SCM_SIZEOF_UNSIGNED_LONG_LONG %d\n", SIZEOF_UNSIGNED_LONG_LONG);
-  pf ("#define SCM_SIZEOF___INT64 %d\n", SIZEOF___INT64);
-  pf ("#define SCM_SIZEOF_UNSIGNED___INT64 %d\n", SIZEOF_UNSIGNED___INT64);
+
+  pf("\n");
+  pf("/* handling for the deprecated long_long and ulong_long types */\n");  
+  pf("/* If anything suitable is available, it'll be defined here.  */\n");  
+  pf("#if (SCM_ENABLE_DEPRECATED == 1)\n");
+  if (SIZEOF_LONG_LONG != 0)
+    pf ("typedef long long long_long;\n");
+  else if (SIZEOF___INT64 != 0)
+    pf ("typedef __int64 long_long;\n");
+  
+  if (SIZEOF_UNSIGNED_LONG_LONG != 0)
+    pf ("typedef unsigned long long ulong_long;\n");
+  else if (SIZEOF_UNSIGNED___INT64 != 0)
+    pf ("typedef unsigned __int64 ulong_long;\n");
+  pf("#endif /* SCM_ENABLE_DEPRECATED == 1 */\n");
 
   pf ("\n");
   pf ("/* These are always defined. */\n");
