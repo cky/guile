@@ -1,3 +1,14 @@
+1998-11-10  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* debug.h (SCM_SET_MACROEXP, SCM_CLEAR_MACROEXP, SCM_MACROEXPP):
+	Replaces SCM_MACROFRAME, SCM_MACROFRAMEP.
+	
+	* eval.c (SCM_CEVAL): Use SCM_SET/CLEAR_MACROEXP.
+
+	* stacks.c (read_frame): Bugfix: Removed lingering `else'
+	statement.
+	(read_frames): Use SCM_MACROEXPP.
+
 1998-11-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* stacks.c (read_frames): Skip gsubr frames in backtraces.  (They

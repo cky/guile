@@ -24,6 +24,15 @@ occur during read or write.
 Command line history length is now controlled by the readline option
 `history-length'.  Default is 200 lines.
 
+** All builtins now print as primitives.
+Previously builtin procedures not belonging to the fundamental subr
+types printed as #<compiled closure #<primitive-procedure gsubr-apply>>.
+Now, they print as #<primitive-procedure NAME>.
+
+** Backtraces slightly more intelligible.
+gsubr-apply and macro transformer application frames no longer appear
+in backtraces.
+
 * Changes to Scheme functions and syntax
 
 ** New functions: delq1!, delv1!, delete1!
