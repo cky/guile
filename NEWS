@@ -128,6 +128,11 @@ This is an implementation of SRFI-31 which provides a special form
 We now use a modified version of libltdl that allows us to make
 improvements to it without having to rely on libtool releases.
 
+** The --enable-htmldoc option has been removed from 'configure'.
+
+Support for translating the documentation into HTML is now always
+provided.  Use 'make html'.
+
 * Changes to the stand-alone interpreter
 
 ** New command line option `--no-debug'.

@@ -1,3 +1,8 @@
+2004-06-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* configure.in: Removed code for --enable-htmldoc; support for
+	HTML is now included in automake.
+
 2004-06-16  Rob Browning  <rlb@defaultvalue.org>
 
 	* pre-inst-guile.in: modify to handle move of readline.scm to
