@@ -414,7 +414,7 @@ changequote([, ])
 
 
 if $threads_enabled; then
-   target_libs=libqt.a
+   target_libs=libqthreads.a
 else
    target_libs=
 fi
