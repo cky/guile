@@ -2343,7 +2343,7 @@ dispatch:
 	  proc = SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CADR (x))];
 	  if (proc == SCM_UNBOUND)
 	    scm_misc_error (NULL,
-			    "Reference to unbound slot in %S",
+			    "Unbound slot in object %S",
 			    SCM_LIST1 (t.arg1));
 	  RETURN (proc)
 	  
