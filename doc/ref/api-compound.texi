@@ -2361,7 +2361,7 @@ values are arbitrary as long as they're in the range 0 to
 @math{@var{size}-1}.  Helpful functions for forming a hash value, in
 addition to @code{hashq} etc below, include @code{symbol-hash}
 (@pxref{Symbol Keys}), @code{string-hash} and @code{string-hash-ci}
-(@pxref{SRFI-13 Comparison}), and @code{char-set-hash}
+(@pxref{String Comparison}), and @code{char-set-hash}
 (@pxref{Character Set Predicates/Comparison}).
 
 Note that currently, unfortunately, there's no @code{hashx-remove!}
