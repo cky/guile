@@ -2476,11 +2476,18 @@
      (set-current-module module)
      module))
 
+;; the guts of the use-modules macro.  add the interfaces of the named
+;; modules to the use-list of the current module, in order
+(define (process-use-modules module-names)
+  (for-each (lambda (module-name)
+	      (let ((mod-iface (resolve-interface module-name)))
+		(or mod-iface
+		    (error "no such module" module-name))
+		(module-use! (current-module) mod-iface)))
+	    (reverse module-names)))
+
 (defmacro use-modules modules
-  `(for-each (lambda (module)
-	       (module-use! (current-module)
-			    (resolve-interface module)))
-	     (reverse ',modules)))
+  `(process-use-modules ',modules))
 
 (define define-private define)
 
