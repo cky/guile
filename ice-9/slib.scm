@@ -108,18 +108,36 @@
   (save-module-excursion
    (lambda ()
      (set-current-module slib-module)
-     (load name))))
+     (let* ((errinfo (catch 'system-error
+			    (lambda ()
+			      (basic-load name)
+			      #f)
+			    (lambda args args)))
+	    (errinfo (and errinfo
+			  (catch 'system-error
+				 (lambda ()
+				   (basic-load (string-append name ".scm"))
+				   #f)
+				 (lambda args args)))))
+       (if errinfo
+	   (apply throw errinfo))))))
 
 (define slib:load-source slib:load)
 (define defmacro:load slib:load)
 
-(define (library-vicinity) (string-append (implementation-vicinity) "slib/"))
+(define slib-parent-dir
+  (let* ((path (%search-load-path "slib/require.scm")))
+    (make-shared-substring path 0 (- (length path) 17))))
+
+(define-public (implementation-vicinity)
+  (string-append slib-parent-dir "/"))
+(define (library-vicinity)
+  (string-append (implementation-vicinity) "slib/"))
 (define (scheme-implementation-type) 'guile)
 (define (scheme-implementation-version) "")
 
 (define (output-port-width . arg) 80)
 (define (output-port-height . arg) 24)
-
 
 ;;; {Time}
 ;;;
@@ -139,6 +157,30 @@
 
 (define (software-type) 'UNIX)
 
-(slib:load "require.scm")
+(slib:load (in-vicinity (library-vicinity) "require.scm"))
 
 (define-public require require:require)
+
+;; {Extensions to the require system so that the user can add new
+;;  require modules easily.}
+
+(define *vicinity-table*
+  (list
+   (cons 'implementation (implementation-vicinity))
+   (cons 'library (library-vicinity))))
+
+(define (install-require-vicinity name vicinity)
+  (let ((entry (assq name *vicinity-table*)))
+    (if entry
+	(set-cdr! entry vicinity)
+	(set! *vicinity-table*
+	      (acons name vicinity *vicinity-table*)))))
+
+(define (install-require-module name vicinity-name file-name)
+  (let ((entry (assq name *catalog*))
+	(vicinity (cdr (assq vicinity-name *vicinity-table*))))
+    (let ((path-name (in-vicinity vicinity file-name)))
+      (if entry
+	  (set-cdr! entry path-name)
+	  (set! *catalog*
+		(acons name path-name *catalog*))))))
