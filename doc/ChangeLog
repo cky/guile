@@ -1,3 +1,9 @@
+2001-04-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* data-rep.texi (Defining New Types (Smobs)): Use non-deprecated
+	smob interface.  Thanks to Masao Uebayashi for the patch!
+	(Creating Instances): Don't need SCM_NIMP anymore.
+
 2001-04-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile.1: New file, from Robert Merkel and Rob Browning.

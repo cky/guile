@@ -1,3 +1,11 @@
+2001-04-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* image-type.c (make_image): Don't need to use SCM_NIMP before
+	SCM_STRINGP.
+	(clear_image): Use SCM_SMOB_PREDICATE.
+	(clear_image, mark_image, free_image, print_image): Use
+	SCM_SMOB_DATA rather than SCM_CDR.
+
 2000-06-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* image-type.c: Removed unused scm_smobfuns structure.

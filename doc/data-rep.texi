@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.22 2001-04-20 13:26:55 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.23 2001-04-26 18:26:28 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1493,13 +1493,15 @@ representing eight-bit grayscale images:
 @example
 #include <libguile.h>
 
-long image_tag;
+static long image_tag;
 
 void
 init_image_type ()
 @{
-  image_tag = scm_make_smob_type_mfpe ("image",sizeof(struct image),
-				       mark_image, free_image, print_image, NULL);
+  image_tag = scm_make_smob_type ("image", sizeof (struct image));
+  scm_set_smob_mark (image_tag, mark_image);
+  scm_set_smob_free (image_tag, free_image);
+  scm_set_smob_print (image_tag, print_image);
 @}
 @end example
 
@@ -1573,8 +1575,8 @@ This function isn't usually sufficiently different from the usual
 
 
 Continuing the above example, if the global variable @code{image_tag}
-contains a tag returned by @code{scm_newsmob}, here is how we could
-construct a smob whose @sc{cdr} contains a pointer to a freshly
+contains a tag returned by @code{scm_make_smob_type}, here is how we
+could construct a smob whose @sc{cdr} contains a pointer to a freshly
 allocated @code{struct image}:
 
 @example
@@ -1597,8 +1599,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
   struct image *image;
   int width, height;
 
-  SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
-              SCM_ARG1, "make-image");
+  SCM_ASSERT (SCM_STRINGP (name), name, SCM_ARG1, "make-image");
   SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
   SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
 
@@ -1625,7 +1626,7 @@ their arguments, to avoid misinterpreting some other datatype as a smob,
 and perhaps causing a segmentation fault.  Fortunately, this is pretty
 simple to do.  The function need only verify that its argument is a
 non-immediate, whose @sc{car} is the type tag returned by
-@code{scm_newsmob}.
+@code{scm_make_smob_type}.
 
 For example, here is a simple function that operates on an image smob,
 and checks the type of its argument.  We also present an expanded
@@ -1657,10 +1658,13 @@ clear_image (SCM image_smob)
 void
 init_image_type ()
 @{
-  image_tag = scm_newsmob (&image_funs);
+  image_tag = scm_make_smob_type ("image", sizeof (struct image));
+  scm_set_smob_mark (image_tag, mark_image);
+  scm_set_smob_free (image_tag, free_image);
+  scm_set_smob_print (image_tag, print_image);
 
-  scm_make_gsubr ("make-image", 3, 0, 0, make_image);
   scm_make_gsubr ("clear-image", 1, 0, 0, clear_image);
+  scm_make_gsubr ("make-image", 3, 0, 0, make_image);
 @}
 @end example
 
@@ -1826,8 +1830,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
   SCM image_smob;
   int width, height;
 
-  SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
-              SCM_ARG1, "make-image");
+  SCM_ASSERT (SCM_STRINGP (name), name, SCM_ARG1, "make-image");
   SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
   SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
 
@@ -1949,11 +1952,9 @@ static SCM
 make_image (SCM name, SCM s_width, SCM s_height)
 @{
   struct image *image;
-  SCM image_smob;
   int width, height;
 
-  SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
-              SCM_ARG1, "make-image");
+  SCM_ASSERT (SCM_STRINGP (name), name, SCM_ARG1, "make-image");
   SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
   SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
 
@@ -1967,9 +1968,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
   image->name = name;
   image->update_func = SCM_BOOL_F;
 
-  SCM_NEWSMOB (image_smob, image_tag, image);
-
-  return image_smob;
+  SCM_RETURN_NEWSMOB (image_tag, image);
 @}
 
 static SCM
@@ -1995,6 +1994,7 @@ clear_image (SCM image_smob)
 static SCM
 mark_image (SCM image_smob)
 @{
+  /* Mark the image's name and update function.  */
   struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
 
   scm_gc_mark (image->name);
@@ -2026,14 +2026,13 @@ print_image (SCM image_smob, SCM port, scm_print_state *pstate)
   return 1;
 @}
 
-static scm_smobfuns image_funs = @{
-  mark_image, free_image, print_image, 0
-@};
-
 void
 init_image_type ()
 @{
-  image_tag = scm_newsmob (&image_funs);
+  image_tag = scm_make_smob_type ("image", sizeof (struct image));
+  scm_set_smob_mark (image_tag, mark_image);
+  scm_set_smob_free (image_tag, free_image);
+  scm_set_smob_print (image_tag, print_image);
 
   scm_make_gsubr ("clear-image", 1, 0, 0, clear_image);
   scm_make_gsubr ("make-image", 3, 0, 0, make_image);

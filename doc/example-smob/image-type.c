@@ -42,8 +42,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
   struct image *image;
   int width, height;
 
-  SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
-	      SCM_ARG1, "make-image");
+  SCM_ASSERT (SCM_STRINGP (name), name, SCM_ARG1, "make-image");
   SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
   SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
 
@@ -66,11 +65,10 @@ clear_image (SCM image_smob)
   int area;
   struct image *image;
 
-  SCM_ASSERT ((SCM_NIMP (image_smob)
-	       && SCM_CAR (image_smob) == image_tag),
-	      image_smob, SCM_ARG1, "clear-image");
+  SCM_ASSERT (SCM_SMOB_PREDICATE (image_tag, image_smob),
+              image_smob, SCM_ARG1, "clear-image");
 
-  image = (struct image *) SCM_CDR (image_smob);
+  image = (struct image *) SCM_SMOB_DATA (image_smob);
   area = image->width * image->height;
   memset (image->pixels, 0, area);
 
@@ -84,7 +82,8 @@ clear_image (SCM image_smob)
 static SCM
 mark_image (SCM image_smob)
 {
-  struct image *image = (struct image *) SCM_CDR (image_smob);
+  /* Mark the image's name and update function.  */
+  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
 
   scm_gc_mark (image->name);
   return image->update_func;
@@ -93,7 +92,7 @@ mark_image (SCM image_smob)
 static scm_sizet
 free_image (SCM image_smob)
 {
-  struct image *image = (struct image *) SCM_CDR (image_smob);
+  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
   scm_sizet size = image->width * image->height + sizeof (struct image);
 
   free (image->pixels);
@@ -105,7 +104,7 @@ free_image (SCM image_smob)
 static int
 print_image (SCM image_smob, SCM port, scm_print_state *pstate)
 {
-  struct image *image = (struct image *) SCM_CDR (image_smob);
+  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
 
   scm_puts ("#<image ", port);
   scm_display (image->name, port);
