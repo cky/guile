@@ -18,7 +18,27 @@ if test $ac_cv_lib_readline_main = no; then
   AC_MSG_WARN([libreadline was not found on your system.])
 fi
 
-AC_CHECK_FUNCS(siginterrupt rl_clear_signals rl_cleanup_after_signal rl_pre_input_hook)
+AC_CHECK_FUNCS(siginterrupt rl_clear_signals rl_cleanup_after_signal)
+
+dnl Check for rl_pre_input_hook.  This is more complicated because on
+dnl some systems (HP/UX), the linker wont let us treat
+dnl rl_pre_input_hook as a function when it really is a function
+dnl pointer.
+
+AC_MSG_CHECKING([for rl_pre_input_hook])
+AC_CACHE_VAL(ac_cv_var_rl_pre_input_hook,
+[AC_TRY_LINK([
+#include <stdio.h>
+#include <readline/readline.h>
+], [
+rl_pre_input_hook = 0;
+],
+ac_cv_var_rl_pre_input_hook=yes,
+ac_cv_var_rl_pre_input_hook=no)])
+AC_MSG_RESULT($ac_cv_var_rl_pre_input_hook)
+if test $ac_cv_var_rl_pre_input_hook = yes; then
+  AC_DEFINE(HAVE_RL_PRE_INPUT_HOOK)
+fi
 
 
 AC_MSG_CHECKING(if readline clears SA_RESTART flag for SIGWINCH)
