@@ -796,28 +796,6 @@ scm_igc (const char *what)
 
   ++scm_gc_heap_lock;
 
-  /* unprotect any struct types with no instances */
-#if 0
-  {
-    SCM type_list;
-    SCM * pos;
-
-    pos = &scm_type_obj_list;
-    type_list = scm_type_obj_list;
-    while (type_list != SCM_EOL)
-      if (SCM_VELTS (SCM_CAR (type_list))[scm_struct_i_refcnt])
-	{
-	  pos = SCM_CDRLOC (type_list);
-	  type_list = SCM_CDR (type_list);
-	}
-      else
-	{
-	  *pos = SCM_CDR (type_list);
-	  type_list = SCM_CDR (type_list);
-	}
-  }
-#endif
-
   /* flush dead entries from the continuation stack */
   {
     int x;

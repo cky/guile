@@ -1,3 +1,10 @@
+2000-06-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.c (scm_igc):  Removed commented code that once was intended
+	to unprotect struct types with no instances.
+
+	* root.h (scm_type_obj_list):  Removed.
+
 2000-06-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* async.c (scm_init_async):  Switch to standard way of smob
