@@ -592,6 +592,7 @@ taloop:
 	  }
 	  EXIT_NESTED_DATA (pstate);
 	  break;
+#ifdef HAVE_ARRAYS
 	case scm_tc7_bvect:
 	case scm_tc7_byvect:
 	case scm_tc7_svect:
@@ -605,6 +606,7 @@ taloop:
 #endif
 	  scm_raprin1 (exp, port, pstate);
 	  break;
+#endif
 	case scm_tcs_subrs:
 	  scm_puts (SCM_SUBR_GENERIC (exp) && *SCM_SUBR_GENERIC (exp)
 		    ? "#<primitive-generic "

@@ -124,6 +124,7 @@ scm_equal_p (x, y)
 		else
 		  return SCM_BOOL_F;
 	      }
+#ifdef HAVE_ARRAYS
 	case scm_tc7_bvect: case scm_tc7_uvect: case scm_tc7_ivect:
 	case scm_tc7_fvect:	case scm_tc7_cvect: case scm_tc7_dvect:
 	case scm_tc7_svect:
@@ -134,6 +135,7 @@ scm_equal_p (x, y)
 	  if (   scm_tc16_array
 	      && scm_smobs[0x0ff & (scm_tc16_array >> 8)].equalp)
 	    return scm_array_equal_p(x, y);
+#endif
 	}
 	return SCM_BOOL_F;
 }

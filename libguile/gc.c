@@ -746,6 +746,7 @@ gc_mark_nimp:
 			      sizeof (scm_contregs)) /
 			     sizeof (SCM_STACKITEM)));
       break;
+#ifdef HAVE_ARRAYS
     case scm_tc7_bvect:
     case scm_tc7_byvect:
     case scm_tc7_ivect:
@@ -757,7 +758,7 @@ gc_mark_nimp:
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
-
+#endif
     case scm_tc7_string:
       SCM_SETGC8MARK (ptr);
       break;
@@ -1168,6 +1169,7 @@ scm_gc_sweep ()
 	      scm_must_free (SCM_CHARS (scmptr));
 	      /*	SCM_SETCHARS(scmptr, 0);*/
 	      break;
+#ifdef HAVE_ARRAYS
 	    case scm_tc7_bvect:
 	      if SCM_GC8MARKP (scmptr)
 		goto c8mrkcontinue;
@@ -1211,6 +1213,7 @@ scm_gc_sweep ()
 		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) * 2 * sizeof (double);
 	      goto freechars;
+#endif
 	    case scm_tc7_substring:
 	      if (SCM_GC8MARKP (scmptr))
 		goto c8mrkcontinue;

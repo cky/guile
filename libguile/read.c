@@ -366,6 +366,7 @@ tryagain_no_flush_ws:
 	  c = scm_flush_ws (port, (char *)NULL);
 	  goto tryagain_no_flush_ws;
 
+#ifdef HAVE_ARRAYS
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, 0);
 	  p = scm_istr2bve (SCM_CHARS (*tok_buf) + 1, (long) (j - 1));
@@ -373,6 +374,7 @@ tryagain_no_flush_ws:
 	    return p;
 	  else
 	    goto unkshrp;
+#endif
 
 	case '{':
 	  j = scm_read_token (c, tok_buf, port, 1);

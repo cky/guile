@@ -116,6 +116,9 @@
 /* Define if the system supports Unix-domain (file-domain) sockets.  */
 #undef HAVE_UNIX_DOMAIN_SOCKETS
 
+/* Define this if you want support for arrays and uniform arrays.  */
+#undef HAVE_ARRAYS
+
 /* This is included as part of a workaround for a autoheader bug. */
 #undef HAVE_REGCOMP
 

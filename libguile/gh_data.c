@@ -152,6 +152,7 @@ gh_doubles2scm (double *d, int n)
   return v;
 }
 
+#ifdef HAVE_ARRAYS
 /* Do not use this function for building normal Scheme vectors, unless
    you arrange for the elements to be protected from GC while you
    initialize the vector.  */
@@ -217,6 +218,7 @@ gh_doubles2dvect (double *d, int n)
   memcpy (m, d, n * sizeof (double));
   return makvect (m, n, scm_tc7_dvect);
 }
+#endif
 #endif
 
 /* data conversion scheme->C */
@@ -285,7 +287,9 @@ gh_scm2chars (SCM obj, char *m)
       for (i = 0; i < n; ++i)
 	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
       break;
+#ifdef HAVE_ARRAYS
     case scm_tc7_byvect:
+#endif
     case scm_tc7_string:
     case scm_tc7_substring:
       n = SCM_LENGTH (obj);
@@ -331,12 +335,14 @@ gh_scm2shorts (SCM obj, short *m)
       for (i = 0; i < n; ++i)
 	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
       break;
+#ifdef HAVE_ARRAYS
     case scm_tc7_svect:
       n = SCM_LENGTH (obj);
       if (m == 0)
 	m = (short *) malloc (n * sizeof (short));
       memcpy (m, SCM_VELTS (obj), n * sizeof (short));
       break;
+#endif
     default:
       scm_wrong_type_arg (0, 0, obj);
     }
@@ -371,6 +377,7 @@ gh_scm2longs (SCM obj, long *m)
 	  m[i] = SCM_INUMP (val) ? SCM_INUM (val) : scm_num2long (val, 0, 0);
 	}
       break;
+#ifdef HAVE_ARRAYS
     case scm_tc7_ivect:
     case scm_tc7_uvect:
       n = SCM_LENGTH (obj);
@@ -378,6 +385,7 @@ gh_scm2longs (SCM obj, long *m)
 	m = (long *) malloc (n * sizeof (long));
       memcpy (m, SCM_VELTS (obj), n * sizeof (long));
       break;
+#endif
     default:
       scm_wrong_type_arg (0, 0, obj);
     }
@@ -418,6 +426,7 @@ gh_scm2floats (SCM obj, float *m)
 	    m[i] = SCM_REALPART (val);
 	}
       break;
+#ifdef HAVE_ARRAYS
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
@@ -434,6 +443,7 @@ gh_scm2floats (SCM obj, float *m)
       for (i = 0; i < n; ++i)
 	m[i] = ((double *) SCM_VELTS (obj))[i];
       break;
+#endif
 #endif
     default:
       scm_wrong_type_arg (0, 0, obj);
@@ -475,6 +485,7 @@ gh_scm2doubles (SCM obj, double *m)
 	    m[i] = SCM_REALPART (val);
 	}
       break;
+#ifdef HAVE_ARRAYS
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
@@ -491,6 +502,7 @@ gh_scm2doubles (SCM obj, double *m)
 	m = (double*) malloc (n * sizeof (double));
       memcpy (m, SCM_VELTS (obj), n * sizeof (double));
       break;
+#endif
 #endif
     default:
       scm_wrong_type_arg (0, 0, obj);
@@ -635,7 +647,7 @@ gh_vector_length (SCM v)
   return gh_scm2ulong (scm_vector_length (v));
 }
 
-
+#ifdef HAVE_ARRAYS
 /* uniform vector support */
 
 /* returns the length as a C unsigned long integer */
@@ -657,7 +669,7 @@ gh_uniform_vector_ref (SCM v, SCM ilist)
 /* sets an individual element in a uniform vector */
 /* SCM */
 /* gh_list_to_uniform_array ( */
-
+#endif
 
 /* Data lookups between C and Scheme
 

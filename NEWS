@@ -34,6 +34,7 @@ appropriately.
 
 ** configure has new options to remove support for certain features:
 
+--disable-arrays   omit array and uniform array support
 --disable-posix    omit posix interfaces
 --disable-net      omit networking interfaces
 --disable-regex    omit regular expression interfaces
@@ -131,8 +132,7 @@ instead of 'system-error, since errno is not relevant.
 ** Certain gethostbyname/gethostbyaddr failures now throw errors with
 specific keys instead of 'system-error.  The latter is inappropriate
 since errno will not have been set.  The keys are:
-'dns-host-not-found, 'dns-try-again, 'dns-no-recovery and
-'dns-no-data.
+'host-not-found, 'try-again, 'no-recovery and 'no-data.
 
 ** sethostent, setnetent, setprotoent, setservent: now take an
 optional argument STAYOPEN, which specifies whether the database

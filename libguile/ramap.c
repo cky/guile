@@ -55,8 +55,6 @@
 #include "ramap.h"
 
 
-#ifdef ARRAYS
-
 typedef struct
 {
   char *name;
@@ -2174,5 +2172,3 @@ scm_init_ramap ()
 #include "ramap.x"
   scm_add_feature (s_array_for_each);
 }
-
-#endif /* ARRAYS */

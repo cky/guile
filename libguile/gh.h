@@ -108,18 +108,21 @@ SCM gh_str02scm(char *s);
 void gh_set_substr(char *src, SCM dst, int start, int len);
 SCM gh_symbol2scm(const char *symbol_str);
 SCM gh_ints2scm(int *d, int n);
+
+#ifdef HAVE_ARRAYS
 SCM gh_chars2byvect(char *d, int n);
 SCM gh_shorts2svect(short *d, int n);
 SCM gh_longs2ivect(long *d, int n);
 SCM gh_ulongs2uvect(unsigned long *d, int n);
-SCM gh_doubles2scm(double *d, int n);
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
 SCM gh_floats2fvect(float *d, int n);
 #endif
 SCM gh_doubles2dvect(double *d, int n);
 #endif
+#endif
 
+SCM gh_doubles2scm(double *d, int n);
 
 /* Scheme to C conversion */
 int gh_scm2bool(SCM obj);

@@ -411,6 +411,22 @@ scm_random_uniform (SCM state)
   return scm_makdbl (scm_c_uniform01 (SCM_RSTATE (state)), 0.0);
 }
 
+SCM_PROC (s_random_normal, "random:normal", 0, 1, 0, scm_random_normal);
+
+SCM
+scm_random_normal (SCM state)
+{
+  if (SCM_UNBNDP (state))
+    state = SCM_CDR (scm_var_random_state);
+  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
+	      state,
+	      SCM_ARG1,
+	      s_random_normal);
+  return scm_makdbl (scm_c_normal01 (SCM_RSTATE (state)), 0.0);
+}
+
+#ifdef HAVE_ARRAYS
+
 static void
 vector_scale (SCM v, double c)
 {
@@ -443,13 +459,13 @@ vector_sum_squares (SCM v)
   return sum;
 }
 
-SCM_PROC (s_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0, scm_random_solid_sphere_x);
-
 /* For the uniform distribution on the solid sphere, note that in
  * this distribution the length r of the vector has cumulative
  * distribution r^n; i.e., u=r^n is uniform [0,1], so r can be
  * generated as r=u^(1/n).
  */
+SCM_PROC (s_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0, scm_random_solid_sphere_x);
+
 SCM
 scm_random_solid_sphere_x (SCM v, SCM state)
 {
@@ -488,21 +504,6 @@ scm_random_hollow_sphere_x (SCM v, SCM state)
   vector_scale (v, 1 / sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
 }
-
-SCM_PROC (s_random_normal, "random:normal", 0, 1, 0, scm_random_normal);
-
-SCM
-scm_random_normal (SCM state)
-{
-  if (SCM_UNBNDP (state))
-    state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
-	      state,
-	      SCM_ARG1,
-	      s_random_normal);
-  return scm_makdbl (scm_c_normal01 (SCM_RSTATE (state)), 0.0);
-}
-
 SCM_PROC (s_random_normal_vector_x, "random:normal-vector!", 1, 1, 0, scm_random_normal_vector_x);
 
 SCM
@@ -527,6 +528,8 @@ scm_random_normal_vector_x (SCM v, SCM state)
       ((double *) SCM_VELTS (v))[n] = scm_c_normal01 (SCM_RSTATE (state));
   return SCM_UNSPECIFIED;
 }
+
+#endif /* HAVE_ARRAYS */
 
 SCM_PROC (s_random_exp, "random:exp", 0, 1, 0, scm_random_exp);
 

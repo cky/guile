@@ -47,6 +47,76 @@
 #include "vectors.h"
 
 
+/* 
+ * This complicates things too much if allowed on any array.
+ * C code can safely call it on arrays known to be used in a single
+ * threaded manner.
+ *
+ * SCM_PROC(s_vector_set_length_x, "vector-set-length!", 2, 0, 0, scm_vector_set_length_x); 
+ */
+static char s_vector_set_length_x[] = "vector-set-length!";
+
+
+SCM 
+scm_vector_set_length_x (vect, len)
+     SCM vect;
+     SCM len;
+{
+  long l;
+  scm_sizet siz;
+  scm_sizet sz;
+
+  l = SCM_INUM (len);
+  SCM_ASRTGO (SCM_NIMP (vect), badarg1);
+
+#ifdef HAVE_ARRAYS
+  if (SCM_TYP7 (vect) == scm_tc7_bvect)
+    {
+      l = (l + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
+    }
+  sz = scm_uniform_element_size (vect);
+  if (sz == 0)
+#endif
+  switch (SCM_TYP7 (vect))
+    {
+    default:
+    badarg1: scm_wta (vect, (char *) SCM_ARG1, s_vector_set_length_x);
+    case scm_tc7_string:
+      SCM_ASRTGO (vect != scm_nullstr, badarg1);
+      sz = sizeof (char);
+      l++;
+      break;
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
+      SCM_ASRTGO (vect != scm_nullvect, badarg1);
+      sz = sizeof (SCM);
+      break;
+    }
+  SCM_ASSERT (SCM_INUMP (len), len, SCM_ARG2, s_vector_set_length_x);
+  if (!l)
+    l = 1L;
+  siz = l * sz;
+  if (siz != l * sz)
+    scm_wta (SCM_MAKINUM (l * sz), (char *) SCM_NALLOC, s_vector_set_length_x);
+  SCM_REDEFER_INTS;
+  SCM_SETCHARS (vect,
+	    ((char *)
+	     scm_must_realloc (SCM_CHARS (vect),
+			       (long) SCM_LENGTH (vect) * sz,
+			       (long) siz,
+			       s_vector_set_length_x)));
+  if (SCM_VECTORP (vect))
+    {
+      sz = SCM_LENGTH (vect);
+      while (l > sz)
+	SCM_VELTS (vect)[--l] = SCM_UNSPECIFIED;
+    }
+  else if (SCM_STRINGP (vect))
+    SCM_CHARS (vect)[l - 1] = 0;
+  SCM_SETLENGTH (vect, SCM_INUM (len), SCM_TYP7 (vect));
+  SCM_REALLOW_INTS;
+  return vect;
+}
 
 SCM_PROC(s_vector_p, "vector?", 1, 0, 0, scm_vector_p);
 
@@ -263,5 +333,7 @@ void
 scm_init_vectors ()
 {
 #include "vectors.x"
+  /*
+    scm_make_subr (s_resizuve, scm_tc7_subr_2, scm_vector_set_length_x); */
 }
 

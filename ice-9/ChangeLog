@@ -1,3 +1,11 @@
+1999-11-19  Gary Houston  <ghouston@freewire.co.uk>
+
+	* Makefile.am (ice9_sources): add arrays.scm.
+
+	* boot-9.scm: load arrays.scm if 'array is provided.
+
+	* arrays.scm: new file with stuff from boot-9.scm.
+
 1999-11-18  Gary Houston  <ghouston@freewire.co.uk>
 
 	* boot-9.scm (read-hash-extend to set up arrays): add 'l' for

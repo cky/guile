@@ -422,10 +422,12 @@ scm_restricted_vector_sort_x (SCM vec, SCM less, SCM startpos, SCM endpos)
     {
     case scm_tc7_vector:	/* the only type we manage is vector */
       break;
+#if 0 /* HAVE_ARRAYS */
     case scm_tc7_ivect:	/* long */
     case scm_tc7_uvect:	/* unsigned */
     case scm_tc7_fvect:	/* float */
     case scm_tc7_dvect:	/* double */
+#endif
     default:
       scm_wta (vec, (char *) SCM_ARG1, s_restricted_vector_sort_x);
     }
@@ -510,10 +512,12 @@ scm_sorted_p (SCM items, SCM less)
 	    return SCM_BOOL_T;
 	  }
 	  break;
+#if 0 /* HAVE_ARRAYS */
 	case scm_tc7_ivect:	/* long */
 	case scm_tc7_uvect:	/* unsigned */
 	case scm_tc7_fvect:	/* float */
 	case scm_tc7_dvect:	/* double */
+#endif
 	default:
 	  scm_wta (items, (char *) SCM_ARG1, s_sorted_p);
 	}
@@ -755,6 +759,8 @@ scm_sort (SCM items, SCM less)
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
+#ifdef HAVE_ARRAYS
+  /* support ordinary vectors even if arrays not available?  */
   else if (SCM_VECTORP (items))
     {
       len = SCM_LENGTH (items);
@@ -766,6 +772,7 @@ scm_sort (SCM items, SCM less)
 				    SCM_MAKINUM (len));
       return sortvec;
     }
+#endif
   else
     return scm_wta (items, (char *) SCM_ARG1, s_sort_x);
 }				/* scm_sort */
@@ -878,6 +885,8 @@ scm_stable_sort (SCM items, SCM less)
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
+#ifdef HAVE_ARRAYS
+  /* support ordinary vectors even if arrays not available?  */
   else if (SCM_VECTORP (items))
     {
       SCM retvec;
@@ -896,6 +905,7 @@ scm_stable_sort (SCM items, SCM less)
       free (temp);
       return retvec;
     }
+#endif
   else
     return scm_wta (items, (char *) SCM_ARG1, s_stable_sort);
 }				/* scm_stable_sort */

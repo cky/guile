@@ -84,13 +84,6 @@
  */
 #undef ENGNOT
 
-/* Include support for uniform arrays?
- *
- * Possibly some of the initialization code depends on this
- * being defined, but that is a bug and should be fixed.
- */
-#define ARRAYS
-
 #undef SCM_CAREFUL_INTS
 
 /* {Unsupported Options}
@@ -111,13 +104,12 @@
 
 #define STACK_CHECKING
 #undef NO_CEVAL_STACK_CHECKING
-#undef LONGLONGS
 
 /* Some auto-generated .h files contain unused prototypes
  * that need these typedefs.
  */
-typedef long long_long;
-typedef unsigned long ulong_long;
+typedef long long long_long;
+typedef unsigned long long ulong_long;
 
 
 

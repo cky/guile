@@ -2531,6 +2531,7 @@ dispatch:
 		      scm_listify (proc, SCM_UNDEFINED));
     case scm_tc7_vector:
     case scm_tc7_wvect:
+#ifdef HAVE_ARRAYS
     case scm_tc7_bvect:
     case scm_tc7_byvect:
     case scm_tc7_svect:
@@ -2541,6 +2542,7 @@ dispatch:
     case scm_tc7_cvect:
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
+#endif
 #endif
     case scm_tc7_string:
     case scm_tc7_substring:

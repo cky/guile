@@ -74,7 +74,7 @@ extern long scm_tc16_array;
 
 
 
-extern SCM scm_vector_set_length_x SCM_P ((SCM vect, SCM len));
+extern scm_sizet scm_uniform_element_size (SCM obj);
 extern SCM scm_makflo SCM_P ((float x));
 extern SCM scm_make_uve SCM_P ((long k, SCM prot));
 extern SCM scm_uniform_vector_length SCM_P ((SCM v));

@@ -54,6 +54,8 @@ SCM_CONST_LONG (scm_utag_closure, "utag_closure", 3);
 SCM_CONST_LONG (scm_utag_symbol, "utag_symbol", 4);
 SCM_CONST_LONG (scm_utag_vector, "utag_vector", 5);
 SCM_CONST_LONG (scm_utag_wvect, "utag_wvect", 6);
+
+#ifdef HAVE_ARRAYS
 SCM_CONST_LONG (scm_utag_bvect, "utag_bvect", 7);
 SCM_CONST_LONG (scm_utag_byvect, "utag_byvect", 8);
 SCM_CONST_LONG (scm_utag_svect, "utag_svect", 9);
@@ -62,6 +64,8 @@ SCM_CONST_LONG (scm_utag_uvect, "utag_uvect", 11);
 SCM_CONST_LONG (scm_utag_fvect, "utag_fvect", 12);
 SCM_CONST_LONG (scm_utag_dvect, "utag_dvect", 13);
 SCM_CONST_LONG (scm_utag_cvect, "utag_cvect", 14);
+#endif 
+
 SCM_CONST_LONG (scm_utag_string, "utag_string", 15);
 SCM_CONST_LONG (scm_utag_substring, "utag_substring", 17);
 SCM_CONST_LONG (scm_utag_asubr, "utag_asubr", 19);
@@ -116,6 +120,8 @@ scm_tag (x)
 	  return SCM_CDR (scm_utag_vector) ;
 	case scm_tc7_wvect:
 	  return SCM_CDR (scm_utag_wvect) ;
+
+#ifdef HAVE_ARRAYS
 	case scm_tc7_bvect:
 	  return SCM_CDR (scm_utag_bvect) ;
 	case scm_tc7_byvect:
@@ -132,6 +138,8 @@ scm_tag (x)
 	  return SCM_CDR (scm_utag_dvect) ;
 	case scm_tc7_cvect:
 	  return SCM_CDR (scm_utag_cvect) ;
+#endif
+
 	case scm_tc7_string:
 	  return SCM_CDR (scm_utag_string) ;
 	case scm_tc7_substring:

@@ -73,104 +73,57 @@
 
 long scm_tc16_array;
 
-/* 
- * This complicates things too much if allowed on any array.
- * C code can safely call it on arrays known to be used in a single
- * threaded manner.
- *
- * SCM_PROC(s_vector_set_length_x, "vector-set-length!", 2, 0, 0, scm_vector_set_length_x); 
- */
-static char s_vector_set_length_x[] = "vector-set-length!";
-
-
-SCM 
-scm_vector_set_length_x (vect, len)
-     SCM vect;
-     SCM len;
+/* return the size of an element in a uniform array or 0 if type not
+   found.  */
+scm_sizet
+scm_uniform_element_size (SCM obj)
 {
-  long l;
-  scm_sizet siz;
-  scm_sizet sz;
+  scm_sizet result;
 
-  l = SCM_INUM (len);
-  SCM_ASRTGO (SCM_NIMP (vect), badarg1);
-  switch (SCM_TYP7 (vect))
+  switch (SCM_TYP7 (obj))
     {
-    default:
-    badarg1: scm_wta (vect, (char *) SCM_ARG1, s_vector_set_length_x);
-    case scm_tc7_string:
-      SCM_ASRTGO (vect != scm_nullstr, badarg1);
-      sz = sizeof (char);
-      l++;
-      break;
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      SCM_ASRTGO (vect != scm_nullvect, badarg1);
-      sz = sizeof (SCM);
-      break;
-#ifdef ARRAYS
     case scm_tc7_bvect:
-      l = (l + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
     case scm_tc7_uvect:
     case scm_tc7_ivect:
-      sz = sizeof (long);
+      result = sizeof (long);
       break;
+
     case scm_tc7_byvect:
-      sz = sizeof (char);
+      result = sizeof (char);
       break;
 
     case scm_tc7_svect:
-      sz = sizeof (short);
+      result = sizeof (short);
       break;
+
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
-      sz = sizeof (long_long);
+      result = sizeof (long_long);
       break;
 #endif 
 
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      sz = sizeof (float);
+      result = sizeof (float);
       break;
 #endif
+
     case scm_tc7_dvect:
-      sz = sizeof (double);
+      result = sizeof (double);
       break;
+
     case scm_tc7_cvect:
-      sz = 2 * sizeof (double);
+      result = 2 * sizeof (double);
       break;
 #endif
-#endif
+      
+    default:
+      result = 0;
     }
-  SCM_ASSERT (SCM_INUMP (len), len, SCM_ARG2, s_vector_set_length_x);
-  if (!l)
-    l = 1L;
-  siz = l * sz;
-  if (siz != l * sz)
-    scm_wta (SCM_MAKINUM (l * sz), (char *) SCM_NALLOC, s_vector_set_length_x);
-  SCM_REDEFER_INTS;
-  SCM_SETCHARS (vect,
-	    ((char *)
-	     scm_must_realloc (SCM_CHARS (vect),
-			       (long) SCM_LENGTH (vect) * sz,
-			       (long) siz,
-			       s_vector_set_length_x)));
-  if (SCM_VECTORP (vect))
-    {
-      sz = SCM_LENGTH (vect);
-      while (l > sz)
-	SCM_VELTS (vect)[--l] = SCM_UNSPECIFIED;
-    }
-  else if (SCM_STRINGP (vect))
-    SCM_CHARS (vect)[l - 1] = 0;
-  SCM_SETLENGTH (vect, SCM_INUM (len), SCM_TYP7 (vect));
-  SCM_REALLOW_INTS;
-  return vect;
+  return result;
 }
 
-
-#ifdef ARRAYS
 
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
@@ -2568,8 +2521,6 @@ freera (ptr)
   return sizeof (scm_array) + SCM_ARRAY_NDIM (ptr) * sizeof (scm_array_dim);
 }
 
-/* This must be done after scm_init_scl() */
-
 void
 scm_init_unif ()
 {
@@ -2581,33 +2532,3 @@ scm_init_unif ()
   scm_add_feature ("array");
 #include "unif.x"
 }
-
-#else /* ARRAYS */
-
-
-int 
-scm_raprin1 (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
-{
-  return 0;
-}
-
-
-SCM 
-scm_istr2bve (str, len)
-     char *str;
-     long len;
-{
-  return SCM_BOOL_F;
-}
-
-void 
-scm_init_unif ()
-{
-#include "unif.x"
-  scm_make_subr (s_resizuve, scm_tc7_subr_2, scm_vector_set_length_x);
-}
-
-#endif /* ARRAYS */

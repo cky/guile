@@ -116,6 +116,7 @@ scm_class_of (SCM x)
 	  return scm_class_symbol;
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
+#ifdef HAVE_ARRAYS
 	case scm_tc7_bvect:
 	case scm_tc7_byvect:
 	case scm_tc7_svect:
@@ -124,6 +125,7 @@ scm_class_of (SCM x)
 	case scm_tc7_fvect:
 	case scm_tc7_dvect:
 	case scm_tc7_cvect:
+#endif
 	  return scm_class_vector;
 	case scm_tc7_string:
 	case scm_tc7_substring:

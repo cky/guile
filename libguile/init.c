@@ -523,9 +523,11 @@ scm_boot_guile_1 (base, closure)
 #ifdef DEBUG_EXTENSIONS
       scm_init_debug ();	/* Requires macro smobs */
 #endif
-      scm_init_ramap ();
       scm_init_random ();
+#ifdef HAVE_ARRAYS
+      scm_init_ramap ();
       scm_init_unif ();
+#endif
       scm_init_simpos ();
       scm_init_load_path ();
       scm_init_standard_ports ();

@@ -1,3 +1,56 @@
+1999-11-19  Gary Houston  <ghouston@freewire.co.uk>
+
+	* the following changes allow guile to be built with the array
+	"module" omitted.  some of this stuff is just tc7 type support,
+	which wouldn't be needed if uniform array types were converted
+	to smobs.
+	
+	* tag.c (scm_utag_bvect ... scm_utag_cvect): don't define unless
+	HAVE_ARRAYS.
+	(scm_tag): don't check array types unless HAVE_ARRAYS.
+
+	* sort.c (scm_restricted_vector_sort_x, scm_sorted_p):
+	remove the unused array types.
+	* (scm_stable_sort, scm_sort): don't support vectors if not
+	HAVE_ARRAYS.  a bit excessive.
+
+	* random.c (vector_scale, vector_sum_squares, 
+	scm_random_solid_sphere_x, scm_random_hollow_sphere_x,
+	scm_random_normal_vector_x): don't define unless HAVE_ARRAYS.
+
+	* gh_data.c (makvect, gh_chars2byvect, gh_shorts2svect,
+	gh_longs2ivect,	gh_ulongs2uvect, gh_floats2fvect, gh_doubles2dvect,
+	gh_uniform_vector_length, gh_uniform_vector_ref):
+	don't define unless HAVE_ARRAYS.
+	(gh_scm2chars, gh_scm2shorts, gh_scm2longs, gh_scm2floats,
+	gh_scm2doubles):
+	don't check vector types if not HAVE_ARRAYS.
+
+	* eq.c (scm_equal_p), eval.c (SCM_CEVAL), print.c (scm_iprin1),
+	gc.c (scm_gc_mark, scm_gc_sweep), objects.c (scm_class_of):
+	don't support the array types unless HAVE_ARRAYS is defined.
+
+	* tags.h: make nine tc7 types conditional on HAVE_ARRAYS.
+
+	* read.c (scm_lreadr): don't check for #* unless HAVE_ARRAYS is 
+	defined (this should use read-hash-extend).
+
+	* ramap.c, unif.c: don't check whether ARRAYS is defined.
+
+	* vectors.c (scm_vector_set_length_x): moved here from unif.c.  call
+	scm_uniform_element_size if HAVE_ARRAYS.
+	vectors.h: prototype too.
+
+	* unif.c (scm_uniform_element_size): new procedure.
+
+	* init.c (scm_boot_guile_1): don't call scm_init_ramap or 
+	scm_init_unif unless HAVE_ARRAYS is defined.
+
+	* __scm.h: don't define ARRAYS.
+
+	* Makefile.am (EXTRA_libguile_la_SOURCES): unif.c and ramap.c
+	moved here from	libguile_la_SOURCES.
+	
 1999-11-18  Gary Houston  <ghouston@freewire.co.uk>
 
 	* socket.c (scm_htons, scm_ntohs, scm_htonl, scm_ntohl): new

@@ -337,20 +337,24 @@ typedef long SCM;
  * into structs or smobs.  We need back some
  * of these 7 bit tags!
  */
-#define scm_tc7_llvect          29
 #define scm_tc7_pws		31
-#define scm_tc7_uvect		37
 #define scm_tc7_lvector		39
+
+#ifdef HAVE_ARRAYS
+#define scm_tc7_llvect          29
+#define scm_tc7_uvect		37
 #define scm_tc7_fvect		45
 #define scm_tc7_dvect		47
 #define scm_tc7_cvect		53
 #define scm_tc7_svect		55
-#define scm_tc7_contin		61
-#define scm_tc7_cclo		63
-#define scm_tc7_rpsubr		69
 #define scm_tc7_bvect		71
 #define scm_tc7_byvect		77
 #define scm_tc7_ivect		79
+#endif
+
+#define scm_tc7_contin		61
+#define scm_tc7_cclo		63
+#define scm_tc7_rpsubr		69
 #define scm_tc7_subr_0		85
 #define scm_tc7_subr_1		87
 #define scm_tc7_cxr		93

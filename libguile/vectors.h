@@ -55,6 +55,7 @@
 
 
 
+extern SCM scm_vector_set_length_x SCM_P ((SCM vect, SCM len));
 extern SCM scm_vector_p SCM_P ((SCM x));
 extern SCM scm_vector_length SCM_P ((SCM v));
 extern SCM scm_vector SCM_P ((SCM l));
