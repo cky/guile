@@ -97,7 +97,8 @@
 
     (pass-if-exception "(lambda \"foo\" #f)"
       exception:bad-formals
-      (lambda "foo" #f))
+      (eval '(lambda "foo" #f)
+	    (interaction-environment)))
 
     (pass-if-exception "(lambda (x 1) 2)"
       exception:bad-formals
@@ -175,7 +176,8 @@
 
     (pass-if-exception "(let ((1 2)) 3)"
       exception:bad-var
-      (let ((1 2)) 3)))
+      (eval '(let ((1 2)) 3)
+	    (interaction-environment))))
 
   (with-test-prefix "duplicate bindings"
 
@@ -257,15 +259,18 @@
 
     (pass-if-exception "(let* x ())"
       exception:bad-bindings
-      (let* x ()))
+      (eval '(let* x ())
+	    (interaction-environment)))
 
     (pass-if-exception "(let* x (y))"
       exception:bad-bindings
-      (let* x (y)))
+      (eval '(let* x (y))
+	    (interaction-environment)))
 
     (pass-if-exception "(let* ((1 2)) 3)"
       exception:bad-var
-      (let* ((1 2)) 3)))
+      (eval '(let* ((1 2)) 3)
+	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
@@ -314,15 +319,18 @@
 
     (pass-if-exception "(letrec x ())"
       exception:bad-bindings
-      (letrec x ()))
+      (eval '(letrec x ())
+	    (interaction-environment)))
 
     (pass-if-exception "(letrec x (y))"
       exception:bad-bindings
-      (letrec x (y)))
+      (eval '(letrec x (y))
+	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((1 2)) 3)"
       exception:bad-var
-      (letrec ((1 2)) 3)))
+      (eval '(letrec ((1 2)) 3)
+	    (interaction-environment))))
 
   (with-test-prefix "duplicate bindings"
 
@@ -346,11 +354,13 @@
 
     (pass-if-exception "(if)"
       exception:missing/extra-expr
-      (if))
+      (eval '(if)
+	    (interaction-environment)))
 
     (pass-if-exception "(if 1 2 3 4)"
       exception:missing/extra-expr
-      (if 1 2 3 4))))
+      (eval '(if 1 2 3 4)
+	    (interaction-environment)))))
 
 (with-test-prefix "cond"
 
@@ -487,37 +497,45 @@
 
     (pass-if-exception "(set!)"
       exception:missing/extra-expr
-      (set!))
+      (eval '(set!)
+	    (interaction-environment)))
 
     (pass-if-exception "(set! 1)"
       exception:missing/extra-expr
-      (set! 1))
+      (eval '(set! 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(set! 1 2 3)"
       exception:missing/extra-expr
-      (set! 1 2 3)))
+      (eval '(set! 1 2 3)
+	    (interaction-environment))))
 
   (with-test-prefix "bad variable"
 
     (pass-if-exception "(set! \"\" #t)"
       exception:bad-var
-      (set! "" #t))
+      (eval '(set! "" #t)
+	    (interaction-environment)))
 
     (pass-if-exception "(set! 1 #t)"
       exception:bad-var
-      (set! 1 #t))
+      (eval '(set! 1 #t)
+	    (interaction-environment)))
 
     (pass-if-exception "(set! #t #f)"
       exception:bad-var
-      (set! #t #f))
+      (eval '(set! #t #f)
+	    (interaction-environment)))
 
     (pass-if-exception "(set! #f #t)"
       exception:bad-var
-      (set! #f #t))
+      (eval '(set! #f #t)
+	    (interaction-environment)))
 
     (pass-if-exception "(set! #\space #f)"
       exception:bad-var
-      (set! #\space #f))))
+      (eval '(set! #\space #f)
+	    (interaction-environment)))))
 
 (with-test-prefix "quote"
 
@@ -525,8 +543,10 @@
 
     (pass-if-exception "(quote)"
       exception:missing/extra-expr
-      (quote))
+      (eval '(quote)
+	    (interaction-environment)))
 
     (pass-if-exception "(quote a b)"
       exception:missing/extra-expr
-      (quote a b))))
+      (eval '(quote a b)
+	    (interaction-environment)))))

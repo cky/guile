@@ -1,5 +1,12 @@
 2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/syntax.test: Modified some tests to use eval when
+	providing bad syntax.  Otherwise, the memoizer will report an
+	error immediately after reading the form, without even the chance
+	to get the pass-if-exception mechanism started.
+
+2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/guardians.test: Added some more elaborate and
 	sophisticated tests for the guardian functionality.
 
