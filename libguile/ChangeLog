@@ -7,7 +7,7 @@
 
 	* script.c (scm_find_executable): Don't test if unix is #defined
 	here; first, NetBSD doesn't #define it, and second, it's the wrong
-	way to go about these things.
+	way to go about these things.  (Thanks to Perry Metzger.)
 	(dld_find_executable): Delete this MSDOS support code.  This isn't
 	the way we want to support this; it needs to be rethunk at a
 	larger scale.
