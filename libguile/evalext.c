@@ -117,6 +117,7 @@ SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
 }
 #undef FUNC_NAME
 
+#if (SCM_ENABLE_DEPRECATED == 1)
 
 SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
 
@@ -140,6 +141,8 @@ scm_m_undefine (SCM x, SCM env)
   return SCM_UNSPECIFIED;
 #endif
 }
+
+#endif
 
 SCM_REGISTER_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
 

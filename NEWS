@@ -204,6 +204,10 @@ without the soft port blocking.
 Guile now has breakpoints.  For details see the `Debugging Features'
 chapter in the reference manual.
 
+** Deprecated: undefine
+
+There is no replacement for undefine.
+
 * Changes to the C interface
 
 ** The value 'scm_mask_ints' is no longer writable.

@@ -1,3 +1,7 @@
+2002-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* evalext.[ch] (scm_m_undefine, undefine):  Deprecated.
+
 2002-11-17  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* debug.c (scm_make_iloc): Added missing "return".
