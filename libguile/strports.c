@@ -229,10 +229,10 @@ scm_call_with_input_string (str, proc)
 
 
 
-/* Given a null-terminated string EXPR containing Scheme program text,
-   evaluate it, and discard the result.  */
-void
-scm_eval_0str (expr)
+/* Given a null-terminated string EXPR containing a Scheme expression
+   read it, and return it as an SCM value. */
+SCM
+scm_read_0str (expr)
      char *expr;
 {
   SCM port = scm_mkstrport (SCM_MAKINUM (0),
@@ -242,10 +242,31 @@ scm_eval_0str (expr)
   SCM form;
 
   /* Read expressions from that port; ignore the values.  */
-  while ((form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F)) != SCM_EOF_VAL)
-    scm_eval_x (form);
+  form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F);
 
   scm_close_port (port);
+  return form;
+}
+
+/* Given a null-terminated string EXPR containing Scheme program text,
+   evaluate it, and return the result of the last expression evaluated.  */
+SCM
+scm_eval_0str (expr)
+     char *expr;
+{
+  SCM port = scm_mkstrport (SCM_MAKINUM (0),
+			    scm_makfrom0str (expr),
+			    SCM_OPN | SCM_RDNG,
+			    "scm_eval_0str");
+  SCM form;
+  SCM ans;
+
+  /* Read expressions from that port; ignore the values.  */
+  while ((form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F)) != SCM_EOF_VAL)
+    ans = scm_eval_x (form);
+
+  scm_close_port (port);
+  return ans;
 }
 
 
