@@ -293,7 +293,11 @@
  * - ... add more
  */
 
-#if SIZEOF_UINTPTR_T != 0
+#if SIZEOF_UINTPTR_T != 0 && defined(UINTPTR_MAX) \
+                          && defined(INTPTR_MAX) \
+                          && defined(INTPTR_MIN)
+/* Used as SCM if available, so we bundle related attributes to avoid possible
+   type incon[st][oi]n[ae]nce later.  Word in tags.h.  */
 #define HAVE_UINTPTR_T 1
 #endif
 
@@ -384,7 +388,7 @@ typedef long ptrdiff_t;
 
 /* James Clark came up with this neat one instruction fix for
  * continuations on the SPARC.  It flushes the register windows so
- * that all the state of the process is contained in the stack. 
+ * that all the state of the process is contained in the stack.
  */
 
 #ifdef sparc
@@ -393,7 +397,7 @@ typedef long ptrdiff_t;
 # define SCM_FLUSH_REGISTER_WINDOWS /* empty */
 #endif
 
-/* If stack is not longword aligned then 
+/* If stack is not longword aligned then
  */
 
 /* #define SHORT_ALIGN */
@@ -415,8 +419,8 @@ typedef long SCM_STACKITEM;
 
 
 #ifndef USE_THREADS
-#define SCM_CRITICAL_SECTION_START 
-#define SCM_CRITICAL_SECTION_END 
+#define SCM_CRITICAL_SECTION_START
+#define SCM_CRITICAL_SECTION_END
 #define SCM_THREAD_SWITCHING_CODE
 #endif
 
@@ -573,7 +577,7 @@ do { \
 
 
 /** SCM_ASSERT
- ** 
+ **
  **/
 
 
@@ -659,7 +663,7 @@ SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 #define SCM_ARG4 		4
 #define SCM_ARG5 		5
 #define SCM_ARG6 		6
-#define SCM_ARG7 		7 
+#define SCM_ARG7 		7
 
 #endif /* SCM_MAGIC_SNARFER */
 
