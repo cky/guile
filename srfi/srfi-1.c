@@ -535,7 +535,7 @@ check_map_args (SCM argv,
 
   for (i = SCM_SIMPLE_VECTOR_LENGTH (argv) - 1; i >= 1; i--)
     {
-      SCM elt = SCM_SIMPLE_VECTOR_REF (args, i);
+      SCM elt = SCM_SIMPLE_VECTOR_REF (argv, i);
       long elt_len;
 
       if (!(SCM_NULLP (elt) || SCM_CONSP (elt)))
