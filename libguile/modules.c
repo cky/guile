@@ -57,18 +57,20 @@
 
 #include "libguile/modules.h"
 
-SCM scm_module_system_booted_p = 0;
+int scm_module_system_booted_p = 0;
 
 SCM scm_module_tag;
-SCM scm_module_type;
 
-static SCM the_root_module;
+static SCM the_root_module_var;
 static SCM root_module_lookup_closure;
 
 SCM
 scm_the_root_module ()
 {
-  return SCM_CDR (the_root_module);
+  if (scm_module_system_booted_p)
+    return SCM_VARIABLE_REF (the_root_module_var);
+  else
+    return SCM_BOOL_F;
 }
 
 static SCM the_module;
@@ -82,12 +84,7 @@ SCM_DEFINE (scm_current_module, "current-module", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-#define SCM_VALIDATE_STRUCT_TYPE(pos, v, type) \
-  do { \
-    SCM_ASSERT (SCM_NIMP (v) && SCM_NFALSEP (SCM_STRUCTP (v)) \
-		&& SCM_STRUCT_VTABLE (v) == (type), \
-                v, pos, FUNC_NAME); \
-  } while (0)
+static void scm_post_boot_init_modules (void);
 
 SCM_DEFINE (scm_set_current_module, "set-current-module", 1, 0, 0,
 	    (SCM module),
@@ -97,21 +94,18 @@ SCM_DEFINE (scm_set_current_module, "set-current-module", 1, 0, 0,
 {
   SCM old;
 
-  /* XXX - we can not validate our argument when the module system
-           hasn't been booted yet since we don't know the type.  This
-           should be fixed when we have a cleaner way of booting
-           Guile. 
-  */
-  if (scm_module_system_booted_p)
-    SCM_VALIDATE_STRUCT_TYPE (SCM_ARG1, module, scm_module_type);
+  if (!scm_module_system_booted_p)
+    scm_post_boot_init_modules ();
+
+  SCM_VALIDATE_MODULE (SCM_ARG1, module);
 
   old = scm_current_module ();
   scm_fluid_set_x (the_module, module);
 
 #if SCM_DEBUG_DEPRECATED == 0
-  scm_fluid_set_x (SCM_CDR (scm_top_level_lookup_closure_var),
+  scm_fluid_set_x (SCM_VARIABLE_REF (scm_top_level_lookup_closure_var),
 		   scm_current_module_lookup_closure ());
-  scm_fluid_set_x (SCM_CDR (scm_system_transformer),
+  scm_fluid_set_x (SCM_VARIABLE_REF (scm_system_transformer),
 		   scm_current_module_transformer ());
 #endif
 
@@ -145,13 +139,13 @@ scm_module_full_name (SCM name)
     return scm_append (SCM_LIST2 (module_prefix, name));
 }
 
-static SCM make_modules_in;
-static SCM beautify_user_module_x;
+static SCM make_modules_in_var;
+static SCM beautify_user_module_x_var;
 
 SCM
 scm_make_module (SCM name)
 {
-  return scm_apply (SCM_CDR (make_modules_in),
+  return scm_apply (SCM_VARIABLE_REF (make_modules_in_var),
 		    SCM_LIST2 (scm_the_root_module (),
 			       scm_module_full_name (name)),
 		    SCM_EOL);
@@ -160,14 +154,18 @@ scm_make_module (SCM name)
 SCM
 scm_ensure_user_module (SCM module)
 {
-  scm_apply (SCM_CDR (beautify_user_module_x), SCM_LIST1 (module), SCM_EOL);
+  scm_apply (SCM_VARIABLE_REF (beautify_user_module_x_var),
+	     SCM_LIST1 (module), SCM_EOL);
   return SCM_UNSPECIFIED;
 }
 
 SCM
 scm_module_lookup_closure (SCM module)
 {
-  return SCM_MODULE_EVAL_CLOSURE (module);
+  if (module == SCM_BOOL_F)
+    return SCM_BOOL_F;
+  else
+    return SCM_MODULE_EVAL_CLOSURE (module);
 }
 
 SCM
@@ -182,7 +180,10 @@ scm_current_module_lookup_closure ()
 SCM
 scm_module_transformer (SCM module)
 {
-  return SCM_MODULE_TRANSFORMER (module);
+  if (module == SCM_BOOL_F)
+    return SCM_BOOL_F;
+  else
+    return SCM_MODULE_TRANSFORMER (module);
 }
 
 SCM
@@ -194,20 +195,22 @@ scm_current_module_transformer ()
     return SCM_BOOL_F;
 }
 
-static SCM resolve_module;
+static SCM resolve_module_var;
 
 SCM
 scm_resolve_module (SCM name)
 {
-  return scm_apply (SCM_CDR (resolve_module), SCM_LIST1 (name), SCM_EOL);
+  return scm_apply (SCM_VARIABLE_REF (resolve_module_var),
+		    SCM_LIST1 (name), SCM_EOL);
 }
 
-static SCM try_module_autoload;
+static SCM try_module_autoload_var;
 
 SCM
 scm_load_scheme_module (SCM name)
 {
-  return scm_apply (SCM_CDR (try_module_autoload), SCM_LIST1 (name), SCM_EOL);
+  return scm_apply (SCM_VARIABLE_REF (try_module_autoload_var),
+		    SCM_LIST1 (name), SCM_EOL);
 }
 
 /* Environments */
@@ -234,6 +237,30 @@ scm_env_top_level (SCM env)
   return SCM_BOOL_F;
 }
 
+SCM_SYMBOL (sym_module, "module");
+
+SCM
+scm_lookup_closure_module (SCM proc)
+{
+  if (SCM_FALSEP (proc))
+    return scm_the_root_module ();
+  else if (SCM_EVAL_CLOSURE_P (proc))
+    return SCM_PACK (SCM_SMOB_DATA (proc));
+  else
+    {
+      SCM mod = scm_procedure_property (proc, sym_module);
+      if (mod == SCM_BOOL_F)
+	mod = scm_the_root_module ();
+      return mod;
+    }
+}
+
+SCM
+scm_env_module (SCM env)
+{
+  return scm_lookup_closure_module (scm_env_top_level (env));
+}
+
 
 SCM_SYMBOL (scm_sym_system_module, "system-module");
 
@@ -256,7 +283,7 @@ scm_system_module_env_p (SCM env)
  * The code will be replaced by the low-level environments in next release.
  */
 
-static SCM module_make_local_var_x;
+static SCM module_make_local_var_x_var;
 
 static SCM
 module_variable (SCM module, SCM sym)
@@ -293,6 +320,10 @@ module_variable (SCM module, SCM sym)
 
 scm_bits_t scm_tc16_eval_closure;
 
+#define SCM_F_EVAL_CLOSURE_INTERFACE (1<<16)
+#define SCM_EVAL_CLOSURE_INTERFACE_P(e) \
+  (SCM_CELL_WORD_0 (e) & SCM_F_EVAL_CLOSURE_INTERFACE)
+
 /* NOTE: This function may be called by a smob application
    or from another C function directly. */
 SCM
@@ -300,9 +331,13 @@ scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep)
 {
   SCM module = SCM_PACK (SCM_SMOB_DATA (eclo));
   if (SCM_NFALSEP (definep))
-    return scm_apply (SCM_CDR (module_make_local_var_x),
-		      SCM_LIST2 (module, sym),
-		      SCM_EOL);
+    {
+      if (SCM_EVAL_CLOSURE_INTERFACE_P (eclo))
+	return SCM_BOOL_F;
+      return scm_apply (SCM_VARIABLE_REF (module_make_local_var_x_var),
+			SCM_LIST2 (module, sym),
+			SCM_EOL);
+    }
   else
     return module_variable (module, sym);
 }
@@ -316,14 +351,222 @@ SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_standard_interface_eval_closure,
+	    "standard-interface-eval-closure", 1, 0, 0,
+	    (SCM module),
+	    "Return a interface eval closure for the module @var{module}. "
+	    "Such a closure does not allow new bindings to be added.")
+#define FUNC_NAME s_scm_standard_interface_eval_closure
+{
+  SCM_RETURN_NEWSMOB (scm_tc16_eval_closure | SCM_F_EVAL_CLOSURE_INTERFACE,
+		      SCM_UNPACK (module));
+}
+#undef FUNC_NAME
+
+/* scm_sym2var
+ *
+ * looks up the variable bound to SYM according to PROC.  PROC should be
+ * a `eval closure' of some module.
+ *
+ * When no binding exists, and DEFINEP is true, create a new binding
+ * with a initial value of SCM_UNDEFINED.  Return `#f' when DEFINEP as
+ * false and no binding exists.
+ *
+ * When PROC is `#f', it is ignored and the binding is searched for in
+ * the scm_pre_modules_obarray (a `eq' hash table).
+ */
+
+SCM scm_pre_modules_obarray;
+
+SCM 
+scm_sym2var (SCM sym, SCM proc, SCM definep)
+#define FUNC_NAME "scm_sym2var"
+{
+  SCM var;
+
+  if (SCM_NIMP (proc))
+    {
+      if (SCM_EVAL_CLOSURE_P (proc))
+	{
+	  /* Bypass evaluator in the standard case. */
+	  var = scm_eval_closure_lookup (proc, sym, definep);
+	}
+      else
+	var = scm_apply (proc, sym, scm_cons (definep, scm_listofnull));
+    }
+  else
+    {
+      SCM handle;
+
+      if (definep == SCM_BOOL_F)
+	var = scm_hashq_ref (scm_pre_modules_obarray, sym, SCM_BOOL_F);
+      else
+	{
+	  handle = scm_hashq_create_handle_x (scm_pre_modules_obarray,
+					      sym, SCM_BOOL_F);
+	  var = SCM_CDR (handle);
+	  if (var == SCM_BOOL_F)
+	    {
+	      var = scm_make_variable (SCM_UNDEFINED);
+#if SCM_ENABLE_VCELLS
+	      scm_variable_set_name_hint (var, sym);
+#endif
+	      SCM_SETCDR (handle, var);
+	    }
+	}
+    }
+
+  if (var != SCM_BOOL_F && !SCM_VARIABLEP (var))
+    SCM_MISC_ERROR ("~S is not bound to a variable", SCM_LIST1 (sym));
+
+  return var;
+}
+#undef FUNC_NAME
+
+SCM
+scm_c_module_lookup (SCM module, const char *name)
+{
+  return scm_module_lookup (module, scm_str2symbol (name));
+}
+
+SCM
+scm_module_lookup (SCM module, SCM sym)
+#define FUNC_NAME "module-lookup"
+{
+  SCM var;
+  SCM_VALIDATE_MODULE (1, module);
+
+  var = scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
+  if (SCM_FALSEP (var))
+    SCM_MISC_ERROR ("unbound variable: ~S", SCM_LIST1 (sym));
+  return var;
+}
+#undef FUNC_NAME
+
+SCM
+scm_c_lookup (const char *name)
+{
+  return scm_lookup (scm_str2symbol (name));
+}
+
+SCM
+scm_lookup (SCM sym)
+{
+  SCM var = 
+    scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_F);
+  if (SCM_FALSEP (var))
+    scm_misc_error ("scm_lookup", "unbound variable: ~S", SCM_LIST1 (sym));
+  return var;
+}
+
+SCM
+scm_c_module_define (SCM module, const char *name, SCM value)
+{
+  return scm_module_define (module, scm_str2symbol (name), value);
+}
+
+SCM
+scm_module_define (SCM module, SCM sym, SCM value)
+#define FUNC_NAME "module-define"
+{
+  SCM var;
+  SCM_VALIDATE_MODULE (1, module);
+
+  var = scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_T);
+  SCM_VARIABLE_SET (var, value);
+  return var;
+}
+#undef FUNC_NAME
+
+SCM
+scm_c_define (const char *name, SCM value)
+{
+  return scm_define (scm_str2symbol (name), value);
+}
+
+SCM
+scm_define (SCM sym, SCM value)
+{
+  SCM var =
+    scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T);
+  SCM_VARIABLE_SET (var, value);
+  return var;
+}
+
+SCM
+scm_module_reverse_lookup (SCM module, SCM variable)
+#define FUNC_NAME "module-reverse-lookup"
+{
+  SCM obarray;
+  int i, n;
+
+  if (module == SCM_BOOL_F)
+    obarray = scm_pre_modules_obarray;
+  else
+    {
+      SCM_VALIDATE_MODULE (1, module);
+      obarray = SCM_MODULE_OBARRAY (module);
+    }
+
+  /* XXX - We do not use scm_hash_fold here to avoid searching the
+     whole obarray.  We should have a scm_hash_find procedure. */
+
+  n = SCM_VECTOR_LENGTH (obarray);
+  for (i = 0; i < n; ++i)
+    {
+      SCM ls = SCM_VELTS (obarray)[i], handle;
+      while (!SCM_NULLP (ls))
+	{
+	  handle = SCM_CAR (ls);
+	  if (SCM_CDR (handle) == variable)
+	    return SCM_CAR (handle);
+	  ls = SCM_CDR (ls);
+	}
+    }
+
+  /* Try the `uses' list. 
+   */
+  {
+    SCM uses = SCM_MODULE_USES (module);
+    while (SCM_CONSP (uses))
+      {
+	SCM sym = scm_module_reverse_lookup (SCM_CAR (uses), variable);
+	if (sym != SCM_BOOL_F)
+	  return sym;
+	uses = SCM_CDR (uses);
+      }
+  }
+
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_get_pre_modules_obarray, "%get-pre-modules-obarray", 0, 0, 0,
+	    (),
+	    "Return the obarray that is used for all new bindings before "
+	    "the module system is booted.  The first call to "
+	    "@code{set-current-module} will boot the module system.")
+#define FUNC_NAME s_scm_get_pre_modules_obarray
+{
+  return scm_pre_modules_obarray;
+}
+#undef FUNC_NAME
+
+void
+scm_modules_prehistory ()
+{
+  scm_pre_modules_obarray 
+    = scm_permanent_object (scm_c_make_hash_table (2001));
+}
+
 void
 scm_init_modules ()
 {
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/modules.x"
 #endif
-  module_make_local_var_x = scm_sysintern ("module-make-local-var!",
-					   SCM_UNDEFINED);
+  module_make_local_var_x_var = scm_c_define ("module-make-local-var!",
+					    SCM_UNDEFINED);
   scm_tc16_eval_closure = scm_make_smob_type ("eval-closure", 0);
   scm_set_smob_mark (scm_tc16_eval_closure, scm_markcdr);
   scm_set_smob_apply (scm_tc16_eval_closure, scm_eval_closure_lookup, 2, 0, 0);
@@ -331,21 +574,21 @@ scm_init_modules ()
   the_module = scm_permanent_object (scm_make_fluid ());
 }
 
-void
+static void
 scm_post_boot_init_modules ()
 {
-  scm_module_type =
-    scm_permanent_object (SCM_CDR (scm_intern0 ("module-type")));
-  scm_module_tag = (SCM_CELL_WORD_1 (scm_module_type) + scm_tc3_cons_gloc);
-  module_prefix = scm_permanent_object (SCM_LIST2 (scm_sym_app,
-						   scm_sym_modules));
-  make_modules_in = scm_intern0 ("make-modules-in");
-  beautify_user_module_x = scm_intern0 ("beautify-user-module!");
-  the_root_module = scm_intern0 ("the-root-module");
-  root_module_lookup_closure = scm_permanent_object
-    (scm_module_lookup_closure (SCM_CDR (the_root_module)));
-  resolve_module = scm_intern0 ("resolve-module");
-  try_module_autoload = scm_intern0 ("try-module-autoload");
+#define PERM(x) scm_permanent_object(x)
+
+  SCM module_type = SCM_VARIABLE_REF (scm_c_lookup ("module-type"));
+  scm_module_tag = (SCM_CELL_WORD_1 (module_type) + scm_tc3_cons_gloc);
+  module_prefix = PERM (SCM_LIST2 (scm_sym_app, scm_sym_modules));
+  make_modules_in_var = PERM (scm_c_lookup ("make-modules-in"));
+  beautify_user_module_x_var = PERM (scm_c_lookup ("beautify-user-module!"));
+  the_root_module_var = PERM (scm_c_lookup ("the-root-module"));
+  root_module_lookup_closure =
+    PERM (scm_module_lookup_closure (SCM_VARIABLE_REF (the_root_module_var)));
+  resolve_module_var = PERM (scm_c_lookup ("resolve-module"));
+  try_module_autoload_var = PERM (scm_c_lookup ("try-module-autoload"));
   scm_module_system_booted_p = 1;
 }
 

@@ -706,7 +706,7 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
 void
 scm_init_stime()
 {
-  scm_sysintern("internal-time-units-per-second",
+  scm_c_define ("internal-time-units-per-second",
 		scm_long2num((long)CLKTCK));
 
 #ifdef HAVE_FTIME

@@ -1572,70 +1572,70 @@ scm_init_posix ()
   scm_add_feature ("EIDs");
 #endif
 #ifdef WAIT_ANY
-  scm_sysintern ("WAIT_ANY", SCM_MAKINUM (WAIT_ANY));
+  scm_c_define ("WAIT_ANY", SCM_MAKINUM (WAIT_ANY));
 #endif
 #ifdef WAIT_MYPGRP
-  scm_sysintern ("WAIT_MYPGRP", SCM_MAKINUM (WAIT_MYPGRP));
+  scm_c_define ("WAIT_MYPGRP", SCM_MAKINUM (WAIT_MYPGRP));
 #endif
 #ifdef WNOHANG
-  scm_sysintern ("WNOHANG", SCM_MAKINUM (WNOHANG));
+  scm_c_define ("WNOHANG", SCM_MAKINUM (WNOHANG));
 #endif
 #ifdef WUNTRACED
-  scm_sysintern ("WUNTRACED", SCM_MAKINUM (WUNTRACED));
+  scm_c_define ("WUNTRACED", SCM_MAKINUM (WUNTRACED));
 #endif
 
   /* access() symbols.  */
-  scm_sysintern ("R_OK", SCM_MAKINUM (R_OK));
-  scm_sysintern ("W_OK", SCM_MAKINUM (W_OK));
-  scm_sysintern ("X_OK", SCM_MAKINUM (X_OK));
-  scm_sysintern ("F_OK", SCM_MAKINUM (F_OK));
+  scm_c_define ("R_OK", SCM_MAKINUM (R_OK));
+  scm_c_define ("W_OK", SCM_MAKINUM (W_OK));
+  scm_c_define ("X_OK", SCM_MAKINUM (X_OK));
+  scm_c_define ("F_OK", SCM_MAKINUM (F_OK));
 
 #ifdef LC_COLLATE
-  scm_sysintern ("LC_COLLATE", SCM_MAKINUM (LC_COLLATE));
+  scm_c_define ("LC_COLLATE", SCM_MAKINUM (LC_COLLATE));
 #endif
 #ifdef LC_CTYPE
-  scm_sysintern ("LC_CTYPE", SCM_MAKINUM (LC_CTYPE));
+  scm_c_define ("LC_CTYPE", SCM_MAKINUM (LC_CTYPE));
 #endif
 #ifdef LC_MONETARY
-  scm_sysintern ("LC_MONETARY", SCM_MAKINUM (LC_MONETARY));
+  scm_c_define ("LC_MONETARY", SCM_MAKINUM (LC_MONETARY));
 #endif
 #ifdef LC_NUMERIC
-  scm_sysintern ("LC_NUMERIC", SCM_MAKINUM (LC_NUMERIC));
+  scm_c_define ("LC_NUMERIC", SCM_MAKINUM (LC_NUMERIC));
 #endif
 #ifdef LC_TIME
-  scm_sysintern ("LC_TIME", SCM_MAKINUM (LC_TIME));
+  scm_c_define ("LC_TIME", SCM_MAKINUM (LC_TIME));
 #endif
 #ifdef LC_MESSAGES
-  scm_sysintern ("LC_MESSAGES", SCM_MAKINUM (LC_MESSAGES));
+  scm_c_define ("LC_MESSAGES", SCM_MAKINUM (LC_MESSAGES));
 #endif
 #ifdef LC_ALL
-  scm_sysintern ("LC_ALL", SCM_MAKINUM (LC_ALL));
+  scm_c_define ("LC_ALL", SCM_MAKINUM (LC_ALL));
 #endif
 #ifdef PIPE_BUF
-scm_sysintern ("PIPE_BUF", scm_long2num (PIPE_BUF));
+  scm_c_define ("PIPE_BUF", scm_long2num (PIPE_BUF));
 #endif
 
 #ifdef PRIO_PROCESS
-  scm_sysintern ("PRIO_PROCESS", SCM_MAKINUM (PRIO_PROCESS));
+  scm_c_define ("PRIO_PROCESS", SCM_MAKINUM (PRIO_PROCESS));
 #endif
 #ifdef PRIO_PGRP
-  scm_sysintern ("PRIO_PGRP", SCM_MAKINUM (PRIO_PGRP));
+  scm_c_define ("PRIO_PGRP", SCM_MAKINUM (PRIO_PGRP));
 #endif
 #ifdef PRIO_USER
-  scm_sysintern ("PRIO_USER", SCM_MAKINUM (PRIO_USER));
+  scm_c_define ("PRIO_USER", SCM_MAKINUM (PRIO_USER));
 #endif
 
 #ifdef LOCK_SH
-  scm_sysintern ("LOCK_SH", SCM_MAKINUM (LOCK_SH));
+  scm_c_define ("LOCK_SH", SCM_MAKINUM (LOCK_SH));
 #endif
 #ifdef LOCK_EX
-  scm_sysintern ("LOCK_EX", SCM_MAKINUM (LOCK_EX));
+  scm_c_define ("LOCK_EX", SCM_MAKINUM (LOCK_EX));
 #endif
 #ifdef LOCK_UN
-  scm_sysintern ("LOCK_UN", SCM_MAKINUM (LOCK_UN));
+  scm_c_define ("LOCK_UN", SCM_MAKINUM (LOCK_UN));
 #endif
 #ifdef LOCK_NB
-  scm_sysintern ("LOCK_NB", SCM_MAKINUM (LOCK_NB));
+  scm_c_define ("LOCK_NB", SCM_MAKINUM (LOCK_NB));
 #endif
 
 #include "libguile/cpp_sig_symbols.c"

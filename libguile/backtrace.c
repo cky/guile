@@ -80,7 +80,7 @@
           return SCM_BOOL_F;
 #endif
 
-SCM scm_the_last_stack_fluid;
+SCM scm_the_last_stack_fluid_var;
 
 static void
 display_header (SCM source, SCM port)
@@ -634,7 +634,7 @@ SCM_DEFINE (scm_display_backtrace, "display-backtrace", 2, 2, 0,
 }
 #undef FUNC_NAME
 
-SCM_VCELL (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
+SCM_VARIABLE (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
 
 SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0, 
 	    (),
@@ -642,7 +642,8 @@ SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0,
 	    "to the current output port.")
 #define FUNC_NAME s_scm_backtrace
 {
-  SCM the_last_stack = scm_fluid_ref (SCM_CDR (scm_the_last_stack_fluid));
+  SCM the_last_stack =
+    scm_fluid_ref (SCM_VARIABLE_REF (scm_the_last_stack_fluid_var));
   if (SCM_NFALSEP (the_last_stack))
     {
       scm_newline (scm_cur_outp);
@@ -652,14 +653,14 @@ SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0,
 			     SCM_UNDEFINED,
 			     SCM_UNDEFINED);
       scm_newline (scm_cur_outp);
-      if (SCM_FALSEP (SCM_CDR (scm_has_shown_backtrace_hint_p_var))
+      if (SCM_FALSEP (SCM_VARIABLE_REF (scm_has_shown_backtrace_hint_p_var))
 	  && !SCM_BACKTRACE_P)
 	{
 	  scm_puts ("Type \"(debug-enable 'backtrace)\" if you would like "
 		    "a backtrace\n"
 		    "automatically if an error occurs in the future.\n",
 		    scm_cur_outp);
-	  SCM_SETCDR (scm_has_shown_backtrace_hint_p_var, SCM_BOOL_T);
+	  SCM_VARIABLE_SET (scm_has_shown_backtrace_hint_p_var, SCM_BOOL_T);
 	}
     }
   else
@@ -676,7 +677,7 @@ void
 scm_init_backtrace ()
 {
   SCM f = scm_make_fluid ();
-  scm_the_last_stack_fluid = scm_sysintern ("the-last-stack", f);
+  scm_the_last_stack_fluid_var = scm_c_define ("the-last-stack", f);
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/backtrace.x"

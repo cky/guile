@@ -1145,6 +1145,17 @@ MARK (SCM p)
   goto gc_mark_loop_first_time;
 #endif
 
+/* A simple hack for debugging.  Chose the second branch to get a
+   meaningful backtrace for crashes inside the GC.
+*/
+#if 1
+#define goto_gc_mark_loop goto gc_mark_loop
+#define goto_gc_mark_nimp goto gc_mark_nimp
+#else
+#define goto_gc_mark_loop RECURSE(ptr); return
+#define goto_gc_mark_nimp RECURSE(ptr); return
+#endif
+
 gc_mark_loop:
   if (SCM_IMP (ptr))
     return;
@@ -1187,26 +1198,31 @@ gc_mark_loop_first_time:
       if (SCM_IMP (SCM_CDR (ptr)))
 	{
 	  ptr = SCM_CAR (ptr);
-	  goto gc_mark_nimp;
+	  goto_gc_mark_nimp;
 	}
       RECURSE (SCM_CAR (ptr));
       ptr = SCM_CDR (ptr);
-      goto gc_mark_nimp;
+      goto_gc_mark_nimp;
     case scm_tcs_cons_imcar:
       ptr = SCM_CDR (ptr);
-      goto gc_mark_loop;
+      goto_gc_mark_loop;
     case scm_tc7_pws:
       RECURSE (SCM_SETTER (ptr));
       ptr = SCM_PROCEDURE (ptr);
-      goto gc_mark_loop;
+      goto_gc_mark_loop;
     case scm_tcs_cons_gloc:
       {
-	/* Dirk:FIXME:: The following code is super ugly:  ptr may be a struct
-	 * or a gloc.  If it is a gloc, the cell word #0 of ptr is a pointer
-	 * to a heap cell.  If it is a struct, the cell word #0 of ptr is a
-	 * pointer to a struct vtable data region. The fact that these are
-	 * accessed in the same way restricts the possibilites to change the
-	 * data layout of structs or heap cells.
+	/* Dirk:FIXME:: The following code is super ugly: ptr may be a
+	 * struct or a gloc.  If it is a gloc, the cell word #0 of ptr
+	 * is the address of a scm_tc16_variable smob.  If it is a
+	 * struct, the cell word #0 of ptr is a pointer to a struct
+	 * vtable data region. (The fact that these are accessed in
+	 * the same way restricts the possibilites to change the data
+	 * layout of structs or heap cells.)  To discriminate between
+	 * the two, it is guaranteed that the scm_vtable_index_vcell
+	 * element of the prospective vtable is always zero.  For a
+	 * gloc, this location has the CDR of the variable smob, which
+	 * is guaranteed to be non-zero.
 	 */
 	scm_bits_t word0 = SCM_CELL_WORD_0 (ptr) - scm_tc3_cons_gloc;
 	scm_bits_t * vtable_data = (scm_bits_t *) word0; /* access as struct */
@@ -1249,7 +1265,7 @@ gc_mark_loop_first_time:
               }
             /* mark vtable */
             ptr = SCM_PACK (vtable_data [scm_vtable_index_vtable]);
-            goto gc_mark_loop;
+            goto_gc_mark_loop;
 	  }
       }
       break;
@@ -1257,11 +1273,11 @@ gc_mark_loop_first_time:
       if (SCM_IMP (SCM_ENV (ptr)))
 	{
 	  ptr = SCM_CLOSCAR (ptr);
-	  goto gc_mark_nimp;
+	  goto_gc_mark_nimp;
 	}
       RECURSE (SCM_CLOSCAR (ptr));
       ptr = SCM_ENV (ptr);
-      goto gc_mark_nimp;
+      goto_gc_mark_nimp;
     case scm_tc7_vector:
       i = SCM_VECTOR_LENGTH (ptr);
       if (i == 0)
@@ -1270,7 +1286,7 @@ gc_mark_loop_first_time:
 	if (SCM_NIMP (SCM_VELTS (ptr)[i]))
 	  RECURSE (SCM_VELTS (ptr)[i]);
       ptr = SCM_VELTS (ptr)[0];
-      goto gc_mark_loop;
+      goto_gc_mark_loop;
 #ifdef CCLO
     case scm_tc7_cclo:
       {
@@ -1283,7 +1299,7 @@ gc_mark_loop_first_time:
 	      RECURSE (obj);
 	  }
 	ptr = SCM_CCLO_REF (ptr, 0);
-	goto gc_mark_loop;
+	goto_gc_mark_loop;
       }
 #endif
 #ifdef HAVE_ARRAYS
@@ -1304,7 +1320,7 @@ gc_mark_loop_first_time:
 
     case scm_tc7_substring:
       ptr = SCM_CDR (ptr);
-      goto gc_mark_loop;
+      goto_gc_mark_loop;
 
     case scm_tc7_wvect:
       SCM_WVECT_GC_CHAIN (ptr) = scm_weak_vectors;
@@ -1367,7 +1383,7 @@ gc_mark_loop_first_time:
 
     case scm_tc7_symbol:
       ptr = SCM_PROP_SLOTS (ptr);
-      goto gc_mark_loop;
+      goto_gc_mark_loop;
     case scm_tcs_subrs:
       break;
     case scm_tc7_port:
@@ -1381,7 +1397,7 @@ gc_mark_loop_first_time:
       if (scm_ptobs[i].mark)
 	{
 	  ptr = (scm_ptobs[i].mark) (ptr);
-	  goto gc_mark_loop;
+	  goto_gc_mark_loop;
 	}
       else
 	return;
@@ -1404,7 +1420,7 @@ gc_mark_loop_first_time:
 	  if (scm_smobs[i].mark)
 	    {
 	      ptr = (scm_smobs[i].mark) (ptr);
-	      goto gc_mark_loop;
+	      goto_gc_mark_loop;
 	    }
 	  else
 	    return;
@@ -2307,50 +2323,6 @@ alloc_some_heap (scm_freelist_t *freelist, policy_on_error error_policy)
 }
 #undef FUNC_NAME
 
-
-SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
-            (SCM name),
-	    "Flushes the glocs for @var{name}, or all glocs if @var{name}\n"
-	    "is @code{#t}.")
-#define FUNC_NAME s_scm_unhash_name
-{
-  int x;
-  int bound;
-  SCM_VALIDATE_SYMBOL (1,name);
-  SCM_DEFER_INTS;
-  bound = scm_n_heap_segs;
-  for (x = 0; x < bound; ++x)
-    {
-      SCM_CELLPTR p;
-      SCM_CELLPTR pbound;
-      p  = scm_heap_table[x].bounds[0];
-      pbound = scm_heap_table[x].bounds[1];
-      while (p < pbound)
-	{
-	  SCM cell = PTR2SCM (p);
-	  if (SCM_TYP3 (cell) == scm_tc3_cons_gloc)
-	    {
-	      /* Dirk:FIXME:: Again, super ugly code:  cell may be a gloc or a
-	       * struct cell.  See the corresponding comment in scm_gc_mark.
-	       */
-	      scm_bits_t word0 = SCM_CELL_WORD_0 (cell) - scm_tc3_cons_gloc;
-	      SCM gloc_car = SCM_PACK (word0); /* access as gloc */
-	      SCM vcell = SCM_CELL_OBJECT_1 (gloc_car);
-	      if ((SCM_EQ_P (name, SCM_BOOL_T) || SCM_EQ_P (SCM_CAR (gloc_car), name))
-		  && (SCM_UNPACK (vcell) != 0) && (SCM_UNPACK (vcell) != 1))
-		{
-		  SCM_SET_CELL_OBJECT_0 (cell, name);
-		}
-	    }
-	  ++p;
-	}
-    }
-  SCM_ALLOW_INTS;
-  return name;
-}
-#undef FUNC_NAME
-
-
 
 /* {GC Protection Helper Functions}
  */
@@ -2652,10 +2624,6 @@ scm_init_storage ()
   on_exit (cleanup, 0);
 #endif
 #endif
-
-#define DEFAULT_SYMHASH_SIZE 277
-  scm_symhash = scm_c_make_hash_table (DEFAULT_SYMHASH_SIZE);
-  scm_symhash_vars = scm_c_make_hash_table (DEFAULT_SYMHASH_SIZE);
 
   scm_stand_in_procs = SCM_EOL;
   scm_permobjs = SCM_EOL;

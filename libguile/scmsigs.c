@@ -492,8 +492,8 @@ scm_init_scmsigs ()
   int i;
 
   signal_handlers =
-    SCM_CDRLOC (scm_sysintern ("signal-handlers",
-			       scm_c_make_vector (NSIG, SCM_BOOL_F)));
+    SCM_VARIABLE_LOC (scm_c_define ("signal-handlers",
+				  scm_c_make_vector (NSIG, SCM_BOOL_F)));
   thunk = scm_make_gsubr ("%deliver-signals", 0, 0, 0,
 			  sys_deliver_signals);
   signal_async = scm_system_async (thunk);
@@ -532,14 +532,14 @@ scm_init_scmsigs ()
 #endif
     }
 
-  scm_sysintern ("NSIG", scm_long2num (NSIG));
-  scm_sysintern ("SIG_IGN", scm_long2num ((long) SIG_IGN));
-  scm_sysintern ("SIG_DFL", scm_long2num ((long) SIG_DFL));
+  scm_c_define ("NSIG", scm_long2num (NSIG));
+  scm_c_define ("SIG_IGN", scm_long2num ((long) SIG_IGN));
+  scm_c_define ("SIG_DFL", scm_long2num ((long) SIG_DFL));
 #ifdef SA_NOCLDSTOP
-  scm_sysintern ("SA_NOCLDSTOP", scm_long2num (SA_NOCLDSTOP));
+  scm_c_define ("SA_NOCLDSTOP", scm_long2num (SA_NOCLDSTOP));
 #endif
 #ifdef SA_RESTART
-  scm_sysintern ("SA_RESTART", scm_long2num (SA_RESTART));
+  scm_c_define ("SA_RESTART", scm_long2num (SA_RESTART));
 #endif
 
 #ifndef SCM_MAGIC_SNARFER

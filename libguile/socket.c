@@ -1264,123 +1264,123 @@ scm_init_socket ()
 {
   /* protocol families.  */
 #ifdef AF_UNSPEC
-  scm_sysintern ("AF_UNSPEC", SCM_MAKINUM (AF_UNSPEC));
+  scm_c_define ("AF_UNSPEC", SCM_MAKINUM (AF_UNSPEC));
 #endif
 #ifdef AF_UNIX
-  scm_sysintern ("AF_UNIX", SCM_MAKINUM (AF_UNIX));
+  scm_c_define ("AF_UNIX", SCM_MAKINUM (AF_UNIX));
 #endif
 #ifdef AF_INET
-  scm_sysintern ("AF_INET", SCM_MAKINUM (AF_INET));
+  scm_c_define ("AF_INET", SCM_MAKINUM (AF_INET));
 #endif
 #ifdef AF_INET6
-  scm_sysintern ("AF_INET6", SCM_MAKINUM (AF_INET6));
+  scm_c_define ("AF_INET6", SCM_MAKINUM (AF_INET6));
 #endif
 
 #ifdef PF_UNSPEC
-  scm_sysintern ("PF_UNSPEC", SCM_MAKINUM (PF_UNSPEC));
+  scm_c_define ("PF_UNSPEC", SCM_MAKINUM (PF_UNSPEC));
 #endif
 #ifdef PF_UNIX
-  scm_sysintern ("PF_UNIX", SCM_MAKINUM (PF_UNIX));
+  scm_c_define ("PF_UNIX", SCM_MAKINUM (PF_UNIX));
 #endif
 #ifdef PF_INET
-  scm_sysintern ("PF_INET", SCM_MAKINUM (PF_INET));
+  scm_c_define ("PF_INET", SCM_MAKINUM (PF_INET));
 #endif
 #ifdef PF_INET6
-  scm_sysintern ("PF_INET6", SCM_MAKINUM (PF_INET6));
+  scm_c_define ("PF_INET6", SCM_MAKINUM (PF_INET6));
 #endif
 
   /* standard addresses.  */
 #ifdef INADDR_ANY
-  scm_sysintern ("INADDR_ANY", scm_ulong2num (INADDR_ANY));
+  scm_c_define ("INADDR_ANY", scm_ulong2num (INADDR_ANY));
 #endif
 #ifdef INADDR_BROADCAST
-  scm_sysintern ("INADDR_BROADCAST", scm_ulong2num (INADDR_BROADCAST));
+  scm_c_define ("INADDR_BROADCAST", scm_ulong2num (INADDR_BROADCAST));
 #endif
 #ifdef INADDR_NONE
-  scm_sysintern ("INADDR_NONE", scm_ulong2num (INADDR_NONE));
+  scm_c_define ("INADDR_NONE", scm_ulong2num (INADDR_NONE));
 #endif
 #ifdef INADDR_LOOPBACK
-  scm_sysintern ("INADDR_LOOPBACK", scm_ulong2num (INADDR_LOOPBACK));
+  scm_c_define ("INADDR_LOOPBACK", scm_ulong2num (INADDR_LOOPBACK));
 #endif
 
   /* socket types.  */
 #ifdef SOCK_STREAM
-  scm_sysintern ("SOCK_STREAM", SCM_MAKINUM (SOCK_STREAM));
+  scm_c_define ("SOCK_STREAM", SCM_MAKINUM (SOCK_STREAM));
 #endif
 #ifdef SOCK_DGRAM
-  scm_sysintern ("SOCK_DGRAM", SCM_MAKINUM (SOCK_DGRAM));
+  scm_c_define ("SOCK_DGRAM", SCM_MAKINUM (SOCK_DGRAM));
 #endif
 #ifdef SOCK_RAW
-  scm_sysintern ("SOCK_RAW", SCM_MAKINUM (SOCK_RAW));
+  scm_c_define ("SOCK_RAW", SCM_MAKINUM (SOCK_RAW));
 #endif
 
   /* setsockopt level.  */
 #ifdef SOL_SOCKET
-  scm_sysintern ("SOL_SOCKET", SCM_MAKINUM (SOL_SOCKET));
+  scm_c_define ("SOL_SOCKET", SCM_MAKINUM (SOL_SOCKET));
 #endif
 #ifdef SOL_IP
-  scm_sysintern ("SOL_IP", SCM_MAKINUM (SOL_IP));
+  scm_c_define ("SOL_IP", SCM_MAKINUM (SOL_IP));
 #endif
 #ifdef SOL_TCP
-  scm_sysintern ("SOL_TCP", SCM_MAKINUM (SOL_TCP));
+  scm_c_define ("SOL_TCP", SCM_MAKINUM (SOL_TCP));
 #endif
 #ifdef SOL_UDP
-  scm_sysintern ("SOL_UDP", SCM_MAKINUM (SOL_UDP));
+  scm_c_define ("SOL_UDP", SCM_MAKINUM (SOL_UDP));
 #endif
 
   /* setsockopt names.  */
 #ifdef SO_DEBUG
-  scm_sysintern ("SO_DEBUG", SCM_MAKINUM (SO_DEBUG));
+  scm_c_define ("SO_DEBUG", SCM_MAKINUM (SO_DEBUG));
 #endif
 #ifdef SO_REUSEADDR
-  scm_sysintern ("SO_REUSEADDR", SCM_MAKINUM (SO_REUSEADDR));
+  scm_c_define ("SO_REUSEADDR", SCM_MAKINUM (SO_REUSEADDR));
 #endif
 #ifdef SO_STYLE
-  scm_sysintern ("SO_STYLE", SCM_MAKINUM (SO_STYLE));
+  scm_c_define ("SO_STYLE", SCM_MAKINUM (SO_STYLE));
 #endif
 #ifdef SO_TYPE
-  scm_sysintern ("SO_TYPE", SCM_MAKINUM (SO_TYPE));
+  scm_c_define ("SO_TYPE", SCM_MAKINUM (SO_TYPE));
 #endif
 #ifdef SO_ERROR
-  scm_sysintern ("SO_ERROR", SCM_MAKINUM (SO_ERROR));
+  scm_c_define ("SO_ERROR", SCM_MAKINUM (SO_ERROR));
 #endif
 #ifdef SO_DONTROUTE
-  scm_sysintern ("SO_DONTROUTE", SCM_MAKINUM (SO_DONTROUTE));
+  scm_c_define ("SO_DONTROUTE", SCM_MAKINUM (SO_DONTROUTE));
 #endif
 #ifdef SO_BROADCAST
-  scm_sysintern ("SO_BROADCAST", SCM_MAKINUM (SO_BROADCAST));
+  scm_c_define ("SO_BROADCAST", SCM_MAKINUM (SO_BROADCAST));
 #endif
 #ifdef SO_SNDBUF
-  scm_sysintern ("SO_SNDBUF", SCM_MAKINUM (SO_SNDBUF));
+  scm_c_define ("SO_SNDBUF", SCM_MAKINUM (SO_SNDBUF));
 #endif
 #ifdef SO_RCVBUF
-  scm_sysintern ("SO_RCVBUF", SCM_MAKINUM (SO_RCVBUF));
+  scm_c_define ("SO_RCVBUF", SCM_MAKINUM (SO_RCVBUF));
 #endif
 #ifdef SO_KEEPALIVE
-  scm_sysintern ("SO_KEEPALIVE", SCM_MAKINUM (SO_KEEPALIVE));
+  scm_c_define ("SO_KEEPALIVE", SCM_MAKINUM (SO_KEEPALIVE));
 #endif
 #ifdef SO_OOBINLINE
-  scm_sysintern ("SO_OOBINLINE", SCM_MAKINUM (SO_OOBINLINE));
+  scm_c_define ("SO_OOBINLINE", SCM_MAKINUM (SO_OOBINLINE));
 #endif
 #ifdef SO_NO_CHECK
-  scm_sysintern ("SO_NO_CHECK", SCM_MAKINUM (SO_NO_CHECK));
+  scm_c_define ("SO_NO_CHECK", SCM_MAKINUM (SO_NO_CHECK));
 #endif
 #ifdef SO_PRIORITY
-  scm_sysintern ("SO_PRIORITY", SCM_MAKINUM (SO_PRIORITY));
+  scm_c_define ("SO_PRIORITY", SCM_MAKINUM (SO_PRIORITY));
 #endif
 #ifdef SO_LINGER
-  scm_sysintern ("SO_LINGER", SCM_MAKINUM (SO_LINGER));
+  scm_c_define ("SO_LINGER", SCM_MAKINUM (SO_LINGER));
 #endif
 
   /* recv/send options.  */
 #ifdef MSG_OOB
-  scm_sysintern ("MSG_OOB", SCM_MAKINUM (MSG_OOB));
+  scm_c_define ("MSG_OOB", SCM_MAKINUM (MSG_OOB));
 #endif
 #ifdef MSG_PEEK
-  scm_sysintern ("MSG_PEEK", SCM_MAKINUM (MSG_PEEK));
+  scm_c_define ("MSG_PEEK", SCM_MAKINUM (MSG_PEEK));
 #endif
 #ifdef MSG_DONTROUTE
-  scm_sysintern ("MSG_DONTROUTE", SCM_MAKINUM (MSG_DONTROUTE));
+  scm_c_define ("MSG_DONTROUTE", SCM_MAKINUM (MSG_DONTROUTE));
 #endif
 
   scm_add_feature ("socket");

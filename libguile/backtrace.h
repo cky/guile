@@ -49,7 +49,7 @@
 
 #include "libguile/__scm.h"
 
-extern SCM scm_the_last_stack_fluid;
+extern SCM scm_the_last_stack_fluid_var;
 
 void scm_display_error_message (SCM message, SCM args, SCM port);
 void scm_i_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest);

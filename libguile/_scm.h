@@ -75,6 +75,8 @@
 				   switching at async ticks.  */
 #endif
 #include "libguile/snarf.h"	/* Everyone snarfs. */
+#include "libguile/variable.h"
+#include "libguile/modules.h"
 
 /* SCM_SYSCALL retries system calls that have been interrupted (EINTR).
    However this can be avoided if the operating system can restart

@@ -571,7 +571,7 @@ scm_compile_shell_switches (int argc, char **argv)
   scm_set_program_arguments (argc ? argc - i : 0, argv + i, argv0);
   
   /* If the --emacs switch was set, now is when we process it.  */
-  scm_sysintern ("use-emacs-interface", SCM_BOOL (use_emacs_interface));
+  scm_c_define ("use-emacs-interface", SCM_BOOL (use_emacs_interface));
 
   /* Handle the `-e' switch, if it was specified.  */
   if (!SCM_NULLP (entry_point))

@@ -82,7 +82,7 @@ extern scm_bits_t scm_tc16_eval_closure;
 
 
 
-extern SCM scm_module_system_booted_p;
+extern int scm_module_system_booted_p;
 extern SCM scm_module_tag;
 
 extern SCM scm_the_root_module (void);
@@ -102,8 +102,27 @@ extern SCM scm_top_level_env (SCM thunk);
 extern SCM scm_system_module_env_p (SCM env);
 extern SCM scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep);
 extern SCM scm_standard_eval_closure (SCM module);
+extern SCM scm_standard_interface_eval_closure (SCM module);
+extern SCM scm_get_pre_modules_obarray (void);
+
+extern SCM scm_lookup_closure_module (SCM proc);
+extern SCM scm_env_module (SCM env);
+
+extern SCM scm_c_lookup (const char *name);
+extern SCM scm_c_define (const char *name, SCM val);
+extern SCM scm_lookup (SCM symbol);
+extern SCM scm_define (SCM symbol, SCM val);
+
+extern SCM scm_c_module_lookup (SCM module, const char *name);
+extern SCM scm_c_module_define (SCM module, const char *name, SCM val);
+extern SCM scm_module_lookup (SCM module, SCM symbol);
+extern SCM scm_module_define (SCM module, SCM symbol, SCM val);
+extern SCM scm_module_reverse_lookup (SCM module, SCM variable);
+
+extern SCM scm_sym2var (SCM sym, SCM thunk, SCM definep);
+
+extern void scm_modules_prehistory (void);
 extern void scm_init_modules (void);
-extern void scm_post_boot_init_modules (void);
 
 #endif  /* MODULESH */
 

@@ -802,9 +802,9 @@ scm_init_fports ()
 {
   scm_tc16_fport = scm_make_fptob ();
 
-  scm_sysintern ("_IOFBF", SCM_MAKINUM (_IOFBF));
-  scm_sysintern ("_IOLBF", SCM_MAKINUM (_IOLBF));
-  scm_sysintern ("_IONBF", SCM_MAKINUM (_IONBF));
+  scm_c_define ("_IOFBF", SCM_MAKINUM (_IOFBF));
+  scm_c_define ("_IOLBF", SCM_MAKINUM (_IOLBF));
+  scm_c_define ("_IONBF", SCM_MAKINUM (_IONBF));
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/fports.x"

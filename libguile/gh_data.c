@@ -708,14 +708,14 @@ SCM
 gh_module_lookup (SCM module, const char *sname)
 #define FUNC_NAME "gh_module_lookup"
 {
-  SCM sym, cell;
+  SCM sym, var;
 
   SCM_VALIDATE_MODULE (SCM_ARG1, module);
 
   sym = gh_symbol2scm (sname);
-  cell = scm_sym2vcell (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
-  if (cell != SCM_BOOL_F)
-    return SCM_CDR (cell);
+  var = scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
+  if (var != SCM_BOOL_F)
+    return SCM_VARIABLE_REF (var);
   else
     return SCM_UNDEFINED;
 }

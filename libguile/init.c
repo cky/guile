@@ -366,8 +366,6 @@ scm_load_startup_files ()
       /* Load the init.scm file.  */
       if (SCM_NFALSEP (init_path))
 	scm_primitive_load (init_path);
-  
-      scm_post_boot_init_modules ();
     }
 }
 
@@ -477,6 +475,8 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_weaks_prehistory ();	  /* requires storage */
   scm_init_subr_table ();
   scm_environments_prehistory (); /* requires storage */
+  scm_modules_prehistory ();      /* requires storage */
+  scm_init_variable ();           /* all bindings need variables */
   scm_init_continuations ();
   scm_init_root ();		  /* requires continuations */
 #ifdef USE_THREADS
@@ -555,7 +555,6 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_strorder ();
   scm_init_strop ();
   scm_init_throw ();
-  scm_init_variable ();
   scm_init_vectors ();
   scm_init_version ();
   scm_init_weaks ();

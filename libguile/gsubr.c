@@ -77,7 +77,9 @@ scm_make_gsubr(const char *name,int req,int opt,int rst,SCM (*fcn)())
   case SCM_GSUBR_MAKTYPE(2, 0, 1): return scm_make_subr(name, scm_tc7_lsubr_2, fcn);
   default:
     {
-      SCM symcell = scm_sysintern (name, SCM_UNDEFINED);
+      SCM sym = scm_str2symbol (name);
+      SCM var = scm_sym2var (sym, scm_current_module_lookup_closure (),
+			     SCM_BOOL_T);
       SCM cclo = scm_makcclo (scm_f_gsubr_apply, 3L);
       if (SCM_GSUBR_MAX < req + opt + rst) {
 	fputs("ERROR in scm_make_gsubr: too many args\n", stderr);
@@ -85,10 +87,10 @@ scm_make_gsubr(const char *name,int req,int opt,int rst,SCM (*fcn)())
       }
       SCM_SET_GSUBR_PROC (cclo, scm_make_subr_opt (name, scm_tc7_subr_0, fcn, 0));
       SCM_SET_GSUBR_TYPE (cclo, SCM_MAKINUM (SCM_GSUBR_MAKTYPE (req, opt, rst)));
-      SCM_SETCDR (symcell, cclo);
+      SCM_VARIABLE_SET (var, cclo);
 #ifdef DEBUG_EXTENSIONS
       if (SCM_REC_PROCNAMES_P)
-	scm_set_procedure_property_x (cclo, scm_sym_name, SCM_CAR (symcell));
+	scm_set_procedure_property_x (cclo, scm_sym_name, sym);
 #endif
       return cclo;
     }

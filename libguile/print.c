@@ -371,7 +371,8 @@ taloop:
     case scm_tc3_cons_gloc:
       /* gloc */
       scm_puts ("#@", port);
-      exp = SCM_GLOC_SYM (exp);
+      exp = scm_module_reverse_lookup (scm_current_module (),
+				       SCM_GLOC_VAR (exp));
       goto taloop;
     case scm_tc3_cons:
       switch (SCM_TYP7 (exp))

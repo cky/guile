@@ -71,24 +71,21 @@ SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
             "Make a keyword object from a @var{symbol} that starts with a dash.")
 #define FUNC_NAME s_scm_make_keyword_from_dash_symbol
 {
-  SCM vcell;
+  SCM keyword;
 
   SCM_ASSERT (SCM_SYMBOLP (symbol)
 	      && ('-' == SCM_SYMBOL_CHARS(symbol)[0]),
 	      symbol, SCM_ARG1, FUNC_NAME);
 
   SCM_DEFER_INTS;
-  vcell = scm_sym2ovcell_soft (symbol, scm_keyword_obarray);
-  if (SCM_FALSEP (vcell))
+  keyword = scm_hashq_ref (scm_keyword_obarray, symbol, SCM_BOOL_F);
+  if (SCM_FALSEP (keyword))
     {
-      SCM keyword;
       SCM_NEWSMOB (keyword, scm_tc16_keyword, SCM_UNPACK (symbol));
-      scm_intern_symbol (scm_keyword_obarray, symbol);
-      vcell = scm_sym2ovcell_soft (symbol, scm_keyword_obarray);
-      SCM_SETCDR (vcell, keyword);
+      scm_hashq_set_x (scm_keyword_obarray, symbol, keyword);
     }
   SCM_ALLOW_INTS;
-  return SCM_CDR (vcell);
+  return keyword;
 }
 #undef FUNC_NAME
 

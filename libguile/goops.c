@@ -79,7 +79,7 @@
 	      scm_module_goops); }
 /* Temporary hack until we get the new module system */
 /*fixme* Should optimize by keeping track of the variable object itself */
-#define GETVAR(v) (SCM_CDDR (scm_apply (scm_goops_lookup_closure, \
+#define GETVAR(v) (SCM_VARIABLE_REF (scm_apply (scm_goops_lookup_closure, \
 					SCM_LIST2 ((v), SCM_BOOL_F), \
 					SCM_EOL)))
 
@@ -1861,7 +1861,8 @@ scm_sys_compute_applicable_methods (SCM gf, SCM args)
 }
 #undef FUNC_NAME
 
-SCM_VCELL_INIT (var_compute_applicable_methods, "compute-applicable-methods", scm_make_gsubr (s_sys_compute_applicable_methods, 2, 0, 0, scm_sys_compute_applicable_methods));
+SCM_SYMBOL (sym_compute_applicable_methods, "compute-applicable-methods");
+SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods", scm_make_gsubr (s_sys_compute_applicable_methods, 2, 0, 0, scm_sys_compute_applicable_methods));
 
 SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
 
@@ -2635,11 +2636,9 @@ SCM_DEFINE (scm_sys_goops_loaded, "%goops-loaded", 0, 0, 0,
 #define FUNC_NAME s_scm_sys_goops_loaded
 {
   goops_loaded_p = 1;
-  var_compute_applicable_methods
-    = SCM_CDR (scm_apply (scm_goops_lookup_closure,
-			  SCM_LIST2 (SCM_CAR (var_compute_applicable_methods),
-				     SCM_BOOL_F),
-			  SCM_EOL));
+  var_compute_applicable_methods =
+    scm_sym2var (sym_compute_applicable_methods, scm_goops_lookup_closure,
+		 SCM_BOOL_F);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

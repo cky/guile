@@ -352,7 +352,7 @@ rstate_free (SCM rstate)
  * Scheme level interface.
  */
 
-SCM_GLOBAL_VCELL_INIT (scm_var_random_state, "*random-state*", scm_seed_to_random_state (scm_makfrom0str ("URL:http://stat.fsu.edu/~geo/diehard.html")));
+SCM_GLOBAL_VARIABLE_INIT (scm_var_random_state, "*random-state*", scm_seed_to_random_state (scm_makfrom0str ("URL:http://stat.fsu.edu/~geo/diehard.html")));
 
 SCM_DEFINE (scm_random, "random", 1, 1, 0, 
             (SCM n, SCM state),
@@ -371,7 +371,7 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
 #define FUNC_NAME s_scm_random
 {
   if (SCM_UNBNDP (state))
-    state = SCM_CDR (scm_var_random_state);
+    state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2,state);
   if (SCM_INUMP (n))
     {
@@ -394,7 +394,7 @@ SCM_DEFINE (scm_copy_random_state, "copy-random-state", 0, 1, 0,
 #define FUNC_NAME s_scm_copy_random_state
 {
   if (SCM_UNBNDP (state))
-    state = SCM_CDR (scm_var_random_state);
+    state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (1,state);
   return make_rstate (scm_the_rng.copy_rstate (SCM_RSTATE (state)));
 }
@@ -420,7 +420,7 @@ SCM_DEFINE (scm_random_uniform, "random:uniform", 0, 1, 0,
 #define FUNC_NAME s_scm_random_uniform
 {
   if (SCM_UNBNDP (state))
-    state = SCM_CDR (scm_var_random_state);
+    state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (1,state);
   return scm_make_real (scm_c_uniform01 (SCM_RSTATE (state)));
 }
@@ -435,7 +435,7 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
 #define FUNC_NAME s_scm_random_normal
 {
   if (SCM_UNBNDP (state))
-    state = SCM_CDR (scm_var_random_state);
+    state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (1,state);
   return scm_make_real (scm_c_normal01 (SCM_RSTATE (state)));
 }
@@ -492,7 +492,7 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
 {
   SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
   if (SCM_UNBNDP (state))
-    state = SCM_CDR (scm_var_random_state);
+    state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2,state);
   scm_random_normal_vector_x (v, state);
   vector_scale (v,
@@ -515,7 +515,7 @@ SCM_DEFINE (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
 {
   SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
   if (SCM_UNBNDP (state))
-    state = SCM_CDR (scm_var_random_state);
+    state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2,state);
   scm_random_normal_vector_x (v, state);
   vector_scale (v, 1 / sqrt (vector_sum_squares (v)));
@@ -534,7 +534,7 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
   int n;
   SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
   if (SCM_UNBNDP (state))
-    state = SCM_CDR (scm_var_random_state);
+    state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2,state);
   n = SCM_INUM (scm_uniform_vector_length (v));
   if (SCM_VECTORP (v))
@@ -557,7 +557,7 @@ SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0,
 #define FUNC_NAME s_scm_random_exp
 {
   if (SCM_UNBNDP (state))
-    state = SCM_CDR (scm_var_random_state);
+    state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (1,state);
   return scm_make_real (scm_c_exp1 (SCM_RSTATE (state)));
 }

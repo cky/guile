@@ -47,6 +47,7 @@
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 #include "libguile/__scm.h"
+#include "libguile/smob.h"
 
 
 
@@ -55,20 +56,35 @@
  */
 extern scm_bits_t scm_tc16_variable;
 
-#define SCM_VARVCELL(V) 	SCM_CELL_OBJECT_1 (V)
-#define SCM_VARIABLEP(X)   	(!SCM_IMP (X) && SCM_CELL_TYPE (X) == scm_tc16_variable)
-#define SCM_UDVARIABLEP(X) 	(SCM_VARIABLEP(X) && SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
-#define SCM_DEFVARIABLEP(X) 	(SCM_VARIABLEP(X) && !SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
+#define SCM_VARIABLEP(X)   	SCM_SMOB_PREDICATE (scm_tc16_variable, X)
+
+#if !SCM_ENABLE_VCELLS
+#define SCM_VARIABLE_REF(V)   SCM_CELL_OBJECT_1(V)
+#define SCM_VARIABLE_SET(V,X) SCM_SET_CELL_OBJECT_1 (V, X)
+#define SCM_VARIABLE_LOC(V)   ((SCM *) SCM_CELL_WORD_LOC ((V), 1))
+#else
+#define SCM_VARVCELL(V)       SCM_CELL_OBJECT_1(V)
+#define SCM_UDVARIABLEP(X)    (SCM_VARIABLEP(X) && SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
+#define SCM_DEFVARIABLEP(X)   (SCM_VARIABLEP(X) && !SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
+
+#define SCM_VARIABLE_REF(V)   SCM_CDR(SCM_VARVCELL(V))
+#define SCM_VARIABLE_SET(V,X) SCM_SETCDR(SCM_VARVCELL(V),X)
+#define SCM_VARIABLE_LOC(V)   SCM_CDRLOC(SCM_VARVCELL(V))
+#endif
 
 
 
-extern SCM scm_make_variable (SCM init, SCM name_hint);
-extern SCM scm_make_undefined_variable (SCM name_hint);
+extern SCM scm_make_variable (SCM init);
+extern SCM scm_make_undefined_variable (void);
 extern SCM scm_variable_p (SCM obj);
 extern SCM scm_variable_ref (SCM var);
 extern SCM scm_variable_set_x (SCM var, SCM val);
-extern SCM scm_builtin_variable (SCM name);
 extern SCM scm_variable_bound_p (SCM var);
+extern SCM scm_variable_set_name_hint (SCM var, SCM hint);
+#if SCM_ENABLE_VCELLS
+extern SCM scm_builtin_variable (SCM name);
+#endif
+
 extern void scm_init_variable (void);
 
 #endif  /* SCM_VARIABLE_H */

@@ -4546,8 +4546,10 @@ scm_init_numbers ()
    * the following constants to avoid the creation of bignums.  Please, before
    * using these values, remember the two rules of program optimization:
    * 1st Rule:  Don't do it.  2nd Rule (experts only):  Don't do it yet. */
-  scm_sysintern ("most-positive-fixnum", SCM_MAKINUM (SCM_MOST_POSITIVE_FIXNUM));
-  scm_sysintern ("most-negative-fixnum", SCM_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM));
+  scm_c_define ("most-positive-fixnum",
+		SCM_MAKINUM (SCM_MOST_POSITIVE_FIXNUM));
+  scm_c_define ("most-negative-fixnum",
+		SCM_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM));
 
   scm_add_feature ("complex");
   scm_add_feature ("inexact");

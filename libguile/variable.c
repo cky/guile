@@ -49,6 +49,7 @@
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
+#include "libguile/deprecation.h"
 
 #include "libguile/validate.h"
 #include "libguile/variable.h"
@@ -60,16 +61,8 @@ variable_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<variable ", port);
   scm_intprint (SCM_UNPACK (exp), 16, port);
-  {
-    SCM vcell = SCM_VARVCELL (exp);
-    if (!SCM_UNBNDP (SCM_CAR (vcell)))
-      {
-	scm_puts (" name: ", port);
-	scm_iprin1 (SCM_CAR (vcell), port, pstate);
-      }
-    scm_puts (" binding: ", port);
-    scm_iprin1 (SCM_CDR (vcell), port, pstate);
-  }
+  scm_puts (" binding: ", port);
+  scm_iprin1 (SCM_VARIABLE_REF (exp), port, pstate);
   scm_putc('>', port);
   return 1;
 }
@@ -77,55 +70,40 @@ variable_print (SCM exp, SCM port, scm_print_state *pstate)
 static SCM
 variable_equalp (SCM var1, SCM var2)
 {
-  return scm_equal_p (SCM_VARVCELL (var1), SCM_VARVCELL (var2));
+  return scm_equal_p (SCM_VARIABLE_REF (var1), SCM_VARIABLE_REF (var2));
 }
 
 
-SCM_SYMBOL (anonymous_variable_sym, "anonymous-variable");
-
+#if SCM_ENABLE_VCELLS
+SCM_SYMBOL (sym_huh, "???");
+#endif
 
 static SCM
-make_vcell_variable (SCM vcell)
+make_variable (SCM init)
 {
-  SCM_RETURN_NEWSMOB (scm_tc16_variable, SCM_UNPACK (vcell));
+#if !SCM_ENABLE_VCELLS
+  SCM_RETURN_NEWSMOB (scm_tc16_variable, SCM_UNPACK (init));
+#else
+  SCM_RETURN_NEWSMOB (scm_tc16_variable, scm_cons (sym_huh, init));
+#endif
 }
 
-SCM_DEFINE (scm_make_variable, "make-variable", 1, 1, 0, 
-            (SCM init, SCM name_hint),
-            "Return a variable object initialized to value @var{init}.\n"
-            "If given, uses @var{name-hint} as its internal (debugging)\n"
-            "name, otherwise just treat it as an anonymous variable.\n"
-            "Remember, of course, that multiple bindings to the same\n"
-            "variable may exist, so @var{name-hint} is just that---a hint.\n")
+SCM_DEFINE (scm_make_variable, "make-variable", 1, 0, 0, 
+            (SCM init),
+            "Return a variable initialized to value @var{init}.\n")
 #define FUNC_NAME s_scm_make_variable
 {
-  SCM vcell;
-  
-  if (SCM_UNBNDP (name_hint))
-    name_hint = anonymous_variable_sym;
-
-  vcell = scm_cons (name_hint, init);
-  return make_vcell_variable (vcell);
+  return make_variable (init);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0, 
-            (SCM name_hint),
-            "Return a variable object initialized to an undefined value.\n"
-            "If given, uses @var{name-hint} as its internal (debugging)\n"
-            "name, otherwise just treat it as an anonymous variable.\n"
-            "Remember, of course, that multiple bindings to the same\n"
-            "variable may exist, so @var{name-hint} is just that---a hint.\n")
+SCM_DEFINE (scm_make_undefined_variable, "make-undefined-variable", 0, 0, 0, 
+            (),
+            "Return a variable that is initially unbound.\n")
 #define FUNC_NAME s_scm_make_undefined_variable
 {
-  SCM vcell;
-
-  if (SCM_UNBNDP (name_hint))
-    name_hint = anonymous_variable_sym;
-
-  vcell = scm_cons (name_hint, SCM_UNDEFINED);
-  return make_vcell_variable (vcell);
+  return make_variable (SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 
@@ -148,12 +126,14 @@ SCM_DEFINE (scm_variable_ref, "variable-ref", 1, 0, 0,
 	    "and @code{make-undefined-variable}.")
 #define FUNC_NAME s_scm_variable_ref
 {
+  SCM val;
   SCM_VALIDATE_VARIABLE (1, var);
-  return SCM_CDR (SCM_VARVCELL (var));
+  val = SCM_VARIABLE_REF (var);
+  if (val == SCM_UNDEFINED)
+    SCM_MISC_ERROR ("variable is unbound: ~S", SCM_LIST1 (var));
+  return val;
 }
 #undef FUNC_NAME
-
-
 
 SCM_DEFINE (scm_variable_set_x, "variable-set!", 2, 0, 0,
             (SCM var, SCM val),
@@ -163,40 +143,10 @@ SCM_DEFINE (scm_variable_set_x, "variable-set!", 2, 0, 0,
 #define FUNC_NAME s_scm_variable_set_x
 {
   SCM_VALIDATE_VARIABLE (1, var);
-  SCM_SETCDR (SCM_VARVCELL (var), val);
+  SCM_VARIABLE_SET (var, val);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
-
-SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0, 
-            (SCM name),
-            "Return the built-in variable with the name @var{name}.\n"
-            "@var{name} must be a symbol (not a string).\n"
-            "Then use @code{variable-ref} to access its value.\n")
-#define FUNC_NAME s_scm_builtin_variable
-{
-  SCM vcell;
-  SCM var_slot;
-
-  SCM_VALIDATE_SYMBOL (1,name);
-  vcell = scm_sym2vcell (name, SCM_BOOL_F, SCM_BOOL_T);
-  if (SCM_FALSEP (vcell))
-    return SCM_BOOL_F;
-
-  scm_intern_symbol (scm_symhash_vars, name);
-  var_slot = scm_sym2ovcell (name, scm_symhash_vars);
-
-  SCM_DEFER_INTS;
-  if (SCM_IMP (SCM_CDR (var_slot))
-      || !SCM_EQ_P (SCM_VARVCELL (var_slot), vcell))
-    SCM_SETCDR (var_slot, make_vcell_variable (vcell));
-  SCM_ALLOW_INTS;
-
-  return SCM_CDR (var_slot);
-}
-#undef FUNC_NAME
-
 
 SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0, 
             (SCM var),
@@ -205,12 +155,41 @@ SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0,
 #define FUNC_NAME s_scm_variable_bound_p
 {
   SCM_VALIDATE_VARIABLE (1, var);
-  return SCM_BOOL (!SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (var))));
+  return SCM_BOOL (SCM_VARIABLE_REF (var) != SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_variable_set_name_hint, "variable-set-name-hint!", 2, 0, 0,
+	    (SCM var, SCM hint),
+	    "Do not use this function.")
+#define FUNC_NAME s_scm_variable_set_name_hint
+{
+  SCM_VALIDATE_VARIABLE (1, var);
+  SCM_VALIDATE_SYMBOL (2, hint);
+#if SCM_ENABLE_VCELLS
+  SCM_SETCAR (SCM_SMOB_DATA (var), hint);
+#endif
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
 
+#if SCM_ENABLE_VCELLS
 
+SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0, 
+            (SCM name),
+            "Return the built-in variable with the name @var{name}.\n"
+            "@var{name} must be a symbol (not a string).\n"
+            "Then use @code{variable-ref} to access its value.\n")
+#define FUNC_NAME s_scm_builtin_variable
+{
+  SCM_VALIDATE_SYMBOL (1,name);
+  scm_c_issue_deprecation_warning ("`builtin-variable' is deprecated. "
+				   "Use module system operations instead.");
+  return scm_sym2var (name, SCM_BOOL_F, SCM_BOOL_T);
+}
+#undef FUNC_NAME
+
+#endif /* SCM_ENABLE_VCELLS */
 
 void
 scm_init_variable ()
@@ -224,7 +203,6 @@ scm_init_variable ()
 #include "libguile/variable.x"
 #endif
 }
-
 
 /*
   Local Variables:

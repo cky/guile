@@ -46,8 +46,6 @@
 
 #include "libguile/__scm.h"
 
-/* Needed by SCM_TOP_LEVEL_LOOKUP_CLOSURE below. */
-
 #include "struct.h"
 
 
@@ -131,8 +129,7 @@ extern SCM scm_eval_options_interface (SCM setting);
 
 /*fixme* This should probably be removed throught the code. */
 
-#define SCM_TOP_LEVEL_LOOKUP_CLOSURE \
-  SCM_MODULE_EVAL_CLOSURE (scm_current_module ())
+#define SCM_TOP_LEVEL_LOOKUP_CLOSURE (scm_current_module_lookup_closure())
 
 #if SCM_DEBUG_DEPRECATED == 0
 
@@ -181,13 +178,14 @@ extern SCM scm_sym_args;
 extern SCM scm_f_apply;
 
 /* A resolved global variable reference in the CAR position
- * of a list is stored (in code only) as a pointer to a pair with a 
+ * of a list is stored (in code only) as a pointer to a variable with a 
  * tag of 1.  This is called a "gloc".
  */
 
-#define SCM_GLOC_SYM(x) (SCM_CAR (SCM_PACK (SCM_UNPACK (x) - 1L)))
-#define SCM_GLOC_VAL(x) (SCM_CDR (SCM_PACK (SCM_UNPACK (x) - 1L)))
-#define SCM_GLOC_VAL_LOC(x) (SCM_CDRLOC (SCM_PACK (SCM_UNPACK (x) - 1L)))
+#define SCM_GLOC_VAR(x)        (SCM_PACK(SCM_UNPACK(x)-scm_tc3_cons_gloc))
+#define SCM_GLOC_VAL(x)        (SCM_VARIABLE_REF (SCM_GLOC_VAR (x)))
+#define SCM_GLOC_SET_VAL(x, y) (SCM_VARIABLE_SET (SCM_GLOC_VAR (x), y))
+#define SCM_GLOC_VAL_LOC(x)    (SCM_VARIABLE_LOC (SCM_GLOC_VAR (x)))
 
 
 

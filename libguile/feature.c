@@ -57,15 +57,15 @@
 
 
 
-static SCM features;
+static SCM features_var;
 
 
 void
 scm_add_feature (const char *str)
 {
-  SCM old = SCM_CDR (features);
+  SCM old = SCM_VARIABLE_REF (features_var);
   SCM new = scm_cons (scm_str2symbol (str), old);
-  SCM_SETCDR (features, new);
+  SCM_VARIABLE_SET (features_var, new);
 }
 
 
@@ -103,7 +103,7 @@ scm_set_program_arguments (int argc, char **argv, char *first)
 void
 scm_init_feature()
 {
-  features = scm_sysintern ("*features*", SCM_EOL);
+  features_var = scm_c_define ("*features*", SCM_EOL);
 #ifdef SCM_RECKLESS
   scm_add_feature("reckless");
 #endif
@@ -126,7 +126,7 @@ scm_init_feature()
   scm_add_feature ("threads");
 #endif
   
-  scm_sysintern ("char-code-limit", SCM_MAKINUM (SCM_CHAR_CODE_LIMIT));
+  scm_c_define ("char-code-limit", SCM_MAKINUM (SCM_CHAR_CODE_LIMIT));
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/feature.x"

@@ -2,6 +2,6 @@
 # in Guile.
 {
 print "#ifdef " $0;
-print "scm_sysintern (\""$0"\", SCM_MAKINUM ("$0"));";
+print "scm_c_define (\""$0"\", SCM_MAKINUM ("$0"));";
 print "#endif"
 }

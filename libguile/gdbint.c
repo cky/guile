@@ -300,10 +300,8 @@ gdb_binding (SCM name, SCM value)
     }
   SCM_BEGIN_FOREIGN_BLOCK;
   {
-    SCM vcell = scm_sym2vcell (name,
-			       SCM_TOP_LEVEL_LOOKUP_CLOSURE,
-			       SCM_BOOL_T);
-    SCM_SETCDR (vcell, value);
+    SCM var = scm_sym2var (name, SCM_TOP_LEVEL_LOOKUP_CLOSURE, SCM_BOOL_T);
+    SCM_VARIABLE_SET (var, value);
   }
   SCM_END_FOREIGN_BLOCK;
   return 0;

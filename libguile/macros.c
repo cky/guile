@@ -220,10 +220,10 @@ SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0,
 SCM
 scm_make_synt (const char *name, SCM (*macroizer) (), SCM (*fcn)() )
 {
-  SCM symcell = scm_sysintern (name, SCM_UNDEFINED);
+  SCM var = scm_c_define (name, SCM_UNDEFINED);
   SCM transformer = scm_make_subr_opt (name, scm_tc7_subr_2, fcn, 0);
-  SCM_SETCDR (symcell, macroizer (transformer));
-  return SCM_CAR (symcell);
+  SCM_VARIABLE_SET (var, macroizer (transformer));
+  return SCM_UNSPECIFIED;
 }
 
 void

@@ -193,8 +193,7 @@ scm_swap_bindings (SCM glocs, SCM vals)
   while (SCM_NIMP (vals))
     {
       tmp = SCM_GLOC_VAL (SCM_CAR (glocs));
-      SCM_SETCDR (SCM_PACK (SCM_UNPACK (SCM_CAR (glocs)) - 1L),
-		  SCM_CAR (vals));
+      SCM_GLOC_SET_VAL (SCM_CAR (glocs), SCM_CAR (vals));
       SCM_SETCAR (vals, tmp);
       glocs = SCM_CDR (glocs);
       vals = SCM_CDR (vals);

@@ -73,7 +73,7 @@ SCM
 scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
 {
   SCM symbol;
-  SCM symcell;
+  SCM var;
   register SCM z;
   int entry;
 
@@ -89,17 +89,14 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
       scm_subr_table_room = new_size;
     }
 
+  symbol = scm_str2symbol (name);
+
   SCM_NEWCELL (z);
   if (set)
-    {
-      symcell = scm_sysintern (name, SCM_UNDEFINED);
-      symbol = SCM_CAR (symcell);
-    }
+    var = scm_sym2var (symbol, scm_current_module_lookup_closure (),
+		       SCM_BOOL_T);
   else
-    {
-      symcell = SCM_BOOL_F; /* to avoid warning */
-      symbol = scm_str2symbol (name);
-    }
+    var = SCM_BOOL_F;
   
   entry = scm_subr_table_size;
   scm_subr_table[entry].handle = z;
@@ -112,7 +109,7 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
   scm_subr_table_size++;
   
   if (set)
-    SCM_SETCDR (symcell, z);
+    SCM_VARIABLE_SET (var, z);
   
   return z;
 }

@@ -819,7 +819,7 @@ void
 scm_init_read ()
 {
   scm_read_hash_procedures =
-    SCM_CDRLOC (scm_sysintern ("read-hash-procedures", SCM_EOL));
+    SCM_VARIABLE_LOC (scm_c_define ("read-hash-procedures", SCM_EOL));
 
   scm_init_opts (scm_read_options, scm_read_opts, SCM_N_READ_OPTIONS);
 #ifndef SCM_MAGIC_SNARFER

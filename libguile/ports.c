@@ -1564,9 +1564,9 @@ void
 scm_init_ports ()
 {
   /* lseek() symbols.  */
-  scm_sysintern ("SEEK_SET", SCM_MAKINUM (SEEK_SET));
-  scm_sysintern ("SEEK_CUR", SCM_MAKINUM (SEEK_CUR));
-  scm_sysintern ("SEEK_END", SCM_MAKINUM (SEEK_END));
+  scm_c_define ("SEEK_SET", SCM_MAKINUM (SEEK_SET));
+  scm_c_define ("SEEK_CUR", SCM_MAKINUM (SEEK_CUR));
+  scm_c_define ("SEEK_END", SCM_MAKINUM (SEEK_END));
 
   scm_tc16_void_port = scm_make_port_type ("void", fill_input_void_port, 
 					   write_void_port);

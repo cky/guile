@@ -260,17 +260,12 @@ SCM_DEFINE (scm_make_gloc, "make-gloc", 1, 1, 0,
 	    "@var{env}.")
 #define FUNC_NAME s_scm_make_gloc
 {
-#if 1 /* Unsafe */
-  if (SCM_CONSP (var))
-    var = scm_cons (SCM_BOOL_F, var);
-  else
-#endif
-    SCM_VALIDATE_VARIABLE (1,var);
+  SCM_VALIDATE_VARIABLE (1,var);
   if (SCM_UNBNDP (env))
     env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
   else
     SCM_VALIDATE_NULLORCONS (2,env);
-  return scm_make_memoized (SCM_VARVCELL (var) + 1, env);
+  return scm_make_memoized (SCM_UNPACK (var) + scm_tc3_cons_gloc, env);
 }
 #undef FUNC_NAME
 
@@ -279,8 +274,9 @@ SCM_DEFINE (scm_gloc_p, "gloc?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a gloc.")
 #define FUNC_NAME s_scm_gloc_p
 {
-  return SCM_BOOL((SCM_MEMOIZEDP (obj)
-                   && (SCM_UNPACK(SCM_MEMOIZED_EXP (obj)) & 7) == 1));
+  return
+    SCM_BOOL (SCM_MEMOIZEDP (obj) 
+	      && ((SCM_UNPACK(SCM_MEMOIZED_EXP(obj))&7) == scm_tc3_cons_gloc));
 }
 #undef FUNC_NAME
 
@@ -623,23 +619,23 @@ scm_init_debug ()
   scm_set_smob_print (scm_tc16_debugobj, debugobj_print);
 
 #ifdef GUILE_DEBUG
-  scm_sysintern ("SCM_IM_AND", SCM_IM_AND);
-  scm_sysintern ("SCM_IM_BEGIN", SCM_IM_BEGIN);
-  scm_sysintern ("SCM_IM_CASE", SCM_IM_CASE);
-  scm_sysintern ("SCM_IM_COND", SCM_IM_COND);
-  scm_sysintern ("SCM_IM_DO", SCM_IM_DO);
-  scm_sysintern ("SCM_IM_IF", SCM_IM_IF);
-  scm_sysintern ("SCM_IM_LAMBDA", SCM_IM_LAMBDA);
-  scm_sysintern ("SCM_IM_LET", SCM_IM_LET);
-  scm_sysintern ("SCM_IM_LETSTAR", SCM_IM_LETSTAR);
-  scm_sysintern ("SCM_IM_LETREC", SCM_IM_LETREC);
-  scm_sysintern ("SCM_IM_OR", SCM_IM_OR);
-  scm_sysintern ("SCM_IM_QUOTE", SCM_IM_QUOTE);
-  scm_sysintern ("SCM_IM_SET_X", SCM_IM_SET_X);
-  scm_sysintern ("SCM_IM_DEFINE", SCM_IM_DEFINE);
-  scm_sysintern ("SCM_IM_APPLY", SCM_IM_APPLY);
-  scm_sysintern ("SCM_IM_CONT", SCM_IM_CONT);
-  scm_sysintern ("SCM_IM_DISPATCH", SCM_IM_DISPATCH);
+  scm_define ("SCM_IM_AND", SCM_IM_AND);
+  scm_define ("SCM_IM_BEGIN", SCM_IM_BEGIN);
+  scm_define ("SCM_IM_CASE", SCM_IM_CASE);
+  scm_define ("SCM_IM_COND", SCM_IM_COND);
+  scm_define ("SCM_IM_DO", SCM_IM_DO);
+  scm_define ("SCM_IM_IF", SCM_IM_IF);
+  scm_define ("SCM_IM_LAMBDA", SCM_IM_LAMBDA);
+  scm_define ("SCM_IM_LET", SCM_IM_LET);
+  scm_define ("SCM_IM_LETSTAR", SCM_IM_LETSTAR);
+  scm_define ("SCM_IM_LETREC", SCM_IM_LETREC);
+  scm_define ("SCM_IM_OR", SCM_IM_OR);
+  scm_define ("SCM_IM_QUOTE", SCM_IM_QUOTE);
+  scm_define ("SCM_IM_SET_X", SCM_IM_SET_X);
+  scm_define ("SCM_IM_DEFINE", SCM_IM_DEFINE);
+  scm_define ("SCM_IM_APPLY", SCM_IM_APPLY);
+  scm_define ("SCM_IM_CONT", SCM_IM_CONT);
+  scm_define ("SCM_IM_DISPATCH", SCM_IM_DISPATCH);
 #endif
   scm_add_feature ("debug-extensions");
 

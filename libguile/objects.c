@@ -509,13 +509,13 @@ scm_init_objects ()
   SCM et = scm_make_struct (mt, SCM_INUM0,
 			    SCM_LIST4 (el, SCM_BOOL_F, SCM_EOL, SCM_EOL));
 
-  scm_sysintern ("<class>", mt);
+  scm_c_define ("<class>", mt);
   scm_metaclass_standard = mt;
-  scm_sysintern ("<operator-class>", ot);
+  scm_c_define ("<operator-class>", ot);
   scm_metaclass_operator = ot;
   SCM_SET_CLASS_FLAGS (et, SCM_CLASSF_OPERATOR | SCM_CLASSF_ENTITY);
   SCM_SET_CLASS_DESTRUCTOR (et, scm_struct_free_entity);
-  scm_sysintern ("<entity>", et);
+  scm_c_define ("<entity>", et);
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/objects.x"

@@ -195,6 +195,15 @@
 #define SCM_DEBUG_TYPING_STRICTNESS 0
 #endif
 
+/* If SCM_ENABLE_VCELLS is set to 1, a couple of functions that deal
+ * with vcells are defined for compatability reasons.  Supporting
+ * vcells reduces performance however.
+ *
+ * We use a dedicated macro instead of just SCM_DEBUG_DEPRECATED so
+ * that code the belongs to the `vcell' feature is easier to find.
+ */
+#define SCM_ENABLE_VCELLS !SCM_DEBUG_DEPRECATED
+
 
 
 #ifdef HAVE_LONG_LONGS

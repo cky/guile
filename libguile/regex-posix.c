@@ -303,14 +303,14 @@ scm_init_regex_posix ()
   scm_set_smob_free (scm_tc16_regex, regex_free);
 
   /* Compilation flags.  */
-  scm_sysintern ("regexp/basic", scm_long2num (REG_BASIC));
-  scm_sysintern ("regexp/extended", scm_long2num (REG_EXTENDED));
-  scm_sysintern ("regexp/icase", scm_long2num (REG_ICASE));
-  scm_sysintern ("regexp/newline", scm_long2num (REG_NEWLINE));
+  scm_c_define ("regexp/basic", scm_long2num (REG_BASIC));
+  scm_c_define ("regexp/extended", scm_long2num (REG_EXTENDED));
+  scm_c_define ("regexp/icase", scm_long2num (REG_ICASE));
+  scm_c_define ("regexp/newline", scm_long2num (REG_NEWLINE));
 
   /* Execution flags.  */
-  scm_sysintern ("regexp/notbol", scm_long2num (REG_NOTBOL));
-  scm_sysintern ("regexp/noteol", scm_long2num (REG_NOTEOL));
+  scm_c_define ("regexp/notbol", scm_long2num (REG_NOTBOL));
+  scm_c_define ("regexp/noteol", scm_long2num (REG_NOTEOL));
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/regex-posix.x"

@@ -820,10 +820,11 @@ scm_init_struct ()
     = scm_permanent_object (scm_make_weak_key_hash_table (SCM_MAKINUM (31)));
   required_vtable_fields = scm_makfrom0str ("pruosrpw");
   scm_permanent_object (required_vtable_fields);
-  scm_sysintern ("vtable-index-layout", SCM_MAKINUM (scm_vtable_index_layout));
-  scm_sysintern ("vtable-index-vtable", SCM_MAKINUM (scm_vtable_index_vtable));
-  scm_sysintern ("vtable-index-printer", SCM_MAKINUM (scm_vtable_index_printer));
-  scm_sysintern ("vtable-offset-user", SCM_MAKINUM (scm_vtable_offset_user));
+  scm_c_define ("vtable-index-layout", SCM_MAKINUM (scm_vtable_index_layout));
+  scm_c_define ("vtable-index-vtable", SCM_MAKINUM (scm_vtable_index_vtable));
+  scm_c_define ("vtable-index-printer",
+		SCM_MAKINUM (scm_vtable_index_printer));
+  scm_c_define ("vtable-offset-user", SCM_MAKINUM (scm_vtable_offset_user));
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/struct.x"
 #endif

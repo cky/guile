@@ -77,16 +77,13 @@ SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
 	    "current module.")
 #define FUNC_NAME s_scm_definedp
 {
-  SCM vcell;
+  SCM var;
 
   SCM_VALIDATE_SYMBOL (1,sym);
 
   if (SCM_UNBNDP (env))
-    vcell = scm_sym2vcell(sym,
-			  scm_module_system_booted_p
-			  ? SCM_TOP_LEVEL_LOOKUP_CLOSURE
-			  : SCM_EOL,
-			  SCM_BOOL_F);
+    var = scm_sym2var (sym, scm_current_module_lookup_closure (),
+			 SCM_BOOL_F);
   else
     {
       SCM frames = env;
@@ -111,12 +108,12 @@ SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
 		return SCM_BOOL_T;
 	    }
 	}
-    vcell = scm_sym2vcell (sym,
-			   SCM_NIMP (frames) ? SCM_CAR (frames) : SCM_BOOL_F,
-			   SCM_BOOL_F);
+      var = scm_sym2var (sym,
+			 SCM_NIMP (frames) ? SCM_CAR (frames) : SCM_BOOL_F,
+			 SCM_BOOL_F);
     }
 	      
-  return (SCM_FALSEP (vcell) || SCM_UNBNDP (SCM_CDR (vcell))
+  return (SCM_FALSEP (var) || SCM_UNBNDP (SCM_VARIABLE_REF (var))
 	  ? SCM_BOOL_F
 	  : SCM_BOOL_T);
 }
@@ -135,12 +132,12 @@ scm_m_undefine (SCM x, SCM env)
 	      scm_s_expression, s_undefine);
   x = SCM_CAR (x);
   SCM_ASSYNT (SCM_SYMBOLP (x), scm_s_variable, s_undefine);
-  arg1 = scm_sym2vcell (x, scm_env_top_level (env), SCM_BOOL_F);
-  SCM_ASSYNT (SCM_NFALSEP (arg1) && !SCM_UNBNDP (SCM_CDR (arg1)),
+  arg1 = scm_sym2var (x, scm_env_top_level (env), SCM_BOOL_F);
+  SCM_ASSYNT (SCM_NFALSEP (arg1) && !SCM_UNBNDP (SCM_VARIABLE_REF (arg1)),
 	      "variable already unbound ", s_undefine);
-  SCM_SETCDR (arg1, SCM_UNDEFINED);
+  SCM_VARIABLE_SET (arg1, SCM_UNDEFINED);
 #ifdef SICP
-  return SCM_CAR (arg1);
+  return x;
 #else
   return SCM_UNSPECIFIED;
 #endif

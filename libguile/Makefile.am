@@ -49,7 +49,7 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	     \
     random.c rdelim.c read.c root.c rw.c scmsigs.c script.c simpos.c smob.c  \
     sort.c srcprop.c stackchk.c stacks.c stime.c strings.c strop.c	     \
     strorder.c strports.c struct.c symbols.c tag.c throw.c values.c	     \
-    variable.c vectors.c version.c vports.c weaks.c
+    variable.c vectors.c version.c vports.c weaks.c symbols-deprecated.c
 
 DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
     continuations.x debug.x deprecation.x dynl.x dynwind.x		  \
@@ -62,23 +62,24 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
     scmsigs.x script.x simpos.x smob.x sort.x srcprop.x			  \
     stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x	  \
     struct.x symbols.x tag.x throw.x values.x variable.x vectors.x	  \
-    version.x vports.x weaks.x
+    version.x vports.x weaks.x symbols-deprecated.x
 
 EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
 
-DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		   \
-    boolean.doc chars.doc continuations.doc debug.doc dynl.doc		   \
-    dynwind.doc environments.doc eq.doc error.doc eval.doc evalext.doc	   \
-    feature.doc fluids.doc fports.doc gc.doc goops.doc gsubr.doc	   \
-    guardians.doc hash.doc hashtab.doc hooks.doc init.doc ioext.doc	   \
-    iselect.doc keywords.doc lang.doc list.doc load.doc macros.doc	   \
-    mallocs.doc modules.doc numbers.doc objects.doc objprop.doc \
-    options.doc pairs.doc ports.doc print.doc procprop.doc	   \
+DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		    \
+    boolean.doc chars.doc continuations.doc debug.doc dynl.doc		    \
+    dynwind.doc environments.doc eq.doc error.doc eval.doc evalext.doc	    \
+    feature.doc fluids.doc fports.doc gc.doc goops.doc gsubr.doc	    \
+    guardians.doc hash.doc hashtab.doc hooks.doc init.doc ioext.doc	    \
+    iselect.doc keywords.doc lang.doc list.doc load.doc macros.doc	    \
+    mallocs.doc modules.doc numbers.doc objects.doc objprop.doc		    \
+    options.doc pairs.doc ports.doc print.doc procprop.doc		    \
     procs.doc properties.doc random.doc rdelim.doc read.doc root.doc rw.doc \
-    scmsigs.doc script.doc simpos.doc smob.doc sort.doc	   \
-    srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc strop.doc	   \
-    strorder.doc strports.doc struct.doc symbols.doc tag.doc throw.doc	   \
-    values.doc variable.doc vectors.doc version.doc vports.doc weaks.doc
+    scmsigs.doc script.doc simpos.doc smob.doc sort.doc			    \
+    srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc strop.doc	    \
+    strorder.doc strports.doc struct.doc symbols.doc tag.doc throw.doc	    \
+    values.doc variable.doc vectors.doc version.doc vports.doc weaks.doc    \
+    symbols-deprecated.doc
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 

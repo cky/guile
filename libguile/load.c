@@ -494,7 +494,7 @@ static void
 init_build_info ()
 {
   static struct { char *name; char *value; } info[] = SCM_BUILD_INFO;
-  SCM *loc = SCM_CDRLOC (scm_sysintern ("%guile-build-info", SCM_EOL));
+  SCM *loc = SCM_VARIABLE_LOC (scm_c_define ("%guile-build-info", SCM_EOL));
   unsigned int i;
 
   for (i = 0; i < (sizeof (info) / sizeof (info[0])); i++)
@@ -509,12 +509,12 @@ void
 scm_init_load ()
 {
   scm_listofnullstr = scm_permanent_object (SCM_LIST1 (scm_nullstr));
-  scm_loc_load_path = SCM_CDRLOC (scm_sysintern ("%load-path", SCM_EOL));
+  scm_loc_load_path = SCM_VARIABLE_LOC (scm_c_define ("%load-path", SCM_EOL));
   scm_loc_load_extensions
-    = SCM_CDRLOC (scm_sysintern ("%load-extensions",
-				 SCM_LIST2 (scm_makfrom0str (".scm"),
-					    scm_nullstr)));
-  scm_loc_load_hook = SCM_CDRLOC (scm_sysintern ("%load-hook", SCM_BOOL_F));
+    = SCM_VARIABLE_LOC (scm_c_define ("%load-extensions",
+				    SCM_LIST2 (scm_makfrom0str (".scm"),
+					       scm_nullstr)));
+  scm_loc_load_hook = SCM_VARIABLE_LOC (scm_c_define ("%load-hook", SCM_BOOL_F));
 
   init_build_info ();
 

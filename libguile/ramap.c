@@ -2043,12 +2043,19 @@ scm_array_equal_p (SCM ra0, SCM ra1)
 }
 
 
-
 static void
 init_raprocs (ra_iproc *subra)
 {
   for (; subra->name; subra++)
-    subra->sproc = scm_symbol_binding (SCM_BOOL_F, scm_str2symbol (subra->name));
+    {
+      SCM sym = scm_str2symbol (subra->name);
+      SCM var =
+	scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_F);
+      if (var != SCM_BOOL_F)
+	subra->sproc = SCM_VARIABLE_REF (var);
+      else
+	subra->sproc = SCM_BOOL_F;
+    }
 }
 
 

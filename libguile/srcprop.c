@@ -334,7 +334,7 @@ scm_init_srcprop ()
   scm_set_smob_print (scm_tc16_srcprops, srcprops_print);
 
   scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (2047));
-  scm_sysintern ("source-whash", scm_source_whash);
+  scm_c_define ("source-whash", scm_source_whash);
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/srcprop.x"
