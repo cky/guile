@@ -1,6 +1,6 @@
 ;;; srfi-14.scm --- Character-set Library
 
-;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2004 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,9 @@
 
 ;;; Code:
 
-(define-module (srfi srfi-14)
-  :export (
+(define-module (srfi srfi-14))
+
+(re-export
 ;;; General procedures
  char-set?
  char-set=
@@ -91,60 +92,8 @@
  char-set:blank
  char-set:ascii
  char-set:empty
- char-set:full
- ))
+ char-set:full)
 
 (cond-expand-provide (current-module) '(srfi-14))
-
-(load-extension "libguile-srfi-srfi-13-14" "scm_init_srfi_14")
-
-(define (->char-set x)
-  (cond
-   ((string? x)   (string->char-set x))
-   ((char? x)     (char-set x))
-   ((char-set? x) x)
-   (else (error "invalid argument to `->char-set'"))))
-
-(define char-set:full (ucs-range->char-set 0 256))
-
-(define char-set:lower-case (char-set-filter char-lower-case? char-set:full))
-
-(define char-set:upper-case (char-set-filter char-upper-case? char-set:full))
-
-(define char-set:title-case (char-set))
-
-(define char-set:letter (char-set-union char-set:lower-case
-					char-set:upper-case))
-
-(define char-set:digit (string->char-set "0123456789"))
-
-(define char-set:letter+digit
-  (char-set-union char-set:letter char-set:digit))
-
-(define char-set:punctuation (string->char-set "!\"#%&'()*,-./:;?@[\\]_{}"))
-
-(define char-set:symbol (string->char-set "$+<=>^`|~"))
-
-(define char-set:whitespace (char-set #\space #\newline #\tab #\cr #\vt #\np))
-
-(define char-set:blank (char-set #\space #\tab))
-
-(define char-set:graphic
-  (char-set-union char-set:letter+digit char-set:punctuation char-set:symbol))
-
-(define char-set:printing
-  (char-set-union char-set:graphic char-set:whitespace))
-
-(define char-set:iso-control
-  (char-set-adjoin
-   (char-set-filter (lambda (ch) (< (char->integer ch) 31)) char-set:full)
-   (integer->char 127)))
-
-(define char-set:hex-digit (string->char-set "0123456789abcdefABCDEF"))
-
-(define char-set:ascii
-  (char-set-filter (lambda (ch) (< (char->integer ch) 128)) char-set:full))
-
-(define char-set:empty (char-set))
 
 ;;; srfi-14.scm ends here

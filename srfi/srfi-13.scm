@@ -19,28 +19,35 @@
 ;;; Commentary:
 
 ;; This module is fully documented in the Guile Reference Manual.
+;;
+;; All procedures are in the core and are simply reexported here.
 
 ;;; Code:
 
-(define-module (srfi srfi-13)
-  :export (
+(define-module (srfi srfi-13))
+
+(re-export
 ;;; Predicates
- ;; string? string-null?       <= in the core
- string-any string-every
+ string?
+ string-null?
+ string-any
+ string-every
 
 ;;; Constructors
- ;; make-string string         <= in the core
+ make-string
+ string
  string-tabulate
 
 ;;; List/string conversion
- ;; string->list	       extended
- ;; list->string               <= in the core
+ string->list
+ list->string
  reverse-list->string
  string-join
 
 ;;; Selection
- ;; string-length string-ref   <= in the core
- ;; string-copy		       extended
+ string-length
+ string-ref
+ string-copy
  substring/shared
  string-copy!
  string-take string-take-right
@@ -50,11 +57,12 @@
  string-trim-both
 
 ;;; Modification
- ;; string-set!                <= in the core
- ;; string-fill!		extended
+ string-set!
+ string-fill!
 
 ;;; Comparison
- string-compare string-compare-ci
+ string-compare
+ string-compare-ci
  string= string<>
  string< string>
  string<= string>=
@@ -74,21 +82,24 @@
  string-suffix-ci?
 
 ;;; Searching
- ;; string-index			extended
+ string-index
  string-index-right
  string-skip string-skip-right
  string-count
  string-contains string-contains-ci
 
 ;;; Alphabetic case mapping
-
- ;; string-upcase string-upcase!	extended
- ;; string-downcase string-downcase!	extended
- string-titlecase string-titlecase!
+ string-upcase
+ string-upcase!
+ string-downcase
+ string-downcase!
+ string-titlecase
+ string-titlecase!
 
 ;;; Reverse/Append
- string-reverse string-reverse!
- ;; string-append                    <= in the core
+ string-reverse
+ string-reverse!
+ string-append
  string-append/shared
  string-concatenate
  string-concatenate-reverse
@@ -105,7 +116,8 @@
  string-for-each-index
 
 ;;; Replicate/Rotate
- xsubstring string-xcopy!
+ xsubstring
+ string-xcopy!
 
 ;;; Miscellaneous
  string-replace
@@ -113,43 +125,8 @@
 
 ;;; Filtering/Deleting
  string-filter
- string-delete
- )
-  :replace (string->list string-copy string-fill!
-	    string-upcase! string-upcase string-downcase! string-downcase
-	    string-index substring/shared)
-  )
+ string-delete)
 
 (cond-expand-provide (current-module) '(srfi-13))
-
-(load-extension "libguile-srfi-srfi-13-14" "scm_init_srfi_13")
-
-(define string-hash
-  (lambda (s . rest)
-    (let ((bound (if (pair? rest)
-		     (or (car rest)
-			 871)
-		     871))
-	  (start (if (and (pair? rest) (pair? (cdr rest)))
-		     (cadr rest)
-		     0))
-	  (end (if (and (pair? rest) (pair? (cdr rest)) (pair? (cddr rest)))
-		   (caddr rest)
-		   (string-length s))))
-      (hash (substring/shared s start end) bound))))
-
-(define string-hash-ci
-  (lambda (s . rest)
-    (let ((bound (if (pair? rest)
-		     (or (car rest)
-			 871)
-		     871))
-	  (start (if (and (pair? rest) (pair? (cdr rest)))
-		     (cadr rest)
-		     0))
-	  (end (if (and (pair? rest) (pair? (cdr rest)) (pair? (cddr rest)))
-		   (caddr rest)
-		   (string-length s))))
-      (hash (string-upcase (substring/shared s start end)) bound))))
 
 ;;; srfi-13.scm ends here
