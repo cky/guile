@@ -102,14 +102,16 @@ scm_m_undefine (x, env)
 static char s_sequence_to_list[] = "sequence->list";
 
 SCM
-scm_m_sequence_to_list (SCM x, SCM env)
+scm_m_sequence_to_list (SCM xorig, SCM env)
 {
+  SCM x = xorig;
   SCM res = SCM_EOL;
-  SCM_ASSYNT (SCM_NULLP (SCM_CDR (x))
-	      || (SCM_NIMP (SCM_CDR (x) && SCM_ECONSP (SCM_CDR (x)))),
-	      x, scm_s_expression, s_sequence_to_list);
   while (SCM_NNULLP (x = SCM_CDR (x)))
-    res = scm_cons (SCM_XEVALCAR (x, env), res);
+    {
+      SCM_ASSYNT (SCM_NIMP (x) && SCM_ECONSP (x),
+		  xorig, scm_s_expression, s_sequence_to_list);
+      res = scm_cons (SCM_XEVALCAR (x, env), res);
+    }
   return res;
 }
 
