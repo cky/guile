@@ -414,7 +414,7 @@ scm_unmemocar (SCM form, SCM env)
     return form;
   c = SCM_CAR (form);
   if (1 == (SCM_UNPACK (c) & 7))
-    SCM_SETCAR (form, SCM_CAR (c - 1));
+    SCM_SETCAR (form, SCM_GLOC_SYM (c));
 #ifdef MEMOIZE_LOCALS
 #ifdef DEBUG_EXTENSIONS
   else if (SCM_ILOCP (c))
@@ -2421,7 +2421,8 @@ dispatch:
 	  while (SCM_NIMP (arg2))
 	    {
 	      proc = SCM_GLOC_VAL (SCM_CAR (t.arg1));
-	      SCM_SETCDR (SCM_CAR (t.arg1) - 1L, SCM_CAR (arg2));
+	      SCM_SETCDR (SCM_PACK (SCM_UNPACK (SCM_CAR (t.arg1)) - 1L),
+			  SCM_CAR (arg2));
 	      SCM_SETCAR (arg2, proc);
 	      t.arg1 = SCM_CDR (t.arg1);
 	      arg2 = SCM_CDR (arg2);
@@ -2441,7 +2442,8 @@ dispatch:
 	  arg2 = SCM_CDAR (env);
 	  while (SCM_NIMP (arg2))
 	    {
-	      SCM_SETCDR (SCM_CAR (t.arg1) - 1L, SCM_CAR (arg2));
+	      SCM_SETCDR (SCM_PACK (SCM_UNPACK (SCM_CAR (t.arg1)) - 1L),
+			  SCM_CAR (arg2));
 	      t.arg1 = SCM_CDR (t.arg1);
 	      arg2 = SCM_CDR (arg2);
 	    }
