@@ -1,3 +1,16 @@
+2001-03-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* validate.h (SCM_VALIDATE_OPOUTSTRPORT): New macro.
+
+	* strports.h (SCM_STRPORTP, SCM_OPSTRPORTP, SCM_OPINSTRPORTP),
+	(SCM_OPOUTSTRPORTP): New predicate macros.
+	(scm_open_input_string, scm_open_output_string),
+	(scm_get_output_string): New prototypes.
+	
+	* strports.c (scm_open_input_string, scm_open_output_string),
+	(scm_get_output_string): New procedures (SRFI-6 compliant).
+	Made scm_tc16_strport non-static.
+
 2001-03-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* macros.h (SCM_ASSYNT):  Removed unused object argument from

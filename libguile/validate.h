@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.27 2001-03-04 22:48:13 dirk Exp $ */
+/* $Id: validate.h,v 1.28 2001-03-15 11:24:45 mgrabmue Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -358,6 +358,9 @@
 
 #define SCM_VALIDATE_OPOUTPORT(pos, port) \
   SCM_MAKE_VALIDATE (pos, port, OPOUTPORTP)
+
+#define SCM_VALIDATE_OPOUTSTRPORT(pos, port) \
+  SCM_MAKE_VALIDATE (pos, port, OPOUTSTRPORTP)
 
 #define SCM_VALIDATE_FLUID(pos, fluid) SCM_MAKE_VALIDATE (pos, fluid, FLUIDP)
 

@@ -80,8 +80,7 @@
    when rw_active is SCM_PORT_NEITHER.
 */
 
-
-static scm_bits_t scm_tc16_strport;
+scm_bits_t scm_tc16_strport;
 
 
 static int
@@ -377,6 +376,49 @@ SCM_DEFINE (scm_call_with_input_string, "call-with-input-string", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_open_input_string, "open-input-string", 1, 0, 0,
+	    (SCM str),
+	    "Takes a string and returns an input port that delivers\n"
+	    "characters from the string. The port can be closed by\n"
+	    "@code{close-input-port}, though its storage will be reclaimed\n"
+	    "by the garbage collector if it becomes inaccessible.")
+#define FUNC_NAME s_scm_open_input_string
+{
+  SCM p = scm_mkstrport(SCM_INUM0, str, SCM_OPN | SCM_RDNG, FUNC_NAME);
+  return p;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_open_output_string, "open-output-string", 0, 0, 0, 
+	    (void),
+	    "Returns an output port that will accumulate characters for\n"
+	    "retrieval by @code{get-output-string}. The port can be closed\n"
+	    "by the procedure @code{close-output-port}, though its storage\n"
+	    "will be reclaimed by the garbage collector if it becomes\n"
+	    "inaccessible.")
+#define FUNC_NAME s_scm_open_output_string
+{
+  SCM p;
+
+  p = scm_mkstrport (SCM_INUM0, 
+		     scm_make_string (SCM_INUM0, SCM_UNDEFINED),
+		     SCM_OPN | SCM_WRTNG,
+                     FUNC_NAME);
+  return p;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_get_output_string, "get-output-string", 1, 0, 0, 
+	    (SCM port),
+	    "Given an output port created by @code{open-output-string},\n"
+	    "returns a string consisting of the characters that have been\n"
+	    "output to the port so far.")
+#define FUNC_NAME s_scm_get_output_string
+{
+  SCM_VALIDATE_OPOUTSTRPORT (1, port);
+  return scm_strport_to_string (port);
+}
+#undef FUNC_NAME
 
 
 /* Given a null-terminated string EXPR containing a Scheme expression

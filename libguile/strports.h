@@ -48,11 +48,30 @@
 
 
 
+
+#define SCM_STRPORTP(x)      (!SCM_IMP (x) && \
+                              (SCM_TYP16 (x) == scm_tc16_strport))
+#define SCM_OPSTRPORTP(x)    (SCM_STRPORTP (x) && \
+                              (SCM_CELL_WORD_0 (x) & SCM_OPN))
+#define SCM_OPINSTRPORTP(x)  (SCM_OPSTRPORTP (x) && \
+ 			      (SCM_CELL_WORD_0 (x) & SCM_RDNG))
+#define SCM_OPOUTSTRPORTP(x) (SCM_OPSTRPORTP (x) && \
+                              (SCM_CELL_WORD_0 (x) & SCM_WRTNG))
+
+
+
+extern scm_bits_t scm_tc16_strport;
+
+
+
 extern SCM scm_mkstrport (SCM pos, SCM str, long modes, const char * caller);
 extern SCM scm_strport_to_string (SCM port);
 extern SCM scm_object_to_string (SCM obj, SCM printer);
 extern SCM scm_call_with_output_string (SCM proc);
 extern SCM scm_call_with_input_string (SCM str, SCM proc);
+extern SCM scm_open_input_string (SCM str);
+extern SCM scm_open_output_string (void);
+extern SCM scm_get_output_string (SCM port);
 extern SCM scm_read_0str (char *expr);
 extern SCM scm_eval_0str (const char *expr);
 extern SCM scm_eval_string (SCM string);
