@@ -26,7 +26,7 @@ fi
 AC_SUBST(EXTRA_DEFS)
 
 for termlib in ncurses curses termcap terminfo termlib ; do
-   AC_CHECK_LIB(${termlib}, tgoto, 
+   AC_CHECK_LIB(${termlib}, tgoto,
                 [LIBS="-l${termlib} $LIBS"; break])
 done
 
@@ -74,20 +74,20 @@ hook ()
 
   sigaction (SIGWINCH, NULL, &action);
   rl_cleanup_after_signal();
-  
+
   /* exit with 0 if readline disabled SA_RESTART */
   exit (action.sa_flags & SA_RESTART);
 }
-    
+
 int
 main ()
 {
   struct sigaction action;
-  
+
   sigaction (SIGWINCH, NULL, &action);
   action.sa_flags |= SA_RESTART;
   sigaction (SIGWINCH, &action, NULL);
-  
+
   rl_pre_input_hook = hook;
   readline ("");
 }],
@@ -119,7 +119,7 @@ fi
 
 AC_CHECK_FUNCS(strdup)
 
-. ./LIBGUILEREADLINE-VERSION
+. $srcdir/LIBGUILEREADLINE-VERSION
 AC_SUBST(LIBGUILEREADLINE_INTERFACE_CURRENT)
 AC_SUBST(LIBGUILEREADLINE_INTERFACE_REVISION)
 AC_SUBST(LIBGUILEREADLINE_INTERFACE_AGE)
