@@ -81,6 +81,7 @@
 #include "libguile/gsubr.h"
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
+#include "libguile/hooks.h"
 #ifdef GUILE_ISELECT
 #include "libguile/iselect.h"
 #endif
@@ -489,6 +490,7 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
 #else
       scm_init_storage (0, 0);
 #endif
+      scm_weaks_prehistory ();	/* Must come after scm_init_storage */
       scm_init_subr_table ();
       scm_init_root ();
 #ifdef USE_THREADS
@@ -512,10 +514,11 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_init_fluids ();
       scm_init_backtrace ();	/* Requires fluids */
       scm_init_fports ();
-      scm_init_gc ();
       scm_init_gdbint ();
       scm_init_hash ();
       scm_init_hashtab ();
+      scm_init_hooks ();
+      scm_init_gc ();		/* Requires hooks */
 #ifdef GUILE_ISELECT
       scm_init_iselect ();
 #endif
