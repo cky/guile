@@ -1,5 +1,16 @@
 1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* procs.c (scm_setter): Converted to use generic dispatch.
+
+	* eval.c, eval.h: Bugfix: scm_sym_apply was not initialized
+	correctly.
+
+	* load.c (scm_search_path): Don't try extensions which already are
+	present at the end of the filename.
+        (scm_init_load): Check .scm first. (Thanks to Keisuke Nishida.)
+
+	* stacks.c (scm_sym_apply): Removed.  (Thanks to Ken Raeburn.)
+
 	Cleanup and simplification of generic method dispatch.
 	Also, the quadruple representation of entity and operator
 	procedures has been replaced with single.
