@@ -1740,10 +1740,31 @@ procedure has been specified, that procedure will run in the given
 @var{thread}.  When no thread has been given, the thread that made this
 call to @code{sigaction} is used.
 
-Flags can optionally be specified for the new handler (@code{SA_RESTART}
-will always be added if it's available and the system is using
-restartable system calls.)  The return value is a pair with information
-about the old handler as described above.
+@var{flags} is a @code{logior} (@pxref{Bitwise Operations}) of the
+following (where provided by the system), or @code{0} for none.
+
+@defvar SA_NOCLDSTOP
+By default, @code{SIGCHLD} is signalled when a child process stops
+(ie.@: receives @code{SIGSTOP}), and when a child process terminates.
+With the @code{SA_NOCLDSTOP} flag, @code{SIGCHLD} is only signalled
+for termination, not stopping.
+
+@code{SA_NOCLDSTOP} has no effect on signals other than
+@code{SIGCHLD}.
+@end defvar
+
+@defvar SA_RESTART
+If a signal occurs while in a system call, deliver the signal then
+restart the system call (as opposed to returning an @code{EINTR} error
+from that call).
+
+Guile always enables this flag where available, no matter what
+@var{flags} are specified.  This avoids spurious error returns in low
+level operations.
+@end defvar
+
+The return value is a pair with information about the old handler as
+described above.
 
 This interface does not provide access to the ``signal blocking''
 facility.  Maybe this is not needed, since the thread support may
