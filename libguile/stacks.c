@@ -433,7 +433,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
       SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, FUNC_NAME);
       if (SCM_DEBUGOBJP (obj))
 	dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (obj);
-      else if (scm_tc7_contin == SCM_TYP7 (obj))
+      else if (SCM_CONTINUATIONP (obj))
 	{
 	  offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_contregs))
 		    - SCM_BASE (obj));
@@ -517,7 +517,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
       SCM_VALIDATE_NIM (1,stack);
       if (SCM_DEBUGOBJP (stack))
 	dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (stack);
-      else if (scm_tc7_contin == SCM_TYP7 (stack))
+      else if (SCM_CONTINUATIONP (stack))
 	{
 	  offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (stack) + sizeof (scm_contregs))
 		    - SCM_BASE (stack));
@@ -587,7 +587,7 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
   SCM_VALIDATE_NIM (1,obj);
   if (SCM_DEBUGOBJP (obj))
     dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (obj);
-  else if (scm_tc7_contin == SCM_TYP7 (obj))
+  else if (SCM_CONTINUATIONP (obj))
     {
       offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_contregs))
 		- SCM_BASE (obj));

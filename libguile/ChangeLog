@@ -1,3 +1,37 @@
+2000-11-25  Gary Houston  <ghouston@arglist.com>
+
+	* use an applicable SMOB to represent continuations, instead of a
+	custom tc7 type.  This will make it easier to support R5RS
+	multiple value continuations, without the use of a Scheme-level
+	wrapper.
+
+	* continuations.c (scm_tc16_continuation, continuation_mark,
+	continuation_free, continuation_print, continuation_apply):
+	new SMOB support.
+	(scm_make_continuation): new procedure, replaces scm_make_cont
+	with a different interface.
+	(copy_stack_and_call, scm_dynthrow, scm_init_continuations): rewritten.
+	(CHEAP_CONTINUATIONS): removed non-working code completely.
+	(scm_call_continuation): removed.
+	* continuations.h (struct scm_contregs): add num_stack_items and
+	stack fields.  previously stack was stored following this struct:
+	use a tail array instead.
+	(SCM_CONTINUATIONP): new macro.
+	(SCM_CONTINUATION_LENGTH, SCM_SET_CONTINUATION_LENGTH):
+	rewritten.
+	(SCM_SET_CONTREGS): removed.
+	* tags.h: removed scm_tc7_contin (was tag 61).
+	* debug.c, gc.c, hash.c, print.c, procprop.c, procs.c:
+	removed scm_tc7_contin support.
+	* eval.c: use scm_make_continuation instead of scm_make_cont.
+	don't set jump buffers here.  remove scm_tc7_contin support.
+	* init.c, root.c: create SMOB continuation for rootcont instead
+	of scm_tc7_contin.  call scm_init_continuations before 
+	scm_init_root.
+	* root.c: remove support for static jmpbuf.  It's not used by
+	default and I broke it.  create SMOB continuation for rootcont.
+	* stacks.c: use SCM_CONTINUATIONP.
+
 2000-11-24  Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>
 
         * goops.c (filter_cpl, remove_duplicate_slots), goops.h

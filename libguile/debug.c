@@ -431,7 +431,6 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
 							   SCM_EOL,
 							   SCM_ENV (proc))));
     }
-  case scm_tc7_contin:
   case scm_tcs_subrs:
 #ifdef CCLO
   case scm_tc7_cclo:
@@ -455,7 +454,6 @@ SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0,
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     return SCM_ENV (proc);
-  case scm_tc7_contin:
   case scm_tcs_subrs:
 #ifdef CCLO
   case scm_tc7_cclo:

@@ -673,13 +673,6 @@ taloop:
 	  }
 	  scm_putc ('>', port);
 	  break;
-	case scm_tc7_contin:
-	  scm_puts ("#<continuation ", port);
-	  scm_intprint (SCM_CONTINUATION_LENGTH (exp), 10, port);
-	  scm_puts (" @ ", port);
-	  scm_intprint ((long) SCM_CONTREGS (exp), 16, port);
-	  scm_putc ('>', port);
-	  break;
 	case scm_tc7_port:
 	  {
 	    register long i = SCM_PTOBNUM (exp);

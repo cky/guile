@@ -48,10 +48,13 @@
 #include "libguile/_scm.h"
 #include "libguile/root.h"
 #include "libguile/stackchk.h"
+#include "libguile/smob.h"
+#include "libguile/ports.h"
+#include "libguile/dynwind.h"
+
 #ifdef DEBUG_EXTENSIONS
 #include "libguile/debug.h"
 #endif
-#include "libguile/dynwind.h"
 
 #include "libguile/continuations.h"
 
@@ -60,52 +63,92 @@
 /* {Continuations}
  */
 
-static char s_cont[] = "continuation";
+scm_bits_t scm_tc16_continuation;
 
-static void scm_dynthrow (SCM, SCM);
-
-
-#ifndef CHEAP_CONTINUATIONS
-
-
-SCM 
-scm_make_cont (SCM *answer)
+static SCM continuation_mark (SCM obj)
 {
-  long j;
-  SCM cont;
-  SCM_STACKITEM * src;
-  SCM_STACKITEM * dst;
+  scm_contregs *continuation = SCM_CONTREGS (obj);
 
-  SCM_NEWCELL (cont);
-  *answer = cont;
-  SCM_ENTER_A_SECTION;
-  SCM_FLUSH_REGISTER_WINDOWS;
-  j = scm_stack_size (SCM_BASE (scm_rootcont));
-  SCM_SET_CONTREGS (cont,
-		    scm_must_malloc (sizeof (scm_contregs)
-				     + j * sizeof (SCM_STACKITEM),
-				     s_cont));
-  SCM_DYNENV (cont) = scm_dynwinds;
-  SCM_THROW_VALUE (cont) = SCM_EOL;
-  src = SCM_BASE (cont) = SCM_BASE (scm_rootcont);
-  SCM_SEQ (cont) = SCM_SEQ (scm_rootcont);
-  SCM_SET_CONTINUATION_LENGTH (cont, j);
-  SCM_EXIT_A_SECTION;
-#ifndef SCM_STACK_GROWS_UP
-  src -= SCM_CONTINUATION_LENGTH (cont);
-#endif /* ndef SCM_STACK_GROWS_UP */
-  dst = (SCM_STACKITEM *) ((char *) SCM_CONTREGS (cont) + sizeof (scm_contregs));
-
-  /* memcpy should be safe:  src and dst will never overlap */
-  memcpy (dst, src, sizeof (SCM_STACKITEM) * SCM_CONTINUATION_LENGTH (cont));
-
-#ifdef DEBUG_EXTENSIONS
-  SCM_DFRAME (cont) = scm_last_debug_frame;
-#endif
-
-  return cont;
+  scm_gc_mark (continuation->throw_value);
+  scm_mark_locations (continuation->stack, continuation->num_stack_items);
+  return continuation->dynenv;
 }
 
+static scm_sizet continuation_free (SCM obj)
+{
+  scm_contregs *continuation = SCM_CONTREGS (obj);
+  /* stack array size is 1 if num_stack_items is 0 (rootcont).  */
+  scm_sizet extra_items = (continuation->num_stack_items > 0)
+    ? (continuation->num_stack_items - 1)
+    : 0;
+  scm_sizet bytes_free = sizeof (scm_contregs)
+    + extra_items * sizeof (SCM_STACKITEM);
+  
+  scm_must_free (continuation);
+  return bytes_free;
+}
+
+static int continuation_print (SCM obj, SCM port, scm_print_state *state)
+{
+  scm_contregs *continuation = SCM_CONTREGS (obj);
+
+  scm_puts ("#<continuation ", port);
+  scm_intprint (continuation->num_stack_items, 10, port);
+  scm_puts (" @ ", port);
+  scm_intprint (SCM_CELL_WORD_1 (obj), 16, port);
+  scm_putc ('>', port);
+  return 1;
+}
+
+/* this may return more than once: the first time with the escape
+   procedure, then subsequently with the value to be passed to the
+   continuation.  */
+#define FUNC_NAME "scm_make_continuation"
+SCM 
+scm_make_continuation (int *first)
+{
+  SCM cont;
+  scm_contregs *continuation;
+  scm_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
+  long stack_size;
+  SCM_STACKITEM * src;
+
+  SCM_ENTER_A_SECTION;
+  SCM_FLUSH_REGISTER_WINDOWS;
+  stack_size = scm_stack_size (rootcont->base);
+  continuation = scm_must_malloc (sizeof (scm_contregs)
+				  + (stack_size - 1) * sizeof (SCM_STACKITEM),
+				  FUNC_NAME);
+  continuation->num_stack_items = stack_size;
+  continuation->dynenv = scm_dynwinds;
+  continuation->throw_value = SCM_EOL;
+  continuation->base = src = rootcont->base;
+  continuation->seq = rootcont->seq;
+#ifdef DEBUG_EXTENSIONS
+  continuation->dframe = scm_last_debug_frame;
+#endif
+  SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
+  SCM_EXIT_A_SECTION;
+
+#ifndef SCM_STACK_GROWS_UP
+  src -= stack_size;
+#endif
+  memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
+
+  if (setjmp (continuation->jmpbuf))
+    {
+      *first = 0;
+      return continuation->throw_value;
+    }
+  else
+    {
+      *first = 1;
+      return cont;
+    }
+}
+#undef FUNC_NAME
+
+static void scm_dynthrow (SCM, SCM);
 
 /* Grow the stack by a fixed amount to provide space to copy in the
  * continuation.  Possibly this function has to be called several times
@@ -131,18 +174,18 @@ grow_stack (SCM cont, SCM val)
  * own frame are overwritten.  Thus, memcpy can be used for best performance.
  */
 static void
-copy_stack_and_call (SCM cont, SCM val, 
-		     SCM_STACKITEM * src, SCM_STACKITEM * dst)
+copy_stack_and_call (scm_contregs *continuation, SCM val, 
+		     SCM_STACKITEM * dst)
 {
-  /* memcpy should be safe:  src and dst will never overlap */
-  memcpy (dst, src, sizeof (SCM_STACKITEM) * SCM_CONTINUATION_LENGTH (cont));
+  memcpy (dst, continuation->stack,
+	  sizeof (SCM_STACKITEM) * continuation->num_stack_items);
 
 #ifdef DEBUG_EXTENSIONS
-  scm_last_debug_frame = SCM_DFRAME (cont);
+  scm_last_debug_frame = continuation->dframe;
 #endif
 
-  SCM_THROW_VALUE (cont) = val;
-  longjmp (SCM_JMPBUF (cont), 1);
+  continuation->throw_value = val;
+  longjmp (continuation->jmpbuf, 1);
 }
 
 
@@ -153,93 +196,59 @@ copy_stack_and_call (SCM cont, SCM val,
 static void 
 scm_dynthrow (SCM cont, SCM val)
 {
-  SCM_STACKITEM * src;
+  scm_contregs *continuation = SCM_CONTREGS (cont);
   SCM_STACKITEM * dst = SCM_BASE (scm_rootcont);
   SCM_STACKITEM stack_top_element;
 
 #ifdef SCM_STACK_GROWS_UP
-  if (SCM_PTR_GE (dst + SCM_CONTINUATION_LENGTH (cont), & stack_top_element))
+  if (SCM_PTR_GE (dst + continuation->num_stack_items, &stack_top_element))
     grow_stack (cont, val);
 #else
-  dst -= SCM_CONTINUATION_LENGTH (cont);
-  if (SCM_PTR_LE (dst, & stack_top_element))
+  dst -= continuation->num_stack_items;
+  if (SCM_PTR_LE (dst, &stack_top_element))
     grow_stack (cont, val);
 #endif /* def SCM_STACK_GROWS_UP */
+
   SCM_FLUSH_REGISTER_WINDOWS;
-  src = (SCM_STACKITEM *) ((char *) SCM_CONTREGS (cont) + sizeof (scm_contregs));
-  copy_stack_and_call (cont, val, src, dst);
+  copy_stack_and_call (continuation, val, dst);
 }
 
-
-#else /* ifndef CHEAP_CONTINUATIONS */
-
-/* Dirk:FIXME:: It seems that nobody has ever tried to use this code, since it
- * contains syntactic errors and thus would not have compiled anyway.
- */
-
-
-SCM 
-scm_make_cont (SCM *answer)
+#define FUNC_NAME "continuation_apply"
+static SCM continuation_apply (SCM cont, SCM args)
 {
-  SCM cont;
+  /* FIXME: support R5RS multiple value continuations.  */
+  scm_contregs *continuation = SCM_CONTREGS (cont);
+  scm_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
 
-  SCM_NEWCELL (cont);
-  *answer = cont;
-  SCM_ENTER_A_SECTION;
-  SCM_SET_CONTREGS (cont, scm_must_malloc (sizeof (scm_contregs), s_cont));
-  SCM_DYNENV (cont) = scm_dynwinds;
-  SCM_THROW_VALUE = SCM_EOL;
-  SCM_BASE (cont) = SCM_BASE (rootcont);
-  SCM_SEQ (cont) = SCM_SEQ (rootcont);
-  SCM_SETCAR (cont, scm_tc7_contin);
-  SCM_EXIT_A_SECTION;
-
-#ifdef DEBUG_EXTENSIONS
-  SCM_DFRAME (cont) = scm_last_debug_frame;
-#endif
-
-  return cont;
-}
-
-
-static void
-scm_dynthrow (SCM cont, SCM val)
-{
-#ifdef DEBUG_EXTENSIONS
-  scm_last_debug_frame = SCM_DFRAME (cont);
-#endif
-  SCM_THROW_VALUE (cont) = val;
-  longjmp (SCM_JMPBUF (cont), 1);
-}
-
-
-#endif
-
-
-SCM
-scm_call_continuation (SCM cont, SCM val)
-{
-  if ((SCM_SEQ (cont) != SCM_SEQ (scm_rootcont))
-      || (SCM_BASE (cont) != SCM_BASE (scm_rootcont)))  
-    /* base compare not needed */
-    scm_wta (cont, "continuation from wrong top level", s_cont);
+  SCM_ASSERT (scm_ilength (args) == 1, args, SCM_ARGn, FUNC_NAME);
+  if (continuation->seq != rootcont->seq
+      /* this base comparison isn't needed */
+      || continuation->base != rootcont->base)
+    {
+      scm_wta (cont, "continuation from wrong top level", FUNC_NAME);
+    }
   
-  scm_dowinds (SCM_DYNENV (cont),
-	       scm_ilength (scm_dynwinds) - scm_ilength (SCM_DYNENV (cont)));
+  scm_dowinds (continuation->dynenv,
+	       scm_ilength (scm_dynwinds) - continuation->dynenv);
   
-  scm_dynthrow (cont, val);
+  scm_dynthrow (cont, SCM_CAR (args));
   return SCM_UNSPECIFIED; /* not reached */
 }
-
+#undef FUNC_NAME
 
 void
 scm_init_continuations ()
 {
+  scm_tc16_continuation = scm_make_smob_type ("continuation", 0);
+  scm_set_smob_mark (scm_tc16_continuation, continuation_mark);
+  scm_set_smob_free (scm_tc16_continuation, continuation_free);
+  scm_set_smob_print (scm_tc16_continuation, continuation_print);
+  scm_set_smob_apply (scm_tc16_continuation, continuation_apply, 0, 0, 1);
+  
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/continuations.x"
 #endif
 }
-
 
 /*
   Local Variables:

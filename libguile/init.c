@@ -183,11 +183,13 @@ start_stack (void *base)
 
   /* Create an object to hold the root continuation.
    */
-  SCM_NEWCELL (scm_rootcont);
-  SCM_SET_CONTREGS (scm_rootcont, scm_must_malloc (sizeof (scm_contregs),
-						   "continuation"));
-  SCM_SET_CELL_TYPE (scm_rootcont, scm_tc7_contin);
-  SCM_SEQ (scm_rootcont) = 0;
+  {
+    scm_contregs *contregs = scm_must_malloc (sizeof (scm_contregs),
+					      "continuation");
+    contregs->num_stack_items = 0;
+    contregs->seq = 0;
+    SCM_NEWSMOB (scm_rootcont, scm_tc16_continuation, contregs);
+  }
   /* The root continuation is further initialized by restart_stack. */
 
   /* Create the look-aside stack for variables that are shared between
@@ -488,6 +490,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_weaks_prehistory ();	/* Must come after scm_init_storage */
   scm_init_subr_table ();
   scm_environments_prehistory (); /* create the root environment */
+  scm_init_continuations ();
   scm_init_root ();
 #ifdef USE_THREADS
   scm_init_threads (base);
@@ -501,7 +504,6 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_async ();
   scm_init_boolean ();
   scm_init_chars ();
-  scm_init_continuations ();
 #ifdef GUILE_DEBUG_MALLOC
   scm_init_debug_malloc ();
 #endif

@@ -1621,8 +1621,9 @@ do { \
  	  }\
 	else\
 	  {\
-	    scm_make_cont (&tmp);\
-	    if (!setjmp (SCM_JMPBUF (tmp)))\
+            int first;\
+	    tmp = scm_make_continuation (&first);\
+	    if (first)\
 	      scm_ithrow (scm_sym_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
 	  }\
       }\
@@ -1875,10 +1876,14 @@ start:
 	  t.arg1 = scm_make_debugobj (&debug);
 	else
 	  {
-	    scm_make_cont (&t.arg1);
-	    if (setjmp (SCM_JMPBUF (t.arg1)))
+	    int first;
+	    SCM val = scm_make_continuation (&first);
+	    
+	    if (first)
+	      t.arg1 = val;
+	    else
 	      {
-		x = SCM_THROW_VALUE (t.arg1);
+		x = val;
 		if (SCM_IMP (x))
 		  {
 		    RETURN (x);
@@ -2218,13 +2223,15 @@ dispatch:
 	  goto evapply;
 
 	case (SCM_ISYMNUM (SCM_IM_CONT)):
-	  scm_make_cont (&t.arg1);
-	  if (setjmp (SCM_JMPBUF (t.arg1)))
-	    {
-	      SCM val;
-	      val = SCM_THROW_VALUE (t.arg1);
-	      RETURN (val)
-	    }
+	  {
+	    int first;
+	    SCM val = scm_make_continuation (&first);
+
+	    if (first)
+	      t.arg1 = val;
+	    else
+	      RETURN (val);
+	  }
 	  proc = SCM_CDR (x);
 	  proc = evalcar (proc, env);
 	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
@@ -2681,7 +2688,6 @@ evapply:
 	    else
 	      goto badfun;
 	  }
-      case scm_tc7_contin:
       case scm_tc7_subr_1:
       case scm_tc7_subr_2:
       case scm_tc7_subr_2o:
@@ -2815,8 +2821,6 @@ evapply:
 	  env = EXTEND_ENV (SCM_CAR (x), scm_cons (t.arg1, SCM_EOL), SCM_ENV (proc));
 #endif
 	  goto cdrxbegin;
-	case scm_tc7_contin:
-	  scm_call_continuation (proc, t.arg1);
 	case scm_tcs_cons_gloc:
 	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	    {
@@ -2970,7 +2974,6 @@ evapply:
 	case scm_tc7_subr_1o:
 	case scm_tc7_subr_1:
 	case scm_tc7_subr_3:
-	case scm_tc7_contin:
 	  goto wrongnumargs;
 	default:
 	  goto badfun;
@@ -3171,7 +3174,6 @@ evapply:
       case scm_tc7_subr_0:
       case scm_tc7_cxr:
       case scm_tc7_subr_1:
-      case scm_tc7_contin:
 	goto wrongnumargs;
       default:
 	goto badfun;
@@ -3187,10 +3189,14 @@ exit:
 	  t.arg1 = scm_make_debugobj (&debug);
 	else
 	  {
-	    scm_make_cont (&t.arg1);
-	    if (setjmp (SCM_JMPBUF (t.arg1)))
+	    int first;
+	    SCM val = scm_make_continuation (&first);
+	    
+	    if (first)
+	      t.arg1 = val;
+	    else
 	      {
-		proc = SCM_THROW_VALUE (t.arg1);
+		proc = val;
 		goto ret;
 	      }
 	  }
@@ -3342,8 +3348,10 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
 	tmp = scm_make_debugobj (&debug);
       else
 	{
-	  scm_make_cont (&tmp);
-	  if (setjmp (SCM_JMPBUF (tmp)))
+	  int first;
+
+	  tmp = scm_make_continuation (&first);
+	  if (!first)
 	    goto entap;
 	}
       scm_ithrow (scm_sym_enter_frame, scm_cons (tmp, SCM_EOL), 0);
@@ -3492,9 +3500,6 @@ tail:
 	RETURN (scm_smob_apply_2 (proc, arg1, SCM_CAR (args)))
       else
 	RETURN (scm_smob_apply_3 (proc, arg1, SCM_CAR (args), SCM_CDR (args)));
-    case scm_tc7_contin:
-      SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);
-      scm_call_continuation (proc, arg1);
 #ifdef CCLO
     case scm_tc7_cclo:
 #ifdef DEVAL
@@ -3565,10 +3570,14 @@ exit:
 	  arg1 = scm_make_debugobj (&debug);
 	else
 	  {
-	    scm_make_cont (&arg1);
-	    if (setjmp (SCM_JMPBUF (arg1)))
+	    int first;
+	    SCM val = scm_make_continuation (&first);
+
+	    if (first)
+	      arg1 = val;
+	    else
 	      {
-		proc = SCM_THROW_VALUE (arg1);
+		proc = val;
 		goto ret;
 	      }
 	  }

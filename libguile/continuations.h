@@ -47,25 +47,41 @@
 
 
 
+/* a continuation SCM is a non-immediate pointing to a heap cell with:
+   word 0: bits 0-15: unused.
+           bits 16-31: smob type tag: scm_tc16_continuation.
+   word 1: malloc block containing an scm_contregs structure with a
+           tail array of SCM_STACKITEM.  the size of the array is stored
+	   in the num_stack_items field of the structure.
+*/
+
+extern scm_bits_t scm_tc16_continuation;
+
 typedef struct 
 {
   SCM throw_value;
   jmp_buf jmpbuf;
   SCM dynenv;
-  SCM_STACKITEM *base;
-  unsigned long seq;
+  SCM_STACKITEM *base;      /* base of the live stack, before it was saved.  */
+  scm_sizet num_stack_items; /* size of the saved stack.  */
+  unsigned long seq;         /* dynamic root identifier.  */
 
 #ifdef DEBUG_EXTENSIONS
+  /* the most recently created debug frame on the live stack, before
+     it was saved.  */
   struct scm_debug_frame *dframe;
 #endif
+  SCM_STACKITEM stack[1];    /* copied stack of size num_stack_items.  */ 
 } scm_contregs;
 
+#define SCM_CONTINUATIONP(x)\
+   (SCM_NIMP (x) && (SCM_TYP16 (x) == scm_tc16_continuation))
 
-#define SCM_CONTREGS(x)		((scm_contregs *) SCM_CELL_WORD_1 (x))	 
-#define SCM_SET_CONTREGS(x, r)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (r))) 
-#define SCM_CONTINUATION_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
-#define SCM_SET_CONTINUATION_LENGTH(x, l) (SCM_SET_CELL_WORD_0 ((x), ((l) << 8) + scm_tc7_contin))
+#define SCM_CONTREGS(x)		((scm_contregs *) SCM_CELL_WORD_1 (x))
 
+#define SCM_CONTINUATION_LENGTH(x) (SCM_CONTREGS (x)->num_stack_items)
+#define SCM_SET_CONTINUATION_LENGTH(x,n)\
+   (SCM_CONTREGS (x)->num_stack_items = (n))
 #define SCM_JMPBUF(x)		((SCM_CONTREGS (x))->jmpbuf)
 #define SCM_DYNENV(x)		((SCM_CONTREGS (x))->dynenv)
 #define SCM_THROW_VALUE(x)	((SCM_CONTREGS (x))->throw_value)
@@ -75,8 +91,7 @@ typedef struct
 
 
 
-extern SCM scm_make_cont (SCM * answer);
-extern SCM scm_call_continuation (SCM cont, SCM val);
+extern SCM scm_make_continuation (int *first);
 extern void scm_init_continuations (void);
 
 

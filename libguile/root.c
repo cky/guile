@@ -58,12 +58,6 @@
 #include "libguile/root.h"
 
 
-/* Define this if you want to try out the stack allocation of cwdr's
-   jumpbuf.  It works for me but I'm still worried that the dynwinds
-   might be able to make a mess. */
-
-#undef USE_STACKJMPBUF
-
 SCM scm_sys_protects[SCM_NUM_PROTECTS];
 
 long scm_tc16_root;
@@ -248,9 +242,6 @@ scm_internal_cwdr (scm_catch_body_t body, void *body_data,
 		   scm_catch_handler_t handler, void *handler_data,
 		   SCM_STACKITEM *stack_start)
 {
-#ifdef USE_STACKJMPBUF
-  scm_contregs static_contregs;
-#endif
   int old_ints_disabled = scm_ints_disabled;
   SCM old_rootcont, old_winds;
   struct cwdr_handler_data my_handler_data;
@@ -259,22 +250,22 @@ scm_internal_cwdr (scm_catch_body_t body, void *body_data,
   /* Create a fresh root continuation.  */
   {
     SCM new_rootcont;
-    SCM_NEWCELL (new_rootcont);
+
     SCM_REDEFER_INTS;
-#ifdef USE_STACKJMPBUF
-    SCM_SET_CONTREGS (new_rootcont, &static_contregs);
-#else
-    SCM_SET_CONTREGS (new_rootcont,
-		      scm_must_malloc (sizeof (scm_contregs),
-				       "inferior root continuation"));
-#endif
-    SCM_SET_CELL_TYPE (new_rootcont, scm_tc7_contin);
-    SCM_DYNENV (new_rootcont) = SCM_EOL;
-    SCM_BASE (new_rootcont) = stack_start;
-    SCM_SEQ (new_rootcont) = ++n_dynamic_roots;
+    {
+      scm_contregs *contregs = scm_must_malloc (sizeof (scm_contregs),
+						"inferior root continuation");
+
+      contregs->num_stack_items = 0;
+      contregs->dynenv = SCM_EOL;
+      contregs->base = stack_start;
+      contregs->seq = ++n_dynamic_roots;
+      contregs->throw_value = SCM_BOOL_F;
 #ifdef DEBUG_EXTENSIONS
-    SCM_DFRAME (new_rootcont) = 0;
+      contregs->dframe = 0;
 #endif
+      SCM_NEWSMOB (new_rootcont, scm_tc16_continuation, contregs);
+    }
     old_rootcont = scm_rootcont;
     scm_rootcont = new_rootcont;
     SCM_REALLOW_INTS;
@@ -298,9 +289,6 @@ scm_internal_cwdr (scm_catch_body_t body, void *body_data,
 
   scm_dowinds (old_winds, - scm_ilength (old_winds));
   SCM_REDEFER_INTS;
-#ifdef USE_STACKCJMPBUF
-  SCM_SET_CONTREGS (scm_rootcont, NULL);
-#endif
 #ifdef DEBUG_EXTENSIONS
   scm_last_debug_frame = SCM_DFRAME (old_rootcont);
 #endif

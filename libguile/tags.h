@@ -356,7 +356,7 @@ typedef long scm_bits_t;
 #define scm_tc7_ivect		79
 #endif
 
-#define scm_tc7_contin		61
+/* free         		61 */
 #define scm_tc7_cclo		63
 #define scm_tc7_rpsubr		69
 #define scm_tc7_subr_0		85

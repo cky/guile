@@ -1221,15 +1221,6 @@ gc_mark_nimp:
       ptr = SCM_VELTS (ptr)[0];
       goto gc_mark_loop;
 #endif
-    case scm_tc7_contin:
-      if (SCM_VELTS (ptr))
-	scm_mark_locations (SCM_VELTS_AS_STACKITEMS (ptr),
-			    (scm_sizet)
-			    (SCM_CONTINUATION_LENGTH (ptr) +
-			     (sizeof (SCM_STACKITEM) + -1 +
-			      sizeof (scm_contregs)) /
-			     sizeof (SCM_STACKITEM)));
-      break;
 #ifdef HAVE_ARRAYS
     case scm_tc7_bvect:
     case scm_tc7_byvect:
@@ -1653,11 +1644,6 @@ scm_gc_sweep ()
 	    case scm_tc7_symbol:
 	      m += SCM_SYMBOL_LENGTH (scmptr) + 1;
 	      scm_must_free (SCM_SYMBOL_CHARS (scmptr));
-	      break;
-	    case scm_tc7_contin:
-	      m += SCM_CONTINUATION_LENGTH (scmptr) * sizeof (SCM_STACKITEM)
-		   + sizeof (scm_contregs);
-	      scm_must_free (SCM_CONTREGS (scmptr));
 	      break;
 	    case scm_tcs_subrs:
               /* the various "subrs" (primitives) are never freed */

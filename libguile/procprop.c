@@ -80,7 +80,6 @@ scm_i_procedure_arity (SCM proc)
       o = 1;
     case scm_tc7_subr_1:
     case scm_tc7_cxr:
-    case scm_tc7_contin:
       a += 1;
       break;
     case scm_tc7_subr_2:
