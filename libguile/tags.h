@@ -500,12 +500,22 @@ extern char *scm_isymnames[];   /* defined in print.c */
 
 #define SCM_IM_DELAY		SCM_MAKISYM(32)
 
+/* When a variable is unbound this is marked by the SCM_UNDEFINED
+ * value.  The following is an unbound value which can be handled on
+ * the Scheme level, i.e., it can be stored in and retrieved from a
+ * Scheme variable.  This value is only intended to mark an unbound
+ * slot in GOOPS.  It is needed now, but we should probably rewrite
+ * the code which handles this value in C so that SCM_UNDEFINED can be
+ * used instead.  It is not ideal to let this kind of unique and
+ * strange values loose on the Scheme level.
+ */
+#define SCM_UNBOUND		SCM_MAKIFLAG(33)
+
 #define SCM_UNBNDP(x) 	(SCM_UNDEFINED==(x))
 
 
 
-/* Dispatching aids:
- */
+/* Dispatching aids: */
 
 
 /* For cons pairs with immediate values in the CAR

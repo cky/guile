@@ -1,3 +1,33 @@
+1999-12-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile-doc-snarf.awk: Removed.
+
+	* guile-doc-snarf.awk.in: Added.
+	
+	* ports.c (s_scm_pt_member): Fixed validation.
+
+	* guile-doc-snarf.in (filename): Use basename in order to strip
+	away path.
+
+	* debug.c (scm_make_iloc, s_scm_proc_to_mem): Added missing
+	semicolon.
+	(scm_memcons, scm_memcons, mem_to_proc): Renamed function name
+	strings to new form.
+
+	* backtrace.c (set_print_params_x): Fixed GUILE_PROC macro.
+
+	* tags.h (SCM_UNBOUND): New iflag which is needed for some time to
+	mark the unboundness of a GOOPS slot.  (Added now in order to
+	correct a oversight.  Should probably be removed again and
+	replaced with SCM_UNDEFINED when the corresponding code in GOOPS
+	is rewritten.)
+
+	* print.c (scm_isymnames): Added printed representation for
+	SCM_UNBOUND.
+
+	* eval.c (SCM_CEVAL): Bugfix: Added check for unbound slot in
+	SCM_IM_SLOT_REF.
+
 Mon Dec 13 17:23:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* strings.c: Fixed mistaken default value in

@@ -454,7 +454,7 @@ GUILE_PROC(scm_pt_member, "pt-member", 1, 0, 0,
 #define FUNC_NAME s_scm_pt_member
 {
   int i;
-  SCM_VALIDATE_INT_copy(1,member,i);
+  SCM_VALIDATE_INT_COPY (1,member,i);
   if (i < 0 || i >= scm_port_table_size)
     return SCM_BOOL_F;
   else

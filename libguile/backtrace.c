@@ -286,7 +286,8 @@ static print_params_t *print_params = default_print_params;
 
 #ifdef GUILE_DEBUG
 GUILE_PROC(set_print_params_x, "set-print-params!", 1, 0, 0,
-           (SCM params)
+           (SCM params),
+"")
 #define FUNC_NAME s_set_print_params_x
 {
   int i, n = scm_ilength (params);

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Extract the initialization actions for builtin things.
 
-filename=$1; shift
+filename=`basename $1`; shift
 
 # we need to be sure that the .x file exists
 # since the .c/.cc file may include it

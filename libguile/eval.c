@@ -2340,7 +2340,12 @@ dispatch:
 	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
 	  x = SCM_CDR (x);
 	  t.arg1 = EVALCAR (x, env);
-	  RETURN (SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CADR (x))]);
+	  proc = SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CADR (x))];
+	  if (proc == SCM_UNBOUND)
+	    scm_misc_error (NULL,
+			    "Reference to unbound slot in %S",
+			    SCM_LIST1 (t.arg1));
+	  RETURN (proc)
 	  
 	case (SCM_ISYMNUM (SCM_IM_SLOT_SET_X)):
 	  x = SCM_CDR (x);
@@ -2349,7 +2354,7 @@ dispatch:
 	  proc = SCM_CDR (x);
 	  SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CAR (x))]
 	    = EVALCAR (proc, env);
-	  RETURN (SCM_UNSPECIFIED);
+	  RETURN (SCM_UNSPECIFIED)
 	  
 	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
 	  proc = SCM_CDR (x);
