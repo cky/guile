@@ -1,5 +1,34 @@
 2004-11-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* tags.h (scm_tc7_llvect, scm_tc7_uvect, scm_tc7_fvect,
+	scm_tc7_dvect, scm_tc7_cvect, scm_tc7_svect, scm_tc7_byvect,
+	scm_tc7_ivect): Renamed to scm_tc7_unused_1 to scm_tc7_unused_8.
+
+	* validate.h (SCM_VALIDATE_VECTOR_OR_DVECTOR): Accept f64vectors
+	instead of the old-style dvectors.
+
+	* gh_data.c: Use new-style uniform arrays in place of old-style
+	ones.
+
+	* eq.c, evalext.c, gc-card.c, gc-mark.c, objects.c, print.c,
+	ramap.c, unif.c: Do no longer handle old-style uniform vectors.
+
+	* unif.c (scm_bit_set_star_x, scm_bit_count_star_x): Use u32vectors
+	instead of old-sytle uvectors.
+	
+	* convert.c, convert.i.c: Rewritten completely, using
+	scm_any_to_u8vector, etc and other new-style uniform vector
+	functions.
+
+	* random.c (scm_random_solid_sphere_x,
+	scm_random_hollow_sphere_x): Do not validate vector argument, this
+	is already done elsewhere.
+
+	* srfi-4.h, srfi-4.i.c, srfi-4.c (coerce_to_uvec,
+	scm_any_to_u8vector, etc): New.
+	(scm_uniform_element_size, scm_uniform_vector_length): Do no
+	longer handle old-style uniform vectors.
+
 	* read.c (scm_lreadr): Bugfix: include the last bit in the
 	bit vector.
 
