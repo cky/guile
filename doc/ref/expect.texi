@@ -56,10 +56,10 @@ match.  E.g.,
 
 @smalllisp
 ("^daemon" => write)
-("^d\\(aemon\\)" => (lambda args (for-each write args)))
-("^da\\(em\\)on" => (lambda (all sub)
-                         (write all) (newline)
-                         (write sub) (newline)))
+("^d(aemon)" => (lambda args (for-each write args)))
+("^da(em)on" => (lambda (all sub)
+                  (write all) (newline)
+                  (write sub) (newline)))
 @end smalllisp
 
 The order of the substrings corresponds to the order in which the

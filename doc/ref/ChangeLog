@@ -1,3 +1,8 @@
+2004-12-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* expect.texi (Expect): Removed backslash escapes of regexp
+	operators ( and ) in code example for expect-strings.
+
 2004-12-14  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Regexp Functions): Revise regex-substitute and
