@@ -727,10 +727,12 @@ systems, but has no effect on Unix-like systems.
 call, when that flag is available.)
 @end table
 
+If a file cannot be opened with the access
+requested, @code{open-file} throws an exception.
+
 In theory we could create read/write ports which were buffered
 in one direction only.  However this isn't included in the
-current interfaces.  If a file cannot be opened with the access
-requested, @code{open-file} throws an exception.
+current interfaces.
 @end deffn
 
 @rnindex open-input-file
