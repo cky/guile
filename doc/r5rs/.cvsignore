@@ -12,6 +12,7 @@ stamp-vti.1
 *.tp
 *.ky
 *.pg
+*.pgs
 *.cps
 *.fns
 *.tps
@@ -19,5 +20,3 @@ stamp-vti.1
 *.ps
 *.info*
 *.html
-version.texi
-version-tutorial.texi
