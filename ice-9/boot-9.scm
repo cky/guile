@@ -569,6 +569,8 @@
       (run-hook hook)
       (for-each (lambda (thunk) (thunk)) hook)))
 
+(define *suppress-old-style-hook-warning* #f)
+
 (define add-hook!
   (procedure->memoizing-macro
     (lambda (exp env)
@@ -576,7 +578,8 @@
 	(if (and (pair? hook) (eq? (car hook) 'hook))
 	    `(new-add-hook! ,@(cdr exp))
 	    (begin
-	      (display "Warning: Old style hooks\n" (current-error-port))
+	      (or *suppress-old-style-hook-warning*
+		  (display "Warning: Old style hooks\n" (current-error-port)))
 	      `(let ((thunk ,(caddr exp)))
 		 (if (not (memq thunk ,(cadr exp)))
 		     (set! ,(cadr exp)
@@ -589,7 +592,8 @@
 	(if (and (pair? hook) (eq? (car hook) 'hook))
 	    `(new-remove-hook! ,@(cdr exp))
 	    (begin
-	      (display "Warning: Old style hooks\n" (current-error-port))
+	      (or *suppress-old-style-hook-warning*
+		  (display "Warning: Old style hooks\n" (current-error-port)))
 	      `(let ((thunk ,(caddr exp)))
 		     (set! ,(cadr exp)
 			   (delq! thunk ,(cadr exp))))))))))

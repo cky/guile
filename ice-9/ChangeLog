@@ -1,3 +1,8 @@
+1998-12-01  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm (*suppress-old-style-hook-warning*): Set this to #t
+	if you don't want the old style hook warnings.
+
 1998-12-01  Christian Lynbech  <chl@tbit.dk>
 
 	* boot-9.scm (try-using-libtool-name): Fix check on dlname to make
