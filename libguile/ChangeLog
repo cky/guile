@@ -1,3 +1,8 @@
+1999-12-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* macros.c (scm_make_synt): Use scm_make_subr_opt to make the
+	transformer subr.  (Thanks to Bill Schottstaedt.)
+
 1999-12-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* objects.c (scm_class_of): Bugfix: Inserted missing SCM_CDR
