@@ -1,3 +1,8 @@
+1999-02-12  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* configure.in: Add --with-readline flag.
+	* configure: Rebuilt.
+
 1999-02-09  Maciej Stachowiak  <mstachow@alum.mit.edu>
 
 	* NEWS: Added entry for optargs module.

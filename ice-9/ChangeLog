@@ -1,9 +1,18 @@
+1999-02-12  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* getopt-long.scm: Remove debugging calls to `pk'.
+
+	A new argument-processing package from Russ McManus.
+	* getopt-long.scm: New file.
+	* Makefile.am (ice9_sources): Added getopt-long.scm.
+	* Makefile.in: Regenerated.
+
 1999-02-09  Maciej Stachowiak  <mstachow@alum.mit.edu>
 
 	* optargs.scm: New file. 
 	* Makefile.am (ice9_sources): Add optargs.scm here. Makefile.in
  	not regenerated because I don't have the right version of Automake.
-	
+
 1999-02-06  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* and-let*.scm: New file, from Michael Livshin.

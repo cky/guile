@@ -78,6 +78,128 @@ in backtraces.
 
 * Changes to Scheme functions and syntax
 
+** New module (ice-9 getopt-long), with the function `getopt-long'.
+
+getopt-long is a function for parsing command-line arguments in a
+manner consistent with other GNU programs.
+
+(getopt-long ARGS GRAMMAR)
+Parse the arguments ARGS according to the argument list grammar GRAMMAR.
+
+ARGS should be a list of strings.  Its first element should be the
+name of the program; subsequent elements should be the arguments
+that were passed to the program on the command line.  The
+`program-arguments' procedure returns a list of this form.
+
+GRAMMAR is a list of the form:
+((OPTION (PROPERTY VALUE) ...) ...)
+
+Each OPTION should be a symbol.  `getopt-long' will accept a
+command-line option named `--OPTION'.
+Each option can have the following (PROPERTY VALUE) pairs:
+
+  (single-char CHAR) --- Accept `-CHAR' as a single-character
+            equivalent to `--OPTION'.  This is how to specify traditional
+            Unix-style flags.
+  (required? BOOL) --- If BOOL is true, the option is required.
+            getopt-long will raise an error if it is not found in ARGS.
+  (value BOOL) --- If BOOL is #t, the option accepts a value; if
+            it is #f, it does not; and if it is the symbol
+            `optional', the option may appear in ARGS with or
+            without a value. 
+  (predicate FUNC) --- If the option accepts a value (i.e. you
+            specified `(value #t)' for this option), then getopt
+            will apply FUNC to the value, and throw an exception
+            if it returns #f.  FUNC should be a procedure which
+            accepts a string and returns a boolean value; you may
+            need to use quasiquotes to get it into GRAMMAR.
+
+The (PROPERTY VALUE) pairs may occur in any order, but each
+property may occur only once.  By default, options do not have
+single-character equivalents, are not required, and do not take
+values.
+
+In ARGS, single-character options may be combined, in the usual
+Unix fashion: ("-x" "-y") is equivalent to ("-xy").  If an option
+accepts values, then it must be the last option in the
+combination; the value is the next argument.  So, for example, using
+the following grammar:
+     ((apples    (single-char #\a))
+      (blimps    (single-char #\b) (value #t))
+      (catalexis (single-char #\c) (value #t)))
+the following argument lists would be acceptable:
+   ("-a" "-b" "bang" "-c" "couth")     ("bang" and "couth" are the values
+                                        for "blimps" and "catalexis")
+   ("-ab" "bang" "-c" "couth")         (same)
+   ("-ac" "couth" "-b" "bang")         (same)
+   ("-abc" "couth" "bang")             (an error, since `-b' is not the
+                                        last option in its combination)
+
+If an option's value is optional, then `getopt-long' decides
+whether it has a value by looking at what follows it in ARGS.  If
+the next element is a string, and it does not appear to be an
+option itself, then that string is the option's value.
+
+The value of a long option can appear as the next element in ARGS,
+or it can follow the option name, separated by an `=' character.
+Thus, using the same grammar as above, the following argument lists
+are equivalent:
+  ("--apples" "Braeburn" "--blimps" "Goodyear")
+  ("--apples=Braeburn" "--blimps" "Goodyear")
+  ("--blimps" "Goodyear" "--apples=Braeburn")
+
+If the option "--" appears in ARGS, argument parsing stops there;
+subsequent arguments are returned as ordinary arguments, even if
+they resemble options.  So, in the argument list:
+        ("--apples" "Granny Smith" "--" "--blimp" "Goodyear")
+`getopt-long' will recognize the `apples' option as having the
+value "Granny Smith", but it will not recognize the `blimp'
+option; it will return the strings "--blimp" and "Goodyear" as
+ordinary argument strings.
+
+The `getopt-long' function returns the parsed argument list as an
+assocation list, mapping option names --- the symbols from GRAMMAR
+--- onto their values, or #t if the option does not accept a value.
+Unused options do not appear in the alist.
+
+All arguments that are not the value of any option are returned
+as a list, associated with the empty list.
+
+`getopt-long' throws an exception if:
+- it finds an unrecognized option in ARGS
+- a required option is omitted
+- an option that requires an argument doesn't get one
+- an option that doesn't accept an argument does get one (this can
+  only happen using the long option `--opt=value' syntax)
+- an option predicate fails
+
+So, for example:
+
+(define grammar
+  `((lockfile-dir (required? #t)
+                  (value #t)
+                  (single-char #\k)
+                  (predicate ,file-is-directory?))
+    (verbose (required? #f)
+             (single-char #\v)
+             (value #f))
+    (x-includes (single-char #\x))
+    (rnet-server (single-char #\y) 
+                 (predicate ,string?))))
+
+(getopt-long '("my-prog" "-vk" "/tmp" "foo1" "--x-includes=/usr/include" 
+               "--rnet-server=lamprod" "--" "-fred" "foo2" "foo3")
+               grammar)
+=> ((() "foo1" "-fred" "foo2" "foo3")
+    (rnet-server . "lamprod")
+    (x-includes . "/usr/include")
+    (lockfile-dir . "/tmp")
+    (verbose . #t))
+
+** The (ice-9 getopt-gnu-style) module is obsolete; use (ice-9 getopt-long).
+
+It will be removed in a few releases.
+
 ** New syntax: lambda*
 ** New syntax: define*
 ** New syntax: define*-public   
