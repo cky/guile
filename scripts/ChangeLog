@@ -1,3 +1,15 @@
+2002-04-07  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* summarize-guile-TODO: Add "Bugs" section to commentary.
+	Autoload (srfi srfi-13) on `string-tokenize'.
+
+	(as-leaf): New proc.
+	(hang-by-the-leaves): Use `as-leaf'.
+	(read-TODO-file): Expand regexp and specs
+	to handle "D", "X" and "N%".  Fix regexp
+	to make isolating `who' easier.
+	(display-item): Handle "D", "X" and "N%".
+
 2002-04-06  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* summarize-guile-TODO: New script.
