@@ -1003,15 +1003,6 @@
 		  
 
 	   
-(define (delq-all! obj l)
-  (let ((answer (cons '() l)))
-    (let loop ((pos answer))
-      (cond
-       ((null? (cdr pos)) 	(cdr answer))
-       ((eq? (cadr pos) obj)	(set-cdr! pos (cddr pos))
-				(loop pos))
-       (else			(loop (cdr pos)))))))
-
 (define (transform-usage-lambda cases)
   (let* ((raw-usage (delq! 'else (map car cases)))
 	 (usage-sans-specials (map (lambda (x)
@@ -1020,7 +1011,7 @@
 					(and (boolean? (car x)) #t)
 					x))
 				  raw-usage))
-	 (usage-desc (delq-all! #t usage-sans-specials))
+	 (usage-desc (delq! #t usage-sans-specials))
 	 (kw-desc (map car usage-desc))
 	 (kw-opts (apply append (map (lambda (x) (and (not (string? (car x))) x)) kw-desc)))
 	 (kw-args (apply append (map (lambda (x) (and (string? (car x)) (cdr x))) kw-desc)))
