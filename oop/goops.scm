@@ -498,7 +498,7 @@
 	(let ((args (cadr exp))
 	      (body (cddr exp)))
 	  `(make <method>
-		 #:specializers (list* ,@(specializers args))
+		 #:specializers (cons* ,@(specializers args))
 		 #:procedure (lambda ,(formals args)
 			       ,@(if (null? body)
 				     (list *unspecified*)
