@@ -148,15 +148,6 @@
 # define SCM_API extern
 #endif
 
-#if defined (SCM_ENABLE_DEPRECATED)
-
-/* These options are always active.
- */
-#define USE_THREADS
-#define GUILE_ISELECT
-
-#endif
-
 
 
 /* What did the configure script discover about the outside world?  */
