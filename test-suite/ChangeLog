@@ -1,3 +1,10 @@
+2003-11-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* standalone/test-system-cmds: new test.
+
+	* standalone/Makefile.am (check_SCRIPTS): add test-system-cmds.
+	(TESTS): add test-system-cmds.
+
 2003-11-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tests/numbers.test ("string->number"): Expect exact rationals
