@@ -399,11 +399,14 @@ display_frame (frame, nfield, indentation, sport, port, pstate)
     /* Display a special form. */
     {
       SCM source = SCM_FRAME_SOURCE (frame);
-      SCM copy = scm_source_property (source, scm_i_copy);
+      SCM copy = (SCM_NIMP (source) && SCM_CONSP (source) 
+		  ? scm_source_property (source, scm_i_copy)
+		  : SCM_BOOL_F);
+      SCM umcopy = (SCM_NIMP (source) && SCM_MEMOIZEDP (source)
+		    ? scm_unmemoize (source)
+		    : SCM_BOOL_F);
       display_frame_expr ("(",
-			  SCM_NIMP (copy) && SCM_CONSP (copy)
-			  ? copy
-			  : scm_unmemoize (source),
+			  SCM_NIMP (copy) && SCM_CONSP (copy) ? copy : umcopy,
 			  ")",
 			  nfield + 1 + indentation,
 			  sport,
