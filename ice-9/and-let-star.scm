@@ -43,3 +43,5 @@
       (error "not a proper list" vars))))
 
   (expand vars body))
+
+(cond-expand-provide (current-module) '(srfi-2))
