@@ -3,17 +3,17 @@
 ##  	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
-##   
+##
 ##   GUILE is free software; you can redistribute it and/or modify
 ##   it under the terms of the GNU General Public License as
 ##   published by the Free Software Foundation; either version 2, or
 ##   (at your option) any later version.
-##   
+##
 ##   GUILE is distributed in the hope that it will be useful, but
 ##   WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##   GNU General Public License for more details.
-##   
+##
 ##   You should have received a copy of the GNU General Public
 ##   License along with GUILE; see the file COPYING.  If not, write
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
@@ -42,6 +42,13 @@ ETAGS_ARGS = $(subpkgdata_DATA)
 EXTRA_DIST = $(ice9_sources) test.scm compile-psyntax.scm
 
 if MAINTAINER_MODE
+# We expect this to never be invoked when there is not already
+# ice-9/psyntax.pp in %load-path, since compile-psyntax.scm depends
+# on ice-9/syncase.scm, which does `(load-from-path "ice-9/psyntax.pp")'.
+# In other words, to bootstrap this file, you need to do something like:
+#    GUILE_LOAD_PATH=/usr/local/share/guile/1.5.4 make psyntax.pp
+include $(top_srcdir)/pre-inst-guile.am
 psyntax.pp: psyntax.ss
-	GUILE_LOAD_PATH=$(srcdir)/..:.. ../libguile/guile -s $(srcdir)/compile-psyntax.scm $(srcdir)/psyntax.ss $(srcdir)/psyntax.pp
+	$(preinstguile) -s $(srcdir)/compile-psyntax.scm \
+		$(srcdir)/psyntax.ss $(srcdir)/psyntax.pp
 endif
