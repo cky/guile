@@ -84,7 +84,7 @@ DOT_DOC_FILES =								   \
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
-BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
+BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h scmconfig.h \
     $(DOT_X_FILES) $(EXTRA_DOT_X_FILES) $(DOT_DOC_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
