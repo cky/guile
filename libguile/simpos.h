@@ -2,7 +2,7 @@
 
 #ifndef SIMPOSH
 #define SIMPOSH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@
 
 extern SCM scm_system SCM_P ((SCM cmd));
 extern SCM scm_getenv SCM_P ((SCM nam));
+extern SCM scm_primitive_exit SCM_P ((SCM status));
 extern SCM scm_software_type SCM_P ((void));
 extern void scm_init_simpos SCM_P ((void));
 

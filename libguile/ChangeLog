@@ -1,3 +1,9 @@
+Sat Jun 28 03:40:15 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* simpos.h: prototype for scm_primitive_exit.
+	* simpos.c (scm_primitive_exit): new procedure, terminates the 
+	process	without unwinding the stack.
+
 Sat Jun 28 03:45:25 1997  Tim Pierce  <twp@twp.tezcat.com>
 
 	* regex-posix.c (scm_make_regexp): Make `flags' a variable-length

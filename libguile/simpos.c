@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,6 +89,19 @@ scm_getenv(nam)
     nam = scm_makfromstr (SCM_ROCHARS (nam), SCM_ROLENGTH (nam), 0);
   val = getenv(SCM_CHARS(nam));
   return (val) ? scm_makfromstr(val, (scm_sizet)strlen(val), 0) : SCM_BOOL_F;
+}
+
+SCM_PROC (s_primitive_exit, "primitive-exit", 0, 1, 0, scm_primitive_exit);
+SCM
+scm_primitive_exit (SCM status)
+{
+  int cstatus = 0;
+  if (!SCM_UNBNDP (status))
+    {
+      SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1, s_primitive_exit);
+      cstatus = SCM_INUM (status);
+    }
+  exit (cstatus);
 }
 
 /* I have a feeling this whole arrangement below is a bad idea.  One
