@@ -8,9 +8,7 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
-** New modules (oop goops) etc
-
-The new modules
+** New modules (oop goops) etc.:
 
   (oop goops)
   (oop goops describe)
@@ -18,14 +16,8 @@ The new modules
   (oop goops active-slot)
   (oop goops composite-slot)
 
-plus some GOOPS utility modules have been added.
-
-* Changes to the stand-alone interpreter
-
-** GOOPS has been merged into Guile
-
-The Guile Object Oriented Programming System has been integrated into
-Guile.
+The Guile Object Oriented Programming System (GOOPS) has been
+integrated into Guile.
 
 Type
 
@@ -74,6 +66,27 @@ Asking for the type of an object
 
 See further in the GOOPS tutorial available in the guile-doc
 distribution in info (goops.info) and texinfo formats.
+
+** New module (ice-9 rdelim).
+
+This exports the following procedures which were previously defined
+in the root module:
+
+read-line read-line! read-delimited read-delimited!
+;; TODO: read-string!/partial %read-delimited! %read-line write-line
+
+For backwards compatibility the definitions are also imported into the
+root module in this version of Guile.  However you should add:
+
+(use-modules (ice-9 rdelim))
+
+to any program which uses the definitions, since this may be removed
+in in a future version.
+
+Alternatively, if guile-scsh is installed, the (scsh rdelim) module
+can be used for similar functionality.
+
+* Changes to the stand-alone interpreter
 
 ** It's now possible to create modules with controlled environments
 
@@ -283,7 +296,7 @@ current values of file descriptors 0, 1, and 2 in the parent process.
 
 There is no such concept as a weak binding any more.
 
-** Removed constants:  bignum-radix
+** Removed constants:  bignum-radix, scm-line-incrementors
 
 * Changes to the gh_ interface
 

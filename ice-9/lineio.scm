@@ -20,7 +20,8 @@
 
 
 
-(define-module (ice-9 lineio))
+(define-module (ice-9 lineio)
+  :use-module (ice-9 readline))
 
 
 ;;; {Line Buffering Input Ports}

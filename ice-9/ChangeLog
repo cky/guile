@@ -1,3 +1,14 @@
+2001-01-21  Gary Houston  <ghouston@arglist.com>
+
+	* rdelim.scm: new file implementing module (ice-9 rdelim).
+	* ice-9.scm (scm-line-incrementors read-line! read-delimited!
+	read-delimited read-line): moved to rdelim.scm.
+	scm-line-incrementors is not exported.
+	* boot-9.scm: import (ice-9 rdelim) for backwards compatibility,
+	for now.
+	* lineio.scm: use module (ice-9 rdelim).
+	* Makefile.am (ice9_sources): add rdelim.scm.
+
 2000-12-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm (root-module-closure, scm-module-closure):  Remove
