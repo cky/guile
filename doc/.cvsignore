@@ -19,5 +19,6 @@ Makefile
 Makefile.in
 stamp-vti
 stamp-vti1
+stamp-vti.1
 version-tutorial.texi
 version.texi
