@@ -41,6 +41,9 @@
 
 
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 /* Make GNU/Linux libc declare everything it has. */
 #define _GNU_SOURCE
