@@ -1,3 +1,9 @@
+2004-08-27  Kevin Ryde  <user42@zip.com.au>
+
+	* regex.scm (regexp-quote): [ and | must be quoted.  Quote ( ) { + ?
+	using char class [(] etc since \( in fact makes them become special in
+	regexp/basic.
+
 2004-08-25  Kevin Ryde  <user42@zip.com.au>
 
 	* and-let-star.scm (and-let*): Give #t for an empty body, per srfi-2
