@@ -52,7 +52,12 @@
 
 
 #if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
-#define SCM_FUNC_CAST_ARBITRARY_ARGS SCM (*)(...)
+
+/* This used to be "SCM (*)(...)" but GCC on RedHat 7.1 doesn't seem
+   to like it.
+ */
+#define SCM_FUNC_CAST_ARBITRARY_ARGS SCM (*)()
+
 #else
 #define SCM_FUNC_CAST_ARBITRARY_ARGS SCM (*)()
 #endif
