@@ -134,17 +134,6 @@ modinclude_DATA = scmconfig.h
 
 bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf.awk guile-func-name-check
 
-check_ldadd = libguile.la ${THREAD_LIBS_LOCAL}
-check_PROGRAMS = gh_test_c gh_test_repl
-gh_test_c_SOURCES = gh_test_c.c
-gh_test_c_LDADD = ${check_ldadd}
-gh_test_repl_SOURCES = gh_test_repl.c
-gh_test_repl_LDADD = ${check_ldadd}
-
-check-local:
-	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_c; echo
-	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_repl; echo
-
 EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads cpp_signal.c	\
     cpp_errno.c cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk
 
