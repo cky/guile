@@ -58,7 +58,7 @@ SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
 static int
 real_eqv (double x, double y)
 {
-  return !memcmp (&x, &y, sizeof(double));
+  return !memcmp (&x, &y, sizeof(double)) || (x != x && y != y);
 }
 
 #include <stdio.h>
