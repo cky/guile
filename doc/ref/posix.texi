@@ -525,12 +525,16 @@ for a given file at a given time.
 Unlock the file.
 @end defvar
 @defvar LOCK_NB
-Don't block when locking.  May be specified by bitwise OR'ing
-it to one of the other operations.
+Don't block when locking.  This is combined with one of the other
+operations using @code{logior} (@pxref{Bitwise Operations}).  If
+@code{flock} would block an @code{EWOULDBLOCK} error is thrown
+(@pxref{Conventions}).
 @end defvar
 
 The return value is not specified. @var{file} may be an open
 file descriptor or an open file descriptor port.
+
+Note that @code{flock} does not lock files across NFS.
 @end deffn
 
 @deffn {Scheme Procedure} select reads writes excepts [secs [usecs]]
