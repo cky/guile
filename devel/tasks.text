@@ -76,7 +76,11 @@ Trying to use the thread library's support for thread local data
 
 *** Implementing the GC thread synchronization (all threads: go to sleep!)
 
-Suitable synchronization point is probably SCM_TICK.
+One suitable synchronization point is probably SCM_TICK.
+
+Note also that threads which are in I/O or timeout should be regarded
+as stopped and that we need synchronization points *after* each I/O or
+timeout, so that they really stop afterward if Guile is still in GC.
 
 *** Implementing the libguileposix threads glue library
 
