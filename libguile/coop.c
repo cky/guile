@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.31 2002-08-17 20:39:35 ghouston Exp $ */
+/* $Id: coop.c,v 1.32 2002-10-27 20:12:07 mvo Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -293,6 +293,7 @@ int
 coop_new_mutex_init (coop_m *m, coop_mattr *attr)
 {
   m->owner = NULL;
+  m->level = 0;
   coop_qinit(&(m->waiting));
   return 0;
 }
@@ -305,6 +306,11 @@ coop_mutex_trylock (coop_m *m)
       m->owner = coop_global_curr;
       return 0;
     }
+  else if (m->owner == coop_global_curr)
+    {
+      m->level++;
+      return 0;
+    }
   else
     return EBUSY;
 }
@@ -315,6 +321,10 @@ coop_mutex_lock (coop_m *m)
   if (m->owner == NULL)
     {
       m->owner = coop_global_curr;
+    }
+  else if (m->owner == coop_global_curr)
+    {
+      m->level++;
     }
   else
     {
@@ -343,23 +353,31 @@ coop_mutex_unlock (coop_m *m)
 {
   coop_t *old, *newthread;
   
-  newthread = coop_qget (&(m->waiting));
-  if (newthread != NULL)
+  if (m->level == 0)
     {
-      /* Record the current top-of-stack before going to sleep */
-      coop_global_curr->top = &old;
-
-      old = coop_global_curr;
-      coop_global_curr = newthread;
-      /* The new thread came into m->waiting through a lock operation.
-	 It now owns this mutex. */
-      m->owner = coop_global_curr;
-      QT_BLOCK (coop_yieldhelp, old, &coop_global_runq, newthread->sp);
+      newthread = coop_qget (&(m->waiting));
+      if (newthread != NULL)
+	{
+	  /* Record the current top-of-stack before going to sleep */
+	  coop_global_curr->top = &old;
+	  
+	  old = coop_global_curr;
+	  coop_global_curr = newthread;
+	  /* The new thread came into m->waiting through a lock operation.
+	     It now owns this mutex. */
+	  m->owner = coop_global_curr;
+	  QT_BLOCK (coop_yieldhelp, old, &coop_global_runq, newthread->sp);
+	}
+      else
+	{
+	  m->owner = NULL;
+	}
     }
+  else if (m->level > 0)
+    m->level--;
   else
-    {
-      m->owner = NULL;
-    }
+    abort (); /* XXX */
+
   return 0;
 }
 
@@ -472,7 +490,7 @@ coop_condition_variable_timed_wait_mutex (coop_c *c,
 }
 
 int 
-coop_condition_variable_signal (coop_c *c)
+coop_condition_variable_broadcast (coop_c *c)
 {
   coop_t *newthread;
 
@@ -482,6 +500,13 @@ coop_condition_variable_signal (coop_c *c)
     }
   return 0;
 }
+
+int 
+coop_condition_variable_signal (coop_c *c)
+{
+  return coop_condition_variable_broadcast (c);
+}
+
 
 /* {Keys}
  */

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +65,11 @@ void
 scm_threads_init (SCM_STACKITEM *i)
 {
   coop_init();
+
+  scm_tc16_thread = scm_make_smob_type ("thread", 0);
+  scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (coop_m));
+  scm_tc16_condvar = scm_make_smob_type ("condition-variable",
+					 sizeof (coop_c));
 
   scm_thread_count = 1;
 
@@ -418,7 +423,17 @@ scm_join_thread (SCM thread)
   if (thread_data)
     /* The thread is still alive */
     coop_join (thread_data);
+  /* XXX - return real result. */
   return SCM_BOOL_T;
+}
+#undef FUNC_NAME
+
+int
+scm_c_thread_exited_p (SCM thread)
+#define FUNC_NAME s_scm_thread_exited_p
+{
+  SCM_VALIDATE_THREAD (1, thread);
+  return SCM_THREAD_DATA (thread) != NULL;
 }
 #undef FUNC_NAME
 
@@ -457,6 +472,13 @@ scm_lock_mutex (SCM m)
 }
 
 SCM
+scm_try_mutex (SCM m)
+{
+  SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_lock_mutex);
+  return SCM_BOOL (coop_mutex_trylock (SCM_MUTEX_DATA (m)));
+}
+
+SCM
 scm_unlock_mutex (SCM m)
 {
   SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_unlock_mutex);
@@ -478,8 +500,13 @@ scm_make_condition_variable (void)
 }
 
 SCM
-scm_wait_condition_variable (SCM c, SCM m)
+scm_timed_wait_condition_variable (SCM c, SCM m, SCM t)
+#define FUNC_NAME s_wait_condition_variable
 {
+  coop_c *cv;
+  coop_m *mx;
+  struct timespec waittime;
+
   SCM_ASSERT (SCM_CONDVARP (c),
 	      c,
 	      SCM_ARG1,
@@ -488,10 +515,33 @@ scm_wait_condition_variable (SCM c, SCM m)
 	      m,
 	      SCM_ARG2,
 	      s_wait_condition_variable);
-  coop_condition_variable_wait_mutex (SCM_CONDVAR_DATA (c),
-				      SCM_MUTEX_DATA (m));
-  return SCM_BOOL_T;
+
+  cv = SCM_CONDVAR_DATA (c);
+  mx = SCM_MUTEX_DATA (m);
+
+  if (!SCM_UNBNDP (t))
+    {
+      if (SCM_CONSP (t))
+	{
+	  SCM_VALIDATE_UINT_COPY (3, SCM_CAR(t), waittime.tv_sec);
+	  SCM_VALIDATE_UINT_COPY (3, SCM_CDR(t), waittime.tv_nsec);
+	  waittime.tv_nsec *= 1000;
+	}
+      else
+	{
+	  SCM_VALIDATE_UINT_COPY (3, t, waittime.tv_sec);
+	  waittime.tv_nsec = 0;
+	}
+      return SCM_BOOL(
+        coop_condition_variable_timed_wait_mutex (cv, mx, &waittime));
+    }
+  else
+    {
+      coop_condition_variable_wait_mutex (cv, mx);
+      return SCM_BOOL_T;
+    }
 }
+#undef FUNC_NAME
 
 SCM
 scm_signal_condition_variable (SCM c)
@@ -501,6 +551,17 @@ scm_signal_condition_variable (SCM c)
 	      SCM_ARG1,
 	      s_signal_condition_variable);
   coop_condition_variable_signal (SCM_CONDVAR_DATA (c));
+  return SCM_BOOL_T;
+}
+
+SCM
+scm_broadcast_condition_variable (SCM c)
+{
+  SCM_ASSERT (SCM_CONDVARP (c),
+	      c,
+	      SCM_ARG1,
+	      s_broadcast_condition_variable);
+  coop_condition_variable_broadcast (SCM_CONDVAR_DATA (c));
   return SCM_BOOL_T;
 }
 

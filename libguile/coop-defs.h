@@ -3,7 +3,7 @@
 #ifndef SCM_COOP_DEFS_H
 #define SCM_COOP_DEFS_H
 
-/* Copyright (C) 1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -142,12 +142,11 @@ typedef struct coop_q_t {
 
 typedef struct coop_m {
   coop_t *owner;          /* Mutex owner */
+  int level;              /* for recursive locks. */
   coop_q_t waiting;      /* Queue of waiting threads */
 } coop_m;
 
 typedef int coop_mattr;
-
-typedef coop_m scm_t_mutex;
 
 SCM_API int coop_mutex_init (coop_m*);
 SCM_API int coop_new_mutex_init (coop_m*, coop_mattr*);
@@ -155,11 +154,6 @@ SCM_API int coop_mutex_lock (coop_m*);
 SCM_API int coop_mutex_trylock (coop_m*);
 SCM_API int coop_mutex_unlock (coop_m*);
 SCM_API int coop_mutex_destroy (coop_m*);
-#define scm_mutex_init coop_mutex_init
-#define scm_mutex_lock coop_mutex_lock
-#define scm_mutex_trylock coop_mutex_lock
-#define scm_mutex_unlock coop_mutex_unlock
-#define scm_mutex_destroy coop_mutex_destroy
 
 /* A Condition variable is made up of a list of threads waiting on the
    condition. */
@@ -170,18 +164,6 @@ typedef struct coop_c {
 
 typedef int coop_cattr;
 
-typedef coop_c scm_t_cond;
-
-#ifndef HAVE_STRUCT_TIMESPEC
-/* POSIX.4 structure for a time value.  This is like a `struct timeval' but
-   has nanoseconds instead of microseconds.  */
-struct timespec
-{
-  long int tv_sec;		/* Seconds.  */
-  long int tv_nsec;		/* Nanoseconds.  */
-};
-#endif
-
 SCM_API int coop_condition_variable_init (coop_c*);
 SCM_API int coop_new_condition_variable_init (coop_c*, coop_cattr*);
 SCM_API int coop_condition_variable_wait_mutex (coop_c*, coop_m*);
@@ -189,13 +171,8 @@ SCM_API int coop_condition_variable_timed_wait_mutex (coop_c*,
 						      coop_m*,
 						      const struct timespec *abstime);
 SCM_API int coop_condition_variable_signal (coop_c*);
+SCM_API int coop_condition_variable_broadcast (coop_c*);
 SCM_API int coop_condition_variable_destroy (coop_c*);
-#define scm_cond_init coop_new_condition_variable_init
-#define scm_cond_wait coop_condition_variable_wait_mutex
-#define scm_cond_timedwait coop_condition_variable_timed_wait_mutex
-#define scm_cond_signal coop_condition_variable_signal
-#define scm_cond_broadcast coop_condition_variable_signal /* yes */
-#define scm_cond_destroy coop_condition_variable_destroy
 
 typedef int coop_k;
 
