@@ -610,6 +610,26 @@ scm_port_line (port)
     return SCM_MAKINUM (SCM_LINUM (p));
 }
 
+SCM_PROC (s_set_port_line_x, "set-port-line!", 1, 1, 0, scm_set_port_line_x);
+
+SCM 
+scm_set_port_line_x (port, line)
+     SCM port;
+     SCM line;
+{
+  if (line == SCM_UNDEFINED)
+    {
+      line = port;
+      port = scm_cur_inp;
+    }
+  else
+    SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
+		port,
+		SCM_ARG1,
+		s_set_port_line_x);
+  return SCM_PTAB_ENTRY (port)->line_number = SCM_INUM (line);
+}
+
 SCM_PROC (s_port_column, "port-column", 0, 1, 0, scm_port_column);
 
 SCM
@@ -624,6 +644,26 @@ scm_port_column  (port)
     return SCM_BOOL_F;
   else
     return SCM_MAKINUM (SCM_COL (p));
+}
+
+SCM_PROC (s_set_port_column_x, "set-port-column!", 1, 1, 0, scm_set_port_column_x);
+
+SCM 
+scm_set_port_column_x (port, column)
+     SCM port;
+     SCM column;
+{
+  if (column == SCM_UNDEFINED)
+    {
+      column = port;
+      port = scm_cur_inp;
+    }
+  else
+    SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
+		port,
+		SCM_ARG1,
+		s_set_port_column_x);
+  return SCM_PTAB_ENTRY (port)->column_number = SCM_INUM (column);
 }
 
 SCM_PROC (s_port_filename, "port-filename", 0, 1, 0, scm_port_filename);
