@@ -1,3 +1,8 @@
+Mon Dec 16 18:20:32 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* debug.h (scm_debug_frame): Change `vect' member from an in-line
+	array to a pointer, to match my Nov 21 change in eval.c.
+
 Fri Dec 13 16:12:14 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* libguile.h: Added #include "libguile/backtrace.h", #include
