@@ -137,6 +137,8 @@ extern qt_t *qt_vargs (qt_t *sp, int nbytes, void *vargs,
 
 #endif
 
+extern void qt_null (void);
+extern void qt_error (void);
 
 /* Save the state of the thread and call the helper function
    using the stack of the new thread. */
