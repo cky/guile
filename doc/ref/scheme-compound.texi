@@ -2254,11 +2254,17 @@ with any set of functions, but it's imperative that just one set is
 then used consistently, or results will be unpredictable.
 
 @sp 1
-Hash tables are implemented as a vector indexed by an integer formed
+Hash tables are implemented as a vector indexed by a hash value formed
 from the key, with an association list of key/value pairs for each
 bucket in case distinct keys hash together.  Direct access to the
 pairs in those lists is provided by the @code{-handle-} functions.
 
+When the number of table entries goes above a threshold the vector is
+increased and the entries rehashed, to prevent the bucket lists
+becoming too long and slowing down accesses.  When the number of
+entries goes below a threshold the vector is decreased to save space.
+
+@sp 1
 For the @code{hashx-} ``extended'' routines, an application supplies a
 @var{hash} function producing an integer index like @code{hashq} etc
 below, and an @var{assoc} alist search function like @code{assq} etc
@@ -2268,6 +2274,7 @@ functions implementing case-insensitive hashing of string keys,
 @example
 (use-modules (srfi srfi-1)
              (srfi srfi-13))
+
 (define (my-hash str size)
   (remainder (string-hash-ci str) size))
 (define (my-assoc str alist)
@@ -2281,21 +2288,27 @@ functions implementing case-insensitive hashing of string keys,
 @end example
 
 In a @code{hashx-} @var{hash} function the aim is to spread keys
-across the vector, so bucket lists don't become long, but the actual
-values are arbitrary (so long as they're in the range 0 to
-@math{@var{size}-1}).  Helpful functions for forming a hash value, in
+across the vector, so bucket lists don't become long.  But the actual
+values are arbitrary as long as they're in the range 0 to
+@math{@var{size}-1}.  Helpful functions for forming a hash value, in
 addition to @code{hashq} etc below, include @code{symbol-hash}
 (@pxref{Symbol Keys}), @code{string-hash} and @code{string-hash-ci}
 (@pxref{SRFI-13 Comparison}), and @code{char-set-hash} (@pxref{SRFI-14
 Predicates/Comparison}).
 
+Note that currently, unfortunately, there's no @code{hashx-remove!}
+function, which rather limits the usefulness of the @code{hashx-}
+routines.
+
 @sp 1
 @deffn {Scheme Procedure} make-hash-table [size]
-Create a new hash table, with an optional initial vector @var{size}.
+Create a new hash table, with an optional minimum vector @var{size}.
 
-@var{size} doesn't limit the entries in the table, merely gives a
-starting size for the internal vector.  A prime number bigger than the
-expected number of entries would be a good choice.
+When @var{size} is given, the table vector will still grow and shrink
+automatically, as described above, but with @var{size} as a minimum.
+If an application knows roughly how many entries the table will hold
+then it can use @var{size} to avoid rehashing when initial entries are
+added.
 @end deffn
 
 @deffn {Scheme Procedure} hash-ref table key [dflt]
