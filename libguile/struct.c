@@ -606,7 +606,7 @@ scm_print_struct (exp, port, pstate)
 {
   SCM prt = SCM_CDR (struct_printer_var);
   if (SCM_FALSEP(prt) ||
-      SCM_FALSEP(scm_apply (prt, exp, scm_cons (port, scm_listofnull))))
+      SCM_FALSEP(scm_printer_apply (prt, exp, port, pstate)))
     {
       scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1,
 		     port);
@@ -624,4 +624,3 @@ scm_init_struct ()
   struct_printer_var = scm_sysintern("*struct-printer*", SCM_BOOL_F);
 #include "struct.x"
 }
-
