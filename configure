@@ -2578,31 +2578,31 @@ fi
 set dummy hostname; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
 echo "configure:2581: checking for $ac_word" >&5
-if eval "test \"`echo '$''{'ac_cv_prog_HOSTNAME'+set}'`\" = set"; then
+if eval "test \"`echo '$''{'ac_cv_prog_PROG_HOSTNAME'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-  if test -n "$HOSTNAME"; then
-  ac_cv_prog_HOSTNAME="$HOSTNAME" # Let the user override the test.
+  if test -n "$PROG_HOSTNAME"; then
+  ac_cv_prog_PROG_HOSTNAME="$PROG_HOSTNAME" # Let the user override the test.
 else
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
   for ac_dir in $PATH; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
-      ac_cv_prog_HOSTNAME="hostname"
+      ac_cv_prog_PROG_HOSTNAME="hostname"
       break
     fi
   done
   IFS="$ac_save_ifs"
 fi
 fi
-HOSTNAME="$ac_cv_prog_HOSTNAME"
-if test -n "$HOSTNAME"; then
-  echo "$ac_t""$HOSTNAME" 1>&6
+PROG_HOSTNAME="$ac_cv_prog_PROG_HOSTNAME"
+if test -n "$PROG_HOSTNAME"; then
+  echo "$ac_t""$PROG_HOSTNAME" 1>&6
 else
   echo "$ac_t""no" 1>&6
 fi
 
-if test "$HOSTNAME" = hostname; then
+if test "$PROG_HOSTNAME" = hostname; then
   if test "`hostname`" = totoro.red-bean.com; then
     cat >> confdefs.h <<\EOF
 #define TOTORO 1
@@ -3074,7 +3074,7 @@ EOF
   ;;
 esac
 
-# On some systems usleep have no return value
+# On some systems usleep has no return value
 cat > conftest.$ac_ext <<EOF
 #line 3080 "configure"
 #include "confdefs.h"
@@ -4764,7 +4764,7 @@ s%@LD@%$LD%g
 s%@NM@%$NM%g
 s%@LN_S@%$LN_S%g
 s%@LIBTOOL@%$LIBTOOL%g
-s%@HOSTNAME@%$HOSTNAME%g
+s%@PROG_HOSTNAME@%$PROG_HOSTNAME%g
 s%@LIBOBJS@%$LIBOBJS%g
 s%@ALLOCA@%$ALLOCA%g
 s%@THREAD_LIBS@%$THREAD_LIBS%g
