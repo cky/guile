@@ -414,7 +414,7 @@ scm_i_tag_name (scm_t_bits tag)
       break; 
     }
 
-  return "unknown type";
+  return NULL;
 }
 
 

@@ -280,7 +280,11 @@ static SCM
 tag_table_to_type_alist (void *closure, SCM key, SCM val, SCM acc)
 {
   scm_t_bits c_tag = scm_to_int (key);
-  key = scm_from_locale_string (scm_i_tag_name (c_tag));  
+
+  char const * name = scm_i_tag_name (c_tag);
+  if (name != NULL)
+    key = scm_from_locale_string (name);
+  
   return scm_cons (scm_cons (key, val), acc);
 }
 
