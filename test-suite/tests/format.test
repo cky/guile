@@ -1,7 +1,7 @@
 ;;;; format.test --- test suite for Guile's CL-ish format  -*- scheme -*-
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
-;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -36,4 +36,6 @@
 		(format #t "~&abc")
 		(format #f "~&")	; shall have no effect
 		(format #t "~&~&")))
-	    "xyz\nabc\n")))
+	    "xyz\nabc\n"))
+  (pass-if "format ~F (format-out-substr) maintains the column correctly"
+	   (= (string-length (format "~@F~20T" 1)) 20)))
