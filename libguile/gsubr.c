@@ -57,18 +57,9 @@
 
 #define GSUBR_TEST 1
 
-#define GSUBR_MAKTYPE(req, opt, rst) ((req)|((opt)<<4)|((rst)<<8))
-#define GSUBR_REQ(x) ((int)(x)&0xf)
-#define GSUBR_OPT(x) (((int)(x)&0xf0)>>4)
-#define GSUBR_REST(x) ((int)(x)>>8)
-
-#define GSUBR_MAX 10
-#define GSUBR_TYPE(cclo) (SCM_VELTS(cclo)[1])
-#define GSUBR_PROC(cclo) (SCM_VELTS(cclo)[2])
-
 SCM scm_i_name;
 SCM scm_i_inner_name;
-static SCM f_gsubr_apply;
+SCM scm_f_gsubr_apply;
 
 SCM
 scm_make_gsubr(name, req, opt, rst, fcn)
@@ -78,21 +69,21 @@ scm_make_gsubr(name, req, opt, rst, fcn)
      int rst;
      SCM (*fcn)();
 {
-  switch GSUBR_MAKTYPE(req, opt, rst) {
-  case GSUBR_MAKTYPE(0, 0, 0): return scm_make_subr(name, scm_tc7_subr_0, fcn);
-  case GSUBR_MAKTYPE(1, 0, 0): return scm_make_subr(name, scm_tc7_subr_1, fcn);
-  case GSUBR_MAKTYPE(0, 1, 0): return scm_make_subr(name, scm_tc7_subr_1o, fcn);
-  case GSUBR_MAKTYPE(1, 1, 0): return scm_make_subr(name, scm_tc7_subr_2o, fcn);
-  case GSUBR_MAKTYPE(2, 0, 0): return scm_make_subr(name, scm_tc7_subr_2, fcn);
-  case GSUBR_MAKTYPE(3, 0, 0): return scm_make_subr(name, scm_tc7_subr_3, fcn);
-  case GSUBR_MAKTYPE(0, 0, 1): return scm_make_subr(name, scm_tc7_lsubr, fcn);
-  case GSUBR_MAKTYPE(2, 0, 1): return scm_make_subr(name, scm_tc7_lsubr_2, fcn);
+  switch SCM_GSUBR_MAKTYPE(req, opt, rst) {
+  case SCM_GSUBR_MAKTYPE(0, 0, 0): return scm_make_subr(name, scm_tc7_subr_0, fcn);
+  case SCM_GSUBR_MAKTYPE(1, 0, 0): return scm_make_subr(name, scm_tc7_subr_1, fcn);
+  case SCM_GSUBR_MAKTYPE(0, 1, 0): return scm_make_subr(name, scm_tc7_subr_1o, fcn);
+  case SCM_GSUBR_MAKTYPE(1, 1, 0): return scm_make_subr(name, scm_tc7_subr_2o, fcn);
+  case SCM_GSUBR_MAKTYPE(2, 0, 0): return scm_make_subr(name, scm_tc7_subr_2, fcn);
+  case SCM_GSUBR_MAKTYPE(3, 0, 0): return scm_make_subr(name, scm_tc7_subr_3, fcn);
+  case SCM_GSUBR_MAKTYPE(0, 0, 1): return scm_make_subr(name, scm_tc7_lsubr, fcn);
+  case SCM_GSUBR_MAKTYPE(2, 0, 1): return scm_make_subr(name, scm_tc7_lsubr_2, fcn);
   default:
     {
       SCM symcell = scm_sysintern(name, SCM_UNDEFINED);
-      SCM z, cclo = scm_makcclo(f_gsubr_apply, 3L);
+      SCM z, cclo = scm_makcclo(scm_f_gsubr_apply, 3L);
       long tmp = ((((SCM_CELLPTR)(SCM_CAR(symcell)))-scm_heap_org)<<8);
-      if (GSUBR_MAX < req + opt + rst) {
+      if (SCM_GSUBR_MAX < req + opt + rst) {
 	fputs("ERROR in scm_make_gsubr: too many args\n", stderr);
 	exit (1);
       }
@@ -101,8 +92,8 @@ scm_make_gsubr(name, req, opt, rst, fcn)
       SCM_NEWCELL(z);
       SCM_SUBRF(z) = fcn;
       SCM_SETCAR (z, tmp + scm_tc7_subr_0);
-      GSUBR_PROC(cclo) = z;
-      GSUBR_TYPE(cclo) = SCM_MAKINUM(GSUBR_MAKTYPE(req, opt, rst));
+      SCM_GSUBR_PROC(cclo) = z;
+      SCM_GSUBR_TYPE(cclo) = SCM_MAKINUM(SCM_GSUBR_MAKTYPE(req, opt, rst));
       SCM_SETCDR (symcell, cclo);
 #ifdef DEBUG_EXTENSIONS
       if (SCM_REC_PROCNAMES_P)
@@ -121,24 +112,24 @@ scm_gsubr_apply(args)
      SCM args;
 {
   SCM self = SCM_CAR(args);
-  SCM (*fcn)() = SCM_SUBRF(GSUBR_PROC(self));
+  SCM (*fcn)() = SCM_SUBRF(SCM_GSUBR_PROC(self));
   SCM v[10];			/* must agree with greatest supported arity */
-  int typ = SCM_INUM(GSUBR_TYPE(self));
-  int i, n = GSUBR_REQ(typ) + GSUBR_OPT(typ) + GSUBR_REST(typ);
+  int typ = SCM_INUM(SCM_GSUBR_TYPE(self));
+  int i, n = SCM_GSUBR_REQ(typ) + SCM_GSUBR_OPT(typ) + SCM_GSUBR_REST(typ);
 #if 0
   SCM_ASSERT(n <= sizeof(v)/sizeof(SCM),
 	     self, "internal programming error", s_gsubr_apply);
 #endif
   args = SCM_CDR(args);
-  for (i = 0; i < GSUBR_REQ(typ); i++) {
+  for (i = 0; i < SCM_GSUBR_REQ(typ); i++) {
 #ifndef RECKLESS
     if (SCM_IMP(args))
-      wnargs: scm_wrong_num_args (SCM_SNAME(GSUBR_PROC(self)));
+      wnargs: scm_wrong_num_args (SCM_SNAME(SCM_GSUBR_PROC(self)));
 #endif
     v[i] = SCM_CAR(args);
     args = SCM_CDR(args);
   }
-  for (; i < GSUBR_REQ(typ) + GSUBR_OPT(typ); i++) {
+  for (; i < SCM_GSUBR_REQ(typ) + SCM_GSUBR_OPT(typ); i++) {
     if (SCM_NIMP(args)) {
       v[i] = SCM_CAR(args);
       args = SCM_CDR(args);
@@ -146,7 +137,7 @@ scm_gsubr_apply(args)
     else
       v[i] = SCM_UNDEFINED;
   }
-  if (GSUBR_REST(typ))
+  if (SCM_GSUBR_REST(typ))
     v[i] = args;
   else
     SCM_ASRTGO(SCM_NULLP(args), wnargs);
@@ -191,7 +182,7 @@ gsubr_21l(req1, req2, opt, rst)
 void
 scm_init_gsubr()
 {
-  f_gsubr_apply = scm_make_subr(s_gsubr_apply, scm_tc7_lsubr, scm_gsubr_apply);
+  scm_f_gsubr_apply = scm_make_subr(s_gsubr_apply, scm_tc7_lsubr, scm_gsubr_apply);
   scm_i_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
   scm_permanent_object (scm_i_name);
   scm_i_inner_name = SCM_CAR (scm_sysintern ("inner-name", SCM_UNDEFINED));

@@ -48,6 +48,17 @@
 
 
 
+#define SCM_GSUBR_MAKTYPE(req, opt, rst) ((req)|((opt)<<4)|((rst)<<8))
+#define SCM_GSUBR_REQ(x) ((int)(x)&0xf)
+#define SCM_GSUBR_OPT(x) (((int)(x)&0xf0)>>4)
+#define SCM_GSUBR_REST(x) ((int)(x)>>8)
+
+#define SCM_GSUBR_MAX 10
+#define SCM_GSUBR_TYPE(cclo) (SCM_VELTS(cclo)[1])
+#define SCM_GSUBR_PROC(cclo) (SCM_VELTS(cclo)[2])
+
+extern SCM scm_f_gsubr_apply;
+
 extern SCM scm_make_gsubr SCM_P ((char *name, int req, int opt, int rst, SCM (*fcn)()));
 extern SCM scm_gsubr_apply SCM_P ((SCM args));
 extern void scm_init_gsubr SCM_P ((void));
