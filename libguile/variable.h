@@ -52,9 +52,7 @@
 
 /* Variables 
  */
-extern scm_t_bits scm_tc16_variable;
-
-#define SCM_VARIABLEP(X)   	SCM_SMOB_PREDICATE (scm_tc16_variable, X)
+#define SCM_VARIABLEP(X)      (SCM_NIMP(X) && SCM_TYP7(X) == scm_tc7_variable)
 
 #if !SCM_ENABLE_VCELLS
 #define SCM_VARIABLE_REF(V)   SCM_CELL_OBJECT_1(V)
@@ -82,6 +80,8 @@ extern SCM scm_variable_set_name_hint (SCM var, SCM hint);
 #if SCM_ENABLE_VCELLS
 extern SCM scm_builtin_variable (SCM name);
 #endif
+
+extern void scm_i_variable_print (SCM var, SCM port, scm_print_state *pstate);
 
 extern void scm_init_variable (void);
 

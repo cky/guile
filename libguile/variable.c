@@ -52,24 +52,17 @@
 #include "libguile/validate.h"
 #include "libguile/variable.h"
 
-scm_t_bits scm_tc16_variable;
 
-static int
-variable_print (SCM exp, SCM port, scm_print_state *pstate)
+void
+scm_i_variable_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<variable ", port);
   scm_intprint (SCM_UNPACK (exp), 16, port);
   scm_puts (" binding: ", port);
   scm_iprin1 (SCM_VARIABLE_REF (exp), port, pstate);
   scm_putc('>', port);
-  return 1;
 }
 
-static SCM
-variable_equalp (SCM var1, SCM var2)
-{
-  return scm_equal_p (SCM_VARIABLE_REF (var1), SCM_VARIABLE_REF (var2));
-}
 
 
 #if SCM_ENABLE_VCELLS
@@ -80,9 +73,24 @@ static SCM
 make_variable (SCM init)
 {
 #if !SCM_ENABLE_VCELLS
-  SCM_RETURN_NEWSMOB (scm_tc16_variable, SCM_UNPACK (init));
+  {
+    SCM z;
+    SCM_NEWCELL (z);
+    SCM_SET_CELL_WORD_1 (z, SCM_UNPACK (init));
+    SCM_SET_CELL_TYPE (z, scm_tc7_variable);
+    scm_remember_upto_here_1 (init);
+    return z;
+  }
 #else
-  SCM_RETURN_NEWSMOB (scm_tc16_variable, scm_cons (sym_huh, init));
+  {
+    SCM z;
+    SCM cell = scm_cons (sym_huh, init);
+    SCM_NEWCELL (z);
+    SCM_SET_CELL_WORD_1 (z, SCM_UNPACK (cell));
+    SCM_SET_CELL_TYPE (z, scm_tc7_variable);
+    scm_remember_upto_here_1 (cell);
+    return z;
+  }
 #endif
 }
 
@@ -192,11 +200,6 @@ SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0,
 void
 scm_init_variable ()
 {
-  scm_tc16_variable = scm_make_smob_type ("variable", 0);
-  scm_set_smob_mark (scm_tc16_variable, scm_markcdr);
-  scm_set_smob_print (scm_tc16_variable, variable_print);
-  scm_set_smob_equalp (scm_tc16_variable, variable_equalp);
-
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/variable.x"
 #endif
