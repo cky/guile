@@ -1635,18 +1635,29 @@ values.  For example, arrays with an underlying @code{c64vector} might
 be nice for digital signal processing, while arrays made from a
 @code{u8vector} might be used to hold gray-scale images.
 
-The number of dimensions of an array is called its @dfn{rank}.  Thus, a
-matrix is an array of rank 2, while a vector has rank 1.  When accessing
-an array element, you have to specify one exact integer for each
-dimension.  These integers are called the @dfn{indices} of the element.
-An array specifies the allowed range of indices for each dimension via
-an inclusive lower and upper bound.  These bounds can well be negative,
-but the upper bound must be greater than or equal to the lower bound.
-When all lower bounds of an array are zero, it is called a
-@dfn{zero-origin} array.
+The number of dimensions of an array is called its @dfn{rank}.  Thus,
+a matrix is an array of rank 2, while a vector has rank 1.  When
+accessing an array element, you have to specify one exact integer for
+each dimension.  These integers are called the @dfn{indices} of the
+element.  An array specifies the allowed range of indices for each
+dimension via an inclusive lower and upper bound.  These bounds can
+well be negative, but the upper bound must be greater than or equal to
+the lower bound minus one.  When all lower bounds of an array are
+zero, it is called a @dfn{zero-origin} array.
 
-For example, ordinary vectors are the special case of one dimensional,
-ordinary arrays and strings are one dimensional character arrays.
+Arrays can be of rank 0, which could be interpreted as a scalar.
+Thus, a zero-rank array can store exactly one object and the list of
+indices of this element is the empty list.
+
+Arrays contain zero elements when one of their dimensions has a zero
+length.  These empty arrays maintain information about their shape: a
+matrix with zero columns and 3 rows is different from a matrix with 3
+columns and zero row, which again is different from a vector of zero
+length.
+
+Generalized vectors, such as strings, uniform numeric vectors, bit
+vectors and ordinary vectors, are the special case of one dimensional
+arrays.
 
 @menu
 * Array Syntax::
@@ -1683,6 +1694,10 @@ decimal giving the lower bound of a dimension.  There is one
 @code{<@@lower>} for each dimension.  When all lower bounds are zero,
 all @code{<@@lower>} parts are omitted.
 
+As a special case, an array of rank 0 is printed as
+@code{#0<vectag>(<scalar>)}, where @code{<scalar>} is result of
+printing the single element of the array.
+
 Thus, 
 
 @table @code
@@ -1702,6 +1717,9 @@ is a uniform u8 array of rank 1.
 
 @item #2u32@@2@@3((1 2) (2 3))
 is a uniform u8 array of rank 2 with index ranges 2..3 and 3..4.
+
+@item #0(12)
+is a rank-zero array with contents 12.
 
 @end table
 
