@@ -311,8 +311,19 @@ size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len)
 /* Clear a port's read buffers, returning the contents.  */
 SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0, 
             (SCM port),
-	    "Drain @var{port}'s read buffers (including any pushed-back\n"
-	    "characters) and return the content as a single string.")
+	    "This procedure clears a port's input buffers, similar\n"
+	    "to the way that force-output clears the output buffer.  The\n"
+	    "contents of the buffers are returned as a single string, e.g.,\n"
+	    "\n"
+	    "@lisp\n"
+	    "(define p (open-input-file ...))\n"
+	    "(drain-input p) => empty string, nothing buffered yet.\n"
+	    "(unread-char (read-char p) p)\n"
+	    "(drain-input p) => initial chars from p, up to the buffer size.\n"
+	    "@end lisp\n\n"
+	    "Draining the buffers may be useful for cleanly finishing\n"
+	    "buffered I/O so that the file descriptor can be used directly\n"
+	    "for further input.")
 #define FUNC_NAME s_scm_drain_input
 {
   SCM result;

@@ -1,3 +1,8 @@
+2001-09-25  Gary Houston  <ghouston@arglist.com>
+
+	* ports.c (scm_drain_input): extended the docstring.  thanks to
+	Alex Schroeder and Thien-Thi Nguyen.
+
 2001-09-23  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* validate.h (SCM_NUM2FLOAT, SCM_NUM2DOUBLE,
