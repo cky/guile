@@ -1,3 +1,12 @@
+2000-05-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* hooks.c (symbol_name, scm_create_hook):  Restored the original
+	behaviour of scm_create_hook.  Changing it was bad as Carl
+	R. Witty has pointed out.
+
+	* gc.c (scm_init_gc):  We can still rely on scm_create_hook to
+	protect the object.
+
 2000-05-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_init_gc):  Protect scm_after_gc_hook, since this will

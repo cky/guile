@@ -2340,7 +2340,6 @@ void
 scm_init_gc ()
 {
   scm_after_gc_hook = scm_create_hook ("after-gc-hook", 0);
-  scm_protect_object (scm_after_gc_hook);
 #include "libguile/gc.x"
 }
 

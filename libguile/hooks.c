@@ -194,20 +194,16 @@ print_hook (SCM hook, SCM port, scm_print_state *pstate)
 }
 
 
+SCM_SYMBOL (symbol_name, "name");
+
 SCM
 scm_create_hook (const char* name, int n_args)
 {
   SCM vcell = scm_sysintern0 (name);
   SCM hook = make_hook (SCM_MAKINUM (n_args), "scm_create_hook");
   SCM_SETCDR (vcell, hook);
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-  scm_set_object_property_x (hook, scm_makfrom0str ("name"), scm_makfrom0str (name));
-  scm_protect_object (vcell);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
+  scm_set_object_property_x (hook, symbol_name, scm_makfrom0str (name));
+  scm_protect_object (hook);
   return hook;
 }
 
