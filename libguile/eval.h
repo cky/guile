@@ -101,6 +101,21 @@ SCM_API SCM scm_eval_options_interface (SCM setting);
 
 
 
+/* {Promises}
+ */
+
+#define SCM_F_PROMISE_COMPUTED (1L << 16)
+#define SCM_PROMISE_COMPUTED_P(promise) \
+  (SCM_F_PROMISE_COMPUTED & SCM_CELL_WORD_0 (promise))
+#define SCM_SET_PROMISE_COMPUTED(promise) \
+  SCM_SET_CELL_WORD_0 (promise, scm_tc16_promise | SCM_F_PROMISE_COMPUTED)
+#define SCM_PROMISE_MUTEX(promise) \
+  ((scm_t_rec_mutex *) SCM_CELL_WORD_2 (promise))
+#define SCM_PROMISE_DATA SCM_CELL_OBJECT_1
+#define SCM_SET_PROMISE_DATA SCM_SET_CELL_OBJECT_1
+SCM_API scm_t_bits scm_tc16_promise;
+
+
 
 /* {Evaluator}
  *
@@ -204,6 +219,7 @@ SCM_API SCM scm_m_letstar (SCM xorig, SCM env);
 SCM_API SCM scm_m_do (SCM xorig, SCM env);
 SCM_API SCM scm_m_quasiquote (SCM xorig, SCM env);
 SCM_API SCM scm_m_delay (SCM xorig, SCM env);
+SCM_API SCM scm_m_future (SCM xorig, SCM env);
 SCM_API SCM scm_m_define (SCM x, SCM env);
 SCM_API SCM scm_m_letrec (SCM xorig, SCM env);
 SCM_API SCM scm_m_let (SCM xorig, SCM env);

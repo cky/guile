@@ -1,5 +1,44 @@
 2002-12-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* __scm.h (SCM_DEFER_INTS, SCM_ALLOW_INTS): New definitions.
+	Simply lock a thread C API recursive mutex.
+	(SCM_NONREC_CRITICAL_SECTION_START,
+	SCM_NONREC_CRITICAL_SECTION_END, SCM_REC_CRITICAL_SECTION_START,
+	SCM_REC_CRITICAL_SECTION_END): Removed.
+
+	* eval.c: Replaced SOURCE_SECTION_START / SOURCE_SECTION_END with
+	direct calls to scm_rec_mutex_lock / unlock around the three calls
+	to scm_m_expand_body.
+
+	* eval.c, eval.h (promise_free): New function.
+	(scm_force): Rewritten;  Now thread-safe; Removed
+	SCM_DEFER/ALLOW_INTS.
+
+	* pthread-threads.h: Added partially implemented plugin interface
+	for recursive mutexes.  These are, for now, only intended to be
+	used internally within the Guile implementation.
+
+	* pthread-threads.c: New file.
+
+	* threads.c: Conditionally #include "pthread-threads.c".
+
+	* eval.c, eval.h (scm_makprom, scm_force): Rewritten to be
+	thread-safe;
+
+	* snarf.h (SCM_MUTEX, SCM_GLOBAL_MUTEX, SCM_REC_MUTEX,
+	SCM_GLOBAL_REC_MUTEX): New macros.
+
+	* eval.c, threads.c, threads.h, snarf.h: Rewrote critical section
+	macros---use mutexes instead.
+
+	* tags.h (SCM_IM_FUTURE): New tag.
+
+	* eval.c (scm_m_future): New primitive macro.
+	(SCM_CEVAL): Support futures.
+	(unmemocopy): Support unmemoization of futures.
+
+	* print.c (scm_isymnames): Name of future isym.
+
 	* version.c: Unmade some changes to my private copy that got
 	committed by mistake.
 

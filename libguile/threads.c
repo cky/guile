@@ -490,6 +490,63 @@ SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM *scm_loc_sys_thread_handler;
+
+SCM
+scm_i_make_future (SCM thunk)
+{
+  SCM_RETURN_NEWSMOB2 (scm_tc16_future,
+		       create_thread ((scm_t_catch_body) scm_call_0,
+				      thunk,
+				      (scm_t_catch_handler) scm_apply_1,
+				      *scm_loc_sys_thread_handler,
+				      scm_cons (thunk,
+						*scm_loc_sys_thread_handler)),
+		       scm_make_rec_mutex ());
+}
+
+static size_t
+future_free (SCM future)
+{
+  scm_rec_mutex_free (SCM_FUTURE_MUTEX (future));
+  return 0;
+}
+
+static int 
+future_print (SCM exp, SCM port, scm_print_state *pstate)
+{
+  int writingp = SCM_WRITINGP (pstate);
+  scm_puts ("#<future ", port);
+  SCM_SET_WRITINGP (pstate, 1);
+  scm_iprin1 (SCM_FUTURE_DATA (exp), port, pstate);
+  SCM_SET_WRITINGP (pstate, writingp);
+  scm_putc ('>', port);
+  return !0;
+}
+
+SCM_DEFINE (scm_future_ref, "future-ref", 1, 0, 0,
+	    (SCM future),
+	    "If the future @var{x} has not been computed yet, compute and\n"
+	    "return @var{x}, otherwise just return the previously computed\n"
+	    "value.")
+#define FUNC_NAME s_scm_future_ref
+{
+  SCM_VALIDATE_FUTURE (1, future);
+  scm_rec_mutex_lock (SCM_FUTURE_MUTEX (future));
+  if (!SCM_FUTURE_COMPUTED_P (future))
+    {
+      SCM value = scm_join_thread (SCM_FUTURE_DATA (future));
+      if (!SCM_FUTURE_COMPUTED_P (future))
+	{
+	  SCM_SET_FUTURE_DATA (future, value);
+	  SCM_SET_FUTURE_COMPUTED (future);
+	}
+    }
+  scm_rec_mutex_unlock (SCM_FUTURE_MUTEX (future));
+  return SCM_FUTURE_DATA (future);
+}
+#undef FUNC_NAME
+
 /*** Fair mutexes */
 
 /* We implement our own mutex type since we want them to be 'fair', we
@@ -1068,6 +1125,30 @@ scm_mutex_lock (scm_t_mutex *m)
   return res;
 }
 
+scm_t_rec_mutex *
+scm_make_rec_mutex ()
+{
+  scm_t_rec_mutex *m = scm_malloc (sizeof (scm_t_rec_mutex));
+  scm_i_plugin_rec_mutex_init (m, &scm_i_plugin_rec_mutex);
+  return m;
+}
+
+void
+scm_rec_mutex_free (scm_t_rec_mutex *m)
+{
+  scm_i_plugin_rec_mutex_destroy (m);
+  free (m);
+}
+
+int
+scm_rec_mutex_lock (scm_t_rec_mutex *m)
+{
+  scm_thread *t = scm_i_leave_guile ();
+  int res = scm_i_plugin_rec_mutex_lock (m);
+  scm_i_enter_guile (t);
+  return res;  
+}
+
 int
 scm_cond_wait (scm_t_cond *c, scm_t_mutex *m)
 {
@@ -1166,16 +1247,15 @@ scm_c_thread_exited_p (SCM thread)
 
 static scm_t_cond wake_up_cond;
 int scm_i_thread_go_to_sleep;
-static scm_t_mutex gc_section_mutex;
-static scm_thread *gc_section_owner;
+static scm_t_rec_mutex gc_section_mutex;
 static int gc_section_count = 0;
 static int threads_initialized_p = 0;
 
 void
 scm_i_thread_put_to_sleep ()
 {
-  SCM_REC_CRITICAL_SECTION_START (gc_section);
-  if (threads_initialized_p && gc_section_count == 1)
+  scm_rec_mutex_lock (&gc_section_mutex);
+  if (threads_initialized_p && !gc_section_count++)
     {
       SCM threads;
       scm_i_plugin_mutex_lock (&thread_admin_mutex);
@@ -1209,7 +1289,7 @@ scm_i_thread_invalidate_freelists ()
 void
 scm_i_thread_wake_up ()
 {
-  if (threads_initialized_p && gc_section_count == 1)
+  if (threads_initialized_p && !--gc_section_count)
     {
       SCM threads;
       /* Need to lock since woken threads can die and be deleted from list */
@@ -1224,7 +1304,7 @@ scm_i_thread_wake_up ()
 	  }
       scm_i_plugin_mutex_unlock (&thread_admin_mutex);
     }
-  SCM_REC_CRITICAL_SECTION_END (gc_section);
+  scm_rec_mutex_unlock (&gc_section_mutex);
 }
 
 void
@@ -1236,13 +1316,12 @@ scm_i_thread_sleep_for_gc ()
   resume (t);
 }
 
-/* The mother of all recursive critical sections */
-scm_t_mutex scm_i_section_mutex;
-
 scm_t_mutex scm_i_critical_section_mutex;
-scm_t_mutex scm_i_defer_mutex;
-int scm_i_defer_count = 0;
-scm_thread *scm_i_defer_owner = 0;
+scm_t_rec_mutex scm_i_defer_mutex;
+
+#ifdef USE_PTHREAD_THREADS
+#include "libguile/pthread-threads.c"
+#endif
 
 /*** Initialization */
 
@@ -1250,23 +1329,26 @@ void
 scm_threads_prehistory ()
 {
   scm_thread *t;
-  scm_i_plugin_mutex_init (&thread_admin_mutex, 0);
-  scm_i_plugin_mutex_init (&gc_section_mutex, 0);
+  scm_i_plugin_mutex_init (&thread_admin_mutex, &scm_i_plugin_mutex);
+  scm_i_plugin_rec_mutex_init (&gc_section_mutex, &scm_i_plugin_rec_mutex);
   scm_i_plugin_cond_init (&wake_up_cond, 0);
-  scm_i_plugin_mutex_init (&scm_i_critical_section_mutex, 0);
+  scm_i_plugin_mutex_init (&scm_i_critical_section_mutex, &scm_i_plugin_mutex);
   thread_count = 1;
   scm_i_plugin_key_create (&scm_i_thread_key, 0);
   scm_i_plugin_key_create (&scm_i_root_state_key, 0);
-  scm_i_plugin_mutex_init (&scm_i_defer_mutex, 0);
-  scm_i_plugin_mutex_init (&scm_i_section_mutex, 0);
+  scm_i_plugin_rec_mutex_init (&scm_i_defer_mutex, &scm_i_plugin_rec_mutex);
   /* Allocate a fake thread object to be used during bootup. */
   t = malloc (sizeof (scm_thread));
   t->base = NULL;
   t->clear_freelists_p = 0;
   scm_setspecific (scm_i_thread_key, t);
+#ifdef USE_PTHREAD_THREADS
+  scm_init_pthread_threads ();
+#endif  
 }
 
 scm_t_bits scm_tc16_thread;
+scm_t_bits scm_tc16_future;
 scm_t_bits scm_tc16_mutex;
 scm_t_bits scm_tc16_fair_mutex;
 scm_t_bits scm_tc16_condvar;
@@ -1305,12 +1387,19 @@ scm_init_threads (SCM_STACKITEM *base)
 
   scm_set_smob_mark (scm_tc16_fair_condvar, fair_cond_mark);
 
+  scm_tc16_future = scm_make_smob_type ("future", 0);
+  scm_set_smob_mark (scm_tc16_future, scm_markcdr);
+  scm_set_smob_free (scm_tc16_future, future_free);
+  scm_set_smob_print (scm_tc16_future, future_print);
+
   threads_initialized_p = 1;
 }
 
 void
 scm_init_thread_procs ()
 {
+  scm_loc_sys_thread_handler
+    = SCM_VARIABLE_LOC (scm_c_define ("%thread-handler", SCM_BOOL_F));
 #include "libguile/threads.x"
 }
 

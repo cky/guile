@@ -82,6 +82,20 @@ SCM_API scm_t_bits scm_tc16_fair_condvar;
  SCM_ASSERT_TYPE (SCM_CONDVARP (a) || SCM_FAIR_CONDVAR_P (a), \
                   a, pos, FUNC_NAME, "condition variable");
 
+#define SCM_VALIDATE_FUTURE(pos, obj) \
+  SCM_ASSERT_TYPE (SCM_TYP16_PREDICATE (scm_tc16_future, obj), \
+		   obj, pos, FUNC_NAME, "future");
+#define SCM_F_FUTURE_COMPUTED (1L << 16)
+#define SCM_FUTURE_COMPUTED_P(future) \
+  (SCM_F_FUTURE_COMPUTED & SCM_CELL_WORD_0 (future))
+#define SCM_SET_FUTURE_COMPUTED(future) \
+  SCM_SET_CELL_WORD_0 (future, scm_tc16_future | SCM_F_FUTURE_COMPUTED)
+#define SCM_FUTURE_MUTEX(future) \
+  ((scm_t_rec_mutex *) SCM_CELL_WORD_2 (future))
+#define SCM_FUTURE_DATA SCM_CELL_OBJECT_1
+#define SCM_SET_FUTURE_DATA SCM_SET_CELL_OBJECT_1
+SCM_API scm_t_bits scm_tc16_future;
+
 SCM_API void scm_threads_mark_stacks (void);
 SCM_API void scm_init_threads (SCM_STACKITEM *);
 SCM_API void scm_init_thread_procs (void);
@@ -91,6 +105,9 @@ SCM_API void scm_init_thread_procs (void);
 
 /* The purpose of this API is seamless, simple and thread package
    independent interaction with Guile threads from the application.
+
+   Note that Guile also uses it to implement itself, just like
+   with the rest of the application API.
  */
 
 /* MDJ 021209 <djurfeldt@nada.kth.se>:
@@ -115,6 +132,28 @@ SCM_API SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
 SCM_API int scm_mutex_lock (scm_t_mutex *m);
 #define scm_mutex_trylock	scm_i_plugin_mutex_trylock 
 #define scm_mutex_unlock	scm_i_plugin_mutex_unlock 
+
+/* Guile itself needs recursive mutexes.  See for example the
+   implentation of scm_force in eval.c.
+
+   Note that scm_rec_mutex_lock et al can be replaced by direct usage
+   of the corresponding pthread functions if we use the pthread
+   debugging API to access the stack top (in which case there is no
+   longer any need to save the top of the stack before blocking).
+
+   It's therefore highly motivated to use these calls in situations
+   where Guile or the application needs recursive mutexes.
+ */
+#define scm_rec_mutex_init	scm_i_plugin_rec_mutex_init
+#define scm_rec_mutex_destroy	scm_i_plugin_rec_mutex_destroy
+/* It's a safer bet to use the following functions.
+   The future of the _init functions is uncertain.
+ */
+SCM_API scm_t_rec_mutex *scm_make_rec_mutex (void);
+SCM_API void scm_rec_mutex_free (scm_t_rec_mutex *);
+SCM_API int scm_rec_mutex_lock (scm_t_rec_mutex *m);
+#define scm_rec_mutex_trylock	scm_i_plugin_rec_mutex_trylock 
+#define scm_rec_mutex_unlock	scm_i_plugin_rec_mutex_unlock 
 
 #define scm_cond_init		scm_i_plugin_cond_init 
 #define scm_cond_destroy	scm_i_plugin_cond_destroy 
@@ -158,6 +197,8 @@ SCM_API unsigned long scm_thread_usleep (unsigned long);
 /* End of low-level C API */
 /*----------------------------------------------------------------------*/
 
+extern SCM *scm_loc_sys_thread_handler;
+
 typedef struct scm_thread scm_thread;
 
 SCM_API void scm_i_enter_guile (scm_thread *t);
@@ -165,18 +206,17 @@ SCM_API scm_thread *scm_i_leave_guile (void);
 
 /* Critical sections */
 
-SCM_API scm_t_mutex scm_i_section_mutex;
-
 /* This is the generic critical section for places where we are too
    lazy to allocate a specific mutex. */
-SCM_DECLARE_NONREC_CRITICAL_SECTION (scm_i_critical_section);
+extern scm_t_mutex scm_i_critical_section_mutex;
+
 #define SCM_CRITICAL_SECTION_START \
-  SCM_NONREC_CRITICAL_SECTION_START (scm_i_critical_section)
+  scm_mutex_lock (&scm_i_critical_section_mutex)
 #define SCM_CRITICAL_SECTION_END \
-  SCM_NONREC_CRITICAL_SECTION_END (scm_i_critical_section)
+  scm_mutex_unlock (&scm_i_critical_section_mutex)
 
 /* This is the temporary support for the old ALLOW/DEFER ints sections */
-SCM_DECLARE_REC_CRITICAL_SECTION (scm_i_defer);
+extern scm_t_rec_mutex scm_i_defer_mutex;
 
 extern int scm_i_thread_go_to_sleep;
 
@@ -196,6 +236,8 @@ do { \
 /* The C versions of the Scheme-visible thread functions.  */
 SCM_API SCM scm_call_with_new_thread (SCM thunk, SCM handler);
 SCM_API SCM scm_join_thread (SCM t);
+SCM_API SCM scm_i_make_future (SCM thunk);
+SCM_API SCM scm_future_ref (SCM future);
 SCM_API SCM scm_make_mutex (void);
 SCM_API SCM scm_make_fair_mutex (void);
 SCM_API SCM scm_lock_mutex (SCM m);

@@ -3,7 +3,7 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -459,7 +459,8 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 #define SCM_IM_BIND		SCM_MAKISYM (26)
 
 #define SCM_IM_DELAY		SCM_MAKISYM (27)
-#define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (28)
+#define SCM_IM_FUTURE		SCM_MAKISYM (28)
+#define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (29)
 
 /* When a variable is unbound this is marked by the SCM_UNDEFINED
  * value.  The following is an unbound value which can be handled on
@@ -470,12 +471,12 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
  * used instead.  It is not ideal to let this kind of unique and
  * strange values loose on the Scheme level.
  */
-#define SCM_UNBOUND		SCM_MAKIFLAG (29)
+#define SCM_UNBOUND		SCM_MAKIFLAG (30)
 
 #define SCM_UNBNDP(x)		(SCM_EQ_P ((x), SCM_UNDEFINED))
 
 /* The Elisp nil value. */
-#define SCM_ELISP_NIL		SCM_MAKIFLAG (30)
+#define SCM_ELISP_NIL		SCM_MAKIFLAG (31)
 
 
 

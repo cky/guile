@@ -152,9 +152,7 @@ char *alloca ();
 
 #define EXTEND_ENV SCM_EXTEND_ENV
 
-SCM_REC_CRITICAL_SECTION (source);
-#define SOURCE_SECTION_START SCM_REC_CRITICAL_SECTION_START (source);
-#define SOURCE_SECTION_END SCM_REC_CRITICAL_SECTION_END (source);
+SCM_REC_MUTEX (source_mutex);
 
 SCM *
 scm_ilookup (SCM iloc, SCM env)
@@ -820,6 +818,22 @@ scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
+SCM_SYNTAX (s_future, "future", scm_makmmacro, scm_m_future);
+SCM_GLOBAL_SYMBOL (scm_sym_future, s_future);
+
+/* Like promises, futures are implemented as closures with an empty
+ * parameter list.  Thus, (future <expression>) is transformed into
+ * (#@future '() <expression>), where the empty list represents the
+ * empty parameter list.  This representation allows for easy creation
+ * of the closure during evaluation.  */
+SCM
+scm_m_future (SCM xorig, SCM env SCM_UNUSED)
+{
+  SCM_ASSYNT (scm_ilength (xorig) == 2, scm_s_expression, s_future);
+  return scm_cons2 (SCM_IM_FUTURE, SCM_EOL, SCM_CDR (xorig));
+}
+
+
 SCM_SYNTAX(s_define, "define", scm_makmmacro, scm_m_define);
 SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
 
@@ -1476,6 +1490,10 @@ unmemocopy (SCM x, SCM env)
 	  ls = z = scm_cons (scm_sym_delay, SCM_UNSPECIFIED);
 	  x = SCM_CDR (x);
 	  goto loop;
+	case (SCM_ISYMNUM (SCM_IM_FUTURE)):
+	  ls = z = scm_cons (scm_sym_delay, SCM_UNSPECIFIED);
+	  x = SCM_CDR (x);
+	  goto loop;
 	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
 	  ls = z = scm_cons (scm_sym_at_call_with_values, SCM_UNSPECIFIED);
 	  goto loop;
@@ -1584,11 +1602,11 @@ scm_eval_body (SCM code, SCM env)
 	{
 	  if (SCM_ISYMP (SCM_CAR (code)))
 	    {
-	      SOURCE_SECTION_START;
+	      scm_rec_mutex_lock (&source_mutex);
 	      /* check for race condition */
 	      if (SCM_ISYMP (SCM_CAR (code)))
 		code = scm_m_expand_body (code, env);
-	      SOURCE_SECTION_END;
+	      scm_rec_mutex_unlock (&source_mutex);
 	      goto again;
 	    }
 	}
@@ -1987,11 +2005,11 @@ dispatch:
 	    {
 	      if (SCM_ISYMP (form))
 		{
-		  SOURCE_SECTION_START;
+		  scm_rec_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (x)))
 		    x = scm_m_expand_body (x, env);
-		  SOURCE_SECTION_END;
+		  scm_rec_mutex_unlock (&source_mutex);
 		  goto nontoplevel_begin;
 		}
 	      else
@@ -2371,6 +2389,10 @@ dispatch:
 
 	case (SCM_ISYMNUM (SCM_IM_DELAY)):
 	  RETURN (scm_makprom (scm_closure (SCM_CDR (x), env)));
+
+
+	case (SCM_ISYMNUM (SCM_IM_FUTURE)):
+	  RETURN (scm_i_make_future (scm_closure (SCM_CDR (x), env)));
 
 
 	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
@@ -3646,11 +3668,11 @@ tail:
 	    {
 	      if (SCM_ISYMP (SCM_CAR (proc)))
 		{
-		  SOURCE_SECTION_START;
+		  scm_rec_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (proc)))
 		    proc = scm_m_expand_body (proc, args);
-		  SOURCE_SECTION_END;
+		  scm_rec_mutex_unlock (&source_mutex);
 		  goto again;
 		}
 	      else
@@ -4139,10 +4161,17 @@ scm_t_bits scm_tc16_promise;
 SCM 
 scm_makprom (SCM code)
 {
-  SCM_RETURN_NEWSMOB (scm_tc16_promise, SCM_UNPACK (code));
+  SCM_RETURN_NEWSMOB2 (scm_tc16_promise,
+		       SCM_UNPACK (code),
+		       scm_make_rec_mutex ());
 }
 
-
+static size_t
+promise_free (SCM promise)
+{
+  scm_rec_mutex_free (SCM_PROMISE_MUTEX (promise));
+  return 0;
+}
 
 static int 
 promise_print (SCM exp, SCM port, scm_print_state *pstate)
@@ -4150,33 +4179,32 @@ promise_print (SCM exp, SCM port, scm_print_state *pstate)
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<promise ", port);
   SCM_SET_WRITINGP (pstate, 1);
-  scm_iprin1 (SCM_CELL_OBJECT_1 (exp), port, pstate);
+  scm_iprin1 (SCM_PROMISE_DATA (exp), port, pstate);
   SCM_SET_WRITINGP (pstate, writingp);
   scm_putc ('>', port);
   return !0;
 }
 
-
 SCM_DEFINE (scm_force, "force", 1, 0, 0, 
-	    (SCM x),
+	    (SCM promise),
 	    "If the promise @var{x} has not been computed yet, compute and\n"
 	    "return @var{x}, otherwise just return the previously computed\n"
 	    "value.")
 #define FUNC_NAME s_scm_force
 {
-  SCM_VALIDATE_SMOB (1, x, promise);
-  if (!((1L << 16) & SCM_CELL_WORD_0 (x)))
+  SCM_VALIDATE_SMOB (1, promise, promise);
+  scm_rec_mutex_lock (SCM_PROMISE_MUTEX (promise));
+  if (!SCM_PROMISE_COMPUTED_P (promise))
     {
-      SCM ans = scm_call_0 (SCM_CELL_OBJECT_1 (x));
-      if (!((1L << 16) & SCM_CELL_WORD_0 (x)))
+      SCM ans = scm_call_0 (SCM_PROMISE_DATA (promise));
+      if (!SCM_PROMISE_COMPUTED_P (promise))
 	{
-	  SCM_DEFER_INTS;
-	  SCM_SET_CELL_OBJECT_1 (x, ans);
-	  SCM_SET_CELL_WORD_0 (x, SCM_CELL_WORD_0 (x) | (1L << 16));
-	  SCM_ALLOW_INTS;
+	  SCM_SET_PROMISE_DATA (promise, ans);
+	  SCM_SET_PROMISE_COMPUTED (promise);
 	}
     }
-  return SCM_CELL_OBJECT_1 (x);
+  scm_rec_mutex_unlock (SCM_PROMISE_MUTEX (promise));
+  return SCM_PROMISE_DATA (promise);
 }
 #undef FUNC_NAME
 
@@ -4413,6 +4441,7 @@ scm_init_eval ()
   
   scm_tc16_promise = scm_make_smob_type ("promise", 0);
   scm_set_smob_mark (scm_tc16_promise, scm_markcdr);
+  scm_set_smob_free (scm_tc16_promise, promise_free);
   scm_set_smob_print (scm_tc16_promise, promise_print);
 
   /* Dirk:Fixme:: make scm_undefineds local to eval.c: it's only used here. */
