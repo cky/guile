@@ -1071,6 +1071,21 @@
   (pass-if "one arg"
     (equal? '(1 2 3) (lset-union eq? '(1 2 3))))
 
+  (pass-if "'() '()"
+    (equal? '() (lset-union eq? '() '())))
+
+  (pass-if "'() '(1 2 3)"
+    (equal? '(1 2 3) (lset-union eq? '() '(1 2 3))))
+
+  (pass-if "'(1 2 3) '()"
+    (equal? '(1 2 3) (lset-union eq? '(1 2 3) '())))
+
+  (pass-if "'(1 2 3) '(4 3 5)"
+    (equal? '(5 4 1 2 3) (lset-union eq? '(1 2 3) '(4 3 5))))
+
+  (pass-if "'(1 2 3) '(4) '(3 5))"
+    (equal? '(5 4 1 2 3) (lset-union eq? '(1 2 3) '(4) '(3 5))))
+
   ;; in guile 1.6.7 and earlier, `=' was called with the arguments the wrong
   ;; way around
   (pass-if "called arg order"
