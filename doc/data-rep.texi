@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.12 2000-06-30 10:46:33 dirk Exp $
+@subtitle $Id: data-rep.texi,v 1.13 2000-07-28 13:19:01 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -493,7 +493,7 @@ problem.  The alternative, an explicitly maintained list of local
 variable addresses, is effectively much less reliable, due to programmer
 error.
 
-To accomodate this technique, data must be represented so that the
+To accommodate this technique, data must be represented so that the
 collector can accurately determine whether a given stack word is a
 pointer or not.  Guile does this as follows:
 @itemize @bullet
