@@ -83,8 +83,8 @@ scm_make_gsubr(const char *name,int req,int opt,int rst,SCM (*fcn)())
 	fputs("ERROR in scm_make_gsubr: too many args\n", stderr);
 	exit (1);
       }
-      SCM_GSUBR_PROC (cclo) = scm_make_subr_opt (name, scm_tc7_subr_0, fcn, 0);
-      SCM_GSUBR_TYPE (cclo) = SCM_MAKINUM (SCM_GSUBR_MAKTYPE (req, opt, rst));
+      SCM_SET_GSUBR_PROC (cclo, scm_make_subr_opt (name, scm_tc7_subr_0, fcn, 0));
+      SCM_SET_GSUBR_TYPE (cclo, SCM_MAKINUM (SCM_GSUBR_MAKTYPE (req, opt, rst)));
       SCM_SETCDR (symcell, cclo);
 #ifdef DEBUG_EXTENSIONS
       if (SCM_REC_PROCNAMES_P)

@@ -153,14 +153,18 @@ scm_mark_subr_table ()
 SCM 
 scm_makcclo (SCM proc, long len)
 {
+  scm_bits_t *base = scm_must_malloc (len * sizeof (scm_bits_t), "compiled-closure");
+  unsigned long i;
   SCM s;
+
+  for (i = 0; i < len; ++i)
+    base [i] = SCM_UNPACK (SCM_UNSPECIFIED);
+
   SCM_NEWCELL (s);
   SCM_DEFER_INTS;
-  SCM_SETCHARS (s, scm_must_malloc (len * sizeof (SCM), "compiled-closure"));
-  SCM_SETLENGTH (s, len, scm_tc7_cclo);
-  while (--len)
-    SCM_VELTS (s)[len] = SCM_UNSPECIFIED;
-  SCM_CCLO_SUBR (s) = proc;
+  SCM_SET_CCLO_BASE (s, base);
+  SCM_SET_CCLO_LENGTH (s, len);
+  SCM_SET_CCLO_SUBR (s, proc);
   SCM_ALLOW_INTS;
   return s;
 }

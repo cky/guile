@@ -1,5 +1,21 @@
 2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* procs.h (SCM_CCLO_LENGTH, SCM_SET_CCLO_LENGTH, SCM_CCLO_BASE,
+	SCM_SET_CCLO_BASE, SCM_CCLO_REF, SCM_CCLO_SET, SCM_CCLO_SUBR,
+	SCM_SET_CCLO_SUBR):  Added resp. changed such that none of the
+	macros SCM_CHARS, SCM_SETCHARS, SCM_VELTS and SCM_LENGTH have to
+	be used with compiled closures any more.
+
+	* procs.c (scm_makcclo), gsubr.h (SCM_GSUBR_TYPE, SCM_GSUBR_PROC):
+	Replace uses of SCM_CHARS, SCM_SETCHARS and SCM_VELTS with regards
+	to compiled closures.
+
+	* gsubr.h (SCM_SET_GSUBR_TYPE, SCM_SET_GSUBR_PROC):  Added.
+
+	* gsubr.c (scm_make_gsubr):  Use them.
+
+2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c (scm_adjbig):  Use SCM_BDIGITS instead of SCM_CHARS.
 
 	(big2str, scm_bigprint):  Use SCM_STRING_CHARS instead of

@@ -54,8 +54,10 @@
 #define SCM_GSUBR_REST(x) ((int)(x)>>8)
 
 #define SCM_GSUBR_MAX 10
-#define SCM_GSUBR_TYPE(cclo) (SCM_VELTS(cclo)[1])
-#define SCM_GSUBR_PROC(cclo) (SCM_VELTS(cclo)[2])
+#define SCM_GSUBR_TYPE(cclo) (SCM_CCLO_REF ((cclo), 1))
+#define SCM_SET_GSUBR_TYPE(cclo, type) (SCM_CCLO_SET ((cclo), 1, (type)))
+#define SCM_GSUBR_PROC(cclo) (SCM_CCLO_REF ((cclo), 2))
+#define SCM_SET_GSUBR_PROC(cclo, proc) (SCM_CCLO_SET ((cclo), 2, (proc)))
 
 extern SCM scm_f_gsubr_apply;
 
