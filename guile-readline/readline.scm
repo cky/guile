@@ -1,6 +1,6 @@
 ;;;; readline.scm --- support functions for command-line editing
 ;;;;
-;;;; 	Copyright (C) 1997, 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2000 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -148,21 +148,24 @@
 (define-public (set-readline-read-hook! h)
   (set! read-hook h))
 
-(define-public apropos-completion-function
-  (let ((completions '()))
-    (lambda (text cont?)
-      (if (not cont?)
-	  (set! completions
-		(map symbol->string
-		     (apropos-internal (string-append "^"
-						      (regexp-quote text))))))
-      (if (null? completions)
-	  #f
-	  (let ((retval (car completions)))
-	    (begin (set! completions (cdr completions))
-		   retval))))))
+(if (feature? 'regex)
+    (begin
+      (define-public apropos-completion-function
+	(let ((completions '()))
+	  (lambda (text cont?)
+	    (if (not cont?)
+		(set! completions
+		      (map symbol->string
+			   (apropos-internal
+			    (string-append "^" (regexp-quote text))))))
+	    (if (null? completions)
+		#f
+		(let ((retval (car completions)))
+		  (begin (set! completions (cdr completions))
+			 retval))))))
 
-(set! *readline-completion-function* apropos-completion-function)
+      (set! *readline-completion-function* apropos-completion-function)
+      ))
 
 (define-public (activate-readline)
   (if (and (isatty? (current-input-port))
