@@ -62,9 +62,15 @@ SCM_DEFINE (scm_string_p, "string?", 1, 0, 0,
 	    "Returns #t iff OBJ is a string, else returns #f.")
 #define FUNC_NAME s_scm_string_p
 {
-  return SCM_BOOL(SCM_STRINGP (obj));
+  return SCM_BOOL (SCM_STRINGP (obj));
 }
 #undef FUNC_NAME
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+/* The concept of read-only strings will disappear in next release
+ * of Guile.
+ */
 
 SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
            (SCM x),
@@ -82,6 +88,8 @@ SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0,
   return SCM_BOOL(SCM_ROSTRINGP (x));
 }
 #undef FUNC_NAME
+
+#endif /* DEPRECATED */
 
 SCM_REGISTER_PROC (s_scm_list_to_string, "list->string", 1, 0, 0, scm_string);
 
@@ -243,8 +251,8 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 	    "Returns the number of characters in STRING")
 #define FUNC_NAME s_scm_string_length
 {
-  SCM_VALIDATE_ROSTRING (1,string);
-  return SCM_MAKINUM (SCM_ROLENGTH (string));
+  SCM_VALIDATE_STRINGORSUBSTR (1, string);
+  return SCM_MAKINUM (SCM_LENGTH (string));
 }
 #undef FUNC_NAME
 
@@ -256,7 +264,7 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
 {
   int idx;
 
-  SCM_VALIDATE_ROSTRING (1, str);
+  SCM_VALIDATE_STRINGORSUBSTR (1, str);
   SCM_VALIDATE_INUM_COPY (2, k, idx);
   SCM_ASSERT_RANGE (2, k, idx >= 0 && idx < SCM_ROLENGTH (str));
   return SCM_MAKE_CHAR (SCM_ROUCHARS (str)[idx]);
@@ -290,9 +298,9 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
   long int from;
   long int to;
 
-  SCM_VALIDATE_ROSTRING (1,str);
+  SCM_VALIDATE_STRINGORSUBSTR (1, str);
   SCM_VALIDATE_INUM (2, start);
-  SCM_VALIDATE_INUM_DEF (3,end,SCM_ROLENGTH(str));
+  SCM_VALIDATE_INUM_DEF (3, end, SCM_ROLENGTH (str));
 
   from = SCM_INUM (start);
   SCM_ASSERT_RANGE (2, start, 0 <= from && from <= SCM_ROLENGTH (str));
@@ -318,7 +326,7 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (args);
   for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) {
     s = SCM_CAR (l);
-    SCM_VALIDATE_ROSTRING (SCM_ARGn,s);
+    SCM_VALIDATE_STRINGORSUBSTR (SCM_ARGn,s);
     i += SCM_ROLENGTH (s);
   }
   res = scm_makstr (i, 0);
@@ -330,6 +338,14 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   return res;
 }
 #undef FUNC_NAME
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+/* Explicit shared substrings will disappear from Guile.
+ *
+ * Instead, "normal" strings will be implemented using sharing
+ * internally, combined with a copy-on-write strategy.
+ */
 
 SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
            (SCM str, SCM frm, SCM to),
@@ -380,6 +396,8 @@ SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
   return answer;
 }
 #undef FUNC_NAME
+
+#endif /* DEPRECATED */
 
 void
 scm_init_strings ()
