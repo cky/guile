@@ -58,6 +58,11 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CPP = @CPP@
+GUILE_MAJOR_VERSION = @GUILE_MAJOR_VERSION@
+GUILE_MINOR_VERSION = @GUILE_MINOR_VERSION@
+GUILE_STAMP = @GUILE_STAMP@
+GUILE_VERSION = @GUILE_VERSION@
+LD = @LD@
 LIBLOBJS = @LIBLOBJS@
 LIBTOOL = @LIBTOOL@
 MAINT = @MAINT@
@@ -76,18 +81,24 @@ target_libs = @target_libs@
 
 AUTOMAKE_OPTIONS = foreign
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
-subpkgdata_DATA = boot-9.scm debug.scm expect.scm hcons.scm lineio.scm \
+# These should be installed and distributed.
+ice9_sources = boot-9.scm debug.scm expect.scm hcons.scm lineio.scm \
 mapping.scm poe.scm regex.scm slib.scm tags.scm threads.scm r4rs.scm
+
+# These should be installed, but not distributed.
+ice9_generated = version.scm
+
+subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
+subpkgdata_DATA = $(ice9_sources) $(ice9_generated)
 ETAGS_ARGS = $(subpkgdata_DATA)
 
-EXTRA_DIST = $(subpkgdata_DATA) test.scm
+EXTRA_DIST = $(ice9_sources) test.scm version.scm.in
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../libguile/scmconfig.h
-CONFIG_CLEAN_FILES = 
+CONFIG_CLEAN_FILES =  version.scm
 DATA =  $(subpkgdata_DATA)
 
-DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in
+DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in version.scm.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -104,6 +115,8 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+version.scm: $(top_builddir)/config.status version.scm.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 
 install-subpkgdataDATA: $(subpkgdata_DATA)
 	@$(NORMAL_INSTALL)
