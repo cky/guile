@@ -18,7 +18,10 @@
 ;;; Boston, MA 02111-1307 USA
 
 (define-module (ice-9 debugger)
-  :use-module (ice-9 debug))
+  :use-module (ice-9 debug)
+  :use-module (ice-9 format)
+  :no-backtrace
+  )
 
 (if (memq 'readline *features*)
     (define-module (ice-9 debugger)
@@ -63,9 +66,10 @@
 	   (discard-rest-of-line port)
 	   (catch-user-errors port (lambda () (run-last-command state))))
 	  (else
-	   (catch-user-errors port
-	     (lambda ()
-	       (dispatch-command token command-table state port)))))))
+	   (or (catch-user-errors port
+	         (lambda ()
+	           (dispatch-command token command-table state port)))
+	       state)))))
 
 (define (run-last-command state)
   (let ((procedure (fluid-ref last-command)))
@@ -77,7 +81,8 @@
 	 thunk
 	 (lambda (key . objects)
 	   (apply user-warning objects)
-	   (discard-rest-of-line port))))
+	   (discard-rest-of-line port)
+	   #f)))
 
 (define last-command (make-fluid))
 
@@ -510,6 +515,20 @@ An argument specifies the frame to select; it must be a stack-frame number."
       (write-state-short state)
       state)))
 
+(define-command "position" '()
+  "Display the position of the current expression."
+  (lambda (state)
+    (let* ((frame (stack-ref (state-stack state) (state-index state)))
+	   (source (frame-source frame)))
+      (if (not source)
+	  (display "No source available for this frame.")
+	  (let ((position (source-position source)))
+	    (if (not position)
+		(display "No position information available for this frame.")
+		(display-position position)))))
+    (newline)
+    state))
+
 (define-command "up" '('optional exact-integer)
   "Move N frames up the stack.  For positive numbers N, this advances
 toward the outermost frame, to higher frame numbers, to frames
@@ -612,6 +631,7 @@ If the number of frames aren't explicitly given, the debug option
 (define-command-alias '("info" "f") '("info" "frame"))
 (define-command-alias "bt" "backtrace")
 (define-command-alias "where" "backtrace")
+(define-command-alias "p" "evaluate")
 (define-command-alias '("info" "stack") "backtrace")
 
 ;;;; Command Support
@@ -723,12 +743,22 @@ If the number of frames aren't explicitly given, the debug option
   (newline))
 
 (define (display-source frame)
-  (display "  ")
-  (write (let* ((source (frame-source frame))
-		(copy (source-property source 'copy)))
-	   (if (pair? copy)
-	       copy
-	       (unmemoize source)))))
+  (let* ((source (frame-source frame))
+	 (copy (source-property source 'copy)))
+    (cond ((source-position source)
+	   => (lambda (p) (display-position p) (display ":\n"))))
+    (display "  ")
+    (write (or copy (unmemoize source)))))
+
+(define (source-position source)
+  (let ((fname (source-property source 'filename))
+	(line (source-property source 'line))
+	(column (source-property source 'column)))
+    (and fname
+	 (list fname line column))))
+
+(define (display-position pos)
+  (format #t "~A:~D:~D" (car pos) (+ 1 (cadr pos)) (+ 1 (caddr pos))))
 
 (define (write-frame-long/expression frame)
   (display "This frame is an evaluation.")
