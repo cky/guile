@@ -1,3 +1,8 @@
+2000-11-19  Gary Houston  <ghouston@arglist.com>
+
+	* configure.in: test $ac_cv_lib_readline_readline instead of
+	$ac_cv_lib_readline_main.  Thanks to Lars J. Aas.
+
 2000-09-17  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Check for curses, terminfo and termlib libraries

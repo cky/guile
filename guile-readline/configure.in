@@ -90,7 +90,7 @@ if test "${ac_cv_var_rl_getc_function}" = "yes"; then
   AC_DEFINE(HAVE_RL_GETC_FUNCTION)
 fi
 
-if test $ac_cv_lib_readline_main = yes \
+if test $ac_cv_lib_readline_readline = yes \
         -a $ac_cv_var_rl_getc_function = no; then
   AC_MSG_WARN([*** libreadline is too old on your system.])
   AC_MSG_WARN([*** You need readline version 2.1 or later.])
