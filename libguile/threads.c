@@ -233,6 +233,13 @@ scm_cond_signal (scm_t_cond *c)
 }
 
 SCM_API int
+scm_cond_broadcast (scm_t_cond *c)
+{
+  scm_broadcast_condition_variable (c->c);
+  return 0;
+}
+
+SCM_API int
 scm_cond_destroy (scm_t_cond *c)
 {
   scm_gc_unprotect_object (c->c);
