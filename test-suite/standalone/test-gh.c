@@ -29,8 +29,8 @@ string_equal (SCM str, char *lit)
   int len = strlen (lit);
   int result;
  
-  result = ((SCM_STRING_LENGTH (str) == len)
-            && (!memcmp (SCM_STRING_CHARS (str), lit, len)));
+  result = ((scm_i_string_length (str) == len)
+            && (!memcmp (scm_i_string_chars (str), lit, len)));
   scm_remember_upto_here_1 (str);
   return result;
 }
@@ -54,14 +54,14 @@ test_gh_set_substr ()
      code if you have to copy the string just to look at it.  */
 
   /* Copy a substring to an overlapping region to its right.  */
-  gh_set_substr (SCM_STRING_CHARS (string), string, 4, 6);
+  gh_set_substr (scm_i_string_chars (string), string, 4, 6);
   assert (string_equal (string, "FreeFree, it!"));
   
   string = gh_str02scm ("Free, darnit!");
   assert (gh_string_p (string));
 
   /* Copy a substring to an overlapping region to its left.  */
-  gh_set_substr (SCM_STRING_CHARS (string) + 6, string, 2, 6);
+  gh_set_substr (scm_i_string_chars (string) + 6, string, 2, 6);
   assert (string_equal (string, "Frdarnitrnit!"));
 }
 

@@ -165,7 +165,7 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 
   if (!SCM_UNBNDP (text))
     {
-      if (!SCM_STRINGP (text))
+      if (!scm_is_string (text))
 	{
 	  --in_readline;
 	  scm_wrong_type_arg (s_scm_readline, SCM_ARG1, text);
@@ -253,15 +253,17 @@ internal_readline (SCM text)
 {
   SCM ret;
   char *s;
-  char *prompt = SCM_UNBNDP (text) ? "" : SCM_STRING_CHARS (text);
+  char *prompt = SCM_UNBNDP (text) ? "" : scm_to_locale_string (text);
 
   promptp = 1;
   s = readline (prompt);
   if (s)
-    ret = scm_makfrom0str (s);
+    ret = scm_from_locale_string (s);
   else 
     ret = SCM_EOF_VAL;
 
+  if (!SCM_UNBNDP (text))
+    free (prompt);
   free (s);
 
   return ret;
@@ -326,10 +328,9 @@ SCM_DEFINE (scm_add_history, "add-history", 1, 0, 0,
 #define FUNC_NAME s_scm_add_history
 {
   char* s;
-  SCM_VALIDATE_STRING (1,text);
 
-  s = SCM_STRING_CHARS (text);
-  add_history (strdup (s));
+  s = scm_to_locale_string (text);
+  add_history (s);
 
   return SCM_UNSPECIFIED;
 }
@@ -341,8 +342,13 @@ SCM_DEFINE (scm_read_history, "read-history", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_read_history
 {
-  SCM_VALIDATE_STRING (1,file);
-  return scm_from_bool (!read_history (SCM_STRING_CHARS (file)));
+  char *filename;
+  SCM ret;
+
+  filename = scm_to_locale_string (file);
+  ret = scm_from_bool (!read_history (filename));
+  free (filename);
+  return ret;
 }
 #undef FUNC_NAME
 
@@ -352,8 +358,13 @@ SCM_DEFINE (scm_write_history, "write-history", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_write_history
 {
-  SCM_VALIDATE_STRING (1,file);
-  return scm_from_bool (!write_history (SCM_STRING_CHARS (file)));
+  char *filename;
+  SCM ret;
+
+  filename = scm_to_locale_string (file);
+  ret = scm_from_bool (!write_history (filename));
+  free (filename);
+  return ret;
 }
 #undef FUNC_NAME
 
@@ -375,14 +386,14 @@ SCM_DEFINE (scm_filename_completion_function, "filename-completion-function", 2,
 {
   char *s;
   SCM ans;
-  SCM_VALIDATE_STRING (1,text);
+  char *c_text = scm_to_locale_string (text);
 #ifdef HAVE_RL_FILENAME_COMPLETION_FUNCTION
-  s = rl_filename_completion_function (SCM_STRING_CHARS (text), scm_is_true (continuep));
+  s = rl_filename_completion_function (c_text, scm_is_true (continuep));
 #else
-  s = filename_completion_function (SCM_STRING_CHARS (text), scm_is_true (continuep));
+  s = filename_completion_function (c_text, scm_is_true (continuep));
 #endif
-  ans = scm_makfrom0str (s);
-  free (s);
+  ans = scm_take_locale_string (s);
+  free (c_text);
   return ans;
 }
 #undef FUNC_NAME
@@ -404,18 +415,14 @@ completion_function (char *text, int continuep)
     return NULL; /* #f => completion disabled */
   else
     {
-      SCM t = scm_makfrom0str (text);
+      SCM t = scm_from_locale_string (text);
       SCM c = scm_from_bool (continuep);
       res = scm_apply (compfunc, scm_list_2 (t, c), SCM_EOL);
   
       if (scm_is_false (res))
 	return NULL;
   
-      if (!SCM_STRINGP (res))
-	scm_misc_error (s_scm_readline,
-			"Completion function returned bogus value: %S",
-			scm_list_1 (res));
-      return strdup (SCM_STRING_CHARS (res));
+      return scm_to_locale_string (res);
     }
 }
 

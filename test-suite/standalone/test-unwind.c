@@ -177,8 +177,8 @@ check_ports ()
 
   scm_frame_begin (0);
   {
-    SCM port = scm_open_file (scm_str2string (filename),
-			      scm_str2string ("w"));
+    SCM port = scm_open_file (scm_from_locale_string (filename),
+			      scm_from_locale_string ("w"));
     scm_frame_unwind_handler_with_scm (close_port, port,
 				       SCM_F_WIND_EXPLICITLY);
 
@@ -189,8 +189,8 @@ check_ports ()
 
   scm_frame_begin (0);
   {
-    SCM port = scm_open_file (scm_str2string (filename),
-			      scm_str2string ("r"));
+    SCM port = scm_open_file (scm_from_locale_string (filename),
+			      scm_from_locale_string ("r"));
     SCM res;
     scm_frame_unwind_handler_with_scm (close_port, port,
 				       SCM_F_WIND_EXPLICITLY);

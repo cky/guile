@@ -188,19 +188,19 @@ typedef struct {
 static SCM
 out_of_range_handler (void *data, SCM key, SCM args)
 {
-  return scm_equal_p (key, scm_str2symbol ("out-of-range"));
+  return scm_equal_p (key, scm_from_locale_symbol ("out-of-range"));
 }
 
 static SCM
 wrong_type_handler (void *data, SCM key, SCM args)
 {
-  return scm_equal_p (key, scm_str2symbol ("wrong-type-arg"));
+  return scm_equal_p (key, scm_from_locale_symbol ("wrong-type-arg"));
 }
 
 static SCM
 misc_error_handler (void *data, SCM key, SCM args)
 {
-  return scm_equal_p (key, scm_str2symbol ("misc-error"));
+  return scm_equal_p (key, scm_from_locale_symbol ("misc-error"));
 }
 
 static SCM
