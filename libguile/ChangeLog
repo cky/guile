@@ -1,3 +1,27 @@
+2004-09-23  Marius Vollmer  <mvo@zagadka.de>
+
+        * print.h (scm_print_state): Added highlight_objects.
+	* print.c (make_print_state, scm_free_print_state): Initialize it
+	to SCM_EOL.
+	(scm_iprin1): Wrap output in '{...}' when object is contained in
+	highlight_objects.
+
+	* backtrace.h, backtrace.c (scm_display_backtrace_with_highlights,
+	scm_backtrace_with_highlights): New.  Set highlight_objects of
+	printstate.
+	
+	* error.c (scm_error_scm): Document new meaning of data/rest
+	argument for out-of-range and wrong-type-arg errors.
+	(scm_out_of_range, scm_out_of_range_pos, scm_wrong_type_arg,
+	scm_wrong_type_arg_msg): Pass bad_value in rest argument of
+	exception so that it gets highlighted in the backtrace.
+	Don't talk about "argument" when not giving a position.
+	
+	* throw.c (handler_message): The rest argument is the fourth
+	argument, not everything after the third.  Call
+	scm_display_backtrace_with_highlights, passing the rest argument
+	when appropriate.
+
 2004-09-22  Marius Vollmer  <mvo@zagadka.de>
 
 	From Jan Nieuwenhuizen <janneke@gnu.org> and Bruno Haible

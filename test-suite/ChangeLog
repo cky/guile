@@ -1,3 +1,8 @@
+2004-09-23  Marius Vollmer  <mvo@zagadka.de>
+
+	* lib.scm (exception:out-of-range, exception:wrong-type-arg):
+	Accept new wording.
+
 2004-09-22  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/ports.test ("string ports"): Copy string literal so that

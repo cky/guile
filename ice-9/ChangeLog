@@ -1,3 +1,9 @@
+2004-09-23  Marius Vollmer  <mvo@zagadka.de>
+
+	* boot-9.scm (handle-system-error): Pass rest argument to
+	display-backtrace for wrong-type-arg and out-of-range errors so
+	that the bad value gets highlighted.
+
 2004-09-04  Kevin Ryde  <user42@zip.com.au>
 
 	* streams.scm (stream-for-each-many): Correction, should recurse into
