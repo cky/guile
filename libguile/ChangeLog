@@ -1,5 +1,10 @@
 2004-05-15  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
+	* throw.c (SETJBJMPBUF, SCM_SETJBDFRAME): Add cast to scm_t_bits
+	to make explicit what happens.
+
+2004-05-15  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
 	* dynl.c (SET_DYNL_HANDLE): Add cast to scm_t_bits to make
 	explicit what happens.
 

@@ -50,9 +50,9 @@ static scm_t_bits tc16_jmpbuffer;
   (SCM_SET_CELL_WORD_0 ((x), (SCM_CELL_WORD_0 (x) & ~(1L << 16L))))
 
 #define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
-#define SETJBJMPBUF(x, v)        (SCM_SET_CELL_WORD_1 ((x), (v)))
+#define SETJBJMPBUF(x, v)        (SCM_SET_CELL_WORD_1 ((x), (scm_t_bits) (v)))
 #define SCM_JBDFRAME(x)         ((scm_t_debug_frame *) SCM_CELL_WORD_2 (x))
-#define SCM_SETJBDFRAME(x, v)    (SCM_SET_CELL_WORD_2 ((x), (v)))
+#define SCM_SETJBDFRAME(x, v)    (SCM_SET_CELL_WORD_2 ((x), (scm_t_bits) (v)))
 
 static int
 jmpbuffer_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
