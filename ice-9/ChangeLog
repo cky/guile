@@ -1,3 +1,18 @@
+1998-05-13  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* readline.scm: Use the new readline facilities: Add the
+	possibility to control input and output ports; Add apropos
+	completion.
+
+	* boot-9.scm: Antirevert Jim's readline code which he reverted
+	19971027 and adapt it to the current readline interface.
+	
+	* boot-9.scm (top-repl): Only enable readline if not using the
+	Emacs interface; Only use repl prompt when using the readline port
+	from repl-read.  (We don't want to see it when calling `read'.)
+
+	* boot-9.scm (remove-hook!): Parenthesis bug.
+
 1998-05-11  Mikael Djurfeldt  <mdj@kenneth>
 
 	* boot-9.scm: Load readline module if readline is present.
