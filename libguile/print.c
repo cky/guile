@@ -107,14 +107,14 @@ scm_option scm_print_opts[] = {
 SCM_PROC (s_print_options, "print-options-interface", 0, 1, 0, scm_print_options);
 #ifdef __STDC__
 SCM
-scm_print_options (SCM new_values)
+scm_print_options (SCM setting)
 #else
 SCM
-scm_print_options (new_values)
-     SCM new_values;
+scm_print_options (setting)
+     SCM setting;
 #endif
 {
-  SCM ans = scm_options (new_values,
+  SCM ans = scm_options (setting,
 			 scm_print_opts,
 			 SCM_N_PRINT_OPTIONS,
 			 s_print_options);
@@ -126,8 +126,77 @@ scm_print_options (new_values)
 /* {Printing of Scheme Objects}
  */
 
+/* Detection of circular references.
+ */
+typedef struct ref_stack {
+  SCM vector;
+  SCM *top;
+  SCM *ceiling;
+  SCM *floor;
+} ref_stack;
+
+#define RESET_REF_STACK(stack) { stack.top = stack.floor; }
+#define PUSH_REF(stack, obj, label) \
+{ \
+  register SCM *ref; \
+  for (ref = stack.floor; ref < stack.top; ++ref) \
+    if (*ref == (obj)) \
+      goto label; \
+  *stack.top++ = (obj); \
+  if (stack.top == stack.ceiling) \
+    grow_ref_stack (&stack); \
+} \
+
+#define POP_REF(stack) { --stack.top; }
+#define SAVE_REF_STACK(stack, save) \
+{ \
+  save = stack.floor - SCM_VELTS (stack.vector); \
+  stack.floor = stack.top; \
+} \
+
+#define RESTORE_REF_STACK(stack, save) \
+{ stack.floor = SCM_VELTS (stack.vector) + save; }
+
+#ifdef __STDC__
+static void
+init_ref_stack (ref_stack *stack)
+#else
+static void
+init_ref_stack (stack)
+     ref_stack *stack;
+#endif
+{
+  stack->vector = scm_permanent_object (scm_make_vector (SCM_MAKINUM (30L),
+							 SCM_UNDEFINED,
+							 SCM_UNDEFINED));
+  stack->top = stack->floor = SCM_VELTS (stack->vector);
+  stack->ceiling = stack->floor + SCM_LENGTH (stack->vector);
+}
+
+#ifdef __STDC__
+static void
+grow_ref_stack (ref_stack *stack)
+#else
+static void
+grow_ref_stack (stack)
+     ref_stack *stack;
+#endif
+{
+  int offset, new_size = 2 * SCM_LENGTH (stack->vector);
+  SCM *old_velts = SCM_VELTS (stack->vector);
+  scm_vector_set_length_x (stack->vector, SCM_MAKINUM (new_size));
+  offset = SCM_VELTS (stack->vector) - old_velts;
+  stack->top += offset;
+  stack->floor += offset;
+  stack->ceiling = SCM_VELTS (stack->vector) + new_size;
+}
+
+
 /* Print generally.  Handles both write and display according to WRITING.
  */
+
+static ref_stack pstack;
+
 #ifdef __STDC__
 void 
 scm_iprin1 (SCM exp, SCM port, int writing)
@@ -154,7 +223,7 @@ taloop:
 	  scm_put_wchar (i, port, writing);
 
 	}
-      else if (   SCM_IFLAGP (exp)
+      else if (SCM_IFLAGP (exp)
 	       && (SCM_ISYMNUM (exp) < (sizeof scm_isymnames / sizeof (char *))))
 	  scm_gen_puts (scm_regular_string, SCM_ISYMSCM_CHARS (exp), port);
       else if (SCM_ILOCP (exp))
@@ -183,7 +252,7 @@ taloop:
 
 	  if (SCM_CDR (SCM_CAR (exp) - 1L) == 0)
 	    {
-	      scm_gen_write (scm_regular_string, "#<struct ", (scm_sizet) 9, port);
+	      scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1, port);
 	      scm_intprint(exp, 16, port);
 	      scm_gen_putc ('>', port);
 	      break;
@@ -191,11 +260,25 @@ taloop:
 
 	case scm_tcs_cons_imcar:
 	case scm_tcs_cons_nimcar:
+	  PUSH_REF (pstack, exp, circref);
 	  scm_iprlist ("(", exp, ')', port, writing);
+	  POP_REF (pstack);
+	  break;
+	circref:
+	  scm_gen_write (scm_regular_string, "#<circ ref>", sizeof ("#<circ ref>") - 1, port);
 	  break;
 	case scm_tcs_closures:
 #ifdef DEBUG_EXTENSIONS
-	  if (SCM_PRINT_PROCNAMES_P)
+	  if (SCM_NFALSEP (scm_procedure_p (SCM_PRINT_CLOSURE)))
+	    {
+	      SCM ans = scm_cons2 (exp, port,
+				   scm_cons (writing ? SCM_BOOL_T : SCM_BOOL_F, SCM_EOL));
+	      int save;
+	      SAVE_REF_STACK (pstack, save);
+	      ans = scm_apply (SCM_PRINT_CLOSURE, ans, SCM_EOL);
+	      RESTORE_REF_STACK (pstack, save);
+	    }
+	  else if (SCM_PRINT_PROCNAMES_P)
 	    {
 	      SCM name;
 	      name = scm_procedure_property (exp, scm_i_name);
@@ -211,7 +294,11 @@ taloop:
 	  else
 #endif
 	    {
-	      exp = SCM_CODE (exp);
+	      SCM code = SCM_CODE (exp);
+	      exp = scm_unmemocopy (code,
+				    SCM_EXTEND_SCM_ENV (SCM_CAR (code),
+							SCM_EOL,
+							SCM_ENV (exp)));
 	      scm_iprlist ("#<CLOSURE ", exp, '>', port, writing);
 	    }
 	  break;
@@ -327,6 +414,7 @@ taloop:
 	      break;
 	    }
 	case scm_tc7_wvect:
+	  PUSH_REF (pstack, exp, circref);
 	  if (SCM_IS_WHVEC (exp))
 	    scm_gen_puts (scm_regular_string, "#wh(", port);
 	  else
@@ -334,6 +422,7 @@ taloop:
 	  goto common_vector_printer;
 
 	case scm_tc7_vector:
+	  PUSH_REF (pstack, exp, circref);
 	  scm_gen_puts (scm_regular_string, "#(", port);
 	common_vector_printer:
 	  for (i = 0; i + 1 < SCM_LENGTH (exp); ++i)
@@ -348,6 +437,7 @@ taloop:
 	      scm_iprin1 (SCM_VELTS (exp)[i], port, writing);
 	    }
 	  scm_gen_putc (')', port);
+	  POP_REF (pstack);
 	  break;
 	case scm_tc7_bvect:
 	case scm_tc7_byvect:
@@ -390,15 +480,35 @@ taloop:
 	    break;
 	  goto punk;
 	case scm_tc7_smob:
+	  PUSH_REF (pstack, exp, circref);
 	  i = SCM_SMOBNUM (exp);
 	  if (i < scm_numsmob && scm_smobs[i].print
 	      && (scm_smobs[i].print) (exp, port, writing))
-	    break;
-	  goto punk;
+	    {
+	      POP_REF (pstack);
+	      break;
+	    }
+	  POP_REF (pstack);
 	default:
-	punk:scm_ipruk ("type", exp, port);
+	punk:
+	  scm_ipruk ("type", exp, port);
 	}
     }
+}
+
+#ifdef __STDC__
+void 
+scm_prin1 (SCM exp, SCM port, int writing)
+#else
+void 
+scm_prin1 (exp, port, writing)
+     SCM exp;
+     SCM port;
+     int writing;
+#endif
+{
+  RESET_REF_STACK (pstack);
+  scm_iprin1 (exp, port, writing);
 }
 
 
@@ -449,6 +559,9 @@ scm_ipruk (hdr, ptr, port)
 
 /* Print a list.
  */
+
+static ref_stack lstack;
+
 #ifdef __STDC__
 void 
 scm_iprlist (char *hdr, SCM exp, char tlr, SCM port, int writing)
@@ -465,11 +578,14 @@ scm_iprlist (hdr, exp, tlr, port, writing)
   scm_gen_puts (scm_regular_string, hdr, port);
   /* CHECK_INTS; */
   scm_iprin1 (SCM_CAR (exp), port, writing);
+  RESET_REF_STACK (lstack);
+  PUSH_REF (lstack, exp, circref);
   exp = SCM_CDR (exp);
   for (; SCM_NIMP (exp); exp = SCM_CDR (exp))
     {
       if (SCM_NECONSP (exp))
 	break;
+      PUSH_REF (lstack, exp, circref);
       scm_gen_putc (' ', port);
       /* CHECK_INTS; */
       scm_iprin1 (SCM_CAR (exp), port, writing);
@@ -479,7 +595,29 @@ scm_iprlist (hdr, exp, tlr, port, writing)
       scm_gen_puts (scm_regular_string, " . ", port);
       scm_iprin1 (exp, port, writing);
     }
+end:
   scm_gen_putc (tlr, port);
+  return;
+circref:
+  scm_gen_puts (scm_regular_string, " . #<circ ref>", port);
+  goto end;
+}
+
+#ifdef __STDC__
+void 
+scm_prlist (char *hdr, SCM exp, char tlr, SCM port, int writing)
+#else
+void 
+scm_prlist (hdr, exp, tlr, port, writing)
+     char *hdr;
+     SCM exp;
+     char tlr;
+     SCM port;
+     int writing;
+#endif
+{
+  RESET_REF_STACK (pstack);
+  scm_iprlist (hdr, exp, tlr, port, writing);
 }
 
 
@@ -499,7 +637,7 @@ scm_write (obj, port)
     port = scm_cur_outp;
   else
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG2, s_write);
-  scm_iprin1 (obj, port, 1);
+  scm_prin1 (obj, port, 1);
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
@@ -525,7 +663,7 @@ scm_display (obj, port)
     port = scm_cur_outp;
   else
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG2, s_display);
-  scm_iprin1 (obj, port, 0);
+  scm_prin1 (obj, port, 0);
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
@@ -601,7 +739,8 @@ scm_init_print ()
 {
 #ifdef DEBUG_EXTENSIONS
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
+  init_ref_stack (&pstack);
+  init_ref_stack (&lstack);
 #endif
 #include "print.x"
 }
-
