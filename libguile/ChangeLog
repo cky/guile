@@ -1,3 +1,11 @@
+1999-09-03  James Blandy  <jimb@mule.m17n.org>
+
+	* load.c (scm_search_path): If the filename has any extension at
+	all, ignore the entire list of extensions.  Also, don't check whether
+	the file is accessible.  If the file exists, accessible or not, we
+	should return it.  Inaccessible files should cause an error later.
+	(Thanks to Keisuke Nishida for the suggestions.)
+
 1999-09-02  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* gc.c (cleanup, scm_init_storage): Use on_exit if present and
