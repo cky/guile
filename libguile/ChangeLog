@@ -1,3 +1,7 @@
+Sat Dec 18 15:33:05 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* dynl.c: Added #include "scm_validate.h"
+
 Sat Dec 18 15:22:10 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* alist.c, chars.c, dynl.c, net_db.c, numbers.c, unif.c: Use
