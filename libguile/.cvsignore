@@ -12,3 +12,5 @@ guile-snarf
 libtool
 .libs
 errnos.list
+cpp_err_symbols.c
+cpp_sig_symbols.c
