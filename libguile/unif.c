@@ -153,9 +153,13 @@ singp (SCM obj)
 
 SCM 
 scm_make_uve (long k, SCM prot)
+#define FUNC_NAME "scm_make_uve"
 {
   SCM v;
   long i, type;
+
+  SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_LENGTH_MAX);
+
   if (SCM_EQ_P (prot, SCM_BOOL_T))
     {
       i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
@@ -225,10 +229,12 @@ scm_make_uve (long k, SCM prot)
   SCM_NEWCELL (v);
   SCM_DEFER_INTS;
   SCM_SETCHARS (v, (char *) scm_must_malloc (i ? i : 1, "vector"));
-  SCM_SETLENGTH (v, (k < SCM_LENGTH_MAX ? k : SCM_LENGTH_MAX), type);
+  SCM_SETLENGTH (v, k, type);
   SCM_ALLOW_INTS;
   return v;
 }
+#undef FUNC_NAME
+
 
 SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
            (SCM v),
@@ -523,14 +529,12 @@ scm_shap2ra (SCM args, const char *what)
   ra = scm_make_ra (ndim);
   SCM_ARRAY_BASE (ra) = 0;
   s = SCM_ARRAY_DIMS (ra);
-  for (; SCM_NIMP (args); s++, args = SCM_CDR (args))
+  for (; !SCM_NULLP (args); s++, args = SCM_CDR (args))
     {
       spec = SCM_CAR (args);
-      if (SCM_IMP (spec))
-
+      if (SCM_INUMP (spec))
 	{
-	  SCM_ASSERT (SCM_INUMP (spec) && SCM_INUM (spec) >= 0, spec,
-		      s_bad_spec, what);
+	  SCM_ASSERT (SCM_INUM (spec) >= 0, spec, s_bad_spec, what);
 	  s->lbnd = 0;
 	  s->ubnd = SCM_INUM (spec) - 1;
 	  s->inc = 1;
@@ -560,26 +564,24 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
 	    "@var{prototype} is used.")
 #define FUNC_NAME s_scm_dimensions_to_uniform_array
 {
-  scm_sizet k, vlen = 1;
-  long rlen = 1;
+  scm_sizet k;
+  unsigned long int rlen = 1;
   scm_array_dim *s;
   SCM ra;
   if (SCM_INUMP (dims))
     {
-      if (SCM_INUM (dims) < SCM_LENGTH_MAX)
-	{
-	  SCM answer = scm_make_uve (SCM_INUM (dims), prot);
+      SCM answer;
 
-	  if (!SCM_UNBNDP (fill))
-	    scm_array_fill_x (answer, fill);
-	  else if (SCM_SYMBOLP (prot))
-	    scm_array_fill_x (answer, SCM_MAKINUM (0));
-	  else
-	    scm_array_fill_x (answer, prot);
-	  return answer;
-	}
-    else
-      dims = scm_cons (dims, SCM_EOL);
+      SCM_ASSERT_RANGE (1, dims, SCM_INUM (dims) <= SCM_LENGTH_MAX);
+
+      answer = scm_make_uve (SCM_INUM (dims), prot);
+      if (!SCM_UNBNDP (fill))
+	scm_array_fill_x (answer, fill);
+      else if (SCM_SYMBOLP (prot))
+	scm_array_fill_x (answer, SCM_MAKINUM (0));
+      else
+	scm_array_fill_x (answer, prot);
+      return answer;
     }
   SCM_ASSERT (SCM_NULLP (dims) || SCM_CONSP (dims),
               dims, SCM_ARG1, FUNC_NAME);
@@ -589,49 +591,22 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
   k = SCM_ARRAY_NDIM (ra);
   while (k--)
     {
-      s[k].inc = (rlen > 0 ? rlen : 0);
+      s[k].inc = rlen;
+      SCM_ASSERT_RANGE (1, dims, s[k].lbnd <= s[k].ubnd);
       rlen = (s[k].ubnd - s[k].lbnd + 1) * s[k].inc;
-      vlen *= (s[k].ubnd - s[k].lbnd + 1);
     }
-  if (rlen < SCM_LENGTH_MAX)
-    SCM_ARRAY_V (ra) = scm_make_uve ((rlen > 0 ? rlen : 0L), prot);
-  else
-    {
-      scm_sizet bit;
-      switch (SCM_TYP7 (scm_make_uve (0L, prot)))
-	{
-	default:
-	  bit = SCM_LONG_BIT;
-	  break;
-	case scm_tc7_bvect:
-	  bit = 1;
-	  break;
-	case scm_tc7_string:
-	  bit = SCM_CHAR_BIT;
-	  break;
-	case scm_tc7_fvect:
-	  bit = sizeof (float) * SCM_CHAR_BIT / sizeof (char);
-	  break;
-	case scm_tc7_dvect:
-	  bit = sizeof (double) * SCM_CHAR_BIT / sizeof (char);
-	  break;
-	case scm_tc7_cvect:
-	  bit = 2 * sizeof (double) * SCM_CHAR_BIT / sizeof (char);
-	  break;
-	}
-      SCM_ARRAY_BASE (ra) = (SCM_LONG_BIT + bit - 1) / bit;
-      rlen += SCM_ARRAY_BASE (ra);
-      SCM_ARRAY_V (ra) = scm_make_uve (rlen, prot);
-      *((long *) SCM_VELTS (SCM_ARRAY_V (ra))) = rlen;
-    }
+
+  SCM_ASSERT_RANGE (1, dims, rlen <= SCM_LENGTH_MAX);
+
+  SCM_ARRAY_V (ra) = scm_make_uve (rlen, prot);
+
   if (!SCM_UNBNDP (fill))
-    {
-      scm_array_fill_x (ra, fill);
-    }
+    scm_array_fill_x (ra, fill);
   else if (SCM_SYMBOLP (prot))
     scm_array_fill_x (ra, SCM_MAKINUM (0));
   else
     scm_array_fill_x (ra, prot);
+
   if (1 == SCM_ARRAY_NDIM (ra) && 0 == SCM_ARRAY_BASE (ra))
     if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))
       return SCM_ARRAY_V (ra);

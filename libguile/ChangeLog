@@ -1,3 +1,21 @@
+2000-10-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* unif.c (scm_make_uve, scm_dimensions_to_uniform_array):  Don't
+	allow vectors longer than SCM_LENGTH_MAX. This removes the
+	SCM_HUGE_LENGTH trick, i. e. storing a vector length greater than
+	SCM_LENGTH_MAX at the beginning of the vector's memory.  Since not
+	all of guile's code was implemented to be aware of this trick, it
+	is unlikely that it was used anyway.  We can implement such a
+	feature more cleanly by using double cells for uniform vector
+	types.
+
+	(scm_shap2ra):  Replace SCM_IMP and SCM_NIMP tests by more
+	straightforward predicates.
+
+	(scm_dimensions_to_uniform_array):  Require that for dimensions
+	given as lower-bound/upper-bound pairs the upper-bound is never
+	less than the lower bound.
+
 2000-10-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* dynl.c (scm_dynamic_link, scm_dynamic_func, scm_dynamic_call,
