@@ -49,13 +49,14 @@ SCM_DEFINE (scm_primitive_make_property, "primitive-make-property", 1, 0, 0,
 
 SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
 	    (SCM prop, SCM obj),
-	    "Return the property @var{prop} of @var{obj}.  When no value\n"
-            "has yet been associated with @var{prop} and @var{obj}, call\n"
-	    "@var{not-found-proc} instead (see @code{primitive-make-property})\n"
-	    "and use its return value.  That value is also associated with\n"
-	    "@var{obj} via @code{primitive-property-set!}.  When\n"
-            "@var{not-found-proc} is @code{#f}, use @code{#f} as the\n"
-	    "default value of @var{prop}.")
+	    "Return the property @var{prop} of @var{obj}.\n"
+	    "\n"
+	    "When no value has yet been associated with @var{prop} and\n"
+	    "@var{obj}, the @var{not-found-proc} from @var{prop} is used.  A\n"
+	    "call @code{(@var{not-found-proc} @var{prop} @var{obj})} is made\n"
+	    "and the result set as the property value.  If\n"
+	    "@var{not-found-proc} is @code{#f} then @code{#f} is the\n"
+	    "property value.")
 #define FUNC_NAME s_scm_primitive_property_ref
 {
   SCM h;
@@ -86,7 +87,7 @@ SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_primitive_property_set_x, "primitive-property-set!", 3, 0, 0,
 	    (SCM prop, SCM obj, SCM val),
-	    "Associate @var{code} with @var{prop} and @var{obj}.")
+	    "Set the property @var{prop} of @var{obj} to @var{val}.")
 #define FUNC_NAME s_scm_primitive_property_set_x
 {
   SCM h, assoc;
