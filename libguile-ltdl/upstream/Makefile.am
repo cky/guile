@@ -40,6 +40,7 @@ ltdl.h.diff: ltdl.h ../raw-ltdl.h
 	  -e 's/SCMLTXT/extern/go;' \
 	  -e 's/SCMLTSTATIC //go;' \
 	  -e 's/ SCM_UNUSED//go;' \
+	  -e 's/SCM_INSERTED_DLSYMLIST_STRUCT_DECL //go;' \
 	  raw-ltdl.guilemod.h.tmp
 	mv raw-ltdl.guilemod.h.tmp raw-ltdl.guilemod.h
 	diff -ru ltdl.h raw-ltdl.guilemod.h > ltdl.h.diff; \
@@ -51,6 +52,7 @@ ltdl.c.diff: ltdl.c ../raw-ltdl.c
 	  -e 's/SCMLTXT/extern/go;' \
 	  -e 's/SCMLTSTATIC //go;' \
 	  -e 's/ SCM_UNUSED//go;' \
+	  -e 's/SCM_INSERTED_DLSYMLIST_STRUCT_DECL //go;' \
 	  raw-ltdl.guilemod.c.tmp
 	mv raw-ltdl.guilemod.c.tmp raw-ltdl.guilemod.c
 	diff -ru ltdl.c raw-ltdl.guilemod.c > ltdl.c.diff; \
