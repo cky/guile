@@ -1,3 +1,30 @@
+2005-01-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	Deprecated SCM_ARRAY* macros.
+	
+	* unif.h, unif.c, ramap.c, vectors.c, srfi-4.c, srfi-4.i.c
+	(SCM_ARRAYP, SCM_I_ARRAYP): Renamed former to latter internal
+	version.  Changed all uses.
+	(scm_tc16_array, scm_i_tc16_array,
+	scm_tc16_enclosed_array, scm_i_tc16_enclosed_array,
+	SCM_ARRAY_FLAG_CONTIGUOUS, SCM_I_ARRAY_FLAG_CONTIGUOUS,
+	SCM_ENCLOSE_ARRAYP, SCM_I_ENCLOSE_ARRAYP,
+	SCM_ARRAY_NDIM, SCM_I_ARRAY_NDIM,
+	SCM_ARRAY_CONTP, SCM_I_ARRAY_CONTP,
+	SCM_ARRAY_MEM, SCM_I_ARRAY_MEM,
+	SCM_ARRAY_V, SCM_I_ARRAY_V,
+	SCM_ARRAY_BASE, SCM_I_ARRAY_BASE,
+	SCM_ARRAY_DIMS, SCM_I_ARRAY_DIMS,
+	scm_t_array, scm_i_t_array): Likewise.
+	(SCM_SET_ARRAY_CONTIGUOUS_FLAG, SCM_CLR_ARRAY_CONTIGUOUS_FLAG):
+	Moved from unif.h to unif.c.
+	(scm_c_array_rank): New.
+	(scm_array_rank): Reimplement using it.
+	
+	* deprecated.h, deprecated.c (SCM_ARRAYP, SCM_ARRAY_NDIM,
+	SCM_ARRAY_CONTP, SCM_ARRAY_MEM, SCM_ARRAY_V, SCM_ARRAY_BASE,
+	SCM_ARRAY_DIMS, scm_t_array): New deprecated versions.
+	
 2005-01-11  Marius Vollmer  <mvo@zagadka.de>
 
 	* ramap.c: Replace uses of scm_make_ra with scm_i_make_ra.
