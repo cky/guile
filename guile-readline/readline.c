@@ -30,6 +30,9 @@
 #include "libguile/gh.h"
 #include "libguile/iselect.h"
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <sys/time.h>
@@ -147,7 +150,7 @@ static scm_mutex_t reentry_barrier_mutex;
 
 static SCM internal_readline (SCM text);
 static SCM handle_error (void *data, SCM tag, SCM args);
-static void reentry_barrier ();
+static void reentry_barrier (void);
 
 
 SCM_DEFINE (scm_readline, "%readline", 0, 4, 0, 
@@ -172,7 +175,7 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
     }
   
   if (!((SCM_UNBNDP (inp) && SCM_NIMP (scm_cur_inp) && SCM_OPINFPORTP (inp))
-	|| SCM_NIMP (inp) && SCM_OPINFPORTP (inp)))
+	|| (SCM_NIMP (inp) && SCM_OPINFPORTP (inp))))
     {
       --in_readline;
       scm_misc_error (s_scm_readline,
