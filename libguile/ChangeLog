@@ -1,3 +1,18 @@
+Sun Nov 10 13:35:05 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* gc.c (struct scm_heap_seg_data): Doc fixes.
+
+	* gc.c (scm_gc_sweep): Prepend each segment's free cells to its
+	freelist, rather than wiping out the old value.  (Thanks to Marius
+	Vollmer.)
+
+	* gc.c (which_seg, scm_map_free_list, scm_newcell_count,
+	scm_check_freelist, scm_debug_newcell): New functions and
+	variables, for debugging freelist problems.
+	* pairs.h (SCM_NEWCELL): New debugging version added.
+	* gc.h (scm_debug_newcell): Added extern declaration, used by
+	debugging version of SCM_NEWCELL.
+
 Sat Nov  9 19:02:46 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	On some systems <libc.h> conflicts with <unistd.h>, and should not
@@ -62,9 +77,6 @@ Sat Nov  2 21:01:48 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	option now only indicates whether we want automatic backtrace at
 	an error.
 	
-Thu Oct 31 12:52:30 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
-
-
 Wed Oct 30 00:31:55 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* ports.c: #include "filesys.h"
