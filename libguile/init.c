@@ -76,6 +76,9 @@
 #endif
 #include "ioext.h"
 #include "keywords.h"
+#ifdef GUILE_LANG
+#include "lang.h"
+#endif
 #include "list.h"
 #include "load.h"
 #include "macros.h"
@@ -524,6 +527,9 @@ scm_boot_guile_1 (base, closure)
       scm_init_load_path ();
       scm_init_standard_ports ();
       scm_init_dynamic_linking ();
+#ifdef GUILE_LANG
+      scm_init_lang ();
+#endif
       scm_init_script ();
       initialized = 1;
     }
