@@ -1,0 +1,105 @@
+# Makefile for libqt
+#
+# Copyright (C) 1996, Free Software Foundation, Inc.
+# 
+# This file is part of GNU GUILE.
+# 
+# GNU GUILE is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+# 
+# GNU GUILE is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with GNU GUILE; see the file COPYING.  If not, write to
+# the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+SHELL = /bin/sh
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+prefix = @prefix@
+exec_prefix = $(prefix)
+libdir = $(exec_prefix)/lib
+includedir = $(prefix)/include/threads
+infodir = $(prefix)/info
+
+CC = @CC@
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+
+DEFS = @DEFS@
+LIBS = @LIBS@
+
+AR_FLAGS = rc
+RANLIB = @RANLIB@
+
+CFLAGS = -g
+XCFLAGS = $(CFLAGS) -I. 
+LDFLAGS = -g
+
+#### End of system configuration section. ####
+
+distfiles = configure configure.in Makefile.in CHANGES README \
+  README.MISC READNE.PORT b.h copyright.h meas.c qt.c qt.h \
+  i386.README i386.h i386.s i386_b.s \
+  solaris.README sparc.h sparc.s sparc_b.s \
+  _sparc.h _sparc.s _sparc_b.s \
+  mips-irix5.s mips.h mips.s mips_b.s \
+  null.c null.README
+
+
+all_objs= qt.o qtmds.o qtmdc.o
+manifest= $(distfiles)
+
+all: @target_all@
+
+libqt.a: $(all_objs)
+	$(AR) $(AR_FLAGS) libqt.a $(all_objs)
+	$(RANLIB) libqt.a
+
+SUBDIR=.
+manifest:
+	for file in $(manifest) ; \
+	  do echo $(SUBDIR)/$$file ; \
+	done
+
+install: all
+	test -d $(prefix) || mkdir $(prefix)
+	test -d $(libdir) || mkdir $(libdir)
+	$(INSTALL) libqt.a $(libdir)/libqt.a
+	$(RANLIB) $(libdir)/libqt.a
+	$(INSTALL) $(srcdir)/qt.h $(includedir); 
+
+uninstall:
+	-rm -f $(libdir)/libqt.a
+	-rm -f $(includedir)/qt.h
+
+info:
+
+clean:
+	-rm -f guile
+	-rm -f $(all_objs)
+
+distclean: clean
+	-rm -f config.cache
+	-rm -f config.log
+	-rm -f config.status
+
+realclean: distclean
+
+###
+
+qt.o: $(srcdir)/qt.c @qtmd_h@ qt.h $(srcdir)/copyright.h
+	$(CC) -o qt.o -c $(CPPFLAGS) $(DEFS) $(XCFLAGS) -I$(srcdir) $(srcdir)/qt.c
+
+qtmds.o: @qtmds_s@ 
+	$(CC) -o qtmds.o -c $(CPPFLAGS) $(DEFS) $(XCFLAGS) -I$(srcdir) @qtmds_s@
+
+qtmdc.o: @qtmdc_c@ @qtmd_h@
+	$(CC) -o qtmdc.o -c $(CPPFLAGS) $(DEFS) $(XCFLAGS) -I$(srcdir) @qtmdc_c@
+
