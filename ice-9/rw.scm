@@ -47,6 +47,6 @@
 ;;; (scsh rw).
 
 (define-module (ice-9 rw)
-  :export (read-string!/partial))
+  :export (read-string!/partial write-string/partial))
 
 (%init-rw-builtins)
