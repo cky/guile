@@ -1,3 +1,10 @@
+2003-05-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* c-tokenize.lex (yyget_lineno, yyget_in, yyget_out, yyget_leng,
+	yyget_text, yyset_lineno, yyset_in, yyset_out, yyget_debug,
+	yyset_debug, yylex_destroy): Added prototypes (otherwise we'll get
+	a compilation error if error-on-warning is enabled).
+
 2003-05-17  Marius Vollmer  <mvo@zagadka.de>
 
 	* c-tokenize.lex: Gobble up complete lines after a '#'.  This
