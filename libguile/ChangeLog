@@ -1,3 +1,18 @@
+Sun Feb 13 19:11:42 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* arbiters.c, eq.c, gc.c, guardians.c, list.c, ports.c, print.c,
+	regex-posix.c, scmsigs.c, stime.c, strings.c, variable.c, stime.c, 
+	strings.c, variable.c:  Added lots of documentation, cleaned up
+	some existing documentation.  Occasionally changed formal params
+	to match docs.  Also folded an #ifdef into the inners of a
+	primitive instead of having two copies of the primitive
+	(`get-internal-real-time', from stime.c)
+
+Sun Feb 13 18:12:19 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* ports.c: Added docs for primitives missing them.  Written by
+	hand.
+
 Sun Feb 13 09:40:36 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* guile-doc-snarf.in: Use ${AWK} -f guile-func-name-check, not
