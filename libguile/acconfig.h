@@ -1,6 +1,11 @@
 /* acconfig.h --- documentation for symbols possibly defined in scmconfig.h
    Jim Blandy <jimb@cyclic.com> --- August 1996 */
 
+/* Define these two if you want support for debugging of Scheme
+   programs.  */
+#undef DEBUG_EXTENSIONS
+#undef READER_EXTENSIONS
+
 /* Define this if your system has a way to set a stdio stream's file
    descriptor.  You should also copy fd.h.in to fd.h, and give the
    macro SET_FILE_FD_FIELD an appropriate definition.  See
