@@ -82,7 +82,7 @@ typedef scm_cell * SCM_CELLPTR;
 #endif /* def _UNICOS */
 
 #define SCM_GC_CARD_N_HEADER_CELLS 1
-#define SCM_GC_CARD_N_CELLS        (8 * sizeof (scm_cell) * 4)
+#define SCM_GC_CARD_N_CELLS        256
 
 #define SCM_GC_CARD_SIZE           (SCM_GC_CARD_N_CELLS * sizeof (scm_cell))
 #define SCM_GC_CARD_N_DATA_CELLS   (SCM_GC_CARD_N_CELLS - SCM_GC_CARD_N_HEADER_CELLS)
