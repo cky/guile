@@ -1,5 +1,7 @@
 Sat Dec 21 14:50:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* libguile.h: Removed #include "libguile/fdsocket.h"
+
 	* net_db.c: Added #include <sys/socket.h>.
 
 Sat Dec 21 00:33:03 1996  Gary Houston  <ghouston@actrix.gen.nz>

@@ -70,7 +70,6 @@
 #include "libguile/error.h"
 #include "libguile/eval.h"
 #include "libguile/extchrs.h"
-#include "libguile/fdsocket.h"
 #include "libguile/feature.h"
 #include "libguile/filesys.h"
 #include "libguile/fports.h"
