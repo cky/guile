@@ -615,7 +615,10 @@ scm_sys_stat (fd_or_path)
 
     }
   if (rv != 0)
-    scm_syserror (s_sys_stat);
+    scm_syserror_msg (s_sys_stat, "%s: %S",
+		      scm_listify (scm_makfrom0str (strerror (errno)),
+				   fd_or_path,
+				   SCM_UNDEFINED));
   return scm_stat2scm (&stat_temp);
 }
 
@@ -1180,7 +1183,10 @@ scm_sys_lstat(str)
   SCM_ASSERT(SCM_NIMP(str) && SCM_STRINGP(str), str, (char *)SCM_ARG1, s_sys_lstat);
   SCM_SYSCALL(rv = lstat(SCM_CHARS(str), &stat_temp));
   if (rv != 0)
-    scm_syserror (s_sys_lstat);
+    scm_syserror_msg (s_sys_lstat, "%s: %S",
+		      scm_listify (scm_makfrom0str (strerror (errno)),
+				   str,
+				   SCM_UNDEFINED));
   return scm_stat2scm(&stat_temp);
 #else 
   scm_sysmissing (s_sys_lstat);

@@ -234,11 +234,11 @@ scm_makfromstr (src, len, slots)
 
 #ifdef __STDC__
 SCM 
-scm_makfrom0str (char *src)
+scm_makfrom0str (const char *src)
 #else
 SCM 
 scm_makfrom0str (src)
-     char *src;
+     const char *src;
 #endif
 {
   if (!src) return SCM_BOOL_F;
@@ -247,11 +247,11 @@ scm_makfrom0str (src)
 
 #ifdef __STDC__
 SCM 
-scm_makfrom0str_opt (char *src)
+scm_makfrom0str_opt (const char *src)
 #else
 SCM 
 scm_makfrom0str_opt (src)
-     char *src;
+     const char *src;
 #endif
 {
   return scm_makfrom0str (src);

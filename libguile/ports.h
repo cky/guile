@@ -87,7 +87,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 
 /* PORT FLAGS
- * A set of flags caracterizes a port.
+ * A set of flags characterizes a port.
  */
 #define SCM_OPN		(1L<<16) /* Is the port open? */
 #define SCM_RDNG	(2L<<16) /* Is it a readable port? */

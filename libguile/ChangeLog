@@ -1,3 +1,16 @@
+Sat Sep 28 02:07:43 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* strings.c, strings.h: (scm_makfrom0str, scm_makefrom0str_opt:
+	declare the char * to be const.  Avoids a warning in rgx.c.
+
+	* ports.h: spelling fix.
+
+	* filesys.c (scm_sys_stat, scm_sys,lstat): include file name in
+	error messages.
+
+	* load.c (scm_sys_try_load_path): throw an error if file not found
+	(like it says it in NEWS).
+
 Tue Sep 24 06:48:38 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* load.c (scm_sys_try_load): don't check whether value returned
