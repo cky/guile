@@ -1,3 +1,10 @@
+2001-03-04  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* goops.scm (change-object-class): Quote empty list constants.
+	(method): Reverted previous change (enclosing body);
+	Quote empty list.
+	(initialize <method>): Pre-expand the method closure.
+	
 2001-02-23  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* goops.scm (method): Enclosed BODY by `(let () ...)'.

@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -468,7 +468,7 @@
 (define method
   (letrec ((specializers
 	    (lambda (ls)
-	      (cond ((null? ls) (list ls))
+	      (cond ((null? ls) '('()))
 		    ((pair? ls) (cons (if (pair? (car ls))
 					  (cadar ls)
 					  '<top>)
@@ -487,9 +487,9 @@
 	  `(make <method>
 		 #:specializers (list* ,@(specializers args))
 		 #:procedure (lambda ,(formals args)
-			       ,(if (null? body)
-				    *unspecified*
-				    `(let () ,@body)))))))))
+			       ,@(if (null? body)
+				     (list *unspecified*)
+				     body))))))))
 
 ;;;
 ;;; {add-method!}
@@ -1318,7 +1318,10 @@
   (next-method)
   (slot-set! method 'generic-function (get-keyword #:generic-function initargs #f))
   (slot-set! method 'specializers (get-keyword #:specializers initargs '()))
-  (slot-set! method 'procedure (get-keyword #:procedure initargs (lambda l '())))
+  (slot-set! method
+	     'procedure
+	     (%pre-expand-closure!
+	      (get-keyword #:procedure initargs (lambda l '()))))
   (slot-set! method 'code-table '()))
 
 (define-method initialize ((obj <foreign-object>) initargs))
@@ -1328,7 +1331,7 @@
 ;;;
 
 (define (change-object-class old-instance old-class new-class)
-  (let ((new-instance (allocate-instance new-class ())))
+  (let ((new-instance (allocate-instance new-class '())))
     ;; Initalize the slot of the new instance
     (for-each (lambda (slot)
 		(if (and (slot-exists-using-class? old-class old-instance slot)
