@@ -1,30 +1,32 @@
 ;;; Author: Russ McManus
-;;; $Id: getopt-long.scm,v 1.2 1999-02-15 12:53:10 jimb Exp $
+;;; $Id: getopt-long.scm,v 1.3 2001-05-06 09:40:32 ttn Exp $
 ;;;
-;;; Copyright (C) 1998 FSF
+;;; Copyright (C) 1998, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
 ;;; the Free Software Foundation; either version 2 of the License, or
 ;;; (at your option) any later version.
-;;; 
+;;;
 ;;; This program is distributed in the hope that it will be useful,
 ;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;; GNU General Public License for more details.
-;;; 
+;;;
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-;;; 
+
+;;; Commentary:
+
 ;;; This module implements some complex command line option parsing, in
 ;;; the spirit of the GNU C library function 'getopt_long'.  Both long
 ;;; and short options are supported.
-;;; 
+;;;
 ;;; The theory is that people should be able to constrain the set of
 ;;; options they want to process using a grammar, rather than some arbitrary
 ;;; structure.  The grammar makes the option descriptions easy to read.
-;;; 
+;;;
 
 ;;; getopt-long is a function for parsing command-line arguments in a
 ;;; manner consistent with other GNU programs.
@@ -43,7 +45,7 @@
 ;;; Each OPTION should be a symbol.  `getopt-long' will accept a
 ;;; command-line option named `--OPTION'.
 ;;; Each option can have the following (PROPERTY VALUE) pairs:
-;;; 
+;;;
 ;;;   (single-char CHAR) --- Accept `-CHAR' as a single-character
 ;;;		equivalent to `--OPTION'.  This is how to specify traditional
 ;;;		Unix-style flags.
@@ -52,7 +54,7 @@
 ;;;   (value BOOL) --- If BOOL is #t, the option accepts a value; if
 ;;;		it is #f, it does not; and if it is the symbol
 ;;;		`optional', the option may appear in ARGS with or
-;;;		without a value. 
+;;;		without a value.
 ;;;   (predicate FUNC) --- If the option accepts a value (i.e. you
 ;;;		specified `(value #t)' for this option), then getopt
 ;;;		will apply FUNC to the value, and throw an exception
@@ -64,7 +66,7 @@
 ;;; property may occur only once.  By default, options do not have
 ;;; single-character equivalents, are not required, and do not take
 ;;; values.
-;;; 
+;;;
 ;;; In ARGS, single-character options may be combined, in the usual
 ;;; Unix fashion: ("-x" "-y") is equivalent to ("-xy").  If an option
 ;;; accepts values, then it must be the last option in the
@@ -130,10 +132,10 @@
 ;;;              (single-char #\v)
 ;;;              (value #f))
 ;;;     (x-includes (single-char #\x))
-;;;     (rnet-server (single-char #\y) 
+;;;     (rnet-server (single-char #\y)
 ;;;                  (predicate ,string?))))
 ;;;
-;;; (getopt-long '("my-prog" "-vk" "/tmp" "foo1" "--x-includes=/usr/include" 
+;;; (getopt-long '("my-prog" "-vk" "/tmp" "foo1" "--x-includes=/usr/include"
 ;;;                "--rnet-server=lamprod" "--" "-fred" "foo2" "foo3")
 ;;;                grammar)
 ;;; => ((() "foo1" "-fred" "foo2" "foo3")
@@ -142,22 +144,22 @@
 ;;; 	(lockfile-dir . "/tmp")
 ;;; 	(verbose . #t))
 
+;;; Code:
 
 (define-module (ice-9 getopt-long)
   :use-module (ice-9 common-list))
-;;; end-header
 
 
 ;;; The code on this page was expanded by hand using the following code:
-;;; (pretty-print                 
-;;;  (macroexpand                 
-;;;   '(define-record option-spec 
-;;;      (name                    
-;;;       value                   
-;;;       value-required?         
-;;;       single-char             
-;;;       predicate-ls            
-;;;       parse-ls))))            
+;;; (pretty-print
+;;;  (macroexpand
+;;;   '(define-record option-spec
+;;;      (name
+;;;       value
+;;;       value-required?
+;;;       single-char
+;;;       predicate-ls
+;;;       parse-ls))))
 ;;;
 ;;; This avoids the need to load slib for records.
 (define slib:error error)
@@ -335,7 +337,7 @@
 	    (let ((name (option-spec->name spec)))
 	      (error "option must be specified:" name)))))))
 
-(define make-option-value-predicate 
+(define make-option-value-predicate
   (lambda (predicate)
     (lambda (spec)
       (let ((val (option-spec->value spec)))
@@ -351,10 +353,10 @@
 	    (let ((name (option-spec->name spec)))
 	      (error "option must be specified with argument:" name)))))))
 
-(define single-char-value? 
+(define single-char-value?
   (lambda (val)
     (char? val)))
- 
+
 (define (parse-option-spec desc)
   (letrec ((parse-iter
 	    (lambda (spec)
@@ -393,7 +395,7 @@
 								    (option-spec->value spec)
 								    #t
 								    (option-spec->single-char spec)
-								    (cons (make-required-value-fn) 
+								    (cons (make-required-value-fn)
 									  (option-spec->predicate-ls spec))
 								    (cdr parse-ls))))
 				     ((eq? val #f)
@@ -404,7 +406,7 @@
 								    (option-spec->value spec)
 								    #f
 								    (option-spec->single-char spec)
-								    (cons (make-not-allowed-value-fn) 
+								    (cons (make-not-allowed-value-fn)
 									  (option-spec->predicate-ls spec))
 								    (cdr parse-ls))))
 				     ((eq? val 'optional)
@@ -446,7 +448,7 @@
 	    (string? (car desc)))
 	(error "Bad option specification:" desc))
     (parse-iter (make-option-spec (car desc)
-				  #f 
+				  #f
 				  #f
 				  #f
 				  '()
@@ -454,13 +456,13 @@
 
 
 ;;;
-;;; 
+;;;
 ;;;
 (define (split-arg-list argument-list)
-  "Given an ARGUMENT-LIST, decide which part to process for options.  
-Everything before an arg of \"--\" is fair game, everything after it 
-should not be processed.  The \"--\" is discarded.  A cons pair is 
-returned whose car is the list to process for options, and whose cdr 
+  "Given an ARGUMENT-LIST, decide which part to process for options.
+Everything before an arg of \"--\" is fair game, everything after it
+should not be processed.  The \"--\" is discarded.  A cons pair is
+returned whose car is the list to process for options, and whose cdr
 is the list to not process."
   (let loop ((process-ls '())
 	     (not-process-ls argument-list))
@@ -500,12 +502,12 @@ is the list to not process."
 
 (define (process-short-option specifications argument-ls alist)
   "Process a single short option that appears at the front of the ARGUMENT-LS,
-according to SPECIFICATIONS.  Returns #f is there is no such argument.  Otherwise 
-returns a pair whose car is the list of remaining arguments, and whose cdr is a 
-new association list, constructed by adding a pair to the supplied ALIST.  
-The pair on the front of the returned association list describes the  option 
-found at the head of ARGUMENT-LS.  The way this routine currently works, an 
-option that never takes a value that is followed by a non option will cause 
+according to SPECIFICATIONS.  Returns #f is there is no such argument.  Otherwise
+returns a pair whose car is the list of remaining arguments, and whose cdr is a
+new association list, constructed by adding a pair to the supplied ALIST.
+The pair on the front of the returned association list describes the  option
+found at the head of ARGUMENT-LS.  The way this routine currently works, an
+option that never takes a value that is followed by a non option will cause
 an error, which is probably a bug.  To fix the bug the option specification
 needs to record whether the option ever can take a value."
   (define (short-option->char option)
@@ -622,7 +624,7 @@ option name is a symbol.  The option value will be '#t' if no value
 was specified.  There is a special item in the returned alist with a
 key of the empty list, (): the list of arguments that are not options
 or option values.
-    By default, options are not required, and option values are not 
+    By default, options are not required, and option values are not
 required.  By default, single character equivalents are not supported;
 if you want to allow the user to use single character options, you need
 to add a 'single-char' clause to the option description."
@@ -660,3 +662,5 @@ found, return DEFAULT."
 
 (export option-ref)
 (export getopt-long)
+
+;;; getopt-long.scm ends here

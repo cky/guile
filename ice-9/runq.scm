@@ -1,43 +1,40 @@
 ;;;; runq.scm --- the runq data structure
 ;;;;
-;;;; 	Copyright (C) 1996 Free Software Foundation, Inc.
-;;;; 
+;;;; 	Copyright (C) 1996, 2001 Free Software Foundation, Inc.
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
-;;;; 
-
-(define-module (ice-9 runq)
-  :use-module (ice-9 q))
-
 ;;;;
-;;; 
+
+;;; Commentary:
+
 ;;; One way to schedule parallel computations in a serial environment is
 ;;; to explicitly divide each task up into small, finite execution time,
 ;;; strips.  Then you interleave the execution of strips from various
 ;;; tasks to achieve a kind of parallelism.  Runqs are a handy data
 ;;; structure for this style of programming.
-;;; 
+;;;
 ;;; We use thunks (nullary procedures) and lists of thunks to represent
 ;;; strips.  By convention, the return value of a strip-thunk must either
 ;;; be another strip or the value #f.
-;;; 
+;;;
 ;;; A runq is a procedure that manages a queue of strips.  Called with no
 ;;; arguments, it processes one strip from the queue.  Called with
 ;;; arguments, the arguments form a control message for the queue.  The
 ;;; first argument is a symbol which is the message selector.
-;;; 
+;;;
 ;;; A strip is processed this way: If the strip is a thunk, the thunk is
 ;;; called -- if it returns a strip, that strip is added back to the
 ;;; queue.  To process a strip which is a list of thunks, the CAR of that
@@ -47,20 +44,21 @@
 ;;; these strips exist back on the queue.  (The exact order in which
 ;;; strips are put back on the queue determines the scheduling behavior of
 ;;; a particular queue -- it's a parameter.)
-;;; 
-;;; 
 
+;;; Code:
 
+(define-module (ice-9 runq)
+  :use-module (ice-9 q))
 
 ;;;;
 ;;; 	(runq-control q msg . args)
-;;; 
+;;;
 ;;; 		processes in the default way the control messages that
 ;;; 		can be sent to a runq.  Q should be an ordinary
 ;;; 		Q (see utils/q.scm).
-;;; 
+;;;
 ;;; 		The standard runq messages are:
-;;; 
+;;;
 ;;; 		'add! strip0 strip1...		;; to enqueue one or more strips
 ;;; 		'enqueue! strip0 strip1...	;; to enqueue one or more strips
 ;;; 		'push! strip0 ...		;; add strips to the front of the queue
@@ -68,7 +66,7 @@
 ;;; 		'length				;; how many strips in the queue?
 ;;; 		'kill!				;; empty the queue
 ;;; 		else				;; throw 'not-understood
-;;; 
+;;;
 (define-public (runq-control q msg . args)
   (case msg
     ((add!)			(for-each (lambda (t) (enq! q t)) args) '*unspecified*)
@@ -96,20 +94,20 @@
 	      ((length)		0)
 	      (else		#f)))))))
 
-;;;; 
+;;;;
 ;;; 	(make-fair-runq)
-;;; 
+;;;
 ;;; 		Returns a runq procedure.
 ;;; 		Called with no arguments, the procedure processes one strip from the queue.
 ;;; 		Called with arguments, it uses runq-control.
-;;; 
+;;;
 ;;; 		In a fair runq, if a strip returns a new strip X, X is added
 ;;; 		to the end of the queue, meaning it will be the last to execute
 ;;; 		of all the remaining procedures.
-;;; 
+;;;
 (define-public (make-fair-runq)
   (letrec ((q (make-q))
-	   (self 
+	   (self
 	    (lambda ctl
 	      (if ctl
 		  (apply runq-control q ctl)
@@ -126,26 +124,26 @@
     self))
 
 
-;;;; 
+;;;;
 ;;; 	(make-exclusive-runq)
-;;; 
+;;;
 ;;; 		Returns a runq procedure.
 ;;; 		Called with no arguments, the procedure processes one strip from the queue.
 ;;; 		Called with arguments, it uses runq-control.
-;;; 
+;;;
 ;;; 		In an exclusive runq, if a strip W returns a new strip X, X is added
 ;;; 		to the front of the queue, meaning it will be the next to execute
 ;;; 		of all the remaining procedures.
-;;; 
+;;;
 ;;; 		An exception to this occurs if W was the CAR of a list of strips.
 ;;; 		In that case, after the return value of W is pushed onto the front
 ;;; 	 	of the queue, the CDR of the list of strips is pushed in front
 ;;; 		of that (if the CDR is not nil).   This way, the rest of the thunks
 ;;; 		in the list that contained W have priority over the return value of W.
-;;; 
+;;;
 (define-public (make-exclusive-runq)
   (letrec ((q (make-q))
-	   (self 
+	   (self
 	    (lambda ctl
 	      (if ctl
 		  (apply runq-control q ctl)
@@ -162,19 +160,19 @@
     self))
 
 
-;;;; 
+;;;;
 ;;; 	(make-subordinate-runq-to superior basic-inferior)
-;;; 
+;;;
 ;;; 		Returns a runq proxy for the runq basic-inferior.
-;;; 
+;;;
 ;;; 		The proxy watches for operations on the basic-inferior that cause
-;;; 		a transition from a queue length of 0 to a non-zero length and 
+;;; 		a transition from a queue length of 0 to a non-zero length and
 ;;; 		vice versa.   While the basic-inferior queue is not empty,
 ;;; 		the proxy installs a task on the superior runq.  Each strip
 ;;; 		of that task processes N strips from the basic-inferior where
 ;;; 		N is the length of the basic-inferior queue when the proxy
-;;; 		strip is entered.  [Countless scheduling variations are possible.]		
-;;; 
+;;; 		strip is entered.  [Countless scheduling variations are possible.]
+;;;
 (define-public (make-subordinate-runq-to superior-runq basic-runq)
   (let ((runq-task (cons #f #f)))
     (set-car! runq-task
@@ -203,7 +201,7 @@
 
 ;;;;
 ;;;	(define fork-strips (lambda args args))
-;;;		Return a strip that starts several strips in 
+;;;		Return a strip that starts several strips in
 ;;;		parallel.   If this strip is enqueued on a fair
 ;;;		runq, strips of the parallel subtasks will run
 ;;;		round-robin style.
@@ -211,11 +209,11 @@
 (define fork-strips (lambda args args))
 
 
-;;;; 		
+;;;;
 ;;; 	(strip-sequence . strips)
-;;; 
+;;;
 ;;; 		Returns a new strip which is the concatenation of the argument strips.
-;;; 
+;;;
 (define-public ((strip-sequence . strips))
   (let loop ((st (let ((a strips)) (set! strips #f) a)))
     (and (not (null? st))
@@ -227,14 +225,15 @@
 
 ;;;;
 ;;; 	(fair-strip-subtask . initial-strips)
-;;; 
+;;;
 ;;; 		Returns a new strip which is the synchronos, fair,
 ;;; 		parallel execution of the argument strips.
-;;; 
-;;; 
+;;;
+;;;
 ;;;
 (define-public (fair-strip-subtask . initial-strips)
   (let ((st (make-fair-runq)))
     (apply st 'add! initial-strips)
     st))
 
+;;; runq.scm ends here

@@ -1,33 +1,30 @@
 ;;;; q.scm --- Queues
 ;;;;
-;;;; 	Copyright (C) 1995 Free Software Foundation, Inc.
-;;;; 
+;;;; 	Copyright (C) 1995, 2001 Free Software Foundation, Inc.
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
-;;;; 
-
-(define-module (ice-9 q))
-
 ;;;;
-;;; Q: Based on the interface to 
+
+;;; Commentary:
+
+;;; Q: Based on the interface to
 ;;;
-;;; "queue.scm"  Queues/Stacks for Scheme 
+;;; "queue.scm"  Queues/Stacks for Scheme
 ;;;  Written by Andrew Wilcox (awilcox@astro.psu.edu) on April 1, 1992.
-;;;
 
-;;;;
 ;;; {Q}
 ;;;
 ;;; A list is just a bunch of cons pairs that follows some constrains,
@@ -39,7 +36,7 @@
 ;;; simple, regular structure and non-disjointedness (associations
 ;;; being lists and so forth).
 ;;;
-;;; So I figured, queues should be the same -- just a "subtype" of cons-pair 
+;;; So I figured, queues should be the same -- just a "subtype" of cons-pair
 ;;; structures in general.
 ;;;
 ;;; A queue is a cons pair:
@@ -49,7 +46,7 @@
 ;;; of that list.
 ;;;
 ;;; <last-pair> is #f if the q is empty, and otherwise is the last
-;;;pair of <the-q>.
+;;; pair of <the-q>.
 ;;;
 ;;; q's print nicely, but alas, they do not read well because the
 ;;; eq?-ness of <last-pair> and (last-pair <the-q>) is lost by read.
@@ -57,12 +54,17 @@
 ;;; All the functions that aren't explicitly defined to return
 ;;; something else (a queue element; a boolean value) return the queue
 ;;; object itself.
+
+;;; Code:
+
+(define-module (ice-9 q))
+
+;;; sync-q!
+;;;   The procedure
 ;;;
-;;; The procedure
-;;; 
 ;;;		(sync-q! q)
 ;;;
-;;; recomputes and resets the <last-pair> component of a queue.
+;;;   recomputes and resets the <last-pair> component of a queue.
 ;;;
 (define-public (sync-q! q)
   (set-cdr! q (if (pair? (car q)) (last-pair (car q))
@@ -88,7 +90,7 @@
 		(not (cdr obj))))))
 
 ;;; q-empty? obj
-;;;  
+;;;
 (define-public (q-empty? obj) (null? (car obj)))
 
 ;;; q-empty-check q
@@ -146,3 +148,5 @@
 ;;;  Return the number of enqueued elements.
 ;;;
 (define-public (q-length q) (length (car q)))
+
+;;; q.scm ends here
