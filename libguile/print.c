@@ -541,19 +541,28 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 
 	      scm_putc ('"', port);
 	      for (i = 0; i < SCM_STRING_LENGTH (exp); ++i)
-		switch (SCM_STRING_CHARS (exp)[i])
-		  {
-		  case '"':
-		  case '\\':
-		    scm_putc ('\\', port);
-		  default:
-		    scm_putc (SCM_STRING_CHARS (exp)[i], port);
-		  }
+		{
+		  unsigned char ch = SCM_STRING_CHARS (exp)[i];
+		  if ((ch < 32 && ch != '\n') || (127 <= ch && ch < 148))
+		    {
+		      static char const hex[]="0123456789abcdef";
+		      scm_putc ('\\', port);
+		      scm_putc ('x', port);
+		      scm_putc (hex [ch / 16], port);
+		      scm_putc (hex [ch % 16], port);
+		    }
+		  else
+		    {
+		      if (ch == '"' || ch == '\\')
+			scm_putc ('\\', port);
+		      scm_putc (ch, port);
+		    }
+		}
 	      scm_putc ('"', port);
-	      break;
 	    }
 	  else
-	    scm_lfwrite (SCM_STRING_CHARS (exp), SCM_STRING_LENGTH (exp), port);
+	    scm_lfwrite (SCM_STRING_CHARS (exp), SCM_STRING_LENGTH (exp),
+			 port);
 	  break;
 	case scm_tc7_symbol:
 	  if (SCM_SYMBOL_INTERNED_P (exp))
