@@ -2413,8 +2413,9 @@ dispatch:
 	  t.arg1 = EVALCAR (x, env);
 	  x = SCM_CDR (x);
 	  proc = SCM_CDR (x);
-	  RETURN (SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CAR (x))]
-		  = EVALCAR (proc, env));
+	  SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CAR (x))]
+	    = EVALCAR (proc, env);
+	  RETURN (SCM_UNSPECIFIED);
 	  
 	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
 	  proc = SCM_CDR (x);
