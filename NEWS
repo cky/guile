@@ -461,6 +461,11 @@ chapter in the reference manual.
 
 There is no replacement for undefine.
 
+** source-properties and set-source-properties! fix
+
+Properties set with set-source-properties! can now be read back
+correctly with source-properties.
+
 ** SRFI-1 delete equality argument order fixed.
 
 In the srfi-1 module delete and delete!, the order of the arguments to
