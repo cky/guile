@@ -127,11 +127,11 @@
 #endif
 
 
-static void scm_start_stack SCM_P ((void *base));
-static void scm_restart_stack SCM_P ((void * base));
+static void start_stack SCM_P ((void *base));
+static void restart_stack SCM_P ((void * base));
 
 static void
-scm_start_stack (base)
+start_stack (base)
      void * base;
 {
   SCM root;
@@ -154,24 +154,24 @@ scm_start_stack (base)
 						"continuation"));
   SCM_SETCAR (scm_rootcont, scm_tc7_contin);
   SCM_SEQ (scm_rootcont) = 0;
-  /* The root continuation if further initialized by scm_restart_stack. */
+  /* The root continuation if further initialized by restart_stack. */
 
   /* Create the look-aside stack for variables that are shared between
    * captured continuations.
    */
   scm_continuation_stack = scm_make_vector (SCM_MAKINUM (512),
 					    SCM_UNDEFINED, SCM_UNDEFINED);
-  /* The continuation stack is further initialized by scm_restart_stack. */
+  /* The continuation stack is further initialized by restart_stack. */
 
   /* The remainder of stack initialization is factored out to another
    * function so that if this stack is ever exitted, it can be
-   * re-entered using scm_restart_stack.  */
-  scm_restart_stack (base);
+   * re-entered using restart_stack.  */
+  restart_stack (base);
 }
 
 
 static void
-scm_restart_stack (base)
+restart_stack (base)
      void * base;
 {
   scm_dynwinds = SCM_EOL;
@@ -374,7 +374,7 @@ scm_boot_guile_1 (base, closure)
   
   if (initialized)
     {
-      scm_restart_stack (base);
+      restart_stack (base);
     }
   else
     {
@@ -386,7 +386,7 @@ scm_boot_guile_1 (base, closure)
 #ifdef USE_THREADS
       scm_init_threads (base);
 #endif
-      scm_start_stack (base);
+      start_stack (base);
       scm_init_gsubr ();
       scm_init_feature ();
       scm_init_alist ();
