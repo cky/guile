@@ -433,7 +433,7 @@ longs, unsigned longs, floats or doubles at memory location @var{dptr}.
 These routines convert the Scheme object to the given C type.
 @end deftypefun
 
-@deftypefun char *gh_scm2newstr (SCM @var{str}, size_t *@var{lenp})
+@deftypefun {char *} gh_scm2newstr (SCM @var{str}, size_t *@var{lenp})
 Given a Scheme string @var{str}, return a pointer to a new copy of its
 contents, followed by a null byte.  If @var{lenp} is non-null, set
 @code{*@var{lenp}} to the string's length.
@@ -459,7 +459,7 @@ If @var{start} + @var{len} is off the end of @var{src}, signal an
 out-of-range error.
 @end deftypefun
 
-@deftypefun char *gh_symbol2newstr (SCM @var{sym}, int *@var{lenp})
+@deftypefun {char *} gh_symbol2newstr (SCM @var{sym}, int *@var{lenp})
 Takes a Scheme symbol and returns a string of the form
 @code{"'symbol-name"}.  If @var{lenp} is non-null, the string's length
 is returned in @code{*@var{lenp}}.
@@ -468,11 +468,11 @@ This function uses malloc to obtain storage for the returned string; the
 caller is responsible for freeing it.
 @end deftypefun
 
-@deftypefun char *gh_scm2chars (SCM @var{vector}, chars *@var{result})
-@deftypefunx short *gh_scm2shorts (SCM @var{vector}, short *@var{result})
-@deftypefunx long *gh_scm2longs (SCM @var{vector}, long *@var{result})
-@deftypefunx float *gh_scm2floats (SCM @var{vector}, float *@var{result})
-@deftypefunx double *gh_scm2doubles (SCM @var{vector}, double *@var{result})
+@deftypefun {char *} gh_scm2chars (SCM @var{vector}, chars *@var{result})
+@deftypefunx {short *} gh_scm2shorts (SCM @var{vector}, short *@var{result})
+@deftypefunx {long *} gh_scm2longs (SCM @var{vector}, long *@var{result})
+@deftypefunx {float *} gh_scm2floats (SCM @var{vector}, float *@var{result})
+@deftypefunx {double *} gh_scm2doubles (SCM @var{vector}, double *@var{result})
 Copy the numbers in @var{vector} to the array pointed to by @var{result}
 and return it.  If @var{result} is NULL, allocate a double array large
 enough.
