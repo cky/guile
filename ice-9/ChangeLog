@@ -1,3 +1,10 @@
+2004-08-18  Kevin Ryde  <user42@zip.com.au>
+
+	* and-let-star.scm: Add cond-expand-provide srfi-2, since this module
+	provides that feature.
+	* receive.scm: Add cond-expand-provide srfi-8, since this module
+	provides that feature.
+
 2004-08-09  Marius Vollmer  <mvo@zagadka.de>
 
 	From Matthias Koeppe.  Thanks!
