@@ -2017,17 +2017,7 @@
   (let ((libtool-filename (in-vicinity libdir
 				       (string-append libname ".la"))))
     (and (file-exists? libtool-filename)
-	 (with-input-from-file libtool-filename
-	   (lambda ()
-	     (let loop ((ln (read-line)))
-	       (cond ((eof-object? ln) #f)
-		     ((and (> (string-length ln) 9)
-			   (string=? "dlname='" (substring ln 0 8))
-			   (string-index ln #\' 8))
-		      =>
-		      (lambda (end)
-			(in-vicinity libdir (substring ln 8 end))))
-		     (else (loop (read-line))))))))))
+	 libtool-filename)))
 			      
 (define (try-using-sharlib-name libdir libname)
   (in-vicinity libdir (string-append libname ".so")))
