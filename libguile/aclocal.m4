@@ -262,14 +262,14 @@ dnl
      if test -f $srcdir/../qt/qt.c || test -f $srcdir/qt/qt.c; then
 	threads_package=COOP
 	cy_cv_threads_cflags="-I$srcdir/../qt -I../qt"
-	cy_cv_threads_libs="../threads/libthreads.a ../qt/libqt.a"
+	cy_cv_threads_libs="../qt/libqt.a"
      fi
   else
      if test -f $use_threads/qt.c; then
 	# FIXME seems as though we should try to use an installed qt here.
 	threads_package=COOP
 	cy_cv_threads_cflags="-I$use_threads -I../qt"
-	cy_cv_threads_libs="../threads/libthreads.a ../qt/libqt.a"
+	cy_cv_threads_libs="../qt/libqt.a"
      fi
   fi
   if test "$use_threads" = pthreads; then
