@@ -50,6 +50,82 @@ in backtraces.
 
 * Changes to Scheme functions and syntax
 
+** New syntax: lambda*
+** New syntax: define*
+** New syntax: define*-public   
+** New syntax: defmacro*
+** New syntax: defmacro*-public
+Guile now supports optional arguments. 
+
+`lambda*', `define*', `define*-public', `defmacro*' and
+`defmacro*-public' are identical to the non-* versions except that
+they use an extended type of parameter list that has the following BNF
+syntax (parentheses are literal, square brackets indicate grouping,
+and `*', `+' and `?' have the usual meaning):
+
+   ext-param-list ::= ( [identifier]* [#&optional [ext-var-decl]+]?
+      [#&key [ext-var-decl]+ [#&allow-other-keys]?]? 
+      [[#&rest identifier]|[. identifier]]? ) | [identifier]
+
+   ext-var-decl ::= identifier | ( identifier expression )  
+
+The semantics are best illustrated with the following documentation
+and examples for `lambda*':
+
+ lambda* args . body
+   lambda extended for optional and keyword arguments
+   
+ lambda* creates a procedure that takes optional arguments. These
+ are specified by putting them inside brackets at the end of the
+ paramater list, but before any dotted rest argument. For example,
+   (lambda* (a b #&optional c d . e) '())
+ creates a procedure with fixed arguments a and b, optional arguments c
+ and d, and rest argument e. If the optional arguments are omitted
+ in a call, the variables for them are unbound in the procedure. This
+ can be checked with the bound? macro.
+
+ lambda* can also take keyword arguments. For example, a procedure
+ defined like this:
+   (lambda* (#&key xyzzy larch) '())
+ can be called with any of the argument lists (#:xyzzy 11)
+ (#:larch 13) (#:larch 42 #:xyzzy 19) (). Whichever arguments
+ are given as keywords are bound to values.
+
+ Optional and keyword arguments can also be given default values
+ which they take on when they are not present in a call, by giving a
+ two-item list in place of an optional argument, for example in:
+   (lambda* (foo #&optional (bar 42) #&key (baz 73)) (list foo bar baz)) 
+ foo is a fixed argument, bar is an optional argument with default
+ value 42, and baz is a keyword argument with default value 73.
+ Default value expressions are not evaluated unless they are needed
+ and until the procedure is called.  
+
+ lambda* now supports two more special parameter list keywords.
+
+ lambda*-defined procedures now throw an error by default if a
+ keyword other than one of those specified is found in the actual
+ passed arguments. However, specifying #&allow-other-keys
+ immediately after the kyword argument declarations restores the
+ previous behavior of ignoring unknown keywords. lambda* also now
+ guarantees that if the same keyword is passed more than once, the
+ last one passed is the one that takes effect. For example,
+  ((lambda* (#&key (heads 0) (tails 0)) (display (list heads tails)))
+    #:heads 37 #:tails 42 #:heads 99)
+ would result in (99 47) being displayed.
+
+ #&rest is also now provided as a synonym for the dotted syntax rest
+ argument. The argument lists (a . b) and (a #&rest b) are equivalent in
+ all respects to lambda*. This is provided for more similarity to DSSSL,
+ MIT-Scheme and Kawa among others, as well as for refugees from other
+ Lisp dialects.
+
+Further documentation may be found in the optargs.scm file itself.
+
+The optional argument module also exports the macros `let-optional',
+`let-optional*', `let-keywords', `let-keywords*' and `bound?'. These
+are not documented here because they may be removed in the future, but
+full documentation is still available in optargs.scm.
+
 ** New syntax: and-let*
 Guile now supports the `and-let*' form, described in the draft SRFI-2.
 
