@@ -1863,6 +1863,8 @@ static void
 cleanup (void)
 #else
 #ifdef HAVE_ON_EXIT
+extern int on_exit (void (*procp) (), int arg);
+
 static void
 cleanup (int status, void *arg)
 #else
