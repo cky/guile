@@ -288,7 +288,7 @@ output.
 @end deffn
 
 display-backtrace
-@c snarfed from backtrace.c:741
+@c snarfed from backtrace.c:740
 @deffn {Scheme Procedure} display-backtrace stack port [first [depth [highlights]]]
 @deffnx {C Function} scm_display_backtrace_with_highlights (stack, port, first, depth, highlights)
 Display a backtrace to the output port @var{port}. @var{stack}
@@ -302,7 +302,7 @@ the backtrace.
 @end deffn
 
 backtrace
-@c snarfed from backtrace.c:777
+@c snarfed from backtrace.c:776
 @deffn {Scheme Procedure} backtrace [highlights]
 @deffnx {C Function} scm_backtrace_with_highlights (highlights)
 Display a backtrace of the stack saved by the last error
@@ -1313,7 +1313,7 @@ terminate if its arguments are circular data structures.
 @end deffn
 
 scm-error
-@c snarfed from error.c:83
+@c snarfed from error.c:82
 @deffn {Scheme Procedure} scm-error key subr message args data
 @deffnx {C Function} scm_error_scm (key, subr, message, args, data)
 Raise an error with key @var{key}.  @var{subr} can be a string
@@ -1334,7 +1334,7 @@ it will usually be @code{#f}.
 @end deffn
 
 strerror
-@c snarfed from error.c:130
+@c snarfed from error.c:129
 @deffn {Scheme Procedure} strerror err
 @deffnx {C Function} scm_strerror (err)
 Return the Unix error message corresponding to @var{err}, which
@@ -2108,7 +2108,7 @@ integer in the range 0 to @var{size} - 1.
 @end deffn
 
 make-hash-table
-@c snarfed from hashtab.c:309
+@c snarfed from hashtab.c:308
 @deffn {Scheme Procedure} make-hash-table [n]
 @deffnx {C Function} scm_make_hash_table (n)
 Make a hash table with optional minimum number of buckets @var{n}
@@ -2116,7 +2116,7 @@ Make a hash table with optional minimum number of buckets @var{n}
 @end deffn
 
 make-weak-key-hash-table
-@c snarfed from hashtab.c:328
+@c snarfed from hashtab.c:327
 @deffn {Scheme Procedure} make-weak-key-hash-table [n]
 @deffnx {Scheme Procedure} make-weak-value-hash-table size
 @deffnx {Scheme Procedure} make-doubly-weak-hash-table size
@@ -2130,7 +2130,7 @@ would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn
 
 make-weak-value-hash-table
-@c snarfed from hashtab.c:343
+@c snarfed from hashtab.c:342
 @deffn {Scheme Procedure} make-weak-value-hash-table [n]
 @deffnx {C Function} scm_make_weak_value_hash_table (n)
 Return a hash table with weak values with @var{size} buckets.
@@ -2138,7 +2138,7 @@ Return a hash table with weak values with @var{size} buckets.
 @end deffn
 
 make-doubly-weak-hash-table
-@c snarfed from hashtab.c:360
+@c snarfed from hashtab.c:359
 @deffn {Scheme Procedure} make-doubly-weak-hash-table n
 @deffnx {C Function} scm_make_doubly_weak_hash_table (n)
 Return a hash table with weak keys and values with @var{size}
@@ -2146,14 +2146,14 @@ buckets.  (@pxref{Hash Tables})
 @end deffn
 
 hash-table?
-@c snarfed from hashtab.c:379
+@c snarfed from hashtab.c:378
 @deffn {Scheme Procedure} hash-table? obj
 @deffnx {C Function} scm_hash_table_p (obj)
 Return @code{#t} if @var{obj} is a hash table.
 @end deffn
 
 weak-key-hash-table?
-@c snarfed from hashtab.c:393
+@c snarfed from hashtab.c:392
 @deffn {Scheme Procedure} weak-key-hash-table? obj
 @deffnx {Scheme Procedure} weak-value-hash-table? obj
 @deffnx {Scheme Procedure} doubly-weak-hash-table? obj
@@ -2164,28 +2164,28 @@ nor a weak value hash table.
 @end deffn
 
 weak-value-hash-table?
-@c snarfed from hashtab.c:403
+@c snarfed from hashtab.c:402
 @deffn {Scheme Procedure} weak-value-hash-table? obj
 @deffnx {C Function} scm_weak_value_hash_table_p (obj)
 Return @code{#t} if @var{obj} is a weak value hash table.
 @end deffn
 
 doubly-weak-hash-table?
-@c snarfed from hashtab.c:413
+@c snarfed from hashtab.c:412
 @deffn {Scheme Procedure} doubly-weak-hash-table? obj
 @deffnx {C Function} scm_doubly_weak_hash_table_p (obj)
 Return @code{#t} if @var{obj} is a doubly weak hash table.
 @end deffn
 
 hash-clear!
-@c snarfed from hashtab.c:550
+@c snarfed from hashtab.c:549
 @deffn {Scheme Procedure} hash-clear! table
 @deffnx {C Function} scm_hash_clear_x (table)
 Remove all items from TABLE (without triggering a resize).
 @end deffn
 
 hashq-get-handle
-@c snarfed from hashtab.c:567
+@c snarfed from hashtab.c:566
 @deffn {Scheme Procedure} hashq-get-handle table key
 @deffnx {C Function} scm_hashq_get_handle (table, key)
 This procedure returns the @code{(key . value)} pair from the
@@ -2195,7 +2195,7 @@ Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-create-handle!
-@c snarfed from hashtab.c:579
+@c snarfed from hashtab.c:578
 @deffn {Scheme Procedure} hashq-create-handle! table key init
 @deffnx {C Function} scm_hashq_create_handle_x (table, key, init)
 This function looks up @var{key} in @var{table} and returns its handle.
@@ -2204,7 +2204,7 @@ associates @var{key} with @var{init}.
 @end deffn
 
 hashq-ref
-@c snarfed from hashtab.c:592
+@c snarfed from hashtab.c:591
 @deffn {Scheme Procedure} hashq-ref table key [dflt]
 @deffnx {C Function} scm_hashq_ref (table, key, dflt)
 Look up @var{key} in the hash table @var{table}, and return the
@@ -2214,7 +2214,7 @@ is supplied).  Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-set!
-@c snarfed from hashtab.c:606
+@c snarfed from hashtab.c:605
 @deffn {Scheme Procedure} hashq-set! table key val
 @deffnx {C Function} scm_hashq_set_x (table, key, val)
 Find the entry in @var{table} associated with @var{key}, and
@@ -2222,7 +2222,7 @@ store @var{value} there. Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-remove!
-@c snarfed from hashtab.c:618
+@c snarfed from hashtab.c:617
 @deffn {Scheme Procedure} hashq-remove! table key
 @deffnx {C Function} scm_hashq_remove_x (table, key)
 Remove @var{key} (and any value associated with it) from
@@ -2230,7 +2230,7 @@ Remove @var{key} (and any value associated with it) from
 @end deffn
 
 hashv-get-handle
-@c snarfed from hashtab.c:634
+@c snarfed from hashtab.c:633
 @deffn {Scheme Procedure} hashv-get-handle table key
 @deffnx {C Function} scm_hashv_get_handle (table, key)
 This procedure returns the @code{(key . value)} pair from the
@@ -2240,7 +2240,7 @@ Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-create-handle!
-@c snarfed from hashtab.c:646
+@c snarfed from hashtab.c:645
 @deffn {Scheme Procedure} hashv-create-handle! table key init
 @deffnx {C Function} scm_hashv_create_handle_x (table, key, init)
 This function looks up @var{key} in @var{table} and returns its handle.
@@ -2249,7 +2249,7 @@ associates @var{key} with @var{init}.
 @end deffn
 
 hashv-ref
-@c snarfed from hashtab.c:660
+@c snarfed from hashtab.c:659
 @deffn {Scheme Procedure} hashv-ref table key [dflt]
 @deffnx {C Function} scm_hashv_ref (table, key, dflt)
 Look up @var{key} in the hash table @var{table}, and return the
@@ -2259,7 +2259,7 @@ is supplied).  Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-set!
-@c snarfed from hashtab.c:674
+@c snarfed from hashtab.c:673
 @deffn {Scheme Procedure} hashv-set! table key val
 @deffnx {C Function} scm_hashv_set_x (table, key, val)
 Find the entry in @var{table} associated with @var{key}, and
@@ -2267,7 +2267,7 @@ store @var{value} there. Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-remove!
-@c snarfed from hashtab.c:685
+@c snarfed from hashtab.c:684
 @deffn {Scheme Procedure} hashv-remove! table key
 @deffnx {C Function} scm_hashv_remove_x (table, key)
 Remove @var{key} (and any value associated with it) from
@@ -2275,7 +2275,7 @@ Remove @var{key} (and any value associated with it) from
 @end deffn
 
 hash-get-handle
-@c snarfed from hashtab.c:700
+@c snarfed from hashtab.c:699
 @deffn {Scheme Procedure} hash-get-handle table key
 @deffnx {C Function} scm_hash_get_handle (table, key)
 This procedure returns the @code{(key . value)} pair from the
@@ -2285,7 +2285,7 @@ Uses @code{equal?} for equality testing.
 @end deffn
 
 hash-create-handle!
-@c snarfed from hashtab.c:712
+@c snarfed from hashtab.c:711
 @deffn {Scheme Procedure} hash-create-handle! table key init
 @deffnx {C Function} scm_hash_create_handle_x (table, key, init)
 This function looks up @var{key} in @var{table} and returns its handle.
@@ -2294,7 +2294,7 @@ associates @var{key} with @var{init}.
 @end deffn
 
 hash-ref
-@c snarfed from hashtab.c:725
+@c snarfed from hashtab.c:724
 @deffn {Scheme Procedure} hash-ref table key [dflt]
 @deffnx {C Function} scm_hash_ref (table, key, dflt)
 Look up @var{key} in the hash table @var{table}, and return the
@@ -2304,7 +2304,7 @@ is supplied).  Uses @code{equal?} for equality testing.
 @end deffn
 
 hash-set!
-@c snarfed from hashtab.c:740
+@c snarfed from hashtab.c:739
 @deffn {Scheme Procedure} hash-set! table key val
 @deffnx {C Function} scm_hash_set_x (table, key, val)
 Find the entry in @var{table} associated with @var{key}, and
@@ -2313,7 +2313,7 @@ testing.
 @end deffn
 
 hash-remove!
-@c snarfed from hashtab.c:752
+@c snarfed from hashtab.c:751
 @deffn {Scheme Procedure} hash-remove! table key
 @deffnx {C Function} scm_hash_remove_x (table, key)
 Remove @var{key} (and any value associated with it) from
@@ -2321,7 +2321,7 @@ Remove @var{key} (and any value associated with it) from
 @end deffn
 
 hashx-get-handle
-@c snarfed from hashtab.c:805
+@c snarfed from hashtab.c:804
 @deffn {Scheme Procedure} hashx-get-handle hash assoc table key
 @deffnx {C Function} scm_hashx_get_handle (hash, assoc, table, key)
 This behaves the same way as the corresponding
@@ -2333,7 +2333,7 @@ table size.  @code{assoc} must be an associator function, like
 @end deffn
 
 hashx-create-handle!
-@c snarfed from hashtab.c:824
+@c snarfed from hashtab.c:823
 @deffn {Scheme Procedure} hashx-create-handle! hash assoc table key init
 @deffnx {C Function} scm_hashx_create_handle_x (hash, assoc, table, key, init)
 This behaves the same way as the corresponding
@@ -2345,7 +2345,7 @@ table size.  @code{assoc} must be an associator function, like
 @end deffn
 
 hashx-ref
-@c snarfed from hashtab.c:847
+@c snarfed from hashtab.c:846
 @deffn {Scheme Procedure} hashx-ref hash assoc table key [dflt]
 @deffnx {C Function} scm_hashx_ref (hash, assoc, table, key, dflt)
 This behaves the same way as the corresponding @code{ref}
@@ -2360,7 +2360,7 @@ equivalent to @code{hashx-ref hashq assq table key}.
 @end deffn
 
 hashx-set!
-@c snarfed from hashtab.c:873
+@c snarfed from hashtab.c:872
 @deffn {Scheme Procedure} hashx-set! hash assoc table key val
 @deffnx {C Function} scm_hashx_set_x (hash, assoc, table, key, val)
 This behaves the same way as the corresponding @code{set!}
@@ -2375,7 +2375,7 @@ equivalent to @code{hashx-set!  hashq assq table key}.
 @end deffn
 
 hash-fold
-@c snarfed from hashtab.c:975
+@c snarfed from hashtab.c:974
 @deffn {Scheme Procedure} hash-fold proc init table
 @deffnx {C Function} scm_hash_fold (proc, init, table)
 An iterator over hash-table elements.
@@ -2389,7 +2389,7 @@ table into an a-list of key-value pairs.
 @end deffn
 
 hash-for-each
-@c snarfed from hashtab.c:996
+@c snarfed from hashtab.c:995
 @deffn {Scheme Procedure} hash-for-each proc table
 @deffnx {C Function} scm_hash_for_each (proc, table)
 An iterator over hash-table elements.
@@ -2399,7 +2399,7 @@ and value are successive pairs from the hash table TABLE.
 @end deffn
 
 hash-for-each-handle
-@c snarfed from hashtab.c:1013
+@c snarfed from hashtab.c:1012
 @deffn {Scheme Procedure} hash-for-each-handle proc table
 @deffnx {C Function} scm_hash_for_each_handle (proc, table)
 An iterator over hash-table elements.
@@ -2407,7 +2407,7 @@ Applies PROC successively on all hash table handles.
 @end deffn
 
 hash-map->list
-@c snarfed from hashtab.c:1039
+@c snarfed from hashtab.c:1038
 @deffn {Scheme Procedure} hash-map->list proc table
 @deffnx {C Function} scm_hash_map_to_list (proc, table)
 An iterator over hash-table elements.
@@ -3412,7 +3412,7 @@ Return the number of bits necessary to represent @var{n}.
 @end deffn
 
 number->string
-@c snarfed from numbers.c:2258
+@c snarfed from numbers.c:2275
 @deffn {Scheme Procedure} number->string n [radix]
 @deffnx {C Function} scm_number_to_string (n, radix)
 Return a string holding the external representation of the
@@ -3421,7 +3421,7 @@ inexact, a radix of 10 will be used.
 @end deffn
 
 string->number
-@c snarfed from numbers.c:2941
+@c snarfed from numbers.c:2972
 @deffn {Scheme Procedure} string->number string [radix]
 @deffnx {C Function} scm_string_to_number (string, radix)
 Return a number of the maximally precise representation
@@ -3435,7 +3435,7 @@ syntactically valid notation for a number, then
 @end deffn
 
 number?
-@c snarfed from numbers.c:3004
+@c snarfed from numbers.c:3035
 @deffn {Scheme Procedure} number? x
 @deffnx {C Function} scm_number_p (x)
 Return @code{#t} if @var{x} is a number, @code{#f}
@@ -3443,7 +3443,7 @@ otherwise.
 @end deffn
 
 complex?
-@c snarfed from numbers.c:3017
+@c snarfed from numbers.c:3048
 @deffn {Scheme Procedure} complex? x
 @deffnx {C Function} scm_complex_p (x)
 Return @code{#t} if @var{x} is a complex number, @code{#f}
@@ -3454,7 +3454,7 @@ rational or integer number.
 @end deffn
 
 real?
-@c snarfed from numbers.c:3030
+@c snarfed from numbers.c:3061
 @deffn {Scheme Procedure} real? x
 @deffnx {C Function} scm_real_p (x)
 Return @code{#t} if @var{x} is a real number, @code{#f}
@@ -3464,7 +3464,7 @@ fulfilled if @var{x} is an integer number.
 @end deffn
 
 rational?
-@c snarfed from numbers.c:3043
+@c snarfed from numbers.c:3074
 @deffn {Scheme Procedure} rational? x
 @deffnx {C Function} scm_rational_p (x)
 Return @code{#t} if @var{x} is a rational number, @code{#f}
@@ -3474,7 +3474,7 @@ fulfilled if @var{x} is an integer number.
 @end deffn
 
 integer?
-@c snarfed from numbers.c:3066
+@c snarfed from numbers.c:3097
 @deffn {Scheme Procedure} integer? x
 @deffnx {C Function} scm_integer_p (x)
 Return @code{#t} if @var{x} is an integer number, @code{#f}
@@ -3482,7 +3482,7 @@ else.
 @end deffn
 
 inexact?
-@c snarfed from numbers.c:3092
+@c snarfed from numbers.c:3123
 @deffn {Scheme Procedure} inexact? x
 @deffnx {C Function} scm_inexact_p (x)
 Return @code{#t} if @var{x} is an inexact number, @code{#f}
@@ -3490,35 +3490,35 @@ else.
 @end deffn
 
 truncate
-@c snarfed from numbers.c:4939
+@c snarfed from numbers.c:4970
 @deffn {Scheme Procedure} truncate x
 @deffnx {C Function} scm_truncate_number (x)
 Round the number @var{x} towards zero.
 @end deffn
 
 round
-@c snarfed from numbers.c:4955
+@c snarfed from numbers.c:4986
 @deffn {Scheme Procedure} round x
 @deffnx {C Function} scm_round_number (x)
 Round the number @var{x} towards the nearest integer. When it is exactly halfway between two integers, round towards the even one.
 @end deffn
 
 floor
-@c snarfed from numbers.c:4981
+@c snarfed from numbers.c:5012
 @deffn {Scheme Procedure} floor x
 @deffnx {C Function} scm_floor (x)
 Round the number @var{x} towards minus infinity.
 @end deffn
 
 ceiling
-@c snarfed from numbers.c:5012
+@c snarfed from numbers.c:5043
 @deffn {Scheme Procedure} ceiling x
 @deffnx {C Function} scm_ceiling (x)
 Round the number @var{x} towards infinity.
 @end deffn
 
 $expt
-@c snarfed from numbers.c:5121
+@c snarfed from numbers.c:5152
 @deffn {Scheme Procedure} $expt x y
 @deffnx {C Function} scm_sys_expt (x, y)
 Return @var{x} raised to the power of @var{y}. This
@@ -3526,7 +3526,7 @@ procedure does not accept complex arguments.
 @end deffn
 
 $atan2
-@c snarfed from numbers.c:5137
+@c snarfed from numbers.c:5168
 @deffn {Scheme Procedure} $atan2 x y
 @deffnx {C Function} scm_sys_atan2 (x, y)
 Return the arc tangent of the two arguments @var{x} and
@@ -3537,7 +3537,7 @@ procedure does not accept complex arguments.
 @end deffn
 
 make-rectangular
-@c snarfed from numbers.c:5165
+@c snarfed from numbers.c:5196
 @deffn {Scheme Procedure} make-rectangular real imaginary
 @deffnx {C Function} scm_make_rectangular (real, imaginary)
 Return a complex number constructed of the given @var{real} and
@@ -3545,21 +3545,21 @@ Return a complex number constructed of the given @var{real} and
 @end deffn
 
 make-polar
-@c snarfed from numbers.c:5189
+@c snarfed from numbers.c:5220
 @deffn {Scheme Procedure} make-polar x y
 @deffnx {C Function} scm_make_polar (x, y)
 Return the complex number @var{x} * e^(i * @var{y}).
 @end deffn
 
 inexact->exact
-@c snarfed from numbers.c:5392
+@c snarfed from numbers.c:5423
 @deffn {Scheme Procedure} inexact->exact z
 @deffnx {C Function} scm_inexact_to_exact (z)
 Return an exact number that is numerically closest to @var{z}.
 @end deffn
 
 rationalize
-@c snarfed from numbers.c:5429
+@c snarfed from numbers.c:5460
 @deffn {Scheme Procedure} rationalize x err
 @deffnx {C Function} scm_rationalize (x, err)
 Return an exact number that is within @var{err} of @var{x}.
@@ -3573,28 +3573,28 @@ Return the class of @var{x}.
 @end deffn
 
 entity?
-@c snarfed from objects.c:342
+@c snarfed from objects.c:332
 @deffn {Scheme Procedure} entity? obj
 @deffnx {C Function} scm_entity_p (obj)
 Return @code{#t} if @var{obj} is an entity.
 @end deffn
 
 operator?
-@c snarfed from objects.c:351
+@c snarfed from objects.c:341
 @deffn {Scheme Procedure} operator? obj
 @deffnx {C Function} scm_operator_p (obj)
 Return @code{#t} if @var{obj} is an operator.
 @end deffn
 
 valid-object-procedure?
-@c snarfed from objects.c:367
+@c snarfed from objects.c:357
 @deffn {Scheme Procedure} valid-object-procedure? proc
 @deffnx {C Function} scm_valid_object_procedure_p (proc)
 Return @code{#t} iff @var{proc} is a procedure that can be used with @code{set-object-procedure}.  It is always valid to use a closure constructed by @code{lambda}.
 @end deffn
 
 set-object-procedure!
-@c snarfed from objects.c:389
+@c snarfed from objects.c:379
 @deffn {Scheme Procedure} set-object-procedure! obj proc
 @deffnx {C Function} scm_set_object_procedure_x (obj, proc)
 Set the object procedure of @var{obj} to @var{proc}.
@@ -3602,7 +3602,7 @@ Set the object procedure of @var{obj} to @var{proc}.
 @end deffn
 
 make-class-object
-@c snarfed from objects.c:449
+@c snarfed from objects.c:439
 @deffn {Scheme Procedure} make-class-object metaclass layout
 @deffnx {C Function} scm_make_class_object (metaclass, layout)
 Create a new class object of class @var{metaclass}, with the
@@ -3610,7 +3610,7 @@ slot layout specified by @var{layout}.
 @end deffn
 
 make-subclass-object
-@c snarfed from objects.c:464
+@c snarfed from objects.c:454
 @deffn {Scheme Procedure} make-subclass-object class layout
 @deffnx {C Function} scm_make_subclass_object (class, layout)
 Create a subclass object of @var{class}, with the slot layout
@@ -4088,7 +4088,7 @@ and @code{print-options}.
 @end deffn
 
 simple-format
-@c snarfed from print.c:936
+@c snarfed from print.c:928
 @deffn {Scheme Procedure} simple-format destination message . args
 @deffnx {C Function} scm_simple_format (destination, message, args)
 Write @var{message} to @var{destination}, defaulting to
@@ -4105,7 +4105,7 @@ containing the formatted text. Does not add a trailing newline.
 @end deffn
 
 newline
-@c snarfed from print.c:1026
+@c snarfed from print.c:1018
 @deffn {Scheme Procedure} newline [port]
 @deffnx {C Function} scm_newline (port)
 Send a newline to @var{port}.
@@ -4113,14 +4113,14 @@ If @var{port} is omitted, send to the current output port.
 @end deffn
 
 write-char
-@c snarfed from print.c:1041
+@c snarfed from print.c:1033
 @deffn {Scheme Procedure} write-char chr [port]
 @deffnx {C Function} scm_write_char (chr, port)
 Send character @var{chr} to @var{port}.
 @end deffn
 
 port-with-print-state
-@c snarfed from print.c:1095
+@c snarfed from print.c:1087
 @deffn {Scheme Procedure} port-with-print-state port [pstate]
 @deffnx {C Function} scm_port_with_print_state (port, pstate)
 Create a new port which behaves like @var{port}, but with an
@@ -4130,7 +4130,7 @@ a print state, the old print state is reused.
 @end deffn
 
 get-print-state
-@c snarfed from print.c:1108
+@c snarfed from print.c:1100
 @deffn {Scheme Procedure} get-print-state port
 @deffnx {C Function} scm_get_print_state (port)
 Return the print state of the port @var{port}. If @var{port}
@@ -4260,7 +4260,7 @@ Remove any value associated with @var{prop} and @var{obj}.
 @end deffn
 
 random
-@c snarfed from random.c:346
+@c snarfed from random.c:347
 @deffn {Scheme Procedure} random n [state]
 @deffnx {C Function} scm_random (n, state)
 Return a number in [0, N).
@@ -4278,21 +4278,21 @@ as a side effect of the random operation.
 @end deffn
 
 copy-random-state
-@c snarfed from random.c:371
+@c snarfed from random.c:372
 @deffn {Scheme Procedure} copy-random-state [state]
 @deffnx {C Function} scm_copy_random_state (state)
 Return a copy of the random state @var{state}.
 @end deffn
 
 seed->random-state
-@c snarfed from random.c:383
+@c snarfed from random.c:384
 @deffn {Scheme Procedure} seed->random-state seed
 @deffnx {C Function} scm_seed_to_random_state (seed)
 Return a new random state using @var{seed}.
 @end deffn
 
 random:uniform
-@c snarfed from random.c:401
+@c snarfed from random.c:402
 @deffn {Scheme Procedure} random:uniform [state]
 @deffnx {C Function} scm_random_uniform (state)
 Return a uniformly distributed inexact real random number in
@@ -4300,7 +4300,7 @@ Return a uniformly distributed inexact real random number in
 @end deffn
 
 random:normal
-@c snarfed from random.c:416
+@c snarfed from random.c:417
 @deffn {Scheme Procedure} random:normal [state]
 @deffnx {C Function} scm_random_normal (state)
 Return an inexact real in a normal distribution.  The
@@ -4310,7 +4310,7 @@ normal distribution with mean m and standard deviation d use
 @end deffn
 
 random:solid-sphere!
-@c snarfed from random.c:472
+@c snarfed from random.c:491
 @deffn {Scheme Procedure} random:solid-sphere! v [state]
 @deffnx {C Function} scm_random_solid_sphere_x (v, state)
 Fills vect with inexact real random numbers
@@ -4322,7 +4322,7 @@ The sum of the squares of the numbers is returned.
 @end deffn
 
 random:hollow-sphere!
-@c snarfed from random.c:495
+@c snarfed from random.c:513
 @deffn {Scheme Procedure} random:hollow-sphere! v [state]
 @deffnx {C Function} scm_random_hollow_sphere_x (v, state)
 Fills vect with inexact real random numbers
@@ -4334,7 +4334,7 @@ unit n-sphere.
 @end deffn
 
 random:normal-vector!
-@c snarfed from random.c:513
+@c snarfed from random.c:530
 @deffn {Scheme Procedure} random:normal-vector! v [state]
 @deffnx {C Function} scm_random_normal_vector_x (v, state)
 Fills vect with inexact real random numbers that are
@@ -4343,7 +4343,7 @@ independent and standard normally distributed
 @end deffn
 
 random:exp
-@c snarfed from random.c:538
+@c snarfed from random.c:564
 @deffn {Scheme Procedure} random:exp [state]
 @deffnx {C Function} scm_random_exp (state)
 Return an inexact real in an exponential distribution with mean
@@ -4398,7 +4398,7 @@ used.  This function is equivalent to:
 @end deffn
 
 read-options-interface
-@c snarfed from read.c:109
+@c snarfed from read.c:110
 @deffn {Scheme Procedure} read-options-interface [setting]
 @deffnx {C Function} scm_read_options (setting)
 Option interface for the read options. Instead of using
@@ -4407,7 +4407,7 @@ this procedure directly, use the procedures @code{read-enable},
 @end deffn
 
 read
-@c snarfed from read.c:129
+@c snarfed from read.c:130
 @deffn {Scheme Procedure} read [port]
 @deffnx {C Function} scm_read (port)
 Read an s-expression from the input port @var{port}, or from
@@ -4416,7 +4416,7 @@ Any whitespace before the next token is discarded.
 @end deffn
 
 read-hash-extend
-@c snarfed from read.c:867
+@c snarfed from read.c:900
 @deffn {Scheme Procedure} read-hash-extend chr proc
 @deffnx {C Function} scm_read_hash_extend (chr, proc)
 Install the procedure @var{proc} for reading expressions
@@ -4529,7 +4529,7 @@ end-of-file check.
 @end deffn
 
 write-string/partial
-@c snarfed from rw.c:205
+@c snarfed from rw.c:204
 @deffn {Scheme Procedure} write-string/partial str [port_or_fdes [start [end]]]
 @deffnx {C Function} scm_write_string_partial (str, port_or_fdes, start, end)
 Write characters from a string @var{str} to a port or file
@@ -4759,17 +4759,18 @@ is @var{status} if supplied, otherwise zero.
 @end deffn
 
 restricted-vector-sort!
-@c snarfed from sort.c:291
+@c snarfed from sort.c:297
 @deffn {Scheme Procedure} restricted-vector-sort! vec less startpos endpos
 @deffnx {C Function} scm_restricted_vector_sort_x (vec, less, startpos, endpos)
 Sort the vector @var{vec}, using @var{less} for comparing
-the vector elements.  @var{startpos} and @var{endpos} delimit
+the vector elements.  @var{startpos} (inclusively) and
+@var{endpos} (exclusively) delimit
 the range of the vector which gets sorted.  The return value
 is not specified.
 @end deffn
 
 sorted?
-@c snarfed from sort.c:321
+@c snarfed from sort.c:327
 @deffn {Scheme Procedure} sorted? items less
 @deffnx {C Function} scm_sorted_p (items, less)
 Return @code{#t} iff @var{items} is a list or a vector such that
@@ -4778,7 +4779,7 @@ applied to all elements i - 1 and i
 @end deffn
 
 merge
-@c snarfed from sort.c:393
+@c snarfed from sort.c:399
 @deffn {Scheme Procedure} merge alist blist less
 @deffnx {C Function} scm_merge (alist, blist, less)
 Merge two already sorted lists into one.
@@ -4791,7 +4792,7 @@ Note:  this does _not_ accept vectors.
 @end deffn
 
 merge!
-@c snarfed from sort.c:508
+@c snarfed from sort.c:516
 @deffn {Scheme Procedure} merge! alist blist less
 @deffnx {C Function} scm_merge_x (alist, blist, less)
 Takes two lists @var{alist} and @var{blist} such that
@@ -4804,7 +4805,7 @@ Note:  this does _not_ accept vectors.
 @end deffn
 
 sort!
-@c snarfed from sort.c:577
+@c snarfed from sort.c:586
 @deffn {Scheme Procedure} sort! items less
 @deffnx {C Function} scm_sort_x (items, less)
 Sort the sequence @var{items}, which may be a list or a
@@ -4815,7 +4816,7 @@ This is not a stable sort.
 @end deffn
 
 sort
-@c snarfed from sort.c:609
+@c snarfed from sort.c:618
 @deffn {Scheme Procedure} sort items less
 @deffnx {C Function} scm_sort (items, less)
 Sort the sequence @var{items}, which may be a list or a
@@ -4824,7 +4825,7 @@ elements.  This is not a stable sort.
 @end deffn
 
 stable-sort!
-@c snarfed from sort.c:717
+@c snarfed from sort.c:727
 @deffn {Scheme Procedure} stable-sort! items less
 @deffnx {C Function} scm_stable_sort_x (items, less)
 Sort the sequence @var{items}, which may be a list or a
@@ -4835,7 +4836,7 @@ This is a stable sort.
 @end deffn
 
 stable-sort
-@c snarfed from sort.c:756
+@c snarfed from sort.c:766
 @deffn {Scheme Procedure} stable-sort items less
 @deffnx {C Function} scm_stable_sort (items, less)
 Sort the sequence @var{items}, which may be a list or a
@@ -4844,7 +4845,7 @@ This is a stable sort.
 @end deffn
 
 sort-list!
-@c snarfed from sort.c:797
+@c snarfed from sort.c:807
 @deffn {Scheme Procedure} sort-list! items less
 @deffnx {C Function} scm_sort_list_x (items, less)
 Sort the list @var{items}, using @var{less} for comparing the
@@ -4854,7 +4855,7 @@ This is a stable sort.
 @end deffn
 
 sort-list
-@c snarfed from sort.c:812
+@c snarfed from sort.c:822
 @deffn {Scheme Procedure} sort-list items less
 @deffnx {C Function} scm_sort_list (items, less)
 Sort the list @var{items}, using @var{less} for comparing the
@@ -5295,6 +5296,970 @@ exact integers satisfying:
 @deffnx {C Function} scm_string_append (args)
 Return a newly allocated string whose characters form the
 concatenation of the given strings, @var{args}.
+@end deffn
+
+uniform-vector?
+@c snarfed from srfi-4.c:499
+@deffn {Scheme Procedure} uniform-vector? obj
+@deffnx {C Function} scm_uniform_vector_p (obj)
+Return @code{#t} if @var{obj} is a uniform vector.
+@end deffn
+
+uniform-vector-ref
+@c snarfed from srfi-4.c:509
+@deffn {Scheme Procedure} uniform-vector-ref v idx
+@deffnx {C Function} scm_uniform_vector_ref (v, idx)
+Return the element at index @var{idx} of the
+homogenous numeric vector @var{v}.
+@end deffn
+
+uniform-vector-set!
+@c snarfed from srfi-4.c:545
+@deffn {Scheme Procedure} uniform-vector-set! v idx val
+@deffnx {C Function} scm_uniform_vector_set_x (v, idx, val)
+Set the element at index @var{idx} of the
+homogenous numeric vector @var{v} to @var{val}.
+@end deffn
+
+uniform-vector->list
+@c snarfed from srfi-4.c:580
+@deffn {Scheme Procedure} uniform-vector->list uvec
+@deffnx {C Function} scm_uniform_vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+uniform-vector-length
+@c snarfed from srfi-4.c:640
+@deffn {Scheme Procedure} uniform-vector-length v
+@deffnx {C Function} scm_uniform_vector_length (v)
+Return the number of elements in the uniform vector @var{v}.
+@end deffn
+
+generalized-vector?
+@c snarfed from srfi-4.c:661
+@deffn {Scheme Procedure} generalized-vector? obj
+@deffnx {C Function} scm_generalized_vector_p (obj)
+Return @code{#t} if @var{obj} is a vector, string,
+bitvector, or uniform numeric vector.
+@end deffn
+
+generalized-vector-length
+@c snarfed from srfi-4.c:685
+@deffn {Scheme Procedure} generalized-vector-length v
+@deffnx {C Function} scm_generalized_vector_length (v)
+Return the length of the generalized vector @var{v}.
+@end deffn
+
+generalized-vector-ref
+@c snarfed from srfi-4.c:710
+@deffn {Scheme Procedure} generalized-vector-ref v idx
+@deffnx {C Function} scm_generalized_vector_ref (v, idx)
+Return the element at index @var{idx} of the
+generalized vector @var{v}.
+@end deffn
+
+generalized-vector-set!
+@c snarfed from srfi-4.c:735
+@deffn {Scheme Procedure} generalized-vector-set! v idx val
+@deffnx {C Function} scm_generalized_vector_set_x (v, idx, val)
+Set the element at index @var{idx} of the
+generalized vector @var{v} to @var{val}.
+@end deffn
+
+generalized-vector->list
+@c snarfed from srfi-4.c:746
+@deffn {Scheme Procedure} generalized-vector->list v
+@deffnx {C Function} scm_generalized_vector_to_list (v)
+Return a new list whose elements are the elements of the
+generalized vector @var{v}.
+@end deffn
+
+u8vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} u8vector? obj
+@deffnx {C Function} scm_u8vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type u8,
+@code{#f} otherwise.
+@end deffn
+
+make-u8vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-u8vector len [fill]
+@deffnx {C Function} scm_make_u8vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+u8vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} u8vector . l
+@deffnx {C Function} scm_u8vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+u8vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} u8vector-length uvec
+@deffnx {C Function} scm_u8vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+u8vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} u8vector-ref uvec index
+@deffnx {C Function} scm_u8vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+u8vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} u8vector-set! uvec index value
+@deffnx {C Function} scm_u8vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+u8vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} u8vector->list uvec
+@deffnx {C Function} scm_u8vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->u8vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->u8vector l
+@deffnx {C Function} scm_list_to_u8vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->u8vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->u8vector obj
+@deffnx {C Function} scm_any_to_u8vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type u8.
+@end deffn
+
+s8vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} s8vector? obj
+@deffnx {C Function} scm_s8vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type s8,
+@code{#f} otherwise.
+@end deffn
+
+make-s8vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-s8vector len [fill]
+@deffnx {C Function} scm_make_s8vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+s8vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} s8vector . l
+@deffnx {C Function} scm_s8vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+s8vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} s8vector-length uvec
+@deffnx {C Function} scm_s8vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+s8vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} s8vector-ref uvec index
+@deffnx {C Function} scm_s8vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+s8vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} s8vector-set! uvec index value
+@deffnx {C Function} scm_s8vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+s8vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} s8vector->list uvec
+@deffnx {C Function} scm_s8vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->s8vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->s8vector l
+@deffnx {C Function} scm_list_to_s8vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->s8vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->s8vector obj
+@deffnx {C Function} scm_any_to_s8vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type s8.
+@end deffn
+
+u16vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} u16vector? obj
+@deffnx {C Function} scm_u16vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type u16,
+@code{#f} otherwise.
+@end deffn
+
+make-u16vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-u16vector len [fill]
+@deffnx {C Function} scm_make_u16vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+u16vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} u16vector . l
+@deffnx {C Function} scm_u16vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+u16vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} u16vector-length uvec
+@deffnx {C Function} scm_u16vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+u16vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} u16vector-ref uvec index
+@deffnx {C Function} scm_u16vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+u16vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} u16vector-set! uvec index value
+@deffnx {C Function} scm_u16vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+u16vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} u16vector->list uvec
+@deffnx {C Function} scm_u16vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->u16vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->u16vector l
+@deffnx {C Function} scm_list_to_u16vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->u16vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->u16vector obj
+@deffnx {C Function} scm_any_to_u16vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type u16.
+@end deffn
+
+s16vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} s16vector? obj
+@deffnx {C Function} scm_s16vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type s16,
+@code{#f} otherwise.
+@end deffn
+
+make-s16vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-s16vector len [fill]
+@deffnx {C Function} scm_make_s16vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+s16vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} s16vector . l
+@deffnx {C Function} scm_s16vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+s16vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} s16vector-length uvec
+@deffnx {C Function} scm_s16vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+s16vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} s16vector-ref uvec index
+@deffnx {C Function} scm_s16vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+s16vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} s16vector-set! uvec index value
+@deffnx {C Function} scm_s16vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+s16vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} s16vector->list uvec
+@deffnx {C Function} scm_s16vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->s16vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->s16vector l
+@deffnx {C Function} scm_list_to_s16vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->s16vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->s16vector obj
+@deffnx {C Function} scm_any_to_s16vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type s16.
+@end deffn
+
+u32vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} u32vector? obj
+@deffnx {C Function} scm_u32vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type u32,
+@code{#f} otherwise.
+@end deffn
+
+make-u32vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-u32vector len [fill]
+@deffnx {C Function} scm_make_u32vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+u32vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} u32vector . l
+@deffnx {C Function} scm_u32vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+u32vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} u32vector-length uvec
+@deffnx {C Function} scm_u32vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+u32vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} u32vector-ref uvec index
+@deffnx {C Function} scm_u32vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+u32vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} u32vector-set! uvec index value
+@deffnx {C Function} scm_u32vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+u32vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} u32vector->list uvec
+@deffnx {C Function} scm_u32vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->u32vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->u32vector l
+@deffnx {C Function} scm_list_to_u32vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->u32vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->u32vector obj
+@deffnx {C Function} scm_any_to_u32vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type u32.
+@end deffn
+
+s32vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} s32vector? obj
+@deffnx {C Function} scm_s32vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type s32,
+@code{#f} otherwise.
+@end deffn
+
+make-s32vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-s32vector len [fill]
+@deffnx {C Function} scm_make_s32vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+s32vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} s32vector . l
+@deffnx {C Function} scm_s32vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+s32vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} s32vector-length uvec
+@deffnx {C Function} scm_s32vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+s32vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} s32vector-ref uvec index
+@deffnx {C Function} scm_s32vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+s32vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} s32vector-set! uvec index value
+@deffnx {C Function} scm_s32vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+s32vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} s32vector->list uvec
+@deffnx {C Function} scm_s32vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->s32vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->s32vector l
+@deffnx {C Function} scm_list_to_s32vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->s32vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->s32vector obj
+@deffnx {C Function} scm_any_to_s32vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type s32.
+@end deffn
+
+u64vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} u64vector? obj
+@deffnx {C Function} scm_u64vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type u64,
+@code{#f} otherwise.
+@end deffn
+
+make-u64vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-u64vector len [fill]
+@deffnx {C Function} scm_make_u64vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+u64vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} u64vector . l
+@deffnx {C Function} scm_u64vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+u64vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} u64vector-length uvec
+@deffnx {C Function} scm_u64vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+u64vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} u64vector-ref uvec index
+@deffnx {C Function} scm_u64vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+u64vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} u64vector-set! uvec index value
+@deffnx {C Function} scm_u64vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+u64vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} u64vector->list uvec
+@deffnx {C Function} scm_u64vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->u64vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->u64vector l
+@deffnx {C Function} scm_list_to_u64vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->u64vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->u64vector obj
+@deffnx {C Function} scm_any_to_u64vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type u64.
+@end deffn
+
+s64vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} s64vector? obj
+@deffnx {C Function} scm_s64vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type s64,
+@code{#f} otherwise.
+@end deffn
+
+make-s64vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-s64vector len [fill]
+@deffnx {C Function} scm_make_s64vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+s64vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} s64vector . l
+@deffnx {C Function} scm_s64vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+s64vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} s64vector-length uvec
+@deffnx {C Function} scm_s64vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+s64vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} s64vector-ref uvec index
+@deffnx {C Function} scm_s64vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+s64vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} s64vector-set! uvec index value
+@deffnx {C Function} scm_s64vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+s64vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} s64vector->list uvec
+@deffnx {C Function} scm_s64vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->s64vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->s64vector l
+@deffnx {C Function} scm_list_to_s64vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->s64vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->s64vector obj
+@deffnx {C Function} scm_any_to_s64vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type s64.
+@end deffn
+
+f32vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} f32vector? obj
+@deffnx {C Function} scm_f32vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type f32,
+@code{#f} otherwise.
+@end deffn
+
+make-f32vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-f32vector len [fill]
+@deffnx {C Function} scm_make_f32vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+f32vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} f32vector . l
+@deffnx {C Function} scm_f32vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+f32vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} f32vector-length uvec
+@deffnx {C Function} scm_f32vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+f32vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} f32vector-ref uvec index
+@deffnx {C Function} scm_f32vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+f32vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} f32vector-set! uvec index value
+@deffnx {C Function} scm_f32vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+f32vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} f32vector->list uvec
+@deffnx {C Function} scm_f32vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->f32vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->f32vector l
+@deffnx {C Function} scm_list_to_f32vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->f32vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->f32vector obj
+@deffnx {C Function} scm_any_to_f32vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type f32.
+@end deffn
+
+f64vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} f64vector? obj
+@deffnx {C Function} scm_f64vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type f64,
+@code{#f} otherwise.
+@end deffn
+
+make-f64vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-f64vector len [fill]
+@deffnx {C Function} scm_make_f64vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+f64vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} f64vector . l
+@deffnx {C Function} scm_f64vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+f64vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} f64vector-length uvec
+@deffnx {C Function} scm_f64vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+f64vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} f64vector-ref uvec index
+@deffnx {C Function} scm_f64vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+f64vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} f64vector-set! uvec index value
+@deffnx {C Function} scm_f64vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+f64vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} f64vector->list uvec
+@deffnx {C Function} scm_f64vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->f64vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->f64vector l
+@deffnx {C Function} scm_list_to_f64vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->f64vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->f64vector obj
+@deffnx {C Function} scm_any_to_f64vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type f64.
+@end deffn
+
+c32vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} c32vector? obj
+@deffnx {C Function} scm_c32vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type c32,
+@code{#f} otherwise.
+@end deffn
+
+make-c32vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-c32vector len [fill]
+@deffnx {C Function} scm_make_c32vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+c32vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} c32vector . l
+@deffnx {C Function} scm_c32vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+c32vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} c32vector-length uvec
+@deffnx {C Function} scm_c32vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+c32vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} c32vector-ref uvec index
+@deffnx {C Function} scm_c32vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+c32vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} c32vector-set! uvec index value
+@deffnx {C Function} scm_c32vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+c32vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} c32vector->list uvec
+@deffnx {C Function} scm_c32vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->c32vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->c32vector l
+@deffnx {C Function} scm_list_to_c32vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->c32vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->c32vector obj
+@deffnx {C Function} scm_any_to_c32vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type c32.
+@end deffn
+
+c64vector?
+@c snarfed from ../libguile/srfi-4.i.c:39
+@deffn {Scheme Procedure} c64vector? obj
+@deffnx {C Function} scm_c64vector_p (obj)
+Return @code{#t} if @var{obj} is a vector of type c64,
+@code{#f} otherwise.
+@end deffn
+
+make-c64vector
+@c snarfed from ../libguile/srfi-4.i.c:51
+@deffn {Scheme Procedure} make-c64vector len [fill]
+@deffnx {C Function} scm_make_c64vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+c64vector
+@c snarfed from ../libguile/srfi-4.i.c:69
+@deffn {Scheme Procedure} c64vector . l
+@deffnx {C Function} scm_c64vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+c64vector-length
+@c snarfed from ../libguile/srfi-4.i.c:80
+@deffn {Scheme Procedure} c64vector-length uvec
+@deffnx {C Function} scm_c64vector_length (uvec)
+Return the number of elements in the homogeneous numeric vector
+@var{uvec}.
+@end deffn
+
+c64vector-ref
+@c snarfed from ../libguile/srfi-4.i.c:91
+@deffn {Scheme Procedure} c64vector-ref uvec index
+@deffnx {C Function} scm_c64vector_ref (uvec, index)
+Return the element at @var{index} in the homogeneous numeric
+vector @var{uvec}.
+@end deffn
+
+c64vector-set!
+@c snarfed from ../libguile/srfi-4.i.c:103
+@deffn {Scheme Procedure} c64vector-set! uvec index value
+@deffnx {C Function} scm_c64vector_set_x (uvec, index, value)
+Set the element at @var{index} in the homogeneous numeric
+vector @var{uvec} to @var{value}.  The return value is not
+specified.
+@end deffn
+
+c64vector->list
+@c snarfed from ../libguile/srfi-4.i.c:113
+@deffn {Scheme Procedure} c64vector->list uvec
+@deffnx {C Function} scm_c64vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+list->c64vector
+@c snarfed from ../libguile/srfi-4.i.c:123
+@deffn {Scheme Procedure} list->c64vector l
+@deffnx {C Function} scm_list_to_c64vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+any->c64vector
+@c snarfed from ../libguile/srfi-4.i.c:134
+@deffn {Scheme Procedure} any->c64vector obj
+@deffnx {C Function} scm_any_to_c64vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type c64.
 @end deffn
 
 string-null?
@@ -7346,13 +8311,13 @@ Return @code{#t} if @var{obj} is a vector, otherwise return
 @end deffn
 
 list->vector
-@c snarfed from vectors.c:52
+@c snarfed from vectors.c:72
 @deffn {Scheme Procedure} list->vector
 implemented by the C function "scm_vector"
 @end deffn
 
 vector
-@c snarfed from vectors.c:69
+@c snarfed from vectors.c:89
 @deffn {Scheme Procedure} vector . l
 @deffnx {Scheme Procedure} list->vector l
 @deffnx {C Function} scm_vector (l)
@@ -7365,7 +8330,7 @@ given arguments.  Analogous to @code{list}.
 @end deffn
 
 make-vector
-@c snarfed from vectors.c:163
+@c snarfed from vectors.c:213
 @deffn {Scheme Procedure} make-vector k [fill]
 @deffnx {C Function} scm_make_vector (k, fill)
 Return a newly allocated vector of @var{k} elements.  If a
@@ -7375,7 +8340,7 @@ unspecified.
 @end deffn
 
 vector->list
-@c snarfed from vectors.c:211
+@c snarfed from vectors.c:261
 @deffn {Scheme Procedure} vector->list v
 @deffnx {C Function} scm_vector_to_list (v)
 Return a newly allocated list composed of the elements of @var{v}.
@@ -7387,7 +8352,7 @@ Return a newly allocated list composed of the elements of @var{v}.
 @end deffn
 
 vector-fill!
-@c snarfed from vectors.c:228
+@c snarfed from vectors.c:278
 @deffn {Scheme Procedure} vector-fill! v fill
 @deffnx {C Function} scm_vector_fill_x (v, fill)
 Store @var{fill} in every position of @var{vector}.  The value
@@ -7395,7 +8360,7 @@ returned by @code{vector-fill!} is unspecified.
 @end deffn
 
 vector-move-left!
-@c snarfed from vectors.c:260
+@c snarfed from vectors.c:310
 @deffn {Scheme Procedure} vector-move-left! vec1 start1 end1 vec2 start2
 @deffnx {C Function} scm_vector_move_left_x (vec1, start1, end1, vec2, start2)
 Copy elements from @var{vec1}, positions @var{start1} to @var{end1},
@@ -7409,7 +8374,7 @@ same vector, @code{vector-move-left!} is usually appropriate when
 @end deffn
 
 vector-move-right!
-@c snarfed from vectors.c:290
+@c snarfed from vectors.c:340
 @deffn {Scheme Procedure} vector-move-right! vec1 start1 end1 vec2 start2
 @deffnx {C Function} scm_vector_move_right_x (vec1, start1, end1, vec2, start2)
 Copy elements from @var{vec1}, positions @var{start1} to @var{end1},
@@ -7713,7 +8678,7 @@ converted to a Scheme number and returned from the call to
 @end deffn
 
 array-fill!
-@c snarfed from ramap.c:438
+@c snarfed from ramap.c:406
 @deffn {Scheme Procedure} array-fill! ra fill
 @deffnx {C Function} scm_array_fill_x (ra, fill)
 Store @var{fill} in every element of @var{array}.  The value returned
@@ -7721,13 +8686,13 @@ is unspecified.
 @end deffn
 
 array-copy-in-order!
-@c snarfed from ramap.c:810
+@c snarfed from ramap.c:461
 @deffn {Scheme Procedure} array-copy-in-order!
 implemented by the C function "scm_array_copy_x"
 @end deffn
 
 array-copy!
-@c snarfed from ramap.c:819
+@c snarfed from ramap.c:470
 @deffn {Scheme Procedure} array-copy! src dst
 @deffnx {Scheme Procedure} array-copy-in-order! src dst
 @deffnx {C Function} scm_array_copy_x (src, dst)
@@ -7738,13 +8703,13 @@ dimension.  The order is unspecified.
 @end deffn
 
 array-map-in-order!
-@c snarfed from ramap.c:1494
+@c snarfed from ramap.c:894
 @deffn {Scheme Procedure} array-map-in-order!
 implemented by the C function "scm_array_map_x"
 @end deffn
 
 array-map!
-@c snarfed from ramap.c:1505
+@c snarfed from ramap.c:905
 @deffn {Scheme Procedure} array-map! ra0 proc . lra
 @deffnx {Scheme Procedure} array-map-in-order! ra0 proc . lra
 @deffnx {C Function} scm_array_map_x (ra0, proc, lra)
@@ -7757,7 +8722,7 @@ unspecified.  The order of application is unspecified.
 @end deffn
 
 array-for-each
-@c snarfed from ramap.c:1651
+@c snarfed from ramap.c:1051
 @deffn {Scheme Procedure} array-for-each proc ra0 . lra
 @deffnx {C Function} scm_array_for_each (proc, ra0, lra)
 Apply @var{proc} to each tuple of elements of @var{array0} @dots{}
@@ -7765,7 +8730,7 @@ in row-major order.  The value returned is unspecified.
 @end deffn
 
 array-index-map!
-@c snarfed from ramap.c:1679
+@c snarfed from ramap.c:1079
 @deffn {Scheme Procedure} array-index-map! ra proc
 @deffnx {C Function} scm_array_index_map_x (ra, proc)
 Apply @var{proc} to the indices of each element of @var{array} in
@@ -7788,15 +8753,8 @@ Another example:
 @end lisp
 @end deffn
 
-uniform-vector-length
-@c snarfed from unif.c:211
-@deffn {Scheme Procedure} uniform-vector-length v
-@deffnx {C Function} scm_uniform_vector_length (v)
-Return the number of elements in @var{uve}.
-@end deffn
-
 array?
-@c snarfed from unif.c:245
+@c snarfed from unif.c:205
 @deffn {Scheme Procedure} array? v [prot]
 @deffnx {C Function} scm_array_p (v, prot)
 Return @code{#t} if the @var{obj} is an array, and @code{#f} if
@@ -7805,7 +8763,7 @@ and is described elsewhere.
 @end deffn
 
 array-rank
-@c snarfed from unif.c:328
+@c snarfed from unif.c:241
 @deffn {Scheme Procedure} array-rank ra
 @deffnx {C Function} scm_array_rank (ra)
 Return the number of dimensions of @var{obj}.  If @var{obj} is
@@ -7813,7 +8771,7 @@ not an array, @code{0} is returned.
 @end deffn
 
 array-dimensions
-@c snarfed from unif.c:366
+@c snarfed from unif.c:261
 @deffn {Scheme Procedure} array-dimensions ra
 @deffnx {C Function} scm_array_dimensions (ra)
 @code{Array-dimensions} is similar to @code{array-shape} but replaces
@@ -7824,28 +8782,28 @@ elements with a @code{0} minimum with one greater than the maximum. So:
 @end deffn
 
 shared-array-root
-@c snarfed from unif.c:413
+@c snarfed from unif.c:292
 @deffn {Scheme Procedure} shared-array-root ra
 @deffnx {C Function} scm_shared_array_root (ra)
 Return the root vector of a shared array.
 @end deffn
 
 shared-array-offset
-@c snarfed from unif.c:424
+@c snarfed from unif.c:303
 @deffn {Scheme Procedure} shared-array-offset ra
 @deffnx {C Function} scm_shared_array_offset (ra)
 Return the root vector index of the first element in the array.
 @end deffn
 
 shared-array-increments
-@c snarfed from unif.c:435
+@c snarfed from unif.c:314
 @deffn {Scheme Procedure} shared-array-increments ra
 @deffnx {C Function} scm_shared_array_increments (ra)
 For each dimension, return the distance between elements in the root vector.
 @end deffn
 
 dimensions->uniform-array
-@c snarfed from unif.c:554
+@c snarfed from unif.c:433
 @deffn {Scheme Procedure} dimensions->uniform-array dims prot [fill]
 @deffnx {Scheme Procedure} make-uniform-vector length prototype [fill]
 @deffnx {C Function} scm_dimensions_to_uniform_array (dims, prot, fill)
@@ -7856,7 +8814,7 @@ fill the array, otherwise @var{prototype} is used.
 @end deffn
 
 make-shared-array
-@c snarfed from unif.c:643
+@c snarfed from unif.c:522
 @deffn {Scheme Procedure} make-shared-array oldra mapfunc . dims
 @deffnx {C Function} scm_make_shared_array (oldra, mapfunc, dims)
 @code{make-shared-array} can be used to create shared subarrays of other
@@ -7877,7 +8835,7 @@ it can be otherwise arbitrary.  A simple example:
 @end deffn
 
 transpose-array
-@c snarfed from unif.c:774
+@c snarfed from unif.c:653
 @deffn {Scheme Procedure} transpose-array ra . args
 @deffnx {C Function} scm_transpose_array (ra, args)
 Return an array sharing contents with @var{array}, but with
@@ -7902,7 +8860,7 @@ have smaller rank than @var{array}.
 @end deffn
 
 enclose-array
-@c snarfed from unif.c:879
+@c snarfed from unif.c:752
 @deffn {Scheme Procedure} enclose-array ra . axes
 @deffnx {C Function} scm_enclose_array (ra, axes)
 @var{dim0}, @var{dim1} @dots{} should be nonnegative integers less than
@@ -7929,7 +8887,7 @@ examples:
 @end deffn
 
 array-in-bounds?
-@c snarfed from unif.c:966
+@c snarfed from unif.c:825
 @deffn {Scheme Procedure} array-in-bounds? v . args
 @deffnx {C Function} scm_array_in_bounds_p (v, args)
 Return @code{#t} if its arguments would be acceptable to
@@ -7937,37 +8895,29 @@ Return @code{#t} if its arguments would be acceptable to
 @end deffn
 
 array-ref
-@c snarfed from unif.c:1044
-@deffn {Scheme Procedure} array-ref
-implemented by the C function "scm_uniform_vector_ref"
-@end deffn
-
-uniform-vector-ref
-@c snarfed from unif.c:1051
-@deffn {Scheme Procedure} uniform-vector-ref v args
-@deffnx {Scheme Procedure} array-ref v . args
-@deffnx {C Function} scm_uniform_vector_ref (v, args)
+@c snarfed from unif.c:895
+@deffn {Scheme Procedure} array-ref v . args
+@deffnx {C Function} scm_array_ref (v, args)
 Return the element at the @code{(index1, index2)} element in
 @var{array}.
 @end deffn
 
 uniform-array-set1!
-@c snarfed from unif.c:1219
+@c snarfed from unif.c:980
 @deffn {Scheme Procedure} uniform-array-set1!
 implemented by the C function "scm_array_set_x"
 @end deffn
 
 array-set!
-@c snarfed from unif.c:1228
+@c snarfed from unif.c:988
 @deffn {Scheme Procedure} array-set! v obj . args
-@deffnx {Scheme Procedure} uniform-array-set1! v obj args
 @deffnx {C Function} scm_array_set_x (v, obj, args)
 Set the element at the @code{(index1, index2)} element in @var{array} to
 @var{new-value}.  The value returned by array-set! is unspecified.
 @end deffn
 
 array-contents
-@c snarfed from unif.c:1335
+@c snarfed from unif.c:1041
 @deffn {Scheme Procedure} array-contents ra [strict]
 @deffnx {C Function} scm_array_contents (ra, strict)
 If @var{array} may be @dfn{unrolled} into a one dimensional shared array
@@ -7983,7 +8933,7 @@ memory.
 @end deffn
 
 uniform-array-read!
-@c snarfed from unif.c:1449
+@c snarfed from unif.c:1139
 @deffn {Scheme Procedure} uniform-array-read! ra [port_or_fd [start [end]]]
 @deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]
 @deffnx {C Function} scm_uniform_array_read_x (ra, port_or_fd, start, end)
@@ -8004,7 +8954,7 @@ returned by @code{(current-input-port)}.
 @end deffn
 
 uniform-array-write
-@c snarfed from unif.c:1632
+@c snarfed from unif.c:1301
 @deffn {Scheme Procedure} uniform-array-write v [port_or_fd [start [end]]]
 @deffnx {Scheme Procedure} uniform-vector-write uve [port-or-fdes] [start] [end]
 @deffnx {C Function} scm_uniform_array_write (v, port_or_fd, start, end)
@@ -8021,8 +8971,78 @@ omitted, in which case it defaults to the value returned by
 @code{(current-output-port)}.
 @end deffn
 
+bitvector?
+@c snarfed from unif.c:1471
+@deffn {Scheme Procedure} bitvector? obj
+@deffnx {C Function} scm_bitvector_p (obj)
+Return @code{#t} when @var{obj} is a bitvector, else
+return @code{@#f}.
+@end deffn
+
+make-bitvector
+@c snarfed from unif.c:1498
+@deffn {Scheme Procedure} make-bitvector len [fill]
+@deffnx {C Function} scm_make_bitvector (len, fill)
+Create a new bitvector of length @var{len} and
+optionally initialize all elements to @var{fill}.
+@end deffn
+
+bitvector
+@c snarfed from unif.c:1507
+@deffn {Scheme Procedure} bitvector . bits
+@deffnx {C Function} scm_bitvector (bits)
+Create a new bitvector with the arguments as elements.
+@end deffn
+
+bitvector-length
+@c snarfed from unif.c:1523
+@deffn {Scheme Procedure} bitvector-length vec
+@deffnx {C Function} scm_bitvector_length (vec)
+Return the length of the bitvector @var{vec}.
+@end deffn
+
+bitvector-ref
+@c snarfed from unif.c:1573
+@deffn {Scheme Procedure} bitvector-ref vec idx
+@deffnx {C Function} scm_bitvector_ref (vec, idx)
+Return the element at index @var{idx} of the bitvector
+@var{vec}.
+@end deffn
+
+bitvector-set!
+@c snarfed from unif.c:1600
+@deffn {Scheme Procedure} bitvector-set! vec idx val
+@deffnx {C Function} scm_bitvector_set_x (vec, idx, val)
+Set the element at index @var{idx} of the bitvector
+@var{vec} when @var{val} is true, else clear it.
+@end deffn
+
+bitvector-fill!
+@c snarfed from unif.c:1611
+@deffn {Scheme Procedure} bitvector-fill! vec val
+@deffnx {C Function} scm_bitvector_fill_x (vec, val)
+Set all elements of the bitvector
+@var{vec} when @var{val} is true, else clear them.
+@end deffn
+
+list->bitvector
+@c snarfed from unif.c:1626
+@deffn {Scheme Procedure} list->bitvector list
+@deffnx {C Function} scm_list_to_bitvector (list)
+Return a new bitvector initialized with the elements
+of @var{list}.
+@end deffn
+
+bitvector->list
+@c snarfed from unif.c:1653
+@deffn {Scheme Procedure} bitvector->list vec
+@deffnx {C Function} scm_bitvector_to_list (vec)
+Return a new list initialized with the elements
+of the bitvector @var{vec}.
+@end deffn
+
 bit-count
-@c snarfed from unif.c:1759
+@c snarfed from unif.c:1699
 @deffn {Scheme Procedure} bit-count b bitvector
 @deffnx {C Function} scm_bit_count (b, bitvector)
 Return the number of occurrences of the boolean @var{b} in
@@ -8030,7 +9050,7 @@ Return the number of occurrences of the boolean @var{b} in
 @end deffn
 
 bit-position
-@c snarfed from unif.c:1804
+@c snarfed from unif.c:1752
 @deffn {Scheme Procedure} bit-position item v k
 @deffnx {C Function} scm_bit_position (item, v, k)
 Return the index of the first occurrance of @var{item} in bit
@@ -8045,7 +9065,7 @@ vector @var{v}, starting from @var{k}.  If there is no
 @end deffn
 
 bit-set*!
-@c snarfed from unif.c:1890
+@c snarfed from unif.c:1817
 @deffn {Scheme Procedure} bit-set*! v kv obj
 @deffnx {C Function} scm_bit_set_star_x (v, kv, obj)
 Set entries of bit vector @var{v} to @var{obj}, with @var{kv}
@@ -8065,19 +9085,19 @@ bv
 @result{} #*11010011
 @end example
 
-If @var{kv} is a uniform vector of unsigned long integers, then
-they're indexes into @var{v} which are set to @var{obj}.
+If @var{kv} is a u32vector, then its elements are
+indices into @var{v} which are set to @var{obj}.
 
 @example
 (define bv #*01000010)
-(bit-set*! bv #u(5 2 7) #t)
+(bit-set*! bv #u32(5 2 7) #t)
 bv
 @result{} #*01100111
 @end example
 @end deffn
 
 bit-count*
-@c snarfed from unif.c:1956
+@c snarfed from unif.c:1892
 @deffn {Scheme Procedure} bit-count* v kv obj
 @deffnx {C Function} scm_bit_count_star (v, kv, obj)
 Return a count of how many entries in bit vector @var{v} are
@@ -8088,19 +9108,19 @@ If @var{kv} is a bit vector, then those entries where it has
 @code{#t} are the ones in @var{v} which are considered.
 @var{kv} and @var{v} must be the same length.
 
-If @var{kv} is a uniform vector of unsigned long integers, then
-it's the indexes in @var{v} to consider.
+If @var{kv} is a u32vector, then it contains
+the indexes in @var{v} to consider.
 
 For example,
 
 @example
 (bit-count* #*01110111 #*11001101 #t) @result{} 3
-(bit-count* #*01110111 #u(7 0 4) #f)  @result{} 2
+(bit-count* #*01110111 #u32(7 0 4) #f)  @result{} 2
 @end example
 @end deffn
 
 bit-invert!
-@c snarfed from unif.c:2021
+@c snarfed from unif.c:1954
 @deffn {Scheme Procedure} bit-invert! v
 @deffnx {C Function} scm_bit_invert_x (v)
 Modify the bit vector @var{v} by replacing each element with
@@ -8108,7 +9128,7 @@ its negation.
 @end deffn
 
 array->list
-@c snarfed from unif.c:2103
+@c snarfed from unif.c:2043
 @deffn {Scheme Procedure} array->list v
 @deffnx {C Function} scm_array_to_list (v)
 Return a list consisting of all the elements, in order, of
@@ -8116,7 +9136,7 @@ Return a list consisting of all the elements, in order, of
 @end deffn
 
 list->uniform-array
-@c snarfed from unif.c:2205
+@c snarfed from unif.c:2070
 @deffn {Scheme Procedure} list->uniform-array ndim prot lst
 @deffnx {Scheme Procedure} list->uniform-vector prot lst
 @deffnx {C Function} scm_list_to_uniform_array (ndim, prot, lst)
@@ -8124,10 +9144,25 @@ Return a uniform array of the type indicated by prototype
 @var{prot} with elements the same as those of @var{lst}.
 Elements must be of the appropriate type, no coercions are
 done.
+
+The argument @var{ndim} determines the number of dimensions
+of the array.  It is either an exact integer, giving the
+number directly, or a list of exact integers, whose length
+specifies the number of dimensions and each element is the
+lower index bound of its dimension.
+@end deffn
+
+array-creator
+@c snarfed from unif.c:2601
+@deffn {Scheme Procedure} array-creator ra
+@deffnx {C Function} scm_array_creator (ra)
+Return a procedure that would produce an array of the same type
+as @var{array}, if used as the @var{creator} with
+@code{make-uniform-array}.
 @end deffn
 
 array-prototype
-@c snarfed from unif.c:2562
+@c snarfed from unif.c:2632
 @deffn {Scheme Procedure} array-prototype ra
 @deffnx {C Function} scm_array_prototype (ra)
 Return an object that would produce an array of the same type
