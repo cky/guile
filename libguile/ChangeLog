@@ -1,3 +1,8 @@
+2000-06-30  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* numbers.c (scm_gr_p, scm_leq_p, scm_geq_p): Turned into
+	primitive generics.  (Thanks to Nicolas Neuss.)
+
 2000-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (alloc_some_heap):  Use scm_memory_error to indicate a
