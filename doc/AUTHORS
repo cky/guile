@@ -6,7 +6,9 @@
 @ifset guile
 
 @c The Guile reference and tutorial manuals were written and edited
-@c largely by Mark Galassi and Jim Blandy.
+@c largely by Mark Galassi and Jim Blandy.  In particular, Jim wrote the
+@c original tutorial on Guile's data representation and the C API for
+@c accessing Guile objects.
 
 @c Significant portions were contributed by Gary Houston (contributions
 @c to posix system calls and networking, expect, I/O internals and

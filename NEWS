@@ -27,6 +27,8 @@ Changes since Guile 1.4:
 
 *** scheme functions removed:
 
+  tag - no replacement.
+  fseek - replaced by seek.
   list* - replaced by cons*.  
 
 ** New SRFI modules have been added:

@@ -304,11 +304,6 @@ that the current position of a port can be obtained using:
 @end lisp
 @end deffn
 
-@deffn primitive fseek fd_port offset whence
-Obsolete.  Almost the same as @code{seek}, but the return value
-is unspecified.
-@end deffn
-
 @deffn primitive ftell fd_port
 Return an integer representing the current position of
 @var{fd/port}, measured from the beginning.  Equivalent to:

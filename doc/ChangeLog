@@ -1,5 +1,10 @@
 2001-04-29  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* deprecated.texi (Tags): Removed - deprecation expired.
+
+	* scheme-io.texi (Random Access): Removed `fseek' - deprecation
+	expired.
+
 	* guile.texi (Top): Add menu entry for Manual Conventions node.
 	
 2001-04-28  Neil Jerram  <neil@ossau.uklinux.net>

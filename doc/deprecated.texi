@@ -3,7 +3,6 @@
 
 @menu
 * Shared And Read Only Strings::
-* Tags::
 @end menu
 
 
@@ -135,12 +134,4 @@ ERROR: Wrong type argument (expecting STRINGP): /home/
 @deffn primitive read-only-string? obj
 Return @code{#t} if @var{obj} is either a string or a symbol,
 otherwise return @code{#f}.
-@end deffn
-
-
-@node Tags
-@section Tags
-
-@deffn primitive tag x
-Return an integer corresponding to the type of @var{x}.  Deprecated.
 @end deffn
