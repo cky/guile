@@ -707,12 +707,12 @@
 
 (define (alist-delete key alist . rest)
   (let ((k= (if (pair? rest) (car rest) equal?)))
-    (let lp ((a alist))
+    (let lp ((a alist) (rl '()))
       (if (null? a)
-	'()
+	(reverse! rl)
 	(if (k= key (caar a))
-	  (lp (cdr a))
-	  (cons (car a) (lp (cdr a))))))))
+	  (lp (cdr a) rl)
+	  (lp (cdr a) (cons (car a) rl)))))))
 
 (define (alist-delete! key alist . rest)
   (let ((k= (if (pair? rest) (car rest) equal?)))
