@@ -2995,7 +2995,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
       idx = cstart;
       while (idx < cend)
 	{
-	  if (SCM_CHARSET_GET (char_pred, cstr[idx]))
+	  if (!SCM_CHARSET_GET (char_pred, cstr[idx]))
 	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
 	  idx++;
 	}
