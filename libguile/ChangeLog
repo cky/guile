@@ -1,3 +1,10 @@
+1999-09-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* feature.c (scm_create_hook): New function.  Replaces
+	scm_make_named_hook which is now deprecated.
+	(scm_make_hook_with_name): New primitive.
+	(print_hook): Hooks now print in a fancy way.
+
 1999-09-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* __scm.h, backtrace.c, backtrace.h, debug.c, debug.h, dynl-dld.c,

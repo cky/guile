@@ -14,6 +14,7 @@ In release 1.4:
 - remove kw.h, scm_tc16_kw
 - remove genio.h
 - remove deprecated function scm_newsmob.
+- remove deprecated function scm_make_named_hook.
 
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new

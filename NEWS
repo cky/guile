@@ -52,6 +52,8 @@ reduced to 30% of what it was previously.
 Correctly written scripts load the modules they require at the top of
 the file and should not be affected by this change.
 
+** Hooks are now represented as smobs
+
 * Changes to Scheme functions and syntax
 
 ** Readline support has changed again.
@@ -109,6 +111,12 @@ If present, FLAGS is passed as the FLAGS argument to regexp-exec.
 *** New function: hook? OBJ
 
 Return #t if OBJ is a hook, otherwise #f.
+
+*** New function: make-hook-with-name NAME [ARITY]
+
+Return a hook with name NAME and arity ARITY.  The default value for
+ARITY is 0.  The only effect of NAME is that it will appear when the
+hook object is printed to ease debugging.
 
 *** New function: hook-empty? HOOK
 
@@ -252,6 +260,23 @@ these compilation units has been cleaned up and better structured.
   New function: SCM scm_call_generic_1 (GENERIC, ARG1)
   New function: SCM scm_call_generic_2 (GENERIC, ARG1, ARG2)
   New function: SCM scm_call_generic_3 (GENERIC, ARG1, ARG2, ARG3)
+
+** Deprecated function: scm_make_named_hook
+
+It is now replaced by:
+
+** New function: SCM scm_create_hook (const char *name, int arity)
+
+Creates a hook in the same way as make-hook above but also
+binds a variable named NAME to it.
+
+This is the typical way of creating a hook from C code.
+
+Currently, the variable is created in the "current" module.
+This might change when we get the new module system.
+
+[The behaviour is identical to scm_make_named_hook.]
+
 
 
 Changes since Guile 1.3:
@@ -1367,8 +1392,8 @@ binds a variable named NAME to it.
 
 This is the typical way of creating a hook from C code.
 
-Currently, the variable is created in the root module.  This will
-change when we get the new module system.
+Currently, the variable is created in the "current" module.  This
+might change when we get the new module system.
 
 ** The smob interface
 
