@@ -1,6 +1,6 @@
 ;;;; Guile Debugger UI client
 
-;;; Copyright (C) 2003 Free Software Foundation, Inc.
+;;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 ;;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -36,16 +36,48 @@
 	    gds-server-died-hook)
   #:no-backtrace)
 
-;; The TCP port number that the UI server listens for application
-;; connections on.
+
+;;;; {Internal Tracing and Debugging}
+
+;; Some of this module's thread and mutex code is quite tricky and
+;; includes `trc' statements to trace out useful information if the
+;; environment variable GDS_TRC is defined.
+(define trc
+  (if (getenv "GDS_TRC")
+      (let ((port (open-output-file "/home/neil/gds-client.log"))
+	    (trc-mutex (make-mutex)))
+	(lambda args
+	  (with-mutex trc-mutex
+		      (write args port)
+		      (newline port)
+		      (force-output port))))
+      noop))
+
+(define-macro (assert expr)
+  `(or ,expr
+       (error "Assertion failed" expr)))
+
+
+;;;; {TCP Connection}
+
+;; Communication between this module (running in the application being
+;; debugged) and the GDS server and UI code (running in/under Emacs)
+;; is through a TCP connection.  `gds-port-number' is the TCP port
+;; number where the server listens for application connections.
 (define gds-port-number 8333)
 
-;; Once connected, the TCP socket port to the UI server.
+;; Once connected, the TCP socket port to the server.
 (define gds-port #f)
 
-(define* (gds-connect name debug #:optional host)
-  "Connect to the debug UI server as @var{name}, a string that should
-be sufficient to describe the calling application to the debug UI
+;; Public procedure to discover whether there is a GDS connection yet.
+(define (gds-connected?)
+  "Return @code{#t} if a UI server connected has been made; else @code{#f}."
+  (not (not gds-port)))
+
+;; Public procedure to create the connection to the GDS server.
+(define* (gds-connect name #:optional host)
+  "Connect to the GDS server as @var{name}, a string that should be
+sufficient to describe the calling application to the GDS frontend
 user.  The optional @var{host} arg specifies the hostname or dotted
 decimal IP address where the UI server is running; default is
 127.0.0.1."
@@ -59,96 +91,18 @@ decimal IP address where the UI server is running; default is
 	  (setsockopt s SOL_TCP TCP_NODELAY 1)
 	  (connect s AF_INET (inet-aton (or host "127.0.0.1")) gds-port-number)
 	  s))
-  ;; Set debugger-output-port so that stuff written to it is
-  ;; accumulated for sending to the debug server.
+  ;; Set debugger-output-port so that messages written to it are not
+  ;; displayed on the application's stdout, but instead accumulated
+  ;; for sending to the GDS frontend.
   (set! (debugger-output-port)
 	(make-soft-port (vector accumulate-output
 				accumulate-output
 				#f #f #f #f)
 			"w"))
-  ;; Write initial context to debug server.
+  ;; Announce ourselves to the server.
   (write-form (list 'name name (getpid)))
-  ;(write-form (cons 'modules (map module-name (loaded-modules))))
-  ;; Start the asynchronous UI thread.
-  (start-async-gds-thread)
-  ;; If `debug' is true, debug immediately.
-  (if debug
-      (debug-stack (make-stack #t gds-connect) #:continuable))
-;  (gds-command-loop #f)
-  )
-
-(define gds-disable-async-thread noop)
-(define gds-continue-async-thread noop)
-(define async-gds-thread #f)
-
-(define (start-async-gds-thread)
-  (let ((mutex (make-mutex))
-	(condition (make-condition-variable))
-	(admin (pipe)))
-    ;; Start the asynchronous UI thread.
-    (begin-thread
-      (set! async-gds-thread (current-thread))
-      ;;(write (cons admin gds-port))
-      ;;(newline)
-      (lock-mutex mutex)
-      (catch 'server-died
-	     (lambda ()
-	       (let loop ((avail '()))
-		 (write-note 'startloop)
-		 ;;(write avail)
-		 ;;(newline)
-		 (cond ((not gds-port))	; exit loop
-		       ((null? avail)
-			(write-status 'ready-for-input)
-			(unlock-mutex mutex)
-			(let ((ports (car (select (list gds-port (car admin))
-						  '() '()))))
-			  (lock-mutex mutex)
-			  (loop ports)))
-		       (else
-			(write-note 'sthg-to-read)
-			(let ((port (car avail)))
-			  (if (eq? port gds-port)
-			      (handle-instruction #f (read gds-port))
-			      (begin
-				(write-note 'debugger-takeover)
-				;; Notification from debugger that it
-				;; wants to take over.  Read the
-				;; notification char.
-				(read-char (car admin))
-				;; Wait on condition variable - this allows the
-				;; debugger thread to grab the mutex.
-				(write-note 'cond-wait)
-				(signal-condition-variable condition)
-				(wait-condition-variable condition mutex)
-				))
-			  ;; Loop.
-			  (loop '()))))
-		 (write-note 'loopexited)))
-	     (lambda args #f))
-      (set! gds-disable-async-thread noop)
-      (set! gds-continue-async-thread noop)
-      (set! async-gds-thread #f)
-      (unlock-mutex mutex))
-    ;; Redefine procs used by debugger thread to take control.
-    (set! gds-disable-async-thread
-	  (lambda ()
-	    (lock-mutex mutex)
-	    (write-char #\x (cdr admin))
-	    (force-output (cdr admin))
-	    (write-note 'char-written)
-	    (wait-condition-variable condition mutex)
-	    ;;(display "gds-disable-async-thread: locking mutex...\n"
-	    ;;	     (current-error-port))
-	    ))
-    (set! gds-continue-async-thread
-	  (lambda ()
-	    (write-note 'cond-signal)
-	    (signal-condition-variable condition)
-	    ;; Make sure that the async thread has got the message
-	    ;; before we could possibly try to grab the main mutex
-	    ;; again.
-	    (unlock-mutex mutex)))))
+  ;; Start the UI read thread.
+  (set! ui-read-thread (make-thread ui-read-thread-proc)))
 
 (define accumulated-output '())
 
@@ -162,31 +116,135 @@ decimal IP address where the UI server is running; default is
     (set! accumulated-output '())
     s))
 
-(define (gds-connected?)
-  "Return @code{#t} if a UI server connected has been made; else @code{#f}."
-  (not (not gds-port)))
 
+;;;; {UI Read Thread}
+
+;; Except when the application enters the debugger, communication with
+;; the GDS server and frontend is managed by a dedicated thread for
+;; this purpose.  This design avoids having to modify application code
+;; at the expense of requiring a Guile with threads support.
+(define (ui-read-thread-proc)
+  (let ((eval-thread-needed? #t))
+    ;; Start up the default eval thread.
+    (make-thread eval-thread 1 (lambda () (not eval-thread-needed?)))
+    (with-mutex ui-read-mutex
+      (catch 'server-died
+	;; Protected thunk: loop reading either protocol input from
+	;; the server, or an indication (through ui-read-switch-pipe)
+	;; that a thread in the debugger wants to take over the
+	;; interaction with the server.
+	(lambda ()
+	  (let loop ((avail '()))
+	    (write-note 'startloop)
+	    (cond ((not gds-port))	; exit loop
+		  ((null? avail)
+		   (write-status 'ready-for-input)
+		   (loop (without-mutex ui-read-mutex
+			   (car (select (list gds-port
+					      (car ui-read-switch-pipe))
+					'() '())))))
+		  (else
+		   (write-note 'sthg-to-read)
+		   (let ((port (car avail)))
+		     (if (eq? port gds-port)
+			 (handle-instruction #f (read gds-port))
+			 (begin
+			   (write-note 'debugger-takeover)
+			   ;; Notification from debugger that it wants
+			   ;; to take over.  Read the notification
+			   ;; char.
+			   (read-char (car ui-read-switch-pipe))
+			   ;; Wait on ui-read-switch variable - this
+			   ;; allows the debugger thread to grab the
+			   ;; mutex.
+			   (write-note 'cond-wait)
+			   (signal-condition-variable ui-read-switch)
+			   (wait-condition-variable ui-read-switch
+						    ui-read-mutex)))
+		     ;; Loop.
+		     (loop '()))))
+	    (write-note 'loopexited)))
+	;; Catch handler.
+	(lambda args #f)))
+    ;; Tell the eval thread that it can exit.
+    (with-mutex eval-work-mutex
+      (set! eval-thread-needed? #f)
+      (broadcast-condition-variable eval-work-changed))))
+
+;; It's useful to keep a note of the UI thread's id.
+(define ui-read-thread #f)
+
+;; Mutex used to control which thread is currently reading the TCP
+;; connection to the server/UI.
+(define ui-read-mutex (make-mutex))
+
+;; Condition variable used by threads interested in reading the TCP
+;; connection to signal changes in their state.
+(define ui-read-switch (make-condition-variable))
+
+;; Pipe used by application threads that enter the debugger to tell
+;; the UI read thread that they'd like to take over reading the TCP
+;; connection.
+(define ui-read-switch-pipe (pipe))
+
+
+;;;; {Debugger Integration}
+
+;; When a thread enters the Guile debugger and a GDS connection is
+;; present, the debugger calls `gds-command-loop' instead of entering
+;; its usual command loop.
 (define (gds-command-loop state)
   "Interact with the UI frontend."
   (or (gds-connected?)
       (error "Not connected to UI server."))
-  (gds-disable-async-thread)
-  (catch #t	; Only expect here 'exit-debugger or 'server-died.
-	 (lambda ()
-	   (let loop ((state state))
-	     ;; Write accumulated debugger output.
-	     (write-form (list 'output 
-			       (sans-surrounding-whitespace
-				(get-accumulated-output))))
-	     ;; Write current state to the frontend.
-	     (if state (write-stack state))
-	     ;; Tell the frontend that we're waiting for input.
-	     (write-status 'waiting-for-input)
-	     ;; Read next instruction, act on it, and loop with
-	     ;; updated state.
-	     (loop (handle-instruction state (read gds-port)))))
-	 (lambda args *unspecified*))
-  (gds-continue-async-thread))
+  ;; Take over server/UI interaction from the normal UI read thread.
+  (with-mutex ui-read-mutex)
+    (write-char #\x (cdr ui-read-switch-pipe))
+    (force-output (cdr ui-read-switch-pipe))
+    (write-note 'char-written)
+    (wait-condition-variable ui-read-switch ui-read-mutex)
+    ;; We now "have the com", as they say on Star Trek.
+    (catch #t	; Only expect here 'exit-debugger or 'server-died.
+      (lambda ()
+	(let loop ((state state))
+	  ;; Write accumulated debugger output.
+	  (write-form (list 'output (sans-surrounding-whitespace
+				     (get-accumulated-output))))
+	  ;; Write current state to the frontend.
+	  (if state (write-stack state))
+	  ;; Tell the frontend that we're waiting for input.
+	  (write-status 'waiting-for-input)
+	  ;; Read next instruction, act on it, and loop with updated
+	  ;; state.
+	  (loop (handle-instruction state (read gds-port)))))
+      (lambda args *unspecified*))
+    (write-note 'cond-signal)
+    ;; Tell the UI read thread that it can take control again.
+    (signal-condition-variable ui-read-switch))
+
+
+;;;; {General Output to Server/UI}
+
+(define write-form
+  (let ((protocol-mutex (make-mutex)))
+    (lambda (form)
+      ;; Write any form FORM to UI frontend.
+      (with-mutex protocol-mutex
+        (write form gds-port)
+	(newline gds-port)
+	(force-output gds-port)))))
+
+(define (write-note note)
+  ;; Write a note (for debugging this code) to UI frontend.
+  (false-if-exception (write-form `(note ,note))))
+
+(define (write-status status)
+  (write-form (list 'current-module
+		    (format #f "~S" (module-name (current-module)))))
+  (write-form (list 'status status)))
+
+
+;;;; {Stack Output to Server/UI}
 
 (define (write-stack state)
   ;; Write Emacs-readable representation of current state to UI
@@ -206,16 +264,6 @@ decimal IP address where the UI server is running; default is
 			    (reverse! frames)
 			    (- nframes index 1)
 			    flags))))))
-
-(define (write-form form)
-  ;; Write any form FORM to UI frontend.
-  (write form gds-port)
-  (newline gds-port)
-  (force-output gds-port))
-
-(define (write-note note)
-  ;; Write a note (for debugging this code) to UI frontend.
-  (false-if-exception (write-form `(note ,note))))
 
 (define (stack->emacs-readable stack)
   ;; Return Emacs-readable representation of STACK.
@@ -266,11 +314,11 @@ decimal IP address where the UI server is running; default is
 	     (format #f "~S" flag)))
        flags))
 
-(define the-ice-9-debugger-commands-module
-  (resolve-module '(ice-9 debugger commands)))
 
-(define internal-error-stack #f)
+;;;; {Handling GDS Protocol Instructions}
 
+;; Instructions from the server/UI always come through here.  If
+;; `state' is non-#f, we are in the debugger; otherwise, not.
 (define (handle-instruction state ins)
   (if (eof-object? ins)
       (server-died)
@@ -288,7 +336,8 @@ decimal IP address where the UI server is running; default is
 		  (apply throw key args))
 		 (else
 		  (write-form
-		   `(eval-results "GDS Internal Error\n"
+		   `(eval-results error
+				  "GDS Internal Error\n"
 				  ,(list (with-output-to-string
 					  (lambda ()
 					    (write key)
@@ -305,6 +354,8 @@ decimal IP address where the UI server is running; default is
   (set! gds-port #f)
   (run-hook gds-server-died-hook)
   (throw 'server-died))
+
+(define internal-error-stack #f)
 
 (define gds-server-died-hook (make-hook))
 
@@ -326,6 +377,7 @@ decimal IP address where the UI server is running; default is
 				    string<?))))
      state)
     ((debugger-command)
+     (or state (error "Not currently in debugger!"))
      (write-status 'running)
      (let ((name (cadr ins))
 	   (args (cddr ins)))
@@ -348,18 +400,33 @@ decimal IP address where the UI server is running; default is
 		      (module-ref (resolve-module (cadr ins)) (caddr ins)))
      state)
     ((eval)
-     (apply (lambda (module port-name line column bpinfo code)
+     (apply (lambda (correlator module port-name line column bpinfo code)
 	      (with-input-from-string code
 	        (lambda ()
 		  (set-port-filename! (current-input-port) port-name)
 		  (set-port-line! (current-input-port) line)
 		  (set-port-column! (current-input-port) column)
 		  (let ((m (and module (resolve-module module))))
-		    (let loop ((results '()) (x (read)))
+		    (let loop ((exprs '()) (x (read)))
 		      (if (eof-object? x)
-			  (write-form `(eval-results ,@results))
-			  (loop (append results (gds-eval x bpinfo m))
-				(read))))))))
+			  ;; Expressions to be evaluated have all been
+			  ;; read.  Now hand them off to an
+			  ;; eval-thread for the actual evaluation.
+			  (with-mutex eval-work-mutex
+			    (trc 'protocol-thread "evaluation work available")
+			    (set! eval-work (cons* correlator m (reverse! exprs)))
+			    (set! eval-work-available #t)
+			    (broadcast-condition-variable eval-work-changed)
+			    (wait-condition-variable eval-work-taken
+						     eval-work-mutex)
+			    (assert (not eval-work-available))
+			    (trc 'protocol-thread "evaluation work underway"))
+			  ;; Another complete expression read.  Set
+			  ;; breakpoints in the read code as specified
+			  ;; by bpinfo, and add it to the list.
+			  (begin
+			    (install-breakpoints x bpinfo)
+			    (loop (cons x exprs) (read)))))))))
 	    (cdr ins))
      state)
     ((complete)
@@ -392,16 +459,51 @@ decimal IP address where the UI server is running; default is
 				  ,match)))))))
      state)
     ((async-break)
-     (let ((thread (car (delq async-gds-thread (all-threads)))))
+     (let ((thread (car (delq ui-read-thread (all-threads)))))
        (write (cons 'target-thread thread))
        (newline)
-       (write (cons 'async-thread async-gds-thread))
+       (write (cons 'ui-read-thread ui-read-thread))
        (newline)
        (system-async-mark (lambda ()
 			    (debug-stack (make-stack #t 3) #:continuable))
 			  thread))
      state)
     (else state)))
+
+(define the-ice-9-debugger-commands-module
+  (resolve-module '(ice-9 debugger commands)))
+
+
+;;;; {Module Browsing}
+
+(define (loaded-module-source module-name)
+  ;; Return the file name that (ice-9 boot-9) probably loaded the
+  ;; named module from.  (The `probably' is because `%load-path' might
+  ;; have changed since the module was loaded.)
+  (let* ((reverse-name (reverse module-name))
+	 (name (symbol->string (car reverse-name)))
+	 (dir-hint-module-name (reverse (cdr reverse-name)))
+	 (dir-hint (apply string-append
+			  (map (lambda (elt)
+				 (string-append (symbol->string elt) "/"))
+			       dir-hint-module-name))))
+    (%search-load-path (in-vicinity dir-hint name))))
+
+(define (loaded-modules)
+  ;; Return list of all loaded modules sorted by name.
+  (sort (apropos-fold-all (lambda (module acc) (cons module acc)) '())
+	(lambda (m1 m2)
+	  (symlist<? (module-name m1) (module-name m2)))))
+
+(define (symlist<? l1 l2)
+  ;; Return #t if symbol list L1 is alphabetically less than L2.
+  (cond ((null? l1) #t)
+	((null? l2) #f)
+	((eq? (car l1) (car l2)) (symlist<? (cdr l1) (cdr l2)))
+	(else (string<? (symbol->string (car l1)) (symbol->string (car l2))))))
+
+
+;;;; {Source Breakpoint Installation}
 
 (define (install-breakpoints x bpinfo)
   (define (install-recursive x)
@@ -427,7 +529,95 @@ decimal IP address where the UI server is running; default is
 	  (for-each install-recursive x))))
   (install-recursive x))
 
-(define (gds-eval x bpinfo m)
+
+;;;; {Evaluation}
+
+;; Evaluation threads are unleashed by two possible triggers.  One is
+;; a boolean variable, specific to each thread, that tells the thread
+;; to exit when set to #t.  The other is another boolean variable, but
+;; global, indicating that there is an evaluation to perform:
+(define eval-work-available #f)
+
+;; This variable, which is only valid when `eval-work-available' is
+;; #t, holds the evaluation to perform:
+(define eval-work #f)
+
+;; A mutex protects against concurrent access to these variables.
+(define eval-work-mutex (make-mutex))
+
+;; Changes in these variables are signaled by broadcasting the
+;; following condition variable.
+(define eval-work-changed (make-condition-variable))
+
+;; When an evaluation thread takes some work, it tells the main GDS
+;; thread by signaling this condition variable.
+(define eval-work-taken (make-condition-variable))
+
+(define-macro (without-mutex m . body)
+  `(dynamic-wind
+       (lambda () (unlock-mutex ,m))
+       (lambda () (begin ,@body))
+       (lambda () (lock-mutex ,m))))
+
+(define next-thread-number
+  (let ((count 0))
+    (lambda ()
+      (set! count (+ count 1))
+      count)))
+
+(define (eval-thread depth thread-should-exit-thunk)
+  ;; Acquire mutex to check trigger variables.
+  (with-mutex eval-work-mutex
+    (let ((thread-number (next-thread-number)))
+      (trc 'eval-thread depth thread-number "entering loop")
+      (let loop ()
+	(cond ((thread-should-exit-thunk)
+	       ;; Allow thread to exit.
+	       )
+
+	      (eval-work-available
+	       ;; Take a local copy of the work, reset global
+	       ;; variables, then do the work with mutex released.
+	       (trc 'eval-thread depth thread-number "starting work")
+	       (let ((work eval-work)
+		     (subthread-needed? #t))
+		 (set! eval-work-available #f)
+		 (signal-condition-variable eval-work-taken)
+		 (without-mutex eval-work-mutex
+    	           ;; Before starting evaluation, create another eval
+		   ;; thread like this one, so that it can take over
+		   ;; if another evaluation is requested before this
+		   ;; one is finished.
+		   (make-thread eval-thread (+ depth 1)
+				(lambda () (not subthread-needed?)))
+		   ;; Do the evaluation(s).
+		   (let loop2 ((correlator (car work))
+			       (m (cadr work))
+			       (exprs (cddr work))
+			       (results '()))
+		     (if (null? exprs)
+			 (write-form `(eval-results ,correlator ,@results))
+			 (loop2 correlator
+				m
+				(cdr exprs)
+				(append results (gds-eval (car exprs) m))))))
+		 (trc 'eval-thread depth thread-number "work done")
+		 ;; Tell the subthread that it should now exit.
+		 (set! subthread-needed? #f)
+		 (broadcast-condition-variable eval-work-changed)
+		 ;; Loop for more work for this thread.
+		 (loop)))
+
+	      (else
+	       ;; Wait for something to change, then loop to check
+	       ;; trigger variables again.
+	       (trc 'eval-thread depth thread-number "wait")
+	       (wait-condition-variable eval-work-changed eval-work-mutex)
+	       (trc 'eval-thread depth thread-number "wait done")
+	       (loop))))
+      (trc 'eval-thread depth thread-number "exiting"))))
+
+(define (gds-eval x m)
   ;; Consumer to accept possibly multiple values and present them for
   ;; Emacs as a list of strings.
   (define (value-consumer . values)
@@ -436,9 +626,6 @@ decimal IP address where the UI server is running; default is
 	(map (lambda (value)
 	       (with-output-to-string (lambda () (write value))))
 	     values)))
-  ;; Before evaluation, set breakpoints in the read code as specified
-  ;; by bpinfo.
-  (install-breakpoints x bpinfo)
   ;; Now do evaluation.
   (let ((value #f))
     (let* ((do-eval (if m
@@ -480,35 +667,5 @@ decimal IP address where the UI server is running; default is
 				 '("unhandled-exception-in-evaluation"))))))))))
       (list output value))))
 
-(define (write-status status)
-  (write-form (list 'current-module
-		    (format #f "~S" (module-name (current-module)))))
-  (write-form (list 'status status)))
-
-(define (loaded-module-source module-name)
-  ;; Return the file name that (ice-9 boot-9) probably loaded the
-  ;; named module from.  (The `probably' is because `%load-path' might
-  ;; have changed since the module was loaded.)
-  (let* ((reverse-name (reverse module-name))
-	 (name (symbol->string (car reverse-name)))
-	 (dir-hint-module-name (reverse (cdr reverse-name)))
-	 (dir-hint (apply string-append
-			  (map (lambda (elt)
-				 (string-append (symbol->string elt) "/"))
-			       dir-hint-module-name))))
-    (%search-load-path (in-vicinity dir-hint name))))
-
-(define (loaded-modules)
-  ;; Return list of all loaded modules sorted by name.
-  (sort (apropos-fold-all (lambda (module acc) (cons module acc)) '())
-	(lambda (m1 m2)
-	  (symlist<? (module-name m1) (module-name m2)))))
-
-(define (symlist<? l1 l2)
-  ;; Return #t if symbol list L1 is alphabetically less than L2.
-  (cond ((null? l1) #t)
-	((null? l2) #f)
-	((eq? (car l1) (car l2)) (symlist<? (cdr l1) (cdr l2)))
-	(else (string<? (symbol->string (car l1)) (symbol->string (car l2))))))
 
 ;;; (emacs gds-client) ends here.

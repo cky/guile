@@ -1,3 +1,8 @@
+2004-01-20  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds-client.scm: Extensive changes to implement eval threads, and
+	to tidy up and organize the rest of the code.
+
 2003-12-06  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds.texi: New.
