@@ -1,3 +1,32 @@
+2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	Renamed many file to make the structure of the manual more evident
+	in the names.  Changed all references.
+
+	* scheme-binding.texi: Renamed to api-binding.texi.
+	* scheme-compound.texi: Renamed to api-compound.texi.
+	* scheme-control.texi: Renamed to api-control.texi.
+	* scheme-data.texi: Renamed to api-data.texi.
+	* scheme-debug.texi: Renamed to api-debug.texi.
+	* deprecated.texi: Renamed to api-deprecated.texi.
+	* scheme-evaluation.texi: Renamed to api-evaluation.texi.
+	* ref-init.texi: Renamed to api-init.texi.
+	* scheme-io.texi: Renamed to api-io.texi.
+	* scheme-memory.texi: Renamed to api-memory.texi.
+	* scheme-modules.texi: Renamed to api-modules.texi.
+	* scheme-options.texi: Renamed to api-options.texi.
+	* scm.texi: Renamed to api-overview.texi.
+	* scheme-procedures.texi: Renamed to api-procedures.texi.
+	* scheme-scheduling.texi: Renamed to api-scheduling.texi.
+	* scheme-scm.texi: Renamed to api-scm.texi.
+	* scheme-smobs.texi: Renamed to api-smobs.texi.
+	* scheme-snarf.texi: Renamed to api-snarf.texi.
+	* scheme-translation.texi: Renamed to api-translation.texi.
+	* scheme-utility.texi: Renamed to api-utility.texi.
+	* debugging.texi: Renamed to scheme-debugging.texi.
+	* scripts.texi: Renamed to scheme-scripts.texi.
+	* program.texi: Renamed to libguile-program.texi.
+
 2004-07-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* misc-modules.texi (Formatted Output): Changed @w to @w{} in
