@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998,1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -621,7 +621,7 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_PORT (1,port);
+  SCM_VALIDATE_PORT (1, port);
   if (SCM_CLOSEDP (port))
     return SCM_BOOL_F;
   i = SCM_PTOBNUM (port);
@@ -631,7 +631,38 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
     rv = 0;
   scm_remove_from_port_table (port);
   SCM_SETAND_CAR (port, ~SCM_OPN);
-  return SCM_NEGATE_BOOL(rv < 0);
+  return SCM_NEGATE_BOOL (rv < 0);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_close_input_port, "close-input-port", 1, 0, 0,
+           (SCM port),
+	    "Close the specified input port object.  The routine has no effect if\n"
+	    "the file has already been closed.  An exception may be raised if an\n"
+	    "error occurs.  The value returned is unspecified.\n\n"
+	    "See also @ref{Ports and File Descriptors, close}, for a procedure\n"
+	    "which can close file descriptors.")
+#define FUNC_NAME s_scm_close_input_port
+{
+  SCM_VALIDATE_INPUT_PORT (1, port);
+  scm_close_port (port);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_close_output_port, "close-output-port", 1, 0, 0,
+           (SCM port),
+	    "Close the specified output port object.  The routine has no effect if\n"
+	    "the file has already been closed.  An exception may be raised if an\n"
+	    "error occurs.  The value returned is unspecified.\n\n"
+	    "See also @ref{Ports and File Descriptors, close}, for a procedure\n"
+	    "which can close file descriptors.")
+#define FUNC_NAME s_scm_close_output_port
+{
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_VALIDATE_OUTPUT_PORT (1, port);
+  scm_close_port (port);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
