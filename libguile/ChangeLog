@@ -1,3 +1,10 @@
+1998-11-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* eval.c (scm_copy_tree): Copy source properties if existent.
+
+	* debug.c (scm_start_stack): Copy source when evaluating.  (If we
+	don't, we may end up passing memoized source to a transformer.)
+
 1998-11-10  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* stack.c (get_applybody): Help function which lookups the first
