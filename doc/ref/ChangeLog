@@ -2,6 +2,15 @@
 
 	* scheme-data.texi (Scientific): Add two-argument atan.
 
+	* tools.texi (How guile-snarf works): Need @@ for texinfo in example.
+
+2003-08-17  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-compound.texi (Hash Table Reference): Collect up groups of
+	functions to avoid duplication.  Revise notes on hashx functions and
+	on vector implementation.  In make-hash-table, size is now optional.
+	Add hash-map and hash-for-each.
+
 2003-08-14  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-control.texi (while do): Update `while' for code rewrite, in
