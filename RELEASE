@@ -12,7 +12,8 @@ it in the distribution.
    c) Remove the user-visible markers from the log entries once they're
       documented.
 3) Update the version numbers in GUILE-VERSION, and README, to remove the
-   "unreleased" indications.
+   "unreleased" indications.  They should be straight numbers, of the form
+   "N.M", not alpha numbers, of the form "N.Ma".
 4) Do a `cvs update -A', to get rid of any sticky tags.
 5) Commit all changes to the CVS repository.
 6) Verify that the disty works, too:
@@ -33,4 +34,6 @@ it in the distribution.
    appears on prep.  The announcement text should be mostly taken from 
    Guile's README file.
 10) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
-   the sources are snapshot again.  Start a new section of the NEWS file.
+    the sources are snapshot again.  Snapshots should have version numbers 
+    of the form "N.Ma", where the "a" means "alpha".
+11) Start a new section of the NEWS file.

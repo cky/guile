@@ -1,5 +1,9 @@
 Tue Jan  7 18:11:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* ports.h (SCM_PTOBNUM): Removed extraneous semicolon.
+	* smob.h: (SCM_PTOBNUM): Removed entirely; this definition is a
+	duplicate.
+
 	* objprop.c (scm_object_property): No need to take the CDR of the
 	value returned by scm_object_properties, since Aug 20 change.
 
