@@ -1042,49 +1042,6 @@
 ;;; Reader code for various "#c" forms.
 ;;;
 
-;;; Parse the portion of a #/ list that comes after the first slash.
-(define (read-path-list-notation slash port)
-  (letrec 
-      
-      ;; Is C a delimiter?
-      ((delimiter? (lambda (c) (or (eof-object? c)
-				   (char-whitespace? c)
-				   (string-index "()\";" c))))
-
-       ;; Read and return one component of a path list.
-       (read-component
-	(lambda ()
-	  (let loop ((reversed-chars '()))
-	    (let ((c (peek-char port)))
-	      (if (or (delimiter? c)
-		      (char=? c #\/))
-		  (string->symbol (list->string (reverse reversed-chars)))
-		  (loop (cons (read-char port) reversed-chars))))))))
-
-    ;; Read and return a path list.
-    (let loop ((reversed-path (list (read-component))))
-      (let ((c (peek-char port)))
-	(if (and (char? c) (char=? c #\/))
-	    (begin
-	      (read-char port)
-	      (loop (cons (read-component) reversed-path)))
-	    (reverse reversed-path))))))
-
-(define (read-path-list-notation-warning slash port)
-  (if (not (getenv "GUILE_HUSH"))
-      (begin
-	(display "warning: obsolete `#/' list notation read from "
-		 (current-error-port))
-	(display (port-filename port) (current-error-port))
-	(display "; see guile-core/NEWS." (current-error-port))
-	(newline (current-error-port))
-	(display "         Set the GUILE_HUSH environment variable to disable this warning."
-		 (current-error-port))
-	(newline (current-error-port))))
-  (read-hash-extend #\/ read-path-list-notation)
-  (read-path-list-notation slash port))
-
-
 (read-hash-extend #\' (lambda (c port)
 			(read port)))
 (read-hash-extend #\. (lambda (c port)
@@ -1104,10 +1061,6 @@
 			  (read:array c port))))
 	(for-each (lambda (char) (read-hash-extend char array-proc))
 		  '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)))))
-
-;; pushed to the beginning of the alist since it's used more than the
-;; others at present.
-(read-hash-extend #\/ read-path-list-notation-warning)
 
 (define (read:array digit port)
   (define chr0 (char->integer #\0))
