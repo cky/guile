@@ -1,3 +1,38 @@
+Sat Apr 19 03:59:02 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* read.c (skip_scsh_block_comment): SCSH says the !# that ends a
+ 	#! block comment must occur on a line all by itself.
+
+        Move most of the guts of shell command processing into libguile,
+	so guile.c can be very small (and eventuallly auto-generated.  (I
+	mean, generated mechanically, not self-generated.  Hmm.))
+	* guile.c, script.c, script.h: New source files.
+	* init.c (scm_boot_guile_1): Call scm_init_script.
+	* libguile.h: #include "script.h".
+	* Makefile.am (bin_PROGRAMS, guile_SOURCES, guile_LDADD): New
+	targets, for new executable.
+	(libguile_la_SOURCES): Mention script.c.
+	(modinclude_HEADERS): Add script.h.
+	* configure.in: Always check for -lm, -lsocket, -lnsl, whether or
+	not dynamic linking is enabled.  This is because we're generating
+	executables now.  Move CY_AC_WITH_THREADS call after those, so the
+	values of cy_cv_threads_libs captures the libs chosen above.
+	* Makefile.in, configure, aclocal.m4: Regenerated.
+
+	* Makefile.am (EXTRA_DIST): Don't distribute gscm.c or gscm.h.
+	We don't maintain this interface any more, and it just confuses
+	people.
+
+	* alloca.c: #include <scmconfig.h>, not <config.h>.
+	* Makefile.am (EXTRA_libguile_la_SOURCES): Mention alloca.c, so
+	it'll get included in disties.
+
+Thu Apr 17 17:45:10 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* gscm.c, gscm.h: These aren't supported any more, and shouldn't
+	be distributed, because they confuse people.
+	* Makefile.am (EXTRA_DIST): Remove gscm.c, gscm.h.
+
 Wed Apr 16 17:52:38 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* backtrace.c (scm_backtrace): Split message string across
