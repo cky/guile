@@ -1,5 +1,18 @@
 2004-07-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* numbers.h (scm_to_schar, scm_to_uchar, scm_to_char,
+	scm_to_short, scm_to_ushort, scm_to_int, scm_to_uint, scm_to_long,
+	scm_to_ulong, scm_to_long_long, scm_to_ulong_long, scm_to_intmax,
+	scm_to_uintmax, scm_to_size_t, scm_to_ssize_t scm_from_schar,
+	scm_from_uchar, scm_from_char, scm_from_short, scm_from_ushort,
+	scm_from_int, scm_from_uint, scm_from_long, scm_from_ulong,
+	scm_from_long_long, scm_from_ulong_long, scm_from_intmax,
+	scm_from_uintmax, scm_from_size_t, scm_from_ssize_t): No longer
+	defined in terms of scm_to_signed_integer, etc, but in terms of
+	scm_to_int8, etc.
+
+	* gen-scmconfig.c (SCM_SIZEOF_INTMAX, SCM_SIZEOF_SIZE_T): New.
+
 	* gen-scmconfig.h.in: Removed SCM_I_GSC_*_LIMITS macros, they are
 	no longer used.
 
