@@ -2,6 +2,8 @@
 
 	* gc.c (scm_gc_stats): Inserted explanation of local_scm_mtrigger
 	etc.
+	(scm_gc_yield_1): New variable: Holds previous yield.  Used to
+	make better judgements.
 
 	* print.h, stacks.h, options.c, options.h: Changed C++
 	commentaries to C.
