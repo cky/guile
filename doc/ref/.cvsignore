@@ -24,4 +24,5 @@ autoconf-macros.texi
 mdate-sh
 stamp-vti
 stamp-vti.1
+texinfo.tex
 version.texi
