@@ -41,13 +41,11 @@ The Guile sources live in several modules:
   - guile-core --- the interpreter, QuickThreads, and ice-9
   - guile-doc --- documentation in progress.  When complete, this will
 	be incorporated into guile-core.
+  - guile-oops --- The Guile Object-Oriented Programming System (talk to mdj)
   - guile-tcltk --- the Guile/Tk interface
   - guile-tk --- the new Guile/Tk interface, based on STk's modified Tk
   - guile-rgx-ctax --- the Guile/Rx interface, and the ctax implementation
   - guile-scsh --- the port of SCSH to guile, talk to Gary Houston
-  - guile-comp --- the Hobbit compiler (talk to mdj)
-  - guile-emacs --- Guile/Emacs interface (talk to mdj)
-  - guile-oops --- The Guile Object-Oriented Programming System (talk to mdj)
   - guile-www --- A Guile module for making HTTP requests.
 
 There is a mailing list for CVS commit messages; see README for details.
