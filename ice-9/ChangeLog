@@ -1,3 +1,9 @@
+1999-03-21  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (process-define-module, use-syntax): Bugfix:
+	:use-syntax should add syntax to using module, not current module.
+	(internal-use-syntax): Removed.
+
 1999-03-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* session.scm (apropos-internal): Modified to comply with new
