@@ -1,3 +1,9 @@
+1998-10-12  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* boot-9.scm (OPEN_READ, OPEN_WRITE, OPEN_BOTH): Don't bother
+	testing software-type here.  That's the least of our Windows
+	porting issues, and it's done wrong anyway.
+
 1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* boot-9.scm (read-path-list-notation-warning): New function:
