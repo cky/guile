@@ -200,7 +200,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 	else
 	  break;
       }
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
     case scm_tc7_bvect: case scm_tc7_uvect: case scm_tc7_ivect:
     case scm_tc7_fvect:	case scm_tc7_cvect: case scm_tc7_dvect:
     case scm_tc7_svect:
