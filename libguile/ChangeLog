@@ -1,3 +1,19 @@
+1998-09-30  Jim Blandy  <jimb@zwingli.cygnus.com>
+	
+	Warning fixes from Maciej Stachowiak:
+	* backtrace.h (scm_display_application, scm_backtrace): Add
+	prototypes.
+	* debug.c (scm_m_start_stack): Make this function static.
+	* fluids.h (scm_fluid_p): Add prototype.
+	* procprop.c (scm_i_procedure_arity): Make this function static.
+	* regex-posix.c (scm_regexp_error_msg): Make this function static.
+	* regex-posix.h (scm_init_regex_posix): Use prototype, not K&R decl.
+	* root.h (scm_dynamic_root): Add external prototype.
+	* scmsigs.h (scm_usleep): Add external prototype.
+	* script.h (scm_init_script): Use prototype, not K&R decl.
+	* stacks.h (scm_stack_id): Add external prototype.
+	* symbols.h (scm_sysintern0_no_module_lookup): Add external prototype.
+
 1998-09-30  Mark Galassi  <rosalia@cygnus.com>
 
 	* gh.h: took out the definitions of vset and vref, since they are
@@ -6,7 +22,7 @@
 
 1998-09-29  Jim Blandy  <jimb@totoro.red-bean.com>
 
-	* snarf.h: Add SCM_VCELL_INIT and SCM_GLOBAL_VCELL_INIT macros;
+	* snarf.h (SCM_VCELL_INIT, SCM_GLOBAL_VCELL_INIT): New macros;
  	these are analogous to SCM_VCELL and SCM_GLOBAL_VCELL but take a
  	third argument, a C expression that should result in a SCM value,
  	which is used to initialize the variable. Reimplemented
