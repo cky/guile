@@ -152,6 +152,8 @@ extern SCM scm_sym_apply;
 extern SCM scm_sym_set_x;
 extern SCM scm_sym_args;
 
+extern SCM scm_f_apply;
+
 extern long scm_tc16_macro;
 
 /* A resolved global variable reference in the CAR position

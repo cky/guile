@@ -445,7 +445,10 @@ const char scm_s_variable[] = "bad variable";
 const char scm_s_clauses[] = "bad or missing clauses";
 const char scm_s_formals[] = "bad formals";
 
-SCM scm_sym_dot, scm_sym_arrow, scm_sym_else, scm_sym_unquote, scm_sym_uq_splicing, scm_sym_apply;
+SCM scm_sym_dot, scm_sym_arrow, scm_sym_else;
+SCM scm_sym_unquote, scm_sym_uq_splicing, scm_sym_apply;
+
+SCM scm_f_apply;
 
 #ifdef DEBUG_EXTENSIONS
 SCM scm_sym_enter_frame, scm_sym_apply_frame, scm_sym_exit_frame;
@@ -1086,8 +1089,9 @@ scm_m_let (xorig, env)
 }
 
 
-SCM_SYNTAX(s_atapply,"@apply", scm_makmmacro, scm_m_apply);
-SCM_GLOBAL_SYMBOL(scm_sym_atapply, s_atapply);
+SCM_SYNTAX (s_atapply,"@apply", scm_makmmacro, scm_m_apply);
+SCM_GLOBAL_SYMBOL (scm_sym_atapply, s_atapply);
+SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
 
 SCM 
 scm_m_apply (xorig, env)
@@ -2286,7 +2290,7 @@ dispatch:
 	      x = SCM_CODE (proc);
 	      goto cdrxbegin;
 	    }
-	  proc = scm_sym_apply;
+	  proc = scm_f_apply;
 	  goto evapply;
 
 	case (SCM_ISYMNUM (SCM_IM_CONT)):
@@ -3862,7 +3866,7 @@ scm_init_eval ()
   scm_set_smob_mark (scm_tc16_promise, scm_markcdr);
   scm_set_smob_print (scm_tc16_promise, prinprom);
 
-  scm_sym_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
+  scm_f_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
   scm_system_transformer = scm_sysintern ("scm:eval-transformer", SCM_UNDEFINED);
   scm_sym_dot = SCM_CAR (scm_sysintern (".", SCM_UNDEFINED));
   scm_sym_arrow = SCM_CAR (scm_sysintern ("=>", SCM_UNDEFINED));
