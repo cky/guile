@@ -6,7 +6,7 @@
 #ifndef LIBGUILE_SNARF_H
 #define LIBGUILE_SNARF_H
 
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,10 +54,17 @@
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
 	static const char RANAME[]=STR
 #else
+#if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
+#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
+%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...))CFN)
+#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
+%%%	scm_make_subr(RANAME, TYPE, (SCM (*)(...))CFN)
+#else
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 %%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN)
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
 %%%	scm_make_subr(RANAME, TYPE, CFN)
+#endif
 #endif
 
 #ifndef SCM_MAGIC_SNARFER
