@@ -58,7 +58,8 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
        without installing those tools.)
     d) Configure, make, and install.
     e) Test the installed version; don't forget to unset GUILE_LOAD_PATH.
-    f) If you made any fixes, commit them, and start from a) again
+    f) Test the example code in the doc directory. 
+    g) If you made any fixes, commit them, and start from a) again
 12) Tag the entire source tree with a tag of the form "release_N_M".
 13) Copy the tar file over to the GNU machines, and ask the appropriate
     person to put it on prep.  At the time of this writing, Joel Weber
