@@ -6,6 +6,9 @@
 
 	* Makefile.am (scripts_sources): Add "read-text-outline".
 
+	* read-text-outlint (read-text-outline-silently):
+	Move `tp' inside `loop'; nfc.
+
 2002-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* snarf-check-and-output-texi (snarf-check-and-output-texi): If
