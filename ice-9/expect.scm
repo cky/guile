@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1996, 1998, 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1998, 1999, 2001 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 ;; This module is documented in the Guile Reference Manual.
 ;; Briefly, these are exported:
-;;  procedures: expec-select, expect-regexec
+;;  procedures: expect-select, expect-regexec
 ;;   variables: expect-port, expect-timeout, expect-timeout-proc,
 ;;              expect-eof-proc, expect-char-proc,
 ;;              expect-strings-compile-flags, expect-strings-exec-flags,
