@@ -517,6 +517,228 @@ scm_lcm (SCM n1, SCM n2)
 #define SCM_LOGOP_RETURN(x) SCM_MAKINUM(x)
 #endif
 
+
+/* Emulating 2's complement bignums with sign magnitude arithmetic:
+
+   Logand:
+   X	Y	Result	Method:
+		 (len)
+   +	+	+ x	(map digit:logand X Y)
+   +	-	+ x	(map digit:logand X (lognot (+ -1 Y)))
+   -	+	+ y	(map digit:logand (lognot (+ -1 X)) Y)
+   -	-	-	(+ 1 (map digit:logior (+ -1 X) (+ -1 Y)))
+
+   Logior:
+   X	Y	Result	Method:
+
+   +	+	+	(map digit:logior X Y)
+   +	-	- y	(+ 1 (map digit:logand (lognot X) (+ -1 Y)))
+   -	+	- x	(+ 1 (map digit:logand (+ -1 X) (lognot Y)))
+   -	-	- x	(+ 1 (map digit:logand (+ -1 X) (+ -1 Y)))
+
+   Logxor:
+   X	Y	Result	Method:
+
+   +	+	+	(map digit:logxor X Y)
+   +	-	-	(+ 1 (map digit:logxor X (+ -1 Y)))
+   -	+	-	(+ 1 (map digit:logxor (+ -1 X) Y))
+   -	-	+	(map digit:logxor (+ -1 X) (+ -1 Y))
+
+   Logtest:
+   X	Y	Result
+
+   +	+	(any digit:logand X Y)
+   +	-	(any digit:logand X (lognot (+ -1 Y)))
+   -	+	(any digit:logand (lognot (+ -1 X)) Y)
+   -	-	#t
+
+*/
+
+#ifdef SCM_BIGDIG
+
+SCM scm_copy_big_dec(SCM b, int sign);
+SCM scm_copy_smaller(SCM_BIGDIG *x, scm_sizet nx, int zsgn);
+SCM scm_big_ior(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy);
+SCM scm_big_xor(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy);
+SCM scm_big_and(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int zsgn);
+SCM scm_big_test(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy);
+
+SCM scm_copy_big_dec(SCM b, int sign)
+{
+  long num = -1;
+  scm_sizet nx = SCM_NUMDIGS(b);
+  scm_sizet i = 0;
+  SCM ans = scm_mkbig(nx, sign);
+  SCM_BIGDIG *src = SCM_BDIGITS(b), *dst = SCM_BDIGITS(ans);
+  if SCM_BIGSIGN(b) do {
+    num += src[i];
+    if (num < 0) {dst[i] = num + SCM_BIGRAD; num = -1;}
+    else {dst[i] = SCM_BIGLO(num); num = 0;}
+  } while (++i < nx);
+  else
+    while (nx--) dst[nx] = src[nx];
+  return ans;
+}
+
+SCM scm_copy_smaller(SCM_BIGDIG *x, scm_sizet nx, int zsgn)
+{
+  long num = -1;
+  scm_sizet i = 0;
+  SCM z = scm_mkbig(nx, zsgn);
+  SCM_BIGDIG *zds = SCM_BDIGITS(z);
+  if (zsgn) do {
+    num += x[i];
+    if (num < 0) {zds[i] = num + SCM_BIGRAD; num = -1;}
+    else {zds[i] = SCM_BIGLO(num); num = 0;}
+  } while (++i < nx);
+  else do zds[i] = x[i]; while (++i < nx);
+  return z;
+}
+
+SCM scm_big_ior(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
+/* Assumes nx <= SCM_NUMDIGS(bigy) */
+/* Assumes xsgn equals either 0 or 0x0100 */
+{
+  long num = -1;
+  scm_sizet i = 0, ny = SCM_NUMDIGS(bigy);
+  SCM z = scm_copy_big_dec(bigy, xsgn & SCM_BIGSIGN(bigy));
+  SCM_BIGDIG *zds = SCM_BDIGITS(z);
+  if (xsgn) {
+    do {
+      num += x[i];
+      if (num < 0) {zds[i] |= num + SCM_BIGRAD; num = -1;}
+      else {zds[i] |= SCM_BIGLO(num); num = 0;}
+    } while (++i < nx);
+    /* =========  Need to increment zds now =========== */
+    i = 0; num = 1;
+    while (i < ny) {
+      num += zds[i];
+      zds[i++] = SCM_BIGLO(num);
+      num = SCM_BIGDN(num);
+      if (!num) return z;
+    }
+    scm_adjbig(z, 1 + ny);		/* OOPS, overflowed into next digit. */
+    SCM_BDIGITS(z)[ny] = 1;
+    return z;
+  }
+  else do zds[i] = zds[i] | x[i]; while (++i < nx);
+  return z;
+}
+
+SCM scm_big_xor(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
+/* Assumes nx <= SCM_NUMDIGS(bigy) */
+/* Assumes xsgn equals either 0 or 0x0100 */
+{
+  long num = -1;
+  scm_sizet i = 0, ny = SCM_NUMDIGS(bigy);
+  SCM z = scm_copy_big_dec(bigy, xsgn ^ SCM_BIGSIGN(bigy));
+  SCM_BIGDIG *zds = SCM_BDIGITS(z);
+  if (xsgn) do {
+    num += x[i];
+    if (num < 0) {zds[i] ^= num + SCM_BIGRAD; num = -1;}
+    else {zds[i] ^= SCM_BIGLO(num); num = 0;}
+  } while (++i < nx);
+  else do {
+    zds[i] = zds[i] ^ x[i];
+  } while (++i < nx);
+
+  if (xsgn ^ SCM_BIGSIGN(bigy)) {
+    /* =========  Need to increment zds now =========== */
+    i = 0; num = 1;
+    while (i < ny) {
+      num += zds[i];
+      zds[i++] = SCM_BIGLO(num);
+      num = SCM_BIGDN(num);
+      if (!num) return scm_normbig(z);
+    }
+  }
+  return scm_normbig(z);
+}
+
+SCM scm_big_and(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int zsgn)
+/* Assumes nx <= SCM_NUMDIGS(bigy) */
+/* Assumes xsgn equals either 0 or 0x0100 */
+/* return sign equals either 0 or 0x0100 */
+{
+  long num = -1;
+  scm_sizet i = 0;
+  SCM z;
+  SCM_BIGDIG *zds;
+  if (xsgn==zsgn) {
+    z = scm_copy_smaller(x, nx, zsgn);
+    x = SCM_BDIGITS(bigy);
+    xsgn = SCM_BIGSIGN(bigy);
+  }
+  else z = scm_copy_big_dec(bigy, zsgn);
+  zds = SCM_BDIGITS(z);
+
+  if (zsgn) {
+    if (xsgn) do {
+      num += x[i];
+      if (num < 0) {zds[i] &= num + SCM_BIGRAD; num = -1;}
+      else {zds[i] &= SCM_BIGLO(num); num = 0;}
+    } while (++i < nx);
+    else do zds[i] = zds[i] & ~x[i]; while (++i < nx);
+    /* =========  need to increment zds now =========== */
+    i = 0; num = 1;
+    while (i < nx) {
+      num += zds[i];
+      zds[i++] = SCM_BIGLO(num);
+      num = SCM_BIGDN(num);
+      if (!num) return scm_normbig(z);
+    }
+  }
+  else if (xsgn) do {
+    num += x[i];
+    if (num < 0) {zds[i] &= num + SCM_BIGRAD; num = -1;}
+    else {zds[i] &= ~SCM_BIGLO(num); num = 0;}
+  } while (++i < nx);
+  else do zds[i] = zds[i] & x[i]; while (++i < nx);
+  return scm_normbig(z);
+}
+
+SCM scm_big_test(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
+/* Assumes nx <= SCM_NUMDIGS(bigy) */
+/* Assumes xsgn equals either 0 or 0x0100 */
+{
+  SCM_BIGDIG *y;
+  scm_sizet i = 0;
+  long num = -1;
+  if (SCM_BIGSIGN(bigy) & xsgn) return SCM_BOOL_T;
+  if (SCM_NUMDIGS(bigy) != nx && xsgn) return SCM_BOOL_T;
+  y = SCM_BDIGITS(bigy);
+  if (xsgn)
+    do {
+      num += x[i];
+      if (num < 0) {
+	if (y[i] & ~(num + SCM_BIGRAD)) return SCM_BOOL_T;
+	num = -1;
+      }
+      else {
+	if (y[i] & ~SCM_BIGLO(num)) return SCM_BOOL_T;
+	num = 0;
+      }
+    } while (++i < nx);
+  else if SCM_BIGSIGN(bigy)
+    do {
+      num += y[i];
+      if (num < 0) {
+	if (x[i] & ~(num + SCM_BIGRAD)) return SCM_BOOL_T;
+	num = -1;
+      }
+      else {
+	if (x[i] & ~SCM_BIGLO(num)) return SCM_BOOL_T;
+	num = 0;
+      }
+    } while (++i < nx);
+  else
+    do if (x[i] & y[i]) return SCM_BOOL_T;
+    while (++i < nx);
+  return SCM_BOOL_F;
+}
+
+#endif
+
 SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
 	     "Returns the integer which is the bit-wise AND of the two integer\n"
@@ -527,16 +749,51 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 	     "   @result{} \"1000\"")
 #define FUNC_NAME s_scm_logand
 {
-  long i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_MAKINUM (-1);
+#ifndef SCM_RECKLESS
+      if (!(SCM_NUMBERP(n1)))
+	  badx: SCM_WTA(SCM_ARG1, n1);
+#endif
       return n1;
     }
-  SCM_VALIDATE_LONG_COPY (1,n1,i1);
-  SCM_VALIDATE_LONG_COPY (2,n2,i2);
-  return SCM_LOGOP_RETURN (i1 & i2);
+#ifdef SCM_BIGDIG
+  if SCM_NINUMP(n1) {
+    SCM t;
+    SCM_ASRTGO(SCM_NIMP(n1) && SCM_BIGP(n1), badx);
+    if SCM_INUMP(n2) {t = n1; n1 = n2; n2 = t; goto intbig;}
+    SCM_ASRTGO(SCM_NIMP(n2) && SCM_BIGP(n2), bady);
+    if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {t = n1; n1 = n2; n2 = t;}
+    if ((SCM_BIGSIGN(n1)) && SCM_BIGSIGN(n2))
+      return scm_big_ior(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), 0x0100, n2);
+    return scm_big_and(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2, 0);
+  }
+  if SCM_NINUMP(n2) {
+# ifndef SCM_RECKLESS
+      if (!(SCM_NIMP(n2) && SCM_BIGP(n2)))
+	  bady: SCM_WTA (SCM_ARG2, n2);
+# endif
+  intbig: {
+# ifndef SCM_DIGSTOOBIG
+    long z = scm_pseudolong(SCM_INUM(n1));
+    if ((n1 < 0) && SCM_BIGSIGN(n2))
+      return scm_big_ior((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, 0x0100, n2);
+    return scm_big_and((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2, 0);
+# else
+    SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
+    scm_longdigs(SCM_INUM(n1), zdigs);
+    if ((n1 < 0) && SCM_BIGSIGN(n2))
+      return scm_big_ior(zdigs, SCM_DIGSPERLONG, 0x0100, n2);
+    return scm_big_and(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2, 0);
+# endif
+  }}
+#else
+  SCM_ASRTGO(SCM_INUMP(n1), badx);
+  SCM_ASSERT(SCM_INUMP(n2), n2, SCM_ARG2, FUNC_NAME);
+#endif
+  return SCM_MAKINUM(SCM_INUM(n1) & SCM_INUM(n2));
 }
 #undef FUNC_NAME
 
@@ -551,16 +808,51 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 	     "@end lisp")
 #define FUNC_NAME s_scm_logior
 {
-  long i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_INUM0;
+#ifndef SCM_RECKLESS
+    if (!(SCM_NUMBERP(n1)))
+    badx: SCM_WTA(SCM_ARG1, n1);
+#endif
       return n1;
     }
-  SCM_VALIDATE_LONG_COPY (1,n1,i1);
-  SCM_VALIDATE_LONG_COPY (2,n2,i2);
-  return SCM_LOGOP_RETURN (i1 | i2);
+#ifdef SCM_BIGDIG
+  if SCM_NINUMP(n1) {
+    SCM t;
+    SCM_ASRTGO(SCM_NIMP(n1) && SCM_BIGP(n1), badx);
+    if SCM_INUMP(n2) {t = n1; n1 = n2; n2 = t; goto intbig;}
+    SCM_ASRTGO(SCM_NIMP(n2) && SCM_BIGP(n2), bady);
+    if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {t = n1; n1 = n2; n2 = t;}
+    if ((!SCM_BIGSIGN(n1)) && !SCM_BIGSIGN(n2))
+      return scm_big_ior(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2);
+    return scm_big_and(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2, 0x0100);
+  }
+  if SCM_NINUMP(n2) {
+# ifndef SCM_RECKLESS
+    if (!(SCM_NIMP(n2) && SCM_BIGP(n2)))
+    bady: SCM_WTA(SCM_ARG2, n2);
+# endif
+  intbig: {
+# ifndef SCM_DIGSTOOBIG
+    long z = scm_pseudolong(SCM_INUM(n1));
+    if ((!(n1 < 0)) && !SCM_BIGSIGN(n2))
+      return scm_big_ior((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2);
+    return scm_big_and((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2, 0x0100);
+# else
+    BIGDIG zdigs[DIGSPERLONG];
+    scm_longdigs(SCM_INUM(n1), zdigs);
+    if ((!(n1 < 0)) && !SCM_BIGSIGN(n2))
+      return scm_big_ior(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2);
+    return scm_big_and(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2, 0x0100);
+# endif
+  }}
+#else
+  SCM_ASRTGO(SCM_INUMP(n1), badx);
+  SCM_ASSERT(SCM_INUMP(n2), n2, SCM_ARG2, FUNC_NAME);
+#endif
+  return SCM_MAKINUM(SCM_INUM(n1) | SCM_INUM(n2));
 }
 #undef FUNC_NAME
 
@@ -575,16 +867,58 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
 	     "@end lisp")
 #define FUNC_NAME s_scm_logxor
 {
-  long i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_INUM0;
+#ifndef SCM_RECKLESS
+      if (!(SCM_NUMBERP(n1)))
+	  badx: SCM_WTA(SCM_ARG1, n1);
+#endif
       return n1;
     }
-  SCM_VALIDATE_LONG_COPY (1,n1,i1);
-  SCM_VALIDATE_LONG_COPY (2,n2,i2);
-  return SCM_LOGOP_RETURN (i1 ^ i2);
+#ifdef SCM_BIGDIG
+  if SCM_NINUMP(n1) {
+      SCM t;
+      SCM_ASRTGO(SCM_NIMP(n1) && SCM_BIGP(n1), badx);
+      if SCM_INUMP(n2)
+	  {
+	      t = n1;
+	      n1 = n2;
+	      n2 = t;
+	      goto intbig;
+	  }
+      SCM_ASRTGO(SCM_NIMP(n2) && SCM_BIGP(n2), bady);
+      if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2))
+          {
+	      t = n1;
+	      n1 = n2;
+	      n2 = t;
+	  }
+      return scm_big_xor(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2);
+  }
+  if SCM_NINUMP(n2) {
+# ifndef SCM_RECKLESS
+  if (!(SCM_NIMP(n2) && SCM_BIGP(n2)))
+  bady: SCM_WTA (SCM_ARG2, n2);
+# endif
+  intbig: 
+      {
+# ifndef SCM_DIGSTOOBIG
+	  long z = scm_pseudolong(SCM_INUM(n1));
+	  return scm_big_xor((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2);
+# else
+	  SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
+	  scm_longdigs(SCM_INUM(n1), zdigs);
+	  return scm_big_xor(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2);
+# endif
+      }
+  }
+#else
+  SCM_ASRTGO(INUMP(n1), badx);
+  SCM_ASSERT(INUMP(n2), n2, SCM_ARG2, FUNC_NAME);
+#endif
+  return SCM_MAKINUM(SCM_INUM(n1) ^ SCM_INUM(n2));
 }
 #undef FUNC_NAME
 
@@ -597,10 +931,39 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_logtest
 {
-  long i1, i2;
-  SCM_VALIDATE_LONG_COPY (1,n1,i1);
-  SCM_VALIDATE_LONG_COPY (2,n2,i2);
-  return SCM_BOOL(i1 & i2);
+#ifndef SCM_RECKLESS
+    if (!(SCM_NUMBERP(n1)))
+    badx: SCM_WTA(SCM_ARG1, n1);
+#endif
+#ifdef SCM_BIGDIG
+  if SCM_NINUMP(n1) {
+    SCM t;
+    SCM_ASRTGO(SCM_NIMP(n1) && SCM_BIGP(n1), badx);
+    if SCM_INUMP(n2) {t = n1; n1 = n2; n2 = t; goto intbig;}
+    SCM_ASRTGO(SCM_NIMP(n2) && SCM_BIGP(n2), bady);
+    if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {t = n1; n1 = n2; n2 = t;}
+    return scm_big_test(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2);
+  }
+  if SCM_NINUMP(n2) {
+# ifndef SCM_RECKLESS
+    if (!(SCM_NIMP(n2) && SCM_BIGP(n2)))
+    bady: SCM_WTA(SCM_ARG2, n2);
+# endif
+  intbig: {
+# ifndef SCM_DIGSTOOBIG
+    long z = scm_pseudolong(SCM_INUM(n1));
+    return scm_big_test((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2);
+# else
+    SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
+    scm_longdigs(SCM_INUM(n1), zdigs);
+    return scm_big_test(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? 0x0100 : 0, n2);
+# endif
+  }}
+#else
+  SCM_ASRTGO(SCM_INUMP(n1), badx);
+  SCM_ASSERT(SCM_INUMP(n2), n2, SCM_ARG2, FUNC_NAME);
+#endif
+  return (SCM_INUM(n1) & SCM_INUM(n2)) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -617,10 +980,31 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_logbit_p
 {
-  long i1, i2;
-  SCM_VALIDATE_INUM_MIN_COPY (1,index,0,i1);
-  SCM_VALIDATE_LONG_COPY (2,j,i2);
-  return SCM_BOOL((1 << i1) & i2);
+  SCM_ASSERT(SCM_INUMP(index) && SCM_INUM(index) >= 0, index, SCM_ARG1, FUNC_NAME);
+#ifdef SCM_BIGDIG
+  if SCM_NINUMP(j) {
+    SCM_ASSERT(SCM_NIMP(j) && SCM_BIGP(j), j, SCM_ARG2, FUNC_NAME);
+    if (SCM_NUMDIGS(j) * SCM_BITSPERDIG < SCM_INUM(index)) return SCM_BOOL_F;
+    else if SCM_BIGSIGN(j) {
+      long num = -1;
+      scm_sizet i = 0;
+      SCM_BIGDIG *x = SCM_BDIGITS(j);
+      scm_sizet nx = SCM_INUM(index)/SCM_BITSPERDIG;
+      while (!0) {
+	num += x[i];
+	if (nx==i++)
+	  return ((1L << (SCM_INUM(index)%SCM_BITSPERDIG)) & num) ? SCM_BOOL_F : SCM_BOOL_T;
+	if (num < 0) num = -1;
+	else num = 0;
+      }
+    }
+    else return (SCM_BDIGITS(j)[SCM_INUM(index)/SCM_BITSPERDIG] &
+		 (1L << (SCM_INUM(index)%SCM_BITSPERDIG))) ? SCM_BOOL_T : SCM_BOOL_F;
+  }
+#else
+  SCM_ASSERT(SCM_INUMP(j), j, SCM_ARG2, FUNC_NAME);
+#endif
+  return ((1L << SCM_INUM(index)) & SCM_INUM(j)) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -637,7 +1021,6 @@ SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_lognot
 {
-  SCM_VALIDATE_INUM (1,n);
   return scm_difference (SCM_MAKINUM (-1L), n);
 }
 #undef FUNC_NAME
