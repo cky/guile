@@ -86,3 +86,9 @@
 
 /* This is included as part of a workaround for a autoheader bug. */
 #undef HAVE_REGCOMP
+
+/* Define if the operating system supplies bzero without declaring it. */
+#undef DECLARE_BZERO
+
+/* Define if the operating system supplies usleep without declaring it. */
+#undef DECLARE_USLEEP
