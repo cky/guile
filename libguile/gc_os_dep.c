@@ -1078,7 +1078,7 @@ typedef int GC_bool;
 #       define STACKBOTTOM ((ptr_t)environ)
 #   endif
 #   ifndef SCM_STACK_GROWS_UP /* don't fight with scmconfig.h */
-#     define SCM_STACK_GROWS_UP
+#     define SCM_STACK_GROWS_UP 1
 #   endif
 #   define DYNAMIC_LOADING
 #   ifndef HPUX_THREADS
@@ -1265,9 +1265,11 @@ typedef int GC_bool;
 #   define DATASTART ((ptr_t)(&__data_start != 0? &__data_start : &data_start))
 #endif
 
-# ifndef SCM_STACK_GROWS_UP
-#   define STACK_GROWS_DOWN
-# endif
+# if SCM_STACK_GROWS_UP
+#   define STACK_GROWS_DOWN 0
+# else
+#   define STACK_GROWS_DOWN 1
+#endif
 
 # ifndef CPP_WORDSZ
 #   define CPP_WORDSZ 32
@@ -1864,7 +1866,7 @@ void *scm_get_stack_base()
 	return(STACKBOTTOM);
 #   else
 #	ifdef HEURISTIC1
-#	   ifdef STACK_GROWS_DOWN
+#	   if STACK_GROWS_DOWN
 	     result = (ptr_t)((((word)(&dummy))
 	     		       + STACKBOTTOM_ALIGNMENT_M1)
 			      & ~STACKBOTTOM_ALIGNMENT_M1);
@@ -1877,7 +1879,7 @@ void *scm_get_stack_base()
 	   result = GC_linux_stack_base();
 #	endif
 #	ifdef HEURISTIC2
-#	    ifdef STACK_GROWS_DOWN
+#	    if STACK_GROWS_DOWN
 		result = GC_find_limit((ptr_t)(&dummy), TRUE);
 #           	ifdef HEURISTIC2_LIMIT
 		    if (result > HEURISTIC2_LIMIT
@@ -1896,7 +1898,7 @@ void *scm_get_stack_base()
 #	    endif
 
 #	endif /* HEURISTIC2 */
-#	ifdef STACK_GROWS_DOWN
+#	if STACK_GROWS_DOWN
 	    if (result == 0) result = (ptr_t)(signed_word)(-sizeof(ptr_t));
 #	endif
     	return(result);
