@@ -1113,9 +1113,7 @@ scm_init_print ()
   SCM vtable, layout, type;
   
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
-  vtable = scm_make_vtable_vtable (scm_make_struct_layout (scm_nullstr),
-				   SCM_INUM0,
-				   SCM_EOL);
+  vtable = scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
   layout = scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT));
   type = scm_make_struct (vtable, SCM_INUM0, SCM_LIST1 (layout));
   scm_set_struct_vtable_name_x (type, SCM_CAR (scm_intern0 ("print-state")));

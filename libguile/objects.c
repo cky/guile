@@ -468,13 +468,11 @@ void
 scm_init_objects ()
 {
   SCM ms = scm_makfrom0str (SCM_METACLASS_STANDARD_LAYOUT);
-  SCM ml = scm_make_struct_layout (ms);
-  SCM mt = scm_make_vtable_vtable (ml, SCM_INUM0,
+  SCM mt = scm_make_vtable_vtable (ms, SCM_INUM0,
 				   SCM_LIST3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
   
   SCM os = scm_makfrom0str (SCM_METACLASS_OPERATOR_LAYOUT);
-  SCM ol = scm_make_struct_layout (os);
-  SCM ot = scm_make_vtable_vtable (ol, SCM_INUM0,
+  SCM ot = scm_make_vtable_vtable (os, SCM_INUM0,
 				   SCM_LIST3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
   
   SCM es = scm_makfrom0str (SCM_ENTITY_LAYOUT);
