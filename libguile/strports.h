@@ -72,14 +72,16 @@ extern SCM scm_call_with_input_string (SCM str, SCM proc);
 extern SCM scm_open_input_string (SCM str);
 extern SCM scm_open_output_string (void);
 extern SCM scm_get_output_string (SCM port);
-extern SCM scm_read_0str (char *expr);
-extern SCM scm_eval_0str (const char *expr);
+extern SCM scm_c_read_string (const char *expr);
+extern SCM scm_c_eval_string (const char *expr);
 extern SCM scm_eval_string (SCM string);
 extern void scm_init_strports (void);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 extern SCM scm_strprint_obj (SCM obj);
+extern SCM scm_read_0str (char *expr);
+extern SCM scm_eval_0str (const char *expr);
 
 #endif /* SCM_DEBUG_DEPRECATED == 0 */
 

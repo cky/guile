@@ -59,6 +59,7 @@
 #include "libguile/strings.h"
 #include "libguile/modules.h"
 #include "libguile/validate.h"
+#include "libguile/deprecation.h"
 
 #include "libguile/strports.h"
 
@@ -428,12 +429,12 @@ SCM_DEFINE (scm_get_output_string, "get-output-string", 1, 0, 0,
 /* Given a null-terminated string EXPR containing a Scheme expression
    read it, and return it as an SCM value. */
 SCM
-scm_read_0str (char *expr)
+scm_c_read_string (const char *expr)
 {
   SCM port = scm_mkstrport (SCM_INUM0,
 			    scm_makfrom0str (expr),
 			    SCM_OPN | SCM_RDNG,
-			    "scm_eval_0str");
+			    "scm_c_read_string");
   SCM form;
 
   /* Read expressions from that port; ignore the values.  */
@@ -446,10 +447,32 @@ scm_read_0str (char *expr)
 /* Given a null-terminated string EXPR containing Scheme program text,
    evaluate it, and return the result of the last expression evaluated.  */
 SCM
-scm_eval_0str (const char *expr)
+scm_c_eval_string (const char *expr)
 {
   return scm_eval_string (scm_makfrom0str (expr));
 }
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+SCM
+scm_read_0str (char *expr)
+{
+  scm_c_issue_deprecation_warning 
+    ("scm_read_0str is deprecated.  Use scm_c_read_string instead.");
+
+  return scm_read_0str (expr);
+}
+
+SCM
+scm_eval_0str (const char *expr)
+{
+  scm_c_issue_deprecation_warning 
+    ("scm_eval_0str is deprecated.  Use scm_c_eval_string instead.");
+
+  return scm_eval_0str (expr);
+}
+
+#endif
 
 static SCM
 inner_eval_string (void *data)
@@ -479,7 +502,7 @@ SCM_DEFINE (scm_eval_string, "eval-string", 1, 0, 0,
 #define FUNC_NAME s_scm_eval_string
 {
   SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,
-			    "scm_eval_0str");
+			    "eval-string");
   return scm_c_call_with_current_module (scm_interaction_environment (),
 					 inner_eval_string, (void *)port);
 }
