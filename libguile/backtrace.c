@@ -88,9 +88,9 @@ display_header (source, port)
   scm_gen_puts (scm_regular_string, ": ", port);
 }
 
-static void display_error_message SCM_P ((SCM message, SCM args, SCM port));
-static void
-display_error_message (message, args, port)
+
+void
+scm_display_error_message (message, args, port)
      SCM message;
      SCM args;
      SCM port;
@@ -205,7 +205,7 @@ scm_display_error (stack, port, subr, message, args, rest)
       display_expression (current_frame, pname, source, port);
     }
   display_header (source, port);
-  display_error_message (message, args, port);
+  scm_display_error_message (message, args, port);
   return SCM_UNSPECIFIED;
 }
 

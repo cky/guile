@@ -49,6 +49,7 @@
 
 #include "libguile/__scm.h"
 
+void scm_display_error_message SCM_P ((SCM message, SCM args, SCM port));
 SCM scm_display_error SCM_P ((SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest));
 SCM scm_display_backtrace SCM_P ((SCM stack, SCM port, SCM first, SCM depth));
 
