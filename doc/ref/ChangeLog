@@ -1,3 +1,8 @@
+2005-02-05  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (File System): In mkstemp!, in fact posix doesn't specify
+	the permissions mode.  Add an example setting 666 less umask.
+
 2005-02-04  Kevin Ryde  <user42@zip.com.au>
 
 	* api-io.texi (File Ports): In port-filename, cannot use after close.
