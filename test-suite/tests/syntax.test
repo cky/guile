@@ -59,9 +59,6 @@
 (define exception:bad-cond-clause
   (cons 'syntax-error "Bad cond clause"))
 
-(define exception:bad-var
-  (cons 'misc-error "^bad variable"))
-
 
 (with-test-prefix "expressions"
 
@@ -611,44 +608,44 @@
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(set!)"
-      exception:missing/extra-expr-misc
+      exception:missing/extra-expr
       (eval '(set!)
 	    (interaction-environment)))
 
     (pass-if-exception "(set! 1)"
-      exception:missing/extra-expr-misc
+      exception:missing/extra-expr
       (eval '(set! 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(set! 1 2 3)"
-      exception:missing/extra-expr-misc
+      exception:missing/extra-expr
       (eval '(set! 1 2 3)
 	    (interaction-environment))))
 
   (with-test-prefix "bad variable"
 
     (pass-if-exception "(set! \"\" #t)"
-      exception:bad-var
+      exception:bad-variable
       (eval '(set! "" #t)
 	    (interaction-environment)))
 
     (pass-if-exception "(set! 1 #t)"
-      exception:bad-var
+      exception:bad-variable
       (eval '(set! 1 #t)
 	    (interaction-environment)))
 
     (pass-if-exception "(set! #t #f)"
-      exception:bad-var
+      exception:bad-variable
       (eval '(set! #t #f)
 	    (interaction-environment)))
 
     (pass-if-exception "(set! #f #t)"
-      exception:bad-var
+      exception:bad-variable
       (eval '(set! #f #t)
 	    (interaction-environment)))
 
     (pass-if-exception "(set! #\space #f)"
-      exception:bad-var
+      exception:bad-variable
       (eval '(set! #\space #f)
 	    (interaction-environment)))))
 

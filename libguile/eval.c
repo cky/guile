@@ -1579,13 +1579,15 @@ scm_m_atbind (SCM expr, SCM env)
 SCM_SYNTAX(s_atcall_cc, "@call-with-current-continuation", scm_i_makbimacro, scm_m_cont);
 SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc, s_atcall_cc);
 
-
 SCM 
-scm_m_cont (SCM xorig, SCM env SCM_UNUSED)
+scm_m_cont (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
-	      s_expression, s_atcall_cc);
-  return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
+
+  SCM_SETCAR (expr, SCM_IM_CONT);
+  return expr;
 }
 
 
@@ -1593,11 +1595,14 @@ SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_i_makbimacro, scm_m_
 SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, s_at_call_with_values);
 
 SCM
-scm_m_at_call_with_values (SCM xorig, SCM env SCM_UNUSED)
+scm_m_at_call_with_values (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2,
-	      s_expression, s_at_call_with_values);
-  return scm_cons (SCM_IM_CALL_WITH_VALUES, SCM_CDR (xorig));
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
+
+  SCM_SETCAR (expr, SCM_IM_CALL_WITH_VALUES);
+  return expr;
 }
 
 
@@ -1622,17 +1627,34 @@ SCM_SYNTAX (s_gset_x, "set!", scm_i_makbimacro, scm_m_generalized_set_x);
 SCM_SYMBOL (scm_sym_setter, "setter");
 
 SCM 
-scm_m_generalized_set_x (SCM xorig, SCM env SCM_UNUSED)
+scm_m_generalized_set_x (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (2 == scm_ilength (x), s_expression, s_set_x);
-  if (SCM_SYMBOLP (SCM_CAR (x)))
-    return scm_cons (SCM_IM_SET_X, x);
-  else if (SCM_CONSP (SCM_CAR (x)))
-    return scm_cons (scm_list_2 (scm_sym_setter, SCM_CAAR (x)),
-		     scm_append (scm_list_2 (SCM_CDAR (x), SCM_CDR (x))));
+  SCM target;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
+
+  target = SCM_CAR (cdr_expr);
+  if (!SCM_CONSP (target))
+    {
+      /* R5RS usage */
+      return scm_m_set_x (expr, env);
+    }
   else
-    scm_misc_error (s_set_x, s_variable, SCM_EOL);
+    {
+      /* (set! (foo bar ...) baz) becomes ((setter foo) bar ... baz) */
+
+      const SCM setter_proc_tail = scm_list_1 (SCM_CAR (target));
+      const SCM setter_proc = scm_cons_source (expr, scm_sym_setter, setter_proc_tail);
+
+      const SCM cddr_expr = SCM_CDR (cdr_expr);
+      const SCM setter_args = scm_append_x (scm_list_2 (SCM_CDR (target), cddr_expr));
+
+      SCM_SETCAR (expr, setter_proc);
+      SCM_SETCDR (expr, setter_args);
+      return expr;
+    }
 }
 
 

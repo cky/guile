@@ -1,5 +1,11 @@
 2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/syntax.test (exception:bad-var): Removed.
+
+	Adapted tests for 'set!' to the new way of error reporting.
+
+2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/dynamic-scope.test (exception:missing-expr): Introduced
 	temporarily until all memoizers use the new way of error
 	reporting.
