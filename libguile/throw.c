@@ -57,14 +57,27 @@ SCM scm_bad_throw_vcell;
 #define ACTIVATEJB(O)  (SCM_CAR (O) |= (1L << 16L))
 #define DEACTIVATEJB(O)  (SCM_CAR (O) &= ~(1L << 16L))
 
-#ifdef DEBUG_EXTENSIONS
-#define JBSCM_DFRAME(O) ((debug_frame*)SCM_CAR (SCM_CDR (O)) )
+#ifndef DEBUG_EXTENSIONS
+#define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (O) )
+#define SETJBJMPBUF SCM_SETCDR
+#else
+#define JBSCM_DFRAME(O) ((scm_debug_frame*)SCM_CAR (SCM_CDR (O)) )
 #define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (SCM_CDR (O)) )
 #define SETJBSCM_DFRAME(O,X) SCM_CAR(SCM_CDR (O)) = (SCM)(X)
 #define SETJBJMPBUF(O,X) SCM_SETCDR(SCM_CDR (O), X)
+
+#ifdef __STDC__
+static int
+freejb (SCM jbsmob)
 #else
-#define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (O) )
-#define SETJBJMPBUF SCM_SETCDR
+static int
+freejb (jbsmob)
+     SCM jbsmob;
+#endif
+{
+  scm_must_free ((char *) SCM_CDR (jbsmob));
+  return sizeof (scm_cell);
+}
 #endif
 
 #ifdef __STDC__
@@ -85,10 +98,16 @@ printjb (exp, port, writing)
   return 1 ;
 }
 
-/* !!! The mark function needs to be different for
- * debugging support.		A. Green
- */
-static scm_smobfuns jbsmob = {scm_mark0, scm_free0, printjb, 0};
+static scm_smobfuns jbsmob = {
+  scm_mark0,
+#ifdef DEBUG_EXTENSIONS
+  freejb,
+#else
+  scm_free0,
+#endif
+  printjb,
+  0
+};
 
 #ifdef __STDC__
 static SCM
@@ -100,11 +119,12 @@ make_jmpbuf ()
 {
   SCM answer;
   SCM_NEWCELL (answer);
-#ifdef DEBUG_EXTENSIONS
-  SCM_NEWCELL (SCM_CDR (answer));
-#endif
   SCM_DEFER_INTS;
   {
+#ifdef DEBUG_EXTENSIONS
+    char *mem = scm_must_malloc (sizeof (scm_cell), "jb");
+    SCM_SETCDR (answer, (SCM) mem);
+#endif
     SCM_CAR(answer) = scm_tc16_jmpbuffer;
     SETJBJMPBUF(answer, (jmp_buf *)0);
     DEACTIVATEJB(answer);
