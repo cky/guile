@@ -122,6 +122,9 @@
 /* Define this if you want support for arrays and uniform arrays.  */
 #undef HAVE_ARRAYS
 
+/* Define this if your IPv6 has sin6_scope_id in sockaddr_in6 struct.  */
+#undef HAVE_SIN6_SCOPE_ID
+
 /* This is included as part of a workaround for a autoheader bug. */
 #undef HAVE_REGCOMP
 

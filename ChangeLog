@@ -1,3 +1,8 @@
+2001-04-20  Gary Houston  <ghouston@arglist.com>
+
+	* acconfig.h: include HAVE_SIN6_SCOPE_ID.
+	* configure.in: check for sin6_scope_id in sockaddr_in6.
+
 2001-04-19  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* RELEASE: Added deprecated macro SCM_ARRAY_CONTIGUOUS
