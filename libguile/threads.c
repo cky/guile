@@ -164,7 +164,7 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_thread *t = SCM_THREAD_DATA (exp);
   scm_puts ("#<thread ", port);
-  scm_uintprint (t->thread, 10, port);
+  scm_uintprint ((size_t)t->thread, 10, port);
   scm_puts (" (", port);
   scm_uintprint ((scm_t_bits)t, 16, port);
   scm_puts (")>", port);
