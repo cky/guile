@@ -1,6 +1,6 @@
 2000-10-01  Gary Houston  <ghouston@arglist.com>
 
-	* net_db.c: declare inet_aton only if MISSING_INET_ATON_DECL is
+	* net_db.c: declare inet_aton only if HAVE_INET_ATON is not
 	defined.  thanks to Han-Wen Nienhuys.
 
 2000-09-30  Gary Houston  <ghouston@arglist.com>
