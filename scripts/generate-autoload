@@ -38,9 +38,10 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;;
 ;; For each file, a symbol triggers an autoload if it is found in one
 ;; of these situations:
-;;  - in the `:export' clause of a `define-module' form;
-;;  - in a top-level `export' or `export-syntax' form;
-;;  - in a `define-public' form.
+;;  - in the `:export' clause of a `define-module' form
+;;  - in a top-level `export' or `export-syntax' form
+;;  - in a `define-public' form
+;;  - in a `defmacro-public' form
 ;;
 ;; The module name is inferred from the `define-module' form.  If either the
 ;; module name or the exports list cannot be determined, no autoload entry is
@@ -96,6 +97,13 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
                 ((and (list? form)
                       (< 2 (length form))
                       (eq? 'define-public (car form))
+                      (symbol? (cadr form)))
+                 (loop (read p)
+                       module-name
+                       (cons (cadr form) exports)))
+                ((and (list? form)
+                      (< 3 (length form))
+                      (eq? 'defmacro-public (car form))
                       (symbol? (cadr form)))
                  (loop (read p)
                        module-name
