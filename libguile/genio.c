@@ -182,6 +182,9 @@ scm_do_read_line (port, len)
 
   i = SCM_PTOBNUM (port);
   SCM_SYSCALL (s = (scm_ptobs[i].fgets) (port, len));
+  if (s)
+    SCM_INCLINE(port);
+
   return s;
 }
 
