@@ -302,8 +302,8 @@ scm_char_downcase(chr)
 
 static unsigned char scm_upcase_table[SCM_CHAR_CODE_LIMIT];
 static unsigned char scm_downcase_table[SCM_CHAR_CODE_LIMIT];
-static unsigned char scm_lowers[] = "abcdefghijklmnopqrstuvwxyz";
-static unsigned char scm_uppers[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const unsigned char scm_lowers[] = "abcdefghijklmnopqrstuvwxyz";
+static const unsigned char scm_uppers[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
 void 
@@ -355,7 +355,7 @@ scm_downcase (c)
 
 
 #ifdef EBCDIC
-char *scm_charnames[] =
+char *const scm_charnames[] =
 {
   "nul","soh","stx","etx", "pf", "ht", "lc","del",
    0   , 0   ,"smm", "vt", "ff", "cr", "so", "si",
@@ -367,7 +367,7 @@ char *scm_charnames[] =
    0   , 0   , 0   , 0   ,"dc4","nak", 0   ,"sub",
    "space", scm_s_newline, "tab", "backspace", "return", "page", "null"};
 
-char scm_charnums[] =
+const char scm_charnums[] =
 "\000\001\002\003\004\005\006\007\
 \010\011\012\013\014\015\016\017\
 \020\021\022\023\024\025\026\027\
@@ -379,14 +379,14 @@ char scm_charnums[] =
  \n\t\b\r\f\0";
 #endif /* def EBCDIC */
 #ifdef ASCII
-char *scm_charnames[] =
+char *const scm_charnames[] =
 {
   "nul","soh","stx","etx","eot","enq","ack","bel",
    "bs", "ht", "newline", "vt", "np", "cr", "so", "si",
   "dle","dc1","dc2","dc3","dc4","nak","syn","etb",
   "can", "em","sub","esc", "fs", "gs", "rs", "us",
   "space", "nl", "tab", "backspace", "return", "page", "null", "del"};
-char scm_charnums[] =
+const char scm_charnums[] =
 "\000\001\002\003\004\005\006\007\
 \010\011\012\013\014\015\016\017\
 \020\021\022\023\024\025\026\027\
