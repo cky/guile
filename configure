@@ -4632,7 +4632,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "Makefile libguile/Makefile libguile/guile-snarf ice-9/Makefile ice-9/version.scm qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile build/Makefile libguile/scmconfig.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "Makefile libguile/Makefile libguile/guile-snarf ice-9/Makefile ice-9/version.scm qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile guile-config/Makefile libguile/scmconfig.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -4745,7 +4745,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"Makefile libguile/Makefile libguile/guile-snarf ice-9/Makefile ice-9/version.scm qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile build/Makefile"}
+CONFIG_FILES=\${CONFIG_FILES-"Makefile libguile/Makefile libguile/guile-snarf ice-9/Makefile ice-9/version.scm qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile guile-config/Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
@@ -4913,7 +4913,6 @@ fi; done
 
 EOF
 cat >> $CONFIG_STATUS <<EOF
-
 
 EOF
 cat >> $CONFIG_STATUS <<\EOF

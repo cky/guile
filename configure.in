@@ -399,7 +399,7 @@ AC_SUBST(GUILE_MAJOR_VERSION)
 AC_SUBST(GUILE_MINOR_VERSION)
 AC_SUBST(GUILE_VERSION)
 
-dnl Tell build-guile what flags guile users should link against.
+dnl Tell guile-config what flags guile users should link against.
 GUILE_LIBS="$LDFLAGS $THREAD_LIBS_INSTALLED $LIBS"
 AC_SUBST(GUILE_LIBS)
 
@@ -417,7 +417,7 @@ AC_SUBST(GUILE_STAMP)
 AC_SUBST(AWK)
 AC_SUBST(LIBLOBJS)
 
-AC_OUTPUT([Makefile libguile/Makefile libguile/guile-snarf ice-9/Makefile ice-9/version.scm qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile build/Makefile], [chmod +x libguile/guile-snarf])
+AC_OUTPUT([Makefile libguile/Makefile libguile/guile-snarf ice-9/Makefile ice-9/version.scm qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile guile-config/Makefile], [chmod +x libguile/guile-snarf])
 
 dnl Local Variables:
 dnl comment-start: "dnl "

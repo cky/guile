@@ -571,7 +571,7 @@ dnl	    pass the relative path to the ../libfoo.la file, but
 dnl	 2) once the whole package has been installed, users should
 dnl	    link using -lfoo. 
 dnl   Normally, we only care about the first case, but since the
-dnl   build-guile script needs to give users all the flags they need
+dnl   guile-config script needs to give users all the flags they need
 dnl   to link programs against guile, the GUILE_WITH_THREADS macro
 dnl   needs to supply the second piece of information as well.
 dnl

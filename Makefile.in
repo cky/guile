@@ -87,7 +87,7 @@ qtmd_h = @qtmd_h@
 qtmdc_c = @qtmdc_c@
 qtmds_s = @qtmds_s@
 
-SUBDIRS = ice-9 qt libguile build
+SUBDIRS = ice-9 qt libguile guile-config
 
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4 qthreads.m4
