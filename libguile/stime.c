@@ -202,7 +202,7 @@ scm_gettimeofday (void)
 
   ftime(&time);
   return scm_cons (scm_long2num ((long) time.time), 
-		   SCM_MAKINUM (time.millitm) * 1000);
+		   SCM_MAKINUM (time.millitm * 1000));
 # else
   timet timv;
   
