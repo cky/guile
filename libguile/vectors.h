@@ -60,7 +60,7 @@ extern SCM scm_vector_length SCM_P ((SCM v));
 extern SCM scm_vector SCM_P ((SCM l));
 extern SCM scm_vector_ref SCM_P ((SCM v, SCM k));
 extern SCM scm_vector_set_x SCM_P ((SCM v, SCM k, SCM obj));
-extern SCM scm_make_vector SCM_P ((SCM k, SCM fill, SCM multi));
+extern SCM scm_make_vector SCM_P ((SCM k, SCM fill));
 extern SCM scm_vector_to_list SCM_P ((SCM v));
 extern SCM scm_vector_fill_x SCM_P ((SCM v, SCM fill_x));
 extern SCM scm_vector_equal_p SCM_P ((SCM x, SCM y));

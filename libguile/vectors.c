@@ -79,7 +79,7 @@ scm_vector(l)
   register SCM *data;
   long i = scm_ilength(l);
   SCM_ASSERT(i >= 0, l, SCM_ARG1, s_vector);
-  res = scm_make_vector(SCM_MAKINUM(i), SCM_UNSPECIFIED, SCM_UNDEFINED);
+  res = scm_make_vector (SCM_MAKINUM(i), SCM_UNSPECIFIED);
   data = SCM_VELTS(res);
   for(;i && SCM_NIMP(l);--i, l = SCM_CDR(l))
     *data++ = SCM_CAR(l);
@@ -116,16 +116,14 @@ scm_vector_set_x(v, k, obj)
 }
 
 
-SCM_PROC(s_make_vector, "make-vector", 1, 2, 0, scm_make_vector);
+SCM_PROC (s_make_vector, "make-vector", 1, 1, 0, scm_make_vector);
 
 SCM
-scm_make_vector(k, fill, multip)
+scm_make_vector (k, fill)
      SCM k;
      SCM fill;
-     SCM multip;
 {
   SCM v;
-  int multi;
   register long i;
   register long j;
   register SCM *velts;
@@ -133,7 +131,6 @@ scm_make_vector(k, fill, multip)
   SCM_ASSERT(SCM_INUMP(k) && (0 <= SCM_INUM (k)), k, SCM_ARG1, s_make_vector);
   if (SCM_UNBNDP(fill))
     fill = SCM_UNSPECIFIED;
-  multi = !(SCM_UNBNDP(multip) || SCM_FALSEP(multip));
   i = SCM_INUM(k);
   SCM_NEWCELL(v);
   SCM_DEFER_INTS;
@@ -141,14 +138,6 @@ scm_make_vector(k, fill, multip)
   SCM_SETLENGTH(v, i, scm_tc7_vector);
   velts = SCM_VELTS(v);
   j = 0;
-  if (multi)
-    {
-      while ((fill != SCM_EOL) && (j < i))
-	{
-	  (velts)[j++] = SCM_CAR (fill);
-	  fill = SCM_CDR (fill);
-	}
-    }
   while(--i >= j) (velts)[i] = fill;
   SCM_ALLOW_INTS;
   return v;
@@ -171,10 +160,10 @@ scm_vector_to_list(v)
 }
 
 
-SCM_PROC(s_vector_fill_x, "vector-fill!", 2, 0, 0, scm_vector_fill_x);
+SCM_PROC (s_vector_fill_x, "vector-fill!", 2, 0, 0, scm_vector_fill_x);
 
 SCM
-scm_vector_fill_x(v, fill_x)
+scm_vector_fill_x (v, fill_x)
      SCM v;
      SCM fill_x;
 {
@@ -182,7 +171,8 @@ scm_vector_fill_x(v, fill_x)
   register SCM *data;
   SCM_ASSERT(SCM_NIMP(v) && SCM_VECTORP(v), v, SCM_ARG1, s_vector_fill_x);
   data = SCM_VELTS(v);
-  for(i = SCM_LENGTH(v)-1;i >= 0;i--) data[i] = fill_x;
+  for(i = SCM_LENGTH(v) - 1; i >= 0; i--)
+    data[i] = fill_x;
   return SCM_UNSPECIFIED;
 }
 
