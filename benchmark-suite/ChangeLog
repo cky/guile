@@ -1,5 +1,11 @@
 2002-07-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* lib.scm (print-result, print-user-result): Changed the
+	reporter's outputs to use symbols rather than strings to document
+	the individual values.  Thanks to Neil Jerram for the suggestion.
+
+2002-07-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* benchmarks/0-reference.bm:  Added as a reference benchmark to be
 	used to calibrate iteration counts.
 

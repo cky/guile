@@ -435,7 +435,7 @@
 
 
 ;;;; Some useful standard reporters:
-;;;; Log reporters write all test results to a given log file.
+;;;; Log reporters write all benchmark results to a given log file.
 ;;;; Full reporters write all benchmark results to the standard output.
 ;;;; User reporters write some interesting results to the standard output.
 
@@ -452,14 +452,14 @@
 	 (benchmark-core-time\interpreter 
 	  (benchmark-core-time\interpreter iterations before after gc-time)))
     (write (list name iterations
-		 "total:" (/ total-time time-base)
-		 "user:" (/ user-time time-base)
-		 "system:" (/ system-time time-base)
-		 "frame:" (/ frame-time time-base)
-		 "benchmark:" (/ benchmark-time time-base)
-		 "user/interp:" (/ user-time\interpreter time-base)
-		 "bench/interp:" (/ benchmark-core-time\interpreter time-base)
-		 "gc:" (/ gc-time time-base))
+		 'total (/ total-time time-base)
+		 'user (/ user-time time-base)
+		 'system (/ system-time time-base)
+		 'frame (/ frame-time time-base)
+		 'benchmark (/ benchmark-time time-base)
+		 'user/interp (/ user-time\interpreter time-base)
+		 'bench/interp (/ benchmark-core-time\interpreter time-base)
+		 'gc (/ gc-time time-base))
 	   port)
     (newline port)))
 
@@ -484,10 +484,10 @@
 	 (benchmark-core-time\interpreter
 	  (benchmark-core-time\interpreter iterations before after gc-time)))
     (write (list name iterations 
-		 "user:" (/ user-time time-base)
-		 "benchmark:" (/ benchmark-time time-base)
-		 "bench/interp:" (/ benchmark-core-time\interpreter time-base)
-		 "gc:" (/ gc-time time-base))
+		 'user (/ user-time time-base)
+		 'benchmark (/ benchmark-time time-base)
+		 'bench/interp (/ benchmark-core-time\interpreter time-base)
+		 'gc (/ gc-time time-base))
 	   port)
     (newline port)))
 
@@ -518,4 +518,3 @@
 
 ;;; Finally, set the default reporter
 (set! default-reporter user-reporter)
-
