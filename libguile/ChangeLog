@@ -1,5 +1,11 @@
 2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_gc_mark, scm_gc_sweep, scm_must_malloc,
+	scm_must_realloc, scm_must_free, alloc_some_heap):  Use the
+	appropriate error signalling function.
+
+2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* root.h (scm_first_type):  Removed.
 
 2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>

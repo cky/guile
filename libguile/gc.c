@@ -887,6 +887,7 @@ scm_igc (const char *what)
  */
 void
 scm_gc_mark (SCM p)
+#define FUNC_NAME "scm_gc_mark"
 {
   register long i;
   register SCM ptr;
@@ -899,7 +900,7 @@ gc_mark_loop:
 
 gc_mark_nimp:
   if (SCM_NCELLP (ptr))
-    scm_wta (ptr, "rogue pointer in heap", NULL);
+    SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
 
   switch (SCM_TYP7 (ptr))
     {
@@ -1178,9 +1179,11 @@ gc_mark_nimp:
 	}
       break;
     default:
-    def:scm_wta (ptr, "unknown type in ", "gc_mark");
+    def:
+      SCM_MISC_ERROR ("unknown type", SCM_EOL);
     }
 }
+#undef FUNC_NAME
 
 
 /* Mark a Region Conservatively
@@ -1321,6 +1324,7 @@ gc_sweep_freelist_finish (scm_freelist_t *freelist)
 
 void
 scm_gc_sweep ()
+#define FUNC_NAME "scm_gc_sweep"
 {
   register SCM_CELLPTR ptr;
   register SCM nfreelist;
@@ -1546,7 +1550,8 @@ scm_gc_sweep ()
 		}
 	      break;
 	    default:
-	    sweeperr:scm_wta (scmptr, "unknown type in ", "gc_sweep");
+	    sweeperr:
+	      SCM_MISC_ERROR ("unknown type", SCM_EOL);
 	    }
 #if 0
 	  if (SCM_CAR (scmptr) == (SCM) scm_tc_free_cell)
@@ -1623,6 +1628,7 @@ scm_gc_sweep ()
   scm_mallocated -= m;
   scm_gc_malloc_collected = m;
 }
+#undef FUNC_NAME
 
 
 
@@ -1687,8 +1693,7 @@ scm_must_malloc (scm_sizet size, const char *what)
       return ptr;
     }
 
-  scm_wta (SCM_MAKINUM (size), (char *) SCM_NALLOC, what);
-  return 0; /* never reached */
+  scm_memory_error (what);
 }
 
 
@@ -1736,12 +1741,13 @@ scm_must_realloc (void *where,
       return ptr;
     }
 
-  scm_wta (SCM_MAKINUM (size), (char *) SCM_NALLOC, what);
-  return 0; /* never reached */
+  scm_memory_error (what);
 }
+
 
 void
 scm_must_free (void *obj)
+#define FUNC_NAME "scm_must_free"
 {
 #ifdef GUILE_DEBUG_MALLOC
   scm_malloc_unregister (obj);
@@ -1749,8 +1755,10 @@ scm_must_free (void *obj)
   if (obj)
     free (obj);
   else
-    scm_wta (SCM_INUM0, "already free", "");
+    SCM_MISC_ERROR ("freeing NULL pointer", SCM_EOL);
 }
+#undef FUNC_NAME
+
 
 /* Announce that there has been some malloc done that will be freed
  * during gc.  A typical use is for a smob that uses some malloced
@@ -1933,6 +1941,7 @@ round_to_cluster_size (scm_freelist_t *freelist, scm_sizet len)
 
 static void
 alloc_some_heap (scm_freelist_t *freelist)
+#define FUNC_NAME "alloc_some_heap"
 {
   scm_heap_seg_data_t * tmptable;
   SCM_CELLPTR ptr;
@@ -1942,7 +1951,7 @@ alloc_some_heap (scm_freelist_t *freelist)
    * aren't supposed to add heap segments.
    */
   if (scm_gc_heap_lock)
-    scm_wta (SCM_UNDEFINED, "need larger initial", "heap");
+    SCM_MISC_ERROR ("can not grow heap while locked", SCM_EOL);
 
   /* Expand the heap tables to have room for the new segment.
    * Do not yet increment scm_n_heap_segs -- that is done by init_heap_seg
@@ -1953,7 +1962,7 @@ alloc_some_heap (scm_freelist_t *freelist)
   SCM_SYSCALL (tmptable = ((scm_heap_seg_data_t *)
 		       realloc ((char *)scm_heap_table, len)));
   if (!tmptable)
-    scm_wta (SCM_UNDEFINED, "could not grow", "hplims");
+    SCM_MISC_ERROR ("could not grow heap segment table", SCM_EOL);
   else
     scm_heap_table = tmptable;
 
@@ -2016,8 +2025,9 @@ alloc_some_heap (scm_freelist_t *freelist)
       }
   }
 
-  scm_wta (SCM_UNDEFINED, "could not grow", "heap");
+  SCM_MISC_ERROR ("could not grow heap", SCM_EOL);
 }
+#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
