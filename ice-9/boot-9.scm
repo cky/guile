@@ -2024,15 +2024,11 @@
      %load-path)))
 
 (define (link-dynamic-module filename initname)
-  (let ((dynobj (dynamic-maybe-link filename)))
-    (if dynobj
-	(if (dynamic-maybe-call initname dynobj)
-	    (set! registered-modules 
-		  (append! (convert-c-registered-modules dynobj)
-			   registered-modules))
-	    (begin
-	      (pk 'no_init)
-	      (dynamic-unlink dynobj))))))
+  (let ((dynobj (dynamic-link filename)))
+    (dynamic-call initname dynobj)
+    (set! registered-modules 
+	  (append! (convert-c-registered-modules dynobj)
+		   registered-modules))))
 	    
 (define (try-module-dynamic-link module-name)
   (or (init-dynamic-module module-name)
