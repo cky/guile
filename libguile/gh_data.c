@@ -87,7 +87,7 @@ gh_str2scm (char *s, int len)
   return scm_makfromstr (s, len, 0);
 }
 SCM 
-gh_str02scm (char *s)
+gh_str02scm (const char *s)
 {
   return scm_makfrom0str (s);
 }

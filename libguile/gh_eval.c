@@ -50,14 +50,14 @@ typedef SCM (*gh_eval_t) (void *data, SCM jmpbuf);
 
 /* Evaluate the string; toss the value.  */
 SCM
-gh_eval_str (char *scheme_code)
+gh_eval_str (const char *scheme_code)
 {
   return scm_eval_0str (scheme_code);
 }
 
 /* evaluate the file by passing it to the lower level scm_primitive_load() */
 SCM
-gh_eval_file (char *fname)
+gh_eval_file (const char *fname)
 {
   return scm_primitive_load (gh_str02scm (fname));
 }
@@ -72,28 +72,28 @@ eval_str_wrapper (void *data)
 }
 
 SCM
-gh_eval_str_with_catch (char *scheme_code, scm_catch_handler_t handler)
+gh_eval_str_with_catch (const char *scheme_code, scm_catch_handler_t handler)
 {
   /* FIXME: not there yet */
-  return gh_catch (SCM_BOOL_T, (scm_catch_body_t) eval_str_wrapper, scheme_code,
-		   (scm_catch_handler_t) handler, scheme_code);
+  return gh_catch (SCM_BOOL_T, (scm_catch_body_t) eval_str_wrapper, (void *) scheme_code,
+		   (scm_catch_handler_t) handler, (void *) scheme_code);
 }
 
 SCM
-gh_eval_str_with_standard_handler (char *scheme_code)
+gh_eval_str_with_standard_handler (const char *scheme_code)
 {
   return gh_eval_str_with_catch (scheme_code, gh_standard_handler);
 }
 
 SCM
-gh_eval_str_with_stack_saving_handler (char *scheme_code)
+gh_eval_str_with_stack_saving_handler (const char *scheme_code)
 {
   return scm_internal_stack_catch (SCM_BOOL_T,
 				   (scm_catch_body_t) eval_str_wrapper,
-				   scheme_code,
+				   (void *) scheme_code,
 				   (scm_catch_handler_t)
 				   gh_standard_handler,
-				   scheme_code);
+				   (void *) scheme_code);
 }
 
 static SCM
@@ -106,16 +106,16 @@ eval_file_wrapper (void *data)
 }
 
 SCM
-gh_eval_file_with_catch (char *scheme_code, scm_catch_handler_t handler)
+gh_eval_file_with_catch (const char *scheme_code, scm_catch_handler_t handler)
 {
   /* FIXME: not there yet */
   return gh_catch (SCM_BOOL_T, (scm_catch_body_t) eval_file_wrapper,
-		   scheme_code, (scm_catch_handler_t) handler,
-		   scheme_code);
+		   (void *) scheme_code, (scm_catch_handler_t) handler,
+		   (void *) scheme_code);
 }
 
 SCM
-gh_eval_file_with_standard_handler (char *scheme_code)
+gh_eval_file_with_standard_handler (const char *scheme_code)
 {
   return gh_eval_file_with_catch (scheme_code, gh_standard_handler);
 }

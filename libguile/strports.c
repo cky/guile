@@ -371,8 +371,7 @@ scm_read_0str (expr)
 /* Given a null-terminated string EXPR containing Scheme program text,
    evaluate it, and return the result of the last expression evaluated.  */
 SCM
-scm_eval_0str (expr)
-     char *expr;
+scm_eval_0str (const char *expr)
 {
   return scm_eval_string (scm_makfrom0str (expr));
 }

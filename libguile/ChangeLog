@@ -1,3 +1,20 @@
+1999-12-09  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* strports.h, strports.c (scm_eval_0str): Fix constness.  Some
+	thanks to Dirk Hermann.
+
+	* gh_eval.c (gh_eval_str, gh_eval_file, gh_eval_str_with_catch,
+	gh_eval_str_with_standard_handler,
+	gh_eval_str_with_stack_saving_handler): Fix constness.  Some
+	thanks to Dirk Hermann.
+
+	* gh_data.c (gh_str02scm): Fix constness.
+
+	* gh.h: Fix constness of prototypes for the above.
+
+	* vectors.c: Include "unif.h" to avoid a warning about missing
+	prototype for scm_uniform_element_size().
+
 1999-12-09  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* vectors.c (scm_vector_length, scm_vector_ref, scm_vector_set_x):

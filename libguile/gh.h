@@ -67,15 +67,15 @@ SCM gh_catch(SCM tag, scm_catch_body_t body, void *body_data,
 
 SCM gh_standard_handler(void *data, SCM tag, SCM throw_args);
 
-SCM gh_eval_str(char *scheme_code);
-SCM gh_eval_str_with_catch(char *scheme_code, scm_catch_handler_t handler);
-SCM gh_eval_str_with_standard_handler(char *scheme_code);
-SCM gh_eval_str_with_stack_saving_handler(char *scheme_code);
+SCM gh_eval_str(const char *scheme_code);
+SCM gh_eval_str_with_catch(const char *scheme_code, scm_catch_handler_t handler);
+SCM gh_eval_str_with_standard_handler(const char *scheme_code);
+SCM gh_eval_str_with_stack_saving_handler(const char *scheme_code);
 
-SCM gh_eval_file(char *fname);
+SCM gh_eval_file(const char *fname);
 #define gh_load(fname) gh_eval_file(fname)
-SCM gh_eval_file_with_catch(char *scheme_code, scm_catch_handler_t handler);
-SCM gh_eval_file_with_standard_handler(char *scheme_code);
+SCM gh_eval_file_with_catch(const char *scheme_code, scm_catch_handler_t handler);
+SCM gh_eval_file_with_standard_handler(const char *scheme_code);
 
 #define gh_defer_ints() SCM_DEFER_INTS
 #define gh_allow_ints() SCM_ALLOW_INTS
@@ -104,7 +104,7 @@ SCM gh_long2scm(long x);
 SCM gh_double2scm(double x);
 SCM gh_char2scm(char c);
 SCM gh_str2scm(char *s, int len);
-SCM gh_str02scm(char *s);
+SCM gh_str02scm(const char *s);
 void gh_set_substr(char *src, SCM dst, int start, int len);
 SCM gh_symbol2scm(const char *symbol_str);
 SCM gh_ints2scm(int *d, int n);
