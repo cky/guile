@@ -144,7 +144,7 @@ address these eventually.
 @subsection Using Guile Modules
 
 To use a Guile module is to access either its public interface or a
-custom interface (@pxref{General Information About Modules}).  Both
+custom interface (@pxref{General Information about Modules}).  Both
 types of access are handled by the syntactic form @code{use-modules},
 which accepts one or more interface specifications and, upon evaluation,
 arranges for those interfaces to be available to the current module.

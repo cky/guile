@@ -189,10 +189,10 @@ For quick reference, here is the syntax of the formal argument list for
 
 @example
 ext-param-list ::= [identifier]* [#:optional [ext-var-decl]+]?
-  [#:key [ext-var-decl]+ [#:allow-other-keys]?]? 
+  [#:key [ext-var-decl]+ [#:allow-other-keys]?]?
   [[#:rest identifier]|[. identifier]]?
 
-ext-var-decl ::= identifier | ( identifier expression )  
+ext-var-decl ::= identifier | ( identifier expression )
 @end example
 
 The characters `*', `+' and `?' are not to be taken literally; they mean
@@ -231,7 +231,7 @@ two-item list in place of an optional argument, for example in:
 
 @lisp
 (lambda* (foo #:optional (bar 42) #:key (baz 73))
-     (list foo bar baz)) 
+     (list foo bar baz))
 @end lisp
 
 @var{foo} is a fixed argument, @var{bar} is an optional argument with
@@ -446,7 +446,7 @@ Let @code{f} be a variable containing such a @code{foo} data
 structure.@footnote{Working definitions would be:
 @lisp
 (define foo-ref vector-ref)
-(define foo-set! vector-set!) 
+(define foo-set! vector-set!)
 (define f (make-vector 2 #f))
 @end lisp
 }
@@ -477,7 +477,7 @@ Let us call this new procedure @code{foo}.
 structure stored in @code{f}, or to write into the structure.
 
 @lisp
-(set! (foo f 0) 'dum)   
+(set! (foo f 0) 'dum)
 (foo f 0)          @result{} dum
 @end lisp
 
@@ -613,7 +613,7 @@ example of the previous section looks like this:
 In Guile, the @code{syntax-rules} system is provided by the @code{(ice-9
 syncase)} module.  To make these facilities available in your code,
 include the expression @code{(use-modules (ice-9 syncase))} or
-@code{(use-syntax (ice-9 syncase))} (@pxref{Loading Guile Modules})
+@code{(use-syntax (ice-9 syncase))} (@pxref{Using Guile Modules})
 before the first usage of @code{define-syntax} etc.  If you are writing
 a Scheme module, you can alternatively use one of the keywords
 @code{#:use-module} and @code{#:use-syntax} in your @code{define-module}

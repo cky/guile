@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.7 2001-05-06 01:49:56 ttn Exp $
+@c $Id: intro.texi,v 1.8 2001-05-13 19:14:41 ttn Exp $
 
 @page
 @node What is Guile?
@@ -695,18 +695,21 @@ Guile has support for dividing a program into @dfn{modules}.  By using
 modules, you can group related code together and manage the
 composition of complete programs from largely independent parts.
 
-(The module system is in flux, and will likely look very different in
-the future.  Feel free to use the existing system anyway.  Guile will
-provide reasonable backwards compatability.)
+(Although the module system implementation is in flux, feel free to use it
+anyway.  Guile will provide reasonable backwards compatability.)
+
+Details on the module system beyond this introductory material can be found in
+@xref{Modules}.
+
 
 @menu
-* Using Guile Modules::
-* Writing New Modules::
-* Modules and Extensions::
+* Intro to Using Guile Modules::
+* Intro to Writing New Modules::
+* Intro to Modules and Extensions::
 @end menu
 
-@node Using Guile Modules
-@subsection Using Existing Modules
+@node Intro to Using Guile Modules
+@subsection Intro to Using Existing Modules
 
 Guile comes with a lot of useful modules, for example for string
 processing or command line parsing.  Additionally, there exist many
@@ -747,11 +750,9 @@ one line at a time.
 "drwxr-sr-x    2 mgrabmue mgrabmue     1024 Mar 29 19:57 CVS"
 @end lisp
 
-More details of module usage can be found in (REFFIXME).
 
-
-@node Writing New Modules
-@subsection Writing New Modules
+@node Intro to Writing New Modules
+@subsection Intro to Writing New Modules
 
 Of course it is possible to write modules yourself.  Using modules for
 structuring your programs makes them more readable and lets you
@@ -805,8 +806,8 @@ After exporting, other modules can access the exported items simply by
 using @code{use-modules} to load the module @code{(foo bar)}.
 
 
-@node Modules and Extensions
-@subsection Modules and Extensions
+@node Intro to Modules and Extensions
+@subsection Intro to Modules and Extensions
 
 In addition to Scheme code you can also put new procedures and other
 named features that are provided by an extension into a module.
@@ -828,6 +829,7 @@ write a Scheme file with this contents
 
 The file should of course be saved in the right place for autoloading,
 for example as @file{/usr/local/share/guile/math/bessel.scm}.
+
 
 @page
 @node Reporting Bugs
