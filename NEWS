@@ -125,6 +125,11 @@ The official version is good enough now.
 Support for translating the documentation into HTML is now always
 provided.  Use 'make html'.
 
+** The configure option '--disable-arrays' has been removed.
+
+Support for arrays and uniform numeric arrays is now always included
+in Guile.
+
 * Changes to the stand-alone interpreter
 
 ** New command line option `-L'.
@@ -179,7 +184,7 @@ Some non-compatible changes have been made:
 
 There is the new notion of 'generalized vectors' and corresponding
 procedures like 'generalized-vector-ref'.  Generalized vectors include
-strings bitvectors, ordinary vectors, and uniform numeric vectors.
+strings, bitvectors, ordinary vectors, and uniform numeric vectors.
 
 Arrays use generalized vectors their storage, so that you still have
 arrays of characters, bits, etc.  However, uniform-array-read! and
@@ -834,7 +839,7 @@ as SCM_KEYWORDSYM used to do.
 
 This implementation exposed the detailes of the tagging system of
 Guile.  Use the new C API explained in the manual in node "Uniform
-Numeric Vectors" and "Bit Vector", respectively.
+Numeric Vectors" and "Bit Vectors", respectively.
 
 The following macros are gone: SCM_UVECTOR_BASE, SCM_SET_UVECTOR_BASE,
 SCM_UVECTOR_MAXLENGTH, SCM_UVECTOR_LENGTH, SCM_MAKE_UVECTOR_TAG,
@@ -842,6 +847,19 @@ SCM_SET_UVECTOR_LENGTH, SCM_BITVECTOR_P, SCM_BITVECTOR_BASE,
 SCM_SET_BITVECTOR_BASE, SCM_BITVECTOR_MAX_LENGTH,
 SCM_BITVECTOR_LENGTH, SCM_MAKE_BITVECTOR_TAG,
 SCM_SET_BITVECTOR_LENGTH.
+
+** The macros dealing with vectors have been deprecated.
+
+Use the new functions scm_is_vector, scm_vector_elements,
+scm_vector_writable_elements, etc instead.  See the manual for more
+details.
+
+Deprecated are SCM_VECTORP, SCM_VELTS, SCM_VECTOR_MAX_LENGTH,
+SCM_VECTOR_LENGTH, SCM_VECTOR_REF, SCM_VECTOR_SET, SCM_WRITABLE_VELTS.
+
+The following macros have been removed: SCM_VECTOR_BASE,
+SCM_SET_VECTOR_BASE, SCM_MAKE_VECTOR_TAG, SCM_SET_VECTOR_LENGTH,
+SCM_VELTS_AS_STACKITEMS, SCM_SETVELTS, SCM_GC_WRITABLE_VELTS.
 
 ** SCM_CELL_WORD_LOC has been deprecated.
 
