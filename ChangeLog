@@ -1,3 +1,9 @@
+2002-10-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* autogen.sh: Make sure that $autoheader is always set.  When we
+	would use the plain "autoconf", $autoheader would end up empty and
+	libguile/scmconfig.h.in would not be updated.
+
 2002-10-04  Rob Browning  <rlb@defaultvalue.org>
 
 	* libltdl: moved to libguile-ltdl.

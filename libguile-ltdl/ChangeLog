@@ -1,3 +1,8 @@
+2002-10-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* upstream/Makefile.am (ltdl.h.diff, ltdl.c.diff): Create them in
+	'.' not in 'upstream' since we are already in upstream.
+
 2002-10-04  Rob Browning  <rlb@defaultvalue.org>
 
 	* COPYING.LIB: moved from ../libltdl.

@@ -27,6 +27,29 @@ debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
 
+** New functions 'all-threads' and 'current-thread'.
+
+** Signals and system asyncs work better with threads.
+
+The function 'sigaction' now takes a fourth, optional, argument that
+specifies the thread that the handler should run in.  When the
+argument is omitted, the handler will run in the thread that called
+'sigaction'.
+
+Likewise, 'system-async-mark' takes a second, optional, argument that
+specifies the thread that the async should run in.  When it is
+omitted, the async will run in the thread that called
+'system-async-mark'.
+
+C code can use the new functions scm_sigaction_for_thread and
+scm_system_async_mark_for_thread to pass the new thread argument.
+
+** The function 'system-async' is deprecated.
+
+You can now pass any zero-argument procedure to 'system-async-mark'.
+The function 'system-async' will just return its argument unchanged
+now.
+
 ** New function 'unsetenv'.
 
 ** New macro 'define-syntax-public'.

@@ -1,3 +1,8 @@
+2002-10-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* snarf-check-and-output-texi (end-multiline): Use '*function-name*'
+	instead of nonexisting 'name'.
+
 2002-10-04  Rob Browning  <rlb@defaultvalue.org>
 
 	* summarize-guile-TODO (as-leaf): make #\: a char-set.
