@@ -88,6 +88,7 @@
 #include "scmsigs.h"
 #include "sequences.h"
 #include "simpos.h"
+#include "smob.h"
 #include "socket.h"
 #include "srcprop.h"
 #include "stackchk.h"
@@ -106,6 +107,8 @@
 #include "version.h"
 #include "vports.h"
 #include "weaks.h"
+
+#include "init.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

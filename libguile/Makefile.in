@@ -615,7 +615,7 @@ hashtab.o: hashtab.c _scm.h __scm.h scmconfig.h \
  hashtab.h hashtab.x
 inet_aton.o: inet_aton.c
 init.o: init.c _scm.h __scm.h scmconfig.h \
- tags.h error.h pairs.h __scm.h list.h gc.h \
+ tags.h error.h __scm.h pairs.h list.h gc.h \
  marksweep.h gsubr.h procs.h numbers.h symbols.h boolean.h \
  strings.h vectors.h root.h ports.h async.h alist.h append.h \
  arbiters.h chars.h continuations.h debug.h options.h \
@@ -623,9 +623,11 @@ init.o: init.c _scm.h __scm.h scmconfig.h \
  ports.h gdbint.h hash.h hashtab.h ioext.h kw.h load.h \
  mallocs.h mbstrings.h symbols.h objprop.h options.h \
  posix.h print.h procprop.h ramap.h read.h scmsigs.h sequences.h \
- simpos.h socket.h srcprop.h stackchk.h continuations.h \
- debug.h stime.h strop.h strorder.h strports.h struct.h \
- tag.h throw.h unif.h variable.h version.h vports.h weaks.h
+ simpos.h smob.h params.h genio.h \
+ print.h markers.h socket.h srcprop.h \
+ stackchk.h continuations.h debug.h stime.h \
+ strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+ variable.h version.h vports.h weaks.h init.h
 ioext.o: ioext.c fd.h _scm.h __scm.h scmconfig.h \
  tags.h error.h pairs.h __scm.h list.h gc.h \
  marksweep.h gsubr.h procs.h numbers.h symbols.h boolean.h \
