@@ -206,7 +206,7 @@
 			  ((optional) #:optional)
 			  ((key) #:key)
 			  ((rest) #:rest)
-			  ((allow-other-keys) #:allow-other-keys-value)
+			  ((allow-other-keys) #:allow-other-keys)
 			  (else (error "Bad #& value.")))))
 
 
