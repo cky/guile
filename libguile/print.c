@@ -152,9 +152,8 @@ SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0,
 /* Detection of circular references.
  *
  * Due to other constraints in the implementation, this code has bad
- * time complexity (O (depth * N)), The printer code will be
- * completely rewritten before next release of Guile.  The new code
- * will be O(N).
+ * time complexity (O (depth * N)), The printer code can be
+ * rewritten to be O(N).
  */
 #define PUSH_REF(pstate, obj) \
 do { \
