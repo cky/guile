@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -53,6 +53,13 @@ void
 scm_i_set_smob_flags (SCM x, scm_t_bits data)
 {
   SCM_SET_CELL_WORD_0 (x, (SCM_CELL_WORD_0 (x) & 0xFFFF) | data);
+}
+
+void
+scm_assert_smob_type (scm_t_bits tag, SCM val)
+{
+  if (!SCM_SMOB_PREDICATE (tag, val))
+    scm_wrong_type_arg_msg (NULL, 0, val, scm_smobs[SCM_TC2SMOBNUM(tag)].name);
 }
 
 /* {Mark}
