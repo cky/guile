@@ -113,6 +113,8 @@ during evaluation, but prior to evaluation.
 This is like SCM_DEFINE, but also calls scm_c_export for the defined
 function in the init section.
 
+** The snarfer macro SCM_SNARF_INIT is now officially supported.
+
 ** New macros SCM_VECTOR_REF and SCM_VECTOR_SET.
 
 Use these in preference to SCM_VELTS.
