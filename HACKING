@@ -245,7 +245,7 @@ functions, feel free to use ANSI declarations, and please provide
 prototypes for everything.  You don't need to use SCM_P in new code.
 
 
-Jim Blandy
+Jim Blandy, and others
 
 
 Patches ===========================================================
