@@ -1036,7 +1036,16 @@
     (pass-if (= (+ fixnum-max 1) (num->str->num (+ fixnum-max 1) 10)))
     (pass-if (= (- fixnum-min 1) (num->str->num (- fixnum-min 1) 10)))
     (pass-if (= (inf) (num->str->num (inf) 10)))
-    (pass-if (= 1.3 (num->str->num 1.3 10)))))
+    (pass-if (= 1.3 (num->str->num 1.3 10)))
+
+    (pass-if (string=? (number->string 35.25 36) "Z.9"))
+    (expect-fail (string=? (number->string 0.25 2) "0.01"))
+    (pass-if (string=? (number->string 255.0625 16) "FF.1"))
+    (pass-if (string=? (number->string (/ 1 3) 3) "1/10"))
+    (expect-fail (string=? (number->string 11.33333333333333333 12) "B.4"))
+    (expect-fail (string=? (number->string 11.33333333333333333+23i 12)
+		       "B.4+1B.0i"))
+    (expect-fail (string=? (number->string 1.324e44 16) "5.EFE0A14FAFEe24"))))
   
 ;;;
 ;;; string->number
