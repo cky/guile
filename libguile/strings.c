@@ -26,6 +26,7 @@
 #include "libguile/strings.h"
 #include "libguile/deprecation.h"
 #include "libguile/validate.h"
+#include "libguile/dynwind.h"
 
 
 
@@ -37,7 +38,7 @@ SCM_DEFINE (scm_string_p, "string?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a string, else @code{#f}.")
 #define FUNC_NAME s_scm_string_p
 {
-  return scm_from_bool (SCM_STRINGP (obj));
+  return scm_from_bool (SCM_I_STRINGP (obj));
 }
 #undef FUNC_NAME
 
@@ -61,7 +62,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
   }
 
   {
-    unsigned char *data = SCM_STRING_UCHARS (result);
+    unsigned char *data = SCM_I_STRING_UCHARS (result);
 
     while (!SCM_NULLP (chrs))
       {
@@ -108,7 +109,7 @@ scm_take_str (char *s, size_t len)
 
   SCM_ASSERT_RANGE (2, scm_from_ulong (len), len <= SCM_STRING_MAX_LENGTH);
 
-  answer = scm_cell (SCM_MAKE_STRING_TAG (len), (scm_t_bits) s);
+  answer = scm_cell (SCM_I_MAKE_STRING_TAG (len), (scm_t_bits) s);
   scm_gc_register_collectable_memory (s, len+1, "string");
 
   return answer;
@@ -120,24 +121,21 @@ scm_take_str (char *s, size_t len)
 SCM
 scm_take0str (char *s)
 {
-  return scm_take_str (s, strlen (s));
+  return scm_take_locale_string (s);
 }
 
 
 SCM 
 scm_mem2string (const char *src, size_t len)
 {
-  SCM s = scm_allocate_string (len);
-  char *dst = SCM_STRING_CHARS (s);
-  memcpy (dst, src, len);
-  return s;
+  return scm_from_locale_stringn (src, len);
 }
 
 
 SCM
 scm_str2string (const char *src)
 {
-  return scm_mem2string (src, strlen (src));
+  return scm_from_locale_string (src);
 }
 
 
@@ -145,7 +143,7 @@ SCM
 scm_makfrom0str (const char *src)
 {
   if (!src) return SCM_BOOL_F;
-  return scm_mem2string (src, strlen (src));
+  return scm_from_locale_string (src);
 }
 
 
@@ -168,7 +166,7 @@ scm_allocate_string (size_t len)
   mem = (char *) scm_gc_malloc (len + 1, "string");
   mem[len] = 0;
 
-  s = scm_cell (SCM_MAKE_STRING_TAG (len), (scm_t_bits) mem);
+  s = scm_cell (SCM_I_MAKE_STRING_TAG (len), (scm_t_bits) mem);
 
   return s;
 }
@@ -192,7 +190,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
       
       SCM_VALIDATE_CHAR (2, chr);
       
-      dst = SCM_STRING_UCHARS (res);
+      dst = SCM_I_STRING_UCHARS (res);
       memset (dst, SCM_CHAR (chr), i);
     }
 
@@ -207,7 +205,7 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 #define FUNC_NAME s_scm_string_length
 {
   SCM_VALIDATE_STRING (1, string);
-  return scm_from_size_t (SCM_STRING_LENGTH (string));
+  return scm_from_size_t (SCM_I_STRING_LENGTH (string));
 }
 #undef FUNC_NAME
 
@@ -220,8 +218,8 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
   unsigned long idx;
 
   SCM_VALIDATE_STRING (1, str);
-  idx = scm_to_unsigned_integer (k, 0, SCM_STRING_LENGTH(str)-1);
-  return SCM_MAKE_CHAR (SCM_STRING_UCHARS (str)[idx]);
+  idx = scm_to_unsigned_integer (k, 0, SCM_I_STRING_LENGTH(str)-1);
+  return SCM_MAKE_CHAR (SCM_I_STRING_UCHARS (str)[idx]);
 }
 #undef FUNC_NAME
 
@@ -236,9 +234,9 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
   unsigned long idx;
 
   SCM_VALIDATE_STRING (1, str);
-  idx = scm_to_unsigned_integer (k, 0, SCM_STRING_LENGTH(str)-1);
+  idx = scm_to_unsigned_integer (k, 0, SCM_I_STRING_LENGTH(str)-1);
   SCM_VALIDATE_CHAR (3, chr);
-  SCM_STRING_UCHARS (str)[idx] = SCM_CHAR (chr);
+  SCM_I_STRING_UCHARS (str)[idx] = SCM_CHAR (chr);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -259,12 +257,14 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
   SCM substr;
 
   SCM_VALIDATE_STRING (1, str);
-  from = scm_to_unsigned_integer (start, 0, SCM_STRING_LENGTH(str));
+  from = scm_to_unsigned_integer (start, 0, SCM_I_STRING_LENGTH(str));
   if (SCM_UNBNDP (end))
-    to = SCM_STRING_LENGTH(str);
+    to = SCM_I_STRING_LENGTH(str);
   else
-    to = scm_to_unsigned_integer (end, from, SCM_STRING_LENGTH(str));
-  substr = scm_mem2string (&SCM_STRING_CHARS (str)[from], to - from);
+    to = scm_to_unsigned_integer (end, from, SCM_I_STRING_LENGTH(str));
+  substr = scm_allocate_string (to - from);
+  memcpy (SCM_I_STRING_CHARS (substr), SCM_I_STRING_CHARS (str) + from,
+	  to - from);
   scm_remember_upto_here_1 (str);
   return substr;
 }
@@ -279,91 +279,178 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 {
   SCM res;
   size_t i = 0;
-  register SCM l, s;
-  register unsigned char *data;
+  SCM l, s;
+  char *data;
 
   SCM_VALIDATE_REST_ARGUMENT (args);
-  for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) {
-    s = SCM_CAR (l);
-    SCM_VALIDATE_STRING (SCM_ARGn, s);
-    i += SCM_STRING_LENGTH (s);
-  }
+  for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) 
+    {
+      s = SCM_CAR (l);
+      SCM_VALIDATE_STRING (SCM_ARGn, s);
+      i += SCM_I_STRING_LENGTH (s);
+    }
   res = scm_allocate_string (i);
-  data = SCM_STRING_UCHARS (res);
-  for (l = args; !SCM_NULLP (l);l = SCM_CDR (l)) {
-    s = SCM_CAR (l);
-    for (i = 0;i<SCM_STRING_LENGTH (s);i++) *data++ = SCM_STRING_UCHARS (s)[i];
-  }
+  data = SCM_I_STRING_CHARS (res);
+  for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) 
+    {
+      s = SCM_CAR (l);
+      memcpy (data, SCM_I_STRING_CHARS (s), SCM_I_STRING_LENGTH (s));
+      data += SCM_I_STRING_LENGTH (s);
+      scm_remember_upto_here_1 (s);
+    }
   return res;
 }
 #undef FUNC_NAME
 
-
-/* Converts the given Scheme string OBJ into a C string, containing a copy
-   of OBJ's content with a trailing null byte.  If LENP is non-NULL, set
-   *LENP to the string's length.
-
-   When STR is non-NULL it receives the copy and is returned by the function,
-   otherwise new memory is allocated and the caller is responsible for 
-   freeing it via free().  If out of memory, NULL is returned.
-
-   Note that Scheme strings may contain arbitrary data, including null
-   characters.  This means that null termination is not a reliable way to 
-   determine the length of the returned value.  However, the function always 
-   copies the complete contents of OBJ, and sets *LENP to the length of the
-   scheme string (if LENP is non-null).  */
-#define FUNC_NAME "scm_c_string2str"
-char *
-scm_c_string2str (SCM obj, char *str, size_t *lenp)
+int
+scm_is_string (SCM obj)
 {
-  size_t len;
+  return SCM_I_STRINGP (obj);
+}
 
-  SCM_ASSERT (SCM_STRINGP (obj), obj, SCM_ARG1, FUNC_NAME);
-  len = SCM_STRING_LENGTH (obj);
+SCM
+scm_from_locale_stringn (const char *str, size_t len)
+{
+  SCM res;
+  char *dst;
 
-  if (str == NULL)
+  if (len == (size_t)-1)
+    len = strlen (str);
+  res = scm_allocate_string (len);
+  dst = SCM_I_STRING_CHARS (res);
+  memcpy (dst, str, len);
+  return res;
+}
+
+SCM
+scm_from_locale_string (const char *str)
+{
+  return scm_from_locale_stringn (str, -1);
+}
+
+SCM
+scm_take_locale_stringn (char *str, size_t len)
+{
+  if (len == (size_t)-1)
+    return scm_take_locale_string (str);
+  else
     {
-      /* FIXME: Should we use exported wrappers for malloc (and free), which
-       * allow windows DLLs to call the correct freeing function? */
-      str = (char *) scm_malloc ((len + 1) * sizeof (char));
-      if (str == NULL)
-	return NULL;
+      /* STR might not be zero terminated and we are not allowed to
+	 look at str[len], so we have to make a new one...
+      */
+      SCM res = scm_from_locale_stringn (str, len);
+      free (str);
+      return res;
+    }
+}
+
+SCM
+scm_take_locale_string (char *str)
+{
+  size_t len = strlen (str);
+  SCM res;
+
+  if (len > SCM_STRING_MAX_LENGTH)
+    {
+      free (str);
+      scm_out_of_range (NULL, scm_from_size_t (len));
     }
 
-  memcpy (str, SCM_STRING_CHARS (obj), len);
-  scm_remember_upto_here_1 (obj);
-  str[len] = '\0';
+  res = scm_cell (SCM_I_MAKE_STRING_TAG (len), (scm_t_bits) str);
+  scm_gc_register_collectable_memory (str, len+1, "string");
 
-  if (lenp != NULL)
+  return res;
+}
+
+char *
+scm_to_locale_stringn (SCM str, size_t *lenp)
+{
+  char *res;
+  size_t len;
+
+  if (!SCM_I_STRINGP (str))
+    scm_wrong_type_arg_msg (NULL, 0, str, "string");
+  len = SCM_I_STRING_LENGTH (str);
+  res = scm_malloc (len + ((lenp==NULL)? 1 : 0));
+  memcpy (res, SCM_I_STRING_CHARS (str), len);
+  if (lenp == NULL)
+    {
+      res[len] = '\0';
+      if (strlen (res) != len)
+	{
+	  free (res);
+	  scm_misc_error (NULL,
+			  "string contains #\\nul character: ~S",
+			  scm_list_1 (str));
+	}
+    }
+  else
     *lenp = len;
 
-  return str;
+  scm_remember_upto_here_1 (str);
+  return res;
 }
-#undef FUNC_NAME
 
-
-/* Copy LEN characters at START from the Scheme string OBJ to memory
-   at STR.  START is an index into OBJ; zero means the beginning of
-   the string.  STR has already been allocated by the caller.
-
-   If START + LEN is off the end of OBJ, silently truncate the source
-   region to fit the string.  If truncation occurs, the corresponding
-   area of STR is left unchanged.  */
-#define FUNC_NAME "scm_c_substring2str"
 char *
-scm_c_substring2str (SCM obj, char *str, size_t start, size_t len)
+scm_to_locale_string (SCM str)
 {
-  size_t src_length, effective_length;
-
-  SCM_ASSERT (SCM_STRINGP (obj), obj, SCM_ARG2, FUNC_NAME);
-  src_length = SCM_STRING_LENGTH (obj);
-  effective_length = (len + start <= src_length) ? len : src_length - start;
-  memcpy (str, SCM_STRING_CHARS (obj) + start, effective_length);
-  scm_remember_upto_here_1 (obj);
-  return str;
+  return scm_to_locale_stringn (str, NULL);
 }
-#undef FUNC_NAME
 
+size_t
+scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len)
+{
+  size_t len;
+  
+  if (!SCM_I_STRINGP (str))
+    scm_wrong_type_arg_msg (NULL, 0, str, "string");
+  len = SCM_I_STRING_LENGTH (str);
+  memcpy (buf, SCM_I_STRING_CHARS (str), (len > max_len)? max_len : len);
+  scm_remember_upto_here_1 (str);
+  return len;
+}
+
+/* Return a newly allocated array of char pointers to each of the strings
+   in args, with a terminating NULL pointer.  */
+
+char **
+scm_i_allocate_string_pointers (SCM list)
+{
+  char **result;
+  int len = scm_ilength (list);
+  int i;
+
+  if (len < 0)
+    scm_wrong_type_arg_msg (NULL, 0, list, "proper list");
+
+  scm_frame_begin (0);
+
+  result = (char **) scm_malloc ((len + 1) * sizeof (char *));
+  result[len] = NULL;
+  scm_frame_unwind_handler (free, result, 0);
+
+  /* The list might be have been modified in another thread, so
+     we check LIST before each access.
+   */
+  for (i = 0; i < len && SCM_CONSP (list); i++)
+    {
+      result[i] = scm_to_locale_string (SCM_CAR (list));
+      list = SCM_CDR (list);
+    }
+
+  scm_frame_end ();
+  return result;
+}
+
+void
+scm_i_free_string_pointers (char **pointers)
+{
+  int i;
+  
+  for (i = 0; pointers[i]; i++)
+    free (pointers[i]);
+  free (pointers);
+}
 
 void
 scm_init_strings ()

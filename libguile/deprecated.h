@@ -226,15 +226,6 @@ SCM_API SCM scm_strprint_obj (SCM obj);
 SCM_API SCM scm_read_0str (char *expr);
 SCM_API SCM scm_eval_0str (const char *expr);
 
-SCM_API char *scm_i_object_chars (SCM);
-
-#define SCM_CHARS(x)   scm_i_object_chars(x)
-#define SCM_UCHARS(x)  ((unsigned char *)SCM_CHARS(x))
-
-SCM_API long scm_i_object_length (SCM);
-
-#define SCM_LENGTH(x) scm_i_object_length(x)
-
 #define scm_strhash(str, len, n) (scm_string_hash ((str), (len)) % (n))
 
 SCM_API SCM scm_sym2ovcell_soft (SCM sym, SCM obarray);
@@ -381,6 +372,37 @@ SCM_API scm_t_signed_bits SCM_INUM (SCM obj);
     cvar = SCM_INUM (k); \
   } while (0)
 
+#define SCM_STRING_COERCE_0TERMINATION_X(x) (x)
+
+/* XXX - buggy interface, STR might not be large enough.
+
+   Converts the given Scheme string OBJ into a C string, containing a copy
+   of OBJ's content with a trailing null byte.  If LENP is non-NULL, set
+   *LENP to the string's length.
+
+   When STR is non-NULL it receives the copy and is returned by the function,
+   otherwise new memory is allocated and the caller is responsible for 
+   freeing it via free().  If out of memory, NULL is returned.
+
+   Note that Scheme strings may contain arbitrary data, including null
+   characters.  This means that null termination is not a reliable way to 
+   determine the length of the returned value.  However, the function always 
+   copies the complete contents of OBJ, and sets *LENP to the length of the
+   scheme string (if LENP is non-null).  
+*/
+SCM_API char *scm_c_string2str (SCM obj, char *str, size_t *lenp);
+
+/* XXX - buggy interface, you don't know how many bytes have been copied.
+
+   Copy LEN characters at START from the Scheme string OBJ to memory
+   at STR.  START is an index into OBJ; zero means the beginning of
+   the string.  STR has already been allocated by the caller.
+
+   If START + LEN is off the end of OBJ, silently truncate the source
+   region to fit the string.  If truncation occurs, the corresponding
+   area of STR is left unchanged.  
+*/
+SCM_API char *scm_c_substring2str (SCM obj, char *str, size_t start, size_t len);
 
 /* Deprecated because the names belong to what is now
    scm_truncate_number and scm_round_number.

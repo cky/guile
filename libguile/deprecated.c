@@ -649,33 +649,6 @@ scm_strprint_obj (SCM obj)
   return scm_object_to_string (obj, SCM_UNDEFINED);
 }
 
-char *
-scm_i_object_chars (SCM obj)
-{
-  scm_c_issue_deprecation_warning 
-    ("SCM_CHARS is deprecated.  Use SCM_STRING_CHARS or "
-     "SCM_SYMBOL_CHARS instead.");
-  if (SCM_STRINGP (obj))
-    return SCM_STRING_CHARS (obj);
-  if (SCM_SYMBOLP (obj))
-    return SCM_SYMBOL_CHARS (obj);
-  abort ();
-}
-
-long
-scm_i_object_length (SCM obj)
-{
-  scm_c_issue_deprecation_warning 
-    ("SCM_LENGTH is deprecated.  Use SCM_STRING_LENGTH instead, for example.");
-  if (SCM_STRINGP (obj))
-    return SCM_STRING_LENGTH (obj);
-  if (SCM_SYMBOLP (obj))
-    return SCM_SYMBOL_LENGTH (obj);
-  if (SCM_VECTORP (obj))
-    return SCM_VECTOR_LENGTH (obj);
-  abort ();
-}
-
 SCM 
 scm_sym2ovcell_soft (SCM sym, SCM obarray)
 {
@@ -841,8 +814,8 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
   else if (scm_is_eq (o, SCM_BOOL_T))
     o = SCM_BOOL_F;
     
-  vcell = scm_intern_obarray_soft (SCM_STRING_CHARS(s),
-				   SCM_STRING_LENGTH (s),
+  vcell = scm_intern_obarray_soft (SCM_I_STRING_CHARS(s),
+				   SCM_I_STRING_LENGTH (s),
 				   o,
 				   softness);
   if (scm_is_false (vcell))
@@ -1074,10 +1047,10 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
   else
     {
       SCM_VALIDATE_STRING (1, prefix);
-      len = SCM_STRING_LENGTH (prefix);
+      len = SCM_I_STRING_LENGTH (prefix);
       if (len > MAX_PREFIX_LENGTH)
 	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
-      strncpy (name, SCM_STRING_CHARS (prefix), len);
+      strncpy (name, SCM_I_STRING_CHARS (prefix), len);
     }
 
   if (SCM_UNBNDP (obarray))
@@ -1127,6 +1100,44 @@ SCM_INUM (SCM obj)
   scm_c_issue_deprecation_warning
     ("SCM_INUM is deprecated.  Use scm_to_int or similar instead.");
   return scm_to_intmax (obj);
+}
+
+char *
+scm_c_string2str (SCM obj, char *str, size_t *lenp)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_c_string2str is deprecated.  Use scm_to_locale_stringbuf or similar instead.");
+  
+  if (str == NULL)
+    {
+      char *result = scm_to_locale_string (obj);
+      if (lenp)
+	*lenp = SCM_I_STRING_LENGTH (obj);
+      return result;
+    }
+  else
+    {
+      /* Pray that STR is large enough.
+       */
+      size_t len = scm_to_locale_stringbuf (obj, str, SCM_I_SIZE_MAX);
+      str[len] = '\0';
+      if (lenp)
+	*lenp = len;
+      return str;
+    }
+}
+
+char *
+scm_c_substring2str (SCM obj, char *str, size_t start, size_t len)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_c_substring2str is deprecated.  Use scm_substring plus scm_to_locale_stringbuf instead.");
+
+  if (start)
+    obj = scm_substring (obj, scm_from_size_t (start), SCM_UNDEFINED);
+
+  scm_to_locale_stringbuf (obj, str, len);
+  return str;
 }
 
 double
