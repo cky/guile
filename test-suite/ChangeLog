@@ -2,7 +2,7 @@
 
 	* tests/numbers.test (ash): New tests.
 
-	* tests/srfi-1.test (lset-adjoin): New tests.
+	* tests/srfi-1.test (lset-adjoin, remove): New tests.
 
 2005-01-28  Kevin Ryde  <user42@zip.com.au>
 
