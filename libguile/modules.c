@@ -1,4 +1,4 @@
-/*	Copyright (C) 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,11 +48,16 @@
 
 #include "libguile/eval.h"
 #include "libguile/procprop.h"
+#include "libguile/vectors.h"
+#include "libguile/hashtab.h"
+#include "libguile/struct.h"
+#include "libguile/variable.h"
 
 #include "libguile/modules.h"
 
 static SCM the_root_module;
-static SCM root_module_lookup_closure;
+static SCM root_module_closure;
+static SCM scm_module_closure;
 
 SCM
 scm_the_root_module ()
@@ -169,17 +174,96 @@ scm_system_module_env_p (SCM env)
 {
   SCM proc = scm_env_top_level (env);
   if (SCM_FALSEP (proc))
-    proc = root_module_lookup_closure;
+    proc = SCM_CDR (root_module_closure);
   return ((SCM_NFALSEP (scm_procedure_property (proc,
 						scm_sym_system_module)))
 	  ? SCM_BOOL_T
 	  : SCM_BOOL_F);
 }
 
+/*
+ * C level implementation of the standard eval closure
+ *
+ * This increases loading speed substantially.
+ * The code will be replaced by the low-level environments in next release.
+ */
+
+#define OBARRAY(module) (SCM_STRUCT_DATA (module) [0])
+#define USES(module) (SCM_STRUCT_DATA (module) [1])
+#define BINDER(module) (SCM_STRUCT_DATA (module) [2])
+
+static SCM module_make_local_var_x;
+
+static SCM
+module_variable (SCM module, SCM sym)
+{
+  /* 1. Check module obarray */
+  SCM b = scm_hashq_ref (OBARRAY (module), sym, SCM_UNDEFINED);
+  if (SCM_VARIABLEP (b))
+    return b;
+  {
+    SCM binder = BINDER (module);
+    if (SCM_NFALSEP (binder))
+      /* 2. Custom binder */
+      {
+	b = scm_apply (binder,
+		       SCM_LIST3 (module, sym, SCM_BOOL_F),
+		       SCM_EOL);
+	if (SCM_NFALSEP (b))
+	  return b;
+      }
+  }
+  {
+    /* 3. Search the use list */
+    SCM uses = USES (module);
+    while (SCM_CONSP (uses))
+      {
+	b = module_variable (SCM_CAR (uses), sym);
+	if (SCM_NFALSEP (b))
+	  return b;
+	uses = SCM_CDR (uses);
+      }
+    return SCM_BOOL_F;
+  }
+}
+
+static SCM f_eval_closure;
+
+static SCM
+eval_closure (SCM cclo, SCM sym, SCM definep)
+{
+  SCM module = SCM_VELTS (cclo) [1];
+  if (SCM_NFALSEP (definep))
+    return scm_apply (SCM_CDR (module_make_local_var_x),
+		      SCM_LIST2 (module, sym),
+		      SCM_EOL);
+  else
+    return module_variable (module, sym);
+}
+
+SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
+	    (SCM module),
+	    "")
+#define FUNC_NAME s_scm_standard_eval_closure
+{
+  SCM cclo = scm_makcclo (f_eval_closure, SCM_MAKINUM (2));
+  SCM_VELTS (cclo) [1] = module;
+  return cclo;
+}
+#undef FUNC_NAME
+
 void
 scm_init_modules ()
 {
 #include "libguile/modules.x"
+  root_module_closure = scm_sysintern ("root-module-closure", SCM_UNDEFINED);
+  scm_module_closure = scm_sysintern ("scm-module-closure", SCM_UNDEFINED);
+  module_make_local_var_x = scm_sysintern ("module-make-local-var!",
+					   SCM_UNDEFINED);
+  f_eval_closure = scm_make_subr_opt ("eval-closure",
+				      scm_tc7_subr_3,
+				      eval_closure,
+				      0);
 }
 
 void
@@ -193,8 +277,6 @@ scm_post_boot_init_modules ()
   make_modules_in = scm_intern0 ("make-modules-in");
   beautify_user_module_x = scm_intern0 ("beautify-user-module!");
   module_eval_closure = scm_intern0 ("module-eval-closure");
-  root_module_lookup_closure = scm_permanent_object
-    (scm_module_lookup_closure (SCM_CDR (the_root_module)));
   resolve_module = scm_intern0 ("resolve-module");
   try_module_autoload = scm_intern0 ("try-module-autoload");
 }
