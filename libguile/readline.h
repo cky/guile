@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef READLINEH
 #define READLINEH
 
