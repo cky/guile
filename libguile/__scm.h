@@ -482,6 +482,32 @@ do { \
 #define SCM_FENCE
 #endif
 
+/* In the old days, SCM_DEFER_INTS stopped signal handlers from running,
+   since in those days the handler directly ran scheme code, and that had to
+   be avoided when the heap was not in a consistent state etc.  And since
+   the scheme code could do a stack swapping new continuation etc, signals
+   had to be deferred around various C library functions which were not safe
+   or not known to be safe to swap away, which was a lot of stuff.
+
+   These days signals are implemented with asyncs and don't directly run
+   scheme code in the handler, but hold it until an SCM_TICK etc where it
+   will be safe.  This means interrupt protection is not needed and
+   SCM_DEFER_INTS / SCM_ALLOW_INTS is something of an anachronism.
+
+   What past SCM_DEFER_INTS usage also did though was indicate code that was
+   not reentrant, ie. could not be reentered by signal handler code.  The
+   present definitions are a mutex lock, affording that reentrancy
+   protection against the new guile 1.8 free-running posix threads.
+
+   One big problem with the present defintions though is that code which
+   throws an error from within a DEFER/ALLOW region will leave the
+   defer_mutex locked and hence hang other threads that attempt to enter a
+   similar DEFER/ALLOW region.
+
+   The plan is to migrate reentrancy protection to an explicit mutex
+   (private or global, with unwind where necessary), and remove the
+   remaining DEFER/ALLOWs.  */
+
 #define SCM_DEFER_INTS scm_rec_mutex_lock (&scm_i_defer_mutex);
 
 #define SCM_ALLOW_INTS scm_rec_mutex_unlock (&scm_i_defer_mutex);
