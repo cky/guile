@@ -1,3 +1,60 @@
+2001-02-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* numbers.c (scm_lognot), random.c (scm_random,
+	scm_random_normal, scm_random_solid_sphere_x,
+	scm_random_hollow_sphere_x, scm_random_normal_vector_x,
+	scm_random_exp), dynwind.c
+	(scm_dynamic_wind): Removed unnecessary "" from docstrings.
+	
+	* goops.c (scm_sys_initialize_object, scm_instance_p,
+	scm_class_name, scm_class_precedence_list, scm_class_slots,
+	scm_class_environment, scm_generic_function_name,
+	scm_generic_function_methods, scm_method_generic_function,
+	scm_method_specializers, scm_method_procedure, scm_make_unbound,
+	scm_unbound_p, scm_assert_bound, scm_at_assert_bound_ref,
+	scm_sys_fast_slot_ref, scm_sys_fast_slot_set_x, scm_slot_ref,
+	scm_slot_set_x, _scm_slot_bound_p, scm_slots_exists_p,
+	scm_sys_allocate_instance, scm_make, scm_pure_generic_p,
+	scm_class_direct_supers, scm_class_direct_slots,
+	scm_class_direct_subclasses, scm_class_direct_methods,
+	scm_accessor_method_slot_definition, scm_sys_goops_loaded),
+	debug.c (scm_with_traps, scm_memoized_p, scm_make_gloc,
+	scm_gloc_p, scm_make_iloc, scm_iloc_p, scm_memcons,
+	scm_mem_to_proc, scm_proc_to_mem, scm_unmemoize,
+	scm_memoized_environment, scm_procedure_name,
+	scm_procedure_source, scm_procedure_environment, scm_debug_hang),
+	objects.c
+	(scm_class_of, scm_entity_p, scm_operator_p,
+	scm_set_object_procedure_x, scm_object_procedure,
+	scm_make_class_object), hooks.c (scm_make_hook_with_name,
+	scm_make_hook, scm_hook_p, scm_hook_empty_p, scm_add_hook_x,
+	scm_remove_hook_x, scm_reset_hook_x, scm_run_hook,
+	scm_hook_to_list), lang.c
+	(scm_nil_cons, scm_nil_car, scm_nil_cdr, scm_null, scm_nil_eq),
+	numbers.c (scm_sys_expt, scm_sys_atan2), print.c
+	(scm_print_options, scm_port_with_print_state,
+	scm_get_print_state), procs.c (scm_make_cclo, scm_procedure_p,
+	scm_closure_p, scm_thunk_p, scm_procedure_with_setter_p,
+	scm_make_procedure_with_setter, scm_procedure), throw.c
+	(scm_lazy_catch), modules.c (scm_standard_eval_closure), load.c
+	(scm_parse_path, scm_search_path), stacks.c (scm_make_stack,
+	scm_stack_ref, scm_stack_length, scm_frame_p,
+	scm_last_stack_frame, scm_frame_number, scm_frame_source,
+	scm_frame_procedure, scm_frame_arguments, scm_frame_previous,
+	scm_frame_next, scm_frame_real_p, scm_frame_procedure_p,
+	scm_frame_evaluating_args_p, scm_frame_overflow_p), filesys.c
+	(scm_dirname, scm_basename), dynwind.c
+	(scm_wind_chain), read.c (scm_read_options, scm_read,
+	scm_read_hash_extend), gc.c
+	(scm_unhash_name), eval.c (scm_eval_options_interface,
+	scm_evaluator_traps, s_scm_nconc2last), backtrace.c
+	(scm_display_error, scm_set_print_params_x,
+	scm_display_application, scm_display_backtrace, scm_backtrace),
+	async.c (scm_async, scm_system_async, scm_async_mark,
+	scm_system_async_mark, scm_run_asyncs, scm_noop,
+	scm_set_tick_rate, scm_set_switch_rate, scm_unmask_signals,
+	scm_mask_signals): Added docstrings.
+
 2001-02-15  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* dump.c (scm_undump): Use SCM_CARLOC/SCM_CDRLOC to obtain the
