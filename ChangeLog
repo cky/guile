@@ -1,3 +1,14 @@
+1999-07-22  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Added guile-readline subdirectory with the removed readline
+	support.
+	* guile-readline: New directory, see ChangeLog there.
+	* configure.in: Cause configure to descend into guile-readline
+	dir.
+	* Makefile.am: Likewise for make.
+	* NEWS: Explain how to activate the readline support.
+	* configure, Makefile.in: Regenerated.
+	
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Fixes for EMX from Mikael Ståldal.

@@ -19,7 +19,7 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
-SUBDIRS = ice-9 qt libguile guile-config doc
+SUBDIRS = ice-9 qt libguile guile-config guile-readline doc
 
 ## FIXME: in the future there will be direct automake support for
 ## doing this.  When that happens, switch over.

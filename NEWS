@@ -33,6 +33,13 @@ can use Guile may not be able to use Readline.  Now users will be
 explicitly offered two independent decisions about the use of these
 two packages.
 
+You can activate the readline support by issuing
+
+    (use-modules (readline-activator))
+    (activate-readline)
+
+from your ".guile" file, for example.
+
 * Changes to the stand-alone interpreter
 
 ** All builtins now print as primitives.
