@@ -3,6 +3,13 @@
 	* boot-9.scm (top-repl): Revert part of the 2001-05-19 change.
 	When defining the guile-user module, do not use any modules.  Add
 	them to guile-user when `top-repl' is called.
+	(resolve-interface): Expect keyword arguments instead of a `spec'.
+	(compile-interface-spec, compile-define-module-args): New.
+	(define-module): Use compile-define-module-args to construct
+	argument for process-define-module.
+	(use-modules, use-syntax): Use compile-interface-spec to construct
+	arguments for process-use-modules.
+	(process-define-module): Expect keywords in argument list.
 
 2001-05-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
