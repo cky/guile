@@ -171,9 +171,9 @@ scm_open_file (filename, modes)
       pt = scm_add_to_port_table (port);
       SCM_SETPTAB_ENTRY (port, pt);
       SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (mode));
+      SCM_SETSTREAM (port, (SCM) f);
       if (SCM_BUF0 & SCM_CAR (port))
 	scm_setbuf0 (port);
-      SCM_SETSTREAM (port, (SCM) f);
       SCM_PTAB_ENTRY (port)->file_name = filename;
     }
   SCM_ALLOW_INTS;
@@ -205,9 +205,9 @@ scm_stdio_to_port (file, mode, name)
     pt = scm_add_to_port_table (port);
     SCM_SETPTAB_ENTRY (port, pt);
     SCM_SETCAR (port, (scm_tc16_fport | mode_bits));
+    SCM_SETSTREAM (port, (SCM) file);
     if (SCM_BUF0 & SCM_CAR (port))
       scm_setbuf0 (port);
-    SCM_SETSTREAM (port, (SCM) file);
     SCM_PTAB_ENTRY (port)->file_name = scm_makfrom0str (name);
   }
   SCM_ALLOW_INTS;
