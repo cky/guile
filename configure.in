@@ -638,14 +638,13 @@ AC_ARG_WITH(threads, [  --with-threads          thread interface],
 
 ### Turn $with_threads into either the name of a threads package, like
 ### `qt', or `no', meaning that threads should not be supported.
-AC_MSG_CHECKING(whether to support threads)
+AC_MSG_CHECKING(what kind of threads to support)
 case "$with_threads" in
   "yes" | "qt" | "coop" | "")
     with_threads=qt
   ;;
-  "null" )
-  ;;
-  "no" )
+  "no" | "null")
+    with_threads=null
   ;;
   * )
     AC_MSG_ERROR(invalid value for --with-threads: $with_threads)
@@ -659,7 +658,7 @@ case "${with_threads}" in
   "qt" )
     ## This configures the QuickThreads package, and sets or clears
     ## the THREAD_PACKAGE variable if qthreads don't configure
-    ## correctly.
+    ## correctly.  In that case, we fall back on null-threads.
     QTHREADS_CONFIGURE
    ;;
   "null" )
@@ -667,49 +666,44 @@ case "${with_threads}" in
    ;;
 esac
 
+## We always provide the thread API now and thus, USE_THREADS is
+## always defined and threads.o is always included.
 
-## If we're using threads, bring in some other parts of Guile which
-## work with them.
-if test "${THREAD_PACKAGE}" != "" ; then
-  AC_DEFINE(USE_THREADS, 1, [Define if providing the thread API.])
+AC_DEFINE(USE_THREADS, 1, [Define if providing the thread API.])
+AC_LIBOBJ([threads])
 
-  ## Include the Guile thread interface in the library...
-  AC_LIBOBJ([threads])
+case "${THREAD_PACKAGE}" in
+  "QT" )
+    AC_DEFINE(USE_COOP_THREADS, 1,
+      [Define if using cooperative multithreading.])
 
-  ## ... and tell it which package to talk to.
-  case "${THREAD_PACKAGE}" in
-    "QT" )
-      AC_DEFINE(USE_COOP_THREADS, 1,
-        [Define if using cooperative multithreading.])
+    AC_ARG_ENABLE(linuxthreads,
+      [  --disable-linuxthreads  disable linuxthreads workaround],,
+       enable_linuxthreads=yes)
 
-      AC_ARG_ENABLE(linuxthreads,
-        [  --disable-linuxthreads  disable linuxthreads workaround],,
-         enable_linuxthreads=yes)
+    ## Workaround for linuxthreads (optionally disabled)
+    if test $host_os = linux-gnu -a "$enable_linuxthreads" = yes; then
+      AC_DEFINE(GUILE_PTHREAD_COMPAT, 1,
+        [Define to enable workaround for COOP-linuxthreads compatibility.])
+      AC_CHECK_LIB(pthread, main)
+    fi
 
-      ## Workaround for linuxthreads (optionally disabled)
-      if test $host_os = linux-gnu -a "$enable_linuxthreads" = yes; then
-        AC_DEFINE(GUILE_PTHREAD_COMPAT, 1,
-          [Define to enable workaround for COOP-linuxthreads compatibility.])
-        AC_CHECK_LIB(pthread, main)
-      fi
+    ## Bring in scm_internal_select, if appropriate.
+    if test $ac_cv_func_gettimeofday = yes &&
+       test $ac_cv_func_select = yes; then
+      AC_DEFINE(GUILE_ISELECT, 1, [Define to implement scm_internal_select.])
+    fi
 
-      ## Bring in scm_internal_select, if appropriate.
-      if test $ac_cv_func_gettimeofday = yes &&
-         test $ac_cv_func_select = yes; then
-        AC_DEFINE(GUILE_ISELECT, 1, [Define to implement scm_internal_select.])
-      fi
+  ;;
+  "null" | "" )
+    AC_DEFINE(USE_NULL_THREADS, 1,
+      [Define if using one-thread 'multi'threading.])
+  ;;
+  * )
+    AC_MSG_ERROR(invalid value for THREAD_PACKAGE: ${THREAD_PACKAGE})
+  ;;
+esac
 
-    ;;
-    "null" )
-      AC_DEFINE(USE_NULL_THREADS, 1,
-        [Define if using one-thread 'multi'threading.])
-    ;;
-    * )
-      AC_MSG_ERROR(invalid value for THREAD_PACKAGE: ${THREAD_PACKAGE})
-    ;;
-  esac
-
-fi
 
 ## Cross building	
 if test "$cross_compiling" = "yes"; then
