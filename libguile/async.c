@@ -142,14 +142,6 @@ scm_asyncs_pending ()
   return 0;
 }
 
-#if 0
-static SCM
-scm_sys_tick_async_thunk (void)
-{
-  scm_deliver_signal (SCM_TICK_SIGNAL);
-  return SCM_BOOL_F;
-}
-#endif
 
 void
 scm_async_click ()
@@ -227,10 +219,6 @@ scm_async_click ()
 	    scm_tick_clock -= scm_async_rate;
 	}
     }
-
-  /*
-     if (owe_tick)
-       scm_async_mark (system_signal_asyncs[SCM_SIG_ORD(SCM_TICK_SIGNAL)]); */
 
   SCM_DEFER_INTS;
   if (scm_tick_rate && scm_switch_rate)

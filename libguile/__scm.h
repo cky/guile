@@ -550,53 +550,14 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
 #define SCM_ARG5 		5
 #define SCM_ARG6 		6
 #define SCM_ARG7 		7 
-     /* #define SCM_ARGERR(X) 		((X) < SCM_WNA \
-				 ? (char *)(X) \
-				 : "wrong type argument")
-				 */
 
-/* Following must match entry indexes in scm_errmsgs[].
- * Also, SCM_WNA must follow the last SCM_ARGn in sequence.
+/* SCM_WNA must follow the last SCM_ARGn in sequence.
  */
 #define SCM_WNA 		8
-     /* #define SCM_OVSCM_FLOW 		9 */
 #define SCM_OUTOFRANGE 		10
 #define SCM_NALLOC 		11
-     /* #define SCM_STACK_OVFLOW	12 */
-     /* #define SCM_EXIT 		13 */
 
 #endif /* SCM_MAGIC_SNARFER */
-
-/* (...still matching scm_errmsgs)  These
- * are signals.  Signals may become errors
- * but are distinguished because they first
- * try to invoke a handler that can resume
- * the interrupted routine.
- */
-#define SCM_HUP_SIGNAL 		14
-#define SCM_INT_SIGNAL 		15
-#define SCM_FPE_SIGNAL 		16
-#define SCM_BUS_SIGNAL 		17
-#define SCM_SEGV_SIGNAL 	18
-#define SCM_ALRM_SIGNAL 	19
-#define SCM_GC_SIGNAL		20
-#define SCM_TICK_SIGNAL		21
-
-#define SCM_SIG_ORD(X)		((X) - SCM_HUP_SIGNAL)
-#define SCM_ORD_SIG(X)		((X) + SCM_HUP_SIGNAL)
-#define SCM_NUM_SIGS		(SCM_SIG_ORD (SCM_TICK_SIGNAL) + 1)
-
-#if 0
-struct errdesc
-{
-  char *msg;
-  char *s_response;
-  short parent_err;
-};
-
-
-extern struct errdesc scm_errmsgs[];
-#endif
 
 
 
@@ -620,8 +581,6 @@ extern struct errdesc scm_errmsgs[];
 #define SCM_EXIT_FAILURE 1
 #endif /* def vms */
 #endif /* ndef SCM_EXIT_FAILURE */
-
-
 
 
 

@@ -1,5 +1,15 @@
 2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* __scm.h:  Removed some commented code and fixed some comments.
+
+	(SCM_HUP_SIGNAL, SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL,
+	SCM_SEGV_SIGNAL, SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL,
+	SCM_SIG_ORD, SCM_ORD_SIG, SCM_NUM_SIGS):  Removed.
+
+	* async.c:  Removed some commented code.
+
+2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.c (scm_gc_mark, scm_gc_sweep, scm_must_malloc,
 	scm_must_realloc, scm_must_free, alloc_some_heap):  Use the
 	appropriate error signalling function.
