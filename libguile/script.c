@@ -656,8 +656,8 @@ scm_compile_shell_switches (int argc, char **argv)
     }
 
   /* If debugging was requested, or we are interactive and debugging
-     was not explicitely turned off, turn on debugging. */
-  if (turn_on_debugging || (interactive  && !dont_turn_on_debugging))
+     was not explicitly turned off, turn on debugging. */
+  if (turn_on_debugging || (interactive && !dont_turn_on_debugging))
     {
       tail = scm_cons (scm_cons (sym_turn_on_debugging, SCM_EOL), tail);
     }

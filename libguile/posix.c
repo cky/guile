@@ -572,7 +572,7 @@ SCM_DEFINE (scm_geteuid, "geteuid", 0, 0, 0,
             (),
 	    "Return an integer representing the current effective user ID.\n"
 	    "If the system does not support effective IDs, then the real ID\n"
-	    "is returned.  @code{(feature? 'EIDs)} reports whether the\n"
+	    "is returned.  @code{(provided? 'EIDs)} reports whether the\n"
 	    "system supports effective IDs.")
 #define FUNC_NAME s_scm_geteuid
 {
@@ -589,7 +589,7 @@ SCM_DEFINE (scm_getegid, "getegid", 0, 0, 0,
             (),
 	    "Return an integer representing the current effective group ID.\n"
 	    "If the system does not support effective IDs, then the real ID\n"
-	    "is returned.  @code{(feature? 'EIDs)} reports whether the\n"
+	    "is returned.  @code{(provided? 'EIDs)} reports whether the\n"
 	    "system supports effective IDs.")
 #define FUNC_NAME s_scm_getegid
 {
@@ -634,7 +634,7 @@ SCM_DEFINE (scm_seteuid, "seteuid", 1, 0, 0,
             (SCM id),
 	    "Sets the effective user ID to the integer @var{id}, provided the process\n"
 	    "has appropriate privileges.  If effective IDs are not supported, the\n"
-	    "real ID is set instead -- @code{(feature? 'EIDs)} reports whether the\n"
+	    "real ID is set instead -- @code{(provided? 'EIDs)} reports whether the\n"
 	    "system supports effective IDs.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_seteuid
@@ -660,7 +660,7 @@ SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0,
             (SCM id),
 	    "Sets the effective group ID to the integer @var{id}, provided the process\n"
 	    "has appropriate privileges.  If effective IDs are not supported, the\n"
-	    "real ID is set instead -- @code{(feature? 'EIDs)} reports whether the\n"
+	    "real ID is set instead -- @code{(provided? 'EIDs)} reports whether the\n"
 	    "system supports effective IDs.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setegid

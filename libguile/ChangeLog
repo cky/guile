@@ -1,3 +1,13 @@
+2002-09-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* script.c (scm_compile_shell_switches): Fix bad spelling of
+	`explicitly' in comment.
+
+2002-09-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.c (scm_geteuid, scm_getegid, scm_seteuid, scm_setegid):
+	Refer to provided? in doc string rather than deprecated feature?.
+
 2002-09-24  Gary Houston  <ghouston@arglist.com>
 
 	* inline.h (scm_double_cell): prevent reordering of statements
