@@ -29,7 +29,7 @@
 	   logical:bit-extract logical:integer-expt logical:ipow-by-squaring
 	   slib:eval-load slib:tab slib:form-feed difftime offset-time
 	   software-type)
-  :replace (provide provided?)
+  :replace (delete-file open-file provide provided? system)
   :no-backtrace)
 
 
@@ -135,6 +135,8 @@
 ;	trace				;has macros: TRACE and UNTRACE
 ;	compiler			;has (COMPILER)
 ;	ed				;(ED) is editor
+
+	;; core definitions compatible, plus `make-random-state' below
 	random
 	)
 
@@ -150,19 +152,40 @@
 	    '(system)
 	    '())
 
-	(if (defined? 'array?)
-	    '(array)
-	    '())
-
 	(if (defined? 'char-ready?)
 	    '(char-ready?)
 	    '())
 
-	(if (defined? 'array-for-each)
-	    '(array-for-each)
-	    '())
-
 	*features*))
+
+;; The array module specified by slib 3a1 is not the same as what guile
+;; provides, so we must remove `array' from the features list.
+;;
+;; The main difference is `create-array' which is similar to
+;; `make-uniform-array', but the `Ac64' etc prototype procedures incorporate
+;; an initial fill element into the prototype.
+;;
+;; Believe the array-for-each module will need to be taken from slib when
+;; the array module is taken from there, since what the array module creates
+;; won't be understood by the guile functions.  So remove `array-for-each'
+;; from the features list too.
+;;
+;; Also, slib 3a1 array-for-each specifies an `array-map' which is not in
+;; guile (but could be implemented quite easily).
+;;
+;; ENHANCE-ME: It'd be nice to implement what's necessary, since the guile
+;; functions should be more efficient than the implementation in slib.
+;;
+;; FIXME: Since the *features* variable is shared by slib and the guile
+;; core, removing these feature symbols has the unhappy effect of making it
+;; look like they aren't in the core either.  Let's assume that arrays have
+;; been present unconditionally long enough that no guile-specific code will
+;; bother to test.  An alternative would be to make a new separate
+;; *features* variable which the slib stuff operated on, leaving the core
+;; mechanism alone.  That might be a good thing anyway.
+;;
+(set! *features* (delq 'array          *features*))
+(set! *features* (delq 'array-for-each *features*))
 
 
 ;;; FIXME: Because uers want require to search the path, this uses
@@ -216,8 +239,54 @@
 (define (scheme-implementation-home-page)
   "http://www.gnu.org/software/guile/guile.html")
 
+;; legacy from r3rs, but slib says all implementations provide these
+;; ("Legacy" section of the "Miscellany" node in the manual)
+(define-public t   #t)
+(define-public nil #f)
+
+;; ENHANCE-ME: Could call ioctl TIOCGWINSZ to get the size of a tty (see
+;; "man 4 tty_ioctl" on a GNU/Linux system), on systems with that.
 (define (output-port-width . arg) 80)
 (define (output-port-height . arg) 24)
+
+;; slib 3a1 and up, straight from Template.scm
+(define-public (call-with-open-ports . ports)
+  (define proc (car ports))
+  (cond ((procedure? proc) (set! ports (cdr ports)))
+	(else (set! ports (reverse ports))
+	      (set! proc (car ports))
+	      (set! ports (reverse (cdr ports)))))
+  (let ((ans (apply proc ports)))
+    (for-each close-port ports)
+    ans))
+
+;; slib (version 3a1) requires open-file accept a symbol r, rb, w or wb for
+;; MODES, so extend the guile core open-file accordingly.
+;;
+;; slib (version 3a1) also calls open-file with strings "rb" or "wb", not
+;; sure if that's intentional, but in any case this extension continues to
+;; accept strings to make that work.
+;;
+(define-public (open-file filename modes)
+  (if (symbol? modes)
+      (set! modes (symbol->string modes)))
+  ((@ (guile) open-file) filename modes))
+
+;; returning #t/#f instead of throwing an error for failure
+(define-public (delete-file filename)
+  (catch 'system-error
+    (lambda () ((@ (guile) delete-file) filename) #t)
+    (lambda args #f)))
+
+;; Nothing special to do for this, so straight from Template.scm.  Maybe
+;; "sensible-browser" for a debian system would be worth trying too (and
+;; would be good on a tty).
+(define-public (browse-url url)
+  (define (try cmd end) (zero? (system (string-append cmd url end))))
+  (or (try "netscape-remote -remote 'openURL(" ")'")
+      (try "netscape -remote 'openURL(" ")'")
+      (try "netscape '" "'&")
+      (try "netscape '" "'")))
 
 ;;; {array-for-each}
 (define (array-indexes ra)
@@ -248,7 +317,6 @@
 
 ;;; {system}
 ;;;
-
 ;; If the program run is killed by a signal, the shell normally gives an
 ;; exit code of 128+signum.  If the shell itself is killed by a signal then
 ;; we do the same 128+signum here.
@@ -256,15 +324,13 @@
 ;; "stop-sig" shouldn't arise here, since system shouldn't be calling
 ;; waitpid with WUNTRACED, but allow for it anyway, just in case.
 ;;
-(if (defined? 'system)
-    (begin
-      (define guile-core-system system)
-      (define-public system
-	(lambda (str)
-	  (let ((st (guile-core-system str)))
-	    (or (status:exit-val st)
-		(+ 128 (or (status:term-sig st)
-			   (status:stop-sig st)))))))))
+(if (memq 'system *features*)
+    (define-public system
+      (lambda (str)
+	(let ((st ((@ (guile) system) str)))
+	  (or (status:exit-val st)
+	      (+ 128 (or (status:term-sig st)
+			 (status:stop-sig st))))))))
 
 ;;; {Time}
 ;;;
