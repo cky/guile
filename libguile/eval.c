@@ -1178,7 +1178,7 @@ scm_eval_args (l, env)
 	SCM_SET_TRACED_FRAME (debug);\
 	if (SCM_CHEAPTRAPS_P)\
 	  {\
-	    tmp = scm_make_debugobj ((scm_debug_frame *) &debug);\
+	    tmp = scm_make_debugobj (&debug);\
 	    scm_ithrow (scm_i_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
 	  }\
 	else\
@@ -1314,17 +1314,15 @@ SCM_CEVAL (x, env)
     } t;
   SCM proc, arg2;
 #ifdef DEVAL
-  struct
-  {
-    scm_debug_frame *prev;
-    long status;
-    scm_debug_info vect[scm_debug_eframe_size];
-    scm_debug_info *info;
-  } debug;
+  scm_debug_frame debug;
+  scm_debug_info *debug_info_end;
   debug.prev = scm_last_debug_frame;
   debug.status = scm_debug_eframe_size;
-  debug.info = &debug.vect[0];
-  scm_last_debug_frame = (scm_debug_frame *) &debug;
+  debug.vect = (scm_debug_info *) alloca (scm_debug_eframe_size
+					  * sizeof (debug.vect[0]));
+  debug.info = debug.vect;
+  debug_info_end = debug.vect + scm_debug_eframe_size;
+  scm_last_debug_frame = &debug;
 #endif
 #ifdef EVAL_STACK_CHECKING
   if (SCM_STACK_OVERFLOW_P ((SCM_STACKITEM *) &proc)
@@ -1362,7 +1360,7 @@ nextframe:
   SCM_CLEAR_ARGSREADY (debug);
   if (SCM_OVERFLOWP (debug))
     --debug.info;
-  else if (++debug.info == (scm_debug_info *) &debug.info)
+  else if (++debug.info >= debug_info_end)
     {
       SCM_SET_OVERFLOW (debug);
       debug.info -= 2;
@@ -1378,7 +1376,7 @@ start:
 	SCM_ENTER_FRAME_P = 0;
 	SCM_RESET_DEBUG_MODE;
 	if (SCM_CHEAPTRAPS_P)
-	  t.arg1 = scm_make_debugobj ((scm_debug_frame *) &debug);
+	  t.arg1 = scm_make_debugobj (&debug);
 	else
 	  {
 	    scm_make_cont (&t.arg1);
@@ -2163,7 +2161,7 @@ exit:
 	SCM_RESET_DEBUG_MODE;
 	SCM_CLEAR_TRACED_FRAME (debug);
 	if (SCM_CHEAPTRAPS_P)
-	  t.arg1 = scm_make_debugobj ((scm_debug_frame *) &debug);
+	  t.arg1 = scm_make_debugobj (&debug);
 	else
 	  {
 	    scm_make_cont (&t.arg1);
@@ -2286,8 +2284,10 @@ SCM_APPLY (proc, arg1, args)
 #ifdef DEBUG_EXTENSIONS
 #ifdef DEVAL
   scm_debug_frame debug;
+  scm_debug_info debug_vect_body;
   debug.prev = scm_last_debug_frame;
   debug.status = SCM_APPLYFRAME;
+  debug.vect = &debug_vect_body;
   debug.vect[0].a.proc = proc;
   debug.vect[0].a.args = SCM_EOL;
   scm_last_debug_frame = &debug;
@@ -2321,7 +2321,7 @@ SCM_APPLY (proc, arg1, args)
       SCM_ENTER_FRAME_P = 0;
       SCM_RESET_DEBUG_MODE;
       if (SCM_CHEAPTRAPS_P)
-	tmp = scm_make_debugobj ((scm_debug_frame *) &debug);
+	tmp = scm_make_debugobj (&debug);
       else
 	{
 	  scm_make_cont (&tmp);
@@ -2468,7 +2468,7 @@ exit:
 	SCM_RESET_DEBUG_MODE;
 	SCM_CLEAR_TRACED_FRAME (debug);
 	if (SCM_CHEAPTRAPS_P)
-	  arg1 = scm_make_debugobj ((scm_debug_frame *) &debug);
+	  arg1 = scm_make_debugobj (&debug);
 	else
 	  {
 	    scm_make_cont (&arg1);

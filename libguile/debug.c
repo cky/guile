@@ -316,6 +316,7 @@ scm_m_start_stack (exp, env)
 {
   SCM answer;
   scm_debug_frame vframe;
+  scm_debug_info vframe_vect_body;
   exp = SCM_CDR (exp);
   SCM_ASSERT (SCM_NIMP (exp)
 	      && SCM_ECONSP (exp)
@@ -327,6 +328,7 @@ scm_m_start_stack (exp, env)
 	      s_start_stack);
   vframe.prev = scm_last_debug_frame;
   vframe.status = SCM_VOIDFRAME;
+  vframe.vect = &vframe_vect_body;
   vframe.vect[0].id = scm_eval_car (exp, env);
   scm_last_debug_frame = &vframe;
   answer = scm_eval_car (SCM_CDR (exp), env);

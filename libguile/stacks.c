@@ -118,6 +118,26 @@
 /* Some auxiliary functions for reading debug frames off the stack.
  */
 
+/* Stacks often contain pointers to other items on the stack; for
+   example, each scm_debug_frame structure contains a pointer to the
+   next frame out.  When we capture a continuation, we copy the stack
+   into the heap, and just leave all the pointers unchanged.  This
+   makes it simple to restore the continuation --- just copy the stack
+   back!  However, if we retrieve a pointer from the heap copy to
+   another item that was originally on the stack, we have to add an
+   offset to the pointer to discover the new referent.
+
+   If PTR is a pointer retrieved from a continuation, whose original
+   target was on the stack, and OFFSET is the appropriate offset from
+   the original stack to the continuation, then RELOC_MUMBLE (PTR,
+   OFFSET) is a pointer to the copy in the continuation of the
+   original referent, cast to an scm_debug_MUMBLE *.  */
+#define RELOC_INFO(ptr, offset) \
+  ((scm_debug_info *) ((SCM_STACKITEM *) (ptr) + (offset)))
+#define RELOC_FRAME(ptr, offset) \
+  ((scm_debug_frame *) ((SCM_STACKITEM *) (ptr) + (offset)))
+
+
 /* Count number of debug info frames on a stack, beginning with
  * DFRAME.  OFFSET is used for relocation of pointers when the stack
  * is read from a continuation.
@@ -135,13 +155,12 @@ stack_depth (dframe, offset, id, maxp)
   scm_debug_info *info;
   for (n = 0;
        dframe && !SCM_VOIDFRAMEP (*dframe) && n < max_depth;
-       dframe = (scm_debug_frame *) ((SCM_STACKITEM *) dframe->prev + offset))
+       dframe = RELOC_FRAME (dframe->prev, offset))
     {
       if (SCM_EVALFRAMEP (*dframe))
 	{
 	  size = dframe->status & SCM_MAX_FRAME_SIZE;
-	  info = (scm_debug_info *) (*((SCM_STACKITEM **) &dframe->vect[size])
-				     + offset);
+	  info = RELOC_INFO (dframe->info, offset);
 	  n += (info - dframe->vect) / 2 + 1;
 	  /* Data in the apply part of an eval info frame comes from previous
 	     stack frame if the scm_debug_info vector is overflowed. */
@@ -175,8 +194,7 @@ read_frame (dframe, offset, iframe)
   if (SCM_EVALFRAMEP (*dframe))
     {
       size = dframe->status & SCM_MAX_FRAME_SIZE;
-      info = (scm_debug_info *) (*((SCM_STACKITEM **) &dframe->vect[size])
-				 + offset);
+      info = RELOC_INFO (dframe->info, offset);
       if ((info - dframe->vect) & 1)
 	{
 	  /* Debug.vect ends with apply info. */
@@ -228,14 +246,13 @@ read_frames (dframe, offset, n, iframes)
   
   for (;
        dframe && !SCM_VOIDFRAMEP (*dframe) && n > 0;
-       dframe = (scm_debug_frame *) ((SCM_STACKITEM *) dframe->prev + offset))
+       dframe = RELOC_FRAME (dframe->prev, offset))
     {
       read_frame (dframe, offset, iframe);
       if (SCM_EVALFRAMEP (*dframe))
 	{
 	  size = dframe->status & SCM_MAX_FRAME_SIZE;
-	  info = (scm_debug_info *) (*((SCM_STACKITEM **) &dframe->vect[size])
-				     + offset);
+	  info =  RELOC_INFO (dframe->info, offset);
 	  if ((info - dframe->vect) & 1)
 	    --info;
 	  /* Data in the apply part of an eval info frame comes from
@@ -354,8 +371,7 @@ scm_make_stack (args)
 #ifndef STACK_GROWS_UP
 	  offset += SCM_LENGTH (obj);
 #endif
-	  dframe = (scm_debug_frame *) ((SCM_STACKITEM *) SCM_DFRAME (obj)
-				       + offset);
+	  dframe = RELOC_FRAME (SCM_DFRAME (obj), offset);
 	}
       else
 	{
@@ -380,8 +396,7 @@ scm_make_stack (args)
   SCM_STACK (stack) -> frames = iframe;
 
   /* Translate the current chain of stack frames into debugging information. */
-  read_frames ((scm_debug_frame *) ((SCM_STACKITEM *) dframe + offset),
-	       offset, n, iframe);
+  read_frames (RELOC_FRAME (dframe, offset), offset, n, iframe);
 
   /* Narrow the stack according to the arguments given to scm_make_stack. */
   while (n > 0 && SCM_NIMP (args) && SCM_CONSP (args))
@@ -436,15 +451,14 @@ scm_stack_id (stack)
 #ifndef STACK_GROWS_UP
 	  offset += SCM_LENGTH (stack);
 #endif
-	  dframe = (scm_debug_frame *) ((SCM_STACKITEM *) SCM_DFRAME (stack)
-				       + offset);
+	  dframe = RELOC_FRAME (SCM_DFRAME (stack), offset);
 	}
       else if (SCM_STACKP (stack))
 	return SCM_STACK (stack) -> id;
       else scm_wrong_type_arg (s_stack_id, SCM_ARG1, stack);
     }
   while (dframe && !SCM_VOIDFRAMEP (*dframe))
-    dframe = (scm_debug_frame *) ((SCM_STACKITEM *) dframe->prev + offset);
+    dframe = RELOC_FRAME (dframe->prev, offset);
   if (dframe && SCM_VOIDFRAMEP (*dframe))
     return dframe->vect[0].id;
   return SCM_BOOL_F;
@@ -513,7 +527,7 @@ scm_last_stack_frame (obj)
 #ifndef STACK_GROWS_UP
       offset += SCM_LENGTH (obj);
 #endif
-      dframe = (scm_debug_frame *) ((SCM_STACKITEM *) SCM_DFRAME (obj) + offset);
+      dframe = RELOC_FRAME (SCM_DFRAME (obj), offset);
     }
   else
     {
@@ -524,10 +538,12 @@ scm_last_stack_frame (obj)
   if (!dframe || SCM_VOIDFRAMEP (*dframe))
     return SCM_BOOL_F;
 
-  stack = scm_make_struct (scm_stack_type, SCM_MAKINUM (SCM_FRAME_N_SLOTS), SCM_EOL);
+  stack = scm_make_struct (scm_stack_type, SCM_MAKINUM (SCM_FRAME_N_SLOTS),
+			   SCM_EOL);
   SCM_STACK (stack) -> length = 1;
   SCM_STACK (stack) -> frames = &SCM_STACK (stack) -> tail[0];
-  read_frame (dframe, offset, (scm_info_frame *) &SCM_STACK (stack) -> frames[0]);
+  read_frame (dframe, offset,
+	      (scm_info_frame *) &SCM_STACK (stack) -> frames[0]);
   
   return scm_cons (stack, SCM_INUM0);;
 }
@@ -671,10 +687,12 @@ scm_init_stacks ()
 {
   SCM vtable;
   SCM vtable_layout = scm_make_struct_layout (scm_nullstr);
-  SCM stack_layout = scm_make_struct_layout (scm_makfrom0str (SCM_STACK_LAYOUT));
+  SCM stack_layout
+    = scm_make_struct_layout (scm_makfrom0str (SCM_STACK_LAYOUT));
   vtable = scm_make_vtable_vtable (vtable_layout, SCM_INUM0, SCM_EOL);
-  scm_stack_type = scm_permanent_object (scm_make_struct (vtable,
-							  SCM_INUM0,
-							  scm_cons (stack_layout, SCM_EOL)));
+  scm_stack_type
+    = scm_permanent_object (scm_make_struct (vtable, SCM_INUM0,
+					     scm_cons (stack_layout,
+						       SCM_EOL)));
 #include "stacks.x"
 }
