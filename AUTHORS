@@ -59,7 +59,7 @@ Many other changes throughout.
 Mark Galassi:
 Designed and implemented the high-level libguile API (the @code{gh_}
 interface), based largely on the defunct @code{gscm_} interface.  In the
-subdirectory gh, wrote:
-gh.c             gh_eval.c        gh_io.c          gh_test_c.c
+subdirectory libguile, wrote:
 gh.h             gh_funcs.c       gh_list.c        gh_test_repl.c
 gh_data.c        gh_init.c        gh_predicates.c
+gh_eval.c        gh_io.c          gh_test_c.c
