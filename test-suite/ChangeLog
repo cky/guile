@@ -1,3 +1,11 @@
+2003-04-14  Rob Browning  <rlb@defaultvalue.org>
+
+	* standalone/test-asmobs-lib.c (libtest_asmobs_init): include
+	test-asmobs-lib.x rather than test-asmobs-lib.x.c.
+
+	* standalone/Makefile.am: change from .c.x to .x to be consistent
+	with the rest of guile.
+
 2003-04-09  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* standalone/Makefile.am (snarfcppopts): use DEFAULT_INCLUDES
