@@ -1,3 +1,7 @@
+Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* Makefile.am, doc.scm: Added doc.scm.
+
 1999-12-12 18:54:06 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* popen.scm, slib.scm: Added some docstrings for procedures that

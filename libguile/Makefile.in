@@ -95,7 +95,8 @@ AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = -I.. -I$(srcdir)/.. ${THREAD_CPPFLAGS}
 
-ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/'
+ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/'    --regex='/[ \t]*GUILE_[G]?PROC1?[ \t]*(\([^,]*\),[^,]*/\1/'
+
 
 lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile
@@ -146,6 +147,8 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads dynl-dl.c     dynl-dld
 
 SUFFIXES = .x .doc
 
+pkgdata_DATA = guile-procedures.txt
+
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 MOSTLYCLEANFILES =  	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
@@ -194,7 +197,7 @@ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CF
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
-DATA =  $(modinclude_DATA)
+DATA =  $(modinclude_DATA) $(pkgdata_DATA)
 
 HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) $(noinst_HEADERS) \
 $(pkginclude_HEADERS)
@@ -422,6 +425,25 @@ uninstall-modincludeDATA:
 	  rm -f $(DESTDIR)$(modincludedir)/$$p; \
 	done
 
+install-pkgdataDATA: $(pkgdata_DATA)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(pkgdatadir)
+	@list='$(pkgdata_DATA)'; for p in $$list; do \
+	  if test -f $(srcdir)/$$p; then \
+	    echo " $(INSTALL_DATA) $(srcdir)/$$p $(DESTDIR)$(pkgdatadir)/$$p"; \
+	    $(INSTALL_DATA) $(srcdir)/$$p $(DESTDIR)$(pkgdatadir)/$$p; \
+	  else if test -f $$p; then \
+	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(pkgdatadir)/$$p"; \
+	    $(INSTALL_DATA) $$p $(DESTDIR)$(pkgdatadir)/$$p; \
+	  fi; fi; \
+	done
+
+uninstall-pkgdataDATA:
+	@$(NORMAL_UNINSTALL)
+	list='$(pkgdata_DATA)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(pkgdatadir)/$$p; \
+	done
+
 install-includeHEADERS: $(include_HEADERS)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(includedir)
@@ -565,8 +587,9 @@ install-exec-am: install-libLTLIBRARIES install-binPROGRAMS \
 		install-binSCRIPTS
 install-exec: install-exec-am
 
-install-data-am: install-modincludeDATA install-includeHEADERS \
-		install-modincludeHEADERS install-pkgincludeHEADERS
+install-data-am: install-modincludeDATA install-pkgdataDATA \
+		install-includeHEADERS install-modincludeHEADERS \
+		install-pkgincludeHEADERS
 install-data: install-data-am
 
 install-am: all-am
@@ -574,8 +597,8 @@ install-am: all-am
 install: install-am
 uninstall-am: uninstall-libLTLIBRARIES uninstall-binPROGRAMS \
 		uninstall-binSCRIPTS uninstall-modincludeDATA \
-		uninstall-includeHEADERS uninstall-modincludeHEADERS \
-		uninstall-pkgincludeHEADERS
+		uninstall-pkgdataDATA uninstall-includeHEADERS \
+		uninstall-modincludeHEADERS uninstall-pkgincludeHEADERS
 uninstall: uninstall-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(SCRIPTS) $(DATA) \
 		$(HEADERS) scmconfig.h
@@ -585,8 +608,8 @@ install-strip:
 installdirs:
 	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) \
 		$(DESTDIR)$(bindir) $(DESTDIR)$(modincludedir) \
-		$(DESTDIR)$(includedir) $(DESTDIR)$(modincludedir) \
-		$(DESTDIR)$(pkgincludedir)
+		$(DESTDIR)$(pkgdatadir) $(DESTDIR)$(includedir) \
+		$(DESTDIR)$(modincludedir) $(DESTDIR)$(pkgincludedir)
 
 
 mostlyclean-generic:
@@ -646,17 +669,18 @@ clean-binPROGRAMS maintainer-clean-binPROGRAMS uninstall-binPROGRAMS \
 install-binPROGRAMS mostlyclean-checkPROGRAMS distclean-checkPROGRAMS \
 clean-checkPROGRAMS maintainer-clean-checkPROGRAMS uninstall-binSCRIPTS \
 install-binSCRIPTS uninstall-modincludeDATA install-modincludeDATA \
-uninstall-includeHEADERS install-includeHEADERS \
-uninstall-modincludeHEADERS install-modincludeHEADERS \
-uninstall-pkgincludeHEADERS install-pkgincludeHEADERS tags \
-mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
-distdir mostlyclean-depend distclean-depend clean-depend \
-maintainer-clean-depend info-am info dvi-am dvi check-local check \
-check-am installcheck-am installcheck all-recursive-am install-exec-am \
-install-exec install-data-am install-data install-am install \
-uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+uninstall-pkgdataDATA install-pkgdataDATA uninstall-includeHEADERS \
+install-includeHEADERS uninstall-modincludeHEADERS \
+install-modincludeHEADERS uninstall-pkgincludeHEADERS \
+install-pkgincludeHEADERS tags mostlyclean-tags distclean-tags \
+clean-tags maintainer-clean-tags distdir mostlyclean-depend \
+distclean-depend clean-depend maintainer-clean-depend info-am info \
+dvi-am dvi check-local check check-am installcheck-am installcheck \
+all-recursive-am install-exec-am install-exec install-data-am \
+install-data install-am install uninstall-am uninstall all-redirect \
+all-am all installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
 
 
 check-local:
@@ -700,6 +724,9 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 .c.doc:
 	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
         || { rm $@; false; }
+
+guile-procedures.txt: *.doc
+	cat *.doc > $@
 
 cpp_err_symbols.c: cpp_err_symbols.in
 	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols.in > \

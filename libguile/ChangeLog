@@ -1,9 +1,28 @@
+Sun Dec 12 19:39:00 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* Makefile.am: Fix ETAGS_ARGS to recognize GUILE_PROC,
+ 	GUILE_PROC1.  Build guile-procedures.txt, and add that file to
+ 	pkgdata_DATA.
+
+	* load.c: Added `pkgdata-dir', `site-dir', `library-dir'
+	primitives.
+
+	* guile-doc-snarf.awk: Drop trailing space when no arguments:
+	e.g., "(foo )" is now "(foo)".
+
+	* *.c, alist.c: moved all the documentation for primitives from
+ 	guile-doc/ref/{appendices,posix,scheme}.texi into the source code.
+  	This leaves about half of the primitives undocumented.  Also, all
+ 	the markup is currently still texinfo.  I don't have a problem
+ 	with texinfo per se, but the markup is not very descriptive or
+ 	accurate.
+
 Sun Dec 12 16:50:26 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* scm_validate.h: Drop the SCM_DOCSTRING_SNARF for turning off
-	SCM_VALIDATE macros;  the SCM_VALIDATE macros should be checked
-	for argument mismatches (along with the FUNC_NAME macro checking)
-	by a static tool that runs directly over the .c files.
+ 	SCM_VALIDATE macros; the SCM_VALIDATE macros should be checked for
+ 	argument mismatches (along with the FUNC_NAME macro checking) by a
+ 	static tool that runs directly over the .c files.
 
 	* snarf.h: Handle SCM_REGISTER_PROC better when snarfing.  The
 	docstring is still missing from the .doc file;  it just gives the
