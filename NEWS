@@ -14,6 +14,10 @@ configure has new options to remove support for certain features:
 
 These are likely to become separate modules some day.
 
+* Added new configure option --enable-debug-freelist
+
+Also added a setter `gc-set-debug-check-freelist!'
+
 
 Changes since Guile 1.3.2:
 
