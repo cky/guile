@@ -1,3 +1,11 @@
+1998-06-09  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* regex-posix.c (scm_regexp_exec): Free malloced memory.  (Thanks
+	to Julian Satchell and Roland Kaufmann.)
+
+	* gh.h (gh_memv, gh_member): Fixed typos in macro definitions.
+	(gh_write):  Added declaration.  (Thanks to Eiichi Takamori.)
+
 1998-06-07  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* debug.h, debug.c (scm_start_stack): New function.  Implements
