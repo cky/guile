@@ -1,3 +1,7 @@
+2001-07-09  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* readline.c: Remove "face-lift" comment.
+
 2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* readline.c (completion_function):  Use scm_list_n instead of
@@ -19,7 +23,7 @@
 	when _RL_FUNCTION_TYPEDEF is defined.
 
 	* readline.h (scm_clear_history): New prototype.
-	
+
 2001-06-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* readline.c (current_input_getc):  Mark unused parameters with
@@ -143,7 +147,7 @@
 	in addition to ncurses and termcap.
 	Check for `readline' in libreadline, not for `main'.
 	Thanks to Albert Chin!
-	
+
 2000-07-17  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in (rl_pre_input_hook): Don't check for this with
@@ -195,7 +199,7 @@
 2000-06-01  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* autogen.sh: call ../guile-aclocal.sh instead of aclocal
-	
+
 2000-05-01  Gary Houston  <ghouston@arglist.com>
 
 	* readline.c: include libguile.h, not libguile/libguile.h.
@@ -209,7 +213,7 @@
 	and we don't want that.
 	(INCLUDES): Removed all -I options except for the root source
 	directory and the root build directory.
-	
+
 2000-04-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* readline.c (scm_readline):  Must unpack SCM values to access
@@ -249,7 +253,7 @@ Tue Jan 11 17:51:40 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* readline.c (scm_init_readline): Drop extra argument to
  	scm_mutex_init as that argument should not exist.  I do not know
 	how this escaped detection for so long.
-	
+
 2000-01-09  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* readline.c (match_paren): Changed return type to int (this is
@@ -319,7 +323,7 @@ Sun Dec 12 19:56:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	so this works.  See below.
 	(activate-readline): New function which contains the readline
 	activation code formerly found in top-repl.
-	
+
 	* readline.c (scm_readline): Export it to Scheme as "%readline".
 
 	* configure.in: Get version from ../GUILE-VERSION and use it for
@@ -343,7 +347,7 @@ Sun Dec 12 19:56:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	(Thanks to Anders Holst.)
 
 	* Makefile.am: Install guile-readline/readline.h.
-	
+
 1999-08-20  James Blandy  <jimb@mule.m17n.org>
 
 	* Makefile.in, aclocal.m4, configure: Regenerated.
