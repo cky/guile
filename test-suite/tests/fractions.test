@@ -248,7 +248,7 @@
   (testeq (eqv? 3/4 .75) #f)
   (testeq (eqv? 3/4 3/4) #t)
   (testeq (eqv? 10197734562406803221/17452826108659293487 10197734562406803221/17452826108659293487) #t)
-  (testeq (equal? 3/4 .75) #t)
+  (testeq (equal? 3/4 .75) #f)
   (testeq (number? 3/4) #t)
   (testeq (real? 3/4) #t)
   (testeq (integer? 3/4) #f)
