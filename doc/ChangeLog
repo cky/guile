@@ -1,3 +1,12 @@
+2001-05-06  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* intro.texi (Using Guile Modules): Review; remove reviewme
+	comment.  Expand `GUILE_LOAD_PATH' blurb; add small example.
+	(Reporting Bugs): Review; remove reviewme comment.
+	Reword some phrases; add texi markup.
+	Add suggestion to include `guile-config info' output.
+	Update gdb invocation; add fixme question.
+
 2001-05-05  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* AUTHORS: Added Martin Grabmueller.
@@ -17,7 +26,7 @@
 	blank lines).
 
 	* scheme-modules.texi: Change double hyphens to single.
-	
+
 	* scheme-control.texi (Lazy Catch): Completed.
 
 	* posix.texi (Network Databases and Address Conversion): New
