@@ -1026,15 +1026,8 @@ scm_gcd (SCM x, SCM y)
         }
       else if (SCM_BIGP (y))
         {
-          SCM result = scm_i_mkbig ();
-          SCM mx = scm_i_mkbig ();
-          mpz_set_si (SCM_I_BIG_MPZ (mx), SCM_INUM (x));
-          scm_remember_upto_here_1 (x);
-          mpz_gcd (SCM_I_BIG_MPZ (result),
-		   SCM_I_BIG_MPZ (mx),
-		   SCM_I_BIG_MPZ (y));
-          scm_remember_upto_here_2 (mx, y);
-          return scm_i_normbig (result);
+          SCM_SWAP (x, y);
+          goto big_inum;
         }
       else
         SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG2, s_gcd);
@@ -1044,7 +1037,9 @@ scm_gcd (SCM x, SCM y)
       if (SCM_INUMP (y))
         {
           unsigned long result;
-          long yy = SCM_INUM (y);
+          long yy;
+        big_inum:
+          yy = SCM_INUM (y);
           if (yy == 0)
             return scm_abs (x);
           if (yy < 0)
