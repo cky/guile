@@ -1,12 +1,16 @@
 The Guile core distribution:
 
 Mikael Djurfeldt contributed core support for GOOPS, a CLOS-like object
-    system for Guile.
+    system for Guile, a generalized set! syntax, and a new random number
+    generator.
+Greg Badros contributes patches to use the new SMOB interface.
 Gary Houston contributed a more efficient and portable implementation of
     I/O ports, and hacked on (ice-9 expect).
 Michael Livshin implemented Dybvig's Guardians.
+Roland Orre contributed list and vector sorting functions.
 Russ McManus contributed a command-line argument parser (ice-9 getopt-long).
-Ken Raeburn made Guile use `const' in some appropriate places.
+Ken Raeburn contributed patches to make Guile use `const' in some
+    appropriate places.
 Greg Harvey made sure I didn't lose any patches, and made readline
     highlight matching parenthesis.
 

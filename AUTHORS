@@ -22,6 +22,10 @@ In the subdirectory libguile, wrote:
 Gary Houston: changes to many files in libguile.
 wrote: libguile/socket.c, ice-9/expect.scm
 
+Jim Blandy: Many changes throughout.
+In the subdirectory libguile, wrote:
+    script.c (partially)
+
 Tom Lord: Many changes throughout.
 In the subdirectory ice-9, wrote:
     Makefile.in   configure.in  lineio.scm    poe.scm
@@ -79,3 +83,8 @@ Michael N. Livshin:
 In the subdirectory libguile, wrote:
     guardians.c
     guardians.h
+
+Tim Pierce:
+In the subdirectory libguile, wrote:
+    regex-posix.c
+    regex-posix.h
