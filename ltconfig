@@ -32,7 +32,7 @@ progname=`echo "$0" | sed 's%^.*/%%'`
 # Constants:
 PROGRAM=ltconfig
 PACKAGE=libtool
-VERSION=1.0b
+VERSION=1.0c
 ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.c 1>&5'
 ac_link='${CC-cc} -o conftest $CFLAGS $CPPFLAGS $LDFLAGS conftest.c $LIBS 1>&5'
 rm="rm -f"
@@ -610,6 +610,16 @@ case "$LD" in
   ;;
 esac
 
+# Check to see if it really is or isn't GNU ld.
+echo $ac_n "checking if the linker ($LD) is GNU ld... $ac_c" 1>&6
+# I'd rather use --version here, but apparently some GNU ld's only accept -v.
+if $LD -v 2>&1 </dev/null | egrep '(GNU|with BFD)' 1>&5; then
+  with_gnu_ld=yes
+else
+  with_gnu_ld=no
+fi
+echo $ac_t "$with_gnu_ld" 1>&6
+
 # See if the linker supports building shared libraries.
 echo $ac_n "checking whether the linker ($LD) supports shared libraries... $ac_c" 1>&6
 
@@ -696,8 +706,9 @@ else
   # FreeBSD 3, at last, uses gcc -shared to do shared libraries.
   freebsd3*)
     archive_cmds='$CC -shared -o $lib$libobjs$deplibs'
+    hardcode_libdir_flag_spec='-R$libdir'
     hardcode_direct=yes
-    hardcode_minusL=yes
+    hardcode_minus_L=yes
     hardcode_shlibpath_var=no
     ;;
 
@@ -792,26 +803,38 @@ fi
 # Check for command to grab the raw symbol name followed by C symbol from nm.
 echo $ac_n "checking command to parse $NM output... $ac_c" 1>&6
 
-# This is a sane default that works on at least a few old systems.
-# [It comes from Ultrix.  What could be older than Ultrix?!! ;)]
-global_symbol_pipe="sed -e '/^.* [BCDEGRSTU] /!d' -e 's/^.* [BCDEGRSTU] \(.*\)$/\1 \1/'"
+# These are sane defaults that work on at least a few old systems.
+# [They come from Ultrix.  What could be older than Ultrix?!! ;)]
 
-# Take a first stab at what the pipe should be.
+# Character class describing NM global symbol codes.
+symcode='[BCDEGRSTU]'
+
+# Regexp to match symbols that can be accessed directly from C.
+sympat='\([_A-Za-z][_A-Za-z0-9]*\)'
+
+# Transform the above into a raw symbol and a C symbol.
+symxfrm='\1 \1'
+
+# Define system-specific variables.
+case "$host_os" in
+aix*)
+  symcode='[BCDTU]'
+  ;;
+solaris2*)
+  symcode='[BDTU]'
+  ;;
+esac
+
+# If we're using GNU nm, then use its standard symbol codes.
 if $NM -V 2>&1 | egrep '(GNU|with BFD)' > /dev/null; then
-  # We're using GNU nm.
-  global_symbol_pipe="sed -e '/^.* [ABCDGISTU] /!d' -e 's/^.* [ABCDGISTU] \(.*\)$/\1 \1/'"
-else
-  # It's the system nm.
-  case "$host_os" in
-  aix*)
-    # Delete symbols that begin with a dot.
-    global_symbol_pipe="sed -e '/^.* [BCDTU] [^.]/!d' -e 's/^.* [BCDTU] \(.*\)$/\1 \1/'"
-    ;;
-  solaris2*)
-    global_symbol_pipe="sed -e '/^.* [BDTU] /!d' -e 's/^.* [BDTU] \(.*\)$/\1 \1/'"
-    ;;
-  esac
+  symcode='[ABCDGISTU]'
 fi
+
+# Delete symbols that are not valid C identifiers.
+global_symbol_pipe="sed -e '/^.* $symcode $sympat$/!d'"
+
+# Write the raw and C identifiers.
+global_symbol_pipe="$global_symbol_pipe -e 's/^.* $symcode $sympat$/$symxfrm/'"
 
 # Check to see that the pipe works correctly.
 pipe_works=no
@@ -822,11 +845,11 @@ void nm_test_func(){}
 main(){nm_test_var='a';nm_test_func();return(0);}
 EOF
 
-echo "$progname:825: checking if global_symbol_pipe works" >&5
-if { (eval echo $progname:826: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; } && test -s conftest.o; then
+echo "$progname:848: checking if global_symbol_pipe works" >&5
+if { (eval echo $progname:849: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; } && test -s conftest.o; then
   # Now try to grab the symbols.
   nlist=conftest.nm
-  if { echo "$progname:829: eval \"$NM conftest.o | $global_symbol_pipe > $nlist\"" >&5; eval "$NM conftest.o | $global_symbol_pipe > $nlist 2>&5"; } && test -s "$nlist"; then
+  if { echo "$progname:852: eval \"$NM conftest.o | $global_symbol_pipe > $nlist\"" >&5; eval "$NM conftest.o | $global_symbol_pipe > $nlist 2>&5"; } && test -s "$nlist"; then
 
     # Try sorting and uniquifying the output.
     if sort "$nlist" | uniq > "$nlist"T; then
@@ -874,7 +897,7 @@ EOF
 	save_CFLAGS="$CFLAGS"
         LIBS='conftestm.o'
 	CFLAGS="$CFLAGS$no_builtin_flag"
-        if { (eval echo $progname:877: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+        if { (eval echo $progname:900: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
           pipe_works=yes
         else
           echo "$progname: failed program was:" >&5

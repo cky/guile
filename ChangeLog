@@ -1,3 +1,7 @@
+Tue Sep 16 00:19:46 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* README, ltconfig, ltmain.sh: New libtool: 1.0c.
+
 Thu Sep 11 11:28:24 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* ltmain.sh: Added a missing '\' before \n on line 32.
