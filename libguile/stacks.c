@@ -357,7 +357,11 @@ scm_make_stack (args)
 	  dframe = (scm_debug_frame *) ((SCM_STACKITEM *) SCM_DFRAME (obj)
 				       + offset);
 	}
-      else scm_wta (obj, (char *) SCM_ARG1, s_make_stack);
+      else
+	{
+	  scm_wta (obj, (char *) SCM_ARG1, s_make_stack);
+	  abort ();
+	}
     }
 
   /* Count number of frames.  Also get stack id tag and check whether
@@ -511,7 +515,11 @@ scm_last_stack_frame (obj)
 #endif
       dframe = (scm_debug_frame *) ((SCM_STACKITEM *) SCM_DFRAME (obj) + offset);
     }
-  else scm_wta (obj, (char *) SCM_ARG1, s_last_stack_frame);
+  else
+    {
+      scm_wta (obj, (char *) SCM_ARG1, s_last_stack_frame);
+      abort ();
+    }
   
   if (!dframe || SCM_VOIDFRAMEP (*dframe))
     return SCM_BOOL_F;
