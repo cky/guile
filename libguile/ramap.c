@@ -473,10 +473,10 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
       break;
     case scm_tc7_byvect:
       if (SCM_CHARP (fill))
-	fill = SCM_I_MAKINUM ((char) SCM_CHAR (fill));
-      SCM_ASRTGO (SCM_I_INUMP (fill)
-		  && -128 <= SCM_I_INUM (fill) && SCM_I_INUM (fill) < 128,
-		  badarg2);
+	fill = SCM_I_MAKINUM ((signed char) SCM_CHAR (fill));
+      SCM_ASRTGO (SCM_I_INUMP (fill), badarg2);
+      SCM_ASSERT_RANGE (SCM_ARG2, fill,
+                        -128 <= SCM_I_INUM (fill) && SCM_I_INUM (fill) < 128);
       for (i = base; n--; i += inc)
 	((char *) SCM_UVECTOR_BASE (ra))[i] = SCM_I_INUM (fill);
       break;
