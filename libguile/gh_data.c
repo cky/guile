@@ -102,16 +102,20 @@ void
 gh_set_substr (char *src, SCM dst, int start, int len)
 {
   char *dst_ptr;
-  unsigned long dst_len, effective_length;
+  unsigned long dst_len;
+  unsigned long effective_length;
 
   SCM_ASSERT (SCM_NIMP (dst) && SCM_STRINGP (dst), dst, SCM_ARG3,
 	      "gh_set_substr");
-  scm_protect_object (dst);
+
   dst_ptr = SCM_CHARS (dst);
   dst_len = SCM_LENGTH (dst);
-  effective_length = (len < dst_len) ? len : dst_len;
-  memcpy (dst_ptr + start, src, effective_length);
-  /* FIXME: must signal an error if len > dst_len */
+  SCM_ASSERT (len >= 0 && (unsigned) len <= dst_len,
+	      dst, SCM_ARG4, "gh_set_substr");
+  
+  scm_protect_object (dst);
+  effective_length = ((unsigned) len < dst_len) ? len : dst_len;
+  memmove (dst_ptr + start, src, effective_length);
   scm_unprotect_object (dst);
 }
 
