@@ -1,3 +1,10 @@
+1999-01-11  Roland Orre  <mdj@mdj.nada.kth.se>
+
+	* sort.c (scm_merge, scm_merge_list_x): Bugfix: Place elements
+	from first arg before equal elements in second arg in result.
+	(scm_merge_list_step): Bugfix: Don't presume that arguments in a C
+	function call are executed in a well defined order.
+
 1999-01-11  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* alloca.c (alloca): Cast value returned by malloc.  (Thanks to
