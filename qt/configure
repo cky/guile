@@ -1138,7 +1138,6 @@ host_os=`echo $host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 echo "$ac_t""$host" 1>&6
 
 
-
 case "$host" in
 i[3456]86-*-*)
 	qtmds_s=$srcdir/md/i386.s
