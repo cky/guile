@@ -82,7 +82,6 @@
 #include "libguile/init.h"
 #include "libguile/ioext.h"
 #include "libguile/kw.h"
-#include "libguile/libpath.h"
 #include "libguile/list.h"
 #include "libguile/load.h"
 #include "libguile/mallocs.h"
