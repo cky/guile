@@ -342,12 +342,17 @@ SCM_API void scm_remember_upto_here_1 (SCM obj);
 SCM_API void scm_remember_upto_here_2 (SCM obj1, SCM obj2);
 SCM_API void scm_remember_upto_here (SCM obj1, ...);
 
-/* In GCC we can force a reference to an SCM with a little do-nothing asm,
-   avoiding the code size and slowdown of an actual function call.
-   __volatile__ ensures nothing will be moved across the reference, and that
-   it won't be optimized away (or rather only if proved unreachable).
-   Unfortunately there doesn't seem to be any way to do the varargs
-   scm_remember_upto_here similarly.  */
+/* In GCC we can force a reference to an SCM by making it an input to an
+   empty asm.  This avoids the code size and slowdown of an actual function
+   call.  Unfortunately there doesn't seem to be any way to do the varargs
+   scm_remember_upto_here like this.
+
+   __volatile__ ensures nothing will be moved across the asm, and it won't
+   be optimized away (or only if proved unreachable).  Constraint "g" can be
+   used on all processors and allows any memory or general register (or
+   immediate) operand.  The actual asm syntax doesn't matter, we don't want
+   to use it, just ensure the operand is still alive.  See "Extended Asm" in
+   the GCC manual for more.  */
 
 #ifdef __GNUC__
 #define scm_remember_upto_here_1(x)             \
