@@ -202,6 +202,65 @@
       (equal? '(1 2) (append-map noop '((1) (2)) '(9 9))))))
   
 ;;
+;; break
+;;
+
+(with-test-prefix "break"
+
+  (define (test-break lst want-v1 want-v2)
+    (call-with-values
+	(lambda ()
+	  (break negative? lst))
+      (lambda (got-v1 got-v2)
+	(and (equal? got-v1 want-v1)
+	     (equal? got-v2 want-v2)))))
+
+  (pass-if "empty"
+    (test-break '() '() '()))
+
+  (pass-if "y"
+    (test-break '(1) '(1) '()))
+
+  (pass-if "n"
+    (test-break '(-1) '() '(-1)))
+
+  (pass-if "yy"
+    (test-break '(1 2) '(1 2) '()))
+
+  (pass-if "ny"
+    (test-break '(-1 1) '() '(-1 1)))
+
+  (pass-if "yn"
+    (test-break '(1 -1) '(1) '(-1)))
+
+  (pass-if "nn"
+    (test-break '(-1 -2) '() '(-1 -2)))
+
+  (pass-if "yyy"
+    (test-break '(1 2 3) '(1 2 3) '()))
+
+  (pass-if "nyy"
+    (test-break '(-1 1 2) '() '(-1 1 2)))
+
+  (pass-if "yny"
+    (test-break '(1 -1 2) '(1) '(-1 2)))
+
+  (pass-if "nny"
+    (test-break '(-1 -2 1) '() '(-1 -2 1)))
+
+  (pass-if "yyn"
+    (test-break '(1 2 -1) '(1 2) '(-1)))
+
+  (pass-if "nyn"
+    (test-break '(-1 1 -2) '() '(-1 1 -2)))
+
+  (pass-if "ynn"
+    (test-break '(1 -1 -2) '(1) '(-1 -2)))
+
+  (pass-if "nnn"
+    (test-break '(-1 -2 -3) '() '(-1 -2 -3))))
+
+;;
 ;; concatenate and concatenate!
 ;;
 
