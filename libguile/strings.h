@@ -68,13 +68,12 @@
 
    Legacy interface
 
-   - SCM_STRINGP returns false for sh-strings.
+   - SCM_STRINGP is just scm_is_string.
 
    - SCM_STRING_CHARS uses scm_i_string_writable_chars and immediately
      calls scm_i_stop_writing, hoping for the best.  SCM_STRING_LENGTH
-     is the same as scm_i_string_length.  SCM_STRINGP will only return
-     true for strings that are null-terminated when accessed with
-     SCM_STRING_CHARS.
+     is the same as scm_i_string_length.  SCM_STRING_CHARS will throw
+     an error for for strings that are not null-terminated.
 */
 
 SCM_API SCM scm_string_p (SCM x);
