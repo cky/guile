@@ -1,3 +1,7 @@
+2002-09-19  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* inline.h (scm_double_cell): move SET_GCMARK set out of if body. 
+
 2002-09-09  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc-malloc.c (scm_gc_register_collectable_memory): more overflow

@@ -208,9 +208,11 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 		  "scm_double_cell tried to allocate a marked cell.\n");
 	  abort();
 	}
-
-      SCM_SET_GC_MARK (z);
     }
+
+  /* see above. */
+  SCM_SET_GC_MARK (z);
+
 #endif
 
   return z;
