@@ -25,7 +25,7 @@
 /* The type code for the newly created smob type will be stored into
    this variable.  It has the prefix `scm_tc16_' to make it usable
    with the SCM_VALIDATE_SMOB macro below.  */
-static scm_bits_t scm_tc16_box;
+static scm_t_bits scm_tc16_box;
 
 
 /* This function is responsible for marking all SCM objects included

@@ -37,7 +37,7 @@ Extend your LD_LIBRARY_PATH variable (or equivalent) to include . and
 
 ** Example Session
 
-$ ./guile
+$ guile
 guile> (load-extension "libbox" "scm_init_box")
 guile> (define b (make-box))
 guile> b
