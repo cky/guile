@@ -40,9 +40,16 @@
  */
 
 
-/* This file is read twice in order to produce a second debugging
- * version of scm_ceval called scm_deval.  scm_deval is produced when
- * we define the preprocessor macro DEVAL.
+/* This file is read twice in order to produce debugging versions of
+ * scm_ceval and scm_apply.  These functions, scm_deval and
+ * scm_dapply, are produced when we define the preprocessor macro
+ * DEVAL.  The file is divided into sections which are treated
+ * differently with respect to DEVAL.  The heads of these sections are
+ * marked with the string "SECTION:".
+ */
+
+
+/* SECTION: This code is compiled once.
  */
 
 #ifndef DEVAL
@@ -52,24 +59,60 @@
 
 
 
+/* The evaluator contains a plethora of EVAL symbols.
+ * This is an attempt at explanation.
+ *
+ * The following macros should be used in code which is read twice
+ * (where the choice of evaluator is hard soldered):
+ *
+ *   SCM_CEVAL is the symbol used within one evaluator to call itself.
+ *   Originally, it is defined to scm_ceval, but is redefined to
+ *   scm_deval during the second pass.
+ *  
+ *   SIDEVAL corresponds to SCM_CEVAL, but is used in situations where
+ *   only side effects of expressions matter.  All immediates are
+ *   ignored.
+ *  
+ *   EVALIM is used when it is known that the expression is an
+ *   immediate.  (This macro never calls an evaluator.)
+ *  
+ *   EVALCAR evaluates the car of an expression.
+ *  
+ *   EVALCELLCAR is like EVALCAR, but is used when it is known that the
+ *   car is a lisp cell.
+ *
+ * The following macros should be used in code which is read once
+ * (where the choice of evaluator is dynamic):
+ *
+ *   XEVAL takes care of immediates without calling an evaluator.  It
+ *   then calls scm_ceval *or* scm_deval, depending on the debugging
+ *   mode.
+ *  
+ *   XEVALCAR corresponds to EVALCAR, but uses scm_ceval *or* scm_deval
+ *   depending on the debugging mode.
+ *
+ * The main motivation for keeping this plethora is efficiency
+ * together with maintainability (=> locality of code).
+ */
+
 #define EVALCELLCAR(x, env) (SCM_SYMBOLP (SCM_CAR(x)) \
 			     ? *scm_lookupcar(x, env) \
 			     : SCM_CEVAL(SCM_CAR(x), env))
 
 #ifdef MEMOIZE_LOCALS
-#define EVALIMP(x, env) (SCM_ILOCP(x)?*scm_ilookup((x), env):x)
+#define EVALIM(x, env) (SCM_ILOCP(x)?*scm_ilookup((x), env):x)
 #else
-#define EVALIMP(x, env) x
+#define EVALIM(x, env) x
 #endif
 #define EVALCAR(x, env) (SCM_NCELLP(SCM_CAR(x))\
 			? (SCM_IMP(SCM_CAR(x)) \
-			   ? EVALIMP(SCM_CAR(x), env) \
+			   ? EVALIM(SCM_CAR(x), env) \
 			   : SCM_GLOC_VAL(SCM_CAR(x))) \
 			: EVALCELLCAR(x, env))
 #ifdef DEBUG_EXTENSIONS
 #define XEVALCAR(x, env) (SCM_NCELLP(SCM_CAR(x)) \
 			  ? (SCM_IMP(SCM_CAR(x)) \
-			     ? EVALIMP(SCM_CAR(x), env) \
+			     ? EVALIM(SCM_CAR(x), env) \
 			     : SCM_GLOC_VAL(SCM_CAR(x))) \
 			  : (SCM_SYMBOLP(SCM_CAR(x)) \
 			     ? *scm_lookupcar(x, env) \
@@ -204,7 +247,9 @@ scm_unmemocar (form, env)
      SCM env;
 #endif
 {
+#ifdef DEBUG_EXTENSIONS
   register int ir;
+#endif
   SCM c;
 
   if (SCM_IMP (form))
@@ -213,6 +258,7 @@ scm_unmemocar (form, env)
   if (1 == (c & 7))
     SCM_CAR (form) = SCM_CAR (c - 1);
 #ifdef MEMOIZE_LOCALS
+#ifdef DEBUG_EXTENSIONS
   else if (SCM_ILOCP (c))
     {
       for (ir = SCM_IFRAME (c); ir != 0; --ir)
@@ -222,6 +268,7 @@ scm_unmemocar (form, env)
 	env = SCM_CDR (env);
       SCM_CAR (form) = SCM_ICDRP (c) ? env : SCM_CAR (env);
     }
+#endif
 #endif
   return form;
 }
@@ -236,7 +283,7 @@ scm_eval_car (pair, env)
      SCM env;
 #endif
 {
-  return EVALCAR (pair, env);
+  return XEVALCAR (pair, env);
 }
 
 
@@ -257,11 +304,16 @@ static char s_formals[] = "bad formals";
 SCM scm_i_dot, scm_i_quote, scm_i_quasiquote, scm_i_lambda, scm_i_let,
   scm_i_arrow, scm_i_else, scm_i_unquote, scm_i_uq_splicing, scm_i_apply;
 SCM scm_i_name;
-#ifdef DEBUG_EXTENSIONS
-static SCM enter_frame_sym, exit_frame_sym;
-#endif
+SCM scm_i_define, scm_i_and, scm_i_begin, scm_i_case, scm_i_cond,
+  scm_i_do, scm_i_if, scm_i_let, scm_i_letrec, scm_i_letstar,
+  scm_i_or, scm_i_set, scm_i_atapply, scm_i_atcall_cc;
 static char s_quasiquote[] = "quasiquote";
 static char s_delay[] = "delay";
+static char s_undefine[] = "undefine";
+#ifdef DEBUG_EXTENSIONS
+SCM scm_i_enter_frame, scm_i_apply_frame, scm_i_exit_frame;
+SCM scm_i_trace;
+#endif
 
 #define ASRTSYNTAX(cond_, msg_) if(!(cond_))scm_wta(xorig, (msg_), what);
 
@@ -337,24 +389,10 @@ scm_m_set (xorig, env)
      SCM env;
 #endif
 {
-  SCM x;
-  int len;
-
-  x = SCM_CDR (xorig);
-  len = scm_ilength (x);
-  ASSYNT ((len > 0) && !(len & 1), xorig, s_expression, "set!");
-
-  {
-    SCM y;
-    y = x;
-    while (len)
-      {
-	ASSYNT (SCM_NIMP (SCM_CAR (y)) && SCM_SYMBOLP (SCM_CAR (y)),
-		xorig, s_variable, "set!");
-	y = SCM_CDR (SCM_CDR (x));
-	len -= 2;
-      }
-  }
+  SCM x = SCM_CDR (xorig);
+  ASSYNT (2 == scm_ilength (x), xorig, s_expression, "set!");
+  ASSYNT (SCM_NIMP (SCM_CAR (x)) && SCM_SYMBOLP (SCM_CAR (x)),
+	  xorig, s_variable, "set!");
   return scm_cons (SCM_IM_SET, x);
 }
 
@@ -556,8 +594,7 @@ scm_m_letstar (xorig, env)
   ASSYNT (len >= 2, xorig, s_body, "let*");
   proc = SCM_CAR (x);
   ASSYNT (scm_ilength (proc) >= 0, xorig, s_bindings, "let*");
-  while SCM_NIMP
-    (proc)
+  while SCM_NIMP (proc)
     {
       arg1 = SCM_CAR (proc);
       ASSYNT (2 == scm_ilength (arg1), xorig, s_bindings, "let*");
@@ -628,19 +665,10 @@ scm_m_do (xorig, env)
   return scm_cons (SCM_IM_DO, x);
 }
 
-/* evalcar is small version of inline EVALCAR when we don't care about speed */
-#ifdef __STDC__
-static SCM 
-evalcar (SCM x, SCM env)
-#else
-static SCM 
-evalcar (x, env)
-     SCM x;
-     SCM env;
-#endif
-{
-  return XEVALCAR (x, env);
-}
+/* evalcar is small version of inline EVALCAR when we don't care about
+ * speed
+ */
+#define evalcar scm_eval_car
 
 #ifdef __STDC__
 static SCM 
@@ -772,6 +800,10 @@ scm_m_define (x, env)
   if (SCM_TOP_LEVEL (env))
     {
       x = evalcar (x, env);
+#ifdef DEBUG_EXTENSIONS
+      if (RECORD_PROCNAMES && SCM_NIMP (x) && SCM_CLOSUREP (x))
+	scm_set_procedure_property_x (x, scm_i_name, proc);
+#endif
       arg1 = scm_sym2vcell (proc, env_top_level (env), SCM_BOOL_T);
 #if 0
 #ifndef RECKLESS
@@ -783,10 +815,6 @@ scm_m_define (x, env)
       if (5 <= scm_verbose && SCM_UNDEFINED != SCM_CDR (arg1))
 	scm_warn ("redefining ", SCM_CHARS (proc));
 #endif
-#ifdef DEBUG_EXTENSIONS
-      if (RECORD_PROCNAMES && SCM_NIMP (x) && SCM_CLOSUREP (x))
-	scm_set_procedure_property_x (x, scm_i_name, proc);
-#endif
       SCM_CDR (arg1) = x;
 #ifdef SICP
       return scm_cons2 (scm_i_quote, SCM_CAR (arg1), SCM_EOL);
@@ -796,6 +824,38 @@ scm_m_define (x, env)
     }
   return scm_cons2 (SCM_IM_DEFINE, proc, x);
 }
+
+SCM
+scm_m_undefine (x, env)
+     SCM x, env;
+{
+  SCM arg1 = x;
+  x = SCM_CDR (x);
+  ASSYNT (SCM_TOP_LEVEL (env), arg1, "bad placement ", s_undefine);
+  ASSYNT (SCM_NIMP (x) && SCM_CONSP (x) && SCM_CDR (x) == SCM_EOL,
+	  arg1, s_expression, s_undefine);
+  x = SCM_CAR (x);
+  ASSYNT (SCM_NIMP (x) && SCM_SYMBOLP (x), arg1, s_variable, s_undefine);
+  arg1 = scm_sym2vcell (x, env_top_level (env), SCM_BOOL_F);
+  ASSYNT (SCM_NFALSEP (arg1) && !SCM_UNBNDP (SCM_CDR (arg1)),
+	  x, "variable already unbound ", s_undefine);
+#if 0
+#ifndef RECKLESS
+  if (SCM_NIMP (SCM_CDR (arg1)) && ((SCM) SCM_SNAME (SCM_CDR (arg1)) == x))
+    scm_warn ("undefining built-in ", SCM_CHARS (x));
+  else
+#endif
+    if (5 <= scm_verbose && SCM_UNDEFINED != SCM_CDR (arg1))
+      scm_warn ("redefining ", SCM_CHARS (x));
+#endif
+  SCM_CDR (arg1) = SCM_UNDEFINED;
+#ifdef SICP
+  return SCM_CAR (arg1);
+#else
+  return SCM_UNSPECIFIED;
+#endif
+}
+
 /* end of acros */
 
 #ifdef __STDC__
@@ -915,6 +975,209 @@ scm_m_cont (xorig, env)
   return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
 }
 
+/* scm_unmemocopy takes a memoized expression together with its
+ * environment and rewrites it to its original form.  Thus, it is the
+ * inversion of the rewrite rules above.  The procedure is not
+ * optimized for speed.  It's used in scm_iprin1 when printing the
+ * code of a closure, in scm_procedure_source and in scm_expr_stack
+ * when generating the source for a stackframe.
+ */
+
+#ifdef __STDC__
+static SCM
+unmemocopy (SCM x, SCM env)
+#else
+static SCM
+unmemocopy (x, env)
+     SCM x;
+     SCM env;
+#endif
+{
+  SCM ls, z;
+#ifdef DEBUG_EXTENSIONS
+  SCM p;
+#endif
+  if (SCM_NCELLP (x) || SCM_NECONSP (x))
+    return x;
+#ifdef DEBUG_EXTENSIONS
+  p = scm_whash_lookup (scm_source_whash, x);
+#endif
+  switch (SCM_TYP7 (x))
+    {
+    case (127 & SCM_IM_AND):
+      ls = z = scm_cons (scm_i_and, SCM_UNSPECIFIED);
+      break;
+    case (127 & SCM_IM_BEGIN):
+      ls = z = scm_cons (scm_i_begin, SCM_UNSPECIFIED);
+      break;
+    case (127 & SCM_IM_CASE):
+      ls = z = scm_cons (scm_i_case, SCM_UNSPECIFIED);
+      break;
+    case (127 & SCM_IM_COND):
+      ls = z = scm_cons (scm_i_cond, SCM_UNSPECIFIED);
+      break;
+    case (127 & SCM_IM_DO):
+      ls = scm_cons (scm_i_do, SCM_UNSPECIFIED);
+      goto transform;
+    case (127 & SCM_IM_IF):
+      ls = z = scm_cons (scm_i_if, SCM_UNSPECIFIED);
+      break;
+    case (127 & SCM_IM_LET):
+      ls = scm_cons (scm_i_let, SCM_UNSPECIFIED);
+      goto transform;
+    case (127 & SCM_IM_LETREC):
+      {
+	SCM f, v, e, s;
+	ls = scm_cons (scm_i_letrec, SCM_UNSPECIFIED);
+      transform:
+	x = SCM_CDR (x);
+	f = v = SCM_CAR (x);
+	x = SCM_CDR (x);
+	z = EXTEND_SCM_ENV (f, SCM_EOL, env);
+	e = scm_reverse (unmemocopy (SCM_CAR (x),
+				     SCM_CAR (ls) == scm_i_letrec ? z : env));
+	env = z;
+	s = SCM_CAR (ls) == scm_i_do
+	    ? scm_reverse (unmemocopy (SCM_CDR (SCM_CDR (SCM_CDR (x))), env))
+	    : f;
+	z = SCM_EOL;
+	do
+	  {
+	    z = scm_acons (SCM_CAR (v),
+			   scm_cons (SCM_CAR (e),
+				     SCM_CAR (s) == SCM_CAR (v)
+				     ? SCM_EOL
+				     : scm_cons (SCM_CAR (s), SCM_EOL)),
+			   z);
+	    v = SCM_CDR (v);
+	    e = SCM_CDR (e);
+	    s = SCM_CDR (s);
+	  }
+	while SCM_NIMP (v);
+	SCM_CDR (ls) = z = scm_cons (z, SCM_UNSPECIFIED);
+	if (SCM_CAR (ls) == scm_i_do)
+	  {
+	    x = SCM_CDR (x);
+	    z = (SCM_CDR (z) = scm_cons (unmemocopy (SCM_CAR (x), env),
+				     SCM_UNSPECIFIED));
+	    x = (SCM) (&SCM_CAR (SCM_CDR (x)) - 1);
+	  }
+	break;
+      }
+    case (127 & SCM_IM_LETSTAR):
+      {
+	SCM b, y;
+	x = SCM_CDR (x);
+	b = SCM_CAR (x);
+	y = SCM_EOL;
+	if SCM_IMP (b)
+	  {
+	    env = EXTEND_SCM_ENV (SCM_EOL, SCM_EOL, env);
+	    goto letstar;
+	  }
+	y = z = scm_acons (SCM_CAR (b),
+			   unmemocar (
+	scm_cons (unmemocopy (SCM_CAR (SCM_CDR (b)), env), SCM_EOL), env),
+			   SCM_UNSPECIFIED);
+	env = EXTEND_SCM_ENV (SCM_CAR (b), SCM_BOOL_F, env);
+	b = SCM_CDR (SCM_CDR (b));
+	if (SCM_IMP (b))
+	  {
+	    SCM_SETCDR (y, SCM_EOL);
+	    ls = scm_cons (scm_i_let, z = scm_cons (y, SCM_UNSPECIFIED));
+	    break;
+	  }
+	do
+	  {
+	    z = (SCM_CDR (z) = scm_acons (SCM_CAR (b),
+					  unmemocar (
+	    scm_cons (unmemocopy (SCM_CAR (SCM_CDR (b)), env), SCM_EOL), env),
+					  SCM_UNSPECIFIED));
+	    env = EXTEND_SCM_ENV (SCM_CAR (b), SCM_BOOL_F, env);
+	    b = SCM_CDR (SCM_CDR (b));
+	  }
+	while SCM_NIMP (b);
+	SCM_CDR (z) = SCM_EOL;
+      letstar:
+	ls = scm_cons (scm_i_letstar, z = scm_cons (y, SCM_UNSPECIFIED));
+	break;
+      }
+    case (127 & SCM_IM_OR):
+      ls = z = scm_cons (scm_i_or, SCM_UNSPECIFIED);
+      break;
+    case (127 & SCM_IM_LAMBDA):
+      x = SCM_CDR (x);
+      ls = scm_cons (scm_i_lambda,
+		     z = scm_cons (SCM_CAR (x), SCM_UNSPECIFIED));
+      env = EXTEND_SCM_ENV (SCM_CAR (x), SCM_EOL, env);
+      break;
+    case (127 & SCM_IM_QUOTE):
+      ls = z = scm_cons (scm_i_quote, SCM_UNSPECIFIED);
+      break;
+    case (127 & SCM_IM_SET):
+      ls = z = scm_cons (scm_i_set, SCM_UNSPECIFIED);
+      break;
+    case (127 & SCM_IM_DEFINE):
+      {
+	SCM n;
+	x = SCM_CDR (x);
+	ls = scm_cons (scm_i_define,
+		       z = scm_cons (n = SCM_CAR (x), SCM_UNSPECIFIED));
+	if (SCM_NNULLP (env))
+	  SCM_CAR (SCM_CAR (env)) = scm_cons (n, SCM_CAR (SCM_CAR (env)));
+	break;
+      }
+    case (127 & SCM_MAKISYM (0)):
+      z = SCM_CAR (x);
+      if (!SCM_ISYMP (z))
+	goto unmemo;
+      switch SCM_ISYMNUM (z)
+	{
+	case (SCM_ISYMNUM (SCM_IM_APPLY)):
+	  ls = z = scm_cons (scm_i_atapply, SCM_UNSPECIFIED);
+	  goto loop;
+	case (SCM_ISYMNUM (SCM_IM_CONT)):
+	  ls = z = scm_cons (scm_i_atcall_cc, SCM_UNSPECIFIED);
+	  goto loop;
+	default:
+	}
+    unmemo:
+    default:
+      ls = z = unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
+				    SCM_UNSPECIFIED),
+			  env);
+    }
+loop:
+  while (SCM_CELLP (x = SCM_CDR (x)) && SCM_ECONSP (x))
+    z = (SCM_CDR (z) = unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
+					    SCM_UNSPECIFIED),
+				  env));
+  SCM_CDR (z) = x;
+#ifdef DEBUG_EXTENSIONS
+  if (SCM_NFALSEP (p))
+    scm_whash_insert (scm_source_whash, ls, p);
+#endif
+  return ls;
+}
+
+#ifdef __STDC__
+SCM
+scm_unmemocopy (SCM x, SCM env)
+#else
+SCM
+scm_unmemocopy (x, env)
+     SCM x;
+     SCM env;
+#endif
+{
+  if (SCM_NNULLP (env))
+    /* Make a copy of the lowest frame to protect it from
+       modifications by SCM_IM_DEFINE */
+    return unmemocopy (x, scm_cons (SCM_CAR (env), SCM_CDR (env)));
+  else
+    return unmemocopy (x, env);
+}
+
 #ifndef RECKLESS
 #ifdef __STDC__
 int 
@@ -944,25 +1207,15 @@ scm_badargsp (formals, args)
 
 long scm_tc16_macro;
 
-#endif /* !DEVAL */
-
-#ifdef DEVAL
-#undef SCM_EVAL_ARGS
-#define SCM_EVAL_ARGS scm_deval_args
-#undef SCM_CEVAL
-#define SCM_CEVAL scm_deval	/* Substitute all uses of scm_ceval */
-#undef SCM_APPLY
-#define SCM_APPLY scm_dapply
-#undef RETURN
-#define RETURN(e) {proc = (e); goto exit;}
-#else
-#define SCM_EVAL_ARGS scm_eval_args
-#define RETURN(x) return x;
-#endif
-
+#ifdef __STDC__
 SCM 
-SCM_EVAL_ARGS (l, env)
-     SCM l, env;
+scm_eval_args (SCM l, SCM env)
+#else
+SCM 
+scm_eval_args (l, env)
+     SCM l;
+     SCM env;
+#endif
 {
   SCM res = SCM_EOL, *lloc = &res;
   while (SCM_NIMP (l))
@@ -973,6 +1226,141 @@ SCM_EVAL_ARGS (l, env)
     }
   return res;
 }
+#endif /* !DEVAL */
+
+
+/* SECTION: This code is specific for the debugging support.  One
+ * branch is read when DEVAL isn't defined, the other when DEVAL is
+ * defined.
+ */
+
+#ifndef DEVAL
+
+#define SCM_APPLY scm_apply
+#define PREP_APPLY(proc, args)
+#define ENTER_APPLY
+#define RETURN(x) return x;
+#ifdef NO_CEVAL_STACK_CHECK
+# ifdef STACK_CHECK
+#  undef STACK_CHECK
+# endif
+#endif
+
+#else /* !DEVAL */
+
+#undef SCM_CEVAL
+#define SCM_CEVAL scm_deval	/* Substitute all uses of scm_ceval */
+#undef SCM_APPLY
+#define SCM_APPLY scm_dapply
+#undef PREP_APPLY
+#define PREP_APPLY(p, l) \
+{ ++debug.info; debug.info->a.proc = p; debug.info->a.args = l; }
+#undef ENTER_APPLY
+#define ENTER_APPLY \
+{\
+  SETARGSREADY (debug);\
+  if (CHECK_APPLY)\
+    if (APPLY_FRAME || (TRACE && PROCTRACEP (proc)))\
+      {\
+	SCM tmp, tail = TRACEDFRAMEP (debug) ? SCM_BOOL_T : SCM_BOOL_F;\
+	SETTRACEDFRAME (debug);\
+	if (CHEAPTRAPS)\
+	  {\
+	    tmp = scm_make_debugobj ((scm_debug_frame *) &debug);\
+	    scm_ithrow (scm_i_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
+	  }\
+	else\
+	  {\
+	    scm_make_cont (&tmp);\
+	    if (!setjmp (SCM_JMPBUF (tmp)))\
+	      scm_ithrow (scm_i_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
+	  }\
+      }\
+}
+#undef RETURN
+#define RETURN(e) {proc = (e); goto exit;}
+#ifdef STACK_LIMIT
+# define STACK_CHECK
+#endif
+
+/* scm_ceval_ptr points to the currently selected evaluator.
+ * *fixme*: Although efficiency is important here, this state variable
+ * should probably not be a global.  It should be related to the
+ * current repl.
+ */
+
+#ifdef __STDC__
+SCM (*scm_ceval_ptr) (SCM exp, SCM env);
+#else
+SCM (*scm_ceval_ptr) ();
+#endif
+
+/* last_debug_info_frame contains a pointer to the last debugging
+ * information stack frame.  It is accessed very often from the
+ * debugging evaluator, so it should probably not be indirectly
+ * addressed.  Better to save and restore it from the current root at
+ * any stack swaps.
+ */
+
+scm_debug_frame *last_debug_info_frame;
+
+/* scm_debug_eframe_size is the number of slots available for pseudo
+ * stack frames at each real stack frame.
+ */
+
+int scm_debug_eframe_size;
+
+int debug_mode, check_entry, check_apply, check_exit;
+
+scm_option scm_debug_opts[] = {
+  { SCM_OPTION_BOOLEAN, "procnames", 1 },
+  { SCM_OPTION_BOOLEAN, "deval", 0 },
+  { SCM_OPTION_BOOLEAN, "breakpoints", 0 },
+  { SCM_OPTION_BOOLEAN, "trace", 0 },
+  { SCM_OPTION_BOOLEAN, "backtrace", 0 },
+  { SCM_OPTION_INTEGER, "depth", 80 },
+  { SCM_OPTION_INTEGER, "frames", 4 },
+  { SCM_OPTION_BOOLEAN, "cheap", 1 }
+};
+
+scm_option scm_evaluator_trap_table[] = {
+  { SCM_OPTION_BOOLEAN, "enter-frame", 0 },
+  { SCM_OPTION_BOOLEAN, "apply-frame", 0 },
+  { SCM_OPTION_BOOLEAN, "exit-frame", 0 }
+};
+
+SCM
+scm_deval_args (l, env, lloc)
+     SCM l, env, *lloc;
+{
+  SCM *res = lloc;
+  while (SCM_NIMP (l))
+    {
+      *lloc = scm_cons (EVALCAR (l, env), SCM_EOL);
+      lloc = &SCM_CDR (*lloc);
+      l = SCM_CDR (l);
+    }
+  return *res;
+}
+
+#endif /* !DEVAL */
+
+
+/* SECTION: Some local definitions for the evaluator.
+ */
+
+#ifndef DEVAL
+#ifdef SCM_FLOATS
+#define CHECK_EQVISH(A,B) 	(((A) == (B)) || (SCM_NFALSEP (scm_eqv_p ((A), (B)))))
+#else
+#define CHECK_EQVISH(A,B) 	((A) == (B))
+#endif
+#endif /* DEVAL */
+
+
+/* SECTION: This is the evaluator.  Like any real monster, it has
+ * three heads.  This code is compiled twice.
+ */
 
 #if 0
 #ifdef __STDC__
@@ -999,31 +1387,109 @@ scm_deval (x, env)
 {}
 #endif
 
-#ifdef SCM_FLOATS
-#define CHECK_EQVISH(A,B) 	(((A) == (B)) || (SCM_NFALSEP (scm_eqv_p ((A), (B)))))
+#ifdef __STDC__
+SCM 
+SCM_CEVAL (SCM x, SCM env)
 #else
-#define CHECK_EQVISH(A,B) 	((A) == (B))
-#endif
-
-
-SCM
+SCM 
 SCM_CEVAL (x, env)
      SCM x;
      SCM env;
+#endif
 {
   union
     {
       SCM *lloc;
       SCM arg1;
     } t;
-  SCM proc;
-  SCM arg2;
-
-  SCM_CHECK_STACK;
-
- loop:
+  SCM proc, arg2;
+#ifdef DEVAL
+  struct
+  {
+    scm_debug_frame *prev;
+    long status;
+    scm_debug_info vect[scm_debug_eframe_size];
+    scm_debug_info *info;
+  } debug;
+  debug.prev = last_debug_info_frame;
+  debug.status = scm_debug_eframe_size;
+  debug.info = &debug.vect[0];
+  last_debug_info_frame = (scm_debug_frame *) &debug;
+#endif
+#ifdef STACK_CHECK
+  if (STACK_OVERFLOW_P ((STACKITEM *) &debug) && scm_check_stack_p)
+    {
+      debug.info->e.exp = x;
+      debug.info->e.env = env;
+      scm_report_stack_overflow ();
+    }
+#endif
+#ifdef DEVAL
+  goto start;
+#endif
+loopnoap:
+  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+loop:
+#ifdef DEVAL
+#if 0 /* This will probably never have any practical use ... */
+  if (CHECK_EXIT)
+    {
+      if (SINGLE_STEP || (TRACE && TRACEDFRAMEP (debug)))
+	{
+	  SINGLE_STEP = 0;
+	  RESET_DEBUG_MODE;
+	  CLEARTRACEDFRAME (debug);
+	  scm_make_cont (&t.arg1);
+	  if (!setjmp (SCM_JMPBUF (t.arg1)))
+	    scm_ithrow (scm_i_exit_tail, scm_cons (t.arg1, SCM_EOL), 0);
+	}
+    }
+nextframe:
+#endif
+  CLEARARGSREADY (debug);
+  if (OVERFLOWP (debug))
+    --debug.info;
+  else if (++debug.info == (scm_debug_info *) &debug.info)
+    {
+      SETOVERFLOW (debug);
+      debug.info -= 2;
+    }
+start:
+  debug.info->e.exp = x;
+  debug.info->e.env = env;
+  if (CHECK_ENTRY)
+    if (ENTER_FRAME || (BREAKPOINTS && SRCBRKP (x)))
+      {
+	SCM tail = TAILRECP (debug) ? SCM_BOOL_T : SCM_BOOL_F;
+	SETTAILREC (debug);
+	ENTER_FRAME = 0;
+	RESET_DEBUG_MODE;
+	if (CHEAPTRAPS)
+	  t.arg1 = scm_make_debugobj ((scm_debug_frame *) &debug);
+	else
+	  {
+	    scm_make_cont (&t.arg1);
+	    if (setjmp (SCM_JMPBUF (t.arg1)))
+	      {
+		x = SCM_THROW_VALUE (t.arg1);
+		if (SCM_IMP (x))
+		  {
+		    RETURN (x);
+		  }
+		else
+		  /* This gives the possibility for the debugger to
+		     modify the source expression before evaluation. */
+		  goto dispatch;
+	      }
+	  }
+	scm_ithrow (scm_i_enter_frame,
+		    scm_cons2 (t.arg1, tail,
+			       scm_cons (scm_unmemocopy (x, env), SCM_EOL)),
+		    0);
+      }
+dispatch:
+#endif
   SCM_ASYNC_TICK;
-
   switch (SCM_TYP7 (x))
     {
     case scm_tcs_symbols:
@@ -1042,10 +1508,12 @@ SCM_CEVAL (x, env)
 	  }
 	else
 	  x = t.arg1;
+      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
 
     case (127 & SCM_IM_BEGIN):
-
+    cdrxnoap:
+      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
     cdrxbegin:
       x = SCM_CDR (x);
 
@@ -1061,13 +1529,13 @@ SCM_CEVAL (x, env)
       if (SCM_NCELLP (SCM_CAR (x)))
 	{
 	  x = SCM_CAR (x);
-	  RETURN (SCM_IMP (x) ? EVALIMP (x, env) : SCM_GLOC_VAL (x));
+	  RETURN (SCM_IMP (x) ? EVALIM (x, env) : SCM_GLOC_VAL (x))
 	}
 
       if (SCM_SYMBOLP (SCM_CAR (x)))
 	{
 	retval:
-	  RETURN (*scm_lookupcar (x, env));
+	  RETURN (*scm_lookupcar (x, env))
 	}
 
       x = SCM_CAR (x);
@@ -1083,6 +1551,7 @@ SCM_CEVAL (x, env)
 	  if (scm_i_else == SCM_CAR (proc))
 	    {
 	      x = SCM_CDR (proc);
+	      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 	      goto begin;
 	    }
 	  proc = SCM_CAR (proc);
@@ -1091,12 +1560,13 @@ SCM_CEVAL (x, env)
 	      if (CHECK_EQVISH (SCM_CAR (proc), t.arg1))
 		{
 		  x = SCM_CDR (SCM_CAR (x));
+		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		  goto begin;
 		}
 	      proc = SCM_CDR (proc);
 	    }
 	}
-      RETURN (SCM_UNSPECIFIED);
+      RETURN (SCM_UNSPECIFIED)
 
 
     case (127 & SCM_IM_COND):
@@ -1107,19 +1577,24 @@ SCM_CEVAL (x, env)
 	  if (SCM_NFALSEP (t.arg1))
 	    {
 	      x = SCM_CDR (proc);
-	      if (SCM_NULLP (x))
+	      if SCM_NULLP (x)
 		{
-		  RETURN (t.arg1);
+		  RETURN (t.arg1)
 		}
 	      if (scm_i_arrow != SCM_CAR (x))
-		goto begin;
+		{
+		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		  goto begin;
+		}
 	      proc = SCM_CDR (x);
 	      proc = EVALCAR (proc, env);
 	      SCM_ASRTGO (SCM_NIMP (proc), badfun);
+	      PREP_APPLY (proc, scm_cons (t.arg1, SCM_EOL));
+	      ENTER_APPLY;
 	      goto evap1;
 	    }
 	}
-      RETURN (SCM_UNSPECIFIED);
+      RETURN (SCM_UNSPECIFIED)
 
 
     case (127 & SCM_IM_DO):
@@ -1146,9 +1621,8 @@ SCM_CEVAL (x, env)
 	}
       x = SCM_CDR (proc);
       if (SCM_NULLP (x))
-	{
-	  RETURN (SCM_UNSPECIFIED);
-	}
+	RETURN (SCM_UNSPECIFIED);
+      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto begin;
 
 
@@ -1160,6 +1634,7 @@ SCM_CEVAL (x, env)
 	{
 	  RETURN (SCM_UNSPECIFIED);
 	}
+      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
 
 
@@ -1174,7 +1649,7 @@ SCM_CEVAL (x, env)
       while (SCM_NIMP (proc = SCM_CDR (proc)));
       env = EXTEND_SCM_ENV (SCM_CAR (x), t.arg1, env);
       x = SCM_CDR (x);
-      goto cdrxbegin;
+      goto cdrxnoap;
 
 
     case (127 & SCM_IM_LETREC):
@@ -1189,7 +1664,7 @@ SCM_CEVAL (x, env)
 	}
       while (SCM_NIMP (proc = SCM_CDR (proc)));
       SCM_CDR (SCM_CAR (env)) = t.arg1;
-      goto cdrxbegin;
+      goto cdrxnoap;
 
 
     case (127 & SCM_IM_LETSTAR):
@@ -1198,7 +1673,7 @@ SCM_CEVAL (x, env)
       if (SCM_IMP (proc))
 	{
 	  env = EXTEND_SCM_ENV (SCM_EOL, SCM_EOL, env);
-	  goto cdrxbegin;
+	  goto cdrxnoap;
 	}
       do
 	{
@@ -1207,7 +1682,7 @@ SCM_CEVAL (x, env)
 	  env = EXTEND_SCM_ENV (t.arg1, EVALCAR (proc, env), env);
 	}
       while (SCM_NIMP (proc = SCM_CDR (proc)));
-      goto cdrxbegin;
+      goto cdrxnoap;
 
     case (127 & SCM_IM_OR):
       x = SCM_CDR (x);
@@ -1221,6 +1696,7 @@ SCM_CEVAL (x, env)
 	    }
 	  x = t.arg1;
 	}
+      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
 
 
@@ -1233,10 +1709,9 @@ SCM_CEVAL (x, env)
 
 
     case (127 & SCM_IM_SET):
-    set_some_more:
       x = SCM_CDR (x);
       proc = SCM_CAR (x);
-      switch (7 & (int)proc)
+      switch (7 & (int) proc)
 	{
 	case 0:
 	  t.lloc = scm_lookupcar (x, env);
@@ -1252,8 +1727,6 @@ SCM_CEVAL (x, env)
 	}
       x = SCM_CDR (x);
       *t.lloc = EVALCAR (x, env);
-      if (!SCM_NULLP (SCM_CDR(x)))
-	goto set_some_more;
 #ifdef SICP
       RETURN (*t.lloc);
 #else
@@ -1266,6 +1739,10 @@ SCM_CEVAL (x, env)
       proc = SCM_CAR (x);
       x = SCM_CDR (x);
       x = evalcar (x, env);
+#ifdef DEBUG_EXTENSIONS
+      if (RECORD_PROCNAMES && SCM_NIMP (x) && SCM_CLOSUREP (x))
+	scm_set_procedure_property_x (x, scm_i_name, proc);
+#endif
       env = SCM_CAR (env);
       SCM_DEFER_INTS;
       SCM_CAR (env) = scm_cons (proc, SCM_CAR (env));
@@ -1291,7 +1768,7 @@ SCM_CEVAL (x, env)
 	case (SCM_ISYMNUM (IM_VSET)):
 	  SCM_CDR (SCM_CAR ( SCM_CDR (x))) = EVALCAR( SCM_CDR ( SCM_CDR (x)), env);
 	  SCM_CAR (SCM_CAR ( SCM_CDR (x))) = scm_tc16_variable;
-	  RETURN (SCM_UNSPECIFIED);
+	  RETURN (SCM_UNSPECIFIED)
 #endif
 
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
@@ -1300,8 +1777,12 @@ SCM_CEVAL (x, env)
 	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
 	  if (SCM_CLOSUREP (proc))
 	    {
+	      PREP_APPLY (proc, SCM_EOL);
 	      t.arg1 = SCM_CDR (SCM_CDR (x));
 	      t.arg1 = EVALCAR (t.arg1, env);
+#ifdef DEVAL
+	      debug.info->a.args = t.arg1;
+#endif
 #ifndef RECKLESS
 	      if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), t.arg1))
 		goto wrongnumargs;
@@ -1319,11 +1800,13 @@ SCM_CEVAL (x, env)
 	    {
 	      SCM val;
 	      val = SCM_THROW_VALUE (t.arg1);
-	      RETURN (val);;
+	      RETURN (val);
 	    }
 	  proc = SCM_CDR (x);
 	  proc = evalcar (proc, env);
 	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
+	  PREP_APPLY (proc, scm_cons (t.arg1, SCM_EOL));
+	  ENTER_APPLY;
 	  goto evap1;
 
 	default:
@@ -1401,14 +1884,37 @@ SCM_CEVAL (x, env)
 		case 2:
 		  if (scm_ilength (t.arg1) <= 0)
 		    t.arg1 = scm_cons2 (SCM_IM_BEGIN, t.arg1, SCM_EOL);
+#ifdef DEVAL
+		  if (!SCM_CLOSUREP (SCM_CDR (proc)))
+		    {
+#if 0 /* Top-level defines doesn't very often occur in backtraces */
+		      if (scm_m_define == SCM_SUBRF (SCM_CDR (proc)) && SCM_TOP_LEVEL (env))
+			/* Prevent memoizing result of define macro */
+			{
+			  debug.info->e.exp = scm_cons (SCM_CAR (x), SCM_CDR (x));
+			  scm_set_source_properties_x (debug.info->e.exp,
+						       scm_source_properties (x));
+			}
+#endif
+		      SCM_DEFER_INTS;
+		      SCM_CAR (x) = SCM_CAR (t.arg1);
+		      SCM_CDR (x) = SCM_CDR (t.arg1);
+		      SCM_ALLOW_INTS;
+		      goto dispatch;
+		    }
+		  /* Prevent memoizing of debug info expression. */
+		  debug.info->e.exp = scm_cons (SCM_CAR (x), SCM_CDR (x));
+		  scm_set_source_properties_x (debug.info->e.exp,
+					       scm_source_properties (x));
+#endif
 		  SCM_DEFER_INTS;
 		  SCM_CAR (x) = SCM_CAR (t.arg1);
 		  SCM_CDR (x) = SCM_CDR (t.arg1);
 		  SCM_ALLOW_INTS;
-		  goto loop;
+		  goto loopnoap;
 		case 1:
 		  if (SCM_NIMP (x = t.arg1))
-		    goto loop;
+		    goto loopnoap;
 		case 0:
 		  RETURN (t.arg1);
 		}
@@ -1443,8 +1949,10 @@ SCM_CEVAL (x, env)
     }
 
 
- evapply:
-  if (SCM_NULLP (SCM_CDR (x)))
+evapply:
+  PREP_APPLY (proc, SCM_EOL);
+  if (SCM_NULLP (SCM_CDR (x))) {
+    ENTER_APPLY;
     switch (SCM_TYP7 (proc))
       {				/* no arguments given */
       case scm_tc7_subr_0:
@@ -1457,10 +1965,16 @@ SCM_CEVAL (x, env)
 	RETURN (SCM_BOOL_T);
       case scm_tc7_asubr:
 	RETURN (SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED));
+#ifdef CCLO
       case scm_tc7_cclo:
 	t.arg1 = proc;
 	proc = SCM_CCLO_SUBR (proc);
+#ifdef DEVAL
+	debug.info->a.proc = proc;
+	debug.info->a.args = scm_cons (t.arg1, SCM_EOL);
+#endif
 	goto evap1;
+#endif
       case scm_tcs_closures:
 	x = SCM_CODE (proc);
 	env = EXTEND_SCM_ENV (SCM_CAR (x), SCM_EOL, SCM_ENV (proc));
@@ -1480,7 +1994,7 @@ SCM_CEVAL (x, env)
 	/* handle macros here */
 	goto badfun;
       }
-
+  }
 
   /* must handle macros by here */
   x = SCM_CDR (x);
@@ -1489,12 +2003,16 @@ SCM_CEVAL (x, env)
     goto wrongnumargs;
 #endif
   t.arg1 = EVALCAR (x, env);
+#ifdef DEVAL
+  debug.info->a.args = scm_cons (t.arg1, SCM_EOL);
+#endif
   x = SCM_CDR (x);
   if (SCM_NULLP (x))
     {
+      ENTER_APPLY;
     evap1:
       switch (SCM_TYP7 (proc))
-	{			/* have one argument in t.arg1 */
+	{				/* have one argument in t.arg1 */
 	case scm_tc7_subr_2o:
 	  RETURN (SCM_SUBRF (proc) (t.arg1, SCM_UNDEFINED));
 	case scm_tc7_subr_1:
@@ -1541,19 +2059,25 @@ SCM_CEVAL (x, env)
 	  RETURN (SCM_SUBRF (proc) (t.arg1, SCM_UNDEFINED));
 	case scm_tc7_lsubr:
 #ifdef DEVAL
-	  RETURN (SCM_SUBRF (proc) (dbg_info.args));
+	  RETURN (SCM_SUBRF (proc) (debug.info->a.args))
 #else
 	  RETURN (SCM_SUBRF (proc) (scm_cons (t.arg1, SCM_EOL)));
 #endif
+#ifdef CCLO
 	case scm_tc7_cclo:
 	  arg2 = t.arg1;
 	  t.arg1 = proc;
 	  proc = SCM_CCLO_SUBR (proc);
+#ifdef DEVAL
+	  debug.info->a.args = scm_cons (t.arg1, debug.info->a.args);
+	  debug.info->a.proc = proc;
+#endif
 	  goto evap2;
+#endif
 	case scm_tcs_closures:
 	  x = SCM_CODE (proc);
 #ifdef DEVAL
-	  env = EXTEND_SCM_ENV (SCM_CAR (x), dbg_info.args, SCM_ENV (proc));
+	  env = EXTEND_SCM_ENV (SCM_CAR (x), debug.info->a.args, SCM_ENV (proc));
 #else
 	  env = EXTEND_SCM_ENV (SCM_CAR (x), scm_cons (t.arg1, SCM_EOL), SCM_ENV (proc));
 #endif
@@ -1575,153 +2099,176 @@ SCM_CEVAL (x, env)
 #endif
   {				/* have two or more arguments */
     arg2 = EVALCAR (x, env);
+#ifdef DEVAL
+    debug.info->a.args = scm_cons2 (t.arg1, arg2, SCM_EOL);
+#endif
     x = SCM_CDR (x);
     if (SCM_NULLP (x)) {
+      ENTER_APPLY;
 #ifdef CCLO
     evap2:
 #endif
-#ifdef DEVAL
-      dbg_info.args = scm_cons2 (t.arg1, arg2, SCM_EOL);
-#endif
-      switch SCM_TYP7
-	(proc)
-	  {			/* have two arguments */
-	  case scm_tc7_subr_2:
-	  case scm_tc7_subr_2o:
-	    RETURN (SCM_SUBRF (proc) (t.arg1, arg2));
-	  case scm_tc7_lsubr:
-#ifdef DEVAL
-	    RETURN (SCM_SUBRF (proc) (dbg_info.args));
-#else
-	    RETURN (SCM_SUBRF (proc) (scm_cons2 (t.arg1, arg2, SCM_EOL)));
-#endif
-	  case scm_tc7_lsubr_2:
-	    RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_EOL));
-	  case scm_tc7_rpsubr:
-	  case scm_tc7_asubr:
-	    RETURN (SCM_SUBRF (proc) (t.arg1, arg2));
-#ifdef CCLO
-	  cclon: case scm_tc7_cclo:
-	    RETURN (SCM_APPLY (SCM_CCLO_SUBR (proc), proc,
-			       scm_cons2 (t.arg1, arg2, scm_cons (SCM_EVAL_ARGS (x, env), SCM_EOL))));
-	    /*    case scm_tc7_cclo:
-		  x = scm_cons(arg2, scm_eval_args(x, env));
-		  arg2 = t.arg1;
-		  t.arg1 = proc;
-		  proc = SCM_CCLO_SUBR(proc);
-		  goto evap3; */
-#endif
-	  case scm_tc7_subr_0:
-	  case scm_tc7_cxr:
-	  case scm_tc7_subr_1o:
-	  case scm_tc7_subr_1:
-	  case scm_tc7_subr_3:
-	  case scm_tc7_contin:
-	    goto wrongnumargs;
-	  default:
-	    goto badfun;
-	  case scm_tcs_closures:
-#ifdef DEVAL
-	    env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)), dbg_info.args, SCM_ENV (proc));
-#else
-	    env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)), scm_cons2 (t.arg1, arg2, SCM_EOL), SCM_ENV (proc));
-#endif
-	    x = SCM_CODE (proc);
-	    goto cdrxbegin;
-	  }
-    }
-#ifdef DEVAL
-    dbg_info.args = scm_cons2 (t.arg1, arg2, scm_deval_args (x, env));
-#endif
-    switch SCM_TYP7
-      (proc)
-	{			/* have 3 or more arguments */
-#ifdef DEVAL
-	case scm_tc7_subr_3:
-	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
-	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_CAR (SCM_CDR (SCM_CDR (dbg_info.args)))));
-	case scm_tc7_asubr:
-	  /*      t.arg1 = SCM_SUBRF(proc)(t.arg1, arg2);
-		  while SCM_NIMP(x) {
-		  t.arg1 = SCM_SUBRF(proc)(t.arg1, EVALCAR(x, env));
-		  x = SCM_CDR(x);
-		  }
-		  RETURN (t.arg1) */
-	case scm_tc7_rpsubr:
-	  RETURN (SCM_APPLY (proc, t.arg1, scm_acons (arg2, SCM_CDR (SCM_CDR (dbg_info.args)), SCM_EOL)));
-	case scm_tc7_lsubr_2:
-	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_CDR (SCM_CDR (dbg_info.args))));
-	case scm_tc7_lsubr:
-	  RETURN (SCM_SUBRF (proc) (dbg_info.args));
-#ifdef CCLO
-	case scm_tc7_cclo:
-	  goto cclon;
-#endif
-	case scm_tcs_closures:
-	  env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)),
-				dbg_info.args,
-				SCM_ENV (proc));
-	  x = SCM_CODE (proc);
-	  goto cdrxbegin;
-#else
-	case scm_tc7_subr_3:
-	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
-	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2, EVALCAR (x, env)));
-	case scm_tc7_asubr:
-	  /*      t.arg1 = SCM_SUBRF(proc)(t.arg1, arg2);
-		  while SCM_NIMP(x) {
-		  t.arg1 = SCM_SUBRF(proc)(t.arg1, EVALCAR(x, env));
-		  x = SCM_CDR(x);
-		  }
-		  RETURN (t.arg1) */
-	case scm_tc7_rpsubr:
-	  RETURN (SCM_APPLY (proc, t.arg1, scm_acons (arg2, scm_eval_args (x, env), SCM_EOL)));
-	case scm_tc7_lsubr_2:
-	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2, scm_eval_args (x, env)));
-	case scm_tc7_lsubr:
-	  RETURN (SCM_SUBRF (proc) (scm_cons2 (t.arg1, arg2, scm_eval_args (x, env))));
-#ifdef CCLO
-	case scm_tc7_cclo:
-	  goto cclon;
-#endif
-	case scm_tcs_closures:
-	  env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)),
-				scm_cons2 (t.arg1, arg2, scm_eval_args (x, env)),
-				SCM_ENV (proc));
-	  x = SCM_CODE (proc);
-	  goto cdrxbegin;
-#endif /* DEVAL */
+      switch (SCM_TYP7 (proc))
+	{			/* have two arguments */
 	case scm_tc7_subr_2:
-	case scm_tc7_subr_1o:
 	case scm_tc7_subr_2o:
+	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2));
+	case scm_tc7_lsubr:
+#ifdef DEVAL
+	  RETURN (SCM_SUBRF (proc) (debug.info->a.args))
+#else
+	  RETURN (SCM_SUBRF (proc) (scm_cons2 (t.arg1, arg2, SCM_EOL)));
+#endif
+	case scm_tc7_lsubr_2:
+	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_EOL));
+	case scm_tc7_rpsubr:
+	case scm_tc7_asubr:
+	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2));
+#ifdef CCLO
+	cclon:
+	case scm_tc7_cclo:
+#ifdef DEVAL
+	  RETURN (SCM_APPLY (SCM_CCLO_SUBR (proc), proc,
+			     scm_cons (debug.info->a.args, SCM_EOL)));
+#else
+	  RETURN (SCM_APPLY (SCM_CCLO_SUBR (proc), proc,
+			     scm_cons2 (t.arg1, arg2,
+					scm_cons (scm_eval_args (x, env), SCM_EOL))));
+#endif
+	  /*    case scm_tc7_cclo:
+		x = scm_cons(arg2, scm_eval_args(x, env));
+		arg2 = t.arg1;
+		t.arg1 = proc;
+		proc = SCM_CCLO_SUBR(proc);
+		goto evap3; */
+#endif
 	case scm_tc7_subr_0:
 	case scm_tc7_cxr:
+	case scm_tc7_subr_1o:
 	case scm_tc7_subr_1:
+	case scm_tc7_subr_3:
 	case scm_tc7_contin:
 	  goto wrongnumargs;
 	default:
 	  goto badfun;
+	case scm_tcs_closures:
+#ifdef DEVAL
+	  env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)), debug.info->a.args, SCM_ENV (proc));
+#else
+	  env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)), scm_cons2 (t.arg1, arg2, SCM_EOL), SCM_ENV (proc));
+#endif
+	  x = SCM_CODE (proc);
+	  goto cdrxbegin;
 	}
+    }
+#ifdef DEVAL
+    debug.info->a.args = scm_cons2 (t.arg1, arg2,
+	    scm_deval_args (x, env, &SCM_CDR (SCM_CDR (debug.info->a.args))));
+#endif
+    ENTER_APPLY;
+    switch (SCM_TYP7 (proc))
+      {			/* have 3 or more arguments */
+#ifdef DEVAL
+      case scm_tc7_subr_3:
+	SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
+	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_CAR (SCM_CDR (SCM_CDR (debug.info->a.args)))));
+      case scm_tc7_asubr:
+	/*      t.arg1 = SCM_SUBRF(proc)(t.arg1, arg2);
+		while SCM_NIMP(x) {
+		t.arg1 = SCM_SUBRF(proc)(t.arg1, EVALCAR(x, env));
+		x = SCM_CDR(x);
+		}
+		RETURN (t.arg1) */
+      case scm_tc7_rpsubr:
+	RETURN (SCM_APPLY (proc, t.arg1, scm_acons (arg2, SCM_CDR (SCM_CDR (debug.info->a.args)), SCM_EOL)))
+	  case scm_tc7_lsubr_2:
+	    RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_CDR (SCM_CDR (debug.info->a.args))))
+	  case scm_tc7_lsubr:
+	    RETURN (SCM_SUBRF (proc) (debug.info->a.args))
+#ifdef CCLO
+      case scm_tc7_cclo:
+	goto cclon;
+#endif
+      case scm_tcs_closures:
+	SETARGSREADY (debug);
+	env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)),
+			      debug.info->a.args,
+			      SCM_ENV (proc));
+	x = SCM_CODE (proc);
+	goto cdrxbegin;
+#else /* DEVAL */
+      case scm_tc7_subr_3:
+	SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
+	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, EVALCAR (x, env)));
+      case scm_tc7_asubr:
+	/*      t.arg1 = SCM_SUBRF(proc)(t.arg1, arg2);
+		while SCM_NIMP(x) {
+		t.arg1 = SCM_SUBRF(proc)(t.arg1, EVALCAR(x, env));
+		x = SCM_CDR(x);
+		}
+		RETURN (t.arg1) */
+      case scm_tc7_rpsubr:
+	RETURN (SCM_APPLY (proc, t.arg1, scm_acons (arg2, scm_eval_args (x, env), SCM_EOL)));
+      case scm_tc7_lsubr_2:
+	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, scm_eval_args (x, env)));
+      case scm_tc7_lsubr:
+	RETURN (SCM_SUBRF (proc) (scm_cons2 (t.arg1, arg2, scm_eval_args (x, env))));
+#ifdef CCLO
+      case scm_tc7_cclo:
+	goto cclon;
+#endif
+      case scm_tcs_closures:
+#ifdef DEVAL
+	SETARGSREADY (debug);
+#endif
+	env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)),
+			      scm_cons2 (t.arg1, arg2, scm_eval_args (x, env)),
+			      SCM_ENV (proc));
+	x = SCM_CODE (proc);
+	goto cdrxbegin;
+#endif /* DEVAL */
+      case scm_tc7_subr_2:
+      case scm_tc7_subr_1o:
+      case scm_tc7_subr_2o:
+      case scm_tc7_subr_0:
+      case scm_tc7_cxr:
+      case scm_tc7_subr_1:
+      case scm_tc7_contin:
+	goto wrongnumargs;
+      default:
+	goto badfun;
+      }
   }
 #ifdef DEVAL
- exit:
-  if (CHECK_SCM_EXIT)
-    {
-      /* if (SINGLE_STEP) ... but this is always fulfilled. */
-      SINGLE_STEP = 0;
-      scm_make_cont (&t.arg1);
-      if (setjmp (SCM_JMPBUF (t.arg1)))
-	{
-	  proc = SCM_THROW_VALUE(t.arg1);
-	  goto ret;
-	}
-      scm_ithrow (exit_frame_sym, proc, 0);
-    }
- ret:
-  last_debug_info_frame = dbg_info.prev;
+exit:
+  if (CHECK_EXIT)
+    if (EXIT_FRAME || (TRACE && TRACEDFRAMEP (debug)))
+      {
+	EXIT_FRAME = 0;
+	RESET_DEBUG_MODE;
+	CLEARTRACEDFRAME (debug);
+	if (CHEAPTRAPS)
+	  t.arg1 = scm_make_debugobj ((scm_debug_frame *) &debug);
+	else
+	  {
+	    scm_make_cont (&t.arg1);
+	    if (setjmp (SCM_JMPBUF (t.arg1)))
+	      {
+		proc = SCM_THROW_VALUE (t.arg1);
+		goto ret;
+	      }
+	  }
+	scm_ithrow (scm_i_exit_frame, scm_cons2 (t.arg1, proc, SCM_EOL), 0);
+      }
+ret:
+  last_debug_info_frame = debug.prev;
   return proc;
 #endif
 }
+
+
+/* SECTION: This code is compiled once.
+ */
 
 #ifndef DEVAL
 
@@ -1789,6 +2336,11 @@ scm_nconc2last (lst)
 
 #endif /* !DEVAL */
 
+
+/* SECTION: When DEVAL is defined this code yields scm_dapply.
+ * It is compiled twice.
+ */
+
 #if 0
 #ifdef __STDC__
 SCM 
@@ -1817,8 +2369,6 @@ scm_dapply (proc, arg1, args)
 {}
 #endif
 
-
-
 #ifdef __STDC__
 SCM 
 SCM_APPLY (SCM proc, SCM arg1, SCM args)
@@ -1832,12 +2382,12 @@ SCM_APPLY (proc, arg1, args)
 {
 #ifdef DEBUG_EXTENSIONS
 #ifdef DEVAL
-  debug_info dbg_info;
-  dbg_info.prev = last_debug_info_frame;
-  dbg_info.exp = SCM_UNDEFINED;
-  dbg_info.proc = proc;
-  dbg_info.args = SCM_UNDEFINED;
-  last_debug_info_frame = &dbg_info;
+  scm_debug_frame debug;
+  debug.prev = last_debug_info_frame;
+  debug.status = APPLYFRAME;
+  debug.vect[0].a.proc = proc;
+  debug.vect[0].a.args = SCM_EOL;
+  last_debug_info_frame = &debug;
 #else
   if (DEBUGGINGP)
     return scm_dapply (proc, arg1, args);
@@ -1860,11 +2410,28 @@ SCM_APPLY (proc, arg1, args)
       /*		SCM_ASRTGO(SCM_NIMP(args) && SCM_CONSP(args), wrongnumargs); */
       args = scm_nconc2last (args);
     }
-#ifdef CCLO
- tail:
-#endif
 #ifdef DEVAL
-  dbg_info.args = scm_cons (arg1, args);
+  debug.vect[0].a.args = scm_cons (arg1, args);
+  if (ENTER_FRAME)
+    {
+      SCM tmp;
+      ENTER_FRAME = 0;
+      RESET_DEBUG_MODE;
+      if (CHEAPTRAPS)
+	tmp = scm_make_debugobj ((scm_debug_frame *) &debug);
+      else
+	{
+	  scm_make_cont (&tmp);
+	  if (setjmp (SCM_JMPBUF (tmp)))
+	    goto entap;
+	}
+      scm_ithrow (scm_i_enter_frame, scm_cons (tmp, SCM_EOL), 0);
+    }
+entap:
+  ENTER_APPLY;
+#endif
+#ifdef CCLO
+tail:
 #endif
   switch (SCM_TYP7 (proc))
     {
@@ -1887,13 +2454,15 @@ SCM_APPLY (proc, arg1, args)
 #ifdef SCM_FLOATS
       if (SCM_SUBRF (proc))
 	{
-	  if SCM_INUMP
-	    (arg1)
-	      RETURN (scm_makdbl (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1)), 0.0))
+	  if (SCM_INUMP (arg1))
+	    {
+	      RETURN (scm_makdbl (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1)), 0.0));
+	    }
 	  SCM_ASRTGO (SCM_NIMP (arg1), floerr);
-	  if SCM_REALP
-	    (arg1)
-	      RETURN (scm_makdbl (SCM_DSUBRF (proc) (SCM_REALPART (arg1)), 0.0))
+	  if (SCM_REALP (arg1))
+	    {
+	      RETURN (scm_makdbl (SCM_DSUBRF (proc) (SCM_REALPART (arg1)), 0.0));
+	    }
 #ifdef SCM_BIGDIG
 	  if SCM_BIGP
 	    (arg1)
@@ -1918,7 +2487,7 @@ SCM_APPLY (proc, arg1, args)
       RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CAR (SCM_CDR (args))))
     case scm_tc7_lsubr:
 #ifdef DEVAL
-      RETURN (SCM_SUBRF (proc) (SCM_UNBNDP (arg1) ? SCM_EOL : dbg_info.args))
+      RETURN (SCM_SUBRF (proc) (SCM_UNBNDP (arg1) ? SCM_EOL : debug.vect[0].a.args))
 #else
       RETURN (SCM_SUBRF (proc) (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args)))
 #endif
@@ -1949,7 +2518,7 @@ SCM_APPLY (proc, arg1, args)
       RETURN (SCM_BOOL_T);
     case scm_tcs_closures:
 #ifdef DEVAL
-      arg1 = (SCM_UNBNDP (arg1) ? SCM_EOL : dbg_info.args);
+      arg1 = (SCM_UNBNDP (arg1) ? SCM_EOL : debug.vect[0].a.args);
 #else
       arg1 = (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
@@ -1968,12 +2537,16 @@ SCM_APPLY (proc, arg1, args)
 #ifdef CCLO
     case scm_tc7_cclo:
 #ifdef DEVAL
-      args = (SCM_UNBNDP(arg1) ? SCM_EOL : dbg_info.args);
-#else
-      args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
-#endif
+      args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
       arg1 = proc;
       proc = SCM_CCLO_SUBR (proc);
+      debug.vect[0].a.proc = proc;
+      debug.vect[0].a.args = scm_cons (arg1, args);
+#else
+      args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
+      arg1 = proc;
+      proc = SCM_CCLO_SUBR (proc);
+#endif
       goto tail;
 #endif
     wrongnumargs:
@@ -1984,24 +2557,35 @@ SCM_APPLY (proc, arg1, args)
       RETURN (arg1);
     }
 #ifdef DEVAL
- exit:
-  if (CHECK_SCM_EXIT)
-    {
-      /* if (SINGLE_STEP) ... but this is always fulfilled. */
-      SINGLE_STEP = 0;
-      scm_make_cont (&arg1);
-      if (setjmp (SCM_JMPBUF (arg1)))
-	{
-	  proc = SCM_THROW_VALUE(arg1);
-	  goto ret;
-	}
-      scm_ithrow (exit_frame_sym, proc, 0);
-    }
- ret:
-  last_debug_info_frame = dbg_info.prev;
+exit:
+  if (CHECK_EXIT)
+    if (EXIT_FRAME || (TRACE && TRACEDFRAMEP (debug)))
+      {
+	EXIT_FRAME = 0;
+	RESET_DEBUG_MODE;
+	CLEARTRACEDFRAME (debug);
+	if (CHEAPTRAPS)
+	  arg1 = scm_make_debugobj ((scm_debug_frame *) &debug);
+	else
+	  {
+	    scm_make_cont (&arg1);
+	    if (setjmp (SCM_JMPBUF (arg1)))
+	      {
+		proc = SCM_THROW_VALUE (arg1);
+		goto ret;
+	      }
+	  }
+	scm_ithrow (scm_i_exit_frame, scm_cons2 (arg1, proc, SCM_EOL), 0);
+      }
+ret:
+  last_debug_info_frame = debug.prev;
   return proc;
 #endif
 }
+
+
+/* SECTION: The rest of this file is only read once.
+ */
 
 #ifndef DEVAL
 
@@ -2323,7 +2907,7 @@ scm_eval_3 (obj, copyp, env)
     obj = scm_apply (SCM_CDR (scm_system_transformer), obj, scm_listofnull);
   else if (copyp)
     obj = scm_copy_tree (obj);
-  return EVAL (obj, env);
+  return XEVAL (obj, env);
 }
 
 #ifdef __STDC__
@@ -2450,11 +3034,13 @@ scm_make_synt (name, macroizer, fcn)
   return SCM_CAR (symcell);
 }
 
+
+/* At this point, scm_deval and scm_dapply are generated.
+ */
+
 #ifdef DEBUG_EXTENSIONS
-# ifndef DEVAL
-#  define DEVAL
-#  include "eval.c"
-# endif
+# define DEVAL
+# include "eval.c"
 #endif
 
 
@@ -2466,10 +3052,6 @@ void
 scm_init_eval ()
 #endif
 {
-#ifdef DEBUG_EXTENSIONS
-  enter_frame_sym = SCM_CAR (scm_sysintern ("enter-frame", SCM_UNDEFINED));
-  exit_frame_sym = SCM_CAR (scm_sysintern ("exit-frame", SCM_UNDEFINED));
-#endif
   scm_tc16_promise = scm_newsmob (&promsmob);
   scm_tc16_macro = scm_newsmob (&macrosmob);
   scm_i_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
@@ -2482,32 +3064,43 @@ scm_init_eval ()
 
   /* acros */
   scm_i_quasiquote = scm_make_synt (s_quasiquote, scm_makacro, scm_m_quasiquote);
-  scm_make_synt ("define", scm_makmmacro, scm_m_define);
+  scm_make_synt (s_undefine, scm_makacro, scm_m_undefine);
   scm_make_synt (s_delay, scm_makacro, scm_m_delay);
   /* end of acros */
 
   scm_top_level_lookup_thunk_var =
     scm_sysintern("*top-level-lookup-thunk*", SCM_BOOL_F);
 
-  scm_make_synt ("and", scm_makmmacro, scm_m_and);
-  scm_make_synt ("begin", scm_makmmacro, scm_m_begin);
-  scm_make_synt ("case", scm_makmmacro, scm_m_case);
-  scm_make_synt ("cond", scm_makmmacro, scm_m_cond);
-  scm_make_synt ("do", scm_makmmacro, scm_m_do);
-  scm_make_synt ("if", scm_makmmacro, scm_m_if);
+  scm_i_and = scm_make_synt ("and", scm_makmmacro, scm_m_and);
+  scm_i_begin = scm_make_synt ("begin", scm_makmmacro, scm_m_begin);
+  scm_i_case = scm_make_synt ("case", scm_makmmacro, scm_m_case);
+  scm_i_cond = scm_make_synt ("cond", scm_makmmacro, scm_m_cond);
+  scm_i_define = scm_make_synt ("define", scm_makmmacro, scm_m_define);
+  scm_i_do = scm_make_synt ("do", scm_makmmacro, scm_m_do);
+  scm_i_if = scm_make_synt ("if", scm_makmmacro, scm_m_if);
   scm_i_lambda = scm_make_synt ("lambda", scm_makmmacro, scm_m_lambda);
   scm_i_let = scm_make_synt ("let", scm_makmmacro, scm_m_let);
-  scm_make_synt ("letrec", scm_makmmacro, scm_m_letrec);
-  scm_make_synt ("let*", scm_makmmacro, scm_m_letstar);
-  scm_make_synt ("or", scm_makmmacro, scm_m_or);
+  scm_i_letrec = scm_make_synt ("letrec", scm_makmmacro, scm_m_letrec);
+  scm_i_letstar = scm_make_synt ("let*", scm_makmmacro, scm_m_letstar);
+  scm_i_or = scm_make_synt ("or", scm_makmmacro, scm_m_or);
   scm_i_quote = scm_make_synt ("quote", scm_makmmacro, scm_m_quote);
-  scm_make_synt ("set!", scm_makmmacro, scm_m_set);
-  scm_make_synt ("@apply", scm_makmmacro, scm_m_apply);
-  scm_make_synt ("@call-with-current-continuation", scm_makmmacro, scm_m_cont);
+  scm_i_set = scm_make_synt ("set!", scm_makmmacro, scm_m_set);
+  scm_i_atapply = scm_make_synt ("@apply", scm_makmmacro, scm_m_apply);
+  scm_i_atcall_cc = scm_make_synt ("@call-with-current-continuation",
+				   scm_makmmacro, scm_m_cont);
+
   scm_make_synt ("defined?", scm_makmmacro, scm_definedp);
   scm_i_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
   scm_permanent_object (scm_i_name);
+
+#ifdef DEBUG_EXTENSIONS
+  scm_i_enter_frame = SCM_CAR (scm_sysintern ("enter-frame", SCM_UNDEFINED));
+  scm_i_apply_frame = SCM_CAR (scm_sysintern ("apply-frame", SCM_UNDEFINED));
+  scm_i_exit_frame = SCM_CAR (scm_sysintern ("exit-frame", SCM_UNDEFINED));
+  scm_i_trace = SCM_CAR (scm_sysintern ("trace", SCM_UNDEFINED));
+#endif
+
 #include "eval.x"
 }
-#endif /* !DEVAL */
 
+#endif /* !DEVAL */
