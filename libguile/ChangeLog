@@ -6,6 +6,10 @@ Mon Jan  6 20:39:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 Sun Jan  5 13:53:53 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* configure.in: Revert previous change to this file; the problem
+	is due to transient automake weirdness.
+	* configure: Rebuilt.
+
 	* Makefile.am (EXTRA_DIST): Distribute PLUGIN/guile.libs.in, not
 	PLUGIN/guile.libs.  configure generates the latter from the former.
 	* Makefile.in: Rebuilt.
