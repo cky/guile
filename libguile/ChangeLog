@@ -1,3 +1,46 @@
+2002-12-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Reorganized thread package selection.  A thread package now only
+	implements a small set of pthread like functions and Guile
+	implements the rest on top of that.  Guile's implementation is
+	what the "coop-pthreads" package has been previously.  Support for
+	"coop" threads has been removed until I get time to add it again.
+	
+	* Makefile.am (libguile_la_SOURCES): Removed iselect.c.
+	(noinst_HEADERS): Removed coop-threads.c, coop-threads.h, coop.c,
+	null-threads.c, coop-pthreads.c.
+	(modinclude_HEADERS): Removed coop-defs.h, coop-pthreads.h.  Added
+	pthread-threads.h.
+	
+	* validate.h (SCM_VALIDATE_THREAD): Moved to threads.h.
+
+	* threads.h: Do not include "libguile/coop-defs.h".  Include
+	"libguile/pthread-threads.h" for USE_COPT_THREADS.  Removed
+	(previously deprecated) C level thread API prototypes.  They are
+	now in the thread package specific headers, "null-threads.h" and
+	"pthread-threads.h".
+	(SCM_VALIDATE_THREAD, SCM_VALIDATE_MUTEX, SCM_VALIDATE_CONDVAR):
+	New.
+	(scm_threads_init): Removed.
+	(SCM_CRITICAL_SECTION_START, SCM_CRITICAL_SECTION_END,
+	SCM_THREAD_SWITCHING_CODE, scm_i_switch_counter,
+	SCM_I_THREAD_SWITCH_COUNT): Define here.
+	(scm_single_thread_p): Removed.
+	(scm_call_with_new_thread): Take two args directly instead of list
+	of two args.
+	(scm_i_thread_data, scm_i_set_thread_data, SCM_THREAD_LOCAL_DATA,
+	SCM_SET_THREAD_LOCAL_DATA): Define here.
+
+	* threads.c: Merged with "coop-pthreads.c".
+
+	* null-threads.h: Implement pthread-like API as a set of macros.
+
+	* pthread-threads.h: New, implement pthread-like API by deferring
+	to pthread itself.
+	
+	* init.c (scm_init_guile_1): Do not call scm_init_iselect, which
+	has been lost in the reorganization.
+
 2002-12-01  Mikael Djurfeldt  <mdj@linnaeus>
 
 	The following change makes it possible to move procedure

@@ -1,3 +1,12 @@
+2002-12-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (SUBDIRS): Removed qt.
+
+	* configure.in: Do not configure QTHREADS.  Do not define
+	USE_COOP_THREADS.  Changed logic for thread package selection so
+	that the default is "coop-pthread" when -lpthread is found, "null"
+	otherwise.
+
 2002-12-01  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* GUILE-VERSION: Added versioning info for srfi 1.
