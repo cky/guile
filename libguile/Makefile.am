@@ -52,8 +52,7 @@ BUILT_SOURCES = \
     cpp_err_symbols.c cpp_sig_symbols.c libpath.h alist.x arbiters.x	\
     async.x backtrace.x boolean.x chars.x continuations.x debug.x	\
     dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x filesys.x	\
-    fluids.x fports.x gc.x gdbint.x gh_data.x gh_eval.x			\
-    gh_funcs.x gh_init.x gh_io.x gh_list.x gh_predicates.x gsubr.x	\
+    fluids.x fports.x gc.x gsubr.x					\
     guardians.x hash.x hashtab.x init.x ioext.x iselect.x keywords.x	\
     lang.x list.x load.x macros.x mallocs.x modules.x net_db.x		\
     numbers.x objects.x objprop.x options.x pairs.x ports.x posix.x	\
@@ -76,7 +75,7 @@ noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@
-libguile_la_LDFLAGS = -version-info 5:0 -export-dynamic
+libguile_la_LDFLAGS = -version-info 6:0 -export-dynamic
 
 include_HEADERS = libguile.h
 
