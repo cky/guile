@@ -84,6 +84,7 @@ scm_c_issue_deprecation_warning_fmt (const char *msg, ...)
 
   va_start (ap, msg);
   vsnprintf (buf, 511, msg, ap);
+  va_end (ap);
   buf[511] = '\0';
   scm_c_issue_deprecation_warning (buf);
 }
