@@ -1,3 +1,7 @@
+2001-02-22  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* tests/exceptions.test: New file.
+
 2001-02-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* guile-test: Use (ice-9 and-let-star) instead of (ice-9
@@ -197,7 +201,7 @@ Fri Dec 17 12:14:10 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* tests/c-api.test: Refine the list of files that are checked in
 	the seek-offset-test.  Was just using files that end in "c", but
-	that caught the new ".doc" files, too, so make sure that files end 
+	that caught the new ".doc" files, too, so make sure that files end
 	in ".c" before requiring that they include unistd.h if they
 	reference SEEK_(SET|CUR|END).
 
@@ -219,7 +223,7 @@ Fri Dec 17 12:14:10 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* tests/reader.test: Check that number->string checks its radix
 	properly.
-	
+
 1999-09-20  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* tests/ports.test: Check that our input functions cope when
