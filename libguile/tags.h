@@ -52,11 +52,21 @@
  ** It is here that tag bits are assigned for various purposes.
  **/
 
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+
 
 
 /* In the beginning was the Word:
  */
-typedef long scm_bits_t;
+#ifdef HAVE_UINTPTR_T
+typedef uintptr_t scm_bits_t;
+typedef intptr_t scm_signed_bits_t;
+#else
+typedef unsigned long scm_bits_t;
+typedef signed long scm_signed_bits_t;
+#endif
 
 /* But as external interface, we use SCM, which may, according to the desired
  * level of type checking, be defined in several ways:
