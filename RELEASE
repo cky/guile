@@ -2,12 +2,6 @@ This is a checklist for making Guile releases.
 It's specific to the FSF's development environment; please don't put
 it in the distribution.
 
-In release 1.3:
-- (done) make #/ generate a warning.
-- (done) make SCHEME_LOAD_PATH generate a warning.
-- (done) Perry Metzger <perry@piermont.com> is willing to do beta-testing
-  for NetBSD.
-
 In release 1.4:
 - remove #/ syntax
 - Remove SCHEME_LOAD_PATH.
@@ -72,6 +66,9 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
     delay it until the tar file appears on prep.  The announcement
     text should be mostly taken from Guile's README file.
 15) Notify freshmeat.net, although they're probably watching anyway.
+    (They got the 1.3 release just fine.)  I have no idea if
+    www.bowerbird.com.au will be something anyone refers to, but Guile
+    does have an entry there.
 16) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
     the sources are snapshot again.  Snapshots should have version numbers 
     of the form "N.M.L", where L is odd.
