@@ -1,3 +1,8 @@
+2003-04-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (compute-getters-n-setters): Allow for primitive
+	procedure thunks.  (Thanks to Neil W. Van Dyke.)
+
 2003-04-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops/dispatch.scm (cache-hashval): Corrected termination
