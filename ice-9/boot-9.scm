@@ -868,8 +868,6 @@
 	  (/ (log (/ (- +i z) (+ +i z))) +2i))
       ($atan2 z (car y))))
 
-(set! abs magnitude)
-
 (define (log10 arg)
   (/ (log arg) (log 10)))
 

@@ -1,3 +1,8 @@
+2000-05-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm (abs):  Don't set to magnitude.  abs now does not
+	accept complex numbers as parameter.
+
 2000-05-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* common-list.scm (delete-if-not!): Bug fix of bug fix: change
