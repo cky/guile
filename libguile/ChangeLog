@@ -1,7 +1,9 @@
 1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* Makefile.in: Regenerated.
+
 	Remove readline support, to avoid copyright confusion.
-	* Makefile.in: Remove readline files from lists.
+	* Makefile.am: Remove readline files from lists.
 	* init.c: Don't initialize readline.
 	* scmconfig.h.in: Regenerated.
 

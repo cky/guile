@@ -10,10 +10,11 @@
 
 	* README: Change URL's for automake and autoconf.
 
-	* Makefile.in, aclocal.m4: Regenerated with automake 1.4.
-	Mikael's getting different results than I am because he's got
-	libtool 1.2f installed, which I can't get my hands on.
-
+	* Makefile.in, configure: Regenerated with autoconf 2.13, automake
+	1.4, libtool 1.2f (1.385 1999/03/15 17:24:54).  I've upgraded to
+	all the right tools, according to README, but I'm still getting
+	different results than Mikael is.  Hmm.
+	
 1999-03-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* New libtool: 1.2f

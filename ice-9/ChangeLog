@@ -1,3 +1,7 @@
+1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Makefile.in: Regenerated.
+
 1999-04-08  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: Provide 'values.

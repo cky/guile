@@ -1,3 +1,7 @@
+1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Makefile.in: Regenerated.
+
 1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* md/i386.s: Remove nested comment starter, to quiet warnings.
