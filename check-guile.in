@@ -1,7 +1,7 @@
 #! /bin/sh
 # Usage: check-guile [-i GUILE-INTERPRETER] [GUILE-TEST-ARGS]
-# If `-i GUILE-INTERPRETER' is omitted, use ${top_srcdir}/pre-inst-guile.
-# See test-suite/guile-test for documentation on GUILE-TEST-ARGS.
+# If `-i GUILE-INTERPRETER' is omitted, use ${top_builddir}/pre-inst-guile.
+# See ${top_srcdir}/test-suite/guile-test for documentation on GUILE-TEST-ARGS.
 #
 # Example invocations:
 # ./check-guile
