@@ -62,7 +62,6 @@
     * second #inclusion
 */
 
-#include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/dynwind.h"
 #include "libguile/smob.h"

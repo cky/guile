@@ -44,7 +44,6 @@
 
 
 
-#include <stdio.h>
 #include "libguile/_scm.h"
 
 #include "libguile/objects.h"
@@ -95,6 +94,7 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
     }
   else
     {
+      symcell = SCM_BOOL_F; /* to avoid warning */
       symbol = scm_str2symbol (name);
     }
   

@@ -47,7 +47,6 @@
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
-#include <stdio.h>
 #include <ctype.h>
 
 #include "libguile/_scm.h"

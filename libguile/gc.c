@@ -51,6 +51,7 @@
 
 
 #include <stdio.h>
+#include <string.h>
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/stime.h"

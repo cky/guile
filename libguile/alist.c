@@ -43,7 +43,6 @@
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
-#include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
 #include "libguile/list.h"

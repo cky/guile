@@ -44,7 +44,6 @@
 
 
 
-#include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/validate.h"
 

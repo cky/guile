@@ -44,7 +44,6 @@
 
 
 
-#include <stdio.h>
 #include <math.h>
 #include "libguile/_scm.h"
 #include "libguile/feature.h"

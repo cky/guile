@@ -43,8 +43,6 @@
 
 /* Defining Scheme functions implemented by C functions --- subrs.  */
 
-#include <stdio.h>
-
 #include "libguile/gh.h"
 
 /* allows you to define new scheme primitives written in C */

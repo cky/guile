@@ -78,6 +78,7 @@ char *alloca ();
 # endif
 #endif
 
+#include <string.h>
 #include "libguile/_scm.h"
 
 #include "libguile/eval.h"

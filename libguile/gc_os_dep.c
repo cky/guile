@@ -1419,7 +1419,6 @@ word x;
 #   endif
 # endif
 
-# include <stdio.h>
 # include <signal.h>
 
 /* Blatantly OS dependent routines, except for those that are related 	*/

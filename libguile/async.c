@@ -44,7 +44,6 @@
 
 
 
-#include <stdio.h>
 #include <signal.h>
 #include "libguile/_scm.h"
 #include "libguile/eval.h"

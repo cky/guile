@@ -51,7 +51,6 @@
 
 
 
-#include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/strings.h"
 #include "libguile/unif.h"

@@ -39,7 +39,6 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#include <stdio.h>
 #include <limits.h>
 #include <string.h>
 

@@ -78,7 +78,6 @@ char *alloca ();
 # endif
 #endif
 
-#include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/debug.h"
 #include "libguile/dynwind.h"

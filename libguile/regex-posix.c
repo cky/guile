@@ -53,7 +53,6 @@
    libraries which do not agree with the Spencer implementation may
    produce varying behavior.  Sigh. */
 
-#include <stdio.h>
 #include <sys/types.h>
 
 #include "libguile/_scm.h"

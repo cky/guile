@@ -41,8 +41,6 @@
 
 /* data initialization and C<->Scheme data conversion */
 
-#include <stdio.h>
-
 #include "libguile/gh.h"
 #ifdef HAVE_STRING_H
 #include <string.h>

@@ -40,8 +40,6 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-#include <stdio.h>
-
 #include "libguile/gh.h"
 
 void 

@@ -1,3 +1,20 @@
+2001-03-09  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* alist.c, arbiters.c, async.c, backtrace.c, boolean.c, chars.c,
+	continuations.c, debug-malloc.c, debug.c, dynwind.c, eq.c, eval.c,
+	feature.c, filesys.h, gc_os_dep.c, gh_data.c, gh_eval.c,
+	gh_funcs.c, gh_io.c, gh_list.c, gh_predicates.c, hash.c,
+	hashtab.c, iselect.c, keywords.c, list.c, load.c, mallocs.c,
+	net_db.c, numbers.c, objprop.c, objprop.h, options.c, pairs.c,
+	print.c, procprop.c, procs.c, properties.c, ramap.c,
+	regex-posix.c, root.c, scmsigs.c, simpos.c, socket.c, srcprop.c,
+	stackchk.c, stacks.c, strings.c, strop.c, strorder.c, struct.c,
+	symbols.c, tag.c, threads.c, variable.c, vectors.c, weaks.c:
+	Remove #include <stdio.h>	
+	* gc.c, gdbint.c, root.c, sort.c, unif.c: Add #include <string.h>.
+
+	* procs.c (scm_make_subr_opt): Init symcell to avoid warning.
+
 2001-03-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* posix.c (scm_gethostname): Set initial name length to 256 for

@@ -23,7 +23,6 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 
 
-#include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
 #include "libguile/strings.h"
