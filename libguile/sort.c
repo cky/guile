@@ -535,32 +535,32 @@ scm_merge (SCM alist, SCM blist, SCM less)
       blen = scm_ilength (blist);	/* checks that it's a pure list */
       SCM_ASSERT (alen > 0, alist, SCM_ARG1, s_merge);
       SCM_ASSERT (blen > 0, blist, SCM_ARG2, s_merge);
-      if ((*cmp) (less, &SCM_CAR (alist), &SCM_CAR (blist)))
-	{
-	  build = scm_cons (SCM_CAR (alist), SCM_EOL);
-	  alist = SCM_CDR (alist);
-	  alen--;
-	}
-      else
+      if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
 	{
 	  build = scm_cons (SCM_CAR (blist), SCM_EOL);
 	  blist = SCM_CDR (blist);
 	  blen--;
 	}
+      else
+	{
+	  build = scm_cons (SCM_CAR (alist), SCM_EOL);
+	  alist = SCM_CDR (alist);
+	  alen--;
+	}
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
-	  if ((*cmp) (less, &SCM_CAR (alist), &SCM_CAR (blist)))
-	    {
-	      SCM_SETCDR (last, scm_cons (SCM_CAR (alist), SCM_EOL));
-	      alist = SCM_CDR (alist);
-	      alen--;
-	    }
-	  else
+	  if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
 	    {
 	      SCM_SETCDR (last, scm_cons (SCM_CAR (blist), SCM_EOL));
 	      blist = SCM_CDR (blist);
 	      blen--;
+	    }
+	  else
+	    {
+	      SCM_SETCDR (last, scm_cons (SCM_CAR (alist), SCM_EOL));
+	      alist = SCM_CDR (alist);
+	      alen--;
 	    }
 	  last = SCM_CDR (last);
 	}
@@ -585,32 +585,32 @@ scm_merge_list_x (SCM alist, SCM blist,
     return alist;
   else
     {
-      if ((*cmp) (less, &SCM_CAR (alist), &SCM_CAR (blist)))
-	{
-	  build = alist;
-	  alist = SCM_CDR (alist);
-	  alen--;
-	}
-      else
+      if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
 	{
 	  build = blist;
 	  blist = SCM_CDR (blist);
 	  blen--;
 	}
+      else
+	{
+	  build = alist;
+	  alist = SCM_CDR (alist);
+	  alen--;
+	}
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
-	  if ((*cmp) (less, &SCM_CAR (alist), &SCM_CAR (blist)))
-	    {
-	      SCM_SETCDR (last, alist);
-	      alist = SCM_CDR (alist);
-	      alen--;
-	    }
-	  else
+	  if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
 	    {
 	      SCM_SETCDR (last, blist);
 	      blist = SCM_CDR (blist);
 	      blen--;
+	    }
+	  else
+	    {
+	      SCM_SETCDR (last, alist);
+	      alist = SCM_CDR (alist);
+	      alen--;
 	    }
 	  last = SCM_CDR (last);
 	}
@@ -658,12 +658,14 @@ scm_merge_list_step (SCM * seq,
 		     SCM less,
 		     int n)
 {
+  SCM a, b;
+
   if (n > 2)
     {
       long mid = n / 2;
-      return scm_merge_list_x (scm_merge_list_step (seq, cmp, less, mid),
-			       scm_merge_list_step (seq, cmp, less, n - mid),
-			       mid, n - mid, cmp, less);
+      a = scm_merge_list_step (seq, cmp, less, mid);
+      b = scm_merge_list_step (seq, cmp, less, n - mid);
+      return scm_merge_list_x (a, b, mid, n - mid, cmp, less);
     }
   else if (n == 2)
     {
