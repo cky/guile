@@ -604,15 +604,25 @@ scm_generic_fgets (port)
   if (feof ((FILE *)f))
     return NULL;
 
-  buf = (char *) scm_must_malloc (limit * sizeof(char), "generic_fgets");
+  buf = (char *) malloc (limit * sizeof(char));
+
+  /* If a char has been pushed onto the port with scm_ungetc,
+     read that first. */
+  if (SCM_CRDYP (port))
+    {
+      buf[i] = SCM_CGETUN (port);
+      SCM_CLRDY (port);
+      if (buf[i++] == '\n')
+	{
+	  buf[i] = '\0';
+	  return buf;
+	}
+    }
 
   while (1) {
     if (i >= limit-1)
       {
-	buf = (char *) scm_must_realloc (buf,
-					 sizeof(char) * limit,
-					 sizeof(char) * limit * 2,
-					 "generic_fgets");
+	buf = (char *) realloc (buf, sizeof(char) * limit * 2);
 	limit *= 2;
       }
 
@@ -627,7 +637,7 @@ scm_generic_fgets (port)
 	    buf[i] = '\0';
 	    return buf;
 	  }
-	scm_must_free (buf);
+	free (buf);
 	return NULL;
       }
   }

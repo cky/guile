@@ -1,3 +1,14 @@
+1997-11-27  Tim Pierce  <twp@skepsis.com>
+
+	Fix a memory leak in scm_read_line and a type cast bug in the ptob.
+	* fports.c (scm_fgets): Use malloc/free rather than scm_must_malloc
+ 	and scm_must_free, since ultimately the	string returned will be copied
+ 	by scm_makfrom0str anyway.  Also, read any characters that may have
+	been pushed onto the port with scm_ungetc.
+	* ports.c (scm_generic_fgets): Same as for scm_fgets.
+	* ioext.c (scm_read_line): Free string after Guilifying it.
+	* ports.h (scm_ptobfuns): fgets method returns a char *, not a char.
+
 1997-11-26  Anthony Green  <green@hoser.cygnus.com>
 
 	* gh_data.c (gh_set_substr): Strings can be longer than 256 bytes.
