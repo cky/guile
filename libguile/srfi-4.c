@@ -282,6 +282,8 @@ uvec_fast_ref (int type, void *base, size_t c_idx)
   else if (type == SCM_UVEC_C64)
     return scm_c_make_rectangular (((double*)base)[2*c_idx],
 				   ((double*)base)[2*c_idx+1]);
+  else
+    return SCM_BOOL_F;
 }
 
 static SCM_C_INLINE void
