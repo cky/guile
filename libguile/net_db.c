@@ -80,7 +80,9 @@ extern int h_errno;
 int close ();
 #endif /* STDC_HEADERS */
 
+#ifdef MISSING_INET_ATON_DECL
 extern int inet_aton ();
+#endif
 
 SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
             (SCM address),

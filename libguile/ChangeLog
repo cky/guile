@@ -1,3 +1,8 @@
+2000-10-01  Gary Houston  <ghouston@arglist.com>
+
+	* net_db.c: declare inet_aton only if MISSING_INET_ATON_DECL is
+	defined.  thanks to Han-Wen Nienhuys.
+
 2000-09-30  Gary Houston  <ghouston@arglist.com>
 
 	* filesys.c (scm_stat2scm), posix.c (s_scm_mknod): don't use
