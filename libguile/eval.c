@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -757,7 +757,7 @@ iqq (SCM form, SCM env, unsigned long int depth)
   else if (SCM_VECTORP (form))
     {
       size_t i = SCM_VECTOR_LENGTH (form);
-      SCM const *data = SCM_VELTS (form);
+      SCM const *const data = SCM_VELTS (form);
       SCM tmp = SCM_EOL;
       while (i != 0)
 	tmp = scm_cons (data[--i], tmp);
@@ -1583,6 +1583,7 @@ scm_eval_args (SCM l, SCM env, SCM proc)
   return results;
 }
 
+
 SCM
 scm_eval_body (SCM code, SCM env)
 {
@@ -1610,7 +1611,6 @@ scm_eval_body (SCM code, SCM env)
     }
   return SCM_XEVALCAR (code, env);
 }
-
 
 #endif /* !DEVAL */
 
@@ -1755,6 +1755,7 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, 
             (SCM setting),
 	    "Option interface for the evaluator trap options.")
@@ -1771,6 +1772,7 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
   return ans;
 }
 #undef FUNC_NAME
+
 
 static SCM
 deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
@@ -1801,7 +1803,7 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 #define UPDATE_TOPLEVEL_ENV(env) \
   do { \
     SCM p = scm_current_module_lookup_closure (); \
-    if (p != SCM_CAR(env)) \
+    if (p != SCM_CAR (env)) \
       env = scm_top_level_env (p); \
   } while (0)
 
@@ -3323,6 +3325,7 @@ ret:
 #ifndef DEVAL
 
 
+
 /* Simple procedure calls
  */
 
@@ -3446,7 +3449,7 @@ scm_apply (SCM proc, SCM arg1, SCM args)
 #if 0
 SCM 
 scm_dapply (SCM proc, SCM arg1, SCM args)
-{ /* empty */ }
+{}
 #endif
 
 
@@ -3821,17 +3824,19 @@ call_lsubr_0 (SCM proc)
 SCM 
 scm_i_call_closure_0 (SCM proc)
 {
-  return scm_eval_body (SCM_CLOSURE_BODY (proc),
-			SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-					SCM_EOL,
-					SCM_ENV (proc)));
+  const SCM env = SCM_ENV (proc);
+  const SCM formals = SCM_CLOSURE_FORMALS (proc);
+  const SCM new_env = SCM_EXTEND_ENV (formals, SCM_EOL, env);
+  const SCM body = SCM_CLOSURE_BODY (proc);
+  const SCM result = scm_eval_body (body, new_env);
+  return result;
 }
 
 scm_t_trampoline_0
 scm_trampoline_0 (SCM proc)
 {
   if (SCM_IMP (proc))
-    return 0;
+    return NULL;
   if (SCM_DEBUGGINGP)
     return scm_call_0;
   switch (SCM_TYP7 (proc))
@@ -3848,27 +3853,26 @@ scm_trampoline_0 (SCM proc)
 	if (SCM_NULLP (formals) || !SCM_CONSP (formals))
 	  return scm_i_call_closure_0;
 	else
-	  return 0;
+	  return NULL;
       }
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	return scm_call_generic_0;
       else if (!SCM_I_OPERATORP (proc))
-	return 0;
+	return NULL;
       return scm_call_0;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
 	return SCM_SMOB_DESCRIPTOR (proc).apply_0;
       else
-	return 0;
-      /* fall through */
+	return NULL;
     case scm_tc7_asubr:
     case scm_tc7_rpsubr:
     case scm_tc7_cclo:
     case scm_tc7_pws:
       return scm_call_0;
     default:
-      return 0; /* not applicable on one arg */
+      return NULL; /* not applicable on one arg */
     }
 }
 
@@ -3926,17 +3930,20 @@ call_cxr_1 (SCM proc, SCM arg1)
 static SCM 
 call_closure_1 (SCM proc, SCM arg1)
 {
-  return scm_eval_body (SCM_CLOSURE_BODY (proc),
-			SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-					scm_list_1 (arg1),
-					SCM_ENV (proc)));
+  const SCM env = SCM_ENV (proc);
+  const SCM formals = SCM_CLOSURE_FORMALS (proc);
+  const SCM args = scm_list_1 (arg1);
+  const SCM new_env = SCM_EXTEND_ENV (formals, args, env);
+  const SCM body = SCM_CLOSURE_BODY (proc);
+  const SCM result = scm_eval_body (body, new_env);
+  return result;
 }
 
 scm_t_trampoline_1
 scm_trampoline_1 (SCM proc)
 {
   if (SCM_IMP (proc))
-    return 0;
+    return NULL;
   if (SCM_DEBUGGINGP)
     return scm_call_1;
   switch (SCM_TYP7 (proc))
@@ -3960,27 +3967,26 @@ scm_trampoline_1 (SCM proc)
 	    && (!SCM_CONSP (formals) || !SCM_CONSP (SCM_CDR (formals))))
 	  return call_closure_1;
 	else
-	  return 0;
+	  return NULL;
       }
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	return scm_call_generic_1;
       else if (!SCM_I_OPERATORP (proc))
-	return 0;
+	return NULL;
       return scm_call_1;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
 	return SCM_SMOB_DESCRIPTOR (proc).apply_1;
       else
-	return 0;
-      /* fall through */
+	return NULL;
     case scm_tc7_asubr:
     case scm_tc7_rpsubr:
     case scm_tc7_cclo:
     case scm_tc7_pws:
       return scm_call_1;
     default:
-      return 0; /* not applicable on one arg */
+      return NULL; /* not applicable on one arg */
     }
 }
 
@@ -4005,17 +4011,20 @@ call_lsubr_2 (SCM proc, SCM arg1, SCM arg2)
 static SCM 
 call_closure_2 (SCM proc, SCM arg1, SCM arg2)
 {
-  return scm_eval_body (SCM_CLOSURE_BODY (proc),
-			SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-					scm_list_2 (arg1, arg2),
-					SCM_ENV (proc)));
+  const SCM env = SCM_ENV (proc);
+  const SCM formals = SCM_CLOSURE_FORMALS (proc);
+  const SCM args = scm_list_2 (arg1, arg2);
+  const SCM new_env = SCM_EXTEND_ENV (formals, args, env);
+  const SCM body = SCM_CLOSURE_BODY (proc);
+  const SCM result = scm_eval_body (body, new_env);
+  return result;
 }
 
 scm_t_trampoline_2
 scm_trampoline_2 (SCM proc)
 {
   if (SCM_IMP (proc))
-    return 0;
+    return NULL;
   if (SCM_DEBUGGINGP)
     return scm_call_2;
   switch (SCM_TYP7 (proc))
@@ -4039,25 +4048,24 @@ scm_trampoline_2 (SCM proc)
 			|| !SCM_CONSP (SCM_CDDR (formals))))))
 	  return call_closure_2;
 	else
-	  return 0;
+	  return NULL;
       }
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	return scm_call_generic_2;
       else if (!SCM_I_OPERATORP (proc))
-	return 0;
+	return NULL;
       return scm_call_2;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
 	return SCM_SMOB_DESCRIPTOR (proc).apply_2;
       else
-	return 0;
-      /* fall through */
+	return NULL;
     case scm_tc7_cclo:
     case scm_tc7_pws:
       return scm_call_2;
     default:
-      return 0; /* not applicable on two args */
+      return NULL; /* not applicable on two args */
     }
 }
 

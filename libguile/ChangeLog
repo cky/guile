@@ -1,5 +1,23 @@
 2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	This set of patches contains no functional changes, only debatable
+	minor stylistic ones.  Still, in order to prepare a patch between
+	my local copy and the CVS version, I decided to submit the changes
+	below.  Then, the patch will hopefully only contain relevant
+	modifications :-)
+
+	* eval.c (iqq): Added const specifier.
+
+	* eval.c (scm_trampoline_0, scm_trampoline_1, scm_trampoline_2):
+	Use NULL instead of 0 to indicate that a pointer is returned.
+	Removed some misleading 'fall through' comments.
+
+	* eval.c (scm_i_call_closure_0, call_closure_1, call_closure_2):
+	Split up long expressions into smaller ones to be more debugging
+	friendly.
+
+2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.h (SCM_ENTER_FRAME_HDLR, SCM_APPLY_FRAME_HDLR,
 	SCM_EXIT_FRAME_HDLR): Use SCM_PACK to convert data to a SCM value
 	rather than casting to SCM.
