@@ -1,3 +1,9 @@
+Thu Aug 28 23:40:43 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	New libtool: 1.0b.
+	* ltconfig, ltmain.sh, config.guess: Freshly libtoolized.
+	* Makefile.in, aclocal.m4, configure: Regenerated, salamander-style.
+
 Wed Aug 27 11:35:09 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.in: Regenerated, so it uses "tar", not "gtar".

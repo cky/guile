@@ -25,6 +25,10 @@ Mon Sep  1 20:08:32 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
  	gtcl.scm; Moved name space cleaning code to gtcl.scm and rewrote
  	it; Call `new-interpreter'; Don't :use-module (guile).
 
+Thu Aug 28 23:48:53 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.in: Regenerated.
+
 Wed Aug 27 11:35:09 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.in: Regenerated, so it uses "tar", not "gtar".
