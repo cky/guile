@@ -23,6 +23,14 @@
 ;;;; ----------------------------------------------------------------
 ;;;;
 
+;;; Commentary:
+
+;; This module is documented in the Guile Reference Manual.
+;; Briefly, one procedure is exported: `%thread-handler';
+;; as well as four macros: `make-thread', `begin-thread',
+;; `with-mutex' and `monitor'.
+
+;;; Code:
 
 (define-module (ice-9 threads))
 
