@@ -1,29 +1,27 @@
 ;;;; optargs.scm -- support for optional arguments
 ;;;;
 ;;;; 	Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
-;;;; 
+;;;;
 ;;;; Contributed by Maciej Stachowiak <mstachow@alum.mit.edu>
 
 
 
-(define-module (ice-9 optargs))
-
-
+;;; Commentary:
 
 ;;; {Optional Arguments}
 ;;;
@@ -40,7 +38,7 @@
 ;;;   let-keywords*
 ;;;   lambda*
 ;;;   define*
-;;;   define*-public   
+;;;   define*-public
 ;;;   defmacro*
 ;;;   defmacro*-public
 ;;;
@@ -49,17 +47,19 @@
 ;;; are used to indicate grouping only):
 ;;;
 ;;; ext-param-list ::= [identifier]* [#:optional [ext-var-decl]+]?
-;;;   [#:key [ext-var-decl]+ [#:allow-other-keys]?]? 
+;;;   [#:key [ext-var-decl]+ [#:allow-other-keys]?]?
 ;;;   [[#:rest identifier]|[. identifier]]?
 ;;;
-;;; ext-var-decl ::= identifier | ( identifier expression )  
+;;; ext-var-decl ::= identifier | ( identifier expression )
 ;;;
 ;;; The characters `*', `+' and `?' are not to be taken literally; they
 ;;; mean respectively, zero or more occurences, one or more occurences,
 ;;; and one or zero occurences.
 ;;;
 
+;;; Code:
 
+(define-module (ice-9 optargs))
 
 ;; bound? var
 ;;   Checks if a variable is bound in the current environment.
@@ -71,9 +71,9 @@
 
 (defmacro-public bound? (var)
   `(catch 'misc-error
-	  (lambda () 
-	    ,var 
-	    (not (eq? ,var ,(variable-ref 
+	  (lambda ()
+	    ,var
+	    (not (eq? ,var ,(variable-ref
 			    (make-undefined-variable)))))
 	  (lambda args #f)))
 
@@ -111,7 +111,7 @@
 ;; duplicates keyword args in the rest arg. More explanation of what
 ;; keyword arguments in a lambda list look like can be found below in
 ;; the documentation for lambda*.  Bindings can have the same form as
-;; for let-optional. If allow-other-keys? is false, an error will be 
+;; for let-optional. If allow-other-keys? is false, an error will be
 ;; thrown if anything that looks like a keyword argument but does not
 ;; match a known keyword parameter will result in an error.
 ;;
@@ -127,7 +127,7 @@
 ;; some utility procedures for implementing the various let-forms.
 
 (define (let-o-k-template REST-ARG BINDINGS BODY let-type proc)
-  (let ((bindings (map (lambda (x) 
+  (let ((bindings (map (lambda (x)
 			 (if (list? x)
 			     x
 			     (list x (variable-ref
@@ -139,8 +139,8 @@
     (if (null? BINDINGS)
 	`(begin ,@BODY)
 	(let-o-k-template REST-ARG BINDINGS BODY let-type
-			  (lambda (optional) 
-			    `(,(car optional) 
+			  (lambda (optional)
+			    `(,(car optional)
 			      (cond
 			       ((not (null? ,REST-ARG))
 				(let ((result (car ,REST-ARG)))
@@ -157,11 +157,11 @@
 	       (bindfilter (lambda (key)
 			     `(,(car key)
 			       (cond
-				((assq ',(car key) ,kb-list-gensym) 
+				((assq ',(car key) ,kb-list-gensym)
 				 => cdr)
-				(else 
+				(else
 				 ,(cadr key)))))))
-	  `(let* ((ra->kbl ,rest-arg->keyword-binding-list) 
+	  `(let* ((ra->kbl ,rest-arg->keyword-binding-list)
 		  (,kb-list-gensym (ra->kbl ,REST-ARG ',(map
 							 (lambda (x) (symbol->keyword (if (pair? x) (car x) x)))
 							 BINDINGS)
@@ -186,7 +186,7 @@
 		    (error "Keyword argument has no value.")
 		    (next (cons (cons (keyword->symbol first)
 				      (car rest)) accum))))
-	       ((not allow-other-keys?) 
+	       ((not allow-other-keys?)
 		(error "Unknown keyword in arguments."))
 	       (else (if (null? rest)
 			 accum
@@ -199,7 +199,7 @@
 ;; "#&optional" instead of "#:optional"
 
 (read-hash-extend #\& (lambda (c port)
-			(display 
+			(display
 			 "WARNING: `#&' is deprecated, use `#:' instead\n"
 			 (current-error-port))
 			(case (read port)
@@ -212,7 +212,7 @@
 
 ;; lambda* args . body
 ;;   lambda extended for optional and keyword arguments
-;;   
+;;
 ;; lambda* creates a procedure that takes optional arguments. These
 ;; are specified by putting them inside brackets at the end of the
 ;; paramater list, but before any dotted rest argument. For example,
@@ -232,11 +232,11 @@
 ;; Optional and keyword arguments can also be given default values
 ;; which they take on when they are not present in a call, by giving a
 ;; two-item list in place of an optional argument, for example in:
-;;   (lambda* (foo #:optional (bar 42) #:key (baz 73)) (list foo bar baz)) 
+;;   (lambda* (foo #:optional (bar 42) #:key (baz 73)) (list foo bar baz))
 ;; foo is a fixed argument, bar is an optional argument with default
 ;; value 42, and baz is a keyword argument with default value 73.
 ;; Default value expressions are not evaluated unless they are needed
-;; and until the procedure is called.  
+;; and until the procedure is called.
 ;;
 ;; lambda* now supports two more special parameter list keywords.
 ;;
@@ -259,7 +259,7 @@
 
 
 (defmacro-public lambda* (ARGLIST . BODY)
-  (parse-arglist 
+  (parse-arglist
    ARGLIST
    (lambda (non-optional-args optionals keys aok? rest-arg)
      ; Check for syntax errors.
@@ -281,7 +281,7 @@
 			 (string? (car BODY)))
 		    (list (car BODY))
 		    '())
-	      (let-optional* 
+	      (let-optional*
 	       ,rest-gensym
 	       ,optionals
 	       (let-keywords* ,rest-gensym
@@ -292,7 +292,7 @@
 					  (error "Too many arguments.")))
 				    '())
 			      ,@BODY)))
-	   `(lambda (,@non-optional-args . ,(if rest-arg rest-arg '())) 
+	   `(lambda (,@non-optional-args . ,(if rest-arg rest-arg '()))
 	      ,@BODY))))))
 
 
@@ -302,7 +302,7 @@
 	   (every? pred (cdr lst)))))
 
 (define (ext-decl? obj)
-  (or (symbol? obj) 
+  (or (symbol? obj)
       (and (list? obj) (= 2 (length obj)) (symbol? (car obj)))))
 
 (define (parse-arglist arglist cont)
@@ -311,9 +311,9 @@
      ((memq val lst)
       => (lambda (pos)
 	   (if (memq val (cdr pos))
-	       (error (with-output-to-string 
+	       (error (with-output-to-string
 			(lambda ()
-			  (map display `(,val 
+			  (map display `(,val
 					 " specified more than once in argument list.")))))
 	       (cont (reverse (cdr (memq val (reverse lst)))) (cdr pos) #t))))
      (else (cont lst '() #f))))
@@ -325,25 +325,25 @@
 	   (error "#:optional specified but no optional arguments declared.")
 	   (cont before after keys aok? rest)))))
   (define (parse-keys arglist rest cont)
-    (split-list-at 
+    (split-list-at
      #:allow-other-keys arglist
      (lambda (aok-before aok-after aok-split?)
        (if (and aok-split? (not (null? aok-after)))
 	   (error "#:allow-other-keys not at end of keyword argument declarations.")
-	   (split-list-at 
+	   (split-list-at
 	    #:key aok-before
 	    (lambda (key-before key-after key-split?)
-	      (cond 
+	      (cond
 	       ((and aok-split? (not key-split?))
 		(error "#:allow-other-keys specified but no keyword arguments declared."))
-	       (key-split? 
+	       (key-split?
 		(cond
 		 ((null? key-after) (error "#:key specified but no keyword arguments declared."))
 		 ((memq #:optional key-after) (error "#:optional arguments declared after #:key arguments."))
 		 (else (parse-opt-and-fixed key-before key-after aok-split? rest cont))))
 	       (else (parse-opt-and-fixed arglist '() #f rest cont)))))))))
   (define (parse-rest arglist cont)
-    (cond 
+    (cond
      ((null? arglist) (cont '() '() '() #f #f))
      ((not (pair? arglist)) (cont '() '() '() #f arglist))
      ((not (list? arglist))
@@ -354,8 +354,8 @@
 	    (if (memq #:rest copy)
 		(error "Cannot specify both #:rest and dotted rest argument.")
 		(parse-keys copy ra cont))))
-     (else (split-list-at 
-	    #:rest arglist 
+     (else (split-list-at
+	    #:rest arglist
 	    (lambda (before after split?)
 	      (if split?
 		  (case (length after)
@@ -382,7 +382,7 @@
 ;;   (define-public* ((foo #:optional bar) #:optional baz) '())
 ;; This illustrates currying. A procedure foo is defined, which,
 ;; when called with an optional argument bar, returns a procedure that
-;; takes an optional argument baz. 
+;; takes an optional argument baz.
 ;;
 ;; Of course, define*[-public] also supports #:rest and #:allow-other-keys
 ;; in the same way as lambda*.
@@ -414,7 +414,7 @@
 ;; defmacro* name args . body
 ;; defmacro*-public args . body
 ;;   defmacro and defmacro-public extended for optional and keyword arguments
-;; 
+;;
 ;; These are just like defmacro and defmacro-public except that they
 ;; take lambda*-style extended paramter lists, where #:optional,
 ;; #:key, #:allow-other-keys and #:rest are allowed with the usual
@@ -432,3 +432,5 @@
   `(,DT ,NAME
 	(,(lambda (transformer) (defmacro:transformer transformer))
 	 (lambda* ,ARGLIST ,@BODY))))
+
+;;; optargs.scm ends here
