@@ -41,6 +41,9 @@
 
 
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -117,7 +120,7 @@ scm_init_feature()
 #ifndef CHEAP_CONTINUATIONS
   scm_add_feature ("full-continuation");
 #endif
-#ifndef USE_NULL_THREADS
+#ifndef SCM_USE_NULL_THREADS
   scm_add_feature ("threads");
 #endif
   
