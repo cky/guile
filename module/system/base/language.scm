@@ -95,7 +95,7 @@
     (call-with-output-file (object-file-name file)
       (lambda (out) (uniform-vector-write bytes out)))))
 
-(define (load-file-in file env lang)
+(define (load-file-in file env lang . opts)
   (let ((compiled (object-file-name file)))
     (if (or (not (file-exists? compiled))
 	    (> (stat:mtime (stat file)) (stat:mtime (stat compiled))))

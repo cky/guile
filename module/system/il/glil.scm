@@ -40,7 +40,6 @@
    make-<glil-label> <glil-label>? <glil-label>-1
    make-<glil-branch> <glil-branch>? <glil-branch>-1 <glil-branch>-2
    make-<glil-call> <glil-call>? <glil-call>-1 <glil-call>-2
-   make-<glil-inst> <glil-inst>? <glil-inst>-1
    ))
 
 ;; Meta operations
@@ -60,8 +59,7 @@
 ;; Controls
 (define-structure (<glil-label> label))
 (define-structure (<glil-branch> inst label))
-(define-structure (<glil-call> inst n))
-(define-structure (<glil-inst> inst))
+(define-structure (<glil-call> inst nargs))
 
 
 ;;;
@@ -160,8 +158,7 @@
     ;; controls
     (($ <glil-label> label) `(label ,label))
     (($ <glil-branch> inst label) `(,inst ,label))
-    (($ <glil-call> inst n) `(,inst ,n))
-    (($ <glil-inst> inst) `(,inst))))
+    (($ <glil-call> inst nargs) `(,inst ,nargs))))
 
 
 ;;;

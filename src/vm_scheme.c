@@ -128,13 +128,15 @@ VM_DEFINE_FUNCTION (set_cdr, "set-cdr!", 2)
 
 VM_DEFINE_FUNCTION (list, "list", -1)
 {
-  POP_LIST_MARK ();
+  ARGSN (an);
+  POP_LIST (an);
   NEXT;
 }
 
 VM_DEFINE_FUNCTION (vector, "vector", -1)
 {
-  POP_LIST_MARK ();
+  ARGSN (an);
+  POP_LIST (an);
   *sp = scm_vector (*sp);
   NEXT;
 }

@@ -64,7 +64,8 @@
 	     (print-info addr (format #f "load-program #~A" sym) #f)))
 	  (else
 	   (let ((info (list->string code))
-		 (extra (original-value code (if (null? opt) #f (car opt)))))
+		 (extra (original-value addr code
+					(if (null? opt) #f (car opt)))))
 	     (print-info addr info extra))))))
     (for-each (lambda (sym+bytes)
 		(format #t "Bytecode #~A:\n\n" (car sym+bytes))
@@ -86,22 +87,22 @@
 	    meta)
   (newline))
 
-(define (original-value code table)
+(define (original-value addr code objs)
   (define (branch-code? code)
     (string-match "^(br|jump)" (symbol->string (car code))))
   (let ((code (code-unpack code)))
     (cond ((code->object code) => object->string)
-;;;	((branch-code? code)
-;;;	 (format #f "-> ~A" (+ addr (cadr code))))
+	  ((branch-code? code)
+	   (format #f "-> ~A" (+ addr (cadr code))))
 	  (else
 	   (let ((inst (car code)) (args (cdr code)))
 	     (case inst
 	       ((make-false) "#f")
-;;;	     ((object-ref)
-;;;	      (object->string (vector-ref objs (car args))))
-	       ((local-ref local-set)
-		;;'(ref x))
-		#f)
+	       ((object-ref)
+		(if objs (object->string (vector-ref objs (car args))) #f))
+;;;	       ((local-ref local-set)
+;;;		;;'(ref x))
+;;;		#f)
 ;;;	     ((module-ref module-set)
 ;;;	      (let ((var (vector-ref objs (car args))))
 ;;;		(list (if (eq? inst 'module-ref) 'ref 'set)
@@ -114,5 +115,5 @@
 
 (define (print-info addr info extra)
   (if extra
-      (format #t "~4@A    ~24A;; ~A\n" addr info extra)
+      (format #t "~4@A    ~32A;; ~A\n" addr info extra)
       (format #t "~4@A    ~A\n" addr info)))

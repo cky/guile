@@ -24,6 +24,7 @@
   :use-syntax (system base syntax)
   :use-module (system base language)
   :use-module (system vm core)
+  :use-module (system vm trace)
   :export (make-repl repl-welcome repl-prompt repl-read repl-compile
 		     repl-eval repl-print repl-compile-file repl-load-file))
 
@@ -63,7 +64,7 @@
 
 (define (repl-compile repl form . opts)
   (let ((bytes (apply compile-in form repl.module repl.language opts)))
-    (if (or (memq :c opts) (memq :l opts))
+    (if (or (memq :c opts) (memq :l opts) (memq :t opts) (memq :e opts))
 	bytes
 	(vm-load repl.vm bytes))))
 
@@ -88,4 +89,6 @@
 
 (define (repl-load-file repl file . opts)
   (let ((bytes (apply load-file-in file repl.module repl.language opts)))
-    (repl.vm (vm-load repl.vm bytes))))
+    (if (memq #:t opts) (vm-trace-start! repl.vm #:a))
+    (repl.vm (vm-load repl.vm bytes))
+    (if (memq #:t opts) (vm-trace-end! repl.vm #:a))))

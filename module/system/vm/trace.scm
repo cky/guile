@@ -23,38 +23,39 @@
   :use-module (system vm core)
   :use-module (system vm frame)
   :use-module (ice-9 format)
-  :export (vm-trace))
+  :use-module (ice-9 and-let-star)
+  :export (vm-trace vm-trace-start! vm-trace-end!))
 
 (define (vm-trace vm prog . opts)
-  (let ((flag (vm-option vm 'debug)))
-    (dynamic-wind
-	(lambda ()
-	  (set-vm-option! vm 'debug #t)
-	  (set-vm-option! vm 'first-apply #t)
-	  (if (memq :a opts)
-	      (add-hook! (vm-next-hook vm) trace-next))
-	  (add-hook! (vm-apply-hook vm) trace-apply)
-	  (add-hook! (vm-return-hook vm) trace-return))
-	(lambda ()
-	  (vm prog))
-	(lambda ()
-	  (set-vm-option! vm 'debug flag)
-	  (if (memq :a opts)
-	      (remove-hook! (vm-next-hook vm) trace-next))
-	  (remove-hook! (vm-apply-hook vm) trace-apply)
-	  (remove-hook! (vm-return-hook vm) trace-return)))))
+  (dynamic-wind
+      (lambda () (apply vm-trace-start! vm opts))
+      (lambda () (vm prog))
+      (lambda () (apply vm-trace-end! vm opts))))
+
+(define (vm-trace-start! vm . opts)
+  (set-vm-option! vm 'trace-first #t)
+  (if (memq :a opts)
+      (add-hook! (vm-next-hook vm) trace-next))
+  (add-hook! (vm-apply-hook vm) trace-apply)
+  (add-hook! (vm-return-hook vm) trace-return))
+
+(define (vm-trace-end! vm . opts)
+  (if (memq :a opts)
+      (remove-hook! (vm-next-hook vm) trace-next))
+  (remove-hook! (vm-apply-hook vm) trace-apply)
+  (remove-hook! (vm-return-hook vm) trace-return))
 
 (define (trace-next vm)
   (let ((frame (vm-current-frame vm)))
-    (format #t "0x~X  ~20S~S\t~S\n"
+    (format #t "0x~8X  ~20S~S\t~S\n"
 	    (vm:ip vm)
 	    (vm-fetch-code vm)
 	    (frame-variables frame)
 	    (vm-fetch-stack vm))))
 
 (define (trace-apply vm)
-  (if (vm-option vm 'first-apply)
-      (set-vm-option! vm 'first-apply #f)	;; skip the initial program
+  (if (vm-option vm 'trace-first)
+      (set-vm-option! vm 'trace-first #f)	;; skip the initial program
       (let ((frame (vm-current-frame vm)))
 	(print-prefix (frame-dynamic-link frame))
 	(write (frame->call frame))

@@ -21,6 +21,8 @@
 
 (define-module (language gscheme spec)
   :use-module (system base language)
+  :use-module (system il ghil)
+  :use-module (language r5rs expand)
   :use-module (ice-9 match)
   :export (gscheme))
 
@@ -29,23 +31,24 @@
 ;;; Macro expander
 ;;;
 
-(define (expand x)
+(define expand-syntax expand)
+
+(define (expand-macro x m)
   (if (pair? x)
       (let* ((s (car x))
-	     (m (current-module))
 	     (v (and (symbol? s) (module-defined? m s) (module-ref m s))))
 	(if (defmacro? v)
-	    (expand (apply (defmacro-transformer v) (cdr x)))
-	    (cons (expand (car x)) (expand (cdr x)))))
+	    (expand-macro (apply (defmacro-transformer v) (cdr x)) m)
+	    (cons (expand-macro (car x) m) (expand-macro (cdr x) m))))
       x))
+
+(define (expand x)
+  (expand-syntax (expand-macro x (current-module))))
 
 
 ;;;
 ;;; Translator
 ;;;
-
-(define *primitive-procedure-list*
-  '(void car cdr cons + - < >))
 
 (define (translate x) (if (pair? x) (translate-pair x) x))
 
@@ -53,13 +56,8 @@
   (let ((name (car x)) (args (cdr x)))
     (case name
       ((quote) (cons '@quote args))
-      ((set! if and or begin)
+      ((define set! if and or begin)
        (cons (symbol-append '@ name) (map translate args)))
-      ((define)
-       (if (pair? (car args))
-	   `(@define ,(caar args)
-		     (@lambda ,(cdar args) ,@(map translate (cdr args))))
-	   `(@define ,(car args) ,@(map translate (cdr args)))))
       ((let let* letrec)
        (match x
 	 (('let (? symbol? f) ((s v) ...) body ...)
@@ -73,9 +71,10 @@
       ((lambda)
        (cons* '@lambda (car args) (map translate (cdr args))))
       (else
-       (if (memq name *primitive-procedure-list*)
-	   (cons (symbol-append '@ name) (map translate args))
-	   (cons (translate name) (map translate args)))))))
+       (let ((prim (symbol-append '@ name)))
+	 (if (ghil-primitive? prim)
+	     (cons prim (map translate args))
+	     (cons (translate name) (map translate args))))))))
 
 
 ;;;

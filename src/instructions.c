@@ -96,7 +96,27 @@ SCM_DEFINE (scm_instruction_length, "instruction-length", 1, 0, 0,
 #define FUNC_NAME s_scm_instruction_length
 {
   SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_MAKINUM (SCM_INSTRUCTION_LEN (inst));
+  return SCM_MAKINUM (SCM_INSTRUCTION_LENGTH (inst));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_instruction_pops, "instruction-pops", 1, 0, 0,
+	    (SCM inst),
+	    "")
+#define FUNC_NAME s_scm_instruction_pops
+{
+  SCM_VALIDATE_INSTRUCTION (1, inst);
+  return SCM_MAKINUM (SCM_INSTRUCTION_POPS (inst));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_instruction_pushes, "instruction-pushes", 1, 0, 0,
+	    (SCM inst),
+	    "")
+#define FUNC_NAME s_scm_instruction_pushes
+{
+  SCM_VALIDATE_INSTRUCTION (1, inst);
+  return SCM_MAKINUM (SCM_INSTRUCTION_PUSHES (inst));
 }
 #undef FUNC_NAME
 

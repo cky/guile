@@ -135,12 +135,15 @@
 	    (let ((setter (lambda (addr) (- (label-ref label) (1+ addr)))))
 	      (push-code! (list inst setter))))
 
-	   (($ <glil-call> inst n)
-	    (push-code! (list inst n)))
-
-	   (($ <glil-inst> inst)
+	   (($ <glil-call> inst nargs)
 	    (if (instruction? inst)
-		(push-code! (list inst))
+		(let ((pops (instruction-pops inst)))
+		  (cond ((< pops 0)
+			 (push-code! (list inst nargs)))
+			((= pops nargs)
+			 (push-code! (list inst)))
+			(else
+			 (error "Wrong number of arguments:" inst nargs))))
 		(error "Unknown instruction:" inst)))))
        ;;
        ;; main
@@ -242,9 +245,8 @@
 	      ;; dump object table
 	      (cond ((null? objs) (push-code! (object->code #f)))
 		    (else
-		     (push-code! `(mark))
 		     (for-each dump-object! objs)
-		     (push-code! `(vector))))))
+		     (push-code! `(vector ,(length objs)))))))
 	;; dump bytecode
 	(push-code! `(load-program ,(bytespec-bytes spec)))))
     ;;

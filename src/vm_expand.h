@@ -60,17 +60,17 @@
 /*
  * These will go to scm_instruction_table in vm.c
  */
-#define VM_DEFINE_INSTRUCTION(tag,name,len) \
-  {VM_OPCODE (tag), name, len},
+#define VM_DEFINE_INSTRUCTION(tag,name,len,npop,npush) \
+  {VM_OPCODE (tag), name, len, npop, npush},
 #define VM_DEFINE_FUNCTION(tag,name,nargs) \
-  {VM_OPCODE (tag), name, 0},
+  {VM_OPCODE (tag), name, (nargs < 0) ? 1 : 0, nargs, 1},
 
 #else
 #ifdef VM_INSTRUCTION_TO_LABEL
 /*
  * These will go to jump_table in vm_engine.c
  */
-#define VM_DEFINE_INSTRUCTION(tag,name,len)		VM_ADDR (tag),
+#define VM_DEFINE_INSTRUCTION(tag,name,len,npop,npush)	VM_ADDR (tag),
 #define VM_DEFINE_FUNCTION(tag,name,nargs)		VM_ADDR (tag),
 
 #else
@@ -78,14 +78,14 @@
 /*
  * These will go to scm_opcode in vm.h
  */
-#define VM_DEFINE_INSTRUCTION(tag,name,len)		VM_OPCODE (tag),
+#define VM_DEFINE_INSTRUCTION(tag,name,len,npop,npush)	VM_OPCODE (tag),
 #define VM_DEFINE_FUNCTION(tag,name,nargs)		VM_OPCODE (tag),
 
 #else /* Otherwise */
 /*
  * These are directly included in vm_engine.c
  */
-#define VM_DEFINE_INSTRUCTION(tag,name,len)		VM_TAG (tag)
+#define VM_DEFINE_INSTRUCTION(tag,name,len,npop,npush)	VM_TAG (tag)
 #define VM_DEFINE_FUNCTION(tag,name,nargs)		VM_TAG (tag)
 
 #endif /* VM_INSTRUCTION_TO_OPCODE */

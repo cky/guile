@@ -47,12 +47,12 @@
  */
 
 /* This must be the first instruction! */
-VM_DEFINE_INSTRUCTION (nop, "nop", 0)
+VM_DEFINE_INSTRUCTION (nop, "nop", 0, 0, 0)
 {
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (halt, "halt", 0)
+VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
 {
   SCM ret = *sp;
   HALT_HOOK ();
@@ -61,13 +61,13 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0)
   return ret;
 }
 
-VM_DEFINE_INSTRUCTION (drop, "drop", 0)
+VM_DEFINE_INSTRUCTION (drop, "drop", 0, 1, 0)
 {
   DROP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (dup, "dup", 0)
+VM_DEFINE_INSTRUCTION (dup, "dup", 0, 0, 1)
 {
   PUSH (*sp);
   NEXT;
@@ -78,55 +78,55 @@ VM_DEFINE_INSTRUCTION (dup, "dup", 0)
  * Object creation
  */
 
-VM_DEFINE_INSTRUCTION (void, "void", 0)
+VM_DEFINE_INSTRUCTION (void, "void", 0, 0, 1)
 {
   PUSH (SCM_UNSPECIFIED);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (mark, "mark", 0)
+VM_DEFINE_INSTRUCTION (mark, "mark", 0, 0, 1)
 {
   PUSH (SCM_UNDEFINED);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_true, "make-true", 0)
+VM_DEFINE_INSTRUCTION (make_true, "make-true", 0, 0, 1)
 {
   PUSH (SCM_BOOL_T);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_false, "make-false", 0)
+VM_DEFINE_INSTRUCTION (make_false, "make-false", 0, 0, 1)
 {
   PUSH (SCM_BOOL_F);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_eol, "make-eol", 0)
+VM_DEFINE_INSTRUCTION (make_eol, "make-eol", 0, 0, 1)
 {
   PUSH (SCM_EOL);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_int8, "make-int8", 1)
+VM_DEFINE_INSTRUCTION (make_int8, "make-int8", 1, 0, 1)
 {
   PUSH (SCM_MAKINUM ((signed char) FETCH ()));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_int8_0, "make-int8:0", 0)
+VM_DEFINE_INSTRUCTION (make_int8_0, "make-int8:0", 0, 0, 1)
 {
   PUSH (SCM_MAKINUM (0));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_int8_1, "make-int8:1", 0)
+VM_DEFINE_INSTRUCTION (make_int8_1, "make-int8:1", 0, 0, 1)
 {
   PUSH (SCM_MAKINUM (1));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_int16, "make-int16", 2)
+VM_DEFINE_INSTRUCTION (make_int16, "make-int16", 2, 0, 1)
 {
   int h = FETCH ();
   int l = FETCH ();
@@ -134,7 +134,7 @@ VM_DEFINE_INSTRUCTION (make_int16, "make-int16", 2)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_char8, "make-char8", 1)
+VM_DEFINE_INSTRUCTION (make_char8, "make-char8", 1, 0, 1)
 {
   PUSH (SCM_MAKE_CHAR (FETCH ()));
   NEXT;
@@ -154,7 +154,7 @@ VM_DEFINE_INSTRUCTION (make_char8, "make-char8", 1)
 #define VARIABLE_REF(v)		SCM_CDR (v)
 #define VARIABLE_SET(v,o)	SCM_SETCDR (v, o)
 
-VM_DEFINE_INSTRUCTION (external, "external", 1)
+VM_DEFINE_INSTRUCTION (external, "external", 1, 0, 0)
 {
   int n = FETCH ();
   while (n-- > 0)
@@ -164,25 +164,25 @@ VM_DEFINE_INSTRUCTION (external, "external", 1)
 
 /* ref */
 
-VM_DEFINE_INSTRUCTION (object_ref, "object-ref", 1)
+VM_DEFINE_INSTRUCTION (object_ref, "object-ref", 1, 0, 1)
 {
   PUSH (OBJECT_REF (FETCH ()));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (local_ref, "local-ref", 1)
+VM_DEFINE_INSTRUCTION (local_ref, "local-ref", 1, 0, 1)
 {
   PUSH (LOCAL_REF (FETCH ()));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (local_ref_0, "local-ref:0", 0)
+VM_DEFINE_INSTRUCTION (local_ref_0, "local-ref:0", 0, 0, 1)
 {
   PUSH (LOCAL_REF (0));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1)
+VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1, 0, 1)
 {
   unsigned int i;
   SCM e = external;
@@ -192,26 +192,13 @@ VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (module_ref, "module-ref", 1)
-{
-  int i = FETCH ();
-  SCM o, x = OBJECT_REF (i);
-  o = VARIABLE_REF (x);
-  if (SCM_UNBNDP (o))
-    {
-      err_args = SCM_LIST1 (SCM_CAR (x));
-      goto vm_error_unbound;
-    }
-  PUSH (o);
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0)
+VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
 {
   SCM x = *sp;
   SCM o = VARIABLE_REF (x);
   if (SCM_UNBNDP (o))
     {
+      /* Try autoload here */
       err_args = SCM_LIST1 (SCM_CAR (x));
       goto vm_error_unbound;
     }
@@ -221,14 +208,14 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0)
 
 /* set */
 
-VM_DEFINE_INSTRUCTION (local_set, "local-set", 1)
+VM_DEFINE_INSTRUCTION (local_set, "local-set", 1, 1, 0)
 {
   LOCAL_SET (FETCH (), *sp);
   DROP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (external_set, "external-set", 1)
+VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
 {
   unsigned int i;
   SCM e = external;
@@ -239,16 +226,7 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (module_set, "module-set", 1)
-{
-  int i = FETCH ();
-  SCM x = OBJECT_REF (i);
-  VARIABLE_SET (x, *sp);
-  DROP ();
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0)
+VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 {
   VARIABLE_SET (sp[0], sp[1]);
   sp += 2;
@@ -269,37 +247,37 @@ VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0)
   NEXT;						\
 }
 
-VM_DEFINE_INSTRUCTION (br_if, "br-if", 1)
+VM_DEFINE_INSTRUCTION (br_if, "br-if", 1, 0, 0)
 {
   BR (!SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_not, "br-if-not", 1)
+VM_DEFINE_INSTRUCTION (br_if_not, "br-if-not", 1, 0, 0)
 {
   BR (SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_eq, "br-if-eq", 1)
+VM_DEFINE_INSTRUCTION (br_if_eq, "br-if-eq", 1, 0, 0)
 {
   BR (SCM_EQ_P (sp[0], sp--[1]));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_not_eq, "br-if-not-eq", 1)
+VM_DEFINE_INSTRUCTION (br_if_not_eq, "br-if-not-eq", 1, 0, 0)
 {
   BR (!SCM_EQ_P (sp[0], sp--[1]));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_null, "br-if-null", 1)
+VM_DEFINE_INSTRUCTION (br_if_null, "br-if-null", 1, 0, 0)
 {
   BR (SCM_NULLP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_not_null, "br-if-not-null", 1)
+VM_DEFINE_INSTRUCTION (br_if_not_null, "br-if-not-null", 1, 0, 0)
 {
   BR (!SCM_NULLP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (jump, "jump", 1)
+VM_DEFINE_INSTRUCTION (jump, "jump", 1, 0, 0)
 {
   ip += (signed char) FETCH ();
   NEXT;
@@ -310,14 +288,14 @@ VM_DEFINE_INSTRUCTION (jump, "jump", 1)
  * Subprogram call
  */
 
-VM_DEFINE_INSTRUCTION (make_closure, "make-closure", 0)
+VM_DEFINE_INSTRUCTION (make_closure, "make-closure", 0, 1, 1)
 {
   SYNC ();
   *sp = scm_c_make_vclosure (*sp, external);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (call, "call", 1)
+VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
 {
   POP (program);
   nargs = FETCH ();
@@ -368,7 +346,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1)
+VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
 {
   SCM x;
   POP (x);
@@ -438,7 +416,7 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1)
+VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1, 1, 1)
 {
   SYNC ();
   PUSH (capture_vm_cont (vmp));
@@ -447,7 +425,7 @@ VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (return, "return", 0)
+VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 {
   SCM ret;
  vm_return:
@@ -461,23 +439,6 @@ VM_DEFINE_INSTRUCTION (return, "return", 0)
   CACHE_PROGRAM ();
   PUSH (ret);
   NEXT;
-}
-
-
-/*
- * Exception handling
- */
-
-VM_DEFINE_INSTRUCTION (raise, "raise", 1)
-{
-}
-
-VM_DEFINE_INSTRUCTION (catch, "catch", 0)
-{
-}
-
-VM_DEFINE_INSTRUCTION (stack_catch, "stach_catch", 0)
-{
 }
 
 /*

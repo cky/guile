@@ -59,13 +59,17 @@ enum scm_opcode {
 struct scm_instruction {
   enum scm_opcode opcode;	/* opcode */
   char *name;			/* instruction name */
-  char len;			/* byte length */
+  char len;			/* instruction length */
+  char npop;			/* the number of values popped */
+  char npush;			/* the number of values pushed */
 };
 
 #define SCM_INSTRUCTION_P(x)		(scm_lookup_instruction (x))
 #define SCM_INSTRUCTION_OPCODE(i)	(scm_lookup_instruction (i)->opcode)
 #define SCM_INSTRUCTION_NAME(i)		(scm_lookup_instruction (i)->name)
-#define SCM_INSTRUCTION_LEN(i)		(scm_lookup_instruction (i)->len)
+#define SCM_INSTRUCTION_LENGTH(i)	(scm_lookup_instruction (i)->len)
+#define SCM_INSTRUCTION_POPS(i)		(scm_lookup_instruction (i)->npop)
+#define SCM_INSTRUCTION_PUSHES(i)	(scm_lookup_instruction (i)->npush)
 #define SCM_VALIDATE_INSTRUCTION(p,x)	SCM_MAKE_VALIDATE (p, x, INSTRUCTION_P)
 
 #define SCM_INSTRUCTION(i)		(&scm_instruction_table[i])

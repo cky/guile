@@ -207,9 +207,19 @@ vm_fetch_length (scm_byte_t *ip, size_t *lenp)
   if (*lenp < 254)
     return ip;
   else if (*lenp == 254)
-    *lenp = (*ip++ << 8) + *ip++;
+    {
+      int b1 = *ip++;
+      int b2 = *ip++;
+      *lenp = (b1 << 8) + b2;
+    }
   else
-    *lenp = (*ip++ << 24) + (*ip++ << 16) + (*ip++ << 8) + *ip++;
+    {
+      int b1 = *ip++;
+      int b2 = *ip++;
+      int b3 = *ip++;
+      int b4 = *ip++;
+      *lenp = (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
+    }
   return ip;
 }
 

@@ -209,19 +209,6 @@ do {						\
   *sp = l;					\
 } while (0)
 
-#define POP_LIST_MARK()				\
-do {						\
-  SCM x;					\
-  SCM l = SCM_EOL;				\
-  POP (x);					\
-  while (!SCM_UNBNDP (x))			\
-    {						\
-      CONS (l, x, l);				\
-      POP (x);					\
-    }						\
-  PUSH (l);					\
-} while (0)
-
 
 /*
  * Instruction operation

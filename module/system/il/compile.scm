@@ -55,8 +55,8 @@
 ;;;
 
 (define *ia-void* (make-<glil-void>))
-(define *ia-drop* (make-<glil-inst> 'drop))
-(define *ia-return* (make-<glil-inst> 'return))
+(define *ia-drop* (make-<glil-call> 'drop 0))
+(define *ia-return* (make-<glil-call> 'return 0))
 
 (define (make-label) (gensym ":L"))
 
@@ -147,6 +147,14 @@
 	(($ <ghil-lambda> vars rest body)
 	 (return-code! (codegen tree)))
 
+	(($ <ghil-inst> inst args)
+	 ;; ARGS...
+	 ;; (INST NARGS)
+	 (for-each comp-push args)
+	 (push-code! (make-<glil-call> inst (length args)))
+	 (if drop (push-code! *ia-drop*))
+	 (if tail (push-code! *ia-return*)))
+
 	(($ <ghil-call> proc args)
 	 ;; ARGS...
 	 ;; PROC
@@ -155,15 +163,7 @@
 	 (comp-push proc)
 	 (let ((inst (if tail 'tail-call 'call)))
 	   (push-code! (make-<glil-call> inst (length args))))
-	 (if drop (push-code! *ia-drop*)))
-
-	(($ <ghil-inst> inst args)
-	 ;; ARGS...
-	 ;; (INST)
-	 (for-each comp-push args)
-	 (push-code! (make-<glil-inst> inst))
-	 (if drop (push-code! *ia-drop*))
-	 (if tail (push-code! *ia-return*)))))
+	 (if drop (push-code! *ia-drop*)))))
     ;;
     ;; main
     (match ghil

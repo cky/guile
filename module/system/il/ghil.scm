@@ -26,6 +26,7 @@
   :use-module (ice-9 regex)
   :export
   (parse-ghil
+   ghil-primitive?
    make-<ghil-void> <ghil-void>?
    make-<ghil-quote> <ghil-quote>? <ghil-quote>-1
    make-<ghil-ref> <ghil-ref>? <ghil-ref>-1 <ghil-ref>-2
@@ -55,6 +56,26 @@
 (define-structure (<ghil-lambda> env args rest body))
 (define-structure (<ghil-call> proc args))
 (define-structure (<ghil-inst> inst args))
+
+
+;;;
+;;; Procedures
+;;;
+
+(define *core-primitives*
+  '(@void @quote @define @set! @if @begin @let @letrec @lambda))
+
+(define *macro-module* (resolve-module '(system il macros)))
+
+(define (ghil-primitive-macro? x)
+  (module-defined? *macro-module* x))
+
+(define (ghil-macro-expander x)
+  (module-ref *macro-module* x))
+
+(define (ghil-primitive? x)
+  (or (memq x *core-primitives*)
+      (ghil-primitive-macro? x)))
 
 
 ;;;
@@ -146,13 +167,11 @@
 (define (map-parse x e)
   (map (lambda (x) (parse x e)) x))
 
-(define *macros* (resolve-module '(system il macros)))
-
 (define (parse-pair x e)
   (let ((head (car x)) (tail (cdr x)))
     (if (and (symbol? head) (eq? (string-ref (symbol->string head) 0) #\@))
-	(if (module-defined? *macros* head)
-	    (parse (apply (module-ref *macros* head) tail) e)
+	(if (ghil-primitive-macro? head)
+	    (parse (apply (ghil-macro-expander head) tail) e)
 	    (parse-primitive head tail e))
 	(make-<ghil-call> (parse head e) (map-parse tail e)))))
 

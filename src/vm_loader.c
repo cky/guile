@@ -41,7 +41,7 @@
 
 /* This file is included in vm_engine.c */
 
-VM_DEFINE_INSTRUCTION (load_integer, "load-integer", -1)
+VM_DEFINE_INSTRUCTION (load_integer, "load-integer", -1, 0, 1)
 {
   size_t len;
 
@@ -58,7 +58,7 @@ VM_DEFINE_INSTRUCTION (load_integer, "load-integer", -1)
     SCM_MISC_ERROR ("load-integer: not implemented yet", SCM_EOL);
 }
 
-VM_DEFINE_INSTRUCTION (load_symbol, "load-symbol", -1)
+VM_DEFINE_INSTRUCTION (load_symbol, "load-symbol", -1, 0, 1)
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -67,7 +67,7 @@ VM_DEFINE_INSTRUCTION (load_symbol, "load-symbol", -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (load_string, "load-string", -1)
+VM_DEFINE_INSTRUCTION (load_string, "load-string", -1, 0, 1)
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -76,7 +76,7 @@ VM_DEFINE_INSTRUCTION (load_string, "load-string", -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (load_keyword, "load-keyword", -1)
+VM_DEFINE_INSTRUCTION (load_keyword, "load-keyword", -1, 0, 1)
 {
   SCM sym;
   size_t len;
@@ -87,7 +87,7 @@ VM_DEFINE_INSTRUCTION (load_keyword, "load-keyword", -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (load_module, "load-module", -1)
+VM_DEFINE_INSTRUCTION (load_module, "load-module", -1, 0, 1)
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -96,7 +96,7 @@ VM_DEFINE_INSTRUCTION (load_module, "load-module", -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (load_program, "load-program", -1)
+VM_DEFINE_INSTRUCTION (load_program, "load-program", -1, 0, 1)
 {
   size_t len;
   SCM prog, x;
@@ -127,14 +127,14 @@ VM_DEFINE_INSTRUCTION (load_program, "load-program", -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (link, "link", 0)
+VM_DEFINE_INSTRUCTION (link, "link", 0, 2, 1)
 {
   sp[1] = scm_c_env_vcell (sp[1], sp[0], 1);
   DROP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (link_current_module, "link/current-module", 0)
+VM_DEFINE_INSTRUCTION (link_current_module, "link/current-module", 0, 1, 1)
 {
   SCM mod = scm_current_module ();
   SCM var = scm_eval_closure_lookup (scm_standard_eval_closure (mod),

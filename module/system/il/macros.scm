@@ -25,13 +25,6 @@
 (define (make-label) (gensym ":L"))
 (define (make-sym) (gensym "_"))
 
-;;;
-;;; Module macros
-;;;
-
-(define (@import identifier)
-  `((@ System::Base::module::do-import) (@quote ,identifier)))
-
 
 ;;;
 ;;; Syntax
@@ -155,12 +148,12 @@
     ((x y) `(@@ div ,x ,y))
     ((x y . rest) `(@@ div ,x (@* ,y ,@rest)))))
 
-;;; abs
-;;; 
-;;; quotient
+(define (@abs x) `(@if (@< x 0) (@- x) x))
+
+(define (@quotient x y) `(@@ quotient ,x ,y))
 (define (@remainder x y) `(@@ remainder ,x ,y))
-;;; modulo
-;;; 
+(define (@modulo x y) `(@@ modulo ,x ,y))
+
 ;;; gcd
 ;;; lcm
 ;;; 
@@ -337,34 +330,14 @@
 
 ;; (define (@apply proc . args) ...)
 
-(define (@map f ls . more)
-  (if (null? more)
-      `(@let ((f ,f))
-	 (@let map1 ((ls ,ls))
-	   (@if (@null? ls)
-		'()
-		(@cons (f (car ls)) (map1 (cdr ls))))))
-      `(@let ((f ,f))
-	 (@let map-more ((ls ,ls) (more ,more))
-	   (@if (@null? ls)
-		'()
-		(@cons (@apply f (car ls) (map car more))
-		       (map-more (cdr ls) (map cdr more))))))))
+;;; map
+;;; for-each
 
-(define @for-each
-  (match-lambda*
-    ((f l)
-     (do ((ls ls (cdr ls)) (more more (map cdr more)))
-	 ((null? ls))
-       (apply f (car ls) (map car more))))
-    ((f . args)
-     `(@apply (@~ system:il:base:for-each) args))))
+;;; (define (@force promise) `(@@ force promise))
 
-(define (@force promise) `(@@ force promise))
+;;; (define (@call-with-current-continuation proc) `(@@ call/cc proc))
 
-(define (@call-with-current-continuation proc) `(@@ call/cc proc))
-
-(define @call/cc @call-with-current-continuation)
+;;; (define @call/cc @call-with-current-continuation)
 
 ;;; values
 ;;; call-with-values
