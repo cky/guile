@@ -492,9 +492,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 
 	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
 	case ':':
-	  j = scm_read_token ('-', tok_buf, port, 0);
-	  p = scm_string_to_symbol (scm_c_substring_copy (*tok_buf, 0, j));
-	  return scm_make_keyword_from_dash_symbol (p);
+	  return scm_symbol_to_keyword (scm_read (port));
 
 	default:
 	callshrp:
@@ -633,11 +631,8 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 
     case ':':
       if (scm_is_eq (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_prefix))
-	{
-	  j = scm_read_token ('-', tok_buf, port, 0);
-	  p = scm_string_to_symbol (scm_c_substring (*tok_buf, 0, j));
-	  return scm_make_keyword_from_dash_symbol (p);
-	}
+	return scm_symbol_to_keyword (scm_read (port));
+
       /* fallthrough */
     default:
 #if SCM_ENABLE_ELISP
