@@ -29,7 +29,8 @@ scripts_sources =		\
 	generate-autoload	\
 	punify			\
 	read-scheme-source	\
-	use2dot
+	use2dot                 \
+	snarf-check-and-output-texi
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)

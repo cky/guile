@@ -1,3 +1,9 @@
+2001-05-31  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* snarf-check-and-output-texi: new file.
+
+	* Makefile.am (scripts_sources): add snarf-check-and-output-texi.
+
 2001-05-14  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* PROGRAM, display-commentary, doc-snarf, generate-autoload,

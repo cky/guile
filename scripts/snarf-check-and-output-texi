@@ -1,0 +1,157 @@
+#!/bin/sh
+# aside from this initial boilerplate, this is actually -*- scheme -*- code
+main="(module-ref (resolve-module '(scripts snarf-check-and-output-texi)) 'main)"
+exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
+!#
+;;; snarf-check-and-output-texi --- called by the doc snarfer.
+
+;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;; Boston, MA 02111-1307 USA
+
+;;; Author: Michael Livshin
+
+;;; Code:
+
+(define-module (scripts snarf-check-and-output-texi)
+    :export (snarf-check-and-output-texi))
+
+(define *file* #f)
+(define *line* #f)
+(define *function-name* #f)
+(define *snarf-type* #f)
+(define *args* #f)
+(define *sig* #f)
+(define *docstring* #f)
+
+(define (doc-block args)
+  (let loop ((args args))
+    (if (not (null? args))
+      (let ((arg (car args)))
+        (if (not (null? arg))
+          (begin
+           
+           (case (car arg)
+             
+             ((fname)
+               (set! *function-name* (cdr arg)))
+             
+             ((type)
+               (set! *snarf-type* (cdr arg)))
+             
+             ((location)
+               (set! *file* (cadr arg))
+               (set! *line* (cddr arg)))
+             
+             ((arglist)
+               (set! *args* (cdr arg)))
+             
+             ((argsig)
+               (set! *sig* (cdr arg)))
+             
+             ((docstring)
+               (set! *docstring* (cdr arg)))
+             
+             (else
+               (error (format #f "unknown doc attribute: ~A" (car arg)))))))
+        (loop (cdr args)))))
+  (output-doc-block))
+
+(define (doc-check arg)
+  (if (not (null? arg))
+    
+    (case (car arg)
+      
+      ((argpos)
+        (let* ((name (cadr arg))
+               (pos (caddr arg))
+               (line (cadddr arg))
+               (idx (list-index *args* name)))
+          (cond
+            ((not idx))
+            ((not (number? pos)))
+            ((= 0 pos))
+            ((not (= (+ idx 1) pos))
+              (display (format #f "~A:~A: wrong position for argument \"~A\": ~A (should be ~A)\n"
+                               *file* line name pos (+ idx 1))
+                       (current-error-port))))))
+      
+      (else
+        (error (format #f "unknown check: ~A" (car arg)))))))
+
+(define (output-doc-block)
+  (let* ((req (car *sig*))
+         (opt (cadr *sig*))
+         (var (caddr *sig*))
+         (all (+ req opt var)))
+    (if (and (not (eqv? *snarf-type* 'register))
+             (not (= (length *args*) all)))
+      (error (format #f "~A:~A: ~A's C implementation takes ~A args (should take ~A)"
+             *file* *line* name (length *args*) all)))
+    (let ((nice-sig
+            (if (eq? *snarf-type* 'register)
+              *function-name*
+              (with-output-to-string
+                (lambda ()
+                  (format #t "~A" *function-name*)
+                  (let loop-req ((r 0))
+                    (if (< r req)
+                      (begin
+                       (format #t " ~A" (list-ref *args* r))
+                       (loop-req (+ 1 r)))
+                      (begin
+                       (if (> opt 0)
+                         (format #t "~A[" (if (> req 0) " " "")))
+                       (let loop-opt ((o 0) (space #f))
+                         (if (< o opt)
+                           (begin
+                            (format #t "~A~A" (if space " " "")
+                                    (list-ref *args* (+ r o)))
+                            (loop-opt (+ 1 o) #t))
+                           (begin
+                            (if (> opt 0)
+                              (format #t "]"))
+                            (if (> var 0)
+                              (format #t "~A. ~A" (if (< var all) " " "")
+                                      (car (last-pair *args*)))))))))))))))
+      (format #t "\n~A\n" *function-name*)
+      (format #t "@c snarfed from ~A:~A\n" *file* *line*)
+      (format #t "@deffn primitive ~A\n" nice-sig)
+      (let loop ((strings *docstring*))
+        (if (not (null? strings))
+          (begin
+           (display (car strings))
+           (loop (cdr strings)))))
+      (display "\n@end deffn\n"))))
+
+(define (snarf-check-and-output-texi)
+  (let loop ((form (read)))
+    (if (not (eof-object? form))
+      (begin
+       (if (not (null? form))
+         
+        (case (car form)
+          
+          ((doc-block)
+           (doc-block (cdr form)))
+          
+          ((doc-check)
+           (doc-check (cdr form)))
+          
+          (else (error (format #f "unknown doc command: ~A" (car form))))))
+       (loop (read))))))
+
+(define main snarf-check-and-output-texi)
