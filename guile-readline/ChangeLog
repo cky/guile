@@ -1,3 +1,8 @@
+2002-10-21  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* readline.scm (activate-readline): Look for use-emacs-interface
+	option in the guile-user module instead of the-root-module.
+
 2002-04-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* autogen.sh: Invoke plain aclocal instead of guile-aclocal.sh.
