@@ -5,6 +5,9 @@
 	scm_list_5, scm_list_n.  Remove scm_list, since it's a no-op.
 	* guile.texi (nicode): New macro.
 
+	* srfi-modules.texi (SRFI-0): Add cond-expand index entry.
+	(SRFI-9): Add define-record-type index entry.
+
 2003-07-12  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-1 Constructors): In iota, reword a bit for
