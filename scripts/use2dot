@@ -35,7 +35,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;
 ;; An `:autoload' `define-module'-component results in a "dotted" style edge
 ;; with label "N" indicating that N names are responsible for triggering the
-;; autoload.
+;; autoload.  [The "N" label is not implemented.]
 ;;
 ;; A top-level `load' or `primitive-load' form results in a a "bold" style
 ;; edge to a node named with either the file name if the `load' argument is a
@@ -47,17 +47,17 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;                          `define-module' form in a file).  MOD should be
 ;;                          be a list or `#f', in which case such top-level
 ;;                          `use-modules' forms are effectively ignored.
-;;                          Default value: `(guile)'.
+;;                          Default value: `(guile-user)'.
 ;;
-;; TODO
-;; - add `--load-synonyms' option
-;; - add `--ignore-module' option
-;; - handle arbitrary command-line key/value configuration
+;; TODO: Use `(ice-9 format)'.
 
 ;;; Code:
 
 (define-module (scripts use2dot)
-  :use-module (ice-9 regex))
+  :use-module ((scripts frisk)
+               :select (make-frisker edge-type edge-up edge-down)))
+
+(define *default-module* '(guile-user))
 
 (define (string-append/separator separator strings)
   ;; from (ttn stringutils) -- todo: use srfi-13
@@ -81,92 +81,53 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
   ;; "Map PROC over LS, concatening resulting strings with separator SEP."
   (string-append/separator sep (map proc ls)))
 
-(define default-module '(guile))
-
 (define (q s)                           ; quote
   (format #f "~S" s))
 
 (define (vv pair)                       ; var=val
   (format #f "~A=~A" (car pair) (cdr pair)))
 
-(define (spew module use . etc)
-  (and module
-       (let ((etc-spec (if (null? etc)
-                           ""
-                           (format #f " [~A]" (mapconcat vv etc ",")))))
-         (format #t "  \"~A\" -> \"~A\"~A;\n" module use etc-spec))))
-
-(define (header)
+(define (>>header)
   (format #t "digraph use2dot {\n")
   (for-each (lambda (s) (format #t "  ~A;\n" s))
             (map vv `((label . ,(q "Guile Module Dependencies"))
-                      ;(rankdir . LR)
-                      ;(size . ,(q "7.5,10"))
+                      ;;(rankdir . LR)
+                      ;;(size . ,(q "7.5,10"))
                       (ratio . fill)
-                      ;(nodesep . ,(q "0.05"))
+                      ;;(nodesep . ,(q "0.05"))
                       ))))
 
-(define (ferret use)                    ; handle "((foo bar) :select ...)"
-  (let ((maybe (car use)))
-    (if (list? maybe)
-        maybe
-        use)))
+(define (>>body edges)
+  (for-each
+   (lambda (edge)
+     (format #t "  \"~A\" -> \"~A\"" (edge-down edge) (edge-up edge))
+     (cond ((case (edge-type edge)
+              ((autoload) '((style . dotted) (fontsize . 5)))
+              ((computed) '((style . bold)))
+              (else #f))
+            => (lambda (etc)
+                 (format #t " [~A]" (mapconcat vv etc ",")))))
+     (format #t ";\n"))
+   edges))
 
-(define (grok filename)
-  (let* ((p (open-file filename "r"))
-         (next (lambda () (read p)))
-         (curmod #f))
-    (let loop ((form (next)))
-      (cond ((eof-object? form))
-            ((not (list? form)) (loop (next)))
-            (else (case (car form)
-                    ((define-module)
-                     (let ((module (cadr form)))
-                       (set! curmod module)
-                       (let loop ((ls form))
-                         (or (null? ls)
-                             (case (car ls)
-                               ((:use-module)
-                                (spew module (ferret (cadr ls)))
-                                (loop (cddr ls)))
-                               ((:autoload)
-                                (spew module (cadr ls)
-                                      '(style . dotted)
-                                      '(fontsize . 5)
-                                      (let ((len (length (caddr ls))))
-                                        `(label . ,(q (number->string len)))))
-                                (loop (cdddr ls)))
-                               (else (loop (cdr ls))))))))
-                    ((use-modules)
-                     (for-each (lambda (use)
-                                 (spew (or curmod default-module)
-                                       (ferret use)))
-                               (cdr form)))
-                    ((load primitive-load)
-                     (spew (or curmod default-module)
-                           (let ((file (cadr form)))
-                             (if (string? file)
-                                 file
-                                 (format #f "[computed in ~A]" filename)))
-                           '(style . bold))))
-                  (loop (next)))))))
-
-(define (body files)
-  (for-each grok files))
-
-(define (footer)
+(define (>>footer)
   (format #t "}"))
 
 (define (use2dot . args)
-  (header)
-  (let* ((override (cond ((member "--default-module" args) => cadr)
+  (let* ((override (cond ((member "--default-module" args)
+                          => (lambda (ls)
+                               (with-input-from-string
+                                   (cadr ls)
+                                 (lambda () (read)))))
                          (else #f)))
          (files (if override (cddr args) args)))
-    (and override
-         (set! default-module
-               (with-input-from-string override (lambda () (read)))))
-    (body files))
-  (footer))
+    (>>header)
+    (>>body (reverse
+             (((make-frisker
+                `(default-module . ,(or override *default-module*)))
+               files)
+              'edges)))
+    (>>footer)))
 
 (define main use2dot)
 
