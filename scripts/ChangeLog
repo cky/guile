@@ -1,3 +1,8 @@
+2002-04-30  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* summarize-guile-TODO (make-display-item):
+	Hoist some lambdas; nfc.
+
 2002-04-29  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* summarize-guile-TODO: Fix commentary typo; nfc.
