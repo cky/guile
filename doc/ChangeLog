@@ -1,5 +1,8 @@
 2001-05-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
+	* intro.texi, scheme-modules.texi, scheme-procedures.texi:
+	Fixup some module-related references.
+
 	* scheme-modules.texi (Modules): Remove "babbling" fixme.
 	(The Guile module system): Rewrite intro.
 	(General Information about Modules): Rewrite some parts.
