@@ -209,7 +209,7 @@ int
 scm_casei_streq (char *s1, char *s2)
 {
   while (*s1 && *s2)
-    if (scm_downcase((int)*s1) != scm_downcase((int)*s2))
+    if (scm_c_downcase((int)*s1) != scm_c_downcase((int)*s2))
       return 0;
     else
       {
@@ -642,7 +642,7 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
   register int c;
   register char *p;
 
-  c = (SCM_CASE_INSENSITIVE_P ? scm_downcase(ic) : ic);
+  c = (SCM_CASE_INSENSITIVE_P ? scm_c_downcase(ic) : ic);
   p = SCM_STRING_CHARS (*tok_buf);
 
   if (weird)
@@ -716,7 +716,7 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 	default:
 	default_case:
 	  {
-	    c = (SCM_CASE_INSENSITIVE_P ? scm_downcase(c) : c);
+	    c = (SCM_CASE_INSENSITIVE_P ? scm_c_downcase(c) : c);
 	    p[j] = c;
 	    ++j;
 	  }

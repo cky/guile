@@ -300,7 +300,7 @@ string_upcase_x (SCM v)
   unsigned long k;
 
   for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
-    SCM_STRING_UCHARS (v) [k] = scm_upcase (SCM_STRING_UCHARS (v) [k]);
+    SCM_STRING_UCHARS (v) [k] = scm_c_upcase (SCM_STRING_UCHARS (v) [k]);
 
   return v;
 }
@@ -345,7 +345,7 @@ string_downcase_x (SCM v)
   unsigned long k;
 
   for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
-    SCM_STRING_UCHARS (v) [k] = scm_downcase (SCM_STRING_UCHARS (v) [k]);
+    SCM_STRING_UCHARS (v) [k] = scm_c_downcase (SCM_STRING_UCHARS (v) [k]);
 
   return v;
 }
@@ -396,10 +396,10 @@ string_capitalize_x (SCM str)
   for(i=0; i<len;  i++) {
     if (!SCM_FALSEP (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i])))) {
       if(!in_word) {
-        sz[i] = scm_upcase(sz[i]);
+        sz[i] = scm_c_upcase(sz[i]);
         in_word = 1;
       } else {
-        sz[i] = scm_downcase(sz[i]);
+        sz[i] = scm_c_downcase(sz[i]);
       }
     }
     else in_word = 0;

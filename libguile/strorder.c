@@ -87,7 +87,7 @@ SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
 
       /* comparing from back to front typically finds mismatches faster */
       for (i = 0; i != length; ++i, --c1, --c2)
-	if (scm_upcase (*c1) != scm_upcase (*c2))
+	if (scm_c_upcase (*c1) != scm_c_upcase (*c2))
 	  return SCM_BOOL_F;
 
       return SCM_BOOL_T;
@@ -195,7 +195,7 @@ string_ci_less_p (SCM s1, SCM s2)
   c2 = SCM_STRING_UCHARS (s2);
 
   for (i = 0; i != lengthm; ++i, ++c1, ++c2) {
-    int c = scm_upcase (*c1) - scm_upcase (*c2);
+    int c = scm_c_upcase (*c1) - scm_c_upcase (*c2);
     if (c < 0) return SCM_BOOL_T;
     if (c > 0) return SCM_BOOL_F;
   }

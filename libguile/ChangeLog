@@ -1,3 +1,10 @@
+2004-04-06  Han-Wen Nienhuys   <hanwen@xs4all.nl>
+
+	* chars.h (scm_init_chars): change scm_{upcase,downcase} to
+	scm_c_{up,down}case. 
+	(SCM_MAKE_CHAR): add (unsigned char) cast. This prevents havoc
+	when hi-bit ASCII is subjected to SCM_MAKE_CHAR().  
+
 2004-04-06  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_ash): Remove stray "}" in docstring.
@@ -123,6 +130,7 @@
 
 	(copy_tree): Corrected typo in comment.
 
+>>>>>>> 1.2042
 2004-03-28  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* eval.c (s_scm_copy_tree): idem.

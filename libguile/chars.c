@@ -102,7 +102,7 @@ SCM_DEFINE1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
 {
   SCM_VALIDATE_CHAR (1, x);
   SCM_VALIDATE_CHAR (2, y);
-  return SCM_BOOL(scm_upcase(SCM_CHAR(x))==scm_upcase(SCM_CHAR(y)));
+  return SCM_BOOL(scm_c_upcase(SCM_CHAR(x))==scm_c_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -114,7 +114,7 @@ SCM_DEFINE1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
 {
   SCM_VALIDATE_CHAR (1, x);
   SCM_VALIDATE_CHAR (2, y);
-  return SCM_BOOL((scm_upcase(SCM_CHAR(x))) < scm_upcase(SCM_CHAR(y)));
+  return SCM_BOOL((scm_c_upcase(SCM_CHAR(x))) < scm_c_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -126,7 +126,7 @@ SCM_DEFINE1 (scm_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr,
 {
   SCM_VALIDATE_CHAR (1, x);
   SCM_VALIDATE_CHAR (2, y);
-  return SCM_BOOL(scm_upcase(SCM_CHAR(x)) <= scm_upcase(SCM_CHAR(y)));
+  return SCM_BOOL(scm_c_upcase(SCM_CHAR(x)) <= scm_c_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -138,7 +138,7 @@ SCM_DEFINE1 (scm_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr,
 {
   SCM_VALIDATE_CHAR (1, x);
   SCM_VALIDATE_CHAR (2, y);
-  return SCM_BOOL(scm_upcase(SCM_CHAR(x)) > scm_upcase(SCM_CHAR(y)));
+  return SCM_BOOL(scm_c_upcase(SCM_CHAR(x)) > scm_c_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -150,7 +150,7 @@ SCM_DEFINE1 (scm_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr,
 {
   SCM_VALIDATE_CHAR (1, x);
   SCM_VALIDATE_CHAR (2, y);
-  return SCM_BOOL(scm_upcase(SCM_CHAR(x)) >= scm_upcase(SCM_CHAR(y)));
+  return SCM_BOOL(scm_c_upcase(SCM_CHAR(x)) >= scm_c_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -260,7 +260,7 @@ SCM_DEFINE (scm_char_upcase, "char-upcase", 1, 0, 0,
 #define FUNC_NAME s_scm_char_upcase
 {
   SCM_VALIDATE_CHAR (1, chr);
-  return SCM_MAKE_CHAR(scm_upcase(SCM_CHAR(chr)));
+  return SCM_MAKE_CHAR(scm_c_upcase (SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -271,7 +271,7 @@ SCM_DEFINE (scm_char_downcase, "char-downcase", 1, 0, 0,
 #define FUNC_NAME s_scm_char_downcase
 {
   SCM_VALIDATE_CHAR (1, chr);
-  return SCM_MAKE_CHAR(scm_downcase(SCM_CHAR(chr)));
+  return SCM_MAKE_CHAR(scm_c_downcase (SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -279,8 +279,8 @@ SCM_DEFINE (scm_char_downcase, "char-downcase", 1, 0, 0,
 
 
 
-static unsigned char scm_upcase_table[SCM_CHAR_CODE_LIMIT];
-static unsigned char scm_downcase_table[SCM_CHAR_CODE_LIMIT];
+static unsigned char scm_c_upcase_table[SCM_CHAR_CODE_LIMIT];
+static unsigned char scm_c_downcase_table[SCM_CHAR_CODE_LIMIT];
 static const unsigned char scm_lowers[] = "abcdefghijklmnopqrstuvwxyz";
 static const unsigned char scm_uppers[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -290,30 +290,34 @@ scm_tables_prehistory ()
 {
   int i;
   for (i = 0; i < SCM_CHAR_CODE_LIMIT; i++)
-    scm_upcase_table[i] = scm_downcase_table[i] = i;
+    scm_c_upcase_table[i] = scm_c_downcase_table[i] = i;
   for (i = 0; i < (int) (sizeof scm_lowers / sizeof (scm_lowers[0])); i++)
     {
-      scm_upcase_table[scm_lowers[i]] = scm_uppers[i];
-      scm_downcase_table[scm_uppers[i]] = scm_lowers[i];
+      scm_c_upcase_table[scm_lowers[i]] = scm_uppers[i];
+      scm_c_downcase_table[scm_uppers[i]] = scm_lowers[i];
     }
 }
 
+/*
+TODO: change name  to scm_i_.. ? --hwn
+*/
+
 
 int
-scm_upcase (unsigned int c)
+scm_c_upcase (unsigned int c)
 {
-  if (c < sizeof (scm_upcase_table))
-    return scm_upcase_table[c];
+  if (c < sizeof (scm_c_upcase_table))
+    return scm_c_upcase_table[c];
   else
     return c;
 }
 
 
 int
-scm_downcase (unsigned int c)
+scm_c_downcase (unsigned int c)
 {
-  if (c < sizeof (scm_downcase_table))
-    return scm_downcase_table[c];
+  if (c < sizeof (scm_c_downcase_table))
+    return scm_c_downcase_table[c];
   else
     return c;
 }

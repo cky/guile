@@ -60,7 +60,7 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
     return SCM_INUM(obj) % n;   /* SCM_INUMP(obj) */
   case scm_tc3_imm24:
     if (SCM_CHARP(obj))
-      return (unsigned)(scm_downcase(SCM_CHAR(obj))) % n;
+      return (unsigned)(scm_c_downcase(SCM_CHAR(obj))) % n;
     switch (SCM_UNPACK (obj)) {
 #ifndef SICP
     case SCM_UNPACK(SCM_EOL):
@@ -184,7 +184,7 @@ unsigned long
 scm_ihashv (SCM obj, unsigned long n)
 {
   if (SCM_CHARP(obj))
-    return ((unsigned long) (scm_downcase (SCM_CHAR (obj)))) % n; /* downcase!?!! */
+    return ((unsigned long) (scm_c_downcase (SCM_CHAR (obj)))) % n; /* downcase!?!! */
 
   if (SCM_NUMP(obj))
     return (unsigned long) scm_hasher(obj, n, 10);

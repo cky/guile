@@ -1,3 +1,11 @@
+2004-04-06  Han-Wen Nienhuys   <hanwen@xs4all.nl>
+
+	* srfi-13.c (s_scm_string_map): convert character to unsigned char
+	before converting to unsigned int. This prevents hi-bit ascii as
+	being converted large integers.
+	(string_upcase_x): change caller for scm_{up,down}case to
+	scm_c_{up,down}case
+
 2004-03-23  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (circular-list): Rewrite using set-cdr!, no need to copy

@@ -902,9 +902,9 @@ SCM_DEFINE (scm_string_compare_ci, "string-compare-ci", 5, 4, 0,
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
-      if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
+      if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
 	return scm_call_1 (proc_lt, SCM_MAKINUM (cstart1));
-      else if (scm_downcase (cstr1[cstart1]) > scm_downcase (cstr2[cstart2]))
+      else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
 	return scm_call_1 (proc_gt, SCM_MAKINUM (cstart1));
       cstart1++;
       cstart2++;
@@ -1148,9 +1148,9 @@ SCM_DEFINE (scm_string_ci_eq, "string-ci=", 2, 4, 0,
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
-      if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
+      if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
-      else if (scm_downcase (cstr1[cstart1]) > scm_downcase (cstr2[cstart2]))
+      else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
       cstart1++;
       cstart2++;
@@ -1184,9 +1184,9 @@ SCM_DEFINE (scm_string_ci_neq, "string-ci<>", 2, 4, 0,
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
-      if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
+      if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
 	return SCM_MAKINUM (cstart1);
-      else if (scm_downcase (cstr1[cstart1]) > scm_downcase (cstr2[cstart2]))
+      else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
 	return SCM_MAKINUM (cstart1);
       cstart1++;
       cstart2++;
@@ -1220,9 +1220,9 @@ SCM_DEFINE (scm_string_ci_lt, "string-ci<", 2, 4, 0,
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
-      if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
+      if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
 	return SCM_MAKINUM (cstart1);
-      else if (scm_downcase (cstr1[cstart1]) > scm_downcase (cstr2[cstart2]))
+      else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
       cstart1++;
       cstart2++;
@@ -1256,9 +1256,9 @@ SCM_DEFINE (scm_string_ci_gt, "string-ci>", 2, 4, 0,
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
-      if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
+      if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
-      else if (scm_downcase (cstr1[cstart1]) > scm_downcase (cstr2[cstart2]))
+      else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
 	return SCM_MAKINUM (cstart1);
       cstart1++;
       cstart2++;
@@ -1292,9 +1292,9 @@ SCM_DEFINE (scm_string_ci_le, "string-ci<=", 2, 4, 0,
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
-      if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
+      if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
 	return SCM_MAKINUM (cstart1);
-      else if (scm_downcase (cstr1[cstart1]) > scm_downcase (cstr2[cstart2]))
+      else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
       cstart1++;
       cstart2++;
@@ -1328,9 +1328,9 @@ SCM_DEFINE (scm_string_ci_ge, "string-ci>=", 2, 4, 0,
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
-      if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
+      if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
-      else if (scm_downcase (cstr1[cstart1]) > scm_downcase (cstr2[cstart2]))
+      else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
 	return SCM_MAKINUM (cstart1);
       cstart1++;
       cstart2++;
@@ -1392,7 +1392,7 @@ SCM_DEFINE (scm_string_prefix_length_ci, "string-prefix-length-ci", 2, 4, 0,
 				    6, end2, cend2);
   while (cstart1 < cend1 && cstart2 < cend2)
     {
-      if (scm_downcase (cstr1[cstart1]) != scm_downcase (cstr2[cstart2]))
+      if (scm_c_downcase (cstr1[cstart1]) != scm_c_downcase (cstr2[cstart2]))
 	return SCM_MAKINUM (len);
       len++;
       cstart1++;
@@ -1452,7 +1452,7 @@ SCM_DEFINE (scm_string_suffix_length_ci, "string-suffix-length-ci", 2, 4, 0,
     {
       cend1--;
       cend2--;
-      if (scm_downcase (cstr1[cend1]) != scm_downcase (cstr2[cend2]))
+      if (scm_c_downcase (cstr1[cend1]) != scm_c_downcase (cstr2[cend2]))
 	return SCM_MAKINUM (len);
       len++;
     }
@@ -1508,7 +1508,7 @@ SCM_DEFINE (scm_string_prefix_ci_p, "string-prefix-ci?", 2, 4, 0,
   len1 = cend1 - cstart1;
   while (cstart1 < cend1 && cstart2 < cend2)
     {
-      if (scm_downcase (cstr1[cstart1]) != scm_downcase (cstr2[cstart2]))
+      if (scm_c_downcase (cstr1[cstart1]) != scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL (len == len1);
       len++;
       cstart1++;
@@ -1568,7 +1568,7 @@ SCM_DEFINE (scm_string_suffix_ci_p, "string-suffix-ci?", 2, 4, 0,
     {
       cend1--;
       cend2--;
-      if (scm_downcase (cstr1[cend1]) != scm_downcase (cstr2[cend2]))
+      if (scm_c_downcase (cstr1[cend1]) != scm_c_downcase (cstr2[cend2]))
 	return SCM_BOOL (len == len1);
       len++;
     }
@@ -1945,7 +1945,7 @@ SCM_DEFINE (scm_string_contains_ci, "string-contains-ci", 2, 4, 0,
       i = cstart1;
       j = cstart2;
       while (i < cend1 && j < cend2 &&
-	     scm_downcase (cs1[i]) == scm_downcase (cs2[j]))
+	     scm_c_downcase (cs1[i]) == scm_c_downcase (cs2[j]))
 	{
 	  i++;
 	  j++;
@@ -1967,7 +1967,7 @@ string_upcase_x (SCM v, int start, int end)
   unsigned long k;
 
   for (k = start; k < end; ++k)
-    SCM_STRING_UCHARS (v) [k] = scm_upcase (SCM_STRING_UCHARS (v) [k]);
+    SCM_STRING_UCHARS (v) [k] = scm_c_upcase (SCM_STRING_UCHARS (v) [k]);
 
   return v;
 }
@@ -2024,7 +2024,7 @@ string_downcase_x (SCM v, int start, int end)
   unsigned long k;
 
   for (k = start; k < end; ++k)
-    SCM_STRING_UCHARS (v) [k] = scm_downcase (SCM_STRING_UCHARS (v) [k]);
+    SCM_STRING_UCHARS (v) [k] = scm_c_downcase (SCM_STRING_UCHARS (v) [k]);
 
   return v;
 }
@@ -2090,12 +2090,12 @@ string_titlecase_x (SCM str, int start, int end)
 	{
 	  if (!in_word)
 	    {
-	      sz[i] = scm_upcase(sz[i]);
+	      sz[i] = scm_c_upcase(sz[i]);
 	      in_word = 1;
 	    }
 	  else
 	    {
-	      sz[i] = scm_downcase(sz[i]);
+	      sz[i] = scm_c_downcase(sz[i]);
 	    }
 	}
       else
@@ -2392,7 +2392,8 @@ SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
   p = SCM_STRING_CHARS (result);
   while (cstart < cend)
     {
-      SCM ch = scm_call_1 (proc, SCM_MAKE_CHAR (cstr[cstart]));
+      unsigned int c =  (unsigned char) cstr[cstart];
+      SCM ch = scm_call_1 (proc, SCM_MAKE_CHAR (c));
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       cstart++;
@@ -2421,7 +2422,8 @@ SCM_DEFINE (scm_string_map_x, "string-map!", 2, 2, 0,
   p = SCM_STRING_CHARS (s) + cstart;
   while (cstart < cend)
     {
-      SCM ch = scm_call_1 (proc, SCM_MAKE_CHAR (cstr[cstart]));
+      unsigned int c =  (unsigned char) cstr[cstart];
+      SCM ch = scm_call_1 (proc, SCM_MAKE_CHAR (c));
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       cstart++;
@@ -2451,7 +2453,8 @@ SCM_DEFINE (scm_string_fold, "string-fold", 3, 2, 0,
   result = knil;
   while (cstart < cend)
     {
-      result = scm_call_2 (kons, SCM_MAKE_CHAR (cstr[cstart]), result);
+      unsigned int c = (unsigned char) cstr[cstart];
+      result = scm_call_2 (kons, SCM_MAKE_CHAR (c), result);
       cstart++;
     }
   return result;
@@ -2478,7 +2481,8 @@ SCM_DEFINE (scm_string_fold_right, "string-fold-right", 3, 2, 0,
   result = knil;
   while (cstart < cend)
     {
-      result = scm_call_2 (kons, SCM_MAKE_CHAR (cstr[cend - 1]), result);
+      unsigned int c  = (unsigned char) cstr[cend - 1];
+      result = scm_call_2 (kons, SCM_MAKE_CHAR (c), result);
       cend--;
     }
   return result;
@@ -2625,7 +2629,8 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
 				    4, end, cend);
   while (cstart < cend)
     {
-      scm_call_1 (proc, SCM_MAKE_CHAR (cstr[cstart]));
+      unsigned int c = (unsigned char) cstr[cstart];
+      scm_call_1 (proc, SCM_MAKE_CHAR (c));
       cstart++;
     }
   return SCM_UNSPECIFIED;
