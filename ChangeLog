@@ -1,3 +1,8 @@
+Tue Apr 22 16:57:38 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* newdoc/ref/Makefile.am (dist_texis): Distribute the index files.
+	* newdoc/ref/Makefile.in: Regenerated.
+
 Mon Apr 14 18:51:25 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* threads.m4 (CY_AC_WITH_THREADS): When using coop threads, no
