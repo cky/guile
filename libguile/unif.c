@@ -1511,7 +1511,9 @@ SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
     SCM_ASSERT (SCM_INUMP (port_or_fd)
 		|| (SCM_OPINPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, FUNC_NAME);
-  vlen = SCM_INUM (scm_uniform_vector_length (v));
+  vlen = (SCM_TYP7 (v) == scm_tc7_smob
+	  ? 0
+	  : SCM_INUM (scm_uniform_vector_length (v)));
 
 loop:
   switch SCM_TYP7 (v)
@@ -1675,8 +1677,10 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
     SCM_ASSERT (SCM_INUMP (port_or_fd)
 		|| (SCM_OPOUTPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, FUNC_NAME);
-  vlen = SCM_INUM (scm_uniform_vector_length (v));
-
+  vlen = (SCM_TYP7 (v) == scm_tc7_smob
+	  ? 0
+	  : SCM_INUM (scm_uniform_vector_length (v)));
+  
 loop:
   switch SCM_TYP7 (v)
     {
@@ -1686,8 +1690,8 @@ loop:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       v = scm_ra2contig (v, 1);
       cstart = SCM_ARRAY_BASE (v);
-      vlen = SCM_ARRAY_DIMS (v)->inc
-	* (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1);
+      vlen = (SCM_ARRAY_DIMS (v)->inc
+	      * (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1));
       v = SCM_ARRAY_V (v);
       goto loop;
     case scm_tc7_string:

@@ -1,3 +1,8 @@
+2001-10-28  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* unif.c (scm_uniform_array_read_x, scm_uniform_array_write):
+	Don't apply scm_uniform_vector_length on arrays.
+
 2001-10-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_lookupcar, scm_m_letstar, scm_m_do, iqq,
