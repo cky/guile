@@ -98,7 +98,7 @@ modinclude_HEADERS = \
     simpos.h smob.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h \
     strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h \
     tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
-    weaks.h snarf.h threads.h coop-defs.h fluids.h iselect.h
+    weaks.h snarf.h threads.h coop-defs.h fluids.h iselect.h kw.h
 
 ## This file is generated at configure time.  That is why it is DATA
 ## and not a header -- headers are included in the distribution.
