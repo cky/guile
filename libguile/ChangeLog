@@ -1,3 +1,8 @@
+1999-08-23  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Let the SCM_IM_SLOT_SET_X form return
+	SCM_UNSPECIFIED instead of the set value.
+
 1999-08-20  James Blandy  <jimb@mule.m17n.org>
 
 	* load.c (scm_init_load_path): Remove support for SCHEME_LOAD_PATH.
