@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -206,9 +206,123 @@ SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+static void *
+scm_weak_vector_gc_init (void *dummy1, void *dummy2, void *dummy3)
+{
+  scm_weak_vectors = SCM_EOL;
+
+  return 0;
+}
+
+static void *
+scm_mark_weak_vector_spines (void *dummy1, void *dummy2, void *dummy3)
+{
+  SCM w;
+
+  for (w = scm_weak_vectors; !SCM_NULLP (w); w = SCM_WVECT_GC_CHAIN (w))
+    {
+      if (SCM_IS_WHVEC_ANY (w))
+	{
+	  SCM *ptr;
+	  SCM obj;
+	  int j;
+	  int n;
+
+	  obj = w;
+	  ptr = SCM_VELTS (w);
+	  n = SCM_LENGTH (w);
+	  for (j = 0; j < n; ++j)
+	    {
+	      SCM alist;
+
+	      alist = ptr[j];
+	      while (   SCM_CONSP (alist)
+		     && !SCM_GCMARKP (alist)
+		     && SCM_CONSP  (SCM_CAR (alist)))
+		{
+		  SCM_SETGCMARK (alist);
+		  SCM_SETGCMARK (SCM_CAR (alist));
+		  alist = SCM_GCCDR (alist);
+		}
+	    }
+	}
+    }
+
+  return 0;
+}
+
+static void *
+scm_scan_weak_vectors (void *dummy1, void *dummy2, void *dummy3)
+{
+  SCM *ptr, w;
+  for (w = scm_weak_vectors; !SCM_NULLP (w); w = SCM_WVECT_GC_CHAIN (w))
+    {
+      if (!SCM_IS_WHVEC_ANY (w))
+	{
+	  register long j, n;
+
+	  ptr = SCM_VELTS (w);
+	  n = SCM_LENGTH (w);
+	  for (j = 0; j < n; ++j)
+	    if (SCM_FREEP (ptr[j]))
+	      ptr[j] = SCM_BOOL_F;
+	}
+      else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
+	{
+	  SCM obj = w;
+	  register long n = SCM_LENGTH (w);
+	  register long j;
+
+	  ptr = SCM_VELTS (w);
+
+	  for (j = 0; j < n; ++j)
+	    {
+	      SCM * fixup;
+	      SCM alist;
+	      int weak_keys;
+	      int weak_values;
+
+	      weak_keys = SCM_IS_WHVEC (obj) || SCM_IS_WHVEC_B (obj);
+	      weak_values = SCM_IS_WHVEC_V (obj) || SCM_IS_WHVEC_B (obj);
+
+	      fixup = ptr + j;
+	      alist = *fixup;
+
+	      while (   SCM_CONSP (alist)
+			&& SCM_CONSP (SCM_CAR (alist)))
+		{
+		  SCM key;
+		  SCM value;
+
+		  key = SCM_CAAR (alist);
+		  value = SCM_CDAR (alist);
+		  if (   (weak_keys && SCM_FREEP (key))
+			 || (weak_values && SCM_FREEP (value)))
+		    {
+		      *fixup = SCM_CDR (alist);
+		    }
+		  else
+		    fixup = SCM_CDRLOC (alist);
+		  alist = SCM_CDR (alist);
+		}
+	    }
+	}
+    }
+
+  return 0;
+}
+
 
 
 
+
+void
+scm_weaks_prehistory ()
+{
+  scm_c_hook_add (&scm_before_mark_c_hook, scm_weak_vector_gc_init, 0, 0);
+  scm_c_hook_add (&scm_before_sweep_c_hook, scm_mark_weak_vector_spines, 0, 0);
+  scm_c_hook_add (&scm_after_sweep_c_hook, scm_scan_weak_vectors, 0, 0);
+}
 
 void
 scm_init_weaks ()
