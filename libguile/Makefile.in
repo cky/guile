@@ -11,7 +11,7 @@
 # PARTICULAR PURPOSE.
 
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -59,9 +59,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AS = @AS@
 AWK = @AWK@
 CC = @CC@
 CPP = @CPP@
+DLLTOOL = @DLLTOOL@
 GUILE_LIBS = @GUILE_LIBS@
 GUILE_MAJOR_VERSION = @GUILE_MAJOR_VERSION@
 GUILE_MINOR_VERSION = @GUILE_MINOR_VERSION@
@@ -76,19 +78,21 @@ MAKEINFO = @MAKEINFO@
 NM = @NM@
 PACKAGE = @PACKAGE@
 PROG_HOSTNAME = @PROG_HOSTNAME@
+QTHREAD_LTLIBS = @QTHREAD_LTLIBS@
 RANLIB = @RANLIB@
+THREAD_CPPFLAGS = @THREAD_CPPFLAGS@
+THREAD_LIBS_INSTALLED = @THREAD_LIBS_INSTALLED@
+THREAD_LIBS_LOCAL = @THREAD_LIBS_LOCAL@
+THREAD_PACKAGE = @THREAD_PACKAGE@
 VERSION = @VERSION@
+qtdmdb_s = @qtdmdb_s@
 qtmd_h = @qtmd_h@
-qtmdb_s = @qtmdb_s@
 qtmdc_c = @qtmdc_c@
-qtmdc_o = @qtmdc_o@
-qtmds_o = @qtmds_o@
 qtmds_s = @qtmds_s@
-target_libs = @target_libs@
 
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = -I.. -I$(srcdir)/..
+INCLUDES = -I.. -I$(srcdir)/.. ${THREAD_CPPFLAGS}
 
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(PROC\|PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/'
 
@@ -96,7 +100,7 @@ lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile
 
 guile_SOURCES = guile.c
-guile_LDADD = libguile.la ${THREAD_LIBS}
+guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 
 libguile_la_SOURCES = \
     alist.c appinit.c arbiters.c async.c boolean.c chars.c \
@@ -164,8 +168,7 @@ modinclude_DATA = scmconfig.h
 
 bin_SCRIPTS = guile-snarf
 
-THREAD_LIBS = @THREAD_LIBS@
-check_ldadd = libguile.la ${THREAD_LIBS}
+check_ldadd = libguile.la ${THREAD_LIBS_LOCAL}
 check_PROGRAMS = gh_test_c gh_test_repl
 gh_test_c_SOURCES = gh_test_c.c
 gh_test_c_LDADD = ${check_ldadd}
@@ -297,7 +300,7 @@ distclean-hdr:
 
 maintainer-clean-hdr:
 guile-snarf: $(top_builddir)/config.status guile-snarf.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 mostlyclean-libLTLIBRARIES:
 

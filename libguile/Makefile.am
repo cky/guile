@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
-INCLUDES = -I.. -I$(srcdir)/..
+INCLUDES = -I.. -I$(srcdir)/.. ${THREAD_CPPFLAGS}
 
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(PROC\|PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/'
 
@@ -13,7 +13,7 @@ lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile
 
 guile_SOURCES = guile.c
-guile_LDADD = libguile.la ${THREAD_LIBS}
+guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 
 libguile_la_SOURCES = \
     alist.c appinit.c arbiters.c async.c boolean.c chars.c \
@@ -87,8 +87,7 @@ modinclude_DATA = scmconfig.h
 
 bin_SCRIPTS = guile-snarf
 
-THREAD_LIBS = @THREAD_LIBS@
-check_ldadd = libguile.la ${THREAD_LIBS}
+check_ldadd = libguile.la ${THREAD_LIBS_LOCAL}
 check_PROGRAMS = gh_test_c gh_test_repl
 gh_test_c_SOURCES = gh_test_c.c
 gh_test_c_LDADD = ${check_ldadd}
