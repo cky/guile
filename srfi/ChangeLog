@@ -1,3 +1,12 @@
+2001-08-05  Gary Houston  <ghouston@arglist.com>
+
+	* srfi-1.scm (check-arg-type, non-negative-integer?): a couple of new
+	internal definitions.
+	(list-tabulate, iota): check for bad arguments that otherwise
+	give weird output.
+	(filter): check for proper list, to avoid infinite recursion on
+	a circular list.
+
 2001-08-04  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-1.scm (filter): replaced with a tail-recursive version.
