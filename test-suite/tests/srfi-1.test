@@ -807,3 +807,61 @@
 	(and (= (length odd) 10000)
 	     (= (length even) 0))))))
 
+;;
+;; span
+;;
+
+(with-test-prefix "span"
+
+  (define (test-span lst want-v1 want-v2)
+    (call-with-values
+	(lambda ()
+	  (span positive? lst))
+      (lambda (got-v1 got-v2)
+	(and (equal? got-v1 want-v1)
+	     (equal? got-v2 want-v2)))))
+
+  (pass-if "empty"
+    (test-span '() '() '()))
+
+  (pass-if "y"
+    (test-span '(1) '(1) '()))
+
+  (pass-if "n"
+    (test-span '(-1) '() '(-1)))
+
+  (pass-if "yy"
+    (test-span '(1 2) '(1 2) '()))
+
+  (pass-if "ny"
+    (test-span '(-1 1) '() '(-1 1)))
+
+  (pass-if "yn"
+    (test-span '(1 -1) '(1) '(-1)))
+
+  (pass-if "nn"
+    (test-span '(-1 -2) '() '(-1 -2)))
+
+  (pass-if "yyy"
+    (test-span '(1 2 3) '(1 2 3) '()))
+
+  (pass-if "nyy"
+    (test-span '(-1 1 2) '() '(-1 1 2)))
+
+  (pass-if "yny"
+    (test-span '(1 -1 2) '(1) '(-1 2)))
+
+  (pass-if "nny"
+    (test-span '(-1 -2 1) '() '(-1 -2 1)))
+
+  (pass-if "yyn"
+    (test-span '(1 2 -1) '(1 2) '(-1)))
+
+  (pass-if "nyn"
+    (test-span '(-1 1 -2) '() '(-1 1 -2)))
+
+  (pass-if "ynn"
+    (test-span '(1 -1 -2) '(1) '(-1 -2)))
+
+  (pass-if "nnn"
+    (test-span '(-1 -2 -3) '() '(-1 -2 -3))))
