@@ -135,7 +135,9 @@ scm_option scm_print_opts[] = {
 
 SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0, 
             (SCM setting),
-"")
+	    "Option interface for the print options. Instead of using\n"
+	    "this procedure directly, use the procedures @code{print-enable},\n"
+	    "@code{print-disable}, @code{print-set!} and @var{print-options}.")
 #define FUNC_NAME s_scm_print_options
 {
   SCM ans = scm_options (setting,
@@ -1101,7 +1103,8 @@ scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *pstate)
 
 SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0, 
             (SCM port, SCM pstate),
-	    "")
+	    "Create a new port which behaves like @var{port}, but with an\n"
+	    "included print state @var{pstate}.")
 #define FUNC_NAME s_scm_port_with_print_state
 {
   SCM pwps;
@@ -1115,7 +1118,8 @@ SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0,
 
 SCM_DEFINE (scm_get_print_state, "get-print-state", 1, 0, 0, 
             (SCM port),
-	    "")
+	    "Return the print state of the port @var{port}. If @var{port}\n"
+	    "has no associated print state, @code{#f} is returned.")
 #define FUNC_NAME s_scm_get_print_state
 {
   if (SCM_PORT_WITH_PS_P (port))
