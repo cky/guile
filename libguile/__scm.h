@@ -406,15 +406,6 @@ typedef long SCM_STACKITEM;
 #define SCM_THREAD_SWITCHING_CODE
 #endif
 
-#ifdef GUILE_OLD_ASYNC_CLICK
-SCM_API unsigned int scm_async_clock;
-
-#define SCM_ASYNC_TICK \
-do { \
-  if (0 == --scm_async_clock) \
-    scm_async_click (); \
-} while(0)
-#else
 SCM_API int scm_asyncs_pending_p;
 
 #define SCM_ASYNC_TICK /*fixme* should change names */ \
@@ -422,7 +413,6 @@ do { \
   if (scm_asyncs_pending_p) \
     scm_async_click (); \
 } while (0)
-#endif
 
 #if (SCM_DEBUG_INTERRUPTS == 1)
 #include <stdio.h>
