@@ -1,9 +1,5 @@
 /* this file is #include'd (x times) by convert.c */
 
-/* FIXME: Should we use exported wrappers for malloc (and free), which
- * allow windows DLLs to call the correct freeing function? */
-
-
 /* Convert a vector, weak vector, (if possible string, substring), list
    or uniform vector into an C array.  If the result array in argument 2 
    is NULL, malloc() a new one.  If out of memory, return NULL.  */
