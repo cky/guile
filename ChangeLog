@@ -1,3 +1,7 @@
+Thu Sep 11 11:28:24 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* ltmain.sh: Added a missing '\' before \n on line 32.
+
 Thu Aug 28 23:40:43 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	New libtool: 1.0b.

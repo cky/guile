@@ -29,7 +29,7 @@ else
   # This makes it impossible to quote backslashes using
   #   echo "$something" | sed 's/\\/\\\\/g'
   # So, we emulate echo with printf '%s\n'
-  echo='printf %s\n'
+  echo='printf %s\\n'
   if test X`$echo '\t'` = 'X\t'; then :
   else
     # Oops.  We have no working printf.  Try to find a not-so-buggy echo.
