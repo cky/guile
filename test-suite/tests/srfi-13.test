@@ -28,34 +28,106 @@
 (define exception:strict-infix-grammar
   (cons 'misc-error "^strict-infix"))
 
+;;;
+;;; string-any
+;;;
+
 (with-test-prefix "string-any"
 
-  (pass-if "no match"
-    (not (string-any char-upper-case? "abcde")))
+  (with-test-prefix "bad char_pred"
 
-  (pass-if "one match"
-    (string-any char-upper-case? "abCde"))
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-any 123 "abcde"))
 
-  (pass-if "more than one match"
-    (string-any char-upper-case? "abCDE"))
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-any "zzz" "abcde")))
 
-  (pass-if "no match, start index"
-    (not (string-any char-upper-case? "Abcde" 1)))
+  (with-test-prefix "char"
 
-  (pass-if "one match, start index"
-    (string-any char-upper-case? "abCde" 1))
+    (pass-if "no match"
+      (not (string-any #\C "abcde")))
 
-  (pass-if "more than one match, start index"
-    (string-any char-upper-case? "abCDE" 1))
+    (pass-if "one match"
+      (string-any #\C "abCde"))
 
-  (pass-if "no match, start and end index"
-    (not (string-any char-upper-case? "AbcdE" 1 4)))
+    (pass-if "more than one match"
+      (string-any #\X "abXXX"))
 
-  (pass-if "one match, start and end index"
-    (string-any char-upper-case? "abCde" 1 4))
+    (pass-if "no match, start index"
+      (not (string-any #\A "Abcde" 1)))
 
-  (pass-if "more than one match, start and end index"
-    (string-any char-upper-case? "abCDE" 1 4)))
+    (pass-if "one match, start index"
+      (string-any #\C "abCde" 1))
+
+    (pass-if "more than one match, start index"
+      (string-any #\X "abXXX" 1))
+
+    (pass-if "no match, start and end index"
+      (not (string-any #\X "XbcdX" 1 4)))
+
+    (pass-if "one match, start and end index"
+      (string-any #\C "abCde" 1 4))
+
+    (pass-if "more than one match, start and end index"
+      (string-any #\X "abXXX" 1 4)))
+
+  (with-test-prefix "charset"
+
+    (pass-if "no match"
+      (not (string-any char-set:upper-case "abcde")))
+
+    (pass-if "one match"
+      (string-any char-set:upper-case "abCde"))
+
+    (pass-if "more than one match"
+      (string-any char-set:upper-case "abCDE"))
+
+    (pass-if "no match, start index"
+      (not (string-any char-set:upper-case "Abcde" 1)))
+
+    (pass-if "one match, start index"
+      (string-any char-set:upper-case "abCde" 1))
+
+    (pass-if "more than one match, start index"
+      (string-any char-set:upper-case "abCDE" 1))
+
+    (pass-if "no match, start and end index"
+      (not (string-any char-set:upper-case "AbcdE" 1 4)))
+
+    (pass-if "one match, start and end index"
+      (string-any char-set:upper-case "abCde" 1 4))
+
+    (pass-if "more than one match, start and end index"
+      (string-any char-set:upper-case "abCDE" 1 4)))
+
+  (with-test-prefix "pred"
+
+    (pass-if "no match"
+      (not (string-any char-upper-case? "abcde")))
+
+    (pass-if "one match"
+      (string-any char-upper-case? "abCde"))
+
+    (pass-if "more than one match"
+      (string-any char-upper-case? "abCDE"))
+
+    (pass-if "no match, start index"
+      (not (string-any char-upper-case? "Abcde" 1)))
+
+    (pass-if "one match, start index"
+      (string-any char-upper-case? "abCde" 1))
+
+    (pass-if "more than one match, start index"
+      (string-any char-upper-case? "abCDE" 1))
+
+    (pass-if "no match, start and end index"
+      (not (string-any char-upper-case? "AbcdE" 1 4)))
+
+    (pass-if "one match, start and end index"
+      (string-any char-upper-case? "abCde" 1 4))
+
+    (pass-if "more than one match, start and end index"
+      (string-any char-upper-case? "abCDE" 1 4))))
 
 ;;;
 ;;; string-every
@@ -63,39 +135,111 @@
 
 (with-test-prefix "string-every"
 
-  ;; in guile 1.6.4 and earlier string-every incorrectly returned #f on an
-  ;; empty string
-  (pass-if "empty string"
-    (string-every char-upper-case? ""))
-  (pass-if "empty substring"
-    (string-every char-upper-case? "abc" 1 1))
+  (with-test-prefix "char"
 
-  (pass-if "no match at all"
-    (not (string-every char-upper-case? "abcde")))
+    (pass-if "empty string"
+      (string-every #\X ""))
 
-  (pass-if "not all match"
-    (not (string-every char-upper-case? "abCDE")))
+    (pass-if "empty substring"
+      (string-every #\X "abc" 1 1))
 
-  (pass-if "all match"
-    (string-every char-upper-case? "ABCDE"))
+    (pass-if "no match at all"
+      (not (string-every #\X "abcde")))
 
-  (pass-if "no match at all, start index"
-    (not (string-every char-upper-case? "Abcde" 1)))
+    (pass-if "not all match"
+      (not (string-every #\X "abXXX")))
 
-  (pass-if "not all match, start index"
-    (not (string-every char-upper-case? "ABcde" 1)))
+    (pass-if "all match"
+      (string-every #\X "XXXXX"))
 
-  (pass-if "all match, start index"
-    (string-every char-upper-case? "aBCDE" 1))
+    (pass-if "no match at all, start index"
+      (not (string-every #\X "Xbcde" 1)))
 
-  (pass-if "no match at all, start and end index"
-    (not (string-every char-upper-case? "AbcdE" 1 4)))
+    (pass-if "not all match, start index"
+      (not (string-every #\X "XXcde" 1)))
 
-  (pass-if "not all match, start and end index"
-    (not (string-every char-upper-case? "ABcde" 1 4)))
+    (pass-if "all match, start index"
+      (string-every #\X "aXXXX" 1))
 
-  (pass-if "all match, start and end index"
-    (string-every char-upper-case? "aBCDe" 1 4)))
+    (pass-if "no match at all, start and end index"
+      (not (string-every #\X "XbcdX" 1 4)))
+
+    (pass-if "not all match, start and end index"
+      (not (string-every #\X "XXcde" 1 4)))
+
+    (pass-if "all match, start and end index"
+      (string-every #\X "aXXXe" 1 4)))
+
+  (with-test-prefix "charset"
+
+    (pass-if "empty string"
+      (string-every char-set:upper-case ""))
+
+    (pass-if "empty substring"
+      (string-every char-set:upper-case "abc" 1 1))
+
+    (pass-if "no match at all"
+      (not (string-every char-set:upper-case "abcde")))
+
+    (pass-if "not all match"
+      (not (string-every char-set:upper-case "abCDE")))
+
+    (pass-if "all match"
+      (string-every char-set:upper-case "ABCDE"))
+
+    (pass-if "no match at all, start index"
+      (not (string-every char-set:upper-case "Abcde" 1)))
+
+    (pass-if "not all match, start index"
+      (not (string-every char-set:upper-case "ABcde" 1)))
+
+    (pass-if "all match, start index"
+      (string-every char-set:upper-case "aBCDE" 1))
+
+    (pass-if "no match at all, start and end index"
+      (not (string-every char-set:upper-case "AbcdE" 1 4)))
+
+    (pass-if "not all match, start and end index"
+      (not (string-every char-set:upper-case "ABcde" 1 4)))
+
+    (pass-if "all match, start and end index"
+      (string-every char-set:upper-case "aBCDe" 1 4)))
+
+  (with-test-prefix "pred"
+
+    ;; in guile 1.6.4 and earlier string-every incorrectly returned #f on an
+    ;; empty string
+    (pass-if "empty string"
+      (string-every char-upper-case? ""))
+    (pass-if "empty substring"
+      (string-every char-upper-case? "abc" 1 1))
+
+    (pass-if "no match at all"
+      (not (string-every char-upper-case? "abcde")))
+
+    (pass-if "not all match"
+      (not (string-every char-upper-case? "abCDE")))
+
+    (pass-if "all match"
+      (string-every char-upper-case? "ABCDE"))
+
+    (pass-if "no match at all, start index"
+      (not (string-every char-upper-case? "Abcde" 1)))
+
+    (pass-if "not all match, start index"
+      (not (string-every char-upper-case? "ABcde" 1)))
+
+    (pass-if "all match, start index"
+      (string-every char-upper-case? "aBCDE" 1))
+
+    (pass-if "no match at all, start and end index"
+      (not (string-every char-upper-case? "AbcdE" 1 4)))
+
+    (pass-if "not all match, start and end index"
+      (not (string-every char-upper-case? "ABcde" 1 4)))
+
+    (pass-if "all match, start and end index"
+      (string-every char-upper-case? "aBCDe" 1 4))))
 
 (with-test-prefix "string-tabulate"
 
