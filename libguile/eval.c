@@ -96,6 +96,7 @@ char *alloca ();
 #include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/fluids.h"
+#include "libguile/goops.h"
 #include "libguile/values.h"
 
 #include "libguile/validate.h"
@@ -2042,7 +2043,6 @@ dispatch:
 
     nontoplevel_cdrxnoap:
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-    nontoplevel_cdrxbegin:
       x = SCM_CDR (x);
     nontoplevel_begin:
       while (!SCM_NULLP (SCM_CDR (x)))
@@ -2430,99 +2430,158 @@ dispatch:
 	  RETURN (scm_makprom (scm_closure (SCM_CDR (x), env)));
 
 	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
-	  proc = SCM_CADR (x); /* unevaluated operands */
-	  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-	  if (SCM_IMP (proc))
-	    arg2 = *scm_ilookup (proc, env);
-	  else if (!SCM_CONSP (proc))
-	    {
-	      if (SCM_VARIABLEP (proc))
-		arg2 = SCM_VARIABLE_REF (proc);
-	      else
-		arg2 = *scm_lookupcar (SCM_CDR (x), env, 1);
-	    }
-	  else
-	    {
-	      arg2 = scm_list_1 (EVALCAR (proc, env));
-	      t.lloc = SCM_CDRLOC (arg2);
-	      while (SCM_NIMP (proc = SCM_CDR (proc)))
-		{
-		  *t.lloc = scm_list_1 (EVALCAR (proc, env));
-		  t.lloc = SCM_CDRLOC (*t.lloc);
-		}
-	    }
-	  
-	type_dispatch:
-	  /* The type dispatch code is duplicated here
-	   * (c.f. objects.c:scm_mcache_compute_cmethod) since that
-	   * cuts down execution time for type dispatch to 50%.
-	   */
 	  {
-	    long i, n, end, mask;
-	    SCM z = SCM_CDDR (x);
-	    n = SCM_INUM (SCM_CAR (z)); /* maximum number of specializers */
-	    proc = SCM_CADR (z);
-
-	    if (SCM_NIMP (proc))
-	      {
-		/* Prepare for linear search */
-		mask = -1;
-		i = 0;
-		end = SCM_VECTOR_LENGTH (proc);
-	      }
+	    /* If not done yet, evaluate the operand forms.  The result is a
+	     * list of arguments stored in t.arg1, which is used to perform the
+	     * function dispatch.  */
+	    SCM operand_forms = SCM_CADR (x);
+	    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+	    if (SCM_ILOCP (operand_forms))
+	      t.arg1 = *scm_ilookup (operand_forms, env);
+	    else if (SCM_VARIABLEP (operand_forms))
+	      t.arg1 = SCM_VARIABLE_REF (operand_forms);
+	    else if (!SCM_CONSP (operand_forms))
+	      t.arg1 = *scm_lookupcar (SCM_CDR (x), env, 1);
 	    else
 	      {
-		/* Compute a hash value */
-		long hashset = SCM_INUM (proc);
-		long j = n;
-		z = SCM_CDDR (z);
-		mask = SCM_INUM (SCM_CAR (z));
-		proc = SCM_CADR (z);
-		i = 0;
-		t.arg1 = arg2;
-		if (SCM_NIMP (t.arg1))
-		  do
-		    {
-		      i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1)))
-			   [scm_si_hashsets + hashset];
-		      t.arg1 = SCM_CDR (t.arg1);
-		    }
-		  while (j-- && SCM_NIMP (t.arg1));
-		i &= mask;
-		end = i;
+		SCM tail = t.arg1 = scm_list_1 (EVALCAR (operand_forms, env));
+		operand_forms = SCM_CDR (operand_forms);
+		while (!SCM_NULLP (operand_forms))
+		  {
+		    SCM new_tail = scm_list_1 (EVALCAR (operand_forms, env));
+		    SCM_SETCDR (tail, new_tail);
+		    tail = new_tail;
+		    operand_forms = SCM_CDR (operand_forms);
+		  }
 	      }
+	  }
 
-	    /* Search for match  */
-	    do
-	      {
-		long j = n;
-		z = SCM_VELTS (proc)[i];
-		t.arg1 = arg2; /* list of arguments */
-		if (SCM_NIMP (t.arg1))
-		  do
+	  /* The type dispatch code is duplicated below
+	   * (c.f. objects.c:scm_mcache_compute_cmethod) since that
+	   * cuts down execution time for type dispatch to 50%.  */
+	type_dispatch: /* inputs: x, t.arg1 */
+	  /* Type dispatch means to determine from the types of the function
+	   * arguments (i. e. the 'signature' of the call), which method from
+	   * a generic function is to be called.  This process of selecting
+	   * the right method takes some time.  To speed it up, guile uses
+	   * caching:  Together with the macro call to dispatch the signatures
+	   * of some previous calls to that generic function from the same
+	   * place are stored (in the code!) in a cache that we call the
+	   * 'method cache'.  This is done since it is likely, that
+	   * consecutive calls to dispatch from that position in the code will
+	   * have the same signature.  Thus, the type dispatch works as
+	   * follows: First, determine a hash value from the signature of the
+	   * actual arguments.  Second, use this hash value as an index to
+	   * find that same signature in the method cache stored at this
+	   * position in the code.  If found, you have also found the 
+	   * corresponding method that belongs to that signature.  If the
+	   * signature is not found in the method cache, you have to perform a
+	   * full search over all signatures stored with the generic
+	   * function.  */
+	{
+	    unsigned long int specializers;
+	    unsigned long int hash_value;
+	    unsigned long int cache_end_pos;
+	    unsigned long int mask;
+	    SCM method_cache;
+
+	    {
+	      SCM z = SCM_CDDR (x);
+	      SCM tmp = SCM_CADR (z);
+	      specializers = SCM_INUM (SCM_CAR (z));
+
+	      /* Compute a hash value for searching the method cache.  There
+	       * are two variants for computing the hash value, a (rather)
+	       * complicated one, and a simple one.  For the complicated one
+	       * explained below, tmp holds a number that is used in the
+	       * computation.  */
+	      if (SCM_INUMP (tmp))
+		{
+		  /* Use the signature of the actual arguments to determine
+		   * the hash value.  This is done as follows:  Each class has
+		   * an array of random numbers, that are determined when the
+		   * class is created.  The integer 'hashset' is an index into
+		   * that array of random numbers.  Now, from all classes that
+		   * are part of the signature of the actual arguments, the
+		   * random numbers at index 'hashset' are taken and summed
+		   * up, giving the hash value.  The value of 'hashset' is
+		   * stored at the call to dispatch.  This allows to have
+		   * different 'formulas' for calculating the hash value at
+		   * different places where dispatch is called.  This allows
+		   * to optimize the hash formula at every individual place
+		   * where dispatch is called, such that hopefully the hash
+		   * value that is computed will directly point to the right
+		   * method in the method cache.  */
+		  unsigned long int hashset = SCM_INUM (tmp);
+		  unsigned long int counter = specializers + 1;
+		  SCM tmp_arg = t.arg1;
+		  hash_value = 0;
+		  while (!SCM_NULLP (tmp_arg) && counter != 0)
+		    {
+		      SCM class = scm_class_of (SCM_CAR (tmp_arg));
+		      hash_value += SCM_INSTANCE_HASH (class, hashset);
+		      tmp_arg = SCM_CDR (tmp_arg);
+		      counter--;
+		    }
+		  z = SCM_CDDR (z);
+		  method_cache = SCM_CADR (z);
+		  mask = SCM_INUM (SCM_CAR (z));
+		  hash_value &= mask;
+		  cache_end_pos = hash_value;
+		}
+	      else
+		{
+		  /* This method of determining the hash value is much
+		   * simpler:  Set the hash value to zero and just perform a
+		   * linear search through the method cache.  */
+		  method_cache = tmp;
+		  mask = (unsigned long int) ((long) -1);
+		  hash_value = 0;
+		  cache_end_pos = SCM_VECTOR_LENGTH (method_cache);
+		}
+	    }
+
+	    {
+	      /* Search the method cache for a method with a matching
+	       * signature.  Start the search at position 'hash_value'.  The
+	       * hashing implementation uses linear probing for conflict
+	       * resolution, that is, if the signature in question is not
+	       * found at the starting index in the hash table, the next table
+	       * entry is tried, and so on, until in the worst case the whole
+	       * cache has been searched, but still the signature has not been
+	       * found.  */
+	      SCM z;
+	      do
+		{
+		  SCM args = t.arg1; /* list of arguments */
+		  z = SCM_VELTS (method_cache)[hash_value];
+		  while (!SCM_NULLP (args))
 		    {
 		      /* More arguments than specifiers => CLASS != ENV */
-		      if (! SCM_EQ_P (scm_class_of (SCM_CAR (t.arg1)), SCM_CAR (z)))
+		      SCM class_of_arg = scm_class_of (SCM_CAR (args));
+		      if (!SCM_EQ_P (class_of_arg, SCM_CAR (z)))
 			goto next_method;
-		      t.arg1 = SCM_CDR (t.arg1);
+		      args = SCM_CDR (args);
 		      z = SCM_CDR (z);
 		    }
-		  while (j-- && SCM_NIMP (t.arg1));
-		/* Fewer arguments than specifiers => CAR != ENV */
-		if (!(SCM_IMP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z))))
-		  goto next_method;
-	      apply_cmethod:
-		env = EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (z)),
-				  arg2,
-				  SCM_CMETHOD_ENV (z));
-		x = SCM_CMETHOD_CODE (z);
-		goto nontoplevel_cdrxbegin;
-	      next_method:
-		i = (i + 1) & mask;
-	      } while (i != end);
-	    
-	    z = scm_memoize_method (x, arg2);
-	    goto apply_cmethod;
+		  /* Fewer arguments than specifiers => CAR != ENV */
+		  if (SCM_NULLP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z)))
+		    goto apply_cmethod;
+		next_method:
+		  hash_value = (hash_value + 1) & mask;
+		} while (hash_value != cache_end_pos);
+
+	      /* No appropriate method was found in the cache.  */
+	      z = scm_memoize_method (x, t.arg1);
+
+	    apply_cmethod: /* inputs: z, t.arg1 */
+	      {
+		SCM formals = SCM_CMETHOD_FORMALS (z);
+		env = EXTEND_ENV (formals, t.arg1, SCM_CMETHOD_ENV (z));
+		x = SCM_CMETHOD_BODY (z);
+		goto nontoplevel_begin;
+	      }
+	    }
 	  }
 
 	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
@@ -2806,7 +2865,7 @@ evapply:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
 	    x = SCM_ENTITY_PROCEDURE (proc);
-	    arg2 = SCM_EOL;
+	    t.arg1 = SCM_EOL;
 	    goto type_dispatch;
 	  }
 	else if (!SCM_I_OPERATORP (proc))
@@ -2951,9 +3010,9 @@ evapply:
 	    {
 	      x = SCM_ENTITY_PROCEDURE (proc);
 #ifdef DEVAL
-	      arg2 = debug.info->a.args;
+	      t.arg1 = debug.info->a.args;
 #else
-	      arg2 = scm_list_1 (t.arg1);
+	      t.arg1 = scm_list_1 (t.arg1);
 #endif
 	      goto type_dispatch;
 	    }
@@ -3047,9 +3106,9 @@ evapply:
 	    {
 	      x = SCM_ENTITY_PROCEDURE (proc);
 #ifdef DEVAL
-	      arg2 = debug.info->a.args;
+	      t.arg1 = debug.info->a.args;
 #else
-	      arg2 = scm_list_2 (t.arg1, arg2);
+	      t.arg1 = scm_list_2 (t.arg1, arg2);
 #endif
 	      goto type_dispatch;
 	    }
@@ -3259,9 +3318,9 @@ evapply:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
 #ifdef DEVAL
-	    arg2 = debug.info->a.args;
+	    t.arg1 = debug.info->a.args;
 #else
-	    arg2 = scm_cons2 (t.arg1, arg2, scm_eval_args (x, env, proc));
+	    t.arg1 = scm_cons2 (t.arg1, arg2, scm_eval_args (x, env, proc));
 #endif
 	    x = SCM_ENTITY_PROCEDURE (proc);
 	    goto type_dispatch;

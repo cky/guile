@@ -190,6 +190,8 @@ typedef struct scm_effective_slot_definition {
 #define SCM_ESLOTDEF(x) ((scm_effective_slot_definition *) SCM_CDR (x))
 
 #define SCM_CMETHOD_CODE(cmethod) SCM_CDR (cmethod)
+#define SCM_CMETHOD_FORMALS(cmethod) SCM_CAR (SCM_CMETHOD_CODE (cmethod))
+#define SCM_CMETHOD_BODY(cmethod) SCM_CDR (SCM_CMETHOD_CODE (cmethod))
 #define SCM_CMETHOD_ENV(cmethod)  SCM_CAR (cmethod)
 
 /* Port classes */
