@@ -3,7 +3,7 @@
 #ifndef SCM__SCM_H
 #define SCM__SCM_H
 
-/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,8 @@
 
 
 
+#include <errno.h>
+
 #include "libguile/__scm.h"
 
 /* "What's the difference between _scm.h and __scm.h?"
@@ -87,6 +89,11 @@
    sigaction is available and SA_RESTART is defined; they will be used
    when installing signal handlers.
    */
+
+/* However, don't assume SA_RESTART works with pthreads... */
+#ifdef USE_COPT_THREADS
+#undef HAVE_RESTARTABLE_SYSCALLS
+#endif
 
 #ifdef HAVE_RESTARTABLE_SYSCALLS
 #define SCM_SYSCALL(line) line
