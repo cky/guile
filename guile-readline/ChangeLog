@@ -1,3 +1,9 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Makefile.am (DISTCLEANFILES): Get rid of .x files.
+	* Makefile.in: Regenerated.
+	(Thanks to Keisuke Nishida.)
+
 1999-09-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* readline.scm: Moved from ../ice-9.
