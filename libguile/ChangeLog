@@ -1,3 +1,7 @@
+Thu Jan  2 01:56:38 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_DIST): Added DYNAMIC-LINKING
+
 Sat Dec 28 19:14:01 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* socket.c (scm_addr_vector): fix faulty scm_listify.
