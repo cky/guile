@@ -1065,11 +1065,11 @@ scm_is_true (scm_null_p (@var{obj}))
 Use @code{scm_cons} instead.
 
 @item @code{gh_car} and @code{gh_cdr}
-Use the @code{SCM_CAR} and @code{SCM_CDR} macros instead.
+Use @code{scm_car} and @code{scm_cdr} instead.
 
 @item @code{gh_cxxr} and @code{gh_cxxxr}
 (Where each x is either @samp{a} or @samp{d}.)  Use the corresponding
-@code{SCM_CXXR} or @code{SCM_CXXXR} macro instead.
+@code{scm_cxxr} or @code{scm_cxxxr} function instead.
 
 @item @code{gh_set_car_x} and @code{gh_set_cdr_x}
 Use @code{scm_set_car_x} and @code{scm_set_cdr_x} instead.
