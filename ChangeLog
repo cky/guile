@@ -4,6 +4,8 @@
 	(dist-hook): Add, including related am/maintainers-dirs,
 	surrounded by "if MAINTAINER_MODE".
 
+	* TODO: bye bye
+
 2002-03-06  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile-tools.in: Handle "--source" option.
