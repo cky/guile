@@ -1,3 +1,7 @@
+2004-01-04  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/exceptions.test (false-if-exception): Add tests.
+
 2003-11-30  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/syntax.test: It's "#\\space", not "#\space".

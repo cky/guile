@@ -1,3 +1,8 @@
+2004-01-04  Kevin Ryde  <user42@zip.com.au>
+
+	* boot-9.scm (false-if-exception): Unquote catch and lambda, so as not
+	to depend on expansion environment.
+
 2003-11-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (error-catching-loop): Defer lookup of
