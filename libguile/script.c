@@ -352,11 +352,12 @@ scm_shell_usage (int fatal, char *message)
            "Usage: %s OPTION ...\n"
            "Evaluate Scheme code, interactively or from a script.\n"
            "\n"
-           "  -s SCRIPT      load Scheme source code from FILE, and exit\n"
+           "  [-s] FILE      load Scheme source code from FILE, and exit\n"
            "  -c EXPR        evalute Scheme expression EXPR, and exit\n"
            "  --             stop scanning arguments; run interactively\n"
            "The above switches stop argument processing, and pass all\n"
            "remaining arguments as the value of (command-line).\n"
+           "If FILE begins with `-' the -s switch is mandatory.\n"
            "\n"
            "  -l FILE        load Scheme source code from FILE\n"
            "  -e FUNCTION    after reading script, apply FUNCTION to\n"
@@ -436,9 +437,9 @@ scm_compile_shell_switches (int argc, char **argv)
   
   for (i = 1; i < argc; i++)
     {
-      if (! strcmp (argv[i], "-s")) /* load script */
+      if ((! strcmp (argv[i], "-s")) || (argv[i][0] != '-')) /* load script */
 	{
-	  if (++i >= argc)
+	  if ((argv[i][0] == '-') && (++i >= argc))
 	    scm_shell_usage (1, "missing argument to `-s' switch");
 
 	  /* If we specified the -ds option, do_script points to the

@@ -1,3 +1,9 @@
+2003-08-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* script.c (scm_compile_shell_switches): Make -s switch optional
+	if file to be loaded does not begin with a `-'.  (Thanks to Aaron
+	VanDevender for the patch!)
+
 2003-08-30  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_lognot): Rewrite using ~ and mpz_com, for directness
