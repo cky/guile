@@ -2347,6 +2347,17 @@
 				     (* 1000 (/ (- (gc-run-time) start-gc-rt)
 						internal-time-units-per-second))))
 			  (display " msec in gc)\n")))
+
+	   (consume-trailing-whitespace
+	    (lambda ()
+	      (let ((ch (peek-char)))
+		(cond
+		 ((eof-object? ch))
+		 ((or (char=? ch #\space) (char=? ch #\tab))
+		  (read-char)
+		  (consume-trailing-whitespace))
+		 ((char=? ch #\newline)
+		  (read-char))))))
 	   (-read (lambda ()
 		    (if scm-repl-prompt
 			(begin
@@ -2359,6 +2370,17 @@
 			  (repl-report-reset)))
 		    (run-hooks before-read-hook)
 		    (let ((val (read (current-input-port))))
+		      ;; As described in R4RS, the READ procedure updates the
+		      ;; port to point to the first characetr past the end of
+		      ;; the external representation of the object.  This
+		      ;; means that it doesn't consume the newline typically
+		      ;; found after an expression.  This means that, when
+		      ;; debugging Guile with GDB, GDB gets the newline, which
+		      ;; it often interprets as a "continue" command, making
+		      ;; breakpoints kind of useless.  So, consume any
+		      ;; trailing newline here, as well as any whitespace
+		      ;; before it.
+		      (consume-trailing-whitespace)
 		      (run-hooks after-read-hook)
 		      (if (eof-object? val)
 			  (begin
