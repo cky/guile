@@ -1022,6 +1022,21 @@
 	      (loop (cons (read-component) reversed-path)))
 	    (reverse reversed-path))))))
 
+(define (read-path-list-notation-warning slash port)
+  (if (not (getenv "GUILE_HUSH"))
+      (begin
+	(display "warning: obsolete `#/' list notation read from "
+		 (current-error-port))
+	(display (port-filename port) (current-error-port))
+	(display "; see guile-core/NEWS." (current-error-port))
+	(newline (current-error-port))
+	(display "         Set the GUILE_HUSH environment variable to disable this warning."
+		 (current-error-port))
+	(newline (current-error-port))))
+  (read-hash-extend #\/ read-path-list-notation)
+  (read-path-list-notation slash port))
+
+
 (read-hash-extend #\' (lambda (c port)
 			(read port)))
 (read-hash-extend #\. (lambda (c port)
@@ -1044,7 +1059,7 @@
 
 ;; pushed to the beginning of the alist since it's used more than the
 ;; others at present.
-(read-hash-extend #\/ read-path-list-notation)
+(read-hash-extend #\/ read-path-list-notation-warning)
 
 (define (read:array digit port)
   (define chr0 (char->integer #\0))
