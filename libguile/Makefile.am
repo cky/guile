@@ -90,7 +90,7 @@ modinclude_HEADERS = \
     continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h	\
     evalext.h feature.h filesys.h fports.h gc.h gdb_interface.h		\
     gdbint.h genio.h gsubr.h guardians.h hash.h hashtab.h init.h	\
-    ioext.h keywords.h list.h load.h macros.h mallocs.h markers.h	\
+    ioext.h keywords.h kw.h list.h load.h macros.h mallocs.h markers.h	\
     modules.h net_db.h numbers.h objects.h objprop.h options.h pairs.h	\
     ports.h posix.h regex-posix.h print.h procprop.h procs.h random.h	\
     ramap.h read.h root.h scmsigs.h script.h simpos.h smob.h socket.h	\
