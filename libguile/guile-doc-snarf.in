@@ -1,7 +1,7 @@
 #!/bin/sh
 # Extract the initialization actions for builtin things.
 
-filename=`basename $1`; shift
+filename=$1; shift
 
 # we need to be sure that the .x file exists
 # since the .c/.cc file may include it
@@ -22,4 +22,3 @@ test -n "${CPP+set}" || CPP="@CPP@"
 ## need to know if CPP exits with a non-zero status.
 ${CPP} -DSCM_MAGIC_SNARFER "$@" > ${temp} || exit $?
 < ${temp} awk -f `dirname $0`/guile-snarf.awk `basename $filename`
-
