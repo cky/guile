@@ -74,6 +74,7 @@ AUTOMAKE_OPTIONS = foreign
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
 subpkgdata_DATA = boot-9.scm debug.scm expect.scm hcons.scm lineio.scm \
 mapping.scm poe.scm slib.scm tags.scm threads.scm r4rs.scm
+ETAGS_ARGS = $(subpkgdata_DATA)
 
 EXTRA_DIST = $(subpkgdata_DATA) test.scm
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -117,9 +118,29 @@ uninstall-subpkgdataDATA:
 	list='$(subpkgdata_DATA)'; for p in $$list; do \
 	  rm -f $(subpkgdatadir)/$$p; \
 	done
-tags: TAGS
-TAGS:
 
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES)
+	here=`pwd` && cd $(srcdir) && mkid -f$$here/ID $(SOURCES) $(HEADERS)
+
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES)
+	tags=; \
+	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+	done; \
+	test -z "$(ETAGS_ARGS)$(SOURCES)$(HEADERS)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $(SOURCES) $(HEADERS) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	rm -f TAGS ID
+
+maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
@@ -169,19 +190,21 @@ distclean-generic:
 maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
-mostlyclean:  mostlyclean-generic
+mostlyclean:  mostlyclean-tags mostlyclean-generic
 
-clean:  clean-generic mostlyclean
+clean:  clean-tags clean-generic mostlyclean
 
-distclean:  distclean-generic clean
+distclean:  distclean-tags distclean-generic clean
 	rm -f config.status
 	rm -f libtool
 
-maintainer-clean:  maintainer-clean-generic distclean
+maintainer-clean:  maintainer-clean-tags maintainer-clean-generic \
+		distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
 .PHONY: default uninstall-subpkgdataDATA install-subpkgdataDATA tags \
+mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
 distdir info dvi installcheck install-exec install-data install \
 uninstall all installdirs mostlyclean-generic distclean-generic \
 clean-generic maintainer-clean-generic clean mostlyclean distclean \

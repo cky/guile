@@ -1,3 +1,9 @@
+Mon May  5 13:18:38 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.am (ETAGS_ARGS): New variable, since we're not treating
+	the Scheme code like code yet.
+	* Makefile.in: Resrac,husrched.
+
 Wed Apr 30 15:25:15 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (link-dynamic-module): Do not catch errors from
