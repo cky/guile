@@ -1789,7 +1789,7 @@ raeql_1 (SCM ra0,SCM as_equal,SCM ra1)
   SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
   scm_sizet i0 = 0, i1 = 0;
   long inc0 = 1, inc1 = 1;
-  scm_sizet n = SCM_INUM (scm_uniform_vector_length (ra0));
+  scm_sizet n;
   ra1 = SCM_CAR (ra1);
   if (SCM_ARRAYP(ra0))
     {
@@ -1798,6 +1798,8 @@ raeql_1 (SCM ra0,SCM as_equal,SCM ra1)
       inc0 = SCM_ARRAY_DIMS (ra0)->inc;
       ra0 = SCM_ARRAY_V (ra0);
     }
+  else
+    n = SCM_INUM (scm_uniform_vector_length (ra0));
   if (SCM_ARRAYP (ra1))
     {
       i1 = SCM_ARRAY_BASE (ra1);
