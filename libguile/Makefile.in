@@ -157,6 +157,7 @@ inner_h_files= __scm.h \
 		append.h \
 		arbiters.h \
 		async.h \
+		backtrace.h \
 		boolean.h \
 		chars.h \
 		continuations.h \
@@ -205,6 +206,7 @@ inner_h_files= __scm.h \
 		socket.h \
 		srcprop.h \
 		stackchk.h \
+		stacks.h \
 		stime.h \
 		strings.h \
 		strop.h \
@@ -229,6 +231,7 @@ c_files=	alist.c \
 		appinit.c \
 		arbiters.c \
 		async.c \
+		backtrace.c \
 		boolean.c \
 		chars.c \
 		continuations.c \
@@ -276,6 +279,7 @@ c_files=	alist.c \
 		socket.c \
 		srcprop.c \
 		stackchk.c \
+		stacks.c \
 		stime.c \
 		strerror.c \
 		strings.c \
@@ -297,6 +301,7 @@ gen_c_files=	alist.x \
 		append.x \
 		arbiters.x \
 		async.x \
+		backtrace.x \
 		boolean.x \
 		chars.x \
 		continuations.x \
@@ -342,6 +347,7 @@ gen_c_files=	alist.x \
 		socket.x \
 		srcprop.x \
 		stackchk.x \
+		stacks.x \
 		stime.x \
 		strings.x \
 		strop.x \
@@ -496,6 +502,13 @@ async.o: async.c _scm.h __scm.h scmconfig.h \
  symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
  throw.h smob.h ports.h genio.h \
  markers.h async.x
+backtrace.o: backtrace.c _scm.h __scm.h scmconfig.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
+ throw.h genio.h smob.h ports.h genio.h \
+ markers.h procprop.h srcprop.h alist.h continuations.h \
+ strports.h read.h feature.h backtrace.h backtrace.x
 boolean.o: boolean.c _scm.h __scm.h scmconfig.h \
  tags.h error.h __scm.h print.h \
  options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
@@ -755,6 +768,13 @@ stackchk.o: stackchk.c _scm.h __scm.h scmconfig.h \
  symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
  genio.h stackchk.h continuations.h debug.h \
  stackchk.x
+stacks.o: stacks.c _scm.h __scm.h scmconfig.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
+ throw.h genio.h smob.h ports.h genio.h \
+ markers.h procprop.h srcprop.h alist.h continuations.h \
+ strports.h read.h feature.h stacks.h stacks.x
 stime.o: stime.c _scm.h __scm.h scmconfig.h \
  tags.h error.h __scm.h print.h \
  options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
