@@ -46,6 +46,7 @@
 
 extern SCM scm_readline (SCM txt, SCM inp, SCM outp, SCM read_hook);
 extern SCM scm_add_history (SCM txt);
-extern void scm_init_readline ();
+extern SCM scm_filename_completion_function (SCM text, SCM continuep);
+extern void scm_init_readline (void);
 
 #endif
