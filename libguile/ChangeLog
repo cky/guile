@@ -1,3 +1,11 @@
+2002-03-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* snarf.h (SCM_SNARF_INIT): Add "^:^" after code so that
+	guile-snarf can remove trailing non-init code.
+
+	* guile-snarf.in (modern_snarf): Remove everything following and
+	including "^:^" from the output.
+
 2002-03-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL), srcprop.h (SRCBRKP): Eliminated union 't'.
