@@ -2252,8 +2252,7 @@ Like the association list functions, the hash table functions come in
 several varieties, according to the equality test used for the keys.
 Plain @code{hash-} functions use @code{equal?}, @code{hashq-}
 functions use @code{eq?}, @code{hashv-} functions use @code{eqv?}, and
-the @code{hashx-} functions use an application supplied test (for
-instance to implement case insensitive strings).
+the @code{hashx-} functions use an application supplied test.
 
 A single @code{make-hash-table} creates a hash table suitable for use
 with any set of functions, but it's imperative that just one set is
@@ -2266,12 +2265,34 @@ bucket in case distinct keys hash together.  Direct access to the
 pairs in those lists is provided by the @code{-handle-} functions.
 
 For the @code{hashx-} ``extended'' routines, an application supplies a
-@var{hash} function producing an integer index (like @code{hashq} etc
-below), and an @var{assoc} alist search function (like @code{assq}
-etc, @xref{Retrieving Alist Entries}.).  The aim in the @var{hash}
-function is to have different keys spread out across the vector, so
-the bucket lists don't become long, but the exact values generated are
-otherwise arbitrary.
+@var{hash} function producing an integer index like @code{hashq} etc
+below, and an @var{assoc} alist search function like @code{assq} etc
+(@pxref{Retrieving Alist Entries}).  Here's an example of such
+functions implementing case-insensitive hashing of string keys,
+
+@example
+(use-modules (srfi srfi-1)
+             (srfi srfi-13))
+(define (my-hash str size)
+  (remainder (string-hash-ci str) size))
+(define (my-assoc str alist)
+  (find (lambda (pair) (string-ci=? str (car pair))) alist))
+
+(define my-table (make-hash-table))
+(hashx-set! my-hash my-assoc my-table "foo" 123)
+
+(hashx-ref my-hash my-assoc my-table "FOO")
+@result{} 123
+@end example
+
+In a @code{hashx-} @var{hash} function the aim is to spread keys
+across the vector, so bucket lists don't become long, but the actual
+values are arbitrary (so long as they're in the range 0 to
+@math{@var{size}-1}).  Helpful functions for forming a hash value, in
+addition to @code{hashq} etc below, include @code{symbol-hash}
+(@pxref{Symbol Keys}), @code{string-hash} and @code{string-hash-ci}
+(@pxref{SRFI-13 Comparison}), and @code{char-set-hash} (@pxref{SRFI-14
+Predicates/Comparison}).
 
 @sp 1
 @deffn {Scheme Procedure} make-hash-table [size]
@@ -2380,7 +2401,7 @@ pair.
 Apply @var{proc} to the entries in the given hash @var{table}.  Each
 call is @code{(@var{proc} @var{key} @var{value})}.  @code{hash-map}
 returns a list of the results from these calls, @code{hash-for-each}
-discards the results and returns unspecified value.
+discards the results and returns an unspecified value.
 
 Calls are made over the table entries in an unspecified order, and for
 @code{hash-map} the order of the values in the returned list is
