@@ -3880,11 +3880,10 @@ call_lsubr_0 (SCM proc)
 SCM 
 scm_i_call_closure_0 (SCM proc)
 {
-  const SCM env = SCM_ENV (proc);
-  const SCM formals = SCM_CLOSURE_FORMALS (proc);
-  const SCM new_env = SCM_EXTEND_ENV (formals, SCM_EOL, env);
-  const SCM body = SCM_CLOSURE_BODY (proc);
-  const SCM result = scm_eval_body (body, new_env);
+  const SCM env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                                  SCM_EOL,
+                                  SCM_ENV (proc));
+  const SCM result = scm_eval_body (SCM_CLOSURE_BODY (proc), env);
   return result;
 }
 
@@ -3986,12 +3985,10 @@ call_cxr_1 (SCM proc, SCM arg1)
 static SCM 
 call_closure_1 (SCM proc, SCM arg1)
 {
-  const SCM env = SCM_ENV (proc);
-  const SCM formals = SCM_CLOSURE_FORMALS (proc);
-  const SCM args = scm_list_1 (arg1);
-  const SCM new_env = SCM_EXTEND_ENV (formals, args, env);
-  const SCM body = SCM_CLOSURE_BODY (proc);
-  const SCM result = scm_eval_body (body, new_env);
+  const SCM env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                                  scm_list_1 (arg1),
+                                  SCM_ENV (proc));
+  const SCM result = scm_eval_body (SCM_CLOSURE_BODY (proc), env);
   return result;
 }
 
@@ -4067,12 +4064,10 @@ call_lsubr_2 (SCM proc, SCM arg1, SCM arg2)
 static SCM 
 call_closure_2 (SCM proc, SCM arg1, SCM arg2)
 {
-  const SCM env = SCM_ENV (proc);
-  const SCM formals = SCM_CLOSURE_FORMALS (proc);
-  const SCM args = scm_list_2 (arg1, arg2);
-  const SCM new_env = SCM_EXTEND_ENV (formals, args, env);
-  const SCM body = SCM_CLOSURE_BODY (proc);
-  const SCM result = scm_eval_body (body, new_env);
+  const SCM env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                                  scm_list_2 (arg1, arg2),
+                                  SCM_ENV (proc));
+  const SCM result = scm_eval_body (SCM_CLOSURE_BODY (proc), env);
   return result;
 }
 

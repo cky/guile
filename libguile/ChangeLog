@@ -1,3 +1,9 @@
+2003-04-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (scm_i_call_closure_0, call_closure_1, call_closure_2):
+	Partially reverted patch from 2003-04-23 in oder to find a better
+	compromise between readability and debuggability.
+
 2003-04-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c, eval.h, goops.c, goops.h (scm_m_atslot_ref,
