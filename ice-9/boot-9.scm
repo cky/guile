@@ -407,10 +407,12 @@
 (if (provided? 'socket)
     (primitive-load-path "ice-9/networking.scm"))
 
+;; ENHANCE-ME: Catching an exception from stat is a bit wasteful, do this in
+;; C where all that's needed is to inspect the return from stat().
 (define file-exists?
   (if (provided? 'posix)
       (lambda (str)
-	(access? str F_OK))
+	(->bool (false-if-exception (stat str))))
       (lambda (str)
 	(let ((port (catch 'system-error (lambda () (open-file str OPEN_READ))
 			   (lambda args #f))))
