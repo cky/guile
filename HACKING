@@ -57,6 +57,13 @@ GNU coding standards.  The standards are available via anonymous FTP
 from prep.ai.mit.edu, as /pub/gnu/standards/standards.texi and
 make-stds.texi.
 
+- The Guile tree should compile without warnings under the following
+GCC switches, which are the default in the current configure script:
+    -Wall -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes
+The only exceptions are the warnings about variables being clobbered
+by setjmp/longjmp in eval.c.  (Tho' if you can figure out how to get
+rid of those, too, I'd be happy.)
+
 - When you make a user-visible change (i.e. one that should be
 documented, and appear in NEWS, put an asterisk in column zero of the
 start of the ChangeLog entry, like so:
