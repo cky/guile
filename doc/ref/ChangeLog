@@ -1,3 +1,8 @@
+2005-01-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* scheme-scripts.texi: Describe new 1.4 compatability behavior of
+	-e option.
+
 2005-01-14  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Mapping Folding and Unfolding): In

@@ -1,3 +1,11 @@
+2005-01-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	Recognize 1.4 -e syntax.
+	
+	* script.c (sym_at, sym_atat, sym_main, all_symbols): New.
+	(scm_compile_shell_switches): Use them to recognize and convert
+	1.4 "-e" syntax.
+	
 2005-01-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* deprecated.h, deprecated.c, strings.h, strings.c: Turn all
