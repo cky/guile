@@ -2062,7 +2062,7 @@
         (big*4 (* fixnum-max 4))
         (big*5 (* fixnum-max 5)))
 
-    (expect-fail (documented? max))
+    (expect-fail (documented? min))
     (pass-if (= 1 (min 7 3 1 5)))
     (pass-if (= 1 (min 1 7 3 5)))
     (pass-if (= 1 (min 7 3 5 1)))
