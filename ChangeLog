@@ -1,3 +1,8 @@
+2001-05-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* HACKING: Update copyright.
+	Add blurb pointing to devel/tasks.text.
+
 2001-05-11  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* check-guile.in: For SRFI testing, set and export env
