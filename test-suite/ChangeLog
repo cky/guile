@@ -1,5 +1,9 @@
 2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/vectors.test: Added.
+
+2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/guardians.test: Uses module (ice-9 weak-vector).
 
 2003-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
