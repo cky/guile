@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.11 2001-05-30 20:32:05 mgrabmue Exp $
+@c $Id: intro.texi,v 1.12 2001-06-14 17:36:41 mvo Exp $
 
 @page
 @node What is Guile?
@@ -649,7 +649,7 @@ j0_wrapper (SCM x)
 void
 init_bessel ()
 @{
-  scm_make_gsubr ("j0", 1, 0, 0, j0_wrapper);
+  scm_c_define_gsubr ("j0", 1, 0, 0, j0_wrapper);
 @}
 @end smallexample
 
@@ -663,26 +663,27 @@ gcc -shared -o libguile-bessel.so -fPIC bessel.c
 For creating shared libraries portably, we recommend the use of
 @code{GNU Libtool}.
 
-A shared library can be loaded into a running Guile process with
-@code{dynamic-link}.  After it has been linked you can call its exported
-functions via @code{dynamic-call}.  For our example, we are going to
-call the function @code{init_bessel} which will make @code{j0_wrapper}
-available to Scheme programs with the name @code{j0}.  Note that we do
-not specify a filename extension such as @file{.so} when invoking
-@code{dynamic-link}.  The right extension for the host platform will be
-provided automatically.
+A shared library can be loaded into a running Guile process with the
+function @code{load-extension}.  In addition to the name of the
+library to load, this function also expects the name of function from
+that library that will be called to initialize it.  For our example,
+we are going to call the function @code{init_bessel} which will make
+@code{j0_wrapper} available to Scheme programs with the name
+@code{j0}.  Note that we do not specify a filename extension such as
+@file{.so} when invoking @code{load-extension}.  The right extension for
+the host platform will be provided automatically.
 
 @smalllisp
-(define bessel-lib (dynamic-link "libguile-bessel"))
-(dynamic-call "init_bessel" bessel-lib)
+(load-extension "libguile-bessel" "init_bessel")
 (j0 2)
 @result{} 0.223890779141236
 @end smalllisp
 
-For this to work, @code{dynamic-link} must be able to find
-@file{libguile-bessel}, of course.  It will look in the places that are
-usual for your operating system, and it will additionally look into the
-directories listed in the @code{LTDL_LIBRRAY_PATH} environment variable.
+For this to work, @code{load-extension} must be able to find
+@file{libguile-bessel}, of course.  It will look in the places that
+are usual for your operating system, and it will additionally look
+into the directories listed in the @code{LTDL_LIBRRAY_PATH}
+environment variable.
 
 To see how these Guile extensions via shared libraries relate to the
 module system, see below @xref{Intro to Modules and Extensions}.
@@ -722,7 +723,7 @@ are searched first, then the the default.  The following command
 shows the complete list of directories searched:
 
 @smallexample
-guile -c '(for-each write-line %load-path)'
+guile -c '(write %load-path) (newline)'
 @end smallexample
 
 Suppose you want to use the procedures and variables exported by the
@@ -808,13 +809,15 @@ using @code{use-modules} to load the module @code{(foo bar)}.
 @node Intro to Modules and Extensions
 @subsection Intro to Modules and Extensions
 
-In addition to Scheme code you can also put new procedures and other
-named features that are provided by an extension into a module.
+In addition to Scheme code you can also put things that are defined in
+C into a module.
 
 You do this by writing a small Scheme file that defines the module.
-That Scheme file in turn invokes @code{dynamic-link} and
-@code{dynamic-call} as explained above to make the extension
-available.
+That Scheme file in turn invokes @code{load-extension} to make the
+features defined in C available.  This works since all definitions
+made by @code{scm_c_define_gsubr} etc. go into the @emph{current
+module} and @code{define-module} causes the newly defined module to be
+current while the code that follows it is executed.
 
 Suppose we want to put the Bessel function @code{j0} from the example
 extension into a module called @code{(math bessel)}.  We would have to
@@ -823,12 +826,27 @@ write a Scheme file with this contents
 @smallexample
 (define-module (math bessel))
 
-(dynamic-call "init_bessel" (dynamic-link "libguile-bessel"))
+(export j0)
+
+(load-extension "libguile-bessel" "init_bessel")
 @end smallexample
 
-The file should of course be saved in the right place for autoloading,
-for example as @file{/usr/local/share/guile/math/bessel.scm}.
+This file should of course be saved in the right place for
+autoloading, for example as
+@file{/usr/local/share/guile/math/bessel.scm}.
 
+When @code{init_bessel} is called, the new @code{(math bessel)} module
+is the current one.  Thus, the call to @code{scm_c_define_gsubr} will
+put the new definition for @code{j0} into it, just as we want it.
+
+The definitions made in the C code are not automatically exported from
+a module.  You need to explicitely list the ones you want to export in
+@code{export} statements or with the @code{:export} option of
+@code{define-module}.
+
+There is also a way to manipulate the module system from C but only
+Scheme files can be autoloaded.  Thus, we recommend that you define
+your modules in Scheme.
 
 @page
 @node Reporting Bugs
