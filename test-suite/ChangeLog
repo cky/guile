@@ -1,3 +1,8 @@
+2004-01-03  Marius Vollmer  <mvo@zagadka.de>
+
+	* standalone/test-unwind.c: New test, for the frames stuff.
+	* standalone/Makefile.am: Compile and run it.
+
 2004-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/exceptions.test (false-if-exception): Add tests.

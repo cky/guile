@@ -1,7 +1,28 @@
+2004-01-03  Marius Vollmer  <mvo@zagadka.de>
+
+	* dynwind.h, scm_dynwind.c (scm_t_frame_flags, scm_t_wind_flags,
+	scm_begin_frame, scm_end_frame, scm_on_unwind, scm_on_rewind):
+	New.
+	(scm_dowinds, scm_i_dowinds): scm_dowinds has been renamed to
+	scm_i_dowinds and extended to handle frames and to invoke a 'turn'
+	function when the outermost wind point has been reached.  The
+	latter is used to copy a continuation stack at the right time.
+	scm_dowinds remains available.
+	(SCM_GUARDSP, SCM_BEFORE_GUARD, SCM_AFTER_GUARD, SCM_GUARD_DATA,
+	tc16_guard, guards_print): Removed.
+	(scm_internal_dynamic_wind): Reimplemented using frames.
+
+	* continuations.c (copy_stack): New, do only the stack copying
+	part of copy_stack_and_call.
+	(copy_stack_and_call): Copy the stack after unwinding and before
+	rewinding.
+	(scm_dynthrow): Do not call scm_dowinds, this is now done by
+	copy_stack_and_call.
+	
 2004-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_less_p): Don't convert frac to float for compares,
-	can give results due to rounding.
+	can give bad results due to rounding.
 	
 2003-12-26  Marius Vollmer  <mvo@zagadka.de>
 
