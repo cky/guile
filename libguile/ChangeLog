@@ -1,3 +1,8 @@
+2001-01-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* smob.[ch] (scm_make_smob_type):  Return type is scm_bits_t now.
+	Thanks to Bill Schottstaedt.
+
 2001-01-11  Michael Livshin  <mlivshin@bigfoot.com>
 
 	from Matthias Köppe:

@@ -275,7 +275,7 @@ scm_smob_apply_3_error (SCM smob, SCM a1, SCM a2, SCM rst)
 }
 
 
-long 
+scm_bits_t 
 scm_make_smob_type (char *name, scm_sizet size)
 {
   char *tmp;

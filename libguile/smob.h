@@ -143,7 +143,7 @@ extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
  * values using `scm_set_smob_xxx'.
  */
 
-extern long scm_make_smob_type (char *name, scm_sizet size);
+extern scm_bits_t scm_make_smob_type (char *name, scm_sizet size);
 
 extern void scm_set_smob_mark (long tc, SCM (*mark) (SCM));
 extern void scm_set_smob_free (long tc, scm_sizet (*free) (SCM));
