@@ -1,3 +1,10 @@
+2004-09-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* read.c (scm_flush_ws): Detect "#!"-style comments here.
+	(scm_lreadr): Abort on seeing "#!", which should no longer happen.
+	(skip_scsh_block_comment): Use scm_input_error instead of
+	scm_misc_error in case of EOF.
+	
 2004-09-07  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_integer_expt): Reject exponent +/-inf.
@@ -27,7 +34,7 @@
 	* threads.c (scm_threads_mark_stacks):  Fixed local variable
 	definitions.
 
-	* strings.c (scm_i_substring_copy, s_scm_string_append): Fixed
+	* strings.c (scm_i_substring_copy, scm_string_append): Fixed
 	local variable definitions.
 
 	* stime.c (_POSIX_C_SOURCE):  Do not define this item on
