@@ -1,3 +1,8 @@
+2005-03-08  Kevin Ryde  <user42@zip.com.au>
+
+	* slib.scm (*features*): Remove 'random, need to use the slib code for
+	that module since guile doesn't provide `random:chunk'.
+
 2005-02-12  Rob Browning  <rlb@defaultvalue.org>
 
 	* boot-9.scm (%cond-expand-features): add srfi-55.
