@@ -20,7 +20,7 @@
 ##   330, Boston, MA 02111-1307 USA
 
 
-SUBDIRS = ice-9 oop qt libltdl libguile guile-config guile-readline \
+SUBDIRS = oop qt libltdl libguile ice-9 guile-config guile-readline \
 	  scripts srfi doc examples
 
 bin_SCRIPTS = guile-tools
