@@ -1,3 +1,16 @@
+2004-08-05  Kevin Ryde  <user42@zip.com.au>
+
+	* arbiters.c (scm_try_arbiter): Use scm_i_misc_mutex instead of
+	SCM_DEFER_INTS.
+	(scm_release_arbiter): Use scm_i_misc_mutex so return value can be
+	guaranteed if multiple threads compete to unlock.
+	Update docstrings per doc/ref/api-scheduling.texi.
+
+	* posix.c (scm_setgroups): Enhance docstring, per doc/ref/posix.texi.
+
+	* simpos.c (scm_system_star): Change scm_from_long to scm_from_int on
+	SIGINT and SIGQUIT, since those values are ints.
+
 2004-08-03  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* num2integral.i.c, num2float.i.c: Removed.

@@ -1,3 +1,16 @@
+2004-08-05  Kevin Ryde  <user42@zip.com.au>
+
+	* api-scheduling.texi (Arbiters): Tweak wording for clarity, note any
+	thread can unlock not just the one which locked.
+
+	* posix.texi (Conventions): Describe system-error args, use @defun for
+	system-error-errno instead of just words.
+
+	* srfi-modules.texi (SRFI-13 Predicates): Tweak wording for clarity.
+	For string-every, note return is #t when no characters.  For
+	string-any and string-every, note last pred call is not currently a
+	tail call, contrary to SRFI-13 spec.
+
 2004-08-03  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-data.texi: Added scm_is_real, scm_is_rational,
