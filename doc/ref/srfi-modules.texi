@@ -36,6 +36,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-17::                     Generalized set!
 * SRFI-19::                     Time/Date library.
 * SRFI-26::                     Specializing parameters
+* SRFI-31::                     A special form `rec' for recursive evaluation
 @end menu
 
 
@@ -3092,6 +3093,39 @@ or similar is typical.
 @end example
 @end deffn
 
+@node SRFI-31
+@subsection SRFI-31 - A special form `rec' for recursive evaluation
+@cindex SRFI-31
+@findex rec
+
+SRFI-31 defines a special form that can be used to create
+self-referential expressions more conveniently.  The syntax is as
+follows:
+
+@example
+@group
+<rec expression> --> (rec <variable> <expression>)
+<rec expression> --> (rec (<variable>+) <body>)
+@end group
+@end example
+
+The first syntax can be used to create self-referential expressions,
+for example:
+
+@lisp
+  guile> (define tmp (rec ones (cons 1 (delay ones))))
+@end lisp
+
+The second syntax can be used to create anonymous recursive functions:
+
+@lisp
+  guile> (define tmp (rec (display-n item n)
+                       (if (positive? n)
+                           (begin (display n) (display-n (- n 1))))))
+  guile> (tmp 42 3)
+  424242
+  guile>
+@end lisp
 
 @c srfi-modules.texi ends here
 
