@@ -1,3 +1,12 @@
+2000-03-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* smob.h (SCM_NEWSMOB, SCM_NEWSMOB2, SCM_NEWSMOB3, SCM_SMOB_DATA,
+	SCM_SET_SMOB_DATA, SCM_TC2SMOBNUM, SCM_SMOBNUM):  To access smob
+	data, use SCM_{SET_}?CELL_TYPE or SCM_{SET_}?WORD_[1-3].
+
+	Note that this implies that smob data has always to be passed as
+	values of type scm_bits_t.
+
 2000-03-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* threads.c (scm_init_threads): Pass 0 size to scm_make_smob_type

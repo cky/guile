@@ -74,54 +74,54 @@ typedef struct scm_smobfuns
 #define SCM_NEWSMOB(z, tc, data) \
 do { \
   SCM_NEWCELL (z); \
-  SCM_SETCDR (z, data); \
-  SCM_SETCAR (z, tc); \
+  SCM_SET_CELL_WORD_1 ((z), (data)); \
+  SCM_SET_CELL_TYPE ((z), (tc)); \
 } while (0)
 
 #define SCM_RETURN_NEWSMOB(tc, data) \
   do { SCM __SCM_smob_answer; \
-       SCM_NEWSMOB (__SCM_smob_answer, tc, data); \
+       SCM_NEWSMOB (__SCM_smob_answer, (tc), (data)); \
        return __SCM_smob_answer; \
   } while (0)
 
 #define SCM_NEWSMOB2(z, tc, data1, data2) \
 do { \
   SCM_NEWCELL2 (z); \
-  SCM_SET_CELL_WORD (z, 1, data1); \
-  SCM_SET_CELL_WORD (z, 2, data2); \
-  SCM_SETCAR (z, tc); \
+  SCM_SET_CELL_WORD_1 ((z), (data1)); \
+  SCM_SET_CELL_WORD_2 ((z), (data2)); \
+  SCM_SET_CELL_TYPE ((z), (tc)); \
 } while (0)
 
 #define SCM_RETURN_NEWSMOB2(tc, data1, data2) \
   do { SCM __SCM_smob_answer; \
-       SCM_NEWSMOB2 (__SCM_smob_answer, tc, data1, data2); \
+       SCM_NEWSMOB2 (__SCM_smob_answer, (tc), (data1), (data2)); \
        return __SCM_smob_answer; \
   } while (0)
 
 #define SCM_NEWSMOB3(z, tc, data1, data2, data3) \
 do { \
   SCM_NEWCELL2 (z); \
-  SCM_SET_CELL_WORD (z, 1, data1); \
-  SCM_SET_CELL_WORD (z, 2, data2); \
-  SCM_SET_CELL_WORD (z, 3, data3); \
-  SCM_SETCAR (z, tc); \
+  SCM_SET_CELL_WORD_1 ((z), (data1)); \
+  SCM_SET_CELL_WORD_2 ((z), (data2)); \
+  SCM_SET_CELL_WORD_3 ((z), (data3)); \
+  SCM_SET_CELL_TYPE ((z), (tc)); \
 } while (0)
 
 #define SCM_RETURN_NEWSMOB3(tc, data1, data2, data3) \
   do { SCM __SCM_smob_answer; \
-       SCM_NEWSMOB3 (__SCM_smob_answer, tc, data1, data2, data3); \
+       SCM_NEWSMOB3 (__SCM_smob_answer, (tc), (data1), (data2), (data3)); \
        return __SCM_smob_answer; \
   } while (0)
 
 
-#define SCM_SMOB_DATA(x) SCM_CDR (x)
-#define SCM_SET_SMOB_DATA(x, data) SCM_SETCDR (x, data)
-#define SCM_TC2SMOBNUM(x) (0x0ff & (SCM_UNPACK(x) >> 8))
-#define SCM_SMOBNUM(x) (SCM_TC2SMOBNUM (SCM_CAR (x)))
+#define SCM_SMOB_DATA(x)		(SCM_CELL_WORD_1 (x))
+#define SCM_SET_SMOB_DATA(x, data)	(SCM_SET_CELL_WORD_1 ((x), (data)))
+#define SCM_TC2SMOBNUM(x)		(0x0ff & ((x) >> 8))
+#define SCM_SMOBNUM(x)			(SCM_TC2SMOBNUM (SCM_CELL_TYPE (x)))
 /* SCM_SMOBNAME can be 0 if name is missing */
-#define SCM_SMOBNAME(smobnum) scm_smobs[smobnum].name
-#define SCM_SMOB_PREDICATE(tag, obj) \
- (SCM_NIMP (obj) && SCM_TYP16 (obj) == (tag))
+#define SCM_SMOBNAME(smobnum)		(scm_smobs[smobnum].name)
+#define SCM_SMOB_PREDICATE(tag, obj)	(SCM_NIMP (obj) \
+					 && SCM_TYP16 (obj) == (tag))
 
 extern int scm_numsmob;
 extern scm_smob_descriptor *scm_smobs;
