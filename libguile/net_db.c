@@ -175,8 +175,13 @@ with the local-address-within-network number @var{lna}.
   unsigned long netnum;
   unsigned long lnanum;
 
+#ifdef 0 /* GJB:FIXME:: */
   SCM_VALIDATE_INUM_COPY (1,net,netnum);
   SCM_VALIDATE_INUM_COPY (2,lna,lnanum);
+#else
+  netnum = SCM_NUM2ULONG (1, net);
+  lnanum = SCM_NUM2ULONG (2, lna);
+#endif
   addr = inet_makeaddr (netnum, lnanum);
   return scm_ulong2num (ntohl (addr.s_addr));
 }
