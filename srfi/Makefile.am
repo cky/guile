@@ -32,14 +32,17 @@ INCLUDES = -I.. -I$(srcdir)/..
 lib_LTLIBRARIES = libguile-srfi-srfi-13-14.la libguile-srfi-srfi-4.la
 
 BUILT_SOURCES = srfi-13.x srfi-14.x srfi-4.x
-libguile_srfi_srfi_13_14_la_SOURCES = srfi-13.x srfi-13.c srfi-14.x srfi-14.c\
- srfi-13.h srfi-14.h
-libguile_srfi_srfi_13_14_la_LDFLAGS = -version-info 0:0 -export-dynamic -no-undefined
-libguile_srfi_srfi_13_14_la_LIBADD = ../libguile/libguile.la
 
 libguile_srfi_srfi_4_la_SOURCES = srfi-4.x srfi-4.c srfi-4.h
-libguile_srfi_srfi_4_la_LDFLAGS = -version-info 0:0 -export-dynamic -no-undefined
 libguile_srfi_srfi_4_la_LIBADD = ../libguile/libguile.la
+libguile_srfi_srfi_4_la_LDFLAGS = -export-dynamic \
+  -version-info @LIBGUILE_SRFI_SRFI_4_INTERFACE@
+
+libguile_srfi_srfi_13_14_la_SOURCES = srfi-13.x srfi-13.c srfi-14.x srfi-14.c\
+ srfi-13.h srfi-14.h
+libguile_srfi_srfi_13_14_la_LIBADD = ../libguile/libguile.la
+libguile_srfi_srfi_13_14_la_LDFLAGS = -export-dynamic \
+  -version-info @LIBGUILE_SRFI_SRFI_13_14_INTERFACE@
 
 srfidir = $(datadir)/guile/$(VERSION)/srfi
 srfi_DATA = srfi-1.scm \
