@@ -1,3 +1,9 @@
+2002-05-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* scan-api: New script.
+
+	* Makefile.am (scripts_sources): Add "scan-api".
+
 2002-04-30  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* summarize-guile-TODO (make-display-item):
