@@ -1,6 +1,6 @@
 ;;;; string-fun.scm --- string manipulation functions
 ;;;;
-;;;; 	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1997, 1999 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -127,14 +127,14 @@
 	(ret (make-shared-substring str 0 end)
 	     (make-shared-substring str (1+ end))))))
 
-(define (split-before-predicate pred str ret)
+(define-public (split-before-predicate pred str ret)
   (let loop ((n 0))
     (cond
      ((= n (string-length str))		(ret str ""))
      ((not (pred (string-ref str n)))	(loop (1+ n)))
      (else				(ret (make-shared-substring str 0 n)
 					     (make-shared-substring str n))))))
-(define (split-after-predicate pred str ret)
+(define-public (split-after-predicate pred str ret)
   (let loop ((n 0))
     (cond
      ((= n (string-length str))		(ret str ""))
@@ -142,7 +142,7 @@
      (else				(ret (make-shared-substring str 0 (1+ n))
 					     (make-shared-substring str (1+ n)))))))
 
-(define (split-discarding-predicate pred str ret)
+(define-public (split-discarding-predicate pred str ret)
   (let loop ((n 0))
     (cond
      ((= n (string-length str))		(ret str ""))
