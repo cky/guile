@@ -40,7 +40,7 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 
 /*
-xSCM_DEFINE (scm_i_index, "i-index", 2, 2, 0, 
+xSCM_DEFINE (scm_i_index, "i-index", 2, 2, 0,
            (SCM str, SCM chr, SCM frm, SCM to),
 	   "@deftypefn {Internal C Function} {static int} scm_i_index (SCM *@var{str}, \n"
 	   "SCM @var{chr}, int @var{direction}, SCM @var{sub_start}, SCM @var{sub_end}, char *@var{why})
@@ -49,7 +49,7 @@ xSCM_DEFINE (scm_i_index, "i-index", 2, 2, 0,
 */
 /* implements index if direction > 0 otherwise rindex.  */
 static int
-scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start, 
+scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
 	     SCM sub_end, const char *why)
 {
   unsigned char * p;
@@ -98,7 +98,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   return -1;
 }
 
-SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0, 
+SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
            (SCM str, SCM chr, SCM frm, SCM to),
 	    "Return the index of the first occurrence of @var{chr} in\n"
 	    "@var{str}.  The optional integer arguments @var{frm} and\n"
@@ -117,7 +117,7 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 #define FUNC_NAME s_scm_string_index
 {
   int pos;
-  
+
   if (SCM_UNBNDP (frm))
     frm = SCM_BOOL_F;
   if (SCM_UNBNDP (to))
@@ -129,7 +129,7 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0, 
+SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
            (SCM str, SCM chr, SCM frm, SCM to),
 	    "Like @code{string-index}, but search from the right of the\n"
 	    "string rather than from the left.  This procedure essentially\n"
@@ -147,7 +147,7 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 #define FUNC_NAME s_scm_string_rindex
 {
   int pos;
-  
+
   if (SCM_UNBNDP (frm))
     frm = SCM_BOOL_F;
   if (SCM_UNBNDP (to))
@@ -215,14 +215,14 @@ y
 y
 @result{} "abccdeg"
 @end lisp
-*/ 
+*/
 
-SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0, 
+SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
            (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
 	    "@deffnx primitive substring-move-left! str1 start1 end1 str2 start2\n"
 	    "@deffnx primitive substring-move-right! str1 start1 end1 str2 start2\n"
 	    "Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}\n"
-	    "into @var{str2} beginning at position @var{end2}.\n"
+	    "into @var{str2} beginning at position @var{start2}.\n"
 	    "@code{substring-move-right!} begins copying from the rightmost character\n"
 	    "and moves left, and @code{substring-move-left!} copies from the leftmost\n"
 	    "character moving right.\n\n"
@@ -255,13 +255,13 @@ SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
   SCM_SYSCALL(memmove((void *)(&(SCM_STRING_CHARS(str2)[s2])),
 		      (void *)(&(SCM_STRING_CHARS(str1)[s1])),
 		      len));
-  
+
   return scm_return_first(SCM_UNSPECIFIED, str1, str2);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
+SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
            (SCM str, SCM start, SCM end, SCM fill),
 	    "Change every character in @var{str} between @var{start} and\n"
 	    "@var{end} to @var{fill}.\n"
@@ -288,7 +288,7 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0, 
+SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
            (SCM str),
 	    "Return @code{#t} if @var{str}'s length is nonzero, and\n"
 	    "@code{#f} otherwise.\n"
@@ -305,7 +305,7 @@ SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0, 
+SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
            (SCM str),
 	    "Return a newly allocated list of the characters that make up\n"
 	    "the given string @var{str}. @code{string->list} and\n"
@@ -333,7 +333,7 @@ string_copy (SCM str)
 }
 
 
-SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0, 
+SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0,
 	    (SCM str),
 	    "Return a newly allocated copy of the given @var{string}.")
 #define FUNC_NAME s_scm_string_copy
@@ -361,7 +361,7 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-/* Helper function for the string uppercase conversion functions.  
+/* Helper function for the string uppercase conversion functions.
  * No argument checking is performed.  */
 static SCM
 string_upcase_x (SCM v)
@@ -375,7 +375,7 @@ string_upcase_x (SCM v)
 }
 
 
-SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
+SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0,
 	    (SCM str),
 	    "Destructively upcase every character in @var{str} and return\n"
 	    "@var{str}.\n"
@@ -393,7 +393,7 @@ SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0, 
+SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0,
 	    (SCM str),
 	    "Return a freshly allocated string containing the characters of\n"
 	    "@var{str} in upper case.")
@@ -406,7 +406,7 @@ SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0,
 #undef FUNC_NAME
 
 
-/* Helper function for the string lowercase conversion functions.  
+/* Helper function for the string lowercase conversion functions.
  * No argument checking is performed.  */
 static SCM
 string_downcase_x (SCM v)
@@ -420,7 +420,7 @@ string_downcase_x (SCM v)
 }
 
 
-SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
+SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 	    (SCM str),
 	    "Destructively downcase every character in @var{str} and return\n"
 	    "@var{str}.\n"
@@ -438,7 +438,7 @@ SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0, 
+SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0,
 	    (SCM str),
 	    "Return a freshly allocation string containing the characters in\n"
 	    "@var{str} in lower case.")
@@ -451,7 +451,7 @@ SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0,
 #undef FUNC_NAME
 
 
-/* Helper function for the string capitalization functions.  
+/* Helper function for the string capitalization functions.
  * No argument checking is performed.  */
 static SCM
 string_capitalize_x (SCM str)
@@ -476,7 +476,7 @@ string_capitalize_x (SCM str)
 }
 
 
-SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
+SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
 	    (SCM str),
 	    "Upcase the first character of every word in @var{str}\n"
 	    "destructively and return @var{str}.\n"
@@ -495,7 +495,7 @@ SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0, 
+SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0,
 	    (SCM str),
 	    "Return a freshly allocated string with the characters in\n"
 	    "@var{str}, where the first character of every word is\n"
@@ -509,7 +509,7 @@ SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0, 
+SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 	    (SCM str, SCM chr),
 	    "Split the string @var{str} into the a list of the substrings delimited\n"
 	    "by appearances of the character @var{chr}.  Note that an empty substring\n"
@@ -558,7 +558,7 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
+SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0,
 	    (SCM str),
 	    "Return the symbol whose name is @var{str}.  @var{str} is\n"
 	    "converted to lowercase before the conversion is done, if Guile\n"
