@@ -325,11 +325,10 @@ static SCM scm_divide2real (SCM x, SCM y);
 
 SCM
 scm_make_ratio (SCM numerator, SCM denominator)
+#define FUNC_NAME "make-ratio"
 {
-#if 0
-  return scm_divide2real(numerator, denominator);
-#else
-  #define FUNC_NAME "make-ratio"
+  /* First make sure the arguments are proper.
+   */
   if (SCM_INUMP (denominator))
     {
       if (SCM_EQ_P (denominator, SCM_INUM0))
@@ -342,6 +341,20 @@ scm_make_ratio (SCM numerator, SCM denominator)
       if (!(SCM_BIGP(denominator)))
 	SCM_WRONG_TYPE_ARG (2, denominator);
     }
+  if (!SCM_INUMP (numerator) && !SCM_BIGP (numerator))
+    SCM_WRONG_TYPE_ARG (1, numerator);
+
+  /* Then flip signs so that the denominator is positive.
+   */
+  if (SCM_NFALSEP (scm_negative_p (denominator)))
+    {
+      numerator = scm_difference (numerator, SCM_UNDEFINED);
+      denominator = scm_difference (denominator, SCM_UNDEFINED);
+    }
+
+  /* Now consider for each of the four fixnum/bignum combinations
+     whether the rational number is really an integer.
+  */
   if (SCM_INUMP (numerator))
     {
       if (SCM_EQ_P (numerator, SCM_INUM0))
@@ -355,58 +368,33 @@ scm_make_ratio (SCM numerator, SCM denominator)
 	    return SCM_MAKINUM(1);
 	  if ((x % y) == 0)
 	    return SCM_MAKINUM (x / y);
-	  if (y < 0)
-	    return scm_double_cell (scm_tc16_fraction, (scm_t_bits)SCM_MAKINUM(-x), (scm_t_bits)SCM_MAKINUM(-y), 0);
-	  else return scm_double_cell (scm_tc16_fraction, (scm_t_bits)numerator, (scm_t_bits)denominator, 0);
+	}
+    }
+  else if (SCM_BIGP (numerator))
+    {
+      if (SCM_INUMP (denominator))
+	{
+	  long yy = SCM_INUM (denominator);
+	  if (mpz_divisible_ui_p (SCM_I_BIG_MPZ (numerator), yy))
+	    return scm_divide (numerator, denominator);
 	}
       else
 	{
-	  /* I assume bignums are actually big, so here there's no point in looking for a integer */
-	  int sgn = mpz_sgn (SCM_I_BIG_MPZ (denominator));
-	  if (sgn < 0) /* if denominator negative, flip signs */
-	    return scm_double_cell (scm_tc16_fraction,
-				    (scm_t_bits)scm_difference (numerator, SCM_UNDEFINED),
-				    (scm_t_bits)scm_difference (denominator, SCM_UNDEFINED),
-				    0);
-	  else return scm_double_cell (scm_tc16_fraction, (scm_t_bits)numerator, (scm_t_bits)denominator, 0);
+	  if (SCM_EQ_P (numerator, denominator))
+	    return SCM_MAKINUM(1);
+	  if (mpz_divisible_p (SCM_I_BIG_MPZ (numerator),
+			       SCM_I_BIG_MPZ (denominator)))
+	    return scm_divide(numerator, denominator);
+	}
+    }
 
-	  /* should this use SCM_UNPACK for the bignums? */
-	}
-    }
-  else
-    {
-      if (SCM_BIGP (numerator))
-	{
-	  /* can't use scm_divide to find integer here */
-	  if (SCM_INUMP (denominator))
-	    {
-	      long yy = SCM_INUM (denominator);
-	      long abs_yy = yy < 0 ? -yy : yy;
-	      int divisible_p = mpz_divisible_ui_p (SCM_I_BIG_MPZ (numerator), abs_yy);
-	      if (divisible_p)
-		return scm_divide(numerator, denominator);
-	      else return scm_double_cell (scm_tc16_fraction, (scm_t_bits)numerator, (scm_t_bits)denominator, 0);
-	    }
-	  else
-	    {
-	      /* both are bignums */
-	      if (SCM_EQ_P (numerator, denominator))
-		return SCM_MAKINUM(1);
-	      if (mpz_divisible_p (SCM_I_BIG_MPZ (numerator),
-				   SCM_I_BIG_MPZ (denominator)))
-		return scm_divide(numerator, denominator);
-	      else 
-		return scm_double_cell (scm_tc16_fraction,
-					(scm_t_bits)numerator,
-					(scm_t_bits)denominator, 0);
-	    }
-	}
-      else SCM_WRONG_TYPE_ARG (1, numerator);
-    }
-  return SCM_BOOL_F; /* won't happen */
-  #undef FUNC_NAME
-#endif
+  /* No, it's a proper fraction.
+   */
+  return scm_double_cell (scm_tc16_fraction,
+			  SCM_UNPACK (numerator),
+			  SCM_UNPACK (denominator), 0);
 }
+#undef FUNC_NAME
 
 static void scm_i_fraction_reduce (SCM z)
 {
