@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -588,14 +588,6 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 	    break;
 	}
     }
-
-#ifdef __GNUC__
-  /* Dirk:FIXME:: This bugfix should be removed some time. */
-  /* GCC 2.95.2 has a bug in its optimizer that makes it generate
-     incorrect code sometimes.  This barrier stops it from being too
-     clever. */
-  asm volatile ("" : "=g" (winds));
-#endif
 
   /* If we didn't find anything, print a message and abort the process
      right here.  If you don't want this, establish a catch-all around
