@@ -53,9 +53,11 @@ EXTRA_DIST = $(srfi_DATA)
 
 GUILE_SNARF = ../libguile/guile-snarf
 
+MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
 SUFFIXES = .x
 .c.x:
 	$(GUILE_SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 
-DISTCLEANFILES = *.x
+CLEANFILES = *.x
