@@ -1,3 +1,10 @@
+2004-08-06  Rob Browning  <rlb@defaultvalue.org>
+
+	* net_db.c (scm_resolv_error): don't cause an exception while
+	trying to throw an exception -- call scm_misc_error with correct
+	arguments.  The previous arguments needed a format escape that
+	wasn't in any of the format strings.
+
 2004-08-06  Kevin Ryde  <user42@zip.com.au>
 
 	* ramap.c (scm_array_fill_x): For byvect char fill, force signed char
