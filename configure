@@ -3418,35 +3418,41 @@ host_os=`echo $host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 echo "$ac_t""$host" 1>&6
 
 
+# How can we refer to the qt source directory from within the qt build
+# directory?  For headers, we can rely on the fact that the qt src
+# directory appears in the #include path.
+
+qtsrcdir="`(cd $srcdir; pwd)`/qt"
+
 case "$host" in
 i[3456]86-*-*)
-	qtmds_s=$srcdir/md/i386.s
-	qtmd_h=$srcdir/md/i386.h
-	qtmdc_c=$srcdir/md/null.c 
+	qtmds_s=$qtsrcdir/md/i386.s
+	qtmd_h=md/i386.h
+	qtmdc_c=$qtsrcdir/md/null.c 
 	;;
 mips-sgi-irix5*)
-	qtmds_s=$srcdir/md/mips-irix5.s
-	qtmd_h=$srcdir/md/mips.h
-	qtmdc_c=$srcdir/md/null.c
-	qtdmdb_s=$srcdir/md/mips_b.s 
+	qtmds_s=$qtsrcdir/md/mips-irix5.s
+	qtmd_h=md/mips.h
+	qtmdc_c=$qtsrcdir/md/null.c
+	qtdmdb_s=$qtsrcdir/md/mips_b.s 
 	;;
 mips-*-*)
-	qtmds_s=$srcdir/md/mips.s
-	qtmd_h=$srcdir/md/mips.h
-	qtmdc_c=$srcdir/md/null.c
-	qtdmdb_s=$srcdir/md/mips_b.s 
+	qtmds_s=$qtsrcdir/md/mips.s
+	qtmd_h=md/mips.h
+	qtmdc_c=$qtsrcdir/md/null.c
+	qtdmdb_s=$qtsrcdir/md/mips_b.s 
 	;;
 sparc-sun-solaris2.*)
-	qtmd_h=$srcdir/md/sparc.h
-	qtmdc_c=$srcdir/md/null.c
-	qtmds_s=$srcdir/md/sparc.s
-	qtdmdb_s=$srcdir/md/sparc_b.s 
+	qtmd_h=md/sparc.h
+	qtmdc_c=$qtsrcdir/md/null.c
+	qtmds_s=$qtsrcdir/md/sparc.s
+	qtdmdb_s=$qtsrcdir/md/sparc_b.s 
 	;;
 sparc-*-*)
-	qtmd_h=$srcdir/md/sparc.h
-	qtmdc_c=$srcdir/md/null.c
-	qtmds_s=$srcdir/md/_sparc.s
-	qtdmdb_s=$srcdir/md/_sparc_b.s 
+	qtmd_h=md/sparc.h
+	qtmdc_c=$qtsrcdir/md/null.c
+	qtmds_s=$qtsrcdir/md/_sparc.s
+	qtdmdb_s=$qtsrcdir/md/_sparc_b.s 
 	;;
 *)
 	echo "Unknown configuration; threads package disabled"
