@@ -334,7 +334,7 @@ scm_i_get_keyword (SCM key, SCM l, long len, SCM default_value, const char *subr
     {
       SCM obj = SCM_CAR (l);
 
-      if (!SCM_KEYWORDP (obj))
+      if (!scm_is_keyword (obj))
 	scm_misc_error (subr, "bad keyword: ~S", scm_list_1 (obj));
       else if (scm_is_eq (obj, key))
 	return SCM_CADR (l);
@@ -358,7 +358,7 @@ SCM_DEFINE (scm_get_keyword, "get-keyword", 3, 0, 0,
 {
   long len;
 
-  SCM_ASSERT (SCM_KEYWORDP (key), key, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_keyword (key), key, SCM_ARG1, FUNC_NAME);
   len = scm_ilength (l);
   if (len < 0 || len % 2 == 1)
     scm_misc_error (FUNC_NAME, "Bad keyword-value list: ~S", scm_list_1 (l));
@@ -414,7 +414,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 	  if (tmp)
 	    {
 	      /* an initarg was provided for this slot */
-	      if (!SCM_KEYWORDP (tmp))
+	      if (!scm_is_keyword (tmp))
 		SCM_MISC_ERROR ("initarg must be a keyword. It was ~S",
 				scm_list_1 (tmp));
 	      slot_value = scm_i_get_keyword (tmp,
