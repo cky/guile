@@ -1,3 +1,9 @@
+2005-02-04  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm (list=): Correction to arguments passed to given elt=,
+	spec is (elt= e[i] e[i+1]) for lists i and i+1, previously the first
+	arg was always from list 0 not list i.
+
 2005-01-29  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (lset-adjoin): Actually use the given `=' procedure.

@@ -1,3 +1,7 @@
+2005-02-04  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (list=): New tests.
+
 2005-01-29  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (ash): New tests.
