@@ -3,6 +3,8 @@ It's specific to the FSF's development environment; please don't put
 it in the distribution.
 
 Maybe we should name Guile releases after entertaining poisons.
+However, the first release containing the module system should be
+called Godot: "This is the one you've been waiting for."
 
 In release 1.4:
 - Release is titled ``wormwood'' release.
