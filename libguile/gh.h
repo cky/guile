@@ -59,6 +59,7 @@ extern "C" {
 #endif /* __GNUC__ */
 
 void gh_enter(int argc, char *argv[], void (*c_main_prog)(int, char **));
+#define gh_init () scm_init_guile ()
 void gh_repl(int argc, char *argv[]);
 SCM gh_catch(SCM tag, scm_catch_body_t body, void *body_data,
 	     scm_catch_handler_t handler, void *handler_data);
@@ -158,6 +159,15 @@ int gh_null_p(SCM l);
 #define gh_not(x) scm_not(x)
 
 SCM gh_define(const char *name, SCM val);
+
+/* string manipulation routines */
+#define gh_make_string(k, chr)       scm_make_string(k, chr)
+#define gh_string_length(str)        scm_string_length(str)
+#define gh_string_ref(str, k)        scm_string_ref(str, k)
+#define gh_string_set_x(str, k, chr) scm_string_set_x(str, k, chr)
+#define gh_substring(str, start,end) scm_substring(str, start, end)
+#define gh_string_append(args)       scm_string_append(args)
+
 
 /* vector manipulation routines */
 /* note that gh_vector() does not behave quite like the Scheme (vector
