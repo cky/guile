@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9/debugger/breakpoints
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/ice-9/debugger/breakpoints
 subpkgdata_DATA = procedural.scm range.scm source.scm
 
 ETAGS_ARGS = $(subpkgdata_DATA)
