@@ -1,3 +1,7 @@
+2002-10-04  Rob Browning  <rlb@defaultvalue.org>
+
+	* numbers.c (s_scm_integer_expt): (expt 0 1) should be 1.
+
 2002-10-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scmsigs.h (scm_sigaction_for_thread): New prototype.
