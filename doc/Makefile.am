@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2002 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -38,7 +38,7 @@ dist-hook:
 	  cp $(srcdir)/example-smob/$$f $(distdir)/example-smob/; \
         done
 
-EXTRA_DIST = groupings.alist guile-api.alist
+EXTRA_DIST = groupings.alist # guile-api.alist
 
 # pending the papers from Robert Merkel
 # EXTRA_DIST = guile.1
