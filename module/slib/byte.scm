@@ -1,0 +1,15 @@
+;;; "byte.scm" small integers, not necessarily chars.
+
+(define (byte-ref str ind) (char->integer (string-ref str ind)))
+(define (byte-set! str ind val) (string-set! str ind (integer->char val)))
+(define (make-bytes len . opt)
+  (if (null? opt) (make-string len)
+      (make-string len (integer->char (car opt)))))
+(define bytes-length string-length)
+(define (write-byte byt . opt) (apply write-char (integer->char byt) opt))
+(define (read-byte . opt)
+  (let ((c (apply read-char opt)))
+    (if (eof-object? c) c (char->integer c))))
+(define (bytes . args) (list->bytes args))
+(define (bytes->list bts) (map char->integer (string->list bts)))
+(define (list->bytes lst) (list->string (map integer->char lst)))

@@ -1,0 +1,171 @@
+This message announces the availability of Scheme Library release slib2d1.
+
+New in slib2d1:
+
+ + Linux RPM distribution.
+
+ + Automated generation of HTTP/HTML static and (multi-client)
+   dynamically editable tables from relational databases.
+   (HTTP server demo at http://www.foxkid.net:8143/tla/).
+
+ + Reference implementation of Metric Interchange Format:
+   "Representation of numerical values and SI units in character strings
+   for information interchanges"
+   http://swissnet.ai.mit.edu/~jaffer/MIXF.html
+
+	* Makefile (rpm): Added to dist target.
+	(mfiles): Added slib.spec.
+	* slib.spec: Added spec file to generate a .rpm file.
+	Largely based on that of Dr. Robert J. Meier
+	<robert.meier@computer.org>
+	* Makefile (docfiles): Added all the *.txi.
+	* db2html.scm (HTML editing tables): Replaced "record" with "row".
+	* http-cgi.scm (query-alist->parameter-list): Null string --> #f.
+	* coerce.scm (type-of): Removed 'null; broke (coerce '() 'string).
+	* htmlform.scm (html:meta, html:http-equiv): Added.
+	* htmlform.scm (html:meta-refresh): Added.
+	* http-cgi.scm (query-alist->parameter-list): Only separate words
+	for nary parameters.
+	* getparam.scm (getopt->parameter-list): Accomodate positional
+	arguments, both ends.
+	(getopt->parameter-list, getopt->arglist): Take optional
+	description strings.
+	* db2html.scm (command:make-editable-table): Added optional
+	arguments passed to command:modify-table.
+	(command:modify-table): Added null-keys argument; removed pkl.
+	* http-cgi.scm (http:forwarding-page): Added.
+	* htmlform.scm (html:text-area): fixed.
+	* http-cgi.scm (coerce->list): Added.
+	* paramlst.scm (check-arities): Generate warning for wrong arity.
+	* db2html.scm (command:make-editable-table): Deduce arities.
+	* comlist.scm (comlist:list-of??): Added.
+	* coerce.scm (coerce, type-of): Extracted from comlist.scm.
+	* uri.scm (uri:path->keys): Takes list of type-symbols.
+	* simetrix.scm (SI:unit-infos): bit is "bit" (not b).
+	* uri.scm (uri:decode-path, uri:path->keys): Now take path-list
+	instead of path.  Fixes bug when '/' was in URI path.
+	* http-cgi.scm (make-query-alist-command-server): Renamed from
+	make-uriencoded-command-server; takes query-alist instead of
+	query-string.  Diagnostics can use query-alist without recreating.
+	* db2html.scm (html:linked-row-converter): If a field has a
+	foreign-key of "*catalog-data*", then link to foreign table.
+	(catalog->html, table->linked-html): Put caption at BOTTOM.
+	* htmlform.scm (command->p-specs): Renamed from command->html
+	because it has changed so much.  No longer does mapper argument.
+	* db2html.scm (command:make-editable-table): Returns editing-row
+	procedure.
+	* htmlform.scm (html:select, html:buttons, form:element,
+	form:delimited): value-list and visibles arguments combined.
+	* dbutil.scm (get-foreign-choices): extracted from command->html.
+	(make-defaulter): Added.
+	* strcase.scm (symbol-append): Added.
+	* http-cgi.scm (make-uriencoded-command-server): Only apply comval
+	if arglist worked.
+	* htmlform.scm (command->html): Big change; returns list of
+	results of application of (new) MAPPER argument.
+	(form:delimited, form:tabled): Added MAPPER procedures.
+	* db2html.scm (html:editable-row-converter): Check for
+	edit-converter being #f.
+	(command:make-editable-table): *keys*, *row-hash* NOT optional.
+	* htmlform.scm (form:element): Extracted from html:generate-form.
+	* db2html.scm (html:editable-row-converter): Added.
+	(command:modify-table): Handle case all fields are primary keys.
+	* db2html.scm (command:modify-table, command:make-editable-table):
+	(HTML editing tables): Added.
+	* htmlform.scm (form:submit): Enhanced.
+	* uri.scm (uri:decode-authority, make-uri): en/decode userinfo.
+	(uri:make-path): Added.
+	(read-anchor-string): Removed; just use paths for combined keys.
+	* slib.texi (Lists as sets): Examples had incorrect order in
+	returned lists.
+	* uri.scm (html:base, html:isindex): Added.
+	(uri->tree): Optional base-tree argument added for relative URI.
+	Brought into full conformance with RFC 2396 test cases.
+	* uri.scm (html:anchor, html:link uri->tree make-uri): Added.
+	(uri:split-fields, uri:decode-query): Moved and renamed from
+	http-cgi.scm.
+	* htmlform.scm (form:image): Added.
+	* uri.scm: Added collected URI functions from "http-cgi.scm" and
+	"db2html.scm".
+	* makcrc.scm (make-port-crc): Added CRC-16 default.  Can now take
+	just generator argument.
+	* db2html.scm (html:linked-row-converter, table->linked-html,
+	table->linked-page, db->html-files, db->html-directory): more
+	evocative names.
+	(html:catalog-row-converter): Stripped down version for catalog.
+	* pp.scm (pretty-print->string): Added.
+	(pp:pretty-print): Use (output-port-width port) for width.
+	* genwrite.scm (genwrite:newline-str): abstracted.
+	* htmlform.scm (html:pre): Improved HTML formatting.
+	* http-cgi.scm (query-alist->parameter-list): Made robust for
+	unexpected option-names; and generates warning.
+	* db2html.scm: Fixed HTML per http://validator.w3.org/check.
+	* simetrix.scm (SI:conversion-factor): Negative return codes.
+	* simetrix.scm (SI:unit-infos): Added katal.  Replaced bel (B)
+	with decibel (dB).
+	(SI:prefix-exponents): Added [IEC 60027-2] binary prefixes.
+	(SI:unit-infos): Added bit and byte (B).
+	* simetrix.scm (SI:unit-infos): Updated eV and u from CODATA-1998.
+	(SI:solidus): Abstracted parse functions.
+	* simetrix.scm: SI Metric Interchange Format for Scheme Added.
+	* scanf.scm (stdio:scan-and-set read-ui): Fixed dependence on LET
+	evaluation order.
+	* schmooz.texi: Split out from slib.texi.
+	* printf.scm (stdio:parse-float): Adjust so %e format prints an
+	exponent of zero for 0.0
+	* dbutil.scm (dbutil:list-table-definition): Added.
+	* db2html.scm (html:caption): Split out from html:table.
+	* rdms.scm (sync-database): Added.
+	* pnm.scm (pnm:array-write): PGMs were always being written with
+	15 for maxval.
+	* http-cgi.scm (make-urlencoded-command-server): Uses the value of
+	*suggest* if *command* is not in the query-string; if neither uses
+	literal *default*.
+	* htmlform.scm (html:form html:hidden html:checkbox html:text
+	html:text-area html:select html:buttons form:submit form:reset):
+	Procedures documented.  No longer builds in <DL> tags.
+	* htmlform.scm (html:blank): Added.
+	(html:plain): Returns non-break-space for html:blank.
+	(html:select html:buttons command->html html:generate-form): Added
+	support for VISIBLE-NAME field for foreign-key domains.
+	* debug.scm (for-each-top-level-definition-in-file): define-syntax
+	is a top-level-definition too.
+	* makcrc.scm (make-port-crc): Converted to use read-byte.
+	* htmlform.scm (html:generate-form): was ignoring method.
+
+From Ben Goetter <goetter@mazama.net>
+	* pscheme.init: Revised.
+
+From Lars Arvestad <arve@inddama.sto.se.pnu.com>
+	* gambit.init (*features*): Gambit 3.0 provides
+	call-with-input-string and call-with-output-string.
+
+SLIB is a portable Scheme library providing compatibiliy and utility
+functions for all standard Scheme implementations.
+
+SLIB includes initialization files for Bigloo, Chez, DrScheme, ELK,
+GAMBIT, MacScheme, MITScheme, PocketScheme, RScheme Scheme->C,
+Scheme48, SCM, SCSH, T3.1, UMB-Scheme, and VSCM.
+
+Documentation includes a manifest, installation instructions, and
+coding guidelines for the library.  Documentation of each library
+package is supplied.  SLIB Documentation is online at:
+
+	     http://swissnet.ai.mit.edu/~jaffer/SLIB.html
+
+SLIB is available from:
+ http://swissnet.ai.mit.edu/ftpdir/scm/slib2d1.zip
+ http://swissnet.ai.mit.edu/ftpdir/scm/slib-2d1-1.noarch.rpm
+ swissnet.ai.mit.edu:/pub/scm/slib2d1.zip
+ swissnet.ai.mit.edu:/pub/scm/slib-2d1-1.noarch.rpm
+
+SLIB-PSD is a portable debugger for Scheme (requires emacs editor):
+ http://swissnet.ai.mit.edu/ftpdir/scm/slib-psd1-3.zip
+ swissnet.ai.mit.edu:/pub/scm/slib-psd1-3.zip
+
+SCHELOG is an embedding of Prolog in Scheme+SLIB:
+ http://www.cs.rice.edu/CS/PLT/packages/schelog/
+
+Programs for printing and viewing TexInfo documentation (which SLIB
+has) come with GNU Emacs or can be obtained via ftp from:
+ ftp.gnu.org:pub/gnu/texinfo/texinfo-4.0.tar.gz

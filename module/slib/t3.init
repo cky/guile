@@ -1,0 +1,437 @@
+;;; "t3.init" Initialization file for SLIB for T3.1.	-*-scheme-*-
+;;; Authors: David Carlton, Stephen Bevan, F. Javier Thayer, and Aubrey Jaffer.
+;;;
+;;; This code is in the public domain.
+
+;;; File has T syntax, and should be compiled in standard-env.
+;;; Compiled file has .so suffix.
+;;; File (or compiled version) should be loaded into scheme-env.
+
+;;; This is provided with ABSOLUTELY NO GUARANTEE.
+(herald t3)
+
+(define (software-type) 'UNIX)
+
+(define (scheme-implementation-type) 'T)
+
+(define (scheme-implementation-version) "3.1")
+
+;;; (scheme-implementation-home-page) should return a (string) URI
+;;; (Uniform Resource Identifier) for this scheme implementation's home
+;;; page; or false if there isn't one.
+
+(define (scheme-implementation-home-page)
+  "ftp://ftp.cs.indiana.edu:21/pub/scheme-repository/imp/t/README")
+
+;;; (implementation-vicinity) should be defined to be the pathname of
+;;; the directory where any auxillary files to your Scheme
+;;; implementation reside. It is settable.
+
+(define implementation-vicinity
+  (make-simple-switch 'implementation-vicinity
+		      (lambda (x) (or (string? x) (false? x)))
+		      '#f))
+(set (implementation-vicinity) "/usr/local/lib/tsystem/")
+
+;;; (library-vicinity) should be defined to be the pathname of the
+;;; directory where files of Scheme library functions reside. It is settable.
+
+(define library-vicinity
+  (make-simple-switch 'library-vicinity
+		      (lambda (x) (or (string? x) (false? x)))
+		      '#f))
+(set (library-vicinity) "/usr/local/lib/slib/")
+;;Obviously put your value here.
+
+;;; (home-vicinity) should return the vicinity of the user's HOME
+;;; directory, the directory which typically contains files which
+;;; customize a computer environment for a user.
+
+(define (home-vicinity) #f)
+
+;;; *FEATURES* should be set to a list of symbols describing features
+;;; of this implementation.  See Template.scm for the list of feature
+;;; names.
+
+(define *features*
+      '(
+	source				;can load scheme source files
+					;(slib:load-source "filename")
+	compiled			;can load compiled files
+					;(slib:load-compiled "filename")
+	rev3-report
+	rev4-optional-procedures
+	rev3-procedures
+	rev2-procedures
+	multiarg/and-
+	multiarg-apply
+	rationalize
+	object-hash
+	delay
+	i/o-redirection
+	char-ready?
+	with-file
+	transcript
+	full-continuation
+	pretty-print
+	format
+	trace				;has macros: TRACE and UNTRACE
+	program-arguments
+	))
+
+(define substring
+  (let ((primitive-substring (*value standard-env 'substring)))
+    (lambda (string start end)
+      (primitive-substring string start (max 0 (- end 1))))))
+
+; Modify substring as T's substring takes (start,count) instead of
+; (start,end)
+
+(set (syntax-table-entry (env-syntax-table scheme-env) 'require) '#f)
+
+; Turn off the macro REQUIRE so that it can be rebound as a function
+; later.
+
+; extend <, >, <= and >= so that they take more than two arguments.
+
+(define <
+  (let ((primitive< (*value standard-env '<)))
+    (labels ((v (lambda (a b . rest)
+		  (if (null? rest)
+		      (primitive< a b)
+		      (and (primitive< a b)
+			   (apply v b (car rest) (cdr rest)))))))
+	    v)))
+
+(define >
+  (let ((primitive> (*value standard-env '>)))
+    (labels ((v (lambda (a b . rest)
+		  (if (null? rest)
+		      (primitive> a b)
+		      (and (primitive> a b)
+			   (apply v b (car rest) (cdr rest)))))))
+	    v)))
+
+(define <=
+  (let ((primitive<= (*value standard-env '<=)))
+    (labels ((v (lambda (a b . rest)
+		  (if (null? rest)
+		      (primitive<= a b)
+		      (and (primitive<= a b)
+			   (apply v b (car rest) (cdr rest)))))))
+	    v)))
+
+(define >=
+  (let ((primitive>= (*value standard-env '>=)))
+    (labels ((v (lambda (a b . rest)
+		  (if (null? rest)
+		      (primitive>= a b)
+		      (and (primitive>= a b)
+			   (apply v b (car rest) (cdr rest)))))))
+	    v)))
+
+(define =
+  (let ((primitive= (*value standard-env '=)))
+    (labels ((v (lambda (a b . rest)
+		  (if (null? rest)
+		      (primitive= a b)
+		      (and (primitive= a b)
+			   (apply v b (car rest) (cdr rest)))))))
+	    v)))
+
+(define gcd
+  (let ((prim (*value standard-env 'gcd)))
+    (labels ((v (lambda x
+		  (cond ((null? x) 0)
+			((= (length x) 1) (car x))
+			('#t (prim (car x) (apply v (cdr x))))))))
+	    v)))
+
+(define list? (*value standard-env 'proper-list?))
+
+(define program-arguments command-line)
+
+;;; (OUTPUT-PORT-WIDTH <port>)
+(define output-port-width
+  (lambda x
+    (if (null? x) (line-length (standard-input))
+	(line-length (car x)))))
+
+;;; (OUTPUT-PORT-HEIGHT <port>)
+(define (output-port-height . arg) 24)
+
+;;; (CURRENT-ERROR-PORT)
+(define current-error-port
+  (let ((port (current-output-port)))
+    (lambda () port)))
+
+;;; (TMPNAM) makes a temporary file name.
+(define tmpnam
+  (let ((cntr 100))
+    (lambda () (set! cntr (+ 1 cntr))
+	    (let ((tmp (string-append "slib_" (number->string cntr))))
+	      (if (file-exists? tmp) (tmpnam) tmp)))))
+
+(define delete-file file-delete)
+
+;;; "rationalize" adjunct procedures.
+(define (find-ratio x e)
+  (let ((rat (rationalize x e)))
+    (list (numerator rat) (denominator rat))))
+(define (find-ratio-between x y)
+  (find-ratio (/ (+ x y) 2) (/ (- x y) 2)))
+
+;;; CHAR-CODE-LIMIT is one greater than the largest integer which can
+;;; be returned by CHAR->INTEGER.
+(define char-code-limit 256)
+
+;;; MOST-POSITIVE-FIXNUM is used in modular.scm
+;;; T already has it.
+
+;;; Return argument
+(define (identity x) x)
+
+;;; SLIB:EVAL is single argument eval using the top-level (user) environment.
+(define (slib:eval form) (eval form scheme-env))
+
+;;; If your implementation provides R4RS macros:
+;(define macro:eval slib:eval)
+;(define macro:load load)
+
+(define *defmacros*
+  (list (cons 'defmacro
+	      (lambda (name parms . body)
+		`(set! *defmacros* (cons (cons ',name (lambda ,parms ,@body))
+				      *defmacros*))))))
+(define (defmacro? m) (and (assq m *defmacros*) #t))
+
+(define (macroexpand-1 e)
+  (if (pair? e) (let ((a (car e)))
+		  (cond ((symbol? a) (set! a (assq a *defmacros*))
+				     (if a (apply (cdr a) (cdr e)) e))
+			(else e)))
+      e))
+
+(define (macroexpand e)
+  (if (pair? e) (let ((a (car e)))
+		  (cond ((symbol? a)
+			 (set! a (assq a *defmacros*))
+			 (if a (macroexpand (apply (cdr a) (cdr e))) e))
+			(else e)))
+      e))
+
+(define gentemp
+  (let ((*gensym-counter* -1))
+    (lambda ()
+      (set! *gensym-counter* (+ *gensym-counter* 1))
+      (string->symbol
+       (string-append "slib:G" (number->string *gensym-counter*))))))
+
+(define base:eval slib:eval)
+(define (defmacro:eval x) (base:eval (defmacro:expand* x)))
+(define (defmacro:expand* x)
+  (require 'defmacroexpand) (apply defmacro:expand* x '()))
+
+(define (defmacro:load <pathname>)
+  (slib:eval-load <pathname> defmacro:eval))
+
+(define (slib:eval-load <pathname> evl)
+  (if (not (file-exists? <pathname>))
+      (set! <pathname> (string-append <pathname> (scheme-file-suffix))))
+  (call-with-input-file <pathname>
+    (lambda (port)
+      (let ((old-load-pathname *load-pathname*))
+	(set! *load-pathname* <pathname>)
+	(do ((o (read port) (read port)))
+	    ((eof-object? o))
+	  (evl o))
+	(set! *load-pathname* old-load-pathname)))))
+
+(define slib:warn
+  (lambda args
+    (let ((cep (current-error-port)))
+      (if (provided? 'trace) (print-call-stack cep))
+      (display "Warn: " cep)
+      (for-each (lambda (x) (display x cep)) args))))
+
+;;; define an error procedure for the library
+(define (slib:error . args)
+  (if (provided? 'trace) (print-call-stack (current-error-port)))
+  (apply error args))
+
+;;; define these as appropriate for your system.
+(define slib:tab #\tab)
+(define slib:form-feed #\form)
+
+;;; Define these if your implementation's syntax can support it and if
+;;; they are not already defined.
+
+;(define (1+ n) (+ n 1))
+(define (1- n) (+ n -1))
+;(define (-1+ n) (+ n -1))
+
+(define program-vicinity
+  (make-simple-switch 'program-vicinity
+		      (lambda (x) (or (string? x) (false? x)))
+		      '#f))
+
+(define in-vicinity string-append)
+
+;;; Define SLIB:EXIT to be the implementation procedure to exit or
+;;; return if exitting not supported.
+(define slib:exit (lambda args (exit))
+
+(define (string . args) (apply string-append (map char->string args)))
+
+(define make-string
+  (let ((t:make-string (*value standard-env 'make-string)))
+    (lambda (a . b)
+      (let ((str (t:make-string a)))
+	(if b (map-string! (lambda (x) (ignore x) (car b)) str) str)))))
+
+(define (string>? a b)
+  (labels ((aux
+	    (lambda (n a b)
+	      ;;start off with n<=(string-length b) and n<=(string-length a)
+	      ;;a,b coincide for chars <n
+	      (cond ((= (string-length a) n) (< n (string-length b)))
+					;;now (< n (string-length a))
+		    ((= (string-length b) n) '#f)
+					;;now (< n (string-length a))
+		    ((char=? (nthchar a n) (nthchar b n) ) (aux (+ 1 n) a b))
+		    ('#t (char<? (nthchar b n) (nthchar a n)))))))
+    (aux 0 a b)))
+
+(define (string<? a b) (string>? b a))
+(define (string<=? a b) (not (string>? a b)))
+(define (string>=? a b) (not (string<? a b)))
+
+(define (string-ci<? a b)
+  (string<? (string-upcase a) (string-upcase b)))
+
+(define (string-ci>? a b)
+  (string>? (string-upcase a) (string-upcase b)))
+
+(define (string-ci<=? a b)
+  (string<=? (string-upcase a) (string-upcase b)))
+
+(define (string-ci>=? a b)
+  (string>=? (string-upcase a) (string-upcase b)))
+
+;;; FORCE-OUTPUT flushes any pending output on optional arg output port
+;;; use this definition if your system doesn't have such a procedure.
+;;; T already has it, but requires 1 argument.
+
+(define force-output
+  (let ((t:force-output (*value standard-env 'force-output)))
+    (lambda x
+      (if x
+	  (t:force-output (car x))
+	  (t:force-output (current-output-port))))))
+
+;;; CALL-WITH-INPUT-STRING and CALL-WITH-OUTPUT-STRING are the string
+;;; port versions of CALL-WITH-*PUT-FILE.
+(define (call-with-output-string proc)
+  (with-output-to-string var (proc var)))
+
+(define (call-with-input-string string proc)
+  (with-input-from-string (variable string) (proc variable)))
+
+(define (string->number s . x)
+  (let ((base (if x (car x) 10))
+	(s (string-upcase s)))
+    (or (mem? = base '(8 10 16))
+	(error (format (current-error-port) "Bad radix ~A" base)))
+    (if (= (string-length s) 0) '()
+	(let ((char->number
+	       (lambda (ch)
+		 (cdr (ass char=? ch
+			   '((#\0 . 0)
+			     (#\1 . 1) (#\2 . 2) (#\3 . 3) (#\4 . 4)
+			     (#\5 . 5) (#\6 . 6) (#\7 . 7) (#\8 . 8)
+			     (#\9 . 9) (#\A . 10) (#\B . 11) (#\C . 12)
+			     (#\D . 13) (#\E . 14) (#\F . 15)))))))
+	  (catch not-num
+		 (iterate loop ((pos (- (string-length s) 1))
+				(power 1) (accum 0))
+			  (if (< pos 0) accum
+			      (let ((num (char->number (string-ref s pos))))
+				(or num (not-num '()))
+				(or  (< num base) (not-num '()))
+				(loop (- pos 1)
+				      (* power base)
+				      (+ accum (*  num power)))))))))))
+
+(define (number->string n . x)
+  (let ((rad (if (car x) (car x) 10)))
+    (format nil
+	    (case rad
+	      ((8) "~O")
+	      ((10) "~D")
+	      ((16) "~X")
+	      (else (error (format (current-error-port)
+				   "Bad radix ~A" (car x)))))
+	    n)))
+
+(define (inexact? f)
+  (float? f))
+
+(define (exact? f)
+  (not (inexact? f)))
+
+(define exact->inexact ->float)
+
+(define peek-char
+  (let ((t:peek-char (*value standard-env 'peek-char)))
+    (lambda p
+      (let ((port (if p (car p) (current-input-port))))
+	(t:peek-char port)))))
+
+;;;(set ((*value scheme-env 'standard-early-binding-env) 'load) '#f)
+;;;(set ((*value scheme-env 'standard-early-binding-env) 'substring) '#f)
+(set ((*value scheme-env 'standard-early-binding-env) 'less?) '#f)
+(set ((*value scheme-env 'standard-early-binding-env) 'greater?) '#f)
+(set ((*value scheme-env 'standard-early-binding-env) 'not-less?) '#f)
+(set ((*value scheme-env 'standard-early-binding-env) 'not-greater?) '#f)
+(set ((*value scheme-env 'standard-early-binding-env) 'number-equal?) '#f)
+(set ((*value scheme-internal-env 'standard-early-binding-env) 'list?) '#f)
+
+(set ((*value t-implementation-env 'SOURCE-FILE-EXTENSION)) 'scm)
+
+;;; Here for backward compatability
+(define (scheme-file-suffix) "")
+
+(define load
+  (let ((t:load (*value standard-env 'load)))
+    (lambda (filespec . x)
+      (apply t:load (->filename filespec) x))))
+
+;;; (SLIB:LOAD-SOURCE "foo") should load "foo.scm" or with whatever
+;;; suffix all the module files in SLIB have.  See feature 'SOURCE.
+
+(define slib:load-source load)
+
+;;; (SLIB:LOAD-COMPILED "foo") should load the file that was produced
+;;; by compiling "foo.scm" if this implementation can compile files.
+;;; See feature 'COMPILED.
+
+(define slib:load-compiled load)
+
+;;; At this point SLIB:LOAD must be able to load SLIB files.
+
+(define slib:load slib:load-source)
+
+(slib:load (in-vicinity (library-vicinity) "require") scheme-env)
+
+;;;(define scheme-read-table
+;;;  (make-read-table standard-read-table 'modified-read-table))
+;;;
+;;;(set (read-table-entry scheme-read-table '#\#)
+;;;     (lambda  (p ch rtable)
+;;;       (ignore ch) (ignore rtable)
+;;;       ((*value scheme-env 'string->number)
+;;;	(symbol->string (read-refusing-eof p)) 16)))
+;;;
+;;;(set (port-read-table (standard-input)) scheme-read-table)
+
+; eof
