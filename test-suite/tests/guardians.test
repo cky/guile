@@ -25,7 +25,8 @@
 ;;;   they explicitly invoke GC --- in other words, they assume that GC
 ;;;   won't happen too often.
 
-(use-modules (ice-9 documentation))
+(use-modules (ice-9 documentation)
+             (ice-9 weak-vector))
 
 
 ;;;
