@@ -70,7 +70,7 @@
  list-tabulate
  ;; list-copy				<= in the core
  circular-list
- iota
+ ;; iota  ; exported below
 
 ;;; Predicates
  proper-list?
@@ -164,8 +164,8 @@
  reduce-right
  unfold
  unfold-right
- map
- for-each
+ ;; map  ; exported below
+ ;; for-each  ; exported below
  append-map
  append-map!
  map!
@@ -193,19 +193,19 @@
  break!
  any
  every
- list-index
- member					; Extended.
+ ;; list-index  ; exported below.
+ ;; member ; exported below		; Extended.
  ;; memq				<= in the core
  ;; memv				<= in the core
 
 ;;; Deletion
- delete					; Extended.
- delete!
+;; delete  ; exported below		; Extended.
+;; delete! ; exported below
  delete-duplicates
  delete-duplicates!
 
 ;;; Association lists
- assoc					; Extended.
+ ;; assoc ; exported below		; Extended.
  ;; assq				<= in the core
  ;; assv				<= in the core
  alist-cons
@@ -1025,3 +1025,7 @@
 
 (define (lset-diff+intersection! = list1 . rest)
   (apply lset-diff+intersection = list1 rest)) ; XXX:optimize
+
+;; extended versions of builtin procedures.  exporting is delayed until the
+;; new bindings have been created.
+(export iota map for-each list-index member delete delete! assoc)
