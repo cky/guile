@@ -40,7 +40,7 @@ EXTRA_libguile_la_SOURCES = _scm.h \
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@
+libguile_la_LIBADD = @LIBLOBJS@ @ALLOCA@
 libguile_la_LDFLAGS = -version-info 2:0 -rpath $(libdir)
 
 include_HEADERS = libguile.h
@@ -178,5 +178,11 @@ check_errnos:
 	else echo "No new symbols found."; \
 	fi
 
-CLEANFILES=cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
+MOSTLYCLEANFILES = \
+	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
+
+CLEANFILES = versiondat.h libpath.h
+
+DISTCLEANFILES = *.x
+
