@@ -58,7 +58,7 @@ extern int scm_gc_heap_lock;
 
 
 
-extern long scm_heap_size;
+extern unsigned long scm_heap_size;
 extern SCM_CELLPTR scm_heap_org;
 extern SCM scm_freelist;
 extern unsigned long scm_gc_cells_collected;
@@ -66,7 +66,7 @@ extern unsigned long scm_gc_malloc_collected;
 extern unsigned long scm_gc_ports_collected;
 extern unsigned long scm_cells_allocated;
 extern unsigned long scm_mallocated;
-extern long scm_mtrigger;
+extern unsigned long scm_mtrigger;
 
 #ifdef DEBUG_FREELIST
 extern void scm_debug_newcell SCM_P ((SCM *into));
@@ -87,8 +87,9 @@ extern void scm_gc_mark SCM_P ((SCM p));
 extern void scm_mark_locations SCM_P ((SCM_STACKITEM x[], scm_sizet n));
 extern int scm_cellp SCM_P ((SCM value));
 extern void scm_gc_sweep SCM_P ((void));
-extern char * scm_must_malloc SCM_P ((long len, char *what));
-extern char * scm_must_realloc SCM_P ((char *where, long olen, long len,
+extern char * scm_must_malloc SCM_P ((scm_sizet len, char *what));
+extern char * scm_must_realloc SCM_P ((char *where,
+				       scm_sizet olen, scm_sizet len,
 				       char *what));
 extern void scm_done_malloc SCM_P ((long size));
 extern void scm_must_free SCM_P ((char *obj));
@@ -97,6 +98,6 @@ extern SCM scm_return_first SCM_P ((SCM elt, ...));
 extern SCM scm_permanent_object SCM_P ((SCM obj));
 extern SCM scm_protect_object SCM_P ((SCM obj));
 extern SCM scm_unprotect_object SCM_P ((SCM obj));
-extern int scm_init_storage SCM_P ((long init_heap_size));
+extern int scm_init_storage SCM_P ((scm_sizet init_heap_size));
 extern void scm_init_gc SCM_P ((void));
 #endif  /* GCH */

@@ -145,7 +145,7 @@ SCM scm_freelist = SCM_EOL;
 /* scm_mtrigger
  * is the number of bytes of must_malloc allocation needed to trigger gc.
  */
-long scm_mtrigger;
+unsigned long scm_mtrigger;
 
 
 /* scm_gc_heap_lock
@@ -1047,14 +1047,11 @@ scm_gc_sweep ()
 #endif
   register SCM nfreelist;
   register SCM *hp_freelist;
-  register long n;
   register long m;
-  register scm_sizet j;
   register int span;
-  scm_sizet i;
+  long i;
   scm_sizet seg_size;
 
-  n = 0;
   m = 0;
 
   /* Reset all free list pointers.  We'll reconstruct them completely
@@ -1064,6 +1061,9 @@ scm_gc_sweep ()
 
   for (i = 0; i < scm_n_heap_segs; i++)
     {
+      register scm_sizet n = 0;
+      register scm_sizet j;
+
       /* Unmarked cells go onto the front of the freelist this heap
 	 segment points to.  Rather than updating the real freelist
 	 pointer as we go along, we accumulate the new head in
@@ -1298,8 +1298,9 @@ scm_gc_sweep ()
 #ifdef GC_FREE_SEGMENTS
       if (n == seg_size)
 	{
+	  register long j;
+
 	  scm_heap_size -= seg_size;
-	  n = 0;
 	  free ((char *) scm_heap_table[i].bounds[0]);
 	  scm_heap_table[i].bounds[0] = 0;
 	  for (j = i + 1; j < scm_n_heap_segs; j++)
@@ -1319,7 +1320,6 @@ scm_gc_sweep ()
 #endif
 
       scm_gc_cells_collected += n;
-      n = 0;
     }
   /* Scan weak vectors. */
   {
@@ -1328,6 +1328,8 @@ scm_gc_sweep ()
       {
 	if (!SCM_IS_WHVEC_ANY (scm_weak_vectors[i]))
 	  {
+	    register long j, n;
+
 	    ptr = SCM_VELTS (scm_weak_vectors[i]);
 	    n = SCM_LENGTH (scm_weak_vectors[i]);
 	    for (j = 0; j < n; ++j)
@@ -1336,10 +1338,12 @@ scm_gc_sweep ()
 	  }
 	else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
 	  {
-	    SCM obj;
-	    obj = scm_weak_vectors[i];
+	    SCM obj = scm_weak_vectors[i];
+	    register long n = SCM_LENGTH (scm_weak_vectors[i]);
+	    register long j;
+
 	    ptr = SCM_VELTS (scm_weak_vectors[i]);
-	    n = SCM_LENGTH (scm_weak_vectors[i]);
+
 	    for (j = 0; j < n; ++j)
 	      {
 		SCM * fixup;
@@ -1406,12 +1410,12 @@ scm_gc_sweep ()
  */
 char *
 scm_must_malloc (len, what)
-     long len;
+     scm_sizet len;
      char *what;
 {
   char *ptr;
   scm_sizet size = len;
-  long nm = scm_mallocated + size;
+  unsigned long nm = scm_mallocated + size;
   if (len != size)
   malerr:
     scm_wta (SCM_MAKINUM (len), (char *) SCM_NALLOC, what);
@@ -1447,15 +1451,14 @@ scm_must_malloc (len, what)
  * is similar to scm_must_malloc.
  */
 char *
-scm_must_realloc (where, olen, len, what)
-     char *where;
-     long olen;
-     long len;
-     char *what;
+scm_must_realloc (char *where,
+		  scm_sizet olen,
+		  scm_sizet len,
+		  char *what)
 {
   char *ptr;
   scm_sizet size = len;
-  long nm = scm_mallocated + size - olen;
+  scm_sizet nm = scm_mallocated + size - olen;
   if (len != size)
   ralerr:
     scm_wta (SCM_MAKINUM (len), (char *) SCM_NALLOC, what);
@@ -1552,7 +1555,7 @@ int scm_n_heap_segs = 0;
 /* scm_heap_size
  * is the total number of cells in heap segments.
  */
-long scm_heap_size = 0;
+unsigned long scm_heap_size = 0;
 
 /* init_heap_seg
  * initializes a new heap segment and return the number of objects it contains.
@@ -1580,8 +1583,8 @@ init_heap_seg (seg_org, size, ncells, freelistp)
 #define scmptr ptr
 #endif
   SCM_CELLPTR seg_end;
-  scm_sizet new_seg_index;
-  scm_sizet n_new_objects;
+  int new_seg_index;
+  int n_new_objects;
   
   if (seg_org == NULL)
     return 0;
@@ -1834,8 +1837,7 @@ scm_unprotect_object (obj)
 
 
 int
-scm_init_storage (init_heap_size)
-     long init_heap_size;
+scm_init_storage (scm_sizet init_heap_size)
 {
   scm_sizet j;
 
