@@ -531,23 +531,23 @@ check_map_args (SCM argv,
 		SCM args,
 		const char *who)
 {
-  SCM const *ve = SCM_VELTS (argv);
   long i;
 
-  for (i = SCM_VECTOR_LENGTH (argv) - 1; i >= 1; i--)
+  for (i = SCM_SIMPLE_VECTOR_LENGTH (argv) - 1; i >= 1; i--)
     {
+      SCM elt = SCM_SIMPLE_VECTOR_REF (args, i);
       long elt_len;
 
-      if (!(SCM_NULLP (ve[i]) || SCM_CONSP (ve[i])))
+      if (!(SCM_NULLP (elt) || SCM_CONSP (elt)))
 	{
 	check_map_error:
 	  if (gf)
 	    scm_apply_generic (gf, scm_cons (proc, args));
 	  else
-	    scm_wrong_type_arg (who, i + 2, ve[i]);
+	    scm_wrong_type_arg (who, i + 2, elt);
 	}
 	
-      elt_len = srfi1_ilength (ve[i]);
+      elt_len = srfi1_ilength (elt);
       if (elt_len < -1)
 	goto check_map_error;
 
@@ -579,7 +579,6 @@ scm_srfi1_map (SCM proc, SCM arg1, SCM args)
   long i, len;
   SCM res = SCM_EOL;
   SCM *pres = &res;
-  SCM const *ve = &args;		/* Keep args from being optimized away. */
 
   len = srfi1_ilength (arg1);
   SCM_GASSERTn ((SCM_NULLP (arg1) || SCM_CONSP (arg1)) && len >= -1,
@@ -625,15 +624,15 @@ scm_srfi1_map (SCM proc, SCM arg1, SCM args)
       return res;
     }
   args = scm_vector (arg1 = scm_cons (arg1, args));
-  ve = SCM_VELTS (args);
   len = check_map_args (args, len, g_srfi1_map, proc, arg1, s_srfi1_map);
   while (len > 0)
     {
       arg1 = SCM_EOL;
-      for (i = SCM_VECTOR_LENGTH (args) - 1; i >= 0; i--)
+      for (i = SCM_SIMPLE_VECTOR_LENGTH (args) - 1; i >= 0; i--)
 	{
-	  arg1 = scm_cons (SCM_CAR (ve[i]), arg1);
-	  SCM_VECTOR_SET (args, i, SCM_CDR (ve[i]));
+	  SCM elt = SCM_SIMPLE_VECTOR_REF (args, i);
+	  arg1 = scm_cons (SCM_CAR (elt), arg1);
+	  SCM_SIMPLE_VECTOR_SET (args, i, SCM_CDR (elt));
 	}
       *pres = scm_list_1 (scm_apply (proc, arg1, SCM_EOL));
       pres = SCM_CDRLOC (*pres);
@@ -651,7 +650,6 @@ SCM
 scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
 #define FUNC_NAME s_srfi1_for_each
 {
-  SCM const *ve = &args;		/* Keep args from being optimized away. */
   long i, len;
   len = srfi1_ilength (arg1);
   SCM_GASSERTn ((SCM_NULLP (arg1) || SCM_CONSP (arg1)) && len >= -1,
@@ -697,16 +695,16 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
       return SCM_UNSPECIFIED;
     }
   args = scm_vector (arg1 = scm_cons (arg1, args));
-  ve = SCM_VELTS (args);
   len = check_map_args (args, len, g_srfi1_for_each, proc, arg1,
 			s_srfi1_for_each);
   while (len > 0)
     {
       arg1 = SCM_EOL;
-      for (i = SCM_VECTOR_LENGTH (args) - 1; i >= 0; i--)
+      for (i = SCM_SIMPLE_VECTOR_LENGTH (args) - 1; i >= 0; i--)
 	{
-	  arg1 = scm_cons (SCM_CAR (ve[i]), arg1);
-	  SCM_VECTOR_SET (args, i, SCM_CDR (ve[i]));
+	  SCM elt = SCM_SIMPLE_VECTOR_REF (args, i);
+	  arg1 = scm_cons (SCM_CAR (elt), arg1);
+	  SCM_SIMPLE_VECTOR_SET (args, i, SCM_CDR (elt));
 	}
       scm_apply (proc, arg1, SCM_EOL);
       --len;
