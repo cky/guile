@@ -843,7 +843,9 @@ restrict yourself to @dfn{simple vectors} and then use the very fast
 @emph{simple vector macros}; or you can use the very general framework
 for accessing all kinds of arrays (@pxref{Accessing Arrays from C}),
 which is more verbose, but can deal efficiently with all kinds of
-vectors (and arrays).
+vectors (and arrays).  For vectors, you can use the
+@code{scm_vector_elements} and @code{scm_vector_writable_elements}
+functions as shortcuts.
 
 @deftypefn {C Function} int scm_is_simple_vector (SCM obj)
 Return non-zero if @var{obj} is a simple vector, else return zero.  A
@@ -870,10 +872,12 @@ Sets the element at position @var{idx} in the simple vector
 @var{vec} to @var{val}.  No type or range checking is done.
 @end deftypefn
 
-@deftypefn {C Function} const SCM *scm_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefn {C Function} {const SCM} *scm_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 Acquire a handle for the vector @var{vec} and return a pointer to the
 elements of it.  This pointer can only be used to read the elements of
-@var{vec}.  When @var{vec} is not a vector, an error is signaled.
+@var{vec}.  When @var{vec} is not a vector, an error is signaled.  The
+handle mustr eventually be released with
+@code{scm_array_handle_release}.
 
 The variables pointed to by @var{lenp} and @var{incp} are filled with
 the number of elements of the vector and the increment between elements,
@@ -893,6 +897,7 @@ elt = scm_vector_elements (vec, &handle, &len, &inc);
 list = SCM_EOL;
 for (i = 0; i < len; i++, elt += inc)
   list = scm_cons (*elt, list);
+scm_array_handle_release (&handle);
 @end example
 
 @end deftypefn
@@ -913,6 +918,7 @@ SCM *elt;
 elt = scm_vector_elements (vec, &handle, &len, &inc);
 for (i = 0; i < len; i++, elt += inc)
   *elt = SCM_BOOL_T;
+scm_array_handle_release (&handle);
 @end example
 
 @end deftypefn
@@ -1289,13 +1295,15 @@ initialized with the elements of the list @var{lst}.
 @deffnx {C Function} scm_any_to_f64vector obj
 @deffnx {C Function} scm_any_to_c32vector obj
 @deffnx {C Function} scm_any_to_c64vector obj
-Return a newly allocated homogeneous numeric vector of the indicated
+Return a (maybe newly allocated) uniform numeric vector of the indicated
 type, initialized with the elements of @var{obj}, which must be a list,
-a vector, or a uniform vector.
+a vector, or a uniform vector.  When @var{obj} is already a suitable
+uniform numeric vector, it is returned unchanged.
 @end deffn
 
 @deftypefn {C Function} int scm_is_uniform_vector (SCM uvec)
-Return @code{1} when @var{uvec} is a uniform vector, @code{0} otherwise.
+Return non-zero when @var{uvec} is a uniform numeric vector, zero
+otherwise.
 @end deftypefn
 
 @deftypefn  {C Function} SCM scm_take_u8vector (const scm_t_uint8 *data, size_t len)
@@ -1310,10 +1318,11 @@ Return @code{1} when @var{uvec} is a uniform vector, @code{0} otherwise.
 @deftypefnx {C Function} SCM scm_take_f64vector (const double *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_c32vector (const float *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_c64vector (const double *data, size_t len)
-Return a new uniform vector of the indicated type and length that uses
-the memory pointed to by @var{data} to store its elements.  This memory
-will eventually be freed with @code{free}.  The argument @var{len}
-specifies the number of elements in @var{data}, not its size in bytes.
+Return a new uniform numeric vector of the indicated type and length
+that uses the memory pointed to by @var{data} to store its elements.
+This memory will eventually be freed with @code{free}.  The argument
+@var{len} specifies the number of elements in @var{data}, not its size
+in bytes.
 
 The @code{c32} and @code{c64} variants take a pointer to a C array of
 @code{float}s or @code{double}s.  The real parts of the complex numbers
@@ -1325,16 +1334,39 @@ at the following odd index.
 Return the number of elements of @var{uvec} as a @code{size_t}.
 @end deftypefn
 
-@deftypefn {C Function} size_t scm_c_uniform_vector_element_size (SCM uvec)
-Return the number of bytes of one element of @var{uvec}.
+@deftypefn  {C Function} {const void} *scm_uniform_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_uint8} *scm_u8vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_int8} *scm_s8vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_uint16} *scm_u16vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_int16} *scm_s16vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_uint32} *scm_u32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_int32} *scm_s32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_uint64} *scm_u64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_int64} *scm_s64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const float} *scm_f23vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const double} *scm_f64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const float} *scm_c32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const double} *scm_c64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+Like @code{scm_vector_elements} (which see), but returns a pointer to
+the elements of a uniform numeric vector of the indicated kind.
 @end deftypefn
 
-@deftypefn {C Function} size_t scm_c_uniform_vector_size (SCM uvec)
-Return the number of bytes used by all elements of @var{uvec}.  This is
-just @code{scm_c_uniform_vector_length (@var{uvec}) *
-scm_c_uniform_vector_element_size (@var{uvec})}.
+@deftypefn  {C Function} void *scm_uniform_vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} scm_t_uint8 *scm_u8vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} scm_t_int8 *scm_s8vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} scm_t_uint16 *scm_u16vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} scm_t_int16 *scm_s16vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} scm_t_uint32 *scm_u32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} scm_t_int32 *scm_s32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} scm_t_uint64 *scm_u64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} scm_t_int64 *scm_s64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} float *scm_f23vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} double *scm_f64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} float *scm_c32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} double *scm_c64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+Like @code{scm_vector_writable_elements} (which see), but returns a
+pointer to the elements of a uniform numeric vector of the indicated kind.
 @end deftypefn
-
 
 @node Bit Vectors
 @subsection Bit Vectors
@@ -1506,6 +1538,18 @@ For example,
 @end example
 @end deffn
 
+@deftypefn {C Function} {const scm_t_uint32} *scm_bitvector_elements (SCM vec, scm_t_array_handle *handle, size_t *offp, size_t *lenp, ssize_t *incp)
+Like @code{scm_vector_elements} (which see), but for bitvectors.  The
+variable pointed to by @var{offp} is set to the value returned by
+@code{scm_array_handle_bit_elements_offset}.  See
+@code{scm_array_handle_bit_elements} for how to use the returned pointer
+and the offset.
+@end deftypefn
+
+@deftypefn {C Function} scm_t_uint32 *scm_bitvector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *offp, size_t *lenp, ssize_t *incp)
+Like @code{scm_bitvector_elements}, but the pointer is good for reading
+and writing.
+@end deftypefn
 
 @node Generalized Vectors
 @subsection Generalized Vectors
@@ -1565,6 +1609,14 @@ Return the element at index @var{idx} of the generalized vector @var{v}.
 @deftypefn {C Function} void scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val)
 Set the element at index @var{idx} of the generalized vector @var{v}
 to @var{val}.
+@end deftypefn
+
+@deftypefn {C Function} void scm_generalized_vector_get_handle (SCM v, scm_t_array_handle *handle)
+Like @code{scm_array_get_handle} but an error is signalled when @var{v}
+is not of rank one.  You can use @code{scm_array_handle_ref} and
+@code{scm_array_handle_set} to read and write the elements of @var{v},
+or you can use functions like @code{scm_array_handle_<foo>_elements} to
+deal with specific types of vectors.
 @end deftypefn
 
 @node Arrays
@@ -2060,13 +2112,15 @@ Arrays, especially uniform numeric arrays, are useful to efficiently
 represent large amounts of rectangularily organized information, such as
 matrices, images, or generally blobs of binary data.  It is desirable to
 access these blobs in a C like manner so that they can be handed to
-external code such as linear algebra libraries or image processing
+external C code such as linear algebra libraries or image processing
 routines.
 
 While pointers to the elements of an array are in use, the array itself
 must be protected so that the pointer remains valid.  Such a protected
-array is said to be @dfn{reserved}.  A reserved array can be read but it
-can not be modified.  When you try to modify it, an error is signalled.
+array is said to be @dfn{reserved}.  A reserved array can be read but
+modifications to it that would cause the pointer to its elements to
+become invalid are prevented.  When you attempt such a modification, an
+error is signalled.
 
 (This is similar to locking the array while it is in use, but without
 the danger of a deadlock.  In a multi-threaded program, you will need
@@ -2091,10 +2145,233 @@ to unreserve them in the opposite order.
 Once you have reserved an array and have retrieved the pointer to its
 elements, you must figure out the layout of the elements in memory.
 Guile allows slices to be taken out of arrays without actually making a
-copy, such as making an alias for the diagonal of a matrix.  Arrays that
-result from such an operation are not stored contiguously in memory and
-when working with them, you need to take this into account.
+copy, such as making an alias for the diagonal of a matrix that can be
+treated as a vector.  Arrays that result from such an operation are not
+stored contiguously in memory and when working with their elements
+directly, you need to take this into account.
 
+The layout of array elements in memory can be defined via a
+@emph{mapping function} that computes a scalar position from a vector of
+indices.  The scalar position then is the offset of the element with the
+given indices from the start of the storage block of the array.
+
+In Guile, this mapping function is restricted to be @dfn{affine}: all
+mapping function of Guile arrays can be written as @code{p = b +
+c[0]*i[0] + c[1]*i[1] + ... + c[n-1]*i[n-1]} where @code{i[k]} is the
+@nicode{k}th index and @code{n} is the rank of the array.  For example,
+a matrix of size 3x3 would have @code{b == 0}, @code{c[0] == 3} and
+@code{c[1] == 1}.  When you transpose this matrix (with
+@code{transpose-array}, say), you will get an array whose mapping
+function has @code{b == 0}, @code{c[0] == 1} and @code{c[1] == 3}.
+
+The function @code{scm_array_handle_dims} gives you (indirect) access to
+the coefficients @code{c[k]}.
+
+@c XXX
+Note that there are no functions for accessing the elements of a
+character array yet.  Once the string implementation of Guile has been
+changed to use Unicode, we will provide them.
+
+@deftp {C Type} scm_t_array_handle
+This is a structure type that holds all information necessary to manage
+the reservation of arrays as explained above.  Structures of this type
+must be allocated on the stack and must only be accessed by the
+functions listed below.
+@end deftp
+
+@deftypefn {C Function} void scm_array_get_handle (SCM array, scm_t_array_handle *handle)
+Reserve @var{array}, which must be an array, and prepare @var{handle} to
+be used with the functions below.  You must eventually call
+@code{scm_array_handle_release} on @var{handle}, and do this in a
+properly nested fashion, as explained above.  The structure pointed to
+by @var{handle} does not need to be initialized before calling this
+function.
+@end deftypefn
+
+@deftypefn {C Function} void scm_array_handle_release (scm_t_array_handle *handle)
+End the array reservation represented by @var{handle}.  After a call to
+this function, @var{handle} might be used for another reservation.
+@end deftypefn
+
+@deftypefn {C Function} size_t scm_array_handle_rank (scm_t_array_handle *handle)
+Return the rank of the array represented by @var{handle}.
+@end deftypefn
+
+@deftp {C Type} scm_t_array_dim
+This structure type holds information about the layout of one dimension
+of an array.  It includes the following fields:
+
+@table @code
+@item  ssize_t lbnd
+@itemx ssize_t ubnd
+The lower and upper bounds (both inclusive) of the permissible index
+range for the given dimension.  Both values can be negative, but
+@var{lbnd} is always less than or equal to @var{ubnd}.
+
+@item ssize_t inc
+The distance from one element of this dimension to the next.  Note, too,
+that this can be negative.
+@end table
+@end deftp
+
+@deftypefn {C Function} {const scm_t_array_dim} *scm_array_handle_dims (scm_t_array_handle *handle)
+Return a pointer to a C vector of information about the dimensions of
+the array represented by @var{handle}.  This pointer is valid as long as
+the array remains reserved.  As explained above, the
+@code{scm_t_array_dim} structures returned by this function can be used
+calculate the position of an element in the storage block of the array
+from its indices.
+
+This position can then be used as an index into the C array pointer
+returned by the various @code{scm_array_handle_<foo>_elements}
+functions, or with @code{scm_array_handle_ref} and
+@code{scm_array_handle_set}.
+
+Here is how one can compute the position @var{pos} of an element given
+its indices in the vector @var{indices}:
+
+@example
+ssize_t indices[RANK];
+scm_t_array_dim *dims;
+ssize_t pos;
+size_t i;
+
+pos = 0;
+for (i = 0; i < RANK; i++)
+  @{
+    if (indices[i] < dims[i].lbnd || indices[i] > dims[i].ubnd)
+      out_of_range ();
+    pos += (indices[i] - dims[i].lbnd) * dims[i].inc;
+  @}
+@end example
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_array_handle_ref (scm_t_array_handle *handle, ssize_t pos)
+Return the element at position @var{pos} in the storage block of the
+array represented by @var{handle}.  Any kind of array is acceptable.  No
+range checking is done on @var{pos}.
+@end deftypefn
+
+@deftypefn {C Function} void scm_array_handle_set (scm_t_array_handle *handle, ssize_t pos, SCM val)
+Set the element at position @var{pos} in the storage block of the array
+represented by @var{handle} to @var{val}.  Any kind of array is
+acceptable.  No range checking is done on @var{pos}.  An error is
+signalled when the array can not store @var{val}.
+@end deftypefn
+
+@deftypefn {C Function} {const SCM} *scm_array_handle_elements (scm_t_array_handle *handle)
+Return a pointer to the elements of a ordinary array of general Scheme
+values (i.e., a non-uniform array) for reading.  This pointer is valid
+as long as the array remains reserved.
+@end deftypefn
+
+@deftypefn {C Function} SCM *scm_array_handle_writable_elements (scm_t_array_handle *handle)
+Like @code{scm_array_handle_elements}, but the pointer is good for
+reading and writing.
+@end deftypefn
+
+@deftypefn {C Function} {const void} *scm_array_handle_uniform_elements (scm_t_array_handle *handle)
+Return a pointer to the elements of a uniform numeric array for reading.
+This pointer is valid as long as the array remains reserved.  The size
+of each element is given by @code{scm_array_handle_uniform_element_size}.
+@end deftypefn
+
+@deftypefn {C Function} void *scm_array_handle_uniform_writable_elements (scm_t_array_handle *handle)
+Like @code{scm_array_handle_uniform_elements}, but the pointer is good
+reading and writing.
+@end deftypefn
+
+@deftypefn {C Function} size_t scm_array_handle_uniform_element_size (scm_t_array_handle *handle)
+Return the size of one element of the uniform numeric array represented
+by @var{handle}.
+@end deftypefn
+
+@deftypefn  {C Function} {const scm_t_uint8} *scm_array_handle_u8_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_int8} *scm_array_handle_s8_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_uint16} *scm_array_handle_u16_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_int16} *scm_array_handle_s16_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_uint32} *scm_array_handle_u32_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_int32} *scm_array_handle_s32_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_uint64} *scm_array_handle_u64_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_int64} *scm_array_handle_s64_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const float} *scm_array_handle_f32_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const double} *scm_array_handle_f64_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const float} *scm_array_handle_c32_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const double} *scm_array_handle_c64_elements (scm_t_array_handle *handle)
+Return a pointer to the elements of a uniform numeric array of the
+indicated kind for reading.  This pointer is valid as long as the array
+remains reserved.
+
+The pointers for @code{c32} and @code{c64} uniform numeric arrays point
+to pairs of floating point numbers.  The even index holds the real part,
+the odd index the imaginary part of the complex number.
+@end deftypefn
+
+@deftypefn {C Function} scm_t_uint8 *scm_array_handle_u8_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} scm_t_int8 *scm_array_handle_s8_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} scm_t_uint16 *scm_array_handle_u16_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} scm_t_int16 *scm_array_handle_s16_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} scm_t_uint32 *scm_array_handle_u32_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} scm_t_int32 *scm_array_handle_s32_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} scm_t_uint64 *scm_array_handle_u64_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} scm_t_int64 *scm_array_handle_s64_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} float *scm_array_handle_f32_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} double *scm_array_handle_f64_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} float *scm_array_handle_c32_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} double *scm_array_handle_c64_writable_elements (scm_t_array_handle *handle)
+Like @code{scm_array_handle_<kind>_elements}, but the pointer is good
+for reading and writing.
+@end deftypefn
+
+@deftypefn {C Function} {const scm_t_uint32} *scm_array_handle_bit_elements (scm_t_array_handle *handle)
+Return a pointer to the words that store the bits of the represented
+array, which must be a bit array.
+
+Unlike other arrays, bit arrays have an additional offset that must be
+figured into index calculations.  That offset is returned by
+@code{scm_array_handle_bit_elements_offset}.
+
+To find a certain bit you first need to calculate its position as
+explained above for @code{scm_array_handle_dims} and then add the
+offset.  This gives the absolute position of the bit, which is always a
+non-negative integer.
+
+Each word of the bit array storage block contains exactly 32 bits, with
+the least significant bit in that word having the lowest absolute
+position number.  The next word contains the next 32 bits.
+
+Thus, the following code can be used to access a bit whose position
+according to @code{scm_array_handle_dims} is given in @var{pos}:
+
+@example
+SCM bit_array;
+scm_t_array_handle handle;
+scm_t_uint32 *bits;
+ssize_t pos;
+size_t abs_pos;
+size_t word_pos, mask;
+
+scm_array_get_handle (&bit_array, &handle);
+bits = scm_array_handle_bit_elements (&handle);
+
+pos = ...
+abs_pos = pos + scm_array_handle_bit_elements_offset (&handle);
+word_pos = abs_pos / 32;
+mask = 1L << (abs_pos % 32);
+
+if (bits[word_pos] & mask)
+  /* bit is set. */
+
+scm_array_handle_release (&handle);
+@end example
+
+@end deftypefn
+
+@deftypefn {C Function} scm_t_uint32 *scm_array_handle_bit_writable_elements (scm_t_array_handle *handle)
+Like @code{scm_array_handle_bit_elements} but the pointer is good for
+reading and writing.  You must take care not to modify bits outside of
+the allowed index range of the array, even for contiguous arrays.
+@end deftypefn
 
 @node Records
 @subsection Records
