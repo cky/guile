@@ -21,6 +21,12 @@
 info_TEXINFOS = data-rep.texi
 data_rep_TEXINFOS = data-rep.texi version.texi
 
+# This rule overrides automake's rule for version.texi.  It causes
+# version.texi to be created even in non-maintainer-mode.
+#
+$(srcdir)/version.texi: stamp-vti
+	@:
+
 EXAMPLE_SMOB_FILES = \
     ChangeLog Makefile README COPYING image-type.c image-type.h myguile.c
 
