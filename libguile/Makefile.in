@@ -392,6 +392,7 @@ manifest = $(ancillary) $(c_sources)
 	$(CC) $(ALL_CFLAGS) -I. -DSCM_MAGIC_SNARFER -E $< | grep "^%%%" | sed -e "s/^%%%//" > $@ ; \
 	if test $$fake_scmconfig -eq 1 ; then \
 	  rm scmconfig.h; \
+	else : ; \
 	fi
 
 .PHONY: all
