@@ -716,13 +716,13 @@ The functions described in this section are available from
 @end example
 
 @deffn syntax parallel expr1 @dots{} exprN
-Evaluate each @var{expr} expression in parallel, each in a new thread.
+Evaluate each @var{expr} expression in parallel, each in its own thread.
 Return the results as a set of @var{N} multiple values
 (@pxref{Multiple Values}).
 @end deffn
 
 @deffn syntax letpar ((var1 expr1) @dots{} (varN exprN)) body@dots{}
-Evaluate each @var{expr} in parallel, each in a new thread, then bind
+Evaluate each @var{expr} in parallel, each in its own thread, then bind
 the results to the corresponding @var{var} variables and evaluate
 @var{body}.
 
@@ -740,7 +740,7 @@ calls to complete.
 The @var{proc} calls are @code{(@var{proc} @var{elem1} @dots{}
 @var{elemN})}, where each @var{elem} is from the corresponding
 @var{lst}.  Each @var{lst} must be the same length.  The calls are
-made in parallel, each in a new thread.
+made in parallel, each in its own thread.
 
 These functions are like @code{map} and @code{for-each} (@pxref{List
 Mapping}), but make their @var{proc} calls in parallel.
@@ -750,7 +750,7 @@ Mapping}), but make their @var{proc} calls in parallel.
 @deffnx {Scheme Procedure} n-par-for-each n proc lst1 @dots{} lstN
 Call @var{proc} on the elements of the given lists, in the same way as
 @code{par-map} and @code{par-for-each} above, but use no more than
-@var{n} new threads at any one time.  The order in which calls are
+@var{n} threads at any one time.  The order in which calls are
 initiated within that threads limit is unspecified.
 
 These functions are good for controlling resource consumption if
@@ -769,8 +769,8 @@ The calls made are @code{(@var{sproc} (@var{pproc} @var{elem1} @dots{}
 @var{elemN}))}, where each @var{elem} is from the corresponding
 @var{lst}.  Each @var{lst} must have the same number of elements.
 
-The @var{pproc} calls are made in parallel, in new threads.  No more
-than @var{n} new threads are used at any one time.  The order in which
+The @var{pproc} calls are made in parallel, in separate threads.  No more
+than @var{n} threads are used at any one time.  The order in which
 @var{pproc} calls are initiated within that limit is unspecified.
 
 The @var{sproc} calls are made serially, in list element order, one at
@@ -788,7 +788,7 @@ It will be seen that @code{n-for-each-par-map} is like a combination
 of @code{n-par-map} and @code{for-each},
 
 @example
-(for-each sproc (n-par-map pproc lst1 ... lstN))
+(for-each sproc (n-par-map n pproc lst1 ... lstN))
 @end example
 
 @noindent
