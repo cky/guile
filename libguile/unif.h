@@ -88,7 +88,7 @@ extern scm_bits_t scm_tc16_array;
 #endif
 
 #define SCM_ARRAYP(a) 	    SCM_TYP16_PREDICATE (scm_tc16_array, a)
-#define SCM_ARRAY_NDIM(x)   ((size_t) (SCM_CELL_WORD_0 (x)) >> 17)
+#define SCM_ARRAY_NDIM(x)   ((size_t) (SCM_CELL_WORD_0 (x) >> 17))
 #define SCM_ARRAY_CONTP(x)  (SCM_CELL_WORD_0 (x) & SCM_ARRAY_FLAG_CONTIGUOUS)
 #define SCM_SET_ARRAY_CONTIGUOUS_FLAG(x) \
   (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) | SCM_ARRAY_FLAG_CONTIGUOUS))

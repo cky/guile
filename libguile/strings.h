@@ -57,8 +57,8 @@
 #define SCM_STRING_CHARS(x) ((char *) (SCM_CELL_WORD_1 (x)))
 #endif
 #define SCM_SET_STRING_CHARS(s, c) (SCM_SET_CELL_WORD_1 ((s), (c)))
-#define SCM_STRING_MAX_LENGTH ((1L << 24) - 1)
-#define SCM_STRING_LENGTH(x) (((size_t) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_STRING_MAX_LENGTH ((1UL << 24) - 1UL)
+#define SCM_STRING_LENGTH(x) ((size_t) (SCM_CELL_WORD_0 (x) >> 8))
 #define SCM_SET_STRING_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), ((l) << 8) + scm_tc7_string))
 
 #define SCM_STRING_COERCE_0TERMINATION_X(x) \
