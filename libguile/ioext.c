@@ -278,30 +278,6 @@ scm_redirect_port (old, new)
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC (s_primitive_dup, "primitive-dup", 1, 0, 0, scm_primitive_dup);
-SCM 
-scm_primitive_dup (SCM fd_or_port)
-{
-  int fd, newfd;
-
-  SCM_DEFER_INTS;
-  if (SCM_INUMP (fd_or_port))
-    fd = SCM_INUM (fd_or_port);
-  else
-    {
-      SCM_ASSERT (SCM_NIMP (fd_or_port) && SCM_OPPORTP (fd_or_port),
-		  fd_or_port, SCM_ARG1, s_primitive_dup);
-      fd = fileno ((FILE *)SCM_STREAM (fd_or_port));
-      if (fd == -1)
-	scm_syserror (s_primitive_dup);
-    }
-  SCM_SYSCALL (newfd = dup (fd));
-  if (newfd == -1)
-    scm_syserror (s_primitive_dup);
-  SCM_ALLOW_INTS;
-  return SCM_MAKINUM (newfd);
-}
-
 SCM_PROC (s_dup_to_fdes, "dup->fdes", 1, 1, 0, scm_dup_to_fdes);
 SCM 
 scm_dup_to_fdes (SCM fd_or_port, SCM fd)
@@ -324,7 +300,7 @@ scm_dup_to_fdes (SCM fd_or_port, SCM fd)
     {
       SCM_SYSCALL (newfd = dup (oldfd));
       if (newfd == -1)
-	scm_syserror (s_primitive_dup);
+	scm_syserror (s_dup_to_fdes);
       fd = SCM_MAKINUM (newfd);
     }
   else
