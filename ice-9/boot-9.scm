@@ -2511,22 +2511,22 @@
 	     `(lambda ,(cdr first) ,@rest))))
     `(define ,name (defmacro:syntax-transformer ,transformer))))
 
-;; EVAL-WHEN
+;; EVAL-CASE
 ;;
-;; (eval-when ((situation*) forms)* (else forms)?)
+;; (eval-case ((situation*) forms)* (else forms)?)
 ;;
-;; Evaluate certain code based on the situation that eval-when is used
+;; Evaluate certain code based on the situation that eval-case is used
 ;; in.  The only defined situation right now is `load-toplevel' which
 ;; triggers for code evaluated at the top-level, for example from the
 ;; REPL or when loading a file.
  
-(define eval-when
+(define eval-case
   (procedure->memoizing-macro
    (lambda (exp env)
      (define (toplevel-env? env)
        (or (not (pair? env)) (not (pair? (car env)))))
      (define (syntax)
-       (error "syntax error in eval-when"))
+       (error "syntax error in eval-case"))
      (let loop ((clauses (cdr exp)))
        (cond 
 	((null? clauses)
@@ -2550,7 +2550,7 @@
 ;;;
 
 (defmacro define-module args
-  `(eval-when
+  `(eval-case
     ((load-toplevel)
      (process-define-module ',args))
     (else
@@ -2567,14 +2567,14 @@
 	    (reverse module-names)))
 
 (defmacro use-modules modules
-  `(eval-when
+  `(eval-case
     ((load-toplevel)
      (process-use-modules ',modules))
     (else
      (error "use-modules can only be used at the top level"))))
 
 (defmacro use-syntax (spec)
-  `(eval-when
+  `(eval-case
     ((load-toplevel)
      ,@(if (pair? spec)
 	   `((process-use-modules ',(list spec))
@@ -2601,7 +2601,7 @@
    (#t
     (let ((name (defined-name (car args))))
       `(begin
-	 (eval-when ((load-toplevel) (export ,name)))
+	 (eval-case ((load-toplevel) (export ,name)))
 	 (define-private ,@args))))))
 
 (defmacro defmacro-public args
@@ -2617,7 +2617,7 @@
    (#t
     (let ((name (defined-name (car args))))
       `(begin
-	 (eval-when ((load-toplevel) (export ,name)))
+	 (eval-case ((load-toplevel) (export ,name)))
 	 (defmacro ,@args))))))
 
 (define (module-export! m names)
@@ -2630,7 +2630,7 @@
 	      names)))
 
 (defmacro export names
-  `(eval-when
+  `(eval-case
     ((load-toplevel)
      (module-export! (current-module) ',names))
     (else
