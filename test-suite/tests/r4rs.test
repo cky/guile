@@ -1,50 +1,65 @@
-;; r4rs.test --- tests for R4RS compliance      -*- scheme -*-
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1999 Free Software Foundation, Inc.
-;; 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this software; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-;; Boston, MA 02111-1307 USA
-;;
-;; As a special exception, the Free Software Foundation gives permission
-;; for additional uses of the text contained in its release of GUILE.
-;;
-;; The exception is that, if you link the GUILE library with other files
-;; to produce an executable, this does not by itself cause the
-;; resulting executable to be covered by the GNU General Public License.
-;; Your use of that executable is in no way restricted on account of
-;; linking the GUILE library code into it.
-;;
-;; This exception does not however invalidate any other reasons why
-;; the executable file might be covered by the GNU General Public License.
-;;
-;; This exception applies only to the code released by the
-;; Free Software Foundation under the name GUILE.  If you copy
-;; code from other Free Software Foundation releases into a copy of
-;; GUILE, as the General Public License permits, the exception does
-;; not apply to the code that you add in this way.  To avoid misleading
-;; anyone as to the status of such modified files, you must delete
-;; this exception notice from them.
-;;
-;; If you write modifications of your own for GUILE, it is your choice
-;; whether to permit this exception to apply to your modifications.
-;; If you do not wish that, delete this exception notice.  
+;;;; r4rs.test --- tests for R4RS compliance      -*- scheme -*-
+;;;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1999 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+;;;;
+;;;; As a special exception, the Free Software Foundation gives permission
+;;;; for additional uses of the text contained in its release of GUILE.
+;;;;
+;;;; The exception is that, if you link the GUILE library with other files
+;;;; to produce an executable, this does not by itself cause the
+;;;; resulting executable to be covered by the GNU General Public License.
+;;;; Your use of that executable is in no way restricted on account of
+;;;; linking the GUILE library code into it.
+;;;;
+;;;; This exception does not however invalidate any other reasons why
+;;;; the executable file might be covered by the GNU General Public License.
+;;;;
+;;;; This exception applies only to the code released by the
+;;;; Free Software Foundation under the name GUILE.  If you copy
+;;;; code from other Free Software Foundation releases into a copy of
+;;;; GUILE, as the General Public License permits, the exception does
+;;;; not apply to the code that you add in this way.  To avoid misleading
+;;;; anyone as to the status of such modified files, you must delete
+;;;; this exception notice from them.
+;;;;
+;;;; If you write modifications of your own for GUILE, it is your choice
+;;;; whether to permit this exception to apply to your modifications.
+;;;; If you do not wish that, delete this exception notice.  
+
+
+;;;; ============= NOTE =============
+
+;;;; This file is a quick-and-dirty adaptation of Aubrey's test suite
+;;;; to Guile's testing framework.  As such, it's not as clean as one
+;;;; might hope.  (In particular, it uses with-test-prefix oddly.)
+;;;;
+;;;; If you're looking for an example of a test suite to imitate, you
+;;;; might do better by looking at ports.test, which uses the
+;;;; (test-suite lib) functions much more idiomatically.
+
 
 ;;;; "test.scm" Test correctness of scheme implementations.
-;;; Author: Aubrey Jaffer
-;;; Modified: Mikael Djurfeldt (Removed tests which Guile deliberately
-;;; won't pass.  Made the the tests (test-cont), (test-sc4), and
-;;; (test-delay) start to run automatically.
+;;;; Author: Aubrey Jaffer
+;;;; Modified: Mikael Djurfeldt
+;;;;   Removed tests which Guile deliberately
+;;;;   won't pass.  Made the the tests (test-cont), (test-sc4), and
+;;;;   (test-delay) start to run automatically.
+;;;; Modified: Jim Blandy
+;;;;   adapted to new Guile test suite framework
 
 ;;; This includes examples from
 ;;; William Clinger and Jonathan Rees, editors.
