@@ -1,3 +1,27 @@
+1997-10-19  Mark Galassi  <rosalia@cygnus.com>
+
+	* gh.h (gh_reverse): 
+	(gh_list_tail): 
+	(gh_list_ref): 
+	(gh_memq): 
+	(gh_memv): 
+	(gh_member): 
+	(gh_assq): 
+	(gh_assv): 
+	(gh_assoc): added these gh_ functions implemented as macros.
+
+	* gh_predicates.c (gh_null_p): 
+	(gh_string_equal_p): added these two missing predicates.
+
+	* gh_list.c (gh_append): 
+	(gh_append2): 
+	(gh_append3): 
+	(gh_append4): 
+	(gh_set_car_x): 
+	(gh_set_cdr_x): added these routines as I go through and try to
+	complete the picture R4RS functions that should be mirrored in the
+	gh_ interface.
+
 Sat Oct 18 01:52:51 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* tags.h (scm_tc7_substring): Changed the comment and code to

@@ -119,3 +119,19 @@ gh_equal_p (SCM x, SCM y)
 {
   return (SCM_NFALSEP (scm_equal_p (x, y)));
 }
+
+/* equivalent to (string=? ...), but returns 0 or 1 rather than Scheme
+   booleans */
+int
+gh_string_equal_p(SCM s1, SCM s2)
+{
+  return (SCM_NFALSEP (scm_string_equal_p(s1, s2)));
+}
+
+/* equivalent to (null? ...), but returns 0 or 1 rather than Scheme
+   booleans */
+int
+gh_null_p(SCM l)
+{
+  return (SCM_NFALSEP(scm_null_p(l)));
+}

@@ -55,14 +55,47 @@ gh_length (SCM l)
 
 /* list operations */
 
+/* gh_list(SCM elt, ...) is implemented as a macro in gh.h. */
+
+/* gh_append() takes a args, which is a list of lists, and appends
+   them all together into a single list, which is returned.  This is
+   equivalent to the Scheme procedure (append list1 list2 ...) */
+SCM gh_append(SCM args)
+{
+  return scm_append(args);
+}
+
+SCM gh_append2(SCM l1, SCM l2)
+{
+  return scm_append(scm_listify(l1, l2, SCM_UNDEFINED));
+}
+
+SCM gh_append3(SCM l1, SCM l2, SCM l3)
+{
+  return scm_append(scm_listify(l1, l2, l3, SCM_UNDEFINED));
+}
+
+SCM gh_append4(SCM l1, SCM l2, SCM l3, SCM l4)
+{
+  return scm_append(scm_listify(l1, l2, l3, l4, SCM_UNDEFINED));
+}
+
+/* gh_reverse() is defined as a macro in gh.h */
+/* gh_list_tail() is defined as a macro in gh.h */
+/* gh_list_ref() is defined as a macro in gh.h */
+/* gh_memq() is defined as a macro in gh.h */
+/* gh_memv() is defined as a macro in gh.h */
+/* gh_member() is defined as a macro in gh.h */
+/* gh_assq() is defined as a macro in gh.h */
+/* gh_assv() is defined as a macro in gh.h */
+/* gh_assoc() is defined as a macro in gh.h */
+
 /* analogous to the Scheme cons operator */
 SCM 
 gh_cons (SCM x, SCM y)
 {
   return scm_cons (x, y);
 }
-
-/* gh_list(SCM elt, ...) is implemented as a macro in gh.h. */
 
 /* analogous to the Scheme car operator */
 SCM 
@@ -139,4 +172,18 @@ SCM
 gh_cdddr (SCM x)
 {
   return SCM_CDDDR (x);
+}
+
+/* equivalent to (set-car! pair value) */
+SCM
+gh_set_car_x(SCM pair, SCM value)
+{
+  return scm_set_car_x(pair, value);
+}
+
+/* equivalent to (set-cdr! pair value) */
+SCM
+gh_set_cdr_x(SCM pair, SCM value)
+{
+  return scm_set_cdr_x(pair, value);
 }

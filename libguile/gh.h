@@ -139,8 +139,12 @@ int gh_exact_p(SCM val);
 int gh_eq_p(SCM x, SCM y);
 int gh_eqv_p(SCM x, SCM y);
 int gh_equal_p(SCM x, SCM y);
+int gh_string_equal_p(SCM s1, SCM s2);
+int gh_null_p(SCM l);
 
 /* standard Scheme procedures available from C */
+
+#define gh_not(x) scm_not(x)
 
 SCM gh_define(char *name, SCM val);
 
@@ -165,6 +169,19 @@ SCM gh_module_lookup (SCM vector, char *sname);
 SCM gh_cons(SCM x, SCM y);
 #define gh_list scm_listify
 unsigned long gh_length(SCM l);
+SCM gh_append(SCM args);
+SCM gh_append2(SCM l1, SCM l2);
+SCM gh_append3(SCM l1, SCM l2, SCM l3);
+SCM gh_append4(SCM l1, SCM l2, SCM l3, SCM l4);
+#define gh_reverse(ls) scm_reverse(ls)
+#define gh_list_tail(ls, k) scm_list_tail(ls, k)
+#define gh_list_ref(ls, k) scm_list_ref(ls, k)
+#define gh_memq(x, ls) scm_memq(x, ls)
+#define gh_memv(x, ls) scm_memqv(x, ls)
+#define gh_member(x, ls) scm_memqber(x, ls)
+#define gh_assq(x, alist) scm_assq(x, alist)
+#define gh_assv(x, alist) scm_assv(x, alist)
+#define gh_assoc(x, alist) scm_assoc(x, alist)
 
 SCM gh_car(SCM x);
 SCM gh_cdr(SCM x);
@@ -182,6 +199,10 @@ SCM gh_cdaar(SCM x);
 SCM gh_cdadr(SCM x);
 SCM gh_cddar(SCM x);
 SCM gh_cdddr(SCM x);
+
+SCM gh_set_car_x(SCM pair, SCM value);
+SCM gh_set_cdr_x(SCM pair, SCM value);
+
 
 /* Calling Scheme functions from C.  */
 SCM gh_apply (SCM proc, SCM ls);

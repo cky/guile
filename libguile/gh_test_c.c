@@ -75,7 +75,12 @@ main_prog (int argc, char *argv[])
     sym_string = gh_symbol2newstr (sym, NULL);
     printf ("the symbol was <%s>; after converting to Scheme and back to\n",
 	    "a-test-symbol");
-    printf ("a C string it is now <%s>\n", sym_string);
+    printf ("    a C string it is now <%s>", sym_string);
+    if (strcmp("a-test-symbol", sym_string) == 0) {
+      printf("...PASS\n");
+    } else {
+      printf("...FAIL\n");
+    }
     free (sym_string);
   }
 
@@ -97,12 +102,24 @@ main_prog (int argc, char *argv[])
 
   gh_eval_str_with_standard_handler ("(display \"dude!\n\")");
 
-  /* in this next line I have a wilful typo: dosplay is not a defined
+  /* in this next test I have a wilful typo: dosplay is not a defined
      procedure, so it should throw an error */
+  printf("We should now get an error which should be trapped by a handler\n");
   gh_eval_str_with_standard_handler ("(dosplay \"dude!\n\")");
+  printf("now we will display a backtrace of that error; this should not\n");
+  printf("    work because the handler did not save the stack\n");
+  gh_eval_str("(backtrace)");
+
+  /* now do that test with a stack saving handler */
+  printf("Redo last test with stack-saving handler\n");
+  gh_eval_str_with_stack_saving_handler ("(dosplay \"dude!\n\")");
+  printf("now we will display a backtrace of that error; this should work:\n");
+  gh_eval_str("(backtrace)");
 
   /* now define some new primitives in C */
   cf = gh_new_procedure1_0 ("c-factorial", c_factorial);
+  gh_display (cf);
+  gh_newline ();
   gh_new_procedure1_0 ("c-sin", c_sin);
   gh_new_procedure1_0 ("c-vector-test", c_vector_test);
 
@@ -211,7 +228,7 @@ c_vector_test (SCM s_length)
   unsigned long c_length;
 
   c_length = gh_scm2ulong (s_length);
-  printf ("VECTOR test -- requested length for vector: %ld", c_length);
+  printf ("VECTOR test (length for vector %ld)", c_length);
 
   /* create a vector filled witth 0.0 entries */
   xvec = gh_make_vector (s_length, gh_double2scm (0.0));

@@ -302,6 +302,11 @@ exists and behaves like (make-vector ...).  gh_vref() and gh_vset()
 have been renamed gh_vector_set() and gh_vector_ref().  Some missing
 vector-related gh_ functions have been implemented.
 
+** pair and list routines
+
+Implemented several of the R4RS pair and list functions that were
+missing.
+
 * Changes to the scm_ interface
 
 ** Function: SCM scm_internal_stack_catch (SCM tag,
