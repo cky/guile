@@ -61,7 +61,7 @@ make-stds.texi.
 GCC switches, which are the default in the current configure script:
     -Wall -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes
 The only exceptions are the warnings about variables being clobbered
-by setjmp/longjmp in eval.c.  (Tho' if you can figure out how to get
+by longjmp/vfork in eval.c.  (Tho' if you can figure out how to get
 rid of those, too, I'd be happy.)
 
 - When you make a user-visible change (i.e. one that should be
