@@ -209,3 +209,20 @@
 		     "no newline here")
       "He who receives an idea from me, receives instruction"
       15))))
+
+
+;;;; testing read-delimited and friends
+
+(with-test-prefix "read-delimited!"
+  (let ((c (make-string 20 #\!)))
+    (call-with-input-string 
+     "defdef\nghighi\n"
+     (lambda (port)
+       
+       (read-delimited! "\n" c port 'concat)
+       (pass-if "read-delimited! reads a first line"
+		(string=? c "defdef\n!!!!!!!!!!!!!"))
+
+       (read-delimited! "\n" c port 'concat 3)
+       (pass-if "read-delimited! reads a first line"
+		(string=? c "defghighi\n!!!!!!!!!!"))))))
