@@ -260,7 +260,7 @@ do {						\
 {						\
   if (bp->nrest)				\
     {						\
-      int n = nargs - bp->nargs - 1;		\
+      int n = nargs - (bp->nargs - 1);		\
       if (n < 0)				\
 	goto vm_error_wrong_num_args;		\
       POP_LIST (n);				\
