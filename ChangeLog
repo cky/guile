@@ -1,3 +1,8 @@
+1999-09-18  Gary Houston  <ghouston@freewire.co.uk>
+
+	* configure.in: use AC_SYS_RESTARTABLE_SYSCALLS instead of
+	testing for SA_RESTART.
+
 1999-09-12  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* configure.in: Removed ice-9/version.scm from AC_OUTPUT.

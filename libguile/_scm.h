@@ -83,7 +83,7 @@
    when installing signal handlers.
    */
 
-#ifdef HAVE_RESTARTS
+#ifdef HAVE_RESTARTABLE_SYSCALLS
 #define SCM_SYSCALL(line) line
 #endif
 

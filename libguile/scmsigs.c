@@ -441,7 +441,7 @@ scm_init_scmsigs ()
       orig_handlers[i] = SIG_ERR;
 #endif
 
-#ifdef HAVE_RESTARTS
+#ifdef HAVE_RESTARTABLE_SYSCALLS
       /* ensure that system calls will be restarted for all signals.  */
       /* sigintterupt would be simpler, but it seems better to avoid
 	 dependency on another system call.  */

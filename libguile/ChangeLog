@@ -1,5 +1,8 @@
 1999-09-18  Gary Houston  <ghouston@freewire.co.uk>
 
+	* _scm.h, scmsigs.c: replace HAVE_RESTARTS with
+	HAVE_RESTARTABLE_SYSCALLS.
+
 	* strports.c (scm_strport_to_string): create the string from
 	pt->read_buf instead of an expression that evaluates to the
 	same thing.

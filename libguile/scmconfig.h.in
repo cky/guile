@@ -30,6 +30,10 @@
 /* Define if you have <alloca.h> and it should be used (not on Ultrix).  */
 #undef HAVE_ALLOCA_H
 
+/* Define if system calls automatically restart after interruption
+   by a signal.  */
+#undef HAVE_RESTARTABLE_SYSCALLS
+
 /* Define if your struct stat has st_blksize.  */
 #undef HAVE_ST_BLKSIZE
 
@@ -139,9 +143,6 @@
 
 /* Define if dlsym automatically supplies a leading underscore. */
 #undef DLSYM_ADDS_USCORE
-
-/* Define if the operating system can restart system calls.  */
-#undef HAVE_RESTARTS
 
 /* Define if the system supports Unix-domain (file-domain) sockets.  */
 #undef HAVE_UNIX_DOMAIN_SOCKETS
