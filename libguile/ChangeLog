@@ -1,3 +1,20 @@
+1998-11-03  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* print.c (scm_iprin1): Removed suspect looking (and indeed
+	malevolent) semicolon after test for user supplied closure print
+	procedure.  (Thanks to Telford Tendys.)
+
+	* list.c (scm_sloppy_memq): Removed sloppy_mem_check.
+	(scm_memq, scm_memv, scm_member): Do argument checking *before*
+	starting to search the list.  Removed call to sloppy_mem_check.
+
+	* list.c, list.h (scm_delq1_x, scm_delv1_x, scm_delete1_x): New
+	procedures: Same as scm_delq_x et al, but delete maximally one
+	element.
+
+	* options.c (scm_options, scm_init_options): GC-protect option
+	values of type SCM.  (Thanks to Telford Tendys.)
+
 1998-11-01  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c: Don't #define scm_lookupcar to scm_lookupcar1.  Instead
