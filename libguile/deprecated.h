@@ -410,6 +410,35 @@ SCM_API char *scm_c_substring2str (SCM obj, char *str, size_t start, size_t len)
 SCM_API double scm_truncate (double x);
 SCM_API double scm_round (double x);
 
+/* Deprecated because we don't want people to access the internal
+   representation of strings directly.
+*/
+
+#define SCM_VALIDATE_STRING_COPY(pos, str, cvar) \
+  do { \
+    SCM_ASSERT (SCM_STRINGP (str), str, pos, FUNC_NAME); \
+    cvar = SCM_STRING_CHARS(str); \
+  } while (0)
+
+/* validate a string and optional start/end arguments which default to
+   0/string-len.  this is unrelated to the old shared substring
+   support, so please do not deprecate it :) */
+#define SCM_VALIDATE_SUBSTRING_SPEC_COPY(pos_str, str, c_str, \
+                                         pos_start, start, c_start,\
+                                         pos_end, end, c_end) \
+  do {\
+    SCM_VALIDATE_STRING_COPY (pos_str, str, c_str);\
+    c_start = SCM_UNBNDP(start)? 0 : scm_to_size_t (start);\
+    c_end = SCM_UNBNDP(end)? SCM_STRING_LENGTH(str) : scm_to_size_t (end);\
+    SCM_ASSERT_RANGE (pos_start, start,\
+                      0 <= c_start \
+                      && (size_t) c_start <= SCM_STRING_LENGTH (str));\
+    SCM_ASSERT_RANGE (pos_end, end,\
+		      c_start <= c_end \
+                      && (size_t) c_end <= SCM_STRING_LENGTH (str));\
+  } while (0)
+
+
 void scm_i_init_deprecated (void);
 
 #endif

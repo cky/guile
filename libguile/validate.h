@@ -152,31 +152,7 @@
     cvar = SCM_CHAR (scm); \
   } while (0)
 
-#define SCM_VALIDATE_STRING(pos, str) SCM_MAKE_VALIDATE_MSG (pos, str, STRINGP, "string")
-
-#define SCM_VALIDATE_STRING_COPY(pos, str, cvar) \
-  do { \
-    SCM_ASSERT (SCM_STRINGP (str), str, pos, FUNC_NAME); \
-    cvar = SCM_STRING_CHARS(str); \
-  } while (0)
-
-/* validate a string and optional start/end arguments which default to
-   0/string-len.  this is unrelated to the old shared substring
-   support, so please do not deprecate it :) */
-#define SCM_VALIDATE_SUBSTRING_SPEC_COPY(pos_str, str, c_str, \
-                                         pos_start, start, c_start,\
-                                         pos_end, end, c_end) \
-  do {\
-    SCM_VALIDATE_STRING_COPY (pos_str, str, c_str);\
-    c_start = SCM_UNBNDP(start)? 0 : scm_to_size_t (start);\
-    c_end = SCM_UNBNDP(end)? SCM_STRING_LENGTH(str) : scm_to_size_t (end);\
-    SCM_ASSERT_RANGE (pos_start, start,\
-                      0 <= c_start \
-                      && (size_t) c_start <= SCM_STRING_LENGTH (str));\
-    SCM_ASSERT_RANGE (pos_end, end,\
-		      c_start <= c_end \
-                      && (size_t) c_end <= SCM_STRING_LENGTH (str));\
-  } while (0)
+#define SCM_VALIDATE_STRING(pos, str) SCM_MAKE_VALIDATE_MSG (pos, str, I_STRINGP, "string")
 
 #define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE_MSG (pos, z, REALP, "real")
 
@@ -385,6 +361,7 @@
   do { \
     SCM_ASSERT (SCM_VECTORP (v) && len == SCM_VECTOR_LENGTH (v), v, pos, FUNC_NAME); \
   } while (0)
+
 
 #endif  /* SCM_VALIDATE_H */
 

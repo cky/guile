@@ -72,6 +72,9 @@ SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
 SCM_API char **scm_i_allocate_string_pointers (SCM list);
 SCM_API void scm_i_free_string_pointers (char **pointers);
+SCM_API void scm_i_get_substring_spec (size_t len,
+				       SCM start, size_t *cstart,
+				       SCM end, size_t *cend);
 
 SCM_API void scm_init_strings (void);
 

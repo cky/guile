@@ -453,6 +453,22 @@ scm_i_free_string_pointers (char **pointers)
 }
 
 void
+scm_i_get_substring_spec (size_t len,
+			  SCM start, size_t *cstart,
+			  SCM end, size_t *cend)
+{
+  if (SCM_UNBNDP (start))
+    *cstart = 0;
+  else
+    *cstart = scm_to_unsigned_integer (start, 0, len);
+
+  if (SCM_UNBNDP (end))
+    *cend = len;
+  else
+    *cend = scm_to_unsigned_integer (end, *cstart, len);
+}
+		  
+void
 scm_init_strings ()
 {
   scm_nullstr = scm_allocate_string (0);
