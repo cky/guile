@@ -44,6 +44,49 @@
 
 
 ;;
+;; concatenate and concatenate!
+;;
+
+(let ()	
+  (define (common-tests concatenate-proc unmodified?)
+    (define (try lstlst want)
+      (let ((lstlst-copy (copy-tree lstlst))
+	    (got         (concatenate-proc lstlst)))
+	(if unmodified?
+	    (if (not (equal? lstlst lstlst-copy))
+		(error "input lists modified")))
+	(equal? got want)))
+    
+    (pass-if-exception "too few args" exception:wrong-num-args
+      (concatenate-proc))
+    
+    (pass-if-exception "too many args" exception:wrong-num-args
+      (concatenate-proc '() '()))
+    
+    (pass-if "no lists"
+      (try '() '()))
+    
+    (pass-if (try '((1))       '(1)))
+    (pass-if (try '((1 2))     '(1 2)))
+    (pass-if (try '(() (1))    '(1)))
+    (pass-if (try '(() () (1)) '(1)))
+    
+    (pass-if (try '((1) (2)) '(1 2)))
+    (pass-if (try '(() (1 2)) '(1 2)))
+    
+    (pass-if (try '((1) 2)           '(1 . 2)))
+    (pass-if (try '((1) (2) 3)       '(1 2 . 3)))
+    (pass-if (try '((1) (2) (3 . 4)) '(1 2 3 . 4)))
+    )
+  
+  (with-test-prefix "concatenate"
+    (common-tests concatenate #t))
+  
+  (with-test-prefix "concatenate!"
+    (common-tests concatenate! #f)))
+
+
+;;
 ;; delete and delete!
 ;;
 
