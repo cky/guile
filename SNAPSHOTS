@@ -1,0 +1,28 @@
+FTP Snapshots ========================================================
+
+Each night, we make the current Guile sources available via anonymous
+FTP.  Please keep in mind that these sources are strictly
+experimental; they will usually not be well-tested, and may not even
+compile on some systems.  They may contain interfaces which will
+change.  They will usually not be of sufficient quality for use by
+people not comfortable hacking the innards of Guile.  Caveat!
+
+However, we're providing them anyway for several reasons.  We'd like
+to encourage people to get involved in developing Guile.  People
+willing to use the bleeding edge of development can get earlier access
+to new, experimental features.  Patches submitted relative to recent
+snapshots will be easier for us to evaluate and install, since the
+patch's original sources will be closer to what we're working with.
+And it allows us to start testing features earlier.
+
+Nightly snapshots of the Guile development sources are available via
+anonymous FTP from ftp.red-bean.com, as /pub/guile/guile-core-snap.tar.gz.
+
+Via the web, that's:  ftp://ftp.red-bean.com/pub/guile/guile-core-snap.tar.gz
+For getit, that's:    ftp.red-bean.com:/pub/guile/guile-core-snap.tar.gz
+
+The snapshot FTP site is mirrored at the following locations:
+  Austria:              ftp://ftp.aec.at/pub/guile
+  Japan:                ftp://ftp.jaist.ac.jp/pub/lang/scheme/guile
+
+

@@ -15,9 +15,6 @@ sources will be easier for us to evaluate and install, since the
 patch's original sources will be closer to what we're working with.
 And it allows us to start testing features earlier.
 
-Nightly FTP snapshots are no longer available.  It is more difficult
-than you might think to make them reliably.
-
 To check out a CVS working directory:
 
 1) Install CVS version 1.9 or later on your system.
