@@ -1,3 +1,47 @@
+2004-01-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-handle-client-input): Handle new `thread-status'
+	protocol.
+	(gds-display-slow-eval): New.
+	(gds-client-ref): Bugfix: buf -> (cdr buf).
+	(gds-display-buffers): Bugfix: minimum overlay end value is 1, not
+	0.
+	(gds-evals-in-progress): New.
+	(gds-results): New.
+	(gds-insert-interaction): Show evaluations in progress (with
+	button to interrupt them) and results of last help or evaluation.
+	(gds-interrupt-eval): New.
+	(gds-debug-trap-hooks, gds-up, gds-down): New.
+	(gds-eval-region, gds-eval-expression): Include abbreviated code
+	in eval correlator.
+	(gds-abbreviated-length, gds-abbreviated): New.
+	(gds-mode-map): New keys for gds-debug-trap-hooks, gds-up,
+	gds-down.
+	(gds-debug-menu): New menu entries for gds-up, gds-down.
+	
+	* gds-client.scm (gds-connect): Enable trapping for gds-eval
+	stacks.
+	(ui-read-thread-proc): Write 'running status earlier.
+	(stack->emacs-readable): Limit stack length to 'depth debug
+	option.
+	(handle-instruction): Update format of eval correlator.
+	(handle-instruction-1): Resolve module names from root module
+	instead of from current module.
+	(resolve-module-from-root): New.
+	(handle-instruction-1): New protocol `interrupt-eval'.
+	(eval-thread-table): New.
+	(eval-thread): Add thread to eval-thread-table; write new protocol
+	to frontend to communicate eval thread status; update for new
+	correlator format; bind correlator local before entering loop2.
+	(gds-eval): Use start-stack 'gds-eval-stack to rebase stack.
+	
+	* gds.el (gds-start, gds-start-captive): Do
+	`process-kill-without-query' as soon as processes started, ...
+	(gds-shutdown, gds-kill-captive): ... instead of here.
+	(gds-display-results): More clearly show unspecified results; show
+	results in interaction view instead of in separate window.
+	(gds-send): Add sent protocol to transcript.
+
 2004-01-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds.el (gds-request-focus, gds-quit): Simplify.  Old algorithm

@@ -23,6 +23,7 @@
   #:use-module (ice-9 debugger breakpoints procedural)
   #:use-module (ice-9 debugger breakpoints source)
   #:use-module (ice-9 debugger state)
+  #:use-module (ice-9 debugger trap-hooks)
   #:use-module (ice-9 debugger utils)
   #:use-module (ice-9 optargs)
   #:use-module (ice-9 regex)
@@ -101,6 +102,7 @@ decimal IP address where the UI server is running; default is
 			"w"))
   ;; Announce ourselves to the server.
   (write-form (list 'name name (getpid)))
+  (add-trapped-stack-id! 'gds-eval-stack)
   ;; Start the UI read thread.
   (set! ui-read-thread (make-thread ui-read-thread-proc)))
 
@@ -124,6 +126,7 @@ decimal IP address where the UI server is running; default is
 ;; this purpose.  This design avoids having to modify application code
 ;; at the expense of requiring a Guile with threads support.
 (define (ui-read-thread-proc)
+  (write-status 'running)
   (let ((eval-thread-needed? #t))
     ;; Start up the default eval thread.
     (make-thread eval-thread 1 (lambda () (not eval-thread-needed?)))
@@ -269,7 +272,8 @@ decimal IP address where the UI server is running; default is
   ;; Return Emacs-readable representation of STACK.
   (map (lambda (index)
 	 (frame->emacs-readable (stack-ref stack index)))
-       (iota (stack-length stack))))
+       (iota (min (stack-length stack)
+		  (cadr (memq 'depth (debug-options)))))))
 
 (define (frame->emacs-readable frame)
   ;; Return Emacs-readable representation of FRAME.
@@ -336,7 +340,7 @@ decimal IP address where the UI server is running; default is
 		  (apply throw key args))
 		 (else
 		  (write-form
-		   `(eval-results error
+		   `(eval-results (error . "")
 				  "GDS Internal Error\n"
 				  ,(list (with-output-to-string
 					  (lambda ()
@@ -373,7 +377,7 @@ decimal IP address where the UI server is running; default is
 			    ,(or (loaded-module-source name) "(no source file)")
 			    ,@(sort (module-map (lambda (key value)
 						  (symbol->string key))
-						(resolve-module name))
+						(resolve-module-from-root name))
 				    string<?))))
      state)
     ((debugger-command)
@@ -397,7 +401,7 @@ decimal IP address where the UI server is running; default is
 			   (display (cadddr ins))
 			   (display "' behaviour; doing `debug-here' instead.\n")
 			   (debug-here))))
-		      (module-ref (resolve-module (cadr ins)) (caddr ins)))
+		      (module-ref (resolve-module-from-root (cadr ins)) (caddr ins)))
      state)
     ((eval)
      (apply (lambda (correlator module port-name line column bpinfo code)
@@ -406,7 +410,7 @@ decimal IP address where the UI server is running; default is
 		  (set-port-filename! (current-input-port) port-name)
 		  (set-port-line! (current-input-port) line)
 		  (set-port-column! (current-input-port) column)
-		  (let ((m (and module (resolve-module module))))
+		  (let ((m (and module (resolve-module-from-root module))))
 		    (let loop ((exprs '()) (x (read)))
 		      (if (eof-object? x)
 			  ;; Expressions to be evaluated have all been
@@ -468,10 +472,22 @@ decimal IP address where the UI server is running; default is
 			    (debug-stack (make-stack #t 3) #:continuable))
 			  thread))
      state)
+    ((interrupt-eval)
+     (let ((thread (hash-ref eval-thread-table (cadr ins))))
+       (system-async-mark (lambda ()
+			    (debug-stack (make-stack #t 3) #:continuable))
+			  thread))
+     state)
     (else state)))
 
 (define the-ice-9-debugger-commands-module
   (resolve-module '(ice-9 debugger commands)))
+
+(define (resolve-module-from-root name)
+  (save-module-excursion
+   (lambda ()
+     (set-current-module the-root-module)
+     (resolve-module name))))
 
 
 ;;;; {Module Browsing}
@@ -565,12 +581,19 @@ decimal IP address where the UI server is running; default is
       (set! count (+ count 1))
       count)))
 
+(define eval-thread-table (make-hash-table 3))
+
 (define (eval-thread depth thread-should-exit-thunk)
   ;; Acquire mutex to check trigger variables.
   (with-mutex eval-work-mutex
     (let ((thread-number (next-thread-number)))
+      ;; Add this thread to global hash, so we can correlate back to
+      ;; this thread from the ID used by the GDS front end.
+      (hash-set! eval-thread-table thread-number (current-thread))
       (trc 'eval-thread depth thread-number "entering loop")
       (let loop ()
+	;; Tell the front end this thread is ready.
+	(write-form `(thread-status eval ,thread-number ready))
 	(cond ((thread-should-exit-thunk)
 	       ;; Allow thread to exit.
 	       )
@@ -579,8 +602,11 @@ decimal IP address where the UI server is running; default is
 	       ;; Take a local copy of the work, reset global
 	       ;; variables, then do the work with mutex released.
 	       (trc 'eval-thread depth thread-number "starting work")
-	       (let ((work eval-work)
-		     (subthread-needed? #t))
+	       (let* ((work eval-work)
+		      (subthread-needed? #t)
+		      (correlator (car work)))
+		 ;; Tell the front end this thread is busy.
+		 (write-form `(thread-status eval ,thread-number busy ,correlator))
 		 (set! eval-work-available #f)
 		 (signal-condition-variable eval-work-taken)
 		 (without-mutex eval-work-mutex
@@ -591,14 +617,12 @@ decimal IP address where the UI server is running; default is
 		   (make-thread eval-thread (+ depth 1)
 				(lambda () (not subthread-needed?)))
 		   ;; Do the evaluation(s).
-		   (let loop2 ((correlator (car work))
-			       (m (cadr work))
+		   (let loop2 ((m (cadr work))
 			       (exprs (cddr work))
 			       (results '()))
 		     (if (null? exprs)
 			 (write-form `(eval-results ,correlator ,@results))
-			 (loop2 correlator
-				m
+			 (loop2 m
 				(cdr exprs)
 				(append results (gds-eval (car exprs) m))))))
 		 (trc 'eval-thread depth thread-number "work done")
@@ -615,7 +639,9 @@ decimal IP address where the UI server is running; default is
 	       (wait-condition-variable eval-work-changed eval-work-mutex)
 	       (trc 'eval-thread depth thread-number "wait done")
 	       (loop))))
-      (trc 'eval-thread depth thread-number "exiting"))))
+      (trc 'eval-thread depth thread-number "exiting")
+      ;; Tell the front end this thread is ready.
+      (write-form `(thread-status eval ,thread-number exiting)))))
 
 (define (gds-eval x m)
   ;; Consumer to accept possibly multiple values and present them for
@@ -635,7 +661,8 @@ decimal IP address where the UI server is running; default is
 			  (newline)
 			  (set! value
 				(call-with-values (lambda ()
-						    (eval x m))
+						    (start-stack 'gds-eval-stack
+								 (eval x m)))
 				  value-consumer)))
 			(lambda ()
 			  (display "Evaluating in current module ")
@@ -643,7 +670,8 @@ decimal IP address where the UI server is running; default is
 			  (newline)
 			  (set! value
 				(call-with-values (lambda ()
-						    (primitive-eval x))
+						    (start-stack 'gds-eval-stack
+								 (primitive-eval x)))
 				  value-consumer)))))
 	   (output
 	    (with-output-to-string

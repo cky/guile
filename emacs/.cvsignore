@@ -1,2 +1,6 @@
 Makefile
 Makefile.in
+version.texi
+*.info
+stamp-vti
+mdate-sh

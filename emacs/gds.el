@@ -61,7 +61,8 @@
   (setq gds-read-cursor (point-min))
   (set-process-filter gds-process (function gds-filter))
   (set-process-sentinel gds-process (function gds-sentinel))
-  (set-process-coding-system gds-process 'latin-1-unix))
+  (set-process-coding-system gds-process 'latin-1-unix)
+  (process-kill-without-query gds-process))
 
 ;; Shutdown the subprocess and cleanup all associated data.
 (defun gds-shutdown ()
@@ -70,7 +71,6 @@
   ;; Reset variables.
   (setq gds-buffers nil)
   ;; Kill the subprocess.
-  (process-kill-without-query gds-process)
   (condition-case nil
       (progn
 	(kill-process gds-process)
@@ -104,7 +104,13 @@
 
 ;; Send input to the subprocess.
 (defun gds-send (string client)
-  (process-send-string gds-process (format "(%S %s)\n" client string)))
+  (process-send-string gds-process (format "(%S %s)\n" client string))
+  (let ((buf (gds-client-ref 'gds-transcript)))
+    (if buf
+	(with-current-buffer buf
+	  (goto-char (point-max))
+	  (let ((inhibit-read-only t))
+	    (insert (format "tx (%S %s)\n" client string)))))))
 
 
 ;;;; Focussing in and out on interaction with a particular client.
@@ -314,7 +320,37 @@ The function is called with one argument, the CLIENT in question."
 			   (setq os nil))
 		       (setq os (cdr os)))))))))
 
+	  (;; (thread-status THREAD-TYPE THREAD-NUMBER STATUS [CORRELATOR])
+	   (eq proc 'thread-status)
+	   (if (eq (car args) 'eval)
+	       (let ((number (nth 1 args))
+		     (status (nth 2 args))
+		     (correlator (nth 3 args)))
+		 (if (eq status 'busy)
+		     (progn
+		       (setq gds-evals-in-progress
+			     (append gds-evals-in-progress
+				     (list (cons number correlator))))
+		       (run-at-time 0.5 nil
+				    (function gds-display-slow-eval)
+				    buf number correlator)
+		       (gds-promote-view 'interaction))
+		   (let ((existing (assq number gds-evals-in-progress)))
+		     (if existing
+			 (setq gds-evals-in-progress
+			       (delq existing gds-evals-in-progress)))))
+		 (gds-update-buffers))))
+
 	  )))
+
+(defun gds-display-slow-eval (buf number correlator)
+  (with-current-buffer buf
+    (let ((entry (assq number gds-evals-in-progress)))
+      (if (and entry
+	       (eq (cdr entry) correlator))
+	  (progn
+	    (gds-promote-view 'interaction)
+	    (gds-request-focus gds-client))))))
 
 
 ;;;; Per-client buffer state.
@@ -379,7 +415,7 @@ The function is called with one argument, the CLIENT in question."
 	 (and buf
 	      (cdr buf)
 	      (buffer-live-p (cdr buf))
-	      (with-current-buffer buf
+	      (with-current-buffer (cdr buf)
 		(symbol-value sym))))))
 
 (defun gds-client-blocked ()
@@ -439,7 +475,7 @@ The function is called with one argument, the CLIENT in question."
     ;; If there is an associated source buffer, display it as well.
     (if (and (eq (car gds-views) 'stack)
 	     gds-frame-source-overlay
-	     (> (overlay-end gds-frame-source-overlay) 0))
+	     (> (overlay-end gds-frame-source-overlay) 1))
 	(let ((window (display-buffer
 		       (overlay-buffer gds-frame-source-overlay))))
 	  (set-window-point window
@@ -505,6 +541,14 @@ the following symbols.
   "The exception keys for which to debug a GDS client.")
 (make-variable-buffer-local 'gds-exception-keys)
 
+(defvar gds-evals-in-progress nil
+  "Alist describing evaluations in progress.")
+(make-variable-buffer-local 'gds-evals-in-progress)
+
+(defvar gds-results nil
+  "Last help or evaluation results.")
+(make-variable-buffer-local 'gds-results)
+
 (defun gds-insert-interaction ()
   (erase-buffer)
   ;; Insert stuff for interacting with a running (non-blocked) Guile
@@ -534,7 +578,18 @@ the following symbols.
   (widget-create 'editable-field
 		 :notify (function gds-set-exception-keys)
 		 gds-exception-keys)
-  (widget-insert "\n"))
+  (let ((evals gds-evals-in-progress))
+    (if evals
+	(widget-insert "\nEvaluations in progress:\n"))
+    (while evals
+      (let ((w (widget-create 'push-button
+			      :notify (function gds-interrupt-eval)
+			      "Interrupt")))
+	(widget-put w :thread-number (caar evals))
+	(widget-insert " " (cddar evals) "\n"))
+      (setq evals (cdr evals))))
+  (if gds-results
+      (widget-insert "\n" (cdr gds-results))))
 
 (defun gds-sigint (w &rest ignore)
   (interactive)
@@ -543,6 +598,11 @@ the following symbols.
 (defun gds-async-break (w &rest ignore)
   (interactive)
   (gds-send "async-break" gds-client))
+
+(defun gds-interrupt-eval (w &rest ignore)
+  (interactive)
+  (gds-send (format "interrupt-eval %S" (widget-get w :thread-number))
+	    gds-client))
 
 (defun gds-toggle-debug-exceptions (w &rest ignore)
   (interactive)
@@ -814,6 +874,18 @@ are not readable by Emacs.")
 (defun gds-frame-args ()
   (interactive)
   (gds-send "debugger-command info-args" gds-client))
+
+(defun gds-debug-trap-hooks ()
+  (interactive)
+  (gds-send "debugger-command debug-trap-hooks" gds-client))
+
+(defun gds-up ()
+  (interactive)
+  (gds-send "debugger-command up 1" gds-client))
+
+(defun gds-down ()
+  (interactive)
+  (gds-send "debugger-command down 1" gds-client))
 
 
 ;;;; Setting breakpoints.
@@ -1107,25 +1179,44 @@ region's code."
       (setq column (current-column))	; 0-based
       (beginning-of-line)
       (setq line (count-lines (point-min) (point)))) ; 0-based
-    (gds-send (format "eval region %s %S %d %d %s %S"
-		      (if module (prin1-to-string module) "#f")
-		      port-name line column
-		      (let ((bpinfo (gds-region-breakpoint-info start end)))
-			;; Make sure that "no bpinfo" is represented
-			;; as "()", not "nil", as Scheme doesn't
-			;; understand "nil".
-			(if bpinfo (format "%S" bpinfo) "()"))
-		      (buffer-substring-no-properties start end))
-	      client)))
+    (let ((code (buffer-substring-no-properties start end)))
+      (gds-send (format "eval (region . %S) %s %S %d %d %s %S"
+			(gds-abbreviated code)
+			(if module (prin1-to-string module) "#f")
+			port-name line column
+			(let ((bpinfo (gds-region-breakpoint-info start end)))
+			  ;; Make sure that "no bpinfo" is represented
+			  ;; as "()", not "nil", as Scheme doesn't
+			  ;; understand "nil".
+			  (if bpinfo (format "%S" bpinfo) "()"))
+			code)
+		client))))
 
 (defun gds-eval-expression (expr &optional client correlator)
   "Evaluate the supplied EXPR (a string)."
   (interactive "sEvaluate expression: \nP")
   (setq client (gds-choose-client client))
-  (gds-send (format "eval %S #f \"Emacs expression\" 0 0 () %S"
+  (gds-send (format "eval (%S . %S) #f \"Emacs expression\" 0 0 () %S"
 		    (or correlator 'expression)
+		    (gds-abbreviated expr)
 		    expr)
 	    client))
+
+(defconst gds-abbreviated-length 35)
+
+(defun gds-abbreviated (code)
+  (let ((nlpos (string-match (regexp-quote "\n") code)))
+    (while nlpos
+      (setq code
+	    (if (= nlpos (- (length code) 1))
+		(substring code 0 nlpos)
+	      (concat (substring code 0 nlpos)
+		      "\\n"
+		      (substring code (+ nlpos 1)))))
+      (setq nlpos (string-match (regexp-quote "\n") code))))
+  (if (> (length code) gds-abbreviated-length)
+      (concat (substring code 0 (- gds-abbreviated-length 3)) "...")
+    code))
 
 (defun gds-eval-defun (&optional client)
   "Evaluate the defun (top-level form) at point."
@@ -1219,29 +1310,38 @@ interesting happened, `nil' if not."
 ;;;; Display of evaluation and help results.
 
 (defun gds-display-results (client correlator results)
-  (let ((helpp (eq correlator 'help)))
+  (let ((helpp (eq (car correlator) 'help)))
     (let ((buf (get-buffer-create (if helpp
 				      "*Guile Help*"
 				    "*Guile Results*"))))
-      (save-excursion
-	(set-buffer buf)
-	(erase-buffer)
-	(scheme-mode)
-	(while results
-	  (insert (car results))
-	  (if helpp
-	      nil
-	    (mapcar (function (lambda (value)
-				(insert " => " value "\n")))
-		    (cadr results))
-	    (insert "\n"))
-	  (setq results (cddr results)))
-	(goto-char (point-min))
-	(if (and helpp (looking-at "Evaluating in "))
-	    (delete-region (point) (progn (forward-line 1) (point)))))
-      (pop-to-buffer buf)
-      (run-hooks 'temp-buffer-show-hook)
-      (other-window 1))))
+      (setq gds-results
+	    (save-excursion
+	      (set-buffer buf)
+	      (erase-buffer)
+	      (scheme-mode)
+	      (insert (cdr correlator) "\n\n")
+	      (while results
+		(insert (car results))
+		(or (bolp) (insert "\\\n"))
+		(if helpp
+		    nil
+		  (if (cadr results)
+		      (mapcar (function (lambda (value)
+					  (insert " => " value "\n")))
+			      (cadr results))
+		    (insert " => no (or unspecified) value\n"))
+		  (insert "\n"))
+		(setq results (cddr results)))
+	      (goto-char (point-min))
+	      (if (and helpp (looking-at "Evaluating in "))
+		  (delete-region (point) (progn (forward-line 1) (point))))
+	      (cons correlator (buffer-string))))
+      ;;(pop-to-buffer buf)
+      ;;(run-hooks 'temp-buffer-show-hook)
+      ;;(other-window 1)
+      ))
+  (gds-promote-view 'interaction)
+  (gds-request-focus client))
 
 
 ;;;; Loading (evaluating) a whole Scheme file.
@@ -1301,7 +1401,9 @@ Used for determining the default for the next `gds-load-file'.")
 (define-key gds-mode-map "t" (function gds-trace-finish))
 (define-key gds-mode-map "I" (function gds-frame-info))
 (define-key gds-mode-map "A" (function gds-frame-args))
-
+(define-key gds-mode-map "H" (function gds-debug-trap-hooks))
+(define-key gds-mode-map "u" (function gds-up))
+(define-key gds-mode-map "d" (function gds-down))
 (define-key gds-mode-map "b" (function gds-set-breakpoint))
 
 (define-key gds-mode-map "vi" (function gds-view-interaction))
@@ -1338,6 +1440,10 @@ Used for determining the default for the next `gds-load-file'.")
   (setq gds-debug-menu (make-sparse-keymap "Debug"))
   (define-key gds-debug-menu [go]
     '(menu-item "Go" gds-go))
+  (define-key gds-debug-menu [down]
+    '(menu-item "Move Down 1 Frame" gds-down))
+  (define-key gds-debug-menu [up]
+    '(menu-item "Move Up 1 Frame" gds-up))
   (define-key gds-debug-menu [trace-finish]
     '(menu-item "Trace This Frame" gds-trace-finish))
   (define-key gds-debug-menu [step-out]
@@ -1464,6 +1570,7 @@ Used for determining the default for the next `gds-load-file'.")
 				     nil
 				     "-q")))
     (let ((proc (get-buffer-process gds-captive)))
+      (process-kill-without-query proc)
       (comint-send-string proc "(set! %load-path (cons \"/home/neil/Guile/cvs/guile-core\" %load-path))\n")
       (comint-send-string proc "(debug-enable 'backtrace)\n")
       (comint-send-string proc "(use-modules (emacs gds-client))\n")
@@ -1471,13 +1578,11 @@ Used for determining the default for the next `gds-load-file'.")
 
 (defun gds-kill-captive ()
   (if gds-captive
-      (let ((proc (get-buffer-process gds-captive)))
-	(process-kill-without-query proc)
-	(condition-case nil
-	    (progn
-	      (kill-process proc)
-	      (accept-process-output gds-process 0 200))
-	  (error)))))
+      (condition-case nil
+	  (progn
+	    (kill-process (get-buffer-process gds-captive))
+	    (accept-process-output gds-process 0 200))
+	(error))))
 
 
 ;;;; The end!
