@@ -559,7 +559,7 @@ unmemoize_expression (const SCM expr, const SCM env)
       const SCM sym = scm_module_reverse_lookup (scm_env_module (env), expr);
       return scm_is_true (sym) ? sym : sym_three_question_marks;
     }
-  else if (SCM_VECTORP (expr))
+  else if (scm_is_simple_vector (expr))
     {
       return scm_list_2 (scm_sym_quote, expr);
     }
@@ -1879,16 +1879,8 @@ iqq (SCM form, SCM env, unsigned long int depth)
 	return scm_cons (iqq (SCM_CAR (form), env, depth),
 			 iqq (SCM_CDR (form), env, depth));
     }
-  else if (SCM_VECTORP (form))
-    {
-      size_t i = SCM_VECTOR_LENGTH (form);
-      SCM const *const data = SCM_VELTS (form);
-      SCM tmp = SCM_EOL;
-      while (i != 0)
-	tmp = scm_cons (data[--i], tmp);
-      scm_remember_upto_here_1 (form);
-      return scm_vector (iqq (tmp, env, depth));
-    }
+  else if (scm_is_vector (form))
+    return scm_vector (iqq (scm_vector_to_list (form), env, depth));
   else
     return form;
 }
@@ -3755,7 +3747,7 @@ dispatch:
 	       * complicated one, and a simple one.  For the complicated one
 	       * explained below, tmp holds a number that is used in the
 	       * computation.  */
-	      if (SCM_VECTORP (tmp))
+	      if (scm_is_simple_vector (tmp))
 		{
 		  /* This method of determining the hash value is much
 		   * simpler:  Set the hash value to zero and just perform a
@@ -3763,7 +3755,7 @@ dispatch:
 		  method_cache = tmp;
 		  mask = (unsigned long int) ((long) -1);
 		  hash_value = 0;
-		  cache_end_pos = SCM_VECTOR_LENGTH (method_cache);
+		  cache_end_pos = SCM_SIMPLE_VECTOR_LENGTH (method_cache);
 		}
 	      else
 		{
@@ -3814,7 +3806,7 @@ dispatch:
 	      do
 		{
 		  SCM args = arg1; /* list of arguments */
-		  z = SCM_VELTS (method_cache)[hash_value];
+		  z = SCM_SIMPLE_VECTOR_REF (method_cache, hash_value);
 		  while (!scm_is_null (args))
 		    {
 		      /* More arguments than specifiers => CLASS != ENV */
@@ -5393,26 +5385,24 @@ check_map_args (SCM argv,
 		SCM args,
 		const char *who)
 {
-  SCM const *ve = SCM_VELTS (argv);
   long i;
 
-  for (i = SCM_VECTOR_LENGTH (argv) - 1; i >= 1; i--)
+  for (i = SCM_SIMPLE_VECTOR_LENGTH (argv) - 1; i >= 1; i--)
     {
-      long elt_len = scm_ilength (ve[i]);
+      SCM elt = SCM_SIMPLE_VECTOR_REF (argv, i);
+      long elt_len = scm_ilength (elt);
 
       if (elt_len < 0)
 	{
 	  if (gf)
 	    scm_apply_generic (gf, scm_cons (proc, args));
 	  else
-	    scm_wrong_type_arg (who, i + 2, ve[i]);
+	    scm_wrong_type_arg (who, i + 2, elt);
 	}
 
       if (elt_len != len)
-	scm_out_of_range_pos (who, ve[i], scm_from_long (i + 2));
+	scm_out_of_range_pos (who, elt, scm_from_long (i + 2));
     }
-
-  scm_remember_upto_here_1 (argv);
 }
 
 
@@ -5432,7 +5422,6 @@ scm_map (SCM proc, SCM arg1, SCM args)
   long i, len;
   SCM res = SCM_EOL;
   SCM *pres = &res;
-  SCM const *ve = &args;		/* Keep args from being optimized away. */
 
   len = scm_ilength (arg1);
   SCM_GASSERTn (len >= 0,
@@ -5472,17 +5461,17 @@ scm_map (SCM proc, SCM arg1, SCM args)
     }
   arg1 = scm_cons (arg1, args);
   args = scm_vector (arg1);
-  ve = SCM_VELTS (args);
   check_map_args (args, len, g_map, proc, arg1, s_map);
   while (1)
     {
       arg1 = SCM_EOL;
-      for (i = SCM_VECTOR_LENGTH (args) - 1; i >= 0; i--)
+      for (i = SCM_SIMPLE_VECTOR_LENGTH (args) - 1; i >= 0; i--)
 	{
-	  if (SCM_IMP (ve[i])) 
+	  SCM elt = SCM_SIMPLE_VECTOR_REF (args, i);
+	  if (SCM_IMP (elt)) 
 	    return res;
-	  arg1 = scm_cons (SCM_CAR (ve[i]), arg1);
-	  SCM_VECTOR_SET (args, i, SCM_CDR (ve[i]));
+	  arg1 = scm_cons (SCM_CAR (elt), arg1);
+	  SCM_SIMPLE_VECTOR_SET (args, i, SCM_CDR (elt));
 	}
       *pres = scm_list_1 (scm_apply (proc, arg1, SCM_EOL));
       pres = SCM_CDRLOC (*pres);
@@ -5497,7 +5486,6 @@ SCM
 scm_for_each (SCM proc, SCM arg1, SCM args)
 #define FUNC_NAME s_for_each
 {
-  SCM const *ve = &args;		/* Keep args from being optimized away. */
   long i, len;
   len = scm_ilength (arg1);
   SCM_GASSERTn (len >= 0, g_for_each, scm_cons2 (proc, arg1, args),
@@ -5535,17 +5523,17 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
     }
   arg1 = scm_cons (arg1, args);
   args = scm_vector (arg1);
-  ve = SCM_VELTS (args);
   check_map_args (args, len, g_for_each, proc, arg1, s_for_each);
   while (1)
     {
       arg1 = SCM_EOL;
-      for (i = SCM_VECTOR_LENGTH (args) - 1; i >= 0; i--)
+      for (i = SCM_SIMPLE_VECTOR_LENGTH (args) - 1; i >= 0; i--)
 	{
-	  if (SCM_IMP (ve[i]))
+	  SCM elt = SCM_SIMPLE_VECTOR_REF (args, i);
+	  if (SCM_IMP (elt))
 	    return SCM_UNSPECIFIED;
-	  arg1 = scm_cons (SCM_CAR (ve[i]), arg1);
-	  SCM_VECTOR_SET (args, i, SCM_CDR (ve[i]));
+	  arg1 = scm_cons (SCM_CAR (elt), arg1);
+	  SCM_SIMPLE_VECTOR_SET (args, i, SCM_CDR (elt));
 	}
       scm_apply (proc, arg1, SCM_EOL);
     }
@@ -5683,7 +5671,7 @@ copy_tree (
   struct t_trace *tortoise,
   unsigned int tortoise_delay )
 {
-  if (!scm_is_pair (hare->obj) && !SCM_VECTORP (hare->obj))
+  if (!scm_is_pair (hare->obj) && !scm_is_simple_vector (hare->obj))
     {
       return hare->obj;
     }
@@ -5711,10 +5699,10 @@ copy_tree (
           --tortoise_delay;
         }
 
-      if (SCM_VECTORP (hare->obj))
+      if (scm_is_simple_vector (hare->obj))
         {
-          const unsigned long int length = SCM_VECTOR_LENGTH (hare->obj);
-          const SCM new_vector = scm_c_make_vector (length, SCM_UNSPECIFIED);
+          size_t length = SCM_SIMPLE_VECTOR_LENGTH (hare->obj);
+          SCM new_vector = scm_c_make_vector (length, SCM_UNSPECIFIED);
 
           /* Each vector element is copied by recursing into copy_tree, having
            * the tortoise follow the hare into the depths of the stack.  */
@@ -5722,9 +5710,9 @@ copy_tree (
           for (i = 0; i < length; ++i)
             {
               SCM new_element;
-              new_hare.obj = SCM_VECTOR_REF (hare->obj, i);
+              new_hare.obj = SCM_SIMPLE_VECTOR_REF (hare->obj, i);
               new_element = copy_tree (&new_hare, tortoise, tortoise_delay);
-              SCM_VECTOR_SET (new_vector, i, new_element);
+              SCM_SIMPLE_VECTOR_SET (new_vector, i, new_element);
             }
 
           return new_vector;

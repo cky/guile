@@ -106,7 +106,7 @@ gh_ints2scm (const int *d, long n)
   long i;
   SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
   for (i = 0; i < n; ++i)
-    SCM_VECTOR_SET (v, i, scm_from_int (d[i]));
+    SCM_SIMPLE_VECTOR_SET (v, i, scm_from_int (d[i]));
 
   return v;
 }
@@ -118,7 +118,7 @@ gh_doubles2scm (const double *d, long n)
   SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
 
   for(i = 0; i < n; i++) 
-    SCM_VECTOR_SET (v, i, scm_from_double (d[i]));
+    SCM_SIMPLE_VECTOR_SET (v, i, scm_from_double (d[i]));
   return v;
 }
 
@@ -224,10 +224,10 @@ gh_scm2chars (SCM obj, char *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_VECTOR_LENGTH (obj);
+      n = SCM_SIMPLE_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
-	  val = SCM_VELTS (obj)[i];
+	  val = SCM_SIMPLE_VECTOR_REF (obj, i);
 	  if (SCM_I_INUMP (val))
 	    {
 	      v = SCM_I_INUM (val);
@@ -242,24 +242,29 @@ gh_scm2chars (SCM obj, char *m)
       if (m == NULL)
 	return NULL;
       for (i = 0; i < n; ++i)
-	m[i] = SCM_I_INUM (SCM_VELTS (obj)[i]);
+	m[i] = SCM_I_INUM (SCM_SIMPLE_VECTOR_REF (obj, i));
       break;
-#if SCM_HAVE_ARRAYS
     case scm_tc7_smob:
       if (scm_is_true (scm_s8vector_p (obj)))
 	{
-	  n = scm_to_long (scm_s8vector_length (obj));
+	  scm_t_array_handle handle;
+	  size_t len;
+	  ssize_t inc;
+	  const scm_t_int8 *elts;
+
+	  elts = scm_s8vector_elements (obj, &handle, &len, &inc);
+	  if (inc != 1)
+	    scm_misc_error (NULL, "only contiguous vectors are supported: ~a",
+			    scm_list_1 (obj));
 	  if (m == 0)
-	    m = (char *) malloc (n * sizeof (char));
+	    m = (char *) malloc (len);
 	  if (m == NULL)
 	    return NULL;
-	  memcpy (m, scm_s8vector_elements (obj), n * sizeof (char));
-	  scm_remember_upto_here_1 (obj);
+	  memcpy (m, elts, len);
 	  break;
 	}
       else
 	goto wrong_type;
-#endif
     case scm_tc7_string:
       n = scm_i_string_length (obj);
       if (m == 0)
@@ -278,13 +283,22 @@ gh_scm2chars (SCM obj, char *m)
 static void *
 scm2whatever (SCM obj, void *m, size_t size)
 {
-  size_t n = scm_c_uniform_vector_length (obj);
+  scm_t_array_handle handle;
+  size_t len;
+  ssize_t inc;
+  const void *elts;
+
+  elts = scm_uniform_vector_elements (obj, &handle, &len, &inc);
+
+  if (inc != 1)
+    scm_misc_error (NULL, "only contiguous vectors can be converted: ~a",
+		    scm_list_1 (obj));
+
   if (m == 0)
-    m = malloc (n * sizeof (size));
+    m = malloc (len * sizeof (size));
   if (m == NULL)
     return NULL;
-  memcpy (m, scm_uniform_vector_elements (obj), n * size);
-  scm_uniform_vector_release_elements (obj);
+  memcpy (m, elts, len * size);
   return m;
 }
 
@@ -313,10 +327,10 @@ gh_scm2shorts (SCM obj, short *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_VECTOR_LENGTH (obj);
+      n = SCM_SIMPLE_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
-	  val = SCM_VELTS (obj)[i];
+	  val = SCM_SIMPLE_VECTOR_REF (obj, i);
 	  if (SCM_I_INUMP (val))
 	    {
 	      v = SCM_I_INUM (val);
@@ -331,7 +345,7 @@ gh_scm2shorts (SCM obj, short *m)
       if (m == NULL)
 	return NULL;
       for (i = 0; i < n; ++i)
-	m[i] = SCM_I_INUM (SCM_VELTS (obj)[i]);
+	m[i] = SCM_I_INUM (SCM_SIMPLE_VECTOR_REF (obj, i));
       break;
     default:
       scm_wrong_type_arg (0, 0, obj);
@@ -356,10 +370,10 @@ gh_scm2longs (SCM obj, long *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_VECTOR_LENGTH (obj);
+      n = SCM_SIMPLE_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
-	  val = SCM_VELTS (obj)[i];
+	  val = SCM_SIMPLE_VECTOR_REF (obj, i);
 	  if (!SCM_I_INUMP (val) && !SCM_BIGP (val))
 	    scm_wrong_type_arg (0, 0, obj);
 	}
@@ -369,7 +383,7 @@ gh_scm2longs (SCM obj, long *m)
 	return NULL;
       for (i = 0; i < n; ++i)
 	{
-	  val = SCM_VELTS (obj)[i];
+	  val = SCM_SIMPLE_VECTOR_REF (obj, i);
 	  m[i] = SCM_I_INUMP (val) 
 	    ? SCM_I_INUM (val) 
 	    : scm_to_long (val);
@@ -400,10 +414,10 @@ gh_scm2floats (SCM obj, float *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_VECTOR_LENGTH (obj);
+      n = SCM_SIMPLE_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
-	  val = SCM_VELTS (obj)[i];
+	  val = SCM_SIMPLE_VECTOR_REF (obj, i);
 	  if (!SCM_I_INUMP (val)
 	      && !(SCM_BIGP (val) || SCM_REALP (val)))
 	    scm_wrong_type_arg (0, 0, val);
@@ -414,7 +428,7 @@ gh_scm2floats (SCM obj, float *m)
 	return NULL;
       for (i = 0; i < n; ++i)
 	{
-	  val = SCM_VELTS (obj)[i];
+	  val = SCM_SIMPLE_VECTOR_REF (obj, i);
 	  if (SCM_I_INUMP (val))
 	    m[i] = SCM_I_INUM (val);
 	  else if (SCM_BIGP (val))
@@ -448,10 +462,10 @@ gh_scm2doubles (SCM obj, double *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_VECTOR_LENGTH (obj);
+      n = SCM_SIMPLE_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
-	  val = SCM_VELTS (obj)[i];
+	  val = SCM_SIMPLE_VECTOR_REF (obj, i);
 	  if (!SCM_I_INUMP (val)
 	      && !(SCM_BIGP (val) || SCM_REALP (val)))
 	    scm_wrong_type_arg (0, 0, val);
@@ -462,7 +476,7 @@ gh_scm2doubles (SCM obj, double *m)
 	return NULL;
       for (i = 0; i < n; ++i)
 	{
-	  val = SCM_VELTS (obj)[i];
+	  val = SCM_SIMPLE_VECTOR_REF (obj, i);
 	  if (SCM_I_INUMP (val))
 	    m[i] = SCM_I_INUM (val);
 	  else if (SCM_BIGP (val))
@@ -570,10 +584,9 @@ gh_vector_ref (SCM vec, SCM pos)
 unsigned long 
 gh_vector_length (SCM v)
 {
-  return (unsigned long) SCM_VECTOR_LENGTH (v);
+  return (unsigned long) scm_c_vector_length (v);
 }
 
-#if SCM_HAVE_ARRAYS
 /* uniform vector support */
 
 /* returns the length as a C unsigned long integer */
@@ -595,7 +608,6 @@ gh_uniform_vector_ref (SCM v, SCM ilist)
 /* sets an individual element in a uniform vector */
 /* SCM */
 /* gh_list_to_uniform_array ( */
-#endif
 
 /* Data lookups between C and Scheme
 

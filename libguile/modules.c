@@ -577,7 +577,7 @@ scm_module_reverse_lookup (SCM module, SCM variable)
   n = SCM_HASHTABLE_N_BUCKETS (obarray);
   for (i = 0; i < n; ++i)
     {
-      SCM ls = SCM_HASHTABLE_BUCKETS (obarray)[i], handle;
+      SCM ls = SCM_HASHTABLE_BUCKET (obarray, i), handle;
       while (!scm_is_null (ls))
 	{
 	  handle = SCM_CAR (ls);

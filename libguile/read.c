@@ -482,7 +482,6 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	     over in scm_flush_ws. */
 	  abort ();
 
-#if SCM_HAVE_ARRAYS
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, 0);
 	  p = scm_istr2bve (scm_c_substring_shared (*tok_buf, 1, j));
@@ -490,7 +489,6 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	    return p;
 	  else
 	    goto unkshrp;
-#endif
 
 	case '{':
 	  j = scm_read_token (c, tok_buf, port, 1);

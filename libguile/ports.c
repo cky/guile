@@ -818,17 +818,17 @@ scm_c_port_for_each (void (*proc)(void *data, SCM p), void *data)
   n = scm_i_port_table_size;
   scm_mutex_unlock (&scm_i_port_table_mutex);
 
-  ports = scm_make_vector (scm_from_size_t (n), SCM_BOOL_F);
+  ports = scm_c_make_vector (n, SCM_BOOL_F);
 
   scm_mutex_lock (&scm_i_port_table_mutex);
   if (n > scm_i_port_table_size)
     n = scm_i_port_table_size;
   for (i = 0; i < n; i++)
-    SCM_VECTOR_SET (ports, i, scm_i_port_table[i]->port);
+    SCM_SIMPLE_VECTOR_SET (ports, i, scm_i_port_table[i]->port);
   scm_mutex_unlock (&scm_i_port_table_mutex);
 
   for (i = 0; i < n; i++)
-    proc (data, SCM_VECTOR_REF (ports, i));
+    proc (data, SCM_SIMPLE_VECTOR_REF (ports, i));
 }
 
 SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,

@@ -25,9 +25,7 @@
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/pairs.h"
-#if SCM_HAVE_ARRAYS
-# include "libguile/unif.h"
-#endif
+#include "libguile/unif.h"
 #include "libguile/srfi-4.h"
 
 #include "libguile/convert.h"

@@ -58,12 +58,13 @@ sf_flush (SCM port)
   if (pt->write_pos > pt->write_buf)
     {
       /* write the byte. */
-      scm_call_1 (SCM_VELTS (stream)[0], SCM_MAKE_CHAR (*pt->write_buf));
+      scm_call_1 (SCM_SIMPLE_VECTOR_REF (stream, 0),
+		  SCM_MAKE_CHAR (*pt->write_buf));
       pt->write_pos = pt->write_buf;
   
       /* flush the output.  */
       {
-	SCM f = SCM_VELTS (stream)[2];
+	SCM f = SCM_SIMPLE_VECTOR_REF (stream, 2);
 
 	if (scm_is_true (f))
 	  scm_call_0 (f);
@@ -76,7 +77,8 @@ sf_write (SCM port, const void *data, size_t size)
 {
   SCM p = SCM_PACK (SCM_STREAM (port));
 
-  scm_call_1 (SCM_VELTS (p)[1], scm_from_locale_stringn ((char *) data, size));
+  scm_call_1 (SCM_SIMPLE_VECTOR_REF (p, 1),
+	      scm_from_locale_stringn ((char *) data, size));
 }
 
 /* calling the flush proc (element 2) is in case old code needs it,
@@ -90,7 +92,7 @@ sf_fill_input (SCM port)
   SCM p = SCM_PACK (SCM_STREAM (port));
   SCM ans;
 
-  ans = scm_call_0 (SCM_VELTS (p)[3]); /* get char.  */
+  ans = scm_call_0 (SCM_SIMPLE_VECTOR_REF (p, 3)); /* get char.  */
   if (scm_is_false (ans) || SCM_EOF_OBJECT_P (ans))
     return EOF;
   SCM_ASSERT (SCM_CHARP (ans), ans, SCM_ARG1, "sf_fill_input");
@@ -109,7 +111,7 @@ static int
 sf_close (SCM port)
 {
   SCM p = SCM_PACK (SCM_STREAM (port));
-  SCM f = SCM_VELTS (p)[4];
+  SCM f = SCM_SIMPLE_VECTOR_REF (p, 4);
   if (scm_is_false (f))
     return 0;
   f = scm_call_0 (f);
@@ -122,9 +124,9 @@ static int
 sf_input_waiting (SCM port)
 {
   SCM p = SCM_PACK (SCM_STREAM (port));
-  if (SCM_VECTOR_LENGTH (p) >= 6)
+  if (SCM_SIMPLE_VECTOR_LENGTH (p) >= 6)
     {
-      SCM f = SCM_VELTS (p)[5];
+      SCM f = SCM_SIMPLE_VECTOR_REF (p, 5);
       if (scm_is_true (f))
 	return scm_to_int (scm_call_0 (f));
     }
@@ -188,7 +190,7 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
   SCM z;
 
   SCM_VALIDATE_VECTOR (1, pv);
-  vlen = SCM_VECTOR_LENGTH (pv);
+  vlen = SCM_SIMPLE_VECTOR_LENGTH (pv);
   SCM_ASSERT ((vlen == 5) || (vlen == 6), pv, 1, FUNC_NAME);
   SCM_VALIDATE_STRING (2, modes);
   

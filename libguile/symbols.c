@@ -98,7 +98,7 @@ scm_i_mem2symbol (SCM str)
 
     SCM l;
 
-    for (l = SCM_HASHTABLE_BUCKETS (symbols) [hash];
+    for (l = SCM_HASHTABLE_BUCKET (symbols, hash);
 	 !scm_is_null (l);
 	 l = SCM_CDR (l))
       {
@@ -128,7 +128,7 @@ scm_i_mem2symbol (SCM str)
     SCM symbol = scm_i_make_symbol (str, 0, raw_hash,
 				    scm_cons (SCM_BOOL_F, SCM_EOL));
 
-    SCM slot = SCM_HASHTABLE_BUCKETS (symbols) [hash];
+    SCM slot = SCM_HASHTABLE_BUCKET (symbols, hash);
     SCM cell = scm_cons (symbol, SCM_UNDEFINED);
     SCM_SET_HASHTABLE_BUCKET (symbols, hash, scm_cons (cell, slot));
     SCM_HASHTABLE_INCREMENT (symbols);

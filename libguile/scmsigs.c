@@ -100,9 +100,9 @@ take_signal (int signum)
 {
   if (signum >= 0 && signum < NSIG)
     {
-      SCM cell = SCM_VECTOR_REF(signal_handler_cells, signum);
-      SCM handler = SCM_VECTOR_REF(signal_cell_handlers, signum);
-      SCM thread = SCM_VECTOR_REF(signal_handler_threads, signum);
+      SCM cell = SCM_SIMPLE_VECTOR_REF (signal_handler_cells, signum);
+      SCM handler = SCM_SIMPLE_VECTOR_REF (signal_cell_handlers, signum);
+      SCM thread = SCM_SIMPLE_VECTOR_REF (signal_handler_threads, signum);
       scm_root_state *root = scm_i_thread_root (thread);
       if (scm_is_pair (cell))
 	{
@@ -183,15 +183,15 @@ really_install_handler (void *data)
   */
 
   /* Make sure we have a cell. */
-  cell = SCM_VECTOR_REF (signal_handler_cells, signum);
+  cell = SCM_SIMPLE_VECTOR_REF (signal_handler_cells, signum);
   if (scm_is_false (cell))
     {
       cell = scm_cons (SCM_BOOL_F, SCM_EOL);
-      SCM_VECTOR_SET (signal_handler_cells, signum, cell);
+      SCM_SIMPLE_VECTOR_SET (signal_handler_cells, signum, cell);
     }
 
   /* Make sure it is queued for the right thread. */
-  old_thread = SCM_VECTOR_REF (signal_handler_threads, signum);
+  old_thread = SCM_SIMPLE_VECTOR_REF (signal_handler_threads, signum);
   if (!scm_is_eq (thread, old_thread))
     {
       scm_root_state *r;
@@ -210,20 +210,20 @@ really_install_handler (void *data)
 	     pending_asyncs of old_thread. */
 	  r->pending_asyncs = 1; 
 	}
-      SCM_VECTOR_SET (signal_handler_threads, signum, thread); 
+      SCM_SIMPLE_VECTOR_SET (signal_handler_threads, signum, thread); 
     }
 
   /* Set the new handler. */
   if (scm_is_false (handler))
     {
-      SCM_VECTOR_SET (*signal_handlers, signum, SCM_BOOL_F);
-      SCM_VECTOR_SET (signal_cell_handlers, signum, SCM_BOOL_F);
+      SCM_SIMPLE_VECTOR_SET (*signal_handlers, signum, SCM_BOOL_F);
+      SCM_SIMPLE_VECTOR_SET (signal_cell_handlers, signum, SCM_BOOL_F);
     }
   else
     {
-      SCM_VECTOR_SET (*signal_handlers, signum, handler);
-      SCM_VECTOR_SET (signal_cell_handlers, signum,
-		      close_1 (handler, scm_from_int (signum)));
+      SCM_SIMPLE_VECTOR_SET (*signal_handlers, signum, handler);
+      SCM_SIMPLE_VECTOR_SET (signal_cell_handlers, signum,
+			     close_1 (handler, scm_from_int (signum)));
     }
 
   /* Now fix up the cell.  It might contain the old handler but since
@@ -233,7 +233,7 @@ really_install_handler (void *data)
      problem.
   */
   if (scm_is_true (SCM_CAR (cell)))
-    SCM_SETCAR (cell, SCM_VECTOR_REF (signal_cell_handlers, signum));
+    SCM_SETCAR (cell, SCM_SIMPLE_VECTOR_REF (signal_cell_handlers, signum));
 
   /* Phfew.  That should be it. */
   return NULL;
@@ -324,7 +324,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
     }
 
   SCM_DEFER_INTS;
-  old_handler = SCM_VECTOR_REF(*signal_handlers, csig);
+  old_handler = SCM_SIMPLE_VECTOR_REF (*signal_handlers, csig);
   if (SCM_UNBNDP (handler))
     query_only = 1;
   else if (scm_is_integer (handler))
@@ -465,7 +465,7 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 	  if (sigaction (i, &orig_handlers[i], NULL) == -1)
 	    SCM_SYSERROR;
 	  orig_handlers[i].sa_handler = SIG_ERR;
-	  SCM_VECTOR_SET (*signal_handlers, i, SCM_BOOL_F);
+	  SCM_SIMPLE_VECTOR_SET (*signal_handlers, i, SCM_BOOL_F);
 	}
 #else
       if (orig_handlers[i] != SIG_ERR)
@@ -473,7 +473,7 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 	  if (signal (i, orig_handlers[i]) == SIG_ERR)
 	    SCM_SYSERROR;
 	  orig_handlers[i] = SIG_ERR;
-	  SCM_VECTOR_SET (*signal_handlers, i, SCM_BOOL_F);	  
+	  SCM_SIMPLE_VECTOR_SET (*signal_handlers, i, SCM_BOOL_F);	  
 	}
 #endif
     }

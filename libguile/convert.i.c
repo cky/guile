@@ -66,19 +66,19 @@
 CTYPE *
 SCM2CTYPES (SCM obj, CTYPE *data)
 {
-  size_t len, i;
+  scm_t_array_handle handle;
+  size_t i, len;
+  ssize_t inc;
   const UVEC_CTYPE *uvec_elements;
 
   obj = F(scm_any_to_,UVEC_TAG,vector) (obj);
-  len = scm_c_uniform_vector_length (obj);
-  uvec_elements = F(scm_,UVEC_TAG,vector_elements) (obj);
+  uvec_elements = F(scm_,UVEC_TAG,vector_elements) (obj, &handle, &len, &inc);
 
   if (data == NULL)
     data = scm_malloc (len * sizeof (CTYPE));
-  for (i = 0; i < len; i++)
+  for (i = 0; i < len; i++, uvec_elements += inc)
     data[i] = uvec_elements[i];
 
-  scm_uniform_vector_release_elements (obj);
   return data;
 }
 
@@ -93,7 +93,7 @@ CTYPES2SCM (const CTYPE *data, long n)
   v = scm_c_make_vector (n, SCM_UNSPECIFIED);
 
   for (i = 0; i < n; i++)
-    SCM_VECTOR_SET (v, i, FROM_CTYPE (data[i]));
+    SCM_SIMPLE_VECTOR_SET (v, i, FROM_CTYPE (data[i]));
 
   return v;
 }
@@ -103,17 +103,17 @@ CTYPES2SCM (const CTYPE *data, long n)
 SCM
 CTYPES2UVECT (const CTYPE *data, long n)
 {
+  scm_t_array_handle handle;
   long i;
   SCM uvec;
   UVEC_CTYPE *uvec_elements;
   
   uvec = F(scm_make_,UVEC_TAG,vector) (scm_from_long (n), SCM_UNDEFINED);
-  uvec_elements = F(scm_,UVEC_TAG,vector_writable_elements) (uvec);
-
+  uvec_elements = F(scm_,UVEC_TAG,vector_writable_elements) (uvec, &handle,
+							     NULL, NULL);
   for (i = 0; i < n; i++)
     uvec_elements[i] = data[i];
 
-  scm_uniform_vector_release_writable_elements (uvec);
   return uvec;
 }
 
@@ -122,17 +122,18 @@ CTYPES2UVECT (const CTYPE *data, long n)
 SCM
 CTYPES2UVECT_2 (const CTYPE_2 *data, long n)
 {
+  scm_t_array_handle handle;
   long i;
   SCM uvec;
   UVEC_CTYPE_2 *uvec_elements;
   
   uvec = F(scm_make_,UVEC_TAG_2,vector) (scm_from_long (n), SCM_UNDEFINED);
-  uvec_elements = F(scm_,UVEC_TAG_2,vector_elements) (obj);
+  uvec_elements = F(scm_,UVEC_TAG_2,vector_writable_elements) (uvec, &handle,
+							       NULL, NULL);
 
   for (i = 0; i < n; i++)
-    v[i] = data[i];
+    uvec_elements[i] = data[i];
 
-  scm_uniform_vector_release (uvec);
   return uvec;
 }
 

@@ -529,10 +529,8 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
   scm_init_random ();
-#if SCM_HAVE_ARRAYS
   scm_init_ramap ();
   scm_init_unif ();
-#endif
   scm_init_simpos ();
   scm_init_load_path ();
   scm_init_standard_ports ();  /* Requires fports */

@@ -1058,7 +1058,7 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
   if (SCM_UNBNDP (obarray))
     return scm_gensym (prefix);
   else
-    SCM_ASSERT ((SCM_VECTORP (obarray) || SCM_WVECTP (obarray)),
+    SCM_ASSERT ((scm_is_vector (obarray) || SCM_I_WVECTP (obarray)),
 		obarray,
 		SCM_ARG2,
 		FUNC_NAME);

@@ -86,7 +86,7 @@ scm_mark_all (void)
     size_t i;
     for (i = 0; i < SCM_HASHTABLE_N_BUCKETS (scm_gc_registered_roots); ++i)
       {
-	SCM l = SCM_HASHTABLE_BUCKETS (scm_gc_registered_roots)[i];
+	SCM l = SCM_HASHTABLE_BUCKET (scm_gc_registered_roots, i);
 	for (; !scm_is_null (l); l = SCM_CDR (l))
 	  {
 	    SCM *p = (SCM *) (scm_to_ulong (SCM_CAAR (l)));
@@ -223,15 +223,16 @@ scm_gc_mark_dependencies (SCM p)
       ptr = SCM_ENV (ptr);
       goto gc_mark_nimp;
     case scm_tc7_vector:
-      i = SCM_VECTOR_LENGTH (ptr);
+      i = SCM_SIMPLE_VECTOR_LENGTH (ptr);
       if (i == 0)
 	break;
       while (--i > 0)
 	{
-	  if (SCM_NIMP (SCM_VELTS (ptr)[i]))
-	    scm_gc_mark (SCM_VELTS (ptr)[i]);
+	  SCM elt = SCM_SIMPLE_VECTOR_REF (ptr, i);
+	  if (SCM_NIMP (elt))
+	    scm_gc_mark (elt);
 	}
-      ptr = SCM_VELTS (ptr)[0];
+      ptr = SCM_SIMPLE_VECTOR_REF (ptr, 0);
       goto gc_mark_loop;
 #ifdef CCLO
     case scm_tc7_cclo:
@@ -266,7 +267,7 @@ scm_gc_mark_dependencies (SCM p)
       break;
 
     case scm_tc7_wvect:
-      SCM_SET_WVECT_GC_CHAIN (ptr, scm_weak_vectors);
+      SCM_I_SET_WVECT_GC_CHAIN (ptr, scm_weak_vectors);
       scm_weak_vectors = ptr;
       if (SCM_IS_WHVEC_ANY (ptr))
 	{
@@ -275,14 +276,14 @@ scm_gc_mark_dependencies (SCM p)
 	  int weak_keys;
 	  int weak_values;
 
-	  len = SCM_VECTOR_LENGTH (ptr);
+	  len = SCM_SIMPLE_VECTOR_LENGTH (ptr);
 	  weak_keys = SCM_WVECT_WEAK_KEY_P (ptr);
 	  weak_values = SCM_WVECT_WEAK_VALUE_P (ptr);
 
 	  for (x = 0; x < len; ++x)
 	    {
 	      SCM alist;
-	      alist = SCM_VELTS (ptr)[x];
+	      alist = SCM_SIMPLE_VECTOR_REF (ptr, x);
 
 	      /* mark everything on the alist except the keys or
 	       * values, according to weak_values and weak_keys.  */

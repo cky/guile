@@ -910,12 +910,12 @@ scm_addr_vector (const struct sockaddr *address, int addr_size,
 
 	result = scm_c_make_vector (3, SCM_UNSPECIFIED);
 
-	SCM_VECTOR_SET(result, 0,
-		       scm_from_short (fam));
-	SCM_VECTOR_SET(result, 1,
-		       scm_from_ulong (ntohl (nad->sin_addr.s_addr)));
-	SCM_VECTOR_SET(result, 2,
-		       scm_from_ushort (ntohs (nad->sin_port)));
+	SCM_SIMPLE_VECTOR_SET(result, 0,
+			      scm_from_short (fam));
+	SCM_SIMPLE_VECTOR_SET(result, 1,
+			      scm_from_ulong (ntohl (nad->sin_addr.s_addr)));
+	SCM_SIMPLE_VECTOR_SET(result, 2,
+			      scm_from_ushort (ntohs (nad->sin_port)));
       }
       break;
 #ifdef HAVE_IPV6
@@ -924,14 +924,14 @@ scm_addr_vector (const struct sockaddr *address, int addr_size,
 	const struct sockaddr_in6 *nad = (struct sockaddr_in6 *) address;
 
 	result = scm_c_make_vector (5, SCM_UNSPECIFIED);
-	SCM_VECTOR_SET(result, 0, scm_from_short (fam));
-	SCM_VECTOR_SET(result, 1, scm_from_ipv6 (nad->sin6_addr.s6_addr));
-	SCM_VECTOR_SET(result, 2, scm_from_ushort (ntohs (nad->sin6_port)));
-	SCM_VECTOR_SET(result, 3, scm_from_uint32 (nad->sin6_flowinfo));
+	SCM_SIMPLE_VECTOR_SET(result, 0, scm_from_short (fam));
+	SCM_SIMPLE_VECTOR_SET(result, 1, scm_from_ipv6 (nad->sin6_addr.s6_addr));
+	SCM_SIMPLE_VECTOR_SET(result, 2, scm_from_ushort (ntohs (nad->sin6_port)));
+	SCM_SIMPLE_VECTOR_SET(result, 3, scm_from_uint32 (nad->sin6_flowinfo));
 #ifdef HAVE_SIN6_SCOPE_ID
-	SCM_VECTOR_SET(result, 4, scm_from_ulong (nad->sin6_scope_id));
+	SCM_SIMPLE_VECTOR_SET(result, 4, scm_from_ulong (nad->sin6_scope_id));
 #else
-	SCM_VECTOR_SET(result, 4, SCM_INUM0);
+	SCM_SIMPLE_VECTOR_SET(result, 4, SCM_INUM0);
 #endif
       }
       break;
@@ -943,13 +943,13 @@ scm_addr_vector (const struct sockaddr *address, int addr_size,
 
 	result = scm_c_make_vector (2, SCM_UNSPECIFIED);
 
-	SCM_VECTOR_SET(result, 0, scm_from_short (fam));
+	SCM_SIMPLE_VECTOR_SET(result, 0, scm_from_short (fam));
 	/* When addr_size is not enough to cover sun_path, do not try
 	   to access it. */
 	if (addr_size <= offsetof (struct sockaddr_un, sun_path))
-	  SCM_VECTOR_SET(result, 1, SCM_BOOL_F);
+	  SCM_SIMPLE_VECTOR_SET(result, 1, SCM_BOOL_F);
 	else
-	  SCM_VECTOR_SET(result, 1, scm_from_locale_string (nad->sun_path));
+	  SCM_SIMPLE_VECTOR_SET(result, 1, scm_from_locale_string (nad->sun_path));
       }
       break;
 #endif

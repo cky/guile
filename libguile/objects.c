@@ -229,12 +229,12 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
   n = scm_to_ulong (SCM_CAR (z)); /* maximum number of specializers */
   methods = SCM_CADR (z);
 
-  if (SCM_VECTORP (methods))
+  if (scm_is_simple_vector (methods))
     {
       /* cache format #1: prepare for linear search */
       mask = -1;
       i = 0;
-      end = SCM_VECTOR_LENGTH (methods);
+      end = SCM_SIMPLE_VECTOR_LENGTH (methods);
     }
   else
     {
@@ -262,7 +262,7 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
   do
     {
       long j = n;
-      z = SCM_VELTS (methods)[i];
+      z = SCM_SIMPLE_VECTOR_REF (methods, i);
       ls = args; /* list of arguments */
       if (!scm_is_null (ls))
 	do

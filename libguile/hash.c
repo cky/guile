@@ -120,20 +120,27 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
     case scm_tc7_wvect:
     case scm_tc7_vector:
       {
-	size_t len = SCM_VECTOR_LENGTH(obj);
-	SCM const *data = SCM_VELTS(obj);
+	size_t len = SCM_SIMPLE_VECTOR_LENGTH (obj);
 	if (len > 5)
 	  {
 	    size_t i = d/2;
 	    unsigned long h = 1;
-	    while (i--) h = ((h << 8) + (scm_hasher (data[h % len], n, 2))) % n;
+	    while (i--)
+	      {
+		SCM elt = SCM_SIMPLE_VECTOR_REF (obj, h % len);
+		h = ((h << 8) + (scm_hasher (elt, n, 2))) % n;
+	      }
 	    return h;
 	  }
 	else
 	  {
 	    size_t i = len;
 	    unsigned long h = (n)-1;
-	    while (i--) h = ((h << 8) + (scm_hasher (data[i], n, d/len))) % n;
+	    while (i--)
+	      {
+		SCM elt = SCM_SIMPLE_VECTOR_REF (obj, h % len);
+		h = ((h << 8) + (scm_hasher (elt, n, d/len))) % n;
+	      }
 	    return h;
 	  }
       }

@@ -509,7 +509,7 @@ obarray_enter (SCM obarray, SCM symbol, SCM data)
 {
   size_t hash = scm_i_symbol_hash (symbol) % SCM_HASHTABLE_N_BUCKETS (obarray);
   SCM entry = scm_cons (symbol, data);
-  SCM slot = scm_cons (entry, SCM_HASHTABLE_BUCKETS (obarray)[hash]);
+  SCM slot = scm_cons (entry, SCM_HASHTABLE_BUCKET (obarray, hash));
   SCM_SET_HASHTABLE_BUCKET  (obarray, hash, slot);
   if (SCM_HASHTABLE_N_ITEMS (obarray) > SCM_HASHTABLE_UPPER (obarray))
     scm_i_rehash (obarray, scm_i_hash_symbol, 0, "obarray_enter");
@@ -530,7 +530,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
   SCM lsym;
   SCM slot;
 
-  for (lsym = SCM_HASHTABLE_BUCKETS (obarray)[hash];
+  for (lsym = SCM_HASHTABLE_BUCKET (obarray, hash);
        !scm_is_null (lsym);
        lsym = SCM_CDR (lsym))
     {
@@ -542,7 +542,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
 	}
     }
 
-  slot = scm_cons (new_entry, SCM_HASHTABLE_BUCKETS (obarray)[hash]);
+  slot = scm_cons (new_entry, SCM_HASHTABLE_BUCKET (obarray, hash));
   SCM_SET_HASHTABLE_BUCKET (obarray, hash, slot);
   if (SCM_HASHTABLE_N_ITEMS (obarray) > SCM_HASHTABLE_UPPER (obarray))
     scm_i_rehash (obarray, scm_i_hash_symbol, 0, "obarray_replace");
@@ -560,7 +560,7 @@ obarray_retrieve (SCM obarray, SCM sym)
   size_t hash = scm_i_symbol_hash (sym) % SCM_HASHTABLE_N_BUCKETS (obarray);
   SCM lsym;
 
-  for (lsym = SCM_HASHTABLE_BUCKETS (obarray)[hash];
+  for (lsym = SCM_HASHTABLE_BUCKET (obarray, hash);
        !scm_is_null (lsym);
        lsym = SCM_CDR (lsym))
     {
@@ -581,7 +581,7 @@ static SCM
 obarray_remove (SCM obarray, SCM sym)
 {
   size_t hash = scm_i_symbol_hash (sym) % SCM_HASHTABLE_N_BUCKETS (obarray);
-  SCM table_entry = SCM_HASHTABLE_BUCKETS (obarray)[hash];
+  SCM table_entry = SCM_HASHTABLE_BUCKET (obarray, hash);
   SCM handle = scm_sloppy_assq (sym, table_entry);
 
   if (scm_is_pair (handle))
@@ -634,9 +634,9 @@ struct core_environments_base {
 #define CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR(env) \
   (CORE_ENVIRONMENTS_BASE (env)->weak_observers)
 #define CORE_ENVIRONMENT_WEAK_OBSERVERS(env) \
-  (SCM_VELTS (CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env)) [0])
+  (scm_c_vector_ref (CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env), 0))
 #define SCM_SET_CORE_ENVIRONMENT_WEAK_OBSERVERS(env, v) \
-  (SCM_VECTOR_SET (CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env), 0, (v)))
+  (scm_c_vector_set_x (CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env), 0, (v)))
 
 
 
@@ -887,7 +887,7 @@ leaf_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
   for (i = 0; i < SCM_HASHTABLE_N_BUCKETS (obarray); i++)
     {
       SCM l;
-      for (l = SCM_HASHTABLE_BUCKETS (obarray)[i];
+      for (l = SCM_HASHTABLE_BUCKET (obarray, i);
 	   !scm_is_null (l);
 	   l = SCM_CDR (l))
 	{

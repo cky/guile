@@ -38,7 +38,6 @@ SCM_API SCM scm_c_longs2scm (const long *src, long n);
 SCM_API SCM scm_c_floats2scm (const float *src, long n);
 SCM_API SCM scm_c_doubles2scm (const double *src, long n);
 
-#if SCM_HAVE_ARRAYS
 SCM_API SCM scm_c_chars2byvect (const char *src, long n);
 SCM_API SCM scm_c_shorts2svect (const short *src, long n);
 SCM_API SCM scm_c_ints2ivect (const int *src, long n);
@@ -47,6 +46,5 @@ SCM_API SCM scm_c_longs2ivect (const long *src, long n);
 SCM_API SCM scm_c_ulongs2uvect (const unsigned long *src, long n);
 SCM_API SCM scm_c_floats2fvect (const float *src, long n);
 SCM_API SCM scm_c_doubles2dvect (const double *src, long n);
-#endif
 
 #endif /* SCM_CONVERT_H */

@@ -424,26 +424,28 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-#if SCM_HAVE_ARRAYS
-
 static void
 vector_scale_x (SCM v, double c)
 {
   size_t n;
-  if (SCM_VECTORP (v))
+  if (scm_is_simple_vector (v))
     {
-      n = SCM_VECTOR_LENGTH (v);
+      n = SCM_SIMPLE_VECTOR_LENGTH (v);
       while (n-- > 0)
-	SCM_REAL_VALUE (SCM_VELTS (v)[n]) *= c;
+	SCM_REAL_VALUE (SCM_SIMPLE_VECTOR_REF (v, n)) *= c;
     }
   else
     {
       /* must be a f64vector. */
-      double *elts = scm_f64vector_writable_elements (v);
-      n = scm_c_uniform_vector_length (v);
-      while (n-- > 0)
-	elts[n] *= c;
-      scm_uniform_vector_release_writable_elements (v);
+      scm_t_array_handle handle;
+      size_t i, len;
+      ssize_t inc;
+      double *elts;
+
+      elts = scm_f64vector_writable_elements (v, &handle, &len, &inc);
+
+      for (i = 0; i < len; i++, elts += inc)
+	*elts *= c;
     }
 }
 
@@ -452,26 +454,31 @@ vector_sum_squares (SCM v)
 {
   double x, sum = 0.0;
   size_t n;
-  if (SCM_VECTORP (v))
+  if (scm_is_simple_vector (v))
     {
-      n = SCM_VECTOR_LENGTH (v);
+      n = SCM_SIMPLE_VECTOR_LENGTH (v);
       while (n-- > 0)
 	{
-	  x = SCM_REAL_VALUE (SCM_VELTS (v)[n]);
+	  x = SCM_REAL_VALUE (SCM_SIMPLE_VECTOR_REF (v, n));
 	  sum += x * x;
 	}
     }
   else
     {
       /* must be a f64vector. */
-      const double *elts = scm_f64vector_elements (v);
-      n = scm_c_uniform_vector_length (v);
-      while (n-- > 0)
+      scm_t_array_handle handle;
+      size_t i, len;
+      ssize_t inc;
+      const double *elts;
+
+      elts = scm_f64vector_elements (v, &handle, &len, &inc);
+
+      for (i = 0; i < len; i++, elts += inc)
 	{
-	  x = elts[n];
+	  x = *elts;
 	  sum += x * x;
 	}
-      scm_uniform_vector_release_elements (v);
+
     }
   return sum;
 }
@@ -530,32 +537,34 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
             "(i.e., with mean 0 and variance 1).")
 #define FUNC_NAME s_scm_random_normal_vector_x
 {
-  size_t n;
+  long i;
+  scm_t_array_handle handle;
+  scm_t_array_dim *dim;
 
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
-  if (SCM_VECTORP (v))
+
+  scm_vector_get_handle (v, &handle);
+  dim = scm_array_handle_dims (&handle);
+
+  if (scm_is_vector (v))
     {
-      n = SCM_VECTOR_LENGTH (v);
-      while (n-- > 0)
-	SCM_VECTOR_SET (v, n,
-			scm_from_double (scm_c_normal01 (SCM_RSTATE (state))));
+      SCM *elts = scm_array_handle_writable_elements (&handle);
+      for (i = dim->lbnd; i <= dim->ubnd; i++, elts += dim->inc)
+	*elts = scm_from_double (scm_c_normal01 (SCM_RSTATE (state)));
     }
   else
     {
       /* must be a f64vector. */
-      double *elts = scm_f64vector_writable_elements (v);
-      n = scm_c_uniform_vector_length (v);
-      while (n-- > 0)
-	elts[n] = scm_c_normal01 (SCM_RSTATE (state));
-      scm_uniform_vector_release_writable_elements (v);
+      double *elts = scm_array_handle_f64_writable_elements (&handle);
+      for (i = dim->lbnd; i <= dim->ubnd; i++, elts += dim->inc)
+	*elts = scm_c_normal01 (SCM_RSTATE (state));
     }
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
-#endif /* SCM_HAVE_ARRAYS */
 
 SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0, 
             (SCM state),

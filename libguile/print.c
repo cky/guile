@@ -162,8 +162,8 @@ make_print_state (void)
     = scm_make_struct (scm_print_state_vtable, SCM_INUM0, SCM_EOL);
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
   pstate->ref_vect = scm_c_make_vector (PSTATE_SIZE, SCM_UNDEFINED);
-  pstate->ref_stack = SCM_WRITABLE_VELTS (pstate->ref_vect);
-  pstate->ceiling = SCM_VECTOR_LENGTH (pstate->ref_vect);
+  pstate->ref_stack = SCM_SIMPLE_VECTOR_LOC (pstate->ref_vect, 0);
+  pstate->ceiling = SCM_SIMPLE_VECTOR_LENGTH (pstate->ref_vect);
   pstate->highlight_objects = SCM_EOL;
   return print_state;
 }
@@ -224,17 +224,17 @@ scm_i_port_with_print_state (SCM port, SCM print_state)
 static void
 grow_ref_stack (scm_print_state *pstate)
 {
-  unsigned long int old_size = SCM_VECTOR_LENGTH (pstate->ref_vect);
-  SCM const *old_elts = SCM_VELTS (pstate->ref_vect);
-  unsigned long int new_size = 2 * pstate->ceiling;
+  SCM old_vect = pstate->ref_vect;
+  size_t old_size = SCM_SIMPLE_VECTOR_LENGTH (old_vect);
+  size_t new_size = 2 * pstate->ceiling;
   SCM new_vect = scm_c_make_vector (new_size, SCM_UNDEFINED);
   unsigned long int i;
 
   for (i = 0; i != old_size; ++i)
-    SCM_VECTOR_SET (new_vect, i, old_elts [i]);
+    SCM_SIMPLE_VECTOR_SET (new_vect, i, SCM_SIMPLE_VECTOR_REF (old_vect, i));
 
   pstate->ref_vect = new_vect;
-  pstate->ref_stack = SCM_WRITABLE_VELTS(new_vect);
+  pstate->ref_stack = SCM_SIMPLE_VECTOR_LOC (new_vect, 0);
   pstate->ceiling = new_size;
 }
 
@@ -574,9 +574,10 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	common_vector_printer:
 	  {
 	    register long i;
-	    long last = SCM_VECTOR_LENGTH (exp) - 1;
+	    long last = SCM_SIMPLE_VECTOR_LENGTH (exp) - 1;
 	    int cutp = 0;
-	    if (pstate->fancyp && SCM_VECTOR_LENGTH (exp) > pstate->length)
+	    if (pstate->fancyp
+		&& SCM_SIMPLE_VECTOR_LENGTH (exp) > pstate->length)
 	      {
 		last = pstate->length - 1;
 		cutp = 1;
@@ -584,13 +585,13 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	    for (i = 0; i < last; ++i)
 	      {
 		/* CHECK_INTS; */
-		scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
+		scm_iprin1 (SCM_SIMPLE_VECTOR_REF (exp, i), port, pstate);
 		scm_putc (' ', port);
 	      }
 	    if (i == last)
 	      {
 		/* CHECK_INTS; */
-		scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
+		scm_iprin1 (SCM_SIMPLE_VECTOR_REF (exp, i), port, pstate);
 	      }
 	    if (cutp)
 	      scm_puts (" ...", port);

@@ -268,7 +268,7 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 
   result = scm_c_make_vector (ngroups, SCM_BOOL_F);
   while (--ngroups >= 0) 
-    SCM_VECTOR_SET (result, ngroups, scm_from_ulong (groups[ngroups]));
+    SCM_SIMPLE_VECTOR_SET (result, ngroups, scm_from_ulong (groups[ngroups]));
 
   free (groups);
   return result;
@@ -295,17 +295,18 @@ SCM_DEFINE (scm_setgroups, "setgroups", 1, 0, 0,
 
   SCM_VALIDATE_VECTOR (SCM_ARG1, group_vec);
 
-  ngroups = SCM_VECTOR_LENGTH (group_vec);
+  ngroups = SCM_SIMPLE_VECTOR_LENGTH (group_vec);
 
   /* validate before allocating, so we don't have to worry about leaks */
   for (i = 0; i < ngroups; i++)
     {
       unsigned long ulong_gid;
       GETGROUPS_T gid;
-      SCM_VALIDATE_ULONG_COPY (1, SCM_VECTOR_REF (group_vec, i), ulong_gid);
+      SCM_VALIDATE_ULONG_COPY (1, SCM_SIMPLE_VECTOR_REF (group_vec, i),
+			       ulong_gid);
       gid = ulong_gid;
       if (gid != ulong_gid)
-	SCM_OUT_OF_RANGE (1, SCM_VECTOR_REF (group_vec, i));
+	SCM_OUT_OF_RANGE (1, SCM_SIMPLE_VECTOR_REF (group_vec, i));
     }
 
   size = ngroups * sizeof (GETGROUPS_T);
@@ -313,7 +314,7 @@ SCM_DEFINE (scm_setgroups, "setgroups", 1, 0, 0,
     SCM_OUT_OF_RANGE (SCM_ARG1, scm_from_int (ngroups));
   groups = scm_malloc (size);
   for(i = 0; i < ngroups; i++)
-    groups [i] = SCM_NUM2ULONG (1, SCM_VECTOR_REF (group_vec, i));
+    groups [i] = SCM_NUM2ULONG (1, SCM_SIMPLE_VECTOR_REF (group_vec, i));
 
   result = setgroups (ngroups, groups);
   save_errno = errno; /* don't let free() touch errno */
@@ -357,19 +358,19 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   if (!entry)
     SCM_MISC_ERROR ("entry not found", SCM_EOL);
 
-  SCM_VECTOR_SET(result, 0, scm_from_locale_string (entry->pw_name));
-  SCM_VECTOR_SET(result, 1, scm_from_locale_string (entry->pw_passwd));
-  SCM_VECTOR_SET(result, 2, scm_from_ulong (entry->pw_uid));
-  SCM_VECTOR_SET(result, 3, scm_from_ulong (entry->pw_gid));
-  SCM_VECTOR_SET(result, 4, scm_from_locale_string (entry->pw_gecos));
+  SCM_SIMPLE_VECTOR_SET(result, 0, scm_from_locale_string (entry->pw_name));
+  SCM_SIMPLE_VECTOR_SET(result, 1, scm_from_locale_string (entry->pw_passwd));
+  SCM_SIMPLE_VECTOR_SET(result, 2, scm_from_ulong (entry->pw_uid));
+  SCM_SIMPLE_VECTOR_SET(result, 3, scm_from_ulong (entry->pw_gid));
+  SCM_SIMPLE_VECTOR_SET(result, 4, scm_from_locale_string (entry->pw_gecos));
   if (!entry->pw_dir)
-    SCM_VECTOR_SET(result, 5, scm_from_locale_string (""));
+    SCM_SIMPLE_VECTOR_SET(result, 5, scm_from_locale_string (""));
   else
-    SCM_VECTOR_SET(result, 5, scm_from_locale_string (entry->pw_dir));
+    SCM_SIMPLE_VECTOR_SET(result, 5, scm_from_locale_string (entry->pw_dir));
   if (!entry->pw_shell)
-    SCM_VECTOR_SET(result, 6, scm_from_locale_string (""));
+    SCM_SIMPLE_VECTOR_SET(result, 6, scm_from_locale_string (""));
   else
-    SCM_VECTOR_SET(result, 6, scm_from_locale_string (entry->pw_shell));
+    SCM_SIMPLE_VECTOR_SET(result, 6, scm_from_locale_string (entry->pw_shell));
   return result;
 }
 #undef FUNC_NAME
@@ -422,10 +423,10 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
   if (!entry)
     SCM_SYSERROR;
 
-  SCM_VECTOR_SET(result, 0, scm_from_locale_string (entry->gr_name));
-  SCM_VECTOR_SET(result, 1, scm_from_locale_string (entry->gr_passwd));
-  SCM_VECTOR_SET(result, 2, scm_from_ulong  (entry->gr_gid));
-  SCM_VECTOR_SET(result, 3, scm_makfromstrs (-1, entry->gr_mem));
+  SCM_SIMPLE_VECTOR_SET(result, 0, scm_from_locale_string (entry->gr_name));
+  SCM_SIMPLE_VECTOR_SET(result, 1, scm_from_locale_string (entry->gr_passwd));
+  SCM_SIMPLE_VECTOR_SET(result, 2, scm_from_ulong  (entry->gr_gid));
+  SCM_SIMPLE_VECTOR_SET(result, 3, scm_makfromstrs (-1, entry->gr_mem));
   return result;
 }
 #undef FUNC_NAME
@@ -1053,14 +1054,14 @@ SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
   SCM result = scm_c_make_vector (5, SCM_UNSPECIFIED);
   if (uname (&buf) < 0)
     SCM_SYSERROR;
-  SCM_VECTOR_SET(result, 0, scm_from_locale_string (buf.sysname));
-  SCM_VECTOR_SET(result, 1, scm_from_locale_string (buf.nodename));
-  SCM_VECTOR_SET(result, 2, scm_from_locale_string (buf.release));
-  SCM_VECTOR_SET(result, 3, scm_from_locale_string (buf.version));
-  SCM_VECTOR_SET(result, 4, scm_from_locale_string (buf.machine));
+  SCM_SIMPLE_VECTOR_SET(result, 0, scm_from_locale_string (buf.sysname));
+  SCM_SIMPLE_VECTOR_SET(result, 1, scm_from_locale_string (buf.nodename));
+  SCM_SIMPLE_VECTOR_SET(result, 2, scm_from_locale_string (buf.release));
+  SCM_SIMPLE_VECTOR_SET(result, 3, scm_from_locale_string (buf.version));
+  SCM_SIMPLE_VECTOR_SET(result, 4, scm_from_locale_string (buf.machine));
 /* 
    a linux special?
-  SCM_VECTOR_SET(result, 5, scm_from_locale_string (buf.domainname));
+  SCM_SIMPLE_VECTOR_SET(result, 5, scm_from_locale_string (buf.domainname));
 */
   return result;
 }

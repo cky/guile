@@ -438,7 +438,6 @@ typedef unsigned long scm_t_bits;
 
 #define scm_tc7_pws		31
 
-#if SCM_HAVE_ARRAYS
 #define scm_tc7_unused_1        29
 #define scm_tc7_unused_2	37
 #define scm_tc7_unused_3	45
@@ -448,7 +447,6 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_unused_7	71
 #define scm_tc7_unused_8	77
 #define scm_tc7_unused_9	79
-#endif
 
 #define scm_tc7_dsubr		61
 #define scm_tc7_cclo		63

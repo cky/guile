@@ -1836,7 +1836,7 @@ scm_i_vector2list (SCM l, long len)
   SCM z = scm_c_make_vector (len, SCM_UNDEFINED);
 
   for (j = 0; j < len; j++, l = SCM_CDR (l)) {
-    SCM_VECTOR_SET (z, j, SCM_CAR (l));
+    SCM_SIMPLE_VECTOR_SET (z, j, SCM_CAR (l));
   }
   return z;
 }
@@ -1848,6 +1848,7 @@ sort_applicable_methods (SCM method_list, long size, SCM const *targs)
   SCM *v, vector = SCM_EOL;
   SCM buffer[BUFFSIZE];
   SCM save = method_list;
+  scm_t_array_handle handle;
 
   /* For reasonably sized method_lists we can try to avoid all the
    * consing and reorder the list in place...
@@ -1866,13 +1867,7 @@ sort_applicable_methods (SCM method_list, long size, SCM const *targs)
     {
       /* Too many elements in method_list to keep everything locally */
       vector = scm_i_vector2list (save, size);
-
-      /*
-	This is a new vector. Don't worry about the write barrier.
-	We're not allocating elements in this routine, so this should
-	pose no problem.
-      */
-      v = SCM_WRITABLE_VELTS (vector);
+      v = scm_vector_writable_elements (vector, &handle, NULL, NULL);
     }
 
   /* Use a simple shell sort since it is generally faster than qsort on
@@ -1907,6 +1902,7 @@ sort_applicable_methods (SCM method_list, long size, SCM const *targs)
 	}
       return save;
     }
+
   /* If we are here, that's that we did it the hard way... */
   return scm_vector_to_list (vector);
 }
@@ -1922,21 +1918,20 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
   SCM const *types;
   SCM *p;
   SCM tmp = SCM_EOL;
+  scm_t_array_handle handle;
 
   /* Build the list of arguments types */
-  if (len >= BUFFSIZE) {
-    tmp   = scm_c_make_vector (len, SCM_UNDEFINED);
-    /* NOTE: Using pointers to malloced memory won't work if we
-       1. have preemtive threading, and,
-       2. have a GC which moves objects.  */
-    types = p = SCM_WRITABLE_VELTS(tmp);
+  if (len >= BUFFSIZE) 
+    {
+      tmp = scm_c_make_vector (len, SCM_UNDEFINED);
+      types = p = scm_vector_writable_elements (tmp, &handle, NULL, NULL);
 
     /*
       note that we don't have to work to reset the generation
       count. TMP is a new vector anyway, and it is found
       conservatively.
     */
-  }
+    }
   else
     types = p = buffer;
 
@@ -1977,7 +1972,6 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
       return SCM_BOOL_F;
     }
 
-  scm_remember_upto_here_1 (tmp);
   return (count == 1
 	  ? applicable
 	  : sort_applicable_methods (applicable, count, types));
@@ -2178,21 +2172,34 @@ SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_sys_method_more_specific_p
 {
-  SCM l, v;
+  SCM l, v, result;
+  SCM *v_elts;
   long i, len;
+  scm_t_array_handle handle;
 
   SCM_VALIDATE_METHOD (1, m1);
   SCM_VALIDATE_METHOD (2, m2);
   SCM_ASSERT ((len = scm_ilength (targs)) != -1, targs, SCM_ARG3, FUNC_NAME);
 
-  /* Verify that all the arguments of targs are classes and place them in a vector*/
-  v = scm_c_make_vector (len, SCM_EOL);
+  /* Verify that all the arguments of targs are classes and place them
+     in a vector
+  */
 
-  for (i = 0, l = targs; !scm_is_null (l); i++, l = SCM_CDR (l)) {
-    SCM_ASSERT (SCM_CLASSP (SCM_CAR (l)), targs, SCM_ARG3, FUNC_NAME);
-    SCM_VECTOR_SET (v, i, SCM_CAR(l));
-  }
-  return more_specificp (m1, m2, SCM_VELTS(v)) ? SCM_BOOL_T: SCM_BOOL_F;
+  v = scm_c_make_vector (len, SCM_EOL);
+  v_elts = scm_vector_writable_elements (v, &handle, NULL, NULL);
+
+  for (i = 0, l = targs; !scm_is_null (l); i++, l = SCM_CDR (l))
+    {
+      SCM_ASSERT (SCM_CLASSP (SCM_CAR (l)), targs, SCM_ARG3, FUNC_NAME);
+      v_elts[i] = SCM_CAR(l);
+    }
+
+  /* V_ELTS is only protected as long as HANDLE is, so we need to make
+     sure that more_specificp is not tail-called.
+  */
+  result = more_specificp (m1, m2, v_elts) ? SCM_BOOL_T: SCM_BOOL_F;
+  scm_remember_upto_here_1 (v);
+  return result;
 }
 #undef FUNC_NAME
 
