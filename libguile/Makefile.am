@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -42,7 +42,7 @@ libguile_la_SOURCES = \
     evalext.c feature.c fluids.c fports.c gc.c gdbint.c	\
     gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c		\
     gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c		\
-    ioext.c keywords.c lang.c list.c load.c macros.c mallocs.c		\
+    ioext.c iselect.c keywords.c lang.c list.c load.c macros.c mallocs.c \
     modules.c numbers.c objects.c objprop.c options.c pairs.c	\
     ports.c print.c procprop.c procs.c random.c read.c	\
     root.c scmsigs.c script.c simpos.c smob.c sort.c		\
@@ -66,7 +66,7 @@ BUILT_SOURCES = \
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
-    threads.c regex-posix.c iselect.c \
+    threads.c regex-posix.c \
     filesys.c posix.c net_db.c socket.c \
     ramap.c unif.c
 
