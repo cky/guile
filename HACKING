@@ -1,5 +1,31 @@
 Here are some guidelines for working on the Guile source tree at GNU.
 
+- We use CVS to manage the Guile sources.  The repository lives on
+totoro.red-bean.com, in /u/src/master; you will need an account on
+that machine to access the repository.  I recommend using the cvs
+pserver protocol; thus, you should use the following as your CVS root:
+
+	:pserver:USER@guile-cvs.red-bean.com:/u/src/master
+
+Either set your CVSROOT environment variable to that, or give it as
+the value of the global -d option to CVS when you check out a working
+directory.
+
+If you want to use SSH for security, set your CVS_RSH environment
+variable to ssh, and then use the following as your CVS root:
+
+	:ext:guile-cvs.red-bean.com:/u/src/master
+
+The Guile sources live in several modules:
+
+  - guile-core --- the interpreter, QuickThreads, and ice-9
+  - guile-tcltk --- the Guile/Tk interface
+  - guile-rgx-ctax --- the Guile/Rx interface, and the ctax implementation
+  - guile-scsh --- the port of SCSH to guile, talk to Gary Houston
+  - guile --- the old Guile module, containing everything.  The only portion
+    of this anyone should edit is the newdoc subdirectory.  Everything
+    else is out of date.  We'll get rid of this soon.
+
 - As for any part of Project GNU, changes to Guile should follow the
 GNU coding standards.  The standards are available via anonymous FTP
 from prep.ai.mit.edu, as /pub/gnu/standards/standards.texi and
