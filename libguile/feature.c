@@ -118,7 +118,9 @@ scm_init_feature()
   scm_add_feature ("full-continuation");
 #endif
 #ifdef USE_THREADS
+#ifndef USE_NULL_THREADS
   scm_add_feature ("threads");
+#endif
 #endif
   
   scm_c_define ("char-code-limit", SCM_MAKINUM (SCM_CHAR_CODE_LIMIT));
