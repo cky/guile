@@ -1,3 +1,7 @@
+2001-05-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* tests/srfi-13.test: More tests.
+
 2001-05-10  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* tests/srfi-10.test: New file.

@@ -445,6 +445,429 @@
     (string-fill! s0 #\| 12 20)
     (char=? (string-ref s0 13) #\|)))
 
+(with-test-prefix "string-prefix-length"
+
+  (pass-if "empty prefix"
+    (= 0 (string-prefix-length "" "foo bar")))
+
+  (pass-if "non-empty prefix - match"
+    (= 3 (string-prefix-length "foo" "foo bar")))
+
+  (pass-if "non-empty prefix - no match"
+    (= 0 (string-prefix-length "bar" "foo bar"))))
+
+(with-test-prefix "string-prefix-length-ci"
+
+  (pass-if "empty prefix"
+    (= 0 (string-prefix-length-ci "" "foo bar")))
+
+  (pass-if "non-empty prefix - match"
+    (= 3 (string-prefix-length-ci "fOo" "foo bar")))
+
+  (pass-if "non-empty prefix - no match"
+    (= 0 (string-prefix-length-ci "bAr" "foo bar"))))
+
+(with-test-prefix "string-suffix-length"
+
+  (pass-if "empty suffix"
+    (= 0 (string-suffix-length "" "foo bar")))
+
+  (pass-if "non-empty suffix - match"
+    (= 3 (string-suffix-length "bar" "foo bar")))
+
+  (pass-if "non-empty suffix - no match"
+    (= 0 (string-suffix-length "foo" "foo bar"))))
+
+(with-test-prefix "string-suffix-length-ci"
+
+  (pass-if "empty suffix"
+    (= 0 (string-suffix-length-ci "" "foo bar")))
+
+  (pass-if "non-empty suffix - match"
+    (= 3 (string-suffix-length-ci "bAr" "foo bar")))
+
+  (pass-if "non-empty suffix - no match"
+    (= 0 (string-suffix-length-ci "fOo" "foo bar"))))
+
+(with-test-prefix "string-prefix?"
+
+  (pass-if "empty prefix"
+    (string-prefix? "" "foo bar"))
+
+  (pass-if "non-empty prefix - match"
+    (string-prefix? "foo" "foo bar"))
+
+  (pass-if "non-empty prefix - no match"
+    (not (string-prefix? "bar" "foo bar"))))
+
+(with-test-prefix "string-prefix-ci?"
+
+  (pass-if "empty prefix"
+    (string-prefix-ci? "" "foo bar"))
+
+  (pass-if "non-empty prefix - match"
+    (string-prefix-ci? "fOo" "foo bar"))
+
+  (pass-if "non-empty prefix - no match"
+    (not (string-prefix-ci? "bAr" "foo bar"))))
+
+(with-test-prefix "string-suffix?"
+
+  (pass-if "empty suffix"
+    (string-suffix? "" "foo bar"))
+
+  (pass-if "non-empty suffix - match"
+    (string-suffix? "bar" "foo bar"))
+
+  (pass-if "non-empty suffix - no match"
+    (not (string-suffix? "foo" "foo bar"))))
+
+(with-test-prefix "string-suffix-ci?"
+
+  (pass-if "empty suffix"
+    (string-suffix-ci? "" "foo bar"))
+
+  (pass-if "non-empty suffix - match"
+    (string-suffix-ci? "bAr" "foo bar"))
+
+  (pass-if "non-empty suffix - no match"
+    (not (string-suffix-ci? "fOo" "foo bar"))))
+
+;; Get the procedure from the library.
+(define string-index (module-peek '(srfi srfi-13) 'string-index))
+
+(with-test-prefix "string-index"
+
+  (pass-if "empty string - char"
+    (not (string-index "" #\a)))
+
+  (pass-if "non-empty - char - match"
+    (= 5 (string-index "foo bar" #\a)))
+
+  (pass-if "non-empty - char - no match"
+    (not (string-index "frobnicate" #\x)))
+
+  (pass-if "empty string - char - start index"
+    (not (string-index "" #\a 0)))
+
+  (pass-if "non-empty - char - match - start index"
+    (= 5 (string-index "foo bar" #\a 1)))
+
+  (pass-if "non-empty - char - no match - start index"
+    (not (string-index "frobnicate" #\x 2)))
+
+  (pass-if "empty string - char - start and end index"
+    (not (string-index "" #\a 0 0)))
+
+  (pass-if "non-empty - char - match - start and end index"
+    (= 5 (string-index "foo bar" #\a 1 6)))
+
+  (pass-if "non-empty - char - no match - start and end index"
+    (not (string-index "frobnicate" #\a 2 5)))
+
+  (pass-if "empty string - charset"
+    (not (string-index "" char-set:letter)))
+
+  (pass-if "non-empty - charset - match"
+    (= 0 (string-index "foo bar" char-set:letter)))
+
+  (pass-if "non-empty - charset - no match"
+    (not (string-index "frobnicate" char-set:digit)))
+
+  (pass-if "empty string - charset - start index"
+    (not (string-index "" char-set:letter 0)))
+
+  (pass-if "non-empty - charset - match - start index"
+    (= 1 (string-index "foo bar" char-set:letter 1)))
+
+  (pass-if "non-empty - charset - no match - start index"
+    (not (string-index "frobnicate" char-set:digit 2)))
+
+  (pass-if "empty string - charset - start and end index"
+    (not (string-index "" char-set:letter 0 0)))
+
+  (pass-if "non-empty - charset - match - start and end index"
+    (= 1 (string-index "foo bar" char-set:letter 1 6)))
+
+  (pass-if "non-empty - charset - no match - start and end index"
+    (not (string-index "frobnicate" char-set:digit 2 5)))
+
+  (pass-if "empty string - pred"
+    (not (string-index "" char-alphabetic?)))
+
+  (pass-if "non-empty - pred - match"
+    (= 0 (string-index "foo bar" char-alphabetic?)))
+
+  (pass-if "non-empty - pred - no match"
+    (not (string-index "frobnicate" char-numeric?)))
+
+  (pass-if "empty string - pred - start index"
+    (not (string-index "" char-alphabetic? 0)))
+
+  (pass-if "non-empty - pred - match - start index"
+    (= 1 (string-index "foo bar" char-alphabetic? 1)))
+
+  (pass-if "non-empty - pred - no match - start index"
+    (not (string-index "frobnicate" char-numeric? 2)))
+
+  (pass-if "empty string - pred - start and end index"
+    (not (string-index "" char-alphabetic? 0 0)))
+
+  (pass-if "non-empty - pred - match - start and end index"
+    (= 1 (string-index "foo bar" char-alphabetic? 1 6)))
+
+  (pass-if "non-empty - pred - no match - start and end index"
+    (not (string-index "frobnicate" char-numeric? 2 5))))
+
+(with-test-prefix "string-index-right"
+
+  (pass-if "empty string - char"
+    (not (string-index-right "" #\a)))
+
+  (pass-if "non-empty - char - match"
+    (= 5 (string-index-right "foo bar" #\a)))
+
+  (pass-if "non-empty - char - no match"
+    (not (string-index-right "frobnicate" #\x)))
+
+  (pass-if "empty string - char - start index-right"
+    (not (string-index-right "" #\a 0)))
+
+  (pass-if "non-empty - char - match - start index"
+    (= 5 (string-index-right "foo bar" #\a 1)))
+
+  (pass-if "non-empty - char - no match - start index"
+    (not (string-index-right "frobnicate" #\x 2)))
+
+  (pass-if "empty string - char - start and end index"
+    (not (string-index-right "" #\a 0 0)))
+
+  (pass-if "non-empty - char - match - start and end index"
+    (= 5 (string-index-right "foo bar" #\a 1 6)))
+
+  (pass-if "non-empty - char - no match - start and end index"
+    (not (string-index-right "frobnicate" #\a 2 5)))
+
+  (pass-if "empty string - charset"
+    (not (string-index-right "" char-set:letter)))
+
+  (pass-if "non-empty - charset - match"
+    (= 6 (string-index-right "foo bar" char-set:letter)))
+
+  (pass-if "non-empty - charset - no match"
+    (not (string-index-right "frobnicate" char-set:digit)))
+
+  (pass-if "empty string - charset - start index"
+    (not (string-index-right "" char-set:letter 0)))
+
+  (pass-if "non-empty - charset - match - start index"
+    (= 6 (string-index-right "foo bar" char-set:letter 1)))
+
+  (pass-if "non-empty - charset - no match - start index"
+    (not (string-index-right "frobnicate" char-set:digit 2)))
+
+  (pass-if "empty string - charset - start and end index"
+    (not (string-index-right "" char-set:letter 0 0)))
+
+  (pass-if "non-empty - charset - match - start and end index"
+    (= 5 (string-index-right "foo bar" char-set:letter 1 6)))
+
+  (pass-if "non-empty - charset - no match - start and end index"
+    (not (string-index-right "frobnicate" char-set:digit 2 5)))
+
+  (pass-if "empty string - pred"
+    (not (string-index-right "" char-alphabetic?)))
+
+  (pass-if "non-empty - pred - match"
+    (= 6 (string-index-right "foo bar" char-alphabetic?)))
+
+  (pass-if "non-empty - pred - no match"
+    (not (string-index-right "frobnicate" char-numeric?)))
+
+  (pass-if "empty string - pred - start index"
+    (not (string-index-right "" char-alphabetic? 0)))
+
+  (pass-if "non-empty - pred - match - start index"
+    (= 6 (string-index-right "foo bar" char-alphabetic? 1)))
+
+  (pass-if "non-empty - pred - no match - start index"
+    (not (string-index-right "frobnicate" char-numeric? 2)))
+
+  (pass-if "empty string - pred - start and end index"
+    (not (string-index-right "" char-alphabetic? 0 0)))
+
+  (pass-if "non-empty - pred - match - start and end index"
+    (= 5 (string-index-right "foo bar" char-alphabetic? 1 6)))
+
+  (pass-if "non-empty - pred - no match - start and end index"
+    (not (string-index-right "frobnicate" char-numeric? 2 5))))
+
+(with-test-prefix "string-skip"
+
+  (pass-if "empty string - char"
+    (not (string-skip "" #\a)))
+
+  (pass-if "non-empty - char - match"
+    (= 0 (string-skip "foo bar" #\a)))
+
+  (pass-if "non-empty - char - no match"
+    (= 0 (string-skip "frobnicate" #\x)))
+
+  (pass-if "empty string - char - start index"
+    (not (string-skip "" #\a 0)))
+
+  (pass-if "non-empty - char - match - start index"
+    (= 1 (string-skip "foo bar" #\a 1)))
+
+  (pass-if "non-empty - char - no match - start index"
+    (= 2 (string-skip "frobnicate" #\x 2)))
+
+  (pass-if "empty string - char - start and end index"
+    (not (string-skip "" #\a 0 0)))
+
+  (pass-if "non-empty - char - match - start and end index"
+    (= 1 (string-skip "foo bar" #\a 1 6)))
+
+  (pass-if "non-empty - char - no match - start and end index"
+    (= 2 (string-skip "frobnicate" #\a 2 5)))
+
+  (pass-if "empty string - charset"
+    (not (string-skip "" char-set:letter)))
+
+  (pass-if "non-empty - charset - match"
+    (= 3 (string-skip "foo bar" char-set:letter)))
+
+  (pass-if "non-empty - charset - no match"
+    (= 0 (string-skip "frobnicate" char-set:digit)))
+
+  (pass-if "empty string - charset - start index"
+    (not (string-skip "" char-set:letter 0)))
+
+  (pass-if "non-empty - charset - match - start index"
+    (= 3 (string-skip "foo bar" char-set:letter 1)))
+
+  (pass-if "non-empty - charset - no match - start index"
+    (= 2 (string-skip "frobnicate" char-set:digit 2)))
+
+  (pass-if "empty string - charset - start and end index"
+    (not (string-skip "" char-set:letter 0 0)))
+
+  (pass-if "non-empty - charset - match - start and end index"
+    (= 3 (string-skip "foo bar" char-set:letter 1 6)))
+
+  (pass-if "non-empty - charset - no match - start and end index"
+    (= 2 (string-skip "frobnicate" char-set:digit 2 5)))
+
+  (pass-if "empty string - pred"
+    (not (string-skip "" char-alphabetic?)))
+
+  (pass-if "non-empty - pred - match"
+    (= 3 (string-skip "foo bar" char-alphabetic?)))
+
+  (pass-if "non-empty - pred - no match"
+    (= 0 (string-skip "frobnicate" char-numeric?)))
+
+  (pass-if "empty string - pred - start index"
+    (not (string-skip "" char-alphabetic? 0)))
+
+  (pass-if "non-empty - pred - match - start index"
+    (= 3 (string-skip "foo bar" char-alphabetic? 1)))
+
+  (pass-if "non-empty - pred - no match - start index"
+    (= 2 (string-skip "frobnicate" char-numeric? 2)))
+
+  (pass-if "empty string - pred - start and end index"
+    (not (string-skip "" char-alphabetic? 0 0)))
+
+  (pass-if "non-empty - pred - match - start and end index"
+    (= 3 (string-skip "foo bar" char-alphabetic? 1 6)))
+
+  (pass-if "non-empty - pred - no match - start and end index"
+    (= 2 (string-skip "frobnicate" char-numeric? 2 5))))
+
+(with-test-prefix "string-skip-right"
+
+  (pass-if "empty string - char"
+    (not (string-skip-right "" #\a)))
+
+  (pass-if "non-empty - char - match"
+    (= 6 (string-skip-right "foo bar" #\a)))
+
+  (pass-if "non-empty - char - no match"
+    (= 9 (string-skip-right "frobnicate" #\x)))
+
+  (pass-if "empty string - char - start index-right"
+    (not (string-skip-right "" #\a 0)))
+
+  (pass-if "non-empty - char - match - start index"
+    (= 6 (string-skip-right "foo bar" #\a 1)))
+
+  (pass-if "non-empty - char - no match - start index"
+    (= 9 (string-skip-right "frobnicate" #\x 2)))
+
+  (pass-if "empty string - char - start and end index"
+    (not (string-skip-right "" #\a 0 0)))
+
+  (pass-if "non-empty - char - match - start and end index"
+    (= 4 (string-skip-right "foo bar" #\a 1 6)))
+
+  (pass-if "non-empty - char - no match - start and end index"
+    (= 4 (string-skip-right "frobnicate" #\a 2 5)))
+
+  (pass-if "empty string - charset"
+    (not (string-skip-right "" char-set:letter)))
+
+  (pass-if "non-empty - charset - match"
+    (= 3 (string-skip-right "foo bar" char-set:letter)))
+
+  (pass-if "non-empty - charset - no match"
+    (= 9 (string-skip-right "frobnicate" char-set:digit)))
+
+  (pass-if "empty string - charset - start index"
+    (not (string-skip-right "" char-set:letter 0)))
+
+  (pass-if "non-empty - charset - match - start index"
+    (= 3 (string-skip-right "foo bar" char-set:letter 1)))
+
+  (pass-if "non-empty - charset - no match - start index"
+    (= 9 (string-skip-right "frobnicate" char-set:digit 2)))
+
+  (pass-if "empty string - charset - start and end index"
+    (not (string-skip-right "" char-set:letter 0 0)))
+
+  (pass-if "non-empty - charset - match - start and end index"
+    (= 3 (string-skip-right "foo bar" char-set:letter 1 6)))
+
+  (pass-if "non-empty - charset - no match - start and end index"
+    (= 4 (string-skip-right "frobnicate" char-set:digit 2 5)))
+
+  (pass-if "empty string - pred"
+    (not (string-skip-right "" char-alphabetic?)))
+
+  (pass-if "non-empty - pred - match"
+    (= 3 (string-skip-right "foo bar" char-alphabetic?)))
+
+  (pass-if "non-empty - pred - no match"
+    (= 9 (string-skip-right "frobnicate" char-numeric?)))
+
+  (pass-if "empty string - pred - start index"
+    (not (string-skip-right "" char-alphabetic? 0)))
+
+  (pass-if "non-empty - pred - match - start index"
+    (= 3 (string-skip-right "foo bar" char-alphabetic? 1)))
+
+  (pass-if "non-empty - pred - no match - start index"
+    (= 9 (string-skip-right "frobnicate" char-numeric? 2)))
+
+  (pass-if "empty string - pred - start and end index"
+    (not (string-skip-right "" char-alphabetic? 0 0)))
+
+  (pass-if "non-empty - pred - match - start and end index"
+    (= 3 (string-skip-right "foo bar" char-alphabetic? 1 6)))
+
+  (pass-if "non-empty - pred - no match - start and end index"
+    (= 4 (string-skip-right "frobnicate" char-numeric? 2 5))))
+
 (with-test-prefix "string-replace"
 
   (pass-if "empty string(s), no indices"
