@@ -1136,13 +1136,12 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 #define FUNC_NAME s_scm_mkstemp
 {
   char *c_tmpl;
-  int rv, eno;
+  int rv;
   
-  c_tmpl = scm_to_locale_string (tmpl);
+  SCM_VALIDATE_STRING (SCM_ARG1, tmpl);
+  c_tmpl = scm_i_string_writable_chars (tmpl);
   SCM_SYSCALL (rv = mkstemp (c_tmpl));
-  eno = errno;
-  free (c_tmpl);
-  errno = eno;
+  scm_i_string_stop_writing ();
   if (rv == -1)
     SCM_SYSERROR;
   return scm_fdes_to_port (rv, "w+", tmpl);
