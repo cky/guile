@@ -126,19 +126,6 @@ file.
 
 * Changes to Scheme functions and syntax
 
-** Syntax-case, present in the snapshots, is absent from this release.
-
-syntax-case is a powerful hygenic macro-expansion facility designed
-and implemented by R. Kent Dybvig, Oscar Waddell, Bob Hieb, Carl
-Bruggeman at Indiana University.  Some Guile snapshots included this
-macro expander as a Guile module, but we cannot distribute it, because
-the authors have not assigned the code's copyright to the Free
-Software Foundation.
-
-However, it would be fine to distribute this as a separate package,
-which users can download and install separately.  I hope someone
-produces such a package.
-
 ** Multi-byte strings have been removed, as have multi-byte and wide
 ports.  We felt that these were the wrong approach to
 internationalization support.
