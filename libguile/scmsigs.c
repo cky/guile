@@ -273,10 +273,9 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
       if (orig_handlers[csig] == SIG_ERR)
 	save_handler = 1;
 #endif
-      handler = close_1 (handler, signum);
       SCM_VECTOR_SET (*signal_handlers, csig, handler);
       SCM_VECTOR_SET (signal_handler_cells, csig,
-		      scm_cons (handler, SCM_BOOL_F));
+		      scm_cons (close_1 (handler, signum), SCM_BOOL_F));
       SCM_VECTOR_SET (signal_handler_threads, csig, thread);
     }
 
