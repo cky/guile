@@ -641,6 +641,7 @@ AC_CONFIG_FILES([
   examples/box-dynamic-module/Makefile
   examples/modules/Makefile
   examples/safe/Makefile
+  test-suite/Makefile
   check-guile
   guile-tools])
 
