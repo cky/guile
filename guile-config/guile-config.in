@@ -123,8 +123,7 @@
 	 ;; Include libguile itself in the list, along with the
 	 ;; directory it was installed in.
 	 (flags (cons (string-append "-L" (get-build-info 'libdir))
-		      (cons (string-append "-R" (get-build-info 'libdir))
-			    (cons "-lguile" flags)))))
+		      (cons "-lguile" flags))))
 
     ;; Display the flags, separated by spaces.
     (display-separated flags)
