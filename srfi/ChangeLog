@@ -1,3 +1,8 @@
+2004-08-02  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_every): Correction to initial "res" value,
+	return should be #t for an empty string.  Reported by Andreas Vögele.
+
 2004-07-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-13.c, srfi-14.c, srfi-4.c: Changed all uses of

@@ -1,3 +1,7 @@
+2004-08-02  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-13.test (string-every): Check empty string case.
+
 2004-07-31  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/filesys.test: New file, exercising copy-file.
