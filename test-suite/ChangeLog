@@ -1,5 +1,30 @@
 2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	This patch fixes things that I have broken with the last one :-(
+
+	* guile-test (test-suite):  New variable.
+
+	(data-file-name):  New function.  Has the same purpose as the
+	former function data-file from lib.scm.  Moved here in order to
+	have all file name handling at the same place.  In contrast to the
+	former 'data-file function, it is not checked whether a file
+	exists.  This allows to use this function also for file names of
+	files that are still to be created.
+
+	(test-file-name):  Use the global 'test-suite variable.
+
+	(main):  Initialize 'test-suite instead of a local variable.
+
+	* lib.scm:  Don't import paths any more.
+
+	(data-file):  Removed.  Resurrected with a sligtly different
+	functionality as 'data-file-name' in guile-test.
+
+	* r4rs.scm:  For all references to temporary file, make use of
+	data-file-name.
+
+2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	The following patch was sent by Thien-Thi Nguyen and a little bit
 	modified by me.
 

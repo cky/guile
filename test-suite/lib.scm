@@ -16,8 +16,7 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(define-module (test-suite lib)
-  #:use-module (test-suite paths))
+(define-module (test-suite lib))
 
 (export
 
@@ -423,17 +422,6 @@
       (apply full-reporter result name args)))
 
 (set! default-reporter full-reporter)
-
-
-;;;; Helping test cases find their files
-
-;;; Returns FILENAME, relative to the directory the test suite data
-;;; files were installed in, and makes sure the file exists.
-(define (data-file filename)
-  (let ((f (in-vicinity datadir filename)))
-    (or (file-exists? f)
-	(error "Test suite data file does not exist: " f))
-    f))
 
 
 ;;;; Detecting whether errors occur

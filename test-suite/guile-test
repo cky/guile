@@ -84,6 +84,10 @@
 	     (ice-9 and-let*))
 
 
+;;; Variables that will receive their actual values later.
+(define test-suite default-test-suite)
+
+
 ;;; General utilities, that probably should be in a library somewhere.
 
 ;;; Enable debugging
@@ -121,12 +125,18 @@
 
 ;;; The test driver.
 
-(define (test-file-name test-dir test)
-  (in-vicinity test-dir test))
+
+;;; Localizing test files and temporary data files relative to the
+;;; test suite directory.
+
+(define (data-file-name filename)
+  (in-vicinity test-suite filename))
+
+(define (test-file-name test)
+  (in-vicinity test-suite test))
 
 ;;; Return a list of all the test files in the test tree.
 (define (enumerate-tests test-dir)
-  
   (let ((root-len (+ 1 (string-length test-dir)))
 	(tests '()))
     (for-each-file (lambda (file)
@@ -160,11 +170,12 @@
     (if (opt 'debug #f)
 	(enable-debug-mode))
 
-    (let* ((test-suite
-	    (or (opt 'test-suite #f)
-		(getenv "TEST_SUITE_DIR")
-		default-test-suite))
-	   (tests 
+    (set! test-suite
+	  (or (opt 'test-suite #f)
+	      (getenv "TEST_SUITE_DIR")
+	      default-test-suite))
+
+    (let* ((tests
 	    (let ((foo (opt '() '())))
 	      (if (null? foo) 
 		  (enumerate-tests test-suite)
@@ -189,7 +200,7 @@
 	  ;; Run the tests.
 	  (for-each (lambda (test)
 		      (with-test-prefix test
-			(load (test-file-name test-suite test))))
+			(load (test-file-name test))))
 		    tests)
 
 	  ;; Display the final counts, both to the user and in the log
