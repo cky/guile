@@ -259,6 +259,11 @@ scm_getpwuid (user)
     {
       SCM_DEFER_INTS;
       SCM_SYSCALL (entry = getpwent ());
+      if (! entry)
+	{
+	  SCM_ALLOW_INTS;
+	  return SCM_BOOL_F;
+	}
     }
   else if (SCM_INUMP (user))
     {
@@ -324,7 +329,14 @@ scm_getgrgid (name)
   ve = SCM_VELTS (result);
   SCM_DEFER_INTS;
   if (SCM_UNBNDP (name) || (name == SCM_BOOL_F))
-    SCM_SYSCALL (entry = getgrent ());
+    {
+      SCM_SYSCALL (entry = getgrent ());
+      if (! entry)
+	{
+	  SCM_ALLOW_INTS;
+	  return SCM_BOOL_F;
+	}
+    }
   else if (SCM_INUMP (name))
     SCM_SYSCALL (entry = getgrgid (SCM_INUM (name)));
   else
