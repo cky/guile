@@ -1,3 +1,7 @@
+2003-08-26  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-data.texi (Scientific): Add two-argument atan.
+
 2003-08-14  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-control.texi (while do): Update `while' for code rewrite, in
