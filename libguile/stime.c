@@ -327,6 +327,9 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
 #ifdef LOCALTIME_CACHE
   tzset ();
 #endif
+  /* POSIX says localtime sets errno, but C99 doesn't say that.
+     Give a sensible default value in case localtime doesn't set it.  */
+  errno = EINVAL;
   ltptr = localtime (&itime);
   err = errno;
   if (ltptr)
@@ -347,6 +350,9 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
   /* the struct is copied in case localtime and gmtime share a buffer.  */
   if (ltptr)
     lt = *ltptr;
+  /* POSIX says gmtime sets errno, but C99 doesn't say that.
+     Give a sensible default value in case gmtime doesn't set it.  */
+  errno = EINVAL;
   utc = gmtime (&itime);
   if (utc == NULL)
     err = errno;
@@ -389,6 +395,9 @@ SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
 
   itime = SCM_NUM2LONG (1, time);
   SCM_DEFER_INTS;
+  /* POSIX says gmtime sets errno, but C99 doesn't say that.
+     Give a sensible default value in case gmtime doesn't set it.  */
+  errno = EINVAL;
   bd_time = gmtime (&itime);
   if (bd_time == NULL)
     SCM_SYSERROR;
@@ -461,7 +470,9 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   tzset ();
 #endif
   itime = mktime (&lt);
-  err = errno;
+  /* POSIX doesn't say mktime sets errno, and on glibc 2.3.2 for instance it
+     doesn't.  Force a sensible value for our error message.  */
+  err = EINVAL;
 
   if (itime != -1)
     {
@@ -480,6 +491,8 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
     }
 
   /* get timezone offset in seconds west of UTC.  */
+  /* POSIX says gmtime sets errno, but C99 doesn't say that.
+     Give a sensible default value in case gmtime doesn't set it.  */
   utc = gmtime (&itime);
   if (utc == NULL)
     err = errno;
@@ -660,7 +673,13 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
   t.tm_isdst = -1;
   SCM_DEFER_INTS;
   if ((rest = strptime (str, fmt, &t)) == NULL)
-    SCM_SYSERROR;
+    {
+      /* POSIX doesn't say strptime sets errno, and on glibc 2.3.2 for
+         instance it doesn't.  Force a sensible value for our error
+         message.  */
+      errno = EINVAL;
+      SCM_SYSERROR;
+    }
 
   SCM_ALLOW_INTS;
   return scm_cons (filltime (&t, 0, NULL),  SCM_MAKINUM (rest - str));
