@@ -1,3 +1,22 @@
+Fri Dec 13 16:12:14 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* libguile.h: Added #include "libguile/backtrace.h", #include
+	"libguile/stacks.h".
+	
+	* strings.c (scm_string scm_make_string scm_string_ref
+	scm_string_set_x scm_string_equal_p scm_string_append):
+	Bugfix according to scm patch from Aubrey Jaffer:
+ 	Corrected long-standing
+ 	(not (eqv? (integer->char 128)
+ 		   (string-ref (make-string 1 (integer->char 128)) 0)))
+ 	bug found by John Kozak <jk@noontide.demon.co.uk>.
+
+*	* strports.c, strports.h: Make scm_eval_0str return the value of
+	the last expression evaluated (previously, it returned void).
+
+*	* strports.c, strports.h: New function: scm_read_0str.  Does what
+	it sounds like.
+
 Tue Dec 10 23:38:43 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* simpos.c (scm_getenv): return #f if string can't be found in the
