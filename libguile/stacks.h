@@ -1,0 +1,120 @@
+/* classes: h_files */
+
+#ifndef STACKSH
+#define STACKSH
+/*	Copyright (C) 1995,1996 Mikael Djurfeldt
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this software; see the file COPYING.  If not, write to
+ * the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * As a special exception, the Free Software Foundation gives permission
+ * for additional uses of the text contained in its release of GUILE.
+ *
+ * The exception is that, if you link the GUILE library with other files
+ * to produce an executable, this does not by itself cause the
+ * resulting executable to be covered by the GNU General Public License.
+ * Your use of that executable is in no way restricted on account of
+ * linking the GUILE library code into it.
+ *
+ * This exception does not however invalidate any other reasons why
+ * the executable file might be covered by the GNU General Public License.
+ *
+ * This exception applies only to the code released by the
+ * Free Software Foundation under the name GUILE.  If you copy
+ * code from other Free Software Foundation releases into a copy of
+ * GUILE, as the General Public License permits, the exception does
+ * not apply to the code that you add in this way.  To avoid misleading
+ * anyone as to the status of such modified files, you must delete
+ * this exception notice from them.
+ *
+ * If you write modifications of your own for GUILE, it is your choice
+ * whether to permit this exception to apply to your modifications.
+ * If you do not wish that, delete this exception notice.
+ *
+ * The author can be reached at djurfeldt@nada.kth.se
+ * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN
+ */
+
+
+#include "libguile/__scm.h"
+
+/* {Frames and stacks}
+ */
+
+typedef struct scm_info_frame {
+  SCM flags;
+  SCM source;
+  SCM proc;
+  SCM args;
+} scm_info_frame;
+#define SCM_FRAME_N_SLOTS (sizeof (scm_info_frame) / sizeof (SCM))
+
+#define SCM_STACKP(obj) SCM_VECTORP (obj)
+#define SCM_STACK_LENGTH(stack) (SCM_LENGTH (stack) / SCM_FRAME_N_SLOTS)
+
+#define SCM_FRAMEP(obj) (SCM_CONSP (obj) \
+			 && SCM_NIMP (SCM_CAR (frame)) \
+			 && SCM_STACKP (SCM_CAR (frame)) \
+			 && SCM_INUMP (SCM_CDR (frame))) \
+
+
+/* Note that the following line contains a dependency on the
+   representation of INUMs. */
+#define SCM_FRAME_REF(frame, idx) (SCM_VELTS (SCM_CAR (frame))[(SCM_CDR (frame) & ~3L) + (idx)])
+#define SCM_FRAME_NUMBER(frame) (SCM_BACKWARDS_P \
+				 ? SCM_INUM (SCM_CDR (frame)) \
+				 : (SCM_STACK_LENGTH (SCM_CAR (frame)) \
+				    - SCM_INUM (SCM_CDR (frame)) \
+				    - 1)) \
+
+#define SCM_FRAME_FLAGS(frame) SCM_FRAME_REF (frame, 0)
+#define SCM_FRAME_SOURCE(frame) SCM_FRAME_REF (frame, 1)
+#define SCM_FRAME_PROC(frame) SCM_FRAME_REF (frame, 2)
+#define SCM_FRAME_ARGS(frame) SCM_FRAME_REF (frame, 3)
+#define SCM_FRAME_PREV(frame) scm_frame_previous (frame)
+#define SCM_FRAME_NEXT(frame) scm_frame_next (frame)
+
+#define SCM_FRAMEF_VOID		(1L << 2)
+#define SCM_FRAMEF_REAL		(1L << 3)
+#define SCM_FRAMEF_PROC 	(1L << 4)
+#define SCM_FRAMEF_EVAL_ARGS 	(1L << 5)
+#define SCM_FRAMEF_OVERFLOW	(1L << 6)
+
+#define SCM_FRAME_VOID_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_VOID)
+#define SCM_FRAME_REAL_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_REAL)
+#define SCM_FRAME_PROC_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_PROC)
+#define SCM_FRAME_EVAL_ARGS_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_EVAL_ARGS)
+#define SCM_FRAME_OVERFLOW_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_OVERFLOW)
+
+
+
+SCM scm_make_stack SCM_P ((SCM obj, SCM inner_cut, SCM outer_cut));
+SCM scm_stack_ref SCM_P ((SCM stack, SCM i));
+SCM scm_stack_length SCM_P ((SCM stack));
+
+SCM scm_last_stack_frame SCM_P ((SCM obj));
+SCM scm_frame_number SCM_P ((SCM frame));
+SCM scm_frame_source SCM_P ((SCM frame));
+SCM scm_frame_procedure SCM_P ((SCM frame));
+SCM scm_frame_arguments SCM_P ((SCM frame));
+SCM scm_frame_previous SCM_P ((SCM frame));
+SCM scm_frame_next SCM_P ((SCM frame));
+SCM scm_frame_real_p SCM_P ((SCM frame));
+SCM scm_frame_procedure_p SCM_P ((SCM frame));
+SCM scm_frame_evaluating_args_p SCM_P ((SCM frame));
+SCM scm_frame_overflow_p SCM_P ((SCM frame));
+
+void scm_init_stacks SCM_P ((void));
+
+#endif /* STACKSH */
