@@ -1,11 +1,8 @@
 2000-06-08  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
-	* guile-snarf.awk.in, guile-snarf.in: Made to work also for
-	preprocessors which interpret $$$ and other markers as three
-	separate tokens and puts spaces in between.  NOTE: We could
-	replace %%% etc with real identifiers.  However, before the 1.4
-	release, we instead make minimal changes to the existing
-	system. (Thanks to Bernard Urban.)
+	* snarf.h, guile-snarf.awk.in, guile-snarf.in: Replaced snarf
+	markers with identifiers (SCM__I, SCM__D, SCM__S, SCM__E).
+	(Thanks to Bernard Urban.)
 
 2000-06-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
