@@ -1,6 +1,28 @@
 2000-07-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* gh.g:  Don't include <stdio.h>.  Thanks to Han-Wen Nienhuys for
+	* gc.c (policy_on_error):  Added in order to allow alloc_some_heap
+	to react to malloc failures in a context dependent way.
+
+	(scm_check_freelist):  No need to flush streams before abort().
+
+	(scm_gc_for_newcell):  Try to allocate new memory in three phases:
+	grow heap if preferred, if still no memory available collect
+	garbage, if still no memory available grow heap.
+
+	(heap_segment_table_size):  Added to always reflect the actual
+	size of the heap segment table, because scm_n_heap_segs may differ
+	from the heap segment table size.
+
+	(alloc_some_heap):  In case of malloc failure, react according to
+	the new policy_on_error parameter (either return to caller or
+	abort immediately).  Further, keep heap_segment_table_size up to
+	date.
+
+	(scm_init_storage):  Initialize heap_segment_table_size.
+
+2000-07-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gh.h:  Don't include <stdio.h>.  Thanks to Han-Wen Nienhuys for
 	the hint.
 
 2000-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>

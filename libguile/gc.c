@@ -282,7 +282,9 @@ typedef struct scm_heap_seg_data_t
 
 
 static scm_sizet init_heap_seg (SCM_CELLPTR, scm_sizet, scm_freelist_t *);
-static void alloc_some_heap (scm_freelist_t *);
+
+typedef enum { return_on_error, abort_on_error } policy_on_error;
+static void alloc_some_heap (scm_freelist_t *, policy_on_error);
 
 
 
@@ -444,7 +446,6 @@ scm_check_freelist (SCM freelist)
       {
 	fprintf (stderr, "Bad cell in freelist on newcell %lu: %d'th elt\n",
 		 scm_newcell_count, i);
-	fflush (stderr);
 	abort ();
       }
 }
@@ -687,6 +688,7 @@ adjust_min_yield (scm_freelist_t *freelist)
     }
 }
 
+
 /* When we get POSIX threads support, the master will be global and
  * common while the freelist will be individual for each thread.
  */
@@ -702,11 +704,19 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
 	{
 	  if (master->grow_heap_p || scm_block_gc)
 	    {
+	      /* In order to reduce gc frequency, try to allocate a new heap
+	       * segment first, even if gc might find some free cells.  If we
+	       * can't obtain a new heap segment, we will try gc later.
+	       */
 	      master->grow_heap_p = 0;
-	      alloc_some_heap (master);
+	      alloc_some_heap (master, return_on_error);
 	    }
-	  else
+	  if (SCM_NULLP (master->clusters))
 	    {
+	      /* The heap was not grown, either because it wasn't scheduled to
+	       * grow, or because there was not enough memory available.  In
+	       * both cases we have to try gc to get some free cells.
+	       */
 #ifdef DEBUGINFO
 	      fprintf (stderr, "allocated = %d, ",
 		       scm_cells_allocated
@@ -717,9 +727,11 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
 	      adjust_min_yield (master);
 	      if (SCM_NULLP (master->clusters))
 		{
-		  /* gc could not free any cells */
-		  master->grow_heap_p = 0;
-		  alloc_some_heap (master);
+		  /* gc could not free any cells.  Now, we _must_ allocate a
+		   * new heap segment, because there is no other possibility
+		   * to provide a new cell for the caller.
+		   */
+		  alloc_some_heap (master, abort_on_error);
 		}
 	    }
 	}
@@ -733,6 +745,7 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
   SCM_SET_CELL_TYPE (cell, scm_tc16_allocated);
   return cell;
 }
+
 
 #if 0
 /* This is a support routine which can be used to reserve a cluster
@@ -756,6 +769,7 @@ scm_c_hook_t scm_before_mark_c_hook;
 scm_c_hook_t scm_before_sweep_c_hook;
 scm_c_hook_t scm_after_sweep_c_hook;
 scm_c_hook_t scm_after_gc_c_hook;
+
 
 void
 scm_igc (const char *what)
@@ -1819,6 +1833,7 @@ scm_sizet scm_max_segment_size;
 SCM_CELLPTR scm_heap_org;
 
 scm_heap_seg_data_t * scm_heap_table = 0;
+static unsigned int heap_segment_table_size = 0;
 int scm_n_heap_segs = 0;
 
 /* init_heap_seg
@@ -1946,34 +1961,51 @@ round_to_cluster_size (scm_freelist_t *freelist, scm_sizet len)
 }
 
 static void
-alloc_some_heap (scm_freelist_t *freelist)
+alloc_some_heap (scm_freelist_t *freelist, policy_on_error error_policy)
 #define FUNC_NAME "alloc_some_heap"
 {
-  scm_heap_seg_data_t * tmptable;
   SCM_CELLPTR ptr;
   long len;
 
-  /* Critical code sections (such as the garbage collector)
-   * aren't supposed to add heap segments.
-   */
-  if (scm_gc_heap_lock)
-    SCM_MISC_ERROR ("can not grow heap while locked", SCM_EOL);
+  if (scm_gc_heap_lock) 
+    {
+      /* Critical code sections (such as the garbage collector) aren't
+       * supposed to add heap segments.
+       */
+      fprintf (stderr, "alloc_some_heap: Can not extend locked heap.\n");
+      abort ();
+    }
 
-  /* Expand the heap tables to have room for the new segment.
-   * Do not yet increment scm_n_heap_segs -- that is done by init_heap_seg
-   * only if the allocation of the segment itself succeeds.
-   */
-  len = (1 + scm_n_heap_segs) * sizeof (scm_heap_seg_data_t);
+  if (scm_n_heap_segs == heap_segment_table_size) 
+    {
+      /* We have to expand the heap segment table to have room for the new
+       * segment.  Do not yet increment scm_n_heap_segs -- that is done by
+       * init_heap_seg only if the allocation of the segment itself succeeds.
+       */
+      unsigned int new_table_size = scm_n_heap_segs + 1;
+      size_t size = new_table_size * sizeof (scm_heap_seg_data_t);
+      scm_heap_seg_data_t * new_heap_table;
 
-  SCM_SYSCALL (tmptable = ((scm_heap_seg_data_t *)
-		       realloc ((char *)scm_heap_table, len)));
-  if (!tmptable)
-    /* Dirk:FIXME:: scm_memory_error needs an additional message parameter.
-     * Here: "could not grow heap segment table".
-     */
-    scm_memory_error (FUNC_NAME);
-  else
-    scm_heap_table = tmptable;
+      SCM_SYSCALL (new_heap_table = ((scm_heap_seg_data_t *)
+				     realloc ((char *)scm_heap_table, size)));
+      if (!new_heap_table)
+	{
+	  if (error_policy == abort_on_error)
+	    {
+	      fprintf (stderr, "alloc_some_heap: Could not grow heap segment table.\n");
+	      abort ();
+	    }
+	  else
+	    {
+	      return;
+	    }
+	}
+      else
+	{
+	  scm_heap_table = new_heap_table;
+	  heap_segment_table_size = new_table_size;
+	}
+    }
 
 
   /* Pick a size for the new heap segment.
@@ -2034,10 +2066,11 @@ alloc_some_heap (scm_freelist_t *freelist)
       }
   }
 
-  /* Dirk:FIXME:: scm_memory_error needs an additional message parameter.
-   * Here: "could not grow heap".
-   */
-  scm_memory_error (FUNC_NAME);
+  if (error_policy == abort_on_error)
+    {
+      fprintf (stderr, "alloc_some_heap: Could not grow heap.\n");
+      abort ();
+    }
 }
 #undef FUNC_NAME
 
@@ -2289,6 +2322,7 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
   scm_mtrigger = SCM_INIT_MALLOC_LIMIT;
   scm_heap_table = ((scm_heap_seg_data_t *)
 		    scm_must_malloc (sizeof (scm_heap_seg_data_t) * 2, "hplims"));
+  heap_segment_table_size = 2;
 
   if (make_initial_segment (init_heap_size_1, &scm_master_freelist) ||
       make_initial_segment (init_heap_size_2, &scm_master_freelist2))
