@@ -324,7 +324,6 @@
 	(process-define-module): Bugfix: Make sure that exports are done
 	*after* all used interfaces has been added.
 
->>>>>>> 1.341
 2000-07-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* common-list.scm (uniq): Made tail-recursive.  Thanks to thi!
