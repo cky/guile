@@ -34,7 +34,27 @@ ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_L
 lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile
 
-noinst_PROGRAMS = guile_filter_doc_snarfage
+noinst_PROGRAMS = guile_filter_doc_snarfage gen-scmconfig
+
+gen_scmconfig_SOURCES = gen-scmconfig.c
+
+## Override default rule; this should be compiled for BUILD host.
+## For some reason, OBJEXT does not include the dot
+gen-scmconfig.$(OBJEXT): gen-scmconfig.c
+	if [ "$(cross_compiling)" = "yes" ]; then \
+		$(CC_FOR_BUILD) -c -o $@ $<; \
+	else \
+		$(COMPILE) -c -o $@ $<; \
+	fi
+
+scmconfig.h: ${top_srcdir}/config.h gen-scmconfig
+	rm -f scmconfig.h.tmp
+	cat scmconfig.h.top > scmconfig.h.tmp
+	./gen-scmconfig >> scmconfig.h.tmp
+	chmod 444 scmconfig.h.tmp
+	rm -f scmconfig.h
+	mv scmconfig.h.tmp scmconfig.h
+
 guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 
 ## Override default rule; this should be compiled for BUILD host.
@@ -111,8 +131,8 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		    \
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
-BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h scmconfig.h \
-    version.h \
+BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
+    version.h scmconfig.h \
     $(DOT_X_FILES) $(EXTRA_DOT_X_FILES) guile.texi
 
 EXTRA_libguile_la_SOURCES = _scm.h			\
@@ -186,12 +206,6 @@ version.h: version.h.in
 	  -e s:@-GUILE_MINOR_VERSION-@:${GUILE_MINOR_VERSION}: \
 	  -e s:@-GUILE_MICRO_VERSION-@:${GUILE_MICRO_VERSION}:
 	mv $@.tmp $@
-
-scmconfig.h: $(top_builddir)/config.h
-	rm -f scmconfig.h
-	sed -e 's|\(#define PACKAGE_.*\)|/* do not publish: \1 */|' \
-	  < $(top_builddir)/config.h > scmconfig.h.tmp
-	mv scmconfig.h.tmp scmconfig.h
 
 ## FIXME: Consider using timestamp file, to avoid unnecessary rebuilds.
 libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
