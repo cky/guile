@@ -62,8 +62,8 @@ typedef struct t_tconc
 #define TCONC_IN(tc, obj, pair) \
 do { \
   SCM_SETCAR ((tc).tail, obj); \
-  SCM_SET_CELL_WORD_1 (pair, SCM_EOL); \
-  SCM_SET_CELL_WORD_0 (pair, SCM_BOOL_F); \
+  SCM_SET_CELL_OBJECT_1 (pair, SCM_EOL); \
+  SCM_SET_CELL_OBJECT_0 (pair, SCM_BOOL_F); \
   SCM_SETCDR ((tc).tail, pair); \
   (tc).tail = pair; \
 } while (0)

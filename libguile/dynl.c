@@ -113,7 +113,7 @@ scm_t_bits scm_tc16_dynamic_obj;
 
 #define DYNL_FILENAME         SCM_SMOB_OBJECT
 #define DYNL_HANDLE(x)        ((void *) SCM_SMOB_DATA_2 (x))
-#define SET_DYNL_HANDLE(x, v) (SCM_SET_SMOB_DATA_2 ((x), (v)))
+#define SET_DYNL_HANDLE(x, v) (SCM_SET_SMOB_DATA_2 ((x), (scm_t_bits) (v)))
 
 
 static SCM
