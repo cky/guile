@@ -880,7 +880,7 @@
 ;;; {Transcendental Functions}
 ;;;
 ;;; Derived from "Transcen.scm", Complex trancendental functions for SCM.
-;;; Copyright (C) 1992, 1993 Jerry D. Hedden.
+;;; Written by Jerry D. Hedden, (C) FSF.
 ;;; See the file `COPYING' for terms applying to this program.
 ;;;
 
