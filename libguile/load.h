@@ -46,17 +46,10 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_sys_try_load (SCM filename, SCM casep, SCM sharp);
-extern void scm_init_load (void);
-
-#else /* STDC */
-extern SCM scm_sys_try_load ();
-extern void scm_init_load ();
-
-#endif /* STDC */
-
-
-
+extern void scm_init_load_path PROTO ((void));
+extern SCM scm_sys_try_load PROTO ((SCM filename, SCM casep, SCM sharp));
+extern SCM scm_sys_search_load_path PROTO ((SCM filename));
+extern SCM scm_sys_try_load_path PROTO ((SCM filename, SCM casep, SCM sharp));
+extern void scm_init_load PROTO ((void));
 
 #endif  /* LOADH */
