@@ -1,3 +1,7 @@
+2004-08-27  Marius Vollmer  <mvo@zagadka.de>
+
+	Guile 1.7.1 as been released.
+
 2004-08-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* GUILE-VERSION: Bumped all versions for the 1.7.1 release.  Added
