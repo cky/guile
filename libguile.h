@@ -66,7 +66,6 @@ extern "C" {
 #include "libguile/debug.h"
 #include "libguile/stacks.h"
 #endif
-#include "libguile/dump.h"
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
 #include "libguile/eq.h"
