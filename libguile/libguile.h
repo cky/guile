@@ -72,6 +72,9 @@
 #include "boolean.h"
 #include "chars.h"
 #include "continuations.h"
+#ifdef DEBUG_EXTENSIONS
+#include "debug.h"
+#endif
 #include "dynwind.h"
 #include "eq.h"
 #include "error.h"
@@ -99,6 +102,7 @@
 #include "mbstrings.h"
 #include "numbers.h"
 #include "objprop.h"
+#include "options.h"
 #include "pairs.h"
 #include "params.h"
 #include "ports.h"
@@ -113,6 +117,7 @@
 #include "sequences.h"
 #include "simpos.h"
 #include "socket.h"
+#include "srcprop.h"
 #include "stackchk.h"
 #include "stime.h"
 #include "strings.h"
