@@ -1,3 +1,10 @@
+2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-1.c, srfi-13.c, srfi-14.c, srfi-4.c: Replaced all uses of
+	deprecated SCM_FALSEP, SCM_NFALSEP, SCM_BOOL, SCM_NEGATE_BOOL, and
+	SCM_BOOLP with scm_is_false, scm_is_true, scm_from_bool, and
+	scm_is_bool, respectively.
+
 2004-07-05  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-4.c (uvec_sizes): Add "const".
