@@ -1,3 +1,8 @@
+2003-09-15  Marius Vollmer  <mvo@zagadka.de>
+
+	* format.scm (format): Rewritten as a big letrec to make it
+	reentrant.  No mutex is necessary.  Thanks to Clinton Ebadi!
+
 2003-09-13  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm (file-exists?): Use stat rather than access?, so as to
