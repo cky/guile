@@ -122,35 +122,67 @@ gh_symbol2scm (char *symbol_str)
   return SCM_CAR (scm_intern (symbol_str, strlen (symbol_str)));
 }
 
+static SCM
+makvect (char* m, int len, int type)
+{
+  SCM ans;
+  SCM_NEWCELL (ans);
+  SCM_DEFER_INTS;
+  SCM_SETCHARS (ans, m);
+  SCM_SETLENGTH (ans, len, type);
+  SCM_ALLOW_INTS;
+  return ans;
+}
+
+SCM
+gh_ints2scm (int *d, int n)
+{
+  SCM *m;
+  int i;
+  for (i = 0; i < n; ++i)
+    SCM_ASSERT (d[i] >= SCM_INUM (LONG_MIN) && d[i] <= SCM_INUM (LONG_MAX),
+		SCM_MAKINUM (d[i]),
+		SCM_OUTOFRANGE,
+		"gh_ints2scm");
+  m = (SCM*) scm_must_malloc (n * sizeof (SCM), "vector");
+  for (i = 0; i < n; ++i)
+    m[i] = SCM_MAKINUM (d[i]);
+  return makvect ((char *) m, n, scm_tc7_vector);
+}
+
+SCM
+gh_longs2ivect (long *d, int n)
+{
+  char *m = scm_must_malloc (n * sizeof (long), "vector");
+  memcpy (m, d, n * sizeof (long));
+  return makvect (m, n, scm_tc7_ivect);
+}
+
+SCM
+gh_ulongs2uvect (unsigned long *d, int n)
+{
+  char *m = scm_must_malloc (n * sizeof (unsigned long), "vector");
+  memcpy (m, d, n * sizeof (unsigned long));
+  return makvect (m, n, scm_tc7_uvect);
+}
+
 SCM
 gh_doubles2scm (double *d, int n)
 {
-  SCM ans;
   SCM *m = (SCM*) scm_must_malloc (n * sizeof (SCM), "vector");
   int i;
   for (i = 0; i < n; ++i)
     m[i] = scm_makdbl (d[i], 0.0);
-  SCM_NEWCELL (ans);
-  SCM_DEFER_INTS;
-  SCM_SETCHARS (ans, m);
-  SCM_SETLENGTH (ans, n, scm_tc7_vector);
-  SCM_ALLOW_INTS;
-  return ans;
+  return makvect ((char *) m, n, scm_tc7_vector);
 }
 
 #ifdef SCM_FLOATS
 SCM
 gh_doubles2dvect (double *d, int n)
 {
-  SCM ans;
   char *m = scm_must_malloc (n * sizeof (double), "vector");
   memcpy (m, d, n * sizeof (double));
-  SCM_NEWCELL (ans);
-  SCM_DEFER_INTS;
-  SCM_SETCHARS (ans, m);
-  SCM_SETLENGTH (ans, n, scm_tc7_dvect);
-  SCM_ALLOW_INTS;
-  return ans;
+  return makvect (m, n, scm_tc7_dvect);
 }
 #endif
 
