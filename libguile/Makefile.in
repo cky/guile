@@ -390,17 +390,7 @@ manifest = $(ancillary) $(c_sources)
 .SUFFIXES: .o .c .h .ps .dvi .info .texinfo .scm .x
 
 .c.x:
-	if test ! -escmconfig.h ; then \
-	  touch scmconfig.h; \
-	  fake_scmconfig=1; \
-	else \
-	  fake_scmconfig=0; \
-	fi; \
-	$(CC) -DSCM_MAGIC_SNARFER -E $< | grep "^%%%" | sed -e "s/^%%%//" > $@ ; \
-	if test $$fake_scmconfig -eq 1 ; then \
-	  rm scmconfig.h; \
-	else : ; \
-	fi
+	$(CC) -DSCM_MAGIC_SNARFER -E $< | grep "^%%%" | sed -e "s/^%%%//" > $@
 
 .PHONY: all
 all: libguile.a
