@@ -51,6 +51,32 @@
 
 
 
+#ifdef READER_EXTENSIONS
+scm_option scm_read_opts[] = {
+  { SCM_OPTION_BOOLEAN, "positions", 0 },
+  { SCM_OPTION_BOOLEAN, "copy", 0 }
+};
+
+SCM_PROC (s_read_options, "read-options", 0, 1, 0, scm_read_options);
+#ifdef __STDC__
+SCM
+scm_read_options (SCM new_values)
+#else
+SCM
+scm_read_options (new_values)
+     SCM new_values;
+#endif
+{
+  SCM ans = scm_change_options (new_values,
+				scm_read_opts,
+				N_READ_OPTIONS,
+				s_read_options);
+  if (COPY_SOURCE)
+    RECORD_POSITIONS = 1;
+  return ans;
+}
+#endif
+
 SCM_PROC (s_read, "read", 0, 3, 0, scm_read);
 #ifdef __STDC__
 SCM 
@@ -592,6 +618,9 @@ void
 scm_init_read ()
 #endif
 {
+#ifdef READER_EXTENSIONS
+  scm_init_opts (scm_read_options, scm_read_opts, N_READ_OPTIONS);
+#endif
 #include "read.x"
 }
 
