@@ -1,3 +1,19 @@
+Fri Aug 30 16:01:30 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.in (libdir, includedir, bindir): Use the
+	autoconf-supplied values, instead of deriving them ourselves.
+	(pkgincludedir, datadir, pkgdatadir): New variables.
+	(install, uninstall): Put the header files in a special
+	subdirectory, not in the main search path.
+
+	* Makefile.in (IMPLPATH): Deleted; never used.
+	
+	* Makefile.in (TCL_SRC_DIR, TK_SRC_DIR): Deleted; we don't depend
+	on the Tcl/Tk source any more.
+	(INCLUDE_CFLAGS): Remove references to the above.
+
+	* Makefile.in (version.o): Corrected dependencies.
+
 Thu Aug 29 23:06:19 1996  Thomas Morgan  <tmorgan@gnu.ai.mit.edu>
 
 	* libguile.h: #include "version.h"

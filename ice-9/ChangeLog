@@ -1,3 +1,16 @@
+Thu Aug 29 23:05:11 1996  Thomas Morgan  <tmorgan@gnu.ai.mit.edu>
+
+	* boot-9.scm (%load-path): Add the site directory.
+	Add the directory named after the version number.
+	Prepend the version number to the other directories in the path.
+	Simplify by mapping the common prefix onto each item.
+	* Makefile.in (datadir, pkgdatadir, pkgverdatadir, subpkgdatadir,
+	sitedatadir): New definitions.
+	(libparent, libdir, install_path): Replaced by above.
+	(install): Create the above directories.
+	Put the source files into subpkgdatadir.
+	(uninstall): Remove the above directories.
+
 Thu Aug 29 21:48:47 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Don't use the PLUGIN system to gather information for the
