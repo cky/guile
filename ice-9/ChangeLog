@@ -1,3 +1,62 @@
+Sat Nov  2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+*	* boot-9.scm: The debugging evaluator and recording of positions
+	aren't enabled by default any longer (they are switched on in
+	debug.scm).  But during development we want to have them also
+	*inside* boot-9.scm.  Therefore, two lines are added at the
+	beginning of boot-9.scm to enable these.
+	
+	Call `provide' so that `records' are included among the
+ 	`*features*'.
+	
+	The scheme for saving the stack has been adjusted: save-stack is
+	now commonly available for saving the stack.  Calling `save-stack'
+	sets a flag `stack-saved?' which prevents overwriting the stack.
+	`stack-saved?' is reset at `abort'.
+	
+	Spelling correction: seperate --> separate.
+	
+	Removed `:'s that had creeped into some comments.
+	
+*	The repl now doesn't print #<unspecified> results any longer
+	If the user wants to see this, he can do
+	(assert-repl-print-unspecified #t) in his startup file.
+	
+*	The user now gets a friendly message instead of a backtrace at
+	error.
+	
+	Added `before-read-hook'.
+	
+	Load module (ice-9 emacs) if option `-e' was specified.
+	
+	(provide): New function.
+	
+	(error): Save stack at entry, so that Guile entrails won't show up
+	in backtraces.
+	
+	(backtrace): New function.
+	
+*	(save-stack): Can now take arbitrary number of stack narrowing
+	specifier pairs.  The first specifier in a pair controls inner
+	border, the second the outer border.  A number means cut that
+	number of frames, a procedure object means cut until that object
+	is found in operator position in a frame.
+
+	* debug.scm: Enable debugging evaluator and recording of positions
+	by default.
+
+	* slib.scm (slib:load): Adapt to the new behavior of
+	primitive-load: It doesn't any longer try both with and without
+	".scm" extension.  (We don't want to use %search-load-path here.)
+	
+	(implementation-vicinity): New function.  slib requires it
+	
+	(library-vicinity): Updated.
+	
+	Load "require.scm" in the library-vicinity.
+	
+	(install-require-vicinity, install-require-module): New functions.
+	
 Mon Oct 28 17:56:29 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm (load-from-path): New function.

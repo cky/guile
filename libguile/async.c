@@ -260,7 +260,13 @@ scm_async_click ()
 
 void
 scm_switch ()
-{}
+{
+#if 0 /* Thread switching code should probably reside here, but the
+         async switching code doesn't seem to work, so it's put in the
+         SCM_ASYNC_TICK macro instead. /mdj */
+  SCM_THREAD_SWITCHING_CODE;
+#endif
+}
 
 
 

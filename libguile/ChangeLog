@@ -1,3 +1,46 @@
+Sat Nov  2 21:01:48 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+*	* stacks.c, stacks.h (scm_make_stack): Now takes arbitrary
+ 	number of stack narrowing specifier pairs.  The first specifier in
+ 	a pair controls inner border, the second the outer border.  A
+ 	number means cut that number of frames, a procedure object means
+ 	cut until that object is found in operator position in a frame.
+
+	* root.c (cwdr): Bugfix.
+
+*	* read.c: Recording of positions disabled by default.
+
+*	* procs.c (scm_closure_p): New function.
+
+*	* posix.c (scm_tmpnam): New function.
+
+	* load.c: Added #include "throw.h".
+*	(scm_sys_search_load_path): Bugfix: Don't add an extra '/' if path
+ 	ends with '/'.
+	
+*	* load.c, load.h (scm_read_and_eval_x): New function.
+
+*	* eval.c: Renamed debug option "deval" to "debug".
+	
+*	(scm_eval_x): `eval!' is no longer accessible from the scheme
+	level.  Motivation: We can't allow operations which introduce
+	glocs into the scheme level.  Guile's type system can't handle
+	these as data.  Use `eval' or `read-and-eval!' as replacement.
+	
+	* debug.c (scm_m_start_stack): Bugfix: Use SCM_ECONSP instead of
+	SCM_CONSP since this is a macro!; Set vframe.prev to
+	scm_last_debug_frame instead of 0.  In this way we can look
+	"above" the virtual start stack frame if we wish.
+	(scm_debug_hang): New function: Useful for debugging Guile in
+	certain tricky situations.  Will probably be removed later...
+
+*	* debug.h: Changed semantics of debug option "backtrace".  This
+	option now only indicates whether we want automatic backtrace at
+	an error.
+	
+Thu Oct 31 12:52:30 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+
 Wed Oct 30 00:31:55 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* ports.c: #include "filesys.h"
@@ -19,7 +62,18 @@ Wed Oct 30 00:31:55 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 Mon Oct 28 11:43:41 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* stacks.h: Bugfix: Don't use tail-array length field as stack
-	length field!  This screwed up GC.
+	length field!  This screwed GC.
+
+Tue Oct 22 01:01:00 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* _scm.h: Added #ifndef around definition of macros min and max.
+
+	* __scm.h: Added hooks for threads to plugin to in ints protection
+ 	macros: SCM_THREAD_DEFER, SCM_THREAD_ALLOW, SCM_THREAD_REDEFER,
+ 	SCM_THREAD_ALLOW_1, SCM_THREAD_ALLOW_2.  Motivation: We don't want
+ 	the main code in these macros duplicated and spread over multiple
+ 	files. Renamed SCM_THREADS_SWITCHING_CODE ->
+ 	SCM_THREAD_SWITCHING_CODE.
 
 Tue Oct 29 14:55:40 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
