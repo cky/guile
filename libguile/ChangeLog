@@ -1,5 +1,31 @@
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* iselect.c (SCM_NLONGBITS): Add workaround for the Sun 4.2
+	compiler.
+
+	* inet_aton.c (inet_aton): Cast init value for `cp'.
+
+	* ramap.c (s_scm_array_fill_x): Cast `ve' properly in case
+	`scm_tc7_uvect'.
+
+	* symbols.c (scm_intern_obarray_soft,
+	scm_sysintern0_no_module_lookup): Cast `name' to unsigned char ptr
+	in calls to scm_strhash.
+
+	* strports.c (st_resize_port): Substituted SCM_UCHARS for
+	SCM_CHARS.
+	(st_write): Cast argument to strncpy to char ptr.
+	(scm_mkstrport): Substituted SCM_ROUCHARS for SCM_ROCHARS.
+	(scm_strport_to_string): Cast argument to scm_makfromstr to char
+	ptr.
+
+	* ports.c (scm_ungetc): Cast value to unsigned char ptr before
+	storing in putback_buf.
+	(scm_unread_string): Substituted SCM_ROCHARS for SCM_ROUCHARS.
+
+	* ioext.c (s_scm_read_line): Cast result of call to
+	scm_do_read_line to unsigned char ptr.
+
 	* gdbint.c (SEND_STRING): Cast argument to char pointer.
 
 	* fports.c (fport_flush): Declare `ptr' as unsigned char (was
