@@ -136,8 +136,9 @@ scm_option scm_print_opts[] = {
 SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0, 
             (SCM setting),
 	    "Option interface for the print options. Instead of using\n"
-	    "this procedure directly, use the procedures @code{print-enable},\n"
-	    "@code{print-disable}, @code{print-set!} and @var{print-options}.")
+	    "this procedure directly, use the procedures\n"
+	    "@code{print-enable}, @code{print-disable}, @code{print-set!}\n"
+	    "and @code{print-options}.")
 #define FUNC_NAME s_scm_print_options
 {
   SCM ans = scm_options (setting,

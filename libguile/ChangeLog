@@ -1,3 +1,11 @@
+2001-03-05  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* print.c (scm_print_options): Fixed texinfo in docstring.
+
+	* net_db.c (scm_getserv, scm_getproto, scm_getnet): Return #f if
+	the underlying functions getservent, getprotoent or getnetent
+	return NULL instead of signalling an error.
+
 2001-03-04  Gary Houston  <ghouston@arglist.com>
 
 	* socket.c (scm_fill_sockaddr): don't allow buffer overflows when

@@ -340,14 +340,13 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
   ve = SCM_VELTS (ans);
   if (SCM_UNBNDP (net))
     {
-      errno = 0;
       entry = getnetent ();
       if (! entry)
 	{
-	  if (errno)
-	    SCM_SYSERROR;
-	  else 
-	    return SCM_BOOL_F;
+	  /* There's no good way to tell whether zero means an error
+             or end-of-file, so we always return #f.  See `gethost'
+             for details. */
+	  return SCM_BOOL_F;
 	}
     }
   else if (SCM_STRINGP (net))
@@ -392,14 +391,13 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
   ve = SCM_VELTS (ans);
   if (SCM_UNBNDP (protocol))
     {
-      errno = 0;
       entry = getprotoent ();
       if (! entry)
 	{
-	  if (errno)
-	    SCM_SYSERROR;
-	  else
-	    return SCM_BOOL_F;
+	  /* There's no good way to tell whether zero means an error
+             or end-of-file, so we always return #f.  See `gethost'
+             for details. */
+	  return SCM_BOOL_F;
 	}
     }
   else if (SCM_STRINGP (protocol))
@@ -456,14 +454,13 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
   struct servent *entry;
   if (SCM_UNBNDP (name))
     {
-      errno = 0;
       entry = getservent ();
       if (!entry)
 	{
-	  if (errno)
-	    SCM_SYSERROR;
-	  else
-	    return SCM_BOOL_F;
+	  /* There's no good way to tell whether zero means an error
+             or end-of-file, so we always return #f.  See `gethost'
+             for details. */
+	  return SCM_BOOL_F;
 	}
       return scm_return_entry (entry);
     }
