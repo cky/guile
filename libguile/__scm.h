@@ -46,16 +46,36 @@
 
 
 
-/* "What's the difference between _scm.h and __scm.h?"
+/**********************************************************************
+ This file is Guile's central public header.
+
+ When included by other files, this file should preceed any include
+ other than __scm.h.
+
+ Under *NO* circumstances should new items be added to the global
+ namespace (via adding #define, typedef, or similar to this file) with
+ generic names.  This usually means that any new names should be
+ prefixed by either SCM_ or GUILE_.  i.e. do *not* #define HAVE_FOO or
+ SIZEOF_BAR.  See configure.in, gen-scmconfig.h.in, and
+ gen-scmconfig.c for examples of how to properly handle this issue.
+ The main documentation is in gen-scmconfig.c.
+
+ "What's the difference between _scm.h and __scm.h?"
 
    _scm.h is not installed; it's only visible to the libguile sources
-   themselves.
+   themselves, and it includes config.h, the private config header.
 
    __scm.h is installed, and is #included by <libguile.h>.  If both
    the client and libguile need some piece of information, and it
    doesn't fit well into the header file for any particular module, it
-   should go in __scm.h.  */
+   should go in __scm.h.  __scm.h includes scmconfig.h, the public
+   config header.
+ **********************************************************************/
 
+/* What did the configure script discover about the outside world?  */
+#include "libguile/scmconfig.h"
+
+
 
 /* {Compiler hints}
  *
@@ -147,11 +167,6 @@
 #else
 # define SCM_API extern
 #endif
-
-
-
-/* What did the configure script discover about the outside world?  */
-#include "libguile/scmconfig.h"
 
 
 
@@ -272,31 +287,6 @@
  * - ... add more
  */
 
-#if SIZEOF_UINTPTR_T != 0 && defined(UINTPTR_MAX) \
-                          && defined(INTPTR_MAX) \
-                          && defined(INTPTR_MIN)
-/* Used as SCM if available, so we bundle related attributes to avoid possible
-   type incon[st][oi]n[ae]nce later.  Word in tags.h.  */
-#define HAVE_UINTPTR_T 1
-#endif
-
-#if SIZEOF_PTRDIFF_T != 0
-#define HAVE_PTRDIFF_T 1
-#endif
-
-#if SIZEOF_LONG_LONG != 0
-#define HAVE_LONG_LONGS 1
-#define HAVE_LONG_LONG 1
-#endif
-
-#ifndef HAVE_PTRDIFF_T
-typedef long ptrdiff_t;
-#endif
-
-#ifdef HAVE_LIMITS_H
-# include <limits.h>
-#endif
-
 #ifdef CHAR_BIT
 # define SCM_CHAR_BIT CHAR_BIT
 #else
@@ -313,29 +303,6 @@ typedef long ptrdiff_t;
 # define SCM_CHAR_CODE_LIMIT (UCHAR_MAX + 1L)
 #else
 # define SCM_CHAR_CODE_LIMIT 256L
-#endif
-
-
-
-#ifdef STDC_HEADERS
-# include <stdlib.h>
-# if HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-# endif
-# if HAVE_SYS_STDTYPES_H
-#  include <sys/stdtypes.h>
-# endif
-#  include <stddef.h>
-#endif /* def STDC_HEADERS */
-
-
-
-/* Define some additional CPP macros on Win32 platforms. */
-#if USE_DLL_IMPORT
-# define __REGEX_IMPORT__ 1
-# define __CRYPT_IMPORT__ 1
-# define __READLINE_IMPORT__ 1
-# define QT_IMPORT 1
 #endif
 
 
