@@ -1,5 +1,10 @@
 2003-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (scm_m_letstar): Create memoized code in place to
+	minimize consing.
+
+2003-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (s_splicing): Commented and reformulated.
 
 	(lookup_global_symbol, lookup_symbol): New static functions.

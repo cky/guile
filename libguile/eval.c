@@ -1585,7 +1585,6 @@ SCM
 scm_m_letstar (SCM expr, SCM env SCM_UNUSED)
 {
   SCM binding_idx;
-  SCM new_bindings = SCM_EOL;
   SCM new_body;
 
   const SCM cdr_expr = SCM_CDR (expr);
@@ -1595,17 +1594,34 @@ scm_m_letstar (SCM expr, SCM env SCM_UNUSED)
   binding_idx = SCM_CAR (cdr_expr);
   check_bindings (binding_idx, expr);
 
-  for (; !SCM_NULLP (binding_idx); binding_idx = SCM_CDR (binding_idx))
+  /* Transform ((v1 i1) (v2 i2) ...) into (v1 i1 v2 i2 ...).  The
+   * transformation is done in place.  At the beginning of one iteration of
+   * the loop the variable binding_idx holds the form
+   *   P1:( (vn . P2:(in . ())) . P3:( (vn+1 in+1) ... ) ),
+   * where P1, P2 and P3 indicate the pairs, that are relevant for the
+   * transformation.  P1 and P2 are modified in the loop, P3 remains
+   * untouched.  After the execution of the loop, P1 will hold
+   *   P1:( vn . P2:(in . P3:( (vn+1 in+1) ... )) )
+   * and binding_idx will hold P3.  */
+  while (!SCM_NULLP (binding_idx))
     {
+      const SCM cdr_binding_idx = SCM_CDR (binding_idx);  /* remember P3 */
       const SCM binding = SCM_CAR (binding_idx);
       const SCM name = SCM_CAR (binding);
-      const SCM init = SCM_CADR (binding);
-      new_bindings = scm_cons2 (init, name, new_bindings);
+      const SCM cdr_binding = SCM_CDR (binding);
+
+      SCM_SETCDR (cdr_binding, cdr_binding_idx);        /* update P2 */
+      SCM_SETCAR (binding_idx, name);                   /* update P1 */
+      SCM_SETCDR (binding_idx, cdr_binding);            /* update P1 */
+
+      binding_idx = cdr_binding_idx;                    /* continue with P3 */
     }
-  new_bindings = scm_reverse_x (new_bindings, SCM_UNDEFINED);
 
   new_body = m_body (SCM_IM_LETSTAR, SCM_CDR (cdr_expr));
-  return scm_cons2 (SCM_IM_LETSTAR, new_bindings, new_body);
+  SCM_SETCAR (expr, SCM_IM_LETSTAR);
+  /* the bindings have been changed in place */
+  SCM_SETCDR (cdr_expr, new_body);
+  return expr;
 }
 
 
