@@ -44,7 +44,7 @@
 
 #include "libguile/__scm.h"
 
-extern SCM scm_readline (SCM txt);
+extern SCM scm_readline (SCM txt, SCM inp, SCM outp, SCM read_hook);
 extern SCM scm_add_history (SCM txt);
 extern void scm_init_readline ();
 

@@ -43,37 +43,54 @@
 
 
 #include "_scm.h"
-#ifdef HAVE_LIBREADLINE
+#ifdef HAVE_RL_GETC_FUNCTION
 #include <libguile.h>
 #include <readline.h>
 #include <gh.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
-static int
-current_input_getc ()
+static SCM
+apply (SCM a)
 {
-  return scm_getc (scm_cur_inp);
+  return scm_apply (SCM_CAR (a), SCM_CDR (a), SCM_EOL);
 }
 
-SCM_PROC (s_readline, "readline", 0, 1, 0, scm_readline);
+static int promptp;
+static SCM input_port;
+static SCM before_read;
 
-SCM
-scm_readline (SCM text)
+static int
+current_input_getc (FILE *in)
+{
+  SCM_STACKITEM mark;
+  SCM ans;
+  if (promptp && SCM_NIMP (before_read))
+    {
+      scm_internal_cwdr ((scm_catch_body_t) apply,
+			 (void *) SCM_LIST1 (before_read),
+			 scm_handle_by_throw, 0, &mark);
+      promptp = 0;
+    }
+  ans = scm_getc (input_port);
+  return ans;
+}
+
+static void
+redisplay ()
+{
+  rl_redisplay ();
+  /* promptp = 1; */
+}
+
+static SCM
+internal_readline (SCM text)
 {
   SCM ret;
-  char* s;
-  char* prompt;
+  char *s;
+  char *prompt = SCM_UNBNDP (text) ? "" : SCM_CHARS (text);
 
-  if (! SCM_UNBNDP (text))
-    {
-      SCM_ASSERT ((SCM_NIMP(text) && SCM_STRINGP(text)), text, SCM_ARG1,
-		  s_readline);
-      SCM_COERCE_SUBSTR (text);
-    }
-
-  prompt = SCM_UNBNDP (text) ? "" : SCM_CHARS (text);
-
+  promptp = 1;
   s = readline (prompt);
   if (s)
     ret = scm_makfrom0str (s);
@@ -83,6 +100,65 @@ scm_readline (SCM text)
   free (s);
 
   return ret;
+}
+
+static SCM
+handle_error (void *data, SCM tag, SCM args)
+{
+  (*rl_deprep_term_function) ();
+#ifdef HAVE_RL_CLEAR_SIGNALS
+  rl_clear_signals ();
+#endif
+  scm_handle_by_throw (data, tag, args);
+  return SCM_UNSPECIFIED; /* never reached */
+}
+
+SCM_PROC (s_readline, "readline", 0, 4, 0, scm_readline);
+
+/*fixme* Need to add mutex so that only one thread at a time
+  will access readline */
+SCM
+scm_readline (SCM text, SCM inp, SCM outp, SCM read_hook)
+{
+  before_read = SCM_BOOL_F;
+  if (!SCM_UNBNDP (text))
+    {
+      SCM_ASSERT (SCM_NIMP (text) && SCM_STRINGP (text),
+		  text,
+		  SCM_ARG1,
+		  s_readline);
+      SCM_COERCE_SUBSTR (text);
+      if (SCM_UNBNDP (inp))
+	inp = scm_cur_inp;
+      else if (SCM_UNBNDP (outp))
+	outp = scm_cur_outp;
+      else if (!(SCM_UNBNDP (read_hook) || SCM_FALSEP (read_hook)))
+	{
+	  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (read_hook)),
+		      read_hook,
+		      SCM_ARG2,
+		      s_readline);
+	  before_read = read_hook;
+	}
+    }
+  if (!(SCM_NIMP (inp) && SCM_OPINFPORTP (inp)))
+    scm_misc_error (s_readline,
+		    "Input port is not open or not a file port",
+		    SCM_EOL);
+  if (!(SCM_NIMP (outp) && SCM_OPOUTFPORTP (outp)))
+    scm_misc_error (s_readline,
+		    "Output port is not open or not a file port",
+		    SCM_EOL);
+
+  input_port = inp;
+  rl_instream = (FILE *) SCM_STREAM (inp);
+  rl_outstream = (FILE *) SCM_STREAM (outp);
+
+  rl_initialize ();
+  return scm_internal_catch (SCM_BOOL_T,
+			     (scm_catch_body_t) internal_readline,
+			     (void *) text,
+			     handle_error, 0);
 }
 
 SCM_PROC (s_add_history, "add-history", 1, 0, 0, scm_add_history);
@@ -95,10 +171,8 @@ scm_add_history (SCM text)
 	      s_add_history);
   SCM_COERCE_SUBSTR (text);
 
-  SCM_DEFER_INTS;
   s = SCM_CHARS (text);
   add_history (strdup (s));
-  SCM_ALLOW_INTS;
 
   return SCM_UNSPECIFIED;
 }
@@ -128,12 +202,6 @@ scm_filename_completion_function (SCM text, SCM continuep)
  */
 
 SCM scm_readline_completion_function_var;
-
-static SCM
-apply (SCM a)
-{
-  return scm_apply (SCM_CAR (a), SCM_CDR (a), SCM_EOL);
-}
 
 static char *
 completion_function (char *text, int continuep)
@@ -178,6 +246,7 @@ scm_init_readline ()
   scm_readline_completion_function_var
     = scm_sysintern ("*readline-completion-function*", SCM_BOOL_F);
   rl_getc_function = current_input_getc;
+  rl_redisplay_function = redisplay;
   rl_completion_entry_function = (Function*) completion_function;
   scm_add_feature ("readline");
 }

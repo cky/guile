@@ -1,3 +1,14 @@
+1998-05-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* readline.c: Improvements for readline support: Handle errors
+	better; Implement before-read-hook.
+
+1998-05-11  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* init.c (scm_boot_guile_1), readline.c: Test for
+	HAVE_RL_GETC_FUNCTION instead of HAVE_LIBREADLINE.  (Need to
+	assure that we have version >= 2.1.)
+
 1998-05-11  Mikael Djurfeldt  <mdj@kenneth>
 
 	* readline.c (scm_add_history): Bugfix: Do strdup before giving
