@@ -80,7 +80,7 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
 	= scm_must_realloc ((char *) scm_subr_table,
 			    sizeof (scm_subr_entry) * scm_subr_table_room,
 			    sizeof (scm_subr_entry) * new_size, 
-			    "scm_make_subr_opt");
+			    "scm_subr_table");
       scm_subr_table = new_table;
       scm_subr_table_room = new_size;
     }
