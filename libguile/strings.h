@@ -51,16 +51,13 @@
 
 
 
-#define SCM_SLOPPY_STRINGP(x) (SCM_TYP7S(x)==scm_tc7_string)
-#define SCM_STRINGP(x) (SCM_NIMP(x) && SCM_SLOPPY_STRINGP(x))
-#define SCM_NSTRINGP(x) (!SCM_STRINGP(x))
+#define SCM_SLOPPY_STRINGP(x) (SCM_TYP7S (x) == scm_tc7_string)
+#define SCM_STRINGP(x) (SCM_NIMP (x) && SCM_SLOPPY_STRINGP (x))
 
 /* Is X a writable string (i.e., not a substring)?  */
-#define SCM_RWSTRINGP(x) (SCM_NIMP(x) && (SCM_TYP7(x) == scm_tc7_string))
-#define SCM_NRWSTRINGP(x) (! SCM_RWSTRINGP (x))
+#define SCM_RWSTRINGP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
 
 
-
 
 extern SCM scm_string_p (SCM x);
 extern SCM scm_read_only_string_p (SCM x);
@@ -80,6 +77,15 @@ extern SCM scm_substring (SCM str, SCM start, SCM end);
 extern SCM scm_string_append (SCM args);
 extern SCM scm_make_shared_substring (SCM str, SCM frm, SCM to);
 extern void scm_init_strings (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define SCM_NSTRINGP(x) (!SCM_STRINGP(x))
+#define SCM_NRWSTRINGP(x) (! SCM_RWSTRINGP (x))
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* STRINGSH */
 

@@ -1,3 +1,11 @@
+2000-05-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* strings.h (SCM_NSTRINGP, SCM_NRWSTRINGP), tags.h
+	(SCM_NDOUBLE_CELLP), vectors.h (SCM_NVECTORP):  Deprecated.
+
+	* gc.c (scm_igc), gc.h (SCM_PTR_MASK, SCM_PTR_LT):  Removed #ifdef
+	nosve #endif conditionally compiled code.
+
 2000-05-23  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.c (scm_heap_seg_data_t): fixed comment for the `span' member.

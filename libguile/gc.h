@@ -137,18 +137,11 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_CDRLOC(x) (&SCM_CDR (x))
 
 
-/* SCM_PTR_LT defines how to compare two SCM_CELLPTRs (which may not be in the
- * same scm_array).
+/* SCM_PTR_LT and friends define how to compare two SCM_CELLPTRs (which may
+ * point to cells in different heap segments).
  */
-
-#ifdef nosve
-    #define SCM_PTR_MASK      0xffffffffffff
-    #define SCM_PTR_LT(x, y)  (((int) (x) & SCM_PTR_MASK) < ((int) (y) & SCM_PTR_MASK))
-#else
-    #define SCM_PTR_LT(x, y)  ((x) < (y))
-#endif /* def nosve */
-
-#define SCM_PTR_GT(x, y) SCM_PTR_LT (y, x)
+#define SCM_PTR_LT(x, y) ((x) < (y))
+#define SCM_PTR_GT(x, y) (SCM_PTR_LT (y, x))
 #define SCM_PTR_LE(x, y) (!SCM_PTR_GT (x, y))
 #define SCM_PTR_GE(x, y) (!SCM_PTR_LT (x, y))
 

@@ -860,22 +860,11 @@ scm_igc (const char *what)
 			  / sizeof (SCM_STACKITEM)));
 
   {
-    /* stack_len is long rather than scm_sizet in order to guarantee that
-       &stack_len is long aligned */
+    scm_sizet stack_len = scm_stack_size (scm_stack_base);
 #ifdef SCM_STACK_GROWS_UP
-#ifdef nosve
-    long stack_len = (SCM_STACKITEM *) (&stack_len) - scm_stack_base;
+    scm_mark_locations (scm_stack_base, stack_len);
 #else
-    long stack_len = scm_stack_size (scm_stack_base);
-#endif
-    scm_mark_locations (scm_stack_base, (scm_sizet) stack_len);
-#else
-#ifdef nosve
-    long stack_len = scm_stack_base - (SCM_STACKITEM *) (&stack_len);
-#else
-    long stack_len = scm_stack_size (scm_stack_base);
-#endif
-    scm_mark_locations ((scm_stack_base - stack_len), (scm_sizet) stack_len);
+    scm_mark_locations (scm_stack_base - stack_len, stack_len);
 #endif
   }
 

@@ -52,7 +52,6 @@
 
 
 #define SCM_VECTORP(x) (SCM_NIMP (x) && (SCM_TYP7S (x) == scm_tc7_vector))
-#define SCM_NVECTORP(x) (!SCM_VECTORP (x))
 #define SCM_VELTS(x) ((SCM *) SCM_CELL_WORD_1 (x))
 #define SCM_VELTS_AS_STACKITEMS(x) ((SCM_STACKITEM *) SCM_CELL_WORD_1 (x))
 #define SCM_SETVELTS(x,v) (SCM_SET_CELL_WORD_1 ((x), (v)))
@@ -84,6 +83,14 @@ extern SCM scm_vector_move_left_x (SCM vec1, SCM start1, SCM end1,
 extern SCM scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1, 
                                     SCM vec2, SCM start2);
 extern void scm_init_vectors (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define SCM_NVECTORP(x) (!SCM_VECTORP (x))
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* VECTORSH */
 
