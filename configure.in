@@ -466,6 +466,12 @@ if test "${THREAD_PACKAGE}" != "" ; then
      test $ac_cv_func_select = yes; then
     AC_DEFINE(GUILE_ISELECT, 1)
   fi
+
+  ## Workaround for linuxthreads (currently disabled)
+  #if test $host_os = linux-gnu; then
+  #  AC_DEFINE(GUILE_PTHREAD_COMPAT, 1)
+  #  AC_CHECK_LIB(pthread, main)
+  #fi
 fi
 
 ## If we're using GCC, ask for aggressive warnings.
