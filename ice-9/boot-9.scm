@@ -665,7 +665,7 @@
    ((= n 21)	(unmask-signals) (timer-thunk))
    ((= n 20)	(unmask-signals) (gc-thunk))
    ((= n 19)	(unmask-signals) (alarm-thunk))
-   (else	(unmask-signals) (throw '%%system-error n #f))))
+   (else	(unmask-signals) (throw 'system-error n #f))))
 
 
 ;; The default handler for built-in error types when
@@ -706,7 +706,7 @@
 		  (display " (bad message args)" cep)))
 	   (newline cep)
 	   (force-output cep)
-	   (apply throw 'abort key arg-list)))
+	   (apply throw 'abort key (list (car arg-list)))))
 	(else
 	 ;; old style errors.
 	 (let* ((desc (car arg-list))
@@ -727,27 +727,13 @@
 		(fixed-args (cons msg rest)))
 	   (apply error fixed-args)))))
 
-
-(set-symbol-property! '%%system-error
-		      'throw-handler-default
-		      %%handle-system-error)
-
-
-;; Install default handlers for built-in errors.
-;;
-(map (lambda (err)
-       (set-symbol-property! (cadr err)
-			     'throw-handler-default
-			     %%handle-system-error))
-     (cdr %%system-errors))
-
-
-
-(begin
-  (define (syserror key fn err . args)
-    (errno err)
-    (apply error (cons fn args)))
-  (set-symbol-property! 'syserror 'throw-handler-default syserror))
+;; associate error symbols with the default handler.
+(let loop ((keys '(system-error numerical-overflow)))
+  (cond ((not (null? keys))
+	 (set-symbol-property! (car keys)
+			       'throw-handler-default
+			       %%handle-system-error)
+	 (loop (cdr keys)))))
 
 
 (define (getgrnam name) (getgr name))

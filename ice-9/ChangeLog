@@ -1,3 +1,12 @@
+Sat Sep 14 03:41:15 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm: remove leading %% from references to '%%system-error.
+	(%%handle-system-error): don't pass all the thrown arguments when
+	aborting, just the key and subr.
+	Remove the code to "Install default handlers for built-in errors."
+	Remove the definition of the syserror procedure.
+	Associate 'numerical-overflow with default handler.
+
 Fri Sep 13 04:58:11 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* boot-9.scm: Name change: value-ref --> local-ref

@@ -47,7 +47,8 @@
 
 
 extern int scm_ints_disabled;
-extern SCM system_error_sym;
+extern SCM scm_system_error;
+extern SCM scm_num_overflow;
 
 
 

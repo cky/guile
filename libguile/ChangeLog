@@ -1,3 +1,25 @@
+Sat Sep 14 03:35:41 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* numbers.c: use SCM_NUM_OVERFLOW instead of scm_wta or ASSERT.
+
+	* error.c, error.h: setup scm_num_overflow key.
+
+	* __scm.h: SCM_NUM_OVERFLOW: macro for reporting numerical overflow.
+	Remove definition of SCM_OVSCM_FLOW.
+
+	* fports.c (scm_open_file): use SCM_SYSERROR_M.
+
+	* __scm.h: SCM_SYSERROR_M: new macro for system errors with an
+	explicit message and args.
+
+	* error.c, error.h, __scm.h: change system_error_sym to
+	scm_system_error.
+
+	* error.c (system_error_sym): remove leading %% from the Scheme name
+	"%%system-error". 
+
+	* __scm.h (SCM_SYSMISSING): Redefine using lgh_error.
+
 Fri Sep 13 12:58:08 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* __scm.h, chars.c, debug.c, eval.c, eval.h, extchrs.c, extchrs.h,

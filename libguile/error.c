@@ -57,7 +57,6 @@
 /* {Errors and Exceptional Conditions}
  */
 
-SCM system_error_sym;
 
 /* True between SCM_DEFER_INTS and SCM_ALLOW_INTS, and
  * when the interpreter is not running at all.
@@ -167,13 +166,13 @@ scm_everr (exp, env, arg, pos, s_subr)
     args = scm_listify (desc, sym, arg, SCM_UNDEFINED);
   }
   
-  /* (throw (quote %%system-error) <desc> <proc-name> arg)
+  /* (throw (quote system-error) <desc> <proc-name> arg)
    *
    * <desc> is a string or an integer (see %%system-errors).
    * <proc-name> is a symbol or #f in some annoying cases (e.g. cddr).
    */
   
-  scm_ithrow (system_error_sym, args, 1);
+  scm_ithrow (scm_system_error, args, 1);
   
   /* No return, but just in case: */
 
@@ -223,6 +222,11 @@ scm_error (key, subr, message, args, rest)
   exit (1);
 }
 
+/* error keys: defined here, initialized below, prototyped in error.h,
+   associated with handler procedures in boot-9.scm.  */
+SCM scm_system_error;
+SCM scm_num_overflow;
+
 #ifdef __STDC__
 void
 scm_init_error (void)
@@ -231,7 +235,10 @@ void
 scm_init_error ()
 #endif
 {
-  system_error_sym = scm_permanent_object (SCM_CAR (scm_intern0 ("%%system-error")));
+  scm_system_error
+    = scm_permanent_object (SCM_CAR (scm_intern0 ("system-error")));
+  scm_num_overflow
+    = scm_permanent_object (SCM_CAR (scm_intern0 ("numerical-overflow")));
 #include "error.x"
 }
 
