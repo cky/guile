@@ -552,8 +552,10 @@
 
 
 ;;; {Files}
-;;; !!!! these should be implemented using Tcl commands, not fports.
 ;;;
+;;; If no one can explain this comment to me by 31 Jan 1998, I will
+;;; assume it is meaningless and remove it. -twp
+;;;   !!!! these should be implemented using Tcl commands, not fports.
 
 (define (feature? feature)
   (and (memq feature *features*) #t))
