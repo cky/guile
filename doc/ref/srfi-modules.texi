@@ -147,6 +147,7 @@ symbols in one are unrelated to those in the other.
 @node SRFI-1
 @subsection SRFI-1 - List library
 @cindex SRFI-1
+@cindex list
 
 @c FIXME::martin: Review me!
 
@@ -176,6 +177,7 @@ processing procedure, you should also have a look at the sections
 
 @node SRFI-1 Constructors
 @subsubsection Constructors
+@cindex list constructor
 
 @c FIXME::martin: Review me!
 
@@ -225,6 +227,7 @@ APL language.
 
 @node SRFI-1 Predicates
 @subsubsection Predicates
+@cindex list predicate
 
 @c FIXME::martin: Review me!
 
@@ -272,6 +275,7 @@ equality predicate @var{elt=}.  If no or only one list is given,
 
 @node SRFI-1 Selectors
 @subsubsection Selectors
+@cindex list selector
 
 @c FIXME::martin: Review me!
 
@@ -400,6 +404,8 @@ one list must be non-circular.
 
 @node SRFI-1 Fold and Map
 @subsubsection Fold, Unfold & Map
+@cindex list fold
+@cindex list map
 
 @c FIXME::martin: Review me!
 
@@ -570,6 +576,8 @@ which are true are saved in the result list.
 
 @node SRFI-1 Filtering and Partitioning
 @subsubsection Filtering and Partitioning
+@cindex list filter
+@cindex list partition
 
 @c FIXME::martin: Review me!
 
@@ -613,6 +621,7 @@ the input list.
 
 @node SRFI-1 Searching
 @subsubsection Searching
+@cindex list search
 
 @c FIXME::martin: Review me!
 
@@ -713,6 +722,7 @@ predicate.  (@pxref{List Searching})
 
 @node SRFI-1 Deleting
 @subsubsection Deleting
+@cindex list delete
 
 @c FIXME::martin: Review me!
 
@@ -766,6 +776,8 @@ is more efficient to sort and then compare only adjacent elements.
 
 @node SRFI-1 Association Lists
 @subsubsection Association Lists
+@cindex association list
+@cindex alist
 
 @c FIXME::martin: Review me!
 
@@ -819,6 +831,7 @@ the list structure of @var{alist} to construct its return.
 
 @node SRFI-1 Set Operations
 @subsubsection Set Operations on Lists
+@cindex list set operation
 
 @c FIXME::martin: Review me!
 
@@ -999,6 +1012,7 @@ procedures easier.  It is documented in @xref{Multiple Values}.
 @node SRFI-9
 @subsection SRFI-9 - define-record-type
 @cindex SRFI-9
+@cindex record
 
 This SRFI is a syntax for defining new record types and creating
 predicate, constructor, and field getter and setter functions.  In
@@ -1254,6 +1268,8 @@ The SRFI-14 data type and procedures are always available,
 @node SRFI-16
 @subsection SRFI-16 - case-lambda
 @cindex SRFI-16
+@cindex variable arity
+@cindex arity, variable
 
 @c FIXME::martin: Review me!
 
@@ -1343,6 +1359,8 @@ specified in the SRFI.  Using it avoids the described problems.
 @node SRFI-19
 @subsection SRFI-19 - Time/Date Library
 @cindex SRFI-19
+@cindex time
+@cindex date
 
 This is an implementation of the SRFI-19 time/date library.  The
 functions and variables described here are provided by
@@ -1403,13 +1421,14 @@ in @file{srfi-19.scm} for how to update this table.
 Also, for those not familiar with the terminology, a @dfn{Julian Day}
 is a real number which is a count of days and fraction of a day, in
 UTC, starting from -4713-01-01T12:00:00Z, ie.@: midday Monday 1 Jan
-4713 B.C.  And a @dfn{Modified Julian Day} is the same, but starting
-from 1858-11-17T00:00:00Z, ie.@: midnight 17 November 1858 UTC.
+4713 B.C.  A @dfn{Modified Julian Day} is the same, but starting from
+1858-11-17T00:00:00Z, ie.@: midnight 17 November 1858 UTC.  That time
+is julian day 2400000.5.
 
 @c  The SRFI-1 spec says -4714-11-24T12:00:00Z (November 24, -4714 at
 @c  noon, UTC), but this is incorrect.  It looks like it might have
 @c  arisen from the code incorrectly treating years a multiple of 100
-@c  but not 400 prior to 1582 as leap years, where instead the Julian
+@c  but not 400 prior to 1582 as non-leap years, where instead the Julian
 @c  calendar should be used so all multiples of 4 before 1582 are leap
 @c  years.
 
@@ -1565,7 +1584,8 @@ Nanoseconds, 0 to 999999999.
 @end defun
 
 @defun date-second date
-Seconds, 0 to 60.  0 to 59 is the usual range, 60 is for a leap second.
+Seconds, 0 to 59, or 60 for a leap second.  60 is never seen when working
+entirely within UTC, it's only when converting to or from TAI.
 @end defun
 
 @defun date-minute date
@@ -1585,7 +1605,8 @@ Month, 1 to 12.
 @end defun
 
 @defun date-year date
-Year, eg.@: 2003.
+Year, eg.@: 2003.  Dates B.C.@: are negative, eg.@: @math{-46} is 46
+B.C.  There is no year 0, year @math{-1} is followed by year 1.
 @end defun
 
 @defun date-zone-offset date
@@ -1616,9 +1637,9 @@ Monday, etc.
 @c  document it here.
 @c
 @defun current-date [tz-offset]
-Return a date object representing the current date/time UTC.
-@var{tz-offset} is seconds east of Greenwich, and defaults to the
-local timezone.
+Return a date object representing the current date/time, in UTC offset
+by @var{tz-offset}.  @var{tz-offset} is seconds east of Greenwich and
+defaults to the local timezone.
 @end defun
 
 @defun current-julian-day
@@ -1634,6 +1655,8 @@ Return the current Modified Julian Day.
 
 @node SRFI-19 Time/Date conversions
 @subsubsection SRFI-19 Time/Date conversions
+@cindex time conversion
+@cindex date conversion
 
 @defun date->julian-day date
 @defunx date->modified-julian-day date
@@ -1678,7 +1701,8 @@ instance @code{time-tai->time-utc} accepts a @var{time} object of type
 @code{time-tai} and returns an object of type @code{time-utc}.
 
 For conversions to dates, @var{tz-offset} is seconds east of
-Greenwich.  The default is the local timezone.
+Greenwich.  The default is the local timezone, at the given time, as
+provided by the system.
 
 The @code{!} variants may modify their @var{time} argument to form
 their return.  The plain functions create a new object.
@@ -1687,6 +1711,7 @@ their return.  The plain functions create a new object.
 @node SRFI-19 Date to string
 @subsubsection SRFI-19 Date to string
 @cindex date to string
+@cindex string, from date
 
 @defun date->string date [format]
 Convert a date to a string under the control of a format.
@@ -1777,6 +1802,7 @@ the future.
 @node SRFI-19 String to date
 @subsubsection SRFI-19 String to date
 @cindex string to date
+@cindex date, from string
 
 @c  FIXME: Can we say what happens when an incomplete date is
 @c  converted?  Ie. fields left as 0, or what?  The spec seems to be
@@ -1900,6 +1926,9 @@ change in the future.
 @node SRFI-26
 @subsection SRFI-26 - specializing parameters
 @cindex SRFI-26
+@cindex parameter specialize
+@cindex argument specialize
+@cindex specialize parameter
 
 This SRFI provides a syntax for conveniently specializing selected
 parameters of a function.  It can be used with,
@@ -1999,6 +2028,7 @@ or similar is typical.
 @node SRFI-31
 @subsection SRFI-31 - A special form `rec' for recursive evaluation
 @cindex SRFI-31
+@cindex recursive expression
 @findex rec
 
 SRFI-31 defines a special form that can be used to create
