@@ -1,3 +1,8 @@
+2004-02-16  Kevin Ryde  <user42@zip.com.au>
+
+	* num2float.i.c (NUM2FLOAT): Expand isfinite to !xisinf, as per
+	previous change to numbers.c.
+
 2004-02-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* unif.c (scm_make_uve): Removed local variable and simplified
