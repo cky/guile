@@ -1,3 +1,31 @@
+2001-05-20  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* modules.h (scm_system_module_env_p): Move out of deprecated
+	section.
+
+	* rw.h (scm_init_rw): Added prototype.
+
+	* gsubr.h, gsubr.c (scm_c_make_gsubr, scm_c_define_gsubr,
+	scm_c_make_gsubr_with_generic, scm_c_define_gsubr_with_generic):
+	New functions.  They replace scm_make_gsubr and
+	scm_make_gsubr_with_generic.  The `make' variants only create the
+	gsubr object, while the `define' variants also put it into the
+	current module.  Changed all callers.
+	(scm_make_gsubr, scm_make_gsubr_with_generic): Deprecated.
+
+	* procs.h, procs.c (scm_c_make_subr, scm_c_define_subr,
+	scm_c_make_subr_with_generic, scm_c_define_subr_with_generic): New
+	functions.  They replace scm_make_subr, scm_make_subr_opt and
+	scm_make_subr_with_generic.  The `make' variants only create the
+	subr object, while the `define' variants also put it into the
+	current module.  Changed all callers.
+	(scm_make_subr, scm_make_subr_opt, scm_make_subr_with_generic):
+	Deprecated.
+
+	* eval.c, gc.c, gh_funcs.c, goops.c, macros.c, pairs.c, ramap.c,
+	rdelim.c, rw.c, scmsigs.c, snarf.h, values.c: Changed according to
+	the comments above.
+	
 2001-05-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* throw.c (scm_lazy_catch): Slight docstring clarification.

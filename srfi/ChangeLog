@@ -1,3 +1,8 @@
+2001-05-20  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-14.c (scm_c_init_srfi_14): Added "int" to declaration of
+	`initialized'.
+
 2001-05-19  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Avoid using module operations from C.

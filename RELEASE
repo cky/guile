@@ -22,8 +22,21 @@ After signal handling and threading have been fixed:
 
 === In release 1.8.0:
 
+- remove deprecated subr and gsubr functions
+    in procs.h, procs.c: scm_make_subr, scm_make_subr_opt,
+      scm_make_subr_with_generic,
+    in gsubr.h, gsubr.c: scm_make_gsubr, scm_make_gsubr_with_generic.
+    
+- remove deprecated C interface to modules
+    in modules.h, modules.c:
+      root_module_lookup_closure, scm_sym_app, scm_sym_modules,
+      module_prefix, make_modules_in_var, beautify_user_module_x_var,
+      scm_the_root_module, scm_make_module, scm_ensure_user_module,
+      scm_load_scheme_module
+
 - remove vcell and obarray support.
   Remove all code bracketed by `#if SCM_ENABLE_VCELLS'.
+  Remove SCM_ENABLE_VCELLS itself.
   Also remove `variable-set-name-hint' completely.
 
 - remove compatability module (ice-9 and-let*).  It
@@ -37,6 +50,7 @@ After signal handling and threading have been fixed:
     etc.
 - remove deprecated variables:
     scm_top_level_lookup_closure_var
+    scm_scm_system_transformer
 - remove deprecated functions:
     eval.c: scm_eval2, scm_eval_3
     load.c: scm_read_and_eval_x
