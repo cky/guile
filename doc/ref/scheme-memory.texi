@@ -128,6 +128,62 @@ the memory management overhead very low.
 @end deftypefn
 
 
+@subsection Upgrading from scm_must_malloc et al
+
+Version 1.6 of Guile and earlier did not have the functions from the
+previous section.  In their place, it had the functions
+@code{scm_must_malloc}, @code{scm_must_realloc} and
+@code{scm_must_free}.  This section explains why we want you to stop
+using them, and how to do this.
+
+The functions @code{scm_must_malloc} and @code{scm_must_realloc}
+behaved like @code{scm_gc_malloc} and @code{scm_gc_realloc} do now,
+respectively.  They would inform the GC about the newly allocated
+memory via the internal equivalent of
+@code{scm_gc_register_collectable_memory}.  However,
+@code{scm_must_free} did not unregister the memory it was about to
+free.  The usual way to unregister memory was to return its size from
+a smob free function.
+
+This disconnectedness of the actual freeing of memory and reporting
+this to the GC proved to be bad in practice.  It was easy to make
+mistakes and report the wrong size because allocating and freeing was
+not done with symmetric code, and because it is cumbersome to compute
+the total size of nested data structures that were freed with multiple
+calls to @code{scm_must_free}.  Additionally, there was no equivalent
+to @code{scm_malloc}, and it was tempting to just use
+@code{scm_must_malloc} and never to tell the GC that the memory has
+been freed.
+
+The effect was that the internal statistics kept by the GC drifted out
+of sync with reality and could even overflow in long running programs.
+When this happened, the result was a dramatic increase in (senseless)
+GC activity which would effectively stop the program dead.
+
+The functions @code{scm_done_malloc} and @code{scm_done_free} were
+introduced to help restore balance to the force, but existing bugs did
+not magically disappear, of course.
+
+Therefore we decided to force everybody to review their code by
+deprecating the existing functions and introducing new ones in their
+place that are hopefully easier to use correctly.
+
+For every use of @code{scm_must_malloc} you need to decide whether to
+use @code{scm_malloc} or @code{scm_gc_malloc} in its place.  When the
+memory block is not part of a smob or some other Scheme object whose
+lifetime is ultimately managed by the garbage collector, use
+@code{scm_malloc} and @code{free}.  When it is part of a smob, use
+@code{scm_gc_malloc} and change the smob free function to use
+@code{scm_gc_free} instead of @code{scm_must_free} or @code{free} and
+make it return zero.
+
+The important thing is to always pair @code{scm_malloc} with
+@code{free}; and to always pair @code{scm_gc_malloc} with
+@code{scm_gc_free}.
+
+The same reasoning applies to @code{scm_must_realloc} and
+@code{scm_realloc} versus @code{scm_gc_realloc}.
+
 @node Weak References
 @section Weak References
 
