@@ -129,9 +129,10 @@ install-exec-hook:
 ## compile, since they are #included.  So instead we list them here.
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
-noinst_HEADERS = coop-threads.c coop-threads.h coop.c \
-    num2integral.i.c num2float.i.c convert.i.c        \
-    win32-uname.h win32-dirent.h win32-socket.h\
+noinst_HEADERS = coop-threads.c coop-threads.h coop.c	\
+    null-threads.c					\
+    num2integral.i.c num2float.i.c convert.i.c		\
+    win32-uname.h win32-dirent.h win32-socket.h		\
 	private-gc.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
@@ -144,8 +145,9 @@ pkginclude_HEADERS = gh.h
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
-    chars.h continuations.h convert.h coop-defs.h debug.h debug-malloc.h      \
-    deprecation.h dynl.h dynwind.h environments.h eq.h error.h eval.h         \
+    chars.h continuations.h convert.h coop-defs.h null-threads.h debug.h      \
+    debug-malloc.h							      \
+    deprecation.h dynl.h dynwind.h environments.h eq.h error.h eval.h	      \
     evalext.h extensions.h feature.h filesys.h fluids.h fports.h gc.h	      \
     gdb_interface.h gdbint.h						      \
     goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h		      \
