@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -251,6 +251,18 @@ scm_wrong_num_args (SCM proc)
 	     SCM_LIST1(proc),
 	     SCM_BOOL_F);
 }
+
+
+void
+scm_error_num_args_subr (const char *subr)
+{
+  scm_error (scm_args_number_key,
+	     NULL,
+	     "Wrong number of arguments to ~A",
+	     SCM_LIST1 (scm_makfrom0str (subr)),
+	     SCM_BOOL_F);
+}
+
 
 SCM_SYMBOL (scm_arg_type_key, "wrong-type-arg");
 void
