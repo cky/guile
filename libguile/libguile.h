@@ -61,7 +61,9 @@
 #include "libguile/chars.h"
 #include "libguile/continuations.h"
 #ifdef DEBUG_EXTENSIONS
+#include "libguile/backtrace.h"
 #include "libguile/debug.h"
+#include "libguile/stacks.h"
 #endif
 #include "libguile/dynwind.h"
 #include "libguile/eq.h"
