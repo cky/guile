@@ -294,16 +294,16 @@
  */
 
 #if SIZEOF_UINTPTR_T != 0
-#define HAVE_UINTPTR_T
+#define HAVE_UINTPTR_T 1
 #endif
 
 #if SIZEOF_PTRDIFF_T != 0
-#define HAVE_PTRDIFF_T
+#define HAVE_PTRDIFF_T 1
 #endif
 
 #if SIZEOF_LONG_LONG != 0
-#define HAVE_LONG_LONGS
-#define HAVE_LONG_LONG
+#define HAVE_LONG_LONGS 1
+#define HAVE_LONG_LONG 1
 #endif
 
 #ifndef HAVE_PTRDIFF_T
