@@ -48,6 +48,7 @@
 
 
 
+extern SCM scm_m_generalized_set_x (SCM xorig, SCM env);
 extern SCM scm_definedp (SCM sym, SCM env);
 extern SCM scm_m_undefine (SCM x, SCM env);
 extern void scm_init_evalext (void);

@@ -46,6 +46,21 @@
 
 #include "evalext.h"
 
+SCM_SYMBOL (scm_sym_setter, "setter");
+
+SCM 
+scm_m_generalized_set_x (SCM xorig, SCM env)
+{
+  SCM x = SCM_CDR (xorig);
+  SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, scm_s_set_x);
+  if (SCM_NIMP (SCM_CAR (x)) && SCM_SYMBOLP (SCM_CAR (x)))
+    return scm_cons (SCM_IM_SET_X, x);
+  else if (SCM_NIMP (SCM_CAR (x)) && SCM_CONSP (SCM_CAR (x)))
+    return scm_cons (SCM_LIST2 (scm_sym_setter, SCM_CAAR (x)),
+		     scm_append (SCM_LIST2 (SCM_CDAR (x), SCM_CDR (x))));
+  return scm_wta (xorig, scm_s_variable, scm_s_set_x);
+}
+
 SCM_PROC (s_definedp, "defined?", 1, 1, 0, scm_definedp);
 
 SCM 
@@ -136,5 +151,6 @@ SCM_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
 void 
 scm_init_evalext ()
 {
+  scm_make_synt (scm_s_set_x, scm_makmmacro, scm_m_generalized_set_x);
 #include "evalext.x"
 }
