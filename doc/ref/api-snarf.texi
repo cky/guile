@@ -72,7 +72,7 @@ respectively.  While snarfing, they both expand into the
 initialization code
 
 @smallexample
-@var{c_name} = scm_permanent_object (scm_from_symbol (@var{scheme_name}));
+@var{c_name} = scm_permanent_object (scm_from_locale_symbol (@var{scheme_name}));
 @end smallexample
 
 Thus, you can use them declare a static or global variable of type
@@ -98,7 +98,7 @@ respectively.  While snarfing, they both expand into the
 initialization code
 
 @smallexample
-@var{c_name} = scm_permanent_object (scm_from_keyword (@var{scheme_name}));
+@var{c_name} = scm_permanent_object (scm_c_make_keyword (@var{scheme_name}));
 @end smallexample
 
 Thus, you can use them declare a static or global variable of type
@@ -132,12 +132,12 @@ respectively.  While snarfing, they both expand into the
 initialization code
 
 @smallexample
-@var{c_name} = scm_permanent_object (scm_c_define (@var{scheme_name}, @var{value});
+@var{c_name} = scm_permanent_object (scm_c_define (@var{scheme_name}, @var{value}));
 @end smallexample
 
 Thus, you can use them declare a static or global C variable of type
 @code{SCM} that will be initialized to the object representing the
-Scheme variable named d@var{scheme_name} in the current module.  The
+Scheme variable named @var{scheme_name} in the current module.  The
 variable will be defined when it doesn't already exist.  It is always
 set to @var{value}.
 @end deffn
