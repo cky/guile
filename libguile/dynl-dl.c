@@ -45,13 +45,7 @@
    Author: Aubrey Jaffer
    Modified for libguile by Marius Vollmer */
 
-#include "_scm.h"
-#include "genio.h"
-#include "smob.h"
-
 #include <dlfcn.h>
-
-#define SHL(obj) ((void*)SCM_CDR(obj))
 
 #ifdef RTLD_LAZY	/* Solaris 2. */
 #  define DLOPEN_MODE	RTLD_LAZY
@@ -59,154 +53,51 @@
 #  define DLOPEN_MODE	1	/* Thats what it says in the man page. */
 #endif
 
-static scm_sizet frshl SCM_P ((SCM ptr));
-
-static scm_sizet
-frshl (ptr)
-     SCM ptr;
+static void *
+sysdep_dynl_link (fname, subr)
+     char *fname;
+     char *subr;
 {
-#if 0
-    /* Should freeing a shl close and possibly unmap the object file it */
-    /* refers to? */
-    if (SHL(ptr))
-	dlclose (SHL(ptr));
-#endif
-    return 0;
+    void *handle = dlopen (fname, DLOPEN_MODE);
+    if (NULL == handle)
+	scm_misc_error (subr, (char *)dlerror (), SCM_EOL);
+    return handle;
 }
 
-static int prinshl SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
-static int
-prinshl (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+static void
+sysdep_dynl_unlink (handle, subr)
+     void *handle;
+     char *subr;
 {
-    scm_gen_puts (scm_regular_string, "#<dynamic-linked ", port);
-    scm_intprint (SCM_CDR (exp), 16, port);
-    scm_gen_putc ('>', port);
-    return 1;
-}
-
-int scm_tc16_shl;
-static scm_smobfuns shlsmob = { scm_mark0, frshl, prinshl };
-
-SCM_PROC (s_dynamic_link, "dynamic-link", 1, 0, 0, scm_dynamic_link);
-
-SCM
-scm_dynamic_link (fname)
-     SCM fname;
-{
-    SCM z;
-    void *handle;
-
-    /* if FALSEP(fname) return fname; XXX - ? */
-
-    fname = scm_coerce_rostring (fname, s_dynamic_link, SCM_ARG1);
+    int status;
 
     SCM_DEFER_INTS;
-    handle = dlopen (SCM_CHARS (fname), DLOPEN_MODE);
-    if (NULL == handle)
-	scm_misc_error (s_dynamic_link, (char *)dlerror (), SCM_EOL);
-    SCM_NEWCELL (z);
-    SCM_SETCHARS (z, handle);
-    SCM_SETCAR (z, scm_tc16_shl);
+    status = dlclose (handle);
     SCM_ALLOW_INTS;
-
-    return z;
+    if(status)
+	scm_misc_error (subr, (char *)dlerror (), SCM_EOL);
 }
-
-static void *get_func SCM_P ((void *handle, char *func, char *subr));
-
+   
 static void *
-get_func (handle, func, subr)
+sysdep_dynl_func (symb, handle, subr)
+     char *symb;
      void *handle;
-     char *func;
      char *subr;
 {
     void *fptr;
     char *err;
 
-    fptr = dlsym (handle, func);
+    SCM_DEFER_INTS;
+    fptr = dlsym (handle, symb);
     err = (char *)dlerror ();
+    SCM_ALLOW_INTS;
+
     if (!fptr)
 	scm_misc_error (subr, err? err : "symbol has NULL address", SCM_EOL);
     return fptr;
 }
 
-SCM_PROC (s_dynamic_call, "dynamic-call", 2, 0, 0, scm_dynamic_call);
-
-SCM
-scm_dynamic_call (symb, shl)
-     SCM symb, shl;
+static void
+sysdep_dynl_init ()
 {
-    void (*func) SCM_P ((void)) = 0;
-
-    symb = scm_coerce_rostring (symb, s_dynamic_call, SCM_ARG1);
-    SCM_ASSERT (SCM_NIMP (shl) && SCM_CAR (shl) == scm_tc16_shl, shl,
-		SCM_ARG2, s_dynamic_call);
-
-    SCM_DEFER_INTS;
-    func = get_func (SHL(shl), SCM_CHARS (symb), s_dynamic_call);
-    SCM_ALLOW_INTS;
-
-    (*func) ();
-
-    return SCM_BOOL_T;
-}
-
-SCM_PROC (s_dynamic_args_call, "dynamic-args-call", 3, 0, 0, scm_dynamic_args_call);
-
-SCM
-scm_dynamic_args_call (symb, shl, args)
-     SCM symb, shl, args;
-{
-    int i, argc;
-    char **argv;
-    int (*func) SCM_P ((int argc, char **argv)) = 0;
-
-    symb = scm_coerce_rostring (symb, s_dynamic_args_call, SCM_ARG1);
-    SCM_ASSERT (SCM_NIMP (shl) && SCM_CAR (shl) == scm_tc16_shl, shl,
-		SCM_ARG2, s_dynamic_args_call);
-
-    SCM_DEFER_INTS;
-    func = get_func (SHL(shl), SCM_CHARS (symb), s_dynamic_args_call);
-    argv = scm_make_argv_from_stringlist (args, &argc, s_dynamic_args_call,
-				      SCM_ARG3);
-    SCM_ALLOW_INTS;
-
-    i = (*func) (argc, argv);
-
-    SCM_DEFER_INTS;
-    scm_must_free_argv(argv);
-    SCM_ALLOW_INTS;
-    return SCM_MAKINUM(0L+i);
-}
-
-SCM_PROC (s_dynamic_unlink, "dynamic-unlink", 1, 0, 0, scm_dynamic_unlink);
-
-SCM
-scm_dynamic_unlink (shl)
-     SCM shl;
-{
-    int status;
-
-    SCM_ASSERT (SCM_NIMP (shl) && SCM_CAR (shl) == scm_tc16_shl, shl,
-		SCM_ARG1, s_dynamic_unlink);
-
-    SCM_DEFER_INTS;
-    status = dlclose (SHL(shl));
-    SCM_SETCHARS (shl, NULL);
-    SCM_ALLOW_INTS;
-
-    if (status)
-	scm_misc_error (s_dynamic_unlink, (char *)dlerror (), SCM_EOL);
-    return SCM_BOOL_T;
-}
-
-void
-scm_init_dynamic_linking ()
-{
-    scm_tc16_shl = scm_newsmob (&shlsmob);
-#include "dynl.x"
 }

@@ -45,7 +45,25 @@
    Author: Aubrey Jaffer
    Modified for libguile by Marius Vollmer */
 
+/* XXX - This is only here to drag in a definition of __eprintf. This
+   is needed for proper operation of dynamic linking. The real
+   solution would probably be a shared libgcc. */
+
+#undef NDEBUG
+#include <assert.h>
+
+static void
+maybe_drag_in_eprintf ()
+{
+  assert (!maybe_drag_in_eprintf);
+}
+
 #include "_scm.h"
+#include "dynl.h"
+#include "genio.h"
+#include "smob.h"
+
+#ifdef DYNAMIC_LINKING
 
 /* Converting a list of SCM strings into a argv-style array.  You must
    have ints disabled for the whole lifetime of the created argv (from
@@ -119,10 +137,92 @@ scm_coerce_rostring (rostr, subr, argn)
     return rostr;
 }
 
-/* Dispatch to the system dependent files
+/* Module registry
  */
 
-#ifdef DYNAMIC_LINKING
+/* We can't use SCM objects here. One should be able to call
+   SCM_REGISTER_MODULE from a C++ constructor for a static
+   object. This happens before main and thus before libguile is
+   initialized. */
+
+struct moddata {
+    struct moddata *link;
+    char *module_name;
+    void *init_func;
+};
+
+static struct moddata *registered_mods = NULL;
+
+void
+scm_register_module_xxx (module_name, init_func)
+     char *module_name;
+     void *init_func;
+{
+    struct moddata *md;
+
+    /* XXX - should we (and can we) DEFER_INTS here? */
+
+    for (md = registered_mods; md; md = md->link)
+	if (!strcmp (md->module_name, module_name)) {
+	    md->init_func = init_func;
+	    return;
+	}
+
+    md = (struct moddata *)malloc (sizeof (struct moddata));
+    if (md == NULL)
+	return;
+
+    md->module_name = module_name;
+    md->init_func = init_func;
+    md->link = registered_mods;
+    registered_mods = md;
+}
+
+SCM_PROC (s_registered_modules, "c-registered-modules", 0, 0, 0, scm_registered_modules);
+
+SCM
+scm_registered_modules ()
+{
+    SCM res;
+    struct moddata *md;
+
+    res = SCM_EOL;
+    for (md = registered_mods; md; md = md->link)
+	res = scm_cons (scm_cons (scm_makfrom0str (md->module_name),
+				  scm_ulong2num ((unsigned long) md->init_func)),
+			res);
+    return res;
+}
+
+SCM_PROC (s_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0, scm_clear_registered_modules);
+
+SCM
+scm_clear_registered_modules ()
+{
+    struct moddata *md1, *md2;
+
+    SCM_DEFER_INTS;
+
+    for (md1 = registered_mods; md1; md1 = md2) {
+	md2 = md1->link;
+	free (md1);
+    }
+    registered_mods = NULL;
+
+    SCM_ALLOW_INTS;
+    return SCM_UNSPECIFIED;
+}
+
+/* Dispatch to the system dependent files
+ *
+ * They define these static functions:
+ */
+
+static void sysdep_dynl_init SCM_P ((void));
+static void *sysdep_dynl_link SCM_P ((char *filename, char *subr));
+static void sysdep_dynl_unlink SCM_P ((void *handle, char *subr));
+static void *sysdep_dynl_func SCM_P ((char *symbol, void *handle, char *subr));
+
 #ifdef HAVE_LIBDL
 #include "dynl-dl.c"
 #else
@@ -132,16 +232,176 @@ scm_coerce_rostring (rostr, subr, argn)
 #ifdef HAVE_DLD
 #include "dynl-dld.c"
 #else /* no dynamic linking available */
+/* configure should not have defined DYNAMIC_LINKING in this case */
+#error Dynamic linking not implemented for your system.
+#endif
+#endif
+#endif
+
+int scm_tc16_dynamic_obj;
+
+struct dynl_obj {
+    SCM filename;
+    void *handle;
+};
+
+static SCM mark_dynl_obj SCM_P ((SCM ptr));
+static SCM
+mark_dynl_obj (ptr)
+     SCM ptr;
+{
+    struct dynl_obj *d = (struct dynl_obj *)SCM_CDR (ptr);
+    SCM_SETGC8MARK (ptr);
+    return d->filename;
+}
+
+static int print_dynl_obj SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+static int
+print_dynl_obj (exp, port, pstate)
+     SCM exp;
+     SCM port;
+     scm_print_state *pstate;
+{
+    struct dynl_obj *d = (struct dynl_obj *)SCM_CDR (exp);
+    scm_gen_puts (scm_regular_string, "#<dynamic-object ", port);
+    scm_iprin1 (d->filename, port, pstate);
+    scm_gen_putc ('>', port);
+    return 1;
+}
+
+static scm_smobfuns dynl_obj_smob = {
+    mark_dynl_obj,
+    scm_free0,
+    print_dynl_obj
+};
+  
+SCM_PROC (s_dynamic_link, "dynamic-link", 1, 0, 0, scm_dynamic_link);
+
+SCM
+scm_dynamic_link (fname)
+     SCM fname;
+{
+    SCM z;
+    struct dynl_obj *d;
+
+    fname = scm_coerce_rostring (fname, s_dynamic_link, SCM_ARG1);
+    d = (struct dynl_obj *)scm_must_malloc (sizeof (struct dynl_obj),
+					    s_dynamic_link);
+    d->filename = fname;
+
+    SCM_DEFER_INTS;
+    d->handle = sysdep_dynl_link (SCM_CHARS (fname), s_dynamic_link);
+    SCM_NEWCELL (z);
+    SCM_SETCHARS (z, d);
+    SCM_SETCAR (z, scm_tc16_dynamic_obj);
+    SCM_ALLOW_INTS;
+
+    return z;
+}
+
+static struct dynl_obj *get_dynl_obj SCM_P ((SCM obj, char *subr, int argn));
+static struct dynl_obj *
+get_dynl_obj (dobj, subr, argn)
+     SCM dobj;
+     char *subr;
+     int argn;
+{
+    struct dynl_obj *d;
+    SCM_ASSERT (SCM_NIMP (dobj) && SCM_CAR (dobj) == scm_tc16_dynamic_obj,
+		dobj, argn, subr);
+    d = (struct dynl_obj *)SCM_CDR (dobj);
+    SCM_ASSERT (d->handle != NULL, dobj, argn, subr);
+    return d;
+}
+
+SCM_PROC (s_dynamic_object_p, "dynamic-object?", 1, 0, 0, scm_dynamic_object_p);
+
+SCM
+scm_dynamic_object_p (SCM obj)
+{
+    return (SCM_NIMP (obj) && SCM_CAR (obj) == scm_tc16_dynamic_obj)?
+	SCM_BOOL_T : SCM_BOOL_F;
+}
+
+SCM_PROC (s_dynamic_unlink, "dynamic-unlink", 1, 0, 0, scm_dynamic_unlink);
+
+SCM
+scm_dynamic_unlink (dobj)
+     SCM dobj;
+{
+    struct dynl_obj *d = get_dynl_obj (dobj, s_dynamic_unlink, SCM_ARG1);
+    sysdep_dynl_unlink (d->handle, s_dynamic_unlink);
+    d->handle = NULL;
+    return SCM_BOOL_T;
+}
+
+SCM_PROC (s_dynamic_func, "dynamic-func", 2, 0, 0, scm_dynamic_func);
+
+SCM
+scm_dynamic_func (SCM symb, SCM dobj)
+{
+    struct dynl_obj *d;
+    void (*func) ();
+
+    symb = scm_coerce_rostring (symb, s_dynamic_func, SCM_ARG1);
+    d = get_dynl_obj (dobj, s_dynamic_func, SCM_ARG2);
+
+    func = sysdep_dynl_func (d->handle, SCM_CHARS (symb), s_dynamic_func);
+    return scm_ulong2num ((unsigned long)func);
+}
+
+SCM_PROC (s_dynamic_call, "dynamic-call", 2, 0, 0, scm_dynamic_call);
+
+SCM
+scm_dynamic_call (SCM func, SCM dobj)
+{
+    void (*fptr)();
+
+    if (SCM_NIMP (func) && SCM_ROSTRINGP (func))
+	func = scm_dynamic_func (func, dobj);
+    fptr = (void (*)()) scm_num2ulong (func, (char *)SCM_ARG1, s_dynamic_call);
+    fptr ();
+    return SCM_BOOL_T;
+}
+
+SCM_PROC (s_dynamic_args_call, "dynamic-args-call", 3, 0, 0, scm_dynamic_args_call);
+
+SCM
+scm_dynamic_args_call (func, dobj, args)
+     SCM func, dobj, args;
+{
+    int (*fptr) (int argc, char **argv);
+    int result, argc;
+    char **argv;
+
+    if (SCM_NIMP (func) && SCM_ROSTRINGP (func))
+	func = scm_dynamic_func (func, dobj);
+
+    fptr = (int (*)(int, char **)) scm_num2ulong (func, (char *)SCM_ARG1,
+						   s_dynamic_args_call);
+    argv = scm_make_argv_from_stringlist (args, &argc, s_dynamic_args_call,
+					  SCM_ARG3);
+
+    result = (*fptr) (argc, argv);
+
+    scm_must_free_argv (argv);
+    return SCM_MAKINUM(0L+result);
+}
+
 void
 scm_init_dynamic_linking ()
 {
+    scm_tc16_dynamic_obj = scm_newsmob (&dynl_obj_smob);
+    sysdep_dynl_init ();
+#include "dynl.x"
 }
-#endif
-#endif
-#endif
-#else /* dynamic linking disabled */
+
+#else /* not DYNAMIC_LINKING */
+
 void
 scm_init_dynamic_linking ()
 {
+#include "dynl.x"
 }
-#endif
+
+#endif /* not DYNAMIC_LINKING */

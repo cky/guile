@@ -45,10 +45,6 @@
    Author: Aubrey Jaffer
    Modified for libguile by Marius Vollmer */
 
-#include "_scm.h"
-#include "genio.h"
-#include "smob.h"
-
 #include "dld.h"
 
 static void listundef SCM_P ((void));
@@ -67,108 +63,55 @@ listundefs ()
     free(undefs);
 }
 
-SCM_PROC (s_dynamic_link, "dynamic-link", 1, 0, 0, scm_dynamic_link);
-
-SCM
-scm_dynamic_link (fname)
-     SCM fname;
+static void *
+sysdep_dynl_link (fname, subr)
+     char *fname;
+     char *subr;
 {
     int status;
-    
-    fname = scm_coerce_rostring (fname, s_dynamic_link, SCM_ARG1);
 
-    SCM_DEFER_INTS;
-    status = dld_link (SCM_CHARS (fname));
-    SCM_ALLOW_INTS;
+    status = dld_link (fname);
     if (status)
-	scm_misc_error (s_dynamic_link, dld_strerror (status), SCM_EOL);
+	scm_misc_error (subr, dld_strerror (status), SCM_EOL);
     return fname;
 }
 
-static void *get_func SCM_P ((char *subr, char *fname));
+static void
+sysdep_dynl_unlink (handle, subr)
+     void *handle;
+     char *subr;
+{
+    int status;
+
+    SCM_DEFER_INTS;
+    status = dld_unlink_by_file ((char *)fname, 1);
+    SCM_ALLOW_INTS;
+    if (status)
+	scm_misc_error (s_dynamic_unlink, dld_strerror (status), SCM_EOL);
+}
 
 static void *
-get_func (subr, fname)
+sysdep_dynl_func (symb, handle, subr)
+     char *symb;
+     void *handle;
      char *subr;
-     char *fname;
 {
     void *func;
 
+    SCM_DEFER_INTS;
+    func = (void *) dld_get_func (func);
+    if (func == 0)
+	scm_misc_error (subr, dld_strerror (dld_errno), SCM_EOL);
     if (!dld_function_executable_p (func)) {
 	listundefs ();
 	scm_misc_error (subr, "unresolved symbols remain", SCM_EOL);
     }
-    func = (void *) dld_get_func (func);
-    if (func == 0)
-	scm_misc_error (subr, dld_strerror (dld_errno), SCM_EOL);
+    SCM_ALLOW_INTS;
     return func;
 }
 
-SCM_PROC (s_dynamic_call, "dynamic-call", 2, 0, 0, scm_dynamic_call);
-
-SCM
-scm_dynamic_call (symb, shl)
-     SCM symb;
-     SCM shl;
-{
-    void (*func)() = 0;
-
-    symb = scm_coerce_rostring (symb, s_dynamic_call, SCM_ARG1);
-
-    SCM_DEFER_INTS;
-    func = get_func (s_dynamic_call, SCM_CHARS (symb));
-    SCM_ALLOW_INST;
-    (*func) ();
-    return SCM_BOOL_T;
-}
-
-SCM_PROC (s_dynamic_args_call, "dynamic-args-call", 3, 0, 0, scm_dynamic_args_call);
-
-SCM
-scm_dynamic_args_call (symb, shl, args)
-     SCM symb, shl, args;
-{
-    int i, argc;
-    char **argv;
-    int (*func) SCM_P ((int argc, char **argv)) = 0;
-
-    symb = scm_coerce_rostring (symb, s_dynamic_args_call, SCM_ARG1);
-
-    SCM_DEFER_INTS;
-    func = get_func (SCM_CHARS (symb), s_dynamic_args_call);
-    argv = scm_make_argv_from_stringlist (args, &argc, s_dynamic_args_call,
-				      SCM_ARG3);
-    SCM_ALLOW_INTS;
-
-    i = (*func) (argc, argv);
-
-    SCM_DEFER_INTS;
-    scm_must_free_argv(argv);
-    SCM_ALLOW_INTS;
-    return SCM_MAKINUM(0L+i);
-}
-
-SCM_PROC (s_dynamic_unlink, "dynamic-unlink", 1, 0, 0, scm_dynamic_unlink);
-
-SCM
-scm_dynamic_unlink(fname)
-     SCM fname;
-{
-    int status;
-
-    fname = scm_coerce_rostring (fname, s_dynamic_unlink, SCM_ARG1);
-
-    SCM_DEFER_INTS;
-    status = dld_unlink_by_file (SCM_CHARS (fname), 1);
-    SCM_ALLOW_INTS;
-
-    if (status)
-	scm_misc_error (s_dynamic_unlink, dld_strerror (status), SCM_EOL);
-    return SCM_BOOL_T;
-}
-
-void
-scm_init_dynamic_linking ()
+static void
+sysdep_dynl_init ()
 {
 #ifndef RTL
     if (!execpath)
@@ -178,8 +121,6 @@ scm_init_dynamic_linking ()
 	return;
     }
 #endif
-
-#include "dynl.x"
 
 #ifdef DLD_DYNCM /* XXX - what's this? */
     add_feature("dld:dyncm");
