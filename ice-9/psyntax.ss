@@ -424,7 +424,7 @@
 
 (define-syntax build-lexical-var
   (syntax-rules ()
-    ((_ src id) (gentemp (symbol->string id) generated-symbols))))
+    ((_ src id) (gensym (symbol->string id)))))
 
 (define-syntax self-evaluating?
   (syntax-rules ()

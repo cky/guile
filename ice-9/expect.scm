@@ -45,10 +45,10 @@
 ;;; expect: each test is a procedure which is applied to the accumulating
 ;;; string.
 (defmacro-public expect clauses
-  (let ((s (gentemp))
-	(c (gentemp))
-	(port (gentemp))
-	(timeout (gentemp)))
+  (let ((s (gensym))
+	(c (gensym))
+	(port (gensym))
+	(timeout (gensym)))
     `(let ((,s "")
 	   (,port (or expect-port (current-input-port)))
 	   ;; when timeout occurs, in floating point seconds.
@@ -123,7 +123,7 @@
 	    (cond ((null? tests)
 		   (list (reverse defs) `(expect ,@(reverse body))))
 		  (else
-		   (let ((rxname (gentemp)))
+		   (let ((rxname (gensym)))
 		     (next-test (cdr tests)
 				(cdr exprs)
 				(cons `(,rxname (make-regexp
