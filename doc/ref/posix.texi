@@ -2660,22 +2660,28 @@ no other easy or unambiguous way of detecting such features.
 
 @deffn {Scheme Procedure} setlocale category [locale]
 @deffnx {C Function} scm_setlocale (category, locale)
-@vindex LC_ALL
-@vindex LC_COLLATE
-@vindex LC_CTYPE
-@vindex LC_MESSAGES
-@vindex LC_MONETARY
-@vindex LC_NUMERIC
-@vindex LC_TIME
-If @var{locale} is omitted, return the current value of the specified
-locale @var{category} as a system-dependent string.  @var{category}
-should be specified using the values @code{LC_COLLATE}, @code{LC_ALL}
-etc; see @inforef{Locating Catalogs,, gettext}.
+Get or set the current locale, used for various internationalizations.
+Locales are strings, such as @samp{sv_SE}.
 
-Otherwise the specified locale category is set to the string
-@var{locale} and the new value is returned as a
-system-dependent string.  If @var{locale} is an empty string,
-the locale will be set using environment variables.
+If @var{locale} is given then the locale for the given category is set
+and the new value returned.  If @var{locale} is not given then the
+current value is returned.  @var{category} should be one of the
+following values
+
+@defvar LC_ALL
+@defvarx LC_COLLATE
+@defvarx LC_CTYPE
+@defvarx LC_MESSAGES
+@defvarx LC_MONETARY
+@defvarx LC_NUMERIC
+@defvarx LC_TIME
+@end defvar
+
+A common usage is @samp{(setlocale LC_ALL "")}, which initializes all
+categories based on standard environment variables (@code{LANG} etc).
+For full details on categories and locale names @pxref{Locales,,
+Locales and Internationalization, libc, The GNU C Library Reference
+Manual}.
 @end deffn
 
 @node Encryption
