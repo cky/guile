@@ -1,3 +1,13 @@
+2003-09-03  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-data.texi (Keyword Primitives): Add examples to
+	make-keyword-from-dash-symbol and keyword-dash-symbol.  Add
+	scm_c_make_keyword.
+
+	* scheme-data.texi (Symbol Primitives): In gensym, cross reference
+	uninterned symbols, use @w{} on " g" prefix to avoid any chance of a
+	line break obscuring it.
+
 2003-08-30  Kevin Ryde  <user42@zip.com.au>
 
 	* data-rep.texi (Remembering During Operations): Note
