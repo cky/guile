@@ -69,10 +69,7 @@
 
 (define (make-enable interface)
   `(lambda flags
-     (,interface (append (if (pair? flags)
-			     flags
-			     (list flags))
-			 (,interface)))
+     (,interface (append flags (,interface)))
      (,interface)))
 
 (define (make-disable interface)
@@ -80,7 +77,7 @@
      (let ((options (,interface)))
        (for-each (lambda (flag)
 		   (set! options (delq! flag options)))
-		 (if (pair? flags) flags (list flags)))
+		 flags)
        (,interface options)
        (,interface))))
 
@@ -112,3 +109,9 @@
 		    names))))
 
 (define-all)
+
+
+
+;;; A fix to get the error handling working together with the module system.
+;;;
+(variable-set! (builtin-variable 'debug-options) debug-options)
