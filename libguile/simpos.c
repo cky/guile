@@ -22,6 +22,7 @@
 #endif
 
 #include <errno.h>
+#include <stdlib.h>  /* for getenv */
 
 #include "libguile/_scm.h"
 
@@ -74,7 +75,6 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SYSTEM */
 
-extern char *getenv();
 SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0, 
             (SCM nam),
 	    "Looks up the string @var{name} in the current environment.  The return\n"
