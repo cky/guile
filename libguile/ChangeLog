@@ -1,3 +1,11 @@
+1998-11-07  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* readline.c (scm_read_history, scm_write_history): Bugfix: Use
+	SCM_ROCHARS instead of SCM_CHARS.
+
+	* ports.c (scm_unread_string): Bugfixes: Check for SCM_STRINGP,
+	not SCM_ROSTRINGP; use SCM_ROUCHARS instead of SCM_UCHARS.
+
 1998-11-06  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* ports.h (SCM_CUC): #define as ~SCM_CRDY instead of 0x001fffffL.
