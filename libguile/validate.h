@@ -3,7 +3,7 @@
 #ifndef SCM_VALIDATE_H
 #define SCM_VALIDATE_H
 
-/* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -141,6 +141,11 @@
     SCM_ASSERT_TYPE (SCM_ ## pred (var), var, pos, FUNC_NAME, #pred); \
   } while (0)
 
+#define SCM_MAKE_VALIDATE_MSG(pos, var, pred, msg) \
+  do { \
+    SCM_ASSERT_TYPE (SCM_ ## pred (var), var, pos, FUNC_NAME, msg); \
+  } while (0)
+
 
 
 #define SCM_VALIDATE_REST_ARGUMENT(x) \
@@ -152,9 +157,9 @@
     } \
   } while (0)
 
-#define SCM_VALIDATE_NIM(pos, scm) SCM_MAKE_VALIDATE (pos, scm, NIMP)
+#define SCM_VALIDATE_NIM(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, NIMP, "non-immediate")
 
-#define SCM_VALIDATE_BOOL(pos, flag) SCM_MAKE_VALIDATE(pos, flag, BOOLP)
+#define SCM_VALIDATE_BOOL(pos, flag) SCM_MAKE_VALIDATE_MSG(pos, flag, BOOLP, "boolean")
 
 #define SCM_VALIDATE_BOOL_COPY(pos, flag, cvar) \
   do { \
@@ -162,7 +167,7 @@
     cvar = SCM_EQ_P (flag, SCM_BOOL_T) ? 1 : 0; \
   } while (0)
 
-#define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE (pos, scm, CHARP)
+#define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, CHARP, "character")
 
 #define SCM_VALIDATE_CHAR_COPY(pos, scm, cvar) \
   do { \
@@ -170,7 +175,7 @@
     cvar = SCM_CHAR (scm); \
   } while (0)
 
-#define SCM_VALIDATE_STRING(pos, str) SCM_MAKE_VALIDATE (pos, str, STRINGP)
+#define SCM_VALIDATE_STRING(pos, str) SCM_MAKE_VALIDATE_MSG (pos, str, STRINGP, "string")
 
 #define SCM_VALIDATE_STRING_COPY(pos, str, cvar) \
   do { \
@@ -196,11 +201,11 @@
                       && (size_t) c_end <= SCM_STRING_LENGTH (str));\
   } while (0)
 
-#define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE (pos, z, REALP)
+#define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE_MSG (pos, z, REALP, "real")
 
-#define SCM_VALIDATE_NUMBER(pos, z) SCM_MAKE_VALIDATE (pos, z, NUMBERP)
+#define SCM_VALIDATE_NUMBER(pos, z) SCM_MAKE_VALIDATE_MSG (pos, z, NUMBERP, "number")
 
-#define SCM_VALIDATE_INUM(pos, k) SCM_MAKE_VALIDATE (pos, k, INUMP)
+#define SCM_VALIDATE_INUM(pos, k) SCM_MAKE_VALIDATE_MSG (pos, k, INUMP, "exact integer")
 
 #define SCM_VALIDATE_INUM_COPY(pos, k, cvar) \
   do { \
@@ -248,7 +253,7 @@
     cvar = SCM_NUM2DOUBLE (pos, k); \
   } while (0)
 
-#define SCM_VALIDATE_BIGINT(pos, k) SCM_MAKE_VALIDATE (pos, k, BIGP)
+#define SCM_VALIDATE_BIGINT(pos, k) SCM_MAKE_VALIDATE_MSG (pos, k, BIGP, "bignum")
 
 #define SCM_VALIDATE_INUM_MIN(pos, k, min) \
   do { \
@@ -321,11 +326,11 @@
     cvar = SCM_INUM (k); \
   } while (0)
 
-#define SCM_VALIDATE_NULL(pos, scm) SCM_MAKE_VALIDATE (pos, scm, NULLP)
+#define SCM_VALIDATE_NULL(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, NULLP, "null")
 
-#define SCM_VALIDATE_NULL_OR_NIL(pos, scm) SCM_MAKE_VALIDATE (pos, scm, NULL_OR_NIL_P)
+#define SCM_VALIDATE_NULL_OR_NIL(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, NULL_OR_NIL_P, "null")
 
-#define SCM_VALIDATE_CONS(pos, scm) SCM_MAKE_VALIDATE (pos, scm, CONSP)
+#define SCM_VALIDATE_CONS(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, CONSP, "pair")
 
 #define SCM_VALIDATE_LIST(pos, lst) \
   do { \
@@ -367,7 +372,7 @@
     SCM_ASSERT (scm_valid_oport_value_p (port), port, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_PRINTSTATE(pos, a) SCM_MAKE_VALIDATE(pos, a, PRINT_STATE_P)
+#define SCM_VALIDATE_PRINTSTATE(pos, a) SCM_MAKE_VALIDATE_MSG(pos, a, PRINT_STATE_P, "print-state")
 
 #define SCM_VALIDATE_SMOB(pos, obj, type) \
   do { \
@@ -375,20 +380,20 @@
                 obj, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_THREAD(pos, a) SCM_MAKE_VALIDATE (pos, a, THREADP)
+#define SCM_VALIDATE_THREAD(pos, a) SCM_MAKE_VALIDATE_MSG (pos, a, THREADP, "thread")
 
 #define SCM_VALIDATE_THUNK(pos, thunk) \
   do { \
     SCM_ASSERT (!SCM_FALSEP (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_SYMBOL(pos, sym) SCM_MAKE_VALIDATE (pos, sym, SYMBOLP)
+#define SCM_VALIDATE_SYMBOL(pos, sym) SCM_MAKE_VALIDATE_MSG (pos, sym, SYMBOLP, "symbol")
 
-#define SCM_VALIDATE_VARIABLE(pos, var) SCM_MAKE_VALIDATE (pos, var, VARIABLEP)
+#define SCM_VALIDATE_VARIABLE(pos, var) SCM_MAKE_VALIDATE_MSG (pos, var, VARIABLEP, "variable")
 
-#define SCM_VALIDATE_MEMOIZED(pos, obj) SCM_MAKE_VALIDATE (pos, obj, MEMOIZEDP)
+#define SCM_VALIDATE_MEMOIZED(pos, obj) SCM_MAKE_VALIDATE_MSG (pos, obj, MEMOIZEDP, "memoized code")
 
-#define SCM_VALIDATE_CLOSURE(pos, obj) SCM_MAKE_VALIDATE (pos, obj, CLOSUREP)
+#define SCM_VALIDATE_CLOSURE(pos, obj) SCM_MAKE_VALIDATE_MSG (pos, obj, CLOSUREP, "closure")
 
 #define SCM_VALIDATE_PROC(pos, proc) \
   do { \
@@ -400,26 +405,26 @@
     SCM_ASSERT (SCM_NULLP (env) || SCM_CONSP (env), env, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_HOOK(pos, a) SCM_MAKE_VALIDATE (pos, a, HOOKP)
+#define SCM_VALIDATE_HOOK(pos, a) SCM_MAKE_VALIDATE_MSG (pos, a, HOOKP, "hook")
 
-#define SCM_VALIDATE_RGXP(pos, a) SCM_MAKE_VALIDATE (pos, a, RGXP)
+#define SCM_VALIDATE_RGXP(pos, a) SCM_MAKE_VALIDATE_MSG (pos, a, RGXP, "regexp")
 
-#define SCM_VALIDATE_DIR(pos, port) SCM_MAKE_VALIDATE (pos, port, DIRP)
+#define SCM_VALIDATE_DIR(pos, port) SCM_MAKE_VALIDATE_MSG (pos, port, DIRP, "directory port")
 
-#define SCM_VALIDATE_PORT(pos, port) SCM_MAKE_VALIDATE (pos, port, PORTP)
+#define SCM_VALIDATE_PORT(pos, port) SCM_MAKE_VALIDATE_MSG (pos, port, PORTP, "port")
 
 #define SCM_VALIDATE_INPUT_PORT(pos, port) \
-  SCM_MAKE_VALIDATE (pos, port, INPUT_PORT_P)
+  SCM_MAKE_VALIDATE_MSG (pos, port, INPUT_PORT_P, "input port")
 
 #define SCM_VALIDATE_OUTPUT_PORT(pos, port) \
-  SCM_MAKE_VALIDATE (pos, port, OUTPUT_PORT_P)
+  SCM_MAKE_VALIDATE_MSG (pos, port, OUTPUT_PORT_P, "output port")
 
-#define SCM_VALIDATE_FPORT(pos, port) SCM_MAKE_VALIDATE (pos, port, FPORTP)
+#define SCM_VALIDATE_FPORT(pos, port) SCM_MAKE_VALIDATE_MSG (pos, port, FPORTP, "file port")
 
-#define SCM_VALIDATE_OPFPORT(pos, port) SCM_MAKE_VALIDATE (pos, port, OPFPORTP)
+#define SCM_VALIDATE_OPFPORT(pos, port) SCM_MAKE_VALIDATE_MSG (pos, port, OPFPORTP, "open file port")
 
 #define SCM_VALIDATE_OPINPORT(pos, port) \
-  SCM_MAKE_VALIDATE (pos, port, OPINPORTP)
+  SCM_MAKE_VALIDATE_MSG (pos, port, OPINPORTP, "open input port")
 
 #define SCM_VALIDATE_OPENPORT(pos, port) \
   do { \
@@ -427,23 +432,23 @@
                 port, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_OPPORT(pos, port) SCM_MAKE_VALIDATE (pos, port, OPPORTP)
+#define SCM_VALIDATE_OPPORT(pos, port) SCM_MAKE_VALIDATE_MSG (pos, port, OPPORTP, "open port")
 
 #define SCM_VALIDATE_OPOUTPORT(pos, port) \
-  SCM_MAKE_VALIDATE (pos, port, OPOUTPORTP)
+  SCM_MAKE_VALIDATE_MSG (pos, port, OPOUTPORTP, "open output port")
 
 #define SCM_VALIDATE_OPOUTSTRPORT(pos, port) \
-  SCM_MAKE_VALIDATE (pos, port, OPOUTSTRPORTP)
+  SCM_MAKE_VALIDATE_MSG (pos, port, OPOUTSTRPORTP, "open output string port")
 
-#define SCM_VALIDATE_FLUID(pos, fluid) SCM_MAKE_VALIDATE (pos, fluid, FLUIDP)
+#define SCM_VALIDATE_FLUID(pos, fluid) SCM_MAKE_VALIDATE_MSG (pos, fluid, FLUIDP, "fluid")
 
-#define SCM_VALIDATE_KEYWORD(pos, v) SCM_MAKE_VALIDATE (pos, v, KEYWORDP)
+#define SCM_VALIDATE_KEYWORD(pos, v) SCM_MAKE_VALIDATE_MSG (pos, v, KEYWORDP, "keyword")
 
-#define SCM_VALIDATE_STACK(pos, v) SCM_MAKE_VALIDATE (pos, v, STACKP)
+#define SCM_VALIDATE_STACK(pos, v) SCM_MAKE_VALIDATE_MSG (pos, v, STACKP, "stack")
 
-#define SCM_VALIDATE_FRAME(pos, v) SCM_MAKE_VALIDATE (pos, v, FRAMEP)
+#define SCM_VALIDATE_FRAME(pos, v) SCM_MAKE_VALIDATE_MSG (pos, v, FRAMEP, "frame")
 
-#define SCM_VALIDATE_RSTATE(pos, v) SCM_MAKE_VALIDATE (pos, v, RSTATEP)
+#define SCM_VALIDATE_RSTATE(pos, v) SCM_MAKE_VALIDATE_MSG (pos, v, RSTATEP, "random-generator-state")
 
 #define SCM_VALIDATE_ARRAY(pos, v) \
   do { \
@@ -452,7 +457,7 @@
                 v, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_VECTOR(pos, v) SCM_MAKE_VALIDATE (pos, v, VECTORP)
+#define SCM_VALIDATE_VECTOR(pos, v) SCM_MAKE_VALIDATE_MSG (pos, v, VECTORP, "vector")
 
 #define SCM_VALIDATE_VECTOR_OR_DVECTOR(pos, v) \
   do { \
@@ -461,7 +466,7 @@
                 v, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_STRUCT(pos, v) SCM_MAKE_VALIDATE (pos, v, STRUCTP)
+#define SCM_VALIDATE_STRUCT(pos, v) SCM_MAKE_VALIDATE_MSG (pos, v, STRUCTP, "struct")
 
 #define SCM_VALIDATE_VTABLE(pos, v) \
   do { \

@@ -3,7 +3,7 @@
 #ifndef SCM_MODULES_H
 #define SCM_MODULES_H
 
-/* Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ SCM_API scm_t_bits scm_module_tag;
 #define SCM_MODULEP(OBJ) \
   (!SCM_IMP (OBJ) && SCM_CELL_TYPE (OBJ) == scm_module_tag)
 
-#define SCM_VALIDATE_MODULE(pos, scm) SCM_MAKE_VALIDATE (pos, scm, MODULEP)
+#define SCM_VALIDATE_MODULE(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, MODULEP, "module")
 
 /* NOTE: Indexes of module fields are dependent upon the definition of
  *       module-type in boot-9.scm.

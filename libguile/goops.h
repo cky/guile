@@ -3,7 +3,7 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 
-/* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -128,19 +128,19 @@ typedef struct scm_t_method {
 
 #define SCM_CLASSP(x) \
   (SCM_STRUCTP (x) && SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_METACLASS)
-#define SCM_VALIDATE_CLASS(pos, x) SCM_MAKE_VALIDATE (pos, x, CLASSP)
+#define SCM_VALIDATE_CLASS(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, CLASSP, "class")
 
 #define SCM_INSTANCEP(x) \
   (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_GOOPS))
-#define SCM_VALIDATE_INSTANCE(pos, x) SCM_MAKE_VALIDATE (pos, x, INSTANCEP)
+#define SCM_VALIDATE_INSTANCE(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, INSTANCEP, "instance")
 
 #define SCM_PUREGENERICP(x) \
   (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_PURE_GENERIC))
-#define SCM_VALIDATE_PUREGENERIC(pos, x) SCM_MAKE_VALIDATE (pos, x, PUREGENERICP)
+#define SCM_VALIDATE_PUREGENERIC(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, PUREGENERICP, "pure generic function")
 
 #define SCM_ACCESSORP(x) \
   (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_ACCESSOR_METHOD))
-#define SCM_VALIDATE_ACCESSOR(pos, x) SCM_MAKE_VALIDATE (pos, x, ACCESSORP)
+#define SCM_VALIDATE_ACCESSOR(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, ACCESSORP, "accessor")
 
 #define SCM_SLOT(x, i)         (SCM_PACK (SCM_INST (x) [i]))
 #define SCM_SET_SLOT(x, i, v)  (SCM_INST (x) [i] = SCM_UNPACK (v))
@@ -153,11 +153,11 @@ typedef struct scm_t_method {
 
 #define SCM_GENERICP(x) \
   (SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), scm_class_generic))
-#define SCM_VALIDATE_GENERIC(pos, x) SCM_MAKE_VALIDATE (pos, x, GENERICP)
+#define SCM_VALIDATE_GENERIC(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, GENERICP, "generic function")
 
 #define SCM_METHODP(x) \
   (SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), scm_class_method))
-#define SCM_VALIDATE_METHOD(pos, x) SCM_MAKE_VALIDATE (pos, x, METHODP)
+#define SCM_VALIDATE_METHOD(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, METHODP, "method")
 
 #define SCM_MCACHE_N_SPECIALIZED(C) SCM_CADDR (C)
 #define SCM_SET_MCACHE_N_SPECIALIZED(C, X) SCM_SETCAR (SCM_CDDR (C), X)
