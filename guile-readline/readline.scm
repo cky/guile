@@ -25,9 +25,11 @@
   :use-module (ice-9 session)
   :use-module (ice-9 regex))
 
-;;; Dynamically link the glue code for accessing the readline library
+;;; Dynamically link the glue code for accessing the readline library,
+;;; but only when it isn't already present.
 
-(dynamic-call "scm_init_readline" (dynamic-link "libguilereadline.so"))
+(if (not (feature? 'readline))
+    (dynamic-call "scm_init_readline" (dynamic-link "libguilereadline.so")))
 
 ;;; MDJ 980513 <djurfeldt@nada.kth.se>:
 ;;; There should probably be low-level support instead of this code.
