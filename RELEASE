@@ -18,6 +18,8 @@ In release 1.3.4:
                ramap.c:   serial-array-copy!, serial-array-map!
 - remove module (ice-9 getopt-gnu-style)
 - remove kw.h, scm_tc16_kw
+- remove genio.h
+- remove deprecated function scm_newsmob.
 
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new

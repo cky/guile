@@ -1063,9 +1063,76 @@ This is the typical way of creating a hook from C code.
 Currently, the variable is created in the root module.  This will
 change when we get the new module system.
 
+** The smob interface
+
+The interface for creating smobs has changed.  For documentation, see
+data-rep.info (made from guile-core/doc/data-rep.texi).
+
+*** Deprecated function: SCM scm_newsmob (scm_smobfuns *)
+
+>>> This function will be removed in 1.3.4. <<<
+
+It is replaced by:
+
+*** Function: SCM scm_make_smob_type (const char *name, scm_sizet size)
+This function adds a new smob type, named NAME, with instance size
+SIZE to the system.  The return value is a tag that is used in
+creating instances of the type.  If SIZE is 0, then no memory will
+be allocated when instances of the smob are created, and nothing
+will be freed by the default free function.
+    
+*** Function: void scm_set_smob_mark (long tc, SCM (*mark) (SCM))
+This function sets the smob marking procedure for the smob type
+specified by the tag TC. TC is the tag returned by
+`scm_make_smob_type'.
+
+*** Function: void scm_set_smob_free (long tc, SCM (*mark) (SCM))
+This function sets the smob freeing procedure for the smob type
+specified by the tag TC. TC is the tag returned by
+`scm_make_smob_type'.
+
+*** Function: void scm_set_smob_print (tc, print)
+
+ - Function: void scm_set_smob_print (long tc,
+			              scm_sizet (*print) (SCM,
+						          SCM,
+							  scm_print_state *))
+
+This function sets the smob printing procedure for the smob type
+specified by the tag TC. TC is the tag returned by
+`scm_make_smob_type'.
+
+*** Function: void scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM))
+This function sets the smob equality-testing predicate for the
+smob type specified by the tag TC. TC is the tag returned by
+`scm_make_smob_type'.
+
+*** Macro: void SCM_NEWSMOB (SCM var, long tc, void *data)
+Make VALUE contain a smob instance of the type with type code TC and
+smob data DATA.  VALUE must be previously declared as C type `SCM'.
+
+*** Macro: fn_returns SCM_RETURN_NEWSMOB (long tc, void *data)
+This macro expands to a block of code that creates a smob instance
+of the type with type code TC and smob data DATA, and returns that
+`SCM' value.  It should be the last piece of code in a block.
+
 ** The interfaces for using I/O ports and implementing port types
 (ptobs) have changed significantly.  The new interface is based on
 shared access to buffers and a new set of ptob procedures.
+
+*** scm_newptob has been removed
+
+It is replaced by:
+
+*** Function: SCM scm_make_port_type (type_name, fill_buffer, write_flush)
+
+- Function: SCM scm_make_port_type (char *type_name,
+                                    int (*fill_buffer) (SCM port),
+                                    void (*write_flush) (SCM port));
+
+Similarly to the new smob interface, there is a set of function
+setters by which the user can customize the behaviour of his port
+type.  See ports.h (scm_set_ptob_XXX).
 
 ** scm_strport_to_string: New function: creates a new string from
 a string port's buffer.
