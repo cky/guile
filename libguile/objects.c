@@ -56,6 +56,16 @@
 SCM scm_metaclass_standard;
 SCM scm_metaclass_operator;
 
+SCM_PROC (s_entity_p, "entity?", 1, 0, 0, scm_entity_p);
+
+SCM
+scm_entity_p (SCM obj)
+{
+  return (SCM_NIMP (obj) && SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj)
+	  ? SCM_BOOL_T
+	  : SCM_BOOL_F);
+}
+
 SCM_PROC (s_set_object_procedure_x, "set-object-procedure!", 1, 0, 1, scm_set_object_procedure_x);
 
 SCM
@@ -219,7 +229,7 @@ scm_init_objects ()
   SCM et = scm_make_struct (mt, SCM_INUM0,
 			    SCM_LIST4 (el, SCM_BOOL_F, SCM_EOL, SCM_EOL));
 
-  scm_sysintern ("<standard-class>", mt);
+  scm_sysintern ("<class>", mt);
   scm_metaclass_standard = mt;
   scm_sysintern ("<operator-class>", ot);
   scm_metaclass_operator = ot;
