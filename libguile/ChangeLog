@@ -1,5 +1,9 @@
 2000-03-31  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* coop-defs.h (struct coop_t): Added `sto'-field again because of
+	binary compatibility---let's remove it next time we alter some
+	major structure.
+
 	* coop.c (coop_quitting_p, coop_cond_create, coop_mutex_create,
 	coop_mother, coop_child): New variables.
 	(mother): New function.
