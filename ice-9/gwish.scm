@@ -49,7 +49,7 @@
 ;; in Scheme but which, in this context, ought to refer
 ;; to Tcl/Tk commands.
 
-(define override-scheme-list '(bind))
+(define override-scheme-list '(bind raise))
 
 (for-each
  (lambda (name)
