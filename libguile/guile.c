@@ -48,6 +48,13 @@
 
 #include <libguile.h>
 
+#ifdef HAVE_CONFIG_H
+#include <scmconfig.h>
+#endif
+#ifdef DYNAMIC_LINKING
+#include <ltdl.h>
+#endif
+
 /* Debugger interface (don't change the order of the following lines) */
 #define GDB_TYPE SCM
 #include <libguile/gdb_interface.h>
@@ -63,6 +70,9 @@ inner_main (void *closure, int argc, char **argv)
 int
 main (int argc, char **argv)
 {
+#ifdef DYNAMIC_LINKING
+  LTDL_SET_PRELOADED_SYMBOLS ();
+#endif
   scm_boot_guile (argc, argv, inner_main, 0);
   return 0; /* never reached */
 }
