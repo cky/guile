@@ -1,3 +1,17 @@
+1998-04-13  Mikael Djurfeldt  <mdj@kenneth>
+
+	* ports.c (scm_port_line, scm_set_port_line_x, scm_port_column,
+	scm_set_port_column_x, scm_port_filename,
+	scm_set_port_filename_x): Removed optional arguments.  Added
+	proper argument checking.
+
+	* eval.c, eval.h, coop.c (scm_eval_stack, SCM_EVAL_STACK): Measure
+	stack size in machine words.
+
+	* unif.c (scm_uniform_vector_ref, scm_cvref, scm_array_set_x,
+	rapr1): Use SCM_UCHARS instead of SCM_CHARS for strings.  (Thanks
+	to Ole Myren Röhne.)
+
 1998-04-12  Mikael Djurfeldt  <mdj@kenneth>
 
 	* socket.c: Check for HAVE_UNIX_DOMAIN_SOCKETS instead of

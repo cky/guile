@@ -1113,7 +1113,7 @@ scm_uniform_vector_ref (v, args)
       else
 	return SCM_BOOL_F;
     case scm_tc7_string:
-      return SCM_MAKICHR (SCM_CHARS (v)[pos]);
+      return SCM_MAKICHR (SCM_UCHARS (v)[pos]);
     case scm_tc7_byvect:
       return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
 # ifdef SCM_INUMS_ONLY
@@ -1171,7 +1171,7 @@ scm_cvref (v, pos, last)
       else
 	return SCM_BOOL_F;
     case scm_tc7_string:
-      return SCM_MAKICHR (SCM_CHARS (v)[pos]);
+      return SCM_MAKICHR (SCM_UCHARS (v)[pos]);
     case scm_tc7_byvect:
       return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
 # ifdef SCM_INUMS_ONLY
@@ -1294,7 +1294,7 @@ scm_array_set_x (v, obj, args)
       break;
     case scm_tc7_string:
       SCM_ASRTGO (SCM_ICHRP (obj), badobj);
-      SCM_CHARS (v)[pos] = SCM_ICHR (obj);
+      SCM_UCHARS (v)[pos] = SCM_ICHR (obj);
       break;
     case scm_tc7_byvect:
       if (SCM_ICHRP (obj))
@@ -2277,12 +2277,12 @@ tail:
       break;
     case scm_tc7_string:
       if (n-- > 0)
-	scm_iprin1 (SCM_MAKICHR (SCM_CHARS (ra)[j]), port, pstate);
+	scm_iprin1 (SCM_MAKICHR (SCM_UCHARS (ra)[j]), port, pstate);
       if (SCM_WRITINGP (pstate))
 	for (j += inc; n-- > 0; j += inc)
 	  {
 	    scm_putc (' ', port);
-	    scm_iprin1 (SCM_MAKICHR (SCM_CHARS (ra)[j]), port, pstate);
+	    scm_iprin1 (SCM_MAKICHR (SCM_UCHARS (ra)[j]), port, pstate);
 	  }
       else
 	for (j += inc; n-- > 0; j += inc)
