@@ -1,3 +1,12 @@
+2000-02-08  Gary Houston  <ghouston@arglist.com>
+
+	* __scm.h: don't define long_long or ulong_long if HAVE_LONG_LONGS
+	is not defined.
+
+	* stime.c (scm_localtime, scm_mktime): if neither HAVE_TM_ZONE nor
+	HAVE_TZNAME are defined, use an empty string instead of giving two
+	spurious compile-time errors.
+
 Tue Feb  8 13:57:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* ports.c: Doc patches from Richard Kim.  Pasted from MIT Scheme.

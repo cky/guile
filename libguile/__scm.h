@@ -107,16 +107,19 @@
 #define STACK_CHECKING
 #undef NO_CEVAL_STACK_CHECKING
 
+
+/* What did the configure script discover about the outside world?  */
+#include "libguile/scmconfig.h"
+
+#ifdef HAVE_LONG_LONGS
+
 /* Some auto-generated .h files contain unused prototypes
  * that need these typedefs.
  */
 typedef long long long_long;
 typedef unsigned long long ulong_long;
 
-
-
-/* What did the configure script discover about the outside world?  */
-#include "libguile/scmconfig.h"
+#endif /* HAVE_LONG_LONGS */
 
 
 /* Write prototype declarations like this:

@@ -330,7 +330,6 @@ restorezone (SCM zone, char **oldenv, const char *subr)
     }
 }
 
-
 SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0, 
             (SCM time, SCM zone),
 	    "Returns an object representing the broken down components of @var{time},\n"
@@ -363,15 +362,13 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
     {
       const char *ptr;
 
-      /* copy zone name before calling gmtime or tzset.  */
-#ifdef HAVE_TM_ZONE
+      /* copy zone name before calling gmtime or restoring zone.  */
+#if defined (HAVE_TM_ZONE)
       ptr = ltptr->tm_zone;
-#else
-# ifdef HAVE_TZNAME
+#elif defined (HAVE_TZNAME)
       ptr = tzname[ (ltptr->tm_isdst == 1) ? 1 : 0 ];
-# else
-      SCM_MISC_ERROR ("Not fully implemented on this platform",_EOL);
-# endif
+#else
+      ptr = "";
 #endif
       zname = SCM_MUST_MALLOC (strlen (ptr) + 1);
       strcpy (zname, ptr);
@@ -498,16 +495,13 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
     {
       const char *ptr;
 
-      /* copy zone name before calling gmtime or tzset.  */
-#ifdef HAVE_TM_ZONE
+      /* copy zone name before calling gmtime or restoring the zone.  */
+#if defined (HAVE_TM_ZONE)
       ptr = lt.tm_zone;
-#else
-# ifdef HAVE_TZNAME
+#elif defined (HAVE_TZNAME)
       ptr = tzname[ (lt.tm_isdst == 1) ? 1 : 0 ];
-# else
-      scm_misc_error (s_mktime, "Not fully implemented on this platform",
-		      SCM_EOL);
-# endif
+#else
+      ptr = "";
 #endif
       zname = SCM_MUST_MALLOC (strlen (ptr) + 1);
       strcpy (zname, ptr);
