@@ -1,3 +1,4 @@
+*.c.clean.c
 *.la
 *.lo
 *.x
