@@ -609,16 +609,7 @@
 
 ;; Internal helper procedure.  Map `f' over the single list `ls'.
 ;;
-(define (map1 f ls)
-  (if (null? ls)
-      ls
-      (let ((ret (list (f (car ls)))))
-        (let lp ((ls (cdr ls)) (p ret))         ; tail pointer
-          (if (null? ls)
-              ret
-              (begin
-                (set-cdr! p (list (f (car ls))))
-                (lp (cdr ls) (cdr p))))))))
+(define map1 map)
 
 (define (append-map f clist1 . rest)
   (if (null? rest)
@@ -883,15 +874,6 @@
     (delete-duplicates list l=)))	; XXX:optimize
 
 ;;; Association lists
-
-(define (assoc key alist . rest)
-  (let ((k= (if (pair? rest) (car rest) equal?)))
-    (let lp ((a alist))
-      (if (null? a)
-	#f
-	(if (k= key (caar a))
-	  (car a)
-	  (lp (cdr a)))))))
 
 (define (alist-cons key datum alist)
   (acons key datum alist))

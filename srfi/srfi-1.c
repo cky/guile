@@ -288,11 +288,13 @@ equal_trampoline (SCM proc, SCM arg1, SCM arg2)
 SCM_DEFINE (scm_srfi1_member, "member", 2, 1, 0,
            (SCM x, SCM lst, SCM pred),
 	    "Return the first sublist of @var{lst} whose car is\n"
-	    "@code{equal?} to @var{x} where the sublists of @var{lst} are\n"
+	    "@var{equal?} to @var{x} where the sublists of @var{lst} are\n"
 	    "the non-empty lists returned by @code{(list-tail @var{lst}\n"
 	    "@var{k})} for @var{k} less than the length of @var{lst}.  If\n"
 	    "@var{x} does not occur in @var{lst}, then @code{#f} (not the\n"
-	    "empty list) is returned.")
+	    "empty list) is returned.  If optional third argument @var{equal?}\n"
+	    "isn't given, @code{equal?} is used for comparison.\n"
+	    "(Extended from R5RS.)\n")
 #define FUNC_NAME s_scm_srfi1_member
 {
   scm_t_trampoline_2 equal_p;
@@ -309,6 +311,36 @@ SCM_DEFINE (scm_srfi1_member, "member", 2, 1, 0,
       if (!SCM_FALSEP (equal_p (pred, SCM_CAR (lst), x)))
 	return lst;
     }
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
+	    (SCM key, SCM alist, SCM pred),
+	    "Behaves like @code{assq} but uses third argument @var{pred?}\n"
+	    "for key comparison.  If @var{pred?} is not supplied,\n"
+	    "@code{equal?} is used.  (Extended from R5RS.)\n")
+#define FUNC_NAME s_scm_srfi1_assoc
+{
+  SCM ls = alist;
+  scm_t_trampoline_2 equal_p;
+  if (SCM_UNBNDP (pred))
+    equal_p = equal_trampoline;
+  else
+    {
+      equal_p = scm_trampoline_2 (pred);
+      SCM_ASSERT (equal_p, pred, 3, FUNC_NAME);
+    }
+  for(; SCM_CONSP (ls); ls = SCM_CDR (ls)) 
+    {
+      SCM tmp = SCM_CAR (ls);
+      SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
+		       "association list");
+      if (SCM_NFALSEP (equal_p (pred, SCM_CAR (tmp), key)))
+	return tmp;
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (ls), alist, SCM_ARG2, FUNC_NAME,
+		   "association list");
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME

@@ -1,8 +1,9 @@
 2002-12-01  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* srfi-1.scm: Load srfi-1 extension.
-	(map, map-in-order, for-each, member): Replaced by primitives in
-	srfi-1.c.
+	(map, map-in-order, for-each, member, assoc): Replaced by
+	primitives in srfi-1.c.
+	(map1): Defined as `map'.
 
 	* Makefile.am: Added rules for srfi-1.c.
 
