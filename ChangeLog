@@ -1,3 +1,8 @@
+2001-10-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Do not use an absolute path for <unistd.h> when
+	checking for return type of usleep.  Thanks to Michael Carmack.
+
 2001-09-30  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* BUGS: New file.
