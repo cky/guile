@@ -198,6 +198,7 @@ scm_start_stack (base, in, out, err)
   SCM_NEWCELL (scm_rootcont);
   SCM_SETJMPBUF (scm_rootcont, scm_must_malloc ((long) sizeof (regs), "continuation"));
   SCM_CAR (scm_rootcont) = scm_tc7_contin;
+  SCM_SEQ (scm_rootcont) = 0;
   /* The root continuation if further initialized by scm_restart_stack. */
 
   /* Create the look-aside stack for variables that are shared between
@@ -221,7 +222,7 @@ scm_restart_stack (base)
   SCM_DYNENV (scm_rootcont) = SCM_EOL;
   SCM_THROW_VALUE (scm_rootcont) = SCM_EOL;
 #ifdef DEBUG_EXTENSIONS
-  SCM_DFRAME (scm_rootcont) = last_debug_info_frame = 0;
+  SCM_DFRAME (scm_rootcont) = scm_last_debug_frame = 0;
 #endif
   SCM_BASE (scm_rootcont) = base;
   scm_continuation_stack_ptr = SCM_MAKINUM (0);
@@ -354,7 +355,7 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_storage (0);
       scm_init_root ();
 #ifdef USE_THREADS
-      scm_init_threads ();
+      scm_init_threads (&i);
 #endif
       scm_start_stack (&i, in, out, err);
       scm_init_gsubr ();
