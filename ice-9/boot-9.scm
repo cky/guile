@@ -691,15 +691,19 @@
 				   (substring message 2 len)
 				   (cdr args)))
 				 (else
-				  (display (substring message 0 2)
+				  (display (substring message 0 1)
 					   cep)
 				  (fill-message
-				   (substring message 2 len)
+				   (substring message 1 len)
 				   args))))))))
 	   (display "ERROR: " cep)
 	   (display subr cep)
 	   (display ": " cep)
-	   (fill-message message args)
+	   (cond ((list? args)
+		  (fill-message message args))
+		 (else
+		  (display message cep)
+		  (display " (bad message args)" cep)))
 	   (newline cep)
 	   (force-output cep)
 	   (apply throw 'abort key arg-list)))
