@@ -1,5 +1,9 @@
 Thu Aug 14 19:55:37 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* emacs.scm (emacs-load): Something has changed in the reader so
+	that we now should set the port line count to the specified value
+	(linum) instead of (- linum 1).
+
 	* slib.scm (slib:load): Use load-from-path instead of
  	primitive-load-path so that backtraces get narrowed properly at
  	the top.

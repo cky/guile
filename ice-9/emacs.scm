@@ -125,7 +125,7 @@
 
 (define (emacs-load filename linum)
   (set-port-filename! %%load-port filename)
-  (set-port-line! %%load-port (- linum 1))
+  (set-port-line! %%load-port linum)
   (set-port-column! %%load-port 0)
   (lazy-catch #t
 	      (lambda ()
