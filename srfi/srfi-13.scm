@@ -45,7 +45,7 @@
 
 (begin-deprecated
  ;; Prevent `export' from re-exporting core bindings.  This behaviour
- ;; of `export' is deprecated and will disappear in one f the next
+ ;; of `export' is deprecated and will disappear in one of the next
  ;; releases.
  (define string->list #f)
  (define string-copy #f)

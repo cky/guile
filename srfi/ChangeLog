@@ -1,3 +1,10 @@
+2001-07-06  Gary Houston  <ghouston@arglist.com>
+
+	* srfi-1.scm (iota, map, for-each, list-index, member, delete,
+	delete!, assoc): roll back the previous change.  instead place
+	dummy definitions in a deprecated block at the beginning as in
+	srfi-13.scm.
+	
 2001-07-06  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-19.scm (priv:locale-reader): don't need open-output-string.

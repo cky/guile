@@ -60,6 +60,20 @@
   :use-module (ice-9 session)
   :use-module (ice-9 receive))
 
+(begin-deprecated
+ ;; Prevent `export' from re-exporting core bindings.  This behaviour
+ ;; of `export' is deprecated and will disappear in one of the next
+ ;; releases.
+ (define iota #f)
+ (define map #f)
+ (define map-in-order #f)
+ (define for-each #f)
+ (define list-index #f)
+ (define member #f)
+ (define delete #f)
+ (define delete! #f)
+ (define assoc #f))
+
 (export 
 ;;; Constructors
  ;; cons				<= in the core
@@ -70,7 +84,7 @@
  list-tabulate
  ;; list-copy				<= in the core
  circular-list
- ;; iota  ; exported below
+ iota					; Extended.
 
 ;;; Predicates
  proper-list?
@@ -164,12 +178,12 @@
  reduce-right
  unfold
  unfold-right
- ;; map  ; exported below
- ;; for-each  ; exported below
+ map					; Extended.
+ for-each				; Extended.
  append-map
  append-map!
  map!
- ;; map-in-order  ; exported below
+ map-in-order				; Extended.
  pair-for-each
  filter-map
 
@@ -193,19 +207,19 @@
  break!
  any
  every
- ;; list-index  ; exported below.
- ;; member ; exported below		; Extended.
+ list-index				; Extended.
+ member					; Extended.
  ;; memq				<= in the core
  ;; memv				<= in the core
 
 ;;; Deletion
-;; delete  ; exported below		; Extended.
-;; delete! ; exported below
+ delete					; Extended.
+ delete!				; Extended.
  delete-duplicates
  delete-duplicates!
 
 ;;; Association lists
- ;; assoc ; exported below		; Extended.
+ assoc					; Extended.
  ;; assq				<= in the core
  ;; assv				<= in the core
  alist-cons
@@ -1027,7 +1041,3 @@
 
 (define (lset-diff+intersection! = list1 . rest)
   (apply lset-diff+intersection = list1 rest)) ; XXX:optimize
-
-;; extended versions of builtin procedures.  exporting is delayed until the
-;; new bindings have been created.
-(export iota map map-in-order for-each list-index member delete delete! assoc)
