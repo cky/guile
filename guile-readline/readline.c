@@ -36,6 +36,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <sys/time.h>
+#include <signal.h>
 
 #include "libguile/validate.h"
 #include "guile-readline/readline.h"
@@ -504,6 +505,26 @@ match_paren (int x, int k)
 
 #endif /* HAVE_RL_GETC_FUNCTION */
 
+#if defined (HAVE_RL_PRE_INPUT_HOOK) && defined (GUILE_SIGWINCH_SA_RESTART_CLEARED)
+/* Readline disables SA_RESTART on SIGWINCH.
+ * This code turns it back on.
+ */
+static int
+sigwinch_enable_restart (void)
+{
+#ifdef HAVE_SIGINTERRUPT
+  siginterrupt (SIGWINCH, 0);
+#else
+  struct sigaction action;
+  
+  sigaction (SIGWINCH, NULL, &action);
+  action.sa_flags |= SA_RESTART;
+  sigaction (SIGWINCH, &action, NULL);
+#endif
+  return 0;
+}
+#endif
+
 void
 scm_init_readline ()
 {
@@ -516,6 +537,9 @@ scm_init_readline ()
   rl_completion_entry_function = (Function*) completion_function;
   rl_basic_word_break_characters = "\t\n\"'`;()";
   rl_readline_name = "Guile";
+#if defined (HAVE_RL_PRE_INPUT_HOOK) && defined (GUILE_SIGWINCH_SA_RESTART_CLEARED)
+  rl_pre_input_hook = sigwinch_enable_restart;
+#endif
 
 #ifdef USE_THREADS
   scm_mutex_init (&reentry_barrier_mutex);
