@@ -1,3 +1,17 @@
+2005-01-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-4.c (uvec_type): New.
+	(uvec_to_list, uvec_ref, uvec_set_x, scm_c_uniform_vector_ref,
+	scm_c_uniform_vector_x): Use it to get concrete type.
+
+	* unif.h (scm_t_array_dim): Changed type of members to ssize_t, to
+	fit the docs.
+
+	* unif.c (ra2l): Handle zero rank arrays.
+	(scm_i_print_array): Print zero rank arrays specially.
+	(tag_to_type): Return #t for an empty tag, not the empty symbol.
+	(scm_i_read_array): Allow zero rank arrays.
+	
 2005-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* hashtab.h, hashtab.c (SCM_HASHTAB_BUCKET_LOC): Removed.
