@@ -221,7 +221,7 @@ scm_ra_matchp (SCM ra0, SCM ras)
     case scm_tc7_cvect:
       s0->lbnd = 0;
       s0->inc = 1;
-      s0->ubnd = (long) SCM_LENGTH (ra0) - 1;
+      s0->ubnd = SCM_INUM (scm_uniform_vector_length (ra0)) - 1;
       break;
     case scm_tc7_smob:
       if (!SCM_ARRAYP (ra0))
@@ -255,25 +255,32 @@ scm_ra_matchp (SCM ra0, SCM ras)
 	case scm_tc7_fvect:
 	case scm_tc7_dvect:
 	case scm_tc7_cvect:
-	  if (1 != ndim)
-	    return 0;
-	  switch (exact)
-	    {
-	    case 4:
-	      if (0 != bas0)
-		exact = 3;
-	    case 3:
-	      if (1 != s0->inc)
-		exact = 2;
-	    case 2:
-	      if ((0 == s0->lbnd) && (s0->ubnd == SCM_LENGTH (ra1) - 1))
-		break;
-	      exact = 1;
-	    case 1:
-	      if (s0->lbnd < 0 || s0->ubnd >= SCM_LENGTH (ra1))
-		return 0;
-	    }
-	  break;
+	  {
+	    unsigned long int length;
+
+	    if (1 != ndim)
+	      return 0;
+
+	    length = SCM_INUM (scm_uniform_vector_length (ra1));
+
+	    switch (exact)
+	      {
+	      case 4:
+		if (0 != bas0)
+		  exact = 3;
+	      case 3:
+		if (1 != s0->inc)
+		  exact = 2;
+	      case 2:
+		if ((0 == s0->lbnd) && (s0->ubnd == length - 1))
+		  break;
+		exact = 1;
+	      case 1:
+		if (s0->lbnd < 0 || s0->ubnd >= length)
+		  return 0;
+	      }
+	    break;
+	  }
 	case scm_tc7_smob:
 	  if (!SCM_ARRAYP (ra1) || ndim != SCM_ARRAY_NDIM (ra1))
 	    return 0;
@@ -333,10 +340,11 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       if (SCM_IMP (vra0)) goto gencase;
       if (!SCM_ARRAYP (vra0))
 	{
+	  unsigned long int length = SCM_INUM (scm_uniform_vector_length (vra0));
 	  vra1 = scm_make_ra (1);
 	  SCM_ARRAY_BASE (vra1) = 0;
 	  SCM_ARRAY_DIMS (vra1)->lbnd = 0;
-	  SCM_ARRAY_DIMS (vra1)->ubnd = SCM_LENGTH (vra0) - 1;
+	  SCM_ARRAY_DIMS (vra1)->ubnd = length - 1;
 	  SCM_ARRAY_DIMS (vra1)->inc = 1;
 	  SCM_ARRAY_V (vra1) = vra0;
 	  vra0 = vra1;
@@ -390,9 +398,10 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       }
     else
       {
+	unsigned long int length = SCM_INUM (scm_uniform_vector_length (ra0));
 	kmax = 0;
 	SCM_ARRAY_DIMS (vra0)->lbnd = 0;
-	SCM_ARRAY_DIMS (vra0)->ubnd = SCM_LENGTH (ra0) - 1;
+	SCM_ARRAY_DIMS (vra0)->ubnd = length - 1;
 	SCM_ARRAY_DIMS (vra0)->inc = 1;
 	SCM_ARRAY_BASE (vra0) = 0;
 	SCM_ARRAY_V (vra0) = ra0;
@@ -504,7 +513,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
     case scm_tc7_bvect:
       { /* scope */
 	long *ve = (long *) SCM_VELTS (ra);
-	if (1 == inc && (n >= SCM_LONG_BIT || n == SCM_LENGTH (ra)))
+	if (1 == inc && (n >= SCM_LONG_BIT || n == SCM_BITVECTOR_LENGTH (ra)))
 	  {
 	    i = base / SCM_LONG_BIT;
 	    if (SCM_FALSEP (fill))
@@ -1247,7 +1256,7 @@ ramap (SCM ra0,SCM proc,SCM ras)
       for (; i <= n; i++, i1 += inc1)
 	{
 	  args = SCM_EOL;
-	  for (k = SCM_LENGTH (ras); k--;)
+	  for (k = SCM_INUM (scm_uniform_vector_length (ras)); k--;)
 	    args = scm_cons (scm_uniform_vector_ref (ve[k], SCM_MAKINUM (i)), args);
 	  args = scm_cons (scm_cvref (ra1, i1, SCM_UNDEFINED), args);
 	  scm_array_set_x (ra0, scm_apply (proc, args, SCM_EOL), SCM_MAKINUM (i * inc + base));
@@ -1641,7 +1650,7 @@ rafe (SCM ra0,SCM proc,SCM ras)
       for (; i <= n; i++, i0 += inc0, i1 += inc1)
 	{
 	  args = SCM_EOL;
-	  for (k = SCM_LENGTH (ras); k--;)
+	  for (k = SCM_INUM (scm_uniform_vector_length (ras)); k--;)
 	    args = scm_cons (scm_uniform_vector_ref (ve[k], SCM_MAKINUM (i)), args);
 	  args = scm_cons2 (scm_cvref (ra0, i0, SCM_UNDEFINED), scm_cvref (ra1, i1, SCM_UNDEFINED), args);
 	  scm_apply (proc, args, SCM_EOL);
@@ -1696,7 +1705,7 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
     case scm_tc7_wvect:
       {
 	SCM *ve = SCM_VELTS (ra);
-	for (i = 0; i < SCM_LENGTH (ra); i++)
+	for (i = 0; i < SCM_VECTOR_LENGTH (ra); i++)
 	  ve[i] = scm_apply (proc, SCM_MAKINUM (i), scm_listofnull);
 	return SCM_UNSPECIFIED;
       }
@@ -1712,10 +1721,13 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
     case scm_tc7_fvect:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
-      for (i = 0; i < SCM_LENGTH (ra); i++)
-	scm_array_set_x (ra, scm_apply (proc, SCM_MAKINUM (i), scm_listofnull),
-			 SCM_MAKINUM (i));
-      return SCM_UNSPECIFIED;
+      {
+	unsigned long int length = SCM_INUM (scm_uniform_vector_length (ra));
+	for (i = 0; i < length; i++)
+	  scm_array_set_x (ra, scm_apply (proc, SCM_MAKINUM (i), scm_listofnull),
+			   SCM_MAKINUM (i));
+	return SCM_UNSPECIFIED;
+      }
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
       {
@@ -1770,7 +1782,7 @@ raeql_1 (SCM ra0,SCM as_equal,SCM ra1)
   SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
   scm_sizet i0 = 0, i1 = 0;
   long inc0 = 1, inc1 = 1;
-  scm_sizet n = SCM_LENGTH (ra0);
+  scm_sizet n = SCM_INUM (scm_uniform_vector_length (ra0));
   ra1 = SCM_CAR (ra1);
   if (SCM_ARRAYP(ra0))
     {
@@ -1909,7 +1921,7 @@ raeql (SCM ra0,SCM as_equal,SCM ra1)
     {
       s0->inc = 1;
       s0->lbnd = 0;
-      s0->ubnd = SCM_LENGTH (v0) - 1;
+      s0->ubnd = SCM_INUM (scm_uniform_vector_length (v0)) - 1;
       unroll = 0;
     }
   if (SCM_ARRAYP (ra1))
@@ -1929,7 +1941,7 @@ raeql (SCM ra0,SCM as_equal,SCM ra1)
 	return 0;
       s1->inc = 1;
       s1->lbnd = 0;
-      s1->ubnd = SCM_LENGTH (v1) - 1;
+      s1->ubnd = SCM_INUM (scm_uniform_vector_length (v1)) - 1;
       unroll = 0;
     }
   if (SCM_TYP7 (v0) != SCM_TYP7 (v1))

@@ -1,5 +1,14 @@
 2000-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* ramap.c (scm_array_fill_int, scm_array_index_map_x):  Replace
+	SCM_LENGTH with the appropriate SCM_<type>_LENGTH macro.
+
+	(scm_ra_matchp, scm_ramapc, ramap, rafe, scm_array_index_map_x,
+	raeql_1, raeql):  Use scm_uniform_vector_length to determine the
+	length of a vector object generically.
+
+2000-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* unif.c (scm_make_uve, scm_uniform_vector_length, scm_array_p,
 	scm_transpose_array, scm_array_contents, scm_ra2contig,
 	scm_uniform_array_read_x, scm_uniform_array_write, scm_bit_count,
