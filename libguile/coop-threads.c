@@ -395,12 +395,9 @@ scm_all_threads (void)
 
 scm_root_state *
 scm_i_thread_root (SCM thread)
-#define FUNC_NAME "scm_i_thread_root"
 {
-  SCM_VALIDATE_THREAD (1, thread);
   return (scm_root_state *)((coop_t *)SCM_THREAD_DATA (thread))->data;
 }
-#undef FUNC_NAME
 
 SCM
 scm_join_thread (SCM thread)
