@@ -1,3 +1,8 @@
+2000-07-17  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c (unmemocopy): Don't rely on V being a list of at least
+	one element.  Thanks to Bill Schottstaedt!
+
 2000-07-15  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.c (scm_done_free): new.
