@@ -50,72 +50,72 @@
 int 
 gh_boolean_p (SCM val)
 {
-  return (scm_boolean_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_boolean_p (val)));
 }
 int 
 gh_symbol_p (SCM val)
 {
-  return (scm_symbol_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_symbol_p (val)));
 }
 int 
 gh_char_p (SCM val)
 {
-  return (scm_char_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_char_p (val)));
 }
 int 
 gh_vector_p (SCM val)
 {
-  return (scm_vector_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_vector_p (val)));
 }
 int 
 gh_pair_p (SCM val)
 {
-  return (scm_pair_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_pair_p (val)));
 }
 int 
 gh_number_p (SCM val)
 {
-  return (scm_number_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_number_p (val)));
 }
 int 
 gh_string_p (SCM val)
 {
-  return (scm_string_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_string_p (val)));
 }
 int 
 gh_procedure_p (SCM val)
 {
-  return (scm_procedure_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_procedure_p (val)));
 }
 int 
 gh_list_p (SCM val)
 {
-  return (scm_list_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_list_p (val)));
 }
 int 
 gh_inexact_p (SCM val)
 {
-  return (scm_inexact_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_inexact_p (val)));
 }
 int 
 gh_exact_p (SCM val)
 {
-  return (scm_exact_p (val) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_exact_p (val)));
 }
 
 /* the three types of equality */
 int 
 gh_eq_p (SCM x, SCM y)
 {
-  return (scm_eq_p (x, y) == SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_eq_p (x, y)));
 }
 int 
 gh_eqv_p (SCM x, SCM y)
 {
-  return (scm_eqv_p (x, y) != SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_eqv_p (x, y)));
 }
 int 
 gh_equal_p (SCM x, SCM y)
 {
-  return (scm_equal_p (x, y) != SCM_BOOL_T) ? 1 : 0;
+  return (SCM_NFALSEP (scm_equal_p (x, y)));
 }
