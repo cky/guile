@@ -1,3 +1,34 @@
+2003-11-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-immediate-display): Removed.
+
+2003-11-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-update-buffers): Rewrite to only show one view at a
+	time.
+	(gds-display-buffers): Remove separate stack buffer display code.
+	(gds-switch-to-view), gds-view-interaction, gds-view-stack,
+	gds-view-breakpoints, gds-view-browser, gds-view-messages,
+	gds-view-menu): New.
+	(gds-maybe-skip-region): Removed.
+	(gds-maybe-delete-region): Removed.
+	(gds-display-types): Removed.
+	(gds-display-type-regexp): Removed.
+	(gds-displayed-modules): Removed.
+
+2003-11-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-views, gds-promote-view, gds-add-view,
+	gds-delete-view, gds-switch-to-view): New.
+	(gds-handle-client-input): Use gds-promote-view.
+	(gds-update-buffers): Remove unnecessary client arg.
+	(gds-module-notify, gds-handle-client-input): Update callers
+	accordingly.
+	(gds-insert-messages): New.
+	(gds-insert-interaction): New (using code from
+	gds-update-buffers).
+	(gds-update-buffers): Use gds-insert-interaction.
+
 2003-11-17  Rob Browning  <rlb@defaultvalue.org>
 
 	* .cvsignore: new file.
