@@ -84,6 +84,7 @@ notice identical to this one except for the removal of this paragraph
 @macro vnew{VERSION}
 @end macro
 
+
 @c  @m{T,N} is $T$ in tex or @math{N} otherwise.  This is an easy way to give
 @c  different forms for math in tex and info.
 @iftex
@@ -96,6 +97,21 @@ notice identical to this one except for the removal of this paragraph
 @math{\N\}
 @end macro
 @end ifnottex
+
+@c  @nicode{S} is plain S in info, or @code{S} elsewhere.  This can be
+@c  used when the quotes that @code{} gives in info aren't wanted, but
+@c  the fontification in tex or html is wanted.
+@ifinfo
+@macro nicode {S}
+\S\
+@end macro
+@end ifinfo
+@ifnotinfo
+@macro nicode {S}
+@code{\S\}
+@end macro
+@end ifnotinfo
+
 
 @c @iftex
 @c @cropmarks
@@ -113,7 +129,7 @@ notice identical to this one except for the removal of this paragraph
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.22 2003-05-15 23:39:56 kryde Exp $
+@subtitle $Id: guile.texi,v 1.23 2003-07-18 00:50:23 kryde Exp $
 
 @c AUTHORS
 
