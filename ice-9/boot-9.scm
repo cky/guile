@@ -1664,8 +1664,17 @@
 
 (define basic-load load)
 
-(define (load-module . args)
-  (save-module-excursion (lambda () (apply basic-load args))))
+(define (load-module filename)
+  (save-module-excursion
+   (lambda ()
+     (let ((oldname (and (current-load-port)
+			 (port-filename (current-load-port)))))
+       (basic-load (if (and oldname
+			    (> (string-length filename) 0)
+			    (not (char=? (string-ref filename 0) #\/))
+			    (not (string=? (dirname oldname) ".")))
+		       (string-append (dirname oldname) "/" filename)
+		       filename))))))
 
 
 
@@ -2792,8 +2801,6 @@
 
 
 (define load load-module)
-;(define (load . args)
-;  (start-stack 'load-stack (apply load-module args)))
 
 
 

@@ -1,3 +1,10 @@
+1998-06-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (load-module): When loading files from within files
+	themselves being loaded: Use the directory path of the file being
+	loaded as root for relative filenames.  (After suggestion by
+	Steven G. Johnson.)
+
 1998-06-15  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* emacs.scm (emacs-load): New feature: Eval in specified module.
