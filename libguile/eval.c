@@ -2562,7 +2562,7 @@ scm_badargsp (SCM formals, SCM args)
  *   Originally, it is defined to ceval, but is redefined to deval during the
  *   second pass.
  *  
- *   SCM_EVALIM is used when it is known that the expression is an
+ *   SCM_I_EVALIM is used when it is known that the expression is an
  *   immediate.  (This macro never calls an evaluator.)
  *
  *   EVAL evaluates an expression that is expected to have its symbols already
@@ -2577,10 +2577,10 @@ scm_badargsp (SCM formals, SCM args)
  * The following macros should be used in code which is read once
  * (where the choice of evaluator is dynamic):
  *
- *   SCM_XEVAL corresponds to EVAL, but uses ceval *or* deval depending on the
+ *   SCM_I_XEVAL corresponds to EVAL, but uses ceval *or* deval depending on the
  *   debugging mode.
  *  
- *   SCM_XEVALCAR corresponds to EVALCAR, but uses ceval *or* deval depending
+ *   SCM_I_XEVALCAR corresponds to EVALCAR, but uses ceval *or* deval depending
  *   on the debugging mode.
  *
  * The main motivation for keeping this plethora is efficiency
@@ -2592,19 +2592,19 @@ static SCM deval (SCM x, SCM env);
 #define CEVAL ceval
 
 
-#define SCM_EVALIM2(x) \
+#define SCM_I_EVALIM2(x) \
   ((scm_is_eq ((x), SCM_EOL) \
     ? syntax_error (s_empty_combination, (x), SCM_UNDEFINED), 0 \
     : 0), \
    (x))
 
-#define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
+#define SCM_I_EVALIM(x, env) (SCM_ILOCP (x) \
                             ? *scm_ilookup ((x), (env)) \
-			    : SCM_EVALIM2(x))
+			    : SCM_I_EVALIM2(x))
 
-#define SCM_XEVAL(x, env) \
+#define SCM_I_XEVAL(x, env) \
   (SCM_IMP (x) \
-   ? SCM_EVALIM2 (x) \
+   ? SCM_I_EVALIM2 (x) \
    : (SCM_VARIABLEP (x) \
       ? SCM_VARIABLE_REF (x) \
       : (SCM_CONSP (x) \
@@ -2613,9 +2613,9 @@ static SCM deval (SCM x, SCM env);
             : ceval ((x), (env))) \
          : (x))))
 
-#define SCM_XEVALCAR(x, env) \
+#define SCM_I_XEVALCAR(x, env) \
   (SCM_IMP (SCM_CAR (x)) \
-   ? SCM_EVALIM (SCM_CAR (x), (env)) \
+   ? SCM_I_EVALIM (SCM_CAR (x), (env)) \
    : (SCM_VARIABLEP (SCM_CAR (x)) \
       ? SCM_VARIABLE_REF (SCM_CAR (x)) \
       : (SCM_CONSP (SCM_CAR (x)) \
@@ -2628,7 +2628,7 @@ static SCM deval (SCM x, SCM env);
 
 #define EVAL(x, env) \
   (SCM_IMP (x) \
-   ? SCM_EVALIM ((x), (env)) \
+   ? SCM_I_EVALIM ((x), (env)) \
    : (SCM_VARIABLEP (x) \
       ? SCM_VARIABLE_REF (x) \
       : (SCM_CONSP (x) \
@@ -2637,7 +2637,7 @@ static SCM deval (SCM x, SCM env);
 
 #define EVALCAR(x, env) \
   (SCM_IMP (SCM_CAR (x)) \
-   ? SCM_EVALIM (SCM_CAR (x), (env)) \
+   ? SCM_I_EVALIM (SCM_CAR (x), (env)) \
    : (SCM_VARIABLEP (SCM_CAR (x)) \
       ? SCM_VARIABLE_REF (SCM_CAR (x)) \
       : (SCM_CONSP (SCM_CAR (x)) \
@@ -2891,7 +2891,7 @@ lazy_memoize_variable (const SCM symbol, const SCM environment)
 SCM
 scm_eval_car (SCM pair, SCM env)
 {
-  return SCM_XEVALCAR (pair, env);
+  return SCM_I_XEVALCAR (pair, env);
 }
 
 
@@ -2935,11 +2935,11 @@ scm_eval_body (SCM code, SCM env)
 	    }
 	}
       else
-	SCM_XEVAL (SCM_CAR (code), env);
+	SCM_I_XEVAL (SCM_CAR (code), env);
       code = next;
       next = SCM_CDR (code);
     }
-  return SCM_XEVALCAR (code, env);
+  return SCM_I_XEVALCAR (code, env);
 }
 
 #endif /* !DEVAL */
@@ -3342,7 +3342,7 @@ dispatch:
                 goto loop;		/* tail recurse */
               }
             else if (SCM_IMP (last_form))
-              RETURN (SCM_EVALIM (last_form, env));
+              RETURN (SCM_I_EVALIM (last_form, env));
             else if (SCM_VARIABLEP (last_form))
               RETURN (SCM_VARIABLE_REF (last_form));
             else if (SCM_SYMBOLP (last_form))
@@ -5857,7 +5857,7 @@ scm_i_eval_x (SCM exp, SCM env)
   if (SCM_SYMBOLP (exp))
     return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
   else
-    return SCM_XEVAL (exp, env);
+    return SCM_I_XEVAL (exp, env);
 }
 
 SCM 
@@ -5867,7 +5867,7 @@ scm_i_eval (SCM exp, SCM env)
   if (SCM_SYMBOLP (exp))
     return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
   else
-    return SCM_XEVAL (exp, env);
+    return SCM_I_XEVAL (exp, env);
 }
 
 SCM
@@ -5983,7 +5983,7 @@ SCM scm_ceval (SCM x, SCM env)
   else if (SCM_SYMBOLP (x))
     return *scm_lookupcar (scm_cons (x, SCM_UNDEFINED), env, 1);
   else
-    return SCM_XEVAL (x, env);
+    return SCM_I_XEVAL (x, env);
 }
 
 /* Deprecated in guile 1.7.0 on 2004-03-29.  */
@@ -5994,7 +5994,7 @@ SCM scm_deval (SCM x, SCM env)
   else if (SCM_SYMBOLP (x))
     return *scm_lookupcar (scm_cons (x, SCM_UNDEFINED), env, 1);
   else
-    return SCM_XEVAL (x, env);
+    return SCM_I_XEVAL (x, env);
 }
 
 static SCM
