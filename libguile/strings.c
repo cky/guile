@@ -95,6 +95,7 @@ SCM_REGISTER_PROC (s_scm_list_to_string, "list->string", 1, 0, 0, scm_string);
 
 SCM_DEFINE (scm_string, "string", 0, 0, 1, 
             (SCM chrs),
+	    "@deffnx primitive list->string chrs\n"
 	    "Returns a newly allocated string composed of the arguments, CHRS.")
 #define FUNC_NAME s_scm_string
 {

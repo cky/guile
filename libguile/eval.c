@@ -3802,7 +3802,9 @@ SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0,
 
 SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0, 
             (SCM xorig, SCM x, SCM y),
-	    "")
+	    "Create and return a new pair whose car and cdr are @var{x} and @var{y}.\n"
+	    "Any source properties associated with @var{xorig} are also associated\n"
+	    "with the new pair.")
 #define FUNC_NAME s_scm_cons_source
 {
   SCM p, z;

@@ -227,6 +227,8 @@ y
 
 SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0, 
            (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
+	    "@deffnx primitive substring-move-left! str1 start1 end1 str2 start2\n"
+	    "@deffnx primitive substring-move-right! str1 start1 end1 str2 start2\n"
 	    "Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}\n"
 	    "into @var{str2} beginning at position @var{end2}.\n"
 	    "@code{substring-move-right!} begins copying from the rightmost character\n"

@@ -1,3 +1,46 @@
+2000-09-03  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* vectors.c (scm_vector): Docstring: add @deffnx line for
+	list->vector.
+
+	* unif.c (scm_uniform_vector_ref): Docstring: add @deffnx line for
+	array-ref.
+	(scm_array_set_x): Docstring: add @deffnx line for
+	uniform-array-set!.
+
+	* symbols.c (scm_symbol_to_string): Docstring: complete an
+	incomplete Texinfo reference to a node in r4rs.texi.
+	(scm_symbol_to_string): Escape double quotes correctly within
+	docstring.
+
+	* struct.c (scm_make_struct, scm_make_vtable_vtable): Docstring
+	fixes: `@dots' changed to `@dots{}'.
+
+	* strop.c (scm_substring_move_x): Docstring: add @deffnx lines for
+	substring-move-left! and substring-move-right!.
+
+	* strings.c (scm_string): Docstring: add @deffnx line for
+	list->string.
+
+	* stime.c (scm_strptime): Fix spelling mistake in docstring.
+	(scm_current_time): Docstring fix: insert missing newline.
+	
+	* socket.c (scm_recvfrom): Docstring format fix: missing newline
+	inserted.
+
+	* ramap.c (scm_array_copy_x): Docstring: add @deffnx line for
+	array-copy-in-order!.
+	(scm_array_map_x): Docstring: add @deffnx line for
+	array-map-in-order!.
+
+	* posix.c (scm_mknod): Docstring format fix: missing newlines
+	inserted.
+	
+	* modules.c (scm_interaction_environment):  Docstring fix: add
+	newlines.
+
+	* eval.c (scm_cons_source): Added newly written docstring.
+
 2000-09-03  Michael Livshin  <mlivshin@bigfoot.com>
 
 	the following changes let Guile get rid of the `allocated' cell

@@ -94,11 +94,11 @@ scm_select_module (SCM module)
 
 SCM_DEFINE (scm_interaction_environment, "interaction-environment", 0, 0, 0,
 	    (),
-	    "This procedure returns a specifier for the environment that"
-	    "contains implementation-defined bindings, typically a superset of"
-	    "those listed in the report.  The intent is that this procedure"
-	    "will return the environment in which the implementation would"
-	    "evaluate expressions dynamically typed by the user.")
+	    "This procedure returns a specifier for the environment that contains\n"
+	    "implementation-defined bindings, typically a superset of those listed in\n"
+	    "the report.  The intent is that this procedure will return the\n"
+	    "environment in which the implementation would evaluate expressions\n"
+	    "dynamically typed by the user.")
 #define FUNC_NAME s_scm_interaction_environment
 {
   return scm_selected_module ();
