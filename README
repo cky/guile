@@ -23,10 +23,10 @@ Important Facts About Snapshots ======================================
     And it allows us to start testing features earlier.
 
 The Guile snapshots are available via anonymous FTP from
-alpha.gnu.ai.mit.edu, as /gnu/guile-snap.tar.gz.
+ftp.cyclic.com, as /pub/guile/guile-snap.tar.gz.
 
-Via the web, that's:  ftp://alpha.gnu.ai.mit.edu/gnu/guile-snap.tar.gz
-For getit, that's:    alpha.gnu.ai.mit.edu:/gnu/guile-snap.tar.gz
+Via the web, that's:  ftp://ftp.cyclic.com/pub/guile/guile-snap.tar.gz
+For getit, that's:    ftp.cyclic.com:/pub/guile/guile-snap.tar.gz
 
 
 Contents Of This Distribution ========================================
