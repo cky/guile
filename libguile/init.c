@@ -243,8 +243,19 @@ check_config ()
 static void
 scm_init_standard_ports ()
 {
-  /* I'm not sure why this should be unbuffered when coming from a
-     tty; isn't line buffering more common?  */
+  /* From the SCSH manual:
+
+     It can be useful to turn I/O buffering off in some cases, for
+     example when an I/O stream is to be shared by multiple
+     subprocesses.  For this reason, scsh allocates an unbuffered port
+     for file descriptor 0 at start-up time.
+
+     Because shells frequently share stdin with subprocesses, if the
+     shell does buffered reads, it might ``steal'' input intended for
+     a subprocess.  For this reason, all shells, including sh, csh,
+     and scsh, read stdin unbuffered.  Applications that can tolerate
+     buffered input on stdin can reset \ex{(current-input-port)} to
+     block buffering for higher performance.  */
   scm_def_inp = scm_stdio_to_port (stdin, 
 				   (isatty (fileno (stdin)) ? "r0" : "r"),
 				   "standard input");
