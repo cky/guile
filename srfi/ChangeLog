@@ -1,3 +1,7 @@
+2004-08-26  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-31.scm (rec): Add missing `error' to else clause.
+
 2004-08-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Makefile.am: Added appropriate @LIBGUILE_*_MAJOR@ substitutions
