@@ -104,9 +104,9 @@ The two parts of a pair are traditionally called @dfn{car} and
 @dfn{cdr}.  They can be retrieved with procedures of the same name
 (@code{car} and @code{cdr}), and can be modified with the procedures
 @code{set-car!} and @code{set-cdr!}.  Since a very common operation in
-Scheme programs is to access the car of a pair, or the car of the cdr of
-a pair, etc., the procedures called @code{caar}, @code{cadr} and so on
-are also predefined.
+Scheme programs is to access the car of a car of a pair, or the car of
+the cdr of a pair, etc., the procedures called @code{caar},
+@code{cadr} and so on are also predefined.
 
 @rnindex car
 @rnindex cdr
@@ -116,6 +116,16 @@ are also predefined.
 @deffnx {C Function} scm_cdr (pair)
 Return the car or the cdr of @var{pair}, respectively.
 @end deffn
+
+@deftypefn  {C Macro} SCM SCM_CAR (SCM pair)
+@deftypefnx {C Macro} SCM SCM_CDR (SCM pair)
+These two macros are the fastest way to access the car or cdr of a
+pair; they can be thought of as compiling into a single memory
+reference.
+
+These macros do no checking at all.  The argument @var{pair} must be a
+valid pair.
+@end deftypefn
 
 @deffn  {Scheme Procedure} cddr pair
 @deffnx {Scheme Procedure} cdar pair
@@ -920,7 +930,7 @@ size_t i, len;
 ssize_t inc;
 SCM *elt;
 
-elt = scm_vector_elements (vec, &handle, &len, &inc);
+elt = scm_vector_writable_elements (vec, &handle, &len, &inc);
 for (i = 0; i < len; i++, elt += inc)
   *elt = SCM_BOOL_T;
 scm_array_handle_release (&handle);
@@ -2256,7 +2266,7 @@ If @var{array} may be @dfn{unrolled} into a one dimensional shared array
 without changing their order (last subscript changing fastest), then
 @code{array-contents} returns that shared array, otherwise it returns
 @code{#f}.  All arrays made by @code{make-array} and
-@code{make-generalized-array} may be unrolled, some arrays made by
+@code{make-typed-array} may be unrolled, some arrays made by
 @code{make-shared-array} may not be.
 
 If the optional argument @var{strict} is provided, a shared array will
@@ -3447,8 +3457,6 @@ capitals
 @subsection Hash Tables
 @tpindex Hash Tables
 
-@c FIXME::martin: Review me!
-
 Hash tables are dictionaries which offer similar functionality as
 association lists: They provide a mapping from keys to values.  The
 difference is that association lists need time linear in the size of
@@ -3456,6 +3464,12 @@ elements when searching for entries, whereas hash tables can normally
 search in constant time.  The drawback is that hash tables require a
 little bit more memory, and that you can not use the normal list
 procedures (@pxref{Lists}) for working with them.
+
+Guile provides two types of hashtables.  One is an abstract data type
+that can only be manipulated with the functions in this section.  The
+other type is concrete: it uses a normal vector with alists as
+elements.  The advantage of the abstract hash tables is that they will
+be automatically resized when they become too full or too empty.
 
 @menu
 * Hash Table Examples::         Demonstration of hash table usage.
@@ -3466,8 +3480,6 @@ procedures (@pxref{Lists}) for working with them.
 @node Hash Table Examples
 @subsubsection Hash Table Examples
 
-@c FIXME::martin: Review me!
-
 For demonstration purposes, this section gives a few usage examples of
 some hash table procedures, together with some explanation what they do.
 
@@ -3477,17 +3489,42 @@ populate it with two key/value pairs.
 @lisp
 (define h (make-hash-table 31))
 
-(hashq-create-handle! h 'foo "bar")
+;; This is an opaque object
+h
 @result{}
-(foo . "bar")
+#<hash-table 0/31>
 
-(hashq-create-handle! h 'braz "zonk")
+;; We can also use a vector of alists.
+(define h (make-vector 7 '()))
+
+h
 @result{}
-(braz . "zonk")
+#(() () () () () () ())
 
+;; Inserting into a hash table can be done with hashq-set!
+(hashq-set! h 'foo "bar")
+@result{}
+"bar"
+
+(hashq-set! h 'braz "zonk")
+@result{}
+"zonk"
+
+;; Or with hash-create-handle!
 (hashq-create-handle! h 'frob #f)
 @result{}
 (frob . #f)
+
+;; The vector now contains three elements in the alists and the frob
+;; entry is at index (hashq 'frob).
+h
+@result{}
+#(() () () () ((frob . #f) (braz . "zonk")) () ((foo . "bar")))
+
+(hashq 'frob)
+@result{}
+4
+
 @end lisp
 
 You can get the value for a given key with the procedure
@@ -3552,18 +3589,24 @@ A single @code{make-hash-table} creates a hash table suitable for use
 with any set of functions, but it's imperative that just one set is
 then used consistently, or results will be unpredictable.
 
-@sp 1
 Hash tables are implemented as a vector indexed by a hash value formed
 from the key, with an association list of key/value pairs for each
 bucket in case distinct keys hash together.  Direct access to the
 pairs in those lists is provided by the @code{-handle-} functions.
+The abstract kind of hash tables hide the vector in an opaque object
+that represents the hash table, while for the concrete kind the vector
+@emph{is} the hashtable.
 
-When the number of table entries goes above a threshold the vector is
-increased and the entries rehashed, to prevent the bucket lists
-becoming too long and slowing down accesses.  When the number of
-entries goes below a threshold the vector is decreased to save space.
+When the number of table entries in an abstract hash table goes above
+a threshold, the vector is made larger and the entries are rehashed,
+to prevent the bucket lists from becoming too long and slowing down
+accesses.  When the number of entries goes below a threshold, the
+vector is shrunk to save space.
 
-@sp 1
+A abstract hash table is created with @code{make-hash-table}.  To
+create a vector that is suitable as a hash table, use
+@code{(make-vector @var{size} '())}, for example.
+
 For the @code{hashx-} ``extended'' routines, an application supplies a
 @var{hash} function producing an integer index like @code{hashq} etc
 below, and an @var{assoc} alist search function like @code{assq} etc
@@ -3595,13 +3638,10 @@ addition to @code{hashq} etc below, include @code{symbol-hash}
 (@pxref{String Comparison}), and @code{char-set-hash}
 (@pxref{Character Set Predicates/Comparison}).
 
-Note that currently, unfortunately, there's no @code{hashx-remove!}
-function, which rather limits the usefulness of the @code{hashx-}
-routines.
-
 @sp 1
 @deffn {Scheme Procedure} make-hash-table [size]
-Create a new hash table, with an optional minimum vector @var{size}.
+Create a new abstract hash table object, with an optional minimum
+vector @var{size}.
 
 When @var{size} is given, the table vector will still grow and shrink
 automatically, as described above, but with @var{size} as a minimum.
@@ -3612,12 +3652,12 @@ added.
 
 @deffn {Scheme Procedure} hash-table? obj
 @deffnx {C Function} scm_hash_table_p (obj)
-Return @code{#t} if @var{obj} is a hash table.
+Return @code{#t} if @var{obj} is a abstract hash table object.
 @end deffn
 
 @deffn {Scheme Procedure} hash-clear! table
 @deffnx {C Function} scm_hash_clear_x (table)
-Remove all items from TABLE (without triggering a resize).
+Remove all items from @var{table} (without triggering a resize).
 @end deffn
 
 @deffn {Scheme Procedure} hash-ref table key [dflt]
@@ -3649,9 +3689,11 @@ If it's not present then a new entry is created.
 @deffn {Scheme Procedure} hash-remove! table key
 @deffnx {Scheme Procedure} hashq-remove! table key
 @deffnx {Scheme Procedure} hashv-remove! table key
+@deffnx {Scheme Procedure} hashx-remove! hash assoc table key
 @deffnx {C Function} scm_hash_remove_x (table, key)
 @deffnx {C Function} scm_hashq_remove_x (table, key)
 @deffnx {C Function} scm_hashv_remove_x (table, key)
+@deffnx {C Function} scm_hashx_remove_x (hash, assoc, table, key)
 Remove any association for @var{key} in the given hash @var{table}.
 If @var{key} is not in @var{table} then nothing is done.
 @end deffn
