@@ -210,7 +210,7 @@ scm_sys_redirect_port (into_pt, from_pt)
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC (s_sys_fileno, "%fileno", 1, 0, 0, scm_sys_fileno);
+SCM_PROC (s_sys_fileno, "fileno", 1, 0, 0, scm_sys_fileno);
 #ifdef __STDC__
 SCM 
 scm_sys_fileno (SCM port)
@@ -227,27 +227,6 @@ scm_sys_fileno (port)
     SCM_SYSERROR (s_sys_fileno);
   return SCM_MAKINUM (fd);
 }
-
-SCM_PROC (s_sys_soft_fileno, "soft-fileno", 1, 0, 0, scm_sys_soft_fileno);
-#ifdef __STDC__
-SCM 
-scm_sys_soft_fileno (SCM port)
-#else
-SCM 
-scm_sys_soft_fileno (port)
-     SCM port;
-#endif
-{
-  int fd;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_fileno);
-
-  fd = fileno ((FILE *)SCM_STREAM (port));
-  if (fd == -1)
-    SCM_SYSERROR (s_sys_soft_fileno);
-  return SCM_MAKINUM (fd);
-}
-
-
 
 SCM_PROC (s_sys_isatty, "isatty?", 1, 0, 0, scm_sys_isatty_p);
 #ifdef __STDC__
@@ -283,17 +262,21 @@ scm_sys_fdopen (fdes, modes)
 {
   FILE *f;
   SCM port;
+  struct scm_port_table * pt;
 
   SCM_ASSERT (SCM_INUMP (fdes), fdes, SCM_ARG1, s_sys_fdopen);
   SCM_ASSERT (SCM_NIMP (modes) && SCM_STRINGP (modes), modes, SCM_ARG2, s_sys_fdopen);
+  SCM_NEWCELL (port);
   SCM_DEFER_INTS;
   f = fdopen (SCM_INUM (fdes), SCM_CHARS (modes));
   if (f == NULL)
     SCM_SYSERROR (s_sys_fdopen);
-  SCM_NEWCELL (port);
-  SCM_CAR (port) = scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes));
-  SCM_SETSTREAM (port,(SCM)f);
-  scm_add_to_port_table (port);
+  pt = scm_add_to_port_table (port);
+  SCM_SETPTAB_ENTRY (port, pt);
+  if (SCM_BUF0 & (SCM_CAR (port) = scm_tc16_fport
+		  | scm_mode_bits (SCM_CHARS (modes))))
+    scm_setbuf0 (port);
+  SCM_SETSTREAM (port, (SCM)f);
   SCM_ALLOW_INTS;
   return port;
 }
@@ -301,8 +284,8 @@ scm_sys_fdopen (fdes, modes)
 
 
 /* Move a port's underlying file descriptor to a given value.
- * Returns  0 if fdes is already the given value.
- *          1 if fdes moved. 
+ * Returns  #f if fdes is already the given value.
+ *          #t if fdes moved. 
  * MOVE->FDES is implemented in Scheme and calls this primitive.
  */
 SCM_PROC (s_sys_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0, scm_sys_primitive_move_to_fdes);
@@ -330,7 +313,7 @@ scm_sys_primitive_move_to_fdes (port, fd)
   if  (old_fd == new_fd)
     {
       SCM_ALLOW_INTS;
-      return SCM_MAKINUM (0);
+      return SCM_BOOL_F;
     }
   scm_evict_ports (new_fd);
   rv = dup2 (old_fd, new_fd);
@@ -339,7 +322,7 @@ scm_sys_primitive_move_to_fdes (port, fd)
   scm_setfileno (stream, new_fd);
   SCM_SYSCALL (close (old_fd));  
   SCM_ALLOW_INTS;
-  return SCM_MAKINUM (1);
+  return SCM_BOOL_T;
 }
 
 #ifdef __STDC__

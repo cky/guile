@@ -193,10 +193,12 @@ scm_open_file (filename, modes)
   if (SCM_SUBSTRP (modes))
     modes = scm_makfromstr (SCM_ROCHARS (modes), SCM_ROLENGTH (modes), 0);
   port = scm_mkfile (SCM_ROCHARS (filename), SCM_ROCHARS (modes));
-  /* Force the compiler to keep filename and modes alive:
-   */
-  if (port == SCM_BOOL_F)
+
+  if (port == SCM_BOOL_F) {
+    SCM_SYSERROR (s_open_file);
+    /* Force the compiler to keep filename and modes alive.  */
     scm_cons (filename, modes);
+  }
   return port;
 }
 

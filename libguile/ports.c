@@ -438,9 +438,8 @@ scm_pt_member (member)
 #endif
 
 
-/* Find a port in the table and return its revealed count.  Return -1
- * if the port isn't in the table (should not happen).  Also used by
- * the garbage collector.
+/* Find a port in the table and return its revealed count.
+   Also used by the garbage collector.
  */
 #ifdef __STDC__
 int
@@ -468,14 +467,8 @@ scm_port_revealed (port)
      SCM port;
 #endif
 {
-  int result;
-
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, s_port_revealed);
-
-  if ((result = scm_revealed_count (port)) == -1)
-    return SCM_BOOL_F;
-  else
-    return SCM_MAKINUM (result);
+  return SCM_MAKINUM (scm_revealed_count (port));
 }
 
 /* Set the revealed count for a port.  */
@@ -495,7 +488,7 @@ scm_set_port_revealed_x (port, rcount)
   SCM_DEFER_INTS;
   SCM_REVEALED (port) = SCM_INUM (rcount);
   SCM_ALLOW_INTS;
-  return SCM_BOOL_F;
+  return SCM_UNSPECIFIED;
 }
 
 /* scm_close_port

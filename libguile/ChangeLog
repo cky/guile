@@ -1,5 +1,18 @@
 Sat Aug  3 01:27:14 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* ioext.c (scm_sys_fdopen): fix the port-table assignment.
+
+	* fports.c (scm_open_file): don't return #f, throw error.
+
+	* ioext.c (fileno): renamed from %fileno.
+	(soft-fileno): deleted.
+
+	* ports.c (scm_port_revealed): don't need to check for -1 from
+	scm_revealed_count.
+	(scm_set_port_revealed_x): return unspecified, not #f.
+
+	* ioext.c (primitive-move->fdes): return #t or #f, not 1 or 0.
+
 	* fdsocket.c: getsockopt, setsockopt: use HAVE_STRUCT_LINGER.
 
 	* scmconfig.h.in: add HAVE_STRUCT_LINGER.

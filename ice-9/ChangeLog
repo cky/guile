@@ -1,3 +1,13 @@
+Sat Aug  3 06:16:35 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (*null-device*): global constant from goonix.
+	(move->fdes): adjusted for boolean primitive-move->fdes.  return
+	the modified port, always set revealed count to 1 (SCSH compatible).
+	(release-port-handle port): from goonix (SCSH compatible).
+	(%open-file): removed.
+	(open-input-file, open-output-file, file-exists?, file-is-directory?):
+	modified for open-file change (does not return #f).
+
 Thu Aug  1 02:52:42 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* Makefile.in (dist-dir): New target for new dist system.

@@ -90,7 +90,6 @@
 ;;; {Silly Naming Cleanups and Trivial Functions}
 ;;;
 
-(define %open-file open-file)
 (define (id x) x)
 (define < <?)
 (define <= <=?)
@@ -156,13 +155,13 @@
 		    ((MS-DOS WINDOWS ATARIST) "r+b")
 		    (else "r+")))
 
+(define *null-device* "/dev/null")
+
 (define (open-input-file str)
-  (or (open-file str OPEN_READ)
-      (error "OPEN-INPUT-FILE couldn't find file " str)))
+  (open-file str OPEN_READ))
 
 (define (open-output-file str)
-  (or (open-file str OPEN_WRITE)
-      (error "OPEN-OUTPUT-FILE couldn't find file " str)))
+  (open-file str OPEN_WRITE))
 
 (define (open-io-file str) (open-file str OPEN_BOTH))
 (define close-input-port close-port)
@@ -553,12 +552,16 @@
 ;;;
 
 (define (file-exists? str)
-  (let ((port (open-file str OPEN_READ)))
+  ;; we don't have false-if-exception (or defmacro) yet.
+  (let ((port (catch #t (lambda () (open-file str OPEN_READ))
+		     (lambda args #f))))
     (if port (begin (close-port port) #t)
 	#f)))
 
 (define (file-is-directory? str)
-  (let ((port (open-file (string-append str "/.") OPEN_READ)))
+  (let ((port (catch #t (lambda () (open-file (string-append str "/.")
+					      OPEN_READ))
+		     (lambda args #f))))
     (if port (begin (close-port port) #t)
 	#f)))
 
@@ -742,9 +745,16 @@
 (define (setprotoent arg) (setproto arg))
 (define (setpwent arg) (setpw arg))
 (define (setservent arg) (setserv arg))
+
 (define (move->fdes port fd)
-  (if (= 1 (primitive-move->fdes port fd))
-      (set-port-revealed! port 1)))
+  (primitive-move->fdes port fd)
+  (set-port-revealed! port 1)
+  port)
+
+(define (release-port-handle port)
+  (let ((revealed (port-revealed port)))
+    (if (> revealed 0)
+	(set-port-revealed! port (- revealed 1)))))
 
 
 ;;; {Load Paths}
