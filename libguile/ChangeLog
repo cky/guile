@@ -1,3 +1,8 @@
+2001-03-29  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* goops.c, goops.h (scm_init_oop_goops_goopscore_module): Deprecated.
+	* init.c (scm_init_guile_1): Don't init goopscore module.
+
 2001-03-27  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (SCM_APPLY): Check that arg1 is bound for scm_tc7_cxr.
