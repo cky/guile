@@ -25,7 +25,7 @@
 #include "libguile/snarf.h"
 #include "libguile/validate.h"
 #include "libguile/strings.h"
-#include "libguile/strop.h"
+#include "libguile/srfi-13.h"
 #include "libguile/modules.h"
 #include "libguile/eval.h"
 #include "libguile/smob.h"

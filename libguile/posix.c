@@ -33,9 +33,9 @@
 #include "libguile/scmsigs.h"
 #include "libguile/feature.h"
 #include "libguile/strings.h"
+#include "libguile/srfi-13.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
-#include "libguile/strop.h"
 
 #include "libguile/validate.h"
 #include "libguile/posix.h"

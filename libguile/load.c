@@ -38,7 +38,7 @@
 #include "libguile/modules.h"
 #include "libguile/lang.h"
 #include "libguile/chars.h"
-#include "libguile/strop.h"
+#include "libguile/srfi-13.h"
 
 #include "libguile/validate.h"
 #include "libguile/load.h"

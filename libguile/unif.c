@@ -38,10 +38,10 @@
 #include "libguile/eval.h"
 #include "libguile/fports.h"
 #include "libguile/smob.h"
-#include "libguile/strop.h"
 #include "libguile/feature.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/srfi-13.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
