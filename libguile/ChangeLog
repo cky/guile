@@ -1,3 +1,7 @@
+2003-06-12  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_putenv): Free temporary ptr in mingw unset.
+
 2003-06-02  Marius Vollmer  <mvo@zagadka.de>
 
 	* ports.c (scm_peek_char): Safe the column of the port around the
