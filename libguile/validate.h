@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.21 2000-03-03 00:09:53 gjb Exp $ */
+/* $Id: validate.h,v 1.1 2000-03-03 00:11:46 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -88,7 +88,7 @@
 #define SCM_MUST_MALLOC(size) (scm_must_malloc((size), FUNC_NAME))
 
 #define SCM_MAKE_VALIDATE(pos,var,pred) \
-  do { SCM_ASSERT (SCM_ ## pred(var), var, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT_TYPE (SCM_ ## pred(var), var, pos, FUNC_NAME, #pred); } while (0)
 
 
 
