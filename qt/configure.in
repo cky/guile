@@ -51,8 +51,8 @@ sparc-*-*)
 	qtdmdb_s=$srcdir/md/_sparc_b.s 
 	;;
 *)
-	echo "Unknown configuration"
-	exit 1
+	echo "Unknown configuration; threads package disabled"
+	target_all=''
 	;;
 esac
 
