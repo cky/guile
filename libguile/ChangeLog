@@ -1,3 +1,75 @@
+2000-09-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	This patch unifies the formerly distinct ssymbol and msymbol types
+	to a common symbol type scm_tc7_symbol.  The representation of the
+	new symbol type uses a double cell with the following layout:
+	<type/length, chars, raw_hash, prop-pair>, where the car of
+	prop-pair holds the symbol's function property and the cdr of
+	prop-pair holds the symbol's other properties.  In the long run,
+	these properties will be removed.  Then, the generic property
+	functions will be uses.
+
+	* eval.c (SCM_CEVAL), objects.c (scm_class_of), print.c
+	(scm_iprin1), tag.c (scm_tag):  Use scm_tc7_symbol instead of
+	scm_tc7_ssymbol, scm_tc7_msymbol or scm_tcs_symbols.
+
+	* gc.c (scm_gc_mark):  Mark the symbols property pair.
+
+	(scm_gc_sweep):  There are no symbol slots any more.
+
+	* hash.c (scm_hasher):  Instead of re-calculating the hash value
+	of a symbol, use the raw_hash value stored in the symbol itself.
+
+	* properties.h:  Fix typo.
+
+	* strings.[ch] (scm_makstr, scm_makfromstr):  The slot parameter
+	is not used any more.
+
+	* symbols.[ch] (scm_strhash):  Deprecated, replaced by a macro.
+
+	(scm_intern_obarray_soft):  Made softness parameter unsigned.
+
+	(scm_string_hash):  New function with the same functionality as
+	scm_strhash had before, except that the hash value is not adjusted
+	to a hash table size.  Instead, the 'raw' hash value is returned.
+
+	* symbols.c (duplicate_string):  New static convenience function.
+
+	(scm_sym2vcell, scm_sym2ovcell_soft, scm_intern_obarray_soft):
+	Renamed local variable from scm_hash to hash.
+
+	(scm_intern_obarray_soft):  Don't check for a negative softness
+	any more.  When generating symbol cells, use the new layout and
+	store the raw hash value in the symbol's cell.
+
+	(scm_symbol_to_string):  Removed unnecessary cast.
+
+	(scm_intern_symbol, scm_unintern_symbol):  Use scm_string_hash to
+	determine the hash values.
+
+	(msymbolize):  Removed.
+
+	(scm_symbol_fref, scm_symbol_pref, scm_symbol_fset_x,
+	scm_symbol_pset_x, scm_symbol_hash):  No need to distinguish
+	between different symbol types any more.
+
+	(scm_symbol_hash):  Comment fixed.
+
+	* symbols.h:  Comment about the distinction between ssymbols and
+	msymbols removed.
+
+	(SCM_SYMBOLP, SCM_ROSTRINGP):  No need to distinguish between
+	different symbol types any more. 
+
+	(SCM_PROP_SLOTS, SCM_SET_PROP_SLOTS):  Added.
+
+	(SCM_SYMBOL_FUNC, SCM_SET_SYMBOL_FUNC, SCM_SYMBOL_PROPS,
+	SCM_SET_SYMBOL_PROPS, SCM_SYMBOL_HASH, SCM_SET_SYMBOL_HASH):  Use
+	the new symbol cell layout.
+
+	* tags.h (scm_tc7_ssymbol, scm_tc7_msymbol, scm_tcs_symbols):
+	Deprecated.
+
 2000-09-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* symbols.h (scm_gentemp): Declared.

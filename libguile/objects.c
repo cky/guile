@@ -120,7 +120,7 @@ scm_class_of (SCM x)
 	  return scm_class_pair;
 	case scm_tcs_closures:
 	  return scm_class_procedure;
-	case scm_tcs_symbols:
+	case scm_tc7_symbol:
 	  return scm_class_symbol;
 	case scm_tc7_vector:
 	case scm_tc7_wvect:

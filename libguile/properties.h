@@ -53,7 +53,7 @@ SCM scm_primitive_property_del_x (SCM prop, SCM obj);
 
 void scm_init_properties (void);
 
-#endif  /* PROPEERTIES_H */
+#endif  /* PROPERTIES_H */
 
 /*
   Local Variables:

@@ -66,27 +66,35 @@
 
 
 
-
 /* NUM_HASH_BUCKETS is the number of symbol scm_hash table buckets. 
  */
 #define NUM_HASH_BUCKETS 137
 
 
 
+static char *
+duplicate_string (const char * src, unsigned long length)
+{
+  char * dst = scm_must_malloc (length + 1, "duplicate_string");
+  memcpy (dst, src, length + 1);
+  return dst;
+}
+
+
 
 /* {Symbols}
  */
 
 
 unsigned long 
-scm_strhash (const unsigned char *str, scm_sizet len, unsigned long n)
+scm_string_hash (const unsigned char *str, scm_sizet len)
 {
   if (len > 5)
     {
       scm_sizet i = 5;
-      unsigned long h = 264 % n;
+      unsigned long h = 264;
       while (i--)
-	h = ((h << 8) + ((unsigned) (scm_downcase (str[h % len])))) % n;
+	h = (h << 8) + ((unsigned) (scm_downcase (str[h % len])));
       return h;
     }
   else
@@ -94,10 +102,11 @@ scm_strhash (const unsigned char *str, scm_sizet len, unsigned long n)
       scm_sizet i = len;
       unsigned long h = 0;
       while (i)
-	h = ((h << 8) + ((unsigned) (scm_downcase (str[--i])))) % n;
+	h = (h << 8) + ((unsigned) (scm_downcase (str[--i])));
       return h;
     }
 }
+
 
 int scm_symhash_dim = NUM_HASH_BUCKETS;
 
@@ -133,11 +142,11 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
       SCM lsym;
       SCM * lsymp;
       SCM z;
-      scm_sizet scm_hash = scm_strhash (SCM_UCHARS (sym), (scm_sizet) SCM_LENGTH (sym),
-				    (unsigned long) scm_symhash_dim);
+      scm_sizet hash
+	= scm_string_hash (SCM_UCHARS (sym), SCM_LENGTH (sym)) % scm_symhash_dim;
 
       SCM_DEFER_INTS;
-      for (lsym = SCM_VELTS (scm_symhash)[scm_hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
+      for (lsym = SCM_VELTS (scm_symhash)[hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
 	{
 	  z = SCM_CAR (lsym);
 	  if (SCM_EQ_P (SCM_CAR (z), sym))
@@ -147,7 +156,7 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
 	    }
 	}
 
-      for (lsym = *(lsymp = &SCM_VELTS (scm_weak_symhash)[scm_hash]);
+      for (lsym = *(lsymp = &SCM_VELTS (scm_weak_symhash)[hash]);
 	   SCM_NIMP (lsym);
 	   lsym = *(lsymp = SCM_CDRLOC (lsym)))
 	{
@@ -158,8 +167,8 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
 		{
 		  /* Move handle from scm_weak_symhash to scm_symhash. */
 		  *lsymp = SCM_CDR (lsym);
-		  SCM_SETCDR (lsym, SCM_VELTS(scm_symhash)[scm_hash]);
-		  SCM_VELTS(scm_symhash)[scm_hash] = lsym;
+		  SCM_SETCDR (lsym, SCM_VELTS(scm_symhash)[hash]);
+		  SCM_VELTS(scm_symhash)[hash] = lsym;
 		}
 	      SCM_ALLOW_INTS;
 	      return z;
@@ -178,13 +187,10 @@ SCM
 scm_sym2ovcell_soft (SCM sym, SCM obarray)
 {
   SCM lsym, z;
-  scm_sizet scm_hash;
-
-  scm_hash = scm_strhash (SCM_UCHARS (sym),
-			  (scm_sizet) SCM_LENGTH (sym),
-			  SCM_LENGTH (obarray));
+  scm_sizet hash 
+    = scm_string_hash (SCM_UCHARS (sym), SCM_LENGTH (sym)) % SCM_LENGTH (obarray);
   SCM_REDEFER_INTS;
-  for (lsym = SCM_VELTS (obarray)[scm_hash];
+  for (lsym = SCM_VELTS (obarray)[hash];
        SCM_NIMP (lsym);
        lsym = SCM_CDR (lsym))
     {
@@ -235,45 +241,35 @@ scm_sym2ovcell (SCM sym, SCM obarray)
 
 
 SCM 
-scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness)
+scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int softness)
 {
+  scm_sizet raw_hash = scm_string_hash ((unsigned char *) name, len);
+  scm_sizet hash;
   SCM lsym;
-  SCM z;
-  register scm_sizet i;
-  register unsigned char *tmp;
-  scm_sizet scm_hash;
 
   SCM_REDEFER_INTS;
 
   if (SCM_FALSEP (obarray))
     {
-      scm_hash = scm_strhash ((unsigned char *) name, len, 1019);
+      hash = raw_hash % 1019;
       goto uninterned_symbol;
     }
 
-  scm_hash = scm_strhash ((unsigned char *) name, len, SCM_LENGTH (obarray));
-
-  /* softness == -1 used to mean that it was known that the symbol
-     wasn't already in the obarray.  I don't think there are any
-     callers that use that case any more, but just in case...
-     -- JimB, Oct 1996  */
-  if (softness == -1)
-    abort ();
+  hash = raw_hash % SCM_LENGTH (obarray);
 
  retry_new_obarray:
-  for (lsym = SCM_VELTS (obarray)[scm_hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
+  for (lsym = SCM_VELTS (obarray)[hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
     {
-      z = SCM_CAR (lsym);
-      z = SCM_CAR (z);
-      tmp = SCM_UCHARS (z);
+      scm_sizet i;
+      SCM a = SCM_CAR (lsym);
+      SCM z = SCM_CAR (a);
+      unsigned char *tmp = SCM_UCHARS (z);
       if (SCM_LENGTH (z) != len)
 	goto trynext;
       for (i = len; i--;)
 	if (((unsigned char *) name)[i] != tmp[i])
 	  goto trynext;
       {
-	SCM a;
-	a = SCM_CAR (lsym);
 	SCM_REALLOW_INTS;
 	return a;
       }
@@ -293,10 +289,12 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness
       return SCM_BOOL_F;
     }
 
-  lsym = scm_makfromstr (name, len, SCM_SYMBOL_SLOTS);
+  SCM_NEWCELL2 (lsym);
+  SCM_SETCHARS (lsym, duplicate_string (name, len));
+  SCM_SET_SYMBOL_HASH (lsym, raw_hash);
+  SCM_SET_PROP_SLOTS (lsym, scm_cons (SCM_BOOL_F, SCM_BOOL_F));
+  SCM_SETLENGTH (lsym, (long) len, scm_tc7_symbol);
 
-  SCM_SETLENGTH (lsym, (long) len, scm_tc7_msymbol);
-  SCM_SYMBOL_HASH (lsym) = scm_hash;
   SCM_SET_SYMBOL_PROPS (lsym, SCM_EOL);
   if (SCM_FALSEP (obarray))
     {
@@ -319,8 +317,8 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness
       SCM_SETCAR (a, lsym);
       SCM_SETCDR (a, SCM_UNDEFINED);
       SCM_SETCAR (b, a);
-      SCM_SETCDR (b, SCM_VELTS(obarray)[scm_hash]);
-      SCM_VELTS(obarray)[scm_hash] = b;
+      SCM_SETCDR (b, SCM_VELTS(obarray)[hash]);
+      SCM_VELTS(obarray)[hash] = b;
       SCM_REALLOW_INTS;
       return SCM_CAR (b);
     }
@@ -364,14 +362,17 @@ scm_sysintern0_no_module_lookup (const char *name)
     {
       SCM lsym;
       scm_sizet len = strlen (name);
-      scm_sizet scm_hash = scm_strhash ((unsigned char *) name,
-					len,
-					(unsigned long) scm_symhash_dim);
-      SCM_NEWCELL (lsym);
-      SCM_SETLENGTH (lsym, (long) len, scm_tc7_ssymbol);
+      scm_sizet raw_hash = scm_string_hash ((unsigned char *) name, len);
+      scm_sizet hash = raw_hash % scm_symhash_dim;
+
+      SCM_NEWCELL2 (lsym);
       SCM_SETCHARS (lsym, name);
+      SCM_SET_SYMBOL_HASH (lsym, raw_hash);
+      SCM_SET_PROP_SLOTS (lsym, scm_cons (SCM_BOOL_F, SCM_BOOL_F));
+      SCM_SETLENGTH (lsym, (long) len, scm_tc7_symbol);
+
       lsym = scm_cons (lsym, SCM_UNDEFINED);
-      SCM_VELTS (scm_symhash)[scm_hash] = scm_cons (lsym, SCM_VELTS (scm_symhash)[scm_hash]);
+      SCM_VELTS (scm_symhash)[hash] = scm_cons (lsym, SCM_VELTS (scm_symhash)[hash]);
       SCM_ALLOW_INTS;
       return lsym;
     }
@@ -459,8 +460,8 @@ SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0,
 	    "@end format")
 #define FUNC_NAME s_scm_symbol_to_string
 {
-  SCM_VALIDATE_SYMBOL (1,s);
-  return scm_makfromstr(SCM_CHARS(s), (scm_sizet)SCM_LENGTH(s), 0);
+  SCM_VALIDATE_SYMBOL (1, s);
+  return scm_makfromstr (SCM_CHARS (s), SCM_LENGTH (s), 0);
 }
 #undef FUNC_NAME
 
@@ -557,7 +558,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
   if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
-  hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
+  hval = scm_string_hash (SCM_UCHARS (s), SCM_LENGTH (s)) % SCM_LENGTH (o);
   /* If the symbol is already interned, simply return. */
   SCM_REDEFER_INTS;
   {
@@ -594,7 +595,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
   if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
-  hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
+  hval = scm_string_hash (SCM_UCHARS (s), SCM_LENGTH (s)) % SCM_LENGTH (o);
   SCM_DEFER_INTS;
   {
     SCM lsym_follow;
@@ -700,22 +701,6 @@ SCM_DEFINE (scm_symbol_set_x, "symbol-set!", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-static void
-msymbolize (SCM s)
-{
-  SCM string;
-  string = scm_makfromstr (SCM_CHARS (s), SCM_LENGTH (s), SCM_SYMBOL_SLOTS);
-  SCM_SETCHARS (s, SCM_CHARS (string));
-  SCM_SETLENGTH (s, SCM_LENGTH (s), scm_tc7_msymbol);
-  SCM_SETCDR (string, SCM_EOL);
-  SCM_SETCAR (string, SCM_EOL);
-  SCM_SET_SYMBOL_PROPS (s, SCM_EOL);
-  /* If it's a tc7_ssymbol, it comes from scm_symhash */
-  SCM_SYMBOL_HASH (s) = scm_strhash (SCM_UCHARS (s),
-				     (scm_sizet) SCM_LENGTH (s),
-				     SCM_LENGTH (scm_symhash));
-}
-
 
 SCM_DEFINE (scm_symbol_fref, "symbol-fref", 1, 0, 0, 
            (SCM s),
@@ -723,10 +708,6 @@ SCM_DEFINE (scm_symbol_fref, "symbol-fref", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_fref
 {
   SCM_VALIDATE_SYMBOL (1,s);
-  SCM_DEFER_INTS;
-  if (SCM_TYP7(s) == scm_tc7_ssymbol)
-    msymbolize (s);
-  SCM_ALLOW_INTS;
   return SCM_SYMBOL_FUNC (s);
 }
 #undef FUNC_NAME
@@ -738,10 +719,6 @@ SCM_DEFINE (scm_symbol_pref, "symbol-pref", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_pref
 {
   SCM_VALIDATE_SYMBOL (1,s);
-  SCM_DEFER_INTS;
-  if (SCM_TYP7(s) == scm_tc7_ssymbol)
-    msymbolize (s);
-  SCM_ALLOW_INTS;
   return SCM_SYMBOL_PROPS (s);
 }
 #undef FUNC_NAME
@@ -753,10 +730,6 @@ SCM_DEFINE (scm_symbol_fset_x, "symbol-fset!", 2, 0, 0,
 #define FUNC_NAME s_scm_symbol_fset_x
 {
   SCM_VALIDATE_SYMBOL (1,s);
-  SCM_DEFER_INTS;
-  if (SCM_TYP7(s) == scm_tc7_ssymbol)
-    msymbolize (s);
-  SCM_ALLOW_INTS;
   SCM_SET_SYMBOL_FUNC (s, val);
   return SCM_UNSPECIFIED;
 }
@@ -770,8 +743,6 @@ SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
 {
   SCM_VALIDATE_SYMBOL (1,s);
   SCM_DEFER_INTS;
-  if (SCM_TYP7(s) == scm_tc7_ssymbol)
-    msymbolize (s);
   SCM_SET_SYMBOL_PROPS (s, val);
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
@@ -780,15 +751,12 @@ SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
 
 
 SCM_DEFINE (scm_symbol_hash, "symbol-hash", 1, 0, 0, 
-           (SCM s),
-	    "Return the hash value derived from @var{symbol}'s name, i.e. the integer\n"
-	    "index into @var{symbol}'s obarray at which it is stored.")
+	    (SCM symbol),
+	    "Return a hash value for @var{symbol}.")
 #define FUNC_NAME s_scm_symbol_hash
 {
-  SCM_VALIDATE_SYMBOL (1,s);
-  if (SCM_TYP7(s) == scm_tc7_ssymbol)
-    msymbolize (s);
-  return SCM_MAKINUM (SCM_UNPACK (s) ^ SCM_SYMBOL_HASH (s));
+  SCM_VALIDATE_SYMBOL (1, symbol);
+  return SCM_MAKINUM (SCM_SYMBOL_HASH (symbol));
 }
 #undef FUNC_NAME
 

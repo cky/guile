@@ -1913,7 +1913,7 @@ dispatch:
   SCM_TICK;
   switch (SCM_TYP7 (x))
     {
-    case scm_tcs_symbols:
+    case scm_tc7_symbol:
       /* Only happens when called at top level.
        */
       x = scm_cons (x, SCM_UNDEFINED);

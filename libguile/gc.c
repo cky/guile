@@ -1313,11 +1313,9 @@ gc_mark_nimp:
 	}
       break;
 
-    case scm_tc7_msymbol:
-      scm_gc_mark (SCM_SYMBOL_FUNC (ptr));
-      ptr = SCM_SYMBOL_PROPS (ptr);
+    case scm_tc7_symbol:
+      ptr = SCM_PROP_SLOTS (ptr);
       goto gc_mark_loop;
-    case scm_tc7_ssymbol:
     case scm_tcs_subrs:
       break;
     case scm_tc7_port:
@@ -1653,17 +1651,14 @@ scm_gc_sweep ()
 	    case scm_tc7_string:
 	      m += SCM_HUGE_LENGTH (scmptr) + 1;
 	      goto freechars;
-	    case scm_tc7_msymbol:
-	      m += (SCM_LENGTH (scmptr) + 1
-		    + (SCM_CHARS (scmptr) - (char *) SCM_SLOTS (scmptr)));
-	      scm_must_free ((char *)SCM_SLOTS (scmptr));
+	    case scm_tc7_symbol:
+	      m += SCM_LENGTH (scmptr) + 1;
+	      scm_must_free (SCM_CHARS (scmptr));
 	      break;
 	    case scm_tc7_contin:
 	      m += SCM_LENGTH (scmptr) * sizeof (SCM_STACKITEM) + sizeof (scm_contregs);
 	      if (SCM_VELTS (scmptr))
 		goto freechars;
-	    case scm_tc7_ssymbol:
-	      break;
 	    case scm_tcs_subrs:
               /* the various "subrs" (primitives) are never freed */
 	      continue;

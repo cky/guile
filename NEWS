@@ -136,7 +136,7 @@ of this variable is (and has been) not fully safe anyway.
 ** Deprecated macros:  SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL, 
 SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
 SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
-SCM_ORD_SIG, SCM_NUM_SIGS
+SCM_ORD_SIG, SCM_NUM_SIGS, SCM_SYMBOL_SLOTS, SCM_SLOTS
 
 Use SCM_ASSERT_RANGE or SCM_VALIDATE_XXX_RANGE instead of SCM_OUTOFRANGE.
 Use scm_memory_error instead of SCM_NALLOC.
@@ -147,6 +147,10 @@ Use scm_memory_error instead of SCM_NALLOC.
 
 Use scm_catch or scm_lazy_catch from throw.[ch] instead.
 
+** Deprecated function:  scm_strhash
+
+Use scm_string_hash instead.
+
 ** scm_gensym has changed prototype
 
 scm_gensym now only takes one argument.
@@ -154,6 +158,10 @@ scm_gensym now only takes one argument.
 ** New function: scm_gentemp (SCM prefix, SCM obarray)
 
 The builtin `gentemp' has now become a primitive.
+
+** Deprecated type tags:  scm_tc7_ssymbol, scm_tc7_msymbol, scm_tcs_symbols
+
+There is now only a single symbol type scm_tc7_symbol.
 
 
 Changes since Guile 1.3.4:

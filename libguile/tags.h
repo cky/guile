@@ -221,8 +221,7 @@ typedef long scm_bits_t;
  *		handy property that all bits of the CAR above the
  *		bottom eight can be used to store a length, thus
  *		saving a word in the body itself.  Thus, we use them
- *		for strings, symbols, and vectors (among other
- *		things).
+ *		for strings and vectors (among other things).
  *
  *		SCM_LENGTH returns the bits in "length" (see the diagram).
  *		SCM_CHARS returns the data cast to "char *"
@@ -333,9 +332,8 @@ typedef long scm_bits_t;
 
 
 
-/* couple */
-#define scm_tc7_ssymbol		5
-#define scm_tc7_msymbol		7
+#define scm_tc7_symbol		5
+/* free                         7 */
 
 /* couple */
 #define scm_tc7_vector		13
@@ -551,11 +549,13 @@ extern char *scm_isymnames[];   /* defined in print.c */
  case scm_tc7_subr_3:case scm_tc7_subr_2:case scm_tc7_rpsubr:case scm_tc7_subr_1o:\
  case scm_tc7_subr_2o:case scm_tc7_lsubr_2:case scm_tc7_lsubr
 
-#define scm_tcs_symbols scm_tc7_ssymbol:case scm_tc7_msymbol
-
 
 
 #if (SCM_DEBUG_DEPRECATED == 0)
+
+#define scm_tc7_ssymbol		scm_tc7_symbol
+#define scm_tc7_msymbol		scm_tc7_symbol
+#define scm_tcs_symbols         scm_tc7_symbol
 
 #define scm_tc16_flo		scm_tc16_real
 #define scm_tc_flo		0x017fL

@@ -56,6 +56,10 @@ In release 1.6:
 - remove support for "#&" reader syntax in (ice-9 optargs).
 - remove scm_make_shared_substring
 - remove scm_read_only_string_p
+- remove scm_strhash
+- remove scm_tc7_ssymbol
+- remove scm_tc7_msymbol
+- remove scm_tcs_symbols
 
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new

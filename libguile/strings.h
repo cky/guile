@@ -62,11 +62,11 @@
 extern SCM scm_string_p (SCM x);
 extern SCM scm_read_only_string_p (SCM x);
 extern SCM scm_string (SCM chrs);
-extern SCM scm_makstr (long len, int slots);
+extern SCM scm_makstr (long len, int);
 extern SCM scm_makfromstrs (int argc, char **argv);
 extern SCM scm_take_str (char *s, int len);
 extern SCM scm_take0str (char *s);
-extern SCM scm_makfromstr (const char *src, scm_sizet len, int slots);
+extern SCM scm_makfromstr (const char *src, scm_sizet len, int);
 extern SCM scm_makfrom0str (const char *src);
 extern SCM scm_makfrom0str_opt (const char *src);
 extern SCM scm_make_string (SCM k, SCM chr);

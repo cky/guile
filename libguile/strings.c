@@ -125,27 +125,16 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
 #undef FUNC_NAME
 
 SCM 
-scm_makstr (long len, int slots)
+scm_makstr (long len, int dummy)
 {
   SCM s;
-  scm_bits_t * mem;
+  char *mem = (char *) scm_must_malloc (len + 1, "scm_makstr");
 
+  mem[len] = 0;
   SCM_NEWCELL (s);
-  --slots;
-  SCM_REDEFER_INTS;
-  mem = (scm_bits_t *) scm_must_malloc (sizeof (scm_bits_t) * (slots + 1) 
-					+ len + 1, "scm_makstr");
-  if (slots >= 0)
-    {
-      int x;
-      mem[slots] = (scm_bits_t) mem;
-      for (x = 0; x < slots; ++x)
-	mem[x] = SCM_UNPACK (SCM_BOOL_F);
-    }
-  SCM_SETCHARS (s, (char *) (mem + slots + 1));
+  SCM_SETCHARS (s, mem);
   SCM_SETLENGTH (s, len, scm_tc7_string);
-  SCM_REALLOW_INTS;
-  SCM_CHARS (s)[len] = 0;
+
   return s;
 }
 
@@ -194,9 +183,9 @@ scm_take0str (char *s)
 }
 
 SCM 
-scm_makfromstr (const char *src, scm_sizet len, int slots)
+scm_makfromstr (const char *src, scm_sizet len, int dummy)
 {
-  SCM s = scm_makstr (len, slots);
+  SCM s = scm_makstr (len, 0);
   char *dst = SCM_CHARS (s);
 
   while (len--)

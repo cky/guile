@@ -53,31 +53,10 @@
 extern int scm_symhash_dim;
 
 /* SCM_LENGTH(SYM) is the length of SYM's name in characters, and
-   SCM_CHARS(SYM) is the address of the first character of SYM's name.
+ * SCM_CHARS(SYM) is the address of the first character of SYM's name.
+ */
 
-   Beyond that, there are two kinds of symbols: ssymbols and msymbols,
-   distinguished by the 'S' bit in the type.
-
-   Ssymbols are just uniquified strings.  They have a length, chars,
-   and that's it.  They use the scm_tc7_ssymbol tag (S bit clear).
-
-   Msymbols are symbols with extra slots.  These slots hold a property
-   list and a function value (for Emacs Lisp compatibility), and a hash
-   code.  They use the scm_tc7_msymbol tag.
-
-   We'd like SCM_CHARS to work on msymbols just as it does on
-   ssymbols, so we'll have it point to the symbol's name as usual, and
-   store a pointer to the slots just before the name in memory.  Thus,
-   you have to do some casting and pointer arithmetic to find the
-   slots; see the SCM_SLOTS macro.
-
-   In practice, the slots always live just before the pointer to them.
-   So why not ditch the pointer, and use negative indices to refer to
-   the slots?  That's a good question; ask the author.  I think it was
-   the cognac.  */
-
-#define SCM_SYMBOLP(x)		(SCM_NIMP (x) \
-				 && (SCM_TYP7S (x) == scm_tc7_ssymbol))
+#define SCM_SYMBOLP(x)	(SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_symbol))
 
 #define SCM_LENGTH_MAX		(0xffffffL)
 #define SCM_LENGTH(x)		(((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
@@ -87,16 +66,17 @@ extern int scm_symhash_dim;
 #define SCM_UCHARS(x)		((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SETCHARS(x, v)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (v)))
 
-#define SCM_SYMBOL_SLOTS	    4
-#define SCM_SLOTS(x)		    ((scm_bits_t *) (* ((scm_bits_t *) SCM_CHARS (x) - 1)))
-#define SCM_SYMBOL_FUNC(X)	    (SCM_PACK (SCM_SLOTS (X) [0]))
-#define SCM_SET_SYMBOL_FUNC(X, v)   (SCM_SLOTS (X) [0] = SCM_UNPACK (v))
-#define SCM_SYMBOL_PROPS(X)	    (SCM_PACK (SCM_SLOTS (X) [1]))
-#define SCM_SET_SYMBOL_PROPS(X, v)  (SCM_SLOTS (X) [1] = SCM_UNPACK (v))
-#define SCM_SYMBOL_HASH(X)	    (SCM_SLOTS (X) [2])
+#define SCM_PROP_SLOTS(X)           (SCM_CELL_WORD_3 (X))
+#define SCM_SET_PROP_SLOTS(X, v)    (SCM_SET_CELL_WORD_3 ((X), (v)))
+#define SCM_SYMBOL_FUNC(X)	    (SCM_CAR (SCM_CELL_WORD_3 (X)))
+#define SCM_SET_SYMBOL_FUNC(X, v)   (SCM_SETCAR (SCM_CELL_WORD_3 (X), (v)))
+#define SCM_SYMBOL_PROPS(X)	    (SCM_CDR (SCM_CELL_WORD_3 (X)))
+#define SCM_SET_SYMBOL_PROPS(X, v)  (SCM_SETCDR (SCM_CELL_WORD_3 (X), (v)))
+#define SCM_SYMBOL_HASH(X)	    (SCM_CELL_WORD_2 (X))
+#define SCM_SET_SYMBOL_HASH(X, v)   (SCM_SET_CELL_WORD_2 ((X), (v)))
 
 #define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
-			  || (SCM_TYP7S(x) == scm_tc7_ssymbol)))
+			  || (SCM_TYP7(x) == scm_tc7_symbol)))
 #define SCM_ROCHARS(x) ((char *)((SCM_TYP7(x) == scm_tc7_substring) \
 			? SCM_INUM (SCM_CADR (x)) + SCM_CHARS (SCM_CDDR (x))  \
 			: SCM_CHARS (x)))
@@ -115,11 +95,11 @@ extern int scm_symhash_dim;
 
 
 
-extern unsigned long scm_strhash (const unsigned char *str, scm_sizet len, unsigned long n);
+extern unsigned long scm_string_hash (const unsigned char *str, scm_sizet len);
 extern SCM scm_sym2vcell (SCM sym, SCM thunk, SCM definep);
 extern SCM scm_sym2ovcell_soft (SCM sym, SCM obarray);
 extern SCM scm_sym2ovcell (SCM sym, SCM obarray);
-extern SCM scm_intern_obarray_soft (const char *name, scm_sizet len, SCM obarray, int softness);
+extern SCM scm_intern_obarray_soft (const char *name, scm_sizet len, SCM obarray, unsigned int softness);
 extern SCM scm_intern_obarray (const char *name, scm_sizet len, SCM obarray);
 extern SCM scm_intern (const char *name, scm_sizet len);
 extern SCM scm_intern0 (const char *name);
@@ -147,6 +127,14 @@ extern SCM scm_builtin_weak_bindings (void);
 extern SCM scm_gensym (SCM prefix);
 extern SCM scm_gentemp (SCM prefix, SCM obarray);
 extern void scm_init_symbols (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define scm_strhash(str, len, n) (scm_string_hash ((str), (len)) % (n))
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* SYMBOLSH */
 

@@ -479,7 +479,7 @@ taloop:
 	    scm_lfwrite (SCM_ROCHARS (exp), (scm_sizet) SCM_ROLENGTH (exp),
 			 port);
 	  break;
-	case scm_tcs_symbols:
+	case scm_tc7_symbol:
 	    {
 	      int pos;
 	      int end;

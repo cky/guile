@@ -118,7 +118,7 @@ SCM_DEFINE (scm_tag, "tag", 1, 0, 0,
 	  return SCM_CDR (scm_utag_pair) ;
 	case scm_tcs_closures:
 	  return SCM_CDR (scm_utag_closure) ;
-	case scm_tcs_symbols:
+	case scm_tc7_symbol:
 	  return SCM_CDR (scm_utag_symbol) ;
 	case scm_tc7_vector:
 	  return SCM_CDR (scm_utag_vector) ;

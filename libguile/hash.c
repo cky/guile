@@ -116,10 +116,11 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
       case scm_tc16_complex:
 	obj = scm_number_to_string(obj, SCM_MAKINUM(10));
       }
-    case scm_tcs_symbols:
     case scm_tc7_string:
     case scm_tc7_substring:
-      return scm_strhash(SCM_ROUCHARS(obj), (scm_sizet) SCM_ROLENGTH(obj), n);
+      return scm_string_hash (SCM_ROUCHARS (obj), SCM_ROLENGTH (obj)) % n;
+    case scm_tc7_symbol:
+      return SCM_SYMBOL_HASH (obj) % n;
     case scm_tc7_wvect:
     case scm_tc7_vector:
       {
