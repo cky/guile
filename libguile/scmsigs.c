@@ -220,7 +220,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   sigemptyset (&action.sa_mask);
 #endif
 
-#ifdef USE_THREAD
+#ifdef USE_THREADS
   if (SCM_UNBNDP (thread))
     thread = scm_current_thread ();
   else
