@@ -404,7 +404,7 @@ narrow_stack (SCM stack,long inner,SCM inner_key,long outer,SCM outer_key)
 /* Stacks
  */
 
-SCM scm_t_stackype;
+SCM scm_stack_type;
 
 SCM_DEFINE (scm_stack_p, "stack?", 1, 0, 0, 
             (SCM obj),
@@ -484,7 +484,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   size = n * SCM_FRAME_N_SLOTS;
 
   /* Make the stack object. */
-  stack = scm_make_struct (scm_t_stackype, SCM_MAKINUM (size), SCM_EOL);
+  stack = scm_make_struct (scm_stack_type, SCM_MAKINUM (size), SCM_EOL);
   SCM_STACK (stack) -> id = id;
   iframe = &SCM_STACK (stack) -> tail[0];
   SCM_STACK (stack) -> frames = iframe;
@@ -641,7 +641,7 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
   if (!dframe || SCM_VOIDFRAMEP (*dframe))
     return SCM_BOOL_F;
 
-  stack = scm_make_struct (scm_t_stackype, SCM_MAKINUM (SCM_FRAME_N_SLOTS),
+  stack = scm_make_struct (scm_stack_type, SCM_MAKINUM (SCM_FRAME_N_SLOTS),
 			   SCM_EOL);
   SCM_STACK (stack) -> length = 1;
   SCM_STACK (stack) -> frames = &SCM_STACK (stack) -> tail[0];
@@ -776,11 +776,11 @@ scm_init_stacks ()
   SCM stack_layout
     = scm_make_struct_layout (scm_makfrom0str (SCM_STACK_LAYOUT));
   vtable = scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
-  scm_t_stackype
+  scm_stack_type
     = scm_permanent_object (scm_make_struct (vtable, SCM_INUM0,
 					     scm_cons (stack_layout,
 						       SCM_EOL)));
-  scm_set_struct_vtable_name_x (scm_t_stackype, scm_str2symbol ("stack"));
+  scm_set_struct_vtable_name_x (scm_stack_type, scm_str2symbol ("stack"));
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/stacks.x"
 #endif
