@@ -1,3 +1,10 @@
+1999-07-18  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* qthreads.m4 (QTHREADS_CONFIGURE): 'alpha' in a configuration
+	name can have suffixes, like alphaev56-unknown-linux-gnu.
+	* aclocal.m4, configure: Rebuilt.
+	(Thanks to Sebastien Villemot.)
+
 1999-07-04  Gary Houston  <ghouston@easynet.co.uk>
 
 	* configure.in: don't check for ways to violate stdio abstraction.
