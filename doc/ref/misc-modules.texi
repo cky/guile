@@ -736,9 +736,10 @@ lines for readability, but supress that extra whitespace.
 @end example
 
 @item @nicode{~(} @nicode{~)}
-Case conversion.  Between @nicode{~(} and @nicode{~)} the case of all
-output is changed.  The modifiers on @nicode{~(} control the
-conversion.
+Case conversion.  No parameters.
+
+Between @nicode{~(} and @nicode{~)} the case of all output is changed.
+The modifiers on @nicode{~(} control the conversion.
 
 @itemize @w{}
 @item
