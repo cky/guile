@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.18 2001-04-02 21:53:20 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.19 2001-04-13 09:56:37 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -437,6 +437,7 @@ everything one need know to use Guile's data.
 * Immediate Datatypes::         
 * Non-immediate Datatypes::     
 * Signalling Type Errors::      
+* Unpacking the SCM type::
 @end menu
 
 @node General Rules
@@ -520,8 +521,8 @@ error.
 To accommodate this technique, data must be represented so that the
 collector can accurately determine whether a given stack word is a
 pointer or not.  Guile does this as follows:
-@itemize @bullet
 
+@itemize @bullet
 @item
 Every heap object has a two-word header, called a @dfn{cell}.  Some
 objects, like pairs, fit entirely in a cell's two words; others may
@@ -538,7 +539,6 @@ initialized, whether or not they are currently in use.
 
 @item
 Guile maintains a sorted table of heap segments.
-
 @end itemize
 
 Thus, given any random word @var{w} fetched from the stack, Guile's
@@ -594,11 +594,7 @@ vs Non-immediates} for an explanation of the distinction.
 
 Note that the type predicates for immediate values work correctly on any
 @code{SCM} value; you do not need to call @code{SCM_IMP} first, to
-establish that a value is immediate.  This differs from the
-non-immediate type predicates, which work correctly only on
-non-immediate values; you must be sure the value is @code{SCM_NIMP}
-before applying them.
-
+establish that a value is immediate.
 
 @menu
 * Integer Data::                    
@@ -747,10 +743,18 @@ on the tag; the non-immediate type predicates test this value.  If a tag
 value appears elsewhere (in a vector, for example), the heap may become
 corrupted.
 
+Note how the type information for a non-immediate object is split
+between the @code{SCM} word and the cell that the @code{SCM} word points
+to.  The @code{SCM} word itself only indicates that the object is
+non-immediate --- in other words stored in a heap cell.  The tag stored
+in the first word of the heap cell indicates more precisely the type of
+that object.
+
+As of Guile 1.4, the type predicates for non-immediate values work
+correctly on any @code{SCM} value; you do not need to call
+@code{SCM_NIMP} first, to establish that a value is non-immediate.
 
 @menu
-* Non-immediate Type Predicates::  Special rules for using the type
-                                        predicates described here.
 * Pair Data::                       
 * Vector Data::                     
 * Procedures::                  
@@ -758,26 +762,6 @@ corrupted.
 * Subrs::                       
 * Port Data::                       
 @end menu
-
-@node Non-immediate Type Predicates
-@subsubsection Non-immediate Type Predicates
-
-As mentioned in @ref{Conservative GC}, all non-immediate objects
-start with a @dfn{cell}, or a pair of words.  Furthermore, all type
-information that distinguishes one kind of non-immediate from another is
-stored in the cell.  The type information in the @code{SCM} value
-indicates only that the object is a non-immediate; all finer
-distinctions require one to examine the cell itself, usually with the
-appropriate type predicate macro.
-
-The type predicates for non-immediate objects generally assume that
-their argument is a non-immediate value.  Thus, you must be sure that a
-value is @code{SCM_NIMP} first before passing it to a non-immediate type
-predicate.  Thus, the idiom for testing whether a value is a cell or not
-is:
-@example
-SCM_NIMP (@var{x}) && SCM_CONSP (@var{x})
-@end example
 
 
 @node Pair Data
@@ -801,7 +785,6 @@ directly into the two words of the cell.
 
 @deftypefn Macro int SCM_CONSP (SCM @var{x})
 Return non-zero iff @var{x} is a Scheme pair object.
-The results are undefined if @var{x} is an immediate value.
 @end deftypefn
 
 @deftypefn Macro int SCM_NCONSP (SCM @var{x})
@@ -831,7 +814,6 @@ implementing a new datatype, and thoroughly understand the code in
 Allocate (``CONStruct'') a new pair, with @var{car} and @var{cdr} as its
 contents.
 @end deftypefun
-
 
 The macros below perform no typechecking.  The results are undefined if
 @var{cell} is an immediate.  However, since all non-immediate Guile
@@ -880,32 +862,29 @@ are (somewhat) meaningful when applied to these datatypes.
 
 @deftypefn Macro int SCM_VECTORP (SCM @var{x})
 Return non-zero iff @var{x} is a vector.
-The results are undefined if @var{x} is an immediate value.
 @end deftypefn
 
 @deftypefn Macro int SCM_STRINGP (SCM @var{x})
 Return non-zero iff @var{x} is a string.
-The results are undefined if @var{x} is an immediate value.
 @end deftypefn
 
 @deftypefn Macro int SCM_SYMBOLP (SCM @var{x})
 Return non-zero iff @var{x} is a symbol.
-The results are undefined if @var{x} is an immediate value.
 @end deftypefn
 
 @deftypefn Macro int SCM_LENGTH (SCM @var{x})
 Return the length of the object @var{x}.
-The results are undefined if @var{x} is not a vector, string, or symbol.
+The result is undefined if @var{x} is not a vector, string, or symbol.
 @end deftypefn
 
 @deftypefn Macro {SCM *} SCM_VELTS (SCM @var{x})
 Return a pointer to the array of elements of the vector @var{x}.
-The results are undefined if @var{x} is not a vector.
+The result is undefined if @var{x} is not a vector.
 @end deftypefn
 
 @deftypefn Macro {char *} SCM_CHARS (SCM @var{x})
 Return a pointer to the characters of @var{x}.
-The results are undefined if @var{x} is not a symbol or a string.
+The result is undefined if @var{x} is not a symbol or a string.
 @end deftypefn
 
 There are also a few magic values stuffed into memory before a symbol's
@@ -945,8 +924,7 @@ store information about the closure.  I'm not sure what this is used for
 at the moment --- the debugger, maybe?
 
 @deftypefn Macro int SCM_CLOSUREP (SCM @var{x})
-Return non-zero iff @var{x} is a closure.  The results are
-undefined if @var{x} is an immediate value.
+Return non-zero iff @var{x} is a closure.
 @end deftypefn
 
 @deftypefn Macro SCM SCM_PROCPROPS (SCM @var{x})
@@ -960,7 +938,7 @@ are undefined if @var{x} is not a closure.
 @end deftypefn
 
 @deftypefn Macro SCM SCM_CODE (SCM @var{x})
-Return the code of the closure @var{x}.  The results are undefined if
+Return the code of the closure @var{x}.  The result is undefined if
 @var{x} is not a closure.
 
 This function should probably only be used internally by the
@@ -970,7 +948,7 @@ connected with the interpreter's implementation.
 
 @deftypefn Macro SCM SCM_ENV (SCM @var{x})
 Return the environment enclosed by @var{x}.
-The results are undefined if @var{x} is not a closure.
+The result is undefined if @var{x} is not a closure.
 
 This function should probably only be used internally by the
 interpreter, since the representation of the environment is intimately
@@ -994,7 +972,7 @@ distinct from other kinds of procedures.  The closest thing is
 @code{scm_procedure_p}; see @ref{Procedures}.
 
 @deftypefn Macro {char *} SCM_SNAME (@var{x})
-Return the name of the subr @var{x}.  The results are undefined if
+Return the name of the subr @var{x}.  The result is undefined if
 @var{x} is not a subr.
 @end deftypefn
 
@@ -1088,6 +1066,306 @@ Interestingly, the message is attributed to the function named by
 @var{obj}, not @var{subr}, so @var{obj} must be a Scheme string object
 naming the function.  Usually, Guile catches these errors before ever
 invoking the subr, so we don't run into these problems.
+@end deftypefn
+
+
+@node Unpacking the SCM type
+@subsection Unpacking the SCM Type
+
+The previous sections have explained how @code{SCM} values can refer to
+immediate and non-immediate Scheme objects.  For immediate objects, the
+complete object value is stored in the @code{SCM} word itself, while for
+non-immediates, the @code{SCM} word contains a pointer to a heap cell,
+and further information about the object in question is stored in that
+cell.  This section describes how the @code{SCM} type is actually
+represented and used at the C level.
+
+In fact, there are two basic C data types to represent objects in Guile:
+
+@itemize @bullet
+@item
+@code{SCM} is the user level abstract C type that is used to represent
+all of Guile's Scheme objects, no matter what the Scheme object type is.
+No C operation except assignment is guaranteed to work with variables of
+type @code{SCM}, so you should only use macros and functions to work
+with @code{SCM} values.  Values are converted between C data types and
+the @code{SCM} type with utility functions and macros.
+
+@item
+@code{scm_bits_t} is an integral data type that is guaranteed to be
+large enough to hold all information that is required to represent any
+Scheme object.  While this data type is mostly used to implement Guile's
+internals, the use of this type is also necessary to write certain kinds
+of extensions to Guile.
+@end itemize
+
+@menu
+* Relationship between SCM and scm_bits_t::
+* Immediate objects::
+* Non-immediate objects::
+* Heap Cell Type Information::
+* Accessing Cell Entries::
+* Basic Rules for Accessing Cell Entries::
+@end menu
+
+
+@node Relationship between SCM and scm_bits_t
+@subsubsection Relationship between @code{SCM} and @code{scm_bits_t}
+
+A variable of type @code{SCM} is guaranteed to hold a valid Scheme
+object.  A variable of type @code{scm_bits_t}, on the other hand, may
+hold a representation of a @code{SCM} value as a C integral type, but
+may also hold any C value, even if it does not correspond to a valid
+Scheme object.
+
+For a variable @var{x} of type @code{SCM}, the Scheme object's type
+information is stored in a form that is not directly usable.  To be able
+to work on the type encoding of the scheme value, the @code{SCM}
+variable has to be transformed into the corresponding representation as
+a @code{scm_bits_t} variable @var{y} by using the @code{SCM_UNPACK}
+macro.  Once this has been done, the type of the scheme object @var{x}
+can be derived from the content of the bits of the @code{scm_bits_t}
+value @var{y}, in the way illustrated by the example earlier in this
+chapter (@pxref{Cheaper Pairs}).  Conversely, a valid bit encoding of a
+Scheme value as a @code{scm_bits_t} variable can be transformed into the
+corresponding @code{SCM} value using the @code{SCM_PACK} macro.
+
+@deftypefn Macro scm_bits_t SCM_UNPACK (SCM @var{x})
+Transforms the @code{SCM} value @var{x} into its representation as an
+integral type.  Only after applying @code{SCM_UNPACK} it is possible to
+access the bits and contents of the @code{SCM} value.
+@end deftypefn
+
+@deftypefn SCM SCM_PACK (scm_bits_t @var{x})
+Takes a valid integral representation of a Scheme object and transforms
+it into its representation as a @code{SCM} value.
+@end deftypefn
+
+
+@node Immediate objects
+@subsubsection Immediate objects
+
+A Scheme object may either be an immediate, i.e. carrying all necessary
+information by itself, or it may contain a reference to a @dfn{cell}
+with additional information on the heap.  Although in general it should
+be irrelevant for user code whether an object is an immediate or not,
+within Guile's own code the distinction is sometimes of importance.
+Thus, the following low level macro is provided:
+
+@deftypefn Macro int SCM_IMP (SCM @var{x})
+A Scheme object is an immediate if it fulfills the @code{SCM_IMP}
+predicate, otherwise it holds an encoded reference to a heap cell.  The
+result of the predicate is delivered as a C style boolean value.  User
+code and code that extends Guile should normally not be required to use
+this macro.
+@end deftypefn
+
+@noindent
+Summary:
+@itemize @bullet
+@item
+Given a Scheme object @var{x} of unknown type, check first
+with @code{SCM_IMP (@var{x})} if it is an immediate object.
+@item
+If so, all of the type and value information can be determined from the
+@code{scm_bits_t} value that is delivered by @code{SCM_UNPACK
+(@var{x})}.
+@end itemize
+
+
+@node Non-immediate objects
+@subsubsection Non-immediate objects
+
+A Scheme object of type @code{SCM} that does not fullfill the
+@code{SCM_IMP} predicate holds an encoded reference to a heap cell.
+This reference can be decoded to a C pointer to a heap cell using the
+@code{SCM2PTR} macro.  The encoding of a pointer to a heap cell into a
+@code{SCM} value is done using the @code{PTR2SCM} macro.
+
+@c (FIXME:: this name should be changed)
+@deftypefn Macro (scm_cell *) SCM2PTR (SCM @var{x})
+Extract and return the heap cell pointer from a non-immediate @code{SCM}
+object @var{x}.
+@end deftypefn
+
+@c (FIXME:: this name should be changed)
+@deftypefn Macro SCM PTR2SCM (scm_cell * @var{x})
+Return a @code{SCM} value that encodes a reference to the heap cell
+pointer @var{x}.
+@end deftypefn
+
+Note that it is also possible to transform a non-immediate @code{SCM}
+value by using @code{SCM_UNPACK} into a @code{scm_bits_t} variable.
+However, the result of @code{SCM_UNPACK} may not be used as a pointer to
+a @code{scm_cell}: only @code{SCM2PTR} is guaranteed to transform a
+@code{SCM} object into a valid pointer to a heap cell.  Also, it is not
+allowed to apply @code{PTR2SCM} to anything that is not a valid pointer
+to a heap cell.
+
+@noindent
+Summary:  
+@itemize @bullet
+@item
+Only use @code{SCM2PTR} on @code{SCM} values for which @code{SCM_IMP} is
+false!
+@item
+Don't use @code{(scm_cell *) SCM_UNPACK (@var{x})}!  Use @code{SCM2PTR
+(@var{x})} instead!
+@item
+Don't use @code{PTR2SCM} for anything but a cell pointer!
+@end itemize
+
+
+@node Heap Cell Type Information
+@subsubsection Heap Cell Type Information
+
+Heap cells contain a number of entries, each of which is either a scheme
+object of type @code{SCM} or a raw C value of type @code{scm_bits_t}.
+Which of the cell entries contain Scheme objects and which contain raw C
+values is determined by the first entry of the cell, which holds the
+cell type information.
+
+@deftypefn Macro scm_bits_t SCM_CELL_TYPE (SCM @var{x})
+For a non-immediate Scheme object @var{x}, deliver the content of the
+first entry of the heap cell referenced by @var{x}.  This value holds
+the information about the cell type.
+@end deftypefn
+
+@deftypefn Macro void SCM_SET_CELL_TYPE (SCM @var{x}, scm_bits_t @var{t})
+For a non-immediate Scheme object @var{x}, write the value @var{t} into
+the first entry of the heap cell referenced by @var{x}.  The value
+@var{t} must hold a valid cell type.
+@end deftypefn
+
+
+@node Accessing Cell Entries
+@subsubsection Accessing Cell Entries
+
+For a non-immediate Scheme object @var{x}, the object type can be
+determined by reading the cell type entry using the @code{SCM_CELL_TYPE}
+macro.  For each different type of cell it is known which cell entries
+hold Scheme objects and which cell entries hold raw C data.  To access
+the different cell entries appropriately, the following macros are
+provided.
+
+@deftypefn Macro scm_bits_t SCM_CELL_WORD (SCM @var{x}, unsigned int @var{n})
+Deliver the cell entry @var{n} of the heap cell referenced by the
+non-immediate Scheme object @var{x} as raw data.  It is illegal, to
+access cell entries that hold Scheme objects by using these macros.  For
+convenience, the following macros are also provided.
+@itemize
+@item
+SCM_CELL_WORD_0 (@var{x}) @result{} SCM_CELL_WORD (@var{x}, 0)
+@item
+SCM_CELL_WORD_1 (@var{x}) @result{} SCM_CELL_WORD (@var{x}, 1)
+@item
+@dots{}
+@item
+SCM_CELL_WORD_@var{n} (@var{x}) @result{} SCM_CELL_WORD (@var{x}, @var{n})
+@end itemize
+@end deftypefn
+
+@deftypefn Macro SCM SCM_CELL_OBJECT (SCM @var{x}, unsigned int @var{n})
+Deliver the cell entry @var{n} of the heap cell referenced by the
+non-immediate Scheme object @var{x} as a Scheme object.  It is illegal,
+to access cell entries that do not hold Scheme objects by using these
+macros.  For convenience, the following macros are also provided.
+@itemize
+@item
+SCM_CELL_OBJECT_0 (@var{x}) @result{} SCM_CELL_OBJECT (@var{x}, 0)
+@item
+SCM_CELL_OBJECT_1 (@var{x}) @result{} SCM_CELL_OBJECT (@var{x}, 1)
+@item
+@dots{}
+@item
+SCM_CELL_OBJECT_@var{n} (@var{x}) @result{} SCM_CELL_OBJECT (@var{x},
+@var{n})
+@end itemize
+@end deftypefn
+
+@deftypefn Macro void SCM_SET_CELL_WORD (SCM @var{x}, unsigned int @var{n}, scm_bits_t @var{w})
+Write the raw C value @var{w} into entry number @var{n} of the heap cell
+referenced by the non-immediate Scheme value @var{x}.  Values that are
+written into cells this way may only be read from the cells using the
+@code{SCM_CELL_WORD} macros or, in case cell entry 0 is written, using
+the @code{SCM_CELL_TYPE} macro.  For the special case of cell entry 0 it
+has to be made sure that @var{w} contains a cell type information which
+does not describe a Scheme object.  For convenience, the following
+macros are also provided.
+@itemize
+@item
+SCM_SET_CELL_WORD_0 (@var{x}, @var{w}) @result{} SCM_SET_CELL_WORD
+(@var{x}, 0, @var{w})
+@item
+SCM_SET_CELL_WORD_1 (@var{x}, @var{w}) @result{} SCM_SET_CELL_WORD
+(@var{x}, 1, @var{w})
+@item
+@dots{}
+@item
+SCM_SET_CELL_WORD_@var{n} (@var{x}, @var{w}) @result{} SCM_SET_CELL_WORD
+(@var{x}, @var{n}, @var{w})
+@end itemize
+@end deftypefn
+
+@deftypefn Macro void SCM_SET_CELL_OBJECT (SCM @var{x}, unsigned int @var{n}, SCM @var{o})
+Write the Scheme object @var{o} into entry number @var{n} of the heap
+cell referenced by the non-immediate Scheme value @var{x}.  Values that
+are written into cells this way may only be read from the cells using
+the @code{SCM_CELL_OBJECT} macros or, in case cell entry 0 is written,
+using the @code{SCM_CELL_TYPE} macro.  For the special case of cell
+entry 0 the writing of a Scheme object into this cell is only allowed
+if the cell forms a Scheme pair.  For convenience, the following macros
+are also provided.
+@itemize
+@item
+SCM_SET_CELL_OBJECT_0 (@var{x}, @var{o}) @result{} SCM_SET_CELL_OBJECT
+(@var{x}, 0, @var{o})
+@item
+SCM_SET_CELL_OBJECT_1 (@var{x}, @var{o}) @result{} SCM_SET_CELL_OBJECT
+(@var{x}, 1, @var{o})
+@item
+@dots{}
+@item
+SCM_SET_CELL_OBJECT_@var{n} (@var{x}, @var{o}) @result{}
+SCM_SET_CELL_OBJECT (@var{x}, @var{n}, @var{o})
+@end itemize
+@end deftypefn
+
+@noindent
+Summary:
+@itemize @bullet
+@item
+For a non-immediate Scheme object @var{x} of unknown type, get the type
+information by using @code{SCM_CELL_TYPE (@var{x})}.
+@item
+As soon as the cell type information is available, only use the
+appropriate access methods to read and write data to the different cell
+entries.
+@end itemize
+
+
+@node Basic Rules for Accessing Cell Entries
+@subsubsection Basic Rules for Accessing Cell Entries
+
+For each cell type it is generally up to the implementation of that type
+which of the corresponding cell entries hold Scheme objects and which
+hold raw C values.  However, there is one basic rule that has to be
+followed: Scheme pairs consist of exactly two cell entries, which both
+contain Scheme objects.  Further, a cell which contains a Scheme object
+in it first entry has to be a Scheme pair.  In other words, it is not
+allowed to store a Scheme object in the first cell entry and a non
+Scheme object in the second cell entry.
+
+@c Fixme:shouldn't this rather be SCM_PAIRP / SCM_PAIR_P ?
+@deftypefn Macro int SCM_CONSP (SCM @var{x})
+Determine, whether the Scheme object @var{x} is a Scheme pair,
+i.e. whether @var{x} references a heap cell consisting of exactly two
+entries, where both entries contain a Scheme object.  In this case, both
+entries will have to be accessed using the @code{SCM_CELL_OBJECT}
+macros.  On the contrary, if the SCM_CONSP predicate is not fulfilled,
+the first entry of the Scheme cell is guaranteed not to be a Scheme
+value and thus the first cell entry must be accessed using the
+@code{SCM_CELL_WORD_0} macro.
 @end deftypefn
 
 

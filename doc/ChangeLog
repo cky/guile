@@ -1,3 +1,10 @@
+2001-04-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* data-rep.texi (Unpacking the SCM type): New section, taken from
+	Dirk Herrmann's description of SCM and scm_bits_t in api.txt.
+	(Immediate Datatypes, Non-immediate Datatypes): Remove obsolete
+	notes about needing to call SCM_NIMP.
+
 2001-04-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-procedures.texi (Procedures with Setters):  Fix dvi
