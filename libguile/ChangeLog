@@ -1,3 +1,11 @@
+Mon Sep 27 17:15:14 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* __scm.h: Fix a bunch of macros that were missing do-while(0)
+	sandwiches. 
+
+	* debug.c, eval.c: Fix buggy uses of SCM_ALLOW_INTS (missing
+	semicolon) exposed by the above change.
+
 1999-09-27  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* stacks.c: Avoid compiler warning re: unitialized var.
