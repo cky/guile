@@ -63,9 +63,13 @@
 #define SCM_HEAP_SEG_SIZE (16384L * sizeof (scm_t_cell))
 
 
-#define DOUBLECELL_ALIGNED_P(x)  (((2 * sizeof (scm_t_cell) - 1) & SCM_UNPACK (x)) == 0)
+#define SCM_DOUBLECELL_ALIGNED_P(x)  (((2 * sizeof (scm_t_cell) - 1) & SCM_UNPACK (x)) == 0)
 
 
+#define SCM_GC_CARD_BVEC_SIZE_IN_LONGS \
+    ((SCM_GC_CARD_N_CELLS + SCM_C_BVEC_LONG_BITS - 1) / SCM_C_BVEC_LONG_BITS)
+#define SCM_GC_IN_CARD_HEADERP(x) \
+  (scm_t_cell *) (x) <  SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS
 
 
 int scm_getenv_int (const char *var, int def);
@@ -204,8 +208,8 @@ extern scm_t_heap_segment ** scm_i_heap_segment_table;
 extern size_t scm_i_heap_segment_table_size;
 
 
-int scm_init_card_freelist (scm_t_cell * card, SCM *free_list,int);
-int scm_i_sweep_card (scm_t_cell * card, SCM *free_list,int);
+int scm_i_init_card_freelist (scm_t_cell * card, SCM *free_list,scm_t_heap_segment*);
+int scm_i_sweep_card (scm_t_cell * card, SCM *free_list, scm_t_heap_segment*);
 int scm_i_initialize_heap_segment_data (scm_t_heap_segment * segment, size_t requested);
 int scm_i_segment_card_count (scm_t_heap_segment * seg);
 int scm_i_segment_cell_count (scm_t_heap_segment * seg);

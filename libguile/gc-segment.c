@@ -50,10 +50,6 @@
 
 
 
-#define SCM_GC_CARD_BVEC_SIZE_IN_LONGS \
-    ((SCM_GC_CARD_N_CELLS + SCM_C_BVEC_LONG_BITS - 1) / SCM_C_BVEC_LONG_BITS)
-#define SCM_GC_IN_CARD_HEADERP(x) \
-  (scm_t_cell *) (x) <  SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS
 
 
 size_t scm_max_segment_size;
@@ -120,25 +116,11 @@ scm_i_initialize_heap_segment_data (scm_t_heap_segment * segment, size_t request
   
   bvec_ptr = (scm_t_c_bvec_long*) segment->bounds[1];
 
-
-  {
-    scm_t_cell *  ptr  = segment->bounds [0];
-
-    for (;
-	 ptr < segment->bounds[1]; ptr += SCM_GC_CARD_N_CELLS)
-      {
-	SCM_GC_CELL_BVEC (ptr) = bvec_ptr;
-	if (segment->span == 2) 
-	  SCM_GC_SET_CARD_DOUBLECELL (ptr);
- 
-	bvec_ptr += SCM_GC_CARD_BVEC_SIZE_IN_LONGS;
-
-	/*
-	  Don't init the mem. This is handled by lazy sweeping.
-	 */
-      }
-  }
-
+  /*
+    Don't init the mem or the bitvector. This is handled by lazy
+    sweeping.
+  */
+  
   segment->next_free_card = segment->bounds[0];
   segment->first_time = 1;
   return 1;
@@ -180,15 +162,15 @@ scm_i_sweep_some_cards (scm_t_heap_segment *seg)
   SCM cells = SCM_EOL;
   int threshold = 512;
   int collected = 0;
-  int (*sweeper) (scm_t_cell *, SCM *, int )
-    = (seg->first_time) ? &scm_init_card_freelist : &scm_i_sweep_card;
+  int (*sweeper) (scm_t_cell *, SCM *, scm_t_heap_segment* )
+    = (seg->first_time) ? &scm_i_init_card_freelist : &scm_i_sweep_card;
 
   scm_t_cell * next_free = seg->next_free_card;
   int cards_swept = 0;
   
   while (collected < threshold && next_free < seg->bounds[1])
     {
-      collected += (*sweeper) (next_free, &cells, seg->span);
+      collected += (*sweeper) (next_free, &cells, seg);
       next_free += SCM_GC_CARD_N_CELLS;
       cards_swept ++;
     }
@@ -438,7 +420,7 @@ scm_i_find_heap_segment_containing_object (SCM obj)
 		}
 	    }
 
-	  if (!DOUBLECELL_ALIGNED_P (obj) && scm_i_heap_segment_table[i]->span == 2)
+	  if (!SCM_DOUBLECELL_ALIGNED_P (obj) && scm_i_heap_segment_table[i]->span == 2)
 	    return -1;
 	  else if (SCM_GC_IN_CARD_HEADERP (ptr))
 	    return -1;

@@ -107,10 +107,10 @@ typedef struct scm_t_cell
 #define SCM_GC_CLEAR_CARD_FLAG(card, shift) \
     (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) & ~(1L << (shift))))
 
-#define SCM_GC_CARDF_DOUBLECELL 0
-
-#define SCM_GC_CARD_DOUBLECELLP(card)    SCM_GC_GET_CARD_FLAG (card, SCM_GC_CARDF_DOUBLECELL)
-#define SCM_GC_SET_CARD_DOUBLECELL(card) SCM_GC_SET_CARD_FLAG (card, SCM_GC_CARDF_DOUBLECELL)
+/*
+  Remove card flags. They hamper lazy initialization, and aren't used
+  anyways.
+ */
 
 /* card addressing. for efficiency, cards are *always* aligned to
    SCM_GC_CARD_SIZE. */

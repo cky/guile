@@ -1,5 +1,15 @@
 2002-08-29  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
+	* gc.h: remove DOUBLECELL card flags.
+
+	* gc-malloc.c (scm_calloc): try to use calloc() before calling
+	scm_realloc().
+
+	* gc-segment.c (scm_i_initialize_heap_segment_data): remove card
+	init loop; handle this from scm_init_card_freelist()
+
+	* gc-card.c (scm_init_card_freelist): init bit vector here.
+
 	* numbers.c (scm_make_real): prevent reordering of statements
 	num2float.i.c (FLOAT2NUM): idem
 

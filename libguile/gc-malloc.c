@@ -150,7 +150,17 @@ scm_malloc (size_t sz)
 void *
 scm_calloc (size_t sz)
 {
-  void * ptr = scm_realloc (NULL, sz);
+  void * ptr;
+
+  /*
+    By default, try to use calloc, as it is likely more efficient than
+    calling memset by hand.
+   */
+  SCM_SYSCALL(ptr= calloc (sz, 1));
+  if (ptr)
+    return ptr;
+  
+  ptr = scm_realloc (NULL, sz);
   memset (ptr, 0x0, sz);
   return ptr;
 }

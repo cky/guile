@@ -80,11 +80,12 @@ long int scm_i_deprecated_memory_return;
  */
 
 int
-scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, int span)
+scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 #define FUNC_NAME "sweep_card"
 {
   scm_t_c_bvec_long *bitvec = SCM_GC_CARD_BVEC(p);
   scm_t_cell * end = p + SCM_GC_CARD_N_CELLS;
+  int span = seg->span;
   int offset =SCM_MAX (SCM_GC_CARD_N_HEADER_CELLS, span);
   int free_count  = 0;
 
@@ -294,11 +295,19 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, int span)
   Like sweep, but no complicated logic to do the sweeping.
  */
 int
-scm_init_card_freelist (scm_t_cell *  card, SCM *free_list, int span)
+scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
+			scm_t_heap_segment*seg)
 {
+  int span = seg->span;
   scm_t_cell *end = card + SCM_GC_CARD_N_CELLS;
   scm_t_cell *p = end - span;
 
+  scm_t_c_bvec_long * bvec_ptr =  (scm_t_c_bvec_long* ) seg->bounds[1];
+  int idx = (card  - seg->bounds[0]) / SCM_GC_CARD_N_CELLS; 
+
+  bvec_ptr += idx *SCM_GC_CARD_BVEC_SIZE_IN_LONGS;
+  SCM_GC_CELL_BVEC (card) = bvec_ptr;
+  
   /*
      ASSUMPTION: n_header_cells <= 2. 
    */
@@ -318,7 +327,7 @@ scm_init_card_freelist (scm_t_cell *  card, SCM *free_list, int span)
 /*
   These functions are meant to be called from GDB as a debug aid.
 
-  I've left them as a convenience for future generations.
+  I've left them as a convenience for future generations. --hwn.
  */
 
 
