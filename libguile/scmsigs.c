@@ -126,37 +126,8 @@ static SIGRETTYPE (*orig_handlers[NSIG])(int);
 static SIGRETTYPE
 take_signal (int signum)
 {
-  int saved_errno = errno;
-  SCM ignored;
-
-  if (!scm_ints_disabled)
-    {
-      /* For reasons of speed, the SCM_NEWCELL macro doesn't defer
-	 interrupts.  Instead, it first sets its argument to point to
-	 the first cell in the list, and then advances the freelist
-	 pointer to the next cell.  Now, if this procedure is
-	 interrupted, the only anomalous state possible is to have
-	 both SCM_NEWCELL's argument and scm_freelist pointing to the
-	 same cell.  To deal with this case, we always throw away the
-	 first cell in scm_freelist here.
-
-	 At least, that's the theory.  I'm not convinced that that's
-	 the only anomalous path we need to worry about.  */
-      SCM_NEWCELL (ignored);
-    }
   got_signal[signum] = 1;
-#if HAVE_SIGACTION
-  /* unblock the signal before the scheme handler gets to run, since
-     it may use longjmp to escape (i.e., throw an exception).  */
-  {
-    sigset_t set;
-    sigemptyset (&set);
-    sigaddset (&set, signum);
-    sigprocmask (SIG_UNBLOCK, &set, NULL);
-  }
-#endif
-  scm_system_async_mark (signal_async);
-  errno = saved_errno;
+  scm_system_async_mark_from_signal_handler (signal_async);
 }
 
 static SCM
