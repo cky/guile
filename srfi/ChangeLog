@@ -1,3 +1,8 @@
+2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-1.c: Use scm_is_pair instead of SCM_CONSP; use scm_is_null
+	instead of SCM_NULLP.
+
 2005-02-18  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (lset-adjoin): Revert change using `list' not `acc', the

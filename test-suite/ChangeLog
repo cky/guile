@@ -1,3 +1,7 @@
+2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tests/threads.test: Only test when 'threads are provided.
+
 2005-02-21  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (string->number): Exercise polar form with

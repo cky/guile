@@ -1,3 +1,10 @@
+2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* configure.in: Do not check for fast or recursive mutexes.  Check
+	for pthread_attr_getstack.
+	(SCM_I_GSC_USE_COOP_THREADS): Dot not subst.
+	(pthread_mutexattr_settype): Do not check for it.
+	
 2005-02-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* autogen.sh: Add '--verbose' option to autoreconf invocation.
