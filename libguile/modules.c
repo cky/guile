@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -227,11 +227,11 @@ scm_top_level_env (SCM thunk)
 SCM
 scm_env_top_level (SCM env)
 {
-  while (SCM_NIMP (env))
+  while (SCM_CONSP (env))
     {
-      if (!SCM_CONSP (SCM_CAR (env))
-	  && SCM_NFALSEP (scm_procedure_p (SCM_CAR (env))))
-	return SCM_CAR (env);
+      SCM car_env = SCM_CAR (env);
+      if (!SCM_CONSP (car_env) && !SCM_FALSEP (scm_procedure_p (car_env)))
+	return car_env;
       env = SCM_CDR (env);
     }
   return SCM_BOOL_F;
@@ -260,7 +260,7 @@ scm_lookup_closure_module (SCM proc)
   else
     {
       SCM mod = scm_procedure_property (proc, sym_module);
-      if (mod == SCM_BOOL_F)
+      if (SCM_FALSEP (mod))
 	mod = the_root_module ();
       return mod;
     }
@@ -288,7 +288,7 @@ static SCM
 module_variable (SCM module, SCM sym)
 {
 #define SCM_BOUND_THING_P(b) \
-  (SCM_NFALSEP(b) && \
+  (!SCM_FALSEP(b) && \
    (!SCM_VARIABLEP(b) || !SCM_UNBNDP (SCM_VARIABLE_REF (b))))
 
   /* 1. Check module obarray */
@@ -297,7 +297,7 @@ module_variable (SCM module, SCM sym)
     return b;
   {
     SCM binder = SCM_MODULE_BINDER (module);
-    if (SCM_NFALSEP (binder))
+    if (!SCM_FALSEP (binder))
       /* 2. Custom binder */
       {
 	b = scm_call_3 (binder, module, sym, SCM_BOOL_F);
@@ -332,7 +332,7 @@ SCM
 scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep)
 {
   SCM module = SCM_PACK (SCM_SMOB_DATA (eclo));
-  if (SCM_NFALSEP (definep))
+  if (!SCM_FALSEP (definep))
     {
       if (SCM_EVAL_CLOSURE_INTERFACE_P (eclo))
 	return SCM_BOOL_F;
@@ -367,7 +367,7 @@ SCM_DEFINE (scm_standard_interface_eval_closure,
 SCM
 scm_module_lookup_closure (SCM module)
 {
-  if (module == SCM_BOOL_F)
+  if (SCM_FALSEP (module))
     return SCM_BOOL_F;
   else
     return SCM_MODULE_EVAL_CLOSURE (module);
@@ -385,7 +385,7 @@ scm_current_module_lookup_closure ()
 SCM
 scm_module_transformer (SCM module)
 {
-  if (module == SCM_BOOL_F)
+  if (SCM_FALSEP (module))
     return SCM_BOOL_F;
   else
     return SCM_MODULE_TRANSFORMER (module);
@@ -442,7 +442,7 @@ scm_sym2var (SCM sym, SCM proc, SCM definep)
 	  handle = scm_hashq_create_handle_x (scm_pre_modules_obarray,
 					      sym, SCM_BOOL_F);
 	  var = SCM_CDR (handle);
-	  if (var == SCM_BOOL_F)
+	  if (SCM_FALSEP (var))
 	    {
 	      var = scm_make_variable (SCM_UNDEFINED);
 	      SCM_SETCDR (handle, var);
@@ -450,7 +450,7 @@ scm_sym2var (SCM sym, SCM proc, SCM definep)
 	}
     }
 
-  if (var != SCM_BOOL_F && !SCM_VARIABLEP (var))
+  if (!SCM_FALSEP (var) && !SCM_VARIABLEP (var))
     SCM_MISC_ERROR ("~S is not bound to a variable", scm_list_1 (sym));
 
   return var;
@@ -534,7 +534,7 @@ scm_module_reverse_lookup (SCM module, SCM variable)
   SCM obarray;
   long i, n;
 
-  if (module == SCM_BOOL_F)
+  if (SCM_FALSEP (module))
     obarray = scm_pre_modules_obarray;
   else
     {
@@ -565,7 +565,7 @@ scm_module_reverse_lookup (SCM module, SCM variable)
     while (SCM_CONSP (uses))
       {
 	SCM sym = scm_module_reverse_lookup (SCM_CAR (uses), variable);
-	if (sym != SCM_BOOL_F)
+	if (!SCM_FALSEP (sym))
 	  return sym;
 	uses = SCM_CDR (uses);
       }
@@ -594,7 +594,7 @@ scm_system_module_env_p (SCM env)
   SCM proc = scm_env_top_level (env);
   if (SCM_FALSEP (proc))
     return SCM_BOOL_T;
-  return ((SCM_NFALSEP (scm_procedure_property (proc,
+  return ((!SCM_FALSEP (scm_procedure_property (proc,
 						scm_sym_system_module)))
 	  ? SCM_BOOL_T
 	  : SCM_BOOL_F);

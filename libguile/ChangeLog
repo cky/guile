@@ -1,5 +1,14 @@
 2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* modules.c (scm_env_top_level, scm_lookup_closure_module,
+	module_variable, scm_module_lookup_closure,
+	scm_module_transformer, scm_sym2var, scm_module_reverse_lookup,
+	scm_system_module_env_p):  Don't compare SCM values with C
+	operators == or !=.  Avoid SCM_IMP predicates.  Prefer !SCM_FALSEP
+	over SCM_NFALSEP.
+
+2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.h (SCM_MAKE_ILOC):  New macro.
 
 	* debug.c (scm_make_iloc):  Use SCM_MAKE_ILOC instead of computing
