@@ -47,7 +47,6 @@
 #include <stdio.h>
 #include <math.h>
 #include "libguile/_scm.h"
-#include "libguile/unif.h"
 #include "libguile/feature.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
@@ -74,7 +73,7 @@ static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 /* IS_INF tests its floating point number for infiniteness
  */
 #ifndef IS_INF
-#define IS_INF(x) ((x) == (x) + 1)
+#define IS_INF(x) ((x) == (x) / 2)
 #endif
 
 /* Return true if X is not infinite and is not a NaN

@@ -1,3 +1,11 @@
+2000-05-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c:  No need to include unif.h.
+
+	(IS_INF):  Returned to old test for now:  x == x + 1 will not work
+	for large numbers due to rounding errors.
+	Thanks to Kalle Olavi Niemitalo.
+
 2000-05-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (scm_divbigdig):  Removed outdated comment.
