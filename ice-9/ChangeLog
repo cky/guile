@@ -1,3 +1,7 @@
+1997-10-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (inherit-print-state): New experimental function.
+
 Tue Sep 30 13:12:48 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	Suggestion and script from Maciej Stachowiak:
