@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef HOOKSH
-#define HOOKSH
-/*	Copyright (C) 1995, 1996, 1999, 2000 Free Software Foundation, Inc.
+#ifndef SCM_HOOKS_H
+#define SCM_HOOKS_H
+/* Copyright (C) 1995,1996,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,17 +115,7 @@ extern void scm_c_run_hook (SCM hook, SCM args);
 extern SCM scm_hook_to_list (SCM hook);
 extern void scm_init_hooks (void);
 
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-/* Use scm_set_object_property_x to set the name property of a hook: */
-#define SCM_HOOK_NAME(h) scm_object_property (h, scm_makfrom0str ("name"))
-extern SCM scm_make_hook_with_name (SCM name, SCM n_args);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
-#endif  /* HOOKSH */
+#endif  /* SCM_HOOKS_H */
 
 /*
   Local Variables:

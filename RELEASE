@@ -20,12 +20,6 @@ After signal handling and threading have been fixed:
 - Make sure that the deprecation mechanism explained in INSTALL and
   README is completed and works.
 
-- Q: Was SCM_FLOBUFLEN only deprecated publically, or was it supposed
-  to be removed from numbers.c as well?
-
-- remove code related to the name property of hooks.  Also, check init.c,
-  since the dependency between hooks and objprop will then be eliminated.
-
 === In release 1.8.0:
 
 - remove compatability module (ice-9 and-let*).  It

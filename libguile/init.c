@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -508,7 +508,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_deprecation ();      /* Requires hashtabs */
   scm_init_objprop ();
   scm_init_properties ();
-  scm_init_hooks ();        /* Requires objprop until hook names are removed */
+  scm_init_hooks ();            /* Requires smob_prehistory */
   scm_init_gc ();		/* Requires hooks, async */
 #ifdef GUILE_ISELECT
   scm_init_iselect ();

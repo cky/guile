@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,6 @@
 
 #include "libguile/eval.h"
 #include "libguile/ports.h"
-#include "libguile/objprop.h"
 #include "libguile/procprop.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
@@ -184,7 +183,7 @@ hook_print (SCM hook, SCM port, scm_print_state *pstate)
     {
       scm_putc (' ', port);
       name = scm_procedure_name (SCM_CAR (ls));
-      if (SCM_NFALSEP (name))
+      if (!SCM_FALSEP (name))
 	scm_iprin1 (name, port, pstate);
       else
 	scm_putc ('?', port);
@@ -195,35 +194,14 @@ hook_print (SCM hook, SCM port, scm_print_state *pstate)
 }
 
 
-SCM_SYMBOL (symbol_name, "name");
-
 SCM
 scm_create_hook (const char* name, int n_args)
 {
   SCM hook = make_hook (SCM_MAKINUM (n_args), "scm_create_hook");
   scm_sysintern (name, hook);
-  scm_set_object_property_x (hook, symbol_name, scm_makfrom0str (name));
   scm_protect_object (hook);
   return hook;
 }
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM_DEFINE (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0, 
-            (SCM name, SCM n_args),
-	    "Create a named hook with the name @var{name} for storing\n"
-	    "procedures of arity @var{n_args}.  @var{n_args} defaults to\n"
-	    "zero.")
-#define FUNC_NAME s_scm_make_hook_with_name
-{
-  SCM hook = make_hook (n_args, FUNC_NAME);
-  scm_set_object_property_x (hook, scm_makfrom0str ("name"), name);
-  return hook;
-}
-#undef FUNC_NAME
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 
 SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0, 

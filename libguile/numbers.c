@@ -68,15 +68,10 @@ static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 #define SCM_SWAP(x,y) do { SCM __t = x; x = y; y = __t; } while (0)
 
 
-/*#if (SCM_DEBUG_DEPRECATED == 1)*/  /* not defined in header yet? */
-#if 1
-
-/* SCM_FLOBUFLEN is the maximum number of characters neccessary for the
+/* FLOBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an inexact number.
  */
-#define SCM_FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
-
-#endif  /* SCM_DEBUG_DEPRECATED == 1 */
+#define FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
 
 
 /* IS_INF tests its floating point number for infiniteness
@@ -2307,7 +2302,7 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
   } else if (SCM_BIGP (n)) {
     return big2str (n, (unsigned int) base);
   } else if (SCM_INEXACTP (n)) {
-    char num_buf [SCM_FLOBUFLEN];
+    char num_buf [FLOBUFLEN];
     return scm_makfromstr (num_buf, iflo2str (n, num_buf), 0);
   } else {
     SCM_WRONG_TYPE_ARG (1, n);
@@ -2322,7 +2317,7 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
 int
 scm_print_real (SCM sexp, SCM port, scm_print_state *pstate)
 {
-  char num_buf[SCM_FLOBUFLEN];
+  char num_buf[FLOBUFLEN];
   scm_lfwrite (num_buf, iflo2str (sexp, num_buf), port);
   return !0;
 }
@@ -2330,7 +2325,7 @@ scm_print_real (SCM sexp, SCM port, scm_print_state *pstate)
 int
 scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate)
 {
-  char num_buf[SCM_FLOBUFLEN];
+  char num_buf[FLOBUFLEN];
   scm_lfwrite (num_buf, iflo2str (sexp, num_buf), port);
   return !0;
 }

@@ -2699,6 +2699,7 @@ scm_init_gc ()
   scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);
 #endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 
+  /* Dirk:FIXME:: scm_create_hook is strange. */
   scm_after_gc_hook = scm_create_hook ("after-gc-hook", 0);
 
   after_gc_thunk = scm_make_subr_opt ("%gc-thunk", scm_tc7_subr_0, gc_async_thunk, 0);

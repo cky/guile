@@ -1,10 +1,33 @@
+2001-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.c (scm_init_gc): Added FIXME comment.
+
+	* hooks.c: Since hooks don't have a name any more, it is not
+	necessary to include objprop.h.
+
+	(hook_print, scm_add_hook_x): Replace SCM_NFALSEP by !SCM_FALSEP.
+
+	(symbol_name, scm_make_hook_with_name): Removed.
+
+	(scm_create_hook): Don't set the hook's name property.
+
+	* hooks.h (HOOKSH, SCM_HOOKS_H): Renamed HOOKSH to SCM_HOOKS_H.
+
+	(SCM_HOOK_NAME, scm_make_hook_with_name): Removed.
+
+	* init.c (scm_init_guile_1): Hooks don't use objprops any more.
+
+	* numbers.c (SCM_FLOBUFLEN, FLOBUFLEN, scm_number_to_string,
+	scm_print_real, scm_print_complex): Renamed SCM_FLOBUFLEN to
+	FLOBUFLEN and define it unconditionally.
+
 2001-05-07  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* gh_data.c (gh_lookup): Call gh_module_lookup with
 	`scm_current_module ()', not `#f'.
 	(gh_module_lookup): Expect a module instead of an obarray as first
 	argument and do lookup in that module.
-	
+
 	* ramap.c (raeql_1): Do not call scm_uniform_vector_length on
 	arrays.  The length of array is already determined differently and
 	scm_uniform_vector_length does not work on arrays.
@@ -17,7 +40,7 @@
 	* __scm.h (SCM_WTA_DISPATCH_0): Removed ARG and POS parameters,
 	they are not used.  Changed `wrong type' error into `wrong num
 	args' error.  Changed all callers.
-	
+
 	* numbers.c (scm_difference): Call SCM_WTA_DISPATCH_0 when zero
 	arguments are supplied.
 
