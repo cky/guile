@@ -1,3 +1,11 @@
+2001-11-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (turn-on-debugging): New function, to be used by
+	scm_compile_shell_switches.
+
+	* debug.scm: Do not enable debugging and recording of source
+	positions.
+
 2001-10-21  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* slib.scm (array-indexes): New procedure.

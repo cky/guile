@@ -1,3 +1,10 @@
+2001-11-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* script.c (scm_shell_usage, scm_compile_shell_switches): Prepend
+	a call to turn-on-debugging when --debug has been given instead of
+	turning it on directly.  Also, handle new `--no-debug' option,
+	which might suppress the call to turn-on-debugging.
+
 2001-11-05  Stefan Jahn  <stefan@lkcc.org>
 
 	* struct.c (s_scm_struct_vtable_p): Corrected docstring.

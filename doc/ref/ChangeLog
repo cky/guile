@@ -1,3 +1,7 @@
+2001-11-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scripts.texi: Document `--debug' and `--no-debug'.
+
 2001-10-27  Gary Houston  <ghouston@arglist.com>
 
 	* guile.texi, scsh.texi: removed obsolete guile-scsh material
