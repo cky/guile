@@ -140,11 +140,13 @@ We use some conventions in this manual.
 @itemize @bullet
 
 @item
-For some procedures, notably type predicates, we use "iff" to mean
-"if and only if".  The construct is usually something like: "Return
-VAL iff CONDITION", where VAL is usually "#t" or "non-#f".  This
-typically means that VAL is returned if CONDITION holds, and that #f is
-returned otherwise.
+For some procedures, notably type predicates, we use @dfn{iff} to
+mean `if and only if'.  The construct is usually something like:
+`Return @var{val} iff @var{condition}', where @var{val} is usually
+`@code{#t}' or `non-@code{#f}'.  This typically means that @var{val}
+is returned if @var{condition} holds, and that @samp{#f} is returned
+otherwise.
+@cindex iff
 
 @c Add other conventions here.
 
