@@ -687,10 +687,10 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 	    "Example:\n"
 	    "@lisp\n"
 	    "(number->string (ash #b1 3) 2)\n"
-	    "   @result{} "1000"
-(number->string (ash #b1010 -1) 2)
-   @result{} "101"
-@end lisp")
+	    "   @result{} \"1000\""
+	    "(number->string (ash #b1010 -1) 2)"
+	    "   @result{} \"101\""
+	    "@end lisp")
 #define FUNC_NAME s_scm_ash
 {
   /* GJB:FIXME:: what is going on here? */

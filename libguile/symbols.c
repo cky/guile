@@ -458,19 +458,17 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
 
 SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
            (SCM o, SCM s, SCM softp),
-"Intern a new symbol in @var{obarray}, a symbol table, with name
-@var{string}.
-
-If @var{obarray} is @code{#f}, use the default system symbol table.  If
-@var{obarray} is @code{#t}, the symbol should not be interned in any
-symbol table; merely return the pair (@var{symbol}
-. @var{#<undefined>}).
-
-The @var{soft?} argument determines whether new symbol table entries
-should be created when the specified symbol is not already present in
-@var{obarray}.  If @var{soft?} is specified and is a true value, then
-new entries should not be added for symbols not already present in the
-table; instead, simply return @code{#f}.")
+	    "Intern a new symbol in @var{obarray}, a symbol table, with name\n"
+	    "@var{string}.\n\n"
+	    "If @var{obarray} is @code{#f}, use the default system symbol table.  If\n"
+	    "@var{obarray} is @code{#t}, the symbol should not be interned in any\n"
+	    "symbol table; merely return the pair (@var{symbol}\n"
+	    ". @var{#<undefined>}).\n\n"
+	    "The @var{soft?} argument determines whether new symbol table entries\n"
+	    "should be created when the specified symbol is not already present in\n"
+	    "@var{obarray}.  If @var{soft?} is specified and is a true value, then\n"
+	    "new entries should not be added for symbols not already present in the\n"
+	    "table; instead, simply return @code{#f}.")
 #define FUNC_NAME s_scm_string_to_obarray_symbol
 {
   SCM vcell;

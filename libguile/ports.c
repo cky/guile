@@ -1178,8 +1178,8 @@ SCM_DEFINE (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
 SCM_DEFINE (scm_port_filename, "port-filename", 1, 0, 0,
             (SCM port),
 	    "Return the filename associated with @var{port}.  This function returns\n"
-	    "the strings "standard input", "standard output" and "standard error"
-when called on the current input, output and error ports respectively.")
+	    "the strings \"standard input\", \"standard output\" and \"standard error\""
+	    "when called on the current input, output and error ports respectively.")
 #define FUNC_NAME s_scm_port_filename
 {
   port = SCM_COERCE_OUTPORT (port);

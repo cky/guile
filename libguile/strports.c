@@ -157,7 +157,7 @@ st_end_input (SCM port, int offset)
   if (pt->read_pos - pt->read_buf < offset)
     scm_misc_error ("st_end_input", "negative position", SCM_EOL);
 
-  pt->write_pos = (unsigned char *) pt->read_pos = pt->read_pos - offset;
+  pt->write_pos = (unsigned char *) (pt->read_pos = pt->read_pos - offset);
   pt->rw_active = SCM_PORT_NEITHER;
 }
 

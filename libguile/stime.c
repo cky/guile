@@ -209,8 +209,7 @@ static long scm_my_base = 0;
 SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
            (void),
 	    "Returns the number of time units of processor time used by the interpreter.\n"
-	    "Both "system" and "user" time
-are included but subprocesses are not.")
+	    "Both \"system\" and \"user\" time are included but subprocesses are not.")
 #define FUNC_NAME s_scm_get_internal_run_time
 {
   return scm_long2num(mytime()-scm_my_base);
@@ -234,9 +233,9 @@ SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
 
 SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0, 
             (void),
-"Returns a pair containing the number of seconds and microseconds since
-1970-01-01 00:00:00 UTC, excluding leap seconds.  Note: whether true
-microsecond resolution is available depends on the operating system.")
+	    "Returns a pair containing the number of seconds and microseconds since\n"
+	    "1970-01-01 00:00:00 UTC, excluding leap seconds.  Note: whether true\n"
+	    "microsecond resolution is available depends on the operating system.")
 #define FUNC_NAME s_scm_gettimeofday
 {
 #ifdef HAVE_GETTIMEOFDAY
@@ -334,11 +333,11 @@ restorezone (SCM zone, char **oldenv, const char *subr)
 
 SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0, 
             (SCM time, SCM zone),
-"Returns an object representing the broken down components of @var{time},
-an integer like the one returned by @code{current-time}.  The time zone
-for the calculation is optionally specified by @var{zone} (a string),
-otherwise the @code{TZ} environment variable or the system default is
-used.")
+	    "Returns an object representing the broken down components of @var{time},\n"
+	    "an integer like the one returned by @code{current-time}.  The time zone\n"
+	    "for the calculation is optionally specified by @var{zone} (a string),\n"
+	    "otherwise the @code{TZ} environment variable or the system default is\n"
+	    "used.")
 #define FUNC_NAME s_scm_localtime
 {
   timet itime;
@@ -410,9 +409,9 @@ used.")
 
 SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0, 
             (SCM time),
-"Returns an object representing the broken down components of @var{time},
-an integer like the one returned by @code{current-time}.  The values
-are calculated for UTC.")
+	    "Returns an object representing the broken down components of @var{time},\n"
+	    "an integer like the one returned by @code{current-time}.  The values\n"
+	    "are calculated for UTC.")
 #define FUNC_NAME s_scm_gmtime
 {
   timet itime;
@@ -468,14 +467,13 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 
 SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0, 
             (SCM sbd_time, SCM zone),
-"@var{bd-time} is an object representing broken down time and @code{zone}
-is an optional time zone specifier (otherwise the TZ environment variable
-or the system default is used).
-
-Returns a pair: the CAR is a corresponding
-integer time value like that returned
-by @code{current-time}; the CDR is a broken down time object, similar to
-as @var{bd-time} but with normalized values.")
+	    "@var{bd-time} is an object representing broken down time and @code{zone}\n"
+	    "is an optional time zone specifier (otherwise the TZ environment variable\n"
+	    "or the system default is used).\n\n"
+	    "Returns a pair: the CAR is a corresponding\n"
+	    "integer time value like that returned\n"
+	    "by @code{current-time}; the CDR is a broken down time object, similar to\n"
+	    "as @var{bd-time} but with normalized values.")
 #define FUNC_NAME s_scm_mktime
 {
   timet itime;
@@ -548,10 +546,10 @@ as @var{bd-time} but with normalized values.")
 #ifdef HAVE_TZSET
 SCM_DEFINE (scm_tzset, "tzset", 0, 0, 0, 
             (void),
-"Initialize the timezone from the TZ environment variable
-or the system default.  It's not usually necessary to call this procedure
-since it's done automatically by other procedures that depend on the
-timezone.")
+	    "Initialize the timezone from the TZ environment variable\n"
+	    "or the system default.  It's not usually necessary to call this procedure\n"
+	    "since it's done automatically by other procedures that depend on the\n"
+	    "timezone.")
 #define FUNC_NAME s_scm_tzset
 {
   tzset();
@@ -562,13 +560,13 @@ timezone.")
 
 SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
             (SCM format, SCM stime),
-"Formats a time specification @var{time} using @var{template}.  @var{time}
-is an object with time components in the form returned by @code{localtime}
-or @code{gmtime}.  @var{template} is a string which can include formatting
-specifications introduced by a @code{%} character.  The formatting of
-month and day names is dependent on the current locale.  The value returned
-is the formatted string.
-@xref{Formatting Date and Time, , , libc, The GNU C Library Reference Manual}.)")
+	    "Formats a time specification @var{time} using @var{template}.  @var{time}\n"
+	    "is an object with time components in the form returned by @code{localtime}\n"
+	    "or @code{gmtime}.  @var{template} is a string which can include formatting\n"
+	    "specifications introduced by a @code{%} character.  The formatting of\n"
+	    "month and day names is dependent on the current locale.  The value returned\n"
+	    "is the formatted string.\n"
+	    "@xref{Formatting Date and Time, , , libc, The GNU C Library Reference Manual}.)")
 #define FUNC_NAME s_scm_strftime
 {
   struct tm t;
@@ -605,16 +603,16 @@ is the formatted string.
 #ifdef HAVE_STRPTIME
 SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
             (SCM format, SCM string),
-"Performs the reverse action to @code{strftime}, parsing @var{string}
-according to the specification supplied in @var{template}.  The
-interpretation of month and day names is dependent on the current
-locale.  The
-value returned is a pair.  The CAR has an object with time components 
-in the form returned by @code{localtime} or @code{gmtime},
-but the time zone components
-are not usefully set.
-The CDR reports the number of characters from @var{string} which
-vwere used for the conversion.")
+	    "Performs the reverse action to @code{strftime}, parsing @var{string}\n"
+	    "according to the specification supplied in @var{template}.  The\n"
+	    "interpretation of month and day names is dependent on the current\n"
+	    "locale.  The\n"
+	    "value returned is a pair.  The CAR has an object with time components \n"
+	    "in the form returned by @code{localtime} or @code{gmtime},\n"
+	    "but the time zone components\n"
+	    "are not usefully set.\n"
+	    "The CDR reports the number of characters from @var{string} which\n"
+	    "vwere used for the conversion.")
 #define FUNC_NAME s_scm_strptime
 {
   struct tm t;

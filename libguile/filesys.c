@@ -1033,9 +1033,9 @@ SCM_DEFINE (scm_fcntl, "fcntl", 2, 0, 1,
 	    "@item F_SETOWN\n"
 	    "Set the process that owns a socket to @var{value}, for @code{SIGIO} signals.\n"
 	    "@item FD_CLOEXEC\n"
-	    "The value used to indicate the "close on exec" flag with @code{F_GETFL} or
-@code{F_SETFL}.
-@end table")
+	    "The value used to indicate the \"close on exec\" flag with @code{F_GETFL} or"
+	    "@code{F_SETFL}."
+	    "@end table")
 #define FUNC_NAME s_scm_fcntl
 {
   int rv;
