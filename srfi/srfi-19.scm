@@ -49,6 +49,13 @@
 ;; substantial ones to be realized, esp. in the later "parsing" half
 ;; of the file, by rewriting the code with use of more Guile native
 ;; functions that do more work in a "chunk".
+;;
+;; FIXME: mkoeppe: Time zones are treated a little simplistic in
+;; SRFI-19; they are only a numeric offset.  Thus, printing time zones
+;; (PRIV:LOCALE-PRINT-TIME-ZONE) can't be implemented sensibly.  The
+;; functions taking an optional TZ-OFFSET should be extended to take a
+;; symbolic time-zone (like "CET"); this string should be stored in
+;; the DATE structure.
 
 (define-module (srfi srfi-19)
   :use-module (srfi srfi-6)
@@ -100,7 +107,7 @@
            date-day
            date-month
            date-year
-           date-zone-offset?
+           date-zone-offset
            date-year-day
            date-week-day
            date-week-number
@@ -304,13 +311,19 @@
 (define (copy-time time)
   (make-time (time-type time) (time-nanosecond time) (time-second time)))
 
+(define (priv:split-real r)
+  (if (integer? r) (values r 0)
+      (let ((l (truncate r)))
+        (values (inexact->exact l) (- r l)))))
+
 (define (priv:time-normalize! t)
   (if (>= (abs (time-nanosecond t)) 1000000000)
-      (begin
-        (set-time-second! t (+ (time-second t)
-                               (quotient (time-nanosecond t) 1000000000)))
-        (set-time-nanosecond! t (remainder (time-nanosecond t)
-                                           1000000000))))
+      (receive (int frac)
+	  (priv:split-real (time-nanosecond t))
+	(set-time-second! t (+ (time-second t)
+			       (quotient int 1000000000)))
+	(set-time-nanosecond! t (+ (remainder int 1000000000)
+				   frac))))
   (if (and (positive? (time-second t))
            (negative? (time-nanosecond t)))
       (begin
@@ -360,7 +373,7 @@
          (usec (cdr tod)))
     (make-time time-tai
                (* usec 1000)
-               (+ (car tod) (priv:leap-second-delta seconds)))))
+               (+ (car tod) (priv:leap-second-delta sec)))))
 
 ;;(define (priv:current-time-ms-time time-type proc)
 ;;  (let ((current-ms (proc)))
@@ -433,7 +446,7 @@
   ;; Arrange tests for speed and presume that t1 and t2 are actually times.
   ;; also presume it will be rare to check two times of different types.
   (and (= (time-second t1) (time-second t2))
-       (= (time-nanosecond t1) (time-nanosecond 2))
+       (= (time-nanosecond t1) (time-nanosecond t2))
        (eq? (time-type t1) (time-type t2))))
 
 (define (time>? t1 t2)
@@ -452,9 +465,9 @@
            (>= (time-nanosecond t1) (time-nanosecond t2)))))
 
 (define (time<=? t1 t2)
-  (or (< (time-second time1) (time-second time2))
-      (and (= (time-second time1) (time-second time2))
-           (<= (time-nanosecond time1) (time-nanosecond time2)))))
+  (or (< (time-second t1) (time-second t2))
+      (and (= (time-second t1) (time-second t2))
+           (<= (time-nanosecond t1) (time-nanosecond t2)))))
 
 ;; -- Time arithmetic
 
@@ -479,7 +492,7 @@
         (set-time-nanosecond! t nsec-plus)
         (priv:time-normalize! t))))
 
-(define (priv:add-duration t duration)
+(define (add-duration t duration)
   (let ((result (copy-time t)))
     (add-duration! result)))
 
@@ -509,7 +522,7 @@
   time-out)
 
 (define (time-tai->time-utc time-in)
-  (priv:time-tai->time-utc! time-in (make-time #f #f #f) 'time-tai->time-utc))
+  (priv:time-tai->time-utc! time-in (make-time-unnormalized #f #f #f) 'time-tai->time-utc))
 
 
 (define (time-tai->time-utc! time-in)
@@ -526,7 +539,7 @@
   time-out)
 
 (define (time-utc->time-tai time-in)
-  (priv:time-utc->time-tai! time-in (make-time #f #f #f) 'time-utc->time-tai))
+  (priv:time-utc->time-tai! time-in (make-time-unnormalized #f #f #f) 'time-utc->time-tai))
 
 (define (time-utc->time-tai! time-in)
   (priv:time-utc->time-tai! time-in time-in 'time-utc->time-tai!))
@@ -561,7 +574,7 @@
 (define (time-utc->time-monotonic time-in)
   (if (not (eq? (time-type time-in) time-utc))
       (priv:time-error caller 'incompatible-time-types time-in))
-  (let ((ntime (priv:time-utc->time-tai! time-in (make-time #f #f #f)
+  (let ((ntime (priv:time-utc->time-tai! time-in (make-time-unnormalized #f #f #f)
                                          'time-utc->time-monotonic)))
     (set-time-type! ntime time-monotonic)
     ntime))
@@ -598,34 +611,14 @@
              year
              zone-offset)
   date?
-  (nanosecond date-nanosecond)
-  (second date-second)
-  (minute date-minute)
-  (hour date-hour)
-  (day date-day)
-  (month date-month)
-  (year date-year)
-  (zone-offset date-zone-offset))
-
-(define (priv:time-normalize! t)
-  (if (>= (abs (time-nanosecond t)) 1000000000)
-      (begin
-        (set-time-second! t (+ (time-second t)
-                               (quotient (time-nanosecond t) 1000000000)))
-        (set-time-nanosecond! t (remainder (time-nanosecond t)
-                                           1000000000))))
-  (if (and (positive? (time-second t))
-           (negative? (time-nanosecond t)))
-      (begin
-        (set-time-second! t (- (time-second t) 1))
-        (set-time-nanosecond! t (+ 1000000000 (time-nanosecond t))))
-      (if (and (negative? (time-second t))
-               (positive? (time-nanosecond t)))
-          (begin
-            (set-time-second! t (+ (time-second t) 1))
-            (set-time-nanosecond! t (+ 1000000000 (time-nanosecond t))))))
-  t)
-
+  (nanosecond date-nanosecond set-date-nanosecond!)
+  (second date-second set-date-second!)
+  (minute date-minute set-date-minute!)
+  (hour date-hour set-date-hour!)
+  (day date-day set-date-day!)
+  (month date-month set-date-month!)
+  (year date-year set-date-year!)
+  (zone-offset date-zone-offset set-date-zone-offset!))
 
 ;; gives the julian day which starts at noon.
 (define (priv:encode-julian-day-number day month year)
@@ -639,11 +632,6 @@
        (- (quotient y 100))
        (quotient y 400)
        -32045)))
-
-(define (priv:split-real r)
-  (if (integer? r) (values r 0)
-      (let ((l (truncate r)))
-        (values l (- r l)))))
 
 ;; gives the seconds/date/month/year 
 (define (priv:decode-julian-day-number jdn)
@@ -665,9 +653,9 @@
 ;; differently from MzScheme's....
 ;; This should be written to be OS specific.
 
-(define (priv:local-tz-offset)
+(define (priv:local-tz-offset utc-time)
   ;; SRFI uses seconds West, but guile (and libc) use seconds East.
-  (- (tm:gmtoff (localtime 0))))
+  (- (tm:gmtoff (localtime (time-second utc-time)))))
 
 ;; special thing -- ignores nanos
 (define (priv:time->julian-day-number seconds tz-offset)
@@ -681,7 +669,9 @@
 (define (time-utc->date time . tz-offset)
   (if (not (eq? (time-type time) time-utc))
       (priv:time-error 'time->date 'incompatible-time-types  time))
-  (let* ((offset (if (null? tz-offset) (priv:local-tz-offset) (car tz-offset)))
+  (let* ((offset (if (null? tz-offset)
+		     (priv:local-tz-offset time) 
+		     (car tz-offset)))
          (leap-second? (priv:leap-second? (+ offset (time-second time))))
          (jdn (priv:time->julian-day-number (if leap-second?
                                                 (- (time-second time) 1)
@@ -690,7 +680,9 @@
 
     (call-with-values (lambda () (priv:decode-julian-day-number jdn))
       (lambda (secs date month year)
-        (let* ((int-secs (inexact->exact (floor secs)))
+	;; secs is a real because jdn is a real in Guile;
+	;; but it is conceptionally an integer.
+        (let* ((int-secs (inexact->exact (round secs)))
                (hours    (quotient int-secs (* 60 60)))
                (rem      (remainder int-secs (* 60 60)))
                (minutes  (quotient rem 60))
@@ -707,7 +699,9 @@
 (define (time-tai->date time  . tz-offset)
   (if (not (eq? (time-type time) time-tai))
       (priv:time-error 'time->date 'incompatible-time-types  time))
-  (let* ((offset (if (null? tz-offset) (priv:local-tz-offset) (car tz-offset)))
+  (let* ((offset (if (null? tz-offset)
+		     (priv:local-tz-offset (time-tai->time-utc time))
+		     (car tz-offset)))
          (seconds (- (time-second time)
                      (priv:leap-second-delta (time-second time))))
          (leap-second? (priv:leap-second? (+ offset seconds)))
@@ -717,9 +711,12 @@
                                             offset)))
     (call-with-values (lambda () (priv:decode-julian-day-number jdn))
       (lambda (secs date month year)
+	;; secs is a real because jdn is a real in Guile;
+	;; but it is conceptionally an integer.
         ;; adjust for leap seconds if necessary ...
-        (let* ((hours    (quotient secs (* 60 60)))
-               (rem      (remainder secs (* 60 60)))
+        (let* ((int-secs (inexact->exact (round secs)))
+	       (hours    (quotient int-secs (* 60 60)))
+               (rem      (remainder int-secs (* 60 60)))
                (minutes  (quotient rem 60))
                (seconds  (remainder rem 60)))
           (make-date (time-nanosecond time)
@@ -735,7 +732,9 @@
 (define (time-monotonic->date time . tz-offset)
   (if (not (eq? (time-type time) time-monotonic))
       (priv:time-error 'time->date 'incompatible-time-types  time))
-  (let* ((offset (if (null? tz-offset) (priv:local-tz-offset) (car tz-offset)))
+  (let* ((offset (if (null? tz-offset)
+		     (priv:local-tz-offset (time-monotonic->time-utc time))
+		     (car tz-offset)))
          (seconds (- (time-second time)
                      (priv:leap-second-delta (time-second time))))
          (leap-second? (priv:leap-second? (+ offset seconds)))
@@ -745,9 +744,12 @@
                                             offset)))
     (call-with-values (lambda () (priv:decode-julian-day-number jdn))
       (lambda (secs date month year)
+	;; secs is a real because jdn is a real in Guile;
+	;; but it is conceptionally an integer.
         ;; adjust for leap seconds if necessary ...
-        (let* ((hours    (quotient secs (* 60 60)))
-               (rem      (remainder secs (* 60 60)))
+        (let* ((int-secs (inexact->exact (round secs)))
+	       (hours    (quotient int-secs (* 60 60)))
+               (rem      (remainder int-secs (* 60 60)))
                (minutes  (quotient rem 60))
                (seconds  (remainder rem 60)))
           (make-date (time-nanosecond time)
@@ -760,17 +762,20 @@
                      offset))))))
 
 (define (date->time-utc date)
-  (let ((jdays (- (priv:encode-julian-day-number (date-day date)
+  (let* ((jdays (- (priv:encode-julian-day-number (date-day date)
                                                  (date-month date)
                                                  (date-year date))
-                  priv:tai-epoch-in-jd)))
+		   priv:tai-epoch-in-jd))
+	 ;; jdays is an integer plus 1/2,
+	 (jdays-1/2 (inexact->exact (- jdays 1/2))))
     (make-time 
      time-utc
      (date-nanosecond date)
-     (+ (* (- jdays 1/2) 24 60 60)
+     (+ (* jdays-1/2 24 60 60)
         (* (date-hour date) 60 60)
         (* (date-minute date) 60)
-        (date-second date)))))
+        (date-second date)
+	(- (date-zone-offset date))))))
 
 (define (date->time-tai date)
   (time-utc->time-tai! (date->time-utc date)))
@@ -832,9 +837,12 @@
             7))
 
 (define (current-date . tz-offset) 
-  (time-utc->date
-   (current-time time-utc)
-   (if (null? tz-offset) (priv:local-tz-offset) (car tz-offset))))
+  (let ((time (current-time time-utc)))
+    (time-utc->date
+     time
+     (if (null? tz-offset)
+	 (priv:local-tz-offset time)
+	 (car tz-offset)))))
 
 ;; given a 'two digit' number, find the year within 50 years +/-
 (define (priv:natural-year n)
@@ -907,10 +915,10 @@
 (define (julian-day->time-utc jdn)
   (let ((secs (* priv:sid (- jdn priv:tai-epoch-in-jd))))
     (receive (seconds parts)
-             (priv:split-real secs)
-             (make-time time-utc 
-                        (inexact->exact (truncate (* parts priv:nano)))
-                        (inexact->exact seconds)))))
+	(priv:split-real secs)
+      (make-time time-utc 
+		 (* parts priv:nano)
+		 seconds))))
 
 (define (julian-day->time-tai jdn)
   (time-utc->time-tai! (julian-day->time-utc jdn)))
@@ -919,12 +927,15 @@
   (time-utc->time-monotonic! (julian-day->time-utc jdn)))
 
 (define (julian-day->date jdn . tz-offset)
-  (let ((offset (if (null? tz-offset) (priv:local-tz-offset) (car tz-offset))))
-    (time-utc->date (julian-day->time-utc jdn) offset)))
+  (let* ((time (julian-day->time-utc jdn))
+	 (offset (if (null? tz-offset)
+		     (priv:local-tz-offset time)
+		     (car tz-offset))))
+    (time-utc->date time offset)))
 
 (define (modified-julian-day->date jdn . tz-offset)
-  (let ((offset (if (null? tz-offset) (priv:local-tz-offset) (car tz-offset))))
-    (julian-day->date (+ jdn 4800001/2) offset)))
+  (apply julian-day->date (+ jdn 4800001/2)
+	 tz-offset))
 
 (define (modified-julian-day->time-utc jdn)
   (julian-day->time-utc (+ jdn 4800001/2)))
@@ -991,13 +1002,10 @@
   (priv:vector-find string priv:locale-long-month-vector string=?))
 
 
-
-;; do nothing. 
-;; Your implementation might want to do something...
-;; 
-;; FIXME: is it even possible to do anything reasonable here?
+;; FIXME: mkoeppe: Put a symbolic time zone in the date structs.
+;; Print it here instead of the numerical offset if available.
 (define (priv:locale-print-time-zone date port)
-  (values))
+  (priv:tz-printer (date-zone-offset date) port))
 
 ;; FIXME: we should use strftime to determine this dynamically if possible.
 ;; Again, locale specific.
@@ -1014,8 +1022,6 @@
             (minutes (abs (quotient (remainder offset (* 60 60)) 60))))
         (display (priv:padding hours #\0 2) port)
         (display (priv:padding minutes #\0 2) port))))
-
-;; STOPPED-HERE
 
 ;; A table of output formatting directives.
 ;; the first time is the format char.
@@ -1277,8 +1283,7 @@
               (not (char-numeric? ch))
               (and upto (>= nchars  upto)))
           accum
-          (loop port
-                (+ (* accum 10) (priv:char->int (read-char port)))
+          (loop (+ (* accum 10) (priv:char->int (read-char port)))
                 (+ nchars 1))))))
 
 (define (priv:make-integer-reader upto)
@@ -1417,41 +1422,41 @@
      (list #\A char-alphabetic? locale-reader-long-weekday do-nothing)
      (list #\b char-alphabetic? locale-reader-abbr-month
            (lambda (val object)
-             (priv:set-date-month! object val)))
+             (set-date-month! object val)))
      (list #\B char-alphabetic? locale-reader-long-month
            (lambda (val object)
-             (priv:set-date-month! object val)))
+             (set-date-month! object val)))
      (list #\d char-numeric? ireader2 (lambda (val object)
-                                        (priv:set-date-day!
+                                        (set-date-day!
                                          object val)))
      (list #\e char-fail eireader2 (lambda (val object)
-                                     (priv:set-date-day! object val)))
+                                     (set-date-day! object val)))
      (list #\h char-alphabetic? locale-reader-abbr-month
            (lambda (val object)
-             (priv:set-date-month! object val)))
+             (set-date-month! object val)))
      (list #\H char-numeric? ireader2 (lambda (val object)
-                                        (priv:set-date-hour! object val)))
+                                        (set-date-hour! object val)))
      (list #\k char-fail eireader2 (lambda (val object)
-                                     (priv:set-date-hour! object val)))
+                                     (set-date-hour! object val)))
      (list #\m char-numeric? ireader2 (lambda (val object)
-                                        (priv:set-date-month! object val)))
+                                        (set-date-month! object val)))
      (list #\M char-numeric? ireader2 (lambda (val object)
-                                        (priv:set-date-minute!
+                                        (set-date-minute!
                                          object val)))
      (list #\S char-numeric? ireader2 (lambda (val object)
-                                        (priv:set-date-second! object val)))
+                                        (set-date-second! object val)))
      (list #\y char-fail eireader2 
            (lambda (val object)
-             (priv:set-date-year! object (priv:natural-year val))))
+             (set-date-year! object (priv:natural-year val))))
      (list #\Y char-numeric? ireader4 (lambda (val object)
-                                        (priv:set-date-year! object val)))
+                                        (set-date-year! object val)))
      (list #\z (lambda (c)
                  (or (char=? c #\Z)
                      (char=? c #\z)
                      (char=? c #\+)
                      (char=? c #\-)))
            priv:zone-reader (lambda (val object)
-                              (priv:set-date-zone-offset! object val))))))
+                              (set-date-zone-offset! object val))))))
 
 (define (priv:string->date date index format-string str-len port template-string)
   (define (skip-until port skipper)
@@ -1513,13 +1518,24 @@
          (date-month date)
          (date-year date)
          (date-zone-offset date)))
-  (let ((newdate (make-date 0 0 0 0 #f #f #f (priv:local-tz-offset))))
+  (let ((newdate (make-date 0 0 0 0 #f #f #f #f)))
     (priv:string->date newdate
                        0
                        template-string
                        (string-length template-string)
                        (open-input-string input-string)
                        template-string)
+    (if (not (date-zone-offset newdate))
+	(begin
+	  ;; this is necessary to get DST right -- as far as we can
+	  ;; get it right (think of the double/missing hour in the
+	  ;; night when we are switching between normal time and DST).
+	  (set-date-zone-offset! newdate
+				 (priv:local-tz-offset 
+				  (make-time time-utc 0 0)))
+	  (set-date-zone-offset! newdate
+				 (priv:local-tz-offset 
+				  (date->time-utc newdate)))))
     (if (priv:date-ok? newdate)
         newdate
         (priv:time-error
