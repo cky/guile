@@ -1,12 +1,17 @@
 2003-02-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
-	* struct.c (scm_struct_gc_init): Removed.
-	(scm_struct_prehistory): Init scm_i_structs_to_free to SCM_EOL.
-	(This fixes a serious GC bug, introduced during the latest
-	reorganization of the GC, preventing freeing of structs and GOOPS
-	objects.)
+	This fixes a serious GC bug, introduced during the latest
+	reorganization of the GC, which disabled freeing of structs and
+	GOOPS objects:
+
+	* struct.c (scm_struct_prehistory): Init scm_i_structs_to_free to
+	SCM_EOL.
 	(scm_struct_prehistory): Move scm_free_structs to
 	scm_before_mark_c_hook.
+
+	* gc-card.c (sweep_card): Check that we haven't swept structs on
+	this card before.  That can happen if scm_i_sweep_all_segments has
+	been called from some other place than scm_igc.
 
 2003-02-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 

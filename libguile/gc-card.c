@@ -129,13 +129,17 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
       switch (SCM_TYP7 (scmptr))
 	{
 	case scm_tcs_struct:
-	  {
-	    /* Structs need to be freed in a special order.
-	     * This is handled by GC C hooks in struct.c.
-	     */
-	    SCM_SET_STRUCT_GC_CHAIN (p, scm_i_structs_to_free);
-	    scm_i_structs_to_free = scmptr;
-	  }
+	  /* The card can be swept more than once.  Check that it's
+	   * the first time!
+	   */
+	  if (!SCM_STRUCT_GC_CHAIN (p))
+	    {
+	      /* Structs need to be freed in a special order.
+	       * This is handled by GC C hooks in struct.c.
+	       */
+	      SCM_SET_STRUCT_GC_CHAIN (p, scm_i_structs_to_free);
+	      scm_i_structs_to_free = scmptr;
+	    }
 	  continue;
       
 	case scm_tcs_cons_imcar:
