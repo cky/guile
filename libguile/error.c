@@ -77,7 +77,9 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 	    "@code{#f} depending on @var{key}: if @var{key} is\n"
 	    "@code{system-error} then it should be a list containing the\n"
 	    "Unix @code{errno} value; If @var{key} is @code{signal} then it\n"
-	    "should be a list containing the Unix signal number; otherwise\n"
+	    "should be a list containing the Unix signal number; If\n"
+	    "@var{key} is @code{out-of-range} or @code{wrong-type-arg},\n"
+            "it is a list containing the bad value; otherwise\n"
 	    "it will usually be @code{#f}.")
 #define FUNC_NAME s_scm_error_scm
 {
@@ -181,9 +183,9 @@ scm_out_of_range (const char *subr, SCM bad_value)
 {
   scm_error (scm_out_of_range_key,
 	     subr,
-	     "Argument out of range: ~S",
+	     "Value out of range: ~S",
              scm_list_1 (bad_value),
-	     SCM_BOOL_F);
+             scm_list_1 (bad_value));
 }
 
 void
@@ -191,9 +193,9 @@ scm_out_of_range_pos (const char *subr, SCM bad_value, SCM pos)
 {
   scm_error (scm_out_of_range_key,
 	     subr,
-	     "Argument ~S out of range: ~S",
+	     "Argument ~A out of range: ~S",
              scm_list_2 (pos, bad_value),
-	     SCM_BOOL_F);
+	     scm_list_1 (bad_value));
 }
 
 
@@ -230,25 +232,28 @@ scm_wrong_type_arg (const char *subr, int pos, SCM bad_value)
 	     : "Wrong type argument in position ~A: ~S",
 	     (pos == 0) ? scm_list_1 (bad_value)
 	     : scm_list_2 (scm_from_int (pos), bad_value),
-	     SCM_BOOL_F);
+	     scm_list_1 (bad_value));
 }
 
 void
 scm_wrong_type_arg_msg (const char *subr, int pos, SCM bad_value, const char *szMessage)
 {
   SCM msg = scm_from_locale_string (szMessage);
-  if (pos == 0) {
-    scm_error (scm_arg_type_key,
-               subr, "Wrong type argument (expecting ~A): ~S",
-               scm_list_2 (msg, bad_value),
-               SCM_BOOL_F);
-  } else {
-    scm_error (scm_arg_type_key,
-               subr,
-               "Wrong type argument in position ~A (expecting ~A): ~S",
-               scm_list_3 (scm_from_int (pos), msg, bad_value),
-               SCM_BOOL_F);
-  }
+  if (pos == 0)
+    {
+      scm_error (scm_arg_type_key,
+		 subr, "Wrong type (expecting ~A): ~S",
+		 scm_list_2 (msg, bad_value),
+		 scm_list_1 (bad_value));
+    }
+  else
+    {
+      scm_error (scm_arg_type_key,
+		 subr,
+		 "Wrong type argument in position ~A (expecting ~A): ~S",
+		 scm_list_3 (scm_from_int (pos), msg, bad_value),
+		 scm_list_1 (bad_value));
+    }
 }
 
 
