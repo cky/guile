@@ -214,7 +214,7 @@ cwdr (proc, a1, args, handler, stack_start)
 #endif
   
   /* Catch all errors. */
-  answer = scm_catch_apply (SCM_BOOL_T, proc, a1, args, handler, 0);
+  answer = scm_catch_apply (SCM_BOOL_T, proc, a1, args, handler);
   
   scm_dowinds (old_winds, - scm_ilength (old_winds));
   SCM_REDEFER_INTS;

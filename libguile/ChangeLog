@@ -1,3 +1,13 @@
+Mon Oct  7 00:14:17 1996  Mikael Djurfeldt  <mdj@kenneth>
+
+	* init.c (scm_boot_guile_1): Bugfix: i --> base in argument to
+	`scm_init_threads'.
+
+	* throw.h (scm_catch_apply): Removed the `lazyp' argument.
+
+	* throw.c (scm_catch_apply): Finished implementation of
+	`lazy-catch'.
+
 Sun Oct  6 05:26:05 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* filesys.c (scm_sys_select): move SCM_ALLOW_INTS past the sreturn
