@@ -20,8 +20,8 @@ IMPORTANT FACTS ABOUT SNAPSHOTS:
 The Guile snapshots are available via anonymous FTP from
 alpha.gnu.ai.mit.edu, as /gnu/guile-snap.tar.gz.
 
-Via the web, it's:  ftp://alpha.gnu.ai.mit.edu/gnu/guile-snap.tar.gz
-For getit, that's:  alpha.gnu.ai.mit.edu:/gnu/guile-snap.tar.gz
+Via the web, that's:  ftp://alpha.gnu.ai.mit.edu/gnu/guile-snap.tar.gz
+For getit, that's:    alpha.gnu.ai.mit.edu:/gnu/guile-snap.tar.gz
 
 Guile is a portable, embeddable Scheme implementation written in C.
 Guile provides a machine independent execution platform that can be
