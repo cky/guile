@@ -16,6 +16,10 @@
 	* srfi-14.scm: Call "scm_init_srfi_14" instead of
 	"scm_init_srfi_13_14".
 
+2001-05-16  Rob Browning  <rlb@cs.utexas.edu>
+
+	* srfi-19.scm (priv:integer-reader-exact): minor cleanups.
+
 2001-05-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* Makefile.am (srfi_DATA): Added srfi-16.scm.

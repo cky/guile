@@ -6,6 +6,11 @@
 	* scheme-control.texi (Lazy Catch): Update doc for new constraint
 	that lazy-catch handlers are not allowed to return.
 
+2001-05-16  Rob Browning  <rlb@cs.utexas.edu>
+
+	* scheme-options.texi (Install Config): fixed minor-version docs
+	and added micro-version docs.
+
 2001-05-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* data-rep.texi, srfi-modules.texi (SRFI-14 Iterating Over
