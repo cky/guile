@@ -1,3 +1,9 @@
+Sat Oct 25 14:23:22 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.am: Include readline.scm in the list of files to be
+	installed, so Guile can find it for interactive use.
+	* Makefile.in: Regenerated.
+
 Thu Oct 23 01:00:33 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	Add support for readline function.

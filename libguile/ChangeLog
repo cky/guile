@@ -1,3 +1,8 @@
+Sun Oct 26 02:20:11 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.am (modinclude_HEADERS): Include readline.h here.
+	* Makefile.in: Regenerated.
+
 1997-10-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* print.h (SCM_COERCE_OPORT): Renamed to SCM_COERCE_OUTPORT.  An
