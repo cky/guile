@@ -688,12 +688,16 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
            (SCM ports),
-	    "Close all open file ports used by the interpreter\n"
+	    "[DEPRECATED] Close all open file ports used by the interpreter\n"
 	    "except for those supplied as arguments.  This procedure\n"
-	    "is intended to be used before an exec call to close file descriptors\n"
-	    "which are not needed in the new process.")
+	    "was intended to be used before an exec call to close file descriptors\n"
+	    "which are not needed in the new process.  However it has the\n"
+	    "undesirable side-effect of flushing buffes, so it's deprecated.\n"
+	    "Use port-for-each instead.")
 #define FUNC_NAME s_scm_close_all_ports_except
 {
   int i = 0;
@@ -723,6 +727,7 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
 }
 #undef FUNC_NAME
 
+#endif
 
 
 /* Utter miscellany.  Gosh, we should clean this up some time.  */

@@ -1,3 +1,8 @@
+2000-11-09  Gary Houston  <ghouston@arglist.com>
+
+	* ports.c, ports.h (scm_close_all_ports_except): deprecated.
+	use port-for-each.  Updated its docstring.
+
 2000-11-07  Gary Houston  <ghouston@arglist.com>
 
 	* ports.c (scm_port_for_each): new proc.  implements port-for-each,

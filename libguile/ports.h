@@ -267,7 +267,6 @@ extern SCM scm_close_input_port (SCM port);
 extern SCM scm_close_output_port (SCM port);
 extern SCM scm_close_port (SCM port);
 extern SCM scm_port_for_each (SCM proc);
-extern SCM scm_close_all_ports_except (SCM ports);
 extern SCM scm_input_port_p (SCM x);
 extern SCM scm_output_port_p (SCM x);
 extern SCM scm_port_p (SCM x);
@@ -315,6 +314,8 @@ extern SCM scm_pt_member (SCM member);
 /* #define SCM_CRDY	(32L<<16)  obsolete, for pushed back characters  */
 #define SCM_INPORTP(x) SCM_INPUT_PORT_P (x)
 #define SCM_OUTPORTP(x) SCM_OUTPUT_PORT_P (x)
+
+extern SCM scm_close_all_ports_except (SCM ports);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
