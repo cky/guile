@@ -49,7 +49,7 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
 11) Copy the tar file over to the GNU machines, and ask the appropriate
     person to put it on prep.  At the time of this writing, Daniel Hagerty
     <hag@ai.mit.edu> has been generous about helping with that.
-12) Send an announcement message to gnu-announce@prep.ai.mit.edu.  Put
+12) Send an announcement message to gnu-announce@gnu.org.  Put
     "Obtaining Guile" first, then a brief summary of the changes in
     this release, then "Thanks," "About This Distribution," and
     "Nightly Snapshots."  If I remember correctly, the moderator will

@@ -3,7 +3,7 @@ implementation written in C.  Guile provides a machine independent
 execution platform that can be linked in as a library when building
 extensible programs.
 
-Please send bug reports to bug-guile@prep.ai.mit.edu.
+Please send bug reports to bug-guile@gnu.org.
 
 About Snapshots ======================================================
 
@@ -122,7 +122,7 @@ For getit, that's:    prep.ai.mit.edu:/pub/gnu/guile-1.2.tar.gz
 The mailing list `guile@cygnus.com' carries discussions, questions,
 and often answers, about Guile.  To subscribe, send mail to
 guile-request@cygnus.com.  Of course, please send bug reports (and
-fixes!) to bug-guile@prep.ai.mit.edu.
+fixes!) to bug-guile@gnu.org.
 
 
 Authors And Contributors =============================================
