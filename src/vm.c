@@ -149,34 +149,28 @@ vm_fetch_length (scm_byte_t *ip, size_t *lenp)
 }
 
 static SCM
-vm_heapify_frames_1 (struct scm_vm *vp, SCM *fp, SCM *limit, SCM **basep)
+vm_heapify_frames_1 (struct scm_vm *vp, SCM *fp, SCM *sp, SCM **destp)
 {
-  SCM *base, frame;
+  SCM frame;
   SCM *dl = SCM_FRAME_DYNAMIC_LINK (fp);
-  SCM *sp = SCM_FRAME_UPPER_ADDRESS (fp);
+  SCM *src = SCM_FRAME_UPPER_ADDRESS (fp);
+  SCM *dest = SCM_FRAME_LOWER_ADDRESS (fp);
 
   if (!dl)
     {
       /* The top frame */
-      base  = vp->stack_base;
       frame = scm_c_make_heap_frame (fp);
       fp = SCM_HEAP_FRAME_POINTER (frame);
       SCM_FRAME_HEAP_LINK (fp) = SCM_BOOL_T;
     }
   else
     {
-      /* Other frames */
+      /* Child frames */
       SCM link = SCM_FRAME_HEAP_LINK (dl);
       if (!SCM_FALSEP (link))
-	{
-	  link = SCM_FRAME_LOWER_ADDRESS (dl)[-1]; /* self link */
-	  base = SCM_FRAME_LOWER_ADDRESS (fp);
-	}
+	link = SCM_FRAME_LOWER_ADDRESS (dl)[-1]; /* self link */
       else
-	{
-	  link = vm_heapify_frames_1 (vp, dl, SCM_FRAME_LOWER_ADDRESS (fp),
-				      &base);
-	}
+	link = vm_heapify_frames_1 (vp, dl, dest - 1, &dest);
       frame = scm_c_make_heap_frame (fp);
       fp = SCM_HEAP_FRAME_POINTER (frame);
       SCM_FRAME_HEAP_LINK (fp)    = link;
@@ -184,9 +178,9 @@ vm_heapify_frames_1 (struct scm_vm *vp, SCM *fp, SCM *limit, SCM **basep)
     }
 
   /* Move stack data */
-  for (; sp < limit; base++, sp++)
-    *base = *sp;
-  *basep = base;
+  for (; src <= sp; src++, dest++)
+    *dest = *src;
+  *destp = dest;
 
   return frame;
 }
@@ -197,10 +191,10 @@ vm_heapify_frames (SCM vm)
   struct scm_vm *vp = SCM_VM_DATA (vm);
   if (SCM_FALSEP (SCM_FRAME_HEAP_LINK (vp->fp)))
     {
-      SCM *base;
-      vp->this_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp + 1, &base);
+      SCM *dest;
+      vp->this_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp, &dest);
       vp->fp = SCM_HEAP_FRAME_POINTER (vp->this_frame);
-      vp->sp = base - 1;
+      vp->sp = dest - 1;
     }
   return vp->this_frame;
 }

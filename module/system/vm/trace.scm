@@ -45,11 +45,15 @@
 
 (define (trace-next vm)
   (define (puts x) (display #\tab) (write x))
+  (define (truncate! x n)
+    (if (> (length x) n)
+      (list-cdr-set! x (1- n) '(...))) x)
+  ;; main
   (format #t "0x~8X  ~16S" (vm:ip vm) (vm-fetch-code vm))
   (do ((opts (vm-option vm 'trace-options) (cdr opts)))
       ((null? opts) (newline))
     (case (car opts)
-      ((:s) (puts (vm-fetch-stack vm)))
+      ((:s) (puts (truncate! (vm-fetch-stack vm) 3)))
       ((:l) (puts (vm-fetch-locals vm)))
       ((:e) (puts (vm-fetch-externals vm))))))
 

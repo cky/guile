@@ -251,10 +251,10 @@
 	 ;; (set VARS)...
 	 ;; BODY
 	 (for-each comp-push vals)
-	 (for-each (lambda (var) (push-code! (make-glil-var 'set env var)))
-		   (reverse vars))
 	 (let ((vars (map (lambda (v) (list v.name v.kind v.index)) vars)))
 	   (if (not (null? vars)) (push-code! (<glil-bind> vars))))
+	 (for-each (lambda (var) (push-code! (make-glil-var 'set env var)))
+		   (reverse vars))
 	 (comp-tail body)
 	 (push-code! (<glil-unbind>)))
 

@@ -54,9 +54,10 @@ VM_DEFINE_INSTRUCTION (nop, "nop", 0, 0, 0)
 
 VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
 {
-  SCM ret = *sp;
+  SCM ret;
   vp->time += scm_c_get_internal_run_time () - start_time;
   HALT_HOOK ();
+  POP (ret);
   FREE_FRAME ();
   SYNC_ALL ();
   return ret;
@@ -490,9 +491,9 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 {
   SCM ret;
  vm_return:
-  POP (ret);
   EXIT_HOOK ();
   RETURN_HOOK ();
+  POP (ret);
   FREE_FRAME ();
 
   /* Restore the last program */
