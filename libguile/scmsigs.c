@@ -108,12 +108,15 @@ int usleep ();
 
 /* Scheme vectors with information about a signal.  signal_handlers
    contains the handler procedure or #f, signal_handler_cells contains
-   preallocated cells for queuing the handler in take_signal since we
-   can't allocate during signal delivery, signal_handler_threads
-   points to the thread that a signal should be delivered to.
+   pre-queued cells for the handler (since we can't do fancy things
+   during signal delivery), signal_cell_handlers contains the SCM
+   value to be stuffed into the pre-queued cell upon delivery, and
+   signal_handler_threads points to the thread that a signal should be
+   delivered to.
 */
 static SCM *signal_handlers;
 static SCM signal_handler_cells;
+static SCM signal_cell_handlers;
 static SCM signal_handler_threads;
 
 /* saves the original C handlers, when a new handler is installed.
@@ -124,20 +127,23 @@ static struct sigaction orig_handlers[NSIG];
 static SIGRETTYPE (*orig_handlers[NSIG])(int);
 #endif
 
+
 static SIGRETTYPE
 take_signal (int signum)
 {
   if (signum >= 0 && signum < NSIG)
     {
-#ifdef USE_THREADS
-      SCM thread = SCM_VECTOR_REF (signal_handler_threads, signum);
-      scm_i_queue_async_cell (SCM_VECTOR_REF(signal_handler_cells, signum),
-			      scm_i_thread_root (thread));
-#else
-      scm_i_queue_async_cell (SCM_VECTOR_REF(signal_handler_cells, signum),
-			      scm_root);
-#endif
+      SCM cell = SCM_VECTOR_REF(signal_handler_cells, signum);
+      SCM handler = SCM_VECTOR_REF(signal_cell_handlers, signum);
+      SCM thread = SCM_VECTOR_REF(signal_handler_threads, signum);
+      scm_root_state *root = scm_i_thread_root (thread);
+      if (SCM_CONSP (cell))
+	{
+	  SCM_SETCAR (cell, handler);
+	  root->pending_asyncs = 1;
+	}
     }
+  
 #ifndef HAVE_SIGACTION
   signal (signum, take_signal);
 #endif
@@ -154,6 +160,131 @@ close_1 (SCM proc, SCM arg)
 {
   return scm_primitive_eval_x (scm_list_3 (scm_sym_lambda, SCM_EOL,
 					   scm_list_2 (proc, arg)));
+}
+
+/* Make sure that signal SIGNUM can be delivered to THREAD, using
+   HANDLER.  THREAD and HANDLER must either both be non-#f (which
+   means install the handler), or both #f (which means deinstall an
+   existing handler).
+*/
+
+struct install_handler_data {
+  int signum;
+  SCM thread;
+  SCM handler;
+};
+
+static SCM
+scm_delq_spine_x (SCM cell, SCM list)
+{
+  SCM s = list, prev = SCM_BOOL_F;
+  
+  while (!SCM_EQ_P (cell, s))
+    {
+      if (SCM_NULLP (s))
+	return list;
+      prev = s;
+      s = SCM_CDR (s);
+    }
+  if (SCM_FALSEP (prev))
+    return SCM_CDR (cell);
+  else
+    {
+      SCM_SETCDR (prev, SCM_CDR (cell));
+      return list;
+    }
+}
+
+static void *
+really_install_handler (void *data)
+{
+  struct install_handler_data *args = data;
+  int signum = args->signum;
+  SCM thread = args->thread;
+  SCM handler = args->handler;
+  SCM cell;
+  SCM old_thread;
+
+  /* The following modifications are done while signals can be
+     delivered.  That is not a real problem since the signal handler
+     will only touch the car of the handler cell and set the
+     pending_asyncs trigger of a thread.  While the data structures
+     are in flux, the signal handler might store the wrong handler in
+     the cell, or set pending_asyncs of the wrong thread.  We fix this
+     at the end by making sure that the cell has the right handler in
+     it, if any, and that pending_asyncs is set for the new thread.
+  */
+
+  /* Make sure we have a cell. */
+  cell = SCM_VECTOR_REF (signal_handler_cells, signum);
+  if (SCM_FALSEP (cell))
+    {
+      cell = scm_cons (SCM_BOOL_F, SCM_EOL);
+      SCM_VECTOR_SET (signal_handler_cells, signum, cell);
+    }
+
+  /* Make sure it is queued for the right thread. */
+  old_thread = SCM_VECTOR_REF (signal_handler_threads, signum);
+  if (!SCM_EQ_P (thread, old_thread))
+    {
+      scm_root_state *r;
+      if (!SCM_FALSEP (old_thread))
+	{
+	  r = scm_i_thread_root (old_thread);
+	  r->signal_asyncs = scm_delq_spine_x (cell, r->signal_asyncs);
+	}
+      if (!SCM_FALSEP (thread))
+	{
+	  r = scm_i_thread_root (thread);
+	  SCM_SETCDR (cell, r->signal_asyncs);
+	  r->signal_asyncs = cell;
+	  /* Set pending_asyncs just in case.  A signal that is
+	     delivered while we modify the data structures here might set
+	     pending_asyncs of old_thread. */
+	  r->pending_asyncs = 1; 
+	}
+      SCM_VECTOR_SET (signal_handler_threads, signum, thread); 
+    }
+
+  /* Set the new handler. */
+  if (SCM_FALSEP (handler))
+    {
+      SCM_VECTOR_SET (*signal_handlers, signum, SCM_BOOL_F);
+      SCM_VECTOR_SET (signal_cell_handlers, signum, SCM_BOOL_F);
+    }
+  else
+    {
+      SCM_VECTOR_SET (*signal_handlers, signum, handler);
+      SCM_VECTOR_SET (signal_cell_handlers, signum,
+		      close_1 (handler, scm_int2num (signum)));
+    }
+
+  /* Now fix up the cell.  It might contain the old handler but since
+     it is now queued for the new thread, we must make sure that the
+     new handler is run.  Any signal that is delivered during the
+     following code will install the new handler, so we have no
+     problem.
+  */
+  if (!SCM_FALSEP (SCM_CAR (cell)))
+    SCM_SETCAR (cell, SCM_VECTOR_REF (signal_cell_handlers, signum));
+
+  /* Phfew.  That should be it. */
+  return NULL;
+}
+
+static void
+install_handler (int signum, SCM thread, SCM handler)
+{
+  /* We block asyncs while installing the handler.  It would be safe
+     to leave them on, but we might run the wrong handler should a
+     signal be delivered. 
+  */
+
+  struct install_handler_data args;
+  args.signum = signum;
+  args.thread = thread;
+  args.handler = handler;
+  scm_c_call_with_blocked_asyncs (really_install_handler, &args);
 }
 
 /* user interface for installation of signal handlers.  */
@@ -224,7 +355,11 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   if (SCM_UNBNDP (thread))
     thread = scm_current_thread ();
   else
-    SCM_VALIDATE_THREAD (4, thread);
+    {
+      SCM_VALIDATE_THREAD (4, thread);
+      if (scm_c_thread_exited_p (thread))
+	SCM_MISC_ERROR ("thread has already exited", SCM_EOL);
+    }
 #else
   thread = SCM_BOOL_F;
 #endif
@@ -243,7 +378,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 #else
 	  chandler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
 #endif
-	  SCM_VECTOR_SET (*signal_handlers, csig, SCM_BOOL_F);
+	  install_handler (csig, SCM_BOOL_F, SCM_BOOL_F);
 	}
       else
 	SCM_OUT_OF_RANGE (2, handler);
@@ -258,8 +393,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 	{
 	  action = orig_handlers[csig];
 	  orig_handlers[csig].sa_handler = SIG_ERR;
-	  SCM_VECTOR_SET (*signal_handlers, csig, SCM_BOOL_F);
-
+	  install_handler (csig, SCM_BOOL_F, SCM_BOOL_F);
 	}
 #else
       if (orig_handlers[csig] == SIG_ERR)
@@ -268,7 +402,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 	{
 	  chandler = orig_handlers[csig];
 	  orig_handlers[csig] = SIG_ERR;
-	  SCM_VECTOR_SET (*signal_handlers, csig, SCM_BOOL_F);
+	  install_handler (csig, SCM_BOOL_F, SCM_BOOL_F);
 	}
 #endif
     }
@@ -284,10 +418,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
       if (orig_handlers[csig] == SIG_ERR)
 	save_handler = 1;
 #endif
-      SCM_VECTOR_SET (*signal_handlers, csig, handler);
-      SCM_VECTOR_SET (signal_handler_cells, csig,
-		      scm_cons (close_1 (handler, signum), SCM_BOOL_F));
-      SCM_VECTOR_SET (signal_handler_threads, csig, thread);
+      install_handler (csig, thread, handler);
     }
 
   /* XXX - Silently ignore setting handlers for `program error signals'
@@ -581,6 +712,8 @@ scm_init_scmsigs ()
     SCM_VARIABLE_LOC (scm_c_define ("signal-handlers",
 				  scm_c_make_vector (NSIG, SCM_BOOL_F)));
   signal_handler_cells =
+    scm_permanent_object (scm_c_make_vector (NSIG, SCM_BOOL_F));
+  signal_cell_handlers =
     scm_permanent_object (scm_c_make_vector (NSIG, SCM_BOOL_F));
   signal_handler_threads =
     scm_permanent_object (scm_c_make_vector (NSIG, SCM_BOOL_F));
