@@ -1,3 +1,9 @@
+Tue Jun 24 13:34:20 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
+
+	* aclocal.m4 (AM_PATH_PROG_LD): Change `ac_cv_path_LD' typo to
+	`am_cv_path_LD'.
+	* configure: Regenerated.
+
 Sun Jun 22 15:43:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	Try to detect when people are using one version of libguile and a

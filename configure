@@ -1129,7 +1129,7 @@ if eval "test \"`echo '$''{'am_cv_path_LD'+set}'`\" = set"; then
 else
   case "$LD" in
   /*)
-  ac_cv_path_LD="$LD" # Let the user override the test with a path.
+  am_cv_path_LD="$LD" # Let the user override the test with a path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
