@@ -3496,15 +3496,14 @@ tail:
     case scm_tc7_smob:
       if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	goto badproc;
-      if (SCM_NULLP (args))
+      if (SCM_UNBNDP (arg1))
 	RETURN (scm_smob_apply_0 (proc))
+      else if (SCM_NULLP (args))
+	RETURN (scm_smob_apply_1 (proc, arg1))
       else if (SCM_NULLP (SCM_CDR (args)))
-	RETURN (scm_smob_apply_1 (proc, SCM_CAR (args)))
-      else if (SCM_NULLP (SCM_CDDR (args)))
-	RETURN (scm_smob_apply_2 (proc, SCM_CAR (args), SCM_CADR (args)))
+	RETURN (scm_smob_apply_2 (proc, arg1, SCM_CAR (args)))
       else
-	RETURN (scm_smob_apply_3 (proc, SCM_CAR (args), SCM_CADR (args),
-				  SCM_CDDR (args)));
+	RETURN (scm_smob_apply_3 (proc, arg1, SCM_CAR (args), SCM_CDR (args)));
     case scm_tc7_contin:
       SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);
       scm_call_continuation (proc, arg1);
