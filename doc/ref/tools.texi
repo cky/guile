@@ -62,7 +62,6 @@ generate a file of calls to @code{scm_c_define_gsubr} which you can
 @menu
 * How guile-snarf works::          Using @code{guile-snarf}, with example.
 * Macros guile-snarf recognizes::  How to mark up code for @code{guile-snarf}.
-* guile-1.4 guile-snarf::          The old way, and how handle it.
 @end menu
 
 @c ---------------------------------------------------------------------------
@@ -71,7 +70,7 @@ generate a file of calls to @code{scm_c_define_gsubr} which you can
 @cindex guile-snarf invocation
 @cindex guile-snarf example
 
-Usage: guile-snarf [--compat=1.4] [-o OUTFILE] INFILE [CPP-OPTIONS ...]
+Usage: guile-snarf [-d | -D] [-o OUTFILE] INFILE [CPP-OPTIONS ...]
 
 What @code{guile-snarf} does:
 
@@ -87,14 +86,15 @@ lines from the input matching grep(1) regular expression:
 If there are errors during processing, delete OUTFILE and exit with
 non-zero status.
 
-Optional arg "--compat=1.4" means emulate guile-1.4 guile-snarf.
-This option is not fully tested (@pxref{guile-1.4 guile-snarf}).
+Optional arg "-d" means grep INFILE for deprecated macros and
+issue a warning if any are found.  Alternatively, "-D" means
+do the same thing but signal error and exit with non-zero status.
 
 If env var CPP is set, use its value instead of the C pre-processor
 determined at Guile configure-time.
 
 @xref{Macros guile-snarf recognizes}, for a list of the special (some would
-say magic) cpp macros you can use.
+say magic) cpp macros you can use, including the list of deprecated macros.
 
 For example, here is how you might define a new subr called
 @code{clear-image}, implemented by the C function @code{clear_image}:
@@ -178,6 +178,7 @@ add header file directories, and so on.
 @node Macros guile-snarf recognizes
 @subsubsection Macros guile-snarf recognizes
 @cindex guile-snarf recognized macros
+@cindex guile-snarf deprecated macros
 
 Here are the macros you can use in your source code from which
 @code{guile-snarf} can construct initialization code:
@@ -234,78 +235,25 @@ Also, it's a good idea to define @var{FUNC_NAME} immediately after using
 @code{SCM_DEFINE} (and similar), and then the function body, and then
 @code{#undef FUNC_NAME}.
 
+Here is the list of deprecated macros:
+
+@c reminder: sync w/ libguile/guile-snarf.in var `deprecated_list'
+@example
+ SCM_CONST_LONG
+ SCM_VCELL
+ SCM_VCELL_INIT
+ SCM_GLOBAL_VCELL
+ SCM_GLOBAL_VCELL_INIT
+@end example
+
+Some versions of guile (and guile-snarf) will continue to recognize them but
+at some point they will no longer work.  You can pass either @code{-d} or
+@code{-D} option to have guile-snarf warn or signal error, respectively, if
+any of these are found in the input file.
+
 @xref{How guile-snarf works}, and also libguile source, for examples.
 @xref{Subrs}, for details on argument passing and how to write C
 functions.
-
-@xref{guile-1.4 guile-snarf}, if you have code that relies on the guile-snarf
-shipped with guile-1.4 (guile-snarf shipped with guile-1.6 is different).
-
-@c ---------------------------------------------------------------------------
-@node guile-1.4 guile-snarf
-@subsubsection guile-1.4 guile-snarf
-@cindex guile-1.4 guile-snarf
-@cindex guile-snarf, guile-1.4
-
-The @code{guile-snarf} included with guile-1.4 differs in behavior and usage
-from that included with guile-1.6 and later.  This page explains the four
-kinds of modifications code written with guile-1.4 guile-snarf in mind need to
-undergo, in order to be completely compatible with guile-1.6 init snarfing
-practice; and explains how to use @code{guile-snarf --compat=1.4}.
-
-@itemize
-
-@item Some of the recognized macro names have changed.
-
-Specifically, you need to rename:
-
-@itemize
-@item SCM_VCELL to SCM_VARIABLE
-@item SCM_GLOBAL_VCELL to SCM_GLOBAL_VARIABLE
-@item SCM_VCELL_INIT to SCM_VARIABLE_INIT
-@item SCM_GLOBAL_VCELL_INIT to SCM_GLOBAL_VARIABLE_INIT
-@end itemize
-
-@item The macro SCM_CONST_LONG is no longer recognized.
-
-Proabably you can use SCM_GLOBAL_VARIABLE_INIT where you would have
-formerly used SCM_CONST_LONG.  [fixme: needs verification]
-
-@item guile-snarf is no longer usable in a pipe.
-
-With guile-1.4 guile-snarf you had capture its output to a file, check
-the exit value of the guile-snarf process, and delete the file if that
-value was false.  These operations are now handled internally to
-guile-snarf, providing you either specify the output file explicitly, or
-use an input file name that ends in @code{.c} (in which case the output
-filename is computed from the input filename by replacing @code{.c} with
-@code{.x}).
-
-@end itemize
-
-If you have code that uses the old snarf macros (for example,
-SCM_VCELL), but have installed the new guile-snarf, you can arrange for
-the old macros to be still recognized by using the @code{--compat=1.4}
-option.  With this option, old macros are translated to their new
-variants on input to the modern snarfing process.  This means the .x
-files produced will make use of @code{scm_c_define_gsubr} and friends,
-which are ready to be compiled against the new libguile.
-
-Thus, @code{--compat=1.4} does not provide @emph{full} emulation, only
-input emulation.  (The thinking is: If you have a new guile-snarf
-installed, probably you have a new libguile installed, too, and would
-prefer to get your old code to work with the new libguile.)
-
-The makefile fragment to use would look something like:
-
-@example
-.c.x:
-        guile-snarf --compat=1.4 -o $@ $<
-@end example
-
-After you've done a global search and replace on SCM_VCELL and friends,
-you can remove @code{--compat=1.4} altogether (@pxref{How guile-snarf
-works}).
 
 @c ---------------------------------------------------------------------------
 @node Doc Snarfing
