@@ -10,7 +10,7 @@ The format is very simple (one bug per page):
 3   fixed: DATE (for guile VERSION)	   ^fixed: (.+) .for guile (.+).$
 4+  OTHER-NOTES
 
-DATE is formatted YYY-MM-DD, or "not-yet".  Line numbering is zero-origin;
+DATE is formatted YYYY-MM-DD, or "not-yet".  Line numbering is zero-origin;
 line 0 is empty (newline always follows newpage (recognizable w/ "\f\n")).
 The suggested regexps can be used in a line-oriented parser.
 
@@ -59,6 +59,27 @@ until a certain point, when the process becomes self-aware and includes its own
 improvement in its considerations.  then, hopefully it becomes light.
 
 to change people is difficult, but that's why we have guile...
+
+
+bug 4 -- named-let transform evaluates initvalue in the wrong scope
+reported-by: agj@alum.mit.edu / 2001-09-21
+fixed: not-yet
+
+currently:
+> (let name ((var init) ...) body ...)
+> 
+> to
+> 
+> (letrec ((name (lambda (var ...) body ...)))
+>   (name init ...))
+
+should be:
+> ((letrec ((name (lambda (var ...) body ...))) name) init ...)
+
+Dirk Herrmann sez:
+I will do it - no big deal (I hope).  But, I won't have time to do it
+before next week.  What about adding this code as a test case to the test
+suite?  Until it is fixed, it can be tagged as expected to fail.
 
 
 [BUGS ends here]
