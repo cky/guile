@@ -350,7 +350,7 @@ scm_igc (what)
     while (type_list != SCM_EOL)
       if (SCM_VELTS (SCM_CAR (type_list))[scm_struct_i_refcnt])
 	{
-	  pos = &SCM_CDR (type_list);
+	  pos = SCM_CDRLOC (type_list);
 	  type_list = SCM_CDR (type_list);
 	}
       else
@@ -717,7 +717,7 @@ gc_mark_nimp:
 	case scm_tc_free_cell:
 	  /* printf("found free_cell %X ", ptr); fflush(stdout); */
 	  SCM_SETGC8MARK (ptr);
-	  SCM_CDR (ptr) = SCM_EOL;
+	  SCM_SETCDR (ptr, SCM_EOL);
 	  break;
 	case scm_tcs_bignums:
 	case scm_tc16_flo:
@@ -952,7 +952,7 @@ scm_gc_sweep ()
 	      if (SCM_GCMARKP (scmptr))
 		{
 		  if (SCM_CDR (SCM_CAR (scmptr) - 1) == (SCM)1)
-		    SCM_CDR (SCM_CAR (scmptr) - 1) = (SCM)0;
+		    SCM_SETCDR (SCM_CAR (scmptr) - 1, (SCM) 0);
 		  goto cmrkcontinue;
 		}
 	      {
@@ -1090,7 +1090,7 @@ scm_gc_sweep ()
 		  SCM_SETSTREAM (scmptr, 0);
 		  scm_remove_from_port_table (scmptr);
 		  scm_gc_ports_collected++;
-		  SCM_CAR (scmptr) &= ~SCM_OPN;
+		  SCM_SETAND_CAR (scmptr, ~SCM_OPN);
 		}
 	      break;
 	    case scm_tc7_smob:
@@ -1146,8 +1146,8 @@ scm_gc_sweep ()
 	  if (SCM_CAR (scmptr) == (SCM) scm_tc_free_cell)
 	    exit (2);
 #endif
-	  SCM_CAR (scmptr) = (SCM) scm_tc_free_cell;
-	  SCM_CDR (scmptr) = nfreelist;
+	  SCM_SETCAR (scmptr, (SCM) scm_tc_free_cell);
+	  SCM_SETCDR (scmptr, nfreelist);
 	  nfreelist = scmptr;
 #if 0
 	  if ((nfreelist < scm_heap_table[0].bounds[0]) ||
@@ -1227,7 +1227,7 @@ scm_gc_sweep ()
 			*fixup = SCM_CDR (alist);
 		      }
 		    else
-		      fixup = &SCM_CDR (alist);
+		      fixup = SCM_CDRLOC (alist);
 		    alist = SCM_CDR (alist);
 		  }
 	      }
@@ -1453,8 +1453,8 @@ init_heap_seg (seg_org, size, ncells, freelistp)
 #ifdef SCM_POINTERS_MUNGED
       scmptr = PTR2SCM (ptr);
 #endif
-      SCM_CAR (scmptr) = (SCM) scm_tc_free_cell;
-      SCM_CDR (scmptr) = PTR2SCM (ptr + ncells);
+      SCM_SETCAR (scmptr, (SCM) scm_tc_free_cell);
+      SCM_SETCDR (scmptr, PTR2SCM (ptr + ncells));
       ptr += ncells;
     }
 
@@ -1463,7 +1463,7 @@ init_heap_seg (seg_org, size, ncells, freelistp)
   /* Patch up the last freelist pointer in the segment
    * to join it to the input freelist.
    */
-  SCM_CDR (PTR2SCM (ptr)) = *freelistp;
+  SCM_SETCDR (PTR2SCM (ptr), *freelistp);
   *freelistp = PTR2SCM (CELL_UP (seg_org));
 
   scm_heap_size += (ncells * n_new_objects);
@@ -1659,7 +1659,7 @@ scm_init_storage (init_heap_size)
 
 
   scm_undefineds = scm_cons (SCM_UNDEFINED, SCM_EOL);
-  SCM_CDR (scm_undefineds) = scm_undefineds;
+  SCM_SETCDR (scm_undefineds, scm_undefineds);
 
   scm_listofnull = scm_cons (SCM_EOL, SCM_EOL);
   scm_nullstr = scm_makstr (0L, 0);
