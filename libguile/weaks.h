@@ -30,24 +30,18 @@
 #define SCM_WVECTF_WEAK_VALUE 2
 #define SCM_WVECTF_NOSCAN     4
 
-#define SCM_WVECTP(x) (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_wvect)
-#define SCM_WVECT_TYPE(x) (SCM_CELL_WORD_2 (x))
-#define SCM_SET_WVECT_TYPE(x, t) (SCM_SET_CELL_WORD_2 ((x), (t)))
-#define SCM_WVECT_WEAK_KEY_P(x) (SCM_WVECT_TYPE (x) & SCM_WVECTF_WEAK_KEY)
-#define SCM_WVECT_WEAK_VALUE_P(x) (SCM_WVECT_TYPE (x) & SCM_WVECTF_WEAK_VALUE)
-#define SCM_WVECT_NOSCAN_P(x) (SCM_WVECT_TYPE (x) & SCM_WVECTF_NOSCAN)
-#define SCM_IS_WHVEC(X) (SCM_WVECT_TYPE (X) == 1)
-#define SCM_IS_WHVEC_V(X) (SCM_WVECT_TYPE (X) == 2)
-#define SCM_IS_WHVEC_B(X) (SCM_WVECT_TYPE (X) == 3)
-#define SCM_IS_WHVEC_ANY(X) (SCM_WVECT_TYPE (X) != 0)
-#define SCM_WVECT_GC_CHAIN(X) (SCM_CELL_OBJECT_3 (X))
-#define SCM_SET_WVECT_GC_CHAIN(X, o) (SCM_SET_CELL_OBJECT_3 ((X), (o)))
+#define SCM_WVECT_WEAK_KEY_P(x) (SCM_I_WVECT_TYPE(x) & SCM_WVECTF_WEAK_KEY)
+#define SCM_WVECT_WEAK_VALUE_P(x) (SCM_I_WVECT_TYPE(x) & SCM_WVECTF_WEAK_VALUE)
+#define SCM_WVECT_NOSCAN_P(x) (SCM_I_WVECT_TYPE (x) & SCM_WVECTF_NOSCAN)
+#define SCM_IS_WHVEC(X) (SCM_I_WVECT_TYPE (X) == 1)
+#define SCM_IS_WHVEC_V(X) (SCM_I_WVECT_TYPE (X) == 2)
+#define SCM_IS_WHVEC_B(X) (SCM_I_WVECT_TYPE (X) == 3)
+#define SCM_IS_WHVEC_ANY(X) (SCM_I_WVECT_TYPE (X) != 0)
 
 SCM_API SCM scm_weak_vectors;
 
 
 
-SCM_API SCM scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller);
 SCM_API SCM scm_make_weak_vector (SCM k, SCM fill);
 SCM_API SCM scm_weak_vector (SCM l);
 SCM_API SCM scm_weak_vector_p (SCM x);

@@ -66,49 +66,6 @@
  */
 
 
-/* Allocate memory for a weak vector on behalf of the caller.  The allocated
- * vector will be of the given weak vector subtype.  It will contain size
- * elements which are initialized with the 'fill' object, or, if 'fill' is
- * undefined, with an unspecified object.
- */
-SCM
-scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
-#define FUNC_NAME caller
-{
-  size_t c_size;
-  SCM v;
-
-  c_size = scm_to_unsigned_integer (size, 0, SCM_VECTOR_MAX_LENGTH);
-
-  if (c_size > 0)
-    {
-      scm_t_bits *base;
-      size_t j;
-      
-      if (SCM_UNBNDP (fill))
-	fill = SCM_UNSPECIFIED;
-      
-      base = scm_gc_malloc (c_size * sizeof (scm_t_bits), "weak vector");
-      for (j = 0; j != c_size; ++j)
-	base[j] = SCM_UNPACK (fill);
-      v = scm_double_cell (SCM_MAKE_VECTOR_TAG (c_size, scm_tc7_wvect),
-			   (scm_t_bits) base,
-			   type,
-			   SCM_UNPACK (SCM_EOL));
-      scm_remember_upto_here_1 (fill);
-    }
-  else
-    {
-      v = scm_double_cell (SCM_MAKE_VECTOR_TAG (0, scm_tc7_wvect),
-			   (scm_t_bits) NULL,
-			   type,
-			   SCM_UNPACK (SCM_EOL));
-    }
-
-  return v;
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
 	    (SCM size, SCM fill),
 	    "Return a weak vector with @var{size} elements. If the optional\n"
@@ -117,7 +74,7 @@ SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
 	    "empty list.")
 #define FUNC_NAME s_scm_make_weak_vector
 {
-  return scm_i_allocate_weak_vector (0, size, fill, FUNC_NAME);
+  return scm_i_allocate_weak_vector (0, size, fill);
 }
 #undef FUNC_NAME
 
@@ -133,24 +90,21 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
 	    "the same way @code{list->vector} would.")
 #define FUNC_NAME s_scm_weak_vector
 {
-  SCM res;
-  SCM *data;
+  scm_t_array_handle handle;
+  SCM res, *data;
   long i;
 
-  /* Dirk:FIXME:: In case of multiple threads, the list might get corrupted
-     while the vector is being created. */
   i = scm_ilength (l);
   SCM_ASSERT (i >= 0, l, SCM_ARG1, FUNC_NAME);
-  res = scm_make_weak_vector (scm_from_int (i), SCM_UNSPECIFIED);
 
-  /*
-    no alloc, so  this loop is safe.
-  */     
-  data = SCM_WRITABLE_VELTS (res);
-  while (!SCM_NULL_OR_NIL_P (l))
+  res = scm_make_weak_vector (scm_from_int (i), SCM_UNSPECIFIED);
+  data = scm_vector_writable_elements (res, &handle, NULL, NULL);
+
+  while (scm_is_pair (l) && i > 0)
     {
       *data++ = SCM_CAR (l);
       l = SCM_CDR (l);
+      i--;
     }
 
   return res;
@@ -164,7 +118,7 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 	    "weak hashes are also weak vectors.")
 #define FUNC_NAME s_scm_weak_vector_p
 {
-  return scm_from_bool (SCM_WVECTP (obj) && !SCM_IS_WHVEC (obj));
+  return scm_from_bool (SCM_I_WVECTP (obj) && !SCM_IS_WHVEC (obj));
 }
 #undef FUNC_NAME
 
@@ -183,7 +137,7 @@ SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 
 #define FUNC_NAME s_scm_make_weak_key_alist_vector
 {
   return scm_i_allocate_weak_vector
-    (1, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL, FUNC_NAME);
+    (1, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL);
 }
 #undef FUNC_NAME
 
@@ -195,7 +149,7 @@ SCM_DEFINE (scm_make_weak_value_alist_vector, "make-weak-value-alist-vector", 0,
 #define FUNC_NAME s_scm_make_weak_value_alist_vector
 {
   return scm_i_allocate_weak_vector
-    (2, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL, FUNC_NAME);
+    (2, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL);
 }
 #undef FUNC_NAME
 
@@ -207,7 +161,7 @@ SCM_DEFINE (scm_make_doubly_weak_alist_vector, "make-doubly-weak-alist-vector", 
 #define FUNC_NAME s_scm_make_doubly_weak_alist_vector
 {
   return scm_i_allocate_weak_vector
-    (3, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL, FUNC_NAME);
+    (3, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL);
 }
 #undef FUNC_NAME
 
@@ -221,7 +175,7 @@ SCM_DEFINE (scm_weak_key_alist_vector_p, "weak-key-alist-vector?", 1, 0, 0,
 	    "nor a weak value hash table.")
 #define FUNC_NAME s_scm_weak_key_alist_vector_p
 {
-  return scm_from_bool (SCM_WVECTP (obj) && SCM_IS_WHVEC (obj));
+  return scm_from_bool (SCM_I_WVECTP (obj) && SCM_IS_WHVEC (obj));
 }
 #undef FUNC_NAME
 
@@ -231,7 +185,7 @@ SCM_DEFINE (scm_weak_value_alist_vector_p, "weak-value-alist-vector?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a weak value hash table.")
 #define FUNC_NAME s_scm_weak_value_alist_vector_p
 {
-  return scm_from_bool (SCM_WVECTP (obj) && SCM_IS_WHVEC_V (obj));
+  return scm_from_bool (SCM_I_WVECTP (obj) && SCM_IS_WHVEC_V (obj));
 }
 #undef FUNC_NAME
 
@@ -241,7 +195,7 @@ SCM_DEFINE (scm_doubly_weak_alist_vector_p, "doubly-weak-alist-vector?", 1, 0, 0
 	    "Return @code{#t} if @var{obj} is a doubly weak hash table.")
 #define FUNC_NAME s_scm_doubly_weak_alist_vector_p
 {
-  return scm_from_bool (SCM_WVECTP (obj) && SCM_IS_WHVEC_B (obj));
+  return scm_from_bool (SCM_I_WVECTP (obj) && SCM_IS_WHVEC_B (obj));
 }
 #undef FUNC_NAME
 
@@ -264,7 +218,7 @@ scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
 {
   SCM w;
 
-  for (w = scm_weak_vectors; !scm_is_null (w); w = SCM_WVECT_GC_CHAIN (w))
+  for (w = scm_weak_vectors; !scm_is_null (w); w = SCM_I_WVECT_GC_CHAIN (w))
     {
       if (SCM_IS_WHVEC_ANY (w))
 	{
@@ -274,8 +228,8 @@ scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
 	  long n;
 
 	  obj = w;
-	  ptr = SCM_VELTS (w);
-	  n = SCM_VECTOR_LENGTH (w);
+	  ptr = SCM_I_WVECT_GC_WVELTS (w);
+	  n = SCM_I_WVECT_LENGTH (w);
 	  for (j = 0; j < n; ++j)
 	    {
 	      SCM alist;
@@ -304,14 +258,14 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
 		       void *dummy3 SCM_UNUSED)
 {
   SCM *ptr, w;
-  for (w = scm_weak_vectors; !scm_is_null (w); w = SCM_WVECT_GC_CHAIN (w))
+  for (w = scm_weak_vectors; !scm_is_null (w); w = SCM_I_WVECT_GC_CHAIN (w))
     {
       if (!SCM_IS_WHVEC_ANY (w))
 	{
 	  register long j, n;
 
-	  ptr = SCM_GC_WRITABLE_VELTS (w);
-	  n = SCM_VECTOR_LENGTH (w);
+	  ptr = SCM_I_WVECT_GC_WVELTS (w);
+	  n = SCM_I_WVECT_LENGTH (w);
 	  for (j = 0; j < n; ++j)
 	    if (UNMARKED_CELL_P (ptr[j]))
 	      ptr[j] = SCM_BOOL_F;
@@ -321,12 +275,12 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
       else if (!SCM_WVECT_NOSCAN_P (w))
 	{
 	  SCM obj = w;
-	  register long n = SCM_VECTOR_LENGTH (w);
+	  register long n = SCM_I_WVECT_LENGTH (w);
 	  register long j;
           int weak_keys = SCM_IS_WHVEC (obj) || SCM_IS_WHVEC_B (obj);
           int weak_values = SCM_IS_WHVEC_V (obj) || SCM_IS_WHVEC_B (obj);
 
-	  ptr = SCM_GC_WRITABLE_VELTS (w);
+	  ptr = SCM_I_WVECT_GC_WVELTS (w);
 
 	  for (j = 0; j < n; ++j)
 	    {

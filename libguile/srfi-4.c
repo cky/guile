@@ -584,67 +584,6 @@ SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-const void *
-scm_uniform_vector_elements (SCM uvec)
-{
-  if (scm_is_uniform_vector (uvec))
-    return SCM_UVEC_BASE (uvec);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, uvec, "uniform vector");
-}
-
-void
-scm_uniform_vector_release_elements (SCM uvec)
-{
-  /* Nothing to do right now, but this function might come in handy
-     when uniform vectors need to be locked when giving away a pointer
-     to their elements.
-     
-     Also, a call to scm_uniform_vector_release acts like
-     scm_remember_upto_here, which is needed in any case.
-  */
-
-  scm_remember_upto_here_1 (uvec);
-}
-
-void
-scm_frame_uniform_vector_release_elements (SCM uvec)
-{
-  scm_frame_unwind_handler_with_scm (scm_uniform_vector_release_elements, uvec,
-				     SCM_F_WIND_EXPLICITLY);
-}
-
-void *
-scm_uniform_vector_writable_elements (SCM uvec)
-{
-  if (scm_is_uniform_vector (uvec))
-    return SCM_UVEC_BASE (uvec);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, uvec, "uniform vector");
-}
-
-void
-scm_uniform_vector_release_writable_elements (SCM uvec)
-{
-  /* Nothing to do right now, but this function might come in handy
-     when uniform vectors need to be locked when giving away a pointer
-     to their elements.
-     
-     Also, a call to scm_uniform_vector_release acts like
-     scm_remember_upto_here, which is needed in any case.
-  */
-
-  scm_remember_upto_here_1 (uvec);
-}
-
-void
-scm_frame_uniform_vector_release_writable_elements (SCM uvec)
-{
-  scm_frame_unwind_handler_with_scm
-    (scm_uniform_vector_release_writable_elements, uvec,
-     SCM_F_WIND_EXPLICITLY);
-}
-
 size_t
 scm_uniform_vector_element_size (SCM uvec)
 {
@@ -663,6 +602,50 @@ scm_uniform_element_size (SCM obj)
     return scm_uniform_vector_element_size (obj);
   else
     return 0;
+}
+
+const void *
+scm_array_handle_uniform_elements (scm_t_array_handle *h)
+{
+  return scm_array_handle_uniform_writable_elements (h);
+}
+
+void *
+scm_array_handle_uniform_writable_elements (scm_t_array_handle *h)
+{
+  SCM vec = h->array;
+  if (SCM_ARRAYP (vec))
+    vec = SCM_ARRAY_V (vec);
+  if (scm_is_uniform_vector (vec))
+    {
+      size_t size = uvec_sizes[SCM_UVEC_TYPE(vec)];
+      char *elts = SCM_UVEC_BASE (vec);
+      return (void *) (elts + size*h->base);
+    }
+  scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
+}
+
+const void *
+scm_uniform_vector_elements (SCM uvec, 
+			     scm_t_array_handle *h,
+			     size_t *lenp, ssize_t *incp)
+{
+  return scm_uniform_vector_writable_elements (uvec, h, lenp, incp);
+}
+
+void *
+scm_uniform_vector_writable_elements (SCM uvec, 
+				      scm_t_array_handle *h,
+				      size_t *lenp, ssize_t *incp)
+{
+  scm_vector_get_handle (uvec, h);
+  if (lenp)
+    {
+      scm_t_array_dim *dim = scm_array_handle_dims (h);
+      *lenp = dim->ubnd - dim->lbnd + 1;
+      *incp = dim->inc;
+    }
+  return scm_array_handle_uniform_writable_elements (h);
 }
 
 SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
@@ -689,12 +672,15 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
 	    "An error is signalled when the last element has only\n"
 	    "been partially filled before reaching end-of-file or in\n"
 	    "the single call to read(2).\n\n"
-	    "@code{uniform-array-read!} returns the number of elements read.\n"
+	    "@code{uniform-vector-read!} returns the number of elements\n"
+	    "read.\n\n"
 	    "@var{port-or-fdes} may be omitted, in which case it defaults\n"
 	    "to the value returned by @code{(current-input-port)}.")
 #define FUNC_NAME s_scm_uniform_vector_read_x
 {
+  scm_t_array_handle handle;
   size_t vlen, sz, ans;
+  ssize_t inc;
   size_t cstart, cend;
   size_t remaining, off;
   void *base;
@@ -706,13 +692,18 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
 		|| (SCM_OPINPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, FUNC_NAME);
 
-  
-  scm_frame_begin (0);
+  if (!scm_is_uniform_vector (uvec))
+    scm_wrong_type_arg_msg (NULL, 0, uvec, "uniform vector");
 
-  vlen = scm_c_uniform_vector_length (uvec);
+  base = scm_uniform_vector_writable_elements (uvec, &handle, &vlen, &inc);
   sz = scm_uniform_vector_element_size (uvec);
-  base = scm_uniform_vector_writable_elements (uvec);
-  scm_frame_uniform_vector_release_writable_elements (uvec);
+
+  if (inc != 1)
+    {
+      /* XXX - we should of course support non contiguous vectors. */
+      scm_misc_error (NULL, "only contiguous vectors are supported: ~a",
+		      scm_list_1 (uvec));
+    }
 
   cstart = 0;
   cend = vlen;
@@ -740,7 +731,7 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
 	    {
 	      size_t to_copy = min (pt->read_end - pt->read_pos,
 				    remaining);
-
+	      
 	      memcpy (base + off, pt->read_pos, to_copy);
 	      pt->read_pos += to_copy;
 	      remaining -= to_copy;
@@ -774,8 +765,6 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
       ans = n / sz;
     }
 
-  scm_frame_end ();
-
   return scm_from_size_t (ans);
 }
 #undef FUNC_NAME
@@ -800,7 +789,9 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 	    "@code{(current-output-port)}.")
 #define FUNC_NAME s_scm_uniform_vector_write
 {
+  scm_t_array_handle handle;
   size_t vlen, sz, ans;
+  ssize_t inc;
   size_t cstart, cend;
   size_t amount, off;
   const void *base;
@@ -814,12 +805,15 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 		|| (SCM_OPOUTPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, FUNC_NAME);
 
-  scm_frame_begin (0);
-
-  vlen = scm_c_generalized_vector_length (uvec);
+  base = scm_uniform_vector_elements (uvec, &handle, &vlen, &inc);
   sz = scm_uniform_vector_element_size (uvec);
-  base = scm_uniform_vector_elements (uvec);
-  scm_frame_uniform_vector_release_elements (uvec);
+
+  if (inc != 1)
+    {
+      /* XXX - we should of course support non contiguous vectors. */
+      scm_misc_error (NULL, "only contiguous vectors are supported: ~a",
+		      scm_list_1 (uvec));
+    }
 
   cstart = 0;
   cend = vlen;
@@ -848,8 +842,6 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 	SCM_MISC_ERROR ("last element only written partially", SCM_EOL);
       ans = n / sz;
     }
-
-  scm_frame_end ();
 
   return scm_from_size_t (ans);
 }

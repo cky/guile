@@ -32,60 +32,84 @@
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 #include "libguile/dynwind.h"
+#include "libguile/deprecation.h"
 
 
+
+#define VECTOR_MAX_LENGTH (SCM_T_BITS_MAX >> 8)
+
+#if SCM_ENABLE_DEPRECATED
+
+int
+SCM_VECTORP (SCM x)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VECTORP is deprecated.  Use scm_is_vector instead.");
+  return SCM_I_IS_VECTOR (x);
+}
+
+unsigned long
+SCM_VECTOR_LENGTH (SCM x)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VECTOR_LENGTH is deprecated.  Use scm_c_vector_length instead.");
+  return SCM_I_VECTOR_LENGTH (x);
+}
+
+const SCM *
+SCM_VELTS (SCM x)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VELTS is deprecated.  Use scm_vector_elements instead.");
+  return SCM_I_VECTOR_ELTS (x);
+}
+
+SCM *
+SCM_WRITABLE_VELTS (SCM x)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_WRITABLE_VELTS is deprecated.  "
+     "Use scm_vector_writable_elements instead.");
+  return SCM_I_VECTOR_WELTS (x);
+}
+
+SCM
+SCM_VECTOR_REF (SCM x, size_t idx)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VECTOR_REF is deprecated.  "
+     "Use scm_c_vector_ref or scm_vector_elements instead.");
+  return scm_c_vector_ref (x, idx);
+}
+
+void
+SCM_VECTOR_SET (SCM x, size_t idx, SCM val)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VECTOR_SET is deprecated.  "
+     "Use scm_c_vector_set_x or scm_vector_writable_elements instead.");
+  scm_c_vector_set_x (x, idx, val);
+}
+
+#endif
 
 int
 scm_is_vector (SCM obj)
 {
-  return (SCM_VECTORP (obj)
-	  || (SCM_ARRAYP (obj) && SCM_ARRAY_NDIM (obj) == 1));
+  if (SCM_I_IS_VECTOR (obj))
+    return 1;
+  if  (SCM_ARRAYP (obj) && SCM_ARRAY_NDIM (obj) == 1)
+    {
+      SCM v = SCM_ARRAY_V (obj);
+      return SCM_I_IS_VECTOR (v);
+    }
+  return 0;
 }
 
-SCM *
-scm_vector_writable_elements (SCM vec)
+int
+scm_is_simple_vector (SCM obj)
 {
-  if (SCM_VECTORP (vec))
-    return SCM_WRITABLE_VELTS (vec);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, vec, "simple vector");
-}
-
-const SCM *
-scm_vector_elements (SCM vec)
-{
-  if (SCM_VECTORP (vec))
-    return SCM_VELTS (vec);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, vec, "simple vector");
-}
-
-void
-scm_vector_release_writable_elements (SCM vec)
-{
-  scm_remember_upto_here_1 (vec);
-}
-
-void
-scm_vector_release_elements (SCM vec)
-{
-  scm_remember_upto_here_1 (vec);
-}
-
-void
-scm_frame_vector_release_writable_elements (SCM vec)
-{
-  scm_frame_unwind_handler_with_scm 
-    (scm_vector_release_writable_elements, vec,
-     SCM_F_WIND_EXPLICITLY);
-}
-
-void
-scm_frame_vector_release_elements (SCM vec)
-{
-  scm_frame_unwind_handler_with_scm
-    (scm_vector_release_elements, vec,
-     SCM_F_WIND_EXPLICITLY);
+  return SCM_I_IS_VECTOR (obj);
 }
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
@@ -103,8 +127,8 @@ SCM_GPROC (s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vecto
 SCM
 scm_vector_length (SCM v)
 {
-  if (SCM_VECTORP (v))
-    return scm_from_size_t (SCM_VECTOR_LENGTH (v));
+  if (SCM_I_IS_VECTOR (v))
+    return scm_from_size_t (SCM_I_VECTOR_LENGTH (v));
   else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
     {
       scm_t_array_dim *dim = SCM_ARRAY_DIMS (v);
@@ -117,8 +141,8 @@ scm_vector_length (SCM v)
 size_t
 scm_c_vector_length (SCM v)
 {
-  if (SCM_VECTORP (v))
-    return SCM_VECTOR_LENGTH (v);
+  if (SCM_I_IS_VECTOR (v))
+    return SCM_I_VECTOR_LENGTH (v);
   else
     return scm_to_size_t (scm_vector_length (v));
 }
@@ -146,19 +170,19 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
   SCM res;
   SCM *data;
   long i, len;
+  scm_t_array_handle handle;
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, len);
-  res = scm_c_make_vector (len, SCM_UNSPECIFIED);
 
-  data = scm_vector_writable_elements (res);
+  res = scm_c_make_vector (len, SCM_UNSPECIFIED);
+  data = scm_vector_writable_elements (res, &handle, NULL, NULL);
   i = 0;
   while (!SCM_NULL_OR_NIL_P (l) && i < len) 
     {
       data[i] = SCM_CAR (l);
       l = SCM_CDR (l);
-      i++;
+      i += 1;
     }
-  scm_vector_release_writable_elements (res);
 
   return res;
 }
@@ -191,19 +215,24 @@ scm_vector_ref (SCM v, SCM k)
 SCM
 scm_c_vector_ref (SCM v, size_t k)
 {
-  if (SCM_VECTORP (v))
+  if (SCM_I_IS_VECTOR (v))
     {
-      if (k >= SCM_VECTOR_LENGTH (v))
+      if (k >= SCM_I_VECTOR_LENGTH (v))
 	scm_out_of_range (NULL, scm_from_size_t (k)); 
-      return SCM_VECTOR_REF (v, k);
+      return (SCM_I_VECTOR_ELTS(v))[k];
     }
   else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
     {
       scm_t_array_dim *dim = SCM_ARRAY_DIMS (v);
-      if (k >= dim->ubnd - dim->lbnd + 1)
-	scm_out_of_range (NULL, scm_from_size_t (k));
-      k = SCM_ARRAY_BASE (v) + k*dim->inc;
-      return scm_c_generalized_vector_ref (SCM_ARRAY_V (v), k);
+      SCM vv = SCM_ARRAY_V (v);
+      if (SCM_I_IS_VECTOR (vv))
+	{
+	  if (k >= dim->ubnd - dim->lbnd + 1)
+	    scm_out_of_range (NULL, scm_from_size_t (k));
+	  k = SCM_ARRAY_BASE (v) + k*dim->inc;
+	  return (SCM_I_VECTOR_ELTS (vv))[k];
+	}
+      scm_wrong_type_arg_msg (NULL, 0, v, "non-uniform vector");
     }
   else
     SCM_WTA_DISPATCH_2 (g_vector_ref, v, scm_from_size_t (k), 2, NULL);
@@ -234,19 +263,25 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 void
 scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 {
-  if (SCM_VECTORP (v))
+  if (SCM_I_IS_VECTOR (v))
     {
-      if (k >= SCM_VECTOR_LENGTH (v))
+      if (k >= SCM_I_VECTOR_LENGTH (v))
 	scm_out_of_range (NULL, scm_from_size_t (k)); 
-      SCM_VECTOR_SET (v, k, obj);
+      (SCM_I_VECTOR_WELTS(v))[k] = obj;
     }
   else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
     {
       scm_t_array_dim *dim = SCM_ARRAY_DIMS (v);
-      if (k >= dim->ubnd - dim->lbnd + 1)
-	scm_out_of_range (NULL, scm_from_size_t (k));
-      k = SCM_ARRAY_BASE (v) + k*dim->inc;
-      scm_c_generalized_vector_set_x (SCM_ARRAY_V (v), k, obj);
+      SCM vv = SCM_ARRAY_V (v);
+      if (SCM_I_IS_VECTOR (vv))
+	{
+	  if (k >= dim->ubnd - dim->lbnd + 1)
+	    scm_out_of_range (NULL, scm_from_size_t (k));
+	  k = SCM_ARRAY_BASE (v) + k*dim->inc;
+	  (SCM_I_VECTOR_WELTS (vv))[k] = obj;
+	}
+      else
+	scm_wrong_type_arg_msg (NULL, 0, v, "non-uniform vector");
     }
   else
     {
@@ -266,7 +301,7 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
 	    "unspecified.")
 #define FUNC_NAME s_scm_make_vector
 {
-  size_t l = scm_to_unsigned_integer (k, 0, SCM_VECTOR_MAX_LENGTH);
+  size_t l = scm_to_unsigned_integer (k, 0, VECTOR_MAX_LENGTH);
 
   if (SCM_UNBNDP (fill))
     fill = SCM_UNSPECIFIED;
@@ -281,28 +316,92 @@ scm_c_make_vector (size_t k, SCM fill)
 #define FUNC_NAME s_scm_make_vector
 {
   SCM v;
-  scm_t_bits *base;
+  SCM *base;
 
   if (k > 0) 
     {
       unsigned long int j;
 
-      SCM_ASSERT_RANGE (1, scm_from_ulong (k), k <= SCM_VECTOR_MAX_LENGTH);
+      SCM_ASSERT_RANGE (1, scm_from_ulong (k), k <= VECTOR_MAX_LENGTH);
 
-      base = scm_gc_malloc (k * sizeof (scm_t_bits), "vector");
+      base = scm_gc_malloc (k * sizeof (SCM), "vector");
       for (j = 0; j != k; ++j)
-	base[j] = SCM_UNPACK (fill);
+	base[j] = fill;
     }
   else
     base = NULL;
 
-  v = scm_cell (SCM_MAKE_VECTOR_TAG (k, scm_tc7_vector), (scm_t_bits) base);
+  v = scm_cell ((k << 8) | scm_tc7_vector, (scm_t_bits) base);
   scm_remember_upto_here_1 (fill);
 
   return v;
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_vector_copy, "vector-copy", 1, 0, 0,
+	    (SCM vec),
+	    "Return a copy of @var{vec}.")
+#define FUNC_NAME s_scm_vector_copy
+{
+  scm_t_array_handle handle;
+  size_t i, len;
+  ssize_t inc;
+  const SCM *src;
+  SCM *dst;
+
+  src = scm_vector_elements (vec, &handle, &len, &inc);
+  dst = scm_gc_malloc (len * sizeof (SCM), "vector");
+  for (i = 0; i < len; i++, src += inc)
+    dst[i] = *src;
+
+  return scm_cell ((len << 8) | scm_tc7_vector, (scm_t_bits) dst);
+}
+#undef FUNC_NAME
+
+void
+scm_i_vector_free (SCM vec)
+{
+  scm_gc_free (SCM_I_VECTOR_WELTS (vec),
+	       SCM_I_VECTOR_LENGTH (vec) * sizeof(SCM),
+	       "vector");
+}
+
+/* Allocate memory for a weak vector on behalf of the caller.  The allocated
+ * vector will be of the given weak vector subtype.  It will contain size
+ * elements which are initialized with the 'fill' object, or, if 'fill' is
+ * undefined, with an unspecified object.
+ */
+SCM
+scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill)
+{
+  size_t c_size;
+  SCM *base;
+  SCM v;
+
+  c_size = scm_to_unsigned_integer (size, 0, VECTOR_MAX_LENGTH);
+
+  if (c_size > 0)
+    {
+      size_t j;
+      
+      if (SCM_UNBNDP (fill))
+	fill = SCM_UNSPECIFIED;
+      
+      base = scm_gc_malloc (c_size * sizeof (SCM), "weak vector");
+      for (j = 0; j != c_size; ++j)
+	base[j] = fill;
+    }
+  else
+    base = NULL;
+
+  v = scm_double_cell ((c_size << 8) | scm_tc7_wvect,
+		       (scm_t_bits) base,
+		       type,
+		       SCM_UNPACK (SCM_EOL));
+  scm_remember_upto_here_1 (fill);
+
+  return v;
+}
 
 SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0, 
 	    (SCM v),
@@ -314,21 +413,19 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_vector_to_list
 {
-  if (SCM_VECTORP (v))
+  SCM res = SCM_EOL;
+  const SCM *data;
+  scm_t_array_handle handle;
+  size_t i, len;
+  ssize_t inc;
+
+  data = scm_vector_elements (v, &handle, &len, &inc);
+  for (i = len*inc; i > 0;)
     {
-      SCM res = SCM_EOL;
-      long i;
-      const SCM *data;
-      data = scm_vector_elements (v);
-      for(i = SCM_VECTOR_LENGTH(v)-1; i >= 0; i--)
-	res = scm_cons (data[i], res);
-      scm_vector_release_elements (v);
-      return res;
+      i -= inc;
+      res = scm_cons (data[i], res);
     }
-  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
-    return scm_array_to_list (v);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "vector");
+  return res;
 }
 #undef FUNC_NAME
 
@@ -339,18 +436,15 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
 	    "returned by @code{vector-fill!} is unspecified.")
 #define FUNC_NAME s_scm_vector_fill_x
 {
-  if (SCM_VECTORP (v))
-    {
-      size_t i, len;
-      SCM *elts = scm_vector_writable_elements (v);
-      for (i = 0, len = SCM_VECTOR_LENGTH (v); i < len; i++)
-	elts[i] = fill;
-      return SCM_UNSPECIFIED;
-    }
-  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
-    return scm_array_fill_x (v, fill);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "vector");
+  scm_t_array_handle handle;
+  SCM *data;
+  size_t i, len;
+  ssize_t inc;
+
+  data = scm_vector_writable_elements (v, &handle, &len, &inc);
+  for (i = 0; i < len; i += inc)
+    data[i] = fill;
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -359,8 +453,9 @@ SCM
 scm_vector_equal_p (SCM x, SCM y)
 {
   long i;
-  for (i = SCM_VECTOR_LENGTH (x) - 1; i >= 0; i--)
-    if (scm_is_false (scm_equal_p (SCM_VELTS (x)[i], SCM_VELTS (y)[i])))
+  for (i = SCM_I_VECTOR_LENGTH (x) - 1; i >= 0; i--)
+    if (scm_is_false (scm_equal_p (SCM_I_VECTOR_ELTS (x)[i],
+				   SCM_I_VECTOR_ELTS (y)[i])))
       return SCM_BOOL_F;
   return SCM_BOOL_T;
 }
@@ -377,32 +472,26 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 	    "@var{start1} is greater than @var{start2}.")
 #define FUNC_NAME s_scm_vector_move_left_x
 {
+  scm_t_array_handle handle1, handle2;
+  const SCM *elts1;
+  SCM *elts2;
   size_t len1, len2;
+  ssize_t inc1, inc2;
   size_t i, j, e;
+  
+  elts1 = scm_vector_elements (vec1, &handle1, &len1, &inc1);
+  elts2 = scm_vector_writable_elements (vec2, &handle2, &len2, &inc2);
 
-  len1 = scm_c_vector_length (vec1);
-  len2 = scm_c_vector_length (vec2);
   i = scm_to_unsigned_integer (start1, 0, len1);
   e = scm_to_unsigned_integer (end1, i, len1);
   j = scm_to_unsigned_integer (start2, 0, len2 - (i-e));
   
-  /* Optimize common case of two simple vectors. 
-   */
-  if (SCM_VECTORP (vec1) && SCM_VECTORP (vec2))
-    {
-      const SCM *elts1 = scm_vector_elements (vec1);
-      SCM *elts2 = scm_vector_writable_elements (vec2);
-      for (; i < e; i++, j++)
-	elts2[j] = elts1[i];
-      scm_vector_release_elements (vec1);
-      scm_vector_release_writable_elements (vec2);
-    }
-  else
-    {
-      for (; i < e; i++, j++)
-	scm_c_vector_set_x (vec2, j, scm_c_vector_ref (vec1, i));
-    }
-  
+  i *= inc1;
+  e *= inc1;
+  j *= inc2;
+  for (; i < e; i += inc1, j += inc2)
+    elts2[j] = elts1[i];
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -418,39 +507,30 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 	    "@var{start1} is less than @var{start2}.")
 #define FUNC_NAME s_scm_vector_move_right_x
 {
+  scm_t_array_handle handle1, handle2;
+  const SCM *elts1;
+  SCM *elts2;
   size_t len1, len2;
+  ssize_t inc1, inc2;
   size_t i, j, e;
+  
+  elts1 = scm_vector_elements (vec1, &handle1, &len1, &inc1);
+  elts2 = scm_vector_writable_elements (vec2, &handle2, &len2, &inc2);
 
-  len1 = scm_c_vector_length (vec1);
-  len2 = scm_c_vector_length (vec2);
   i = scm_to_unsigned_integer (start1, 0, len1);
   e = scm_to_unsigned_integer (end1, i, len1);
   j = scm_to_unsigned_integer (start2, 0, len2 - (i-e));
   
-  /* Optimize common case of two regular vectors. 
-   */
-  j += e - i;
-  if (SCM_VECTORP (vec1) && SCM_VECTORP (vec2))
+  i *= inc1;
+  e *= inc1;
+  j *= inc2;
+  while (i < e)
     {
-      const SCM *elts1 = scm_vector_elements (vec1);
-      SCM *elts2 = scm_vector_writable_elements (vec2);
-      while (i < e)
-	{
-	  e--, j--;
-	  elts2[j] = elts1[e];
-	}
-      scm_vector_release_elements (vec1);
-      scm_vector_release_writable_elements (vec2);
+      e -= inc1;
+      j -= inc2;
+      elts2[j] = elts1[e];
     }
-  else
-    {
-      while (i < e)
-	{
-	  e--, j--;
-	  scm_c_vector_set_x (vec2, j, scm_c_vector_ref (vec1, e));
-	}
-    }
-  
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

@@ -105,6 +105,29 @@ SCM_API int scm_is_typed_array (SCM obj, SCM type);
 
 SCM_API SCM scm_i_read_array (SCM port, int c);
 
+typedef struct {
+  SCM array;
+  size_t base;
+  scm_t_array_dim *dims;
+  scm_t_array_dim dim0;
+} scm_t_array_handle;
+
+SCM_API void scm_array_get_handle (SCM array, scm_t_array_handle *h);
+SCM_API size_t scm_array_handle_rank (scm_t_array_handle *h);
+SCM_API scm_t_array_dim *scm_array_handle_dims (scm_t_array_handle *h);
+SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, size_t pos);
+SCM_API void scm_array_handle_set (scm_t_array_handle *h, size_t pos, SCM val);
+SCM_API const SCM *scm_array_handle_elements (scm_t_array_handle *h);
+SCM_API SCM *scm_array_handle_writable_elements (scm_t_array_handle *h);
+
+SCM_API void scm_vector_get_handle (SCM vec, scm_t_array_handle *h);
+SCM_API const SCM *scm_vector_elements (SCM vec,
+					scm_t_array_handle *h,
+					size_t *lenp, ssize_t *incp);
+SCM_API SCM *scm_vector_writable_elements (SCM vec,
+					   scm_t_array_handle *h,
+					   size_t *lenp, ssize_t *incp);
+
 
 /** Bit vectors */
 
@@ -138,17 +161,22 @@ SCM_API void scm_frame_bitvector_release_writable_elements (SCM vec);
 
 /* deprecated. */
 
+#if SCM_ENABLE_DEPRECATED
+
 SCM_API SCM scm_make_uve (long k, SCM prot);
+SCM_API SCM scm_array_prototype (SCM ra);
+SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
+SCM_API SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
+
+#endif
+
 SCM_API SCM scm_make_ra (int ndim);
 SCM_API void scm_ra_set_contp (SCM ra);
 SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
 SCM_API SCM scm_istr2bve (SCM str);
 SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
-SCM_API SCM scm_array_prototype (SCM ra);
-SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
 SCM_API long scm_aind (SCM ra, SCM args, const char *what);
 SCM_API SCM scm_shap2ra (SCM args, const char *what);
-SCM_API SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
 SCM_API SCM scm_ra2contig (SCM ra, int copy);
 
 SCM_API SCM scm_i_cvref (SCM v, size_t p, int enclosed);

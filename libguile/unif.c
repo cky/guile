@@ -253,6 +253,122 @@ scm_is_typed_array (SCM obj, SCM type)
   return scm_is_eq (type, scm_i_generalized_vector_type (obj));
 }
 
+void
+scm_array_get_handle (SCM array, scm_t_array_handle *h)
+{
+  h->array = array;
+  if (SCM_ARRAYP (array) || SCM_ENCLOSED_ARRAYP (array))
+    {
+      h->dims = SCM_ARRAY_DIMS (array);
+      h->base = SCM_ARRAY_BASE (array);
+    }
+  else if (scm_is_generalized_vector (array))
+    {
+      h->dim0.lbnd = 0;
+      h->dim0.ubnd = scm_c_generalized_vector_length (array) - 1;
+      h->dim0.inc = 1;
+      h->dims = &h->dim0;
+      h->base = 0;
+    }
+  else
+    scm_wrong_type_arg_msg (NULL, 0, array, "array");
+}
+
+size_t
+scm_array_handle_rank (scm_t_array_handle *h)
+{
+  if (SCM_ARRAYP (h->array) || SCM_ENCLOSED_ARRAYP (h->array))
+    return SCM_ARRAY_NDIM (h->array);
+  else
+    return 1;
+}
+
+scm_t_array_dim *
+scm_array_handle_dims (scm_t_array_handle *h)
+{
+  return h->dims;
+}
+
+SCM
+scm_array_handle_ref (scm_t_array_handle *h, size_t pos)
+{
+  pos += h->base;
+  if (SCM_ARRAYP (h->array))
+    return scm_i_cvref (SCM_ARRAY_V (h->array), pos, 0);
+  if (SCM_ENCLOSED_ARRAYP (h->array))
+    return scm_i_cvref (SCM_ARRAY_V (h->array), pos, 1);
+  return scm_c_generalized_vector_ref (h->array, pos);
+}
+
+void
+scm_array_handle_set (scm_t_array_handle *h, size_t pos, SCM val)
+{
+  pos += h->base;
+  if (SCM_ARRAYP (h->array))
+    scm_c_generalized_vector_set_x (SCM_ARRAY_V (h->array), pos, val);
+  if (SCM_ENCLOSED_ARRAYP (h->array))
+    scm_wrong_type_arg_msg (NULL, 0, h->array, "non-enclosed array");
+  scm_c_generalized_vector_set_x (h->array, pos, val);
+}
+
+const SCM *
+scm_array_handle_elements (scm_t_array_handle *h)
+{
+  SCM vec = h->array;
+  if (SCM_ARRAYP (vec))
+    vec = SCM_ARRAY_V (vec);
+  if (SCM_I_IS_VECTOR (vec))
+    return SCM_I_VECTOR_ELTS (vec) + h->base;
+  scm_wrong_type_arg_msg (NULL, 0, h->array, "non-uniform array");
+}
+
+SCM *
+scm_array_handle_writable_elements (scm_t_array_handle *h)
+{
+  SCM vec = h->array;
+  if (SCM_ARRAYP (vec))
+    vec = SCM_ARRAY_V (vec);
+  if (SCM_I_IS_VECTOR (vec))
+    return SCM_I_VECTOR_WELTS (vec) + h->base;
+  scm_wrong_type_arg_msg (NULL, 0, h->array, "non-uniform array");
+}
+
+void
+scm_vector_get_handle (SCM vec, scm_t_array_handle *h)
+{
+  scm_array_get_handle (vec, h);
+  if (scm_array_handle_rank (h) != 1)
+    scm_wrong_type_arg_msg (NULL, 0, vec, "vector");
+}
+
+const SCM *
+scm_vector_elements (SCM vec, scm_t_array_handle *h,
+		     size_t *lenp, ssize_t *incp)
+{
+  scm_vector_get_handle (vec, h);
+  if (lenp)
+    {
+      scm_t_array_dim *dim = scm_array_handle_dims (h);
+      *lenp = dim->ubnd - dim->lbnd + 1;
+      *incp = dim->inc;
+    }
+  return scm_array_handle_elements (h);
+}
+
+SCM *
+scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
+			      size_t *lenp, ssize_t *incp)
+{
+  scm_vector_get_handle (vec, h);
+  if (lenp)
+    {
+      scm_t_array_dim *dim = scm_array_handle_dims (h);
+      *lenp = dim->ubnd - dim->lbnd + 1;
+      *incp = dim->inc;
+    }
+  return scm_array_handle_writable_elements (h);
+}
+
 #if SCM_ENABLE_DEPRECATED
 
 SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
@@ -281,15 +397,23 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
    scm_is_array or scm_is_typed_array anyway.
 */
 
-SCM_DEFINE (scm_array_p, "array?", 1, 0, 0,
-           (SCM obj, SCM unused),
+static SCM scm_i_array_p (SCM obj);
+
+SCM_DEFINE (scm_i_array_p, "array?", 1, 0, 0,
+           (SCM obj),
 	    "Return @code{#t} if the @var{obj} is an array, and @code{#f} if\n"
 	    "not.")
-#define FUNC_NAME s_scm_array_p
+#define FUNC_NAME s_scm_i_array_p
 {
   return scm_from_bool (scm_is_array (obj));
 }
 #undef FUNC_NAME
+
+SCM
+scm_array_p (SCM obj, SCM prot)
+{
+  return scm_from_bool (scm_is_array (obj));
+}
 
 #endif /* !SCM_ENABLE_DEPRECATED */
 
@@ -708,7 +832,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
   if (1 == SCM_ARRAY_NDIM (ra) && 0 == SCM_ARRAY_BASE (ra))
     {
       SCM v = SCM_ARRAY_V (ra);
-      unsigned long int length = scm_to_ulong (scm_uniform_vector_length (v));
+      size_t length = scm_c_generalized_vector_length (v);
       if (1 == s->inc && 0 == s->lbnd && length == 1 + s->ubnd)
 	return v;
       if (s->ubnd < s->lbnd)
@@ -745,7 +869,6 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 #define FUNC_NAME s_scm_transpose_array
 {
   SCM res, vargs;
-  SCM const *ve = &vargs;
   scm_t_array_dim *s, *r;
   int ndim, i, k;
 
@@ -767,13 +890,13 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
   if (SCM_ARRAYP (ra) || SCM_ENCLOSED_ARRAYP (ra))
     {
       vargs = scm_vector (args);
-      if (SCM_VECTOR_LENGTH (vargs) != SCM_ARRAY_NDIM (ra))
+      if (SCM_SIMPLE_VECTOR_LENGTH (vargs) != SCM_ARRAY_NDIM (ra))
 	SCM_WRONG_NUM_ARGS ();
-      ve = SCM_VELTS (vargs);
       ndim = 0;
       for (k = 0; k < SCM_ARRAY_NDIM (ra); k++)
 	{
-	  i = scm_to_signed_integer (ve[k], 0, SCM_ARRAY_NDIM(ra));
+	  i = scm_to_signed_integer (SCM_SIMPLE_VECTOR_REF (vargs, k),
+				     0, SCM_ARRAY_NDIM(ra));
 	  if (ndim < i)
 	    ndim = i;
 	}
@@ -788,7 +911,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 	}
       for (k = SCM_ARRAY_NDIM (ra); k--;)
 	{
-	  i = scm_to_int (ve[k]);
+	  i = scm_to_int (SCM_SIMPLE_VECTOR_REF (vargs, k));
 	  s = &(SCM_ARRAY_DIMS (ra)[k]);
 	  r = &(SCM_ARRAY_DIMS (res)[i]);
 	  if (r->ubnd < r->lbnd)
@@ -859,7 +982,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   if (scm_is_generalized_vector (ra))
     {
       s->lbnd = 0;
-      s->ubnd = scm_to_long (scm_uniform_vector_length (ra)) - 1;
+      s->ubnd = scm_c_generalized_vector_length (ra) - 1;
       s->inc = 1;
       SCM_ARRAY_V (ra_inr) = ra;
       SCM_ARRAY_BASE (ra_inr) = 0;
@@ -1755,23 +1878,19 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
     }
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
-      size_t ulen, i;
+      scm_t_array_handle handle;
+      size_t i, len;
+      ssize_t inc;
       const scm_t_uint32 *indices;
 
       /* assert that obj is a boolean. 
        */
       scm_to_bool (obj);
 
-      scm_frame_begin (0);
+      indices = scm_u32vector_elements (kv, &handle, &len, &inc);
+      for (i = 0; i < len; i++, indices += inc)
+	scm_c_bitvector_set_x (v, (size_t) *indices, obj);
 
-      ulen = scm_c_uniform_vector_length (kv);
-      indices = scm_u32vector_elements (kv);
-      scm_frame_uniform_vector_release_elements (kv);
-
-      for (i = 0; i < ulen; i++)
-	scm_c_bitvector_set_x (v, (size_t)indices[i], obj);
-
-      scm_frame_end ();
     }
   else 
     scm_wrong_type_arg_msg (NULL, 0, kv, "bitvector or u32vector");
@@ -1833,22 +1952,19 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
     }
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
-      size_t count = 0, ulen, i;
+      size_t count = 0;
+      scm_t_array_handle handle;
+      size_t i, len;
+      ssize_t inc;
       const scm_t_uint32 *indices;
       int bit = scm_to_bool (obj);
 
-      scm_frame_begin (0);
+      indices = scm_u32vector_elements (kv, &handle, &len, &inc);
 
-      ulen = scm_c_uniform_vector_length (kv);
-      indices = scm_u32vector_elements (kv);
-      scm_frame_uniform_vector_release_elements (kv);
-
-      for (i = 0; i < ulen; i++)
-	if ((scm_is_true (scm_c_bitvector_ref (v, (size_t)indices[i])) != 0)
+      for (i = 0; i < len; i++, indices += inc)
+	if ((scm_is_true (scm_c_bitvector_ref (v, (size_t) *indices)) != 0)
 	    == (bit != 0))
 	  count++;
-
-      scm_frame_end ();
 
       return scm_from_size_t (count);
     }

@@ -23,37 +23,18 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/unif.h"
 
 
 
-#define SCM_VECTORP(x) (!SCM_IMP (x) && (SCM_TYP7S (x) == scm_tc7_vector))
-#define SCM_VECTOR_BASE(x) ((scm_t_bits *) SCM_CELL_WORD_1 (x))
-#define SCM_SET_VECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
-#define SCM_VECTOR_MAX_LENGTH ((1L << 24) - 1)
-#define SCM_VECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
-#define SCM_MAKE_VECTOR_TAG(l, t)  (((l) << 8) + (t))
-#define SCM_SET_VECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), SCM_MAKE_VECTOR_TAG(l, t)))
-
-#define SCM_VELTS(x) ((const SCM *) SCM_CELL_WORD_1 (x))
-#define SCM_VELTS_AS_STACKITEMS(x) ((SCM_STACKITEM *) SCM_CELL_WORD_1 (x))
-#define SCM_SETVELTS(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
-#define SCM_VECTOR_REF(x, idx) (((const SCM *) SCM_CELL_WORD_1 (x))[(idx)])
-#define SCM_VECTOR_SET(x, idx, val) (((SCM*)SCM_CELL_WORD_1 (x))[(idx)] = (val))
-
-#define SCM_GC_WRITABLE_VELTS(x) ((SCM*) SCM_VELTS(x))
-
-/*
-  no WB yet.
- */
-#define SCM_WRITABLE_VELTS(x) ((SCM*) SCM_VELTS(x))
-
-
 /*
   bit vectors
  */
 #define SCM_BITVEC_REF(a, i) ((SCM_BITVECTOR_BASE (a) [(i) / SCM_LONG_BIT] & (1L << ((i) % SCM_LONG_BIT))) ? 1 : 0)
 #define SCM_BITVEC_SET(a, i) SCM_BITVECTOR_BASE (a) [(i) / SCM_LONG_BIT] |= (1L << ((i) % SCM_LONG_BIT))
 #define SCM_BITVEC_CLR(a, i) SCM_BITVECTOR_BASE (a) [(i) / SCM_LONG_BIT] &= ~(1L << ((i) % SCM_LONG_BIT))
+
+
 
 
 
@@ -70,18 +51,21 @@ SCM_API SCM scm_vector_move_left_x (SCM vec1, SCM start1, SCM end1,
 				    SCM vec2, SCM start2);
 SCM_API SCM scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1, 
 				     SCM vec2, SCM start2);
+SCM_API SCM scm_vector_copy (SCM vec);
 
 SCM_API int scm_is_vector (SCM obj);
+SCM_API int scm_is_simple_vector (SCM obj);
 SCM_API SCM scm_c_make_vector (size_t len, SCM fill);
 SCM_API size_t scm_c_vector_length (SCM vec);
 SCM_API SCM scm_c_vector_ref (SCM vec, size_t k);
 SCM_API void scm_c_vector_set_x (SCM vec, size_t k, SCM obj);
-SCM_API const SCM *scm_vector_elements (SCM vec);
-SCM_API void scm_vector_release_elements (SCM vec);
-SCM_API void scm_frame_vector_release_elements (SCM vec);
-SCM_API SCM *scm_vector_writable_elements (SCM vec);
-SCM_API void scm_vector_release_writable_elements (SCM vec);
-SCM_API void scm_frame_vector_release_writable_elements (SCM vec);
+
+/* Fast, non-checking accessors for simple vectors.
+ */
+#define SCM_SIMPLE_VECTOR_LENGTH(x)      SCM_I_VECTOR_LENGTH(x)
+#define SCM_SIMPLE_VECTOR_REF(x,idx)     ((SCM_I_VECTOR_ELTS(x))[idx])
+#define SCM_SIMPLE_VECTOR_SET(x,idx,val) ((SCM_I_VECTOR_WELTS(x))[idx]=(val))
+#define SCM_SIMPLE_VECTOR_LOC(x,idx)     (&((SCM_I_VECTOR_WELTS(x))[idx]))
 
 /* Generalized vectors */
 
@@ -98,7 +82,45 @@ SCM_API void scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val);
 
 /* Deprecated */
 
+#if SCM_ENABLE_DEPRECATED
+
+#define SCM_VECTOR_MAX_LENGTH ((1L << 24) - 1)
+
+SCM_API int SCM_VECTORP (SCM x);
+SCM_API unsigned long SCM_VECTOR_LENGTH (SCM x);
+SCM_API const SCM *SCM_VELTS (SCM x);
+SCM_API SCM *SCM_WRITABLE_VELTS (SCM x);
+SCM_API SCM SCM_VECTOR_REF (SCM x, size_t idx);
+SCM_API void SCM_VECTOR_SET (SCM x, size_t idx, SCM val);
+
+#endif
+
 SCM_API SCM scm_vector_equal_p (SCM x, SCM y);
+
+/* Internals */
+
+#define SCM_I_IS_VECTOR(x)     (!SCM_IMP(x) && (SCM_TYP7S(x)==scm_tc7_vector))
+#define SCM_I_VECTOR_ELTS(x)   ((const SCM *) SCM_CELL_WORD_1 (x))
+#define SCM_I_VECTOR_WELTS(x)  ((SCM *) SCM_CELL_WORD_1 (x))
+#define SCM_I_VECTOR_LENGTH(x) (((size_t) SCM_CELL_WORD_0 (x)) >> 8)
+
+SCM_API void scm_i_vector_free (SCM vec);
+
+/* Weak vectors share implementation details with ordinary vectors,
+   but no one else should.  Weak vectors need to be cleaned up as
+   well.
+ */
+
+#define SCM_I_WVECTP(x)                 (!SCM_IMP (x) && \
+                                         SCM_TYP7 (x) == scm_tc7_wvect)
+#define SCM_I_WVECT_LENGTH              SCM_I_VECTOR_LENGTH
+#define SCM_I_WVECT_VELTS               SCM_I_VECTOR_ELTS
+#define SCM_I_WVECT_GC_WVELTS           SCM_I_VECTOR_WELTS
+#define SCM_I_WVECT_TYPE(x)             (SCM_CELL_WORD_2 (x))
+#define SCM_I_WVECT_GC_CHAIN(X)         (SCM_CELL_OBJECT_3 (X))
+#define SCM_I_SET_WVECT_GC_CHAIN(X, o)  (SCM_SET_CELL_OBJECT_3 ((X), (o)))
+
+SCM_API SCM scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill);
 
 SCM_API void scm_init_vectors (void);
 

@@ -1,4 +1,4 @@
-/* This file defines the procedures related to one type of homogenous
+/* This file defines the procedures related to one type of uniform
    numeric vector.  It is included multiple time in srfi-4.c, once for
    each type.
 
@@ -45,7 +45,7 @@ SCM_DEFINE (F(scm_,TAG,vector_p), S(TAG)"vector?", 1, 0, 0,
 
 SCM_DEFINE (F(scm_make_,TAG,vector), "make-"S(TAG)"vector", 1, 1, 0,
             (SCM len, SCM fill),
-	    "Return a newly allocated homogeneous numeric vector which can\n"
+	    "Return a newly allocated uniform numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
 	    "is unspecified.")
@@ -65,7 +65,7 @@ F(scm_take_,TAG,vector) (const CTYPE *data, size_t n)
 
 SCM_DEFINE (F(scm_,TAG,vector), S(TAG)"vector", 0, 0, 1,
             (SCM l),
-	    "Return a newly allocated homogeneous numeric vector containing\n"
+	    "Return a newly allocated uniform numeric vector containing\n"
 	    "all argument values.")
 #define FUNC_NAME s_F(scm_,TAG,vector)
 {
@@ -76,7 +76,7 @@ SCM_DEFINE (F(scm_,TAG,vector), S(TAG)"vector", 0, 0, 1,
 
 SCM_DEFINE (F(scm_,TAG,vector_length), S(TAG)"vector-length", 1, 0, 0,
             (SCM uvec),
-	    "Return the number of elements in the homogeneous numeric vector\n"
+	    "Return the number of elements in the uniform numeric vector\n"
 	    "@var{uvec}.")
 #define FUNC_NAME s_F(scm_,TAG,vector_length)
 {
@@ -87,7 +87,7 @@ SCM_DEFINE (F(scm_,TAG,vector_length), S(TAG)"vector-length", 1, 0, 0,
 
 SCM_DEFINE (F(scm_,TAG,vector_ref), S(TAG)"vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
-	    "Return the element at @var{index} in the homogeneous numeric\n"
+	    "Return the element at @var{index} in the uniform numeric\n"
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_F(scm_,TAG,vector_ref)
 {
@@ -98,7 +98,7 @@ SCM_DEFINE (F(scm_,TAG,vector_ref), S(TAG)"vector-ref", 2, 0, 0,
 
 SCM_DEFINE (F(scm_,TAG,vector_set_x), S(TAG)"vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
-	    "Set the element at @var{index} in the homogeneous numeric\n"
+	    "Set the element at @var{index} in the uniform numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
 #define FUNC_NAME s_F(scm_,TAG,vector_set_x)
@@ -110,7 +110,7 @@ SCM_DEFINE (F(scm_,TAG,vector_set_x), S(TAG)"vector-set!", 3, 0, 0,
 
 SCM_DEFINE (F(scm_,TAG,vector_to_list), S(TAG)"vector->list", 1, 0, 0,
             (SCM uvec),
-	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
+	    "Convert the uniform numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_F(scm_,TAG,vector_to_list)
 {
   return uvec_to_list (TYPE, uvec);
@@ -120,7 +120,7 @@ SCM_DEFINE (F(scm_,TAG,vector_to_list), S(TAG)"vector->list", 1, 0, 0,
 
 SCM_DEFINE (F(scm_list_to_,TAG,vector), "list->"S(TAG)"vector", 1, 0, 0,
             (SCM l),
-	    "Convert the list @var{l} to a numeric homogeneous vector.")
+	    "Convert the list @var{l} to a numeric uniform vector.")
 #define FUNC_NAME s_F(scm_list_to_,TAG,vector)
 {
   return list_to_uvec (TYPE, l);
@@ -130,7 +130,7 @@ SCM_DEFINE (F(scm_list_to_,TAG,vector), "list->"S(TAG)"vector", 1, 0, 0,
 SCM_DEFINE (F(scm_any_to_,TAG,vector), "any->"S(TAG)"vector", 1, 0, 0,
 	    (SCM obj),
 	    "Convert @var{obj}, which can be a list, vector, or\n"
-	    "homogenous vector, to a numeric homogenous vector of\n"
+	    "uniform vector, to a numeric uniform vector of\n"
 	    "type " S(TAG)".")
 #define FUNC_NAME s_F(scm_any_to_,TAG,vector)
 {
@@ -139,17 +139,45 @@ SCM_DEFINE (F(scm_any_to_,TAG,vector), "any->"S(TAG)"vector", 1, 0, 0,
 #undef FUNC_NAME
 
 const CTYPE *
-F(scm_,TAG,vector_elements) (SCM obj)
+F(scm_array_handle_,TAG,_elements) (scm_t_array_handle *h)
 {
-  uvec_assert (TYPE, obj);
-  return (const CTYPE *)SCM_UVEC_BASE (obj);
+  return F(scm_array_handle_,TAG,_writable_elements) (h);
 }
 
 CTYPE *
-F(scm_,TAG,vector_writable_elements) (SCM obj)
+F(scm_array_handle_,TAG,_writable_elements) (scm_t_array_handle *h)
 {
-  uvec_assert (TYPE, obj);
-  return (CTYPE *)SCM_UVEC_BASE (obj);
+  SCM vec = h->array;
+  if (SCM_ARRAYP (vec))
+    vec = SCM_ARRAY_V (vec);
+  uvec_assert (TYPE, vec);
+  if (TYPE == SCM_UVEC_C32 || TYPE == SCM_UVEC_C64)
+    return ((CTYPE *)SCM_UVEC_BASE (vec)) + 2*h->base;
+  else
+    return ((CTYPE *)SCM_UVEC_BASE (vec)) + h->base;
+}
+
+const CTYPE *
+F(scm_,TAG,vector_elements) (SCM uvec, 
+			     scm_t_array_handle *h,
+			     size_t *lenp, ssize_t *incp)
+{
+  return F(scm_,TAG,vector_writable_elements) (uvec, h, lenp, incp);
+}
+
+CTYPE *
+F(scm_,TAG,vector_writable_elements) (SCM uvec, 
+				      scm_t_array_handle *h,
+				      size_t *lenp, ssize_t *incp)
+{
+  scm_vector_get_handle (uvec, h);
+  if (lenp)
+    {
+      scm_t_array_dim *dim = scm_array_handle_dims (h);
+      *lenp = dim->ubnd - dim->lbnd + 1;
+      *incp = dim->inc;
+    }
+  return F(scm_array_handle_,TAG,_writable_elements) (h);
 }
 
 #undef paste
