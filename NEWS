@@ -84,6 +84,12 @@ at the top of the script.
 (The first options enables the debugging evaluator.
  The second enables backtraces.)
 
+* Changes to the scm_ interface
+
+** Port internals: the rw_random variable in the scm_port structure
+must be set to non-zero in any random access port.  In recent Guile
+releases it was only set for bidirectional random-access ports.
+
 
 Changes since Guile 1.3.2:
 
