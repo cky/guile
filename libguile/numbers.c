@@ -68,7 +68,8 @@ static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 #define SCM_SWAP(x,y) do { SCM __t = x; x = y; y = __t; } while (0)
 
 
-#if (SCM_DEBUG_DEPRECATED == 1)  /* not defined in header yet? */
+/*#if (SCM_DEBUG_DEPRECATED == 1)*/  /* not defined in header yet? */
+#if 1
 
 /* SCM_FLOBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an inexact number.
