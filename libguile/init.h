@@ -47,10 +47,12 @@
 #include "libguile/__scm.h"
 
 
-extern void scm_boot_guile SCM_P ((int argc, char **argv,
-				   void (*main_func) (void *closure,
-						      int argc,
-						      char **argv),
-				   void *closure));
+extern void scm_boot_guile (int argc, char **argv,
+			    void (*main_func) (void *closure,
+					       int argc,
+					       char **argv),
+			    void *closure);
+
+extern void scm_load_startup_files (void);
 
 #endif  /* INITH */

@@ -57,7 +57,6 @@ gh_launch_pad (void *closure, int argc, char **argv)
 {
   main_prog_t c_main_prog = (main_prog_t) closure;
 
-/*   gh_eval_str ("(primitive-load-path \"ice-9/boot-9.scm\")"); */
   c_main_prog (argc, argv);
   exit (0);
 }
