@@ -1,3 +1,9 @@
+2002-07-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* Makefile.am (SCM_BENCHMARKS): List the real benchmarks, not foo
+	and bar.
+	(SCM_BENCHMARKS_DIRS): Uncommented, with an empty value.
+	
 2002-07-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* lib.scm (print-result, print-user-result): Changed the
