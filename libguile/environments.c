@@ -131,7 +131,8 @@ scm_make_environment (void *type)
 
 SCM_DEFINE (scm_environment_p, "environment?", 1, 0, 0, 
 	    (SCM obj),
-	    "Return #t if OBJ is an environment, or #f otherwise.")
+	    "Return @code{#t} if @var{obj} is an environment, or @code{#f}\n"
+	    "otherwise.")
 #define FUNC_NAME s_scm_environment_p
 {
   return SCM_BOOL (SCM_ENVIRONMENT_P (obj));
@@ -141,7 +142,8 @@ SCM_DEFINE (scm_environment_p, "environment?", 1, 0, 0,
 
 SCM_DEFINE (scm_environment_bound_p, "environment-bound?", 2, 0, 0, 
 	    (SCM env, SCM sym),
-	    "Return #t if SYM is bound in ENV, or #f otherwise.")
+	    "Return @code{#t} if @var{sym} is bound in @var{env}, or\n"
+	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_environment_bound_p
 {
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
@@ -154,9 +156,9 @@ SCM_DEFINE (scm_environment_bound_p, "environment-bound?", 2, 0, 0,
 
 SCM_DEFINE (scm_environment_ref, "environment-ref", 2, 0, 0,
 	    (SCM env, SCM sym),
-	    "Return the value of the location bound to SYM in ENV.\n"
-	    "If SYM is unbound in ENV, signal an environment:unbound\n"
-	    "error.")
+	    "Return the value of the location bound to @var{sym} in\n"
+	    "@var{env}. If @var{sym} is unbound in @var{env}, signal an\n"
+	    "@code{environment:unbound} error.")
 #define FUNC_NAME s_scm_environment_ref
 {
   SCM val;
@@ -196,30 +198,37 @@ environment_default_folder (SCM proc, SCM symbol, SCM value, SCM tail)
 
 SCM_DEFINE (scm_environment_fold, "environment-fold", 3, 0, 0, 
 	    (SCM env, SCM proc, SCM init),
-	    "Iterate over all the bindings in ENV, accumulating some value.\n"
-	    "For each binding in ENV, apply PROC to the symbol bound, its\n"
-	    "value, and the result from the previous application of PROC.\n"
-	    "Use INIT as PROC's third argument the first time PROC is\n"
-	    "applied.\n"
-	    "If ENV contains no bindings, this function simply returns INIT.\n"
-	    "If ENV binds the symbol sym1 to the value val1, sym2 to val2,\n"
-	    "and so on, then this procedure computes:\n"
+	    "Iterate over all the bindings in @var{env}, accumulating some\n"
+	    "value.\n"
+	    "For each binding in @var{env}, apply @var{proc} to the symbol\n"
+	    "bound, its value, and the result from the previous application\n"
+	    "of @var{proc}.\n"
+	    "Use @var{init} as @var{proc}'s third argument the first time\n"
+	    "@var{proc} is applied.\n"
+	    "If @var{env} contains no bindings, this function simply returns\n"
+	    "@var{init}.\n"
+	    "If @var{env} binds the symbol sym1 to the value val1, sym2 to\n"
+	    "val2, and so on, then this procedure computes:\n"
+	    "@example\n"
 	    "  (proc sym1 val1\n"
 	    "        (proc sym2 val2\n"
 	    "              ...\n"
 	    "              (proc symn valn\n"
 	    "                    init)))\n"
-	    "Each binding in ENV will be processed exactly once.\n"
-	    "environment-fold makes no guarantees about the order in which\n"
-	    "the bindings are processed.\n"
+	    "@end example\n"
+	    "Each binding in @var{env} will be processed exactly once.\n"
+	    "@code{environment-fold} makes no guarantees about the order in\n"
+	    "which the bindings are processed.\n"
 	    "Here is a function which, given an environment, constructs an\n"
 	    "association list representing that environment's bindings,\n"
 	    "using environment-fold:\n"
+	    "@example\n"
 	    "  (define (environment->alist env)\n"
 	    "    (environment-fold env\n"
 	    "                      (lambda (sym val tail)\n"
 	    "                        (cons (cons sym val) tail))\n"
-	    "                      '()))")
+	    "                      '()))\n"
+	    "@end example")
 #define FUNC_NAME s_scm_environment_fold
 {
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
@@ -248,12 +257,13 @@ scm_c_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init
 
 SCM_DEFINE (scm_environment_define, "environment-define", 3, 0, 0, 
 	    (SCM env, SCM sym, SCM val),
-	    "Bind SYM to a new location containing VAL in ENV. If SYM is\n"
-	    "already bound to another location in ENV and the binding is\n"
-	    "mutable, that binding is replaced.  The new binding and\n"
-	    "location are both mutable. The return value is unspecified.\n"
-	    "If SYM is already bound in ENV, and the binding is immutable,\n"
-	    "signal an environment:immutable-binding error.")
+	    "Bind @var{sym} to a new location containing @var{val} in\n"
+	    "@var{env}. If @var{sym} is already bound to another location\n"
+	    "in @var{env} and the binding is mutable, that binding is\n"
+	    "replaced.  The new binding and location are both mutable. The\n"
+	    "return value is unspecified.\n"
+	    "If @var{sym} is already bound in @var{env}, and the binding is\n"
+	    "immutable, signal an @code{environment:immutable-binding} error.")
 #define FUNC_NAME s_scm_environment_define
 {
   SCM status;
@@ -275,10 +285,11 @@ SCM_DEFINE (scm_environment_define, "environment-define", 3, 0, 0,
 
 SCM_DEFINE (scm_environment_undefine, "environment-undefine", 2, 0, 0, 
 	    (SCM env, SCM sym),
-	    "Remove any binding for SYM from ENV. If SYM is unbound in ENV,\n"
-	    "do nothing.  The return value is unspecified.\n"
-	    "If SYM is already bound in ENV, and the binding is immutable,\n"
-	    "signal an environment:immutable-binding error.")
+	    "Remove any binding for @var{sym} from @var{env}. If @var{sym}\n"
+	    "is unbound in @var{env}, do nothing.  The return value is\n"
+	    "unspecified.\n"
+	    "If @var{sym} is already bound in @var{env}, and the binding is\n"
+	    "immutable, signal an @code{environment:immutable-binding} error.")
 #define FUNC_NAME s_scm_environment_undefine
 {
   SCM status;
@@ -300,11 +311,13 @@ SCM_DEFINE (scm_environment_undefine, "environment-undefine", 2, 0, 0,
 
 SCM_DEFINE (scm_environment_set_x, "environment-set!", 3, 0, 0, 
 	    (SCM env, SCM sym, SCM val),
-	    "If ENV binds SYM to some location, change that location's\n"
-	    "value to VAL.  The return value is unspecified.\n"
-	    "If SYM is not bound in ENV, signal an environment:unbound\n"
-	    "error.  If ENV binds SYM to an immutable location, signal an\n"
-	    "environment:immutable-location error.")
+	    "If @var{env} binds @var{sym} to some location, change that\n"
+	    "location's value to @var{val}.  The return value is\n"
+	    "unspecified.\n"
+	    "If @var{sym} is not bound in @var{env}, signal an\n"
+	    "@code{environment:unbound} error.  If @var{env} binds @var{sym}\n"
+	    "to an immutable location, signal an\n"
+	    "@code{environment:immutable-location} error.")
 #define FUNC_NAME s_scm_environment_set_x
 {
   SCM status;
@@ -328,16 +341,18 @@ SCM_DEFINE (scm_environment_set_x, "environment-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_environment_cell, "environment-cell", 3, 0, 0, 
 	    (SCM env, SCM sym, SCM for_write),
-	    "Return the value cell which ENV binds to SYM, or #f if the\n"
-	    "binding does not live in a value cell.\n"
-	    "The argument FOR-WRITE indicates whether the caller intends\n"
-	    "to modify the variable's value by mutating the value cell.  If\n"
-	    "the variable is immutable, then environment-cell signals an\n"
-	    "environment:immutable-location error.\n"
-	    "If SYM is unbound in ENV, signal an environment:unbound error.\n"
+	    "Return the value cell which @var{env} binds to @var{sym}, or\n"
+	    "@code{#f} if the binding does not live in a value cell.\n"
+	    "The argument @var{for-write} indicates whether the caller\n"
+	    "intends to modify the variable's value by mutating the value\n"
+	    "cell.  If the variable is immutable, then\n"
+	    "@code{environment-cell} signals an\n"
+	    "@code{environment:immutable-location} error.\n"
+	    "If @var{sym} is unbound in @var{env}, signal an\n"
+	    "@code{environment:unbound} error.\n"
 	    "If you use this function, you should consider using\n"
-	    "environment-observe, to be notified when SYM gets re-bound to\n"
-	    "a new value cell, or becomes undefined.")
+	    "@code{environment-observe}, to be notified when @var{sym} gets\n"
+	    "re-bound to a new value cell, or becomes undefined.")
 #define FUNC_NAME s_scm_environment_cell
 {
   SCM location;
@@ -384,11 +399,12 @@ environment_default_observer (SCM env, SCM proc)
 
 SCM_DEFINE (scm_environment_observe, "environment-observe", 2, 0, 0, 
 	    (SCM env, SCM proc),
-	    "Whenever ENV's bindings change, apply PROC to ENV.\n"
+	    "Whenever @var{env}'s bindings change, apply @var{proc} to\n"
+	    "@var{env}.\n"
 	    "This function returns an object, token, which you can pass to\n"
-	    "environment-unobserve to remove PROC from the set of\n"
-	    "procedures observing ENV.  The type and value of token is\n"
-	    "unspecified.")
+	    "@code{environment-unobserve} to remove @var{proc} from the set\n"
+	    "of procedures observing @var{env}.  The type and value of\n"
+	    "token is unspecified.")
 #define FUNC_NAME s_scm_environment_observe
 {
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
@@ -401,9 +417,10 @@ SCM_DEFINE (scm_environment_observe, "environment-observe", 2, 0, 0,
 SCM_DEFINE (scm_environment_observe_weak, "environment-observe-weak", 2, 0, 0,
 	    (SCM env, SCM proc),
 	    "This function is the same as environment-observe, except that\n"
-	    "the reference ENV retains to PROC is a weak reference. This\n"
-	    "means that, if there are no other live, non-weak references\n"
-	    "to PROC, it will be garbage-collected, and dropped from ENV's\n"
+	    "the reference @var{env} retains to @var{proc} is a weak\n"
+	    "reference. This means that, if there are no other live,\n"
+	    "non-weak references to @var{proc}, it will be\n"
+	    "garbage-collected, and dropped from @var{env}'s\n"
 	    "list of observing procedures.")
 #define FUNC_NAME s_scm_environment_observe_weak
 {
@@ -436,10 +453,11 @@ scm_c_environment_observe (SCM env, scm_environment_observer proc, SCM data, int
 SCM_DEFINE (scm_environment_unobserve, "environment-unobserve", 1, 0, 0, 
 	    (SCM token),
 	    "Cancel the observation request which returned the value\n"
-	    "TOKEN.  The return value is unspecified.\n"
-	    "If a call (environment-observe env proc) returns token, then\n"
-	    "the call (environment-unobserve token) will cause proc to no\n"
-	    "longer be called when env's bindings change.")
+	    "@var{token}.  The return value is unspecified.\n"
+	    "If a call @code{(environment-observe env proc)} returns\n"
+	    "@var{token}, then the call @code{(environment-unobserve token)}\n"
+	    "will cause @var{proc} to no longer be called when @var{env}'s\n"
+	    "bindings change.")
 #define FUNC_NAME s_scm_environment_unobserve
 {
   SCM env;
@@ -1041,7 +1059,8 @@ SCM_DEFINE (scm_make_leaf_environment, "make-leaf-environment", 0, 0, 0,
 
 SCM_DEFINE (scm_leaf_environment_p, "leaf-environment?", 1, 0, 0, 
 	    (SCM object),
-	    "Return #t if object is a leaf environment, or #f otherwise.")
+	    "Return @code{#t} if object is a leaf environment, or @code{#f}\n"
+	    "otherwise.")
 #define FUNC_NAME s_scm_leaf_environment_p
 {
   return SCM_BOOL (SCM_LEAF_ENVIRONMENT_P (object));
@@ -1388,22 +1407,26 @@ eval_environment_observer (SCM caller, SCM eval_env)
 SCM_DEFINE (scm_make_eval_environment, "make-eval-environment", 2, 0, 0, 
 	    (SCM local, SCM imported),
 	    "Return a new environment object eval whose bindings are the\n"
-	    "union of the bindings in the environments local and imported,\n"
-	    "with bindings from local taking precedence. Definitions made\n"
-	    "in eval are placed in local.\n"
-	    "Applying environment-define or environment-undefine to eval\n"
-	    "has the same effect as applying the procedure to local.\n"
-	    "Note that eval incorporates local and imported by reference:\n"
+	    "union of the bindings in the environments @var{local} and\n"
+	    "@var{imported}, with bindings from @var{local} taking\n"
+	    "precedence. Definitions made in eval are placed in @var{local}.\n"
+	    "Applying @code{environment-define} or\n"
+	    "@code{environment-undefine} to eval has the same effect as\n"
+	    "applying the procedure to @var{local}.\n"
+	    "Note that eval incorporates @var{local} and @var{imported} by\n"
+	    "reference:\n"
 	    "If, after creating eval, the program changes the bindings of\n"
-	    "local or imported, those changes will be visible in eval.\n"
+	    "@var{local} or @var{imported}, those changes will be visible\n"
+	    "in eval.\n"
 	    "Since most Scheme evaluation takes place in eval environments,\n"
-	    "they transparenty cache the bindings received from local and\n"
-	    "imported. Thus, the first time the program looks up a symbol\n"
-	    "in eval, eval may make calls to local or imported to find\n"
-	    "their bindings, but subsequent references to that symbol will\n"
-	    "be as fast as references to bindings in finite environments.\n"
-	    "In typical use, local will be a finite environment, and\n"
-	    "imported will be an import environment")
+	    "they transparently cache the bindings received from @var{local}\n"
+	    "and @var{imported}. Thus, the first time the program looks up\n"
+	    "a symbol in eval, eval may make calls to @var{local} or\n"
+	    "@var{imported} to find their bindings, but subsequent\n"
+	    "references to that symbol will be as fast as references to\n"
+	    "bindings in finite environments.\n"
+	    "In typical use, @var{local} will be a finite environment, and\n"
+	    "@var{imported} will be an import environment")
 #define FUNC_NAME s_scm_make_eval_environment
 {
   SCM env;
@@ -1439,7 +1462,8 @@ SCM_DEFINE (scm_make_eval_environment, "make-eval-environment", 2, 0, 0,
 
 SCM_DEFINE (scm_eval_environment_p, "eval-environment?", 1, 0, 0,
 	    (SCM object),
-	    "Return #t if object is an eval environment, or #f otherwise.")
+	    "Return @code{#t} if object is an eval environment, or @code{#f}\n"
+	    "otherwise.")
 #define FUNC_NAME s_scm_eval_environment_p
 {
   return SCM_BOOL (SCM_EVAL_ENVIRONMENT_P (object));
@@ -1449,7 +1473,7 @@ SCM_DEFINE (scm_eval_environment_p, "eval-environment?", 1, 0, 0,
 
 SCM_DEFINE (scm_eval_environment_local, "eval-environment-local", 1, 0, 0, 
 	    (SCM env),
-	    "Return the local environment of eval environment env.")
+	    "Return the local environment of eval environment @var{env}.")
 #define FUNC_NAME s_scm_eval_environment_local
 {
   SCM_ASSERT (SCM_EVAL_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
@@ -1461,7 +1485,7 @@ SCM_DEFINE (scm_eval_environment_local, "eval-environment-local", 1, 0, 0,
 
 SCM_DEFINE (scm_eval_environment_set_local_x, "eval-environment-set-local!", 2, 0, 0, 
 	    (SCM env, SCM local),
-	    "Change env's local environment to LOCAL.")
+	    "Change @var{env}'s local environment to @var{local}.")
 #define FUNC_NAME s_scm_eval_environment_set_local_x
 {
   struct eval_environment *body;
@@ -1487,7 +1511,7 @@ SCM_DEFINE (scm_eval_environment_set_local_x, "eval-environment-set-local!", 2, 
 
 SCM_DEFINE (scm_eval_environment_imported, "eval-environment-imported", 1, 0, 0,
 	    (SCM env),
-	    "Return the imported environment of eval environment env.")
+	    "Return the imported environment of eval environment @var{env}.")
 #define FUNC_NAME s_scm_eval_environment_imported
 {
   SCM_ASSERT (SCM_EVAL_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
@@ -1499,7 +1523,7 @@ SCM_DEFINE (scm_eval_environment_imported, "eval-environment-imported", 1, 0, 0,
 
 SCM_DEFINE (scm_eval_environment_set_imported_x, "eval-environment-set-imported!", 2, 0, 0, 
 	    (SCM env, SCM imported),
-	    "Change env's imported environment to IMPORTED.")
+	    "Change @var{env}'s imported environment to @var{imported}.")
 #define FUNC_NAME s_scm_eval_environment_set_imported_x
 {
   struct eval_environment *body;
@@ -1795,28 +1819,31 @@ import_environment_observer (SCM caller, SCM import_env)
 
 SCM_DEFINE (scm_make_import_environment, "make-import-environment", 2, 0, 0, 
 	    (SCM imports, SCM conflict_proc),
-	    "Return a new environment imp whose bindings are the union of\n"
-	    "the bindings from the environments in imports; imports must\n"
-	    "be a list of environments. That is, imp binds symbol to\n"
-	    "location when some element of imports does.\n"
-	    "If two different elements of imports have a binding for the\n"
-	    "same symbol, the conflict-proc is called with the following\n"
-	    "parameters:  the import environment, the symbol and the list\n"
-	    "of the imported environments that bind the symbol.  If the\n"
-	    "conflict-proc returns an environment env, the conflict is\n"
-	    "considered as resolved and the binding from env is used.  If\n"
-	    "the conflict-proc returns some non-environment object, the\n"
-	    "conflict is considered unresolved and the symbol is treated\n"
-	    "as unspecified in the import environment.\n"
-	    "The checking for conflicts may be performed lazily, i. e. at\m"
+	    "Return a new environment @var{imp} whose bindings are the union\n"
+	    "of the bindings from the environments in @var{imports};\n"
+	    "@var{imports} must be a list of environments. That is,\n"
+	    "@var{imp} binds a symbol to a location when some element of\n"
+	    "@var{imports} does.\n"
+	    "If two different elements of @var{imports} have a binding for\n"
+	    "the same symbol, the @var{conflict-proc} is called with the\n"
+	    "following parameters:  the import environment, the symbol and\n"
+	    "the list of the imported environments that bind the symbol.\n"
+	    "If the @var{conflict-proc} returns an environment @var{env},\n"
+	    "the conflict is considered as resolved and the binding from\n"
+	    "@var{env} is used.  If the @var{conflict-proc} returns some\n"
+	    "non-environment object, the conflict is considered unresolved\n"
+	    "and the symbol is treated as unspecified in the import\n"
+	    "environment.\n"
+	    "The checking for conflicts may be performed lazily, i. e. at\n"
 	    "the moment when a value or binding for a certain symbol is\n"
 	    "requested instead of the moment when the environment is\n"
 	    "created or the bindings of the imports change.\n"
-	    "All bindings in imp are immutable. If you apply\n"
-	    "environment-define or environment-undefine to imp, Guile\n"
-	    "will signal an environment:immutable-binding error. However,\n"
-	    "notice that the set of bindings in imp may still change, if\n"
-	    "one of its imported environments changes.")
+	    "All bindings in @var{imp} are immutable. If you apply\n"
+	    "@code{environment-define} or @code{environment-undefine} to\n"
+	    "@var{imp}, Guile will signal an\n"
+	    " @code{environment:immutable-binding} error. However,\n"
+	    "notice that the set of bindings in @var{imp} may still change,\n"
+	    "if one of its imported environments changes.")
 #define FUNC_NAME s_scm_make_import_environment
 {
   scm_sizet size = sizeof (struct import_environment);
@@ -1844,7 +1871,8 @@ SCM_DEFINE (scm_make_import_environment, "make-import-environment", 2, 0, 0,
 
 SCM_DEFINE (scm_import_environment_p, "import-environment?", 1, 0, 0, 
 	    (SCM object),
-	    "Return #t if object is an import environment, or #f otherwise.")
+	    "Return @code{#t} if object is an import environment, or\n"
+	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_import_environment_p
 {
   return SCM_BOOL (SCM_IMPORT_ENVIRONMENT_P (object));
@@ -1854,7 +1882,8 @@ SCM_DEFINE (scm_import_environment_p, "import-environment?", 1, 0, 0,
 
 SCM_DEFINE (scm_import_environment_imports, "import-environment-imports", 1, 0, 0, 
 	    (SCM env),
-	    "Return the list of environments imported by the import environment env.")
+	    "Return the list of environments imported by the import\n"
+	    "environment @var{env}.")
 #define FUNC_NAME s_scm_import_environment_imports
 {
   SCM_ASSERT (SCM_IMPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
@@ -1866,7 +1895,8 @@ SCM_DEFINE (scm_import_environment_imports, "import-environment-imports", 1, 0, 
 
 SCM_DEFINE (scm_import_environment_set_imports_x, "import-environment-set-imports!", 2, 0, 0, 
 	    (SCM env, SCM imports),
-	    "Change env's list of imported environments to imports, and check for conflicts.")
+	    "Change @var{env}'s list of imported environments to\n"
+	    "@var{imports}, and check for conflicts.")
 #define FUNC_NAME s_scm_import_environment_set_imports_x
 {
   struct import_environment *body = IMPORT_ENVIRONMENT (env);
@@ -2092,40 +2122,46 @@ export_environment_observer (SCM caller, SCM export_env)
 
 SCM_DEFINE (scm_make_export_environment, "make-export-environment", 2, 0, 0, 
 	    (SCM private, SCM signature),
-	    "Return a new environment exp containing only those bindings\n"
-	    "in private whose symbols are present in signature. The\n"
-	    "private argument must be an environment.\n\n"
-	    "The environment exp binds symbol to location when env does,\n"
-	    "and symbol is exported by signature.\n\n"
-	    "Signature is a list specifying which of the bindings in\n"
-	    "private should be visible in exp. Each element of signature\n"
-	    "should be a list of the form:\n"
+	    "Return a new environment @var{exp} containing only those\n"
+	    "bindings in private whose symbols are present in\n"
+	    "@var{signature}. The @var{private} argument must be an\n"
+	    "environment.\n\n"
+	    "The environment @var{exp} binds symbol to location when\n"
+	    "@var{env} does, and symbol is exported by @var{signature}.\n\n"
+	    "@var{signature} is a list specifying which of the bindings in\n"
+	    "@var{private} should be visible in @var{exp}. Each element of\n"
+	    "@var{signature} should be a list of the form:\n"
 	    "  (symbol attribute ...)\n"
 	    "where each attribute is one of the following:\n"
-	    "* the symbol mutable-location exp should treat the location\n"
-	    "  bound to symbol as mutable. That is, exp will pass calls\n"
-	    "  to env-set! or environment-cell directly through to\n"
-	    "  private.\n"
-	    "* the symbol immutable-location exp should treat the\n"
-	    "  location bound to symbol as immutable. If the program\n"
-	    "  applies environment-set! to exp and symbol, or calls\n"
-	    "  environment-cell to obtain a writable value cell,\n"
-	    "  environment-set! will signal an\n"
-	    "  environment:immutable-location error. Note that, even if\n"
-	    "  an export environment treats a location as immutable, the\n"
+	    "@table @asis\n"
+	    "@item the symbol @code{mutable-location}\n"
+	    "  @var{exp} should treat the\n"
+	    "  location bound to symbol as mutable. That is, @var{exp}\n"
+	    "  will pass calls to @code{environment-set!} or\n"
+	    "  @code{environment-cell} directly through to private.\n"
+	    "@item the symbol @code{immutable-location}\n"
+	    "  @var{exp} should treat\n"
+	    "  the location bound to symbol as immutable. If the program\n"
+	    "  applies @code{environment-set!} to @var{exp} and symbol, or\n"
+	    "  calls @code{environment-cell} to obtain a writable value\n"
+	    "  cell, @code{environment-set!} will signal an\n"
+	    "  @code{environment:immutable-location} error. Note that, even\n"
+	    "  if an export environment treats a location as immutable, the\n"
 	    "  underlying environment may treat it as mutable, so its\n"
 	    "  value may change.\n"
+	    "@end table\n"
 	    "It is an error for an element of signature to specify both\n"
-	    "mutable-location and immutable-location. If neither is\n"
-	    "specified, immutable-location is assumed.\n\n"
+	    "@code{mutable-location} and @code{immutable-location}. If\n"
+	    "neither is specified, @code{immutable-location} is assumed.\n\n"
 	    "As a special case, if an element of signature is a lone\n"
-	    "symbol sym, it is equivalent to an element of the form\n"
-	    "(sym).\n\n"
-	    "All bindings in exp are immutable. If you apply\n"
-	    "environment-define or environment-undefine to exp, Guile\n"
-	    "will signal an environment:immutable-binding error. However,\n"
-	    "notice that the set of bindings in exp may still change, if\n"
-	    "the bindings in private change.")
+	    "symbol @var{sym}, it is equivalent to an element of the form\n"
+	    "@code{(sym)}.\n\n"
+	    "All bindings in @var{exp} are immutable. If you apply\n"
+	    "@code{environment-define} or @code{environment-undefine} to\n"
+	    "@var{exp}, Guile will signal an\n"
+	    "@code{environment:immutable-binding} error. However,\n"
+	    "notice that the set of bindings in @var{exp} may still change,\n"
+	    "if the bindings in private change.")
 #define FUNC_NAME s_scm_make_export_environment
 {
   scm_sizet size;
@@ -2159,7 +2195,8 @@ SCM_DEFINE (scm_make_export_environment, "make-export-environment", 2, 0, 0,
 
 SCM_DEFINE (scm_export_environment_p, "export-environment?", 1, 0, 0, 
 	    (SCM object),
-	    "Return #t if object is an export environment, or #f otherwise.")
+	    "Return @code{#t} if object is an export environment, or\n"
+	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_export_environment_p
 {
   return SCM_BOOL (SCM_EXPORT_ENVIRONMENT_P (object));
@@ -2169,7 +2206,7 @@ SCM_DEFINE (scm_export_environment_p, "export-environment?", 1, 0, 0,
 
 SCM_DEFINE (scm_export_environment_private, "export-environment-private", 1, 0, 0, 
 	    (SCM env),
-	    "Return the private environment of export environment env.")
+	    "Return the private environment of export environment @var{env}.")
 #define FUNC_NAME s_scm_export_environment_private
 {
   SCM_ASSERT (SCM_EXPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
@@ -2181,7 +2218,7 @@ SCM_DEFINE (scm_export_environment_private, "export-environment-private", 1, 0, 
 
 SCM_DEFINE (scm_export_environment_set_private_x, "export-environment-set-private!", 2, 0, 0, 
 	    (SCM env, SCM private),
-	    "Change the private environment of export environment env.")
+	    "Change the private environment of export environment @var{env}.")
 #define FUNC_NAME s_scm_export_environment_set_private_x
 {
   struct export_environment *body;
@@ -2203,7 +2240,7 @@ SCM_DEFINE (scm_export_environment_set_private_x, "export-environment-set-privat
 
 SCM_DEFINE (scm_export_environment_signature, "export-environment-signature", 1, 0, 0, 
 	    (SCM env),
-	    "Return the signature of export environment env.")
+	    "Return the signature of export environment @var{env}.")
 #define FUNC_NAME s_scm_export_environment_signature
 {
   SCM_ASSERT (SCM_EXPORT_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
@@ -2277,7 +2314,7 @@ export_environment_parse_signature (SCM signature, const char* caller)
 
 SCM_DEFINE (scm_export_environment_set_signature_x, "export-environment-set-signature!", 2, 0, 0, 
 	    (SCM env, SCM signature),
-	    "Change the signature of export environment env.")
+	    "Change the signature of export environment @var{env}.")
 #define FUNC_NAME s_scm_export_environment_set_signature_x
 {
   SCM parsed_sig;
