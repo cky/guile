@@ -252,7 +252,7 @@ done<<>>dnl>>)
 changequote([,]))])
 
 
-# serial 12 AM_PROG_LIBTOOL
+# serial 15 AM_PROG_LIBTOOL
 AC_DEFUN(AM_PROG_LIBTOOL,
 [AC_REQUIRE([AC_CANONICAL_HOST])
 AC_REQUIRE([AC_PROG_RANLIB])
@@ -262,7 +262,7 @@ AC_REQUIRE([AM_PROG_NM])
 AC_REQUIRE([AC_PROG_LN_S])
 
 # Always use our own libtool.
-LIBTOOL='$(top_builddir)/libtool'
+LIBTOOL='$(SHELL) $(top_builddir)/libtool'
 AC_SUBST(LIBTOOL)
 
 dnl Allow the --disable-shared flag to stop us from building shared libs.
@@ -334,7 +334,9 @@ if test "$ac_cv_prog_gcc" = yes; then
   ac_prog=`($CC -print-prog-name=ld) 2>&5`
   case "$ac_prog" in
   # Accept absolute paths.
-  /*) ;;
+  /*)
+    test -z "$LD" && LD="$ac_prog"
+    ;;
   "")
     # If it fails, then pretend we aren't using GCC.
     ac_prog=ld
@@ -350,12 +352,7 @@ else
   AC_MSG_CHECKING([for non-GNU ld])
 fi
 AC_CACHE_VAL(ac_cv_path_LD,
-[LD=${LD-$ac_prog}
-case "$LD" in
-  /*)
-  ac_cv_path_LD="$LD" # Let the user override the test with a path.
-  ;;
-  *)
+[if test -z "$LD"; then
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
   for ac_dir in $PATH; do
     test -z "$ac_dir" && ac_dir=.
@@ -372,8 +369,9 @@ case "$LD" in
     fi
   done
   IFS="$ac_save_ifs"
-  ;;
-esac])
+else
+  ac_cv_path_LD="$LD" # Let the user override the test with a path.
+fi])
 LD="$ac_cv_path_LD"
 if test -n "$LD"; then
   AC_MSG_RESULT($LD)
@@ -405,7 +403,7 @@ AC_CACHE_VAL(ac_cv_path_NM,
   ;;
 *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
-  for ac_dir in /usr/ucb:$PATH:/bin; do
+  for ac_dir in /usr/ucb $PATH /bin; do
     test -z "$ac_dir" && dir=.
     if test -f $ac_dir/nm; then
       # Check to see if the nm accepts a BSD-compat flag.
