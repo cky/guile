@@ -64,7 +64,7 @@ scm_set_object_procedure_x (SCM obj, SCM procs)
   SCM proc[4], *pp, p, setp, arity;
   int i, a, r;
   SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
-	      && ((SCM_CLASS_FLAGS (obj) | SCM_CLASSF_OPERATOR)
+	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
 		  || SCM_I_ENTITYP (obj)),
 	      obj,
 	      SCM_ARG1,
