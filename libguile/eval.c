@@ -1135,7 +1135,7 @@ scm_m_atbind (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
   SCM top_level = scm_env_top_level (env);
-  SCM vars = SCM_EOL;
+  SCM vars = SCM_EOL, var;
   SCM exps = SCM_EOL;
 
   SCM_ASSYNT (scm_ilength (x) > 1, scm_s_expression, s_atbind);
@@ -1151,8 +1151,12 @@ scm_m_atbind (SCM xorig, SCM env)
       for (rest = x; SCM_NIMP (rest); rest = SCM_CDR (rest))
 	if (SCM_EQ_P (SCM_CAR (sym_exp), SCM_CAR (SCM_CAR (rest))))
 	  scm_misc_error (s_atbind, scm_s_duplicate_bindings, SCM_EOL);
-      vars = scm_cons (scm_sym2var (SCM_CAR (sym_exp), top_level, SCM_BOOL_T),
-		       vars);
+      /* The first call to scm_sym2var will look beyond the current
+	 module, while the second call wont. */
+      var = scm_sym2var (SCM_CAR (sym_exp), top_level, SCM_BOOL_F);
+      if (SCM_FALSEP (var))
+	var = scm_sym2var (SCM_CAR (sym_exp), top_level, SCM_BOOL_T);
+      vars = scm_cons (var, vars);
       exps = scm_cons (SCM_CADR (sym_exp), exps);
     }
   return scm_cons (SCM_IM_BIND,
