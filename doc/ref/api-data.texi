@@ -2407,6 +2407,8 @@ strings created by this procedure are called @dfn{mutation sharing
 substrings} since the substring and the original string share
 modifications to each other.
 
+If you want to prevent modifications, use @code{substring/read-only}.
+
 Guile provides all procedures of SRFI-13 and a few more.
 
 @menu
@@ -2725,9 +2727,15 @@ Like @code{substring}, but the storage for the new string is copied
 immediately.
 @end deffn
 
+@deffn {Scheme Procedure} substring/read-only str start [end]
+@deffnx {C Function} scm_substring_read_only (str, start, end)
+Like @code{substring}, but the resulting string can not be modified.
+@end deffn
+
 @deftypefn  {C Function} SCM scm_c_substring (SCM str, size_t start, size_t end)
 @deftypefnx {C Function} SCM scm_c_substring_shared (SCM str, size_t start, size_t end)
 @deftypefnx {C Function} SCM scm_c_substring_copy (SCM str, size_t start, size_t end)
+@deftypefnx {C Function} SCM scm_c_substring_read_only (SCM str, size_t start, size_t end)
 Like @code{scm_substring}, etc. but the bounds are given as a @code{size_t}.
 @end deftypefn
 
