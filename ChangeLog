@@ -12,6 +12,10 @@
 	with libguile and also use libltdl will be more likely to work
 	right.
 
+2001-11-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* BUGS (4): Set "fixed: 2001-11-17 (1.7.x)".
+
 2001-11-15  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* guile-tools.in: Handle command "list" specially: list scripts dir.
