@@ -38,13 +38,8 @@ subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
 subpkgdata_DATA = $(ice9_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 
-install-data-local:
-	-$(INSTALL_DATA) and-let-star-compat.scm \
-           $(subpkgdatadir)/'and-let*.scm'
-
 ## test.scm is not currently installed.
-EXTRA_DIST = $(ice9_sources) test.scm and-let-star-compat.scm \
-             compile-psyntax.scm
+EXTRA_DIST = $(ice9_sources) test.scm compile-psyntax.scm
 
 if MAINTAINER_MODE
 psyntax.pp: psyntax.ss
