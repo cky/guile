@@ -1,3 +1,8 @@
+Sun Feb 13 09:40:36 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* guile-doc-snarf.in: Use ${AWK} -f guile-func-name-check, not
+	just execing guile-func-name-check.  Thanks Michael Livshin!
+
 Thu Feb 10 11:43:23 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* guile-snarf.awk.in: Tweak to work with Sun/HP awk, removed some
