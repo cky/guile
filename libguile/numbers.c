@@ -1118,7 +1118,15 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   else if (SCM_EQ_P (n, SCM_MAKINUM (-1L)))
     return SCM_FALSEP (scm_even_p (k)) ? n : acc;
 #endif
-  SCM_VALIDATE_ULONG_COPY (2,k,i2);
+  if (SCM_REALP (k))
+    {
+      double r = SCM_REAL_VALUE (k);
+      i2 = r;
+      if (i2 != r)
+	SCM_WRONG_TYPE_ARG (2, k);
+    }
+  else
+    SCM_VALIDATE_ULONG_COPY (2,k,i2);
   if (i2 < 0)
     {
       i2 = -i2;
