@@ -1,3 +1,9 @@
+2003-07-27  Marius Vollmer  <mvo@zagadka.de>
+
+	* configure.in (__libc_stack_end): Actually use the value in
+	__libc_stack_end for something so that the access doesn't get
+	optimized away.  Thanks to Matthias Koeppe!
+
 2003-07-08  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_FUNCS): Add sincos.
