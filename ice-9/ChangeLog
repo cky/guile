@@ -1,3 +1,8 @@
+2001-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (the-module, set-current-module, current-module):
+	Removed, they are now defined in libguile.
+
 2001-04-29  Gary Houston  <ghouston@arglist.com>
 
 	* rw.scm: new file, for module (ice-9 rw).
@@ -42,6 +47,7 @@
 	* srfi-8.scm: removed in favor of srfi/srfi-8.scm - (wasn't ever
 	in a production release).
 
+>>>>>>> 1.412
 2001-04-25  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* channel.scm: New file.
