@@ -526,7 +526,7 @@
 (define (tms:cstime obj) (vector-ref obj 4))
 
 (define (file-position . args) (apply ftell args))
-(define (file-set-position . args) (apply fseek args))
+(define (file-set-position . args) (apply seek args))
 
 (define (move->fdes fd/port fd)
   (cond ((integer? fd/port)
