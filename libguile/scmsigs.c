@@ -523,7 +523,7 @@ scm_init_scmsigs ()
 	sigaction (i, NULL, &action);
 	if (!(action.sa_flags & SA_RESTART))
 	  {
-	    action.sa_flags &= SA_RESTART;
+	    action.sa_flags |= SA_RESTART;
 	    sigaction (i, &action, NULL);
 	  }
       }
