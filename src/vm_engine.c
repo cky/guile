@@ -126,6 +126,11 @@ vm_engine (SCM vm, SCM program, SCM args)
     err_msg  = scm_makfrom0str ("Unbound variable: ~A");
     goto vm_error;
 
+  vm_error_wrong_type_arg:
+    err_msg  = scm_makfrom0str ("Wrong type argument");
+    err_args = SCM_EOL;
+    goto vm_error;
+
   vm_error_wrong_num_args:
     err_msg  = scm_makfrom0str ("Wrong number of arguments");
     err_args = SCM_EOL;
