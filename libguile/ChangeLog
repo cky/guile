@@ -1,3 +1,13 @@
+1998-06-07  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* debug.h, debug.c (scm_start_stack): New function.  Implements
+	the guts of old scm_m_start_stack.
+
+	* debug.c (scm_m_start_stack): Use scm_start_stack.
+
+	* init.c (scm_start_stack, scm_restart_stack): Renamed to
+	start_stack and restart_stack.  (These have static scope.)
+
 1998-05-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* readline.c (rl_cleanup_after_signals, rl_free_line_state): New
