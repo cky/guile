@@ -555,6 +555,28 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
  */
 #define SCM_WNA 		8
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+/* Use SCM_ASSERT_RANGE or SCM_VALIDATE_XXX_RANGE instead of: */
+#define SCM_OUTOFRANGE         10
+
+/* Use scm_memory_error instead of: */
+#define SCM_NALLOC             11
+
+#define SCM_HUP_SIGNAL         14
+#define SCM_INT_SIGNAL         15
+#define SCM_FPE_SIGNAL         16
+#define SCM_BUS_SIGNAL         17
+#define SCM_SEGV_SIGNAL        18
+#define SCM_ALRM_SIGNAL        19
+#define SCM_GC_SIGNAL          20
+#define SCM_TICK_SIGNAL        21
+#define SCM_SIG_ORD(X)         ((X) - SCM_HUP_SIGNAL)
+#define SCM_ORD_SIG(X)         ((X) + SCM_HUP_SIGNAL)
+#define SCM_NUM_SIGS           (SCM_SIG_ORD (SCM_TICK_SIGNAL) + 1)
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
 #endif /* SCM_MAGIC_SNARFER */
 
 

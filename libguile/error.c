@@ -316,6 +316,16 @@ scm_wta (SCM arg, const char *pos, const char *s_subr)
 	  scm_wrong_type_arg (s_subr, 7, arg);
 	case SCM_WNA:
 	  scm_wrong_num_args (arg);
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+	case SCM_OUTOFRANGE:
+	  scm_out_of_range (s_subr, arg);
+	case SCM_NALLOC:
+	  scm_memory_error (s_subr);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
 	default:
 	  /* this shouldn't happen.  */
 	  scm_misc_error (s_subr, "Unknown error", SCM_EOL);

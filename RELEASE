@@ -33,6 +33,13 @@ In release 1.5:
   SCM_UNEGFIXABLE, SCM_FLOBUFLEN, SCM_INEXP, SCM_CPLXP, SCM_REAL, SCM_IMAG,
   SCM_REALPART, scm_makdbl, SCM_SINGP, SCM_NUM2DBL, SCM_NO_BIGDIG
 
+In release 1.6:
+- remove deprecated macros: SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL, 
+  SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
+  SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
+  SCM_ORD_SIG, SCM_NUM_SIGS
+
+
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new
 module system.

@@ -1,3 +1,14 @@
+2000-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h (SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL,
+	SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL,
+	SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD,
+	SCM_ORD_SIG, SCM_NUM_SIGS):  Re-introduce these as deprecated
+	symbols.
+
+	* error.c (scm_wta):  Re-introduce dispatching for SCM_OUTOFRANGE
+	and SCM_NALLOC, but as a deprecated feature.
+
 2000-06-30  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* debug.c: Added #include fluids.h.

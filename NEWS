@@ -55,6 +55,14 @@ Example:
 
 * Changes to the scm_ interface
 
+** Deprecated macros:  SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL, 
+SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
+SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
+SCM_ORD_SIG, SCM_NUM_SIGS
+
+Use SCM_ASSERT_RANGE or SCM_VALIDATE_XXX_RANGE instead of SCM_OUTOFRANGE.
+Use scm_memory_error instead of SCM_NALLOC.
+
 
 Changes since Guile 1.3.4:
 
