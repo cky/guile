@@ -1,3 +1,11 @@
+2001-08-17  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (guile_tut_TEXINFOS): remove guile-tut.texi.  It's
+	already in info_TEXINFOS.
+
+	* .cvsignore: rename stamp-vti1 to stamp-vti.1.  Of course this
+	only matters once you fix the bug in automake.
+
 2001-08-02  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-debug.texi (Debugging): Improve `make-stack' doc by

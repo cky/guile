@@ -118,17 +118,26 @@ Spiffing checklist:
 * Commit all changes to the CVS repository.
 
 * Build a test distribution.
+
   + update GUILE-VERSION each time you make a test distribution.  For
     example, just before the 1.6.0 release, we went through some
     number of 1.5.X test releases.
+
   + BEFORE doing 'make dist', configure the source tree for build
-    in the same tree with configuration options
-    --enable-maintainer-mode --enable-debug-malloc --with-threads.
+    in the same tree with these configuration options:
+      --enable-maintainer-mode
+      --enable-debug-malloc
+      --with-threads
+      --enable-error-on-warning
+
   + Make sure that readline was enabled correctly.
+
   + Build the tree.
     (If the above steps are not done, the dependencies won't be properly
     included in the generated Makefile.in files.)
+
   + Then do 'make dist'.
+
   + Check that the dependencies in guile-readline/Makefile look OK.
     (We currently use a kludge which edits the dependencies generated
     by automake so that Guile can be built in a directory separate
