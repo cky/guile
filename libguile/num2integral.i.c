@@ -79,7 +79,7 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
       else
         {
           /* make sure the result will fit */
-          if (BIGMPZ_FITSP)
+          if (BIGMPZ_FITSP != 0)
             {
               int fits_p = BIGMPZ_FITSP (SCM_I_BIG_MPZ (num));
               scm_remember_upto_here_1 (num);
