@@ -63,6 +63,8 @@ that user-visible changes are reflected in NEWS.
 
 * Before releasing 1.8.0:
 
+- incorporate SCM_API patch(es) by Stefan Jahn [mvo]
+
 - For GOOPS: [ttn]
   - rewrite method cache management in C
   - rewrite core macros (define-class et al) in C
