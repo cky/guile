@@ -701,6 +701,23 @@ Guile.
 
 Instead, use scm_c_memq or scm_memq, scm_memv, scm_member.
 
+** New functions: scm_call_0, scm_call_1, scm_call_2, scm_call_3
+
+Call a procedure with the indicated number of arguments.
+
+Example:
+
+  scm_call_1 (proc, arg1);
+
+** New functions: scm_apply_0, scm_apply_1, scm_apply_2, scm_apply_3
+
+Call a procedure with the indicated number of arguments and a list
+of arguments.
+
+Example:
+
+  scm_apply_1 (proc, arg1, args);
+
 ** New function: scm_c_read (SCM port, void *buffer, scm_sizet size)
 
 Used by an application to read arbitrary number of bytes from a port.
