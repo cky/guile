@@ -1,3 +1,7 @@
+2000-05-28  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* ppexpand.el: New file.
+
 2000-01-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* multistring.el: New file.
