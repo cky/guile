@@ -1,3 +1,23 @@
+Mon Apr 14 20:20:14 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Merge threads directory into libguile.
+	* coop-defs.h, coop-threads.c, coop-threads.h, coop.c, threads.c,
+	threads.h: New source files.
+	* Makefile.am (EXTRA_libguile_la_SOURCES): Add threads.c.
+	(noinst_HEADERS): Add coop-threads.c, coop-threads.h, coop.c
+	here; see comment.
+	(modinclude_HEADERS): Add threads.h, coop-defs.h.
+	(EXTRA_DIST): Add fsu-pthreads.h, mit-pthreads.c, mit-pthreads.h,
+	coop-threads.c.cygnus, coop-threads.h.cygnus.
+	* configure.in: If we're using threads, include threads.o in
+	LIBOBJS.
+	* _scm.h, libguile.h: threads.h lives in this directory now.
+	* fsu-pthreads.h, mit-pthreads.c, mit-pthreads.h,
+	coop-threads.c.cygnus, coop-threads.h.cygnus: New files, not
+	currently used, but brought along for information's sake.
+	* ChangeLog-threads: log from old 'threads' directory.
+	* Makefile.in, configure: Rebuilt.
+
 Mon Apr 14 20:15:29 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* stime.c (scm_mktime): #ifndef HAVE_TM_ZONE, Use lt.tm_zone, not
