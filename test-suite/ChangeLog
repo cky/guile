@@ -1,3 +1,10 @@
+2003-05-13  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (=, <, max, min): Add tests of bignum/inf
+	combinations.
+
+	* tests/srfi-1.test (delete, delete!): Test predicate call arg order.
+
 2003-05-10  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (=, <): Add tests involving NaNs.
