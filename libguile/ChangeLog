@@ -1,3 +1,18 @@
+Sun Dec 12 16:50:26 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* scm_validate.h: Drop the SCM_DOCSTRING_SNARF for turning off
+	SCM_VALIDATE macros;  the SCM_VALIDATE macros should be checked
+	for argument mismatches (along with the FUNC_NAME macro checking)
+	by a static tool that runs directly over the .c files.
+
+	* snarf.h: Handle SCM_REGISTER_PROC better when snarfing.  The
+	docstring is still missing from the .doc file;  it just gives the
+	name of the C function that gets called instead.
+
+	* guile-doc-snarf.awk: Be sure to touch the output files to help
+	make out.  Also handle SCM_REGISTER_PROC better, and change the
+	output format slightly.
+
 Sun Dec 12 15:33:40 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* snarf.h: Drop SCM_PROC, SCM_PROC1. Added extra output for
