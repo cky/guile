@@ -764,9 +764,10 @@ m_body (SCM op, SCM exprs)
 }
 
 
-/* The function m_expand_body memoizes a proper list of expressions forming a
- * body.  This function takes care of dealing with internal defines and
- * transforming them into an equivalent letrec expression.  */ 
+/* The function m_expand_body memoizes a proper list of expressions
+ * forming a body.  This function takes care of dealing with internal
+ * defines and transforming them into an equivalent letrec expression.
+ * The list of expressions is rewritten in place.  */ 
 
 /* This is a helper function for m_expand_body.  It helps to figure out whether
  * an expression denotes a syntactic keyword.  */ 
@@ -835,7 +836,7 @@ is_system_macro_p (const SCM syntactic_keyword, const SCM form, const SCM env)
   return 0;
 }
 
-static SCM
+static void
 m_expand_body (const SCM forms, const SCM env)
 {
   /* The first body form can be skipped since it is known to be the ISYM that
@@ -948,14 +949,13 @@ m_expand_body (const SCM forms, const SCM env)
       /* FIXME: forms does not hold information about the file location.  */
       letrec_expression = scm_cons_source (forms, scm_sym_letrec, letrec_tail);
       new_letrec_expression = scm_m_letrec (letrec_expression, env);
-      new_body = scm_list_1 (new_letrec_expression);
-      return new_body;
+      SCM_SETCAR (forms, new_letrec_expression);
+      SCM_SETCDR (forms, SCM_EOL);
     }
   else
     {
       SCM_SETCAR (forms, SCM_CAR (sequence));
       SCM_SETCDR (forms, SCM_CDR (sequence));
-      return forms;
     }
 }
 
@@ -967,7 +967,8 @@ scm_m_expand_body (SCM exprs, SCM env)
 {
   scm_c_issue_deprecation_warning 
     ("`scm_m_expand_body' is deprecated.");
-  return m_expand_body (exprs, env);
+  m_expand_body (exprs, env);
+  return exprs;
 }
 
 #endif
@@ -2549,7 +2550,7 @@ scm_eval_body (SCM code, SCM env)
 	      scm_rec_mutex_lock (&source_mutex);
 	      /* check for race condition */
 	      if (SCM_ISYMP (SCM_CAR (code)))
-		code = m_expand_body (code, env);
+		m_expand_body (code, env);
 	      scm_rec_mutex_unlock (&source_mutex);
 	      goto again;
 	    }
@@ -2951,7 +2952,7 @@ dispatch:
 		  scm_rec_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (x)))
-		    x = m_expand_body (x, env);
+		    m_expand_body (x, env);
 		  scm_rec_mutex_unlock (&source_mutex);
 		  goto nontoplevel_begin;
 		}
@@ -4604,7 +4605,7 @@ tail:
 		  scm_rec_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (proc)))
-		    proc = m_expand_body (proc, args);
+		    m_expand_body (proc, args);
 		  scm_rec_mutex_unlock (&source_mutex);
 		  goto again;
 		}
