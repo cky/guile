@@ -70,9 +70,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-/* Some systems do not declare this.  Some systems do declare it, as a
-   macro.  */
-#ifndef h_errno
+#if !defined (HAVE_H_ERRNO)
 extern int h_errno;
 #endif
 
