@@ -1,3 +1,8 @@
+2005-03-14  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-55): New section.
+	(SRFI-60): New section.
+
 2005-03-01  Kevin Ryde  <user42@zip.com.au>
 
 	* api-compound.texi (Shared Arrays): New section.  Rewrite
