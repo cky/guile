@@ -1758,21 +1758,28 @@ SCM_DEFINE (scm_flock, "flock", 2, 0, 0,
             (SCM file, SCM operation),
 	    "Apply or remove an advisory lock on an open file.\n"
 	    "@var{operation} specifies the action to be done:\n"
-	    "@table @code\n"
-	    "@item LOCK_SH\n"
+	    "\n"
+	    "@defvar LOCK_SH\n"
 	    "Shared lock.  More than one process may hold a shared lock\n"
 	    "for a given file at a given time.\n"
-	    "@item LOCK_EX\n"
+	    "@end defvar\n"
+	    "@defvar LOCK_EX\n"
 	    "Exclusive lock.  Only one process may hold an exclusive lock\n"
 	    "for a given file at a given time.\n"
-	    "@item LOCK_UN\n"
+	    "@end defvar\n"
+	    "@defvar LOCK_UN\n"
 	    "Unlock the file.\n"
-	    "@item LOCK_NB\n"
-	    "Don't block when locking.  May be specified by bitwise OR'ing\n"
-	    "it to one of the other operations.\n"
-	    "@end table\n"
+	    "@end defvar\n"
+	    "@defvar LOCK_NB\n"
+	    "Don't block when locking.  This is combined with one of the\n"
+	    "other operations using @code{logior}.  If @code{flock} would\n"
+	    "block an @code{EWOULDBLOCK} error is thrown.\n"
+	    "@end defvar\n"
+	    "\n"
 	    "The return value is not specified. @var{file} may be an open\n"
-	    "file descriptor or an open file descriptor port.")
+	    "file descriptor or an open file descriptor port.\n"
+	    "\n"
+	    "Note that @code{flock} does not lock files across NFS.")
 #define FUNC_NAME s_scm_flock
 {
   int fdes;
