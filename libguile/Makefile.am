@@ -41,9 +41,9 @@ guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 ## For some reason, OBJEXT does not include the dot
 c-tokenize.$(OBJEXT): c-tokenize.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) -c -o $@ c-tokenize.c; \
+		$(CC_FOR_BUILD) -c -o $@ $<; \
 	else \
-		$(COMPILE) -c -o $@ c-tokenize.c; \
+		$(COMPILE) -c -o $@ $<; \
 	fi
 
 ## Override default rule; this should run on BUILD host.
@@ -173,7 +173,7 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
     ChangeLog-1996-1999 ChangeLog-2000 cpp_signal.c			\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c		\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk	\
-    c-tokenize.lex threads-plugin.c
+    c-tokenize.lex threads-plugin.c version.h.in pthread-threads.c
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 
