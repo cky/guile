@@ -1635,49 +1635,82 @@ They are displayed as a sequence of @code{0}s and
 @example
 (make-uniform-vector 8 #t #f) @result{}
 #*00000000
-
-#b(#t #f #t) @result{}
-#*101
 @end example
 
-@deffn {Scheme Procedure} bit-count b bitvector
-@deffnx {C Function} scm_bit_count (b, bitvector)
-Return the number of occurrences of the boolean @var{b} in
-@var{bitvector}.
+@deffn {Scheme Procedure} bit-count bool bitvector
+@deffnx {C Function} scm_bit_count (bool, bitvector)
+Return a count of how many entries in @var{bitvector} are equal to
+@var{bool}.  For example,
+
+@example
+(bit-count #f #*000111000)  @result{} 6
+@end example
 @end deffn
 
-@deffn {Scheme Procedure} bit-position item v k
-@deffnx {C Function} scm_bit_position (item, v, k)
-Return the minimum index of an occurrence of @var{bool} in
-@var{bv} which is at least @var{k}.  If no @var{bool} occurs
-within the specified range @code{#f} is returned.
+@deffn {Scheme Procedure} bit-position bool bitvector start
+@deffnx {C Function} scm_bit_position (bool, bitvector, start)
+Return the index of the first occurrance of @var{bool} in
+@var{bitvector}, starting from @var{start}.  If there is no @var{bool}
+entry between @var{start} and the end of @var{bitvector}, then return
+@code{#f}.  For example,
+
+@example
+(bit-position #t #*000101 0)  @result{} 3
+(bit-position #f #*0001111 3) @result{} #f
+@end example
 @end deffn
 
-@deffn {Scheme Procedure} bit-invert! v
-@deffnx {C Function} scm_bit_invert_x (v)
-Modify @var{bv} by replacing each element with its negation.
+@deffn {Scheme Procedure} bit-invert! bitvector
+@deffnx {C Function} scm_bit_invert_x (bitvector)
+Modify @var{bitvector} by replacing each element with its negation.
 @end deffn
 
-@deffn {Scheme Procedure} bit-set*! v kv obj
-@deffnx {C Function} scm_bit_set_star_x (v, kv, obj)
-If uve is a bit-vector @var{bv} and uve must be of the same
-length.  If @var{bool} is @code{#t}, uve is OR'ed into
-@var{bv}; If @var{bool} is @code{#f}, the inversion of uve is
-AND'ed into @var{bv}.
+@deffn {Scheme Procedure} bit-set*! bitvector uvec bool
+@deffnx {C Function} scm_bit_set_star_x (bitvector, uvec, bool)
+Set entries of @var{bitvector} to @var{bool}, with @var{uvec}
+selecting the entries to change.
 
-If uve is a unsigned long integer vector all the elements of uve
-must be between 0 and the @code{length} of @var{bv}.  The bits
-of @var{bv} corresponding to the indexes in uve are set to
-@var{bool}.  The return value is unspecified.
+If @var{uvec} is a bit vector, then those entries where it has
+@code{#t} are the ones in @var{bitvector} which are set to @var{bool}.
+When @var{bool} is @code{#t} it's like @var{uvec} is OR'ed into
+@var{bitvector}.  Or when @var{bool} is @code{#f} it can be seen as an
+ANDNOT.
+
+@example
+(define bv #*01000010)
+(bit-set*! bv #*10010001 #t)
+bv
+@result{} #*11010011
+@end example
+
+If @var{uvec} is a uniform vector of unsigned long integers, then
+they're indexes into @var{bitvector} which are set to @var{bool}.  
+
+@example
+(define bv #*01000010)
+(bit-set*! bv #u(5 2 7) #t)
+bv
+@result{} #*01100111
+@end example
 @end deffn
 
-@deffn {Scheme Procedure} bit-count* v kv obj
-@deffnx {C Function} scm_bit_count_star (v, kv, obj)
-Return
-@lisp
-(bit-count (bit-set*! (if bool bv (bit-invert! bv)) uve #t) #t).
-@end lisp
-@var{bv} is not modified.
+@deffn {Scheme Procedure} bit-count* bitvector uvec bool
+@deffnx {C Function} scm_bit_count_star (bitvector, uvec, bool)
+Return a count of how many entries in @var{bitvector} are equal to
+@var{bool}, with @var{uvec} selecting the entries to consider.
+
+@var{uvec} is interpreted in the same way as for @code{bit-set*!}
+above.  Namely, if @var{uvec} is a bit vector then entries which have
+@code{#t} there are considered in @var{bitvector}.  Or if @var{uvec}
+is a uniform vector of unsigned long integers then it's the indexes in
+@var{bitvector} to consider.
+
+For example,
+
+@example
+(bit-count* #*01110111 #*11001101 #t) @result{} 3
+(bit-count* #*01110111 #u(7 0 4) #f)  @result{} 2
+@end example
 @end deffn
 
 
