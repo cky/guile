@@ -1,3 +1,7 @@
+Mon Dec  9 10:10:38 1996  Tom Tromey  <tromey@cygnus.com>
+
+	* inet_aton.c: Use #if 0, not #ifdef 0.
+
 Sun Dec  8 21:06:38 1996  Jim Blandy  <jimb@duality.gnu.ai.mit.edu>
 
 	Add new interface to catch/throw, usable from C as well as

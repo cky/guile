@@ -41,7 +41,7 @@ static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#ifdef 0
+#if 0
 
 /*
  * Ascii internet address interpretation routine.
