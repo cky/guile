@@ -223,15 +223,6 @@ check_config (void)
   if (HEAP_SEG_SIZE != j)
     fixconfig ("reduce", "size of HEAP_SEG_SIZE", 0);
 
-#ifdef SCM_BIGDIG
-  if (2 * SCM_BITSPERDIG / SCM_CHAR_BIT > sizeof (long))
-      fixconfig (remsg, "SCM_BIGDIG", 0);
-#ifndef SCM_DIGSTOOBIG
-  if (SCM_DIGSPERLONG * sizeof (SCM_BIGDIG) > sizeof (long))
-      fixconfig (addmsg, "SCM_DIGSTOOBIG", 0);
-#endif
-#endif
-
 #if SCM_STACK_GROWS_UP
   if (((SCM_STACKITEM *) & j - stack_start_ptr) < 0)
     fixconfig (remsg, "SCM_STACK_GROWS_UP", 1);
@@ -446,6 +437,13 @@ scm_init_guile_1 (SCM_STACKITEM *base)
     {
       fprintf (stderr, "cannot determine stack base!\n");
       abort ();
+    }
+
+  if (sizeof (mpz_t) > (3 * sizeof (scm_t_bits)))
+    {
+      fprintf (stderr,
+               "GMP's mpz_t must fit into a double_cell,"
+               "but doesn't seem to here.\n");
     }
 
   scm_block_gc = 1;
