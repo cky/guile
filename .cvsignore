@@ -9,6 +9,7 @@ check-guile.log
 config.build-subdirs
 config.cache
 config.guess
+config.h
 config.h.in
 config.log
 config.status
@@ -20,3 +21,4 @@ libtool
 ltconfig
 ltmain.sh
 pre-inst-guile
+stamp-h1

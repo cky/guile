@@ -1,3 +1,7 @@
+2003-02-27  Rob Browning  <rlb@defaultvalue.org>
+
+	* autogen.sh: use autoreconf.
+
 2003-01-08  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* readline.c (scm_readline): Check that scm_cur_outp is an output

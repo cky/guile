@@ -1,3 +1,24 @@
+2003-02-27  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in (AC_CONFIG_SRCDIR): use GUILE-VERSION.
+	(AM_CONFIG_HEADER): change to config.h
+
+	* Makefile.am (EXTRA_DIST): remove $(ACLOCAL).
+	(ACLOCAL_AMFLAGS): replaces ACLOCAL.
+
+	* autogen.sh: switch to autoreconf -- see how it goes.  remove
+	call to guile-aclocal.sh -- we now do the same thing with an
+	automake setting.
+
+	* guile-aclocal.sh: deleted in favor of ACLOCAL_AMFLAGS in
+	Makefile.am.
+
+2003-02-26  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: change our config header from libguile/scmconfig.h
+	to be the traditional ./config.h.  libguile/scmconfig.h is now
+	built from that during the build process.  More changes coming...
+
 2003-01-23  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* libguile.h: #include "futures.h"
