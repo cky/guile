@@ -1,3 +1,11 @@
+2004-09-24  Marius Vollmer  <mvo@zagadka.de>
+
+	* Makefile.am (guile_CFLAGS, guile_LDFLAGS, libguile_la_CFLAGS, ):
+	Include GUILE_CFLAGS.
+	(libguile_la_LIBADD): Removed THREAD_LIBS_LOCAL, which is unused
+	now.
+	(libpath.h): Put GUILE_CFLAGS in the build-info.
+	
 2004-09-23  Marius Vollmer  <mvo@zagadka.de>
 
         * print.h (scm_print_state): Added highlight_objects.

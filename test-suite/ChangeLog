@@ -1,3 +1,8 @@
+2004-09-24  Marius Vollmer  <mvo@zagadka.de>
+
+	* standalone/Makefile.am (test_cflags, LDFLAGS): Include
+	GUILE_CFLAGS.
+
 2004-09-23  Marius Vollmer  <mvo@zagadka.de>
 
 	* lib.scm (exception:out-of-range, exception:wrong-type-arg):
