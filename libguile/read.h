@@ -55,6 +55,8 @@ SCM_API scm_t_option scm_read_opts[];
 
 
 
+SCM_API SCM scm_sym_dot;
+
 SCM_API SCM scm_read_options (SCM setting);
 SCM_API SCM scm_read (SCM port);
 SCM_API char * scm_grow_tok_buf (SCM * tok_buf);

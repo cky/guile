@@ -39,6 +39,7 @@
 
 
 
+SCM_GLOBAL_SYMBOL (scm_sym_dot, ".");
 SCM_SYMBOL (scm_keyword_prefix, "prefix");
 
 scm_t_option scm_read_opts[] = {

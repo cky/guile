@@ -152,7 +152,6 @@ SCM_API SCM scm_sym_quasiquote;
 SCM_API SCM scm_sym_unquote;
 SCM_API SCM scm_sym_uq_splicing;
 
-SCM_API SCM scm_sym_dot;
 SCM_API SCM scm_sym_atapply;
 SCM_API SCM scm_sym_atcall_cc;
 SCM_API SCM scm_sym_at_call_with_values;

@@ -1,5 +1,10 @@
 2003-05-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c, eval.h, read.c, read.h (scm_sym_dot): Moved from eval to
+	read.  This will allow to make the definition in read.c static.
+
+2003-05-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c, eval.h, evalext.c, evalext.h (scm_m_undefine): Moved
 	from evalext to eval.  This will allow to make some of the
 	definitions in eval.c static.

@@ -405,7 +405,6 @@ const char scm_s_formals[] = "bad formals";
 const char scm_s_duplicate_formals[] = "duplicate formals";
 static const char s_splicing[] = "bad (non-list) result for unquote-splicing";
 
-SCM_GLOBAL_SYMBOL (scm_sym_dot, ".");
 SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
 SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
 SCM_GLOBAL_SYMBOL (scm_sym_unquote, "unquote");
