@@ -59,6 +59,10 @@
 #include "coop-threads.h"
 #endif
 
+#ifdef DECLARE_BZERO
+extern void bzero (void *, size_t);
+#endif
+
 
 
 /* COOP queue macros */
