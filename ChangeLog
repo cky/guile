@@ -1,3 +1,8 @@
+Mon May 12 18:29:45 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* threads.m4: Copy Anthony's change here, so it'll actually
+	survive.
+
 Thu May  8 11:48:40 1997  Anthony Green  <green@hoser.cygnus.com>
 
 	* aclocal.m4: Fixes for building with coop threads in a 
