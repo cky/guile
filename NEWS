@@ -4,7 +4,29 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@prep.ai.mit.edu.
 
-Changes since Guile 1.0 (Sun 5 Jan 1997):
+Changes in Guile 1.1 (Sun 5 Jan 1997):
+
+* Changes to the distribution.
+
+The Guile 1.0 distribution has been split up into several smaller
+pieces:
+guile-core --- the Guile interpreter itself.
+guile-tcltk --- the interface between the Guile interpreter and
+	Tcl/Tk; Tcl is an interpreter for a stringy language, and Tk
+	is a toolkit for building graphical user interfaces.
+guile-rgx-ctax --- the interface between Guile and the Rx regular
+	expression matcher, and the translator for the Ctax
+	programming language.  These are packaged together because the
+	Ctax translator uses Rx to parse Ctax source code.
+
+* Changes to the stand-alone interpreter
+
+** [[accepts scsh arguments]]
+
+* Changes to Scheme functions
+
+** gethost, getproto, and getnet, and getserv now return more helpful
+error codes.
 
 * Changes to the gh_ interface
 
@@ -21,6 +43,22 @@ and returns the array
 null-terminated from non-null-terminated, since gh_scm2newstr() allows
 the user to interpret the data both ways.
 
+* Changes to the scm_ interface
+
+** The new function scm_shell makes it easy for user applications to
+process command-line arguments in a way that is compatible with the
+stand-alone guile interpreter (which is in turn compatible with SCSH,
+the Scheme shell).
+
+To use the scm_shell function, first initialize any guile modules
+linked into your application, and then call scm_shell with the values
+of ARGC and ARGV your `main' function received.  scm_shell will adding
+any SCSH-style meta-arguments from the top of the script file to the
+argument vector, and then process the command-line arguments.  This
+generally means loading a script file or starting up an interactive
+command interpreter.  For details, see "Changes to the stand-alone
+interpreter" above.
+
 * Changes to documentation
 
 ** the $(srcdir)/newdoc hierarchy now contains a new approach to the
@@ -34,7 +72,8 @@ be referenced if the user goes "up" a level in the info documentation.
 
 Guile 1.0b3
 
-User-visible changes from Thursday, September 5, 1996 until Guile 1.0:
+User-visible changes from Thursday, September 5, 1996 until Guile 1.0
+(Sun 5 Jan 1997):
 
 * Changes to the 'guile' program:
 

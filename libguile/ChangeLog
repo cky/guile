@@ -1,3 +1,13 @@
+Wed May 14 12:18:12 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* fports.c (local_pclose): New function.
+	(scm_pipob): Use it in the initializer here.
+
+	From Tim Pierce:
+	* net_db.c (scm_gethost, scm_getproto, scm_getnet, scm_getserv):
+	Use a meaningful error message when signalling an error.  For
+	this, scm_gethost must check h_errno rather than errno.
+
 Tue May 13 16:40:06 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in: Regenerated, using automake-1.1p.
