@@ -1,3 +1,12 @@
+2003-06-29  Marius Vollmer  <mvo@zagadka.de>
+
+	* deprecated.h (SCM_OPDIRP, scm_fport, scm_option, scm_srcprops,
+	scm_srcprops_chunk, scm_info_frame, scm_stack, scm_array,
+	scm_array_dim, SCM_ARRAY_CONTIGUOUS, SCM_FUNC_NAME, SCM_WTA,
+	RETURN_SCM_WTA, SCM_VALIDATE_NUMBER_COPY,
+	SCM_VALIDATE_NUMBER_DEF_COPY, SCM_VALIDATE_OPDIR): Re-added from
+	the release_1_6 branch.
+
 2003-06-25  Stefan Jahn  <stefan@lkcc.org>
 
 	* continuations.c: Redeclaration of getcontext() via the
