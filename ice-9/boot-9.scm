@@ -993,11 +993,6 @@
     ((#\c) (read:uniform-vector 0+i port))
     ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
      (read:array c port))
-    ((#\!) (if (= 1 (port-line port))  ; (line-number))
-	       (let skip () (if (eq? #\newline (peek-char port))
-				(read port #t read-sharp)
-				(begin (read-char port) (skip))))
-	       (barf)))
     (else (barf))))
 
 (define (read:array digit port)
