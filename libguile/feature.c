@@ -45,6 +45,7 @@
 
 #include "eval.h"
 #include "procprop.h"
+#include "smob.h"
 
 #include "feature.h"
 
@@ -94,19 +95,26 @@ scm_set_program_arguments (argc, argv, first)
 
 /* Hooks */
 
-SCM_SYMBOL (scm_sym_hook, "hook");
+long scm_tc16_hook;
+
 
 SCM_PROC (s_make_hook, "make-hook", 0, 1, 0, scm_make_hook);
 
 SCM
 scm_make_hook (SCM n_args)
 {
+  int n;
   if (SCM_UNBNDP (n_args))
-    n_args = SCM_INUM0;
+    n = 0;
   else
-    SCM_ASSERT (SCM_INUMP (n_args), n_args, SCM_ARG1, s_make_hook);
-  return scm_cons2 (scm_sym_hook, n_args, SCM_EOL);
+    {
+      SCM_ASSERT (SCM_INUMP (n_args), n_args, SCM_ARG1, s_make_hook);
+      n = SCM_INUM (n_args);
+    }
+  SCM_ASSERT (n >= 0 && n <= 16, n_args, SCM_OUTOFRANGE, s_make_hook);
+  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_EOL);
 }
+
 
 SCM
 scm_make_named_hook (char* name, int n_args)
@@ -116,6 +124,27 @@ scm_make_named_hook (char* name, int n_args)
   return hook;
 }
 
+
+SCM_PROC (s_hook_p, "hook?", 1, 0, 0, scm_hook_p);
+
+SCM
+scm_hook_p (SCM x)
+{
+  return SCM_NIMP (x) && SCM_HOOKP (x) ? SCM_BOOL_T : SCM_BOOL_F;
+}
+
+
+SCM_PROC (s_hook_empty_p, "hook-empty?", 1, 0, 0, scm_hook_empty_p);
+
+SCM
+scm_hook_empty_p (SCM hook)
+{
+  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
+	      hook, SCM_ARG1, s_hook_empty_p);
+  return SCM_NULLP (SCM_HOOK_PROCEDURES (hook)) ? SCM_BOOL_T : SCM_BOOL_F;
+}
+
+
 SCM_PROC (s_add_hook_x, "add-hook!", 2, 1, 0, scm_add_hook_x);
 
 SCM
@@ -123,88 +152,92 @@ scm_add_hook_x (SCM hook, SCM proc, SCM append_p)
 {
   SCM arity, rest;
   int n_args;
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_CONSP (hook)
-	      && SCM_CAR (hook) == scm_sym_hook
-	      && SCM_NIMP (SCM_CDR (hook)) && SCM_CONSP (SCM_CDR (hook))
-	      && SCM_INUMP (SCM_CADR (hook))
-	      && scm_ilength (SCM_CDDR (hook)) >= 0,
+  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
 	      hook, SCM_ARG1, s_add_hook_x);
   SCM_ASSERT (SCM_NFALSEP (arity = scm_i_procedure_arity (proc)),
 	      proc, SCM_ARG2, s_add_hook_x);
-  n_args = SCM_INUM (SCM_CADR (hook));
+  n_args = SCM_HOOK_ARITY (hook);
   if (SCM_INUM (SCM_CAR (arity)) > n_args
       || (SCM_FALSEP (SCM_CADDR (arity))
 	  && (SCM_INUM (SCM_CAR (arity)) + SCM_INUM (SCM_CADR (arity))
 	      < n_args)))
     scm_misc_error (s_add_hook_x,
 		    "This hook requires %s arguments",
-		    SCM_LIST1 (SCM_CADR (hook)));
-  rest = scm_delq_x (proc, SCM_CDDR (hook));
-  SCM_SETCDR (SCM_CDR (hook),
-	      (!SCM_UNBNDP (append_p) && SCM_NFALSEP (append_p)
-	       ? scm_append_x (SCM_LIST2 (rest, SCM_LIST1 (proc)))
-	       : scm_cons (proc, rest)));
+		    SCM_LIST1 (SCM_MAKINUM (SCM_HOOK_ARITY (hook))));
+  rest = scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook));
+  SCM_SET_HOOK_PROCEDURES (hook,
+			   (!SCM_UNBNDP (append_p) && SCM_NFALSEP (append_p)
+			    ? scm_append_x (SCM_LIST2 (rest, SCM_LIST1 (proc)))
+			    : scm_cons (proc, rest)));
   return SCM_UNSPECIFIED;
 }
+
 
 SCM_PROC (s_remove_hook_x, "remove-hook!", 2, 0, 0, scm_remove_hook_x);
 
 SCM
-scm_remove_hook_x (SCM hook, SCM thunk)
+scm_remove_hook_x (SCM hook, SCM proc)
 {
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_CONSP (hook)
-	      && SCM_CAR (hook) == scm_sym_hook
-	      && SCM_NIMP (SCM_CDR (hook)) && SCM_CONSP (SCM_CDR (hook))
-	      && SCM_INUMP (SCM_CADR (hook))
-	      && scm_ilength (SCM_CDDR (hook)) >= 0,
+  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
 	      hook, SCM_ARG1, s_remove_hook_x);
-  SCM_SETCDR (SCM_CDR (hook), scm_delq_x (thunk, SCM_CDDR (hook)));
+  SCM_SET_HOOK_PROCEDURES (hook,
+			   scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook)));
   return SCM_UNSPECIFIED;
 }
+
 
 SCM_PROC (s_reset_hook_x, "reset-hook!", 1, 0, 0, scm_reset_hook_x);
 
 SCM
 scm_reset_hook_x (SCM hook)
 {
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_CONSP (hook)
-	      && SCM_CAR (hook) == scm_sym_hook
-	      && SCM_NIMP (SCM_CDR (hook)) && SCM_CONSP (SCM_CDR (hook))
-	      && SCM_INUMP (SCM_CADR (hook))
-	      && scm_ilength (SCM_CDDR (hook)) >= 0,
+  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
 	      hook, SCM_ARG1, s_reset_hook_x);
-  SCM_SETCDR (SCM_CDR (hook), SCM_EOL);
+  SCM_SET_HOOK_PROCEDURES (hook, SCM_EOL);
   return SCM_UNSPECIFIED;
 }
+
 
 SCM_PROC (s_run_hook, "run-hook", 1, 0, 1, scm_run_hook);
 
 SCM
 scm_run_hook (SCM hook, SCM args)
 {
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_CONSP (hook)
-	      && SCM_CAR (hook) == scm_sym_hook
-	      && SCM_NIMP (SCM_CDR (hook)) && SCM_CONSP (SCM_CDR (hook))
-	      && SCM_INUMP (SCM_CADR (hook))
-	      && scm_ilength (SCM_CDDR (hook)) >= 0,
+  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
 	      hook, SCM_ARG1, s_run_hook);
   if (SCM_UNBNDP (args))
     args = SCM_EOL;
-  if (scm_ilength (args) != SCM_INUM (SCM_CADR (hook)))
+  if (scm_ilength (args) != SCM_HOOK_ARITY (hook))
     scm_misc_error (s_add_hook_x,
 		    "This hook requires %s arguments",
-		    SCM_LIST1 (SCM_CADR (hook)));
+		    SCM_LIST1 (SCM_MAKINUM (SCM_HOOK_ARITY (hook))));
   scm_c_run_hook (hook, args);
   return SCM_UNSPECIFIED;
 }
 
+
 void
 scm_c_run_hook (SCM hook, SCM args)
 {
-  hook = SCM_CDR (hook);
-  while (SCM_NIMP (hook = SCM_CDR (hook)))
-    scm_apply (SCM_CAR (hook), args, SCM_EOL);
+  SCM procs = SCM_HOOK_PROCEDURES (hook);
+  while (SCM_NIMP (procs))
+    {
+      scm_apply (SCM_CAR (procs), args, SCM_EOL);
+      procs = SCM_CDR (procs);
+    }
 }
+
+
+SCM_PROC (s_hook_to_list, "hook->list", 1, 0, 0, scm_hook_to_list);
+
+SCM
+scm_hook_to_list (SCM hook)
+{
+  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
+	      hook, SCM_ARG1, s_hook_to_list);
+  return scm_list_copy (SCM_HOOK_PROCEDURES (hook));
+}
+
 
 
 
@@ -235,5 +268,9 @@ scm_init_feature()
 #endif
   
   scm_sysintern ("char-code-limit", SCM_MAKINUM (SCM_CHAR_CODE_LIMIT));
+
+  scm_tc16_hook = scm_make_smob_type ("hook", 0);
+  scm_set_smob_mark (scm_tc16_hook, scm_markcdr);
+
 #include "feature.x"
 }
