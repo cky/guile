@@ -22,8 +22,9 @@ values can be looked up within them.
 * Pairs::                       Scheme's basic building block.
 * Lists::                       Special list functions supported by Guile.
 * Vectors::                     One-dimensional arrays of Scheme objects.
-* Uniform Vectors::             Vectors with elements of a single type.
+* Uniform Numeric Vectors::     Vectors with elements of a single numeric type.
 * Bit Vectors::                 Vectors of bits.
+* Generalized Vectors::         Treating all vector-like things uniformly.
 * Arrays::                      Matrices, etc.
 * Records::                     
 * Structures::                  
@@ -715,13 +716,17 @@ value for the vector elements (the same value for all elements, that
 is):
 
 @rnindex make-vector
-@deffn {Scheme Procedure} make-vector k [fill]
-@deffnx {C Function} scm_make_vector (k, fill)
-Return a newly allocated vector of @var{k} elements.  If a
+@deffn {Scheme Procedure} make-vector len [fill]
+@deffnx {C Function} scm_make_vector (len, fill)
+Return a newly allocated vector of @var{len} elements.  If a
 second argument is given, then each position is initialized to
 @var{fill}.  Otherwise the initial contents of each position is
 unspecified.
 @end deffn
+
+@deftypefn {C Function} SCM scm_c_make_vector (size_t k, SCM fill)
+Like @code{scm_make_vector}, but the length is given as a @code{size_t}.
+@end deftypefn
 
 To check whether an arbitrary Scheme value @emph{is} a vector, use the
 @code{vector?} primitive:
@@ -733,6 +738,10 @@ Return @code{#t} if @var{obj} is a vector, otherwise return
 @code{#f}.
 @end deffn
 
+@deftypefn {C Function} int scm_is_vector (SCM obj)
+Return non-zero when @var{obj} is a vector, otherwise return
+@code{zero}.
+@end deftypefn
 
 @node Vector Accessors
 @subsubsection Accessing and Modifying Vector Contents
@@ -746,6 +755,10 @@ in the vector.
 @deffnx {C Function} scm_vector_length vector
 Return the number of elements in @var{vector} as an exact integer.
 @end deffn
+
+@deftypefn {C Function} size_t scm_c_vector_length (SCM v)
+Return the number of elements in @var{vector} as a @code{size_t}.
+@end deftypefn
 
 @rnindex vector-ref
 @deffn {Scheme Procedure} vector-ref vector k
@@ -761,6 +774,11 @@ Return the contents of position @var{k} of @var{vector}.
            i))) @result{} 13
 @end lisp
 @end deffn
+
+@deftypefn {C Function} SCM scm_c_vector_ref (SCM v, size_t k)
+Return the contents of position @var{k} (s @code{size_t}) of
+@var{vector}.
+@end deftypefn
 
 A vector created by one of the dynamic vector constructor procedures
 (@pxref{Vector Creation}) can be modified using the following
@@ -783,6 +801,10 @@ The value returned by @samp{vector-set!} is unspecified.
   vec) @result{}  #(0 ("Sue" "Sue") "Anna")
 @end lisp
 @end deffn
+
+@deftypefn {C Function} SCM scm_c_vector_set_x (SCM v, size_t k, SCM obj)
+Store @var{obj} in position @var{k} (a @code{size_t}) of @var{v}.
+@end deftypefn
 
 @rnindex vector-fill!
 @deffn {Scheme Procedure} vector-fill! v fill
@@ -815,26 +837,28 @@ same vector, @code{vector-move-right!} is usually appropriate when
 @var{start1} is less than @var{start2}.
 @end deffn
 
-@node Uniform Vectors
-@subsection Uniform Vectors
+@node Uniform Numeric Vectors
+@subsection Uniform Numeric Vectors
 
-A uniform vector is a vector whose elements are all of a single type.
-Guile offers uniform vectors for signed and unsigned 8-bit, 16-bit,
-32-bit, and 64-bit integers, two sizes of floating point values, and
-complex floating-point numbers of these two sizes.
+A uniform numeric vector is a vector whose elements are all of a single
+numeric type.  Guile offers uniform vectors for signed and unsigned
+8-bit, 16-bit, 32-bit, and 64-bit integers, two sizes of floating point
+values, and complex floating-point numbers of these two sizes.
 
 Strings could be regarded as uniform vectors of characters,
 @xref{Strings}.  Likewise, bit vectors could be regarded as uniform
 vectors of bits, @xref{Bit Vectors}.  Both are sufficiently different
-that the procedures described here do not apply to these two data types.
-However, both strings and bit vectors are arrays, @xref{Arrays}.
+from numeric vectors that the procedures described here do not apply to
+these two data types.  However, both strings and bit vectors are
+generalized vectors, @xref{Generalized Vectors}, and arrays,
+@xref{Arrays}.
 
-Uniform vectors are the special case of one-dimensional, uniform,
-zero-origin arrays.
+Uniform numeric vectors are the special case of one-dimensional, uniform
+numeric, zero-origin arrays.
 
-Uniform vectors can be useful since they consume less memory than the
-non-uniform, general vectors.  Also, since the types they can store
-correspond directly to C types, it is easier to work with them
+Uniform numeric vectors can be useful since they consume less memory
+than the non-uniform, general vectors.  Also, since the types they can
+store correspond directly to C types, it is easier to work with them
 efficiently on a low level.  Consider image processing as an example,
 where you want to apply a filter to some image.  While you could store
 the pixels of an image in a general vector and write a general
@@ -843,15 +867,16 @@ vectors: the convolution function knows that all pixels are unsigned
 8-bit values (say), and can use a very tight inner loop.
 
 That is, when it is written in C.  Functions for efficiently working
-with uniform vectors from C are listed at the end of this section.
+with uniform numeric vectors from C are listed at the end of this
+section.
 
 Procedures similar to the vector procedures (@pxref{Vectors}) are
-provided for handling these homogeneous vectors, but they are distinct
+provided for handling these uniform vectors, but they are distinct
 datatypes and the two cannot be inter-mixed.  If you want to work
-primarily with uniform vectorsd, but want to offer support for general
-vectors as a convenience, you can use one of the @code{scm_any_to_*}
-functions.  They will coerce lists and vectors to the given type of
-uniform vector.
+primarily with uniform numeric vectors, but want to offer support for
+general vectors as a convenience, you can use one of the
+@code{scm_any_to_*} functions.  They will coerce lists and vectors to
+the given type of uniform vector.
 
 One set of these procedures is a generic one: it works with all types of
 uniform vectors.  In addition to that, there is a set of procedures for
@@ -1264,17 +1289,66 @@ scm_c_uniform_vector_element_size (@var{uvec})}.
 @subsection Bit Vectors
 
 @noindent
-Bit vectors are a specific type of uniform array: an array of booleans
-with a single zero-based index.
-
-@noindent
-They are displayed as a sequence of @code{0}s and
-@code{1}s prefixed by @code{#*}, e.g.,
+Bit vectors are zero-origin, one-dimensional arrays of booleans.  They
+are displayed as a sequence of @code{0}s and @code{1}s prefixed by
+@code{#*}, e.g.,
 
 @example
-(make-uniform-vector 8 #t #f) @result{}
+(make-bitvector 8 #f) @result{}
 #*00000000
 @end example
+
+@deffn {Scheme Procedure} bitvector? obj
+@deffnx {C Function} scm_bitvector_p (obj)
+Return @code{#t} when @var{obj} is a bitvector, else
+return @code{#f}.
+@end deffn
+
+@deffn {Scheme Procedure} make-bitvector len [fill]
+@deffnx {C Function} scm_make_bitvector (len, fill)
+Create a new bitvector of length @var{len} and
+optionally initialize all elements to @var{fill}.
+@end deffn
+
+@deffn {Scheme Procedure} bitvector . bits
+@deffnx {C Function} scm_bitvector (bits)
+Create a new bitvector with the arguments as elements.
+@end deffn
+
+@deffn {Scheme Procedure} bitvector-length vec
+@deffnx {C Function} scm_bitvector_length (vec)
+Return the length of the bitvector @var{vec}.
+@end deffn
+
+@deffn {Scheme Procedure} bitvector-ref vec idx
+@deffnx {C Function} scm_bitvector_ref (vec, idx)
+Return the element at index @var{idx} of the bitvector
+@var{vec}.
+@end deffn
+
+@deffn {Scheme Procedure} bitvector-set! vec idx val
+@deffnx {C Function} scm_bitvector_set_x (vec, idx, val)
+Set the element at index @var{idx} of the bitvector
+@var{vec} when @var{val} is true, else clear it.
+@end deffn
+
+@deffn {Scheme Procedure} bitvector-fill! vec val
+@deffnx {C Function} scm_bitvector_fill_x (vec, val)
+Set all elements of the bitvector
+@var{vec} when @var{val} is true, else clear them.
+@end deffn
+
+@deffn {Scheme Procedure} list->bitvector list
+@deffnx {C Function} scm_list_to_bitvector (list)
+Return a new bitvector initialized with the elements
+of @var{list}.
+@end deffn
+
+@deffn {Scheme Procedure} bitvector->list vec
+@deffnx {C Function} scm_bitvector_to_list (vec)
+Return a new list initialized with the elements
+of the bitvector @var{vec}.
+@end deffn
 
 @deffn {Scheme Procedure} bit-count bool bitvector
 @deffnx {C Function} scm_bit_count (bool, bitvector)
@@ -1352,6 +1426,69 @@ For example,
 (bit-count* #*01110111 #u(7 0 4) #f)  @result{} 2
 @end example
 @end deffn
+
+@node Generalized Vectors
+@subsection Generalized Vectors
+
+Guile has a number of data types that are generally vector-like:
+strings, uniform numeric vectors, bitvectors, and of course ordinary
+vectors of arbitrary Scheme values.  These types are disjoint: a
+Scheme values belongs to at most one of the four types listed above.
+
+If you want to gloss over this distinction and want to treat all four
+types with common code, you can use the procedures in this section.
+They work with the @emph{generalized vector} type, which is the union
+of the four vector-like types.
+
+Generalized vectors play an important role as the underlying storage
+for arrays, @xref{Arrays}.
+
+@deffn {Scheme Procedure} generalized-vector? obj
+@deffnx {C Function} scm_generalized_vector_p (obj)
+Return @code{#t} if @var{obj} is a vector, string,
+bitvector, or uniform numeric vector.
+@end deffn
+
+@deffn {Scheme Procedure} generalized-vector-length v
+@deffnx {C Function} scm_generalized_vector_length (v)
+Return the length of the generalized vector @var{v}.
+@end deffn
+
+@deffn {Scheme Procedure} generalized-vector-ref v idx
+@deffnx {C Function} scm_generalized_vector_ref (v, idx)
+Return the element at index @var{idx} of the
+generalized vector @var{v}.
+@end deffn
+
+@deffn {Scheme Procedure} generalized-vector-set! v idx val
+@deffnx {C Function} scm_generalized_vector_set_x (v, idx, val)
+Set the element at index @var{idx} of the
+generalized vector @var{v} to @var{val}.
+@end deffn
+
+@deffn {Scheme Procedure} generalized-vector->list v
+@deffnx {C Function} scm_generalized_vector_to_list (v)
+Return a new list whose elements are the elements of the
+generalized vector @var{v}.
+@end deffn
+
+@deftypefn {C Function} int scm_is_generalized_vector (SCM obj)
+Return @code{1} if @var{obj} is a vector, string,
+bitvector, or uniform numeric vector; else return @code{0}.
+@end deftypefn
+
+@deftypefn {C Function} size_t scm_c_generalized_vector_length (SCM v)
+Return the length of the generalized vector @var{v}.
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_c_generalized_vector_ref (SCM v, size_t idx)
+Return the element at index @var{idx} of the generalized vector @var{v}.
+@end deftypefn
+
+@deftypefn {C Function} void scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val)
+Set the element at index @var{idx} of the generalized vector @var{v}
+to @var{val}.
+@end deftypefn
 
 @node Arrays
 @subsection Arrays
@@ -1768,6 +1905,13 @@ Create and return a uniform array of type corresponding to
 and fill it with @var{prototype}.
 @end deffn
 
+@deffn {Scheme Procedure} array-creator ra
+@deffnx {C Function} scm_array_creator (ra)
+Return a procedure that would produce an array of the same type
+as @var{array}, if used as the @var{creator} with
+@code{make-uniform-array}.
+@end deffn
+
 @deffn {Scheme Procedure} array-prototype ra
 @deffnx {C Function} scm_array_prototype (ra)
 Return an object that would produce an array of the same type
@@ -1782,6 +1926,12 @@ Return a uniform array of the type indicated by prototype
 @var{prot} with elements the same as those of @var{lst}.
 Elements must be of the appropriate type, no coercions are
 done.
+
+The argument @var{ndim} determines the number of dimensions
+of the array.  It is either an exact integer, giving the
+number directly, or a list of exact integers, whose length
+specifies the number of dimensions and each element is the
+lower index bound of its dimension.
 @end deffn
 
 @deffn {Scheme Procedure} uniform-vector-fill! uve fill
@@ -1791,7 +1941,7 @@ unspecified.
 
 @deffn {Scheme Procedure} uniform-vector-length v
 @deffnx {C Function} scm_uniform_vector_length (v)
-Return the number of elements in @var{uve}.
+Return the number of elements in the uniform vector @var{v}.
 @end deffn
 
 @deffn {Scheme Procedure} dimensions->uniform-array dims prot [fill]
