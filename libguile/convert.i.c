@@ -128,7 +128,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 	}
       break;
 
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
       /* array conversions (uniform vectors) */
     case ARRAYTYPE:
 #ifdef ARRAYTYPE_OPTIONAL
@@ -159,7 +159,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
       memcpy (data, (CTYPE *) SCM_UVECTOR_BASE (obj), n * sizeof (CTYPE));
 #endif
       break;
-#endif /* HAVE_ARRAYS */
+#endif /* SCM_HAVE_ARRAYS */
 
 #if SIZEOF_CTYPE == 1
     case scm_tc7_string:
@@ -179,7 +179,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 #undef FUNC_NAME
 
 
-#if HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
 
 /* Converts a C array into a uniform vector, returns SCM_UNDEFINED if out
    of memory. */
@@ -236,7 +236,7 @@ CTYPES2UVECT_OPTIONAL (const unsigned CTYPE *data, long n)
 #undef FUNC_NAME
 #endif /* UVECTTYPE_OPTIONAL */
 
-#endif /* HAVE_ARRAYS */
+#endif /* SCM_HAVE_ARRAYS */
 
 
 /* Converts a C array into a vector. */
