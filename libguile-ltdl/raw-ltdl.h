@@ -211,7 +211,7 @@ LT_SCOPE  void	   (*lt_dlfree)		LT_PARAMS((lt_ptr ptr));
 
 /* A preopened symbol. Arrays of this type comprise the exported
    symbols for a dlpreopened module. */
-typedef struct {
+typedef struct SCM_INSERTED_DLSYMLIST_STRUCT_DECL {
   const char *name;
   lt_ptr      address;
 } lt_dlsymlist;
