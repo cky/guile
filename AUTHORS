@@ -136,16 +136,14 @@ In the subdirectory libguile, changes to:
     strop.c         strop.h      struct.c     macros.c
     numbers.c       posix.h      posix.c      symbols.c
     gh_data.c       strports.h   strports.c   validate.h
-    and changed many docstrings throughout.
+    read.c
+    and many docstrings changes throughout.
 In the subdirectory srfi, wrote:
-    srfi-1.scm
-    srfi-9.scm
-    srfi-10.scm
-    srfi-13.scm
-    srfi-14.scm
-    srfi-13.c
-    srfi-14.c
-    srfi-16.scm
+    srfi-1.scm      srfi-9.scm     srfi-10.scm
+    srfi-13.scm     srfi-14.scm    srfi-13.c
+    srfi-14.c       srfi-13.h      srfi-14.h
+    srfi-16.scm     srfi-4.c       srfi-4.h
+    srfi-4.scm
 In the subdirectory scripts, wrote:
     doc-snarf
 In the subdirectory doc, wrote:
@@ -164,7 +162,8 @@ In the subdirectory example, wrote
     scripts  modules     safe
     box      box-module  box-dynamic
 In the subdirectory test-suite/tests, wrote:
-    srfi-9.test     srfi-10.test    srfi-13.test
+    srfi-4.test    srfi-9.test     srfi-10.test
+    srfi-13.test
 
 Will Fitzgerald:
   wrote initial srfi/srfi-19.scm.
