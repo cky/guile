@@ -484,10 +484,12 @@ SCM_DEFINE (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0,
 	    "signalled.")
 #define FUNC_NAME s_scm_read_and_eval_x
 {
+  SCM form;
+
   scm_c_issue_deprecation_warning
     ("'read-and-eval!' is deprecated.  Use 'read' and 'eval' instead.");
 
-  SCM form = scm_read (port);
+  form = scm_read (port);
   if (SCM_EOF_OBJECT_P (form))
     scm_ithrow (scm_end_of_file_key, SCM_EOL, 1);
   return scm_eval_x (form, scm_current_module ());

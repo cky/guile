@@ -1,3 +1,7 @@
+2003-05-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* deprecated.c (scm_read_and_eval_x):  Fixed C99-ism.
+
 2003-05-22  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* num2integral.i.c (NUM2INTEGRAL): Avoid warning about conditional
