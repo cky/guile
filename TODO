@@ -64,6 +64,8 @@ See also file HACKING.
 
 === Before releasing 1.8.0:
 
+- Move sample .gdbinit in HACKING to somewhere more appropriate (manual?).
+
 - Make sure we have appropriate interface numbers for shared
   libraries, and that we document and use the libtool
   conventions. [rlb].
