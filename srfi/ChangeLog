@@ -1,3 +1,8 @@
+2004-04-15  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_trim, scm_string_trim_right,
+	scm_string_trim_both): Cast to unsigned char for isspace.
+
 2004-04-06  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* srfi-13.c (s_scm_string_map): convert character to unsigned char
