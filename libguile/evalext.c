@@ -127,8 +127,10 @@ scm_m_undefine (x, env)
 #endif
 }
 
-
+/* This name is obsolete.  Will be removed in 1.5.  */
 SCM_PROC (s_serial_map, "serial-map", 2, 0, 1, scm_map);
+
+SCM_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
 
 void 
 scm_init_evalext ()
