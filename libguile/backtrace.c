@@ -68,6 +68,8 @@
           return SCM_BOOL_F;
 #endif
 
+SCM scm_the_last_stack_fluid;
+
 static void display_header SCM_P ((SCM source, SCM port));
 static void
 display_header (source, port)
@@ -539,7 +541,7 @@ SCM_PROC(s_backtrace, "backtrace", 0, 0, 0, scm_backtrace);
 SCM
 scm_backtrace ()
 {
-  SCM the_last_stack = scm_fluid_ref (SCM_CDR (scm_the_last_stack_var));
+  SCM the_last_stack = scm_fluid_ref (SCM_CDR (scm_the_last_stack_fluid));
   if (SCM_NFALSEP (the_last_stack))
     {
       scm_newline (scm_cur_outp);
@@ -571,7 +573,7 @@ void
 scm_init_backtrace ()
 {
   SCM f = scm_make_fluid ();
-  scm_the_last_stack_var = scm_sysintern ("the-last-stack", f);
+  scm_the_last_stack_fluid = scm_sysintern ("the-last-stack", f);
 
 #include "backtrace.x"
 }

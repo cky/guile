@@ -93,7 +93,6 @@ mark_root (root)
   scm_gc_mark (s->fluids);
   scm_gc_mark (s->top_level_lookup_closure_var);
   scm_gc_mark (s->system_transformer);
-  scm_gc_mark (s->the_last_stack_var);
   return SCM_ROOT_STATE (root) -> parent;
 }
 

@@ -55,6 +55,7 @@
 #include "continuations.h"
 #include "stackchk.h"
 #include "stacks.h"
+#include "fluids.h"
 
 #include "throw.h"
 
@@ -339,14 +340,14 @@ scm_internal_lazy_catch (tag, body, body_data, handler, handler_data)
 
 /* scm_internal_stack_catch
    Use this one if you want debugging information to be stored in
-   scm_the_last_stack_var on error. */
+   scm_the_last_stack_fluid on error. */
 
 static SCM
 ss_handler (void *data, SCM tag, SCM throw_args)
 {
   /* Save the stack */
-  SCM_SETCDR (scm_the_last_stack_var,
-	      scm_make_stack (scm_cons (SCM_BOOL_T, SCM_EOL)));
+  scm_fluid_set_x (SCM_CDR (scm_the_last_stack_fluid),
+		   scm_make_stack (scm_cons (SCM_BOOL_T, SCM_EOL)));
   /* Throw the error */
   return scm_throw (tag, throw_args);
 }

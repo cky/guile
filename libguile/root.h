@@ -115,8 +115,6 @@ typedef struct scm_root_state
   SCM system_transformer;
   SCM top_level_lookup_closure_var;
 
-  SCM the_last_stack_var;
-
   SCM handle;			/* The root object for this root state */
   SCM parent;			/* The parent root object */
 } scm_root_state;
@@ -143,7 +141,6 @@ typedef struct scm_root_state
 #define scm_top_level_lookup_closure_var \
                                        (scm_root->top_level_lookup_closure_var)
 #define scm_system_transformer		(scm_root->system_transformer)
-#define scm_the_last_stack_var		(scm_root->the_last_stack_var)
      
 #ifdef USE_THREADS
 #define scm_root ((scm_root_state *) SCM_THREAD_LOCAL_DATA)

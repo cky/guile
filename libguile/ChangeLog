@@ -1,5 +1,22 @@
 Sat Nov 29 01:16:53 1997  Mikael Djurfeldt  <mdj@kenneth>
 
+	* init.c (scm_start_stack): Removed initialization of
+	scm_the_last_stack_var.
+
+	* backtrace.h: Declare scm_the_last_stack_var.
+
+	* backtrace.c: Define scm_the_last_stack_var.
+
+	* root.c (mark_root): Don't mark the_last_stack_var.
+
+	* root.h (scm_root_state): Removed the_last_stack_var.
+
+	* throw.c: Added #include "fluids.h"
+	(ss_handler): `the-last-stack' is now a fluid.
+
+	* (backtrace.h, backtrace.c, throw.c): Renamed the_last_stack_var
+	--> the_last_stack_fluid.
+	
 	* backtrace.c: Added #include "fluids.h"
 	(scm_init_backtrace): Initialize `the-last-stack' to a fluid.
 	(scm_backtrace): `the-last-stack' is now a fluid.
