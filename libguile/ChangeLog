@@ -1,3 +1,8 @@
+1998-11-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* procprop.c (scm_i_procedure_arity): Bugfix: Return correct value
+	for asubrs, rpsubrs, lsubrs and lsubr_2s.
+
 1998-11-26  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* procprop.h (scm_i_procedure_arity): Added declaration.
@@ -17,9 +22,9 @@
 	(scm_make_hook): Optional argument defines number of arguments to
 	the hook.
 	(scm_make_named_hook): Take number of args as second arg.
-	(scm_run_hook): Renamed from scm_run_hooks (old name kept for a
-	while); First arg is the hook.  The rest are arguments passed on
-	to the hook procedures.
+	(scm_run_hook): Renamed from scm_run_hooks (old name defined in
+	boot-9.scm for a while); First arg is the hook.  The rest are
+	arguments passed on to the hook procedures.
 
 1998-11-23  Jim Blandy  <jimb@zwingli.cygnus.com>
 

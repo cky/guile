@@ -1,3 +1,7 @@
+1998-11-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm: Use run-hook instead of run-hooks everywhere.
+
 1998-11-26  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (run-hooks, add-hook!, remove-hook!): Added temporary
