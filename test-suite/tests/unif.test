@@ -445,3 +445,43 @@
 	(uniform-array-set1! a 'y '(4 . 8)))
       (pass-if-exception "three improper indexes" exception:wrong-num-args
 	(uniform-array-set1! a 'y '(4 8 . 0))))))
+
+;;;
+;;; uniform-vector-ref
+;;;
+
+(with-test-prefix "uniform-vector-ref"
+
+  (with-test-prefix "byte"
+
+    (let ((a (make-uniform-array #\nul 1)))
+
+      (pass-if "0"
+	(begin
+	  (array-set! a 0 0)
+	  (= 0 (uniform-vector-ref a 0))))
+      (pass-if "127"
+	(begin
+	  (array-set! a 127 0)
+	  (= 127 (uniform-vector-ref a 0))))
+      (pass-if "-128"
+	(begin
+	  (array-set! a -128 0)
+	  (= -128 (uniform-vector-ref a 0))))
+
+      (pass-if "#\\nul"
+	(begin
+	  (array-set! a #\nul 0)
+	  (= 0 (uniform-vector-ref a 0))))
+      (pass-if "#\\del"
+	(begin
+	  (array-set! a #\del 0)
+	  (= 127 (uniform-vector-ref a 0))))
+      (pass-if "char 255"
+	(begin
+	  (array-set! a (integer->char 255) 0)
+	  (= -1 (uniform-vector-ref a 0))))
+      (pass-if "char 128"
+	(begin
+	  (array-set! a (integer->char 128) 0)
+	  (= -128 (uniform-vector-ref a 0)))))))
