@@ -1,3 +1,8 @@
+2000-11-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* guile-config.in (build-link):  Use substring instead of
+	make-shared-substring.
+
 2000-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* guile-config.in (display-line-port):  Make sure all output is

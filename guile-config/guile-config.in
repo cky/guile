@@ -130,9 +130,9 @@
     (let* ((base (basename path))
 	   (len (string-length base)))
       (if (and (> len 5)
-	       (string=? (make-shared-substring base 0 3) "lib")
-	       (string=? (make-shared-substring base (- len 2)) ".a"))
-	  (make-shared-substring base 3 (- len 2))
+	       (string=? (substring base 0 3) "lib")
+	       (string=? (substring base (- len 2)) ".a"))
+	  (substring base 3 (- len 2))
 	  #f)))
 
   (if (> (length args) 0)
