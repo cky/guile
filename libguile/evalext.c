@@ -79,7 +79,9 @@ SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
 
   if (SCM_UNBNDP (env))
     vcell = scm_sym2vcell(sym,
-			  SCM_TOP_LEVEL_LOOKUP_CLOSURE,
+			  scm_module_system_booted_p
+			  ? SCM_TOP_LEVEL_LOOKUP_CLOSURE
+			  : SCM_EOL,
 			  SCM_BOOL_F);
   else
     {
