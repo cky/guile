@@ -5462,7 +5462,7 @@ copy_tree (
 SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0, 
             (SCM obj),
 	    "Recursively copy the data tree that is bound to @var{obj}, and return a\n"
-	    "pointer to the new data structure.  @code{copy-tree} recurses down the\n"
+	    "the new data structure.  @code{copy-tree} recurses down the\n"
 	    "contents of both pairs and vectors (since both cons cells and vector\n"
 	    "cells may point to arbitrary objects), and stops recursing when it hits\n"
 	    "any other object.")

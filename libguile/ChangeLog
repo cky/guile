@@ -1,5 +1,9 @@
 2004-03-28  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
+	* eval.c (s_scm_copy_tree): idem.
+
+	* list.c (s_scm_filter): remove "pointer" from doc string.
+
 	* gc.h (SCM_GC_CELL_TYPE): SCM_GC_CELL_TYPE uses SCM_GC_CELL_OBJECT.
 
 	* goops.h (SCM_NUMBER_OF_SLOTS): don't SCM_UNPACK the result.

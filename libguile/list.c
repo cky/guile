@@ -614,7 +614,7 @@ SCM_DEFINE (scm_delq_x, "delq!", 2, 0, 0,
 	    "@deffnx {Scheme Procedure} delv! item lst\n"
 	    "@deffnx {Scheme Procedure} delete! item lst\n"
 	    "These procedures are destructive versions of @code{delq}, @code{delv}\n"
-	    "and @code{delete}: they modify the pointers in the existing @var{lst}\n"
+	    "and @code{delete}: they modify the existing @var{lst}\n"
 	    "rather than creating a new list.  Caveat evaluator: Like other\n"
 	    "destructive list functions, these functions cannot modify the binding of\n"
 	    "@var{lst}, and so cannot be used to delete the first element of\n"
