@@ -51,6 +51,10 @@
    libraries which do not agree with the Spencer implementation may
    produce varying behavior.  Sigh. */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <sys/types.h>
 
 #include "libguile/_scm.h"
