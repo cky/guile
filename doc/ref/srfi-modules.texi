@@ -137,8 +137,8 @@ implementation-dependent operations, such as @code{use-modules} in
 Guile.  Thus, it is not necessary to use any module to get access to
 this form.
 
-Currently, the feature identifiers @code{guile}, @code{r5rs} and
-@code{srfi-0} are supported.  The other SRFIs are not in that list by
+Currently, the feature identifiers @code{guile}, @code{r5rs}, @code{srfi-0} and
+@code{srfi-6} are supported.  The other SRFIs are not in that list by
 default, because the SRFI modules must be explicitly used before their
 exported bindings can be used.
 
