@@ -1,3 +1,9 @@
+2000-08-13  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* alist.c (scm_assq, scm_assv, scm_assoc): Report argument type
+	error for the alist rather than the sublist where the type
+	mismatch is discovered.
+
 2000-08-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* root.c (s_scm_call_with_dynamic_root): Docstring fix - rogue
