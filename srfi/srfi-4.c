@@ -31,8 +31,11 @@ typedef scm_t_int16 int_s16;
 typedef scm_t_uint32 int_u32;
 typedef scm_t_int32 int_s32;
 
-#if SCM_HAVE_T_INT64
+#if SCM_HAVE_T_UINT64
 typedef scm_t_uint64 int_u64;
+#endif /* SCM_HAVE_T_UINT64 */
+
+#if SCM_HAVE_T_INT64
 typedef scm_t_int64 int_s64;
 #endif /* SCM_HAVE_T_INT64 */
 
