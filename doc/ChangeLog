@@ -1,5 +1,9 @@
 2001-04-22  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* r4rs.texi: Removed.
+	
+	* Makefile.am (info_TEXINFOS): Remove r4rs.
+
 	* README: Note removal of r4rs, and provide a reference.
 
 	* scheme-control.texi (Exceptions): Extended documentation.
