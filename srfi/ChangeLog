@@ -1,3 +1,9 @@
+2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* srfi-1.c (srfi1_ilength): Prefer !SCM_CONSP over SCM_NCONSP.
+	Now, guile itself does not include any calls to SCM_NCONSP any
+	more.
+
 2003-04-05  Marius Vollmer  <mvo@zagadka.de>
 
         * Changed license terms to the plain LGPL thru-out.

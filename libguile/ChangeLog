@@ -1,5 +1,13 @@
 2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* list.c (scm_ilength, scm_last_pair), unif.c (l2ra):Prefer
+	!SCM_CONSP over SCM_NCONSP.  Now, guile itself does not include
+	any calls to SCM_NCONSP any more.
+
+	* unif.c (l2ra): Eliminate redundant check.
+
+2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* list.c (scm_cons_star), ramap.c (scm_ra_sum, scm_ra_product,
 	scm_array_map_x), unif.c (l2ra): Prefer !SCM_NULLP over
 	SCM_NNULLP.  Now, guile itself does not include any calls to

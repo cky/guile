@@ -171,11 +171,11 @@ scm_ilength(SCM sx)
 
   do {
     if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (SCM_NCONSP(hare)) return -1;
+    if (!SCM_CONSP (hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
     if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (SCM_NCONSP(hare)) return -1;
+    if (!SCM_CONSP (hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
     /* For every two steps the hare takes, the tortoise takes one.  */
@@ -292,10 +292,10 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
   SCM_VALIDATE_CONS (SCM_ARG1, lst);
   do {
     SCM ahead = SCM_CDR(hare);
-    if (SCM_NCONSP(ahead)) return hare;
+    if (!SCM_CONSP (ahead)) return hare;
     hare = ahead;
     ahead = SCM_CDR(hare);
-    if (SCM_NCONSP(ahead)) return hare;
+    if (!SCM_CONSP (ahead)) return hare;
     hare = ahead;
     tortoise = SCM_CDR(tortoise);
   }

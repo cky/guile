@@ -38,11 +38,11 @@ srfi1_ilength (SCM sx)
 
   do {
     if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (SCM_NCONSP(hare)) return -2;
+    if (!SCM_CONSP (hare)) return -2;
     hare = SCM_CDR(hare);
     i++;
     if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (SCM_NCONSP(hare)) return -2;
+    if (!SCM_CONSP (hare)) return -2;
     hare = SCM_CDR(hare);
     i++;
     /* For every two steps the hare takes, the tortoise takes one.  */

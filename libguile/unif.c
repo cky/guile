@@ -2215,7 +2215,7 @@ l2ra (SCM lst, SCM ra, unsigned long base, unsigned long k)
     {
       while (n--)
 	{
-	  if (SCM_IMP (lst) || SCM_NCONSP (lst))
+	  if (!SCM_CONSP (lst))
 	    return 0;
 	  ok = ok && l2ra (SCM_CAR (lst), ra, base, k + 1);
 	  base += inc;
@@ -2228,7 +2228,7 @@ l2ra (SCM lst, SCM ra, unsigned long base, unsigned long k)
     {
       while (n--)
 	{
-	  if (SCM_IMP (lst) || SCM_NCONSP (lst))
+	  if (!SCM_CONSP (lst))
 	    return 0;
 	  scm_array_set_x (SCM_ARRAY_V (ra), SCM_CAR (lst), SCM_MAKINUM (base));
 	  base += inc;
