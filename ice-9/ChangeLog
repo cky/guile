@@ -1,3 +1,8 @@
+1998-04-15  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* runq.scm (runq-control): Corrected spelling of enqueue!.
+	(Thanks to Karl M. Hegbloom.)
+
 1998-03-30  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* boot-9.scm: Added new run-time option interface eval-options.

@@ -72,7 +72,7 @@
 (define-public (runq-control q msg . args)
   (case msg
     ((add!)			(for-each (lambda (t) (enq! q t)) args) '*unspecified*)
-    ((enque!)			(for-each (lambda (t) (enq! q t)) args) '*unspecified*)
+    ((enqueue!)			(for-each (lambda (t) (enq! q t)) args) '*unspecified*)
     ((push!)			(for-each (lambda (t) (q-push! q t)) args) '*unspecified*)
     ((empty?)			(q-empty? q))
     ((length)			(q-length q))
