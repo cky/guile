@@ -129,8 +129,6 @@ REFFIXME.
 @node Program Control
 @section What Controls Program Execution?
 
-What indeed?
-
 
 @node User Programming
 @section How About Application Users?

@@ -1,3 +1,8 @@
+2001-11-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* program.texi (Program Control): Remove spurious placeholder
+	text.
+
 2001-11-20  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* scheme-options.texi (Install Config):
