@@ -1156,24 +1156,32 @@ This is an enumeration of several flags that modify the behavior of
 the following table.
 
 @table @code
-@item SCM_F_WIND_EXPLICITELY
+@item SCM_F_WIND_EXPLICITLY
 The registered action is also carried out when the frame is entered or
 left locally.
 @end table
 @end deftp
 
 @deftypefn {C Function} void scm_on_unwind (void (*func)(void *), void *data, scm_t_wind_flags flags)
+@deftypefnx {C Function} void scm_on_unwind_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
 Arranges for @var{func} to be called with @var{data} as its arguments
 when the current frame ends implicitly.  If @var{flags} contains
-@code{SCM_F_WIND_EXPLICITELY}, @var{func} is also called when the frame
+@code{SCM_F_WIND_EXPLICITLY}, @var{func} is also called when the frame
 ends explicitly with @code{scm_end_frame}.
+
+The function @code{scm_on_unwind_with_scm} takes care that @var{data}
+is protected from garbage collected.
 @end deftypefn
 
 @deftypefn {C Function} void scm_on_rewind (void (*func)(void *), void *data, scm_t_wind_flags flags)
+@deftypefnx {C Function} void scm_on_rewind_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
 Arrange for @var{func} to be called with @var{data} as its argument when
 the current frame is restarted by rewinding the stack.  When @var{flags}
-contains @code{SCM_F_WIND_EXPLICITELY}, @var{func} is called immediately
+contains @code{SCM_F_WIND_EXPLICITLY}, @var{func} is called immediately
 as well.
+
+The function @code{scm_on_rewind_with_scm} takes care that @var{data}
+is protected from garbage collected.
 @end deftypefn
 
 
