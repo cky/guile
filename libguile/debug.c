@@ -96,7 +96,7 @@ SCM
 scm_single_step (SCM cont, SCM val)
 #else
 SCM
-scm_single_step (val)
+scm_single_step (cont, val)
      SCM cont, SCM val;
 #endif
 {
@@ -156,7 +156,7 @@ SCM
 scm_make_memoized (SCM exp, SCM env)
 #else
 SCM
-scm_make_memoized (env)
+scm_make_memoized (exp, env)
      SCM exp, SCM env;
 #endif
 {
@@ -691,7 +691,7 @@ scm_lookup_soft (SCM var, SCM genv)
 #else
 SCM *
 scm_lookup_soft (var, genv)
-     SCM vloc;
+     SCM var;
      SCM genv;
 #endif
 {
