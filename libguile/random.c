@@ -247,7 +247,11 @@ scm_i_random_bignum (SCM m, scm_rstate *state)
 #endif
     {
       /* fix most significant 32 bits */
+#if SIZEOF_INT == 4 && defined (WORDS_BIGENDIAN)
+      w = SCM_BDIGITS (m)[nd - 1] << 16 | SCM_BDIGITS (m)[nd - 2];
+#else
       w = ((LONG32 *) SCM_BDIGITS (m))[nd / 2 - 1];
+#endif
       mask = (w < 0x10000
 	      ? (w < 0x100
 		 ? scm_masktab[w]
@@ -274,7 +278,12 @@ scm_i_random_bignum (SCM m, scm_rstate *state)
 	{
 	  /* fix most significant 32 bits */
 	  i /= 2;
+#if SIZEOF_INT == 4 && defined (WORDS_BIGENDIAN)
+	  w = scm_the_rng.random_bits (state) & mask;
+	  bits[--i] = (w & 0xffff) << 16 | w >> 16;
+#else
 	  bits[--i] = scm_the_rng.random_bits (state) & mask;
+#endif
 	}
       /* now fill up the rest of the bignum */
       while (i)
@@ -553,5 +562,17 @@ scm_init_random ()
   
 #include "random.x"
 
+  /* Check that the assumptions about bits per bignum digit are correct. */
+#if SIZEOF_INT == 4
+  m = 16;
+#else
+  m = 32;
+#endif
+  if (m != SCM_BITSPERDIG)
+    {
+      fprintf (stderr, "Internal inconsistency: Confused about bignum digit size in random.c\n");
+      exit (1);
+    }
+  
   scm_add_feature ("random");
 }
