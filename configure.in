@@ -130,7 +130,7 @@ fi
 
 GUILE_DLSYM_USCORE
 
-AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep memmove bcopy atexit)
+AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep atexit)
 
 ### Some systems don't declare some functions.  On such systems, we
 ### need to at least provide our own K&R-style declarations.
@@ -236,7 +236,7 @@ if test "$ac_cv_header_regex_h" = yes ||
   fi
 fi
 
-AC_REPLACE_FUNCS(inet_aton putenv strerror)
+AC_REPLACE_FUNCS(inet_aton putenv strerror memmove)
 
 # When testing for the presence of alloca, we need to add alloca.o
 # explicitly to LIBOBJS to make sure that it is translated to
