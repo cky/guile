@@ -1,5 +1,8 @@
 2003-05-03  Marius Vollmer  <mvo@zagadka.de>
 
+	* hcons.scm (hashq-cons-get-handle): Pass only the expected four
+	arguments to hashx-get-handle.  Thanks to Kevin Ryde!
+
 	* lineio.scm (make-line-buffering-input-port) Pass 0 as second
 	argument to string-ref.  Thanks to Kevin Ryde!
 
