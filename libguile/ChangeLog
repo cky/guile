@@ -1,3 +1,7 @@
+Fri May  2 19:07:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* eq.c (scm_equal_p): use SCM_TYP7SD (y) not SCM_TYP7SD (x).
+
 Thu May  1 17:01:45 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.am (check-local): New target, which causes 'make check'

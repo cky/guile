@@ -107,7 +107,7 @@ scm_equal_p (x, y)
 		goto tailrecurse;
 	}
 	if (SCM_TYP7SD (x) == scm_tc7_string
-	    && SCM_TYP7SD (x) == scm_tc7_string)
+	    && SCM_TYP7SD (y) == scm_tc7_string)
 	  return scm_string_equal_p (x, y);
 	/* This ensures that types and scm_length are the same.  */
 	if (SCM_CAR(x) != SCM_CAR(y)) return SCM_BOOL_F;
