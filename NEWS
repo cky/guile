@@ -76,6 +76,14 @@ A Guile compiled with this option provides the primitive
 `malloc-stats' which returns an alist with pairs of kind and the
 number of objects of that kind.
 
+** All includes are now referenced relative to the root directory
+
+Since some users have had problems with mixups between Guile and
+system headers, we have decided to always refer to Guile headers via
+their parent directories.  This essentially creates a "private name
+space" for Guile headers.  This means that the compiler only is given
+-I options for the root build and root source directory.
+
 * Changes to the stand-alone interpreter
 
 ** Dynamic linking now uses libltdl from the libtool package.

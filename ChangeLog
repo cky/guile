@@ -1,5 +1,10 @@
 2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* qthreads.m4: Removed THREADS_CPPFLAGS.
+
+	* acinclude.m4: Removed qthreads macros.  They are provided in
+	qthreads.m4, so these were redundant.
+
 	* acconfig.h (GUILE_DEBUG_MALLOC): New.
 
 	* configure.in: New --enable-debug-malloc configuration option.
