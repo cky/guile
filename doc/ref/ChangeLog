@@ -1,3 +1,8 @@
+2002-04-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-modules.texi (SRFI-13 Miscellaneous): Updated docs of
+	string-tokenize.
+
 2002-04-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-intro.texi (Scheme Layout), scm.texi (Reference Layout):
