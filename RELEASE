@@ -7,6 +7,10 @@ absinthe, etc.  However, the first release containing the module
 system should be called Godot: "This is the one you've been waiting
 for."
 
+* Remove compatability module (ice-9 and-let*) eventually (when a
+  major release with the real module (ice-9 and-let-star) has been out
+  long enough, probably release 1.6).
+
 * Deprecate `read-only-string?'.
 
 After signal handling and threading have been fixed:

@@ -1,3 +1,17 @@
+2001-02-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Avoid the use of "*" in file names for the benefit of lesser
+	operating systems.
+	
+	* and-let-star.scm, and-let*.scm: Renamed `and-let*.scm' to
+	`and-let-star.scm'.  Updated module name as well.
+	* and-let-star-compat.scm: New file, installed as `and-let*.scm'.
+	* Makefile.am (ice9_sources): Replaced "and-let*.scm" with
+	"and-let-star.scm".
+	(install-data-local): Install "and-let-star-compat.scm" as
+	"and-let*.scm", ignoring errors.
+	(EXTRA_DIST): Distribute `and-let-star-compat.scm'.
+	
 2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	This patch fixes a problem reported by Martin Grabmueller about

@@ -8,6 +8,15 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
+** The module (ice-9 and-let*) has been renamed to (ice-9 and-let-star)
+
+This has been done to prevent problems on lesser operating systems
+that can't tolerate `*'s in file names.  The exported macro continues
+to be named `and-let*', of course.
+
+On systems that support it, there is also a compatability module named
+(ice-9 and-let*).  It will go away in the next release.
+   
 ** New modules (oop goops) etc.:
 
   (oop goops)
