@@ -49,132 +49,12 @@
 
 #include "struct.h"
 #include "procprop.h"
-#include "chars.h"
-#include "kw.h"
 
 #include "objects.h"
 
 
 SCM scm_metaclass_standard;
 SCM scm_metaclass_operator;
-
-/* These variables are filled in by the object system when loaded. */
-SCM scm_class_boolean, scm_class_char, scm_class_pair;
-SCM scm_class_procedure, scm_class_string, scm_class_symbol;
-SCM scm_class_vector, scm_class_null;
-SCM scm_class_real, scm_class_complex, scm_class_integer;
-SCM scm_class_keyword, scm_class_unknown;
-
-void (*scm_change_object_class) (SCM, SCM, SCM);
-
-/* This function is used for efficient type dispatch.  */
-SCM
-scm_class_of (SCM x)
-{
-  switch (SCM_ITAG3 (x))
-    {
-    case scm_tc3_int_1:
-    case scm_tc3_int_2:
-      return scm_class_integer;
-
-    case scm_tc3_imm24:
-      if (SCM_ICHRP (x))
-	return scm_class_char;
-      else
-	{
-	  switch (SCM_ISYMNUM (x))
-	    {
-	    case SCM_ISYMNUM (SCM_BOOL_F):
-	    case SCM_ISYMNUM (SCM_BOOL_T):
-	      return scm_class_boolean;
-	    case SCM_ISYMNUM (SCM_EOL):
-	      return scm_class_null;
-	    default:
-	      return scm_class_unknown;
-	    }
-	}
-
-    case scm_tc3_cons:
-      switch (SCM_TYP7 (x))
-	{
-	case scm_tcs_cons_nimcar:
-	  return scm_class_pair;
-	case scm_tcs_closures:
-	  return scm_class_procedure;
-	case scm_tcs_symbols:
-	  return scm_class_symbol;
-	case scm_tc7_vector:
-	case scm_tc7_wvect:
-	case scm_tc7_bvect:
-	case scm_tc7_byvect:
-	case scm_tc7_svect:
-	case scm_tc7_ivect:
-	case scm_tc7_uvect:
-	case scm_tc7_fvect:
-	case scm_tc7_dvect:
-	case scm_tc7_cvect:
-	  return scm_class_vector;
-	case scm_tc7_string:
-	case scm_tc7_substring:
-	  return scm_class_string;
-	case scm_tc7_asubr:
-	case scm_tc7_subr_0:
-	case scm_tc7_subr_1:
-	case scm_tc7_cxr:
-	case scm_tc7_subr_3:
-	case scm_tc7_subr_2:
-	case scm_tc7_rpsubr:
-	case scm_tc7_subr_1o:
-	case scm_tc7_subr_2o:
-	case scm_tc7_lsubr_2:
-	case scm_tc7_lsubr:
-	  return scm_class_procedure;
-
-	case scm_tc7_port:
-	  return scm_class_unknown;
-	case scm_tc7_smob:
-	  {
-	    SCM type = SCM_TYP16 (x);
-	    if (type == scm_tc16_flo)
-	      {
-		if (SCM_CAR (x) & SCM_IMAG_PART)
-		  return scm_class_complex;
-		else
-		  return scm_class_real;
-	      }
-	    else if (type == scm_tc16_bigpos || type == scm_tc16_bigneg)
-	      return scm_class_integer;
-	    else if (type == scm_tc16_kw)
-	      return scm_class_keyword;
-	    else
-	      return scm_class_unknown;
-	  }
-	case scm_tcs_cons_gloc:
-	  /* must be a struct */
-	  if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS)
-	  {
-	    if (CLASS_REDEF (SCM_CLASS_OF (x)) != SCM_BOOL_F)
-	      scm_change_object_class (x,
-				       SCM_CLASS_OF (x),
-				       CLASS_REDEF (SCM_CLASS_OF (x)));
-	    return SCM_CLASS_OF (x);
-	  }
-	default:
-	  if (SCM_CONSP (x))
-	    return scm_class_pair;
-	  else
-	    return scm_class_unknown;
-	}
-
-    case scm_tc3_cons_gloc:
-    case scm_tc3_tc7_1:
-    case scm_tc3_tc7_2:
-    case scm_tc3_closure:
-      /* Never reached */
-      break;
-    }
-  return scm_class_unknown;
-}
 
 SCM_PROC (s_entity_p, "entity?", 1, 0, 0, scm_entity_p);
 

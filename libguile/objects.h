@@ -159,27 +159,9 @@ struct scm_metaclass_operator {
  */
 #define SCM_ENTITY_LAYOUT ""
 
-/* The following three definitions are Goops dependencies needed by
-   scm_class_of. */
-#define SCM_CLASSF_GOOPS       (0x10 << 24)
-#define scm_si_redefined       17
-#define scm_si_hashsets        19
-#define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
-
-#define CLASS_REDEF(c) (SCM_STRUCT_DATA(c)[scm_si_redefined])
-
 extern SCM scm_metaclass_standard;
 extern SCM scm_metaclass_operator;
-extern SCM scm_class_boolean, scm_class_char, scm_class_pair;
-extern SCM scm_class_procedure, scm_class_string, scm_class_symbol;
-extern SCM scm_class_vector, scm_class_null;
-extern SCM scm_class_real, scm_class_complex, scm_class_integer;
-extern SCM scm_class_keyword, scm_class_unknown;
 
-extern void (*scm_change_object_class) (SCM, SCM, SCM);
-extern void (*scm_memoize_method) (SCM x, SCM args);
-
-extern SCM scm_class_of (SCM obj);
 extern SCM scm_entity_p (SCM obj);
 extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);
 extern SCM scm_make_class_object (SCM metaclass, SCM layout);
