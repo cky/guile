@@ -111,10 +111,12 @@
 #endif /* def FLT_MAX */
 
 
-/* SCM_INTBUFLEN is the maximum number of characters neccessary for the
- * printed or scm_string representation of an exact immediate.
+/* SCM_INTBUFLEN is the maximum number of characters neccessary for
+ * the printed or scm_string representation of an scm_t_intmax in
+ * radix 2.  The buffer passed to scm_iint2str and scm_iuint2str must
+ * be of this size, for example.
  */
-#define SCM_INTBUFLEN (5 + SCM_LONG_BIT)
+#define SCM_INTBUFLEN (5 + SCM_CHAR_BIT*sizeof(scm_t_intmax))
 
 
 
@@ -208,7 +210,8 @@ SCM_API SCM scm_bit_extract (SCM n, SCM start, SCM end);
 SCM_API SCM scm_logcount (SCM n);
 SCM_API SCM scm_integer_length (SCM n);
 
-SCM_API size_t scm_iint2str (long num, int rad, char *p);
+SCM_API size_t scm_iint2str (scm_t_intmax num, int rad, char *p);
+SCM_API size_t scm_iuint2str (scm_t_uintmax num, int rad, char *p);
 SCM_API SCM scm_number_to_string (SCM x, SCM radix);
 SCM_API int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);
 SCM_API int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);

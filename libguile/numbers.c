@@ -2218,29 +2218,38 @@ iflo2str (SCM flt, char *str, int radix)
   return i;
 }
 
-/* convert a long to a string (unterminated).  returns the number of
+/* convert a scm_t_intmax to a string (unterminated).  returns the number of
    characters in the result. 
    rad is output base
    p is destination: worst case (base 2) is SCM_INTBUFLEN  */
 size_t
-scm_iint2str (long num, int rad, char *p)
+scm_iint2str (scm_t_intmax num, int rad, char *p)
+{
+  if (num < 0)
+    {
+      *p++ = '-';
+      return scm_iuint2str (-num, rad, p) + 1;
+    }
+  else
+    return scm_iuint2str (num, rad, p);
+}
+
+/* convert a scm_t_intmax to a string (unterminated).  returns the number of
+   characters in the result. 
+   rad is output base
+   p is destination: worst case (base 2) is SCM_INTBUFLEN  */
+size_t
+scm_iuint2str (scm_t_uintmax num, int rad, char *p)
 {
   size_t j = 1;
   size_t i;
-  unsigned long n = (num < 0) ? -num : num;
+  scm_t_uintmax n = num;
 
   for (n /= rad; n > 0; n /= rad)
     j++;
 
   i = j;
-  if (num < 0)
-    {
-      *p++ = '-';
-      j++;
-      n = -num;
-    }
-  else
-    n = num;
+  n = num;
   while (i--)
     {
       int d = n % rad;
