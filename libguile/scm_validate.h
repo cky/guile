@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.5 1999-12-12 20:35:02 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.6 1999-12-13 00:52:43 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -92,8 +92,6 @@
   do { SCM_ASSERT (SCM ## pred(var), var, pos, FUNC_NAME); } while (0)
 
 
-
-#ifndef SCM_DOCSTRING_SNARF
 
 #define SCM_VALIDATE_NIM(pos,scm) \
   do { SCM_ASSERT(SCM_NIMP(scm), scm, pos, FUNC_NAME); } while (0)
@@ -308,7 +306,5 @@
 
 #define SCM_VALIDATE_VECTOR_LEN(pos,v,len) \
   do { SCM_ASSERT (SCM_NIMP (v) && SCM_VECTORP (v) && len == SCM_LENGTH(v), v, pos, FUNC_NAME); } while (0)
-
-#endif
 
 #endif

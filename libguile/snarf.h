@@ -82,7 +82,7 @@ $$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
 
 #define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 %%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN); \
-$$$R RANAME CFN STR REQ OPT VAR @!!!
+$$$R STR | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ CFN @!!!
 
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 %%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)(...))CFN, &GF)
@@ -103,7 +103,7 @@ $$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
 
 #define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 %%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN); \
-$$$R RANAME CFN STR REQ OPT VAR @!!!
+$$$R STR | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ CFN @!!!
 
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 %%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN, &GF)
