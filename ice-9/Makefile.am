@@ -43,3 +43,6 @@ install-data-local:
 
 ## test.scm is not currently installed.
 EXTRA_DIST = $(ice9_sources) test.scm and-let-star-compat.scm
+
+psyntax.pp:
+	cd $(srcdir) && guile -c '(load-from-path "ice-9/syncase") (psyncomp)'
