@@ -204,23 +204,6 @@ scm_set_smob_mfpe (long tc,
 }
 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-/* Use scm_make_smob_type or scm_make_smob_type_mfpe instead. */
-long 
-scm_newsmob (const scm_smobfuns *smob)
-{
-  long tc = scm_make_smob_type (0, 0);
-  scm_set_smob_mark (tc, smob->mark);
-  scm_set_smob_free (tc, smob->free);
-  scm_set_smob_print (tc, smob->print);
-  scm_set_smob_equalp (tc, smob->equalp);
-  return tc;
-}
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
-
 SCM
 scm_make_smob (long tc)
 {

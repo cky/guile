@@ -162,20 +162,6 @@ extern void scm_smob_prehistory (void);
 
 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-typedef struct scm_smobfuns
-{
-  SCM (*mark) (SCM);
-  scm_sizet (*free) (SCM);
-  int (*print) (SCM exp, SCM port, scm_print_state *pstate);
-  SCM (*equalp) (SCM, SCM);
-} scm_smobfuns;
-
-extern long scm_newsmob (const scm_smobfuns *smob);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 #endif  /* SMOBH */
 
 /*
