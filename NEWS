@@ -8,6 +8,30 @@ Changes since Guile 1.3.4:
 
 * Changes to the distribution
 
+** Trees from nightly snapshots and CVS now require you to run autogen.sh.
+
+We've changed the way we handle generated files in the Guile source
+repository.  As a result, the procedure for building trees obtained
+from the nightly FTP snapshots or via CVS has changed:
+- You must have appropriate versions of autoconf, automake, and
+  libtool installed on your system.  See README for info on how to
+  obtain these programs.
+- Before configuring the tree, you must first run the script
+  `autogen.sh' at the top of the source tree.
+
+The Guile repository used to contain not only source files, written by
+humans, but also some generated files, like configure scripts and
+Makefile.in files.  Even though the contents of these files could be
+derived mechanically from other files present, we thought it would
+make the tree easier to build if we checked them into CVS.
+
+However, this approach means that minor differences between
+developer's installed tools and habits affected the whole team.
+So we have removed the generated files from the repository, and
+added the autogen.sh script, which will reconstruct them
+appropriately.
+
+
 ** configure has new options to remove support for certain features:
 
 --disable-posix    omit posix interfaces
