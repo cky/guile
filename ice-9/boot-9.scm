@@ -136,6 +136,7 @@
 (define (1+ n) (+ n 1))
 (define (1- n) (+ n -1))
 (define (and=> value procedure) (and value (procedure value)))
+(define call/cc call-with-current-continuation)
 
 ;;; apply-to-args is functionally redundant with apply and, worse,
 ;;; is less general than apply since it only takes two arguments.
