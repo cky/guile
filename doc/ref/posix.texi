@@ -872,9 +872,13 @@ Care should be taken if opening the file, e.g., use the
 @deffnx {C Function} scm_mkstemp (tmpl)
 Create a new unique file in the file system and returns a new
 buffered port open for reading and writing to the file.
+
 @var{tmpl} is a string specifying where the file should be
 created: it must end with @samp{XXXXXX} and will be changed in
 place to return the name of the temporary file.
+
+The file is created with mode @code{0600}, which means read and write
+for the owner only.  @code{chmod} can be used to change this.
 @end deffn
 
 @deffn {Scheme Procedure} dirname filename
