@@ -1,5 +1,8 @@
 2002-12-11  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
+	* gc-malloc.c, gc.h, init.c: Reverted gc-malloc change of
+	2002-12-10.
+
 	* gc.c (scm_igc): Don't call scm_i_thread_invalidate_freelists.
 
 	* gc.c (scm_gc_sweep): Call it here instead, which is a more

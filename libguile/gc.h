@@ -372,7 +372,6 @@ SCM_API void scm_gc_register_root (SCM *p);
 SCM_API void scm_gc_unregister_root (SCM *p);
 SCM_API void scm_gc_register_roots (SCM *b, unsigned long n);
 SCM_API void scm_gc_unregister_roots (SCM *b, unsigned long n);
-SCM_API void scm_gc_malloc_prehistory (void);
 SCM_API int scm_init_storage (void);
 SCM_API void *scm_get_stack_base (void);
 SCM_API void scm_init_gc (void);

@@ -99,14 +99,6 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 
 static int scm_i_minyield_malloc;
 
-static scm_t_mutex malloc_mutex;
-
-void
-scm_gc_malloc_prehistory ()
-{
-  scm_i_plugin_mutex_init (&malloc_mutex, 0);
-}
-
 void
 scm_gc_init_malloc (void)
 {
@@ -134,9 +126,7 @@ scm_realloc (void *mem, size_t size)
 {
   void *ptr;
 
-  scm_i_plugin_mutex_lock (&malloc_mutex);
   SCM_SYSCALL (ptr = realloc (mem, size));
-  scm_i_plugin_mutex_unlock (&malloc_mutex);
   if (ptr)
     return ptr;
 
@@ -144,9 +134,7 @@ scm_realloc (void *mem, size_t size)
   
   scm_i_sweep_all_segments ("realloc");
   
-  scm_i_plugin_mutex_lock (&malloc_mutex);
   SCM_SYSCALL (ptr = realloc (mem, size));
-  scm_i_plugin_mutex_unlock (&malloc_mutex);
   if (ptr)
     { 
       scm_i_thread_wake_up ();
@@ -158,9 +146,7 @@ scm_realloc (void *mem, size_t size)
   
   scm_i_thread_wake_up ();
   
-  scm_i_plugin_mutex_lock (&malloc_mutex);
   SCM_SYSCALL (ptr = realloc (mem, size));
-  scm_i_plugin_mutex_unlock (&malloc_mutex);
   if (ptr)
     return ptr;
 
@@ -186,9 +172,7 @@ scm_calloc (size_t sz)
     By default, try to use calloc, as it is likely more efficient than
     calling memset by hand.
    */
-  scm_i_plugin_mutex_lock (&malloc_mutex);
   SCM_SYSCALL(ptr= calloc (sz, 1));
-  scm_i_plugin_mutex_unlock (&malloc_mutex);
   if (ptr)
     return ptr;
   

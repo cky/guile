@@ -444,7 +444,6 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 
   scm_block_gc = 1;
 
-  scm_gc_malloc_prehistory ();
   scm_threads_prehistory ();
   scm_ports_prehistory ();
   scm_smob_prehistory ();
