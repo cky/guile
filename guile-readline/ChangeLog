@@ -1,3 +1,8 @@
+2002-10-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* readline.c (reentry_barrier_mutex): Reimplemented with
+	scm_make_mutex, etc.
+
 2002-10-21  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* readline.scm (activate-readline): Look for use-emacs-interface

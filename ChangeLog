@@ -1,3 +1,9 @@
+2002-10-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Handle thread package "coop-pthread" with alias
+	"copt" and define USE_COPT_THREADS when it is selected.
+	Always define GUILE_ISELECT.
+
 2002-10-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in (AC_CONFIG_FILES): Add ice-9/debugger/Makefile and

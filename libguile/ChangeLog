@@ -1,3 +1,129 @@
+2002-10-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scmsigs.c (signal_cell_handlers, install_handler_data,
+	scm_delq_spine_x, really_install_handler, install_handler): New
+	scheme for triggering signal handlers, to simplify take_signal.
+	(take_signal): Simplified, to avoid race conditions.
+	(scm_sigaction_for_thread): Use new Scheme.  Validate that thread
+	hasn't exited yet.
+	
+	* async.c (scm_async_click): Reset pending_asyncs, handle
+	signal_asyncs.  Don't set cdr of a non-signal async to #f.
+	(scm_i_queue_async_cell): Do not check cdr of cell for #f, queue
+	always.  Set pending_asyncs.
+	(scm_system_async_mark_for_thread): Check that thread has not
+	exited.
+	(scm_unmask_signals, decrease_block): Call scm_async_click after
+	block_asyncs becomes zero.
+	
+	* __scm.h (SCM_ASYNC_CLICK): Check pending_asyncs instead of
+	active_asyncs.
+
+	* root.h (scm_root_state): Added pending_asyncs and signal_asyncs
+	fields.
+	* root.c (root_mark): Mark them.
+	(make_root): Initialize them.
+	
+	* iselect.c, iselect.h: Replaced GUILE_ISELECT with
+	USE_COOP_THREADS.
+	(scm_internal_select): Define one version for USE_COOP_THREADS and
+	one for USE_NULL_THREADS.
+	(scm_init_iselect): Likewise.
+	
+        * inline.h (scm_cell, scm_double_cell): Also allow
+	USE_COPT_THREADS to not protect the slot initializers.
+	
+	* init.c (scm_init_guile_1): Call scm_init_thread_procs.  This is
+	because threads need to be initialized before the stack, but
+	gsubrs such as scm_timed_condition_variable_wait can only be
+	created later.
+
+	* threads.h: Include "coop-pthreads.h" when requested.
+	(scm_threads_make_mutex, scm_threads_lock_mutex,
+	scm_threads_unlock_mutex, scm_threads_monitor): Removed, they were
+	not implemented anyway.
+	(scm_init_thread_procs, scm_try_mutex,
+	scm_timed_condition_variable_wait,
+	scm_broadcast_condition_variable, scm_c_thread_exited_p,
+	scm_thread_exited_p): New prototypes.
+	(struct timespec): Define if not already defined.
+	(scm_t_mutex, scm_mutex_init, scm_mutex_lock, scm_mutex_trylock,
+	scm_mutex_unlock, scm_mutex_destroy, scm_t_cond, scm_cond_init,
+	scm_cond_wait, scm_cond_timedwait, scm_cond_signal,
+	scm_cond_broadcast, scm_cond_destroy): Declarations moved here and
+	deprecated.
+
+	* threads.c: Include <errno.h>.  Include "coop-pthreads.c" when
+	requested.
+	(scm_thread_exited_p): New.
+	(scm_try_mutex, scm_broadcast_condition_variable): Newly
+	registered procedures.
+	(scm_wait_condition_variable, scm_timed_wait_condition_variable):
+	Use the latter as the procedure for "wait-condition-variable",
+	thus offering a optional timeout parameter to Scheme.
+	(scm_wait_condition_variable): Implement in terms of
+	scm_timed_wait_condition_variable.
+	(scm_mutex_init, scm_mutex_lock, scm_mutex_trylock,
+	scm_mutex_unlock, scm_mutex_destroy, scm_cond_init,
+	scm_cond_wait, scm_cond_timedwait, scm_cond_signal,
+	scm_cond_broadcast, scm_cond_destroy): Implement in terms of
+	scm_make_mutex, etc, and deprecate.
+	(scm_init_threads): Do not create smobs, leave this to
+	scm_threads_init.  Do not include "threads.x" file.
+	(scm_init_thread_procs): New, include "threads.x" here.
+
+	* null-threads.h (scm_null_mutex, scm_null_mutex_init,
+	scm_null_mutex_lock, scm_null_mutex_unlock,
+	scm_null_mutex_destroy, scm_null_condvar, scm_null_condvar_init,
+	scm_null_condvar_wait, scm_null_condvar_signal,
+	scm_null_condvar_destroy): Removed.
+	(scm_mutex_init, scm_mutex_lock, scm_mutex_unlock, scm_cond_init,
+	scm_cond_wait, scm_cond_signal, scm_cond_broadcast,
+	scm_cond_destory): Do not define, they are now deprecated and
+	handled by threads.{h,c}.
+	
+	* null-threads.c (scm_null_mutex, scm_null_cond): Define here.
+	(scm_threads_init): Create smobs here, using the appropriate
+	sizes.
+	(block): Removed, now unused.
+	(scm_c_thread_exited_p): New.
+	(scm_null_mutex_init, scm_null_mutex_lock, scm_null_mutex_unlock,
+	scm_null_mutex_destroy, scm_null_condvar_init,
+	scm_null_condvar_wait, scm_null_condvar_signal,
+	scm_null_condvar_destroy): Removed and updated users to do their
+	task directly.
+	(scm_try_mutex, timeval_subtract,
+	scm_timed_wait_condition_variable,
+	scm_broadcast_condition_variable): New.
+	(scm_wait_condition_variable): Removed.
+
+	* coop-defs.h (coop_m): Added 'level' field.
+	(scm_t_mutex, scm_mutex_init, scm_mutex_lock, scm_mutex_trylock,
+	scm_mutex_unlock, scm_mutex_destroy, scm_t_cond, scm_cond_init,
+	scm_cond_wait, scm_cond_timedwait, scm_cond_signal,
+	scm_cond_broadcast, scm_cond_destroy, struct timespec): Do not
+	define.
+	(coop_condition_variable_broadcast): New.
+
+	* coop-threads.c (scm_threads_init): Create smobs here, using the
+	appropriate sizes.
+	(scm_c_thread_exited_p, scm_try_mutex,
+	scm_timed_wait_condition_variable,
+	scm_broadcast_condition_variable): New.
+	(scm_wait_condition_variable): Removed.
+
+	* coop.c (coop_new_mutex_init): Initialize level.
+	(coop_mutex_trylock, coop_mutex_lock, coop_mutex_unlock): maintain
+	level.
+	(coop_condition_variable_signal): Renamed to
+	coop_condition_variable_broadcast and reimplemented in terms of
+	that.  Thus...
+	(coop_condition_variable_broadcast): New.
+
+	* goops.c (hell_mutex): Reimplemented using scm_make_mutex, etc.
+
+	* coop-pthreads.h, coop-pthreads.c: New, but unfinished.
+	
 2002-10-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* null-threads.c: Include <time.h>.  Also, use <...> for inclusion
@@ -5,7 +131,7 @@
 
 	* async.c, goops.h, modules.h, validate.h (SCM_MAKE_VALIDATE_MSG):
 	New.  Use it instead of SCM_MAKE_VALIDATE in lots of places to
-	gove better error messages.  Thanks to Bill Schottstaedt!
+	give better error messages.  Thanks to Bill Schottstaedt!
 
 2002-10-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
