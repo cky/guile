@@ -66,6 +66,8 @@ extern void scm_error SCM_P ((SCM key, char *subr, char *message,
 			      SCM args, SCM rest)) SCM_NORETURN;
 extern void (*scm_error_callback) SCM_P ((SCM key, char *subr,
 					  char *message, SCM args, SCM rest));
+extern SCM scm_error_scm SCM_P ((SCM key, SCM subr, SCM message,
+			      SCM args, SCM rest)) SCM_NORETURN;
 extern void scm_syserror SCM_P ((char *subr)) SCM_NORETURN;
 extern void scm_syserror_msg SCM_P ((char *subr, char *message, SCM args,
 				     int eno)) SCM_NORETURN;

@@ -1,3 +1,13 @@
+Thu Mar 13 00:12:35 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* backtrace.c (scm_display_error_message): don't segv if message
+	is an immediate.
+
+	* error.h: prototype for scm_error_scm.
+
+	* error.c (scm_error_scm): new procedure, reimplements scm-error
+	in C and uses scm_error.
+
 Tue Mar 11 03:51:00 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* read.c (scm_read_hash_extend): make scm_read_hash_procedures a 

@@ -124,7 +124,7 @@ scm_perror (arg)
 
 void (*scm_error_callback) () = 0;
 
-/* all errors thrown from C should pass through here.  */
+/* All errors should pass through here.  */
 void
 scm_error (key, subr, message, args, rest)
      SCM key;
@@ -148,6 +148,31 @@ scm_error (key, subr, message, args, rest)
 
   write (2, "unhandled system error", sizeof ("unhandled system error") - 1);
   exit (1);
+}
+
+/* Scheme interface to scm_error.  */
+SCM_PROC(s_error_scm, "scm-error", 5, 0, 0, scm_error_scm);
+SCM
+scm_error_scm (key, subr, message, args, rest)
+     SCM key;
+     SCM subr;
+     SCM message;
+     SCM args;
+     SCM rest;
+{
+  SCM_ASSERT (SCM_NIMP (key) && SCM_SYMBOLP (key), key, SCM_ARG1, s_error_scm);
+  SCM_ASSERT (SCM_FALSEP (subr) || (SCM_NIMP (subr) && SCM_ROSTRINGP (subr)),
+	      subr, SCM_ARG2, s_error_scm);
+  SCM_ASSERT (SCM_FALSEP (message)
+	      || (SCM_NIMP (message) && SCM_ROSTRINGP (message)),
+	      message, SCM_ARG3, s_error_scm);
+
+  scm_error (key,
+	     (SCM_FALSEP (subr)) ? NULL : SCM_ROCHARS (subr),
+	     (SCM_FALSEP (message)) ? NULL : SCM_ROCHARS (message),
+	     args,
+	     rest);
+  /* not reached.  */
 }
 
 SCM_SYMBOL (scm_system_error_key, "system-error");

@@ -99,7 +99,8 @@ scm_display_error_message (message, args, port)
   char *start;
   char *p;
   
-  if (!SCM_STRINGP (message) || SCM_IMP (args) || !scm_list_p (args))
+  if (SCM_IMP (message) || !SCM_STRINGP (message) || SCM_IMP (args)
+      || !scm_list_p (args))
     {
       scm_prin1 (message, port, 0);
       scm_gen_putc ('\n', port);
