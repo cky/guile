@@ -22,8 +22,6 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;; Boston, MA 02111-1307 USA
 
-;;; Author: Michael Livshin
-
 ;;; Code:
 
 (define-module (scripts snarf-check-and-output-texi)
@@ -65,7 +63,7 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
                                                     (loop (stream-cdr s)))
                                                    (else (cons (stream-car s) (stream-cdr s))))))
                                              (port->stream port read)))))
-    
+
     (unless (stream-null? input)
       (let ((token (stream-car input)))
         (if (eq? (car token) 'snarf_cookie)
@@ -74,10 +72,10 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
           (loop (stream-cdr input)))))))
 
 (define (dispatch-top-cookie input cont)
-    
+
   (when (stream-null? input)
     (error 'syntax "premature end of file"))
-  
+
   (let ((token (stream-car input)))
     (cond
       ((eq? (car token) 'brace_open)
@@ -90,10 +88,10 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 
 (define (consume-upto-cookie process input cont)
   (let loop ((acc '()) (input input))
-       
+
     (when (stream-null? input)
       (error 'syntax "premature end of file in directive context"))
-                
+
     (let ((token (stream-car input)))
       (cond
         ((eq? (car token) 'snarf_cookie)
@@ -109,13 +107,13 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 
     (when (stream-null? input)
       (error 'syntax "premature end of file in multiline context"))
-                
+
     (let ((token (stream-car input)))
       (cond
         ((eq? (car token) 'brace_close)
          (end-multiline)
          (cont (stream-cdr input)))
-        
+
         (else (consume-upto-cookie process-multiline-directive
                                    input
                                    loop))))))
@@ -136,7 +134,7 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
   (set! *args* #f)
   (set! *sig* #f)
   (set! *docstring* #f))
-    
+
 (define (end-multiline)
   (let* ((req (car *sig*))
          (opt (cadr *sig*))
@@ -196,13 +194,13 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 
   (define do-args
     (match-lambda
-     
+
      (('(paren_close . paren_close))
       '())
-     
+
      (('(comma . comma) rest ...)
       (do-args rest))
-     
+
      (('(id . SCM) ('id . name) rest ...)
       (cons name (do-args rest)))
 
@@ -210,21 +208,21 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 
   (define do-arglist
     (match-lambda
-     
+
      (('(paren_open . paren_open) '(id . void) '(paren_close . paren_close))
       '())
-     
+
      (('(paren_open . paren_open) rest ...)
       (do-args rest))
-     
+
      (x (error (format #f "invalid arglist syntax: ~A" (map cdr x))))))
 
   (define do-command
     (match-lambda
-     
+
      (('fname ('string . name))
       (set! *function-name* (texi-quote name)))
-     
+
      (('type ('id . type))
       (set! *snarf-type* type))
 
@@ -245,19 +243,19 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 
   (define do-directive
     (match-lambda
-     
+
      ((('id . command) rest ...)
       (do-command (cons command rest)))
-     
+
      ((('string . string) ...)
       (set! *docstring* string))
-     
+
      (x (error (format #f "unknown doc attribute syntax: ~A" x)))))
 
   (do-directive l))
 
 (define (process-singleline l)
-    
+
   (define do-argpos
     (match-lambda
      ((('id . name) ('int . pos) ('int . line))
@@ -267,13 +265,13 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
             (display (format #f "~A:~A: wrong position for argument ~A: ~A (should be ~A)\n"
                              *file* line name pos (+ idx 1)))))))
      (x #f)))
-  
+
   (define do-command
     (match-lambda
      (('(id . argpos) rest ...)
       (do-argpos rest))
      (x (error (format #f "unknown check: ~A" x)))))
-  
+
   (when *function-name*
     (do-command l)))
 
