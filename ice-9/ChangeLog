@@ -1,3 +1,8 @@
+2004-08-25  Kevin Ryde  <user42@zip.com.au>
+
+	* and-let-star.scm (and-let*): Give #t for an empty body, per srfi-2
+	spec, previously came out as an empty (begin).
+
 2004-08-25  Marius Vollmer  <mvo@zagadka.de>
 
 	* boot-9.scm (%cond-expand-features): Addef srfi-13 and srfi-14.

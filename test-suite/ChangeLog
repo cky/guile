@@ -1,3 +1,8 @@
+2004-08-25  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/and-let-star.test: More tests, in particular exercise #t
+	result on empty body.
+
 2004-08-25  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/strings.test: Two more tests for double indirect substring
