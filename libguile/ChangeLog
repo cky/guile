@@ -1,5 +1,12 @@
 2000-03-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gdbint.c (gdb_maybe_valid_type_p), guardians.c (TCONC_EMPTYP,
+	scm_guardian_zombify):  Use SCM_EQ_P to compare SCM values.
+
+	* guardians.c (GUARDIAN):  Use SCM_CELL_WORD_1 for raw data.
+
+2000-03-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* ports.h (scm_port):  Change type of stream member to scm_bits_t.
 
 	* gdbint.c (unmark_port, remark_port), ports.c (scm_markstream),

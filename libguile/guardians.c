@@ -87,7 +87,7 @@ do { \
   (tc).head = SCM_CDR ((tc).head); \
 } while (0)
 
-#define TCONC_EMPTYP(tc) ((tc).head == (tc).tail)
+#define TCONC_EMPTYP(tc) (SCM_EQ_P ((tc).head, (tc).tail))
 
 typedef struct tconc_t
 {
@@ -102,7 +102,7 @@ typedef struct guardian_t
   struct guardian_t *next;
 } guardian_t;
 
-#define GUARDIAN(x) ((guardian_t *) SCM_CDR (x))
+#define GUARDIAN(x) ((guardian_t *) SCM_CELL_WORD_1 (x))
 #define GUARDIAN_LIVE(x) (GUARDIAN (x)->live)
 #define GUARDIAN_ZOMBIES(x) (GUARDIAN (x)->zombies)
 #define GUARDIAN_NEXT(x) (GUARDIAN (x)->next)
@@ -205,7 +205,7 @@ scm_guardian_zombify ()
       SCM *prev_ptr = &g->live.head;
       SCM pair = g->live.head;
 
-      while (pair != tconc_tail)
+      while (! SCM_EQ_P (pair, tconc_tail))
 	{
 	  SCM next_pair = SCM_CDR (pair);
 
