@@ -70,7 +70,9 @@ extern scm_option scm_print_opts[];
 #define SCM_WRITINGP(pstate) ((pstate)->writingp)
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
-#define SCM_COERCE_OUTPORT(p) ((SCM_NIMP (p) && SCM_PRINT_STATE_P (SCM_CDR (p))) \
+#define SCM_COERCE_OUTPORT(p) ((SCM_NIMP (p) \
+				&& SCM_CONSP (p) \
+				&& SCM_PRINT_STATE_P (SCM_CDR (p))) \
 			       ? SCM_CAR (p) \
 			       : p)
 
