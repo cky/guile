@@ -122,6 +122,7 @@ take_signal (int signum)
 {
   int saved_errno = errno;
   SCM ignored;
+
   if (!scm_ints_disabled)
     {
       /* For reasons of speed, the SCM_NEWCELL macro doesn't defer
@@ -461,6 +462,15 @@ SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
+SCM_PROC(s_segfault, "segfault", 0, 0, 0, scm_segfault);
+
+SCM
+scm_segfault ()
+{
+  *(int *)0 = 0;
+  return SCM_UNSPECIFIED;
+}
 
 
 
