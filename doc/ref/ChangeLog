@@ -1,3 +1,8 @@
+2005-01-02  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Pipes): Expand and clarify a bit.  Describe port
+	inheritance.  Caution against waitpid WAIT_ANY.
+
 2004-12-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* api-compound.texi (Arrays): Updated for the new 'typed' approach
