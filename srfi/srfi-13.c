@@ -26,6 +26,32 @@
 #include "srfi-13.h"
 #include "srfi-14.h"
 
+/* SCM_VALIDATE_SUBSTRING_SPEC_COPY is deprecated since it encourages
+   messing with the internal representation of strings.  We define our
+   own version since we use it so much and are messing with Guile
+   internals anyway.
+*/
+
+#define MY_VALIDATE_SUBSTRING_SPEC_COPY(pos_str, str, c_str,        \
+                                         pos_start, start, c_start, \
+                                         pos_end, end, c_end)       \
+  do {                                                              \
+    SCM_VALIDATE_STRING (pos_str, str);                             \
+    c_str = SCM_I_STRING_CHARS (str);                               \
+    scm_i_get_substring_spec (SCM_I_STRING_LENGTH (str),            \
+			      start, &c_start, end, &c_end);        \
+  } while (0)
+
+
+/* Likewise for SCM_VALIDATE_STRING_COPY. */
+
+#define MY_VALIDATE_STRING_COPY(pos, str, cvar)  \
+  do {                                           \
+    SCM_VALIDATE_STRING (pos, str);              \
+    cvar = SCM_I_STRING_CHARS(str);              \
+  } while (0)
+
+
 SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
             (SCM pred, SCM s, SCM start, SCM end),
 	    "Check if the predicate @var{pred} is true for any character in\n"
@@ -46,9 +72,9 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
   SCM res;
 
   SCM_VALIDATE_PROC (1, pred);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   cstr += cstart;
   while (cstart < cend)
     {
@@ -87,9 +113,9 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
   SCM res;
 
   SCM_VALIDATE_PROC (1, pred);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   res = SCM_BOOL_T;
   cstr += cstart;
   while (cstart < cend)
@@ -147,9 +173,9 @@ SCM_DEFINE (scm_string_to_listS, "string->list", 1, 2, 0,
   int cstart, cend;
   SCM result = SCM_EOL;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   while (cstart < cend)
     {
       cend--;
@@ -366,9 +392,9 @@ SCM_DEFINE (scm_string_copyS, "string-copy", 1, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   return scm_mem2string (cstr + cstart, cend - cstart);
 
 }
@@ -412,12 +438,12 @@ SCM_DEFINE (scm_string_copy_x, "string-copy!", 3, 2, 0,
   int len;
   SCM sdummy = SCM_UNDEFINED;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, target, ctarget,
-				    2, tstart, ctstart,
-				    2, sdummy, dummy);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cstr,
-				    4, start, cstart,
-				    5, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, target, ctarget,
+				   2, tstart, ctstart,
+				   2, sdummy, dummy);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cstr,
+				   4, start, cstart,
+				   5, end, cend);
   len = cend - cstart;
   SCM_ASSERT_RANGE (3, s, len <= SCM_STRING_LENGTH (target) - ctstart);
 
@@ -437,7 +463,7 @@ SCM_DEFINE (scm_string_take, "string-take", 2, 0, 0,
   char * cstr;
   size_t cn;
 
-  SCM_VALIDATE_STRING_COPY (1, s, cstr);
+  MY_VALIDATE_STRING_COPY (1, s, cstr);
   cn = scm_to_unsigned_integer (n, 0, SCM_STRING_LENGTH (s));
 
   return scm_mem2string (cstr, cn);
@@ -453,7 +479,7 @@ SCM_DEFINE (scm_string_drop, "string-drop", 2, 0, 0,
   char * cstr;
   size_t cn;
 
-  SCM_VALIDATE_STRING_COPY (1, s, cstr);
+  MY_VALIDATE_STRING_COPY (1, s, cstr);
   cn = scm_to_unsigned_integer (n, 0, SCM_STRING_LENGTH (s));
 
   return scm_mem2string (cstr + cn, SCM_STRING_LENGTH (s) - cn);
@@ -469,7 +495,7 @@ SCM_DEFINE (scm_string_take_right, "string-take-right", 2, 0, 0,
   char * cstr;
   size_t cn;
 
-  SCM_VALIDATE_STRING_COPY (1, s, cstr);
+  MY_VALIDATE_STRING_COPY (1, s, cstr);
   cn = scm_to_unsigned_integer (n, 0, SCM_STRING_LENGTH (s));
 
   return scm_mem2string (cstr + SCM_STRING_LENGTH (s) - cn, cn);
@@ -485,7 +511,7 @@ SCM_DEFINE (scm_string_drop_right, "string-drop-right", 2, 0, 0,
   char * cstr;
   size_t cn;
 
-  SCM_VALIDATE_STRING_COPY (1, s, cstr);
+  MY_VALIDATE_STRING_COPY (1, s, cstr);
   cn = scm_to_unsigned_integer (n, 0, SCM_STRING_LENGTH (s));
 
   return scm_mem2string (cstr, SCM_STRING_LENGTH (s) - cn);
@@ -506,9 +532,9 @@ SCM_DEFINE (scm_string_pad, "string-pad", 2, 3, 0,
   size_t cstart, cend, clen;
   SCM result;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    4, start, cstart,
-				    5, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   4, start, cstart,
+				   5, end, cend);
   clen = scm_to_size_t (len);
 
   if (SCM_UNBNDP (chr))
@@ -549,9 +575,9 @@ SCM_DEFINE (scm_string_pad_right, "string-pad-right", 2, 3, 0,
   size_t cstart, cend, clen;
   SCM result;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    4, start, cstart,
-				    5, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   4, start, cstart,
+				   5, end, cend);
   clen = scm_to_size_t (len);
 
   if (SCM_UNBNDP (chr))
@@ -601,9 +627,9 @@ SCM_DEFINE (scm_string_trim, "string-trim", 1, 3, 0,
   char * cstr;
   size_t cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_UNBNDP (char_pred))
     {
       while (cstart < cend)
@@ -676,9 +702,9 @@ SCM_DEFINE (scm_string_trim_right, "string-trim-right", 1, 3, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_UNBNDP (char_pred))
     {
       while (cstart < cend)
@@ -751,9 +777,9 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_UNBNDP (char_pred))
     {
       while (cstart < cend)
@@ -838,9 +864,9 @@ SCM_DEFINE (scm_string_fill_xS, "string-fill!", 2, 2, 0,
   int c;
   long k;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   SCM_VALIDATE_CHAR_COPY (2, chr, c);
   for (k = cstart; k < cend; k++)
     cstr[k] = c;
@@ -862,12 +888,12 @@ SCM_DEFINE (scm_string_compare, "string-compare", 5, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    6, start1, cstart1,
-				    7, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    8, start2, cstart2,
-				    9, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   6, start1, cstart1,
+				   7, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   8, start2, cstart2,
+				   9, end2, cend2);
   SCM_VALIDATE_PROC (3, proc_lt);
   SCM_VALIDATE_PROC (4, proc_eq);
   SCM_VALIDATE_PROC (5, proc_gt);
@@ -905,12 +931,12 @@ SCM_DEFINE (scm_string_compare_ci, "string-compare-ci", 5, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    6, start1, cstart1,
-				    7, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    8, start2, cstart2,
-				    9, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   6, start1, cstart1,
+				   7, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   8, start2, cstart2,
+				   9, end2, cend2);
   SCM_VALIDATE_PROC (3, proc_lt);
   SCM_VALIDATE_PROC (4, proc_eq);
   SCM_VALIDATE_PROC (5, proc_gt);
@@ -943,12 +969,12 @@ SCM_DEFINE (scm_string_eq, "string=", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -978,12 +1004,12 @@ SCM_DEFINE (scm_string_neq, "string<>", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1013,12 +1039,12 @@ SCM_DEFINE (scm_string_lt, "string<", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1048,12 +1074,12 @@ SCM_DEFINE (scm_string_gt, "string>", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1083,12 +1109,12 @@ SCM_DEFINE (scm_string_le, "string<=", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1118,12 +1144,12 @@ SCM_DEFINE (scm_string_ge, "string>=", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1154,12 +1180,12 @@ SCM_DEFINE (scm_string_ci_eq, "string-ci=", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1190,12 +1216,12 @@ SCM_DEFINE (scm_string_ci_neq, "string-ci<>", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1226,12 +1252,12 @@ SCM_DEFINE (scm_string_ci_lt, "string-ci<", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1262,12 +1288,12 @@ SCM_DEFINE (scm_string_ci_gt, "string-ci>", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1298,12 +1324,12 @@ SCM_DEFINE (scm_string_ci_le, "string-ci<=", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1334,12 +1360,12 @@ SCM_DEFINE (scm_string_ci_ge, "string-ci>=", 2, 4, 0,
   char * cstr1, * cstr2;
   int cstart1, cend1, cstart2, cend2;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1370,12 +1396,12 @@ SCM_DEFINE (scm_string_prefix_length, "string-prefix-length", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len = 0;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] != cstr2[cstart2])
@@ -1399,12 +1425,12 @@ SCM_DEFINE (scm_string_prefix_length_ci, "string-prefix-length-ci", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len = 0;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) != scm_c_downcase (cstr2[cstart2]))
@@ -1428,12 +1454,12 @@ SCM_DEFINE (scm_string_suffix_length, "string-suffix-length", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len = 0;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       cend1--;
@@ -1457,12 +1483,12 @@ SCM_DEFINE (scm_string_suffix_length_ci, "string-suffix-length-ci", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len = 0;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       cend1--;
@@ -1485,12 +1511,12 @@ SCM_DEFINE (scm_string_prefix_p, "string-prefix?", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len = 0, len1;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   len1 = cend1 - cstart1;
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1514,12 +1540,12 @@ SCM_DEFINE (scm_string_prefix_ci_p, "string-prefix-ci?", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len = 0, len1;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   len1 = cend1 - cstart1;
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1543,12 +1569,12 @@ SCM_DEFINE (scm_string_suffix_p, "string-suffix?", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len = 0, len1;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   len1 = cend1 - cstart1;
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1572,12 +1598,12 @@ SCM_DEFINE (scm_string_suffix_ci_p, "string-suffix-ci?", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len = 0, len1;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   len1 = cend1 - cstart1;
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1614,9 +1640,9 @@ SCM_DEFINE (scm_string_indexS, "string-index", 2, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_CHARP (char_pred))
     {
       char cchr = SCM_CHAR (char_pred);
@@ -1673,9 +1699,9 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_CHARP (char_pred))
     {
       char cchr = SCM_CHAR (char_pred);
@@ -1733,9 +1759,9 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_CHARP (char_pred))
     {
       char cchr = SCM_CHAR (char_pred);
@@ -1793,9 +1819,9 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_CHARP (char_pred))
     {
       char cchr = SCM_CHAR (char_pred);
@@ -1853,9 +1879,9 @@ SCM_DEFINE (scm_string_count, "string-count", 2, 2, 0,
   int cstart, cend;
   int count = 0;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_CHARP (char_pred))
     {
       char cchr = SCM_CHAR (char_pred);
@@ -1907,12 +1933,12 @@ SCM_DEFINE (scm_string_contains, "string-contains", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len2, i, j;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cs1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cs2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cs1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cs2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   len2 = cend2 - cstart2;
   while (cstart1 <= cend1 - len2)
     {
@@ -1948,12 +1974,12 @@ SCM_DEFINE (scm_string_contains_ci, "string-contains-ci", 2, 4, 0,
   int cstart1, cend1, cstart2, cend2;
   int len2, i, j;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cs1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cs2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cs1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cs2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   len2 = cend2 - cstart2;
   while (cstart1 <= cend1 - len2)
     {
@@ -2005,9 +2031,9 @@ SCM_DEFINE (scm_string_upcase_xS, "string-upcase!", 1, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   return string_upcase_x (str, cstart, cend);
 }
 #undef FUNC_NAME
@@ -2023,9 +2049,9 @@ SCM_DEFINE (scm_string_upcaseS, "string-upcase", 1, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   return string_upcase_x (scm_string_copy (str), cstart, cend);
 }
 #undef FUNC_NAME
@@ -2064,9 +2090,9 @@ SCM_DEFINE (scm_string_downcase_xS, "string-downcase!", 1, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   return string_downcase_x (str, cstart, cend);
 }
 #undef FUNC_NAME
@@ -2082,9 +2108,9 @@ SCM_DEFINE (scm_string_downcaseS, "string-downcase", 1, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   return string_downcase_x (scm_string_copy (str), cstart, cend);
 }
 #undef FUNC_NAME
@@ -2129,9 +2155,9 @@ SCM_DEFINE (scm_string_titlecase_x, "string-titlecase!", 1, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   return string_titlecase_x (str, cstart, cend);
 }
 #undef FUNC_NAME
@@ -2145,9 +2171,9 @@ SCM_DEFINE (scm_string_titlecase, "string-titlecase", 1, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   return string_titlecase_x (scm_string_copy (str), cstart, cend);
 }
 #undef FUNC_NAME
@@ -2184,9 +2210,9 @@ SCM_DEFINE (scm_string_reverse, "string-reverse", 1, 2, 0,
   int cend;
   SCM result;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   result = scm_string_copy (str);
   string_reverse_x (SCM_STRING_CHARS (result), cstart, cend);
   return result;
@@ -2205,9 +2231,9 @@ SCM_DEFINE (scm_string_reverse_x, "string-reverse!", 1, 2, 0,
   int cstart;
   int cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
-				    2, start, cstart,
-				    3, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
+				   2, start, cstart,
+				   3, end, cend);
   string_reverse_x (SCM_STRING_CHARS (str), cstart, cend);
   return SCM_UNSPECIFIED;
 }
@@ -2398,9 +2424,9 @@ SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
   SCM result;
 
   SCM_VALIDATE_PROC (1, proc);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   result = scm_allocate_string (cend - cstart);
   p = SCM_STRING_CHARS (result);
   while (cstart < cend)
@@ -2429,9 +2455,9 @@ SCM_DEFINE (scm_string_map_x, "string-map!", 2, 2, 0,
   int cstart, cend;
 
   SCM_VALIDATE_PROC (1, proc);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   p = SCM_STRING_CHARS (s) + cstart;
   while (cstart < cend)
     {
@@ -2460,9 +2486,9 @@ SCM_DEFINE (scm_string_fold, "string-fold", 3, 2, 0,
   SCM result;
 
   SCM_VALIDATE_PROC (1, kons);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cstr,
-				    4, start, cstart,
-				    5, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cstr,
+				   4, start, cstart,
+				   5, end, cend);
   result = knil;
   while (cstart < cend)
     {
@@ -2488,9 +2514,9 @@ SCM_DEFINE (scm_string_fold_right, "string-fold-right", 3, 2, 0,
   SCM result;
 
   SCM_VALIDATE_PROC (1, kons);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cstr,
-				    4, start, cstart,
-				    5, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cstr,
+				   4, start, cstart,
+				   5, end, cend);
   result = knil;
   while (cstart < cend)
     {
@@ -2637,9 +2663,9 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
   int cstart, cend;
 
   SCM_VALIDATE_PROC (1, proc);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   while (cstart < cend)
     {
       unsigned int c = (unsigned char) cstr[cstart];
@@ -2660,9 +2686,9 @@ SCM_DEFINE (scm_string_for_each_index, "string-for-each-index", 2, 2, 0,
   int cstart, cend;
 
   SCM_VALIDATE_PROC (1, proc);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   while (cstart < cend)
     {
       scm_call_1 (proc, SCM_I_MAKINUM (cstart));
@@ -2690,9 +2716,9 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
   size_t cstart, cend, cfrom, cto;
   SCM result;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cs,
-				    4, start, cstart,
-				    5, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cs,
+				   4, start, cstart,
+				   5, end, cend);
   cfrom = scm_to_size_t (from);
   if (SCM_UNBNDP (to))
     cto = cfrom + (cend - cstart);
@@ -2733,12 +2759,12 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
   SCM dummy = SCM_UNDEFINED;
   int cdummy;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, target, ctarget,
-				    2, tstart, ctstart,
-				    2, dummy, cdummy);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cs,
-				    6, start, cstart,
-				    7, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, target, ctarget,
+				   2, tstart, ctstart,
+				   2, dummy, cdummy);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cs,
+				   6, start, cstart,
+				   7, end, cend);
   csfrom = scm_to_size_t (sfrom);
   if (SCM_UNBNDP (sto))
     csto = csfrom + (cend - cstart);
@@ -2776,12 +2802,12 @@ SCM_DEFINE (scm_string_replace, "string-replace", 2, 4, 0,
   size_t cstart1, cend1, cstart2, cend2;
   SCM result;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				    3, start1, cstart1,
-				    4, end1, cend1);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				    5, start2, cstart2,
-				    6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
+				   3, start1, cstart1,
+				   4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
+				   5, start2, cstart2,
+				   6, end2, cend2);
   result = scm_allocate_string (cstart1 + (cend2 - cstart2) +
 				SCM_STRING_LENGTH (s1) - cend1);
   p = SCM_STRING_CHARS (result);
@@ -2812,9 +2838,9 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 
   static SCM charset_graphic = SCM_BOOL_F;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
 
   if (SCM_UNBNDP (token_set))
     {
@@ -2873,9 +2899,9 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
   SCM result;
   int idx;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_CHARP (char_pred))
     {
       SCM ls = SCM_EOL;
@@ -2939,9 +2965,9 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
   SCM result;
   int idx;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				    3, start, cstart,
-				    4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+				   3, start, cstart,
+				   4, end, cend);
   if (SCM_CHARP (char_pred))
     {
       SCM ls = SCM_EOL;
