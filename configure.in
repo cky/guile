@@ -272,7 +272,7 @@ GUILE_FUNC_DECLARED(usleep, unistd.h)
 ### we'd like to return it; otherwise, we'll fake it.
 AC_CACHE_CHECK([return type of usleep], guile_cv_func_usleep_return_type,
   [AC_EGREP_HEADER(changequote(<, >)<void[ 	]+usleep>changequote([, ]),
-                   /usr/include/unistd.h,
+                   unistd.h,
 		   [guile_cv_func_usleep_return_type=void],
 		   [guile_cv_func_usleep_return_type=int])])
 case "$guile_cv_func_usleep_return_type" in
