@@ -59,6 +59,8 @@ size_t scm_switch_counter = SCM_THREAD_SWITCH_COUNT;
 
 coop_m scm_critical_section_mutex;
 
+static SCM all_threads;
+
 void
 scm_threads_init (SCM_STACKITEM *i)
 {
@@ -76,6 +78,12 @@ scm_threads_init (SCM_STACKITEM *i)
   coop_mutex_init (&scm_critical_section_mutex);
 
   coop_global_main.data = 0; /* Initialized in init.c */
+
+  coop_global_main.handle = scm_cell (scm_tc16_thread,
+				      (scm_t_bits) &coop_global_main);
+
+  scm_gc_register_root (&all_threads);
+  all_threads = scm_cons (coop_global_main.handle, SCM_EOL);
 }
 
 void
@@ -212,6 +220,7 @@ scheme_launch_thread (void *p)
 		     (SCM_STACKITEM *) &thread);
   SCM_SET_CELL_WORD_1 (thread, 0);
   scm_thread_count--;
+  all_threads = scm_delq (thread, all_threads);
   SCM_DEFER_INTS;
 }
 
@@ -264,8 +273,10 @@ scm_call_with_new_thread (SCM argl)
        argl variable may not exist in memory when the thread starts.  */
     t = coop_create (scheme_launch_thread, (void *) argl);
     t->data = SCM_ROOT_STATE (root);
+    t->handle = thread;
     SCM_SET_CELL_WORD_1 (thread, (scm_t_bits) t);
     scm_thread_count++;
+    all_threads = scm_cons (thread, all_threads);
     /* Note that the following statement also could cause coop_yield.*/
     SCM_ALLOW_INTS;
 
@@ -353,10 +364,11 @@ scm_spawn_thread (scm_t_catch_body body, void *body_data,
   data->handler_data = handler_data;
   
   t = coop_create (c_launch_thread, (void *) data);
-  
   t->data = SCM_ROOT_STATE (root);
+  t->handle = thread;
   SCM_SET_CELL_WORD_1 (thread, (scm_t_bits) t);
   scm_thread_count++;
+  all_threads = scm_cons (thread, all_threads);
   /* Note that the following statement also could cause coop_yield.*/
   SCM_ALLOW_INTS;
 
@@ -368,6 +380,27 @@ scm_spawn_thread (scm_t_catch_body body, void *body_data,
   
   return thread;
 }
+
+SCM
+scm_current_thread (void)
+{
+  return coop_global_curr->handle;
+}
+
+SCM
+scm_all_threads (void)
+{
+  return all_threads;
+}
+
+scm_root_state *
+scm_i_thread_root (SCM thread)
+#define FUNC_NAME "scm_i_thread_root"
+{
+  SCM_VALIDATE_THREAD (1, thread);
+  return (scm_root_state *)((coop_t *)SCM_THREAD_DATA (thread))->data;
+}
+#undef FUNC_NAME
 
 SCM
 scm_join_thread (SCM thread)

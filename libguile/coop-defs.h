@@ -104,6 +104,8 @@ typedef struct coop_t {
   void *joining;         /* A queue of threads waiting to join this
 			    thread */
 
+  SCM handle;            /* SCM handle, protected via scm_all_threads. */
+
 #ifdef GUILE_ISELECT
   int nfds;
   SELECT_TYPE *readfds;
