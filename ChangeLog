@@ -1,5 +1,9 @@
 2003-07-27  Marius Vollmer  <mvo@zagadka.de>
 
+	* configure.in: Look for sched_yield in -lrt; this is needed for
+	Solaris.  Thanks to Matthias Koeppe!
+	(setgroups): Check for it.
+
 	* configure.in (__libc_stack_end): Actually use the value in
 	__libc_stack_end for something so that the access doesn't get
 	optimized away.  Thanks to Matthias Koeppe!

@@ -1,5 +1,10 @@
 2003-07-27  Marius Vollmer  <mvo@zagadka.de>
 
+	* posix.h (scm_setgroups): New prototype.
+	* posix.c (scm_setgroups): New.  Thanks to Paul Jarc!
+	(scm_getgroups): Handle groups ids that don't fit into a fixnum.
+	Don't use SCM_WRITABLE_VELTS.
+	
 	* gc.h (SCM_GC_SET_CELL_BVEC): New.
 	* gc-card.c (scm_i_init_card_freelist): Use it.  Thanks to
 	Matthias Koeppe!
