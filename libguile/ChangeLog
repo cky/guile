@@ -1,3 +1,21 @@
+1999-02-06  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Readline paren matching from Greg Harvey, with modifications from
+	Mikael Djurfeldt:
+	
+	* readline.c (in_readline, reentry_barrier_mutex): Make these
+	static.
+	
+	* readline.c: #include <sys/time.h> and "iselect.h", so we can
+	control how long we're paused, and threads will run while we're
+	paused.
+	(match_paren, find_matching_paren, init_bouncing_parens): New
+	functions.
+	(scm_init_readline): Call init_bouncing_parens.
+	(scm_readline_opts): Add the bounce-parens option.
+	* readline.h (SCM_READLINE_BOUNCE_PARENS): New readline option.
+	(SCM_N_READLINE_OPTIONS): Adjust.
+
 1999-02-06  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	All the below are changes from Ken Raeburn, to get Guile to use

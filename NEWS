@@ -8,21 +8,36 @@ Changes since Guile 1.3:
 
 * Changes to the stand-alone interpreter
 
-** New options interface: readline-options,
-readline-enable, readline-disable, readline-set!
+** Command-line editing is enhanced.
 
-** Command line history is now restored from and saved to file
+If you have a sufficiently recent version of the GNU readline library
+installed on your system, Guile will use it to read expressions
+interactively.  
 
-If readline is used and the readline option `history-file' is enabled,
-the command line history is read from file when the interpreter is
-entered, and written to file on exit.  The filename used can be
-specified with the environment variable GUILE_HISTORY.  Default file
-name is "$HOME/.guile_history".  Nothing special happens if errors
-occur during read or write.
+You can now use the readline-options interface to control readline's
+behavior.  You can now control the readline library's behavior by
+changing the options listed below.
 
-** Command line history length can now be customized.
-Command line history length is now controlled by the readline option
-`history-length'.  Default is 200 lines.
+  (readline-enable 'history-file)
+    Tell readline to record your commands in a file when you exit
+    Guile, and restore them when you restart Guile.  By default, Guile
+    saves commands to `$HOME/.guile_history', but if the
+    `GUILE_HISTORY' environment variable is set, Guile will use its
+    value as the name of the history file.
+
+    If Guile is unable to save or restore lines from the history file,
+    the operation is simply not performed; the user is not notified.
+
+  (readline-disable 'history-file)
+    Tell Guile not to save or restore command history.
+
+  (readline-set! history-length N)
+    Tell Guile to save at most N lines of command history.
+
+  (readline-set! bounce-parens N)
+    Tell Guile to indicate the matching opening parenthesis when you
+    type a closing parenthesis, by resting the cursor on it for N
+    milliseconds.  If N is zero, do not highlight opening parethesis.
 
 ** All builtins now print as primitives.
 Previously builtin procedures not belonging to the fundamental subr
