@@ -142,7 +142,15 @@ asyncs_pending ()
   return 0;
 }
 
-
+#if 0
+static SCM scm_sys_tick_async_thunk SCM_P ((void));
+static SCM
+scm_sys_tick_async_thunk ()
+{
+  scm_deliver_signal (SCM_TICK_SIGNAL);
+  return SCM_BOOL_F;
+}
+#endif
 
 void
 scm_async_click ()
@@ -221,8 +229,10 @@ scm_async_click ()
 	}
     }
 
-  if (owe_tick)
-    scm_async_mark (system_signal_asyncs[SCM_SIG_ORD(SCM_TICK_SIGNAL)]);
+  /* 
+     if (owe_tick)
+       scm_async_mark (system_signal_asyncs[SCM_SIG_ORD(SCM_TICK_SIGNAL)]);
+     */
 
   SCM_DEFER_INTS;
   if (scm_tick_rate && scm_switch_rate)
@@ -564,30 +574,28 @@ scm_sys_alrm_async_thunk ()
   return SCM_BOOL_F;
 }
 
+/* points to the GC system-async, so that scm_gc_end can find it.  */
+SCM scm_gc_async;
 
-static SCM scm_sys_gc_async_thunk SCM_P ((void));
+/* the vcell for gc-thunk.  */
+static SCM scm_gc_vcell;
 
+/* the thunk installed in the GC system-async, which is marked at the
+   end of garbage collection.  */
 static SCM
-scm_sys_gc_async_thunk ()
+scm_sys_gc_async_thunk (void)
 {
-  scm_deliver_signal (SCM_GC_SIGNAL);
-  return SCM_BOOL_F;
+  if (SCM_NFALSEP (scm_gc_vcell))
+    {
+      SCM proc = SCM_CDR (scm_gc_vcell);
+
+      if (SCM_NFALSEP (proc) && !SCM_UNBNDP (proc))
+	scm_apply (proc, SCM_EOL, SCM_EOL);
+    }
+  return SCM_UNSPECIFIED;
 }
-
-
-static SCM scm_sys_tick_async_thunk SCM_P ((void));
-
-static SCM
-scm_sys_tick_async_thunk ()
-{
-  scm_deliver_signal (SCM_TICK_SIGNAL);
-  return SCM_BOOL_F;
-}
-
-
 
 
-
 
 SCM
 scm_take_signal (n)
@@ -636,7 +644,6 @@ scm_mask_signals ()
 
 
 
-
 void
 scm_init_async ()
 {
@@ -660,13 +667,16 @@ scm_init_async ()
   a_thunk = scm_make_gsubr ("%segv-thunk", 0, 0, 0, scm_sys_segv_async_thunk);
   system_signal_asyncs[SCM_SIG_ORD(SCM_SEGV_SIGNAL)] = scm_system_async (a_thunk);
 
-
+  scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
   a_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, scm_sys_gc_async_thunk);
-  system_signal_asyncs[SCM_SIG_ORD(SCM_GC_SIGNAL)] = scm_system_async (a_thunk);
+  scm_gc_async = scm_system_async (a_thunk);
 
   /* Clock and PC driven conditions are given highest priority. */
-  a_thunk = scm_make_gsubr ("%tick-thunk", 0, 0, 0, scm_sys_tick_async_thunk);
-  system_signal_asyncs[SCM_SIG_ORD(SCM_TICK_SIGNAL)] = scm_system_async (a_thunk);
+  /*
+    a_thunk = scm_make_gsubr ("%tick-thunk", 0, 0, 0, scm_sys_tick_async_thunk);
+    system_signal_asyncs[SCM_SIG_ORD(SCM_TICK_SIGNAL)] = scm_system_async (a_thunk);
+    */
+
   a_thunk = scm_make_gsubr ("%alrm-thunk", 0, 0, 0, scm_sys_alrm_async_thunk);
   system_signal_asyncs[SCM_SIG_ORD(SCM_ALRM_SIGNAL)] = scm_system_async (a_thunk);
 

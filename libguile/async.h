@@ -50,7 +50,7 @@
 
 
 extern unsigned int scm_mask_ints;
-
+extern SCM scm_gc_async;
 
 
 extern void scm_async_click SCM_P ((void));

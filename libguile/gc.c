@@ -377,7 +377,7 @@ scm_gc_end ()
 {
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ()) - scm_gc_rt;
   scm_gc_time_taken = scm_gc_time_taken + scm_gc_rt;
-  scm_take_signal (SCM_GC_SIGNAL);
+  scm_system_async_mark (scm_gc_async);
 }
 
 

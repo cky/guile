@@ -1,3 +1,24 @@
+Mon Apr 28 06:10:14 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* async.c (scm_sys_tick_async_thunk): commented out.  I'm not
+	sure how this was supposed to work.
+	(scm_async_click): don't send SCM_TICK_SIGNAL.
+	(scm_init_async): don't initialize %tick-thunk.
+
+	* the following change doesn't affect the Scheme interface:
+ 	gc-thunk is called at the end of garbage collection.  however it's
+ 	no longer implemented by pretending it's a signal.
+	
+	* gc.c (scm_gc_end): don't call scm_take_signal.  instead mark the
+	system async corresponding to scm_gc_thunk.
+	* async.h: declare scm_gc_async.
+	* async.c (scm_sys_gc_async_thunk): apply the thunk named by
+	gc-thunk directly, instead of going through a signal handler.
+	(scm_gc_async): new variable, points to the GC system-async.
+	(scm_init_async): save the GC async as scm_gc_async instead
+	of using system_signal_asyncs.
+	(scm_gc_vcell): new variable, stores the gc-thunk vcell.
+
 Mon Apr 28 19:14:44 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.am (libpath.h, cpp_err_symbols.c, cpp_sig_symbols.c):
