@@ -18,6 +18,8 @@ that user-visible changes are reflected in NEWS.
 
 * Eventually
 
+- Unify SRFI-4 and the existing uniform array code, cleaning it up in
+  the process.
 - [after signal handling and threading have been fixed] remove the code
   corresponding to GUILE_OLD_ASYNC_CLICK and the corresponding
   GUILE_OLD_ASYNC_CLICK macro.

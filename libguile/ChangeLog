@@ -1,3 +1,8 @@
+2002-03-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* strop.c (scm_string_capitalize_x): Treat characters as unsigned
+	so that 8-bit chars work.  Thanks to David Pirotte!
+
 2002-03-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL): Cleaned up the handling of 'slot-ref',

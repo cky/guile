@@ -1,3 +1,8 @@
+2002-03-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-13.c (string_titlecase_x): Treat characters as unsigned so
+	that 8-bit chars work.  Thanks to David Pirotte!
+
 2002-02-24  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (libguile_srfi_srfi_4_la_LDFLAGS): use
