@@ -43,9 +43,9 @@ scm_is_vector (SCM obj)
 {
   if (SCM_I_IS_VECTOR (obj))
     return 1;
-  if  (SCM_ARRAYP (obj) && SCM_ARRAY_NDIM (obj) == 1)
+  if  (SCM_I_ARRAYP (obj) && SCM_I_ARRAY_NDIM (obj) == 1)
     {
-      SCM v = SCM_ARRAY_V (obj);
+      SCM v = SCM_I_ARRAY_V (obj);
       return SCM_I_IS_VECTOR (v);
     }
   return 0;
@@ -102,9 +102,9 @@ scm_vector_length (SCM v)
 {
   if (SCM_I_IS_VECTOR (v))
     return scm_from_size_t (SCM_I_VECTOR_LENGTH (v));
-  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
+  else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
-      scm_t_array_dim *dim = SCM_ARRAY_DIMS (v);
+      scm_t_array_dim *dim = SCM_I_ARRAY_DIMS (v);
       return scm_from_size_t (dim->ubnd - dim->lbnd + 1);
     }
   else
@@ -196,15 +196,15 @@ scm_c_vector_ref (SCM v, size_t k)
 	scm_out_of_range (NULL, scm_from_size_t (k)); 
       return (SCM_I_VECTOR_ELTS(v))[k];
     }
-  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
+  else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
-      scm_t_array_dim *dim = SCM_ARRAY_DIMS (v);
-      SCM vv = SCM_ARRAY_V (v);
+      scm_t_array_dim *dim = SCM_I_ARRAY_DIMS (v);
+      SCM vv = SCM_I_ARRAY_V (v);
       if (SCM_I_IS_VECTOR (vv))
 	{
 	  if (k >= dim->ubnd - dim->lbnd + 1)
 	    scm_out_of_range (NULL, scm_from_size_t (k));
-	  k = SCM_ARRAY_BASE (v) + k*dim->inc;
+	  k = SCM_I_ARRAY_BASE (v) + k*dim->inc;
 	  return (SCM_I_VECTOR_ELTS (vv))[k];
 	}
       scm_wrong_type_arg_msg (NULL, 0, v, "non-uniform vector");
@@ -244,15 +244,15 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 	scm_out_of_range (NULL, scm_from_size_t (k)); 
       (SCM_I_VECTOR_WELTS(v))[k] = obj;
     }
-  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
+  else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
-      scm_t_array_dim *dim = SCM_ARRAY_DIMS (v);
-      SCM vv = SCM_ARRAY_V (v);
+      scm_t_array_dim *dim = SCM_I_ARRAY_DIMS (v);
+      SCM vv = SCM_I_ARRAY_V (v);
       if (SCM_I_IS_VECTOR (vv))
 	{
 	  if (k >= dim->ubnd - dim->lbnd + 1)
 	    scm_out_of_range (NULL, scm_from_size_t (k));
-	  k = SCM_ARRAY_BASE (v) + k*dim->inc;
+	  k = SCM_I_ARRAY_BASE (v) + k*dim->inc;
 	  (SCM_I_VECTOR_WELTS (vv))[k] = obj;
 	}
       else

@@ -41,36 +41,12 @@ typedef struct scm_t_array_dim
   ssize_t inc;
 } scm_t_array_dim;
 
-typedef struct scm_t_array
-{
-  SCM v;  /* the contents of the array, e.g., a vector or uniform vector.  */
-  unsigned long base;
-} scm_t_array;
-
-SCM_API scm_t_bits scm_tc16_array;
-SCM_API scm_t_bits scm_tc16_enclosed_array;
-
-#define SCM_ARRAY_FLAG_CONTIGUOUS (1 << 16)
-
-#define SCM_ARRAYP(a) 	    SCM_TYP16_PREDICATE (scm_tc16_array, a)
-#define SCM_ENCLOSED_ARRAYP(a) SCM_TYP16_PREDICATE (scm_tc16_enclosed_array, a)
-#define SCM_ARRAY_NDIM(x)   ((size_t) (SCM_CELL_WORD_0 (x) >> 17))
-#define SCM_ARRAY_CONTP(x)  (SCM_CELL_WORD_0 (x) & SCM_ARRAY_FLAG_CONTIGUOUS)
-#define SCM_SET_ARRAY_CONTIGUOUS_FLAG(x) \
-  (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) | SCM_ARRAY_FLAG_CONTIGUOUS))
-#define SCM_CLR_ARRAY_CONTIGUOUS_FLAG(x) \
-  (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) & ~SCM_ARRAY_FLAG_CONTIGUOUS))
-
-#define SCM_ARRAY_MEM(a)  ((scm_t_array *) SCM_CELL_WORD_1 (a))
-#define SCM_ARRAY_V(a) 	  (SCM_ARRAY_MEM (a)->v)
-#define SCM_ARRAY_BASE(a) (SCM_ARRAY_MEM (a)->base)
-#define SCM_ARRAY_DIMS(a) ((scm_t_array_dim *)((char *) SCM_ARRAY_MEM (a) + sizeof (scm_t_array))) 
-
 SCM_API SCM scm_array_p (SCM v, SCM prot);
 SCM_API SCM scm_typed_array_p (SCM v, SCM type);
 SCM_API SCM scm_make_array (SCM fill, SCM bounds);
 SCM_API SCM scm_make_typed_array (SCM type, SCM fill, SCM bounds);
 SCM_API SCM scm_array_rank (SCM ra);
+SCM_API size_t scm_c_array_rank (SCM ra);
 SCM_API SCM scm_array_dimensions (SCM ra);
 SCM_API SCM scm_shared_array_root (SCM ra);
 SCM_API SCM scm_shared_array_offset (SCM ra);
@@ -163,6 +139,29 @@ SCM_API scm_t_uint32 *scm_bitvector_writable_elements (SCM vec,
 
 /* internal. */
 
+typedef struct scm_i_t_array
+{
+  SCM v;  /* the contents of the array, e.g., a vector or uniform vector.  */
+  unsigned long base;
+} scm_i_t_array;
+
+SCM_API scm_t_bits scm_i_tc16_array;
+SCM_API scm_t_bits scm_i_tc16_enclosed_array;
+
+#define SCM_I_ARRAY_FLAG_CONTIGUOUS (1 << 16)
+
+#define SCM_I_ARRAYP(a)	    SCM_TYP16_PREDICATE (scm_i_tc16_array, a)
+#define SCM_I_ENCLOSED_ARRAYP(a) \
+                            SCM_TYP16_PREDICATE (scm_i_tc16_enclosed_array, a)
+#define SCM_I_ARRAY_NDIM(x)  ((size_t) (SCM_CELL_WORD_0 (x) >> 17))
+#define SCM_I_ARRAY_CONTP(x) (SCM_CELL_WORD_0(x) & SCM_I_ARRAY_FLAG_CONTIGUOUS)
+
+#define SCM_I_ARRAY_MEM(a)  ((scm_i_t_array *) SCM_CELL_WORD_1 (a))
+#define SCM_I_ARRAY_V(a)    (SCM_I_ARRAY_MEM (a)->v)
+#define SCM_I_ARRAY_BASE(a) (SCM_I_ARRAY_MEM (a)->base)
+#define SCM_I_ARRAY_DIMS(a) \
+  ((scm_t_array_dim *)((char *) SCM_I_ARRAY_MEM (a) + sizeof (scm_i_t_array)))
+
 SCM_API SCM scm_i_make_ra (int ndim, int enclosed);
 SCM_API SCM scm_i_cvref (SCM v, size_t p, int enclosed);
 SCM_API SCM scm_i_read_array (SCM port, int c);
@@ -181,6 +180,7 @@ SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
 SCM_API void scm_ra_set_contp (SCM ra);
 SCM_API long scm_aind (SCM ra, SCM args, const char *what);
 SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
+
 #endif
 
 SCM_API void scm_init_unif (void);

@@ -237,9 +237,9 @@ is_uvec (int type, SCM obj)
 {
   if (SCM_IS_UVEC (obj))
     return SCM_UVEC_TYPE (obj) == type;
-  if (SCM_ARRAYP (obj) && SCM_ARRAY_NDIM (obj) == 1)
+  if (SCM_I_ARRAYP (obj) && SCM_I_ARRAY_NDIM (obj) == 1)
     {
-      SCM v = SCM_ARRAY_V (obj);
+      SCM v = SCM_I_ARRAY_V (obj);
       return SCM_IS_UVEC (v) && SCM_UVEC_TYPE (v) == type;
     }
   return 0;
@@ -374,8 +374,8 @@ uvec_writable_elements (int type, SCM uvec, scm_t_array_handle *handle,
   if (type >= 0)
     {
       SCM v = uvec;
-      if (SCM_ARRAYP (v))
-	v = SCM_ARRAY_V (v);
+      if (SCM_I_ARRAYP (v))
+	v = SCM_I_ARRAY_V (v);
       uvec_assert (type, v);
     }
 
@@ -393,8 +393,8 @@ static int
 uvec_type (scm_t_array_handle *h)
 {
   SCM v = h->array;
-  if (SCM_ARRAYP (v))
-    v = SCM_ARRAY_V (v);
+  if (SCM_I_ARRAYP (v))
+    v = SCM_I_ARRAY_V (v);
   return SCM_UVEC_TYPE (v);
 }
 
@@ -531,9 +531,9 @@ scm_is_uniform_vector (SCM obj)
 {
   if (SCM_IS_UVEC (obj))
     return 1;
-  if (SCM_ARRAYP (obj) && SCM_ARRAY_NDIM (obj) == 1)
+  if (SCM_I_ARRAYP (obj) && SCM_I_ARRAY_NDIM (obj) == 1)
     {
-      SCM v = SCM_ARRAY_V (obj);
+      SCM v = SCM_I_ARRAY_V (obj);
       return SCM_IS_UVEC (v);
     }
   return 0;
@@ -659,8 +659,8 @@ size_t
 scm_array_handle_uniform_element_size (scm_t_array_handle *h)
 {
   SCM vec = h->array;
-  if (SCM_ARRAYP (vec))
-    vec = SCM_ARRAY_V (vec);
+  if (SCM_I_ARRAYP (vec))
+    vec = SCM_I_ARRAY_V (vec);
   if (scm_is_uniform_vector (vec))
     return uvec_sizes[SCM_UVEC_TYPE(vec)];
   scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
@@ -695,8 +695,8 @@ void *
 scm_array_handle_uniform_writable_elements (scm_t_array_handle *h)
 {
   SCM vec = h->array;
-  if (SCM_ARRAYP (vec))
-    vec = SCM_ARRAY_V (vec);
+  if (SCM_I_ARRAYP (vec))
+    vec = SCM_I_ARRAY_V (vec);
   if (SCM_IS_UVEC (vec))
     {
       size_t size = uvec_sizes[SCM_UVEC_TYPE(vec)];

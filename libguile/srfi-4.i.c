@@ -148,8 +148,8 @@ CTYPE *
 F(scm_array_handle_,TAG,_writable_elements) (scm_t_array_handle *h)
 {
   SCM vec = h->array;
-  if (SCM_ARRAYP (vec))
-    vec = SCM_ARRAY_V (vec);
+  if (SCM_I_ARRAYP (vec))
+    vec = SCM_I_ARRAY_V (vec);
   uvec_assert (TYPE, vec);
   if (TYPE == SCM_UVEC_C32 || TYPE == SCM_UVEC_C64)
     return ((CTYPE *)SCM_UVEC_BASE (vec)) + 2*h->base;
