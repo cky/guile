@@ -66,6 +66,7 @@
 #ifdef GUILE_DEBUG_MALLOC
 #include "libguile/debug-malloc.h"
 #endif
+#include "libguile/deprecation.h"
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
 #include "libguile/environments.h"
@@ -504,6 +505,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_gdbint ();           /* Requires strports */
   scm_init_hash ();
   scm_init_hashtab ();
+  scm_init_deprecation ();      /* Requires hashtabs */
   scm_init_objprop ();
   scm_init_properties ();
   scm_init_hooks ();        /* Requires objprop until hook names are removed */
