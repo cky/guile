@@ -6,16 +6,68 @@
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;; Now you can use Guile's modules in Emacs Lisp like this:
+;;
+;;   (guile-import current-module)
+;;   (guile-import module-ref)
+;;
+;;   (setq assq (module-ref (current-module) 'assq))
+;;     => ("<guile>" %%1%% . "#<primitive-procedure assq>")
+;;
+;;   (guile-use-modules (ice-9 documentation))
+;;
+;;   (object-documentation assq)
+;;     =>
+;;  " - primitive: assq key alist
+;;    - primitive: assv key alist
+;;    - primitive: assoc key alist
+;;        Fetches the entry in ALIST that is associated with KEY.  To decide
+;;        whether the argument KEY matches a particular entry in ALIST,
+;;        `assq' compares keys with `eq?', `assv' uses `eqv?' and `assoc'
+;;        uses `equal?'.  If KEY cannot be found in ALIST (according to
+;;        whichever equality predicate is in use), then `#f' is returned.
+;;        These functions return the entire alist entry found (i.e. both the
+;;        key and the value)."
+;;
+;; Probably we can use GTK in Emacs Lisp.  Can anybody try it?
+;;
+;; I have also implemented Guile Scheme mode and Scheme Interaction mode.
+;; Just put the following lines in your ~/.emacs:
+;;
+;;   (require 'guile-scheme)
+;;   (setq initial-major-mode 'scheme-interaction-mode)
+;;
+;; Currently, the following commands are available:
+;;
+;;   M-TAB    guile-scheme-complete-symbol
+;;   M-C-x    guile-scheme-eval-define
+;;   C-x C-e  guile-scheme-eval-last-sexp
+;;   C-c C-b  guile-scheme-eval-buffer
+;;   C-c C-r  guile-scheme-eval-region
+;;   C-c :    guile-scheme-eval-expression
+;;
+;; I'll write more commands soon, or if you want to hack, please take
+;; a look at the following files:
+;;
+;;   guile-core/ice-9/channel.scm       ;; object channel
+;;   guile-core/emacs/guile.el          ;; object adapter
+;;   guile-core/emacs/guile-emacs.scm   ;; Guile <-> Emacs channels
+;;   guile-core/emacs/guile-scheme.el   ;; Guile Scheme mode
+;;
+;; As always, there are more than one bugs ;)
 
 ;;; Code:
 
@@ -111,3 +163,5 @@
   (if (defined? 'object->string)
     object->string
     (lambda (x) (format #f "~S" x))))
+
+;;; channel.scm ends here
