@@ -2580,8 +2580,7 @@ scm_init_gc ()
 #if (SCM_DEBUG_DEPRECATED == 0)
   scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
-  /* Dirk:FIXME:: We don't really want a binding here. */
-  after_gc_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, gc_async_thunk);
+  after_gc_thunk = scm_make_subr_opt ("%gc-thunk", scm_tc7_subr_0, gc_async_thunk, 0);
   gc_async = scm_system_async (after_gc_thunk);
 
   scm_c_hook_add (&scm_after_gc_c_hook, mark_gc_async, NULL, 0);

@@ -1,5 +1,9 @@
 2000-12-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_init_gc):  Don't create a binding for %gc-thunk.
+
+2000-12-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gsubr.c:  No need to include vector.h.
 
 	(scm_gsubr_apply):  Use SCM_GSUBR_MAX instead of hard-coded value.
