@@ -42,6 +42,10 @@
  * This is the C part of the module for delimited I/O.  It's
  * similar to (scsh rdelim) but somewhat incompatible.  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "libguile/_scm.h"
 
 #include <stdio.h>
