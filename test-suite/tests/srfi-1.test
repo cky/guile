@@ -318,8 +318,6 @@
 ;;
 
 (with-test-prefix "list-copy"
-  
-  ;; improper lists can be copied
   (pass-if (equal? '()          (list-copy '())))
   (pass-if (equal? '(1 2)       (list-copy '(1 2))))
   (pass-if (equal? '(1 2 3)     (list-copy '(1 2 3))))
