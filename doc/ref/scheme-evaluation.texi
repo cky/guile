@@ -88,6 +88,8 @@ since they may be in read-only memory.
 
 @item (quote @var{data})
 @itemx '@var{data}
+@findex quote
+@findex '
 Quoting is used to obtain a literal symbol (instead of a variable
 reference), a literal list (instead of a function call), or a literal
 vector.  @nicode{'} is simply a shorthand for a @code{quote} form.
@@ -108,6 +110,8 @@ read-only memory.
 
 @item (quasiquote @var{data})
 @itemx `@var{data}
+@findex quasiquote
+@findex `
 Backquote quasi-quotation is like @code{quote}, but selected
 sub-expressions are evaluated.  This is a convenient way to construct
 a list or vector structure most of which is constant, but at certain
@@ -120,6 +124,8 @@ The same effect can always be had with suitable @code{list},
 
 @item (unquote @var{expr})
 @itemx ,@var{expr}
+@findex unquote
+@findex ,
 Within the quasiquote @var{data}, @code{unquote} or @code{,} indicates
 an expression to be evaluated and inserted.  The comma syntax @code{,}
 is simply a shorthand for an @code{unquote} form.  For example,
@@ -132,6 +138,8 @@ is simply a shorthand for an @code{unquote} form.  For example,
 
 @item (unquote-splicing @var{expr})
 @itemx ,@@@var{expr}
+@findex unquote-splicing
+@findex ,@@
 Within the quasiquote @var{data}, @code{unquote-splicing} or
 @code{,@@} indicates an expression to be evaluated and the elements of
 the returned list inserted.  @var{expr} must evaluate to a list.  The
