@@ -144,9 +144,10 @@
 				 (result-to-emacs result)))))
 			(loop (flush-whitespace %%load-port)))
 		      (begin
-			(load-acknowledge))))
-		)
+			(load-acknowledge)))
+		  (set-port-filename! %%load-port #f)))	;reset port filename
 	      (lambda (key . args)
+		(set-port-filename! %%load-port #f)
 		(cond ((eq? key 'end-of-chunk)
 		       (fluid-set! the-last-stack #f)
 		       (set! stack-saved? #t)
