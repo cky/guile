@@ -1,5 +1,8 @@
 Tue Jun 24 00:29:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
+	* script.c (scm_compile_shell_switches): Add 1997 to copyright
+	years in usage message.
+
 	* Makefile.am (libguile_la_LDFLAGS): Bump library version.
 	* Makefile.in: Regenerated.
 
