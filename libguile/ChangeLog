@@ -1,5 +1,9 @@
 1999-09-15  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* print.c (scm_iprin1): Turn `write' and `display' into
+	primitive generics and use their associated generic functions in
+	scm_iprin1 for GOOPS objects.
+
 	* backtrace.c: #include <unistd.h> if present.
 
 1999-09-14  Jim Blandy  <jimb@savonarola.red-bean.com>
