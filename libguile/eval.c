@@ -528,7 +528,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_begin, s_begin);
 SCM
 scm_m_begin (SCM xorig, SCM env SCM_UNUSED)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 1, scm_s_expression, s_begin);
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 0, scm_s_expression, s_begin);
   return scm_cons (SCM_IM_BEGIN, SCM_CDR (xorig));
 }
 
@@ -1961,6 +1961,9 @@ dispatch:
       goto carloop;
 
     case SCM_BIT8(SCM_IM_BEGIN):
+      if (SCM_NULLP (SCM_CDR (x)))
+	RETURN (SCM_UNSPECIFIED);
+
     /* (currently unused)
     cdrxnoap: */
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
