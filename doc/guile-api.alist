@@ -3,8 +3,7 @@
 (meta (GUILE_LOAD_PATH . "")
       (LTDL_LOAD_PATH . "")
       (guile . "pre-inst-guile")
-      (sofile . "libguile/.libs/libguile.so.15.0.0")
-      (pwd . "/home/ttn/tmp/.tmp"))
+      (sofile . "libguile/.libs/libguile.so.15.0.0"))
 (scheme
 ($abs "#<primitive-procedure $abs>")
 ($acos "#<primitive-procedure $acos>")
