@@ -533,6 +533,14 @@ there is one.
 @node Throw
 @subsection Throwing Exceptions
 
+The @code{throw} primitive is used to throw an exception.  One argument,
+the @var{key}, is mandatory, and must be a symbol; it indicates the type
+of exception that is being thrown.  Following the @var{key},
+@code{throw} accepts any number of additional arguments, whose meaning
+depends on the exception type.  The documentation for each possible type
+of exception should specify the additional arguments that are expected
+for that kind of exception.
+
 @deffn primitive throw key . args
 Invoke the catch form matching @var{key}, passing @var{args} to the
 @var{handler}.
@@ -540,8 +548,49 @@ Invoke the catch form matching @var{key}, passing @var{args} to the
 @var{key} is a symbol.  It will match catches of the same symbol or of
 #t.
 
-If there is no handler at all, an error is signaled.
+If there is no handler at all, Guile prints an error and then exits.
 @end deffn
+
+When an exception is thrown, it will be caught by the innermost
+@code{catch} expression that applies to the type of the thrown
+exception; in other words, the innermost @code{catch} whose @var{key} is
+@code{#t} or is the same symbol as that used in the @code{throw}
+expression.  Once Guile has identified the appropriate @code{catch}, it
+handles the exception by applying that @code{catch} expression's handler
+procedure to the arguments of the @code{throw}.
+
+If there is no appropriate @code{catch} for a thrown exception, Guile
+prints an error to the current error port indicating an uncaught
+exception, and then exits.  In practice, it is quite difficult to
+observe this behaviour, because Guile when used interactively installs a
+top level @code{catch} handler that will catch all exceptions and print
+an appropriate error message @emph{without} exiting.  For example, this
+is what happens if you try to throw an unhandled exception in the
+standard Guile REPL; note that Guile's command loop continues after the
+error message:
+
+@lisp
+guile> (throw 'badex)
+<unnamed port>:3:1: In procedure gsubr-apply @dots{}
+<unnamed port>:3:1: unhandled-exception: badex
+ABORT: (misc-error)
+guile> 
+@end lisp
+
+The default uncaught exception behaviour can be observed by evaluating a
+@code{throw} expression from the shell command line:
+
+@example
+$ guile -c "(begin (throw 'badex) (display \"here\\n\"))"
+guile: uncaught throw to badex: ()
+$ 
+@end example
+
+@noindent
+That Guile exits immediately following the uncaught exception
+is shown by the absence of any output from the @code{display}
+expression, because Guile never gets to the point of evaluating that
+expression.
 
 
 @node Lazy Catch
@@ -552,6 +601,17 @@ This behaves exactly like @code{catch}, except that it does
 not unwind the stack (this is the major difference), and if
 handler returns, its value is returned from the throw.
 @end deffn
+
+@lisp
+(lazy-catch 'badex
+            (lambda ()
+              (+ (throw 'badex 1)
+                 (throw 'badex 2)))
+            (lambda args
+              (cadr args)))
+@result{}
+3
+@end lisp
 
 
 @node Stack Catch
