@@ -13,7 +13,7 @@
 ;;;; along with this program; if not, write to the Free Software Foundation,
 ;;;; Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-;;; Based in part on code from GNU CLISP
+;;;; Based in part on code from GNU CLISP, Copyright (C) 1993 Michael Stoll
 
 (define-module (test-suite test-fractions)
   #:use-module (test-suite lib)
