@@ -44,6 +44,24 @@
  * If you do not wish that, delete this exception notice.  */
 
 
+/* General assumptions:
+ * All objects satisfying SCM_COMPLEXP() have a non-zero complex component.
+ * All objects satisfying SCM_BIGP() are too large to fit in a fixnum.
+ * If an object satisfies integer?, it's either an inum, a bignum, or a real.
+ * If floor (r) == r, r is an int, and mpz_set_d will DTRT.
+ */
+
+/* TODO:
+   
+   - see if special casing bignums and reals in integer-exponent when
+     possible (to use mpz_pow and mpf_pow_ui) is faster.
+
+   - look in to better short-circuiting of common cases in
+     integer-expt and elsewhere.
+
+   - see if direct mpz operations can help in ash and elsewhere.
+
+ */
 
 #if HAVE_CONFIG_H
 #  include <config.h>
@@ -52,6 +70,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include <gmp.h>
 #include "libguile/_scm.h"
 #include "libguile/feature.h"
 #include "libguile/ports.h"
@@ -65,12 +84,25 @@
 
 
 
-static SCM scm_divbigbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn, int modes);
-static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
+/*
+  Wonder if this might be faster for some of our code?  A switch on
+  the numtag would jump directly to the right case, and the
+  SCM_I_NUMTAG code might be faster than repeated SCM_FOOP tests...
+
+  #define SCM_I_NUMTAG_NOTNUM 0
+  #define SCM_I_NUMTAG_INUM 1
+  #define SCM_I_NUMTAG_BIG scm_tc16_big
+  #define SCM_I_NUMTAG_REAL scm_tc16_real
+  #define SCM_I_NUMTAG_COMPLEX scm_tc16_complex
+  #define SCM_I_NUMTAG(x) \
+    (SCM_INUMP(x) ? SCM_I_NUMTAG_INUM \
+       : (SCM_IMP(x) ? SCM_I_NUMTAG_NOTNUM \
+         : (((0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_smob) ? SCM_TYP16(x) \
+           : SCM_I_NUMTAG_NOTNUM)))
+*/
 
 
 #define SCM_SWAP(x, y) do { SCM __t = x; x = y; y = __t; } while (0)
-
 
 /* FLOBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an inexact number.
@@ -103,6 +135,67 @@ static SCM abs_most_negative_fixnum;
 
 
 
+static const char s_bignum[] = "bignum";
+
+SCM_C_INLINE SCM
+scm_i_mkbig ()
+{
+  /* Return a newly created bignum. */
+  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  mpz_init (SCM_I_BIG_MPZ (z));
+  return z;
+}
+
+SCM_C_INLINE static SCM
+scm_i_clonebig (SCM src_big, int same_sign_p)
+{
+  /* Copy src_big's value, negate it if same_sign_p is false, and return. */
+  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  mpz_init_set (SCM_I_BIG_MPZ (z), SCM_I_BIG_MPZ (src_big));
+  if (!same_sign_p) mpz_neg (SCM_I_BIG_MPZ (z), SCM_I_BIG_MPZ (z));
+  return z;
+}
+
+SCM_C_INLINE int
+scm_i_bigcmp (SCM x, SCM y)
+{
+  /* Return neg if x < y, pos if x > y, and 0 if x == y */
+  /* presume we already know x and y are bignums */
+  int result = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+  scm_remember_upto_here_2 (x, y);
+  return result;
+}
+
+SCM_C_INLINE SCM
+scm_i_dbl2big (double d)
+{
+  /* results are only defined if d is an integer */
+  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  mpz_init_set_d (SCM_I_BIG_MPZ (z), d);
+  return z;
+}
+
+SCM_C_INLINE double
+scm_i_big2dbl (SCM b)
+{
+  double result = mpz_get_d (SCM_I_BIG_MPZ (b));
+  scm_remember_upto_here_1 (b);
+  return result;
+}
+
+SCM_C_INLINE SCM
+scm_i_normbig (SCM b)
+{
+  /* convert a big back to a fixnum if it'll fit */
+  /* presume b is a bignum */
+  if (mpz_fits_slong_p (SCM_I_BIG_MPZ (b)))
+    {
+      long val = mpz_get_si (SCM_I_BIG_MPZ (b));
+      if (SCM_FIXABLE (val))
+        b = SCM_MAKINUM (val);
+    }
+  return b;
+}
 
 SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0, 
             (SCM x),
@@ -110,13 +203,9 @@ SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_exact_p
 {
-  if (SCM_INUMP (x)) {
-    return SCM_BOOL_T;
-  } else if (SCM_BIGP (x)) {
-    return SCM_BOOL_T;
-  } else {
-    return SCM_BOOL_F;
-  }
+  if (SCM_INUMP (x)) return SCM_BOOL_T;
+  if (SCM_BIGP (x)) return SCM_BOOL_T;
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -128,9 +217,12 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
 #define FUNC_NAME s_scm_odd_p
 {
   if (SCM_INUMP (n)) {
-    return SCM_BOOL ((4 & SCM_UNPACK (n)) != 0);
+    long val = SCM_INUM (n);
+    return SCM_BOOL ((val & 1L) != 0);
   } else if (SCM_BIGP (n)) {
-    return SCM_BOOL ((1 & SCM_BDIGITS (n) [0]) != 0);
+    int odd_p = mpz_odd_p (SCM_I_BIG_MPZ (n));
+    scm_remember_upto_here_1 (n);
+    return SCM_BOOL (odd_p);
   } else if (scm_inf_p (n)) {
     return SCM_BOOL_T;
   } else {
@@ -147,9 +239,12 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
 #define FUNC_NAME s_scm_even_p
 {
   if (SCM_INUMP (n)) {
-    return SCM_BOOL ((4 & SCM_UNPACK (n)) == 0);
+    long val = SCM_INUM (n);
+    return SCM_BOOL ((val & 1L) == 0);
   } else if (SCM_BIGP (n)) {
-    return SCM_BOOL ((1 & SCM_BDIGITS (n) [0]) == 0);
+    int even_p = mpz_even_p (SCM_I_BIG_MPZ (n));
+    scm_remember_upto_here_1 (n);
+    return SCM_BOOL (even_p);
   } else if (scm_inf_p (n)) {
     return SCM_BOOL_T;
   } else {
@@ -305,17 +400,14 @@ SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
     } else if (SCM_POSFIXABLE (-xx)) {
       return SCM_MAKINUM (-xx);
     } else {
-#ifdef SCM_BIGDIG
       return scm_i_long2big (-xx);
-#else
-      scm_num_overflow (s_abs);
-#endif
     }
   } else if (SCM_BIGP (x)) {
-    if (!SCM_BIGSIGN (x)) {
-      return x;
+    const int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+    if (sgn < 0) {
+      return scm_i_clonebig (x, 0);
     } else {
-      return scm_i_copybig (x, 0);
+      return x;
     }
   } else if (SCM_REALP (x)) {
     return scm_make_real (fabs (SCM_REAL_VALUE (x)));
@@ -343,16 +435,12 @@ scm_quotient (SCM x, SCM y)
 	if (SCM_FIXABLE (z)) {
 	  return SCM_MAKINUM (z);
 	} else {
-#ifdef SCM_BIGDIG
 	  return scm_i_long2big (z);
-#else
-	  scm_num_overflow (s_quotient);
-#endif
 	}
       }
     } else if (SCM_BIGP (y)) {
-      if (SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM
-	  && scm_bigcomp (abs_most_negative_fixnum, y) == 0)
+      if ((SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
+	  && (scm_i_bigcmp (abs_most_negative_fixnum, y) == 0))
 	{
 	  /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
 	  return SCM_MAKINUM (-1);
@@ -370,31 +458,23 @@ scm_quotient (SCM x, SCM y)
       } else if (yy == 1) {
 	return x;
       } else {
-	long z = yy < 0 ? -yy : yy;
-	
-	if (z < SCM_BIGRAD) {
-	  SCM sw = scm_i_copybig (x, SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0));
-	  scm_divbigdig (SCM_BDIGITS (sw), SCM_NUMDIGS (sw), (SCM_BIGDIG) z);
-	  return scm_i_normbig (sw);
-	} else {
-#ifndef SCM_DIGSTOOBIG
-	  long w = scm_pseudolong (z);
-	  return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-				(SCM_BIGDIG *) & w, SCM_DIGSPERLONG,
-				SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0), 2);
-#else
-	  SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
-	  scm_longdigs (z, zdigs);
-	  return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-				zdigs, SCM_DIGSPERLONG,
-				SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0), 2);
-#endif
-	}
+        SCM result = scm_i_mkbig ();
+        if (yy < 0) {
+          mpz_tdiv_q_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), - yy);
+          mpz_neg(SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
+        } else {
+          mpz_tdiv_q_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), yy);
+        }
+        scm_remember_upto_here_1 (x);
+        return scm_i_normbig (result);
       }
     } else if (SCM_BIGP (y)) {
-      return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			    SCM_BDIGITS (y), SCM_NUMDIGS (y),
-			    SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y), 2);
+      SCM result = scm_i_mkbig ();
+      mpz_tdiv_q(SCM_I_BIG_MPZ (result),
+                 SCM_I_BIG_MPZ (x),
+                 SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_2 (x, y);
+      return scm_i_normbig (result);
     } else {
       SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
     }
@@ -402,7 +482,6 @@ scm_quotient (SCM x, SCM y)
     SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG1, s_quotient);
   }
 }
-
 
 SCM_GPROC (s_remainder, "remainder", 2, 0, 0, scm_remainder, g_remainder);
 /* "Return the remainder of the numbers @var{x} and @var{y}.\n"
@@ -424,8 +503,8 @@ scm_remainder (SCM x, SCM y)
 	return SCM_MAKINUM (z);
       }
     } else if (SCM_BIGP (y)) {
-      if (SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM
-	  && scm_bigcomp (abs_most_negative_fixnum, y) == 0)
+      if ((SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
+	  && (scm_i_bigcmp (abs_most_negative_fixnum, y) == 0))
 	{
 	  /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
 	  return SCM_MAKINUM (0);
@@ -441,12 +520,19 @@ scm_remainder (SCM x, SCM y)
       if (yy == 0) {
 	scm_num_overflow (s_remainder);
       } else {
-	return scm_divbigint (x, yy, SCM_BIGSIGN (x), 0);
+        SCM result = scm_i_mkbig ();
+        if (yy < 0) yy = - yy;
+        mpz_tdiv_r_ui(SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ(x), yy);
+        scm_remember_upto_here_1(x);
+        return scm_i_normbig (result);
       }
     } else if (SCM_BIGP (y)) {
-      return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			    SCM_BDIGITS (y), SCM_NUMDIGS (y),
-			    SCM_BIGSIGN (x), 0);
+      SCM result = scm_i_mkbig ();
+      mpz_tdiv_r (SCM_I_BIG_MPZ (result),
+                  SCM_I_BIG_MPZ (x),
+                  SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_2(x, y);
+      return scm_i_normbig (result);
     } else {
       SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG2, s_remainder);
     }
@@ -473,11 +559,54 @@ scm_modulo (SCM x, SCM y)
       if (yy == 0) {
 	scm_num_overflow (s_modulo);
       } else {
+        /* FIXME: I think this may be a bug on some arches -- results
+           of % with negative second arg are undefined... */
 	long z = xx % yy;
-	return SCM_MAKINUM (((yy < 0) ? (z > 0) : (z < 0)) ? z + yy : z);
+        long result;
+
+        if (yy < 0) {
+          if (z > 0) result = z + yy;
+          else result = z;
+        } else {
+          if (z < 0) result = z + yy;
+          else result = z;
+        }
+        return SCM_MAKINUM (result);
       }
     } else if (SCM_BIGP (y)) {
-      return (SCM_BIGSIGN (y) ? (xx > 0) : (xx < 0)) ? scm_sum (x, y) : x;
+      int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
+
+      if (sgn_y == 0) {
+	scm_num_overflow (s_modulo);
+      } else {
+        mpz_t z_x;
+        SCM result;
+
+        if (sgn_y < 0) {
+          SCM pos_y = scm_i_clonebig (y, 0);
+          /* do this after the last scm_op */
+          mpz_init_set_si (z_x, xx);
+          result = pos_y; /* re-use this bignum */
+          mpz_mod (SCM_I_BIG_MPZ (result), z_x, SCM_I_BIG_MPZ (pos_y));        
+          scm_remember_upto_here_1 (pos_y);
+        } else {
+          result = scm_i_mkbig ();
+          /* do this after the last scm_op */
+          mpz_init_set_si (z_x, xx);
+          mpz_mod (SCM_I_BIG_MPZ (result), z_x, SCM_I_BIG_MPZ (y));        
+          scm_remember_upto_here_1 (y);
+        }
+        
+        if ((sgn_y < 0) && mpz_sgn (SCM_I_BIG_MPZ (result)) != 0) {
+          mpz_add (SCM_I_BIG_MPZ (result),
+                   SCM_I_BIG_MPZ (y),
+                   SCM_I_BIG_MPZ (result));
+        }
+        scm_remember_upto_here_1 (y);
+        /* and do this before the next one */
+        mpz_clear (z_x);
+        return scm_i_normbig (result);
+      }
     } else {
       SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
     }
@@ -487,14 +616,39 @@ scm_modulo (SCM x, SCM y)
       if (yy == 0) {
 	scm_num_overflow (s_modulo);
       } else {
-	return scm_divbigint (x, yy, yy < 0,
-			      (SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0)) ? 1 : 0);
+        SCM result = scm_i_mkbig ();
+        mpz_mod_ui (SCM_I_BIG_MPZ (result),
+                    SCM_I_BIG_MPZ (x),
+                    (yy < 0) ? - yy : yy);
+        scm_remember_upto_here_1 (x);
+        if ((yy < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0)) {
+          mpz_sub_ui (SCM_I_BIG_MPZ (result),
+                      SCM_I_BIG_MPZ (result),
+                      - yy);
+        }
+        return scm_i_normbig (result);
       }
     } else if (SCM_BIGP (y)) {
-      return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			    SCM_BDIGITS (y), SCM_NUMDIGS (y),
-			    SCM_BIGSIGN (y),
-			    (SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y)) ? 1 : 0);
+      int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
+      if (sgn_y == 0) {
+	scm_num_overflow (s_modulo);
+      } else {
+        SCM result = scm_i_mkbig ();
+        int y_sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
+        SCM pos_y = scm_i_clonebig (y, y_sgn >= 0);
+        mpz_mod (SCM_I_BIG_MPZ (result),
+                 SCM_I_BIG_MPZ (x),
+                 SCM_I_BIG_MPZ (pos_y));
+        
+        scm_remember_upto_here_1 (x);
+        if ((y_sgn < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0)) {
+          mpz_add (SCM_I_BIG_MPZ (result),
+                   SCM_I_BIG_MPZ (y),
+                   SCM_I_BIG_MPZ (result));
+        }
+        scm_remember_upto_here_2 (y, pos_y);
+        return scm_i_normbig (result);
+      }
     } else {
       SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
     }
@@ -503,7 +657,6 @@ scm_modulo (SCM x, SCM y)
   }
 }
 
-
 SCM_GPROC1 (s_gcd, "gcd", scm_tc7_asubr, scm_gcd, g_gcd);
 /* "Return the greatest common divisor of all arguments.\n"
  * "If called without arguments, 0 is returned."
@@ -511,113 +664,95 @@ SCM_GPROC1 (s_gcd, "gcd", scm_tc7_asubr, scm_gcd, g_gcd);
 SCM
 scm_gcd (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y)) {
-    if (SCM_UNBNDP (x)) {
-      return SCM_INUM0;
-    } else {
-      return x;
+  if (SCM_UNBNDP (y))
+    return (SCM_UNBNDP (x)) ? SCM_INUM0 : x;
+  
+  if (SCM_INUMP (x))
+    {
+      if (SCM_INUMP (y))
+        {
+          long xx = SCM_INUM (x);
+          long yy = SCM_INUM (y);
+          long u = xx < 0 ? -xx : xx;
+          long v = yy < 0 ? -yy : yy;
+          long result;
+          if (xx == 0) {
+            result = v;
+          } else if (yy == 0) {
+            result = u;
+          } else {
+            long k = 1;
+            long t;
+            /* Determine a common factor 2^k */
+            while (!(1 & (u | v)))
+              {
+                k <<= 1;
+                u >>= 1;
+                v >>= 1;
+              }
+            /* Now, any factor 2^n can be eliminated */
+            if (u & 1)
+              t = -v;
+            else
+              {
+                t = u;
+              b3:
+                t = SCM_SRS (t, 1);
+              }
+            if (!(1 & t))
+              goto b3;
+            if (t > 0)
+              u = t;
+            else
+              v = -t;
+            t = u - v;
+            if (t != 0)
+              goto b3;
+            result = u * k;
+          }
+          return SCM_POSFIXABLE (result) \
+            ? SCM_MAKINUM (result) : scm_i_long2big (result);
+        }
+      else if (SCM_BIGP (y))
+        {
+          SCM result = scm_i_mkbig ();
+          SCM mx = scm_i_mkbig ();
+          mpz_set_si(SCM_I_BIG_MPZ (mx), SCM_INUM (x));
+          scm_remember_upto_here_1 (x);
+          mpz_gcd(SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (mx), SCM_I_BIG_MPZ (y));
+          scm_remember_upto_here_2(mx, y);
+          return scm_i_normbig (result);
+        }
+      else
+        SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG2, s_gcd);
     }
-  }
-
- tailrec:
-  if (SCM_INUMP (x)) {
-    if (SCM_INUMP (y)) {
-      long xx = SCM_INUM (x);
-      long yy = SCM_INUM (y);
-      long u = xx < 0 ? -xx : xx;
-      long v = yy < 0 ? -yy : yy;
-      long result;
-
-      if (xx == 0) {
-	result = v;
-      } else if (yy == 0) {
-	result = u;
-      } else {
-	long k = 1;
-	long t;
-
-	/* Determine a common factor 2^k */
-	while (!(1 & (u | v))) {
-	  k <<= 1;
-	  u >>= 1;
-	  v >>= 1;
-	}
-
-	/* Now, any factor 2^n can be eliminated */
-	if (u & 1) {
-	  t = -v;
-	} else {
-	  t = u;
-	b3:
-	  t = SCM_SRS (t, 1);
-	}
-	if (!(1 & t))
-	  goto b3;
-	if (t > 0)
-	  u = t;
-	else
-	  v = -t;
-	t = u - v;
-	if (t != 0)
-	  goto b3;
-
-	result = u * k;
-      }
-      if (SCM_POSFIXABLE (result)) {
-	return SCM_MAKINUM (result);
-      } else {
-#ifdef SCM_BIGDIG
-	return scm_i_long2big (result);
-#else
-	scm_num_overflow (s_gcd);
-#endif
-      }
-    } else if (SCM_BIGP (y)) {
-      SCM_SWAP (x, y);
-      goto big_gcd;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG2, s_gcd);
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+        {
+          unsigned long result;
+          long yy = SCM_INUM (y);
+          if (yy < 0) yy = -yy;
+          result = mpz_gcd_ui (NULL, SCM_I_BIG_MPZ (x), yy);
+          scm_remember_upto_here_1 (x);
+          return SCM_POSFIXABLE (result) \
+            ? SCM_MAKINUM (result) : scm_ulong2num (result); 
+        }
+      else if (SCM_BIGP (y))
+        {
+          SCM result = scm_i_mkbig ();
+          mpz_gcd(SCM_I_BIG_MPZ (result),
+                  SCM_I_BIG_MPZ (x),
+                  SCM_I_BIG_MPZ (y));
+          scm_remember_upto_here_2(x, y);
+          return scm_i_normbig (result);
+        }
+      else
+        SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG2, s_gcd);
     }
-  } else if (SCM_BIGP (x)) {
-  big_gcd:
-    if (SCM_BIGSIGN (x))
-      x = scm_i_copybig (x, 0);
-  newy:
-    if (SCM_INUMP (y)) {
-      if (SCM_EQ_P (y, SCM_INUM0)) {
-	return x;
-      } else {
-	goto swaprec;
-      }
-    } else if (SCM_BIGP (y)) {
-      if (SCM_BIGSIGN (y))
-	y = scm_i_copybig (y, 0);
-      switch (scm_bigcomp (x, y))
-	{
-	case -1:  /* x > y */
-	swaprec:
-	{
-	  SCM t = scm_remainder (x, y);
-	  x = y;
-	  y = t;
-	}
-	goto tailrec;
-	case 1:  /* x < y */
-	  y = scm_remainder (y, x);
-	  goto newy;
-	default:  /* x == y */
-	  return x;
-	}
-      /* instead of the switch, we could just
-	 return scm_gcd (y, scm_modulo (x, y)); */
-    } else {
-      SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG2, s_gcd);
-    }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG1, s_gcd);
-  }
 }
-
 
 SCM_GPROC1 (s_lcm, "lcm", scm_tc7_asubr, scm_lcm, g_lcm);
 /* "Return the least common multiple of the arguments.\n"
@@ -626,41 +761,69 @@ SCM_GPROC1 (s_lcm, "lcm", scm_tc7_asubr, scm_lcm, g_lcm);
 SCM
 scm_lcm (SCM n1, SCM n2)
 {
-  if (SCM_UNBNDP (n2)) {
-    if (SCM_UNBNDP (n1)) {
-      return SCM_MAKINUM (1L);
-    } else {
+  if (SCM_UNBNDP (n2))
+    {
+      if (SCM_UNBNDP (n1))
+        return SCM_MAKINUM (1L);
       n2 = SCM_MAKINUM (1L);
     }
-  };
 
-#ifndef SCM_BIGDIG
-  SCM_GASSERT2 (SCM_INUMP (n1), g_lcm, n1, n2, SCM_ARG1, s_lcm);
-  SCM_GASSERT2 (SCM_INUMP (n2), g_lcm, n1, n2, SCM_ARGn, s_lcm);
-#else
   SCM_GASSERT2 (SCM_INUMP (n1) || SCM_BIGP (n1),
-		g_lcm, n1, n2, SCM_ARG1, s_lcm);
+                g_lcm, n1, n2, SCM_ARG1, s_lcm);
   SCM_GASSERT2 (SCM_INUMP (n2) || SCM_BIGP (n2),
-		g_lcm, n1, n2, SCM_ARGn, s_lcm);
-#endif
+                g_lcm, n1, n2, SCM_ARGn, s_lcm);
 
-  {
-    SCM d = scm_gcd (n1, n2);
-    if (SCM_EQ_P (d, SCM_INUM0)) {
-      return d;
-    } else {
-      return scm_abs (scm_product (n1, scm_quotient (n2, d)));
+  if (SCM_INUMP (n1))
+    {
+      if (SCM_INUMP (n2))
+        {
+          SCM d = scm_gcd (n1, n2);
+          if (SCM_EQ_P (d, SCM_INUM0))
+            return d;
+          else
+            return scm_abs (scm_product (n1, scm_quotient (n2, d)));
+        }
+      else
+        {
+          /* inum n1, big n2 */
+        inumbig:
+          {
+            SCM result = scm_i_mkbig ();
+            long nn1 = SCM_INUM (n1);
+            if (nn1 == 0) return SCM_INUM0;
+            if (nn1 < 0) nn1 = - nn1;
+            mpz_lcm_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (n2), nn1);
+            scm_remember_upto_here_1 (n2);
+            return result;
+          }
+        }
     }
-  }
+  else
+    {
+      /* big n1 */
+      if (SCM_INUMP (n2))
+        {
+          SCM_SWAP (n1, n2);
+          goto inumbig;
+        }
+      else
+        {
+          SCM result = scm_i_mkbig ();
+          mpz_lcm(SCM_I_BIG_MPZ (result),
+                  SCM_I_BIG_MPZ (n1),
+                  SCM_I_BIG_MPZ (n2));
+          scm_remember_upto_here_2(n1, n2);
+          /* shouldn't need to normalize b/c lcm of 2 bigs should be big */
+          return result;
+        }
+    }
 }
-
 
 #ifndef scm_long2num
 #define SCM_LOGOP_RETURN(x) scm_ulong2num(x)
 #else
 #define SCM_LOGOP_RETURN(x) SCM_MAKINUM(x)
 #endif
-
 
 /* Emulating 2's complement bignums with sign magnitude arithmetic:
 
@@ -698,193 +861,6 @@ scm_lcm (SCM n1, SCM n2)
 
 */
 
-#ifdef SCM_BIGDIG
-
-SCM scm_copy_big_dec(SCM b, int sign);
-SCM scm_copy_smaller(SCM_BIGDIG *x, size_t nx, int zsgn);
-SCM scm_big_ior(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy);
-SCM scm_big_xor(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy);
-SCM scm_big_and(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int zsgn);
-SCM scm_big_test(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy);
-
-SCM scm_copy_big_dec(SCM b, int sign)
-{
-  long num = -1;
-  size_t nx = SCM_NUMDIGS(b);
-  size_t i = 0;
-  SCM ans = scm_i_mkbig(nx, sign);
-  SCM_BIGDIG *src = SCM_BDIGITS(b), *dst = SCM_BDIGITS(ans);
-  if SCM_BIGSIGN(b) do {
-    num += src[i];
-    if (num < 0) {dst[i] = num + SCM_BIGRAD; num = -1;}
-    else {dst[i] = SCM_BIGLO(num); num = 0;}
-  } while (++i < nx);
-  else
-    while (nx--) dst[nx] = src[nx];
-  return ans;
-}
-
-SCM scm_copy_smaller(SCM_BIGDIG *x, size_t nx, int zsgn)
-{
-  long num = -1;
-  size_t i = 0;
-  SCM z = scm_i_mkbig(nx, zsgn);
-  SCM_BIGDIG *zds = SCM_BDIGITS(z);
-  if (zsgn) do {
-    num += x[i];
-    if (num < 0) {zds[i] = num + SCM_BIGRAD; num = -1;}
-    else {zds[i] = SCM_BIGLO(num); num = 0;}
-  } while (++i < nx);
-  else do zds[i] = x[i]; while (++i < nx);
-  return z;
-}
-
-SCM scm_big_ior(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy)
-/* Assumes nx <= SCM_NUMDIGS(bigy) */
-/* Assumes xsgn equals either 0 or SCM_BIGSIGNFLAG */
-{
-  long num = -1;
-  size_t i = 0, ny = SCM_NUMDIGS(bigy);
-  SCM z = scm_copy_big_dec (bigy, xsgn & SCM_BIGSIGN (bigy));
-  SCM_BIGDIG *zds = SCM_BDIGITS(z);
-  if (xsgn) {
-    do {
-      num += x[i];
-      if (num < 0) {zds[i] |= num + SCM_BIGRAD; num = -1;}
-      else {zds[i] |= SCM_BIGLO(num); num = 0;}
-    } while (++i < nx);
-    /* =========  Need to increment zds now =========== */
-    i = 0; num = 1;
-    while (i < ny) {
-      num += zds[i];
-      zds[i++] = SCM_BIGLO(num);
-      num = SCM_BIGDN(num);
-      if (!num) return z;
-    }
-    scm_i_adjbig(z, 1 + ny);		/* OOPS, overflowed into next digit. */
-    SCM_BDIGITS(z)[ny] = 1;
-    return z;
-  }
-  else do zds[i] = zds[i] | x[i]; while (++i < nx);
-  return z;
-}
-
-SCM scm_big_xor(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy)
-/* Assumes nx <= SCM_NUMDIGS(bigy) */
-/* Assumes xsgn equals either 0 or SCM_BIGSIGNFLAG */
-{
-  long num = -1;
-  size_t i = 0, ny = SCM_NUMDIGS(bigy);
-  SCM z = scm_copy_big_dec(bigy, xsgn ^ SCM_BIGSIGN(bigy));
-  SCM_BIGDIG *zds = SCM_BDIGITS(z);
-  if (xsgn) do {
-    num += x[i];
-    if (num < 0) {zds[i] ^= num + SCM_BIGRAD; num = -1;}
-    else {zds[i] ^= SCM_BIGLO(num); num = 0;}
-  } while (++i < nx);
-  else do {
-    zds[i] = zds[i] ^ x[i];
-  } while (++i < nx);
-
-  if (xsgn ^ SCM_BIGSIGN(bigy)) {
-    /* =========  Need to increment zds now =========== */
-    i = 0; num = 1;
-    while (i < ny) {
-      num += zds[i];
-      zds[i++] = SCM_BIGLO(num);
-      num = SCM_BIGDN(num);
-      if (!num) return scm_i_normbig(z);
-    }
-  }
-  return scm_i_normbig(z);
-}
-
-SCM scm_big_and(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int zsgn)
-/* Assumes nx <= SCM_NUMDIGS(bigy) */
-/* Assumes xsgn equals either 0 or SCM_BIGSIGNFLAG */
-/* return sign equals either 0 or SCM_BIGSIGNFLAG */
-{
-  long num = -1;
-  size_t i = 0;
-  SCM z;
-  SCM_BIGDIG *zds;
-  if (xsgn==zsgn) {
-    z = scm_copy_smaller(x, nx, zsgn);
-    x = SCM_BDIGITS(bigy);
-    xsgn = SCM_BIGSIGN(bigy);
-  }
-  else z = scm_copy_big_dec(bigy, zsgn);
-  zds = SCM_BDIGITS(z);
-
-  if (zsgn) {
-    if (xsgn) do {
-      num += x[i];
-      if (num < 0) {zds[i] &= num + SCM_BIGRAD; num = -1;}
-      else {zds[i] &= SCM_BIGLO(num); num = 0;}
-    } while (++i < nx);
-    else do zds[i] = zds[i] & ~x[i]; while (++i < nx);
-    /* =========  need to increment zds now =========== */
-    i = 0; num = 1;
-    while (i < nx) {
-      num += zds[i];
-      zds[i++] = SCM_BIGLO(num);
-      num = SCM_BIGDN(num);
-      if (!num) return scm_i_normbig(z);
-    }
-  }
-  else if (xsgn) {
-    unsigned long int carry = 1;
-    do {
-      unsigned long int mask = (SCM_BIGDIG) ~x[i] + carry;
-      zds[i] = zds[i] & (SCM_BIGDIG) mask;
-      carry = (mask >= SCM_BIGRAD) ? 1 : 0;
-    } while (++i < nx);
-  } else do zds[i] = zds[i] & x[i]; while (++i < nx);
-  return scm_i_normbig(z);
-}
-
-SCM scm_big_test(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy)
-/* Assumes nx <= SCM_NUMDIGS(bigy) */
-/* Assumes xsgn equals either 0 or SCM_BIGSIGNFLAG */
-{
-  SCM_BIGDIG *y;
-  size_t i = 0;
-  long num = -1;
-  if (SCM_BIGSIGN(bigy) & xsgn) return SCM_BOOL_T;
-  if (SCM_NUMDIGS(bigy) != nx && xsgn) return SCM_BOOL_T;
-  y = SCM_BDIGITS(bigy);
-  if (xsgn)
-    do {
-      num += x[i];
-      if (num < 0) {
-	if (y[i] & ~(num + SCM_BIGRAD)) return SCM_BOOL_T;
-	num = -1;
-      }
-      else {
-	if (y[i] & ~SCM_BIGLO(num)) return SCM_BOOL_T;
-	num = 0;
-      }
-    } while (++i < nx);
-  else if SCM_BIGSIGN(bigy)
-    do {
-      num += y[i];
-      if (num < 0) {
-	if (x[i] & ~(num + SCM_BIGRAD)) return SCM_BOOL_T;
-	num = -1;
-      }
-      else {
-	if (x[i] & ~SCM_BIGLO(num)) return SCM_BOOL_T;
-	num = 0;
-      }
-    } while (++i < nx);
-  else
-    do if (x[i] & y[i]) return SCM_BOOL_T;
-    while (++i < nx);
-  return SCM_BOOL_F;
-}
-
-#endif
-
 SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
 	     "Return the bitwise AND of the integer arguments.\n\n"
@@ -916,26 +892,15 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
       return SCM_MAKINUM (nn1 & nn2);
     } else if SCM_BIGP (n2) {
     intbig: 
+      if (n1 == 0) return SCM_INUM0;
       {
-# ifndef SCM_DIGSTOOBIG
-	long z = scm_pseudolong (nn1);
-	if ((nn1 < 0) && SCM_BIGSIGN (n2)) {
-	  return scm_big_ior ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
-			      SCM_BIGSIGNFLAG, n2);
-	} else {
-	  return scm_big_and ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
-			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, 0);
-	}
-# else
-	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
-	scm_longdigs (nn1, zdigs);
-	if ((nn1 < 0) && SCM_BIGSIGN (n2)) {
-	  return scm_big_ior (zdigs, SCM_DIGSPERLONG, SCM_BIGSIGNFLAG, n2);
-	} else {
-	  return scm_big_and (zdigs, SCM_DIGSPERLONG, 
-			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, 0);
-	}
-# endif
+        SCM result_z = scm_i_mkbig ();
+        mpz_t nn1_z;
+        mpz_init_set_si (nn1_z, nn1);
+        mpz_and (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
+        scm_remember_upto_here_1 (n2);
+        mpz_clear (nn1_z);
+        return scm_i_normbig (result_z);
       }
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
@@ -946,16 +911,12 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
       nn1 = SCM_INUM (n1);
       goto intbig;
     } else if (SCM_BIGP (n2)) {
-      if (SCM_NUMDIGS (n1) > SCM_NUMDIGS (n2)) {
-	SCM_SWAP (n1, n2);
-      };
-      if ((SCM_BIGSIGN (n1)) && SCM_BIGSIGN (n2)) {
-	return scm_big_ior (SCM_BDIGITS (n1), SCM_NUMDIGS (n1),
-			    SCM_BIGSIGNFLAG, n2);
-      } else {
-	return scm_big_and (SCM_BDIGITS (n1), SCM_NUMDIGS (n1),
-			    SCM_BIGSIGN (n1), n2, 0);
-      }
+      SCM result_z = scm_i_mkbig ();
+      mpz_and (SCM_I_BIG_MPZ (result_z),
+               SCM_I_BIG_MPZ (n1),
+               SCM_I_BIG_MPZ (n2));
+      scm_remember_upto_here_2 (n1, n2);
+      return scm_i_normbig (result_z);
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
     }
@@ -995,27 +956,15 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
       return SCM_MAKINUM (nn1 | nn2);
     } else if (SCM_BIGP (n2)) {
     intbig:
+      if (nn1 == 0) return n2;
       {
-# ifndef SCM_DIGSTOOBIG
-	long z = scm_pseudolong (nn1);
-	if ((!(nn1 < 0)) && !SCM_BIGSIGN (n2)) {
-	  return scm_big_ior ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
-			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
-	} else {
-	  return scm_big_and ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
-			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, SCM_BIGSIGNFLAG);
-	}
-# else
-	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
-	scm_longdigs (nn1, zdigs);
-	if ((!(nn1 < 0)) && !SCM_BIGSIGN (n2)) {
-	  return scm_big_ior (zdigs, SCM_DIGSPERLONG, 
-			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
-	} else {
-	  return scm_big_and (zdigs, SCM_DIGSPERLONG, 
-			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, SCM_BIGSIGNFLAG);
-	}
-# endif
+        SCM result_z = scm_i_mkbig ();
+        mpz_t nn1_z;
+        mpz_init_set_si (nn1_z, nn1);
+        mpz_ior (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
+        scm_remember_upto_here_1 (n2);
+        mpz_clear (nn1_z);
+        return result_z;
       }
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
@@ -1026,16 +975,12 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
       nn1 = SCM_INUM (n1);
       goto intbig;
     } else if (SCM_BIGP (n2)) {
-      if (SCM_NUMDIGS (n1) > SCM_NUMDIGS (n2)) {
-	SCM_SWAP (n1, n2);
-      };
-      if ((!SCM_BIGSIGN (n1)) && !SCM_BIGSIGN (n2)) {
-	return scm_big_ior (SCM_BDIGITS (n1), SCM_NUMDIGS (n1), 
-			    SCM_BIGSIGN (n1), n2);
-      } else {
-	return scm_big_and (SCM_BDIGITS (n1), SCM_NUMDIGS (n1), 
-			    SCM_BIGSIGN (n1), n2, SCM_BIGSIGNFLAG);
-      }
+      SCM result_z = scm_i_mkbig ();
+      mpz_ior (SCM_I_BIG_MPZ (result_z),
+               SCM_I_BIG_MPZ (n1),
+               SCM_I_BIG_MPZ (n2));
+      scm_remember_upto_here_2 (n1, n2);
+      return result_z;
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
     }
@@ -1076,18 +1021,15 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
       long nn2 = SCM_INUM (n2);
       return SCM_MAKINUM (nn1 ^ nn2);
     } else if (SCM_BIGP (n2)) {
-    intbig: 
+    intbig:
       {
-# ifndef SCM_DIGSTOOBIG
-	long z = scm_pseudolong (nn1);
-	return scm_big_xor ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
-			    (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
-# else
-	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
-	scm_longdigs (nn1, zdigs);
-	return scm_big_xor (zdigs, SCM_DIGSPERLONG, 
-			    (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
-# endif
+        SCM result_z = scm_i_mkbig ();
+        mpz_t nn1_z;
+        mpz_init_set_si (nn1_z, nn1);
+        mpz_xor (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
+        scm_remember_upto_here_1 (n2);
+        mpz_clear (nn1_z);
+        return scm_i_normbig (result_z);
       }
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
@@ -1098,11 +1040,12 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
       nn1 = SCM_INUM (n1);
       goto intbig;
     } else if (SCM_BIGP (n2)) {
-      if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {
-	SCM_SWAP (n1, n2);
-      }
-      return scm_big_xor (SCM_BDIGITS (n1), SCM_NUMDIGS (n1), 
-			  SCM_BIGSIGN (n1), n2);
+      SCM result_z = scm_i_mkbig ();
+      mpz_xor (SCM_I_BIG_MPZ (result_z),
+               SCM_I_BIG_MPZ (n1),
+               SCM_I_BIG_MPZ (n2));
+      scm_remember_upto_here_2 (n1, n2);
+      return scm_i_normbig (result_z);
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
     }
@@ -1131,17 +1074,16 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
       return SCM_BOOL (nj & nk);
     } else if (SCM_BIGP (k)) {
     intbig: 
+      if (nj == 0) return SCM_BOOL_F;
       {
-# ifndef SCM_DIGSTOOBIG
-	long z = scm_pseudolong (nj);
-	return scm_big_test ((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, 
-			     (nj < 0) ? SCM_BIGSIGNFLAG : 0, k);
-# else
-	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
-	scm_longdigs (nj, zdigs);
-	return scm_big_test (zdigs, SCM_DIGSPERLONG, 
-			     (nj < 0) ? SCM_BIGSIGNFLAG : 0, k);
-# endif
+        SCM result;
+        mpz_t nj_z;
+        mpz_init_set_si (nj_z, nj);
+        mpz_and (nj_z, nj_z, SCM_I_BIG_MPZ (k));
+        scm_remember_upto_here_1 (k);
+        result = SCM_BOOL (mpz_sgn (nj_z) != 0);
+        mpz_clear (nj_z);
+        return result;
       }
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG2, k);
@@ -1152,11 +1094,16 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
       nj = SCM_INUM (j);
       goto intbig;
     } else if (SCM_BIGP (k)) {
-      if (SCM_NUMDIGS (j) > SCM_NUMDIGS (k)) {
-	SCM_SWAP (j, k);
-      }
-      return scm_big_test (SCM_BDIGITS (j), SCM_NUMDIGS (j), 
-			   SCM_BIGSIGN (j), k);
+      SCM result;
+      mpz_t result_z;
+      mpz_init (result_z);
+      mpz_and (SCM_I_BIG_MPZ (result_z),
+               SCM_I_BIG_MPZ (j),
+               SCM_I_BIG_MPZ (k));
+      scm_remember_upto_here_2 (j, k);
+      result = SCM_BOOL (mpz_sgn (result_z) != 0);
+      mpz_clear (result_z);
+      return result;
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG2, k);
     }
@@ -1187,27 +1134,9 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
   if (SCM_INUMP (j)) {
     return SCM_BOOL ((1L << iindex) & SCM_INUM (j));
   } else if (SCM_BIGP (j)) {
-    if (SCM_NUMDIGS (j) * SCM_BITSPERDIG < iindex) {
-      return SCM_BOOL_F;
-    } else if (SCM_BIGSIGN (j)) {
-      long num = -1;
-      size_t i = 0;
-      SCM_BIGDIG * x = SCM_BDIGITS (j);
-      size_t nx = iindex / SCM_BITSPERDIG;
-      while (1) {
-	num += x[i];
-	if (nx == i++) {
-	  return SCM_BOOL (((1L << (iindex % SCM_BITSPERDIG)) & num) == 0);
-	} else if (num < 0) {
-	  num = -1;
-	} else {
-	  num = 0;
-	}
-      }
-    } else {
-      return SCM_BOOL (SCM_BDIGITS (j) [iindex / SCM_BITSPERDIG]
-		       & (1L << (iindex % SCM_BITSPERDIG)));
-    }
+    int val = mpz_tstbit (SCM_I_BIG_MPZ (j), iindex);
+    scm_remember_upto_here_1 (j);
+    return SCM_BOOL (val);
   } else {
     SCM_WRONG_TYPE_ARG (SCM_ARG2, j);
   }
@@ -1246,38 +1175,88 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 #define FUNC_NAME s_scm_integer_expt
 {
   SCM acc = SCM_MAKINUM (1L);
-  int i2;
-#ifdef SCM_BIGDIG
+
   /* 0^0 == 1 according to R5RS */
   if (SCM_EQ_P (n, SCM_INUM0) || SCM_EQ_P (n, acc))
     return SCM_FALSEP (scm_zero_p(k)) ? n : acc;
   else if (SCM_EQ_P (n, SCM_MAKINUM (-1L)))
     return SCM_FALSEP (scm_even_p (k)) ? n : acc;
-#endif
-  if (SCM_REALP (k))
+
+  long i2 = 0;
+  SCM z_i2 = SCM_BOOL_F;
+  int i2_is_big = 0;
+  
+  if (SCM_INUMP (k))
+    i2 = SCM_INUM (k);
+  else if (SCM_BIGP (k))
+    {
+      z_i2 = scm_i_clonebig (k, 1);
+      mpz_init_set (SCM_I_BIG_MPZ (z_i2), SCM_I_BIG_MPZ (k));
+      scm_remember_upto_here_1 (k);
+      i2_is_big = 1;
+    }
+  else if (SCM_REALP (k))
     {
       double r = SCM_REAL_VALUE (k);
-      i2 = r;
-      if (i2 != r)
-	SCM_WRONG_TYPE_ARG (2, k);
+      if (floor (r) != r)
+        SCM_WRONG_TYPE_ARG (2, k);
+      if ((r > SCM_MOST_POSITIVE_FIXNUM) || (r < SCM_MOST_NEGATIVE_FIXNUM))
+        {
+          z_i2 = scm_i_mkbig ();
+          mpz_init_set_d (SCM_I_BIG_MPZ (z_i2), r);
+          i2_is_big = 1;
+        }
+      else
+        {
+          i2 = r;
+        }
     }
   else
-    SCM_VALIDATE_ULONG_COPY (2, k, i2);
-  if (i2 < 0)
+    SCM_WRONG_TYPE_ARG (2, k);
+  
+  if (i2_is_big)
     {
-      i2 = -i2;
-      n = scm_divide (n, SCM_UNDEFINED);
+      if (mpz_sgn(SCM_I_BIG_MPZ (z_i2)) == -1)
+        {
+          mpz_neg (SCM_I_BIG_MPZ (z_i2), SCM_I_BIG_MPZ (z_i2));
+          n = scm_divide (n, SCM_UNDEFINED);
+        }
+      while (1)
+        {
+          if (mpz_sgn(SCM_I_BIG_MPZ (z_i2)) == 0)
+            {
+              mpz_clear (SCM_I_BIG_MPZ (z_i2));
+              return acc;
+            }
+          if (mpz_cmp_ui(SCM_I_BIG_MPZ (z_i2), 1) == 0)
+            {
+              mpz_clear (SCM_I_BIG_MPZ (z_i2));
+              return scm_product (acc, n);
+            }
+          if (mpz_tstbit(SCM_I_BIG_MPZ (z_i2), 0))
+            acc = scm_product (acc, n);
+          n = scm_product (n, n);
+          mpz_fdiv_q_2exp (SCM_I_BIG_MPZ (z_i2), SCM_I_BIG_MPZ (z_i2), 1);
+        }
     }
-  while (1)
+  else
     {
-      if (0 == i2)
-	return acc;
-      if (1 == i2)
-	return scm_product (acc, n);
-      if (i2 & 1)
-	acc = scm_product (acc, n);
-      n = scm_product (n, n);
-      i2 >>= 1;
+      if (i2 < 0)
+        {
+          i2 = -i2;
+          n = scm_divide (n, SCM_UNDEFINED);
+        }
+      while (1)
+        {
+          if (0 == i2)
+            return acc;
+          if (1 == i2)
+            return scm_product (acc, n);
+          if (i2 & 1)
+            acc = scm_product (acc, n);
+          n = scm_product (n, n);
+          i2 >>= 1;
+        }
     }
 }
 #undef FUNC_NAME
@@ -1303,39 +1282,27 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 {
   long bits_to_shift;
 
-#ifndef SCM_BIGDIG
-  SCM_VALIDATE_INUM (1, n)
-#endif
   SCM_VALIDATE_INUM (2, cnt);
 
   bits_to_shift = SCM_INUM (cnt);
-#ifdef SCM_BIGDIG
-  if (bits_to_shift < 0) {
-    /* Shift right by abs(cnt) bits.  This is realized as a division by
-       div:=2^abs(cnt).  However, to guarantee the floor rounding, negative
-       values require some special treatment.
-     */
-    SCM div = scm_integer_expt (SCM_MAKINUM (2), SCM_MAKINUM (-bits_to_shift));
-    if (SCM_FALSEP (scm_negative_p (n)))
-      return scm_quotient (n, div);
-    else
-      return scm_sum (SCM_MAKINUM (-1L),
-		      scm_quotient (scm_sum (SCM_MAKINUM (1L), n), div));
-  } else
+
+  if (bits_to_shift < 0)
+    {
+      /* Shift right by abs(cnt) bits.  This is realized as a division
+         by div:=2^abs(cnt).  However, to guarantee the floor
+         rounding, negative values require some special treatment.
+      */
+      SCM div = scm_integer_expt (SCM_MAKINUM (2),
+                                  SCM_MAKINUM (-bits_to_shift));
+      if (SCM_FALSEP (scm_negative_p (n)))
+        return scm_quotient (n, div);
+      else
+        return scm_sum (SCM_MAKINUM (-1L),
+                        scm_quotient (scm_sum (SCM_MAKINUM (1L), n), div));
+    }
+  else
     /* Shift left is done by multiplication with 2^CNT */
     return scm_product (n, scm_integer_expt (SCM_MAKINUM (2), cnt));
-#else
-  if (bits_to_shift < 0)
-    /* Signed right shift (SCM_SRS does it right) by abs(cnt) bits. */
-    return SCM_MAKINUM (SCM_SRS (SCM_INUM (n), -bits_to_shift));
-  else {
-    /* Shift left, but make sure not to leave the range of inums */
-    SCM res = SCM_MAKINUM (SCM_INUM (n) << cnt);
-    if (SCM_INUM (res) >> cnt != SCM_INUM (n))
-      scm_num_overflow (FUNC_NAME);
-    return res;
-  }
-#endif
 }
 #undef FUNC_NAME
 
@@ -1404,7 +1371,6 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-
 static const char scm_logtab[] = {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
 };
@@ -1426,35 +1392,40 @@ SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_logcount
 {
-  if (SCM_INUMP (n)) {
-    unsigned long int c = 0;
-    long int nn = SCM_INUM (n);
-    if (nn < 0) {
-      nn = -1 - nn;
-    };
-    while (nn) {
-      c += scm_logtab[15 & nn];
-      nn >>= 4;
-    };
-    return SCM_MAKINUM (c);
-  } else if (SCM_BIGP (n)) {
-    if (SCM_BIGSIGN (n)) {
-      return scm_logcount (scm_difference (SCM_MAKINUM (-1L), n));
-    } else {
+  if (SCM_INUMP (n))
+    {
       unsigned long int c = 0;
-      size_t i = SCM_NUMDIGS (n);
-      SCM_BIGDIG * ds = SCM_BDIGITS (n);
-      while (i--) {
-	SCM_BIGDIG d;
-	for (d = ds[i]; d; d >>= 4) {
-	  c += scm_logtab[15 & d];
-	}
-      }
+      long int nn = SCM_INUM (n);
+      if (nn < 0)
+        nn = -1 - nn;
+      while (nn)
+        {
+          c += scm_logtab[15 & nn];
+          nn >>= 4;
+        }
       return SCM_MAKINUM (c);
     }
-  } else {
+  else if (SCM_BIGP (n))
+    {
+      unsigned long count;
+      if (mpz_sgn (SCM_I_BIG_MPZ (n)) < 0)
+        {
+          mpz_t z_n;
+          mpz_init (z_n);
+          mpz_neg (z_n, SCM_I_BIG_MPZ (n));
+          scm_remember_upto_here_1 (n);
+          count = mpz_popcount (z_n);
+          mpz_clear (z_n);
+        }
+      else
+        {
+          count = mpz_popcount (SCM_I_BIG_MPZ (n));
+          scm_remember_upto_here_1 (n);
+        }
+      return SCM_MAKINUM (count);
+    }
+  else
     SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
-  }
 }
 #undef FUNC_NAME
 
@@ -1462,6 +1433,7 @@ SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
 static const char scm_ilentab[] = {
   0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4
 };
+
 
 SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
             (SCM n),
@@ -1491,561 +1463,14 @@ SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
     };
     return SCM_MAKINUM (c - 4 + l);
   } else if (SCM_BIGP (n)) {
-    if (SCM_BIGSIGN (n)) {
-      return scm_integer_length (scm_difference (SCM_MAKINUM (-1L), n));
-    } else {
-      unsigned long int digs = SCM_NUMDIGS (n) - 1;
-      unsigned long int c = digs * SCM_BITSPERDIG;
-      unsigned int l = 4;
-      SCM_BIGDIG * ds = SCM_BDIGITS (n);
-      SCM_BIGDIG d = ds [digs];
-      while (d) {
-	c += 4;
-	l = scm_ilentab [15 & d];
-	d >>= 4;
-      };
-      return SCM_MAKINUM (c - 4 + l);
-    }
+    size_t size = mpz_sizeinbase (SCM_I_BIG_MPZ (n), 2);
+    scm_remember_upto_here_1 (n);
+    return SCM_MAKINUM (size);
   } else {
     SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
   }
 }
 #undef FUNC_NAME
-
-
-#ifdef SCM_BIGDIG
-static const char s_bignum[] = "bignum";
-
-SCM
-scm_i_mkbig (size_t nlen, int sign)
-{
-  SCM v;
-  SCM_BIGDIG *base;
-
-  if (((nlen << SCM_BIGSIZEFIELD) >> SCM_BIGSIZEFIELD) != nlen)
-    scm_memory_error (s_bignum);
-
-  base = scm_gc_malloc (nlen * sizeof (SCM_BIGDIG), s_bignum);
-
-  v = scm_cell (SCM_MAKE_BIGNUM_TAG (nlen, sign), (scm_t_bits) base);
-  return v;
-}
-
-SCM
-scm_i_big2inum (SCM b, size_t l)
-{
-  unsigned long num = 0;
-  SCM_BIGDIG *tmp = SCM_BDIGITS (b);
-  while (l--)
-    num = SCM_BIGUP (num) + tmp[l];
-  if (!SCM_BIGSIGN (b))
-    {
-      if (SCM_POSFIXABLE (num))
-	return SCM_MAKINUM (num);
-    }
-  else if (num <= -SCM_MOST_NEGATIVE_FIXNUM)
-    return SCM_MAKINUM (-num);
-  return b;
-}
-
-static const char s_adjbig[] = "scm_i_adjbig";
-
-SCM
-scm_i_adjbig (SCM b, size_t nlen)
-{
-  size_t nsiz = nlen;
-  if (((nsiz << SCM_BIGSIZEFIELD) >> SCM_BIGSIZEFIELD) != nlen)
-    scm_memory_error (s_adjbig);
-
-  SCM_DEFER_INTS;
-  {
-    SCM_BIGDIG *digits
-      = ((SCM_BIGDIG *)
-	 scm_gc_realloc (SCM_BDIGITS (b),
-			 SCM_NUMDIGS (b) * sizeof (SCM_BIGDIG),
-			 nsiz * sizeof (SCM_BIGDIG), s_bignum));
-
-    SCM_SET_BIGNUM_BASE (b, digits);
-    SCM_SETNUMDIGS (b, nsiz, SCM_BIGSIGN (b));
-  }
-  SCM_ALLOW_INTS;
-  return b;
-}
-
-SCM
-scm_i_normbig (SCM b)
-{
-#ifndef _UNICOS
-  size_t nlen = SCM_NUMDIGS (b);
-#else
-  int nlen = SCM_NUMDIGS (b); /* unsigned nlen breaks on Cray when nlen => 0 */
-#endif
-  SCM_BIGDIG *zds = SCM_BDIGITS (b);
-  while (nlen-- && !zds[nlen]);
-  nlen++;
-  if (nlen * SCM_BITSPERDIG / SCM_CHAR_BIT <= sizeof (SCM))
-    if (SCM_INUMP (b = scm_i_big2inum (b, (size_t) nlen)))
-      return b;
-  if (SCM_NUMDIGS (b) == nlen)
-    return b;
-  return scm_i_adjbig (b, (size_t) nlen);
-}
-
-SCM
-scm_i_copybig (SCM b, int sign)
-{
-  size_t i = SCM_NUMDIGS (b);
-  SCM ans = scm_i_mkbig (i, sign);
-  SCM_BIGDIG *src = SCM_BDIGITS (b), *dst = SCM_BDIGITS (ans);
-  while (i--)
-    dst[i] = src[i];
-  return ans;
-}
-
-int
-scm_bigcomp (SCM x, SCM y)
-{
-  int xsign = SCM_BIGSIGN (x);
-  int ysign = SCM_BIGSIGN (y);
-  size_t xlen, ylen;
-
-  /* Look at the signs, first.  */
-  if (ysign < xsign)
-    return 1;
-  if (ysign > xsign)
-    return -1;
-
-  /* They're the same sign, so see which one has more digits.  Note
-     that, if they are negative, the longer number is the lesser.  */
-  ylen = SCM_NUMDIGS (y);
-  xlen = SCM_NUMDIGS (x);
-  if (ylen > xlen)
-    return (xsign) ? -1 : 1;
-  if (ylen < xlen)
-    return (xsign) ? 1 : -1;
-
-  /* They have the same number of digits, so find the most significant
-     digit where they differ.  */
-  while (xlen)
-    {
-      --xlen;
-      if (SCM_BDIGITS (y)[xlen] != SCM_BDIGITS (x)[xlen])
-	/* Make the discrimination based on the digit that differs.  */
-	return ((SCM_BDIGITS (y)[xlen] > SCM_BDIGITS (x)[xlen])
-		? (xsign ? -1 :  1)
-		: (xsign ?  1 : -1));
-    }
-
-  /* The numbers are identical.  */
-  return 0;
-}
-
-#ifndef SCM_DIGSTOOBIG
-
-
-long
-scm_pseudolong (long x)
-{
-  union
-  {
-    long l;
-    SCM_BIGDIG bd[SCM_DIGSPERLONG];
-  }
-  p;
-  size_t i = 0;
-  if (x < 0)
-    x = -x;
-  while (i < SCM_DIGSPERLONG)
-    {
-      p.bd[i++] = SCM_BIGLO (x);
-      x = SCM_BIGDN (x);
-    }
-  /*  p.bd[0] = SCM_BIGLO(x); p.bd[1] = SCM_BIGDN(x); */
-  return p.l;
-}
-
-#else
-
-
-void
-scm_longdigs (long x, SCM_BIGDIG digs[])
-{
-  size_t i = 0;
-  if (x < 0)
-    x = -x;
-  while (i < SCM_DIGSPERLONG)
-    {
-      digs[i++] = SCM_BIGLO (x);
-      x = SCM_BIGDN (x);
-    }
-}
-#endif
-
-
-
-SCM
-scm_addbig (SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int sgny)
-{
-  /* Assumes nx <= SCM_NUMDIGS(bigy) */
-  /* Assumes xsgn and sgny scm_equal either 0 or SCM_BIGSIGNFLAG */
-  long num = 0;
-  size_t i = 0, ny = SCM_NUMDIGS (bigy);
-  SCM z = scm_i_copybig (bigy, SCM_BIGSIGN (bigy) ^ sgny);
-  SCM_BIGDIG *zds = SCM_BDIGITS (z);
-  if (xsgn ^ SCM_BIGSIGN (z))
-    {
-      do
-	{
-	  num += (long) zds[i] - x[i];
-	  if (num < 0)
-	    {
-	      zds[i] = num + SCM_BIGRAD;
-	      num = -1;
-	    }
-	  else
-	    {
-	      zds[i] = SCM_BIGLO (num);
-	      num = 0;
-	    }
-	}
-      while (++i < nx);
-      if (num && nx == ny)
-	{
-	  num = 1;
-	  i = 0;
-	  SCM_SET_CELL_WORD_0 (z, SCM_CELL_WORD_0 (z) ^ SCM_BIGSIGNFLAG);
-	  do
-	    {
-	      num += (SCM_BIGRAD - 1) - zds[i];
-	      zds[i++] = SCM_BIGLO (num);
-	      num = SCM_BIGDN (num);
-	    }
-	  while (i < ny);
-	}
-      else
-	while (i < ny)
-	  {
-	    num += zds[i];
-	    if (num < 0)
-	      {
-		zds[i++] = num + SCM_BIGRAD;
-		num = -1;
-	      }
-	    else
-	      {
-		zds[i++] = SCM_BIGLO (num);
-		num = 0;
-	      }
-	  }
-    }
-  else
-    {
-      do
-	{
-	  num += (long) zds[i] + x[i];
-	  zds[i++] = SCM_BIGLO (num);
-	  num = SCM_BIGDN (num);
-	}
-      while (i < nx);
-      if (!num)
-	return z;
-      while (i < ny)
-	{
-	  num += zds[i];
-	  zds[i++] = SCM_BIGLO (num);
-	  num = SCM_BIGDN (num);
-	  if (!num)
-	    return z;
-	}
-      if (num)
-	{
-	  z = scm_i_adjbig (z, ny + 1);
-	  SCM_BDIGITS (z)[ny] = num;
-	  return z;
-	}
-    }
-  return scm_i_normbig (z);
-}
-
-
-SCM
-scm_mulbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn)
-{
-  size_t i = 0, j = nx + ny;
-  unsigned long n = 0;
-  SCM z = scm_i_mkbig (j, sgn);
-  SCM_BIGDIG *zds = SCM_BDIGITS (z);
-  while (j--)
-    zds[j] = 0;
-  do
-    {
-      j = 0;
-      if (x[i])
-	{
-	  do
-	    {
-	      n += zds[i + j] + ((unsigned long) x[i] * y[j]);
-	      zds[i + j++] = SCM_BIGLO (n);
-	      n = SCM_BIGDN (n);
-	    }
-	  while (j < ny);
-	  if (n)
-	    {
-	      zds[i + j] = n;
-	      n = 0;
-	    }
-	}
-    }
-  while (++i < nx);
-  return scm_i_normbig (z);
-}
-
-
-unsigned int
-scm_divbigdig (SCM_BIGDIG * ds, size_t h, SCM_BIGDIG div)
-{
-  register unsigned long t2 = 0;
-  while (h--)
-    {
-      t2 = SCM_BIGUP (t2) + ds[h];
-      ds[h] = t2 / div;
-      t2 %= div;
-    }
-  return t2;
-}
-
-
-
-static SCM
-scm_divbigint (SCM x, long z, int sgn, int mode)
-{
-  if (z < 0)
-    z = -z;
-  if (z < SCM_BIGRAD)
-    {
-      register unsigned long t2 = 0;
-      register SCM_BIGDIG *ds = SCM_BDIGITS (x);
-      size_t nd = SCM_NUMDIGS (x);
-      while (nd--)
-	t2 = (SCM_BIGUP (t2) + ds[nd]) % z;
-      if (mode && t2)
-	t2 = z - t2;
-      return SCM_MAKINUM (sgn ? -t2 : t2);
-    }
-  {
-#ifndef SCM_DIGSTOOBIG
-    unsigned long t2 = scm_pseudolong (z);
-    return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			  (SCM_BIGDIG *) & t2, SCM_DIGSPERLONG,
-			  sgn, mode);
-#else
-    SCM_BIGDIG t2[SCM_DIGSPERLONG];
-    scm_longdigs (z, t2);
-    return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			  t2, SCM_DIGSPERLONG,
-			  sgn, mode);
-#endif
-  }
-}
-
-
-static SCM
-scm_divbigbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn, int modes)
-{
-  /* modes description
-     0  remainder
-     1  scm_modulo
-     2  quotient
-     3  quotient but returns SCM_UNDEFINED if division is not exact. */
-  size_t i = 0, j = 0;
-  long num = 0;
-  unsigned long t2 = 0;
-  SCM z, newy;
-  SCM_BIGDIG d = 0, qhat, *zds, *yds;
-  /* algorithm requires nx >= ny */
-  if (nx < ny)
-    switch (modes)
-      {
-      case 0:			/* remainder -- just return x */
-	z = scm_i_mkbig (nx, sgn);
-	zds = SCM_BDIGITS (z);
-	do
-	  {
-	    zds[i] = x[i];
-	  }
-	while (++i < nx);
-	return z;
-      case 1:			/* scm_modulo -- return y-x */
-	z = scm_i_mkbig (ny, sgn);
-	zds = SCM_BDIGITS (z);
-	do
-	  {
-	    num += (long) y[i] - x[i];
-	    if (num < 0)
-	      {
-		zds[i] = num + SCM_BIGRAD;
-		num = -1;
-	      }
-	    else
-	      {
-		zds[i] = num;
-		num = 0;
-	      }
-	  }
-	while (++i < nx);
-	while (i < ny)
-	  {
-	    num += y[i];
-	    if (num < 0)
-	      {
-		zds[i++] = num + SCM_BIGRAD;
-		num = -1;
-	      }
-	    else
-	      {
-		zds[i++] = num;
-		num = 0;
-	      }
-	  }
-	goto doadj;
-      case 2:
-	return SCM_INUM0;	/* quotient is zero */
-      case 3:
-	return SCM_UNDEFINED;   /* the division is not exact */
-      }
-
-  z = scm_i_mkbig (nx == ny ? nx + 2 : nx + 1, sgn);
-  zds = SCM_BDIGITS (z);
-  if (nx == ny)
-    zds[nx + 1] = 0;
-  while (!y[ny - 1])
-    ny--;			/* in case y came in as a psuedolong */
-  if (y[ny - 1] < (SCM_BIGRAD >> 1))
-    {				/* normalize operands */
-      d = SCM_BIGRAD / (y[ny - 1] + 1);
-      newy = scm_i_mkbig (ny, 0);
-      yds = SCM_BDIGITS (newy);
-      while (j < ny)
-	{
-	  t2 += (unsigned long) y[j] * d;
-	  yds[j++] = SCM_BIGLO (t2);
-	  t2 = SCM_BIGDN (t2);
-	}
-      y = yds;
-      j = 0;
-      t2 = 0;
-      while (j < nx)
-	{
-	  t2 += (unsigned long) x[j] * d;
-	  zds[j++] = SCM_BIGLO (t2);
-	  t2 = SCM_BIGDN (t2);
-	}
-      zds[j] = t2;
-    }
-  else
-    {
-      zds[j = nx] = 0;
-      while (j--)
-	zds[j] = x[j];
-    }
-  j = nx == ny ? nx + 1 : nx;	/* dividend needs more digits than divisor */
-  do
-    {				/* loop over digits of quotient */
-      if (zds[j] == y[ny - 1])
-	qhat = SCM_BIGRAD - 1;
-      else
-	qhat = (SCM_BIGUP (zds[j]) + zds[j - 1]) / y[ny - 1];
-      if (!qhat)
-	continue;
-      i = 0;
-      num = 0;
-      t2 = 0;
-      do
-	{			/* multiply and subtract */
-	  t2 += (unsigned long) y[i] * qhat;
-	  num += zds[j - ny + i] - SCM_BIGLO (t2);
-	  if (num < 0)
-	    {
-	      zds[j - ny + i] = num + SCM_BIGRAD;
-	      num = -1;
-	    }
-	  else
-	    {
-	      zds[j - ny + i] = num;
-	      num = 0;
-	    }
-	  t2 = SCM_BIGDN (t2);
-	}
-      while (++i < ny);
-      num += zds[j - ny + i] - t2; /* borrow from high digit; don't update */
-      while (num)
-	{			/* "add back" required */
-	  i = 0;
-	  num = 0;
-	  qhat--;
-	  do
-	    {
-	      num += (long) zds[j - ny + i] + y[i];
-	      zds[j - ny + i] = SCM_BIGLO (num);
-	      num = SCM_BIGDN (num);
-	    }
-	  while (++i < ny);
-	  num--;
-	}
-      if (modes & 2)
-	zds[j] = qhat;
-    }
-  while (--j >= ny);
-  switch (modes)
-    {
-    case 3:			/* check that remainder==0 */
-      for (j = ny; j && !zds[j - 1]; --j);
-      if (j)
-	return SCM_UNDEFINED;
-    case 2:			/* move quotient down in z */
-      j = (nx == ny ? nx + 2 : nx + 1) - ny;
-      for (i = 0; i < j; i++)
-	zds[i] = zds[i + ny];
-      ny = i;
-      break;
-    case 1:			/* subtract for scm_modulo */
-      i = 0;
-      num = 0;
-      j = 0;
-      do
-	{
-	  num += y[i] - zds[i];
-	  j = j | zds[i];
-	  if (num < 0)
-	    {
-	      zds[i] = num + SCM_BIGRAD;
-	      num = -1;
-	    }
-	  else
-	    {
-	      zds[i] = num;
-	      num = 0;
-	    }
-	}
-      while (++i < ny);
-      if (!j)
-	return SCM_INUM0;
-    case 0:			/* just normalize remainder */
-      if (d)
-	scm_divbigdig (zds, ny, d);
-    }
- doadj:
-  for (j = ny; j && !zds[j - 1]; --j);
-  if (j * SCM_BITSPERDIG <= sizeof (SCM) * SCM_CHAR_BIT)
-    if (SCM_INUMP (z = scm_i_big2inum (z, j)))
-      return z;
-  return scm_i_adjbig (z, j);
-}
-#endif
-
-
-
-
 
 /*** NUMBERS -> STRINGS ***/
 int scm_dblprec;
@@ -2054,9 +1479,6 @@ static const double fx[] =
   5e-6,  5e-7,  5e-8,  5e-9,  5e-10,
  5e-11, 5e-12, 5e-13, 5e-14,  5e-15,
  5e-16, 5e-17, 5e-18, 5e-19,  5e-20};
-
-
-
 
 static size_t
 idbl2str (double f, char *a)
@@ -2277,63 +1699,6 @@ scm_iint2str (long num, int rad, char *p)
 }
 
 
-#ifdef SCM_BIGDIG
-
-static SCM
-big2str (SCM b, unsigned int radix)
-{
-  SCM t = scm_i_copybig (b, 0);	/* sign of temp doesn't matter */
-  register SCM_BIGDIG *ds = SCM_BDIGITS (t);
-  size_t i = SCM_NUMDIGS (t);
-  size_t j = radix == 16 ? (SCM_BITSPERDIG * i) / 4 + 2
-    : radix >= 10 ? (SCM_BITSPERDIG * i * 241L) / 800 + 2
-    : (SCM_BITSPERDIG * i) + 2;
-  size_t k = 0;
-  size_t radct = 0;
-  SCM_BIGDIG radpow = 1, radmod = 0;
-  SCM ss = scm_allocate_string (j);
-  char *s = SCM_STRING_CHARS (ss), c;
-
-  if (i == 0)
-    {
-      return scm_makfrom0str ("0");
-    }
-  
-  while ((long) radpow * radix < SCM_BIGRAD)
-    {
-      radpow *= radix;
-      radct++;
-    }
-  while ((i || radmod) && j)
-    {
-      if (k == 0)
-	{
-	  radmod = (SCM_BIGDIG) scm_divbigdig (ds, i, radpow);
-	  k = radct;
-	  if (!ds[i - 1])
-	    i--;
-	}
-      c = radmod % radix;
-      radmod /= radix;
-      k--;
-      s[--j] = c < 10 ? c + '0' : c + 'a' - 10;
-    }
-
-  if (SCM_BIGSIGN (b))
-    s[--j] = '-';
-
-  if (j > 0)
-    {
-      /* The pre-reserved string length was too large. */
-      unsigned long int length = SCM_STRING_LENGTH (ss);
-      ss = scm_substring (ss, SCM_MAKINUM (j), SCM_MAKINUM (length));
-    }
-
-  return scm_return_first (ss, t);
-}
-#endif
-
-
 SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
             (SCM n, SCM radix),
 	    "Return a string holding the external representation of the\n"
@@ -2348,7 +1713,8 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
   } else {
     SCM_VALIDATE_INUM (2, radix);
     base = SCM_INUM (radix);
-    SCM_ASSERT_RANGE (2, radix, base >= 2);
+    /* FIXME: ask if range limit was OK, and if so, document */
+    SCM_ASSERT_RANGE (2, radix, (base >= 2) && (base <= 36));
   }
 
   if (SCM_INUMP (n)) {
@@ -2356,7 +1722,9 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
     size_t length = scm_iint2str (SCM_INUM (n), base, num_buf);
     return scm_mem2string (num_buf, length);
   } else if (SCM_BIGP (n)) {
-    return big2str (n, (unsigned int) base);
+    char *str = mpz_get_str (NULL, base, SCM_I_BIG_MPZ (n));
+    scm_remember_upto_here_1 (n);
+    return scm_take0str (str);
   } else if (SCM_INEXACTP (n)) {
     char num_buf [FLOBUFLEN];
     return scm_mem2string (num_buf, iflo2str (n, num_buf));
@@ -2367,8 +1735,8 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
 #undef FUNC_NAME
 
 
-/* These print routines are stubbed here so that scm_repl.c doesn't need
-   SCM_BIGDIG conditionals */
+/* These print routines used to be stubbed here so that scm_repl.c
+   wouldn't need SCM_BIGDIG conditionals (pre GMP) */
 
 int
 scm_print_real (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -2389,12 +1757,10 @@ scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
 int
 scm_bigprint (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-#ifdef SCM_BIGDIG
-  exp = big2str (exp, (unsigned int) 10);
-  scm_lfwrite (SCM_STRING_CHARS (exp), (size_t) SCM_STRING_LENGTH (exp), port);
-#else
-  scm_ipruk ("bignum", exp, port);
-#endif
+  char *str = mpz_get_str (NULL, 10, SCM_I_BIG_MPZ (exp));
+  scm_remember_upto_here_1 (exp);
+  scm_lfwrite (str, (size_t) strlen (str), port);
+  free (str);
   return !0;
 }
 /*** END nums->strs ***/
@@ -3044,11 +2410,9 @@ scm_make_complex (double x, double y)
 SCM
 scm_bigequal (SCM x, SCM y)
 {
-#ifdef SCM_BIGDIG
-  if (0 == scm_bigcomp (x, y))
-    return SCM_BOOL_T;
-#endif
-  return SCM_BOOL_F;
+  int result = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (x));
+  scm_remember_upto_here_2 (x, y);
+  return SCM_BOOL (0 == result);
 }
 
 SCM
@@ -3177,12 +2541,19 @@ scm_num_eq_p (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return SCM_BOOL_F;
     } else if (SCM_BIGP (y)) {
-      return SCM_BOOL (0 == scm_bigcomp (x, y));
+      int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_2 (x, y);
+      return SCM_BOOL (0 == cmp);
     } else if (SCM_REALP (y)) {
-      return SCM_BOOL (scm_i_big2dbl (x) == SCM_REAL_VALUE (y));
+      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      scm_remember_upto_here_1 (x);
+      return SCM_BOOL (0 == cmp);
     } else if (SCM_COMPLEXP (y)) {
-      return SCM_BOOL ((scm_i_big2dbl (x) == SCM_COMPLEX_REAL (y))
-		       && (0.0 == SCM_COMPLEX_IMAG (y)));
+      int cmp;
+      if (0.0 != SCM_COMPLEX_IMAG (y)) return SCM_BOOL_F;
+      cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_COMPLEX_REAL (y));
+      scm_remember_upto_here_1 (x);
+      return SCM_BOOL (0 == cmp);
     } else {
       SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
     }
@@ -3190,7 +2561,9 @@ scm_num_eq_p (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return SCM_BOOL (SCM_REAL_VALUE (x) == (double) SCM_INUM (y));
     } else if (SCM_BIGP (y)) {
-      return SCM_BOOL (SCM_REAL_VALUE (x) == scm_i_big2dbl (y));
+      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      scm_remember_upto_here_1 (y);
+      return SCM_BOOL (0 == cmp);
     } else if (SCM_REALP (y)) {
       return SCM_BOOL (SCM_REAL_VALUE (x) == SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3204,8 +2577,11 @@ scm_num_eq_p (SCM x, SCM y)
       return SCM_BOOL ((SCM_COMPLEX_REAL (x) == (double) SCM_INUM (y))
 		       && (SCM_COMPLEX_IMAG (x) == 0.0));
     } else if (SCM_BIGP (y)) {
-      return SCM_BOOL ((SCM_COMPLEX_REAL (x) == scm_i_big2dbl (y))
-		       && (SCM_COMPLEX_IMAG (x) == 0.0));
+      int cmp;
+      if (0.0 != SCM_COMPLEX_IMAG (x)) return SCM_BOOL_F;
+      cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_COMPLEX_REAL (x));
+      scm_remember_upto_here_1 (y);
+      return SCM_BOOL (0 == cmp);
     } else if (SCM_REALP (y)) {
       return SCM_BOOL ((SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y))
 		       && (SCM_COMPLEX_IMAG (x) == 0.0));
@@ -3234,7 +2610,9 @@ scm_less_p (SCM x, SCM y)
       long yy = SCM_INUM (y);
       return SCM_BOOL (xx < yy);
     } else if (SCM_BIGP (y)) {
-      return SCM_BOOL (!SCM_BIGSIGN (y));
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_1 (y);
+      return SCM_BOOL (sgn > 0);
     } else if (SCM_REALP (y)) {
       return SCM_BOOL ((double) xx < SCM_REAL_VALUE (y));
     } else {
@@ -3242,11 +2620,17 @@ scm_less_p (SCM x, SCM y)
     }
   } else if (SCM_BIGP (x)) {
     if (SCM_INUMP (y)) {
-      return SCM_BOOL (SCM_BIGSIGN (x));
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+      scm_remember_upto_here_1 (x);
+      return SCM_BOOL (sgn < 0);
     } else if (SCM_BIGP (y)) {
-      return SCM_BOOL (1 == scm_bigcomp (x, y));
+      int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_2 (x, y);
+      return SCM_BOOL (cmp < 0);
     } else if (SCM_REALP (y)) {
-      return SCM_BOOL (scm_i_big2dbl (x) < SCM_REAL_VALUE (y));
+      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      scm_remember_upto_here_1 (x);
+      return SCM_BOOL (cmp < 0);
     } else {
       SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
     }
@@ -3254,7 +2638,9 @@ scm_less_p (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return SCM_BOOL (SCM_REAL_VALUE (x) < (double) SCM_INUM (y));
     } else if (SCM_BIGP (y)) {
-      return SCM_BOOL (SCM_REAL_VALUE (x) < scm_i_big2dbl (y));
+      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      scm_remember_upto_here_1 (y);
+      return SCM_BOOL (cmp > 0);
     } else if (SCM_REALP (y)) {
       return SCM_BOOL (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y));
     } else {
@@ -3356,7 +2742,9 @@ scm_positive_p (SCM x)
   if (SCM_INUMP (x)) {
     return SCM_BOOL (SCM_INUM (x) > 0);
   } else if (SCM_BIGP (x)) {
-    return SCM_BOOL (!SCM_BIGSIGN (x));
+    int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+    scm_remember_upto_here_1 (x);
+    return SCM_BOOL (sgn > 0);
   } else if (SCM_REALP (x)) {
     return SCM_BOOL(SCM_REAL_VALUE (x) > 0.0);
   } else {
@@ -3375,7 +2763,9 @@ scm_negative_p (SCM x)
   if (SCM_INUMP (x)) {
     return SCM_BOOL (SCM_INUM (x) < 0);
   } else if (SCM_BIGP (x)) {
-    return SCM_BOOL (SCM_BIGSIGN (x));
+    int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+    scm_remember_upto_here_1 (x);
+    return SCM_BOOL (sgn < 0);
   } else if (SCM_REALP (x)) {
     return SCM_BOOL(SCM_REAL_VALUE (x) < 0.0);
   } else {
@@ -3406,7 +2796,9 @@ scm_max (SCM x, SCM y)
       long yy = SCM_INUM (y);
       return (xx < yy) ? y : x;
     } else if (SCM_BIGP (y)) {
-      return SCM_BIGSIGN (y) ? x : y;
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_1 (y);
+      return (sgn < 0) ? x : y;
     } else if (SCM_REALP (y)) {
       double z = xx;
       return (z <= SCM_REAL_VALUE (y)) ? y : scm_make_real (z);
@@ -3415,12 +2807,17 @@ scm_max (SCM x, SCM y)
     }
   } else if (SCM_BIGP (x)) {
     if (SCM_INUMP (y)) {
-      return SCM_BIGSIGN (x) ? y : x;
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+      scm_remember_upto_here_1 (x);
+      return (sgn < 0) ? y : x;
     } else if (SCM_BIGP (y)) {
-      return (1 == scm_bigcomp (x, y)) ? y : x;
+      int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_2 (x, y);
+      return (cmp > 0) ? x : y;
     } else if (SCM_REALP (y)) {
-      double z = scm_i_big2dbl (x);
-      return (z <= SCM_REAL_VALUE (y)) ? y : scm_make_real (z);
+      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      scm_remember_upto_here_1 (x);
+      return (cmp > 0) ? x : y;
     } else {
       SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
     }
@@ -3429,8 +2826,9 @@ scm_max (SCM x, SCM y)
       double z = SCM_INUM (y);
       return (SCM_REAL_VALUE (x) < z) ? scm_make_real (z) : x;
     } else if (SCM_BIGP (y)) {
-      double z = scm_i_big2dbl (y);
-      return (SCM_REAL_VALUE (x) < z) ? scm_make_real (z) : x;
+      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      scm_remember_upto_here_1 (y);
+      return (cmp < 0) ? x : y;
     } else if (SCM_REALP (y)) {
       return (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y)) ? y : x;
     } else {
@@ -3464,7 +2862,9 @@ scm_min (SCM x, SCM y)
       long yy = SCM_INUM (y);
       return (xx < yy) ? x : y;
     } else if (SCM_BIGP (y)) {
-      return SCM_BIGSIGN (y) ? y : x;
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_1 (y);
+      return (sgn < 0) ? y : x;
     } else if (SCM_REALP (y)) {
       double z = xx;
       return (z < SCM_REAL_VALUE (y)) ? scm_make_real (z) : y;
@@ -3473,12 +2873,17 @@ scm_min (SCM x, SCM y)
     }
   } else if (SCM_BIGP (x)) {
     if (SCM_INUMP (y)) {
-      return SCM_BIGSIGN (x) ? x : y;
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+      scm_remember_upto_here_1 (x);
+      return (sgn < 0) ? x : y;
     } else if (SCM_BIGP (y)) {
-      return (-1 == scm_bigcomp (x, y)) ? y : x;
+      int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_2 (x, y);
+      return (cmp > 0) ? y : x;
     } else if (SCM_REALP (y)) {
-      double z = scm_i_big2dbl (x);
-      return (z < SCM_REAL_VALUE (y)) ? scm_make_real (z) : y;
+      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      scm_remember_upto_here_1 (x);
+      return (cmp > 0) ? y : x;
     } else {
       SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
     }
@@ -3487,8 +2892,9 @@ scm_min (SCM x, SCM y)
       double z = SCM_INUM (y);
       return (SCM_REAL_VALUE (x) <= z) ? x : scm_make_real (z);
     } else if (SCM_BIGP (y)) {
-      double z = scm_i_big2dbl (y);
-      return (SCM_REAL_VALUE (x) <= z) ? x : scm_make_real (z);
+      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      scm_remember_upto_here_1 (y);
+      return (cmp < 0) ? y : x;
     } else if (SCM_REALP (y)) {
       return (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y)) ? x : y;
     } else {
@@ -3507,76 +2913,93 @@ SCM_GPROC1 (s_sum, "+", scm_tc7_asubr, scm_sum, g_sum);
 SCM
 scm_sum (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y)) {
-    if (SCM_UNBNDP (x)) {
-      return SCM_INUM0;
-    } else if (SCM_NUMBERP (x)) {
-      return x;
-    } else {
+  if (SCM_UNBNDP (y))
+    {
+      if (SCM_NUMBERP (x)) return x;
+      if (SCM_UNBNDP (x)) return SCM_INUM0;
       SCM_WTA_DISPATCH_1 (g_sum, x, SCM_ARG1, s_sum);
     }
-  }
 
-  if (SCM_INUMP (x)) {
-    long int xx = SCM_INUM (x);
+  if (SCM_INUMP (x))
+    {
+      if (SCM_INUMP (y))
+        {
+          long xx = SCM_INUM (x);
+          long yy = SCM_INUM (y);
+          long int z = xx + yy;
+          return SCM_FIXABLE (z) ? SCM_MAKINUM (z) : scm_i_long2big (z);
+        }
+      else if (SCM_BIGP (y))
+        {
+          SCM_SWAP (x, y);
+          goto add_big_inum;
+        }
+      else if (SCM_REALP (y))
+        {
+          long int xx = SCM_INUM (x);
+          return scm_make_real (xx + SCM_REAL_VALUE (y));
+        }
+      else if (SCM_COMPLEXP (y))
+        {
+          long int xx = SCM_INUM (x);
+          return scm_make_complex (xx + SCM_COMPLEX_REAL (y),
+                                   SCM_COMPLEX_IMAG (y));
+        }
+      else
+        SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
+    } else if (SCM_BIGP (x)) {
     if (SCM_INUMP (y)) {
-      long int yy = SCM_INUM (y);
-      long int z = xx + yy;
-      if (SCM_FIXABLE (z)) {
-	return SCM_MAKINUM (z);
+      long int inum;
+      int bigsgn;
+    add_big_inum:
+      inum = SCM_INUM (y);      
+      if (inum == 0) return x;
+      bigsgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+      if (inum < 0) {
+        SCM result = scm_i_mkbig ();
+        mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), - inum);
+        scm_remember_upto_here_1 (x);
+        /* we know the result will have to be a bignum */
+        if (bigsgn == -1) return result;
+        return scm_i_normbig (result);
       } else {
-#ifdef SCM_BIGDIG
-	return scm_i_long2big (z);
-#else  /* SCM_BIGDIG */
-	return scm_make_real ((double) z);
-#endif /* SCM_BIGDIG */ 
+        SCM result = scm_i_mkbig ();
+        mpz_add_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), inum);
+        scm_remember_upto_here_1 (x);
+        /* we know the result will have to be a bignum */
+        if (bigsgn == 1) return result;
+        return result;
+        return scm_i_normbig (result);        
       }
-    } else if (SCM_BIGP (y)) {
-    intbig:
-      {
-	long int xx = SCM_INUM (x);
-#ifndef SCM_DIGSTOOBIG
-	long z = scm_pseudolong (xx);
-	return scm_addbig ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG,
-			   (xx < 0) ? SCM_BIGSIGNFLAG : 0, y, 0);
-#else  /* SCM_DIGSTOOBIG */
-	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
-	scm_longdigs (xx, zdigs);
-	return scm_addbig (zdigs, SCM_DIGSPERLONG, 
-			   (xx < 0) ? SCM_BIGSIGNFLAG : 0, y, 0);
-#endif /* SCM_DIGSTOOBIG */
-      }
-    } else if (SCM_REALP (y)) {
-      return scm_make_real (xx + SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (xx + SCM_COMPLEX_REAL (y),
-			       SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      SCM_SWAP (x, y);
-      goto intbig;
-    } else if (SCM_BIGP (y)) {
-      if (SCM_NUMDIGS (x) > SCM_NUMDIGS (y)) {
-	SCM_SWAP (x, y);
-      }
-      return scm_addbig (SCM_BDIGITS (x), SCM_NUMDIGS (x), 
-			 SCM_BIGSIGN (x), y, 0);
-    } else if (SCM_REALP (y)) {
-      return scm_make_real (scm_i_big2dbl (x) + SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (scm_i_big2dbl (x) + SCM_COMPLEX_REAL (y),
-			       SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
+    else if (SCM_BIGP (y)) {
+      SCM result = scm_i_mkbig ();
+      int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x)); 
+      int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y)); 
+      mpz_add (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_2 (x, y);
+      /* we know the result will have to be a bignum */
+      if (sgn_x == sgn_y) return result;
+      return scm_i_normbig (result);
     }
+    else if (SCM_REALP (y)) {
+      double result = mpz_get_d (SCM_I_BIG_MPZ (x)) + SCM_REAL_VALUE (y);
+      scm_remember_upto_here_1 (x);
+      return scm_make_real (result);
+    }
+    else if (SCM_COMPLEXP (y)) {
+      double real_part = mpz_get_d (SCM_I_BIG_MPZ (x)) + SCM_COMPLEX_REAL (y);
+      scm_remember_upto_here_1 (x);
+      return scm_make_complex (real_part, SCM_COMPLEX_IMAG (y));
+    }
+    else SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
   } else if (SCM_REALP (x)) {
     if (SCM_INUMP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) + SCM_INUM (y));
     } else if (SCM_BIGP (y)) {
-      return scm_make_real (SCM_REAL_VALUE (x) + scm_i_big2dbl (y));
+      double result = mpz_get_d (SCM_I_BIG_MPZ (y)) + SCM_REAL_VALUE (x);
+      scm_remember_upto_here_1 (y);
+      return scm_make_real (result);
     } else if (SCM_REALP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) + SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3590,8 +3013,9 @@ scm_sum (SCM x, SCM y)
       return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_INUM (y),
 			       SCM_COMPLEX_IMAG (x));
     } else if (SCM_BIGP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) + scm_i_big2dbl (y),
-			       SCM_COMPLEX_IMAG (x));
+      double real_part = mpz_get_d (SCM_I_BIG_MPZ (y)) + SCM_COMPLEX_REAL (x);
+      scm_remember_upto_here_1 (y);
+      return scm_make_complex (real_part, SCM_COMPLEX_IMAG (x));
     } else if (SCM_REALP (y)) {
       return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_REAL_VALUE (y),
 			       SCM_COMPLEX_IMAG (x));
@@ -3615,62 +3039,66 @@ SCM_GPROC1 (s_difference, "-", scm_tc7_asubr, scm_difference, g_difference);
 SCM
 scm_difference (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y)) {
-    if (SCM_UNBNDP (x)) {
-      SCM_WTA_DISPATCH_0 (g_difference, s_difference);
-    } else if (SCM_INUMP (x)) {
-      long xx = -SCM_INUM (x);
-      if (SCM_FIXABLE (xx)) {
-	return SCM_MAKINUM (xx);
-      } else {
-#ifdef SCM_BIGDIG
-	return scm_i_long2big (xx);
-#else
-	return scm_make_real ((double) xx);
-#endif
-      }
-    } else if (SCM_BIGP (x)) {
-      SCM z = scm_i_copybig (x, !SCM_BIGSIGN (x));
-      unsigned int digs = SCM_NUMDIGS (z);
-      unsigned int size = digs * SCM_BITSPERDIG / SCM_CHAR_BIT;
-      return size <= sizeof (SCM) ? scm_i_big2inum (z, digs) : z;
-    } else if (SCM_REALP (x)) {
-      return scm_make_real (-SCM_REAL_VALUE (x));
-    } else if (SCM_COMPLEXP (x)) {
-      return scm_make_complex (-SCM_COMPLEX_REAL (x), -SCM_COMPLEX_IMAG (x));
-    } else {
-      SCM_WTA_DISPATCH_1 (g_difference, x, SCM_ARG1, s_difference);
+  if (SCM_UNBNDP (y))
+    {
+      if (SCM_UNBNDP (x))
+        SCM_WTA_DISPATCH_0 (g_difference, s_difference);
+      else 
+        if (SCM_INUMP (x))
+          {
+            long xx = -SCM_INUM (x);
+            if (SCM_FIXABLE (xx))
+              return SCM_MAKINUM (xx);
+            else
+              return scm_i_long2big (xx);
+          }
+        else if (SCM_BIGP (x))
+          /* FIXME: do we really need to normalize here? */
+          return scm_i_normbig (scm_i_clonebig (x, 0));
+        else if (SCM_REALP (x))
+          return scm_make_real (-SCM_REAL_VALUE (x));
+        else if (SCM_COMPLEXP (x))
+          return scm_make_complex (-SCM_COMPLEX_REAL (x),
+                                   -SCM_COMPLEX_IMAG (x));
+        else
+          SCM_WTA_DISPATCH_1 (g_difference, x, SCM_ARG1, s_difference);
     }
-  }
-
+  
   if (SCM_INUMP (x)) {
-    long int xx = SCM_INUM (x);
     if (SCM_INUMP (y)) {
+      long int xx = SCM_INUM (x);
       long int yy = SCM_INUM (y);
       long int z = xx - yy;
       if (SCM_FIXABLE (z)) {
 	return SCM_MAKINUM (z);
       } else {
-#ifdef SCM_BIGDIG
 	return scm_i_long2big (z);
-#else
-	return scm_make_real ((double) z);
-#endif
       }
-    } else if (SCM_BIGP (y)) {
-#ifndef SCM_DIGSTOOBIG
-      long z = scm_pseudolong (xx);
-      return scm_addbig ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG,
-			 (xx < 0) ? SCM_BIGSIGNFLAG : 0, y, SCM_BIGSIGNFLAG);
-#else
-      SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
-      scm_longdigs (xx, zdigs);
-      return scm_addbig (zdigs, SCM_DIGSPERLONG, 
-			 (xx < 0) ? SCM_BIGSIGNFLAG : 0, y, SCM_BIGSIGNFLAG);
-#endif
+    } else if (SCM_BIGP (y)) {      
+      /* inum-x - big-y */
+      long xx = SCM_INUM (x);
+
+      if (xx == 0)
+        return scm_i_clonebig (y, 0);
+      else
+        {
+          int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
+          SCM result = scm_i_mkbig ();
+
+          mpz_ui_sub (SCM_I_BIG_MPZ (result), xx, SCM_I_BIG_MPZ (y));
+          scm_remember_upto_here_1 (y);
+
+          if ((xx < 0 && (sgn_y > 0)) || ((xx > 0) && sgn_y < 0))
+            /* we know the result will have to be a bignum */
+            return result;
+          else
+            return scm_i_normbig (result);
+        }
     } else if (SCM_REALP (y)) {
+      long int xx = SCM_INUM (x);
       return scm_make_real (xx - SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
+      long int xx = SCM_INUM (x);
       return scm_make_complex (xx - SCM_COMPLEX_REAL (y),
 			       -SCM_COMPLEX_IMAG (y));
     } else {
@@ -3678,36 +3106,57 @@ scm_difference (SCM x, SCM y)
     }
   } else if (SCM_BIGP (x)) {
     if (SCM_INUMP (y)) {
-      long int yy = SCM_INUM (y);
-#ifndef SCM_DIGSTOOBIG
-      long z = scm_pseudolong (yy);
-      return scm_addbig ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG,
-			 (yy < 0) ? 0 : SCM_BIGSIGNFLAG, x, 0);
-#else
-      SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
-      scm_longdigs (yy, zdigs);
-      return scm_addbig (zdigs, SCM_DIGSPERLONG, 
-			 (yy < 0) ? 0 : SCM_BIGSIGNFLAG, x, 0);
-#endif
-    } else if (SCM_BIGP (y)) {
-      return (SCM_NUMDIGS (x) < SCM_NUMDIGS (y))
-	? scm_addbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-		      SCM_BIGSIGN (x), y, SCM_BIGSIGNFLAG)
-	: scm_addbig (SCM_BDIGITS (y), SCM_NUMDIGS (y),
-		      SCM_BIGSIGN (y) ^ SCM_BIGSIGNFLAG, x, 0);
-    } else if (SCM_REALP (y)) {
-      return scm_make_real (scm_i_big2dbl (x) - SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (scm_i_big2dbl (x) - SCM_COMPLEX_REAL (y),
-			       - SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
+      /* big-x - inum-y */
+      long yy = SCM_INUM (y);
+      int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x));
+
+      scm_remember_upto_here_1 (x);
+      if (sgn_x == 0)
+        return SCM_FIXABLE (-yy) ? SCM_MAKINUM (-yy) : scm_long2num (-yy);
+      else
+        {
+          SCM result = scm_i_mkbig ();
+
+          mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), yy);
+          scm_remember_upto_here_1 (x);
+
+          if ((sgn_x < 0 && (yy > 0)) || ((sgn_x > 0) && yy < 0))
+            /* we know the result will have to be a bignum */
+            return result;
+          else
+            return scm_i_normbig (result);
+        }
     }
+    else if (SCM_BIGP (y))
+      {
+        int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x)); 
+        int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y)); 
+        SCM result = scm_i_mkbig ();
+        mpz_sub (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+        scm_remember_upto_here_2 (x, y);
+        /* we know the result will have to be a bignum */
+        if ((sgn_x == 1) && (sgn_y == -1)) return result;
+        if ((sgn_x == -1) && (sgn_y == 1)) return result;
+        return scm_i_normbig (result);
+      }
+    else if (SCM_REALP (y)) {
+      double result = mpz_get_d (SCM_I_BIG_MPZ (x)) - SCM_REAL_VALUE (y);
+      scm_remember_upto_here_1 (x);
+      return scm_make_real (result);
+    }
+    else if (SCM_COMPLEXP (y)) {
+      double real_part = mpz_get_d (SCM_I_BIG_MPZ (x)) - SCM_COMPLEX_REAL (y);
+      scm_remember_upto_here_1 (x);
+      return scm_make_complex (real_part, - SCM_COMPLEX_IMAG (y));      
+    }
+    else SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
   } else if (SCM_REALP (x)) {
     if (SCM_INUMP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) - SCM_INUM (y));
     } else if (SCM_BIGP (y)) {
-      return scm_make_real (SCM_REAL_VALUE (x) - scm_i_big2dbl (y));
+      double result = SCM_REAL_VALUE (x) - mpz_get_d (SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_1 (x);
+      return scm_make_real (result);      
     } else if (SCM_REALP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) - SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3721,8 +3170,9 @@ scm_difference (SCM x, SCM y)
       return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_INUM (y),
 			       SCM_COMPLEX_IMAG (x));
     } else if (SCM_BIGP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) - scm_i_big2dbl (y),
-			       SCM_COMPLEX_IMAG (x));
+      double real_part = SCM_COMPLEX_REAL (x) - mpz_get_d (SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_1 (x);
+      return scm_make_complex (real_part, SCM_COMPLEX_IMAG (y));      
     } else if (SCM_REALP (y)) {
       return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_REAL_VALUE (y),
 			       SCM_COMPLEX_IMAG (x));
@@ -3737,6 +3187,7 @@ scm_difference (SCM x, SCM y)
   }
 }
 #undef FUNC_NAME
+
 
 SCM_GPROC1 (s_product, "*", scm_tc7_asubr, scm_product, g_product);
 /* "Return the product of all arguments.  If called without arguments,\n"
@@ -3754,59 +3205,35 @@ scm_product (SCM x, SCM y)
       SCM_WTA_DISPATCH_1 (g_product, x, SCM_ARG1, s_product);
     }
   }
-
+  
   if (SCM_INUMP (x)) {
     long xx;
 
   intbig:
     xx = SCM_INUM (x);
 
-    if (xx == 0) {
-      return x;
-    } else if (xx == 1) {
-      return y;
-    }
+    switch (xx)
+      {
+        case 0: return x; break;
+        case 1: return y; break;
+      }
 
     if (SCM_INUMP (y)) {
       long yy = SCM_INUM (y);
       long kk = xx * yy;
       SCM k = SCM_MAKINUM (kk);
-      if (kk != SCM_INUM (k) || kk / xx != yy) {
-#ifdef SCM_BIGDIG
-	int sgn = (xx < 0) ^ (yy < 0);
-#ifndef SCM_DIGSTOOBIG
-	long i = scm_pseudolong (xx);
-	long j = scm_pseudolong (yy);
-	return scm_mulbig ((SCM_BIGDIG *) & i, SCM_DIGSPERLONG,
-			   (SCM_BIGDIG *) & j, SCM_DIGSPERLONG, sgn);
-#else /* SCM_DIGSTOOBIG */
-	SCM_BIGDIG xdigs [SCM_DIGSPERLONG];
-	SCM_BIGDIG ydigs [SCM_DIGSPERLONG];
-	scm_longdigs (xx, xdigs);
-	scm_longdigs (yy, ydigs);
-	return scm_mulbig (xdigs, SCM_DIGSPERLONG,
-			   ydigs, SCM_DIGSPERLONG,
-			   sgn);
-#endif
-#else
-	return scm_make_real (((double) xx) * ((double) yy));
-#endif
+      if ((kk == SCM_INUM (k)) && (kk / xx == yy)) {
+        return k;
       } else {
-	return k;
+        SCM result = scm_i_long2big (xx);
+        mpz_mul_si (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result), yy);
+        return scm_i_normbig (result);
       }
     } else if (SCM_BIGP (y)) {
-#ifndef SCM_DIGSTOOBIG
-      long z = scm_pseudolong (xx);
-      return scm_mulbig ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG,
-			 SCM_BDIGITS (y), SCM_NUMDIGS (y),
-			 SCM_BIGSIGN (y) ? (xx > 0) : (xx < 0));
-#else
-      SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
-      scm_longdigs (xx, zdigs);
-      return scm_mulbig (zdigs, SCM_DIGSPERLONG,
-			 SCM_BDIGITS (y), SCM_NUMDIGS (y),
-			 SCM_BIGSIGN (y) ? (xx > 0) : (xx < 0));
-#endif
+      SCM result = scm_i_mkbig ();
+      mpz_mul_si (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (y), xx);
+      scm_remember_upto_here_1 (y);
+      return result;
     } else if (SCM_REALP (y)) {
       return scm_make_real (xx * SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3820,13 +3247,17 @@ scm_product (SCM x, SCM y)
       SCM_SWAP (x, y);
       goto intbig;
     } else if (SCM_BIGP (y)) {
-      return scm_mulbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			 SCM_BDIGITS (y), SCM_NUMDIGS (y),
-			 SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y));
+      SCM result = scm_i_mkbig ();
+      mpz_mul (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_2 (x, y);
+      return result;
     } else if (SCM_REALP (y)) {
-      return scm_make_real (scm_i_big2dbl (x) * SCM_REAL_VALUE (y));
+      double result = mpz_get_d (SCM_I_BIG_MPZ (x)) * SCM_REAL_VALUE (y);
+      scm_remember_upto_here_1 (x);
+      return scm_make_real (result);
     } else if (SCM_COMPLEXP (y)) {
-      double z = scm_i_big2dbl (x);
+      double z = mpz_get_d (SCM_I_BIG_MPZ (x));
+      scm_remember_upto_here_1 (x);
       return scm_make_complex (z * SCM_COMPLEX_REAL (y),
 			       z * SCM_COMPLEX_IMAG (y));
     } else {
@@ -3836,7 +3267,9 @@ scm_product (SCM x, SCM y)
     if (SCM_INUMP (y)) {
       return scm_make_real (SCM_INUM (y) * SCM_REAL_VALUE (x));
     } else if (SCM_BIGP (y)) {
-      return scm_make_real (scm_i_big2dbl (y) * SCM_REAL_VALUE (x));
+      double result = mpz_get_d (SCM_I_BIG_MPZ (y)) * SCM_REAL_VALUE (x);
+      scm_remember_upto_here_1 (y);
+      return scm_make_real (result);
     } else if (SCM_REALP (y)) {
       return scm_make_real (SCM_REAL_VALUE (x) * SCM_REAL_VALUE (y));
     } else if (SCM_COMPLEXP (y)) {
@@ -3850,9 +3283,10 @@ scm_product (SCM x, SCM y)
       return scm_make_complex (SCM_INUM (y) * SCM_COMPLEX_REAL (x),
 			       SCM_INUM (y) * SCM_COMPLEX_IMAG (x));
     } else if (SCM_BIGP (y)) {
-      double z = scm_i_big2dbl (y);
-      return scm_make_complex (z * SCM_COMPLEX_REAL (x),
-			       z * SCM_COMPLEX_IMAG (x));
+      double z = mpz_get_d (SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_1 (y);
+      return scm_make_complex (z * SCM_COMPLEX_REAL (y),
+			       z * SCM_COMPLEX_IMAG (y));
     } else if (SCM_REALP (y)) {
       return scm_make_complex (SCM_REAL_VALUE (y) * SCM_COMPLEX_REAL (x),
 			       SCM_REAL_VALUE (y) * SCM_COMPLEX_IMAG (x));
@@ -3869,7 +3303,6 @@ scm_product (SCM x, SCM y)
   }
 }
 
-
 double
 scm_num2dbl (SCM a, const char *why)
 #define FUNC_NAME why
@@ -3877,7 +3310,9 @@ scm_num2dbl (SCM a, const char *why)
   if (SCM_INUMP (a)) {
     return (double) SCM_INUM (a);
   } else if (SCM_BIGP (a)) {
-    return scm_i_big2dbl (a);
+    double result = mpz_get_d (SCM_I_BIG_MPZ (a));
+    scm_remember_upto_here_1 (a);
+    return result;
   } else if (SCM_REALP (a)) {
     return (SCM_REAL_VALUE (a));
   } else {
@@ -3987,11 +3422,7 @@ scm_divide (SCM x, SCM y)
 	if (SCM_FIXABLE (z)) {
 	  return SCM_MAKINUM (z);
 	} else {
-#ifdef SCM_BIGDIG
 	  return scm_i_long2big (z);
-#else
-	  return scm_make_real ((double) xx / (double) yy);
-#endif
 	}
       }
     } else if (SCM_BIGP (y)) {
@@ -4030,47 +3461,65 @@ scm_divide (SCM x, SCM y)
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
 	scm_num_overflow (s_divide);
 #else
-	if (scm_bigcomp (x, scm_i_int2big (0)) == 0)
-	  return scm_nan ();
-	else
-	  return scm_inf ();
+        int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+        scm_remember_upto_here_1 (x);
+	return (sgn == 0) ? scm_nan () : scm_inf ();
 #endif
       } else if (yy == 1) {
 	return x;
       } else {
-	long z = yy < 0 ? -yy : yy;
-	if (z < SCM_BIGRAD) {
-	  SCM w = scm_i_copybig (x, SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0));
-	  return scm_divbigdig (SCM_BDIGITS (w), SCM_NUMDIGS (w),
-				(SCM_BIGDIG) z)
-	    ? scm_make_real (scm_i_big2dbl (x) / (double) yy)
-	    : scm_i_normbig (w);
-	} else {
-	  SCM w;
-#ifndef SCM_DIGSTOOBIG
-	  z = scm_pseudolong (z);
-	  w = scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			     (SCM_BIGDIG *) & z, SCM_DIGSPERLONG,
-			     SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0), 3);
-#else
-	  SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
-	  scm_longdigs (z, zdigs);
-	  w = scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			     zdigs, SCM_DIGSPERLONG,
-			     SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0), 3);
-#endif
-	  return (!SCM_UNBNDP (w)) 
-	    ? w 
-	    : scm_make_real (scm_i_big2dbl (x) / (double) yy);
-	}
+        /* FIXME: HMM, what are the relative performance issues here?
+           We need to test.  Is it faster on average to test
+           divisible_p, then perform whichever operation, or is it
+           faster to perform the integer div opportunistically and
+           switch to real if there's a remainder?  For now we take the
+           middle ground: test, then if divisible, use the faster div
+           func. */
+
+	long abs_yy = yy < 0 ? -yy : yy;
+        int divisible_p = mpz_divisible_ui_p (SCM_I_BIG_MPZ (x), abs_yy);
+
+        if (divisible_p) {
+          SCM result = scm_i_mkbig ();
+          mpz_divexact_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), abs_yy);
+          scm_remember_upto_here_1 (x);
+          if (yy < 0)
+            mpz_neg (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
+          return scm_i_normbig (result);
+        }
+        else {
+          return scm_make_real (scm_i_big2dbl (x) / (double) yy);
+        }
       }
     } else if (SCM_BIGP (y)) {
-      SCM w = scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			     SCM_BDIGITS (y), SCM_NUMDIGS (y),
-			     SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y), 3);
-      return (!SCM_UNBNDP (w)) 
-	? w 
-	: scm_make_real (scm_i_big2dbl (x) / scm_i_big2dbl (y));
+      int y_is_zero = (mpz_sgn (SCM_I_BIG_MPZ (y)) == 0);
+      if (y_is_zero) {
+#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
+	scm_num_overflow (s_divide);
+#else
+        int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+        scm_remember_upto_here_1 (x);
+	return (sgn == 0) ? scm_nan () : scm_inf ();
+#endif
+      } else {
+        /* big_x / big_y */
+        int divisible_p = mpz_divisible_p (SCM_I_BIG_MPZ (x),
+                                           SCM_I_BIG_MPZ (y));
+        if (divisible_p) {
+          SCM result = scm_i_mkbig ();
+          mpz_divexact (SCM_I_BIG_MPZ (result),
+                        SCM_I_BIG_MPZ (x),
+                        SCM_I_BIG_MPZ (y));
+          scm_remember_upto_here_2 (x, y);
+          return scm_i_normbig (result);
+        }
+        else {
+          double dbx = mpz_get_d (SCM_I_BIG_MPZ (x));
+          double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
+          scm_remember_upto_here_2 (x, y);
+          return scm_make_real (dbx / dby);
+        }
+      }
     } else if (SCM_REALP (y)) {
       double yy = SCM_REAL_VALUE (y);
 #ifndef ALLOW_DIVIDE_BY_ZERO
@@ -4096,7 +3545,9 @@ scm_divide (SCM x, SCM y)
 #endif
 	return scm_make_real (rx / (double) yy);
     } else if (SCM_BIGP (y)) {
-      return scm_make_real (rx / scm_i_big2dbl (y));
+      double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_1 (y);
+      return scm_make_real (rx / dby);
     } else if (SCM_REALP (y)) {
       double yy = SCM_REAL_VALUE (y);
 #ifndef ALLOW_DIVIDE_BY_ZERO
@@ -4126,8 +3577,9 @@ scm_divide (SCM x, SCM y)
 	return scm_make_complex (rx / d, ix / d);
       }
     } else if (SCM_BIGP (y)) {
-      double d = scm_i_big2dbl (y);
-      return scm_make_complex (rx / d, ix / d);
+      double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
+      scm_remember_upto_here_1 (y);
+      return scm_make_complex (rx / dby, ix / dby);
     } else if (SCM_REALP (y)) {
       double yy = SCM_REAL_VALUE (y);
 #ifndef ALLOW_DIVIDE_BY_ZERO
@@ -4167,8 +3619,6 @@ scm_asinh (double x)
 }
 
 
-
-
 SCM_GPROC1 (s_acosh, "$acosh", scm_tc7_cxr, (SCM (*)()) scm_acosh, g_acosh);
 /* "Return the inverse hyperbolic cosine of @var{x}."
  */
@@ -4177,8 +3627,6 @@ scm_acosh (double x)
 {
   return log (x + sqrt (x * x - 1));
 }
-
-
 
 
 SCM_GPROC1 (s_atanh, "$atanh", scm_tc7_cxr, (SCM (*)()) scm_atanh, g_atanh);
@@ -4191,8 +3639,6 @@ scm_atanh (double x)
 }
 
 
-
-
 SCM_GPROC1 (s_truncate, "truncate", scm_tc7_cxr, (SCM (*)()) scm_truncate, g_truncate);
 /* "Round the inexact number @var{x} towards zero."
  */
@@ -4203,7 +3649,6 @@ scm_truncate (double x)
     return -floor (-x);
   return floor (x);
 }
-
 
 
 SCM_GPROC1 (s_round, "round", scm_tc7_cxr, (SCM (*)()) scm_round, g_round);
@@ -4411,17 +3856,15 @@ scm_magnitude (SCM z)
     } else if (SCM_POSFIXABLE (-zz)) {
       return SCM_MAKINUM (-zz);
     } else {
-#ifdef SCM_BIGDIG
       return scm_i_long2big (-zz);
-#else
-      scm_num_overflow (s_magnitude);
-#endif
     }
   } else if (SCM_BIGP (z)) {
-    if (!SCM_BIGSIGN (z)) {
-      return z;
+    int sgn = mpz_sgn (SCM_I_BIG_MPZ (z));
+    scm_remember_upto_here_1 (z);
+    if (sgn < 0) {
+      return scm_i_clonebig (z, 0);
     } else {
-      return scm_i_copybig (z, 0);
+      return z;
     }
   } else if (SCM_REALP (z)) {
     return scm_make_real (fabs (SCM_REAL_VALUE (z)));
@@ -4448,7 +3891,9 @@ scm_angle (SCM z)
       return scm_make_real (atan2 (0.0, -1.0));
     }
   } else if (SCM_BIGP (z)) {
-    if (SCM_BIGSIGN (z)) {
+    int sgn = mpz_sgn (SCM_I_BIG_MPZ (z));
+    scm_remember_upto_here_1 (z);
+    if (sgn < 0) {
       return scm_make_real (atan2 (0.0, -1.0));
     } else {
       return scm_make_real (atan2 (0.0, 1.0));
@@ -4494,10 +3939,8 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
     long lu = (long) u;
     if (SCM_FIXABLE (lu)) {
       return SCM_MAKINUM (lu);
-#ifdef SCM_BIGDIG
     } else if (isfinite (u) && !xisnan (u)) {
       return scm_i_dbl2big (u);
-#endif
     } else {
       scm_num_overflow (s_scm_inexact_to_exact);
     }
@@ -4506,52 +3949,6 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
   }
 }
 #undef FUNC_NAME
-
-
-#ifdef SCM_BIGDIG
-/* d must be integer */
-
-SCM
-scm_i_dbl2big (double d)
-{
-  size_t i = 0;
-  long c;
-  SCM_BIGDIG *digits;
-  SCM ans;
-  double u = (d < 0) ? -d : d;
-  while (0 != floor (u))
-    {
-      u /= SCM_BIGRAD;
-      i++;
-    }
-  ans = scm_i_mkbig (i, d < 0);
-  digits = SCM_BDIGITS (ans);
-  while (i--)
-    {
-      u *= SCM_BIGRAD;
-      c = floor (u);
-      u -= c;
-      digits[i] = c;
-    }
-  if (u != 0)
-    scm_num_overflow ("dbl2big");
-  return ans;
-}
-
-double
-scm_i_big2dbl (SCM b)
-{
-  double ans = 0.0;
-  size_t i = SCM_NUMDIGS (b);
-  SCM_BIGDIG *digits = SCM_BDIGITS (b);
-  while (i--)
-    ans = digits[i] + SCM_BIGRAD * ans;
-  if (SCM_BIGSIGN (b))
-    return - ans;
-  return ans;
-}
-
-#endif
 
 #if SCM_SIZEOF_LONG_LONG != 0
 # ifndef LLONG_MAX
@@ -4567,39 +3964,37 @@ scm_i_big2dbl (SCM b)
    "libguile/num2integral.i.c":
 
    NUM2INTEGRAL - the name of the function for converting from a
-                  Scheme object to the integral type.  This function
-                  will be defined when including "num2integral.i.c".
+     Scheme object to the integral type.  This function will be
+     defined when including "num2integral.i.c".
 
    INTEGRAL2NUM - the name of the function for converting from the
-                  integral type to a Scheme object.  This function
-                  will be defined.
+     integral type to a Scheme object.  This function will be defined.
 
    INTEGRAL2BIG - the name of an internal function that createas a
-                  bignum from the integral type.  This function will
-                  be defined.  The name should start with "scm_i_".
+     bignum from the integral type.  This function will be defined.
+     The name should start with "scm_i_".
 
-   ITYPE        - the name of the integral type.
+   ITYPE - the name of the integral type.
 
-   UNSIGNED     - Define this when ITYPE is an unsigned type.  Do not
-                  define it otherwise.
+   UNSIGNED - Define this when ITYPE is an unsigned type.  Do not
+     define it otherwise.
 
-   UNSIGNED_ITYPE
-                - the name of the the unsigned variant of the
-                  integral type.  If you don't define this, it defaults
-                  to "unsigned ITYPE" for signed types and simply "ITYPE"
-                  for unsigned ones.
+   UNSIGNED_ITYPE - the name of the the unsigned variant of the
+     integral type.  If you don't define this, it defaults to
+     "unsigned ITYPE" for signed types and simply "ITYPE" for unsigned
+     ones.
 
-   SIZEOF_ITYPE - an expression giving the size of the integral type in
-                  bytes.  This expression must be computable by the
-                  preprocessor.  If you don't know a value for this,
-                  don't define it.  The purpose of this parameter is
-                  mainly to suppress some warnings.  The generated
-                  code will work correctly without it.
+   SIZEOF_ITYPE - an expression giving the size of the integral type
+     in bytes.  This expression must be computable by the
+     preprocessor.  (SIZEOF_FOO values are calculated by configure.in
+     for common types).
+
 */
 
 #define NUM2INTEGRAL scm_num2short
 #define INTEGRAL2NUM scm_short2num
 #define INTEGRAL2BIG scm_i_short2big
+#define UNSIGNED 0
 #define ITYPE short
 #define SIZEOF_ITYPE SIZEOF_SHORT
 #include "libguile/num2integral.i.c"
@@ -4607,14 +4002,15 @@ scm_i_big2dbl (SCM b)
 #define NUM2INTEGRAL scm_num2ushort
 #define INTEGRAL2NUM scm_ushort2num
 #define INTEGRAL2BIG scm_i_ushort2big
-#define UNSIGNED
+#define UNSIGNED 1
 #define ITYPE unsigned short
-#define SIZEOF_ITYPE SIZEOF_SHORT
+#define SIZEOF_ITYPE SIZEOF_UNSIGNED_SHORT
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2int
 #define INTEGRAL2NUM scm_int2num
 #define INTEGRAL2BIG scm_i_int2big
+#define UNSIGNED 0
 #define ITYPE int
 #define SIZEOF_ITYPE SIZEOF_INT
 #include "libguile/num2integral.i.c"
@@ -4622,14 +4018,15 @@ scm_i_big2dbl (SCM b)
 #define NUM2INTEGRAL scm_num2uint
 #define INTEGRAL2NUM scm_uint2num
 #define INTEGRAL2BIG scm_i_uint2big
-#define UNSIGNED
+#define UNSIGNED 1
 #define ITYPE unsigned int
-#define SIZEOF_ITYPE SIZEOF_INT
+#define SIZEOF_ITYPE SIZEOF_UNSIGNED_INT
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2long
 #define INTEGRAL2NUM scm_long2num
 #define INTEGRAL2BIG scm_i_long2big
+#define UNSIGNED 0
 #define ITYPE long
 #define SIZEOF_ITYPE SIZEOF_LONG
 #include "libguile/num2integral.i.c"
@@ -4637,14 +4034,15 @@ scm_i_big2dbl (SCM b)
 #define NUM2INTEGRAL scm_num2ulong
 #define INTEGRAL2NUM scm_ulong2num
 #define INTEGRAL2BIG scm_i_ulong2big
-#define UNSIGNED
+#define UNSIGNED 1
 #define ITYPE unsigned long
-#define SIZEOF_ITYPE SIZEOF_LONG
+#define SIZEOF_ITYPE SIZEOF_UNSIGNED_LONG
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2ptrdiff
 #define INTEGRAL2NUM scm_ptrdiff2num
 #define INTEGRAL2BIG scm_i_ptrdiff2big
+#define UNSIGNED 0
 #define ITYPE scm_t_ptrdiff
 #define UNSIGNED_ITYPE size_t
 #define SIZEOF_ITYPE SCM_SIZEOF_SCM_T_PTRDIFF
@@ -4653,7 +4051,7 @@ scm_i_big2dbl (SCM b)
 #define NUM2INTEGRAL scm_num2size
 #define INTEGRAL2NUM scm_size2num
 #define INTEGRAL2BIG scm_i_size2big
-#define UNSIGNED
+#define UNSIGNED 1
 #define ITYPE size_t
 #define SIZEOF_ITYPE SIZEOF_SIZE_T
 #include "libguile/num2integral.i.c"
@@ -4667,6 +4065,7 @@ scm_i_big2dbl (SCM b)
 #define NUM2INTEGRAL scm_num2long_long
 #define INTEGRAL2NUM scm_long_long2num
 #define INTEGRAL2BIG scm_i_long_long2big
+#define UNSIGNED 0
 #define ITYPE long long
 #define SIZEOF_ITYPE SIZEOF_LONG_LONG
 #include "libguile/num2integral.i.c"
@@ -4674,9 +4073,9 @@ scm_i_big2dbl (SCM b)
 #define NUM2INTEGRAL scm_num2ulong_long
 #define INTEGRAL2NUM scm_ulong_long2num
 #define INTEGRAL2BIG scm_i_ulong_long2big
-#define UNSIGNED
+#define UNSIGNED 1
 #define ITYPE unsigned long long
-#define SIZEOF_ITYPE SIZEOF_LONG_LONG
+#define SIZEOF_ITYPE SIZEOF_UNSIGNED_LONG_LONG
 #include "libguile/num2integral.i.c"
 
 #endif /* SCM_SIZEOF_LONG_LONG != 0 */
