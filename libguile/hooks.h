@@ -79,39 +79,39 @@ typedef struct scm_t_c_hook {
   void *data;
 } scm_t_c_hook;
 
-extern void scm_c_hook_init (scm_t_c_hook *hook,
-			     void *hook_data,
-			     scm_t_c_hookype_t type);
-extern void scm_c_hook_add (scm_t_c_hook *hook,
-			    scm_t_c_hook_function func,
-			    void *func_data, 
-			    int appendp);
-extern void scm_c_hook_remove (scm_t_c_hook *hook,
-			       scm_t_c_hook_function func,
-			       void *func_data);
-extern void *scm_c_hook_run (scm_t_c_hook *hook, void *data);
+SCM_API void scm_c_hook_init (scm_t_c_hook *hook,
+			      void *hook_data,
+			      scm_t_c_hookype_t type);
+SCM_API void scm_c_hook_add (scm_t_c_hook *hook,
+			     scm_t_c_hook_function func,
+			     void *func_data, 
+			     int appendp);
+SCM_API void scm_c_hook_remove (scm_t_c_hook *hook,
+				scm_t_c_hook_function func,
+				void *func_data);
+SCM_API void *scm_c_hook_run (scm_t_c_hook *hook, void *data);
 
 /*
  * Scheme level hooks
  */
 
-extern scm_t_bits scm_tc16_hook;
+SCM_API scm_t_bits scm_tc16_hook;
 
 #define SCM_HOOKP(x)			SCM_TYP16_PREDICATE (scm_tc16_hook, x)
 #define SCM_HOOK_ARITY(hook)		(SCM_CELL_WORD_0 (hook) >> 16)
 #define SCM_HOOK_PROCEDURES(hook)	SCM_CELL_OBJECT_1 (hook)
 #define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SET_CELL_OBJECT_1 ((hook), (procs))
 
-extern SCM scm_make_hook (SCM n_args);
-extern SCM scm_hook_p (SCM x);
-extern SCM scm_hook_empty_p (SCM hook);
-extern SCM scm_add_hook_x (SCM hook, SCM thunk, SCM appendp);
-extern SCM scm_remove_hook_x (SCM hook, SCM thunk);
-extern SCM scm_reset_hook_x (SCM hook);
-extern SCM scm_run_hook (SCM hook, SCM args);
-extern void scm_c_run_hook (SCM hook, SCM args);
-extern SCM scm_hook_to_list (SCM hook);
-extern void scm_init_hooks (void);
+SCM_API SCM scm_make_hook (SCM n_args);
+SCM_API SCM scm_hook_p (SCM x);
+SCM_API SCM scm_hook_empty_p (SCM hook);
+SCM_API SCM scm_add_hook_x (SCM hook, SCM thunk, SCM appendp);
+SCM_API SCM scm_remove_hook_x (SCM hook, SCM thunk);
+SCM_API SCM scm_reset_hook_x (SCM hook);
+SCM_API SCM scm_run_hook (SCM hook, SCM args);
+SCM_API void scm_c_run_hook (SCM hook, SCM args);
+SCM_API SCM scm_hook_to_list (SCM hook);
+SCM_API void scm_init_hooks (void);
 
 #endif  /* SCM_HOOKS_H */
 

@@ -53,9 +53,9 @@
 
 
 /* smob tags for the thread datatypes */
-extern scm_t_bits scm_tc16_thread;
-extern scm_t_bits scm_tc16_mutex;
-extern scm_t_bits scm_tc16_condvar;
+SCM_API scm_t_bits scm_tc16_thread;
+SCM_API scm_t_bits scm_tc16_mutex;
+SCM_API scm_t_bits scm_tc16_condvar;
 
 #define SCM_THREADP(x)      SCM_TYP16_PREDICATE (scm_tc16_thread, x)
 #define SCM_THREAD_DATA(x)  ((void *) SCM_CELL_WORD_1 (x))
@@ -67,38 +67,38 @@ extern scm_t_bits scm_tc16_condvar;
 #define SCM_CONDVAR_DATA(x) ((void *) SCM_CELL_WORD_1 (x))
 
 /* Initialize implementation specific details of the threads support */
-void scm_threads_init (SCM_STACKITEM *);
-void scm_threads_mark_stacks (void);
-void scm_init_threads (SCM_STACKITEM *);
+SCM_API void scm_threads_init (SCM_STACKITEM *);
+SCM_API void scm_threads_mark_stacks (void);
+SCM_API void scm_init_threads (SCM_STACKITEM *);
 
 /* */
-SCM scm_threads_make_mutex (void);
-SCM scm_threads_lock_mutex (SCM);
-SCM scm_threads_unlock_mutex (SCM);
-SCM scm_threads_monitor (void);
+SCM_API SCM scm_threads_make_mutex (void);
+SCM_API SCM scm_threads_lock_mutex (SCM);
+SCM_API SCM scm_threads_unlock_mutex (SCM);
+SCM_API SCM scm_threads_monitor (void);
 
-SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
-		      scm_t_catch_handler handler, void *handler_data);
+SCM_API SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
+			      scm_t_catch_handler handler, void *handler_data);
 
 /* These are versions of the ordinary sleep and usleep functions,
    that play nicely with the thread system.  */
-unsigned long scm_thread_sleep (unsigned long);
-unsigned long scm_thread_usleep (unsigned long);
+SCM_API unsigned long scm_thread_sleep (unsigned long);
+SCM_API unsigned long scm_thread_usleep (unsigned long);
 
 
 /* The C versions of the Scheme-visible thread functions.  */
 #ifdef USE_COOP_THREADS
-extern SCM scm_single_thread_p (void);
+SCM_API SCM scm_single_thread_p (void);
 #endif
-extern SCM scm_yield (void);
-extern SCM scm_call_with_new_thread (SCM argl);
-extern SCM scm_join_thread (SCM t);
-extern SCM scm_make_mutex (void);
-extern SCM scm_lock_mutex (SCM m);
-extern SCM scm_unlock_mutex (SCM m);
-extern SCM scm_make_condition_variable (void);
-extern SCM scm_wait_condition_variable (SCM cond, SCM mutex);
-extern SCM scm_signal_condition_variable (SCM cond);
+SCM_API SCM scm_yield (void);
+SCM_API SCM scm_call_with_new_thread (SCM argl);
+SCM_API SCM scm_join_thread (SCM t);
+SCM_API SCM scm_make_mutex (void);
+SCM_API SCM scm_lock_mutex (SCM m);
+SCM_API SCM scm_unlock_mutex (SCM m);
+SCM_API SCM scm_make_condition_variable (void);
+SCM_API SCM scm_wait_condition_variable (SCM cond, SCM mutex);
+SCM_API SCM scm_signal_condition_variable (SCM cond);
 
 #ifdef USE_COOP_THREADS
 #include "libguile/coop-defs.h"

@@ -295,100 +295,100 @@ typedef unsigned long scm_t_c_bvec_limb;
 #define SCM_NMARKEDP(x) (!SCM_MARKEDP (x))
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
-extern scm_t_bits scm_tc16_allocated;
-extern unsigned int scm_debug_cell_accesses_p;
+SCM_API scm_t_bits scm_tc16_allocated;
+SCM_API unsigned int scm_debug_cell_accesses_p;
 #endif
 
-extern struct scm_t_heap_seg_data *scm_heap_table;
-extern size_t scm_n_heap_segs;
-extern int scm_block_gc;
-extern int scm_gc_heap_lock;
-extern unsigned int scm_gc_running_p;
+SCM_API struct scm_t_heap_seg_data *scm_heap_table;
+SCM_API size_t scm_n_heap_segs;
+SCM_API int scm_block_gc;
+SCM_API int scm_gc_heap_lock;
+SCM_API unsigned int scm_gc_running_p;
 
 
-extern size_t scm_default_init_heap_size_1;
-extern int scm_default_min_yield_1;
-extern size_t scm_default_init_heap_size_2;
-extern int scm_default_min_yield_2;
-extern size_t scm_default_max_segment_size;
+SCM_API size_t scm_default_init_heap_size_1;
+SCM_API int scm_default_min_yield_1;
+SCM_API size_t scm_default_init_heap_size_2;
+SCM_API int scm_default_min_yield_2;
+SCM_API size_t scm_default_max_segment_size;
 
-extern size_t scm_max_segment_size;
-extern SCM_CELLPTR scm_heap_org;
-extern SCM scm_freelist;
-extern struct scm_t_freelist scm_master_freelist;
-extern SCM scm_freelist2;
-extern struct scm_t_freelist scm_master_freelist2;
-extern unsigned long scm_gc_cells_collected;
-extern unsigned long scm_gc_yield;
-extern unsigned long scm_gc_malloc_collected;
-extern unsigned long scm_gc_ports_collected;
-extern unsigned long scm_cells_allocated;
-extern unsigned long scm_mallocated;
-extern unsigned long scm_mtrigger;
+SCM_API size_t scm_max_segment_size;
+SCM_API SCM_CELLPTR scm_heap_org;
+SCM_API SCM scm_freelist;
+SCM_API struct scm_t_freelist scm_master_freelist;
+SCM_API SCM scm_freelist2;
+SCM_API struct scm_t_freelist scm_master_freelist2;
+SCM_API unsigned long scm_gc_cells_collected;
+SCM_API unsigned long scm_gc_yield;
+SCM_API unsigned long scm_gc_malloc_collected;
+SCM_API unsigned long scm_gc_ports_collected;
+SCM_API unsigned long scm_cells_allocated;
+SCM_API unsigned long scm_mallocated;
+SCM_API unsigned long scm_mtrigger;
 
-extern SCM scm_after_gc_hook;
+SCM_API SCM scm_after_gc_hook;
 
-extern scm_t_c_hook scm_before_gc_c_hook;
-extern scm_t_c_hook scm_before_mark_c_hook;
-extern scm_t_c_hook scm_before_sweep_c_hook;
-extern scm_t_c_hook scm_after_sweep_c_hook;
-extern scm_t_c_hook scm_after_gc_c_hook;
+SCM_API scm_t_c_hook scm_before_gc_c_hook;
+SCM_API scm_t_c_hook scm_before_mark_c_hook;
+SCM_API scm_t_c_hook scm_before_sweep_c_hook;
+SCM_API scm_t_c_hook scm_after_sweep_c_hook;
+SCM_API scm_t_c_hook scm_after_gc_c_hook;
 
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
-extern SCM scm_map_free_list (void);
-extern SCM scm_free_list_length (void);
+SCM_API SCM scm_map_free_list (void);
+SCM_API SCM scm_free_list_length (void);
 #endif
 #ifdef GUILE_DEBUG_FREELIST
-extern SCM scm_debug_newcell (void);
-extern SCM scm_debug_newcell2 (void);
-extern SCM scm_gc_set_debug_check_freelist_x (SCM flag);
+SCM_API SCM scm_debug_newcell (void);
+SCM_API SCM scm_debug_newcell2 (void);
+SCM_API SCM scm_gc_set_debug_check_freelist_x (SCM flag);
 #endif
 
 
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
-extern void scm_assert_cell_valid (SCM);
-extern SCM scm_set_debug_cell_accesses_x (SCM flag);
+SCM_API void scm_assert_cell_valid (SCM);
+SCM_API SCM scm_set_debug_cell_accesses_x (SCM flag);
 #endif
-extern SCM scm_object_address (SCM obj);
-extern SCM scm_unhash_name (SCM name);
-extern SCM scm_gc_stats (void);
-extern SCM scm_gc (void);
-extern void scm_gc_for_alloc (struct scm_t_freelist *freelist);
-extern SCM scm_gc_for_newcell (struct scm_t_freelist *master, SCM *freelist);
+SCM_API SCM scm_object_address (SCM obj);
+SCM_API SCM scm_unhash_name (SCM name);
+SCM_API SCM scm_gc_stats (void);
+SCM_API SCM scm_gc (void);
+SCM_API void scm_gc_for_alloc (struct scm_t_freelist *freelist);
+SCM_API SCM scm_gc_for_newcell (struct scm_t_freelist *master, SCM *freelist);
 #if 0
-extern void scm_alloc_cluster (struct scm_t_freelist *master);
+SCM_API void scm_alloc_cluster (struct scm_t_freelist *master);
 #endif
-extern void scm_igc (const char *what);
-extern void scm_gc_mark (SCM p);
-extern void scm_gc_mark_dependencies (SCM p);
-extern void scm_mark_locations (SCM_STACKITEM x[], unsigned long n);
-extern int scm_cellp (SCM value);
-extern void scm_gc_sweep (void);
-extern void * scm_must_malloc (size_t len, const char *what);
-extern void * scm_must_realloc (void *where,
-				size_t olen, size_t len,
-				const char *what);
-extern char *scm_must_strdup (const char *str);
-extern char *scm_must_strndup (const char *str, size_t n);
-extern void scm_done_malloc (long size);
-extern void scm_done_free (long size);
-extern void scm_must_free (void *obj);
-extern void scm_remember_upto_here_1 (SCM obj);
-extern void scm_remember_upto_here_2 (SCM obj1, SCM obj2);
-extern void scm_remember_upto_here (SCM obj1, ...);
-extern SCM scm_return_first (SCM elt, ...);
-extern int scm_return_first_int (int x, ...);
-extern SCM scm_permanent_object (SCM obj);
-extern SCM scm_gc_protect_object (SCM obj);
-extern SCM scm_gc_unprotect_object (SCM obj);
-extern void scm_gc_register_root (SCM *p);
-extern void scm_gc_unregister_root (SCM *p);
-extern void scm_gc_register_roots (SCM *b, unsigned long n);
-extern void scm_gc_unregister_roots (SCM *b, unsigned long n);
-extern int scm_init_storage (void);
-extern void *scm_get_stack_base (void);
-extern void scm_init_gc (void);
+SCM_API void scm_igc (const char *what);
+SCM_API void scm_gc_mark (SCM p);
+SCM_API void scm_gc_mark_dependencies (SCM p);
+SCM_API void scm_mark_locations (SCM_STACKITEM x[], unsigned long n);
+SCM_API int scm_cellp (SCM value);
+SCM_API void scm_gc_sweep (void);
+SCM_API void * scm_must_malloc (size_t len, const char *what);
+SCM_API void * scm_must_realloc (void *where,
+				 size_t olen, size_t len,
+				 const char *what);
+SCM_API char *scm_must_strdup (const char *str);
+SCM_API char *scm_must_strndup (const char *str, size_t n);
+SCM_API void scm_done_malloc (long size);
+SCM_API void scm_done_free (long size);
+SCM_API void scm_must_free (void *obj);
+SCM_API void scm_remember_upto_here_1 (SCM obj);
+SCM_API void scm_remember_upto_here_2 (SCM obj1, SCM obj2);
+SCM_API void scm_remember_upto_here (SCM obj1, ...);
+SCM_API SCM scm_return_first (SCM elt, ...);
+SCM_API int scm_return_first_int (int x, ...);
+SCM_API SCM scm_permanent_object (SCM obj);
+SCM_API SCM scm_gc_protect_object (SCM obj);
+SCM_API SCM scm_gc_unprotect_object (SCM obj);
+SCM_API void scm_gc_register_root (SCM *p);
+SCM_API void scm_gc_unregister_root (SCM *p);
+SCM_API void scm_gc_register_roots (SCM *b, unsigned long n);
+SCM_API void scm_gc_unregister_roots (SCM *b, unsigned long n);
+SCM_API int scm_init_storage (void);
+SCM_API void *scm_get_stack_base (void);
+SCM_API void scm_init_gc (void);
 
 #endif  /* SCM_GC_H */
 

@@ -72,7 +72,7 @@
    implement a more lightweight version of fluids on top of this basic
    mechanism. */
 
-extern scm_t_bits scm_tc16_fluid;
+SCM_API scm_t_bits scm_tc16_fluid;
 
 #define SCM_FLUIDP(x)    (!SCM_IMP (x) && (SCM_CELL_TYPE (x) == scm_tc16_fluid))
 #define SCM_FLUID_NUM(x) (SCM_CELL_WORD_1 (x))
@@ -89,23 +89,23 @@ SCM_FLUID_NUM, not the fluid itself. */
 #define SCM_FAST_FLUID_REF(n) (SCM_VELTS(scm_root->fluids)[n])
 #define SCM_FAST_FLUID_SET_X(n, val) (SCM_VELTS(scm_root->fluids)[n] = val)
 
-SCM scm_make_fluid (void);
-SCM scm_fluid_p (SCM fl);
-SCM scm_fluid_ref (SCM fluid);
-SCM scm_fluid_set_x (SCM fluid, SCM value);
+SCM_API SCM scm_make_fluid (void);
+SCM_API SCM scm_fluid_p (SCM fl);
+SCM_API SCM scm_fluid_ref (SCM fluid);
+SCM_API SCM scm_fluid_set_x (SCM fluid, SCM value);
 
-SCM scm_c_with_fluids (SCM fluids, SCM vals,
-		       SCM (*cproc)(void *), void *cdata);
-SCM scm_c_with_fluid (SCM fluid, SCM val,
-		      SCM (*cproc)(void *), void *cdata);
-SCM scm_with_fluids (SCM fluids, SCM vals, SCM thunk);
+SCM_API SCM scm_c_with_fluids (SCM fluids, SCM vals,
+			       SCM (*cproc)(void *), void *cdata);
+SCM_API SCM scm_c_with_fluid (SCM fluid, SCM val,
+			      SCM (*cproc)(void *), void *cdata);
+SCM_API SCM scm_with_fluids (SCM fluids, SCM vals, SCM thunk);
 
-SCM scm_make_initial_fluids (void);
-void scm_copy_fluids (scm_root_state *);
-void scm_swap_fluids (SCM fluids, SCM vals);
-void scm_swap_fluids_reverse (SCM fluids, SCM vals);
+SCM_API SCM scm_make_initial_fluids (void);
+SCM_API void scm_copy_fluids (scm_root_state *);
+SCM_API void scm_swap_fluids (SCM fluids, SCM vals);
+SCM_API void scm_swap_fluids_reverse (SCM fluids, SCM vals);
 
-void scm_init_fluids (void);
+SCM_API void scm_init_fluids (void);
 
 #endif  /* SCM_FLUIDS_H */
 

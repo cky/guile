@@ -50,20 +50,20 @@
 
 
 
-extern SCM scm_restricted_vector_sort_x (SCM vec,
-					 SCM less,
-					 SCM startpos,
-					 SCM endpos);
-extern SCM scm_sorted_p (SCM ls, SCM less);
-extern SCM scm_merge (SCM ls1, SCM ls2, SCM less);
-extern SCM scm_merge_x (SCM ls1, SCM ls2, SCM less);
-extern SCM scm_sort (SCM ls, SCM less);
-extern SCM scm_sort_x (SCM ls, SCM less);
-extern SCM scm_stable_sort (SCM ls, SCM less);
-extern SCM scm_stable_sort_x (SCM ls, SCM less);
-extern SCM scm_sort_list (SCM ls, SCM less);
-extern SCM scm_sort_list_x (SCM ls, SCM less);
-extern void scm_init_sort (void);
+SCM_API SCM scm_restricted_vector_sort_x (SCM vec,
+					  SCM less,
+					  SCM startpos,
+					  SCM endpos);
+SCM_API SCM scm_sorted_p (SCM ls, SCM less);
+SCM_API SCM scm_merge (SCM ls1, SCM ls2, SCM less);
+SCM_API SCM scm_merge_x (SCM ls1, SCM ls2, SCM less);
+SCM_API SCM scm_sort (SCM ls, SCM less);
+SCM_API SCM scm_sort_x (SCM ls, SCM less);
+SCM_API SCM scm_stable_sort (SCM ls, SCM less);
+SCM_API SCM scm_stable_sort_x (SCM ls, SCM less);
+SCM_API SCM scm_sort_list (SCM ls, SCM less);
+SCM_API SCM scm_sort_list_x (SCM ls, SCM less);
+SCM_API void scm_init_sort (void);
 
 #endif  /* SCM_SORT_H */
 

@@ -57,7 +57,7 @@ typedef struct scm_t_fport {
   int fdes;			/* file descriptor.  */
 } scm_t_fport;
 
-extern scm_t_bits scm_tc16_fport;
+SCM_API scm_t_bits scm_tc16_fport;
 
 #define SCM_FSTREAM(x) ((scm_t_fport *) SCM_STREAM (x))
 #define SCM_FPORT_FDES(x) (SCM_FSTREAM (x)->fdes)
@@ -71,13 +71,13 @@ extern scm_t_bits scm_tc16_fport;
 #define SCM_FDES_RANDOM_P(fdes) ((lseek (fdes, 0, SEEK_CUR) == -1) ? 0 : 1)
 
 
-extern SCM scm_setbuf0 (SCM port);
-extern SCM scm_setvbuf (SCM port, SCM mode, SCM size);
-extern void scm_evict_ports (int fd);
-extern SCM scm_open_file (SCM filename, SCM modes);
-extern SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
-extern SCM scm_file_port_p (SCM obj);
-extern void scm_init_fports (void);
+SCM_API SCM scm_setbuf0 (SCM port);
+SCM_API SCM scm_setvbuf (SCM port, SCM mode, SCM size);
+SCM_API void scm_evict_ports (int fd);
+SCM_API SCM scm_open_file (SCM filename, SCM modes);
+SCM_API SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
+SCM_API SCM scm_file_port_p (SCM obj);
+SCM_API void scm_init_fports (void);
 
 #endif  /* SCM_FPORTS_H */
 

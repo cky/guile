@@ -73,7 +73,7 @@ typedef struct scm_t_stack {
   scm_t_info_frame tail[1];
 } scm_t_stack;
 
-extern SCM scm_t_stackype;
+SCM_API SCM scm_t_stackype;
 
 #define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_EQ_P (SCM_STRUCT_VTABLE (obj), scm_t_stackype))
 #define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> length)
@@ -115,26 +115,26 @@ extern SCM scm_t_stackype;
 
 
 
-SCM scm_stack_p (SCM obj);
-SCM scm_make_stack (SCM obj, SCM args);
-SCM scm_stack_id (SCM stack);
-SCM scm_stack_ref (SCM stack, SCM i);
-SCM scm_stack_length (SCM stack);
+SCM_API SCM scm_stack_p (SCM obj);
+SCM_API SCM scm_make_stack (SCM obj, SCM args);
+SCM_API SCM scm_stack_id (SCM stack);
+SCM_API SCM scm_stack_ref (SCM stack, SCM i);
+SCM_API SCM scm_stack_length (SCM stack);
 
-SCM scm_frame_p (SCM obj);
-SCM scm_last_stack_frame (SCM obj);
-SCM scm_frame_number (SCM frame);
-SCM scm_frame_source (SCM frame);
-SCM scm_frame_procedure (SCM frame);
-SCM scm_frame_arguments (SCM frame);
-SCM scm_frame_previous (SCM frame);
-SCM scm_frame_next (SCM frame);
-SCM scm_frame_real_p (SCM frame);
-SCM scm_frame_procedure_p (SCM frame);
-SCM scm_frame_evaluating_args_p (SCM frame);
-SCM scm_frame_overflow_p (SCM frame);
+SCM_API SCM scm_frame_p (SCM obj);
+SCM_API SCM scm_last_stack_frame (SCM obj);
+SCM_API SCM scm_frame_number (SCM frame);
+SCM_API SCM scm_frame_source (SCM frame);
+SCM_API SCM scm_frame_procedure (SCM frame);
+SCM_API SCM scm_frame_arguments (SCM frame);
+SCM_API SCM scm_frame_previous (SCM frame);
+SCM_API SCM scm_frame_next (SCM frame);
+SCM_API SCM scm_frame_real_p (SCM frame);
+SCM_API SCM scm_frame_procedure_p (SCM frame);
+SCM_API SCM scm_frame_evaluating_args_p (SCM frame);
+SCM_API SCM scm_frame_overflow_p (SCM frame);
 
-void scm_init_stacks (void);
+SCM_API void scm_init_stacks (void);
 
 #endif  /* SCM_STACKS_H */
 

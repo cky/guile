@@ -49,17 +49,17 @@
 #include "libguile/__scm.h"
 
 
-extern int scm_initialized_p;
+SCM_API int scm_initialized_p;
 
-extern void scm_init_guile (void);
+SCM_API void scm_init_guile (void);
 
-extern void scm_boot_guile (int argc, char **argv,
-			    void (*main_func) (void *closure,
-					       int argc,
-					       char **argv),
-			    void *closure);
+SCM_API void scm_boot_guile (int argc, char **argv,
+			     void (*main_func) (void *closure,
+						int argc,
+						char **argv),
+			     void *closure);
 
-extern void scm_load_startup_files (void);
+SCM_API void scm_load_startup_files (void);
 
 #endif  /* SCM_INIT_H */
 

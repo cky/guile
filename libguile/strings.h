@@ -60,23 +60,23 @@
 
 
 
-extern SCM scm_string_p (SCM x);
-extern SCM scm_string (SCM chrs);
-extern SCM scm_makfromstrs (int argc, char **argv);
-extern SCM scm_take_str (char *s, size_t len);
-extern SCM scm_take0str (char *s);
-extern SCM scm_mem2string (const char *src, size_t len);
-extern SCM scm_str2string (const char *src);
-extern SCM scm_makfrom0str (const char *src);
-extern SCM scm_makfrom0str_opt (const char *src);
-extern SCM scm_allocate_string (size_t len);
-extern SCM scm_make_string (SCM k, SCM chr);
-extern SCM scm_string_length (SCM str);
-extern SCM scm_string_ref (SCM str, SCM k);
-extern SCM scm_string_set_x (SCM str, SCM k, SCM chr);
-extern SCM scm_substring (SCM str, SCM start, SCM end);
-extern SCM scm_string_append (SCM args);
-extern void scm_init_strings (void);
+SCM_API SCM scm_string_p (SCM x);
+SCM_API SCM scm_string (SCM chrs);
+SCM_API SCM scm_makfromstrs (int argc, char **argv);
+SCM_API SCM scm_take_str (char *s, size_t len);
+SCM_API SCM scm_take0str (char *s);
+SCM_API SCM scm_mem2string (const char *src, size_t len);
+SCM_API SCM scm_str2string (const char *src);
+SCM_API SCM scm_makfrom0str (const char *src);
+SCM_API SCM scm_makfrom0str_opt (const char *src);
+SCM_API SCM scm_allocate_string (size_t len);
+SCM_API SCM scm_make_string (SCM k, SCM chr);
+SCM_API SCM scm_string_length (SCM str);
+SCM_API SCM scm_string_ref (SCM str, SCM k);
+SCM_API SCM scm_string_set_x (SCM str, SCM k, SCM chr);
+SCM_API SCM scm_substring (SCM str, SCM start, SCM end);
+SCM_API SCM scm_string_append (SCM args);
+SCM_API void scm_init_strings (void);
 
 
 

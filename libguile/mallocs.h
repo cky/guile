@@ -49,7 +49,7 @@
 #include "libguile/__scm.h"
 
 
-extern scm_t_bits scm_tc16_malloc;
+SCM_API scm_t_bits scm_tc16_malloc;
 
 #define SCM_MALLOCP(X)  (SCM_TYP16 (X) == scm_tc16_malloc)
 #define SCM_MALLOCDATA(obj) ((char *) SCM_CELL_WORD_1 (obj))
@@ -57,8 +57,8 @@ extern scm_t_bits scm_tc16_malloc;
 
 
 
-extern SCM scm_malloc_obj (size_t n);
-extern void scm_init_mallocs (void);
+SCM_API SCM scm_malloc_obj (size_t n);
+SCM_API void scm_init_mallocs (void);
 
 #endif  /* SCM_MALLOCS_H */
 

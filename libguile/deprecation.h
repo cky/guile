@@ -52,13 +52,13 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
-void scm_c_issue_deprecation_warning (const char *msg);
-SCM scm_issue_deprecation_warning (SCM msgs);
+SCM_API void scm_c_issue_deprecation_warning (const char *msg);
+SCM_API SCM scm_issue_deprecation_warning (SCM msgs);
 
 #endif
 
-SCM scm_include_deprecated_features (void);
-void scm_init_deprecation (void);
+SCM_API SCM scm_include_deprecated_features (void);
+SCM_API void scm_init_deprecation (void);
 
 #endif  /* SCM_DEPRECATION_H */
 

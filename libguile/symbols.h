@@ -71,25 +71,25 @@
 
 
 #ifdef GUILE_DEBUG
-extern SCM scm_sys_symbols (void);
+SCM_API SCM scm_sys_symbols (void);
 #endif
-extern SCM scm_mem2symbol (const char*, size_t);
-extern SCM scm_str2symbol (const char*);
+SCM_API SCM scm_mem2symbol (const char*, size_t);
+SCM_API SCM scm_str2symbol (const char*);
 
-extern SCM scm_symbol_p (SCM x);
-extern SCM scm_symbol_to_string (SCM s);
-extern SCM scm_string_to_symbol (SCM s);
+SCM_API SCM scm_symbol_p (SCM x);
+SCM_API SCM scm_symbol_to_string (SCM s);
+SCM_API SCM scm_string_to_symbol (SCM s);
 
-extern SCM scm_symbol_fref (SCM s);
-extern SCM scm_symbol_pref (SCM s);
-extern SCM scm_symbol_fset_x (SCM s, SCM val);
-extern SCM scm_symbol_pset_x (SCM s, SCM val);
+SCM_API SCM scm_symbol_fref (SCM s);
+SCM_API SCM scm_symbol_pref (SCM s);
+SCM_API SCM scm_symbol_fset_x (SCM s, SCM val);
+SCM_API SCM scm_symbol_pset_x (SCM s, SCM val);
 
-extern SCM scm_symbol_hash (SCM s);
-extern SCM scm_gensym (SCM prefix);
+SCM_API SCM scm_symbol_hash (SCM s);
+SCM_API SCM scm_gensym (SCM prefix);
 
-extern void scm_symbols_prehistory (void);
-extern void scm_init_symbols (void);
+SCM_API void scm_symbols_prehistory (void);
+SCM_API void scm_init_symbols (void);
 
 #endif  /* SCM_SYMBOLS_H */
 

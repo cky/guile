@@ -50,24 +50,24 @@
 
 
 
-extern SCM scm_string_index (SCM str, SCM chr, SCM frm, SCM to);
-extern SCM scm_string_rindex (SCM str, SCM chr, SCM frm, SCM to);
-extern SCM scm_substring_move_x (SCM str1, SCM start1, SCM end1, 
-				      SCM str2, SCM start2);
-extern SCM scm_substring_fill_x (SCM str, SCM start, SCM end, SCM fill);
-extern SCM scm_string_null_p (SCM str);
-extern SCM scm_string_to_list (SCM str);
-extern SCM scm_string_copy (SCM str);
-extern SCM scm_string_fill_x (SCM str, SCM chr);
-extern void scm_init_strop (void);
-extern SCM scm_string_upcase_x (SCM v);
-extern SCM scm_string_upcase (SCM v);
-extern SCM scm_string_downcase_x (SCM v);
-extern SCM scm_string_downcase (SCM v);
-extern SCM scm_string_capitalize_x (SCM v);
-extern SCM scm_string_capitalize (SCM v);
-extern SCM scm_string_split (SCM str, SCM chr);
-extern SCM scm_string_ci_to_symbol (SCM v);
+SCM_API SCM scm_string_index (SCM str, SCM chr, SCM frm, SCM to);
+SCM_API SCM scm_string_rindex (SCM str, SCM chr, SCM frm, SCM to);
+SCM_API SCM scm_substring_move_x (SCM str1, SCM start1, SCM end1, 
+				  SCM str2, SCM start2);
+SCM_API SCM scm_substring_fill_x (SCM str, SCM start, SCM end, SCM fill);
+SCM_API SCM scm_string_null_p (SCM str);
+SCM_API SCM scm_string_to_list (SCM str);
+SCM_API SCM scm_string_copy (SCM str);
+SCM_API SCM scm_string_fill_x (SCM str, SCM chr);
+SCM_API void scm_init_strop (void);
+SCM_API SCM scm_string_upcase_x (SCM v);
+SCM_API SCM scm_string_upcase (SCM v);
+SCM_API SCM scm_string_downcase_x (SCM v);
+SCM_API SCM scm_string_downcase (SCM v);
+SCM_API SCM scm_string_capitalize_x (SCM v);
+SCM_API SCM scm_string_capitalize (SCM v);
+SCM_API SCM scm_string_split (SCM str, SCM chr);
+SCM_API SCM scm_string_ci_to_symbol (SCM v);
 
 #define scm_substring_move_left_x scm_substring_move_x
 #define scm_substring_move_right_x scm_substring_move_x

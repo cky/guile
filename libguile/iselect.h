@@ -89,18 +89,18 @@
 
 #endif /* no FD_SET */
 
-extern int scm_internal_select (int fds,
-				SELECT_TYPE *rfds,
-				SELECT_TYPE *wfds,
-				SELECT_TYPE *efds,
-				struct timeval *timeout);
+SCM_API int scm_internal_select (int fds,
+				 SELECT_TYPE *rfds,
+				 SELECT_TYPE *wfds,
+				 SELECT_TYPE *efds,
+				 struct timeval *timeout);
 
 #ifdef GUILE_ISELECT
 
-extern int scm_I_am_dead;
+SCM_API int scm_I_am_dead;
 
-extern void scm_error_revive_threads (void);
-extern void scm_init_iselect (void);
+SCM_API void scm_error_revive_threads (void);
+SCM_API void scm_init_iselect (void);
 
 #endif /* GUILE_ISELECT */
 

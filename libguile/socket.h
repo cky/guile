@@ -50,34 +50,34 @@
 
 
 
-extern SCM scm_htons (SCM in);
-extern SCM scm_ntohs (SCM in);
-extern SCM scm_htonl (SCM in);
-extern SCM scm_ntohl (SCM in);
-extern SCM scm_gethost (SCM name);
-extern SCM scm_inet_aton (SCM address);
-extern SCM scm_inet_ntoa (SCM inetid);
-extern SCM scm_inet_netof (SCM address);
-extern SCM scm_lnaof (SCM address);
-extern SCM scm_inet_makeaddr (SCM net, SCM lna);
-extern SCM scm_inet_pton (SCM family, SCM address);
-extern SCM scm_inet_ntop (SCM family, SCM address);
-extern SCM scm_socket (SCM family, SCM style, SCM proto);
-extern SCM scm_socketpair (SCM family, SCM style, SCM proto);
-extern SCM scm_getsockopt (SCM sfd, SCM level, SCM optname);
-extern SCM scm_setsockopt (SCM sfd, SCM level, SCM optname, SCM value);
-extern SCM scm_shutdown (SCM sfd, SCM how);
-extern SCM scm_connect (SCM sockfd, SCM fam, SCM address, SCM args);
-extern SCM scm_bind (SCM sockfd, SCM fam, SCM address, SCM args);
-extern SCM scm_listen (SCM sfd, SCM backlog);
-extern SCM scm_accept (SCM sockfd);
-extern SCM scm_getsockname (SCM sockfd);
-extern SCM scm_getpeername (SCM sockfd);
-extern SCM scm_recv (SCM sockfd, SCM buff_or_size, SCM flags);
-extern SCM scm_send (SCM sockfd, SCM message, SCM flags);
-extern SCM scm_recvfrom (SCM sockfd, SCM buff_or_size, SCM flags, SCM offset, SCM length);
-extern SCM scm_sendto (SCM sockfd, SCM message, SCM fam, SCM address, SCM args_and_flags);
-extern void scm_init_socket (void);
+SCM_API SCM scm_htons (SCM in);
+SCM_API SCM scm_ntohs (SCM in);
+SCM_API SCM scm_htonl (SCM in);
+SCM_API SCM scm_ntohl (SCM in);
+SCM_API SCM scm_gethost (SCM name);
+SCM_API SCM scm_inet_aton (SCM address);
+SCM_API SCM scm_inet_ntoa (SCM inetid);
+SCM_API SCM scm_inet_netof (SCM address);
+SCM_API SCM scm_lnaof (SCM address);
+SCM_API SCM scm_inet_makeaddr (SCM net, SCM lna);
+SCM_API SCM scm_inet_pton (SCM family, SCM address);
+SCM_API SCM scm_inet_ntop (SCM family, SCM address);
+SCM_API SCM scm_socket (SCM family, SCM style, SCM proto);
+SCM_API SCM scm_socketpair (SCM family, SCM style, SCM proto);
+SCM_API SCM scm_getsockopt (SCM sfd, SCM level, SCM optname);
+SCM_API SCM scm_setsockopt (SCM sfd, SCM level, SCM optname, SCM value);
+SCM_API SCM scm_shutdown (SCM sfd, SCM how);
+SCM_API SCM scm_connect (SCM sockfd, SCM fam, SCM address, SCM args);
+SCM_API SCM scm_bind (SCM sockfd, SCM fam, SCM address, SCM args);
+SCM_API SCM scm_listen (SCM sfd, SCM backlog);
+SCM_API SCM scm_accept (SCM sockfd);
+SCM_API SCM scm_getsockname (SCM sockfd);
+SCM_API SCM scm_getpeername (SCM sockfd);
+SCM_API SCM scm_recv (SCM sockfd, SCM buff_or_size, SCM flags);
+SCM_API SCM scm_send (SCM sockfd, SCM message, SCM flags);
+SCM_API SCM scm_recvfrom (SCM sockfd, SCM buff_or_size, SCM flags, SCM offset, SCM length);
+SCM_API SCM scm_sendto (SCM sockfd, SCM message, SCM fam, SCM address, SCM args_and_flags);
+SCM_API void scm_init_socket (void);
 
 #endif  /* SCM_SOCKET_H */
 

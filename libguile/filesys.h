@@ -50,7 +50,7 @@
 
 
 
-extern scm_t_bits scm_tc16_dir;
+SCM_API scm_t_bits scm_tc16_dir;
 
 #define SCM_DIR_FLAG_OPEN (1L << 16)
 
@@ -59,37 +59,37 @@ extern scm_t_bits scm_tc16_dir;
 
 
 
-extern SCM scm_chown (SCM object, SCM owner, SCM group);
-extern SCM scm_chmod (SCM object, SCM mode);
-extern SCM scm_umask (SCM mode);
-extern SCM scm_open_fdes (SCM path, SCM flags, SCM mode);
-extern SCM scm_open (SCM path, SCM flags, SCM mode);
-extern SCM scm_close (SCM fd_or_port);
-extern SCM scm_close_fdes (SCM fd);
-extern SCM scm_stat (SCM object);
-extern SCM scm_link (SCM oldpath, SCM newpath);
-extern SCM scm_rename (SCM oldname, SCM newname);
-extern SCM scm_delete_file (SCM str);
-extern SCM scm_mkdir (SCM path, SCM mode);
-extern SCM scm_rmdir (SCM path);
-extern SCM scm_directory_stream_p (SCM obj);
-extern SCM scm_opendir (SCM dirname);
-extern SCM scm_readdir (SCM port);
-extern SCM scm_rewinddir (SCM port);
-extern SCM scm_closedir (SCM port);
-extern SCM scm_chdir (SCM str);
-extern SCM scm_getcwd (void);
-extern SCM scm_select (SCM reads, SCM writes, SCM excepts, SCM secs, SCM msecs);
-extern SCM scm_fcntl (SCM object, SCM cmd, SCM value);
-extern SCM scm_fsync (SCM object);
-extern SCM scm_symlink (SCM oldpath, SCM newpath);
-extern SCM scm_readlink (SCM path);
-extern SCM scm_lstat (SCM str);
-extern SCM scm_copy_file (SCM oldfile, SCM newfile);
-extern SCM scm_dirname (SCM filename);
-extern SCM scm_basename (SCM filename, SCM suffix);
+SCM_API SCM scm_chown (SCM object, SCM owner, SCM group);
+SCM_API SCM scm_chmod (SCM object, SCM mode);
+SCM_API SCM scm_umask (SCM mode);
+SCM_API SCM scm_open_fdes (SCM path, SCM flags, SCM mode);
+SCM_API SCM scm_open (SCM path, SCM flags, SCM mode);
+SCM_API SCM scm_close (SCM fd_or_port);
+SCM_API SCM scm_close_fdes (SCM fd);
+SCM_API SCM scm_stat (SCM object);
+SCM_API SCM scm_link (SCM oldpath, SCM newpath);
+SCM_API SCM scm_rename (SCM oldname, SCM newname);
+SCM_API SCM scm_delete_file (SCM str);
+SCM_API SCM scm_mkdir (SCM path, SCM mode);
+SCM_API SCM scm_rmdir (SCM path);
+SCM_API SCM scm_directory_stream_p (SCM obj);
+SCM_API SCM scm_opendir (SCM dirname);
+SCM_API SCM scm_readdir (SCM port);
+SCM_API SCM scm_rewinddir (SCM port);
+SCM_API SCM scm_closedir (SCM port);
+SCM_API SCM scm_chdir (SCM str);
+SCM_API SCM scm_getcwd (void);
+SCM_API SCM scm_select (SCM reads, SCM writes, SCM excepts, SCM secs, SCM msecs);
+SCM_API SCM scm_fcntl (SCM object, SCM cmd, SCM value);
+SCM_API SCM scm_fsync (SCM object);
+SCM_API SCM scm_symlink (SCM oldpath, SCM newpath);
+SCM_API SCM scm_readlink (SCM path);
+SCM_API SCM scm_lstat (SCM str);
+SCM_API SCM scm_copy_file (SCM oldfile, SCM newfile);
+SCM_API SCM scm_dirname (SCM filename);
+SCM_API SCM scm_basename (SCM filename, SCM suffix);
 
-extern void scm_init_filesys (void);
+SCM_API void scm_init_filesys (void);
 
 #endif  /* SCM_FILESYS_H */
 

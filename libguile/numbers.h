@@ -198,142 +198,142 @@ typedef struct scm_t_complex
 
 
 
-extern SCM scm_exact_p (SCM x);
-extern SCM scm_odd_p (SCM n);
-extern SCM scm_even_p (SCM n);
-extern SCM scm_abs (SCM x);
-extern SCM scm_quotient (SCM x, SCM y);
-extern SCM scm_remainder (SCM x, SCM y);
-extern SCM scm_modulo (SCM x, SCM y);
-extern SCM scm_gcd (SCM x, SCM y);
-extern SCM scm_lcm (SCM n1, SCM n2);
-extern SCM scm_logand (SCM n1, SCM n2);
-extern SCM scm_logior (SCM n1, SCM n2);
-extern SCM scm_logxor (SCM n1, SCM n2);
-extern SCM scm_logtest (SCM n1, SCM n2);
-extern SCM scm_logbit_p (SCM n1, SCM n2);
-extern SCM scm_lognot (SCM n);
-extern SCM scm_integer_expt (SCM z1, SCM z2);
-extern SCM scm_ash (SCM n, SCM cnt);
-extern SCM scm_bit_extract (SCM n, SCM start, SCM end);
-extern SCM scm_logcount (SCM n);
-extern SCM scm_integer_length (SCM n);
-extern SCM scm_i_mkbig (size_t nlen, int sign);
-extern SCM scm_i_big2inum (SCM b, size_t l);
-extern SCM scm_i_adjbig (SCM b, size_t nlen);
-extern SCM scm_i_normbig (SCM b);
-extern SCM scm_i_copybig (SCM b, int sign);
-extern SCM scm_i_short2big (short n);
-extern SCM scm_i_ushort2big (unsigned short n);
-extern SCM scm_i_int2big (int n);
-extern SCM scm_i_uint2big (unsigned int n);
-extern SCM scm_i_long2big (long n);
-extern SCM scm_i_ulong2big (unsigned long n);
-extern SCM scm_i_size2big (size_t n);
-extern SCM scm_i_ptrdiff2big (ptrdiff_t n);
+SCM_API SCM scm_exact_p (SCM x);
+SCM_API SCM scm_odd_p (SCM n);
+SCM_API SCM scm_even_p (SCM n);
+SCM_API SCM scm_abs (SCM x);
+SCM_API SCM scm_quotient (SCM x, SCM y);
+SCM_API SCM scm_remainder (SCM x, SCM y);
+SCM_API SCM scm_modulo (SCM x, SCM y);
+SCM_API SCM scm_gcd (SCM x, SCM y);
+SCM_API SCM scm_lcm (SCM n1, SCM n2);
+SCM_API SCM scm_logand (SCM n1, SCM n2);
+SCM_API SCM scm_logior (SCM n1, SCM n2);
+SCM_API SCM scm_logxor (SCM n1, SCM n2);
+SCM_API SCM scm_logtest (SCM n1, SCM n2);
+SCM_API SCM scm_logbit_p (SCM n1, SCM n2);
+SCM_API SCM scm_lognot (SCM n);
+SCM_API SCM scm_integer_expt (SCM z1, SCM z2);
+SCM_API SCM scm_ash (SCM n, SCM cnt);
+SCM_API SCM scm_bit_extract (SCM n, SCM start, SCM end);
+SCM_API SCM scm_logcount (SCM n);
+SCM_API SCM scm_integer_length (SCM n);
+SCM_API SCM scm_i_mkbig (size_t nlen, int sign);
+SCM_API SCM scm_i_big2inum (SCM b, size_t l);
+SCM_API SCM scm_i_adjbig (SCM b, size_t nlen);
+SCM_API SCM scm_i_normbig (SCM b);
+SCM_API SCM scm_i_copybig (SCM b, int sign);
+SCM_API SCM scm_i_short2big (short n);
+SCM_API SCM scm_i_ushort2big (unsigned short n);
+SCM_API SCM scm_i_int2big (int n);
+SCM_API SCM scm_i_uint2big (unsigned int n);
+SCM_API SCM scm_i_long2big (long n);
+SCM_API SCM scm_i_ulong2big (unsigned long n);
+SCM_API SCM scm_i_size2big (size_t n);
+SCM_API SCM scm_i_ptrdiff2big (ptrdiff_t n);
 
 #ifdef HAVE_LONG_LONGS
-extern SCM scm_i_long_long2big (long long n);
-extern SCM scm_i_ulong_long2big (unsigned long long n);
+SCM_API SCM scm_i_long_long2big (long long n);
+SCM_API SCM scm_i_ulong_long2big (unsigned long long n);
 #endif
 
-extern int scm_bigcomp (SCM x, SCM y);
-extern long scm_pseudolong (long x);
-extern void scm_longdigs (long x, SCM_BIGDIG digs[]);
-extern SCM scm_addbig (SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int sgny);
-extern SCM scm_mulbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn);
-extern unsigned int scm_divbigdig (SCM_BIGDIG *ds, size_t h, SCM_BIGDIG div);
-extern size_t scm_iint2str (long num, int rad, char *p);
-extern SCM scm_number_to_string (SCM x, SCM radix);
-extern int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);
-extern int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
-extern int scm_bigprint (SCM exp, SCM port, scm_print_state *pstate);
-extern SCM scm_i_mem2number (const char *mem, size_t len, unsigned int radix);
-extern SCM scm_string_to_number (SCM str, SCM radix);
-extern SCM scm_make_real (double x);
-extern SCM scm_make_complex (double x, double y);
-extern SCM scm_bigequal (SCM x, SCM y);
-extern SCM scm_real_equalp (SCM x, SCM y);
-extern SCM scm_complex_equalp (SCM x, SCM y);
-extern SCM scm_number_p (SCM x);
-extern SCM scm_real_p (SCM x);
-extern SCM scm_integer_p (SCM x);
-extern SCM scm_inexact_p (SCM x);
-extern SCM scm_num_eq_p (SCM x, SCM y);
-extern SCM scm_less_p (SCM x, SCM y);
-extern SCM scm_gr_p (SCM x, SCM y);
-extern SCM scm_leq_p (SCM x, SCM y);
-extern SCM scm_geq_p (SCM x, SCM y);
-extern SCM scm_zero_p (SCM z);
-extern SCM scm_positive_p (SCM x);
-extern SCM scm_negative_p (SCM x);
-extern SCM scm_max (SCM x, SCM y);
-extern SCM scm_min (SCM x, SCM y);
-extern SCM scm_sum (SCM x, SCM y);
-extern SCM scm_difference (SCM x, SCM y);
-extern SCM scm_product (SCM x, SCM y);
-extern double scm_num2dbl (SCM a, const char * why);
-extern SCM scm_divide (SCM x, SCM y);
-extern double scm_asinh (double x);
-extern double scm_acosh (double x);
-extern double scm_atanh (double x);
-extern double scm_truncate (double x);
-extern double scm_round (double x);
-extern SCM scm_sys_expt (SCM z1, SCM z2);
-extern SCM scm_sys_atan2 (SCM z1, SCM z2);
-extern SCM scm_make_rectangular (SCM z1, SCM z2);
-extern SCM scm_make_polar (SCM z1, SCM z2);
-extern SCM scm_real_part (SCM z);
-extern SCM scm_imag_part (SCM z);
-extern SCM scm_magnitude (SCM z);
-extern SCM scm_angle (SCM z);
-extern SCM scm_exact_to_inexact (SCM z);
-extern SCM scm_inexact_to_exact (SCM z);
-extern SCM scm_trunc (SCM x);
-extern SCM scm_i_dbl2big (double d);
-extern double scm_i_big2dbl (SCM b);
+SCM_API int scm_bigcomp (SCM x, SCM y);
+SCM_API long scm_pseudolong (long x);
+SCM_API void scm_longdigs (long x, SCM_BIGDIG digs[]);
+SCM_API SCM scm_addbig (SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int sgny);
+SCM_API SCM scm_mulbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn);
+SCM_API unsigned int scm_divbigdig (SCM_BIGDIG *ds, size_t h, SCM_BIGDIG div);
+SCM_API size_t scm_iint2str (long num, int rad, char *p);
+SCM_API SCM scm_number_to_string (SCM x, SCM radix);
+SCM_API int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);
+SCM_API int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
+SCM_API int scm_bigprint (SCM exp, SCM port, scm_print_state *pstate);
+SCM_API SCM scm_i_mem2number (const char *mem, size_t len, unsigned int radix);
+SCM_API SCM scm_string_to_number (SCM str, SCM radix);
+SCM_API SCM scm_make_real (double x);
+SCM_API SCM scm_make_complex (double x, double y);
+SCM_API SCM scm_bigequal (SCM x, SCM y);
+SCM_API SCM scm_real_equalp (SCM x, SCM y);
+SCM_API SCM scm_complex_equalp (SCM x, SCM y);
+SCM_API SCM scm_number_p (SCM x);
+SCM_API SCM scm_real_p (SCM x);
+SCM_API SCM scm_integer_p (SCM x);
+SCM_API SCM scm_inexact_p (SCM x);
+SCM_API SCM scm_num_eq_p (SCM x, SCM y);
+SCM_API SCM scm_less_p (SCM x, SCM y);
+SCM_API SCM scm_gr_p (SCM x, SCM y);
+SCM_API SCM scm_leq_p (SCM x, SCM y);
+SCM_API SCM scm_geq_p (SCM x, SCM y);
+SCM_API SCM scm_zero_p (SCM z);
+SCM_API SCM scm_positive_p (SCM x);
+SCM_API SCM scm_negative_p (SCM x);
+SCM_API SCM scm_max (SCM x, SCM y);
+SCM_API SCM scm_min (SCM x, SCM y);
+SCM_API SCM scm_sum (SCM x, SCM y);
+SCM_API SCM scm_difference (SCM x, SCM y);
+SCM_API SCM scm_product (SCM x, SCM y);
+SCM_API double scm_num2dbl (SCM a, const char * why);
+SCM_API SCM scm_divide (SCM x, SCM y);
+SCM_API double scm_asinh (double x);
+SCM_API double scm_acosh (double x);
+SCM_API double scm_atanh (double x);
+SCM_API double scm_truncate (double x);
+SCM_API double scm_round (double x);
+SCM_API SCM scm_sys_expt (SCM z1, SCM z2);
+SCM_API SCM scm_sys_atan2 (SCM z1, SCM z2);
+SCM_API SCM scm_make_rectangular (SCM z1, SCM z2);
+SCM_API SCM scm_make_polar (SCM z1, SCM z2);
+SCM_API SCM scm_real_part (SCM z);
+SCM_API SCM scm_imag_part (SCM z);
+SCM_API SCM scm_magnitude (SCM z);
+SCM_API SCM scm_angle (SCM z);
+SCM_API SCM scm_exact_to_inexact (SCM z);
+SCM_API SCM scm_inexact_to_exact (SCM z);
+SCM_API SCM scm_trunc (SCM x);
+SCM_API SCM scm_i_dbl2big (double d);
+SCM_API double scm_i_big2dbl (SCM b);
 
-extern SCM scm_short2num (short n);
-extern SCM scm_ushort2num (unsigned short n);
-extern SCM scm_int2num (int n);
-extern SCM scm_uint2num (unsigned int n);
-extern SCM scm_long2num (long n);
-extern SCM scm_ulong2num (unsigned long n);
-extern SCM scm_size2num (size_t n);
-extern SCM scm_ptrdiff2num (ptrdiff_t n);
-extern short scm_num2short (SCM num, unsigned long int pos,
-                            const char *s_caller);
-extern unsigned short scm_num2ushort (SCM num, unsigned long int pos,
-                                      const char *s_caller);
-extern int scm_num2int (SCM num, unsigned long int pos,
-                        const char *s_caller);
-extern unsigned int scm_num2uint (SCM num, unsigned long int pos,
-                                  const char *s_caller);
-extern long scm_num2long (SCM num, unsigned long int pos,
-			  const char *s_caller);
-extern unsigned long scm_num2ulong (SCM num, unsigned long int pos,
-                                    const char *s_caller);
-extern ptrdiff_t scm_num2ptrdiff (SCM num, unsigned long int pos,
-                                  const char *s_caller);
-extern size_t scm_num2size (SCM num, unsigned long int pos,
-                            const char *s_caller);
+SCM_API SCM scm_short2num (short n);
+SCM_API SCM scm_ushort2num (unsigned short n);
+SCM_API SCM scm_int2num (int n);
+SCM_API SCM scm_uint2num (unsigned int n);
+SCM_API SCM scm_long2num (long n);
+SCM_API SCM scm_ulong2num (unsigned long n);
+SCM_API SCM scm_size2num (size_t n);
+SCM_API SCM scm_ptrdiff2num (ptrdiff_t n);
+SCM_API short scm_num2short (SCM num, unsigned long int pos,
+			     const char *s_caller);
+SCM_API unsigned short scm_num2ushort (SCM num, unsigned long int pos,
+				       const char *s_caller);
+SCM_API int scm_num2int (SCM num, unsigned long int pos,
+			 const char *s_caller);
+SCM_API unsigned int scm_num2uint (SCM num, unsigned long int pos,
+				   const char *s_caller);
+SCM_API long scm_num2long (SCM num, unsigned long int pos,
+			   const char *s_caller);
+SCM_API unsigned long scm_num2ulong (SCM num, unsigned long int pos,
+				     const char *s_caller);
+SCM_API ptrdiff_t scm_num2ptrdiff (SCM num, unsigned long int pos,
+				   const char *s_caller);
+SCM_API size_t scm_num2size (SCM num, unsigned long int pos,
+			     const char *s_caller);
 #ifdef HAVE_LONG_LONGS
-extern SCM scm_long_long2num (long long sl);
-extern SCM scm_ulong_long2num (unsigned long long sl);
-extern long long scm_num2long_long (SCM num, unsigned long int pos,
-                                    const char *s_caller);
-extern unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
-					      const char *s_caller);
+SCM_API SCM scm_long_long2num (long long sl);
+SCM_API SCM scm_ulong_long2num (unsigned long long sl);
+SCM_API long long scm_num2long_long (SCM num, unsigned long int pos,
+				     const char *s_caller);
+SCM_API unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
+					       const char *s_caller);
 #endif
 
-extern SCM scm_float2num (float n);
-extern SCM scm_double2num (double n);
-extern float scm_num2float (SCM num, unsigned long int pos,
-			    const char *s_caller);
-extern double scm_num2double (SCM num, unsigned long int pos,
-			      const char *s_caller);
+SCM_API SCM scm_float2num (float n);
+SCM_API SCM scm_double2num (double n);
+SCM_API float scm_num2float (SCM num, unsigned long int pos,
+			     const char *s_caller);
+SCM_API double scm_num2double (SCM num, unsigned long int pos,
+			       const char *s_caller);
 
-extern void scm_init_numbers (void);
+SCM_API void scm_init_numbers (void);
 
 #endif  /* SCM_NUMBERS_H */
 

@@ -81,46 +81,46 @@
 typedef void (coop_userf_t)(void *p0);
 
 /* Call this before any other primitives. */
-extern void coop_init (void);
+SCM_API void coop_init (void);
 
 /* When one or more threads are created by the main thread,
    the system goes multithread when this is called.  It is done
    (no more runable threads) when this returns. */
 
-extern void coop_start (void);
+SCM_API void coop_start (void);
 
 /* Create a thread and make it runable.  When the thread starts
    running it will call `f' with arguments `p0' and `p1'. */
 
-extern coop_t *coop_create (coop_userf_t *f, void *p0);
+SCM_API coop_t *coop_create (coop_userf_t *f, void *p0);
 
 /* The current thread stops running but stays runable.
    It is an error to call `coop_yield' before `coop_start'
    is called or after `coop_start' returns. */
 
-extern void coop_yield (void);
+SCM_API void coop_yield (void);
 
 /* Like `coop_yield' but the thread is discarded.  Any intermediate
    state is lost.  The thread can also terminate by simply
    returning. */
 
-extern void coop_abort (void);
+SCM_API void coop_abort (void);
 
 /* The following are needed in iselect.c */
 
-extern coop_t *coop_qget (coop_q_t *);
-extern void coop_qput (coop_q_t *, coop_t *);
-extern void *coop_sleephelp (qt_t *, void *, void *);
+SCM_API coop_t *coop_qget (coop_q_t *);
+SCM_API void coop_qput (coop_q_t *, coop_t *);
+SCM_API void *coop_sleephelp (qt_t *, void *, void *);
 
 #ifdef GUILE_ISELECT
-extern coop_t *coop_wait_for_runnable_thread ();
+SCM_API coop_t *coop_wait_for_runnable_thread ();
 #endif
 
-extern coop_q_t coop_global_runq;	/* A queue of runable threads. */
-extern coop_q_t coop_global_sleepq;
-extern coop_q_t coop_tmp_queue;
-extern coop_q_t coop_global_allq;	/* A queue of all threads. */
-extern coop_t *coop_global_curr;       	/* Currently-executing thread. */
+SCM_API coop_q_t coop_global_runq;	/* A queue of runable threads. */
+SCM_API coop_q_t coop_global_sleepq;
+SCM_API coop_q_t coop_tmp_queue;
+SCM_API coop_q_t coop_global_allq;	/* A queue of all threads. */
+SCM_API coop_t *coop_global_curr;       	/* Currently-executing thread. */
 
 #endif  /* SCM_COOP_THREADS_H */
 

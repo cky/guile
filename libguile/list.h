@@ -50,43 +50,43 @@
 
 
 
-extern SCM scm_list_1 (SCM e1);
-extern SCM scm_list_2 (SCM e1, SCM e2);
-extern SCM scm_list_3 (SCM e1, SCM e2, SCM e3);
-extern SCM scm_list_4 (SCM e1, SCM e2, SCM e3, SCM e4);
-extern SCM scm_list_5 (SCM e1, SCM e2, SCM e3, SCM e4, SCM e5);
-extern SCM scm_list_n (SCM elt, ...);
-extern SCM scm_list_head (SCM lst, SCM k);
-extern SCM scm_list (SCM objs);
-extern SCM scm_cons_star (SCM arg, SCM objs);
-extern SCM scm_null_p (SCM x);
-extern SCM scm_list_p (SCM x);
-extern long scm_ilength (SCM sx);
-extern SCM scm_length (SCM x);
-extern SCM scm_append (SCM args);
-extern SCM scm_append_x (SCM args);
-extern SCM scm_reverse (SCM lst);
-extern SCM scm_reverse_x (SCM lst, SCM newtail);
-extern SCM scm_list_ref (SCM lst, SCM k);
-extern SCM scm_list_set_x (SCM lst, SCM k, SCM val);
-extern SCM scm_list_cdr_set_x (SCM lst, SCM k, SCM val);
-extern SCM scm_last_pair (SCM sx);
-extern SCM scm_list_tail (SCM lst, SCM k);
-extern SCM scm_c_memq (SCM x, SCM lst);
-extern SCM scm_memq (SCM x, SCM lst);
-extern SCM scm_memv (SCM x, SCM lst);
-extern SCM scm_member (SCM x, SCM lst);
-extern SCM scm_delq_x (SCM item, SCM lst);
-extern SCM scm_delv_x (SCM item, SCM lst);
-extern SCM scm_delete_x (SCM item, SCM lst);
-extern SCM scm_list_copy (SCM lst);
-extern SCM scm_delq (SCM item, SCM lst);
-extern SCM scm_delv (SCM item, SCM lst);
-extern SCM scm_delete (SCM item, SCM lst);
-extern SCM scm_delq1_x (SCM item, SCM lst);
-extern SCM scm_delv1_x (SCM item, SCM lst);
-extern SCM scm_delete1_x (SCM item, SCM lst);
-extern void scm_init_list (void);
+SCM_API SCM scm_list_1 (SCM e1);
+SCM_API SCM scm_list_2 (SCM e1, SCM e2);
+SCM_API SCM scm_list_3 (SCM e1, SCM e2, SCM e3);
+SCM_API SCM scm_list_4 (SCM e1, SCM e2, SCM e3, SCM e4);
+SCM_API SCM scm_list_5 (SCM e1, SCM e2, SCM e3, SCM e4, SCM e5);
+SCM_API SCM scm_list_n (SCM elt, ...);
+SCM_API SCM scm_list_head (SCM lst, SCM k);
+SCM_API SCM scm_list (SCM objs);
+SCM_API SCM scm_cons_star (SCM arg, SCM objs);
+SCM_API SCM scm_null_p (SCM x);
+SCM_API SCM scm_list_p (SCM x);
+SCM_API long scm_ilength (SCM sx);
+SCM_API SCM scm_length (SCM x);
+SCM_API SCM scm_append (SCM args);
+SCM_API SCM scm_append_x (SCM args);
+SCM_API SCM scm_reverse (SCM lst);
+SCM_API SCM scm_reverse_x (SCM lst, SCM newtail);
+SCM_API SCM scm_list_ref (SCM lst, SCM k);
+SCM_API SCM scm_list_set_x (SCM lst, SCM k, SCM val);
+SCM_API SCM scm_list_cdr_set_x (SCM lst, SCM k, SCM val);
+SCM_API SCM scm_last_pair (SCM sx);
+SCM_API SCM scm_list_tail (SCM lst, SCM k);
+SCM_API SCM scm_c_memq (SCM x, SCM lst);
+SCM_API SCM scm_memq (SCM x, SCM lst);
+SCM_API SCM scm_memv (SCM x, SCM lst);
+SCM_API SCM scm_member (SCM x, SCM lst);
+SCM_API SCM scm_delq_x (SCM item, SCM lst);
+SCM_API SCM scm_delv_x (SCM item, SCM lst);
+SCM_API SCM scm_delete_x (SCM item, SCM lst);
+SCM_API SCM scm_list_copy (SCM lst);
+SCM_API SCM scm_delq (SCM item, SCM lst);
+SCM_API SCM scm_delv (SCM item, SCM lst);
+SCM_API SCM scm_delete (SCM item, SCM lst);
+SCM_API SCM scm_delq1_x (SCM item, SCM lst);
+SCM_API SCM scm_delv1_x (SCM item, SCM lst);
+SCM_API SCM scm_delete1_x (SCM item, SCM lst);
+SCM_API void scm_init_list (void);
 
 #endif  /* SCM_LIST_H */
 

@@ -50,10 +50,10 @@
 
 
 
-extern SCM scm_system (SCM cmd);
-extern SCM scm_getenv (SCM nam);
-extern SCM scm_primitive_exit (SCM status);
-extern void scm_init_simpos (void);
+SCM_API SCM scm_system (SCM cmd);
+SCM_API SCM scm_getenv (SCM nam);
+SCM_API SCM scm_primitive_exit (SCM status);
+SCM_API void scm_init_simpos (void);
 
 #endif  /* SCM_SIMPOS_H */
 

@@ -417,7 +417,7 @@ enum scm_tags
 #define SCM_MAKISYM(n) 		SCM_PACK (((n) << 9) + 0x74L)
 #define SCM_MAKIFLAG(n) 	SCM_PACK (((n) << 9) + 0x174L)
 
-extern char *scm_isymnames[];   /* defined in print.c */
+SCM_API char *scm_isymnames[];   /* defined in print.c */
 
 /* This table must agree with the declarations
  * in repl.c: {Names of immediate symbols}.

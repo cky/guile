@@ -143,12 +143,12 @@ typedef int coop_mattr;
 
 typedef coop_m scm_t_mutex;
 
-extern int coop_mutex_init (coop_m*);
-extern int coop_new_mutex_init (coop_m*, coop_mattr*);
-extern int coop_mutex_lock (coop_m*);
-extern int coop_mutex_trylock (coop_m*);
-extern int coop_mutex_unlock (coop_m*);
-extern int coop_mutex_destroy (coop_m*);
+SCM_API int coop_mutex_init (coop_m*);
+SCM_API int coop_new_mutex_init (coop_m*, coop_mattr*);
+SCM_API int coop_mutex_lock (coop_m*);
+SCM_API int coop_mutex_trylock (coop_m*);
+SCM_API int coop_mutex_unlock (coop_m*);
+SCM_API int coop_mutex_destroy (coop_m*);
 #define scm_mutex_init coop_mutex_init
 #define scm_mutex_lock coop_mutex_lock
 #define scm_mutex_trylock coop_mutex_lock
@@ -176,14 +176,14 @@ struct timespec
 };
 #endif
 
-extern int coop_condition_variable_init (coop_c*);
-extern int coop_new_condition_variable_init (coop_c*, coop_cattr*);
-extern int coop_condition_variable_wait_mutex (coop_c*, coop_m*);
-extern int coop_condition_variable_timed_wait_mutex (coop_c*,
-						     coop_m*,
-						     const struct timespec *abstime);
-extern int coop_condition_variable_signal (coop_c*);
-extern int coop_condition_variable_destroy (coop_c*);
+SCM_API int coop_condition_variable_init (coop_c*);
+SCM_API int coop_new_condition_variable_init (coop_c*, coop_cattr*);
+SCM_API int coop_condition_variable_wait_mutex (coop_c*, coop_m*);
+SCM_API int coop_condition_variable_timed_wait_mutex (coop_c*,
+						      coop_m*,
+						      const struct timespec *abstime);
+SCM_API int coop_condition_variable_signal (coop_c*);
+SCM_API int coop_condition_variable_destroy (coop_c*);
 #define scm_cond_init coop_new_condition_variable_init
 #define scm_cond_wait coop_condition_variable_wait_mutex
 #define scm_cond_timedwait coop_condition_variable_timed_wait_mutex
@@ -195,22 +195,22 @@ typedef int coop_k;
 
 typedef coop_k scm_t_key;
 
-extern int coop_key_create (coop_k *keyp, void (*destruktor) (void *value));
-extern int coop_setspecific (coop_k key, const void *value);
-extern void *coop_getspecific (coop_k key);
-extern int coop_key_delete (coop_k);
+SCM_API int coop_key_create (coop_k *keyp, void (*destruktor) (void *value));
+SCM_API int coop_setspecific (coop_k key, const void *value);
+SCM_API void *coop_getspecific (coop_k key);
+SCM_API int coop_key_delete (coop_k);
 #define scm_key_create coop_key_create
 #define scm_setspecific coop_setspecific
 #define scm_getspecific coop_getspecific
 #define scm_key_delete coop_key_delete
 
-extern coop_t *coop_global_curr;       	/* Currently-executing thread. */
+SCM_API coop_t *coop_global_curr;             /* Currently-executing thread. */
 
-extern void coop_join (coop_t *t);
-extern void coop_yield (void);
+SCM_API void coop_join (coop_t *t);
+SCM_API void coop_yield (void);
 
-extern size_t scm_switch_counter;
-extern size_t scm_thread_count;
+SCM_API size_t scm_switch_counter;
+SCM_API size_t scm_thread_count;
 
 
 /* Some iselect functions.  */ 
@@ -222,11 +222,11 @@ extern size_t scm_thread_count;
    (and failing) attempt at modularity here, and I don't have time to
    rethink this at the moment.  This code awaits a Hero.  --JimB */
 #ifdef GUILE_ISELECT
-void coop_timeout_qinsert (coop_q_t *, coop_t *);
+SCM_API void coop_timeout_qinsert (coop_q_t *, coop_t *);
 #endif
-extern coop_t *coop_next_runnable_thread (void);
-extern coop_t *coop_wait_for_runnable_thread_now (struct timeval *);
-extern coop_t *coop_wait_for_runnable_thread (void);
+SCM_API coop_t *coop_next_runnable_thread (void);
+SCM_API coop_t *coop_wait_for_runnable_thread_now (struct timeval *);
+SCM_API coop_t *coop_wait_for_runnable_thread (void);
 
 
 

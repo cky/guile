@@ -49,19 +49,19 @@
 #include "libguile/__scm.h"
 
 
-long scm_c_get_internal_run_time (void);
-extern SCM scm_get_internal_real_time (void);
-extern SCM scm_get_internal_run_time (void);
-extern SCM scm_current_time (void);
-extern SCM scm_gettimeofday (void);
-extern SCM scm_localtime (SCM time, SCM zone);
-extern SCM scm_gmtime (SCM time);
-extern SCM scm_mktime (SCM sbd_time, SCM zone);
-extern SCM scm_tzset (void);
-extern SCM scm_times (void);
-extern SCM scm_strftime (SCM format, SCM stime);
-extern SCM scm_strptime (SCM format, SCM string);
-extern void scm_init_stime (void);
+SCM_API long scm_c_get_internal_run_time (void);
+SCM_API SCM scm_get_internal_real_time (void);
+SCM_API SCM scm_get_internal_run_time (void);
+SCM_API SCM scm_current_time (void);
+SCM_API SCM scm_gettimeofday (void);
+SCM_API SCM scm_localtime (SCM time, SCM zone);
+SCM_API SCM scm_gmtime (SCM time);
+SCM_API SCM scm_mktime (SCM sbd_time, SCM zone);
+SCM_API SCM scm_tzset (void);
+SCM_API SCM scm_times (void);
+SCM_API SCM scm_strftime (SCM format, SCM stime);
+SCM_API SCM scm_strptime (SCM format, SCM string);
+SCM_API void scm_init_stime (void);
 
 #endif  /* SCM_STIME_H */
 

@@ -50,15 +50,15 @@
 
 
 
-extern SCM scm_gethost (SCM host);
-extern SCM scm_getnet (SCM name);
-extern SCM scm_getproto (SCM name);
-extern SCM scm_getserv (SCM name, SCM proto);
-extern SCM scm_sethost (SCM arg);
-extern SCM scm_setnet (SCM arg);
-extern SCM scm_setproto (SCM arg);
-extern SCM scm_setserv (SCM arg);
-extern void scm_init_net_db (void);
+SCM_API SCM scm_gethost (SCM host);
+SCM_API SCM scm_getnet (SCM name);
+SCM_API SCM scm_getproto (SCM name);
+SCM_API SCM scm_getserv (SCM name, SCM proto);
+SCM_API SCM scm_sethost (SCM arg);
+SCM_API SCM scm_setnet (SCM arg);
+SCM_API SCM scm_setproto (SCM arg);
+SCM_API SCM scm_setserv (SCM arg);
+SCM_API void scm_init_net_db (void);
 
 #endif  /* SCM_NET_DB_H */
 

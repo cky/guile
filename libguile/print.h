@@ -50,7 +50,7 @@
 
 #include "libguile/options.h"
 
-extern scm_t_option scm_print_opts[];
+SCM_API scm_t_option scm_print_opts[];
 
 #define SCM_PRINT_CLOSURE	(SCM_PACK (scm_print_opts[0].val))
 #define SCM_PRINT_SOURCE_P	((int) scm_print_opts[1].val)
@@ -96,32 +96,32 @@ typedef struct scm_print_state {
   SCM ref_vect;
 } scm_print_state;
 
-extern SCM scm_print_state_vtable;
+SCM_API SCM scm_print_state_vtable;
 
-extern scm_t_bits scm_tc16_port_with_ps;
+SCM_API scm_t_bits scm_tc16_port_with_ps;
 
-extern SCM scm_print_options (SCM setting);
-SCM scm_make_print_state (void);
-void scm_free_print_state (SCM print_state);
-extern void scm_intprint (long n, int radix, SCM port);
-extern void scm_ipruk (char *hdr, SCM ptr, SCM port);
-extern void scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate);
-extern void scm_print_symbol_name (const char *str, size_t len, SCM port);
-extern void scm_prin1 (SCM exp, SCM port, int writingp);
-extern void scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate);
-extern SCM scm_write (SCM obj, SCM port);
-extern SCM scm_display (SCM obj, SCM port);
-extern SCM scm_simple_format (SCM port, SCM message, SCM args);
-extern SCM scm_newline (SCM port);
-extern SCM scm_write_char (SCM chr, SCM port);
-extern SCM scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *);
-extern SCM scm_port_with_print_state (SCM port, SCM pstate);
-extern SCM scm_get_print_state (SCM port);
-extern int scm_valid_oport_value_p (SCM val);
-extern void scm_init_print (void);
+SCM_API SCM scm_print_options (SCM setting);
+SCM_API SCM scm_make_print_state (void);
+SCM_API void scm_free_print_state (SCM print_state);
+SCM_API void scm_intprint (long n, int radix, SCM port);
+SCM_API void scm_ipruk (char *hdr, SCM ptr, SCM port);
+SCM_API void scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate);
+SCM_API void scm_print_symbol_name (const char *str, size_t len, SCM port);
+SCM_API void scm_prin1 (SCM exp, SCM port, int writingp);
+SCM_API void scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate);
+SCM_API SCM scm_write (SCM obj, SCM port);
+SCM_API SCM scm_display (SCM obj, SCM port);
+SCM_API SCM scm_simple_format (SCM port, SCM message, SCM args);
+SCM_API SCM scm_newline (SCM port);
+SCM_API SCM scm_write_char (SCM chr, SCM port);
+SCM_API SCM scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *);
+SCM_API SCM scm_port_with_print_state (SCM port, SCM pstate);
+SCM_API SCM scm_get_print_state (SCM port);
+SCM_API int scm_valid_oport_value_p (SCM val);
+SCM_API void scm_init_print (void);
 
 #ifdef GUILE_DEBUG
-extern SCM scm_current_pstate (void);
+SCM_API SCM scm_current_pstate (void);
 #endif 
 
 #endif  /* SCM_PRINT_H */

@@ -50,15 +50,15 @@
 
 
 
-extern unsigned long scm_string_hash (const unsigned char *str, size_t len);
-extern unsigned long scm_hasher (SCM obj, unsigned long n, size_t d);
-extern unsigned long scm_ihashq (SCM obj, unsigned long n);
-extern SCM scm_hashq (SCM obj, SCM n);
-extern unsigned long scm_ihashv (SCM obj, unsigned long n);
-extern SCM scm_hashv (SCM obj, SCM n);
-extern unsigned long scm_ihash (SCM obj, unsigned long n);
-extern SCM scm_hash (SCM obj, SCM n);
-extern void scm_init_hash (void);
+SCM_API unsigned long scm_string_hash (const unsigned char *str, size_t len);
+SCM_API unsigned long scm_hasher (SCM obj, unsigned long n, size_t d);
+SCM_API unsigned long scm_ihashq (SCM obj, unsigned long n);
+SCM_API SCM scm_hashq (SCM obj, SCM n);
+SCM_API unsigned long scm_ihashv (SCM obj, unsigned long n);
+SCM_API SCM scm_hashv (SCM obj, SCM n);
+SCM_API unsigned long scm_ihash (SCM obj, unsigned long n);
+SCM_API SCM scm_hash (SCM obj, SCM n);
+SCM_API void scm_init_hash (void);
 
 #endif  /* SCM_HASH_H */
 

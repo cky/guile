@@ -53,9 +53,9 @@
 
 
 
-extern int scm_print_carefully_p;
+SCM_API int scm_print_carefully_p;
 
-extern void scm_init_gdbint (void);
+SCM_API void scm_init_gdbint (void);
 
 #endif  /* SCM_GDBINT_H */
 

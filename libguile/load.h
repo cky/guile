@@ -49,19 +49,19 @@
 #include "libguile/__scm.h"
 
 
-extern SCM scm_internal_parse_path (char *path, SCM tail);
-extern SCM scm_parse_path (SCM path, SCM tail);
-extern void scm_init_load_path (void);
-extern SCM scm_primitive_load (SCM filename);
-extern SCM scm_c_primitive_load (const char *filename);
-extern SCM scm_sys_package_data_dir (void);
-extern SCM scm_sys_library_dir (void);
-extern SCM scm_sys_site_dir (void);
-extern SCM scm_search_path (SCM path, SCM filename, SCM exts);
-extern SCM scm_sys_search_load_path (SCM filename);
-extern SCM scm_primitive_load_path (SCM filename);
-extern SCM scm_c_primitive_load_path (const char *filename);
-extern void scm_init_load (void);
+SCM_API SCM scm_internal_parse_path (char *path, SCM tail);
+SCM_API SCM scm_parse_path (SCM path, SCM tail);
+SCM_API void scm_init_load_path (void);
+SCM_API SCM scm_primitive_load (SCM filename);
+SCM_API SCM scm_c_primitive_load (const char *filename);
+SCM_API SCM scm_sys_package_data_dir (void);
+SCM_API SCM scm_sys_library_dir (void);
+SCM_API SCM scm_sys_site_dir (void);
+SCM_API SCM scm_search_path (SCM path, SCM filename, SCM exts);
+SCM_API SCM scm_sys_search_load_path (SCM filename);
+SCM_API SCM scm_primitive_load_path (SCM filename);
+SCM_API SCM scm_c_primitive_load_path (const char *filename);
+SCM_API void scm_init_load (void);
 
 #endif  /* SCM_LOAD_H */
 

@@ -73,7 +73,7 @@ typedef struct scm_t_array_dim
   long inc;
 } scm_t_array_dim;
 
-extern scm_t_bits scm_tc16_array;
+SCM_API scm_t_bits scm_tc16_array;
 
 #define SCM_ARRAY_FLAG_CONTIGUOUS (1 << 16)
 
@@ -107,42 +107,42 @@ extern scm_t_bits scm_tc16_array;
 
 
 
-extern size_t scm_uniform_element_size (SCM obj);
-extern SCM scm_make_uve (long k, SCM prot);
-extern SCM scm_uniform_vector_length (SCM v);
-extern SCM scm_array_p (SCM v, SCM prot);
-extern SCM scm_array_rank (SCM ra);
-extern SCM scm_array_dimensions (SCM ra);
-extern SCM scm_shared_array_root (SCM ra);
-extern SCM scm_shared_array_offset (SCM ra);
-extern SCM scm_shared_array_increments (SCM ra);
-extern long scm_aind (SCM ra, SCM args, const char *what);
-extern SCM scm_make_ra (int ndim);
-extern SCM scm_shap2ra (SCM args, const char *what);
-extern SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
-extern void scm_ra_set_contp (SCM ra);
-extern SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
-extern SCM scm_transpose_array (SCM ra, SCM args);
-extern SCM scm_enclose_array (SCM ra, SCM axes);
-extern SCM scm_array_in_bounds_p (SCM v, SCM args);
-extern SCM scm_uniform_vector_ref (SCM v, SCM args);
-extern SCM scm_cvref (SCM v, unsigned long pos, SCM last);
-extern SCM scm_array_set_x (SCM v, SCM obj, SCM args);
-extern SCM scm_array_contents (SCM ra, SCM strict);
-extern SCM scm_ra2contig (SCM ra, int copy);
-extern SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd, SCM start, SCM end);
-extern SCM scm_uniform_array_write (SCM v, SCM port_or_fd, SCM start, SCM end);
-extern SCM scm_bit_count (SCM item, SCM seq);
-extern SCM scm_bit_position (SCM item, SCM v, SCM k);
-extern SCM scm_bit_set_star_x (SCM v, SCM kv, SCM obj);
-extern SCM scm_bit_count_star (SCM v, SCM kv, SCM obj);
-extern SCM scm_bit_invert_x (SCM v);
-extern SCM scm_istr2bve (char *str, long len);
-extern SCM scm_t_arrayo_list (SCM v);
-extern SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
-extern int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
-extern SCM scm_array_prototype (SCM ra);
-extern void scm_init_unif (void);
+SCM_API size_t scm_uniform_element_size (SCM obj);
+SCM_API SCM scm_make_uve (long k, SCM prot);
+SCM_API SCM scm_uniform_vector_length (SCM v);
+SCM_API SCM scm_array_p (SCM v, SCM prot);
+SCM_API SCM scm_array_rank (SCM ra);
+SCM_API SCM scm_array_dimensions (SCM ra);
+SCM_API SCM scm_shared_array_root (SCM ra);
+SCM_API SCM scm_shared_array_offset (SCM ra);
+SCM_API SCM scm_shared_array_increments (SCM ra);
+SCM_API long scm_aind (SCM ra, SCM args, const char *what);
+SCM_API SCM scm_make_ra (int ndim);
+SCM_API SCM scm_shap2ra (SCM args, const char *what);
+SCM_API SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
+SCM_API void scm_ra_set_contp (SCM ra);
+SCM_API SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
+SCM_API SCM scm_transpose_array (SCM ra, SCM args);
+SCM_API SCM scm_enclose_array (SCM ra, SCM axes);
+SCM_API SCM scm_array_in_bounds_p (SCM v, SCM args);
+SCM_API SCM scm_uniform_vector_ref (SCM v, SCM args);
+SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
+SCM_API SCM scm_array_set_x (SCM v, SCM obj, SCM args);
+SCM_API SCM scm_array_contents (SCM ra, SCM strict);
+SCM_API SCM scm_ra2contig (SCM ra, int copy);
+SCM_API SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd, SCM start, SCM end);
+SCM_API SCM scm_uniform_array_write (SCM v, SCM port_or_fd, SCM start, SCM end);
+SCM_API SCM scm_bit_count (SCM item, SCM seq);
+SCM_API SCM scm_bit_position (SCM item, SCM v, SCM k);
+SCM_API SCM scm_bit_set_star_x (SCM v, SCM kv, SCM obj);
+SCM_API SCM scm_bit_count_star (SCM v, SCM kv, SCM obj);
+SCM_API SCM scm_bit_invert_x (SCM v);
+SCM_API SCM scm_istr2bve (char *str, long len);
+SCM_API SCM scm_t_arrayo_list (SCM v);
+SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
+SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
+SCM_API SCM scm_array_prototype (SCM ra);
+SCM_API void scm_init_unif (void);
 
 #endif  /* SCM_UNIF_H */
 

@@ -77,7 +77,7 @@ do { \
 /* {Source properties}
  */
 
-extern scm_t_bits scm_tc16_srcprops;
+SCM_API scm_t_bits scm_tc16_srcprops;
 
 typedef struct scm_t_srcprops
 {
@@ -122,23 +122,23 @@ typedef struct scm_t_srcprops_chunk
 
 #define PROCTRACEP(x) (!SCM_FALSEP (scm_procedure_property (x, scm_sym_trace)))
 
-extern SCM scm_sym_filename;
-extern SCM scm_sym_copy;
-extern SCM scm_sym_line;
-extern SCM scm_sym_column;
-extern SCM scm_sym_breakpoint;
+SCM_API SCM scm_sym_filename;
+SCM_API SCM scm_sym_copy;
+SCM_API SCM scm_sym_line;
+SCM_API SCM scm_sym_column;
+SCM_API SCM scm_sym_breakpoint;
 
 
 
 
-extern SCM scm_srcprops_to_plist (SCM obj);
-extern SCM scm_make_srcprops (long line, int col, SCM fname, SCM copy, SCM plist);
-extern SCM scm_source_property (SCM obj, SCM key);
-extern SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
-extern SCM scm_source_properties (SCM obj);
-extern SCM scm_set_source_properties_x (SCM obj, SCM props);
-extern void scm_finish_srcprop (void);
-extern void scm_init_srcprop (void);
+SCM_API SCM scm_srcprops_to_plist (SCM obj);
+SCM_API SCM scm_make_srcprops (long line, int col, SCM fname, SCM copy, SCM plist);
+SCM_API SCM scm_source_property (SCM obj, SCM key);
+SCM_API SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
+SCM_API SCM scm_source_properties (SCM obj);
+SCM_API SCM scm_set_source_properties_x (SCM obj, SCM props);
+SCM_API void scm_finish_srcprop (void);
+SCM_API void scm_init_srcprop (void);
 
 #endif  /* SCM_SRCPROP_H */
 

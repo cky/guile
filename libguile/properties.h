@@ -48,12 +48,12 @@
 
 #include "libguile/__scm.h"
 
-SCM scm_primitive_make_property (SCM not_found_proc);
-SCM scm_primitive_property_ref (SCM prop, SCM obj);
-SCM scm_primitive_property_set_x (SCM prop, SCM obj, SCM val);
-SCM scm_primitive_property_del_x (SCM prop, SCM obj);
+SCM_API SCM scm_primitive_make_property (SCM not_found_proc);
+SCM_API SCM scm_primitive_property_ref (SCM prop, SCM obj);
+SCM_API SCM scm_primitive_property_set_x (SCM prop, SCM obj, SCM val);
+SCM_API SCM scm_primitive_property_del_x (SCM prop, SCM obj);
 
-void scm_init_properties (void);
+SCM_API void scm_init_properties (void);
 
 #endif  /* SCM_PROPERTIES_H */
 

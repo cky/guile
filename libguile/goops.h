@@ -178,111 +178,127 @@ typedef struct scm_t_method {
 #define scm_si_code_table	 3  /* offset of code. slot in a <method> */
 
 /* C interface */
-extern SCM scm_class_top, scm_class_object, scm_class_class;
-extern SCM scm_class_entity, scm_class_entity_with_setter;
-extern SCM scm_class_generic, scm_class_generic_with_setter, scm_class_method;
-extern SCM scm_class_simple_method, scm_class_accessor;
-extern SCM scm_class_procedure_class;
-extern SCM scm_class_operator_class, scm_class_operator_with_setter_class;
-extern SCM scm_class_entity_class;
-extern SCM scm_class_number, scm_class_list;
-extern SCM scm_class_keyword;
-extern SCM scm_class_port, scm_class_input_output_port;
-extern SCM scm_class_input_port, scm_class_output_port;
-extern SCM scm_class_foreign_class, scm_class_foreign_object;
-extern SCM scm_class_foreign_slot;
-extern SCM scm_class_self, scm_class_protected;
-extern SCM scm_class_opaque, scm_class_read_only;
-extern SCM scm_class_protected_opaque, scm_class_protected_read_only;
-extern SCM scm_class_scm;
-extern SCM scm_class_int, scm_class_float, scm_class_double;
-extern const char *scm_s_slot_set_x;
+SCM_API SCM scm_class_top;
+SCM_API SCM scm_class_object;
+SCM_API SCM scm_class_class;
+SCM_API SCM scm_class_entity;
+SCM_API SCM scm_class_entity_with_setter;
+SCM_API SCM scm_class_generic;
+SCM_API SCM scm_class_generic_with_setter;
+SCM_API SCM scm_class_method;
+SCM_API SCM scm_class_simple_method;
+SCM_API SCM scm_class_accessor;
+SCM_API SCM scm_class_procedure_class;
+SCM_API SCM scm_class_operator_class;
+SCM_API SCM scm_class_operator_with_setter_class;
+SCM_API SCM scm_class_entity_class;
+SCM_API SCM scm_class_number;
+SCM_API SCM scm_class_list;
+SCM_API SCM scm_class_keyword;
+SCM_API SCM scm_class_port;
+SCM_API SCM scm_class_input_output_port;
+SCM_API SCM scm_class_input_port;
+SCM_API SCM scm_class_output_port;
+SCM_API SCM scm_class_foreign_class;
+SCM_API SCM scm_class_foreign_object;
+SCM_API SCM scm_class_foreign_slot;
+SCM_API SCM scm_class_self;
+SCM_API SCM scm_class_protected;
+SCM_API SCM scm_class_opaque;
+SCM_API SCM scm_class_read_only;
+SCM_API SCM scm_class_protected_opaque;
+SCM_API SCM scm_class_protected_read_only;
+SCM_API SCM scm_class_scm;
+SCM_API SCM scm_class_int;
+SCM_API SCM scm_class_float;
+SCM_API SCM scm_class_double;
+SCM_API const char *scm_s_slot_set_x;
 
-extern SCM scm_module_goops;
+SCM_API SCM scm_module_goops;
 
-SCM scm_goops_version (void);
-SCM scm_oldfmt (SCM);
-char *scm_c_oldfmt0 (char *);
-char *scm_c_oldfmt (char *, int n);
-void scm_load_goops (void);
-SCM scm_make_foreign_object (SCM cls, SCM initargs);
-SCM scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
-		    void * (*constructor) (SCM initargs),
-		    size_t (*destructor) (void *));
-void scm_add_slot (SCM c, char *slot, SCM slot_class,
-		   SCM (*getter) (SCM obj),
-		   SCM (*setter) (SCM obj, SCM x),
-		   char *accessor_name);
-SCM scm_wrap_object (SCM c, void *);
-SCM scm_wrap_component (SCM c, SCM obj, void *);
-SCM scm_ensure_accessor (SCM name);
-void scm_add_method (SCM gf, SCM m);
+SCM_API SCM scm_goops_version (void);
+SCM_API SCM scm_oldfmt (SCM);
+SCM_API char *scm_c_oldfmt0 (char *);
+SCM_API char *scm_c_oldfmt (char *, int n);
+SCM_API void scm_load_goops (void);
+SCM_API SCM scm_make_foreign_object (SCM cls, SCM initargs);
+SCM_API SCM scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
+			    void * (*constructor) (SCM initargs),
+			    size_t (*destructor) (void *));
+SCM_API void scm_add_slot (SCM c, char *slot, SCM slot_class,
+			   SCM (*getter) (SCM obj),
+			   SCM (*setter) (SCM obj, SCM x),
+			   char *accessor_name);
+SCM_API SCM scm_wrap_object (SCM c, void *);
+SCM_API SCM scm_wrap_component (SCM c, SCM obj, void *);
+SCM_API SCM scm_ensure_accessor (SCM name);
+SCM_API void scm_add_method (SCM gf, SCM m);
 
 /* Low level functions exported */
-SCM scm_make_next_method (SCM methods, SCM args, SCM gf);
-SCM scm_basic_basic_make_class (SCM c, SCM name, SCM dsupers, SCM dslots);
-SCM scm_basic_make_class (SCM c, SCM name, SCM dsupers, SCM dslots);
+SCM_API SCM scm_make_next_method (SCM methods, SCM args, SCM gf);
+SCM_API SCM scm_basic_basic_make_class (SCM c, SCM name, SCM dsupers, SCM dslots);
+SCM_API SCM scm_basic_make_class (SCM c, SCM name, SCM dsupers, SCM dslots);
 
 /* Primitives exported */
-SCM scm_sys_allocate_instance (SCM c, SCM initargs);
-SCM scm_sys_set_object_setter_x (SCM obj, SCM setter);
-SCM scm_slot_ref (SCM obj, SCM slot_name);
-SCM scm_slot_set_x (SCM obj, SCM slot_name, SCM value);
+SCM_API SCM scm_sys_allocate_instance (SCM c, SCM initargs);
+SCM_API SCM scm_sys_set_object_setter_x (SCM obj, SCM setter);
+SCM_API SCM scm_slot_ref (SCM obj, SCM slot_name);
+SCM_API SCM scm_slot_set_x (SCM obj, SCM slot_name, SCM value);
 
-SCM scm_compute_applicable_methods (SCM gf, SCM args, long len, int scm_find_method);
-SCM scm_sys_compute_applicable_methods (SCM gf, SCM args);
-SCM scm_m_atslot_ref (SCM xorig, SCM env);
-SCM scm_m_atslot_set_x (SCM xorig, SCM env);
-SCM scm_m_atdispatch (SCM xorig, SCM env);
+SCM_API SCM scm_compute_applicable_methods (SCM gf, SCM args, long len, int scm_find_method);
+SCM_API SCM scm_sys_compute_applicable_methods (SCM gf, SCM args);
+SCM_API SCM scm_m_atslot_ref (SCM xorig, SCM env);
+SCM_API SCM scm_m_atslot_set_x (SCM xorig, SCM env);
+SCM_API SCM scm_m_atdispatch (SCM xorig, SCM env);
 #ifdef GUILE_DEBUG
-SCM scm_pure_generic_p (SCM obj);
+SCM_API SCM scm_pure_generic_p (SCM obj);
 #endif
 
-SCM scm_sys_compute_slots (SCM c); 
-SCM scm_i_get_keyword (SCM key, SCM l, long len, SCM default_value, const char *subr); 
-SCM scm_get_keyword (SCM key, SCM l, SCM default_value); 
-SCM scm_sys_initialize_object (SCM obj, SCM initargs); 
-SCM scm_sys_prep_layout_x (SCM c); 
-SCM scm_sys_inherit_magic_x (SCM c, SCM dsupers); 
-SCM scm_instance_p (SCM obj); 
-SCM scm_class_name (SCM obj); 
-SCM scm_class_direct_supers (SCM obj); 
-SCM scm_class_direct_slots (SCM obj); 
-SCM scm_class_direct_subclasses (SCM obj); 
-SCM scm_class_direct_methods (SCM obj); 
-SCM scm_class_precedence_list (SCM obj); 
-SCM scm_class_slots (SCM obj); 
-SCM scm_class_environment (SCM obj); 
-SCM scm_generic_function_name (SCM obj); 
-SCM scm_generic_function_methods (SCM obj); 
-SCM scm_method_generic_function (SCM obj); 
-SCM scm_method_specializers (SCM obj); 
-SCM scm_method_procedure (SCM obj); 
-SCM scm_accessor_method_slot_definition (SCM obj);
-SCM scm_sys_tag_body (SCM body);
-SCM scm_sys_fast_slot_ref (SCM obj, SCM index); 
-SCM scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value); 
-SCM scm_slot_ref_using_class (SCM cls, SCM obj, SCM slot_name); 
-SCM scm_slot_set_using_class_x (SCM cls, SCM obj, SCM slot_name, SCM value); 
-SCM scm_slot_bound_using_class_p (SCM cls, SCM obj, SCM slot_name); 
-SCM scm_slot_exists_using_class_p (SCM cls, SCM obj, SCM slot_name); 
-SCM scm_slot_bound_p (SCM obj, SCM slot_name); 
-SCM scm_slots_exists_p (SCM obj, SCM slot_name); 
-SCM scm_sys_modify_instance (SCM old, SCM newinst); 
-SCM scm_sys_modify_class (SCM old, SCM newcls);
-SCM scm_sys_invalidate_class (SCM cls);
-SCM scm_make_method_cache (SCM gf);
-SCM scm_sys_invalidate_method_cache_x (SCM gf);
-SCM scm_generic_capability_p (SCM proc);
-SCM scm_enable_primitive_generic_x (SCM subrs);
-SCM scm_primitive_generic_generic (SCM subr);
-SCM stklos_version (void); 
-SCM scm_make (SCM args); 
-SCM scm_find_method (SCM args); 
-SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs); 
+SCM_API SCM scm_sys_compute_slots (SCM c); 
+SCM_API SCM scm_i_get_keyword (SCM key, SCM l, long len, SCM default_value, const char *subr); 
+SCM_API SCM scm_get_keyword (SCM key, SCM l, SCM default_value); 
+SCM_API SCM scm_sys_initialize_object (SCM obj, SCM initargs); 
+SCM_API SCM scm_sys_prep_layout_x (SCM c); 
+SCM_API SCM scm_sys_inherit_magic_x (SCM c, SCM dsupers); 
+SCM_API SCM scm_instance_p (SCM obj); 
+SCM_API SCM scm_class_name (SCM obj); 
+SCM_API SCM scm_class_direct_supers (SCM obj); 
+SCM_API SCM scm_class_direct_slots (SCM obj); 
+SCM_API SCM scm_class_direct_subclasses (SCM obj); 
+SCM_API SCM scm_class_direct_methods (SCM obj); 
+SCM_API SCM scm_class_precedence_list (SCM obj); 
+SCM_API SCM scm_class_slots (SCM obj); 
+SCM_API SCM scm_class_environment (SCM obj); 
+SCM_API SCM scm_generic_function_name (SCM obj); 
+SCM_API SCM scm_generic_function_methods (SCM obj); 
+SCM_API SCM scm_method_generic_function (SCM obj); 
+SCM_API SCM scm_method_specializers (SCM obj); 
+SCM_API SCM scm_method_procedure (SCM obj); 
+SCM_API SCM scm_accessor_method_slot_definition (SCM obj);
+SCM_API SCM scm_sys_tag_body (SCM body);
+SCM_API SCM scm_sys_fast_slot_ref (SCM obj, SCM index); 
+SCM_API SCM scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value); 
+SCM_API SCM scm_slot_ref_using_class (SCM cls, SCM obj, SCM slot_name); 
+SCM_API SCM scm_slot_set_using_class_x (SCM cls, SCM obj, SCM slot_name, SCM value); 
+SCM_API SCM scm_slot_bound_using_class_p (SCM cls, SCM obj, SCM slot_name); 
+SCM_API SCM scm_slot_exists_using_class_p (SCM cls, SCM obj, SCM slot_name); 
+SCM_API SCM scm_slot_bound_p (SCM obj, SCM slot_name); 
+SCM_API SCM scm_slots_exists_p (SCM obj, SCM slot_name); 
+SCM_API SCM scm_sys_modify_instance (SCM old, SCM newinst); 
+SCM_API SCM scm_sys_modify_class (SCM old, SCM newcls);
+SCM_API SCM scm_sys_invalidate_class (SCM cls);
+SCM_API SCM scm_make_method_cache (SCM gf);
+SCM_API SCM scm_sys_invalidate_method_cache_x (SCM gf);
+SCM_API SCM scm_generic_capability_p (SCM proc);
+SCM_API SCM scm_enable_primitive_generic_x (SCM subrs);
+SCM_API SCM scm_primitive_generic_generic (SCM subr);
+SCM_API SCM stklos_version (void); 
+SCM_API SCM scm_make (SCM args); 
+SCM_API SCM scm_find_method (SCM args); 
+SCM_API SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs); 
 
-SCM scm_init_goops_builtins (void);
-void scm_init_goops (void); 
+SCM_API SCM scm_init_goops_builtins (void);
+SCM_API void scm_init_goops (void); 
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 

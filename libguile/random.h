@@ -74,7 +74,7 @@ typedef struct scm_t_rng {
   scm_t_rstate *(*copy_rstate) (scm_t_rstate *state);
 } scm_t_rng;
 
-extern scm_t_rng scm_the_rng;
+SCM_API scm_t_rng scm_the_rng;
 
 
 /*
@@ -86,44 +86,44 @@ typedef struct scm_t_i_rstate {
   unsigned long c;
 } scm_t_i_rstate;
 
-extern unsigned long scm_i_uniform32 (scm_t_i_rstate *);
-extern void scm_i_init_rstate (scm_t_i_rstate *, char *seed, int n);
-extern scm_t_i_rstate *scm_i_copy_rstate (scm_t_i_rstate *);
+SCM_API unsigned long scm_i_uniform32 (scm_t_i_rstate *);
+SCM_API void scm_i_init_rstate (scm_t_i_rstate *, char *seed, int n);
+SCM_API scm_t_i_rstate *scm_i_copy_rstate (scm_t_i_rstate *);
 
 
 /*
  * Random number library functions
  */
-extern scm_t_rstate *scm_c_make_rstate (char *, int);
-extern scm_t_rstate *scm_c_default_rstate (void);
+SCM_API scm_t_rstate *scm_c_make_rstate (char *, int);
+SCM_API scm_t_rstate *scm_c_default_rstate (void);
 #define scm_c_uniform32(RSTATE) scm_the_rng.random_bits (RSTATE)
-extern double scm_c_uniform01 (scm_t_rstate *);
-extern double scm_c_normal01 (scm_t_rstate *);
-extern double scm_c_exp1 (scm_t_rstate *);
-extern unsigned long scm_c_random (scm_t_rstate *, unsigned long m);
-extern SCM scm_c_random_bignum (scm_t_rstate *, SCM m);
+SCM_API double scm_c_uniform01 (scm_t_rstate *);
+SCM_API double scm_c_normal01 (scm_t_rstate *);
+SCM_API double scm_c_exp1 (scm_t_rstate *);
+SCM_API unsigned long scm_c_random (scm_t_rstate *, unsigned long m);
+SCM_API SCM scm_c_random_bignum (scm_t_rstate *, SCM m);
 
 
 /*
  * Scheme level interface
  */
-extern scm_t_bits scm_tc16_rstate;
+SCM_API scm_t_bits scm_tc16_rstate;
 #define SCM_RSTATEP(obj) SCM_TYP16_PREDICATE (scm_tc16_rstate, obj)
 #define SCM_RSTATE(obj)  ((scm_t_rstate *) SCM_CELL_WORD_1 (obj))
 
-extern unsigned char scm_masktab[256];
+SCM_API unsigned char scm_masktab[256];
 
-extern SCM scm_var_random_state;
-extern SCM scm_random (SCM n, SCM state);
-extern SCM scm_copy_random_state (SCM state);
-extern SCM scm_seed_to_random_state (SCM seed);
-extern SCM scm_random_uniform (SCM state);
-extern SCM scm_random_solid_sphere_x (SCM v, SCM state);
-extern SCM scm_random_hollow_sphere_x (SCM v, SCM state);
-extern SCM scm_random_normal (SCM state);
-extern SCM scm_random_normal_vector_x (SCM v, SCM state);
-extern SCM scm_random_exp (SCM state);
-extern void scm_init_random (void);
+SCM_API SCM scm_var_random_state;
+SCM_API SCM scm_random (SCM n, SCM state);
+SCM_API SCM scm_copy_random_state (SCM state);
+SCM_API SCM scm_seed_to_random_state (SCM seed);
+SCM_API SCM scm_random_uniform (SCM state);
+SCM_API SCM scm_random_solid_sphere_x (SCM v, SCM state);
+SCM_API SCM scm_random_hollow_sphere_x (SCM v, SCM state);
+SCM_API SCM scm_random_normal (SCM state);
+SCM_API SCM scm_random_normal_vector_x (SCM v, SCM state);
+SCM_API SCM scm_random_exp (SCM state);
+SCM_API void scm_init_random (void);
 
 #endif  /* SCM_RANDOM_H */
 

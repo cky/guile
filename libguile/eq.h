@@ -50,10 +50,10 @@
 
 
 
-extern SCM scm_eq_p (SCM x, SCM y);
-extern SCM scm_eqv_p (SCM x, SCM y);
-extern SCM scm_equal_p (SCM x, SCM y);
-extern void scm_init_eq (void);
+SCM_API SCM scm_eq_p (SCM x, SCM y);
+SCM_API SCM scm_eqv_p (SCM x, SCM y);
+SCM_API SCM scm_equal_p (SCM x, SCM y);
+SCM_API void scm_init_eq (void);
 
 #endif  /* SCM_EQ_H */
 

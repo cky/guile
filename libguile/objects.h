@@ -198,48 +198,55 @@ typedef struct scm_effective_slot_definition {
 #define SCM_INOUT_PCLASS_INDEX 0x200
 
 /* Plugin proxy classes for basic types. */
-extern SCM scm_metaclass_standard;
-extern SCM scm_metaclass_operator;
-extern SCM scm_class_boolean, scm_class_char, scm_class_pair;
-extern SCM scm_class_procedure, scm_class_string, scm_class_symbol;
-extern SCM scm_class_procedure_with_setter, scm_class_primitive_generic;
-extern SCM scm_class_vector, scm_class_null;
-extern SCM scm_class_real, scm_class_complex, scm_class_integer;
-extern SCM scm_class_unknown;
-extern SCM *scm_port_class;
-extern SCM *scm_smob_class;
+SCM_API SCM scm_metaclass_standard;
+SCM_API SCM scm_metaclass_operator;
+SCM_API SCM scm_class_boolean;
+SCM_API SCM scm_class_char;
+SCM_API SCM scm_class_pair;
+SCM_API SCM scm_class_procedure;
+SCM_API SCM scm_class_string;
+SCM_API SCM scm_class_symbol;
+SCM_API SCM scm_class_procedure_with_setter;
+SCM_API SCM scm_class_primitive_generic;
+SCM_API SCM scm_class_vector, scm_class_null;
+SCM_API SCM scm_class_real;
+SCM_API SCM scm_class_complex;
+SCM_API SCM scm_class_integer;
+SCM_API SCM scm_class_unknown;
+SCM_API SCM *scm_port_class;
+SCM_API SCM *scm_smob_class;
 
-extern SCM scm_no_applicable_method;
+SCM_API SCM scm_no_applicable_method;
 
 /* Goops functions. */
-extern SCM scm_make_extended_class (char *type_name);
-extern void scm_make_port_classes (long ptobnum, char *type_name);
-extern void scm_change_object_class (SCM, SCM, SCM);
-extern SCM scm_memoize_method (SCM x, SCM args);
+SCM_API SCM scm_make_extended_class (char *type_name);
+SCM_API void scm_make_port_classes (long ptobnum, char *type_name);
+SCM_API void scm_change_object_class (SCM, SCM, SCM);
+SCM_API SCM scm_memoize_method (SCM x, SCM args);
 
-extern SCM scm_class_of (SCM obj);
-extern SCM scm_mcache_lookup_cmethod (SCM cache, SCM args);
-extern SCM scm_mcache_compute_cmethod (SCM cache, SCM args);
+SCM_API SCM scm_class_of (SCM obj);
+SCM_API SCM scm_mcache_lookup_cmethod (SCM cache, SCM args);
+SCM_API SCM scm_mcache_compute_cmethod (SCM cache, SCM args);
 /* The following are declared in __scm.h
-extern SCM scm_call_generic_0 (SCM gf);
-extern SCM scm_call_generic_1 (SCM gf, SCM a1);
-extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
-extern SCM scm_apply_generic (SCM gf, SCM args);
+SCM_API SCM scm_call_generic_0 (SCM gf);
+SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);
+SCM_API SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
+SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 */
-extern SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
-extern SCM scm_entity_p (SCM obj);
-extern SCM scm_operator_p (SCM obj);
-extern SCM scm_valid_object_procedure_p (SCM proc);
-extern SCM scm_set_object_procedure_x (SCM obj, SCM proc);
+SCM_API SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
+SCM_API SCM scm_entity_p (SCM obj);
+SCM_API SCM scm_operator_p (SCM obj);
+SCM_API SCM scm_valid_object_procedure_p (SCM proc);
+SCM_API SCM scm_set_object_procedure_x (SCM obj, SCM proc);
 #ifdef GUILE_DEBUG
-extern SCM scm_object_procedure (SCM obj);
+SCM_API SCM scm_object_procedure (SCM obj);
 #endif
-extern SCM scm_make_class_object (SCM metaclass, SCM layout);
-extern SCM scm_make_subclass_object (SCM c, SCM layout);
+SCM_API SCM scm_make_class_object (SCM metaclass, SCM layout);
+SCM_API SCM scm_make_subclass_object (SCM c, SCM layout);
 
-extern SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
-				    unsigned long flags);
-extern void scm_init_objects (void);
+SCM_API SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
+				     unsigned long flags);
+SCM_API void scm_init_objects (void);
 
 #endif  /* SCM_OBJECTS_H */
 

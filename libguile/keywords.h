@@ -50,7 +50,7 @@
 
 
 
-extern scm_t_bits scm_tc16_keyword;
+SCM_API scm_t_bits scm_tc16_keyword;
 
 #define SCM_KEYWORDP(X)		(!SCM_IMP (X) && (SCM_CELL_TYPE (X) == scm_tc16_keyword))
 #define SCM_KEYWORDSYM(X)	(SCM_CELL_OBJECT_1 (X))
@@ -58,11 +58,11 @@ extern scm_t_bits scm_tc16_keyword;
 
 
 
-extern SCM scm_make_keyword_from_dash_symbol (SCM symbol);
-extern SCM scm_c_make_keyword (char *s);
-extern SCM scm_keyword_p (SCM obj);
-extern SCM scm_keyword_dash_symbol (SCM keyword);
-extern void scm_init_keywords (void);
+SCM_API SCM scm_make_keyword_from_dash_symbol (SCM symbol);
+SCM_API SCM scm_c_make_keyword (char *s);
+SCM_API SCM scm_keyword_p (SCM obj);
+SCM_API SCM scm_keyword_dash_symbol (SCM keyword);
+SCM_API void scm_init_keywords (void);
 
 #endif  /* SCM_KEYWORDS_H */
 

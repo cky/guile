@@ -68,7 +68,7 @@
 /* scm_debug_opts is  defined in eval.c.
  */
 
-extern scm_t_option scm_debug_opts[];
+SCM_API scm_t_option scm_debug_opts[];
 
 #define SCM_CHEAPTRAPS_P	scm_debug_opts[0].val
 #define SCM_BREAKPOINTS_P	scm_debug_opts[1].val
@@ -86,10 +86,12 @@ extern scm_t_option scm_debug_opts[];
 #define SCM_SHOW_FILE_NAME	scm_debug_opts[13].val
 #define SCM_N_DEBUG_OPTIONS 14
 
-extern SCM (*scm_ceval_ptr) (SCM exp, SCM env);
+SCM_API SCM (*scm_ceval_ptr) (SCM exp, SCM env);
 
-extern int scm_debug_mode;
-extern int scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
+SCM_API int scm_debug_mode;
+SCM_API int scm_check_entry_p;
+SCM_API int scm_check_apply_p;
+SCM_API int scm_check_exit_p;
 
 #define CHECK_ENTRY      scm_check_entry_p
 #define CHECK_APPLY	 scm_check_apply_p
@@ -117,7 +119,7 @@ typedef union scm_t_debug_info
   SCM id;
 } scm_t_debug_info;
 
-extern long scm_debug_eframe_size;
+SCM_API long scm_debug_eframe_size;
 
 typedef struct scm_t_debug_frame
 {
@@ -128,7 +130,7 @@ typedef struct scm_t_debug_frame
 } scm_t_debug_frame;
 
 #ifndef USE_THREADS
-extern scm_t_debug_frame *scm_last_debug_frame;
+SCM_API scm_t_debug_frame *scm_last_debug_frame;
 #endif
 
 #define SCM_EVALFRAME    (0L << 11)
@@ -165,7 +167,7 @@ extern scm_t_debug_frame *scm_last_debug_frame;
 /* {Debug Objects}
  */
 
-extern scm_t_bits scm_tc16_debugobj;
+SCM_API scm_t_bits scm_tc16_debugobj;
 
 #define SCM_DEBUGOBJP(x) \
   SCM_TYP16_PREDICATE (scm_tc16_debugobj, x)
@@ -176,7 +178,7 @@ extern scm_t_bits scm_tc16_debugobj;
 /* {Memoized Source}
  */
 
-extern scm_t_bits scm_tc16_memoized;
+SCM_API scm_t_bits scm_tc16_memoized;
 
 #define SCM_MEMOIZEDP(x)	SCM_TYP16_PREDICATE (scm_tc16_memoized, x)
 #define SCM_MEMOIZED_EXP(x)	SCM_CAR (SCM_CELL_OBJECT_1 (x))
@@ -184,32 +186,32 @@ extern scm_t_bits scm_tc16_memoized;
 
 
 
-extern int scm_ready_p (void);
-extern void debug_print (SCM obj);
-extern SCM scm_debug_object_p (SCM obj);
-extern SCM scm_local_eval (SCM exp, SCM env);
-extern SCM scm_reverse_lookup (SCM env, SCM data);
-extern SCM scm_start_stack (SCM id, SCM exp, SCM env);
-extern SCM scm_procedure_environment (SCM proc);
-extern SCM scm_procedure_source (SCM proc);
-extern SCM scm_procedure_name (SCM proc);
-extern SCM scm_memoized_environment (SCM m);
-extern SCM scm_make_memoized (SCM exp, SCM env);
-extern SCM scm_memoized_p (SCM obj);
-extern SCM scm_with_traps (SCM thunk);
-extern SCM scm_evaluator_traps (SCM setting);
-extern SCM scm_debug_options (SCM setting);
-extern SCM scm_unmemoize (SCM memoized);
-extern SCM scm_make_debugobj (scm_t_debug_frame *debug);
-extern void scm_init_debug (void);
+SCM_API int scm_ready_p (void);
+SCM_API void debug_print (SCM obj);
+SCM_API SCM scm_debug_object_p (SCM obj);
+SCM_API SCM scm_local_eval (SCM exp, SCM env);
+SCM_API SCM scm_reverse_lookup (SCM env, SCM data);
+SCM_API SCM scm_start_stack (SCM id, SCM exp, SCM env);
+SCM_API SCM scm_procedure_environment (SCM proc);
+SCM_API SCM scm_procedure_source (SCM proc);
+SCM_API SCM scm_procedure_name (SCM proc);
+SCM_API SCM scm_memoized_environment (SCM m);
+SCM_API SCM scm_make_memoized (SCM exp, SCM env);
+SCM_API SCM scm_memoized_p (SCM obj);
+SCM_API SCM scm_with_traps (SCM thunk);
+SCM_API SCM scm_evaluator_traps (SCM setting);
+SCM_API SCM scm_debug_options (SCM setting);
+SCM_API SCM scm_unmemoize (SCM memoized);
+SCM_API SCM scm_make_debugobj (scm_t_debug_frame *debug);
+SCM_API void scm_init_debug (void);
 
 #ifdef GUILE_DEBUG
-extern SCM scm_make_iloc (SCM frame, SCM binding, SCM cdrp);
-extern SCM scm_iloc_p (SCM obj);
-extern SCM scm_memcons (SCM car, SCM cdr, SCM env);
-extern SCM scm_mem_to_proc (SCM obj);
-extern SCM scm_proc_to_mem (SCM obj);
-extern SCM scm_debug_hang (SCM obj);
+SCM_API SCM scm_make_iloc (SCM frame, SCM binding, SCM cdrp);
+SCM_API SCM scm_iloc_p (SCM obj);
+SCM_API SCM scm_memcons (SCM car, SCM cdr, SCM env);
+SCM_API SCM scm_mem_to_proc (SCM obj);
+SCM_API SCM scm_proc_to_mem (SCM obj);
+SCM_API SCM scm_debug_hang (SCM obj);
 #endif /*GUILE_DEBUG*/
 
 #endif  /* SCM_DEBUG_H */

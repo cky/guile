@@ -72,11 +72,11 @@
 #define SCM_NUM_PROTECTS 13
 #endif
 
-extern SCM scm_sys_protects[];
+SCM_API SCM scm_sys_protects[];
 
 
 
-extern scm_t_bits scm_tc16_root;
+SCM_API scm_t_bits scm_tc16_root;
 
 #define SCM_ROOTP(obj)       SCM_TYP16_PREDICATE (scm_tc16_root, obj)
 #define SCM_ROOT_STATE(root) ((scm_root_state *) SCM_CELL_WORD_1 (root))
@@ -134,22 +134,22 @@ typedef struct scm_root_state
 #define scm_root ((scm_root_state *) SCM_THREAD_LOCAL_DATA)
 #define scm_set_root(new_root) SCM_SET_THREAD_LOCAL_DATA (new_root)
 #else /* USE_THREADS */
-extern struct scm_root_state *scm_root;
+SCM_API struct scm_root_state *scm_root;
 #define scm_set_root(new_root) (scm_root = (new_root))
 #endif /* USE_THREADS */
 
 
 
-extern SCM scm_make_root (SCM parent);
-extern SCM scm_internal_cwdr (scm_t_catch_body body,
-                              void *body_data,
-                              scm_t_catch_handler handler,
-                              void *handler_data,
-                              SCM_STACKITEM *stack_start);
-extern SCM scm_call_with_dynamic_root (SCM thunk, SCM handler);
-extern SCM scm_dynamic_root (void);
-extern SCM scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler);
-extern void scm_init_root (void);
+SCM_API SCM scm_make_root (SCM parent);
+SCM_API SCM scm_internal_cwdr (scm_t_catch_body body,
+			       void *body_data,
+			       scm_t_catch_handler handler,
+			       void *handler_data,
+			       SCM_STACKITEM *stack_start);
+SCM_API SCM scm_call_with_dynamic_root (SCM thunk, SCM handler);
+SCM_API SCM scm_dynamic_root (void);
+SCM_API SCM scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler);
+SCM_API void scm_init_root (void);
 
 #endif  /* SCM_ROOT_H */
 

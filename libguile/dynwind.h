@@ -53,19 +53,19 @@
 typedef void (*scm_t_guard) (void *);
 typedef SCM (*scm_t_inner) (void *);
 
-extern SCM scm_dynamic_wind (SCM thunk1, SCM thunk2, SCM thunk3);
-extern SCM scm_internal_dynamic_wind (scm_t_guard before,
-                                      scm_t_inner inner,
-                                      scm_t_guard after,
-                                      void *inner_data,
-                                      void *guard_data);
-extern void scm_dowinds (SCM to, long delta);
-extern void scm_init_dynwind (void);
+SCM_API SCM scm_dynamic_wind (SCM thunk1, SCM thunk2, SCM thunk3);
+SCM_API SCM scm_internal_dynamic_wind (scm_t_guard before,
+				       scm_t_inner inner,
+				       scm_t_guard after,
+				       void *inner_data,
+				       void *guard_data);
+SCM_API void scm_dowinds (SCM to, long delta);
+SCM_API void scm_init_dynwind (void);
 
-extern void scm_swap_bindings (SCM vars, SCM vals);
+SCM_API void scm_swap_bindings (SCM vars, SCM vals);
 
 #ifdef GUILE_DEBUG
-extern SCM scm_wind_chain (void);
+SCM_API SCM scm_wind_chain (void);
 #endif /*GUILE_DEBUG*/
 
 #endif  /* SCM_DYNWIND_H */

@@ -49,41 +49,41 @@
 #include "libguile/__scm.h"
 
 
-extern int scm_ints_disabled;
+SCM_API int scm_ints_disabled;
 
-extern SCM scm_system_error_key;
-extern SCM scm_num_overflow_key;
-extern SCM scm_out_of_range_key;
-extern SCM scm_args_number_key;
-extern SCM scm_arg_type_key;
-extern SCM scm_memory_alloc_key;
-extern SCM scm_misc_error_key;
+SCM_API SCM scm_system_error_key;
+SCM_API SCM scm_num_overflow_key;
+SCM_API SCM scm_out_of_range_key;
+SCM_API SCM scm_args_number_key;
+SCM_API SCM scm_arg_type_key;
+SCM_API SCM scm_memory_alloc_key;
+SCM_API SCM scm_misc_error_key;
 
 
 
-extern void scm_error (SCM key, const char *subr, const char *message,
-                             SCM args, SCM rest) SCM_NORETURN;
-extern SCM scm_error_scm (SCM key, SCM subr, SCM message,
-                          SCM args, SCM rest) SCM_NORETURN;
-extern SCM scm_strerror (SCM err);
-extern void scm_syserror (const char *subr) SCM_NORETURN;
-extern void scm_syserror_msg (const char *subr, const char *message,
-                              SCM args, int eno) SCM_NORETURN;
-extern void scm_num_overflow (const char *subr) SCM_NORETURN;
-extern void scm_out_of_range (const char *subr, SCM bad_value)
+SCM_API void scm_error (SCM key, const char *subr, const char *message,
+			SCM args, SCM rest) SCM_NORETURN;
+SCM_API SCM scm_error_scm (SCM key, SCM subr, SCM message,
+			   SCM args, SCM rest) SCM_NORETURN;
+SCM_API SCM scm_strerror (SCM err);
+SCM_API void scm_syserror (const char *subr) SCM_NORETURN;
+SCM_API void scm_syserror_msg (const char *subr, const char *message,
+			       SCM args, int eno) SCM_NORETURN;
+SCM_API void scm_num_overflow (const char *subr) SCM_NORETURN;
+SCM_API void scm_out_of_range (const char *subr, SCM bad_value)
      SCM_NORETURN;
-extern void scm_out_of_range_pos (const char *subr, SCM bad_value, SCM pos)
+SCM_API void scm_out_of_range_pos (const char *subr, SCM bad_value, SCM pos)
      SCM_NORETURN;
-extern void scm_wrong_num_args (SCM proc) SCM_NORETURN;
-extern void scm_error_num_args_subr (const char* subr) SCM_NORETURN;
-extern void scm_wrong_type_arg (const char *subr, int pos,
-                                SCM bad_value) SCM_NORETURN;
-extern void scm_wrong_type_arg_msg (const char *subr, int pos,
-                                    SCM bad_value, const char *sz) SCM_NORETURN;
-extern void scm_memory_error (const char *subr) SCM_NORETURN;
-extern void scm_misc_error (const char *subr, const char *message,
-                            SCM args) SCM_NORETURN;
-extern void scm_init_error (void);
+SCM_API void scm_wrong_num_args (SCM proc) SCM_NORETURN;
+SCM_API void scm_error_num_args_subr (const char* subr) SCM_NORETURN;
+SCM_API void scm_wrong_type_arg (const char *subr, int pos,
+				 SCM bad_value) SCM_NORETURN;
+SCM_API void scm_wrong_type_arg_msg (const char *subr, int pos,
+				     SCM bad_value, const char *sz) SCM_NORETURN;
+SCM_API void scm_memory_error (const char *subr) SCM_NORETURN;
+SCM_API void scm_misc_error (const char *subr, const char *message,
+			     SCM args) SCM_NORETURN;
+SCM_API void scm_init_error (void);
 
 #endif  /* SCM_ERROR_H */
 

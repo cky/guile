@@ -48,14 +48,14 @@
 
 #include "libguile/__scm.h"
 
-extern scm_t_bits scm_tc16_regex;
+SCM_API scm_t_bits scm_tc16_regex;
 #define SCM_RGX(X)	((regex_t *) SCM_CELL_WORD_1 (X))
 #define SCM_RGXP(X)	(!SCM_IMP (X) && (SCM_CELL_TYPE (X) == scm_tc16_regex))
 
-extern SCM scm_make_regexp (SCM pat, SCM flags);
-SCM scm_regexp_p (SCM x);
-extern SCM scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags);
-extern void scm_init_regex_posix (void);
+SCM_API SCM scm_make_regexp (SCM pat, SCM flags);
+SCM_API SCM scm_regexp_p (SCM x);
+SCM_API SCM scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags);
+SCM_API void scm_init_regex_posix (void);
 
 #endif  /* SCM_REGEX_POSIX_H */
 

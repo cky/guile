@@ -73,22 +73,22 @@
 
 
 
-extern SCM scm_c_make_vector (unsigned long int k, SCM fill);
+SCM_API SCM scm_c_make_vector (unsigned long int k, SCM fill);
 
-extern SCM scm_vector_p (SCM x);
-extern SCM scm_vector_length (SCM v);
-extern SCM scm_vector (SCM l);
-extern SCM scm_vector_ref (SCM v, SCM k);
-extern SCM scm_vector_set_x (SCM v, SCM k, SCM obj);
-extern SCM scm_make_vector (SCM k, SCM fill);
-extern SCM scm_vector_to_list (SCM v);
-extern SCM scm_vector_fill_x (SCM v, SCM fill_x);
-extern SCM scm_vector_equal_p (SCM x, SCM y);
-extern SCM scm_vector_move_left_x (SCM vec1, SCM start1, SCM end1,
-				   SCM vec2, SCM start2);
-extern SCM scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1, 
-                                    SCM vec2, SCM start2);
-extern void scm_init_vectors (void);
+SCM_API SCM scm_vector_p (SCM x);
+SCM_API SCM scm_vector_length (SCM v);
+SCM_API SCM scm_vector (SCM l);
+SCM_API SCM scm_vector_ref (SCM v, SCM k);
+SCM_API SCM scm_vector_set_x (SCM v, SCM k, SCM obj);
+SCM_API SCM scm_make_vector (SCM k, SCM fill);
+SCM_API SCM scm_vector_to_list (SCM v);
+SCM_API SCM scm_vector_fill_x (SCM v, SCM fill_x);
+SCM_API SCM scm_vector_equal_p (SCM x, SCM y);
+SCM_API SCM scm_vector_move_left_x (SCM vec1, SCM start1, SCM end1,
+				    SCM vec2, SCM start2);
+SCM_API SCM scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1, 
+				     SCM vec2, SCM start2);
+SCM_API void scm_init_vectors (void);
 
 #endif  /* SCM_VECTORS_H */
 

@@ -48,13 +48,13 @@
 
 #include "libguile/__scm.h"
 
-extern SCM scm_values_vtable;
+SCM_API SCM scm_values_vtable;
 
 #define SCM_VALUESP(x) (SCM_STRUCTP (x)\
                         && SCM_EQ_P (scm_struct_vtable (x), scm_values_vtable))
 
-extern SCM scm_values (SCM args);
-extern void scm_init_values (void);
+SCM_API SCM scm_values (SCM args);
+SCM_API void scm_init_values (void);
 
 #endif  /* SCM_VALUES_H */
 

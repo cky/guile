@@ -62,22 +62,22 @@
 
 
 
-extern scm_t_bits scm_tc16_strport;
+SCM_API scm_t_bits scm_tc16_strport;
 
 
 
-extern SCM scm_mkstrport (SCM pos, SCM str, long modes, const char * caller);
-extern SCM scm_strport_to_string (SCM port);
-extern SCM scm_object_to_string (SCM obj, SCM printer);
-extern SCM scm_call_with_output_string (SCM proc);
-extern SCM scm_call_with_input_string (SCM str, SCM proc);
-extern SCM scm_open_input_string (SCM str);
-extern SCM scm_open_output_string (void);
-extern SCM scm_get_output_string (SCM port);
-extern SCM scm_c_read_string (const char *expr);
-extern SCM scm_c_eval_string (const char *expr);
-extern SCM scm_eval_string (SCM string);
-extern void scm_init_strports (void);
+SCM_API SCM scm_mkstrport (SCM pos, SCM str, long modes, const char * caller);
+SCM_API SCM scm_strport_to_string (SCM port);
+SCM_API SCM scm_object_to_string (SCM obj, SCM printer);
+SCM_API SCM scm_call_with_output_string (SCM proc);
+SCM_API SCM scm_call_with_input_string (SCM str, SCM proc);
+SCM_API SCM scm_open_input_string (SCM str);
+SCM_API SCM scm_open_output_string (void);
+SCM_API SCM scm_get_output_string (SCM port);
+SCM_API SCM scm_c_read_string (const char *expr);
+SCM_API SCM scm_c_eval_string (const char *expr);
+SCM_API SCM scm_eval_string (SCM string);
+SCM_API void scm_init_strports (void);
 
 #endif  /* SCM_STRPORTS_H */
 

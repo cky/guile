@@ -49,18 +49,18 @@
 #include "libguile/__scm.h"
 
 
-extern char *scm_find_executable (const char *name);
-extern char *scm_find_impl_file (char *exec_path,
-                                 const char *generic_name,
-                                 const char *initname,
-                                 const char *sep);
-extern char **scm_get_meta_args (int argc, char **argv);
-extern int scm_count_argv (char **argv);
-extern void scm_shell_usage (int fatal, char *message);
-extern SCM scm_compile_shell_switches (int argc, char **argv);
-extern void scm_shell (int argc, char **argv);
-extern char *scm_usage_name;
-extern void scm_init_script (void);
+SCM_API char *scm_find_executable (const char *name);
+SCM_API char *scm_find_impl_file (char *exec_path,
+				  const char *generic_name,
+				  const char *initname,
+				  const char *sep);
+SCM_API char **scm_get_meta_args (int argc, char **argv);
+SCM_API int scm_count_argv (char **argv);
+SCM_API void scm_shell_usage (int fatal, char *message);
+SCM_API SCM scm_compile_shell_switches (int argc, char **argv);
+SCM_API void scm_shell (int argc, char **argv);
+SCM_API char *scm_usage_name;
+SCM_API void scm_init_script (void);
 
 #endif  /* SCM_SCRIPT_H */
 

@@ -127,16 +127,16 @@ do { \
 #define SCM_SMOB_APPLY_2(x,a1,a2)	(SCM_SMOB_DESCRIPTOR (x).apply_2 (x, (a1), (a2)))
 #define SCM_SMOB_APPLY_3(x,a1,a2,rst)	(SCM_SMOB_DESCRIPTOR (x).apply_3 (x, (a1), (a2), (rst)))
 
-extern long scm_numsmob;
-extern scm_smob_descriptor scm_smobs[];
+SCM_API long scm_numsmob;
+SCM_API scm_smob_descriptor scm_smobs[];
 
 
 
-extern SCM scm_mark0 (SCM ptr);
-extern SCM scm_markcdr (SCM ptr);
-extern size_t scm_free0 (SCM ptr);
-extern size_t scm_smob_free (SCM obj);
-extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
+SCM_API SCM scm_mark0 (SCM ptr);
+SCM_API SCM scm_markcdr (SCM ptr);
+SCM_API size_t scm_free0 (SCM ptr);
+SCM_API size_t scm_smob_free (SCM obj);
+SCM_API int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
 
 /* The following set of functions is the standard way to create new
  * SMOB types.
@@ -146,23 +146,23 @@ extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
  * values using `scm_set_smob_xxx'.
  */
 
-extern scm_t_bits scm_make_smob_type (char *name, size_t size);
+SCM_API scm_t_bits scm_make_smob_type (char *name, size_t size);
 
-extern void scm_set_smob_mark (scm_t_bits tc, SCM (*mark) (SCM));
-extern void scm_set_smob_free (scm_t_bits tc, size_t (*free) (SCM));
-extern void scm_set_smob_print (scm_t_bits tc,
-				int (*print) (SCM, SCM, scm_print_state*));
-extern void scm_set_smob_equalp (scm_t_bits tc, SCM (*equalp) (SCM, SCM));
-extern void scm_set_smob_apply (scm_t_bits tc,
-				SCM (*apply) (),
-				unsigned int req,
-				unsigned int opt,
-				unsigned int rst);
+SCM_API void scm_set_smob_mark (scm_t_bits tc, SCM (*mark) (SCM));
+SCM_API void scm_set_smob_free (scm_t_bits tc, size_t (*free) (SCM));
+SCM_API void scm_set_smob_print (scm_t_bits tc,
+				 int (*print) (SCM, SCM, scm_print_state*));
+SCM_API void scm_set_smob_equalp (scm_t_bits tc, SCM (*equalp) (SCM, SCM));
+SCM_API void scm_set_smob_apply (scm_t_bits tc,
+				 SCM (*apply) (),
+				 unsigned int req,
+				 unsigned int opt,
+				 unsigned int rst);
 
 /* Function for creating smobs */
 
-extern SCM scm_make_smob (scm_t_bits tc);
-extern void scm_smob_prehistory (void);
+SCM_API SCM scm_make_smob (scm_t_bits tc);
+SCM_API void scm_smob_prehistory (void);
 
 #endif  /* SCM_SMOB_H */
 

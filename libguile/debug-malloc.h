@@ -50,14 +50,14 @@
 
 
 
-extern void scm_malloc_register (void *obj, const char *what);
-extern void scm_malloc_unregister (void *obj);
-extern void scm_malloc_reregister (void *obj, void *new, const char *what);
+SCM_API void scm_malloc_register (void *obj, const char *what);
+SCM_API void scm_malloc_unregister (void *obj);
+SCM_API void scm_malloc_reregister (void *obj, void *new, const char *what);
 
-extern SCM scm_malloc_stats (void);
+SCM_API SCM scm_malloc_stats (void);
 
-extern void scm_debug_malloc_prehistory (void);
-extern void scm_init_debug_malloc (void);
+SCM_API void scm_debug_malloc_prehistory (void);
+SCM_API void scm_init_debug_malloc (void);
 
 #endif  /* SCM_DEBUG_MALLOC_H */
 

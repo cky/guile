@@ -57,19 +57,19 @@
 #define SCM_MACRO_TYPE(m) (SCM_CELL_WORD_0 (m) >> 16)
 #define SCM_MACRO_CODE(m) SCM_CELL_OBJECT_1 (m)
 
-extern scm_t_bits scm_tc16_macro;
+SCM_API scm_t_bits scm_tc16_macro;
 
-extern SCM scm_makacro (SCM code);
-extern SCM scm_makmacro (SCM code);
-extern SCM scm_makmmacro (SCM code);
-extern SCM scm_macro_p (SCM obj);
-extern SCM scm_macro_type (SCM m);
-extern SCM scm_macro_name (SCM m);
-extern SCM scm_macro_transformer (SCM m);
-extern SCM scm_make_synt (const char *name,
-                          SCM (*macroizer) (SCM),
-                          SCM (*fcn) ());
-extern void scm_init_macros (void);
+SCM_API SCM scm_makacro (SCM code);
+SCM_API SCM scm_makmacro (SCM code);
+SCM_API SCM scm_makmmacro (SCM code);
+SCM_API SCM scm_macro_p (SCM obj);
+SCM_API SCM scm_macro_type (SCM m);
+SCM_API SCM scm_macro_name (SCM m);
+SCM_API SCM scm_macro_transformer (SCM m);
+SCM_API SCM scm_make_synt (const char *name,
+			   SCM (*macroizer) (SCM),
+			   SCM (*fcn) ());
+SCM_API void scm_init_macros (void);
 
 #endif  /* SCM_MACROS_H */
 

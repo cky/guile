@@ -57,37 +57,37 @@
 
 
 
-extern char *const scm_charnames[];
-extern int scm_n_charnames;
-extern const char scm_charnums[];
+SCM_API char *const scm_charnames[];
+SCM_API int scm_n_charnames;
+SCM_API const char scm_charnums[];
 
 
 
-extern SCM scm_char_p (SCM x);
-extern SCM scm_char_eq_p (SCM x, SCM y);
-extern SCM scm_char_less_p (SCM x, SCM y);
-extern SCM scm_char_leq_p (SCM x, SCM y);
-extern SCM scm_char_gr_p (SCM x, SCM y);
-extern SCM scm_char_geq_p (SCM x, SCM y);
-extern SCM scm_char_ci_eq_p (SCM x, SCM y);
-extern SCM scm_char_ci_less_p (SCM x, SCM y);
-extern SCM scm_char_ci_leq_p (SCM x, SCM y);
-extern SCM scm_char_ci_gr_p (SCM x, SCM y);
-extern SCM scm_char_ci_geq_p (SCM x, SCM y);
-extern SCM scm_char_alphabetic_p (SCM chr);
-extern SCM scm_char_numeric_p (SCM chr);
-extern SCM scm_char_whitespace_p (SCM chr);
-extern SCM scm_char_upper_case_p (SCM chr);
-extern SCM scm_char_lower_case_p (SCM chr);
-extern SCM scm_char_is_both_p (SCM chr);
-extern SCM scm_char_to_integer (SCM chr);
-extern SCM scm_integer_to_char (SCM n);
-extern SCM scm_char_upcase (SCM chr);
-extern SCM scm_char_downcase (SCM chr);
-extern void scm_tables_prehistory (void);
-extern int scm_upcase (unsigned int c);
-extern int scm_downcase (unsigned int c);
-extern void scm_init_chars (void);
+SCM_API SCM scm_char_p (SCM x);
+SCM_API SCM scm_char_eq_p (SCM x, SCM y);
+SCM_API SCM scm_char_less_p (SCM x, SCM y);
+SCM_API SCM scm_char_leq_p (SCM x, SCM y);
+SCM_API SCM scm_char_gr_p (SCM x, SCM y);
+SCM_API SCM scm_char_geq_p (SCM x, SCM y);
+SCM_API SCM scm_char_ci_eq_p (SCM x, SCM y);
+SCM_API SCM scm_char_ci_less_p (SCM x, SCM y);
+SCM_API SCM scm_char_ci_leq_p (SCM x, SCM y);
+SCM_API SCM scm_char_ci_gr_p (SCM x, SCM y);
+SCM_API SCM scm_char_ci_geq_p (SCM x, SCM y);
+SCM_API SCM scm_char_alphabetic_p (SCM chr);
+SCM_API SCM scm_char_numeric_p (SCM chr);
+SCM_API SCM scm_char_whitespace_p (SCM chr);
+SCM_API SCM scm_char_upper_case_p (SCM chr);
+SCM_API SCM scm_char_lower_case_p (SCM chr);
+SCM_API SCM scm_char_is_both_p (SCM chr);
+SCM_API SCM scm_char_to_integer (SCM chr);
+SCM_API SCM scm_integer_to_char (SCM n);
+SCM_API SCM scm_char_upcase (SCM chr);
+SCM_API SCM scm_char_downcase (SCM chr);
+SCM_API void scm_tables_prehistory (void);
+SCM_API int scm_upcase (unsigned int c);
+SCM_API int scm_downcase (unsigned int c);
+SCM_API void scm_init_chars (void);
 
 #endif  /* SCM_CHARS_H */
 

@@ -152,35 +152,35 @@ typedef struct
 #define SCM_PROCEDURE(obj) SCM_CELL_OBJECT_1 (obj)
 #define SCM_SETTER(obj) SCM_CELL_OBJECT_2 (obj)
 
-extern scm_t_subr_entry *scm_subr_table;
-extern long scm_subr_table_size;
-extern long scm_subr_table_room;
+SCM_API scm_t_subr_entry *scm_subr_table;
+SCM_API long scm_subr_table_size;
+SCM_API long scm_subr_table_room;
 
 
 
-extern void scm_mark_subr_table (void);
-extern void scm_free_subr_entry (SCM subr);
-extern SCM scm_c_make_subr (const char *name, long type, SCM (*fcn)());
-extern SCM scm_c_make_subr_with_generic (const char *name, long type,
-					 SCM (*fcn)(), SCM *gf);
-extern SCM scm_c_define_subr (const char *name, long type, SCM (*fcn)());
-extern SCM scm_c_define_subr_with_generic (const char *name, long type,
-					   SCM (*fcn)(), SCM *gf);
-extern SCM scm_makcclo (SCM proc, size_t len);
-extern SCM scm_procedure_p (SCM obj);
-extern SCM scm_closure_p (SCM obj);
-extern SCM scm_thunk_p (SCM obj);
-extern int scm_subr_p (SCM obj);
-extern SCM scm_procedure_documentation (SCM proc);
-extern SCM scm_procedure_with_setter_p (SCM obj);
-extern SCM scm_make_procedure_with_setter (SCM procedure, SCM setter);
-extern SCM scm_procedure (SCM proc);
-extern SCM scm_setter (SCM proc);
-extern void scm_init_subr_table (void);
-extern void scm_init_procs (void);
+SCM_API void scm_mark_subr_table (void);
+SCM_API void scm_free_subr_entry (SCM subr);
+SCM_API SCM scm_c_make_subr (const char *name, long type, SCM (*fcn)());
+SCM_API SCM scm_c_make_subr_with_generic (const char *name, long type,
+					  SCM (*fcn)(), SCM *gf);
+SCM_API SCM scm_c_define_subr (const char *name, long type, SCM (*fcn)());
+SCM_API SCM scm_c_define_subr_with_generic (const char *name, long type,
+					    SCM (*fcn)(), SCM *gf);
+SCM_API SCM scm_makcclo (SCM proc, size_t len);
+SCM_API SCM scm_procedure_p (SCM obj);
+SCM_API SCM scm_closure_p (SCM obj);
+SCM_API SCM scm_thunk_p (SCM obj);
+SCM_API int scm_subr_p (SCM obj);
+SCM_API SCM scm_procedure_documentation (SCM proc);
+SCM_API SCM scm_procedure_with_setter_p (SCM obj);
+SCM_API SCM scm_make_procedure_with_setter (SCM procedure, SCM setter);
+SCM_API SCM scm_procedure (SCM proc);
+SCM_API SCM scm_setter (SCM proc);
+SCM_API void scm_init_subr_table (void);
+SCM_API void scm_init_procs (void);
 
 #ifdef GUILE_DEBUG
-extern SCM scm_make_cclo (SCM proc, SCM len);
+SCM_API SCM scm_make_cclo (SCM proc, SCM len);
 #endif /*GUILE_DEBUG*/
 
 #endif  /* SCM_PROCS_H */

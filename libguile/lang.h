@@ -50,8 +50,8 @@
 
 
 
-extern SCM scm_lisp_nil;
-extern SCM scm_lisp_t;
+SCM_API SCM scm_lisp_nil;
+SCM_API SCM scm_lisp_t;
 
 #define SCM_NILP(x) (SCM_EQ_P ((x), scm_lisp_nil))
 #define SCM_NILNULLP(x) (SCM_NILP (x) || SCM_NULLP (x))
@@ -62,13 +62,13 @@ extern SCM scm_lisp_t;
 
 
 
-extern SCM scm_nil_cons (SCM x, SCM y);
-extern SCM scm_nil_car (SCM x);
-extern SCM scm_nil_cdr (SCM x);
-extern SCM scm_null (SCM x);
-extern SCM scm_m_while (SCM exp, SCM env);
-extern SCM scm_nil_eq (SCM x, SCM y);
-extern void scm_init_lang (void);
+SCM_API SCM scm_nil_cons (SCM x, SCM y);
+SCM_API SCM scm_nil_car (SCM x);
+SCM_API SCM scm_nil_cdr (SCM x);
+SCM_API SCM scm_null (SCM x);
+SCM_API SCM scm_m_while (SCM exp, SCM env);
+SCM_API SCM scm_nil_eq (SCM x, SCM y);
+SCM_API void scm_init_lang (void);
 
 #endif  /* SCM_LANG_H */
 

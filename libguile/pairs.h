@@ -101,14 +101,14 @@
 
 
 #if (SCM_DEBUG_PAIR_ACCESSES == 1)
-extern void scm_error_pair_access (SCM);
+SCM_API void scm_error_pair_access (SCM);
 #endif
-extern SCM scm_cons (SCM x, SCM y);
-extern SCM scm_cons2 (SCM w, SCM x, SCM y);
-extern SCM scm_pair_p (SCM x);
-extern SCM scm_set_car_x (SCM pair, SCM value);
-extern SCM scm_set_cdr_x (SCM pair, SCM value);
-extern void scm_init_pairs (void);
+SCM_API SCM scm_cons (SCM x, SCM y);
+SCM_API SCM scm_cons2 (SCM w, SCM x, SCM y);
+SCM_API SCM scm_pair_p (SCM x);
+SCM_API SCM scm_set_car_x (SCM pair, SCM value);
+SCM_API SCM scm_set_cdr_x (SCM pair, SCM value);
+SCM_API void scm_init_pairs (void);
 
 #endif  /* SCM_PAIRS_H */
 

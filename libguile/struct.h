@@ -99,35 +99,35 @@ typedef size_t (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
 #define SCM_SET_STRUCT_TABLE_NAME(X, NAME) SCM_SETCAR (X, NAME)
 #define SCM_STRUCT_TABLE_CLASS(X) SCM_CDR (X)
 #define SCM_SET_STRUCT_TABLE_CLASS(X, CLASS) SCM_SETCDR (X, CLASS)
-extern SCM scm_struct_table;
+SCM_API SCM scm_struct_table;
 
 #define SCM_STRUCT_GC_CHAIN(X) SCM_CELL_OBJECT_3 (X)
 #define SCM_SET_STRUCT_GC_CHAIN(X, Y) SCM_SET_CELL_OBJECT_3 (X, Y)
-extern SCM scm_structs_to_free;
+SCM_API SCM scm_structs_to_free;
 
 
 
-extern scm_t_bits * scm_alloc_struct (int n_words, int n_extra, char * who);
-extern size_t scm_struct_free_0 (scm_t_bits * vtable, scm_t_bits * data);
-extern size_t scm_struct_free_light (scm_t_bits * vtable, scm_t_bits * data);
-extern size_t scm_struct_free_standard (scm_t_bits * vtable, scm_t_bits * data);
-extern size_t scm_struct_free_entity (scm_t_bits * vtable, scm_t_bits * data);
-extern SCM scm_make_struct_layout (SCM fields);
-extern SCM scm_struct_p (SCM x);
-extern SCM scm_struct_vtable_p (SCM x);
-extern SCM scm_make_struct (SCM vtable, SCM tail_array_size, SCM init);
-extern SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
-extern SCM scm_struct_ref (SCM handle, SCM pos);
-extern SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
-extern SCM scm_struct_vtable (SCM handle);
-extern SCM scm_struct_vtable_tag (SCM handle);
-extern unsigned long scm_struct_ihashq (SCM obj, unsigned long n);
-extern SCM scm_struct_create_handle (SCM obj);
-extern SCM scm_struct_vtable_name (SCM vtable);
-extern SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);
-extern void scm_print_struct (SCM exp, SCM port, scm_print_state *);
-extern void scm_struct_prehistory (void);
-extern void scm_init_struct (void);
+SCM_API scm_t_bits * scm_alloc_struct (int n_words, int n_extra, char * who);
+SCM_API size_t scm_struct_free_0 (scm_t_bits * vtable, scm_t_bits * data);
+SCM_API size_t scm_struct_free_light (scm_t_bits * vtable, scm_t_bits * data);
+SCM_API size_t scm_struct_free_standard (scm_t_bits * vtable, scm_t_bits * data);
+SCM_API size_t scm_struct_free_entity (scm_t_bits * vtable, scm_t_bits * data);
+SCM_API SCM scm_make_struct_layout (SCM fields);
+SCM_API SCM scm_struct_p (SCM x);
+SCM_API SCM scm_struct_vtable_p (SCM x);
+SCM_API SCM scm_make_struct (SCM vtable, SCM tail_array_size, SCM init);
+SCM_API SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
+SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
+SCM_API SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
+SCM_API SCM scm_struct_vtable (SCM handle);
+SCM_API SCM scm_struct_vtable_tag (SCM handle);
+SCM_API unsigned long scm_struct_ihashq (SCM obj, unsigned long n);
+SCM_API SCM scm_struct_create_handle (SCM obj);
+SCM_API SCM scm_struct_vtable_name (SCM vtable);
+SCM_API SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);
+SCM_API void scm_print_struct (SCM exp, SCM port, scm_print_state *);
+SCM_API void scm_struct_prehistory (void);
+SCM_API void scm_init_struct (void);
 
 #endif  /* SCM_STRUCT_H */
 

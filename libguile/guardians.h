@@ -48,17 +48,17 @@
 
 #include "libguile/__scm.h"
 
-SCM scm_make_guardian (SCM greedy_p);
-SCM scm_destroy_guardian_x (SCM guardian);
+SCM_API SCM scm_make_guardian (SCM greedy_p);
+SCM_API SCM scm_destroy_guardian_x (SCM guardian);
 
-SCM scm_guardian_greedy_p (SCM guardian);
-SCM scm_guardian_destroyed_p (SCM guardian);
+SCM_API SCM scm_guardian_greedy_p (SCM guardian);
+SCM_API SCM scm_guardian_destroyed_p (SCM guardian);
 
 /* these are to be called from C: */
-SCM scm_guard (SCM guardian, SCM obj, int throw_p);
-SCM scm_get_one_zombie (SCM guardian);
+SCM_API SCM scm_guard (SCM guardian, SCM obj, int throw_p);
+SCM_API SCM scm_get_one_zombie (SCM guardian);
 
-void scm_init_guardians (void);
+SCM_API void scm_init_guardians (void);
 
 #endif  /* SCM_GUARDIANS_H */
 

@@ -83,14 +83,14 @@
 # define SCM_CHECK_STACK /**/
 #endif /* STACK_CHECKING */
 
-extern int scm_stack_checking_enabled_p;
+SCM_API int scm_stack_checking_enabled_p;
 
 
 
-extern void scm_report_stack_overflow (void);
-extern long scm_stack_size (SCM_STACKITEM *start);
-extern void scm_stack_report (void);
-extern void scm_init_stackchk (void);
+SCM_API void scm_report_stack_overflow (void);
+SCM_API long scm_stack_size (SCM_STACKITEM *start);
+SCM_API void scm_stack_report (void);
+SCM_API void scm_init_stackchk (void);
 
 #endif  /* SCM_STACKCHK_H */
 

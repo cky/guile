@@ -50,8 +50,8 @@
 
 
 
-extern SCM scm_make_soft_port (SCM pv, SCM modes);
-extern void scm_init_vports (void);
+SCM_API SCM scm_make_soft_port (SCM pv, SCM modes);
+SCM_API void scm_init_vports (void);
 
 #endif  /* SCM_VPORTS_H */
 

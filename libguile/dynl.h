@@ -50,14 +50,14 @@
 
 
 
-SCM scm_dynamic_link (SCM fname);
-SCM scm_dynamic_unlink (SCM dobj);
-SCM scm_dynamic_object_p (SCM obj);
-SCM scm_dynamic_func (SCM symb, SCM dobj);
-SCM scm_dynamic_call (SCM symb, SCM dobj);
-SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
+SCM_API SCM scm_dynamic_link (SCM fname);
+SCM_API SCM scm_dynamic_unlink (SCM dobj);
+SCM_API SCM scm_dynamic_object_p (SCM obj);
+SCM_API SCM scm_dynamic_func (SCM symb, SCM dobj);
+SCM_API SCM scm_dynamic_call (SCM symb, SCM dobj);
+SCM_API SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
 
-void scm_init_dynamic_linking (void);
+SCM_API void scm_init_dynamic_linking (void);
 
 #endif  /* SCM_DYNL_H */
 

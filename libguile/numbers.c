@@ -4415,9 +4415,7 @@ check_sanity ()
 #ifdef HAVE_LONG_LONGS
   CHECK (long_long, 0LL);
   CHECK (ulong_long, 0ULL);
-
   CHECK (long_long, -1LL);
-
   CHECK (long_long, LLONG_MAX);
   CHECK (long_long, LLONG_MIN);
   CHECK (ulong_long, ULLONG_MAX);

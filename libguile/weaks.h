@@ -60,21 +60,21 @@
 #define SCM_WVECT_GC_CHAIN(X) (SCM_CELL_OBJECT_3 (X))
 #define SCM_SET_WVECT_GC_CHAIN(X, o) (SCM_SET_CELL_OBJECT_3 ((X), (o)))
 
-extern SCM scm_weak_vectors;
+SCM_API SCM scm_weak_vectors;
 
 
 
-extern SCM scm_make_weak_vector (SCM k, SCM fill);
-extern SCM scm_weak_vector (SCM l);
-extern SCM scm_weak_vector_p (SCM x);
-extern SCM scm_make_weak_key_hash_table (SCM k);
-extern SCM scm_make_weak_value_hash_table (SCM k);
-extern SCM scm_make_doubly_weak_hash_table (SCM k);
-extern SCM scm_weak_key_hash_table_p (SCM x);
-extern SCM scm_weak_value_hash_table_p (SCM x);
-extern SCM scm_doubly_weak_hash_table_p (SCM x);
-extern void scm_weaks_prehistory (void);
-extern void scm_init_weaks (void);
+SCM_API SCM scm_make_weak_vector (SCM k, SCM fill);
+SCM_API SCM scm_weak_vector (SCM l);
+SCM_API SCM scm_weak_vector_p (SCM x);
+SCM_API SCM scm_make_weak_key_hash_table (SCM k);
+SCM_API SCM scm_make_weak_value_hash_table (SCM k);
+SCM_API SCM scm_make_doubly_weak_hash_table (SCM k);
+SCM_API SCM scm_weak_key_hash_table_p (SCM x);
+SCM_API SCM scm_weak_value_hash_table_p (SCM x);
+SCM_API SCM scm_doubly_weak_hash_table_p (SCM x);
+SCM_API void scm_weaks_prehistory (void);
+SCM_API void scm_init_weaks (void);
 
 #endif  /* SCM_WEAKS_H */
 
