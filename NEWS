@@ -664,6 +664,11 @@ code.
 Use scm_is_eq for new code, which fits better into the naming
 conventions.
 
+** The macros SCM_CONSP, SCM_NCONSP, SCM_NULLP, and SCM_NNULLP have
+   been discouraged.
+
+Use the function scm_is_pair or scm_is_null instead.
+
 ** The functions scm_round and scm_truncate have been deprecated and
    are now available as scm_c_round and scm_c_truncate, respectively.
 

@@ -1,5 +1,35 @@
 2004-09-22  Marius Vollmer  <mvo@zagadka.de>
 
+	From Jan Nieuwenhuizen <janneke@gnu.org> and Bruno Haible
+	<bruno@clisp.org>:
+
+	* i18n.c: Handle --disable-nls (thanks Bruno).
+
+	* posix.c (scm_init_posix): Add LC_PAPER, LC_NAME, LC_ADDRESS,
+	LC_TELEPHONE, LC_MEASUREMENT, LC_IDENTIFICATION.
+
+	* i18n.c (scm_i_to_lc_category): New name and export.  Support all
+	LC categories.
+
+	* posix.c (s_scm_setlocale): Use it.
+
+	* i18n.h, i18n.c (scm_textdomain, scm_bindtextdomain,
+	scm_bind_textdomain_codeset): Make wrappers similar to C function
+	they wrap.
+
+	* i18n.h: New file.
+	* i18n.c: New file.
+	* gettext.h: New file, taken from GNU gettext.
+	* init.c: Include libguile/i18n.h.
+	(scm_init_guile_1): Add call to scm_init_i18n().
+	* Makefile.am (libguile_la_SOURCES): Add i18n.c.
+	(DOT_X_FILES): Add i18n.x.
+	(DOT_DOC_FILES): Add i18n.doc.
+	(libguile_la_LDFLAGS): Add @LTLIBINTL@.
+	(modinclude_HEADERS): Add i18n.h.
+
+2004-09-22  Marius Vollmer  <mvo@zagadka.de>
+
 	* gh_list.c: Replaced SCM_CAR, etc with scm_car, etc.
 
 	* discouraged.h, tags.h (SCM_CONSP, SCM_NCONSP): Moved to

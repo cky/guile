@@ -1,3 +1,7 @@
+2004-09-22  Marius Vollmer  <mvo@zagadka.de>
+
+ 	* configure.in: Add AM_GNU_GETTEXT invocation.  From Bruno Haible.
+ 
 2004-09-21  Marius Vollmer  <mvo@zagadka.de>
 
 	* acinclude.m4 (ACX_PTHREAD): New.
