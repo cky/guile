@@ -215,6 +215,15 @@ index.  The order in which @var{init-proc} is applied to the indices
 is not specified.
 @end deffn
 
+@deffn {Scheme Procedure} list-copy lst
+Return a new list containing the elements of the list @var{lst}.
+
+This function differs from the core @code{list-copy} (@pxref{List
+Constructors}) in accepting improper lists too.  And if @var{lst} is
+not a pair at all then it's treated as the final tail of an improper
+list and simply returned.
+@end deffn
+
 @deffn {Scheme Procedure} circular-list elt1 elt2 @dots{}
 Return a circular list containing the given arguments @var{elt1}
 @var{elt2} @dots{}.
