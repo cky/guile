@@ -1,3 +1,9 @@
+2002-01-29  Stefan Jahn  <stefan@lkcc.org>
+
+	* gh.texi (scm transition summary): Documented gh equivalents
+	`scm_c_string2str', `scm_c_substring2str' and `scm_c_symbol2str'
+	and removed the appropriate FIXME's.
+
 2002-01-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Makefile.am (autoconf-macros.texi):  Also set GUILE_LOAD_PATH

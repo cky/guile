@@ -978,13 +978,19 @@ a @code{SCM} value is a character before using @code{SCM_CHAR} to
 extract the character value, use the @code{SCM_VALIDATE_CHAR} macro.
 
 @item @code{gh_scm2newstr}
-No direct scm equivalent.  [FIXME]
+Instead of @code{gh_scm2newstr (@var{obj}, @var{lenp})} use
+@code{scm_c_string2str (@var{obj}, @var{str}, @var{lenp})}.  With the 
+additional @var{str} argument the user can pass a pre-allocated memory 
+chunk or leave it passing NULL.
 
 @item @code{gh_get_substr}
-No direct scm equivalent.  [FIXME]
+Use the @code{scm_c_substring2str (@var{obj}, @var{str}, @var{start}, 
+@var{len})} function instead.
 
 @item @code{gh_symbol2newstr}
-No direct scm equivalent.  [FIXME]
+Use the @code{scm_c_symbol2str (@var{obj}, @var{str}, @var{lenp})} function
+instead.  With the additional @var{str} argument the user can pass a 
+pre-allocated memory chunk or leave it passing NULL.
 
 @item @code{gh_scm2chars}
 No direct scm equivalent.  [FIXME]
