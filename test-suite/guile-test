@@ -81,7 +81,8 @@
 
 (use-modules (test-suite lib)
 	     (ice-9 getopt-long)
-	     (ice-9 and-let-star))
+	     (ice-9 and-let-star)
+	     (ice-9 rdelim))
 
 
 ;;; Variables that will receive their actual values later.
