@@ -1626,6 +1626,10 @@ SCM_DEFINE (scm_modular_expt, "modulo-expt", 3, 0, 0,
             n_tmp,
             k_tmp,
             m_tmp);
+
+  if (mpz_sgn (m_tmp) < 0 && mpz_sgn (SCM_I_BIG_MPZ (result)) != 0)
+    mpz_add (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result), m_tmp);
+
  cleanup:
   mpz_clear (m_tmp);
   mpz_clear (k_tmp);
