@@ -326,23 +326,26 @@ scm_fgets (port)
 	}
     }
 
-  while (1) {
-    p = buf + i;
-    if (fgets (p, limit - i, f) == NULL) {
-      if (i)
+  while (1)
+    {
+      int chunk_size = limit - i;
+
+      p = buf + i;
+      if (fgets (p, chunk_size, f) == NULL) {
+	if (i)
+	  return buf;
+	free (buf);
+	return NULL;
+      }
+
+      if (strlen(p) < chunk_size - 1 || buf[limit-2] == '\n')
 	return buf;
-      free (buf);
-      return NULL;
+
+      buf = (char *) realloc (buf, sizeof(char) * limit * 2);
+
+      i = limit - 1;
+      limit *= 2;
     }
-
-    if (strlen(p) < limit - i - 1)
-      return buf;
-
-    buf = (char *) realloc (buf, sizeof(char) * limit * 2);
-
-    i = limit - 1;
-    limit *= 2;
-  }
 }
 
 #ifdef vms
