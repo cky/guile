@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -577,6 +577,36 @@ date-week-number now correctly respects the requested day of week
 starting the week.
 
 * Changes to the C interface
+
+** New way to deal with non-local exits and reentries.
+
+There is a new set of functions that essentially do what
+scm_internal_dynamic_wind does, but in a more convenient way.  Here is
+a quick example of how to prevent a potential memory leak:
+
+  void
+  foo ()
+  {
+    char *mem;
+
+    scm_begin_frame (0);
+
+    mem = scm_malloc (100);
+    scm_on_unwind (free, mem, SCM_F_WIND_EXPLICITELY);
+
+    /* MEM would leak if BAR throws an error.  SCM_ON_UNWIND frees it
+       nevertheless.
+     */
+    bar ();
+  
+    scm_end_frame ();
+
+    /* Because of SCM_F_WIND_EXPLICITELY, MEM will be freed by 
+       SCM_END_FRAME as well. 
+    */
+  }
+
+For full documentation, see the node "Frames" in the manual.
 
 ** New types scm_t_intmax and scm_t_uintmax.
 
