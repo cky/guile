@@ -1,5 +1,8 @@
 2000-06-03  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* scmsigs.c (scm_segfault): Removed.  (Was probably added by
+	mistake since it is not mentioned in ChangeLog.)
+
 	* gc.h (SCM_VALIDATE_CELL): Cast result to (void) in order to
 	avoid compiler warnings in gcc.  (Does this work for other
 	compilers?)
