@@ -11,7 +11,9 @@ TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
 test_cflags := \
   -I$(top_srcdir)/test-suite/standalone \
   -I$(top_srcdir) \
-  -I$(top_srcdir)/libguile-ltdl $(EXTRA_DEFS)
+  -I$(top_srcdir)/libguile-ltdl $(EXTRA_DEFS) $(GUILE_CFLAGS)
+
+LDFLAGS = $(GUILE_CFLAGS)
 
 snarfcppopts = \
   $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)
