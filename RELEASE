@@ -83,7 +83,7 @@ Spiffing checklist:
   + Check for any [[incomplete]] sections of NEWS.
   + Fact-check INSTALL.
 * Make sure the downloading addressess and filenames in README are
-  current.
+  current.  (But don't bump the version number yet.  We do that below.)
 * Check that the versions of aclocal, automake, autoconf, and autoheader
   in your PATH match those given in README.  Note that the `make
   dist' process always invokes these tools, even when all the

@@ -96,9 +96,9 @@ Return a new port with the associated print state PRINT-STATE.
 Return the print state associated with this port if it exists,
 otherwise return #f.
 
-*** New function: directory? OBJECT
+*** New function: directory-stream? OBJECT
 
-Returns a boolean indicating whether OBJECT is a directory port as
+Returns true iff OBJECT is a directory stream --- the sort of object
 returned by `opendir'.
 
 * Changes to the scm_ interface
