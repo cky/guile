@@ -37,14 +37,14 @@
   (make-frame-chain (vm-last-frame vm) (vm:ip vm)))
 
 (define (make-frame-chain frame addr)
-  (let ((link (frame-dynamic-link frame)))
-    (if (eq? link #t)
-      '()
-      (let ((chain (make-frame-chain link (frame-return-address frame)))
-	    (base (program-base (frame-program frame))))
-	(set! (frame-number frame) (1+ (length chain)))
-	(set! (frame-address frame) (- addr base))
-	(cons frame chain)))))
+  (let* ((link (frame-dynamic-link frame))
+	 (chain (if (eq? link #t)
+		  '()
+		  (cons frame (make-frame-chain
+			       link (frame-return-address frame))))))
+    (set! (frame-number frame) (length chain))
+    (set! (frame-address frame) (- addr (program-base (frame-program frame))))
+    chain))
 
 
 ;;;

@@ -421,18 +421,8 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
    */
   if (SCM_PROGRAM_P (x))
     {
-      SCM *limit = sp;
-      SCM *base  = sp - nargs - 1;
-
-      /* Exit the current frame */
       EXIT_HOOK ();
       FREE_FRAME ();
-
-      /* Move arguments */
-      while (base < limit)
-	*++sp = *++base;
-
-      /* Call the program */
       program = x;
       goto vm_call_program;
     }
@@ -489,18 +479,15 @@ VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1, 1, 1)
 
 VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 {
-  SCM ret;
  vm_return:
   EXIT_HOOK ();
   RETURN_HOOK ();
-  POP (ret);
   FREE_FRAME ();
 
   /* Restore the last program */
   program = SCM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
   CACHE_EXTERNAL ();
-  PUSH (ret);
   NEXT;
 }
 

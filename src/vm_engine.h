@@ -322,13 +322,28 @@ do {						\
 
 #define FREE_FRAME()				\
 {						\
+  SCM *last_sp = sp;				\
+  SCM *last_fp = fp;				\
   SCM *p = fp + bp->nargs + bp->nlocs;		\
-  if (!SCM_FALSEP (p[1]))			\
-    vp->this_frame = p[1];			\
-  else						\
-    sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;	\
-  fp = SCM_FRAME_STACK_CAST (p[2]);		\
+						\
+  /* Restore pointers */			\
   ip = SCM_FRAME_BYTE_CAST (p[3]);		\
+  fp = SCM_FRAME_STACK_CAST (p[2]);		\
+						\
+  if (!SCM_FALSEP (p[1]))			\
+    {						\
+      /* Unlink the heap stack */		\
+      vp->this_frame = p[1];			\
+    }						\
+  else						\
+    {						\
+      /* Move stack items */			\
+      p += 4;					\
+      sp = SCM_FRAME_LOWER_ADDRESS (last_fp);	\
+      while (p <= last_sp)			\
+	*sp++ = *p++;				\
+      sp--;					\
+    }						\
 }
 
 #define CACHE_EXTERNAL() external = fp[bp->nargs + bp->nlocs]
