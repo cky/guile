@@ -82,7 +82,7 @@
 
 (define-public readline-port
   (let ((do (lambda (r/w)
-	      (if (memq 'history-file (read-options-interface))
+	      (if (memq 'history-file (readline-options-interface))
 		  (r/w (or (getenv history-variable)
 			   history-file))))))
     (lambda ()

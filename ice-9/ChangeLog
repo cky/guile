@@ -1,7 +1,9 @@
-1998-11-09  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+1998-11-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (readline-options, readline-enable, readline.disable,
 	readline-set!: New options interface.
+
+	* readline.scm (readline-port): Use readline-options-interface.
 
 1998-11-05  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
