@@ -69,7 +69,8 @@ The two boolean values are @code{#t} for true and @code{#f} for false.
 Boolean values are returned by predicate procedures, such as the general
 equality predicates @code{eq?}, @code{eqv?} and @code{equal?}
 (@pxref{Equality}) and numerical and string comparison operators like
-@code{string=?} (REFFIXME) and @code{<=} (REFFIXME).
+@code{string=?} (@pxref{String Comparison}) and @code{<=}
+(@pxref{Comparison}).
 
 @lisp
 (<= 3 8)
@@ -89,8 +90,8 @@ equality predicates @code{eq?}, @code{eqv?} and @code{equal?}
 #t
 @end lisp
 
-In test condition contexts like @code{if} (REFFIXME) and @code{cond}
-(REFFIXME), where a group of subexpressions will be evaluated only if a
+In test condition contexts like @code{if} and @code{cond} (@pxref{if
+cond case}), where a group of subexpressions will be evaluated only if a
 @var{condition} expression evaluates to ``true'', ``true'' means any
 value at all except @code{#f}.
 
@@ -2312,9 +2313,9 @@ can be compared extremely efficiently, although they carry more
 information for the human reader than, say, numbers.
 
 It is very common in Scheme programs to use symbols as keys in
-association lists (REFFIXME) or hash tables (REFFIXME), because this
-usage improves the readability a lot, and does not cause any performance
-loss.
+association lists (@pxref{Association Lists}) or hash tables
+(@pxref{Hash Tables}), because this usage improves the readability a
+lot, and does not cause any performance loss.
 
 The read syntax for symbols is a sequence of letters, digits, and
 @emph{extended alphabetic characters} that begins with a character that
@@ -2329,10 +2330,10 @@ they were letters.  The following are extended alphabetic characters:
 @end example
 
 In addition to the read syntax defined above (which is taken from R5RS
-(REFFIXME)), Guile provides a method for writing symbols with unusual
-characters, such as space characters.  If you (for whatever reason) need
-to write a symbol containing characters not mentioned above, you write
-symbols as follows:
+(@pxref{Formal syntax,,,r5rs,The Revised^5 Report on Scheme})), Guile
+provides a method for writing symbols with unusual characters, such as
+space characters.  If you (for whatever reason) need to write a symbol
+containing characters not mentioned above, you write symbols as follows:
 
 @itemize @bullet
 @item

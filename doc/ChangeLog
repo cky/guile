@@ -1,3 +1,11 @@
+2001-05-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-procedures.texi (Macros, Syntax Rules, Internal Macros):
+	New material.
+	(Syntax Case): New node, but currently empty.
+
+	* scheme-data.texi (Booleans, Symbols): Supply cross-references.
+
 2001-05-04  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* new-docstrings.texi, posix.texi, scheme-control.texi,

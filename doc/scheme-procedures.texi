@@ -7,7 +7,10 @@
 * Optional Arguments::          Handling keyword, optional and rest arguments.
 * Procedure Properties::        Procedure properties and metainformation.
 * Procedures with Setters::     Procedures with setters.
-* Macros::                      Macros.
+* Macros::                      Lisp style macro definitions.
+* Syntax Rules::                Support for R5RS @code{syntax-rules}.
+* Syntax Case::                 Support for the @code{syntax-case} system.
+* Internal Macros::             Guile's internal representation.
 @end menu
 
 
@@ -500,53 +503,248 @@ setter or an operator struct.
 
 
 @node Macros
-@section Macros
+@section Lisp Style Macro Definitions
 
-[FIXME: This needs some more text on the difference between procedures,
-macros and memoizing macros.  Also, any definitions listed here should
-be double-checked by someone who knows what's going on.  Ask Mikael, Jim
-or Aubrey for help. -twp]
+@cindex macros
+@cindex transformation
+Macros are objects which cause the expression that they appear in to be
+transformed in some way @emph{before} being evaluated.  In expressions
+that are intended for macro transformation, the identifier that names
+the relevant macro must appear as the first element, like this:
+
+@lisp
+(@var{macro-name} @var{macro-args} @dots{})
+@end lisp
+
+In Lisp-like languages, the traditional way to define macros is very
+similar to procedure definitions.  The key differences are that the
+macro definition body should return a list that describes the
+transformed expression, and that the definition is marked as a macro
+definition (rather than a procedure definition) by the use of a
+different definition keyword: in Lisp, @code{defmacro} rather than
+@code{defun}, and in Scheme, @code{define-macro} rather than
+@code{define}.
+
+@fnindex defmacro
+@fnindex define-macro
+Guile supports this style of macro definition using both @code{defmacro}
+and @code{define-macro}.  The only difference between them is how the
+macro name and arguments are grouped together in the definition:
+
+@lisp
+(defmacro @var{name} (@var{args} @dots{}) @var{body} @dots{})
+@end lisp
+
+@noindent
+is the same as
+
+@lisp
+(define-macro (@var{name} @var{args} @dots{}) @var{body} @dots{})
+@end lisp
+
+@noindent
+The difference is analogous to the corresponding difference between
+Lisp's @code{defun} and Scheme's @code{define}.
+
+@code{false-if-exception}, from the @file{boot-9.scm} file in the Guile
+distribution, is a good example of macro definition using
+@code{defmacro}:
+
+@lisp
+(defmacro false-if-exception (expr)
+  `(catch #t
+          (lambda () ,expr)
+          (lambda args #f)))
+@end lisp
+
+@noindent
+The effect of this definition is that expressions beginning with the
+identifier @code{false-if-exception} are automatically transformed into
+a @code{catch} expression following the macro definition specification.
+For example:
+
+@lisp
+(false-if-exception (open-input-file "may-not-exist"))
+@equiv{}
+(catch #t
+       (lambda () (open-input-file "may-not-exist"))
+       (lambda args #f))
+@end lisp
+
+
+@node Syntax Rules
+@section The R5RS @code{syntax-rules} System
+
+R5RS defines an alternative system for macro and syntax transformations
+using the keywords @code{define-syntax}, @code{let-syntax},
+@code{letrec-syntax} and @code{syntax-rules}.
+
+The main difference between the R5RS system and the traditional macros
+of the previous section is how the transformation is specified.  In
+R5RS, rather than permitting a macro definition to return an arbitrary
+expression, the transformation is specified in a pattern language that
+
+@itemize @bullet
+@item
+does not require complicated quoting and extraction of components of the
+source expression using @code{caddr} etc.
+
+@item
+is designed such that the bindings associated with identifiers in the
+transformed expression are well defined, and such that it is impossible
+for the transformed expression to construct new identifiers.
+@end itemize
+
+@noindent
+The last point is commonly referred to as being @dfn{hygienic}: the R5RS
+@code{syntax-case} system provides @dfn{hygienic macros}.
+
+For example, the R5RS pattern language for the @code{false-if-exception}
+example of the previous section looks like this:
+
+@lisp
+(syntax-rules ()
+  ((_ expr)
+   (catch #t
+          (lambda () expr)
+          (lambda args #f))))
+@end lisp
+
+In Guile, the @code{syntax-rules} system is provided by the @code{(ice-9
+syncase)} module.  To make these facilities available in your code,
+include the expression @code{(use-modules (ice-9 syncase))} or
+@code{(use-syntax (ice-9 syncase))} (@pxref{Loading Guile Modules})
+before the first usage of @code{define-syntax} etc.  If you are writing
+a Scheme module, you can alternatively use one of the keywords
+@code{#:use-module} and @code{#:use-syntax} in your @code{define-module}
+declaration (@pxref{Creating Guile Modules}).
+
+@menu
+* Pattern Language::            The @code{syntax-rules} pattern language.
+* Define-Syntax::               Top level syntax definitions.
+* Let-Syntax::                  Local syntax definitions.
+@end menu
+
+
+@node Pattern Language
+@subsection The @code{syntax-rules} Pattern Language
+
+
+@node Define-Syntax
+@subsection Top Level Syntax Definitions
+
+define-syntax:  The gist is
+
+  (define-syntax <keyword> <transformer-spec>)
+
+makes the <keyword> into a macro so that
+
+  (<keyword> ...)
+
+expands at _compile_ or _read_ time (i.e. before any
+evaluation begins) into some expression that is
+given by the <transformer-spec>.
+
+
+@node Let-Syntax
+@subsection Local Syntax Definitions
+
+
+@node Syntax Case
+@section Support for the @code{syntax-case} System
+
+
+
+@node Internal Macros
+@section Internal Representation of Macros and Syntax
+
+Internally, Guile uses three different flavours of macros.  The three
+flavours are called @dfn{acro} (or @dfn{syntax}), @dfn{macro} and
+@dfn{mmacro}.
+
+Given the expression
+
+@lisp
+(foo @dots{})
+@end lisp
+
+@noindent
+with @code{foo} being some flavour of macro, one of the following things
+will happen when the expression is evaluated.
+
+@itemize
+@item
+When @code{foo} has been defined to be an @dfn{acro}, the procedure used
+in the acro definition of @code{foo} is passed the whole expression and
+the current lexical environment, and whatever that procedure returns is
+the value of evaluating the expression.  You can think of this a
+procedure that receives its argument as an unevaluated expression.
+
+@item
+When @code{foo} has been defined to be a @dfn{macro}, the procedure used
+in the macro definition of @code{foo} is passed the whole expression and
+the current lexical environment, and whatever that procedure returns is
+evaluated again.  That is, the procedure should return a valid Scheme
+expression.
+
+@item
+When @code{foo} has been defined to be a @dfn{mmacro}, the procedure
+used in the mmacro definition of `foo' is passed the whole expression
+and the current lexical environment, and whatever that procedure returns
+replaces the original expression.  Evaluation then starts over from the
+new expression that has just been returned.
+@end itemize
+
+The key difference between a @dfn{macro} and a @dfn{mmacro} is that the
+expression returned by a @dfn{mmacro} procedure is remembered (or
+@dfn{memoized}) so that the expansion does not need to be done again
+next time the containing code is evaluated.
+
+The primitives @code{procedure->syntax}, @code{procedure->macro} and
+@code{procedure->memoizing-macro} are used to construct acros, macros
+and mmacros respectively.  However, if you do not have a very special
+reason to use one of these primitives, you should avoid them: they are
+very specific to Guile's current implementation and therefore likely to
+change.  Use @code{defmacro}, @code{define-macro} (@pxref{Macros}) or
+@code{define-syntax} (@pxref{Syntax Rules}) instead.  (In low level
+terms, @code{defmacro}, @code{define-macro} and @code{define-syntax} are
+all implemented as mmacros.)
 
 @deffn primitive procedure->syntax code
-Return a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, returns the
-result of applying @var{code} to the expression and the
-environment.
+Return a macro which, when a symbol defined to this value appears as the
+first symbol in an expression, returns the result of applying @var{code}
+to the expression and the environment.
 @end deffn
 
 @deffn primitive procedure->macro code
-Return a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, evaluates the
-result of applying @var{code} to the expression and the
-environment.  The value returned from @var{code} which has been
-passed to @code{procedure->memoizing-macro} replaces the form
-passed to @var{code}.  For example:
+Return a macro which, when a symbol defined to this value appears as the
+first symbol in an expression, evaluates the result of applying
+@var{code} to the expression and the environment.  For example:
 
 @lisp
 (define trace
   (procedure->macro
-   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
+    (lambda (x env)
+      `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
 
-(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).
+(trace @i{foo})
+@equiv{}
+(set! @i{foo} (tracef @i{foo} '@i{foo})).
 @end lisp
 @end deffn
 
 @deffn primitive procedure->memoizing-macro code
-Return a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, evaluates the
-result of applying @var{proc} to the expression and the
-environment.  The value returned from @var{proc} which has been
-passed to @code{procedure->memoizing-macro} replaces the form
-passed to @var{proc}.  For example:
-
-@lisp
-(define trace
-  (procedure->macro
-   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
-
-(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).
-@end lisp
+Return a macro which, when a symbol defined to this value appears as the
+first symbol in an expression, evaluates the result of applying
+@var{code} to the expression and the environment.
+@code{procedure->memoizing-macro} is the same as
+@code{procedure->macro}, except that the expression returned by
+@var{code} replaces the original macro expression in the memoized form
+of the containing code.
 @end deffn
+
+In the following primitives, @dfn{acro} flavour macros are referred to
+as @dfn{syntax transformers}.
 
 @deffn primitive macro? obj
 Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
@@ -556,7 +754,7 @@ syntax transformer.
 @deffn primitive macro-type m
 Return one of the symbols @code{syntax}, @code{macro} or
 @code{macro!}, depending on whether @var{m} is a syntax
-tranformer, a regular macro, or a memoizing macro,
+transformer, a regular macro, or a memoizing macro,
 respectively.  If @var{m} is not a macro, @code{#f} is
 returned.
 @end deffn
