@@ -395,9 +395,10 @@ SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
 #define FUNC_NAME s_scm_module_import_interface
 {
 #define SCM_BOUND_THING_P(b) (!SCM_FALSEP (b))
+  SCM uses;
   SCM_VALIDATE_MODULE (SCM_ARG1, module);
   /* Search the use list */
-  SCM uses = SCM_MODULE_USES (module);
+  uses = SCM_MODULE_USES (module);
   while (SCM_CONSP (uses))
     {
       SCM interface = SCM_CAR (uses);
