@@ -51,6 +51,7 @@
 #include "libguile/smob.h"
 #include "libguile/ports.h"
 #include "libguile/dynwind.h"
+#include "libguile/values.h"
 
 #ifdef DEBUG_EXTENSIONS
 #include "libguile/debug.h"
@@ -216,11 +217,9 @@ scm_dynthrow (SCM cont, SCM val)
 #define FUNC_NAME "continuation_apply"
 static SCM continuation_apply (SCM cont, SCM args)
 {
-  /* FIXME: support R5RS multiple value continuations.  */
   scm_contregs *continuation = SCM_CONTREGS (cont);
   scm_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
 
-  SCM_ASSERT (scm_ilength (args) == 1, args, SCM_ARGn, FUNC_NAME);
   if (continuation->seq != rootcont->seq
       /* this base comparison isn't needed */
       || continuation->base != rootcont->base)
@@ -231,7 +230,7 @@ static SCM continuation_apply (SCM cont, SCM args)
   scm_dowinds (continuation->dynenv,
 	       scm_ilength (scm_dynwinds) - continuation->dynenv);
   
-  scm_dynthrow (cont, SCM_CAR (args));
+  scm_dynthrow (cont, scm_values (args));
   return SCM_UNSPECIFIED; /* not reached */
 }
 #undef FUNC_NAME

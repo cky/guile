@@ -132,6 +132,7 @@
 #include "libguile/tag.h"
 #include "libguile/throw.h"
 #include "libguile/unif.h"
+#include "libguile/values.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/version.h"
@@ -491,7 +492,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_subr_table ();
   scm_environments_prehistory (); /* create the root environment */
   scm_init_continuations ();
-  scm_init_root ();
+  scm_init_root ();		/* requires continuations */
 #ifdef USE_THREADS
   scm_init_threads (base);
 #endif
@@ -552,11 +553,12 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_srcprop ();
 #endif
   scm_init_stackchk ();
-  scm_init_struct ();	/* Requires struct */
-  scm_init_stacks ();
+  scm_init_struct ();
+  scm_init_stacks ();   /* Requires struct */
   scm_init_strports ();
   scm_init_symbols ();
   scm_init_tag ();
+  scm_init_values ();   /* Requires struct */
   scm_init_load ();
   scm_init_objects ();	/* Requires struct */
   scm_init_print ();	/* Requires struct */

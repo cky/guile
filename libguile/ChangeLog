@@ -1,3 +1,15 @@
+2000-11-26  Gary Houston  <ghouston@arglist.com>
+
+	* reimplementation of values, call-with-values as primitives:
+	
+	* values.c, values.h: new files.  use a struct to contain multiple
+	values, similar to the previous Scheme-level implementation.
+	* Makefile.am: add values.c, values.h, values.x.
+	* continuations.c (continuation_apply): support R5RS multiple value
+	continuations.
+	* init.c: call scm_init_values.
+	* struct.h: define SCM_SET_STRUCT_PRINTER.
+
 2000-11-25  Gary Houston  <ghouston@arglist.com>
 
 	* use an applicable SMOB to represent continuations, instead of a
