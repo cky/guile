@@ -1365,6 +1365,16 @@ is returned.  @code{(provided? 'EIDs)} reports whether the
 system supports effective IDs.
 @end deffn
 
+@deffn {Scheme Procedure} setgroups vec
+@deffnx {C Function} scm_setgroups (vec)
+Set the current set of supplementary group IDs to the integers in the
+given vector @var{vec}.  The return value is unspecified.
+
+Generally only the superuser can set the process group IDs
+(@pxref{Setting Groups, Setting the Group IDs,, libc, The GNU C
+Library Reference Manual}).
+@end deffn
+
 @deffn {Scheme Procedure} setuid id
 @deffnx {C Function} scm_setuid (id)
 Sets both the real and effective user IDs to the integer @var{id}, provided
