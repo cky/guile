@@ -1,3 +1,8 @@
+2003-07-18  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_product): In complex * bignum, correction to
+	REAL/IMAG fetch, x is the complex, not y.
+
 2003-07-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* numbers.c (scm_odd_p, scm_even_p): Bugfix: Treat result of
