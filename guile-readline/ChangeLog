@@ -1,3 +1,10 @@
+2003-05-04  Marius Vollmer  <mvo@zagadka.de>
+
+	* configure.in: When checking whether readline clears SA_RESTART,
+	let readline read from "/dev/null".  Otherwise, it might be
+	stopped when run in the background with job control, say.
+	Thanks to Michael Talbot-Wilson!
+	
 2003-04-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	The intended side-effect of the following change is to make the
