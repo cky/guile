@@ -430,6 +430,7 @@ find_thread (int n, struct timeval *now)
 coop_t *
 coop_next_runnable_thread ()
 {
+  coop_t *t;
   struct timeval now;
   int n;
 
@@ -437,6 +438,7 @@ coop_next_runnable_thread ()
   if (QEMPTYP (coop_global_sleepq))
     return coop_qget (&coop_global_runq);
 
+  ++scm_ints_disabled;
   if (gnfds > 0)
     n = safe_select (gnfds, &greadfds, &gwritefds, &gexceptfds, &timeout0);
   else
@@ -444,9 +446,13 @@ coop_next_runnable_thread ()
   if (QFIRST (coop_global_sleepq)->timeoutp)
     {
       gettimeofday (&now, NULL);
-      return find_thread (n, &now);
+      t = find_thread (n, &now);
     }
-  return find_thread (n, 0);
+  else
+    t = find_thread (n, 0);
+  if (!--scm_ints_disabled)
+    SCM_ASYNC_TICK;
+  return t;
 }
 
 coop_t *
@@ -455,6 +461,7 @@ coop_wait_for_runnable_thread_now (struct timeval *now)
   int n;
   coop_t *t;
 
+  ++scm_ints_disabled;
   if (gnfds > 0)
     n = safe_select (gnfds, &greadfds, &gwritefds, &gexceptfds, &timeout0);
   else
@@ -482,6 +489,8 @@ coop_wait_for_runnable_thread_now (struct timeval *now)
       t = find_thread (n, now);
     }
 
+  if (!--scm_ints_disabled)
+    SCM_ASYNC_TICK;
   return t;
 }
 
