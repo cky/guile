@@ -111,57 +111,51 @@
 	(define (translate-top-level-var name var)
 	  (push-code! name (variable-name var)))
 
-	(define (translate-local-ref var)
-	  ;; #:ref #<vm:local-var>
-	  ;;   %pushl OFFSET (if use-stack)
-	  ;;   %loadl OFFSET (if non-stack)
+	(define (translate-ref var)
 	  (assert variable? var)
-	  (translate-local-var (if use-stack '%pushl '%loadl) var)
+	  (cond
+	   ((local-variable? var)
+	    ;; #:ref #<vm:local-var>
+	    ;;   %pushl OFFSET (if use-stack)
+	    ;;   %loadl OFFSET (if non-stack)
+	    (translate-local-var (if use-stack '%pushl '%loadl) var))
+	   ((external-variable? var)
+	    ;; #:ref #<vm:external-var>
+	    ;;   %pushe (DEPTH . OFFSET) (if use-stack)
+	    ;;   %loade (DEPTH . OFFSET) (if non-stack)
+	    (translate-external-var (if use-stack '%pushe '%loade) var))
+	   ((top-level-variable? var)
+	    ;; #:ref #<vm:top-level-var>
+	    ;;   %pusht SYMBOL (if use-stack)
+	    ;;   %loadt SYMBOL (if non-stack)
+	    (translate-top-level-var (if use-stack '%pusht '%loadt) var)))
 	  (return-position))
 
-	(define (translate-external-ref var)
-	  ;; #:ref #<vm:external-var>
-	  ;;   %pushe (DEPTH . OFFSET) (if use-stack)
-	  ;;   %loade (DEPTH . OFFSET) (if non-stack)
-	  (assert variable? var)
-	  (translate-external-var (if use-stack '%pushe '%loade) var)
-	  (return-position))
-
-	(define (translate-top-level-ref var)
-	  ;; #:ref #<vm:top-level-var>
-	  ;;   %pusht SYMBOL (if use-stack)
-	  ;;   %loadt SYMBOL (if non-stack)
-	  (assert variable? var)
-	  (translate-top-level-var (if use-stack '%pusht '%loadt) var)
-	  (return-position))
-
-	(define (translate-local-set var obj)
-	  ;; #:set #<vm:local-var> OBJ
-	  ;;   OBJ
-	  ;;   %savel OFFSET
+	(define (translate-set var obj)
 	  (assert variable? var)
 	  (trans-non-stack obj)
-	  (translate-local-var '%savel var)
-	  (unspecified-position)
-	  (return-or-push))
-
-	(define (translate-external-set var obj)
-	  ;; #:set #<vm:external-var> OBJ
-	  ;;   OBJ
-	  ;;   %savee (DEPTH . OFFSET)
-	  (assert variable? var)
-	  (trans-non-stack obj)
-	  (translate-external-var '%savee var)
-	  (unspecified-position)
-	  (return-or-push))
-
-	(define (translate-top-level-set var obj)
-	  ;; #:set #<vm:top-level-var> OBJ
-	  ;;   OBJ
-	  ;;   %savet SYMBOL
-	  (assert variable? var)
-	  (trans-non-stack obj)
-	  (translate-top-level-var '%savet var)
+	  (cond
+	   ((local-variable? var)
+	    ;; #:set #<vm:local-var> OBJ
+	    ;;   OBJ
+	    ;;   %savel OFFSET
+	    ;;   %name  NAME
+	    (translate-local-var '%savel var))
+	   ((external-variable? var)
+	    ;; #:set #<vm:external-var> OBJ
+	    ;;   OBJ
+	    ;;   %savee (DEPTH . OFFSET)
+	    ;;   %name  NAME
+	    (translate-external-var '%savee var))
+	   ((top-level-variable? var)
+	    ;; #:set #<vm:top-level-var> OBJ
+	    ;;   OBJ
+	    ;;   %savet SYMBOL
+	    ;;   %name  NAME
+	    (translate-top-level-var '%savet var)))
+	  ;; FIXME: Giving name to every objects is bad, but
+	  ;; FIXME: this is useful for debugging.
+	  (push-code! '%name (variable-name var))
 	  (unspecified-position)
 	  (return-or-push))
 
@@ -177,13 +171,13 @@
 	  (assert-for-each code? args)
 	  (let* ((list (reverse args))
 		 (last (car list))
-		 (ARGS (reverse! (cdr list))))
+		 (args (reverse! (cdr list))))
 	    (let ((L0 (make-label)))
 	      (for-each (lambda (arg)
 			  (trans-non-stack arg)
 			  (push-code! '%br-if-not L0))
 			args)
-	      (trans-non-stack last)
+	      (trans-tail last)
 	      (push-code! #:label L0)))
 	  (return-or-push))
 
@@ -199,13 +193,13 @@
 	  (assert-for-each code? args)
 	  (let* ((list (reverse args))
 		 (last (car list))
-		 (ARGS (reverse! (cdr list))))
+		 (args (reverse! (cdr list))))
 	    (let ((L0 (make-label)))
 	      (for-each (lambda (arg)
 			  (trans-non-stack arg)
 			  (push-code! '%br-if L0))
 			args)
-	      (trans-non-stack last)
+	      (trans-tail last)
 	      (push-code! #:label L0)))
 	  (return-or-push))
 
@@ -366,19 +360,11 @@
 	  ((#:ref)
 	   ;; #:ref VAR
 	   (check-nargs args = 1)
-	   (let ((var (car args)))
-	     (cond
-	      ((local-variable? var) (translate-local-ref var))
-	      ((external-variable? var) (translate-external-ref var))
-	      ((top-level-variable? var) (translate-top-level-ref var)))))
+	   (translate-ref (car args)))
 	  ((#:set)
 	   ;; #:set VAR OBJ
 	   (check-nargs args = 2)
-	   (let ((var (car args)) (obj (cadr args)))
-	     (cond
-	      ((local-variable? var) (translate-local-set var obj))
-	      ((external-variable? var) (translate-external-set var obj))
-	      ((top-level-variable? var) (translate-top-level-set var obj)))))
+	   (translate-set (car args) (cadr args)))
 	  ((#:and)
 	   ;; #:and ARGS...
 	   (apply translate-and args))
