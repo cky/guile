@@ -87,28 +87,28 @@
  * debugger.
  */
 #define SCM_BEGIN_FOREIGN_BLOCK \
-{ \
+do { \
   old_ints = scm_ints_disabled; scm_ints_disabled = 1; \
   old_gc = scm_block_gc; scm_block_gc = 1; \
   scm_print_carefully_p = 1; \
-} \
+} while (0)
 
 
 #define SCM_END_FOREIGN_BLOCK \
-{ \
+do { \
   scm_print_carefully_p = 0; \
   scm_block_gc = old_gc; \
   scm_ints_disabled = old_ints; \
-} \
+} while (0)
 
 
 #define RESET_STRING { gdb_output_length = 0; }
 
 #define SEND_STRING(str) \
-{ \
+do { \
   gdb_output = str; \
   gdb_output_length = strlen (str); \
-} \
+} while (0)
 
 
 /* {Gdb interface}

@@ -42,6 +42,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -73,7 +76,7 @@ typedef struct scm_array_dim
 
 
 extern long scm_tc16_array;
-#define SCM_ARRAYP(a) 		(scm_tc16_array==SCM_TYP16(a))
+#define SCM_ARRAYP(a) 		(SCM_NIMP(a) && (scm_tc16_array==SCM_TYP16(a)))
 #define SCM_ARRAY_NDIM(x) 	((scm_sizet)(SCM_CAR(x)>>17))
 #define SCM_ARRAY_CONTIGUOUS 	0x10000
 #define SCM_ARRAY_CONTP(x) 	(SCM_ARRAY_CONTIGUOUS & (int)SCM_CAR(x))

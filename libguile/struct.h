@@ -42,6 +42,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -74,7 +77,7 @@ typedef scm_sizet (*scm_struct_free_t) (SCM *vtable, SCM *data);
 #define SCM_STRUCTF_LIGHT  (1L << 31) /* Light representation
 					 (no hidden words) */
 
-#define SCM_STRUCTP(X)  		(SCM_TYP3(X) == scm_tc3_cons_gloc)
+#define SCM_STRUCTP(X)  		(SCM_NIMP(X) && (SCM_TYP3(X) == scm_tc3_cons_gloc))
 #define SCM_STRUCT_DATA(X) 		((SCM*)(SCM_CDR(X)))
 #define SCM_STRUCT_VTABLE_DATA(X) 	((SCM *)(SCM_CAR(X) - 1))
 #define SCM_STRUCT_LAYOUT(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_layout])

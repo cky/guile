@@ -42,6 +42,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -97,7 +100,7 @@ typedef struct
 /* Closures
  */
 
-#define SCM_CLOSUREP(x) (SCM_TYP3(x)==scm_tc3_closure)
+#define SCM_CLOSUREP(x) (SCM_NIMP(x) && (SCM_TYP3(x)==scm_tc3_closure))
 #define SCM_CLOSCAR(x) (SCM_CAR(x)-scm_tc3_closure)
 #define SCM_CODE(x) SCM_CAR(SCM_CLOSCAR (x))
 #define SCM_PROCPROPS(x) SCM_CDR(SCM_CLOSCAR (x))
@@ -154,7 +157,7 @@ typedef struct
    GETTER and SETTER slots can live directly on the heap, using the
    new four-word cells.  */
 
-#define SCM_PROCEDURE_WITH_SETTER_P(obj) (SCM_TYP7 (obj) == scm_tc7_pws)
+#define SCM_PROCEDURE_WITH_SETTER_P(obj) (SCM_NIMP(obj) && (SCM_TYP7 (obj) == scm_tc7_pws))
 #define SCM_PROCEDURE(obj) SCM_CADR (obj)
 #define SCM_SETTER(obj) SCM_CDDR (obj)
 

@@ -45,6 +45,9 @@
  *
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -93,13 +96,13 @@ extern int scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 #define CHECK_EXIT       scm_check_exit_p
 
 #define SCM_RESET_DEBUG_MODE \
-{\
+do {\
   CHECK_ENTRY = SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P;\
   CHECK_APPLY = SCM_APPLY_FRAME_P || SCM_TRACE_P;\
   CHECK_EXIT = SCM_EXIT_FRAME_P || SCM_TRACE_P;\
   scm_debug_mode = SCM_DEVAL_P || CHECK_ENTRY || CHECK_APPLY || CHECK_EXIT;\
   scm_ceval_ptr = scm_debug_mode ? scm_deval : scm_ceval;\
-}
+} while (0)
 
 
 /* {Evaluator}
@@ -163,7 +166,7 @@ extern scm_debug_frame *scm_last_debug_frame;
 
 extern long scm_tc16_debugobj;
 
-#define SCM_DEBUGOBJP(x) (scm_tc16_debugobj == SCM_TYP16 (x))
+#define SCM_DEBUGOBJP(x) (SCM_NIMP(x) && (scm_tc16_debugobj == SCM_TYP16 (x)))
 #define SCM_DEBUGOBJ_FRAME(x) SCM_CDR (x)
 #define SCM_SET_DEBUGOBJ_FRAME(x, f) SCM_SETCDR (x, f)
 
@@ -172,7 +175,7 @@ extern long scm_tc16_debugobj;
 
 extern long scm_tc16_memoized;
 
-#define SCM_MEMOIZEDP(x) (scm_tc16_memoized == SCM_TYP16 (x))
+#define SCM_MEMOIZEDP(x) (SCM_NIMP(x) && (scm_tc16_memoized == SCM_TYP16 (x)))
 #define SCM_MEMOIZED_EXP(x) SCM_CAR (SCM_CDR (x))
 #define SCM_MEMOIZED_ENV(x) SCM_CDR (SCM_CDR (x))
 

@@ -42,13 +42,16 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
 
 
 
-#define SCM_ASYNCP(X) 	(scm_tc16_async == SCM_GCTYP16 (X))
+#define SCM_ASYNCP(X) 	(SCM_NIMP(X) && (scm_tc16_async == SCM_GCTYP16 (X)))
 #define SCM_ASYNC(X) 	((struct scm_async *)SCM_CDR (X))
 
 struct scm_async

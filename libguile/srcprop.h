@@ -45,6 +45,9 @@
  *
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -66,10 +69,10 @@
 #define scm_whash_create_handle(whash, key) scm_hash_fn_create_handle_x (whash, key, SCM_UNSPECIFIED, scm_ihashq, scm_sloppy_assq, 0)
 #define scm_whash_lookup(whash, obj) scm_hash_fn_ref (whash, obj, SCM_BOOL_F, scm_ihashq, scm_sloppy_assq, 0)
 #define scm_whash_insert(whash, key, obj) \
-{ \
+do { \
   register SCM w = (whash); \
   SCM_WHASHSET (w, scm_whash_create_handle (w, key), obj); \
-} \
+} while (0)
 
 
 /* {Source properties}
@@ -92,7 +95,7 @@ typedef struct scm_srcprops_chunk
   scm_srcprops srcprops[1];
 } scm_srcprops_chunk;
 
-#define SRCPROPSP(p) (SCM_TYP16 (p) == scm_tc16_srcprops)
+#define SRCPROPSP(p) (SCM_NIMP(p) && (SCM_TYP16 (p) == scm_tc16_srcprops))
 #define SRCPROPBRK(p) (SCM_BOOL((1L << 16) & SCM_CAR (p)))
 #define SRCPROPPOS(p) ((scm_srcprops *) SCM_CDR (p))->pos
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)

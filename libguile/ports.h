@@ -42,6 +42,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 #include "libguile/__scm.h"
 
@@ -150,13 +153,13 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 /* #define SCM_CRDY	(32L<<16)  obsolete, for pushed back characters  */
 #define SCM_BUFLINE     (64L<<16) /* Is it line-buffered? */
 
-#define SCM_PORTP(x) (SCM_TYP7(x)==scm_tc7_port)
-#define SCM_OPPORTP(x) (((0x7f | SCM_OPN) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN))
-#define SCM_OPINPORTP(x) (((0x7f | SCM_OPN | SCM_RDNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG))
-#define SCM_OPOUTPORTP(x) (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG))
-#define SCM_INPORTP(x) (((0x7f | SCM_RDNG) & SCM_CAR(x))==(scm_tc7_port | SCM_RDNG))
-#define SCM_OUTPORTP(x) (((0x7f | SCM_WRTNG) & SCM_CAR(x))==(scm_tc7_port | SCM_WRTNG))
-#define SCM_OPENP(x) (SCM_OPN & SCM_CAR(x))
+#define SCM_PORTP(x) (SCM_NIMP(x) && (SCM_TYP7(x)==scm_tc7_port))
+#define SCM_OPPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN)))
+#define SCM_OPINPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_RDNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
+#define SCM_OPOUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
+#define SCM_INPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_RDNG) & SCM_CAR(x))==(scm_tc7_port | SCM_RDNG)))
+#define SCM_OUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_WRTNG) & SCM_CAR(x))==(scm_tc7_port | SCM_WRTNG)))
+#define SCM_OPENP(x) (SCM_NIMP(x) && (SCM_OPN & SCM_CAR(x)))
 #define SCM_CLOSEDP(x) (!SCM_OPENP(x))
 #define SCM_PTAB_ENTRY(x) ((scm_port *) SCM_CDR(x))
 #define SCM_SETPTAB_ENTRY(x,ent) SCM_SETCDR ((x), (SCM)(ent))

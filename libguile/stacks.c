@@ -233,7 +233,7 @@ get_applybody ()
 }
 
 #define NEXT_FRAME(iframe, n, quit) \
-{ \
+do { \
   if (SCM_NIMP (iframe->source) \
       && SCM_MEMOIZED_EXP (iframe->source) == applybody) \
     { \
@@ -247,7 +247,7 @@ get_applybody ()
   ++iframe; \
   if (--n == 0) \
     goto quit; \
-} \
+} while (0)
 
 
 /* Fill the scm_info_frame vector IFRAME with data from N stack frames

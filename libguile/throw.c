@@ -68,7 +68,7 @@
 /* the jump buffer data structure */
 static int scm_tc16_jmpbuffer;
 
-#define SCM_JMPBUFP(O) (SCM_TYP16(O) == scm_tc16_jmpbuffer)
+#define SCM_JMPBUFP(O) (SCM_NIMP(O) && (SCM_TYP16(O) == scm_tc16_jmpbuffer))
 #define JBACTIVE(O) (SCM_CAR (O) & (1L << 16L))
 #define ACTIVATEJB(O)  (SCM_SETOR_CAR (O, (1L << 16L)))
 #define DEACTIVATEJB(O)  (SCM_SETAND_CAR (O, ~(1L << 16L)))

@@ -42,12 +42,15 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
 
 
-#define SCM_FREEP(x) (SCM_CAR(x)==scm_tc_free_cell)
+#define SCM_FREEP(x) (SCM_NIMP(x) && SCM_CAR(x)==scm_tc_free_cell)
 #define SCM_NFREEP(x) (!SCM_FREEP(x))
 
 /* 1. This shouldn't be used on immediates.

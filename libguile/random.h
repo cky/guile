@@ -42,6 +42,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -107,7 +110,7 @@ extern SCM scm_c_random_bignum (scm_rstate *, SCM m);
  */
 extern long scm_tc16_rstate;
 #define SCM_RSTATE(obj) ((scm_rstate *) SCM_CDR (obj))
-#define SCM_RSTATEP(obj) (SCM_TYP16 (obj) == scm_tc16_rstate)
+#define SCM_RSTATEP(obj) (SCM_NIMP(obj) && (SCM_TYP16 (obj) == scm_tc16_rstate))
 
 extern unsigned char scm_masktab[256];
 

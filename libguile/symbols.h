@@ -42,6 +42,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -73,7 +76,7 @@ extern int scm_symhash_dim;
    the slots?  That's a good question; ask the author.  I think it was
    the cognac.  */
 
-#define SCM_SYMBOLP(x) (SCM_TYP7S(x)==scm_tc7_ssymbol)
+#define SCM_SYMBOLP(x) (SCM_NIMP(x) && (SCM_TYP7S(x)==scm_tc7_ssymbol))
 #define SCM_LENGTH(x) (((unsigned long)SCM_CAR(x))>>8)
 #define SCM_LENGTH_MAX (0xffffffL)
 #define SCM_SETLENGTH(x, v, t) SCM_SETCAR((x), ((v)<<8)+(t))
@@ -86,16 +89,16 @@ extern int scm_symhash_dim;
 #define SCM_SYMBOL_PROPS(X) (SCM_SLOTS(X)[1])
 #define SCM_SYMBOL_HASH(X) (*(unsigned long*)(&SCM_SLOTS(X)[2]))
 
-#define SCM_ROSTRINGP(x) ((SCM_TYP7S(x)==scm_tc7_string) \
-			  || (SCM_TYP7S(x) == scm_tc7_ssymbol))
-#define SCM_ROCHARS(x) ((SCM_TYP7(x) == scm_tc7_substring) \
+#define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
+			  || (SCM_TYP7S(x) == scm_tc7_ssymbol)))
+#define SCM_ROCHARS(x) ((char *)((SCM_TYP7(x) == scm_tc7_substring) \
 			? SCM_INUM (SCM_CADR (x)) + SCM_CHARS (SCM_CDDR (x))  \
-			: SCM_CHARS (x))
-#define SCM_ROUCHARS(x) ((SCM_TYP7(x) == scm_tc7_substring) \
+			: SCM_CHARS (x)))
+#define SCM_ROUCHARS(x) ((char *) ((SCM_TYP7(x) == scm_tc7_substring) \
 			 ? SCM_INUM (SCM_CADR (x)) + SCM_UCHARS (SCM_CDDR (x))\
-			 : SCM_UCHARS (x))
+			 : SCM_UCHARS (x)))
 #define SCM_ROLENGTH(x) SCM_LENGTH (x)
-#define SCM_SUBSTRP(x) ((SCM_TYP7(x) == scm_tc7_substring))
+#define SCM_SUBSTRP(x) (SCM_NIMP(x) && ((SCM_TYP7(x) == scm_tc7_substring)))
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
 

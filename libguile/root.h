@@ -43,6 +43,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 
@@ -82,7 +85,7 @@ extern SCM scm_sys_protects[];
 
 extern long scm_tc16_root;
 
-#define SCM_ROOTP(obj) (scm_tc16_root == SCM_TYP16 (obj))
+#define SCM_ROOTP(obj) (SCM_NIMP(obj) && (scm_tc16_root == SCM_TYP16 (obj)))
 #define SCM_ROOT_STATE(root) ((scm_root_state *) SCM_CDR (root))
 
 typedef struct scm_root_state

@@ -45,6 +45,9 @@
  *
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -72,11 +75,11 @@ typedef struct scm_stack {
 
 extern SCM scm_stack_type;
 
-#define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_STRUCT_VTABLE (obj) == scm_stack_type)
+#define SCM_STACKP(obj) (SCM_NIMP(obj) && \
+                         SCM_STRUCTP (obj) && SCM_STRUCT_VTABLE (obj) == scm_stack_type)
 #define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> length)
 
 #define SCM_FRAMEP(obj) (SCM_CONSP (obj) \
-			 && SCM_NIMP (SCM_CAR (obj)) \
 			 && SCM_STACKP (SCM_CAR (obj)) \
 			 && SCM_INUMP (SCM_CDR (obj))) \
 

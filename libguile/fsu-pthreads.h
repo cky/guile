@@ -38,6 +38,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #ifndef SCM_FSU_PTHREADS_H
@@ -99,24 +102,24 @@
 #define SCM_NO_CRITICAL_SECTION_OWNER 0
 
 #define SCM_DEFER_INTS \
-{ \
+do { \
   SCM_IASSERT(scm_critical_section_owner != pthread_self()); \
   pthread_mutex_lock(&scm_critical_section_mutex); \
   scm_critical_section_owner = pthread_self(); \
   scm_ints_disabled = 1; \
-}
+} while (0)
 
 #define SCM_ALLOW_INTS \
-{ \
+do { \
   SCM_IASSERT(scm_critical_section_owner == pthread_self()); \
   scm_ints_disabled = 0; \
   scm_critical_section_owner = SCM_NO_CRITICAL_SECTION_OWNER; \
   pthread_mutex_unlock(&scm_critical_section_mutex); \
   SCM_CHECK_INTS; \
-}
+} while (0)
 
 #define SCM_REDEFER_INTS \
-{ \
+do { \
   if ((scm_critical_section_owner != pthread_self()) || \
       (scm_critical_section_owner == SCM_NO_CRITICAL_SECTION_OWNER)) \
     { \
@@ -124,10 +127,10 @@
       scm_critical_section_owner = pthread_self(); \
     } \
   ++scm_ints_disabled; \
-}
+} while (0)
 
 #define SCM_REALLOW_INTS \
-{ \
+do { \
   SCM_IASSERT(scm_critical_section_owner == pthread_self()); \
   --scm_ints_disabled; \
   if (!scm_ints_disabled) \
@@ -136,7 +139,7 @@
       pthread_mutex_unlock(&scm_critical_section_mutex); \
       SCM_CHECK_INTS; \
     } \
-}
+} while (0)
 
 *fixme*
 #define scm_root ((scm_root_state *) pthread_self()->prots)

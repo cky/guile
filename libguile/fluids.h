@@ -44,6 +44,9 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 #include "libguile/__scm.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
@@ -72,7 +75,7 @@
 
 extern long scm_tc16_fluid;
 
-#define SCM_FLUIDP(x)    (SCM_CAR(x) == scm_tc16_fluid)
+#define SCM_FLUIDP(x)    (SCM_NIMP(x) && (SCM_CAR(x) == scm_tc16_fluid))
 #define SCM_FLUID_NUM(x) SCM_CDR(x)
 
 /* The fastest way to acces/modify the value of a fluid.  These macros

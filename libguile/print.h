@@ -42,6 +42,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -62,15 +65,15 @@ extern scm_option scm_print_opts[];
 #define SCM_PRINT_STATE(obj) ((scm_print_state *) SCM_STRUCT_DATA (obj))
 
 #define RESET_PRINT_STATE(pstate) \
-{ \
+do { \
   pstate->list_offset = 0; \
   pstate->top = 0; \
-}
+} while (0)
 
 #define SCM_WRITINGP(pstate) ((pstate)->writingp)
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
-#define SCM_PORT_WITH_PS_P(p) (SCM_TYP16 (p) == scm_tc16_port_with_ps)
+#define SCM_PORT_WITH_PS_P(p) (SCM_NIMP(p) && (SCM_TYP16 (p) == scm_tc16_port_with_ps))
 #define SCM_PORT_WITH_PS_PORT(p) SCM_CADR (p)
 #define SCM_PORT_WITH_PS_PS(p) SCM_CDDR (p)
 

@@ -45,11 +45,14 @@
  * If you do not wish that, delete this exception notice.  
  */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 #include "libguile/__scm.h"
 
 extern long scm_tc16_regex;
 #define SCM_RGX(X)	((regex_t *) SCM_CDR(X))
-#define SCM_RGXP(X)	(SCM_CAR (X) == (SCM) scm_tc16_regex)
+#define SCM_RGXP(X)	(SCM_NIMP(X) && (SCM_CAR (X) == (SCM) scm_tc16_regex))
 
 extern SCM scm_make_regexp SCM_P ((SCM pat, SCM flags));
 SCM scm_regexp_p SCM_P ((SCM x));

@@ -43,6 +43,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -53,13 +56,13 @@ extern long scm_tc16_thread;
 extern long scm_tc16_mutex;
 extern long scm_tc16_condvar;
 
-#define SCM_THREADP(obj) (scm_tc16_thread == SCM_TYP16 (obj))
+#define SCM_THREADP(obj) (SCM_NIMP(obj) && (scm_tc16_thread == SCM_TYP16 (obj)))
 #define SCM_THREAD_DATA(obj) ((void *) SCM_CDR (obj))
 
-#define SCM_MUTEXP(obj) (scm_tc16_mutex == SCM_TYP16 (obj))
+#define SCM_MUTEXP(obj) (SCM_NIMP(obj) && (scm_tc16_mutex == SCM_TYP16 (obj)))
 #define SCM_MUTEX_DATA(obj) ((void *) SCM_CDR (obj))
 
-#define SCM_CONDVARP(obj) (scm_tc16_condvar == SCM_TYP16 (obj))
+#define SCM_CONDVARP(obj) (SCM_NIMP(obj) && (scm_tc16_condvar == SCM_TYP16 (obj)))
 #define SCM_CONDVAR_DATA(obj) ((void *) SCM_CDR (obj))
 
 /* Initialize implementation specific details of the threads support */

@@ -43,6 +43,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -111,43 +114,43 @@
 #define SCM_THREAD_REDEFER pthread_kernel_lock++
 #define SCM_THREAD_REALLOW_1 pthread_kernel_lock--
 #define SCM_THREAD_REALLOW_2 \
-{ \
+do { \
   scm_critical_section_owner = SCM_NO_CRITICAL_SECTION_OWNER; \
   pthread_mutex_unlock(&scm_critical_section_mutex); \
-}
+} while (0)
 
 #else
 
 #define SCM_NO_CRITICAL_SECTION_OWNER 0
 
 #define SCM_THREAD_DEFER \
-{ \
+do { \
   pthread_mutex_lock (&scm_critical_section_mutex); \
   scm_critical_section_owner = pthread_self(); \
-}
+} while (0) 
 
 #define SCM_THREAD_ALLOW \
-{ \
+do { \
   scm_critical_section_owner = SCM_NO_CRITICAL_SECTION_OWNER; \
   pthread_mutex_unlock (&scm_critical_section_mutex); \
-}
+} while (0)
 
 #define SCM_THREAD_REDEFER \
-{ \
+do { \
   if ((scm_critical_section_owner != pthread_self()) || \
       (scm_critical_section_owner == SCM_NO_CRITICAL_SECTION_OWNER)) \
     { \
       pthread_mutex_lock(&scm_critical_section_mutex); \
       scm_critical_section_owner = pthread_self(); \
     } \
-}
+} while (0)
 
 #define SCM_THREAD_REALLOW_1
 #define SCM_THREAD_REALLOW_2 \
-{ \
+do { \
   scm_critical_section_owner = SCM_NO_CRITICAL_SECTION_OWNER; \
   pthread_mutex_unlock (&scm_critical_section_mutex); \
-}
+} while (0)
 
 #endif
 
@@ -155,12 +158,12 @@
 
 #define SCM_THREAD_LOCAL_DATA (pthread_self () -> attr.arg_attr)
 #define SCM_SET_THREAD_LOCAL_DATA(new_root) \
-{ \
+do { \
   pthread_t t = pthread_self (); \
   void *r = (new_root); \
   pthread_attr_setcleanup (&t -> attr, NULL, r); \
   pthreads_find_info (t) -> root = r; \
-}
+} while (0)
 
 
 

@@ -42,6 +42,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include <stdio.h>
@@ -50,8 +53,8 @@
 
 
 extern long scm_tc16_dir;
-#define SCM_DIRP(x) (SCM_TYP16(x)==(scm_tc16_dir))
-#define SCM_OPDIRP(x) (SCM_CAR(x)==(scm_tc16_dir | SCM_OPN))
+#define SCM_DIRP(x) (SCM_NIMP(x) && (SCM_TYP16(x)==(scm_tc16_dir)))
+#define SCM_OPDIRP(x) (SCM_NIMP(x) && (SCM_CAR(x)==(scm_tc16_dir | SCM_OPN)))
 
 
 extern SCM scm_chown SCM_P ((SCM object, SCM owner, SCM group));

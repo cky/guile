@@ -72,19 +72,19 @@ static long scm_tc16_guardian;
    so that no synchronization between these needs to take place.
 */
 #define TCONC_IN(tc, obj, pair) \
-{ \
+do { \
   SCM_SETCAR ((tc).tail, obj); \
   SCM_SETCAR (pair, SCM_BOOL_F); \
   SCM_SETCDR (pair, SCM_BOOL_F); \
   SCM_SETCDR ((tc).tail, pair); \
   (tc).tail = pair; \
-} \
+} while (0)
 
 #define TCONC_OUT(tc, res) \
-{ \
+do { \
   (res) = SCM_CAR ((tc).head); \
   (tc).head = SCM_CDR ((tc).head); \
-} \
+} while (0)
 
 #define TCONC_EMPTYP(tc) ((tc).head == (tc).tail)
 

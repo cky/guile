@@ -1611,7 +1611,7 @@ scm_eval_body (SCM code, SCM env)
 { ++debug.info; debug.info->a.proc = p; debug.info->a.args = l; }
 #undef ENTER_APPLY
 #define ENTER_APPLY \
-{\
+do { \
   SCM_SET_ARGSREADY (debug);\
   if (CHECK_APPLY && SCM_TRAPS_P)\
     if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && PROCTRACEP (proc)))\
@@ -1630,7 +1630,7 @@ scm_eval_body (SCM code, SCM env)
 	      scm_ithrow (scm_sym_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
 	  }\
       }\
-}
+} while (0)
 #undef RETURN
 #define RETURN(e) {proc = (e); goto exit;}
 #ifdef STACK_CHECKING

@@ -42,6 +42,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include "libguile/__scm.h"
@@ -128,20 +131,20 @@
 /* Numbers 
  */
 
-#define SCM_INEXP(x) (SCM_TYP16(x)==scm_tc16_flo)
-#define SCM_CPLXP(x) (SCM_CAR(x)==scm_tc_dblc)
+#define SCM_INEXP(x) (SCM_NIMP(x) && (SCM_TYP16(x)==scm_tc16_flo))
+#define SCM_CPLXP(x) (SCM_NIMP(x) && (SCM_CAR(x)==scm_tc_dblc))
 #define SCM_REAL(x) (*(((scm_dbl *) (SCM2PTR(x)))->real))
 #define SCM_IMAG(x) (*((double *)(SCM_CHARS(x)+sizeof(double))))
 /* ((&SCM_REAL(x))[1]) */
 
 
 #ifdef SCM_SINGLES
-#define SCM_REALP(x) ((~SCM_REAL_PART & SCM_CAR(x))==scm_tc_flo)
-#define SCM_SINGP(x) (SCM_CAR(x)==scm_tc_flo)
+#define SCM_REALP(x) (SCM_NIMP(x) && ((~SCM_REAL_PART & SCM_CAR(x))==scm_tc_flo))
+#define SCM_SINGP(x) (SCM_NIMP(x) && (SCM_CAR(x)==scm_tc_flo))
 #define SCM_FLO(x) (((scm_flo *)(SCM2PTR(x)))->num)
 #define SCM_REALPART(x) (SCM_SINGP(x)?0.0+SCM_FLO(x):SCM_REAL(x))
 #else /* SCM_SINGLES */
-#define SCM_REALP(x) (SCM_CAR(x)==scm_tc_dblr)
+#define SCM_REALP(x) (SCM_NIMP(x) && (SCM_CAR(x)==scm_tc_dblr))
 #define SCM_REALPART SCM_REAL
 #endif /* SCM_SINGLES */
 
@@ -209,8 +212,8 @@
 #define SCM_NUM2DBL(x) ((double) SCM_INUM (x))
 #endif
 #endif
-#define SCM_NUMP(x) ((0xfcff & (int)SCM_CAR(x))==scm_tc7_smob)
-#define SCM_BIGP(x) (SCM_TYP16S(x)==scm_tc16_bigpos)
+#define SCM_NUMP(x) (SCM_NIMP(x) && (0xfcff & (int)SCM_CAR(x))==scm_tc7_smob)
+#define SCM_BIGP(x) (SCM_NIMP(x) && SCM_TYP16S(x)==scm_tc16_bigpos)
 #define SCM_BIGSIGN(x) (0x0100 & (int)SCM_CAR(x))
 #define SCM_BDIGITS(x) ((SCM_BIGDIG *)(SCM_CDR(x)))
 #define SCM_NUMDIGS(x) ((scm_sizet)(SCM_CAR(x)>>16))

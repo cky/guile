@@ -43,6 +43,9 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 # ifdef TIME_WITH_SYS_TIME
@@ -201,14 +204,14 @@ extern coop_t *coop_wait_for_runnable_thread (void);
 
 #if 0
 #define SCM_THREAD_SWITCHING_CODE \
-{ \
+do { \
   if (scm_thread_count > 1) \
     coop_yield(); \
-} \
+} while (0)
 
 #else
 #define SCM_THREAD_SWITCHING_CODE \
-{ \
+do { \
   if (scm_thread_count > 1) \
   { \
     scm_switch_counter--; \
@@ -218,7 +221,7 @@ extern coop_t *coop_wait_for_runnable_thread (void);
         coop_yield(); \
       } \
   } \
-} \
+} while (0)
 
 #endif
 

@@ -264,8 +264,8 @@ typedef long SCM;
  * stored in the SCM_CAR of a non-immediate object have a 1 in bit 1:
  */
 
-#define SCM_NCONSP(x) (1 & SCM_CAR(x))
-#define SCM_CONSP(x) (!SCM_NCONSP(x))
+#define SCM_NCONSP(x) (SCM_IMP(x) || (1 & SCM_CAR(x)))
+#define SCM_CONSP(x) (SCM_NIMP(x) && !(1 & SCM_CAR(x)))
 
 
 /* SCM_ECONSP should be used instead of SCM_CONSP at places where GLOCS
