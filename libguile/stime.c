@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "feature.h"
+#include "sequences.h"
 
 #include "stime.h"
 
@@ -75,6 +76,12 @@
 #   include <sys/timeb.h>
 #  endif
 # endif
+
+#ifndef tzname /* For SGI.  */
+extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
+#endif
+
+char *strptime ();
 
 /* This should be figured out by autoconf.  */
 #ifdef CLK_TCK
@@ -230,11 +237,53 @@ filltime (struct tm *bd_time, int zoff, char *zname)
   SCM_VELTS (result)[7] = SCM_MAKINUM (bd_time->tm_yday);
   SCM_VELTS (result)[8] = SCM_MAKINUM (bd_time->tm_isdst);
   SCM_VELTS (result)[9] = SCM_MAKINUM (zoff);
-  SCM_VELTS (result)[10] = scm_makfrom0str (zname);
+  SCM_VELTS (result)[10] = zname ? scm_makfrom0str (zname) : SCM_BOOL_F;
   return result;
 }
 
-#if 0
+static char *
+setzone (SCM zone, int pos, char *subr)
+{
+  char *oldtz = 0;
+
+  if (!SCM_UNBNDP (zone))
+    {
+      char *buf;
+
+      /* if zone was supplied, set the environment variable TZ temporarily.  */
+      SCM_ASSERT (SCM_NIMP (zone) && SCM_STRINGP (zone), zone, pos, subr);
+      buf = malloc (SCM_LENGTH (zone) + 4);
+      if (buf == 0)
+	scm_memory_error (subr);
+      oldtz = getenv ("TZ");
+      if (oldtz != NULL)
+	oldtz = oldtz - 3;
+      sprintf (buf, "TZ=%s", SCM_CHARS (zone));
+      if (putenv (buf) < 0)
+	scm_syserror (subr);
+      tzset();
+    }
+  return oldtz;
+}
+
+static void
+restorezone (SCM zone, char *oldzone)
+{
+  if (!SCM_UNBNDP (zone))
+    {
+      int rv;
+
+      if (oldzone)
+	rv = putenv (oldzone);
+      else
+	rv = putenv ("TZ");
+      if (rv < 0)
+	scm_syserror ("restorezone");
+      tzset();
+    }
+}
+
+
 SCM_PROC (s_localtime, "localtime", 1, 1, 0, scm_localtime);
 SCM
 scm_localtime (SCM time, SCM zone)
@@ -244,27 +293,12 @@ scm_localtime (SCM time, SCM zone)
   SCM result;
   int zoff;
   char *zname = 0;
-  char *tzvar = "TZ";
-  char *oldtz = 0;
+  char *oldtz;
   int err;
 
   itime = scm_num2long (time, (char *) SCM_ARG1, s_localtime);
   SCM_DEFER_INTS;
-  if (!SCM_UNBNDP (zone))
-    {
-      char *buf;
-
-      /* if zone was supplied, set the environment variable TZ temporarily.  */
-      SCM_ASSERT (SCM_NIMP (zone) && SCM_STRINGP (zone), zone, SCM_ARG2,
-		  s_localtime);
-      buf = malloc (SCM_LENGTH (zone) + 4);
-      if (buf == 0)
-	scm_memory_error (s_localtime);
-      oldtz = getenv (tzvar);
-      sprintf (buf, "%s=%s", tzvar, SCM_CHARS (zone));
-      putenv (buf);
-      tzset();
-    }
+  oldtz = setzone (zone, SCM_ARG2, s_localtime);
   lt = localtime (&itime);
   err = errno;
   utc = gmtime (&itime);
@@ -272,25 +306,22 @@ scm_localtime (SCM time, SCM zone)
     err = errno;
   if (lt)
     {
+#ifdef HAVE_TM_ZONE
+      zname = lt->tm_zone;
+#else
+# ifdef HAVE_TZNAME
       /* must be copied before calling tzset again.  */
       char *ptr = tzname[ (lt->tm_isdst == 1) ? 1 : 0 ];
 
       zname = scm_must_malloc (strlen (ptr) + 1, s_localtime);
       strcpy (zname, ptr);
+#endif
+#endif
     }
-  if (!SCM_UNBNDP (zone))
-    {
-      /* restore the old environment value of TZ.  */
-      if (oldtz)
-	putenv (oldtz - 3);
-      else
-	putenv (tzvar);
-      tzset();
-    }
+  restorezone (zone, oldtz);
+  /* delayed until zone has been restored.  */
   errno = err;
-  if (utc == NULL)
-    scm_syserror (s_localtime);
-  if (lt == NULL)
+  if (utc == NULL || lt == NULL)
     scm_syserror (s_localtime);
 
   /* calculate timezone offset in seconds west of UTC.  */
@@ -309,7 +340,6 @@ scm_localtime (SCM time, SCM zone)
   SCM_ALLOW_INTS;
   return result;
 }
-#endif
 
 SCM_PROC (s_gmtime, "gmtime", 1, 0, 0, scm_gmtime);
 SCM
@@ -329,41 +359,79 @@ scm_gmtime (SCM time)
   return result;
 }
 
-#if 0
-SCM_PROC (s_mktime, "mktime", 1, 0, 0, scm_mktime);
-SCM
-scm_mktime (SCM sbd_time)
+/* copy time components from a Scheme object to a struct tm.  */
+static void
+bdtime2c (SCM sbd_time, struct tm *lt, int pos, char *subr)
 {
-  timet itime;
-  struct tm lt, *utc;
-  SCM result;
-  int zoff;
-  char *zname;
-
-  SCM_ASSERT (SCM_VECTORP (sbd_time), sbd_time, SCM_ARG1, s_mktime);
-  SCM_ASSERT (SCM_INUMP (SCM_VELTS (sbd_time)[0]) 
+  SCM_ASSERT (SCM_NIMP (sbd_time) && SCM_VECTORP (sbd_time)
+	      && scm_obj_length (sbd_time) == 11
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[0]) 
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[1])
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[2])
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[3])
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[4])
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[5])
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[6])
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[7])
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[8]),
-	      sbd_time, SCM_ARG1, s_mktime);
-  lt.tm_sec = SCM_INUM (SCM_VELTS (sbd_time)[0]);
-  lt.tm_min = SCM_INUM (SCM_VELTS (sbd_time)[1]);
-  lt.tm_hour = SCM_INUM (SCM_VELTS (sbd_time)[2]);
-  lt.tm_mday = SCM_INUM (SCM_VELTS (sbd_time)[3]);
-  lt.tm_mon = SCM_INUM (SCM_VELTS (sbd_time)[4]);
-  lt.tm_year = SCM_INUM (SCM_VELTS (sbd_time)[5]);
-  lt.tm_isdst = SCM_INUM (SCM_VELTS (sbd_time)[8]);
+	      sbd_time, pos, subr);
+  lt->tm_sec = SCM_INUM (SCM_VELTS (sbd_time)[0]);
+  lt->tm_min = SCM_INUM (SCM_VELTS (sbd_time)[1]);
+  lt->tm_hour = SCM_INUM (SCM_VELTS (sbd_time)[2]);
+  lt->tm_mday = SCM_INUM (SCM_VELTS (sbd_time)[3]);
+  lt->tm_mon = SCM_INUM (SCM_VELTS (sbd_time)[4]);
+  lt->tm_year = SCM_INUM (SCM_VELTS (sbd_time)[5]);
+  lt->tm_wday = SCM_INUM (SCM_VELTS (sbd_time)[6]);
+  lt->tm_yday = SCM_INUM (SCM_VELTS (sbd_time)[7]);
+  lt->tm_isdst = SCM_INUM (SCM_VELTS (sbd_time)[8]);
+}
+
+SCM_PROC (s_mktime, "mktime", 1, 1, 0, scm_mktime);
+SCM
+scm_mktime (SCM sbd_time, SCM zone)
+{
+  timet itime;
+  struct tm lt, *utc;
+  SCM result;
+  int zoff;
+  char *zname = 0;
+  char *oldtz = 0;
+  int err;
+
+  SCM_ASSERT (SCM_NIMP (sbd_time) && SCM_VECTORP (sbd_time), sbd_time,
+	      SCM_ARG1, s_mktime);
+  bdtime2c (sbd_time, &lt, SCM_ARG1, s_mktime);
 
   SCM_DEFER_INTS;
+  oldtz = setzone (zone, SCM_ARG2, s_mktime);
   itime = mktime (&lt);
-  if (itime == -1)
-    scm_syserror (s_mktime);
+  err = errno;
 
   /* timezone offset in seconds west of UTC.  */
   utc = gmtime (&itime);
+  if (utc == NULL)
+    err = errno;
+
+  if (itime != -1)
+    {
+#ifdef HAVE_TM_ZONE
+      zname = lt->tm_zone;
+#else
+# ifdef HAVE_TZNAME
+      /* must be copied before calling tzset again.  */
+      char *ptr = tzname[ (lt.tm_isdst == 1) ? 1 : 0 ];
+
+      zname = scm_must_malloc (strlen (ptr) + 1, s_mktime);
+      strcpy (zname, ptr);
+#endif
+#endif
+    }
+  restorezone (zone, oldtz);
+  /* delayed until zone has been restored.  */
+  errno = err;
+  if (utc == NULL || itime == -1)
+    scm_syserror (s_mktime);
+
   zoff = (utc->tm_hour - lt.tm_hour) * 3600 + (utc->tm_min - lt.tm_min) * 60
     + utc->tm_sec - lt.tm_sec;
   if (utc->tm_year < lt.tm_year)
@@ -375,15 +443,11 @@ scm_mktime (SCM sbd_time)
   else if (utc->tm_yday > lt.tm_yday)
     zoff += 24 * 60 * 60;
 
-  /* timezone name.  */
-  zname = tzname[ (lt.tm_isdst == 1) ? 1 : 0 ];
-
   result = scm_cons (scm_long2num ((long) itime),
 		     filltime (&lt, zoff, zname));
   SCM_ALLOW_INTS;
   return result;
 }
-#endif
 
 SCM_PROC (s_tzset, "tzset", 0, 0, 0, scm_tzset);
 SCM
@@ -391,6 +455,81 @@ scm_tzset (void)
 {
   tzset();
   return SCM_UNSPECIFIED;
+}
+
+SCM_PROC (s_strftime, "strftime", 2, 0, 0, scm_strftime);
+
+SCM
+scm_strftime (format, stime)
+     SCM format;
+     SCM stime;
+{
+  struct tm t;
+
+  char *tbuf;
+  int size = 50;
+  char *fmt;
+  int len;
+
+  SCM_ASSERT (SCM_NIMP (format) && SCM_STRINGP (format), format, SCM_ARG1,
+	      s_strftime);
+  bdtime2c (stime, &t, SCM_ARG2, s_strftime);
+
+  fmt = SCM_ROCHARS (format);
+  len = SCM_ROLENGTH (format);
+
+  tbuf = scm_must_malloc (size, s_strftime);
+  while ((len = strftime (tbuf, size, fmt, &t)) == size)
+    {
+      scm_must_free (tbuf);
+      size *= 2;
+      tbuf = scm_must_malloc (size, s_strftime);
+    }
+  return scm_makfromstr (tbuf, len, 0);
+}
+
+SCM_PROC (s_strptime, "strptime", 2, 0, 0, scm_strptime);
+
+SCM
+scm_strptime (format, string)
+     SCM format;
+     SCM string;
+{
+#ifdef HAVE_STRPTIME
+  struct tm t;
+  char *fmt, *str, *rest;
+
+  SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1,
+	      s_strptime);
+  SCM_ASSERT (SCM_NIMP (string) && SCM_ROSTRINGP (string), string, SCM_ARG2,
+	      s_strptime);
+
+  fmt = SCM_ROCHARS (format);
+  str = SCM_ROCHARS (string);
+
+  /* initialize the struct tm */
+#define tm_init(field) t.field = 0
+  tm_init (tm_sec);
+  tm_init (tm_min);
+  tm_init (tm_hour);
+  tm_init (tm_mday);
+  tm_init (tm_mon);
+  tm_init (tm_year);
+  tm_init (tm_wday);
+  tm_init (tm_yday);
+#undef tm_init
+
+  t.tm_isdst = -1;
+  SCM_DEFER_INTS;
+  if ((rest = strptime (str, fmt, &t)) == NULL)
+    scm_syserror (s_strptime);
+
+  SCM_ALLOW_INTS;
+  return scm_cons (filltime (&t, 0, NULL),  SCM_MAKINUM (rest - str));
+
+#else
+  scm_sysmissing (s_strptime);
+#endif
 }
 
 void

@@ -90,8 +90,6 @@ extern SCM scm_access SCM_P ((SCM path, SCM how));
 extern SCM scm_getpid SCM_P ((void));
 extern SCM scm_putenv SCM_P ((SCM str));
 extern SCM scm_setlocale SCM_P ((SCM category, SCM locale));
-extern SCM scm_strftime SCM_P ((SCM format, SCM stime));
-extern SCM scm_strptime SCM_P ((SCM format, SCM string));
 extern SCM scm_mknod SCM_P ((SCM path, SCM type, SCM perms, SCM dev));
 extern SCM scm_nice SCM_P ((SCM incr));
 extern SCM scm_sync SCM_P ((void));

@@ -271,7 +271,7 @@ distclean-libtool:
 maintainer-clean-libtool:
 
 libguile.la: $(libguile_la_OBJECTS) $(libguile_la_DEPENDENCIES)
-	$(LINK) -rpath $(libdir) $(libguile_la_LDFLAGS) $(libguile_la_OBJECTS) $(libguile_la_LIBADD) $(LIBS)
+	$(LINK) -rpath lib $(libguile_la_LDFLAGS) $(libguile_la_OBJECTS) $(libguile_la_LIBADD) $(LIBS)
 
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)

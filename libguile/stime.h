@@ -53,8 +53,10 @@ extern SCM scm_current_time SCM_P ((void));
 extern SCM scm_gettimeofday (void);
 extern SCM scm_localtime (SCM time, SCM zone);
 extern SCM scm_gmtime (SCM time);
-extern SCM scm_mktime (SCM sbd_time);
+extern SCM scm_mktime (SCM sbd_time, SCM zone);
 extern SCM scm_tzset (void);
+extern SCM scm_strftime SCM_P ((SCM format, SCM stime));
+extern SCM scm_strptime SCM_P ((SCM format, SCM string));
 extern void scm_init_stime SCM_P ((void));
 
 #endif  /* TIMEH */

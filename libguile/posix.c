@@ -45,7 +45,6 @@
 #include "fports.h"
 #include "scmsigs.h"
 #include "feature.h"
-#include "sequences.h"
 
 #include "posix.h"
 
@@ -137,8 +136,6 @@ extern char ** environ;
 #  include <ndir.h>
 # endif
 #endif
-
-char *strptime ();
 
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
@@ -1070,126 +1067,6 @@ scm_setlocale (category, locale)
   return scm_makfrom0str (rv);
 #else
   scm_sysmissing (s_setlocale);
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
-}
-
-SCM_PROC (s_strftime, "strftime", 2, 0, 0, scm_strftime);
-
-SCM
-scm_strftime (format, stime)
-     SCM format;
-     SCM stime;
-{
-  struct tm t;
-
-  char *tbuf;
-  int n;
-  int size = 50;
-  char *fmt;
-  int len;
-
-  SCM_ASSERT (SCM_NIMP (format) && SCM_STRINGP (format), format, SCM_ARG1,
-	      s_strftime);
-  SCM_ASSERT (SCM_NIMP (stime) && SCM_VECTORP (stime)
-	      && scm_obj_length (stime) == 9,
-	      stime, SCM_ARG2, s_strftime);
-
-  fmt = SCM_ROCHARS (format);
-  len = SCM_ROLENGTH (format);
-
-#define tm_deref scm_num2long (SCM_VELTS (stime)[n++], (char *)SCM_ARG2, s_strftime)
-  n = 0;
-  t.tm_sec = tm_deref;
-  t.tm_min = tm_deref;
-  t.tm_hour = tm_deref;
-  t.tm_mday = tm_deref;
-  t.tm_mon = tm_deref;
-  t.tm_year = tm_deref;
-  /* not used by mktime.
-     t.tm_wday = tm_deref;
-     t.tm_yday = tm_deref; */
-  t.tm_isdst = tm_deref;
-#undef tm_deref
-
-  /* fill in missing fields and set the timezone.  */
-  mktime (&t);
-
-  tbuf = scm_must_malloc (size, s_strftime);
-  while ((len = strftime (tbuf, size, fmt, &t)) == size)
-    {
-      scm_must_free (tbuf);
-      size *= 2;
-      tbuf = scm_must_malloc (size, s_strftime);
-    }
-  return scm_makfromstr (tbuf, len, 0);
-}
-
-SCM_PROC (s_strptime, "strptime", 2, 0, 0, scm_strptime);
-
-SCM
-scm_strptime (format, string)
-     SCM format;
-     SCM string;
-{
-#ifdef HAVE_STRPTIME
-  SCM stime;
-  struct tm t;
-
-  char *fmt, *str, *rest;
-  int n;
-
-  SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1,
-	      s_strptime);
-  if (SCM_SUBSTRP (format))
-    format =  scm_makfromstr (SCM_ROCHARS (format), SCM_ROLENGTH (format), 0);
-  SCM_ASSERT (SCM_NIMP (string) && SCM_ROSTRINGP (string), string, SCM_ARG2,
-	      s_strptime);
-  if (SCM_SUBSTRP (string))
-    string =  scm_makfromstr (SCM_ROCHARS (string), SCM_ROLENGTH (string), 0);
-
-  fmt = SCM_CHARS (format);
-  str = SCM_CHARS (string);
-
-  /* initialize the struct tm */
-#define tm_init(field) t.field = 0
-  tm_init (tm_sec);
-  tm_init (tm_min);
-  tm_init (tm_hour);
-  tm_init (tm_mday);
-  tm_init (tm_mon);
-  tm_init (tm_year);
-  tm_init (tm_wday);
-  tm_init (tm_yday);
-  tm_init (tm_isdst);
-#undef tm_init
-
-  SCM_DEFER_INTS;
-  rest = strptime (str, fmt, &t);
-  SCM_ALLOW_INTS;
-
-  if (rest == NULL)
-    scm_syserror (s_strptime);
-
-  stime = scm_make_vector (SCM_MAKINUM (9), scm_long2num (0), SCM_UNDEFINED);
-
-#define stime_set(val) scm_vector_set_x (stime, SCM_MAKINUM (n++), scm_long2num (t.val));
-  n = 0;
-  stime_set (tm_sec);
-  stime_set (tm_min);
-  stime_set (tm_hour);
-  stime_set (tm_mday);
-  stime_set (tm_mon);
-  stime_set (tm_year);
-  stime_set (tm_wday);
-  stime_set (tm_yday);
-  stime_set (tm_isdst);
-#undef stime_set
-
-  return scm_cons (stime, scm_makfrom0str (rest));
-#else
-  scm_sysmissing (s_strptime);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif

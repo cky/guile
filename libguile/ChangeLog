@@ -28,6 +28,30 @@ Wed Apr  9 18:01:20 1997  Jim Blandy  <jimb@floss.cyclic.com>
 	readability.
 	* Makefile.in: Rebuild.
 
+Wed Apr  9 09:08:54 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* stime.c (scm_mktime): take an optional zone argument.
+	(scm_localtime): check putenv return value.
+	(scm_strftime, scm_strptime): moved from posix.c.  move #include
+	sequences.h too.
+	stime.h, posix.h: update prototypes.
+	(bdtime2c, setzone, restorezone): new static procedures.
+	(scm_mktime, scm_strftime): use them.
+	(scm_strftime): don't call mktime before strftime.  Use
+	filltime for return value.
+	(filltime): convert NULL zname to #f.
+*	(scm_strptime): return a count of characters consumed, not
+	the remaining string.
+
+Sun Apr  6 05:44:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* stime.c (scm_localtime): check HAVE_TM_ZONE and HAVE_TZNAME.
+	(scm_mktime): likewise.
+	Declare *tzname[].
+	Uncomment localtime and mktime.
+
+	* configure.in: add AC_STRUCT_TIMEZONE.
+
 Sat Apr  5 23:56:40 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* stime.c (scm_init_stime): don't define ticks/sec.
