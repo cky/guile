@@ -24,6 +24,8 @@
   (cons 'misc-error "^bad body"))
 (define exception:bad-formals
   (cons 'misc-error "^bad formals"))
+(define exception:duplicate-formals
+  (cons 'misc-error "^duplicate formals"))
 (define exception:bad-var
   (cons 'misc-error "^bad variable"))
 (define exception:bad/missing-clauses
@@ -41,7 +43,9 @@
     ;; is a legitimate expression.  In Scheme, combinations must
     ;; have at least one subexpression, so () is not a syntactically
     ;; valid expression.
-    (expect-fail-exception "empty parentheses \"()\""
+
+    ;; Fixed on 2001-3-3
+    (pass-if-exception "empty parentheses \"()\""
       exception:missing/extra-expr
       ())))
 
@@ -63,14 +67,18 @@
 
     (pass-if-exception "(lambda (\"a\" x) 2)"
       exception:bad-formals
-      (lambda ("a" x) 2))
+      (lambda ("a" x) 2)))
 
-    (expect-fail-exception "(lambda (x x) 1)"
-      exception:bad-formals
+  (with-test-prefix "duplicate formals"
+
+    ;; Fixed on 2001-3-3
+    (pass-if-exception "(lambda (x x) 1)"
+      exception:duplicate-formals
       (lambda (x x) 1))
 
-    (expect-fail-exception "(lambda (x x x) 1)"
-      exception:bad-formals
+    ;; Fixed on 2001-3-3
+    (pass-if-exception "(lambda (x x x) 1)"
+      exception:duplicate-formals
       (lambda (x x x) 1))))
 
 (with-test-prefix "let"
