@@ -1,3 +1,7 @@
+2001-04-29  Gary Houston  <ghouston@arglist.com>
+
+	* libguile.h: include rw.h.
+
 2001-04-27  Rob Browning  <rlb@cs.utexas.edu>
 
 	* GUILE-VERSION (GUILE_MINOR_VERSION): change to 5.0, switching to

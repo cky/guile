@@ -140,6 +140,38 @@ future.
 Alternatively, if guile-scsh is installed, the (scsh rdelim) module
 can be used for similar functionality.
 
+** New module (ice-9 rw)
+
+This is a subset of the (scsh rw) module from guile-scsh.  Currently
+it defines a single procedure:
+
+** New function: read-string!/partial str [port_or_fdes [start [end]]]
+
+     Read characters from an fport or file descriptor into a string
+     STR.  This procedure is scsh-compatible and can efficiently read
+     large strings.  It will:
+
+        * attempt to fill the entire string, unless the START and/or
+          END arguments are supplied.  i.e., START defaults to 0 and
+          END defaults to `(string-length str)'
+
+        * use the current input port if PORT_OR_FDES is not supplied.
+
+        * read any characters that are currently available, without
+          waiting for the rest (short reads are possible).
+
+        * wait for as long as it needs to for the first character to
+          become available, unless the port is in non-blocking mode
+
+        * return `#f' if end-of-file is encountered before reading any
+          characters, otherwise return the number of characters read.
+
+        * return 0 if the port is in non-blocking mode and no characters
+          are immediately available.
+
+        * return 0 if the request is for 0 bytes, with no end-of-file
+          check
+
 ** New module (ice-9 match)
 
 This module includes Andrew K. Wright's pattern matcher:
@@ -414,33 +446,6 @@ Guile.
 ** Deprecated: scm_sloppy_memq, scm_sloppy_memv, scm_sloppy_member
 
 Instead, use scm_c_memq or scm_memq, scm_memv, scm_member.
-
-** New function: read-string!/partial str [port_or_fdes [start [end]]]
-
-     Read characters from an fport or file descriptor into a string
-     STR.  This procedure is scsh-compatible and can efficiently read
-     large strings.  It will:
-
-        * attempt to fill the entire string, unless the START and/or
-          END arguments are supplied.  i.e., START defaults to 0 and
-          END defaults to `(string-length str)'
-
-        * use the current input port if PORT_OR_FDES is not supplied.
-
-        * read any characters that are currently available, without
-          waiting for the rest (short reads are possible).
-
-        * wait for as long as it needs to for the first character to
-          become available, unless the port is in non-blocking mode
-
-        * return `#f' if end-of-file is encountered before reading any
-          characters, otherwise return the number of characters read.
-
-        * return 0 if the port is in non-blocking mode and no characters
-          are immediately available.
-
-        * return 0 if the request is for 0 bytes, with no end-of-file
-          check
 
 ** New function: object->string OBJ
 
@@ -5483,7 +5488,7 @@ Until then, gtcltk-lib provides trivial, low-maintenance functionality.
 
 Copyright information:
 
-Copyright (C) 1996,1997 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

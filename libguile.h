@@ -86,6 +86,7 @@ extern "C" {
 #include "libguile/init.h"
 #include "libguile/ioext.h"
 #include "libguile/rdelim.h"
+#include "libguile/rw.h"
 #include "libguile/keywords.h"
 #include "libguile/list.h"
 #include "libguile/load.h"
