@@ -2925,29 +2925,68 @@ scm_makmmacro (code)
 }
 
 
+SCM_PROC (s_macro_p, "macro?", 1, 0, 0, scm_macro_p);
 
-static int  prinmacro SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
-static int 
-prinmacro (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+SCM
+scm_macro_p (obj)
+     SCM obj;
 {
-  int writingp = SCM_WRITINGP (pstate);
-  if (SCM_CAR (exp) & (3L << 16))
-    scm_gen_puts (scm_regular_string, "#<macro", port);
-  else
-    scm_gen_puts (scm_regular_string, "#<syntax", port);
-  if (SCM_CAR (exp) & (2L << 16))
-    scm_gen_putc ('!', port);
-  scm_gen_putc (' ', port);
-  SCM_SET_WRITINGP (pstate, 1);
-  scm_iprin1 (SCM_CDR (exp), port, pstate);
-  SCM_SET_WRITINGP (pstate, writingp);
-  scm_gen_putc ('>', port);
-  return !0;
+  return (SCM_NIMP (obj) && SCM_TYP16 (obj) == scm_tc16_macro
+	  ? SCM_BOOL_T
+	  : SCM_BOOL_F);
 }
+
+
+SCM_SYMBOL (scm_sym_syntax, "syntax");
+SCM_SYMBOL (scm_sym_macro, "macro");
+SCM_SYMBOL (scm_sym_mmacro, "macro!");
+
+SCM_PROC (s_macro_type, "macro-type", 1, 0, 0, scm_macro_type);
+
+SCM
+scm_macro_type (m)
+     SCM m;
+{
+  if (!(SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro))
+    return SCM_BOOL_F;
+  switch ((int) (SCM_CAR (m) >> 16))
+    {
+    case 0: return scm_sym_syntax;
+    case 1: return scm_sym_macro;
+    case 2: return scm_sym_mmacro;
+    default: scm_wrong_type_arg (s_macro_type, 1, m);
+    }
+}
+
+
+SCM_PROC (s_macro_name, "macro-name", 1, 0, 0, scm_macro_name);
+
+SCM
+scm_macro_name (m)
+     SCM m;
+{
+  SCM_ASSERT (SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro,
+	      m,
+	      SCM_ARG1,
+	      s_macro_name);
+  return scm_procedure_name (SCM_CDR (m));
+}
+
+
+SCM_PROC (s_macro_transformer, "macro-transformer", 1, 0, 0, scm_macro_transformer);
+
+SCM
+scm_macro_transformer (m)
+     SCM m;
+{
+  SCM_ASSERT (SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro,
+	      m,
+	      SCM_ARG1,
+	      s_macro_transformer);
+  return SCM_NFALSEP (scm_closure_p (SCM_CDR (m))) ? SCM_CDR (m) : SCM_BOOL_F;
+}
+
+
 
 SCM_PROC(s_force, "force", 1, 0, 0, scm_force);
 
@@ -3100,12 +3139,9 @@ scm_definedp (sym)
       SCM_BOOL_F : SCM_BOOL_T;
 }
 
-static scm_smobfuns promsmob =
-{scm_markcdr, scm_free0, prinprom};
+static scm_smobfuns promsmob = {scm_markcdr, scm_free0, prinprom};
 
-static scm_smobfuns macrosmob =
-{scm_markcdr, scm_free0, prinmacro};
-
+static scm_smobfuns macrosmob = {scm_markcdr, scm_free0};
 
 SCM 
 scm_make_synt (name, macroizer, fcn)

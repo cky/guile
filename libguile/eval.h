@@ -97,6 +97,7 @@ extern SCM scm_i_unquote;
 extern SCM scm_i_uq_splicing;
 extern SCM scm_i_apply;
 
+extern long scm_tc16_macro;
 
 /* A resolved global variable reference in the CAR position
  * of a list is stored (in code only) as a pointer to a pair with a 
@@ -152,6 +153,10 @@ extern SCM scm_makprom SCM_P ((SCM code));
 extern SCM scm_makacro SCM_P ((SCM code));
 extern SCM scm_makmacro SCM_P ((SCM code));
 extern SCM scm_makmmacro SCM_P ((SCM code));
+extern SCM scm_macro_p SCM_P ((SCM obj));
+extern SCM scm_macro_type SCM_P ((SCM m));
+extern SCM scm_macro_name SCM_P ((SCM m));
+extern SCM scm_macro_transformer SCM_P ((SCM m));
 extern SCM scm_force SCM_P ((SCM x));
 extern SCM scm_promise_p SCM_P ((SCM x));
 extern SCM scm_copy_tree SCM_P ((SCM obj));

@@ -347,7 +347,12 @@ taloop:
 	circref:
 	  print_circref (port, pstate, exp);
 	  break;
+	macros:
+	  if (SCM_FALSEP (scm_closure_p (SCM_CDR (exp))))
+	    goto prinmacro;
 	case scm_tcs_closures:
+	  /* The user supplied print closure procedure must handle
+	     macro closures as well. */
 	  if (SCM_NFALSEP (scm_procedure_p (SCM_PRINT_CLOSURE)))
 	    {
 	      SCM ans = scm_cons2 (exp, port,
@@ -360,16 +365,48 @@ taloop:
 	  else
 	    {
 	      SCM name, code;
-	      name = scm_procedure_property (exp, scm_i_name);
-	      code = SCM_CODE (exp);
-	      scm_gen_puts (scm_regular_string, "#<procedure ", port);
+	      if (SCM_TYP16 (exp) == scm_tc16_macro)
+		{
+		  /* Printing a macro. */
+		prinmacro:
+		  name = scm_procedure_name (SCM_CDR (exp));
+		  if (SCM_FALSEP (scm_closure_p (SCM_CDR (exp))))
+		    {
+		      code = 0;
+		      scm_gen_puts (scm_regular_string, "#<primitive-",
+				    port);
+		    }
+		  else
+		    {
+		      code = SCM_CODE (SCM_CDR (exp));
+		      scm_gen_puts (scm_regular_string, "#<", port);
+		    }
+		  if (SCM_CAR (exp) & (3L << 16))
+		    scm_gen_puts (scm_regular_string, "macro", port);
+		  else
+		    scm_gen_puts (scm_regular_string, "syntax", port);
+		  if (SCM_CAR (exp) & (2L << 16))
+		    scm_gen_putc ('!', port);
+		}
+	      else
+		{
+		  /* Printing a closure. */
+		  name = scm_procedure_name (exp);
+		  code = SCM_CODE (exp);
+		  scm_gen_puts (scm_regular_string, "#<procedure",
+				port);
+		}
 	      if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
 		{
-		  scm_gen_puts (scm_regular_string, SCM_ROCHARS (name), port);
 		  scm_gen_putc (' ', port);
+		  scm_gen_puts (scm_regular_string, SCM_ROCHARS (name), port);
 		}
-	      scm_iprin1 (SCM_CAR (code), port, pstate);
-	      if (SCM_PRINT_SOURCE_P)
+	      if (code)
+		{
+		  scm_gen_putc (' ', port);
+		  scm_iprin1 (SCM_CAR (code), port, pstate);
+		}
+	      if (code && SCM_PRINT_SOURCE_P)
 		{
 		  code = scm_unmemocopy (SCM_CDR (code),
 					 SCM_EXTEND_ENV (SCM_CAR (code),
@@ -583,6 +620,12 @@ taloop:
 	      break;
 	    }
 	  EXIT_NESTED_DATA (pstate);
+	  /* Macros have their print field set to NULL.  They are
+	     handled at the same place as closures in order to achieve
+	     non-redundancy.  Placing the condition here won't slow
+	     down printing of other smobs. */
+	  if (SCM_TYP16 (exp) == scm_tc16_macro)
+	    goto macros;
 	default:
 	punk:
 	  scm_ipruk ("type", exp, port);

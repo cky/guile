@@ -1,3 +1,29 @@
+Wed Sep 10 20:52:18 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+*	* eval.c (macro?, macro-type, macro-name, macro-transfomer): New
+ 	procedures;
+	(prinmacro): Removed.  The code has been moved/merged into print.c
+ 	in order to decrease code redundancy.  We want macros to print in
+ 	a way equivalent to procedures, and it would be silly to duplicate
+ 	the required code.  (We don't want to maintain two places.)
+	(macrosmob): Print field is now a NULL pointer.
+	
+	* eval.h (scm_macro_p, scm_macro_type, scm_macro_name,
+ 	scm_macro_transformer): New prototypes.
+	(scm_tc16_macro): Declared.
+
+*	* print.c (scm_iprin1): Added code for printing of macros.  Macros
+	are now printed in a way equivalent to procedures.
+
+Sat Sep  6 12:20:42 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* procs.h (scm_closure_p): Added declaration.
+
+Fri Sep  5 13:36:14 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gc.c (scm_gc_mark): Fixed "rogue pointer in heap" message:
+	Shouldn't pass "heap" as the subr name.
+
 Tue Sep  2 18:14:30 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* gh_predicates.c (gh_boolean_p, gh_symbol_p, gh_char_p,
