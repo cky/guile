@@ -1,6 +1,6 @@
 /* classes: src_files */
 
-/*	Copyright (C) 1994, 1996, 1997 Software Foundation, Inc.
+/*	Copyright (C) 1994, 1996, 1997 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
