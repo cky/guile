@@ -1,3 +1,12 @@
+2003-11-30  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/syntax.test: It's "#\\space", not "#\space".
+
+2003-11-21  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/numbers.test: #e1.2 is now exactly 12/10.  Expect
+	exceptions when calling inexact? with a non-number.
+
 2003-12-03  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/fractions.test: Exercise most-negative-fixnum over -ve of

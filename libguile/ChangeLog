@@ -1,3 +1,8 @@
+2003-12-26  Marius Vollmer  <mvo@zagadka.de>
+
+	* gen-scmconfig.h.in, gen-scmconfig.c: Arrange for scm_t_intmax
+	and scm_t_uintmax to be defined in scmconfig.h
+
 2003-12-03  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_less_p): Remove spurious xisnan from frac+big case.

@@ -578,6 +578,12 @@ starting the week.
 
 * Changes to the C interface
 
+** New types scm_t_intmax and scm_t_uintmax.
+
+On platforms that have them, these types are identical to intmax_t and
+uintmax_t, respectively.  On other platforms, they are identical to
+the largest integer types that Guile knows about.
+
 ** Many public #defines with generic names have been made private.
 
 #defines with generic names like HAVE_FOO or SIZEOF_FOO have been made

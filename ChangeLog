@@ -1,3 +1,8 @@
+2003-12-26  Marius Vollmer  <mvo@zagadka.de>
+
+	* configure.in: Find a suitable type for the new scm_t_intmax and
+	scm_t_uintmax.
+
 2003-11-17  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in: rewrite ALLOCA related code as multiple lines so
