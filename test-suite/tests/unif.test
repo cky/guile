@@ -315,7 +315,9 @@
       (for-each (lambda (type)
 		  (pass-if (symbol->string type)
 		     (eq? type
-			  (array-type (make-typed-array type #f '(5 6))))))
+			  (array-type (make-typed-array type 
+							*unspecified* 
+							'(5 6))))))
 		types))))
 
 ;;;
