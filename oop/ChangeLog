@@ -1,3 +1,8 @@
+2001-04-03  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* goops/Makefile.am (goops_sources): Include goopscore.scm.
+	Thanks to Dale P. Smith.
+
 2001-03-29  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* goops/goopscore.scm: New file.
