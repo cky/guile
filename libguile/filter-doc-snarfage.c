@@ -23,6 +23,7 @@ typedef enum state_t
     SKIP,
     SKIP_COOKIE,
         
+    MULTILINE_BEGINNING_OF_LINE,
     MULTILINE,
 
     MULTILINE_COOKIE,
@@ -68,9 +69,17 @@ process ()
         fputs ("(doc-block (\n", stdout);
         state = MULTILINE;
         break;
+      case ' ':
+        break;
       default:
         die ("bad snarf cookie");
         break;
+      }
+      break;
+    case MULTILINE_BEGINNING_OF_LINE:
+      if (c != ' ') {
+        state = MULTILINE;
+        putc (c, stdout);
       }
       break;
     case MULTILINE:
@@ -92,12 +101,14 @@ process ()
       case '(':
         state = STRINGS;
         break;
-      case ' ':
-        state = MULTILINE;
+      case '%':
+        state = MULTILINE_BEGINNING_OF_LINE;
         break;
       case '}':
         fputs ("))\n", stdout);
         state = SKIP;
+        break;
+      case ' ':
         break;
       default:
         die ("bad snarf cookie in multiline context");

@@ -1,5 +1,8 @@
 2001-06-08  Michael Livshin  <mlivshin@bigfoot.com>
 
+	* snarf.h, filter-doc-snarfage.c: more changes to cope with
+	space-happy C preprocessors.
+
 	* filter-doc-snarfage.c, guile-snarf.in: try to cope with spaces
 	inside cookies.  thanks to Matthias Köppe!
 

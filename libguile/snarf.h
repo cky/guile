@@ -86,11 +86,11 @@
 #  define SCM_SNARF_INIT(X)
 #  define SCM_SNARF_DOCS(TYPE, FNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING) \
 ^^{ \
-^^ fname . FNAME \
-^^ type . TYPE \
-^^ location __FILE__ . __LINE__ \
-^^ arglist . ARGLIST \
-^^ argsig REQ OPT VAR \
+^^%fname . FNAME \
+^^%type . TYPE \
+^^%location __FILE__ . __LINE__ \
+^^%arglist . ARGLIST \
+^^%argsig REQ OPT VAR \
 ^^(DOCSTRING) \
 ^^}
 # else
