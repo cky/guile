@@ -2315,7 +2315,18 @@
 					    (loop (thunk)))
 					  #f)))))
 
-				  lazy-handler-dispatch))
+				  ;; Use a closure here rather than
+				  ;; just `lazy-handler-dispatch' so
+				  ;; that lookup of
+				  ;; lazy-handler-dispatch's value is
+				  ;; deferred until a throw occurs.
+				  ;; This means that if code executed
+				  ;; in the REPL just above set!s
+				  ;; lazy-handler-dispatch, the new
+				  ;; value will be used to handle the
+				  ;; next throw from the REPL.
+				  (lambda args
+				    (apply lazy-handler-dispatch args))))
 
 		    (lambda (key . args)
 		      (case key
