@@ -1,3 +1,10 @@
+2001-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SCM_VALIDATE_NON_EMPTY_COMBINATION):  New macro.
+
+	(SCM_CEVAL, SCM_APPLY):  Replace calls to SCM_EVALIM2 with calls
+	to SCM_VALIDATE_NON_EMPTY_COMBINATION.
+
 2001-06-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* extensions.c (scm_c_register_extension): Allow NULL as library

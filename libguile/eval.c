@@ -106,6 +106,14 @@ char *alloca ();
 
 
 
+#define SCM_VALIDATE_NON_EMPTY_COMBINATION(x) \
+  do { \
+    if (SCM_EQ_P ((x), SCM_EOL)) \
+      scm_misc_error (NULL, scm_s_expression, SCM_EOL); \
+  } while (0)
+
+
+
 /* The evaluator contains a plethora of EVAL symbols.
  * This is an attempt at explanation.
  *
@@ -1979,7 +1987,7 @@ dispatch:
 		  goto nontoplevel_begin;
 		}
 	      else
-		SCM_EVALIM2 (SCM_CAR (x));
+		SCM_VALIDATE_NON_EMPTY_COMBINATION (SCM_CAR (x));
 	    }
 	  else
 	    SCM_CEVAL (SCM_CAR (x), env);
@@ -3515,7 +3523,7 @@ tail:
 		  goto again;
 		}
 	      else
-		SCM_EVALIM2 (SCM_CAR (proc));
+		SCM_VALIDATE_NON_EMPTY_COMBINATION (SCM_CAR (proc));
 	    }
 	  else
 	    SCM_CEVAL (SCM_CAR (proc), args);
