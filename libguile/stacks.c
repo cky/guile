@@ -81,9 +81,8 @@
  *
  * Representation:
  *
- * The stack is represented as an ordinary scheme vector.  It is
- * logically divided into sections of SCM values.  Each section is an
- * scm_info_frame struct.
+ * The stack is represented as a struct with an id slot and a tail
+ * array of scm_info_frame structs.
  *
  * A frame is represented as a pair where the car contains a stack and
  * the cdr an inum.  The inum is an index to the first SCM value of
@@ -92,7 +91,8 @@
  * Stacks
  *   Constructor
  *     make-stack
- *   Selector
+ *   Selectors
+ *     stack-id
  *     stack-ref
  *   Inspector
  *     stack-length
@@ -111,8 +111,7 @@
  *     frame-real?
  *     frame-procedure?
  *     frame-evaluating-args?
- *     frame-overflow?
- */
+ *     frame-overflow?  */
 
 
 
@@ -206,12 +205,20 @@ read_frame (dframe, offset, iframe)
  * starting with the first stack frame represented by debug frame
  * DFRAME.
  */
-static void read_frames SCM_P ((scm_debug_frame *dframe, long offset, int skip, int n, scm_info_frame *iframes));
+
+#define NEXT_FRAME(iframe, n, quit) \
+{ \
+  ++iframe; \
+  if (--n == 0) \
+    goto quit; \
+} \
+
+
+static void read_frames SCM_P ((scm_debug_frame *dframe, long offset, int nframes, scm_info_frame *iframes));
 static void
-read_frames (dframe, offset, skip, n, iframes)
+read_frames (dframe, offset, n, iframes)
      scm_debug_frame *dframe;
      long offset;
-     int skip;
      int n;
      scm_info_frame *iframes;
 {
@@ -236,14 +243,7 @@ read_frames (dframe, offset, skip, n, iframes)
 	  else if (SCM_OVERFLOWP (*dframe)
 		   && !SCM_UNBNDP (info[1].a.proc))
 	    {
-	      if (skip)
-		--skip;
-	      else
-		{
-		  ++iframe;
-		  if (--n == 0)
-		    goto quit;
-		}
+	      NEXT_FRAME (iframe, n, quit);
 	      iframe->flags = SCM_INUM0 | SCM_FRAMEF_PROC;
 	      iframe->proc = info[1].a.proc;
 	      iframe->args = info[1].a.args;
@@ -251,14 +251,7 @@ read_frames (dframe, offset, skip, n, iframes)
 	  if (SCM_OVERFLOWP (*dframe))
 	    iframe->flags |= SCM_FRAMEF_OVERFLOW;
 	  info -= 2;
-	  if (skip)
-	    --skip;
-	  else
-	    {
-	      ++iframe;
-	      if (--n == 0)
-		goto quit;
-	    }
+	  NEXT_FRAME (iframe, n, quit);
 	  while (info >= dframe->vect)
 	    {
 	      if (!SCM_UNBNDP (info[1].a.proc))
@@ -272,30 +265,46 @@ read_frames (dframe, offset, skip, n, iframes)
 	      iframe->source = scm_make_memoized (info[0].e.exp,
 						  info[0].e.env);
 	      info -= 2;
-	      if (skip)
-		--skip;
-	      else
-		{
-		  ++iframe;
-		  if (--n == 0)
-		    goto quit;
-		}
+	      NEXT_FRAME (iframe, n, quit);
 	    }
 	}
       else
 	{
-	  if (skip)
-	    --skip;
-	  else
-	    {
-	      ++iframe;
-	      --n;
-	    }
+	  NEXT_FRAME (iframe, n, quit);
 	}
     quit:
       if (iframe > iframes)
 	(iframe - 1) -> flags |= SCM_FRAMEF_REAL;
     }
+}
+
+static void narrow_stack SCM_P ((SCM stack, int inner, SCM inner_key, int outer, SCM outer_key));
+
+static void
+narrow_stack (stack, inner, inner_key, outer, outer_key)
+     SCM stack;
+     int inner;
+     SCM inner_key;
+     int outer;
+     SCM outer_key;
+{
+  scm_stack *s = SCM_STACK (stack);
+  int i;
+  int n = s->length;
+  
+  /* Cut inner part. */
+  for (i = 0; inner; --inner)
+    if (s->frames[i++].proc == inner_key)
+      break;
+  s->frames = &s->frames[i];
+  n -= i;
+
+  /* Cut outer part. */
+  for (; n && outer; --outer)
+    if (s->frames[--n].proc == outer_key)
+      break;
+
+  s->length = n;
 }
 
 
@@ -315,12 +324,12 @@ scm_stack_p (obj)
 
 SCM_PROC (s_make_stack, "make-stack", 0, 3, 0, scm_make_stack);
 SCM
-scm_make_stack (obj, outer_cut, inner_cut)
+scm_make_stack (obj, inner_cut, outer_cut)
      SCM obj;
-     SCM outer_cut;
      SCM inner_cut;
+     SCM outer_cut;
 {
-  int i, n, maxp, size;
+  int n, maxp, size;
   scm_debug_frame *dframe;
   scm_info_frame *iframe;
   long offset = 0;
@@ -330,11 +339,8 @@ scm_make_stack (obj, outer_cut, inner_cut)
     inner_cut = SCM_INUM0;
   if (SCM_UNBNDP (outer_cut))
     outer_cut = SCM_INUM0;
-  SCM_ASSERT (SCM_INUMP (inner_cut), inner_cut, SCM_ARG2, s_make_stack);
-  SCM_ASSERT (SCM_INUMP (outer_cut), outer_cut, SCM_ARG3, s_make_stack);
   
-  if (SCM_IMP (obj)
-      || (!SCM_DEBUGOBJP (obj) && (scm_tc7_contin != SCM_TYP7 (obj))))
+  if (obj == SCM_BOOL_T)
     dframe = scm_last_debug_frame;
   else
     {
@@ -354,27 +360,34 @@ scm_make_stack (obj, outer_cut, inner_cut)
       else scm_wta (obj, (char *) SCM_ARG1, s_make_stack);
     }
 
-  i = SCM_INUM (inner_cut);
   id = SCM_BOOL_F;
   maxp = 0;
-  n = stack_depth (dframe, offset, &id, &maxp) - i - SCM_INUM (outer_cut);
-  if (n < 0)
-    n = 0;
+  n = stack_depth (dframe, offset, &id, &maxp);
   size = n * SCM_FRAME_N_SLOTS;
 
   stack = scm_make_struct (scm_stack_type, SCM_MAKINUM (size), SCM_EOL);
   SCM_STACK (stack) -> id = id;
-  iframe = (scm_info_frame *) &SCM_STACK (stack) -> frames[0];
-  read_frames ((scm_debug_frame *) ((SCM_STACKITEM *) dframe + offset),
-	       offset,
-	       i,
-	       n,
-	       iframe);
-
-  if (n > 0 && maxp)
-    iframe[n - 1].flags |= SCM_FRAMEF_OVERFLOW;
+  SCM_STACK (stack) -> length = n;
+  iframe = &SCM_STACK (stack) -> tail[0];
+  SCM_STACK (stack) -> frames = iframe;
   
-  return stack;
+  read_frames ((scm_debug_frame *) ((SCM_STACKITEM *) dframe + offset), offset, n, iframe);
+
+  narrow_stack (stack,
+		SCM_INUMP (inner_cut) ? SCM_INUM (inner_cut) : n,
+		SCM_INUMP (inner_cut) ? 0 : inner_cut,
+		SCM_INUMP (outer_cut) ? SCM_INUM (outer_cut) : n,
+		SCM_INUMP (outer_cut) ? 0 : outer_cut);
+
+  n = SCM_STACK (stack) -> length;
+  if (n > 0)
+  {
+    if (maxp)
+      iframe[n - 1].flags |= SCM_FRAMEF_OVERFLOW;
+    return stack;
+  }
+  else
+    return SCM_BOOL_F;
 }
 
 SCM_PROC (s_stack_id, "stack-id", 1, 0, 0, scm_stack_id);
@@ -382,12 +395,34 @@ SCM
 scm_stack_id (stack)
      SCM stack;
 {
-  SCM_ASSERT (SCM_NIMP (stack)
-	      && SCM_STACKP (stack),
-	      stack,
-	      SCM_ARG1,
-	      s_stack_id);
-  return SCM_STACK (stack) -> id;
+  scm_debug_frame *dframe;
+  long offset = 0;
+  if (stack == SCM_BOOL_T)
+    dframe = scm_last_debug_frame;
+  else
+    {
+      SCM_ASSERT (SCM_NIMP (stack), stack, SCM_ARG1, s_make_stack);
+      if (SCM_DEBUGOBJP (stack))
+	dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (stack);
+      else if (scm_tc7_contin == SCM_TYP7 (stack))
+	{
+	  offset = ((SCM_STACKITEM *) (SCM_CHARS (stack) + sizeof (scm_contregs))
+		    - SCM_BASE (stack));
+#ifndef STACK_GROWS_UP
+	  offset += SCM_LENGTH (stack);
+#endif
+	  dframe = (scm_debug_frame *) ((SCM_STACKITEM *) SCM_DFRAME (stack)
+				       + offset);
+	}
+      else if (SCM_STACKP (stack))
+	return SCM_STACK (stack) -> id;
+      else scm_wrong_type_arg (s_stack_id, SCM_ARG1, stack);
+    }
+  while (dframe && !SCM_VOIDFRAMEP (*dframe))
+    dframe = (scm_debug_frame *) ((SCM_STACKITEM *) dframe->prev + offset);
+  if (dframe && SCM_VOIDFRAMEP (*dframe))
+    return dframe->vect[0].id;
+  return SCM_BOOL_F;
 }
 
 SCM_PROC (s_stack_ref, "stack-ref", 2, 0, 0, scm_stack_ref);
@@ -441,7 +476,7 @@ scm_last_stack_frame (obj)
 {
   scm_debug_frame *dframe;
   long offset = 0;
-  SCM v;
+  SCM stack;
   
   SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_last_stack_frame);
   if (SCM_DEBUGOBJP (obj))
@@ -460,10 +495,12 @@ scm_last_stack_frame (obj)
   if (!dframe || SCM_VOIDFRAMEP (*dframe))
     return SCM_BOOL_F;
 
-  v = scm_make_struct (scm_stack_type, SCM_MAKINUM (SCM_FRAME_N_SLOTS), SCM_EOL);
-  read_frame (dframe, offset, (scm_info_frame *) &SCM_STACK (v) -> frames[0]);
+  stack = scm_make_struct (scm_stack_type, SCM_MAKINUM (SCM_FRAME_N_SLOTS), SCM_EOL);
+  SCM_STACK (stack) -> length = 1;
+  SCM_STACK (stack) -> frames = &SCM_STACK (stack) -> tail[0];
+  read_frame (dframe, offset, (scm_info_frame *) &SCM_STACK (stack) -> frames[0]);
   
-  return scm_cons (v, SCM_INUM0);;
+  return scm_cons (stack, SCM_INUM0);;
 }
 
 SCM_PROC(s_frame_number, "frame-number", 1, 0, 0, scm_frame_number);
