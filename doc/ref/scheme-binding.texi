@@ -263,9 +263,7 @@ with duplicate bindings.
 @section Querying variable bindings
 
 Guile provides a procedure for checking whether a symbol is bound in the
-top level environment.  If you want to test whether a symbol is locally
-bound in expression, you can use the @code{bound?} macro from the module
-@code{(ice-9 optargs)}, documented in @ref{Optional Arguments}.
+top level environment.
 
 @c NJFIXME explain [env]
 @deffn {Scheme Procedure} defined? sym [env]

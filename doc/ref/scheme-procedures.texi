@@ -136,7 +136,7 @@ the scsh macros of the same name, but are slightly extended. Each of
 procedures these are used from.  The items in @var{rest-arg} are
 sequentially bound to the variable names are given. When @var{rest-arg}
 runs out, the remaining vars are bound either to the default values or
-left unbound if no default value was specified. @var{rest-arg} remains
+@code{#f} if no default value was specified. @var{rest-arg} remains
 bound to whatever may have been left of @var{rest-arg}.
 
 After binding the variables, the expressions @var{expr} @dots{} are
@@ -211,8 +211,7 @@ parameter list, but before any dotted rest argument. For example,
 creates a procedure with fixed arguments @var{a} and @var{b}, optional
 arguments @var{c} and @var{d}, and rest argument @var{e}. If the
 optional arguments are omitted in a call, the variables for them are
-unbound in the procedure. This can be checked with the @code{bound?}
-macro (documented below).
+bound to @code{#f}.
 
 @code{lambda*} can also take keyword arguments. For example, a procedure
 defined like this:
@@ -261,14 +260,6 @@ rest argument. The argument lists @code{(a . b)} and @code{(a #:rest b)}
 are equivalent in all respects to @code{lambda*}. This is provided for
 more similarity to DSSSL, MIT-Scheme and Kawa among others, as well as
 for refugees from other Lisp dialects.
-@end deffn
-
-@deffn {library syntax} bound? variable
-Check if a variable is bound in the current environment.
-
-The procedure @code{defined?} doesn't quite cut it as it stands, since
-it only checks bindings in the top-level environment, not those in local
-scope only.
 @end deffn
 
 
