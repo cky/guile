@@ -223,7 +223,7 @@ scm_strprint_obj (obj)
 
   str = scm_makstr (64, 0);
   port = scm_mkstrport (SCM_MAKINUM (0), str, SCM_OPN | SCM_WRTNG, "scm_strprint_obj");
-  scm_iprin1 (obj, port, 1);
+  scm_prin1 (obj, port, 1);
   {
     SCM answer;
     SCM_DEFER_INTS;
