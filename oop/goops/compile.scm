@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -109,6 +109,9 @@
 ;;; NOTE: This section is far from finished.  It will finally be
 ;;; implemented on C level.
 
+(define %tag-body
+  (nested-ref the-root-module '(app modules oop goops %tag-body)))
+
 (define (compile-method methods types)
   (let* ((proc (method-procedure (car methods)))
 	 (src (procedure-source proc))
@@ -132,5 +135,5 @@
 	      ,@body)))
 	(cons (procedure-environment proc)
 	      (cons formals
-		    body))
+		    (%tag-body body)))
 	)))

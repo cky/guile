@@ -1314,14 +1314,14 @@
 	(set-procedure-property! generic 'name name))
     ))
 
+(define dummy-procedure (lambda args *unspecified*))
+
 (define-method initialize ((method <method>) initargs)
   (next-method)
   (slot-set! method 'generic-function (get-keyword #:generic-function initargs #f))
   (slot-set! method 'specializers (get-keyword #:specializers initargs '()))
-  (slot-set! method
-	     'procedure
-	     (%pre-expand-closure!
-	      (get-keyword #:procedure initargs (lambda l '()))))
+  (slot-set! method 'procedure
+	     (get-keyword #:procedure initargs dummy-procedure))
   (slot-set! method 'code-table '()))
 
 (define-method initialize ((obj <foreign-object>) initargs))
