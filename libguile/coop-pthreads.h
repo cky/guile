@@ -53,6 +53,19 @@
 
 #include <pthread.h>
 
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+/* Thread local data support --- generic C API */
+
+typedef pthread_key_t scm_t_key;
+
+#define scm_key_create pthread_key_create
+#define scm_setspecific pthread_setspecific
+#define scm_getspecific pthread_getspecific
+#define scm_key_delete pthread_key_delete
+
+#endif /* SCM_ENABLE_DEPRECATED == 1 */
+
 /* Since only one thread can be active anyway, we don't need to do
    anything special around critical sections.  In fact, that's the
    reason we do only support cooperative threading: Guile's critical

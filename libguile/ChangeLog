@@ -1,5 +1,8 @@
 2002-11-07  Mikael Djurfeldt  <mdj@linnaeus>
 
+	* coop-pthreads.h: Added support for thread specific data to the
+	generic C API for the coop-pthreads case.
+
 	* threads.c, threads.h (scm_cond_init): Undo unintentional API
 	change.
 	(scm_cond_broadcast): Added missing function.
