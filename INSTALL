@@ -104,9 +104,10 @@ switches specific to Guile you may find useful in some circumstances.
 
 
 --disable-shared  ---  Do not build shared libraries.
+--disable-static  ---  Do not build static libraries.
 
-  Normally, Guile will build shared libraries if your system supports
-  them.  Guile always builds static libraries.
+  Normally, both static and shared libraries will be built if your
+  system supports them.
 
 
 --enable-debug-freelist  ---  Enable freelist debugging.
