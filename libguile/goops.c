@@ -2435,7 +2435,7 @@ create_standard_classes (void)
  **********************************************************************/
 
 static SCM
-make_class_from_template (char *template, char *type_name, SCM supers, int applicablep)
+make_class_from_template (char const *template, char const *type_name, SCM supers, int applicablep)
 {
   SCM class, name;
   if (type_name)
@@ -2462,7 +2462,7 @@ make_class_from_template (char *template, char *type_name, SCM supers, int appli
 }
 
 SCM
-scm_make_extended_class (char *type_name, int applicablep)
+scm_make_extended_class (char const *type_name, int applicablep)
 {
   return make_class_from_template ("<%s>",
 				   type_name,

@@ -30,7 +30,7 @@
 
 typedef struct scm_smob_descriptor
 {
-  char *name;
+  char const *name;
   size_t size;
   SCM (*mark) (SCM);
   size_t (*free) (SCM);

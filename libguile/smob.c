@@ -269,7 +269,7 @@ scm_smob_apply_3_error (SCM smob,
 
 
 scm_t_bits 
-scm_make_smob_type (char *name, size_t size)
+scm_make_smob_type (char const *name, size_t size)
 #define FUNC_NAME "scm_make_smob_type"
 {
   long new_smob;

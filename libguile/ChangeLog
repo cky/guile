@@ -1,3 +1,8 @@
+2003-10-07  Marius Vollmer  <mvo@zagadka.de>
+
+ 	* goops.c, objects.h, smob.c, smob.h: Make type names char
+        const * instead of char *.  Thanks to Paul Jarc!
+
 2003-10-02  Kevin Ryde  <user42@zip.com.au>
 
 	* strports.c (s_scm_call_with_output_string): scm_get_output_string

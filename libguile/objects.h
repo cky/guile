@@ -197,7 +197,7 @@ SCM_API SCM *scm_smob_class;
 SCM_API SCM scm_no_applicable_method;
 
 /* Goops functions. */
-SCM_API SCM scm_make_extended_class (char *type_name, int applicablep);
+SCM_API SCM scm_make_extended_class (char const *type_name, int applicablep);
 SCM_API void scm_i_inherit_applicable (SCM c);
 SCM_API void scm_make_port_classes (long ptobnum, char *type_name);
 SCM_API void scm_change_object_class (SCM, SCM, SCM);
