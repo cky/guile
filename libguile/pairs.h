@@ -55,11 +55,11 @@
 #define SCM_NULLP(x) 		(SCM_EOL == (x))
 #define SCM_NNULLP(x) 		(SCM_EOL != (x))
 
-#define SCM_CAR(x) (((scm_cell *) (SCM2PTR (x)))->car)
-#define SCM_CDR(x) (((scm_cell *) (SCM2PTR (x)))->cdr)
-#define SCM_GCCDR(x) SCM_PACK(~1L & SCM_UNPACK (SCM_CDR (x)))
-#define SCM_SETCAR(x, v) (SCM_CAR (x) = SCM_PACK (v))
-#define SCM_SETCDR(x, v) (SCM_CDR (x) = SCM_PACK (v))
+#define SCM_CAR(x)		(SCM_CELL_OBJECT_0 (x))
+#define SCM_CDR(x)		(SCM_CELL_OBJECT_1 (x))
+
+#define SCM_SETCAR(x, v)	(SCM_SET_CELL_OBJECT_0 ((x), (v)))
+#define SCM_SETCDR(x, v)	(SCM_SET_CELL_OBJECT_1 ((x), (v)))
 
 #define SCM_CAAR(OBJ)		SCM_CAR (SCM_CAR (OBJ))
 #define SCM_CDAR(OBJ)		SCM_CDR (SCM_CAR (OBJ))

@@ -353,6 +353,7 @@ typedef long scm_bits_t;
 
 /* Testing and Changing GC Marks in Various Standard Positions
  */
+#define SCM_GCCDR(x)		SCM_PACK(~1L & SCM_UNPACK (SCM_CDR (x)))
 #define SCM_GCMARKP(x) 		(1 & SCM_UNPACK (SCM_CDR (x)))
 #define SCM_GC8MARKP(x) 	(0x80 & SCM_UNPACK_CAR (x))
 #define SCM_SETGCMARK(x) 	SCM_SETOR_CDR (x, 1)
