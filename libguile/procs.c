@@ -341,7 +341,7 @@ SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0,
       return proc;
     }
   SCM_WRONG_TYPE_ARG (1, proc);
-  return 0; /* not reached */
+  return SCM_BOOL_F; /* not reached */
 }
 #undef FUNC_NAME
 
@@ -366,7 +366,7 @@ scm_setter (SCM proc)
       /* fall through */
     }
   SCM_WTA_DISPATCH_1 (g_setter, proc, SCM_ARG1, s_setter);
-  return 0;
+  return SCM_BOOL_F;
 }
 
 

@@ -1,3 +1,49 @@
+2000-04-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* debug.c (scm_procedure_source, scm_procedure_environment),
+	gsubr.c (scm_make_gsubr_with_generic, scm_gsubr_apply), procs.c
+	(scm_procedure, scm_setter):  Return valid scheme value as dummy.
+
+	* filesys.c (scm_readdir, scm_rewinddir, scm_closedir,
+	scm_dir_print, scm_dir_free), numbers.h (SCM_COMPLEX_REAL,
+	SCM_COMPLEX_IMAG), regex-posix.h (SCM_RGX), throw.c (JBJMPBUF,
+	SETJBJMPBUF, JBJMPBUF, SETJBJMPBUF, freejb, print_lazy_catch,
+	scm_ithrow), unif.c (scm_uniform_vector_ref, scm_cvref,
+	scm_array_set_x, rapr1), unif.h (SCM_ARRAY_V, SCM_ARRAY_BASE),
+	vectors.h (SCM_VELTS, SCM_VELTS_AS_STACKITEMS, SCM_SETVELTS):  Use
+	SCM_{SET_}?CELL_WORD* to access cell entries with raw data.
+
+	* filesys.c (scm_closedir), numbers.c (scm_addbig), numbers.h
+	(SCM_SETNUMDIGS), throw.c (JBACTIVE, SCM_JBDFRAME,
+	SCM_SETJBDFRAME): Read and modify data bits in cell entry #0 using
+	SCM_{SET_}?CELL_WORD_0.
+
+	* filesys.c (fill_select_type, retrieve_select_type, scm_select),
+	numbers.c (scm_gcd, scm_lcm, scm_integer_expt, scm_zero_p,
+	scm_product, scm_divide), posix.c (scm_getgrgid), ramap.c
+	(scm_array_fill_int, racp), throw.c (scm_catch, scm_lazy_catch,
+	scm_ithrow), unif.c (scm_make_uve, scm_array_p,
+	scm_transpose_array, scm_array_set_x, scm_bit_set_star_x,
+	scm_bit_count_star, l2ra), variable.c (prin_var,
+	scm_make_variable, scm_make_undefined_variable,
+	scm_builtin_variable), vectors.c (scm_vector_set_length_x),
+	vports.c (sf_flush, sf_close):  Don't use C operators to compare
+	SCM values.
+
+	* numbers.c (scm_odd_p, scm_even_p), variable.c (prin_var):  Must
+	unpack SCM values to access their raw contents.
+
+	* numbers.c (big2str):  Eliminate unnecessary casts to SCM.
+
+	* numbers.h (SCM_NEWREAL), regex-posix.h (SCM_RGXP), vports.c
+	(scm_make_soft_port):  Use SCM_{SET_}?CELL_TYPE to access the cell
+	type information.
+
+	* throw.c (printjb):  Eliminated unnecessary unpack.
+
+	* variable.c (make_vcell_variable):  Smob data is of type
+	scm_bits_t.
+
 2000-04-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* print.c: Removed promise to rewrite printer code before next

@@ -156,7 +156,7 @@
 #define SCM_NEWREAL(z, x) \
   do { \
     SCM_NEWCELL2 (z); \
-    SCM_SETCAR (z, scm_tc16_real); \
+    SCM_SET_CELL_TYPE (z, scm_tc16_real); \
     SCM_REAL_VALUE (z) = (x); \
   } while (0) \
 
@@ -185,8 +185,8 @@
 #define SCM_CPLXP(x) SCM_COMPLEXP(x) /* Deprecated */
 
 #define SCM_REAL_VALUE(x) (((scm_double_t *) SCM2PTR (x))->real)
-#define SCM_COMPLEX_REAL(x) (((scm_complex_t *) SCM_UNPACK (SCM_CDR (x)))->real)
-#define SCM_COMPLEX_IMAG(x) (((scm_complex_t *) SCM_UNPACK (SCM_CDR (x)))->imag)
+#define SCM_COMPLEX_REAL(x) (((scm_complex_t *) SCM_CELL_WORD_1 (x))->real)
+#define SCM_COMPLEX_IMAG(x) (((scm_complex_t *) SCM_CELL_WORD_1 (x))->imag)
 #define SCM_REAL(x) \
  (SCM_SLOPPY_REALP (x) \
   ? SCM_REAL_VALUE (x) \
@@ -260,7 +260,7 @@
 #define SCM_BDIGITS(x) ((SCM_BIGDIG *) SCM_UNPACK (SCM_CDR (x)))
 #define SCM_NUMDIGS(x) ((scm_sizet) (SCM_UNPACK_CAR (x) >> SCM_BIGSIZEFIELD))
 #define SCM_SETNUMDIGS(x, v, sign) \
-  SCM_SETCAR (x, \
+  SCM_SET_CELL_WORD_0 (x, \
 	      scm_tc16_big \
 	      | ((sign) ? SCM_BIGSIGNFLAG : 0) \
 	      | (((v) + 0L) << SCM_BIGSIZEFIELD))

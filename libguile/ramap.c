@@ -506,7 +506,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 	if (1 == inc && (n >= SCM_LONG_BIT || n == SCM_LENGTH (ra)))
 	  {
 	    i = base / SCM_LONG_BIT;
-	    if (SCM_BOOL_F == fill)
+	    if (SCM_FALSEP (fill))
 	      {
 		if (base % SCM_LONG_BIT) /* leading partial word */
 		  ve[i++] &= ~(~0L << (base % SCM_LONG_BIT));
@@ -515,7 +515,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 		if ((base + n) % SCM_LONG_BIT) /* trailing partial word */
 		  ve[i] &= (~0L << ((base + n) % SCM_LONG_BIT));
 	      }
-	    else if (SCM_BOOL_T == fill)
+	    else if (SCM_TRUE_P (fill))
 	      {
 		if (base % SCM_LONG_BIT)
 		  ve[i++] |= ~0L << (base % SCM_LONG_BIT);
@@ -529,10 +529,10 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 	  }
 	else
 	  {
-	    if (SCM_BOOL_F == fill)
+	    if (SCM_FALSEP (fill))
 	      for (i = base; n--; i += inc)
 		ve[i / SCM_LONG_BIT] &= ~(1L << (i % SCM_LONG_BIT));
-	    else if (SCM_BOOL_T == fill)
+	    else if (SCM_TRUE_P (fill))
 	      for (i = base; n--; i += inc)
 		ve[i / SCM_LONG_BIT] |= (1L << (i % SCM_LONG_BIT));
 	    else
@@ -637,7 +637,7 @@ racp (SCM src, SCM dst)
      ugly UNICOS macros (IVDEP) to go .     
    */
      
-  if (src == dst)
+  if (SCM_EQ_P (src, dst))
     return 1 ;
   
   switch SCM_TYP7

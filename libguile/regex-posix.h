@@ -51,8 +51,8 @@
 #include "libguile/__scm.h"
 
 extern long scm_tc16_regex;
-#define SCM_RGX(X)	((regex_t *) SCM_CDR(X))
-#define SCM_RGXP(X)	(SCM_NIMP(X) && (SCM_CAR (X) == (SCM) scm_tc16_regex))
+#define SCM_RGX(X)	((regex_t *) SCM_CELL_WORD_1 (X))
+#define SCM_RGXP(X)	(SCM_NIMP (X) && (SCM_CELL_TYPE (X) == scm_tc16_regex))
 
 extern SCM scm_make_regexp (SCM pat, SCM flags);
 SCM scm_regexp_p (SCM x);

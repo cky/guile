@@ -322,7 +322,7 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
   SCM *ve;
   result = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED);
   ve = SCM_VELTS (result);
-  if (SCM_UNBNDP (name) || (name == SCM_BOOL_F))
+  if (SCM_UNBNDP (name) || SCM_FALSEP (name))
     {
       SCM_SYSCALL (entry = getgrent ());
       if (! entry)

@@ -84,7 +84,7 @@ sf_flush (SCM port)
       {
 	SCM f = SCM_VELTS (stream)[2];
 
-	if (f != SCM_BOOL_F)
+	if (!SCM_FALSEP (f))
 	  scm_apply (f, SCM_EOL, SCM_EOL);
       }
     }
@@ -131,11 +131,11 @@ sf_close (SCM port)
 {
   SCM p = SCM_PACK (SCM_STREAM (port));
   SCM f = SCM_VELTS (p)[4];
-  if (SCM_BOOL_F == f)
+  if (SCM_FALSEP (f))
     return 0;
   f = scm_apply (f, SCM_EOL, SCM_EOL);
   errno = 0;
-  return SCM_BOOL_F == f ? EOF : 0;
+  return SCM_FALSEP (f) ? EOF : 0;
 }
 
 
@@ -188,7 +188,7 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (z);
   scm_port_non_buffer (pt);
-  SCM_SETCAR (z, scm_tc16_sfport | scm_mode_bits (SCM_ROCHARS (modes)));
+  SCM_SET_CELL_TYPE (z, scm_tc16_sfport | scm_mode_bits (SCM_ROCHARS (modes)));
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, SCM_UNPACK (pv));
   SCM_ALLOW_INTS;

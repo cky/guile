@@ -440,7 +440,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
     return scm_procedure_property (proc, scm_sym_source);
   default:
     SCM_WTA(1,proc);
-    return 0;
+    return SCM_BOOL_F;
   }
 }
 #undef FUNC_NAME
@@ -462,7 +462,7 @@ SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0,
     return SCM_EOL;
   default:
     SCM_WTA(1,proc);
-    return 0;
+    return SCM_BOOL_F;
   }
 }
 #undef FUNC_NAME

@@ -106,7 +106,7 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
 #else
   SCM_VALIDATE_INUM (1,n);
 #endif
-  return SCM_BOOL(4 & (int) n);
+  return SCM_BOOL(4 & SCM_UNPACK (n));
 }
 #undef FUNC_NAME
 
@@ -124,7 +124,7 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
 #else
   SCM_VALIDATE_INUM (1,n);
 #endif
-  return SCM_NEGATE_BOOL(4 & (int) n);
+  return SCM_NEGATE_BOOL(4 & SCM_UNPACK (n));
 }
 #undef FUNC_NAME
 
@@ -400,7 +400,7 @@ scm_gcd (SCM x, SCM y)
 	  /* instead of the switch, we could just
 	     return scm_gcd (y, scm_modulo (x, y)); */
 	}
-      if (SCM_INUM0 == y)
+      if (SCM_EQ_P (y, SCM_INUM0))
 	return x;
       goto swaprec;
     }
@@ -485,7 +485,7 @@ scm_lcm (SCM n1, SCM n2)
     }
   
   d = scm_gcd (n1, n2);
-  if (SCM_INUM0 == d)
+  if (SCM_EQ_P (d, SCM_INUM0))
     return d;
   return scm_abs (scm_product (n1, scm_quotient (n2, d)));
 }
@@ -1026,10 +1026,10 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   SCM acc = SCM_MAKINUM (1L);
   int i2;
 #ifdef SCM_BIGDIG
-  if (SCM_INUM0 == n || acc == n)
+  if (SCM_EQ_P (n, SCM_INUM0) || SCM_EQ_P (n, acc))
     return n;
-  else if (SCM_MAKINUM (-1L) == n)
-    return SCM_BOOL_F == scm_even_p (k) ? n : acc;
+  else if (SCM_EQ_P (n, SCM_MAKINUM (-1L)))
+    return SCM_FALSEP (scm_even_p (k)) ? n : acc;
 #endif
   SCM_VALIDATE_ULONG_COPY (2,k,i2);
   if (i2 < 0)
@@ -1557,7 +1557,7 @@ scm_addbig (SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int sgny)
 	{
 	  num = 1;
 	  i = 0;
-	  SCM_SETCAR (z, SCM_UNPACK_CAR (z) ^ SCM_BIGSIGNFLAG);
+	  SCM_SET_CELL_WORD_0 (z, SCM_CELL_WORD_0 (z) ^ SCM_BIGSIGNFLAG);
 	  do
 	    {
 	      num += (SCM_BIGRAD - 1) - zds[i];
@@ -2147,7 +2147,7 @@ big2str (SCM b, unsigned int radix)
       for (i = j; j < SCM_LENGTH (ss); j++)
 	s[ch + j - i] = s[j];	/* jeh */
       scm_vector_set_length_x (ss, /* jeh */
-			       (SCM) SCM_MAKINUM (ch + SCM_LENGTH (ss) - i));
+			       SCM_MAKINUM (ch + SCM_LENGTH (ss) - i));
     }
 
   return scm_return_first (ss, t);
@@ -3110,7 +3110,7 @@ scm_zero_p (SCM z)
 	return SCM_BOOL (SCM_COMPLEX_REAL (z) == 0.0
 			 && SCM_COMPLEX_IMAG (z) == 0.0);
     }
-  return SCM_BOOL(z == SCM_INUM0);
+  return SCM_BOOL (SCM_EQ_P (z, SCM_INUM0));
 }
 
 
@@ -3721,9 +3721,9 @@ scm_product (SCM x, SCM y)
       if (SCM_BIGP (y))
 	{
 	intbig:
-	  if (SCM_INUM0 == x)
+	  if (SCM_EQ_P (x, SCM_INUM0))
 	    return x;
-	  if (SCM_MAKINUM (1L) == x)
+	  if (SCM_EQ_P (x, SCM_MAKINUM (1L)))
 	    return y;
 	  {
 #ifndef SCM_DIGSTOOBIG
@@ -3931,7 +3931,7 @@ scm_divide (SCM x, SCM y)
     }
   if (SCM_UNBNDP (y))
     {
-      if ((SCM_MAKINUM (1L) == x) || (SCM_MAKINUM (-1L) == x))
+      if (SCM_EQ_P (x, SCM_MAKINUM (1L)) || SCM_EQ_P (x, SCM_MAKINUM (-1L)))
 	return x;
       return scm_makdbl (1.0 / ((double) SCM_INUM (x)), 0.0);
     }

@@ -53,9 +53,9 @@
 
 #define SCM_VECTORP(x) (SCM_NIMP (x) && (SCM_TYP7S (x) == scm_tc7_vector))
 #define SCM_NVECTORP(x) (!SCM_VECTORP (x))
-#define SCM_VELTS(x) ((SCM *) SCM_UNPACK (SCM_CDR (x)))
-#define SCM_VELTS_AS_STACKITEMS(x) ((SCM_STACKITEM *) SCM_UNPACK (SCM_CDR (x)))
-#define SCM_SETVELTS SCM_SETCDR
+#define SCM_VELTS(x) ((SCM *) SCM_CELL_WORD_1 (x))
+#define SCM_VELTS_AS_STACKITEMS(x) ((SCM_STACKITEM *) SCM_CELL_WORD_1 (x))
+#define SCM_SETVELTS(x,v) (SCM_SET_CELL_WORD_1 ((x), (v)))
 
 
 

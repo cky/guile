@@ -697,7 +697,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
   struct dirent *rdent;
   SCM_VALIDATE_OPDIR (1,port);
   errno = 0;
-  SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CDR (port)));
+  SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CELL_WORD_1 (port)));
   if (errno != 0)
     SCM_SYSERROR;
   return (rdent ? scm_makfromstr (rdent->d_name, NAMLEN (rdent), 0)
@@ -714,7 +714,7 @@ SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
 #define FUNC_NAME s_scm_rewinddir
 {
   SCM_VALIDATE_OPDIR (1,port);
-  rewinddir ((DIR *) SCM_CDR (port));
+  rewinddir ((DIR *) SCM_CELL_WORD_1 (port));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -734,10 +734,10 @@ SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0,
     {
       return SCM_UNSPECIFIED;
     }
-  SCM_SYSCALL (sts = closedir ((DIR *) SCM_CDR (port)));
+  SCM_SYSCALL (sts = closedir ((DIR *) SCM_CELL_WORD_1 (port)));
   if (sts != 0)
     SCM_SYSERROR;
-  SCM_SETCAR (port, scm_tc16_dir);
+  SCM_SET_CELL_WORD_0 (port, scm_tc16_dir);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -752,7 +752,7 @@ scm_dir_print (SCM exp, SCM port, scm_print_state *pstate)
   if (SCM_CLOSEDP (exp))
     scm_puts ("closed: ", port);
   scm_puts ("directory stream ", port);
-  scm_intprint ((int)SCM_CDR (exp), 16, port);
+  scm_intprint (SCM_CELL_WORD_1 (exp), 16, port);
   scm_putc ('>', port);
   return 1;
 }
@@ -762,7 +762,7 @@ static scm_sizet
 scm_dir_free (SCM p)
 {
   if (SCM_OPENP (p))
-    closedir ((DIR *) SCM_CDR (p));
+    closedir ((DIR *) SCM_CELL_WORD_1 (p));
   return 0;
 }
 
@@ -890,7 +890,7 @@ fill_select_type (SELECT_TYPE *set, SCM *ports_ready, SCM list_or_vec, int pos)
     }
   else
     {
-      while (list_or_vec != SCM_EOL)
+      while (!SCM_NULLP (list_or_vec))
 	{
 	  int fd = set_element (set, ports_ready, SCM_CAR (list_or_vec), pos);
 
@@ -950,7 +950,7 @@ retrieve_select_type (SELECT_TYPE *set, SCM ports_ready, SCM list_or_vec)
   else
     {
       /* list_or_vec must be a list.  */
-      while (list_or_vec != SCM_EOL)
+      while (!SCM_NULLP (list_or_vec))
 	{
 	  answer_list = get_element (set, SCM_CAR (list_or_vec), answer_list);
 	  list_or_vec = SCM_CDR (list_or_vec);
@@ -1053,7 +1053,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 
   /* if there's a port with a ready buffer, don't block, just
      check for ready file descriptors.  */
-  if (read_ports_ready != SCM_EOL || write_ports_ready != SCM_EOL)
+  if (!SCM_NULLP (read_ports_ready) || !SCM_NULLP (write_ports_ready))
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;

@@ -59,11 +59,11 @@ static int
 prin_var (SCM exp,SCM port,scm_print_state *pstate)
 {
   scm_puts ("#<variable ", port);
-  scm_intprint((int) exp, 16, port);
+  scm_intprint(SCM_UNPACK (exp), 16, port);
   {
     SCM val_cell;
     val_cell = SCM_CDR(exp);
-    if (SCM_CAR (val_cell) != SCM_UNDEFINED)
+    if (!SCM_UNBNDP (SCM_CAR (val_cell)))
       {
 	scm_puts (" name: ", port);
 	scm_iprin1 (SCM_CAR (val_cell), port, pstate);
@@ -97,7 +97,7 @@ static SCM anonymous_variable_sym;
 static SCM
 make_vcell_variable (SCM vcell)
 {
-  SCM_RETURN_NEWSMOB (scm_tc16_variable, vcell);
+  SCM_RETURN_NEWSMOB (scm_tc16_variable, SCM_UNPACK (vcell));
 }
 
 SCM_DEFINE (scm_make_variable, "make-variable", 1, 1, 0, 
@@ -111,7 +111,7 @@ SCM_DEFINE (scm_make_variable, "make-variable", 1, 1, 0,
 {
   SCM val_cell;
   
-  if (name_hint == SCM_UNDEFINED)
+  if (SCM_UNBNDP (name_hint))
     name_hint = anonymous_variable_sym;
 
   SCM_NEWCELL(val_cell);
@@ -135,7 +135,7 @@ SCM_DEFINE (scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0,
 {
   SCM vcell;
 
-  if (name_hint == SCM_UNDEFINED)
+  if (SCM_UNBNDP (name_hint))
     name_hint = anonymous_variable_sym;
 
   SCM_NEWCELL (vcell);
@@ -198,15 +198,15 @@ SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0,
 
   SCM_VALIDATE_SYMBOL (1,name);
   vcell = scm_sym2vcell (name, SCM_BOOL_F, SCM_BOOL_T);
-  if (vcell == SCM_BOOL_F)
+  if (SCM_FALSEP (vcell))
     return SCM_BOOL_F;
 
   scm_intern_symbol (scm_symhash_vars, name);
   var_slot = scm_sym2ovcell (name, scm_symhash_vars);
 
   SCM_DEFER_INTS;
-  if (   SCM_IMP (SCM_CDR (var_slot))
-      || (SCM_VARVCELL (var_slot) != vcell))
+  if (SCM_IMP (SCM_CDR (var_slot))
+      || !SCM_EQ_P (SCM_VARVCELL (var_slot), vcell))
     SCM_SETCDR (var_slot, make_vcell_variable (vcell));
   SCM_ALLOW_INTS;
 

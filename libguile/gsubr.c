@@ -126,7 +126,7 @@ scm_make_gsubr_with_generic (const char *name,
   scm_misc_error ("scm_make_gsubr_with_generic",
 		  "can't make primitive-generic with this arity",
 		  SCM_EOL);
-  return 0; /* never reached */
+  return SCM_BOOL_F; /* never reached */
 }
 
 
@@ -174,7 +174,7 @@ scm_gsubr_apply (SCM args)
   case 9: return (*fcn)(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]);
   case 10: return (*fcn)(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9]);
   }
-  return 0; /* Never reached. */
+  return SCM_BOOL_F; /* Never reached. */
 }
 
 

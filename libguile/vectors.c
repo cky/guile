@@ -88,13 +88,13 @@ scm_vector_set_length_x (SCM vect, SCM len)
     default:
     badarg1: scm_wta (vect, (char *) SCM_ARG1, s_vector_set_length_x);
     case scm_tc7_string:
-      SCM_ASRTGO (vect != scm_nullstr, badarg1);
+      SCM_ASRTGO (!SCM_EQ_P (vect, scm_nullstr), badarg1);
       sz = sizeof (char);
       l++;
       break;
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      SCM_ASRTGO (vect != scm_nullvect, badarg1);
+      SCM_ASRTGO (!SCM_EQ_P (vect, scm_nullvect), badarg1);
       sz = sizeof (SCM);
       break;
     }

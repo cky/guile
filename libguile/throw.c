@@ -70,23 +70,23 @@ static int scm_tc16_jmpbuffer;
 
 #define SCM_JMPBUFP(OBJ) (SCM_NIMP(OBJ) && (SCM_TYP16(OBJ) == scm_tc16_jmpbuffer))
 
-#define JBACTIVE(OBJ) (SCM_UNPACK_CAR (OBJ) & (1L << 16L))
+#define JBACTIVE(OBJ) (SCM_CELL_WORD_0 (OBJ) & (1L << 16L))
 #define ACTIVATEJB(OBJ)  (SCM_SETOR_CAR (OBJ, (1L << 16L)))
 #define DEACTIVATEJB(OBJ)  (SCM_SETAND_CAR (OBJ, ~(1L << 16L)))
 
 #ifndef DEBUG_EXTENSIONS
-#define JBJMPBUF(OBJ) ((jmp_buf*)SCM_CDR (OBJ) )
-#define SETJBJMPBUF SCM_SETCDR
+#define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
+#define SETJBJMPBUF(x,v)        (SCM_SET_CELL_WORD_1 ((x), (v)))
 #else
-#define SCM_JBDFRAME(OBJ) ((scm_debug_frame*)SCM_CAR (SCM_CDR (OBJ)) )
-#define JBJMPBUF(OBJ) ((jmp_buf*)SCM_CDR (SCM_CDR (OBJ)) )
-#define SCM_SETJBDFRAME(OBJ,X) SCM_SETCAR (SCM_CDR (OBJ), (SCM)(X))
-#define SETJBJMPBUF(OBJ,X) SCM_SETCDR(SCM_CDR (OBJ), X)
+#define SCM_JBDFRAME(x)         ((scm_debug_frame *) SCM_CELL_WORD_0 (SCM_CDR (x)))
+#define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (SCM_CDR (OBJ)))
+#define SCM_SETJBDFRAME(OBJ,X)  (SCM_SET_CELL_WORD_0 (SCM_CDR (OBJ), (X)))
+#define SETJBJMPBUF(OBJ,X)      (SCM_SET_CELL_WORD_1 (SCM_CDR (OBJ), (X)))
 
 static scm_sizet
 freejb (SCM jbsmob)
 {
-  scm_must_free ((char *) SCM_CDR (jbsmob));
+  scm_must_free ((char *) SCM_CELL_WORD_1 (jbsmob));
   return sizeof (scm_cell);
 }
 #endif
@@ -96,7 +96,7 @@ printjb (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<jmpbuffer ", port);
   scm_puts (JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
-  scm_intprint(SCM_UNPACK ( JBJMPBUF(exp) ), 16, port);
+  scm_intprint((long) JBJMPBUF (exp), 16, port);
 
   scm_putc ('>', port);
   return 1 ;
@@ -253,7 +253,7 @@ struct lazy_catch {
 static int
 print_lazy_catch (SCM closure, SCM port, scm_print_state *pstate)
 {
-  struct lazy_catch *c = (struct lazy_catch *) SCM_CDR (closure);
+  struct lazy_catch *c = (struct lazy_catch *) SCM_CELL_WORD_1 (closure);
   char buf[200];
 
   sprintf (buf, "#<lazy-catch 0x%lx 0x%lx>",
@@ -546,7 +546,7 @@ SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP(tag) || tag == SCM_BOOL_T,
+  SCM_ASSERT (SCM_SYMBOLP(tag) || SCM_TRUE_P (tag),
 	      tag, SCM_ARG1, FUNC_NAME);
 
   c.tag = tag;
@@ -571,7 +571,7 @@ SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP(tag) || (tag == SCM_BOOL_T),
+  SCM_ASSERT (SCM_SYMBOLP(tag) || SCM_TRUE_P (tag),
 	      tag, SCM_ARG1, FUNC_NAME);
 
   c.tag = tag;
@@ -629,7 +629,7 @@ scm_ithrow (SCM key, SCM args, int noreturn)
 	{
 	  SCM this_key = SCM_CAR (dynpair);
 
-	  if (this_key == SCM_BOOL_T || this_key == key)
+	  if (SCM_TRUE_P (this_key) || SCM_EQ_P (this_key, key))
 	    break;
 	}
     }
@@ -637,14 +637,14 @@ scm_ithrow (SCM key, SCM args, int noreturn)
   /* If we didn't find anything, abort.  scm_boot_guile should
          have established a catch-all, but obviously things are
          thoroughly screwed up.  */
-  if (winds == SCM_EOL)
+  if (SCM_NULLP (winds))
     abort ();
 
       /* If the wind list is malformed, bail.  */
   if (SCM_IMP (winds) || SCM_NCONSP (winds))
     abort ();
       
-  if (dynpair != SCM_BOOL_F)
+  if (!SCM_FALSEP (dynpair))
     jmpbuf = SCM_CDR (dynpair);
   else
     {
@@ -662,7 +662,7 @@ scm_ithrow (SCM key, SCM args, int noreturn)
     }
 
   for (wind_goal = scm_dynwinds;
-       SCM_CDAR (wind_goal) != jmpbuf;
+       !SCM_EQ_P (SCM_CDAR (wind_goal), jmpbuf);
        wind_goal = SCM_CDR (wind_goal))
     ;
 
@@ -670,7 +670,7 @@ scm_ithrow (SCM key, SCM args, int noreturn)
      is bound to a lazy_catch smob, not a jmpbuf.  */
   if (SCM_LAZY_CATCH_P (jmpbuf))
     {
-      struct lazy_catch *c = (struct lazy_catch *) SCM_CDR (jmpbuf);
+      struct lazy_catch *c = (struct lazy_catch *) SCM_CELL_WORD_1 (jmpbuf);
       SCM oldwinds = scm_dynwinds;
       SCM handle, answer;
       scm_dowinds (wind_goal, (scm_ilength (scm_dynwinds)

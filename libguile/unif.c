@@ -156,12 +156,12 @@ scm_make_uve (long k, SCM prot)
 {
   SCM v;
   long i, type;
-  if (SCM_BOOL_T == prot)
+  if (SCM_TRUE_P (prot))
     {
       i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
       type = scm_tc7_bvect;
     }
-  else if (SCM_CHARP (prot) && (prot == SCM_MAKE_CHAR ('\0')))
+  else if (SCM_CHARP (prot) && (SCM_CHAR (prot) == '\0'))
     {
       i = sizeof (char) * k;
       type = scm_tc7_byvect;
@@ -293,11 +293,11 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
       switch (SCM_TYP7 (v))
  	{
  	case scm_tc7_bvect:
- 	  protp = (SCM_BOOL_T==prot);
+ 	  protp = (SCM_TRUE_P (prot));
  	case scm_tc7_string:
- 	  protp = SCM_ICHRP(prot) && (prot != SCM_MAKICHR('\0'));
+ 	  protp = SCM_CHARP(prot) && (SCM_CHAR (prot) != '\0');
  	case scm_tc7_byvect:
- 	  protp = prot == SCM_MAKICHR('\0');
+ 	  protp = SCM_EQ_P (prot, SCM_MAKE_CHAR ('\0'));
  	case scm_tc7_uvect:
  	  protp = SCM_INUMP(prot) && SCM_INUM(prot)>0;
  	case scm_tc7_ivect:
@@ -791,7 +791,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 0, 0, 1,
 		  scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
       SCM_ASSERT (SCM_INUMP (SCM_CAR (args)), SCM_CAR (args), SCM_ARG2,
 		  FUNC_NAME);
-      SCM_ASSERT (SCM_INUM0 == SCM_CAR (args), SCM_CAR (args), SCM_OUTOFRANGE,
+      SCM_ASSERT (SCM_EQ_P (SCM_INUM0, SCM_CAR (args)), SCM_CAR (args), SCM_OUTOFRANGE,
 		  FUNC_NAME);
       return ra;
     case scm_tc7_smob:
@@ -1111,19 +1111,19 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
     return scm_long2num((long) SCM_VELTS(v)[pos]);
 
     case scm_tc7_svect:
-      return SCM_MAKINUM (((short *) SCM_CDR (v))[pos]);
+      return SCM_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
-      return scm_long_long2num (((long_long *) SCM_CDR (v))[pos]);
+      return scm_long_long2num (((long_long *) SCM_CELL_WORD_1 (v))[pos]);
 #endif
 
     case scm_tc7_fvect:
-      return scm_make_real (((float *) SCM_CDR (v))[pos]);
+      return scm_make_real (((float *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_dvect:
-      return scm_make_real (((double *) SCM_CDR (v))[pos]);
+      return scm_make_real (((double *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_cvect:
-      return scm_make_complex (((double *) SCM_CDR (v))[2 * pos],
-			       ((double *) SCM_CDR (v))[2 * pos + 1]);
+      return scm_make_complex (((double *) SCM_CELL_WORD_1 (v))[2 * pos],
+			       ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1]);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return SCM_VELTS (v)[pos];
@@ -1155,34 +1155,34 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
     case scm_tc7_ivect:
       return scm_long2num((long) SCM_VELTS(v)[pos]);
     case scm_tc7_svect:
-      return SCM_MAKINUM (((short *) SCM_CDR (v))[pos]);
+      return SCM_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
-      return scm_long_long2num (((long_long *) SCM_CDR (v))[pos]);
+      return scm_long_long2num (((long_long *) SCM_CELL_WORD_1 (v))[pos]);
 #endif
     case scm_tc7_fvect:
       if (SCM_NIMP (last) && last != scm_flo0 && SCM_SLOPPY_REALP (last))
 	{
-	  SCM_REAL_VALUE (last) = ((float *) SCM_CDR (v))[pos];
+	  SCM_REAL_VALUE (last) = ((float *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
 	}
-      return scm_make_real (((float *) SCM_CDR (v))[pos]);
+      return scm_make_real (((float *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_dvect:
       if (SCM_NIMP (last) && last != scm_flo0 && SCM_SLOPPY_REALP (last))
 	{
-	  SCM_REAL_VALUE (last) = ((double *) SCM_CDR (v))[pos];
+	  SCM_REAL_VALUE (last) = ((double *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
 	}
-      return scm_make_real (((double *) SCM_CDR (v))[pos]);
+      return scm_make_real (((double *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_cvect:
       if (SCM_NIMP (last) && SCM_SLOPPY_COMPLEXP (last))
 	{
-	  SCM_COMPLEX_REAL (last) = ((double *) SCM_CDR (v))[2 * pos];
-	  SCM_COMPLEX_IMAG (last) = ((double *) SCM_CDR (v))[2 * pos + 1];
+	  SCM_COMPLEX_REAL (last) = ((double *) SCM_CELL_WORD_1 (v))[2 * pos];
+	  SCM_COMPLEX_IMAG (last) = ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1];
 	  return last;
 	}
-      return scm_make_complex (((double *) SCM_CDR (v))[2 * pos],
-			       ((double *) SCM_CDR (v))[2 * pos + 1]);
+      return scm_make_complex (((double *) SCM_CELL_WORD_1 (v))[2 * pos],
+			       ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1]);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return SCM_VELTS (v)[pos];
@@ -1248,9 +1248,9 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
     case scm_tc7_smob:		/* enclosed */
       goto badarg1;
     case scm_tc7_bvect:
-      if (SCM_BOOL_F == obj)
+      if (SCM_FALSEP (obj))
 	SCM_BITVEC_CLR(v,pos);
-      else if (SCM_BOOL_T == obj)
+      else if (SCM_TRUE_P (obj))
 	SCM_BITVEC_SET(v,pos);
       else
       badobj:SCM_WTA (2,obj);
@@ -1273,25 +1273,25 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       break;
     case scm_tc7_svect:
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
-      ((short *) SCM_CDR (v))[pos] = SCM_INUM (obj);
+      ((short *) SCM_CELL_WORD_1 (v))[pos] = SCM_INUM (obj);
       break;
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
-      ((long_long *) SCM_CDR (v))[pos] = scm_num2long_long (obj, (char *)SCM_ARG2, FUNC_NAME);
+      ((long_long *) SCM_CELL_WORD_1 (v))[pos] = scm_num2long_long (obj, (char *)SCM_ARG2, FUNC_NAME);
       break;
 #endif
 
 
     case scm_tc7_fvect:
-      ((float *) SCM_CDR (v))[pos] = (float) scm_num2dbl (obj, FUNC_NAME);
+      ((float *) SCM_CELL_WORD_1 (v))[pos] = (float) scm_num2dbl (obj, FUNC_NAME);
       break;
     case scm_tc7_dvect:
-      ((double *) SCM_CDR (v))[pos] = scm_num2dbl (obj, FUNC_NAME);
+      ((double *) SCM_CELL_WORD_1 (v))[pos] = scm_num2dbl (obj, FUNC_NAME);
       break;
     case scm_tc7_cvect:
       SCM_ASRTGO (SCM_INEXP (obj), badobj);
-      ((double *) SCM_CDR (v))[2 * pos] = SCM_REALPART (obj);
-      ((double *) SCM_CDR (v))[2 * pos + 1] = SCM_CPLXP (obj) ? SCM_IMAG (obj) : 0.0;
+      ((double *) SCM_CELL_WORD_1 (v))[2 * pos] = SCM_REALPART (obj);
+      ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1] = SCM_CPLXP (obj) ? SCM_IMAG (obj) : 0.0;
       break;
     case scm_tc7_vector:
     case scm_tc7_wvect:
@@ -1811,14 +1811,14 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	badarg1:  SCM_WTA (1,v);
 	case scm_tc7_bvect:
 	  vlen = SCM_LENGTH (v);
-	  if (SCM_BOOL_F == obj)
+	  if (SCM_FALSEP (obj))
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
 		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
 		SCM_BITVEC_CLR(v,k);
 	      }
-	  else if (SCM_BOOL_T == obj)
+	  else if (SCM_TRUE_P (obj))
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
@@ -1831,10 +1831,10 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       break;
     case scm_tc7_bvect:
       SCM_ASRTGO (SCM_TYP7 (v) == scm_tc7_bvect && SCM_LENGTH (v) == SCM_LENGTH (kv), badarg1);
-      if (SCM_BOOL_F == obj)
+      if (SCM_FALSEP (obj))
 	for (k = (SCM_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
 	  SCM_UNPACK (SCM_VELTS (v)[k]) &= ~ SCM_UNPACK(SCM_VELTS (kv)[k]);
-      else if (SCM_BOOL_T == obj)
+      else if (SCM_TRUE_P (obj))
 	for (k = (SCM_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
 	  SCM_UNPACK (SCM_VELTS (v)[k]) |= SCM_UNPACK (SCM_VELTS (kv)[k]);
       else
@@ -1875,7 +1875,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	  SCM_WTA (1,v);
 	case scm_tc7_bvect:
 	  vlen = SCM_LENGTH (v);
-	  if (SCM_BOOL_F == obj)
+	  if (SCM_FALSEP (obj))
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
@@ -1883,7 +1883,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 		if (!SCM_BITVEC_REF(v,k))
 		  count++;
 	      }
-	  else if (SCM_BOOL_T == obj)
+	  else if (SCM_TRUE_P (obj))
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
@@ -1899,8 +1899,8 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       SCM_ASRTGO (SCM_TYP7 (v) == scm_tc7_bvect && SCM_LENGTH (v) == SCM_LENGTH (kv), badarg1);
       if (0 == SCM_LENGTH (v))
 	return SCM_INUM0;
-      SCM_ASRTGO (SCM_BOOL_T == obj || SCM_BOOL_F == obj, badarg3);
-      fObj = (SCM_BOOL_T == obj);
+      SCM_ASRTGO (SCM_BOOLP (obj), badarg3);
+      fObj = SCM_TRUE_P (obj);
       i = (SCM_LENGTH (v) - 1) / SCM_LONG_BIT;
       k = SCM_UNPACK (SCM_VELTS (kv)[i]) & (fObj ? SCM_UNPACK (SCM_VELTS (v)[i]) : ~ SCM_UNPACK (SCM_VELTS (v)[i]));
       k <<= SCM_LONG_BIT - 1 - ((SCM_LENGTH (v) - 1) % SCM_LONG_BIT);
@@ -2147,7 +2147,7 @@ l2ra (SCM lst, SCM ra, scm_sizet base, scm_sizet k)
   register long n = (1 + SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd);
   int ok = 1;
   if (n <= 0)
-    return (SCM_EOL == lst);
+    return (SCM_NULLP (lst));
   if (k < SCM_ARRAY_NDIM (ra) - 1)
     {
       while (n--)
@@ -2255,11 +2255,11 @@ tail:
       break;
     case scm_tc7_byvect:
       if (n-- > 0)
-	scm_intprint (((char *)SCM_CDR (ra))[j], 10, port);
+	scm_intprint (((char *) SCM_CELL_WORD_1 (ra))[j], 10, port);
       for (j += inc; n-- > 0; j += inc)
 	{
 	  scm_putc (' ', port);
-	  scm_intprint (((char *)SCM_CDR (ra))[j], 10, port);
+	  scm_intprint (((char *)SCM_CELL_WORD_1 (ra))[j], 10, port);
 	}
       break;
 
@@ -2292,11 +2292,11 @@ tail:
 
     case scm_tc7_svect:
       if (n-- > 0)
-	scm_intprint (((short *)SCM_CDR (ra))[j], 10, port);
+	scm_intprint (((short *) SCM_CELL_WORD_1 (ra))[j], 10, port);
       for (j += inc; n-- > 0; j += inc)
 	{
 	  scm_putc (' ', port);
-	  scm_intprint (((short *)SCM_CDR (ra))[j], 10, port);
+	  scm_intprint (((short *) SCM_CELL_WORD_1 (ra))[j], 10, port);
 	}
       break;
 

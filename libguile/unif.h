@@ -81,8 +81,8 @@ extern long scm_tc16_array;
 #define SCM_ARRAY_CONTIGUOUS 	0x10000
 #define SCM_ARRAY_CONTP(x) 	(SCM_ARRAY_CONTIGUOUS & (int)(SCM_UNPACK_CAR(x)))
 
-#define SCM_ARRAY_V(a) 	  (((scm_array *)SCM_CDR(a))->v)
-#define SCM_ARRAY_BASE(a) (((scm_array *)SCM_CDR(a))->base)
+#define SCM_ARRAY_V(a) 	  (((scm_array *) SCM_CELL_WORD_1 (a))->v)
+#define SCM_ARRAY_BASE(a) (((scm_array *) SCM_CELL_WORD_1 (a))->base)
 #define SCM_ARRAY_DIMS(a) ((scm_array_dim *)(SCM_CHARS(a)+sizeof(scm_array))) 
 
 /* apparently it's possible to have more than SCM_LENGTH_MAX elements
