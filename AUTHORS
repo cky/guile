@@ -129,6 +129,7 @@ Rob Browning:
   wrote initial srfi/srfi-8.scm.
   wrote initial srfi/srfi-11.scm.
   ported srfi/srfi-19.scm to Guile.
+  and many other changes throughout.
 
 Martin Grabmueller:
 In the subdirectory libguile, changes to:
