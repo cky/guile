@@ -1,3 +1,24 @@
+2000-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* unif.c (scm_make_uve, scm_uniform_vector_length, scm_array_p,
+	scm_transpose_array, scm_array_contents, scm_ra2contig,
+	scm_uniform_array_read_x, scm_uniform_array_write, scm_bit_count,
+	scm_bit_position, scm_bit_set_star_x, scm_bit_count_star,
+	scm_bit_invert_x, scm_array_to_list, scm_raprin1):  Replace
+	SCM_LENGTH with the appropriate SCM_<type>_LENGTH macro.
+
+	(scm_array_dimensions, scm_make_shared_array, scm_enclose_array,
+	scm_array_in_bounds_p, scm_uniform_vector_ref, scm_array_set_x,
+	scm_array_contents, scm_uniform_array_read_x,
+	scm_uniform_array_write, scm_list_to_uniform_array, rapr1):  Use
+	scm_uniform_vector_length to determine the length of a vector
+	object generically.
+
+	(scm_bit_count, scm_bit_set_star_x, scm_bit_count_star,
+	scm_bit_invert_x): Eliminated dummy type dispatch. 
+
+	(scm_ra2contig):  Fixed array vector access.
+
 2000-10-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* unif.h (SCM_BITVECTOR_P, SCM_BITVECTOR_BASE):  Added.
