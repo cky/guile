@@ -1,5 +1,12 @@
 2000-06-03  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* gc.h (SCM_VALIDATE_CELL): Don't "use" the value returned by
+	abort ().
+	(SCM_CARLOC, SCM_CDRLOC): Define directly instead of using
+	SCM_CELL_OBJECT_0 and SCM_CELL_OBJECT_1.  It's not correct to take
+	the address of these expressions since they use SCM_VALIDATE_CELL.
+	(Thanks to Bernard Urban.)
+
 	* dynl.c: Changed #include <ltdl.h> --> #include
 	"libltdl/ltdl.h".  (Thanks to Bill Schottstaedt.)
 
