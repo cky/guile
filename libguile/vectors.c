@@ -27,11 +27,19 @@
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
 #include "libguile/unif.h"
+#include "libguile/ramap.h"
 #include "libguile/srfi-4.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 
 
+
+int
+scm_is_vector (SCM obj)
+{
+  return (SCM_VECTORP (obj)
+	  || (SCM_ARRAYP (obj) && SCM_ARRAY_NDIM (obj) == 1));
+}
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
 	    (SCM obj),
@@ -39,24 +47,24 @@ SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_vector_p
 {
-  return scm_from_bool (SCM_VECTORP (obj));
+  return scm_from_bool (scm_is_vector (obj));
 }
 #undef FUNC_NAME
-
-int
-scm_is_vector (SCM obj)
-{
-  return SCM_VECTORP (obj);
-}
 
 SCM_GPROC (s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vector_length);
 /* Returns the number of elements in @var{vector} as an exact integer.  */
 SCM
 scm_vector_length (SCM v)
 {
-  SCM_GASSERT1 (SCM_VECTORP(v),
-		g_vector_length, v, SCM_ARG1, s_vector_length);
-  return scm_from_size_t (SCM_VECTOR_LENGTH (v));
+  if (SCM_VECTORP (v))
+    return scm_from_size_t (SCM_VECTOR_LENGTH (v));
+  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
+    {
+      scm_t_array_dim *dim = SCM_ARRAY_DIMS (v);
+      return scm_from_size_t (dim->ubnd - dim->lbnd + 1);
+    }
+  else
+    SCM_WTA_DISPATCH_1 (g_vector_length, v, 1, NULL);
 }
 
 size_t
@@ -65,12 +73,7 @@ scm_c_vector_length (SCM v)
   if (SCM_VECTORP (v))
     return SCM_VECTOR_LENGTH (v);
   else
-    {
-      /* Call primitive generic to get an error or maybe dispatch to a
-	 method.
-      */
-      return scm_to_size_t (scm_vector_length (v));
-    }
+    return scm_to_size_t (scm_vector_length (v));
 }
 
 SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
@@ -136,29 +139,29 @@ SCM
 scm_vector_ref (SCM v, SCM k)
 #define FUNC_NAME s_vector_ref
 {
-  SCM_GASSERT2 (SCM_VECTORP (v),
-		g_vector_ref, v, k, SCM_ARG1, s_vector_ref);
-  SCM_GASSERT2 (SCM_I_INUMP (k),
-		g_vector_ref, v, k, SCM_ARG2, s_vector_ref);
-  SCM_ASSERT_RANGE (2, k,
-		    SCM_I_INUM (k) < SCM_VECTOR_LENGTH (v)
-		    && SCM_I_INUM (k) >= 0);
-  return SCM_VELTS (v)[(long) SCM_I_INUM (k)];
+  return scm_c_vector_ref (v, scm_to_size_t (k));
 }
 #undef FUNC_NAME
 
 SCM
 scm_c_vector_ref (SCM v, size_t k)
 {
-  if (SCM_VECTORP (v) && k < SCM_VECTOR_LENGTH (v))
-    return SCM_VECTOR_REF (v, k);
-  else
+  if (SCM_VECTORP (v))
     {
-      /* Call primitive generic to get an error or maybe dispatch to a
-	 method.
-      */
-      return scm_vector_ref (v, scm_from_size_t (k));
+      if (k >= SCM_VECTOR_LENGTH (v))
+	scm_out_of_range (NULL, scm_from_size_t (k)); 
+      return SCM_VECTOR_REF (v, k);
     }
+  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
+    {
+      scm_t_array_dim *dim = SCM_ARRAY_DIMS (v);
+      if (k >= dim->ubnd - dim->lbnd + 1)
+	scm_out_of_range (NULL, scm_from_size_t (k));
+      k = SCM_ARRAY_BASE (v) + k*dim->inc;
+      return scm_c_generalized_vector_ref (SCM_ARRAY_V (v), k);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_vector_ref, v, scm_from_size_t (k), 2, NULL);
 }
 
 SCM_GPROC (s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x, g_vector_set_x);
@@ -178,34 +181,35 @@ SCM
 scm_vector_set_x (SCM v, SCM k, SCM obj)
 #define FUNC_NAME s_vector_set_x
 {
-  SCM_GASSERTn (SCM_VECTORP (v),
-		g_vector_set_x, scm_list_3 (v, k, obj),
-		SCM_ARG1, s_vector_set_x);
-  SCM_GASSERTn (SCM_I_INUMP (k),
-		g_vector_set_x, scm_list_3 (v, k, obj),
-		SCM_ARG2, s_vector_set_x);
-  SCM_ASSERT_RANGE (2, k,
-		    SCM_I_INUM (k) < SCM_VECTOR_LENGTH (v)
-		    && SCM_I_INUM (k) >= 0);
-  SCM_VECTOR_SET (v, (long) SCM_I_INUM(k), obj);
+  scm_c_vector_set_x (v, scm_to_size_t (k), obj);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
-SCM
+void
 scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 {
-  if (SCM_VECTORP (v) && k < SCM_VECTOR_LENGTH (v))
+  if (SCM_VECTORP (v))
     {
+      if (k >= SCM_VECTOR_LENGTH (v))
+	scm_out_of_range (NULL, scm_from_size_t (k)); 
       SCM_VECTOR_SET (v, k, obj);
-      return SCM_UNSPECIFIED;
+    }
+  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
+    {
+      scm_t_array_dim *dim = SCM_ARRAY_DIMS (v);
+      if (k >= dim->ubnd - dim->lbnd + 1)
+	scm_out_of_range (NULL, scm_from_size_t (k));
+      k = SCM_ARRAY_BASE (v) + k*dim->inc;
+      scm_c_generalized_vector_set_x (SCM_ARRAY_V (v), k, obj);
     }
   else
     {
-      /* Call primitive generic to get an error or maybe dispatch to a
-	 method.
-      */
-      return scm_vector_set_x (v, scm_from_size_t (k), obj);
+      if (SCM_UNPACK (g_vector_set_x))
+	scm_apply_generic (g_vector_set_x,
+			   scm_list_3 (v, scm_from_size_t (k), obj));
+      else
+	scm_wrong_type_arg_msg (NULL, 0, v, "vector");
     }
 }
 
@@ -265,13 +269,20 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_vector_to_list
 {
-  SCM res = SCM_EOL;
-  long i;
-  SCM const *data;
-  SCM_VALIDATE_VECTOR (1, v);
-  data = SCM_VELTS(v);
-  for(i = SCM_VECTOR_LENGTH(v)-1;i >= 0;i--) res = scm_cons(data[i], res);
-  return res;
+  if (SCM_VECTORP (v))
+    {
+      SCM res = SCM_EOL;
+      long i;
+      SCM const *data;
+      data = SCM_VELTS(v);
+      for(i = SCM_VECTOR_LENGTH(v)-1; i >= 0; i--)
+	res = scm_cons(data[i], res);
+      return res;
+    }
+  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
+    return scm_array_to_list (v);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, v, "vector");
 }
 #undef FUNC_NAME
 
@@ -282,12 +293,17 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
 	    "returned by @code{vector-fill!} is unspecified.")
 #define FUNC_NAME s_scm_vector_fill_x
 {
-  register long i;
-  SCM_VALIDATE_VECTOR (1, v);
-
-  for(i = SCM_VECTOR_LENGTH (v) - 1; i >= 0; i--)
-    SCM_VECTOR_SET(v, i, fill);
-  return SCM_UNSPECIFIED;
+  if (SCM_VECTORP (v))
+    {
+      register long i;
+      for (i = SCM_VECTOR_LENGTH (v) - 1; i >= 0; i--)
+	SCM_VECTOR_SET (v, i, fill);
+      return SCM_UNSPECIFIED;
+    }
+  else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
+    return scm_array_fill_x (v, fill);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, v, "vector");
 }
 #undef FUNC_NAME
 
@@ -314,19 +330,26 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 	    "@var{start1} is greater than @var{start2}.")
 #define FUNC_NAME s_scm_vector_move_left_x
 {
+  size_t len1, len2;
   size_t i, j, e;
-  
-  SCM_VALIDATE_VECTOR (1, vec1);
-  SCM_VALIDATE_VECTOR (4, vec2);
-  i = scm_to_unsigned_integer (start1, 0, SCM_VECTOR_LENGTH(vec1));
-  e = scm_to_unsigned_integer (end1, i, SCM_VECTOR_LENGTH(vec1));
-  j = scm_to_unsigned_integer (start2, 0, SCM_VECTOR_LENGTH(vec2)-(i-e));
 
-  while (i<e)
+  len1 = scm_c_vector_length (vec1);
+  len2 = scm_c_vector_length (vec2);
+  i = scm_to_unsigned_integer (start1, 0, len1);
+  e = scm_to_unsigned_integer (end1, i, len1);
+  j = scm_to_unsigned_integer (start2, 0, len2 - (i-e));
+  
+  /* Optimize common case of two regular vectors. 
+   */
+  if (SCM_VECTORP (vec1) && SCM_VECTORP (vec2))
     {
-      SCM_VECTOR_SET (vec2, j, SCM_VELTS (vec1)[i]);
-      i++;
-      j++;
+      for (; i < e; i++, j++)
+	SCM_VECTOR_SET (vec2, j, SCM_VECTOR_REF (vec1, i));
+    }
+  else
+    {
+      for (; i < e; i++, j++)
+	scm_c_vector_set_x (vec2, j, scm_c_vector_ref (vec1, i));
     }
   
   return SCM_UNSPECIFIED;
@@ -344,20 +367,33 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 	    "@var{start1} is less than @var{start2}.")
 #define FUNC_NAME s_scm_vector_move_right_x
 {
+  size_t len1, len2;
   size_t i, j, e;
 
-  SCM_VALIDATE_VECTOR (1, vec1);
-  SCM_VALIDATE_VECTOR (4, vec2);
-  i = scm_to_unsigned_integer (start1, 0, SCM_VECTOR_LENGTH(vec1));
-  e = scm_to_unsigned_integer (end1, i, SCM_VECTOR_LENGTH(vec1));
-  j = scm_to_unsigned_integer (start2, 0, SCM_VECTOR_LENGTH(vec2)-(i-e));
-
+  len1 = scm_c_vector_length (vec1);
+  len2 = scm_c_vector_length (vec2);
+  i = scm_to_unsigned_integer (start1, 0, len1);
+  e = scm_to_unsigned_integer (end1, i, len1);
+  j = scm_to_unsigned_integer (start2, 0, len2 - (i-e));
+  
+  /* Optimize common case of two regular vectors. 
+   */
   j += e - i;
-  while (i < e)
+  if (SCM_VECTORP (vec1) && SCM_VECTORP (vec2))
     {
-      j--;
-      e--;
-      SCM_VECTOR_SET (vec2, j, SCM_VELTS (vec1)[e]);
+      while (i < e)
+	{
+	  e--, j--;
+	  SCM_VECTOR_SET (vec2, j, SCM_VECTOR_REF (vec1, e));
+	}
+    }
+  else
+    {
+      while (i < e)
+	{
+	  e--, j--;
+	  scm_c_vector_set_x (vec2, j, scm_c_vector_ref (vec1, e));
+	}
     }
   
   return SCM_UNSPECIFIED;

@@ -76,7 +76,7 @@ SCM_API int scm_is_vector (SCM obj);
 SCM_API SCM scm_c_make_vector (size_t len, SCM fill);
 SCM_API size_t scm_c_vector_length (SCM vec);
 SCM_API SCM scm_c_vector_ref (SCM vec, size_t k);
-SCM_API SCM scm_c_vector_set_x (SCM vec, size_t k, SCM obj);
+SCM_API void scm_c_vector_set_x (SCM vec, size_t k, SCM obj);
 
 /* Generalized vectors */
 
