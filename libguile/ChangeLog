@@ -1,5 +1,13 @@
 Sun Apr 13 23:03:55 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* gh_init.c (gh_standard_handler): Return SCM_BOOL_F, not garbage.
+
+	* Makefile.am (libguile_la_SOURCES): Add gh_data.c, gh_eval.c,
+	gh_funcs.c, gh_init.c, gh_io.c, gh_list.c, gh_predicates.c.
+
+	* Makefile.am (libguile_la_SOURCES): Move _scm.h to...
+	(EXTRA_libguile_la_SOURCES): ... here.
+
 	* acconfig.h: Undo change of Apr 9; including the definition of
 	PACKAGE in the guile headers conflicts with applications' own
 	definitions.
