@@ -106,9 +106,13 @@ SCM_DEFINE (scm_version, "version", 0, 0, 0,
 #define FUNC_NAME s_scm_version
 {
 
-  char version_str[64];
+  char version_str[3 * 4 + 3];
 
-  snprintf(version_str, sizeof(version_str), "%d.%d.%d",
+#if SCM_GUILE_MAJOR_VERSION > 9999 || SCM_GUILE_MINOR_VERSION > 9999 \
+  || SCM_GUILE_MICRO_VERSION > 9999
+# error version string may overflow buffer
+#endif
+  sprintf (version_str, "%d.%d.%d",
            SCM_GUILE_MAJOR_VERSION,
            SCM_GUILE_MINOR_VERSION,
            SCM_GUILE_MICRO_VERSION);
