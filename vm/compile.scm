@@ -52,6 +52,7 @@
 	(with-output-to-file out-file
 	  (lambda ()
 	    (format #t ";;; Compiled from ~A\n\n" file)
+	    (display "(use-modules (vm vm))\n\n")
 	    (display "(let ((vm (make-vm)))\n")
 	    (display "  (define (vm-exec code)\n")
 	    (display "    (vm-run vm (make-program (make-bytecode code) #f)))\n")
