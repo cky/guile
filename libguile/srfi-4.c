@@ -36,6 +36,7 @@
 #include "libguile/unif.h"
 #include "libguile/strings.h"
 #include "libguile/dynwind.h"
+#include "libguile/deprecation.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
