@@ -33,6 +33,7 @@ extern SCM scm_readline_options (SCM setting);
 extern void scm_readline_init_ports (SCM inp, SCM outp);
 extern SCM scm_readline (SCM txt, SCM inp, SCM outp, SCM read_hook);
 extern SCM scm_add_history (SCM txt);
+extern SCM scm_clear_history (void);
 extern SCM scm_read_history (SCM file);
 extern SCM scm_write_history (SCM file);
 extern SCM scm_filename_completion_function (SCM text, SCM continuep);
