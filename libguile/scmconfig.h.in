@@ -275,6 +275,12 @@
 /* Define if you have the rename function.  */
 #undef HAVE_RENAME
 
+/* Define if you have the rl_clear_signals function.  */
+#undef HAVE_RL_CLEAR_SIGNALS
+
+/* Define if you have the rl_getc_function function.  */
+#undef HAVE_RL_GETC_FUNCTION
+
 /* Define if you have the rmdir function.  */
 #undef HAVE_RMDIR
 
