@@ -1664,7 +1664,6 @@ dispatch:
       RETURN (SCM_UNSPECIFIED);
 
 
-
       /* new syntactic forms go here. */
     case (127 & SCM_MAKISYM (0)):
       proc = SCM_CAR (x);
@@ -2830,21 +2829,24 @@ scm_macro_eval_x (exp, env)
 }
 
 
+SCM_PROC (s_definedp, "defined?", 1, 0, 0, scm_definedp);
+
 SCM 
-scm_definedp (x, env)
-     SCM x;
-     SCM env;
+scm_definedp (sym)
+     SCM sym;
 {
-  SCM proc = SCM_CAR (x = SCM_CDR (x));
-  if (SCM_ISYMP (proc))
+  SCM vcell;
+
+  if (SCM_ISYMP (sym))
     return SCM_BOOL_T;
-  else if(SCM_IMP(proc) || !SCM_SYMBOLP(proc))
-    return SCM_BOOL_F;
-  else
-    {
-      SCM vcell = scm_sym2vcell(proc, env_top_level(env), SCM_BOOL_F);
-      return (vcell == SCM_BOOL_F || SCM_UNBNDP(SCM_CDR(vcell))) ? SCM_BOOL_F : SCM_BOOL_T;
-    }
+
+  SCM_ASSERT (SCM_NIMP (sym) && SCM_SYMBOLP (sym), sym, SCM_ARG1, s_definedp);
+
+  vcell = scm_sym2vcell(sym,
+			SCM_CDR (scm_top_level_lookup_thunk_var),
+			SCM_BOOL_F);
+  return (vcell == SCM_BOOL_F || SCM_UNBNDP(SCM_CDR(vcell))) ? 
+      SCM_BOOL_F : SCM_BOOL_T;
 }
 
 static scm_smobfuns promsmob =
@@ -2922,8 +2924,6 @@ scm_init_eval ()
   scm_i_atapply = scm_make_synt ("@apply", scm_makmmacro, scm_m_apply);
   scm_i_atcall_cc = scm_make_synt ("@call-with-current-continuation",
 				   scm_makmmacro, scm_m_cont);
-
-  scm_make_synt ("defined?", scm_makmmacro, scm_definedp);
 
 #ifdef DEBUG_EXTENSIONS
   scm_i_enter_frame = SCM_CAR (scm_sysintern ("enter-frame", SCM_UNDEFINED));
