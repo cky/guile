@@ -140,15 +140,17 @@ SCM
 scm_get_internal_real_time()
 {
   struct timeb time_buffer;
-  long tmp;
-  ftime(&time_buffer);
+
+  SCM tmp;
+  ftime (&time_buffer);
   time_buffer.time -= scm_your_base.time;
-  tmp = time_buffer.millitm - scm_your_base.millitm;
-  tmp = time_buffer.time*1000L + tmp;
-  tmp *= CLKTCK;
-  tmp /= 1000;
-  return scm_long2num (tmp);
-}
+  tmp = scm_long2num (time_buffer.millitm - scm_your_base.millitm);
+  tmp = scm_sum (tmp,
+		 scm_product (SCM_MAKINUM (1000),
+			      SCM_MAKINUM (time_buffer.time)));
+  return scm_quotient (scm_product (tmp, SCM_MAKINUM (CLKTCK)),
+		       SCM_MAKINUM (1000));
+};
 
 #else
 
