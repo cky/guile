@@ -1,3 +1,11 @@
+2002-11-10  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* __scm.h (USE_THREADS, GUILE_ISELECT): Do not define here.  They
+	are defined in configure.in.
+
+	* threads.c: Removed SCM_API from function definitions.  SCM_API
+	is only for declarations.
+
 2002-11-07  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* coop-pthreads.h: Added support for thread specific data to the
