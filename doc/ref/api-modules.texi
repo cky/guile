@@ -566,9 +566,6 @@ Nicely formatted output of Scheme expressions and objects
 @item (ice-9 q)
 First-in first-out queues (@pxref{Queues}).
 
-@item (ice-9 threads)
-Guile's support for multi threaded execution (@pxref{Scheduling}).
-
 @item (ice-9 rdelim)
 Line- and character-delimited input (@pxref{Line/Delimited}).
 
@@ -590,6 +587,9 @@ Sequence of values calculated on-demand (@pxref{Streams}).
 
 @item (ice-9 syncase)
 R5RS @code{syntax-rules} macro system (@pxref{Syntax Rules}).
+
+@item (ice-9 threads)
+Guile's support for multi threaded execution (@pxref{Scheduling}).
 
 @item (ice-9 documentation)
 Online documentation (REFFIXME).
