@@ -369,9 +369,12 @@ scm_make_ratio (SCM numerator, SCM denominator)
       else
         {
           /* When x == SCM_MOST_NEGATIVE_FIXNUM we could have the negative
-             of that value for the denominator, as a bignum.  */
-          long  abs_x = (x >= 0 ? x : -x);
-          if (mpz_cmpabs_ui (SCM_I_BIG_MPZ (denominator), abs_x) == 0)
+             of that value for the denominator, as a bignum.  Apart from
+             that case, abs(bignum) > abs(inum) so inum/bignum is not an
+             integer.  */
+          if (x == SCM_MOST_NEGATIVE_FIXNUM
+              && mpz_cmp_ui (SCM_I_BIG_MPZ (denominator),
+                             - SCM_MOST_NEGATIVE_FIXNUM) == 0)
 	    return SCM_MAKINUM(-1);
         }
     }
