@@ -11,3 +11,4 @@ autoconf
 automake
 
 ( cd guile-readline; ./autogen.sh )
+( cd libltdl; ./autogen.sh )
