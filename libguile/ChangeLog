@@ -1,5 +1,19 @@
 2001-02-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* load.c (load): Use scm_primtive_eval_x instead of scm_i_eval_x.
+
+	* goops.c (scm_add_method, DEFVAR): Use scm_eval instead of
+	scm_i_eval.
+	(make_class_from_template): Do not bother to set the current
+	module around the call to DEFVAR, scm_eval takes care of that.
+	(scm_init_goops): Make scm_module_goops and
+	scm_goops_lookup_closure permanent objects.
+	
+	* eval.c (scm_ceval, scm_deval): When evaluating expressions on
+	top level, create a fresh top-level environment for each
+	expression instead of mutating the exisint frame.  This is
+	important when that frame is closed over.
+
 	* numbers.c (s_scm_logior) [SCM_DIGSTOOBIG]: Also use
 	SCM_DIGSPERLONG instead of DIGSPERLONG.
 
