@@ -1157,7 +1157,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_putenv
 {
-  int rv;
+  int rv, e;
   char *ptr;
 
   SCM_VALIDATE_STRING (1, str);
@@ -1177,6 +1177,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       ptr[SCM_STRING_LENGTH (str)] = '=';
       ptr[SCM_STRING_LENGTH (str) + 1] = 0;
       rv = putenv (ptr);
+      e = errno; free (ptr); errno = e;
       if (rv < 0)
 	SCM_SYSERROR;
 #endif
