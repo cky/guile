@@ -1,3 +1,9 @@
+Sun Jan  5 15:52:59 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* boot-9.scm (error-catching-loop): Remove message saying that
+	typing "$" will put you in the debugger.  This isn't implemented
+	yet.
+
 Sun Dec 22 23:27:25 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm (delq-all!): Function deleted; delq!'s semantics have
@@ -6,12 +12,12 @@ Sun Dec 22 23:27:25 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 Tue Dec 17 20:36:45 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
-*	* boot-9.scm (resolve-module): New optional parameter that
+	* boot-9.scm (resolve-module): New optional parameter that
  	controls whether autoloading is attempted or not. Default is #t.
 	(process-define-module): Don't autoload the defined module.
 	(try-module-autoload): Don't autoload the directory modules.
 
-*	* boot-9.scm (process-define-module): Ensure that the-scm-module
+	* boot-9.scm (process-define-module): Ensure that the-scm-module
  	is last in the `uses' list to allow shadowing builtin
  	bindings. All :use-module options are added in the order they
  	appear in the arguments but before anything already on the list
@@ -54,7 +60,7 @@ Wed Nov 20 14:45:27 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 Sat Nov  2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-*	* boot-9.scm: The debugging evaluator and recording of positions
+	* boot-9.scm: The debugging evaluator and recording of positions
 	aren't enabled by default any longer (they are switched on in
 	debug.scm).  But during development we want to have them also
 	*inside* boot-9.scm.  Therefore, two lines are added at the
@@ -72,11 +78,11 @@ Sat Nov  2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	
 	Removed `:'s that had creeped into some comments.
 	
-*	The repl now doesn't print #<unspecified> results any longer
+	The repl now doesn't print #<unspecified> results any longer
 	If the user wants to see this, he can do
 	(assert-repl-print-unspecified #t) in his startup file.
 	
-*	The user now gets a friendly message instead of a backtrace at
+	The user now gets a friendly message instead of a backtrace at
 	error.
 	
 	Added `before-read-hook'.
@@ -90,7 +96,7 @@ Sat Nov  2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	
 	(backtrace): New function.
 	
-*	(save-stack): Can now take arbitrary number of stack narrowing
+	(save-stack): Can now take arbitrary number of stack narrowing
 	specifier pairs.  The first specifier in a pair controls inner
 	border, the second the outer border.  A number means cut that
 	number of frames, a procedure object means cut until that object
@@ -291,12 +297,12 @@ Sat Sep 28 00:15:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
 	Set up regex-error as a key, if regex is available.
 	(signal-handler): use scm-error, not throw.
 
-*	(%try-load, try-load-with-path, %load, load-with-path,
+	(%try-load, try-load-with-path, %load, load-with-path,
 	basic-try-load-with-path, basic-load-with-path,
 	try-load-module-with-path,load-module-with-path): deleted, since
 	they seem redundant.
 	(try-load): define using %try-load, not try-load-with-path.
-*	(load): rewritten.  load tries to open the file directly and
+	(load): rewritten.  load tries to open the file directly and
 	with a .scm extension before searching the library directories
 	(should "." be added to %load-path?  then load could still open
  	directly files starting with "/").

@@ -1,3 +1,13 @@
+Sun Jan  5 13:53:53 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.am (EXTRA_DIST): Distribute PLUGIN/guile.libs.in, not
+	PLUGIN/guile.libs.  configure generates the latter from the former.
+	* Makefile.in: Rebuilt.
+	
+	* configure.in: Call AM_PROG_INSTALL; the automake manual says we
+	need this if we install scripts, like guile-snarf.
+	* configure: Rebuilt.
+
 Thu Jan  2 01:56:38 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (EXTRA_DIST): Added DYNAMIC-LINKING
@@ -25,7 +35,7 @@ Fri Dec 27 13:44:23 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 	
 Sun Dec 22 23:06:14 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
-*	* list.c (scm_delq_x, scm_delv_x, scm_delete_x): Delete all
+	* list.c (scm_delq_x, scm_delv_x, scm_delete_x): Delete all
  	occurrences of the given element from the list, not just the
  	first.  This is how the Emacs Lisp functions behave, how the
  	analogous Common Lisp functions behave, and (I believe) how the
@@ -33,7 +43,7 @@ Sun Dec 22 23:06:14 1996  Jim Blandy  <jimb@floss.cyclic.com>
  	break code, but it seemed better to break it before the Guile
  	release than after.
 
-*	* gc.c (scm_protect_object, scm_unprotect_object): New functions.
+	* gc.c (scm_protect_object, scm_unprotect_object): New functions.
 	Their prototypes were already present in gc.h, but they weren't
 	implemented.
 	(scm_init_storage): Initialize scm_protects.
@@ -250,10 +260,10 @@ Fri Dec 13 16:12:14 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
  		   (string-ref (make-string 1 (integer->char 128)) 0)))
  	bug found by John Kozak <jk@noontide.demon.co.uk>.
 
-*	* strports.c, strports.h: Make scm_eval_0str return the value of
+	* strports.c, strports.h: Make scm_eval_0str return the value of
 	the last expression evaluated (previously, it returned void).
 
-*	* strports.c, strports.h: New function: scm_read_0str.  Does what
+	* strports.c, strports.h: New function: scm_read_0str.  Does what
 	it sounds like.
 
 Tue Dec 10 23:38:43 1996  Gary Houston  <ghouston@actrix.gen.nz>
@@ -425,7 +435,7 @@ Wed Nov  6 16:01:20 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 Sat Nov  2 21:01:48 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-*	* stacks.c, stacks.h (scm_make_stack): Now takes arbitrary
+	* stacks.c, stacks.h (scm_make_stack): Now takes arbitrary
  	number of stack narrowing specifier pairs.  The first specifier in
  	a pair controls inner border, the second the outer border.  A
  	number means cut that number of frames, a procedure object means
@@ -433,21 +443,21 @@ Sat Nov  2 21:01:48 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* root.c (cwdr): Bugfix.
 
-*	* read.c: Recording of positions disabled by default.
+	* read.c: Recording of positions disabled by default.
 
-*	* procs.c (scm_closure_p): New function.
+	* procs.c (scm_closure_p): New function.
 
-*	* posix.c (scm_tmpnam): New function.
+	* posix.c (scm_tmpnam): New function.
 
 	* load.c: Added #include "throw.h".
-*	(scm_sys_search_load_path): Bugfix: Don't add an extra '/' if path
+	(scm_sys_search_load_path): Bugfix: Don't add an extra '/' if path
  	ends with '/'.
 	
-*	* load.c, load.h (scm_read_and_eval_x): New function.
+	* load.c, load.h (scm_read_and_eval_x): New function.
 
-*	* eval.c: Renamed debug option "deval" to "debug".
+	* eval.c: Renamed debug option "deval" to "debug".
 	
-*	(scm_eval_x): `eval!' is no longer accessible from the scheme
+	(scm_eval_x): `eval!' is no longer accessible from the scheme
 	level.  Motivation: We can't allow operations which introduce
 	glocs into the scheme level.  Guile's type system can't handle
 	these as data.  Use `eval' or `read-and-eval!' as replacement.
@@ -459,7 +469,7 @@ Sat Nov  2 21:01:48 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	(scm_debug_hang): New function: Useful for debugging Guile in
 	certain tricky situations.  Will probably be removed later...
 
-*	* debug.h: Changed semantics of debug option "backtrace".  This
+	* debug.h: Changed semantics of debug option "backtrace".  This
 	option now only indicates whether we want automatic backtrace at
 	an error.
 	
@@ -525,26 +535,26 @@ Mon Oct 28 16:48:32 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	* Makefile.in (strports.o): Update dependencies.
 	* strports.h: New prototype.
 
-*	* numbers.c (scm_integer_p): Renamed from scm_int_p; change its
+	* numbers.c (scm_integer_p): Renamed from scm_int_p; change its
 	scheme name from "int?" to "integer?".  It seems to do the job.
 	* numbers.h: Rename prototype too.
 	* scmhob.h (intp): Change definition to refer to scm_integer_p.  I
 	hope this is right.
 
-*	* numbers.c (scm_less_p, scm_gr_p, scm_leq_p, scm_geq_p,
+	* numbers.c (scm_less_p, scm_gr_p, scm_leq_p, scm_geq_p,
 	scm_num_eq_p): Rename these according to R4RS conventions: call
 	them <, <=, =, >, and >=, not <?, <=?, =?, >?, and >=?.  En route
 	to making libguile R4RS compliant without ice-9...
 
-*	* load.c (scm_sys_search_load_path): Search for files under all
+	* load.c (scm_sys_search_load_path): Search for files under all
 	extensions listed in the %load-extensions variable.  If FILENAME
 	is absolute, return it unchanged, without searching the load path.
-*	(scm_loc_load_extensions): New variable, pointing to
+	(scm_loc_load_extensions): New variable, pointing to
 	%load-extensions' value cell.
 	(scm_init_load): Initialize it, and the value it points to.
 	(scm_primitive_load_path): Improve error reporting.
 
-*	* load.c (scm_loc_load_hook): New variable, pointing to value cell
+	* load.c (scm_loc_load_hook): New variable, pointing to value cell
 	of new Scheme variable %load-hook.
 	(scm_primitive_load): Apply %load-hook to filename.
 
@@ -606,7 +616,7 @@ Tue Oct 22 20:54:42 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	(scm_boot_guile): Call scm_set_program_arguments here, later than
 	the old initialization.
 
-*	* init.c: (scm_boot_guile, scm_boot_guile_1):  New, simplified
+	* init.c: (scm_boot_guile, scm_boot_guile_1):  New, simplified
 	initialization procedure.
 	- Delete in, out, err arguments; there are other perfectly good
  	ways to override these when desired.
@@ -634,11 +644,11 @@ Tue Oct 22 20:54:42 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	visible declarations for these.
 	(enum scm_boot_status): Removed; now scm_boot_guile never returns.
 	
-*	* fports.c (scm_stdio_to_port): New function.  Its guts used to be
+	* fports.c (scm_stdio_to_port): New function.  Its guts used to be
 	written out several times in scm_start_stack.
 	* fports.h: New declaration for the above.
 	
-*	* feature.c (scm_set_program_arguments): New function.
+	* feature.c (scm_set_program_arguments): New function.
 	* feature.h: New declaration for the above.
 
 	* ports.c: Formatting tweak.
@@ -835,7 +845,7 @@ Mon Oct 14 04:21:51 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 	* print.h: Added declarations for scm_make_print_state,
  	scm_free_print_state.
 	
-*	* debug.c (scm_m_start_stack): New acro.
+	* debug.c (scm_m_start_stack): New acro.
 
 	* debug.h: Small cleanup.
 
@@ -1045,7 +1055,7 @@ Tue Oct  1 00:00:10 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
  	allocate the basic dynamic root object.
 	(scm_boot_guile): Added call to scm_init_root.
 
-*	* root.c, root.h: Added root smob.
+	* root.c, root.h: Added root smob.
 	(cwdr, scm_call_with_new_root, scm_dynamic_root, scm_app_wdr): New
  	functions: Implements dynamic roots mostly according to spec in
  	SCM manual.  Main difference is that the second argument is a
@@ -1126,7 +1136,7 @@ Tue Sep 24 06:48:38 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 Mon Sep 23 00:42:15 1996  Mikael Djurfeldt  <mdj@kenneth>
 
-*	* print.c (scm_iprin1, scm_prin1, scm_iprlist): Circular
+	* print.c (scm_iprin1, scm_prin1, scm_iprlist): Circular
  	references now have a new appearance which is more compact and
 	also gives a clue about what the target of the reference is.
 	By setting parameters in the print state, more fancy printing can
@@ -1225,7 +1235,7 @@ Thu Sep 19 00:00:29 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* error.c, error.h (scm_wrong_num_args, scm_wrong_type_arg,
 	scm_memory_error): new procedures.
-*	scm_everr: deleted.  can use scm_wta, dropping first two args.
+	scm_everr: deleted.  can use scm_wta, dropping first two args.
 	scm_error: convert NULL subr to SCM_BOOL_F.
 
 	* __scm.h: don't define SCM_STACK_OVFLOW, SCM_EXIT, SCM_ARG6, SCM_ARG7,
@@ -1358,7 +1368,7 @@ Fri Sep 13 12:58:08 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 Fri Sep 13 01:19:08 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
-*	* print.c: Added code for detection of circular references during
+	* print.c: Added code for detection of circular references during
  	printing.  (init_ref_stack, grow_ref_stack): New functions.  Added
  	a hook for printing of closures (accessible via print options).
   	This leads to a split of calls to scm_iprin1 into two classes:
@@ -1811,7 +1821,7 @@ Wed Sep  4 00:55:49 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	* feature.c: ... #include "libpath.h" here.
 	* .cvsignore: Ignore libpath.h.
 
-*	Don't install the unwashed masses of Guile header files in the
+	Don't install the unwashed masses of Guile header files in the
 	main #include path; put most of them in a subdirectory called
 	'libguile'.  This avoids naming conflicts between Guile header
 	files and system header files (of which there were a few).
@@ -2001,19 +2011,19 @@ Tue Aug 20 18:48:40 1996  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* acconfig.h: Added symbols for debugging support.
 
-*	* configure.in: Added user option for debugging support.
+	* configure.in: Added user option for debugging support.
 	--enable-debug will include the debugging code into libguile.a.
 
 	* continuations.c (scm_make_cont): Enlarged the #if 0 around
 	scm_relocate_chunk_to_heap.
 	
-*	* debug.c: New file: low-level debugging support.  It also
+	* debug.c: New file: low-level debugging support.  It also
  	includes support for debugging with gdb.  (The extensions to gdb
  	are written by Per Bothner at Cygnus.)
 
 	* debug.h: New file: low-level debugging support.
 
-*	* eval.c: scm_m_set and SCM_IM_SET no longer supports multiple
+	* eval.c: scm_m_set and SCM_IM_SET no longer supports multiple
  	argument pairs.  Extensive modifications to the debugging
  	evaluator.  Added "SECTION:" commentaries to clarify what happens
  	when, during double compilation.  Renamed EVALIMP --> EVALIM.
@@ -2035,35 +2045,35 @@ Tue Aug 20 18:48:40 1996  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 	
 	* libguile.h: Conditionally include debug.h
 
-*	* objprop.c (scm_object_properties, scm_set_object_properties_x):
+	* objprop.c (scm_object_properties, scm_set_object_properties_x):
  	scm_object_properties shouldn't return handle.  `handle' now gets
  	initialized in scm_set_object_properties_x.  scm_object_properties
 	doesn't any longer create an entry in scm_object_whash.
 	
-*	* options.c: New file: handling of run time options.
+	* options.c: New file: handling of run time options.
 	
 	* options.h: New file: handling of run time options.
 
 	* posix.c (scm_getpgrp): Cast pointer to getpgrp.
 	
-*	* print.c: New procedure: scm_print_options
+	* print.c: New procedure: scm_print_options
 
 	* print.h: Defines for print options.
 	
-*	* read.c: New procedure: scm_read_options
+	* read.c: New procedure: scm_read_options
 
 	* read.h: Defines for reader options.
 	
 	* root.h: Added scm_source_whash among scm_sys_protects.
 
-*	* srcprop.c: New file: source properties.
+	* srcprop.c: New file: source properties.
 	
 	* srcprop.h: New file: source properties.
 	
 	* throw.c (jbsmob): Jump buffers are now correctly allocated.
 	(Bug found by A. Green.)
 
-*	* weak.c: Renamed scm_weak_hash_table --> scm_weak_key_hash_table.
+	* weak.c: Renamed scm_weak_hash_table --> scm_weak_key_hash_table.
 	
 	* weak.h: Renamed scm_weak_hash_table --> scm_weak_key_hash_table.
 
@@ -2091,7 +2101,7 @@ Wed Aug 14 21:41:37 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 	
 Fri Aug  9 11:09:28 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
-*	* init.c (scm_boot_guile): Add init_func argument; call
+	* init.c (scm_boot_guile): Add init_func argument; call
 	(*init_func) instead of calling scm_appinit; it's ucky to
 	hard-code names for the user's procedures.
 	* init.h (scm_boot_guile): Adjust declaration.
@@ -2204,16 +2214,16 @@ Sat Aug  3 01:27:14 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ioext.c (scm_sys_fdopen): fix the port-table assignment.
 
-*	* fports.c (scm_open_file): don't return #f, throw error.
+	* fports.c (scm_open_file): don't return #f, throw error.
 
-*	* ioext.c (fileno): renamed from %fileno.
+	* ioext.c (fileno): renamed from %fileno.
 	(soft-fileno): deleted.
 
 	* ports.c (scm_port_revealed): don't need to check for -1 from
 	scm_revealed_count.
 	(scm_set_port_revealed_x): return unspecified, not #f.
 
-*	* ioext.c (primitive-move->fdes): return #t or #f, not 1 or 0.
+	* ioext.c (primitive-move->fdes): return #t or #f, not 1 or 0.
 
 	* fdsocket.c: getsockopt, setsockopt: use HAVE_STRUCT_LINGER.
 
@@ -2246,10 +2256,10 @@ Thu Aug  1 08:22:24 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 Wed Jul 31 23:43:05 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
-*	* numbers.c: rename %expt -> $expt, %atan2 -> $atan2, as it must
+	* numbers.c: rename %expt -> $expt, %atan2 -> $atan2, as it must
 	have been once.
 
-*	* posix.c, ioext.c, socket.c, fdsocket.c, files.c, filesys.c, simpos.c:
+	* posix.c, ioext.c, socket.c, fdsocket.c, files.c, filesys.c, simpos.c:
 	Remove leading % from scheme names.
 	Do not return error values, call SCM_SYSERROR or similar.
 
