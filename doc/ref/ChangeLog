@@ -1,3 +1,8 @@
+2003-05-26  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Locales): Clarify setlocale a bit, list all categories,
+	cross reference to libc.
+
 2003-05-24  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-procedures.texi: Add index entries lambda, optargs, syncase.
