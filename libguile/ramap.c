@@ -1822,70 +1822,76 @@ scm_array_index_map_x (ra, proc)
 {
   scm_sizet i;
   SCM_ASSERT (SCM_NIMP (ra), ra, SCM_ARG1, s_array_index_map_x);
-  SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc), proc, SCM_ARG2, s_array_index_map_x);
-  switch SCM_TYP7
-    (ra)
+  SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc), proc, SCM_ARG2,
+	      s_array_index_map_x);
+  switch (SCM_TYP7(ra))
+    {
+    default:
+    badarg:scm_wta (ra, (char *) SCM_ARG1, s_array_index_map_x);
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
       {
-      default:
-      badarg:scm_wta (ra, (char *) SCM_ARG1, s_array_index_map_x);
-      case scm_tc7_vector:
-      case scm_tc7_wvect:
-	{
-	  SCM *ve = SCM_VELTS (ra);
-	  for (i = 0; i < SCM_LENGTH (ra); i++)
-	    ve[i] = scm_apply (proc, SCM_MAKINUM (i), scm_listofnull);
-	  return SCM_UNSPECIFIED;
-	}
-      case scm_tc7_string:
-      case scm_tc7_byvect:
-      case scm_tc7_bvect:
-      case scm_tc7_uvect:
-      case scm_tc7_ivect:
-      case scm_tc7_fvect:
-      case scm_tc7_dvect:
-      case scm_tc7_cvect:
+	SCM *ve = SCM_VELTS (ra);
 	for (i = 0; i < SCM_LENGTH (ra); i++)
-	  scm_array_set_x (ra, scm_apply (proc, SCM_MAKINUM (i), scm_listofnull), SCM_MAKINUM (i));
+	  ve[i] = scm_apply (proc, SCM_MAKINUM (i), scm_listofnull);
 	return SCM_UNSPECIFIED;
-      case scm_tc7_smob:
-	SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
-	{
-	  SCM args = SCM_EOL;
-	  SCM inds = scm_make_uve (SCM_ARRAY_NDIM (ra), SCM_MAKINUM (-1L));
-	  long *vinds = SCM_VELTS (inds);
-	  int j, k, kmax = SCM_ARRAY_NDIM (ra) - 1;
-	  for (k = 0; k <= kmax; k++)
-	    vinds[k] = SCM_ARRAY_DIMS (ra)[k].lbnd;
-	  k = kmax;
-	  do
-	    {
-	      if (k == kmax)
-		{
-		  vinds[k] = SCM_ARRAY_DIMS (ra)[k].lbnd;
-		  i = cind (ra, inds);
-		  for (; vinds[k] <= SCM_ARRAY_DIMS (ra)[k].ubnd; vinds[k]++)
-		    {
-		      for (j = kmax + 1, args = SCM_EOL; j--;)
-			args = scm_cons (SCM_MAKINUM (vinds[j]), args);
-		      scm_array_set_x (SCM_ARRAY_V (ra), scm_apply (proc, args, SCM_EOL), SCM_MAKINUM (i));
-		      i += SCM_ARRAY_DIMS (ra)[k].inc;
-		    }
-		  k--;
-		  continue;
-		}
-	      if (vinds[k] < SCM_ARRAY_DIMS (ra)[k].ubnd)
-		{
-		  vinds[k]++;
-		  k++;
-		  continue;
-		}
-	      vinds[k] = SCM_ARRAY_DIMS (ra)[k].lbnd - 1;
-	      k--;
-	    }
-	  while (k >= 0);
-	  return SCM_UNSPECIFIED;
-	}
       }
+    case scm_tc7_string:
+    case scm_tc7_byvect:
+    case scm_tc7_bvect:
+    case scm_tc7_uvect:
+    case scm_tc7_ivect:
+    case scm_tc7_fvect:
+    case scm_tc7_dvect:
+    case scm_tc7_cvect:
+      for (i = 0; i < SCM_LENGTH (ra); i++)
+	scm_array_set_x (ra, scm_apply (proc, SCM_MAKINUM (i), scm_listofnull),
+			 SCM_MAKINUM (i));
+      return SCM_UNSPECIFIED;
+    case scm_tc7_smob:
+      SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
+      {
+	SCM args = SCM_EOL;
+	SCM inds = scm_make_uve (SCM_ARRAY_NDIM (ra), SCM_MAKINUM (-1L));
+	long *vinds = SCM_VELTS (inds);
+	int j, k, kmax = SCM_ARRAY_NDIM (ra) - 1;
+	if (kmax < 0)
+	  return scm_array_set_x (ra, scm_apply(proc, SCM_EOL, SCM_EOL),
+				  SCM_EOL);
+	for (k = 0; k <= kmax; k++)
+	  vinds[k] = SCM_ARRAY_DIMS (ra)[k].lbnd;
+	k = kmax;
+	do
+	  {
+	    if (k == kmax)
+	      {
+		vinds[k] = SCM_ARRAY_DIMS (ra)[k].lbnd;
+		i = cind (ra, inds);
+		for (; vinds[k] <= SCM_ARRAY_DIMS (ra)[k].ubnd; vinds[k]++)
+		  {
+		    for (j = kmax + 1, args = SCM_EOL; j--;)
+		      args = scm_cons (SCM_MAKINUM (vinds[j]), args);
+		    scm_array_set_x (SCM_ARRAY_V (ra),
+				     scm_apply (proc, args, SCM_EOL),
+				     SCM_MAKINUM (i));
+		    i += SCM_ARRAY_DIMS (ra)[k].inc;
+		  }
+		k--;
+		continue;
+	      }
+	    if (vinds[k] < SCM_ARRAY_DIMS (ra)[k].ubnd)
+	      {
+		vinds[k]++;
+		k++;
+		continue;
+	      }
+	    vinds[k] = SCM_ARRAY_DIMS (ra)[k].lbnd - 1;
+	    k--;
+	  }
+	while (k >= 0);
+	return SCM_UNSPECIFIED;
+      }
+    }
 }
 
 
