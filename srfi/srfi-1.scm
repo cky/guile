@@ -699,10 +699,11 @@
   (acons key datum alist))
 
 (define (alist-copy alist)
-  (let lp ((a alist))
+  (let lp ((a alist)
+	   (rl '()))
     (if (null? a)
-      '()
-      (acons (caar a) (cdar a) (lp (cdr a))))))
+      (reverse! rl)
+      (lp (cdr a) (acons (caar a) (cdar a) rl)))))
 
 (define (alist-delete key alist . rest)
   (let ((k= (if (pair? rest) (car rest) equal?)))
