@@ -1,10 +1,11 @@
 2004-08-18  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/and-let-star.test, tests/arbiters.test, tests/receive.test:
+	New files.
+	* Makefile.am (SCM_TESTS): Add them.
+
 	* tests/fractions.test (fractions): Correction, equal? 3/4 .75 should
 	be #f, according to R5RS.
-
-	* tests/arbiters.test: New file
-	* Makefile.am (SCM_TESTS): Add it.
 
 2004-08-15  Marius Vollmer  <mvo@zagadka.de>
 
