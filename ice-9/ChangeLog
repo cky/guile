@@ -3,6 +3,13 @@
 	* Makefile.am (ice9_sources): Add popen.scm to list.
 	* Makefile.in: Regenerated.
 
+	Fixes for expect from Gary Houston  <ghouston@easynet.co.uk>:
+
+	* expect.scm (expect-regexec): define 'eof-next?'.  I don't
+	know why it was missing.  also don't peek for end of lines
+ 	unless expect-strings-exec-flags contains regexp/noteol.
+	(expect-strings-exec-flags): initialise to regexp/noteol.
+
 	Gary Houston's open-buffer port patches:
 
 	1999-04-01  Gary Houston  <ghouston@easynet.co.uk>
