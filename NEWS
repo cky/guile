@@ -161,8 +161,6 @@ ice-9/match.scm for brief description or
 
 for complete documentation.
 
-This module requires SLIB to be installed and available from Guile.
-
 ** New module (ice-9 buffered-input)
 
 This module provides procedures to construct an input port from an
