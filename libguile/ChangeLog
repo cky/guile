@@ -1,3 +1,7 @@
+Sat Aug 24 05:29:19 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* debug.c: Fixed and improved gdb support.
+
 Fri Aug 23 18:00:16 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* socket.c: Added declaration of inet_aton to avoid compiler
