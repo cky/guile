@@ -46,23 +46,11 @@
 
 
 
-# ifdef TIME_WITH_SYS_TIME
-#  include <sys/time.h>
-#  include <time.h>
-# else
-#  ifdef HAVE_SYS_TIME_H
-#   include <sys/time.h>
-#  else
-#   ifdef HAVE_TIME_H
-#    include <time.h>
-#   endif
-#  endif
-# endif
-
+#include "libguile/__scm.h"
 #include "libguile/iselect.h"
 
-#if HAVE_WINSOCK2_H
-#include <winsock2.h>
+#ifdef SCM_HAVE_WINSOCK2_H
+# include <winsock2.h>
 #endif
 
 #ifdef GUILE_PTHREAD_COMPAT
@@ -163,7 +151,7 @@ SCM_API int coop_new_condition_variable_init (coop_c*, coop_cattr*);
 SCM_API int coop_condition_variable_wait_mutex (coop_c*, coop_m*);
 SCM_API int coop_condition_variable_timed_wait_mutex (coop_c*,
 						      coop_m*,
-						      const struct timespec *abstime);
+						      const scm_t_timespec *abstime);
 SCM_API int coop_condition_variable_signal (coop_c*);
 SCM_API int coop_condition_variable_broadcast (coop_c*);
 SCM_API int coop_condition_variable_destroy (coop_c*);
