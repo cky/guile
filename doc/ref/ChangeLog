@@ -3,6 +3,14 @@
 	* api-procedures.texi (let-keywords Reference): Typo, should be
 	let-keywords* @defunx.
 
+	* api-scheduling.texi (Parallel Forms): In parallel, letpar, par-map,
+	n-par-map and n-for-each-par-map, describe each form as being in its
+	own thread, not a new thread, since for instance the calling thread is
+	used when only one form.  Plus typo in n-for-each-par-map example
+	equivalent for-each + n-par-map.
+
+	* posix.texi (Locales): Use @var for category arg.
+
 2004-09-02  Kevin Ryde  <user42@zip.com.au>
 
 	* misc-modules.texi (Formatted Output): Excess arguments are ignored.

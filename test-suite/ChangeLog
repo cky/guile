@@ -1,3 +1,11 @@
+2004-09-07  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (integer-expt): New tests, of infinite exponents.
+	(integer?): Exercise nan and +/-inf.
+
+	* tests/time.test (gmtime, strptime): New tests, but unresolved.
+	(internal-time-units-per-second): New test.
+
 2004-09-02  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/format.test (~@d): New tests.

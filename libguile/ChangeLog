@@ -1,3 +1,21 @@
+2004-09-07  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_integer_expt): Reject exponent +/-inf.
+	(scm_integer_p): +/-inf is not an integer.
+	Bug report by Bill Schottstaedt.
+
+	* ports.c (scm_getc, scm_lfwrite): Recognise \a \b and \r for port
+	column.
+	* ports.h (SCM_ZEROCOL, SCM_DECCOL): New macros.
+
+	* posix.c (scm_access): Update docstring per manual.
+
+	* posix.c (scm_nice): Correction to error detection.  Reported by
+	Matthias Koeppe.
+
+	* stime.c (scm_current_time, scm_gettimeofday, scm_strptime): Don't
+	throw error before unlocking mutex with SCM_ALLOW_INTS.
+
 2004-09-06  Kevin Ryde  <user42@zip.com.au>
 
 	* stime.h (SCM_TIME_UNITS_PER_SECOND): Use sysconf(_SC_CLK_TCK) when
