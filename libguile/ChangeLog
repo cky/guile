@@ -1,3 +1,46 @@
+2001-02-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* variable.c (scm_make_variable, scm_make_undefined_variable)
+	(scm_variable_ref, scm_variable_set_x, scm_builtin_variable)
+	(scm_variable_bound_p), values.c (scm_values)
+	(scm_call_with_values), unif.c (scm_bit_count)
+	(scm_bit_set_star_x), symbols.c (scm_gentemp)
+	(scm_gensym), strings.c (scm_string_p, scm_make_string)
+	(scm_read_only_string_p, scm_string_length, scm_string_ref)
+	(scm_string_set_x, scm_substring, scm_string_append), stime.c
+	(scm_strptime, scm_mktime), random.c (scm_seed_to_random_state)
+	(scm_copy_random_state, scm_random), print.c (scm_newline)
+	(scm_write_char, scm_simple_format), debug-malloc.c
+	(scm_malloc_stats), environments.c (scm_environment_p)
+	(scm_environment_bound_p, scm_environment_ref)
+	(scm_environment_fold, scm_environment_define)
+	(scm_environment_undefine, scm_environment_set_x)
+	(scm_environment_cell, scm_environment_observe)
+	(scm_environment_observe_weak, scm_environment_unobserve)
+	(scm_make_eval_environment, scm_eval_environment_p)
+	(scm_eval_environment_set_local_x, scm_eval_environment_local)
+	(scm_eval_environment_imported)
+	(scm_eval_environment_set_imported_x, scm_make_import_environment)
+	(scm_import_environment_p, scm_import_environment_imports)
+	(scm_import_environment_set_imports_x, scm_make_export_environment)
+	(scm_export_environment_p, scm_export_environment_private)
+	(scm_export_environment_set_private_x)
+	(scm_export_environment_signature)
+	(scm_export_environment_set_signature_x, scm_leaf_environment_p):
+	Added texinfo markup.
+
+	* ports.c (scm_drain_input): Lowercased argument to @var.
+	(scm_current_input_port, scm_current_output_port): Filled in
+	missing explanation.
+	(scm_current_load_port, scm_set_current_output_port)
+	(scm_set_current_error_port, scm_port_line, scm_set_port_line_x):
+	Added texinfo markup.
+
+	* arbiters.c (scm_make_arbiter, scm_try_arbiter)
+	(scm_release_arbiter): Added texinfo markup to docstrings.
+	Changed `Returns' to `Return'.
+	(arbiter_print): Changed SCM_CDR to SCM_SMOB_DATA.
+
 2001-02-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile-snarf.awk.in: Quote any `@'s that occur in Scheme names,
