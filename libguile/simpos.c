@@ -23,6 +23,7 @@
 #endif
 
 #include <errno.h>
+#include <signal.h>  /* for SIG constants */
 #include <stdlib.h>  /* for getenv */
 
 #include "libguile/_scm.h"
