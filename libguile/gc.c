@@ -656,6 +656,12 @@ scm_igc (const char *what)
  *   scm_remember_upto_here_1 (str);  // str will be alive up to this point.
  */
 
+/* Remove any macro versions of these while defining the functions.
+   Functions are always included in the library, for upward binary
+   compatibility and in case combinations of GCC and non-GCC are used.  */
+#undef scm_remember_upto_here_1
+#undef scm_remember_upto_here_2
+
 void
 scm_remember_upto_here_1 (SCM obj SCM_UNUSED)
 {
