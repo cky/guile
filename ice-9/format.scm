@@ -647,8 +647,7 @@
 		       (case modifier
 			 ((colon)
 			  (if (not max-iterations) (set! max-iterations 1)))
-			 ((colon-at at) (format:error "illegal modifier"))
-			 (else (if (not max-iterations) (set! max-iterations 100))))
+			 ((colon-at at) (format:error "illegal modifier")))
 		       (if (not (null? params))
 			   (format:error "no parameters allowed in ~~}"))
 		       (if (zero? iteration-nest)
@@ -670,7 +669,8 @@
 						      (list-tail args arg-pos))))
 				       (i 0 (+ i 1)))
 				      ((or (>= arg-pos args-len)
-					   (>= i max-iterations))))))
+					   (and max-iterations
+						(>= i max-iterations)))))))
 			       ((sublists)
 				(let ((args (next-arg))
 				      (args-len 0))
@@ -679,7 +679,8 @@
 				  (set! args-len (length args))
 				  (do ((arg-pos 0 (+ arg-pos 1)))
 				      ((or (>= arg-pos args-len)
-					   (>= arg-pos max-iterations)))
+					   (and max-iterations
+						(>= arg-pos max-iterations))))
 				    (let ((sublist (list-ref args arg-pos)))
 				      (if (not (list? sublist))
 					  (format:error
@@ -696,7 +697,8 @@
 							     args arg-pos))))
 					     (i 0 (+ i 1)))
 					    ((or (>= arg-pos args-len)
-						 (>= i max-iterations))
+						 (and max-iterations
+						      (>= i max-iterations)))
 					     arg-pos))))
 				  (add-arg-pos usedup-args)))
 			       ((rest-sublists)
@@ -705,7 +707,8 @@
 				       (usedup-args
 					(do ((arg-pos 0 (+ arg-pos 1)))
 					    ((or (>= arg-pos args-len)
-						 (>= arg-pos max-iterations))
+						 (and max-iterations
+						      (>= arg-pos max-iterations)))
 					     arg-pos)
 					  (let ((sublist (list-ref args arg-pos)))
 					    (if (not (list? sublist))
