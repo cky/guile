@@ -1,3 +1,12 @@
+2003-01-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.c, goops.h (scm_class_extended_generic_with_setter): New
+	class.
+	(scm_compute_applicable_methods): Use scm_generic_function_methods.
+
+	* goops.c (scm_generic_function_methods): Support extended
+	generic functions.
+
 2002-12-29  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* eval.c (unmemocopy): Bugfix: scm_sym_delay --> scm_sym_future.

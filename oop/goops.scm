@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1998,1999,2000,2001,2002 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -53,11 +53,13 @@
 (define-module (oop goops)
   :export-syntax (define-class class
 		  define-generic define-accessor define-method
+		  define-extended-generic
 		  method)
   :export (goops-version is-a?
            ensure-metaclass ensure-metaclass-with-supers
 	   make-class
 	   make-generic ensure-generic
+	   make-extended-generic
 	   make-accessor ensure-accessor
 	   make-method add-method!
 	   object-eqv? object-equal?
@@ -371,9 +373,60 @@
 	      (else
 	       `(define ,name (make <generic> #:name ',name))))))))
 
+(define define-extended-generic
+  (procedure->memoizing-macro
+    (lambda (exp env)
+      (let ((name (cadr exp)))
+	(cond ((not (symbol? name))
+	       (goops-error "bad generic function name: ~S" name))
+	      ((null? (cddr exp))
+	       (goops-error "missing expression"))
+	      (else
+	       `(define ,name (make-extended-generic ,(caddr exp) ',name))))))))
+
 (define (make-generic . name)
   (let ((name (and (pair? name) (car name))))
     (make <generic> #:name name)))
+
+(define (make-extended-generic gfs . name)
+  (let* ((name (and (pair? name) (car name)))
+	 (gfs (if (pair? gfs) gfs (list gfs)))
+	 (gws? (any (lambda (gf) (is-a? gf <generic-with-setter>)) gfs)))
+    (let ((ans (if gws?
+		   (let* ((sname (and name (make-setter-name name)))
+			  (setters
+			   (apply append
+				  (map (lambda (gf)
+					 (if (is-a? gf <generic-with-setter>)
+					     (list (ensure-generic (setter gf)
+								   sname))
+					     '()))
+				       gfs)))
+			  (es (make <extended-generic-with-setter>
+				#:name name
+				#:extends gfs
+				#:setter (make <extended-generic>
+					   #:name sname
+					   #:extends setters))))
+		     (extended-by! setters (setter es))
+		     es)
+		   (make <extended-generic>
+		     #:name name
+		     #:extends gfs))))
+      (extended-by! gfs ans)
+      ans)))
+
+(define (extended-by! gfs eg)
+  (for-each (lambda (gf)
+	      (slot-set! gf 'extended-by
+			 (cons eg (slot-ref gf 'extended-by))))
+	    gfs))
+
+(define (not-extended-by! gfs eg)
+  (for-each (lambda (gf)
+	      (slot-set! gf 'extended-by
+			 (delq! eg (slot-ref gf 'extended-by))))
+	    gfs))
 
 (define (ensure-generic old-definition . name)
   (let ((name (and (pair? name) (car name))))
@@ -434,10 +487,18 @@
 	   (make-accessor name)))))
 
 (define (upgrade-generic-with-setter generic setter)
-  (let ((methods (generic-function-methods generic))
-	(gws (make <generic-with-setter>
+  (let ((methods (slot-ref generic 'methods))
+	(gws (make (if (is-a? generic <extended-generic>)
+		       <extended-generic-with-setter>
+		       <generic-with-setter>)
 		   #:name (generic-function-name generic)
+		   #:extended-by (slot-ref generic 'extended-by)
 		   #:setter setter)))
+    (if (is-a? generic <extended-generic>)
+	(let ((gfs (slot-ref generic 'extends)))
+	  (not-extended-by! gfs generic)
+	  (slot-set! gws 'extends gfs)
+	  (extended-by! gfs gws)))
     ;; Steal old methods
     (for-each (lambda (method)
 		(slot-set! method 'generic-function gws))
@@ -553,7 +614,7 @@
 
 (define (compute-new-list-of-methods gf new)
   (let ((new-spec (method-specializers new))
-	(methods  (generic-function-methods gf)))
+	(methods  (slot-ref gf 'methods)))
     (let loop ((l methods))
       (if (null? l)
 	  (cons new methods)
@@ -1350,6 +1411,10 @@
     (if name
 	(set-procedure-property! generic 'name name))
     ))
+
+(define-method (initialize (eg <extended-generic>) initargs)
+  (next-method)
+  (slot-set! eg 'extends (get-keyword #:extends initargs '())))
 
 (define dummy-procedure (lambda args *unspecified*))
 

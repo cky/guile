@@ -1,3 +1,12 @@
+2003-01-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (upgrade-generic-with-setter,
+	compute-new-list-of-methods): Use methods slot directly instead of
+	generic-function-methods.
+	(upgrade-generic-with-setter): Handle <extended-generic>:s.
+	(define-extended-generic): New syntax.
+	(make-extended-generic): New function.
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (subpkgdatadir): VERSION -> GUILE_EFFECTIVE_VERSION.

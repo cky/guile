@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,7 +137,9 @@ static SCM scm_goops_lookup_closure;
 /* Some classes are defined in libguile/objects.c. */
 SCM scm_class_top, scm_class_object, scm_class_class;
 SCM scm_class_entity, scm_class_entity_with_setter;
-SCM scm_class_generic, scm_class_generic_with_setter, scm_class_method;
+SCM scm_class_generic, scm_class_generic_with_setter;
+SCM scm_class_extended_generic, scm_class_extended_generic_with_setter;
+SCM scm_class_method;
 SCM scm_class_simple_method, scm_class_accessor;
 SCM scm_class_procedure_class;
 SCM scm_class_operator_class, scm_class_operator_with_setter_class;
@@ -166,21 +168,10 @@ static SCM scm_sys_goops_loaded (void);
  *
  * Compute-cpl
  *
- *   This version doesn't handle multiple-inheritance. It serves only for
- * booting classes and will be overloaded in Scheme
+ *   This version doesn't fully handle multiple-inheritance. It serves
+ *   only for booting classes and will be overloaded in Scheme
  *
  ******************************************************************************/
-
-#if 0
-static SCM
-compute_cpl (SCM supers, SCM res)
-{
-  return (SCM_NULLP (supers)
-	  ? scm_reverse (res)
-	  : compute_cpl (SCM_SLOT (SCM_CAR (supers), scm_si_direct_supers),
-			 scm_cons (SCM_CAR (supers), res)));
-}
-#endif
 
 static SCM
 map (SCM (*proc) (SCM), SCM ls)
@@ -325,7 +316,9 @@ compute_getters_n_setters (SCM slots)
 	{
 	  init = scm_get_keyword (k_init_value, options, 0);
 	  if (init)
-	    init = scm_closure (scm_list_2 (SCM_EOL, init), SCM_EOL);
+	    init = scm_closure (scm_list_2 (SCM_EOL,
+					    scm_list_2 (scm_sym_quote, init)),
+				SCM_EOL);
 	  else
 	    init = scm_get_keyword (k_init_thunk, options, SCM_BOOL_F);
 	}
@@ -620,9 +613,6 @@ scm_basic_basic_make_class (SCM class, SCM name, SCM dsupers, SCM dslots)
   z = scm_make_struct (class, SCM_INUM0, SCM_EOL);
 
   /* Initialize its slots */
-#if 0
-  cpl   = compute_cpl (dsupers, scm_list_1 (z));
-#endif
   SCM_SET_SLOT (z, scm_si_direct_supers, dsupers);
   cpl   = compute_cpl (z);
   slots = build_slots_list (maplist (dslots), cpl);
@@ -900,16 +890,53 @@ SCM_DEFINE (scm_generic_function_name, "generic-function-name", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_SYMBOL (sym_methods, "methods");
+SCM_SYMBOL (sym_extended_by, "extended-by");
+SCM_SYMBOL (sym_extends, "extends");
+
+static
+SCM fold_downward_gf_methods (SCM method_lists, SCM gf)
+{
+  SCM gfs = scm_slot_ref (gf, sym_extended_by);
+  method_lists = scm_cons (scm_slot_ref (gf, sym_methods), method_lists);
+  while (!SCM_NULLP (gfs))
+    {
+      method_lists = fold_downward_gf_methods (method_lists, SCM_CAR (gfs));
+      gfs = SCM_CDR (gfs);
+    }
+  return method_lists;
+}
+
+static
+SCM fold_upward_gf_methods (SCM method_lists, SCM gf)
+{
+  if (SCM_IS_A_P (gf, scm_class_extended_generic))
+    {
+      SCM gfs = scm_slot_ref (gf, sym_extends);
+      while (!SCM_NULLP (gfs))
+	{
+	  SCM methods = scm_slot_ref (SCM_CAR (gfs), sym_methods);
+	  method_lists = fold_upward_gf_methods (scm_cons (methods,
+							   method_lists),
+						 SCM_CAR (gfs));
+	  gfs = SCM_CDR (gfs);
+	}
+    }
+  return method_lists;
+}
+
 SCM_DEFINE (scm_generic_function_methods, "generic-function-methods", 1, 0, 0,
 	    (SCM obj),
 	    "Return the methods of the generic function @var{obj}.")
 #define FUNC_NAME s_scm_generic_function_methods
 {
+  SCM methods;
   SCM_VALIDATE_GENERIC (1, obj);
-  return scm_slot_ref (obj, scm_str2symbol ("methods"));
+  methods = fold_upward_gf_methods (SCM_EOL, obj);
+  methods = fold_downward_gf_methods (methods, obj);
+  return scm_append (methods);
 }
 #undef FUNC_NAME
-
 
 SCM_DEFINE (scm_method_generic_function, "method-generic-function", 1, 0, 0,
 	    (SCM obj),
@@ -1757,7 +1784,7 @@ sort_applicable_methods (SCM method_list, long size, SCM const *targs)
 	We're not allocating elements in this routine, so this should
 	pose no problem.
       */
-      v      = SCM_WRITABLE_VELTS (vector);
+      v = SCM_WRITABLE_VELTS (vector);
     }
 
   /* Use a simple shell sort since it is generally faster than qsort on
@@ -1829,7 +1856,7 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
     *p++ = scm_class_of (SCM_CAR (args));
   
   /* Build a list of all applicable methods */
-  for (l = SCM_SLOT (gf, scm_si_methods); !SCM_NULLP (l); l = SCM_CDR (l))
+  for (l = scm_generic_function_methods (gf); !SCM_NULLP (l); l = SCM_CDR (l))
     {
       fl = SPEC_OF (SCM_CAR (l));
       /* Only accept accessors which match exactly in first arg. */
@@ -2022,10 +2049,11 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
   if (class == scm_class_generic || class == scm_class_generic_with_setter)
     {
       z = scm_make_struct (class, SCM_INUM0,
-			   scm_list_4 (SCM_EOL,
+			   scm_list_5 (SCM_EOL,
 				       SCM_INUM0,
 				       SCM_BOOL_F,
-				       scm_make_mutex ()));
+				       scm_make_mutex (),
+				       SCM_EOL));
       scm_set_procedure_property_x (z, scm_sym_name,
 				    scm_get_keyword (k_name,
 						     args,
@@ -2174,7 +2202,7 @@ create_standard_classes (void)
 					      k_init_keyword,
 					      k_slot_definition));
   SCM mutex_slot = scm_list_1 (scm_str2symbol ("make-mutex"));
-  SCM gf_slots = scm_list_4 (scm_str2symbol ("methods"),
+  SCM gf_slots = scm_list_5 (scm_str2symbol ("methods"),
 			     scm_list_3 (scm_str2symbol ("n-specialized"),
 					 k_init_value,
 					 SCM_INUM0),
@@ -2185,8 +2213,13 @@ create_standard_classes (void)
 					 k_init_thunk,
 					 scm_closure (scm_list_2 (SCM_EOL,
 								  mutex_slot),
-						      SCM_EOL)));
-
+						      SCM_EOL)),
+			     scm_list_3 (scm_str2symbol ("extended-by"),
+					 k_init_value,
+					 SCM_EOL));
+  SCM egf_slots = scm_list_1 (scm_list_3 (scm_str2symbol ("extends"),
+					  k_init_value,
+					  SCM_EOL));
   /* Foreign class slot classes */
   make_stdcls (&scm_class_foreign_slot,	   "<foreign-slot>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
@@ -2262,20 +2295,24 @@ create_standard_classes (void)
   make_stdcls (&scm_class_generic,	   "<generic>",
 	       scm_class_entity_class, scm_class_entity,   gf_slots);
   SCM_SET_CLASS_FLAGS (scm_class_generic, SCM_CLASSF_PURE_GENERIC);
+  make_stdcls (&scm_class_extended_generic, "<extended-generic>",
+	       scm_class_entity_class,
+	       scm_list_1 (scm_class_generic),
+	       egf_slots);
+  SCM_SET_CLASS_FLAGS (scm_class_extended_generic, SCM_CLASSF_PURE_GENERIC);
   make_stdcls (&scm_class_generic_with_setter, "<generic-with-setter>",
 	       scm_class_entity_class,
 	       scm_list_2 (scm_class_generic, scm_class_entity_with_setter),
 	       SCM_EOL);
-#if 0
-  /* Patch cpl since compute_cpl doesn't support multiple inheritance. */
-  SCM_SET_SLOT (scm_class_generic_with_setter, scm_si_cpl,
-    scm_append (scm_list_3 (scm_list_2 (scm_class_generic_with_setter,
-					scm_class_generic),
-			    SCM_SLOT (scm_class_entity_with_setter,
-				      scm_si_cpl),
-			    SCM_EOL)));
-#endif
   SCM_SET_CLASS_FLAGS (scm_class_generic_with_setter, SCM_CLASSF_PURE_GENERIC);
+  make_stdcls (&scm_class_extended_generic_with_setter,
+	       "<extended-generic-with-setter>",
+	       scm_class_entity_class,
+	       scm_list_2 (scm_class_extended_generic,
+			   scm_class_entity_with_setter),
+	       SCM_EOL);
+  SCM_SET_CLASS_FLAGS (scm_class_extended_generic_with_setter,
+		       SCM_CLASSF_PURE_GENERIC);
 
   /* Primitive types classes */
   make_stdcls (&scm_class_boolean, 	   "<boolean>",

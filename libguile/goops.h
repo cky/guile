@@ -3,7 +3,7 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 
-/* Copyright (C) 1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -188,6 +188,8 @@ SCM_API SCM scm_class_entity;
 SCM_API SCM scm_class_entity_with_setter;
 SCM_API SCM scm_class_generic;
 SCM_API SCM scm_class_generic_with_setter;
+SCM_API SCM scm_class_extended_generic;
+SCM_API SCM scm_class_extended_generic_with_setter;
 SCM_API SCM scm_class_method;
 SCM_API SCM scm_class_simple_method;
 SCM_API SCM scm_class_accessor;
