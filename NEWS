@@ -163,6 +163,12 @@ be used with '-e'.  For example, you can now write a script like
 
 * Changes to Scheme functions and syntax
 
+** There is now support for copy-on-write substrings and
+   mutation-sharing substrings.
+
+Two new procedures are related to this: substring/shared and
+substring/copy.  See the manual for more information.
+
 ** New syntax '@' and '@@':
 
 You can now directly refer to variables exported from a module by
@@ -687,11 +693,56 @@ conventions.
 These functions occupy the names that scm_round_number and
 scm_truncate_number should have.
 
-** The functions scm_c_string2str and scm_c_substring2str have been
-   deprecated.
+** The functions scm_c_string2str, scm_c_substring2str, and
+   scm_c_symbol2str have been deprecated.
 
 Use scm_to_locale_stringbuf or similar instead, maybe together with
 scm_substring.
+
+** New functions scm_c_make_string, scm_c_string_length,
+   scm_c_string_ref, scm_c_string_set_x, scm_c_substring,
+   scm_c_substring_shared, scm_c_substring_copy.
+
+These are like scm_make_string, scm_length, etc. but are slightly
+easier to use from C.
+
+** The macros SCM_STRINGP, SCM_STRING_CHARS, SCM_STRING_LENGTH,
+   SCM_SYMBOL_CHARS, and SCM_SYMBOL_LENGTH have been deprecated.
+
+They export too many assumptions about the implementation of strings
+and symbols that are no longer true in the presence of
+mutation-sharing substrings and later, when Guile switches to some
+form of Unicode.
+
+When working with strings, it is often best to use the normal string
+functions provided by Guile, such as scm_c_string_ref,
+scm_c_string_set_x, scm_string_append, etc.
+
+When you want to convert a SCM string to a C string, use the
+scm_to_locale_string function or similar instead.  For symbols, use
+scm_symbol_to_string and then work with that string.  Because of the
+new string representation, scm_symbol_to_string does not need to copy
+and is thus quite efficient.
+
+** Some string and symbol functions have been discouraged.
+
+They don't fot into the uniform naming scheme and are not explicit
+about the character encoding.
+
+Replace according to the following table:
+
+    scm_allocate_string       -> scm_c_make_string
+    scm_take_str              -> scm_take_locale_stringn 
+    scm_take0str              -> scm_take_locale_string
+    scm_mem2string            -> scm_from_locale_stringn
+    scm_str2string            -> scm_from_locale_string
+    scm_makfrom0str           -> scm_from_locale_string
+    scm_mem2symbol            -> scm_from_locale_symboln
+    scm_mem2uninterned_symbol -> scm_make_symbol + scm_from_locale_stringn
+    scm_str2symbol            -> scm_from_locale_symbol
+
+    SCM_SYMBOL_HASH           -> scm_hashq
+    SCM_SYMBOL_INTERNED_P     -> scm_symbol_interned_p
 
 ** SCM_CELL_WORD_LOC has been deprecated.
 
@@ -703,7 +754,7 @@ heap.  Previously, the heap words were of type scm_t_bits and local
 variables and function arguments were of type SCM, making it
 non-standards-conformant to have a pointer that can point to both.
 
-** New macros SCM_SMOB_DATA_2, SM_SMOB_DATA_3, etc.
+** New macros SCM_SMOB_DATA_2, SCM_SMOB_DATA_3, etc.
 
 These macros should be used instead of SCM_CELL_WORD_2/3 to access the
 second and third words of double smobs.  Likewise for
