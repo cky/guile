@@ -1,3 +1,13 @@
+1998-08-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* debug.scm (trace-entry, trace-exit): Removed re-enabling of
+	trace flag.
+
+	* boot-9.scm (make-options): Bugfix: Changed pair? --> list? in
+	order to allow the empty list as arg.
+	(error-catching-loop): Use `with-traps' to create a dynamic
+	context with traps enabled.
+
 1998-08-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm: Removed (ice-9 regex) from use-list of (guile)
