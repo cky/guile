@@ -2826,7 +2826,7 @@
      e)))
 
 (define (environment-module env)
-  (let ((closure (and (pair? env) (car (last-pair? env)))))
+  (let ((closure (and (pair? env) (car (last-pair env)))))
     (and closure (procedure-property closure 'module))))
 
 
