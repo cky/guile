@@ -28,8 +28,7 @@ ice9_sources = \
 	getopt-long.scm hcons.scm lineio.scm ls.scm mapping.scm		\
 	optargs.scm poe.scm psyntax.pp psyntax.ss q.scm r4rs.scm	\
 	readline.scm regex.scm runq.scm session.scm slib.scm		\
-	string-case.scm string-fun.scm syncase.scm tags.scm		\
-	threads.scm
+	string-fun.scm syncase.scm tags.scm threads.scm
 
 # These should be installed, but not distributed.
 ice9_generated = version.scm
