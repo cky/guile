@@ -335,7 +335,7 @@ scm_struct_free_0 (scm_bits_t * vtable, scm_bits_t * data)
 scm_sizet
 scm_struct_free_light (scm_bits_t * vtable, scm_bits_t * data)
 {
-  free (data);
+  scm_must_free (data);
   return vtable [scm_struct_i_size] & ~SCM_STRUCTF_MASK;
 }
 
@@ -344,7 +344,7 @@ scm_struct_free_standard (scm_bits_t * vtable, scm_bits_t * data)
 {
   size_t n = (data[scm_struct_i_n_words] + scm_struct_n_extra_words)
 	     * sizeof (scm_bits_t) + 7;
-  free ((void *) data[scm_struct_i_ptr]);
+  scm_must_free ((void *) data[scm_struct_i_ptr]);
   return n;
 }
 
@@ -353,7 +353,7 @@ scm_struct_free_entity (scm_bits_t * vtable, scm_bits_t * data)
 {
   size_t n = (data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
 	     * sizeof (scm_bits_t) + 7;
-  free ((void *) data[scm_struct_i_ptr]);
+  scm_must_free ((void *) data[scm_struct_i_ptr]);
   return n;
 }
 
