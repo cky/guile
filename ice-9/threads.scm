@@ -182,7 +182,7 @@ of applying P-PROC on ARGLISTS."
 	%thread-handler)))
 
 (define-macro (parallel . forms)
-  (cond ((null? forms) '(begin))
+  (cond ((null? forms) '(values))
 	((null? (cdr forms)) (car forms))
 	(else
 	 (let ((vars (map (lambda (f)
