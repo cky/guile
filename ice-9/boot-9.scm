@@ -2543,6 +2543,7 @@
     (loop (lambda () #t))))
 
 ;;(define the-last-stack (make-fluid)) Defined by scm_init_backtrace ()
+(define before-signal-stack (make-fluid))
 (define stack-saved? #f)
 
 (define (save-stack . narrowing)
@@ -3009,6 +3010,9 @@
      (lambda ()
        (let ((make-handler (lambda (msg)
 			     (lambda (sig)
+			       ;; Make a backup copy of the stack
+			       (fluid-set! before-signal-stack
+					   (fluid-ref the-last-stack))
 			       (save-stack %deliver-signals)
 			       (scm-error 'signal
 					  #f
