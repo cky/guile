@@ -149,7 +149,6 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_RDNG	(2L<<16) /* Is it a readable port? */
 #define SCM_WRTNG	(4L<<16) /* Is it writable? */
 #define SCM_BUF0	(8L<<16) /* Is it unbuffered? */
-/* #define SCM_CRDY	(32L<<16)  obsolete, for pushed back characters  */
 #define SCM_BUFLINE     (64L<<16) /* Is it line-buffered? */
 
 #define SCM_PORTP(x) (SCM_NIMP(x) && (SCM_TYP7(x)==scm_tc7_port))
@@ -159,11 +158,9 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_INPUT_PORT_P(x) \
   (SCM_NIMP(x) \
    && (((0x7f | SCM_RDNG) & SCM_UNPACK_CAR(x)) == (scm_tc7_port | SCM_RDNG)))
-#define SCM_INPORTP(x) SCM_INPUT_PORT_P (x) /* Deprecated */
 #define SCM_OUTPUT_PORT_P(x) \
   (SCM_NIMP(x) \
    && (((0x7f | SCM_WRTNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_WRTNG)))
-#define SCM_OUTPORTP(x) SCM_OUTPUT_PORT_P (x) /* Deprecated */
 #define SCM_OPENP(x) (SCM_NIMP(x) && (SCM_OPN & SCM_UNPACK_CAR (x)))
 #define SCM_CLOSEDP(x) (!SCM_OPENP(x))
 
@@ -307,6 +304,16 @@ extern void scm_init_ports (void);
 extern SCM scm_pt_size (void);
 extern SCM scm_pt_member (SCM member);
 #endif /* GUILE_DEBUG */
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+/* #define SCM_CRDY	(32L<<16)  obsolete, for pushed back characters  */
+#define SCM_INPORTP(x) SCM_INPUT_PORT_P (x)
+#define SCM_OUTPORTP(x) SCM_OUTPUT_PORT_P (x)
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* PORTSH */
 

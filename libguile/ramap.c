@@ -808,8 +808,14 @@ racp (SCM src, SCM dst)
 }
 
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 /* This name is obsolete.  Will go away in release 1.5.  */
 SCM_REGISTER_PROC(s_serial_array_copy_x, "serial-array-copy!", 2, 0, 0, scm_array_copy_x);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
+
 SCM_REGISTER_PROC(s_array_copy_in_order_x, "array-copy-in-order!", 2, 0, 0, scm_array_copy_x);
 
 
@@ -1491,8 +1497,15 @@ ramap_a (SCM ra0,SCM proc,SCM ras)
   return 1;
 }
 
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 /* This name is obsolete.  Will go away in release 1.5.  */
 SCM_REGISTER_PROC(s_serial_array_map_x, "serial-array-map!", 2, 0, 1, scm_array_map_x);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
+
 SCM_REGISTER_PROC(s_array_map_in_order_x, "array-map-in-order!", 2, 0, 1, scm_array_map_x);
 
 

@@ -455,6 +455,9 @@ static SCM
 scm_sys_gc_async_thunk (void)
 {
   scm_c_run_hook (scm_after_gc_hook, SCM_EOL);
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
   /* The following code will be removed in Guile 1.5.  */
   if (SCM_NFALSEP (scm_gc_vcell))
     {
@@ -463,6 +466,9 @@ scm_sys_gc_async_thunk (void)
       if (SCM_NFALSEP (proc) && !SCM_UNBNDP (proc))
 	scm_apply (proc, SCM_EOL, SCM_EOL);
     }
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
   return SCM_UNSPECIFIED;
 }
 

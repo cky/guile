@@ -52,7 +52,6 @@ extern SCM scm_read_delimited_x (SCM delims, SCM buf, SCM gobble, SCM port, SCM 
 extern SCM scm_read_line (SCM port);
 extern SCM scm_write_line (SCM obj, SCM port);
 extern SCM scm_ftell (SCM object);
-extern SCM scm_fseek (SCM object, SCM offset, SCM whence);
 extern SCM scm_redirect_port (SCM into_pt, SCM from_pt);
 extern SCM scm_dup_to_fdes (SCM fd_or_port, SCM newfd);
 extern SCM scm_fileno (SCM port);
@@ -61,6 +60,14 @@ extern SCM scm_fdopen (SCM fdes, SCM modes);
 extern SCM scm_primitive_move_to_fdes (SCM port, SCM fd);
 extern SCM scm_fdes_to_ports (SCM fd);
 extern void scm_init_ioext (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+extern SCM scm_fseek (SCM object, SCM offset, SCM whence);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* IOEXTH */
 

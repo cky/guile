@@ -59,16 +59,6 @@ typedef struct scm_smob_descriptor
   SCM (*equalp) (SCM, SCM);
 } scm_smob_descriptor;
 
-/* scm_smobfuns is the argument type for the obsolete function scm_newsmob */
-
-typedef struct scm_smobfuns
-{
-  SCM (*mark) (SCM);
-  scm_sizet (*free) (SCM);
-  int (*print) (SCM exp, SCM port, scm_print_state *pstate);
-  SCM (*equalp) (SCM, SCM);
-} scm_smobfuns;
-
 
 
 #define SCM_NEWSMOB(z, tc, data) \
@@ -170,8 +160,21 @@ extern void scm_set_smob_mfpe (long tc,
 extern SCM scm_make_smob (long tc);
 extern void scm_smob_prehistory (void);
 
-/* Deprecated function */
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+typedef struct scm_smobfuns
+{
+  SCM (*mark) (SCM);
+  scm_sizet (*free) (SCM);
+  int (*print) (SCM exp, SCM port, scm_print_state *pstate);
+  SCM (*equalp) (SCM, SCM);
+} scm_smobfuns;
+
 extern long scm_newsmob (const scm_smobfuns *smob);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* SMOBH */
 

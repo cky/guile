@@ -53,10 +53,6 @@
 #define SCM_CHAR(x) ((unsigned int)SCM_ITAG8_DATA(x))
 #define SCM_MAKE_CHAR(x) SCM_MAKE_ITAG8(x, scm_tc8_char)
 
-#define SCM_ICHRP(x) SCM_CHARP(x) /* deprecated */
-#define SCM_ICHR(x) SCM_CHAR(x) /* deprecated */
-#define SCM_MAKICHR(x) SCM_MAKE_CHAR(x) /* deprecated */
-
 
 
 extern char *const scm_charnames[];
@@ -90,6 +86,16 @@ extern void scm_tables_prehistory (void);
 extern int scm_upcase (unsigned int c);
 extern int scm_downcase (unsigned int c);
 extern void scm_init_chars (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define SCM_ICHRP(x) SCM_CHARP(x)
+#define SCM_ICHR(x) SCM_CHAR(x)
+#define SCM_MAKICHR(x) SCM_MAKE_CHAR(x)
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* SCM_CHARSH */
 

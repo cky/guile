@@ -89,6 +89,8 @@ SCM_CONST_LONG (scm_utag_flag_base, "utag_flag_base", 254);
 SCM_CONST_LONG (scm_utag_struct_base, "utag_struct_base", 255);
 
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 SCM_DEFINE (scm_tag, "tag", 1, 0, 0, 
             (SCM x),
             "Return an integer corresponding to the type of X.  Deprecated.")
@@ -208,6 +210,7 @@ SCM_DEFINE (scm_tag, "tag", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 
 

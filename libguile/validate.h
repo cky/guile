@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.9 2000-04-18 15:23:11 gjb Exp $ */
+/* $Id: validate.h,v 1.10 2000-05-15 11:47:48 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -110,7 +110,7 @@
     cvar = SCM_TRUE_P (flag) ? 1 : 0; \
   } while (0)
 
-#define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE (pos, scm, ICHRP)
+#define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE (pos, scm, CHARP)
 
 #define SCM_VALIDATE_CHAR_COPY(pos, scm, cvar) \
   do { \

@@ -159,6 +159,9 @@ scm_syserror_msg (const char *subr, const char *message, SCM args, int eno)
 	     scm_cons (SCM_MAKINUM (eno), SCM_EOL));
 }
 
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 /* scm_sysmissing is no longer used in libguile.  it can probably be
    removed after a release or two.  there's a comment in NEWS about it
    (2000-01-09).  */
@@ -179,6 +182,9 @@ scm_sysmissing (const char *subr)
 	     scm_cons (SCM_MAKINUM (0), SCM_EOL));
 #endif
 }
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
 
 SCM_SYMBOL (scm_num_overflow_key, "numerical-overflow");
 void

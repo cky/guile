@@ -203,8 +203,10 @@ scm_set_smob_mfpe (long tc,
   if (equalp) scm_set_smob_equalp (tc, equalp);
 }
 
-/* Deprecated function - use scm_make_smob_type, or scm_make_smob_type_mfpe
-   instead. */
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+/* Use scm_make_smob_type or scm_make_smob_type_mfpe instead. */
 long 
 scm_newsmob (const scm_smobfuns *smob)
 {
@@ -215,6 +217,8 @@ scm_newsmob (const scm_smobfuns *smob)
   scm_set_smob_equalp (tc, smob->equalp);
   return tc;
 }
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 
 SCM

@@ -48,12 +48,15 @@
 
 
 
-
+extern void scm_init_tag (void);
 
 
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 extern SCM scm_tag (SCM x);
-extern void scm_init_tag (void);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* TAGH */
 

@@ -97,7 +97,7 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
 	write_size = default_size;
     }
 
-  if (SCM_INPORTP (port) && read_size > 0)
+  if (SCM_INPUT_PORT_P (port) && read_size > 0)
     {
       pt->read_buf = malloc (read_size);
       if (pt->read_buf == NULL)
@@ -111,7 +111,7 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
       pt->read_buf_size = 1;
     }
 
-  if (SCM_OUTPORTP (port) && write_size > 0)
+  if (SCM_OUTPUT_PORT_P (port) && write_size > 0)
     {
       pt->write_buf = malloc (write_size);
       if (pt->write_buf == NULL)

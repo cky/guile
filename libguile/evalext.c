@@ -149,8 +149,12 @@ scm_m_undefine (SCM x, SCM env)
 #endif
 }
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 /* This name is obsolete.  Will be removed in 1.5.  */
 SCM_REGISTER_PROC (s_serial_map, "serial-map", 2, 0, 1, scm_map);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 SCM_REGISTER_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
 

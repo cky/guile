@@ -63,7 +63,6 @@ typedef struct
 
 #define SCM_CONTREGS(x)		((scm_contregs *) SCM_CELL_WORD_1 (x))	 
 #define SCM_SET_CONTREGS(x, r)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (r))) 
-#define SCM_SETJMPBUF(x, r)	(SCM_SET_CONTREGS ((x), (r))) /* deprecated */
 
 #define SCM_JMPBUF(x)		((SCM_CONTREGS (x))->jmpbuf)
 #define SCM_DYNENV(x)		((SCM_CONTREGS (x))->dynenv)
@@ -77,6 +76,14 @@ typedef struct
 extern SCM scm_make_cont (SCM * answer);
 extern SCM scm_call_continuation (SCM cont, SCM val);
 extern void scm_init_continuations (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define SCM_SETJMPBUF(x, r) (SCM_SET_CONTREGS ((x), (r)))
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* CONTINUATIONSH */
 

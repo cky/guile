@@ -439,12 +439,6 @@ typedef long scm_bits_t;
 #define scm_tc16_real           0x027f
 #define scm_tc16_complex        0x037f
 
-/* The following four macros are now deprecated: */
-#define scm_tc16_flo		scm_tc16_real
-#define scm_tc_flo		0x017fL
-#define scm_tc_dblr		scm_tc16_real
-#define scm_tc_dblc		scm_tc16_complex
-
 /* Smob type 4 allocated, but not initialized cells;
    this is required to prevent the gc from hosing your cells if
    you have to allocate while creating the cell*/
@@ -588,6 +582,17 @@ extern char *scm_isymnames[];   /* defined in print.c */
  case scm_tc7_subr_2o:case scm_tc7_lsubr_2:case scm_tc7_lsubr
 
 #define scm_tcs_symbols scm_tc7_ssymbol:case scm_tc7_msymbol
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define scm_tc16_flo		scm_tc16_real
+#define scm_tc_flo		0x017fL
+#define scm_tc_dblr		scm_tc16_real
+#define scm_tc_dblc		scm_tc16_complex
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* TAGSH */
 

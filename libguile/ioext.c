@@ -310,6 +310,9 @@ SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 SCM_DEFINE (scm_fseek, "fseek", 3, 0, 0,
             (SCM object, SCM offset, SCM whence),
 	    "Obsolete.  Almost the same as seek, above, but the return value is\n"
@@ -320,6 +323,9 @@ SCM_DEFINE (scm_fseek, "fseek", 3, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
 
 SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
             (SCM old, SCM new),

@@ -1,3 +1,22 @@
+2000-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* async.c (scm_sys_gc_async_thunk), chars.h (SCM_ICHRP, SCM_ICHR,
+	SCM_MAKICHR), continuations.h (SCM_SETJMPBUF), error.c
+	(scm_sysmissing), error.h (scm_sysmissing), evalext.c
+	('serial-map), ioext.c (scm_fseek), ioext.h (scm_fseek),
+	keywords.c (scm_tc16_kw, scm_init_keywords), ports.h (SCM_CRDY,
+	SCM_INPORTP, SCM_OUTPORTP), ramap.c ('serial-array-copy!,
+	'serial-array-map!), smob.c (scm_newsmob), smob.h (scm_smobfuns,
+	scm_newsmob), tag.c (scm_tag), tag.h (scm_tag), tags.h
+	(scm_tc16_flo, scm_tc_flo, scm_tc_dblr, scm_tc_dblc):  Wrapped
+	deprecated code between #if (SCM_DEBUG_DEPRECATED == 0) #endif.
+
+	* fports.c (scm_fport_buffer_add), ports.c (scm_input_port_p,
+	scm_output_port_p), print.c (scm_get_print_state), validate.h
+	(SCM_VALIDATE_CHAR):  Replace use of deprecated macros
+	SCM_INPORTP, SCM_OUTPORTP, SCM_ICHRP by SCM_INPUT_PORT_P,
+	SCM_OUTPUT_PORT_P, SCM_CHARP, respectively.
+
 2000-05-14  Gary Houston  <ghouston@arglist.com>
 
 	* stime.c (scm_strftime): if HAVE_TM_ZONE is not defined, hack the

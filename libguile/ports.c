@@ -714,7 +714,7 @@ SCM_DEFINE (scm_input_port_p, "input-port?", 1, 0, 0,
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
-  return SCM_BOOL(SCM_INPORTP (x));
+  return SCM_BOOL(SCM_INPUT_PORT_P (x));
 }
 #undef FUNC_NAME
 
@@ -729,7 +729,7 @@ SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
     return SCM_BOOL_F;
   if (SCM_PORT_WITH_PS_P (x))
     x = SCM_PORT_WITH_PS_PORT (x);
-  return SCM_BOOL(SCM_OUTPORTP (x));
+  return SCM_BOOL(SCM_OUTPUT_PORT_P (x));
 }
 #undef FUNC_NAME
 
