@@ -54,6 +54,9 @@
 
 #ifndef DEVAL
 
+/* We need this to get the definitions for HAVE_ALLOCA_H, etc.  */
+#include "scmconfig.h"
+
 /* AIX requires this to be the first thing in the file.  The #pragma
    directive is indented so pre-ANSI compilers will ignore it, rather
    than choke on it.  */
