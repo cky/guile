@@ -5,6 +5,7 @@
 .libs
 Makefile
 Makefile.in
+test-conversion
 test-gh
 test-num2integral
 test-round
