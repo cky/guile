@@ -1,3 +1,7 @@
+2003-11-17  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: new file.
+
 2003-11-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds.el: New.  (Or rather, first mention in this ChangeLog.)
