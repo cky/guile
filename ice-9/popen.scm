@@ -81,9 +81,8 @@
 						(= pt-fileno error-fdes)))
 				       (close-fdes pt-fileno))))))
 
-	       ;; copy the three selected descriptors to the standard
-	       ;; descriptors 0, 1, 2.  note that it's possible that
-	       ;; output-fdes or input-fdes is equal to error-fdes.
+	       ;; Copy the three selected descriptors to the standard
+	       ;; descriptors 0, 1, 2, if not already there
 
 	       (cond ((not (= input-fdes 0))
 		      (if (= output-fdes 0)
@@ -91,13 +90,17 @@
 		      (if (= error-fdes 0)
 			  (set! error-fdes (dup->fdes 0)))
 		      (dup2 input-fdes 0)
-		      (close-fdes input-fdes)))
-
+		      ;; it's possible input-fdes is error-fdes
+		      (if (not (= input-fdes error-fdes))
+			  (close-fdes input-fdes))))
+	       
 	       (cond ((not (= output-fdes 1))
 		      (if (= error-fdes 1)
 			  (set! error-fdes (dup->fdes 1)))
 		      (dup2 output-fdes 1)
-		      (close-fdes output-fdes)))
+		      ;; it's possible output-fdes is error-fdes
+		      (if (not (= output-fdes error-fdes))
+			  (close-fdes output-fdes))))
 
 	       (cond ((not (= error-fdes 2))
 		      (dup2 error-fdes 2)
