@@ -28,6 +28,7 @@ scripts_sources =		\
 	doc-snarf		\
 	generate-autoload	\
 	punify			\
+	read-scheme-source	\
 	use2dot
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/scripts
