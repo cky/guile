@@ -51,11 +51,11 @@ sections of this manual that cover them.
 * Keywords::                    Self-quoting, customizable display keywords.
 * Pairs::                       Scheme's basic building block.
 * Lists::                       Special list functions supported by Guile.
-* Records::
-* Structures::
-* Arrays::
-* Association Lists and Hash Tables::
-* Vectors::
+* Records::                     
+* Structures::                  
+* Arrays::                      
+* Association Lists and Hash Tables::  
+* Vectors::                     
 * Hooks::                       User-customizable event lists.
 * Other Data Types::            Data types that are documented elsewhere.
 @end menu
@@ -154,7 +154,7 @@ in Scheme, which is particularly clear and accessible: see
 * Reals and Rationals::         Real and rational numbers.
 * Complex Numbers::             Complex numbers.
 * Exactness::                   Exactness and inexactness.
-* Number Syntax::		Read syntax for numerical data.
+* Number Syntax::               Read syntax for numerical data.
 * Integer Operations::          Operations on integer values.
 * Comparison::                  Comparison predicates.
 * Conversion::                  Converting numbers to and from strings.
@@ -1397,23 +1397,76 @@ Return the lowercase character version of @var{chr}.
 @node Strings
 @section Strings
 
-[FIXME: this is pasted in from Tom Lord's original guile.texi and should
-be reviewed]
+Strings are fixed--length sequences of characters.  They can be created
+by calling constructor procedures, but they can also literally get
+entered at the REPL or in Scheme source files.
 
-For the sake of efficiency, two special kinds of strings are available
-in Guile: shared substrings and the misleadingly named ``read-only''
-strings.  It is not necessary to know about these to program in Guile,
-but you are likely to run into one or both of these special string types
-eventually, and it will be helpful to know how they work.
+The read syntax for strings is an arbitrarily long sequence of characters
+enclosed in double quotes (@code{"}). @footnote{Actually, the current
+implementation restricts strings to a length of 2&24 characters.}  If
+you want to insert a double quote character into a string literal, it
+must be prefixed with a backslash @code{\} character (called an
+@emph{escape character}).
+
+The following are examples of string literals:
+
+@lisp
+"foo"
+"bar plonk"
+"Hello World"
+"\"Hi\", he said."
+@end lisp
+
+Guile provides a rich set of string processing procedures, because text
+handling is very important when Guile is used as a scripting language.
 
 @menu
-* String Fun::                  New functions for manipulating strings.
+* String Predicates::           Testing strings for certain properties.
+* String Constructors::         Creating new string objects.
+* List/String Conversion::      Converting from/to lists of characters.
+* String Selection::            Select portions from strings.
+* String Modification::         Modify parts or whole strings.
+* String Comparison::           Lexicographic ordering predicates.
+* String Searching::            Searching in strings.
+* Alphabetic Case Mapping::     Convert the alphabetic case of strings.
+* Appending Strings::           Appending strings to form a new string.
+* String Miscellanea::          Miscellaneous string procedures.
 * Shared Substrings::           Strings which share memory with each other.
 * Read Only Strings::           Treating certain non-strings as strings.
 @end menu
 
-@node String Fun
-@subsection String Fun
+@node String Predicates
+@subsection String Predicates
+
+The following procedures can be used to check whether a given string
+fulfills some specified property.
+
+@r5index string?
+@c docstring begin (texi-doc-string "guile" "string?")
+@deffn primitive string? obj
+Returns @code{#t} iff @var{obj} is a string, else returns
+@code{#f}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "string-null?")
+@deffn primitive string-null? str
+Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}
+otherwise.
+
+@example
+(string-null? "")  @result{} #t
+y                  @result{} "foo"
+(string-null? y)   @result{} #f
+@end example
+@end deffn
+
+@node String Constructors
+@subsection String Constructors
+
+The string constructor procedures create new string objects, possibly
+initializing them with some specified character data.
+
+@c FIXME::martin: list->string belongs into `List/String Conversion'
 
 @r5index string
 @r5index list->string
@@ -1434,12 +1487,31 @@ the string are initialized to @var{chr}, otherwise the contents
 of the @var{string} are unspecified.
 @end deffn
 
-@r5index string-append
-@c docstring begin (texi-doc-string "guile" "string-append")
-@deffn primitive string-append . args
-Return a newly allocated string whose characters form the
-concatenation of the given strings, @var{args}.
+@node List/String Conversion
+@subsection List/String conversion
+
+When processing strings, it is often convenient to first convert them
+into a list representation by using the procedure @code{string->list},
+work with the resulting list, and then convert it back into a string.
+These procedures are useful for similar tasks.
+
+@r5index string->list
+@c docstring begin (texi-doc-string "guile" "string->list")
+@deffn primitive string->list str
+@samp{String->list} returns a newly allocated list of the
+characters that make up the given string.  @samp{List->string}
+returns a newly allocated string formed from the characters in the list
+@var{list}, which must be a list of characters. @samp{String->list}
+and @samp{list->string} are
+inverses so far as @samp{equal?} is concerned.  (r5rs)
 @end deffn
+
+@node String Selection
+@subsection String Selection
+
+Portions of strings can be extracted by these procedures.
+@code{string-ref} delivers individual characters whereas
+@code{substring} can be used to extract substrings from longer strings.
 
 @r5index string-length
 @c docstring begin (texi-doc-string "guile" "string-length")
@@ -1454,19 +1526,10 @@ Return character @var{k} of @var{str} using zero-origin
 indexing. @var{k} must be a valid index of @var{str}.
 @end deffn
 
-@r5index string-set!
-@c docstring begin (texi-doc-string "guile" "string-set!")
-@deffn primitive string-set! str k chr
-Store @var{chr} in element @var{k} of @var{str} and return
-an unspecified value. @var{k} must be a valid index of
-@var{str}.
-@end deffn
-
-@r5index string?
-@c docstring begin (texi-doc-string "guile" "string?")
-@deffn primitive string? obj
-Returns @code{#t} iff @var{obj} is a string, else returns
-@code{#f}.
+@r5index string-copy
+@c docstring begin (texi-doc-string "guile" "string-copy")
+@deffn primitive string-copy str
+Returns a newly allocated copy of the given @var{string}. (r5rs)
 @end deffn
 
 @r5index substring
@@ -1481,49 +1544,41 @@ exact integers satisfying:
 0 <= @var{start} <= @var{end} <= (string-length @var{str}).
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "string-index")
-@deffn primitive string-index str chr [frm [to]]
-Return the index of the first occurrence of @var{chr} in @var{str}.  The
-optional integer arguments @var{frm} and @var{to} limit the search to
-a portion of the string.  This procedure essentially implements the
-@code{index} or @code{strchr} functions from the C library.
+@node String Modification
+@subsection String Modification
 
-(qdocs:)  Returns the index of @var{char} in @var{str}, or @code{#f} if the
-@var{char} isn't in @var{str}. If @var{frm} is given and not @code{#f},
-it is used as the starting index; if @var{to} is given and not @code{#f},
-it is used as the ending index (exclusive).
+These procedures are for modifying strings in--place.  That means, that
+not a new string is the result of a string operation, but that the
+actual memory representation of a string is modified.
 
-@example
-(string-index "weiner" #\e)
-@result{} 1
-
-(string-index "weiner" #\e 2)
-@result{} 4
-
-(string-index "weiner" #\e 2 4)
-@result{} #f
-@end example
+@r5index string-set!
+@c docstring begin (texi-doc-string "guile" "string-set!")
+@deffn primitive string-set! str k chr
+Store @var{chr} in element @var{k} of @var{str} and return
+an unspecified value. @var{k} must be a valid index of
+@var{str}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "string-rindex")
-@deffn primitive string-rindex str chr [frm [to]]
-Like @code{string-index}, but search from the right of the string rather
-than from the left.  This procedure essentially implements the
-@code{rindex} or @code{strrchr} functions from the C library.
+@r5index string-fill!
+@c docstring begin (texi-doc-string "guile" "string-fill!")
+@deffn primitive string-fill! str chr
+Stores @var{char} in every element of the given @var{string} and returns an
+unspecified value.  (r5rs)
+@end deffn
 
-(qdocs:) The same as @code{string-index}, except it gives the rightmost occurance
-of @var{char} in the range [@var{frm}, @var{to}-1], which defaults to
-the entire string.
+@c ARGFIXME fill/fill-char
+@c docstring begin (texi-doc-string "guile" "substring-fill!")
+@deffn primitive substring-fill! str start end fill
+Change every character in @var{str} between @var{start} and @var{end} to
+@var{fill-char}.
+
+(qdocs:) Destructively fills @var{str}, from @var{start} to @var{end}, with @var{fill}.
 
 @example
-(string-rindex "weiner" #\e)
-@result{} 4
-
-(string-rindex "weiner" #\e 2 4)
-@result{} #f
-
-(string-rindex "weiner" #\e 2 5)
-@result{} 4
+(define y "abcdefg")
+(substring-fill! y 1 3 #\r)
+y
+@result{} "arrdefg"
 @end example
 @end deffn
 
@@ -1603,102 +1658,14 @@ y
 @end example
 @end deftypefn
 
-@c docstring begin (texi-doc-string "guile" "vector-move-left!")
-@deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-left!}.
-@end deffn
 
-@c docstring begin (texi-doc-string "guile" "vector-move-right!")
-@deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-right!}.
-@end deffn
+@node String Comparison
+@subsection String Comparison
 
-@c ARGFIXME fill/fill-char
-@c docstring begin (texi-doc-string "guile" "substring-fill!")
-@deffn primitive substring-fill! str start end fill
-Change every character in @var{str} between @var{start} and @var{end} to
-@var{fill-char}.
-
-(qdocs:) Destructively fills @var{str}, from @var{start} to @var{end}, with @var{fill}.
-
-@example
-(define y "abcdefg")
-(substring-fill! y 1 3 #\r)
-y
-@result{} "arrdefg"
-@end example
-@end deffn
-
-@c docstring begin (texi-doc-string "guile" "string-null?")
-@deffn primitive string-null? str
-Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}
-otherwise.
-
-(qdocs:) Returns @code{#t} if @var{str} is empty, else returns @code{#f}.
-
-@example
-(string-null? "")
-@result{} #t
-
-(string-null? y)
-@result{} #f
-@end example
-@end deffn
-
-@c ARGFIXME v/str
-@c docstring begin (texi-doc-string "guile" "string-upcase!")
-@deffn primitive string-upcase! str
-Destructively upcase every character in @code{str}.
-
-(qdocs:) Converts each element in @var{str} to upper case.
-
-@example
-(string-upcase! y)
-@result{} "ARRDEFG"
-
-y
-@result{} "ARRDEFG"
-@end example
-@end deffn
-
-@c docstring begin (texi-doc-string "guile" "string-upcase")
-@deffn primitive string-upcase str
-Upcase every character in @code{str}.
-@end deffn
-
-@c ARGFIXME v/str
-@c docstring begin (texi-doc-string "guile" "string-downcase!")
-@deffn primitive string-downcase! str
-Destructively downcase every character in @code{str}.
-
-(qdocs:) Converts each element in @var{str} to lower case.
-
-@example
-y
-@result{} "ARRDEFG"
-
-(string-downcase! y)
-@result{} "arrdefg"
-
-y
-@result{} "arrdefg"
-@end example
-@end deffn
-
-@c docstring begin (texi-doc-string "guile" "string-downcase")
-@deffn primitive string-downcase str
-Downcase every character in @code{str}.
-@end deffn
-
-@c docstring begin (texi-doc-string "guile" "string-capitalize!")
-@deffn primitive string-capitalize! str
-Destructively capitalize every character in @code{str}.
-@end deffn
-
-@c docstring begin (texi-doc-string "guile" "string-capitalize")
-@deffn primitive string-capitalize str
-Capitalize every character in @code{str}.
-@end deffn
+The procedures in this section are similar to the character ordering
+predicates (REFFIXME), but are defined on character sequences.  They all
+return @code{#t} on success and @code{#f} on failure.  The predicates
+ending in @code{-ci} ignore the character case when comparing strings.
 
 @r5index string<=?
 @c docstring begin (texi-doc-string "guile" "string-ci<=?")
@@ -1785,15 +1752,150 @@ Lexicographic ordering predicate; returns @code{#t} if
 @var{s1} is lexicographically greater than @var{s2}.  (r5rs)
 @end deffn
 
-@r5index string->list
-@c docstring begin (texi-doc-string "guile" "string->list")
-@deffn primitive string->list str
-@samp{String->list} returns a newly allocated list of the
-characters that make up the given string.  @samp{List->string}
-returns a newly allocated string formed from the characters in the list
-@var{list}, which must be a list of characters. @samp{String->list}
-and @samp{list->string} are
-inverses so far as @samp{equal?} is concerned.  (r5rs)
+@node String Searching
+@subsection String Searching
+
+When searching the index of a character in a string, these procedures
+can be used.
+
+@c docstring begin (texi-doc-string "guile" "string-index")
+@deffn primitive string-index str chr [frm [to]]
+Return the index of the first occurrence of @var{chr} in @var{str}.  The
+optional integer arguments @var{frm} and @var{to} limit the search to
+a portion of the string.  This procedure essentially implements the
+@code{index} or @code{strchr} functions from the C library.
+
+(qdocs:)  Returns the index of @var{char} in @var{str}, or @code{#f} if the
+@var{char} isn't in @var{str}. If @var{frm} is given and not @code{#f},
+it is used as the starting index; if @var{to} is given and not @code{#f},
+it is used as the ending index (exclusive).
+
+@example
+(string-index "weiner" #\e)
+@result{} 1
+
+(string-index "weiner" #\e 2)
+@result{} 4
+
+(string-index "weiner" #\e 2 4)
+@result{} #f
+@end example
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "string-rindex")
+@deffn primitive string-rindex str chr [frm [to]]
+Like @code{string-index}, but search from the right of the string rather
+than from the left.  This procedure essentially implements the
+@code{rindex} or @code{strrchr} functions from the C library.
+
+(qdocs:) The same as @code{string-index}, except it gives the rightmost occurance
+of @var{char} in the range [@var{frm}, @var{to}-1], which defaults to
+the entire string.
+
+@example
+(string-rindex "weiner" #\e)
+@result{} 4
+
+(string-rindex "weiner" #\e 2 4)
+@result{} #f
+
+(string-rindex "weiner" #\e 2 5)
+@result{} 4
+@end example
+@end deffn
+
+@node Alphabetic Case Mapping
+@subsection Alphabetic Case Mapping
+
+These are procedures for mapping strings to their upper-- or lower--case
+equivalents, respectively, or for capitalizing strings.
+
+@c ARGFIXME v/str
+@c docstring begin (texi-doc-string "guile" "string-upcase!")
+@deffn primitive string-upcase! str
+Destructively upcase every character in @code{str}.
+
+(qdocs:) Converts each element in @var{str} to upper case.
+
+@example
+(string-upcase! y)
+@result{} "ARRDEFG"
+
+y
+@result{} "ARRDEFG"
+@end example
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "string-upcase")
+@deffn primitive string-upcase str
+Upcase every character in @code{str}.
+@end deffn
+
+@c ARGFIXME v/str
+@c docstring begin (texi-doc-string "guile" "string-downcase!")
+@deffn primitive string-downcase! str
+Destructively downcase every character in @code{str}.
+
+(qdocs:) Converts each element in @var{str} to lower case.
+
+@example
+y
+@result{} "ARRDEFG"
+
+(string-downcase! y)
+@result{} "arrdefg"
+
+y
+@result{} "arrdefg"
+@end example
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "string-downcase")
+@deffn primitive string-downcase str
+Downcase every character in @code{str}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "string-capitalize!")
+@deffn primitive string-capitalize! str
+Destructively capitalize every character in @code{str}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "string-capitalize")
+@deffn primitive string-capitalize str
+Capitalize every character in @code{str}.
+@end deffn
+
+@node Appending Strings
+@subsection Appending Strings
+
+The procedure @code{string-append} appends several strings together to
+form a longer result string.
+
+@r5index string-append
+@c docstring begin (texi-doc-string "guile" "string-append")
+@deffn primitive string-append . args
+Return a newly allocated string whose characters form the
+concatenation of the given strings, @var{args}.
+@end deffn
+
+
+@node String Miscellanea
+@subsection String Miscellanea
+
+This section contains several remaining string procedures.
+
+@c FIXME::martin: Should go into vector section.
+
+@c docstring begin (texi-doc-string "guile" "vector-move-left!")
+@deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
+Vector version of @code{substring-move-left!}.
+@end deffn
+
+@c FIXME::martin: Should go into vector section.
+
+@c docstring begin (texi-doc-string "guile" "vector-move-right!")
+@deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
+Vector version of @code{substring-move-right!}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-ci->symbol")
@@ -1801,22 +1903,14 @@ inverses so far as @samp{equal?} is concerned.  (r5rs)
 Return the symbol whose name is @var{str}, downcased in necessary(???).
 @end deffn
 
-@r5index string-copy
-@c docstring begin (texi-doc-string "guile" "string-copy")
-@deffn primitive string-copy str
-Returns a newly allocated copy of the given @var{string}. (r5rs)
-@end deffn
-
-@r5index string-fill!
-@c docstring begin (texi-doc-string "guile" "string-fill!")
-@deffn primitive string-fill! str chr
-Stores @var{char} in every element of the given @var{string} and returns an
-unspecified value.  (r5rs)
-@end deffn
-
 
 @node Shared Substrings
 @subsection Shared Substrings
+
+[FIXME: this is pasted in from Tom Lord's original guile.texi and should
+be reviewed]
+
+@c FIXME::martin: Shared substrings are gone, so this section should die.
 
 Whenever you extract a substring using @code{substring}, the Scheme
 interpreter allocates a new string and copies data from the old string.
@@ -1890,6 +1984,9 @@ expect to change the contents of any of the strings involved.
 
 @node Read Only Strings
 @subsection Read Only Strings
+
+@c FIXME::martin: Read-only strings are gone, too, so this section should
+@c also die.
 
 Type-checking in Guile primitives distinguishes between mutable strings
 and read only strings.  Mutable strings answer @code{#t} to
@@ -2642,10 +2739,10 @@ syntax extension to permit keywords to begin with @code{:} as well as
 @code{#:}.
 
 @menu
-* Why Use Keywords?::
-* Coding With Keywords::
-* Keyword Read Syntax::
-* Keyword Primitives::
+* Why Use Keywords?::           
+* Coding With Keywords::        
+* Keyword Read Syntax::         
+* Keyword Primitives::          
 @end menu
 
 @node Why Use Keywords?
@@ -3590,10 +3687,10 @@ Return the vtable tag of the structure @var{handle}.
 @section Arrays
 
 @menu
-* Conventional Arrays::   Arrays with arbitrary data.
-* Array Mapping::         Applying a procedure to the contents of an array.
-* Uniform Arrays::        Arrays with data of a single type.
-* Bit Vectors::           Vectors of bits.
+* Conventional Arrays::         Arrays with arbitrary data.
+* Array Mapping::               Applying a procedure to the contents of an array.
+* Uniform Arrays::              Arrays with data of a single type.
+* Bit Vectors::                 Vectors of bits.
 @end menu
 
 @node Conventional Arrays
@@ -4076,8 +4173,8 @@ useful for organizing and indexing large bodies of information.
 
 @menu
 * Dictionary Types::            About dictionary types; what they're good for.
-* Association Lists::
-* Hash Tables::
+* Association Lists::           
+* Hash Tables::                 
 @end menu
 
 @node Dictionary Types
@@ -4148,12 +4245,12 @@ because association lists are so useful, Guile also provides specific
 procedures for manipulating them.
 
 @menu
-* Alist Key Equality::
-* Adding or Setting Alist Entries::
-* Retrieving Alist Entries::
-* Removing Alist Entries::
-* Sloppy Alist Functions::
-* Alist Example::
+* Alist Key Equality::          
+* Adding or Setting Alist Entries::  
+* Retrieving Alist Entries::    
+* Removing Alist Entries::      
+* Sloppy Alist Functions::      
+* Alist Example::               
 @end menu
 
 @node Alist Key Equality

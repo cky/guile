@@ -1,3 +1,8 @@
+2001-03-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-data.texi (Strings): Reorganized the whole `Strings'
+	section and wrote introductory material for each new subsection.
+
 2001-03-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* intro.texi (Modules and Extensions): Some short text about
