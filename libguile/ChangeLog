@@ -1,3 +1,8 @@
+1998-02-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* iselect.h, iselect.c, coop.c, coop-threads.c, coop-threads.h,
+	coop-defs.h, throw.c, backtrace.c: Added new copyright year 1998.
+
 1998-02-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* throw.h: Removed jmpbuf arg in scm_catch_body_t.

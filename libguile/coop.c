@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.5 1998-01-30 21:07:00 mdj Exp $ */
+/* $Id: coop.c,v 1.6 1998-02-06 18:55:25 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
