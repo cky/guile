@@ -6,7 +6,10 @@ dnl   macro creates the appropriate symlinks in the qt object directory,
 dnl   and sets the following variables, used in building libqthreads.a:
 dnl      QTHREAD_LTLIBS --- set to libqthreads.la if configuration
 dnl         succeeds, or the empty string if configuration fails.
-dnl      qtmd_h --- the name of the machine-dependent header file.
+dnl      qtmd_h, qtmds_s, qtmdc_c, qtdmdb_s --- the names of the machine-
+dnl         dependent source files.
+dnl      qthread_asflags --- flags to pass to the compiler when processing
+dnl         assembly-language files.
 dnl
 dnl   It also sets the following variables, which describe how clients
 dnl   can link against libqthreads.a:
@@ -36,7 +39,7 @@ dnl   needs to supply the second piece of information as well.
 dnl
 dnl   This whole thing is a little confused about what ought to be
 dnl   done in the top-level configure script, and what ought to be
-dnl   taken care of in the subdirectory.  For example, qtmdc_lo and
+dnl   taken care of in the subdirectory.  For example, qtmds_s and
 dnl   friends really ought not to be even mentioned in the top-level
 dnl   configure script, but here they are.
 
@@ -52,6 +55,7 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
   changequote(,)dnl We use [ and ] in a regexp in the case
 
   THREAD_PACKAGE=QT
+  qthread_asflags=''
   case "$host" in
     i[3456]86-*-*)
       port_name=i386
@@ -59,6 +63,17 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
       qtmds_s=md/i386.s
       qtmdc_c=md/null.c 
       qtdmdb_s=
+      case "$host" in
+        *-*-netbsd* )
+          ## NetBSD needs to be told to pass the assembly code through
+          ## the C preprocessor.  Other GCC installations seem to do
+          ## this by default, but NetBSD's doesn't.  We could get the
+          ## same effect by giving the file a name ending with .S
+          ## instead of .s, but I don't see how to tell automake to do
+          ## that.
+          qthread_asflags='-x assembler-with-cpp'
+        ;;
+      esac
       ;;
     mips-sgi-irix[56]*)
       port_name=irix
@@ -118,6 +133,7 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
   AC_SUBST(qtmds_s)
   AC_SUBST(qtmdc_c)
   AC_SUBST(qtdmdb_s)
+  AC_SUBST(qthread_asflags)
   AC_SUBST(THREAD_PACKAGE)
   AC_SUBST(THREAD_CPPFLAGS)
   AC_SUBST(THREAD_LIBS_LOCAL)
