@@ -51,6 +51,9 @@
    the Guile library itself.  */
 #undef GUILE_DEBUG
 
+/* Define to implement scm_internal_select */
+#undef GUILE_ISELECT
+
 /* Define if using cooperative multithreading.  */
 #undef USE_COOP_THREADS
 

@@ -92,7 +92,7 @@ fi
 
 GUILE_DLSYM_USCORE
 
-AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid)
+AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero)
 
 dnl <GNU-WIN32 hacks>
 
@@ -318,6 +318,19 @@ fi
 if test "$cy_cv_threads_package" != ""; then
   AC_DEFINE(USE_THREADS)
   LIBOBJS="$LIBOBJS threads.o"
+fi
+
+#--------------------------------------------------------------------
+#
+# scm_internal_select
+#
+#--------------------------------------------------------------------
+
+if test "$cy_cv_threads_package" != "" &&
+   test $ac_cv_func_gettimeofday = yes &&
+   test $ac_cv_func_select = yes; then
+  AC_DEFINE(GUILE_ISELECT, 1)
+  LIBOBJS="$LIBOBJS iselect.o"
 fi
 
 ## If we're using GCC, ask for aggressive warnings.

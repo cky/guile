@@ -375,6 +375,19 @@ missing.
 
 * Changes to the scm_ interface
 
+** Function: int scm_internal_select (int fds,
+				      SELECT_TYPE *rfds,
+				      SELECT_TYPE *wfds,
+				      SELECT_TYPE *efds,
+				      struct timeval *timeout);
+
+This is a replacement for the `select' function provided by the OS.
+It enables I/O blocking and sleeping to happen for one cooperative
+thread without blocking other threads.  It also avoids busy-loops in
+these situations.  It is intended that all I/O blocking and sleeping
+will finally go through this function.  Currently, this function is
+only available on systems providing `gettimeofday' and `select'.
+
 ** Function: SCM scm_internal_stack_catch (SCM tag,
 					   scm_catch_body_t body,
 					   void *body_data,
