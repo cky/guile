@@ -8,7 +8,8 @@ Changes since the stable branch:
 
 * Changes to the distribution
 
-** There is a new thread implementation option: "null".
+** There is a new thread implementation option "null", which is also
+   the default now.
 
 When you configure "--with-threads=null", you will get the usual
 threading API (call-with-new-thread, make-mutex, etc), but you can't
@@ -18,7 +19,7 @@ is always present, although you might not be able to create new
 threads.
 
 When cooperative threading is not supported on your platform, you will
-get the "null" threads.
+get the "null" threads instead.
 
 The long term plan is to make the selection of a thread implementation
 a run-time option, not a configure time option.
