@@ -1,3 +1,29 @@
+1998-05-03  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* procprop.c (scm_i_procedure_arity): New function.  Returns arity
+	of procedure.
+	(scm_procedure_properties): Modified to return arity together with
+	other properties.
+	(scm_procedure_property): Added the read-only property `arity'.
+	(scm_set_procedure_property_x): It is an error to set the `arity'
+	property.
+
+	* gsubr.h, gsubr.c: Moved macros from gsubr.c to gsubr.h and added
+	prefix SCM_; Made f_gsubr_apply global and added prefix scm_.
+
+	* procprop.h (scm_sym_arity): New symbol.
+
+	* objects.c (scm_set_object_procedure_x): New procedure: Use this
+	to set the dispatch procedure of an operator or entity object.
+
+	* objects.h (SCM_METACLASS_OPERATOR_LAYOUT, SCM_ENTITY_LAYOUT):
+	Made procedure slots read-only.
+
+	* eval.c (SCM_CEVAL): Moved scm_tc7_contin case above
+	scm_tcs_cons_gloc case in zero args switch; Fixed args
+	construction for operators in scm_tcs_cons_gloc case in two args
+	switch.
+
 1998-05-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* fluids.c: Removed use of assert.h (in order to avoid
