@@ -146,7 +146,7 @@ scm_uniform_element_size (SCM obj)
 static int
 singp (SCM obj)
 {
-  if (!SCM_SLOPPY_REALP (obj))
+  if (!SCM_REALP (obj))
     return 0;
   else
     {
