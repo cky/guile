@@ -521,12 +521,4 @@ enum scm_tags
 
 #define scm_tcs_bignums scm_tc16_bigpos:case scm_tc16_bigneg
 
-
-#ifdef __STDC__
-
-#else /* STDC */
-
-#endif /* STDC */
-
-
 #endif  /* TAGSH */
