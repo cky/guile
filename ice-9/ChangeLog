@@ -1,3 +1,61 @@
+1999-03-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	Improvement of backtraces: Introduces a new stack narrowing
+	specifier, #t, for the inner cut.  If the inner cut is specified
+	by #t, `make-stack' will throw away inner stack frames (most
+	recent calls on call chain) up to but excluding the first user
+	stack frame encountered.
+
+	This specifier is now used in `save-stack' so that the call
+	`(save-stack)' will get the new behaviour. [It is recommended that
+	any error reporting functions written by the user have this call
+	on the outermost expression level (i.e. as a member of the lambda
+	list).]
+
+	Modules are partitioned into "user" and "system" modules. [I know
+	that some names used here are silly, but I don't have more time to
+	spend on a better solution, especially considering that the module
+	system will be replaced.  But if people have better ideas, then
+	please tell me!]
+
+	System modules are created by adding :no-backtrace among the
+	define-module switches:
+
+	(define-module (foo)
+	  :no-backtrace)
+
+	Modules which doesn't have the :no-backtrace specifier are user
+	modules.
+	
+	A stack frame is classified as a user frame if it has source code
+	associated with it and if this source code can be proven to come
+	from a user module.  If it can be proven to come from a system
+	module it is a system frame.
+
+	Frames which can't be classified, e.g. application frames, are cut
+	away if they occur between system frames, but are left on the
+	stack if they occur between the last system frame and the first
+	user frame encountered.  (Note that the first user frame
+	encountered is the last user code being evaluated!)
+
+	In some cases the system part of the call chain is introduced by
+	frames which should but can't be proven to be system frames.  The
+	following workaround has been implemented: The cutting proceeds
+	over application frames where the operator is marked by the
+	`system-procedure' property.  (This has been used to cut away
+	generic function dispatch code in the object system.)
+
+	* boot-9.scm (set-system-module!): New procedure: Set system/user
+	status of a module.;
+	Mark `the-root-module' and `the-scm-module' as system modules.
+	(process-define-module): Add new keyword :no-backtrace.
+
+	* boot-9.scm (environment-module): Bugfixed.
+	(set-module-eval-closure!): Add a pointer back from the eval
+	closure to the module.
+
+	* emacs.scm (emacs-load): Reset port filename after transfer.
+
 1999-03-03  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* slib.scm (make-random-state): Added for compatibility.
