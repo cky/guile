@@ -16,7 +16,8 @@
 ;;;; 
 
 
-(define-module (ice-9 session))
+(define-module (ice-9 session)
+  :no-backtrace)
 
 
 
@@ -84,35 +85,30 @@
 
 (define-public (apropos-internal rgx)
   "Return a list of accessible variable names."
-  (let ((match (make-regexp rgx))
-	(modules (cons (current-module)
-		       (module-uses (current-module))))
-	(recorded (make-vector 61 '()))
-	(vars (cons '() '())))
-    (let ((last vars))
-      (for-each
-       (lambda (module)
-	 (for-each
-	  (lambda (obarray)
-	    (array-for-each
-	     (lambda (oblist)
-	       (for-each
-		(lambda (x)
-		  (if (and (regexp-exec match (car x))
-			   (not (hashq-get-handle recorded (car x))))
-		      (begin
-			(set-cdr! last (cons (car x) '()))
-			(set! last (cdr last))
-			(hashq-set! recorded (car x) #t))))
-		oblist))
-	     obarray))
-	  (if (or (eq? module the-scm-module)
-		  (eq? module the-root-module))
-	      (list (builtin-weak-bindings)
-		    (builtin-bindings))
-	      (list (module-obarray module)))))
-       modules))
-    (cdr vars)))
+  (letrec ((match (make-regexp rgx))
+	   (recorded (make-vector 61 '()))
+	   (obarray-names
+	    (lambda (obarray names)
+	      (hash-fold obarray
+			 (lambda (name var vars)
+			   (if (and (regexp-exec match name)
+				    (not (hashq-get-handle recorded name)))
+			       (begin
+				 (hashq-set! recorded name #t)
+				 (cons name vars))
+			       vars))
+			 names))))
+    (do ((modules (cons (current-module) (module-uses (current-module)))
+		  (cdr modules))
+	 (names '()
+		(if (or (eq? (car modules) the-scm-module)
+			(eq? (car modules) the-root-module))
+		    (obarray-names (builtin-weak-bindings)
+				   (obarray-names (builtin-bindings)
+						  names))
+		    (obarray-names (module-obarray (car modules))
+				   names))))
+	((null? modules) names))))
 
 (define-public (name obj)
   (cond ((procedure? obj) (procedure-name obj))
