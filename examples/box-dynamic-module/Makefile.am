@@ -19,7 +19,7 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
-EXTRA_DIST = README box.c
+EXTRA_DIST = README box.c box-module.scm
 
 CFLAGS=`guile-config compile`
 LIBS=`guile-config link`

@@ -22,23 +22,15 @@ module called (box-module) and can thus only be accessed after using
 this module.  See the following example session for usage details:
 
 Extend your LD_LIBRARY_PATH variable (or equivalent) to include . and
-.libs 
+.libs and make sure that your current working directory is the one
+this file is contained in.
 
 If you like this example so much that you want to have it available
 for normal usage, install the dynamic libraries in the .libs directory
-to the directory $(prefix)/lib
-
-Note that after loading the extension, an explicit call to use-modules
-is needed to make the exported procedures available.
+to the directory $(prefix)/lib and the scheme file `box-module.scm' in
+a directory in your GUILE_LOAD_PATH.
 
 $ guile
-guile> (load-extension "libbox-module" "scm_init_box")
-guile> make-box
-<unnamed port>: In expression make-box:
-<unnamed port>: Unbound variable: make-box
-ABORT: (unbound-variable)
-
-Type "(backtrace)" to get more information or "(debug)" to enter the debugger.
 guile> (use-modules (box-module))
 guile> (define b (make-box))
 guile> b

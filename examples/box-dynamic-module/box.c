@@ -133,7 +133,8 @@ init_box_type (void * unused)
    second argument.  It will initialize the shared, library, but will
    place the definitions in a module called (box-module), so that an
    additional (use-modules (box-module)) is needed to make them
-   accessible.  */
+   accessible.  In this example, the Scheme file box-module.scm is
+   responsible for doing the load-extension call.  */
 void
 scm_init_box ()
 {
