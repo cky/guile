@@ -1,3 +1,17 @@
+2002-07-07  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Crosscompiling and Cygwin fixes by Jan Nieuwenhuizen.  Thanks!
+
+	* Makefile.am: Override default rule for c-tokenize.$(OBJECT);
+	this should be compiled for BUILD host.
+	Override default rule for
+	guile_filter_doc_snarfage$(EEXECT); this should run on BUILD host.
+	Add missing $(EXEEXT) to guile_filter_doc_snarfage invocation.
+	(snarf2checkedtexi): Use GUILE_FOR_BUILD instead of preinstguile.
+
+	* guile.c, iselect.h, net_db.c, posix.c, socket.c: Do not include
+	<winsock2.h> on Cygwin even when we have it.
+
 2002-07-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_CAUTIOUS), eval.c (scm_eval_args, deval_args,
