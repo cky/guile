@@ -1869,6 +1869,7 @@ called with string containing unusual characters.
 * String Searching::            Searching in strings.
 * Alphabetic Case Mapping::     Convert the alphabetic case of strings.
 * Appending Strings::           Appending strings to form a new string.
+* Conversion to/from C::       
 @end menu
 
 @node String Syntax
@@ -1945,6 +1946,10 @@ fulfills some specified property.
 @deffnx {C Function} scm_string_p (obj)
 Return @code{#t} if @var{obj} is a string, else @code{#f}.
 @end deffn
+
+@deftypefn {C Function} int scm_is_string (SCM obj)
+Returns @code{1} if @var{obj} is a string, @code{0} otherwise.
+@end deftypefn
 
 @deffn {Scheme Procedure} string-null? str
 @deffnx {C Function} scm_string_null_p (str)
@@ -2311,6 +2316,83 @@ concatenation of the given strings, @var{args}.
 @end example
 @end deffn
 
+@node Conversion to/from C
+@subsubsection Conversion to/from C
+
+When creating a Scheme string from a C string or when converting a
+Scheme string to a C string, the concept of character encoding becomes
+important.
+
+In C, a string is just a sequence of bytes, and the character encoding
+describes the relation between these bytes and the actual characters
+that the string contains.  For Scheme strings, character encoding not
+an issue (most of the time), since in Scheme you never get to see the
+bytes, only the characters.
+
+Well, ideally, anyway.  Right now, Guile simply equates Scheme
+characters and bytes, ignoring the possibility of multi-byte encodings
+completely.  This will change in the future, where Guile will use
+Unicode codepoints as its characters and UTF-8 (or maybe UCS-4) as its
+internal encoding.  When you exclusively use the functions listed in
+this section, you are `future-proof'.
+
+Converting a Scheme string to a C string will allocate fresh memory to
+hold the result.  You must take care that this memory is properly
+freed eventually.  In many cases, this can be achieved by using
+@code{scm_frame_free} inside an appropriate frame, @xref{Frames}.
+
+@deftypefn  {C Function} SCM scm_from_locale_string (const char *str)
+@deftypefnx {C Function} SCM scm_from_locale_stringn (const char *str, size_t len)
+Creates a new Scheme string that has the same contents as @var{str}
+when interpreted in the current locale character encoding.
+
+For @code{scm_from_locale_string}, @var{str} must be null-terminated.
+
+For @code{scm_from_locale_stringn}, @var{len} specifies the length of
+@var{str} in bytes, and @var{str} does not need to be null-terminated.
+If @var{len} is @code{(size_t)-1}, then @var{str} does need to be
+null-terminated and the real length will be found with @code{strlen}.
+@end deftypefn
+
+@deftypefn  {C Function} SCM scm_take_locale_string (char *str)
+@deftypefnx {C Function} SCM scm_take_locale_stringn (char *str, size_t len)
+Like @code{scm_from_locale_string} and @code{scm_from_locale_stringn},
+respectively, but also frees @var{str} with @code{free} eventually.
+Thus, you can use this function when you would free @var{str} anyway
+immediately after creating the Scheme string.  In certain cases, Guile
+can then use @var{str} directly as its internal representation.
+@end deftypefn
+
+@deftypefn  {C Function} char *scm_to_locale_string (SCM str)
+@deftypefnx {C Function} char *scm_to_locale_stringn (SCM str, size_t *lenp)
+Returns a C string in the current locale encoding with the same
+contents as @var{str}.  The C string must be freed with @code{free}
+eventually, maybe by using @code{scm_frame_free}, @xref{Frames}.
+
+For @code{scm_to_locale_string}, the returned string is
+null-terminated and an error is signalled when @var{str} contains
+@code{#\nul} characters.
+
+For @code{scm_to_locale_stringn} and @var{lenp} not @code{NULL},
+@var{str} might contain @code{#\nul} characters and the length of the
+returned string in bytes is stored in @code{*@var{lenp}}.  The
+returned string will not be null-terminated in this case.  If
+@var{lenp} is @code{NULL}, @code{scm_to_locale_stringn} behaves like
+@code{scm_to_locale_string}.
+@end deftypefn
+
+@deftypefn {C Function} size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len)
+Puts @var{str} as a C string in the current locale encoding into the
+memory pointed to by @var{buf}.  The buffer at @var{buf} has room for
+@var{max_len} bytes and @code{scm_to_local_stringbuf} will never store
+more than that.  No terminating @code{'\0'} will be stored.
+
+The return value of @code{scm_to_locale_stringbuf} is the number of
+bytes that are needed for all of @var{str}, regardless of whether
+@var{buf} was large enough to hold them.  Thus, when the return value
+is larger than @var{max_len}, only @var{max_len} bytes have been
+stored and you probably need to try again with a larger buffer.
+@end deftypefn
 
 @node Regular Expressions
 @subsection Regular Expressions
