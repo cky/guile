@@ -86,11 +86,6 @@ char *alloca ();
 #include "procprop.h"
 #include "hashtab.h"
 #include "hash.h"
-
-#ifdef DEBUG_EXTENSIONS
-#include "debug.h"
-#endif /* DEBUG_EXTENSIONS */
-
 #include "srcprop.h"
 #include "stackchk.h"
 #include "objects.h"
@@ -1283,18 +1278,46 @@ long scm_tc16_macro;
 
 
 SCM 
-scm_eval_args (l, env)
+scm_eval_args (l, env, proc)
      SCM l;
      SCM env;
+     SCM proc;
 {
-  SCM res = SCM_EOL, *lloc = &res;
+  SCM results = SCM_EOL, *lloc = &results, res;
   while (SCM_NIMP (l))
     {
-      *lloc = scm_cons (EVALCAR (l, env), SCM_EOL);
+#ifdef CAUTIOUS
+      if (SCM_IMP (l))
+	goto wrongnumargs;
+      else if (SCM_CONSP (l))
+	{
+	  if (SCM_IMP (SCM_CAR (l)))
+	    res = EVALIM (SCM_CAR (l), env);
+	  else
+	    res = EVALCELLCAR (l, env);
+	}
+      else if (SCM_TYP3 (l) == 1)
+	{
+	  if ((res = SCM_GLOC_VAL (SCM_CAR (l))) == 0)
+	    res = SCM_CAR (l); /* struct planted in code */
+	}
+      else
+	goto wrongnumargs;
+#else
+      res = EVALCAR (l, env);
+#endif
+      *lloc = scm_cons (res, SCM_EOL);
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
-  return res;
+#ifdef CAUTIOUS
+  if (SCM_NNULLP (l))
+    {
+    wrongnumargs:
+      scm_wrong_num_args (proc);
+    }
+#endif
+  return results;
 }
 
 
@@ -1489,17 +1512,44 @@ scm_evaluator_traps (setting)
 }
 
 SCM
-scm_deval_args (l, env, lloc)
-     SCM l, env, *lloc;
+scm_deval_args (l, env, proc, lloc)
+     SCM l, env, proc, *lloc;
 {
-  SCM *res = lloc;
+  SCM *results = lloc, res;
   while (SCM_NIMP (l))
     {
-      *lloc = scm_cons (EVALCAR (l, env), SCM_EOL);
+#ifdef CAUTIOUS
+      if (SCM_IMP (l))
+	goto wrongnumargs;
+      else if (SCM_CONSP (l))
+	{
+	  if (SCM_IMP (SCM_CAR (l)))
+	    res = EVALIM (SCM_CAR (l), env);
+	  else
+	    res = EVALCELLCAR (l, env);
+	}
+      else if (SCM_TYP3 (l) == 1)
+	{
+	  if ((res = SCM_GLOC_VAL (SCM_CAR (l))) == 0)
+	    res = SCM_CAR (l); /* struct planted in code */
+	}
+      else
+	goto wrongnumargs;
+#else
+      res = EVALCAR (l, env);
+#endif
+      *lloc = scm_cons (res, SCM_EOL);
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
-  return *res;
+#ifdef CAUTIOUS
+  if (SCM_NNULLP (l))
+    {
+    wrongnumargs:
+      scm_wrong_num_args (proc);
+    }
+#endif
+  return *results;
 }
 
 #endif /* !DEVAL */
@@ -2204,8 +2254,23 @@ evapply:
 #ifdef CAUTIOUS
   if (SCM_IMP (x))
     goto wrongnumargs;
-#endif
+  else if (SCM_CONSP (x))
+    {
+      if (SCM_IMP (SCM_CAR (x)))
+	t.arg1 = EVALIM (SCM_CAR (x), env);
+      else
+	t.arg1 = EVALCELLCAR (x, env);
+    }
+  else if (SCM_TYP3 (x) == 1)
+    {
+      if ((t.arg1 = SCM_GLOC_VAL (SCM_CAR (x))) == 0)
+	t.arg1 = SCM_CAR (x); /* struct planted in code */
+    }
+  else
+    goto wrongnumargs;
+#else
   t.arg1 = EVALCAR (x, env);
+#endif
 #ifdef DEVAL
   debug.info->a.args = scm_cons (t.arg1, SCM_EOL);
 #endif
@@ -2325,9 +2390,24 @@ evapply:
 #ifdef CAUTIOUS
   if (SCM_IMP (x))
     goto wrongnumargs;
+  else if (SCM_CONSP (x))
+    {
+      if (SCM_IMP (SCM_CAR (x)))
+	arg2 = EVALIM (SCM_CAR (x), env);
+      else
+	arg2 = EVALCELLCAR (x, env);
+    }
+  else if (SCM_TYP3 (x) == 1)
+    {
+      if ((arg2 = SCM_GLOC_VAL (SCM_CAR (x))) == 0)
+	arg2 = SCM_CAR (x); /* struct planted in code */
+    }
+  else
+    goto wrongnumargs;
+#else
+  arg2 = EVALCAR (x, env);
 #endif
   {				/* have two or more arguments */
-    arg2 = EVALCAR (x, env);
 #ifdef DEVAL
     debug.info->a.args = scm_cons2 (t.arg1, arg2, SCM_EOL);
 #endif
@@ -2362,7 +2442,7 @@ evapply:
 #else
 	  RETURN (SCM_APPLY (SCM_CCLO_SUBR (proc), proc,
 			     scm_cons2 (t.arg1, arg2,
-					scm_cons (scm_eval_args (x, env),
+					scm_cons (scm_eval_args (x, env, proc),
 						  SCM_EOL))));
 #endif
 	  /*    case scm_tc7_cclo:
@@ -2423,9 +2503,14 @@ evapply:
 	  goto cdrxbegin;
 	}
     }
+#ifdef CAUTIOUS
+    if (SCM_IMP (x) || SCM_NECONSP (x))
+      goto wrongnumargs;
+#endif
 #ifdef DEVAL
     debug.info->a.args = scm_cons2 (t.arg1, arg2,
-      scm_deval_args (x, env, SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
+      scm_deval_args (x, env, proc,
+		      SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
 #endif
     ENTER_APPLY;
     switch (SCM_TYP7 (proc))
@@ -2514,12 +2599,16 @@ evapply:
 	RETURN (SCM_BOOL_T)
 #else /* BUILTIN_RPASUBR */
 	RETURN (SCM_APPLY (proc, t.arg1,
-			   scm_acons (arg2, scm_eval_args (x, env), SCM_EOL)));
+			   scm_acons (arg2,
+				      scm_eval_args (x, env, proc),
+				      SCM_EOL)));
 #endif /* BUILTIN_RPASUBR */
       case scm_tc7_lsubr_2:
-	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, scm_eval_args (x, env)));
+	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, scm_eval_args (x, env, proc)));
       case scm_tc7_lsubr:
-	RETURN (SCM_SUBRF (proc) (scm_cons2 (t.arg1, arg2, scm_eval_args (x, env))));
+	RETURN (SCM_SUBRF (proc) (scm_cons2 (t.arg1,
+					     arg2,
+					     scm_eval_args (x, env, proc))));
 #ifdef CCLO
       case scm_tc7_cclo:
 	goto cclon;
@@ -2529,7 +2618,9 @@ evapply:
 	SCM_SET_ARGSREADY (debug);
 #endif
 	env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)),
-			      scm_cons2 (t.arg1, arg2, scm_eval_args (x, env)),
+			      scm_cons2 (t.arg1,
+					 arg2,
+					 scm_eval_args (x, env, proc)),
 			      SCM_ENV (proc));
 	x = SCM_CODE (proc);
 	goto cdrxbegin;
@@ -2549,7 +2640,7 @@ evapply:
 #else
 		  RETURN (SCM_SUBRF (p) (proc, t.arg1,
 					 scm_cons (arg2,
-						   scm_eval_args (x, env))))
+						   scm_eval_args (x, env, proc))))
 #endif
 		else if (SCM_CLOSUREP (p))
 		  {
@@ -2566,7 +2657,7 @@ evapply:
 		    env = EXTEND_ENV (SCM_CAR (SCM_CODE (p)),
 				      scm_cons2 (proc, t.arg1,
 						 scm_cons (arg2,
-							   scm_eval_args (x, env))),
+							   scm_eval_args (x, env, proc))),
 				      SCM_ENV (p));
 #endif
 		    x = SCM_CODE (p);

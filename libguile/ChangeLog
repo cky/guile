@@ -1,3 +1,22 @@
+1998-05-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Do more thorough argument checking.  This
+	change makes the evaluator safer at the cost of evaluation speed.
+	It handles the case when the user has added a non-immediate
+	improper end of the application form, e.g., `(+ 0 . x)'.
+	(Earlier only cases like `(+ 0 . 0)' were handled.)  I've tried to
+	minimize the extra cost as much as possible.  The new code is
+	enclosed in #ifdef CAUTIOUS regions.  NOTE: This also fixes the
+	problem with structs planted directly in the code (e.g. by a
+	macro).  This no longer causes segmentation fault.  (Thanks to
+	Eric Hanchrow.)
+	
+	* eval.c, eval.h (scm_eval_args, scm_deval_args): Take one extra
+	arg `proc' in order to be able to throw errors; New argument
+	checking code.
+
+	* Removed extra #include "debug.h"
+
 1998-04-25  Mikael Djurfeldt  <mdj@kenneth>
 
 	* scmsigs.c: Declare usleep as returning void on some systems.
