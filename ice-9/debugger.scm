@@ -17,13 +17,16 @@
 ;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;; Boston, MA 02111-1307 USA
 
-(define-module (ice-9 debugger))
+(define-module (ice-9 debugger)
+  :use-module (ice-9 debug))
 
 (if (memq 'readline *features*)
     (define-module (ice-9 debugger)
       :use-module (ice-9 readline)))
 
 
+(define debugger-prompt "debug> ")
+
 (define-public (debug)
   (let ((stack (fluid-ref the-last-stack)))
     (if stack
@@ -46,11 +49,14 @@
 	     (let loop ((state state))
 	       (loop (read-and-dispatch-command state port)))))
 	 (lambda arguments
-	   (set-readline-prompt! scm-repl-prompt)
 	   'done)))
 
 (define (read-and-dispatch-command state port)
-  (set-readline-prompt! "debug> ")
+  (if (using-readline?)
+      (set-readline-prompt! debugger-prompt)
+      (begin
+	(display debugger-prompt)
+	(force-output)))
   (let ((token (read-token port)))
     (cond ((eof-object? token)
 	   (throw 'exit-debugger))
@@ -541,9 +547,18 @@ With a negative argument, print outermost -COUNT frames."
       ;; Kludge around lack of call-with-values.
       (let ((values
 	     (lambda (start end)
-	       (do ((index start (+ index 1)))
-		   ((= index end))
-		 (write-state-short* stack index)))))
+	       ;;(do ((index start (+ index 1)))
+	       ;;    ((= index end))
+	       ;;(write-state-short* stack index))
+	       ;;
+	       ;; Use builtin backtrace instead:
+	       (display-backtrace stack
+				  (current-output-port)
+				  (if (memq 'backwards (debug-options))
+				      start
+				      (- end 1))
+				  (- end start))
+	       )))
 	(let ((end (stack-length stack)))
 	  (cond ((or (not n-frames) (>= (abs n-frames) end))
 		 (values 0 end))
@@ -569,7 +584,7 @@ With a negative argument, print outermost -COUNT frames."
   (lambda (state)
     (let ((index (state-index state)))
       (let ((frame (stack-ref (state-stack state) index)))
-	(write-frame-index-long frame index)
+	(write-frame-index-long frame)
 	(write-frame-args-long frame)))
     state))
 
@@ -581,12 +596,14 @@ With a negative argument, print outermost -COUNT frames."
 
 ;;;; Command Support
 
-(define (select-frame-absolute state index)
+(define (select-frame-absolute state number)
   (new-state-index state
-		   (let ((end (stack-length (state-stack state))))
-		     (if (>= index end)
-			 (- end 1)
-			 index))))
+		   (frame-number->index
+		    (let ((end (stack-length (state-stack state))))
+		      (if (>= number end)
+			  (- end 1)
+			  number))
+		    (state-stack state))))
 
 (define (select-frame-relative state delta)
   (new-state-index state
@@ -601,13 +618,13 @@ With a negative argument, print outermost -COUNT frames."
   (write-state-short* (state-stack state) (state-index state)))
 
 (define (write-state-short* stack index)
-  (write-frame-index-short index)
+  (write-frame-index-short stack index)
   (write-char #\space)
   (write-frame-short (stack-ref stack index))
   (newline))
 
-(define (write-frame-index-short index)
-  (let ((s (number->string index)))
+(define (write-frame-index-short stack index)
+  (let ((s (number->string (frame-number (stack-ref stack index)))))
     (display s)
     (write-char #\:)
     (write-chars #\space (- 4 (string-length s)))))
@@ -645,12 +662,12 @@ With a negative argument, print outermost -COUNT frames."
 (define (write-state-long state)
   (let ((index (state-index state)))
     (let ((frame (stack-ref (state-stack state) index)))
-      (write-frame-index-long frame index)
+      (write-frame-index-long frame)
       (write-frame-long frame))))
 
-(define (write-frame-index-long frame index)
+(define (write-frame-index-long frame)
   (display "Stack frame: ")
-  (write index)
+  (write (frame-number frame))
   (if (frame-real? frame)
       (display " (real)"))
   (newline))
