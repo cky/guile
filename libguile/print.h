@@ -95,6 +95,7 @@ extern SCM scm_write SCM_P ((SCM obj, SCM port));
 extern SCM scm_display SCM_P ((SCM obj, SCM port));
 extern SCM scm_newline SCM_P ((SCM port));
 extern SCM scm_write_char SCM_P ((SCM chr, SCM port));
+extern SCM scm_printer_apply SCM_P ((SCM proc, SCM exp, SCM port, scm_print_state *));
 extern void scm_init_print SCM_P ((void));
 
 #endif  /* PRINTH */

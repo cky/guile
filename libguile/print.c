@@ -53,6 +53,7 @@
 #include "unif.h"
 #include "alist.h"
 #include "struct.h"
+#include "fluids.h"
 
 #include "print.h"
 
@@ -156,6 +157,17 @@ scm_print_options (setting)
 #define EXIT_NESTED_DATA(pstate) { --pstate->top; }
 
 static SCM print_state_pool;
+
+/* This fluid is an implicit parameter to scm_iprin (and thus
+scm_display and scm_write) and carries the current print_state when
+Scheme code is called to do some printing.  That way, circular
+references are detected even when they reach across calls to `display'
+or `write'. 
+
+The fluid is not visible to Scheme code, but maybe it should. */
+
+static SCM print_state_fluid;
+static int print_state_fluid_num;
 
 #ifdef GUILE_DEBUG /* Used for debugging purposes */
 SCM_PROC(s_current_pstate, "current-pstate", 0, 0, 0, scm_current_pstate);
@@ -320,7 +332,9 @@ taloop:
 
 	  if (SCM_CDR (SCM_CAR (exp) - 1L) == 0)
 	    {
+	      ENTER_NESTED_DATA (pstate, exp, circref);
 	      scm_print_struct (exp, port, pstate);
+	      EXIT_NESTED_DATA (pstate);
 	      break;
 	    }
 
@@ -587,30 +601,41 @@ scm_prin1 (exp, port, writingp)
      SCM port;
      int writingp;
 {
-  SCM handle = 0; /* Will GC protect the handle whilst unlinked */
+  SCM handle = SCM_BOOL_F; /* Will GC protect the handle whilst unlinked */
+  SCM pstate_scm;
   scm_print_state *pstate;
 
-  /* First try to allocate a print state from the pool */
-  SCM_DEFER_INTS;
-  if (SCM_NNULLP (SCM_CDR (print_state_pool)))
-    {
-      handle = SCM_CDR (print_state_pool);
-      SCM_SETCDR (print_state_pool, SCM_CDDR (print_state_pool));
-    }
-  SCM_ALLOW_INTS;
-  
-  if (!handle)
-    handle = scm_cons (make_print_state (), SCM_EOL);
+  /* If there is currently a print state active, use that.  Else
+     create a new one. */
 
-  pstate = SCM_PRINT_STATE (SCM_CAR (handle));
+  pstate_scm = SCM_FAST_FLUID_REF (print_state_fluid_num);
+  if (pstate_scm == SCM_BOOL_F)
+    {
+      /* First try to allocate a print state from the pool */
+      SCM_DEFER_INTS;
+      if (SCM_NNULLP (SCM_CDR (print_state_pool)))
+	{
+	  handle = SCM_CDR (print_state_pool);
+	  SCM_SETCDR (print_state_pool, SCM_CDDR (print_state_pool));
+	}
+      SCM_ALLOW_INTS;
+      if (handle == SCM_BOOL_F)
+	handle = scm_cons (make_print_state (), SCM_EOL);
+      pstate_scm = SCM_CAR (handle);
+    }
+
+  pstate = SCM_PRINT_STATE (pstate_scm);
   pstate->writingp = writingp;
   scm_iprin1 (exp, port, pstate);
 
-  /* Return print state to pool */
-  SCM_DEFER_INTS;
-  SCM_SETCDR (handle, SCM_CDR (print_state_pool));
-  SCM_SETCDR (print_state_pool, handle);
-  SCM_ALLOW_INTS;
+  /* Return print state to pool, if it has been created above. */
+  if (handle != SCM_BOOL_F)
+    {
+      SCM_DEFER_INTS;
+      SCM_SETCDR (handle, SCM_CDR (print_state_pool));
+      SCM_SETCDR (print_state_pool, handle);
+      SCM_ALLOW_INTS;
+    }
 }
 
 
@@ -850,14 +875,48 @@ scm_write_char (chr, port)
   return SCM_UNSPECIFIED;
 }
 
-
 
 
+/* Routines for calling back to Scheme code to do the printing of
+special objects (like structs).  SCM_PRINTER_APPLY applies PROC to EXP
+and PORT while the print_state_fluid is set to PSTATE.  When PROC
+inturn calls `display' or `write', this print_state is picked up and
+used to control the printing. */
+
+struct apply_data {
+  SCM proc;
+  SCM arg1;
+  SCM args;
+};
+
+static SCM
+apply_stub (void *data)
+{
+  struct apply_data *cl = (struct apply_data *)data;
+  return scm_apply (cl->proc, cl->arg1, cl->args);
+}
+
+SCM
+scm_printer_apply (proc, exp, port, pstate)
+     SCM proc, exp, port;
+     scm_print_state *pstate;
+{
+  struct apply_data cl;
+  cl.proc = proc;
+  cl.arg1 = exp;
+  cl.args = scm_cons (port, scm_listofnull);
+  return scm_internal_with_fluids (scm_cons (print_state_fluid, SCM_EOL),
+				   scm_cons (pstate->handle, SCM_EOL),
+				   apply_stub, (void *)&cl);
+}
+				   
+
 
 void
 scm_init_print ()
 {
   SCM vtable, type;
+
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
   vtable = scm_make_vtable_vtable (scm_make_struct_layout (scm_nullstr), SCM_INUM0, SCM_EOL);
   type = scm_make_struct (vtable,
@@ -865,5 +924,10 @@ scm_init_print ()
 			  scm_cons (scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT)),
 				    SCM_EOL));
   print_state_pool = scm_permanent_object (scm_cons (type, SCM_EOL));
+
+  print_state_fluid = scm_permanent_object (scm_make_fluid ());
+  scm_fluid_set_x (print_state_fluid, SCM_BOOL_F);
+  print_state_fluid_num = SCM_FLUID_NUM (print_state_fluid);
+
 #include "print.x"
 }
