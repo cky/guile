@@ -1,5 +1,7 @@
 2001-06-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
+	* README: New file.
+	
 	* common-list.scm:
 	Clean up some docstrings; nfc.
 	Add Commentary.
