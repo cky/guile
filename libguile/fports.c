@@ -184,9 +184,9 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 
   /* silently discards buffered chars.  */
   if (pt->read_buf != &pt->shortbuf)
-    scm_must_free (pt->read_buf);
+    free (pt->read_buf);
   if (pt->write_buf != &pt->shortbuf)
-    scm_must_free (pt->write_buf);
+    free (pt->write_buf);
 
   scm_fport_buffer_add (port, csize, csize);
   return SCM_UNSPECIFIED;
