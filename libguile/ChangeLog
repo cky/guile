@@ -3,6 +3,8 @@
 	* regex-posix.c (scm_regexp_exec): Expand docstring to briefly
 	describe `regexp/notbol' and `regexp/noteol' execution flags.
 
+	* strop.c (scm_substring_move_x): Doc fix; nfc.
+
 2001-05-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* objects.c, objects.h (scm_valid_object_procedure_p): New.
