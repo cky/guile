@@ -12,6 +12,8 @@
 	* SNAPSHOTS: Fix reference bug; recommended tool
 	versions are in HACKING.
 
+	* TODO: Add completion and ownership protocol to header comments.
+
 2001-06-27  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* autogen.sh: don't run flex here.
