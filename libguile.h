@@ -68,6 +68,7 @@ extern "C" {
 #endif
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
+#include "libguile/environments.h"
 #include "libguile/eq.h"
 #include "libguile/error.h"
 #include "libguile/eval.h"
@@ -98,6 +99,7 @@ extern "C" {
 #include "libguile/ports.h"
 #include "libguile/posix.h"
 #include "libguile/procprop.h"
+#include "libguile/properties.h"
 #include "libguile/procs.h"
 #include "libguile/ramap.h"
 #include "libguile/random.h"
