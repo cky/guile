@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 2000, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,6 +100,9 @@ with-new-thread was evaluated, but not in the callers thread.
 
 All the evaluation rules for dynamic roots apply to threads.
 */
+
+SCM_REGISTER_PROC(s_current_thread, "current-thread", 0, 0, 0, scm_current_thread);
+SCM_REGISTER_PROC(s_all_thread, "all-threads", 0, 0, 0, scm_all_threads);
 
 SCM_REGISTER_PROC(s_join_thread, "join-thread", 1, 0, 0, scm_join_thread);
 /* Suspend execution of the calling thread until the target @var{thread}

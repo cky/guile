@@ -3,7 +3,7 @@
 #ifndef SCM_THREADS_H
 #define SCM_THREADS_H
 
-/* Copyright (C) 1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@
 #include "libguile/__scm.h"
 #include "libguile/procs.h"
 #include "libguile/throw.h"
+#include "libguile/root.h"
 
 
 
@@ -99,6 +100,11 @@ SCM_API SCM scm_unlock_mutex (SCM m);
 SCM_API SCM scm_make_condition_variable (void);
 SCM_API SCM scm_wait_condition_variable (SCM cond, SCM mutex);
 SCM_API SCM scm_signal_condition_variable (SCM cond);
+
+SCM_API SCM scm_current_thread (void);
+SCM_API SCM scm_all_threads (void);
+
+SCM_API scm_root_state *scm_i_thread_root (SCM thread);
 
 #ifdef USE_COOP_THREADS
 #include "libguile/coop-defs.h"
