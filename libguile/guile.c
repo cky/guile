@@ -46,6 +46,9 @@
    based on the list of installed, statically linked libraries on the
    system.  For now, please don't put interesting code in here.  */
 
+#ifdef __MINGW32__
+# define __SCM_IMPORT__ 1
+#endif
 #include <libguile.h>
 
 #ifdef HAVE_CONFIG_H
@@ -85,7 +88,7 @@ inner_main (void *closure SCM_UNUSED, int argc, char **argv)
 int
 main (int argc, char **argv)
 {
-#ifdef DYNAMIC_LINKING
+#if defined (DYNAMIC_LINKING) && !defined (__MINGW32__)
   LTDL_SET_PRELOADED_SYMBOLS ();
 #endif
   scm_boot_guile (argc, argv, inner_main, 0);
