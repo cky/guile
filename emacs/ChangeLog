@@ -1,3 +1,35 @@
+2001-11-19  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* update-changelog.el:
+	When run as a batch program, invoke `(ucl-update "ChangeLog")'
+	instead of `(ucl-update-all)'.
+
+	(ucl-outdir): Delete this var.
+	(ucl-update): Arg now specifies change log file
+	instead of cvs module directory.
+	Make interactive.
+	(ucl-update-all): Delete this func.
+
+	* update-changelog.el: New file.
+
+	* update-change.el: bye bye
+
+	* update-change.el:
+	A little birdie from cobalt sang in my ear.
+	As guilish developers uploaded, disappeared.
+	  Thunderous silence?
+	  Mail server grievance?
+	Mangle that process (son), but don't drink the beer.
+
+	* patch.el (patch-send):
+	Renamed from `patch-submit'.
+	Gadzooks what kind of world is this?
+
+2001-10-25  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* README, patch.el:
+	New file.
+
 2001-10-25  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* patch.el, README: New files.
@@ -16,7 +48,7 @@
 	(guile-process-import-module): Renamed from guile-process-use-module.
 
 	* guile-emacs.scm (guile-emacs-apropos, guile-emacs-describe):
-	New procedures. 
+	New procedures.
 
 	* guile-scheme.el (guile-scheme-mode-map): Use
 	`shared-lisp-mode-map' as the parent keymap if

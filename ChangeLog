@@ -1,3 +1,7 @@
+2001-11-19  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* TODO (write emacs/patch.el): New item, self-assigned.
+
 2001-11-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in: switch to AC_LIBLTDL_INSTALLABLE so we'll use the
