@@ -3,6 +3,10 @@
 	* srfi-1.scm (lset-adjoin): Actually use the given `=' procedure.
 	Test membership only on the given `list', not `acc', as per the spec.
 
+	* srfi-1.c, srfi-1.scm (remove): Rewrite in C, a trivial adaption from
+	scm_filter in the core.
+	* srfi-1.scm (remove!): Use filter!.
+
 2005-01-28  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (lset=): Correction to pred call arg order, srfi spec is
