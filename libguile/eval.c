@@ -18,6 +18,8 @@
 
 
 
+#define _GNU_SOURCE
+
 /* This file is read twice in order to produce debugging versions of ceval and
  * scm_apply.  These functions, deval and scm_dapply, are produced when we
  * define the preprocessor macro DEVAL.  The file is divided into sections
