@@ -43,6 +43,10 @@ instance @var{obj}.  One of these @code{SCM} values can be returned
 from the procedure and Guile will call @code{scm_gc_mark} for it.
 This can be used to avoid deep recursions for smob instances that form
 a list.
+
+It must not call any libguile function or macro except
+@code{scm_gc_mark}, @code{SCM_SMOB_FLAGS}, @code{SCM_SMOB_DATA},
+@code{SCM_SMOB_DATA_2}, and @code{SCM_SMOB_DATA_3}.
 @end deftypefn
 
 @deftypefn {C Function} void scm_set_smob_free (scm_t_bits tc, size_t (*free) (SCM obj))
