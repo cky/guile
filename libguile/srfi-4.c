@@ -217,13 +217,19 @@ uvec_assert (int type, SCM obj)
     scm_wrong_type_arg_msg (NULL, 0, obj, uvec_names[type]);
 }
 
+static SCM
+take_uvec (int type, const void *base, size_t len)
+{
+  SCM_RETURN_NEWSMOB3 (scm_tc16_uvec, type, len, (scm_t_bits) base);
+}
+  
 /* Create a new, uninitialized homogeneous numeric vector of type TYPE
    with space for LEN elements.  */
 static SCM
-alloc_uvec (int type, size_t c_len)
+alloc_uvec (int type, size_t len)
 {
-  void *base = scm_gc_malloc (c_len * uvec_sizes[type], uvec_names[type]);
-  SCM_RETURN_NEWSMOB3 (scm_tc16_uvec, type, c_len, (scm_t_bits) base);
+  void *base = scm_gc_malloc (len * uvec_sizes[type], uvec_names[type]);
+  return take_uvec (type, base, len);
 }
 
 /* GCC doesn't seem to want to optimize unused switch clauses away,
@@ -573,6 +579,9 @@ scm_uniform_vector_release (SCM uvec)
   /* Nothing to do right now, but this function might come in handy
      when uniform vectors need to be locked when giving away a pointer
      to their elements.
+     
+     Also, a call to scm_uniform_vector acts like
+     scm_remember_upto_here, which is needed in any case.
   */
 }
 

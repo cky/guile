@@ -53,6 +53,14 @@ SCM_DEFINE (F(scm_make_,TAG,vector), "make-"S(TAG)"vector", 1, 1, 0,
 }
 #undef FUNC_NAME
 
+SCM
+F(scm_take_,TAG,vector) (const CTYPE *data, size_t n)
+{
+  scm_gc_register_collectable_memory ((void *)data, n*sizeof(CTYPE),
+				      uvec_names[TYPE]);
+  return take_uvec (TYPE, data, n);
+}
+
 SCM_DEFINE (F(scm_,TAG,vector), S(TAG)"vector", 0, 0, 1,
             (SCM l),
 	    "Return a newly allocated homogeneous numeric vector containing\n"

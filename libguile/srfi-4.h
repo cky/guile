@@ -44,6 +44,7 @@ SCM_API void scm_uniform_vector_release (SCM uvec);
 
 SCM_API SCM scm_u8vector_p (SCM obj);
 SCM_API SCM scm_make_u8vector (SCM n, SCM fill);
+SCM_API SCM scm_take_u8vector (const scm_t_uint8 *data, size_t n);
 SCM_API SCM scm_u8vector (SCM l);
 SCM_API SCM scm_u8vector_length (SCM uvec);
 SCM_API SCM scm_u8vector_ref (SCM uvec, SCM index);
@@ -54,6 +55,7 @@ SCM_API scm_t_uint8 *scm_u8vector_elements (SCM uvec);
 
 SCM_API SCM scm_s8vector_p (SCM obj);
 SCM_API SCM scm_make_s8vector (SCM n, SCM fill);
+SCM_API SCM scm_take_s8vector (const scm_t_int8 *data, size_t n);
 SCM_API SCM scm_s8vector (SCM l);
 SCM_API SCM scm_s8vector_length (SCM uvec);
 SCM_API SCM scm_s8vector_ref (SCM uvec, SCM index);
@@ -64,6 +66,7 @@ SCM_API scm_t_int8 *scm_s8vector_elements (SCM uvec);
 
 SCM_API SCM scm_u16vector_p (SCM obj);
 SCM_API SCM scm_make_u16vector (SCM n, SCM fill);
+SCM_API SCM scm_take_u16vector (const scm_t_uint16 *data, size_t n);
 SCM_API SCM scm_u16vector (SCM l);
 SCM_API SCM scm_u16vector_length (SCM uvec);
 SCM_API SCM scm_u16vector_ref (SCM uvec, SCM index);
@@ -74,6 +77,7 @@ SCM_API scm_t_uint16 *scm_u16vector_elements (SCM uvec);
 
 SCM_API SCM scm_s16vector_p (SCM obj);
 SCM_API SCM scm_make_s16vector (SCM n, SCM fill);
+SCM_API SCM scm_take_s16vector (const scm_t_int16 *data, size_t n);
 SCM_API SCM scm_s16vector (SCM l);
 SCM_API SCM scm_s16vector_length (SCM uvec);
 SCM_API SCM scm_s16vector_ref (SCM uvec, SCM index);
@@ -84,6 +88,7 @@ SCM_API scm_t_int16 *scm_s16vector_elements (SCM uvec);
 
 SCM_API SCM scm_u32vector_p (SCM obj);
 SCM_API SCM scm_make_u32vector (SCM n, SCM fill);
+SCM_API SCM scm_take_u32vector (const scm_t_uint32 *data, size_t n);
 SCM_API SCM scm_u32vector (SCM l);
 SCM_API SCM scm_u32vector_length (SCM uvec);
 SCM_API SCM scm_u32vector_ref (SCM uvec, SCM index);
@@ -94,6 +99,7 @@ SCM_API scm_t_uint32 *scm_u32vector_elements (SCM uvec);
 
 SCM_API SCM scm_s32vector_p (SCM obj);
 SCM_API SCM scm_make_s32vector (SCM n, SCM fill);
+SCM_API SCM scm_take_s32vector (const scm_t_int32 *data, size_t n);
 SCM_API SCM scm_s32vector (SCM l);
 SCM_API SCM scm_s32vector_length (SCM uvec);
 SCM_API SCM scm_s32vector_ref (SCM uvec, SCM index);
@@ -104,6 +110,7 @@ SCM_API scm_t_int32 *scm_s32vector_elements (SCM uvec);
 
 SCM_API SCM scm_u64vector_p (SCM obj);
 SCM_API SCM scm_make_u64vector (SCM n, SCM fill);
+SCM_API SCM scm_take_u64vector (const scm_t_uint64 *data, size_t n);
 SCM_API SCM scm_u64vector (SCM l);
 SCM_API SCM scm_u64vector_length (SCM uvec);
 SCM_API SCM scm_u64vector_ref (SCM uvec, SCM index);
@@ -114,6 +121,7 @@ SCM_API scm_t_uint64 *scm_u64vector_elements (SCM uvec);
 
 SCM_API SCM scm_s64vector_p (SCM obj);
 SCM_API SCM scm_make_s64vector (SCM n, SCM fill);
+SCM_API SCM scm_take_s64vector (const scm_t_int64 *data, size_t n);
 SCM_API SCM scm_s64vector (SCM l);
 SCM_API SCM scm_s64vector_length (SCM uvec);
 SCM_API SCM scm_s64vector_ref (SCM uvec, SCM index);
@@ -124,6 +132,7 @@ SCM_API scm_t_int64 *scm_s64vector_elements (SCM uvec);
 
 SCM_API SCM scm_f32vector_p (SCM obj);
 SCM_API SCM scm_make_f32vector (SCM n, SCM fill);
+SCM_API SCM scm_take_f32vector (const float *data, size_t n);
 SCM_API SCM scm_f32vector (SCM l);
 SCM_API SCM scm_f32vector_length (SCM uvec);
 SCM_API SCM scm_f32vector_ref (SCM uvec, SCM index);
@@ -134,6 +143,7 @@ SCM_API float *scm_f32vector_elements (SCM uvec);
 
 SCM_API SCM scm_f64vector_p (SCM obj);
 SCM_API SCM scm_make_f64vector (SCM n, SCM fill);
+SCM_API SCM scm_take_f64vector (const double *data, size_t n);
 SCM_API SCM scm_f64vector (SCM l);
 SCM_API SCM scm_f64vector_length (SCM uvec);
 SCM_API SCM scm_f64vector_ref (SCM uvec, SCM index);
