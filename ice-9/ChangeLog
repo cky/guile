@@ -1,3 +1,10 @@
+1999-03-16  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* session.scm (apropos-internal): Rewritten using hash-fold.
+
+	* emacs.scm, session.scm, slib.scm): Added :no-backtrace in module
+	definition.
+
 1999-03-14  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (make-record-type): Use `set-struct-vtable-name!' to
