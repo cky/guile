@@ -54,13 +54,14 @@ extern scm_ptobfuns scm_fptob;
 extern scm_ptobfuns scm_pipob;
 
 
-
-extern SCM scm_setbuf0 SCM_P ((SCM port));
+extern SCM scm_setbuf0 (SCM port);
 extern SCM scm_setvbuf (SCM port, SCM mode, SCM size);
-extern void scm_setfileno SCM_P ((FILE *fs, int fd));
-extern void scm_evict_ports SCM_P ((int fd));
-extern SCM scm_open_file SCM_P ((SCM filename, SCM modes));
-extern SCM scm_stdio_to_port SCM_P ((FILE *file, char *name, char *modes));
+extern SCM scm_freopen SCM_P ((SCM filename, SCM modes, SCM port));
+extern void scm_setfileno (FILE *fs, int fd);
+extern void scm_evict_ports (int fd);
+extern SCM scm_open_file (SCM filename, SCM modes);
+extern SCM scm_stdio_to_port (FILE *file, char *mode, SCM name);
+extern SCM scm_standard_stream_to_port (FILE *file, char *mode, char *name);
 extern void scm_init_fports SCM_P ((void));
 
 #endif  /* FPORTSH */
