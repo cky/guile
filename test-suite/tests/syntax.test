@@ -703,7 +703,7 @@
       (eval '(set! #f #t)
 	    (interaction-environment)))
 
-    (pass-if-exception "(set! #\space #f)"
+    (pass-if-exception "(set! #\\space #f)"
       exception:bad-variable
       (eval '(set! #\space #f)
 	    (interaction-environment)))))
