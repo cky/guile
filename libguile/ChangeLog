@@ -1,3 +1,8 @@
+2003-09-16  Marius Vollmer  <mvo@zagadka.de>
+
+	* stime.c (scm_current_time): 'time' does not set errno so don't
+	use SCM_SYSERROR for reporting errors.
+
 2003-09-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	This set of patches eliminates the dependency between the
