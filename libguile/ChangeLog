@@ -1,3 +1,25 @@
+2005-01-07  Marius Vollmer  <mvo@zagadka.de>
+
+	Make the uniform vector routines also deal with one dimensional
+	arrays.
+	
+	* srfi-4.c (SCM_IS_UVEC): New, use it instead of
+	SCM_SMOB_PREDICATE in this file.
+	(is_uvec): Also recognize one-dimensional uniform numeric arrays
+	of the right type.
+	(scm_is_uniform_vector): Likewise.
+	(uvec_fast_ref): Made BASE param const.
+	(uvec_writable_elements, uvec_elements): New.
+	(uvec_to_list, uvec_ref, uvec_set_x, uvec_length,
+	scm_c_uniform_vector_length, scm_c_uniform_vector_ref,
+	scm_c_uniform_set_x): Use them to also deal with one-dimensional
+	arrays.
+	(scm_uniform_vector_ref, scm_uniform_vector_set_x): Deprecate old
+	argument convention.
+	(scm_uniform_vector_to_list): Let uvec_to_list do all the
+	checking.
+	(scm_uniform_vector_length): Use uvec_length.
+	
 2005-01-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.h, srfi-4.c (scm_c_uniform_vector_element_size,
