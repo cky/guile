@@ -25,6 +25,7 @@
  exception:bad-variable
  exception:missing-expression
  exception:out-of-range exception:unbound-var
+ exception:used-before-defined
  exception:wrong-num-args exception:wrong-type-arg
  exception:numerical-overflow
 
@@ -243,6 +244,8 @@
   (cons 'out-of-range "^Argument .*out of range"))
 (define exception:unbound-var
   (cons 'unbound-variable "^Unbound variable"))
+(define exception:used-before-defined
+  (cons 'unbound-variable "^Variable used before given a value"))
 (define exception:wrong-num-args
   (cons 'wrong-number-of-args "^Wrong number of arguments"))
 (define exception:wrong-type-arg
