@@ -43,6 +43,7 @@ guile_TEXINFOS = preface.texi			\
 		 api-scheduling.texi		\
 		 api-options.texi		\
 		 api-translation.texi		\
+		 api-i18n.texi			\
 		 api-debug.texi			\
 		 scheme-reading.texi		\
 		 scheme-indices.texi		\

@@ -1,0 +1,38 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@page
+@node Internationalization
+@section Support for Internationalization
+
+@deffn {Scheme Procedure} gettext msgid [domain [category]]
+@deffnx {C Function} scm_gettext (msgid, domain, category)
+Return the translation of @var{msgid} in the message domain @var{domain}. @var{domain} is optional and defaults to the domain set through (textdomain).  @var{category} is optional and defaults to LC_MESSAGES.
+@end deffn
+
+@deffn {Scheme Procedure} ngettext msgid msgid_plural n [domain [category]]
+@deffnx {C Function} scm_ngettext (msgid, msgid_plural, n, domain, category)
+Return the translation of @var{msgid}/@var{msgid_plural} in the message domain @var{domain}, with the plural form being chosen appropriately for the number @var{n}.  @var{domain} is optional and defaults to the domain set through (textdomain). @var{category} is optional and defaults to LC_MESSAGES.
+@end deffn
+
+@deffn {Scheme Procedure} textdomain [domainname]
+@deffnx {C Function} scm_textdomain (domainname)
+If optional parameter @var{domainname} is supplied, set the textdomain.  Return the textdomain.
+@end deffn
+
+@deffn {Scheme Procedure} bindtextdomain domainname [directory]
+@deffnx {C Function} scm_bindtextdomain (domainname, directory)
+If optional parameter @var{directory} is supplied, set message catalogs to directory @{directory}.  Return the directory bound to @var{domainname}.
+@end deffn
+
+@deffn {Scheme Procedure} bind-textdomain-codeset domainname [encoding]
+@deffnx {C Function} scm_bind_textdomain_codeset (domainname, encoding)
+If optional parameter @var{encoding} is supplied, set encoding for message catalogs of @{domainname}.  Return the encoding of @var{domainname}.
+@end deffn
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
