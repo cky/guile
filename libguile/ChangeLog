@@ -1,3 +1,7 @@
+2000-05-02  Gary Houston  <ghouston@arglist.com>
+
+	* Makefile.am (INCLUDES): add ${INCLTDL} (thanks to Tim Mooney).
+
 2000-05-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (scm_logtest, scm_division):  Reordered dispatch
