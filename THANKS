@@ -2,36 +2,37 @@ The Guile maintainer is Maciej Stachowiak.
 
 Contributors since the last release:
 
-      Greg Badros
-       Jim Blandy
-    Mikael Djurfeldt
-      Dirk Herrmann
-      Gary Houston
-   Michael Livshin
-    Thomas Tanner
-    Marius Vollmer
+       Greg Badros
+ 	Jim Blandy
+     Mikael Djurfeldt
+       Dirk Herrmann
+       Gary Houston
+    Michael Livshin
+     Thomas Tanner
+     Marius Vollmer
 
 For fixes or providing information which led to a fix:
 
-     Lauri Alanko
-     Diego Dainese
-      Mark Galassi
-      Greg Harvey
-       Jon Hellan 	
-   Richard Kim
-      Brad Knotwell
-       Tim Mooney
-      Eric Moore
- Thien-Thi Nguyen
-   Han-Wen Nienhuys
-   Keisuke Nishida
-    Roland Orre
-  Bertrand Petit
-    Jorgen Schaefer
-      Bill Schottstaedt
-    Daniel Skarda
-       Tal Tversky
-   Bernard Urban
-      Lynn Winebarger
-      Ryan Yeske
+      Lauri Alanko
+      Diego Dainese
+       Mark Galassi
+       Greg Harvey
+ 	Jon Hellan 	
+    Richard Kim
+       Brad Knotwell
+ 	Tim Mooney
+       Eric Moore
+  Thien-Thi Nguyen
+Kalle Olavi Niemitalo
+    Han-Wen Nienhuys
+    Keisuke Nishida
+     Roland Orre
+   Bertrand Petit
+     Jorgen Schaefer
+       Bill Schottstaedt
+     Daniel Skarda
+ 	Tal Tversky
+    Bernard Urban
+       Lynn Winebarger
+       Ryan Yeske
 

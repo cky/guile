@@ -1,5 +1,9 @@
 2000-05-01  Gary Houston  <ghouston@arglist.com>
 
+	* scmsigs.c: fix the definition of orig_handlers for the case
+	that HAVE_SIGACTION is not defined (thanks to
+	Kalle Olavi Niemitalo).
+
 	* Makefile.am: remove include_HEADERS (was libguile.h)
 	libguile.h: moved to top level directory.
 
