@@ -95,13 +95,7 @@ information on how to interpret this value."
 		   (close-process-quietly (cons p pid))))
 	     (loop (pipe-guardian)))))))
 
-(set! gc-thunk 
-      (let ((old-thunk gc-thunk))
-	(lambda ()
-	  (if old-thunk (old-thunk))
-	  (reap-pipes))))
-
-;; (add-hook! after-gc-hook reap-pipes)
+(add-hook! after-gc-hook reap-pipes)
 
 (define-public (open-input-pipe command) (open-pipe command OPEN_READ))
 (define-public (open-output-pipe command) (open-pipe command OPEN_WRITE))

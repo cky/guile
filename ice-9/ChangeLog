@@ -1,3 +1,7 @@
+2000-06-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* popen.scm:  gc-thunk is deprecated.  Use after-gc-hook instead.
+
 2000-06-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* common-list.scm (intersection, set-difference, remove-if,
