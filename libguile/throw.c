@@ -321,19 +321,6 @@ struct lazy_catch {
   void *handler_data;
 };
 
-static SCM
-mark_lazy_catch (SCM closure)
-{
-  return SCM_BOOL_F;
-}
-
-static scm_sizet
-free_lazy_catch (SCM closure)
-{
-  /* These live on the stack.  */
-  return 0;
-}
-
 /* Strictly speaking, we could just pass a zero for our print
    function, because we don't need to print them.  They should never
    appear in normal data structures, only in the wind list.  However,
@@ -352,7 +339,7 @@ print_lazy_catch (SCM closure, SCM port, scm_print_state *pstate)
 }
 
 static scm_smobfuns lazy_catch_funs = {
-  mark_lazy_catch, free_lazy_catch, print_lazy_catch, 0
+  scm_mark0, scm_free0, print_lazy_catch, 0
 };
 
 

@@ -1,3 +1,11 @@
+Sun Feb  9 18:04:41 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* throw.c (mark_lazy_catch, free_lazy_catch): Removed.
+	1. mark_lazy_catch didn't mark the smob.
+	2. Both functions above have standard variants:
+	(lazy_catch_funs): Changed mark_lazy_catch --> scm_mark0,
+	free_lazy_catch --> scm_free0.
+
 Fri Feb  7 17:30:26 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* throw.c (scm_internal_lazy_catch): New function.
