@@ -40,7 +40,9 @@ loading and evaluating Scheme code at run time.
 
 An expression to be evaluated takes one of the following forms.
 
-@deffn syntax <symbol> {}
+@table @nicode
+
+@item @var{symbol}
 A symbol is evaluated by dereferencing.  A binding of that symbol is
 sought and the value there used.  For example,
 
@@ -48,9 +50,8 @@ sought and the value there used.  For example,
 (define x 123)
 x @result{} 123
 @end example
-@end deffn
 
-@deffn {syntax} {} (proc [args @dots{}])
+@item (@var{proc} @var{args}@dots{})
 A parenthesised expression is a function call.  @var{proc} and each
 argument are evaluated, then the function (which @var{proc} evaluated
 to) is called with those arguments.
@@ -69,9 +70,8 @@ The same sort of parenthesised form is used for a macro invocation,
 but in that case the arguments are not evaluated.  See the
 descriptions of macros for more on this (@pxref{Macros}, and
 @pxref{Syntax Rules}).
-@end deffn
 
-@deffn syntax <constant>
+@item @var{constant}
 Number, string, character and boolean constants evaluate ``to
 themselves'', so can appear as literals.
 
@@ -85,10 +85,9 @@ themselves'', so can appear as literals.
 
 Note that an application must not attempt to modify literal strings,
 since they may be in read-only memory.
-@end deffn
 
-@deffn syntax quote data
-@deffnx syntax ' data
+@item (quote @var{data})
+@itemx '@var{data}
 Quoting is used to obtain a literal symbol (instead of a variable
 reference), a literal list (instead of a function call), or a literal
 vector.  @nicode{'} is simply a shorthand for a @code{quote} form.
@@ -106,10 +105,9 @@ For example,
 Note that an application must not attempt to modify literal lists or
 vectors obtained from a @code{quote} form, since they may be in
 read-only memory.
-@end deffn
 
-@deffn syntax quasiquote data
-@deffnx syntax ` data
+@item (quasiquote @var{data})
+@itemx `@var{data}
 Backquote quasi-quotation is like @code{quote}, but selected
 sub-expressions are evaluated.  This is a convenient way to construct
 a list or vector structure most of which is constant, but at certain
@@ -118,8 +116,10 @@ points should have expressions substituted.
 The same effect can always be had with suitable @code{list},
 @code{cons} or @code{vector} calls, but quasi-quoting is often easier.
 
-@deffn syntax unquote expr
-@deffnx syntax , expr
+@table @nicode
+
+@item (unquote @var{expr})
+@itemx ,@var{expr}
 Within the quasiquote @var{data}, @code{unquote} or @code{,} indicates
 an expression to be evaluated and inserted.  The comma syntax @code{,}
 is simply a shorthand for an @code{unquote} form.  For example,
@@ -129,10 +129,9 @@ is simply a shorthand for an @code{unquote} form.  For example,
 `(1 (unquote (+ 1 1)) 3) @result{} (1 2 3)
 `#(1 ,(/ 12 2))          @result{} #(1 6)
 @end example
-@end deffn
 
-@deffn syntax unquote-splicing expr
-@deffnx syntax ,@ expr
+@item (unquote-splicing @var{expr})
+@itemx ,@@@var{expr}
 Within the quasiquote @var{data}, @code{unquote-splicing} or
 @code{,@@} indicates an expression to be evaluated and the elements of
 the returned list inserted.  @var{expr} must evaluate to a list.  The
@@ -150,7 +149,8 @@ Notice @code{,@@} differs from plain @code{,} in the way one level of
 nesting is stripped.  For @code{,@@} the elements of a returned list
 are inserted, whereas with @code{,} it would be the list itself
 inserted.
-@end deffn
+@end table
+
 @c
 @c  FIXME: What can we say about the mutability of a quasiquote
 @c  result?  R5RS doesn't seem to specify anything, though where it
@@ -158,7 +158,8 @@ inserted.
 @c  presumably the "fixed" portions of a quasiquote expression must be
 @c  treated as immutable.
 @c
-@end deffn
+
+@end table
 
 
 @node Comments
