@@ -764,7 +764,7 @@ SCM_DEFINE (scm_string_trim_right, "string-trim-right", 1, 3, 0,
 #define FUNC_NAME s_scm_string_trim_right
 {
   const char *cstr;
-  int cstart, cend;
+  size_t cstart, cend;
 
   MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
 				   3, start, cstart,
@@ -3060,7 +3060,7 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
   const char *cs;
   size_t ctstart, csfrom, csto, cstart, cend;
   SCM dummy = SCM_UNDEFINED;
-  int cdummy;
+  size_t cdummy;
 
   MY_VALIDATE_SUBSTRING_SPEC (1, target,
 			      2, tstart, ctstart,
