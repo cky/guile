@@ -47,11 +47,10 @@ ryanw
 
 ** integration of Jost's environments
 
-gjb
+dirk
 
 ** generational garbage collection
 
-gregh
 livshin
 
 ** POSIX thread support
@@ -116,7 +115,7 @@ dirk
 
 *** Orbit CORBA interface
 
-Talk to mdj
+livshin
 
 
 Local Variables:
