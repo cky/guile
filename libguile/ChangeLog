@@ -1,3 +1,9 @@
+2004-11-03  Marius Vollmer  <mvo@zagadka.de>
+
+	* unif.h (SCM_UVECTOR_BASE, SCM_SET_UVECTOR_BASE,
+	SCM_UVECTOR_MAXLENGTH, SCM_UVECTOR_LENGTH, SCM_MAKE_UVECTOR_TAG,
+	SCM_SET_UVECTOR_LENGTH): Removed.
+
 2004-11-02  Marius Vollmer  <mvo@zagadka.de>
 
         Mac OS X and OpenBSD compatibility patches from Andreas Vögele.
