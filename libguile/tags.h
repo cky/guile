@@ -333,12 +333,13 @@ typedef long SCM;
 #define scm_tc7_string		21
 #define scm_tc7_substring	23
 
-/* 29 and 31 are free! */
+/* 29 is free! */
 
 /* Many of the following should be turned
  * into structs or smobs.  We need back some
  * of these 7 bit tags!
  */
+#define scm_tc7_pws		31
 #define scm_tc7_uvect		37
 #define scm_tc7_lvector		39
 #define scm_tc7_fvect		45
@@ -462,7 +463,7 @@ enum scm_tags
 #define SCM_IM_LETREC		SCM_MAKSPCSYM(9)
 #define SCM_IM_OR		SCM_MAKSPCSYM(10)
 #define SCM_IM_QUOTE		SCM_MAKSPCSYM(11)
-#define SCM_IM_SET		SCM_MAKSPCSYM(12)
+#define SCM_IM_SET_X		SCM_MAKSPCSYM(12)
 #define SCM_IM_DEFINE		SCM_MAKSPCSYM(13)
 #define SCM_IM_APPLY		SCM_MAKISYM(14)
 #define SCM_IM_CONT		SCM_MAKISYM(15)
@@ -472,6 +473,8 @@ enum scm_tags
 #define SCM_EOF_VAL 		SCM_MAKIFLAG(19)
 #define SCM_EOL			SCM_MAKIFLAG(20)
 #define SCM_UNSPECIFIED		SCM_MAKIFLAG(21)
+#define SCM_IM_DISPATCH		SCM_MAKISYM(22)
+#define SCM_IM_HASH_DISPATCH	SCM_MAKISYM(23)
 
 
 #define SCM_UNBNDP(x) 	(SCM_UNDEFINED==(x))
