@@ -1722,37 +1722,39 @@ static char cnt_tab[16] =
 {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 
 SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
-           (SCM item, SCM seq),
-	    "Returns the number occurrences of @var{bool} in @var{bv}.")
+           (SCM b, SCM bitvector),
+	    "Returns the number of occurrences of the boolean B in BITVECTOR.")
 #define FUNC_NAME s_scm_bit_count
 {
-  long i;
-  register unsigned long cnt = 0;
-  register unsigned long w;
-  SCM_VALIDATE_INUM (2,seq);
-  switch SCM_TYP7 (seq)
-    {
-    default:
-      SCM_WTA (2,seq);
-    case scm_tc7_bvect:
-      if (0 == SCM_LENGTH (seq))
-	return SCM_INUM0;
-      i = (SCM_LENGTH (seq) - 1) / SCM_LONG_BIT;
-      w = SCM_UNPACK (SCM_VELTS (seq)[i]);
-      if (SCM_FALSEP (item))
-	w = ~w;
-      w <<= SCM_LONG_BIT - 1 - ((SCM_LENGTH (seq) - 1) % SCM_LONG_BIT);
-      while (!0)
-	{
-	  for (; w; w >>= 4)
-	    cnt += cnt_tab[w & 0x0f];
-	  if (0 == i--)
-	    return SCM_MAKINUM (cnt);
-	  w = SCM_UNPACK (SCM_VELTS (seq)[i]);
-	  if (SCM_FALSEP (item))
-	    w = ~w;
+  SCM_VALIDATE_BOOL (1, b);
+  SCM_ASSERT (!SCM_IMP (bitvector) && SCM_TYP7 (bitvector) == scm_tc7_bvect,
+	      bitvector, 2, FUNC_NAME);
+  if (SCM_LENGTH (bitvector) == 0) {
+    return SCM_INUM0;
+  } else {
+    unsigned long int count = 0;
+    unsigned long int i = (SCM_LENGTH (bitvector) - 1) / SCM_LONG_BIT;
+    unsigned long int w = SCM_UNPACK (SCM_VELTS (bitvector)[i]);
+    if (SCM_FALSEP (b)) {
+      w = ~w;
+    };
+    w <<= SCM_LONG_BIT - 1 - ((SCM_LENGTH (bitvector) - 1) % SCM_LONG_BIT);
+    while (1) {
+      while (w) {
+	count += cnt_tab[w & 0x0f];
+	w >>= 4;
+      }
+      if (i == 0) {
+	return SCM_MAKINUM (count);
+      } else {
+	--i;
+	w = SCM_UNPACK (SCM_VELTS (bitvector)[i]);
+	if (SCM_FALSEP (b)) {
+	  w = ~w;
 	}
+      }
     }
+  }
 }
 #undef FUNC_NAME
 

@@ -1,3 +1,8 @@
+2000-05-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* unif.c (scm_bit_count):  Fixed the parameter checks.  Thanks to
+	Dale P. Smith.
+
 2000-05-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_DEBUG_CELL_ACCESSES), gc.h (SCM_):  Added as a new
