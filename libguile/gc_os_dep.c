@@ -3,7 +3,7 @@
  * Copyright (c) 1991-1995 by Xerox Corporation.  All rights reserved.
  * Copyright (c) 1996-1999 by Silicon Graphics.  All rights reserved.
  * Copyright (c) 1999 by Hewlett-Packard Company.  All rights reserved.
- * Copyright (c) 2000, 2001, 2002, 2003 Free Software Foundation
+ * Copyright (c) 2000, 2001, 2002, 2003, 2004 Free Software Foundation
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -115,12 +115,14 @@ typedef int GC_bool;
 #    define NETBSD
 #    define mach_type_known
 # endif
-# if defined(__NetBSD__) && defined(m68k)
+/* in netbsd 2.0 only __m68k__ is defined, not m68k */
+# if defined(__NetBSD__) && (defined(m68k) || defined(__m68k__))
 #    define M68K
 #    define NETBSD
 #    define mach_type_known
 # endif
-# if defined(__NetBSD__) && defined(arm32)
+/* in netbsd 2.0 only __arm__ is defined, not arm32 */
+# if defined(__NetBSD__) && (defined(arm32) || defined(__arm__))
 #    define ARM32
 #    define NETBSD
 #    define mach_type_known
