@@ -57,8 +57,12 @@ typedef struct scm_smob_descriptor
   scm_sizet (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
-  SCM (*apply) ();
   int gsubr_type;
+  SCM (*apply) ();
+  SCM (*apply_0) (SCM);
+  SCM (*apply_1) (SCM, SCM);
+  SCM (*apply_2) (SCM, SCM, SCM);
+  SCM (*apply_3) (SCM, SCM, SCM, SCM);
 } scm_smob_descriptor;
 
 

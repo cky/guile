@@ -1,3 +1,25 @@
+2000-12-06  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* smob.h (scm_smob_descriptor): New fields `apply_0', `apply_1',
+	`apply_2', and `apply_3'.
+	* smob.c (scm_make_smob_type): Init new fields.
+	(SCM_SMOB_APPLY0, SCM_SMOB_APPLY1, SCM_SMOB_APPLY2, SCM_SMOB_APPLY3):
+	New macros.
+	(scm_smob_apply_0_000, scm_smob_apply_0_010, scm_smob_apply_0_020,
+	scm_smob_apply_0_030, scm_smob_apply_0_001, scm_smob_apply_0_011,
+	scm_smob_apply_0_021, scm_smob_apply_0_error,
+	scm_smob_apply_1_010, scm_smob_apply_1_020, scm_smob_apply_1_030,
+	scm_smob_apply_1_001, scm_smob_apply_1_011, scm_smob_apply_1_021,
+	scm_smob_apply_1_error,
+	scm_smob_apply_2_020, scm_smob_apply_2_030, scm_smob_apply_2_001,
+	scm_smob_apply_2_011, scm_smob_apply_2_021, scm_smob_apply_2_error,
+	scm_smob_apply_3_030, scm_smob_apply_3_001, scm_smob_apply_3_011,
+	scm_smob_apply_3_021, scm_smob_apply_3_error): New functions.
+	(scm_set_smob_apply): Set new fields to the above functions.
+	(scm_smob_apply_0, scm_smob_apply_1, scm_smob_apply_2,
+	scm_smob_apply_3): Removed.
+	* eval.c (SCM_CEVAL, SCM_APPLY): Rewrote smob calls.
+
 2000-12-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_init_gc):  gc_async must be protected from gc.  I

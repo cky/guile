@@ -2580,7 +2580,7 @@ evapply:
       case scm_tc7_smob:
 	if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	  goto badfun;
-	RETURN (scm_smob_apply_0 (proc));
+	RETURN (SCM_SMOB_DESCRIPTOR (proc).apply_0 (proc));
       case scm_tc7_cclo:
 	t.arg1 = proc;
 	proc = SCM_CCLO_SUBR (proc);
@@ -2729,7 +2729,7 @@ evapply:
 	case scm_tc7_smob:
 	  if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	    goto badfun;
-	  RETURN (scm_smob_apply_1 (proc, t.arg1));
+	  RETURN (SCM_SMOB_DESCRIPTOR (proc).apply_1 (proc, t.arg1));
 	case scm_tc7_cclo:
 	  arg2 = t.arg1;
 	  t.arg1 = proc;
@@ -2845,7 +2845,7 @@ evapply:
 	case scm_tc7_smob:
 	  if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	    goto badfun;
-	  RETURN (scm_smob_apply_2 (proc, t.arg1, arg2));
+	  RETURN (SCM_SMOB_DESCRIPTOR (proc).apply_2 (proc, t.arg1, arg2));
 	cclon:
 	case scm_tc7_cclo:
 #ifdef DEVAL
@@ -2984,8 +2984,8 @@ evapply:
       case scm_tc7_smob:
 	if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	  goto badfun;
-	RETURN (scm_smob_apply_3 (proc, t.arg1, arg2,
-				  SCM_CDDR (debug.info->a.args)));
+	RETURN (SCM_SMOB_DESCRIPTOR (proc).apply_3
+		(proc, t.arg1, arg2, SCM_CDDR (debug.info->a.args)));
       case scm_tc7_cclo:
 	goto cclon;
       case scm_tc7_pws:
@@ -3046,8 +3046,8 @@ evapply:
       case scm_tc7_smob:
 	if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	  goto badfun;
-	RETURN (scm_smob_apply_3 (proc, t.arg1, arg2,
-				  scm_eval_args (x, env, proc)));
+	RETURN (SCM_SMOB_DESCRIPTOR (proc).apply_3
+		(proc, t.arg1, arg2, scm_eval_args (x, env, proc)));
       case scm_tc7_cclo:
 	goto cclon;
       case scm_tc7_pws:
@@ -3412,13 +3412,15 @@ tail:
       if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	goto badproc;
       if (SCM_UNBNDP (arg1))
-	RETURN (scm_smob_apply_0 (proc))
+	RETURN (SCM_SMOB_DESCRIPTOR (proc).apply_0 (proc))
       else if (SCM_NULLP (args))
-	RETURN (scm_smob_apply_1 (proc, arg1))
+	RETURN (SCM_SMOB_DESCRIPTOR (proc).apply_1 (proc, arg1))
       else if (SCM_NULLP (SCM_CDR (args)))
-	RETURN (scm_smob_apply_2 (proc, arg1, SCM_CAR (args)))
+	RETURN (SCM_SMOB_DESCRIPTOR (proc).apply_2
+		(proc, arg1, SCM_CAR (args)))
       else
-	RETURN (scm_smob_apply_3 (proc, arg1, SCM_CAR (args), SCM_CDR (args)));
+	RETURN (SCM_SMOB_DESCRIPTOR (proc).apply_3
+		(proc, arg1, SCM_CAR (args), SCM_CDR (args)));
     case scm_tc7_cclo:
 #ifdef DEVAL
       args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);

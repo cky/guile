@@ -125,169 +125,174 @@ scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
 /* {Apply}
  */
 
-/*
- * A possible future optimization:
- *
- * Let's call each of the forms of call below a "trampoline".
- *
- * We could make a function out of each trampoline and store four
- * pointers to trampolines in the descriptor, one corresponding to
- * each arity of call (apply_0, apply_1 etc.)
- *
- * Which trampoline to store in which field is chosen in scm_set_smob_apply.
- */
+#define SCM_SMOB_APPLY0(SMOB) \
+  SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB)
+#define SCM_SMOB_APPLY1(SMOB,A1) \
+  SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1)
+#define SCM_SMOB_APPLY2(SMOB,A1,A2) \
+  SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1, A2)
+#define SCM_SMOB_APPLY3(SMOB,A1,A2,A3) \
+  SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1, A2, A3)
 
-SCM
-scm_smob_apply_0 (SCM smob)
+static SCM
+scm_smob_apply_0_000 (SCM smob)
 {
-  int type = SCM_SMOB_DESCRIPTOR (smob).gsubr_type;
-  switch (type)
-    {
-    case SCM_GSUBR_MAKTYPE (0, 0, 0):
-      return SCM_SMOB_DESCRIPTOR (smob).apply ();
-    case SCM_GSUBR_MAKTYPE (0, 1, 0):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, SCM_UNDEFINED);
-    case SCM_GSUBR_MAKTYPE (0, 0, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, SCM_EOL);
-    case SCM_GSUBR_MAKTYPE (0, 2, 0):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob,
-					       SCM_UNDEFINED,
-					       SCM_UNDEFINED);
-    case SCM_GSUBR_MAKTYPE (0, 1, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob,
-					       SCM_UNDEFINED,
-					       SCM_EOL);
-    case SCM_GSUBR_MAKTYPE (0, 3, 0):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob,
-					       SCM_UNDEFINED,
-					       SCM_UNDEFINED,
-					       SCM_UNDEFINED);
-    case SCM_GSUBR_MAKTYPE (0, 2, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob,
-					       SCM_UNDEFINED,
-					       SCM_UNDEFINED,
-					       SCM_EOL);
-    default:
-      if (SCM_GSUBR_REQ (type) > 0)
-	scm_wrong_num_args (smob);
-      scm_misc_error ("scm_smob_apply_0",
-		      "Unsupported smob application: ~S",
-		      SCM_LIST1 (smob));
-    }
+  return SCM_SMOB_APPLY0 (smob);
 }
 
-SCM
-scm_smob_apply_1 (SCM smob, SCM a1)
+static SCM
+scm_smob_apply_0_010 (SCM smob)
 {
-  int type = SCM_SMOB_DESCRIPTOR (smob).gsubr_type;
-  switch (type)
-    {
-    case SCM_GSUBR_MAKTYPE (0, 0, 0):
-      scm_wrong_num_args (smob);
-    case SCM_GSUBR_MAKTYPE (1, 0, 0):
-    case SCM_GSUBR_MAKTYPE (0, 1, 0):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1);
-    case SCM_GSUBR_MAKTYPE (0, 0, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, SCM_LIST1 (a1));
-    case SCM_GSUBR_MAKTYPE (1, 1, 0):
-    case SCM_GSUBR_MAKTYPE (0, 2, 0):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, SCM_UNDEFINED);
-    case SCM_GSUBR_MAKTYPE (1, 0, 1):
-    case SCM_GSUBR_MAKTYPE (0, 1, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, SCM_EOL);
-    case SCM_GSUBR_MAKTYPE (1, 2, 0):
-    case SCM_GSUBR_MAKTYPE (0, 3, 0):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1,
-					       SCM_UNDEFINED,
-					       SCM_UNDEFINED);
-    case SCM_GSUBR_MAKTYPE (1, 1, 1):
-    case SCM_GSUBR_MAKTYPE (0, 2, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1,
-					       SCM_UNDEFINED,
-					       SCM_EOL);
-    default:
-      if (SCM_GSUBR_REQ (type) > 1)
-	scm_wrong_num_args (smob);
-      scm_misc_error ("scm_smob_apply_1",
-		      "Unsupported smob application: ~S",
-		      SCM_LIST1 (smob));
-    }
+  return SCM_SMOB_APPLY1 (smob, SCM_UNDEFINED);
 }
 
-SCM
-scm_smob_apply_2 (SCM smob, SCM a1, SCM a2)
+static SCM
+scm_smob_apply_0_020 (SCM smob)
 {
-  int type = SCM_SMOB_DESCRIPTOR (smob).gsubr_type;
-  switch (type)
-    {
-    case SCM_GSUBR_MAKTYPE (0, 0, 0):
-    case SCM_GSUBR_MAKTYPE (1, 0, 0):
-    case SCM_GSUBR_MAKTYPE (0, 1, 0):
-      scm_wrong_num_args (smob);
-    case SCM_GSUBR_MAKTYPE (0, 0, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, SCM_LIST2 (a1, a2));
-    case SCM_GSUBR_MAKTYPE (2, 0, 0):
-    case SCM_GSUBR_MAKTYPE (1, 1, 0):
-    case SCM_GSUBR_MAKTYPE (0, 2, 0):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2);
-    case SCM_GSUBR_MAKTYPE (1, 0, 1):
-    case SCM_GSUBR_MAKTYPE (0, 1, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, SCM_LIST1 (a2));
-    case SCM_GSUBR_MAKTYPE (2, 1, 0):
-    case SCM_GSUBR_MAKTYPE (1, 2, 0):
-    case SCM_GSUBR_MAKTYPE (0, 3, 0):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2, SCM_UNDEFINED);
-    case SCM_GSUBR_MAKTYPE (2, 0, 1):
-    case SCM_GSUBR_MAKTYPE (1, 1, 1):
-    case SCM_GSUBR_MAKTYPE (0, 2, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2, SCM_EOL);
-    default:
-      if (SCM_GSUBR_REQ (type) > 2)
-	scm_wrong_num_args (smob);
-      scm_misc_error ("scm_smob_apply_2",
-		      "Unsupported smob application: ~S",
-		      SCM_LIST1 (smob));
-    }
+  return SCM_SMOB_APPLY2 (smob, SCM_UNDEFINED, SCM_UNDEFINED);
 }
 
-SCM
-scm_smob_apply_3 (SCM smob, SCM a1, SCM a2, SCM rest)
+static SCM
+scm_smob_apply_0_030 (SCM smob)
 {
-  int type = SCM_SMOB_DESCRIPTOR (smob).gsubr_type;
-  switch (type)
-    {
-    case SCM_GSUBR_MAKTYPE (0, 0, 0):
-    case SCM_GSUBR_MAKTYPE (1, 0, 0):
-    case SCM_GSUBR_MAKTYPE (0, 1, 0):
-    case SCM_GSUBR_MAKTYPE (2, 0, 0):
-    case SCM_GSUBR_MAKTYPE (1, 1, 0):
-    case SCM_GSUBR_MAKTYPE (0, 2, 0):
-      scm_wrong_num_args (smob);
-    case SCM_GSUBR_MAKTYPE (0, 0, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, scm_cons (a1, scm_cons (a2, rest)));
-    case SCM_GSUBR_MAKTYPE (1, 0, 1):
-    case SCM_GSUBR_MAKTYPE (0, 1, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, scm_cons (a2, rest));
-    case SCM_GSUBR_MAKTYPE (3, 0, 0):
-    case SCM_GSUBR_MAKTYPE (2, 1, 0):
-    case SCM_GSUBR_MAKTYPE (1, 2, 0):
-    case SCM_GSUBR_MAKTYPE (0, 3, 0):
-      if (!SCM_NULLP (SCM_CDR (rest)))
-	scm_wrong_num_args (smob);
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2, SCM_CAR (rest));
-    case SCM_GSUBR_MAKTYPE (2, 0, 1):
-    case SCM_GSUBR_MAKTYPE (1, 1, 1):
-    case SCM_GSUBR_MAKTYPE (0, 2, 1):
-      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2, rest);
-    default:
-      if (SCM_GSUBR_REQ (type) > 3)
-	scm_wrong_num_args (smob);
-      scm_misc_error ("scm_smob_apply_3",
-		      "Unsupported smob application: ~S",
-		      SCM_LIST1 (smob));
-    }
+  return SCM_SMOB_APPLY3 (smob, SCM_UNDEFINED, SCM_UNDEFINED, SCM_UNDEFINED);
 }
 
+static SCM
+scm_smob_apply_0_001 (SCM smob)
+{
+  return SCM_SMOB_APPLY1 (smob, SCM_EOL);
+}
+
+static SCM
+scm_smob_apply_0_011 (SCM smob)
+{
+  return SCM_SMOB_APPLY2 (smob, SCM_UNDEFINED, SCM_EOL);
+}
+
+static SCM
+scm_smob_apply_0_021 (SCM smob)
+{
+  return SCM_SMOB_APPLY3 (smob, SCM_UNDEFINED, SCM_UNDEFINED, SCM_EOL);
+}
+
+static SCM
+scm_smob_apply_0_error (SCM smob)
+{
+  scm_wrong_num_args (smob);
+}
+
+static SCM
+scm_smob_apply_1_010 (SCM smob, SCM a1)
+{
+  return SCM_SMOB_APPLY1 (smob, a1);
+}
+
+static SCM
+scm_smob_apply_1_020 (SCM smob, SCM a1)
+{
+  return SCM_SMOB_APPLY2 (smob, a1, SCM_UNDEFINED);
+}
+
+static SCM
+scm_smob_apply_1_030 (SCM smob, SCM a1)
+{
+  return SCM_SMOB_APPLY3 (smob, a1, SCM_UNDEFINED, SCM_UNDEFINED);
+}
+
+static SCM
+scm_smob_apply_1_001 (SCM smob, SCM a1)
+{
+  return SCM_SMOB_APPLY1 (smob, SCM_LIST1 (a1));
+}
+
+static SCM
+scm_smob_apply_1_011 (SCM smob, SCM a1)
+{
+  return SCM_SMOB_APPLY2 (smob, a1, SCM_EOL);
+}
+
+static SCM
+scm_smob_apply_1_021 (SCM smob, SCM a1)
+{
+  return SCM_SMOB_APPLY3 (smob, a1, SCM_UNDEFINED, SCM_EOL);
+}
+
+static SCM
+scm_smob_apply_1_error (SCM smob, SCM a1)
+{
+  scm_wrong_num_args (smob);
+}
+
+static SCM
+scm_smob_apply_2_020 (SCM smob, SCM a1, SCM a2)
+{
+  return SCM_SMOB_APPLY2 (smob, a1, a2);
+}
+
+static SCM
+scm_smob_apply_2_030 (SCM smob, SCM a1, SCM a2)
+{
+  return SCM_SMOB_APPLY3 (smob, a1, a2, SCM_UNDEFINED);
+}
+
+static SCM
+scm_smob_apply_2_001 (SCM smob, SCM a1, SCM a2)
+{
+  return SCM_SMOB_APPLY1 (smob, SCM_LIST2 (a1, a2));
+    }
+
+static SCM
+scm_smob_apply_2_011 (SCM smob, SCM a1, SCM a2)
+{
+  return SCM_SMOB_APPLY2 (smob, a1, SCM_LIST1 (a2));
+}
+
+static SCM
+scm_smob_apply_2_021 (SCM smob, SCM a1, SCM a2)
+{
+  return SCM_SMOB_APPLY3 (smob, a1, a2, SCM_EOL);
+}
+
+static SCM
+scm_smob_apply_2_error (SCM smob, SCM a1, SCM a2)
+{
+  scm_wrong_num_args (smob);
+}
+
+static SCM
+scm_smob_apply_3_030 (SCM smob, SCM a1, SCM a2, SCM rst)
+{
+  if (!SCM_NULLP (SCM_CDR (rst)))
+    scm_wrong_num_args (smob);
+  return SCM_SMOB_APPLY3 (smob, a1, a2, SCM_CAR (rst));
+}
+
+static SCM
+scm_smob_apply_3_001 (SCM smob, SCM a1, SCM a2, SCM rst)
+{
+  return SCM_SMOB_APPLY1 (smob, scm_cons2 (a1, a2, rst));
+}
+
+static SCM
+scm_smob_apply_3_011 (SCM smob, SCM a1, SCM a2, SCM rst)
+{
+  return SCM_SMOB_APPLY2 (smob, a1, scm_cons (a2, rst));
+}
+
+static SCM
+scm_smob_apply_3_021 (SCM smob, SCM a1, SCM a2, SCM rst)
+{
+  return SCM_SMOB_APPLY3 (smob, a1, a2, rst);
+}
+
+static SCM
+scm_smob_apply_3_error (SCM smob, SCM a1, SCM a2, SCM rst)
+{
+  scm_wrong_num_args (smob);
+}
+
+
 long 
 scm_make_smob_type (char *name, scm_sizet size)
 {
@@ -308,7 +313,10 @@ scm_make_smob_type (char *name, scm_sizet size)
       scm_smobs[scm_numsmob].print = scm_smob_print;
       scm_smobs[scm_numsmob].equalp = 0;
       scm_smobs[scm_numsmob].apply = 0;
-      scm_smobs[scm_numsmob].gsubr_type = 0;
+      scm_smobs[scm_numsmob].apply_0 = 0;
+      scm_smobs[scm_numsmob].apply_1 = 0;
+      scm_smobs[scm_numsmob].apply_2 = 0;
+      scm_smobs[scm_numsmob].apply_3 = 0;
       scm_numsmob++;
     }
   SCM_ALLOW_INTS;
@@ -363,8 +371,111 @@ scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM))
 void
 scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst)
 {
+  SCM (*apply_0) (SCM);
+  SCM (*apply_1) (SCM, SCM);
+  SCM (*apply_2) (SCM, SCM, SCM);
+  SCM (*apply_3) (SCM, SCM, SCM, SCM);
+  int type = SCM_GSUBR_MAKTYPE (req, opt, rst);
+
+  if (!(req >= 0 && opt >= 0 && (rst == 0 || rst == 1)
+	&& req + opt + rst <= 3))
+    {
+      puts ("Unsupported smob application type");
+      abort ();
+    }
+
+  switch (type)
+    {
+    case SCM_GSUBR_MAKTYPE (0, 0, 0):
+      apply_0 = scm_smob_apply_0_000; break;
+    case SCM_GSUBR_MAKTYPE (0, 1, 0):
+      apply_0 = scm_smob_apply_0_010; break;
+    case SCM_GSUBR_MAKTYPE (0, 2, 0):
+      apply_0 = scm_smob_apply_0_020; break;
+    case SCM_GSUBR_MAKTYPE (0, 3, 0):
+      apply_0 = scm_smob_apply_0_030; break;
+    case SCM_GSUBR_MAKTYPE (0, 0, 1):
+      apply_0 = scm_smob_apply_0_001; break;
+    case SCM_GSUBR_MAKTYPE (0, 1, 1):
+      apply_0 = scm_smob_apply_0_011; break;
+    case SCM_GSUBR_MAKTYPE (0, 2, 1):
+      apply_0 = scm_smob_apply_0_021; break;
+    default:
+      apply_0 = scm_smob_apply_0_error; break;
+    }
+
+  switch (type)
+    {
+    case SCM_GSUBR_MAKTYPE (1, 0, 0):
+    case SCM_GSUBR_MAKTYPE (0, 1, 0):
+      apply_1 = scm_smob_apply_1_010; break;
+    case SCM_GSUBR_MAKTYPE (1, 1, 0):
+    case SCM_GSUBR_MAKTYPE (0, 2, 0):
+      apply_1 = scm_smob_apply_1_020; break;
+    case SCM_GSUBR_MAKTYPE (1, 2, 0):
+    case SCM_GSUBR_MAKTYPE (0, 3, 0):
+      apply_1 = scm_smob_apply_1_030; break;
+    case SCM_GSUBR_MAKTYPE (0, 0, 1):
+      apply_1 = scm_smob_apply_1_001; break;
+    case SCM_GSUBR_MAKTYPE (1, 0, 1):
+    case SCM_GSUBR_MAKTYPE (0, 1, 1):
+      apply_1 = scm_smob_apply_1_011; break;
+    case SCM_GSUBR_MAKTYPE (1, 1, 1):
+    case SCM_GSUBR_MAKTYPE (0, 2, 1):
+      apply_1 = scm_smob_apply_1_021; break;
+    default:
+      apply_1 = scm_smob_apply_1_error; break;
+    }
+
+  switch (type)
+    {
+    case SCM_GSUBR_MAKTYPE (2, 0, 0):
+    case SCM_GSUBR_MAKTYPE (1, 1, 0):
+    case SCM_GSUBR_MAKTYPE (0, 2, 0):
+      apply_2 = scm_smob_apply_2_020; break;
+    case SCM_GSUBR_MAKTYPE (2, 1, 0):
+    case SCM_GSUBR_MAKTYPE (1, 2, 0):
+    case SCM_GSUBR_MAKTYPE (0, 3, 0):
+      apply_2 = scm_smob_apply_2_030; break;
+    case SCM_GSUBR_MAKTYPE (0, 0, 1):
+      apply_2 = scm_smob_apply_2_001; break;
+    case SCM_GSUBR_MAKTYPE (1, 0, 1):
+    case SCM_GSUBR_MAKTYPE (0, 1, 1):
+      apply_2 = scm_smob_apply_2_011; break;
+    case SCM_GSUBR_MAKTYPE (2, 0, 1):
+    case SCM_GSUBR_MAKTYPE (1, 1, 1):
+    case SCM_GSUBR_MAKTYPE (0, 2, 1):
+      apply_2 = scm_smob_apply_2_021; break;
+    default:
+      apply_2 = scm_smob_apply_2_error; break;
+    }
+
+  switch (type)
+    {
+    case SCM_GSUBR_MAKTYPE (3, 0, 0):
+    case SCM_GSUBR_MAKTYPE (2, 1, 0):
+    case SCM_GSUBR_MAKTYPE (1, 2, 0):
+    case SCM_GSUBR_MAKTYPE (0, 3, 0):
+      apply_3 = scm_smob_apply_3_030; break;
+    case SCM_GSUBR_MAKTYPE (0, 0, 1):
+      apply_3 = scm_smob_apply_3_001; break;
+    case SCM_GSUBR_MAKTYPE (1, 0, 1):
+    case SCM_GSUBR_MAKTYPE (0, 1, 1):
+      apply_3 = scm_smob_apply_3_011; break;
+    case SCM_GSUBR_MAKTYPE (2, 0, 1):
+    case SCM_GSUBR_MAKTYPE (1, 1, 1):
+    case SCM_GSUBR_MAKTYPE (0, 2, 1):
+      apply_3 = scm_smob_apply_3_021; break;
+    default:
+      apply_3 = scm_smob_apply_3_error; break;
+    }
+
+  scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type; /* Used in procprop.c */
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply = apply;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = SCM_GSUBR_MAKTYPE (req, opt, rst);
+  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_0 = apply_0;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_1 = apply_1;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_2 = apply_2;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_3 = apply_3;
 }
 
 void
