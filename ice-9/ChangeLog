@@ -1,3 +1,8 @@
+Sat Jul 26 21:30:10 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (with-fluids): New macro to go with the
+ 	builtin `with-fluids*'.
+
 Thu Jul 24 04:28:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* slib.scm (install-require-module): In newer versions of slib
