@@ -134,22 +134,7 @@ scm_grow_tok_buf (tok_buf)
      SCM * tok_buf;
 #endif
 {
-  SCM t2;
-  scm_sizet len;
-
-  len = SCM_LENGTH (*tok_buf);
-  len += (len / 2 ? len / 2 : 1);
-  t2 = scm_makstr (len, 0);
-  {
-    char * a;
-    char * b;
-    int l;
-    for (a = SCM_CHARS (*tok_buf), b = SCM_CHARS (t2), l = SCM_LENGTH (*tok_buf);
-	 l;
-	 --l, ++a, ++b)
-      *b = *a;
-  }
-  *tok_buf = t2;
+  scm_vector_set_length_x (*tok_buf, SCM_MAKINUM (2 * SCM_LENGTH (*tok_buf)));
   return SCM_CHARS (*tok_buf);
 }
 
