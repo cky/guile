@@ -2809,6 +2809,35 @@
 	(= i (logcount n))))))
 
 ;;;
+;;; logior
+;;;
+
+(with-test-prefix "logior"
+  (pass-if (eqv? -1 (logior (ash -1 1) 1)))
+
+  ;; check that bignum or bignum+inum args will reduce to an inum
+  (let ()
+    (define (test x y)
+      (pass-if (list x y '=> -1)
+	(eqv? -1 (logior x y)))
+      (pass-if (list y x '=> -1)
+	(eqv? -1 (logior y x))))
+    (test (ash -1 8) #xFF)
+    (test (ash -1 28) #x0FFFFFFF)
+    (test (ash -1 29) #x1FFFFFFF)
+    (test (ash -1 30) #x3FFFFFFF)
+    (test (ash -1 31) #x7FFFFFFF)
+    (test (ash -1 32) #xFFFFFFFF)
+    (test (ash -1 33) #x1FFFFFFFF)
+    (test (ash -1 60) #x0FFFFFFFFFFFFFFF)
+    (test (ash -1 61) #x1FFFFFFFFFFFFFFF)
+    (test (ash -1 62) #x3FFFFFFFFFFFFFFF)
+    (test (ash -1 63) #x7FFFFFFFFFFFFFFF)
+    (test (ash -1 64) #xFFFFFFFFFFFFFFFF)
+    (test (ash -1 65) #x1FFFFFFFFFFFFFFFF)
+    (test (ash -1 128) #xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)))
+
+;;;
 ;;; lognot
 ;;;
 
