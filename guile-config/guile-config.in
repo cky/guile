@@ -175,10 +175,10 @@
     ;; Display the flags, separated by spaces.
     (if (or (string=? libdir "/usr/lib")
             (string=? libdir "/usr/lib/"))
-        (display-separated (cons "-lguile" other-flags))
+        (display-separated (cons "-lguile -lguile-ltdl" other-flags))
         (display-separated (cons
                             (string-append "-L" (get-build-info 'libdir))
-                            (cons "-lguile" other-flags))))
+                            (cons "-lguile -lguile-ltdl" other-flags))))
     (newline)))
 
 (define (help-link)
