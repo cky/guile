@@ -52,5 +52,13 @@
 int scm_i_socket_errno (void);
 char * scm_i_socket_strerror (int error);
 void scm_i_init_socket_Win32 (void);
+char * scm_i_socket_filename (char *file);
+
+struct servent * getservent (void);
+void setservent (int stayopen);
+void endservent (void);
+struct protoent * getprotoent (void);
+void setprotoent (int stayopen);
+void endprotoent (void);
 
 #endif /* SCM_WIN32_SOCKET_H */

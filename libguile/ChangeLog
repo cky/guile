@@ -1,3 +1,17 @@
+2001-11-21  Stefan Jahn  <stefan@lkcc.org>
+
+	* win32-socket.c (getservent, setservent, endservent, 
+	getprotoent, setprotoent, endprotoent): New functions.  
+	Appropriate replacements for M$-Windows.
+
+	* numbers.c (SIZE_MAX, PTRDIFF_MAX, PTRDIFF_MIN): Reintroduced
+	these definitions for GUILE_DEBUG.
+
+	* net_db.c: Include "win32-socket.h" if compiling with a native
+	M$-Windows compiler.  Include some pieces of code (protoent and 
+	servent interface) protected by HAVE_* macros when using a 
+	native M$-Windows compiler.
+
 2001-11-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* modules.c (scm_c_export): Do nothing when the first argument is

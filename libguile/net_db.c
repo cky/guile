@@ -74,6 +74,10 @@
 #include <arpa/inet.h>
 #endif
 
+#ifdef __MINGW32__
+#include "win32-socket.h"
+#endif
+
 #if !defined (HAVE_H_ERRNO) && !defined (__MINGW32__) && !defined (__CYGWIN__)
 /* h_errno not found in netdb.h, maybe this will help.  */
 extern int h_errno;
@@ -266,7 +270,7 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
-#ifdef HAVE_GETPROTOENT
+#if defined (HAVE_GETPROTOENT) || defined (__MINGW32__)
 SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0, 
             (SCM protocol),
 	    "@deffnx {Scheme Procedure} getprotobyname name\n"
@@ -314,7 +318,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
-#ifdef HAVE_GETSERVENT
+#if defined (HAVE_GETSERVENT) || defined (__MINGW32__)
 static SCM
 scm_return_entry (struct servent *entry)
 {
@@ -405,7 +409,7 @@ SCM_DEFINE (scm_setnet, "setnet", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
-#if defined(HAVE_SETPROTOENT) && defined(HAVE_ENDPROTOENT)
+#if defined (HAVE_SETPROTOENT) && defined (HAVE_ENDPROTOENT) || defined (__MINGW32__)
 SCM_DEFINE (scm_setproto, "setproto", 0, 1, 0, 
             (SCM stayopen),
 	    "If @var{stayopen} is omitted, this is equivalent to @code{endprotoent}.\n"
@@ -421,7 +425,7 @@ SCM_DEFINE (scm_setproto, "setproto", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
-#if defined(HAVE_SETSERVENT) && defined(HAVE_ENDSERVENT)
+#if defined (HAVE_SETSERVENT) && defined (HAVE_ENDSERVENT) || defined (__MINGW32__)
 SCM_DEFINE (scm_setserv, "setserv", 0, 1, 0, 
             (SCM stayopen),
 	    "If @var{stayopen} is omitted, this is equivalent to @code{endservent}.\n"

@@ -46,7 +46,16 @@
 #include "libguile/modules.h"
 #include "libguile/numbers.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include <errno.h>
+#include <limits.h>
+
+#ifndef PATH_MAX
+#define PATH_MAX 255
+#endif
 
 #include "win32-socket.h"
 
@@ -61,6 +70,46 @@ typedef struct
   char *correct_str; /* Original symbol.  */
 }
 socket_error_t;
+
+#define FILE_ETC_SERVICES     "services"
+#define ENVIRON_ETC_SERVICES  "SERVICES"
+#define FILE_ETC_NETWORKS     "networks"
+#define ENVIRON_ETC_NETWORKS  "NETWORKS"
+#define FILE_ETC_PROTOCOLS    "protocol"
+#define ENVIRON_ETC_PROTOCOLS "PROTOCOLS"
+#define MAX_NAMLEN  256
+#define MAX_ALIASES 4
+
+/* Internal structure for a thread's M$-Windows servent interface.  */
+typedef struct
+{
+  FILE *fd;                            /* Current file.  */
+  char file[PATH_MAX];                 /* File name.  */
+  struct servent ent;                  /* Return value.  */
+  char name[MAX_NAMLEN];               /* Service name.  */
+  char proto[MAX_NAMLEN];              /* Protocol name.  */
+  char alias[MAX_ALIASES][MAX_NAMLEN]; /* All aliases.  */
+  char *aliases[MAX_ALIASES];          /* Alias pointers.  */
+  int port;                            /* Network port.  */
+}
+scm_i_servent_t;
+
+static scm_i_servent_t scm_i_servent;
+
+/* Internal structure for a thread's M$-Windows protoent interface.  */
+typedef struct
+{
+  FILE *fd;                            /* Current file.  */
+  char file[PATH_MAX];                 /* File name.  */
+  struct protoent ent;                 /* Return value.  */
+  char name[MAX_NAMLEN];               /* Protocol name.  */
+  char alias[MAX_ALIASES][MAX_NAMLEN]; /* All aliases.  */
+  char *aliases[MAX_ALIASES];          /* Alias pointers.  */
+  int proto;                           /* Protocol number.  */
+}
+scm_i_protoent_t;
+
+static scm_i_protoent_t scm_i_protoent;
 
 /* Define replacement symbols for most of the WSA* error codes.  */
 #ifndef EWOULDBLOCK
@@ -373,6 +422,205 @@ scm_i_socket_strerror (int error)
   else if (error >= (WSABASEERR + 1000) && error <= (WSABASEERR + 1005))
     return socket_h_errno[error - (WSABASEERR + 1000)].str;
   return NULL;
+}
+
+/* Constructs a valid filename for the given file @var{file} in the M$-Windows
+   directory.  This is usually the default location for the network files.  */
+char *
+scm_i_socket_filename (char *file)
+{
+  static char dir[PATH_MAX];
+  int len = PATH_MAX;
+
+  len = GetWindowsDirectory (dir, len);
+  if (dir[len - 1] != '\\')
+    strcat (dir, "\\");
+  strcat (dir, file);
+  return dir;
+}
+
+/* Removes comments and white spaces at end of line and returns a pointer
+   to the end of the line.  */
+static char *
+scm_i_socket_uncomment (char *line)
+{
+  char *end;
+
+  if ((end = strchr (line, '#')) != NULL)
+    *end-- = '\0';
+  else
+    {
+      end = line + strlen (line) - 1;
+      while (end > line && (*end == '\r' || *end == '\n'))
+	*end-- = '\0';
+    }
+  while (end > line && isspace (*end))
+    *end-- = '\0';
+
+  return end;
+}
+
+/* The getservent() function reads the next line from the file `/etc/services'
+   and returns a structure servent containing the broken out fields from the
+   line.  The `/etc/services' file is opened if necessary. */
+struct servent *
+getservent (void)
+{
+  char line[MAX_NAMLEN], *end, *p;
+  int done = 0, i, n, a;
+  struct servent *e = NULL;
+
+  /* Ensure a open file.  */
+  if (scm_i_servent.fd == NULL || feof (scm_i_servent.fd))
+    {
+      setservent (1);
+      if (scm_i_servent.fd == NULL)
+	return NULL;
+    }
+
+  while (!done)
+    {
+      /* Get new line.  */
+      if (fgets (line, MAX_NAMLEN, scm_i_servent.fd) != NULL)
+	{
+	  end = scm_i_socket_uncomment (line);
+
+	  /* Scan the line.  */
+	  if ((i = sscanf (line, "%s %d/%s%n", 
+			   scm_i_servent.name,
+			   &scm_i_servent.port, 
+			   scm_i_servent.proto, &n)) != 3)
+	    continue;
+
+	  /* Scan the remaining aliases.  */
+	  p = line + n;
+	  for (a = 0; a < MAX_ALIASES && p < end && i != -1 && n > 1; 
+	       a++, p += n)
+	    i = sscanf (p, "%s%n", scm_i_servent.alias[a], &n);
+
+	  /* Prepare the return value.  */
+	  e = &scm_i_servent.ent;
+	  e->s_name = scm_i_servent.name;
+	  e->s_port = htons (scm_i_servent.port);
+	  e->s_proto = scm_i_servent.proto;
+	  e->s_aliases = scm_i_servent.aliases;
+	  scm_i_servent.aliases[a] = NULL;
+	  while (a--)
+	    scm_i_servent.aliases[a] = scm_i_servent.alias[a];
+	  done = 1;
+	}
+      else
+	break;
+    }
+  return done ? e : NULL;
+}
+
+/* The setservent() function opens and rewinds the `/etc/services' file.  
+   This file can be set from outside with an environment variable specifying
+   the file name.  */
+void
+setservent (int stayopen)
+{
+  char *file = NULL;
+
+  endservent ();
+  if ((file = getenv (ENVIRON_ETC_SERVICES)) != NULL)
+    strcpy (scm_i_servent.file, file);
+  else if ((file = scm_i_socket_filename (FILE_ETC_SERVICES)) != NULL)
+    strcpy (scm_i_servent.file, file);
+  scm_i_servent.fd = fopen (scm_i_servent.file, "rt");
+}
+
+/* The endservent() function closes the `/etc/services' file.  */
+void
+endservent (void)
+{
+  if (scm_i_servent.fd != NULL)
+    {
+      fclose (scm_i_servent.fd);
+      scm_i_servent.fd = NULL;
+    }
+}
+
+/* The getprotoent() function reads the next line from the file
+   `/etc/protocols' and returns a structure protoent containing the broken
+   out fields from the line. The `/etc/protocols' file is opened if 
+   necessary.  */
+struct protoent *
+getprotoent (void)
+{
+  char line[MAX_NAMLEN], *end, *p;
+  int done = 0, i, n, a;
+  struct protoent *e = NULL;
+
+  /* Ensure a open file.  */
+  if (scm_i_protoent.fd == NULL || feof (scm_i_protoent.fd))
+    {
+      setprotoent (1);
+      if (scm_i_protoent.fd == NULL)
+	return NULL;
+    }
+
+  while (!done)
+    {
+      /* Get new line.  */
+      if (fgets (line, MAX_NAMLEN, scm_i_protoent.fd) != NULL)
+	{
+	  end = scm_i_socket_uncomment (line);
+
+	  /* Scan the line.  */
+	  if ((i = sscanf (line, "%s %d%n", 
+			   scm_i_protoent.name,
+			   &scm_i_protoent.proto, &n)) != 2)
+	    continue;
+
+	  /* Scan the remaining aliases.  */
+	  p = line + n;
+	  for (a = 0; a < MAX_ALIASES && p < end && i != -1 && n > 1; 
+	       a++, p += n)
+	    i = sscanf (p, "%s%n", scm_i_protoent.alias[a], &n);
+
+	  /* Prepare the return value.  */
+	  e = &scm_i_protoent.ent;
+	  e->p_name = scm_i_protoent.name;
+	  e->p_proto = scm_i_protoent.proto;
+	  e->p_aliases = scm_i_protoent.aliases;
+	  scm_i_protoent.aliases[a] = NULL;
+	  while (a--)
+	    scm_i_protoent.aliases[a] = scm_i_protoent.alias[a];
+	  done = 1;
+	}
+      else
+	break;
+    }
+  return done ? e : NULL;
+}
+
+/* The setprotoent() function opens and rewinds the `/etc/protocols' file. 
+   As in setservent() the user can modify the location of the file using
+   an environment variable.  */
+void 
+setprotoent (int stayopen)
+{
+  char *file = NULL;
+
+  endprotoent ();
+  if ((file = getenv (ENVIRON_ETC_PROTOCOLS)) != NULL)
+    strcpy (scm_i_protoent.file, file);
+  else if ((file = scm_i_socket_filename (FILE_ETC_PROTOCOLS)) != NULL)
+    strcpy (scm_i_protoent.file, file);
+  scm_i_protoent.fd = fopen (scm_i_protoent.file, "rt");
+}
+
+/* The endprotoent() function closes `/etc/protocols'.  */
+void
+endprotoent (void)
+{
+  if (scm_i_protoent.fd != NULL)
+    {
+      fclose (scm_i_protoent.fd);
+      scm_i_protoent.fd = NULL;
+    }
 }
 
 /* Define both the original and replacement error symbol is possible.  Thus

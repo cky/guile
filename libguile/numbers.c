@@ -4390,6 +4390,17 @@ scm_i_big2dbl (SCM b)
 
 #ifdef GUILE_DEBUG
 
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t) (-1))
+#endif
+#ifndef PTRDIFF_MIN
+#define PTRDIFF_MIN \
+ ((ptrdiff_t) ((ptrdiff_t) 1 << (sizeof (ptrdiff_t) * 8 - 1)))
+#endif
+#ifndef PTRDIFF_MAX
+#define PTRDIFF_MAX (~ PTRDIFF_MIN)
+#endif
+
 #define CHECK(type, v) \
   do { \
     if ((v) != scm_num2##type (scm_##type##2num (v), 1, "check_sanity")) \
