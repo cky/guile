@@ -1,3 +1,8 @@
+2000-06-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* session.scm (make-fold-modules): Detect circular references in
+	module graph.  (Thanks to Matthias Köppe.)
+
 2000-06-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* session.scm: Use module (ice-9 regex).
