@@ -38,6 +38,128 @@ loading and evaluating Scheme code at run time.
 @node Expression Syntax
 @subsection Expression Syntax
 
+An expression to be evaluated takes one of the following forms.
+
+@deffn syntax <symbol>
+A symbol is evaluated by dereferencing.  A binding of that symbol is
+sought and the value there used.  For example,
+
+@example
+(define x 123)
+x @result{} 123
+@end example
+@end deffn
+
+@deffn syntax (proc [args @dots{}])
+A parenthesised expression is a function call.  @var{proc} and each
+argument are evaluated, then the function (which @var{proc} evaluated
+to) is called with those arguments.
+
+The order in which @var{proc} and the arguments are evaluated is
+unspecified, so be careful when using expressions with side effects.
+
+@example
+(max 1 2 3) @result{} 3
+
+(define (get-some-proc)  min)
+((get-some-proc) 1 2 3) @result{} 1
+@end example
+
+The same sort of parenthesised form is used for a macro invocation,
+but in that case the arguments are not evaluated.  See the
+descriptions of macros for more on this (@pxref{Macros}, and
+@pxref{Syntax Rules}).
+@end deffn
+
+@deffn syntax <constant>
+Number, string, character and boolean constants evaluate ``to
+themselves'', so can appear as literals.
+
+@example
+123     @result{} 123
+99.9    @result{} 99.9
+"hello" @result{} "hello"
+#\z     @result{} #\z
+#t      @result{} #t
+@end example
+
+Note that an application must not attempt to modify literal strings,
+since they may be in read-only memory.
+@end deffn
+
+@deffn syntax quote data
+@deffnx syntax ' data
+Quoting is used to obtain a literal symbol (instead of a variable
+reference), a literal list (instead of a function call), or a literal
+vector.  @nicode{'} is simply a shorthand for a @code{quote} form.
+For example,
+
+@example
+'x                   @result{} x
+'(1 2 3)             @result{} (1 2 3)
+'#(1 (2 3) 4)        @result{} #(1 (2 3) 4)
+(quote x)            @result{} x
+(quote (1 2 3))      @result{} (1 2 3)
+(quote #(1 (2 3) 4)) @result{} #(1 (2 3) 4)
+@end example
+
+Note that an application must not attempt to modify literal lists or
+vectors obtained from a @code{quote} form, since they may be in
+read-only memory.
+@end deffn
+
+@deffn syntax quasiquote data
+@deffnx syntax ` data
+Backquote quasi-quotation is like @code{quote}, but selected
+sub-expressions are evaluated.  This is a convenient way to construct
+a list or vector structure most of which is constant, but at certain
+points should have expressions substituted.
+
+The same effect can always be had with suitable @code{list},
+@code{cons} or @code{vector} calls, but quasi-quoting is often easier.
+
+@deffn syntax unquote expr
+@deffnx syntax , expr
+Within the quasiquote @var{data}, @code{unquote} or @code{,} indicates
+an expression to be evaluated and inserted.  The comma syntax @code{,}
+is simply a shorthand for an @code{unquote} form.  For example,
+
+@example
+`(1 2 ,(* 9 9) 3 4)      @result{} (1 2 81 3 4)
+`(1 (unquote (+ 1 1)) 3) @result{} (1 2 3)
+`#(1 ,(/ 12 2))          @result{} #(1 6)
+@end example
+@end deffn
+
+@deffn syntax unquote-splicing expr
+@deffnx syntax ,@ expr
+Within the quasiquote @var{data}, @code{unquote-splicing} or
+@code{,@@} indicates an expression to be evaluated and the elements of
+the returned list inserted.  @var{expr} must evaluate to a list.  The
+``comma-at'' syntax @code{,@@} is simply a shorthand for an
+@code{unquote-splicing} form.
+
+@example
+(define x '(2 3))
+`(1 ,@@x 4)                         @result{} (1 2 3 4)
+`(1 (unquote-splicing (map 1+ x))) @result{} (1 3 4)
+`#(9 ,@@x 9)                        @result{} #(9 2 3 9)
+@end example
+
+Notice @code{,@@} differs from plain @code{,} in the way one level of
+nesting is stripped.  For @code{,@@} the elements of a returned list
+are inserted, whereas with @code{,} it would be the list itself
+inserted.
+@end deffn
+@c
+@c  FIXME: What can we say about the mutability of a quasiquote
+@c  result?  R5RS doesn't seem to specify anything, though where it
+@c  says backquote without commas is the same as plain quote then
+@c  presumably the "fixed" portions of a quasiquote expression must be
+@c  treated as immutable.
+@c
+@end deffn
+
 
 @node Comments
 @subsection Comments
