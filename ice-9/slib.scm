@@ -20,7 +20,7 @@
 (define slib:exit quit)
 (define slib:error error)
 (define slib:warn warn)
-(define slib:eval eval)
+(define slib:eval (lambda (x) (eval-in-module x slib-module)))
 (define defmacro:eval eval)
 (define logical:logand logand)
 (define logical:logior logior)
@@ -156,11 +156,7 @@
 
 (define (output-port-width . arg) 80)
 (define (output-port-height . arg) 24)
-
-;; `require' will not work unless identity is exported.  It's not clear
-;; why this is so, but doesn't seem worth deep investigation until
-;; the module system settles down.
-(define-public (identity x) x)
+(define (identity x) x)
 
 ;;; {Time}
 ;;;
