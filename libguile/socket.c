@@ -268,15 +268,15 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
 #endif
 
 
-#if (SIZEOF_SCM_T_BITS * 8) > 128
+#if (SIZEOF_SCM_T_BITS * SCM_CHAR_BIT) > 128
 #error "Assumption that scm_t_bits <= 128 bits has been violated."
 #endif
 
-#if (SIZEOF_UNSIGNED_LONG * 8) > 128
+#if (SIZEOF_UNSIGNED_LONG * SCM_CHAR_BIT) > 128
 #error "Assumption that unsigned long <= 128 bits has been violated."
 #endif
 
-#if (SIZEOF_UNSIGNED_LONG_LONG * 8) > 128
+#if (SIZEOF_UNSIGNED_LONG_LONG * SCM_CHAR_BIT) > 128
 #error "Assumption that unsigned long long <= 128 bits has been violated."
 #endif
 
