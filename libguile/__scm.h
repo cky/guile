@@ -285,11 +285,12 @@ extern unsigned int scm_async_clock;
 
    However, GCC's volatile asm feature forms a barrier over which code is
    never moved. So if you add...
-	   asm volatile ("");
-   ...to each of the DEFER_INTS and ALLOW_INTS macros, the critical code
-   will always remain in place.  */
+	   asm ("");
+   ...to each of the DEFER_INTS and ALLOW_INTS macros, the critical
+   code will always remain in place.  asm's without inputs or outputs
+   are implicitly volatile. */
 #ifdef __GNUC__
-#define SCM_FENCE asm volatile ("")
+#define SCM_FENCE asm /* volatile */ ("")
 #else
 #define SCM_FENCE
 #endif
