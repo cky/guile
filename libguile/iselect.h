@@ -46,6 +46,9 @@
 
 #include "libguile/__scm.h"
 
+/* Needed for FD_SET on some systems.  */
+#include <sys/types.h>
+
 # ifdef TIME_WITH_SYS_TIME
 #  include <sys/time.h>
 #  include <time.h>
