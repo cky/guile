@@ -1,3 +1,9 @@
+1999-08-31  James Blandy  <jimb@mule.m17n.org>
+
+	* procs.c (scm_make_subr_opt): Fix typo.  Remember to multiply
+	table lengths by the size of a single element when growing the
+	table.
+
 1999-08-30  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (SCM_CEVAL): Duplicated the method dispatch code at the
