@@ -1,3 +1,17 @@
+1998-04-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* Makefile.am (libguile_la_LDFLAGS): Removed redundant -rpath.
+
+	* coop.c: Changed return type of usleep to int.
+
+	* scmsigs.c (scm_usleep): New procedure; Declare usleep if it
+	isn't found in the OS.
+
+	* iselect.h: #define scm_internal_select select if GUILE_ISELECT
+	isn't enabled.  (Thought that I had made this change ages ago...)
+
+	* iselect.c: Declare bzero if not defined by OS.
+
 1998-04-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* dynl.c (scm_must_free_argv): Fixed memory leak due to negated

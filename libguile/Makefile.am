@@ -59,7 +59,7 @@ noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@
-libguile_la_LDFLAGS = -version-info 3:0 -rpath $(libdir)
+libguile_la_LDFLAGS = -version-info 3:0
 
 include_HEADERS = libguile.h
 
