@@ -1,5 +1,5 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -245,7 +245,9 @@ SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
 {
   SCM_VALIDATE_INUM (1, frame);
   SCM_VALIDATE_INUM (2, binding);
-  SCM_MAKE_ILOC (SCM_INUM (frame), SCM_INUM (binding), !SCM_FALSEP (cdrp));
+  return SCM_MAKE_ILOC (SCM_INUM (frame),
+			SCM_INUM (binding),
+			!SCM_FALSEP (cdrp));
 }
 #undef FUNC_NAME
 
