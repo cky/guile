@@ -111,7 +111,7 @@ continuation_print (SCM obj, SCM port, scm_print_state *state)
 SCM 
 scm_make_continuation (int *first)
 {
-  SCM cont;
+  volatile SCM cont;
   scm_contregs *continuation;
   scm_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
   long stack_size;

@@ -1,5 +1,12 @@
 2000-12-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* continuations.c (scm_make_continuation):  Make variable cont
+	volatile to let the compiler know that it won't be clobbered by
+	longjmp.  (It wouldn't be anyway, but for some reason the compiler
+	is not able to see that.)
+
+2000-12-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	This patch re-introduces the unused member "documentation" of
 	struct scm_subr_entry as requested by Mikael Djurfeldt.
 
