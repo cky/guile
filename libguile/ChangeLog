@@ -1,3 +1,9 @@
+1999-01-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* random.c: Bugfix: Retrieve and store most significant 32 bits in
+	different order if the machine is bigendian.
+	(scm_init_random): Added safety check for bignum digit size.
+
 1999-01-11  Roland Orre  <mdj@mdj.nada.kth.se>
 
 	* sort.c (scm_merge, scm_merge_list_x): Bugfix: Place elements
