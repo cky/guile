@@ -1,3 +1,8 @@
+2002-12-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* lang.h: Remove declarations matching definitions removed from
+	lang.c (just below).
+
 2002-12-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* lang.c (scm_nil_cons, scm_nil_car, scm_nil_cdr, scm_null,
