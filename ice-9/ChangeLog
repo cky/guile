@@ -1,3 +1,8 @@
+2003-08-17  Kevin Ryde  <user42@zip.com.au>
+
+	* boot-9.scm (while): Use a new key dynamically for each loop, so
+	break and continue associate to their loop even when recursing.
+
 2003-08-14  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm (while): Rewrite, continue as proper escape, break
