@@ -46,8 +46,9 @@
 #include "libguile/root.h"
 #include "libguile/stackchk.h"
 #include "libguile/async.h"
-#include "sys/time.h"
-#include "sys/types.h"
+#include <sys/time.h>
+#include <sys/types.h>
+#include <time.h>
 
 void *scm_null_threads_data;
 
