@@ -1,3 +1,9 @@
+2004-09-21  Marius Vollmer  <mvo@zagadka.de>
+
+	* acinclude.m4 (ACX_PTHREAD): New.
+	* configure.in: Use it instead of simply looking for -lpthread.
+	Thanks to Andreas Vögele!
+	
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* configure.in: Fail when alloca can not be found natively.
