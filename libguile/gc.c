@@ -207,26 +207,7 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-#else
 
-/*
-  Provide a stub, so people can use their Scheme code on non-debug
-  versions of GUILE as well.
- */
-SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
-	    (SCM flag),
-	    "This function is used to turn on checking for a debug version of GUILE. This version does not support this functionality\n")
-#define FUNC_NAME s_scm_set_debug_cell_accesses_x
-{
-  
-  /*
-    do nothing
-   */
-  fprintf (stderr, "\nWARNING: GUILE was not compiled with SCM_DEBUG_CELL_ACCESSES");
-  scm_remember_upto_here (flag);
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
 
 #endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 

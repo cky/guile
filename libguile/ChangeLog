@@ -1,3 +1,10 @@
+2004-03-20  Han-Wen Nienhuys   <hanwen@xs4all.nl>
+
+	* gc.c: remove set_debug_cell_accesses! when
+	SCM_DEBUG_CELL_ACCESSES is not defined. Scheme source code should
+	use (if (defined? 'set-debug-cell-accesses!) .. ) to switch on
+	debugging conditionally.
+ 
 2004-03-21  Kevin Ryde  <user42@zip.com.au>
 
 	* stime.c (scm_gmtime): Use gmtime_r when available, for thread safety.
