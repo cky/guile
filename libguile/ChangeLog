@@ -1,3 +1,17 @@
+2005-01-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-4.h, srfi-4.c (scm_c_uniform_vector_element_size,
+	scm_c_uniform_vector_size): Removed.
+	(scm_array_handle_uniform_element_size): New.
+	
+
+	* unif.h (scm_array_handle_ref, scm_array_handle_set): Changed
+	type of POS parameter to be signed, positions can be negative.
+	(scm_array_handle_release): New, changed all uses of
+	scm_t_array_handle to properly call it.
+	(scm_vector_get_handle, scm_generalized_vector_get_handle):
+	Renamed former to latter, changed all uses.
+	
 2005-01-05  Marius Vollmer  <mvo@zagadka.de>
 
 	Updated bitvector routines to also use scm_t_array_handles.
