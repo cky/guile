@@ -1462,7 +1462,6 @@ called with string containing unusual characters.
 * String Searching::            Searching in strings.
 * Alphabetic Case Mapping::     Convert the alphabetic case of strings.
 * Appending Strings::           Appending strings to form a new string.
-* String Miscellanea::          Miscellaneous string procedures.
 @end menu
 
 @node String Syntax
@@ -1858,19 +1857,6 @@ concatenation of the given strings, @var{args}.
 @end deffn
 
 
-@node String Miscellanea
-@subsection String Miscellanea
-
-This section contains all remaining string procedures.
-
-@deffn {Scheme Procedure} string-ci->symbol str
-@deffnx {C Function} scm_string_ci_to_symbol (str)
-Return the symbol whose name is @var{str}.  @var{str} is
-converted to lowercase before the conversion is done, if Guile
-is currently reading symbols case-insensitively.
-@end deffn
-
-
 @node Regular Expressions
 @section Regular Expressions
 @tpindex Regular expressions
@@ -2213,47 +2199,230 @@ to this cumbersome escape syntax.
 @section Symbols
 @tpindex Symbols
 
-Symbols have two main uses.  Crucially, they are used for denoting
-variables in a Scheme program.  In addition, they are very useful for
-describing discrete literal data.
+Symbols in Scheme are widely used in three ways: as items of discrete
+data, as lookup keys for alists and hash tables, and to denote variable
+references.
 
-A symbol is an object with a name that consists of a string of
-characters.  In the usual case (where the name doesn't include any
-characters that could be confused with other elements of Scheme syntax)
-a symbol can be written in a Scheme program by writing the sequence of
-characters that make up the symbol's name.  For example, the read syntax
-for the symbol named "multiply-by-2" is simply
+A @dfn{symbol} is similar to a string in that it is defined by a
+sequence of characters.  The sequence of characters is known as the
+symbol's @dfn{name}.  In the usual case --- that is, where the symbol's
+name doesn't include any characters that could be confused with other
+elements of Scheme syntax --- a symbol is written in a Scheme program by
+writing the sequence of characters that make up the name, @emph{without}
+any quotation marks or other special syntax.  For example, the symbol
+whose name is ``multiply-by-2'' is written, simply:
 
 @lisp
 multiply-by-2
 @end lisp
 
-Symbols, then, look rather like strings but without any quotation marks.
-But there are several functional differences between them.  The first
-big functional difference between symbols and strings concerns
-uniqueness.  If the same-looking string is read twice from two different
-places in a program, the result is two @emph{distinguishable} string
-objects whose contents just happen to be the same.  If, on the other
-hand, the same-looking symbol is read twice from two different places in
-a program, the result is the @emph{same} symbol object both times.
+Notice how this differs from a @emph{string} with contents
+``multiply-by-2'', which is written with double quotation marks, like
+this:
 
 @lisp
-(define str1 "hello")
-(define str2 "hello")
-(eq? str1 str2) @result{} #f
+"multiply-by-2"
+@end lisp
 
+Looking beyond how they are written, symbols are different from strings
+in two important respects.
+
+The first important difference is uniqueness.  If the same-looking
+string is read twice from two different places in a program, the result
+is two @emph{different} string objects whose contents just happen to be
+the same.  If, on the other hand, the same-looking symbol is read twice
+from two different places in a program, the result is the @emph{same}
+symbol object both times.
+
+Given two read symbols, you can use @code{eq?} to test whether they are
+the same (that is, have the same name).  @code{eq?} is the most
+efficient comparison operator in Scheme, and comparing two symbols like
+this is as fast as comparing, for example, two numbers.  Given two
+strings, on the other hand, you must use @code{equal?} or
+@code{string=?}, which are much slower comparison operators, to
+determine whether the strings have the same contents.
+
+@lisp
 (define sym1 (quote hello))
 (define sym2 (quote hello))
 (eq? sym1 sym2) @result{} #t
+
+(define str1 "hello")
+(define str2 "hello")
+(eq? str1 str2) @result{} #f
+(equal? str1 str2) @result{} #t
 @end lisp
 
 The second important difference is that symbols, unlike strings, are not
-self-evaluating.  An unquoted symbol is interpreted as a variable
-reference, and the result of evaluating that symbol is the corresponding
-variable's value.  (By the way, this is why we needed the @code{(quote
-@dots{})}s in the example above: @code{(quote hello)} returns the symbol
-object named "hello" itself, whereas an unquoted @code{hello} would try
-to find and dereference a variable associated with that symbol.)
+self-evaluating.  This is why we need the @code{(quote @dots{})}s in the
+example above: @code{(quote hello)} evaluates to the symbol named
+"hello" itself, whereas an unquoted @code{hello} is @emph{read} as the
+symbol named "hello" and evaluated as a variable reference @dots{} about
+which more below (@pxref{Symbol Variables}).
+
+@menu
+* Symbol Data::                 Symbols as discrete data.
+* Symbol Keys::                 Symbols as lookup keys.
+* Symbol Variables::            Symbols as denoting variables.
+* Symbol Primitives::           Operations related to symbols.
+* Symbol Props::                Function slots and property lists.
+* Symbol Read Syntax::          Extended read syntax for symbols.
+* Symbol Uninterned::           Uninterned symbols.
+@end menu
+
+
+@node Symbol Data
+@subsection Symbols as Discrete Data
+
+Numbers and symbols are similar to the extent that they both lend
+themselves to @code{eq?} comparison.  But symbols are more descriptive
+than numbers, because a symbol's name can be used directly to describe
+the concept for which that symbol stands.
+
+For example, imagine that you need to represent some colours in a
+computer program.  Using numbers, you would have to choose arbitrarily
+some mapping between numbers and colours, and then take care to use that
+mapping consistently:
+
+@lisp
+;; 1=red, 2=green, 3=purple
+
+(if (eq? (colour-of car) 1)
+    ...)
+@end lisp
+
+@noindent
+You can make the mapping more explicit and the code more readable by
+defining constants:
+
+@lisp
+(define red 1)
+(define green 2)
+(define purple 3)
+
+(if (eq? (colour-of car) red)
+    ...)
+@end lisp
+
+@noindent
+But the simplest and clearest approach is not to use numbers at all, but
+symbols whose names specify the colours that they refer to:
+
+@lisp
+(if (eq? (colour-of car) 'red)
+    ...)
+@end lisp
+
+The descriptive advantages of symbols over numbers increase as the set
+of concepts that you want to describe grows.  Suppose that a car object
+can have other properties as well, such as whether it has or uses:
+
+@itemize @bullet
+@item
+automatic or manual transmission
+@item
+leaded or unleaded fuel
+@item
+power steering (or not).
+@end itemize
+
+@noindent
+Then a car's combined property set could be naturally represented and
+manipulated as a list of symbols:
+
+@lisp
+(properties-of car1)
+@result{}
+(red manual unleaded power-steering)
+
+(if (memq 'power-steering (properties-of car1))
+    (display "Unfit people can drive this car.\n")
+    (display "You'll need strong arms to drive this car!\n"))
+@print{}
+Unfit people can drive this car.
+@end lisp
+
+Remember, the fundamental property of symbols that we are relying on
+here is that an occurrence of @code{'red} in one part of a program is an
+@emph{indistinguishable} symbol from an occurrence of @code{'red} in
+another part of a program; this means that symbols can usefully be
+compared using @code{eq?}.  At the same time, symbols have naturally
+descriptive names.  This combination of efficiency and descriptive power
+makes them ideal for use as discrete data.
+
+
+@node Symbol Keys
+@subsection Symbols as Lookup Keys
+
+Given their efficiency and descriptive power, it is natural to use
+symbols as the keys in an association list or hash table.
+
+To illustrate this, consider a more structured representation of the car
+properties example from the preceding subsection.  Rather than
+mixing all the properties up together in a flat list, we could use an
+association list like this:
+
+@lisp
+(define car1-properties '((colour . red)
+                          (transmission . manual)
+                          (fuel . unleaded)
+                          (steering . power-assisted)))
+@end lisp
+
+Notice how this structure is more explicit and extensible than the flat
+list.  For example it makes clear that @code{manual} refers to the
+transmission rather than, say, the windows or the locking of the car.
+It also allows further properties to use the same symbols among their
+possible values without becoming ambiguous:
+
+@lisp
+(define car1-properties '((colour . red)
+                          (transmission . manual)
+                          (fuel . unleaded)
+                          (steering . power-assisted)
+                          (seat-colour . red)
+                          (locking . manual)))
+@end lisp
+
+With a representation like this, it is easy to use the efficient
+@code{assq-XXX} family of procedures (@pxref{Association Lists}) to
+extract or change individual pieces of information:
+
+@lisp
+(assq-ref car1-properties 'fuel) @result{} unleaded
+(assq-ref car1-properties 'transmission) @result{} manual
+
+(assq-set! car1-properties 'seat-colour 'black)
+@result{}
+((colour . red)
+ (transmission . manual)
+ (fuel . unleaded)
+ (steering . power-assisted)
+ (seat-colour . black)
+ (locking . manual)))
+@end lisp
+
+Hash tables also have keys, and exactly the same arguments apply to the
+use of symbols in hash tables as in association lists.  The hash value
+that Guile uses to decide where to add a symbol-keyed entry to a hash
+table can be obtained by calling the @code{symbol-hash} procedure:
+
+@deffn {Scheme Procedure} symbol-hash symbol
+@deffnx {C Function} scm_symbol_hash (symbol)
+Return a hash value for @var{symbol}.
+@end deffn
+
+See @ref{Hash Tables} for information about hash tables in general, and
+for why you might choose to use a hash table rather than an association
+list.
+
+
+@node Symbol Variables
+@subsection Symbols as Denoting Variables
+
+When an unquoted symbol in a Scheme program is evaluated, it is
+interpreted as a variable reference, and the result of the evaluation is
+the appropriate variable's value.
 
 For example, when the expression @code{(string-length "abcd")} is read
 and evaluated, the sequence of characters @code{string-length} is read
@@ -2262,23 +2431,211 @@ with a variable whose value is the procedure that implements string
 length calculation.  Therefore evaluation of the @code{string-length}
 symbol results in that procedure.
 
-Although the use of symbols for variable references is undoubtedly their
-most important role in Scheme, it is not documented further here.  See
-instead @ref{Binding Constructs}, for how associations between symbols
-and variables are created, and @ref{Modules}, for how those associations
-are affected by Guile's module system.  The rest of this section
-explains how symbols can also be used to represent discrete values, and
-documents the procedures available that relate to symbols as data
-objects @i{per se}.
+The details of the connection between an unquoted symbol and the
+variable to which it refers are explained elsewhere.  See @ref{Binding
+Constructs}, for how associations between symbols and variables are
+created, and @ref{Modules}, for how those associations are affected by
+Guile's module system.
 
-@menu
-* Symbol Read Syntax::          Extended read syntax for symbols.
-* Symbol Primitives::           Operations related to symbols.
-* Symbol Tables::               Collecting symbols into obarrays.
-* Symbol Discrete::             Using symbols as discrete values.
-* Symbol Props::                Function slots and property lists.
-* Symbol Uninterned::           Uninterned symbols.
-@end menu
+
+@node Symbol Primitives
+@subsection Operations Related to Symbols
+
+Given any Scheme value, you can determine whether it is a symbol using
+the @code{symbol?} primitive:
+
+@rnindex symbol?
+@deffn {Scheme Procedure} symbol? obj
+@deffnx {C Function} scm_symbol_p (obj)
+Return @code{#t} if @var{obj} is a symbol, otherwise return
+@code{#f}.
+@end deffn
+
+Once you know that you have a symbol, you can obtain its name as a
+string by calling @code{symbol->string}.  Note that Guile differs by
+default from R5RS on the details of @code{symbol->string} as regards
+case-sensitivity:
+
+@rnindex symbol->string
+@deffn {Scheme Procedure} symbol->string s
+@deffnx {C Function} scm_symbol_to_string (s)
+Return the name of symbol @var{s} as a string.  By default, Guile reads
+symbols case-sensitively, so the string returned will have the same case
+variation as the sequence of characters that caused @var{s} to be
+created.
+
+If Guile is set to read symbols case-insensitively (as specified by
+R5RS), and @var{s} comes into being as part of a literal expression
+(@pxref{Literal expressions,,,r5rs, The Revised^5 Report on Scheme}) or
+by a call to the @code{read} or @code{string-ci->symbol} procedures,
+Guile converts any alphabetic characters in the symbol's name to
+lower case before creating the symbol object, so the string returned
+here will be in lower case.
+
+If @var{s} was created by @code{string->symbol}, the case of characters
+in the string returned will be the same as that in the string that was
+passed to @code{string->symbol}, regardless of Guile's case-sensitivity
+setting at the time @var{s} was created.
+
+It is an error to apply mutation procedures like @code{string-set!} to
+strings returned by this procedure.
+@end deffn
+
+Most symbols are created by writing them literally in code.  However it
+is also possible to create symbols programmatically using the following
+@code{string->symbol} and @code{string-ci->symbol} procedures:
+
+@rnindex string->symbol
+@deffn {Scheme Procedure} string->symbol string
+@deffnx {C Function} scm_string_to_symbol (string)
+Return the symbol whose name is @var{string}.  This procedure can create
+symbols with names containing special characters or letters in the
+non-standard case, but it is usually a bad idea to create such symbols
+because in some implementations of Scheme they cannot be read as
+themselves.
+@end deffn
+
+@deffn {Scheme Procedure} string-ci->symbol str
+@deffnx {C Function} scm_string_ci_to_symbol (str)
+Return the symbol whose name is @var{str}.  If Guile is currently
+reading symbols case-insensitively, @var{str} is converted to lowercase
+before the returned symbol is looked up or created.
+@end deffn
+
+The following examples illustrate Guile's detailed behaviour as regards
+the case-sensitivity of symbols:
+
+@lisp
+(read-enable 'case-insensitive)   ; R5RS compliant behaviour
+
+(symbol->string 'flying-fish)    @result{} "flying-fish"
+(symbol->string 'Martin)         @result{} "martin"
+(symbol->string
+   (string->symbol "Malvina"))   @result{} "Malvina"
+
+(eq? 'mISSISSIppi 'mississippi)  @result{} #t
+(string->symbol "mISSISSIppi")   @result{} mISSISSIppi
+(eq? 'bitBlt (string->symbol "bitBlt")) @result{} #f
+(eq? 'LolliPop
+  (string->symbol (symbol->string 'LolliPop))) @result{} #t
+(string=? "K. Harper, M.D."
+  (symbol->string
+    (string->symbol "K. Harper, M.D."))) @result{} #t
+
+(read-disable 'case-insensitive)   ; Guile default behaviour
+
+(symbol->string 'flying-fish)    @result{} "flying-fish"
+(symbol->string 'Martin)         @result{} "Martin"
+(symbol->string
+   (string->symbol "Malvina"))   @result{} "Malvina"
+
+(eq? 'mISSISSIppi 'mississippi)  @result{} #f
+(string->symbol "mISSISSIppi")   @result{} mISSISSIppi
+(eq? 'bitBlt (string->symbol "bitBlt")) @result{} #t
+(eq? 'LolliPop
+  (string->symbol (symbol->string 'LolliPop))) @result{} #t
+(string=? "K. Harper, M.D."
+  (symbol->string
+    (string->symbol "K. Harper, M.D."))) @result{} #t
+@end lisp
+
+Finally, some applications, especially those that generate new Scheme
+code dynamically, need to generate symbols for use in the generated
+code.  The @code{gensym} primitive meets this need:
+
+@deffn {Scheme Procedure} gensym [prefix]
+@deffnx {C Function} scm_gensym (prefix)
+Create a new symbol with a name constructed from a prefix and a counter
+value.  The string @var{prefix} can be specified as an optional
+argument.  Default prefix is @samp{ g}.  The counter is increased by 1
+at each call.  There is no provision for resetting the counter.
+@end deffn
+
+The symbols generated by @code{gensym} are @emph{likely} to be unique,
+since their names begin with a space and it is only otherwise possible
+to generate such symbols if a programmer goes out of their way to do
+so.  The 1.8 release of Guile will include a way of creating
+symbols that are @emph{guaranteed} to be unique.
+
+
+@node Symbol Props
+@subsection Function Slots and Property Lists
+
+In traditional Lisp dialects, symbols are often understood as having
+three kinds of value at once:
+
+@itemize @bullet
+@item
+a @dfn{variable} value, which is used when the symbol appears in
+code in a variable reference context
+
+@item
+a @dfn{function} value, which is used when the symbol appears in
+code in a function name position (i.e. as the first element in an
+unquoted list)
+
+@item
+a @dfn{property list} value, which is used when the symbol is given as
+the first argument to Lisp's @code{put} or @code{get} functions.
+@end itemize
+
+Although Scheme (as one of its simplifications with respect to Lisp)
+does away with the distinction between variable and function namespaces,
+Guile currently retains some elements of the traditional structure in
+case they turn out to be useful when implementing translators for other
+languages, in particular Emacs Lisp.
+
+Specifically, Guile symbols have two extra slots. for a symbol's
+property list, and for its ``function value.''  The following procedures
+are provided to access these slots.
+
+@deffn {Scheme Procedure} symbol-fref symbol
+@deffnx {C Function} scm_symbol_fref (symbol)
+Return the contents of @var{symbol}'s @dfn{function slot}.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-fset! symbol value
+@deffnx {C Function} scm_symbol_fset_x (symbol, value)
+Set the contents of @var{symbol}'s function slot to @var{value}.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-pref symbol
+@deffnx {C Function} scm_symbol_pref (symbol)
+Return the @dfn{property list} currently associated with @var{symbol}.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-pset! symbol value
+@deffnx {C Function} scm_symbol_pset_x (symbol, value)
+Set @var{symbol}'s property list to @var{value}.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-property sym prop
+From @var{sym}'s property list, return the value for property
+@var{prop}.  The assumption is that @var{sym}'s property list is an
+association list whose keys are distinguished from each other using
+@code{equal?}; @var{prop} should be one of the keys in that list.  If
+the property list has no entry for @var{prop}, @code{symbol-property}
+returns @code{#f}.
+@end deffn
+
+@deffn {Scheme Procedure} set-symbol-property sym prop val
+In @var{sym}'s property list, set the value for property @var{prop} to
+@var{val}, or add a new entry for @var{prop}, with value @var{val}, if
+none already exists.  For the structure of the property list, see
+@code{symbol-property}.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-property-remove! sym prop
+From @var{sym}'s property list, remove the entry for property
+@var{prop}, if there is one.  For the structure of the property list,
+see @code{symbol-property}.
+@end deffn
+
+Support for these extra slots may be removed in a future release, and it
+is probably better to avoid using them.  (In release 1.6, Guile itself
+uses the property list slot sparingly, and the function slot not at
+all.)  For a more modern and Schemely approach to properties, see
+@ref{Object Properties}.
 
 
 @node Symbol Read Syntax
@@ -2334,164 +2691,13 @@ widespread usage of it is discouraged because it is not portable and not
 very readable.
 
 
-@node Symbol Primitives
-@subsection Operations Related to Symbols
-
-@rnindex symbol?
-@deffn {Scheme Procedure} symbol? obj
-@deffnx {C Function} scm_symbol_p (obj)
-Return @code{#t} if @var{obj} is a symbol, otherwise return
-@code{#f}.
-@end deffn
-
-@rnindex string->symbol
-@deffn {Scheme Procedure} string->symbol string
-@deffnx {C Function} scm_string_to_symbol (string)
-Return the symbol whose name is @var{string}. This procedure
-can create symbols with names containing special characters or
-letters in the non-standard case, but it is usually a bad idea
-to create such symbols because in some implementations of
-Scheme they cannot be read as themselves.  See
-@code{symbol->string}.
-
-The following examples assume that the implementation's
-standard case is lower case:
-
-@lisp
-(eq? 'mISSISSIppi 'mississippi) @result{} #t
-(string->symbol "mISSISSIppi") @result{} @r{the symbol with name "mISSISSIppi"}
-(eq? 'bitBlt (string->symbol "bitBlt")) @result{} #f
-(eq? 'LolliPop
-  (string->symbol (symbol->string 'LolliPop))) @result{} #t
-(string=? "K. Harper, M.D."
-  (symbol->string
-    (string->symbol "K. Harper, M.D."))) @result{}#t
-@end lisp
-@end deffn
-
-@deffn {Scheme Procedure} string-ci->symbol str
-@deffnx {C Function} scm_string_ci_to_symbol (str)
-Return the symbol whose name is @var{str}.  @var{str} is
-converted to lowercase before the conversion is done, if Guile
-is currently reading symbols case-insensitively.
-@end deffn
-
-@rnindex symbol->string
-@deffn {Scheme Procedure} symbol->string s
-@deffnx {C Function} scm_symbol_to_string (s)
-Return the name of @var{symbol} as a string.  If the symbol was
-part of an object returned as the value of a literal expression
-(section @pxref{Literal expressions,,,r5rs, The Revised^5
-Report on Scheme}) or by a call to the @code{read} procedure,
-and its name contains alphabetic characters, then the string
-returned will contain characters in the implementation's
-preferred standard case---some implementations will prefer
-upper case, others lower case.  If the symbol was returned by
-@code{string->symbol}, the case of characters in the string
-returned will be the same as the case in the string that was
-passed to @code{string->symbol}.  It is an error to apply
-mutation procedures like @code{string-set!} to strings returned
-by this procedure.
-
-The following examples assume that the implementation's
-standard case is lower case:
-
-@lisp
-(symbol->string 'flying-fish)    @result{} "flying-fish"
-(symbol->string 'Martin)         @result{}  "martin"
-(symbol->string
-   (string->symbol "Malvina")) @result{} "Malvina"
-@end lisp
-@end deffn
-
-@node Symbol Tables
-@subsection Symbol Tables
-
-@c FIXME::martin: Are all these procedures still relevant?
-
-Guile symbol tables are hash tables.  Each hash table, also called an
-@dfn{obarray} (for `object array'), is a vector of association lists.
-Each entry in the alists is a pair (@var{SYMBOL} . @var{VALUE}).  To
-@dfn{intern} a symbol in a symbol table means to return its
-(@var{SYMBOL} . @var{VALUE}) pair, adding a new entry to the symbol
-table (with an undefined value) if none is yet present.
-
-@deffn {Scheme Procedure} gensym [prefix]
-@deffnx {C Function} scm_gensym (prefix)
-Create a new symbol with a name constructed from a prefix and
-a counter value. The string @var{prefix} can be specified as
-an optional argument. Default prefix is @code{ g}.  The counter
-is increased by 1 at each call. There is no provision for
-resetting the counter.
-@end deffn
-
-@vgone{gentemp,1.6}
-@vgone{intern-symbol,1.6}
-@vgone{string->obarray-symbol,1.6}
-@vgone{symbol-binding,1.6}
-@vgone{symbol-bound?,1.6}
-
-
-@node Symbol Discrete
-@subsection Using Symbols as Discrete Values
-
-Symbols are especially useful because two symbols which are spelled the
-same way are equivalent in the sense of @code{eq?}.  That means that
-they are actually the same Scheme object.  The advantage is that symbols
-can be compared extremely efficiently, although they carry more
-information for the human reader than, say, numbers.
-
-It is very common in Scheme programs to use symbols as keys in
-association lists (@pxref{Association Lists}) or hash tables
-(@pxref{Hash Tables}), because this usage improves the readability a
-lot, and does not cause any performance loss.
-
-
-@node Symbol Props
-@subsection Function Slots and Property Lists
-
-@deffn {Scheme Procedure} symbol-fref symbol
-@deffnx {C Function} scm_symbol_fref (symbol)
-Return the contents of @var{symbol}'s @dfn{function slot}.
-@end deffn
-
-@deffn {Scheme Procedure} symbol-fset! symbol value
-@deffnx {C Function} scm_symbol_fset_x (symbol, value)
-Change the binding of @var{symbol}'s function slot.
-@end deffn
-
-@deffn {Scheme Procedure} symbol-hash symbol
-@deffnx {C Function} scm_symbol_hash (symbol)
-Return a hash value for @var{symbol}.
-@end deffn
-
-@deffn {Scheme Procedure} symbol-interned? obarray string
-@deffnx {C Function} scm_symbol_interned_p (obarray, string)
-Return @code{#t} if @var{obarray} contains a symbol with name
-@var{string}, and @code{#f} otherwise.
-@end deffn
-
-@deffn {Scheme Procedure} symbol-pref symbol
-@deffnx {C Function} scm_symbol_pref (symbol)
-Return the @dfn{property list} currently associated with @var{symbol}.
-@end deffn
-
-@deffn {Scheme Procedure} symbol-pset! symbol value
-@deffnx {C Function} scm_symbol_pset_x (symbol, value)
-Change the binding of @var{symbol}'s property slot.
-@end deffn
-
-@vgone{symbol-set!,1.6}
-@vgone{unintern-symbol,1.6}
-
-
 @node Symbol Uninterned
 @subsection Uninterned Symbols
 
 What makes symbols useful is that they are automatically kept unique.
 There are no two symbols that are distinct objects but have the same
 name.  But of course, there is no rule without exception.  In addition
-to the normal symbols that have been discussed upto now, you can also
+to the normal symbols that have been discussed up to now, you can also
 create special @dfn{uninterned} symbols that behave slightly
 differently.
 
@@ -2551,25 +2757,30 @@ For example:
 (define foo-4 (make-symbol "foo"))
 
 (eq? foo-1 foo-2)
-@result{#t}  ; Two interned symbols with the same name are the same object,
+@result{} #t
+; Two interned symbols with the same name are the same object,
 
 (eq? foo-1 foo-3)
-@result{#f}  ; but a call to make-symbol with the same name returns a
-             ; distinct object.
+@result{} #f
+; but a call to make-symbol with the same name returns a
+; distinct object.
 
 (eq? foo-3 foo-4)
-@result{#f}  ; A call to make-symbol always returns a new object, even for
-             ; the same name.
+@result{} #f
+; A call to make-symbol always returns a new object, even for
+; the same name.
 
 foo-3
-@result{#<uninterned-symbol foo 8085290>}
-             ; Uninterned symbols print different from interned symbols,
+@result{} #<uninterned-symbol foo 8085290>
+; Uninterned symbols print differently from interned symbols,
+
 (symbol? foo-3)
-@result{#t}  ; but they are still symbols.
+@result{} #t
+; but they are still symbols,
 
 (symbol-interned? foo-3)
-@result{#f}  ; Just not interned.
-
+@result{} #f
+; just not interned.
 @end lisp
 
 

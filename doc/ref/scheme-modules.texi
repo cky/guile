@@ -835,6 +835,10 @@ anyway).
 @section Variables
 @tpindex Variables
 
+Each module has its own hash table, sometimes known as an @dfn{obarray},
+that maps the names defined in that module to their corresponding
+variable objects.
+
 A variable is a box-like object that can hold any Scheme value.  It is
 said to be @dfn{undefined} if its box holds a special Scheme value that
 denotes undefined-ness (which is different from all other Scheme values,
