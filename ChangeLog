@@ -1,3 +1,11 @@
+Tue Aug  6 14:40:44 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* README: Renamed from ANNOUNCE; include bug report address,
+	description, and short tour.
+ 	* INSTALL: Renamed from BUILDING.
+	* NEWS: New file.
+	* Makefile.in (DISTFILES): Update appropriately.
+
 Thu Aug  1 02:31:53 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* doc/Makefile.in: Added pattern targets for creating DVI and
