@@ -681,6 +681,10 @@ The old names are still available with status `deprecated'.
   scm_tc_dblc - replaced by scm_tc16_complex.
   scm_list_star - replaced by scm_cons_star.
 
+** Deprecated: scm_makfromstr
+
+Use scm_mem2string instead.
+
 ** Deprecated: scm_make_shared_substring
 
 Explicit shared substrings will disappear from Guile.

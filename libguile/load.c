@@ -123,8 +123,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 
   { /* scope */
     SCM port, save_port;
-    port = scm_open_file (filename,
-			  scm_makfromstr ("r", (size_t) sizeof (char), 0));
+    port = scm_open_file (filename, scm_mem2string ("r", sizeof (char)));
     save_port = port;
     scm_internal_dynamic_wind (swap_port,
 			       load,
@@ -205,7 +204,7 @@ scm_internal_parse_path (char *path, SCM tail)
 	/* Scan back to the beginning of the current element.  */
 	do scan--;
 	while (scan >= path && *scan != ':');
-	tail = scm_cons (scm_makfromstr (scan + 1, elt_end - (scan + 1), 0),
+	tail = scm_cons (scm_mem2string (scan + 1, elt_end - (scan + 1)),
 			 tail);
 	elt_end = scan;
       } while (scan >= path);
@@ -389,7 +388,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 	    if (stat (buf, &mode) == 0
 		&& ! (mode.st_mode & S_IFDIR))
 	      {
-		result = scm_makfromstr (buf, len + ext_len, 0);
+		result = scm_mem2string (buf, len + ext_len);
 		goto end;
 	      }
 	  }

@@ -491,7 +491,7 @@ SCM_DEFINE (scm_make_subclass_object, "make-subclass-object", 2, 0, 0,
   SCM_VALIDATE_STRING (2,layout);
   pl = SCM_PACK (SCM_STRUCT_DATA (class) [scm_vtable_index_layout]);
   /* Convert symbol->string */
-  pl = scm_makfromstr (SCM_SYMBOL_CHARS (pl), SCM_SYMBOL_LENGTH (pl), 0);
+  pl = scm_mem2string (SCM_SYMBOL_CHARS (pl), SCM_SYMBOL_LENGTH (pl));
   return scm_i_make_class_object (SCM_STRUCT_VTABLE (class),
 				  scm_string_append (SCM_LIST2 (pl, layout)),
 				  SCM_CLASS_FLAGS (class));

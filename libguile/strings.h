@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef STRINGSH
-#define STRINGSH
-/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
+#ifndef SCM_STRINGS_H
+#define SCM_STRINGS_H
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@
 
 
 
-#define SCM_STRINGP(x) (SCM_NIMP (x) && (SCM_TYP7S (x) == scm_tc7_string))
+#define SCM_STRINGP(x) (!SCM_IMP (x) && (SCM_TYP7S (x) == scm_tc7_string))
 #if (SCM_DEBUG_DEPRECATED == 1)
 #define SCM_STRING_UCHARS(x) ((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_STRING_CHARS(x) ((char *) (SCM_CELL_WORD_1 (x)))
@@ -62,8 +62,8 @@
 #define SCM_SET_STRING_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), ((l) << 8) + scm_tc7_string))
 
 #define SCM_STRING_COERCE_0TERMINATION_X(x) \
-  { if (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_substring)) \
-      x = scm_makfromstr (SCM_STRING_CHARS (x), SCM_STRING_LENGTH (x), 0); }
+  { if (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_substring)) \
+      x = scm_mem2string (SCM_STRING_CHARS (x), SCM_STRING_LENGTH (x)); }
 
 
 
@@ -73,7 +73,7 @@ extern SCM scm_string (SCM chrs);
 extern SCM scm_makfromstrs (int argc, char **argv);
 extern SCM scm_take_str (char *s, size_t len);
 extern SCM scm_take0str (char *s);
-extern SCM scm_makfromstr (const char *src, size_t len, int);
+extern SCM scm_mem2string (const char *src, size_t len);
 extern SCM scm_makfrom0str (const char *src);
 extern SCM scm_makfrom0str_opt (const char *src);
 extern SCM scm_allocate_string (size_t len);
@@ -90,7 +90,7 @@ extern void scm_init_strings (void);
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 #define SCM_SLOPPY_STRINGP(x) (SCM_STRINGP(x))
-#define SCM_RWSTRINGP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
+#define SCM_RWSTRINGP(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
 #define SCM_STRING_UCHARS(x) \
   ((SCM_TYP7 (x) == scm_tc7_substring) \
      ? (unsigned char *) SCM_CELL_WORD_1 (SCM_CDDR (x)) + SCM_INUM (SCM_CADR (x)) \
@@ -101,10 +101,11 @@ extern void scm_init_strings (void);
      : (char *) SCM_CELL_WORD_1 (x))
 extern SCM scm_make_shared_substring (SCM str, SCM frm, SCM to);
 extern SCM scm_makstr (size_t len, int);
+extern SCM scm_makfromstr (const char *src, size_t len, int);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
-#endif  /* STRINGSH */
+#endif  /* SCM_STRINGS_H */
 
 /*
   Local Variables:

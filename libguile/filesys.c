@@ -333,7 +333,7 @@ SCM_DEFINE (scm_close, "close", 1, 0, 0,
      not an error.  */
   if (rv < 0 && errno != EBADF)
     SCM_SYSERROR;
-  return SCM_NEGATE_BOOL(rv < 0);
+  return SCM_BOOL (rv >= 0);
 }
 #undef FUNC_NAME
 
@@ -529,23 +529,22 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
   struct stat stat_temp;
 
   if (SCM_INUMP (object))
-    SCM_SYSCALL (rv = fstat (SCM_INUM (object), &stat_temp));
+    {
+      SCM_SYSCALL (rv = fstat (SCM_INUM (object), &stat_temp));
+    }
+  else if (SCM_STRINGP (object))
+    {
+      SCM_STRING_COERCE_0TERMINATION_X (object);
+      SCM_SYSCALL (rv = stat (SCM_STRING_CHARS (object), &stat_temp));
+    }
   else
     {
-      SCM_VALIDATE_NIM (1,object);
-      if (SCM_STRINGP (object))
-	{
-	  SCM_STRING_COERCE_0TERMINATION_X (object);
-	  SCM_SYSCALL (rv = stat (SCM_STRING_CHARS (object), &stat_temp));
-	}
-      else
-	{
-	  object = SCM_COERCE_OUTPORT (object);
-          SCM_VALIDATE_OPFPORT(1,object);
-	  fdes = SCM_FPORT_FDES (object);
-	  SCM_SYSCALL (rv = fstat (fdes, &stat_temp));
-	}
+      object = SCM_COERCE_OUTPORT (object);
+      SCM_VALIDATE_OPFPORT (1, object);
+      fdes = SCM_FPORT_FDES (object);
+      SCM_SYSCALL (rv = fstat (fdes, &stat_temp));
     }
+
   if (rv == -1)
     {
       int en = errno;
@@ -735,7 +734,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
   if (errno != 0)
     SCM_SYSERROR;
 
-  return (rdent ? scm_makfromstr (rdent->d_name, NAMLEN (rdent), 0)
+  return (rdent ? scm_mem2string (rdent->d_name, NAMLEN (rdent))
 	  : SCM_EOF_VAL);
 }
 #undef FUNC_NAME
@@ -845,7 +844,7 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
     }
   if (rv == 0)
     SCM_SYSERROR;
-  result = scm_makfromstr (wd, strlen (wd), 0);
+  result = scm_mem2string (wd, strlen (wd));
   scm_must_free (wd);
   return result;
 }
@@ -1272,7 +1271,7 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
     }
   if (rv == -1)
     SCM_SYSERROR;
-  result = scm_makfromstr (buf, rv, 0);
+  result = scm_mem2string (buf, rv);
   scm_must_free (buf);
   return result;
 }

@@ -1,6 +1,6 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * 	Copyright (C) 2001 Free Software Foundation, Inc.
+ * Copyright (C) 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -189,7 +189,7 @@ SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0,
   {
     unsigned char *data = SCM_STRING_UCHARS (result) + i;
 
-    while (SCM_NNULLP (chrs))
+    while (!SCM_NULLP (chrs))
       {
 	SCM elt = SCM_CAR (chrs);
 
@@ -379,7 +379,7 @@ SCM_DEFINE (scm_string_copyS, "string-copy", 1, 2, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
 				    2, start, cstart,
 				    3, end, cend);
-  return scm_makfromstr (cstr + cstart, cend - cstart, 0);
+  return scm_mem2string (cstr + cstart, cend - cstart);
   
 }
 #undef FUNC_NAME
@@ -450,7 +450,7 @@ SCM_DEFINE (scm_string_take, "string-take", 2, 0, 0,
   SCM_VALIDATE_INUM_COPY (2, n, cn);
   SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
   
-  return scm_makfromstr (cstr, cn, 0);
+  return scm_mem2string (cstr, cn);
 }
 #undef FUNC_NAME
 
@@ -467,7 +467,7 @@ SCM_DEFINE (scm_string_drop, "string-drop", 2, 0, 0,
   SCM_VALIDATE_INUM_COPY (2, n, cn);
   SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
   
-  return scm_makfromstr (cstr + cn, SCM_STRING_LENGTH (s) - cn, 0);
+  return scm_mem2string (cstr + cn, SCM_STRING_LENGTH (s) - cn);
 }
 #undef FUNC_NAME
 
@@ -484,7 +484,7 @@ SCM_DEFINE (scm_string_take_right, "string-take-right", 2, 0, 0,
   SCM_VALIDATE_INUM_COPY (2, n, cn);
   SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
   
-  return scm_makfromstr (cstr + SCM_STRING_LENGTH (s) - cn, cn, 0);
+  return scm_mem2string (cstr + SCM_STRING_LENGTH (s) - cn, cn);
 }
 #undef FUNC_NAME
 
@@ -501,7 +501,7 @@ SCM_DEFINE (scm_string_drop_right, "string-drop-right", 2, 0, 0,
   SCM_VALIDATE_INUM_COPY (2, n, cn);
   SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
   
-  return scm_makfromstr (cstr, SCM_STRING_LENGTH (s) - cn, 0);
+  return scm_mem2string (cstr, SCM_STRING_LENGTH (s) - cn);
 }
 #undef FUNC_NAME
 
@@ -657,7 +657,7 @@ SCM_DEFINE (scm_string_trim, "string-trim", 1, 3, 0,
 	  cstart++;
 	}
     }
-  return scm_makfromstr (cstr + cstart, cend - cstart, 0);
+  return scm_mem2string (cstr + cstart, cend - cstart);
 }
 #undef FUNC_NAME
 
@@ -733,7 +733,7 @@ SCM_DEFINE (scm_string_trim_right, "string-trim-right", 1, 3, 0,
 	  cend--;
 	}
     }
-  return scm_makfromstr (cstr + cstart, cend - cstart, 0);
+  return scm_mem2string (cstr + cstart, cend - cstart);
 }
 #undef FUNC_NAME
 
@@ -837,7 +837,7 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
 	  cend--;
 	}
     }
-  return scm_makfromstr (cstr + cstart, cend - cstart, 0);
+  return scm_mem2string (cstr + cstart, cend - cstart);
 }
 #undef FUNC_NAME
 
@@ -2121,7 +2121,7 @@ string_titlecase_x (SCM str, int start, int end)
   sz = SCM_STRING_CHARS (str);
   for(i = start; i < end;  i++)
     {
-      if(SCM_NFALSEP(scm_char_alphabetic_p(SCM_MAKE_CHAR(sz[i]))))
+      if (!SCM_FALSEP (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i]))))
 	{
 	  if (!in_word)
 	    {
@@ -2826,8 +2826,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 		break;
 	      cend--;
 	    }
-	  result = scm_cons (scm_makfromstr (cstr + cend, idx - cend,
-					     0), result);
+	  result = scm_cons (scm_mem2string (cstr + cend, idx - cend), result);
 	}
     }
   else if (SCM_CHARSETP (token_char))
@@ -2851,8 +2850,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 		break;
 	      cend--;
 	    }
-	  result = scm_cons (scm_makfromstr (cstr + cend, idx - cend,
-					     0), result);
+	  result = scm_cons (scm_mem2string (cstr + cend, idx - cend), result);
 	}
     }
   else
@@ -2880,8 +2878,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 		break;
 	      cend--;
 	    }
-	  result = scm_cons (scm_makfromstr (cstr + cend, idx - cend,
-					     0), result);
+	  result = scm_cons (scm_mem2string (cstr + cend, idx - cend), result);
 	}
     }
   return result;

@@ -1,3 +1,53 @@
+2001-06-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* filesys.c (scm_close), ports.c (scm_close_port,
+	scm_port_closed_p), strop.c (scm_string_null_p):  Use SCM_BOOL
+	instead of SCM_NEGATE_BOOL.
+
+	* filesys.c (scm_stat):  Clean up type dispatch.
+
+	* filesys.c (scm_stat), ports.c (scm_input_port_p,
+	scm_output_port_p):  Get rid of redundant IM type check.
+
+	* filesys.c (scm_readdir, scm_getcwd, scm_readlink), gh_data.c
+	(gh_str2scm), load.c (scm_primitive_load, scm_internal_parse_path,
+	scm_search_path), net_db.c (scm_gethost, scm_getnet, scm_getproto,
+	scm_return_entry), numbers.c (scm_number_to_string), objects.c
+	(scm_make_subclass_object), ports.c (scm_port_mode), read.c
+	(scm_lreadr), simpos.c (scm_getenv), socket.c (scm_inet_ntoa,
+	scm_addr_vector), stime.c (scm_strftime), strings.c
+	(scm_makfromstrs, scm_makfrom0str, scm_substring), strings.h
+	(SCM_STRING_COERCE_0TERMINATION_X), strop.c (string_copy,
+	scm_string_split), strports.c (scm_strport_to_string), symbols.c
+	(scm_symbol_to_string), vports.c (sf_write):  Use scm_mem2string
+	instead of scm_makfromstr.
+
+	* net_db.c (scm_sethost, scm_setnet, scm_setproto, scm_setserv),
+	ports.c (scm_close_all_ports_except), read.c (scm_lreadr,
+	scm_read_hash_extend), stime.c (scm_strftime), strings.c
+	(scm_string_append, scm_string), strings.h (SCM_STRINGP,
+	SCM_STRING_COERCE_0TERMINATION_X, SCM_RWSTRINGP), strop.c
+	(string_capitalize_x):  Prefer explicit type check over SCM_N?IMP,
+	!SCM_<pred> over SCM_N<pred>.
+
+	* strings.[ch] (scm_makfromstr):  Deprecated.
+
+	(scm_mem2string):  New function, replaces scm_makfromstr.
+
+	* strings.c (scm_substring), strop.c (string_copy,
+	scm_string_split), strports.c (scm_strport_to_string), symbols.c
+	(scm_symbol_to_string):  Fix gc problem.
+
+	* strings.h (STRINGSH, SCM_STRINGS_H): Rename <foo>H to
+	SCM_<foo>_H.
+
+	* validate.h (SCM_VALIDATE_SUBSTRING_SPEC_COPY):  Eliminate
+	warning about comparing signed and unsigned values.  This fix is
+	not optimal, since it won't work reliably if sizeof (c_start) >
+	sizeof (size_t) or sizeof (c_end) > sizeof (size_t).  A better
+	solution is to define this macro as an inline function, thus
+	allowing to specifiy the types of c_start and c_end.
+
 2001-06-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* debug.h (SCM_DEBUGOBJ_FRAME):  Deliver result as a

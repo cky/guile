@@ -305,10 +305,14 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 SCM scm_strport_to_string (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  SCM str;
 
   if (pt->rw_active == SCM_PORT_WRITE)
     st_flush (port);
-  return scm_makfromstr ((char *) pt->read_buf, pt->read_buf_size, 0);
+
+  str = scm_mem2string ((char *) pt->read_buf, pt->read_buf_size);
+  scm_remember_upto_here_1 (port);
+  return str;
 }
 
 SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,

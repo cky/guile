@@ -1,6 +1,6 @@
 /* classes: src_files */
 
-/*	Copyright (C) 1994, 1996, 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1994,1996,1997,1999,2000,2001 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -324,7 +324,7 @@ SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
 #define FUNC_NAME s_scm_string_null_p
 {
   SCM_VALIDATE_STRING (1,str);
-  return SCM_NEGATE_BOOL (SCM_STRING_LENGTH (str));
+  return SCM_BOOL (SCM_STRING_LENGTH (str) == 0);
 }
 #undef FUNC_NAME
 
@@ -353,7 +353,11 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
 static SCM
 string_copy (SCM str)
 {
-  return scm_makfromstr (SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str), 0);
+  const char* chars = SCM_STRING_CHARS (str);
+  size_t length = SCM_STRING_LENGTH (str);
+  SCM new_string = scm_mem2string (chars, length);
+  scm_remember_upto_here_1 (str);
+  return new_string;
 }
 
 
@@ -487,7 +491,7 @@ string_capitalize_x (SCM str)
   len = SCM_STRING_LENGTH(str);
   sz = SCM_STRING_CHARS (str);
   for(i=0; i<len;  i++) {
-    if(SCM_NFALSEP(scm_char_alphabetic_p(SCM_MAKE_CHAR(sz[i])))) {
+    if (!SCM_FALSEP (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i])))) {
       if(!in_word) {
         sz[i] = scm_upcase(sz[i]);
         in_word = 1;
@@ -574,10 +578,11 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 	idx--;
       if (idx >= 0)
 	{
-	  res = scm_cons (scm_makfromstr (p + idx, last_idx - idx, 0), res);
+	  res = scm_cons (scm_mem2string (p + idx, last_idx - idx), res);
 	  idx--;
 	}
     }
+  scm_remember_upto_here_1 (str);
   return res;
 }
 #undef FUNC_NAME

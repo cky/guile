@@ -627,7 +627,7 @@ SCM_DEFINE (scm_port_mode, "port-mode", 1, 0, 0,
     strcpy (modes, "w");
   if (SCM_CELL_WORD_0 (port) & SCM_BUF0)
     strcat (modes, "0");
-  return scm_makfromstr (modes, strlen (modes), 0);
+  return scm_mem2string (modes, strlen (modes));
 }
 #undef FUNC_NAME
 
@@ -664,7 +664,7 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
     rv = 0;
   scm_remove_from_port_table (port);
   SCM_CLR_PORT_OPEN_FLAG (port);
-  return SCM_NEGATE_BOOL (rv < 0);
+  return SCM_BOOL (rv >= 0);
 }
 #undef FUNC_NAME
 
@@ -760,7 +760,7 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
       int found = 0;
       SCM ports_ptr = ports;
 
-      while (SCM_NNULLP (ports_ptr))
+      while (!SCM_NULLP (ports_ptr))
 	{
 	  SCM port = SCM_COERCE_OUTPORT (SCM_CAR (ports_ptr));
 	  if (i == 0)
@@ -791,9 +791,7 @@ SCM_DEFINE (scm_input_port_p, "input-port?", 1, 0, 0,
 	    "@code{port?}.")
 #define FUNC_NAME s_scm_input_port_p
 {
-  if (SCM_IMP (x))
-    return SCM_BOOL_F;
-  return SCM_BOOL(SCM_INPUT_PORT_P (x));
+  return SCM_BOOL (SCM_INPUT_PORT_P (x));
 }
 #undef FUNC_NAME
 
@@ -804,11 +802,8 @@ SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
 	    "@code{port?}.")
 #define FUNC_NAME s_scm_output_port_p
 {
-  if (SCM_IMP (x))
-    return SCM_BOOL_F;
-  if (SCM_PORT_WITH_PS_P (x))
-    x = SCM_PORT_WITH_PS_PORT (x);
-  return SCM_BOOL(SCM_OUTPUT_PORT_P (x));
+  SCM_COERCE_OUTPORT (x);
+  return SCM_BOOL (SCM_OUTPUT_PORT_P (x));
 }
 #undef FUNC_NAME
 
@@ -830,7 +825,7 @@ SCM_DEFINE (scm_port_closed_p, "port-closed?", 1, 0, 0,
 #define FUNC_NAME s_scm_port_closed_p
 {
   SCM_VALIDATE_PORT (1,port);
-  return SCM_NEGATE_BOOL(SCM_OPPORTP (port));
+  return SCM_BOOL (!SCM_OPPORTP (port));
 }
 #undef FUNC_NAME
 

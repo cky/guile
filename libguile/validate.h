@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.33 2001-05-26 20:51:22 cmm Exp $ */
+/* $Id: validate.h,v 1.34 2001-06-26 10:59:34 dirk Exp $ */
 /* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -180,9 +180,11 @@
     SCM_VALIDATE_INUM_DEF_COPY (pos_start, start, 0, c_start);\
     SCM_VALIDATE_INUM_DEF_COPY (pos_end, end, SCM_STRING_LENGTH (str), c_end);\
     SCM_ASSERT_RANGE (pos_start, start,\
-                      0 <= c_start && c_start <= SCM_STRING_LENGTH (str));\
+                      0 <= c_start \
+                      && (size_t) c_start <= SCM_STRING_LENGTH (str));\
     SCM_ASSERT_RANGE (pos_end, end,\
-		      c_start <= c_end && c_end <= SCM_STRING_LENGTH (str));\
+		      c_start <= c_end \
+                      && (size_t) c_end <= SCM_STRING_LENGTH (str));\
   } while (0)
 
 #define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE (pos, z, REALP)

@@ -2188,12 +2188,12 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
   if (SCM_INUMP (n)) {
     char num_buf [SCM_INTBUFLEN];
     size_t length = scm_iint2str (SCM_INUM (n), base, num_buf);
-    return scm_makfromstr (num_buf, length, 0);
+    return scm_mem2string (num_buf, length);
   } else if (SCM_BIGP (n)) {
     return big2str (n, (unsigned int) base);
   } else if (SCM_INEXACTP (n)) {
     char num_buf [FLOBUFLEN];
-    return scm_makfromstr (num_buf, iflo2str (n, num_buf), 0);
+    return scm_mem2string (num_buf, iflo2str (n, num_buf));
   } else {
     SCM_WRONG_TYPE_ARG (1, n);
   }

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -110,7 +110,7 @@ SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0,
   SCM_VALIDATE_STRING (1, nam);
   SCM_STRING_COERCE_0TERMINATION_X (nam);
   val = getenv (SCM_STRING_CHARS (nam));
-  return (val) ? scm_makfromstr(val, (size_t)strlen(val), 0) : SCM_BOOL_F;
+  return val ? scm_mem2string (val, strlen (val)) : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

@@ -184,8 +184,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
   if (!entry)
     scm_resolv_error (FUNC_NAME, host);
   
-  ve[0] = scm_makfromstr (entry->h_name, 
-			  (size_t) strlen (entry->h_name), 0);
+  ve[0] = scm_mem2string (entry->h_name, strlen (entry->h_name));
   ve[1] = scm_makfromstrs (-1, entry->h_aliases);
   ve[2] = SCM_MAKINUM (entry->h_addrtype + 0L);
   ve[3] = SCM_MAKINUM (entry->h_length + 0L);
@@ -257,7 +256,7 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
     }
   if (!entry)
     SCM_SYSERROR_MSG ("no such network ~A", SCM_LIST1 (net), errno);
-  ve[0] = scm_makfromstr (entry->n_name, (size_t) strlen (entry->n_name), 0);
+  ve[0] = scm_mem2string (entry->n_name, strlen (entry->n_name));
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);
   ve[2] = SCM_MAKINUM (entry->n_addrtype + 0L);
   ve[3] = scm_ulong2num (entry->n_net + 0L);
@@ -307,7 +306,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
     }
   if (!entry)
     SCM_SYSERROR_MSG ("no such protocol ~A", SCM_LIST1 (protocol), errno);
-  ve[0] = scm_makfromstr (entry->p_name, (size_t) strlen (entry->p_name), 0);
+  ve[0] = scm_mem2string (entry->p_name, strlen (entry->p_name));
   ve[1] = scm_makfromstrs (-1, entry->p_aliases);
   ve[2] = SCM_MAKINUM (entry->p_proto + 0L);
   return ans;
@@ -323,10 +322,10 @@ scm_return_entry (struct servent *entry)
 
   ans = scm_c_make_vector (4, SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
-  ve[0] = scm_makfromstr (entry->s_name, (size_t) strlen (entry->s_name), 0);
+  ve[0] = scm_mem2string (entry->s_name, strlen (entry->s_name));
   ve[1] = scm_makfromstrs (-1, entry->s_aliases);
   ve[2] = SCM_MAKINUM (ntohs (entry->s_port) + 0L);
-  ve[3] = scm_makfromstr (entry->s_proto, (size_t) strlen (entry->s_proto), 0);
+  ve[3] = scm_mem2string (entry->s_proto, strlen (entry->s_proto));
   return ans;
 }
 
@@ -386,7 +385,7 @@ SCM_DEFINE (scm_sethost, "sethost", 0, 1, 0,
   if (SCM_UNBNDP (stayopen))
     endhostent ();
   else
-    sethostent (SCM_NFALSEP (stayopen));
+    sethostent (!SCM_FALSEP (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -402,7 +401,7 @@ SCM_DEFINE (scm_setnet, "setnet", 0, 1, 0,
   if (SCM_UNBNDP (stayopen))
     endnetent ();
   else
-    setnetent (SCM_NFALSEP (stayopen));
+    setnetent (!SCM_FALSEP (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -418,7 +417,7 @@ SCM_DEFINE (scm_setproto, "setproto", 0, 1, 0,
   if (SCM_UNBNDP (stayopen))
     endprotoent ();
   else
-    setprotoent (SCM_NFALSEP (stayopen));
+    setprotoent (!SCM_FALSEP (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -434,7 +433,7 @@ SCM_DEFINE (scm_setserv, "setserv", 0, 1, 0,
   if (SCM_UNBNDP (stayopen))
     endservent ();
   else
-    setservent (SCM_NFALSEP (stayopen));
+    setservent (!SCM_FALSEP (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998,1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ sf_write (SCM port, const void *data, size_t size)
   SCM p = SCM_PACK (SCM_STREAM (port));
 
   scm_apply (SCM_VELTS (p)[1], 
-	     scm_cons (scm_makfromstr ((char *) data, size, 0), SCM_EOL),
+	     scm_cons (scm_mem2string ((char *) data, size), SCM_EOL),
 	     SCM_EOL);
 }
 

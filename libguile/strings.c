@@ -105,7 +105,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
   {
     unsigned char *data = SCM_STRING_UCHARS (result);
 
-    while (SCM_NNULLP (chrs))
+    while (!SCM_NULLP (chrs))
       {
 	SCM elt = SCM_CAR (chrs);
 
@@ -153,7 +153,7 @@ scm_makfromstrs (int argc, char **argv)
   if (0 > i)
     for (i = 0; argv[i]; i++);
   while (i--)
-    lst = scm_cons (scm_makfromstr (argv[i], (size_t) strlen (argv[i]), 0), lst);
+    lst = scm_cons (scm_mem2string (argv[i], strlen (argv[i])), lst);
   return lst;
 }
 
@@ -191,8 +191,21 @@ scm_take0str (char *s)
   return scm_take_str (s, strlen (s));
 }
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 SCM 
 scm_makfromstr (const char *src, size_t len, int dummy SCM_UNUSED)
+{
+  scm_c_issue_deprecation_warning ("`scm_makfromstr' is deprecated. "
+				   "Use `scm_mem2string' instead.");
+
+  return scm_mem2string (src, len);
+}
+
+#endif
+
+SCM 
+scm_mem2string (const char *src, size_t len)
 {
   SCM s = scm_allocate_string (len);
   char *dst = SCM_STRING_CHARS (s);
@@ -206,7 +219,7 @@ SCM
 scm_makfrom0str (const char *src)
 {
   if (!src) return SCM_BOOL_F;
-  return scm_makfromstr (src, (size_t) strlen (src), 0);
+  return scm_mem2string (src, strlen (src));
 }
 
 
@@ -332,6 +345,7 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
 {
   long int from;
   long int to;
+  SCM substr;
 
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_INUM (2, start);
@@ -342,7 +356,9 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
   to = SCM_INUM (end);
   SCM_ASSERT_RANGE (3, end, from <= to && to <= SCM_STRING_LENGTH (str));
 
-  return scm_makfromstr (&SCM_STRING_CHARS (str)[from], (size_t) (to - from), 0);
+  substr = scm_mem2string (&SCM_STRING_CHARS (str)[from], to - from);
+  scm_remember_upto_here_1 (str);
+  return substr;
 }
 #undef FUNC_NAME
 
@@ -366,7 +382,7 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   }
   res = scm_allocate_string (i);
   data = SCM_STRING_UCHARS (res);
-  for (l = args;SCM_NIMP (l);l = SCM_CDR (l)) {
+  for (l = args; !SCM_NULLP (l);l = SCM_CDR (l)) {
     s = SCM_CAR (l);
     for (i = 0;i<SCM_STRING_LENGTH (s);i++) *data++ = SCM_STRING_UCHARS (s)[i];
   }

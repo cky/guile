@@ -191,7 +191,7 @@ SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
   SCM answer;
   addr.s_addr = htonl (SCM_NUM2ULONG (1, inetid));
   s = inet_ntoa (addr);
-  answer = scm_makfromstr (s, strlen (s), 0);
+  answer = scm_mem2string (s, strlen (s));
   return answer;
 }
 #undef FUNC_NAME
@@ -960,8 +960,7 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
 	result = scm_c_make_vector (2, SCM_UNSPECIFIED);
 	ve = SCM_VELTS (result);
 	ve[0] = scm_ulong2num ((unsigned long) fam);
-	ve[1] = scm_makfromstr (nad->sun_path,
-				(size_t) strlen (nad->sun_path), 0);
+	ve[1] = scm_mem2string (nad->sun_path, strlen (nad->sun_path));
       }
       break;
 #endif

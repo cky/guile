@@ -380,7 +380,7 @@ tryagain_no_flush_ws:
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, 0);
 	  p = scm_istr2bve (SCM_STRING_CHARS (*tok_buf) + 1, (long) (j - 1));
-	  if (SCM_NFALSEP (p))
+	  if (!SCM_FALSEP (p))
 	    return p;
 	  else
 	    goto unkshrp;
@@ -398,7 +398,7 @@ tryagain_no_flush_ws:
 	  if (c >= '0' && c < '8')
 	    {
 	      p = scm_istr2int (SCM_STRING_CHARS (*tok_buf), (long) j, 8);
-	      if (SCM_NFALSEP (p))
+	      if (!SCM_FALSEP (p))
 		return SCM_MAKE_CHAR (SCM_INUM (p));
 	    }
 	  for (c = 0; c < scm_n_charnames; c++)
@@ -418,7 +418,7 @@ tryagain_no_flush_ws:
 	  {
 	    SCM sharp = scm_get_hash_procedure (c);
 
-	    if (SCM_NIMP (sharp))
+	    if (!SCM_FALSEP (sharp))
 	      {
 		int line = SCM_LINUM (port);
 		int column = SCM_COL (port) - 2;
@@ -484,11 +484,7 @@ tryagain_no_flush_ws:
       if (j == 0)
 	return scm_nullstr;
       SCM_STRING_CHARS (*tok_buf)[j] = 0;
-      {
-	SCM str;
-	str = scm_makfromstr (SCM_STRING_CHARS (*tok_buf), j, 0);
-	return str;
-      }
+      return scm_mem2string (SCM_STRING_CHARS (*tok_buf), j);
 
     case'0':case '1':case '2':case '3':case '4':
     case '5':case '6':case '7':case '8':case '9':
@@ -498,7 +494,7 @@ tryagain_no_flush_ws:
     num:
       j = scm_read_token (c, tok_buf, port, 0);
       p = scm_istring2number (SCM_STRING_CHARS (*tok_buf), (long) j, 10L);
-      if (SCM_NFALSEP (p))
+      if (!SCM_FALSEP (p))
 	return p;
       if (c == '#')
 	{
@@ -749,9 +745,10 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
   SCM this;
   SCM prev;
 
-  SCM_VALIDATE_CHAR (1,chr);
-  SCM_ASSERT (SCM_FALSEP (proc) || SCM_NIMP(proc), proc, SCM_ARG2,
-	      FUNC_NAME);
+  SCM_VALIDATE_CHAR (1, chr);
+  SCM_ASSERT (SCM_FALSEP (proc)
+	      || SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T),
+	      proc, SCM_ARG2, FUNC_NAME);
 
   /* Check if chr is already in the alist.  */
   this = *scm_read_hash_procedures;
@@ -761,7 +758,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
       if (SCM_NULLP (this))
 	{
 	  /* not found, so add it to the beginning.  */
-	  if (SCM_NFALSEP (proc))
+	  if (!SCM_FALSEP (proc))
 	    {
 	      *scm_read_hash_procedures = 
 		scm_cons (scm_cons (chr, proc), *scm_read_hash_procedures);

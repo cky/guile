@@ -81,7 +81,7 @@ gh_char2scm (char c)
 SCM 
 gh_str2scm (const char *s, size_t len)
 {
-  return scm_makfromstr (s, len, 0);
+  return scm_mem2string (s, len);
 }
 SCM 
 gh_str02scm (const char *s)

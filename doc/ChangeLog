@@ -1,3 +1,8 @@
+2001-06-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* oldfmt.c (scm_oldfmt):  Use scm_mem2string instead of
+	scm_makfromstr.
+
 2001-06-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gh.texi (GH deprecation): Remove paragraph about portability.

@@ -1,4 +1,4 @@
-/*	Copyright (C) 2000 Free Software Foundation, Inc.
+/* Copyright (C) 2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -211,9 +211,8 @@ scm_oldfmt (SCM s)
   int n;
   SCM_ASSERT (SCM_NIMP (s) && SCM_STRINGP (s), s, 1, s_oldfmt);
   n = SCM_LENGTH (s);
-  return scm_return_first (scm_makfromstr (scm_c_oldfmt (SCM_ROCHARS (s), n),
-					   n,
-					   0),
+  return scm_return_first (scm_mem2string (scm_c_oldfmt (SCM_ROCHARS (s), n),
+					   n),
 			   s);
 #endif
 }

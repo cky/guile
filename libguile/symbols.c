@@ -185,8 +185,11 @@ SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_symbol_to_string
 {
+  SCM str;
   SCM_VALIDATE_SYMBOL (1, s);
-  return scm_makfromstr (SCM_SYMBOL_CHARS (s), SCM_SYMBOL_LENGTH (s), 0);
+  str = scm_mem2string (SCM_SYMBOL_CHARS (s), SCM_SYMBOL_LENGTH (s));
+  scm_remember_upto_here_1 (s);
+  return str;
 }
 #undef FUNC_NAME
 

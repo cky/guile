@@ -68,7 +68,7 @@ After signal handling and threading have been fixed:
     load.c: scm_read_and_eval_x
     smob.c: scm_make_smob_type_mfpe, scm_set_smob_mfpe
     gc.c: scm_remember
-    string.c: scm_makstr
+    string.c: scm_makstr, scm_makfromstr
 - remove deprecated procedures:
     boot-9.scm: eval-in-module, id, -1+, return-it, string-character-length,
       flags

@@ -1,3 +1,13 @@
+2001-06-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* srfi-13.c (scm_string_copyS, scm_string_take, scm_string_drop,
+	scm_string_take_right, scm_string_drop_right, scm_string_trim,
+	scm_string_trim_right, scm_string_trim_both, scm_string_tokenize):
+	Use scm_mem2string instead of scm_makfromstr.
+
+	(scm_reverse_list_to_string, string_titlecase_x):  Prefer
+	!SCM_<pred> over SCM_N<pred>.
+
 2001-06-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srfi-8.scm: Use `re-export-syntax' to correctly re-export
