@@ -98,14 +98,6 @@ EXTRA_libguile_la_SOURCES = _scm.h			\
     ramap.c unif.c debug-malloc.c mkstemp.c             \
     win32-uname.c win32-dirent.c win32-socket.c
 
-## In next release, threads will be factored out of libguile.
-## Until then, the machine specific headers is a temporary kludge.
-
-# Seems to be obsolete - autogen.sh is giving:
-# invalid unused variable name: `OMIT_DEPENDENCIES'
-#OMIT_DEPENDENCIES = libguile.h ltdl.h \
-#    axp.h hppa.h i386.h ksr.h m88k.h mips.h sparc.h vax.h
-
 ## delete guile-snarf.awk from the installation bindir, in case it's
 ## lingering there due to an earlier guile version not having been
 ## wiped out.
