@@ -30,8 +30,10 @@
 ;;;
 
 (define-module (ice-9 emacs)
+  :use-module (ice-9 debug)
   :use-module (ice-9 threads)
-  :use-module (ice-9 nonblocking))
+  :use-module (ice-9 nonblocking)
+  :use-module (ice-9 session))
 
 (define emacs-escape-character #\sub)
 
@@ -42,13 +44,15 @@
     (lambda ()
       (display cmd emacs-output-port))))
 
-(define enter-input-wait (make-emacs-command #\s))
-(define exit-input-wait  (make-emacs-command #\f))
+(define enter-input-wait  (make-emacs-command #\s))
+(define exit-input-wait   (make-emacs-command #\f))
 (define enter-read-character #\r)
-(define sending-error	    (make-emacs-command #\F))
+(define sending-error	  (make-emacs-command #\F))
 (define sending-backtrace (make-emacs-command #\B))
 (define sending-result    (make-emacs-command #\x))
-(define end-of-text	    (make-emacs-command #\.))
+(define end-of-text	  (make-emacs-command #\.))
+(define no-stack	  (make-emacs-command #\S))
+(define no-source	  (make-emacs-command #\R))
 
 ;; {Error handling}
 ;;
@@ -97,9 +101,6 @@
   (end-of-text)
   (force-output emacs-output-port))
 
-(define (emacs-eval-request form)
-  (result-to-emacs (eval form)))
-
 (define load-acknowledge (make-emacs-command #\l))
 
 (define load-port (current-input-port))
@@ -125,10 +126,10 @@
 	   (read-char port) ; Read final newline
 	   #t)))
 
-(define (emacs-load filename linum interactivep)
+(define (emacs-load filename linum colnum interactivep)
   (set-port-filename! %%load-port filename)
   (set-port-line! %%load-port linum)
-  (set-port-column! %%load-port 0)
+  (set-port-column! %%load-port colnum)
   (lazy-catch #t
 	      (lambda ()
 		(let loop ((endp (flush-whitespace %%load-port)))
@@ -163,7 +164,52 @@
 				#f))
 		       (apply throw key args))))))
 
+(define (emacs-eval-request form)
+  (result-to-emacs (eval form)))
+
+(define (get-frame-source frame)
+  (if (or (not the-last-stack)
+	  (>= frame (stack-length the-last-stack)))
+      (begin
+	(no-stack)
+	#f)
+      (let* ((frame (stack-ref the-last-stack (frame-number->index frame)))
+	     (source (frame-source frame)))
+	(or source
+	    (begin (no-source)
+		   #f)))))
+
+(define (emacs-select-frame frame)
+  (let ((source (get-frame-source frame)))
+    (if source
+	(let ((fname (source-property source 'filename))
+	      (line (source-property source 'line))
+	      (column (source-property source 'column)))
+	  (if (and fname line column)
+	      (list fname line column)
+	      (begin (no-source)
+		     '())))
+	'())))
+
+(define (emacs-frame-eval frame form)
+  (let ((source (get-frame-source frame)))
+    (result-to-emacs
+     (if source
+	 (local-eval form (memoized-environment source))
+	 '()))))
+
+(define (emacs-symdoc symbol)
+  (if (or (not (module-bound? (current-module) symbol))
+	  (not (procedure? (eval symbol))))
+      'nil
+      (procedure-documentation (eval symbol))))
+
 ;;; A fix to get the emacs interface to work together with the module system.
 ;;;
 (variable-set! (builtin-variable '%%load-port) load-port)
 (variable-set! (builtin-variable '%%emacs-load) emacs-load)
+(variable-set! (builtin-variable '%%emacs-eval-request) emacs-eval-request)
+(variable-set! (builtin-variable '%%emacs-select-frame) emacs-select-frame)
+(variable-set! (builtin-variable '%%emacs-frame-eval) emacs-frame-eval)
+(variable-set! (builtin-variable '%%emacs-symdoc) emacs-symdoc)
+(variable-set! (builtin-variable '%%apropos-internal) apropos-internal)
