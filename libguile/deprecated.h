@@ -86,6 +86,52 @@ SCM_API SCM scm_close_all_ports_except (SCM ports);
 #define scm_tc7_msymbol		scm_tc7_symbol
 #define scm_tcs_symbols         scm_tc7_symbol
 
+SCM_API SCM scm_makstr (size_t len, int);
+SCM_API SCM scm_makfromstr (const char *src, size_t len, int);
+
+SCM_API SCM scm_variable_set_name_hint (SCM var, SCM hint);
+SCM_API SCM scm_builtin_variable (SCM name);
+
+SCM_API SCM scm_internal_with_fluids (SCM fluids, SCM vals,
+				      SCM (*cproc)(void *), void *cdata);
+
+SCM_API SCM scm_make_gsubr (const char *name, int req, int opt, int rst,
+			    SCM (*fcn)());
+SCM_API SCM scm_make_gsubr_with_generic (const char *name,
+					 int req,
+					 int opt,
+					 int rst,
+					 SCM (*fcn)(),
+					 SCM *gf);
+
+extern SCM scm_create_hook (const char* name, int n_args);
+
+#define SCM_LIST0 SCM_EOL
+#define SCM_LIST1(e0) scm_cons ((e0), SCM_EOL)
+#define SCM_LIST2(e0, e1) scm_cons2 ((e0), (e1), SCM_EOL)
+#define SCM_LIST3(e0, e1, e2) scm_cons ((e0), SCM_LIST2 ((e1), (e2)))
+#define SCM_LIST4(e0, e1, e2, e3)\
+     scm_cons2 ((e0), (e1), SCM_LIST2 ((e2), (e3)))
+#define SCM_LIST5(e0, e1, e2, e3, e4)\
+     scm_cons ((e0), SCM_LIST4 ((e1), (e2), (e3), (e4)))
+#define SCM_LIST6(e0, e1, e2, e3, e4, e5)\
+     scm_cons2 ((e0), (e1), SCM_LIST4 ((e2), (e3), (e4), (e5)))
+#define SCM_LIST7(e0, e1, e2, e3, e4, e5, e6)\
+     scm_cons ((e0), SCM_LIST6 ((e1), (e2), (e3), (e4), (e5), (e6)))
+#define SCM_LIST8(e0, e1, e2, e3, e4, e5, e6, e7)\
+     scm_cons2 ((e0), (e1), SCM_LIST6 ((e2), (e3), (e4), (e5), (e6), (e7)))
+#define SCM_LIST9(e0, e1, e2, e3, e4, e5, e6, e7, e8)\
+     scm_cons ((e0),\
+	       SCM_LIST8 ((e1), (e2), (e3), (e4), (e5), (e6), (e7), (e8)))
+
+#define scm_listify scm_list_n
+
+SCM_API SCM scm_sloppy_memq (SCM x, SCM lst);
+SCM_API SCM scm_sloppy_memv (SCM x, SCM lst);
+SCM_API SCM scm_sloppy_member (SCM x, SCM lst);
+
+SCM_API SCM scm_read_and_eval_x (SCM port);
+
 void scm_i_init_deprecated (void);
 
 #endif
@@ -94,37 +140,6 @@ void scm_i_init_deprecated (void);
 
 #if 0 
 /* TODO */
-
-scm_variable_set_name_hint
-scm_builtin_variable
-SCM_VARVCELL
-SCM_UDVARIABLEP
-SCM_DEFVARIABLEP
-scm_internal_with_fluids
-
-scm_make_gsubr
-scm_make_gsubr_with_generic
-scm_create_hook
-list*
-
-SCM_LIST0
-SCM_LIST1
-SCM_LIST2
-SCM_LIST3
-SCM_LIST4
-SCM_LIST5
-SCM_LIST6
-SCM_LIST7
-SCM_LIST8
-SCM_LIST9
-
-scm_listify
-scm_sloppy_memq
-scm_sloppy_memv
-scm_sloppy_member
-
-scm_end_of_file_key
-scm_read_and_eval_x
 
 scm_mkbig
 scm_big2inum

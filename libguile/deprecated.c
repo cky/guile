@@ -36,6 +36,8 @@
 #include "libguile/variable.h"
 #include "libguile/fluids.h"
 #include "libguile/ports.h"
+#include "libguile/eq.h"
+#include "libguile/read.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -323,6 +325,170 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
   scm_c_port_for_each (maybe_close_port, ports);
 
   return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_variable_set_name_hint, "variable-set-name-hint!", 2, 0, 0,
+	    (SCM var, SCM hint),
+	    "Do not use this function.")
+#define FUNC_NAME s_scm_variable_set_name_hint
+{
+  SCM_VALIDATE_VARIABLE (1, var);
+  SCM_VALIDATE_SYMBOL (2, hint);
+  scm_c_issue_deprecation_warning
+    ("'variable-set-name-hint!' is deprecated.  Do not use it.");
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0, 
+            (SCM name),
+	    "Do not use this function.")
+#define FUNC_NAME s_scm_builtin_variable
+{
+  SCM_VALIDATE_SYMBOL (1,name);
+  scm_c_issue_deprecation_warning ("`builtin-variable' is deprecated. "
+				   "Use module system operations instead.");
+  return scm_sym2var (name, SCM_BOOL_F, SCM_BOOL_T);
+}
+#undef FUNC_NAME
+
+SCM 
+scm_makstr (size_t len, int dummy)
+{
+  scm_c_issue_deprecation_warning
+    ("'scm_makstr' is deprecated.  Use 'scm_allocate_string' instead.");
+  return scm_allocate_string (len);
+}
+
+SCM 
+scm_makfromstr (const char *src, size_t len, int dummy SCM_UNUSED)
+{
+  scm_c_issue_deprecation_warning ("`scm_makfromstr' is deprecated. "
+				   "Use `scm_mem2string' instead.");
+
+  return scm_mem2string (src, len);
+}
+
+SCM
+scm_internal_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
+{
+  scm_c_issue_deprecation_warning ("`scm_internal_with_fluids' is deprecated. "
+				   "Use `scm_c_with_fluids' instead.");
+
+  return scm_c_with_fluids (fluids, values, cproc, cdata);
+}
+
+SCM
+scm_make_gsubr (const char *name, int req, int opt, int rst, SCM (*fcn)())
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_make_gsubr' is deprecated.  Use `scm_c_define_gsubr' instead.");
+
+  return scm_c_define_gsubr (name, req, opt, rst, fcn);
+}
+
+SCM
+scm_make_gsubr_with_generic (const char *name,
+			     int req, int opt, int rst,
+			     SCM (*fcn)(), SCM *gf)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_make_gsubr_with_generic' is deprecated.  "
+     "Use `scm_c_define_gsubr_with_generic' instead.");
+
+  return scm_c_define_gsubr_with_generic (name, req, opt, rst, fcn, gf);
+}
+
+SCM
+scm_create_hook (const char *name, int n_args)
+{
+  scm_c_issue_deprecation_warning
+    ("'scm_create_hook' is deprecated.  "
+     "Use 'scm_make_hook' and 'scm_c_define' instead.");
+  {
+    SCM hook = scm_make_hook (SCM_MAKINUM (n_args));
+    scm_c_define (name, hook);
+    return scm_permanent_object (hook);
+  }
+}
+
+SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
+            (SCM x, SCM lst),
+	    "This procedure behaves like @code{memq}, but does no type or error checking.\n"
+	    "Its use is recommended only in writing Guile internals,\n"
+            "not for high-level Scheme programs.")
+#define FUNC_NAME s_scm_sloppy_memq
+{
+  scm_c_issue_deprecation_warning
+    ("'sloppy-memq' is deprecated.  Use 'memq' instead.");
+
+  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
+    {
+      if (SCM_EQ_P (SCM_CAR (lst), x))
+	return lst;
+    }
+  return lst;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
+            (SCM x, SCM lst),
+ 	    "This procedure behaves like @code{memv}, but does no type or error checking.\n"
+	    "Its use is recommended only in writing Guile internals,\n"
+            "not for high-level Scheme programs.")
+#define FUNC_NAME s_scm_sloppy_memv
+{
+  scm_c_issue_deprecation_warning
+    ("'sloppy-memv' is deprecated.  Use 'memv' instead.");
+
+  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
+    {
+      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (lst), x)))
+	return lst;
+    }
+  return lst;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
+            (SCM x, SCM lst),
+ 	    "This procedure behaves like @code{member}, but does no type or error checking.\n"
+	    "Its use is recommended only in writing Guile internals,\n"
+            "not for high-level Scheme programs.")
+#define FUNC_NAME s_scm_sloppy_member
+{
+  scm_c_issue_deprecation_warning
+    ("'sloppy-member' is deprecated.  Use 'member' instead.");
+
+  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
+    {
+      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (lst), x)))
+	return lst;
+    }
+  return lst;
+}
+#undef FUNC_NAME
+
+SCM_SYMBOL (scm_end_of_file_key, "end-of-file");
+
+SCM_DEFINE (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0, 
+            (SCM port),
+	    "Read a form from @var{port} (standard input by default), and evaluate it\n"
+	    "(memoizing it in the process) in the top-level environment.  If no data\n"
+	    "is left to be read from @var{port}, an @code{end-of-file} error is\n"
+	    "signalled.")
+#define FUNC_NAME s_scm_read_and_eval_x
+{
+  scm_c_issue_deprecation_warning
+    ("'read-and-eval!' is deprecated.  Use 'read' and 'eval' instead.");
+
+  SCM form = scm_read (port);
+  if (SCM_EOF_OBJECT_P (form))
+    scm_ithrow (scm_end_of_file_key, SCM_EOL, 1);
+  return scm_eval_x (form, scm_current_module ());
 }
 #undef FUNC_NAME
 
