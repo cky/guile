@@ -90,6 +90,14 @@ scm_lfwrite (ptr, size, port)
 }
 
 
+void 
+scm_fflush (port)
+     SCM port;
+{
+  scm_sizet i = SCM_PTOBNUM (port);
+  (scm_ptobs[i].fflush) (SCM_STREAM (port));
+}
+
 
 
 int 

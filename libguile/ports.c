@@ -39,6 +39,8 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+/* Headers.  */
+
 #include <stdio.h>
 #include "_scm.h"
 #include "genio.h"
@@ -64,7 +66,9 @@
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
+
 
+/* The port kind table --- a dynamically resized array of port types.  */
 
 
 /* scm_ptobs scm_numptob
@@ -122,17 +126,6 @@ scm_newptob (ptob)
 }
 
 
-/* internal SCM call */
-
-void 
-scm_fflush (port)
-     SCM port;
-{
-  scm_sizet i = SCM_PTOBNUM (port);
-  (scm_ptobs[i].fflush) (SCM_STREAM (port));
-}
-
-
 
 SCM_PROC(s_char_ready_p, "char-ready?", 0, 1, 0, scm_char_ready_p);
 
@@ -143,7 +136,9 @@ scm_char_ready_p (port)
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_char_ready_p);
+    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1,
+		s_char_ready_p);
+
   if (SCM_CRDYP (port) || !SCM_FPORTP (port))
     return SCM_BOOL_T;
   return (scm_input_waiting_p ((FILE *) SCM_STREAM (port), s_char_ready_p)
@@ -153,10 +148,8 @@ scm_char_ready_p (port)
 
 
 
+/* Standard ports --- current input, output, error, and more(!).  */
 
-
-/* {Standard Ports}
- */
 SCM_PROC(s_current_input_port, "current-input-port", 0, 0, 0, scm_current_input_port);
 
 SCM 
@@ -230,10 +223,7 @@ scm_set_current_error_port (port)
 }
 
 
-
-/* {Ports - in general}
- * 
- */
+/* The port table --- a table of all the open ports.  */
 
 /* Array of open ports, required for reliable MOVE->FDES etc.  */
 struct scm_port_table **scm_port_table;
@@ -317,6 +307,9 @@ scm_pt_member (member)
 #endif
 
 
+
+/* Revealed counts --- an oddity inherited from SCSH.  */
+
 /* Find a port in the table and return its revealed count.
    Also used by the garbage collector.
  */
@@ -359,6 +352,10 @@ scm_set_port_revealed_x (port, rcount)
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
+
+
+
+/* Retrieving a port's mode.  */
 
 /* Return the flags that characterize a port based on the mode
  * string used to open a file for that port.
@@ -407,6 +404,9 @@ scm_port_mode (port)
   return scm_makfromstr (modes, strlen (modes), 0);
 }
 
+
+
+/* Closing ports.  */
 
 /* scm_close_port
  * Call the close operation on a port object. 
@@ -477,6 +477,10 @@ scm_close_all_ports_except (ports)
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
+
+
+
+/* Utter miscellany.  Gosh, we should clean this up some time.  */
 
 SCM_PROC(s_input_port_p, "input-port?", 1, 0, 0, scm_input_port_p);
 
@@ -823,8 +827,7 @@ scm_ports_prehistory ()
 
 
 
-/* {Void Ports}
- */
+/* Void ports.   */
 
 int scm_tc16_void_port = 0;
 
