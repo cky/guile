@@ -1,5 +1,8 @@
 1999-03-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* srcprop.c (scm_set_source_property_x): Bugfix: Convert line and
+	column inums to native form.
+
 	Improvement of backtraces: Introduces a new stack narrowing
 	specifier, #t, for the inner cut.  (See further in the comments in
 	stacks.c:narrow_stack ().)
