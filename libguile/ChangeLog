@@ -1,3 +1,81 @@
+1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* fports.h (scm_setbuf0, scm_setvbuf, scm_setfileno,
+	scm_evict_ports, scm_open_file, scm_stdio_to_port): Get rid of
+	SCM_P macro.
+
+	Do magic to mix reads and writes on stdio FILE-based ports.
+	* fports.c (FPORT_READ_SAFE, FPORT_WRITE_SAFE, FPORT_ALL_OKAY):
+	New macros.
+	(pre_read, pre_write): New functions.
+	(local_fgetc, local_fgets, local_ffwrite, local_fputc,
+	local_fputs): Call them.
+	(local_fflush): Mark the port as ready for reading and writing.
+	(scm_stdio_to_port): Set the FPORT_READ_SAFE, FPORT_WRITE_SAFE
+	flags on new port objects.  This might not be accurate --- who
+	knows what state the FILE * is in when we get it --- but it won't
+	do extraneous calls to fflush or fseek, so it's no worse than the
+	behavior before this change.
+	* ports.h: Add comment.
+
+	Centralize the creation of port objects based on stdio FILE * in
+	fports.c; don't just throw them together anywhere.
+	* fports.c (scm_stdio_to_port): Make NAME a SCM value, which is
+	what the rest of Guile wants.  Don't set the revealed count;
+	that's only appropriate for stdin, stdout, stderr.
+	(scm_standard_stream_to_port): This function does set the revealed
+	count.
+	* init.c (scm_init_standard_ports): Use	scm_standard_stream_to_port,
+	not scm_stdio_to_port.
+	* filesys.c (scm_open): Call scm_stdio_to_port; don't write it out.
+	* fports.c (scm_open_file): Same.
+	* posix.c (scm_pipe): Same.
+	* socket.c (scm_sock_fd_to_port): Same.
+	* ioext.c (scm_fdopen): Same.
+	(scm_freopen): Moved from here to...
+	* fports.c (scm_freopen): ... here.  This is really something that
+	munges the internals of an fport, so it should go here.
+	* fports.h (scm_stdio_to_port): Adjust prototype.
+	(scm_standard_stream_to_port, scm_freopen): New protoypes.
+	* ioext.h (scm_freopen): Prototype removed.
+
+	* filesys.c (set_element, get_element): This can work on both pipe
+	and file ports, so use SCM_FPORTP to typecheck, instead of testing
+	for scm_tc16_fport.
+
+	* scmconfig.h.in: Regenerated.
+
+	Change the definition of the functions in scm_ptobfuns so that
+	they get passed the port object, not the port's stream.
+	* ports.h (scm_ptobfuns): Rename all `stream' arguments to `port'.
+	* gc.c (scm_gc_sweep): Pass the port itself to the free function.
+	* genio.c (scm_putc, scm_puts, scm_lfwrite, scm_fflush, scm_getc):
+	Pass the port itself to the scm_ptobs function.
+	* ports.c (scm_close_port, scm_force_output, scm_flush_all_ports,
+	scm_generic_fgets): Same.
+	(putc_void_port, puts_void_port, write_void_port, flush_void_port,
+	getc_void_port, fgets_void_port, close_void_port): Just change the
+	argument names; these functions don't really do anything.
+	* fports.c (local_fgetc, local_fgets, local_fclose, local_fflush,
+	local_fputc, local_fputs, local_ffwrite, local_pclose): Take the
+	port as an argument, and use SCM_STREAM to get the stdio FILE *.
+	Also, use prototyped definitions, and get rid of the extra
+	declarations.
+	(scm_fptob, scm_pipob): We don't need casts here any more.
+	* strports.c (prinstpt): Use prototype declarations.
+	(stputc, stwrite, stputs, stgetc): Take the port as an argument,
+	and use SCM_STREAM to get the string info.  Also, use prototyped
+	definitions, and get rid of the extra declarations.
+	* vports.c (sfputc, sfwrite, sfputs, sfflush, sfgetc, sfclose,
+	noop0): Same.
+
+	* ports.h (scm_ptobfuns): Replace uses of SCM_P with a straight
+	prototype; it's okay (preferred, even!) to use ANSI C in Guile.
+	
+	* fports.c (local_fgetc, local_fgets): Renamed from scm_fgetc and
+	scm_fgets, for consistency.
+	(scm_fptop, scm_pipob): References updated.
+
 1998-10-08  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	Include the source location in error messages for scripts.
