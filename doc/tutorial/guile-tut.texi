@@ -86,17 +86,17 @@ by the author.
 
 
 @menu
-* Jump Start::                  
-* Introduction::                
-* Using Guile to program in Scheme::  
-* Guile in a Library::          
-* Regular Expression Support::  
-* UNIX System Programming::     
-* Where to find more Guile/Scheme resources::  
-* Concept Index::               
-* Procedure and Macro Index::   
-* Variable Index::              
-* Type Index::                  
+* Jump Start::
+* Introduction::
+* Using Guile to program in Scheme::
+* Guile in a Library::
+* Regular Expression Support::
+* UNIX System Programming::
+* Where to find more Guile/Scheme resources::
+* Concept Index::
+* Procedure and Macro Index::
+* Variable Index::
+* Type Index::
 @end menu
 
 @node Jump Start
@@ -173,9 +173,9 @@ that can be used along with Scheme (for now just @emph{ctax} and
 
 
 @menu
-* What are scripting and extension languages::  
-* History of Guile and its motivations::  
-* How to characterize Guile::   
+* What are scripting and extension languages::
+* History of Guile and its motivations::
+* How to characterize Guile::
 @end menu
 
 @node What are scripting and extension languages
@@ -460,41 +460,41 @@ guile> @kbd{(define ls (list 1 2 3 4 5 6 7))}
        @result{}
 ;; @r{display the list}
 guile> @kbd{ls}
-       @result{(1 2 3 4 5 6 7)}
+       @result{} (1 2 3 4 5 6 7)
 ;; @r{ask if @code{ls} is a vector; @code{#f} means it is not}
 guile> @kbd{(vector? ls)}
-       @result{#f}
+       @result{} #f
 ;; @r{ask if @code{ls} is a list; @code{#t} means it is}
 guile> @kbd{(list? ls)}
-       @result{#t}
+       @result{} #t
 ;; @r{ask for the length of @code{ls}}
 guile> @kbd{(length ls)}
-       @result{7}
+       @result{} 7
 ;; @r{pick out the first element of the list}
 guile> @kbd{(car ls)}
-       @result{1}
+       @result{} 1
 ;; @r{pick the rest of the list without the first element}
 guile> @kbd{(cdr ls)}
-       @result{(2 3 4 5 6 7}
+       @result{} (2 3 4 5 6 7)
 ;; @r{this should pick out the 3rd element of the list}
 guile> @kbd{(car (cdr (cdr ls)))}
-       @result{3}
+       @result{} 3
 ;; @r{a shorthand for doing the same thing}
 guile> @kbd{(caddr ls)}
-       @result{3}
+       @result{} 3
 ;; @r{append the given list onto @code{ls}, print the result}
 ;; @r{@strong{NOTE:} the original list @code{ls} is @emph{not} modified}
 guile> @kbd{(append ls (list 8 9 10))}
-       @result{(1 2 3 4 5 6 7 8 9 10)}
+       @result{} (1 2 3 4 5 6 7 8 9 10)
 guile> @kbd{(reverse ls)}
-       @result{(10 9 8 7 6 5 4 3 2 1)}
+       @result{} (10 9 8 7 6 5 4 3 2 1)
 ;; @r{ask if 12 is in the list --- it obviously is not}
 guile> @kbd{(memq 12 ls)}
-       @result{#f}
+       @result{} #f
 ;; @r{ask if 4 is in the list --- returns the list from 4 on.}
 ;; @r{Notice that the result will behave as true in conditionals}
 guile> @kbd{(memq 4 ls)}
-       @result{(4 5 6 7)}
+       @result{} (4 5 6 7)
 ;; @r{an @code{if} statement using the aforementioned result}
 guile> @kbd{(if (memq 4 ls)
            (display "hey, it's true!\n")
@@ -507,43 +507,43 @@ guile> @kbd{(if (memq 12 ls)
        @print{dude, it's false}
        @result{}
 guile> @kbd{(memq 4 (reverse ls))}
-       @result{(4 3 2 1)}
+       @result{} (4 3 2 1)
 ;; @r{make a smaller list @code{ls2} to work with}
 guile> @kbd{(define ls2 (list 2 3 4))}
 ;; @r{make a list in which the function @code{sin} has been}
 ;; @r{applied to all elements of @code{ls2}}
 guile> @kbd{(map sin ls2)}
-       @result{(0.909297426825682 0.141120008059867 -0.756802495307928)}
+       @result{} (0.909297426825682 0.141120008059867 -0.756802495307928)
 ;; @r{make a list in which the squaring function has been}
 ;; @r{applied to all elements of @code{ls}}
 guile> @kbd{(map (lambda (n) (expt n n)) ls)}
-       @result{(1 4 27 256 3125 46656 823543)}
+       @result{} (1 4 27 256 3125 46656 823543)
 @end smalllisp
 
 @smalllisp
 ;; @r{make a vector and bind it to the symbol @code{v}}
 guile> @kbd{(define v #(1 2 3 4 5 6 7))}
 guile> @kbd{v}
-       @result{#(1 2 3 4 5 6 7)}
+       @result{} #(1 2 3 4 5 6 7)
 guile> @kbd{(vector? v)}
-       @result{#t}
+       @result{} #t
 guile> @kbd{(list? v)}
-       @result{#f}
+       @result{} #f
 guile> @kbd{(vector-length v)}
-       @result{7}
+       @result{} 7
 ;; @r{vector-ref allows you to pick out elements by index}
 guile> @kbd{(vector-ref v 2)}
-       @result{3}
+       @result{} 3
 ;; @r{play around with the vector: make it into a list, reverse}
 ;; @r{the list, go back to a vector and take the second element}
 guile> @kbd{(vector-ref (list->vector (reverse (vector->list v))) 2)}
-       @result{5}
+       @result{} 5
 ;; @r{this demonstrates that the entries in a vector do not have}
 ;; @r{to be of uniform type}
 guile> @kbd{(vector-set! v 4 "hi there")}
-       @result{"hi there"}
+       @result{} "hi there"
 guile> @kbd{v}
-       @result{#(1 2 3 4 "hi there" 6 7)}
+       @result{} #(1 2 3 4 "hi there" 6 7)
 @end smalllisp
 
 
@@ -560,7 +560,7 @@ Here are some typical examples of using recursion to process a list.
       l
       (append (my-reverse (cdr l)) (list (car l)))))
 (my-reverse '(27 32 33 40))
-@result{(40 33 32 27)}
+@result{} (40 33 32 27)
 @end smalllisp
 
 
@@ -596,7 +596,7 @@ This could be invoked with @code{(process-matrix m sin)} or
 
 @smalllisp
 (process-matrix m (lambda (x) (* x x)))
-@result{((49 4 1 9 4 64 25 9 36) (16 1 1 1 9 64 81 64 1) (25 25 16 64 1 64 4 4 16))}
+@result{} ((49 4 1 9 4 64 25 9 36) (16 1 1 1 9 64 81 64 1) (25 25 16 64 1 64 4 4 16))
 @end smalllisp
 
 To print a representation of the matrix, we could define a generalized
@@ -715,39 +715,39 @@ creates:
 
 ;; @r{retrieve the x and y coordinates}
 ((c 'x))
-@result{0}
+@result{} 0
 ((c 'y))
-@result{0}
+@result{} 0
 ;; @r{change the x coordinate}
 ((c 'set-x!) 5)
-@result{5}
+@result{} 5
 ((c 'x))
-@result{5}
+@result{} 5
 ;; @r{change the color}
 ((c 'color))
-@result{"red"}
+@result{} "red"
 ((c 'set-color!) "green")
-@result{"green"}
+@result{} "green"
 ((c 'color))
-@result{"green"}
+@result{} "green"
 ;; @r{now use the next! message to move to the next cell}
 ((c 'next!))
-@result{(6 . 0)}
+@result{} (6 . 0)
 ((c 'x))
-@result{6}
+@result{} 6
 ((c 'y))
-@result{0}
+@result{} 0
 ;; @r{now make things wrap around}
 ((c 'next!))
-@result{(0 . 1)}
+@result{} (0 . 1)
 ((c 'next!))
-@result{(1 . 1)}
+@result{} (1 . 1)
 ((c 'next!))
-@result{(2 . 1)}
+@result{} (2 . 1)
 ((c 'x))
-@result{2}
+@result{} 2
 ((c 'y))
-@result{1}
+@result{} 1
 @end smallexample
 
 You will notice that expressions like @code{(c 'next)} return procedures
@@ -775,19 +775,19 @@ type:
 @smallexample
 (define c2 (MAKE-CELL 0 0 "red" 10 7 9))
 (send c2 'x)
-@result{0}
+@result{} 0
 (send c2 'set-x! 5)
-@result{5}
+@result{} 5
 (send c2 'color)
-@result{"red"}
+@result{} "red"
 (send c2 'set-color! "green")
-@result{"green"}
+@result{} "green"
 (send c2 'next!)
-@result{(1 . 0)}
+@result{} (1 . 0)
 (send c2 'x)
-@result{1}
+@result{} 1
 (send c2 'y)
-@result{0}
+@result{} 0
 @end smallexample
 
 @cindex object-based programming
@@ -818,11 +818,11 @@ that is done, and how that can be useful.
 
 
 @menu
-* Two world views::             
-* What is libguile::            
-* How to get started with libguile::  
-* More interesting programming with libguile::  
-* Further examples::            
+* Two world views::
+* What is libguile::
+* How to get started with libguile::
+* More interesting programming with libguile::
+* Further examples::
 @end menu
 
 @node Two world views
@@ -1051,11 +1051,11 @@ Notice that @code{learn1} uses a Scheme master world, and the C routines
 in @code{c_builtins.c} are simply adding new primitives to Scheme.
 
 @menu
-* learn1.c::                    
-* c_builtins.h::                
-* c_builtins.c::                
-* What learn1 is doing::        
-* Compiling and running learn1::  
+* learn1.c::
+* c_builtins.h::
+* c_builtins.c::
+* What learn1 is doing::
+* Compiling and running learn1::
 @end menu
 
 @node learn1.c
