@@ -391,7 +391,7 @@ static void
 bdtime2c (SCM sbd_time, struct tm *lt, int pos, char *subr)
 {
   SCM_ASSERT (SCM_NIMP (sbd_time) && SCM_VECTORP (sbd_time)
-	      && scm_vector_length (sbd_time) == 11
+	      && SCM_LENGTH (sbd_time) == 11
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[0]) 
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[1])
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[2])
