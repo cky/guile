@@ -1,3 +1,8 @@
+2003-03-24  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* raw-ltdl.c: Include <config.h> instead of
+	<libguile/scmconfig.h>.
+
 2002-10-27  Gary Houston  <ghouston@arglist.com>
 
 	* upstream/Makefile.am (ltdl.h.diff, ltdl.c.diff): add $(srcdir)
