@@ -59,7 +59,7 @@ make-stds.texi.
 
 - The Guile tree should compile without warnings under the following
 GCC switches, which are the default in the current configure script:
-    -Wall -Wpointer-arith -Wmissing-prototypes
+    -O2 -Wall -Wpointer-arith -Wmissing-prototypes
 The only exceptions are the warnings about variables being clobbered
 by longjmp/vfork in eval.c.  (Tho' if you can figure out how to get
 rid of those, too, I'd be happy.)
