@@ -3,6 +3,10 @@
 	* posix.c (scm_ctermid): Use an L_ctermid buf on the stack, for thread
 	safety.
 
+	* unif.c (scm_array_set_x): For svect, use scm_num2short for
+	consistency with other vector types and to get arg and func name into
+	error message.
+
 2004-07-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* deprecated.h (SCM_FALSEP, SCM_NFALSEP, SCM_BOOLP, SCM_BOOL):
