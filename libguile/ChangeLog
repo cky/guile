@@ -1,3 +1,8 @@
+2001-11-20  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* Makefile.am (libpath.h): In SCM_BUILD_INFO,
+	also include `buildstamp'.
+
 2001-11-18  Rob Browning  <rlb@defaultvalue.org>
 
 	* version.c
@@ -108,11 +113,11 @@
 	index entries for each Guile primitive to the copy of the doc
 	snarf output that is used for reference manual synchronization.
 	Online help is unchanged.
-	
+
 	* snarf.h (SCM_SNARF_DOCS): Output primitive's C function name.
 	(SCM_DEFINE, SCM_DEFINE1, SCM_REGISTER_PROC): Supply to C function
 	name to SCM_SNARF_DOCS.
-	
+
 	* guile-snarf-docs-texi.in: Pass the shell script's arguments into
 	snarf-check-and-output-texi.
 
@@ -170,7 +175,7 @@
 	only -MIN_VALUE can still be negative of all negative numbers (in
 	twos-complement).
 
-	* tags.h (SIZEOF_SCM_T_BITS): Define it appropriately. 
+	* tags.h (SIZEOF_SCM_T_BITS): Define it appropriately.
 
 	* __scm.h: Define HAVE_UINTPTR_T, HAVE_PTRDIFF_T and
 	HAVE_LONG_LONG depending on whether their size is non-zero.
