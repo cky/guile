@@ -163,8 +163,8 @@ SCM_DEFINE (scm_char_set_hash, "char-set-hash", 1, 1, 0,
 	    "returned value to the range 0 @dots{} @var{bound - 1}.")
 #define FUNC_NAME s_scm_char_set_hash
 {
-  const int default_bnd = 871;
-  int bnd;
+  const unsigned long default_bnd = 871;
+  unsigned long bnd;
   long * p;
   unsigned long val = 0;
   int k;
@@ -175,7 +175,7 @@ SCM_DEFINE (scm_char_set_hash, "char-set-hash", 1, 1, 0,
     bnd = default_bnd;
   else
     {
-      SCM_VALIDATE_INUM_MIN_COPY (2, bound, 0, bnd);
+      bnd = scm_to_ulong (bound);
       if (bnd == 0)
 	bnd = default_bnd;
     }
@@ -186,7 +186,7 @@ SCM_DEFINE (scm_char_set_hash, "char-set-hash", 1, 1, 0,
       if (p[k] != 0)
         val = p[k] + (val << 1);
     }
-  return SCM_I_MAKINUM (val % bnd);
+  return scm_from_ulong (val % bnd);
 }
 #undef FUNC_NAME
 
@@ -216,10 +216,8 @@ SCM_DEFINE (scm_char_set_ref, "char-set-ref", 2, 0, 0,
 	    "pass a cursor for which @code{end-of-char-set?} returns true.")
 #define FUNC_NAME s_scm_char_set_ref
 {
-  int ccursor;
-
+  size_t ccursor = scm_to_size_t (cursor);
   SCM_VALIDATE_SMOB (1, cs, charset);
-  SCM_VALIDATE_INUM_MIN_COPY (2, cursor, 0, ccursor);
 
   if (ccursor >= SCM_CHARSET_SIZE || !SCM_CHARSET_GET (cs, ccursor))
     SCM_MISC_ERROR ("invalid character set cursor: ~A", scm_list_1 (cursor));
@@ -235,10 +233,8 @@ SCM_DEFINE (scm_char_set_cursor_next, "char-set-cursor-next", 2, 0, 0,
 	    "cursor given satisfies @code{end-of-char-set?}.")
 #define FUNC_NAME s_scm_char_set_cursor_next
 {
-  int ccursor;
-
+  size_t ccursor = scm_to_size_t (cursor);
   SCM_VALIDATE_SMOB (1, cs, charset);
-  SCM_VALIDATE_INUM_MIN_COPY (2, cursor, 0, ccursor);
 
   if (ccursor >= SCM_CHARSET_SIZE || !SCM_CHARSET_GET (cs, ccursor))
     SCM_MISC_ERROR ("invalid character set cursor: ~A", scm_list_1 (cursor));
@@ -258,9 +254,7 @@ SCM_DEFINE (scm_end_of_char_set_p, "end-of-char-set?", 1, 0, 0,
 	    "character set, @code{#f} otherwise.")
 #define FUNC_NAME s_scm_end_of_char_set_p
 {
-  int ccursor;
-
-  SCM_VALIDATE_INUM_MIN_COPY (1, cursor, 0, ccursor);
+  size_t ccursor = scm_to_size_t (cursor);
   return scm_from_bool (ccursor >= SCM_CHARSET_SIZE);
 }
 #undef FUNC_NAME
@@ -661,13 +655,12 @@ SCM_DEFINE (scm_ucs_range_to_char_set, "ucs-range->char-set", 2, 2, 0,
 #define FUNC_NAME s_scm_ucs_range_to_char_set
 {
   SCM cs;
-  int clower, cupper;
+  size_t clower, cupper;
   long * p;
 
-  SCM_VALIDATE_INUM_COPY (1, lower, clower);
-  SCM_VALIDATE_INUM_COPY (2, upper, cupper);
-  SCM_ASSERT_RANGE (1, lower, clower >= 0);
-  SCM_ASSERT_RANGE (2, upper, cupper >= 0 && cupper >= clower);
+  clower = scm_to_size_t (lower);
+  cupper = scm_to_size_t (upper);
+  SCM_ASSERT_RANGE (2, upper, cupper >= clower);
   if (!SCM_UNBNDP (error))
     {
       if (scm_is_true (error))
@@ -714,13 +707,12 @@ SCM_DEFINE (scm_ucs_range_to_char_set_x, "ucs-range->char-set!", 4, 0, 0,
 	    "returned.")
 #define FUNC_NAME s_scm_ucs_range_to_char_set_x
 {
-  int clower, cupper;
+  size_t clower, cupper;
   long * p;
 
-  SCM_VALIDATE_INUM_COPY (1, lower, clower);
-  SCM_VALIDATE_INUM_COPY (2, upper, cupper);
-  SCM_ASSERT_RANGE (1, lower, clower >= 0);
-  SCM_ASSERT_RANGE (2, upper, cupper >= 0 && cupper >= clower);
+  clower = scm_to_size_t (lower);
+  cupper = scm_to_size_t (upper);
+  SCM_ASSERT_RANGE (2, upper, cupper >= clower);
   if (scm_is_true (error))
     {
       SCM_ASSERT_RANGE (1, lower, clower <= SCM_CHARSET_SIZE);

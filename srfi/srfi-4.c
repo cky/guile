@@ -286,7 +286,7 @@ SCM_DEFINE (scm_u8vector_p, "u8vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_u8vector, "make-u8vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -296,10 +296,9 @@ SCM_DEFINE (scm_make_u8vector, "make-u8vector", 1, 1, 0,
   SCM uvec;
   int_u8 * p;
   int_u8 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_U8, count);
   if (SCM_UNBNDP (fill))
     f = 0;
@@ -472,7 +471,7 @@ SCM_DEFINE (scm_s8vector_p, "s8vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_s8vector, "make-s8vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -482,10 +481,9 @@ SCM_DEFINE (scm_make_s8vector, "make-s8vector", 1, 1, 0,
   SCM uvec;
   int_s8 * p;
   int_s8 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_S8, count);
   if (SCM_UNBNDP (fill))
     f = 0;
@@ -660,7 +658,7 @@ SCM_DEFINE (scm_u16vector_p, "u16vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_u16vector, "make-u16vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -670,10 +668,9 @@ SCM_DEFINE (scm_make_u16vector, "make-u16vector", 1, 1, 0,
   SCM uvec;
   int_u16 * p;
   int_u16 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_U16, count);
   if (SCM_UNBNDP (fill))
     f = 0;
@@ -830,7 +827,7 @@ SCM_DEFINE (scm_s16vector_p, "s16vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_s16vector, "make-s16vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -840,10 +837,9 @@ SCM_DEFINE (scm_make_s16vector, "make-s16vector", 1, 1, 0,
   SCM uvec;
   int_s16 * p;
   int_s16 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_S16, count);
   if (SCM_UNBNDP (fill))
     f = 0;
@@ -1003,7 +999,7 @@ SCM_DEFINE (scm_u32vector_p, "u32vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_u32vector, "make-u32vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -1013,10 +1009,9 @@ SCM_DEFINE (scm_make_u32vector, "make-u32vector", 1, 1, 0,
   SCM uvec;
   int_u32 * p;
   int_u32 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_U32, count);
   if (SCM_UNBNDP (fill))
     f = 0;
@@ -1174,7 +1169,7 @@ SCM_DEFINE (scm_s32vector_p, "s32vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_s32vector, "make-s32vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -1184,10 +1179,9 @@ SCM_DEFINE (scm_make_s32vector, "make-s32vector", 1, 1, 0,
   SCM uvec;
   int_s32 * p;
   int_s32 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_S32, count);
   if (SCM_UNBNDP (fill))
     f = 0;
@@ -1347,7 +1341,7 @@ SCM_DEFINE (scm_u64vector_p, "u64vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_u64vector, "make-u64vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -1357,10 +1351,9 @@ SCM_DEFINE (scm_make_u64vector, "make-u64vector", 1, 1, 0,
   SCM uvec;
   int_u64 * p;
   int_u64 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_U64, count);
   if (SCM_UNBNDP (fill))
     f = 0;
@@ -1518,7 +1511,7 @@ SCM_DEFINE (scm_s64vector_p, "s64vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_s64vector, "make-s64vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -1528,10 +1521,9 @@ SCM_DEFINE (scm_make_s64vector, "make-s64vector", 1, 1, 0,
   SCM uvec;
   int_s64 * p;
   int_s64 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_S64, count);
   if (SCM_UNBNDP (fill))
     f = 0;
@@ -1691,7 +1683,7 @@ SCM_DEFINE (scm_f32vector_p, "f32vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_f32vector, "make-f32vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -1701,10 +1693,9 @@ SCM_DEFINE (scm_make_f32vector, "make-f32vector", 1, 1, 0,
   SCM uvec;
   float_f32 * p;
   float_f32 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_F32, count);
   if (SCM_UNBNDP (fill))
     f = 0;
@@ -1887,7 +1878,7 @@ SCM_DEFINE (scm_f64vector_p, "f64vector?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_make_f64vector, "make-f64vector", 1, 1, 0,
-            (SCM n, SCM fill),
+            (SCM len, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
 	    "initialize the elements, otherwise the contents of the vector\n"
@@ -1897,10 +1888,9 @@ SCM_DEFINE (scm_make_f64vector, "make-f64vector", 1, 1, 0,
   SCM uvec;
   float_f64 * p;
   float_f64 f;
-  int count;
+  size_t count;
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
+  count = scm_to_size_t (len);
   uvec = make_uvec (FUNC_NAME, SCM_UVEC_F64, count);
   if (SCM_UNBNDP (fill))
     f = 0;

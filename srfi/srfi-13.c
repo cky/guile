@@ -97,13 +97,13 @@ SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
 	    "@var{proc} is applied to the indices is not specified.")
 #define FUNC_NAME s_scm_string_tabulate
 {
-  int clen, i;
+  size_t clen, i;
   SCM res;
   SCM ch;
   char * p;
 
   SCM_VALIDATE_PROC (1, proc);
-  SCM_VALIDATE_INUM_COPY (2, len, clen);
+  clen = scm_to_size_t (len);
   SCM_ASSERT_RANGE (2, len, clen >= 0);
 
   res = scm_allocate_string (clen);
@@ -111,7 +111,7 @@ SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
   i = 0;
   while (i < clen)
     {
-      ch = scm_call_1 (proc, SCM_I_MAKINUM (i));
+      ch = scm_call_1 (proc, scm_from_int (i));
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       *p++ = SCM_CHAR (ch);
@@ -365,16 +365,17 @@ SCM_DEFINE (scm_substring_shared, "substring/shared", 2, 1, 0,
 	    "argument @var{str}.")
 #define FUNC_NAME s_scm_substring_shared
 {
+  size_t s, e;
   SCM_VALIDATE_STRING (1, str);
-  SCM_VALIDATE_INUM (2, start);
+  s = scm_to_size_t (start);
   if (SCM_UNBNDP (end))
-    end = SCM_I_MAKINUM (SCM_STRING_LENGTH (str));
+    e = SCM_STRING_LENGTH (str);
   else
-    SCM_VALIDATE_INUM (3, end);
-  if (SCM_INUM (start) == 0 &&
-      SCM_INUM (end) == SCM_STRING_LENGTH (str))
+    e = scm_to_size_t (end);
+  if (s == 0 && e == SCM_STRING_LENGTH (str))
     return str;
-  return scm_substring (str, start, end);
+  else
+    return scm_substring (str, start, end);
 }
 #undef FUNC_NAME
 
@@ -418,11 +419,10 @@ SCM_DEFINE (scm_string_take, "string-take", 2, 0, 0,
 #define FUNC_NAME s_scm_string_take
 {
   char * cstr;
-  int cn;
+  size_t cn;
 
   SCM_VALIDATE_STRING_COPY (1, s, cstr);
-  SCM_VALIDATE_INUM_COPY (2, n, cn);
-  SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
+  cn = scm_to_unsigned_integer (n, 0, SCM_STRING_LENGTH (s));
 
   return scm_mem2string (cstr, cn);
 }
@@ -435,11 +435,10 @@ SCM_DEFINE (scm_string_drop, "string-drop", 2, 0, 0,
 #define FUNC_NAME s_scm_string_drop
 {
   char * cstr;
-  int cn;
+  size_t cn;
 
   SCM_VALIDATE_STRING_COPY (1, s, cstr);
-  SCM_VALIDATE_INUM_COPY (2, n, cn);
-  SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
+  cn = scm_to_unsigned_integer (n, 0, SCM_STRING_LENGTH (s));
 
   return scm_mem2string (cstr + cn, SCM_STRING_LENGTH (s) - cn);
 }
@@ -452,11 +451,10 @@ SCM_DEFINE (scm_string_take_right, "string-take-right", 2, 0, 0,
 #define FUNC_NAME s_scm_string_take_right
 {
   char * cstr;
-  int cn;
+  size_t cn;
 
   SCM_VALIDATE_STRING_COPY (1, s, cstr);
-  SCM_VALIDATE_INUM_COPY (2, n, cn);
-  SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
+  cn = scm_to_unsigned_integer (n, 0, SCM_STRING_LENGTH (s));
 
   return scm_mem2string (cstr + SCM_STRING_LENGTH (s) - cn, cn);
 }
@@ -469,11 +467,10 @@ SCM_DEFINE (scm_string_drop_right, "string-drop-right", 2, 0, 0,
 #define FUNC_NAME s_scm_string_drop_right
 {
   char * cstr;
-  int cn;
+  size_t cn;
 
   SCM_VALIDATE_STRING_COPY (1, s, cstr);
-  SCM_VALIDATE_INUM_COPY (2, n, cn);
-  SCM_ASSERT_RANGE (2, n, cn >= 0 && cn <= SCM_STRING_LENGTH (s));
+  cn = scm_to_unsigned_integer (n, 0, SCM_STRING_LENGTH (s));
 
   return scm_mem2string (cstr, SCM_STRING_LENGTH (s) - cn);
 }
@@ -490,13 +487,14 @@ SCM_DEFINE (scm_string_pad, "string-pad", 2, 3, 0,
 {
   char cchr;
   char * cstr;
-  int cstart, cend, clen;
+  size_t cstart, cend, clen;
   SCM result;
 
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
 				    4, start, cstart,
 				    5, end, cend);
-  SCM_VALIDATE_INUM_COPY (2, len, clen);
+  clen = scm_to_size_t (len);
+
   if (SCM_UNBNDP (chr))
     cchr = ' ';
   else
@@ -532,13 +530,14 @@ SCM_DEFINE (scm_string_pad_right, "string-pad-right", 2, 3, 0,
 {
   char cchr;
   char * cstr;
-  int cstart, cend, clen;
+  size_t cstart, cend, clen;
   SCM result;
 
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
 				    4, start, cstart,
 				    5, end, cend);
-  SCM_VALIDATE_INUM_COPY (2, len, clen);
+  clen = scm_to_size_t (len);
+
   if (SCM_UNBNDP (chr))
     cchr = ' ';
   else
@@ -584,7 +583,7 @@ SCM_DEFINE (scm_string_trim, "string-trim", 1, 3, 0,
 #define FUNC_NAME s_scm_string_trim
 {
   char * cstr;
-  int cstart, cend;
+  size_t cstart, cend;
 
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
 				    3, start, cstart,
@@ -2281,9 +2280,9 @@ SCM_DEFINE (scm_string_concatenate_reverse, "string-concatenate-reverse", 1, 2, 
 {
   long strings;
   SCM tmp, result;
-  int len = 0;
+  size_t len = 0;
   char * p;
-  int cend = 0;
+  size_t cend = 0;
 
   /* Check the optional arguments and calculate the additional length
      of the result string.  */
@@ -2292,10 +2291,8 @@ SCM_DEFINE (scm_string_concatenate_reverse, "string-concatenate-reverse", 1, 2, 
       SCM_VALIDATE_STRING (2, final_string);
       if (!SCM_UNBNDP (end))
 	{
-	  SCM_VALIDATE_INUM_COPY (3, end, cend);
-	  SCM_ASSERT_RANGE (3, end,
-			    (cend >= 0) &&
-			    (cend <= SCM_STRING_LENGTH (final_string)));
+	  cend = scm_to_unsigned_integer (end,
+					  0, SCM_STRING_LENGTH (final_string));
 	}
       else
 	{
@@ -2674,14 +2671,17 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
 #define FUNC_NAME s_scm_xsubstring
 {
   char * cs, * p;
-  int cstart, cend, cfrom, cto;
+  size_t cstart, cend, cfrom, cto;
   SCM result;
 
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cs,
 				    4, start, cstart,
 				    5, end, cend);
-  SCM_VALIDATE_INUM_COPY (2, from, cfrom);
-  SCM_VALIDATE_INUM_DEF_COPY (3, to, cfrom + (cend - cstart), cto);
+  cfrom = scm_to_size_t (from);
+  if (SCM_UNBNDP (to))
+    cto = cfrom + (cend - cstart);
+  else
+    cto = scm_to_size_t (to);
   if (cstart == cend && cfrom != cto)
     SCM_MISC_ERROR ("start and end indices must not be equal", SCM_EOL);
 
@@ -2713,7 +2713,7 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
 #define FUNC_NAME s_scm_string_xcopy_x
 {
   char * ctarget, * cs, * p;
-  int ctstart, csfrom, csto, cstart, cend;
+  size_t ctstart, csfrom, csto, cstart, cend;
   SCM dummy = SCM_UNDEFINED;
   int cdummy;
 
@@ -2723,8 +2723,11 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cs,
 				    6, start, cstart,
 				    7, end, cend);
-  SCM_VALIDATE_INUM_COPY (4, sfrom, csfrom);
-  SCM_VALIDATE_INUM_DEF_COPY (5, sto, csfrom + (cend - cstart), csto);
+  csfrom = scm_to_size_t (sfrom);
+  if (SCM_UNBNDP (sto))
+    csto = csfrom + (cend - cstart);
+  else
+    csto = scm_to_size_t (sto); 
   if (cstart == cend && csfrom != csto)
     SCM_MISC_ERROR ("start and end indices must not be equal", SCM_EOL);
   SCM_ASSERT_RANGE (1, tstart,
@@ -2754,7 +2757,7 @@ SCM_DEFINE (scm_string_replace, "string-replace", 2, 4, 0,
 #define FUNC_NAME s_scm_string_replace
 {
   char * cstr1, * cstr2, * p;
-  int cstart1, cend1, cstart2, cend2;
+  size_t cstart1, cend1, cstart2, cend2;
   SCM result;
 
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
@@ -2788,7 +2791,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 #define FUNC_NAME s_scm_string_tokenize
 {
   char * cstr;
-  int cstart, cend;
+  size_t cstart, cend;
   SCM result = SCM_EOL;
 
   static SCM charset_graphic = SCM_BOOL_F;
@@ -2850,7 +2853,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
 #define FUNC_NAME s_scm_string_filter
 {
   char * cstr;
-  int cstart, cend;
+  size_t cstart, cend;
   SCM result;
   int idx;
 
@@ -2916,7 +2919,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 #define FUNC_NAME s_scm_string_delete
 {
   char * cstr;
-  int cstart, cend;
+  size_t cstart, cend;
   SCM result;
   int idx;
 
