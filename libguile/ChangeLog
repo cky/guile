@@ -1,3 +1,17 @@
+2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (scm_m_let, scm_m_letstar, scm_m_letrec,
+	scm_m_expand_body, check_bindings): Extracted syntax checking of
+	bindings to new static function check_bindings.
+
+	(scm_m_let, memoize_named_let): Extracted handling of named let to
+	new static function memoize_named_let.
+
+	(transform_bindings, scm_m_let, scm_m_letstar, scm_m_letrec): Use
+	ASSERT_SYNTAX to signal syntax errors.  Be more specific about the
+	kind of error that was detected.  Avoid use of SCM_CDRLOC.  Avoid
+	unnecessary consing when creating the memoized code.
+
 2003-10-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (s_bad_formals, s_bad_formal, s_duplicate_formal): New

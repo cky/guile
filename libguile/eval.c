@@ -1153,101 +1153,137 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
 }
 
 
-/* The bindings ((v1 i1) (v2 i2) ... (vn in)) are transformed to the lists
- * (vn ... v2 v1) and (i1 i2 ... in).  That is, the list of variables is
- * reversed here, the list of inits gets reversed during evaluation. */
+/* Check if the format of the bindings is ((<symbol> <init-form>) ...).  */
 static void
-transform_bindings (SCM bindings, SCM *rvarloc, SCM *initloc, const char *what)
+check_bindings (const SCM bindings, const SCM expr)
 {
-  SCM rvars = SCM_EOL;
-  *rvarloc = SCM_EOL;
-  *initloc = SCM_EOL;
+  SCM binding_idx;
 
-  SCM_ASSYNT (scm_ilength (bindings) >= 1, s_bindings, what);
+  ASSERT_SYNTAX_2 (scm_ilength (bindings) >= 0,
+                   s_bad_bindings, bindings, expr);
 
-  do
+  binding_idx = bindings;
+  for (; !SCM_NULLP (binding_idx); binding_idx = SCM_CDR (binding_idx))
     {
-      SCM binding = SCM_CAR (bindings);
-      SCM_ASSYNT (scm_ilength (binding) == 2, s_bindings, what);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), s_variable, what);
-      if (!SCM_FALSEP (scm_c_memq (SCM_CAR (binding), rvars)))
-	scm_misc_error (what, s_duplicate_bindings, SCM_EOL);
-      rvars = scm_cons (SCM_CAR (binding), rvars);
-      *initloc = scm_list_1 (SCM_CADR (binding));
-      initloc = SCM_CDRLOC (*initloc);
-      bindings = SCM_CDR (bindings);
-    }
-  while (!SCM_NULLP (bindings));
+      SCM name;         /* const */
 
-  *rvarloc = rvars;
+      const SCM binding = SCM_CAR (binding_idx);
+      ASSERT_SYNTAX_2 (scm_ilength (binding) == 2,
+                       s_bad_binding, binding, expr);
+
+      name = SCM_CAR (binding);
+      ASSERT_SYNTAX_2 (SCM_SYMBOLP (name), s_bad_variable, name, expr);
+    }
+}
+
+
+/* The bindings, which must have the format ((v1 i1) (v2 i2) ... (vn in)), are
+ * transformed to the lists (vn ... v2 v1) and (i1 i2 ... in).  That is, the
+ * variables are returned in a list with their order reversed, and the init
+ * forms are returned in a list in the same order as they are given in the
+ * bindings.  If a duplicate variable name is detected, an error is
+ * signalled.  */
+static void
+transform_bindings (
+  const SCM bindings, const SCM expr,
+  SCM *const rvarptr, SCM *const initptr )
+{
+  SCM rvariables = SCM_EOL;
+  SCM rinits = SCM_EOL;
+  SCM binding_idx = bindings;
+  for (; !SCM_NULLP (binding_idx); binding_idx = SCM_CDR (binding_idx))
+    {
+      const SCM binding = SCM_CAR (binding_idx);
+      const SCM cdr_binding = SCM_CDR (binding);
+      const SCM name = SCM_CAR (binding);
+      ASSERT_SYNTAX_2 (SCM_FALSEP (scm_c_memq (name, rvariables)),
+                       s_duplicate_binding, name, expr);
+      rvariables = scm_cons (name, rvariables);
+      rinits = scm_cons (SCM_CAR (cdr_binding), rinits);
+    }
+  *rvarptr = rvariables;
+  *initptr = scm_reverse_x (rinits, SCM_UNDEFINED);
 }
 
 
 SCM_SYNTAX(s_let, "let", scm_i_makbimacro, scm_m_let);
 SCM_GLOBAL_SYMBOL(scm_sym_let, s_let);
 
-SCM
-scm_m_let (SCM xorig, SCM env)
+/* This function is a helper function for memoize_let.  It transforms
+ * (let name ((var init) ...) body ...) into
+ * ((letrec ((name (lambda (var ...) body ...))) name) init ...)
+ * and memoizes the expression.  It is assumed that the caller has checked
+ * that name is a symbol and that there are bindings and a body.  */
+static SCM
+memoize_named_let (const SCM expr, const SCM env SCM_UNUSED)
 {
-  SCM x = SCM_CDR (xorig);
-  SCM temp;
+  SCM rvariables;
+  SCM variables;
+  SCM inits;
 
-  SCM_ASSYNT (SCM_CONSP (x), s_bindings, s_let);
-  temp = SCM_CAR (x);
-  if (SCM_NULLP (temp) 
-      || (scm_ilength (temp) == 1 && SCM_CONSP (SCM_CAR (temp))))
+  const SCM cdr_expr = SCM_CDR (expr);
+  const SCM name = SCM_CAR (cdr_expr);
+  const SCM cddr_expr = SCM_CDR (cdr_expr);
+  const SCM bindings = SCM_CAR (cddr_expr);
+  check_bindings (bindings, expr);
+
+  transform_bindings (bindings, expr, &rvariables, &inits);
+  variables = scm_reverse_x (rvariables, SCM_UNDEFINED);
+
+  {
+    const SCM let_body = SCM_CDR (cddr_expr);
+    const SCM lambda_body = scm_m_body (SCM_IM_LET, let_body, "let");
+    const SCM lambda_tail = scm_cons (variables, lambda_body);
+    const SCM lambda_form = scm_cons_source (expr, scm_sym_lambda, lambda_tail);
+
+    const SCM rvar = scm_list_1 (name);
+    const SCM init = scm_list_1 (lambda_form);
+    const SCM body = scm_m_body (SCM_IM_LET, scm_list_1 (name), "let");
+    const SCM letrec_tail = scm_cons (rvar, scm_cons (init, body));
+    const SCM letrec_form = scm_cons_source (expr, SCM_IM_LETREC, letrec_tail);
+    return scm_cons_source (expr, letrec_form, inits);
+  }
+}
+
+/* (let ((v1 i1) (v2 i2) ...) body) with variables v1 .. vn and initializers
+ * i1 .. in is transformed to (#@let (vn ... v2 v1) (i1 i2 ...) body).  */
+SCM
+scm_m_let (SCM expr, SCM env)
+{
+  SCM bindings;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  const long length = scm_ilength (cdr_expr);
+  ASSERT_SYNTAX (length >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (length >= 2, s_missing_expression, expr);
+
+  bindings = SCM_CAR (cdr_expr);
+  if (SCM_SYMBOLP (bindings))
     {
-      /* null or single binding, let* is faster */
-      SCM bindings = temp;
-      SCM body = scm_m_body (SCM_IM_LET, SCM_CDR (x), s_let);
-      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), bindings, body), env);
+      ASSERT_SYNTAX (length >= 3, s_missing_expression, expr);
+      return memoize_named_let (expr, env);
     }
-  else if (SCM_CONSP (temp))
+
+  check_bindings (bindings, expr);
+  if (SCM_NULLP (bindings) || SCM_NULLP (SCM_CDR (bindings)))
     {
-      /* plain let */
-      SCM bindings = temp;
-      SCM rvars, inits, body;
-      transform_bindings (bindings, &rvars, &inits, "let");
-      body = scm_m_body (SCM_IM_LET, SCM_CDR (x), "let");
-      return scm_cons2 (SCM_IM_LET, rvars, scm_cons (inits, body));
+      /* Special case: no bindings or single binding => let* is faster. */
+      const SCM body = scm_m_body (SCM_IM_LET, SCM_CDR (cdr_expr), s_let);
+      return scm_m_letstar (scm_cons2 (SCM_CAR (expr), bindings, body), env);
     }
   else
     {
-      /* named let: Transform (let name ((var init) ...) body ...) into
-       * ((letrec ((name (lambda (var ...) body ...))) name) init ...) */
-
-      SCM name = temp;
-      SCM vars = SCM_EOL;
-      SCM *varloc = &vars;
-      SCM inits = SCM_EOL;
-      SCM *initloc = &inits;
-      SCM bindings;
-
-      SCM_ASSYNT (SCM_SYMBOLP (name), s_bindings, s_let);
-      x = SCM_CDR (x);
-      SCM_ASSYNT (SCM_CONSP (x), s_bindings, s_let);
-      bindings = SCM_CAR (x);
-      SCM_ASSYNT (scm_ilength (bindings) >= 0, s_bindings, s_let);
-      while (!SCM_NULLP (bindings))
-	{				/* vars and inits both in order */
-	  SCM binding = SCM_CAR (bindings);
-	  SCM_ASSYNT (scm_ilength (binding) == 2, s_bindings, s_let);
-	  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), s_variable, s_let);
-	  *varloc = scm_list_1 (SCM_CAR (binding));
-	  varloc = SCM_CDRLOC (*varloc);
-	  *initloc = scm_list_1 (SCM_CADR (binding));
-	  initloc = SCM_CDRLOC (*initloc);
-	  bindings = SCM_CDR (bindings);
-	}
+      /* plain let */
+      SCM rvariables;
+      SCM inits;
+      transform_bindings (bindings, expr, &rvariables, &inits);
 
       {
-	SCM lambda_body = scm_m_body (SCM_IM_LET, SCM_CDR (x), "let");
-	SCM lambda_form = scm_cons2 (scm_sym_lambda, vars, lambda_body);
-	SCM rvar = scm_list_1 (name);
-	SCM init = scm_list_1 (lambda_form);
-	SCM body = scm_m_body (SCM_IM_LET, scm_list_1 (name), "let");
-	SCM letrec = scm_cons2 (SCM_IM_LETREC, rvar, scm_cons (init, body));
-	return scm_cons (letrec, inits);
+        const SCM new_body = scm_m_body (SCM_IM_LET, SCM_CDR (cdr_expr), "let");
+        const SCM new_tail = scm_cons2 (rvariables, inits, new_body);
+        SCM_SETCAR (expr, SCM_IM_LET);
+        SCM_SETCDR (expr, new_tail);
+        return expr;
       }
     }
 }
@@ -1256,32 +1292,33 @@ scm_m_let (SCM xorig, SCM env)
 SCM_SYNTAX (s_letstar, "let*", scm_i_makbimacro, scm_m_letstar);
 SCM_GLOBAL_SYMBOL (scm_sym_letstar, s_letstar);
 
-/* (let* ((v1 i1) (v2 i2) ...) body) with variables v1 .. vk and initializers
- * i1 .. ik is transformed into the form (#@let* (v1 i1 v2 i2 ...) body*).  */
+/* (let* ((v1 i1) (v2 i2) ...) body) with variables v1 .. vn and initializers
+ * i1 .. in is transformed into the form (#@let* (v1 i1 v2 i2 ...) body).  */
 SCM
-scm_m_letstar (SCM xorig, SCM env SCM_UNUSED)
+scm_m_letstar (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM bindings;
-  SCM x = SCM_CDR (xorig);
-  SCM vars = SCM_EOL;
-  SCM *varloc = &vars;
+  SCM binding_idx;
+  SCM new_bindings = SCM_EOL;
+  SCM new_body;
 
-  SCM_ASSYNT (SCM_CONSP (x), s_bindings, s_letstar);
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
 
-  bindings = SCM_CAR (x);
-  SCM_ASSYNT (scm_ilength (bindings) >= 0, s_bindings, s_letstar);
-  while (!SCM_NULLP (bindings))
+  binding_idx = SCM_CAR (cdr_expr);
+  check_bindings (binding_idx, expr);
+
+  for (; !SCM_NULLP (binding_idx); binding_idx = SCM_CDR (binding_idx))
     {
-      SCM binding = SCM_CAR (bindings);
-      SCM_ASSYNT (scm_ilength (binding) == 2, s_bindings, s_letstar);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), s_variable, s_letstar);
-      *varloc = scm_list_2 (SCM_CAR (binding), SCM_CADR (binding));
-      varloc = SCM_CDRLOC (SCM_CDR (*varloc));
-      bindings = SCM_CDR (bindings);
+      const SCM binding = SCM_CAR (binding_idx);
+      const SCM name = SCM_CAR (binding);
+      const SCM init = SCM_CADR (binding);
+      new_bindings = scm_cons2 (init, name, new_bindings);
     }
+  new_bindings = scm_reverse_x (new_bindings, SCM_UNDEFINED);
 
-  return scm_cons2 (SCM_IM_LETSTAR, vars,
-		    scm_m_body (SCM_IM_LETSTAR, SCM_CDR (x), s_letstar));
+  new_body = scm_m_body (SCM_IM_LETSTAR, SCM_CDR (cdr_expr), s_letstar);
+  return scm_cons2 (SCM_IM_LETSTAR, new_bindings, new_body);
 }
 
 
@@ -1289,23 +1326,31 @@ SCM_SYNTAX(s_letrec, "letrec", scm_i_makbimacro, scm_m_letrec);
 SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
 
 SCM 
-scm_m_letrec (SCM xorig, SCM env)
+scm_m_letrec (SCM expr, SCM env)
 {
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (SCM_CONSP (x), s_bindings, s_letrec);
-  
-  if (SCM_NULLP (SCM_CAR (x)))
+  SCM bindings;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
+
+  bindings = SCM_CAR (cdr_expr);
+  if (SCM_NULLP (bindings))
     {
-      /* null binding, let* faster */
-      SCM body = scm_m_body (SCM_IM_LETREC, SCM_CDR (x), s_letrec);
-      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), SCM_EOL, body), env);
+      /* no bindings, let* is executed faster */
+      SCM body = scm_m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr), s_letrec);
+      return scm_m_letstar (scm_cons2 (SCM_CAR (expr), SCM_EOL, body), env);
     }
   else
     {
-      SCM rvars, inits, body;
-      transform_bindings (SCM_CAR (x), &rvars, &inits, "letrec");
-      body = scm_m_body (SCM_IM_LETREC, SCM_CDR (x), "letrec");
-      return scm_cons2 (SCM_IM_LETREC, rvars, scm_cons (inits, body));
+      SCM rvariables;
+      SCM inits;
+      SCM new_body;
+
+      check_bindings (bindings, expr);
+      transform_bindings (bindings, expr, &rvariables, &inits);
+      new_body = scm_m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr), "letrec");
+      return scm_cons2 (SCM_IM_LETREC, rvariables, scm_cons (inits, new_body));
     }
 }
 
@@ -1721,7 +1766,8 @@ scm_m_expand_body (SCM xorig, SCM env)
   if (!SCM_NULLP (defs))
     {
       SCM rvars, inits, body, letrec;
-      transform_bindings (defs, &rvars, &inits, what);
+      check_bindings (defs, xorig);
+      transform_bindings (defs, xorig, &rvars, &inits);
       body = scm_m_body (SCM_IM_DEFINE, x, what);
       letrec = scm_cons2 (SCM_IM_LETREC, rvars, scm_cons (inits, body));
       SCM_SETCAR (xorig, letrec);

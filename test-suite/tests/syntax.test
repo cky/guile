@@ -34,9 +34,11 @@
   (cons 'syntax-error "Extra expression"))
 
 (define exception:bad-bindings
-  (cons 'misc-error "^bad bindings"))
-(define exception:duplicate-bindings
-  (cons 'misc-error "^duplicate bindings"))
+  (cons 'syntax-error "Bad bindings"))
+(define exception:bad-binding
+  (cons 'syntax-error "Bad binding"))
+(define exception:duplicate-binding
+  (cons 'syntax-error "Duplicate binding"))
 (define exception:bad-body
   (cons 'misc-error "^bad body"))
 (define exception:bad-formals
@@ -195,63 +197,61 @@
   (with-test-prefix "bad bindings"
 
     (pass-if-exception "(let)"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(let)
 	    (interaction-environment)))
 
     (pass-if-exception "(let 1)"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(let 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(let (x))"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(let (x))
 	    (interaction-environment)))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; (Even although the body is bad as well...)
     (pass-if-exception "(let ((x)))"
-      exception:bad-body
+      exception:missing-expr
       (eval '(let ((x)))
 	    (interaction-environment)))
 
     (pass-if-exception "(let (x) 1)"
-      exception:bad-bindings
+      exception:bad-binding
       (eval '(let (x) 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(let ((x)) 3)"
-      exception:bad-bindings
+      exception:bad-binding
       (eval '(let ((x)) 3)
 	    (interaction-environment)))
 
     (pass-if-exception "(let ((x 1) y) x)"
-      exception:bad-bindings
+      exception:bad-binding
       (eval '(let ((x 1) y) x)
 	    (interaction-environment)))
 
     (pass-if-exception "(let ((1 2)) 3)"
-      exception:bad-var
+      exception:bad-variable
       (eval '(let ((1 2)) 3)
 	    (interaction-environment))))
 
   (with-test-prefix "duplicate bindings"
 
     (pass-if-exception "(let ((x 1) (x 2)) x)"
-      exception:duplicate-bindings
+      exception:duplicate-binding
       (eval '(let ((x 1) (x 2)) x)
 	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(let ())"
-      exception:bad-body
+      exception:missing-expr
       (eval '(let ())
 	    (interaction-environment)))
 
     (pass-if-exception "(let ((x 1)))"
-      exception:bad-body
+      exception:missing-expr
       (eval '(let ((x 1)))
 	    (interaction-environment)))))
 
@@ -266,19 +266,19 @@
   (with-test-prefix "bad bindings"
 
     (pass-if-exception "(let x (y))"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(let x (y))
 	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(let x ())"
-      exception:bad-body
+      exception:missing-expr
       (eval '(let x ())
 	    (interaction-environment)))
 
     (pass-if-exception "(let x ((y 1)))"
-      exception:bad-body
+      exception:missing-expr
       (eval '(let x ((y 1)))
 	    (interaction-environment)))))
 
@@ -297,32 +297,32 @@
   (with-test-prefix "bad bindings"
 
     (pass-if-exception "(let*)"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(let*)
 	    (interaction-environment)))
 
     (pass-if-exception "(let* 1)"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(let* 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(let* (x))"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(let* (x))
 	    (interaction-environment)))
 
     (pass-if-exception "(let* (x) 1)"
-      exception:bad-bindings
+      exception:bad-binding
       (eval '(let* (x) 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(let* ((x)) 3)"
-      exception:bad-bindings
+      exception:bad-binding
       (eval '(let* ((x)) 3)
 	    (interaction-environment)))
 
     (pass-if-exception "(let* ((x 1) y) x)"
-      exception:bad-bindings
+      exception:bad-binding
       (eval '(let* ((x 1) y) x)
 	    (interaction-environment)))
 
@@ -337,19 +337,19 @@
 	    (interaction-environment)))
 
     (pass-if-exception "(let* ((1 2)) 3)"
-      exception:bad-var
+      exception:bad-variable
       (eval '(let* ((1 2)) 3)
 	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(let* ())"
-      exception:bad-body
+      exception:missing-expr
       (eval '(let* ())
 	    (interaction-environment)))
 
     (pass-if-exception "(let* ((x 1)))"
-      exception:bad-body
+      exception:missing-expr
       (eval '(let* ((x 1)))
 	    (interaction-environment)))))
 
@@ -365,32 +365,32 @@
   (with-test-prefix "bad bindings"
 
     (pass-if-exception "(letrec)"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(letrec)
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec 1)"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(letrec 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec (x))"
-      exception:bad-bindings
+      exception:missing-expr
       (eval '(letrec (x))
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec (x) 1)"
-      exception:bad-bindings
+      exception:bad-binding
       (eval '(letrec (x) 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((x)) 3)"
-      exception:bad-bindings
+      exception:bad-binding
       (eval '(letrec ((x)) 3)
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((x 1) y) x)"
-      exception:bad-bindings
+      exception:bad-binding
       (eval '(letrec ((x 1) y) x)
 	    (interaction-environment)))
 
@@ -405,26 +405,26 @@
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((1 2)) 3)"
-      exception:bad-var
+      exception:bad-variable
       (eval '(letrec ((1 2)) 3)
 	    (interaction-environment))))
 
   (with-test-prefix "duplicate bindings"
 
     (pass-if-exception "(letrec ((x 1) (x 2)) x)"
-      exception:duplicate-bindings
+      exception:duplicate-binding
       (eval '(letrec ((x 1) (x 2)) x)
 	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(letrec ())"
-      exception:bad-body
+      exception:missing-expr
       (eval '(letrec ())
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((x 1)))"
-      exception:bad-body
+      exception:missing-expr
       (eval '(letrec ((x 1)))
 	    (interaction-environment)))))
 

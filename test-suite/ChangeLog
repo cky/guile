@@ -1,3 +1,15 @@
+2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* lib.scm (exception:bad-variable): New.
+
+	* tests/syntax.test (exception:bad-binding,
+	exception:duplicate-binding): New.
+
+	(exception:duplicate-bindings): Removed.
+
+	Adapted tests for 'let', 'let*' and 'letrec' to the new way of
+	error reporting.
+
 2003-10-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test (define exception:bad-formal, define

@@ -22,6 +22,7 @@
   :export (
 
  ;; Exceptions which are commonly being tested for.
+ exception:bad-variable
  exception:missing-expression
  exception:out-of-range exception:unbound-var
  exception:wrong-num-args exception:wrong-type-arg
@@ -233,6 +234,8 @@
 ;;;;
 
 ;;; Define some exceptions which are commonly being tested for.
+(define exception:bad-variable
+  (cons 'syntax-error "Bad variable"))
 (define exception:missing-expression
   (cons 'misc-error "^missing or extra expression"))
 (define exception:out-of-range
