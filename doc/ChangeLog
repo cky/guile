@@ -1,5 +1,20 @@
 2001-03-09  Neil Jerram  <neil@ossau.uklinux.net>
 
+	Moving texinfo files from guile-doc/ref into guile-core/doc:
+
+	* env.texi, indices.texi, mbapi.texi, mltext.texi, scripts.texi,
+	scsh.texi, tcltk.texi, hierarchy.txt, scheme-indices.texi,
+	slib.texi, deprecated.texi, scheme-binding.texi, appendices.texi,
+	scheme-intro.texi, goops.texi, extend.texi, gh.texi, intro.texi,
+	preface.texi, scm.texi, goops-tutorial.texi, hierarchy.eps,
+	r4rs.texi, r5rs.texi, texinfo.tex, scheme-reading.texi,
+	data-rep.texi, scheme-utility.texi, posix.texi,
+	scheme-control.texi, scheme-debug.texi, scheme-evaluation.texi,
+	scheme-io.texi, scheme-memory.texi, scheme-modules.texi,
+	scheme-options.texi, scheme-procedures.texi,
+	scheme-scheduling.texi, scheme-translation.texi, guile.texi,
+	scheme-data.texi, scheme-ideas.texi, expect.texi: New files.
+
 	Both the following files are about to be replaced by files from
 	guile-doc/ref.
 	
