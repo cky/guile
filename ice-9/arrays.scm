@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 (define uniform-vector-write uniform-array-write)
 
 (define (make-array fill . args)
-  (dimensions->uniform-array args () fill))
+  (dimensions->uniform-array args '() fill))
 (define (make-uniform-array prot . args)
   (dimensions->uniform-array args prot))
 (define (list->array ndim lst)
