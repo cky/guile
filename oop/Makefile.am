@@ -26,7 +26,7 @@ SUBDIRS = goops
 # These should be installed and distributed.
 oop_sources = goops.scm
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/oop
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/oop
 subpkgdata_DATA = $(oop_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 
