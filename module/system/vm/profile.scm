@@ -24,7 +24,7 @@
   :use-module (ice-9 format)
   :export (vm-profile))
 
-(define (vm-profile vm bytes . opts)
+(define (vm-profile vm objcode . opts)
   (let ((flag (vm-option vm 'debug)))
     (dynamic-wind
 	(lambda ()
@@ -34,7 +34,7 @@
 	  (add-hook! (vm-enter-hook vm) profile-enter)
 	  (add-hook! (vm-exit-hook vm) profile-exit))
 	(lambda ()
-	  (let ((val (vm-load vm bytes)))
+	  (let ((val (vm (objcode->program objcode))))
 	    (display-result vm)
 	    val))
 	(lambda ()

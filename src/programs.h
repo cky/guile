@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 Free Software Foundation, Inc.
+/* Copyright (C) 2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,8 +39,8 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#ifndef _PROGRAM_H_
-#define _PROGRAM_H_
+#ifndef _SCM_PROGRAMS_H_
+#define _SCM_PROGRAMS_H_
 
 #include <libguile.h>
 #include "config.h"
@@ -87,7 +87,7 @@ extern SCM scm_c_make_closure (SCM program, SCM external);
 
 extern void scm_init_programs (void);
 
-#endif /* _PROGRAM_H_ */
+#endif /* _SCM_PROGRAMS_H_ */
 
 /*
   Local Variables:

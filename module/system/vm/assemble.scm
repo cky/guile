@@ -146,7 +146,7 @@
        (for-each generate-code body)
        (let ((bytes (stack->bytes (reverse! stack) label-alist)))
 	 (if toplevel
-	     (make-dumpcode nlocs nexts bytes)
+	     (bytecode->objcode bytes nlocs nexts)
 	     (let ((objs (map car (reverse! object-alist))))
 	       (make-bytespec nargs nrest nlocs nexts bytes objs
 			      (venv-closure? venv)))))))))

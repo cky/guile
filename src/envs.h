@@ -39,8 +39,8 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#ifndef _ENVS_H_
-#define _ENVS_H_
+#ifndef _SCM_ENVS_H_
+#define _SCM_ENVS_H_
 
 #include <libguile.h>
 #include "config.h"
@@ -64,7 +64,7 @@ extern SCM scm_c_env_vcell (SCM env, SCM name, int intern);
 
 extern void scm_init_envs (void);
 
-#endif /* _ENVS_H_ */
+#endif /* _SCM_ENVS_H_ */
 
 /*
   Local Variables:

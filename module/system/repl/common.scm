@@ -22,70 +22,66 @@
 (define-module (system repl common)
   :use-module (oop goops)
   :use-syntax (system base syntax)
+  :use-module (system base compile)
   :use-module (system base language)
   :use-module (system vm core)
-  :use-module (system vm trace)
-  :export (make-repl repl-welcome repl-prompt repl-read repl-compile
-		     repl-eval repl-print repl-compile-file repl-load-file))
+  :use-module (system vm trace))
 
 
 ;;;
-;;; Repl
+;;; Repl type
 ;;;
 
-(define-vm-class <repl> ()
-  vm language module value-count value-history tm-stats vm-stats gc-stats)
+(define-vm-class <repl> () env tm-stats vm-stats gc-stats)
 
-(define (make-repl lang)
-  (let ((vm (the-vm)))
+(define-public (make-repl lang)
+  (let ((cenv (make-cenv :vm (the-vm)
+			 :language (lookup-language lang)
+			 :module (current-module))))
     (make <repl>
-	  :vm vm
-	  :language (lookup-language lang)
-	  :module (current-module) ;; (global-ref 'user)
-	  :value-count 0
-;	  :value-history (make-vmodule)
+	  :env cenv
 	  :tm-stats (times)
-	  :vm-stats (vm-stats vm)
+	  :vm-stats (vm-stats cenv.vm)
 	  :gc-stats (gc-stats))))
 
-(define (repl-welcome repl)
+(define-public (repl-welcome repl)
   (format #t "~A interpreter ~A on Guile ~A\n"
-	  repl.language.title repl.language.version (version))
+	  repl.env.language.title repl.env.language.version (version))
   (display "Copyright (C) 2001 Free Software Foundation, Inc.\n\n")
   (display "Enter `,help' for help.\n"))
 
-(define (repl-prompt repl)
-  (format #t "~A@~A> " repl.language.name 'guile)
-  ;; (env-identifier repl.module))
-  (force-output))
+(define-public (repl-prompt repl)
+  (let ((module-name (car (last-pair (module-name repl.env.module)))))
+    (format #t "~A@~A> " repl.env.language.name module-name)
+    (force-output)))
 
-(define (repl-read repl . args)
-  (apply read-in repl.language args))
+(define-public (repl-read repl)
+  (repl.env.language.reader))
 
-(define (repl-compile repl form . opts)
-  (apply compile-in form repl.module repl.language opts))
+(define-public (repl-compile repl form . opts)
+  (apply compile-in form repl.env.module repl.env.language opts))
 
-(define (repl-eval repl form)
-  (let ((eval repl.language.evaluator))
+(define-public (repl-eval repl form)
+  (let ((eval repl.env.language.evaluator))
     (if eval
-	(eval form repl.module)
-	(vm-load repl.vm (repl-compile repl form)))))
+	(eval form repl.env.module)
+	(vm-load repl.env.vm (repl-compile repl form)))))
 
-(define (repl-print repl val)
+(define-public (repl-print repl val)
   (if (not (eq? val *unspecified*))
-      (let* ((num (1+ repl.value-count))
-	     (sym (string->symbol (format #f "$~A" num))))
-;	(vmodule-define repl.value-history sym val)
-	(format #t "~A = " sym)
-	(print-in val repl.language)
-	(newline)
-	(set! repl.value-count num))))
+      (begin
+	(repl.env.language.printer val)
+	(newline))))
 
-(define (repl-compile-file repl file . opts)
-  (apply compile-file-in file repl.language opts))
+
+;;;
+;;; Utilities
+;;;
 
-(define (repl-load-file repl file . opts)
-  (let ((bytes (apply repl-compile-file repl file opts)))
-    (if (or (memq :b opts) (memq :r opts))
-	(apply vm-trace repl.vm bytes opts)
-	(vm-load repl.vm bytes))))
+(define-public (puts x) (display x) (newline))
+
+(define-public (->string x)
+  (object->string x display))
+
+(define-public (user-error msg . args)
+  (throw 'user-error #f msg args #f))

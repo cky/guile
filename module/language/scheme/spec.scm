@@ -30,15 +30,11 @@
 
 (read-enable 'positions)
 
-;;;
-;;; Compiler
-;;;
-
-(define (compile port env . opts)
+(define (read-file port)
   (do ((x (read port) (read port))
        (l '() (cons x l)))
       ((eof-object? x)
-       (apply compile-in (cons 'begin (reverse! l)) env scheme opts))))
+       (cons 'begin (reverse! l)))))
 
 ;;;
 ;;; Language definition
@@ -48,7 +44,7 @@
   :title	"Guile Scheme"
   :version	"0.5"
   :reader	read
+  :read-file	read-file
   :translator	translate
   :printer	write
-  :compiler	compile
   )

@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 Free Software Foundation, Inc.
+/* Copyright (C) 2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@
 #include <string.h>
 #include "instructions.h"
 #include "programs.h"
+#include "objcodes.h"
 #include "envs.h"
 #include "vm.h"
 
@@ -598,35 +599,6 @@ SCM_DEFINE (scm_vm_fetch_stack, "vm-fetch-stack", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_load, "vm-load", 2, 0, 0,
-	    (SCM vm, SCM bootcode),
-	    "")
-#define FUNC_NAME s_scm_vm_load
-{
-  SCM prog;
-  int len;
-  char *base;
-
-  SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_STRING (2, bootcode);
-
-  base = SCM_STRING_CHARS (bootcode);
-  len  = SCM_STRING_LENGTH (bootcode);
-
-  /* Check bootcode */
-  if (strncmp (base, "\0GBC", 4) != 0)
-    SCM_MISC_ERROR ("Invalid bootcode: ~S", SCM_LIST1 (bootcode));
-
-  /* Create program */
-  prog  = scm_c_make_program (base + 10, len - 10, bootcode);
-  SCM_PROGRAM_NLOCS (prog) = base[8];
-  SCM_PROGRAM_NEXTS (prog) = base[9];
-
-  /* Load it */
-  return scm_vm_apply (vm, prog, SCM_EOL);
-}
-#undef FUNC_NAME
-
 
 /*
  * Initialize
@@ -637,6 +609,7 @@ scm_init_vm (void)
 {
   scm_init_instructions ();
   scm_init_programs ();
+  scm_init_objcodes ();
 
   scm_tc16_vm_heap_frame = scm_make_smob_type ("vm_frame", 0);
   scm_set_smob_mark (scm_tc16_vm_heap_frame, vm_heap_frame_mark);

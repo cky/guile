@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 Free Software Foundation, Inc.
+/* Copyright (C) 2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,8 +39,8 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#ifndef _INSTRUCTIONS_H_
-#define _INSTRUCTIONS_H_
+#ifndef _SCM_INSTRUCTIONS_H_
+#define _SCM_INSTRUCTIONS_H_
 
 #include <libguile.h>
 #include "config.h"
@@ -78,7 +78,7 @@ extern struct scm_instruction *scm_lookup_instruction (SCM name);
 
 extern void scm_init_instructions (void);
 
-#endif /* _INSTRUCTIONS_H_ */
+#endif /* _SCM_INSTRUCTIONS_H_ */
 
 /*
   Local Variables:

@@ -21,37 +21,31 @@
 
 (define-module (system repl command)
   :use-syntax (system base syntax)
-  :use-module (system base language)
+  :use-module (system base compile)
   :use-module (system repl common)
-  :use-module (system il glil)
   :use-module (system vm core)
+  :autoload (system il glil) (pprint-glil)
+  :autoload (system vm disasm) (disassemble-program disassemble-objcode)
   :autoload (system vm trace) (vm-trace)
-  :autoload (system vm disasm) (disassemble-program disassemble-dumpcode)
   :autoload (system vm profile) (vm-profile)
   :use-module (ice-9 format)
   :use-module (ice-9 session)
-  :export (meta-command))
-
-(define (puts x) (display x) (newline))
-
-(define (user-error msg . args)
-  (throw 'user-error #f msg args #f))
+  :use-module (ice-9 documentation))
 
 
 ;;;
-;;; Meta command
+;;; Meta command interface
 ;;;
 
 (define *command-table*
   '((help     (help h) (apropos a) (describe d) (option o) (quit q))
-    (module   (module m) (use u) (import i) (load l) (binding b) (lsmod lm))
-    (package  (package p) (lspkg lp) (autopackage) (globals g))
+    (module   (module m) (use u) (import i) (load l) (binding b))
     (language (language L))
     (compile  (compile c) (compile-file cc)
 	      (disassemble x) (disassemble-file xx))
     (profile  (time t) (profile pr))
-    (debug    (backtrace bt) (debugger db) (trace tr) (step st))
-    (system   (statistics stat) (gc))))
+    (debug    (backtrace bt) (debugger db) (trace r) (step st))
+    (system   (gc) (statistics st))))
 
 (define (group-name g) (car g))
 (define (group-commands g) (cdr g))
@@ -102,7 +96,7 @@
   (let ((abbrev (if abbrev (format #f "[,~A]" abbrev) "")))
     (format #t " ,~24A ~8@A - ~A\n" usage abbrev summary)))
 
-(define (meta-command repl line)
+(define-public (meta-command repl line)
   (let ((input (call-with-input-string (string-append "(" line ")") read)))
     (if (not (null? input))
 	(do ((key (car input))
@@ -125,10 +119,10 @@
 
 (define (help repl . args)
   "help [GROUP]
-Show help messages.
-The optional argument can be either one of command groups or
-command names.  Without argument, a list of help commands and
-all command groups are displayed, as you have already seen :)"
+List available meta commands.
+A command group name can be given as an optional argument.
+Without any argument, a list of help commands and command groups
+are displayed, as you have already seen ;)"
   (match args
     (()
      (display-group (lookup-group 'help))
@@ -141,27 +135,29 @@ all command groups are displayed, as you have already seen :)"
 		   (display-summary usage #f header)))
 	       (cdr *command-table*))
      (newline)
-     (display "Enter `,COMMAND -h' to display documentation of each command.")
+     (display "Type `,COMMAND -h' to show documentation of each command.")
      (newline))
     (('all)
      (for-each display-group *command-table*))
     ((? lookup-group group)
      (display-group (lookup-group group)))
-    (else (user-error "Unknown command group: ~A" (car args)))))
+    (else
+     (user-error "Unknown command group: ~A" (car args)))))
 
-(define guile-apropos apropos)
+(define guile:apropos apropos)
 (define (apropos repl regexp)
-  "apropos [options] REGEXP
+  "apropos REGEXP
 Find bindings/modules/packages."
-  (guile-apropos (object->string regexp display)))
+  (guile:apropos (->string regexp)))
 
 (define (describe repl obj)
   "describe OBJ
 Show description/documentation."
-  (display "Not implemented yet\n"))
+  (display (object-documentation (repl-eval repl obj)))
+  (newline))
 
 (define (option repl . args)
-  "option [KEY [VALUE]]
+  "option [KEY VALUE]
 List/show/set options."
   (display "Not implemented yet\n"))
 
@@ -179,7 +175,7 @@ Quit this session."
   "module [MODULE]
 Change modules / Show current module."
   (match args
-    (() (puts (binding repl.module)))))
+    (() (puts (binding repl.env.module)))))
 
 (define (use repl . args)
   "use [MODULE ...]
@@ -187,11 +183,12 @@ Use modules."
   (define (use name)
     (let ((mod (resolve-interface name)))
       (if mod
-	  (module-use! repl.module mod)
+	  (module-use! repl.env.module mod)
 	  (user-error "No such module: ~A" name))))
   (if (null? args)
       (for-each puts (map module-name
-			  (cons repl.module (module-uses repl.module))))
+			  (cons repl.env.module
+				(module-uses repl.env.module))))
       (for-each (lambda (name)
 		  (cond
 		   ((pair? name) (use name))
@@ -206,11 +203,11 @@ Import modules / List those imported."
   (define (use name)
     (let ((mod (resolve-interface name)))
       (if mod
-	  (module-use! repl.module mod)
+	  (module-use! repl.env.module mod)
 	  (user-error "No such module: ~A" name))))
   (if (null? args)
       (for-each puts (map module-name
-			  (cons repl.module (module-uses repl.module))))
+			  (cons repl.env.module (module-uses repl.env.module))))
       (for-each (lambda (name)
 		  (cond
 		   ((pair? name) (use name))
@@ -221,55 +218,23 @@ Import modules / List those imported."
 		args)))
 
 (define (load repl file . opts)
-  "load [options] FILE
-Load a file in the current module."
-  (apply repl-load-file repl (->string file) opts))
+  "load FILE
+Load a file in the current module.
+
+  -f    Load source file (see `compile')
+  -r    Trace loading (see `trace')"
+  (let* ((file (->string file))
+	 (objcode (if (memq :f opts)
+		      (apply load-source-file file opts)
+		      (apply load-file file opts))))
+    (if (memq :r opts)
+	(apply vm-trace repl.env.vm objcode opts)
+	(vm-load repl.env.vm objcode))))
 
 (define (binding repl . opts)
-  "binding [-a]
+  "binding
 List current bindings."
-  (fold (lambda (s v d) (format #t "~23A ~A\n" s v)) #f repl.module))
-
-(define (lsmod repl . args)
-  "lsmod
-."
-  (define (use name)
-    (set! repl.module (resolve-module name))
-    (module-use! repl.module repl.value-history))
-  (if (null? args)
-      (use '(guile-user))
-      (let ((name (car args)))
-	(cond
-	 ((pair? name) (use name))
-	 ((symbol? name)
-	  (and-let* ((m (find-one-module (symbol->string name))))
-	    (puts m) (use m)))
-	 (else (user-error "Invalid module name: ~A" name))))))
-
-
-;;;
-;;; Package commands
-;;;
-
-(define (package repl)
-  "package [PACKAGE]
-List available packages/modules."
-  (for-each puts (find-module "")))
-
-(define (lspkg repl)
-  "lspkg
-List available packages/modules."
-  (for-each puts (find-module "")))
-
-(define (autopackage repl)
-  "autopackage
-List available packages/modules."
-  (for-each puts (find-module "")))
-
-(define (globals repl)
-  "globals
-List all global variables."
-  (global-fold (lambda (s v d) (format #t "~A\t~S\n" s v)) #f))
+  (fold (lambda (s v d) (format #t "~23A ~A\n" s v)) #f repl.env.module))
 
 
 ;;;
@@ -279,7 +244,7 @@ List all global variables."
 (define (language repl name)
   "language LANGUAGE
 Change languages."
-  (set! repl.language (lookup-language name))
+  (set! repl.env.language (lookup-language name))
   (repl-welcome repl))
 
 
@@ -288,7 +253,7 @@ Change languages."
 ;;;
 
 (define (compile repl form . opts)
-  "compile [options] FORM
+  "compile FORM
 Generate compiled code.
 
   -e    Stop after expanding syntax/macro
@@ -300,10 +265,10 @@ Generate compiled code.
   (let ((x (apply repl-compile repl form opts)))
     (cond ((or (memq :e opts) (memq :t opts)) (puts x))
 	  ((memq :c opts) (pprint-glil x))
-	  (else (disassemble-dumpcode x)))))
+	  (else (disassemble-objcode x)))))
 
 (define (compile-file repl file . opts)
-  "compile-file [options] FILE
+  "compile-file FILE
 Compile a file."
   (apply repl-compile-file repl (->string file) opts))
 
@@ -315,31 +280,51 @@ Disassemble a program."
 (define (disassemble-file repl file)
   "disassemble-file FILE
 Disassemble a file."
-  (disassemble-dumpcode (load-dumpcode (->string file))))
-
-(define (->string x)
-  (object->string x display))
+  (disassemble-objcode (load-objcode (->string file))))
 
 
 ;;;
 ;;; Profile commands
 ;;;
 
+(define (time repl form)
+  "time FORM
+Time execution."
+  (let* ((vms-start (vm-stats repl.env.vm))
+	 (gc-start (gc-run-time))
+	 (tms-start (times))
+	 (result (repl-eval repl form))
+	 (tms-end (times))
+	 (gc-end (gc-run-time))
+	 (vms-end (vm-stats repl.env.vm)))
+    (define (get proc start end)
+      (/ (- (proc end) (proc start)) internal-time-units-per-second))
+    (repl-print repl result)
+    (display "clock utime stime cutime cstime gctime\n")
+    (format #t "~5,2F ~5,2F ~5,2F ~6,2F ~6,2F ~6,2F\n"
+	    (get tms:clock tms-start tms-end)
+	    (get tms:utime tms-start tms-end)
+	    (get tms:stime tms-start tms-end)
+	    (get tms:cutime tms-start tms-end)
+	    (get tms:cstime tms-start tms-end)
+	    (get identity gc-start gc-end))
+    result))
+
 (define (profile repl form . opts)
   "profile FORM
 Profile execution."
-  (apply vm-profile repl.vm (repl-compile repl form) opts))
+  (apply vm-profile repl.env.vm (repl-compile repl form) opts))
 
 
 ;;;
 ;;; Debug commands
 ;;;
 
-(define guile-backtrace backtrace)
+(define guile:backtrace backtrace)
 (define (backtrace repl)
   "backtrace
 Show backtrace (if any)."
-  (guile-backtrace))
+  (guile:backtrace))
 
 (define (debugger repl)
   "debugger
@@ -347,9 +332,14 @@ Start debugger."
   (debug))
 
 (define (trace repl form . opts)
-  "trace [-b] FORM
-Trace execution."
-  (apply vm-trace repl.vm (repl-compile repl form) opts))
+  "trace FORM
+Trace execution.
+
+  -s    Display stack
+  -l    Display local variables
+  -e    Display external variables
+  -b    Bytecode level trace"
+  (apply vm-trace repl.env.vm (repl-compile repl form) opts))
 
 (define (step repl)
   "step FORM
@@ -361,44 +351,17 @@ Step execution."
 ;;; System commands 
 ;;;
 
-(define (time repl form)
-  "time FORM
-Time execution."
-  (let* ((vms-start (vm-stats repl.vm))
-	 (gc-start (gc-run-time))
-	 (tms-start (times))
-	 (result (repl-eval repl form))
-	 (tms-end (times))
-	 (gc-end (gc-run-time))
-	 (vms-end (vm-stats repl.vm)))
-    (define (get proc start end)
-      (/ (- (proc end) (proc start)) internal-time-units-per-second))
-    (repl-print repl result)
-    (display "clock utime stime cutime cstime gctime\n")
-    (format #t "~5,2F ~5,2F ~5,2F ~6,2F ~6,2F ~6,2F\n"
-	    (get tms:clock tms-start tms-end)
-	    (get tms:utime tms-start tms-end)
-	    (get tms:stime tms-start tms-end)
-	    (get tms:cutime tms-start tms-end)
-	    (get tms:cstime tms-start tms-end)
-	    (get id gc-start gc-end))
-    result))
-
-(define guile-gc gc)
+(define guile:gc gc)
 (define (gc repl)
   "gc
 Garbage collection."
-  (guile-gc))
-
-;;;
-;;; Statistics
-;;;
+  (guile:gc))
 
 (define (statistics repl)
   "statistics
 Display statistics."
   (let ((this-tms (times))
-	(this-vms (vm-stats repl.vm))
+	(this-vms (vm-stats repl.env.vm))
 	(this-gcs (gc-stats))
 	(last-tms repl.tm-stats)
 	(last-vms repl.vm-stats)

@@ -39,12 +39,34 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#include <libguile.h>
+#ifndef _SCM_OBJCODES_H_
+#define _SCM_OBJCODES_H_
 
-int
-main (int argc, char **argv)
-{
-  scm_init_guile ();
-  scm_shell (argc, argv);
-  return 0; /* never reached */
-}
+#include <libguile.h>
+#include "config.h"
+
+struct scm_objcode {
+  size_t size;			/* objcode size */
+  char *base;			/* objcode base address */
+  int fd;			/* file descriptor when mmap'ed */
+};
+
+extern scm_bits_t scm_tc16_objcode;
+
+#define SCM_OBJCODE_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_objcode, x))
+#define SCM_OBJCODE_DATA(x)	((struct scm_objcode *) SCM_SMOB_DATA (x))
+#define SCM_VALIDATE_OBJCODE(p,x) SCM_MAKE_VALIDATE (p, x, OBJCODE_P)
+
+#define SCM_OBJCODE_SIZE(x)	(SCM_OBJCODE_DATA (x)->size)
+#define SCM_OBJCODE_BASE(x)	(SCM_OBJCODE_DATA (x)->base)
+#define SCM_OBJCODE_FD(x)	(SCM_OBJCODE_DATA (x)->fd)
+
+extern void scm_init_objcodes (void);
+
+#endif /* _SCM_OBJCODES_H_ */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

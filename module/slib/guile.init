@@ -223,10 +223,10 @@
 ;;; by compiling "foo.scm" if this implementation can compile files.
 ;;; See feature 'COMPILED.
 
-(define slib:load-compiled load-compiled)
+(define (slib:load-compiled f) (load-compiled-file (string-append f ".go")))
 
 ;;; At this point SLIB:LOAD must be able to load SLIB files.
 
-(define slib:load slib:load-compiled)
+(define slib:load slib:load)
 
 (slib:load (in-vicinity (library-vicinity) "require"))

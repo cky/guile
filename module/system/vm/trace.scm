@@ -22,15 +22,13 @@
 (define-module (system vm trace)
   :use-syntax (system base syntax)
   :use-module (system vm core)
-  :use-module (system vm frame)
   :use-module (ice-9 format)
-  :use-module (ice-9 and-let-star)
   :export (vm-trace vm-trace-on vm-trace-off))
 
-(define (vm-trace vm bytes . opts)
+(define (vm-trace vm objcode . opts)
   (dynamic-wind
       (lambda () (apply vm-trace-on vm opts))
-      (lambda () (vm-load vm bytes))
+      (lambda () (vm (objcode->program objcode)))
       (lambda () (apply vm-trace-off vm opts))))
 
 (define (vm-trace-on vm . opts)

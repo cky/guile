@@ -36,6 +36,9 @@
 ;;; Translator
 ;;;
 
+(define scheme-primitives
+  '(not null? eq? eqv? equal? pair? list? cons car cdr set-car! set-cdr!))
+
 (define (trans e l x)
   (cond ((pair? x)
 	 (let ((y (macroexpand x)))
@@ -216,15 +219,17 @@
 	 (() (make:void))
 	 ((('else . body)) (trans:pair `(begin ,@body)))
 	 (((((? symbol? key) ...) body ...) rest ...)
-	  (if (memq 'compile key)
-	      (primitive-eval `(begin ,@(copy-tree body))))
 	  (if (memq 'load-toplevel key)
-	      (trans:pair `(begin ,@body))
+	      (begin
+		(primitive-eval `(begin ,@(copy-tree body)))
+		(trans:pair `(begin ,@body)))
 	      (loop rest)))
 	 (else (bad-syntax)))))
 
     (else
-     (make-<ghil-call> e l (trans:x head) (map trans:x tail)))))
+     (if (memq head scheme-primitives)
+	 (make-<ghil-inline> e l head (map trans:x tail))
+	 (make-<ghil-call> e l (trans:x head) (map trans:x tail))))))
 
 (define (trans-quasiquote e l x)
   (cond ((not (pair? x)) x)

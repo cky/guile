@@ -1,4 +1,4 @@
-#!@bindir@/guile					-*- scheme -*-
+#!@guile@ -s
 !#
 
 (use-modules (system base compile))

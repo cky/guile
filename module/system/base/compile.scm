@@ -20,29 +20,125 @@
 ;;; Code:
 
 (define-module (system base compile)
+  :use-module (oop goops)
+  :use-syntax (system base syntax)
   :use-module (system base language)
-  :use-module (ice-9 regex)
-  :export (compile-file object-file-name))
+  :use-module (system il compile)
+  :use-module (system vm core)
+  :use-module (system vm assemble)
+  :use-module (ice-9 regex))
+
+;;;
+;;; Compiler environment
+;;;
+
+(define-vm-class <cenv> ()
+  vm language module optimize)
+
+(define-public (make-cenv . rest)
+  (apply make <cenv> rest))
+
+(define-public (syntax-error loc msg exp)
+  (throw 'syntax-error loc msg exp))
+
+(define-public (call-with-compile-error-catch thunk)
+  (catch 'syntax-error
+    thunk
+    (lambda (key loc msg exp)
+      (format #t "~A:~A: ~A: ~A" (car loc) (cdr loc) msg exp))))
+
+
+;;;
+;;; Compiler
+;;;
 
 (define scheme (lookup-language 'scheme))
 
-(define (compile-file file)
-  (let ((comp (object-file-name file)))
-    (call-with-compile-error-catch
-     (lambda ()
-       (catch #t
+(define-public (compile-file file . opts)
+  (let ((comp (compiled-file-name file)))
+    (catch #t
+      (lambda ()
+	(call-with-compile-error-catch
 	 (lambda ()
 	   (call-with-output-file comp
 	     (lambda (port)
-	       (uniform-array-write (compile-file-in file scheme) port))))
-	 (lambda (key . args)
-	   (format #t "ERROR: In ~A:\n" file)
-	   (display "ERROR: ")
-	   (format #t (cadr args) (caddr args))
-	   (newline)
-	   (delete-file comp)))))
-    (format #t "Wrote ~A\n" comp)))
+	       (let* ((source (read-file-in file scheme))
+		      (objcode (apply compile-in source (current-module)
+				      scheme opts)))
+		 (uniform-array-write (objcode->string objcode) port))))
+	   (format #t "Wrote ~A\n" comp))))
+      (lambda (key . args)
+	(format #t "ERROR: In ~A:\n" file)
+	(display "ERROR: ")
+	(format #t (cadr args) (caddr args))
+	(newline)
+	(delete-file comp)))))
 
-(define (object-file-name file)
+(define-public (load-source-file file . opts)
+  (let ((source (read-file-in file scheme)))
+    (vm-load (the-vm) (apply compile-in source (current-module) scheme opts))))
+
+(define-public (load-file file . opts)
+  (let ((comp (compiled-file-name file)))
+    (if (file-exists? comp)
+	(vm-load (the-vm) (load-objcode comp))
+	(apply load-source-file file opts))))
+
+(define-public (compiled-file-name file)
   (let ((m (string-match "\\.[^.]*$" file)))
     (string-append (if m (match:prefix m) file) ".go")))
+
+
+;;;
+;;; Scheme compiler interface
+;;;
+
+(define-public (read-file-in file lang)
+  (call-with-input-file file lang.read-file))
+
+(define-public (compile-in x e lang . opts)
+  (catch 'result
+    (lambda ()
+      ;; expand
+      (set! x (lang.expander x e))
+      (if (memq :e opts) (throw 'result x))
+      ;; translate
+      (set! x (lang.translator x e))
+      (if (memq :t opts) (throw 'result x))
+      ;; compile
+      (set! x (apply compile x e opts))
+      (if (memq :c opts) (throw 'result x))
+      ;; assemble
+      (apply assemble x e opts))
+    (lambda (key val) val)))
+
+;;;
+;;; 
+;;;
+
+(define (compile-and-load file . opts)
+  (let ((comp (object-file-name file)))
+    (if (or (not (file-exists? comp))
+	    (> (stat:mtime (stat file)) (stat:mtime (stat comp))))
+	(compile-file file))
+    (load-compiled-file comp)))
+
+(define (load/compile file . opts)
+  (let* ((file (file-full-name file))
+	 (compiled (object-file-name file)))
+    (if (or (not (file-exists? compiled))
+	    (> (stat:mtime (stat file)) (stat:mtime (stat compiled))))
+	(apply compile-file file #f opts))
+    (if (memq #:b opts)
+	(apply vm-trace (the-vm) (load-objcode compiled) opts)
+	((the-vm) (load-objcode compiled)))))
+
+(define (file-full-name filename)
+  (let* ((port (current-load-port))
+	 (oldname (and port (port-filename port))))
+    (if (and oldname
+	     (> (string-length filename) 0)
+	     (not (char=? (string-ref filename 0) #\/))
+	     (not (string=? (dirname oldname) ".")))
+	(string-append (dirname oldname) "/" filename)
+	filename)))

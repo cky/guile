@@ -23,14 +23,11 @@
   :use-syntax (system base syntax)
   :use-module (system repl common)
   :use-module (system repl command)
-  :use-module (system vm frame)
   :use-module (ice-9 rdelim)
   :export (start-repl))
 
 (define (start-repl lang)
   (let ((repl (make-repl lang)))
-;;    (set-current-vmodule! repl.module)
-;;    (set-current-evaluator! repl.vm)
     (repl-welcome repl)
     (let prompt-loop ()
       (repl-prompt repl)
@@ -38,8 +35,7 @@
        (lambda ()
 	 (if (eq? (next-char #t) #\,)
 	     ;; meta command
-	     (begin (read-char)
-		    (meta-command repl (read-line)))
+	     (begin (read-char) (meta-command repl (read-line)))
 	     ;; evaluation
 	     (let rep-loop ()
 	       (repl-print repl (repl-eval repl (repl-read repl)))

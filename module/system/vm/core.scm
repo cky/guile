@@ -21,6 +21,7 @@
 
 (define-module (system vm core))
 
+
 ;;;
 ;;; Core procedures
 ;;;
@@ -32,60 +33,37 @@
 		       (hash-fold (lambda (k v d) (cons k d)) '()
 				  (module-obarray (current-module)))))
 
+
 ;;;
-;;; Dumpcode interface
+;;; Loader
 ;;;
 
-(export make-dumpcode dumpcode? dumpcode-version
-	dumpcode-nlocs dumpcode-nexts dumpcode-bytecode
-	load-dumpcode save-dumpcode)
+(define-public (vm-load vm objcode)
+  (vm (objcode->program objcode)))
 
-(define *dumpcode-cookie* (string-append "\0GBC-" (vm-version)))
+(set! load-compiled (lambda (file) (vm-load (the-vm) (load-objcode file))))
 
-(define (make-dumpcode nlocs nexts bytes)
-  (string-append *dumpcode-cookie*
-		 (integer->bytes nlocs)
-		 (integer->bytes nexts)
-		 bytes))
+
+;;;
+;;; Frame interface
+;;;
 
-(define (dumpcode? x)
-  (and (string? x)
-       (> (string-length x) 10)
-       (string=? (substring x 1 4) "GBC")))
+(define-public (frame->call frame)
+  (let* ((prog (frame-program frame))
+	 (nargs (car (program-arity prog))))
+    (do ((i 0 (1+ i))
+	 (l (vector->list (frame-variables frame)) (cdr l))
+	 (r '() (cons (car l) r)))
+	((= i nargs) (cons (program-name prog) (reverse! r))))))
 
-(define (dumpcode-version x)
-  (substring x 5 8))
+(define (program-name x)
+  (hash-fold (lambda (s v d) (if (eq? x (variable-ref v)) s d)) x
+	     (module-obarray (current-module))))
 
-(define (dumpcode-nlocs x)
-  (bytes->integer x 8))
-
-(define (dumpcode-nexts x)
-  (bytes->integer x 9))
-
-(define (dumpcode-bytecode x)
-  (substring x 10))
-
-(define (load-dumpcode file)
-  (let ((bytes (make-uniform-vector (stat:size (stat file)) #\a)))
-    (call-with-input-file file
-      (lambda (p) (uniform-vector-read! bytes p)))
-    bytes))
-
-(define (save-dumpcode dump file)
-  (call-with-output-file file
-    (lambda (out) (uniform-vector-write dump out))))
-
-(define (integer->bytes n)
-  (string (integer->char n)))
-
-(define (bytes->integer bytes start)
-  (char->integer (string-ref bytes start)))
-
+
 ;;;
 ;;; Statistics interface
 ;;;
 
-(export vms:time vms:clock)
-
-(define (vms:time stat) (vector-ref stat 0))
-(define (vms:clock stat) (vector-ref stat 1))
+(define-public (vms:time stat) (vector-ref stat 0))
+(define-public (vms:clock stat) (vector-ref stat 1))

@@ -12,4 +12,4 @@ AC_PROG_LN_S
 AM_PROG_LIBTOOL
 AC_C_LABELS_AS_VALUES
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile module/Makefile src/guilec)
+AC_OUTPUT(Makefile src/Makefile doc/Makefile module/Makefile)

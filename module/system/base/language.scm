@@ -22,12 +22,7 @@
 (define-module (system base language)
   :use-module (oop goops)
   :use-syntax (system base syntax)
-  :use-module (system il compile)
-  :use-module (system vm core)
-  :use-module (system vm assemble)
-  :use-module (ice-9 regex)
-  :export (define-language lookup-language read-in compile-in print-in
-	    compile-file-in))
+  :export (define-language lookup-language))
 
 
 ;;;
@@ -36,12 +31,10 @@
 
 (define-vm-class <language> ()
   name title version environment
-  (reader)
+  reader printer read-file
   (expander (lambda (x e) x))
   (translator (lambda (x e) x))
   (evaluator #f)
-  (printer)
-  (compiler)
   )
 
 (define-method (write (lang <language>) port)
@@ -57,43 +50,3 @@
     (if (module-bound? m name)
 	(module-ref m name)
 	(error "No such language:" name))))
-
-
-;;;
-;;; Evaluation interface
-;;;
-
-(define (read-in lang . port)
-  (lang.reader (if (null? port) (current-input-port) (car port))))
-
-(define (compile-in x e lang . opts)
-  (catch 'result
-    (lambda ()
-      ;; expand
-      (set! x (lang.expander x e))
-      (if (memq :e opts) (throw 'result x))
-      ;; translate
-      (set! x (lang.translator x e))
-      (if (memq :t opts) (throw 'result x))
-      ;; compile
-      (set! x (apply compile x e opts))
-      (if (memq :c opts) (throw 'result x))
-      ;; assemble
-      (apply assemble x e opts))
-    (lambda (key val) val)))
-
-(define (print-in val lang . port)
-  (lang.printer val (if (null? port) (current-output-port) (car port))))
-
-(define (compile-file-in file lang . opts)
-  (call-with-input-file file
-    (lambda (port) (apply lang.compiler port (current-module) opts))))
-
-(define-public (syntax-error loc msg exp)
-  (throw 'syntax-error loc msg exp))
-
-(define-public (call-with-compile-error-catch thunk)
-  (catch 'syntax-error
-    thunk
-    (lambda (key loc msg exp)
-      (format #t "~A:~A: ~A: ~A" (car loc) (cdr loc) msg exp))))

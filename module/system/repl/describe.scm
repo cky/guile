@@ -22,16 +22,15 @@
 (define-module (system repl describe)
   :use-module (oop goops)
   :use-module (ice-9 regex)
-  :use-module (ice-9 format))
+  :use-module (ice-9 format)
+  :use-module (ice-9 and-let-star)
+  :export (describe))
 
-(define *describe-format* #t)
-
-(define-public (describe symbol)
-  (assert symbol? symbol)
+(define-method (describe (symbol <symbol>))
   (format #t "`~s' is " symbol)
   (if (not (defined? symbol))
       (display "not defined in the current module.\n")
-      (describe-object (eval symbol))))
+      (describe-object (module-ref (current-module) symbol))))
 
 
 ;;;
@@ -302,13 +301,13 @@
 ;;; Instances
 ;;;
 
-(define-method display-type ((obj <object>))
+(define-method (display-type (obj <object>))
   (display-class <object> "an instance")
   (display " of class ")
   (display-class (class-of obj))
   (display ".\n"))
 
-(define-method display-value ((obj <object>))
+(define-method (display-value (obj <object>))
   (display-slot-list #f obj (class-slots (class-of obj))))
 
 
@@ -316,13 +315,13 @@
 ;;; Generic functions
 ;;;
 
-(define-method display-type ((obj <generic>))
+(define-method (display-type (obj <generic>))
   (display-class <generic> "a generic function")
   (display " of class ")
   (display-class (class-of obj))
   (display ".\n"))
 
-(define-method display-value ((obj <generic>))
+(define-method (display-value (obj <generic>))
   (display-list #f (generic-function-methods obj)))
 
 

@@ -7,9 +7,11 @@ Installation
 
   % configure
   % make install
-  % ln -s module/{system,language} /usr/local/share/guile/site/
+  % ln -s module/{guile,system,language} /usr/local/share/guile/
 
 3. Add the following lines to your ~/.guile:
+
+  (use-modules (system vm core)
 
   (cond ((string=? (car (command-line)) "guile-vm")
 	 (use-modules (system repl repl))
@@ -20,79 +22,63 @@ Example Session
 ---------------
 
   % guile-vm
-  Guile Scheme interpreter 0.4 on Guile 1.4.1
+  Guile Scheme interpreter 0.5 on Guile 1.4.1
   Copyright (C) 2001 Free Software Foundation, Inc.
 
   Enter `,help' for help.
-  gscheme@guile> (+ 1 2)
-  $1 = 3
-  gscheme@guile> ,c -c (+ 1 2)		;; Compile into GLIL
-  (@asm (0 0 0 0)
+  scheme@guile-user> (+ 1 2)
+  3
+  scheme@guile-user> ,c -c (+ 1 2)	;; Compile into GLIL
+  (@asm (0 1 0 0)
+    (module-ref #f +)
     (const 1)
     (const 2)
-    (add 2)
-    (return 0))
-  gscheme@guile> ,c (+ 1 2)		;; Compile into bootcode
-  Disassembly of bootcode:
-
-  Compiled for Guile VM 0.4
+    (tail-call 2))
+  scheme@guile-user> ,c (+ 1 2)		;; Compile into object code
+  Disassembly of #<objcode 403c5fb0>:
 
   nlocs = 0  nexts = 0
 
-     0    make-int8:1                     ;; 1
-     1    make-int8 2                     ;; 2
-     3    add
-     4    return
+     0    link "+"                        ;; (+ . ???)
+     3    variable-ref
+     4    make-int8:1                     ;; 1
+     5    make-int8 2                     ;; 2
+     7    tail-call 2
 
-  gscheme@guile> (define (add x y) (+ x y))
-  gscheme@guile> (add 1 2)
-  $2 = 3
-  gscheme@guile> ,x add			;; Disassemble
+  scheme@guile-user> (define (add x y) (+ x y))
+  scheme@guile-user> (add 1 2)
+  3
+  scheme@guile-user> ,x add		;; Disassemble
   Disassembly of #<program add>:
 
   nargs = 2  nrest = 0  nlocs = 0  nexts = 0
 
   Bytecode:
 
-     0    local-ref 0
-     2    local-ref 1
-     4    add
-     5    return
+     0    object-ref 0                    ;; (+ . #<primitive-procedure +>)
+     2    variable-ref
+     3    local-ref 0
+     5    local-ref 1
+     7    tail-call 2
 
-  gscheme@guile> 
+  Objects:
 
-Write Modules
--------------
+     0    (+ . #<primitive-procedure +>)
 
-  ---- fib.scm ---------------------------
-  (define-module (fib)
-    :use-module (system vm load)
-    :export (fib))
+  scheme@guile-user> 
 
-  (load/compile "fib.gs")
-  ----------------------------------------
+Compile Modules
+---------------
 
-  ---- fib.gs ----------------------------
-  (define (fib n)
-    (if (< n 2)
-	1
-	(+ (fib (- n 1)) (fib (- n 2)))))
-  ----------------------------------------
+Use `guilec' to compile your modules:
 
-Now, expressions in fib.gsm are automatically compiled and
-executed by the Guile VM:
+  % cat fib.scm
+  (define-module (fib) :export (fib))
+  (define (fib n) (if (< n 2) 1 (+ (fib (- n 1)) (fib (- n 2)))))
 
+  % guilec fib.scm
+  Wrote fib.go
   % guile
   guile> (use-modules (fib))
-  guile> (time (fib 30))
-  clock utime stime cutime cstime gctime
-   2.80  2.79  0.00   0.00   0.00   0.00
-  $1 = 1346269
-  guile> (define (fib n) (if (< n 2) 1 (+ (fib (- n 1)) (fib (- n 2)))))
-  guile> (time (fib 30))
-  clock utime stime cutime cstime gctime
-  26.05 25.01  0.17   0.00   0.00  14.33
-  $2 = 1346269
-
-If you don't want to compile your code (e.g., for debugging purpose),
-just change `load/compile' to `load'.
+  guile> (fib 8)
+  34
