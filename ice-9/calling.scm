@@ -133,15 +133,18 @@
 	(swap-fn-name (gensym 'swap))
 	(thunk-name (gensym 'thunk)))
     `(lambda (,thunk-name)
-	      (letrec ((,tmp-var-name #f)
-		       (,swap-fn-name
-			(lambda () ,@ (map (lambda (n sn) `(set! ,tmp-var-name ,n ,n ,sn ,sn ,tmp-var-name))
-					   vars saved-value-names)))
-		       ,@ (map (lambda (sn n) `(,sn ,n)) saved-value-names vars))
-		(dynamic-wind
-		 ,swap-fn-name
-		 ,thunk-name
-		 ,swap-fn-name)))))
+       (letrec ((,tmp-var-name #f)
+		(,swap-fn-name
+		 (lambda () ,@ (map (lambda (n sn) 
+				      `(begin (set! ,tmp-var-name ,n)
+					      (set! ,n ,sn)
+					      (set! ,sn ,tmp-var-name)))
+				    vars saved-value-names)))
+		,@ (map (lambda (sn n) `(,sn ,n)) saved-value-names vars))
+	 (dynamic-wind
+	  ,swap-fn-name
+	  ,thunk-name
+	  ,swap-fn-name)))))
 
 
 (define (getter-and-setter-syntax vars)
