@@ -46,7 +46,7 @@
 
 #include "libguile/__scm.h"
 
-SCM scm_make_guardian (SCM exclusive_p);
+SCM scm_make_guardian (SCM greedy_p);
 
 /* these are to be called from C: */
 void scm_guard (SCM guardian, SCM obj);
