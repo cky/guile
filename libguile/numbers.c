@@ -487,13 +487,16 @@ scm_lcm (n1, n2)
      SCM n2;
 {
   SCM d;
-#ifndef BIGDIG
+#ifndef SCM_BIGDIG
   SCM_GASSERT2 (SCM_INUMP (n1), g_lcm, n1, n2, SCM_ARG1, s_lcm);
-  SCM_GASSERT2 (SCM_INUMP (n2), g_lcm, n1, n2, SCM_ARGn, s_lcm);
+  SCM_GASSERT2 (SCM_INUMP (n2) || SCM_UNBNDP (n2),
+		g_lcm, n1, n2, SCM_ARGn, s_lcm);
 #else
-  SCM_GASSERT2 (SCM_INUMP (n1) || SCM_NIMP (n1) && SCM_BIGP (n1),
+  SCM_GASSERT2 (SCM_INUMP (n1) || (SCM_NIMP (n1) && SCM_BIGP (n1)),
 		g_lcm, n1, n2, SCM_ARG1, s_lcm);
-  SCM_GASSERT2 (SCM_INUMP (n2) || SCM_NIMP (n2) && SCM_BIGP (n2),
+  SCM_GASSERT2 (SCM_INUMP (n2)
+		|| SCM_UNBNDP (n2)
+		|| (SCM_NIMP (n2) && SCM_BIGP (n2)),
 		g_lcm, n1, n2, SCM_ARGn, s_lcm);
 #endif
   if (SCM_UNBNDP (n2))
