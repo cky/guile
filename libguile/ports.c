@@ -621,7 +621,7 @@ scm_input_port_p (x)
      SCM x;
 {
   if (SCM_IMP (x))
- return SCM_BOOL_F;
+    return SCM_BOOL_F;
   return SCM_INPORTP (x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
@@ -632,7 +632,9 @@ scm_output_port_p (x)
      SCM x;
 {
   if (SCM_IMP (x))
- return SCM_BOOL_F;
+    return SCM_BOOL_F;
+  if (SCM_PORT_WITH_PS_P (x))
+    x = SCM_PORT_WITH_PS_PORT (x);
   return SCM_OUTPORTP (x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
