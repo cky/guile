@@ -414,19 +414,6 @@
 
 ;;; Miscelleneous: length, append, concatenate, reverse, zip & count
 
-(define (length+ clist)
-  (if (null? clist)
-    0
-    (let lp ((hare (cdr clist)) (tortoise clist) (l 1))
-      (if (null? hare)
-	l
-	(let ((hare (cdr hare)))
-	  (if (null? hare)
-	    (+ l 1)
-	    (if (eq? hare tortoise)
-	      #f
-	      (lp (cdr hare) (cdr tortoise) (+ l 2)))))))))
-
 (define (append-reverse rev-head tail)
   (let lp ((l rev-head) (acc tail))
     (if (null? l)

@@ -370,6 +370,18 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
+            (SCM lst),
+	    "Return the length of @var{lst}, or @code{#f} if @var{lst} is\n"
+	    "circular.")
+#define FUNC_NAME s_scm_srfi1_length_plus
+{
+  long len = scm_ilength (lst);
+  return (len >= 0 ? SCM_MAKINUM (len) : SCM_BOOL_F);
+}
+#undef FUNC_NAME
+
+
 /* Typechecking for multi-argument MAP and FOR-EACH.
 
    Verify that each element of the vector ARGV, except for the first,

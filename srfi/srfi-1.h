@@ -36,6 +36,7 @@ SCM_SRFI1_API SCM scm_srfi1_delete (SCM x, SCM lst, SCM pred);
 SCM_SRFI1_API SCM scm_srfi1_delete_x (SCM x, SCM lst, SCM pred);
 SCM_SRFI1_API SCM scm_srfi1_delete_duplicates (SCM lst, SCM pred);
 SCM_SRFI1_API SCM scm_srfi1_delete_duplicates_x (SCM lst, SCM pred);
+SCM_SRFI1_API SCM scm_srfi1_length_plus (SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_map (SCM proc, SCM arg1, SCM args);
 SCM_SRFI1_API SCM scm_srfi1_for_each (SCM proc, SCM arg1, SCM args);
 SCM_SRFI1_API SCM scm_srfi1_member (SCM obj, SCM ls, SCM pred);
