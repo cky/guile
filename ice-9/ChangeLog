@@ -1,6 +1,7 @@
 2001-04-05  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* Makefile.am (ice9_sources): Add history.scm.
+	* history.scm: Create the module (value-history) at the beginning.
 
 2001-03-29  Marius Vollmer  <mvo@zagadka.ping.de>
 

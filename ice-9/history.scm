@@ -20,6 +20,8 @@
 
 (define-module (ice-9 history))
 
+(process-define-module '((value-history)))
+
 (define (use-value-history x)
   (module-use! (current-module)
 	       (resolve-module '(value-history))))
