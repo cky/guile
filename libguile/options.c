@@ -201,8 +201,8 @@ scm_options (SCM arg, scm_option options[], int n, const char *s)
 	  // scm_option doesn't know if its a long or an SCM
 	  if (options[i].type == SCM_OPTION_SCM)
 	    SCM_SETCDR (protected_objects,
-			scm_cons (flags[i],
-				  scm_delq1_x (options[i].val,
+			scm_cons (SCM_ASSCM(flags[i]),
+				  scm_delq1_x (SCM_ASSCM(options[i].val),
 					       SCM_CDR (protected_objects))));
 	  options[i].val = flags[i];
 	}
@@ -224,7 +224,7 @@ scm_init_opts (SCM (*func) (SCM), scm_option options[], int n)
 						      (options[i].doc));
       if (options[i].type == SCM_OPTION_SCM)
 	SCM_SETCDR (protected_objects,
-		    scm_cons (options[i].val, SCM_CDR (protected_objects)));
+		    scm_cons (SCM_ASSCM(options[i].val), SCM_CDR (protected_objects)));
     }
   func (SCM_UNDEFINED);
 }

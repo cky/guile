@@ -755,7 +755,7 @@ gc_mark_nimp:
 	(ptr) break;
       SCM_SETGC8MARK (ptr);
       if (SCM_VELTS (ptr))
-	scm_mark_locations (SCM_VELTS (ptr),
+	scm_mark_locations (SCM_VELTS_AS_STACKITEMS (ptr),
 			    (scm_sizet)
 			    (SCM_LENGTH (ptr) +
 			     (sizeof (SCM_STACKITEM) + -1 +
@@ -1809,12 +1809,23 @@ scm_remember (SCM *ptr)
 
 
 /*
-  What the heck is this? --hwn
- */ 
+  These crazy functions prevent garbage collection
+  of arguments after the first argument by
+  ensuring they remain live throughout the
+  function because they are used in the last
+  line of the code block.
+  It'd be better to have a nice compiler hint to
+  aid the conservative stack-scanning GC. --03/09/00 gjb */
 SCM
 scm_return_first (SCM elt, ...)
 {
   return elt;
+}
+
+int
+scm_return_first_int (int i, ...)
+{
+  return i;
 }
 
 

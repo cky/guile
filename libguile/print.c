@@ -123,7 +123,7 @@ char *scm_isymnames[] =
 };
 
 scm_option scm_print_opts[] = {
-  { SCM_OPTION_SCM, "closure-hook", SCM_BOOL_F,
+  { SCM_OPTION_SCM, "closure-hook", SCM_ASWORD(SCM_BOOL_F),
     "Hook for printing closures." },
   { SCM_OPTION_BOOLEAN, "source", 0,
     "Print closures with source." }

@@ -107,6 +107,7 @@ extern void scm_done_malloc (long size);
 extern void scm_must_free (void *obj);
 extern void scm_remember (SCM * ptr);
 extern SCM scm_return_first (SCM elt, ...);
+extern int scm_return_first_int (int x, ...);
 extern SCM scm_permanent_object (SCM obj);
 extern SCM scm_protect_object (SCM obj);
 extern SCM scm_unprotect_object (SCM obj);

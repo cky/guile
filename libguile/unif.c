@@ -1920,6 +1920,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 {
   register long i, vlen, count = 0;
   register unsigned long k;
+  int fObj = 0;
   
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   SCM_ASRTGO (SCM_NIMP (kv), badarg2);
@@ -1962,9 +1963,9 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       if (0 == SCM_LENGTH (v))
 	return SCM_INUM0;
       SCM_ASRTGO (SCM_BOOL_T == obj || SCM_BOOL_F == obj, badarg3);
-      obj = (SCM_BOOL_T == obj); /* ugh. */
+      fObj = (SCM_BOOL_T == obj);
       i = (SCM_LENGTH (v) - 1) / SCM_LONG_BIT;
-      k = SCM_ASWORD (SCM_VELTS (kv)[i]) & (obj ? SCM_ASWORD (SCM_VELTS (v)[i]) : ~ SCM_ASWORD (SCM_VELTS (v)[i]));
+      k = SCM_ASWORD (SCM_VELTS (kv)[i]) & (fObj ? SCM_ASWORD (SCM_VELTS (v)[i]) : ~ SCM_ASWORD (SCM_VELTS (v)[i]));
       k <<= SCM_LONG_BIT - 1 - ((SCM_LENGTH (v) - 1) % SCM_LONG_BIT);
       while (1)
 	{
@@ -1974,7 +1975,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	    return SCM_MAKINUM (count);
 
          /* urg. repetitive (see above.) */
-	  k = SCM_ASWORD (SCM_VELTS (kv)[i]) & (obj ? SCM_ASWORD(SCM_VELTS (v)[i]) : ~SCM_ASWORD (SCM_VELTS (v)[i]));
+	  k = SCM_ASWORD (SCM_VELTS (kv)[i]) & (fObj ? SCM_ASWORD(SCM_VELTS (v)[i]) : ~SCM_ASWORD (SCM_VELTS (v)[i]));
 	}
     }
   return SCM_MAKINUM (count);
