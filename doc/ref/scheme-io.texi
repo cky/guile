@@ -151,9 +151,18 @@ Return the print state of the port @var{port}. If @var{port}
 has no associated print state, @code{#f} is returned.
 @end deffn
 
+@rnindex display
+@deffn primitive display obj [port]
+Send a representation of @var{obj} to @var{current-output-port}.
+Optional second arg @var{port} specifies an alternative output port.
+The representation is similar to that produced by @code{write} (REFFIXME),
+the differences being strings are not quoted (and their characters are not
+escaped), and characters are rendered as if with @code{write-char}.
+@end deffn
+
 @rnindex newline
 @deffn primitive newline [port]
-Send a newline to @var{port}.
+Send a newline to @var{port} (default @var{current-output-port} if omitted).
 @end deffn
 
 @deffn primitive port-with-print-state port pstate
