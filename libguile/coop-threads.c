@@ -46,6 +46,8 @@
 
 #include "validate.h"
 #include "coop-threads.h"
+#include "root.h"
+#include "strings.h"
 
 /* A counter of the current number of threads */
 size_t scm_thread_count = 0;
