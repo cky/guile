@@ -977,7 +977,7 @@ not supplied, the current input port is used.")
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT(1,port);
+    SCM_VALIDATE_OPINPORT(2,port);
 
   c = SCM_ICHR (cobj);
 
@@ -998,7 +998,7 @@ unread characters will be read again in last-in first-out order.  If
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT(1,port);
+    SCM_VALIDATE_OPINPORT(2,port);
 
   scm_ungets (SCM_ROUCHARS (str), SCM_LENGTH (str), port);
   

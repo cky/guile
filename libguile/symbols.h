@@ -94,7 +94,7 @@ extern int scm_symhash_dim;
 #define SCM_ROCHARS(x) ((char *)((SCM_TYP7(x) == scm_tc7_substring) \
 			? SCM_INUM (SCM_CADR (x)) + SCM_CHARS (SCM_CDDR (x))  \
 			: SCM_CHARS (x)))
-#define SCM_ROUCHARS(x) ((char *) ((SCM_TYP7(x) == scm_tc7_substring) \
+#define SCM_ROUCHARS(x) ((unsigned char *) ((SCM_TYP7(x) == scm_tc7_substring) \
 			 ? SCM_INUM (SCM_CADR (x)) + SCM_UCHARS (SCM_CDDR (x))\
 			 : SCM_UCHARS (x)))
 #define SCM_ROLENGTH(x) SCM_LENGTH (x)

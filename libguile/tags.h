@@ -272,11 +272,11 @@ typedef long SCM;
  * can be expected to occur.
  */
 #define SCM_ECONSP(x) (SCM_CONSP (x) \
-		       || (SCM_TYP3(x) == 1 \
-                           && SCM_CDR (SCM_CAR (x) - 1) != 0))
+		       || SCM_NIMP(x) && ((SCM_TYP3(x) == 1 \
+                           && SCM_CDR (SCM_CAR (x) - 1) != 0)))
 #define SCM_NECONSP(x) (SCM_NCONSP(x) \
 			&& (SCM_TYP3(x) != 1 \
-			    || SCM_CDR (SCM_CAR (x) - 1) == 0))
+			    || (SCM_NIMP(x) && SCM_CDR (SCM_CAR (x) - 1) == 0)))
 
 
 
