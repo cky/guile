@@ -8,7 +8,7 @@ NUM2FLOAT (SCM num, unsigned long int pos, const char *s_caller)
   else if (SCM_BIGP (num))
     { /* bignum */
       FTYPE res = mpz_get_d (SCM_I_BIG_MPZ (num));
-      if (isfinite (res))
+      if (! xisinf (res))
 	return res;
       else
 	scm_out_of_range (s_caller, num);
