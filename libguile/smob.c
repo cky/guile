@@ -45,6 +45,8 @@
 
 
 #include <stdio.h>
+#include <errno.h>
+
 #include "libguile/_scm.h"
 
 #include "libguile/objects.h"

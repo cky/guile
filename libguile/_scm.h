@@ -2,7 +2,7 @@
 
 #ifndef _SCMH
 #define _SCMH
-/*	Copyright (C) 1995,1996, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,11 +75,6 @@
 				   switching at async ticks.  */
 #endif
 #include "libguile/snarf.h"	/* Everyone snarfs. */
-
-/* On VMS, GNU C's errno.h contains a special hack to get link attributes
- * for errno correct for linking to the C RTL.
- */
-#include <errno.h>
 
 /* SCM_SYSCALL retries system calls that have been interrupted (EINTR).
    However this can be avoided if the operating system can restart

@@ -1,3 +1,16 @@
+2001-03-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* _scm.h: Removed #include <errno.h>.
+
+	* error.c, net_db.c, putenv.c, stime.c: Removed declaration of
+	errno variable (can be a macro on some systems, for example when
+	using linux libc with threads).
+
+	* error.c, filesys.c, gc.c, ioext.c, iselect.c, net_db.c, ports.c,
+	posix.c, print.c, putenv.c, scmsigs.c, script.c, simpos.c, smob.c,
+	socket.c, srcprop.c, stime.c, strop.c, unif.c, vports.c: Added
+	#include <errno.h> in these 20 out of 100 files.
+	
 2001-03-10  Gary Houston  <ghouston@arglist.com>
 
 	* socket.c: add a definition of SUN_LEN (from glibc) for when it's

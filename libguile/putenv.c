@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1991, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,9 +24,6 @@
 
 #include <sys/types.h>
 #include <errno.h>
-#ifndef errno
-extern int errno;
-#endif
 
 /* Don't include stdlib.h for non-GNU C libraries because some of them
    contain conflicting prototypes for getopt.

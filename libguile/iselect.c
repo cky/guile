@@ -40,6 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 #include <stdio.h>
+#include <errno.h>
 #include <limits.h>
 #include <string.h>
 
