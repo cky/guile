@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -408,7 +408,8 @@ bignum_in_ipv6_range_p (SCM address)
    else\
    {\
       SCM_VALIDATE_BIGINT (which_arg, address);\
-      SCM_ASSERT_RANGE (which_arg, address, bignum_in_ipv6_range_p);\
+      SCM_ASSERT_RANGE (which_arg, address,    \
+                        bignum_in_ipv6_range_p (address));      \
    }
 
 #ifdef HAVE_INET_PTON
