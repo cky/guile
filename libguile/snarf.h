@@ -67,7 +67,8 @@
  *     SCM_SNARF_INIT (NAME = foo ())
  *
  * The SCM_SNARF_INIT text goes into the corresponding .x file
- * up through the first occurrence of SCM__D on that line, if any.
+ * up through the first occurrence of SCM_SNARF_DOC_START on that
+ * line, if any.
  */
 
 #ifndef SCM_MAGIC_SNARFER
@@ -76,7 +77,7 @@
 #  define SCM_SNARF_DOCS(X)
 #else
 #  define SCM_SNARF_HERE(X)
-#  define SCM_SNARF_INIT(X) SCM__I X
+#  define SCM_SNARF_INIT(X) SCM_SNARF_INIT_START X
 #  define SCM_SNARF_DOCS(X) X
 #endif
 
@@ -90,7 +91,8 @@ scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
                 (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
 )\
 SCM_SNARF_DOCS(\
-SCM__DP PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | SCM__S DOCSTRING SCM__E \
+SCM_SNARF_DOC_STARTP PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | \
+ SCM_SNARF_DOCSTRING_START DOCSTRING SCM_SNARF_DOCSTRING_END \
 )
 
 #define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
@@ -100,7 +102,8 @@ SCM FNAME ARGLIST\
 )\
 SCM_SNARF_INIT(scm_make_subr (s_ ## FNAME, TYPE, FNAME); ) \
 SCM_SNARF_DOCS(\
-SCM__D1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | SCM__S DOCSTRING SCM__E \
+SCM_SNARF_DOC_START1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | \
+ SCM_SNARF_DOCSTRING_START DOCSTRING SCM_SNARF_DOCSTRING_END \
 )
 
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
@@ -113,7 +116,8 @@ SCM_SNARF_HERE(static const char RANAME[]=STR) \
 SCM_SNARF_INIT(scm_make_gsubr (RANAME, REQ, OPT, VAR, \
                                (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN);) \
 SCM_SNARF_DOCS(\
-SCM__DR STR | REQ | OPT | VAR | __FILE__:__LINE__ | SCM__S CFN SCM__E \
+SCM_SNARF_DOC_STARTR STR | REQ | OPT | VAR | __FILE__:__LINE__ | \
+ SCM_SNARF_DOCSTRING_START CFN SCM_SNARF_DOCSTRING_END \
 )
 
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \

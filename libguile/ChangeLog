@@ -1,3 +1,9 @@
+2000-06-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* guile-snarf.awk.in, guile-snarf.in, snarf.h:  Rename SCM__I to
+	SCM_SNARF_INIT_START, SCM__D to SCM_SNARF_DOC_START, SCM__S to
+	SCM_SNARF_DOCSTRING_START and SCM__E to SCM_SNARF_DOCSTRING_END.
+
 2000-06-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c, eval.h (scm_top_level_lookup_closure_var): Added.

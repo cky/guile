@@ -9,16 +9,16 @@ BEGIN { FS="|";
         printf "" > dot_doc_file;
 }
 
-/^[ \t]*SCM__I/ { copy = $0; 
-               gsub(/[ \t]*SCM__I/, "", copy); 
-               gsub(/SCM__D.*$/, "", copy); 
+/^[ \t]*SCM_SNARF_INIT_START/ { copy = $0; 
+               gsub(/[ \t]*SCM_SNARF_INIT_START/, "", copy); 
+               gsub(/SCM_SNARF_DOC_START.*$/, "", copy); 
                print copy; } 
 
-/SCM__D/,/SCM__S/ { copy = $0; 
-                 if (match(copy,/SCM__DR/)) { registering = 1; } 
+/SCM_SNARF_DOC_START/,/SCM_SNARF_DOCSTRING_START/ { copy = $0; 
+                 if (match(copy,/SCM_SNARF_DOC_STARTR/)) { registering = 1; } 
                  else {registering = 0; } 
-                 gsub(/.*SCM__D./,"", copy); 
-                 gsub(/SCM__S.*/,"",copy); 
+                 gsub(/.*SCM_SNARF_DOC_START./,"", copy); 
+                 gsub(/SCM_SNARF_DOCSTRING_START.*/,"",copy); 
                  gsub(/[ \t]+/," ", copy); 
 		 sub(/^[ \t]*/,"(", copy);
                  gsub(/\"/,"",copy); 
@@ -51,10 +51,10 @@ BEGIN { FS="|";
 		   { print location ":*** `" copy "' is improperly registered as having " numactuals " arguments" > std_err; }
 		 print "\n" copy (registering?")":"") > dot_doc_file ; }
 
-/SCM__S/,/SCM__E.*$/ { copy = $0; 
-                      gsub(/.*SCM__S/,"",copy); 
+/SCM_SNARF_DOCSTRING_START/,/SCM_SNARF_DOCSTRING_END.*$/ { copy = $0; 
+                      gsub(/.*SCM_SNARF_DOCSTRING_START/,"",copy); 
 		      sub(/^[ \t]*"?/,"", copy);
-		      sub(/\"?[ \t]*SCM__E.*$/,"", copy);
+		      sub(/\"?[ \t]*SCM_SNARF_DOCSTRING_END.*$/,"", copy);
                       gsub(/\\n\\n"?/,"\n",copy);
                       gsub(/\\n"?[ \t]*$/,"",copy);
                       gsub(/\\\"[ \t]*$/,"\"",copy);
@@ -62,7 +62,7 @@ BEGIN { FS="|";
                       if (copy != "") { print copy > dot_doc_file }
                 }
 
-/SCM__E[ \t]/ { print "[" location "]" >> dot_doc_file; }
+/SCM_SNARF_DOCSTRING_END[ \t]/ { print "[" location "]" >> dot_doc_file; }
 
 /\*&\*&\*&\*SCM_ARG_BETTER_BE_IN_POSITION/ { copy = $0;
          sub(/.*\*&\*&\*&\*SCM_ARG_BETTER_BE_IN_POSITION\([ \t]*/,"",copy);
