@@ -67,10 +67,8 @@
  * certain class or its subclasses when traversal of the inheritance
  * graph would be too costly.
  */
-#define SCM_CLASS_FLAGS(class)\
-        SCM_UNPACK (SCM_STRUCT_DATA (class)[scm_struct_i_flags])
-#define SCM_OBJ_CLASS_FLAGS(obj)\
-	(SCM_STRUCT_VTABLE_DATA (obj) [scm_struct_i_flags])
+#define SCM_CLASS_FLAGS(class) (SCM_STRUCT_DATA (class) [scm_struct_i_flags])
+#define SCM_OBJ_CLASS_FLAGS(obj) (SCM_STRUCT_VTABLE_DATA (obj) [scm_struct_i_flags])
 #define SCM_SET_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) |= (f))
 #define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
 #define SCM_CLASSF_MASK SCM_STRUCTF_MASK
@@ -92,8 +90,10 @@
 #define SCM_I_ENTITYP(obj)\
 	((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_ENTITY) != 0)
 #define SCM_ENTITY_PROCEDURE(obj) \
-        (SCM_STRUCT_DATA (obj)[scm_struct_i_procedure])
-#define SCM_ENTITY_SETTER(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_setter])
+        (SCM_PACK (SCM_STRUCT_DATA (obj) [scm_struct_i_procedure]))
+#define SCM_SET_ENTITY_PROCEDURE(obj,v) \
+        (SCM_STRUCT_DATA (obj) [scm_struct_i_procedure] = SCM_UNPACK (v))
+#define SCM_ENTITY_SETTER(obj) (SCM_PACK (SCM_STRUCT_DATA (obj)[scm_struct_i_setter]))
 
 #define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
 #define SCM_SET_CLASS_INSTANCE_SIZE(c, s) \

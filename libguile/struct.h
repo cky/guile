@@ -78,7 +78,7 @@ typedef scm_sizet (*scm_struct_free_t) (SCM *vtable, SCM *data);
 					 (no hidden words) */
 
 #define SCM_STRUCTP(X)  		(SCM_NIMP(X) && (SCM_TYP3(X) == scm_tc3_cons_gloc))
-#define SCM_STRUCT_DATA(X) 		((SCM *) SCM_UNPACK (SCM_CDR (X)))
+#define SCM_STRUCT_DATA(X) 		((scm_bits_t *) SCM_CELL_WORD_1 (X))
 #define SCM_STRUCT_VTABLE_DATA(X)       ((scm_bits_t *) (SCM_CELL_WORD_0 (X) - 1))
 
 #define SCM_STRUCT_LAYOUT(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout]))

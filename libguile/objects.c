@@ -276,8 +276,8 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       if (SCM_NIMP (ls))
 	do
 	  {
-	    i += SCM_UNPACK (SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
-		  [scm_si_hashsets + hashset]);
+	    i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
+		 [scm_si_hashsets + hashset];
 	    ls = SCM_CDR (ls);
 	  }
 	while (--j && SCM_NIMP (ls));
@@ -390,7 +390,7 @@ SCM_DEFINE (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0,
               FUNC_NAME);
   SCM_VALIDATE_PROC (2,proc);
   if (SCM_I_ENTITYP (obj))
-    SCM_ENTITY_PROCEDURE (obj) = proc;
+    SCM_SET_ENTITY_PROCEDURE (obj, proc);
   else
     SCM_OPERATOR_CLASS (obj)->procedure = proc;
   return SCM_UNSPECIFIED;
@@ -455,7 +455,7 @@ SCM_DEFINE (scm_make_subclass_object, "make-subclass-object", 2, 0, 0,
   SCM pl;
   SCM_VALIDATE_STRUCT (1,class);
   SCM_VALIDATE_STRING (2,layout);
-  pl = SCM_STRUCT_DATA (class)[scm_vtable_index_layout];
+  pl = SCM_PACK (SCM_STRUCT_DATA (class) [scm_vtable_index_layout]);
   /* Convert symbol->string */
   pl = scm_makfromstr (SCM_CHARS (pl), (scm_sizet) SCM_LENGTH (pl), 0);
   return scm_i_make_class_object (SCM_STRUCT_VTABLE (class),

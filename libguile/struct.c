@@ -151,19 +151,13 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 void
 scm_struct_init (SCM handle, int tail_elts, SCM inits)
 {
-  SCM layout;
-  SCM * data;
-  unsigned char * fields_desc;
+  SCM layout = SCM_STRUCT_LAYOUT (handle);
+  unsigned char * fields_desc = (unsigned char *) SCM_CHARS (layout) - 2;
   unsigned char prot = 0;
-  int n_fields;
-  SCM * mem;
+  int n_fields = SCM_LENGTH (layout) / 2;
+  scm_bits_t * mem = SCM_STRUCT_DATA (handle);
   int tailp = 0;
-  
-  layout = SCM_STRUCT_LAYOUT (handle);
-  data = SCM_STRUCT_DATA (handle);
-  fields_desc = (unsigned char *) SCM_CHARS (layout) - 2;
-  n_fields = SCM_LENGTH (layout) / 2;
-  mem = SCM_STRUCT_DATA (handle);
+
   while (n_fields)
     {
       if (!tailp)
@@ -174,7 +168,7 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 	    {
 	      tailp = 1;
 	      prot = prot == 'R' ? 'r' : prot == 'W' ? 'w' : 'o';
-	      *mem++ = SCM_PACK (tail_elts);
+	      *mem++ = tail_elts;
 	      n_fields += tail_elts - 1;
 	      if (n_fields == 0)
 		break;
@@ -200,19 +194,19 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 	    *mem = 0;
 	  else
 	    {
-	      *mem = SCM_PACK (scm_num2ulong (SCM_CAR (inits),
-					       SCM_ARGn,
-					       "scm_struct_init"));
+	      *mem = scm_num2ulong (SCM_CAR (inits),
+				    SCM_ARGn,
+				    "scm_struct_init");
 	      inits = SCM_CDR (inits);
 	    }
 	  break;
 
 	case 'p':
 	  if ((prot != 'r' && prot != 'w') || SCM_NULLP (inits))
-	    *mem = SCM_BOOL_F;
+	    *mem = SCM_UNPACK (SCM_BOOL_F);
 	  else
 	    {
-	      *mem = SCM_CAR (inits);
+	      *mem = SCM_UNPACK (SCM_CAR (inits));
 	      inits = SCM_CDR (inits);
 	    }
 	      
@@ -232,7 +226,7 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 #endif
 
 	case 's':
-	  *mem = handle;
+	  *mem = SCM_UNPACK (handle);
 	  break;
 	}
 
@@ -257,10 +251,7 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 #define FUNC_NAME s_scm_struct_vtable_p
 {
   SCM layout;
-  SCM * mem;
-
-  if (SCM_IMP (x))
-    return SCM_BOOL_F;
+  scm_bits_t * mem;
 
   if (!SCM_STRUCTP (x))
     return SCM_BOOL_F;
@@ -279,10 +270,7 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
   if (mem[1] != 0)
     return SCM_BOOL_F;
 
-  if (SCM_IMP (mem[0]))
-    return SCM_BOOL_F;
-
-  return SCM_BOOL(SCM_SYMBOLP (mem[0]));
+  return SCM_BOOL (SCM_SYMBOLP (SCM_PACK (mem[0])));
 }
 #undef FUNC_NAME
 
@@ -392,12 +380,12 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   SCM_VALIDATE_VTABLE (1,vtable);
   SCM_VALIDATE_INUM (2,tail_array_size);
 
-  layout = SCM_STRUCT_DATA (vtable)[scm_vtable_index_layout];
+  layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
   basic_size = SCM_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  if (SCM_UNPACK (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags]) & SCM_STRUCTF_ENTITY)
+  if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
       data = scm_alloc_struct (basic_size + tail_elts,
 			       scm_struct_entity_n_extra_words,
@@ -520,7 +508,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 #define FUNC_NAME s_scm_struct_ref
 {
   SCM answer = SCM_UNDEFINED;
-  SCM * data;
+  scm_bits_t * data;
   SCM layout;
   int p;
   scm_bits_t n_fields;
@@ -536,7 +524,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *) SCM_CHARS (layout);
-  n_fields = SCM_UNPACK (data[scm_struct_i_n_words]);
+  n_fields = data[scm_struct_i_n_words];
   
   SCM_ASSERT_RANGE(1,pos, p < n_fields);
 
@@ -564,7 +552,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   switch (field_type)
     {
     case 'u':
-      answer = scm_ulong2num (SCM_UNPACK (data[p]));
+      answer = scm_ulong2num (data[p]);
       break;
 
 #if 0
@@ -579,7 +567,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 
     case 's':
     case 'p':
-      answer = data[p];
+      answer = SCM_PACK (data[p]);
       break;
 
 
@@ -598,7 +586,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_struct_set_x
 {
-  SCM * data;
+  scm_bits_t * data;
   SCM layout;
   int p;
   int n_fields;
@@ -613,7 +601,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = SCM_UNPACK (data[scm_struct_i_n_words]);
+  n_fields = data[scm_struct_i_n_words];
 
   SCM_ASSERT_RANGE (1,pos, p < n_fields);
 
@@ -636,7 +624,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   switch (field_type)
     {
     case 'u':
-      data[p] = SCM_PACK (SCM_NUM2ULONG (3, val));
+      data[p] = SCM_NUM2ULONG (3, val);
       break;
 
 #if 0
@@ -650,7 +638,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 #endif
 
     case 'p':
-      data[p] = val;
+      data[p] = SCM_UNPACK (val);
       break;
 
     case 's':

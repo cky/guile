@@ -1,5 +1,22 @@
 2000-04-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (SCM_CEVAL), objects.c (scm_mcache_lookup_cmethod,
+	scm_make_subclass_object), objects.h (SCM_CLASS_FLAGS,
+	SCM_ENTITY_PROCEDURE, SCM_ENTITY_SETTER), struct.c
+	(scm_struct_init, scm_struct_vtable_p, scm_make_struct,
+	scm_struct_ref, scm_struct_set_x), struct.h (SCM_STRUCT_DATA):
+	The struct data is now an array of scm_bits_t variables.
+
+	* objects.h (SCM_SET_ENTITY_PROCEDURE):  New macro.
+
+	* objects.c (scm_set_object_procedure_x):  Use it.
+
+	* struct.c (scm_struct_init):  Unused variable 'data' removed.
+
+	(scm_struct_vtable_p):  Redundant SCM_IMP tests removed.
+
+2000-04-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* objects.h (SCM_OBJ_CLASS_FLAGS, SCM_OBJ_CLASS_REDEF), struct.h
 	(SCM_STRUCT_VTABLE_DATA, SCM_STRUCT_LAYOUT, SCM_STRUCT_VTABLE,
 	SCM_STRUCT_PRINTER):  The struct vtable data is now an array of

@@ -2299,8 +2299,8 @@ dispatch:
 		if (SCM_NIMP (t.arg1))
 		  do
 		    {
-		      i += SCM_UNPACK ((SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1))))
-				       [scm_si_hashsets + hashset]);
+		      i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1)))
+			   [scm_si_hashsets + hashset];
 		      t.arg1 = SCM_CDR (t.arg1);
 		    }
 		  while (--j && SCM_NIMP (t.arg1));
@@ -2344,15 +2344,15 @@ dispatch:
 	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
 	  x = SCM_CDR (x);
 	  t.arg1 = EVALCAR (x, env);
-	  RETURN (SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CADR (x))])
+	  RETURN (SCM_PACK (SCM_STRUCT_DATA (t.arg1) [SCM_INUM (SCM_CADR (x))]))
 	  
 	case (SCM_ISYMNUM (SCM_IM_SLOT_SET_X)):
 	  x = SCM_CDR (x);
 	  t.arg1 = EVALCAR (x, env);
 	  x = SCM_CDR (x);
 	  proc = SCM_CDR (x);
-	  SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CAR (x))]
-	    = EVALCAR (proc, env);
+	  SCM_STRUCT_DATA (t.arg1) [SCM_INUM (SCM_CAR (x))]
+	    = SCM_UNPACK (EVALCAR (proc, env));
 	  RETURN (SCM_UNSPECIFIED)
 	  
 	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
