@@ -315,7 +315,7 @@ scm_localtime (SCM time, SCM zone)
       strcpy (zname, ptr);
 # else
       scm_misc_error (s_localtime, "Not fully implemented on this platform",
-		      SCM_EOF);
+		      SCM_EOL);
 # endif
 #endif
     }
@@ -426,7 +426,7 @@ scm_mktime (SCM sbd_time, SCM zone)
       strcpy (zname, ptr);
 # else
       scm_misc_error (s_localtime, "Not fully implemented on this platform",
-		      SCM_EOF);
+		      SCM_EOL);
 # endif
 #endif
     }
