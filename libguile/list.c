@@ -93,6 +93,25 @@ scm_list(objs)
 }
 
 
+SCM_PROC (s_list_star, "list*", 1, 0, 1, scm_list_star);
+
+SCM
+scm_list_star (SCM arg, SCM rest)
+{
+  if (SCM_NIMP (rest))
+    {
+      SCM prev = arg = scm_cons (arg, rest);
+      while (SCM_NIMP (SCM_CDR (rest)))
+	{
+	  prev = rest;
+	  rest = SCM_CDR (rest);
+	}
+      SCM_SETCDR (prev, SCM_CAR (rest));
+    }
+  return arg;
+}
+
+
 
 
 /* general questions about lists --- null?, list?, length, etc.  */
