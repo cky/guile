@@ -107,7 +107,7 @@ SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0,
  */
 #define PUSH_REF(pstate, obj) \
 do { \
-  pstate->ref_stack[pstate->top++] = (obj); \
+  PSTATE_STACK_SET (pstate, pstate->top++, obj); \
   if (pstate->top == pstate->ceiling) \
     grow_ref_stack (pstate); \
 } while(0)
@@ -116,7 +116,7 @@ do { \
 do { \
   register unsigned long i; \
   for (i = 0; i < pstate->top; ++i) \
-    if (scm_is_eq (pstate->ref_stack[i], (obj))) \
+    if (scm_is_eq (PSTATE_STACK_REF (pstate, i), (obj))) \
       goto label; \
   if (pstate->fancyp) \
     { \
@@ -162,7 +162,6 @@ make_print_state (void)
     = scm_make_struct (scm_print_state_vtable, SCM_INUM0, SCM_EOL);
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
   pstate->ref_vect = scm_c_make_vector (PSTATE_SIZE, SCM_UNDEFINED);
-  pstate->ref_stack = SCM_SIMPLE_VECTOR_LOC (pstate->ref_vect, 0);
   pstate->ceiling = SCM_SIMPLE_VECTOR_LENGTH (pstate->ref_vect);
   pstate->highlight_objects = SCM_EOL;
   return print_state;
@@ -234,10 +233,11 @@ grow_ref_stack (scm_print_state *pstate)
     SCM_SIMPLE_VECTOR_SET (new_vect, i, SCM_SIMPLE_VECTOR_REF (old_vect, i));
 
   pstate->ref_vect = new_vect;
-  pstate->ref_stack = SCM_SIMPLE_VECTOR_LOC (new_vect, 0);
   pstate->ceiling = new_size;
 }
 
+#define PSTATE_STACK_REF(p,i)   SCM_SIMPLE_VECTOR_REF((p)->ref_vect, (i))
+#define PSTATE_STACK_SET(p,i,v) SCM_SIMPLE_VECTOR_SET((p)->ref_vect, (i), (v))
 
 static void
 print_circref (SCM port, scm_print_state *pstate, SCM ref)
@@ -245,20 +245,20 @@ print_circref (SCM port, scm_print_state *pstate, SCM ref)
   register long i;
   long self = pstate->top - 1;
   i = pstate->top - 1;
-  if (scm_is_pair (pstate->ref_stack[i]))
+  if (scm_is_pair (PSTATE_STACK_REF (pstate, i)))
     {
       while (i > 0)
 	{
-	  if (!scm_is_pair (pstate->ref_stack[i - 1])
-	      || !scm_is_eq (SCM_CDR (pstate->ref_stack[i - 1]), 
-			     pstate->ref_stack[i]))
+	  if (!scm_is_pair (PSTATE_STACK_REF (pstate, i-1))
+	      || !scm_is_eq (SCM_CDR (PSTATE_STACK_REF (pstate, i-1)), 
+			     SCM_CDR (PSTATE_STACK_REF (pstate, i))))
 	    break;
 	  --i;
 	}
       self = i;
     }
   for (i = pstate->top - 1; 1; --i)
-    if (scm_is_eq (pstate->ref_stack[i], ref))
+    if (scm_is_eq (PSTATE_STACK_REF(pstate, i), ref))
       break;
   scm_putc ('#', port);
   scm_intprint (i - self, 10, port);
@@ -796,7 +796,7 @@ scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate)
       register long i;
 
       for (i = floor; i >= 0; --i)
-	if (scm_is_eq (pstate->ref_stack[i], exp))
+	if (scm_is_eq (PSTATE_STACK_REF(pstate, i), exp))
 	  goto circref;
       PUSH_REF (pstate, exp);
       scm_putc (' ', port);
@@ -825,7 +825,7 @@ fancy_printing:
 	register unsigned long i;
 
 	for (i = 0; i < pstate->top; ++i)
-	  if (scm_is_eq (pstate->ref_stack[i], exp))
+	  if (scm_is_eq (PSTATE_STACK_REF(pstate, i), exp))
 	    goto fancy_circref;
 	if (pstate->fancyp)
 	  {

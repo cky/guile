@@ -57,7 +57,7 @@ do { \
 #define SCM_COERCE_OUTPORT(p) \
   (SCM_PORT_WITH_PS_P (p) ? SCM_PORT_WITH_PS_PORT (p) : p)
 
-#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwuwpwuwuwuruoprpw"
+#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwuwpwuwuwurprpw"
 typedef struct scm_print_state {
   SCM handle;			/* Struct handle */
   int revealed;                 /* Has the state escaped to Scheme? */
@@ -69,9 +69,9 @@ typedef struct scm_print_state {
   unsigned long list_offset;
   unsigned long top;		/* Top of reference stack */
   unsigned long ceiling;	/* Max size of reference stack */
-  SCM *ref_stack;		/* Stack of references used during
-				   circular reference detection */
-  SCM ref_vect;
+  SCM ref_vect;	 	        /* Stack of references used during
+				   circular reference detection;
+				   a simple vector. */
   SCM highlight_objects;        /* List of objects to be highlighted */
 } scm_print_state;
 
