@@ -1,0 +1,169 @@
+;;;; srfi-1.test --- Test suite for Guile's SRFI-1 functions. -*- scheme -*-
+;;;;
+;;;; Copyright 2003 Free Software Foundation, Inc.
+;;;;
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;;
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+
+(use-modules (srfi srfi-1)
+	     (test-suite lib))
+
+
+;;
+;; drop
+;;
+
+(with-test-prefix "drop"
+  
+  (pass-if "'() 0"
+    (null? (drop '() 0)))
+  
+  (pass-if "'(a) 0"
+    (let ((lst '(a)))
+      (eq? lst
+	   (drop lst 0))))
+  
+  (pass-if "'(a b) 0"
+    (let ((lst '(a b)))
+      (eq? lst
+	   (drop lst 0))))
+  
+  (pass-if "'(a) 1"
+    (let ((lst '(a)))
+      (eq? (cdr lst)
+	   (drop lst 1))))
+  
+  (pass-if "'(a b) 1"
+    (let ((lst '(a b)))
+      (eq? (cdr lst)
+	   (drop lst 1))))
+  
+  (pass-if "'(a b) 2"
+    (let ((lst '(a b)))
+      (eq? (cddr lst)
+	   (drop lst 2))))
+  
+  (pass-if "'(a b c) 1"
+    (let ((lst '(a b c)))
+      (eq? (cddr lst)
+	   (drop lst 2))))
+  
+  (pass-if "circular '(a) 0"
+    (let ((lst (circular-list 'a)))
+      (eq? lst
+	   (drop lst 0))))
+  
+  (pass-if "circular '(a) 1"
+    (let ((lst (circular-list 'a)))
+      (eq? lst
+	   (drop lst 1))))
+  
+  (pass-if "circular '(a) 2"
+    (let ((lst (circular-list 'a)))
+      (eq? lst
+	   (drop lst 1))))
+  
+  (pass-if "circular '(a b) 1"
+    (let ((lst (circular-list 'a)))
+      (eq? (cdr lst)
+	   (drop lst 0))))
+  
+  (pass-if "circular '(a b) 2"
+    (let ((lst (circular-list 'a)))
+      (eq? lst
+	   (drop lst 1))))
+  
+  (pass-if "circular '(a b) 5"
+    (let ((lst (circular-list 'a)))
+      (eq? (cdr lst)
+	   (drop lst 5))))
+  
+  (pass-if "'(a . b) 1"
+    (eq? 'b
+	 (drop '(a . b) 1)))
+  
+  (pass-if "'(a b . c) 1"
+    (equal? 'c
+	    (drop '(a b . c) 2))))
+
+;;
+;; take
+;;
+
+(with-test-prefix "take"
+  
+  (pass-if "'() 0"
+    (null? (take '() 0)))
+  
+  (pass-if "'(a) 0"
+    (null? (take '(a) 0)))
+  
+  (pass-if "'(a b) 0"
+    (null? (take '() 0)))
+  
+  (pass-if "'(a b c) 0"
+    (null? (take '() 0)))
+  
+  (pass-if "'(a) 1"
+    (let* ((lst '(a))
+	   (got (take lst 1)))
+      (and (equal? '(a) got)
+	   (not (eq? lst got)))))
+  
+  (pass-if "'(a b) 1"
+    (equal? '(a)
+	    (take '(a b) 1)))
+  
+  (pass-if "'(a b c) 1"
+    (equal? '(a)
+	    (take '(a b c) 1)))
+  
+  (pass-if "'(a b) 2"
+    (let* ((lst '(a b))
+	   (got (take lst 2)))
+      (and (equal? '(a b) got)
+	   (not (eq? lst got)))))
+  
+  (pass-if "'(a b c) 2"
+    (equal? '(a b)
+	    (take '(a b c) 2)))
+  
+  (pass-if "circular '(a) 0"
+    (equal? '()
+	    (take (circular-list 'a) 0)))
+  
+  (pass-if "circular '(a) 1"
+    (equal? '(a)
+	    (take (circular-list 'a) 1)))
+  
+  (pass-if "circular '(a) 2"
+    (equal? '(a a)
+	    (take (circular-list 'a) 2)))
+  
+  (pass-if "circular '(a b) 5"
+    (equal? '(a b a b a)
+	    (take (circular-list 'a 'b) 5)))
+  
+  (pass-if "'(a . b) 1"
+    (equal? '(a)
+	    (take '(a . b) 1)))
+  
+  (pass-if "'(a b . c) 1"
+    (equal? '(a)
+	    (take '(a b . c) 1)))
+  
+  (pass-if "'(a b . c) 2"
+    (equal? '(a b)
+	    (take '(a b . c) 2))))
