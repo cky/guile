@@ -1,3 +1,10 @@
+2003-04-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops/dispatch.scm (cache-hashval): Corrected termination
+	condition for hashval computation.  (Previously, it made erroneous
+	assumptions about the representation of environments; Thanks to
+	Andreas Rottmann.)
+	
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (compute-getters-n-setters): Check for bad init-thunk.

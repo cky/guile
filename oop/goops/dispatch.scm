@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -172,13 +172,11 @@
 ;;; Caching
 ;;;
 
-(define environment? pair?)
-
 (define (cache-hashval hashset entry)
   (let ((hashset-index (+ hashset-index hashset)))
     (do ((sum 0)
 	 (classes entry (cdr classes)))
-	((environment? (car classes)) sum)
+	((not (struct? (car classes))) sum)
       (set! sum (+ sum (struct-ref (car classes) hashset-index))))))
 
 (define (cache-try-hash! min-misses hashset cache entries)
