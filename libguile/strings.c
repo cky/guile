@@ -288,7 +288,8 @@ scm_string_set_x (str, k, chr)
   SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG3, s_string_set_x);
   if (! SCM_RWSTRINGP (str))
     scm_misc_error (s_string_set_x, "argument is a read-only string", str);
-  SCM_ASSERT (SCM_INUM (k) < SCM_LENGTH (str) && SCM_INUM (k) >= 0,
+  SCM_ASSERT ((SCM_INUM (k) >= 0
+	       && ((unsigned) SCM_INUM (k)) < SCM_LENGTH (str)),
 	      k, SCM_OUTOFRANGE, s_string_set_x);
   SCM_UCHARS (str)[SCM_INUM (k)] = SCM_ICHR (chr);
   return SCM_UNSPECIFIED;
