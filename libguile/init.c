@@ -51,17 +51,12 @@
 #endif
 
 
-#ifdef __STDC__
-void
-scm_start_stack (void * base, FILE * in, FILE * out, FILE * err)
-#else
 void
 scm_start_stack (base, in, out, err)
      void * base;
      FILE * in;
      FILE * out;
      FILE * err;
-#endif
 {
   struct scm_port_table * pt;
 
@@ -148,14 +143,9 @@ scm_start_stack (base, in, out, err)
 }
 
 
-#ifdef __STDC__
-void
-scm_restart_stack (void * base)
-#else
 void
 scm_restart_stack (base)
      void * base;
-#endif
 {
   scm_dynwinds = SCM_EOL;
   SCM_DYNENV (scm_rootcont) = SCM_EOL;
@@ -235,7 +225,7 @@ typedef long setjmp_type;
  * argc and argv are made the return values of program-arguments.
  *
  * in, out, and err, if not NULL, become the standard ports.
- *	If NULL is passed, your "scm_appinit" should set up the 
+ *	If NULL is passed, your "initfunc" should set up the 
  *      standard ports.
  *
  * boot_cmd is a string containing a Scheme expression to evaluate
@@ -248,23 +238,20 @@ typedef long setjmp_type;
  *	scm_boot_ok       - evaluation concluded normally
  *	scm_boot_error    - evaluation concluded with a Scheme error
  *	scm_boot_emem     - allocation error mallocing *result
- *	scm_boot_ereenter - scm_boot_guile was called re-entrantly, which is prohibited.
+ *	scm_boot_ereenter - scm_boot_guile was called re-entrantly, which is
+ *                          prohibited.
  */
 
-#ifdef __STDC__
 int
-scm_boot_guile (char ** result, int argc, char ** argv, FILE * in, FILE * out, FILE * err, char * boot_cmd)
-#else
-int
-scm_boot_guile (result, argc, argv, in, out, err, boot_cmd)
+scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
      char ** result;
      int argc;
      char ** argv;
      FILE * in;
      FILE * out;
      FILE * err;
+     void (*init_func) ();
      char * boot_cmd;
-#endif
 {
   static int initialized = 0;
   static int live = 0;
@@ -323,7 +310,6 @@ scm_boot_guile (result, argc, argv, in, out, err, boot_cmd)
       scm_init_posix ();
       scm_init_procs ();
       scm_init_procprop ();
-      scm_init_rgx ();
       scm_init_scmsigs ();
       scm_init_socket ();
       scm_init_stackchk ();
@@ -349,7 +335,6 @@ scm_boot_guile (result, argc, argv, in, out, err, boot_cmd)
       scm_init_ramap ();
       scm_init_unif ();
       scm_init_simpos ();
-      scm_appinit ();
       scm_progargs = scm_makfromstrs (argc, argv);
       initialized = 1;
     }
@@ -369,6 +354,11 @@ scm_boot_guile (result, argc, argv, in, out, err, boot_cmd)
 	SCM last;
 	scm_init_signals ();
 
+	/* Call the initialization function passed in by the user, if
+           present.  */
+	if (init_func) (*init_func) ();
+
+	/* Evaluate boot_cmd string.  */
 	{
 	  SCM p;
 	  SCM form;
