@@ -157,6 +157,20 @@
 
 
 
+/* SCM_API is a macro prepended to all function and data definitions
+   which should be exported or imported in the resulting dynamic link
+   library in the Win32 port. */
+
+#if defined (__SCM_IMPORT__)
+# define SCM_API __declspec (dllimport) extern
+#elif defined (__SCM_EXPORT__) || defined (DLL_EXPORT)
+# define SCM_API __declspec (dllexport) extern
+#else
+# define SCM_API extern
+#endif
+
+
+
 /* What did the configure script discover about the outside world?  */
 #include "libguile/scmconfig.h"
 
@@ -384,7 +398,7 @@ typedef long SCM_STACKITEM;
 #endif
 
 #ifdef GUILE_OLD_ASYNC_CLICK
-extern unsigned int scm_async_clock;
+SCM_API unsigned int scm_async_clock;
 
 #define SCM_ASYNC_TICK \
 do { \
@@ -392,7 +406,7 @@ do { \
     scm_async_click (); \
 } while(0)
 #else
-extern int scm_asyncs_pending_p;
+SCM_API int scm_asyncs_pending_p;
 
 #define SCM_ASYNC_TICK /*fixme* should change names */ \
 do { \
@@ -565,7 +579,7 @@ do { \
  * like SCM_BOOL_F or SCM_UNDEFINED was chosen.
  */
 
-extern SCM scm_call_generic_0 (SCM gf);
+SCM_API SCM scm_call_generic_0 (SCM gf);
 
 #define SCM_WTA_DISPATCH_0(gf, subr)			        \
   return (SCM_UNPACK (gf)					\
@@ -574,7 +588,7 @@ extern SCM scm_call_generic_0 (SCM gf);
 #define SCM_GASSERT0(cond, gf, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_0((gf), (subr))
 
-extern SCM scm_call_generic_1 (SCM gf, SCM a1);
+SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);
 
 #define SCM_WTA_DISPATCH_1(gf, a1, pos, subr)			\
   return (SCM_UNPACK (gf)					\
@@ -583,7 +597,7 @@ extern SCM scm_call_generic_1 (SCM gf, SCM a1);
 #define SCM_GASSERT1(cond, gf, a1, pos, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_1((gf), (a1), (pos), (subr))
 
-extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
+SCM_API SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 
 #define SCM_WTA_DISPATCH_2(gf, a1, a2, pos, subr)			\
   return (SCM_UNPACK (gf)						\
@@ -594,7 +608,7 @@ extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 #define SCM_GASSERT2(cond, gf, a1, a2, pos, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_2((gf), (a1), (a2), (pos), (subr))
 
-extern SCM scm_apply_generic (SCM gf, SCM args);
+SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 
 #define SCM_WTA_DISPATCH_n(gf, args, pos, subr)				  \
   return (SCM_UNPACK (gf)						  \
