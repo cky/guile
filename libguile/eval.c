@@ -1937,6 +1937,7 @@ dispatch:
 	      if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), t.arg1))
 		goto wrongnumargs;
 #endif
+	      ENTER_APPLY;
 	      /* Copy argument list */
 	      if (SCM_IMP (t.arg1))
 		argl = t.arg1;
