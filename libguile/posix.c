@@ -207,7 +207,7 @@ scm_pipe ()
 }
 
 
-
+#ifdef HAVE_GETGROUPS
 SCM_PROC (s_getgroups, "getgroups", 0, 0, 0, scm_getgroups);
 
 SCM
@@ -240,7 +240,7 @@ scm_getgroups()
     return ans;
   }
 }  
-
+#endif
 
 
 SCM_PROC (s_getpwuid, "getpw", 0, 1, 0, scm_getpwuid);
@@ -299,7 +299,7 @@ scm_getpwuid (user)
 }
 
 
-
+#ifdef HAVE_SETPWENT
 SCM_PROC (s_setpwent, "setpw", 0, 1, 0, scm_setpwent);
 
 SCM 
@@ -312,6 +312,7 @@ scm_setpwent (arg)
     setpwent ();
   return SCM_UNSPECIFIED;
 }
+#endif
 
 
 
@@ -572,6 +573,7 @@ scm_seteuid (id)
   return SCM_UNSPECIFIED;
 }
 
+#ifdef HAVE_SETEGID
 SCM_PROC (s_setegid, "setegid", 1, 0, 0, scm_setegid);
 
 SCM 
@@ -591,6 +593,7 @@ scm_setegid (id)
   return SCM_UNSPECIFIED;
     
 }
+#endif
 
 SCM_PROC (s_getpgrp, "getpgrp", 0, 0, 0, scm_getpgrp);
 SCM 
