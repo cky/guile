@@ -61,17 +61,18 @@ typedef struct scm_info_frame {
 #define SCM_FRAME_N_SLOTS (sizeof (scm_info_frame) / sizeof (SCM))
 
 #define SCM_STACK(obj) ((scm_stack *) SCM_STRUCT_DATA (obj))
-#define SCM_STACK_LAYOUT "pwpW"
+#define SCM_STACK_LAYOUT "pwuopW"
 typedef struct scm_stack {
   SCM id;			/* Stack id */
-  unsigned long n_tail;		/* Size of struct tail array */
-  scm_info_frame frames[1];	/* Info frames */
+  scm_info_frame *frames;	/* Info frames */
+  unsigned int length;		/* Stack length */
+  scm_info_frame tail[1];
 } scm_stack;
 
 extern SCM scm_stack_type;
 
 #define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_STRUCT_VTABLE (obj) == scm_stack_type)
-#define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> n_tail / SCM_FRAME_N_SLOTS)
+#define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> length)
 
 #define SCM_FRAMEP(obj) (SCM_CONSP (obj) \
 			 && SCM_NIMP (SCM_CAR (obj)) \
