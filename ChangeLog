@@ -2,6 +2,7 @@
 
 	* acinclude.m4 (GUILE_HEADER_LIBC_WITH_UNISTD): Fix typo in
 	variable name.  (Thanks to Bill Schottstaedt.)
+	* aclocal.m4: Regenerated.
 
 1999-09-02  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 

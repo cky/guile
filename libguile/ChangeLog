@@ -6,6 +6,9 @@
 	to actually use it.  We should compare its output against that of
 	the existing shell script, for all source files.
 
+	* guile-snarf.c (parse_args): Abort if we haven't handled some
+	character type.
+
 1999-09-03  James Blandy  <jimb@mule.m17n.org>
 
 	* load.c (scm_search_path): If the filename has any extension at
