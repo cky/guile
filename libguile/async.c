@@ -339,6 +339,11 @@ SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+void
+scm_system_async_mark_from_signal_handler (SCM a)
+{
+  SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
+}
 
 SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 	    (SCM list_of_a),

@@ -61,6 +61,7 @@ SCM_API SCM scm_async (SCM thunk);
 SCM_API SCM scm_system_async (SCM thunk);
 SCM_API SCM scm_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark (SCM a);
+SCM_API void scm_system_async_mark_from_signal_handler (SCM a);
 SCM_API SCM scm_run_asyncs (SCM list_of_a);
 SCM_API SCM scm_noop (SCM args);
 SCM_API SCM scm_set_tick_rate (SCM n);
