@@ -1838,10 +1838,18 @@ module:
 
 @findex popen
 @deffn {Scheme Procedure} open-pipe command modes
-Executes the shell command @var{command} (a string) in a subprocess.
-A pipe to the process is created and returned.  @var{modes} specifies
-whether an input or output pipe to the process is created: it should
-be the value of @code{OPEN_READ} or @code{OPEN_WRITE}.
+Executes the shell command @var{command} (a string) in a subprocess.  A
+pipe to the process is created and returned.  @var{modes} specifies
+whether an input or output pipe to the process is created: it should be
+the value of @code{OPEN_READ}, @code{OPEN_WRITE}, or @code{OPEN_BOTH}.
+@end deffn
+
+@deffn {Scheme Procedure} open-pipe* mode command [args...]
+Executes the program @var{command} with optional arguments @var{args}
+(all strings) in a subprocess.  A port to the process (based on pipes)
+is created and returned.  @var{modes} specifies whether an input, an
+output or an input-output port to the process is created: it should be
+the value of @code{OPEN_READ}, @code{OPEN_WRITE}, or @code{OPEN_BOTH}.
 @end deffn
 
 @deffn {Scheme Procedure} open-input-pipe command
@@ -1858,6 +1866,10 @@ Equivalent to @code{open-pipe} with mode @code{OPEN_READ}.
 
 @deffn {Scheme Procedure} open-output-pipe command
 Equivalent to @code{open-pipe} with mode @code{OPEN_WRITE}.
+@end deffn
+
+@deffn {Scheme Procedure} open-input-output-pipe command
+Equivalent to @code{open-pipe} with mode @code{OPEN_BOTH}.
 @end deffn
 
 @findex pclose
