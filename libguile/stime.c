@@ -54,6 +54,10 @@
 # include <sys/timeb.h>
 #endif
 
+#if HAVE_CRT_EXTERNS_H
+#include <crt_externs.h>  /* for Darwin _NSGetEnviron */
+#endif
+
 #ifndef tzname /* For SGI.  */
 extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
 #endif
@@ -70,6 +74,16 @@ extern char *strptime ();
 #else
 # define timet long
 #endif
+
+extern char ** environ;
+
+/* On Apple Darwin in a shared library there's no "environ" to access
+   directly, instead the address of that variable must be obtained with
+   _NSGetEnviron().  */
+#if HAVE__NSGETENVIRON && defined (PIC)
+#define environ (*_NSGetEnviron())
+#endif
+
 
 #ifdef HAVE_TIMES
 static
@@ -260,7 +274,6 @@ filltime (struct tm *bd_time, int zoff, char *zname)
 }
 
 static char tzvar[3] = "TZ";
-extern char ** environ;
 
 /* if zone is set, create a temporary environment with only a TZ
    string.  other threads or interrupt handlers shouldn't be allowed

@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1991, 2000, 2001, 2004 Free Software Foundation, Inc.
 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -51,11 +51,22 @@ char *malloc ();
 #include <unistd.h>
 #endif
 
+#if HAVE_CRT_EXTERNS_H
+#include <crt_externs.h>  /* for Darwin _NSGetEnviron */
+#endif
+
 #ifndef NULL
 #define NULL 0
 #endif
 
 extern char **environ;
+
+/* On Apple Darwin in a shared library there's no "environ" to access
+   directly, instead the address of that variable must be obtained with
+   _NSGetEnviron().  */
+#if HAVE__NSGETENVIRON && defined (PIC)
+#define environ (*_NSGetEnviron())
+#endif
 
 /* Put STRING, which is of the form "NAME=VALUE", in the environment.  */
 int
