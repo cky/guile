@@ -102,6 +102,7 @@ make_hash_table (int flags, unsigned long k, const char *func_name)
   t->lower = 0;
   t->upper = 9 * n / 10;
   t->flags = flags;
+  t->hash_fn = NULL;
   if (flags)
     {
       SCM_NEWSMOB3 (table, scm_tc16_hashtable, vector, t, weak_hashtables);
@@ -111,7 +112,6 @@ make_hash_table (int flags, unsigned long k, const char *func_name)
     SCM_NEWSMOB3 (table, scm_tc16_hashtable, vector, t, SCM_EOL);
   return table;
 }
-
 
 void
 scm_i_rehash (SCM table,
@@ -139,9 +139,13 @@ scm_i_rehash (SCM table,
       if (i >= HASHTABLE_SIZE_N)
 	/* don't rehash */
 	return;
-      /* store for use in rehash_after_gc */
-      SCM_HASHTABLE (table)->hash_fn = hash_fn;
-      SCM_HASHTABLE (table)->closure = closure;
+
+      /* Remember HASH_FN for rehash_after_gc, but only when CLOSURE
+	 is not needed since CLOSURE can not be guaranteed to be valid
+	 after this function returns.
+      */
+      if (closure == NULL)
+	SCM_HASHTABLE (table)->hash_fn = hash_fn;
     }
   SCM_HASHTABLE (table)->size_index = i;
   
@@ -298,11 +302,11 @@ rehash_after_gc (void *dummy1 SCM_UNUSED,
       h = first;
       do
 	{
-	  scm_i_rehash (h,
-			/* use same hash_fn and closure as last time */
-			SCM_HASHTABLE (h)->hash_fn,
-			SCM_HASHTABLE (h)->closure,
-			"rehash_after_gc");
+	  /* Rehash only when we have a hash_fn.
+	   */
+	  if (SCM_HASHTABLE (h)->hash_fn)
+	    scm_i_rehash (h, SCM_HASHTABLE (h)->hash_fn, NULL,
+			  "rehash_after_gc");
 	  last = h;
 	  h = SCM_HASHTABLE_NEXT (h);
 	} while (!scm_is_null (h));
@@ -507,8 +511,14 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
       SCM_SIMPLE_VECTOR_SET (buckets, k, new_bucket);
       if (!scm_is_eq (table, buckets))
 	{
+	  /* Update element count and maybe rehash the table.  The
+	     table might have too few entries here since weak hash
+	     tables used with the hashx_* functions can not be
+	     rehashed after GC.
+	  */
 	  SCM_HASHTABLE_INCREMENT (table);
-	  if (SCM_HASHTABLE_N_ITEMS (table) > SCM_HASHTABLE_UPPER (table))
+	  if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table)
+	      || SCM_HASHTABLE_N_ITEMS (table) > SCM_HASHTABLE_UPPER (table))
 	    scm_i_rehash (table, hash_fn, closure, FUNC_NAME);
 	}
       return SCM_CAR (new_bucket);

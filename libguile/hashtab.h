@@ -73,8 +73,7 @@ typedef struct scm_t_hashtable {
   unsigned long upper;		/* when to grow */
   int size_index;		/* index into hashtable_size */
   int min_size_index;		/* minimum size_index */
-  unsigned long (*hash_fn) ();
-  void *closure;
+  unsigned long (*hash_fn) ();  /* for rehashing after a GC. */
 } scm_t_hashtable;
 
 
