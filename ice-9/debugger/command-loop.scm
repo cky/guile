@@ -48,10 +48,6 @@
 	    debugger-command-loop-quit)
   #:no-backtrace)
 
-(if (memq 'readline *features*)
-    (define-module (ice-9 debugger command-loop)
-      :use-module (ice-9 readline)))
-
 ;;; {Interface used by (ice-9 debugger).}
 
 (define (debugger-command-loop state)
@@ -93,9 +89,17 @@
     (lambda args
       *unspecified*)))
 
+(define set-readline-prompt! #f)
+
 (define (read-and-dispatch-command state port)
   (if (using-readline?)
-      (set-readline-prompt! debugger-prompt debugger-prompt)
+      (begin
+	;; Import set-readline-prompt! if we haven't already.
+	(or set-readline-prompt!
+	    (set! set-readline-prompt!
+		  (module-ref (resolve-module '(ice-9 readline))
+			      'set-readline-prompt!)))
+	(set-readline-prompt! debugger-prompt debugger-prompt))
       (display debugger-prompt))
   (force-output)			;This should not be necessary...
   (let ((token (read-token port)))
