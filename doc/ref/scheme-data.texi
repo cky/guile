@@ -411,7 +411,7 @@ satisfying @code{real?} also satisfies @code{rational?} in Guile.
 Returns the @emph{simplest} rational number differing
 from @var{x} by no more than @var{eps}.  
 
-As required by @acronym{R5RS}, @code{rationalize} returns only then an
+As required by @acronym{R5RS}, @code{rationalize} only returns an
 exact result when both its arguments are exact.  Thus, you might need
 to use @code{inexact->exact} on the arguments.
 
