@@ -292,7 +292,7 @@ scm_lookupcar1 (SCM vloc, SCM genv)
 	  if (SCM_CAR (fl) == var)
 	    {
 #ifdef MEMOIZE_LOCALS
-#ifndef RECKLESS		/* letrec inits to SCM_UNDEFINED */
+#ifndef SCM_RECKLESS		/* letrec inits to SCM_UNDEFINED */
 	      if (SCM_UNBNDP (SCM_CAR (*al)))
 		{
 		  env = SCM_EOL;
@@ -330,7 +330,7 @@ scm_lookupcar1 (SCM vloc, SCM genv)
     else
       var = vcell;
   }
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
   if (SCM_NNULLP (env) || SCM_UNBNDP (SCM_CDR (var)))
     {
       var = SCM_CAR (var);
@@ -892,7 +892,7 @@ scm_m_define (x, env)
 #endif
       arg1 = scm_sym2vcell (proc, env_top_level (env), SCM_BOOL_T);
 #if 0
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
       if (SCM_NIMP (SCM_CDR (arg1)) && ((SCM) SCM_SNAME (SCM_CDR (arg1)) == proc)
 	  && (SCM_CDR (arg1) != x))
 	scm_warn ("redefining built-in ", SCM_CHARS (proc));
@@ -926,7 +926,7 @@ scm_m_undefine (x, env)
   ASSYNT (SCM_NFALSEP (arg1) && !SCM_UNBNDP (SCM_CDR (arg1)),
 	  x, "variable already unbound ", s_undefine);
 #if 0
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
   if (SCM_NIMP (SCM_CDR (arg1)) && ((SCM) SCM_SNAME (SCM_CDR (arg1)) == x))
     scm_warn ("undefining built-in ", SCM_CHARS (x));
   else
@@ -1249,7 +1249,7 @@ scm_unmemocopy (x, env)
     return unmemocopy (x, env);
 }
 
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
 
 int 
 scm_badargsp (formals, args)
@@ -1284,7 +1284,7 @@ scm_eval_args (l, env, proc)
   SCM results = SCM_EOL, *lloc = &results, res;
   while (SCM_NIMP (l))
     {
-#ifdef CAUTIOUS
+#ifdef SCM_CAUTIOUS
       if (SCM_IMP (l))
 	goto wrongnumargs;
       else if (SCM_CONSP (l))
@@ -1308,7 +1308,7 @@ scm_eval_args (l, env, proc)
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
-#ifdef CAUTIOUS
+#ifdef SCM_CAUTIOUS
   if (SCM_NNULLP (l))
     {
     wrongnumargs:
@@ -1479,7 +1479,7 @@ scm_deval_args (l, env, proc, lloc)
   SCM *results = lloc, res;
   while (SCM_NIMP (l))
     {
-#ifdef CAUTIOUS
+#ifdef SCM_CAUTIOUS
       if (SCM_IMP (l))
 	goto wrongnumargs;
       else if (SCM_CONSP (l))
@@ -1503,7 +1503,7 @@ scm_deval_args (l, env, proc, lloc)
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
-#ifdef CAUTIOUS
+#ifdef SCM_CAUTIOUS
   if (SCM_NNULLP (l))
     {
     wrongnumargs:
@@ -1941,7 +1941,7 @@ dispatch:
 #ifdef DEVAL
 	      debug.info->a.args = t.arg1;
 #endif
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
 	      if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), t.arg1))
 		goto wrongnumargs;
 #endif
@@ -2018,8 +2018,8 @@ dispatch:
     case (127 & SCM_ILOC00):
       proc = *scm_ilookup (SCM_CAR (x), env);
       SCM_ASRTGO (SCM_NIMP (proc), badfun);
-#ifndef RECKLESS
-#ifdef CAUTIOUS
+#ifndef SCM_RECKLESS
+#ifdef SCM_CAUTIOUS
       goto checkargs;
 #endif
 #endif
@@ -2030,8 +2030,8 @@ dispatch:
     case scm_tcs_cons_gloc:
       proc = SCM_GLOC_VAL (SCM_CAR (x));
       SCM_ASRTGO (SCM_NIMP (proc), badfun);
-#ifndef RECKLESS
-#ifdef CAUTIOUS
+#ifndef SCM_RECKLESS
+#ifdef SCM_CAUTIOUS
       goto checkargs;
 #endif
 #endif
@@ -2111,8 +2111,8 @@ dispatch:
       else
 	proc = SCM_CEVAL (SCM_CAR (x), env);
       SCM_ASRTGO (SCM_NIMP (proc), badfun);
-#ifndef RECKLESS
-#ifdef CAUTIOUS
+#ifndef SCM_RECKLESS
+#ifdef SCM_CAUTIOUS
     checkargs:
 #endif
       if (SCM_CLOSUREP (proc))
@@ -2210,7 +2210,7 @@ evapply:
 
   /* must handle macros by here */
   x = SCM_CDR (x);
-#ifdef CAUTIOUS
+#ifdef SCM_CAUTIOUS
   if (SCM_IMP (x))
     goto wrongnumargs;
   else if (SCM_CONSP (x))
@@ -2346,7 +2346,7 @@ evapply:
 	  goto badfun;
 	}
     }
-#ifdef CAUTIOUS
+#ifdef SCM_CAUTIOUS
   if (SCM_IMP (x))
     goto wrongnumargs;
   else if (SCM_CONSP (x))
@@ -2462,7 +2462,7 @@ evapply:
 	  goto cdrxbegin;
 	}
     }
-#ifdef CAUTIOUS
+#ifdef SCM_CAUTIOUS
     if (SCM_IMP (x) || SCM_NECONSP (x))
       goto wrongnumargs;
 #endif
@@ -2944,7 +2944,7 @@ tail:
 #else
       arg1 = (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
       if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), arg1))
 	goto wrongnumargs;
 #endif
@@ -3085,7 +3085,7 @@ scm_map (proc, arg1, args)
     }
   args = scm_vector (scm_cons (arg1, args));
   ve = SCM_VELTS (args);
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
   for (i = SCM_LENGTH (args) - 1; i >= 0; i--)
     SCM_ASSERT (SCM_NIMP (ve[i]) && SCM_CONSP (ve[i]), args, SCM_ARG2, s_map);
 #endif
@@ -3130,7 +3130,7 @@ scm_for_each (proc, arg1, args)
     }
   args = scm_vector (scm_cons (arg1, args));
   ve = SCM_VELTS (args);
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
   for (i = SCM_LENGTH (args) - 1; i >= 0; i--)
     SCM_ASSERT (SCM_NIMP (ve[i]) && SCM_CONSP (ve[i]), args, SCM_ARG2, s_for_each);
 #endif

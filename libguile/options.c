@@ -188,7 +188,7 @@ scm_options (new_mode, options, n, s)
 		  flags[i] = SCM_CAR (new_mode);
 		  goto cont;
 		}
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
 	  scm_must_free ((char *) flags);
 	  scm_wta (SCM_CAR (new_mode), "Unknown mode flag", s);
 #endif

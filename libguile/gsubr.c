@@ -122,7 +122,7 @@ scm_gsubr_apply(args)
 #endif
   args = SCM_CDR(args);
   for (i = 0; i < SCM_GSUBR_REQ(typ); i++) {
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
     if (SCM_IMP(args))
       wnargs: scm_wrong_num_args (SCM_SNAME(SCM_GSUBR_PROC(self)));
 #endif

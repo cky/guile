@@ -161,7 +161,7 @@ scm_assv(x, alist)
     SCM_ASRTGO(SCM_NIMP(tmp) && SCM_CONSP(tmp), badlst);
     if SCM_NFALSEP(scm_eqv_p(SCM_CAR(tmp), x)) return tmp;
   }
-# ifndef RECKLESS
+# ifndef SCM_RECKLESS
   if (!(SCM_NULLP(alist)))
     badlst: scm_wta(alist, (char *)SCM_ARG2, s_assv);
 # endif

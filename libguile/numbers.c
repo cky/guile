@@ -198,7 +198,7 @@ scm_quotient(x, y)
 #endif
   }
   if SCM_NINUMP(y) {
-# ifndef RECKLESS
+# ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_quotient);
 # endif
@@ -254,7 +254,7 @@ scm_remainder(x, y)
     return scm_divbigint(x, z, SCM_BIGSIGN(x), 0);
   }
   if SCM_NINUMP(y) {
-# ifndef RECKLESS
+# ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_remainder);
 # endif
@@ -300,7 +300,7 @@ scm_modulo(x, y)
     return scm_divbigint(x, z, y < 0, (SCM_BIGSIGN(x) ? (y > 0) : (y < 0)) ? 1 : 0);
   }
   if SCM_NINUMP(y) {
-# ifndef RECKLESS
+# ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_modulo);
 # endif
@@ -1439,7 +1439,7 @@ scm_number_to_string(x, radix)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(x), badx);
     if SCM_BIGP(x) return big2str(x, (unsigned int)SCM_INUM(radix));
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_INEXP(x)))
     badx: scm_wta(x, (char *)SCM_ARG1, s_number_to_string);
 #  endif
@@ -2034,7 +2034,7 @@ scm_num_eq_p (x, y)
   SCM t;
   if SCM_NINUMP(x) {
 # ifdef SCM_BIGDIG
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(x)))
     badx: scm_wta(x, (char *)SCM_ARG1, s_eq_p);
 #  endif
@@ -2067,12 +2067,12 @@ scm_num_eq_p (x, y)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(y), bady);
     if SCM_BIGP(y) return SCM_BOOL_F;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_eq_p);
 #  endif
 # else
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_eq_p);
 #  endif
@@ -2089,7 +2089,7 @@ scm_num_eq_p (x, y)
     return (0==scm_bigcomp(x, y)) ? SCM_BOOL_T : SCM_BOOL_F;
   }
   if SCM_NINUMP(y) {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_eq_p);
 #  endif
@@ -2115,7 +2115,7 @@ scm_less_p(x, y)
 #ifdef SCM_FLOATS
   if SCM_NINUMP(x) {
 # ifdef SCM_BIGDIG
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(x)))
     badx: scm_wta(x, (char *)SCM_ARG1, s_less_p);
 #  endif
@@ -2145,12 +2145,12 @@ scm_less_p(x, y)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(y), bady);
     if SCM_BIGP(y) return SCM_BIGSIGN(y) ? SCM_BOOL_F : SCM_BOOL_T;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_REALP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_less_p);
 #  endif
 # else
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_REALP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_less_p);
 #  endif
@@ -2166,7 +2166,7 @@ scm_less_p(x, y)
     return (1==scm_bigcomp(x, y)) ? SCM_BOOL_T : SCM_BOOL_F;
   }
   if SCM_NINUMP(y) {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_less_p);
 #  endif
@@ -2228,7 +2228,7 @@ scm_zero_p(z)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(z), badz);
     if SCM_BIGP(z) return SCM_BOOL_F;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_INEXP(z)))
     badz: scm_wta(z, (char *)SCM_ARG1, s_zero_p);
 #  endif
@@ -2263,7 +2263,7 @@ scm_positive_p(x)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(x), badx);
     if SCM_BIGP(x) return SCM_TYP16(x)==scm_tc16_bigpos ? SCM_BOOL_T : SCM_BOOL_F;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_REALP(x)))
     badx: scm_wta(x, (char *)SCM_ARG1, s_positive_p);
 #  endif
@@ -2298,7 +2298,7 @@ scm_negative_p(x)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(x), badx);
     if SCM_BIGP(x) return SCM_TYP16(x)==scm_tc16_bigpos ? SCM_BOOL_F : SCM_BOOL_T;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_REALP(x)))
     badx: scm_wta(x, (char *)SCM_ARG1, s_negative_p);
 #  endif
@@ -2332,7 +2332,7 @@ scm_max(x, y)
   double z;
 #endif
   if SCM_UNBNDP(y) {
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
     if (!(SCM_NUMBERP(x)))
       badx: scm_wta(x, (char *)SCM_ARG1, s_max);
 #endif
@@ -2370,12 +2370,12 @@ scm_max(x, y)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(y), bady);
     if SCM_BIGP(y) return SCM_BIGSIGN(y) ? x : y;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_REALP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_max);
 #  endif
 # else
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_REALP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_max);
 #  endif
@@ -2391,7 +2391,7 @@ scm_max(x, y)
     return (1==scm_bigcomp(x, y)) ? y : x;
   }
   if SCM_NINUMP(y) {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_max);
 #  endif
@@ -2419,7 +2419,7 @@ scm_min(x, y)
   double z;
 #endif
   if SCM_UNBNDP(y) {
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
     if (!(SCM_NUMBERP(x)))
       badx:scm_wta(x, (char *)SCM_ARG1, s_min);
 #endif
@@ -2455,12 +2455,12 @@ scm_min(x, y)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(y), bady);
     if SCM_BIGP(y) return SCM_BIGSIGN(y) ? y : x;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_REALP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_min);
 #  endif
 # else
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_REALP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_min);
 #  endif
@@ -2476,7 +2476,7 @@ scm_min(x, y)
     return (-1==scm_bigcomp(x, y)) ? y : x;
   }
   if SCM_NINUMP(y) {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_min);
 #  endif
@@ -2502,7 +2502,7 @@ scm_sum(x, y)
 {
   if SCM_UNBNDP(y) {
     if SCM_UNBNDP(x) return SCM_INUM0;
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
     if (!(SCM_NUMBERP(x)))
     badx: scm_wta(x, (char *)SCM_ARG1, s_sum);
 #endif
@@ -2531,12 +2531,12 @@ scm_sum(x, y)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(y), bady);
     if SCM_BIGP(y) {t = x; x = y; y = t; goto bigreal;}
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     else if (!(SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_sum);
 #  endif
 # else
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_sum);
 #  endif
@@ -2577,7 +2577,7 @@ scm_sum(x, y)
     return scm_addbig(SCM_BDIGITS(x), SCM_NUMDIGS(x), SCM_BIGSIGN(x), y, 0);
   }
   if SCM_NINUMP(y) {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_sum);
 #  endif
@@ -2623,7 +2623,7 @@ scm_difference(x, y)
 {
 #ifdef SCM_FLOATS
   if SCM_NINUMP(x) {
-# ifndef RECKLESS
+# ifndef SCM_RECKLESS
     if (!(SCM_NIMP(x)))
     badx: scm_wta(x, (char *)SCM_ARG1, s_difference);
 # endif
@@ -2680,12 +2680,12 @@ scm_difference(x, y)
       return scm_addbig(zdigs, SCM_DIGSPERLONG, (x < 0) ? 0x0100 : 0, y, 0x0100);
 #  endif
     }
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_difference);
 #  endif
 # else
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_difference);
 #  endif
@@ -2718,7 +2718,7 @@ scm_difference(x, y)
   }
   if SCM_UNBNDP(y) {x = -SCM_INUM(x); goto checkx;}
   if SCM_NINUMP(y) {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_difference);
 #  endif
@@ -2766,7 +2766,7 @@ scm_product(x, y)
 {
   if SCM_UNBNDP(y) {
     if SCM_UNBNDP(x) return SCM_MAKINUM(1L);
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
     if (!(SCM_NUMBERP(x)))
     badx: scm_wta(x, (char *)SCM_ARG1, s_product);
 #endif
@@ -2795,12 +2795,12 @@ scm_product(x, y)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(y), bady);
     if SCM_BIGP(y) {t = x; x = y; y = t; goto bigreal;}
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     else if (!(SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_product);
 #  endif
 # else
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_product);
 #  endif
@@ -2853,7 +2853,7 @@ scm_product(x, y)
 		      SCM_BIGSIGN(x) ^ SCM_BIGSIGN(y));
   }
   if SCM_NINUMP(y) {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_product);
 #  endif
@@ -2942,7 +2942,7 @@ scm_divide(x, y)
 #ifdef SCM_FLOATS
   double d, r, i, a;
   if SCM_NINUMP(x) {
-# ifndef RECKLESS
+# ifndef SCM_RECKLESS
     if (!(SCM_NIMP(x)))
     badx: scm_wta(x, (char *)SCM_ARG1, s_divide);
 # endif
@@ -2960,7 +2960,7 @@ scm_divide(x, y)
       SCM z;
       if SCM_INUMP(y) {
         z = SCM_INUM(y);
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
 	if (!z)
 	  scm_num_overflow (s_divide);
 #endif
@@ -3021,12 +3021,12 @@ scm_divide(x, y)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(y), bady);
     if SCM_BIGP(y) return scm_makdbl(SCM_INUM(x)/scm_big2dbl(y), 0.0);
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_divide);
 #  endif
 # else
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_INEXP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_divide);
 #  endif
@@ -3077,7 +3077,7 @@ scm_divide(x, y)
     goto ov;
   }
   if SCM_NINUMP(y) {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_NIMP(y) && SCM_BIGP(y)))
     bady: scm_wta(y, (char *)SCM_ARG2, s_divide);
 #  endif
@@ -3218,7 +3218,7 @@ scm_two_doubles(z1, z2, sstring, xy)
     SCM_ASRTGO(SCM_NIMP(z1), badz1);
     if SCM_BIGP(z1) xy->x = scm_big2dbl(z1);
     else {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
       if (!(SCM_REALP(z1)))
       badz1: scm_wta(z1, (char *)SCM_ARG1, sstring);
 #  endif
@@ -3234,7 +3234,7 @@ scm_two_doubles(z1, z2, sstring, xy)
     SCM_ASRTGO(SCM_NIMP(z2), badz2);
     if SCM_BIGP(z2) xy->y = scm_big2dbl(z2);
     else {
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
       if (!(SCM_REALP(z2)))
       badz2: scm_wta(z2, (char *)SCM_ARG2, sstring);
 #  endif
@@ -3316,7 +3316,7 @@ scm_real_part(z)
 # ifdef SCM_BIGDIG
     SCM_ASRTGO(SCM_NIMP(z), badz);
     if SCM_BIGP(z) return z;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
     if (!(SCM_INEXP(z)))
     badz: scm_wta(z, (char *)SCM_ARG1, s_real_part);
 #  endif
@@ -3340,7 +3340,7 @@ scm_imag_part(z)
 # ifdef SCM_BIGDIG
   SCM_ASRTGO(SCM_NIMP(z), badz);
   if SCM_BIGP(z) return SCM_INUM0;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
   if (!(SCM_INEXP(z)))
   badz: scm_wta(z, (char *)SCM_ARG1, s_imag_part);
 #  endif
@@ -3363,7 +3363,7 @@ scm_magnitude(z)
 # ifdef SCM_BIGDIG
   SCM_ASRTGO(SCM_NIMP(z), badz);
   if SCM_BIGP(z) return scm_abs(z);
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
   if (!(SCM_INEXP(z)))
   badz: scm_wta(z, (char *)SCM_ARG1, s_magnitude);
 #  endif
@@ -3392,7 +3392,7 @@ scm_angle(z)
 # ifdef SCM_BIGDIG
   SCM_ASRTGO(SCM_NIMP(z), badz);
   if SCM_BIGP(z) {x = (SCM_TYP16(z)==scm_tc16_bigpos) ? 1.0 : -1.0; goto do_angle;}
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
   if (!(SCM_INEXP(z))) {
   badz: scm_wta(z, (char *)SCM_ARG1, s_angle);}
 #  endif
@@ -3420,7 +3420,7 @@ scm_inexact_to_exact(z)
 # ifdef SCM_BIGDIG
   SCM_ASRTGO(SCM_NIMP(z), badz);
   if SCM_BIGP(z) return z;
-#  ifndef RECKLESS
+#  ifndef SCM_RECKLESS
   if (!(SCM_REALP(z)))
   badz: scm_wta(z, (char *)SCM_ARG1, s_inexact_to_exact);
 #  endif
@@ -3482,7 +3482,7 @@ scm_dbl2big(d)
     u -= c;
     digits[i] = c;
   }
-#ifndef RECKLESS
+#ifndef SCM_RECKLESS
   if (u != 0)
     scm_num_overflow ("dbl2big");
 #endif
