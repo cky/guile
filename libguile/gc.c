@@ -313,7 +313,7 @@ map_free_list (scm_freelist_t *freelistp)
 SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0, 
             (),
             "Print debugging information about the free-list.\n"
-            "`map-free-list' is only included in GUILE_DEBUG_FREELIST builds of Guile.")
+            "`map-free-list' is only included in --enable-guile-debug builds of Guile.")
 #define FUNC_NAME s_scm_map_free_list
 {
   fprintf (stderr, "%d segments total\n", scm_n_heap_segs);
@@ -327,6 +327,54 @@ SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
   fflush (stderr);
 
   return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+static int
+free_list_length (char *title, int i, SCM freelist)
+{
+  SCM ls;
+  int n = 0;
+  for (ls = freelist; SCM_NNULLP (ls); ls = SCM_CDR (ls))
+    if (SCM_UNPACK_CAR (ls) == scm_tc_free_cell)
+      ++n;
+    else
+      {
+	fprintf (stderr, "bad cell in %s at position %d\n", title, n);
+	abort ();
+      }
+  if (i >= 0)
+    fprintf (stderr, "%s %d\t%d\n", title, i, n);
+  else
+    fprintf (stderr, "%s\t%d\n", title, n);
+  return n;
+}
+
+static void
+free_list_lengths (char *title, scm_freelist_t *master, SCM freelist)
+{
+  SCM clusters;
+  int i = 0, n = 0;
+  fprintf (stderr, "%s\n\n", title);
+  n += free_list_length ("free list", -1, freelist);
+  for (clusters = master->clusters;
+       SCM_NNULLP (clusters);
+       clusters = SCM_CDR (clusters))
+    n += free_list_length ("cluster", i++, SCM_CAR (clusters));
+  fprintf (stderr, "\ntotal %d cells\n\n", n);
+}
+
+SCM_DEFINE (scm_free_list_length, "free-list-length", 0, 0, 0, 
+            (),
+            "Print debugging information about the free-list.\n"
+            "`free-list-length' is only included in --enable-guile-debug builds of Guile.")
+#define FUNC_NAME s_scm_free_list_length
+{
+#ifdef GUILE_NEW_GC_SCHEME
+  free_list_lengths ("1-words", &scm_master_freelist, scm_freelist);
+  free_list_lengths ("2-words", &scm_master_freelist2, scm_freelist2);
+  return SCM_UNSPECIFIED;
+#endif
 }
 #undef FUNC_NAME
 
@@ -1326,7 +1374,7 @@ scm_gc_sweep ()
       register scm_sizet n = 0;
       register scm_sizet j;
 #ifdef GUILE_NEW_GC_SCHEME
-      register scm_sizet n_objects;
+      register int n_objects;
 #endif
 
       /* Unmarked cells go onto the front of the freelist this heap
@@ -1549,7 +1597,7 @@ scm_gc_sweep ()
 	      hp_freelist->clustertail = SCM_CDRLOC (scmptr);
 		  
 	      nfreelist = SCM_EOL;
-	      n += span * (hp_freelist->gc_trigger - n_objects + 1);
+	      n += span * (hp_freelist->gc_trigger - n_objects);
 	      n_objects = hp_freelist->gc_trigger;
 	    }
 	  else

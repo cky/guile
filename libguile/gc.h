@@ -113,6 +113,7 @@ extern unsigned long scm_mtrigger;
 
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
 extern SCM scm_map_free_list (void);
+extern SCM scm_free_list_length (void);
 #endif
 #ifdef GUILE_DEBUG_FREELIST
 extern SCM scm_debug_newcell (void);
