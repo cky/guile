@@ -49,11 +49,12 @@
 extern void scm_add_feature (char* str);
 extern SCM scm_program_arguments (void);
 extern void scm_set_program_arguments (int argc, char **argv, char *first);
-extern SCM scm_make_hook (void);
-extern SCM scm_make_named_hook (char* name);
+extern SCM scm_make_hook (SCM n_args);
+extern SCM scm_make_named_hook (char* name, int n_args);
 extern SCM scm_add_hook_x (SCM hook, SCM thunk, SCM appendp);
 extern SCM scm_remove_hook_x (SCM hook, SCM thunk);
-extern SCM scm_run_hooks (SCM hooks);
+extern SCM scm_reset_hook_x (SCM hook);
+extern SCM scm_run_hook (SCM hook, SCM args);
 extern void scm_init_feature (void);
 
 #endif  /* FEATUREH */
