@@ -36,8 +36,8 @@
 
 typedef struct scm_t_cell
 {
-  scm_t_bits word_0;
-  scm_t_bits word_1;
+  SCM word_0;
+  SCM word_1;
 } scm_t_cell;
 
 /*
@@ -45,19 +45,19 @@ typedef struct scm_t_cell
 
   A card is a small `page' of memory; it will be the unit for lazy
   sweeping, generations, etc. The first cell of a card contains a
-  pointer to the mark bitvector, so that we can find the bitvector efficiently: we
-  knock off some lowerorder bits.
+  pointer to the mark bitvector, so that we can find the bitvector
+  efficiently: we knock off some lowerorder bits.
 
-  The size on a 32 bit machine is 256 cells = 2kb. The card 
+  The size on a 32 bit machine is 256 cells = 2kb. The card [XXX]
 */
 
 
 
-/* Cray machines have pointers that are incremented once for each word,
- * rather than each byte, the 3 most significant bits encode the byte
- * within the word.  The following macros deal with this by storing the
- * native Cray pointers like the ones that looks like scm expects.  This
- * is done for any pointers that might appear in the car of a scm_t_cell,
+/* Cray machines have pointers that are incremented once for each
+ * word, rather than each byte, the 3 most significant bits encode the
+ * byte within the word.  The following macros deal with this by
+ * storing the native Cray pointers like the ones that looks like scm
+ * expects.  This is done for any pointers that point to a cell,
  * pointers to scm_vector elts, functions, &c are not munged.
  */
 #ifdef _UNICOS
@@ -75,19 +75,17 @@ typedef struct scm_t_cell
 
 #define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_long *) ((card)->word_0))
 #define SCM_GC_SET_CARD_BVEC(card, bvec) \
-    ((card)->word_0 = (scm_t_bits) (bvec))
-
-
+    ((card)->word_0 = (SCM) (bvec))
 #define SCM_GC_GET_CARD_FLAGS(card) ((long) ((card)->word_1))
 #define SCM_GC_SET_CARD_FLAGS(card, flags) \
-    ((card)->word_1 = (scm_t_bits) (flags))
-#define SCM_GC_CLEAR_CARD_FLAGS(card) (SCM_GC_SET_CARD_FLAGS (card, 0L))
+    ((card)->word_1 = (SCM) (flags))
 
-#define SCM_GC_GET_CARD_FLAG(card, shift) (SCM_GC_GET_CARD_FLAGS (card) & (1L << (shift)))
+#define SCM_GC_GET_CARD_FLAG(card, shift) \
+ (SCM_GC_GET_CARD_FLAGS (card) & (1L << (shift)))
 #define SCM_GC_SET_CARD_FLAG(card, shift) \
-    (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) | (1L << (shift))))
+ (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) | (1L << (shift))))
 #define SCM_GC_CLEAR_CARD_FLAG(card, shift) \
-    (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) & ~(1L << (shift))))
+ (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) & ~(1L << (shift))))
 
 /*
   Remove card flags. They hamper lazy initialization, and aren't used
@@ -97,7 +95,7 @@ typedef struct scm_t_cell
 /* card addressing. for efficiency, cards are *always* aligned to
    SCM_GC_CARD_SIZE. */
 
-#define SCM_GC_CARD_SIZE_MASK  (SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell) - 1)
+#define SCM_GC_CARD_SIZE_MASK  (SCM_GC_SIZEOF_CARD-1)
 #define SCM_GC_CARD_ADDR_MASK  (~SCM_GC_CARD_SIZE_MASK)
 
 #define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
@@ -143,15 +141,14 @@ typedef unsigned long scm_t_c_bvec_long;
  * in debug mode.  In particular these macros will even work for free cells,
  * which should never be encountered by user code.  */
 
-#define SCM_GC_CELL_WORD(x, n) \
-  (((const scm_t_bits *) SCM2PTR (x)) [n])
-#define SCM_GC_CELL_OBJECT(x, n) \
-  (SCM_PACK (((const scm_t_bits *) SCM2PTR (x)) [n]))
-#define SCM_GC_SET_CELL_WORD(x, n, v) \
-  (((scm_t_bits *) SCM2PTR (x)) [n] = (scm_t_bits) (v))
-#define SCM_GC_SET_CELL_OBJECT(x, n, v) \
- (((scm_t_bits *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
-#define SCM_GC_CELL_TYPE(x) SCM_GC_CELL_OBJECT (x, 0) /* ugh - only used twice. */
+#define SCM_GC_CELL_OBJECT(x, n) (((SCM *)SCM2PTR (x)) [n])
+#define SCM_GC_CELL_WORD(x, n)   (SCM_UNPACK (SCM_GC_CELL_OBJECT ((x), (n))))
+
+#define SCM_GC_SET_CELL_OBJECT(x, n, v) ((((SCM *)SCM2PTR (x)) [n]) = (v))
+#define SCM_GC_SET_CELL_WORD(x, n, v)  \
+  (SCM_GC_SET_CELL_OBJECT ((x), (n), SCM_PACK (v)))
+
+#define SCM_GC_CELL_TYPE(x) (SCM_GC_CELL_OBJECT ((x), 0))
 
 
 /* Except for the garbage collector, no part of guile should ever run over a
@@ -169,34 +166,34 @@ typedef unsigned long scm_t_c_bvec_long;
 
 #define SCM_CELL_WORD(x, n) \
   SCM_VALIDATE_CELL ((x), SCM_GC_CELL_WORD ((x), (n)))
-#define SCM_CELL_WORD_0(x) SCM_CELL_WORD (x, 0)
-#define SCM_CELL_WORD_1(x) SCM_CELL_WORD (x, 1)
-#define SCM_CELL_WORD_2(x) SCM_CELL_WORD (x, 2)
-#define SCM_CELL_WORD_3(x) SCM_CELL_WORD (x, 3)
+#define SCM_CELL_WORD_0(x) SCM_CELL_WORD ((x), 0)
+#define SCM_CELL_WORD_1(x) SCM_CELL_WORD ((x), 1)
+#define SCM_CELL_WORD_2(x) SCM_CELL_WORD ((x), 2)
+#define SCM_CELL_WORD_3(x) SCM_CELL_WORD ((x), 3)
 
 #define SCM_CELL_OBJECT(x, n) \
   SCM_VALIDATE_CELL ((x), SCM_GC_CELL_OBJECT ((x), (n)))
-#define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT (x, 0)
-#define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT (x, 1)
-#define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT (x, 2)
-#define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT (x, 3)
+#define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT ((x), 0)
+#define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT ((x), 1)
+#define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT ((x), 2)
+#define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT ((x), 3)
 
 #define SCM_SET_CELL_WORD(x, n, v) \
   SCM_VALIDATE_CELL ((x), SCM_GC_SET_CELL_WORD ((x), (n), (v)))
-#define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD (x, 0, v)
-#define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD (x, 1, v)
-#define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD (x, 2, v)
-#define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD (x, 3, v)
+#define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD ((x), 0, (v))
+#define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD ((x), 1, (v))
+#define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD ((x), 2, (v))
+#define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD ((x), 3, (v))
 
 #define SCM_SET_CELL_OBJECT(x, n, v) \
   SCM_VALIDATE_CELL ((x), SCM_GC_SET_CELL_OBJECT ((x), (n), (v)))
-#define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT (x, 0, v)
-#define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT (x, 1, v)
-#define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT (x, 2, v)
-#define SCM_SET_CELL_OBJECT_3(x, v) SCM_SET_CELL_OBJECT (x, 3, v)
+#define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT ((x), 0, (v))
+#define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT ((x), 1, (v))
+#define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT ((x), 2, (v))
+#define SCM_SET_CELL_OBJECT_3(x, v) SCM_SET_CELL_OBJECT ((x), 3, (v))
 
 #define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
-#define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 (x, t)
+#define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 ((x), (t))
 
 /* Freelists consist of linked cells where the type entry holds the value
  * scm_tc_free_cell and the second entry holds a pointer to the next cell of
@@ -217,9 +214,9 @@ typedef unsigned long scm_t_c_bvec_long;
   (SCM_GC_SET_CELL_OBJECT ((x), 1, (v)))
 
 
-#define SCM_CELL_WORD_LOC(x, n) ((scm_t_bits *) & SCM_CELL_WORD (x, n))
-#define SCM_CARLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 0))
-#define SCM_CDRLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 1))
+#define SCM_CELL_OBJECT_LOC(x, n) (&SCM_CELL_OBJECT ((x), (n)))
+#define SCM_CARLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 0))
+#define SCM_CDRLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 1))
 
 
 
