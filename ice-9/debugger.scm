@@ -45,14 +45,30 @@
 	  (read-and-dispatch-commands state (current-input-port)))
 	(display "Nothing to debug.\n"))))
 
+(define (debugger-handler key . args)
+  (case key
+    ((exit-debugger) #f)
+    ((signal)
+     ;; Restore stack
+     (fluid-set! the-last-stack (fluid-ref before-signal-stack))
+     (apply display-error #f (current-error-port) args))
+    (else
+     (display "Internal debugger error:\n")
+     (save-stack debugger-handler)
+     (apply throw key args)))
+  (throw 'exit-debugger))		;Pop the stack
+
 (define (read-and-dispatch-commands state port)
   (catch 'exit-debugger
-	 (lambda ()
-	   (with-fluids ((last-command #f))
-	     (let loop ((state state))
-	       (loop (read-and-dispatch-command state port)))))
-	 (lambda arguments
-	   'done)))
+    (lambda ()
+      (lazy-catch #t
+        (lambda ()
+	  (with-fluids ((last-command #f))
+	    (let loop ((state state))
+	      (loop (read-and-dispatch-command state port)))))
+	debugger-handler))
+    (lambda args
+      *unspecified*)))
 
 (define (read-and-dispatch-command state port)
   (if (using-readline?)
@@ -550,13 +566,13 @@ frames that were created more recently.  N defaults to one."
 (define (eval-handler key . args)
   (let ((stack (make-stack #t eval-handler)))
     (if (= (length args) 4)
-	(apply display-error stack (current-output-port) args)
+	(apply display-error stack (current-error-port) args)
 	;; We want display-error to be the "final common pathway"
 	(catch #t
 	       (lambda ()
 		 (apply bad-throw key args))
 	       (lambda (key . args)
-		 (apply display-error stack (current-output-port) args)))))
+		 (apply display-error stack (current-error-port) args)))))
   (throw 'continue))
 
 (define-command "evaluate" '(object)
