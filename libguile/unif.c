@@ -313,9 +313,10 @@ scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val)
   pos += h->base;
   if (SCM_ARRAYP (h->array))
     scm_c_generalized_vector_set_x (SCM_ARRAY_V (h->array), pos, val);
-  if (SCM_ENCLOSED_ARRAYP (h->array))
+  else if (SCM_ENCLOSED_ARRAYP (h->array))
     scm_wrong_type_arg_msg (NULL, 0, h->array, "non-enclosed array");
-  scm_c_generalized_vector_set_x (h->array, pos, val);
+  else
+    scm_c_generalized_vector_set_x (h->array, pos, val);
 }
 
 const SCM *
@@ -2246,7 +2247,7 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 #undef FUNC_NAME
 
 
-static int l2ra(SCM lst, SCM ra, unsigned long base, unsigned long k);
+static void l2ra (SCM lst, scm_t_array_handle *handle, ssize_t pos, size_t k);
 
 SCM_DEFINE (scm_list_to_typed_array, "list->typed-array", 3, 0, 0,
            (SCM type, SCM ndim, SCM lst),
@@ -2262,7 +2263,7 @@ SCM_DEFINE (scm_list_to_typed_array, "list->typed-array", 3, 0, 0,
 {
   SCM shape, row;
   SCM ra;
-  unsigned long k;
+  scm_t_array_handle handle;
 
   shape = SCM_EOL;
   row = lst;
@@ -2296,24 +2297,11 @@ SCM_DEFINE (scm_list_to_typed_array, "list->typed-array", 3, 0, 0,
   ra = scm_make_typed_array (type, SCM_UNSPECIFIED,
 			     scm_reverse_x (shape, SCM_EOL));
 
-  if (scm_is_null (shape))
-    {
-      SCM_ASRTGO (1 == scm_ilength (lst), badlst);
-      scm_array_set_x (ra, SCM_CAR (lst), SCM_EOL);
-      return ra;
-    }
-  if (!SCM_ARRAYP (ra))
-    {
-      size_t length = scm_c_generalized_vector_length (ra);
-      for (k = 0; k < length; k++, lst = SCM_CDR (lst))
-	scm_c_generalized_vector_set_x (ra, k, SCM_CAR (lst));
-      return ra;
-    }
-  if (l2ra (lst, ra, SCM_ARRAY_BASE (ra), 0))
-    return ra;
-  else
-    badlst:SCM_MISC_ERROR ("Bad scm_array contents list: ~S",
-			   scm_list_1 (lst));
+  scm_array_get_handle (ra, &handle);
+  l2ra (lst, &handle, 0, 0);
+  scm_array_handle_release (&handle);
+
+  return ra;
 }
 #undef FUNC_NAME
 
@@ -2326,41 +2314,31 @@ SCM_DEFINE (scm_list_to_array, "list->array", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-static int 
-l2ra (SCM lst, SCM ra, unsigned long base, unsigned long k)
+static void
+l2ra (SCM lst, scm_t_array_handle *handle, ssize_t pos, size_t k)
 {
-  register long inc = SCM_ARRAY_DIMS (ra)[k].inc;
-  register long n = (1 + SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd);
-  int ok = 1;
-  if (n <= 0)
-    return (scm_is_null (lst));
-  if (k < SCM_ARRAY_NDIM (ra) - 1)
-    {
-      while (n--)
-	{
-	  if (!scm_is_pair (lst))
-	    return 0;
-	  ok = ok && l2ra (SCM_CAR (lst), ra, base, k + 1);
-	  base += inc;
-	  lst = SCM_CDR (lst);
-	}
-      if (!scm_is_null (lst))
- return 0;
-    }
+  if (k == scm_array_handle_rank (handle))
+    scm_array_handle_set (handle, pos, lst);
   else
     {
-      while (n--)
+      scm_t_array_dim *dim = scm_array_handle_dims (handle) + k;
+      ssize_t inc = dim->inc;
+      size_t n = 1 + dim->ubnd - dim->lbnd;
+
+      while (n > 0 && scm_is_pair (lst))
 	{
-	  if (!scm_is_pair (lst))
-	    return 0;
-	  scm_array_set_x (SCM_ARRAY_V (ra), SCM_CAR (lst), scm_from_ulong (base));
-	  base += inc;
+	  l2ra (SCM_CAR (lst), handle, pos, k + 1);
+	  pos += inc;
 	  lst = SCM_CDR (lst);
+	  n -= 1;
 	}
+      if (n != 0)
+	scm_misc_error (NULL, "too few elements for array dimension ~a",
+			scm_list_1 (scm_from_ulong (k)));
       if (!scm_is_null (lst))
-	return 0;
+	scm_misc_error (NULL, "too many elements for array dimension ~a",
+			scm_list_1 (scm_from_ulong (k)));
     }
-  return ok;
 }
 
 #if SCM_ENABLE_DEPRECATED
