@@ -8,6 +8,12 @@ Please send bug reports to bug-guile@gnu.org.
 
 About This Distribution ==============================================
 
+Interesting files include:
+- INSTALL, which contains instructions on building and installing Guile.
+- NEWS, which describes user-visible changes since the last release of Guile.
+- COPYING, which describes the terms under which you may redistribute
+  Guile, and explains that there is no warranty.
+
 Building and installing this distribution gives you:
 guile --- a stand-alone interpreter for Guile, usually installed in
 	/usr/local/bin.  With no arguments, this is a simple
@@ -31,12 +37,6 @@ ice-9, ice-9/*.scm --- run-time support for Guile: the module
 	/usr/local/share/guile/<version>.
 data-rep.info --- An essay on how to write C code that works with
 	Guile Scheme values.
-
-Interesting files include:
-- INSTALL, which contains instructions on building and installing Guile.
-- NEWS, which describes user-visible changes since the last release of Guile.
-- COPYING, which describes the terms under which you may redistribute
-  Guile, and explains that there is no warranty.
 
 The Guile source tree is laid out as follows:
 
