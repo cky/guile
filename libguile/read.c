@@ -297,19 +297,19 @@ tryagain_no_flush_ws:
       goto tryagain;
     
     case '\'':
-      p = scm_i_quote;
+      p = scm_sym_quote;
       goto recquote;
     case '`':
-      p = scm_i_quasiquote;
+      p = scm_sym_quasiquote;
       goto recquote;
     case ',':
       c = scm_getc (port);
       if ('@' == c)
-	p = scm_i_uq_splicing;
+	p = scm_sym_uq_splicing;
       else
 	{
 	  scm_ungetc (c, port);
-	  p = scm_i_unquote;
+	  p = scm_sym_unquote;
 	}
     recquote:
       p = scm_cons2 (p,
@@ -629,7 +629,7 @@ scm_lreadparen (tok_buf, port, name, copy)
   if (')' == c)
     return SCM_EOL;
   scm_ungetc (c, port);
-  if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
+  if (scm_sym_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
     {
       ans = scm_lreadr (tok_buf, port, copy);
     closeit:
@@ -641,7 +641,7 @@ scm_lreadparen (tok_buf, port, name, copy)
   while (')' != (c = scm_flush_ws (port, name)))
     {
       scm_ungetc (c, port);
-      if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
+      if (scm_sym_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
 	{
 	  SCM_SETCDR (tl, scm_lreadr (tok_buf, port, copy));
 	  goto closeit;
@@ -672,7 +672,7 @@ scm_lreadrecparen (tok_buf, port, name, copy)
   if (')' == c)
     return SCM_EOL;
   scm_ungetc (c, port);
-  if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
+  if (scm_sym_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
     {
       ans = scm_lreadr (tok_buf, port, copy);
       if (')' != (c = scm_flush_ws (port, name)))
@@ -689,7 +689,7 @@ scm_lreadrecparen (tok_buf, port, name, copy)
   while (')' != (c = scm_flush_ws (port, name)))
     {
       scm_ungetc (c, port);
-      if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
+      if (scm_sym_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
 	{
 	  SCM_SETCDR (tl, tmp = scm_lreadr (tok_buf, port, copy));
 	  if (SCM_COPY_SOURCE_P)

@@ -111,13 +111,13 @@ typedef struct scm_srcprops_chunk
 		    && SRCPROPSP (t.arg1)\
 		    && (1L << 16) & SCM_CAR (t.arg1))
 
-#define PROCTRACEP(x) SCM_NFALSEP (scm_procedure_property (x, scm_i_trace))
+#define PROCTRACEP(x) SCM_NFALSEP (scm_procedure_property (x, scm_sym_trace))
 
-extern SCM scm_i_filename;
-extern SCM scm_i_copy;
-extern SCM scm_i_line;
-extern SCM scm_i_column;
-extern SCM scm_i_breakpoint;
+extern SCM scm_sym_filename;
+extern SCM scm_sym_copy;
+extern SCM scm_sym_line;
+extern SCM scm_sym_column;
+extern SCM scm_sym_breakpoint;
 
 
 

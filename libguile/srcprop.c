@@ -70,11 +70,11 @@
  *
  */
 
-SCM scm_i_filename;
-SCM scm_i_copy;
-SCM scm_i_line;
-SCM scm_i_column;
-SCM scm_i_breakpoint;
+SCM scm_sym_filename;
+SCM scm_sym_copy;
+SCM scm_sym_line;
+SCM scm_sym_column;
+SCM scm_sym_breakpoint;
 
 long scm_tc16_srcprops;
 static scm_srcprops_chunk *srcprops_chunklist = 0;
@@ -166,12 +166,12 @@ scm_srcprops_to_plist (obj)
 {
   SCM plist = SRCPROPPLIST (obj);
   if (!SCM_UNBNDP (SRCPROPCOPY (obj)))
-    plist = scm_acons (scm_i_copy, SRCPROPCOPY (obj), plist);
+    plist = scm_acons (scm_sym_copy, SRCPROPCOPY (obj), plist);
   if (!SCM_UNBNDP (SRCPROPFNAME (obj)))
-    plist = scm_acons (scm_i_filename, SRCPROPFNAME (obj), plist);
-  plist = scm_acons (scm_i_column, SCM_MAKINUM (SRCPROPCOL (obj)), plist);
-  plist = scm_acons (scm_i_line, SCM_MAKINUM (SRCPROPLINE (obj)), plist);
-  plist = scm_acons (scm_i_breakpoint, SRCPROPBRK (obj), plist);
+    plist = scm_acons (scm_sym_filename, SRCPROPFNAME (obj), plist);
+  plist = scm_acons (scm_sym_column, SCM_MAKINUM (SRCPROPCOL (obj)), plist);
+  plist = scm_acons (scm_sym_line, SCM_MAKINUM (SRCPROPLINE (obj)), plist);
+  plist = scm_acons (scm_sym_breakpoint, SRCPROPBRK (obj), plist);
   return plist;
 }
 
@@ -235,11 +235,11 @@ scm_source_property (obj, key)
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (SCM_IMP (p) || !SRCPROPSP (p))
     goto plist;
-  if      (scm_i_breakpoint == key) p = SRCPROPBRK (p);
-  else if (scm_i_line       == key) p = SCM_MAKINUM (SRCPROPLINE (p));
-  else if (scm_i_column     == key) p = SCM_MAKINUM (SRCPROPCOL (p));
-  else if (scm_i_filename   == key) p = SRCPROPFNAME (p);
-  else if (scm_i_copy       == key) p = SRCPROPCOPY (p);
+  if      (scm_sym_breakpoint == key) p = SRCPROPBRK (p);
+  else if (scm_sym_line       == key) p = SCM_MAKINUM (SRCPROPLINE (p));
+  else if (scm_sym_column     == key) p = SCM_MAKINUM (SRCPROPCOL (p));
+  else if (scm_sym_filename   == key) p = SRCPROPFNAME (p);
+  else if (scm_sym_copy       == key) p = SRCPROPCOPY (p);
   else
     {
       p = SRCPROPPLIST (p);
@@ -275,7 +275,7 @@ scm_set_source_property_x (obj, key, datum)
       h = scm_whash_create_handle (scm_source_whash, obj);
       p = SCM_EOL;
     }
-  if (scm_i_breakpoint == key)
+  if (scm_sym_breakpoint == key)
     {
       if (SCM_FALSEP (datum))
 	CLEARSRCPROPBRK (SCM_NIMP (p) && SRCPROPSP (p)
@@ -296,7 +296,7 @@ scm_set_source_property_x (obj, key, datum)
 							  SCM_UNDEFINED,
 							  p)));
     }
-  else if (scm_i_line == key)
+  else if (scm_sym_line == key)
     {
       SCM_ASSERT (SCM_INUMP (datum),
 		  datum, SCM_ARG3, s_set_source_property_x);
@@ -307,7 +307,7 @@ scm_set_source_property_x (obj, key, datum)
 		      scm_make_srcprops (SCM_INUM (datum), 0,
 					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
-  else if (scm_i_column == key)
+  else if (scm_sym_column == key)
     {
       SCM_ASSERT (SCM_INUMP (datum),
 		  datum, SCM_ARG3, s_set_source_property_x);
@@ -318,14 +318,14 @@ scm_set_source_property_x (obj, key, datum)
 		      scm_make_srcprops (0, SCM_INUM (datum),
 					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
-  else if (scm_i_filename == key)
+  else if (scm_sym_filename == key)
     {
       if (SCM_NIMP (p) && SRCPROPSP (p))
 	SRCPROPFNAME (p) = datum;
       else
 	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, datum, SCM_UNDEFINED, p));
     }
-  else if (scm_i_filename == key)
+  else if (scm_sym_filename == key)
     {
       if (SCM_NIMP (p) && SRCPROPSP (p))
 	SRCPROPCOPY (p) = datum;
@@ -345,11 +345,11 @@ scm_init_srcprop ()
                                          marksrcprops, freesrcprops, prinsrcprops, NULL);
   scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (2047));
 
-  scm_i_filename = SCM_CAR (scm_sysintern ("filename", SCM_UNDEFINED));
-  scm_i_copy = SCM_CAR (scm_sysintern ("copy", SCM_UNDEFINED));
-  scm_i_line = SCM_CAR (scm_sysintern ("line", SCM_UNDEFINED));
-  scm_i_column = SCM_CAR (scm_sysintern ("column", SCM_UNDEFINED));
-  scm_i_breakpoint = SCM_CAR (scm_sysintern ("breakpoint", SCM_UNDEFINED));
+  scm_sym_filename = SCM_CAR (scm_sysintern ("filename", SCM_UNDEFINED));
+  scm_sym_copy = SCM_CAR (scm_sysintern ("copy", SCM_UNDEFINED));
+  scm_sym_line = SCM_CAR (scm_sysintern ("line", SCM_UNDEFINED));
+  scm_sym_column = SCM_CAR (scm_sysintern ("column", SCM_UNDEFINED));
+  scm_sym_breakpoint = SCM_CAR (scm_sysintern ("breakpoint", SCM_UNDEFINED));
 
   scm_sysintern ("source-whash", scm_source_whash);
 #include "srcprop.x"
