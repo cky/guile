@@ -246,7 +246,7 @@ scm_call_with_new_thread (SCM argl)
 		handler,
 		SCM_ARG2,
 		s_call_with_new_thread);
-    if (!SCM_NULLP (SCM_CDR (args))
+    if (!SCM_NULLP (SCM_CDR (args)))
       SCM_WRONG_NUM_ARGS ();
   }
 
