@@ -468,24 +468,11 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
 {
   SCM full_filename;
 
-  SCM_VALIDATE_STRING (1, filename);
-
   full_filename = scm_sys_search_load_path (filename);
 
   if (scm_is_false (full_filename))
-    {
-      int absolute = (SCM_STRING_LENGTH (filename) >= 1
-#ifdef __MINGW32__
-		      && (SCM_STRING_CHARS (filename)[0] == '/' || 
-			  SCM_STRING_CHARS (filename)[0] == '\\'));
-#else
-		      && SCM_STRING_CHARS (filename)[0] == '/');
-#endif
-      SCM_MISC_ERROR ((absolute
-		       ? "Unable to load file ~S"
-		       : "Unable to find file ~S in load path"),
-		      scm_list_1 (filename));
-    }
+    SCM_MISC_ERROR ("Unable to find file ~S in load path",
+		    scm_list_1 (filename));
 
   return scm_primitive_load (full_filename);
 }
