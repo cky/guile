@@ -1,3 +1,9 @@
+2004-08-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* standalone/test-conversion.c, standalone/test-gh.c,
+	standalone/test-unwind.c: Avoid the use of discouraged or
+	deprecated things.
+
 2004-08-18  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/and-let-star.test, tests/arbiters.test, tests/receive.test:
