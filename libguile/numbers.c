@@ -4937,7 +4937,6 @@ scm_truncate (double x)
 #if HAVE_TRUNC
   return trunc (x);
 #else
-#define trunc scm_truncate
   if (x < 0.0)
     return -floor (-x);
   return floor (x);
