@@ -529,13 +529,13 @@ SCM_DEFINE (scm_array_rank, "array-rank", 1, 0, 0,
 	    "Return the number of dimensions of the array @var{array.}\n")
 #define FUNC_NAME s_scm_array_rank
 {
-  if (scm_is_generalized_vector (array))
-    return scm_from_int (1);
+  scm_t_array_handle handle;
+  SCM res;
 
-  if (SCM_ARRAYP (array) || SCM_ENCLOSED_ARRAYP (array))
-    return scm_from_size_t (SCM_ARRAY_NDIM (array));
-    
-  scm_wrong_type_arg_msg (NULL, 0, array, "array");
+  scm_array_get_handle (array, &handle);
+  res = scm_from_size_t (scm_array_handle_rank (&handle));
+  scm_array_handle_release (&handle);
+  return res;
 }
 #undef FUNC_NAME
 
@@ -549,28 +549,25 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_array_dimensions
 {
-  if (scm_is_generalized_vector (ra))
-    return scm_list_1 (scm_generalized_vector_length (ra));
-
-  if (SCM_ARRAYP (ra) || SCM_ENCLOSED_ARRAYP (ra))
-    {
-      SCM res = SCM_EOL;
-      size_t k;
-      scm_t_array_dim *s;
+  scm_t_array_handle handle;
+  scm_t_array_dim *s;
+  SCM res = SCM_EOL;
+  size_t k;
       
-      k = SCM_ARRAY_NDIM (ra);
-      s = SCM_ARRAY_DIMS (ra);
-      while (k--)
-	res = scm_cons (s[k].lbnd
-			? scm_cons2 (scm_from_long (s[k].lbnd),
-				     scm_from_long (s[k].ubnd),
-				     SCM_EOL)
-			: scm_from_long (1 + s[k].ubnd),
-			res);
-      return res;
-    }
+  scm_array_get_handle (ra, &handle);
+  s = scm_array_handle_dims (&handle);
+  k = scm_array_handle_rank (&handle);
 
-  scm_wrong_type_arg_msg (NULL, 0, ra, "array");
+  while (k--)
+    res = scm_cons (s[k].lbnd
+		    ? scm_cons2 (scm_from_ssize_t (s[k].lbnd),
+				 scm_from_ssize_t (s[k].ubnd),
+				 SCM_EOL)
+		    : scm_from_ssize_t (1 + s[k].ubnd),
+		    res);
+
+  scm_array_handle_release (&handle);
+  return res;
 }
 #undef FUNC_NAME
 
@@ -580,9 +577,11 @@ SCM_DEFINE (scm_shared_array_root, "shared-array-root", 1, 0, 0,
 	    "Return the root vector of a shared array.")
 #define FUNC_NAME s_scm_shared_array_root
 {
-  SCM_ASSERT (SCM_ARRAYP (ra) || SCM_ENCLOSED_ARRAYP (ra), ra,
-	      SCM_ARG1, FUNC_NAME);
-  return SCM_ARRAY_V (ra);
+  if (SCM_ARRAYP (ra) || SCM_ENCLOSED_ARRAYP (ra))
+    return SCM_ARRAY_V (ra);
+  else if (scm_is_generalized_vector (ra))
+    return ra;
+  scm_wrong_type_arg_msg (NULL, 0, ra, "array");
 }
 #undef FUNC_NAME
 
@@ -592,9 +591,13 @@ SCM_DEFINE (scm_shared_array_offset, "shared-array-offset", 1, 0, 0,
 	    "Return the root vector index of the first element in the array.")
 #define FUNC_NAME s_scm_shared_array_offset
 {
-  SCM_ASSERT (SCM_ARRAYP (ra) || SCM_ENCLOSED_ARRAYP (ra), ra,
-	      SCM_ARG1, FUNC_NAME);
-  return scm_from_int (SCM_ARRAY_BASE (ra));
+  scm_t_array_handle handle;
+  SCM res;
+
+  scm_array_get_handle (ra, &handle);
+  res = scm_from_size_t (handle.base);
+  scm_array_handle_release (&handle);
+  return res;
 }
 #undef FUNC_NAME
 
@@ -604,16 +607,17 @@ SCM_DEFINE (scm_shared_array_increments, "shared-array-increments", 1, 0, 0,
 	    "For each dimension, return the distance between elements in the root vector.")
 #define FUNC_NAME s_scm_shared_array_increments
 {
+  scm_t_array_handle handle;
   SCM res = SCM_EOL;
   size_t k;
   scm_t_array_dim *s;
 
-  SCM_ASSERT (SCM_ARRAYP (ra) || SCM_ENCLOSED_ARRAYP (ra), ra,
-	      SCM_ARG1, FUNC_NAME);
-  k = SCM_ARRAY_NDIM (ra);
-  s = SCM_ARRAY_DIMS (ra);
+  scm_array_get_handle (ra, &handle);
+  k = scm_array_handle_rank (&handle);
+  s = scm_array_handle_dims (&handle);
   while (k--)
-    res = scm_cons (scm_from_long (s[k].inc), res);
+    res = scm_cons (scm_from_ssize_t (s[k].inc), res);
+  scm_array_handle_release (&handle);
   return res;
 }
 #undef FUNC_NAME
@@ -656,6 +660,26 @@ scm_aind (SCM ra, SCM args, const char *what)
   return pos;
 }
 
+static ssize_t
+indices_to_pos (scm_t_array_handle *h, SCM indices)
+{
+  scm_t_array_dim *s = scm_array_handle_dims (h);
+  ssize_t pos = 0, i;
+  size_t k = scm_array_handle_rank (h);
+  
+  while (k > 0 && scm_is_pair (indices))
+    {
+      i = scm_to_signed_integer (SCM_CAR (indices), s->lbnd, s->ubnd);
+      pos += (i - s->lbnd) * s->inc;
+      k--;
+      s++;
+      indices = SCM_CDR (indices);
+    }
+  if (k > 0 || !scm_is_null (indices))
+    scm_misc_error (NULL, "wrong number of indices, expecting ~a",
+		    scm_list_1 (scm_from_size_t (scm_array_handle_rank (h))));
+  return pos;
+}
 
 static SCM 
 scm_i_make_ra (int ndim, scm_t_bits tag)
@@ -791,9 +815,6 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
 void 
 scm_ra_set_contp (SCM ra)
 {
-  /* XXX - correct?  one-dimensional arrays are always 'contiguous',
-     is that right?
-   */
   size_t k = SCM_ARRAY_NDIM (ra);
   if (k)
     {
@@ -1217,36 +1238,13 @@ SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
 	    "@var{array}.")
 #define FUNC_NAME s_scm_array_ref
 {
-  long pos;
-  int enclosed = 0;
+  scm_t_array_handle handle;
+  SCM res;
 
-  if (SCM_ARRAYP (v) || SCM_ENCLOSED_ARRAYP (v))
-    {
-      enclosed = SCM_ENCLOSED_ARRAYP (v);
-      pos = scm_aind (v, args, FUNC_NAME);
-      v = SCM_ARRAY_V (v);
-    }
-  else
-    {
-      size_t length;
-      if (SCM_NIMP (args))
-	{
-	  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG2, FUNC_NAME);
-	  pos = scm_to_long (SCM_CAR (args));
-	  SCM_ASRTGO (scm_is_null (SCM_CDR (args)), wna);
-	}
-      else
-	pos = scm_to_long (args);
-      length = scm_c_generalized_vector_length (v);
-      SCM_ASRTGO (pos >= 0 && pos < length, outrng);
-    }
-
-  return scm_i_cvref (v, pos, enclosed);
-
- wna:
-  scm_wrong_num_args (NULL);
- outrng:
-  scm_out_of_range (NULL, scm_from_long (pos));
+  scm_array_get_handle (v, &handle);
+  res = scm_array_handle_ref (&handle, indices_to_pos (&handle, args));
+  scm_array_handle_release (&handle);
+  return res;
 }
 #undef FUNC_NAME
 
@@ -1257,38 +1255,12 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 	    "@var{new-value}.  The value returned by array-set! is unspecified.")
 #define FUNC_NAME s_scm_array_set_x           
 {
-  long pos = 0;
+  scm_t_array_handle handle;
 
-  if (SCM_ARRAYP (v))
-    {
-      pos = scm_aind (v, args, FUNC_NAME);
-      v = SCM_ARRAY_V (v);
-    }
-  else if (SCM_ENCLOSED_ARRAYP (v))
-    scm_wrong_type_arg_msg (NULL, 0, v, "non-enclosed array");
-  else if (scm_is_generalized_vector (v))
-    {
-      size_t length;
-      if (scm_is_pair (args))
-	{
-	  SCM_ASRTGO (scm_is_null (SCM_CDR (args)), wna);
-	  pos = scm_to_long (SCM_CAR (args));
-	}
-      else
-	pos = scm_to_long (args);
-      length = scm_c_generalized_vector_length (v);
-      SCM_ASRTGO (pos >= 0 && pos < length, outrng);
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "array");
-    
-  scm_c_generalized_vector_set_x (v, pos, obj);
+  scm_array_get_handle (v, &handle);
+  scm_array_handle_set (&handle, indices_to_pos (&handle, args), obj);
+  scm_array_handle_release (&handle);
   return SCM_UNSPECIFIED;
-
- outrng:
-  scm_out_of_range (NULL, scm_from_long (pos));
- wna:
-  scm_wrong_num_args (NULL);
 }
 #undef FUNC_NAME
 
