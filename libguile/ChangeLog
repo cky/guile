@@ -3,7 +3,10 @@
 	* guardians.c (scm_guardian_zombify): mark all zombies in a
  	separate loop after processing all the currently known live
  	guardians, so as to not introduce order dependencies (thanks to
- 	Gary Houston).  also, make another outer loop to process zombified
+ 	Gary Houston).  note that the order problems are still there if
+	some guardians are themselves zombies, but that's a sick case that 
+	I'm not going to worry about.
+	also, make another outer loop to process zombified
  	guardians (which are uncovered while marking zombies).
 
 2000-04-03  Dirk Herrmann  <D.Herrmann@tu-bs.de>
