@@ -22,16 +22,13 @@
 ## Commentary:
 
 ## This fragment defines two variables: workbook and mscripts.
-## These are only defined in MAINTAINER_MODE.
 ## It can be included in any Makefile.am by adding the line:
 ##   include $(top_srcdir)/am/maintainer-dirs
 ## See $(workbook)/build/maintainer-dirs.text for more info.
 
 ## Code:
 
-if MAINTAINER_MODE
 workbook	= $(top_srcdir_absolute)/../workbook
 mscripts	= $(top_srcdir_absolute)/../scripts
-endif
 
 ## am/maintainer-dirs ends here
