@@ -152,7 +152,7 @@ start_stack (void *base)
 
   scm_exitval = SCM_BOOL_F;	/* vestigial */
 
-  scm_root->fluids = scm_make_initial_fluids ();
+  scm_root->fluids = scm_i_make_initial_fluids ();
 
   /* Create an object to hold the root continuation.
    */

@@ -112,7 +112,7 @@ scm_make_root (SCM parent)
   
   if (SCM_ROOTP (parent))
     /* Must be done here so that fluids are GC protected */
-    scm_copy_fluids (root_state);
+    scm_i_copy_fluids (root_state);
   
   return root;
 }

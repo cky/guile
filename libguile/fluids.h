@@ -76,10 +76,10 @@ SCM_API SCM scm_c_with_fluid (SCM fluid, SCM val,
 			      SCM (*cproc)(void *), void *cdata);
 SCM_API SCM scm_with_fluids (SCM fluids, SCM vals, SCM thunk);
 
-SCM_API SCM scm_make_initial_fluids (void);
-SCM_API void scm_copy_fluids (scm_root_state *);
-SCM_API void scm_swap_fluids (SCM fluids, SCM vals);
-SCM_API void scm_swap_fluids_reverse (SCM fluids, SCM vals);
+SCM_API SCM scm_i_make_initial_fluids (void);
+SCM_API void scm_i_copy_fluids (scm_root_state *);
+SCM_API void scm_i_swap_fluids (SCM fluids, SCM vals);
+SCM_API void scm_i_swap_fluids_reverse (SCM fluids, SCM vals);
 
 SCM_API void scm_init_fluids (void);
 

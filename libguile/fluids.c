@@ -35,7 +35,7 @@ static volatile long n_fluids;
 scm_t_bits scm_tc16_fluid;
 
 SCM
-scm_make_initial_fluids ()
+scm_i_make_initial_fluids ()
 {
   return scm_c_make_vector (INITIAL_FLUIDS, SCM_BOOL_F);
 }
@@ -65,7 +65,7 @@ grow_fluids (scm_root_state *root_state, int new_length)
 }
 
 void
-scm_copy_fluids (scm_root_state *root_state)
+scm_i_copy_fluids (scm_root_state *root_state)
 {
   grow_fluids (root_state, SCM_VECTOR_LENGTH (root_state->fluids));
 }
@@ -153,7 +153,7 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 #undef FUNC_NAME
 
 void
-scm_swap_fluids (SCM fluids, SCM vals)
+scm_i_swap_fluids (SCM fluids, SCM vals)
 {
   while (!SCM_NULL_OR_NIL_P (fluids))
     {
@@ -170,13 +170,13 @@ scm_swap_fluids (SCM fluids, SCM vals)
 same fluid appears multiple times in the fluids list. */
 
 void
-scm_swap_fluids_reverse (SCM fluids, SCM vals)
+scm_i_swap_fluids_reverse (SCM fluids, SCM vals)
 {
   if (!SCM_NULL_OR_NIL_P (fluids))
     {
       SCM fl, old_val;
 
-      scm_swap_fluids_reverse (SCM_CDR (fluids), SCM_CDR (vals));
+      scm_i_swap_fluids_reverse (SCM_CDR (fluids), SCM_CDR (vals));
       fl = SCM_CAR (fluids);
       old_val = scm_fluid_ref (fl);
       scm_fluid_set_x (fl, SCM_CAR (vals));
@@ -215,11 +215,11 @@ scm_c_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
   if (flen != vlen)
     scm_out_of_range (s_scm_with_fluids, values);
 
-  scm_swap_fluids (fluids, values);
+  scm_i_swap_fluids (fluids, values);
   scm_dynwinds = scm_acons (fluids, values, scm_dynwinds);
   ans = cproc (cdata);
   scm_dynwinds = SCM_CDR (scm_dynwinds);
-  scm_swap_fluids_reverse (fluids, values);
+  scm_i_swap_fluids_reverse (fluids, values);
   return ans;
 }
 #undef FUNC_NAME
