@@ -713,7 +713,7 @@
 ;;; name extensions listed in %load-extensions.
 (define (load-from-path name)
   (start-stack 'load-stack
-	       (primitive-load-path name #t read-sharp)))
+	       (primitive-load-path name)))
 
 
 
@@ -853,30 +853,59 @@
 				     (map string->symbol fields))))
 	 
 
-(define (read-sharp c port)
-  (define (barf)
-    (error "unknown # object" c))
+(read-hash-extend #\/ 
+		  (lambda (c port)
+		    (let ((look (peek-char port)))
+		      (if (or (eof-object? look)
+			      (and (char? look)
+				   (or (char-whitespace? look)
+				       (string-index ")" look))))
+			  '()
+			  (parse-path-symbol (read port))))))
+(read-hash-extend #\' (lambda (c port)
+			(read port)))
+(read-hash-extend #\. (lambda (c port)
+			(eval (read port))))
 
-  (case c
-    ((#\/) (let ((look (peek-char port)))
-	     (if (or (eof-object? look)
-		     (and (char? look)
-			  (or (char-whitespace? look)
-			      (string-index ")" look))))
-		 '()
-		 (parse-path-symbol (read port #t read-sharp)))))
-    ((#\') (read port #t read-sharp))
-    ((#\.) (eval (read port #t read-sharp)))
-    ((#\b) (read:uniform-vector #t port))
-    ((#\a) (read:uniform-vector #\a port))
-    ((#\u) (read:uniform-vector 1 port))
-    ((#\e) (read:uniform-vector -1 port))
-    ((#\s) (read:uniform-vector 1.0 port))
-    ((#\i) (read:uniform-vector 1/3 port))
-    ((#\c) (read:uniform-vector 0+i port))
-    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-     (read:array c port))
-    (else (barf))))
+(if (feature? 'array)
+    (begin
+      (let ((make-array-proc (lambda (template)
+			       (lambda (c port)
+				 (read:uniform-vector template port)))))
+	(for-each (lambda (char template)
+		    (read-hash-extend char
+				      (make-array-proc template)))
+		  '(#\b #\a #\u #\e #\s #\i #\c)
+		  '(#t  #\a 1   -1  1.0 1/3 0+i)))
+      (let ((array-proc (lambda (c port)
+			  (read:array c port))))
+	(for-each (lambda (char) (read-hash-extend char array-proc))
+		  '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)))))
+
+;(define (read-sharp c port)
+;  (define (barf)
+;    (error "unknown # object" c))
+
+;  (case c
+;    ((#\/) (let ((look (peek-char port)))
+;	     (if (or (eof-object? look)
+;		     (and (char? look)
+;			  (or (char-whitespace? look)
+;			      (string-index ")" look))))
+;		 '()
+;		 (parse-path-symbol (read port #t read-sharp)))))
+;    ((#\') (read port #t read-sharp))
+;    ((#\.) (eval (read port #t read-sharp)))
+;    ((#\b) (read:uniform-vector #t port))
+;    ((#\a) (read:uniform-vector #\a port))
+;    ((#\u) (read:uniform-vector 1 port))
+;    ((#\e) (read:uniform-vector -1 port))
+;    ((#\s) (read:uniform-vector 1.0 port))
+;    ((#\i) (read:uniform-vector 1/3 port))
+;    ((#\c) (read:uniform-vector 0+i port))
+;    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
+;     (read:array c port))
+;    (else (barf))))
 
 (define (read:array digit port)
   (define chr0 (char->integer #\0))
@@ -897,23 +926,13 @@
 			  ((#\c) 0+i)
 			  (else (error "read:array unknown option " c)))))))
     (if (eq? (peek-char port) #\()
-	(list->uniform-array rank prot (read port #t read-sharp))
+	(list->uniform-array rank prot (read port))
 	(error "read:array list not found"))))
 
 (define (read:uniform-vector proto port)
   (if (eq? #\( (peek-char port))
-      (list->uniform-array 1 proto (read port #t read-sharp))
+      (list->uniform-array 1 proto (read port))
       (error "read:uniform-vector list not found")))
-
-
-
-;;; {Dynamic Roots}
-;;;
-
-; mystery integers passed dynamic root error handlers
-(define repl-quit -1)
-(define repl-abort -2)
-
 
 
 ;;; {Command Line Options}
@@ -2018,9 +2037,9 @@
 ;;;
 
 (define (repl read evaler print)
-  (let loop ((source (read (current-input-port) #t read-sharp)))
+  (let loop ((source (read (current-input-port))))
     (print (evaler source))
-    (loop (read (current-input-port) #t read-sharp))))
+    (loop (read (current-input-port)))))
 
 ;; A provisional repl that acts like the SCM repl:
 ;;
@@ -2235,7 +2254,7 @@
 			  (force-output)
 			  (repl-report-reset)))
 		    (run-hooks before-read-hook)
-		    (let ((val (read (current-input-port) #t read-sharp)))
+		    (let ((val (read (current-input-port))))
 		      (run-hooks after-read-hook)
 		      (if (eof-object? val)
 			  (begin

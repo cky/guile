@@ -1,7 +1,7 @@
 ;;;; r4rs.scm --- definitions needed for libguile to be R4RS compliant
 ;;;; Jim Blandy <jimb@cyclic.com> --- October 1996
 
-;;;; 	Copyright (C) 1996 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -140,10 +140,6 @@
 
 (set! %load-hook %load-announce)
 
-;;; If we load boot-9.scm, it provides a definition for this which is
-;;; more sophisticated.
-(define read-sharp #f)
-
 (define (load name)
   (start-stack 'load-stack
-	       (primitive-load name #t read-sharp)))
+	       (primitive-load name)))

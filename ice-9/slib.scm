@@ -10,7 +10,7 @@
     (lambda (port)
       (let ((old-load-pathname *load-pathname*))
 	(set! *load-pathname* <filename>)
-	(do ((o (read port #t read-sharp) (read port #t read-sharp)))
+	(do ((o (read port) (read port)))
 	    ((eof-object? o))
 	  (evl o))
 	(set! *load-pathname* old-load-pathname)))))
