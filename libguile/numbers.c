@@ -712,7 +712,8 @@ scm_mkbig(nlen, sign)
      int sign;
 {
   SCM v = nlen;
-  if (((v << 16) >> 16) != nlen)
+  /* Cast to SCM to avoid signed/unsigned comparison warnings.  */
+  if (((v << 16) >> 16) != (SCM) nlen)
     scm_wta(SCM_MAKINUM(nlen), (char *)SCM_NALLOC, s_bignum);
   SCM_NEWCELL(v);
   SCM_DEFER_INTS;
@@ -746,13 +747,21 @@ scm_adjbig(b, nlen)
      SCM b;
      scm_sizet nlen;
 {
-  long nsiz = nlen;
-  if (((nsiz << 16) >> 16) != nlen) scm_wta(SCM_MAKINUM(nsiz), (char *)SCM_NALLOC, s_adjbig);
+  scm_sizet nsiz = nlen;
+  if (((nsiz << 16) >> 16) != nlen)
+    scm_wta (scm_ulong2num (nsiz), (char *)SCM_NALLOC, s_adjbig);
+
   SCM_DEFER_INTS;
-  SCM_SETCHARS(b, (SCM_BIGDIG *)scm_must_realloc((char *)SCM_CHARS(b),
-					 (long)(SCM_NUMDIGS(b)*sizeof(SCM_BIGDIG)),
-					 (long)(nsiz*sizeof(SCM_BIGDIG)), s_adjbig));
-  SCM_SETNUMDIGS(b, nsiz, SCM_TYP16(b));
+  {
+    SCM_BIGDIG *digits
+      = ((SCM_BIGDIG *)
+	 scm_must_realloc((char *)SCM_CHARS(b),
+			  (long)(SCM_NUMDIGS(b)*sizeof(SCM_BIGDIG)),
+			  (long)(nsiz*sizeof(SCM_BIGDIG)), s_adjbig));
+
+    SCM_SETCHARS (b, digits);
+    SCM_SETNUMDIGS (b, nsiz, SCM_TYP16(b));
+  }
   SCM_ALLOW_INTS;
   return b;
 }
@@ -903,14 +912,32 @@ scm_bigcomp(x, y)
   int xsign = SCM_BIGSIGN(x);
   int ysign = SCM_BIGSIGN(y);
   scm_sizet xlen, ylen;
+
+  /* Look at the signs, first.  */
   if (ysign < xsign) return 1;
   if (ysign > xsign) return -1;
-  if ((ylen = SCM_NUMDIGS(y)) > (xlen = SCM_NUMDIGS(x))) return (xsign) ? -1 : 1;
+
+  /* They're the same sign, so see which one has more digits.  Note
+     that, if they are negative, the longer number is the lesser.  */
+  ylen = SCM_NUMDIGS(y);
+  xlen = SCM_NUMDIGS(x);
+  if (ylen > xlen)
+    return (xsign) ? -1 : 1;
   if (ylen < xlen) return (xsign) ? 1 : -1;
-  while(xlen-- && (SCM_BDIGITS(y)[xlen]==SCM_BDIGITS(x)[xlen]));
-  if (-1==xlen) return 0;
-  return (SCM_BDIGITS(y)[xlen] > SCM_BDIGITS(x)[xlen]) ?
-    (xsign ? -1 : 1) : (xsign ? 1 : -1);
+
+  /* They have the same number of digits, so find the most significant
+     digit where they differ.  */
+  while (xlen)
+    {
+      --xlen;
+      if (SCM_BDIGITS (y)[xlen] != SCM_BDIGITS (x)[xlen])
+	/* Make the discrimination based on the digit that differs.  */
+	return (SCM_BDIGITS(y)[xlen] > SCM_BDIGITS(x)[xlen]) ?
+	  (xsign ? -1 : 1) : (xsign ? 1 : -1);
+    }
+
+  /* The numbers are identical.  */
+  return 0;
 }
 
 #ifndef SCM_DIGSTOOBIG
@@ -1550,7 +1577,9 @@ scm_istr2int(str, len, radix)
   else j = 1+(len*sizeof(char))/(SCM_BITSPERDIG);
   switch (str[0]) {		/* leading sign */
   case '-':
-  case '+': if (++i==len) return SCM_BOOL_F; /* bad if lone `+' or `-' */
+  case '+':
+    if (++i==(unsigned) len)
+      return SCM_BOOL_F; /* bad if lone `+' or `-' */
   }
   res = scm_mkbig(j, '-'==str[0]);
   ds = SCM_BDIGITS(res);
@@ -1583,7 +1612,7 @@ scm_istr2int(str, len, radix)
     default:
       return SCM_BOOL_F;		/* not a digit */
     }
-  } while (i < len);
+  } while (i < (unsigned) len);
   if (blen * SCM_BITSPERDIG/SCM_CHAR_BIT <= sizeof(SCM))
     if SCM_INUMP(res = scm_big2inum(res, blen)) return res;
   if (j==blen) return res;
