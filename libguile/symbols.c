@@ -183,7 +183,7 @@ SCM_DEFINE (scm_make_symbol, "make-symbol", 1, 0, 0,
 	    (SCM name),
 	    "Return a new uninterned symbol with the name @var{name}.  " 
 	    "The returned symbol is guaranteed to be unique and future "
-	    "calls to @code{string->symnbol} will not return it.")
+	    "calls to @code{string->symbol} will not return it.")
 #define FUNC_NAME s_scm_make_symbol
 {
   SCM sym;
