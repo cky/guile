@@ -380,8 +380,6 @@
                 obj, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_THREAD(pos, a) SCM_MAKE_VALIDATE_MSG (pos, a, THREADP, "thread")
-
 #define SCM_VALIDATE_THUNK(pos, thunk) \
   do { \
     SCM_ASSERT (!SCM_FALSEP (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
