@@ -58,6 +58,19 @@ turn on this extra processing only when necessary.
 
 * Changes to the stand-alone interpreter
 
+** Positions of erring expression in scripts
+
+With version 1.3.4, the location of the erring expression in Guile
+scipts is no longer automatically reported.  (This should have been
+documented before the 1.3.4 release.)
+
+You can get this information by enabling recording of positions of
+source expressions and running the debugging evaluator.  Put this at
+the top of your script (or in your "site" file):
+
+  (read-enable 'positions)
+  (debug-enable 'debug)
+
 ** Backtraces in scripts
 
 It is now possible to get backtraces in scripts.
