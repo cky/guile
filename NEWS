@@ -137,6 +137,10 @@ Returns #t if PORT is closed or #f if it is open.
 
 * Changes to the scm_ interface
 
+** Guile primitives now carry docstrings!
+
+Thanks to Greg Badros!
+
 ** Guile primitives are defined in a new way: GUILE_PROC/GUILE_PROC1
 
 Now Guile primitives are defined using the GUILE_PROC/GUILE_PROC1 macros
