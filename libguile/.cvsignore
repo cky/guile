@@ -9,7 +9,6 @@ gen-scmconfig.h
 *.la
 *.lo
 *.x
-.cvsignore
 .deps
 .libs
 Makefile
