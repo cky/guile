@@ -23,7 +23,7 @@ Automake 1.4 --- a system for automatically generating Makefiles that
 	`guile.m4' from the top directory of the Guile core disty to
 	`/usr/local/share/aclocal.
 
-libtool 1.3.4 --- a system for managing the zillion hairy options needed
+libtool 1.3.5 --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
 	"ftp://ftp.gnu.org/pub/gnu/libtool"
 

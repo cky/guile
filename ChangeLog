@@ -1,3 +1,10 @@
+2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* HACKING: Updated recommended libtool version to be 1.3.5.
+
+	* RELEASE: Say that we should update HACKING to reflect the
+	versions of the tools we're using rather than README.
+
 2000-06-02  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* NOTES: Removed.

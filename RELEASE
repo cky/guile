@@ -93,7 +93,7 @@ Spiffing checklist:
 * Make sure the downloading addresses and filenames in README are
   current.  (But don't bump the version number yet.  We do that below.)
 * Check that the versions of aclocal, automake, autoconf, and autoheader
-  in your PATH match those given in README.  Note that the `make
+  in your PATH match those given in HACKING.  Note that the `make
   dist' process always invokes these tools, even when all the
   generated files are up to date.
 * Rebuild all generated files in the source tree:
@@ -103,7 +103,7 @@ Spiffing checklist:
   + Run autoheader.
   + Run automake.
 * Verify that Guile builds and runs in your working directory.
-* Run the test suite, in guile-modules/test-suite.
+* Run the test suite, in guile-core/test-suite.
 * Commit all changes to the CVS repository.
 * Build a test distribution.
   + BEFORE doing 'make dist', configure the source tree for build
