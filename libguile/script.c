@@ -618,7 +618,7 @@ scm_compile_shell_switches (int argc, char **argv)
       scm_mask_ints = 0;
     }
   {
-    /* We want a path only containing directories from SCHEME_LOAD_PATH,
+    /* We want a path only containing directories from GUILE_LOAD_PATH,
        SCM_SITE_DIR and SCM_LIBRARY_DIR when searching for the site init
        file, so we do this before loading Ice-9.  */
     SCM init_path = scm_sys_search_load_path (scm_makfrom0str ("init.scm"));

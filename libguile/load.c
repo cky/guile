@@ -121,9 +121,37 @@ static SCM *scm_loc_load_path;
 /* List of extensions we try adding to the filenames.  */
 static SCM *scm_loc_load_extensions;
 
+
+/* Parse the null-terminated string PATH as if it were a standard path
+   environment variable (i.e. a colon-separated list of strings), and
+   prepend the elements to TAIL.  */
+SCM
+scm_parse_path (char *path, SCM tail)
+{
+  if (path && path[0] != '\0')
+    {
+      char *scan, *elt_end;
+
+      /* Scan backwards from the end of the string, to help
+	 construct the list in the right order.  */
+      scan = elt_end = path + strlen (path);
+      do {
+	/* Scan back to the beginning of the current element.  */
+	do scan--;
+	while (scan >= path && *scan != ':');
+	tail = scm_cons (scm_makfromstr (scan + 1, elt_end - (scan + 1), 0),
+			 tail);
+	elt_end = scan;
+      } while (scan >= path);
+    }
+
+  return tail;
+}
+
+
 /* Initialize the global variable %load-path, given the value of the
    SCM_SITE_DIR and SCM_LIBRARY_DIR preprocessor symbols and the
-   SCHEME_LOAD_PATH environment variable.  */
+   GUILE_LOAD_PATH environment variable.  */
 void
 scm_init_load_path ()
 {
@@ -135,27 +163,20 @@ scm_init_load_path ()
 		      scm_makfrom0str (SCM_PKGDATA_DIR),
 		      SCM_UNDEFINED);
 #endif /* SCM_LIBRARY_DIR */
-  
+
+  /* For compatibility, we still check this, but give a warning.  */
   {
-    char *path_string = getenv ("SCHEME_LOAD_PATH");
-
-    if (path_string && path_string[0] != '\0')
+    char *p = getenv ("SCHEME_LOAD_PATH");
+    if (p && p[0] != '\0')
       {
-	char *scan, *elt_end;
-
-	/* Scan backwards from the end of the string, to help
-           construct the list in the right order.  */
-	scan = elt_end = path_string + strlen (path_string);
-	do {
-	  /* Scan back to the beginning of the current element.  */
-	  do scan--;
-	  while (scan >= path_string && *scan != ':');
-	  path = scm_cons (scm_makfromstr (scan + 1, elt_end - (scan + 1), 0),
-			   path);
-	  elt_end = scan;
-	} while (scan >= path_string);
+	fprintf (stderr, "guile: warning: SCHEME_LOAD_PATH variable will be"
+		 " removed by Guile 1.4;\n"
+		 "                use GUILE_LOAD_PATH instead\n");
+	path = scm_parse_path (p, path);
       }
   }
+
+  path = scm_parse_path (getenv ("GUILE_LOAD_PATH"), path);
 
   *scm_loc_load_path = path;
 }
