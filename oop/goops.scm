@@ -1431,7 +1431,7 @@
 	   (set (get-keyword #:slot-set! (slot-definition-options s) #f))
 	   (env (class-environment class)))
        (if (not (and get set))
-	   (goops-error "You must supply a :slot-ref and a :slot-set! in ~S"
+	   (goops-error "You must supply a #:slot-ref and a #:slot-set! in ~S"
 			s))
        (list get set)))
     (else    (next-method))))
