@@ -61,16 +61,16 @@
  */
 
 /*
-   |                  | <- fp + bp->nargs + bp->nlocs
-   +------------------+
+   |                  | <- fp + bp->nlocs + bp->nargs
+   +------------------+    = SCM_VM_FRAME_UPPER_ADDRESS (fp)
    | Argument 1       |
-   | Argument 2       |
+   | Argument 2       | <- fp + bp->nlocs
    | Local variable 1 |
    | Local varialbe 2 | <- fp
    | Program          |
    | Dynamic link     |
    | Return address   | <- fp - SCM_VM_FRAME_DATA_SIZE
-   +------------------+
+   +------------------+    = SCM_VM_FRAME_LOWER_ADDRESS (fp)
    |                  |
 */
 

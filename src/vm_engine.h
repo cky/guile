@@ -42,14 +42,11 @@
 /* This file is included in vm_engine.c */
 
 /*
- * VM Options
+ * Options
  */
 
-#define VM_OPTION(regular,debug) debug
-
-#define VM_USE_HOOKS	VM_OPTION (0, 1)	/* Various hooks */
-#define VM_USE_CLOCK	VM_OPTION (0, 1)	/* Bogos clock */
-#define VM_CHECK_IP	VM_OPTION (0, 0)	/* Check IP  */
+#define VM_USE_HOOKS	1	/* Various hooks */
+#define VM_USE_CLOCK	1	/* Bogoclock */
 
 
 /*
@@ -115,6 +112,42 @@
 
 
 /*
+ * Cache/Sync
+ */
+
+#define CACHE_REGISTER()			\
+{						\
+  ip = vp->ip;					\
+  sp = vp->sp;					\
+  fp = vp->fp;					\
+}
+
+#define SYNC_REGISTER()				\
+{						\
+  vp->ip = ip;					\
+  vp->sp = sp;					\
+  vp->fp = fp;					\
+}
+
+#define CACHE_PROGRAM(program)			\
+{						\
+  bp = SCM_PROGRAM_DATA (program);		\
+  objects  = SCM_VELTS (bp->objs);		\
+  external = bp->external;			\
+}
+
+#define SYNC_BEFORE_GC()			\
+{						\
+  SYNC_REGISTER ();				\
+}
+
+#define SYNC_ALL()				\
+{						\
+  SYNC_REGISTER ();				\
+}
+
+
+/*
  * Hooks
  */
 
@@ -124,7 +157,7 @@
 {						\
   if (!SCM_FALSEP (h))				\
     {						\
-      SYNC ();					\
+      SYNC_BEFORE_GC ();			\
       scm_c_run_hook (h, hook_args);		\
     }						\
 }
@@ -132,45 +165,13 @@
 #define RUN_HOOK(h)
 #endif
 
-#define BOOT_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_BOOT_HOOK])
-#define HALT_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_HALT_HOOK])
-#define NEXT_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_NEXT_HOOK])
-#define ENTER_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_ENTER_HOOK])
-#define APPLY_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_APPLY_HOOK])
-#define EXIT_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_EXIT_HOOK])
-#define RETURN_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_RETURN_HOOK])
-
-
-/*
- * Basic operations
- */
-
-#define CACHE()					\
-{						\
-  ip = vmp->ip;					\
-  sp = vmp->sp;					\
-  fp = vmp->fp;					\
-}
-
-#define SYNC()					\
-{						\
-  vmp->ip = ip;					\
-  vmp->sp = sp;					\
-  vmp->fp = fp;					\
-}
-
-#define SYNC_TIME()					\
-{							\
-  long cur_time = scm_c_get_internal_run_time ();	\
-  vmp->time += cur_time - run_time;			\
-  run_time = cur_time;					\
-}
-
-#define SYNC_ALL()				\
-{						\
-  SYNC ();					\
-  SYNC_TIME ();					\
-}
+#define BOOT_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_BOOT_HOOK])
+#define HALT_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_HALT_HOOK])
+#define NEXT_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_NEXT_HOOK])
+#define ENTER_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_ENTER_HOOK])
+#define APPLY_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_APPLY_HOOK])
+#define EXIT_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_EXIT_HOOK])
+#define RETURN_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_RETURN_HOOK])
 
 
 /*
@@ -192,7 +193,7 @@
 #define CONS(x,y,z)				\
 {						\
   SCM cell;					\
-  SYNC ()					\
+  SYNC_BEFORE_GC ();				\
   SCM_NEWCELL (cell);				\
   SCM_SET_CELL_OBJECT_0 (cell, y);		\
   SCM_SET_CELL_OBJECT_1 (cell, z);		\
@@ -219,21 +220,9 @@ do {						\
 
 #undef CLOCK
 #if VM_USE_CLOCK
-#define CLOCK(n)	vmp->clock += n
+#define CLOCK(n)	vp->clock += n
 #else
 #define CLOCK(n)
-#endif
-
-#undef NEXT_CHECK
-#if VM_CHECK_IP
-#define NEXT_CHECK()				\
-{						\
-  scm_byte_t *base = bp->base;			\
-  if (ip < base || ip >= base + bp->size)	\
-    goto vm_error_invalid_address;		\
-}
-#else
-#define NEXT_CHECK()
 #endif
 
 #undef NEXT_JUMP
@@ -246,7 +235,6 @@ do {						\
 #define NEXT					\
 {						\
   CLOCK (1);					\
-  NEXT_CHECK ();				\
   NEXT_HOOK ();					\
   NEXT_JUMP ();					\
 }
@@ -303,18 +291,6 @@ do {						\
 	goto vm_error_wrong_num_args;		\
     }						\
 }
-
-#define INIT_VARIABLES()				\
-{							\
-  int i;						\
-  for (i = 0; i < bp->nlocs; i++)			\
-    SCM_VM_FRAME_VARIABLE (fp, i) = SCM_UNDEFINED;	\
-}
-
-#define CACHE_PROGRAM()				\
-  bp = SCM_PROGRAM_DATA (program);		\
-  objects  = SCM_VELTS (bp->objs);		\
-  external = bp->external;
 
 /*
   Local Variables:

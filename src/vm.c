@@ -139,44 +139,44 @@ scm_bits_t scm_tc16_vm_cont;
 
 
 #define SCM_VM_CONT_P(OBJ)	SCM_SMOB_PREDICATE (scm_tc16_vm_cont, OBJ)
-#define SCM_VM_CONT_VMP(CONT)	((struct scm_vm *) SCM_CELL_WORD_1 (CONT))
+#define SCM_VM_CONT_VP(CONT)	((struct scm_vm *) SCM_CELL_WORD_1 (CONT))
 
 static SCM
-capture_vm_cont (struct scm_vm *vmp)
+capture_vm_cont (struct scm_vm *vp)
 {
   struct scm_vm *p = scm_must_malloc (sizeof (*p), "capture_vm_cont");
-  p->stack_size = vmp->stack_limit - vmp->sp;
+  p->stack_size = vp->stack_limit - vp->sp;
   p->stack_base = scm_must_malloc (p->stack_size * sizeof (SCM),
 				   "capture_vm_cont");
   p->stack_limit = p->stack_base + p->stack_size - 2;
-  p->ip = vmp->ip;
-  p->sp = (SCM *) (vmp->stack_limit - vmp->sp);
-  p->fp = (SCM *) (vmp->stack_limit - vmp->fp);
-  memcpy (p->stack_base, vmp->sp + 1, vmp->stack_size * sizeof (SCM));
+  p->ip = vp->ip;
+  p->sp = (SCM *) (vp->stack_limit - vp->sp);
+  p->fp = (SCM *) (vp->stack_limit - vp->fp);
+  memcpy (p->stack_base, vp->sp + 1, vp->stack_size * sizeof (SCM));
   SCM_RETURN_NEWSMOB (scm_tc16_vm_cont, p);
 }
 
 static void
-reinstate_vm_cont (struct scm_vm *vmp, SCM cont)
+reinstate_vm_cont (struct scm_vm *vp, SCM cont)
 {
-  struct scm_vm *p = SCM_VM_CONT_VMP (cont);
-  if (vmp->stack_size < p->stack_size)
+  struct scm_vm *p = SCM_VM_CONT_VP (cont);
+  if (vp->stack_size < p->stack_size)
     {
       /* puts ("FIXME: Need to expand"); */
       abort ();
     }
-  vmp->ip = p->ip;
-  vmp->sp = vmp->stack_limit - (int) p->sp;
-  vmp->fp = vmp->stack_limit - (int) p->fp;
-  memcpy (vmp->sp + 1, p->stack_base, p->stack_size * sizeof (SCM));
+  vp->ip = p->ip;
+  vp->sp = vp->stack_limit - (int) p->sp;
+  vp->fp = vp->stack_limit - (int) p->fp;
+  memcpy (vp->sp + 1, p->stack_base, p->stack_size * sizeof (SCM));
 }
 
 static SCM
 vm_cont_mark (SCM obj)
 {
   SCM *p;
-  struct scm_vm *vmp = SCM_VM_CONT_VMP (obj);
-  for (p = vmp->stack_base; p <= vmp->stack_limit; p++)
+  struct scm_vm *vp = SCM_VM_CONT_VP (obj);
+  for (p = vp->stack_base; p <= vp->stack_limit; p++)
     if (SCM_NIMP (*p))
       scm_gc_mark (*p);
   return SCM_BOOL_F;
@@ -185,7 +185,7 @@ vm_cont_mark (SCM obj)
 static scm_sizet
 vm_cont_free (SCM obj)
 {
-  struct scm_vm *p = SCM_VM_CONT_VMP (obj);
+  struct scm_vm *p = SCM_VM_CONT_VP (obj);
   int size = sizeof (struct scm_vm) + p->stack_size * sizeof (SCM);
   scm_must_free (p->stack_base);
   scm_must_free (p);
@@ -255,20 +255,20 @@ make_vm (void)
 #define FUNC_NAME "make_vm"
 {
   int i;
-  struct scm_vm *vmp = SCM_MUST_MALLOC (sizeof (struct scm_vm));
-  vmp->stack_size  = VM_DEFAULT_STACK_SIZE;
-  vmp->stack_base  = SCM_MUST_MALLOC (vmp->stack_size * sizeof (SCM));
-  vmp->stack_limit = vmp->stack_base + vmp->stack_size - 1;
-  vmp->ip    	   = NULL;
-  vmp->sp    	   = vmp->stack_limit;
-  vmp->fp    	   = NULL;
-  vmp->cons        = 0;
-  vmp->time        = 0;
-  vmp->clock       = 0;
-  vmp->options     = SCM_EOL;
+  struct scm_vm *vp = SCM_MUST_MALLOC (sizeof (struct scm_vm));
+  vp->stack_size  = VM_DEFAULT_STACK_SIZE;
+  vp->stack_base  = SCM_MUST_MALLOC (vp->stack_size * sizeof (SCM));
+  vp->stack_limit = vp->stack_base + vp->stack_size - 1;
+  vp->ip    	   = NULL;
+  vp->sp    	   = vp->stack_limit;
+  vp->fp    	   = NULL;
+  vp->cons        = 0;
+  vp->time        = 0;
+  vp->clock       = 0;
+  vp->options     = SCM_EOL;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
-    vmp->hooks[i] = SCM_BOOL_F;
-  SCM_RETURN_NEWSMOB (scm_tc16_vm, vmp);
+    vp->hooks[i] = SCM_BOOL_F;
+  SCM_RETURN_NEWSMOB (scm_tc16_vm, vp);
 }
 #undef FUNC_NAME
 
@@ -277,11 +277,11 @@ vm_mark (SCM obj)
 {
   int i;
   SCM *sp, *fp;
-  struct scm_vm *vmp = SCM_VM_DATA (obj);
+  struct scm_vm *vp = SCM_VM_DATA (obj);
 
   /* Mark the stack */
-  sp = vmp->sp;
-  fp = vmp->fp;
+  sp = vp->sp;
+  fp = vp->fp;
   while (fp)
     {
       SCM *upper = SCM_VM_FRAME_UPPER_ADDRESS (fp);
@@ -301,17 +301,17 @@ vm_mark (SCM obj)
 
   /* Mark the options */
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
-    scm_gc_mark (vmp->hooks[i]);
-  return vmp->options;
+    scm_gc_mark (vp->hooks[i]);
+  return vp->options;
 }
 
 static scm_sizet
 vm_free (SCM obj)
 {
-  struct scm_vm *vmp = SCM_VM_DATA (obj);
-  int size = (sizeof (struct scm_vm) + vmp->stack_size * sizeof (SCM));
-  scm_must_free (vmp->stack_base);
-  scm_must_free (vmp);
+  struct scm_vm *vp = SCM_VM_DATA (obj);
+  int size = (sizeof (struct scm_vm) + vp->stack_size * sizeof (SCM));
+  scm_must_free (vp->stack_base);
+  scm_must_free (vp);
   return size;
 }
 
@@ -387,12 +387,12 @@ SCM_DEFINE (scm_vm_fp, "vm:fp", 1, 0, 0,
 
 #define VM_DEFINE_HOOK(n)				\
 {							\
-  struct scm_vm *vmp;					\
+  struct scm_vm *vp;					\
   SCM_VALIDATE_VM (1, vm);				\
-  vmp = SCM_VM_DATA (vm);				\
-  if (SCM_FALSEP (vmp->hooks[n]))			\
-    vmp->hooks[n] = scm_make_hook (SCM_MAKINUM (1));	\
-  return vmp->hooks[n];					\
+  vp = SCM_VM_DATA (vm);				\
+  if (SCM_FALSEP (vp->hooks[n]))			\
+    vp->hooks[n] = scm_make_hook (SCM_MAKINUM (1));	\
+  return vp->hooks[n];					\
 }
 
 SCM_DEFINE (scm_vm_boot_hook, "vm-boot-hook", 1, 0, 0,

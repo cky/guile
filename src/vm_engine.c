@@ -53,16 +53,16 @@ vm_engine (SCM vm, SCM program, SCM args)
   register SCM *fp FP_REG;		/* frame pointer */
 
   /* Cache variables */
-  struct scm_vm *vmp = SCM_VM_DATA (vm);/* VM data pointer */
+  struct scm_vm *vp = SCM_VM_DATA (vm);	/* VM data pointer */
   struct scm_program *bp = NULL;	/* program base pointer */
   SCM external;				/* external environment */
   SCM *objects = NULL;			/* constant objects */
-  SCM *stack_base = vmp->stack_base;	/* stack base address */
-  SCM *stack_limit = vmp->stack_limit;	/* stack limit address */
+  SCM *stack_base = vp->stack_base;	/* stack base address */
+  SCM *stack_limit = vp->stack_limit;	/* stack limit address */
 
   /* Internal variables */
   int nargs = 0;
-  long run_time = scm_c_get_internal_run_time ();
+  long start_time = scm_c_get_internal_run_time ();
   // SCM dynwinds = SCM_EOL;
   SCM err_msg;
   SCM err_args;
@@ -83,20 +83,23 @@ vm_engine (SCM vm, SCM program, SCM args)
   };
 #endif
 
-  /* Bootcode */
-  scm_byte_t code[3] = {scm_op_call, 0, scm_op_halt};
-  SCM bootcode = scm_c_make_program (code, 3, SCM_BOOL_T);
-  code[1] = scm_ilength (args);
+  /* Initialization */
+  {
+    /* Bootcode */
+    scm_byte_t bytes[3] = {scm_op_call, 0, scm_op_halt};
+    SCM bootcode = scm_c_make_program (bytes, 3, SCM_BOOL_T);
+    bytes[1] = scm_ilength (args);
 
-  /* Initial frame */
-  bp = SCM_PROGRAM_DATA (bootcode);
-  CACHE ();
-  NEW_FRAME ();
+    /* Initial frame */
+    CACHE_REGISTER ();
+    CACHE_PROGRAM (bootcode);
+    NEW_FRAME ();
 
-  /* Initial arguments */
-  for (; !SCM_NULLP (args); args = SCM_CDR (args))
-    PUSH (SCM_CAR (args));
-  PUSH (program);
+    /* Initial arguments */
+    for (; !SCM_NULLP (args); args = SCM_CDR (args))
+      PUSH (SCM_CAR (args));
+    PUSH (program);
+  }
 
   /* Let's go! */
   BOOT_HOOK ();

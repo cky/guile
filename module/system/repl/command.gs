@@ -281,20 +281,15 @@ Generate compiled code.
   -e    Stop after expanding syntax/macro
   -t    Stop after translating into GHIL
   -c    Stop after generating GLIL
-  -l    Stop before linking
-  -o    Compile into bytecode
 
   -O    Enable optimization
   -D    Add debug information"
   (let ((x (apply repl-compile repl form opts)))
     (cond ((null? opts)
-	   (puts x))
-	  ((memq :l opts)
 	   (disassemble-bytecode x))
 	  ((memq :c opts)
 	   (pprint-glil x))
-	  (else
-	   (puts x)))))
+	  (else (puts x)))))
 
 (define (compile-file repl file . opts)
   "compile-file [options] FILE

@@ -58,13 +58,14 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
   p->nargs    = 0;
   p->nrest    = 0;
   p->nlocs    = 0;
+  p->nexts    = 0;
   p->meta     = SCM_EOL;
   p->objs     = zero_vector;
   p->external = SCM_EOL;
   p->holder   = holder;
 
   /* If nobody holds bytecode's address, then allocate a new memory */
-  if (SCM_FALSEP (p->holder))
+  if (SCM_FALSEP (holder))
     p->base = SCM_MUST_MALLOC (size);
   else
     p->base = addr;
@@ -74,7 +75,7 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
 #undef FUNC_NAME
 
 SCM
-scm_c_make_vclosure (SCM program, SCM external)
+scm_c_make_closure (SCM program, SCM external)
 {
   struct scm_program *p;
   struct scm_program *q = SCM_PROGRAM_DATA (program);
@@ -83,6 +84,7 @@ scm_c_make_vclosure (SCM program, SCM external)
   p->nargs    = q->nargs;
   p->nrest    = q->nrest;
   p->nlocs    = q->nlocs;
+  p->nexts    = q->nexts;
   p->meta     = q->meta;
   p->objs     = q->objs;
   p->external = external;

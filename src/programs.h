@@ -54,8 +54,9 @@ typedef unsigned char scm_byte_t;
 struct scm_program {
   size_t size;			/* the size of the program  */
   unsigned char nargs;		/* the number of arguments */
-  unsigned char nrest;		/* have a rest argument or not */
-  unsigned short nlocs;		/* the number of local variables */
+  unsigned char nrest;		/* the number of rest argument (0 or 1) */
+  unsigned char nlocs;		/* the number of local variables */
+  unsigned char nexts;		/* the number of external variables */
   scm_byte_t *base;		/* program base address */
   SCM meta;			/* meta information */
   SCM objs;			/* constant objects */
@@ -73,6 +74,7 @@ extern scm_bits_t scm_tc16_program;
 #define SCM_PROGRAM_NARGS(x)	(SCM_PROGRAM_DATA (x)->nargs)
 #define SCM_PROGRAM_NREST(x)	(SCM_PROGRAM_DATA (x)->nrest)
 #define SCM_PROGRAM_NLOCS(x)	(SCM_PROGRAM_DATA (x)->nlocs)
+#define SCM_PROGRAM_NEXTS(x)	(SCM_PROGRAM_DATA (x)->nexts)
 #define SCM_PROGRAM_BASE(x)	(SCM_PROGRAM_DATA (x)->base)
 #define SCM_PROGRAM_META(x)	(SCM_PROGRAM_DATA (x)->meta)
 #define SCM_PROGRAM_OBJS(x)	(SCM_PROGRAM_DATA (x)->objs)
@@ -81,7 +83,7 @@ extern scm_bits_t scm_tc16_program;
 #define SCM_PROGRAM_HOLDER(x)	(SCM_PROGRAM_DATA (x)->holder)
 
 extern SCM scm_c_make_program (void *addr, size_t size, SCM holder);
-extern SCM scm_c_make_vclosure (SCM program, SCM external);
+extern SCM scm_c_make_closure (SCM program, SCM external);
 
 extern void scm_init_programs (void);
 

@@ -55,6 +55,7 @@ VM_DEFINE_INSTRUCTION (nop, "nop", 0, 0, 0)
 VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
 {
   SCM ret = *sp;
+  vp->time += scm_c_get_internal_run_time () - start_time;
   HALT_HOOK ();
   FREE_FRAME ();
   SYNC_ALL ();
@@ -153,14 +154,6 @@ VM_DEFINE_INSTRUCTION (make_char8, "make-char8", 1, 0, 1)
 
 #define VARIABLE_REF(v)		SCM_CDR (v)
 #define VARIABLE_SET(v,o)	SCM_SETCDR (v, o)
-
-VM_DEFINE_INSTRUCTION (external, "external", 1, 0, 0)
-{
-  int n = FETCH ();
-  while (n-- > 0)
-    CONS (external, SCM_UNDEFINED, external);
-  NEXT;
-}
 
 /* ref */
 
@@ -284,8 +277,8 @@ VM_DEFINE_INSTRUCTION (jump, "jump", 1, 0, 0)
 
 VM_DEFINE_INSTRUCTION (make_closure, "make-closure", 0, 1, 1)
 {
-  SYNC ();
-  *sp = scm_c_make_vclosure (*sp, external);
+  SYNC_BEFORE_GC ();
+  *sp = scm_c_make_closure (*sp, external);
   NEXT;
 }
 
@@ -300,10 +293,20 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
    */
   if (SCM_PROGRAM_P (program))
     {
-      CACHE_PROGRAM ();
+      int i;
+    vm_call_program:
+      CACHE_PROGRAM (program);
       INIT_ARGS ();
       NEW_FRAME ();
-      INIT_VARIABLES ();
+
+      /* Init local variables */
+      for (i = 0; i < bp->nlocs; i++)
+	LOCAL_SET (i, SCM_UNDEFINED);
+
+      /* Create external variables */
+      for (i = 0; i < bp->nexts; i++)
+	CONS (external, SCM_UNDEFINED, external);
+
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -330,8 +333,8 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
 
       /* Reinstate the continuation */
       EXIT_HOOK ();
-      reinstate_vm_cont (vmp, program);
-      CACHE ();
+      reinstate_vm_cont (vp, program);
+      CACHE_REGISTER ();
       /* We don't need to set the return value here
 	 because it is already on the top of the stack. */
       NEXT;
@@ -376,7 +379,6 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
   if (SCM_PROGRAM_P (program))
     {
       int i;
-      int n = SCM_VM_FRAME_LOWER_ADDRESS (fp) - sp;
       SCM *base = sp;
 
       /* Exit the current frame */
@@ -384,12 +386,12 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
       FREE_FRAME ();
 
       /* Move arguments */
-      sp -= n;
-      for (i = 0; i < n; i++)
+      sp -= nargs;
+      for (i = 0; i < nargs; i++)
 	sp[i] = base[i];
 
       /* Call the program */
-      goto vm_call;
+      goto vm_call_program;
     }
   /*
    * Function call
@@ -412,8 +414,8 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
 
 VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1, 1, 1)
 {
-  SYNC ();
-  PUSH (capture_vm_cont (vmp));
+  SYNC_BEFORE_GC ();
+  PUSH (capture_vm_cont (vp));
   POP (program);
   nargs = 1;
   goto vm_call;
@@ -430,7 +432,7 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 
   /* Cache the last program */
   program = SCM_VM_FRAME_PROGRAM (fp);
-  CACHE_PROGRAM ();
+  CACHE_PROGRAM (program);
   PUSH (ret);
   NEXT;
 }

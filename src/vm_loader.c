@@ -118,16 +118,31 @@ VM_DEFINE_INSTRUCTION (load_program, "load-program", -1, 0, 1)
   if (SCM_INUMP (x))
     {
       int i = SCM_INUM (x);
-      SCM_PROGRAM_NARGS (prog) = i >> 5;	/* 6-5 bits */
-      SCM_PROGRAM_NREST (prog) = (i >> 4) & 1;	/* 4 bit */
-      SCM_PROGRAM_NLOCS (prog) = i & 15;	/* 3-0 bits */
+      if (-128 <= i && i <= 127)
+	{
+	  /* 8-bit representation */
+	  SCM_PROGRAM_NARGS (prog) = (i >> 6) & 0x03;	/* 7-6 bits */
+	  SCM_PROGRAM_NREST (prog) = (i >> 5) & 0x01;	/* 5 bit */
+	  SCM_PROGRAM_NLOCS (prog) = (i >> 2) & 0x07;	/* 4-2 bits */
+	  SCM_PROGRAM_NEXTS (prog) = i & 0x03;		/* 1-0 bits */
+	}
+      else
+	{
+	  /* 16-bit representation */
+	  SCM_PROGRAM_NARGS (prog) = (i >> 12) & 0x07;	/* 15-12 bits */
+	  SCM_PROGRAM_NREST (prog) = (i >> 11) & 0x01;	/* 11 bit */
+	  SCM_PROGRAM_NLOCS (prog) = (i >> 4)  & 0x7f;	/* 10-4 bits */
+	  SCM_PROGRAM_NEXTS (prog) = i & 0x07;		/* 3-0 bits */
+	}
     }
   else
     {
-      SCM_PROGRAM_NARGS (prog) = SCM_INUM (sp[3]);
-      SCM_PROGRAM_NREST (prog) = SCM_INUM (sp[2]);
-      SCM_PROGRAM_NLOCS (prog) = SCM_INUM (sp[1]);
-      sp += 3;
+      /* Other cases */
+      SCM_PROGRAM_NARGS (prog) = SCM_INUM (sp[4]);
+      SCM_PROGRAM_NREST (prog) = SCM_INUM (sp[3]);
+      SCM_PROGRAM_NLOCS (prog) = SCM_INUM (sp[2]);
+      SCM_PROGRAM_NEXTS (prog) = SCM_INUM (sp[1]);
+      sp += 4;
     }
 
   *sp = prog;

@@ -41,7 +41,7 @@
 (define-structure (venv parent nexts closure?))
 (define-structure (vmod id))
 (define-structure (vlink module name))
-(define-structure (bytespec nargs nrest nlocs bytes objs))
+(define-structure (bytespec nargs nrest nlocs nexts bytes objs))
 
 
 ;;;
@@ -146,11 +146,10 @@
 		(error "Unknown instruction:" inst)))))
        ;;
        ;; main
-       (if (> nexts 0) (push-code! `(external ,nexts)))
        (for-each generate-code body)
        (let ((bytes (apply string-append (stack-finalize (reverse! stack))))
 	     (objs (map car (reverse! object-alist))))
-	 (make-bytespec nargs nrest nlocs bytes objs))))))
+	 (make-bytespec nargs nrest nlocs nexts bytes objs))))))
 
 (define (stack-finalize stack)
   (let loop ((list '()) (stack stack) (addr 0))
@@ -208,16 +207,25 @@
       (let ((nargs (bytespec-nargs x))
 	    (nrest (bytespec-nrest x))
 	    (nlocs (bytespec-nlocs x))
+	    (nexts (bytespec-nexts x))
 	    (bytes (bytespec-bytes x))
 	    (objs  (bytespec-objs x)))
 	;; dump parameters
-	(if (and (< nargs 4) (< nlocs 16))
-	    (push-code! (object->code (+ (* nargs 32) (* nrest 16) nlocs)))
-	    (begin
-	      (push-code! (object->code nargs))
-	      (push-code! (object->code nrest))
-	      (push-code! (object->code nlocs))
-	      (push-code! (object->code #f))))
+	(cond ((and (< nargs 4) (< nlocs 8) (< nexts 4))
+	       ;; 8-bit representation
+	       (let ((x (+ (* nargs 64) (* nrest 32) (* nlocs 4) nexts)))
+		 (push-code! `(make-int8 ,x))))
+	      ((and (< nargs 16) (< nlocs 128) (< nexts 16))
+	       ;; 16-bit representation
+	       (let ((x (+ (* nargs 4096) (* nrest 2048) (* nlocs 16) nexts)))
+		 (push-code! `(make-int16 ,(quotient x 256) ,(modulo x 256)))))
+	      (else
+	       ;; Other cases
+	       (push-code! (object->code nargs))
+	       (push-code! (object->code nrest))
+	       (push-code! (object->code nlocs))
+	       (push-code! (object->code nexts))
+	       (push-code! (object->code #f))))
 	;; dump object table
 	(cond ((not (null? objs))
 	       (for-each dump! objs)
