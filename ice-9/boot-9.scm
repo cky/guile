@@ -407,6 +407,7 @@
 (if (provided? 'socket)
     (primitive-load-path "ice-9/networking.scm"))
 
+;; For reference, Emacs file-exists-p uses stat in this same way.
 ;; ENHANCE-ME: Catching an exception from stat is a bit wasteful, do this in
 ;; C where all that's needed is to inspect the return from stat().
 (define file-exists?
