@@ -109,8 +109,8 @@
 		   (let ((rxname (gentemp)))
 		     (next-test (cdr tests)
 				(cdr exprs)
-				;; should maybe use REG_NEWLINE below?
-				(cons `(,rxname (make-regexp ,(car tests)))
+				(cons `(,rxname (make-regexp ,(car tests)
+							     regexp/newline))
 				      defs)
 				(cons `((lambda (s)
 					  (regexp-exec ,rxname s))
