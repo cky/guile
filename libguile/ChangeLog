@@ -1,3 +1,14 @@
+2001-01-24  Gary Houston  <ghouston@arglist.com>
+
+	* filesys.c (scm_link): docstring fix.
+	* fports.h (scm_setfileno): obsolete declaration removed.
+	* posix.c: bogus popen declaration removed.
+
+	* rdelim.c: new file, split from ioext.c.
+	* rdelim.h: new file, split from ioext.h
+	* Makefile.am: add rdelim.c and related files.
+	* init.c: call scm_init_rdelim.  include rdelim.h.
+
 2001-01-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	This patch was sent by Martin Grabmueller and makes sure that

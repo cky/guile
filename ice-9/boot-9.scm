@@ -2635,10 +2635,6 @@
 
 
 
-;; temporary, for backwards compatibility.
-(use-modules (ice-9 rdelim))
-
-
 (define using-readline?
   (let ((using-readline? (make-fluid)))
      (make-procedure-with-setter
@@ -2723,3 +2719,4 @@
 (define-module (guile))
 
 (append! %load-path (cons "." ()))
+

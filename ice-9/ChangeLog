@@ -1,3 +1,10 @@
+2001-01-24  Gary Houston  <ghouston@arglist.com>
+
+	* boot-9.scm: don't import (ice-9 rdelim) here.  it's done
+	in C for now.
+	* rdelim.scm: export the C primitives too.
+	* documentation.scm: use (ice-9 rdelim).
+
 2001-01-21  Gary Houston  <ghouston@arglist.com>
 
 	* rdelim.scm: new file implementing module (ice-9 rdelim).

@@ -17,6 +17,7 @@
 ;;;; 
 
 (define-module (ice-9 documentation)
+  :use-module (ice-9 rdelim)
   :no-backtrace)
 
 

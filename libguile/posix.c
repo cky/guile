@@ -100,7 +100,6 @@ extern char *ttyname();
 
 #include <signal.h>
 
-extern FILE *popen ();
 extern char ** environ;
 
 #include <grp.h>

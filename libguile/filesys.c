@@ -557,9 +557,10 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 
 SCM_DEFINE (scm_link, "link", 2, 0, 0,
             (SCM oldpath, SCM newpath),
-	    "Creates a new name @var{path-to} in the file system for the file\n"
-	    "named by @var{path-from}.  If @var{path-from} is a symbolic link, the\n"
-	    "link may or may not be followed depending on the system.")
+	    "Creates a new name @var{newpath} in the file system for the\n"
+	    "file named by @var{oldpath}.  If @var{oldpath} is a symbolic\n"
+	    "link, the link may or may not be followed depending on the\n"
+	    "system.")
 #define FUNC_NAME s_scm_link
 {
   int val;
@@ -568,7 +569,8 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
   SCM_STRING_COERCE_0TERMINATION_X (oldpath);
   SCM_VALIDATE_STRING (2, newpath);
   SCM_STRING_COERCE_0TERMINATION_X (newpath);
-  SCM_SYSCALL (val = link (SCM_STRING_CHARS (oldpath), SCM_STRING_CHARS (newpath)));
+  SCM_SYSCALL (val = link (SCM_STRING_CHARS (oldpath),
+			   SCM_STRING_CHARS (newpath)));
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -579,7 +581,7 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
 
 SCM_DEFINE (scm_rename, "rename-file", 2, 0, 0,
             (SCM oldname, SCM newname),
-	    "Renames the file specified by @var{path-from} to @var{path-to}.\n"
+	    "Renames the file specified by @var{oldname} to @var{newname}.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_rename
 {

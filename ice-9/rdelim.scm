@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1997 1999 2000 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -19,15 +19,13 @@
 ;;;; 
 
 
-;;; Module for delimited I/O.  This is similar to (scsh rdelim) but is
-;;; somewhat incompatible.
+;;; This is the Scheme part of the module for delimited I/O.  It's
+;;; similar to (scsh rdelim) but somewhat incompatible.
 
 (define-module (ice-9 rdelim))
 
 (export read-line read-line! read-delimited read-delimited!)
-;; TODO: split the C part of this module out of libguile and into its
-;; own top-level directory.
-;; (export read-string!/partial %read-delimited! %read-line write-line)
+(export %read-delimited! %read-line write-line)  ; C
 
 (define (read-line! string . maybe-port)
   ;; corresponds to SCM_LINE_INCREMENTORS in libguile.
