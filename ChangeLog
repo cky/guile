@@ -1,3 +1,9 @@
+2001-11-15  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* guile-tools.in: Handle command "list" specially: list scripts dir.
+
+	(help): Make more informative.
+
 2001-11-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* autogen.sh: Recurse into libltdl directory and invoke autoconf
