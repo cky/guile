@@ -152,39 +152,42 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
 
    BODY is a pointer to a C function which runs the body of the catch;
    this is the code you can throw from.  We call it like this:
-      BODY (DATA, JMPBUF)
+      BODY (BODY_DATA, JMPBUF)
    where:
-      DATA is just the DATA argument we received; we pass it through
-	 to BODY as its first argument.  The caller can make DATA point
-	 to anything useful that BODY might need.
+      BODY_DATA is just the BODY_DATA argument we received; we pass it
+	 through to BODY as its first argument.  The caller can make
+	 BODY_DATA point to anything useful that BODY might need.
       JMPBUF is the Scheme jmpbuf object corresponding to this catch,
          which we have just created and initialized.
 
    HANDLER is a pointer to a C function to deal with a throw to TAG,
    should one occur.  We call it like this:
-      HANDLER (DATA, TAG, THROW_ARGS)
+      HANDLER (HANDLER_DATA, TAG, THROW_ARGS)
    where
-      DATA is the DATA argument we recevied, as for BODY above.
+      HANDLER_DATA is the HANDLER_DATA argument we recevied; it's the
+         same idea as BODY_DATA above.
       TAG is the tag that the user threw to; usually this is TAG, but
          it could be something else if TAG was #t (i.e., a catch-all),
          or the user threw to a jmpbuf.
       THROW_ARGS is the list of arguments the user passed to the THROW
          function.
 
-   DATA is just a pointer we pass through to BODY and (if we call it)
-   HANDLER.  We don't actually use it otherwise ourselves.  The idea
-   is that, if our caller wants to communicate something to BODY and
-   HANDLER, it can pass a pointer to it as DATA, which BODY and
-   HANDLER can then use.  Think of it as a way to make BODY and
-   HANDLER closures, not just functions; DATA points to the enclosed
-   variables.  */
+   BODY_DATA is just a pointer we pass through to BODY.
+   HANDLER_DATA is just a pointer we pass through to HANDLER.
+   We don't actually use either of those pointers otherwise ourselves.
+   The idea is that, if our caller wants to communicate something to
+   BODY or HANDLER, it can pass a pointer to it as MUMBLE_DATA, which
+   BODY and HANDLER can then use.  Think of it as a way to make BODY
+   and HANDLER closures, not just functions; MUMBLE_DATA points to the
+   enclosed variables.  */
 
 SCM
-scm_internal_catch (tag, body, handler, data)
+scm_internal_catch (tag, body, body_data, handler, handler_data)
      SCM tag;
      scm_catch_body_t body;
+     void *body_data;
      scm_catch_handler_t handler;
-     void *data;
+     void *handler_data;
 {
   struct jmp_buf_and_retval jbr;
   SCM jmpbuf;
@@ -213,12 +216,12 @@ scm_internal_catch (tag, body, handler, data)
       throw_tag = jbr.throw_tag;
       jbr.throw_tag = SCM_EOL;
       jbr.retval = SCM_EOL;
-      answer = handler (data, throw_tag, throw_args);
+      answer = handler (handler_data, throw_tag, throw_args);
     }
   else
     {
       ACTIVATEJB (jmpbuf);
-      answer = body (data, jmpbuf);
+      answer = body (body_data, jmpbuf);
       SCM_REDEFER_INTS;
       DEACTIVATEJB (jmpbuf);
       scm_dynwinds = SCM_CDR (scm_dynwinds);
@@ -228,35 +231,20 @@ scm_internal_catch (tag, body, handler, data)
 }
 
 
-/* scm_catch passes a pointer to one of these structures through to
-   its body and handler routines, to tell them what to do.  */
-struct catch_body_data
-{
-  /* The tag being caught.  We only use it to figure out what
-     arguments to pass to the body procedure; see catch_body for
-     details.  */
-  SCM tag;
+/* This is a body function you can pass to scm_internal_catch if you
+   want the body to be like Scheme's `catch' --- a thunk, or a
+   function of one argument if the tag is #f.
 
-  /* The Scheme procedure object constituting the catch body.
-     catch_body invokes this.  */
-  SCM body_proc;
+   DATA contains the Scheme procedure to invoke.  If the tag being
+   caught is #f, then we pass JMPBUF to the body procedure; otherwise,
+   it gets no arguments.  */
 
-  /* The Scheme procedure object we invoke to handle throws.  */
-  SCM handler_proc;
-};
-
-
-/* This function runs the catch body.  DATA contains the Scheme
-   procedure to invoke.  If the tag being caught is #f, then we pass
-   JMPBUF to the body procedure; otherwise, it gets no arguments.  */
-static SCM catch_body SCM_P ((void *, SCM));
-
-static SCM
-catch_body (data, jmpbuf)
-     void *data;
+SCM
+scm_body_thunk (body_data, jmpbuf)
+     void *body_data;
      SCM jmpbuf;
 {
-  struct catch_body_data *c = (struct catch_body_data *) data;
+  struct scm_body_thunk_data *c = (struct scm_body_thunk_data *) body_data;
 
   if (c->tag == SCM_BOOL_F)
     return scm_apply (c->body_proc, scm_cons (jmpbuf, SCM_EOL), SCM_EOL);
@@ -265,19 +253,20 @@ catch_body (data, jmpbuf)
 }
 
 
-/* If the user does a throw to this catch, this function runs the
-   handler.  DATA says which Scheme procedure object to invoke.  */
-static SCM catch_handler SCM_P ((void *, SCM, SCM));
-
-static SCM
-catch_handler (data, tag, throw_args)
-     void *data;
+/* If the user does a throw to this catch, this function runs a
+   handler procedure written in Scheme.  HANDLER_DATA is a pointer to
+   an SCM variable holding the Scheme procedure object to invoke.  It
+   ought to be a pointer to an automatic, or the procedure object
+   should be otherwise protected from GC.  */
+SCM
+scm_handle_by_proc (handler_data, tag, throw_args)
+     void *handler_data;
      SCM tag;
      SCM throw_args;
 {
-  struct catch_body_data *c = (struct catch_body_data *) data;
+  SCM *handler_proc_p = (SCM *) handler_data;
 
-  return scm_apply (c->handler_proc, scm_cons (tag, throw_args), SCM_EOL);
+  return scm_apply (*handler_proc_p, scm_cons (tag, throw_args), SCM_EOL);
 }
 
 
@@ -288,7 +277,7 @@ scm_catch (tag, thunk, handler)
      SCM thunk;
      SCM handler;
 {
-  struct catch_body_data c;
+  struct scm_body_thunk_data c;
 
   SCM_ASSERT ((tag == SCM_BOOL_F)
 	      || (SCM_NIMP(tag) && SCM_SYMBOLP(tag))
@@ -297,14 +286,15 @@ scm_catch (tag, thunk, handler)
 
   c.tag = tag;
   c.body_proc = thunk;
-  c.handler_proc = handler;
 
   /* scm_internal_catch takes care of all the mechanics of setting up
-     a catch tag; we tell it to call catch_body to run the body, and
-     catch_handler to deal with any throws to this catch.  Both those
-     functions receive the pointer to c, which tells them the details
-     of how to behave.  */
-  return scm_internal_catch (tag, catch_body, catch_handler, (void *) &c);
+     a catch tag; we tell it to call scm_body_thunk to run the body,
+     and scm_handle_by_proc to deal with any throws to this catch.
+     The former receives a pointer to c, telling it how to behave.
+     The latter receives a pointer to HANDLER, so it knows who to call.  */
+  return scm_internal_catch (tag,
+			     scm_body_thunk, &c, 
+			     scm_handle_by_proc, &handler);
 }
 
 SCM_PROC(s_lazy_catch, "lazy-catch", 3, 0, 0, scm_lazy_catch);
@@ -328,34 +318,46 @@ scm_lazy_catch (tag, thunk, handler)
   return answer;
 }
 
-/* The user has thrown to an uncaught key --- print a message and die. 
+/* The user has thrown to an uncaught key --- print a message and die.
+   At boot time, we establish a catch-all that uses this as its handler.
    1) If the user wants something different, they can use (catch #t
    ...) to do what they like.
    2) Outside the context of a read-eval-print loop, there isn't
    anything else good to do; libguile should not assume the existence
    of a read-eval-print loop.
    3) Given that we shouldn't do anything complex, it's much more
-   robust to do it in C code.  */
-static SCM uncaught_throw SCM_P ((SCM key, SCM args));
-static SCM
-uncaught_throw (key, args)
-     SCM key;
+   robust to do it in C code.
+
+   HANDLER_DATA, if non-zero, is assumed to be a char * pointing to a
+   message header to print; if zero, we use "guile" instead.  That
+   text is followed by a colon, then the message described by ARGS.  */
+
+SCM
+scm_handle_by_message (handler_data, tag, args)
+     void *handler_data;
+     SCM tag;
      SCM args;
 {
+  char *prog_name = (char *) handler_data;
   SCM p = scm_def_errp;
+
+  if (! prog_name)
+    prog_name = "guile";
+
+  scm_gen_puts (scm_regular_string, prog_name, p);
+  scm_gen_puts (scm_regular_string, ": ", p);
 
   if (scm_ilength (args) >= 3)
     {
       SCM message = SCM_CADR (args);
       SCM parts = SCM_CADDR (args);
 
-      scm_gen_puts (scm_regular_string, "guile: ", p);
       scm_display_error_message (message, parts, p);
     }
   else
     {
-      scm_gen_puts (scm_regular_string, "guile: uncaught throw to ", p);
-      scm_prin1 (key, p, 0);
+      scm_gen_puts (scm_regular_string, "uncaught throw to ", p);
+      scm_prin1 (tag, p, 0);
       scm_gen_puts (scm_regular_string, ": ", p);
       scm_prin1 (args, p, 1);
       scm_gen_putc ('\n', p);
@@ -417,9 +419,11 @@ scm_ithrow (key, args, noreturn)
 	    }
 	}
 
-      /* If we didn't find anything, print a message and exit Guile.  */
+      /* If we didn't find anything, abort.  scm_boot_guile should
+         have established a catch-all, but obviously things are
+         thoroughly screwed up.  */
       if (winds == SCM_EOL)
-	uncaught_throw (key, args);
+	abort ();
 
       if (SCM_IMP (winds) || SCM_NCONSP (winds))
 	abort ();

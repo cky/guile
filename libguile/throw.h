@@ -54,8 +54,29 @@ typedef SCM (*scm_catch_handler_t) SCM_P ((void *data,
 
 extern SCM scm_internal_catch SCM_P ((SCM tag,
 				      scm_catch_body_t body,
+				      void *body_data,
 				      scm_catch_handler_t handler,
-				      void *data));
+				      void *handler_data));
+
+/* The first argument to scm_body_thunk should be a pointer to one of
+   these.  See the implementation of catch in throw.c.  */
+struct scm_body_thunk_data
+{
+  /* The tag being caught.  We only use it to figure out what
+     arguments to pass to the body procedure; see scm_catch_thunk_body for
+     details.  */
+  SCM tag;
+
+  /* The Scheme procedure object constituting the catch body.
+     scm_body_by_proc invokes this.  */
+  SCM body_proc;
+};
+
+extern SCM scm_body_thunk SCM_P ((void *, SCM));
+
+
+extern SCM scm_handle_by_proc SCM_P ((void *, SCM, SCM));
+extern SCM scm_handle_by_message SCM_P ((void *, SCM, SCM));
 
 extern SCM scm_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
 extern SCM scm_lazy_catch SCM_P ((SCM tag, SCM thunk, SCM handler));

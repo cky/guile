@@ -261,12 +261,20 @@ typedef int setjmp_type;
 typedef long setjmp_type;
 #endif
 
-static void scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base,
-				     int argc, char **argv,
-				     void (*main_func) (void *closure,
-							int argc,
-							char **argv),
-				     void *closure));
+/* All the data needed to invoke the main function.  */
+struct main_func_closure
+{
+  /* the function to call */
+  void (*main_func) SCM_P ((void *closure, int argc, char **argv));
+  void *closure;		/* dummy data to pass it */
+  int argc;
+  char **argv;			/* the argument list it should receive */
+};
+
+
+static void scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base, 
+				     struct main_func_closure *closure));
+static SCM invoke_main_func SCM_P ((void *body_data, SCM jmpbuf));
 
 
 /* Fire up the Guile Scheme interpreter.
@@ -281,6 +289,12 @@ static void scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base,
    given by ARGC and ARGV.  If MAIN_FUNC modifies ARGC/ARGV, should
    call scm_set_program_arguments with the final list, so Scheme code
    will know which arguments have been processed.
+
+   scm_boot_guile establishes a catch-all catch handler which prints
+   an error message and exits the process.  This means that Guile
+   exits in a coherent way when system errors occur and the user isn't
+   prepared to handle it.  If the user doesn't like this behavior,
+   they can establish their own universal catcher to shadow this one.
 
    Why must the caller do all the real work from MAIN_FUNC?  The
    garbage collector assumes that all local variables of type SCM will
@@ -302,9 +316,16 @@ scm_boot_guile (argc, argv, main_func, closure)
      end of the stack, and the address of one of its own local
      variables as the other end.  */
   SCM_STACKITEM dummy;
+  struct main_func_closure c;
 
-  return scm_boot_guile_1 (&dummy, argc, argv, main_func, closure);
+  c.main_func = main_func;
+  c.closure = closure;
+  c.argc = argc;
+  c.argv = argv;
+
+  return scm_boot_guile_1 (&dummy, &c);
 }
+
 
 /* Record here whether SCM_BOOT_GUILE_1 has already been called.  This
    variable is now here and not inside SCM_BOOT_GUILE_1 so that one
@@ -314,12 +335,9 @@ scm_boot_guile (argc, argv, main_func, closure)
 int scm_boot_guile_1_live = 0;
 
 static void
-scm_boot_guile_1 (base, argc, argv, main_func, closure)
+scm_boot_guile_1 (base, closure)
      SCM_STACKITEM *base;
-     int argc;
-     char **argv;
-     void (*main_func) ();
-     void *closure;
+     struct main_func_closure *closure;
 {
   static int initialized = 0;
   /* static int live = 0; */
@@ -436,8 +454,9 @@ scm_boot_guile_1 (base, argc, argv, main_func, closure)
     {
       scm_init_signals ();
 
-      scm_set_program_arguments (argc, argv, 0);
-      (*main_func) (closure, argc, argv);
+      scm_set_program_arguments (closure->argc, closure->argv, 0);
+      scm_internal_catch (SCM_BOOL_T, invoke_main_func, closure,
+			  scm_handle_by_message, 0);
     }
 
   scm_restore_signals ();
@@ -451,4 +470,18 @@ scm_boot_guile_1 (base, argc, argv, main_func, closure)
   /* If the caller doesn't want this, they should return from
      main_func themselves.  */
   exit (0);
+}
+
+
+static SCM
+invoke_main_func (body_data, jmpbuf)
+     void *body_data;
+     SCM jmpbuf;
+{
+  struct main_func_closure *closure = (struct main_func_closure *) body_data;
+
+  (*closure->main_func) (closure->closure, closure->argc, closure->argv);
+
+  /* never reached */
+  return SCM_UNDEFINED;
 }

@@ -178,8 +178,8 @@ static int n_dynamic_roots = 0;
 
 
 /* cwdr fills out one of these structures, and then passes a pointer
-   to it through scm_internal_catch to the cwdr_body and cwdr_handler
-   functions, to tell them how to behave.
+   to it through scm_internal_catch to the cwdr_body function, to tell
+   it how to behave.
 
    A cwdr is a lot like a catch, except there is no tag (all
    exceptions are caught), and the body procedure takes the arguments
@@ -192,15 +192,15 @@ struct cwdr_body_data {
 
   /* Scheme procedure to use as body of cwdr.  */
   SCM body_proc;
-
-  /* Scheme procedure to call if a throw occurs within the cwdr.  */
-  SCM handler_proc;
 };
 
 
 /* Invoke the body of a cwdr, assuming that the throw handler has
    already been set up.  DATA points to a struct set up by cwdr that
-   says what proc to call, and what args to apply it to.  */
+   says what proc to call, and what args to apply it to.
+
+   With a little thought, we could replace this with scm_body_thunk,
+   but I don't want to mess with that at the moment.  */
 static SCM cwdr_body SCM_P ((void *, SCM));
 
 static SCM
@@ -209,19 +209,6 @@ cwdr_body (void *data, SCM jmpbuf)
   struct cwdr_body_data *c = (struct cwdr_body_data *) data;
 
   return scm_apply (c->body_proc, c->a1, c->args);
-}
-
-
-/* Invoke the handler of a cwdr.  DATA points to a struct set up by
-   cwdr that says what proc to call to handle the throw.  */
-static SCM cwdr_handler SCM_P ((void *, SCM, SCM));
-
-static SCM
-cwdr_handler (void *data, SCM tag, SCM throw_args)
-{
-  struct cwdr_body_data *c = (struct cwdr_body_data *) data;
-
-  return scm_apply (c->handler_proc, scm_cons (tag, throw_args), SCM_EOL);
 }
 
 
@@ -282,9 +269,10 @@ cwdr (proc, a1, args, handler, stack_start)
     c.a1 = a1;
     c.args = args;
     c.body_proc = proc;
-    c.handler_proc = handler;
 
-    answer = scm_internal_catch (SCM_BOOL_T, cwdr_body, cwdr_handler, &c);
+    answer = scm_internal_catch (SCM_BOOL_T,
+				 cwdr_body, &c,
+				 scm_handle_by_proc, &handler);
   }
   
   scm_dowinds (old_winds, - scm_ilength (old_winds));
