@@ -69,7 +69,7 @@ gh_launch_pad (void *closure, int argc, char **argv)
 void 
 gh_enter (int argc, char *argv[], main_prog_t c_main_prog)
 {
-  scm_boot_guile (argc, argv, gh_launch_pad, c_main_prog);
+  scm_boot_guile (argc, argv, gh_launch_pad, (void *) c_main_prog);
   /* never returns */
 }
 
