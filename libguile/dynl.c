@@ -73,7 +73,7 @@ maybe_drag_in_eprintf ()
 #include "libguile/keywords.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"
-
+#include "libguile/deprecation.h"
 #include "libguile/validate.h"
 
 /* Create a new C argv array from a scheme list of strings. */
