@@ -126,12 +126,14 @@
  * differ in one bit: This way, checking if an object is an inexact number can
  * be done quickly (using the TYP16S macro).  */
 
-/* Number subtype 1 to 3 (note the dependency on the predicate SCM_NUMP)  */
+/* Number subtype 1 to 3 (note the dependency on the predicates SCM_INEXACTP
+ * and SCM_NUMP)  */
 #define scm_tc16_big		(scm_tc7_number + 1 * 256L)
 #define scm_tc16_real           (scm_tc7_number + 2 * 256L)
 #define scm_tc16_complex        (scm_tc7_number + 3 * 256L)
 
-#define SCM_INEXACTP(x) (!SCM_IMP (x) && SCM_TYP16S (x) == scm_tc16_real)
+#define SCM_INEXACTP(x) \
+  (!SCM_IMP (x) && (0xfeff & SCM_CELL_TYPE (x)) == scm_tc16_real)
 #define SCM_REALP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_real)
 #define SCM_COMPLEXP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
 

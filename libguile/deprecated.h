@@ -27,6 +27,11 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
+/* From tags.h: Macro checking for two tc16 types that are allocated to differ
+ * only in the 's'-bit.  Deprecated in guile 1.7.0 on 2003-09-21.  */
+#define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))
+
+
 /* From numbers.h: Macros checking for types, but avoiding a redundant check
  * for !SCM_IMP.  These were deprecated in guile 1.7.0 on 2003-09-06.  */
 #define SCM_SLOPPY_INEXACTP(x) (SCM_TYP16S (x) == scm_tc16_real)

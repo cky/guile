@@ -637,6 +637,33 @@ Guile always defines
 
   scm_t_timespec
 
+** The macro SCM_IFLAGP now only returns true for flags
+
+User code should never have used this macro anyway.  And, you should not use
+it in the future either.  Thus, the following explanation is just for the
+impropable case that your code actually made use of this macro, and that you
+are willing to depend on internals which will probably change in the near
+future.
+
+Formerly, SCM_IFLAGP also returned true for evaluator bytecodes created with
+SCM_MAKSPCSYM (short instructions) and evaluator bytecodes created with
+SCM_MAKISYM (short instructions).  Now, SCM_IFLAG only returns true for
+Guile's special constants created with SCM_MAKIFLAG.  To achieve the old
+behaviour, instead of
+
+  SCM_IFLAGP(x)
+
+you would have to write
+
+  (SCM_ISYMP(x) || SCM_IFLAGP(x))
+
+** The macro SCM_TYP16S has been deprecated.
+
+This macro is not intended for public use.  However, if you allocated types
+with tc16 type codes in a way that you would have needed this macro, you are
+expected to have a deep knowledge of Guile's type system.  Thus, you should
+know how to replace this macro.
+
 ** The macro SCM_SLOPPY_INEXACTP has been deprecated.
 
 Use SCM_INEXACTP instead.

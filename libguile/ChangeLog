@@ -1,5 +1,12 @@
 2003-09-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.h (SCM_INEXACTP): Removed uses of SCM_TYP16S.
+
+	* tags.h, deprecated.h (SCM_TYP16S): Deprecated and moved from
+	tags.h to deprecated.h.
+
+2003-09-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	This set of patches introduces a new tc7 code scm_tc7_number for
 	numbers.  Bignums, reals and complex numbers are turned from smobs
 	into subtypes of scm_tc7_number.

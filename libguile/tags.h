@@ -468,9 +468,8 @@ typedef unsigned long scm_t_bits;
 
 /* Definitions for tc16: */
 #define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
-#define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))
-
 #define SCM_TYP16_PREDICATE(tag, x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
+
 
 /* Here is the first smob subtype.  */
 
