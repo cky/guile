@@ -148,7 +148,6 @@ xisnan (double x)
 
 
 
-static SCM abs_most_negative_fixnum;
 static mpz_t z_negative_one;
 
 
@@ -703,9 +702,13 @@ scm_quotient (SCM x, SCM y)
       else if (SCM_BIGP (y))
 	{
 	  if ((SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
-	      && (scm_i_bigcmp (abs_most_negative_fixnum, y) == 0))
-	    /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
-	    return SCM_MAKINUM (-1);
+	      && (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
+                              - SCM_MOST_NEGATIVE_FIXNUM) == 0))
+            {
+              /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
+	      scm_remember_upto_here_1 (y);
+              return SCM_MAKINUM (-1);
+            }
 	  else
 	    return SCM_MAKINUM (0);
 	}
@@ -779,9 +782,13 @@ scm_remainder (SCM x, SCM y)
       else if (SCM_BIGP (y))
 	{
 	  if ((SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
-	      && (scm_i_bigcmp (abs_most_negative_fixnum, y) == 0))
-	    /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
-	    return SCM_MAKINUM (0);
+	      && (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
+                              - SCM_MOST_NEGATIVE_FIXNUM) == 0))
+            {
+              /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
+	      scm_remember_upto_here_1 (y);
+              return SCM_MAKINUM (0);
+            }
 	  else
 	    return x;
 	}
@@ -5690,9 +5697,6 @@ SCM_DEFINE (scm_sys_check_number_conversions, "%check-number-conversions", 0, 0,
 void
 scm_init_numbers ()
 {
-  abs_most_negative_fixnum = scm_i_long2big (- SCM_MOST_NEGATIVE_FIXNUM);
-  scm_permanent_object (abs_most_negative_fixnum);
-
   mpz_init_set_si (z_negative_one, -1);
 
   /* It may be possible to tune the performance of some algorithms by using
