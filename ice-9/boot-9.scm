@@ -2838,59 +2838,77 @@
       (lambda (v) (fluid-set! using-readline? v)))))
 
 (define (top-repl)
+  (let ((guile-user-module (resolve-module '(guile-user))))
 
-  ;; Load emacs interface support if emacs option is given.
-  (if (and (module-defined? the-root-module 'use-emacs-interface)
-	   (module-ref the-root-module 'use-emacs-interface))
-      (load-emacs-interface))
+    ;; Load emacs interface support if emacs option is given.
+    (if (and (module-defined? the-root-module 'use-emacs-interface)
+	     (module-ref the-root-module 'use-emacs-interface))
+	(load-emacs-interface))
 
-  (let ((old-handlers #f)
-	(signals (if (provided? 'posix)
-		     `((,SIGINT . "User interrupt")
-		       (,SIGFPE . "Arithmetic error")
-		       (,SIGBUS . "Bad memory access (bus error)")
-		       (,SIGSEGV .
-				 "Bad memory access (Segmentation violation)"))
-		     '())))
+    ;; Use some convenient modules (in reverse order)
+    
+    (if (provided? 'regex)
+	(module-use! guile-user-module (resolve-module '(ice-9 regex))))
+    (if (provided? 'threads)
+	(module-use! guile-user-module (resolve-module '(ice-9 threads))))
+    ;; load debugger on demand
+    (module-use! guile-user-module 
+		 (make-autoload-interface guile-user-module
+					  '(ice-9 debugger) '(debug)))
+    (module-use! guile-user-module (resolve-module '(ice-9 session)))
+    (module-use! guile-user-module (resolve-module '(ice-9 debug)))
+    ;; so that builtin bindings will be checked first
+    (module-use! guile-user-module (resolve-module '(guile))) 
 
-    (dynamic-wind
+    (set-current-module guile-user-module)
 
-     ;; call at entry
-     (lambda ()
-       (let ((make-handler (lambda (msg)
-			     (lambda (sig)
-			       ;; Make a backup copy of the stack
-			       (fluid-set! before-signal-stack
-					   (fluid-ref the-last-stack))
-			       (save-stack %deliver-signals)
-			       (scm-error 'signal
-					  #f
-					  msg
-					  #f
-					  (list sig))))))
-	 (set! old-handlers
-	       (map (lambda (sig-msg)
-		      (sigaction (car sig-msg)
-				 (make-handler (cdr sig-msg))))
-		    signals))))
+    (let ((old-handlers #f)
+	  (signals (if (provided? 'posix)
+		       `((,SIGINT . "User interrupt")
+			 (,SIGFPE . "Arithmetic error")
+			 (,SIGBUS . "Bad memory access (bus error)")
+			 (,SIGSEGV
+			  . "Bad memory access (Segmentation violation)"))
+		       '())))
 
-     ;; the protected thunk.
-     (lambda ()
-       (let ((status (scm-style-repl)))
-	 (run-hook exit-hook)
-	 status))
+      (dynamic-wind
 
-     ;; call at exit.
-     (lambda ()
-       (map (lambda (sig-msg old-handler)
-	      (if (not (car old-handler))
-		  ;; restore original C handler.
-		  (sigaction (car sig-msg) #f)
-		  ;; restore Scheme handler, SIG_IGN or SIG_DFL.
-		  (sigaction (car sig-msg)
-			     (car old-handler)
-			     (cdr old-handler))))
-	    signals old-handlers)))))
+	  ;; call at entry
+	  (lambda ()
+	    (let ((make-handler (lambda (msg)
+				  (lambda (sig)
+				    ;; Make a backup copy of the stack
+				    (fluid-set! before-signal-stack
+						(fluid-ref the-last-stack))
+				    (save-stack %deliver-signals)
+				    (scm-error 'signal
+					       #f
+					       msg
+					       #f
+					       (list sig))))))
+	      (set! old-handlers
+		    (map (lambda (sig-msg)
+			   (sigaction (car sig-msg)
+				      (make-handler (cdr sig-msg))))
+			 signals))))
+	  
+	  ;; the protected thunk.
+	  (lambda ()
+	    (let ((status (scm-style-repl)))
+	      (run-hook exit-hook)
+	      status))
+	  
+	  ;; call at exit.
+	  (lambda ()
+	    (map (lambda (sig-msg old-handler)
+		   (if (not (car old-handler))
+		       ;; restore original C handler.
+		       (sigaction (car sig-msg) #f)
+		       ;; restore Scheme handler, SIG_IGN or SIG_DFL.
+		       (sigaction (car sig-msg)
+				  (car old-handler)
+				  (cdr old-handler))))
+		 signals old-handlers))))))
 
 (defmacro false-if-exception (expr)
   `(catch #t (lambda () ,expr)
@@ -2905,15 +2923,6 @@
 
 ;; Place the user in the guile-user module.
 ;;
-(define-module (guile-user)
-  :use-module (guile)    ;so that bindings will be checked here first
-  :use-module (ice-9 session)
-  :use-module (ice-9 debug)
-  :autoload (ice-9 debugger) (debug))  ;load debugger on demand
-
-(if (provided? 'threads)
-    (use-modules (ice-9 threads)))
-(if (provided? 'regex)
-    (use-modules (ice-9 regex)))
+(define-module (guile-user))
 
 ;;; boot-9.scm ends here
