@@ -55,7 +55,8 @@
 
 #define SCM_SYMBOLP(x)              (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_symbol))
 #define SCM_SYMBOL_LENGTH(x)        (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
-#define SCM_SET_SYMBOL_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), ((l) << 8) + scm_tc7_symbol))
+#define SCM_MAKE_SYMBOL_TAG(l)      (((l) << 8) + scm_tc7_symbol)
+#define SCM_SET_SYMBOL_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), SCM_MAKE_SYMBOL_TAG(l)))
 #define SCM_SYMBOL_CHARS(x)         ((char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_SYMBOL_CHARS(s, c)  (SCM_SET_CELL_WORD_1 ((s), (c)))
 #define SCM_SYMBOL_HASH(X)          ((unsigned long) SCM_CELL_WORD_2 (X))
