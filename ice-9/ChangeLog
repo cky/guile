@@ -1,3 +1,7 @@
+2001-02-25  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* match.scm: New file, including Andrew K. Wright's pattern matcher.
+
 2001-02-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (eval-when, eval-case): Renamed `eval-when' to
