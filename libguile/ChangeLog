@@ -1,3 +1,8 @@
+1998-07-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* numbers.h (SCM_NUM2DBL): New macro.  Complements SCM_NUMBERP.
+	This macro is useful in applications.
+
 1998-06-21  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* load.c (scm_internal_parse_path): Renamed from scm_parse_path.

@@ -185,11 +185,26 @@
 
 #ifdef SCM_FLOATS
 #define SCM_NUMBERP(x) (SCM_INUMP(x) || (SCM_NIMP(x) && SCM_NUMP(x)))
+#ifdef SCM_BIGDIG
+#define SCM_NUM2DBL(x) (SCM_INUMP (x) \
+			? (double) SCM_INUM (x) \
+			: (SCM_REALP (x) \
+			   ? SCM_REALPART (x) \
+			   : scm_big2dbl (x)))
+#else
+#define SCM_NUM2DBL(x) (SCM_INUMP (x) \
+			? (double) SCM_INUM (x) \
+			: SCM_REALPART (x))
+#endif
 #else
 #ifdef SCM_BIGDIG
 #define SCM_NUMBERP(x) (SCM_INUMP(x) || (SCM_NIMP(x) && SCM_NUMP(x)))
+#define SCM_NUM2DBL(x) (SCM_INUMP (x) \
+			? (double) SCM_INUM (x) \
+			: scm_big2dbl (x))
 #else
 #define SCM_NUMBERP SCM_INUMP
+#define SCM_NUM2DBL(x) ((double) SCM_INUM (x))
 #endif
 #endif
 #define SCM_NUMP(x) ((0xfcff & (int)SCM_CAR(x))==scm_tc7_smob)
