@@ -1,6 +1,7 @@
 Makefile
 Makefile.in
 aclocal.m4
+autom4te.cache
 check-guile
 check-guile.log
 config.build-subdirs
@@ -17,3 +18,4 @@ libltdl
 libtool
 ltconfig
 ltmain.sh
+pre-inst-guile
