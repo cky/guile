@@ -1,3 +1,10 @@
+2000-06-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* gc.h (SCM_VALIDATE_CELL): Rewritten.
+	(SCM_CELL_WORD, SCM_CELL_OBJECT, SCM_SET_CELL_WORD,
+	SCM_SET_CELL_OBJECT): Use new version of SCM_VALIDATE_CELL.
+	(Thanks to Han-Wen Nienhuys.)
+
 2000-06-10  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* guile-doc-snarf.in: don't pipe the CPP output right into sed --
