@@ -206,7 +206,8 @@
 
 (define (format template . rest)
   (let loop ((chars (string->list template))
-	     (result '()))
+	     (result '())
+	     (rest rest))
     (cond ((null? chars) (list->string (reverse result)))
 	  ((char=? (car chars) #\%)
 	   (loop (cddr chars)
@@ -215,8 +216,9 @@
 			   (case (cadr chars)
 			     ((#\S) (object->string (car rest)))
 			     ((#\s) (object->string (car rest) display)))))
-			 result)))
-	  (else (loop (cdr chars) (cons (car chars) result))))))
+			 result)
+		 (cdr rest)))
+	  (else (loop (cdr chars) (cons (car chars) result) rest)))))
 
 (define (error-args->string args)
   (let ((msg (apply format (caddr args) (cadddr args))))
