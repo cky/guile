@@ -1,3 +1,11 @@
+2001-05-23  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* snarf.h (SCM_CONST_LONG): Use SCM_VCELL_INIT instead of
+	SCM_VARIABLE_INIT since that it what it used to be.
+
+	* deprecation.c (scm_include_deprecated_features): Make docstring
+	ANSIsh.  Thanks to Matthias Köppe!
+
 2001-05-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* symbols.c (scm_mem2symbol): Re-introduce indirect cell.  It is
