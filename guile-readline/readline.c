@@ -360,6 +360,16 @@ SCM_DEFINE (scm_write_history, "write-history", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_clear_history, "clear-history", 0, 0, 0, 
+            (),
+	    "Clear the history buffer of the readline machinery.")
+#define FUNC_NAME s_scm_clear_history
+{
+  clear_history();
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 
 SCM_DEFINE (scm_filename_completion_function, "filename-completion-function", 2, 0, 0, 
             (SCM text, SCM continuep),

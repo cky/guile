@@ -110,7 +110,9 @@
 	  (begin
 	    (do read-history) 
 	    (set! the-readline-port (make-readline-port))
-	    (add-hook! exit-hook (lambda () (do write-history)))))
+	    (add-hook! exit-hook (lambda () 
+				   (do write-history)
+				   (clear-history)))))
       the-readline-port)))
 
 ;;; The user might try to use readline in his programs.  It then
