@@ -52,7 +52,7 @@ SCM_DEFINE_VM_FUNCTION (null_p, "null?", "null?", 1, 0)
 SCM_DEFINE_VM_FUNCTION (cons, "cons", "cons", 2, 0)
 {
   VM_SETUP_ARGS2 ();
-  CONS (ac, ac, a2);
+  CONS (ac, a1, a2);
   NEXT;
 }
 
