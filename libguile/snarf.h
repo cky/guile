@@ -5,7 +5,7 @@
 #ifndef LIBGUILE_SNARF_H
 #define LIBGUILE_SNARF_H
 
-/*	Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995-2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,24 @@
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
+
+/* Generic macros to be used in user macro definitions.
+ *
+ * For example, the SCM_PROC macro could have been defined by the user:
+ *
+ *   #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
+ *   SCM_INSITU (static const char RANAME[]=STR) \
+ *   SCM_INIT   (scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN))
+ */
+
+#ifndef SCM_MAGIC_SNARFER
+#  define SCM_INSITU(X) X
+#  define SCM_INIT(X)
+#else
+#  define SCM_INSITU(X)
+#  define SCM_INIT(X) \
+%%%	X
+#endif
 
 #ifndef SCM_MAGIC_SNARFER
 
