@@ -464,7 +464,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
     {
       offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_t_contregs))
 		- SCM_BASE (obj));
-#ifndef STACK_GROWS_UP
+#ifndef SCM_STACK_GROWS_UP
       offset += SCM_CONTINUATION_LENGTH (obj);
 #endif
       dframe = RELOC_FRAME (SCM_DFRAME (obj), offset);
@@ -548,7 +548,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
     {
       offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (stack) + sizeof (scm_t_contregs))
 		- SCM_BASE (stack));
-#ifndef STACK_GROWS_UP
+#ifndef SCM_STACK_GROWS_UP
       offset += SCM_CONTINUATION_LENGTH (stack);
 #endif
       dframe = RELOC_FRAME (SCM_DFRAME (stack), offset);
@@ -627,7 +627,7 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
     {
       offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_t_contregs))
 		- SCM_BASE (obj));
-#ifndef STACK_GROWS_UP
+#ifndef SCM_STACK_GROWS_UP
       offset += SCM_CONTINUATION_LENGTH (obj);
 #endif
       dframe = RELOC_FRAME (SCM_DFRAME (obj), offset);
