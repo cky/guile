@@ -295,7 +295,7 @@
 		 ((error) "ERROR")
 		 (else #f))))
     (if label
-	(display-line label ": " (format-test-name (cdr result)))
+	(display-line label ": " (format-test-name (cadr result)))
 	(error "(test-suite lib) FULL-REPORTER: unrecognized result: "
 	       result))))
 
