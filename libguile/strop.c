@@ -1,6 +1,6 @@
 /* classes: src_files */
 
-/*	Copyright (C) 1994, 1996, 1997 Free Software Foundation, Inc.
+/*	Copyright (C) 1994, 1996, 1997, 1999 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -138,6 +138,7 @@ scm_substring_move_x (SCM str1, SCM start1, SCM end1,
 
   s1 = SCM_INUM (start1), s2 = SCM_INUM (start2), e = SCM_INUM (end1);
   len = e - s1;
+  SCM_ASSERT (len >= 0, end1, SCM_OUTOFRANGE, s_substring_move_x);
   SCM_ASSERT (s1 <= SCM_LENGTH (str1) && s1 >= 0, start1, 
 	      SCM_OUTOFRANGE, s_substring_move_x);
   SCM_ASSERT (s2 <= SCM_LENGTH (str2) && s2 >= 0, start2, 
