@@ -254,7 +254,7 @@ typedef int GC_bool;
 #   define NEXT
 #   define mach_type_known
 # endif
-# if defined(__OpenBSD__) && defined(i386)
+# if defined(__OpenBSD__) && (defined(i386) || defined(__i386__))
 #   define I386
 #   define OPENBSD
 #   define mach_type_known
