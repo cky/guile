@@ -1,3 +1,7 @@
+2001-07-06  Rob Browning  <rlb@defaultvalue.org>
+
+	* srfi-19.scm (priv:locale-reader): don't need open-output-string.
+
 2001-07-03  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-1.scm (iota, map, for-each, list-index, member, delete,
