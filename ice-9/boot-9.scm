@@ -2843,14 +2843,14 @@
 		       (module-name int2))
 		 #f))
     
-     (define (warn module name int1 val1 int2 val2 var val)
-       (format #t
-	       "WARNING: ~A: `~A' imported from both ~A and ~A\n"
-	       (module-name module)
-	       name
-	       (module-name int1)
-	       (module-name int2))
-       #f)
+    (define (warn module name int1 val1 int2 val2 var val)
+      (format #t
+	      "WARNING: ~A: `~A' imported from both ~A and ~A\n"
+	      (module-name module)
+	      name
+	      (module-name int1)
+	      (module-name int2))
+      #f)
      
     (define (replace module name int1 val1 int2 val2 var val)
       (let ((old (or (and var (object-property var 'replace) var)
@@ -2863,22 +2863,25 @@
 	    (and (object-property new 'replace)
 		 new))))
     
-     (define (warn-override-core module name int1 val1 int2 val2 var val)
-       (and (eq? int1 the-scm-module)
-	    (begin
-	      (format #t
-		      "WARNING: ~A: imported module ~A overrides core binding `~A'\n"
-		      (module-name module)
-		      (module-name int2)
-		      name)
-	      (module-local-variable int2 name))))
+    (define (warn-override-core module name int1 val1 int2 val2 var val)
+      (and (eq? int1 the-scm-module)
+	   (begin
+	     (format #t
+		     "WARNING: ~A: imported module ~A overrides core binding `~A'\n"
+		     (module-name module)
+		     (module-name int2)
+		     name)
+	     (module-local-variable int2 name))))
      
-     (define (first module name int1 val1 int2 val2 var val)
-       (or var (module-local-variable int1 name)))
+    (define (first module name int1 val1 int2 val2 var val)
+      (or var (module-local-variable int1 name)))
      
-     (define (last module name int1 val1 int2 val2 var val)
-       (module-local-variable int2 name))
+    (define (last module name int1 val1 int2 val2 var val)
+      (module-local-variable int2 name))
      
+    (define (noop module name int1 val1 int2 val2 var val)
+      #f)
+    
     (set-module-name! m 'duplicate-handlers)
     (set-module-kind! m 'interface)
     (module-define! m 'check check)
@@ -2887,6 +2890,8 @@
     (module-define! m 'warn-override-core warn-override-core)
     (module-define! m 'first first)
     (module-define! m 'last last)
+    (module-define! m 'merge-generics noop)
+    (module-define! m 'merge-accessors noop)
     m))
 
 (define (lookup-duplicates-handlers handler-names)

@@ -1,5 +1,10 @@
 2003-03-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* boot-9.scm (duplicate-handlers): Make sure the merge-generics
+	and merge-accessors handlers are available also before (oop goops)
+	has been loaded.  This is so that people can put them as default
+	handlers without worrying about availability.
+
 	* slib.scm (logical:ipow-by-squaring): Removed.
 
 	* boot-9.scm (ipow-by-squaring): Removed.
