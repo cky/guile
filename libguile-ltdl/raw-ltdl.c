@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 */
 
 #if HAVE_CONFIG_H
-#  include <libguile/scmconfig.h>
+#  include <config.h>
 #endif
 
 #if HAVE_UNISTD_H
