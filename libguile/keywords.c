@@ -62,7 +62,7 @@ SCM_DEFINE (scm_symbol_to_keyword, "symbol->keyword", 1, 0, 0,
 {
   SCM keyword;
 
-  SCM_ASSERT (scm_is_symbol (symbol), symbol, 0, NULL);
+  SCM_ASSERT_TYPE (scm_is_symbol (symbol), symbol, 0, NULL, "symbol");
 
   SCM_DEFER_INTS;
   keyword = scm_hashq_ref (scm_keyword_obarray, symbol, SCM_BOOL_F);
