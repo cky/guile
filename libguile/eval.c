@@ -265,7 +265,10 @@ scm_lookupcar1 (vloc, genv)
      SCM genv;
 {
   SCM env = genv;
-  register SCM *al, fl, var = SCM_CAR (vloc), var2 = var;
+  register SCM *al, fl, var = SCM_CAR (vloc);
+#ifdef USE_THREADS
+  register SCM var2 = var;
+#endif
 #ifdef MEMOIZE_LOCALS
   register SCM iloc = SCM_ILOC00;
 #endif
@@ -1561,7 +1564,9 @@ start:
 		    0);
       }
 #endif
+#if defined (USE_THREADS) || defined (DEVAL)
 dispatch:
+#endif
   SCM_ASYNC_TICK;
   switch (SCM_TYP7 (x))
     {
