@@ -69,16 +69,6 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
 
       return res;
     }
-  else if (SCM_REALP (num))
-    { /* inexact */
-    
-      double u = SCM_REAL_VALUE (num);
-      ITYPE res = u;
-      if ((double) res == u)
-        return res;
-      else
-        scm_out_of_range (s_caller, num);
-    }
   else
     scm_wrong_type_arg (s_caller, pos, num);
 }

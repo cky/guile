@@ -1,3 +1,14 @@
+2001-09-20  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* error.c, error.h: Made error keys globally accessible.
+	Applications might want to test for these or use them in a direct
+	call to scm_error.
+
+	* num2integral.i.c (NUM2INTEGRAL): Report an error when these
+	routines are passed an inexact.  This change in behavior is
+	motivated by concordance with R5RS: It is more common that a
+	primitive doesn't want to accept an inexact for an exact.
+
 2001-09-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
         The following patch partially undoes my patch from 2001-06-30,

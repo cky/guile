@@ -1186,13 +1186,21 @@ intended to be used in user code.  You should avoid dealing with
 bignums directly, and should deal with numbers in general (which can
 be bignums).
 
+** Change in behavior: scm_num2long, scm_num2ulong
+
+The scm_num2[u]long functions don't any longer accept an inexact
+argument.  This change in behavior is motivated by concordance with
+R5RS: It is more common that a primitive doesn't want to accept an
+inexact for an exact.
+
 ** New functions: scm_short2num, scm_ushort2num, scm_int2num,
    scm_uint2num, scm_size2num, scm_ptrdiff2num, scm_num2short,
    scm_num2ushort, scm_num2int, scm_num2uint, scm_num2ptrdiff,
    scm_num2size.
 
 These are conversion functions between the various ANSI C integral
-types and Scheme numbers.
+types and Scheme numbers.  NOTE: The scm_num2xxx functions don't
+accept an inexact argument.
 
 ** New number validation macros:
    SCM_NUM2{SIZE,PTRDIFF,SHORT,USHORT,INT,UINT}[_DEF]
