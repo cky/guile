@@ -1,3 +1,8 @@
+2000-01-07  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* snarf.h (SCM_INSITU, SCM_INIT): New snarf macros for use in user
+	snarf macro definitions.
+
 2000-01-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* chars.c (scm_integer_to_char): Use Greg's nice
