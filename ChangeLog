@@ -1,3 +1,9 @@
+2005-03-09  Marius Vollmer  <mvo@zagadka.de>
+
+	Guile 1.7.2 has been released.
+	
+	* GUILE-VERSION (GUILE_MICRO_VERSION): Incremented to "2".
+
 2005-03-08  Marius Vollmer  <mvo@zagadka.de>
 
 	libltdl is no longer distributed.  We expect it to be installed
