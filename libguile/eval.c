@@ -173,6 +173,20 @@ static const char s_duplicate_binding[] = "Duplicate binding";
  * a 'Bad exit clause' error is signalled.  */
 static const char s_bad_exit_clause[] = "Bad exit clause";
 
+/* The formal function arguments of a lambda expression have to be either a
+ * single symbol or a non-cyclic list.  For anything else a 'Bad formals'
+ * error is signalled.  */
+static const char s_bad_formals[] = "Bad formals";
+
+/* If in a lambda expression something else than a symbol is detected at a
+ * place where a formal function argument is required, a 'Bad formal' error is
+ * signalled.  */
+static const char s_bad_formal[] = "Bad formal";
+
+/* If in the arguments list of a lambda expression an argument name occurs
+ * more than once, a 'Duplicate formal' error is signalled.  */
+static const char s_duplicate_formal[] = "Duplicate formal";
+
 
 /* Signal a syntax error.  We distinguish between the form that caused the
  * error and the enclosing expression.  The error message will print out as
@@ -382,9 +396,6 @@ static const char s_body[] = "bad body";
 static const char s_bindings[] = "bad bindings";
 static const char s_duplicate_bindings[] = "duplicate bindings";
 static const char s_variable[] = "bad variable";
-static const char s_clauses[] = "bad or missing clauses";
-static const char s_formals[] = "bad formals";
-static const char s_duplicate_formals[] = "duplicate formals";
 static const char s_splicing[] = "bad (non-list) result for unquote-splicing";
 
 
@@ -1098,27 +1109,47 @@ c_improper_memq (SCM obj, SCM list)
 }
 
 SCM
-scm_m_lambda (SCM xorig, SCM env SCM_UNUSED)
+scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
 {
   SCM formals;
-  SCM x = SCM_CDR (xorig);
+  SCM formals_idx;
 
-  SCM_ASSYNT (SCM_CONSP (x), s_formals, s_lambda);
+  const SCM cdr_expr = SCM_CDR (expr);
+  const long length = scm_ilength (cdr_expr);
+  ASSERT_SYNTAX (length >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (length >= 2, s_missing_expression, expr);
 
-  formals = SCM_CAR (x);
-  while (SCM_CONSP (formals))
+  /* Before iterating the list of formal arguments, make sure the formals
+   * actually are given as either a symbol or a non-cyclic list.  */
+  formals = SCM_CAR (cdr_expr);
+  if (SCM_CONSP (formals))
     {
-      SCM formal = SCM_CAR (formals);
-      SCM_ASSYNT (SCM_SYMBOLP (formal), s_formals, s_lambda);
-      if (c_improper_memq (formal, SCM_CDR (formals)))
-	scm_misc_error (s_lambda, s_duplicate_formals, SCM_EOL);
-      formals = SCM_CDR (formals);
+      /* Dirk:FIXME:: We should check for a cyclic list of formals, and if
+       * detected, report a 'Bad formals' error.  */
     }
-  if (!SCM_NULLP (formals) && !SCM_SYMBOLP (formals))
-    scm_misc_error (s_lambda, s_formals, SCM_EOL);
+  else
+    {
+      ASSERT_SYNTAX_2 (SCM_SYMBOLP (formals) || SCM_NULLP (formals),
+                       s_bad_formals, formals, expr);
+    }
 
-  return scm_cons2 (SCM_IM_LAMBDA, SCM_CAR (x),
-		    scm_m_body (SCM_IM_LAMBDA, SCM_CDR (x), s_lambda));
+  /* Now iterate the list of formal arguments to check if all formals are
+   * symbols, and that there are no duplicates.  */
+  formals_idx = formals;
+  while (SCM_CONSP (formals_idx))
+    {
+      const SCM formal = SCM_CAR (formals_idx);
+      const SCM next_idx = SCM_CDR (formals_idx);
+      ASSERT_SYNTAX_2 (SCM_SYMBOLP (formal), s_bad_formal, formal, expr);
+      ASSERT_SYNTAX_2 (!c_improper_memq (formal, next_idx),
+                       s_duplicate_formal, formal, expr);
+      formals_idx = next_idx;
+    }
+  ASSERT_SYNTAX_2 (SCM_NULLP (formals_idx) || SCM_SYMBOLP (formals_idx),
+                   s_bad_formal, formals_idx, expr);
+
+  return scm_cons2 (SCM_IM_LAMBDA, SCM_CAR (cdr_expr),
+		    scm_m_body (SCM_IM_LAMBDA, SCM_CDR (cdr_expr), s_lambda));
 }
 
 

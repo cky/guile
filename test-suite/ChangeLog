@@ -1,3 +1,15 @@
+2003-10-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/syntax.test (define exception:bad-formal, define
+	exception:duplicate-formal): New.
+
+	(exception:duplicate-formals): Removed.
+
+	(exception:bad-formals): Adapted to the new way of error
+	reporting.
+
+	Adapted tests for 'lambda' to the new way of error reporting.
+
 2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test (exception:missing/extra-expr-syntax): Fixed

@@ -40,9 +40,11 @@
 (define exception:bad-body
   (cons 'misc-error "^bad body"))
 (define exception:bad-formals
-  (cons 'misc-error "^bad formals"))
-(define exception:duplicate-formals
-  (cons 'misc-error "^duplicate formals"))
+  (cons 'syntax-error "Bad formals"))
+(define exception:bad-formal
+  (cons 'syntax-error "Bad formal"))
+(define exception:duplicate-formal
+  (cons 'syntax-error "Duplicate formal"))
 
 (define exception:missing-clauses
   (cons 'syntax-error "Missing clauses"))
@@ -122,17 +124,17 @@
   (with-test-prefix "bad formals"
 
     (pass-if-exception "(lambda)"
-      exception:bad-formals
+      exception:missing-expr
       (eval '(lambda)
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda . \"foo\")"
-      exception:bad-formals
+      exception:bad-expression
       (eval '(lambda . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda \"foo\")"
-      exception:bad-formals
+      exception:missing-expr
       (eval '(lambda "foo")
 	    (interaction-environment)))
 
@@ -142,22 +144,22 @@
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda (x 1) 2)"
-      exception:bad-formals
+      exception:bad-formal
       (eval '(lambda (x 1) 2)
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda (1 x) 2)"
-      exception:bad-formals
+      exception:bad-formal
       (eval '(lambda (1 x) 2)
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda (x \"a\") 2)"
-      exception:bad-formals
+      exception:bad-formal
       (eval '(lambda (x "a") 2)
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda (\"a\" x) 2)"
-      exception:bad-formals
+      exception:bad-formal
       (eval '(lambda ("a" x) 2)
 	    (interaction-environment))))
 
@@ -165,20 +167,20 @@
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "(lambda (x x) 1)"
-      exception:duplicate-formals
+      exception:duplicate-formal
       (eval '(lambda (x x) 1)
 	    (interaction-environment)))
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "(lambda (x x x) 1)"
-      exception:duplicate-formals
+      exception:duplicate-formal
       (eval '(lambda (x x x) 1)
 	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(lambda ())"
-      exception:bad-body
+      exception:missing-expr
       (eval '(lambda ())
 	    (interaction-environment)))))
 
