@@ -1,6 +1,6 @@
 ;;;; goops.test --- test suite for GOOPS                      -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001, 2003 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2003,2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -17,7 +17,8 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (test-suite lib))
+(define-module (test-suite test-goops)
+  #:use-module (test-suite lib))
 
 (pass-if "GOOPS loads"
 	 (false-if-exception
@@ -128,10 +129,10 @@
   (with-test-prefix "define-class"
 
     (pass-if "creating a new binding"
-      (eval '(define <foo> #f) (current-module))
-      (eval '(undefine <foo>) (current-module))
-      (eval '(define-class <foo> ()) (current-module))
-      (eval '(is-a? <foo> <class>) (current-module)))
+      (if (eval '(defined? '<foo-0>) (current-module))
+          (throw 'unresolved))
+      (eval '(define-class <foo-0> ()) (current-module))
+      (eval '(is-a? <foo-0> <class>) (current-module)))
 
     (pass-if "overwriting a binding to a non-class"
       (eval '(define <foo> #f) (current-module))
@@ -154,11 +155,11 @@
   (with-test-prefix "define-generic"
 
     (pass-if "creating a new top-level binding"
-      (eval '(define foo #f) (current-module))
-      (eval '(undefine foo) (current-module))
-      (eval '(define-generic foo) (current-module))
-      (eval '(and (is-a? foo <generic>)
-		  (null? (generic-function-methods foo)))
+      (if (eval '(defined? 'foo-0) (current-module))
+          (throw 'unresolved))
+      (eval '(define-generic foo-0) (current-module))
+      (eval '(and (is-a? foo-0 <generic>)
+		  (null? (generic-function-methods foo-0)))
 	    (current-module)))
 
     (pass-if "overwriting a top-level binding to a non-generic"
@@ -181,11 +182,11 @@
   (with-test-prefix "define-accessor"
 
     (pass-if "creating a new top-level binding"
-      (eval '(define foo #f) (current-module))
-      (eval '(undefine foo) (current-module))
-      (eval '(define-accessor foo) (current-module))
-      (eval '(and (is-a? foo <generic-with-setter>)
-		  (null? (generic-function-methods foo)))
+      (if (eval '(defined? 'foo-1) (current-module))
+          (throw 'unresolved))
+      (eval '(define-accessor foo-1) (current-module))
+      (eval '(and (is-a? foo-1 <generic-with-setter>)
+		  (null? (generic-function-methods foo-1)))
 	    (current-module)))
 
     (pass-if "overwriting a top-level binding to a non-accessor"
