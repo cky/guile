@@ -1,3 +1,8 @@
+2002-08-22  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* gc.h, gc.c: make scm_cells_allocated unsigned again. Thanks to
+	Bill Schottstaedt for the bug report
+
 2002-08-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* print.c (scm_iprin1): Print primitives generics always as

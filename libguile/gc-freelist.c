@@ -123,7 +123,7 @@ scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist)
 		   - (long) SCM_MAX (scm_gc_cells_collected_1, scm_gc_cells_collected));
 #ifdef DEBUGINFO
       fprintf (stderr, " after GC = %lu, delta = %ld\n",
-	       (long) scm_cells_allocated,
+	       (unsigned long) scm_cells_allocated,
 	       (long) delta);
 #endif
       if (delta > 0)

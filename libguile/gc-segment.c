@@ -228,7 +228,7 @@ scm_i_sweep_segment (scm_t_heap_segment * seg)
   scm_t_cell * p = seg->next_free_card;
   int yield = scm_gc_cells_collected;
   int coll = seg->freelist->collected;
-  int alloc = scm_cells_allocated ;
+  unsigned long alloc = scm_cells_allocated ;
   
   while (scm_i_sweep_some_cards (seg) != SCM_EOL)
     ;
