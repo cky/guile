@@ -618,13 +618,6 @@
 
 (define alist-cons acons)
 
-(define (alist-copy alist)
-  (let lp ((a alist)
-	   (rl '()))
-    (if (null? a)
-      (reverse! rl)
-      (lp (cdr a) (acons (caar a) (cdar a) rl)))))
-
 (define (alist-delete key alist . rest)
   (let ((k= (if (pair? rest) (car rest) equal?)))
     (let lp ((a alist) (rl '()))

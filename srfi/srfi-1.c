@@ -63,6 +63,40 @@ equal_trampoline (SCM proc, SCM arg1, SCM arg2)
 }
 
 
+SCM_DEFINE (scm_srfi1_alist_copy, "alist-copy", 1, 0, 0,
+            (SCM alist),
+	    "Return a copy of @var{alist}, copying both the pairs comprising\n"
+	    "the list and those making the associations.")
+#define FUNC_NAME s_scm_srfi1_alist_copy
+{
+  SCM  ret, *p, elem, c;
+
+  /* ret is the list to return.  p is where to append to it, initially &ret
+     then SCM_CDRLOC of the last pair.  */
+  ret = SCM_EOL;
+  p = &ret;
+
+  for ( ; scm_is_pair (alist); alist = SCM_CDR (alist))
+    {
+      elem = SCM_CAR (alist);
+
+      /* each element of alist must be a pair */
+      SCM_ASSERT_TYPE (scm_is_pair (elem), alist, SCM_ARG1, FUNC_NAME,
+                       "association list");
+
+      c = scm_cons (scm_cons (SCM_CAR (elem), SCM_CDR (elem)), SCM_EOL);
+      *p = c;
+      p = SCM_CDRLOC (c);
+    }
+
+  /* alist must be a proper list */
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (alist), alist, SCM_ARG1, FUNC_NAME,
+                   "association list");
+  return ret;
+}
+#undef FUNC_NAME
+
+
 /* scm_append and scm_append_x don't modify their list argument (only the
    lists within that list in the case of scm_append_x), hence making them
    suitable for direct use for concatentate.  */

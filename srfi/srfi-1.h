@@ -32,6 +32,7 @@
 # define SCM_SRFI1_API extern
 #endif
 
+SCM_SRFI1_API SCM scm_srfi1_alist_copy (SCM alist);
 SCM_SRFI1_API SCM scm_srfi1_count (SCM pred, SCM list1, SCM rest);
 SCM_SRFI1_API SCM scm_srfi1_delete (SCM x, SCM lst, SCM pred);
 SCM_SRFI1_API SCM scm_srfi1_delete_x (SCM x, SCM lst, SCM pred);
