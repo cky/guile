@@ -26,60 +26,211 @@
     (begin
 
       (define-module (test-suite test-ice-9-slib)
-	#:duplicates (last)  ;; avoid warnings about various replacements
 	#:use-module (test-suite lib)
 	#:use-module (ice-9 slib))
 
-      ;;
-      ;; delete-file
-      ;;
 
-      ;; in guile 1.6.4 and earlier delete-file didn't match the slib spec
-      (with-test-prefix "delete-file"
-	(pass-if "non existant file"
-	  (eq? #f (delete-file "nosuchfile")))
-	(pass-if "existing file"
-	  (call-with-output-file "slibtest.tmp" noop)
-	  (eq? #t (delete-file "slibtest.tmp"))))
+      (with-test-prefix "Configuration"
 
-      ;;
-      ;; browse-url
-      ;;
+	;;
+	;; char-code-limit
+	;;
 
-      (with-test-prefix "browse-url"
-	(pass-if (procedure? browse-url)))
+	(with-test-prefix "char-code-limit"
+	  (pass-if "integer" (integer? char-code-limit)))
 
-      ;;
-      ;; call-with-open-ports
-      ;;
+	;;
+	;; most-positive-fixnum
+	;;
 
-      (with-test-prefix "call-with-open-ports"
-	(pass-if (procedure? call-with-open-ports))
-	
-	(pass-if "close on return"
-	  (let ((port (open-input-file "/dev/null")))
-	    (call-with-open-ports port (lambda (port) #f))
-	    (port-closed? port))))
+	(with-test-prefix "most-positive-fixnum"
+	  (pass-if "integer" (integer? most-positive-fixnum)))
 
-      ;;
-      ;; nil
-      ;;
+	;;
+	;; slib:form-feed
+	;;
 
-      ;; in guile 1.6.4 and earlier this was missing
-      (with-test-prefix "nil"
-	(pass-if (eq? #f nil)))
+	(with-test-prefix "slib:form-feed"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "char" (char? slib:form-feed)))
 
-      ;;
-      ;; open-file
-      ;;
+	;;
+	;; slib:report
+	;;
 
-      ;; this style open-file is only a requirement in slib 3a1 and up, but
-      ;; we provide it always
-      (with-test-prefix "open-file"
-	(pass-if (port? (open-file "/dev/null" 'r)))
-	(pass-if (port? (open-file "/dev/null" 'rb)))
-	(pass-if (port? (open-file "/dev/null" 'w)))
-	(pass-if (port? (open-file "/dev/null" 'wb))))
+	(with-test-prefix "slib:report"
+	  (pass-if "exists" (procedure? slib:report)))
+
+	;;
+	;; slib:report-version
+	;;
+
+	(with-test-prefix "slib:report-version"
+	  (pass-if "exists" (procedure? slib:report-version)))
+
+	;;
+	;; slib:tab
+	;;
+
+	(with-test-prefix "slib:tab"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "char" (char? slib:tab)))
+
+	;;
+	;; software-type
+	;;
+
+	(with-test-prefix "software-type"
+	  (pass-if "exists" (procedure? software-type))))
+
+
+      (with-test-prefix "Input/Output"
+
+	;;
+	;; call-with-open-ports
+	;;
+
+	(with-test-prefix "call-with-open-ports"
+	  (pass-if "exists" (procedure? call-with-open-ports))
+
+	  (pass-if "close on return"
+	    (let ((port (open-input-file "/dev/null")))
+	      (call-with-open-ports port (lambda (port) #f))
+	      (port-closed? port))))
+
+	;;
+	;; delete-file
+	;;
+
+	;; in guile 1.6.4 and earlier delete-file didn't match the slib spec
+	(with-test-prefix "delete-file"
+	  (pass-if "non existant file"
+	    (eq? #f (delete-file "nosuchfile")))
+	  (pass-if "existing file"
+	    (call-with-output-file "slibtest.tmp" noop)
+	    (eq? #t (delete-file "slibtest.tmp"))))
+
+	;;
+	;; output-port-height
+	;;
+
+	(with-test-prefix "output-port-height"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? output-port-height)))
+
+	;;
+	;; output-port-width
+	;;
+
+	(with-test-prefix "output-port-width"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? output-port-width)))
+
+	;;
+	;; open-file
+	;;
+
+	;; this style open-file is only a requirement in slib 3a1 and up, but
+	;; we provide it always
+	(with-test-prefix "open-file"
+	  (pass-if "r"  (port? (open-file "/dev/null" 'r)))
+	  (pass-if "rb" (port? (open-file "/dev/null" 'rb)))
+	  (pass-if "w"  (port? (open-file "/dev/null" 'w)))
+	  (pass-if "wb" (port? (open-file "/dev/null" 'wb)))))
+
+
+      (with-test-prefix "System stuff"
+
+	;;
+	;; browse-url
+	;;
+
+	(with-test-prefix "browse-url"
+	  (pass-if "exists" (procedure? browse-url)))
+
+	;;
+	;; slib:error
+	;;
+
+	(with-test-prefix "slib:error"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? slib:error)))
+
+	;;
+	;; slib:eval
+	;;
+
+	(with-test-prefix "slib:eval"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? slib:eval)))
+
+	;;
+	;; slib:eval-load
+	;;
+
+	(with-test-prefix "slib:eval-load"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? slib:eval-load)))
+
+	;;
+	;; slib:exit
+	;;
+
+	(with-test-prefix "slib:exit"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? slib:exit)))
+
+	;;
+	;; slib:load
+	;;
+
+	(with-test-prefix "slib:load"
+	  (pass-if "exists" (procedure? slib:load)))
+
+	;;
+	;; slib:load-source
+	;;
+
+	(with-test-prefix "slib:load-source"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? slib:load-source)))
+
+	;;
+	;; slib:warn
+	;;
+
+	(with-test-prefix "slib:warn"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? slib:warn))))
+
+
+      (with-test-prefix "Miscellany"
+
+	;;
+	;; identity
+	;;
+
+	(with-test-prefix "identity"
+	  (pass-if "exists" (procedure? identity)))
+
+	(with-test-prefix "Legacy"
+
+	  ;;
+	  ;; nil
+	  ;;
+
+	  ;; in guile 1.6.4 and earlier this was missing
+	  (with-test-prefix "nil"
+	    (pass-if "value" (eq? #f nil)))
+
+	  ;;
+	  ;; t
+	  ;;
+
+	  ;; in guile 1.6.4 and earlier this was missing
+	  (with-test-prefix "t"
+	    (pass-if "value" (eq? #t t)))))
+
 
       ;;
       ;; rev2-procedures
@@ -89,12 +240,13 @@
       ;; these existed, but they didn't
       (with-test-prefix "rev2-procedures"
 	(require 'rev2-procedures)
-	(pass-if (procedure? -1+))
-	(pass-if (procedure? <?))
-	(pass-if (procedure? <=?))
-	(pass-if (procedure? =?))
-	(pass-if (procedure? >?))
-	(pass-if (procedure? >=?)))
+	(pass-if "-1+" (procedure? -1+))
+	(pass-if "<?"  (procedure? <?))
+	(pass-if "<=?" (procedure? <=?))
+	(pass-if "=?"  (procedure? =?))
+	(pass-if ">?"  (procedure? >?))
+	(pass-if ">=?" (procedure? >=?)))
+
 
       ;;
       ;; system
@@ -102,17 +254,29 @@
 
       ;; in guile 1.6.4 and earlier system didn't match the slib spec
       (with-test-prefix "system"
-	(pass-if (= 0 (system "exit 0")))
-	(pass-if (= 1 (system "exit 1")))
-	(pass-if (= 99 (system "exit 99"))))
+	(pass-if "exit 0"  (= 0  (system "exit 0")))
+	(pass-if "exit 1"  (= 1  (system "exit 1")))
+	(pass-if "exit 99" (= 99 (system "exit 99"))))
 
-      ;;
-      ;; t
-      ;;
 
-      ;; in guile 1.6.4 and earlier this was missing
-      (with-test-prefix "t"
-	(pass-if (eq? #t t)))
+      (with-test-prefix "Time"
+
+	;;
+	;; difftime
+	;;
+
+	(with-test-prefix "difftime"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? difftime)))
+
+	;;
+	;; offset-time
+	;;
+
+	(with-test-prefix "offset-time"
+	  ;; in guile 1.6.4 this wasn't exported
+	  (pass-if "exists" (procedure? offset-time))))
+
 
       (require 'array)
       (with-test-prefix "array"
@@ -124,4 +288,5 @@
 	;; create-array isn't in old slib, but when it exists it should work
 	(if (defined? 'create-array)
 	    (with-test-prefix "create-array"
-	      (pass-if (array? (create-array (As32 0) '(0 1)))))))))
+	      (pass-if "As32 create"
+		(array? (create-array (As32 0) '(0 1)))))))))
