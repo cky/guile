@@ -44,10 +44,8 @@
  */
 
 #include "libguile/__scm.h"
-#include "pairs.h"
 
 
-
 extern int scm_ints_disabled;
 extern SCM system_error_sym;
 
