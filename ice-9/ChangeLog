@@ -1,3 +1,14 @@
+Wed Oct  2 23:38:44 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* boot-9.scm (make-record-type, record-constructor): Don't assume
+	the empty list is false when parsing the argument list.
+
+Mon Sep 30 22:15:50 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* boot-9.scm (signal-handler): Clean up logic.
+
+	* boot-9.scm (load): Assume %load-path is always bound.
+
 Sat Sep 28 00:15:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
  	* boot-9.scm (error): replace another throw with scm-error.  Throw
@@ -19,6 +30,17 @@ Sat Sep 28 00:15:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
 	(%load-indent): deleted, -2 was causing errors.
 
 	(%read-sharp): use port-line, not line-number.
+
+Fri Sep 27 16:23:51 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* boot-9.scm (%%bad-throw): Delete definition. 1) It's very
+ 	straightforward to provide the equivalent functionality using
+ 	(catch #t ...), so there's no need for the extra complexity.  2)
+ 	Outside the context of a read-eval-print loop (which Guile should
+ 	not require) it's not clear we should do anything more complicated
+ 	than print an error and exit; the user or REPL can establish
+ 	something better if it wants.  3) In that case, it's much more
+ 	robust to just do it in the C code.
 
 Tue Sep 24 06:53:04 1996  Gary Houston  <ghouston@actrix.gen.nz>
 

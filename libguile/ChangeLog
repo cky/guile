@@ -1,3 +1,21 @@
+Thu Oct  3 00:04:53 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* Makefile.in: Rebuild dependencies.
+
+	* libguile.h: #include "libguile/print.h" before "smob.h", since
+	the latter uses the print_state structure.
+
+	* throw.c (scm_ithrow): Use the correct variable when checking to
+	see if a given element of scm_dynwinds is a valid catch.
+
+	* throw.c (scm_ithrow): If scm_dynwinds has invalid list
+ 	structure, abort; don't just silently ignore the garbage.
+
+	* _scm.h: #include "print.h" here, since it seems to be used just
+	about everywhere.
+	* eval.c, gdbint.c, genio.h, numbers.h, smob.h, srcprop.c,
+	strports.c, unif.h: Don't #include "print.h".
+
 Tue Oct  1 05:15:10 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 	
 	* feature.h (scm_loc_features): Removed external declaration.
@@ -50,6 +68,17 @@ Tue Oct  1 00:00:10 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
  	can be used in scm_call_with_new_root; Added reenabling of stack
  	checking when catching a throw.
 
+Mon Sep 30 21:48:11 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* list.c, list.h: Use SCM_P instead of CPP hair.  Doc fixes.
+
+	* list.c (scm_member, scm_memv, scm_memq): Return #f if a matching
+	element is not found, as per R4RS.
+
+Sat Sep 28 18:13:01 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* list.c: Doc fixes throughout.
+
 Sat Sep 28 02:07:43 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* strings.c, strings.h: (scm_makfrom0str, scm_makefrom0str_opt:
@@ -62,6 +91,31 @@ Sat Sep 28 02:07:43 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* load.c (scm_sys_try_load_path): throw an error if file not found
 	(like it says it in NEWS).
+
+Fri Sep 27 18:27:01 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* symbols.c (scm_intern_obarray_soft): Initialize the new symbol's
+	PROPS slot to '(), not #f; it's an empty alist.
+
+	* throw.h, throw.c: Use SCM_P instead of #if hair.
+
+	Remove special support for uncaught throws; see throw.c for
+	rationale. 
+	* throw.c (uncaught_throw): New function.
+	(scm_ithrow): Call uncaught_throw if we don't find a throw
+	target; don't mess with scm_bad_throw_vcell.
+	(scm_bad_throw_vcell): Variable deleted.
+	(scm_init_throw): Don't initialize it.
+
+	* throw.c (scm_ithrow): Don't let outer key matches shadow inner
+	#t catches.
+
+Wed Sep 25 04:35:50 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* numbers.c (scm_istr2int): If the number is short (as most
+	numbers are), just call scm_small_istr2int to deal with it.
+	(scm_small_istr2int): New function, created by un-#ifdefing the
+	non-bignum version of scm_istr2int and renaming it.
 
 Tue Sep 24 06:48:38 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
@@ -122,6 +176,21 @@ Sun Sep 22 17:10:06 1996  Mikael Djurfeldt  <mdj@kenneth>
 	time complexity to O (depth * N).  (Better time complexity will be
 	achieved when the printing code is completely rewritten.)
 	
+Fri Sep 20 22:01:36 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* aclocal.m4 (GUILE_STRUCT_UTIMBUF): Use AC_CACHE_CHECK instead of
+	AC_CACHE_VAL; #define UTIMBUF_NEEDS_POSIX outside AC_CACHE_VAL, so
+	it gets done whether or not the cache variable has a value.
+
+Thu Sep 19 17:06:39 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	Distinguish #f and ().
+	* __scm.h: #undef SICP.
+	* pairs.h (SCM_EOL): Delete this definition, equating it with
+	SCM_BOOL_F.
+	* tags.h (SCM_EOL): Give it a new definition here; I think I found
+	the value it used to have.  Doc fixes, too.
+
 Thu Sep 19 15:33:51 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* struct.c (scm_make_struct_layout, init_struct, scm_struct_ref,
