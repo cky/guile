@@ -80,6 +80,7 @@ root_mark (SCM root)
   scm_gc_mark (s->cur_errp);
   /* No need to gc mark def_loadp */
   scm_gc_mark (s->fluids);
+  scm_gc_mark (s->active_asyncs);
   return SCM_ROOT_STATE (root) -> parent;
 }
 
