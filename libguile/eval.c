@@ -1974,6 +1974,9 @@ dispatch:
     case scm_tc7_substring:
     case scm_tc7_smob:
     case scm_tcs_closures:
+#ifdef CCLO
+    case scm_tc7_cclo:
+#endif
     case scm_tcs_subrs:
       RETURN (x);
 

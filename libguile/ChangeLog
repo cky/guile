@@ -1,3 +1,8 @@
+1998-11-17  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Added missing case for cclo.  (Thanks to
+	Christian Lynbech.)
+
 1998-11-14  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* objects.c (scm_i_make_class_object): Renamed from
