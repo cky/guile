@@ -1,3 +1,9 @@
+2004-08-27  Kevin Ryde  <user42@zip.com.au>
+
+	* socket.c (scm_fill_sockaddr): Use HAVE_STRUCT_SOCKADDR_SIN_LEN and
+	HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN for sockaddr fields, SIN_LEN and
+	SIN_LEN6 are not defined on all systems.  Reported by Michael Tuexen.
+
 2004-08-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* strings.h, strings.c (scm_i_make_symbol): Added FLAGS parameter.
