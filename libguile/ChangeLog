@@ -1,5 +1,15 @@
 Mon May 26 18:51:29 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* fports.c (print_pipe_port): New function.
+	(scm_fptob): Use print_pipe_port instead of scm_prinport; the
+	latter doesn't even take the right arguments.
+
+	* Makefile.am: Increment shared lib revision number.  I think
+	sometimes the uninstalled Guile finds the installed shared lib;
+	Gord says doing this might help.  As things turned out, I can't
+	say whether it does.
+	* Makefile.in: Regenerated.
+
 	* gh_init.c (gh_enter): Cast c_main_prog to a void * before
  	passing it as the closure argument to scm_boot_guile.  (Bill
  	Janssen)
