@@ -1,5 +1,7 @@
 Sat Mar  8 00:07:54 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* boot-9.scm: Added loading of session support module.
+
 	* debug.scm: Removed `display-application'.  (Replaced by
  	primitive procedure.)
 

@@ -3655,6 +3655,15 @@
     (define-module (guile) :use-module (ice-9 debug)))
 
 
+;;; {Load session support if present.}
+;;;
+;;; *fixme* This is a temporary solution.
+;;;
+
+(if (%search-load-path "ice-9/session.scm")
+    (define-module (guile) :use-module (ice-9 session)))
+
+
 ;;; {Load thread code if threads are present.}
 ;;;
 ;;; *fixme* This is a temporary solution.
