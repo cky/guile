@@ -431,8 +431,8 @@ instead of the list elements.
 @end deffn
 
 @deffn {Scheme Procedure} reduce f ridentity lst
-@code{reduce} is a variant of @code{reduce}.  If @var{lst} is
-@code{()}, @var{ridentity} is returned.  Otherwise, @code{(fold (car
+@code{reduce} is a variant of @code{fold}.  If @var{lst} is
+@code{()}, @var{ridentity} is returned.  Otherwise, @code{(fold f (car
 @var{lst}) (cdr @var{lst}))} is returned.
 @end deffn
 
