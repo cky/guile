@@ -1,3 +1,42 @@
+2001-06-18  Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>
+
+        The SRFI-19 implementation was completely broken.  Already the
+	reference implementation did not handle DST and time zones
+	properly and relied on non-R5RS-isms like passing reals to
+	`quotient'.  For Guile, some additional fixes were needed because
+	of the incomplete numeric tower implementation.  See also
+	srfi-19.test. 
+	
+	* srfi-19.scm (date-zone-offset): Fixed typo in export clause.
+	(add-duration): Renamed from priv:add-duration. 
+	(priv:time-normalize!): Handle fractional nanoseconds; remove
+	duplicate definition.
+	(priv:current-time-tai): Fixed typo.
+	(time=?, time<=?): Fixed typos.
+	(time-tai->time-utc, time-utc->time-tai,
+	time-utc->time-monotonic): Use make-time-unnormalized instead of
+	make-time when uninitialized time fields are used.
+	(set-date-nanosecond!, set-date-second!, set-date-minute!,
+	set-date-hour!, set-date-day!, set-date-month!, set-date-year!,
+	set-date-zone-offset!): Define.
+	(priv:local-tz-offset): Take an extra argument in order to handle
+	DST effects.
+	(time-utc->date, time-tai->date, time-monotonic->date): Handle the
+	changed signature of priv:local-tz-offset. Don't pass non-integer
+	arguments to quotient (non-R5RS, not supported by Guile). 
+	(date->time-utc): Ensure that seconds in a date structure are
+	always exact integers.  Handle DST properly.
+	(current-date, julian-day->date, modified-julian-day->date):
+	Handle the changed signature of priv:local-tz-offset.  
+	(julian-day->time-utc): Reverted earlier inexact->exact hack;
+	make-time now handles inexact arguments.
+	(priv:locale-print-time-zone): At least print the numerical time
+	zone. 
+	(priv:integer-reader): Fixed named let iteration.
+	(priv:read-directives): Use set-date-month! instead of
+	priv:set-date-month! etc.
+	(string->date): Handle DST properly.
+
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srfi-13.scm: Prevent `export' from re-exporting core bindings.
