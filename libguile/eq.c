@@ -106,14 +106,13 @@ scm_equal_p (x, y)
 		y = SCM_CDR(y);
 		goto tailrecurse;
 	}
-	/* this ensures that types and scm_length are the same. */
+	if (SCM_TYP7SD (x) == scm_tc7_string
+	    && SCM (TYP7SD (x) == scm_tc7_string))
+	  return scm_string_equal_p (x, y);
+	/* This ensures that types and scm_length are the same.  */
 	if (SCM_CAR(x) != SCM_CAR(y)) return SCM_BOOL_F;
 	switch (SCM_TYP7(x)) {
         default: return SCM_BOOL_F;
-	case scm_tc7_substring:
-	case scm_tc7_mb_substring:
-	case scm_tc7_mb_string:
-	case scm_tc7_string: return scm_string_equal_p(x, y);
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
 	  return scm_vector_equal_p(x, y);
