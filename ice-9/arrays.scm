@@ -36,19 +36,19 @@
   (map (lambda (ind) (if (number? ind) (list 0 (+ -1 ind)) ind))
        (array-dimensions a)))
 
-(let ((make-array-proc (lambda (template)
-			 (lambda (c port)
-			   (read:uniform-vector template port)))))
-  (for-each (lambda (char template)
-	      (read-hash-extend char
-				(make-array-proc template)))
-	    '(#\a #\u #\e #\s #\i #\c #\y   #\h #\l)
-	    '(#\a 1   -1  1.0 1/3 0+i #\nul s   l)))
+; (let ((make-array-proc (lambda (template)
+; 			 (lambda (c port)
+; 			   (read:uniform-vector template port)))))
+;   (for-each (lambda (char template)
+; 	      (read-hash-extend char
+; 				(make-array-proc template)))
+; 	    '(#\a #\u #\e #\s #\i #\c #\y   #\h #\l)
+; 	    '(#\a 1   -1  1.0 1/3 0+i #\nul s   l)))
 
-(let ((array-proc (lambda (c port)
-		    (read:array c port))))
-  (for-each (lambda (char) (read-hash-extend char array-proc))
-		  '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)))
+; (let ((array-proc (lambda (c port)
+; 		    (read:array c port))))
+;   (for-each (lambda (char) (read-hash-extend char array-proc))
+; 		  '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)))
 
 (define (read:array digit port)
   (define chr0 (char->integer #\0))
