@@ -44,6 +44,7 @@
 #include "_scm.h"
 #include "chars.h"
 #include "genio.h"
+#include "eval.h"
 
 #include "struct.h"
 
@@ -55,6 +56,7 @@
 
 static SCM required_vtable_fields = SCM_BOOL_F;
 static int struct_num = 0;
+static SCM struct_printer_var;
 
 
 SCM_PROC (s_struct_make_layout, "make-struct-layout", 1, 0, 0, scm_make_struct_layout);
@@ -196,7 +198,7 @@ init_struct (handle, tail_elts, inits)
 
 	case 'p':
 	  if ((prot != 'r' && prot != 'w') || inits == SCM_EOL)
-	    *mem = SCM_EOL;
+	    *mem = SCM_BOOL_F;
 	  else
 	    {
 	      *mem = SCM_CAR (inits);
@@ -602,34 +604,15 @@ scm_print_struct (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-#if 0 /* XXX - too verbose */
-  SCM * data;
-  SCM layout;
-  int p;
-  int n_fields;
-  unsigned char * fields_desc;
-  unsigned char field_type;
-  
-  layout = SCM_STRUCT_LAYOUT (exp);
-  data = SCM_STRUCT_DATA (exp);
-
-  fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = data[scm_struct_i_n_words] - scm_struct_n_extra_words;
-
-  scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1, port);
-  for (p = 0; p < n_fields; p++)
+  SCM prt = SCM_CDR (struct_printer_var);
+  if (SCM_FALSEP(prt) ||
+      SCM_FALSEP(scm_apply (prt, exp, scm_cons (port, scm_listofnull))))
     {
-      if (fields_desc[2*p] == 'p')
-	scm_iprin1 (data[p], port, pstate);
-      if (p < n_fields-1)
-	scm_gen_putc (' ', port);
+      scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1,
+		     port);
+      scm_intprint (exp, 16, port);
+      scm_gen_putc ('>', port);
     }
-  scm_gen_putc ('>', port);
-#else
-  scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1, port);
-  scm_intprint (exp, 16, port);
-  scm_gen_putc ('>', port);
-#endif
 }
 
 void
@@ -638,6 +621,7 @@ scm_init_struct ()
   required_vtable_fields = SCM_CAR (scm_intern_obarray ("pruosr", sizeof ("pruosr") - 1, SCM_BOOL_F));
   scm_permanent_object (required_vtable_fields);
   scm_sysintern ("struct-vtable-offset", SCM_MAKINUM (scm_struct_i_vtable_offset));
+  struct_printer_var = scm_sysintern("*struct-printer*", SCM_BOOL_F);
 #include "struct.x"
 }
 
