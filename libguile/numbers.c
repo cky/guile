@@ -2850,15 +2850,6 @@ scm_num2dbl (a, why)
 }
 
 
-SCM_PROC(s_fuck, "fuck", 1, 0, 0, scm_fuck);
-
-SCM
-scm_fuck (a)
-     SCM a;
-{
-  return scm_makdbl (scm_num2dbl (a, "just because"), 0.0);
-}
-
 SCM_PROC1 (s_divide, "/", scm_tc7_asubr, scm_divide);
 
 SCM
