@@ -12,19 +12,17 @@
 set -e
 
 # this script runs in the top-level build-dir.
-top_builddir=`pwd`
+top_builddir=@top_builddir_absolute@
 top_srcdir=@top_srcdir@
 
 TEST_SUITE_DIR=${top_srcdir}/test-suite
 
 if [ x"$1" = x-i ] ; then
     guile=$2
-    guile_opts=
     shift
     shift
 else
-    guile=${top_srcdir}/pre-inst-guile
-    guile_opts="${top_builddir}"
+    guile=${top_builddir}/pre-inst-guile
 fi
 
 GUILE_LOAD_PATH=$TEST_SUITE_DIR
@@ -43,7 +41,7 @@ if [ ! -f guile-procedures.txt ] ; then
    @LN_S@ libguile/guile-procedures.txt .
 fi
 
-exec $guile $guile_opts \
+exec $guile \
     -e main -s "$TEST_SUITE_DIR/guile-test" \
     --test-suite "$TEST_SUITE_DIR/tests" \
     --log-file check-guile.log "$@"
