@@ -48,6 +48,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "libguile/smob.h"
 #include "libguile/numbers.h"
 #include "libguile/feature.h"
