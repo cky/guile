@@ -42,6 +42,7 @@
 
 #include "_scm.h"
 
+#include <stdio.h>
 #include <math.h>
 #include "genio.h"
 #include "smob.h"
