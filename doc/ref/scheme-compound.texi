@@ -27,8 +27,6 @@ values can be looked up within them.
 @section Pairs
 @tpindex Pairs
 
-@c FIXME::martin: Review me!
-
 Pairs are used to combine two Scheme objects into one compound object.
 Hence the name: A pair stores a pair of objects.
 
@@ -133,8 +131,6 @@ by @code{set-cdr!} is unspecified.
 @section Lists
 @tpindex Lists
 
-@c FIXME::martin: Review me!
-
 A very important data type in Scheme---as well as in all other Lisp
 dialects---is the data type @dfn{list}.@footnote{Strictly speaking,
 Scheme does not have a real datatype @dfn{list}.  Lists are made up of
@@ -173,8 +169,6 @@ or a pair which has a list in its cdr.
 @node List Syntax
 @subsection List Read Syntax
 
-@c FIXME::martin: Review me!
-
 The syntax for lists is an opening parentheses, then all the elements of
 the list (separated by whitespace) and finally a closing
 parentheses.@footnote{Note that there is no separation character between
@@ -207,8 +201,6 @@ applications (@pxref{Simple Invocation}).
 
 @node List Predicates
 @subsection List Predicates
-
-@c FIXME::martin: Review me!
 
 Often it is useful to test whether a given Scheme object is a list or
 not.  List-processing procedures could use this information to test
@@ -279,8 +271,6 @@ use the procedure @code{copy-tree} (@pxref{Copying}).
 @node List Selection
 @subsection List Selection
 
-@c FIXME::martin: Review me!
-
 These procedures are used to get some information about a list, or to
 retrieve one or more elements of a list.
 
@@ -322,8 +312,6 @@ return it.
 
 @node Append/Reverse
 @subsection Append and Reverse
-
-@c FIXME::martin: Review me!
 
 @code{append} and @code{append!} are used to concatenate two or more
 lists in order to form a new list.  @code{reverse} and @code{reverse!}
@@ -463,8 +451,6 @@ Like @code{delete!}, but only deletes the first occurrence of
 @node List Searching
 @subsection List Searching
 
-@c FIXME::martin: Review me!
-
 The following procedures search lists for particular elements.  They use
 different comparison predicates for comparing list elements with the
 object to be searched.  When they fail, they return @code{#f}, otherwise
@@ -504,32 +490,9 @@ the non-empty lists returned by @code{(list-tail @var{lst}
 empty list) is returned.
 @end deffn
 
-[FIXME: Is there any reason to have the `sloppy' functions available at
-high level at all?  Maybe these docs should be relegated to a "Guile
-Internals" node or something. -twp]
-
-@deffn {Scheme Procedure} sloppy-memq x lst
-This procedure behaves like @code{memq}, but does no type or error checking.
-Its use is recommended only in writing Guile internals,
-not for high-level Scheme programs.
-@end deffn
-
-@deffn {Scheme Procedure} sloppy-memv x lst
-This procedure behaves like @code{memv}, but does no type or error checking.
-Its use is recommended only in writing Guile internals,
-not for high-level Scheme programs.
-@end deffn
-
-@deffn {Scheme Procedure} sloppy-member x lst
-This procedure behaves like @code{member}, but does no type or error checking.
-Its use is recommended only in writing Guile internals,
-not for high-level Scheme programs.
-@end deffn
 
 @node List Mapping
 @subsection List Mapping
-
-@c FIXME::martin: Review me!
 
 List processing is very convenient in Scheme because the process of
 iterating over the elements of a list can be highly abstracted.  The
@@ -893,7 +856,7 @@ The field holds a Scheme value and is GC protected.  When a structure is
 created with this type of field, the field is initialized to refer to
 the structure's own handle.  This kind of field is mainly useful when
 mixing Scheme and C code in which the C code may need to compute a
-structure's handle given only the address of its malloc-ed data.
+structure's handle given only the address of its malloc'd data.
 @end itemize
 
 
@@ -1713,19 +1676,19 @@ because association lists are so useful, Guile also provides specific
 procedures for manipulating them.
 
 @menu
-* Alist Key Equality::          
-* Adding or Setting Alist Entries::  
-* Retrieving Alist Entries::    
-* Removing Alist Entries::      
-* Sloppy Alist Functions::      
-* Alist Example::               
+* Alist Key Equality::
+* Adding or Setting Alist Entries::
+* Retrieving Alist Entries::
+* Removing Alist Entries::
+* Sloppy Alist Functions::
+* Alist Example::
 @end menu
 
 @node Alist Key Equality
 @subsubsection Alist Key Equality
 
 All of Guile's dedicated association list procedures, apart from
-@code{acons}, come in three flavors, depending on the level of equality
+@code{acons}, come in three flavours, depending on the level of equality
 that is required to decide whether an existing key in the association
 list is the same as the key that the procedure call uses to identify the
 required entry.
@@ -1864,7 +1827,7 @@ function is @emph{not} destructive; @var{alist} is not modified.
 @deffnx {C Function} scm_assq_set_x (alist, key, val)
 @deffnx {C Function} scm_assv_set_x (alist, key, val)
 @deffnx {C Function} scm_assoc_set_x (alist, key, val)
-Re-associate @var{key} in @var{alist} with @var{value}: find any existing
+Reassociate @var{key} in @var{alist} with @var{value}: find any existing
 @var{alist} entry for @var{key} and associate it with the new
 @var{value}.  If @var{alist} does not contain an entry for @var{key},
 add a new one.  Return the (possibly new) alist.

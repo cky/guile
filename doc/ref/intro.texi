@@ -8,9 +8,9 @@ described in the
 @tex
 Revised$^5$
 @end tex
-@ifinfo
+@ifnottex
 Revised^5
-@end ifinfo
+@end ifnottex
 Report on the Algorithmic Language Scheme (usually known as R5RS),
 providing clean and general data and control structures.  Guile goes
 beyond the rather austere language presented in R5RS, extending it with
@@ -899,9 +899,9 @@ known as R5RS, or the
 @iftex
 ``Revised$^5$ Report on the Algorithmic Language Scheme'',
 @end iftex
-@ifinfo
+@ifnottex
 ``Revised^5 Report on the Algorithmic Language Scheme'',
-@end ifinfo
+@end ifnottex
 we have included the report in the Guile distribution;
 @xref{Top, , Introduction, r5rs, Revised(5) Report on the Algorithmic
 Language Scheme}.

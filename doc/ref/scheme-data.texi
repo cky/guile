@@ -3,7 +3,7 @@
 @chapter Simple Generic Data Types
 
 This chapter describes those of Guile's simple data types which are
-primarily are used for their role as items of generic data.  By
+primarily used for their role as items of generic data.  By
 @dfn{simple} we mean data types that are not primarily used as
 containers to hold other data --- i.e. pairs, lists, vectors and so on.
 For the documentation of such @dfn{compound} data types, see
@@ -193,8 +193,7 @@ discover whether the value is any of the supported numerical types.
 
 @deffn {Scheme Procedure} number? obj
 @deffnx {C Function} scm_number_p (obj)
-Return @code{#t} if @var{obj} is any kind of number, @code{#f} else.
-@findex number?
+Return @code{#t} if @var{obj} is any kind of number, else @code{#f}.
 @end deffn
 
 For example:
@@ -265,7 +264,7 @@ completely invisible to the Scheme level programmer.
 
 @deffn {Scheme Procedure} integer? x
 @deffnx {C Function} scm_integer_p (x)
-Return @code{#t} if @var{x} is an integer number, @code{#f} else.
+Return @code{#t} if @var{x} is an integer number, else @code{#f}.
 
 @lisp
 (integer? 487)
@@ -329,11 +328,10 @@ with those that are already implemented.
 
 @deffn {Scheme Procedure} real? obj
 @deffnx {C Function} scm_real_p (obj)
-Return @code{#t} if @var{obj} is a real number, @code{#f} else.
+Return @code{#t} if @var{obj} is a real number, else @code{#f}.
 Note that the sets of integer and rational values form subsets
 of the set of real numbers, so the predicate will also be fulfilled
 if @var{obj} is an integer number or a rational number.
-@findex real?
 @end deffn
 
 @deffn {Scheme Procedure} rational? x
@@ -1464,6 +1462,7 @@ called with string containing unusual characters.
 * String Searching::            Searching in strings.
 * Alphabetic Case Mapping::     Convert the alphabetic case of strings.
 * Appending Strings::           Appending strings to form a new string.
+* String Miscellanea::          Miscellaneous string procedures.
 @end menu
 
 @node String Syntax
@@ -1856,6 +1855,19 @@ form a longer result string.
 @deffnx {C Function} scm_string_append (args)
 Return a newly allocated string whose characters form the
 concatenation of the given strings, @var{args}.
+@end deffn
+
+
+@node String Miscellanea
+@subsection String Miscellanea
+
+This section contains all remaining string procedures.
+
+@deffn {Scheme Procedure} string-ci->symbol str
+@deffnx {C Function} scm_string_ci_to_symbol (str)
+Return the symbol whose name is @var{str}.  @var{str} is
+converted to lowercase before the conversion is done, if Guile
+is currently reading symbols case-insensitively.
 @end deffn
 
 
@@ -2262,6 +2274,7 @@ objects @i{per se}.
 @menu
 * Symbol Read Syntax::          Extended read syntax for symbols.
 * Symbol Primitives::           Operations related to symbols.
+* Symbol Tables::               Collecting symbols into obarrays.
 * Symbol Discrete::             Using symbols as discrete values.
 * Symbol Props::                Function slots and property lists.
 * Symbol Uninterned::           Uninterned symbols.
@@ -2271,7 +2284,7 @@ objects @i{per se}.
 @node Symbol Read Syntax
 @subsection Extended Read Syntax for Symbols
 
-The read syntax for symbols is a sequence of letters, digits, and
+The read syntax for a symbol is a sequence of letters, digits, and
 @dfn{extended alphabetic characters}, beginning with a character that
 cannot begin a number.  In addition, the special cases of @code{+},
 @code{-}, and @code{...} are read as symbols even though numbers can
@@ -2281,7 +2294,7 @@ Extended alphabetic characters may be used within identifiers as if
 they were letters.  The set of extended alphabetic characters is:
 
 @example
-! $ % & * + - . / : < = > ? @@ ^ _ ~ 
+! $ % & * + - . / : < = > ? @@ ^ _ ~
 @end example
 
 In addition to the standard read syntax defined above (which is taken
@@ -2348,8 +2361,8 @@ standard case is lower case:
 (eq? 'mISSISSIppi 'mississippi) @result{} #t
 (string->symbol "mISSISSIppi") @result{} @r{the symbol with name "mISSISSIppi"}
 (eq? 'bitBlt (string->symbol "bitBlt")) @result{} #f
-(eq? 'JollyWog
-  (string->symbol (symbol->string 'JollyWog))) @result{} #t
+(eq? 'LolliPop
+  (string->symbol (symbol->string 'LolliPop))) @result{} #t
 (string=? "K. Harper, M.D."
   (symbol->string
     (string->symbol "K. Harper, M.D."))) @result{}#t
@@ -2391,10 +2404,17 @@ standard case is lower case:
 @end lisp
 @end deffn
 
-@deffn {Scheme Procedure} symbol-hash symbol
-@deffnx {C Function} scm_symbol_hash (symbol)
-Return a hash value for @var{symbol}.
-@end deffn
+@node Symbol Tables
+@subsection Symbol Tables
+
+@c FIXME::martin: Are all these procedures still relevant?
+
+Guile symbol tables are hash tables.  Each hash table, also called an
+@dfn{obarray} (for `object array'), is a vector of association lists.
+Each entry in the alists is a pair (@var{SYMBOL} . @var{VALUE}).  To
+@dfn{intern} a symbol in a symbol table means to return its
+(@var{SYMBOL} . @var{VALUE}) pair, adding a new entry to the symbol
+table (with an undefined value) if none is yet present.
 
 @deffn {Scheme Procedure} gensym [prefix]
 @deffnx {C Function} scm_gensym (prefix)
@@ -2404,6 +2424,12 @@ an optional argument. Default prefix is @code{ g}.  The counter
 is increased by 1 at each call. There is no provision for
 resetting the counter.
 @end deffn
+
+@vgone{gentemp,1.6}
+@vgone{intern-symbol,1.6}
+@vgone{string->obarray-symbol,1.6}
+@vgone{symbol-binding,1.6}
+@vgone{symbol-bound?,1.6}
 
 
 @node Symbol Discrete
@@ -2434,6 +2460,17 @@ Return the contents of @var{symbol}'s @dfn{function slot}.
 Change the binding of @var{symbol}'s function slot.
 @end deffn
 
+@deffn {Scheme Procedure} symbol-hash symbol
+@deffnx {C Function} scm_symbol_hash (symbol)
+Return a hash value for @var{symbol}.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-interned? obarray string
+@deffnx {C Function} scm_symbol_interned_p (obarray, string)
+Return @code{#t} if @var{obarray} contains a symbol with name
+@var{string}, and @code{#f} otherwise.
+@end deffn
+
 @deffn {Scheme Procedure} symbol-pref symbol
 @deffnx {C Function} scm_symbol_pref (symbol)
 Return the @dfn{property list} currently associated with @var{symbol}.
@@ -2443,6 +2480,10 @@ Return the @dfn{property list} currently associated with @var{symbol}.
 @deffnx {C Function} scm_symbol_pset_x (symbol, value)
 Change the binding of @var{symbol}'s property slot.
 @end deffn
+
+@vgone{symbol-set!,1.6}
+@vgone{unintern-symbol,1.6}
+
 
 @node Symbol Uninterned
 @subsection Uninterned Symbols
@@ -2465,14 +2506,14 @@ just returns that symbol.  When not, a new symbol with the name is
 created and entered into the table so that it can be found later.
 
 Sometimes you might want to create a symbol that is guaranteed `fresh',
-i.e., a symbol that did not exist previously.  You might also want to
+i.e. a symbol that did not exist previously.  You might also want to
 somehow guarantee that no one else will ever unintentionally stumble
 across your symbol in the future.  These properties of a symbol are
 often needed when generating code during macro expansion.  When
 introducing new temporary variables, you want to guarantee that they
-don't conflict with variables in other peoples code.
+don't conflict with variables in other people's code.
 
-The simplest way to arrange for this is to create a new symbol and to
+The simplest way to arrange for this is to create a new symbol but
 not enter it into the global table of all symbols.  That way, no one
 will ever get access to your symbol by chance.  Symbols that are not in
 the table are called @dfn{uninterned}.  Of course, symbols that
@@ -2530,6 +2571,7 @@ foo-3
 @result{#f}  ; Just not interned.
 
 @end lisp
+
 
 @node Keywords
 @section Keywords
@@ -2716,8 +2758,6 @@ ABORT: (unbound-variable)
 
 @node Keyword Procedures
 @subsection Keyword Procedures
-
-@c FIXME::martin: Review me!
 
 The following procedures can be used for converting symbols to keywords
 and back.

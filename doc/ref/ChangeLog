@@ -1,3 +1,14 @@
+2002-03-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-compound.texi (List Searching): Remove docs for
+	`scm_sloppy_mem*', which no longer exist.
+
+2002-03-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.texi (Top), intro.texi (What is Guile?, The Basic Guile
+	Package): Use @ifnottex instead of @ifinfo, so that HTML
+	generation works correctly.
+
 2002-03-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tools.texi: Updated to reflect changes to the guile-snarf tool.

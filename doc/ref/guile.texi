@@ -121,7 +121,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.15 2002-03-16 13:51:03 ossau Exp $
+@subtitle $Id: guile.texi,v 1.16 2002-03-27 21:55:31 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -208,7 +208,7 @@ by Free Software Foundation.
 @c Where to find Guile examples.
 @set example-dir doc/examples
 
-@ifinfo
+@ifnottex
 @node Top, Guile License, (dir), (dir)
 @top The Guile Reference Manual
 
@@ -218,7 +218,7 @@ and interesting ways.
 
 This Info file contains edition @value{MANUAL_EDITION} of the reference
 manual, corresponding to Guile version @value{VERSION}.
-@end ifinfo
+@end ifnottex
 
 @menu
 Preface
