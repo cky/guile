@@ -244,8 +244,8 @@ parentheses, you must either concatenate them into one string, or use
 @deftypefun SCM gh_eval_file (char *@var{fname})
 @deftypefunx SCM gh_load (char *@var{fname})
 @code{gh_eval_file} is completely analogous to @code{gh_eval_str()},
-except that a whole file is evaluated instead of a string.  Returns the
-result of the last expression evaluated.
+except that a whole file is evaluated instead of a string.
+@code{gh_eval_file} returns @code{SCM_UNSPECIFIED}.
 
 @code{gh_load} is identical to @code{gh_eval_file} (it's a macro that
 calls @code{gh_eval_file} on its argument).  It is provided to start

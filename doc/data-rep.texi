@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.21 2001-04-16 09:38:32 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.22 2001-04-20 13:26:55 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -577,11 +577,12 @@ Return non-zero iff @var{x} is a non-immediate object.  This is the
 exact complement of @code{SCM_IMP}, above.
 @end deftypefn
 
-Note that, as of Guile 1.4, it is no longer necessary to use the
+Note that for versions of Guile prior to 1.4 it was necessary to use the
 @code{SCM_NIMP} macro before calling a finer-grained predicate to
 determine @var{x}'s type, such as @code{SCM_CONSP} or
-@code{SCM_VECTORP}.  The definitions of all Guile type predicates
-now include a call to @code{SCM_NIMP} where necessary.
+@code{SCM_VECTORP}.  This is no longer required: the definitions of all
+Guile type predicates now include a call to @code{SCM_NIMP} where
+necessary.
 
 
 @node Immediate Datatypes
@@ -750,9 +751,9 @@ non-immediate --- in other words stored in a heap cell.  The tag stored
 in the first word of the heap cell indicates more precisely the type of
 that object.
 
-As of Guile 1.4, the type predicates for non-immediate values work
-correctly on any @code{SCM} value; you do not need to call
-@code{SCM_NIMP} first, to establish that a value is non-immediate.
+The type predicates for non-immediate values work correctly on any
+@code{SCM} value; you do not need to call @code{SCM_NIMP} first, to
+establish that a value is non-immediate.
 
 @menu
 * Pair Data::                       

@@ -1,5 +1,12 @@
 2001-04-20  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* gh.texi (Executing Scheme code): gh_eval_file returns
+	SCM_UNSPECIFIED.  Thanks to Dirk for the report!
+
+	* data-rep.texi (Non-immediate Datatypes, Immediates vs
+	Non-immediates): Emphasize current rather than pre-1.4 practice
+	when talking about not needing to call SCM_NIMP.
+
 	* recipe-guidelines.txt: New file: guidelines for contributions to
 	the Guile Recipes manual.
 
