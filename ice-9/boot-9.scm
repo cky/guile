@@ -2857,7 +2857,7 @@
     
      (define (warn module name int1 val1 int2 val2 var val)
        (format #t
-	       "~A: `~A' imported from both ~A and ~A\n"
+	       "WARNING: ~A: `~A' imported from both ~A and ~A\n"
 	       (module-name module)
 	       name
 	       (module-name int1)
