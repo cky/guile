@@ -1,3 +1,10 @@
+2004-08-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* strings.h, strings.c (scm_i_make_symbol): Added FLAGS parameter.
+	* symbols.h, symbols.c (SCM_I_F_SYMBOL_UNINTERNED,
+	scm_i_symbol_is_interned, scm_i_mem2symbol,
+	scm_i_mem2uninternedsymbol): Use it to store uninternedness flag.
+
 2004-08-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-13.c: First cut at thread-safeness and proper use of
