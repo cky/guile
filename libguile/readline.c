@@ -43,12 +43,25 @@
 
 
 #include "_scm.h"
-#ifdef HAVE_RL_GETC_FUNCTION
+#if defined (HAVE_RL_GETC_FUNCTION) || defined (TOTORO)
+/* The test for TOTORO is a kludge to make totoro.red-bean.com
+   generate snapshots correctly. */
 #include <libguile.h>
 #include <readline.h>
 #include <gh.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+
+#ifndef HAVE_STRDUP
+static char *
+strdup (char *s)
+{
+  int len = strlen (s);
+  char *new = malloc (len + 1);
+  strcpy (new, s);
+  return new;
+}
+#endif /* HAVE_STRDUP */
 
 #ifndef HAVE_RL_CLEANUP_AFTER_SIGNAL
 
