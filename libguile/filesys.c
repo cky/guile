@@ -35,6 +35,7 @@
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
 #include "libguile/filesys.h"
@@ -175,6 +176,28 @@
 #endif /* __MINGW32__ */
 
 
+/* Two helper macros for an often used pattern */
+
+#define STRING_SYSCALL(str,cstr,code)        \
+  do {                                       \
+    int eno;                                 \
+    char *cstr = scm_to_locale_string (str); \
+    SCM_SYSCALL (code);                      \
+    eno = errno; free (cstr); errno = eno;   \
+  } while (0)
+
+#define STRING2_SYSCALL(str1,cstr1,str2,cstr2,code)  \
+  do {                                               \
+    int eno;                                         \
+    char *cstr1, *cstr2;                             \
+    scm_frame_begin (0);                             \
+    cstr1 = scm_to_locale_string (str1);             \
+    scm_frame_free (cstr1);                          \
+    cstr2 = scm_to_locale_string (str2);             \
+    scm_frame_free (cstr2);                          \
+    SCM_SYSCALL (code);                              \
+    eno = errno; scm_frame_end (); errno = eno;      \
+  } while (0)
 
 
 
@@ -212,9 +235,9 @@ SCM_DEFINE (scm_chown, "chown", 3, 0, 0,
   else
 #endif
     {
-      SCM_VALIDATE_STRING (1, object);
-      SCM_SYSCALL (rv = chown (SCM_STRING_CHARS (object),
-			       scm_to_int (owner), scm_to_int (group)));
+      STRING_SYSCALL (object, c_object,
+		      rv = chown (c_object,
+				  scm_to_int (owner), scm_to_int (group)));
     }
   if (rv == -1)
     SCM_SYSERROR;
@@ -250,8 +273,8 @@ SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
     }
   else
     {
-      SCM_VALIDATE_STRING (1, object);
-      SCM_SYSCALL (rv = chmod (SCM_STRING_CHARS (object), scm_to_int (mode)));
+      STRING_SYSCALL (object, c_object,
+		      rv = chmod (c_object, scm_to_int (mode)));
     }
   if (rv == -1)
     SCM_SYSERROR;
@@ -293,10 +316,9 @@ SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0,
   int iflags;
   int imode;
 
-  SCM_VALIDATE_STRING (1, path);
   iflags = SCM_NUM2INT (2, flags);
   imode = SCM_NUM2INT_DEF (3, mode, 0666);
-  SCM_SYSCALL (fd = open (SCM_STRING_CHARS (path), iflags, imode));
+  STRING_SYSCALL (path, c_path, fd = open (c_path, iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
   return scm_from_int (fd);
@@ -662,10 +684,9 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
 {
   int val;
 
-  SCM_VALIDATE_STRING (1, oldpath);
-  SCM_VALIDATE_STRING (2, newpath);
-  SCM_SYSCALL (val = link (SCM_STRING_CHARS (oldpath),
-			   SCM_STRING_CHARS (newpath)));
+  STRING2_SYSCALL (oldpath, c_oldpath,
+		   newpath, c_newpath,
+		   val = link (c_oldpath, c_newpath));
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -673,7 +694,25 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_LINK */
 
+#ifdef HAVE_RENAME
+#define my_rename rename
+#else
+static int
+my_rename (const char *oldname, const char *newname)
+{
+  int rv;
 
+  SCM_SYSCALL (rv = link (oldname, newname));
+  if (rv == 0)
+    {
+      SCM_SYSCALL (rv = unlink (oldname));
+      if (rv != 0)
+	/* unlink failed.  remove new name */
+	SCM_SYSCALL (unlink (newname)); 
+    }
+  return rv;
+}
+#endif
 
 SCM_DEFINE (scm_rename, "rename-file", 2, 0, 0,
             (SCM oldname, SCM newname),
@@ -682,20 +721,10 @@ SCM_DEFINE (scm_rename, "rename-file", 2, 0, 0,
 #define FUNC_NAME s_scm_rename
 {
   int rv;
-  SCM_VALIDATE_STRING (1, oldname);
-  SCM_VALIDATE_STRING (2, newname);
-#ifdef HAVE_RENAME
-  SCM_SYSCALL (rv = rename (SCM_STRING_CHARS (oldname), SCM_STRING_CHARS (newname)));
-#else
-  SCM_SYSCALL (rv = link (SCM_STRING_CHARS (oldname), SCM_STRING_CHARS (newname)));
-  if (rv == 0)
-    {
-      SCM_SYSCALL (rv = unlink (SCM_STRING_CHARS (oldname)));;
-      if (rv != 0)
-	/* unlink failed.  remove new name */
-	SCM_SYSCALL (unlink (SCM_STRING_CHARS (newname))); 
-    }
-#endif
+
+  STRING2_SYSCALL (oldname, c_oldname,
+		   newname, c_newname,
+		   rv = my_rename (c_oldname, c_newname));
   if (rv != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -709,8 +738,7 @@ SCM_DEFINE (scm_delete_file, "delete-file", 1, 0, 0,
 #define FUNC_NAME s_scm_delete_file
 {
   int ans;
-  SCM_VALIDATE_STRING (1, str);
-  SCM_SYSCALL (ans = unlink (SCM_STRING_CHARS (str)));
+  STRING_SYSCALL (str, c_str, ans = unlink (c_str));
   if (ans != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -728,16 +756,16 @@ SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
 {
   int rv;
   mode_t mask;
-  SCM_VALIDATE_STRING (1, path);
+
   if (SCM_UNBNDP (mode))
     {
       mask = umask (0);
       umask (mask);
-      SCM_SYSCALL (rv = mkdir (SCM_STRING_CHARS (path), 0777 ^ mask));
+      STRING_SYSCALL (path, c_path, rv = mkdir (c_path, 0777 ^ mask));
     }
   else
     {
-      SCM_SYSCALL (rv = mkdir (SCM_STRING_CHARS (path), scm_to_uint (mode)));
+      STRING_SYSCALL (path, c_path, rv = mkdir (c_path, scm_to_uint (mode)));
     }
   if (rv != 0)
     SCM_SYSERROR;
@@ -755,8 +783,7 @@ SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0,
 {
   int val;
 
-  SCM_VALIDATE_STRING (1, path);
-  SCM_SYSCALL (val = rmdir (SCM_STRING_CHARS (path)));
+  STRING_SYSCALL (path, c_path, val = rmdir (c_path));
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -790,8 +817,7 @@ SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
 #define FUNC_NAME s_scm_opendir
 {
   DIR *ds;
-  SCM_VALIDATE_STRING (1, dirname);
-  SCM_SYSCALL (ds = opendir (SCM_STRING_CHARS (dirname)));
+  STRING_SYSCALL (dirname, c_dirname, ds = opendir (c_dirname));
   if (ds == NULL)
     SCM_SYSERROR;
   SCM_RETURN_NEWSMOB (scm_tc16_dir | SCM_DIR_FLAG_OPEN, ds);
@@ -919,8 +945,7 @@ SCM_DEFINE (scm_chdir, "chdir", 1, 0, 0,
 {
   int ans;
 
-  SCM_VALIDATE_STRING (1, str);
-  SCM_SYSCALL (ans = chdir (SCM_STRING_CHARS (str)));
+  STRING_SYSCALL (str, c_str, ans = chdir (c_str));
   if (ans != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -1331,9 +1356,9 @@ SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
 {
   int val;
 
-  SCM_VALIDATE_STRING (1, oldpath);
-  SCM_VALIDATE_STRING (2, newpath);
-  SCM_SYSCALL (val = symlink (SCM_STRING_CHARS (oldpath), SCM_STRING_CHARS (newpath)));
+  STRING2_SYSCALL (oldpath, c_oldpath,
+		   newpath, c_newpath,
+		   val = symlink (c_oldpath, c_newpath));
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -1352,9 +1377,16 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
   int size = 100;
   char *buf;
   SCM result;
-  SCM_VALIDATE_STRING (1, path);
+  char *c_path;
+  
+  scm_frame_begin (0);
+
+  c_path = scm_to_locale_string (path);
+  scm_frame_free (c_path);
+
   buf = scm_malloc (size);
-  while ((rv = readlink (SCM_STRING_CHARS (path), buf, size)) == size)
+
+  while ((rv = readlink (c_path, buf, size)) == size)
     {
       free (buf);
       size *= 2;
@@ -1367,8 +1399,9 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
       errno = save_errno;
       SCM_SYSERROR;
     }
-  result = scm_mem2string (buf, rv);
-  free (buf);
+  result = scm_take_locale_stringn (buf, rv);
+
+  scm_frame_end ();
   return result;
 }
 #undef FUNC_NAME
@@ -1385,8 +1418,7 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
   int rv;
   struct stat stat_temp;
 
-  SCM_VALIDATE_STRING (1, str);
-  SCM_SYSCALL (rv = lstat (SCM_STRING_CHARS (str), &stat_temp));
+  STRING_SYSCALL (str, c_str, rv = lstat (c_str, &stat_temp));
   if (rv != 0)
     {
       int en = errno;
@@ -1395,7 +1427,7 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
 			scm_list_2 (scm_strerror (scm_from_int (en)), str),
 			en);
     }
-  return scm_stat2scm(&stat_temp);
+  return scm_stat2scm (&stat_temp);
 }
 #undef FUNC_NAME
 #endif /* HAVE_LSTAT */
@@ -1406,15 +1438,20 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_copy_file
 {
+  char *c_oldfile, *c_newfile;
   int oldfd, newfd;
   int n, rv;
   char buf[BUFSIZ];
   struct stat oldstat;
 
-  SCM_VALIDATE_STRING (1, oldfile);
-  SCM_VALIDATE_STRING (2, newfile);
+  scm_frame_begin (0);
+  
+  c_oldfile = scm_to_locale_string (oldfile);
+  scm_frame_free (c_oldfile);
+  c_newfile = scm_to_locale_string (newfile);
+  scm_frame_free (c_newfile);
 
-  oldfd = open (SCM_STRING_CHARS (oldfile), O_RDONLY);
+  oldfd = open (c_oldfile, O_RDONLY);
   if (oldfd == -1)
     SCM_SYSERROR;
 
@@ -1427,7 +1464,7 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
     goto err_close_oldfd;
 
   /* use POSIX flags instead of 07777?.  */
-  newfd = open (SCM_STRING_CHARS (newfile), O_WRONLY | O_CREAT | O_TRUNC,
+  newfd = open (c_newfile, O_WRONLY | O_CREAT | O_TRUNC,
 		oldstat.st_mode & 07777);
   if (newfd == -1)
     {
@@ -1446,6 +1483,8 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   close (oldfd);
   if (close (newfd) == -1)
     SCM_SYSERROR;
+
+  scm_frame_end ();
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1468,8 +1507,8 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 
   SCM_VALIDATE_STRING (1, filename);
 
-  s = SCM_STRING_CHARS (filename);
-  len = SCM_STRING_LENGTH (filename);
+  s = SCM_I_STRING_CHARS (filename);
+  len = SCM_I_STRING_LENGTH (filename);
 
   i = len - 1;
 #ifdef __MINGW32__
@@ -1509,16 +1548,16 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
   int i, j, len, end;
 
   SCM_VALIDATE_STRING (1, filename);
-  f = SCM_STRING_CHARS (filename);
-  len = SCM_STRING_LENGTH (filename);
+  f = SCM_I_STRING_CHARS (filename);
+  len = SCM_I_STRING_LENGTH (filename);
 
   if (SCM_UNBNDP (suffix))
     j = -1;
   else
     {
       SCM_VALIDATE_STRING (2, suffix);
-      s = SCM_STRING_CHARS (suffix);
-      j = SCM_STRING_LENGTH (suffix) - 1;
+      s = SCM_I_STRING_CHARS (suffix);
+      j = SCM_I_STRING_LENGTH (suffix) - 1;
     }
   i = len - 1;
 #ifdef __MINGW32__
