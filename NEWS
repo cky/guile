@@ -80,6 +80,13 @@ try a few appropriate ones.  Thus, the most platform ignorant way is
 to specify a name like "libfoo", without any directories and
 extensions.
 
+** Guile COOP threads are now compatible with LinuxThreads
+
+Previously, COOP threading wasn't possible in applications linked with
+Linux POSIX threads due to their use of the stack pointer to find the
+thread context.  This has now been fixed with a workaround which uses
+the pthreads to allocate the stack.
+
 ** New primitives: `pkgdata-dir', `site-dir', `library-dir' 
 
 ** Positions of erring expression in scripts
