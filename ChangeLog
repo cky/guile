@@ -6,6 +6,12 @@
 
 	* Makefile.am (EXTRA_DIST): Add TODO.
 
+	* HACKING: Refer to TODO and SNAPSHOTS.
+	No longer refer to devel/tasks.text.
+
+	* SNAPSHOTS: Fix reference bug; recommended tool
+	versions are in HACKING.
+
 2001-06-27  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* autogen.sh: don't run flex here.
