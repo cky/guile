@@ -1,3 +1,14 @@
+2002-05-08  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eq.c (real_eqv): New.
+	(scm_eqv_p): Use it when comparing reals and complexes.
+
+	* numbers.c: Include <string.h>, for strncmp.
+	(mem2complex): Do not create negative NaNs.
+	(scm_leq_p, scm_geq_p): Explicitely return #f when comparing a
+	NaN.
+	(scm_inexact_to_exact): Signal error when converting a NaN.
+	
 2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* posix.c (scm_putenv): Handle removing variables explicitely by
