@@ -17,6 +17,7 @@
 	* ports.c (ttyname): Remove prototype, unused.
 
 	* socket.c (scm_init_socket): Add SOCK_SEQPACKET and SOCK_RDM.
+	Reported by Michael Tuexen.
 
 2004-08-13  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
