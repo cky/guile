@@ -1013,7 +1013,7 @@
       ;; to maximally one module.
       (set-procedure-property! closure 'module module))))
 
-;;; This procedure is depreated
+;;; This procedure is deprecated
 ;;;
 (define eval-in-module eval)
 
@@ -1345,39 +1345,6 @@
   (make-module 1019 '() scm-module-closure))
 
 
-
-;; the-module
-;;
-;; NOTE: This binding is used in libguile/modules.c.
-;;
-(define the-module (make-fluid))
-
-;; scm:eval-transformer
-;;
-;;(define scm:eval-transformer (make-fluid)) ; initialized in eval.c.
-
-;; set-current-module module
-;;
-;; set the current module as viewed by the normalizer.
-;;
-;; NOTE: This binding is used in libguile/modules.c.
-;;
-(define (set-current-module m)
-  (fluid-set! the-module m)
-  (if m
-      (begin
-	;; *top-level-lookup-closure* is now deprecated
-	(fluid-set! *top-level-lookup-closure*
-		    (module-eval-closure (fluid-ref the-module)))
-	(fluid-set! scm:eval-transformer (module-transformer (fluid-ref the-module))))
-      (fluid-set! *top-level-lookup-closure* #f)))
-
-
-;; current-module
-;;
-;; return the current module as viewed by the normalizer.
-;;
-(define (current-module) (fluid-ref the-module))
 
 ;;; {Module-based Loading}
 ;;;
