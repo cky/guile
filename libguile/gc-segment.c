@@ -469,11 +469,6 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist, policy_on_erro
       abort ();
     }
 
-
-  /* Pick a size for the new heap segment.
-   * The rule for picking the size of a segment is explained in
-   * gc.h
-   */
   {
     /* Assure that the new segment is predicted to be large enough.
      *
@@ -488,13 +483,10 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist, policy_on_erro
      *
      * This gives dh > (f * h - y) / (1 - f)
      */
-
-    /*
-      where is is this explanation supposed to be?  --hwn
-     */
-    int f = freelist->min_yield_fraction;
-    unsigned long h = SCM_HEAP_SIZE;
-    size_t min_cells = (f * h - 100 * (long) scm_gc_cells_collected) / (99 - f);
+    float f = freelist->min_yield_fraction / 100.0;
+    float h = SCM_HEAP_SIZE;
+    float min_cells
+      = (f * h - scm_gc_cells_collected) / (1.0 - f);
 
     /* Make heap grow with factor 1.5 */
     len =  freelist->heap_size / 2;
@@ -502,11 +494,8 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist, policy_on_erro
     fprintf (stderr, "(%ld < %ld)", (long) len, (long) min_cells);
 #endif
 
-    /*
-      Original code adds freelist->cluster_size here.
-     */
     if (len < min_cells)
-      len = min_cells;  
+      len = (unsigned long) min_cells;  
     len *= sizeof (scm_t_cell);
     /* force new sampling */
     freelist->collected = LONG_MAX;
