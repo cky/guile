@@ -78,6 +78,10 @@ be enabled by default.  The interaction with blocking I/O is pretty ad
 hoc at the moment.  In our experience, bugs in the thread support do
 not affect you if you don't actually use threads.
 
+--with-readline --- include support for fancy line editing, based on
+the GNU readline library.  This is enabled by default, so you must
+specify --with-readline=no if you don't want it.
+
 --enable-dynamic-linking --- Build a Guile executable and library
 providing Scheme functions which can load a shared library and
 initialize it, perhaps thereby adding new functions to Guile.  This
