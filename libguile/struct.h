@@ -49,9 +49,10 @@
 
 
 /* Number of words with negative index */
-#define scm_struct_n_extra_words 2
+#define scm_struct_n_extra_words 3
 
 /* These are how the initial words of a vtable are allocated. */
+#define scm_struct_i_ptr -3	/* start of block (see alloc_struct) */
 #define scm_struct_i_n_words -2	/* How many words allocated to this struct? */
 #define scm_struct_i_tag -1	/* A unique tag for this type.. */
 #define scm_struct_i_layout 0	/* A symbol describing the physical arrangement of this type. */

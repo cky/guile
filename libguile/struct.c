@@ -276,6 +276,65 @@ scm_struct_vtable_p (x)
 	  : SCM_BOOL_F);
 }
 
+
+/* All struct data must be allocated at an address whose bottom three
+   bits are zero.  This is because the tag for a struct lives in the
+   bottom three bits of the struct's car, and the upper bits point to
+   the data of its vtable, which is a struct itself.  Thus, if the
+   address of that data doesn't end in three zeros, tagging it will
+   destroy the pointer.
+
+   This function allocates a block of memory, and returns a pointer at
+   least scm_struct_n_extra_words words into the block.  Furthermore,
+   it guarantees that that pointer's least three significant bits are
+   all zero.
+
+   The argument n_words should be the number of words that should
+   appear after the returned address.  (That is, it shouldn't include
+   scm_struct_n_extra_words.)
+
+   This function initializes the following fields of the struct:
+
+     scm_struct_i_ptr --- the actual stort of the block of memory; the
+	 address you should pass to 'free' to dispose of the block.
+	 This field allows us to both guarantee that the returned
+	 address is divisible by eight, and allow the GC to free the
+	 block.
+
+     scm_struct_i_n_words --- the number of words allocated to the
+         block, including the extra fields.  This is used by the GC.
+
+     scm_struct_i_tag --- a unique tag assigned to this struct,
+         allocated according to struct_num.
+
+     Ugh.  */
+
+
+static SCM *alloc_struct SCM_P ((int n_words, char *who));
+
+static SCM *
+alloc_struct (n_words, who)
+     int n_words;
+     char *who;
+{
+  int size = sizeof (SCM) * (n_words + scm_struct_n_extra_words) + 7;
+  SCM *block = (SCM *) scm_must_malloc (size, who);
+
+  /* Adjust the pointer to hide the extra words.  */
+  SCM *p = block + scm_struct_n_extra_words;
+
+  /* Adjust it even further so it's aligned on an eight-byte boundary.  */
+  p = (SCM *) (((SCM) p + 7) & ~7);
+
+  /* Initialize a few fields as described above.  */
+  p[scm_struct_i_ptr] = (SCM) block;
+  p[scm_struct_i_n_words] = (SCM) (scm_struct_n_extra_words + n_words);
+  p[scm_struct_i_tag] = struct_num++;
+
+  return p;
+}
+
+
 SCM_PROC (s_make_struct, "make-struct", 2, 0, 1, scm_make_struct);
 
 SCM
@@ -292,22 +351,15 @@ scm_make_struct (vtable, tail_array_size, init)
 
   SCM_ASSERT ((SCM_BOOL_F != scm_struct_vtable_p (vtable)),
 	      vtable, SCM_ARG1, s_make_struct);
-  SCM_ASSERT (SCM_INUMP (tail_array_size), tail_array_size, SCM_ARG2, s_make_struct);
+  SCM_ASSERT (SCM_INUMP (tail_array_size), tail_array_size, SCM_ARG2,
+	      s_make_struct);
 
   layout = SCM_STRUCT_DATA (vtable)[scm_struct_i_layout];
   basic_size = SCM_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  data = (SCM*)scm_must_malloc (sizeof (SCM) * (scm_struct_n_extra_words
-						+ basic_size
-						+ tail_elts),
-				"structure");
-  data += scm_struct_n_extra_words;
-  data[scm_struct_i_n_words] = (SCM) (scm_struct_n_extra_words
-				      + basic_size
-				      + tail_elts);
-  data[scm_struct_i_tag] = struct_num++;
+  data = alloc_struct (basic_size + tail_elts, "make-struct");
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)SCM_STRUCT_DATA (vtable)) + scm_tc3_cons_gloc);
   init_struct (handle, tail_elts, init);
@@ -334,8 +386,8 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
 
   SCM_ASSERT (SCM_NIMP (extra_fields) && SCM_ROSTRINGP (extra_fields),
 	      extra_fields, SCM_ARG1, s_make_vtable_vtable);
-  SCM_ASSERT (SCM_INUMP (tail_array_size), tail_array_size, SCM_ARG3, s_make_vtable_vtable);
-  
+  SCM_ASSERT (SCM_INUMP (tail_array_size), tail_array_size, SCM_ARG2,
+	      s_make_vtable_vtable);
 
   fields = scm_string_append (scm_listify (required_vtable_fields,
 					   extra_fields,
@@ -345,15 +397,7 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  data = (SCM *) scm_must_malloc (sizeof (SCM) * (scm_struct_n_extra_words
-						  + basic_size
-						  + tail_elts),
-				  "structure");
-  data += scm_struct_n_extra_words;
-  data[scm_struct_i_n_words] = (SCM) (scm_struct_n_extra_words
-				      + basic_size
-				      + tail_elts);
-  data[scm_struct_i_tag] = struct_num++;
+  data = alloc_struct (basic_size + tail_elts, "make-vtable-vtable");
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)data) + scm_tc3_cons_gloc);
   SCM_STRUCT_LAYOUT (handle) = layout;

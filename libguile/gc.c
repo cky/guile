@@ -516,7 +516,9 @@ gc_mark_nimp:
 	      layout = vtable_data[scm_struct_i_layout];
 	      len = SCM_LENGTH (layout);
 	      fields_desc = SCM_CHARS (layout);
-	      mem = (SCM *)SCM_GCCDR (ptr); /* like struct_data but removes mark */
+	      /* We're using SCM_GCCDR here like STRUCT_DATA, except
+                 that it removes the mark */
+	      mem = (SCM *)SCM_GCCDR (ptr);
 	      
 	      if (len)
 		{
@@ -959,12 +961,10 @@ scm_gc_sweep ()
 
 		if ((SCM_CDR (vcell) == 0) || (SCM_CDR (vcell) == 1))
 		  {
-		    SCM * mem;
-		    SCM amt;
-		    mem = (SCM *)SCM_CDR (scmptr);
-		    amt = mem[- scm_struct_n_extra_words];
-		    free (mem - scm_struct_n_extra_words);
- 		    m += amt * sizeof (SCM);
+		    SCM *p = (SCM *) SCM_GCCDR (scmptr);
+ 		    m += p[scm_struct_i_n_words] * sizeof (SCM);
+		    /* I feel like I'm programming in BCPL here... */
+		    free ((char *) p[scm_struct_i_ptr]);
 		  }
 	      }
 	      break;
