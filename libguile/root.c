@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -70,11 +74,8 @@ struct scm_root_state *scm_root;
 
 
 
-static SCM mark_root SCM_P ((SCM));
-
 static SCM
-mark_root (root)
-     SCM root;
+mark_root (SCM root)
 {
   scm_root_state *s = SCM_ROOT_STATE (root);
 
@@ -98,13 +99,8 @@ mark_root (root)
 }
 
 
-static int print_root SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
 static int
-print_root (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+print_root (SCM exp,SCM port,scm_print_state *pstate)
 {
   scm_puts ("#<root ", port);
   scm_intprint(SCM_SEQ (SCM_ROOT_STATE (exp) -> rootcont), 16, port);
@@ -116,8 +112,7 @@ print_root (exp, port, pstate)
 
 
 SCM
-scm_make_root (parent)
-     SCM parent;
+scm_make_root (SCM parent)
 {
   SCM root;
   scm_root_state *root_state;
@@ -340,30 +335,27 @@ cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
 			    stack_start);
 }
 
-SCM_PROC(s_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0, scm_call_with_dynamic_root);
-SCM
-scm_call_with_dynamic_root (thunk, handler)
-     SCM thunk;
-     SCM handler;
+GUILE_PROC(scm_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0,
+           (SCM thunk, SCM handler),
+"")
+#define FUNC_NAME s_scm_call_with_dynamic_root
 {
   SCM_STACKITEM stack_place;
-
   return cwdr (thunk, SCM_EOL, SCM_EOL, handler, &stack_place);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_dynamic_root, "dynamic-root", 0, 0, 0, scm_dynamic_root);
-SCM
-scm_dynamic_root ()
+GUILE_PROC(scm_dynamic_root, "dynamic-root", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_dynamic_root
 {
   return scm_ulong2num (SCM_SEQ (scm_root->rootcont));
 }
+#undef FUNC_NAME
 
 SCM
-scm_apply_with_dynamic_root (proc, a1, args, handler)
-     SCM proc;
-     SCM a1;
-     SCM args;
-     SCM handler;
+scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler)
 {
   SCM_STACKITEM stack_place;
   return cwdr (proc, a1, args, handler, &stack_place);
@@ -386,10 +378,7 @@ typedef long setjmp_type;
 
 
 SCM
-scm_call_catching_errors (thunk, err_filter, closure)
-     SCM (*thunk)();
-     SCM (*err_filter)();
-     void *closure;
+scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void *closure)
 {
   SCM answer;
   setjmp_type i;

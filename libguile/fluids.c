@@ -39,6 +39,10 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
+
 #include "_scm.h"
 #include "print.h"
 #include "smob.h"
@@ -49,6 +53,7 @@
 #include "eval.h"
 
 #define INITIAL_FLUIDS 10
+#include "scm_validate.h"
 
 static volatile int n_fluids;
 long scm_tc16_fluid;
@@ -60,11 +65,8 @@ scm_make_initial_fluids ()
 			  SCM_BOOL_F);
 }
 
-static void grow_fluids SCM_P ((scm_root_state *, int new_length));
 static void
-grow_fluids (root_state, new_length)
-     scm_root_state *root_state;
-     int new_length;
+grow_fluids (scm_root_state *root_state,int new_length)
 {
   SCM old_fluids, new_fluids;
   int old_length, i;
@@ -94,12 +96,8 @@ scm_copy_fluids (root_state)
   grow_fluids (root_state, SCM_LENGTH(root_state->fluids));
 }
 
-static int print_fluid SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 static int
-print_fluid (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+print_fluid (SCM exp, SCM port, scm_print_state *pstate)
 {
     scm_puts ("#<fluid ", port);
     scm_intprint (SCM_FLUID_NUM (exp), 10, port);
@@ -121,10 +119,10 @@ int next_fluid_num ()
   return n;
 }
 
-SCM_PROC (s_make_fluid, "make-fluid", 0, 0, 0, scm_make_fluid);
-
-SCM
-scm_make_fluid ()
+GUILE_PROC (scm_make_fluid, "make-fluid", 0, 0, 0, 
+            (),
+"")
+#define FUNC_NAME s_scm_make_fluid
 {
   int n;
 
@@ -132,25 +130,25 @@ scm_make_fluid ()
   n = next_fluid_num ();
   SCM_RETURN_NEWSMOB (scm_tc16_fluid, n);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_fluid_p, "fluid?", 1, 0, 0, scm_fluid_p);
-
-SCM
-scm_fluid_p (fl)
-     SCM fl;
+GUILE_PROC (scm_fluid_p, "fluid?", 1, 0, 0, 
+            (SCM fl),
+"")
+#define FUNC_NAME s_scm_fluid_p
 {
-  return (SCM_NIMP (fl) && SCM_FLUIDP (fl))? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_NIMP (fl) && SCM_FLUIDP (fl));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_fluid_ref, "fluid-ref", 1, 0, 0, scm_fluid_ref);
-
-SCM
-scm_fluid_ref (fl)
-     SCM fl;
+GUILE_PROC (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
+            (SCM fl),
+"")
+#define FUNC_NAME s_scm_fluid_ref
 {
   int n;
 
-  SCM_ASSERT (SCM_NIMP (fl) && SCM_FLUIDP (fl), fl, SCM_ARG1, s_fluid_ref);
+  SCM_VALIDATE_FLUID(1,fl);
 
   n = SCM_FLUID_NUM (fl);
 
@@ -158,18 +156,16 @@ scm_fluid_ref (fl)
     grow_fluids (scm_root, n+1);
   return SCM_VELTS(scm_root->fluids)[n];
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_fluid_set_x, "fluid-set!", 2, 0, 0, scm_fluid_set_x);
-
-SCM
-scm_fluid_set_x (fl, val)
-     SCM fl;
-     SCM val;
+GUILE_PROC (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
+            (SCM fl, SCM val),
+"")
+#define FUNC_NAME s_scm_fluid_set_x
 {
   int n;
 
-  SCM_ASSERT (SCM_NIMP (fl) && SCM_FLUIDP (fl), fl, SCM_ARG1, s_fluid_set_x);
-
+  SCM_VALIDATE_FLUID(1,fl);
   n = SCM_FLUID_NUM (fl);
 
   if (SCM_LENGTH (scm_root->fluids) <= n)
@@ -177,10 +173,10 @@ scm_fluid_set_x (fl, val)
   SCM_VELTS(scm_root->fluids)[n] = val;
   return val;
 }
+#undef FUNC_NAME
 
 void
-scm_swap_fluids (fluids, vals)
-     SCM fluids, vals;
+scm_swap_fluids (SCM fluids, SCM vals)
 {
   while (SCM_NIMP (fluids))
     {
@@ -197,8 +193,7 @@ scm_swap_fluids (fluids, vals)
 same fluid appears multiple times in the fluids list. */
 
 void
-scm_swap_fluids_reverse (fluids, vals)
-     SCM fluids, vals;
+scm_swap_fluids_reverse (SCM fluids, SCM vals)
 {
   if (SCM_NIMP (fluids))
     {
@@ -212,22 +207,33 @@ scm_swap_fluids_reverse (fluids, vals)
     }
 }
 
-SCM_PROC (s_with_fluids, "with-fluids*", 3, 0, 0, scm_with_fluids);
+
+static SCM
+apply_thunk (void *thunk)
+{
+  return scm_apply ((SCM) thunk, SCM_EOL, SCM_EOL);
+}
+
+GUILE_PROC (scm_with_fluids, "with-fluids*", 3, 0, 0, 
+            (SCM fluids, SCM vals, SCM thunk),
+"")
+#define FUNC_NAME s_scm_with_fluids
+{
+  return scm_internal_with_fluids (fluids, vals, apply_thunk, (void *)thunk);
+}
+#undef FUNC_NAME
 
 SCM
-scm_internal_with_fluids (fluids, vals, cproc, cdata)
-     SCM fluids, vals;
-     SCM (*cproc) ();
-     void *cdata;
+scm_internal_with_fluids (SCM fluids, SCM vals, SCM (*cproc) (), void *cdata)
 {
   SCM ans;
 
   int flen = scm_ilength (fluids);
   int vlen = scm_ilength (vals);
-  SCM_ASSERT (flen >= 0, fluids, SCM_ARG1, s_with_fluids);
-  SCM_ASSERT (vlen >= 0, vals, SCM_ARG2, s_with_fluids);
+  SCM_ASSERT (flen >= 0, fluids, SCM_ARG1, s_scm_with_fluids);
+  SCM_ASSERT (vlen >= 0, vals, SCM_ARG2, s_scm_with_fluids);
   if (flen != vlen)
-    scm_out_of_range (s_with_fluids, vals);
+    scm_out_of_range (s_scm_with_fluids, vals);
 
   scm_swap_fluids (fluids, vals);
   scm_dynwinds = scm_acons (fluids, vals, scm_dynwinds);
@@ -237,18 +243,7 @@ scm_internal_with_fluids (fluids, vals, cproc, cdata)
   return ans;
 }
 
-static SCM
-apply_thunk (void *thunk)
-{
-  return scm_apply ((SCM) thunk, SCM_EOL, SCM_EOL);
-}
 
-SCM
-scm_with_fluids (fluids, vals, thunk)
-     SCM fluids, vals, thunk;
-{
-  return scm_internal_with_fluids (fluids, vals, apply_thunk, (void *)thunk);
-}
 
 void
 scm_init_fluids ()

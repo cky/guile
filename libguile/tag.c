@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 #include <stdio.h>
 #include "_scm.h"
@@ -85,11 +89,10 @@ SCM_CONST_LONG (scm_utag_flag_base, "utag_flag_base", 254);
 SCM_CONST_LONG (scm_utag_struct_base, "utag_struct_base", 255);
 
 
-SCM_PROC (s_tag, "tag", 1, 0, 0, scm_tag);
-
-SCM
-scm_tag (x)
-     SCM x;
+GUILE_PROC (scm_tag, "tag", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_tag
 {
   switch (SCM_ITAG3 (x))
     {
@@ -204,6 +207,7 @@ scm_tag (x)
     }
   return SCM_MAKINUM (-1);
 }
+#undef FUNC_NAME
 
 
 

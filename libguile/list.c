@@ -38,11 +38,16 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 #include <stdio.h>
 #include "_scm.h"
 #include "eq.h"
 
+#include "scm_validate.h"
 #include "list.h"
 
 #ifdef __STDC__
@@ -84,19 +89,20 @@ scm_listify (elt, va_alist)
 }
 
 
-SCM_PROC(s_list, "list", 0, 0, 1, scm_list);
-SCM
-scm_list(objs)
-     SCM objs;
+GUILE_PROC(scm_list, "list", 0, 0, 1, 
+           (SCM objs),
+"")
+#define FUNC_NAME s_scm_list
 {
   return objs;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_list_star, "list*", 1, 0, 1, scm_list_star);
-
-SCM
-scm_list_star (SCM arg, SCM rest)
+GUILE_PROC (scm_list_star, "list*", 1, 0, 1, 
+            (SCM arg, SCM rest),
+"")
+#define FUNC_NAME s_scm_list_star
 {
   if (SCM_NIMP (rest))
     {
@@ -110,30 +116,29 @@ scm_list_star (SCM arg, SCM rest)
     }
   return arg;
 }
-
+#undef FUNC_NAME
 
 
 
 /* general questions about lists --- null?, list?, length, etc.  */
 
-SCM_PROC(s_null_p, "null?", 1, 0, 0, scm_null_p);
-SCM
-scm_null_p(x)
-     SCM x;
+GUILE_PROC(scm_null_p, "null?", 1, 0, 0, 
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_null_p
 {
- return SCM_NULLP(x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_NULLP(x));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_list_p, "list?", 1, 0, 0, scm_list_p);
-SCM
-scm_list_p(x)
-     SCM x;
+GUILE_PROC(scm_list_p, "list?", 1, 0, 0, 
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_list_p
 {
-  if (scm_ilength(x)<0)
-    return SCM_BOOL_F;
-  else
-    return SCM_BOOL_T;
+  return SCM_BOOL(scm_ilength(x)>=0);
 }
+#undef FUNC_NAME
 
 
 /* Return the length of SX, or -1 if it's not a proper list.
@@ -141,8 +146,7 @@ scm_list_p(x)
    long" lists (i.e. lists with cycles in their cdrs), and returns -1
    if it does find one.  */
 long
-scm_ilength(sx)
-     SCM sx;
+scm_ilength(SCM sx)
 {
   register long i = 0;
   register SCM tortoise = sx;
@@ -167,56 +171,57 @@ scm_ilength(sx)
   return -1;
 }
 
-SCM_PROC(s_length, "length", 1, 0, 0, scm_length);
-SCM
-scm_length(x)
-     SCM x;
+GUILE_PROC(scm_length, "length", 1, 0, 0, 
+           (SCM lst),
+"")
+#define FUNC_NAME s_scm_length
 {
   int i;
-  i = scm_ilength(x);
-  SCM_ASSERT(i >= 0, x, SCM_ARG1, s_length);
+  SCM_VALIDATE_LIST_COPYLEN(1,lst,i);
   return SCM_MAKINUM (i);
 }
+#undef FUNC_NAME
 
 
 
 /* appending lists */
 
-SCM_PROC (s_append, "append", 0, 0, 1, scm_append);
-SCM
-scm_append(args)
-     SCM args;
+GUILE_PROC (scm_append, "append", 0, 0, 1, 
+            (SCM args),
+"")
+#define FUNC_NAME s_scm_append
 {
   SCM res = SCM_EOL;
   SCM *lloc = &res, arg;
   if (SCM_IMP(args)) {
-    SCM_ASSERT(SCM_NULLP(args), args, SCM_ARGn, s_append);
+    SCM_VALIDATE_NULL(SCM_ARGn, args);
     return res;
   }
-  SCM_ASSERT(SCM_CONSP(args), args, SCM_ARGn, s_append);
+  SCM_VALIDATE_CONS(SCM_ARGn, args);
   while (1) {
     arg = SCM_CAR(args);
     args = SCM_CDR(args);
     if (SCM_IMP(args)) {
       *lloc = arg;
-      SCM_ASSERT(SCM_NULLP(args), args, SCM_ARGn, s_append);
+      SCM_VALIDATE_NULL(SCM_ARGn, args);
       return res;
     }
-    SCM_ASSERT(SCM_CONSP(args), args, SCM_ARGn, s_append);
+    SCM_VALIDATE_CONS(SCM_ARGn, args);
     for(;SCM_NIMP(arg);arg = SCM_CDR(arg)) {
-      SCM_ASSERT(SCM_CONSP(arg), arg, SCM_ARGn, s_append);
+      SCM_VALIDATE_CONS(SCM_ARGn, arg);
       *lloc = scm_cons(SCM_CAR(arg), SCM_EOL);
       lloc = SCM_CDRLOC(*lloc);
     }
-    SCM_ASSERT(SCM_NULLP(arg), arg, SCM_ARGn, s_append);
+    SCM_VALIDATE_NULL(SCM_ARGn, arg);
   }
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_append_x, "append!", 0, 0, 1, scm_append_x);
-SCM
-scm_append_x(args)
-     SCM args;
+GUILE_PROC (scm_append_x, "append!", 0, 0, 1, 
+            (SCM args),
+"")
+#define FUNC_NAME s_scm_append_x
 {
   SCM arg;
  tail:
@@ -225,16 +230,17 @@ scm_append_x(args)
   args = SCM_CDR(args);
   if (SCM_NULLP(args)) return arg;
   if (SCM_NULLP(arg)) goto tail;
-  SCM_ASSERT(SCM_NIMP(arg) && SCM_CONSP(arg), arg, SCM_ARG1, s_append_x);
+  SCM_VALIDATE_NIMCONS(SCM_ARG1,arg);
   SCM_SETCDR (scm_last_pair (arg), scm_append_x (args));
   return arg;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_last_pair, "last-pair", 1, 0, 0, scm_last_pair);
-SCM
-scm_last_pair(sx)
-     SCM sx;
+GUILE_PROC(scm_last_pair, "last-pair", 1, 0, 0, 
+           (SCM sx),
+"")
+#define FUNC_NAME s_scm_last_pair
 {
   register SCM res = sx;
   register SCM x;
@@ -242,7 +248,7 @@ scm_last_pair(sx)
   if (SCM_NULLP (sx))
     return SCM_EOL;
 
-  SCM_ASSERT(SCM_NIMP(res) && SCM_CONSP(res), res, SCM_ARG1, s_last_pair);
+  SCM_VALIDATE_NIMCONS(SCM_ARG1,res);
   while (!0) {
     x = SCM_CDR(res);
     if (SCM_IMP(x) || SCM_NCONSP(x)) return res;
@@ -251,50 +257,52 @@ scm_last_pair(sx)
     if (SCM_IMP(x) || SCM_NCONSP(x)) return res;
     res = x;
     sx = SCM_CDR(sx);
-    SCM_ASSERT(x != sx, sx, SCM_ARG1, s_last_pair);
+    SCM_ASSERT(x != sx, sx, SCM_ARG1, FUNC_NAME);
   }
 }
+#undef FUNC_NAME
 
 
 /* reversing lists */
 
-SCM_PROC (s_reverse, "reverse", 1, 0, 0, scm_reverse);
-
-SCM
-scm_reverse (SCM ls)
+GUILE_PROC (scm_reverse, "reverse", 1, 0, 0,
+            (SCM ls),
+"")
+#define FUNC_NAME s_scm_reverse
 {
   SCM res = SCM_EOL;
   SCM p = ls, t = ls;
   while (SCM_NIMP (p))
     {
-      SCM_ASSERT (SCM_CONSP (p), ls, SCM_ARG1, s_reverse);
+      SCM_VALIDATE_CONS(1,ls);
       res = scm_cons (SCM_CAR (p), res);
       p = SCM_CDR (p);
       if (SCM_IMP (p))
 	break;
-      SCM_ASSERT (SCM_CONSP (p), ls, SCM_ARG1, s_reverse);
+      SCM_VALIDATE_CONS(1,ls);
       res = scm_cons (SCM_CAR (p), res);
       p = SCM_CDR (p);
       t = SCM_CDR (t);
       if (t == p)
-	scm_misc_error (s_reverse, "Circular structure: %S", SCM_LIST1 (ls));
+	scm_misc_error (FUNC_NAME, "Circular structure: %S", SCM_LIST1 (ls));
     }
-  SCM_ASSERT (SCM_NULLP (p), ls, SCM_ARG1, s_reverse);
+  ls = p;
+  SCM_VALIDATE_NULL(1,ls);
   return res;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_reverse_x, "reverse!", 1, 1, 0, scm_reverse_x);
-SCM
-scm_reverse_x (ls, new_tail)
-     SCM ls;
-     SCM new_tail;
+GUILE_PROC (scm_reverse_x, "reverse!", 1, 1, 0,
+            (SCM ls, SCM new_tail),
+"")
+#define FUNC_NAME s_scm_reverse_x
 {
   SCM old_tail;
-  SCM_ASSERT (scm_ilength (ls) >= 0, ls, SCM_ARG1, s_reverse_x);
+  SCM_ASSERT (scm_ilength (ls) >= 0, ls, SCM_ARG1, FUNC_NAME);
   if (SCM_UNBNDP (new_tail))
     new_tail = SCM_EOL;
   else
-    SCM_ASSERT (scm_ilength (new_tail) >= 0, new_tail, SCM_ARG2, s_reverse_x);
+    SCM_ASSERT (scm_ilength (new_tail) >= 0, new_tail, SCM_ARG2, FUNC_NAME);
 
   while (SCM_NIMP (ls))
     {
@@ -305,124 +313,119 @@ scm_reverse_x (ls, new_tail)
     }
   return new_tail;
 }
+#undef FUNC_NAME
 
 
 
 /* indexing lists by element number */
 
-SCM_PROC(s_list_ref, "list-ref", 2, 0, 0, scm_list_ref);
-SCM
-scm_list_ref(lst, k)
-     SCM lst;
-     SCM k;
-{
-	register long i;
-	SCM_ASSERT(SCM_INUMP(k), k, SCM_ARG2, s_list_ref);
-	i = SCM_INUM(k);
-	SCM_ASSERT(i >= 0, k, SCM_ARG2, s_list_ref);
-	while (i-- > 0) {
-		SCM_ASRTGO(SCM_NIMP(lst) && SCM_CONSP(lst), erout);
-		lst = SCM_CDR(lst);
-	}
-erout:	SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
-	       SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, s_list_ref);
-	return SCM_CAR(lst);
-}
-
-SCM_PROC(s_list_set_x, "list-set!", 3, 0, 0, scm_list_set_x);
-SCM
-scm_list_set_x(lst, k, val)
-     SCM lst;
-     SCM k;
-     SCM val;
-{
-	register long i;
-	SCM_ASSERT(SCM_INUMP(k), k, SCM_ARG2, s_list_set_x);
-	i = SCM_INUM(k);
-	SCM_ASSERT(i >= 0, k, SCM_ARG2, s_list_set_x);
-	while (i-- > 0) {
-		SCM_ASRTGO(SCM_NIMP(lst) && SCM_CONSP(lst), erout);
-		lst = SCM_CDR(lst);
-	}
-erout:	SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
-	       SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, s_list_set_x);
-	SCM_SETCAR (lst, val);
-	return val;
-}
-
-
-SCM_PROC(s_list_cdr_ref, "list-cdr-ref", 2, 0, 0, scm_list_tail);
-SCM_PROC(s_list_tail, "list-tail", 2, 0, 0, scm_list_tail);
-SCM
-scm_list_tail(lst, k)
-     SCM lst;
-     SCM k;
+GUILE_PROC(scm_list_ref, "list-ref", 2, 0, 0,
+           (SCM lst, SCM k),
+"")
+#define FUNC_NAME s_scm_list_ref
 {
   register long i;
-  SCM_ASSERT(SCM_INUMP(k), k, SCM_ARG2, s_list_tail);
-  i = SCM_INUM(k);
+  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
   while (i-- > 0) {
-    SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst), lst, SCM_ARG1, s_list_tail);
+    SCM_ASRTGO(SCM_NIMP(lst) && SCM_CONSP(lst), erout);
+    lst = SCM_CDR(lst);
+  }
+ erout:	
+  SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
+             SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, FUNC_NAME);
+  return SCM_CAR(lst);
+}
+#undef FUNC_NAME
+
+GUILE_PROC(scm_list_set_x, "list-set!", 3, 0, 0,
+           (SCM lst, SCM k, SCM val),
+"")
+#define FUNC_NAME s_scm_list_set_x
+{
+  register long i;
+  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
+  while (i-- > 0) {
+    SCM_ASRTGO(SCM_NIMP(lst) && SCM_CONSP(lst), erout);
+    lst = SCM_CDR(lst);
+  }
+ erout:	
+  SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
+             SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, FUNC_NAME);
+  SCM_SETCAR (lst, val);
+  return val;
+}
+#undef FUNC_NAME
+
+
+SCM_REGISTER_PROC(s_list_cdr_ref, "list-cdr-ref", 2, 0, 0, scm_list_tail);
+
+GUILE_PROC(scm_list_tail, "list-tail", 2, 0, 0,
+           (SCM lst, SCM k),
+"")
+#define FUNC_NAME s_scm_list_tail
+{
+  register long i;
+  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
+  while (i-- > 0) {
+    SCM_VALIDATE_NIMCONS(1,lst);
     lst = SCM_CDR(lst);
   }
   return lst;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_list_cdr_set_x, "list-cdr-set!", 3, 0, 0, scm_list_cdr_set_x);
-SCM
-scm_list_cdr_set_x(lst, k, val)
-     SCM lst;
-     SCM k;
-     SCM val;
+GUILE_PROC(scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
+           (SCM lst, SCM k, SCM val),
+"")
+#define FUNC_NAME s_scm_list_cdr_set_x
 {
-	register long i;
-	SCM_ASSERT(SCM_INUMP(k), k, SCM_ARG2, s_list_cdr_set_x);
-	i = SCM_INUM(k);
-	SCM_ASSERT(i >= 0, k, SCM_ARG2, s_list_cdr_set_x);
-	while (i-- > 0) {
-		SCM_ASRTGO(SCM_NIMP(lst) && SCM_CONSP(lst), erout);
-		lst = SCM_CDR(lst);
-	}
-erout:	SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
-	       SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, s_list_cdr_set_x);
-	SCM_SETCDR (lst, val);
-	return val;
+  register long i;
+  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
+  while (i-- > 0) {
+    SCM_ASRTGO(SCM_NIMP(lst) && SCM_CONSP(lst), erout);
+    lst = SCM_CDR(lst);
+  }
+erout:
+  SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
+             SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, FUNC_NAME);
+  SCM_SETCDR (lst, val);
+  return val;
 }
+#undef FUNC_NAME
 
 
 
 /* copying lists, perhaps partially */
 
-SCM_PROC(s_list_head, "list-head", 2, 0, 0, scm_list_head);
-SCM
-scm_list_head(lst, k)
-     SCM lst;
-     SCM k;
+GUILE_PROC(scm_list_head, "list-head", 2, 0, 0,
+           (SCM lst, SCM k),
+"")
+#define FUNC_NAME s_scm_list_head
 {
   SCM answer;
   SCM * pos;
   register long i;
 
-  SCM_ASSERT(SCM_INUMP(k), k, SCM_ARG2, s_list_head);
+  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
   answer = SCM_EOL;
   pos = &answer;
-  i = SCM_INUM(k);
   while (i-- > 0)
     {
-      SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst), lst, SCM_ARG1, s_list_head);
+      SCM_VALIDATE_NIMCONS(1,lst);
       *pos = scm_cons (SCM_CAR (lst), SCM_EOL);
       pos = SCM_CDRLOC (*pos);
       lst = SCM_CDR(lst);
     }
   return answer;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_list_copy, "list-copy", 1, 0, 0, scm_list_copy);
-SCM 
-scm_list_copy (lst)
-     SCM lst;
+GUILE_PROC (scm_list_copy, "list-copy", 1, 0, 0, 
+            (SCM lst),
+"")
+#define FUNC_NAME s_scm_list_copy
 {
   SCM newlst;
   SCM * fill_here;
@@ -442,15 +445,15 @@ scm_list_copy (lst)
     }
   return newlst;
 }
+#undef FUNC_NAME
 
 
 /* membership tests (memq, memv, etc.) */ 
 
-SCM_PROC (s_sloppy_memq, "sloppy-memq", 2, 0, 0, scm_sloppy_memq);
-SCM
-scm_sloppy_memq(x, lst)
-     SCM x;
-     SCM lst;
+GUILE_PROC (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
+            (SCM x, SCM lst),
+"")
+#define FUNC_NAME s_scm_sloppy_memq
 {
   for(;  SCM_NIMP(lst) && SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
@@ -459,13 +462,13 @@ scm_sloppy_memq(x, lst)
     }
   return lst;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_sloppy_memv, "sloppy-memv", 2, 0, 0, scm_sloppy_memv);
-SCM
-scm_sloppy_memv(x, lst)
-     SCM x;
-     SCM lst;
+GUILE_PROC (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
+            (SCM x, SCM lst),
+"")
+#define FUNC_NAME s_scm_sloppy_memv
 {
   for(;  SCM_NIMP(lst) && SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
@@ -474,13 +477,13 @@ scm_sloppy_memv(x, lst)
     }
   return lst;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_sloppy_member, "sloppy-member", 2, 0, 0, scm_sloppy_member);
-SCM
-scm_sloppy_member (x, lst)
-     SCM x;
-     SCM lst;
+GUILE_PROC (scm_sloppy_member, "sloppy-member", 2, 0, 0,
+            (SCM x, SCM lst),
+"")
+#define FUNC_NAME s_scm_sloppy_member
 {
   for(;  SCM_NIMP(lst) && SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
@@ -489,57 +492,57 @@ scm_sloppy_member (x, lst)
     }
   return lst;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC(s_memq, "memq", 2, 0, 0, scm_memq);
-SCM
-scm_memq(x, lst)
-     SCM x;
-     SCM lst;
+GUILE_PROC(scm_memq, "memq", 2, 0, 0,
+           (SCM x, SCM lst),
+"")
+#define FUNC_NAME s_scm_memq
 {
   SCM answer;
-  SCM_ASSERT (scm_ilength (lst) >= 0, lst, SCM_ARG2, s_memq);
+  SCM_VALIDATE_LIST(2,lst);
   answer = scm_sloppy_memq (x, lst);
   return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC(s_memv, "memv", 2, 0, 0, scm_memv);
-SCM
-scm_memv(x, lst)
-     SCM x;
-     SCM lst;
+GUILE_PROC(scm_memv, "memv", 2, 0, 0,
+           (SCM x, SCM lst),
+"")
+#define FUNC_NAME s_scm_memv
 {
   SCM answer;
-  SCM_ASSERT (scm_ilength (lst) >= 0, lst, SCM_ARG2, s_memv);
+  SCM_VALIDATE_LIST(2,lst);
   answer = scm_sloppy_memv (x, lst);
   return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_member, "member", 2, 0, 0, scm_member);
-SCM
-scm_member(x, lst)
-     SCM x;
-     SCM lst;
+GUILE_PROC(scm_member, "member", 2, 0, 0,
+           (SCM x, SCM lst),
+"")
+#define FUNC_NAME s_scm_member
 {
   SCM answer;
-  SCM_ASSERT (scm_ilength (lst) >= 0, lst, SCM_ARG2, s_member);
+  SCM_VALIDATE_LIST(2,lst);
   answer = scm_sloppy_member (x, lst);
   return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
 }
+#undef FUNC_NAME
 
 
 
 /* deleting elements from a list (delq, etc.) */
 
-SCM_PROC(s_delq_x, "delq!", 2, 0, 0, scm_delq_x);
-SCM
-scm_delq_x (item, lst)
-     SCM item;
-     SCM lst;
+GUILE_PROC(scm_delq_x, "delq!", 2, 0, 0,
+           (SCM item, SCM lst),
+"")
+#define FUNC_NAME s_scm_delq_x
 {
   SCM walk;
   SCM *prev;
@@ -556,13 +559,13 @@ scm_delq_x (item, lst)
     
   return lst;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_delv_x, "delv!", 2, 0, 0, scm_delv_x);
-SCM
-scm_delv_x (item, lst)
-     SCM item;
-     SCM lst;
+GUILE_PROC(scm_delv_x, "delv!", 2, 0, 0,
+           (SCM item, SCM lst),
+"")
+#define FUNC_NAME s_scm_delv_x
 {
   SCM walk;
   SCM *prev;
@@ -579,14 +582,14 @@ scm_delv_x (item, lst)
     
   return lst;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC(s_delete_x, "delete!", 2, 0, 0, scm_delete_x);
-SCM
-scm_delete_x (item, lst)
-     SCM item;
-     SCM lst;
+GUILE_PROC(scm_delete_x, "delete!", 2, 0, 0,
+           (SCM item, SCM lst),
+"")
+#define FUNC_NAME s_scm_delete_x
 {
   SCM walk;
   SCM *prev;
@@ -603,53 +606,47 @@ scm_delete_x (item, lst)
 
   return lst;
 }
+#undef FUNC_NAME
 
 
 
 
 
-SCM_PROC (s_delq, "delq", 2, 0, 0, scm_delq);
-SCM
-scm_delq (item, lst)
-     SCM item;
-     SCM lst;
+GUILE_PROC (scm_delq, "delq", 2, 0, 0,
+            (SCM item, SCM lst),
+"")
+#define FUNC_NAME s_scm_delq
 {
-  SCM copy;
-
-  copy = scm_list_copy (lst);
+  SCM copy = scm_list_copy (lst);
   return scm_delq_x (item, copy);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_delv, "delv", 2, 0, 0, scm_delv);
-SCM
-scm_delv (item, lst)
-     SCM item;
-     SCM lst;
+GUILE_PROC (scm_delv, "delv", 2, 0, 0,
+            (SCM item, SCM lst),
+"")
+#define FUNC_NAME s_scm_delv
 {
-  SCM copy;
-
-  copy = scm_list_copy (lst);
+  SCM copy = scm_list_copy (lst);
   return scm_delv_x (item, copy);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_delete, "delete", 2, 0, 0, scm_delete);
-SCM
-scm_delete (item, lst)
-     SCM item;
-     SCM lst;
+GUILE_PROC (scm_delete, "delete", 2, 0, 0,
+            (SCM item, SCM lst),
+"")
+#define FUNC_NAME s_scm_delete
 {
-  SCM copy;
-
-  copy = scm_list_copy (lst);
+  SCM copy = scm_list_copy (lst);
   return scm_delete_x (item, copy);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_delq1_x, "delq1!", 2, 0, 0, scm_delq1_x);
-SCM
-scm_delq1_x (item, lst)
-     SCM item;
-     SCM lst;
+GUILE_PROC(scm_delq1_x, "delq1!", 2, 0, 0,
+           (SCM item, SCM lst),
+"")
+#define FUNC_NAME s_scm_delq1_x
 {
   SCM walk;
   SCM *prev;
@@ -669,13 +666,13 @@ scm_delq1_x (item, lst)
     
   return lst;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_delv1_x, "delv1!", 2, 0, 0, scm_delv1_x);
-SCM
-scm_delv1_x (item, lst)
-     SCM item;
-     SCM lst;
+GUILE_PROC(scm_delv1_x, "delv1!", 2, 0, 0,
+           (SCM item, SCM lst),
+"")
+#define FUNC_NAME s_scm_delv1_x
 {
   SCM walk;
   SCM *prev;
@@ -695,13 +692,13 @@ scm_delv1_x (item, lst)
     
   return lst;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_delete1_x, "delete1!", 2, 0, 0, scm_delete1_x);
-SCM
-scm_delete1_x (item, lst)
-     SCM item;
-     SCM lst;
+GUILE_PROC(scm_delete1_x, "delete1!", 2, 0, 0,
+           (SCM item, SCM lst),
+"")
+#define FUNC_NAME s_scm_delete1_x
 {
   SCM walk;
   SCM *prev;
@@ -721,6 +718,7 @@ scm_delete1_x (item, lst)
 
   return lst;
 }
+#undef FUNC_NAME
 
 
 

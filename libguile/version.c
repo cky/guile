@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include "_scm.h"
@@ -48,33 +52,36 @@
 
 /* Return a Scheme string containing Guile's major version number.  */
 
-SCM_PROC(s_major_version, "major-version", 0, 0, 0, scm_major_version);
-
-SCM
-scm_major_version ()
+GUILE_PROC(scm_major_version, "major-version", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_major_version
 {
   return scm_makfrom0str (GUILE_MAJOR_VERSION);
 }
+#undef FUNC_NAME
 
 /* Return a Scheme string containing Guile's minor version number.  */
 
-SCM_PROC(s_minor_version, "minor-version", 0, 0, 0, scm_minor_version);
-
-SCM
-scm_minor_version ()
+GUILE_PROC(scm_minor_version, "minor-version", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_minor_version
 {
   return scm_makfrom0str (GUILE_MINOR_VERSION);
 }
+#undef FUNC_NAME
 
 /* Return a Scheme string containing Guile's complete version.  */
 
-SCM_PROC(s_version, "version", 0, 0, 0, scm_version);
-
-SCM
-scm_version ()
+GUILE_PROC(scm_version, "version", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_version
 {
   return scm_makfrom0str (GUILE_VERSION);
 }
+#undef FUNC_NAME
 
 
 

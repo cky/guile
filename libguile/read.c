@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -52,6 +56,7 @@
 #include "hashtab.h"
 #include "hash.h"
 
+#include "scm_validate.h"
 #include "read.h"
 
 
@@ -69,39 +74,35 @@ scm_option scm_read_opts[] = {
     "Style of keyword recognition: #f or 'prefix"}
 };
 
-SCM_PROC (s_read_options, "read-options-interface", 0, 1, 0, scm_read_options);
-
-SCM
-scm_read_options (setting)
-     SCM setting;
+GUILE_PROC (scm_read_options, "read-options-interface", 0, 1, 0, 
+            (SCM setting),
+"")
+#define FUNC_NAME s_scm_read_options
 {
   SCM ans = scm_options (setting,
 			 scm_read_opts,
 			 SCM_N_READ_OPTIONS,
-			 s_read_options);
+			 FUNC_NAME);
   if (SCM_COPY_SOURCE_P)
     SCM_RECORD_POSITIONS_P = 1;
   return ans;
 }
+#undef FUNC_NAME
 
 /* An association list mapping extra hash characters to procedures.  */
 static SCM *scm_read_hash_procedures;
 
-SCM_PROC (s_read, "read", 0, 1, 0, scm_read);
-
-SCM 
-scm_read (port)
-     SCM port;
+GUILE_PROC (scm_read, "read", 0, 1, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_read
 {
   int c;
   SCM tok_buf, copy;
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
-	      port,
-	      SCM_ARG1,
-	      s_read);
+  SCM_VALIDATE_OPINPORT(1,port);
 
   c = scm_flush_ws (port, (char *) NULL);
   if (EOF == c)
@@ -111,6 +112,7 @@ scm_read (port)
   tok_buf = scm_makstr (30L, 0);
   return scm_lreadr (&tok_buf, port, &copy);
 }
+#undef FUNC_NAME
 
 
 
@@ -184,14 +186,8 @@ scm_casei_streq (s1, s2)
 #ifndef DEBUG_EXTENSIONS
 #define recsexpr(obj, line, column, filename) (obj)
 #else
-static SCM recsexpr SCM_P ((SCM obj, int line, int column, SCM filename));
-
 static SCM
-recsexpr (obj, line, column, filename)
-     SCM obj;
-     int line;
-     int column;
-     SCM filename;
+recsexpr (SCM obj,int line,int column,SCM filename)
 {
   if (SCM_IMP (obj) || SCM_NCONSP(obj))
     return obj;
@@ -264,23 +260,19 @@ skip_scsh_block_comment (port)
     }
 }
 
-static SCM
-scm_get_hash_procedure SCM_P ((int c));
+static SCM scm_get_hash_procedure(int c);
 
 static char s_list[]="list";
 
 SCM 
-scm_lreadr (tok_buf, port, copy)
-     SCM *tok_buf;
-     SCM port;
-     SCM *copy;
+scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
 {
   int c;
   scm_sizet j;
   SCM p;
 				  
 tryagain:
-  c = scm_flush_ws (port, s_read);
+  c = scm_flush_ws (port, s_scm_read);
 tryagain_no_flush_ws:
   switch (c)
     {
@@ -428,7 +420,7 @@ tryagain_no_flush_ws:
 	      }
 	  }
 	unkshrp:
-	  scm_misc_error (s_read, "Unknown # object: %S",
+	  scm_misc_error (s_scm_read, "Unknown # object: %S",
 			  scm_listify (SCM_MAKICHR (c), SCM_UNDEFINED));
 	}
 
@@ -727,18 +719,17 @@ exit:
 
 /* Manipulate the read-hash-procedures alist.  This could be written in
    Scheme, but maybe it will also be used by C code during initialisation.  */
-SCM_PROC (s_read_hash_extend, "read-hash-extend", 2, 0, 0, scm_read_hash_extend);
-SCM
-scm_read_hash_extend (chr, proc)
-     SCM chr;
-     SCM proc;
+GUILE_PROC (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
+            (SCM chr, SCM proc),
+"")
+#define FUNC_NAME s_scm_read_hash_extend
 {
   SCM this;
   SCM prev;
 
-  SCM_ASSERT (SCM_ICHRP(chr), chr, SCM_ARG1, s_read_hash_extend);
+  SCM_VALIDATE_CHAR(1,chr);
   SCM_ASSERT (SCM_FALSEP (proc) || SCM_NIMP(proc), proc, SCM_ARG2,
-	      s_read_hash_extend);
+	      FUNC_NAME);
 
   /* Check if chr is already in the alist.  */
   this = *scm_read_hash_procedures;
@@ -782,6 +773,7 @@ scm_read_hash_extend (chr, proc)
 
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 /* Recover the read-hash procedure corresponding to char c.  */
 static SCM

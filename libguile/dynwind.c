@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -66,18 +70,15 @@
 
 
 
-SCM_PROC(s_dynamic_wind, "dynamic-wind", 3, 0, 0, scm_dynamic_wind);
-
-SCM 
-scm_dynamic_wind (thunk1, thunk2, thunk3)
-     SCM thunk1;
-     SCM thunk2;
-     SCM thunk3;
+GUILE_PROC(scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
+           (SCM thunk1, SCM thunk2, SCM thunk3),
+"")
+#define FUNC_NAME s_scm_dynamic_wind
 {
   SCM ans;
   SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk3)),
 	      thunk3,
-	      SCM_ARG3, s_dynamic_wind);
+	      SCM_ARG3, FUNC_NAME);
   scm_apply (thunk1, SCM_EOL, SCM_EOL);
   scm_dynwinds = scm_acons (thunk1, thunk3, scm_dynwinds);
   ans = scm_apply (thunk2, SCM_EOL, SCM_EOL);
@@ -85,6 +86,7 @@ scm_dynamic_wind (thunk1, thunk2, thunk3)
   scm_apply (thunk3, SCM_EOL, SCM_EOL);
   return ans;
 }
+#undef FUNC_NAME
 
 /* The implementation of a C-callable dynamic-wind,
  * scm_internal_dynamic_wind, requires packaging of C pointers in a
@@ -144,13 +146,14 @@ scm_internal_dynamic_wind (scm_guard_t before,
 }
 
 #ifdef GUILE_DEBUG
-SCM_PROC (s_wind_chain, "wind-chain", 0, 0, 0, scm_wind_chain);
-
-SCM
-scm_wind_chain ()
+GUILE_PROC (scm_wind_chain, "wind-chain", 0, 0, 0, 
+            (),
+"")
+#define FUNC_NAME s_scm_wind_chain
 {
   return scm_dynwinds;
 }
+#undef FUNC_NAME
 #endif
 
 static void

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 /* This file is read twice in order to produce debugging versions of
@@ -92,6 +96,7 @@ char *alloca ();
 #include "feature.h"
 #include "modules.h"
 
+#include "scm_validate.h"
 #include "eval.h"
 
 SCM (*scm_memoize_method) (SCM, SCM);
@@ -831,7 +836,7 @@ scm_m_do (xorig, env)
 #define evalcar scm_eval_car
 
 
-static SCM  iqq SCM_P ((SCM form, SCM env, int depth));
+static SCM iqq (SCM form, SCM env, int depth);
 
 SCM_SYNTAX(s_quasiquote, "quasiquote", scm_makacro, scm_m_quasiquote);
 SCM_GLOBAL_SYMBOL(scm_sym_quasiquote, s_quasiquote);
@@ -848,10 +853,7 @@ scm_m_quasiquote (xorig, env)
 
 
 static SCM 
-iqq (form, env, depth)
-     SCM form;
-     SCM env;
-     int depth;
+iqq (SCM form,SCM env,int depth)
 {
   SCM tmp;
   int edepth = depth;
@@ -1350,12 +1352,8 @@ scm_macroexp (SCM x, SCM env)
  *  readable style... :)
  */
 
-static SCM unmemocopy SCM_P ((SCM x, SCM env));
-
 static SCM
-unmemocopy (x, env)
-     SCM x;
-     SCM env;
+unmemocopy (SCM x, SCM env)
 {
   SCM ls, z;
 #ifdef DEBUG_EXTENSIONS
@@ -1714,7 +1712,7 @@ scm_eval_body (SCM code, SCM env)
  */
 
 
-SCM (*scm_ceval_ptr) SCM_P ((SCM x, SCM env));
+SCM (*scm_ceval_ptr) (SCM x, SCM env);
 
 /* scm_last_debug_frame contains a pointer to the last debugging
  * information stack frame.  It is accessed very often from the
@@ -1769,38 +1767,39 @@ scm_option scm_evaluator_trap_table[] = {
   { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." }
 };
 
-SCM_PROC (s_eval_options_interface, "eval-options-interface", 0, 1, 0, scm_eval_options_interface);
-
-SCM
-scm_eval_options_interface (SCM setting)
+GUILE_PROC (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
+            (SCM setting),
+"")
+#define FUNC_NAME s_scm_eval_options_interface
 {
   SCM ans;
   SCM_DEFER_INTS;
   ans = scm_options (setting,
 		     scm_eval_opts,
 		     SCM_N_EVAL_OPTIONS,
-		     s_eval_options_interface);
+		     FUNC_NAME);
   scm_eval_stack = SCM_EVAL_STACK * sizeof (void *);
   SCM_ALLOW_INTS;
   return ans;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, scm_evaluator_traps);
-
-SCM
-scm_evaluator_traps (setting)
-     SCM setting;
+GUILE_PROC (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, 
+            (SCM setting),
+"")
+#define FUNC_NAME s_scm_evaluator_traps
 {
   SCM ans;
   SCM_DEFER_INTS;
   ans = scm_options (setting,
 		     scm_evaluator_trap_table,
 		     SCM_N_EVALUATOR_TRAPS,
-		     s_evaluator_traps);
+		     FUNC_NAME);
   SCM_RESET_DEBUG_MODE;
   SCM_ALLOW_INTS;
   return ans;
 }
+#undef FUNC_NAME
 
 SCM
 scm_deval_args (l, env, proc, lloc)
@@ -1866,24 +1865,18 @@ scm_deval_args (l, env, proc, lloc)
 #if 0
 
 SCM 
-scm_ceval (x, env)
-     SCM x;
-     SCM env;
+scm_ceval (SCM x, SCM env)
 {}
 #endif
 #if 0
 
 SCM 
-scm_deval (x, env)
-     SCM x;
-     SCM env;
+scm_deval (SCM x, SCM env)
 {}
 #endif
 
 SCM 
-SCM_CEVAL (x, env)
-     SCM x;
-     SCM env;
+SCM_CEVAL (SCM x, SCM env)
 {
   union
     {
@@ -3256,21 +3249,21 @@ ret:
    you if you do (scm_apply scm_apply '( ... ))"  If you know what
    they're referring to, send me a patch to this comment.  */
 
-SCM_PROC(s_nconc2last, "apply:nconc2last", 1, 0, 0, scm_nconc2last);
-
-SCM 
-scm_nconc2last (lst)
-     SCM lst;
+GUILE_PROC(scm_nconc2last, "apply:nconc2last", 1, 0, 0, 
+           (SCM lst),
+"")
+#define FUNC_NAME s_scm_nconc2last
 {
   SCM *lloc;
-  SCM_ASSERT (scm_ilength (lst) > 0, lst, SCM_ARG1, s_nconc2last);
+  SCM_VALIDATE_LIST(1,lst);
   lloc = &lst;
   while (SCM_NNULLP (SCM_CDR (*lloc)))
     lloc = SCM_CDRLOC (*lloc);
-  SCM_ASSERT (scm_ilength (SCM_CAR (*lloc)) >= 0, lst, SCM_ARG1, s_nconc2last);
+  SCM_ASSERT (scm_ilength (SCM_CAR (*lloc)) >= 0, lst, SCM_ARG1, FUNC_NAME);
   *lloc = SCM_CAR (*lloc);
   return lst;
 }
+#undef FUNC_NAME
 
 #endif /* !DEVAL */
 
@@ -3311,10 +3304,7 @@ scm_dapply (proc, arg1, args)
    onto the front of your argument list, and pass that as ARGS.  */
 
 SCM 
-SCM_APPLY (proc, arg1, args)
-     SCM proc;
-     SCM arg1;
-     SCM args;
+SCM_APPLY (SCM proc, SCM arg1, SCM args)
 {
 #ifdef DEBUG_EXTENSIONS
 #ifdef DEVAL
@@ -3662,10 +3652,7 @@ SCM_GPROC (s_map, "map", 2, 0, 1, scm_map, g_map);
 */
 
 SCM 
-scm_map (proc, arg1, args)
-     SCM proc;
-     SCM arg1;
-     SCM args;
+scm_map (SCM proc, SCM arg1, SCM args)
 {
   long i, len;
   SCM res = SCM_EOL;
@@ -3713,10 +3700,7 @@ scm_map (proc, arg1, args)
 SCM_GPROC (s_for_each, "for-each", 2, 0, 1, scm_for_each, g_for_each);
 
 SCM 
-scm_for_each (proc, arg1, args)
-     SCM proc;
-     SCM arg1;
-     SCM args;
+scm_for_each (SCM proc, SCM arg1, SCM args)
 {
   SCM *ve = &args;		/* Keep args from being optimized away. */
   long i, len;
@@ -3781,13 +3765,8 @@ scm_makprom (code)
 
 
 
-static int  prinprom SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
 static int 
-prinprom (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+prinprom (SCM exp,SCM port,scm_print_state *pstate)
 {
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<promise ", port);
@@ -3799,14 +3778,12 @@ prinprom (exp, port, pstate)
 }
 
 
-SCM_PROC(s_force, "force", 1, 0, 0, scm_force);
-
-SCM 
-scm_force (x)
-     SCM x;
+GUILE_PROC(scm_force, "force", 1, 0, 0, 
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_force
 {
-  SCM_ASSERT (SCM_NIMP(x) && SCM_TYP16 (x) == scm_tc16_promise,
-	      x, SCM_ARG1, s_force);
+  SCM_VALIDATE_SMOB(1,x,promise);
   if (!((1L << 16) & SCM_CAR (x)))
     {
       SCM ans = scm_apply (SCM_CDR (x), SCM_EOL, SCM_EOL);
@@ -3820,22 +3797,21 @@ scm_force (x)
     }
   return SCM_CDR (x);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_promise_p, "promise?", 1, 0, 0, scm_promise_p);
-
-SCM
-scm_promise_p (x)
-     SCM x;
+GUILE_PROC (scm_promise_p, "promise?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_promise_p
 {
-  return ((SCM_NIMP (x) && (SCM_TYP16 (x) == scm_tc16_promise))
-	   ? SCM_BOOL_T
-	   : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (x) && (SCM_TYP16 (x) == scm_tc16_promise));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_cons_source, "cons-source", 3, 0, 0, scm_cons_source);
-
-SCM
-scm_cons_source (SCM xorig, SCM x, SCM y)
+GUILE_PROC (scm_cons_source, "cons-source", 3, 0, 0, 
+            (SCM xorig, SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_cons_source
 {
   SCM p, z;
   SCM_NEWCELL (z);
@@ -3847,12 +3823,12 @@ scm_cons_source (SCM xorig, SCM x, SCM y)
     scm_whash_insert (scm_source_whash, z, p);
   return z;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_copy_tree, "copy-tree", 1, 0, 0, scm_copy_tree);
-
-SCM 
-scm_copy_tree (obj)
-     SCM obj;
+GUILE_PROC (scm_copy_tree, "copy-tree", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_copy_tree
 {
   SCM ans, tl;
   if (SCM_IMP (obj)) 
@@ -3880,13 +3856,11 @@ scm_copy_tree (obj)
   SCM_SETCDR (tl, obj);
   return ans;
 }
+#undef FUNC_NAME
 
 
 SCM 
-scm_eval_3 (obj, copyp, env)
-     SCM obj;
-     int copyp;
-     SCM env;
+scm_eval_3 (SCM obj, int copyp, SCM env)
 {
   if (SCM_NIMP (SCM_CDR (scm_system_transformer)))
     obj = scm_apply (SCM_CDR (scm_system_transformer), obj, scm_listofnull);
@@ -3895,33 +3869,33 @@ scm_eval_3 (obj, copyp, env)
   return SCM_XEVAL (obj, env);
 }
 
-SCM_PROC(s_eval2, "eval2", 2, 0, 0, scm_eval2);
-
-SCM
-scm_eval2 (obj, env_thunk)
-     SCM obj;
-     SCM env_thunk;
+GUILE_PROC(scm_eval2, "eval2", 2, 0, 0,
+           (SCM obj, SCM env_thunk),
+"")
+#define FUNC_NAME s_scm_eval2
 {
   return scm_eval_3 (obj, 1, scm_top_level_env (env_thunk));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_eval, "eval", 1, 0, 0, scm_eval);
-
-SCM
-scm_eval (obj)
-     SCM obj;
+GUILE_PROC(scm_eval, "eval", 1, 0, 0, 
+           (SCM obj),
+"")
+#define FUNC_NAME s_scm_eval
 {
   return scm_eval_3 (obj,
 		     1,
 		     scm_top_level_env
 		     (SCM_CDR (scm_top_level_lookup_closure_var)));
 }
+#undef FUNC_NAME
 
-/* SCM_PROC(s_eval_x, "eval!", 1, 0, 0, scm_eval_x); */
+/* 
+SCM_REGISTER_PROC(s_eval_x, "eval!", 1, 0, 0, scm_eval_x);
+*/
 
 SCM
-scm_eval_x (obj)
-     SCM obj;
+scm_eval_x (SCM obj)
 {
   return scm_eval_3 (obj,
 		     0,

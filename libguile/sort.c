@@ -38,6 +38,10 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
+
 /* Written in December 1998 by Roland Orre <orre@nada.kth.se>
  * This implements the same sort interface as slib/sort.scm
  * for lists and vectors where slib defines:
@@ -82,6 +86,7 @@ char *alloca ();
 #include "alist.h"
 #include "feature.h"
 
+#include "scm_validate.h"
 #include "sort.h"
 
 /* The routine quicksort was extracted from the GNU C Library qsort.c
@@ -404,20 +409,22 @@ scm_cmp_function (SCM p)
     }
 }				/* scm_cmp_function */
 
-SCM_PROC (s_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0, scm_restricted_vector_sort_x);
 
 /* Question: Is there any need to make this a more general array sort?
    It is probably enough to manage the vector type. */
 /* endpos equal as for substring, i.e. endpos is not included. */
 /* More natural wih length? */
-SCM 
-scm_restricted_vector_sort_x (SCM vec, SCM less, SCM startpos, SCM endpos)
+
+GUILE_PROC (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0, 
+            (SCM vec, SCM less, SCM startpos, SCM endpos),
+"")
+#define FUNC_NAME s_scm_restricted_vector_sort_x
 {
   size_t  vlen, spos, len, size = sizeof (SCM);
   SCM *vp;
 
-  SCM_ASSERT (SCM_NIMP (vec), vec, SCM_ARG1,  s_restricted_vector_sort_x);
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2,  s_restricted_vector_sort_x);
+  SCM_VALIDATE_NIMP(1,vec);
+  SCM_VALIDATE_NIMP(2,less);
   switch (SCM_TYP7 (vec))
     {
     case scm_tc7_vector:	/* the only type we manage is vector */
@@ -429,33 +436,30 @@ scm_restricted_vector_sort_x (SCM vec, SCM less, SCM startpos, SCM endpos)
     case scm_tc7_dvect:	/* double */
 #endif
     default:
-      scm_wta (vec, (char *) SCM_ARG1, s_restricted_vector_sort_x);
+      SCM_WTA (1,vec);
     }
   vp = SCM_VELTS (vec);		/* vector pointer */
   vlen = SCM_LENGTH (vec);
 
-  SCM_ASSERT (SCM_INUMP(startpos),
-	      startpos, SCM_ARG3, s_restricted_vector_sort_x);
-  spos = SCM_INUM (startpos);
-  SCM_ASSERT ((spos >= 0) && (spos <= vlen),
-	      startpos, SCM_ARG3, s_restricted_vector_sort_x);
-  SCM_ASSERT ((SCM_INUMP (endpos)) && (SCM_INUM (endpos) <= vlen),
-	      endpos, SCM_ARG4, s_restricted_vector_sort_x);
+  SCM_VALIDATE_INT_COPY(3,startpos,spos);
+  SCM_ASSERT_RANGE (3,startpos,(spos >= 0) && (spos <= vlen));
+  SCM_VALIDATE_INT_RANGE(4,endpos,0,vlen+1);
   len = SCM_INUM (endpos) - spos;
 
   quicksort (&vp[spos], len, size, scm_cmp_function (less), less);
   return SCM_UNSPECIFIED;
   /* return vec; */
-}				/* scm_restricted_vector_sort_x */
+}
+#undef FUNC_NAME
 
 /* (sorted? sequence less?)
  * is true when sequence is a list (x0 x1 ... xm) or a vector #(x0 ... xm)
  * such that for all 1 <= i <= m,
  * (not (less? (list-ref list i) (list-ref list (- i 1)))). */
-SCM_PROC (s_sorted_p, "sorted?", 2, 0, 0, scm_sorted_p);
-
-SCM 
-scm_sorted_p (SCM items, SCM less)
+GUILE_PROC (scm_sorted_p, "sorted?", 2, 0, 0,
+            (SCM items, SCM less),
+"")
+#define FUNC_NAME s_scm_sorted_p
 {
   long len, j;			/* list/vector length, temp j */
   SCM item, rest;		/* rest of items loop variable */
@@ -464,13 +468,14 @@ scm_sorted_p (SCM items, SCM less)
 
   if (SCM_NULLP (items))
     return SCM_BOOL_T;
-  SCM_ASSERT (SCM_NIMP (items), items, SCM_ARG1, s_sorted_p);
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2, s_sorted_p);
+
+  SCM_VALIDATE_NIMP(1,items);
+  SCM_VALIDATE_NIMP(2,less);
 
   if (SCM_CONSP (items))
     {
       len = scm_ilength (items); /* also checks that it's a pure list */
-      SCM_ASSERT (len >= 0, items, SCM_ARG1, s_sorted_p);
+      SCM_ASSERT_RANGE (1,items,len >= 0);
       if (len <= 1)
 	return SCM_BOOL_T;
 
@@ -519,26 +524,27 @@ scm_sorted_p (SCM items, SCM less)
 	case scm_tc7_dvect:	/* double */
 #endif
 	default:
-	  scm_wta (items, (char *) SCM_ARG1, s_sorted_p);
+	  SCM_WTA (1,items);
 	}
     }
   return SCM_BOOL_F;
-}				/* scm_sorted_p */
+}
+#undef FUNC_NAME
 
 /* (merge a b less?)
    takes two lists a and b such that (sorted? a less?) and (sorted? b less?)
    and returns a new list in which the elements of a and b have been stably
    interleaved so that (sorted? (merge a b less?) less?).
    Note:  this does _not_ accept vectors. */
-SCM_PROC (s_merge, "merge", 3, 0, 0, scm_merge);
-
-SCM 
-scm_merge (SCM alist, SCM blist, SCM less)
+GUILE_PROC (scm_merge, "merge", 3, 0, 0, 
+            (SCM alist, SCM blist, SCM less),
+"")
+#define FUNC_NAME s_scm_merge
 {
   long alen, blen;		/* list lengths */
   SCM build, last;
   cmp_fun_t cmp = scm_cmp_function (less);
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2,  s_merge);
+  SCM_VALIDATE_NIMP(3,less);
 
   if (SCM_NULLP (alist))
     return blist;
@@ -546,10 +552,8 @@ scm_merge (SCM alist, SCM blist, SCM less)
     return alist;
   else
     {
-      alen = scm_ilength (alist);	/* checks that it's a pure list */
-      blen = scm_ilength (blist);	/* checks that it's a pure list */
-      SCM_ASSERT (alen > 0, alist, SCM_ARG1, s_merge);
-      SCM_ASSERT (blen > 0, blist, SCM_ARG2, s_merge);
+      SCM_VALIDATE_NONEMPTYLIST_COPYLEN(1,alist,alen);
+      SCM_VALIDATE_NONEMPTYLIST_COPYLEN(2,blist,blen);
       if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
 	{
 	  build = scm_cons (SCM_CAR (blist), SCM_EOL);
@@ -585,7 +589,9 @@ scm_merge (SCM alist, SCM blist, SCM less)
 	SCM_SETCDR (last, blist);
     }
   return build;
-}				/* scm_merge */
+}
+#undef FUNC_NAME
+
 
 static SCM 
 scm_merge_list_x (SCM alist, SCM blist,
@@ -637,30 +643,29 @@ scm_merge_list_x (SCM alist, SCM blist,
   return build;
 }				/* scm_merge_list_x */
 
-SCM_PROC (s_merge_x, "merge!", 3, 0, 0, scm_merge_x);
-
-SCM 
-scm_merge_x (SCM alist, SCM blist, SCM less)
+GUILE_PROC (scm_merge_x, "merge!", 3, 0, 0, 
+            (SCM alist, SCM blist, SCM less),
+"")
+#define FUNC_NAME s_scm_merge_x
 {
   long alen, blen;		/* list lengths */
 
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2,  s_merge_x);
+  SCM_VALIDATE_NIMP(3,less);
   if (SCM_NULLP (alist))
     return blist;
   else if (SCM_NULLP (blist))
     return alist;
   else
     {
-      alen = scm_ilength (alist);	/* checks that it's a pure list */
-      blen = scm_ilength (blist);	/* checks that it's a pure list */
-      SCM_ASSERT (alen >= 0, alist, SCM_ARG1, s_merge);
-      SCM_ASSERT (blen >= 0, blist, SCM_ARG2, s_merge);
+      SCM_VALIDATE_NONEMPTYLIST_COPYLEN(1,alist,alen);
+      SCM_VALIDATE_NONEMPTYLIST_COPYLEN(2,blist,blen);
       return scm_merge_list_x (alist, blist,
 			       alen, blen,
 			       scm_cmp_function (less),
 			       less);
     }
-}				/* scm_merge_x */
+}
+#undef FUNC_NAME
 
 /* This merge sort algorithm is same as slib's by Richard A. O'Keefe.
    The algorithm is stable. We also tried to use the algorithm used by
@@ -709,22 +714,21 @@ scm_merge_list_step (SCM * seq,
 }				/* scm_merge_list_step */
 
 
-SCM_PROC (s_sort_x, "sort!", 2, 0, 0, scm_sort_x);
-
 /* scm_sort_x manages lists and vectors, not stable sort */
-SCM 
-scm_sort_x (SCM items, SCM less)
+GUILE_PROC (scm_sort_x, "sort!", 2, 0, 0, 
+            (SCM items, SCM less),
+"")
+#define FUNC_NAME s_scm_sort_x
 {
   long len;			/* list/vector length */
   if (SCM_NULLP(items))
     return SCM_EOL;
-  SCM_ASSERT (SCM_NIMP (items), items, SCM_ARG1, s_sort_x);
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2,  s_sort_x);
+  SCM_VALIDATE_NIMP(1,items);
+  SCM_VALIDATE_NIMP(2,less);
 
   if (SCM_CONSP (items))
     {
-      len = scm_ilength (items);
-      SCM_ASSERT (len >= 0, items, SCM_ARG1, s_sort_x);
+      SCM_VALIDATE_LIST_COPYLEN(1,items,len);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
   else if (SCM_VECTORP (items))
@@ -737,25 +741,26 @@ scm_sort_x (SCM items, SCM less)
       return items;
     }
   else
-    return scm_wta (items, (char *) SCM_ARG1, s_sort_x);
-}				/* scm_sort_x */
-
-SCM_PROC (s_sort, "sort", 2, 0, 0, scm_sort);
+    RETURN_SCM_WTA (1,items);
+}
+#undef FUNC_NAME				/* scm_sort_x */
 
 /* scm_sort manages lists and vectors, not stable sort */
-SCM 
-scm_sort (SCM items, SCM less)
+
+GUILE_PROC (scm_sort, "sort", 2, 0, 0, 
+            (SCM items, SCM less),
+"")
+#define FUNC_NAME s_scm_sort
 {
   SCM sortvec;			/* the vector we actually sort */
   long len;			/* list/vector length */
   if (SCM_NULLP(items))
     return SCM_EOL;
-  SCM_ASSERT (SCM_NIMP (items), items, SCM_ARG1, s_sort);
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2,  s_sort);
+  SCM_VALIDATE_NIMP(1,items);
+  SCM_VALIDATE_NIMP(2,less);
   if (SCM_CONSP (items))
     {
-      len = scm_ilength (items);
-      SCM_ASSERT (len >= 0, items, SCM_ARG1, s_sort);
+      SCM_VALIDATE_LIST_COPYLEN(1,items,len);
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
@@ -774,8 +779,9 @@ scm_sort (SCM items, SCM less)
     }
 #endif
   else
-    return scm_wta (items, (char *) SCM_ARG1, s_sort_x);
-}				/* scm_sort */
+    RETURN_SCM_WTA (1,items);
+}
+#undef FUNC_NAME				/* scm_sort */
 
 static void
 scm_merge_vector_x (void *const vecbase,
@@ -830,22 +836,22 @@ scm_merge_vector_step (void *const vp,
 }				/* scm_merge_vector_step */
 
 
-SCM_PROC (s_stable_sort_x, "stable-sort!", 2, 0, 0, scm_stable_sort_x);
 /* stable-sort! manages lists and vectors */
 
-SCM 
-scm_stable_sort_x (SCM items, SCM less)
+GUILE_PROC (scm_stable_sort_x, "stable-sort!", 2, 0, 0, 
+            (SCM items, SCM less),
+"")
+#define FUNC_NAME s_scm_stable_sort_x
 {
   long len;			/* list/vector length */
 
   if (SCM_NULLP (items))
     return SCM_EOL;
-  SCM_ASSERT (SCM_NIMP (items), items, SCM_ARG1, s_stable_sort_x);
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2, s_stable_sort_x);
+  SCM_VALIDATE_NIMP(1,items);
+  SCM_VALIDATE_NIMP(2,less);
   if (SCM_CONSP (items))
     {
-      len = scm_ilength (items);
-      SCM_ASSERT (len >= 0, items, SCM_ARG1, s_sort_x);
+      SCM_VALIDATE_LIST_COPYLEN(1,items,len);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
   else if (SCM_VECTORP (items))
@@ -864,24 +870,25 @@ scm_stable_sort_x (SCM items, SCM less)
       return items;
     }
   else
-    return scm_wta (items, (char *) SCM_ARG1, s_stable_sort_x);
-}				/* scm_stable_sort_x */
-
-SCM_PROC (s_stable_sort, "stable-sort", 2, 0, 0, scm_stable_sort);
+    RETURN_SCM_WTA (1,items);
+}
+#undef FUNC_NAME				/* scm_stable_sort_x */
 
 /* stable_sort manages lists and vectors */
-SCM
-scm_stable_sort (SCM items, SCM less)
+
+GUILE_PROC (scm_stable_sort, "stable-sort", 2, 0, 0, 
+            (SCM items, SCM less),
+"")
+#define FUNC_NAME s_scm_stable_sort
 {
   long len;			/* list/vector length */
   if (SCM_NULLP (items))
     return SCM_EOL;
-  SCM_ASSERT (SCM_NIMP (items), items, SCM_ARG1, s_stable_sort);
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2, s_stable_sort);
+  SCM_VALIDATE_NIMP(1,items);
+  SCM_VALIDATE_NIMP(2,less);
   if (SCM_CONSP (items))
     {
-      len = scm_ilength (items);
-      SCM_ASSERT (len >= 0, items, SCM_ARG1, s_sort);
+      SCM_VALIDATE_LIST_COPYLEN(1,items,len);
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
@@ -907,31 +914,36 @@ scm_stable_sort (SCM items, SCM less)
     }
 #endif
   else
-    return scm_wta (items, (char *) SCM_ARG1, s_stable_sort);
-}				/* scm_stable_sort */
+    RETURN_SCM_WTA (1,items);
+}
+#undef FUNC_NAME				/* scm_stable_sort */
 
-SCM_PROC (s_sort_list_x, "sort-list!", 2, 0, 0, scm_sort_list_x);
-
-SCM	/* stable */
-scm_sort_list_x (SCM items, SCM less)	
+/* stable */
+GUILE_PROC (scm_sort_list_x, "sort-list!", 2, 0, 0, 
+            (SCM items, SCM less),
+"")
+#define FUNC_NAME s_scm_sort_list_x
 {
-  long len = scm_ilength (items);
-  SCM_ASSERT (len >= 0, items, SCM_ARG1, s_sort_list_x);
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2,  s_sort_list_x);
+  long len;
+  SCM_VALIDATE_LIST_COPYLEN(1,items,len);
+  SCM_VALIDATE_NIMP(2,less);
   return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
-}				/* scm_sort_list_x */
+}
+#undef FUNC_NAME				/* scm_sort_list_x */
 
-SCM_PROC (s_sort_list, "sort-list", 2, 0, 0, scm_sort_list);
-
-SCM 	/* stable */
-scm_sort_list (SCM items, SCM less)
+/* stable */
+GUILE_PROC (scm_sort_list, "sort-list", 2, 0, 0, 
+  (SCM items, SCM less),
+"")
+#define FUNC_NAME s_scm_sort_list
 {
-  long len = scm_ilength (items);
-  SCM_ASSERT (len >= 0, items, SCM_ARG1, s_sort_list);
-  SCM_ASSERT (SCM_NIMP (less), less, SCM_ARG2, s_sort_list);
+  long len;
+  SCM_VALIDATE_LIST_COPYLEN(1,items,len);
+  SCM_VALIDATE_NIMP(2,less);
   items = scm_list_copy (items);
   return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
-}				/* scm_sort_list_x */
+}
+#undef FUNC_NAME				/* scm_sort_list_x */
 
 void
 scm_init_sort ()

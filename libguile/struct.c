@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -49,6 +53,7 @@
 #include "weaks.h"
 #include "hashtab.h"
 
+#include "scm_validate.h"
 #include "struct.h"
 
 #ifdef HAVE_STRING_H
@@ -61,24 +66,21 @@ static SCM required_vtable_fields = SCM_BOOL_F;
 SCM scm_struct_table;
 
 
-SCM_PROC (s_struct_make_layout, "make-struct-layout", 1, 0, 0, scm_make_struct_layout);
-
-SCM
-scm_make_struct_layout (fields)
-     SCM fields;
+GUILE_PROC (scm_make_struct_layout, "make-struct-layout", 1, 0, 0, 
+            (SCM fields),
+"")
+#define FUNC_NAME s_scm_make_struct_layout
 {
   SCM new_sym;
-  SCM_ASSERT (SCM_NIMP (fields) && SCM_ROSTRINGP (fields),
-	      fields, SCM_ARG1, s_struct_make_layout);
-
-  {
+  SCM_VALIDATE_ROSTRING(1,fields);
+  { /* scope */
     char * field_desc;
     int len;
     int x;
 
     len = SCM_ROLENGTH (fields);
     field_desc = SCM_ROCHARS (fields);
-    SCM_ASSERT (!(len & 1), fields, "odd length field specification", s_struct_make_layout);
+    SCM_ASSERT (!(len & 1), fields, "odd length field specification", FUNC_NAME);
 
     for (x = 0; x < len; x += 2)
       {
@@ -93,14 +95,14 @@ scm_make_struct_layout (fields)
 	  case 's':
 	    break;
 	  default:
-	    SCM_ASSERT (0, SCM_MAKICHR (field_desc[x]) , "unrecognized field type", s_struct_make_layout);
+	    SCM_ASSERT (0, SCM_MAKICHR (field_desc[x]) , "unrecognized field type", FUNC_NAME);
 	  }
 
 	switch (field_desc[x + 1])
 	  {
 	  case 'w':
 	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKICHR (field_desc[x + 1]),
-			"self fields not writable", s_struct_make_layout);
+			"self fields not writable", FUNC_NAME);
 	      
 	  case 'r':
 	  case 'o':
@@ -110,18 +112,18 @@ scm_make_struct_layout (fields)
 	  case 'O':
 	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKICHR (field_desc[x + 1]),
 			"self fields not allowed in tail array",
-			s_struct_make_layout);
+                        FUNC_NAME);
 	    SCM_ASSERT (x == len - 2, SCM_MAKICHR (field_desc[x + 1]),
 			"tail array field must be last field in layout",
-			s_struct_make_layout);
+                        FUNC_NAME);
 	    break;
 	  default:
-	    SCM_ASSERT (0, SCM_MAKICHR (field_desc[x]) , "unrecognized ref specification", s_struct_make_layout);
+	    SCM_ASSERT (0, SCM_MAKICHR (field_desc[x]) , "unrecognized ref specification", FUNC_NAME);
 	  }
 #if 0
 	if (field_desc[x] == 'd')
 	  {
-	    SCM_ASSERT (field_desc[x + 2] == '-', SCM_MAKINUM (x / 2), "missing dash field", s_struct_make_layout);
+	    SCM_ASSERT (field_desc[x + 2] == '-', SCM_MAKINUM (x / 2), "missing dash field", FUNC_NAME);
 	    x += 2;
 	    goto recheck_ref;
 	  }
@@ -131,16 +133,14 @@ scm_make_struct_layout (fields)
   }
   return scm_return_first (new_sym, fields);
 }
+#undef FUNC_NAME
 
 
 
 
 
 void
-scm_struct_init (handle, tail_elts, inits)
-     SCM handle;
-     int tail_elts;
-     SCM inits;
+scm_struct_init (SCM handle, int tail_elts, SCM inits)
 {
   SCM layout;
   SCM * data;
@@ -231,22 +231,19 @@ scm_struct_init (handle, tail_elts, inits)
 }
 
 
-SCM_PROC (s_struct_p, "struct?", 1, 0, 0, scm_struct_p);
-
-SCM
-scm_struct_p (x)
-     SCM x;
+GUILE_PROC (scm_struct_p, "struct?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_struct_p
 {
-  return ((SCM_NIMP (x) && SCM_STRUCTP (x))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (x) && SCM_STRUCTP (x));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_struct_vtable_p, "struct-vtable?", 1, 0, 0, scm_struct_vtable_p);
-
-SCM
-scm_struct_vtable_p (x)
-     SCM x;
+GUILE_PROC (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_struct_vtable_p
 {
   SCM layout;
   SCM * mem;
@@ -274,10 +271,9 @@ scm_struct_vtable_p (x)
   if (SCM_IMP (mem[0]))
     return SCM_BOOL_F;
 
-  return (SCM_SYMBOLP (mem[0])
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_SYMBOLP (mem[0]));
 }
+#undef FUNC_NAME
 
 
 /* All struct data must be allocated at an address whose bottom three
@@ -362,13 +358,10 @@ scm_struct_free_entity (SCM *vtable, SCM *data)
   return n;
 }
 
-SCM_PROC (s_make_struct, "make-struct", 2, 0, 1, scm_make_struct);
-
-SCM
-scm_make_struct (vtable, tail_array_size, init)
-     SCM vtable;
-     SCM tail_array_size;
-     SCM init;
+GUILE_PROC (scm_make_struct, "make-struct", 2, 0, 1, 
+            (SCM vtable, SCM tail_array_size, SCM init),
+            "")
+#define FUNC_NAME s_scm_make_struct
 {
   SCM layout;
   int basic_size;
@@ -376,10 +369,8 @@ scm_make_struct (vtable, tail_array_size, init)
   SCM * data;
   SCM handle;
 
-  SCM_ASSERT ((SCM_BOOL_F != scm_struct_vtable_p (vtable)),
-	      vtable, SCM_ARG1, s_make_struct);
-  SCM_ASSERT (SCM_INUMP (tail_array_size), tail_array_size, SCM_ARG2,
-	      s_make_struct);
+  SCM_VALIDATE_VTABLE(1,vtable);
+  SCM_VALIDATE_INT(2,tail_array_size);
 
   layout = SCM_STRUCT_DATA (vtable)[scm_vtable_index_layout];
   basic_size = SCM_LENGTH (layout) / 2;
@@ -404,16 +395,14 @@ scm_make_struct (vtable, tail_array_size, init)
   SCM_ALLOW_INTS;
   return handle;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1, scm_make_vtable_vtable);
-
-SCM
-scm_make_vtable_vtable (extra_fields, tail_array_size, init)
-     SCM extra_fields;
-     SCM tail_array_size;
-     SCM init;
+GUILE_PROC (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
+            (SCM extra_fields, SCM tail_array_size, SCM init),
+"")
+#define FUNC_NAME s_scm_make_vtable_vtable
 {
   SCM fields;
   SCM layout;
@@ -422,10 +411,8 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
   SCM * data;
   SCM handle;
 
-  SCM_ASSERT (SCM_NIMP (extra_fields) && SCM_ROSTRINGP (extra_fields),
-	      extra_fields, SCM_ARG1, s_make_vtable_vtable);
-  SCM_ASSERT (SCM_INUMP (tail_array_size), tail_array_size, SCM_ARG2,
-	      s_make_vtable_vtable);
+  SCM_VALIDATE_ROSTRING(1,extra_fields);
+  SCM_VALIDATE_INT(2,tail_array_size);
 
   fields = scm_string_append (scm_listify (required_vtable_fields,
 					   extra_fields,
@@ -445,16 +432,15 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
   SCM_ALLOW_INTS;
   return handle;
 }
+#undef FUNC_NAME
 
 
 
 
-SCM_PROC (s_struct_ref, "struct-ref", 2, 0, 0, scm_struct_ref);
-
-SCM
-scm_struct_ref (handle, pos)
-     SCM handle;
-     SCM pos;
+GUILE_PROC (scm_struct_ref, "struct-ref", 2, 0, 0,
+            (SCM handle, SCM pos),
+"")
+#define FUNC_NAME s_scm_struct_ref
 {
   SCM answer = SCM_UNDEFINED;
   SCM * data;
@@ -465,9 +451,8 @@ scm_struct_ref (handle, pos)
   unsigned char field_type = 0;
   
 
-  SCM_ASSERT (SCM_NIMP (handle) && SCM_STRUCTP (handle), handle,
-	      SCM_ARG1, s_struct_ref);
-  SCM_ASSERT (SCM_INUMP (pos), pos, SCM_ARG2, s_struct_ref);
+  SCM_VALIDATE_STRUCT(1,handle);
+  SCM_VALIDATE_INT(2,pos);
 
   layout = SCM_STRUCT_LAYOUT (handle);
   data = SCM_STRUCT_DATA (handle);
@@ -476,7 +461,7 @@ scm_struct_ref (handle, pos)
   fields_desc = (unsigned char *) SCM_CHARS (layout);
   n_fields = data[scm_struct_i_n_words];
   
-  SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, s_struct_ref);
+  SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, FUNC_NAME);
 
   if (p * 2 < SCM_LENGTH (layout))
     {
@@ -488,14 +473,14 @@ scm_struct_ref (handle, pos)
 	  if ((ref == 'R') || (ref == 'W'))
 	    field_type = 'u';
 	  else
-	    SCM_ASSERT (0, pos, "ref denied", s_struct_ref);
+	    SCM_ASSERT (0, pos, "ref denied", FUNC_NAME);
 	}
     }
   else if (fields_desc[SCM_LENGTH (layout) - 1] != 'O')    
     field_type = fields_desc[SCM_LENGTH (layout) - 2];
   else
     {
-      SCM_ASSERT (0, pos, "ref denied", s_struct_ref);
+      SCM_ASSERT (0, pos, "ref denied", FUNC_NAME);
       abort ();
     }
   
@@ -522,21 +507,19 @@ scm_struct_ref (handle, pos)
 
 
     default:
-      SCM_ASSERT (0, SCM_MAKICHR (field_type), "unrecognized field type", s_struct_ref);
+      SCM_ASSERT (0, SCM_MAKICHR (field_type), "unrecognized field type", FUNC_NAME);
       break;
     }
 
   return answer;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_struct_set_x, "struct-set!", 3, 0, 0, scm_struct_set_x);
-
-SCM
-scm_struct_set_x (handle, pos, val)
-     SCM handle;
-     SCM pos;
-     SCM val;
+GUILE_PROC (scm_struct_set_x, "struct-set!", 3, 0, 0,
+            (SCM handle, SCM pos, SCM val),
+"")
+#define FUNC_NAME s_scm_struct_set_x
 {
   SCM * data;
   SCM layout;
@@ -544,12 +527,9 @@ scm_struct_set_x (handle, pos, val)
   int n_fields;
   unsigned char * fields_desc;
   unsigned char field_type = 0;
-  
 
-
-  SCM_ASSERT (SCM_NIMP (handle) && SCM_STRUCTP (handle), handle,
-	      SCM_ARG1, s_struct_ref);
-  SCM_ASSERT (SCM_INUMP (pos), pos, SCM_ARG2, s_struct_ref);
+  SCM_VALIDATE_STRUCT(1,handle);
+  SCM_VALIDATE_INT(2,pos);
 
   layout = SCM_STRUCT_LAYOUT (handle);
   data = SCM_STRUCT_DATA (handle);
@@ -558,7 +538,7 @@ scm_struct_set_x (handle, pos, val)
   fields_desc = (unsigned char *)SCM_CHARS (layout);
   n_fields = data[scm_struct_i_n_words];
 
-  SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, s_struct_set_x);
+  SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, FUNC_NAME);
 
   if (p * 2 < SCM_LENGTH (layout))
     {
@@ -566,25 +546,25 @@ scm_struct_set_x (handle, pos, val)
       field_type = fields_desc[p * 2];
       set_x = fields_desc [p * 2 + 1];
       if (set_x != 'w')
-	SCM_ASSERT (0, pos, "set_x denied", s_struct_set_x);
+	SCM_ASSERT (0, pos, "set_x denied", FUNC_NAME);
     }
   else if (fields_desc[SCM_LENGTH (layout) - 1] == 'W')    
     field_type = fields_desc[SCM_LENGTH (layout) - 2];
   else
     {
-      SCM_ASSERT (0, pos, "set_x denied", s_struct_ref);
+      SCM_ASSERT (0, pos, "set_x denied", FUNC_NAME);
       abort ();
     }
   
   switch (field_type)
     {
     case 'u':
-      data[p] = (SCM)scm_num2ulong (val, (char *)SCM_ARG3, s_struct_set_x);
+      data[p] = SCM_NUM2ULONG (3,val);
       break;
 
 #if 0
     case 'i':
-      data[p] = scm_num2long (val, (char *)SCM_ARG3, s_struct_set_x);
+      data[p] = SCM_NUM2LONG (3,val);
       break;
 
     case 'd':
@@ -597,40 +577,39 @@ scm_struct_set_x (handle, pos, val)
       break;
 
     case 's':
-      SCM_ASSERT (0, SCM_MAKICHR (field_type), "self fields immutable", s_struct_set_x);
+      SCM_ASSERT (0, SCM_MAKICHR (field_type), "self fields immutable", FUNC_NAME);
       break;
 
     default:
-      SCM_ASSERT (0, SCM_MAKICHR (field_type), "unrecognized field type", s_struct_set_x);
+      SCM_ASSERT (0, SCM_MAKICHR (field_type), "unrecognized field type", FUNC_NAME);
       break;
     }
 
   return val;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_struct_vtable, "struct-vtable", 1, 0, 0, scm_struct_vtable);
-
-SCM
-scm_struct_vtable (handle)
-     SCM handle;
+GUILE_PROC (scm_struct_vtable, "struct-vtable", 1, 0, 0, 
+            (SCM handle),
+"")
+#define FUNC_NAME s_scm_struct_vtable
 {
-  SCM_ASSERT (SCM_NIMP (handle) && SCM_STRUCTP (handle), handle,
-	      SCM_ARG1, s_struct_vtable);
+  SCM_VALIDATE_STRUCT(1,handle);
   return SCM_STRUCT_VTABLE (handle);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0, scm_struct_vtable_tag);
-
-SCM
-scm_struct_vtable_tag (handle)
-     SCM handle;
+GUILE_PROC (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0, 
+            (SCM handle),
+"")
+#define FUNC_NAME s_scm_struct_vtable_tag
 {
-  SCM_ASSERT (SCM_NFALSEP (scm_struct_vtable_p (handle)),
-	      handle, SCM_ARG1, s_struct_vtable_tag);
+  SCM_VALIDATE_VTABLE(1,handle);
   return scm_long2num ((long) SCM_STRUCT_DATA (handle) >> 3);
 }
+#undef FUNC_NAME
 
 /* {Associating names and classes with vtables}
  *
@@ -661,39 +640,34 @@ scm_struct_create_handle (SCM obj)
   return handle;
 }
 
-SCM_PROC (s_struct_vtable_name, "struct-vtable-name", 1, 0, 0, scm_struct_vtable_name);
-
-SCM
-scm_struct_vtable_name (SCM vtable)
+GUILE_PROC (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0, 
+            (SCM vtable),
+            "")
+#define FUNC_NAME s_scm_struct_vtable_name
 {
-  SCM_ASSERT (SCM_NFALSEP (scm_struct_vtable_p (vtable)),
-	      vtable, SCM_ARG1, s_struct_vtable_name);
-  
+  SCM_VALIDATE_VTABLE(1,vtable);
   return SCM_STRUCT_TABLE_NAME (SCM_CDR (scm_struct_create_handle (vtable)));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0, scm_set_struct_vtable_name_x);
-
-SCM
-scm_set_struct_vtable_name_x (SCM vtable, SCM name)
+GUILE_PROC (scm_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0, 
+            (SCM vtable, SCM name),
+            "")
+#define FUNC_NAME s_scm_set_struct_vtable_name_x
 {
-  SCM_ASSERT (SCM_NIMP (vtable) && SCM_NFALSEP (scm_struct_vtable_p (vtable)),
-	      vtable, SCM_ARG1, s_set_struct_vtable_name_x);
-  SCM_ASSERT (SCM_NIMP (name) && SCM_SYMBOLP (name),
-	      name, SCM_ARG2, s_set_struct_vtable_name_x);
+  SCM_VALIDATE_VTABLE(1,vtable);
+  SCM_VALIDATE_SYMBOL(2,name);
   SCM_SET_STRUCT_TABLE_NAME (SCM_CDR (scm_struct_create_handle (vtable)),
 			     name);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
 
 void
-scm_print_struct (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
 {
   if (SCM_NFALSEP (scm_procedure_p (SCM_STRUCT_PRINTER (exp))))
     scm_printer_apply (SCM_STRUCT_PRINTER (exp), exp, port, pstate);

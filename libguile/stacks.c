@@ -42,6 +42,10 @@
  *
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -54,6 +58,7 @@
 #include "procprop.h"
 #include "modules.h"
 
+#include "scm_validate.h"
 #include "stacks.h"
 
 
@@ -146,13 +151,8 @@
  * DFRAME.  OFFSET is used for relocation of pointers when the stack
  * is read from a continuation.
  */
-static int stack_depth SCM_P ((scm_debug_frame *dframe, long offset, SCM *id, int *maxp));
 static int
-stack_depth (dframe, offset, id, maxp)
-     scm_debug_frame *dframe;
-     long offset;
-     SCM *id;
-     int *maxp;
+stack_depth (scm_debug_frame *dframe,long offset,SCM *id,int *maxp)
 {
   int n, size;
   int max_depth = SCM_BACKTRACE_MAXDEPTH;
@@ -185,12 +185,8 @@ stack_depth (dframe, offset, id, maxp)
 
 /* Read debug info from DFRAME into IFRAME.
  */
-static void read_frame SCM_P ((scm_debug_frame *dframe, long offset, scm_info_frame *iframe));
 static void
-read_frame (dframe, offset, iframe)
-     scm_debug_frame *dframe;
-     long offset;
-     scm_info_frame *iframe;
+read_frame (scm_debug_frame *dframe,long offset,scm_info_frame *iframe)
 {
   SCM flags = SCM_INUM0;
   int size;
@@ -259,13 +255,8 @@ get_applybody ()
  * DFRAME.
  */
 
-static int read_frames SCM_P ((scm_debug_frame *dframe, long offset, int nframes, scm_info_frame *iframes));
 static int
-read_frames (dframe, offset, n, iframes)
-     scm_debug_frame *dframe;
-     long offset;
-     int n;
-     scm_info_frame *iframes;
+read_frames (scm_debug_frame *dframe,long offset,int n,scm_info_frame *iframes)
 {
   int size;
   scm_info_frame *iframe = iframes;
@@ -338,8 +329,6 @@ read_frames (dframe, offset, n, iframes)
   return iframe - iframes;  /* Number of frames actually read */
 }
 
-static void narrow_stack SCM_P ((SCM stack, int inner, SCM inner_key, int outer, SCM outer_key));
-
 /* Narrow STACK by cutting away stackframes (mutatingly).
  *
  * Inner frames (most recent) are cut by advancing the frames pointer.
@@ -362,12 +351,7 @@ static void narrow_stack SCM_P ((SCM stack, int inner, SCM inner_key, int outer,
  */
 
 static void
-narrow_stack (stack, inner, inner_key, outer, outer_key)
-     SCM stack;
-     int inner;
-     SCM inner_key;
-     int outer;
-     SCM outer_key;
+narrow_stack (SCM stack,int inner,SCM inner_key,int outer,SCM outer_key)
 {
   scm_stack *s = SCM_STACK (stack);
   int i;
@@ -426,18 +410,19 @@ narrow_stack (stack, inner, inner_key, outer, outer_key)
 
 SCM scm_stack_type;
 
-SCM_PROC (s_stack_p, "stack?", 1, 0, 0, scm_stack_p);
-SCM
-scm_stack_p (obj)
-     SCM obj;
+GUILE_PROC (scm_stack_p, "stack?", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_stack_p
 {
-  return SCM_NIMP (obj) && SCM_STACKP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_NIMP (obj) && SCM_STACKP (obj));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_make_stack, "make-stack", 0, 0, 1, scm_make_stack);
-SCM
-scm_make_stack (args)
-     SCM args;
+GUILE_PROC (scm_make_stack, "make-stack", 0, 0, 1, 
+            (SCM args),
+"")
+#define FUNC_NAME s_scm_make_stack
 {
   int n, maxp, size;
   scm_debug_frame *dframe = scm_last_debug_frame;
@@ -447,9 +432,7 @@ scm_make_stack (args)
   SCM obj, inner_cut, outer_cut;
 
   SCM_ASSERT (SCM_NIMP (args) && SCM_CONSP (args),
-	      scm_makfrom0str (s_make_stack),
-	      SCM_WNA,
-	      NULL);
+	      SCM_FUNC_NAME, SCM_WNA, NULL);
   obj = SCM_CAR (args);
   args = SCM_CDR (args);
 
@@ -459,7 +442,7 @@ scm_make_stack (args)
      (from initialization of dframe, above) if obj is #t */
   if (obj != SCM_BOOL_T)
     {
-      SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_make_stack);
+      SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, FUNC_NAME);
       if (SCM_DEBUGOBJP (obj))
 	dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (obj);
       else if (scm_tc7_contin == SCM_TYP7 (obj))
@@ -473,7 +456,7 @@ scm_make_stack (args)
 	}
       else
 	{
-	  scm_wta (obj, (char *) SCM_ARG1, s_make_stack);
+	  scm_wta (obj, (char *) SCM_ARG1, FUNC_NAME);
 	  abort ();
 	}
     }
@@ -527,11 +510,12 @@ scm_make_stack (args)
   else
     return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_stack_id, "stack-id", 1, 0, 0, scm_stack_id);
-SCM
-scm_stack_id (stack)
-     SCM stack;
+GUILE_PROC (scm_stack_id, "stack-id", 1, 0, 0, 
+            (SCM stack),
+"")
+#define FUNC_NAME s_scm_stack_id
 {
   scm_debug_frame *dframe;
   long offset = 0;
@@ -539,7 +523,7 @@ scm_stack_id (stack)
     dframe = scm_last_debug_frame;
   else
     {
-      SCM_ASSERT (SCM_NIMP (stack), stack, SCM_ARG1, s_make_stack);
+      SCM_VALIDATE_NIMP(1,stack);
       if (SCM_DEBUGOBJP (stack))
 	dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (stack);
       else if (scm_tc7_contin == SCM_TYP7 (stack))
@@ -554,7 +538,7 @@ scm_stack_id (stack)
       else if (SCM_STACKP (stack))
 	return SCM_STACK (stack) -> id;
       else
-	scm_wrong_type_arg (s_stack_id, SCM_ARG1, stack);
+	SCM_WRONG_TYPE_ARG (1, stack);
     }
   while (dframe && !SCM_VOIDFRAMEP (*dframe))
     dframe = RELOC_FRAME (dframe->prev, offset);
@@ -562,61 +546,54 @@ scm_stack_id (stack)
     return dframe->vect[0].id;
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_stack_ref, "stack-ref", 2, 0, 0, scm_stack_ref);
-SCM
-scm_stack_ref (stack, i)
-     SCM stack;
-     SCM i;
+GUILE_PROC (scm_stack_ref, "stack-ref", 2, 0, 0,
+            (SCM stack, SCM i),
+"")
+#define FUNC_NAME s_scm_stack_ref
 {
-  SCM_ASSERT (SCM_NIMP (stack)
-	      && SCM_STACKP (stack),
-	      stack,
-	      SCM_ARG1,
-	      s_stack_ref);
-  SCM_ASSERT (SCM_INUMP (i), i, SCM_ARG2, s_stack_ref);
-  SCM_ASSERT (SCM_INUM (i) >= 0
-	      && SCM_INUM (i) < SCM_STACK_LENGTH (stack),
-	      i,
-	      SCM_OUTOFRANGE,
-	      s_stack_ref);
+  SCM_VALIDATE_STACK(1,stack);
+  SCM_VALIDATE_INT(2,i);
+  SCM_ASSERT_RANGE (1,i,
+                    SCM_INUM (i) >= 0 && 
+                    SCM_INUM (i) < SCM_STACK_LENGTH (stack));
   return scm_cons (stack, i);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_stack_length, "stack-length", 1, 0, 0, scm_stack_length);
-SCM
-scm_stack_length (stack)
-     SCM stack;
+GUILE_PROC(scm_stack_length, "stack-length", 1, 0, 0, 
+           (SCM stack),
+"")
+#define FUNC_NAME s_scm_stack_length
 {
-  SCM_ASSERT (SCM_NIMP (stack)
-	      && SCM_STACKP (stack),
-	      stack,
-	      SCM_ARG1,
-	      s_stack_length);
+  SCM_VALIDATE_STACK(1,stack);
   return SCM_MAKINUM (SCM_STACK_LENGTH (stack));
 }
+#undef FUNC_NAME
 
 /* Frames
  */
 
-SCM_PROC (s_frame_p, "frame?", 1, 0, 0, scm_frame_p);
-SCM
-scm_frame_p (obj)
-     SCM obj;
+GUILE_PROC (scm_frame_p, "frame?", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_frame_p
 {
-  return SCM_NIMP (obj) && SCM_FRAMEP (obj);
+  return SCM_BOOL(SCM_NIMP (obj) && SCM_FRAMEP (obj));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_last_stack_frame, "last-stack-frame", 1, 0, 0, scm_last_stack_frame);
-SCM
-scm_last_stack_frame (obj)
-     SCM obj;
+GUILE_PROC(scm_last_stack_frame, "last-stack-frame", 1, 0, 0, 
+           (SCM obj),
+"")
+#define FUNC_NAME s_scm_last_stack_frame
 {
   scm_debug_frame *dframe;
   long offset = 0;
   SCM stack;
   
-  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_last_stack_frame);
+  SCM_VALIDATE_NIMP(1,obj);
   if (SCM_DEBUGOBJP (obj))
     dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (obj);
   else if (scm_tc7_contin == SCM_TYP7 (obj))
@@ -630,7 +607,7 @@ scm_last_stack_frame (obj)
     }
   else
     {
-      scm_wta (obj, (char *) SCM_ARG1, s_last_stack_frame);
+      SCM_WTA (1,obj);
       abort ();
     }
   
@@ -646,138 +623,119 @@ scm_last_stack_frame (obj)
   
   return scm_cons (stack, SCM_INUM0);;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_number, "frame-number", 1, 0, 0, scm_frame_number);
-SCM
-scm_frame_number (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_number, "frame-number", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_number
 {
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_number);
+  SCM_VALIDATE_FRAME(1,frame);
   return SCM_MAKINUM (SCM_FRAME_NUMBER (frame));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_source, "frame-source", 1, 0, 0, scm_frame_source);
-SCM
-scm_frame_source (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_source, "frame-source", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_source
 {
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_source);
+  SCM_VALIDATE_FRAME(1,frame);
   return SCM_FRAME_SOURCE (frame);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_procedure, "frame-procedure", 1, 0, 0, scm_frame_procedure);
-SCM
-scm_frame_procedure (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_procedure, "frame-procedure", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_procedure
 {
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_procedure);
+  SCM_VALIDATE_FRAME(1,frame);
   return (SCM_FRAME_PROC_P (frame)
 	  ? SCM_FRAME_PROC (frame)
 	  : SCM_BOOL_F);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_arguments, "frame-arguments", 1, 0, 0, scm_frame_arguments);
-SCM
-scm_frame_arguments (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_arguments, "frame-arguments", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_arguments
 {
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_arguments);
+  SCM_VALIDATE_FRAME(1,frame);
   return SCM_FRAME_ARGS (frame);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_previous, "frame-previous", 1, 0, 0, scm_frame_previous);
-SCM
-scm_frame_previous (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_previous, "frame-previous", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_previous
 {
   int n;
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_previous);
+  SCM_VALIDATE_FRAME(1,frame);
   n = SCM_INUM (SCM_CDR (frame)) + 1;
   if (n >= SCM_STACK_LENGTH (SCM_CAR (frame)))
     return SCM_BOOL_F;
   else
     return scm_cons (SCM_CAR (frame), SCM_MAKINUM (n));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_next, "frame-next", 1, 0, 0, scm_frame_next);
-SCM
-scm_frame_next (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_next, "frame-next", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_next
 {
   int n;
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_next);
+  SCM_VALIDATE_FRAME(1,frame);
   n = SCM_INUM (SCM_CDR (frame)) - 1;
   if (n < 0)
     return SCM_BOOL_F;
   else
     return scm_cons (SCM_CAR (frame), SCM_MAKINUM (n));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_real_p, "frame-real?", 1, 0, 0, scm_frame_real_p);
-SCM
-scm_frame_real_p (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_real_p, "frame-real?", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_real_p
 {
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_real_p);
-  return SCM_FRAME_REAL_P (frame) ? SCM_BOOL_T : SCM_BOOL_F;
+  SCM_VALIDATE_FRAME(1,frame);
+  return SCM_BOOL(SCM_FRAME_REAL_P (frame));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_procedure_p, "frame-procedure?", 1, 0, 0, scm_frame_procedure_p);
-SCM
-scm_frame_procedure_p (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_procedure_p, "frame-procedure?", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_procedure_p
 {
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_procedure_p);
-  return SCM_FRAME_PROC_P (frame) ? SCM_BOOL_T : SCM_BOOL_F;
+  SCM_VALIDATE_FRAME(1,frame);
+  return SCM_BOOL(SCM_FRAME_PROC_P (frame));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_evaluating_args_p, "frame-evaluating-args?", 1, 0, 0, scm_frame_evaluating_args_p);
-SCM
-scm_frame_evaluating_args_p (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_evaluating_args_p, "frame-evaluating-args?", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_evaluating_args_p
 {
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_evaluating_args_p);
-  return SCM_FRAME_EVAL_ARGS_P (frame) ? SCM_BOOL_T : SCM_BOOL_F;
+  SCM_VALIDATE_FRAME(1,frame);
+  return SCM_BOOL(SCM_FRAME_EVAL_ARGS_P (frame));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_frame_overflow_p, "frame-overflow?", 1, 0, 0, scm_frame_overflow_p);
-SCM
-scm_frame_overflow_p (frame)
-     SCM frame;
+GUILE_PROC(scm_frame_overflow_p, "frame-overflow?", 1, 0, 0, 
+           (SCM frame),
+"")
+#define FUNC_NAME s_scm_frame_overflow_p
 {
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame,
-	      SCM_ARG1,
-	      s_frame_overflow_p);
+  SCM_VALIDATE_FRAME(1,frame);
   return SCM_FRAME_OVERFLOW_P (frame) ? SCM_BOOL_T : SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 

@@ -38,10 +38,15 @@
  * If you write modifications of your own for this library, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 #include <stdio.h>
 #include "_scm.h"
 
+#include "scm_validate.h"
 #include "weaks.h"
 
 
@@ -50,12 +55,10 @@
  */
 
 
-SCM_PROC(s_make_weak_vector, "make-weak-vector", 1, 1, 0, scm_make_weak_vector);
-
-SCM
-scm_make_weak_vector (k, fill)
-     SCM k;
-     SCM fill;
+GUILE_PROC(scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
+           (SCM k, SCM fill),
+"")
+#define FUNC_NAME s_scm_make_weak_vector
 {
   SCM v;
   v = scm_make_vector (scm_sum (k, SCM_MAKINUM (2)), fill);
@@ -67,21 +70,22 @@ scm_make_weak_vector (k, fill)
   SCM_ALLOW_INTS;
   return v;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_weak_vector, "weak-vector", 0, 0, 1, scm_weak_vector);
-SCM_PROC(s_list_to_weak_vector, "list->weak-vector", 1, 0, 0, scm_weak_vector);
+SCM_REGISTER_PROC(s_list_to_weak_vector, "list->weak-vector", 1, 0, 0, scm_weak_vector);
 
-SCM
-scm_weak_vector (l)
-     SCM l;
+GUILE_PROC(scm_weak_vector, "weak-vector", 0, 0, 1, 
+           (SCM l),
+"")
+#define FUNC_NAME s_scm_weak_vector
 {
   SCM res;
   register SCM *data;
   long i;
 
   i = scm_ilength (l);
-  SCM_ASSERT (i >= 0, l, SCM_ARG1, s_weak_vector);
+  SCM_ASSERT (i >= 0, l, SCM_ARG1, FUNC_NAME);
   res = scm_make_weak_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
   data = SCM_VELTS (res);
   for (;
@@ -90,18 +94,17 @@ scm_weak_vector (l)
     *data++ = SCM_CAR (l);
   return res;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_weak_vector_p, "weak-vector?", 1, 0, 0, scm_weak_vector_p);
-
-SCM
-scm_weak_vector_p (x)
-     SCM x;
+GUILE_PROC(scm_weak_vector_p, "weak-vector?", 1, 0, 0, 
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_weak_vector_p
 {
-  return ((SCM_NIMP (x) && SCM_WVECTP (x) && !SCM_IS_WHVEC (x))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && !SCM_IS_WHVEC (x));
 }
+#undef FUNC_NAME
 
 
 
@@ -109,88 +112,82 @@ scm_weak_vector_p (x)
 
 
 
-SCM_PROC(s_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, scm_make_weak_key_hash_table);
-
-SCM
-scm_make_weak_key_hash_table (k)
-     SCM k;
+GUILE_PROC(scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, 
+           (SCM k),
+"")
+#define FUNC_NAME s_scm_make_weak_key_hash_table
 {
   SCM v;
-  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG1, s_make_weak_key_hash_table);
+  SCM_VALIDATE_INT(1,k);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
   SCM_VELTS (v)[-1] = 1;
   SCM_ALLOW_INTS;
   return v;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 0, scm_make_weak_value_hash_table);
-
-SCM
-scm_make_weak_value_hash_table (k)
-     SCM k;
+GUILE_PROC (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 0, 
+            (SCM k),
+"")
+#define FUNC_NAME s_scm_make_weak_value_hash_table
 {
   SCM v;
-  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG1, s_make_weak_value_hash_table);
+  SCM_VALIDATE_INT(1,k);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
   SCM_VELTS (v)[-1] = 2;
   SCM_ALLOW_INTS;
   return v;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, scm_make_doubly_weak_hash_table);
-
-SCM
-scm_make_doubly_weak_hash_table (k)
-     SCM k;
+GUILE_PROC (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, 
+            (SCM k),
+"")
+#define FUNC_NAME s_scm_make_doubly_weak_hash_table
 {
   SCM v;
-  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG1, s_make_doubly_weak_hash_table);
+  SCM_VALIDATE_INT(1,k);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
   SCM_VELTS (v)[-1] = 3;
   SCM_ALLOW_INTS;
   return v;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, scm_weak_key_hash_table_p);
-
-SCM
-scm_weak_key_hash_table_p (x)
-     SCM x;
+GUILE_PROC(scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
+           (SCM x),
+           "")
+#define FUNC_NAME s_scm_weak_key_hash_table_p
 {
-  return ((SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC(x))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC(x));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0, scm_weak_value_hash_table_p);
-
-SCM
-scm_weak_value_hash_table_p (x)
-     SCM x;
+GUILE_PROC (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_weak_value_hash_table_p
 {
-  return ((SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC_V(x))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC_V(x));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0, scm_doubly_weak_hash_table_p);
-
-SCM
-scm_doubly_weak_hash_table_p (x)
-     SCM x;
+GUILE_PROC (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_doubly_weak_hash_table_p
 {
-  return ((SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC_B (x))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC_B (x));
 }
+#undef FUNC_NAME
 
 
 

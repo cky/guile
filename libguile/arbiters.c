@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -45,6 +49,7 @@
 #include "smob.h"
 #include "genio.h"
 
+#include "scm_validate.h"
 #include "arbiters.h"
 
 
@@ -59,10 +64,7 @@ static long scm_tc16_arbiter;
 
 
 static int 
-prinarb (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+prinarb (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<arbiter ", port);
   if (SCM_CAR (exp) & (1L << 16))
@@ -72,22 +74,21 @@ prinarb (exp, port, pstate)
   return !0;
 }
 
-SCM_PROC(s_make_arbiter, "make-arbiter", 1, 0, 0, scm_make_arbiter);
-
-SCM 
-scm_make_arbiter (name)
-     SCM name;
+GUILE_PROC(scm_make_arbiter, "make-arbiter", 1, 0, 0, 
+           (SCM name),
+"")
+#define FUNC_NAME s_scm_make_arbiter
 {
   SCM_RETURN_NEWSMOB (scm_tc16_arbiter, name);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_try_arbiter, "try-arbiter", 1, 0, 0, scm_try_arbiter);
-
-SCM 
-scm_try_arbiter (arb)
-     SCM arb;
+GUILE_PROC(scm_try_arbiter, "try-arbiter", 1, 0, 0, 
+           (SCM arb),
+"")
+#define FUNC_NAME s_scm_try_arbiter
 {
-  SCM_ASSERT ((SCM_TYP16 (arb) == scm_tc16_arbiter), arb, SCM_ARG1, s_try_arbiter);
+  SCM_VALIDATE_SMOB(1,arb,arbiter);
   SCM_DEFER_INTS;
   if (SCM_CAR (arb) & (1L << 16))
     arb = SCM_BOOL_F;
@@ -99,20 +100,21 @@ scm_try_arbiter (arb)
   SCM_ALLOW_INTS;
   return arb;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_release_arbiter, "release-arbiter", 1, 0, 0, scm_release_arbiter);
-
-SCM 
-scm_release_arbiter (arb)
-     SCM arb;
+GUILE_PROC(scm_release_arbiter, "release-arbiter", 1, 0, 0, 
+           (SCM arb),
+"")
+#define FUNC_NAME s_scm_release_arbiter
 {
-  SCM_ASSERT ((SCM_TYP16 (arb) == scm_tc16_arbiter), arb, SCM_ARG1, s_release_arbiter);
+  SCM_VALIDATE_SMOB(1,arb,arbiter);
   if (!(SCM_CAR (arb) & (1L << 16)))
     return SCM_BOOL_F;
   SCM_SETCAR (arb, scm_tc16_arbiter);
   return SCM_BOOL_T;
 }
+#undef FUNC_NAME
 
 
 

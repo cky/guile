@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 /* Headers.  */
 
@@ -49,6 +53,7 @@
 
 #include "keywords.h"
 
+#include "scm_validate.h"
 #include "ports.h"
 
 #ifdef HAVE_MALLOC_H
@@ -207,18 +212,17 @@ scm_set_port_input_waiting (long tc, int (*input_waiting) (SCM))
 
 
 
-SCM_PROC(s_char_ready_p, "char-ready?", 0, 1, 0, scm_char_ready_p);
-
-SCM 
-scm_char_ready_p (SCM port)
+GUILE_PROC(scm_char_ready_p, "char-ready?", 0, 1, 0, 
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_char_ready_p
 {
   scm_port *pt;
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1,
-		s_char_ready_p);
+    SCM_VALIDATE_OPINPORT(1,port);
 
   pt = SCM_PTAB_ENTRY (port);
 
@@ -234,24 +238,25 @@ scm_char_ready_p (SCM port)
       scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
       
       if (ptob->input_waiting)
-	return (ptob->input_waiting (port)) ? SCM_BOOL_T : SCM_BOOL_F;
+	return SCM_BOOL(ptob->input_waiting (port));
       else
 	return SCM_BOOL_T;
     }
 }
+#undef FUNC_NAME
 
 /* Clear a port's read buffers, returning the contents.  */
-SCM_PROC (s_drain_input, "drain-input", 1, 0, 0, scm_drain_input);
-SCM
-scm_drain_input (SCM port)
+GUILE_PROC (scm_drain_input, "drain-input", 1, 0, 0, 
+            (SCM port),
+            "")
+#define FUNC_NAME s_scm_drain_input
 {
   SCM result;
   scm_port *pt = SCM_PTAB_ENTRY (port);
   int count;
   char *dst;
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1,
-	      s_drain_input);
+  SCM_VALIDATE_OPINPORT(1,port);
 
   count = pt->read_end - pt->read_pos;
   if (pt->read_buf == pt->putback_buf)
@@ -271,78 +276,86 @@ scm_drain_input (SCM port)
 
   return result;
 }
+#undef FUNC_NAME
 
 
 /* Standard ports --- current input, output, error, and more(!).  */
 
-SCM_PROC(s_current_input_port, "current-input-port", 0, 0, 0, scm_current_input_port);
-
-SCM 
-scm_current_input_port ()
+GUILE_PROC(scm_current_input_port, "current-input-port", 0, 0, 0,
+           (),
+"")
+#define FUNC_NAME s_scm_current_input_port
 {
   return scm_cur_inp;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_current_output_port, "current-output-port", 0, 0, 0, scm_current_output_port);
-
-SCM 
-scm_current_output_port ()
+GUILE_PROC(scm_current_output_port, "current-output-port", 0, 0, 0,
+           (),
+"")
+#define FUNC_NAME s_scm_current_output_port
 {
   return scm_cur_outp;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_current_error_port, "current-error-port", 0, 0, 0, scm_current_error_port);
-
-SCM 
-scm_current_error_port ()
+GUILE_PROC(scm_current_error_port, "current-error-port", 0, 0, 0,
+           (),
+"")
+#define FUNC_NAME s_scm_current_error_port
 {
   return scm_cur_errp;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_current_load_port, "current-load-port", 0, 0, 0, scm_current_load_port);
-
-SCM 
-scm_current_load_port ()
+GUILE_PROC(scm_current_load_port, "current-load-port", 0, 0, 0,
+           (),
+"")
+#define FUNC_NAME s_scm_current_load_port
 {
   return scm_cur_loadp;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_set_current_input_port, "set-current-input-port", 1, 0, 0, scm_set_current_input_port);
-
-SCM 
-scm_set_current_input_port (SCM port)
+GUILE_PROC(scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_set_current_input_port
 {
   SCM oinp = scm_cur_inp;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_set_current_input_port);
+  SCM_VALIDATE_OPINPORT(1,port);
   scm_cur_inp = port;
   return oinp;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_set_current_output_port, "set-current-output-port", 1, 0, 0, scm_set_current_output_port);
-
-SCM 
-scm_set_current_output_port (SCM port)
+GUILE_PROC(scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_set_current_output_port
 {
   SCM ooutp = scm_cur_outp;
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1, s_set_current_output_port);
+  SCM_VALIDATE_OPOUTPORT(1,port);
   scm_cur_outp = port;
   return ooutp;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_set_current_error_port, "set-current-error-port", 1, 0, 0, scm_set_current_error_port);
-
-SCM 
-scm_set_current_error_port (SCM port)
+GUILE_PROC(scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_set_current_error_port
 {
   SCM oerrp = scm_cur_errp;
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1, s_set_current_error_port);
+  SCM_VALIDATE_OPOUTPORT(1,port);
   scm_cur_errp = port;
   return oerrp;
 }
+#undef FUNC_NAME
 
 
 /* The port table --- an array of pointers to ports.  */
@@ -419,26 +432,29 @@ scm_remove_from_port_table (SCM port)
 /* Undocumented functions for debugging.  */
 /* Return the number of ports in the table.  */
 
-SCM_PROC(s_pt_size, "pt-size", 0, 0, 0, scm_pt_size);
-SCM
-scm_pt_size ()
+GUILE_PROC(scm_pt_size, "pt-size", 0, 0, 0,
+           (),
+"")
+#define FUNC_NAME s_scm_pt_size
 {
   return SCM_MAKINUM (scm_port_table_size);
 }
+#undef FUNC_NAME
 
 /* Return the ith member of the port table.  */
-SCM_PROC(s_pt_member, "pt-member", 1, 0, 0, scm_pt_member);
-SCM
-scm_pt_member (SCM member)
+GUILE_PROC(scm_pt_member, "pt-member", 1, 0, 0,
+           (SCM member),
+"")
+#define FUNC_NAME s_scm_pt_member
 {
   int i;
-  SCM_ASSERT (SCM_INUMP (member), member, SCM_ARG1, s_pt_member);
-  i = SCM_INUM (member);
+  SCM_VALIDATE_INT_copy(1,member,i);
   if (i < 0 || i >= scm_port_table_size)
     return SCM_BOOL_F;
   else
     return scm_port_table[i]->port;
 }
+#undef FUNC_NAME
 #endif
 
 
@@ -459,29 +475,30 @@ scm_revealed_count (SCM port)
 
 /* Return the revealed count for a port.  */
 
-SCM_PROC(s_port_revealed, "port-revealed", 1, 0, 0, scm_port_revealed);
-
-SCM
-scm_port_revealed (SCM port)
+GUILE_PROC(scm_port_revealed, "port-revealed", 1, 0, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_port_revealed
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, s_port_revealed);
+  SCM_VALIDATE_PORT(1,port);
   return SCM_MAKINUM (scm_revealed_count (port));
 }
+#undef FUNC_NAME
 
 /* Set the revealed count for a port.  */
-SCM_PROC(s_set_port_revealed_x, "set-port-revealed!", 2, 0, 0, scm_set_port_revealed_x);
-
-SCM
-scm_set_port_revealed_x (SCM port, SCM rcount)
+GUILE_PROC(scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
+           (SCM port, SCM rcount),
+"")
+#define FUNC_NAME s_scm_set_port_revealed_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port),
-	      port, SCM_ARG1, s_set_port_revealed_x);
-  SCM_ASSERT (SCM_INUMP (rcount), rcount, SCM_ARG2, s_set_port_revealed_x);
+  SCM_VALIDATE_PORT(1,port);
+  SCM_VALIDATE_INT(2,rcount);
   SCM_REVEALED (port) = SCM_INUM (rcount);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
@@ -510,16 +527,16 @@ scm_mode_bits (char *modes)
  * Some modes such as "append" are only used when opening
  * a file and are not returned here.  */
 
-SCM_PROC(s_port_mode, "port-mode", 1, 0, 0, scm_port_mode);
-
-SCM
-scm_port_mode (SCM port)
+GUILE_PROC(scm_port_mode, "port-mode", 1, 0, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_port_mode
 {
   char modes[3];
   modes[0] = '\0';
 
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPPORTP (port), port, SCM_ARG1, s_port_mode);  
+  SCM_VALIDATE_OPPORT(1,port);
   if (SCM_CAR (port) & SCM_RDNG) {
     if (SCM_CAR (port) & SCM_WRTNG)
       strcpy (modes, "r+");
@@ -532,6 +549,7 @@ scm_port_mode (SCM port)
     strcat (modes, "0");
   return scm_makfromstr (modes, strlen (modes), 0);
 }
+#undef FUNC_NAME
 
 
 
@@ -541,18 +559,17 @@ scm_port_mode (SCM port)
  * Call the close operation on a port object. 
  * see also scm_close.
  */
-SCM_PROC(s_close_port, "close-port", 1, 0, 0, scm_close_port);
-
-SCM
-scm_close_port (SCM port)
+GUILE_PROC(scm_close_port, "close-port", 1, 0, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_close_port
 {
   scm_sizet i;
   int rv;
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1,
-	      s_close_port);
+  SCM_VALIDATE_PORT(1,port);
   if (SCM_CLOSEDP (port))
     return SCM_BOOL_F;
   i = SCM_PTOBNUM (port);
@@ -562,16 +579,17 @@ scm_close_port (SCM port)
     rv = 0;
   scm_remove_from_port_table (port);
   SCM_SETAND_CAR (port, ~SCM_OPN);
-  return (rv < 0) ? SCM_BOOL_F : SCM_BOOL_T;
+  return SCM_NEGATE_BOOL(rv < 0);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_close_all_ports_except, "close-all-ports-except", 0, 0, 1, scm_close_all_ports_except);
-
-SCM
-scm_close_all_ports_except (SCM ports)
+GUILE_PROC(scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
+           (SCM ports),
+"")
+#define FUNC_NAME s_scm_close_all_ports_except
 {
   int i = 0;
-  SCM_ASSERT (SCM_NIMP (ports) && SCM_CONSP (ports), ports, SCM_ARG1, s_close_all_ports_except);
+  SCM_VALIDATE_NIMCONS(1,ports);
   while (i < scm_port_table_size)
     {
       SCM thisport = scm_port_table[i]->port;
@@ -582,7 +600,7 @@ scm_close_all_ports_except (SCM ports)
 	{
 	  SCM port = SCM_COERCE_OUTPORT (SCM_CAR (ports_ptr));
 	  if (i == 0)
-	    SCM_ASSERT (SCM_NIMP (port) && SCM_OPPORTP (port), port, SCM_ARG1, s_close_all_ports_except);
+            SCM_VALIDATE_OPPORT(1,port);
 	  if (port == thisport)
 	    found = 1;
 	  ports_ptr = SCM_CDR (ports_ptr);
@@ -595,70 +613,76 @@ scm_close_all_ports_except (SCM ports)
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
 /* Utter miscellany.  Gosh, we should clean this up some time.  */
 
-SCM_PROC(s_input_port_p, "input-port?", 1, 0, 0, scm_input_port_p);
-
-SCM 
-scm_input_port_p (SCM x)
+GUILE_PROC(scm_input_port_p, "input-port?", 1, 0, 0,
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_input_port_p
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
-  return SCM_INPORTP (x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_INPORTP (x));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_output_port_p, "output-port?", 1, 0, 0, scm_output_port_p);
-
-SCM 
-scm_output_port_p (SCM x)
+GUILE_PROC(scm_output_port_p, "output-port?", 1, 0, 0,
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_output_port_p
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
   if (SCM_PORT_WITH_PS_P (x))
     x = SCM_PORT_WITH_PS_PORT (x);
-  return SCM_OUTPORTP (x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_OUTPORTP (x));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_port_closed_p, "port-closed?", 1, 0, 0, scm_port_closed_p);
-SCM
-scm_port_closed_p (SCM port)
+GUILE_PROC(scm_port_closed_p, "port-closed?", 1, 0, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_port_closed_p
 {
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, 
-	      s_port_closed_p);
-  return SCM_OPPORTP (port) ? SCM_BOOL_F : SCM_BOOL_T;
+  SCM_VALIDATE_OPPORT(1,port);
+  return SCM_NEGATE_BOOL(SCM_OPPORTP (port));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_eof_object_p, "eof-object?", 1, 0, 0, scm_eof_object_p);
-
-SCM 
-scm_eof_object_p (SCM x)
+GUILE_PROC(scm_eof_object_p, "eof-object?", 1, 0, 0,
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_eof_object_p
 {
-  return SCM_EOF_OBJECT_P (x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_EOF_OBJECT_P (x));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_force_output, "force-output", 0, 1, 0, scm_force_output);
-
-SCM 
-scm_force_output (SCM port)
+GUILE_PROC(scm_force_output, "force-output", 0, 1, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_force_output
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
   else
     {
       port = SCM_COERCE_OUTPORT (port);
-      SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1, 
-		  s_force_output);
+      SCM_VALIDATE_OPOUTPORT(1,port);
     }
   scm_flush (port);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_flush_all_ports, "flush-all-ports", 0, 0, 0, scm_flush_all_ports);
-SCM
-scm_flush_all_ports ()
+GUILE_PROC (scm_flush_all_ports, "flush-all-ports", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_flush_all_ports
 {
   int i;
 
@@ -669,21 +693,23 @@ scm_flush_all_ports ()
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_read_char, "read-char", 0, 1, 0, scm_read_char);
-
-SCM 
-scm_read_char (SCM port)
+GUILE_PROC(scm_read_char, "read-char", 0, 1, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_read_char
 {
   int c;
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_read_char);
+  SCM_VALIDATE_OPINPORT(1,port);
   c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
   return SCM_MAKICHR (c);
 }
+#undef FUNC_NAME
 
 /* this should only be called when the read buffer is empty.  it
    tries to refill the read buffer.  it returns the first char from
@@ -891,66 +917,65 @@ scm_ungets (char *s, int n, SCM port)
 }
 
 
-SCM_PROC(s_peek_char, "peek-char", 0, 1, 0, scm_peek_char);
-
-SCM 
-scm_peek_char (SCM port)
+GUILE_PROC(scm_peek_char, "peek-char", 0, 1, 0,
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_peek_char
 {
   int c;
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_peek_char);
+    SCM_VALIDATE_OPINPORT(1,port);
   c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
   scm_ungetc (c, port);
   return SCM_MAKICHR (c);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_unread_char, "unread-char", 2, 0, 0, scm_unread_char);
-
-SCM 
-scm_unread_char (SCM cobj, SCM port)
+GUILE_PROC (scm_unread_char, "unread-char", 2, 0, 0,
+            (SCM cobj, SCM port),
+"")
+#define FUNC_NAME s_scm_unread_char
 {
   int c;
 
-  SCM_ASSERT (SCM_ICHRP (cobj), cobj, SCM_ARG1, s_unread_char);
-
+  SCM_VALIDATE_CHAR(1,cobj);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG2, s_unread_char);
-
+    SCM_VALIDATE_OPINPORT(1,port);
 
   c = SCM_ICHR (cobj);
 
   scm_ungetc (c, port);
   return cobj;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_unread_string, "unread-string", 2, 0, 0, scm_unread_string);
-
-SCM 
-scm_unread_string (SCM str, SCM port)
+GUILE_PROC (scm_unread_string, "unread-string", 2, 0, 0,
+            (SCM str, SCM port),
+"")
+#define FUNC_NAME s_scm_unread_string
 {
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str),
-	      str, SCM_ARG1, s_unread_string);
-
+  SCM_VALIDATE_STRING(1,str);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
-		port, SCM_ARG2, s_unread_string);
+    SCM_VALIDATE_OPINPORT(1,port);
 
   scm_ungets (SCM_ROUCHARS (str), SCM_LENGTH (str), port);
   
   return str;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_seek, "seek", 3, 0, 0, scm_seek);
-SCM 
-scm_seek (SCM object, SCM offset, SCM whence)
+GUILE_PROC (scm_seek, "seek", 3, 0, 0,
+            (SCM object, SCM offset, SCM whence),
+"")
+#define FUNC_NAME s_scm_seek
 {
   off_t off;
   off_t rv;
@@ -958,35 +983,35 @@ scm_seek (SCM object, SCM offset, SCM whence)
 
   object = SCM_COERCE_OUTPORT (object);
 
-  off = scm_num2long (offset, (char *)SCM_ARG2, s_seek);
-  SCM_ASSERT (SCM_INUMP (whence), whence, SCM_ARG3, s_seek);
-  how = SCM_INUM (whence);
+  off = SCM_NUM2LONG (2,offset);
+  SCM_VALIDATE_INT_COPY(3,whence,how);
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
-    scm_out_of_range (s_seek, whence);
+    SCM_OUT_OF_RANGE (3, whence);
   if (SCM_NIMP (object) && SCM_OPPORTP (object))
     {
       scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
 
       if (!ptob->seek)
-	scm_misc_error (s_seek, "port is not seekable",
-			scm_cons (object, SCM_EOL));
+	SCM_MISC_ERROR ("port is not seekable", 
+                        scm_cons (object, SCM_EOL));
       else
 	rv = ptob->seek (object, off, how);
     }
   else /* file descriptor?.  */
     {
-      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_seek);
+      SCM_VALIDATE_INT(1,object);
       rv = lseek (SCM_INUM (object), off, how);
       if (rv == -1)
-	scm_syserror (s_seek);
+	SCM_SYSERROR;
     }
   return scm_long2num (rv);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_truncate_file, "truncate-file", 1, 1, 0, scm_truncate_file);
-
-SCM
-scm_truncate_file (SCM object, SCM length)
+GUILE_PROC (scm_truncate_file, "truncate-file", 1, 1, 0,
+            (SCM object, SCM length),
+"")
+#define FUNC_NAME s_scm_truncate_file
 {
   int rv;
   off_t c_length;
@@ -997,13 +1022,13 @@ scm_truncate_file (SCM object, SCM length)
     {
       /* must supply length if object is a filename.  */
       if (SCM_NIMP (object) && SCM_ROSTRINGP (object))
-	scm_wrong_num_args (scm_makfrom0str (s_truncate_file));
+	scm_wrong_num_args (SCM_FUNC_NAME);
       
       length = scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
     }
-  c_length = scm_num2long (length, (char *)SCM_ARG2, s_truncate_file);
+  c_length = SCM_NUM2LONG (2,length);
   if (c_length < 0)
-    scm_misc_error (s_truncate_file, "negative offset", SCM_EOL);
+    SCM_MISC_ERROR ("negative offset", SCM_EOL);
 
   object = SCM_COERCE_OUTPORT (object);
   if (SCM_INUMP (object))
@@ -1016,7 +1041,7 @@ scm_truncate_file (SCM object, SCM length)
       scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
       
       if (!ptob->truncate)
-	scm_misc_error (s_truncate_file, "port is not truncatable", SCM_EOL);
+	SCM_MISC_ERROR ("port is not truncatable", SCM_EOL);
       if (pt->rw_active == SCM_PORT_READ)
 	scm_end_input (object);
       else if (pt->rw_active == SCM_PORT_WRITE)
@@ -1027,96 +1052,84 @@ scm_truncate_file (SCM object, SCM length)
     }
   else
     {
-      SCM_ASSERT (SCM_NIMP (object) && SCM_ROSTRINGP (object),
-		  object, SCM_ARG1, s_truncate_file);
+      SCM_VALIDATE_ROSTRING(1,object);
       SCM_COERCE_SUBSTR (object);
       SCM_SYSCALL (rv = truncate (SCM_ROCHARS (object), c_length));
     }
   if (rv == -1)
-    scm_syserror (s_truncate_file);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_port_line, "port-line", 1, 0, 0, scm_port_line);
-
-SCM 
-scm_port_line (SCM port)
+GUILE_PROC (scm_port_line, "port-line", 1, 0, 0,
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_port_line
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
-	      port,
-	      SCM_ARG1,
-	      s_port_line);
+  SCM_VALIDATE_OPENPORT(1,port);
   return SCM_MAKINUM (SCM_LINUM (port));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_set_port_line_x, "set-port-line!", 2, 0, 0, scm_set_port_line_x);
-
-SCM 
-scm_set_port_line_x (SCM port, SCM line)
+GUILE_PROC (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
+            (SCM port, SCM line),
+"")
+#define FUNC_NAME s_scm_set_port_line_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
-	      port,
-	      SCM_ARG1,
-	      s_set_port_line_x);
-  SCM_ASSERT (SCM_INUMP (line), line, SCM_ARG2, s_set_port_line_x);
+  SCM_VALIDATE_OPENPORT(1,port);
+  SCM_VALIDATE_INT(2,line);
   return SCM_PTAB_ENTRY (port)->line_number = SCM_INUM (line);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_port_column, "port-column", 1, 0, 0, scm_port_column);
-
-SCM
-scm_port_column  (SCM port)
+GUILE_PROC (scm_port_column, "port-column", 1, 0, 0,
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_port_column
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
-	      port,
-	      SCM_ARG1,
-	      s_port_column);
+  SCM_VALIDATE_OPENPORT(1,port);
   return SCM_MAKINUM (SCM_COL (port));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_set_port_column_x, "set-port-column!", 2, 0, 0, scm_set_port_column_x);
-
-SCM 
-scm_set_port_column_x (SCM port, SCM column)
+GUILE_PROC (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
+            (SCM port, SCM column),
+"")
+#define FUNC_NAME s_scm_set_port_column_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
-	      port,
-	      SCM_ARG1,
-	      s_set_port_column_x);
-  SCM_ASSERT (SCM_INUMP (column), column, SCM_ARG2, s_set_port_column_x);
+  SCM_VALIDATE_OPENPORT(1,port);
+  SCM_VALIDATE_INT(2,column);
   return SCM_PTAB_ENTRY (port)->column_number = SCM_INUM (column);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_port_filename, "port-filename", 1, 0, 0, scm_port_filename);
-
-SCM 
-scm_port_filename (SCM port)
+GUILE_PROC (scm_port_filename, "port-filename", 1, 0, 0,
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_port_filename
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
-	      port,
-	      SCM_ARG1,
-	      s_port_filename);
+  SCM_VALIDATE_OPENPORT(1,port);
   return SCM_PTAB_ENTRY (port)->file_name;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_set_port_filename_x, "set-port-filename!", 2, 0, 0, scm_set_port_filename_x);
-
-SCM 
-scm_set_port_filename_x (SCM port, SCM filename)
+GUILE_PROC (scm_set_port_filename_x, "set-port-filename!", 2, 0, 0,
+            (SCM port, SCM filename),
+"")
+#define FUNC_NAME s_scm_set_port_filename_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
-	      port,
-	      SCM_ARG1,
-	      s_set_port_filename_x);
+  SCM_VALIDATE_OPENPORT(1,port);
   /* We allow the user to set the filename to whatever he likes.  */
   return SCM_PTAB_ENTRY (port)->file_name = filename;
 }
+#undef FUNC_NAME
 
 #ifndef ttyname
 extern char * ttyname();
@@ -1211,17 +1224,16 @@ scm_void_port (char *mode_str)
 }
 
 
-SCM_PROC (s_sys_make_void_port, "%make-void-port", 1, 0, 0, scm_sys_make_void_port);
-
-SCM
-scm_sys_make_void_port (SCM mode)
+GUILE_PROC (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
+            (SCM mode),
+"")
+#define FUNC_NAME s_scm_sys_make_void_port
 {
-  SCM_ASSERT (SCM_NIMP (mode) && SCM_ROSTRINGP (mode), mode,
-	      SCM_ARG1, s_sys_make_void_port);
-
+  SCM_VALIDATE_ROSTRING(1,mode);
   SCM_COERCE_SUBSTR (mode);
   return scm_void_port (SCM_ROCHARS (mode));
 }
+#undef FUNC_NAME
 
 
 /* Initialization.  */

@@ -42,6 +42,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 /** This file defines the format of SCM values and cons pairs.
@@ -410,6 +414,12 @@ typedef long SCM;
  */
 #define scm_tc16_bigpos		0x027f
 #define scm_tc16_bigneg		0x037f
+
+/* Smob type 4: this is allocated, but not initialized cells;
+   this is required to prevent the gc from hosing your cells if
+   you have to allocate while creating the cell*/
+
+#define scm_tc16_allocated      0x047f
 
 
 

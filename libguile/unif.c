@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -49,6 +53,7 @@
 #include "strop.h"
 #include "feature.h"
 
+#include "scm_validate.h"
 #include "unif.h"
 #include "ramap.h"
 
@@ -147,9 +152,7 @@ scm_makflo (float x)
 
 
 SCM 
-scm_make_uve (k, prot)
-     long k;
-     SCM prot;
+scm_make_uve (long k, SCM prot)
 {
   SCM v;
   long i, type;
@@ -234,18 +237,17 @@ scm_make_uve (k, prot)
   return v;
 }
 
-SCM_PROC(s_uniform_vector_length, "uniform-vector-length", 1, 0, 0, scm_uniform_vector_length);
-
-SCM 
-scm_uniform_vector_length (v)
-     SCM v;
+GUILE_PROC(scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
+           (SCM v),
+"")
+#define FUNC_NAME s_scm_uniform_vector_length
 {
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   switch SCM_TYP7
     (v)
     {
     default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_uniform_vector_length);
+    badarg1:SCM_WTA(1,v);
     case scm_tc7_bvect:
     case scm_tc7_string:
     case scm_tc7_byvect:
@@ -263,13 +265,12 @@ scm_uniform_vector_length (v)
       return SCM_MAKINUM (SCM_LENGTH (v));
     }
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_array_p, "array?", 1, 1, 0, scm_array_p);
-
-SCM 
-scm_array_p (v, prot)
-     SCM v;
-     SCM prot;
+GUILE_PROC(scm_array_p, "array?", 1, 1, 0,
+           (SCM v, SCM prot),
+"")
+#define FUNC_NAME s_scm_array_p
 {
   int nprot;
   int enclosed;
@@ -290,15 +291,15 @@ loop:
       v = SCM_ARRAY_V (v);
       goto loop;
     case scm_tc7_bvect:
-      return nprot || SCM_BOOL_T==prot ? SCM_BOOL_T : SCM_BOOL_F;
+      return nprot || SCM_BOOL(SCM_BOOL_T==prot);
     case scm_tc7_string:
-      return nprot || (SCM_ICHRP(prot) && (prot != SCM_MAKICHR('\0'))) ? SCM_BOOL_T : SCM_BOOL_F;
+      return nprot || SCM_BOOL(SCM_ICHRP(prot) && (prot != SCM_MAKICHR('\0')));
     case scm_tc7_byvect:
-      return nprot || (prot == SCM_MAKICHR('\0')) ? SCM_BOOL_T : SCM_BOOL_F;
+      return nprot || SCM_BOOL(prot == SCM_MAKICHR('\0'));
     case scm_tc7_uvect:
-      return nprot || (SCM_INUMP(prot) && SCM_INUM(prot)>0) ? SCM_BOOL_T : SCM_BOOL_F;
+      return nprot || SCM_BOOL(SCM_INUMP(prot) && SCM_INUM(prot)>0);
     case scm_tc7_ivect:
-      return nprot || (SCM_INUMP(prot) && SCM_INUM(prot)<=0) ? SCM_BOOL_T : SCM_BOOL_F;
+      return nprot || SCM_BOOL(SCM_INUMP(prot) && SCM_INUM(prot)<=0);
     case scm_tc7_svect:
       return (   nprot
 	      || (SCM_NIMP (prot)
@@ -316,30 +317,30 @@ loop:
 # ifdef SCM_FLOATS
 #  ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      return nprot || (SCM_NIMP(prot) && SCM_SINGP(prot)) ? SCM_BOOL_T : SCM_BOOL_F;
+      return nprot || SCM_BOOL(SCM_NIMP(prot) && SCM_SINGP(prot));
 #  endif
     case scm_tc7_dvect:
-      return nprot || (SCM_NIMP(prot) && SCM_REALP(prot)) ? SCM_BOOL_T : SCM_BOOL_F;
+      return nprot || SCM_BOOL(SCM_NIMP(prot) && SCM_REALP(prot));
     case scm_tc7_cvect:
-      return nprot || (SCM_NIMP(prot) && SCM_CPLXP(prot)) ? SCM_BOOL_T : SCM_BOOL_F;
+      return nprot || SCM_BOOL(SCM_NIMP(prot) && SCM_CPLXP(prot));
 # endif
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      return nprot || SCM_NULLP(prot) ? SCM_BOOL_T : SCM_BOOL_F;
+      return nprot || SCM_BOOL(SCM_NULLP(prot));
     default:;
     }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_array_rank, "array-rank", 1, 0, 0, scm_array_rank);
-
-SCM 
-scm_array_rank (ra)
-     SCM ra;
+GUILE_PROC(scm_array_rank, "array-rank", 1, 0, 0, 
+           (SCM ra),
+"")
+#define FUNC_NAME s_scm_array_rank
 {
   if (SCM_IMP (ra))
- return SCM_INUM0;
+    return SCM_INUM0;
   switch (SCM_TYP7 (ra))
     {
     default:
@@ -364,19 +365,19 @@ scm_array_rank (ra)
       return SCM_INUM0;
     }
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_array_dimensions, "array-dimensions", 1, 0, 0, scm_array_dimensions);
-
-SCM 
-scm_array_dimensions (ra)
-     SCM ra;
+GUILE_PROC(scm_array_dimensions, "array-dimensions", 1, 0, 0, 
+           (SCM ra),
+"")
+#define FUNC_NAME s_scm_array_dimensions
 {
   SCM res = SCM_EOL;
   scm_sizet k;
   scm_array_dim *s;
   if (SCM_IMP (ra))
- return SCM_BOOL_F;
+    return SCM_BOOL_F;
   switch (SCM_TYP7 (ra))
     {
     default:
@@ -408,16 +409,14 @@ scm_array_dimensions (ra)
       return res;
     }
 }
+#undef FUNC_NAME
 
 
 static char s_bad_ind[] = "Bad scm_array index";
 
 
 long 
-scm_aind (ra, args, what)
-     SCM ra;
-     SCM args;
-     const char *what;
+scm_aind (SCM ra, SCM args, const char *what)
 {
   SCM ind;
   register long j;
@@ -448,8 +447,7 @@ scm_aind (ra, args, what)
 
 
 SCM 
-scm_make_ra (ndim)
-     int ndim;
+scm_make_ra (int ndim)
 {
   SCM ra;
   SCM_NEWCELL (ra);
@@ -467,9 +465,7 @@ static char s_bad_spec[] = "Bad scm_array dimension";
 
 
 SCM 
-scm_shap2ra (args, what)
-     SCM args;
-     const char *what;
+scm_shap2ra (SCM args, const char *what)
 {
   scm_array_dim *s;
   SCM ra, spec, sp;
@@ -506,13 +502,10 @@ scm_shap2ra (args, what)
   return ra;
 }
 
-SCM_PROC(s_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 0, scm_dimensions_to_uniform_array);
-
-SCM 
-scm_dimensions_to_uniform_array (dims, prot, fill)
-     SCM dims;
-     SCM prot;
-     SCM fill;
+GUILE_PROC(scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 0,
+           (SCM dims, SCM prot, SCM fill),
+"")
+#define FUNC_NAME s_scm_dimensions_to_uniform_array
 {
   scm_sizet k, vlen = 1;
   long rlen = 1;
@@ -536,8 +529,8 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
       dims = scm_cons (dims, SCM_EOL);
     }
   SCM_ASSERT (SCM_NULLP (dims) || (SCM_NIMP (dims) && SCM_CONSP (dims)),
-	  dims, SCM_ARG1, s_dimensions_to_uniform_array);
-  ra = scm_shap2ra (dims, s_dimensions_to_uniform_array);
+	  dims, SCM_ARG1, FUNC_NAME);
+  ra = scm_shap2ra (dims, FUNC_NAME);
   SCM_SETOR_CAR (ra, SCM_ARRAY_CONTIGUOUS);
   s = SCM_ARRAY_DIMS (ra);
   k = SCM_ARRAY_NDIM (ra);
@@ -591,11 +584,11 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
       return SCM_ARRAY_V (ra);
   return ra;
 }
+#undef FUNC_NAME
 
 
 void 
-scm_ra_set_contp (ra)
-     SCM ra;
+scm_ra_set_contp (SCM ra)
 {
   scm_sizet k = SCM_ARRAY_NDIM (ra);
   if (k)
@@ -616,13 +609,10 @@ scm_ra_set_contp (ra)
 }
 
 
-SCM_PROC(s_make_shared_array, "make-shared-array", 2, 0, 1, scm_make_shared_array);
-
-SCM 
-scm_make_shared_array (oldra, mapfunc, dims)
-     SCM oldra;
-     SCM mapfunc;
-     SCM dims;
+GUILE_PROC(scm_make_shared_array, "make-shared-array", 2, 0, 1,
+           (SCM oldra, SCM mapfunc, SCM dims),
+"")
+#define FUNC_NAME s_scm_make_shared_array
 {
   SCM ra;
   SCM inds, indptr;
@@ -630,9 +620,9 @@ scm_make_shared_array (oldra, mapfunc, dims)
   scm_sizet i, k;
   long old_min, new_min, old_max, new_max;
   scm_array_dim *s;
-  SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (mapfunc), mapfunc, SCM_ARG2, s_make_shared_array);
-  SCM_ASSERT (SCM_NIMP (oldra) && (SCM_BOOL_F != scm_array_p (oldra, SCM_UNDEFINED)), oldra, SCM_ARG1, s_make_shared_array);
-  ra = scm_shap2ra (dims, s_make_shared_array);
+  SCM_VALIDATE_ARRAY(1,oldra);
+  SCM_VALIDATE_PROC(2,mapfunc);
+  ra = scm_shap2ra (dims, FUNC_NAME);
   if (SCM_ARRAYP (oldra))
     {
       SCM_ARRAY_V (ra) = SCM_ARRAY_V (oldra);
@@ -669,14 +659,14 @@ scm_make_shared_array (oldra, mapfunc, dims)
     }
   imap = scm_apply (mapfunc, scm_reverse (inds), SCM_EOL);
   if (SCM_ARRAYP (oldra))
-      i = (scm_sizet) scm_aind (oldra, imap, s_make_shared_array);
+      i = (scm_sizet) scm_aind (oldra, imap, FUNC_NAME);
   else
     {
       if (SCM_NINUMP (imap))
 
 	{
 	  SCM_ASSERT (1 == scm_ilength (imap) && SCM_INUMP (SCM_CAR (imap)),
-		  imap, s_bad_ind, s_make_shared_array);
+		  imap, s_bad_ind, FUNC_NAME);
 	  imap = SCM_CAR (imap);
 	}
       i = SCM_INUM (imap);
@@ -692,14 +682,14 @@ scm_make_shared_array (oldra, mapfunc, dims)
 	  imap = scm_apply (mapfunc, scm_reverse (inds), SCM_EOL);
 	  if (SCM_ARRAYP (oldra))
 
-	      s[k].inc = scm_aind (oldra, imap, s_make_shared_array) - i;
+	      s[k].inc = scm_aind (oldra, imap, FUNC_NAME) - i;
 	  else
 	    {
 	      if (SCM_NINUMP (imap))
 
 		{
 		  SCM_ASSERT (1 == scm_ilength (imap) && SCM_INUMP (SCM_CAR (imap)),
-			  imap, s_bad_ind, s_make_shared_array);
+                              imap, s_bad_ind, FUNC_NAME);
 		  imap = SCM_CAR (imap);
 		}
 	      s[k].inc = (long) SCM_INUM (imap) - i;
@@ -715,7 +705,7 @@ scm_make_shared_array (oldra, mapfunc, dims)
       indptr = SCM_CDR (indptr);
     }
   SCM_ASSERT (old_min <= new_min && old_max >= new_max, SCM_UNDEFINED,
-	  "mapping out of range", s_make_shared_array);
+	  "mapping out of range", FUNC_NAME);
   if (1 == SCM_ARRAY_NDIM (ra) && 0 == SCM_ARRAY_BASE (ra))
     {
       if (1 == s->inc && 0 == s->lbnd
@@ -727,27 +717,27 @@ scm_make_shared_array (oldra, mapfunc, dims)
   scm_ra_set_contp (ra);
   return ra;
 }
+#undef FUNC_NAME
 
 
 /* args are RA . DIMS */
-SCM_PROC(s_transpose_array, "transpose-array", 0, 0, 1, scm_transpose_array);
-
-SCM 
-scm_transpose_array (args)
-     SCM args;
+GUILE_PROC(scm_transpose_array, "transpose-array", 0, 0, 1, 
+           (SCM args),
+"")
+#define FUNC_NAME s_scm_transpose_array
 {
   SCM ra, res, vargs, *ve = &vargs;
   scm_array_dim *s, *r;
   int ndim, i, k;
-  SCM_ASSERT (SCM_NNULLP (args), scm_makfrom0str (s_transpose_array),
+  SCM_ASSERT (SCM_NNULLP (args), scm_makfrom0str (FUNC_NAME),
 	      SCM_WNA, NULL);
   ra = SCM_CAR (args);
-  SCM_ASSERT (SCM_NIMP (ra), ra, SCM_ARG1, s_transpose_array);
+  SCM_ASSERT (SCM_NIMP (ra), ra, SCM_ARG1, FUNC_NAME);
   args = SCM_CDR (args);
   switch (SCM_TYP7 (ra))
     {
     default:
-    badarg:scm_wta (ra, (char *) SCM_ARG1, s_transpose_array);
+    badarg:SCM_WTA (1,ra);
     case scm_tc7_bvect:
     case scm_tc7_string:
     case scm_tc7_byvect:
@@ -761,26 +751,26 @@ scm_transpose_array (args)
     case scm_tc7_llvect:
 #endif
       SCM_ASSERT (SCM_NIMP (args) && SCM_NULLP (SCM_CDR (args)),
-		  scm_makfrom0str (s_transpose_array), SCM_WNA, NULL);
+		  scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
       SCM_ASSERT (SCM_INUMP (SCM_CAR (args)), SCM_CAR (args), SCM_ARG2,
-		  s_transpose_array);
+		  FUNC_NAME);
       SCM_ASSERT (SCM_INUM0 == SCM_CAR (args), SCM_CAR (args), SCM_OUTOFRANGE,
-		  s_transpose_array);
+		  FUNC_NAME);
       return ra;
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
       vargs = scm_vector (args);
       SCM_ASSERT (SCM_LENGTH (vargs) == SCM_ARRAY_NDIM (ra),
-		  scm_makfrom0str (s_transpose_array), SCM_WNA, NULL);
+		  scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
 		  ve = SCM_VELTS (vargs);
       ndim = 0;
       for (k = 0; k < SCM_ARRAY_NDIM (ra); k++)
 	{
 	  SCM_ASSERT (SCM_INUMP (ve[k]), ve[k], (SCM_ARG2 + k),
-		      s_transpose_array);
+		      FUNC_NAME);
 	  i = SCM_INUM (ve[k]);
 	  SCM_ASSERT (i >= 0 && i < SCM_ARRAY_NDIM (ra), ve[k],
-		      SCM_OUTOFRANGE, s_transpose_array);
+		      SCM_OUTOFRANGE, FUNC_NAME);
 	  if (ndim < i)
 	    ndim = i;
 	}
@@ -817,28 +807,27 @@ scm_transpose_array (args)
 	      r->inc += s->inc;
 	    }
 	}
-      SCM_ASSERT (ndim <= 0, args, "bad argument list", s_transpose_array);
+      SCM_ASSERT (ndim <= 0, args, "bad argument list", FUNC_NAME);
       scm_ra_set_contp (res);
       return res;
     }
 }
+#undef FUNC_NAME
 
 /* args are RA . AXES */
-SCM_PROC(s_enclose_array, "enclose-array", 0, 0, 1, scm_enclose_array);
-
-SCM 
-scm_enclose_array (axes)
-     SCM axes;
+GUILE_PROC(scm_enclose_array, "enclose-array", 0, 0, 1, 
+           (SCM axes),
+"")
+#define FUNC_NAME s_scm_enclose_array
 {
   SCM axv, ra, res, ra_inr;
   scm_array_dim vdim, *s = &vdim;
   int ndim, j, k, ninr, noutr;
-  SCM_ASSERT (SCM_NIMP (axes), scm_makfrom0str (s_enclose_array), SCM_WNA,
+  SCM_ASSERT (SCM_NIMP (axes), scm_makfrom0str (FUNC_NAME), SCM_WNA,
 	      NULL);
   ra = SCM_CAR (axes);
   axes = SCM_CDR (axes);
   if (SCM_NULLP (axes))
-
       axes = scm_cons ((SCM_ARRAYP (ra) ? SCM_MAKINUM (SCM_ARRAY_NDIM (ra) - 1) : SCM_INUM0), SCM_EOL);
   ninr = scm_ilength (axes);
   ra_inr = scm_make_ra (ninr);
@@ -847,7 +836,7 @@ scm_enclose_array (axes)
     (ra)
     {
     default:
-    badarg1:scm_wta (ra, (char *) SCM_ARG1, s_enclose_array);
+    badarg1:SCM_WTA (1,ra);
     case scm_tc7_string:
     case scm_tc7_bvect:
     case scm_tc7_byvect:
@@ -879,14 +868,14 @@ scm_enclose_array (axes)
     }
   noutr = ndim - ninr;
   axv = scm_make_string (SCM_MAKINUM (ndim), SCM_MAKICHR (0));
-  SCM_ASSERT (0 <= noutr && 0 <= ninr, scm_makfrom0str (s_enclose_array),
+  SCM_ASSERT (0 <= noutr && 0 <= ninr, scm_makfrom0str (FUNC_NAME),
 	      SCM_WNA, NULL);
   res = scm_make_ra (noutr);
   SCM_ARRAY_BASE (res) = SCM_ARRAY_BASE (ra_inr);
   SCM_ARRAY_V (res) = ra_inr;
   for (k = 0; k < ninr; k++, axes = SCM_CDR (axes))
     {
-      SCM_ASSERT (SCM_INUMP (SCM_CAR (axes)), SCM_CAR (axes), "bad axis", s_enclose_array);
+      SCM_ASSERT (SCM_INUMP (SCM_CAR (axes)), SCM_CAR (axes), "bad axis", FUNC_NAME);
       j = SCM_INUM (SCM_CAR (axes));
       SCM_ARRAY_DIMS (ra_inr)[k].lbnd = s[j].lbnd;
       SCM_ARRAY_DIMS (ra_inr)[k].ubnd = s[j].ubnd;
@@ -905,21 +894,21 @@ scm_enclose_array (axes)
   scm_ra_set_contp (res);
   return res;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC(s_array_in_bounds_p, "array-in-bounds?", 0, 0, 1, scm_array_in_bounds_p);
-
-SCM 
-scm_array_in_bounds_p (args)
-     SCM args;
+GUILE_PROC(scm_array_in_bounds_p, "array-in-bounds?", 0, 0, 1, 
+           (SCM args),
+"")
+#define FUNC_NAME s_scm_array_in_bounds_p
 {
   SCM v, ind = SCM_EOL;
   long pos = 0;
   register scm_sizet k;
   register long j;
   scm_array_dim *s;
-  SCM_ASSERT (SCM_NIMP (args), scm_makfrom0str (s_array_in_bounds_p),
+  SCM_ASSERT (SCM_NIMP (args), scm_makfrom0str (FUNC_NAME),
 	      SCM_WNA, NULL);
   v = SCM_CAR (args);
   args = SCM_CDR (args);
@@ -929,7 +918,7 @@ scm_array_in_bounds_p (args)
     {
       ind = SCM_CAR (args);
       args = SCM_CDR (args);
-      SCM_ASSERT (SCM_INUMP (ind), ind, SCM_ARG2, s_array_in_bounds_p);
+      SCM_ASSERT (SCM_INUMP (ind), ind, SCM_ARG2, FUNC_NAME);
       pos = SCM_INUM (ind);
     }
 tail:
@@ -937,8 +926,8 @@ tail:
     (v)
     {
     default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_array_in_bounds_p);
-    wna: scm_wrong_num_args (scm_makfrom0str (s_array_in_bounds_p));
+    badarg1:SCM_WTA (1,v);
+    wna: scm_wrong_num_args (scm_makfrom0str (FUNC_NAME));
     case scm_tc7_smob:
       k = SCM_ARRAY_NDIM (v);
       s = SCM_ARRAY_DIMS (v);
@@ -963,7 +952,7 @@ tail:
 	    ind = SCM_CAR (args);
 	    args = SCM_CDR (args);
 	    s++;
-	    SCM_ASSERT (SCM_INUMP (ind), ind, s_bad_ind, s_array_in_bounds_p);
+	    SCM_ASSERT (SCM_INUMP (ind), ind, s_bad_ind, FUNC_NAME);
 	  }
       SCM_ASRTGO (0 == k, wna);
       v = SCM_ARRAY_V (v);
@@ -983,18 +972,19 @@ tail:
     case scm_tc7_vector:
     case scm_tc7_wvect:
       SCM_ASRTGO (SCM_NULLP (args) && SCM_INUMP (ind), wna);
-      return pos >= 0 && pos < SCM_LENGTH (v) ? SCM_BOOL_T : SCM_BOOL_F;
+      return SCM_BOOL(pos >= 0 && pos < SCM_LENGTH (v));
     }
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_array_ref, "array-ref", 1, 0, 1, scm_uniform_vector_ref);
-SCM_PROC(s_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0, scm_uniform_vector_ref);
+SCM_REGISTER_PROC(s_array_ref, "array-ref", 1, 0, 1, scm_uniform_vector_ref);
 
-SCM 
-scm_uniform_vector_ref (v, args)
-     SCM v;
-     SCM args;
+
+GUILE_PROC(scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
+           (SCM v, SCM args),
+"")
+#define FUNC_NAME s_scm_uniform_vector_ref
 {
   long pos;
 
@@ -1005,7 +995,7 @@ scm_uniform_vector_ref (v, args)
     }
   else if (SCM_ARRAYP (v))
     {
-      pos = scm_aind (v, args, s_uniform_vector_ref);
+      pos = scm_aind (v, args, FUNC_NAME);
       v = SCM_ARRAY_V (v);
     }
   else
@@ -1013,13 +1003,13 @@ scm_uniform_vector_ref (v, args)
       if (SCM_NIMP (args))
 
 	{
-	  SCM_ASSERT (SCM_CONSP (args) && SCM_INUMP (SCM_CAR (args)), args, SCM_ARG2, s_uniform_vector_ref);
+	  SCM_ASSERT (SCM_CONSP (args) && SCM_INUMP (SCM_CAR (args)), args, SCM_ARG2, FUNC_NAME);
 	  pos = SCM_INUM (SCM_CAR (args));
 	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (args)), wna);
 	}
       else
 	{
-	  SCM_ASSERT (SCM_INUMP (args), args, SCM_ARG2, s_uniform_vector_ref);
+          SCM_VALIDATE_INT(2,args);
 	  pos = SCM_INUM (args);
 	}
       SCM_ASRTGO (pos >= 0 && pos < SCM_LENGTH (v), outrng);
@@ -1031,10 +1021,10 @@ scm_uniform_vector_ref (v, args)
       if (SCM_NULLP (args))
  return v;
     badarg:
-      scm_wta (v, (char *) SCM_ARG1, s_uniform_vector_ref);
+      SCM_WTA (1,v);
       abort ();
-    outrng:scm_out_of_range (s_uniform_vector_ref, SCM_MAKINUM (pos));
-    wna: scm_wrong_num_args (scm_makfrom0str (s_uniform_vector_ref));
+    outrng:scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
+    wna: scm_wrong_num_args (SCM_FUNC_NAME);
     case scm_tc7_smob:
       {				/* enclosed */
 	int k = SCM_ARRAY_NDIM (v);
@@ -1092,6 +1082,7 @@ scm_uniform_vector_ref (v, args)
       return SCM_VELTS (v)[pos];
     }
 }
+#undef FUNC_NAME
 
 /* Internal version of scm_uniform_vector_ref for uves that does no error checking and
    tries to recycle conses.  (Make *sure* you want them recycled.) */
@@ -1182,22 +1173,21 @@ scm_cvref (v, pos, last)
     }
 }
 
-SCM_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_array_set_x);
-SCM_PROC(s_array_set_x, "array-set!", 2, 0, 1, scm_array_set_x);
+SCM_REGISTER_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_array_set_x);
+
 
 /* Note that args may be a list or an immediate object, depending which
    PROC is used (and it's called from C too).  */
-SCM 
-scm_array_set_x (v, obj, args)
-     SCM v;
-     SCM obj;
-     SCM args;
+GUILE_PROC(scm_array_set_x, "array-set!", 2, 0, 1, 
+           (SCM v, SCM obj, SCM args),
+"")
+#define FUNC_NAME s_scm_array_set_x           
 {
   long pos = 0;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_ARRAYP (v))
     {
-      pos = scm_aind (v, args, s_array_set_x);
+      pos = scm_aind (v, args, FUNC_NAME);
       v = SCM_ARRAY_V (v);
     }
   else
@@ -1205,24 +1195,23 @@ scm_array_set_x (v, obj, args)
       if (SCM_NIMP (args))
 	{
 	  SCM_ASSERT (SCM_CONSP(args) && SCM_INUMP (SCM_CAR (args)), args,
-		 SCM_ARG3, s_array_set_x);
+		 SCM_ARG3, FUNC_NAME);
 	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (args)), wna);
 	  pos = SCM_INUM (SCM_CAR (args));
 	}
       else
 	{
-	  SCM_ASSERT (SCM_INUMP (args), args, SCM_ARG3, s_array_set_x);
-	  pos = SCM_INUM (args);
+          SCM_VALIDATE_INT_COPY(3,args,pos);
 	}
       SCM_ASRTGO (pos >= 0 && pos < SCM_LENGTH (v), outrng);
     }
   switch (SCM_TYP7 (v))
     {
     default: badarg1:
-      scm_wta (v, (char *) SCM_ARG1, s_array_set_x);
+      SCM_WTA (1,v);
       abort ();
-    outrng:scm_out_of_range (s_array_set_x, SCM_MAKINUM (pos));
-    wna: scm_wrong_num_args (scm_makfrom0str (s_array_set_x));
+    outrng:scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
+    wna: scm_wrong_num_args (SCM_FUNC_NAME);
     case scm_tc7_smob:		/* enclosed */
       goto badarg1;
     case scm_tc7_bvect:
@@ -1231,7 +1220,7 @@ scm_array_set_x (v, obj, args)
       else if (SCM_BOOL_T == obj)
 	SCM_VELTS (v)[pos / SCM_LONG_BIT] |= (1L << (pos % SCM_LONG_BIT));
       else
-      badobj:scm_wta (obj, (char *) SCM_ARG2, s_array_set_x);
+      badobj:SCM_WTA (2,obj);
       break;
     case scm_tc7_string:
       SCM_ASRTGO (SCM_ICHRP (obj), badobj);
@@ -1245,24 +1234,23 @@ scm_array_set_x (v, obj, args)
       break;
 # ifdef SCM_INUMS_ONLY
     case scm_tc7_uvect:
-      SCM_ASRTGO (SCM_INUM (obj) >= 0, badobj);
+      SCM_ASRTGO (SCM_INUM (obj) >= 0, badobj); 
+      /* fall through */
     case scm_tc7_ivect:
-    SCM_ASRTGO(SCM_INUMP(obj), badobj); SCM_VELTS(v)[pos] = SCM_INUM(obj); break;
+      SCM_ASRTGO(SCM_INUMP(obj), badobj); SCM_VELTS(v)[pos] = SCM_INUM(obj); break;
 # else
-  case scm_tc7_uvect:
-    SCM_VELTS(v)[pos] = scm_num2ulong(obj, (char *)SCM_ARG2, s_array_set_x); break;
-  case scm_tc7_ivect:
-    SCM_VELTS(v)[pos] = scm_num2long(obj, (char *)SCM_ARG2, s_array_set_x); break;
+    case scm_tc7_uvect:
+      SCM_VELTS(v)[pos] = scm_num2ulong(obj, (char *)SCM_ARG2, FUNC_NAME); break;
+    case scm_tc7_ivect:
+      SCM_VELTS(v)[pos] = scm_num2long(obj, (char *)SCM_ARG2, FUNC_NAME); break;
 # endif
-      break;
-
     case scm_tc7_svect:
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((short *) SCM_CDR (v))[pos] = SCM_INUM (obj);
       break;
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
-      ((long_long *) SCM_CDR (v))[pos] = scm_num2long_long (obj, (char *)SCM_ARG2, s_array_set_x);
+      ((long_long *) SCM_CDR (v))[pos] = scm_num2long_long (obj, (char *)SCM_ARG2, FUNC_NAME);
       break;
 #endif
 
@@ -1270,11 +1258,11 @@ scm_array_set_x (v, obj, args)
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      ((float *) SCM_CDR (v))[pos] = (float)scm_num2dbl(obj, s_array_set_x); break;
+      ((float *) SCM_CDR (v))[pos] = (float)scm_num2dbl(obj, FUNC_NAME); break;
       break;
 #endif
     case scm_tc7_dvect:
-      ((double *) SCM_CDR (v))[pos] = scm_num2dbl(obj, s_array_set_x); break;
+      ((double *) SCM_CDR (v))[pos] = scm_num2dbl(obj, FUNC_NAME); break;
       break;
     case scm_tc7_cvect:
       SCM_ASRTGO (SCM_NIMP (obj) && SCM_INEXP (obj), badobj);
@@ -1289,16 +1277,16 @@ scm_array_set_x (v, obj, args)
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 /* attempts to unroll an array into a one-dimensional array.
    returns the unrolled array or #f if it can't be done.  */
-SCM_PROC(s_array_contents, "array-contents", 1, 1, 0, scm_array_contents);
-
-SCM 
-scm_array_contents (ra, strict)
-     SCM ra;
-     SCM strict;  /* if not SCM_UNDEFINED, return #f if returned array
+  /* if strict is not SCM_UNDEFINED, return #f if returned array
 		     wouldn't have contiguous elements.  */
+GUILE_PROC(scm_array_contents, "array-contents", 1, 1, 0,
+           (SCM ra, SCM strict),
+"")
+#define FUNC_NAME s_scm_array_contents
 {
   SCM sra;
   if (SCM_IMP (ra))
@@ -1353,6 +1341,7 @@ scm_array_contents (ra, strict)
       }
     }
 }
+#undef FUNC_NAME
 
 
 SCM 
@@ -1392,14 +1381,10 @@ scm_ra2contig (ra, copy)
 
 
 
-SCM_PROC(s_uniform_array_read_x, "uniform-array-read!", 1, 3, 0, scm_uniform_array_read_x);
-
-SCM 
-scm_uniform_array_read_x (ra, port_or_fd, start, end)
-     SCM ra;
-     SCM port_or_fd;
-     SCM start;
-     SCM end;
+GUILE_PROC(scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
+           (SCM ra, SCM port_or_fd, SCM start, SCM end),
+"")
+#define FUNC_NAME s_scm_uniform_array_read_x
 {
   SCM cra = SCM_UNDEFINED, v = ra;
   long sz, vlen, ans;
@@ -1413,14 +1398,14 @@ scm_uniform_array_read_x (ra, port_or_fd, start, end)
   else
     SCM_ASSERT (SCM_INUMP (port_or_fd)
 		|| (SCM_NIMP (port_or_fd) && SCM_OPINPORTP (port_or_fd)),
-		port_or_fd, SCM_ARG2, s_uniform_array_read_x);
+		port_or_fd, SCM_ARG2, FUNC_NAME);
   vlen = SCM_LENGTH (v);
 
 loop:
   switch SCM_TYP7 (v)
     {
     default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_uniform_array_read_x);
+    badarg1:scm_wta (v, (char *) SCM_ARG1, FUNC_NAME);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       cra = scm_ra2contig (ra, 0);
@@ -1467,18 +1452,18 @@ loop:
   if (!SCM_UNBNDP (start))
     {
       offset = 
-	scm_num2long (start, (char *) SCM_ARG3, s_uniform_array_read_x);
+	scm_num2long (start, (char *) SCM_ARG3, FUNC_NAME);
 
       if (offset < 0 || offset >= cend)
-	scm_out_of_range (s_uniform_array_read_x, start);
+	scm_out_of_range (FUNC_NAME, start);
 
       if (!SCM_UNBNDP (end))
 	{
 	  long tend =
-	    scm_num2long (end, (char *) SCM_ARG4, s_uniform_array_read_x);
+	    scm_num2long (end, (char *) SCM_ARG4, FUNC_NAME);
       
 	  if (tend <= offset || tend > cend)
-	    scm_out_of_range (s_uniform_array_read_x, end);
+	    scm_out_of_range (FUNC_NAME, end);
 	  cend = tend;
 	}
     }
@@ -1511,7 +1496,7 @@ loop:
 		{
 		  if (remaining % sz != 0)
 		    {
-		      scm_misc_error (s_uniform_array_read_x,
+		      scm_misc_error (FUNC_NAME,
 				      "unexpected EOF",
 				      SCM_EOL);
 		    }
@@ -1530,7 +1515,7 @@ loop:
 			       SCM_CHARS (v) + (cstart + offset) * sz,
 			       (scm_sizet) (sz * (cend - offset))));
       if (ans == -1)
-	scm_syserror (s_uniform_array_read_x);
+	SCM_SYSERROR;
     }
   if (SCM_TYP7 (v) == scm_tc7_bvect)
     ans *= SCM_LONG_BIT;
@@ -1540,15 +1525,12 @@ loop:
 
   return SCM_MAKINUM (ans);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_uniform_array_write, "uniform-array-write", 1, 3, 0, scm_uniform_array_write);
-
-SCM 
-scm_uniform_array_write (v, port_or_fd, start, end)
-     SCM v;
-     SCM port_or_fd;
-     SCM start;
-     SCM end;
+GUILE_PROC(scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
+           (SCM v, SCM port_or_fd, SCM start, SCM end),
+"")
+#define FUNC_NAME s_scm_uniform_array_write
 {
   long sz, vlen, ans;
   long offset = 0;
@@ -1563,14 +1545,14 @@ scm_uniform_array_write (v, port_or_fd, start, end)
   else
     SCM_ASSERT (SCM_INUMP (port_or_fd)
 		|| (SCM_NIMP (port_or_fd) && SCM_OPOUTPORTP (port_or_fd)),
-		port_or_fd, SCM_ARG2, s_uniform_array_write);
+		port_or_fd, SCM_ARG2, FUNC_NAME);
   vlen = SCM_LENGTH (v);
 
 loop:
   switch SCM_TYP7 (v)
     {
     default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_uniform_array_write);
+    badarg1:scm_wta (v, (char *) SCM_ARG1, FUNC_NAME);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       v = scm_ra2contig (v, 1);
@@ -1617,18 +1599,18 @@ loop:
   if (!SCM_UNBNDP (start))
     {
       offset = 
-	scm_num2long (start, (char *) SCM_ARG3, s_uniform_array_write);
+	scm_num2long (start, (char *) SCM_ARG3, FUNC_NAME);
 
       if (offset < 0 || offset >= cend)
-	scm_out_of_range (s_uniform_array_write, start);
+	scm_out_of_range (FUNC_NAME, start);
 
       if (!SCM_UNBNDP (end))
 	{
 	  long tend = 
-	    scm_num2long (end, (char *) SCM_ARG4, s_uniform_array_write);
+	    scm_num2long (end, (char *) SCM_ARG4, FUNC_NAME);
       
 	  if (tend <= offset || tend > cend)
-	    scm_out_of_range (s_uniform_array_write, end);
+	    scm_out_of_range (FUNC_NAME, end);
 	  cend = tend;
 	}
     }
@@ -1646,32 +1628,31 @@ loop:
 				SCM_CHARS (v) + (cstart + offset) * sz,
 				(scm_sizet) (sz * (cend - offset))));
       if (ans == -1)
-	scm_syserror (s_uniform_array_write);
+	SCM_SYSERROR;
     }
   if (SCM_TYP7 (v) == scm_tc7_bvect)
     ans *= SCM_LONG_BIT;
 
   return SCM_MAKINUM (ans);
 }
+#undef FUNC_NAME
 
 
 static char cnt_tab[16] =
 {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 
-SCM_PROC(s_bit_count, "bit-count", 2, 0, 0, scm_bit_count);
-
-SCM 
-scm_bit_count (item, seq)
-     SCM item;
-     SCM seq;
+GUILE_PROC(scm_bit_count, "bit-count", 2, 0, 0,
+           (SCM item, SCM seq),
+"")
+#define FUNC_NAME s_scm_bit_count
 {
   long i;
   register unsigned long cnt = 0, w;
-  SCM_ASSERT (SCM_NIMP (seq), seq, SCM_ARG2, s_bit_count);
+  SCM_VALIDATE_INT(2,seq);
   switch SCM_TYP7 (seq)
     {
     default:
-      scm_wta (seq, (char *) SCM_ARG2, s_bit_count);
+      SCM_WTA (2,seq);
     case scm_tc7_bvect:
       if (0 == SCM_LENGTH (seq))
 	return SCM_INUM0;
@@ -1692,28 +1673,26 @@ scm_bit_count (item, seq)
 	}
     }
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_bit_position, "bit-position", 3, 0, 0, scm_bit_position);
-
-SCM 
-scm_bit_position (item, v, k)
-     SCM item;
-     SCM v;
-     SCM k;
+GUILE_PROC(scm_bit_position, "bit-position", 3, 0, 0,
+           (SCM item, SCM v, SCM k),
+"")
+#define FUNC_NAME s_scm_bit_position
 {
-  long i, lenw, xbits, pos = SCM_INUM (k);
+  long i, lenw, xbits, pos;
   register unsigned long w;
-  SCM_ASSERT (SCM_NIMP (v), v, SCM_ARG2, s_bit_position);
-  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG3, s_bit_position);
+  SCM_VALIDATE_NIMP(2,v);
+  SCM_VALIDATE_INT_COPY(3,k,pos);
   SCM_ASSERT ((pos <= SCM_LENGTH (v)) && (pos >= 0),
-	  k, SCM_OUTOFRANGE, s_bit_position);
+	  k, SCM_OUTOFRANGE, FUNC_NAME);
   if (pos == SCM_LENGTH (v))
     return SCM_BOOL_F;
   switch SCM_TYP7 (v)
     {
     default:
-      scm_wta (v, (char *) SCM_ARG2, s_bit_position);
+      SCM_WTA (2,v);
     case scm_tc7_bvect:
       if (0 == SCM_LENGTH (v))
 	return SCM_MAKINUM (-1L);
@@ -1760,15 +1739,13 @@ scm_bit_position (item, v, k)
       return SCM_BOOL_F;
     }
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_bit_set_star_x, "bit-set*!", 3, 0, 0, scm_bit_set_star_x);
-
-SCM 
-scm_bit_set_star_x (v, kv, obj)
-     SCM v;
-     SCM kv;
-     SCM obj;
+GUILE_PROC(scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
+           (SCM v, SCM kv, SCM obj),
+"")
+#define FUNC_NAME s_scm_bit_set_star_x
 {
   register long i, k, vlen;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
@@ -1776,30 +1753,30 @@ scm_bit_set_star_x (v, kv, obj)
   switch SCM_TYP7 (kv)
     {
     default:
-    badarg2:scm_wta (kv, (char *) SCM_ARG2, s_bit_set_star_x);
+    badarg2:SCM_WTA (2,kv);
     case scm_tc7_uvect:
       switch SCM_TYP7 (v)
 	{
 	default:
-	badarg1:scm_wta (v, (char *) SCM_ARG1, s_bit_set_star_x);
+	badarg1:SCM_WTA (1,v);
 	case scm_tc7_bvect:
 	  vlen = SCM_LENGTH (v);
 	  if (SCM_BOOL_F == obj)
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_VELTS (kv)[--i];
-		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, s_bit_set_star_x);
+		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
 		SCM_VELTS (v)[k / SCM_LONG_BIT] &= ~(1L << (k % SCM_LONG_BIT));
 	      }
 	  else if (SCM_BOOL_T == obj)
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_VELTS (kv)[--i];
-		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, s_bit_set_star_x);
+		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
 		SCM_VELTS (v)[k / SCM_LONG_BIT] |= (1L << (k % SCM_LONG_BIT));
 	      }
 	  else
-	  badarg3:scm_wta (obj, (char *) SCM_ARG3, s_bit_set_star_x);
+	  badarg3:SCM_WTA (3,obj);
 	}
       break;
     case scm_tc7_bvect:
@@ -1816,15 +1793,13 @@ scm_bit_set_star_x (v, kv, obj)
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_bit_count_star, "bit-count*", 3, 0, 0, scm_bit_count_star);
-
-SCM 
-scm_bit_count_star (v, kv, obj)
-     SCM v;
-     SCM kv;
-     SCM obj;
+GUILE_PROC(scm_bit_count_star, "bit-count*", 3, 0, 0,
+           (SCM v, SCM kv, SCM obj),
+"")
+#define FUNC_NAME s_scm_bit_count_star
 {
   register long i, vlen, count = 0;
   register unsigned long k;
@@ -1833,20 +1808,20 @@ scm_bit_count_star (v, kv, obj)
   switch SCM_TYP7 (kv)
     {
     default:
-    badarg2:scm_wta (kv, (char *) SCM_ARG2, s_bit_count_star);
+    badarg2:SCM_WTA (2,kv);
     case scm_tc7_uvect:
       switch SCM_TYP7
 	(v)
 	{
 	default:
-	badarg1:scm_wta (v, (char *) SCM_ARG1, s_bit_count_star);
+	badarg1:SCM_WTA (1,v);
 	case scm_tc7_bvect:
 	  vlen = SCM_LENGTH (v);
 	  if (SCM_BOOL_F == obj)
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_VELTS (kv)[--i];
-		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, s_bit_count_star);
+		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
 		if (!(SCM_VELTS (v)[k / SCM_LONG_BIT] & (1L << (k % SCM_LONG_BIT))))
 		  count++;
 	      }
@@ -1854,12 +1829,12 @@ scm_bit_count_star (v, kv, obj)
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_VELTS (kv)[--i];
-		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, s_bit_count_star);
+		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
 		if (SCM_VELTS (v)[k / SCM_LONG_BIT] & (1L << (k % SCM_LONG_BIT)))
 		  count++;
 	      }
 	  else
-	  badarg3:scm_wta (obj, (char *) SCM_ARG3, s_bit_count_star);
+	  badarg3:SCM_WTA (3,obj);
 	}
       break;
     case scm_tc7_bvect:
@@ -1882,13 +1857,13 @@ scm_bit_count_star (v, kv, obj)
     }
   return SCM_MAKINUM (count);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_bit_invert_x, "bit-invert!", 1, 0, 0, scm_bit_invert_x);
-
-SCM 
-scm_bit_invert_x (v)
-     SCM v;
+GUILE_PROC(scm_bit_invert_x, "bit-invert!", 1, 0, 0, 
+           (SCM v),
+"")
+#define FUNC_NAME s_scm_bit_invert_x
 {
   register long k;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
@@ -1901,16 +1876,15 @@ scm_bit_invert_x (v)
 	SCM_VELTS (v)[k] = ~SCM_VELTS (v)[k];
       break;
     default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_bit_invert_x);
+    badarg1:SCM_WTA (1,v);
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 SCM 
-scm_istr2bve (str, len)
-     char *str;
-     long len;
+scm_istr2bve (char *str, long len)
 {
   SCM v = scm_make_uve (len, SCM_BOOL_T);
   long *data = (long *) SCM_VELTS (v);
@@ -1940,13 +1914,8 @@ scm_istr2bve (str, len)
 
 
 
-static SCM ra2l SCM_P ((SCM ra, scm_sizet base, scm_sizet k));
-
 static SCM 
-ra2l (ra, base, k)
-     SCM ra;
-     scm_sizet base;
-     scm_sizet k;
+ra2l (SCM ra,scm_sizet base,scm_sizet k)
 {
   register SCM res = SCM_EOL;
   register long inc = SCM_ARRAY_DIMS (ra)[k].inc;
@@ -1974,11 +1943,10 @@ ra2l (ra, base, k)
 }
 
 
-SCM_PROC(s_array_to_list, "array->list", 1, 0, 0, scm_array_to_list);
-
-SCM 
-scm_array_to_list (v)
-     SCM v;
+GUILE_PROC(scm_array_to_list, "array->list", 1, 0, 0, 
+           (SCM v),
+"")
+#define FUNC_NAME s_scm_array_to_list
 {
   SCM res = SCM_EOL;
   register long k;
@@ -1987,7 +1955,7 @@ scm_array_to_list (v)
     (v)
     {
     default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_array_to_list);
+    badarg1:SCM_WTA (1,v);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       return ra2l (v, SCM_ARRAY_BASE (v), 0);
@@ -2075,31 +2043,28 @@ scm_array_to_list (v)
 #endif /*SCM_FLOATS*/
     }
 }
+#undef FUNC_NAME
 
 
 static char s_bad_ralst[] = "Bad scm_array contents list";
 
-static int l2ra SCM_P ((SCM lst, SCM ra, scm_sizet base, scm_sizet k));
+static int l2ra(SCM lst, SCM ra, scm_sizet base, scm_sizet k);
 
-SCM_PROC(s_list_to_uniform_array, "list->uniform-array", 3, 0, 0, scm_list_to_uniform_array);
-
-SCM 
-scm_list_to_uniform_array (ndim, prot, lst)
-     SCM ndim;
-     SCM prot;
-     SCM lst;
+GUILE_PROC(scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
+           (SCM ndim, SCM prot, SCM lst),
+"")
+#define FUNC_NAME s_scm_list_to_uniform_array
 {
   SCM shp = SCM_EOL;
   SCM row = lst;
   SCM ra;
   scm_sizet k;
   long n;
-  SCM_ASSERT (SCM_INUMP (ndim), ndim, SCM_ARG1, s_list_to_uniform_array);
-  k = SCM_INUM (ndim);
+  SCM_VALIDATE_INT_COPY(1,ndim,k);
   while (k--)
     {
       n = scm_ilength (row);
-      SCM_ASSERT (n >= 0, lst, SCM_ARG3, s_list_to_uniform_array);
+      SCM_ASSERT (n >= 0, lst, SCM_ARG3, FUNC_NAME);
       shp = scm_cons (SCM_MAKINUM (n), shp);
       if (SCM_NIMP (row))
 	row = SCM_CAR (row);
@@ -2122,16 +2087,13 @@ scm_list_to_uniform_array (ndim, prot, lst)
   if (l2ra (lst, ra, SCM_ARRAY_BASE (ra), 0))
     return ra;
   else
-  badlst:scm_wta (lst, s_bad_ralst, s_list_to_uniform_array);
+    badlst:scm_wta (lst, s_bad_ralst, FUNC_NAME);
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 static int 
-l2ra (lst, ra, base, k)
-     SCM lst;
-     SCM ra;
-     scm_sizet base;
-     scm_sizet k;
+l2ra (SCM lst, SCM ra, scm_sizet base, scm_sizet k)
 {
   register long inc = SCM_ARRAY_DIMS (ra)[k].inc;
   register long n = (1 + SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd);
@@ -2168,15 +2130,8 @@ l2ra (lst, ra, base, k)
 }
 
 
-static void rapr1 SCM_P ((SCM ra, scm_sizet j, scm_sizet k, SCM port, scm_print_state *pstate));
-
 static void 
-rapr1 (ra, j, k, port, pstate)
-     SCM ra;
-     scm_sizet j;
-     scm_sizet k;
-     SCM port;
-     scm_print_state *pstate;
+rapr1 (SCM ra,scm_sizet j,scm_sizet k,SCM port,scm_print_state *pstate)
 {
   long inc = 1;
   long n = SCM_LENGTH (ra);
@@ -2351,10 +2306,7 @@ tail:
 
 
 int 
-scm_raprin1 (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
   SCM v = exp;
   scm_sizet base = 0;
@@ -2450,11 +2402,10 @@ tail:
   return 1;
 }
 
-SCM_PROC(s_array_prototype, "array-prototype", 1, 0, 0, scm_array_prototype);
-
-SCM 
-scm_array_prototype (ra)
-     SCM ra;
+GUILE_PROC(scm_array_prototype, "array-prototype", 1, 0, 0, 
+           (SCM ra),
+"")
+#define FUNC_NAME s_scm_array_prototype
 {
   int enclosed = 0;
   SCM_ASRTGO (SCM_NIMP (ra), badarg);
@@ -2463,7 +2414,7 @@ loop:
     (ra)
     {
     default:
-    badarg:scm_wta (ra, (char *) SCM_ARG1, s_array_prototype);
+    badarg:SCM_WTA (1,ra);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
       if (enclosed++)
@@ -2501,23 +2452,18 @@ loop:
 #endif
     }
 }
+#undef FUNC_NAME
 
-
-static SCM markra SCM_P ((SCM ptr));
 
 static SCM
-markra (ptr)
-     SCM ptr;
+markra (SCM ptr)
 {
   return SCM_ARRAY_V (ptr);
 }
 
 
-static scm_sizet freera SCM_P ((SCM ptr));
-
 static scm_sizet
-freera (ptr)
-     SCM ptr;
+freera (SCM ptr)
 {
   scm_must_free (SCM_CHARS (ptr));
   return sizeof (scm_array) + SCM_ARRAY_NDIM (ptr) * sizeof (scm_array_dim);

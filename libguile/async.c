@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -47,6 +51,7 @@
 #include "throw.h"
 #include "smob.h"
 
+#include "scm_validate.h"
 #include "async.h"
 
 #ifdef HAVE_STRING_H
@@ -123,9 +128,8 @@ scm_asyncs_pending ()
 }
 
 #if 0
-static SCM scm_sys_tick_async_thunk SCM_P ((void));
 static SCM
-scm_sys_tick_async_thunk ()
+scm_sys_tick_async_thunk (void)
 {
   scm_deliver_signal (SCM_TICK_SIGNAL);
   return SCM_BOOL_F;
@@ -263,11 +267,8 @@ scm_switch ()
 
 
 
-static SCM mark_async SCM_P ((SCM obj));
-
 static SCM
-mark_async (obj)
-     SCM obj;
+mark_async (SCM obj)
 {
   struct scm_async * it;
   it = SCM_ASYNC (obj);
@@ -276,24 +277,23 @@ mark_async (obj)
 
 
 
-SCM_PROC(s_async, "async", 1, 0, 0, scm_async);
-
-SCM
-scm_async (thunk)
-     SCM thunk;
+GUILE_PROC(scm_async, "async", 1, 0, 0, 
+           (SCM thunk),
+"")
+#define FUNC_NAME s_scm_async
 {
   struct scm_async * async
-    = (struct scm_async *) scm_must_malloc (sizeof (*async), s_async);
+    = (struct scm_async *) scm_must_malloc (sizeof (*async), FUNC_NAME);
   async->got_it = 0;
   async->thunk = thunk;
   SCM_RETURN_NEWSMOB (scm_tc16_async, async);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_system_async, "system-async", 1, 0, 0, scm_system_async);
-
-SCM 
-scm_system_async (thunk)
-     SCM thunk;
+GUILE_PROC(scm_system_async, "system-async", 1, 0, 0, 
+            (SCM thunk),
+"")
+#define FUNC_NAME s_scm_system_async
 {
   SCM it;
   SCM list;
@@ -303,30 +303,28 @@ scm_system_async (thunk)
   scm_asyncs = list;
   return it;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_async_mark, "async-mark", 1, 0, 0, scm_async_mark);
-
-SCM
-scm_async_mark (a)
-     SCM a;
+GUILE_PROC(scm_async_mark, "async-mark", 1, 0, 0, 
+            (SCM a),
+"")
+#define FUNC_NAME s_scm_async_mark
 {
   struct scm_async * it;
-  SCM_ASSERT (SCM_NIMP (a) &&  SCM_ASYNCP (a), a, SCM_ARG1, s_async_mark);
-  it = SCM_ASYNC (a);
+  SCM_VALIDATE_ASYNC_COPY(1,a,it);
   it->got_it = 1;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_system_async_mark, "system-async-mark", 1, 0, 0, scm_system_async_mark);
-
-SCM
-scm_system_async_mark (a)
-     SCM a;
+GUILE_PROC(scm_system_async_mark, "system-async-mark", 1, 0, 0, 
+           (SCM a),
+"")
+#define FUNC_NAME s_scm_system_async_mark
 {
   struct scm_async * it;
-  SCM_ASSERT (SCM_NIMP (a) &&  SCM_ASYNCP (a), a, SCM_ARG1, s_async_mark);
-  it = SCM_ASYNC (a);
+  SCM_VALIDATE_ASYNC_COPY(1,a,it);
   SCM_REDEFER_INTS;
   it->got_it = 1;
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
@@ -334,26 +332,23 @@ scm_system_async_mark (a)
   SCM_REALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_run_asyncs, "run-asyncs", 1, 0, 0, scm_run_asyncs);
-
-SCM
-scm_run_asyncs (list_of_a)
-     SCM list_of_a;
+GUILE_PROC(scm_run_asyncs, "run-asyncs", 1, 0, 0, 
+           (SCM list_of_a),
+"")
+#define FUNC_NAME s_scm_run_asyncs
 {
-  SCM pos;
-
   if (scm_mask_ints)
     return SCM_BOOL_F;
-  pos = list_of_a;
-  while (pos != SCM_EOL)
+  while (list_of_a != SCM_EOL)
     {
       SCM a;
       struct scm_async * it;
-      SCM_ASSERT (SCM_NIMP (pos) && SCM_CONSP (pos), pos, SCM_ARG1, s_run_asyncs);
-      a = SCM_CAR (pos);
-      SCM_ASSERT (SCM_NIMP (a) &&  SCM_ASYNCP (a), a, SCM_ARG1, s_run_asyncs);
+      SCM_VALIDATE_NIMCONS(1,list_of_a);
+      a = SCM_CAR (list_of_a);
+      SCM_ASSERT (SCM_NIMP (a) &&  SCM_ASYNCP (a), a, SCM_ARG1, FUNC_NAME);
       it = SCM_ASYNC (a);
       scm_mask_ints = 1;
       if (it->got_it)
@@ -362,60 +357,61 @@ scm_run_asyncs (list_of_a)
 	  scm_apply (it->thunk, SCM_EOL, SCM_EOL);
 	}
       scm_mask_ints = 0;
-      pos = SCM_CDR (pos);
+      list_of_a = SCM_CDR (list_of_a);
     }
   return SCM_BOOL_T;
 }
+#undef FUNC_NAME
 
 
 
 
-SCM_PROC(s_noop, "noop", 0, 0, 1, scm_noop);
-
-SCM
-scm_noop (args)
-     SCM args;
+GUILE_PROC(scm_noop, "noop", 0, 0, 1, 
+           (SCM args),
+"")
+#define FUNC_NAME s_scm_noop
 {
   return (SCM_NULLP (args)
 	  ? SCM_BOOL_F
 	  : SCM_CAR (args));
 }
+#undef FUNC_NAME
 
 
 
 
-SCM_PROC(s_set_tick_rate, "set-tick-rate", 1, 0, 0, scm_set_tick_rate);
-
-SCM
-scm_set_tick_rate (n)
-     SCM n;
+GUILE_PROC(scm_set_tick_rate, "set-tick-rate", 1, 0, 0, 
+           (SCM n),
+"")
+#define FUNC_NAME s_scm_set_tick_rate
 {
   unsigned int old_n;
-  SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_set_tick_rate);
+  SCM_VALIDATE_INT(1,n);
   old_n = scm_tick_rate;
   scm_desired_tick_rate = SCM_INUM (n);
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
   scm_async_clock = 1;
   return SCM_MAKINUM (old_n);
 }
+#undef FUNC_NAME
 
 
 
 
-SCM_PROC(s_set_switch_rate, "set-switch-rate", 1, 0, 0, scm_set_switch_rate);
-
-SCM
-scm_set_switch_rate (n)
-     SCM n;
+GUILE_PROC(scm_set_switch_rate, "set-switch-rate", 1, 0, 0, 
+           (SCM n),
+"")
+#define FUNC_NAME s_scm_set_switch_rate
 {
   unsigned int old_n;
-  SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_set_switch_rate);
+  SCM_VALIDATE_INT(1,n);
   old_n = scm_switch_rate;
   scm_desired_switch_rate = SCM_INUM (n);
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
   scm_async_clock = 1;
   return SCM_MAKINUM (old_n);
 }
+#undef FUNC_NAME
 
 
 
@@ -442,24 +438,26 @@ scm_sys_gc_async_thunk (void)
 
 
 
-SCM_PROC(s_unmask_signals, "unmask-signals", 0, 0, 0, scm_unmask_signals);
-
-SCM
-scm_unmask_signals ()
+GUILE_PROC(scm_unmask_signals, "unmask-signals", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_unmask_signals
 {
   scm_mask_ints = 0;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_mask_signals, "mask-signals", 0, 0, 0, scm_mask_signals);
-
-SCM
-scm_mask_signals ()
+GUILE_PROC(scm_mask_signals, "mask-signals", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_mask_signals
 {
   scm_mask_ints = 1;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 

@@ -93,7 +93,7 @@ modinclude_HEADERS = \
     ioext.h keywords.h kw.h lang.h list.h load.h macros.h mallocs.h 	\
     modules.h net_db.h numbers.h objects.h objprop.h options.h pairs.h	\
     ports.h posix.h regex-posix.h print.h procprop.h procs.h random.h	\
-    ramap.h read.h root.h scmsigs.h script.h simpos.h smob.h socket.h	\
+    ramap.h read.h root.h scmsigs.h scm_validate.h script.h simpos.h smob.h socket.h	\
     sort.h srcprop.h stackchk.h stacks.h stime.h strings.h strop.h	\
     strorder.h strports.h struct.h symbols.h tag.h tags.h throw.h	\
     unif.h variable.h vectors.h version.h vports.h weaks.h snarf.h	\

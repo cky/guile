@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -46,6 +50,7 @@
 #include "chars.h"
 #include "fports.h"
 
+#include "scm_validate.h"
 #include "vports.h"
 
 #ifdef HAVE_STRING_H
@@ -132,17 +137,15 @@ sf_close (SCM port)
 
 
 
-SCM_PROC(s_make_soft_port, "make-soft-port", 2, 0, 0, scm_make_soft_port);
-
-SCM 
-scm_make_soft_port (pv, modes)
-     SCM pv;
-     SCM modes;
+GUILE_PROC(scm_make_soft_port, "make-soft-port", 2, 0, 0,
+           (SCM pv, SCM modes),
+"")
+#define FUNC_NAME s_scm_make_soft_port
 {
   scm_port *pt;
   SCM z;
-  SCM_ASSERT (SCM_NIMP (pv) && SCM_VECTORP (pv) && 5 == SCM_LENGTH (pv), pv, SCM_ARG1, s_make_soft_port);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2, s_make_soft_port);
+  SCM_VALIDATE_VECTOR_LEN(1,pv,5);
+  SCM_VALIDATE_ROSTRING(2,modes);
   SCM_COERCE_SUBSTR (modes);
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
@@ -158,6 +161,7 @@ scm_make_soft_port (pv, modes)
   SCM_ALLOW_INTS;
   return z;
 }
+#undef FUNC_NAME
 
 
 void scm_make_sfptob (void); /* Called from ports.c */

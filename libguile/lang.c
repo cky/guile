@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include "_scm.h"
@@ -45,6 +49,7 @@
 #include "eval.h"
 #include "macros.h"
 
+#include "scm_validate.h"
 #include "lang.h"
 
 
@@ -58,10 +63,10 @@
  * in all data structures.
  */
 
-SCM_PROC (s_nil_cons, "nil-cons", 2, 0, 0, scm_nil_cons);
-
-SCM 
-scm_nil_cons (SCM x, SCM y)
+GUILE_PROC (scm_nil_cons, "nil-cons", 2, 0, 0,
+            (SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_nil_cons
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -69,37 +74,43 @@ scm_nil_cons (SCM x, SCM y)
   SCM_SETCDR (z, SCM_NIL2EOL (y, y));
   return z;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_nil_car, "nil-car", 1, 0, 0, scm_nil_car);
-
-SCM
-scm_nil_car (SCM x)
+GUILE_PROC (scm_nil_car, "nil-car", 1, 0, 0, 
+            (SCM x),
+            "")
+#define FUNC_NAME s_scm_nil_car
 {
   if (SCM_NILP (x))
     return scm_nil;
-  SCM_ASSERT (SCM_NIMP (x) && SCM_CONSP (x), x, SCM_ARG1, s_nil_car);
+  SCM_VALIDATE_NIMCONS(1,x);
   return SCM_CAR (x);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_nil_cdr, "nil-cdr", 1, 0, 0, scm_nil_cdr);
-
-SCM
-scm_nil_cdr (SCM x)
+GUILE_PROC (scm_nil_cdr, "nil-cdr", 1, 0, 0, 
+            (SCM x),
+            "")
+#define FUNC_NAME s_scm_nil_cdr
 {
   if (SCM_NILP (x))
     return scm_nil;
-  SCM_ASSERT (SCM_NIMP (x) && SCM_CONSP (x), x, SCM_ARG1, s_nil_cdr);
+  SCM_VALIDATE_NIMCONS(1,x);
   return SCM_EOL2NIL (SCM_CDR (x), x);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_null, "null", 1, 0, 0, scm_null);
-
-SCM
-scm_null (SCM x)
+/* GJB:FIXME:: why does this return scm_nil instead of SCM_BOOL_F?
+   Could use SCM_BOOL, below, otherwise */
+GUILE_PROC (scm_null, "null", 1, 0, 0, 
+            (SCM x),
+            "")
+#define FUNC_NAME s_scm_null
 {
   return (SCM_NILP (x) || SCM_NULLP (x) || SCM_FALSEP (x)) ? scm_t : scm_nil;
 }
+#undef FUNC_NAME
 
 SCM
 scm_m_while (SCM exp, SCM env)
@@ -118,10 +129,12 @@ scm_m_while (SCM exp, SCM env)
   return scm_nil;
 }
 
-SCM_PROC1 (s_nil_eq, "nil-eq", scm_tc7_rpsubr, scm_nil_eq);
-
-SCM
-scm_nil_eq (SCM x, SCM y)
+/* GJB:FIXME:: why does this return scm_nil instead of SCM_BOOL_F?
+   Could use SCM_BOOL, below, otherwise */
+GUILE_PROC1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr, 
+             (SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_nil_eq
 {
   return (((x==y)
 	   || (SCM_NILP (x) && (SCM_NULLP (y) || SCM_FALSEP (y)))
@@ -129,6 +142,7 @@ scm_nil_eq (SCM x, SCM y)
 	  ? scm_t
 	  : scm_nil);
 }
+#undef FUNC_NAME
 
 
 

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -50,6 +54,7 @@
 #include "alist.h"
 #include "dynwind.h"
 
+#include "scm_validate.h"
 #include "load.h"
 
 #include <sys/types.h>
@@ -92,23 +97,22 @@ load (void *data)
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC(s_primitive_load, "primitive-load", 1, 0, 0, scm_primitive_load);
-SCM 
-scm_primitive_load (filename)
-     SCM filename;
+GUILE_PROC(scm_primitive_load, "primitive-load", 1, 0, 0, 
+           (SCM filename),
+"")
+#define FUNC_NAME s_scm_primitive_load
 {
   SCM hook = *scm_loc_load_hook;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG1, s_primitive_load);
+  SCM_VALIDATE_ROSTRING(1,filename);
   SCM_ASSERT (hook == SCM_BOOL_F
 	      || (scm_procedure_p (hook) == SCM_BOOL_T),
 	      hook, "value of %load-hook is neither a procedure nor #f",
-	      s_primitive_load);
+	      FUNC_NAME);
 
   if (hook != SCM_BOOL_F)
     scm_apply (hook, scm_listify (filename, SCM_UNDEFINED), SCM_EOL);
 
-  {
+  { /* scope */
     SCM port, save_port;
     port = scm_open_file (filename,
 			  scm_makfromstr ("r", (scm_sizet) sizeof (char), 0));
@@ -122,16 +126,19 @@ scm_primitive_load (filename)
   }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 /* Builtin path to scheme library files. */
 #ifdef SCM_PKGDATA_DIR
-SCM_PROC (s_sys_package_data_dir, "%package-data-dir", 0, 0, 0, scm_sys_package_data_dir);
-SCM
-scm_sys_package_data_dir ()
+GUILE_PROC (scm_sys_package_data_dir, "%package-data-dir", 0, 0, 0, 
+            (),
+"")
+#define FUNC_NAME s_scm_sys_package_data_dir
 {
   return scm_makfrom0str (SCM_PKGDATA_DIR);
 }
+#undef FUNC_NAME
 #endif /* SCM_PKGDATA_DIR */
 
 
@@ -171,21 +178,21 @@ scm_internal_parse_path (char *path, SCM tail)
 }
 
 
-SCM_PROC (s_parse_path, "parse-path", 1, 1, 0, scm_parse_path);
-
-SCM
-scm_parse_path (SCM path, SCM tail)
+GUILE_PROC (scm_parse_path, "parse-path", 1, 1, 0, 
+            (SCM path, SCM tail),
+"")
+#define FUNC_NAME s_scm_parse_path
 {
   SCM_ASSERT (SCM_FALSEP (path) || (SCM_NIMP (path) && SCM_ROSTRINGP (path)),
 	      path,
-	      SCM_ARG1,
-	      s_parse_path);
+	      SCM_ARG1, FUNC_NAME);
   if (SCM_UNBNDP (tail))
     tail = SCM_EOL;
   return (SCM_FALSEP (path)
 	  ? tail
 	  : scm_internal_parse_path (SCM_ROCHARS (path), tail));
 }
+#undef FUNC_NAME
 
 
 /* Initialize the global variable %load-path, given the value of the
@@ -216,26 +223,22 @@ SCM scm_listofnullstr;
    If FILENAME is absolute, return it unchanged.
    If given, EXTENSIONS is a list of strings; for each directory 
    in PATH, we search for FILENAME concatenated with each EXTENSION.  */
-SCM_PROC(s_search_path, "search-path", 2, 1, 0, scm_search_path);
-SCM 
-scm_search_path (path, filename, extensions)
-     SCM path;
-     SCM filename;
-     SCM extensions;
+GUILE_PROC(scm_search_path, "search-path", 2, 1, 0,
+           (SCM path, SCM filename, SCM extensions),
+"")
+#define FUNC_NAME s_scm_search_path
 {
   char *filename_chars;
   int filename_len;
   size_t max_path_len;		/* maximum length of any PATH element */
   size_t max_ext_len;		/* maximum length of any EXTENSIONS element */
 
-  SCM_ASSERT (scm_ilength (path) >= 0, path, SCM_ARG1, s_search_path);
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG2, s_search_path);
+  SCM_VALIDATE_LIST(1,path);
+  SCM_VALIDATE_ROSTRING(2,filename);
   if (SCM_UNBNDP (extensions))
     extensions = SCM_EOL;
   else
-    SCM_ASSERT (scm_ilength (extensions) >= 0, extensions,
-		SCM_ARG3, s_search_path);
+    SCM_VALIDATE_LIST(3,extensions);
 
   filename_chars = SCM_ROCHARS (filename);
   filename_len = SCM_ROLENGTH (filename);
@@ -254,7 +257,7 @@ scm_search_path (path, filename, extensions)
 	SCM elt = SCM_CAR (walk);
 	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
 		    "path is not a list of strings",
-		    s_search_path);
+		    FUNC_NAME);
 	if (SCM_ROLENGTH (elt) > max_path_len)
 	  max_path_len = SCM_ROLENGTH (elt);
       }
@@ -284,7 +287,7 @@ scm_search_path (path, filename, extensions)
 
   /* Find the length of the longest element of the load extensions
      list.  */
-  {
+  { /* scope */
     SCM walk;
 
     max_ext_len = 0;
@@ -293,7 +296,7 @@ scm_search_path (path, filename, extensions)
 	SCM elt = SCM_CAR (walk);
 	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
 		    "extension list is not a list of strings",
-		    s_search_path);
+		    FUNC_NAME);
 	if (SCM_ROLENGTH (elt) > max_ext_len)
 	  max_ext_len = SCM_ROLENGTH (elt);
       }
@@ -301,10 +304,10 @@ scm_search_path (path, filename, extensions)
 
   SCM_DEFER_INTS;
 
-  {
+  { /* scope */
     SCM result = SCM_BOOL_F;
     int buf_size = max_path_len + 1 + filename_len + max_ext_len + 1;
-    char *buf = scm_must_malloc (buf_size, s_search_path);
+    char *buf = SCM_MUST_MALLOC (buf_size);
 
     /* This simplifies the loop below a bit.  */
     if (SCM_NULLP (extensions))
@@ -356,41 +359,40 @@ scm_search_path (path, filename, extensions)
     return result;
   }
 }
+#undef FUNC_NAME
 
 
 /* Search %load-path for a directory containing a file named FILENAME.
    The file must be readable, and not a directory.
    If we find one, return its full filename; otherwise, return #f.
    If FILENAME is absolute, return it unchanged.  */
-SCM_PROC(s_sys_search_load_path, "%search-load-path", 1, 0, 0, scm_sys_search_load_path);
-SCM 
-scm_sys_search_load_path (filename)
-     SCM filename;
+GUILE_PROC(scm_sys_search_load_path, "%search-load-path", 1, 0, 0, 
+           (SCM filename),
+"")
+#define FUNC_NAME s_scm_sys_search_load_path
 {
   SCM path = *scm_loc_load_path;
   SCM exts = *scm_loc_load_extensions;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG1, s_sys_search_load_path);
+  SCM_VALIDATE_ROSTRING(1,filename);
+
   SCM_ASSERT (scm_ilength (path) >= 0, path, "load path is not a proper list",
-	      s_sys_search_load_path);
+	      FUNC_NAME);
   SCM_ASSERT (scm_ilength (exts) >= 0, exts,
 	      "load extension list is not a proper list",
-	      s_sys_search_load_path);
-  return scm_search_path (path,
-			  filename,
-			  exts);
+	      FUNC_NAME);
+  return scm_search_path (path, filename, exts);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_primitive_load_path, "primitive-load-path", 1, 0, 0, scm_primitive_load_path);
-SCM 
-scm_primitive_load_path (filename)
-     SCM filename;
+GUILE_PROC(scm_primitive_load_path, "primitive-load-path", 1, 0, 0, 
+           (SCM filename),
+"")
+#define FUNC_NAME s_scm_primitive_load_path
 {
   SCM full_filename;
 
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG1, s_primitive_load_path);
+  SCM_VALIDATE_ROSTRING(1,filename);
 
   full_filename = scm_sys_search_load_path (filename);
 
@@ -398,7 +400,7 @@ scm_primitive_load_path (filename)
     {
       int absolute = (SCM_ROLENGTH (filename) >= 1
 		      && SCM_ROCHARS (filename)[0] == '/');
-      scm_misc_error (s_primitive_load_path,
+      scm_misc_error (FUNC_NAME,
 		      (absolute
 		       ? "Unable to load file %S"
 		       : "Unable to find file %S in load path"),
@@ -407,6 +409,7 @@ scm_primitive_load_path (filename)
 
   return scm_primitive_load (full_filename);
 }
+#undef FUNC_NAME
 
 /* The following function seems trivial - and indeed it is.  Its
  * existence is motivated by its ability to evaluate expressions
@@ -415,17 +418,17 @@ scm_primitive_load_path (filename)
 
 SCM_SYMBOL (scm_end_of_file_key, "end-of-file");
 
-SCM_PROC (s_read_and_eval_x, "read-and-eval!", 0, 1, 0, scm_read_and_eval_x);
-
-SCM
-scm_read_and_eval_x (port)
-     SCM port;
+GUILE_PROC (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_read_and_eval_x
 {
   SCM form = scm_read (port);
   if (SCM_EOF_OBJECT_P (form))
     scm_ithrow (scm_end_of_file_key, SCM_EOL, 1);
   return scm_eval_x (form);
 }
+#undef FUNC_NAME
 
 
 /* Information about the build environment.  */

@@ -38,72 +38,71 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include "_scm.h"
 #include "smob.h"
 
+#include "scm_validate.h"
 #include "macros.h"
 
 long scm_tc16_macro;
 
-SCM_PROC(s_makacro, "procedure->syntax", 1, 0, 0, scm_makacro);
-
-SCM 
-scm_makacro (code)
-     SCM code;
+GUILE_PROC (scm_makacro, "procedure->syntax", 1, 0, 0,
+            (SCM code),
+"")
+#define FUNC_NAME s_scm_makacro
 {
-  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (code)),
-	      code, SCM_ARG1, s_makacro);
+  SCM_VALIDATE_PROC(1,code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro, code);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_makmacro, "procedure->macro", 1, 0, 0, scm_makmacro);
-
-SCM 
-scm_makmacro (code)
-     SCM code;
+GUILE_PROC(scm_makmacro, "procedure->macro", 1, 0, 0, 
+           (SCM code),
+"")
+#define FUNC_NAME s_scm_makmacro
 {
-  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (code)),
-	      code, SCM_ARG1, s_makmacro);
+  SCM_VALIDATE_PROC(1,code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro | (1L << 16), code);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_makmmacro, "procedure->memoizing-macro", 1, 0, 0, scm_makmmacro);
-
-SCM 
-scm_makmmacro (code)
-     SCM code;
+GUILE_PROC(scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
+           (SCM code),
+"")
+#define FUNC_NAME s_scm_makmmacro
 {
-  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (code)),
-	      code, SCM_ARG1, s_makmmacro);
+  SCM_VALIDATE_PROC(1,code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro | (2L << 16), code);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_macro_p, "macro?", 1, 0, 0, scm_macro_p);
-
-SCM
-scm_macro_p (obj)
-     SCM obj;
+GUILE_PROC (scm_macro_p, "macro?", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_macro_p
 {
-  return (SCM_NIMP (obj) && SCM_TYP16 (obj) == scm_tc16_macro
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (obj) && SCM_TYP16 (obj) == scm_tc16_macro);
 }
+#undef FUNC_NAME
 
 
 SCM_SYMBOL (scm_sym_syntax, "syntax");
 SCM_SYMBOL (scm_sym_macro, "macro");
 SCM_SYMBOL (scm_sym_mmacro, "macro!");
 
-SCM_PROC (s_macro_type, "macro-type", 1, 0, 0, scm_macro_type);
-
-SCM
-scm_macro_type (m)
-     SCM m;
+GUILE_PROC (scm_macro_type, "macro-type", 1, 0, 0, 
+            (SCM m),
+"")
+#define FUNC_NAME s_scm_macro_type
 {
   if (!(SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro))
     return SCM_BOOL_F;
@@ -112,43 +111,35 @@ scm_macro_type (m)
     case 0: return scm_sym_syntax;
     case 1: return scm_sym_macro;
     case 2: return scm_sym_mmacro;
-    default: scm_wrong_type_arg (s_macro_type, 1, m);
+    default: scm_wrong_type_arg (FUNC_NAME, 1, m);
     }
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_macro_name, "macro-name", 1, 0, 0, scm_macro_name);
-
-SCM
-scm_macro_name (m)
-     SCM m;
+GUILE_PROC (scm_macro_name, "macro-name", 1, 0, 0, 
+            (SCM m),
+"")
+#define FUNC_NAME s_scm_macro_name
 {
-  SCM_ASSERT (SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro,
-	      m,
-	      SCM_ARG1,
-	      s_macro_name);
+  SCM_VALIDATE_SMOB(1,m,macro);
   return scm_procedure_name (SCM_CDR (m));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_macro_transformer, "macro-transformer", 1, 0, 0, scm_macro_transformer);
-
-SCM
-scm_macro_transformer (m)
-     SCM m;
+GUILE_PROC (scm_macro_transformer, "macro-transformer", 1, 0, 0, 
+            (SCM m),
+"")
+#define FUNC_NAME s_scm_macro_transformer
 {
-  SCM_ASSERT (SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro,
-	      m,
-	      SCM_ARG1,
-	      s_macro_transformer);
+  SCM_VALIDATE_SMOB(1,m,macro);
   return SCM_CLOSUREP (SCM_CDR (m)) ? SCM_CDR (m) : SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 SCM
-scm_make_synt (name, macroizer, fcn)
-     const char *name;
-     SCM (*macroizer) ();
-     SCM (*fcn) ();
+scm_make_synt (const char *name, SCM (*macroizer) (), SCM (*fcn)() )
 {
   SCM symcell = scm_sysintern (name, SCM_UNDEFINED);
   long tmp = ((((SCM_CELLPTR) (SCM_CAR (symcell))) - scm_heap_org) << 8);

@@ -39,6 +39,10 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  
  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 /* regex-posix.c -- POSIX regular expression support.
@@ -79,6 +83,7 @@
 #include "ports.h"
 #include "feature.h"
 
+#include "scm_validate.h"
 #include "regex-posix.h"
 
 /* This is defined by some regex libraries and omitted by others. */
@@ -89,8 +94,7 @@
 long scm_tc16_regex;
 
 static scm_sizet
-free_regex (obj)
-     SCM obj;
+free_regex (SCM obj)
 {
   regfree (SCM_RGX (obj));
   free (SCM_RGX (obj));
@@ -129,26 +133,25 @@ scm_regexp_error_msg (int regerrno, regex_t *rx)
   return SCM_CHARS (errmsg);
 }
 
-SCM_PROC (s_regexp_p, "regexp?", 1, 0, 0, scm_regexp_p);
-
-SCM
-scm_regexp_p (x)
-     SCM x;
+GUILE_PROC (scm_regexp_p, "regexp?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_regexp_p
 {
-  return (SCM_NIMP (x) && SCM_RGXP (x) ? SCM_BOOL_T : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (x) && SCM_RGXP (x));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_make_regexp, "make-regexp", 1, 0, 1, scm_make_regexp);
-
-SCM
-scm_make_regexp (SCM pat, SCM flags)
+GUILE_PROC (scm_make_regexp, "make-regexp", 1, 0, 1, 
+            (SCM pat, SCM flags),
+"")
+#define FUNC_NAME s_scm_make_regexp
 {
   SCM flag;
   regex_t *rx;
   int status, cflags;
 
-  SCM_ASSERT (SCM_NIMP(pat) && SCM_ROSTRINGP(pat), pat, SCM_ARG1, 
-	      s_make_regexp);
+  SCM_VALIDATE_ROSTRING(1,pat);
   SCM_COERCE_SUBSTR (pat);
 
   /* Examine list of regexp flags.  If REG_BASIC is supplied, then
@@ -164,7 +167,7 @@ scm_make_regexp (SCM pat, SCM flags)
       flag = SCM_CDR (flag);
     }
 	  
-  rx = (regex_t *) scm_must_malloc (sizeof (regex_t), s_make_regexp);
+  rx = SCM_MUST_MALLOC_TYPE(regex_t);
   status = regcomp (rx, SCM_ROCHARS (pat),
 		    /* Make sure they're not passing REG_NOSUB;
                        regexp-exec assumes we're getting match data.  */
@@ -172,7 +175,7 @@ scm_make_regexp (SCM pat, SCM flags)
   if (status != 0)
     {
       scm_error (scm_regexp_error_key,
-		 s_make_regexp,
+		 FUNC_NAME,
 		 scm_regexp_error_msg (status, rx),
 		 SCM_BOOL_F,
 		 SCM_BOOL_F);
@@ -180,34 +183,24 @@ scm_make_regexp (SCM pat, SCM flags)
     }
   SCM_RETURN_NEWSMOB (scm_tc16_regex, rx);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_regexp_exec, "regexp-exec", 2, 2, 0, scm_regexp_exec);
-
-SCM
-scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
+GUILE_PROC (scm_regexp_exec, "regexp-exec", 2, 2, 0, 
+            (SCM rx, SCM str, SCM start, SCM flags),
+            "")
+#define FUNC_NAME s_scm_regexp_exec
 {
   int status, nmatches, offset;
   regmatch_t *matches;
   SCM mvec = SCM_BOOL_F;
 
-  SCM_ASSERT (SCM_NIMP (rx) && SCM_RGXP (rx), rx, SCM_ARG1, s_regexp_exec);
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG2,
-	      s_regexp_exec);
-
-  if (SCM_UNBNDP (start))
-    offset = 0;
-  else
-    {
-      SCM_ASSERT (SCM_INUMP (start), start, SCM_ARG3, s_regexp_exec);
-      offset = SCM_INUM (start);
-      SCM_ASSERT (offset >= 0 && (unsigned) offset <= SCM_LENGTH (str), start,
-		  SCM_OUTOFRANGE, s_regexp_exec);
-    }
-
+  SCM_VALIDATE_RGXP(1,rx);
+  SCM_VALIDATE_ROSTRING(2,str);
+  SCM_VALIDATE_INT_DEF_COPY(3,start,0,offset);
+  SCM_ASSERT_RANGE (3,start,offset >= 0 && (unsigned) offset <= SCM_LENGTH (str));
   if (SCM_UNBNDP (flags))
     flags = SCM_INUM0;
-  SCM_ASSERT (SCM_INUMP (flags), flags, SCM_ARG2, s_regexp_exec);
-
+  SCM_VALIDATE_INT(4,flags);
   SCM_COERCE_SUBSTR (str);
 
   /* re_nsub doesn't account for the `subexpression' representing the
@@ -215,8 +208,7 @@ scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
 
   nmatches = SCM_RGX(rx)->re_nsub + 1;
   SCM_DEFER_INTS;
-  matches = (regmatch_t *) scm_must_malloc (sizeof (regmatch_t) * nmatches,
-					    s_regexp_exec);
+  matches = SCM_MUST_MALLOC_TYPE_NUM (regmatch_t,nmatches);
   status = regexec (SCM_RGX (rx), SCM_ROCHARS (str) + offset,
 		    nmatches, matches,
 		    SCM_INUM (flags));
@@ -240,12 +232,13 @@ scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
 
   if (status != 0 && status != REG_NOMATCH)
     scm_error (scm_regexp_error_key,
-	       s_regexp_exec,
+	       FUNC_NAME,
 	       scm_regexp_error_msg (status, SCM_RGX (rx)),
 	       SCM_BOOL_F,
 	       SCM_BOOL_F);
   return mvec;
 }
+#undef FUNC_NAME
 
 void
 scm_init_regex_posix ()

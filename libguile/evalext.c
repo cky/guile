@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include "_scm.h"
@@ -45,6 +49,7 @@
 #include "macros.h"
 #include "modules.h"
 
+#include "scm_validate.h"
 #include "evalext.h"
 
 SCM_SYMBOL (scm_sym_setter, "setter");
@@ -62,14 +67,14 @@ scm_m_generalized_set_x (SCM xorig, SCM env)
   return scm_wta (xorig, scm_s_variable, scm_s_set_x);
 }
 
-SCM_PROC (s_definedp, "defined?", 1, 1, 0, scm_definedp);
-
-SCM 
-scm_definedp (SCM sym, SCM env)
+GUILE_PROC (scm_definedp, "defined?", 1, 1, 0,
+            (SCM sym, SCM env),
+"")
+#define FUNC_NAME s_scm_definedp
 {
   SCM vcell;
 
-  SCM_ASSERT (SCM_NIMP (sym) && SCM_SYMBOLP (sym), sym, SCM_ARG1, s_definedp);
+  SCM_VALIDATE_SYMBOL(1,sym);
 
   if (SCM_UNBNDP (env))
     vcell = scm_sym2vcell(sym,
@@ -81,12 +86,12 @@ scm_definedp (SCM sym, SCM env)
       register SCM b;
       for (; SCM_NIMP (frames); frames = SCM_CDR (frames))
 	{
-	  SCM_ASSERT (SCM_CONSP (frames), env, SCM_ARG2, s_definedp);
+	  SCM_ASSERT (SCM_CONSP (frames), env, SCM_ARG2, FUNC_NAME);
 	  b = SCM_CAR (frames);
 	  if (SCM_NFALSEP (scm_procedure_p (b)))
 	    break;
 	  SCM_ASSERT (SCM_NIMP (b) && SCM_CONSP (b),
-		      env, SCM_ARG2, s_definedp);
+		      env, SCM_ARG2, FUNC_NAME);
 	  for (b = SCM_CAR (b); SCM_NIMP (b); b = SCM_CDR (b))
 	    {
 	      if (SCM_NCONSP (b))
@@ -109,6 +114,7 @@ scm_definedp (SCM sym, SCM env)
 	  ? SCM_BOOL_F
 	  : SCM_BOOL_T);
 }
+#undef FUNC_NAME
 
 
 SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
@@ -145,9 +151,9 @@ scm_m_undefine (x, env)
 }
 
 /* This name is obsolete.  Will be removed in 1.5.  */
-SCM_PROC (s_serial_map, "serial-map", 2, 0, 1, scm_map);
+SCM_REGISTER_PROC (s_serial_map, "serial-map", 2, 0, 1, scm_map);
 
-SCM_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
+SCM_REGISTER_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
 
 void 
 scm_init_evalext ()

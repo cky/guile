@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -48,6 +52,7 @@
 #include "feature.h"
 #include "smob.h"
 
+#include "scm_validate.h"
 #include "numbers.h"
 
 #define DIGITS '0':case '1':case '2':case '3':case '4':\
@@ -90,11 +95,10 @@
 
 
 
-SCM_PROC (s_exact_p, "exact?", 1, 0, 0, scm_exact_p);
-
-SCM
-scm_exact_p (x)
-     SCM x;
+GUILE_PROC (scm_exact_p, "exact?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_exact_p
 {
   if (SCM_INUMP (x))
     return SCM_BOOL_T;
@@ -104,42 +108,43 @@ scm_exact_p (x)
 #endif
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_odd_p, "odd?", 1, 0, 0, scm_odd_p);
-
-SCM
-scm_odd_p (n)
-     SCM n;
+GUILE_PROC (scm_odd_p, "odd?", 1, 0, 0, 
+            (SCM n),
+"")
+#define FUNC_NAME s_scm_odd_p
 {
 #ifdef SCM_BIGDIG
   if (SCM_NINUMP (n))
     {
-      SCM_ASSERT (SCM_NIMP (n) && SCM_BIGP (n), n, SCM_ARG1, s_odd_p);
-      return (1 & SCM_BDIGITS (n)[0]) ? SCM_BOOL_T : SCM_BOOL_F;
+      SCM_VALIDATE_BIGINT(1,n);
+      return SCM_BOOL(1 & SCM_BDIGITS (n)[0]);
     }
 #else
-  SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_odd_p);
+  SCM_VALIDATE_INT(1,n);
 #endif
-  return (4 & (int) n) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(4 & (int) n);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_even_p, "even?", 1, 0, 0, scm_even_p);
-
-SCM
-scm_even_p (n)
-     SCM n;
+GUILE_PROC (scm_even_p, "even?", 1, 0, 0, 
+            (SCM n),
+"")
+#define FUNC_NAME s_scm_even_p
 {
 #ifdef SCM_BIGDIG
   if (SCM_NINUMP (n))
     {
-      SCM_ASSERT (SCM_NIMP (n) && SCM_BIGP (n), n, SCM_ARG1, s_even_p);
-      return (1 & SCM_BDIGITS (n)[0]) ? SCM_BOOL_F : SCM_BOOL_T;
+      SCM_VALIDATE_BIGINT(1,n);
+      return SCM_NEGATE_BOOL(1 & SCM_BDIGITS (n)[0]);
     }
 #else
-  SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_even_p);
+  SCM_VALIDATE_INT(1,n);
 #endif
-  return (4 & (int) n) ? SCM_BOOL_F : SCM_BOOL_T;
+  return SCM_NEGATE_BOOL(4 & (int) n);
 }
+#undef FUNC_NAME
 
 SCM_GPROC (s_abs, "abs", 1, 0, 0, scm_abs, g_abs);
 
@@ -516,210 +521,217 @@ scm_lcm (n1, n2)
 #endif
 
 #ifndef scm_long2num
-SCM_PROC1 (s_logand, "logand", scm_tc7_asubr, scm_logand);
-
-SCM
-scm_logand (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC1 (scm_logand, "logand", scm_tc7_asubr,
+             (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logand
 {
+  int i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_MAKINUM (-1);
       return n1;
     }
-  return scm_ulong2num (scm_num2ulong (n1, (char *) SCM_ARG1, s_logand)
-			& scm_num2ulong (n2, (char *) SCM_ARG2, s_logand));
+  SCM_VALIDATE_INT_COPY(1,n1,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return scm_ulong2num (i1 & i2);
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_logior, "logior", scm_tc7_asubr, scm_logior);
-
-SCM
-scm_logior (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC1 (scm_logior, "logior", scm_tc7_asubr,
+             (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logior
 {
+  int i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_INUM0;
       return n1;
     }
-  return scm_ulong2num (scm_num2ulong (n1, (char *) SCM_ARG1, s_logior)
-			| scm_num2ulong (n2, (char *) SCM_ARG2, s_logior));
+  SCM_VALIDATE_INT_COPY(1,n1,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return scm_ulong2num (i1 | i2);
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_logxor, "logxor", scm_tc7_asubr, scm_logxor);
-
-SCM
-scm_logxor (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC1 (scm_logxor, "logxor", scm_tc7_asubr,
+             (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logxor
 {
+  int i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_INUM0;
       return n1;
     }
-  return scm_ulong2num (scm_num2ulong (n1, (char *) SCM_ARG1, s_logxor)
-			^ scm_num2ulong (n2, (char *) SCM_ARG2, s_logxor));
+  SCM_VALIDATE_INT_COPY(1,n1,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return scm_ulong2num (i1 ^ i2);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_logtest, "logtest", 2, 0, 0, scm_logtest);
-
-SCM
-scm_logtest (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC (scm_logtest, "logtest", 2, 0, 0,
+            (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logtest
 {
-  return ((scm_num2ulong (n1, (char *) SCM_ARG1, s_logtest)
-	   & scm_num2ulong (n2, (char *) SCM_ARG2, s_logtest))
-	  ? SCM_BOOL_T : SCM_BOOL_F);
+  int i1, i2;
+  SCM_VALIDATE_INT_COPY(1,n1,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return SCM_BOOL(i1 & i2);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_logbit_p, "logbit?", 2, 0, 0, scm_logbit_p);
-
-SCM
-scm_logbit_p (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC (scm_logbit_p, "logbit?", 2, 0, 0,
+            (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logbit_p
 {
-  return (((1 << scm_num2long (n1, (char *) SCM_ARG1, s_logtest))
-	   & scm_num2ulong (n2, (char *) SCM_ARG2, s_logtest))
-	  ? SCM_BOOL_T : SCM_BOOL_F);
+  int i1, i2;
+  SCM_VALIDATE_INT_COPY(1,n1,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return SCM_BOOL((1 << i1) & i2);
 }
+#undef FUNC_NAME
 
 #else
 
-SCM_PROC1 (s_logand, "logand", scm_tc7_asubr, scm_logand);
-
-SCM
-scm_logand (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC1 (scm_logand, "logand", scm_tc7_asubr,
+             (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logand
 {
+  int i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_MAKINUM (-1);
       return n1;
     }
-  return SCM_MAKINUM (SCM_INUM (n1) & SCM_INUM (n2));
+  SCM_VALIDATE_INT_COPY(1,n1,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return SCM_MAKINUM (i1 & i2);
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_logior, "logior", scm_tc7_asubr, scm_logior);
-
-SCM
-scm_logior (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC1 (scm_logior, "logior", scm_tc7_asubr,
+             (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logior
 {
+  int i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_INUM0;
       return n1;
     }
-  return SCM_MAKINUM (SCM_INUM (n1) | SCM_INUM (n2));
+  SCM_VALIDATE_INT_COPY(1,n1,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return SCM_MAKINUM (i1 | i2);
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_logxor, "logxor", scm_tc7_asubr, scm_logxor);
-
-SCM
-scm_logxor (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC1 (scm_logxor, "logxor", scm_tc7_asubr,
+             (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logxor
 {
+  int i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_INUM0;
       return n1;
     }
-  return SCM_MAKINUM (SCM_INUM (n1) ^ SCM_INUM (n2));
+  SCM_VALIDATE_INT_COPY(1,n1,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return SCM_MAKINUM (i1 ^ i2);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_logtest, "logtest", 2, 0, 0, scm_logtest);
-
-SCM
-scm_logtest (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC (scm_logtest, "logtest", 2, 0, 0,
+            (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logtest
 {
-  SCM_ASSERT (SCM_INUMP (n1), n1, SCM_ARG1, s_logtest);
-  SCM_ASSERT (SCM_INUMP (n2), n2, SCM_ARG2, s_logtest);
-  return (SCM_INUM (n1) & SCM_INUM (n2)) ? SCM_BOOL_T : SCM_BOOL_F;
+  int i1, i2;
+  SCM_VALIDATE_INT_COPY(1,n1,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return SCM_BOOL(i1 & i2);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_logbit_p, "logbit?", 2, 0, 0, scm_logbit_p);
-
-SCM
-scm_logbit_p (n1, n2)
-     SCM n1;
-     SCM n2;
+GUILE_PROC (scm_logbit_p, "logbit?", 2, 0, 0,
+            (SCM n1, SCM n2),
+"")
+#define FUNC_NAME s_scm_logbit_p
 {
-  SCM_ASSERT (SCM_INUMP (n1) && SCM_INUM (n1) >= 0, n1, SCM_ARG1, s_logbit_p);
-  SCM_ASSERT (SCM_INUMP (n2), n2, SCM_ARG2, s_logbit_p);
-  return ((1 << SCM_INUM (n1)) & SCM_INUM (n2)) ? SCM_BOOL_T : SCM_BOOL_F;
+  int i1, i2;
+  SCM_VALIDATE_INT_MIN_COPY(1,n1,0,i1);
+  SCM_VALIDATE_INT_COPY(2,n2,i2);
+  return SCM_BOOL((1 << i1) & i2);
 }
+#undef FUNC_NAME
 #endif
 
-SCM_PROC (s_lognot, "lognot", 1, 0, 0, scm_lognot);
-
-SCM
-scm_lognot (n)
-     SCM n;
+GUILE_PROC (scm_lognot, "lognot", 1, 0, 0, 
+            (SCM n),
+"")
+#define FUNC_NAME s_scm_lognot
 {
-  SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_lognot);
+  SCM_VALIDATE_INT(1,n);
   return scm_difference (SCM_MAKINUM (-1L), n);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_integer_expt, "integer-expt", 2, 0, 0, scm_integer_expt);
-
-SCM
-scm_integer_expt (z1, z2)
-     SCM z1;
-     SCM z2;
+GUILE_PROC (scm_integer_expt, "integer-expt", 2, 0, 0,
+            (SCM z1, SCM z2),
+"")
+#define FUNC_NAME s_scm_integer_expt
 {
   SCM acc = SCM_MAKINUM (1L);
+  int i2;
 #ifdef SCM_BIGDIG
   if (SCM_INUM0 == z1 || acc == z1)
     return z1;
   else if (SCM_MAKINUM (-1L) == z1)
     return SCM_BOOL_F == scm_even_p (z2) ? z1 : acc;
 #endif
-  SCM_ASSERT (SCM_INUMP (z2), z2, SCM_ARG2, s_integer_expt);
-  z2 = SCM_INUM (z2);
-  if (z2 < 0)
+  SCM_VALIDATE_INT_COPY(2,z2,i2);
+  if (i2 < 0)
     {
-      z2 = -z2;
+      i2 = -i2;
       z1 = scm_divide (z1, SCM_UNDEFINED);
     }
   while (1)
     {
-      if (0 == z2)
+      if (0 == i2)
 	return acc;
-      if (1 == z2)
+      if (1 == i2)
 	return scm_product (acc, z1);
-      if (z2 & 1)
+      if (i2 & 1)
 	acc = scm_product (acc, z1);
       z1 = scm_product (z1, z1);
-      z2 >>= 1;
+      i2 >>= 1;
     }
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_ash, "ash", 2, 0, 0, scm_ash);
-
-SCM
-scm_ash (n, cnt)
-     SCM n;
-     SCM cnt;
+GUILE_PROC (scm_ash, "ash", 2, 0, 0,
+            (SCM n, SCM cnt),
+"")
+#define FUNC_NAME s_scm_ash
 {
+  /* GJB:FIXME:: what is going on here? */
   SCM res = SCM_INUM (n);
-  SCM_ASSERT (SCM_INUMP (cnt), cnt, SCM_ARG2, s_ash);
+  SCM_VALIDATE_INT(2,cnt);
 #ifdef SCM_BIGDIG
   if (cnt < 0)
     {
@@ -733,30 +745,30 @@ scm_ash (n, cnt)
   else
     return scm_product (n, scm_integer_expt (SCM_MAKINUM (2), cnt));
 #else
-  SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_ash);
+  SCM_VALIDATE_INT(1,n)
   cnt = SCM_INUM (cnt);
   if (cnt < 0)
     return SCM_MAKINUM (SCM_SRS (res, -cnt));
   res = SCM_MAKINUM (res << cnt);
   if (SCM_INUM (res) >> cnt != SCM_INUM (n))
-    scm_num_overflow (s_ash);
+    scm_num_overflow (FUNC_NAME);
   return res;
 #endif
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_bit_extract, "bit-extract", 3, 0, 0, scm_bit_extract);
-
-SCM
-scm_bit_extract (n, start, end)
-     SCM n;
-     SCM start;
-     SCM end;
+/* GJB:FIXME: do not use SCMs as integers! */
+GUILE_PROC (scm_bit_extract, "bit-extract", 3, 0, 0,
+            (SCM n, SCM start, SCM end),
+"")
+#define FUNC_NAME s_scm_bit_extract
 {
-  SCM_ASSERT (SCM_INUMP (start), start, SCM_ARG2, s_bit_extract);
-  SCM_ASSERT (SCM_INUMP (end), end, SCM_ARG3, s_bit_extract);
+  SCM_VALIDATE_INT(1,n);
+  SCM_VALIDATE_INT_MIN(2,start,0);
+  SCM_VALIDATE_INT_MIN(3,end,0);
   start = SCM_INUM (start);
   end = SCM_INUM (end);
-  SCM_ASSERT (end >= start, SCM_MAKINUM (end), SCM_OUTOFRANGE, s_bit_extract);
+  SCM_ASSERT (end >= start, SCM_MAKINUM (end), SCM_OUTOFRANGE, FUNC_NAME);
 #ifdef SCM_BIGDIG
   if (SCM_NINUMP (n))
     return
@@ -765,19 +777,20 @@ scm_bit_extract (n, start, end)
 				  SCM_MAKINUM (1L)),
 		  scm_ash (n, SCM_MAKINUM (-start)));
 #else
-  SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_bit_extract);
+  SCM_VALIDATE_INT(1,n);
 #endif
   return SCM_MAKINUM ((SCM_INUM (n) >> start) & ((1L << (end - start)) - 1));
 }
+#undef FUNC_NAME
 
 static const char scm_logtab[] = {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
 };
-SCM_PROC (s_logcount, "logcount", 1, 0, 0, scm_logcount);
 
-SCM
-scm_logcount (n)
-     SCM n;
+GUILE_PROC (scm_logcount, "logcount", 1, 0, 0,
+            (SCM n),
+"")
+#define FUNC_NAME s_scm_logcount
 {
   register unsigned long c = 0;
   register long nn;
@@ -786,7 +799,7 @@ scm_logcount (n)
     {
       scm_sizet i;
       SCM_BIGDIG *ds, d;
-      SCM_ASSERT (SCM_NIMP (n) && SCM_BIGP (n), n, SCM_ARG1, s_logcount);
+      SCM_VALIDATE_BIGINT(1,n);
       if (SCM_BIGSIGN (n))
 	return scm_logcount (scm_difference (SCM_MAKINUM (-1L), n));
       ds = SCM_BDIGITS (n);
@@ -796,7 +809,7 @@ scm_logcount (n)
       return SCM_MAKINUM (c);
     }
 #else
-  SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_logcount);
+  SCM_VALIDATE_INT(1,n);
 #endif
   if ((nn = SCM_INUM (n)) < 0)
     nn = -1 - nn;
@@ -804,15 +817,17 @@ scm_logcount (n)
     c += scm_logtab[15 & nn];
   return SCM_MAKINUM (c);
 }
+#undef FUNC_NAME
+
 
 static const char scm_ilentab[] = {
   0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4
 };
-SCM_PROC (s_integer_length, "integer-length", 1, 0, 0, scm_integer_length);
 
-SCM
-scm_integer_length (n)
-     SCM n;
+GUILE_PROC (scm_integer_length, "integer-length", 1, 0, 0,
+            (SCM n),
+"")
+#define FUNC_NAME s_scm_integer_length
 {
   register unsigned long c = 0;
   register long nn;
@@ -821,7 +836,7 @@ scm_integer_length (n)
   if (SCM_NINUMP (n))
     {
       SCM_BIGDIG *ds, d;
-      SCM_ASSERT (SCM_NIMP (n) && SCM_BIGP (n), n, SCM_ARG1, s_integer_length);
+      SCM_VALIDATE_BIGINT(1,n);
       if (SCM_BIGSIGN (n))
 	return scm_integer_length (scm_difference (SCM_MAKINUM (-1L), n));
       ds = SCM_BDIGITS (n);
@@ -834,7 +849,7 @@ scm_integer_length (n)
       return SCM_MAKINUM (c - 4 + l);
     }
 #else
-  SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_integer_length);
+  SCM_VALIDATE_INT(1,n);
 #endif
   if ((nn = SCM_INUM (n)) < 0)
     nn = -1 - nn;
@@ -845,15 +860,14 @@ scm_integer_length (n)
     }
   return SCM_MAKINUM (c - 4 + l);
 }
+#undef FUNC_NAME
 
 
 #ifdef SCM_BIGDIG
 static const char s_bignum[] = "bignum";
 
 SCM
-scm_mkbig (nlen, sign)
-     scm_sizet nlen;
-     int sign;
+scm_mkbig (scm_sizet nlen, int sign)
 {
   SCM v = nlen;
   /* Cast to SCM to avoid signed/unsigned comparison warnings.  */
@@ -870,9 +884,7 @@ scm_mkbig (nlen, sign)
 
 
 SCM
-scm_big2inum (b, l)
-     SCM b;
-     scm_sizet l;
+scm_big2inum (SCM b, scm_sizet l)
 {
   unsigned long num = 0;
   SCM_BIGDIG *tmp = SCM_BDIGITS (b);
@@ -892,9 +904,7 @@ scm_big2inum (b, l)
 static const char s_adjbig[] = "scm_adjbig";
 
 SCM
-scm_adjbig (b, nlen)
-     SCM b;
-     scm_sizet nlen;
+scm_adjbig (SCM b, scm_sizet nlen)
 {
   scm_sizet nsiz = nlen;
   if (((nsiz << 16) >> 16) != nlen)
@@ -918,8 +928,7 @@ scm_adjbig (b, nlen)
 
 
 SCM
-scm_normbig (b)
-     SCM b;
+scm_normbig (SCM b)
 {
 #ifndef _UNICOS
   scm_sizet nlen = SCM_NUMDIGS (b);
@@ -940,9 +949,7 @@ scm_normbig (b)
 
 
 SCM
-scm_copybig (b, sign)
-     SCM b;
-     int sign;
+scm_copybig (SCM b, int sign)
 {
   scm_sizet i = SCM_NUMDIGS (b);
   SCM ans = scm_mkbig (i, sign);
@@ -955,8 +962,7 @@ scm_copybig (b, sign)
 
 
 SCM
-scm_long2big (n)
-     long n;
+scm_long2big (long n)
 {
   scm_sizet i = 0;
   SCM_BIGDIG *digits;
@@ -975,8 +981,7 @@ scm_long2big (n)
 #ifdef HAVE_LONG_LONGS
 
 SCM
-scm_long_long2big (n)
-     long_long n;
+scm_long_long2big (long_long n)
 {
   scm_sizet i;
   SCM_BIGDIG *digits;
@@ -1015,8 +1020,7 @@ scm_long_long2big (n)
 
 
 SCM
-scm_2ulong2big (np)
-     unsigned long *np;
+scm_2ulong2big (unsigned long *np)
 {
   unsigned long n;
   scm_sizet i;
@@ -1044,8 +1048,7 @@ scm_2ulong2big (np)
 
 
 SCM
-scm_ulong2big (n)
-     unsigned long n;
+scm_ulong2big (unsigned long n)
 {
   scm_sizet i = 0;
   SCM_BIGDIG *digits;
@@ -1062,9 +1065,7 @@ scm_ulong2big (n)
 
 
 int
-scm_bigcomp (x, y)
-     SCM x;
-     SCM y;
+scm_bigcomp (SCM x, SCM y)
 {
   int xsign = SCM_BIGSIGN (x);
   int ysign = SCM_BIGSIGN (y);
@@ -1105,8 +1106,7 @@ scm_bigcomp (x, y)
 
 
 long
-scm_pseudolong (x)
-     long x;
+scm_pseudolong (long x)
 {
   union
   {
@@ -1130,9 +1130,7 @@ scm_pseudolong (x)
 
 
 void
-scm_longdigs (x, digs)
-     long x;
-     SCM_BIGDIG digs[];
+scm_longdigs (long x, SCM_BIGDIG digs[])
 {
   scm_sizet i = 0;
   if (x < 0)
@@ -1148,12 +1146,7 @@ scm_longdigs (x, digs)
 
 
 SCM
-scm_addbig (x, nx, xsgn, bigy, sgny)
-     SCM_BIGDIG *x;
-     scm_sizet nx;
-     int xsgn;
-     SCM bigy;
-     int sgny;
+scm_addbig (SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int sgny)
 {
   /* Assumes nx <= SCM_NUMDIGS(bigy) */
   /* Assumes xsgn and sgny scm_equal either 0 or 0x0100 */
@@ -1238,12 +1231,7 @@ scm_addbig (x, nx, xsgn, bigy, sgny)
 
 
 SCM
-scm_mulbig (x, nx, y, ny, sgn)
-     SCM_BIGDIG *x;
-     scm_sizet nx;
-     SCM_BIGDIG *y;
-     scm_sizet ny;
-     int sgn;
+scm_mulbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn)
 {
   scm_sizet i = 0, j = nx + ny;
   unsigned long n = 0;
@@ -1299,11 +1287,7 @@ scm_divbigdig (SCM_BIGDIG * ds,
 
 
 SCM
-scm_divbigint (x, z, sgn, mode)
-     SCM x;
-     long z;
-     int sgn;
-     int mode;
+scm_divbigint (SCM x, long z, int sgn, int mode)
 {
   if (z < 0)
     z = -z;
@@ -1336,13 +1320,7 @@ scm_divbigint (x, z, sgn, mode)
 
 
 SCM
-scm_divbigbig (x, nx, y, ny, sgn, modes)
-     SCM_BIGDIG *x;
-     scm_sizet nx;
-     SCM_BIGDIG *y;
-     scm_sizet ny;
-     int sgn;
-     int modes;
+scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn, int modes)
 {
   /* modes description
      0  remainder
@@ -1551,12 +1529,8 @@ static const double fx[] =
 
 
 
-static scm_sizet idbl2str SCM_P ((double f, char *a));
-
 static scm_sizet
-idbl2str (f, a)
-     double f;
-     char *a;
+idbl2str (double f, char *a)
 {
   int efmt, dpt, d, i, wp = scm_dblprec;
   scm_sizet ch = 0;
@@ -1695,12 +1669,8 @@ idbl2str (f, a)
 }
 
 
-static scm_sizet iflo2str SCM_P ((SCM flt, char *str));
-
 static scm_sizet
-iflo2str (flt, str)
-     SCM flt;
-     char *str;
+iflo2str (SCM flt, char *str)
 {
   scm_sizet i;
 #ifdef SCM_SINGLES
@@ -1721,12 +1691,11 @@ iflo2str (flt, str)
 #endif /* SCM_FLOATS */
 
 /* convert a long to a string (unterminated).  returns the number of
-   characters in the result.  */
+   characters in the result. 
+   rad is output base
+   p is destination: worst case (base 2) is SCM_INTBUFLEN  */
 scm_sizet
-scm_iint2str (num, rad, p)
-     long num;
-     int rad;  /* output base.  */
-     char *p;  /* destination: worst case (base 2) is SCM_INTBUFLEN. */
+scm_iint2str (long num, int rad, char *p)
 {
   scm_sizet j = 1;
   scm_sizet i;
@@ -1757,12 +1726,8 @@ scm_iint2str (num, rad, p)
 
 #ifdef SCM_BIGDIG
 
-static SCM big2str SCM_P ((SCM b, register unsigned int radix));
-
 static SCM
-big2str (b, radix)
-     SCM b;
-     register unsigned int radix;
+big2str (SCM b, unsigned int radix)
 {
   SCM t = scm_copybig (b, 0);	/* sign of temp doesn't matter */
   register SCM_BIGDIG *ds = SCM_BDIGITS (t);
@@ -1810,21 +1775,13 @@ big2str (b, radix)
 #endif
 
 
-SCM_PROC (s_number_to_string, "number->string", 1, 1, 0, scm_number_to_string);
-
-SCM
-scm_number_to_string (x, radix)
-     SCM x;
-     SCM radix;
+GUILE_PROC (scm_number_to_string, "number->string", 1, 1, 0,
+            (SCM x, SCM radix),
+"")
+#define FUNC_NAME s_scm_number_to_string
 {
-  if (SCM_UNBNDP (radix))
-    radix = SCM_MAKINUM (10L);
-  else
-    {
-      SCM_ASSERT (SCM_INUMP (radix), radix, SCM_ARG2, s_number_to_string);
-      SCM_ASSERT (SCM_INUM (radix) >= 2, radix, SCM_OUTOFRANGE,
-		  s_number_to_string);
-    }
+  int base;
+  SCM_VALIDATE_INT_MIN_DEF_COPY(2,radix,2,10,base);
 #ifdef SCM_FLOATS
   if (SCM_NINUMP (x))
     {
@@ -1832,12 +1789,12 @@ scm_number_to_string (x, radix)
 #ifdef SCM_BIGDIG
       SCM_ASRTGO (SCM_NIMP (x), badx);
       if (SCM_BIGP (x))
-	return big2str (x, (unsigned int) SCM_INUM (radix));
+	return big2str (x, (unsigned int) base);
 #ifndef SCM_RECKLESS
       if (!(SCM_INEXP (x)))
 	{
 	badx:
-	  scm_wta (x, (char *) SCM_ARG1, s_number_to_string);
+	  scm_wta (x, (char *) SCM_ARG1, FUNC_NAME);
 	}
 #endif
 #else
@@ -1852,7 +1809,7 @@ scm_number_to_string (x, radix)
     {
       SCM_ASSERT (SCM_NIMP (x) && SCM_BIGP (x),
 		  x, SCM_ARG1, s_number_to_string);
-      return big2str (x, (unsigned int) SCM_INUM (radix));
+      return big2str (x, (unsigned int) base);
     }
 #else
   SCM_ASSERT (SCM_INUMP (x), x, SCM_ARG1, s_number_to_string);
@@ -1862,21 +1819,19 @@ scm_number_to_string (x, radix)
     char num_buf[SCM_INTBUFLEN];
     return scm_makfromstr (num_buf,
 			   scm_iint2str (SCM_INUM (x),
-					 (int) SCM_INUM (radix),
+					 base,
 					 num_buf),
 			   0);
   }
 }
+#undef FUNC_NAME
 
 
 /* These print routines are stubbed here so that scm_repl.c doesn't need
    SCM_FLOATS or SCM_BIGDIGs conditionals */
 
 int
-scm_floprint (sexp, port, pstate)
-     SCM sexp;
-     SCM port;
-     scm_print_state *pstate;
+scm_floprint (SCM sexp, SCM port, scm_print_state *pstate)
 {
 #ifdef SCM_FLOATS
   char num_buf[SCM_FLOBUFLEN];
@@ -1890,10 +1845,7 @@ scm_floprint (sexp, port, pstate)
 
 
 int
-scm_bigprint (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+scm_bigprint (SCM exp, SCM port, scm_print_state *pstate)
 {
 #ifdef SCM_BIGDIG
   exp = big2str (exp, (unsigned int) 10);
@@ -1907,13 +1859,8 @@ scm_bigprint (exp, port, pstate)
 
 /*** STRINGS -> NUMBERS ***/
 
-static SCM scm_small_istr2int SCM_P ((char *str, long len, long radix));
-
 static SCM
-scm_small_istr2int (str, len, radix)
-     char *str;
-     long len;
-     long radix;
+scm_small_istr2int (char *str, long len, long radix)
 {
   register long n = 0, ln;
   register int c;
@@ -1977,10 +1924,7 @@ scm_small_istr2int (str, len, radix)
 
 
 SCM
-scm_istr2int (str, len, radix)
-     char *str;
-     long len;
-     long radix;
+scm_istr2int (char *str, long len, long radix)
 {
   scm_sizet j;
   register scm_sizet k, blen = 1;
@@ -2074,10 +2018,7 @@ scm_istr2int (str, len, radix)
 #ifdef SCM_FLOATS
 
 SCM
-scm_istr2flo (str, len, radix)
-     char *str;
-     long len;
-     long radix;
+scm_istr2flo (char *str, long len, long radix)
 {
   register int c, i = 0;
   double lead_sgn;
@@ -2366,10 +2307,7 @@ scm_istr2flo (str, len, radix)
 
 
 SCM
-scm_istring2number (str, len, radix)
-     char *str;
-     long len;
-     long radix;
+scm_istring2number (char *str, long len, long radix)
 {
   int i = 0;
   char ex = 0;
@@ -2439,37 +2377,27 @@ scm_istring2number (str, len, radix)
 }
 
 
-SCM_PROC (s_string_to_number, "string->number", 1, 1, 0, scm_string_to_number);
-
-SCM
-scm_string_to_number (str, radix)
-     SCM str;
-     SCM radix;
+GUILE_PROC (scm_string_to_number, "string->number", 1, 1, 0,
+            (SCM str, SCM radix),
+"")
+#define FUNC_NAME s_scm_string_to_number
 {
   SCM answer;
-  if (SCM_UNBNDP (radix))
-    radix = SCM_MAKINUM (10L);
-  else
-    {
-      SCM_ASSERT (SCM_INUMP (radix), radix, SCM_ARG2, s_string_to_number);
-      SCM_ASSERT (SCM_INUM (radix) >= 2, radix, SCM_OUTOFRANGE,
-		  s_number_to_string);
-    }
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str),
-	      str, SCM_ARG1, s_string_to_number);
+  int base;
+  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_INT_MIN_DEF_COPY(2,radix,2,10,base);
   answer = scm_istring2number (SCM_ROCHARS (str),
 			       SCM_ROLENGTH (str),
-			       SCM_INUM (radix));
+                               base);
   return scm_return_first (answer, str);
 }
+#undef FUNC_NAME
 /*** END strs->nums ***/
 
 #ifdef SCM_FLOATS
 
 SCM
-scm_makdbl (x, y)
-     double x;
-     double y;
+scm_makdbl (double x, double y)
 {
   SCM z;
   if ((y == 0.0) && (x == 0.0))
@@ -2505,9 +2433,7 @@ scm_makdbl (x, y)
 
 
 SCM
-scm_bigequal (x, y)
-     SCM x;
-     SCM y;
+scm_bigequal (SCM x, SCM y)
 {
 #ifdef SCM_BIGDIG
   if (0 == scm_bigcomp (x, y))
@@ -2519,9 +2445,7 @@ scm_bigequal (x, y)
 
 
 SCM
-scm_floequal (x, y)
-     SCM x;
-     SCM y;
+scm_floequal (SCM x, SCM y)
 {
 #ifdef SCM_FLOATS
   if (SCM_REALPART (x) != SCM_REALPART (y))
@@ -2535,12 +2459,12 @@ scm_floequal (x, y)
 
 
 
-SCM_PROC (s_number_p, "number?", 1, 0, 0, scm_number_p);
-SCM_PROC (s_complex_p, "complex?", 1, 0, 0, scm_number_p);
+SCM_REGISTER_PROC (s_number_p, "number?", 1, 0, 0, scm_number_p);
 
-SCM
-scm_number_p (x)
-     SCM x;
+GUILE_PROC (scm_number_p, "complex?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_number_p
 {
   if (SCM_INUMP (x))
     return SCM_BOOL_T;
@@ -2555,16 +2479,18 @@ scm_number_p (x)
 #endif
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 
 #ifdef SCM_FLOATS
-SCM_PROC (s_real_p, "real?", 1, 0, 0, scm_real_p);
-SCM_PROC (s_rational_p, "rational?", 1, 0, 0, scm_real_p);
+SCM_REGISTER_PROC (s_real_p, "real?", 1, 0, 0, scm_real_p);
 
-SCM
-scm_real_p (x)
-     SCM x;
+
+GUILE_PROC (scm_real_p, "rational?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_real_p
 {
   if (SCM_INUMP (x))
     return SCM_BOOL_T;
@@ -2578,14 +2504,14 @@ scm_real_p (x)
 #endif
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_int_p, "integer?", 1, 0, 0, scm_integer_p);
-
-SCM
-scm_integer_p (x)
-     SCM x;
+GUILE_PROC (scm_integer_p, "integer?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_integer_p
 {
   double r;
   if (SCM_INUMP (x))
@@ -2605,16 +2531,16 @@ scm_integer_p (x)
     return SCM_BOOL_T;
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 
 #endif /* SCM_FLOATS */
 
-SCM_PROC (s_inexact_p, "inexact?", 1, 0, 0, scm_inexact_p);
-
-SCM
-scm_inexact_p (x)
-     SCM x;
+GUILE_PROC (scm_inexact_p, "inexact?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_inexact_p
 {
 #ifdef SCM_FLOATS
   if (SCM_NIMP (x) && SCM_INEXP (x))
@@ -2622,6 +2548,7 @@ scm_inexact_p (x)
 #endif
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 
@@ -2840,39 +2767,36 @@ scm_less_p (x, y)
 }
 
 
-SCM_PROC1 (s_gr_p, ">", scm_tc7_rpsubr, scm_gr_p);
-
-SCM
-scm_gr_p (x, y)
-     SCM x;
-     SCM y;
+GUILE_PROC1 (scm_gr_p, ">", scm_tc7_rpsubr,
+             (SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_gr_p
 {
   return scm_less_p (y, x);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC1 (s_leq_p, "<=", scm_tc7_rpsubr, scm_leq_p);
-
-SCM
-scm_leq_p (x, y)
-     SCM x;
-     SCM y;
+GUILE_PROC1 (scm_leq_p, "<=", scm_tc7_rpsubr,
+             (SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_leq_p
 {
   return SCM_BOOL_NOT (scm_less_p (y, x));
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC1 (s_geq_p, ">=", scm_tc7_rpsubr, scm_geq_p);
-
-SCM
-scm_geq_p (x, y)
-     SCM x;
-     SCM y;
+GUILE_PROC1 (scm_geq_p, ">=", scm_tc7_rpsubr,
+             (SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_geq_p
 {
   return SCM_BOOL_NOT (scm_less_p (x, y));
 }
+#undef FUNC_NAME
 
 
 
@@ -4269,59 +4193,55 @@ scm_two_doubles (z1, z2, sstring, xy)
 
 
 
-SCM_PROC (s_sys_expt, "$expt", 2, 0, 0, scm_sys_expt);
-
-SCM
-scm_sys_expt (z1, z2)
-     SCM z1;
-     SCM z2;
+GUILE_PROC (scm_sys_expt, "$expt", 2, 0, 0,
+            (SCM z1, SCM z2),
+"")
+#define FUNC_NAME s_scm_sys_expt
 {
   struct dpair xy;
-  scm_two_doubles (z1, z2, s_sys_expt, &xy);
+  scm_two_doubles (z1, z2, FUNC_NAME, &xy);
   return scm_makdbl (pow (xy.x, xy.y), 0.0);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_sys_atan2, "$atan2", 2, 0, 0, scm_sys_atan2);
-
-SCM
-scm_sys_atan2 (z1, z2)
-     SCM z1;
-     SCM z2;
+GUILE_PROC (scm_sys_atan2, "$atan2", 2, 0, 0,
+            (SCM z1, SCM z2),
+"")
+#define FUNC_NAME s_scm_sys_atan2
 {
   struct dpair xy;
-  scm_two_doubles (z1, z2, s_sys_atan2, &xy);
+  scm_two_doubles (z1, z2, FUNC_NAME, &xy);
   return scm_makdbl (atan2 (xy.x, xy.y), 0.0);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_make_rectangular, "make-rectangular", 2, 0, 0, scm_make_rectangular);
-
-SCM
-scm_make_rectangular (z1, z2)
-     SCM z1;
-     SCM z2;
+GUILE_PROC (scm_make_rectangular, "make-rectangular", 2, 0, 0,
+            (SCM z1, SCM z2),
+"")
+#define FUNC_NAME s_scm_make_rectangular
 {
   struct dpair xy;
-  scm_two_doubles (z1, z2, s_make_rectangular, &xy);
+  scm_two_doubles (z1, z2, FUNC_NAME, &xy);
   return scm_makdbl (xy.x, xy.y);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_make_polar, "make-polar", 2, 0, 0, scm_make_polar);
-
-SCM
-scm_make_polar (z1, z2)
-     SCM z1;
-     SCM z2;
+GUILE_PROC (scm_make_polar, "make-polar", 2, 0, 0,
+            (SCM z1, SCM z2),
+"")
+#define FUNC_NAME s_scm_make_polar
 {
   struct dpair xy;
-  scm_two_doubles (z1, z2, s_make_polar, &xy);
+  scm_two_doubles (z1, z2, FUNC_NAME, &xy);
   return scm_makdbl (xy.x * cos (xy.y), xy.x * sin (xy.y));
 }
+#undef FUNC_NAME
 
 
 
@@ -4454,11 +4374,10 @@ scm_angle (z)
 }
 
 
-SCM_PROC (s_inexact_to_exact, "inexact->exact", 1, 0, 0, scm_inexact_to_exact);
-
-SCM
-scm_inexact_to_exact (z)
-     SCM z;
+GUILE_PROC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0, 
+            (SCM z),
+"")
+#define FUNC_NAME s_scm_inexact_to_exact
 {
   if (SCM_INUMP (z))
     return z;
@@ -4470,11 +4389,11 @@ scm_inexact_to_exact (z)
   if (!(SCM_REALP (z)))
     {
     badz:
-      scm_wta (z, (char *) SCM_ARG1, s_inexact_to_exact);
+      scm_wta (z, (char *) SCM_ARG1, FUNC_NAME);
     }
 #endif
 #else
-  SCM_ASSERT (SCM_NIMP (z) && SCM_REALP (z), z, SCM_ARG1, s_inexact_to_exact);
+  SCM_VALIDATE_REAL(1,z);
 #endif
 #ifdef SCM_BIGDIG
   {
@@ -4493,6 +4412,7 @@ scm_inexact_to_exact (z)
   return SCM_MAKINUM ((long) floor (SCM_REALPART (z) + 0.5));
 #endif
 }
+#undef FUNC_NAME
 
 
 
@@ -4813,7 +4733,6 @@ scm_num2ulong (num, pos, s_caller)
 
 #ifdef SCM_FLOATS
 #ifndef DBL_DIG
-static void add1 SCM_P ((double f, double *fsum));
 static void
 add1 (f, fsum)
      double f, *fsum;

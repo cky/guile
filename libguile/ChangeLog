@@ -1,3 +1,44 @@
+Sat Dec 11 18:34:12 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* Makefile.am: Added scm_validate.h to modinclude_HEADERS.
+
+	* *.c: Pervasive software-engineering-motivated rewrite of
+ 	function headers and argument checking.  Switched SCM_PROC,
+ 	SCM_PROC1 macros to be GUILE_PROC, GUILE_PROC1 (may change names
+ 	later, but was useful to keep old versions around while migrate)
+ 	that has docstrings and argument lists embedded in the GUILE_PROC
+ 	macro invocations that expand into a function header.  Use lots of
+ 	new SCM_VALIDATE_* macros to simplify error checking and reduce
+ 	tons of redundancy.  This is very similar to what I did for Scwm.
+
+	Note that none of the extraction of the docstrings, nor software
+ 	engineering checks of Scwm is yet added to Guile.  I'll work on
+ 	that tomorrow, I expect.
+
+	* chars.c: Added docstrings for the primitives defined in here.
+
+	* snarf.h:  Added GUILE_PROC, GUILE_PROC1.  Added
+	SCM_REGISTER_PROC to be like old SCM_PROC, though old SCM_PROC
+	still remains for now.  Changed naming convention for the s_foo
+	string name of the primitive to be s_scm_foo for ease of use with
+	the macro.
+
+	* scm_validate.h: Lots of new SCM_VALIDATE macros to simplify
+	argument checking through guile.  Maybe some of these should be
+	folded into the header file for the types they check, but for now
+	it was easiest to just stick them all in one place.
+
+1999-12-10  Greg Harvey  <Greg.Harvey@thezone.net> (applied --12/10/99 gjb)
+
+	* smob.c (scm_smob_prehistory): initialize allocated smob
+
+	* tags.h: new tag: scm_tc16_allocated
+
+	* gc.c (scm_gc_for_newcell): set the car of the new cell
+	to scm_tc16_allocated
+	* pairs.h (SCM_NEWCELL): set the car to scm_tc16_allocated
+	(scm_gc_mark): mark allocated cells.
+
 1999-12-09  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* strports.h, strports.c (scm_eval_0str): Fix constness.  Some

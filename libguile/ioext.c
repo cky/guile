@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 
@@ -50,6 +54,7 @@
 #include "chars.h"
 #include "feature.h"
 
+#include "scm_validate.h"
 #include "ioext.h"
 
 #include <fcntl.h>
@@ -62,59 +67,36 @@
 #endif
 
 
-SCM_PROC (s_read_delimited_x, "%read-delimited!", 3, 3, 0, scm_read_delimited_x);
-
-SCM 
-scm_read_delimited_x (delims, buf, gobble, port, start, end)
-     SCM delims;
-     SCM buf;
-     SCM gobble;
-     SCM port;
-     SCM start;
-     SCM end;
+GUILE_PROC (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
+            (SCM delims, SCM buf, SCM gobble, SCM port, SCM start, SCM end),
+"")
+#define FUNC_NAME s_scm_read_delimited_x
 {
   long j;
   char *cbuf;
   long cstart;
-  long cend;
+  long cend, tend;
   int c;
   char *cdelims;
   int num_delims;
 
-  SCM_ASSERT (SCM_NIMP (delims) && SCM_ROSTRINGP (delims),
-	      delims, SCM_ARG1, s_read_delimited_x);
-  cdelims = SCM_ROCHARS (delims);
+  SCM_VALIDATE_ROSTRING_COPY(1,delims,cdelims);
   num_delims = SCM_ROLENGTH (delims);
-  SCM_ASSERT (SCM_NIMP (buf) && SCM_STRINGP (buf),
-	      buf, SCM_ARG2, s_read_delimited_x);
-  cbuf = SCM_CHARS (buf);
+  SCM_VALIDATE_STRING_COPY(2,buf,cbuf);
   cend = SCM_LENGTH (buf);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    {
-      SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
-		  port, SCM_ARG1, s_read_delimited_x);
-    }
+    SCM_VALIDATE_OPINPORT(4,port);
 
-  if (SCM_UNBNDP (start))
-    cstart = 0;
-  else
-    {
-      cstart = scm_num2long (start,
-			     (char *) SCM_ARG5, s_read_delimited_x);
-      if (cstart < 0 || cstart >= cend)
-	scm_out_of_range (s_read_delimited_x, start);
+  SCM_VALIDATE_INT_DEF_COPY(5,start,0,cstart);
+  if (cstart < 0 || cstart >= cend)
+    scm_out_of_range (FUNC_NAME, start);
 
-      if (!SCM_UNBNDP (end))
-	{
-	  long tend = scm_num2long (end, (char *) SCM_ARG6,
-				    s_read_delimited_x);
-	  if (tend <= cstart || tend > cend)
-	    scm_out_of_range (s_read_delimited_x, end);
-	  cend = tend;
-	}
-    }
+  SCM_VALIDATE_INT_DEF_COPY(6,end,cend,tend);
+  if (tend <= cstart || tend > cend)
+    scm_out_of_range (FUNC_NAME, end);
+  cend = tend;
 
   for (j = cstart; j < cend; j++)
     {  
@@ -140,6 +122,7 @@ scm_read_delimited_x (delims, buf, gobble, port, start, end)
     }
   return scm_cons (SCM_BOOL_F, scm_long2num (j - cstart));
 }
+#undef FUNC_NAME
 
 static unsigned char *
 scm_do_read_line (SCM port, int *len_p)
@@ -233,11 +216,10 @@ scm_do_read_line (SCM port, int *len_p)
  * efficiently in Scheme.
  */
 
-SCM_PROC (s_read_line, "%read-line", 0, 1, 0, scm_read_line);
-
-SCM
-scm_read_line (port)
-     SCM port;
+GUILE_PROC (scm_read_line, "%read-line", 0, 1, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_read_line
 {
   scm_port *pt;
   char *s;
@@ -246,8 +228,7 @@ scm_read_line (port)
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
-	      port, SCM_ARG1, s_read_line);
+  SCM_VALIDATE_OPINPORT(1,port);
 
   pt = SCM_PTAB_ENTRY (port);
   if (pt->rw_active == SCM_PORT_WRITE)
@@ -281,55 +262,50 @@ scm_read_line (port)
 
   return scm_cons (line, term);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_write_line, "write-line", 1, 1, 0, scm_write_line);
-
-SCM 
-scm_write_line (obj, port)
-     SCM obj;
-     SCM port;
+GUILE_PROC (scm_write_line, "write-line", 1, 1, 0,
+            (SCM obj, SCM port),
+"")
+#define FUNC_NAME s_scm_write_line
 {
   scm_display (obj, port);
   return scm_newline (port);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_ftell, "ftell", 1, 0, 0, scm_ftell);
-
-SCM 
-scm_ftell (object)
-     SCM object;
+GUILE_PROC (scm_ftell, "ftell", 1, 0, 0, 
+            (SCM object),
+"")
+#define FUNC_NAME s_scm_ftell
 {
   return scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_fseek, "fseek", 3, 0, 0, scm_fseek);
-
-SCM 
-scm_fseek (object, offset, whence)
-     SCM object;
-     SCM offset;
-     SCM whence;
+GUILE_PROC (scm_fseek, "fseek", 3, 0, 0,
+            (SCM object, SCM offset, SCM whence),
+"")
+#define FUNC_NAME s_scm_fseek
 {
   scm_seek (object, offset, whence);
-
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_redirect_port, "redirect-port", 2, 0, 0, scm_redirect_port);
-
-SCM 
-scm_redirect_port (old, new)
-     SCM old;
-     SCM new;
+GUILE_PROC (scm_redirect_port, "redirect-port", 2, 0, 0,
+            (SCM old, SCM new),
+"")
+#define FUNC_NAME s_scm_redirect_port
 {
   int ans, oldfd, newfd;
   struct scm_fport *fp;
 
   old = SCM_COERCE_OUTPORT (old);
   new = SCM_COERCE_OUTPORT (new);
-
-  SCM_ASSERT (SCM_NIMP (old) && SCM_OPFPORTP (old), old, SCM_ARG1, s_redirect_port);
-  SCM_ASSERT (SCM_NIMP (new) && SCM_OPFPORTP (new), new, SCM_ARG2, s_redirect_port);
+  
+  SCM_VALIDATE_OPFPORT(1,old);
+  SCM_VALIDATE_OPFPORT(2,new);
   oldfd = SCM_FPORT_FDES (old);
   fp = SCM_FSTREAM (new);
   newfd = fp->fdes;
@@ -346,16 +322,18 @@ scm_redirect_port (old, new)
 	scm_end_input (new);
       ans = dup2 (oldfd, newfd);
       if (ans == -1)
-	scm_syserror (s_redirect_port);
+	SCM_SYSERROR;
       pt->rw_random = old_pt->rw_random;
       /* continue using existing buffers, even if inappropriate.  */
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_dup_to_fdes, "dup->fdes", 1, 1, 0, scm_dup_to_fdes);
-SCM 
-scm_dup_to_fdes (SCM fd_or_port, SCM fd)
+GUILE_PROC (scm_dup_to_fdes, "dup->fdes", 1, 1, 0, 
+            (SCM fd_or_port, SCM fd),
+"")
+#define FUNC_NAME s_scm_dup_to_fdes
 {
   int oldfd, newfd, rv;
 
@@ -365,8 +343,7 @@ scm_dup_to_fdes (SCM fd_or_port, SCM fd)
     oldfd = SCM_INUM (fd_or_port);
   else
     {
-      SCM_ASSERT (SCM_NIMP (fd_or_port) && SCM_OPFPORTP (fd_or_port),
-		  fd_or_port, SCM_ARG1, s_dup_to_fdes);
+      SCM_VALIDATE_OPFPORT(1,fd_or_port);
       oldfd = SCM_FPORT_FDES (fd_or_port);
     }
 
@@ -374,41 +351,44 @@ scm_dup_to_fdes (SCM fd_or_port, SCM fd)
     {
       newfd = dup (oldfd);
       if (newfd == -1)
-	scm_syserror (s_dup_to_fdes);
+	SCM_SYSERROR;
       fd = SCM_MAKINUM (newfd);
     }
   else
     {
-      SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG2, s_dup_to_fdes);
+      SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG2, FUNC_NAME);
       newfd = SCM_INUM (fd);
       if (oldfd != newfd)
 	{
 	  scm_evict_ports (newfd);	/* see scsh manual.  */
 	  rv = dup2 (oldfd, newfd);
 	  if (rv == -1)
-	    scm_syserror (s_dup_to_fdes);
+	    SCM_SYSERROR;
 	}
     }
   return fd;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_fileno, "fileno", 1, 0, 0, scm_fileno);
-
-SCM 
-scm_fileno (port)
-     SCM port;
+GUILE_PROC (scm_fileno, "fileno", 1, 0, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_fileno
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1,
-	      s_fileno);
+  SCM_VALIDATE_OPFPORT(1,port);
   return SCM_MAKINUM (SCM_FPORT_FDES (port));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_isatty, "isatty?", 1, 0, 0, scm_isatty_p);
-
-SCM 
-scm_isatty_p (port)
-     SCM port;
+/* GJB:FIXME:: why does this not throw
+   an error if the arg is not a port?
+   This proc as is would be better names isattyport?
+   if it is not going to assume that the arg is a port */
+GUILE_PROC (scm_isatty_p, "isatty?", 1, 0, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_isatty_p
 {
   int rv;
 
@@ -418,27 +398,26 @@ scm_isatty_p (port)
     return SCM_BOOL_F;
   
   rv = isatty (SCM_FPORT_FDES (port));
-  return  rv ? SCM_BOOL_T : SCM_BOOL_F;
+  return  SCM_BOOL(rv);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_fdopen, "fdopen", 2, 0, 0, scm_fdopen);
-
-SCM
-scm_fdopen (fdes, modes)
-     SCM fdes;
-     SCM modes;
+GUILE_PROC (scm_fdopen, "fdopen", 2, 0, 0,
+            (SCM fdes, SCM modes),
+"")
+#define FUNC_NAME s_scm_fdopen
 {
   SCM port;
 
-  SCM_ASSERT (SCM_INUMP (fdes), fdes, SCM_ARG1, s_fdopen);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
-	      s_fdopen);
+  SCM_VALIDATE_INT(1,fdes);
+  SCM_VALIDATE_ROSTRING(2,modes);
   SCM_COERCE_SUBSTR (modes);
   port = scm_fdes_to_port (SCM_INUM (fdes), SCM_ROCHARS (modes), SCM_BOOL_F);
   return port;
 }
+#undef FUNC_NAME
 
 
 
@@ -447,12 +426,10 @@ scm_fdopen (fdes, modes)
  *          #t if fdes moved. 
  * MOVE->FDES is implemented in Scheme and calls this primitive.
  */
-SCM_PROC (s_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0, scm_primitive_move_to_fdes);
-
-SCM
-scm_primitive_move_to_fdes (port, fd)
-     SCM port;
-     SCM fd;
+GUILE_PROC (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
+            (SCM port, SCM fd),
+"")
+#define FUNC_NAME s_scm_primitive_move_to_fdes
 {
   struct scm_fport *stream;
   int old_fd;
@@ -461,8 +438,8 @@ scm_primitive_move_to_fdes (port, fd)
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_primitive_move_to_fdes);
-  SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG2, s_primitive_move_to_fdes);
+  SCM_VALIDATE_OPFPORT(1,port);
+  SCM_VALIDATE_INT(2,fd);
   stream = SCM_FSTREAM (port);
   old_fd = stream->fdes;
   new_fd = SCM_INUM (fd);
@@ -473,25 +450,24 @@ scm_primitive_move_to_fdes (port, fd)
   scm_evict_ports (new_fd);
   rv = dup2 (old_fd, new_fd);
   if (rv == -1)
-    scm_syserror (s_primitive_move_to_fdes);
+    SCM_SYSERROR;
   stream->fdes = new_fd;
   SCM_SYSCALL (close (old_fd));  
   return SCM_BOOL_T;
 }
+#undef FUNC_NAME
 
 /* Return a list of ports using a given file descriptor.  */
-SCM_PROC(s_fdes_to_ports, "fdes->ports", 1, 0, 0, scm_fdes_to_ports);
-
-SCM
-scm_fdes_to_ports (fd)
-     SCM fd;
+GUILE_PROC(scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
+           (SCM fd),
+"")
+#define FUNC_NAME s_scm_fdes_to_ports
 {
   SCM result = SCM_EOL;
   int int_fd;
   int i;
   
-  SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG1, s_fdes_to_ports);
-  int_fd = SCM_INUM (fd);
+  SCM_VALIDATE_INT_COPY(1,fd,int_fd);
 
   for (i = 0; i < scm_port_table_size; i++)
     {
@@ -500,7 +476,8 @@ scm_fdes_to_ports (fd)
 	result = scm_cons (scm_port_table[i]->port, result);
     }
   return result;
-}    
+}
+#undef FUNC_NAME    
 
 
 void 

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include "_scm.h"
@@ -247,11 +251,7 @@ st_truncate (SCM port, off_t length)
 }
 
 SCM 
-scm_mkstrport (pos, str, modes, caller)
-     SCM pos;
-     SCM str;
-     long modes;
-     const char * caller;
+scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 {
   SCM z;
   scm_port *pt;
@@ -295,22 +295,22 @@ SCM scm_strport_to_string (SCM port)
   return scm_makfromstr (pt->read_buf, pt->read_buf_size, 0);
 }
 
-SCM_PROC(s_call_with_output_string, "call-with-output-string", 1, 0, 0, scm_call_with_output_string);
-
-SCM 
-scm_call_with_output_string (proc)
-     SCM proc;
+GUILE_PROC(scm_call_with_output_string, "call-with-output-string", 1, 0, 0, 
+           (SCM proc),
+"")
+#define FUNC_NAME s_scm_call_with_output_string
 {
   SCM p;
 
   p = scm_mkstrport (SCM_INUM0, 
 		     scm_make_string (SCM_INUM0, SCM_UNDEFINED),
 		     SCM_OPN | SCM_WRTNG,
-		     s_call_with_output_string);
+                     FUNC_NAME);
   scm_apply (proc, p, scm_listofnull);
 
   return scm_strport_to_string (p);
 }
+#undef FUNC_NAME
 
 
 
@@ -319,8 +319,7 @@ scm_call_with_output_string (proc)
 
 
 SCM
-scm_strprint_obj (obj)
-     SCM obj;
+scm_strprint_obj (SCM obj)
 {
   SCM str;
   SCM port;
@@ -336,24 +335,22 @@ scm_strprint_obj (obj)
 
 
 
-SCM_PROC(s_call_with_input_string, "call-with-input-string", 2, 0, 0, scm_call_with_input_string);
-
-SCM 
-scm_call_with_input_string (str, proc)
-     SCM str;
-     SCM proc;
+GUILE_PROC(scm_call_with_input_string, "call-with-input-string", 2, 0, 0,
+           (SCM str, SCM proc),
+"")
+#define FUNC_NAME s_scm_call_with_input_string
 {
-  SCM p = scm_mkstrport(SCM_INUM0, str, SCM_OPN | SCM_RDNG, s_call_with_input_string);
+  SCM p = scm_mkstrport(SCM_INUM0, str, SCM_OPN | SCM_RDNG, FUNC_NAME);
   return scm_apply (proc, p, scm_listofnull);
 }
+#undef FUNC_NAME
 
 
 
 /* Given a null-terminated string EXPR containing a Scheme expression
    read it, and return it as an SCM value. */
 SCM
-scm_read_0str (expr)
-     char *expr;
+scm_read_0str (char *expr)
 {
   SCM port = scm_mkstrport (SCM_INUM0,
 			    scm_makfrom0str (expr),
@@ -377,11 +374,10 @@ scm_eval_0str (const char *expr)
 }
 
 
-SCM_PROC (s_eval_string, "eval-string", 1, 0, 0, scm_eval_string);
-
-SCM
-scm_eval_string (string)
-     SCM string;
+GUILE_PROC (scm_eval_string, "eval-string", 1, 0, 0, 
+            (SCM string),
+"")
+#define FUNC_NAME s_scm_eval_string
 {
   SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,
 			    "scm_eval_0str");
@@ -399,6 +395,7 @@ scm_eval_string (string)
 
   return ans;
 }
+#undef FUNC_NAME
 
 void scm_make_stptob (void); /* Called from ports.c */
 

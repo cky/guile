@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -59,12 +63,7 @@ SCM scm_sym_name;
 SCM scm_f_gsubr_apply;
 
 SCM
-scm_make_gsubr(name, req, opt, rst, fcn)
-     const char *name;
-     int req;
-     int opt;
-     int rst;
-     SCM (*fcn)();
+scm_make_gsubr(const char *name,int req,int opt,int rst,SCM (*fcn)())
 {
   switch SCM_GSUBR_MAKTYPE(req, opt, rst) {
   case SCM_GSUBR_MAKTYPE(0, 0, 0): return scm_make_subr(name, scm_tc7_subr_0, fcn);
@@ -130,11 +129,10 @@ scm_make_gsubr_with_generic (const char *name,
 }
 
 
-SCM_PROC(s_gsubr_apply, "gsubr-apply", 0, 0, 1, scm_gsubr_apply);
-
-SCM
-scm_gsubr_apply(args)
-     SCM args;
+GUILE_PROC(scm_gsubr_apply, "gsubr-apply", 0, 0, 1, 
+           (SCM args),
+"")
+#define FUNC_NAME s_scm_gsubr_apply
 {
   SCM self = SCM_CAR(args);
   SCM (*fcn)() = SCM_SUBRF(SCM_GSUBR_PROC(self));
@@ -143,7 +141,7 @@ scm_gsubr_apply(args)
   int i, n = SCM_GSUBR_REQ(typ) + SCM_GSUBR_OPT(typ) + SCM_GSUBR_REST(typ);
 #if 0
   SCM_ASSERT(n <= sizeof(v)/sizeof(SCM),
-	     self, "internal programming error", s_gsubr_apply);
+	     self, "internal programming error", FUNC_NAME);
 #endif
   args = SCM_CDR(args);
   for (i = 0; i < SCM_GSUBR_REQ(typ); i++) {
@@ -179,6 +177,7 @@ scm_gsubr_apply(args)
   }
   return 0; /* Never reached. */
 }
+#undef FUNC_NAME
 
 
 #ifdef GSUBR_TEST
@@ -186,8 +185,7 @@ scm_gsubr_apply(args)
    a scm_list of rest args 
    */
 SCM
-gsubr_21l(req1, req2, opt, rst)
-     SCM req1, req2, opt, rst;
+gsubr_21l(SCM req1, SCM req2, SCM opt, SCM rst)
 {
   scm_puts ("gsubr-2-1-l:\n req1: ", scm_cur_outp);
   scm_display(req1, scm_cur_outp);
@@ -207,7 +205,8 @@ gsubr_21l(req1, req2, opt, rst)
 void
 scm_init_gsubr()
 {
-  scm_f_gsubr_apply = scm_make_subr(s_gsubr_apply, scm_tc7_lsubr, scm_gsubr_apply);
+  /* GJB:FIXME:: why is this file not including the .x file? */
+  scm_f_gsubr_apply = scm_make_subr(s_scm_gsubr_apply, scm_tc7_lsubr, scm_gsubr_apply);
   scm_sym_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
   scm_permanent_object (scm_sym_name);
 #ifdef GSUBR_TEST

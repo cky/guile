@@ -43,6 +43,10 @@
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
+
 #include <stdio.h>
 #include <ctype.h>
 
@@ -77,11 +81,8 @@
 
 SCM scm_the_last_stack_fluid;
 
-static void display_header SCM_P ((SCM source, SCM port));
 static void
-display_header (source, port)
-     SCM source;
-     SCM port;
+display_header (SCM source, SCM port)
 {
   SCM fname = (SCM_NIMP (source) && SCM_MEMOIZEDP (source)
 	       ? scm_source_property (source, scm_sym_filename)
@@ -147,13 +148,8 @@ scm_display_error_message (message, args, port)
   scm_putc ('\n', port);
 }
 
-static void display_expression SCM_P ((SCM frame, SCM pname, SCM source, SCM port));
 static void
-display_expression (frame, pname, source, port)
-     SCM frame;
-     SCM pname;
-     SCM source;
-     SCM port;
+display_expression (SCM frame,SCM pname,SCM source,SCM port)
 {
   SCM print_state = scm_make_print_state ();
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
@@ -255,15 +251,10 @@ display_error_handler (struct display_error_handler_data *data,
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC(s_display_error, "display-error", 6, 0, 0, scm_display_error);
-SCM
-scm_display_error (stack, port, subr, message, args, rest)
-     SCM stack;
-     SCM port;
-     SCM subr;
-     SCM message;
-     SCM args;
-     SCM rest;
+GUILE_PROC(scm_display_error, "display-error", 6, 0, 0,
+           (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest),
+"")
+#define FUNC_NAME s_scm_display_error
 {
   struct display_error_args a;
   struct display_error_handler_data data;
@@ -280,6 +271,7 @@ scm_display_error (stack, port, subr, message, args, rest)
 		      (scm_catch_handler_t) display_error_handler, &data);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 typedef struct {
   int level;
@@ -296,15 +288,14 @@ static print_params_t default_print_params[] = {
 static print_params_t *print_params = default_print_params;
 
 #ifdef GUILE_DEBUG
-SCM_PROC (s_set_print_params_x, "set-print-params!", 1, 0, 0, scm_set_print_params_x);
-
-SCM
-scm_set_print_params_x (SCM params)
+GUILE_PROC(set_print_params_x, "set-print-params!", 1, 0, 0,
+           (SCM params)
+#define FUNC_NAME s_set_print_params_x
 {
   int i, n = scm_ilength (params);
   SCM ls;
   print_params_t *new_params;
-  SCM_ASSERT (n >= 1, params, SCM_ARG2, s_set_print_params_x);
+  SCM_ASSERT (n >= 1, params, SCM_ARG2, FUNC_NAME);
   for (ls = params; SCM_NIMP (ls); ls = SCM_CDR (ls))
     SCM_ASSERT (scm_ilength (SCM_CAR (params)) == 2
 		&& SCM_INUMP (SCM_CAAR (ls))
@@ -315,7 +306,7 @@ scm_set_print_params_x (SCM params)
 		SCM_ARG2,
 		s_set_print_params_x);
   new_params = scm_must_malloc (n * sizeof (print_params_t),
-				s_set_print_params_x);
+				FUNC_NAME);
   if (print_params != default_print_params)
     scm_must_free (print_params);
   print_params = new_params;
@@ -328,29 +319,19 @@ scm_set_print_params_x (SCM params)
   n_print_params = n;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 #endif
 
-static void indent SCM_P ((int n, SCM port));
 static void
-indent (n, port)
-     int n;
-     SCM port;
+indent (int n, SCM port)
 {
   int i;
   for (i = 0; i < n; ++i)
     scm_putc (' ', port);
 }
 
-static void display_frame_expr SCM_P ((char *hdr, SCM exp, char *tlr, int indentation, SCM sport, SCM port, scm_print_state *pstate));
 static void
-display_frame_expr (hdr, exp, tlr, indentation, sport, port, pstate)
-     char *hdr;
-     SCM exp;
-     char *tlr;
-     int indentation;
-     SCM sport;
-     SCM port;
-     scm_print_state *pstate;
+display_frame_expr (char *hdr,SCM exp,char *tlr,int indentation,SCM sport,SCM port,scm_print_state *pstate)
 {
   SCM string;
   int i = 0, n;
@@ -391,14 +372,8 @@ display_frame_expr (hdr, exp, tlr, indentation, sport, port, pstate)
   scm_lfwrite (SCM_CHARS (string), n, port);
 }
 
-static void display_application SCM_P ((SCM frame, int indentation, SCM sport, SCM port, scm_print_state *pstate));
 static void
-display_application (frame, indentation, sport, port, pstate)
-     SCM frame;
-     int indentation;
-     SCM sport;
-     SCM port;
-     scm_print_state *pstate;
+display_application (SCM frame,int indentation,SCM sport,SCM port,scm_print_state *pstate)
 {
   SCM proc = SCM_FRAME_PROC (frame);
   SCM name = (SCM_NFALSEP (scm_procedure_p (proc))
@@ -414,10 +389,10 @@ display_application (frame, indentation, sport, port, pstate)
 		      pstate);
 }
 
-SCM_PROC(s_display_application, "display-application", 1, 2, 0, scm_display_application);
-
-SCM
-scm_display_application (SCM frame, SCM port, SCM indent)
+GUILE_PROC(scm_display_application, "display-application", 1, 2, 0, 
+           (SCM frame, SCM port, SCM indent),
+"")
+#define FUNC_NAME s_scm_display_application
 {
   SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
 	      frame, SCM_ARG1, s_display_application);
@@ -442,7 +417,7 @@ scm_display_application (SCM frame, SCM port, SCM indent)
 			     scm_make_string (SCM_MAKINUM (240),
 					      SCM_UNDEFINED),
 			     SCM_OPN | SCM_WRTNG,
-			     s_display_application);
+			     FUNC_NAME);
 
       /* Create a print state for printing of frames. */
       print_state = scm_make_print_state ();
@@ -456,16 +431,10 @@ scm_display_application (SCM frame, SCM port, SCM indent)
   else
     return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-static void display_frame SCM_P ((SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_print_state *pstate));
 static void
-display_frame (frame, nfield, indentation, sport, port, pstate)
-     SCM frame;
-     int nfield;
-     int indentation;
-     SCM sport;
-     SCM port;
-     scm_print_state *pstate;
+display_frame (SCM frame,int nfield,int indentation,SCM sport,SCM port,scm_print_state *pstate)
 {
   int n, i, j;
 
@@ -530,10 +499,9 @@ struct display_backtrace_args {
   SCM depth;
 };
 
-SCM_PROC(s_display_backtrace, "display-backtrace", 2, 2, 0, scm_display_backtrace);
-
 static SCM
-display_backtrace_body (struct display_backtrace_args *a)
+display_backtrace_body(struct display_backtrace_args *a)
+#define FUNC_NAME "display_backtrace_body"
 {
   int n_frames, beg, end, n, i, j;
   int nfield, indent_p, indentation;
@@ -586,7 +554,7 @@ display_backtrace_body (struct display_backtrace_args *a)
   sport = scm_mkstrport (SCM_INUM0,
 			 scm_make_string (SCM_MAKINUM (240), SCM_UNDEFINED),
 			 SCM_OPN | SCM_WRTNG,
-			 s_display_backtrace);
+			 FUNC_NAME);
 
   /* Create a print state for printing of frames. */
   print_state = scm_make_print_state ();
@@ -635,13 +603,12 @@ display_backtrace_body (struct display_backtrace_args *a)
 
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM
-scm_display_backtrace (stack, port, first, depth)
-     SCM stack;
-     SCM port;
-     SCM first;
-     SCM depth;
+GUILE_PROC(scm_display_backtrace, "display-backtrace", 2, 2, 0, 
+           (SCM stack, SCM port, SCM first, SCM depth),
+"")
+#define FUNC_NAME s_scm_display_backtrace
 {
   struct display_backtrace_args a;
   struct display_error_handler_data data;
@@ -656,12 +623,14 @@ scm_display_backtrace (stack, port, first, depth)
 		      (scm_catch_handler_t) display_error_handler, &data);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 SCM_VCELL (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
 
-SCM_PROC(s_backtrace, "backtrace", 0, 0, 0, scm_backtrace);
-SCM
-scm_backtrace ()
+GUILE_PROC(scm_backtrace, "backtrace", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_backtrace
 {
   SCM the_last_stack = scm_fluid_ref (SCM_CDR (scm_the_last_stack_fluid));
   if (SCM_NFALSEP (the_last_stack))
@@ -689,6 +658,7 @@ scm_backtrace ()
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 

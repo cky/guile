@@ -41,6 +41,10 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
+
 /* "dynl.c" dynamically link&load object files.
    Author: Aubrey Jaffer
    Modified for libguile by Marius Vollmer */
@@ -75,15 +79,8 @@ maybe_drag_in_eprintf ()
 
    This code probably belongs into strings.c */
 
-static char **scm_make_argv_from_stringlist SCM_P ((SCM args, int *argcp,
-						    const char *subr, int argn));
-
 static char **
-scm_make_argv_from_stringlist (args, argcp, subr, argn)
-     SCM args;
-     int *argcp;
-     const char *subr;
-     int argn;
+scm_make_argv_from_stringlist (SCM args,int *argcp,const char *subr,int argn)
 {
     char **argv;
     int argc, i;
@@ -110,11 +107,8 @@ scm_make_argv_from_stringlist (args, argcp, subr, argn)
     return argv;
 }
 
-static void scm_must_free_argv SCM_P ((char **argv));
-
 static void
-scm_must_free_argv(argv)
-     char **argv;
+scm_must_free_argv(char **argv)
 {
     char **av = argv;
     while (*av)
@@ -125,13 +119,8 @@ scm_must_free_argv(argv)
 /* Coerce an arbitrary readonly-string into a zero-terminated string.
  */
 
-static SCM scm_coerce_rostring SCM_P ((SCM rostr, const char *subr, int argn));
-
 static SCM
-scm_coerce_rostring (rostr, subr, argn)
-     SCM rostr;
-     const char *subr;
-     int argn;
+scm_coerce_rostring (SCM rostr,const char *subr,int argn)
 {
     SCM_ASSERT (SCM_NIMP (rostr) && SCM_ROSTRINGP (rostr), rostr, argn, subr);
     if (SCM_SUBSTRP (rostr))
@@ -184,10 +173,10 @@ scm_register_module_xxx (module_name, init_func)
     registered_mods = md;
 }
 
-SCM_PROC (s_registered_modules, "c-registered-modules", 0, 0, 0, scm_registered_modules);
-
-SCM
-scm_registered_modules ()
+GUILE_PROC (scm_registered_modules, "c-registered-modules", 0, 0, 0, 
+            (),
+"")
+#define FUNC_NAME s_scm_registered_modules
 {
     SCM res;
     struct moddata *md;
@@ -199,11 +188,12 @@ scm_registered_modules ()
 			res);
     return res;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0, scm_clear_registered_modules);
-
-SCM
-scm_clear_registered_modules ()
+GUILE_PROC (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0, 
+            (),
+"")
+#define FUNC_NAME s_scm_clear_registered_modules
 {
     struct moddata *md1, *md2;
 
@@ -218,6 +208,7 @@ scm_clear_registered_modules ()
     SCM_ALLOW_INTS;
     return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 /* Dispatch to the system dependent files
  *
@@ -230,13 +221,6 @@ scm_clear_registered_modules ()
  */
 
 #define DYNL_GLOBAL 0x0001
-
-static void sysdep_dynl_init SCM_P ((void));
-static void *sysdep_dynl_link SCM_P ((const char *filename, int flags,
-				      const char *subr));
-static void sysdep_dynl_unlink SCM_P ((void *handle, const char *subr));
-static void *sysdep_dynl_func SCM_P ((const char *symbol, void *handle,
-				      const char *subr));
 
 #ifdef HAVE_DLOPEN
 #include "dynl-dl.c"
@@ -251,7 +235,7 @@ static void *sysdep_dynl_func SCM_P ((const char *symbol, void *handle,
 /* no dynamic linking available, throw errors. */
 
 static void
-sysdep_dynl_init ()
+sysdep_dynl_init (void)
 {
 }
 
@@ -298,30 +282,22 @@ struct dynl_obj {
     void *handle;
 };
 
-static SCM mark_dynl_obj SCM_P ((SCM ptr));
 static SCM
-mark_dynl_obj (ptr)
-     SCM ptr;
+mark_dynl_obj (SCM ptr)
 {
     struct dynl_obj *d = (struct dynl_obj *)SCM_CDR (ptr);
     return d->filename;
 }
 
-static scm_sizet free_dynl_obj SCM_P ((SCM ptr));
 static scm_sizet
-free_dynl_obj (ptr)
-     SCM ptr;
+free_dynl_obj (SCM ptr)
 {
   scm_must_free ((char *)SCM_CDR (ptr));
   return sizeof (struct dynl_obj);
 }
 
-static int print_dynl_obj SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 static int
-print_dynl_obj (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+print_dynl_obj (SCM exp,SCM port,scm_print_state *pstate)
 {
     struct dynl_obj *d = (struct dynl_obj *)SCM_CDR (exp);
     scm_puts ("#<dynamic-object ", port);
@@ -335,19 +311,17 @@ print_dynl_obj (exp, port, pstate)
 static SCM kw_global;
 SCM_SYMBOL (sym_global, "-global");
 
-SCM_PROC (s_dynamic_link, "dynamic-link", 1, 0, 1, scm_dynamic_link);
-
-SCM
-scm_dynamic_link (fname, rest)
-     SCM fname;
-     SCM rest;
+GUILE_PROC (scm_dynamic_link, "dynamic-link", 1, 0, 1, 
+            (SCM fname, SCM rest),
+"")
+#define FUNC_NAME s_scm_dynamic_link
 {
     SCM z;
     void *handle;
     struct dynl_obj *d;
     int flags = DYNL_GLOBAL;
 
-    fname = scm_coerce_rostring (fname, s_dynamic_link, SCM_ARG1);
+    fname = scm_coerce_rostring (fname, FUNC_NAME, SCM_ARG1);
 
     /* collect flags */
     while (SCM_NIMP (rest) && SCM_CONSP (rest))
@@ -358,7 +332,7 @@ scm_dynamic_link (fname, rest)
 	rest = SCM_CDR (rest);
 	
 	if (!(SCM_NIMP (rest) && SCM_CONSP (rest)))
-	  scm_misc_error (s_dynamic_link, "keyword without value", SCM_EOL);
+	  scm_misc_error (FUNC_NAME, "keyword without value", SCM_EOL);
 	
 	val = SCM_CAR (rest);
 	rest = SCM_CDR (rest);
@@ -369,15 +343,15 @@ scm_dynamic_link (fname, rest)
 	      flags &= ~DYNL_GLOBAL;
 	  }
 	else
-	  scm_misc_error (s_dynamic_link, "unknown keyword argument: %s",
+	  scm_misc_error (FUNC_NAME, "unknown keyword argument: %s",
 			  scm_cons (kw, SCM_EOL));
       }
 
     SCM_DEFER_INTS;
-    handle = sysdep_dynl_link (SCM_CHARS (fname), flags, s_dynamic_link);
+    handle = sysdep_dynl_link (SCM_CHARS (fname), flags, FUNC_NAME);
 
     d = (struct dynl_obj *)scm_must_malloc (sizeof (struct dynl_obj),
-					    s_dynamic_link);
+					    FUNC_NAME);
     d->filename = fname;
     d->handle = handle;
 
@@ -388,13 +362,10 @@ scm_dynamic_link (fname, rest)
 
     return z;
 }
+#undef FUNC_NAME
 
-static struct dynl_obj *get_dynl_obj SCM_P ((SCM obj, const char *subr, int argn));
 static struct dynl_obj *
-get_dynl_obj (dobj, subr, argn)
-     SCM dobj;
-     const char *subr;
-     int argn;
+get_dynl_obj (SCM dobj,const char *subr,int argn)
 {
     struct dynl_obj *d;
     SCM_ASSERT (SCM_NIMP (dobj) && SCM_CAR (dobj) == scm_tc16_dynamic_obj,
@@ -404,69 +375,71 @@ get_dynl_obj (dobj, subr, argn)
     return d;
 }
 
-SCM_PROC (s_dynamic_object_p, "dynamic-object?", 1, 0, 0, scm_dynamic_object_p);
-
-SCM
-scm_dynamic_object_p (SCM obj)
+GUILE_PROC (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_dynamic_object_p
 {
     return (SCM_NIMP (obj) && SCM_CAR (obj) == scm_tc16_dynamic_obj)?
 	SCM_BOOL_T : SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_dynamic_unlink, "dynamic-unlink", 1, 0, 0, scm_dynamic_unlink);
-
-SCM
-scm_dynamic_unlink (dobj)
-     SCM dobj;
+GUILE_PROC (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0, 
+            (SCM dobj),
+"")
+#define FUNC_NAME s_scm_dynamic_unlink
 {
-    struct dynl_obj *d = get_dynl_obj (dobj, s_dynamic_unlink, SCM_ARG1);
+    struct dynl_obj *d = get_dynl_obj (dobj, FUNC_NAME, SCM_ARG1);
     SCM_DEFER_INTS;
-    sysdep_dynl_unlink (d->handle, s_dynamic_unlink);
+    sysdep_dynl_unlink (d->handle, FUNC_NAME);
     d->handle = NULL;
     SCM_ALLOW_INTS;
     return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_dynamic_func, "dynamic-func", 2, 0, 0, scm_dynamic_func);
-
-SCM
-scm_dynamic_func (SCM symb, SCM dobj)
+GUILE_PROC (scm_dynamic_func, "dynamic-func", 2, 0, 0, 
+            (SCM symb, SCM dobj),
+"")
+#define FUNC_NAME s_scm_dynamic_func
 {
     struct dynl_obj *d;
     void (*func) ();
 
-    symb = scm_coerce_rostring (symb, s_dynamic_func, SCM_ARG1);
-    d = get_dynl_obj (dobj, s_dynamic_func, SCM_ARG2);
+    symb = scm_coerce_rostring (symb, FUNC_NAME, SCM_ARG1);
+    d = get_dynl_obj (dobj, FUNC_NAME, SCM_ARG2);
 
     SCM_DEFER_INTS;
     func = (void (*) ()) sysdep_dynl_func (SCM_CHARS (symb), d->handle,
-					   s_dynamic_func);
+					   FUNC_NAME);
     SCM_ALLOW_INTS;
 
     return scm_ulong2num ((unsigned long)func);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_dynamic_call, "dynamic-call", 2, 0, 0, scm_dynamic_call);
-
-SCM
-scm_dynamic_call (SCM func, SCM dobj)
+GUILE_PROC (scm_dynamic_call, "dynamic-call", 2, 0, 0, 
+            (SCM func, SCM dobj),
+"")
+#define FUNC_NAME s_scm_dynamic_call
 {
     void (*fptr)();
 
     if (SCM_NIMP (func) && SCM_ROSTRINGP (func))
 	func = scm_dynamic_func (func, dobj);
-    fptr = (void (*)()) scm_num2ulong (func, (char *)SCM_ARG1, s_dynamic_call);
+    fptr = (void (*)()) scm_num2ulong (func, (char *)SCM_ARG1, FUNC_NAME);
     SCM_DEFER_INTS;
     fptr ();
     SCM_ALLOW_INTS;
     return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_dynamic_args_call, "dynamic-args-call", 3, 0, 0, scm_dynamic_args_call);
-
-SCM
-scm_dynamic_args_call (func, dobj, args)
-     SCM func, dobj, args;
+GUILE_PROC (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
+            (SCM func, SCM dobj, SCM args),
+"")
+#define FUNC_NAME s_scm_dynamic_args_call
 {
     int (*fptr) (int argc, char **argv);
     int result, argc;
@@ -476,9 +449,9 @@ scm_dynamic_args_call (func, dobj, args)
 	func = scm_dynamic_func (func, dobj);
 
     fptr = (int (*)(int, char **)) scm_num2ulong (func, (char *)SCM_ARG1,
-						   s_dynamic_args_call);
+						   FUNC_NAME);
     SCM_DEFER_INTS;
-    argv = scm_make_argv_from_stringlist (args, &argc, s_dynamic_args_call,
+    argv = scm_make_argv_from_stringlist (args, &argc, FUNC_NAME,
 					  SCM_ARG3);
     result = (*fptr) (argc, argv);
     scm_must_free_argv (argv);
@@ -486,6 +459,7 @@ scm_dynamic_args_call (func, dobj, args)
 
     return SCM_MAKINUM(0L+result);
 }
+#undef FUNC_NAME
 
 void
 scm_init_dynamic_linking ()

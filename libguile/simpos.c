@@ -38,12 +38,18 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
 #include "_scm.h"
 
 #include "scmsigs.h"
+
+#include "scm_validate.h"
 #include "simpos.h"
 
 #ifdef HAVE_STRING_H
@@ -57,11 +63,10 @@
 extern int system();
 
 
-SCM_PROC(s_system, "system", 0, 1, 0, scm_system);
-
-SCM
-scm_system(cmd)
-     SCM cmd;
+GUILE_PROC(scm_system, "system", 0, 1, 0, 
+           (SCM cmd),
+"")
+#define FUNC_NAME s_scm_system
 {
   int rv;
 
@@ -72,9 +77,9 @@ scm_system(cmd)
 #else
       rv = 0;
 #endif
-      return rv ? SCM_BOOL_T : SCM_BOOL_F;
+      return SCM_BOOL(rv);
     }
-  SCM_ASSERT(SCM_NIMP(cmd) && SCM_ROSTRINGP(cmd), cmd, SCM_ARG1, s_system);
+  SCM_VALIDATE_ROSTRING(1,cmd);
 #ifdef HAVE_SYSTEM
   SCM_DEFER_INTS;
   errno = 0;
@@ -82,42 +87,44 @@ scm_system(cmd)
     cmd = scm_makfromstr (SCM_ROCHARS (cmd), SCM_ROLENGTH (cmd), 0);
   rv = system(SCM_ROCHARS(cmd));
   if (rv == -1 || (rv == 127 && errno != 0))
-    scm_syserror (s_system);
+    SCM_SYSERROR;
   SCM_ALLOW_INTS;
   return SCM_MAKINUM (rv);
 #else
-  scm_sysmissing (s_system);
+  SCM_SYSMISSING;
 #endif
 }
+#undef FUNC_NAME
 
 extern char *getenv();
-SCM_PROC (s_getenv, "getenv", 1, 0, 0, scm_getenv);
-
-SCM
-scm_getenv(nam)
-     SCM nam;
+GUILE_PROC (scm_getenv, "getenv", 1, 0, 0, 
+            (SCM nam),
+"")
+#define FUNC_NAME s_scm_getenv
 {
   char *val;
-  SCM_ASSERT(SCM_NIMP(nam) && SCM_ROSTRINGP(nam), nam, SCM_ARG1, s_getenv);
-  if (SCM_ROSTRINGP (nam))
-    nam = scm_makfromstr (SCM_ROCHARS (nam), SCM_ROLENGTH (nam), 0);
+  SCM_VALIDATE_ROSTRING(1,nam);
+  nam = scm_makfromstr (SCM_ROCHARS (nam), SCM_ROLENGTH (nam), 0);
   val = getenv(SCM_CHARS(nam));
   return (val) ? scm_makfromstr(val, (scm_sizet)strlen(val), 0) : SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 /* simple exit, without unwinding the scheme stack or flushing ports.  */
-SCM_PROC (s_primitive_exit, "primitive-exit", 0, 1, 0, scm_primitive_exit);
-SCM
-scm_primitive_exit (SCM status)
+GUILE_PROC (scm_primitive_exit, "primitive-exit", 0, 1, 0, 
+            (SCM status),
+            "")
+#define FUNC_NAME s_scm_primitive_exit
 {
   int cstatus = 0;
   if (!SCM_UNBNDP (status))
     {
-      SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1, s_primitive_exit);
+      SCM_VALIDATE_INT(1,status);
       cstatus = SCM_INUM (status);
     }
   exit (cstatus);
 }
+#undef FUNC_NAME
 
 
 void

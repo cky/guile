@@ -1,4 +1,3 @@
-
 /* classes: h_files */
 
 /* Macros for snarfing initialization actions from C source. */
@@ -46,10 +45,24 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #ifndef SCM_MAGIC_SNARFER
+
+#define GUILE_PROC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+static const char s_ ## FNAME [] = PRIMNAME; \
+SCM FNAME ARGLIST
+#define GUILE_PROC1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
+static const char s_ ## FNAME [] = PRIMNAME; \
+SCM FNAME ARGLIST
+
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
+	static const char RANAME[]=STR
+#define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 	static const char RANAME[]=STR
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 	static const char RANAME[]=STR; \
@@ -61,8 +74,16 @@
 	static SCM GF = 0
 #else
 #if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
+
+#define GUILE_PROC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+%%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)(...)) FNAME);
+#define GUILE_PROC1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
+%%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME);
+
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...))CFN)
+%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN)
+#define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
+%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN)
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 %%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)(...))CFN, &GF)
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
@@ -70,7 +91,16 @@
 #define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF)  \
 %%%	scm_make_subr_with_generic(RANAME, TYPE, (SCM (*)(...))CFN, &GF)
 #else
+
+#define GUILE_PROC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+%%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)()) FNAME);
+#define GUILE_PROC1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
+%%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME);
+
+
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
+%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN)
+#define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 %%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN)
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 %%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN, &GF)

@@ -38,12 +38,17 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
 #include "_scm.h"
 #include "feature.h"
 
+#include "scm_validate.h"
 #include "stime.h"
 
 #ifdef HAVE_UNISTD_H
@@ -123,9 +128,11 @@ extern int errno;
 #ifdef HAVE_FTIME
 
 struct timeb scm_your_base = {0};
-SCM_PROC(s_get_internal_real_time, "get-internal-real-time", 0, 0, 0, scm_get_internal_real_time);
-SCM
-scm_get_internal_real_time()
+
+GUILE_PROC(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_get_internal_real_time
 {
   struct timeb time_buffer;
 
@@ -138,22 +145,29 @@ scm_get_internal_real_time()
 			      SCM_MAKINUM (time_buffer.time)));
   return scm_quotient (scm_product (tmp, SCM_MAKINUM (CLKTCK)),
 		       SCM_MAKINUM (1000));
-};
+}
+#undef FUNC_NAME
+
 
 #else
 
 timet scm_your_base = 0;
-SCM_PROC(s_get_internal_real_time, "get-internal-real-time", 0, 0, 0, scm_get_internal_real_time);
-SCM
-scm_get_internal_real_time()
+
+GUILE_PROC(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
+           (),
+           "")
+#define FUNC_NAME s_scm_get_internal_real_time
 {
   return scm_long2num((time((timet*)0) - scm_your_base) * (int)CLKTCK);
 }
+#undef FUNC_NAME
+
 #endif
 
-SCM_PROC (s_times, "times", 0, 0, 0, scm_times);
-SCM
-scm_times (void)
+GUILE_PROC (scm_times, "times", 0, 0, 0, 
+            (void),
+"")
+#define FUNC_NAME s_scm_times
 {
 #ifdef HAVE_TIMES
   struct tms t;
@@ -162,7 +176,7 @@ scm_times (void)
   SCM result = scm_make_vector (SCM_MAKINUM(5), SCM_UNDEFINED);
   rv = times (&t);
   if (rv == -1)
-    scm_syserror (s_times);
+    SCM_SYSERROR;
   SCM_VELTS (result)[0] = scm_long2num (rv);
   SCM_VELTS (result)[1] = scm_long2num (t.tms_utime);
   SCM_VELTS (result)[2] = scm_long2num (t.tms_stime);
@@ -170,9 +184,10 @@ scm_times (void)
   SCM_VELTS (result)[4] = scm_long2num (t.tms_cstime);
   return result;
 #else
-  scm_sysmissing (s_times);
+  SCM_SYSMISSING;
 #endif
 }
+#undef FUNC_NAME
 
 #ifndef HAVE_TZSET
 /* GNU-WIN32's cygwin.dll doesn't have this. */
@@ -182,36 +197,41 @@ scm_times (void)
 
 static long scm_my_base = 0;
 
-SCM_PROC(s_get_internal_run_time, "get-internal-run-time", 0, 0, 0, scm_get_internal_run_time);
-SCM
-scm_get_internal_run_time()
+GUILE_PROC(scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
+           (void),
+"")
+#define FUNC_NAME s_scm_get_internal_run_time
 {
   return scm_long2num(mytime()-scm_my_base);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_current_time, "current-time", 0, 0, 0, scm_current_time);
-SCM
-scm_current_time()
+GUILE_PROC(scm_current_time, "current-time", 0, 0, 0, 
+           (void),
+"")
+#define FUNC_NAME s_scm_current_time
 {
   timet timv;
 
   SCM_DEFER_INTS;
   if ((timv = time (0)) == -1)
-    scm_syserror (s_current_time);
+    SCM_SYSERROR;
   SCM_ALLOW_INTS;
   return scm_long2num((long) timv);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_gettimeofday, "gettimeofday", 0, 0, 0, scm_gettimeofday);
-SCM
-scm_gettimeofday (void)
+GUILE_PROC (scm_gettimeofday, "gettimeofday", 0, 0, 0, 
+            (void),
+            "")
+#define FUNC_NAME s_scm_gettimeofday
 {
 #ifdef HAVE_GETTIMEOFDAY
   struct timeval time;
 
   SCM_DEFER_INTS;
   if (gettimeofday (&time, NULL) == -1)
-    scm_syserror (s_gettimeofday);
+    SCM_SYSERROR;
   SCM_ALLOW_INTS;
   return scm_cons (scm_long2num ((long) time.tv_sec),
 		   scm_long2num ((long) time.tv_usec));
@@ -227,12 +247,13 @@ scm_gettimeofday (void)
   
   SCM_DEFER_INTS;
   if ((timv = time (0)) == -1)
-    scm_syserror (s_gettimeofday);
+    SCM_SYSERROR;
   SCM_ALLOW_INTS;
   return scm_cons (scm_long2num (timv), SCM_MAKINUM (0));
 # endif
 #endif
 }
+#undef FUNC_NAME
 
 static SCM
 filltime (struct tm *bd_time, int zoff, char *zname)
@@ -293,9 +314,10 @@ restorezone (SCM zone, char **oldenv, const char *subr)
 }
 
 
-SCM_PROC (s_localtime, "localtime", 1, 1, 0, scm_localtime);
-SCM
-scm_localtime (SCM time, SCM zone)
+GUILE_PROC (scm_localtime, "localtime", 1, 1, 0, 
+            (SCM time, SCM zone),
+"")
+#define FUNC_NAME s_scm_localtime
 {
   timet itime;
   struct tm *ltptr, lt, *utc;
@@ -305,9 +327,9 @@ scm_localtime (SCM time, SCM zone)
   char **oldenv;
   int err;
 
-  itime = scm_num2long (time, (char *) SCM_ARG1, s_localtime);
+  itime = SCM_NUM2LONG (1,time);
   SCM_DEFER_INTS;
-  oldenv = setzone (zone, SCM_ARG2, s_localtime);
+  oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
   ltptr = localtime (&itime);
   err = errno;
   if (ltptr)
@@ -321,11 +343,10 @@ scm_localtime (SCM time, SCM zone)
 # ifdef HAVE_TZNAME
       ptr = tzname[ (ltptr->tm_isdst == 1) ? 1 : 0 ];
 # else
-      scm_misc_error (s_localtime, "Not fully implemented on this platform",
-		      SCM_EOL);
+      SCM_MISC_ERROR ("Not fully implemented on this platform",_EOL);
 # endif
 #endif
-      zname = scm_must_malloc (strlen (ptr) + 1, s_localtime);
+      zname = SCM_MUST_MALLOC (strlen (ptr) + 1);
       strcpy (zname, ptr);
     }
   /* the struct is copied in case localtime and gmtime share a buffer.  */
@@ -334,11 +355,11 @@ scm_localtime (SCM time, SCM zone)
   utc = gmtime (&itime);
   if (utc == NULL)
     err = errno;
-  restorezone (zone, oldenv, s_localtime);
+  restorezone (zone, oldenv, FUNC_NAME);
   /* delayed until zone has been restored.  */
   errno = err;
   if (utc == NULL || ltptr == NULL)
-    scm_syserror (s_localtime);
+    SCM_SYSERROR;
 
   /* calculate timezone offset in seconds west of UTC.  */
   zoff = (utc->tm_hour - lt.tm_hour) * 3600 + (utc->tm_min - lt.tm_min) * 60
@@ -357,24 +378,27 @@ scm_localtime (SCM time, SCM zone)
   scm_must_free (zname);
   return result;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_gmtime, "gmtime", 1, 0, 0, scm_gmtime);
-SCM
-scm_gmtime (SCM time)
+GUILE_PROC (scm_gmtime, "gmtime", 1, 0, 0, 
+            (SCM time),
+"")
+#define FUNC_NAME s_scm_gmtime
 {
   timet itime;
   struct tm *bd_time;
   SCM result;
 
-  itime = scm_num2long (time, (char *) SCM_ARG1, s_gmtime);
+  itime = SCM_NUM2LONG (1,time);
   SCM_DEFER_INTS;
   bd_time = gmtime (&itime);
   if (bd_time == NULL)
-    scm_syserror (s_gmtime);
+    SCM_SYSERROR;
   result = filltime (bd_time, 0, "GMT");
   SCM_ALLOW_INTS;
   return result;
 }
+#undef FUNC_NAME
 
 /* copy time components from a Scheme object to a struct tm.  */
 static void
@@ -413,9 +437,10 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 #endif
 }
 
-SCM_PROC (s_mktime, "mktime", 1, 1, 0, scm_mktime);
-SCM
-scm_mktime (SCM sbd_time, SCM zone)
+GUILE_PROC (scm_mktime, "mktime", 1, 1, 0, 
+            (SCM sbd_time, SCM zone),
+"")
+#define FUNC_NAME s_scm_mktime
 {
   timet itime;
   struct tm lt, *utc;
@@ -425,10 +450,10 @@ scm_mktime (SCM sbd_time, SCM zone)
   char **oldenv;
   int err;
 
-  bdtime2c (sbd_time, &lt, SCM_ARG1, s_mktime);
+  bdtime2c (sbd_time, &lt, SCM_ARG1, FUNC_NAME);
 
   SCM_DEFER_INTS;
-  oldenv = setzone (zone, SCM_ARG2, s_mktime);
+  oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
   itime = mktime (&lt);
   err = errno;
 
@@ -447,7 +472,7 @@ scm_mktime (SCM sbd_time, SCM zone)
 		      SCM_EOL);
 # endif
 #endif
-      zname = scm_must_malloc (strlen (ptr) + 1, s_mktime);
+      zname = SCM_MUST_MALLOC (strlen (ptr) + 1);
       strcpy (zname, ptr);
     }
 
@@ -456,11 +481,11 @@ scm_mktime (SCM sbd_time, SCM zone)
   if (utc == NULL)
     err = errno;
 
-  restorezone (zone, oldenv, s_mktime);
+  restorezone (zone, oldenv, FUNC_NAME);
   /* delayed until zone has been restored.  */
   errno = err;
   if (utc == NULL || itime == -1)
-    scm_syserror (s_mktime);
+    SCM_SYSERROR;
 
   zoff = (utc->tm_hour - lt.tm_hour) * 3600 + (utc->tm_min - lt.tm_min) * 60
     + utc->tm_sec - lt.tm_sec;
@@ -479,21 +504,22 @@ scm_mktime (SCM sbd_time, SCM zone)
   scm_must_free (zname);
   return result;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_tzset, "tzset", 0, 0, 0, scm_tzset);
-SCM
-scm_tzset (void)
+GUILE_PROC (scm_tzset, "tzset", 0, 0, 0, 
+            (void),
+"")
+#define FUNC_NAME s_scm_tzset
 {
   tzset();
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_strftime, "strftime", 2, 0, 0, scm_strftime);
-
-SCM
-scm_strftime (format, stime)
-     SCM format;
-     SCM stime;
+GUILE_PROC (scm_strftime, "strftime", 2, 0, 0,
+            (SCM format, SCM stime),
+"")
+#define FUNC_NAME s_scm_strftime
 {
   struct tm t;
 
@@ -503,41 +529,37 @@ scm_strftime (format, stime)
   int len;
   SCM result;
 
-  SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1,
-	      s_strftime);
-  bdtime2c (stime, &t, SCM_ARG2, s_strftime);
+  SCM_VALIDATE_ROSTRING(1,format);
+  bdtime2c (stime, &t, SCM_ARG2, FUNC_NAME);
 
   SCM_COERCE_SUBSTR (format);
   fmt = SCM_ROCHARS (format);
   len = SCM_ROLENGTH (format);
 
-  tbuf = scm_must_malloc (size, s_strftime);
+  tbuf = SCM_MUST_MALLOC (size);
   while ((len = strftime (tbuf, size, fmt, &t)) == size)
     {
       scm_must_free (tbuf);
       size *= 2;
-      tbuf = scm_must_malloc (size, s_strftime);
+      tbuf = SCM_MUST_MALLOC (size);
     }
   result = scm_makfromstr (tbuf, len, 0);
   scm_must_free (tbuf);
   return result;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_strptime, "strptime", 2, 0, 0, scm_strptime);
-
-SCM
-scm_strptime (format, string)
-     SCM format;
-     SCM string;
+GUILE_PROC (scm_strptime, "strptime", 2, 0, 0,
+            (SCM format, SCM string),
+"")
+#define FUNC_NAME s_scm_strptime
 {
 #ifdef HAVE_STRPTIME
   struct tm t;
   char *fmt, *str, *rest;
 
-  SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1,
-	      s_strptime);
-  SCM_ASSERT (SCM_NIMP (string) && SCM_ROSTRINGP (string), string, SCM_ARG2,
-	      s_strptime);
+  SCM_VALIDATE_ROSTRING(1,format);
+  SCM_VALIDATE_ROSTRING(2,string);
 
   SCM_COERCE_SUBSTR (format);
   SCM_COERCE_SUBSTR (string);
@@ -559,15 +581,16 @@ scm_strptime (format, string)
   t.tm_isdst = -1;
   SCM_DEFER_INTS;
   if ((rest = strptime (str, fmt, &t)) == NULL)
-    scm_syserror (s_strptime);
+    SCM_SYSERROR;
 
   SCM_ALLOW_INTS;
   return scm_cons (filltime (&t, 0, NULL),  SCM_MAKINUM (rest - str));
 
 #else
-  scm_sysmissing (s_strptime);
+  SCM_SYSMISSING;
 #endif
 }
+#undef FUNC_NAME
 
 void
 scm_init_stime()

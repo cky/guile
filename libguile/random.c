@@ -38,6 +38,10 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
+
 /* Author: Mikael Djurfeldt <djurfeldt@nada.kth.se> */
 
 #include "_scm.h"
@@ -49,6 +53,7 @@
 #include "numbers.h"
 #include "feature.h"
 
+#include "scm_validate.h"
 #include "random.h"
 
 
@@ -345,85 +350,77 @@ free_rstate (SCM rstate)
 
 SCM_GLOBAL_VCELL_INIT (scm_var_random_state, "*random-state*", scm_seed_to_random_state (scm_makfrom0str ("URL:http://stat.fsu.edu/~geo/diehard.html")));
 
-SCM_PROC (s_random, "random", 1, 1, 0, scm_random);
-
-SCM
-scm_random (SCM n, SCM state)
+GUILE_PROC (scm_random, "random", 1, 1, 0, 
+            (SCM n, SCM state),
+            "")
+#define FUNC_NAME s_scm_random
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
-	      state, SCM_ARG2, s_random);
+  SCM_VALIDATE_RSTATE(2,state);
   if (SCM_INUMP (n))
     {
       unsigned long m = SCM_INUM (n);
-      SCM_ASSERT (m > 0, n, SCM_ARG1, s_random);
+      SCM_ASSERT_RANGE (1,n,m > 0);
       return SCM_MAKINUM (scm_c_random (SCM_RSTATE (state), m));
     }
-  SCM_ASSERT (SCM_NIMP (n), n, SCM_ARG1, s_random);
+  SCM_VALIDATE_NIMP(1,n);
   if (SCM_REALP (n))
     return scm_makdbl (SCM_REALPART (n) * scm_c_uniform01 (SCM_RSTATE (state)),
 		       0.0);
-  SCM_ASSERT (SCM_TYP16 (n) == scm_tc16_bigpos, n, SCM_ARG1, s_random);
+  SCM_VALIDATE_SMOB (1,n,bigpos);
   return scm_c_random_bignum (SCM_RSTATE (state), n);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_copy_random_state, "copy-random-state", 0, 1, 0, scm_copy_random_state);
-
-SCM
-scm_copy_random_state (SCM state)
+GUILE_PROC (scm_copy_random_state, "copy-random-state", 0, 1, 0, 
+            (SCM state),
+            "")
+#define FUNC_NAME s_scm_copy_random_state
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
-	      state,
-	      SCM_ARG1,
-	      s_copy_random_state);
+  SCM_VALIDATE_RSTATE(2,state);
   return make_rstate (scm_the_rng.copy_rstate (SCM_RSTATE (state)));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_seed_to_random_state, "seed->random-state", 1, 0, 0, scm_seed_to_random_state);
-
-SCM
-scm_seed_to_random_state (SCM seed)
+GUILE_PROC (scm_seed_to_random_state, "seed->random-state", 1, 0, 0, 
+            (SCM seed),
+            "")
+#define FUNC_NAME s_scm_seed_to_random_state
 {
   if (SCM_NUMBERP (seed))
     seed = scm_number_to_string (seed, SCM_UNDEFINED);
-  SCM_ASSERT (SCM_NIMP (seed) && SCM_STRINGP (seed),
-	      seed,
-	      SCM_ARG1,
-	      s_seed_to_random_state);
+  SCM_VALIDATE_STRING(1,seed);
   return make_rstate (scm_c_make_rstate (SCM_ROCHARS (seed),
 					 SCM_LENGTH (seed)));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_random_uniform, "random:uniform", 0, 1, 0, scm_random_uniform);
-
-SCM
-scm_random_uniform (SCM state)
+GUILE_PROC (scm_random_uniform, "random:uniform", 0, 1, 0, 
+            (SCM state),
+            "")
+#define FUNC_NAME s_scm_random_uniform
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
-	      state,
-	      SCM_ARG1,
-	      s_random_uniform);
+  SCM_VALIDATE_RSTATE(1,state);
   return scm_makdbl (scm_c_uniform01 (SCM_RSTATE (state)), 0.0);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_random_normal, "random:normal", 0, 1, 0, scm_random_normal);
-
-SCM
-scm_random_normal (SCM state)
+GUILE_PROC (scm_random_normal, "random:normal", 0, 1, 0, 
+            (SCM state),
+            "")
+#define FUNC_NAME s_scm_random_normal
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
-	      state,
-	      SCM_ARG1,
-	      s_random_normal);
+  SCM_VALIDATE_RSTATE(1,state);
   return scm_makdbl (scm_c_normal01 (SCM_RSTATE (state)), 0.0);
 }
+#undef FUNC_NAME
 
 #ifdef HAVE_ARRAYS
 
@@ -464,20 +461,17 @@ vector_sum_squares (SCM v)
  * distribution r^n; i.e., u=r^n is uniform [0,1], so r can be
  * generated as r=u^(1/n).
  */
-SCM_PROC (s_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0, scm_random_solid_sphere_x);
-
-SCM
-scm_random_solid_sphere_x (SCM v, SCM state)
+GUILE_PROC (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0, 
+            (SCM v, SCM state),
+            "")
+#define FUNC_NAME s_scm_random_solid_sphere_x
 {
   SCM_ASSERT (SCM_NIMP (v)
 	      && (SCM_VECTORP (v) || SCM_TYP7 (v) == scm_tc7_dvect),
-	      v, SCM_ARG1, s_random_solid_sphere_x);
+	      v, SCM_ARG1, FUNC_NAME);
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
-	      state,
-	      SCM_ARG2,
-	      s_random_solid_sphere_x);
+  SCM_VALIDATE_RSTATE(2,state);
   scm_random_normal_vector_x (v, state);
   vector_scale (v,
 		pow (scm_c_uniform01 (SCM_RSTATE (state)),
@@ -485,40 +479,38 @@ scm_random_solid_sphere_x (SCM v, SCM state)
 		/ sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0, scm_random_hollow_sphere_x);
-
-SCM
-scm_random_hollow_sphere_x (SCM v, SCM state)
+GUILE_PROC (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0, 
+            (SCM v, SCM state),
+            "")
+#define FUNC_NAME s_scm_random_hollow_sphere_x
 {
   SCM_ASSERT (SCM_NIMP (v)
 	      && (SCM_VECTORP (v) || SCM_TYP7 (v) == scm_tc7_dvect),
-	      v, SCM_ARG1, s_random_solid_sphere_x);
+	      v, SCM_ARG1, FUNC_NAME);
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
-	      state,
-	      SCM_ARG2,
-	      s_random_hollow_sphere_x);
+  SCM_VALIDATE_RSTATE(2,state);
   scm_random_normal_vector_x (v, state);
   vector_scale (v, 1 / sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
 }
-SCM_PROC (s_random_normal_vector_x, "random:normal-vector!", 1, 1, 0, scm_random_normal_vector_x);
+#undef FUNC_NAME
 
-SCM
-scm_random_normal_vector_x (SCM v, SCM state)
+
+GUILE_PROC (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0, 
+            (SCM v, SCM state),
+"")
+#define FUNC_NAME s_scm_random_normal_vector_x
 {
   int n;
   SCM_ASSERT (SCM_NIMP (v)
 	      && (SCM_VECTORP (v) || SCM_TYP7 (v) == scm_tc7_dvect),
-	      v, SCM_ARG1, s_random_solid_sphere_x);
+	      v, SCM_ARG1, FUNC_NAME);
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
-	      state,
-	      SCM_ARG2,
-	      s_random_normal_vector_x);
+  SCM_VALIDATE_RSTATE(2,state);
   n = SCM_LENGTH (v);
   if (SCM_VECTORP (v))
     while (--n >= 0)
@@ -528,22 +520,21 @@ scm_random_normal_vector_x (SCM v, SCM state)
       ((double *) SCM_VELTS (v))[n] = scm_c_normal01 (SCM_RSTATE (state));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 #endif /* HAVE_ARRAYS */
 
-SCM_PROC (s_random_exp, "random:exp", 0, 1, 0, scm_random_exp);
-
-SCM
-scm_random_exp (SCM state)
+GUILE_PROC (scm_random_exp, "random:exp", 0, 1, 0, 
+            (SCM state),
+            "")
+#define FUNC_NAME s_scm_random_exp
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
-	      state,
-	      SCM_ARG1,
-	      s_random_exp);
+  SCM_VALIDATE_RSTATE(2,state);
   return scm_makdbl (scm_c_exp1 (SCM_RSTATE (state)), 0.0);
 }
+#undef FUNC_NAME
 
 void
 scm_init_random ()

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -57,6 +61,7 @@
 #include "stacks.h"
 #include "fluids.h"
 
+#include "scm_validate.h"
 #include "throw.h"
 
 
@@ -77,23 +82,16 @@ static int scm_tc16_jmpbuffer;
 #define SCM_SETJBDFRAME(O,X) SCM_SETCAR (SCM_CDR (O), (SCM)(X))
 #define SETJBJMPBUF(O,X) SCM_SETCDR(SCM_CDR (O), X)
 
-static scm_sizet freejb SCM_P ((SCM jbsmob));
-
 static scm_sizet
-freejb (jbsmob)
-     SCM jbsmob;
+freejb (SCM jbsmob)
 {
   scm_must_free ((char *) SCM_CDR (jbsmob));
   return sizeof (scm_cell);
 }
 #endif
 
-static int printjb SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 static int
-printjb (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+printjb (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<jmpbuffer ", port);
   scm_puts (JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
@@ -103,9 +101,8 @@ printjb (exp, port, pstate)
 }
 
 
-static SCM make_jmpbuf SCM_P ((void));
 static SCM
-make_jmpbuf ()
+make_jmpbuf (void)
 {
   SCM answer;
   SCM_REDEFER_INTS;
@@ -557,19 +554,15 @@ scm_handle_by_throw (handler_data, tag, args)
 
 /* the Scheme-visible CATCH and LAZY-CATCH functions */
 
-SCM_PROC(s_catch, "catch", 3, 0, 0, scm_catch);
-SCM
-scm_catch (tag, thunk, handler)
-     SCM tag;
-     SCM thunk;
-     SCM handler;
+GUILE_PROC(scm_catch, "catch", 3, 0, 0,
+           (SCM tag, SCM thunk, SCM handler),
+"")
+#define FUNC_NAME s_scm_catch
 {
   struct scm_body_thunk_data c;
 
   SCM_ASSERT ((SCM_NIMP(tag) && SCM_SYMBOLP(tag)) || tag == SCM_BOOL_T,
-	      tag,
-	      SCM_ARG1,
-	      s_catch);
+	      tag, SCM_ARG1, FUNC_NAME);
 
   c.tag = tag;
   c.body_proc = thunk;
@@ -583,20 +576,19 @@ scm_catch (tag, thunk, handler)
 			     scm_body_thunk, &c, 
 			     scm_handle_by_proc, &handler);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_lazy_catch, "lazy-catch", 3, 0, 0, scm_lazy_catch);
-SCM
-scm_lazy_catch (tag, thunk, handler)
-     SCM tag;
-     SCM thunk;
-     SCM handler;
+GUILE_PROC(scm_lazy_catch, "lazy-catch", 3, 0, 0,
+           (SCM tag, SCM thunk, SCM handler),
+"")
+#define FUNC_NAME s_scm_lazy_catch
 {
   struct scm_body_thunk_data c;
 
   SCM_ASSERT ((SCM_NIMP(tag) && SCM_SYMBOLP(tag))
 	      || (tag == SCM_BOOL_T),
-	      tag, SCM_ARG1, s_lazy_catch);
+	      tag, SCM_ARG1, FUNC_NAME);
 
   c.tag = tag;
   c.body_proc = thunk;
@@ -611,28 +603,26 @@ scm_lazy_catch (tag, thunk, handler)
 				  scm_body_thunk, &c, 
 				  scm_handle_by_proc, &handler);
 }
+#undef FUNC_NAME
 
 
 
 /* throwing */
 
-SCM_PROC(s_throw, "throw", 1, 0, 1, scm_throw);
-SCM
-scm_throw (key, args)
-     SCM key;
-     SCM args;
+GUILE_PROC(scm_throw, "throw", 1, 0, 1,
+           (SCM key, SCM args),
+"")
+#define FUNC_NAME s_scm_throw
 {
-  SCM_ASSERT (SCM_NIMP (key) && SCM_SYMBOLP (key), key, SCM_ARG1, s_throw);
+  SCM_VALIDATE_SYMBOL(1,key);
   /* May return if handled by lazy catch. */
   return scm_ithrow (key, args, 1);
 }
+#undef FUNC_NAME
 
 
 SCM
-scm_ithrow (key, args, noreturn)
-     SCM key;
-     SCM args;
-     int noreturn;
+scm_ithrow (SCM key, SCM args, int noreturn)
 {
   SCM jmpbuf = SCM_UNDEFINED;
   SCM wind_goal;

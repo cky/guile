@@ -38,35 +38,38 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
 #include "_scm.h"
 
+#include "scm_validate.h"
 #include "boolean.h"
 
 
 
-SCM_PROC(s_not, "not", 1, 0, 0, scm_not);
-
-SCM
-scm_not(x)
-     SCM x;
+GUILE_PROC(scm_not, "not", 1, 0, 0, 
+           (SCM x),
+           "")
+#define FUNC_NAME s_scm_not
 {
-	return SCM_FALSEP(x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_FALSEP(x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_boolean_p, "boolean?", 1, 0, 0, scm_boolean_p);
-
-SCM
-scm_boolean_p(obj)
-     SCM obj;
+GUILE_PROC(scm_boolean_p, "boolean?", 1, 0, 0, 
+           (SCM obj),
+"")
+#define FUNC_NAME s_scm_boolean_p
 {
-	if (SCM_BOOL_F==obj) return SCM_BOOL_T;
-	if (SCM_BOOL_T==obj) return SCM_BOOL_T;
-	return SCM_BOOL_F;
+  return SCM_BOOL(SCM_BOOL_F == obj || SCM_BOOL_T == obj);
 }
+#undef FUNC_NAME
 
 
 

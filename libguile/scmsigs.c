@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -46,6 +50,8 @@
 
 #include "async.h"
 #include "eval.h"
+
+#include "scm_validate.h"
 #include "scmsigs.h"
 
 #ifdef HAVE_UNISTD_H
@@ -173,9 +179,10 @@ sys_deliver_signals (void)
 }
 
 /* user interface for installation of signal handlers.  */
-SCM_PROC(s_sigaction, "sigaction", 1, 2, 0, scm_sigaction);
-SCM
-scm_sigaction (SCM signum, SCM handler, SCM flags)
+GUILE_PROC(scm_sigaction, "sigaction", 1, 2, 0, 
+           (SCM signum, SCM handler, SCM flags),
+"")
+#define FUNC_NAME s_scm_sigaction
 {
   int csig;
 #ifdef HAVE_SIGACTION
@@ -190,8 +197,7 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
   SCM *scheme_handlers = SCM_VELTS (*signal_handlers);
   SCM old_handler;
 
-  SCM_ASSERT (SCM_INUMP (signum), signum, SCM_ARG1, s_sigaction);
-  csig = SCM_INUM (signum);
+  SCM_VALIDATE_INT_COPY(1,signum,csig);
 #if defined(HAVE_SIGACTION)
 #if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
   /* don't allow SA_RESTART to be omitted if HAVE_RESTARTABLE_SYSCALLS
@@ -203,7 +209,7 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
 #endif
   if (!SCM_UNBNDP (flags))
     {
-      SCM_ASSERT (SCM_INUMP (flags), flags, SCM_ARG3, s_sigaction);
+      SCM_VALIDATE_INT(3,flags);
       action.sa_flags |= SCM_INUM (flags);
     }
   sigemptyset (&action.sa_mask);
@@ -214,10 +220,8 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
     query_only = 1;
   else if (scm_integer_p (handler) == SCM_BOOL_T)
     {
-      if (scm_num2long (handler, (char *) SCM_ARG2, s_sigaction)
-	  == (long) SIG_DFL
-	  || scm_num2long (handler, (char *) SCM_ARG2, s_sigaction) 
-	  == (long) SIG_IGN)
+      if (SCM_NUM2LONG (2,handler) == (long) SIG_DFL
+	  || SCM_NUM2LONG (2,handler) == (long) SIG_IGN)
 	{
 #ifdef HAVE_SIGACTION
 	  action.sa_handler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
@@ -227,7 +231,7 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
 	  scheme_handlers[csig] = SCM_BOOL_F;
 	}
       else
-	scm_out_of_range (s_sigaction, handler);
+	SCM_OUT_OF_RANGE (2, handler);
     }
   else if (SCM_FALSEP (handler))
     {
@@ -254,7 +258,7 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
     } 
   else
     {
-      SCM_ASSERT (SCM_NIMP (handler), handler, SCM_ARG2, s_sigaction);
+      SCM_VALIDATE_NIMP(2,handler);
 #ifdef HAVE_SIGACTION
       action.sa_handler = take_signal;
       if (orig_handlers[csig].sa_handler == SIG_ERR)
@@ -270,12 +274,12 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
   if (query_only)
     {
       if (sigaction (csig, 0, &old_action) == -1)
-	scm_syserror (s_sigaction);
+	SCM_SYSERROR;
     }
   else
     {
       if (sigaction (csig, &action , &old_action) == -1)
-	scm_syserror (s_sigaction);
+	SCM_SYSERROR;
       if (save_handler)
 	orig_handlers[csig] = old_action;
     }
@@ -287,14 +291,14 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
   if (query_only)
     {
       if ((old_chandler = signal (csig, SIG_IGN)) == SIG_ERR)
-	scm_syserror (s_sigaction);
+	SCM_SYSERROR;
       if (signal (csig, old_chandler) == SIG_ERR)
-	scm_syserror (s_sigaction);
+	SCM_SYSERROR;
     }
   else
     {
       if ((old_chandler = signal (csig, chandler)) == SIG_ERR)
-	scm_syserror (s_sigaction);
+	SCM_SYSERROR;
       if (save_handler)
 	orig_handlers[csig] = old_chandler;
     }
@@ -304,10 +308,12 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
   return scm_cons (old_handler, SCM_MAKINUM (0));
 #endif
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_restore_signals, "restore-signals", 0, 0, 0, scm_restore_signals);
-SCM
-scm_restore_signals (void)
+GUILE_PROC (scm_restore_signals, "restore-signals", 0, 0, 0, 
+            (void),
+"")
+#define FUNC_NAME s_scm_restore_signals
 {
   int i;
   SCM *scheme_handlers = SCM_VELTS (*signal_handlers);  
@@ -318,7 +324,7 @@ scm_restore_signals (void)
       if (orig_handlers[i].sa_handler != SIG_ERR)
 	{
 	  if (sigaction (i, &orig_handlers[i], NULL) == -1)
-	    scm_syserror (s_restore_signals);
+	    SCM_SYSERROR;
 	  orig_handlers[i].sa_handler = SIG_ERR;
 	  scheme_handlers[i] = SCM_BOOL_F;
 	}
@@ -326,7 +332,7 @@ scm_restore_signals (void)
       if (orig_handlers[i] != SIG_ERR)
 	{
 	  if (signal (i, orig_handlers[i]) == SIG_ERR)
-	    scm_syserror (s_restore_signals);
+	    SCM_SYSERROR;
 	  orig_handlers[i] = SIG_ERR;
 	  scheme_handlers[i] = SCM_BOOL_F;
 	}
@@ -334,38 +340,39 @@ scm_restore_signals (void)
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_alarm, "alarm", 1, 0, 0, scm_alarm);
-
-SCM 
-scm_alarm (i)
-     SCM i;
+GUILE_PROC(scm_alarm, "alarm", 1, 0, 0, 
+           (SCM i),
+"")
+#define FUNC_NAME s_scm_alarm
 {
   unsigned int j;
-  SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_alarm);
+  SCM_VALIDATE_INT(1,i);
   j = alarm (SCM_INUM (i));
   return SCM_MAKINUM (j);
 }
+#undef FUNC_NAME
 
 #ifdef HAVE_PAUSE
-SCM_PROC(s_pause, "pause", 0, 0, 0, scm_pause);
-
-SCM 
-scm_pause ()
+GUILE_PROC(scm_pause, "pause", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_pause
 {
   pause ();
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 #endif
 
-SCM_PROC(s_sleep, "sleep", 1, 0, 0, scm_sleep);
-
-SCM 
-scm_sleep (i)
-     SCM i;
+GUILE_PROC(scm_sleep, "sleep", 1, 0, 0, 
+           (SCM i),
+"")
+#define FUNC_NAME s_scm_sleep
 {
   unsigned long j;
-  SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_sleep);
+  SCM_VALIDATE_INT_MIN(1,i,0);
 #ifdef USE_THREADS
   j = scm_thread_sleep (SCM_INUM(i));
 #else
@@ -373,15 +380,15 @@ scm_sleep (i)
 #endif
   return scm_ulong2num (j);
 }
+#undef FUNC_NAME
 
 #if defined(USE_THREADS) || defined(HAVE_USLEEP)
-SCM_PROC(s_usleep, "usleep", 1, 0, 0, scm_usleep);
-
-SCM 
-scm_usleep (i)
-     SCM i;
+GUILE_PROC(scm_usleep, "usleep", 1, 0, 0, 
+           (SCM i),
+"")
+#define FUNC_NAME s_scm_usleep
 {
-  SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_usleep);
+  SCM_VALIDATE_INT_MIN(1,i,0);
 
 #ifdef USE_THREADS
   /* If we have threads, we use the thread system's sleep function.  */
@@ -401,21 +408,22 @@ scm_usleep (i)
 #endif
 #endif
 }
+#undef FUNC_NAME
 #endif /* GUILE_ISELECT || HAVE_USLEEP */
 
-SCM_PROC(s_raise, "raise", 1, 0, 0, scm_raise);
-
-SCM
-scm_raise(sig)
-     SCM sig;
+GUILE_PROC(scm_raise, "raise", 1, 0, 0, 
+           (SCM sig),
+"")
+#define FUNC_NAME s_scm_raise
 {
-  SCM_ASSERT(SCM_INUMP(sig), sig, SCM_ARG1, s_raise);
+  SCM_VALIDATE_INT(1,sig);
   SCM_DEFER_INTS;
   if (kill (getpid (), (int) SCM_INUM (sig)) != 0)
-    scm_syserror (s_raise);
+    SCM_SYSERROR;
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 

@@ -40,6 +40,10 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
+
 /* Written in 1994 by Aubrey Jaffer.
  * Thanks to Hallvard.Tretteberg@si.sintef.no for inspiration and discussion.
  * Rewritten by Gary Houston to be a closer interface to the C socket library.
@@ -51,6 +55,7 @@
 #include "_scm.h"
 #include "feature.h"
 
+#include "scm_validate.h"
 #include "net_db.h"
 
 #ifdef HAVE_STRING_H
@@ -77,81 +82,80 @@ int close ();
 
 extern int inet_aton ();
 
-SCM_PROC (s_inet_aton, "inet-aton", 1, 0, 0, scm_inet_aton);
-
-SCM 
-scm_inet_aton (address)
-     SCM address;
+GUILE_PROC (scm_inet_aton, "inet-aton", 1, 0, 0, 
+            (SCM address),
+"")
+#define FUNC_NAME s_scm_inet_aton
 {
   struct in_addr soka;
 
-  SCM_ASSERT (SCM_NIMP (address) && SCM_ROSTRINGP (address), address, SCM_ARG1, s_inet_aton);
+  SCM_VALIDATE_ROSTRING(1,address);
   if (SCM_SUBSTRP (address))
     address = scm_makfromstr (SCM_ROCHARS (address), SCM_ROLENGTH (address), 0);
   if (inet_aton (SCM_ROCHARS (address), &soka) == 0)
-    scm_misc_error (s_inet_aton, "bad address", SCM_EOL);
+    SCM_MISC_ERROR ("bad address", SCM_EOL);
   return scm_ulong2num (ntohl (soka.s_addr));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_inet_ntoa, "inet-ntoa", 1, 0, 0, scm_inet_ntoa);
-
-SCM 
-scm_inet_ntoa (inetid)
-     SCM inetid;
+GUILE_PROC (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
+            (SCM inetid),
+"")
+#define FUNC_NAME s_scm_inet_ntoa
 {
   struct in_addr addr;
   char *s;
   SCM answer;
-  addr.s_addr = htonl (scm_num2ulong (inetid, (char *) SCM_ARG1, s_inet_ntoa));
+  addr.s_addr = htonl (SCM_NUM2ULONG (1,inetid));
   s = inet_ntoa (addr);
   answer = scm_makfromstr (s, strlen (s), 0);
   return answer;
 }
+#undef FUNC_NAME
 
 #ifdef HAVE_INET_NETOF
-SCM_PROC (s_inet_netof, "inet-netof", 1, 0, 0, scm_inet_netof);
-
-SCM 
-scm_inet_netof (address)
-     SCM address;
+GUILE_PROC (scm_inet_netof, "inet-netof", 1, 0, 0, 
+            (SCM address),
+"")
+#define FUNC_NAME s_scm_inet_netof
 {
   struct in_addr addr;
-  addr.s_addr = htonl (scm_num2ulong (address, (char *) SCM_ARG1, s_inet_netof));
+  addr.s_addr = htonl (SCM_NUM2ULONG (1,address));
   return scm_ulong2num ((unsigned long) inet_netof (addr));
 }
+#undef FUNC_NAME
 #endif
 
 #ifdef HAVE_INET_LNAOF
-SCM_PROC (s_lnaof, "inet-lnaof", 1, 0, 0, scm_lnaof);
-
-SCM 
-scm_lnaof (address)
-     SCM address;
+GUILE_PROC (scm_lnaof, "inet-lnaof", 1, 0, 0, 
+            (SCM address),
+"")
+#define FUNC_NAME s_scm_lnaof
 {
   struct in_addr addr;
-  addr.s_addr = htonl (scm_num2ulong (address, (char *) SCM_ARG1, s_lnaof));
+  addr.s_addr = htonl (SCM_NUM2ULONG (1,address));
   return scm_ulong2num ((unsigned long) inet_lnaof (addr));
 }
+#undef FUNC_NAME
 #endif
 
 #ifdef HAVE_INET_MAKEADDR
-SCM_PROC (s_inet_makeaddr, "inet-makeaddr", 2, 0, 0, scm_inet_makeaddr);
-
-SCM 
-scm_inet_makeaddr (net, lna)
-     SCM net;
-     SCM lna;
+GUILE_PROC (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
+            (SCM net, SCM lna),
+"")
+#define FUNC_NAME s_scm_inet_makeaddr
 {
   struct in_addr addr;
   unsigned long netnum;
   unsigned long lnanum;
 
-  netnum = scm_num2ulong (net, (char *) SCM_ARG1, s_inet_makeaddr);
-  lnanum = scm_num2ulong (lna, (char *) SCM_ARG2, s_inet_makeaddr);
+  SCM_VALIDATE_INT_COPY(1,net,netnum);
+  SCM_VALIDATE_INT_COPY(2,lna,lnanum);
   addr = inet_makeaddr (netnum, lnanum);
   return scm_ulong2num (ntohl (addr.s_addr));
 }
+#undef FUNC_NAME
 #endif
 
 SCM_SYMBOL (scm_host_not_found_key, "host-not-found");
@@ -205,11 +209,10 @@ static void scm_resolv_error (const char *subr, SCM bad_value)
    Should use reentrant facilities if available.
  */
 
-SCM_PROC (s_gethost, "gethost", 0, 1, 0, scm_gethost);
-
-SCM 
-scm_gethost (name)
-     SCM name;
+GUILE_PROC (scm_gethost, "gethost", 0, 1, 0, 
+            (SCM name),
+"")
+#define FUNC_NAME s_scm_gethost
 {
   SCM ans = scm_make_vector (SCM_MAKINUM (5), SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
@@ -243,11 +246,11 @@ scm_gethost (name)
     }
   else
     {
-      inad.s_addr = htonl (scm_num2ulong (name, (char *) SCM_ARG1, s_gethost));
+      inad.s_addr = htonl (scm_num2ulong (name, (char *) SCM_ARG1, FUNC_NAME));
       entry = gethostbyaddr ((char *) &inad, sizeof (inad), AF_INET);
     }
   if (!entry)
-    scm_resolv_error (s_gethost, name);
+    scm_resolv_error (FUNC_NAME, name);
   
   ve[0] = scm_makfromstr (entry->h_name, 
 			  (scm_sizet) strlen (entry->h_name), 0);
@@ -268,6 +271,7 @@ scm_gethost (name)
   ve[4] = lst;
   return ans;
 }
+#undef FUNC_NAME
 
 
 /* In all subsequent getMUMBLE functions, when we're called with no
@@ -280,11 +284,10 @@ scm_gethost (name)
    operation?), but it seems to work okay.  We'll see.  */
 
 #if defined(HAVE_GETNETENT) && defined(HAVE_GETNETBYNAME) && defined(HAVE_GETNETBYADDR)
-SCM_PROC (s_getnet, "getnet", 0, 1, 0, scm_getnet);
-
-SCM 
-scm_getnet (name)
-     SCM name;
+GUILE_PROC (scm_getnet, "getnet", 0, 1, 0, 
+            (SCM name),
+"")
+#define FUNC_NAME s_scm_getnet
 {
   SCM ans;
   SCM *ve;
@@ -299,7 +302,7 @@ scm_getnet (name)
       if (! entry)
 	{
 	  if (errno)
-	    scm_syserror (s_getnet);
+	    SCM_SYSERROR;
 	  else 
 	    return SCM_BOOL_F;
 	}
@@ -312,11 +315,11 @@ scm_getnet (name)
   else
     {
       unsigned long netnum;
-      netnum = scm_num2ulong (name, (char *) SCM_ARG1, s_getnet);
+      netnum = scm_num2ulong (name, (char *) SCM_ARG1, FUNC_NAME);
       entry = getnetbyaddr (netnum, AF_INET);
     }
   if (!entry)
-    scm_syserror_msg (s_getnet, "no such network %s",
+    scm_syserror_msg (FUNC_NAME, "no such network %s",
 		      scm_listify (name, SCM_UNDEFINED), errno);
   ve[0] = scm_makfromstr (entry->n_name, (scm_sizet) strlen (entry->n_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);
@@ -324,14 +327,14 @@ scm_getnet (name)
   ve[3] = scm_ulong2num (entry->n_net + 0L);
   return ans;
 }
+#undef FUNC_NAME
 #endif
 
 #ifdef HAVE_GETPROTOENT
-SCM_PROC (s_getproto, "getproto", 0, 1, 0, scm_getproto);
-
-SCM 
-scm_getproto (name)
-     SCM name;
+GUILE_PROC (scm_getproto, "getproto", 0, 1, 0, 
+            (SCM name),
+"")
+#define FUNC_NAME s_scm_getproto
 {
   SCM ans;
   SCM *ve;
@@ -346,7 +349,7 @@ scm_getproto (name)
       if (! entry)
 	{
 	  if (errno)
-	    scm_syserror (s_getproto);
+	    SCM_SYSERROR;
 	  else
 	    return SCM_BOOL_F;
 	}
@@ -359,24 +362,22 @@ scm_getproto (name)
   else
     {
       unsigned long protonum;
-      protonum = scm_num2ulong (name, (char *) SCM_ARG1, s_getproto);
+      protonum = SCM_NUM2ULONG (1,name);
       entry = getprotobynumber (protonum);
     }
   if (!entry)
-    scm_syserror_msg (s_getproto, "no such protocol %s",
+    SCM_SYSERROR_MSG ("no such protocol %s",
 		      scm_listify (name, SCM_UNDEFINED), errno);
   ve[0] = scm_makfromstr (entry->p_name, (scm_sizet) strlen (entry->p_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->p_aliases);
   ve[2] = SCM_MAKINUM (entry->p_proto + 0L);
   return ans;
 }
+#undef FUNC_NAME
 #endif
 
-static SCM scm_return_entry SCM_P ((struct servent *entry));
-
 static SCM
-scm_return_entry (entry)
-     struct servent *entry;
+scm_return_entry (struct servent *entry)
 {
   SCM ans;
   SCM *ve;
@@ -391,12 +392,10 @@ scm_return_entry (entry)
 }
 
 #ifdef HAVE_GETSERVENT
-SCM_PROC (s_getserv, "getserv", 0, 2, 0, scm_getserv);
-
-SCM 
-scm_getserv (name, proto)
-     SCM name;
-     SCM proto;
+GUILE_PROC (scm_getserv, "getserv", 0, 2, 0,
+            (SCM name, SCM proto),
+"")
+#define FUNC_NAME s_scm_getserv
 {
   struct servent *entry;
   if (SCM_UNBNDP (name))
@@ -406,13 +405,13 @@ scm_getserv (name, proto)
       if (!entry)
 	{
 	  if (errno)
-	    scm_syserror (s_getserv);
+	    SCM_SYSERROR;
 	  else
 	    return SCM_BOOL_F;
 	}
       return scm_return_entry (entry);
     }
-  SCM_ASSERT (SCM_NIMP (proto) && SCM_ROSTRINGP (proto), proto, SCM_ARG2, s_getserv);
+  SCM_VALIDATE_ROSTRING(2,proto);
   SCM_COERCE_SUBSTR (proto);
   if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
@@ -421,22 +420,22 @@ scm_getserv (name, proto)
     }
   else
     {
-      SCM_ASSERT (SCM_INUMP (name), name, SCM_ARG1, s_getserv);
+      SCM_VALIDATE_INT(1,name);
       entry = getservbyport (htons (SCM_INUM (name)), SCM_ROCHARS (proto));
     }
   if (!entry)
-    scm_syserror_msg (s_getserv, "no such service %s",
-		      scm_listify (name, SCM_UNDEFINED), errno);
+    SCM_SYSERROR_MSG("no such service %s", 
+                     scm_listify (name, SCM_UNDEFINED), errno);
   return scm_return_entry (entry);
 }
+#undef FUNC_NAME
 #endif
 
 #if defined(HAVE_SETHOSTENT) && defined(HAVE_ENDHOSTENT)
-SCM_PROC (s_sethost, "sethost", 0, 1, 0, scm_sethost);
-
-SCM 
-scm_sethost (arg)
-     SCM arg;
+GUILE_PROC (scm_sethost, "sethost", 0, 1, 0, 
+            (SCM arg),
+"")
+#define FUNC_NAME s_scm_sethost
 {
   if (SCM_UNBNDP (arg))
     endhostent ();
@@ -444,14 +443,14 @@ scm_sethost (arg)
     sethostent (SCM_NFALSEP (arg));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 #endif
 
 #if defined(HAVE_SETNETENT) && defined(HAVE_ENDNETENT) 
-SCM_PROC (s_setnet, "setnet", 0, 1, 0, scm_setnet);
-
-SCM 
-scm_setnet (arg)
-     SCM arg;
+GUILE_PROC (scm_setnet, "setnet", 0, 1, 0, 
+            (SCM arg),
+"")
+#define FUNC_NAME s_scm_setnet
 {
   if (SCM_UNBNDP (arg))
     endnetent ();
@@ -459,14 +458,14 @@ scm_setnet (arg)
     setnetent (SCM_NFALSEP (arg));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 #endif
 
 #if defined(HAVE_SETPROTOENT) && defined(HAVE_ENDPROTOENT)
-SCM_PROC (s_setproto, "setproto", 0, 1, 0, scm_setproto);
-
-SCM 
-scm_setproto (arg)
-     SCM arg;
+GUILE_PROC (scm_setproto, "setproto", 0, 1, 0, 
+            (SCM arg),
+"")
+#define FUNC_NAME s_scm_setproto
 {
   if (SCM_UNBNDP (arg))
     endprotoent ();
@@ -474,14 +473,14 @@ scm_setproto (arg)
     setprotoent (SCM_NFALSEP (arg));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 #endif
 
 #if defined(HAVE_SETSERVENT) && defined(HAVE_ENDSERVENT)
-SCM_PROC (s_setserv, "setserv", 0, 1, 0, scm_setserv);
-
-SCM 
-scm_setserv (arg)
-     SCM arg;
+GUILE_PROC (scm_setserv, "setserv", 0, 1, 0, 
+            (SCM arg),
+"")
+#define FUNC_NAME s_scm_setserv
 {
   if (SCM_UNBNDP (arg))
     endservent ();
@@ -489,6 +488,7 @@ scm_setserv (arg)
     setservent (SCM_NFALSEP (arg));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 #endif
 
 

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -45,16 +49,12 @@
 #include "genio.h"
 #include "smob.h"
 
+#include "scm_validate.h"
 #include "keywords.h"
 
 
-static int prin_keyword SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
 static int
-prin_keyword (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+prin_keyword (SCM exp,SCM port,scm_print_state *pstate)
 {
   scm_puts ("#:", port);
   scm_puts(1 + SCM_CHARS (SCM_CDR (exp)), port);
@@ -68,18 +68,17 @@ int scm_tc16_keyword;
 int scm_tc16_kw;
 
 
-SCM_PROC (s_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, scm_make_keyword_from_dash_symbol);
-
-SCM
-scm_make_keyword_from_dash_symbol (symbol)
-     SCM symbol;
+GUILE_PROC (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, 
+            (SCM symbol),
+"")
+#define FUNC_NAME s_scm_make_keyword_from_dash_symbol
 {
   SCM vcell;
 
   SCM_ASSERT (SCM_NIMP (symbol)
 	      && SCM_SYMBOLP (symbol)
 	      && ('-' == SCM_CHARS(symbol)[0]),
-	      symbol, SCM_ARG1, s_make_keyword_from_dash_symbol);
+	      symbol, SCM_ARG1, FUNC_NAME);
 
   SCM_DEFER_INTS;
   vcell = scm_sym2ovcell_soft (symbol, scm_keyword_obarray);
@@ -94,6 +93,7 @@ scm_make_keyword_from_dash_symbol (symbol)
   SCM_ALLOW_INTS;
   return SCM_CDR (vcell);
 }
+#undef FUNC_NAME
 
 SCM
 scm_c_make_keyword (char *s)
@@ -107,31 +107,25 @@ scm_c_make_keyword (char *s)
   return scm_make_keyword_from_dash_symbol (SCM_CAR (vcell));
 }
 
-SCM_PROC(s_keyword_p, "keyword?", 1, 0, 0, scm_keyword_p);
-
-SCM
-scm_keyword_p (obj)
-     SCM obj;
+GUILE_PROC(scm_keyword_p, "keyword?", 1, 0, 0, 
+           (SCM obj),
+"")
+#define FUNC_NAME s_scm_keyword_p
 {
-  return ( (SCM_NIMP(obj) && SCM_KEYWORDP (obj))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP(obj) && SCM_KEYWORDP (obj));
 }
+#undef FUNC_NAME
 
 
-
-SCM_PROC(s_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, scm_keyword_dash_symbol);
-
-SCM
-scm_keyword_dash_symbol (keyword)
-     SCM keyword;
+GUILE_PROC(scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, 
+           (SCM keyword),
+"")
+#define FUNC_NAME s_scm_keyword_dash_symbol
 {
-  SCM_ASSERT (SCM_NIMP (keyword) && SCM_KEYWORDP (keyword),
-	      keyword, SCM_ARG1, s_keyword_dash_symbol);
+  SCM_VALIDATE_KEYWORD(1,keyword);
   return SCM_CDR (keyword);
 }
-
-
+#undef FUNC_NAME
 
 
 

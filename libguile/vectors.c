@@ -38,12 +38,17 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
 #include "_scm.h"
 #include "eq.h"
 
+#include "scm_validate.h"
 #include "vectors.h"
 #include "unif.h"
 
@@ -53,15 +58,13 @@
  * C code can safely call it on arrays known to be used in a single
  * threaded manner.
  *
- * SCM_PROC(s_vector_set_length_x, "vector-set-length!", 2, 0, 0, scm_vector_set_length_x); 
+ * SCM_REGISTER_PROC(s_vector_set_length_x, "vector-set-length!", 2, 0, 0, scm_vector_set_length_x); 
  */
 static char s_vector_set_length_x[] = "vector-set-length!";
 
 
 SCM 
-scm_vector_set_length_x (vect, len)
-     SCM vect;
-     SCM len;
+scm_vector_set_length_x (SCM vect, SCM len)
 {
   long l;
   scm_sizet siz;
@@ -119,15 +122,15 @@ scm_vector_set_length_x (vect, len)
   return vect;
 }
 
-SCM_PROC(s_vector_p, "vector?", 1, 0, 0, scm_vector_p);
-
-SCM
-scm_vector_p(x)
-     SCM x;
+GUILE_PROC(scm_vector_p, "vector?", 1, 0, 0, 
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_vector_p
 {
   if (SCM_IMP(x)) return SCM_BOOL_F;
-  return SCM_VECTORP(x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_VECTORP(x));
 }
+#undef FUNC_NAME
 
 SCM_GPROC(s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vector_length);
 
@@ -140,23 +143,24 @@ scm_vector_length(v)
   return SCM_MAKINUM(SCM_LENGTH(v));
 }
 
-SCM_PROC(s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
-SCM_PROC(s_vector, "vector", 0, 0, 1, scm_vector);
+SCM_REGISTER_PROC(s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
 
-SCM
-scm_vector(l)
-     SCM l;
+GUILE_PROC(scm_vector, "vector", 0, 0, 1, 
+           (SCM l),
+"")
+#define FUNC_NAME s_scm_vector
 {
   SCM res;
   register SCM *data;
-  long i = scm_ilength(l);
-  SCM_ASSERT(i >= 0, l, SCM_ARG1, s_vector);
+  int i;
+  SCM_VALIDATE_LIST_COPYLEN(1,l,i);
   res = scm_make_vector (SCM_MAKINUM(i), SCM_UNSPECIFIED);
   data = SCM_VELTS(res);
   for(;i && SCM_NIMP(l);--i, l = SCM_CDR(l))
     *data++ = SCM_CAR(l);
   return res;
 }
+#undef FUNC_NAME
 
 SCM_GPROC(s_vector_ref, "vector-ref", 2, 0, 0, scm_vector_ref, g_vector_ref);
 
@@ -193,25 +197,23 @@ scm_vector_set_x(v, k, obj)
 }
 
 
-SCM_PROC (s_make_vector, "make-vector", 1, 1, 0, scm_make_vector);
-
-SCM
-scm_make_vector (k, fill)
-     SCM k;
-     SCM fill;
+GUILE_PROC (scm_make_vector, "make-vector", 1, 1, 0,
+            (SCM k, SCM fill),
+"")
+#define FUNC_NAME s_scm_make_vector
 {
   SCM v;
   register long i;
   register long j;
   register SCM *velts;
 
-  SCM_ASSERT(SCM_INUMP(k) && (0 <= SCM_INUM (k)), k, SCM_ARG1, s_make_vector);
+  SCM_VALIDATE_INT_MIN(1,k,0);
   if (SCM_UNBNDP(fill))
     fill = SCM_UNSPECIFIED;
   i = SCM_INUM(k);
   SCM_NEWCELL(v);
   SCM_DEFER_INTS;
-  SCM_SETCHARS(v, scm_must_malloc(i?(long)(i*sizeof(SCM)):1L, s_vector));
+  SCM_SETCHARS(v, scm_must_malloc(i?(long)(i*sizeof(SCM)):1L, FUNC_NAME));
   SCM_SETLENGTH(v, i, scm_tc7_vector);
   velts = SCM_VELTS(v);
   j = 0;
@@ -219,46 +221,44 @@ scm_make_vector (k, fill)
   SCM_ALLOW_INTS;
   return v;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_vector_to_list, "vector->list", 1, 0, 0, scm_vector_to_list);
-
-SCM
-scm_vector_to_list(v)
-     SCM v;
+GUILE_PROC(scm_vector_to_list, "vector->list", 1, 0, 0, 
+           (SCM v),
+"")
+#define FUNC_NAME s_scm_vector_to_list
 {
   SCM res = SCM_EOL;
   long i;
   SCM *data;
-  SCM_ASSERT(SCM_NIMP(v) && SCM_VECTORP(v), v, SCM_ARG1, s_vector_to_list);
+  SCM_VALIDATE_VECTOR(1,v);
   data = SCM_VELTS(v);
   for(i = SCM_LENGTH(v)-1;i >= 0;i--) res = scm_cons(data[i], res);
   return res;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_vector_fill_x, "vector-fill!", 2, 0, 0, scm_vector_fill_x);
-
-SCM
-scm_vector_fill_x (v, fill_x)
-     SCM v;
-     SCM fill_x;
+GUILE_PROC (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
+            (SCM v, SCM fill_x),
+"")
+#define FUNC_NAME s_scm_vector_fill_x
 {
   register long i;
   register SCM *data;
-  SCM_ASSERT(SCM_NIMP(v) && SCM_VECTORP(v), v, SCM_ARG1, s_vector_fill_x);
+  SCM_VALIDATE_VECTOR(1,v);
   data = SCM_VELTS(v);
   for(i = SCM_LENGTH(v) - 1; i >= 0; i--)
     data[i] = fill_x;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
 SCM
-scm_vector_equal_p(x, y)
-     SCM x;
-     SCM y;
+scm_vector_equal_p(SCM x, SCM y)
 {
   long i;
   for(i = SCM_LENGTH(x)-1;i >= 0;i--)
@@ -268,73 +268,53 @@ scm_vector_equal_p(x, y)
 }
 
 
-SCM_PROC (s_vector_move_left_x, "vector-move-left!", 5, 0, 0, scm_vector_move_left_x);
-
-SCM
-scm_vector_move_left_x (vec1, start1, end1, vec2, start2)
-     SCM vec1;
-     SCM start1;
-     SCM end1;
-     SCM vec2;
-     SCM start2;
+GUILE_PROC (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0, 
+            (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
+            "")
+#define FUNC_NAME s_scm_vector_move_left_x
 {
   long i;
   long j;
   long e;
   
-  SCM_ASSERT (SCM_NIMP (vec1) && SCM_VECTORP (vec1), vec1, SCM_ARG1, s_vector_move_left_x);
-  SCM_ASSERT (SCM_INUMP (start1), start1, SCM_ARG2, s_vector_move_left_x);
-  SCM_ASSERT (SCM_INUMP (end1), end1, SCM_ARG3, s_vector_move_left_x);
-  SCM_ASSERT (SCM_NIMP (vec2) && SCM_VECTORP (vec2), vec2, SCM_ARG4, s_vector_move_left_x);
-  SCM_ASSERT (SCM_INUMP (start2), start2, SCM_ARG5, s_vector_move_left_x);
-  i = SCM_INUM (start1);
-  j = SCM_INUM (start2);
-  e = SCM_INUM (end1);
-  SCM_ASSERT (i <= SCM_LENGTH (vec1) && i >= 0, start1, SCM_OUTOFRANGE, s_vector_move_left_x);
-  SCM_ASSERT (j <= SCM_LENGTH (vec2) && j >= 0, start2, SCM_OUTOFRANGE, s_vector_move_left_x);
-  SCM_ASSERT (e <= SCM_LENGTH (vec1) && e >= 0, end1, SCM_OUTOFRANGE, s_vector_move_left_x);
-  SCM_ASSERT (e-i+j <= SCM_LENGTH (vec2), start2, SCM_OUTOFRANGE, s_vector_move_left_x);
+  SCM_VALIDATE_VECTOR(1,vec1);
+  SCM_VALIDATE_INT_COPY(2,start1,i);
+  SCM_VALIDATE_INT_COPY(3,end1,e);
+  SCM_VALIDATE_VECTOR(4,vec2);
+  SCM_VALIDATE_INT_COPY(5,start2,j);
+  SCM_ASSERT (i <= SCM_LENGTH (vec1) && i >= 0, start1, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT (j <= SCM_LENGTH (vec2) && j >= 0, start2, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT (e <= SCM_LENGTH (vec1) && e >= 0, end1, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT (e-i+j <= SCM_LENGTH (vec2), start2, SCM_OUTOFRANGE, FUNC_NAME);
   while (i<e) SCM_VELTS (vec2)[j++] = SCM_VELTS (vec1)[i++];
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_vector_move_right_x, "vector-move-right!", 5, 0, 0, scm_vector_move_right_x);
-
-SCM
-scm_vector_move_right_x (vec1, start1, end1, vec2, start2)
-     SCM vec1;
-     SCM start1;
-     SCM end1;
-     SCM vec2;
-     SCM start2;
+GUILE_PROC (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0, 
+            (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
+            "")
+#define FUNC_NAME s_scm_vector_move_right_x
 {
   long i;
   long j;
   long e;
 
-  SCM_ASSERT (SCM_NIMP (vec1) && SCM_VECTORP (vec1),
-	      vec1, SCM_ARG1, s_vector_move_right_x);
-  SCM_ASSERT (SCM_INUMP (start1), start1, SCM_ARG2, s_vector_move_right_x);
-  SCM_ASSERT (SCM_INUMP (end1), end1, SCM_ARG3, s_vector_move_right_x);
-  SCM_ASSERT (SCM_NIMP (vec2) && SCM_VECTORP (vec2),
-	      vec2, SCM_ARG4, s_vector_move_right_x);
-  SCM_ASSERT (SCM_INUMP (start2), start2, SCM_ARG5, s_vector_move_right_x);
-  i = SCM_INUM (start1);
-  j = SCM_INUM (start2);
-  e = SCM_INUM (end1);
-  SCM_ASSERT (i <= SCM_LENGTH (vec1) && i >= 0,
-	      start1, SCM_OUTOFRANGE, s_vector_move_right_x);
-  SCM_ASSERT (j <= SCM_LENGTH (vec2) && j >= 0,
-	      start2, SCM_OUTOFRANGE, s_vector_move_right_x);
-  SCM_ASSERT (e <= SCM_LENGTH (vec1) && e >= 0,
-	      end1, SCM_OUTOFRANGE, s_vector_move_right_x);
+  SCM_VALIDATE_VECTOR(1,vec1);
+  SCM_VALIDATE_INT_COPY(2,start1,i);
+  SCM_VALIDATE_INT_COPY(3,end1,e);
+  SCM_VALIDATE_VECTOR(4,vec2);
+  SCM_VALIDATE_INT_COPY(5,start2,j);
+  SCM_ASSERT (i <= SCM_LENGTH (vec1) && i >= 0, start1, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT (j <= SCM_LENGTH (vec2) && j >= 0, start2, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT (e <= SCM_LENGTH (vec1) && e >= 0, end1, SCM_OUTOFRANGE, FUNC_NAME);
   j = e - i + j;
-  SCM_ASSERT (j <= SCM_LENGTH (vec2),
-	      start2, SCM_OUTOFRANGE, s_vector_move_right_x);
+  SCM_ASSERT (j <= SCM_LENGTH (vec2), start2, SCM_OUTOFRANGE, FUNC_NAME);
   while (i < e)
     SCM_VELTS (vec2)[--j] = SCM_VELTS (vec1)[--e];
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 

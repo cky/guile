@@ -43,6 +43,10 @@
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
+
 #include <stdio.h>
 #include "_scm.h"
 #include "eval.h"
@@ -61,29 +65,29 @@
 #include "dynwind.h"
 #include "modules.h"
 
+#include "scm_validate.h"
 #include "debug.h"
 
 
 /* {Run time control of the debugging evaluator}
  */
 
-SCM_PROC (s_debug_options, "debug-options-interface", 0, 1, 0, scm_debug_options);
-
-SCM
-scm_debug_options (setting)
-     SCM setting;
+GUILE_PROC (scm_debug_options, "debug-options-interface", 0, 1, 0, 
+            (SCM setting),
+"")
+#define FUNC_NAME s_scm_debug_options
 {
   SCM ans;
   SCM_DEFER_INTS;
   ans = scm_options (setting,
 		     scm_debug_opts,
 		     SCM_N_DEBUG_OPTIONS,
-		     s_debug_options);
+		     FUNC_NAME);
 #ifndef SCM_RECKLESS
   if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
     {
-      scm_options (ans, scm_debug_opts, SCM_N_DEBUG_OPTIONS, s_debug_options);
-      scm_out_of_range (s_debug_options, setting);
+      scm_options (ans, scm_debug_opts, SCM_N_DEBUG_OPTIONS, FUNC_NAME);
+      scm_out_of_range (FUNC_NAME, setting);
     }
 #endif
   SCM_RESET_DEBUG_MODE;
@@ -92,8 +96,7 @@ scm_debug_options (setting)
   SCM_ALLOW_INTS;
   return ans;
 }
-
-SCM_PROC (s_with_traps, "with-traps", 1, 0, 0, scm_with_traps);
+#undef FUNC_NAME
 
 static void
 with_traps_before (void *data)
@@ -117,20 +120,20 @@ with_traps_inner (void *data)
   return scm_apply (thunk, SCM_EOL, SCM_EOL);
 }
 
-SCM
-scm_with_traps (SCM thunk)
+GUILE_PROC (scm_with_traps, "with-traps", 1, 0, 0, 
+            (SCM thunk),
+"")
+#define FUNC_NAME s_scm_with_traps
 {
   int trap_flag;
-  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)),
-	      thunk,
-	      SCM_ARG1,
-	      s_with_traps);
+  SCM_VALIDATE_THUNK(1,thunk);
   return scm_internal_dynamic_wind (with_traps_before,
 				    with_traps_inner,
 				    with_traps_after,
 				    (void *) thunk,
 				    &trap_flag);
 }
+#undef FUNC_NAME
 
 
 static SCM scm_sym_source, scm_sym_dots;
@@ -142,13 +145,8 @@ static SCM scm_sym_procname;
 long scm_tc16_memoized;
 
 
-static int prinmemoized SCM_P ((SCM obj, SCM port, scm_print_state *pstate));
-
 static int
-prinmemoized (obj, port, pstate)
-     SCM obj;
-     SCM port;
-     scm_print_state *pstate;
+prinmemoized (SCM obj,SCM port,scm_print_state *pstate)
 {
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<memoized ", port);
@@ -163,19 +161,17 @@ prinmemoized (obj, port, pstate)
   return 1;
 }
 
-SCM_PROC (s_memoized_p, "memoized?", 1, 0, 0, scm_memoized_p);
-
-SCM
-scm_memoized_p (obj)
-     SCM obj;
+GUILE_PROC (scm_memoized_p, "memoized?", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_memoized_p
 {
-  return SCM_NIMP (obj) && SCM_MEMOIZEDP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_NIMP (obj) && SCM_MEMOIZEDP (obj));
 }
+#undef FUNC_NAME
 
 SCM
-scm_make_memoized (exp, env)
-     SCM exp;
-     SCM env;
+scm_make_memoized (SCM exp, SCM env)
 {
   /* *fixme* Check that env is a valid environment. */
   register SCM z, ans;
@@ -254,77 +250,63 @@ scm_make_memoized (exp, env)
 #include "variable.h"
 #include "procs.h"
 
-SCM_PROC (s_make_gloc, "make-gloc", 1, 1, 0, scm_make_gloc);
-
-SCM
-scm_make_gloc (var, env)
-     SCM var;
-     SCM env;
+GUILE_PROC (scm_make_gloc, "make-gloc", 1, 1, 0, 
+            (SCM var, SCM env),
+"")
+#define FUNC_NAME s_scm_make_gloc
 {
 #if 1 /* Unsafe */
   if (SCM_NIMP (var) && SCM_CONSP (var))
     var = scm_cons (SCM_BOOL_F, var);
   else
 #endif
-  SCM_ASSERT (SCM_NIMP (var) && SCM_VARIABLEP (var),
-	      var,
-	      SCM_ARG1,
-	      s_make_gloc);
+    SCM_VALIDATE_VARIABLE(1,var);
   if (SCM_UNBNDP (env))
     env = scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var));
   else
-    SCM_ASSERT (SCM_NULLP (env) || (SCM_NIMP (env) && SCM_CONSP (env)),
-		env,
-		SCM_ARG2,
-		s_make_gloc);
+    SCM_VALIDATE_NULLORCONS(2,env);
   return scm_make_memoized (SCM_VARVCELL (var) + 1, env);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_gloc_p, "gloc?", 1, 0, 0, scm_gloc_p);
-
-SCM
-scm_gloc_p (obj)
-     SCM obj;
+GUILE_PROC (scm_gloc_p, "gloc?", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_gloc_p
 {
-  return ((SCM_NIMP (obj)
-	   && SCM_MEMOIZEDP (obj)
-	   && (SCM_MEMOIZED_EXP (obj) & 7) == 1)
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL((SCM_NIMP (obj)
+                   && SCM_MEMOIZEDP (obj)
+                   && (SCM_MEMOIZED_EXP (obj) & 7) == 1));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_make_iloc, "make-iloc", 3, 0, 0, scm_make_iloc);
-
-SCM
-scm_make_iloc (frame, binding, cdrp)
-     SCM frame;
-     SCM binding;
-     SCM cdrp;
+GUILE_PROC (scm_make_iloc, "make-iloc", 3, 0, 0,
+            (SCM frame, SCM binding, SCM cdrp),
+"")
+#define FUNC_NAME s_scm_make_iloc
 {
-  SCM_ASSERT (SCM_INUMP (frame), frame, SCM_ARG1, s_make_iloc);
-  SCM_ASSERT (SCM_INUMP (binding), binding, SCM_ARG2, s_make_iloc);
+  SCM_VALIDATE_INT(1,frame);
+  SCM_VALIDATE_INT(2,binding)
   return (SCM_ILOC00
 	  + SCM_IFRINC * SCM_INUM (frame)
 	  + (SCM_NFALSEP (cdrp) ? SCM_ICDR : 0)
 	  + SCM_IDINC * SCM_INUM (binding));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_iloc_p, "iloc?", 1, 0, 0, scm_iloc_p);
-
-SCM
-scm_iloc_p (obj)
-     SCM obj;
+GUILE_PROC (scm_iloc_p, "iloc?", 1, 0, 0, 
+          (SCM obj),
+"")
+#define FUNC_NAME s_scm_iGUILE_p
 {
-  return SCM_ILOCP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_ILOCP (obj));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_memcons, "memcons", 2, 1, 0, scm_memcons);
-
-SCM
-scm_memcons (car, cdr, env)
-     SCM car;
-     SCM cdr;
-     SCM env;
+GUILE_PROC (scm_memcons, "memcons", 2, 1, 0,
+            (SCM car, SCM cdr, SCM env),
+"")
+#define FUNC_NAME s_scm_memcons
 {
   if (SCM_NIMP (car) && SCM_MEMOIZEDP (car))
     {
@@ -356,18 +338,15 @@ scm_memcons (car, cdr, env)
 		s_make_iloc);
   return scm_make_memoized (scm_cons (car, cdr), env);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_mem_to_proc, "mem->proc", 1, 0, 0, scm_mem_to_proc);
-
-SCM
-scm_mem_to_proc (obj)
-     SCM obj;
+GUILE_PROC (scm_mem_to_proc, "mem->proc", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_mem_to_proc
 {
   SCM env;
-  SCM_ASSERT (SCM_NIMP (obj) && SCM_MEMOIZEDP (obj),
-	      obj,
-	      SCM_ARG1,
-	      s_mem_to_proc);
+  SCM_VALIDATE_MEMOIZED(1,obj);
   env = SCM_MEMOIZED_ENV (obj);
   obj = SCM_MEMOIZED_EXP (obj);
   if (!(SCM_NIMP (obj) && SCM_CAR (obj) == SCM_IM_LAMBDA))
@@ -376,53 +355,47 @@ scm_mem_to_proc (obj)
 		    scm_cons (obj, SCM_EOL));
   return scm_closure (SCM_CDR (obj), env);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_proc_to_mem, "proc->mem", 1, 0, 0, scm_proc_to_mem);
-
-SCM
-scm_proc_to_mem (obj)
-     SCM obj;
+GUILE_PROC (scm_proc_to_mem, "proc->mem", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_proc_to_mem
 {
-  SCM_ASSERT (SCM_NIMP (obj) && SCM_CLOSUREP (obj),
-	      obj,
-	      SCM_ARG1,
-	      s_proc_to_mem);
+  SCM_VALIDATE_CLOSURE(1,obj)
   return scm_make_memoized (scm_cons (SCM_IM_LAMBDA, SCM_CODE (obj)),
 			    SCM_ENV (obj));
 }
+#undef FUNC_NAME
 
 #endif /* GUILE_DEBUG */
 
-SCM_PROC (s_unmemoize, "unmemoize", 1, 0, 0, scm_unmemoize);
-
-SCM
-scm_unmemoize (m)
-     SCM m;
+GUILE_PROC (scm_unmemoize, "unmemoize", 1, 0, 0, 
+            (SCM m),
+"")
+#define FUNC_NAME s_scm_unmemoize
 {
-  SCM_ASSERT (SCM_NIMP (m) && SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
+  SCM_VALIDATE_MEMOIZED(1,m);
   return scm_unmemocopy (SCM_MEMOIZED_EXP (m), SCM_MEMOIZED_ENV (m));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_memoized_environment, "memoized-environment", 1, 0, 0, scm_memoized_environment);
-
-SCM
-scm_memoized_environment (m)
-     SCM m;
+GUILE_PROC (scm_memoized_environment, "memoized-environment", 1, 0, 0, 
+            (SCM m),
+"")
+#define FUNC_NAME s_scm_memoized_environment
 {
-  SCM_ASSERT (SCM_NIMP (m) && SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
+  SCM_VALIDATE_MEMOIZED(1,m);
   return SCM_MEMOIZED_ENV (m);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_procedure_name, "procedure-name", 1, 0, 0, scm_procedure_name);
-
-SCM
-scm_procedure_name (proc)
-     SCM proc;
+GUILE_PROC (scm_procedure_name, "procedure-name", 1, 0, 0, 
+            (SCM proc),
+"")
+#define FUNC_NAME s_scm_procedure_name
 {
-  SCM_ASSERT(scm_procedure_p (proc) == SCM_BOOL_T,
-	     proc,
-	     SCM_ARG1,
-	     s_procedure_name);
+  SCM_VALIDATE_PROC(1,proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_subrs:
     return SCM_SNAME (proc);
@@ -441,14 +414,14 @@ scm_procedure_name (proc)
     }
   }
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_procedure_source, "procedure-source", 1, 0, 0, scm_procedure_source);
-
-SCM
-scm_procedure_source (proc)
-     SCM proc;
+GUILE_PROC (scm_procedure_source, "procedure-source", 1, 0, 0, 
+            (SCM proc),
+"")
+#define FUNC_NAME s_scm_procedure_source
 {
-  SCM_ASSERT(SCM_NIMP (proc), proc, SCM_ARG1, s_procedure_source);
+  SCM_VALIDATE_NIMP(1,proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     {
@@ -472,18 +445,18 @@ scm_procedure_source (proc)
        built in procedures! */
     return scm_procedure_property (proc, scm_sym_source);
   default:
-    scm_wta (proc, (char *) SCM_ARG1, s_procedure_source);
+    SCM_WTA(1,proc);
     return 0;
   }
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_procedure_environment, "procedure-environment", 1, 0, 0, scm_procedure_environment);
-
-SCM
-scm_procedure_environment (proc)
-     SCM proc;
+GUILE_PROC (scm_procedure_environment, "procedure-environment", 1, 0, 0, 
+            (SCM proc),
+"")
+#define FUNC_NAME s_scm_procedure_environment
 {
-  SCM_ASSERT (SCM_NIMP (proc), proc, SCM_ARG1, s_procedure_environment);
+  SCM_VALIDATE_NIMP(1,proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     return SCM_ENV (proc);
@@ -494,10 +467,11 @@ scm_procedure_environment (proc)
 #endif
     return SCM_EOL;
   default:
-    scm_wta (proc, (char *) SCM_ARG1, s_procedure_environment);
+    SCM_WTA(1,proc);
     return 0;
   }
 }
+#undef FUNC_NAME
 
 
 
@@ -507,23 +481,22 @@ scm_procedure_environment (proc)
  * the code before evaluating.  One solution would be to have eval.c
  * generate yet another evaluator.  They are not very big actually.
  */
-SCM_PROC (s_local_eval, "local-eval", 1, 1, 0, scm_local_eval);
-
-SCM
-scm_local_eval (exp, env)
-     SCM exp;
-     SCM env;
+GUILE_PROC (scm_local_eval, "local-eval", 1, 1, 0,
+            (SCM exp, SCM env),
+"")
+#define FUNC_NAME s_scm_local_eval
 {
   if (SCM_UNBNDP (env))
   {
-    SCM_ASSERT (SCM_NIMP (exp) && SCM_MEMOIZEDP (exp), exp, SCM_ARG1, s_local_eval);
+    SCM_VALIDATE_MEMOIZED(1,exp);
     return scm_eval_3 (SCM_MEMOIZED_EXP (exp), 0, SCM_MEMOIZED_ENV (exp));
   }
   return scm_eval_3 (exp, 1, env);
 }
+#undef FUNC_NAME
 
 #if 0
-SCM_PROC (s_reverse_lookup, "reverse-lookup", 2, 0, 0, scm_reverse_lookup);
+SCM_REGISTER_PROC (s_reverse_lookup, "reverse-lookup", 2, 0, 0, scm_reverse_lookup);
 #endif
 
 SCM
@@ -593,13 +566,8 @@ scm_m_start_stack (exp, env)
 
 long scm_tc16_debugobj;
 
-static int prindebugobj SCM_P ((SCM obj, SCM port, scm_print_state *pstate));
-
 static int
-prindebugobj (obj, port, pstate)
-     SCM obj;
-     SCM port;
-     scm_print_state *pstate;
+prindebugobj (SCM obj,SCM port,scm_print_state *pstate)
 {
   scm_puts ("#<debug-object ", port);
   scm_intprint (SCM_DEBUGOBJ_FRAME (obj), 16, port);
@@ -607,19 +575,18 @@ prindebugobj (obj, port, pstate)
   return 1;
 }
 
-SCM_PROC (s_debug_object_p, "debug-object?", 1, 0, 0, scm_debug_object_p);
-
-SCM
-scm_debug_object_p (obj)
-     SCM obj;
+GUILE_PROC (scm_debug_object_p, "debug-object?", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_debug_object_p
 {
-  return SCM_NIMP (obj) && SCM_DEBUGOBJP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_NIMP (obj) && SCM_DEBUGOBJP (obj));
 }
+#undef FUNC_NAME
 
 
 SCM
-scm_make_debugobj (frame)
-     scm_debug_frame *frame;
+scm_make_debugobj (scm_debug_frame *frame)
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -634,16 +601,16 @@ scm_make_debugobj (frame)
 
 /* Undocumented debugging procedure */
 #ifdef GUILE_DEBUG
-SCM_PROC (s_debug_hang, "debug-hang", 0, 1, 0, scm_debug_hang);
-
-SCM
-scm_debug_hang (obj)
-     SCM obj;
+GUILE_PROC (scm_debug_hang, "debug-hang", 0, 1, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_debug_hang
 {
   int go = 0;
   while (!go) ;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 #endif
 
 

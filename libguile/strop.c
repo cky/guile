@@ -17,12 +17,17 @@ along with this software; see the file COPYING.  If not, write to the
 Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 02111-1307 USA */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
+
 
 
 #include <stdio.h>
 #include "_scm.h"
 #include "chars.h"
 
+#include "scm_validate.h"
 #include "strop.h"
 #include "read.h" /*For SCM_CASE_INSENSITIVE_P*/
 
@@ -32,7 +37,6 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 static int
 scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start, 
 	     SCM sub_end, const char *why)
-     
 {
   unsigned char * p;
   int x;
@@ -82,10 +86,10 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   return -1;
 }
 
-SCM_PROC(s_string_index, "string-index", 2, 2, 0, scm_string_index);
-
-SCM 
-scm_string_index (SCM str, SCM chr, SCM frm, SCM to)
+GUILE_PROC(scm_string_index, "string-index", 2, 2, 0, 
+           (SCM str, SCM chr, SCM frm, SCM to),
+"")
+#define FUNC_NAME s_scm_string_index
 {
   int pos;
   
@@ -93,16 +97,17 @@ scm_string_index (SCM str, SCM chr, SCM frm, SCM to)
     frm = SCM_BOOL_F;
   if (to == SCM_UNDEFINED)
     to = SCM_BOOL_F;
-  pos = scm_i_index (&str, chr, 1, frm, to, s_string_index);
+  pos = scm_i_index (&str, chr, 1, frm, to, FUNC_NAME);
   return (pos < 0
 	  ? SCM_BOOL_F
 	  : SCM_MAKINUM (pos));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_rindex, "string-rindex", 2, 2, 0, scm_string_rindex);
-
-SCM 
-scm_string_rindex (SCM str, SCM chr, SCM frm, SCM to)
+GUILE_PROC(scm_string_rindex, "string-rindex", 2, 2, 0, 
+           (SCM str, SCM chr, SCM frm, SCM to),
+"")
+#define FUNC_NAME s_scm_string_rindex
 {
   int pos;
   
@@ -110,43 +115,36 @@ scm_string_rindex (SCM str, SCM chr, SCM frm, SCM to)
     frm = SCM_BOOL_F;
   if (to == SCM_UNDEFINED)
     to = SCM_BOOL_F;
-  pos = scm_i_index (&str, chr, -1, frm, to, s_string_rindex);
+  pos = scm_i_index (&str, chr, -1, frm, to, FUNC_NAME);
   return (pos < 0
 	  ? SCM_BOOL_F
 	  : SCM_MAKINUM (pos));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_substring_move_x);
-SCM_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_x);
-SCM_PROC(s_substring_move_x, "substring-move!", 5, 0, 0, scm_substring_move_x);
+SCM_REGISTER_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_substring_move_x);
+SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_x);
 
-SCM
-scm_substring_move_x (SCM str1, SCM start1, SCM end1, 
-		      SCM str2, SCM start2)
-    
+
+GUILE_PROC(scm_substring_move_x, "substring-move!", 5, 0, 0, 
+           (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
+           "")
+#define FUNC_NAME s_scm_substring_move_x
 {
   long s1, s2, e, len;
 
-  SCM_ASSERT (SCM_NIMP (str1) && SCM_STRINGP (str1), str1, 
-	      SCM_ARG1, s_substring_move_x);
-  SCM_ASSERT (SCM_INUMP (start1), start1, SCM_ARG2, s_substring_move_x);
-  SCM_ASSERT (SCM_INUMP (end1), end1, SCM_ARG3, s_substring_move_x);
-  SCM_ASSERT (SCM_NIMP (str2) && SCM_STRINGP (str2), str2, 
-	      SCM_ARG4, s_substring_move_x);
-  SCM_ASSERT (SCM_INUMP (start2), start2, SCM_ARG5, s_substring_move_x);
-
-  s1 = SCM_INUM (start1), s2 = SCM_INUM (start2), e = SCM_INUM (end1);
+  SCM_VALIDATE_STRING(1,str1);
+  SCM_VALIDATE_INT_COPY(2,start1,s1);
+  SCM_VALIDATE_INT_COPY(3,end1,e);
+  SCM_VALIDATE_STRING(4,str2);
+  SCM_VALIDATE_INT_COPY(5,start2,s2);
   len = e - s1;
-  SCM_ASSERT (len >= 0, end1, SCM_OUTOFRANGE, s_substring_move_x);
-  SCM_ASSERT (s1 <= SCM_LENGTH (str1) && s1 >= 0, start1, 
-	      SCM_OUTOFRANGE, s_substring_move_x);
-  SCM_ASSERT (s2 <= SCM_LENGTH (str2) && s2 >= 0, start2, 
-	      SCM_OUTOFRANGE, s_substring_move_x);
-  SCM_ASSERT (e <= SCM_LENGTH (str1) && e >= 0, end1, 
-	      SCM_OUTOFRANGE, s_substring_move_x);
-  SCM_ASSERT (len+s2 <= SCM_LENGTH (str2), start2, 
-	      SCM_OUTOFRANGE, s_substring_move_x);
+  SCM_ASSERT_RANGE (3,end1,len >= 0);
+  SCM_ASSERT_RANGE (2,start1,s1 <= SCM_LENGTH (str1) && s1 >= 0);
+  SCM_ASSERT_RANGE (5,start2,s2 <= SCM_LENGTH (str2) && s2 >= 0);
+  SCM_ASSERT_RANGE (3,end1,e <= SCM_LENGTH (str1) && e >= 0);
+  SCM_ASSERT_RANGE (5,start2,len+s2 <= SCM_LENGTH (str2));
 
   SCM_SYSCALL(memmove((void *)(&(SCM_CHARS(str2)[s2])),
 		      (void *)(&(SCM_CHARS(str1)[s1])),
@@ -154,94 +152,85 @@ scm_substring_move_x (SCM str1, SCM start1, SCM end1,
   
   return scm_return_first(SCM_UNSPECIFIED, str1, str2);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_substring_fill_x, "substring-fill!", 4, 0, 0, scm_substring_fill_x);
-
-SCM
-scm_substring_fill_x (SCM str, SCM start, SCM end, SCM fill)
-    
+GUILE_PROC(scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
+           (SCM str, SCM start, SCM end, SCM fill),
+           "")
+#define FUNC_NAME s_scm_substring_fill_x
 {
   long i, e;
   char c;
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_substring_fill_x);
-  SCM_ASSERT (SCM_INUMP (start), start, SCM_ARG2, s_substring_fill_x);
-  SCM_ASSERT (SCM_INUMP (end), end, SCM_ARG3, s_substring_fill_x);
-  SCM_ASSERT (SCM_ICHRP (fill), fill, SCM_ARG4, s_substring_fill_x);
-  i = SCM_INUM (start), e = SCM_INUM (end);c = SCM_ICHR (fill);
-  SCM_ASSERT (i <= SCM_LENGTH (str) && i >= 0, start, 
-	      SCM_OUTOFRANGE, s_substring_fill_x);
-  SCM_ASSERT (e <= SCM_LENGTH (str) && e >= 0, end, 
-	      SCM_OUTOFRANGE, s_substring_fill_x);
+  SCM_VALIDATE_STRING(1,str);
+  SCM_VALIDATE_INT_COPY(2,start,i);
+  SCM_VALIDATE_INT_COPY(3,end,e);
+  SCM_VALIDATE_CHAR_COPY(4,fill,c);
+  SCM_ASSERT_RANGE (2,start,i <= SCM_LENGTH (str) && i >= 0);
+  SCM_ASSERT_RANGE (3,end,e <= SCM_LENGTH (str) && e >= 0);
   while (i<e) SCM_CHARS (str)[i++] = c;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_string_null_p, "string-null?", 1, 0, 0, scm_string_null_p);
-
-SCM
-scm_string_null_p (str)
-     SCM str;
+GUILE_PROC(scm_string_null_p, "string-null?", 1, 0, 0, 
+           (SCM str),
+"")
+#define FUNC_NAME s_scm_string_null_p
 {
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_string_null_p);
-  return (SCM_ROLENGTH (str)
-	  ? SCM_BOOL_F
-	  : SCM_BOOL_T);
+  SCM_VALIDATE_ROSTRING(1,str);
+  return SCM_NEGATE_BOOL(SCM_ROLENGTH (str));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_string_to_list, "string->list", 1, 0, 0, scm_string_to_list);
-
-SCM
-scm_string_to_list (str)
-     SCM str;
+GUILE_PROC(scm_string_to_list, "string->list", 1, 0, 0, 
+           (SCM str),
+"")
+#define FUNC_NAME s_scm_string_to_list
 {
   long i;
   SCM res = SCM_EOL;
   unsigned char *src;
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_string_to_list);
+  SCM_VALIDATE_ROSTRING(1,str);
   src = SCM_ROUCHARS (str);
   for (i = SCM_ROLENGTH (str)-1;i >= 0;i--) res = scm_cons ((SCM)SCM_MAKICHR (src[i]), res);
   return res;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC(s_string_copy, "string-copy", 1, 0, 0, scm_string_copy);
-
-SCM
-scm_string_copy (str)
-     SCM str;
+GUILE_PROC(scm_string_copy, "string-copy", 1, 0, 0, 
+           (SCM str),
+"")
+#define FUNC_NAME s_scm_string_copy
 {
-  SCM_ASSERT (SCM_NIMP (str) && (SCM_STRINGP (str) || SCM_SUBSTRP (str)),
-	      str, SCM_ARG1, s_string_copy);
+  SCM_VALIDATE_STRINGORSUBSTR(1,str);
   return scm_makfromstr (SCM_ROCHARS (str), (scm_sizet)SCM_ROLENGTH (str), 0);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_string_fill_x, "string-fill!", 2, 0, 0, scm_string_fill_x);
-
-SCM
-scm_string_fill_x (str, chr)
-     SCM str;
-     SCM chr;
+GUILE_PROC(scm_string_fill_x, "string-fill!", 2, 0, 0,
+           (SCM str, SCM chr),
+"")
+#define FUNC_NAME s_scm_string_fill_x
 {
   register char *dst, c;
   register long k;
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_string_fill_x);
-  SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG2, s_string_fill_x);
-  c = SCM_ICHR (chr);
-  dst = SCM_CHARS (str);
+  SCM_VALIDATE_STRING_COPY(1,str,dst);
+  SCM_VALIDATE_CHAR_COPY(2,chr,c);
   for (k = SCM_LENGTH (str)-1;k >= 0;k--) dst[k] = c;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_upcase_x, "string-upcase!", 1, 0, 0, scm_string_upcase_x);
-
-SCM 
-scm_string_upcase_x (v)
-     SCM v;
+GUILE_PROC(scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
+           (SCM v),
+"")
+#define FUNC_NAME s_scm_string_upcase_x
 {
   register long k;
   register unsigned char *cs;
@@ -256,24 +245,25 @@ scm_string_upcase_x (v)
 	cs[k] = scm_upcase(cs[k]);
       break;
     default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_string_upcase_x);
+    badarg1:SCM_WTA (1,v);
     }
   return v;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_upcase, "string-upcase", 1, 0, 0, scm_string_upcase);
-
-SCM
-scm_string_upcase(SCM str)
+GUILE_PROC(scm_string_upcase, "string-upcase", 1, 0, 0, 
+           (SCM str),
+"")
+#define FUNC_NAME s_scm_string_upcase
 {
   return scm_string_upcase_x(scm_string_copy(str));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_downcase_x, "string-downcase!", 1, 0, 0, scm_string_downcase_x);
-
-SCM 
-scm_string_downcase_x (v)
-     SCM v;
+GUILE_PROC(scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
+           (SCM v),
+"")
+#define FUNC_NAME s_scm_string_downcase_x
 {
   register long k;
   register unsigned char *cs;
@@ -287,28 +277,30 @@ scm_string_downcase_x (v)
           cs[k] = scm_downcase(cs[k]);
         break;
       default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_string_downcase_x);
+    badarg1:SCM_WTA (1,v);
     }
   return v;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_downcase, "string-downcase", 1, 0, 0, scm_string_downcase);
-
-SCM
-scm_string_downcase(SCM str)
+GUILE_PROC(scm_string_downcase, "string-downcase", 1, 0, 0, 
+           (SCM str),
+"")
+#define FUNC_NAME s_scm_string_downcase
 {
-  SCM_ASSERT(SCM_NIMP(str) && SCM_STRINGP(str), str, SCM_ARG1, s_string_downcase);
+  SCM_VALIDATE_STRING(1,str);
   return scm_string_downcase_x(scm_string_copy(str));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_capitalize_x, "string-capitalize!", 1, 0, 0, scm_string_capitalize_x);
-
-SCM
-scm_string_capitalize_x (SCM s)
+GUILE_PROC(scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
+           (SCM s),
+"")
+#define FUNC_NAME s_scm_string_capitalize_x
 {
   char *str;
   int i, len, in_word=0;
-  SCM_ASSERT(SCM_NIMP(s) && SCM_STRINGP(s), s, SCM_ARG1, s_string_capitalize_x);
+  SCM_VALIDATE_STRING(1,s);
   len = SCM_LENGTH(s);
   str = SCM_CHARS(s);
   for(i=0; i<len;  i++) {
@@ -324,29 +316,31 @@ scm_string_capitalize_x (SCM s)
   }
   return s;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_capitalize, "string-capitalize", 1, 0, 0, scm_string_capitalize);
-
-SCM
-scm_string_capitalize(SCM s)
+GUILE_PROC(scm_string_capitalize, "string-capitalize", 1, 0, 0, 
+           (SCM s),
+"")
+#define FUNC_NAME s_scm_string_capitalize
 {
-  SCM_ASSERT((SCM_NIMP(s)) && (SCM_STRINGP(s)), s, SCM_ARG1, s_string_capitalize);
+  SCM_VALIDATE_STRING(1,s);
   return scm_string_capitalize_x(scm_string_copy(s));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, scm_string_ci_to_symbol);
-
-SCM
-scm_string_ci_to_symbol(SCM str)
+GUILE_PROC(scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
+           (SCM str),
+"")
+#define FUNC_NAME s_scm_string_ci_to_symbol
 {
   return scm_string_to_symbol (SCM_CASE_INSENSITIVE_P
 			       ? scm_string_downcase(str)
 			       : str);
 }
+#undef FUNC_NAME
 
 void
 scm_init_strop ()
 {
 #include "strop.x"
 }
-

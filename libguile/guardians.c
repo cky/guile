@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 /* This is an implementation of guardians as described in
@@ -58,6 +62,7 @@
 #include "smob.h"
 #include "genio.h"
 
+#include "scm_validate.h"
 #include "guardians.h"
 
 static long scm_tc16_guardian;
@@ -144,13 +149,13 @@ guard (SCM cclo, SCM arg)
 
 static SCM guard1;
 
-SCM_PROC (s_make_guardian, "make-guardian", 0, 0, 0, scm_make_guardian);
-SCM
-scm_make_guardian ()
+GUILE_PROC (scm_make_guardian, "make-guardian", 0, 0, 0, 
+            (),
+"")
+#define FUNC_NAME s_scm_make_guardian
 {
   SCM cclo = scm_makcclo (guard1, 2L);
-  guardian_t *g = (guardian_t *) scm_must_malloc (sizeof (guardian_t),
-						  s_make_guardian);
+  guardian_t *g = SCM_MUST_MALLOC_TYPE(guardian_t);
   SCM z1 = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
   SCM z2 = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
   SCM z;
@@ -164,6 +169,7 @@ scm_make_guardian ()
 
   return cclo;
 }
+#undef FUNC_NAME
 
 void
 scm_guardian_gc_init()

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 /* Include the headers for just about everything.
    We call all their initialization functions.  */
@@ -136,12 +140,21 @@
 
 /* Setting up the stack.  */
 
-static void start_stack SCM_P ((void *base));
-static void restart_stack SCM_P ((void * base));
+static void
+restart_stack (void *base)
+{
+  scm_dynwinds = SCM_EOL;
+  SCM_DYNENV (scm_rootcont) = SCM_EOL;
+  SCM_THROW_VALUE (scm_rootcont) = SCM_EOL;
+#ifdef DEBUG_EXTENSIONS
+  SCM_DFRAME (scm_rootcont) = scm_last_debug_frame = 0;
+#endif
+  SCM_BASE (scm_rootcont) = base;
+  scm_continuation_stack_ptr = SCM_MAKINUM (0);
+}
 
 static void
-start_stack (base)
-     void * base;
+start_stack (void *base)
 {
   SCM root;
 
@@ -178,31 +191,12 @@ start_stack (base)
 }
 
 
-static void
-restart_stack (base)
-     void * base;
-{
-  scm_dynwinds = SCM_EOL;
-  SCM_DYNENV (scm_rootcont) = SCM_EOL;
-  SCM_THROW_VALUE (scm_rootcont) = SCM_EOL;
-#ifdef DEBUG_EXTENSIONS
-  SCM_DFRAME (scm_rootcont) = scm_last_debug_frame = 0;
-#endif
-  SCM_BASE (scm_rootcont) = base;
-  scm_continuation_stack_ptr = SCM_MAKINUM (0);
-}
-
 #if 0
 static char remsg[] = "remove\n#define ", addmsg[] = "add\n#define ";
 
 
-static void fixconfig SCM_P ((char *s1, char *s2, int s));
-
 static void 
-fixconfig (s1, s2, s)
-     char *s1;
-     char *s2;
-     int s;
+fixconfig (char *s1,char *s2,int s)
 {
   fputs (s1, stderr);
   fputs (s2, stderr);
@@ -213,10 +207,8 @@ fixconfig (s1, s2, s)
 }
 
 
-static void check_config SCM_P ((void));
-
 static void
-check_config ()
+check_config (void)
 {
   scm_sizet j;
 
@@ -344,16 +336,15 @@ typedef long setjmp_type;
 struct main_func_closure
 {
   /* the function to call */
-  void (*main_func) SCM_P ((void *closure, int argc, char **argv));
+  void (*main_func)(void *closure, int argc, char **argv);
   void *closure;		/* dummy data to pass it */
   int argc;
   char **argv;			/* the argument list it should receive */
 };
 
 
-static void scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base, 
-				     struct main_func_closure *closure));
-static SCM invoke_main_func SCM_P ((void *body_data));
+static void scm_boot_guile_1(SCM_STACKITEM *base, struct main_func_closure *closure);
+static SCM invoke_main_func(void *body_data);
 
 
 /* Fire up the Guile Scheme interpreter.

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -46,6 +50,7 @@
 #include "scmsigs.h"
 #include "feature.h"
 
+#include "scm_validate.h"
 #include "posix.h"
 
 
@@ -161,49 +166,49 @@ extern char ** environ;
 SCM_SYMBOL (sym_read_pipe, "read pipe");
 SCM_SYMBOL (sym_write_pipe, "write pipe");
 
-SCM_PROC (s_pipe, "pipe", 0, 0, 0, scm_pipe);
-
-SCM 
-scm_pipe ()
+GUILE_PROC (scm_pipe, "pipe", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_pipe
 {
   int fd[2], rv;
   SCM p_rd, p_wt;
 
   rv = pipe (fd);
   if (rv)
-    scm_syserror (s_pipe);
+    SCM_SYSERROR;
   
   p_rd = scm_fdes_to_port (fd[0], "r", sym_read_pipe);
   p_wt = scm_fdes_to_port (fd[1], "w", sym_write_pipe);
   return scm_cons (p_rd, p_wt);
 }
+#undef FUNC_NAME
 
 
 #ifdef HAVE_GETGROUPS
-SCM_PROC (s_getgroups, "getgroups", 0, 0, 0, scm_getgroups);
-
-SCM
-scm_getgroups()
+GUILE_PROC (scm_getgroups, "getgroups", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_getgroups
 {
   SCM grps, ans;
   int ngroups = getgroups (0, NULL);
   if (!ngroups)
-    scm_syserror (s_getgroups);
+    SCM_SYSERROR;
   SCM_NEWCELL(grps);
   SCM_DEFER_INTS;
   {
     GETGROUPS_T *groups;
     int val;
 
-    groups = (GETGROUPS_T *) scm_must_malloc(ngroups * sizeof(GETGROUPS_T),
-					     s_getgroups);
+    groups = SCM_MUST_MALLOC_TYPE_NUM(GETGROUPS_T,ngroups);					    
     val = getgroups(ngroups, groups);
     if (val < 0)
       {
 	int en = errno;
 	scm_must_free((char *)groups);
 	errno = en;
-	scm_syserror (s_getgroups);
+	SCM_SYSERROR;
       }
     SCM_SETCHARS(grps, groups);	/* set up grps as a GC protect */
     SCM_SETLENGTH(grps, 0L + ngroups * sizeof(GETGROUPS_T), scm_tc7_string);
@@ -213,15 +218,15 @@ scm_getgroups()
     SCM_ALLOW_INTS;
     return ans;
   }
-}  
+}
+#undef FUNC_NAME  
 #endif
 
 
-SCM_PROC (s_getpwuid, "getpw", 0, 1, 0, scm_getpwuid);
-
-SCM 
-scm_getpwuid (user)
-     SCM user;
+GUILE_PROC (scm_getpwuid, "getpw", 0, 1, 0,
+            (SCM user),
+"")
+#define FUNC_NAME s_scm_getpwuid
 {
   SCM result;
   struct passwd *entry;
@@ -243,13 +248,13 @@ scm_getpwuid (user)
     }
   else
     {
-      SCM_ASSERT (SCM_NIMP (user) && SCM_ROSTRINGP (user), user, SCM_ARG1, s_getpwuid);
+      SCM_VALIDATE_ROSTRING(1,user);
       if (SCM_SUBSTRP (user))
 	user = scm_makfromstr (SCM_ROCHARS (user), SCM_ROLENGTH (user), 0);
       entry = getpwnam (SCM_ROCHARS (user));
     }
   if (!entry)
-    scm_misc_error (s_getpwuid, "entry not found", SCM_EOL);
+    SCM_MISC_ERROR ("entry not found", SCM_EOL);
 
   ve[0] = scm_makfrom0str (entry->pw_name);
   ve[1] = scm_makfrom0str (entry->pw_passwd);
@@ -266,14 +271,14 @@ scm_getpwuid (user)
     ve[6] = scm_makfrom0str (entry->pw_shell);
   return result;
 }
+#undef FUNC_NAME
 
 
 #ifdef HAVE_SETPWENT
-SCM_PROC (s_setpwent, "setpw", 0, 1, 0, scm_setpwent);
-
-SCM 
-scm_setpwent (arg)
-     SCM arg;
+GUILE_PROC (scm_setpwent, "setpw", 0, 1, 0,
+            (SCM arg),
+"")
+#define FUNC_NAME s_scm_setpwent
 {
   if (SCM_UNBNDP (arg) || SCM_FALSEP (arg))
     endpwent ();
@@ -281,16 +286,16 @@ scm_setpwent (arg)
     setpwent ();
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 #endif
 
 
 
 /* Combines getgrgid and getgrnam.  */
-SCM_PROC (s_getgrgid, "getgr", 0, 1, 0, scm_getgrgid);
-
-SCM 
-scm_getgrgid (name)
-     SCM name;
+GUILE_PROC (scm_getgrgid, "getgr", 0, 1, 0,
+            (SCM name),
+"")
+#define FUNC_NAME s_scm_getgrgid
 {
   SCM result;
   struct group *entry;
@@ -309,13 +314,12 @@ scm_getgrgid (name)
     SCM_SYSCALL (entry = getgrgid (SCM_INUM (name)));
   else
     {
-      SCM_ASSERT (SCM_NIMP (name) && SCM_ROSTRINGP (name), name, SCM_ARG1,
-		  s_getgrgid);
+      SCM_VALIDATE_ROSTRING(1,name);
       SCM_COERCE_SUBSTR (name);
       SCM_SYSCALL (entry = getgrnam (SCM_ROCHARS (name)));
     }
   if (!entry)
-    scm_syserror (s_getgrgid);
+    SCM_SYSERROR;
 
   ve[0] = scm_makfrom0str (entry->gr_name);
   ve[1] = scm_makfrom0str (entry->gr_passwd);
@@ -323,14 +327,14 @@ scm_getgrgid (name)
   ve[3] = scm_makfromstrs (-1, entry->gr_mem);
   return result;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_setgrent, "setgr", 0, 1, 0, scm_setgrent);
-
-SCM 
-scm_setgrent (arg)
-     SCM arg;
+GUILE_PROC (scm_setgrent, "setgr", 0, 1, 0, 
+            (SCM arg),
+"")
+#define FUNC_NAME s_scm_setgrent
 {
   if (SCM_UNBNDP (arg) || SCM_FALSEP (arg))
     endgrent ();
@@ -338,65 +342,64 @@ scm_setgrent (arg)
     setgrent ();
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_kill, "kill", 2, 0, 0, scm_kill);
-
-SCM 
-scm_kill (pid, sig)
-     SCM pid;
-     SCM sig;
+GUILE_PROC (scm_kill, "kill", 2, 0, 0,
+            (SCM pid, SCM sig),
+"")
+#define FUNC_NAME s_scm_kill
 {
-  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_kill);
-  SCM_ASSERT (SCM_INUMP (sig), sig, SCM_ARG2, s_kill);
+  SCM_VALIDATE_INT(1,pid);
+  SCM_VALIDATE_INT(2,sig);
   /* Signal values are interned in scm_init_posix().  */
   if (kill ((int) SCM_INUM (pid), (int) SCM_INUM (sig)) != 0)
-    scm_syserror (s_kill);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_waitpid, "waitpid", 1, 1, 0, scm_waitpid);
-
-SCM 
-scm_waitpid (pid, options)
-     SCM pid;
-     SCM options;
+GUILE_PROC (scm_waitpid, "waitpid", 1, 1, 0,
+            (SCM pid, SCM options),
+"")
+#define FUNC_NAME s_scm_waitpid
 {
 #ifdef HAVE_WAITPID
   int i;
   int status;
   int ioptions;
-  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_waitpid);
+  SCM_VALIDATE_INT(1,pid);
   if (SCM_UNBNDP (options))
     ioptions = 0;
   else
     {
-      SCM_ASSERT (SCM_INUMP (options), options, SCM_ARG2, s_waitpid);
+      SCM_VALIDATE_INT(2,options);
       /* Flags are interned in scm_init_posix.  */
       ioptions = SCM_INUM (options);
     }
   SCM_SYSCALL (i = waitpid (SCM_INUM (pid), &status, ioptions));
   if (i == -1)
-    scm_syserror (s_waitpid);
+    SCM_SYSERROR;
   return scm_cons (SCM_MAKINUM (0L + i), SCM_MAKINUM (0L + status));
 #else
-  scm_sysmissing (s_waitpid);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_status_exit_val, "status:exit-val", 1, 0, 0, scm_status_exit_val);
-SCM
-scm_status_exit_val (status)
-     SCM status;
+GUILE_PROC (scm_status_exit_val, "status:exit-val", 1, 0, 0, 
+            (SCM status),
+"")
+#define FUNC_NAME s_scm_status_exit_val
 {
   int lstatus;
 
-  SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1,s_status_exit_val);
+  SCM_VALIDATE_INT(1,status);
 
   /* On Ultrix, the WIF... macros assume their argument is an lvalue;
      go figure.  SCM_INUM does not yield an lvalue.  */
@@ -406,15 +409,16 @@ scm_status_exit_val (status)
   else
     return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_status_term_sig, "status:term-sig", 1, 0, 0, scm_status_term_sig);
-SCM
-scm_status_term_sig (status)
-     SCM status;
+GUILE_PROC (scm_status_term_sig, "status:term-sig", 1, 0, 0, 
+            (SCM status),
+"")
+#define FUNC_NAME s_scm_status_term_sig
 {
   int lstatus;
 
-  SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1,s_status_term_sig);
+  SCM_VALIDATE_INT(1,status);
 
   lstatus = SCM_INUM (status);
   if (WIFSIGNALED (lstatus))
@@ -422,15 +426,16 @@ scm_status_term_sig (status)
   else
     return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_status_stop_sig, "status:stop-sig", 1, 0, 0, scm_status_stop_sig);
-SCM
-scm_status_stop_sig (status)
-     SCM status;
+GUILE_PROC (scm_status_stop_sig, "status:stop-sig", 1, 0, 0, 
+            (SCM status),
+"")
+#define FUNC_NAME s_scm_status_stop_sig
 {
   int lstatus;
 
-  SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1,s_status_stop_sig);
+  SCM_VALIDATE_INT(1,status);
 
   lstatus = SCM_INUM (status);
   if (WIFSTOPPED (lstatus))
@@ -438,41 +443,45 @@ scm_status_stop_sig (status)
   else
     return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_getppid, "getppid", 0, 0, 0, scm_getppid);
-
-SCM 
-scm_getppid ()
+GUILE_PROC (scm_getppid, "getppid", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_getppid
 {
   return SCM_MAKINUM (0L + getppid ());
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_getuid, "getuid", 0, 0, 0, scm_getuid);
-
-SCM 
-scm_getuid ()
+GUILE_PROC (scm_getuid, "getuid", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_getuid
 {
   return SCM_MAKINUM (0L + getuid ());
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_getgid, "getgid", 0, 0, 0, scm_getgid);
-
-SCM 
-scm_getgid ()
+GUILE_PROC (scm_getgid, "getgid", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_getgid
 {
   return SCM_MAKINUM (0L + getgid ());
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_geteuid, "geteuid", 0, 0, 0, scm_geteuid);
-
-SCM 
-scm_geteuid ()
+GUILE_PROC (scm_geteuid, "geteuid", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_geteuid
 {
 #ifdef HAVE_GETEUID
   return SCM_MAKINUM (0L + geteuid ());
@@ -480,13 +489,14 @@ scm_geteuid ()
   return SCM_MAKINUM (0L + getuid ());
 #endif
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_getegid, "getegid", 0, 0, 0, scm_getegid);
-
-SCM 
-scm_getegid ()
+GUILE_PROC (scm_getegid, "getegid", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_getegid
 {
 #ifdef HAVE_GETEUID
   return SCM_MAKINUM (0L + getegid ());
@@ -494,159 +504,167 @@ scm_getegid ()
   return SCM_MAKINUM (0L + getgid ());
 #endif
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_setuid, "setuid", 1, 0, 0, scm_setuid);
-
-SCM 
-scm_setuid (id)
-     SCM id;
+GUILE_PROC (scm_setuid, "setuid", 1, 0, 0, 
+            (SCM id),
+"")
+#define FUNC_NAME s_scm_setuid
 {
-  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_setuid);
+  SCM_VALIDATE_INT(1,id);
   if (setuid (SCM_INUM (id)) != 0)
-    scm_syserror (s_setuid);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_setgid, "setgid", 1, 0, 0, scm_setgid);
-
-SCM 
-scm_setgid (id)
-     SCM id;
+GUILE_PROC (scm_setgid, "setgid", 1, 0, 0, 
+            (SCM id),
+"")
+#define FUNC_NAME s_scm_setgid
 {
-  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_setgid);
+  SCM_VALIDATE_INT(1,id);
   if (setgid (SCM_INUM (id)) != 0)
-    scm_syserror (s_setgid);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_seteuid, "seteuid", 1, 0, 0, scm_seteuid);
-
-SCM 
-scm_seteuid (id)
-     SCM id;
+GUILE_PROC (scm_seteuid, "seteuid", 1, 0, 0, 
+            (SCM id),
+"")
+#define FUNC_NAME s_scm_seteuid
 {
   int rv;
 
-  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_seteuid);
+  SCM_VALIDATE_INT(1,id);
 #ifdef HAVE_SETEUID
   rv = seteuid (SCM_INUM (id));
 #else
   rv = setuid (SCM_INUM (id));
 #endif
   if (rv != 0)
-    scm_syserror (s_seteuid);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 #ifdef HAVE_SETEGID
-SCM_PROC (s_setegid, "setegid", 1, 0, 0, scm_setegid);
-
-SCM 
-scm_setegid (id)
-     SCM id;
+GUILE_PROC (scm_setegid, "setegid", 1, 0, 0, 
+            (SCM id),
+"")
+#define FUNC_NAME s_scm_setegid
 {
   int rv;
 
-  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_setegid);
+  SCM_VALIDATE_INT(1,id);
 #ifdef HAVE_SETEUID
   rv = setegid (SCM_INUM (id));
 #else
   rv = setgid (SCM_INUM (id));
 #endif
   if (rv != 0)
-    scm_syserror (s_setegid);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
     
 }
+#undef FUNC_NAME
 #endif
 
-SCM_PROC (s_getpgrp, "getpgrp", 0, 0, 0, scm_getpgrp);
-SCM 
-scm_getpgrp ()
+GUILE_PROC (scm_getpgrp, "getpgrp", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_getpgrp
 {
   int (*fn)();
   fn = (int (*) ()) getpgrp;
   return SCM_MAKINUM (fn (0));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_setpgid, "setpgid", 2, 0, 0, scm_setpgid);
-SCM 
-scm_setpgid (pid, pgid)
-     SCM pid, pgid;
+GUILE_PROC (scm_setpgid, "setpgid", 2, 0, 0, 
+            (SCM pid, SCM pgid),
+"")
+#define FUNC_NAME s_scm_setpgid
 {
 #ifdef HAVE_SETPGID
-  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_setpgid);
-  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_setpgid);
+  SCM_VALIDATE_INT(1,pid);
+  SCM_VALIDATE_INT(2,pgid);
   /* FIXME(?): may be known as setpgrp.  */
   if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
-    scm_syserror (s_setpgid);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_setpgid);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_setsid, "setsid", 0, 0, 0, scm_setsid);
-SCM 
-scm_setsid ()
+GUILE_PROC (scm_setsid, "setsid", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_setsid
 {
 #ifdef HAVE_SETSID
   pid_t sid = setsid ();
   if (sid == -1)
-    scm_syserror (s_setsid);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_setsid);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_ttyname, "ttyname", 1, 0, 0, scm_ttyname);
-
-SCM 
-scm_ttyname (port)
-     SCM port;
+GUILE_PROC (scm_ttyname, "ttyname", 1, 0, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_ttyname
 {
   char *ans;
   int fd;
 
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPPORTP (port), port, SCM_ARG1, s_ttyname);
+  SCM_VALIDATE_OPPORT(1,port);
   if (scm_tc16_fport != SCM_TYP16 (port))
     return SCM_BOOL_F;
   fd = SCM_FPORT_FDES (port);
   SCM_SYSCALL (ans = ttyname (fd));
   if (!ans)
-    scm_syserror (s_ttyname);
+    SCM_SYSERROR;
   /* ans could be overwritten by another call to ttyname */
   return (scm_makfrom0str (ans));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_ctermid, "ctermid", 0, 0, 0, scm_ctermid);
-SCM 
-scm_ctermid ()
+GUILE_PROC (scm_ctermid, "ctermid", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_ctermid
 {
 #ifdef HAVE_CTERMID
   char *result = ctermid (NULL);
   if (*result == '\0')
-    scm_syserror (s_ctermid);
+    SCM_SYSERROR;
   return scm_makfrom0str (result);
 #else
-  scm_sysmissing (s_ctermid);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_tcgetpgrp, "tcgetpgrp", 1, 0, 0, scm_tcgetpgrp);
-SCM 
-scm_tcgetpgrp (port)
-     SCM port;
+GUILE_PROC (scm_tcgetpgrp, "tcgetpgrp", 1, 0, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_tcgetpgrp
 {
 #ifdef HAVE_TCGETPGRP
   int fd;
@@ -654,40 +672,43 @@ scm_tcgetpgrp (port)
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcgetpgrp);
+  SCM_VALIDATE_OPFPORT(1,port);
   fd = SCM_FPORT_FDES (port);
   if ((pgid = tcgetpgrp (fd)) == -1)
-    scm_syserror (s_tcgetpgrp);
+    SCM_SYSERROR;
   return SCM_MAKINUM (pgid);
 #else
-  scm_sysmissing (s_tcgetpgrp);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
-}    
+}
+#undef FUNC_NAME    
 
-SCM_PROC (s_tcsetpgrp, "tcsetpgrp", 2, 0, 0, scm_tcsetpgrp);
-SCM 
-scm_tcsetpgrp (port, pgid)
-     SCM port, pgid;
+GUILE_PROC (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
+            (SCM port, SCM pgid),
+"")
+#define FUNC_NAME s_scm_tcsetpgrp
 {
 #ifdef HAVE_TCSETPGRP
   int fd;
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcsetpgrp);
-  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_tcsetpgrp);
+  SCM_VALIDATE_OPFPORT(1,port);
+  SCM_VALIDATE_INT(2,pgid);
   fd = SCM_FPORT_FDES (port);
   if (tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
-    scm_syserror (s_tcsetpgrp);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_tcsetpgrp);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
-}    
+}
+#undef FUNC_NAME
+   
 
 /* Copy exec args from an SCM vector into a new C array.  */
 
@@ -722,39 +743,37 @@ scm_convert_exec_args (SCM args, int pos, const char *subr)
   return execargv;
 }
 
-SCM_PROC (s_execl, "execl", 1, 0, 1, scm_execl);
-
-SCM
-scm_execl (filename, args)
-     SCM filename, args;
+GUILE_PROC (scm_execl, "execl", 1, 0, 1, 
+            (SCM filename, SCM args),
+"")
+#define FUNC_NAME s_scm_execl
 {
   char **execargv;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG1, s_execl);
+  SCM_VALIDATE_ROSTRING(1,filename);
   SCM_COERCE_SUBSTR (filename);
-  execargv = scm_convert_exec_args (args, SCM_ARG2, s_execl);
+  execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
   execv (SCM_ROCHARS (filename), execargv);
-  scm_syserror (s_execl);
+  SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_execlp, "execlp", 1, 0, 1, scm_execlp);
-
-SCM
-scm_execlp (filename, args)
-     SCM filename, args;
+GUILE_PROC (scm_execlp, "execlp", 1, 0, 1, 
+            (SCM filename, SCM args),
+"")
+#define FUNC_NAME s_scm_execlp
 {
   char **execargv;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG1, s_execlp);
+  SCM_VALIDATE_ROSTRING(1,filename);
   SCM_COERCE_SUBSTR (filename);
-  execargv = scm_convert_exec_args (args, SCM_ARG2, s_execlp);
+  execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
   execvp (SCM_ROCHARS (filename), execargv);
-  scm_syserror (s_execlp);
+  SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 static char **
 environ_list_to_c (SCM envlist, int arg, const char *proc)
@@ -792,51 +811,51 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
   return result;
 }
 
-SCM_PROC (s_execle, "execle", 2, 0, 1, scm_execle);
-
-SCM
-scm_execle (filename, env, args)
-     SCM filename, env, args;
+GUILE_PROC (scm_execle, "execle", 2, 0, 1, 
+            (SCM filename, SCM env, SCM args),
+"")
+#define FUNC_NAME s_scm_execle
 {
   char **execargv;
   char **exec_env;
 
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG1, s_execle);
+  SCM_VALIDATE_ROSTRING(1,filename);
   SCM_COERCE_SUBSTR (filename);
   
-  execargv = scm_convert_exec_args (args, SCM_ARG1, s_execle);
-  exec_env = environ_list_to_c (env, SCM_ARG2, s_execle);
+  execargv = scm_convert_exec_args (args, SCM_ARG1, FUNC_NAME);
+  exec_env = environ_list_to_c (env, SCM_ARG2, FUNC_NAME);
   execve (SCM_ROCHARS (filename), execargv, exec_env);
-  scm_syserror (s_execle);
+  SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_fork, "primitive-fork", 0, 0, 0, scm_fork);
-
-SCM
-scm_fork()
+GUILE_PROC (scm_fork, "primitive-fork", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_fork
 {
   int pid;
   pid = fork ();
   if (pid == -1)
-    scm_syserror (s_fork);
+    SCM_SYSERROR;
   return SCM_MAKINUM (0L+pid);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_uname, "uname", 0, 0, 0, scm_uname);
-
-SCM 
-scm_uname ()
+GUILE_PROC (scm_uname, "uname", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_uname
 {
 #ifdef HAVE_UNAME
   struct utsname buf;
   SCM ans = scm_make_vector (SCM_MAKINUM(5), SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
   if (uname (&buf) < 0)
-    scm_syserror (s_uname);
+    SCM_SYSERROR;
   ve[0] = scm_makfrom0str (buf.sysname);
   ve[1] = scm_makfrom0str (buf.nodename);
   ve[2] = scm_makfrom0str (buf.release);
@@ -848,17 +867,17 @@ scm_uname ()
 */
   return ans;
 #else
-  scm_sysmissing (s_uname);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_environ, "environ", 0, 1, 0, scm_environ);
-
-SCM
-scm_environ (env)
-     SCM env;
+GUILE_PROC (scm_environ, "environ", 0, 1, 0, 
+            (SCM env),
+"")
+#define FUNC_NAME s_scm_environ
 {
   if (SCM_UNBNDP (env))
     return scm_makfromstrs (-1, environ);
@@ -866,7 +885,7 @@ scm_environ (env)
     {
       char **new_environ;
 
-      new_environ = environ_list_to_c (env, SCM_ARG1, s_environ);
+      new_environ = environ_list_to_c (env, SCM_ARG1, FUNC_NAME);
       /* Free the old environment, except when called for the first
        * time.
        */
@@ -885,151 +904,144 @@ scm_environ (env)
       return SCM_UNSPECIFIED;
     }
 }
+#undef FUNC_NAME
 
 #ifdef L_tmpnam
 
-SCM_PROC (s_tmpnam, "tmpnam", 0, 0, 0, scm_tmpnam);
-
-SCM scm_tmpnam()
+GUILE_PROC (scm_tmpnam, "tmpnam", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_tmpnam
 {
   char name[L_tmpnam];
   SCM_SYSCALL (tmpnam (name););
   return scm_makfrom0str (name);
 }
+#undef FUNC_NAME;
+
 #endif
 
-SCM_PROC (s_utime, "utime", 1, 2, 0, scm_utime);
-
-SCM 
-scm_utime (pathname, actime, modtime)
-     SCM pathname;
-     SCM actime;
-     SCM modtime;
+GUILE_PROC (scm_utime, "utime", 1, 2, 0,
+            (SCM pathname, SCM actime, SCM modtime),
+"")
+#define FUNC_NAME s_scm_utime
 {
   int rv;
   struct utimbuf utm_tmp;
 
-  SCM_ASSERT (SCM_NIMP (pathname) && SCM_ROSTRINGP (pathname), pathname,
-	      SCM_ARG1, s_utime);
-
+  SCM_VALIDATE_ROSTRING(1,pathname);
   SCM_COERCE_SUBSTR (pathname);
   if (SCM_UNBNDP (actime))
     SCM_SYSCALL (time (&utm_tmp.actime));
   else
-    utm_tmp.actime = scm_num2ulong (actime, (char *) SCM_ARG2, s_utime);
+    utm_tmp.actime = SCM_NUM2ULONG (2,actime);
 
   if (SCM_UNBNDP (modtime))
     SCM_SYSCALL (time (&utm_tmp.modtime));
   else
-    utm_tmp.modtime = scm_num2ulong (modtime, (char *) SCM_ARG3, s_utime);
+    utm_tmp.modtime = SCM_NUM2ULONG (3,modtime);
 
   SCM_SYSCALL (rv = utime (SCM_ROCHARS (pathname), &utm_tmp));
   if (rv != 0)
-    scm_syserror (s_utime);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_access, "access?", 2, 0, 0, scm_access);
-
-SCM 
-scm_access (path, how)
-     SCM path;
-     SCM how;
+GUILE_PROC (scm_access, "access?", 2, 0, 0,
+            (SCM path, SCM how),
+"")
+#define FUNC_NAME s_scm_access
 {
   int rv;
 
-  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1,
-	      s_access);
+  SCM_VALIDATE_ROSTRING(1,path);
   if (SCM_SUBSTRP (path))
     path = scm_makfromstr (SCM_ROCHARS (path), SCM_ROLENGTH (path), 0);
-  SCM_ASSERT (SCM_INUMP (how), how, SCM_ARG2, s_access);
+  SCM_VALIDATE_INT(2,how);
   rv = access (SCM_ROCHARS (path), SCM_INUM (how));
   return rv ? SCM_BOOL_F : SCM_BOOL_T;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_getpid, "getpid", 0, 0, 0, scm_getpid);
-
-SCM 
-scm_getpid ()
+GUILE_PROC (scm_getpid, "getpid", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_getpid
 {
   return SCM_MAKINUM ((unsigned long) getpid ());
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_putenv, "putenv", 1, 0, 0, scm_putenv);
-
-SCM
-scm_putenv (str)
-     SCM str;
+GUILE_PROC (scm_putenv, "putenv", 1, 0, 0, 
+            (SCM str),
+"")
+#define FUNC_NAME s_scm_putenv
 {
   int rv;
   char *ptr;
 
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_putenv);
+  SCM_VALIDATE_ROSTRING(1,str);
   /* must make a new copy to be left in the environment, safe from gc.  */
   ptr = malloc (SCM_LENGTH (str) + 1);
   if (ptr == NULL)
-    scm_memory_error (s_putenv);
+    SCM_MEMORY_ERROR;
   strncpy (ptr, SCM_ROCHARS (str), SCM_LENGTH (str));
   ptr[SCM_LENGTH(str)] = 0;
   rv = putenv (ptr);
   if (rv < 0)
-    scm_syserror (s_putenv);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_setlocale, "setlocale", 1, 1, 0, scm_setlocale);
-
-SCM
-scm_setlocale (category, locale)
-     SCM category;
-     SCM locale;
+GUILE_PROC (scm_setlocale, "setlocale", 1, 1, 0,
+            (SCM category, SCM locale),
+"")
+#define FUNC_NAME s_scm_setlocale
 {
 #ifdef HAVE_SETLOCALE
   char *clocale;
   char *rv;
 
-  SCM_ASSERT (SCM_INUMP (category), category, SCM_ARG1, s_setlocale);
+  SCM_VALIDATE_INT(1,category);
   if (SCM_UNBNDP (locale))
     {
       clocale = NULL;
     }
   else
     {
-      SCM_ASSERT (SCM_NIMP (locale) && SCM_ROSTRINGP (locale), locale,
-		  SCM_ARG2, s_setlocale);
+      SCM_VALIDATE_ROSTRING(2,locale);
       SCM_COERCE_SUBSTR (locale);
       clocale = SCM_ROCHARS (locale);
     }
 
   rv = setlocale (SCM_INUM (category), clocale);
   if (rv == NULL)
-    scm_syserror (s_setlocale);
+    SCM_SYSERROR;
   return scm_makfrom0str (rv);
 #else
-  scm_sysmissing (s_setlocale);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_mknod, "mknod", 4, 0, 0, scm_mknod);
-
-SCM
-scm_mknod(path, type, perms, dev)
-     SCM path;
-     SCM type;
-     SCM perms;
-     SCM dev;
+GUILE_PROC (scm_mknod, "mknod", 4, 0, 0,
+            (SCM path, SCM type, SCM perms, SCM dev),
+"")
+#define FUNC_NAME s_scm_mknod
 {
 #ifdef HAVE_MKNOD
   int val;
   char *p;
   int ctype = 0;
 
-  SCM_ASSERT (SCM_NIMP(path) && SCM_ROSTRINGP(path), path, SCM_ARG1, s_mknod);
-  SCM_ASSERT (SCM_NIMP(type) && SCM_SYMBOLP (type), type, SCM_ARG2, s_mknod);
-  SCM_ASSERT (SCM_INUMP (perms), perms, SCM_ARG3, s_mknod);
-  SCM_ASSERT (SCM_INUMP(dev), dev, SCM_ARG4, s_mknod);
+  SCM_VALIDATE_ROSTRING(1,path);
+  SCM_VALIDATE_SYMBOL(2,type);
+  SCM_VALIDATE_INT(3,perms);
+  SCM_VALIDATE_INT(4,dev);
   SCM_COERCE_SUBSTR (path);
 
   p = SCM_CHARS (type);
@@ -1048,53 +1060,55 @@ scm_mknod(path, type, perms, dev)
   else if (strcmp (p, "socket") == 0)
     ctype = S_IFSOCK;
   else
-    scm_out_of_range (s_mknod, type);
+    SCM_OUT_OF_RANGE (2,type);
 
   SCM_SYSCALL (val = mknod(SCM_ROCHARS(path), ctype | SCM_INUM (perms),
 			   SCM_INUM (dev)));
   if (val != 0)
-    scm_syserror (s_mknod);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_mknod);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_nice, "nice", 1, 0, 0, scm_nice);
-
-SCM
-scm_nice(incr)
-     SCM incr;
+GUILE_PROC (scm_nice, "nice", 1, 0, 0, 
+            (SCM incr),
+"")
+#define FUNC_NAME s_scm_nice
 {
 #ifdef HAVE_NICE
-  SCM_ASSERT(SCM_INUMP(incr), incr, SCM_ARG1, s_nice);
+  SCM_VALIDATE_INT(1,incr);
   if (nice(SCM_INUM(incr)) != 0)
-    scm_syserror (s_nice);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_nice);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_sync, "sync", 0, 0, 0, scm_sync);
-
-SCM
-scm_sync()
+GUILE_PROC (scm_sync, "sync", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_sync
 {
 #ifdef HAVE_SYNC
   sync();
 #else
-  scm_sysmissing (s_sync);
+  SCM_SYSMISSING;
   /* not reached.  */
 #endif
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 void 
 scm_init_posix ()

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -55,6 +59,7 @@
 #include "struct.h"
 #include "objects.h"
 
+#include "scm_validate.h"
 #include "print.h"
 
 
@@ -121,18 +126,18 @@ scm_option scm_print_opts[] = {
     "Print closures with source." }
 };
 
-SCM_PROC (s_print_options, "print-options-interface", 0, 1, 0, scm_print_options);
-
-SCM
-scm_print_options (setting)
-     SCM setting;
+GUILE_PROC (scm_print_options, "print-options-interface", 0, 1, 0, 
+            (SCM setting),
+"")
+#define FUNC_NAME s_scm_print_options
 {
   SCM ans = scm_options (setting,
 			 scm_print_opts,
 			 SCM_N_PRINT_OPTIONS,
-			 s_print_options);
+			 FUNC_NAME);
   return ans;
 }
+#undef FUNC_NAME
 
 
 /* {Printing of Scheme Objects}
@@ -146,14 +151,14 @@ scm_print_options (setting)
  * will be O(N).
  */
 #define PUSH_REF(pstate, obj) \
-{ \
+do { \
   pstate->ref_stack[pstate->top++] = (obj); \
   if (pstate->top == pstate->ceiling) \
     grow_ref_stack (pstate); \
-}
+} while(0)
 
 #define ENTER_NESTED_DATA(pstate, obj, label) \
-{ \
+do { \
   register unsigned long i; \
   for (i = 0; i < pstate->top; ++i) \
     if (pstate->ref_stack[i] == (obj)) \
@@ -167,7 +172,7 @@ scm_print_options (setting)
 	} \
     } \
   PUSH_REF(pstate, obj); \
-} \
+} while(0)
 
 #define EXIT_NESTED_DATA(pstate) { --pstate->top; }
 
@@ -176,21 +181,22 @@ SCM scm_print_state_vtable;
 static SCM print_state_pool;
 
 #ifdef GUILE_DEBUG /* Used for debugging purposes */
-SCM_PROC(s_current_pstate, "current-pstate", 0, 0, 0, scm_current_pstate);
 
-SCM
-scm_current_pstate ()
+GUILE_PROC(scm_current_pstate, "current-pstate", 0, 0, 0, 
+           (),
+           "")
+#define FUNC_NAME s_scm_current_pstate
 {
   return SCM_CADR (print_state_pool);
 }
+#undef FUNC_NAME
+
 #endif
 
 #define PSTATE_SIZE 50L
 
-static SCM make_print_state SCM_P ((void));
-
 static SCM
-make_print_state ()
+make_print_state (void)
 {
   SCM print_state = scm_make_struct (SCM_CAR (print_state_pool), /* pstate type */
 				     SCM_INUM0,
@@ -241,11 +247,8 @@ scm_free_print_state (print_state)
   SCM_ALLOW_INTS;
 }
 
-static void grow_ref_stack SCM_P ((scm_print_state *pstate));
-
 static void
-grow_ref_stack (pstate)
-     scm_print_state *pstate;
+grow_ref_stack (scm_print_state *pstate)
 {
   int new_size = 2 * pstate->ceiling;
   scm_vector_set_length_x (pstate->ref_vect, SCM_MAKINUM (new_size));
@@ -254,13 +257,8 @@ grow_ref_stack (pstate)
 }
 
 
-static void print_circref SCM_P ((SCM port, scm_print_state *pstate, SCM ref));
-
 static void
-print_circref (port, pstate, ref)
-     SCM port;
-     scm_print_state *pstate;
-     SCM ref;
+print_circref (SCM port,scm_print_state *pstate,SCM ref)
 {
   register int i;
   int self = pstate->top - 1;
@@ -290,10 +288,7 @@ SCM_GPROC(s_write, "write", 1, 1, 0, scm_write, g_write);
 SCM_GPROC(s_display, "display", 1, 1, 0, scm_display, g_display);
 
 void 
-scm_iprin1 (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
 taloop:
   switch (7 & (int) exp)
@@ -703,10 +698,7 @@ taloop:
  * useful for continuing a chain of print calls from Scheme.  */
 
 void 
-scm_prin1 (exp, port, writingp)
-     SCM exp;
-     SCM port;
-     int writingp;
+scm_prin1 (SCM exp, SCM port, int writingp)
 {
   SCM handle = SCM_BOOL_F; /* Will GC protect the handle whilst unlinked */
   SCM pstate_scm;
@@ -756,10 +748,7 @@ scm_prin1 (exp, port, writingp)
  */
 
 void 
-scm_intprint (n, radix, port)
-     long n;
-     int radix;
-     SCM port;
+scm_intprint (long n, int radix, SCM port)
 {
   char num_buf[SCM_INTBUFLEN];
   scm_lfwrite (num_buf, scm_iint2str (n, radix, num_buf), port);
@@ -769,10 +758,7 @@ scm_intprint (n, radix, port)
  */
 
 void 
-scm_ipruk (hdr, ptr, port)
-     char *hdr;
-     SCM ptr;
-     SCM port;
+scm_ipruk (char *hdr, SCM ptr, SCM port)
 {
   scm_puts ("#<unknown-", port);
   scm_puts (hdr, port);
@@ -794,12 +780,7 @@ scm_ipruk (hdr, ptr, port)
 
 
 void 
-scm_iprlist (hdr, exp, tlr, port, pstate)
-     char *hdr;
-     SCM exp;
-     int tlr;
-     SCM port;
-     scm_print_state *pstate;
+scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
 {
   register SCM hare, tortoise;
   int floor = pstate->top - 2;
@@ -915,9 +896,7 @@ scm_valid_oport_value_p	(SCM val)
 /* SCM_GPROC(s_write, "write", 1, 1, 0, scm_write, g_write); */
 
 SCM 
-scm_write (obj, port)
-     SCM obj;
-     SCM port;
+scm_write (SCM obj, SCM port)
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
@@ -938,9 +917,7 @@ scm_write (obj, port)
 /* SCM_GPROC(s_display, "display", 1, 1, 0, scm_display, g_display); */
 
 SCM 
-scm_display (obj, port)
-     SCM obj;
-     SCM port;
+scm_display (SCM obj, SCM port)
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
@@ -957,34 +934,32 @@ scm_display (obj, port)
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC(s_newline, "newline", 0, 1, 0, scm_newline);
-
-SCM 
-scm_newline (port)
-     SCM port;
+GUILE_PROC(scm_newline, "newline", 0, 1, 0, 
+           (SCM port),
+"")
+#define FUNC_NAME s_scm_newline
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
 
-  SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG1, s_newline);
+  SCM_VALIDATE_OPORT_VALUE(1,port);
 
   scm_putc ('\n', SCM_COERCE_OUTPORT (port));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_write_char, "write-char", 1, 1, 0, scm_write_char);
-
-SCM 
-scm_write_char (chr, port)
-     SCM chr;
-     SCM port;
+GUILE_PROC(scm_write_char, "write-char", 1, 1, 0,
+           (SCM chr, SCM port),
+"")
+#define FUNC_NAME s_scm_write_char
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
 
-  SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write_char);
+  SCM_VALIDATE_CHAR(1,chr);
+  SCM_VALIDATE_OPORT_VALUE(2,port);
 
-  SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG1, s_write_char);
   scm_putc ((int) SCM_ICHR (chr), SCM_COERCE_OUTPORT (port));
 #ifdef HAVE_PIPE
 # ifdef EPIPE
@@ -994,6 +969,7 @@ scm_write_char (chr, port)
 #endif
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
@@ -1017,9 +993,7 @@ print_port_with_ps (SCM obj, SCM port, scm_print_state *pstate)
 }
 
 SCM
-scm_printer_apply (proc, exp, port, pstate)
-     SCM proc, exp, port;
-     scm_print_state *pstate;
+scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *pstate)
 {
   SCM pwps;
   SCM pair = scm_cons (port, pstate->handle);
@@ -1028,25 +1002,24 @@ scm_printer_apply (proc, exp, port, pstate)
   return scm_apply (proc, exp, scm_cons (pwps, scm_listofnull));
 }
 
-SCM_PROC (s_port_with_print_state, "port-with-print-state", 2, 0, 0, scm_port_with_print_state);
-
-SCM
-scm_port_with_print_state (SCM port, SCM pstate)
+GUILE_PROC (scm_port_with_print_state, "port-with-print-state", 2, 0, 0, 
+            (SCM port, SCM pstate),
+"")
+#define FUNC_NAME s_scm_port_with_print_state
 {
   SCM pwps;
-  SCM_ASSERT (scm_valid_oport_value_p (port),
-	      port, SCM_ARG1, s_port_with_print_state);
-  SCM_ASSERT (SCM_NIMP (pstate) && SCM_PRINT_STATE_P (pstate),
-	      pstate, SCM_ARG2, s_port_with_print_state);
+  SCM_VALIDATE_OPORT_VALUE(1,port);
+  SCM_VALIDATE_PRINTSTATE(2,pstate);
   port = SCM_COERCE_OUTPORT (port);
   SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, scm_cons (port, pstate));
   return pwps;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_get_print_state, "get-print-state", 1, 0, 0, scm_get_print_state);
-
-SCM
-scm_get_print_state (SCM port)
+GUILE_PROC (scm_get_print_state, "get-print-state", 1, 0, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_get_print_state
 {
   if (SCM_NIMP (port))
     {
@@ -1055,8 +1028,9 @@ scm_get_print_state (SCM port)
       if (SCM_OUTPORTP (port))
 	return SCM_BOOL_F;
     }
-  return scm_wta (port, (char *) SCM_ARG1, s_get_print_state);
+  RETURN_SCM_WTA (1,port);
 }
+#undef FUNC_NAME
 
 
 

@@ -1,6 +1,5 @@
-/* classes: src_files */
-
-/*	Copyright (C) 1995, 1997, 1998 Free Software Foundation, Inc.
+/* classes: src_files 
+ *	Copyright (C) 1995, 1997, 1998 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +15,10 @@
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA 02111-1307 USA */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 
@@ -38,11 +41,8 @@
 
 
 
-static scm_sizet fmalloc SCM_P ((SCM ptr));
-
 static scm_sizet
-fmalloc(ptr)
-     SCM ptr;
+fmalloc(SCM ptr)
 {
   if (SCM_MALLOCDATA (ptr))
     free (SCM_MALLOCDATA (ptr));
@@ -50,13 +50,8 @@ fmalloc(ptr)
 }
 
 
-static int prinmalloc SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
 static int
-prinmalloc (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+prinmalloc (SCM exp,SCM port,scm_print_state *pstate)
 {
   scm_puts("#<malloc ", port);
   scm_intprint(SCM_CDR(exp), 16, port);

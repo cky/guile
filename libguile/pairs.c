@@ -38,21 +38,26 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 #include <stdio.h>
 #include "_scm.h"
+
+
+#include "scm_validate.h"
 
 
 
 /* {Pairs}
  */
 
-SCM_PROC(s_cons, "cons", 2, 0, 0, scm_cons);
-
-SCM 
-scm_cons (x, y)
-     SCM x;
-     SCM y;
+GUILE_PROC(scm_cons, "cons", 2, 0, 0,
+           (SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_cons
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -60,13 +65,11 @@ scm_cons (x, y)
   SCM_SETCDR (z, y);
   return z;
 }
+#undef FUNC_NAME
 
 
 SCM 
-scm_cons2 (w, x, y)
-     SCM w;
-     SCM x;
-     SCM y;
+scm_cons2 (SCM w, SCM x, SCM y)
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -80,41 +83,38 @@ scm_cons2 (w, x, y)
 }
 
 
-SCM_PROC (s_pair_p, "pair?", 1, 0, 0, scm_pair_p);
-
-SCM
-scm_pair_p (x)
-     SCM x;
+GUILE_PROC (scm_pair_p, "pair?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_pair_p
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
-  return SCM_CONSP (x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_CONSP (x));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_set_car_x, "set-car!", 2, 0, 0, scm_set_car_x);
-
-SCM
-scm_set_car_x (pair, value)
-     SCM pair;
-     SCM value;
+GUILE_PROC (scm_set_car_x, "set-car!", 2, 0, 0,
+            (SCM pair, SCM value),
+"")
+#define FUNC_NAME s_scm_set_car_x
 {
-  SCM_ASSERT (SCM_NIMP (pair) && SCM_CONSP (pair),
-	      pair, SCM_ARG1, s_set_car_x);
+  SCM_VALIDATE_NIMCONS(1,pair);
   SCM_SETCAR (pair, value);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_set_cdr_x, "set-cdr!", 2, 0, 0, scm_set_cdr_x);
-
-SCM
-scm_set_cdr_x (pair, value)
-     SCM pair;
-     SCM value;
+GUILE_PROC (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
+            (SCM pair, SCM value),
+"")
+#define FUNC_NAME s_scm_set_cdr_x
 {
-  SCM_ASSERT (SCM_NIMP(pair) && SCM_CONSP (pair), pair, SCM_ARG1, s_set_cdr_x);
+  SCM_VALIDATE_NIMCONS(1,pair);
   SCM_SETCDR (pair, value);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 

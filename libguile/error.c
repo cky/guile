@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -46,6 +50,7 @@
 #include "genio.h"
 #include "throw.h"
 
+#include "scm_validate.h"
 #include "error.h"
 
 #ifdef HAVE_UNISTD_H
@@ -62,12 +67,7 @@ extern int errno;
 
 /* All errors should pass through here.  */
 void
-scm_error (key, subr, message, args, rest)
-     SCM key;
-     const char *subr;
-     const char *message;
-     SCM args;
-     SCM rest;
+scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 {
   SCM arg_list;
   arg_list = scm_listify (subr ? scm_makfrom0str (subr) : SCM_BOOL_F,
@@ -87,44 +87,36 @@ scm_error (key, subr, message, args, rest)
 }
 
 /* Scheme interface to scm_error.  */
-SCM_PROC(s_error_scm, "scm-error", 5, 0, 0, scm_error_scm);
-SCM
-scm_error_scm (key, subr, message, args, rest)
-     SCM key;
-     SCM subr;
-     SCM message;
-     SCM args;
-     SCM rest;
+GUILE_PROC(scm_error_scm, "scm-error", 5, 0, 0, 
+           (SCM key, SCM subr, SCM message, SCM args, SCM rest),
+"")
+#define FUNC_NAME s_scm_error_scm
 {
-  SCM_ASSERT (SCM_NIMP (key) && SCM_SYMBOLP (key), key, SCM_ARG1, s_error_scm);
-  SCM_ASSERT (SCM_FALSEP (subr) || (SCM_NIMP (subr) && SCM_ROSTRINGP (subr)),
-	      subr, SCM_ARG2, s_error_scm);
-  SCM_ASSERT (SCM_FALSEP (message)
-	      || (SCM_NIMP (message) && SCM_ROSTRINGP (message)),
-	      message, SCM_ARG3, s_error_scm);
-
+  char *szSubr;
+  char *szMessage;
+  SCM_VALIDATE_SYMBOL(1,key);
+  SCM_VALIDATE_NULLORROSTRING_COPY(2,subr,szSubr);
+  SCM_VALIDATE_NULLORROSTRING_COPY(3,message,szMessage);
   SCM_COERCE_SUBSTR (message);
 
-  scm_error (key,
-	     (SCM_FALSEP (subr)) ? NULL : SCM_ROCHARS (subr),
-	     (SCM_FALSEP (message)) ? NULL : SCM_ROCHARS (message),
-	     args,
-	     rest);
+  scm_error (key, szSubr, szMessage, args, rest);
   /* not reached.  */
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_strerror, "strerror", 1, 0, 0, scm_strerror);
-SCM
-scm_strerror (SCM err)
+GUILE_PROC (scm_strerror, "strerror", 1, 0, 0, 
+            (SCM err),
+"")
+#define FUNC_NAME s_scm_strerror
 {
-  SCM_ASSERT (SCM_INUMP (err), err, SCM_ARG1, s_strerror);
+  SCM_VALIDATE_INT(1,err);
   return scm_makfrom0str (strerror (SCM_INUM (err)));
 }
+#undef FUNC_NAME
 
 SCM_SYMBOL (scm_system_error_key, "system-error");
 void
-scm_syserror (subr)
-     const char *subr;
+scm_syserror (const char *subr)
 {
   scm_error (scm_system_error_key,
 	     subr,
@@ -134,11 +126,7 @@ scm_syserror (subr)
 }
 
 void
-scm_syserror_msg (subr, message, args, eno)
-     const char *subr;
-     const char *message;
-     SCM args;
-     int eno;
+scm_syserror_msg (const char *subr, const char *message, SCM args, int eno)
 {
   scm_error (scm_system_error_key,
 	     subr,
@@ -148,8 +136,7 @@ scm_syserror_msg (subr, message, args, eno)
 }
 
 void
-scm_sysmissing (subr)
-     const char *subr;
+scm_sysmissing (const char *subr)
 {
 #ifdef ENOSYS
   scm_error (scm_system_error_key,
@@ -168,8 +155,7 @@ scm_sysmissing (subr)
 
 SCM_SYMBOL (scm_num_overflow_key, "numerical-overflow");
 void
-scm_num_overflow (subr)
-  const char *subr;
+scm_num_overflow (const char *subr)
 {
   scm_error (scm_num_overflow_key,
 	     subr,
@@ -180,9 +166,7 @@ scm_num_overflow (subr)
 
 SCM_SYMBOL (scm_out_of_range_key, "out-of-range");
 void
-scm_out_of_range (subr, bad_value)
-     const char *subr;
-     SCM bad_value;
+scm_out_of_range (const char *subr, SCM bad_value)
 {
   scm_error (scm_out_of_range_key,
 	     subr,
@@ -193,8 +177,7 @@ scm_out_of_range (subr, bad_value)
 
 SCM_SYMBOL (scm_args_number_key, "wrong-number-of-args");
 void
-scm_wrong_num_args (proc)
-     SCM proc;
+scm_wrong_num_args (SCM proc)
 {
   scm_error (scm_args_number_key,
 	     NULL,
@@ -205,10 +188,7 @@ scm_wrong_num_args (proc)
 
 SCM_SYMBOL (scm_arg_type_key, "wrong-type-arg");
 void
-scm_wrong_type_arg (subr, pos, bad_value)
-     const char *subr;
-     int pos;
-     SCM bad_value;
+scm_wrong_type_arg (const char *subr, int pos, SCM bad_value)
 {
   scm_error (scm_arg_type_key,
 	     subr,
@@ -221,8 +201,7 @@ scm_wrong_type_arg (subr, pos, bad_value)
 
 SCM_SYMBOL (scm_memory_alloc_key, "memory-allocation-error");
 void
-scm_memory_error (subr)
-     const char *subr;
+scm_memory_error (const char *subr)
 {
   scm_error (scm_memory_alloc_key,
 	     subr,
@@ -233,20 +212,14 @@ scm_memory_error (subr)
 
 SCM_SYMBOL (scm_misc_error_key, "misc-error");
 void
-scm_misc_error (subr, message, args)
-     const char *subr;
-     const char *message;
-     SCM args;
+scm_misc_error (const char *subr, const char *message, SCM args)
 {
   scm_error (scm_misc_error_key, subr, message, args, SCM_BOOL_F);
 }
 
 /* implements the SCM_ASSERT interface.  */  
 SCM
-scm_wta (arg, pos, s_subr)
-     SCM arg;
-     const char *pos;
-     const char *s_subr;
+scm_wta (SCM arg, const char *pos, const char *s_subr)
 {
   if (!s_subr || !*s_subr)
     s_subr = NULL;

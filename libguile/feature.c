@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -47,6 +51,7 @@
 #include "procprop.h"
 #include "smob.h"
 
+#include "scm_validate.h"
 #include "feature.h"
 
 #ifdef HAVE_STRING_H
@@ -66,13 +71,15 @@ scm_add_feature (str)
 
 
 
-SCM_PROC(s_program_arguments, "program-arguments", 0, 0, 0, scm_program_arguments);
 
-SCM 
-scm_program_arguments ()
+GUILE_PROC(scm_program_arguments, "program-arguments", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_program_arguments
 {
   return scm_progargs;
 }
+#undef FUNC_NAME
 
 /* Set the value returned by program-arguments, given ARGC and ARGV.
 
@@ -81,10 +88,7 @@ scm_program_arguments ()
    arguments, but we still want the script name to be the first
    element.  */
 void
-scm_set_program_arguments (argc, argv, first)
-     int argc;
-     char **argv;
-     char *first;
+scm_set_program_arguments (int argc, char **argv, char *first)
 {
   scm_progargs = scm_makfromstrs (argc, argv);
   if (first)
@@ -176,61 +180,63 @@ scm_make_named_hook (const char* name, int n_args)
 }
 
 
-SCM_PROC (s_make_hook_with_name, "make-hook-with-name", 1, 1, 0, scm_make_hook_with_name);
-
-SCM
-scm_make_hook_with_name (SCM name, SCM n_args)
+GUILE_PROC (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0, 
+            (SCM name, SCM n_args),
+"")
+#define FUNC_NAME s_scm_make_hook_with_name
 {
-  return make_hook (name, n_args, s_make_hook_with_name);
+  return make_hook (name, n_args, FUNC_NAME);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_make_hook, "make-hook", 0, 1, 0, scm_make_hook);
-
-SCM
-scm_make_hook (SCM n_args)
+GUILE_PROC (scm_make_hook, "make-hook", 0, 1, 0, 
+            (SCM n_args),
+"")
+#define FUNC_NAME s_scm_make_hook
 {
-  return make_hook (SCM_BOOL_F, n_args, s_make_hook);
+  return make_hook (SCM_BOOL_F, n_args, FUNC_NAME);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hook_p, "hook?", 1, 0, 0, scm_hook_p);
-
-SCM
-scm_hook_p (SCM x)
+GUILE_PROC (scm_hook_p, "hook?", 1, 0, 0, 
+            (SCM x),
+"")
+#define FUNC_NAME s_scm_hook_p
 {
-  return SCM_NIMP (x) && SCM_HOOKP (x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_NIMP (x) && SCM_HOOKP (x));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hook_empty_p, "hook-empty?", 1, 0, 0, scm_hook_empty_p);
-
-SCM
-scm_hook_empty_p (SCM hook)
+GUILE_PROC (scm_hook_empty_p, "hook-empty?", 1, 0, 0, 
+            (SCM hook),
+"")
+#define FUNC_NAME s_scm_hook_empty_p
 {
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
-	      hook, SCM_ARG1, s_hook_empty_p);
-  return SCM_NULLP (SCM_HOOK_PROCEDURES (hook)) ? SCM_BOOL_T : SCM_BOOL_F;
+  SCM_VALIDATE_HOOK(1,hook);
+  return SCM_BOOL(SCM_NULLP (SCM_HOOK_PROCEDURES (hook)));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_add_hook_x, "add-hook!", 2, 1, 0, scm_add_hook_x);
-
-SCM
-scm_add_hook_x (SCM hook, SCM proc, SCM append_p)
+GUILE_PROC (scm_add_hook_x, "add-hook!", 2, 1, 0, 
+            (SCM hook, SCM proc, SCM append_p),
+"")
+#define FUNC_NAME s_scm_add_hook_x
 {
   SCM arity, rest;
   int n_args;
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
-	      hook, SCM_ARG1, s_add_hook_x);
+  SCM_VALIDATE_HOOK(1,hook);
   SCM_ASSERT (SCM_NFALSEP (arity = scm_i_procedure_arity (proc)),
-	      proc, SCM_ARG2, s_add_hook_x);
+	      proc, SCM_ARG2, FUNC_NAME);
   n_args = SCM_HOOK_ARITY (hook);
   if (SCM_INUM (SCM_CAR (arity)) > n_args
       || (SCM_FALSEP (SCM_CADDR (arity))
 	  && (SCM_INUM (SCM_CAR (arity)) + SCM_INUM (SCM_CADR (arity))
 	      < n_args)))
-    scm_misc_error (s_add_hook_x,
+    scm_misc_error (FUNC_NAME,
 		    "This hook requires %s arguments",
 		    SCM_LIST1 (SCM_MAKINUM (SCM_HOOK_ARITY (hook))));
   rest = scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook));
@@ -240,49 +246,50 @@ scm_add_hook_x (SCM hook, SCM proc, SCM append_p)
 			    : scm_cons (proc, rest)));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_remove_hook_x, "remove-hook!", 2, 0, 0, scm_remove_hook_x);
-
-SCM
-scm_remove_hook_x (SCM hook, SCM proc)
+GUILE_PROC (scm_remove_hook_x, "remove-hook!", 2, 0, 0, 
+            (SCM hook, SCM proc),
+"")
+#define FUNC_NAME s_scm_remove_hook_x
 {
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
-	      hook, SCM_ARG1, s_remove_hook_x);
+  SCM_VALIDATE_HOOK(1,hook);
   SCM_SET_HOOK_PROCEDURES (hook,
 			   scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook)));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_reset_hook_x, "reset-hook!", 1, 0, 0, scm_reset_hook_x);
-
-SCM
-scm_reset_hook_x (SCM hook)
+GUILE_PROC (scm_reset_hook_x, "reset-hook!", 1, 0, 0, 
+            (SCM hook),
+"")
+#define FUNC_NAME s_scm_reset_hook_x
 {
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
-	      hook, SCM_ARG1, s_reset_hook_x);
+  SCM_VALIDATE_HOOK(1,hook);
   SCM_SET_HOOK_PROCEDURES (hook, SCM_EOL);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_run_hook, "run-hook", 1, 0, 1, scm_run_hook);
-
-SCM
-scm_run_hook (SCM hook, SCM args)
+GUILE_PROC (scm_run_hook, "run-hook", 1, 0, 1, 
+            (SCM hook, SCM args),
+"")
+#define FUNC_NAME s_scm_run_hook
 {
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
-	      hook, SCM_ARG1, s_run_hook);
+  SCM_VALIDATE_HOOK(1,hook);
   if (SCM_UNBNDP (args))
     args = SCM_EOL;
   if (scm_ilength (args) != SCM_HOOK_ARITY (hook))
-    scm_misc_error (s_add_hook_x,
+    scm_misc_error (FUNC_NAME,
 		    "This hook requires %s arguments",
 		    SCM_LIST1 (SCM_MAKINUM (SCM_HOOK_ARITY (hook))));
   scm_c_run_hook (hook, args);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 void
@@ -297,15 +304,15 @@ scm_c_run_hook (SCM hook, SCM args)
 }
 
 
-SCM_PROC (s_hook_to_list, "hook->list", 1, 0, 0, scm_hook_to_list);
-
-SCM
-scm_hook_to_list (SCM hook)
+GUILE_PROC (scm_hook_to_list, "hook->list", 1, 0, 0, 
+            (SCM hook),
+            "")
+#define FUNC_NAME s_scm_hook_to_list
 {
-  SCM_ASSERT (SCM_NIMP (hook) && SCM_HOOKP (hook),
-	      hook, SCM_ARG1, s_hook_to_list);
+  SCM_VALIDATE_HOOK(1,hook);
   return scm_list_copy (SCM_HOOK_PROCEDURES (hook));
 }
+#undef FUNC_NAME
 
 
 

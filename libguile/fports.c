@@ -38,12 +38,17 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
 #include <fcntl.h>
 #include "_scm.h"
 
+#include "scm_validate.h"
 #include "fports.h"
 
 #ifdef HAVE_STRING_H
@@ -124,21 +129,20 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
     SCM_SETCAR (port, (SCM_CAR (port) | SCM_BUF0));
 }
 
-SCM_PROC (s_setvbuf, "setvbuf", 2, 1, 0, scm_setvbuf);
-SCM
-scm_setvbuf (SCM port, SCM mode, SCM size)
+GUILE_PROC (scm_setvbuf, "setvbuf", 2, 1, 0, 
+            (SCM port, SCM mode, SCM size),
+"")
+#define FUNC_NAME s_scm_setvbuf
 {
   int cmode, csize;
   scm_port *pt;
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1,
-	      s_setvbuf);
-  SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_setvbuf);
-  cmode = SCM_INUM (mode);
+  SCM_VALIDATE_OPFPORT(1,port);
+  SCM_VALIDATE_INT_COPY(2,mode,cmode);
   if (cmode != _IONBF && cmode != _IOFBF && cmode != _IOLBF)
-    scm_out_of_range (s_setvbuf, mode);
+    scm_out_of_range (FUNC_NAME, mode);
 
   if (cmode == _IOLBF)
     {
@@ -159,10 +163,9 @@ scm_setvbuf (SCM port, SCM mode, SCM size)
     }
   else
     {
-      SCM_ASSERT (SCM_INUMP (size), size, SCM_ARG3, s_setvbuf);
-      csize = SCM_INUM (size);
+      SCM_VALIDATE_INT_COPY(3,size,csize);
       if (csize < 0 || (cmode == _IONBF && csize > 0))
-	scm_out_of_range (s_setvbuf, size);
+	scm_out_of_range (FUNC_NAME, size);
     }
 
   pt = SCM_PTAB_ENTRY (port);
@@ -176,6 +179,7 @@ scm_setvbuf (SCM port, SCM mode, SCM size)
   scm_fport_buffer_add (port, csize, csize);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 /* Move ports with the specified file descriptor to new descriptors,
  * reseting the revealed count to 0.
@@ -214,12 +218,10 @@ scm_evict_ports (fd)
  *
  * Return the new port.
  */
-SCM_PROC(s_open_file, "open-file", 2, 0, 0, scm_open_file);
-
-SCM
-scm_open_file (filename, modes)
-     SCM filename;
-     SCM modes;
+GUILE_PROC(scm_open_file, "open-file", 2, 0, 0,
+           (SCM filename, SCM modes),
+"")
+#define FUNC_NAME s_scm_open_file
 {
   SCM port;
   int fdes;
@@ -228,8 +230,8 @@ scm_open_file (filename, modes)
   char *mode;
   char *ptr;
 
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename, SCM_ARG1, s_open_file);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2, s_open_file);
+  SCM_VALIDATE_ROSTRING(1,filename);
+  SCM_VALIDATE_ROSTRING(2,modes);
   if (SCM_SUBSTRP (filename))
     filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_ROLENGTH (filename), 0);
   if (SCM_SUBSTRP (modes))
@@ -250,7 +252,7 @@ scm_open_file (filename, modes)
       flags |= O_WRONLY | O_CREAT | O_APPEND;
       break;
     default:
-      scm_out_of_range (s_open_file, modes);
+      scm_out_of_range (FUNC_NAME, modes);
     }
   ptr = mode + 1;
   while (*ptr != '\0')
@@ -265,7 +267,7 @@ scm_open_file (filename, modes)
 	case 'l':  /* line buffered: handled during output.  */
 	  break;
 	default:
-	  scm_out_of_range (s_open_file, modes);
+	  scm_out_of_range (FUNC_NAME, modes);
 	}
       ptr++;
     }
@@ -274,7 +276,7 @@ scm_open_file (filename, modes)
     {
       int en = errno;
 
-      scm_syserror_msg (s_open_file, "%s: %S",
+      scm_syserror_msg (FUNC_NAME, "%s: %S",
 			scm_cons (scm_makfrom0str (strerror (en)),
 				  scm_cons (filename, SCM_EOL)),
 			en);
@@ -282,6 +284,7 @@ scm_open_file (filename, modes)
   port = scm_fdes_to_port (fdes, mode, filename);
   return port;
 }
+#undef FUNC_NAME
 
 
 /* Building Guile ports from a file descriptor.  */
@@ -361,13 +364,8 @@ fport_input_waiting (SCM port)
 }
 
 
-static int prinfport SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
 static int 
-prinfport (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+prinfport (SCM exp,SCM port,scm_print_state *pstate)
 {
   scm_puts ("#<", port);
   scm_print_port_mode (exp, port);    

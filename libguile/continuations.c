@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -123,11 +127,8 @@ scm_make_cont (answer)
 /* to copy in the continuation.  Then */
 #ifndef CHEAP_CONTINUATIONS
 
-static void grow_throw SCM_P ((SCM *a));
-
 static void 
-grow_throw (a)
-     SCM *a;
+grow_throw (SCM *a)
 {				/* retry the throw. */
   SCM growth[100];
   growth[0] = a[0];

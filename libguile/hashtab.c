@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -46,17 +50,13 @@
 #include "hash.h"
 #include "eval.h"
 
+#include "scm_validate.h"
 #include "hashtab.h"
 
 
 
 SCM
-scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure)
-     SCM table;
-     SCM obj;
-     unsigned int (*hash_fn)();
-     SCM (*assoc_fn)();
-     void * closure;
+scm_hash_fn_get_handle (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn)(),void * closure)
 {
   unsigned int k;
   SCM h;
@@ -76,13 +76,8 @@ scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure)
 
 
 SCM
-scm_hash_fn_create_handle_x (table, obj, init, hash_fn, assoc_fn, closure)
-     SCM table;
-     SCM obj;
-     SCM init;
-     unsigned int (*hash_fn)();
-     SCM (*assoc_fn)();
-     void * closure;
+scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned int (*hash_fn)(),
+                             SCM (*assoc_fn)(),void * closure)
 {
   unsigned int k;
   SCM it;
@@ -116,13 +111,8 @@ scm_hash_fn_create_handle_x (table, obj, init, hash_fn, assoc_fn, closure)
 
 
 SCM 
-scm_hash_fn_ref (table, obj, dflt, hash_fn, assoc_fn, closure)
-     SCM table;
-     SCM obj;
-     SCM dflt;
-     unsigned int (*hash_fn)();
-     SCM (*assoc_fn)();
-     void * closure;
+scm_hash_fn_ref (SCM table,SCM obj,SCM dflt,unsigned int (*hash_fn)(),
+                 SCM (*assoc_fn)(),void * closure)
 {
   SCM it;
 
@@ -137,13 +127,8 @@ scm_hash_fn_ref (table, obj, dflt, hash_fn, assoc_fn, closure)
 
 
 SCM 
-scm_hash_fn_set_x (table, obj, val, hash_fn, assoc_fn, closure)
-     SCM table;
-     SCM obj;
-     SCM val;
-     unsigned int (*hash_fn)();
-     SCM (*assoc_fn)();
-     void * closure;
+scm_hash_fn_set_x (SCM table,SCM obj,SCM val,unsigned int (*hash_fn)(),
+                   SCM (*assoc_fn)(),void * closure)
 {
   SCM it;
 
@@ -157,13 +142,8 @@ scm_hash_fn_set_x (table, obj, val, hash_fn, assoc_fn, closure)
 
 
 SCM 
-scm_hash_fn_remove_x (table, obj, hash_fn, assoc_fn, delete_fn, closure)
-     SCM table;
-     SCM obj;
-     unsigned int (*hash_fn)();
-     SCM (*assoc_fn)();
-     SCM (*delete_fn)();
-     void * closure;
+scm_hash_fn_remove_x (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn)(),
+                      SCM (*delete_fn)(),void * closure)
 {
   unsigned int k;
   SCM h;
@@ -184,192 +164,168 @@ scm_hash_fn_remove_x (table, obj, hash_fn, assoc_fn, delete_fn, closure)
 
 
 
-SCM_PROC (s_hashq_get_handle, "hashq-get-handle", 2, 0, 0, scm_hashq_get_handle);
-
-SCM
-scm_hashq_get_handle (table, obj)
-     SCM table;
-     SCM obj;
+GUILE_PROC (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
+            (SCM table, SCM obj),
+"")
+#define FUNC_NAME s_scm_hashq_get_handle
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihashq, scm_sloppy_assq, 0);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0, scm_hashq_create_handle_x);
-
-SCM
-scm_hashq_create_handle_x (table, obj, init)
-     SCM table;
-     SCM obj;
-     SCM init;
+GUILE_PROC (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
+            (SCM table, SCM obj, SCM init),
+"")
+#define FUNC_NAME s_scm_hashq_create_handle_x
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihashq, scm_sloppy_assq, 0);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hashq_ref, "hashq-ref", 2, 1, 0, scm_hashq_ref);
-
-SCM 
-scm_hashq_ref (table, obj, dflt)
-     SCM table;
-     SCM obj;
-     SCM dflt;
+GUILE_PROC (scm_hashq_ref, "hashq-ref", 2, 1, 0,
+            (SCM table, SCM obj, SCM dflt),
+"")
+#define FUNC_NAME s_scm_hashq_ref
 {
   if (dflt == SCM_UNDEFINED)
     dflt = SCM_BOOL_F;
   return scm_hash_fn_ref (table, obj, dflt, scm_ihashq, scm_sloppy_assq, 0);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_hashq_set_x, "hashq-set!", 3, 0, 0, scm_hashq_set_x);
-
-SCM 
-scm_hashq_set_x (table, obj, val)
-     SCM table;
-     SCM obj;
-     SCM val;
+GUILE_PROC (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
+            (SCM table, SCM obj, SCM val),
+"")
+#define FUNC_NAME s_scm_hashq_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihashq, scm_sloppy_assq, 0);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_hashq_remove_x, "hashq-remove!", 2, 0, 0, scm_hashq_remove_x);
-
-SCM
-scm_hashq_remove_x (table, obj)
-     SCM table;
-     SCM obj;
+GUILE_PROC (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
+            (SCM table, SCM obj),
+"")
+#define FUNC_NAME s_scm_hashq_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihashq, scm_sloppy_assq, scm_delq_x, 0);
 }
+#undef FUNC_NAME
 
 
 
 
-SCM_PROC (s_hashv_get_handle, "hashv-get-handle", 2, 0, 0, scm_hashv_get_handle);
-
-SCM
-scm_hashv_get_handle (table, obj)
-     SCM table;
-     SCM obj;
+GUILE_PROC (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
+            (SCM table, SCM obj),
+"")
+#define FUNC_NAME s_scm_hashv_get_handle
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihashv, scm_sloppy_assv, 0);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0, scm_hashv_create_handle_x);
-
-SCM
-scm_hashv_create_handle_x (table, obj, init)
-     SCM table;
-     SCM obj;
-     SCM init;
+GUILE_PROC (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
+            (SCM table, SCM obj, SCM init),
+"")
+#define FUNC_NAME s_scm_hashv_create_handle_x
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihashv, scm_sloppy_assv, 0);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hashv_ref, "hashv-ref", 2, 1, 0, scm_hashv_ref);
-
-SCM 
-scm_hashv_ref (table, obj, dflt)
-     SCM table;
-     SCM obj;
-     SCM dflt;
+GUILE_PROC (scm_hashv_ref, "hashv-ref", 2, 1, 0,
+            (SCM table, SCM obj, SCM dflt),
+"")
+#define FUNC_NAME s_scm_hashv_ref
 {
   if (dflt == SCM_UNDEFINED)
     dflt = SCM_BOOL_F;
   return scm_hash_fn_ref (table, obj, dflt, scm_ihashv, scm_sloppy_assv, 0);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_hashv_set_x, "hashv-set!", 3, 0, 0, scm_hashv_set_x);
-
-SCM 
-scm_hashv_set_x (table, obj, val)
-     SCM table;
-     SCM obj;
-     SCM val;
+GUILE_PROC (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
+            (SCM table, SCM obj, SCM val),
+"")
+#define FUNC_NAME s_scm_hashv_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihashv, scm_sloppy_assv, 0);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hashv_remove_x, "hashv-remove!", 2, 0, 0, scm_hashv_remove_x);
-
-SCM
-scm_hashv_remove_x (table, obj)
-     SCM table;
-     SCM obj;
+GUILE_PROC (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
+            (SCM table, SCM obj),
+"")
+#define FUNC_NAME s_scm_hashv_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihashv, scm_sloppy_assv, scm_delv_x, 0);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_hash_get_handle, "hash-get-handle", 2, 0, 0, scm_hash_get_handle);
-
-SCM
-scm_hash_get_handle (table, obj)
-     SCM table;
-     SCM obj;
+GUILE_PROC (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
+            (SCM table, SCM obj),
+"")
+#define FUNC_NAME s_scm_hash_get_handle
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihash, scm_sloppy_assoc, 0);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hash_create_handle_x, "hash-create-handle!", 3, 0, 0, scm_hash_create_handle_x);
-
-SCM
-scm_hash_create_handle_x (table, obj, init)
-     SCM table;
-     SCM obj;
-     SCM init;
+GUILE_PROC (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
+            (SCM table, SCM obj, SCM init),
+"")
+#define FUNC_NAME s_scm_hash_create_handle_x
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihash, scm_sloppy_assoc, 0);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hash_ref, "hash-ref", 2, 1, 0, scm_hash_ref);
-
-SCM 
-scm_hash_ref (table, obj, dflt)
-     SCM table;
-     SCM obj;
-     SCM dflt;
+GUILE_PROC (scm_hash_ref, "hash-ref", 2, 1, 0,
+            (SCM table, SCM obj, SCM dflt),
+"")
+#define FUNC_NAME s_scm_hash_ref
 {
   if (dflt == SCM_UNDEFINED)
     dflt = SCM_BOOL_F;
   return scm_hash_fn_ref (table, obj, dflt, scm_ihash, scm_sloppy_assoc, 0);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_hash_set_x, "hash-set!", 3, 0, 0, scm_hash_set_x);
-
-SCM 
-scm_hash_set_x (table, obj, val)
-     SCM table;
-     SCM obj;
-     SCM val;
+GUILE_PROC (scm_hash_set_x, "hash-set!", 3, 0, 0,
+            (SCM table, SCM obj, SCM val),
+"")
+#define FUNC_NAME s_scm_hash_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihash, scm_sloppy_assoc, 0);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_hash_remove_x, "hash-remove!", 2, 0, 0, scm_hash_remove_x);
-
-SCM
-scm_hash_remove_x (table, obj)
-     SCM table;
-     SCM obj;
+GUILE_PROC (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
+            (SCM table, SCM obj),
+"")
+#define FUNC_NAME s_scm_hash_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihash, scm_sloppy_assoc, scm_delete_x, 0);
 }
+#undef FUNC_NAME
 
 
 
@@ -383,13 +339,8 @@ struct scm_ihashx_closure
 
 
 
-static unsigned int scm_ihashx SCM_P ((SCM obj, unsigned int n, struct scm_ihashx_closure * closure));
-
 static unsigned int
-scm_ihashx (obj, n, closure)
-     SCM obj;
-     unsigned int n;
-     struct scm_ihashx_closure * closure;
+scm_ihashx (SCM obj,unsigned int n,struct scm_ihashx_closure * closure)
 {
   SCM answer;
   SCM_ALLOW_INTS;
@@ -402,13 +353,8 @@ scm_ihashx (obj, n, closure)
 
 
 
-static SCM scm_sloppy_assx SCM_P ((SCM obj, SCM alist, struct scm_ihashx_closure * closure));
-
 static SCM
-scm_sloppy_assx (obj, alist, closure)
-     SCM obj;
-     SCM alist;
-     struct scm_ihashx_closure * closure;
+scm_sloppy_assx (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
 {
   SCM answer;
   SCM_ALLOW_INTS;
@@ -422,13 +368,8 @@ scm_sloppy_assx (obj, alist, closure)
 
 
 
-static SCM scm_delx_x SCM_P ((SCM obj, SCM alist, struct scm_ihashx_closure * closure));
-
 static SCM
-scm_delx_x (obj, alist, closure)
-     SCM obj;
-     SCM alist;
-     struct scm_ihashx_closure * closure;
+scm_delx_x (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
 {
   SCM answer;
   SCM_ALLOW_INTS;
@@ -441,49 +382,37 @@ scm_delx_x (obj, alist, closure)
 
 
 
-SCM_PROC (s_hashx_get_handle, "hashx-get-handle", 4, 0, 0, scm_hashx_get_handle);
-
-SCM
-scm_hashx_get_handle (hash, assoc, table, obj)
-     SCM hash;
-     SCM assoc;
-     SCM table;
-     SCM obj;
+GUILE_PROC (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0, 
+            (SCM hash, SCM assoc, SCM table, SCM obj),
+"")
+#define FUNC_NAME s_scm_hashx_get_handle
 {
   struct scm_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
   return scm_hash_fn_get_handle (table, obj, scm_ihashx, scm_sloppy_assx, (void *)&closure);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0, scm_hashx_create_handle_x);
-
-SCM
-scm_hashx_create_handle_x (hash, assoc, table, obj, init)
-     SCM hash;
-     SCM assoc;
-     SCM table;
-     SCM obj;
-     SCM init;
+GUILE_PROC (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0, 
+            (SCM hash,SCM assoc,SCM table,SCM obj,SCM init),
+"")
+#define FUNC_NAME s_scm_hashx_create_handle_x
 {
   struct scm_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihashx, scm_sloppy_assx, (void *)&closure);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_hashx_ref, "hashx-ref", 4, 1, 0, scm_hashx_ref);
-
-SCM 
-scm_hashx_ref (hash, assoc, table, obj, dflt)
-     SCM hash;
-     SCM assoc;
-     SCM table;
-     SCM obj;
-     SCM dflt;
+GUILE_PROC (scm_hashx_ref, "hashx-ref", 4, 1, 0, 
+            (SCM hash,SCM assoc,SCM table,SCM obj,SCM dflt),
+"")
+#define FUNC_NAME s_scm_hashx_ref
 {
   struct scm_ihashx_closure closure;
   if (dflt == SCM_UNDEFINED)
@@ -492,35 +421,27 @@ scm_hashx_ref (hash, assoc, table, obj, dflt)
   closure.assoc = assoc;
   return scm_hash_fn_ref (table, obj, dflt, scm_ihashx, scm_sloppy_assx, (void *)&closure);
 }
+#undef FUNC_NAME
 
 
 
 
-SCM_PROC (s_hashx_set_x, "hashx-set!", 5, 0, 0, scm_hashx_set_x);
-
-SCM 
-scm_hashx_set_x (hash, assoc, table, obj, val)
-     SCM hash;
-     SCM assoc;
-     SCM table;
-     SCM obj;
-     SCM val;
+GUILE_PROC (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
+            (SCM hash, SCM assoc, SCM table, SCM obj, SCM val),
+"")
+#define FUNC_NAME s_scm_hashx_set_x
 {
   struct scm_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
   return scm_hash_fn_set_x (table, obj, val, scm_ihashx, scm_sloppy_assx, (void *)&closure);
 }
+#undef FUNC_NAME
 
 
 
 SCM
-scm_hashx_remove_x (hash, assoc, delete, table, obj)
-     SCM hash;
-     SCM assoc;
-     SCM delete;
-     SCM table;
-     SCM obj;
+scm_hashx_remove_x (SCM hash,SCM assoc,SCM delete,SCM table,SCM obj)
 {
   struct scm_ihashx_closure closure;
   closure.hash = hash;
@@ -535,17 +456,16 @@ fold_proc (void *proc, SCM key, SCM data, SCM value)
   return scm_apply ((SCM) proc, SCM_LIST3 (key, data, value), SCM_EOL);
 }
 
-SCM_PROC (s_hash_fold, "hash-fold", 3, 0, 0, scm_hash_fold);
-
-SCM
-scm_hash_fold (SCM proc, SCM init, SCM table)
+GUILE_PROC (scm_hash_fold, "hash-fold", 3, 0, 0, 
+            (SCM proc, SCM init, SCM table),
+"")
+#define FUNC_NAME s_scm_hash_fold
 {
-  SCM_ASSERT (SCM_NIMP (table) && SCM_VECTORP (table),
-	      table, SCM_ARG1, s_hash_fold);
-  SCM_ASSERT (SCM_NIMP (proc) && SCM_NFALSEP (scm_procedure_p (proc)),
-	      proc, SCM_ARG2, s_hash_fold);
+  SCM_VALIDATE_PROC(1,proc);
+  SCM_VALIDATE_VECTOR(3,table);
   return scm_internal_hash_fold (fold_proc, (void *) proc, init, table);
 }
+#undef FUNC_NAME
 
 SCM
 scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
@@ -558,10 +478,10 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
       while (SCM_NNULLP (ls))
 	{
 	  SCM_ASSERT (SCM_NIMP (ls) && SCM_CONSP (ls),
-		      table, SCM_ARG1, s_hash_fold);
+		      table, SCM_ARG1, s_scm_hash_fold);
 	  handle = SCM_CAR (ls);
 	  SCM_ASSERT (SCM_NIMP (handle) && SCM_CONSP (handle),
-		      table, SCM_ARG1, s_hash_fold);
+		      table, SCM_ARG1, s_scm_hash_fold);
 	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
 	  ls = SCM_CDR (ls);
 	}

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 /* This file and objects.h contains those minimal pieces of the Guile
@@ -55,6 +59,7 @@
 #include "eval.h"
 #include "alist.h"
 
+#include "scm_validate.h"
 #include "objects.h"
 
 
@@ -354,33 +359,31 @@ scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
   return scm_apply_generic (gf, SCM_LIST3 (a1, a2, a3));
 }
 
-SCM_PROC (s_entity_p, "entity?", 1, 0, 0, scm_entity_p);
-
-SCM
-scm_entity_p (SCM obj)
+GUILE_PROC (scm_entity_p, "entity?", 1, 0, 0, 
+            (SCM obj),
+            "")
+#define FUNC_NAME s_scm_entity_p
 {
-  return (SCM_NIMP (obj) && SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj)
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (obj) && SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_operator_p, "operator?", 1, 0, 0, scm_operator_p);
-
-SCM
-scm_operator_p (SCM obj)
+GUILE_PROC (scm_operator_p, "operator?", 1, 0, 0, 
+            (SCM obj),
+            "")
+#define FUNC_NAME s_scm_operator_p
 {
-  return (SCM_NIMP (obj)
-	  && SCM_STRUCTP (obj)
-	  && SCM_I_OPERATORP (obj)
-	  && !SCM_I_ENTITYP (obj)
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (obj)
+                  && SCM_STRUCTP (obj)
+                  && SCM_I_OPERATORP (obj)
+                  && !SCM_I_ENTITYP (obj));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_set_object_procedure_x, "set-object-procedure!", 2, 0, 0, scm_set_object_procedure_x);
-
-SCM
-scm_set_object_procedure_x (SCM obj, SCM proc)
+GUILE_PROC (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0, 
+            (SCM obj, SCM proc),
+            "")
+#define FUNC_NAME s_scm_set_object_procedure_x
 {
   SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
 	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
@@ -389,30 +392,31 @@ scm_set_object_procedure_x (SCM obj, SCM proc)
 			   & SCM_CLASSF_PURE_GENERIC))),
 	      obj,
 	      SCM_ARG1,
-	      s_set_object_procedure_x);
-  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (proc)),
-	      proc, SCM_ARG2, s_set_object_procedure_x);
+              FUNC_NAME);
+  SCM_VALIDATE_PROC(2,proc);
   if (SCM_I_ENTITYP (obj))
     SCM_ENTITY_PROCEDURE (obj) = proc;
   else
     SCM_OPERATOR_CLASS (obj)->procedure = proc;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 #ifdef GUILE_DEBUG
-SCM_PROC (s_object_procedure, "object-procedure", 1, 0, 0, scm_object_procedure);
-
-SCM
-scm_object_procedure (SCM obj)
+GUILE_PROC (scm_object_procedure, "object-procedure", 1, 0, 0, 
+            (SCM obj),
+            "")
+#define FUNC_NAME s_scm_object_procedure
 {
   SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
 	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
 		  || SCM_I_ENTITYP (obj)),
-	      obj, SCM_ARG1, s_object_procedure);
+	      obj, SCM_ARG1, FUNC_NAME);
   return (SCM_I_ENTITYP (obj)
 	  ? SCM_ENTITY_PROCEDURE (obj)
 	  : SCM_OPERATOR_CLASS (obj)->procedure);
 }
+#undef FUNC_NAME
 #endif /* GUILE_DEBUG */
 
 /* The following procedures are not a part of Goops but a minimal
@@ -434,35 +438,28 @@ scm_i_make_class_object (SCM meta,
   return c;
 }
 
-SCM_PROC (s_make_class_object, "make-class-object", 2, 0, 0, scm_make_class_object);
-
-SCM
-scm_make_class_object (SCM metaclass, SCM layout)
+GUILE_PROC (scm_make_class_object, "make-class-object", 2, 0, 0, 
+            (SCM metaclass, SCM layout),
+            "")
+#define FUNC_NAME s_scm_make_class_object
 {
   unsigned long flags = 0;
-  SCM_ASSERT (SCM_NIMP (metaclass) && SCM_STRUCTP (metaclass),
-	      metaclass, SCM_ARG1, s_make_class_object);
-  SCM_ASSERT (SCM_NIMP (layout) && SCM_STRINGP (layout),
-	      layout, SCM_ARG2, s_make_class_object);
+  SCM_VALIDATE_STRUCT(1,metaclass);
+  SCM_VALIDATE_STRING(2,layout);
   if (metaclass == scm_metaclass_operator)
     flags = SCM_CLASSF_OPERATOR;
   return scm_i_make_class_object (metaclass, layout, flags);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_make_subclass_object, "make-subclass-object", 2, 0, 0, scm_make_subclass_object);
-
-SCM
-scm_make_subclass_object (SCM class, SCM layout)
+GUILE_PROC (scm_make_subclass_object, "make-subclass-object", 2, 0, 0, 
+            (SCM class, SCM layout),
+            "")
+#define FUNC_NAME s_scm_make_subclass_object
 {
   SCM pl;
-  SCM_ASSERT (SCM_NIMP (class) && SCM_STRUCTP (class),
-	      class,
-	      SCM_ARG1,
-	      s_make_subclass_object);
-  SCM_ASSERT (SCM_NIMP (layout) && SCM_STRINGP (layout),
-	      layout,
-	      SCM_ARG2,
-	      s_make_subclass_object);
+  SCM_VALIDATE_STRUCT(1,class);
+  SCM_VALIDATE_STRING(2,layout);
   pl = SCM_STRUCT_DATA (class)[scm_vtable_index_layout];
   /* Convert symbol->string */
   pl = scm_makfromstr (SCM_CHARS (pl), (scm_sizet) SCM_LENGTH (pl), 0);
@@ -470,6 +467,7 @@ scm_make_subclass_object (SCM class, SCM layout)
 				  scm_string_append (SCM_LIST2 (pl, layout)),
 				  SCM_CLASS_FLAGS (class));
 }
+#undef FUNC_NAME
 
 void
 scm_init_objects ()

@@ -43,6 +43,10 @@
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
+
 #include "_scm.h"
 
 #include <stdio.h>
@@ -132,11 +136,8 @@ static SCM gdb_output_port;
 static int old_ints, old_gc;
 
 
-static void unmark_port SCM_P ((SCM port));
-
 static void
-unmark_port (port)
-     SCM port;
+unmark_port (SCM port)
 {
   SCM stream, string;
   port_mark_p = SCM_GC8MARKP (port);
@@ -150,11 +151,8 @@ unmark_port (port)
 }
 
 
-static void remark_port SCM_P ((SCM port));
-
 static void
-remark_port (port)
-     SCM port;
+remark_port (SCM port)
 {
   SCM stream = SCM_STREAM (port);
   SCM string = SCM_CDR (stream);

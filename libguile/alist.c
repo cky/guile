@@ -38,23 +38,25 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 #include <stdio.h>
 #include "_scm.h"
 #include "eq.h"
 #include "list.h"
 
+#include "scm_validate.h"
 #include "alist.h"
 
 
 
-SCM_PROC(s_acons, "acons", 3, 0, 0, scm_acons);
-
-SCM 
-scm_acons (w, x, y)
-     SCM w;
-     SCM x;
-     SCM y;
+GUILE_PROC(scm_acons, "acons", 3, 0, 0,
+           (SCM w, SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_acons
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -66,15 +68,14 @@ scm_acons (w, x, y)
   SCM_SETCDR (z, y);
   return z;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_sloppy_assq, "sloppy-assq", 2, 0, 0, scm_sloppy_assq);
-
-SCM
-scm_sloppy_assq(x, alist)
-     SCM x;
-     SCM alist;
+GUILE_PROC (scm_sloppy_assq, "sloppy-assq", 2, 0, 0,
+            (SCM x, SCM alist),
+"")
+#define FUNC_NAME s_scm_sloppy_assq
 {
 
   for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
@@ -85,15 +86,14 @@ scm_sloppy_assq(x, alist)
     }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_sloppy_assv, "sloppy-assv", 2, 0, 0, scm_sloppy_assv);
-
-SCM
-scm_sloppy_assv(x, alist)
-     SCM x;
-     SCM alist;
+GUILE_PROC (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
+            (SCM x, SCM alist),
+"")
+#define FUNC_NAME s_scm_sloppy_assv
 {
   for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
@@ -105,14 +105,13 @@ scm_sloppy_assv(x, alist)
     }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_sloppy_assoc, "sloppy-assoc", 2, 0, 0, scm_sloppy_assoc);
-
-SCM
-scm_sloppy_assoc(x, alist)
-     SCM x;
-     SCM alist;
+GUILE_PROC (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
+            (SCM x, SCM alist),
+"")
+#define FUNC_NAME s_scm_sloppy_assoc
 {
   for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
@@ -124,35 +123,31 @@ scm_sloppy_assoc(x, alist)
     }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 
 
-SCM_PROC(s_assq, "assq", 2, 0, 0, scm_assq);
-
-SCM
-scm_assq(x, alist)
-     SCM x;
-     SCM alist;
+GUILE_PROC(scm_assq, "assq", 2, 0, 0,
+           (SCM x, SCM alist),
+"")
+#define FUNC_NAME s_scm_assq
 {
-	SCM tmp;
-	for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
-		SCM_ASSERT(SCM_CONSP(alist), alist, SCM_ARG2, s_assq);
-		tmp = SCM_CAR(alist);
-		SCM_ASSERT(SCM_NIMP(tmp) && SCM_CONSP(tmp), alist, SCM_ARG2, s_assq);
-		if (SCM_CAR(tmp)==x) return tmp;
-	}
-	SCM_ASSERT(SCM_NULLP(alist), alist, SCM_ARG2, s_assq);
-	return SCM_BOOL_F;
+  SCM tmp;
+  for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
+    SCM_VALIDATE_ALISTCELL_COPYSCM(2,alist,tmp);
+    if (SCM_CAR(tmp)==x) return tmp;
+  }
+  SCM_VALIDATE_NULL(2,alist);
+  return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_assv, "assv", 2, 0, 0, scm_assv);
-
-SCM
-scm_assv(x, alist)
-     SCM x;
-     SCM alist;
+GUILE_PROC(scm_assv, "assv", 2, 0, 0,
+           (SCM x, SCM alist),
+"")
+#define FUNC_NAME s_scm_assv
 {
   SCM tmp;
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
@@ -163,39 +158,35 @@ scm_assv(x, alist)
   }
 # ifndef SCM_RECKLESS
   if (!(SCM_NULLP(alist)))
-    badlst: scm_wta(alist, (char *)SCM_ARG2, s_assv);
+    badlst: scm_wta(alist, (char *)SCM_ARG2, FUNC_NAME);
 # endif
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_assoc, "assoc", 2, 0, 0, scm_assoc);
-
-SCM
-scm_assoc(x, alist)
-     SCM x;
-     SCM alist;
+GUILE_PROC(scm_assoc, "assoc", 2, 0, 0,
+           (SCM x, SCM alist),
+"")
+#define FUNC_NAME s_scm_assoc
 {
-	SCM tmp;
-	for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
-		SCM_ASSERT(SCM_CONSP(alist), alist, SCM_ARG2, s_assoc);
-		tmp = SCM_CAR(alist);
-		SCM_ASSERT(SCM_NIMP(tmp) && SCM_CONSP(tmp), alist, SCM_ARG2, s_assoc);
-		if SCM_NFALSEP(scm_equal_p(SCM_CAR(tmp), x)) return tmp;
-	}
-	SCM_ASSERT(SCM_NULLP(alist), alist, SCM_ARG2, s_assoc);
-	return SCM_BOOL_F;
+  SCM tmp;
+  for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
+    SCM_VALIDATE_ALISTCELL_COPYSCM(2,alist,tmp);
+    if SCM_NFALSEP(scm_equal_p(SCM_CAR(tmp), x)) return tmp;
+  }
+  SCM_VALIDATE_NULL(2,alist);
+  return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 
 
-SCM_PROC (s_assq_ref, "assq-ref", 2, 0, 0, scm_assq_ref);
-
-SCM
-scm_assq_ref (alist, key)
-     SCM alist;
-     SCM key;
+GUILE_PROC (scm_assq_ref, "assq-ref", 2, 0, 0,
+            (SCM alist, SCM key),
+"")
+#define FUNC_NAME s_scm_assq_ref
 {
   SCM handle;
 
@@ -206,14 +197,13 @@ scm_assq_ref (alist, key)
     }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_assv_ref, "assv-ref", 2, 0, 0, scm_assv_ref);
-
-SCM
-scm_assv_ref (alist, key)
-     SCM alist;
-     SCM key;
+GUILE_PROC (scm_assv_ref, "assv-ref", 2, 0, 0,
+            (SCM alist, SCM key),
+"")
+#define FUNC_NAME s_scm_assv_ref
 {
   SCM handle;
 
@@ -224,14 +214,13 @@ scm_assv_ref (alist, key)
     }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_assoc_ref, "assoc-ref", 2, 0, 0, scm_assoc_ref);
-
-SCM
-scm_assoc_ref (alist, key)
-     SCM alist;
-     SCM key;
+GUILE_PROC (scm_assoc_ref, "assoc-ref", 2, 0, 0,
+            (SCM alist, SCM key),
+"")
+#define FUNC_NAME s_scm_assoc_ref
 {
   SCM handle;
 
@@ -242,19 +231,17 @@ scm_assoc_ref (alist, key)
     }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 
 
 
 
-SCM_PROC (s_assq_set_x, "assq-set!", 3, 0, 0, scm_assq_set_x);
-
-SCM
-scm_assq_set_x (alist, key, val)
-     SCM alist;
-     SCM key;
-     SCM val;
+GUILE_PROC (scm_assq_set_x, "assq-set!", 3, 0, 0,
+            (SCM alist, SCM key, SCM val),
+"")
+#define FUNC_NAME s_scm_assq_set_x
 {
   SCM handle;
 
@@ -267,14 +254,12 @@ scm_assq_set_x (alist, key, val)
   else
     return scm_acons (key, val, alist);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_assv_set_x, "assv-set!", 3, 0, 0, scm_assv_set_x);
-
-SCM
-scm_assv_set_x (alist, key, val)
-     SCM alist;
-     SCM key;
-     SCM val;
+GUILE_PROC (scm_assv_set_x, "assv-set!", 3, 0, 0,
+            (SCM alist, SCM key, SCM val),
+"")
+#define FUNC_NAME s_scm_assv_set_x
 {
   SCM handle;
 
@@ -287,14 +272,12 @@ scm_assv_set_x (alist, key, val)
   else
     return scm_acons (key, val, alist);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_assoc_set_x, "assoc-set!", 3, 0, 0, scm_assoc_set_x);
-
-SCM
-scm_assoc_set_x (alist, key, val)
-     SCM alist;
-     SCM key;
-     SCM val;
+GUILE_PROC (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
+            (SCM alist, SCM key, SCM val),
+"")
+#define FUNC_NAME s_scm_assoc_set_x
 {
   SCM handle;
 
@@ -307,16 +290,15 @@ scm_assoc_set_x (alist, key, val)
   else
     return scm_acons (key, val, alist);
 }
+#undef FUNC_NAME
 
 
 
 
-SCM_PROC (s_assq_remove_x, "assq-remove!", 2, 0, 0, scm_assq_remove_x);
-
-SCM
-scm_assq_remove_x (alist, key)
-     SCM alist;
-     SCM key;
+GUILE_PROC (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
+            (SCM alist, SCM key),
+"")
+#define FUNC_NAME s_scm_assq_remove_x
 {
   SCM handle;
 
@@ -328,14 +310,13 @@ scm_assq_remove_x (alist, key)
   else
     return alist;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_assv_remove_x, "assv-remove!", 2, 0, 0, scm_assv_remove_x);
-
-SCM
-scm_assv_remove_x (alist, key)
-     SCM alist;
-     SCM key;
+GUILE_PROC (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
+            (SCM alist, SCM key),
+"")
+#define FUNC_NAME s_scm_assv_remove_x
 {
   SCM handle;
 
@@ -347,14 +328,13 @@ scm_assv_remove_x (alist, key)
   else
     return alist;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_assoc_remove_x, "assoc-remove!", 2, 0, 0, scm_assoc_remove_x);
-
-SCM
-scm_assoc_remove_x (alist, key)
-     SCM alist;
-     SCM key;
+GUILE_PROC (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
+            (SCM alist, SCM key),
+"")
+#define FUNC_NAME s_scm_assoc_remove_x
 {
   SCM handle;
 
@@ -366,6 +346,7 @@ scm_assoc_remove_x (alist, key)
   else
     return alist;
 }
+#undef FUNC_NAME
 
 
 

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 #include <stdio.h>
 #include "_scm.h"
@@ -51,6 +55,7 @@
 #include "unif.h"
 #include "async.h"
 
+#include "scm_validate.h"
 #include "gc.h"
 
 #ifdef HAVE_MALLOC_H
@@ -212,9 +217,9 @@ struct scm_heap_seg_data
 
 
 
-static void scm_mark_weak_vector_spines SCM_P ((void));
-static scm_sizet init_heap_seg SCM_P ((SCM_CELLPTR, scm_sizet, int, SCM *));
-static void alloc_some_heap SCM_P ((int, SCM *));
+static void scm_mark_weak_vector_spines(void);
+static scm_sizet init_heap_seg(SCM_CELLPTR, scm_sizet, int, SCM *);
+static void alloc_some_heap(int, SCM *);
 
 
 
@@ -238,9 +243,10 @@ which_seg (SCM cell)
 }
 
 
-SCM_PROC (s_map_free_list, "map-free-list", 0, 0, 0, scm_map_free_list);
-SCM
-scm_map_free_list ()
+GUILE_PROC (scm_map_free_list, "map-free-list", 0, 0, 0, 
+            (),
+"")
+#define FUNC_NAME s_scm_map_free_list
 {
   int last_seg = -1, count = 0;
   SCM f;
@@ -266,6 +272,7 @@ scm_map_free_list ()
 
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 /* Number of calls to SCM_NEWCELL since startup.  */
@@ -291,15 +298,15 @@ scm_check_freelist ()
 
 static int scm_debug_check_freelist = 0;
 
-SCM_PROC (s_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1, 0, 0, scm_gc_set_debug_check_freelist_x);
-SCM
-scm_gc_set_debug_check_freelist_x (SCM flag)
+GUILE_PROC (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1, 0, 0, 
+            (SCM flag),
+"")
+#define FUNC_NAME s_scm_gc_set_debug_check_freelist_x
 {
-  SCM_ASSERT(SCM_BOOL_T == flag || SCM_BOOL_F == flag, 
-             flag, 1, s_gc_set_debug_check_freelist_x);
-  scm_debug_check_freelist = (SCM_BOOL_T==flag)? 1: 0;
+  SCM_VALIDATE_BOOL_COPY(1,flag,scm_debug_check_freelist);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 SCM
@@ -334,9 +341,10 @@ scm_debug_newcell (void)
 /* {Scheme Interface to GC}
  */
 
-SCM_PROC (s_gc_stats, "gc-stats", 0, 0, 0, scm_gc_stats);
-SCM
-scm_gc_stats ()
+GUILE_PROC (scm_gc_stats, "gc-stats", 0, 0, 0, 
+            (),
+"")
+#define FUNC_NAME s_scm_gc_stats
 {
   int i;
   int n;
@@ -377,6 +385,7 @@ scm_gc_stats ()
   SCM_ALLOW_INTS;
   return answer;
 }
+#undef FUNC_NAME
 
 
 void 
@@ -398,24 +407,27 @@ scm_gc_end ()
 }
 
 
-SCM_PROC (s_object_address, "object-address", 1, 0, 0, scm_object_address);
-SCM
-scm_object_address (obj)
-     SCM obj;
+GUILE_PROC (scm_object_address, "object-address", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_object_address
 {
   return scm_ulong2num ((unsigned long)obj);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_gc, "gc", 0, 0, 0, scm_gc);
-SCM 
-scm_gc ()
+GUILE_PROC(scm_gc, "gc", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_gc
 {
   SCM_DEFER_INTS;
   scm_igc ("call");
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
@@ -423,9 +435,7 @@ scm_gc ()
  */
 
 void
-scm_gc_for_alloc (ncells, freelistp)
-     int ncells;
-     SCM * freelistp;
+scm_gc_for_alloc (int ncells, SCM *freelistp)
 {
   SCM_REDEFER_INTS;
   scm_igc ("cells");
@@ -444,12 +454,12 @@ scm_gc_for_newcell ()
   scm_gc_for_alloc (1, &scm_freelist);
   fl = scm_freelist;
   scm_freelist = SCM_CDR (fl);
+  SCM_SETCAR(fl, scm_tc16_allocated);
   return fl;
 }
 
 void
-scm_igc (what)
-     const char *what;
+scm_igc (const char *what)
 {
   int j;
 
@@ -609,8 +619,7 @@ scm_igc (what)
 /* Mark an object precisely.
  */
 void 
-scm_gc_mark (p)
-     SCM p;
+scm_gc_mark (SCM p)
 {
   register long i;
   register SCM ptr;
@@ -873,7 +882,9 @@ gc_mark_nimp:
 	{ /* should be faster than going through scm_smobs */
 	case scm_tc_free_cell:
 	  /* printf("found free_cell %X ", ptr); fflush(stdout); */
-	  SCM_SETCDR (ptr, SCM_EOL);
+          break;
+        case scm_tc16_allocated:
+	  SCM_SETGC8MARK (ptr);
 	  break;
 	case scm_tcs_bignums:
 	case scm_tc16_flo:
@@ -1757,14 +1768,14 @@ alloc_some_heap (ncells, freelistp)
 
 
 
-SCM_PROC (s_unhash_name, "unhash-name", 1, 0, 0, scm_unhash_name);
-SCM
-scm_unhash_name (name)
-     SCM name;
+GUILE_PROC (scm_unhash_name, "unhash-name", 1, 0, 0, 
+            (SCM name),
+"")
+#define FUNC_NAME s_scm_unhash_name
 {
   int x;
   int bound;
-  SCM_ASSERT (SCM_NIMP (name) && SCM_SYMBOLP (name), name, SCM_ARG1, s_unhash_name);
+  SCM_VALIDATE_SYMBOL(1,name);
   SCM_DEFER_INTS;
   bound = scm_n_heap_segs;
   for (x = 0; x < bound; ++x)
@@ -1793,6 +1804,7 @@ scm_unhash_name (name)
   SCM_ALLOW_INTS;
   return name;
 }
+#undef FUNC_NAME
 
 
 

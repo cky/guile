@@ -42,6 +42,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include "libguile/__scm.h"
@@ -155,6 +159,7 @@ typedef SCM  huge *SCMPTR;
 	    { \
 	       _into = scm_freelist; \
 	       scm_freelist = SCM_CDR(scm_freelist);\
+               SCM_SETCAR(_into, scm_tc16_allocated); \
 	       ++scm_cells_allocated; \
 	    } \
 	} while(0)

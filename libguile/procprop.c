@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -49,6 +53,7 @@
 #include "gsubr.h"
 #include "objects.h"
 
+#include "scm_validate.h"
 #include "procprop.h"
 
 
@@ -141,8 +146,7 @@ scm_i_procedure_arity (SCM proc)
 }
 
 static SCM
-scm_stand_in_scm_proc(proc)
-     SCM proc;
+scm_stand_in_scm_proc(SCM proc)
 {
   SCM answer;
   answer = scm_assoc (proc, scm_stand_in_procs);
@@ -158,74 +162,65 @@ scm_stand_in_scm_proc(proc)
   return answer;
 }
 
-SCM_PROC(s_procedure_properties, "procedure-properties", 1, 0, 0, scm_procedure_properties);
-
-SCM
-scm_procedure_properties (proc)
-     SCM proc;
+GUILE_PROC(scm_procedure_properties, "procedure-properties", 1, 0, 0, 
+           (SCM proc),
+"")
+#define FUNC_NAME s_scm_procedure_properties
 {
-  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (proc)),
-	      proc, SCM_ARG1, s_procedure_properties);
+  SCM_VALIDATE_PROC(1,proc);
   return scm_acons (scm_sym_arity, scm_i_procedure_arity (proc),
 		    SCM_PROCPROPS (SCM_NIMP (proc) && SCM_CLOSUREP (proc)
 				   ? proc
 				   : scm_stand_in_scm_proc (proc)));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0, scm_set_procedure_properties_x);
-
-SCM
-scm_set_procedure_properties_x (proc, new_val)
-     SCM proc;
-     SCM new_val;
+GUILE_PROC(scm_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0,
+           (SCM proc, SCM new_val),
+"")
+#define FUNC_NAME s_scm_set_procedure_properties_x
 {
   if (!(SCM_NIMP (proc) && SCM_CLOSUREP (proc)))
     proc = scm_stand_in_scm_proc(proc);
-  SCM_ASSERT (SCM_NIMP (proc) && SCM_CLOSUREP (proc), proc, SCM_ARG1, s_set_procedure_properties_x);
+  SCM_VALIDATE_CLOSURE(1,proc);
   SCM_SETPROCPROPS (proc, new_val);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_procedure_property, "procedure-property", 2, 0, 0, scm_procedure_property);
-
-SCM
-scm_procedure_property (p, k)
-     SCM p;
-     SCM k;
+GUILE_PROC(scm_procedure_property, "procedure-property", 2, 0, 0,
+           (SCM p, SCM k),
+"")
+#define FUNC_NAME s_scm_procedure_property
 {
   SCM assoc;
   if (k == scm_sym_arity)
     {
       SCM arity;
       SCM_ASSERT (SCM_NFALSEP (arity = scm_i_procedure_arity (p)),
-		  p, SCM_ARG1, s_procedure_property);
+		  p, SCM_ARG1, FUNC_NAME);
       return arity;
     }
-  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (p)),
-	      p, SCM_ARG1, s_procedure_property);
+  SCM_VALIDATE_PROC(1,p);
   assoc = scm_sloppy_assq (k,
 			   SCM_PROCPROPS (SCM_NIMP (p) && SCM_CLOSUREP (p)
 					  ? p
 					  : scm_stand_in_scm_proc (p)));
   return (SCM_NIMP (assoc) ? SCM_CDR (assoc) : SCM_BOOL_F);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_set_procedure_property_x, "set-procedure-property!", 3, 0, 0, scm_set_procedure_property_x);
-
-SCM
-scm_set_procedure_property_x (p, k, v)
-     SCM p;
-     SCM k;
-     SCM v;
+GUILE_PROC(scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
+           (SCM p, SCM k, SCM v),
+"")
+#define FUNC_NAME s_scm_set_procedure_property_x
 {
   SCM assoc;
   if (!(SCM_NIMP (p) && SCM_CLOSUREP (p)))
     p = scm_stand_in_scm_proc(p);
-  SCM_ASSERT (SCM_NIMP (p) && SCM_CLOSUREP (p), p, SCM_ARG1, s_set_procedure_property_x);
+  SCM_VALIDATE_CLOSURE(1,p);
   if (k == scm_sym_arity)
-    scm_misc_error (s_set_procedure_property_x,
-		    "arity is a read-only property",
-		    SCM_EOL);
+    SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
   assoc = scm_sloppy_assq (k, SCM_PROCPROPS (p));
   if (SCM_NIMP (assoc))
     SCM_SETCDR (assoc, v);
@@ -233,6 +228,7 @@ scm_set_procedure_property_x (p, k, v)
     SCM_SETPROCPROPS (p, scm_acons (k, v, SCM_PROCPROPS (p)));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 

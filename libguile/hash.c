@@ -38,12 +38,17 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
 #include "_scm.h"
 #include "chars.h"
 
+#include "scm_validate.h"
 #include "hash.h"
 
 
@@ -53,10 +58,7 @@ extern double floor();
 
 
 unsigned long
-scm_hasher(obj, n, d)
-     SCM obj;
-     unsigned long n;
-     scm_sizet d;
+scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 {
   switch (7 & (int) obj) {
   case 2: case 6:		/* SCM_INUMP(obj) */
@@ -136,33 +138,28 @@ scm_hasher(obj, n, d)
 
 
 unsigned int
-scm_ihashq (obj, n)
-     SCM obj;
-     unsigned int n;
+scm_ihashq (SCM obj, unsigned int n)
 {
   return (((unsigned int) obj) >> 1) % n;
 }
 
 
-SCM_PROC(s_hashq, "hashq", 2, 0, 0, scm_hashq);
-
-SCM
-scm_hashq(obj, n)
-     SCM obj;
-     SCM n;
+GUILE_PROC(scm_hashq, "hashq", 2, 0, 0,
+           (SCM obj, SCM n),
+"")
+#define FUNC_NAME s_scm_hashq
 {
-  SCM_ASSERT(SCM_INUMP(n) && 0 <= n, n, SCM_ARG2, s_hashq);
+  SCM_VALIDATE_INT_MIN(2,n,0);
   return SCM_MAKINUM(scm_ihashq (obj, SCM_INUM (n)));
 }
+#undef FUNC_NAME
 
 
 
 
 
 unsigned int
-scm_ihashv (obj, n)
-     SCM obj;
-     unsigned int n;
+scm_ihashv (SCM obj, unsigned int n)
 {
   if (SCM_ICHRP(obj))
     return ((unsigned int)(scm_downcase(SCM_ICHR(obj)))) % n; /* downcase!?!! */
@@ -174,39 +171,35 @@ scm_ihashv (obj, n)
 }
 
 
-SCM_PROC(s_hashv, "hashv", 2, 0, 0, scm_hashv);
-
-SCM
-scm_hashv(obj, n)
-     SCM obj;
-     SCM n;
+GUILE_PROC(scm_hashv, "hashv", 2, 0, 0,
+           (SCM obj, SCM n),
+"")
+#define FUNC_NAME s_scm_hashv
 {
-  SCM_ASSERT(SCM_INUMP(n) && 0 <= n, n, SCM_ARG2, s_hashv);
+  SCM_VALIDATE_INT_MIN(2,n,0);
   return SCM_MAKINUM(scm_ihashv (obj, SCM_INUM (n)));
 }
+#undef FUNC_NAME
 
 
 
 
 
 unsigned int
-scm_ihash (obj, n)
-     SCM obj;
-     unsigned int n;
+scm_ihash (SCM obj, unsigned int n)
 {
   return (unsigned int)scm_hasher (obj, n, 10);
 }
 
-SCM_PROC(s_hash, "hash", 2, 0, 0, scm_hash);
-
-SCM
-scm_hash(obj, n)
-     SCM obj;
-     SCM n;
+GUILE_PROC(scm_hash, "hash", 2, 0, 0,
+           (SCM obj, SCM n),
+"")
+#define FUNC_NAME s_scm_hash
 {
-  SCM_ASSERT(SCM_INUMP(n) && 0 <= n, n, SCM_ARG2, s_hash);
+  SCM_VALIDATE_INT_MIN(2,n,0);
   return SCM_MAKINUM(scm_ihash(obj, SCM_INUM(n)));
 }
+#undef FUNC_NAME
 
 
 

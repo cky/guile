@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -273,4 +277,6 @@ scm_smob_prehistory ()
 
   scm_make_smob_type_mfpe ("bigneg", 0,
                           NULL, NULL, scm_bigprint, scm_bigequal);
+
+  scm_make_smob_type("allocated", 0);
 }

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 #include <stdio.h>
 #include "_scm.h"
@@ -47,27 +51,23 @@
 #include "smob.h"
 #include "unif.h"
 
+#include "scm_validate.h"
 #include "eq.h"
 
-SCM_PROC1 (s_eq_p, "eq?", scm_tc7_rpsubr, scm_eq_p);
-
-SCM
-scm_eq_p (x, y)
-     SCM x;
-     SCM y;
+GUILE_PROC1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
+             (SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_eq_p
 {
-  return ((x==y)
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(x==y);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC1 (s_eqv_p, "eqv?", scm_tc7_rpsubr, scm_eqv_p);
-
-SCM
-scm_eqv_p (x, y)
-     SCM x;
-     SCM y;
+GUILE_PROC1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
+             (SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_eqv_p
 {
   if (x==y) return SCM_BOOL_T;
   if (SCM_IMP(x)) return SCM_BOOL_F;
@@ -86,14 +86,13 @@ scm_eqv_p (x, y)
   }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC1 (s_equal_p, "equal?", scm_tc7_rpsubr, scm_equal_p);
-
-SCM
-scm_equal_p (x, y)
-     SCM x;
-     SCM y;
+GUILE_PROC1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
+             (SCM x, SCM y),
+"")
+#define FUNC_NAME s_scm_equal_p
 {
   SCM_CHECK_STACK;
  tailrecurse: SCM_TICK;
@@ -139,6 +138,7 @@ scm_equal_p (x, y)
 	}
 	return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 

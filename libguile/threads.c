@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 /* This file does some pretty hairy #inclusion.  It probably seemed
@@ -79,17 +83,17 @@ long scm_tc16_condvar;
 /* Scheme-visible thread functions. */
 
 #ifdef USE_COOP_THREADS
-SCM_PROC(s_single_thread_p, "single-active-thread?", 0, 0, 0, scm_single_thread_p);
+SCM_REGISTER_PROC(s_single_thread_p, "single-active-thread?", 0, 0, 0, scm_single_thread_p);
 #endif
-SCM_PROC(s_yield, "yield", 0, 0, 0, scm_yield);
-SCM_PROC(s_call_with_new_thread, "call-with-new-thread", 0, 0, 1, scm_call_with_new_thread);
-SCM_PROC(s_join_thread, "join-thread", 1, 0, 0, scm_join_thread);
-SCM_PROC(s_make_mutex, "make-mutex", 0, 0, 0, scm_make_mutex);
-SCM_PROC(s_lock_mutex, "lock-mutex", 1, 0, 0, scm_lock_mutex);
-SCM_PROC(s_unlock_mutex, "unlock-mutex", 1, 0, 0, scm_unlock_mutex);
-SCM_PROC(s_make_condition_variable, "make-condition-variable", 0, 0, 0, scm_make_condition_variable);
-SCM_PROC(s_wait_condition_variable, "wait-condition-variable", 2, 0, 0, scm_wait_condition_variable);
-SCM_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0, 0, scm_signal_condition_variable);
+SCM_REGISTER_PROC(s_yield, "yield", 0, 0, 0, scm_yield);
+SCM_REGISTER_PROC(s_call_with_new_thread, "call-with-new-thread", 0, 0, 1, scm_call_with_new_thread);
+SCM_REGISTER_PROC(s_join_thread, "join-thread", 1, 0, 0, scm_join_thread);
+SCM_REGISTER_PROC(s_make_mutex, "make-mutex", 0, 0, 0, scm_make_mutex);
+SCM_REGISTER_PROC(s_lock_mutex, "lock-mutex", 1, 0, 0, scm_lock_mutex);
+SCM_REGISTER_PROC(s_unlock_mutex, "unlock-mutex", 1, 0, 0, scm_unlock_mutex);
+SCM_REGISTER_PROC(s_make_condition_variable, "make-condition-variable", 0, 0, 0, scm_make_condition_variable);
+SCM_REGISTER_PROC(s_wait_condition_variable, "wait-condition-variable", 2, 0, 0, scm_wait_condition_variable);
+SCM_REGISTER_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0, 0, scm_signal_condition_variable);
 
 
 

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -45,6 +49,7 @@
 
 #include "objects.h"
 
+#include "scm_validate.h"
 #include "procs.h"
 
 
@@ -60,11 +65,7 @@ int scm_subr_table_size = 0;
 int scm_subr_table_room = 750;
 
 SCM 
-scm_make_subr_opt (name, type, fcn, set)
-     const char *name;
-     int type;
-     SCM (*fcn) ();
-     int set;
+scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
 {
   SCM symcell;
   register SCM z;
@@ -115,10 +116,7 @@ scm_free_subr_entry (SCM subr)
 }
 
 SCM 
-scm_make_subr (name, type, fcn)
-     const char *name;
-     int type;
-     SCM (*fcn) ();
+scm_make_subr (const char *name, int type, SCM (*fcn) ())
 {
   return scm_make_subr_opt (name, type, fcn, 1);
 }
@@ -150,9 +148,7 @@ scm_mark_subr_table ()
 
 #ifdef CCLO
 SCM 
-scm_makcclo (proc, len)
-     SCM proc;
-     long len;
+scm_makcclo (SCM proc, long len)
 {
   SCM s;
   SCM_NEWCELL (s);
@@ -168,25 +164,23 @@ scm_makcclo (proc, len)
 
 /* Undocumented debugging procedure */
 #ifdef GUILE_DEBUG
-SCM_PROC (s_make_cclo, "make-cclo", 2, 0, 0, scm_make_cclo);
-
-SCM
-scm_make_cclo (proc, len)
-     SCM proc;
-     SCM len;
+GUILE_PROC (scm_make_cclo, "make-cclo", 2, 0, 0,
+            (SCM proc, SCM len),
+"")
+#define FUNC_NAME s_scm_make_cclo
 {
   return scm_makcclo (proc, SCM_INUM (len));
 }
+#undef FUNC_NAME
 #endif
 #endif
 
 
 
-SCM_PROC(s_procedure_p, "procedure?", 1, 0, 0, scm_procedure_p);
-
-SCM 
-scm_procedure_p (obj)
-     SCM obj;
+GUILE_PROC(scm_procedure_p, "procedure?", 1, 0, 0, 
+           (SCM obj),
+"")
+#define FUNC_NAME s_scm_procedure_p
 {
   if (SCM_NIMP (obj))
     switch (SCM_TYP7 (obj))
@@ -207,26 +201,21 @@ scm_procedure_p (obj)
       }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_closure_p, "closure?", 1, 0, 0, scm_closure_p);
-
-SCM 
-scm_closure_p (obj)
-     SCM obj;
+GUILE_PROC(scm_closure_p, "closure?", 1, 0, 0, 
+           (SCM obj),
+"")
+#define FUNC_NAME s_scm_closure_p
 {
-  return SCM_NIMP (obj) && SCM_CLOSUREP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_NIMP (obj) && SCM_CLOSUREP (obj));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_thunk_p, "thunk?", 1, 0, 0, scm_thunk_p);
-
-#ifdef __STDC__
-SCM 
-scm_thunk_p (SCM obj)
-#else
-SCM 
-scm_thunk_p (obj)
-     SCM obj;
-#endif
+GUILE_PROC(scm_thunk_p, "thunk?", 1, 0, 0, 
+           (SCM obj),
+"")
+#define FUNC_NAME s_scm_thunk_p
 {
   if (SCM_NIMP (obj))
     {
@@ -254,6 +243,7 @@ scm_thunk_p (obj)
     }
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 /* Only used internally. */
 int
@@ -270,15 +260,14 @@ scm_subr_p (SCM obj)
   return 0;
 }
 
-SCM_PROC(s_procedure_documentation, "procedure-documentation", 1, 0, 0, scm_procedure_documentation);
-
-SCM 
-scm_procedure_documentation (proc)
-     SCM proc;
+GUILE_PROC(scm_procedure_documentation, "procedure-documentation", 1, 0, 0, 
+           (SCM proc),
+"")
+#define FUNC_NAME s_scm_procedure_documentation
 {
   SCM code;
   SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc) && SCM_NIMP (proc) && SCM_TYP7 (proc) != scm_tc7_contin,
-	  proc, SCM_ARG1, s_procedure_documentation);
+	  proc, SCM_ARG1, FUNC_NAME);
   switch (SCM_TYP7 (proc))
     {
     case scm_tcs_closures:
@@ -300,31 +289,29 @@ scm_procedure_documentation (proc)
 */
     }
 }
+#undef FUNC_NAME
 
 
 /* Procedure-with-setter
  */
 
-SCM_PROC (s_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0, scm_procedure_with_setter_p);
-
-SCM
-scm_procedure_with_setter_p (SCM obj)
+GUILE_PROC (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0, 
+            (SCM obj),
+            "")
+#define FUNC_NAME s_scm_procedure_with_setter_p
 {
-  return (SCM_NIMP (obj) && SCM_PROCEDURE_WITH_SETTER_P (obj)
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP (obj) && SCM_PROCEDURE_WITH_SETTER_P (obj));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 0, scm_make_procedure_with_setter);
-
-SCM
-scm_make_procedure_with_setter (SCM procedure, SCM setter)
+GUILE_PROC (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 0, 
+            (SCM procedure, SCM setter),
+            "")
+#define FUNC_NAME s_scm_make_procedure_with_setter
 {
   SCM z;
-  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (procedure)),
-	      procedure, SCM_ARG1, s_make_procedure_with_setter);
-  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (setter)),
-	      setter, SCM_ARG2, s_make_procedure_with_setter);
+  SCM_VALIDATE_PROC(1,procedure);
+  SCM_VALIDATE_PROC(2,setter);
   SCM_NEWCELL (z);
   SCM_ENTER_A_SECTION;
   SCM_SETCDR (z, scm_cons (procedure, setter));
@@ -332,23 +319,25 @@ scm_make_procedure_with_setter (SCM procedure, SCM setter)
   SCM_EXIT_A_SECTION;
   return z;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_procedure, "procedure", 1, 0, 0, scm_procedure);
-
-SCM
-scm_procedure (SCM proc)
+GUILE_PROC (scm_procedure, "procedure", 1, 0, 0, 
+            (SCM proc),
+            "")
+#define FUNC_NAME s_scm_procedure
 {
-  SCM_ASSERT (SCM_NIMP (proc), proc, SCM_ARG1, s_procedure);
+  SCM_VALIDATE_NIMP(1,proc);
   if (SCM_PROCEDURE_WITH_SETTER_P (proc))
     return SCM_PROCEDURE (proc);
   else if (SCM_STRUCTP (proc))
     {
-      SCM_ASSERT (SCM_I_OPERATORP (proc), proc, SCM_ARG1, s_procedure);
+      SCM_ASSERT (SCM_I_OPERATORP (proc), proc, SCM_ARG1, FUNC_NAME);
       return proc;
     }
-  scm_wrong_type_arg (s_procedure, SCM_ARG1, proc);
+  SCM_WRONG_TYPE_ARG (1, proc);
   return 0; /* not reached */
 }
+#undef FUNC_NAME
 
 SCM_GPROC (s_setter, "setter", 1, 0, 0, scm_setter, g_setter);
 
@@ -376,9 +365,7 @@ scm_setter (SCM proc)
 
 
 void
-scm_init_iprocs(subra, type)
-     const scm_iproc *subra;
-     int type;
+scm_init_iprocs(const scm_iproc *subra, int type)
 {
   for(;subra->scm_string; subra++)
     scm_make_subr(subra->scm_string,

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -46,16 +50,12 @@
 #include "genio.h"
 #include "smob.h"
 
+#include "scm_validate.h"
 #include "variable.h"
 
 
-static int prin_var SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
 static int
-prin_var (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+prin_var (SCM exp,SCM port,scm_print_state *pstate)
 {
   scm_puts ("#<variable ", port);
   scm_intprint(exp, 16, port);
@@ -75,21 +75,14 @@ prin_var (exp, port, pstate)
 }
 
 
-static SCM scm_markvar SCM_P ((SCM ptr));
-
 static SCM 
-scm_markvar (ptr)
-     SCM ptr;
+scm_markvar (SCM ptr)
 {
   return SCM_CDR (ptr);
 }
 
-static SCM var_equal SCM_P ((SCM var1, SCM var2));
-
 static SCM
-var_equal (var1, var2)
-     SCM var1;
-     SCM var2;
+var_equal (SCM var1, SCM var2)
 {
   return scm_equal_p (SCM_CDR (var1), SCM_CDR (var2));
 }
@@ -100,21 +93,16 @@ int scm_tc16_variable;
 static SCM anonymous_variable_sym;
 
 
-static SCM make_vcell_variable SCM_P ((SCM vcell));
-
 static SCM
-make_vcell_variable (vcell)
-     SCM vcell;
+make_vcell_variable (SCM vcell)
 {
   SCM_RETURN_NEWSMOB (scm_tc16_variable, vcell);
 }
 
-SCM_PROC(s_make_variable, "make-variable", 1, 1, 0, scm_make_variable);
-
-SCM
-scm_make_variable (init, name_hint)
-     SCM init;
-     SCM name_hint;
+GUILE_PROC(scm_make_variable, "make-variable", 1, 1, 0, 
+           (SCM init, SCM name_hint),
+           "")
+#define FUNC_NAME s_scm_make_variable
 {
   SCM val_cell;
   
@@ -128,13 +116,13 @@ scm_make_variable (init, name_hint)
   SCM_ALLOW_INTS;
   return make_vcell_variable (val_cell);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_make_undefined_variable, "make-undefined-variable", 0, 1, 0, scm_make_undefined_variable);
-
-SCM
-scm_make_undefined_variable (name_hint)
-     SCM name_hint;
+GUILE_PROC(scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0, 
+           (SCM name_hint),
+           "")
+#define FUNC_NAME s_scm_make_undefined_variable
 {
   SCM vcell;
 
@@ -148,55 +136,52 @@ scm_make_undefined_variable (name_hint)
   SCM_ALLOW_INTS;
   return make_vcell_variable (vcell);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_variable_p, "variable?", 1, 0, 0, scm_variable_p);
-
-SCM
-scm_variable_p (obj)
-     SCM obj;
+GUILE_PROC(scm_variable_p, "variable?", 1, 0, 0, 
+           (SCM obj),
+"")
+#define FUNC_NAME s_scm_variable_p
 {
-  return ( (SCM_NIMP(obj) && SCM_VARIABLEP (obj))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL(SCM_NIMP(obj) && SCM_VARIABLEP (obj));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_variable_ref, "variable-ref", 1, 0, 0, scm_variable_ref);
-
-SCM
-scm_variable_ref (var)
-     SCM var;
+GUILE_PROC(scm_variable_ref, "variable-ref", 1, 0, 0, 
+           (SCM var),
+"")
+#define FUNC_NAME s_scm_variable_ref
 {
-  SCM_ASSERT (SCM_NIMP(var) && SCM_VARIABLEP(var), var, SCM_ARG1, s_variable_ref);
+  SCM_VALIDATE_VARIABLE(1,var);
   return SCM_CDR (SCM_CDR (var));
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC(s_variable_set_x, "variable-set!", 2, 0, 0, scm_variable_set_x);
-
-SCM
-scm_variable_set_x (var, val)
-     SCM var;
-     SCM val;
+GUILE_PROC(scm_variable_set_x, "variable-set!", 2, 0, 0,
+           (SCM var, SCM val),
+"")
+#define FUNC_NAME s_scm_variable_set_x
 {
-  SCM_ASSERT (SCM_NIMP(var) && SCM_VARIABLEP (var), var, SCM_ARG1, s_variable_set_x);
+  SCM_VALIDATE_VARIABLE(1,var);
   SCM_SETCDR (SCM_CDR (var), val);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_builtin_variable, "builtin-variable", 1, 0, 0, scm_builtin_variable);
-
-SCM
-scm_builtin_variable (name)
-     SCM name;
+GUILE_PROC(scm_builtin_variable, "builtin-variable", 1, 0, 0, 
+           (SCM name),
+"")
+#define FUNC_NAME s_scm_builtin_variable
 {
   SCM vcell;
   SCM var_slot;
 
-  SCM_ASSERT (SCM_NIMP (name) && SCM_SYMBOLP (name), name, SCM_ARG1, s_builtin_variable);
+  SCM_VALIDATE_SYMBOL(1,name);
   vcell = scm_sym2vcell (name, SCM_BOOL_F, SCM_BOOL_T);
   if (vcell == SCM_BOOL_F)
     return SCM_BOOL_F;
@@ -212,19 +197,18 @@ scm_builtin_variable (name)
 
   return SCM_CDR (var_slot);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_variable_bound_p, "variable-bound?", 1, 0, 0, scm_variable_bound_p);
-
-SCM 
-scm_variable_bound_p (var)
-     SCM var;
+GUILE_PROC(scm_variable_bound_p, "variable-bound?", 1, 0, 0, 
+           (SCM var),
+"")
+#define FUNC_NAME s_scm_variable_bound_p
 {
-  SCM_ASSERT (SCM_NIMP(var) && SCM_VARIABLEP (var), var, SCM_ARG1, s_variable_bound_p);
-  return (SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (var)))
-	  ? SCM_BOOL_F
-	  : SCM_BOOL_T);
+  SCM_VALIDATE_VARIABLE(1,var);
+  return SCM_NEGATE_BOOL(SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (var))));
 }
+#undef FUNC_NAME
 
 
 

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -47,6 +51,7 @@
 #include "feature.h"
 #include "fports.h"
 
+#include "scm_validate.h"
 #include "socket.h"
 
 #ifdef HAVE_STRING_H
@@ -66,125 +71,121 @@
 
 
 
-SCM_PROC (s_htons, "htons", 1, 0, 0, scm_htons);
-SCM
-scm_htons (SCM in)
+GUILE_PROC (scm_htons, "htons", 1, 0, 0, 
+            (SCM in),
+            "")
+#define FUNC_NAME s_scm_htons
 {
   unsigned short c_in;
 
-  SCM_ASSERT (SCM_INUMP (in), in, SCM_ARG1, s_htons);
-  c_in = SCM_INUM (in);
+  SCM_VALIDATE_INT_COPY(1,in,c_in);
   if (c_in != SCM_INUM (in))
-    scm_out_of_range (s_htons, in);
+    SCM_OUT_OF_RANGE (1,in);
 
   return SCM_MAKINUM (htons (c_in));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_ntohs, "ntohs", 1, 0, 0, scm_ntohs);
-SCM
-scm_ntohs (SCM in)
+GUILE_PROC (scm_ntohs, "ntohs", 1, 0, 0, 
+            (SCM in),
+            "")
+#define FUNC_NAME s_scm_ntohs
 {
   unsigned short c_in;
 
-  SCM_ASSERT (SCM_INUMP (in), in, SCM_ARG1, s_ntohs);
-  c_in = SCM_INUM (in);
+  SCM_VALIDATE_INT_COPY(1,in,c_in);
   if (c_in != SCM_INUM (in))
-    scm_out_of_range (s_ntohs, in);
+    SCM_OUT_OF_RANGE (1,in);
 
   return SCM_MAKINUM (ntohs (c_in));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_htonl, "htonl", 1, 0, 0, scm_htonl);
-SCM
-scm_htonl (SCM in)
+GUILE_PROC (scm_htonl, "htonl", 1, 0, 0, 
+            (SCM in),
+            "")
+#define FUNC_NAME s_scm_htonl
 {
-  unsigned long c_in = scm_num2ulong (in, (char *) SCM_ARG1, s_htonl);
-
+  unsigned long c_in = SCM_NUM2ULONG (1,in);
   return scm_ulong2num (htonl (c_in));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_ntohl, "ntohl", 1, 0, 0, scm_ntohl);
-SCM
-scm_ntohl (SCM in)
+GUILE_PROC (scm_ntohl, "ntohl", 1, 0, 0, 
+            (SCM in),
+            "")
+#define FUNC_NAME s_scm_ntohl
 {
-  unsigned long c_in = scm_num2ulong (in, (char *) SCM_ARG1, s_ntohl);
-
+  unsigned long c_in = SCM_NUM2ULONG (1,in);
   return scm_ulong2num (ntohl (c_in));
 }
+#undef FUNC_NAME
 
 SCM_SYMBOL (sym_socket, "socket");
-static SCM scm_sock_fd_to_port SCM_P ((int fd, const char *proc));
 
 static SCM
-scm_sock_fd_to_port (fd, proc)
-     int fd;
-     const char *proc;
+scm_sock_fd_to_port (int fd, const char *proc)
 {
   SCM result;
-
   if (fd == -1)
     scm_syserror (proc);
   result = scm_fdes_to_port (fd, "r+0", sym_socket);
   return result;
 }
 
-SCM_PROC (s_socket, "socket", 3, 0, 0, scm_socket);
 
-SCM 
-scm_socket (family, style, proto)
-     SCM family;
-     SCM style;
-     SCM proto;
+#define SCM_SOCK_FD_TO_PORT(fd) (scm_sock_fd_to_port((fd),FUNC_NAME))
+
+GUILE_PROC (scm_socket, "socket", 3, 0, 0,
+            (SCM family, SCM style, SCM proto),
+"")
+#define FUNC_NAME s_scm_socket
 {
   int fd;
   SCM result;
 
-  SCM_ASSERT (SCM_INUMP (family), family, SCM_ARG1, s_socket);
-  SCM_ASSERT (SCM_INUMP (style), style, SCM_ARG2, s_socket);
-  SCM_ASSERT (SCM_INUMP (proto), proto, SCM_ARG3, s_socket);
+  SCM_VALIDATE_INT(1,family);
+  SCM_VALIDATE_INT(2,style);
+  SCM_VALIDATE_INT(3,proto);
   fd = socket (SCM_INUM (family), SCM_INUM (style), SCM_INUM (proto));
-  result = scm_sock_fd_to_port (fd, s_socket);
+  result = SCM_SOCK_FD_TO_PORT (fd);
   return result;
 }
+#undef FUNC_NAME
 
 
 
 #ifdef HAVE_SOCKETPAIR
-SCM_PROC (s_socketpair, "socketpair", 3, 0, 0, scm_socketpair);
-
-SCM 
-scm_socketpair (family, style, proto)
-     SCM family;
-     SCM style;
-     SCM proto;
+GUILE_PROC (scm_socketpair, "socketpair", 3, 0, 0,
+            (SCM family, SCM style, SCM proto),
+"")
+#define FUNC_NAME s_scm_socketpair
 {
   int fam;
   int fd[2];
   SCM a;
   SCM b;
 
-  SCM_ASSERT (SCM_INUMP (family), family, SCM_ARG1, s_socketpair);
-  SCM_ASSERT (SCM_INUMP (style), style, SCM_ARG2, s_socketpair);
-  SCM_ASSERT (SCM_INUMP (proto), proto, SCM_ARG3, s_socketpair);
+  SCM_VALIDATE_INT(1,family);
+  SCM_VALIDATE_INT(2,style);
+  SCM_VALIDATE_INT(3,proto);
 
   fam = SCM_INUM (family);
 
   if (socketpair (fam, SCM_INUM (style), SCM_INUM (proto), fd) == -1)
-    scm_syserror (s_socketpair);
+    SCM_SYSERROR;
 
-  a = scm_sock_fd_to_port (fd[0], s_socketpair);
-  b = scm_sock_fd_to_port (fd[1], s_socketpair);
+  a = SCM_SOCK_FD_TO_PORT(fd[0]);
+  b = SCM_SOCK_FD_TO_PORT(fd[1]);
   return scm_cons (a, b);
 }
+#undef FUNC_NAME
 #endif
 
-SCM_PROC (s_getsockopt, "getsockopt", 3, 0, 0, scm_getsockopt);
-
-SCM
-scm_getsockopt (sock, level, optname)
-     SCM sock;
-     SCM level;
-     SCM optname;
+GUILE_PROC (scm_getsockopt, "getsockopt", 3, 0, 0,
+            (SCM sock, SCM level, SCM optname),
+"")
+#define FUNC_NAME s_scm_getsockopt
 {
   int fd;
   int optlen;
@@ -203,16 +204,13 @@ scm_getsockopt (sock, level, optname)
 #endif
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1,
-	      s_getsockopt);
-  SCM_ASSERT (SCM_INUMP (level), level, SCM_ARG2, s_getsockopt);
-  SCM_ASSERT (SCM_INUMP (optname), optname, SCM_ARG3, s_getsockopt);
+  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_INT_COPY(2,level,ilevel);
+  SCM_VALIDATE_INT_COPY(3,optname,ioptname);
 
   fd = SCM_FPORT_FDES (sock);
-  ilevel = SCM_INUM (level);
-  ioptname = SCM_INUM (optname);
   if (getsockopt (fd, ilevel, ioptname, (void *) optval, &optlen) == -1)
-    scm_syserror (s_getsockopt);
+    SCM_SYSERROR;
 
 #ifdef SO_LINGER
   if (ilevel == SOL_SOCKET && ioptname == SO_LINGER)
@@ -244,15 +242,12 @@ scm_getsockopt (sock, level, optname)
 #endif
   return SCM_MAKINUM (*(int *) optval);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_setsockopt, "setsockopt", 4, 0, 0, scm_setsockopt);
-
-SCM
-scm_setsockopt (sock, level, optname, value)
-     SCM sock;
-     SCM level;
-     SCM optname;
-     SCM value;
+GUILE_PROC (scm_setsockopt, "setsockopt", 4, 0, 0,
+            (SCM sock, SCM level, SCM optname, SCM value),
+"")
+#define FUNC_NAME s_scm_setsockopt
 {
   int fd;
   int optlen;
@@ -263,13 +258,10 @@ scm_setsockopt (sock, level, optname, value)
 #endif
   int ilevel, ioptname;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1,
-	      s_setsockopt);
-  SCM_ASSERT (SCM_INUMP (level), level, SCM_ARG2, s_setsockopt);
-  SCM_ASSERT (SCM_INUMP (optname), optname, SCM_ARG3, s_setsockopt);
+  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_INT_COPY(2,level,ilevel);
+  SCM_VALIDATE_INT_COPY(3,optname,ioptname);
   fd = SCM_FPORT_FDES (sock);
-  ilevel = SCM_INUM (level);
-  ioptname = SCM_INUM (optname);
   if (0);
 #ifdef SO_LINGER
   else if (ilevel == SOL_SOCKET && ioptname == SO_LINGER)
@@ -279,7 +271,7 @@ scm_setsockopt (sock, level, optname, value)
       SCM_ASSERT (SCM_NIMP (value) && SCM_CONSP (value)
 		  && SCM_INUMP (SCM_CAR (value))
 		  &&  SCM_INUMP (SCM_CDR (value)),
-		  value, SCM_ARG4, s_setsockopt);
+		  value, SCM_ARG4, FUNC_NAME);
       ling.l_onoff = SCM_INUM (SCM_CAR (value));
       ling.l_linger = SCM_INUM (SCM_CDR (value));
       optlen = (int) sizeof (struct linger);
@@ -289,7 +281,7 @@ scm_setsockopt (sock, level, optname, value)
       SCM_ASSERT (SCM_NIMP (value) && SCM_CONSP (value)
 		  && SCM_INUMP (SCM_CAR (value))
 		  &&  SCM_INUMP (SCM_CDR (value)),
-		  value, SCM_ARG4, s_setsockopt);
+		  value, SCM_ARG4, FUNC_NAME);
       ling = SCM_INUM (SCM_CAR (value));
       optlen = (int) sizeof (scm_sizet);
       (*(scm_sizet *) optval) = (scm_sizet) SCM_INUM (value);
@@ -299,7 +291,7 @@ scm_setsockopt (sock, level, optname, value)
 #ifdef SO_SNDBUF
   else if (ilevel == SOL_SOCKET && ioptname == SO_SNDBUF)
     {
-      SCM_ASSERT (SCM_INUMP (value), value, SCM_ARG4, s_setsockopt);
+      SCM_VALIDATE_INT(4,value);
       optlen = (int) sizeof (scm_sizet);
       (*(scm_sizet *) optval) = (scm_sizet) SCM_INUM (value);
     }
@@ -307,7 +299,7 @@ scm_setsockopt (sock, level, optname, value)
 #ifdef SO_RCVBUF
   else if (ilevel == SOL_SOCKET && ioptname == SO_RCVBUF)
     {
-      SCM_ASSERT (SCM_INUMP (value), value, SCM_ARG4, s_setsockopt);
+      SCM_VALIDATE_INT(4,value);
       optlen = (int) sizeof (scm_sizet);
       (*(scm_sizet *) optval) = (scm_sizet) SCM_INUM (value);
     }
@@ -315,33 +307,32 @@ scm_setsockopt (sock, level, optname, value)
   else
     {
       /* Most options just take an int.  */
-      SCM_ASSERT (SCM_INUMP (value), value, SCM_ARG4, s_setsockopt);
+      SCM_VALIDATE_INT(4,value);
       optlen = (int) sizeof (int);
       (*(int *) optval) = (int) SCM_INUM (value);
     }
   if (setsockopt (fd, ilevel, ioptname, (void *) optval, optlen) == -1)
-    scm_syserror (s_setsockopt);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_shutdown, "shutdown", 2, 0, 0, scm_shutdown);
-
-SCM 
-scm_shutdown (sock, how)
-     SCM sock;
-     SCM how;
+GUILE_PROC (scm_shutdown, "shutdown", 2, 0, 0,
+          (SCM sock, SCM how),
+"")
+#define FUNC_NAME s_scm_shutdown
 {
   int fd;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1,
-	      s_shutdown);
-  SCM_ASSERT (SCM_INUMP (how) && 0 <= SCM_INUM (how) && 2 >= SCM_INUM (how),
-	  how, SCM_ARG2, s_shutdown);
+  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_INT(2,how);
+  SCM_ASSERT_RANGE(2,how,0 <= SCM_INUM (how) && 2 >= SCM_INUM (how));
   fd = SCM_FPORT_FDES (sock);
   if (shutdown (fd, SCM_INUM (how)) == -1)
-    scm_syserror (s_shutdown);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 /* convert fam/address/args into a sockaddr of the appropriate type.
    args is modified by removing the arguments actually used.
@@ -351,16 +342,8 @@ scm_shutdown (sock, how)
    size returns the size of the structure allocated.  */
 
 
-static struct sockaddr * scm_fill_sockaddr SCM_P ((int fam, SCM address, SCM *args, int which_arg, const char *proc, scm_sizet *size));
-
 static struct sockaddr *
-scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
-     int fam;
-     SCM address;
-     SCM *args;
-     int which_arg;
-     const char *proc;
-     scm_sizet *size;
+scm_fill_sockaddr (int fam,SCM address,SCM *args,int which_arg,const char *proc,scm_sizet *size)
 {
   switch (fam)
     {
@@ -407,39 +390,31 @@ scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
     }
 }
   
-SCM_PROC (s_connect, "connect", 3, 0, 1, scm_connect);
-
-SCM 
-scm_connect (sock, fam, address, args)
-
-     SCM sock;
-     SCM fam;
-     SCM address;
-     SCM args;
+GUILE_PROC (scm_connect, "connect", 3, 0, 1,
+            (SCM sock, SCM fam, SCM address, SCM args),
+"")
+#define FUNC_NAME s_scm_connect
 {
   int fd;
   struct sockaddr *soka;
   scm_sizet size;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1, s_connect);
-  SCM_ASSERT (SCM_INUMP (fam), fam, SCM_ARG2, s_connect);
+  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_INT(2,fam);
   fd = SCM_FPORT_FDES (sock);
-  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, s_connect, &size);
+  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME, &size);
   if (connect (fd, soka, size) == -1)
-    scm_syserror (s_connect);
+    SCM_SYSERROR;
   scm_must_free ((char *) soka);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_bind, "bind", 3, 0, 1, scm_bind);
-
-SCM 
-scm_bind (sock, fam, address, args)
-     SCM sock;
-     SCM fam;
-     SCM address;
-     SCM args;
+GUILE_PROC (scm_bind, "bind", 3, 0, 1,
+            (SCM sock, SCM fam, SCM address, SCM args),
+"")
+#define FUNC_NAME s_scm_bind
 {
   int rv;
   struct sockaddr *soka;
@@ -447,42 +422,38 @@ scm_bind (sock, fam, address, args)
   int fd;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1, s_bind);
-  SCM_ASSERT (SCM_INUMP (fam), fam, SCM_ARG2, s_bind);
-  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, s_bind, &size);
+  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_INT(2,fam);
+  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME, &size);
   fd = SCM_FPORT_FDES (sock);
   rv = bind (fd, soka, size);
   if (rv == -1)
-    scm_syserror (s_bind);
+    SCM_SYSERROR;
   scm_must_free ((char *) soka);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_listen, "listen", 2, 0, 0, scm_listen);
-
-SCM 
-scm_listen (sock, backlog)
-     SCM sock;
-     SCM backlog;
+GUILE_PROC (scm_listen, "listen", 2, 0, 0,
+            (SCM sock, SCM backlog),
+"")
+#define FUNC_NAME s_scm_listen
 {
   int fd;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1, s_listen);
-  SCM_ASSERT (SCM_INUMP (backlog), backlog, SCM_ARG2, s_listen);
+  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_INT(2,backlog);
   fd = SCM_FPORT_FDES (sock);
   if (listen (fd, SCM_INUM (backlog)) == -1)
-    scm_syserror (s_listen);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 /* Put the components of a sockaddr into a new SCM vector.  */
 
-static SCM scm_addr_vector SCM_P ((struct sockaddr *address, const char *proc));
-
 static SCM
-scm_addr_vector (address, proc)
-     struct sockaddr *address;
-     const char *proc;
+scm_addr_vector (struct sockaddr *address,const char *proc)
 {
   short int fam = address->sa_family;
   SCM result;
@@ -519,10 +490,8 @@ scm_addr_vector (address, proc)
 static char *scm_addr_buffer;
 static int scm_addr_buffer_size;
 
-static void scm_init_addr_buffer SCM_P ((void));
-
 static void
-scm_init_addr_buffer ()
+scm_init_addr_buffer (void)
 {
   scm_addr_buffer_size =
 #ifdef HAVE_UNIX_DOMAIN_SOCKETS
@@ -536,11 +505,10 @@ scm_init_addr_buffer ()
   scm_addr_buffer = scm_must_malloc (scm_addr_buffer_size, "address buffer");
 }
 
-SCM_PROC (s_accept, "accept", 1, 0, 0, scm_accept);
-
-SCM 
-scm_accept (sock)
-     SCM sock;
+GUILE_PROC (scm_accept, "accept", 1, 0, 0, 
+            (SCM sock),
+"")
+#define FUNC_NAME s_scm_accept
 {
   int fd;
   int newfd;
@@ -549,128 +517,112 @@ scm_accept (sock)
 
   int tmp_size;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1, s_accept);
+  SCM_VALIDATE_OPFPORT(1,sock);
   fd = SCM_FPORT_FDES (sock);
   tmp_size = scm_addr_buffer_size;
   newfd = accept (fd, (struct sockaddr *) scm_addr_buffer, &tmp_size);
-  newsock = scm_sock_fd_to_port (newfd, s_accept);
+  newsock = scm_sock_fd_to_port (newfd, FUNC_NAME);
   if (tmp_size > 0)
-    address = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, s_accept);
+    address = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, FUNC_NAME);
   else
     address = SCM_BOOL_F;
   
   return scm_cons (newsock, address);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_getsockname, "getsockname", 1, 0, 0, scm_getsockname);
-
-SCM 
-scm_getsockname (sock)
-     SCM sock;
+GUILE_PROC (scm_getsockname, "getsockname", 1, 0, 0, 
+            (SCM sock),
+"")
+#define FUNC_NAME s_scm_getsockname
 {
   int tmp_size;
   int fd;
   SCM result;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1, s_getsockname);
+  SCM_VALIDATE_OPFPORT(1,sock);
   fd = SCM_FPORT_FDES (sock);
   tmp_size = scm_addr_buffer_size;
   if (getsockname (fd, (struct sockaddr *) scm_addr_buffer, &tmp_size) == -1)
-    scm_syserror (s_getsockname);
+    SCM_SYSERROR;
   if (tmp_size > 0)
-    result = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, s_getsockname);
+    result = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, FUNC_NAME);
   else
     result = SCM_BOOL_F;
   return result;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_getpeername, "getpeername", 1, 0, 0, scm_getpeername);
-
-SCM 
-scm_getpeername (sock)
-     SCM sock;
+GUILE_PROC (scm_getpeername, "getpeername", 1, 0, 0, 
+            (SCM sock),
+"")
+#define FUNC_NAME s_scm_getpeername
 {
   int tmp_size;
   int fd;
   SCM result;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_getpeername);
+  SCM_VALIDATE_OPFPORT(1,sock);
   fd = SCM_FPORT_FDES (sock);
   tmp_size = scm_addr_buffer_size;
   if (getpeername (fd, (struct sockaddr *) scm_addr_buffer, &tmp_size) == -1)
-    scm_syserror (s_getpeername);
+    SCM_SYSERROR;
   if (tmp_size > 0)
-    result = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, s_getpeername);
+    result = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, FUNC_NAME);
   else
     result = SCM_BOOL_F;
   return result;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_recv, "recv!", 2, 1, 0, scm_recv);
-
-SCM
-scm_recv (sock, buf, flags)
-     SCM sock;
-     SCM buf;
-     SCM flags;
+GUILE_PROC (scm_recv, "recv!", 2, 1, 0,
+            (SCM sock, SCM buf, SCM flags),
+"")
+#define FUNC_NAME s_scm_recv
 {
   int rv;
   int fd;
   int flg;
 
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1, s_recv);
-  SCM_ASSERT (SCM_NIMP (buf) && SCM_STRINGP (buf), buf, SCM_ARG2, s_recv);
-
+  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_STRING(2,buf);
+  SCM_VALIDATE_INT_DEF_COPY(3,flags,0,flg);
   fd = SCM_FPORT_FDES (sock);
-  if (SCM_UNBNDP (flags))
-    flg = 0;
-  else
-    flg = scm_num2ulong (flags, (char *) SCM_ARG3, s_recv);
 
   SCM_SYSCALL (rv = recv (fd, SCM_CHARS (buf), SCM_LENGTH (buf), flg));
   if (rv == -1)
-    scm_syserror (s_recv);
+    SCM_SYSERROR;
 
   return SCM_MAKINUM (rv);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_send, "send", 2, 1, 0, scm_send);
-
-SCM
-scm_send (sock, message, flags)
-     SCM sock;
-     SCM message;
-     SCM flags;
+GUILE_PROC (scm_send, "send", 2, 1, 0,
+            (SCM sock, SCM message, SCM flags),
+"")
+#define FUNC_NAME s_scm_send
 {
   int rv;
   int fd;
   int flg;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1, s_send);
-  SCM_ASSERT (SCM_NIMP (message) && SCM_ROSTRINGP (message), message, SCM_ARG2, s_send);
-
+  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_ROSTRING(2,message);
+  SCM_VALIDATE_INT_DEF_COPY(3,flags,0,flg);
   fd = SCM_FPORT_FDES (sock);
-  if (SCM_UNBNDP (flags))
-    flg = 0;
-  else
-    flg = scm_num2ulong (flags, (char *) SCM_ARG3, s_send);
 
   SCM_SYSCALL (rv = send (fd, SCM_ROCHARS (message), SCM_ROLENGTH (message), flg));
   if (rv == -1)
-    scm_syserror (s_send);
+    SCM_SYSERROR;
   return SCM_MAKINUM (rv);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_recvfrom, "recvfrom!", 2, 3, 0, scm_recvfrom);
-
-SCM
-scm_recvfrom (sock, buf, flags, start, end)
-     SCM sock;
-     SCM buf;
-     SCM flags;
-     SCM start;
-     SCM end;
+GUILE_PROC (scm_recvfrom, "recvfrom!", 2, 3, 0,
+            (SCM sock, SCM buf, SCM flags, SCM start, SCM end),
+"")
+#define FUNC_NAME s_scm_recvfrom
 {
   int rv;
   int fd;
@@ -680,32 +632,29 @@ scm_recvfrom (sock, buf, flags, start, end)
   int tmp_size;
   SCM address;
 
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_OPFPORTP (sock), sock, SCM_ARG1,
-	      s_recvfrom);
-  SCM_ASSERT (SCM_NIMP (buf) && SCM_STRINGP (buf), buf, SCM_ARG2, s_recvfrom);
+  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_STRING(2,buf);
   cend = SCM_LENGTH (buf);
   
   if (SCM_UNBNDP (flags))
     flg = 0;
   else
     {
-      flg = scm_num2ulong (flags, (char *) SCM_ARG3, s_recvfrom);
+      flg = SCM_NUM2ULONG (3,flags);
 
       if (!SCM_UNBNDP (start))
 	{
-	  offset = (int) scm_num2long (start,
-				       (char *) SCM_ARG4, s_recvfrom);
+	  offset = (int) SCM_NUM2LONG (4,start);
 	  
 	  if (offset < 0 || offset >= cend)
-	    scm_out_of_range (s_recvfrom, start);
+	    SCM_OUT_OF_RANGE (4, start);
 
 	  if (!SCM_UNBNDP (end))
 	    {
-	      int tend = (int) scm_num2long (end,
-					     (char *) SCM_ARG5, s_recvfrom);
+	      int tend = (int) SCM_NUM2LONG (5,end);
       
 	      if (tend <= offset || tend > cend)
-		scm_out_of_range (s_recvfrom, end);
+		SCM_OUT_OF_RANGE (5, end);
 
 	      cend = tend;
 	    }
@@ -720,24 +669,20 @@ scm_recvfrom (sock, buf, flags, start, end)
 			      (struct sockaddr *) scm_addr_buffer,
 			      &tmp_size));
   if (rv == -1)
-    scm_syserror (s_recvfrom);
+    SCM_SYSERROR;
   if (tmp_size > 0)
-    address = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, s_recvfrom);
+    address = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, FUNC_NAME);
   else
     address = SCM_BOOL_F;
 
   return scm_cons (SCM_MAKINUM (rv), address);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_sendto, "sendto", 4, 0, 1, scm_sendto);
-
-SCM
-scm_sendto (sock, message, fam, address, args_and_flags)
-     SCM sock;
-     SCM message;
-     SCM fam;
-     SCM address;
-     SCM args_and_flags;
+GUILE_PROC (scm_sendto, "sendto", 4, 0, 1,
+            (SCM sock, SCM message, SCM fam, SCM address, SCM args_and_flags),
+"")
+#define FUNC_NAME s_scm_sendto
 {
   int rv;
   int fd;
@@ -747,20 +692,18 @@ scm_sendto (sock, message, fam, address, args_and_flags)
   int save_err;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_sendto);
-  SCM_ASSERT (SCM_NIMP (message) && SCM_ROSTRINGP (message), message,
-	      SCM_ARG2, s_sendto);
-  SCM_ASSERT (SCM_INUMP (fam), fam, SCM_ARG3, s_sendto);
+  SCM_VALIDATE_FPORT(1,sock);
+  SCM_VALIDATE_ROSTRING(2,message);
+  SCM_VALIDATE_INT(3,fam);
   fd = SCM_FPORT_FDES (sock);
   soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args_and_flags, 4,
-			    s_sendto, &size);
+			    FUNC_NAME, &size);
   if (SCM_NULLP (args_and_flags))
     flg = 0;
   else
     {
-      SCM_ASSERT (SCM_NIMP (args_and_flags) && SCM_CONSP (args_and_flags),
-	      args_and_flags, SCM_ARG5, s_sendto);
-      flg = scm_num2ulong (SCM_CAR (args_and_flags), (char *) SCM_ARG5, s_sendto);
+      SCM_VALIDATE_NIMCONS(5,args_and_flags);
+      flg = SCM_NUM2ULONG (5,SCM_CAR (args_and_flags));
     }
   SCM_SYSCALL (rv = sendto (fd, SCM_ROCHARS (message), SCM_ROLENGTH (message),
 			    flg, soka, size));
@@ -768,9 +711,10 @@ scm_sendto (sock, message, fam, address, args_and_flags)
   scm_must_free ((char *) soka);
   errno = save_err;
   if (rv == -1)
-    scm_syserror (s_sendto);
+    SCM_SYSERROR;
   return SCM_MAKINUM (rv);
 }
+#undef FUNC_NAME
 
 
 

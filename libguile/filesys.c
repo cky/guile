@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 #include <stdio.h>
 #include "_scm.h"
@@ -47,6 +51,7 @@
 #include "fports.h"
 #include "iselect.h"
 
+#include "scm_validate.h"
 #include "filesys.h"
 
 
@@ -117,21 +122,18 @@
 /* {Permissions}
  */
 
-SCM_PROC (s_chown, "chown", 3, 0, 0, scm_chown);
-
-SCM 
-scm_chown (object, owner, group)
-     SCM object;
-     SCM owner;
-     SCM group;
+GUILE_PROC (scm_chown, "chown", 3, 0, 0, 
+            (SCM object, SCM owner, SCM group),
+"")
+#define FUNC_NAME s_scm_chown
 {
   int rv;
   int fdes;
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_ASSERT (SCM_INUMP (owner), owner, SCM_ARG2, s_chown);
-  SCM_ASSERT (SCM_INUMP (group), group, SCM_ARG3, s_chown);
+  SCM_VALIDATE_INT(2,owner);
+  SCM_VALIDATE_INT(3,group);
   if (SCM_INUMP (object) || (SCM_NIMP (object) && SCM_OPFPORTP (object)))
     {
       if (SCM_INUMP (object))
@@ -143,30 +145,29 @@ scm_chown (object, owner, group)
   else
     {
       SCM_ASSERT (SCM_NIMP (object) && SCM_ROSTRINGP (object),
-		  object, SCM_ARG1, s_chown);
+		  object, SCM_ARG1, FUNC_NAME);
       SCM_COERCE_SUBSTR (object);
       SCM_SYSCALL (rv = chown (SCM_ROCHARS (object),
 			       SCM_INUM (owner), SCM_INUM (group)));
     }
   if (rv == -1)
-    scm_syserror (s_chown);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_chmod, "chmod", 2, 0, 0, scm_chmod);
-
-SCM 
-scm_chmod (object, mode)
-     SCM object;
-     SCM mode;
+GUILE_PROC (scm_chmod, "chmod", 2, 0, 0,
+            (SCM object, SCM mode),
+"")
+#define FUNC_NAME s_scm_chmod
 {
   int rv;
   int fdes;
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_chmod);
+  SCM_VALIDATE_INT(2,mode);
   if (SCM_INUMP (object) || (SCM_NIMP (object) && SCM_OPFPORTP (object)))
     {
       if (SCM_INUMP (object))
@@ -177,21 +178,20 @@ scm_chmod (object, mode)
     }
   else
     {
-      SCM_ASSERT (SCM_NIMP (object) && SCM_ROSTRINGP (object),
-		  object, SCM_ARG1, s_chmod);
+      SCM_VALIDATE_ROSTRING(1,object);
       SCM_COERCE_SUBSTR (object);
       SCM_SYSCALL (rv = chmod (SCM_ROCHARS (object), SCM_INUM (mode)));
     }
   if (rv == -1)
-    scm_syserror (s_chmod);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_umask, "umask", 0, 1, 0, scm_umask);
-
-SCM 
-scm_umask (mode)
-     SCM mode;
+GUILE_PROC (scm_umask, "umask", 0, 1, 0, 
+            (SCM mode),
+"")
+#define FUNC_NAME s_scm_umask
 {
   mode_t mask;
   if (SCM_UNBNDP (mode))
@@ -201,43 +201,39 @@ scm_umask (mode)
     }
   else
     {
-      SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG1, s_umask);
+      SCM_VALIDATE_INT(1,mode);
       mask = umask (SCM_INUM (mode));
     }
   return SCM_MAKINUM (mask);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_open_fdes, "open-fdes", 2, 1, 0, scm_open_fdes);
-SCM
-scm_open_fdes (SCM path, SCM flags, SCM mode)
+GUILE_PROC (scm_open_fdes, "open-fdes", 2, 1, 0, 
+            (SCM path, SCM flags, SCM mode),
+"")
+#define FUNC_NAME s_scm_open_fdes
 {
   int fd;
   int iflags;
   int imode;
 
-  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1,
-	      s_open_fdes);
+  SCM_VALIDATE_ROSTRING(1,path);
   SCM_COERCE_SUBSTR (path);
-  iflags = scm_num2long (flags, (char *) SCM_ARG2, s_open_fdes);
-
-  if (SCM_UNBNDP (mode))
-    imode = 0666;
-  else
-    {
-      SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG3, s_open_fdes);
-      imode = SCM_INUM (mode);
-    }
+  SCM_VALIDATE_INT_COPY(2,flags,iflags);
+  SCM_VALIDATE_INT_DEF_COPY(3,mode,0666,imode);
   SCM_SYSCALL (fd = open (SCM_ROCHARS (path), iflags, imode));
   if (fd == -1)
-    scm_syserror (s_open_fdes);
+    SCM_SYSERROR;
   return SCM_MAKINUM (fd);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_open, "open", 2, 1, 0, scm_open);
-SCM
-scm_open (SCM path, SCM flags, SCM mode)
+GUILE_PROC (scm_open, "open", 2, 1, 0, 
+            (SCM path, SCM flags, SCM mode),
+"")
+#define FUNC_NAME s_scm_open
 {
   SCM newpt;
   char *port_mode;
@@ -245,7 +241,7 @@ scm_open (SCM path, SCM flags, SCM mode)
   int iflags;
 
   fd = SCM_INUM (scm_open_fdes (path, flags, mode));
-  iflags = scm_num2long (flags, (char *) SCM_ARG2, s_open_fdes);
+  SCM_VALIDATE_INT_COPY(2,flags,iflags);
   if (iflags & O_RDWR)
     {
       if (iflags & O_APPEND)
@@ -266,10 +262,12 @@ scm_open (SCM path, SCM flags, SCM mode)
   newpt = scm_fdes_to_port (fd, port_mode, path);
   return newpt;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_close, "close", 1, 0, 0, scm_close);
-SCM
-scm_close (SCM fd_or_port)
+GUILE_PROC (scm_close, "close", 1, 0, 0, 
+            (SCM fd_or_port),
+"")
+#define FUNC_NAME s_scm_close
 {
   int rv;
   int fd;
@@ -278,16 +276,17 @@ scm_close (SCM fd_or_port)
 
   if (SCM_NIMP (fd_or_port) && SCM_PORTP (fd_or_port))
     return scm_close_port (fd_or_port);
-  SCM_ASSERT (SCM_INUMP (fd_or_port), fd_or_port, SCM_ARG1, s_close);
+  SCM_VALIDATE_INT(1,fd_or_port);
   fd = SCM_INUM (fd_or_port);
   scm_evict_ports (fd);		/* see scsh manual.  */
   SCM_SYSCALL (rv = close (fd));
   /* following scsh, closing an already closed file descriptor is
      not an error.  */
   if (rv < 0 && errno != EBADF)
-    scm_syserror (s_close);
-  return (rv < 0) ? SCM_BOOL_F : SCM_BOOL_T;
+    SCM_SYSERROR;
+  return SCM_NEGATE_BOOL(rv < 0);
 }
+#undef FUNC_NAME
 
 
 /* {Files}
@@ -304,11 +303,8 @@ SCM_SYMBOL (scm_sym_fifo, "fifo");
 SCM_SYMBOL (scm_sym_sock, "socket");
 SCM_SYMBOL (scm_sym_unknown, "unknown");
 
-static SCM scm_stat2scm SCM_P ((struct stat *stat_temp));
-
 static SCM 
-scm_stat2scm (stat_temp)
-     struct stat *stat_temp;
+scm_stat2scm (struct stat *stat_temp)
 {
   SCM ans = scm_make_vector (SCM_MAKINUM (15), SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
@@ -397,11 +393,10 @@ scm_stat2scm (stat_temp)
   return ans;
 }
 
-SCM_PROC (s_stat, "stat", 1, 0, 0, scm_stat);
-
-SCM 
-scm_stat (object)
-     SCM object;
+GUILE_PROC (scm_stat, "stat", 1, 0, 0, 
+            (SCM object),
+"")
+#define FUNC_NAME s_scm_stat
 {
   int rv;
   int fdes;
@@ -411,7 +406,7 @@ scm_stat (object)
     SCM_SYSCALL (rv = fstat (SCM_INUM (object), &stat_temp));
   else
     {
-      SCM_ASSERT (SCM_NIMP (object), object, SCM_ARG1, s_stat);
+      SCM_VALIDATE_NIMP(1,object);
       if (SCM_ROSTRINGP (object))
 	{
 	  SCM_COERCE_SUBSTR (object);
@@ -420,7 +415,7 @@ scm_stat (object)
       else
 	{
 	  object = SCM_COERCE_OUTPORT (object);
-	  SCM_ASSERT (SCM_OPFPORTP (object), object, SCM_ARG1, s_stat);
+	  SCM_ASSERT (SCM_OPFPORTP (object), object, SCM_ARG1, FUNC_NAME);
 	  fdes = SCM_FPORT_FDES (object);
 	  SCM_SYSCALL (rv = fstat (fdes, &stat_temp));
 	}
@@ -429,7 +424,7 @@ scm_stat (object)
     {
       int en = errno;
 
-      scm_syserror_msg (s_stat, "%s: %S",
+      scm_syserror_msg (FUNC_NAME, "%s: %S",
 			scm_listify (scm_makfrom0str (strerror (errno)),
 				     object,
 				     SCM_UNDEFINED),
@@ -437,50 +432,44 @@ scm_stat (object)
     }
   return scm_stat2scm (&stat_temp);
 }
+#undef FUNC_NAME
 
 
 /* {Modifying Directories}
  */
 
-SCM_PROC (s_link, "link", 2, 0, 0, scm_link);
-
-SCM 
-scm_link (oldpath, newpath)
-     SCM oldpath;
-     SCM newpath;
+GUILE_PROC (scm_link, "link", 2, 0, 0,
+            (SCM oldpath, SCM newpath),
+"")
+#define FUNC_NAME s_scm_link
 {
   int val;
 
-  SCM_ASSERT (SCM_NIMP (oldpath) && SCM_ROSTRINGP (oldpath), oldpath,
-	      SCM_ARG1, s_link);
+  SCM_VALIDATE_ROSTRING(1,oldpath);
   if (SCM_SUBSTRP (oldpath))
     oldpath = scm_makfromstr (SCM_ROCHARS (oldpath),
 			      SCM_ROLENGTH (oldpath), 0);
-  SCM_ASSERT (SCM_NIMP (newpath) && SCM_ROSTRINGP (newpath), newpath,
-	      SCM_ARG2, s_link);
+  SCM_VALIDATE_ROSTRING(2,newpath);
   if (SCM_SUBSTRP (newpath))
     newpath = scm_makfromstr (SCM_ROCHARS (newpath),
 			      SCM_ROLENGTH (newpath), 0);
   SCM_SYSCALL (val = link (SCM_ROCHARS (oldpath), SCM_ROCHARS (newpath)));
   if (val != 0)
-    scm_syserror (s_link);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_rename, "rename-file", 2, 0, 0, scm_rename);
-
-SCM 
-scm_rename (oldname, newname)
-     SCM oldname;
-     SCM newname;
+GUILE_PROC (scm_rename, "rename-file", 2, 0, 0,
+            (SCM oldname, SCM newname),
+"")
+#define FUNC_NAME s_scm_rename
 {
   int rv;
-  SCM_ASSERT (SCM_NIMP (oldname) && SCM_ROSTRINGP (oldname), oldname, SCM_ARG1,
-	      s_rename);
-  SCM_ASSERT (SCM_NIMP (newname) && SCM_ROSTRINGP (newname), newname, SCM_ARG2,
-	      s_rename);
+  SCM_VALIDATE_ROSTRING(1,oldname);
+  SCM_VALIDATE_ROSTRING(2,newname);
   SCM_COERCE_SUBSTR (oldname);
   SCM_COERCE_SUBSTR (newname);
 #ifdef HAVE_RENAME
@@ -496,39 +485,36 @@ scm_rename (oldname, newname)
     }
 #endif
   if (rv != 0)
-    scm_syserror (s_rename);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_delete_file, "delete-file", 1, 0, 0, scm_delete_file);
-
-SCM 
-scm_delete_file (str)
-     SCM str;
+GUILE_PROC(scm_delete_file, "delete-file", 1, 0, 0, 
+           (SCM str),
+"")
+#define FUNC_NAME s_scm_delete_file
 {
   int ans;
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1,
-	      s_delete_file);
+  SCM_VALIDATE_ROSTRING(1,str);
   SCM_COERCE_SUBSTR (str);
   SCM_SYSCALL (ans = unlink (SCM_ROCHARS (str)));
   if (ans != 0)
-    scm_syserror (s_delete_file);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_mkdir, "mkdir", 1, 1, 0, scm_mkdir);
-
-SCM 
-scm_mkdir (path, mode)
-     SCM path;
-     SCM mode;
+GUILE_PROC (scm_mkdir, "mkdir", 1, 1, 0,
+            (SCM path, SCM mode),
+"")
+#define FUNC_NAME s_scm_mkdir
 {
 #ifdef HAVE_MKDIR
   int rv;
   mode_t mask;
-  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1,
-	      s_mkdir);
+  SCM_VALIDATE_ROSTRING(1,path);
   SCM_COERCE_SUBSTR (path);
   if (SCM_UNBNDP (mode))
     {
@@ -538,42 +524,42 @@ scm_mkdir (path, mode)
     }
   else
     {
-      SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_mkdir);
+      SCM_VALIDATE_INT(2,mode);
       SCM_SYSCALL (rv = mkdir (SCM_ROCHARS (path), SCM_INUM (mode)));
     }
   if (rv != 0)
-    scm_syserror (s_mkdir);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_mkdir);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_rmdir, "rmdir", 1, 0, 0, scm_rmdir);
-
-SCM 
-scm_rmdir (path)
-     SCM path;
+GUILE_PROC (scm_rmdir, "rmdir", 1, 0, 0, 
+            (SCM path),
+"")
+#define FUNC_NAME s_scm_rmdir
 {
 #ifdef HAVE_RMDIR
   int val;
 
-  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1,
-	      s_rmdir);
+  SCM_VALIDATE_ROSTRING(1,path);
   SCM_COERCE_SUBSTR (path);
   SCM_SYSCALL (val = rmdir (SCM_ROCHARS (path)));
   if (val != 0)
-    scm_syserror (s_rmdir);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_rmdir);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
 
 /* {Examining Directories}
@@ -581,85 +567,84 @@ scm_rmdir (path)
 
 long scm_tc16_dir;
 
-SCM_PROC (s_directory_stream_p, "directory-stream?", 1, 0, 0, scm_directory_stream_p);
-SCM
-scm_directory_stream_p (SCM obj)
+GUILE_PROC (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
+            (SCM obj),
+"")
+#define FUNC_NAME s_scm_directory_stream_p
 {
-  return SCM_NIMP (obj) && SCM_DIRP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_NIMP (obj) && SCM_DIRP (obj));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_opendir, "opendir", 1, 0, 0, scm_opendir);
-
-SCM 
-scm_opendir (dirname)
-     SCM dirname;
+GUILE_PROC (scm_opendir, "opendir", 1, 0, 0, 
+            (SCM dirname),
+"")
+#define FUNC_NAME s_scm_opendir
 {
   DIR *ds;
-  SCM_ASSERT (SCM_NIMP (dirname) && SCM_ROSTRINGP (dirname), dirname, SCM_ARG1,
-	      s_opendir);
+  SCM_VALIDATE_ROSTRING(1,dirname);
   SCM_COERCE_SUBSTR (dirname);
   SCM_SYSCALL (ds = opendir (SCM_ROCHARS (dirname)));
   if (ds == NULL)
-    scm_syserror (s_opendir);
+    SCM_SYSERROR;
   SCM_RETURN_NEWSMOB (scm_tc16_dir | SCM_OPN, ds);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_readdir, "readdir", 1, 0, 0, scm_readdir);
-
-SCM 
-scm_readdir (port)
-     SCM port;
+GUILE_PROC (scm_readdir, "readdir", 1, 0, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_readdir
 {
   struct dirent *rdent;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPDIRP (port), port, SCM_ARG1, s_readdir);
+  SCM_VALIDATE_OPDIR(1,port);
   errno = 0;
   SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CDR (port)));
   if (errno != 0)
-    scm_syserror (s_readdir);
+    SCM_SYSERROR;
   return (rdent ? scm_makfromstr (rdent->d_name, NAMLEN (rdent), 0)
 	  : SCM_EOF_VAL);
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_rewinddir, "rewinddir", 1, 0, 0, scm_rewinddir);
-
-SCM 
-scm_rewinddir (port)
-     SCM port;
+GUILE_PROC (scm_rewinddir, "rewinddir", 1, 0, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_rewinddir
 {
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPDIRP (port), port, SCM_ARG1, s_rewinddir);
+  SCM_VALIDATE_OPDIR(1,port);
   rewinddir ((DIR *) SCM_CDR (port));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_closedir, "closedir", 1, 0, 0, scm_closedir);
-
-SCM 
-scm_closedir (port)
-     SCM port;
+GUILE_PROC (scm_closedir, "closedir", 1, 0, 0, 
+            (SCM port),
+"")
+#define FUNC_NAME s_scm_closedir
 {
   int sts;
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_DIRP (port), port, SCM_ARG1, s_closedir);
+  SCM_VALIDATE_DIR(1,port);
   if (SCM_CLOSEDP (port))
     {
       return SCM_UNSPECIFIED;
     }
   SCM_SYSCALL (sts = closedir ((DIR *) SCM_CDR (port)));
   if (sts != 0)
-    scm_syserror (s_closedir);
+    SCM_SYSERROR;
   SCM_SETCAR (port, scm_tc16_dir);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
-
-static int scm_dir_print SCM_P ((SCM sexp, SCM port, scm_print_state *pstate));
 
 static int 
 scm_dir_print (SCM exp, SCM port, scm_print_state *pstate)
@@ -674,11 +659,8 @@ scm_dir_print (SCM exp, SCM port, scm_print_state *pstate)
 }
 
 
-static scm_sizet scm_dir_free SCM_P ((SCM p));
-
 static scm_sizet 
-scm_dir_free (p)
-     SCM p;
+scm_dir_free (SCM p)
 {
   if (SCM_OPENP (p))
     closedir ((DIR *) SCM_CDR (p));
@@ -690,28 +672,28 @@ scm_dir_free (p)
  */
 
 
-SCM_PROC (s_chdir, "chdir", 1, 0, 0, scm_chdir);
-
-SCM 
-scm_chdir (str)
-     SCM str;
+GUILE_PROC (scm_chdir, "chdir", 1, 0, 0, 
+            (SCM str),
+"")
+#define FUNC_NAME s_scm_chdir
 {
   int ans;
 
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_chdir);
+  SCM_VALIDATE_ROSTRING(1,str);
   SCM_COERCE_SUBSTR (str);
   SCM_SYSCALL (ans = chdir (SCM_ROCHARS (str)));
   if (ans != 0)
-    scm_syserror (s_chdir);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_getcwd, "getcwd", 0, 0, 0, scm_getcwd);
-
-SCM 
-scm_getcwd ()
+GUILE_PROC (scm_getcwd, "getcwd", 0, 0, 0,
+            (),
+"")
+#define FUNC_NAME s_scm_getcwd
 {
 #ifdef HAVE_GETCWD
   char *rv;
@@ -720,29 +702,27 @@ scm_getcwd ()
   char *wd;
   SCM result;
 
-  wd = scm_must_malloc (size, s_getcwd);
+  wd = scm_must_malloc (size, FUNC_NAME);
   while ((rv = getcwd (wd, size)) == 0 && errno == ERANGE)
     {
       scm_must_free (wd);
       size *= 2;
-      wd = scm_must_malloc (size, s_getcwd);
+      wd = scm_must_malloc (size, FUNC_NAME);
     }
   if (rv == 0)
-    scm_syserror (s_getcwd);
+    SCM_SYSERROR;
   result = scm_makfromstr (wd, strlen (wd), 0);
   scm_must_free (wd);
   return result;
 #else
-  scm_sysmissing (s_getcwd);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
 
-
-SCM_PROC (s_select, "select", 3, 2, 0, scm_select);
-
 
 static int
 set_element (SELECT_TYPE *set, SCM element, int arg)
@@ -752,7 +732,7 @@ set_element (SELECT_TYPE *set, SCM element, int arg)
   if (SCM_NIMP (element) && SCM_OPFPORTP (element))
     fd = SCM_FPORT_FDES (element);
   else {
-    SCM_ASSERT (SCM_INUMP (element), element, arg, s_select);
+    SCM_ASSERT (SCM_INUMP (element), element, arg, "select");
     fd = SCM_INUM (element);
   }
   FD_SET (fd, set);
@@ -836,14 +816,11 @@ retrieve_select_type (SELECT_TYPE *set, SCM list)
     }
 }
 
-
-SCM
-scm_select (reads, writes, excepts, secs, usecs)
-     SCM reads;
-     SCM writes;
-     SCM excepts;
-     SCM secs;
-     SCM usecs;
+/* Static helper functions above refer to s_scm_select directly as s_select */
+GUILE_PROC (scm_select, "select", 3, 2, 0, 
+            (SCM reads, SCM writes, SCM excepts, SCM secs, SCM usecs),
+"")
+#define FUNC_NAME s_scm_select
 {
 #ifdef HAVE_SELECT
   struct timeval timeout;
@@ -855,8 +832,8 @@ scm_select (reads, writes, excepts, secs, usecs)
   int sreturn;
 
 #define assert_set(x, arg) \
-  SCM_ASSERT (scm_ilength (x) > -1 || (SCM_NIMP (x) && SCM_VECTORP (x)), \
-	      x, arg, s_select)
+  SCM_ASSERT (scm_ilength (x) >= 0 || (SCM_NIMP (x) && SCM_VECTORP (x)), \
+	      x, arg, FUNC_NAME)
   assert_set (reads, SCM_ARG1);
   assert_set (writes, SCM_ARG2);
   assert_set (excepts, SCM_ARG3);
@@ -885,19 +862,18 @@ scm_select (reads, writes, excepts, secs, usecs)
 	    timeout.tv_usec = 0;
 	  else
 	    {
-	      SCM_ASSERT (SCM_INUMP (usecs), usecs, SCM_ARG5, s_select);
-	      
+              SCM_VALIDATE_INT(5,usecs);
 	      timeout.tv_usec = SCM_INUM (usecs);
 	    }
 	}
       else
 	{
-	  double fl = scm_num2dbl (secs, s_select);
+	  double fl = scm_num2dbl (secs, FUNC_NAME);
 
 	  if (!SCM_UNBNDP (usecs))
-	    scm_wrong_type_arg (s_select, 4, secs);
+	    scm_wrong_type_arg (FUNC_NAME, 4, secs);
 	  if (fl > LONG_MAX)
-	    scm_out_of_range (s_select, secs);
+	    scm_out_of_range (FUNC_NAME, secs);
 	  timeout.tv_sec = (long) fl;
 	  timeout.tv_usec = (long) ((fl - timeout.tv_sec) * 1000000);
 	}
@@ -912,23 +888,25 @@ scm_select (reads, writes, excepts, secs, usecs)
 		    &read_set, &write_set, &except_set, time_p);
 #endif
   if (sreturn < 0)
-    scm_syserror (s_select);
+    SCM_SYSERROR;
   return scm_listify (retrieve_select_type (&read_set, reads),
 		      retrieve_select_type (&write_set, writes),
 		      retrieve_select_type (&except_set, excepts),
 		      SCM_UNDEFINED);
 #else
-  scm_sysmissing (s_select);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC (s_fcntl, "fcntl", 2, 0, 1, scm_fcntl);
-SCM 
-scm_fcntl (SCM object, SCM cmd, SCM value)
+GUILE_PROC (scm_fcntl, "fcntl", 2, 0, 1,
+            (SCM object, SCM cmd, SCM value),
+"")
+#define FUNC_NAME s_scm_fcntl
 {
   int rv;
   int fdes;
@@ -936,30 +914,32 @@ scm_fcntl (SCM object, SCM cmd, SCM value)
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_ASSERT (SCM_INUMP (cmd), cmd, SCM_ARG2, s_fcntl);
+  SCM_VALIDATE_INT(2,cmd);
   if (SCM_NIMP (object) && SCM_OPFPORTP (object))
     fdes = SCM_FPORT_FDES (object);
   else
     {
-      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_fcntl);
+      SCM_VALIDATE_INT(1,object);
       fdes = SCM_INUM (object);
     }
   if (SCM_NULLP (value))
     ivalue = 0;
   else
     {
-      SCM_ASSERT (SCM_INUMP (SCM_CAR (value)), value, SCM_ARG3, s_fcntl);
+      SCM_ASSERT (SCM_INUMP (SCM_CAR (value)), value, SCM_ARG3, FUNC_NAME);
       ivalue = SCM_INUM (SCM_CAR (value));
     }
   SCM_SYSCALL (rv = fcntl (fdes, SCM_INUM (cmd), ivalue));
   if (rv == -1)
-    scm_syserror (s_fcntl);
+    SCM_SYSERROR;
   return SCM_MAKINUM (rv);
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_fsync, "fsync", 1, 0, 0, scm_fsync);
-SCM
-scm_fsync (SCM object)
+GUILE_PROC (scm_fsync, "fsync", 1, 0, 0, 
+            (SCM object),
+"")
+#define FUNC_NAME s_scm_fsync
 {
   int fdes;
 
@@ -972,95 +952,90 @@ scm_fsync (SCM object)
     }
   else
     {
-      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_fsync);
+      SCM_VALIDATE_INT(1,object);
       fdes = SCM_INUM (object);
     }
   if (fsync (fdes) == -1)
-    scm_syserror (s_fsync);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_symlink, "symlink", 2, 0, 0, scm_symlink);
-
-SCM
-scm_symlink(oldpath, newpath)
-     SCM oldpath;
-     SCM newpath;
+GUILE_PROC (scm_symlink, "symlink", 2, 0, 0,
+            (SCM oldpath, SCM newpath),
+"")
+#define FUNC_NAME s_scm_symlink
 {
 #ifdef HAVE_SYMLINK
   int val;
 
-  SCM_ASSERT (SCM_NIMP (oldpath) && SCM_ROSTRINGP (oldpath), oldpath, SCM_ARG1,
-	      s_symlink);
-  SCM_ASSERT (SCM_NIMP (newpath) && SCM_ROSTRINGP (newpath), newpath, SCM_ARG2,
-	      s_symlink);
+  SCM_VALIDATE_ROSTRING(1,oldpath);
+  SCM_VALIDATE_ROSTRING(2,newpath);
   SCM_COERCE_SUBSTR (oldpath);
   SCM_COERCE_SUBSTR (newpath);
   SCM_SYSCALL (val = symlink(SCM_ROCHARS(oldpath), SCM_ROCHARS(newpath)));
   if (val != 0)
-    scm_syserror (s_symlink);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_symlink);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_readlink, "readlink", 1, 0, 0, scm_readlink);
-
-SCM
-scm_readlink(path)
-  SCM path;
+GUILE_PROC (scm_readlink, "readlink", 1, 0, 0, 
+            (SCM path),
+"")
+#define FUNC_NAME s_scm_readlink
 {
 #ifdef HAVE_READLINK
   int rv;
   int size = 100;
   char *buf;
   SCM result;
-  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, (char *) SCM_ARG1,
-	      s_readlink);
+  SCM_VALIDATE_ROSTRING(1,path);
   SCM_COERCE_SUBSTR (path);
-  buf = scm_must_malloc (size, s_readlink);
+  buf = scm_must_malloc (size, FUNC_NAME);
   while ((rv = readlink (SCM_ROCHARS (path), buf, size)) == size)
     {
       scm_must_free (buf);
       size *= 2;
-      buf = scm_must_malloc (size, s_readlink);
+      buf = scm_must_malloc (size, FUNC_NAME);
     }
   if (rv == -1)
-    scm_syserror (s_readlink);
+    SCM_SYSERROR;
   result = scm_makfromstr (buf, rv, 0);
   scm_must_free (buf);
   return result;
 #else
-  scm_sysmissing (s_readlink);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_lstat, "lstat", 1, 0, 0, scm_lstat);
-
-SCM
-scm_lstat(str)
-  SCM str;
+GUILE_PROC (scm_lstat, "lstat", 1, 0, 0, 
+            (SCM str),
+"")
+#define FUNC_NAME s_scm_lstat
 {
 #ifdef HAVE_LSTAT
   int rv;
   struct stat stat_temp;
 
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, (char *) SCM_ARG1,
-	      s_lstat);
+  SCM_VALIDATE_ROSTRING(1,str);
   SCM_COERCE_SUBSTR (str);
   SCM_SYSCALL(rv = lstat(SCM_ROCHARS(str), &stat_temp));
   if (rv != 0)
     {
       int en = errno;
 
-      scm_syserror_msg (s_lstat, "%s: %S",
+      scm_syserror_msg (FUNC_NAME, "%s: %S",
 			scm_listify (scm_makfrom0str (strerror (errno)),
 				     str,
 				     SCM_UNDEFINED),
@@ -1068,72 +1043,69 @@ scm_lstat(str)
     }
   return scm_stat2scm(&stat_temp);
 #else 
-  scm_sysmissing (s_lstat);
+  SCM_SYSMISSING;
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_copy_file, "copy-file", 2, 0, 0, scm_copy_file);
-
-SCM
-scm_copy_file (oldfile, newfile)
-     SCM oldfile;
-     SCM newfile;
+GUILE_PROC (scm_copy_file, "copy-file", 2, 0, 0,
+            (SCM oldfile, SCM newfile),
+"")
+#define FUNC_NAME s_scm_copy_file
 {
   int oldfd, newfd;
   int n;
   char buf[BUFSIZ];
   struct stat oldstat;
 
-  SCM_ASSERT (SCM_NIMP (oldfile) && SCM_ROSTRINGP (oldfile), oldfile, SCM_ARG1, s_copy_file);
+  SCM_VALIDATE_ROSTRING(1,oldfile);
   if (SCM_SUBSTRP (oldfile))
     oldfile = scm_makfromstr (SCM_ROCHARS (oldfile), SCM_ROLENGTH (oldfile), 0);
-  SCM_ASSERT (SCM_NIMP (newfile) && SCM_ROSTRINGP (newfile), newfile, SCM_ARG2, s_copy_file);
+  SCM_VALIDATE_ROSTRING(2,newfile);
   if (SCM_SUBSTRP (newfile))
     newfile = scm_makfromstr (SCM_ROCHARS (newfile), SCM_ROLENGTH (newfile), 0);
   if (stat (SCM_ROCHARS (oldfile), &oldstat) == -1)
-    scm_syserror (s_copy_file);
+    SCM_SYSERROR;
   oldfd = open (SCM_ROCHARS (oldfile), O_RDONLY);
   if (oldfd == -1)
-    scm_syserror (s_copy_file);
+    SCM_SYSERROR;
 
   /* use POSIX flags instead of 07777?.  */
   newfd = open (SCM_ROCHARS (newfile), O_WRONLY | O_CREAT | O_TRUNC,
 		oldstat.st_mode & 07777);
   if (newfd == -1)
-    scm_syserror (s_copy_file);
+    SCM_SYSERROR;
 
   while ((n = read (oldfd, buf, sizeof buf)) > 0)
     if (write (newfd, buf, n) != n)
       {
 	close (oldfd);
 	close (newfd);
-	scm_syserror (s_copy_file);
+	SCM_SYSERROR;
       }
   close (oldfd);
   if (close (newfd) == -1)
-    scm_syserror (s_copy_file);
+    SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 /* Filename manipulation */
 
 SCM scm_dot_string;
 
-SCM_PROC (s_dirname, "dirname", 1, 0, 0, scm_dirname);
-
-SCM
-scm_dirname (SCM filename)
+GUILE_PROC (scm_dirname, "dirname", 1, 0, 0, 
+            (SCM filename),
+"")
+#define FUNC_NAME s_scm_dirname
 {
   char *s;
   int i, len;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename),
-	      filename,
-	      SCM_ARG1,
-	      s_dirname);
+  SCM_VALIDATE_ROSTRING(1,filename);
   s = SCM_ROCHARS (filename);
   len = SCM_LENGTH (filename);
   i = len - 1;
@@ -1150,23 +1122,21 @@ scm_dirname (SCM filename)
   else
     return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (i + 1));
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_basename, "basename", 1, 1, 0, scm_basename);
-
-SCM
-scm_basename (SCM filename, SCM suffix)
+GUILE_PROC (scm_basename, "basename", 1, 1, 0, 
+            (SCM filename, SCM suffix),
+"")
+#define FUNC_NAME s_scm_basename
 {
   char *f, *s = 0;
   int i, j, len, end;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename),
-	      filename,
-	      SCM_ARG1,
-	      s_basename);
+  SCM_VALIDATE_ROSTRING(1,filename);
   SCM_ASSERT (SCM_UNBNDP (suffix)
 	      || (SCM_NIMP (suffix) && SCM_ROSTRINGP (suffix)),
 	      suffix,
 	      SCM_ARG2,
-	      s_basename);
+	      FUNC_NAME);
   f = SCM_ROCHARS (filename);
   if (SCM_UNBNDP (suffix))
     j = -1;
@@ -1195,6 +1165,7 @@ scm_basename (SCM filename, SCM suffix)
 				      SCM_MAKINUM (i + 1),
 				      SCM_MAKINUM (end + 1));
 }
+#undef FUNC_NAME
 
 
 

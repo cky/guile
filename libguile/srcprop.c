@@ -41,6 +41,10 @@
  *
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -53,6 +57,7 @@
 #include "hash.h"
 #include "weaks.h"
 
+#include "scm_validate.h"
 #include "srcprop.h"
 
 /* {Source Properties}
@@ -81,11 +86,8 @@ static scm_srcprops_chunk *srcprops_chunklist = 0;
 static scm_srcprops *srcprops_freelist = 0;
 
 
-static SCM marksrcprops SCM_P ((SCM obj));
-
 static SCM
-marksrcprops (obj)
-     SCM obj;
+marksrcprops (SCM obj)
 {
   scm_gc_mark (SRCPROPFNAME (obj));
   scm_gc_mark (SRCPROPCOPY (obj));
@@ -93,11 +95,8 @@ marksrcprops (obj)
 }
 
 
-static scm_sizet freesrcprops SCM_P ((SCM obj));
-
 static scm_sizet
-freesrcprops (obj)
-     SCM obj;
+freesrcprops (SCM obj)
 {
   *((scm_srcprops **) SCM_CDR (obj)) = srcprops_freelist;
   srcprops_freelist = (scm_srcprops *) SCM_CDR (obj);
@@ -105,13 +104,8 @@ freesrcprops (obj)
 }
 
 
-static int prinsrcprops SCM_P ((SCM obj, SCM port, scm_print_state *pstate));
-
 static int
-prinsrcprops (obj, port, pstate)
-     SCM obj;
-     SCM port;
-     scm_print_state *pstate;
+prinsrcprops (SCM obj,SCM port,scm_print_state *pstate)
 {
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<srcprops ", port);
@@ -124,12 +118,7 @@ prinsrcprops (obj, port, pstate)
 
 
 SCM
-scm_make_srcprops (line, col, filename, copy, plist)
-     int line;
-     int col;
-     SCM filename;
-     SCM copy;
-     SCM plist;
+scm_make_srcprops (int line, int col, SCM filename, SCM copy, SCM plist)
 {
   register scm_srcprops *ptr;
   SCM_DEFER_INTS;
@@ -161,8 +150,7 @@ scm_make_srcprops (line, col, filename, copy, plist)
 
 
 SCM
-scm_srcprops_to_plist (obj)
-     SCM obj;
+scm_srcprops_to_plist (SCM obj)
 {
   SCM plist = SRCPROPPLIST (obj);
   if (!SCM_UNBNDP (SRCPROPCOPY (obj)))
@@ -175,62 +163,59 @@ scm_srcprops_to_plist (obj)
   return plist;
 }
 
-SCM_PROC (s_source_properties, "source-properties", 1, 0, 0, scm_source_properties);
-
-SCM
-scm_source_properties (obj)
-     SCM obj;
+GUILE_PROC (scm_source_properties, "source-properties", 1, 0, 0, 
+            (SCM obj),
+            "")
+#define FUNC_NAME s_scm_source_properties
 {
   SCM p;
-  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_source_properties);
+  SCM_VALIDATE_NIMP(1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
 #ifndef SCM_RECKLESS
   else if (SCM_NCONSP (obj))
-    scm_wrong_type_arg (s_source_properties, 1, obj);
+    SCM_WRONG_TYPE_ARG (1, obj);
 #endif
   p = scm_hashq_ref (scm_source_whash, obj, (SCM) NULL);
   if (p != (SCM) NULL && SRCPROPSP (p))
     return scm_srcprops_to_plist (p);
   return SCM_EOL;
 }
+#undef FUNC_NAME
 
 /* Perhaps this procedure should look through an alist
    and try to make a srcprops-object...? */
-SCM_PROC (s_set_source_properties_x, "set-source-properties!", 2, 0, 0, scm_set_source_properties_x);
-
-SCM
-scm_set_source_properties_x (obj, plist)
-     SCM obj;
-     SCM plist;
+GUILE_PROC (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
+            (SCM obj, SCM plist),
+"")
+#define FUNC_NAME s_scm_set_source_properties_x
 {
   SCM handle;
-  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_set_source_properties_x);
+  SCM_VALIDATE_NIMP(1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
 #ifndef SCM_RECKLESS
   else if (SCM_NCONSP (obj))
-    scm_wrong_type_arg (s_set_source_properties_x, 1, obj);
+    SCM_WRONG_TYPE_ARG(1, obj);
 #endif
   handle = scm_hashq_create_handle_x (scm_source_whash, obj, plist);
   SCM_SETCDR (handle, plist);
   return plist;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_source_property, "source-property", 2, 0, 0, scm_source_property);
-
-SCM
-scm_source_property (obj, key)
-     SCM obj;
-     SCM key;
+GUILE_PROC (scm_source_property, "source-property", 2, 0, 0,
+            (SCM obj, SCM key),
+"")
+#define FUNC_NAME s_scm_source_property
 {
   SCM p;
-  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_source_property);
+  SCM_VALIDATE_NIMP(1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
 #ifndef SCM_RECKLESS
   else if (SCM_NECONSP (obj))
-    scm_wrong_type_arg (s_source_property, 1, obj);
+    SCM_WRONG_TYPE_ARG (1, obj);
 #endif
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (SCM_IMP (p) || !SRCPROPSP (p))
@@ -249,23 +234,21 @@ scm_source_property (obj, key)
     }
   return SCM_UNBNDP (p) ? SCM_BOOL_F : p;
 }
+#undef FUNC_NAME
 
-SCM_PROC (s_set_source_property_x, "set-source-property!", 3, 0, 0, scm_set_source_property_x);
-
-SCM
-scm_set_source_property_x (obj, key, datum)
-     SCM obj;
-     SCM key;
-     SCM datum;
+GUILE_PROC (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
+            (SCM obj, SCM key, SCM datum),
+"")
+#define FUNC_NAME s_scm_set_source_property_x
 {
   scm_whash_handle h;
   SCM p;
-  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_set_source_property_x);
+  SCM_VALIDATE_NIMP(1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
 #ifndef SCM_RECKLESS
   else if (SCM_NCONSP (obj))
-    scm_wrong_type_arg (s_set_source_property_x, 1, obj);
+    SCM_WRONG_TYPE_ARG (1, obj);
 #endif
   h = scm_whash_get_handle (scm_source_whash, obj);
   if (SCM_WHASHFOUNDP (h))
@@ -298,8 +281,7 @@ scm_set_source_property_x (obj, key, datum)
     }
   else if (scm_sym_line == key)
     {
-      SCM_ASSERT (SCM_INUMP (datum),
-		  datum, SCM_ARG3, s_set_source_property_x);
+      SCM_VALIDATE_INT(3,datum);
       if (SCM_NIMP (p) && SRCPROPSP (p))
 	SETSRCPROPLINE (p, SCM_INUM (datum));
       else
@@ -309,8 +291,7 @@ scm_set_source_property_x (obj, key, datum)
     }
   else if (scm_sym_column == key)
     {
-      SCM_ASSERT (SCM_INUMP (datum),
-		  datum, SCM_ARG3, s_set_source_property_x);
+      SCM_VALIDATE_INT(3,datum);
       if (SCM_NIMP (p) && SRCPROPSP (p))
 	SETSRCPROPCOL (p, SCM_INUM (datum));
       else
@@ -336,6 +317,7 @@ scm_set_source_property_x (obj, key, datum)
     SCM_WHASHSET (scm_source_whash, h, scm_acons (key, datum, p));
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 void

@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -52,47 +56,42 @@
 /* {Object Properties}
  */
 
-SCM_PROC(s_object_properties, "object-properties", 1, 0, 0, scm_object_properties);
-
-SCM
-scm_object_properties (obj)
-     SCM obj;
+GUILE_PROC(scm_object_properties, "object-properties", 1, 0, 0, 
+           (SCM obj),
+"")
+#define FUNC_NAME s_scm_object_properties
 {
   return scm_hashq_ref (scm_object_whash, obj, SCM_EOL);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_set_object_properties_x, "set-object-properties!", 2, 0, 0, scm_set_object_properties_x);
-
-SCM
-scm_set_object_properties_x (obj, plist)
-     SCM obj;
-     SCM plist;
+GUILE_PROC(scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
+           (SCM obj, SCM plist),
+"")
+#define FUNC_NAME s_scm_set_object_properties_x
 {
   SCM handle = scm_hashq_create_handle_x (scm_object_whash, obj, plist);
   SCM_SETCDR (handle, plist);
   return plist;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_object_property, "object-property", 2, 0, 0, scm_object_property);
-
-SCM
-scm_object_property (obj, key)
-     SCM obj;
-     SCM key;
+GUILE_PROC(scm_object_property, "object-property", 2, 0, 0,
+           (SCM obj, SCM key),
+"")
+#define FUNC_NAME s_scm_object_property
 {
   SCM assoc;
   assoc = scm_assq (key, scm_object_properties (obj));
   return (SCM_NIMP (assoc) ? SCM_CDR (assoc) : SCM_BOOL_F);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_set_object_property_x, "set-object-property!", 3, 0, 0, scm_set_object_property_x);
-
-SCM
-scm_set_object_property_x (obj, key, val)
-     SCM obj;
-     SCM key;
-     SCM val;
+GUILE_PROC(scm_set_object_property_x, "set-object-property!", 3, 0, 0,
+           (SCM obj, SCM key, SCM val),
+"")
+#define FUNC_NAME s_scm_set_object_property_x
 {
   SCM h;
   SCM assoc;
@@ -109,6 +108,7 @@ scm_set_object_property_x (obj, key, val)
   SCM_ALLOW_INTS;
   return val;
 }
+#undef FUNC_NAME
 
 
 void

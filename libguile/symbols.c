@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -48,6 +52,7 @@
 #include "alist.h"
 #include "weaks.h"
 
+#include "scm_validate.h"
 #include "symbols.h"
 
 #ifdef HAVE_STRING_H
@@ -69,10 +74,7 @@
 
 
 unsigned long 
-scm_strhash (str, len, n)
-     unsigned char *str;
-     scm_sizet len;
-     unsigned long n;
+scm_strhash (unsigned char *str,scm_sizet len,unsigned long n)
 {
   if (len > 5)
     {
@@ -100,10 +102,7 @@ int scm_symhash_dim = NUM_HASH_BUCKETS;
  */
 
 SCM 
-scm_sym2vcell (sym, thunk, definep)
-     SCM sym;
-     SCM thunk;
-     SCM definep;
+scm_sym2vcell (SCM sym,SCM thunk,SCM definep)
 {
   if (SCM_NIMP(thunk))
     {
@@ -165,9 +164,7 @@ scm_sym2vcell (sym, thunk, definep)
  */
 
 SCM 
-scm_sym2ovcell_soft (sym, obarray)
-     SCM sym;
-     SCM obarray;
+scm_sym2ovcell_soft (SCM sym, SCM obarray)
 {
   SCM lsym, z;
   scm_sizet scm_hash;
@@ -193,9 +190,7 @@ scm_sym2ovcell_soft (sym, obarray)
 
 
 SCM 
-scm_sym2ovcell (sym, obarray)
-     SCM sym;
-     SCM obarray;
+scm_sym2ovcell (SCM sym, SCM obarray)
 {
   SCM answer;
   answer = scm_sym2ovcell_soft (sym, obarray);
@@ -229,11 +224,7 @@ scm_sym2ovcell (sym, obarray)
 
 
 SCM 
-scm_intern_obarray_soft (name, len, obarray, softness)
-     const char *name;
-     scm_sizet len;
-     SCM obarray;
-     int softness;
+scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness)
 {
   SCM lsym;
   SCM z;
@@ -329,27 +320,21 @@ scm_intern_obarray_soft (name, len, obarray, softness)
 
 
 SCM
-scm_intern_obarray (name, len, obarray)
-     const char *name;
-     scm_sizet len;
-     SCM obarray;
+scm_intern_obarray (const char *name,scm_sizet len,SCM obarray)
 {
   return scm_intern_obarray_soft (name, len, obarray, 0);
 }
 
 
 SCM 
-scm_intern (name, len)
-     const char *name;
-     scm_sizet len;
+scm_intern (const char *name,scm_sizet len)
 {
   return scm_intern_obarray (name, len, scm_symhash);
 }
 
 
 SCM
-scm_intern0 (name)
-     const char * name;
+scm_intern0 (const char * name)
 {
   return scm_intern (name, strlen (name));
 }
@@ -357,8 +342,7 @@ scm_intern0 (name)
 
 /* Intern the symbol named NAME in scm_symhash, NAME is null-terminated.  */
 SCM 
-scm_sysintern0_no_module_lookup (name)
-     const char *name;
+scm_sysintern0_no_module_lookup (const char *name)
 {
   SCM easy_answer;
   SCM_DEFER_INTS;
@@ -394,9 +378,7 @@ int scm_can_use_top_level_lookup_closure_var;
    closure to give NAME its value.
  */
 SCM
-scm_sysintern (name, val)
-     const char *name;
-     SCM val;
+scm_sysintern (const char *name, SCM val)
 {
   SCM vcell = scm_sysintern0 (name);
   SCM_SETCDR (vcell, val);
@@ -404,8 +386,7 @@ scm_sysintern (name, val)
 }
 
 SCM
-scm_sysintern0 (name)
-     const char *name;
+scm_sysintern0 (const char *name)
 {
   SCM lookup_proc;
   if (scm_can_use_top_level_lookup_closure_var && 
@@ -424,8 +405,7 @@ scm_sysintern0 (name)
 /* Lookup the value of the symbol named by the nul-terminated string
    NAME in the current module.  */
 SCM
-scm_symbol_value0 (name)
-     const char *name;
+scm_symbol_value0 (const char *name)
 {
   /* This looks silly - we look up the symbol twice.  But it is in
      fact necessary given the current module system because the module
@@ -439,63 +419,57 @@ scm_symbol_value0 (name)
   return SCM_CDR (vcell);
 }
 
-SCM_PROC(s_symbol_p, "symbol?", 1, 0, 0, scm_symbol_p);
-
-SCM
-scm_symbol_p(x)
-     SCM x;
+GUILE_PROC(scm_symbol_p, "symbol?", 1, 0, 0, 
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_symbol_p
 {
   if SCM_IMP(x) return SCM_BOOL_F;
-  return SCM_SYMBOLP(x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_SYMBOLP(x));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_symbol_to_string, "symbol->string", 1, 0, 0, scm_symbol_to_string);
-
-SCM
-scm_symbol_to_string(s)
-     SCM s;
+GUILE_PROC(scm_symbol_to_string, "symbol->string", 1, 0, 0, 
+           (SCM s),
+"")
+#define FUNC_NAME s_scm_symbol_to_string
 {
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, s_symbol_to_string);
+  SCM_VALIDATE_SYMBOL(1,s);
   return scm_makfromstr(SCM_CHARS(s), (scm_sizet)SCM_LENGTH(s), 0);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_string_to_symbol, "string->symbol", 1, 0, 0, scm_string_to_symbol);
-
-SCM
-scm_string_to_symbol(s)
-     SCM s;
+GUILE_PROC(scm_string_to_symbol, "string->symbol", 1, 0, 0, 
+           (SCM s),
+"")
+#define FUNC_NAME s_scm_string_to_symbol
 {
   SCM vcell;
   SCM answer;
 
-  SCM_ASSERT(SCM_NIMP(s) && SCM_ROSTRINGP(s), s, SCM_ARG1, s_string_to_symbol);
+  SCM_VALIDATE_ROSTRING(1,s);
   vcell = scm_intern(SCM_ROCHARS(s), (scm_sizet)SCM_LENGTH(s));
   answer = SCM_CAR (vcell);
   return answer;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0, scm_string_to_obarray_symbol);
-
-SCM
-scm_string_to_obarray_symbol(o, s, softp)
-     SCM o;
-     SCM s;
-     SCM softp;
+GUILE_PROC(scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
+           (SCM o, SCM s, SCM softp),
+"")
+#define FUNC_NAME s_scm_string_to_obarray_symbol
 {
   SCM vcell;
   SCM answer;
   int softness;
 
-  SCM_ASSERT(SCM_NIMP(s) && SCM_ROSTRINGP(s), s, SCM_ARG2,
-	     s_string_to_obarray_symbol);
+  SCM_VALIDATE_ROSTRING(2,s);
   SCM_ASSERT((o == SCM_BOOL_F)
 	     || (o == SCM_BOOL_T)
 	     || (SCM_NIMP(o) && SCM_VECTORP(o)),
-	     o,
-	     SCM_ARG1,
-	     s_string_to_obarray_symbol);
+	     o, SCM_ARG1, FUNC_NAME);
 
   softness = ((softp != SCM_UNDEFINED) && (softp != SCM_BOOL_F));
   /* iron out some screwy calling conventions */
@@ -513,19 +487,18 @@ scm_string_to_obarray_symbol(o, s, softp)
   answer = SCM_CAR (vcell);
   return answer;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_intern_symbol, "intern-symbol", 2, 0, 0, scm_intern_symbol);
-
-SCM
-scm_intern_symbol(o, s)
-     SCM o;
-     SCM s;
+GUILE_PROC(scm_intern_symbol, "intern-symbol", 2, 0, 0,
+           (SCM o, SCM s),
+"")
+#define FUNC_NAME s_scm_intern_symbol
 {
   scm_sizet hval;
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_intern_symbol);
+  SCM_VALIDATE_SYMBOL(2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_intern_symbol);
+  SCM_VALIDATE_VECTOR(1,o);
   hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
   /* If the symbol is already interned, simply return. */
   SCM_REDEFER_INTS;
@@ -549,19 +522,18 @@ scm_intern_symbol(o, s)
   SCM_REALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_unintern_symbol, "unintern-symbol", 2, 0, 0, scm_unintern_symbol);
-
-SCM
-scm_unintern_symbol(o, s)
-     SCM o;
-     SCM s;
+GUILE_PROC(scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
+           (SCM o, SCM s),
+"")
+#define FUNC_NAME s_scm_unintern_symbol
 {
   scm_sizet hval;
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_unintern_symbol);
+  SCM_VALIDATE_SYMBOL(2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_unintern_symbol);
+  SCM_VALIDATE_VECTOR(1,o);
   hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
   SCM_DEFER_INTS;
   {
@@ -588,36 +560,34 @@ scm_unintern_symbol(o, s)
   SCM_ALLOW_INTS;
   return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_symbol_binding, "symbol-binding", 2, 0, 0, scm_symbol_binding);
-
-SCM
-scm_symbol_binding (o, s)
-     SCM o;
-     SCM s;
+GUILE_PROC(scm_symbol_binding, "symbol-binding", 2, 0, 0,
+           (SCM o, SCM s),
+"")
+#define FUNC_NAME s_scm_symbol_binding
 {
   SCM vcell;
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_symbol_binding);
+  SCM_VALIDATE_SYMBOL(2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_symbol_binding);
+  SCM_VALIDATE_VECTOR(1,o);
   vcell = scm_sym2ovcell (s, o);
   return SCM_CDR(vcell);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_symbol_interned_p, "symbol-interned?", 2, 0, 0, scm_symbol_interned_p);
-
-SCM
-scm_symbol_interned_p (o, s)
-     SCM o;
-     SCM s;
+GUILE_PROC(scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
+           (SCM o, SCM s),
+"")
+#define FUNC_NAME s_scm_symbol_interned_p
 {
   SCM vcell;
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_symbol_interned_p);
+  SCM_VALIDATE_SYMBOL(2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_symbol_interned_p);
+  SCM_VALIDATE_VECTOR(1,o);
   vcell = scm_sym2ovcell_soft (s, o);
   if (SCM_IMP(vcell) && (o == scm_symhash))
     vcell = scm_sym2ovcell_soft (s, scm_weak_symhash);
@@ -625,49 +595,46 @@ scm_symbol_interned_p (o, s)
 	  ? SCM_BOOL_T
 	  : SCM_BOOL_F);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_symbol_bound_p, "symbol-bound?", 2, 0, 0, scm_symbol_bound_p);
-
-SCM 
-scm_symbol_bound_p (o, s)
-     SCM o;
-     SCM s;
+GUILE_PROC(scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
+           (SCM o, SCM s),
+"")
+#define FUNC_NAME s_scm_symbol_bound_p
 {
   SCM vcell;
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_symbol_bound_p);
+  SCM_VALIDATE_SYMBOL(2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_symbol_bound_p);
+  SCM_VALIDATE_VECTOR(1,o);
   vcell = scm_sym2ovcell_soft (s, o);
   return ((  SCM_NIMP(vcell)
 	   && (SCM_CDR(vcell) != SCM_UNDEFINED))
 	  ? SCM_BOOL_T
 	  : SCM_BOOL_F);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_symbol_set_x, "symbol-set!", 3, 0, 0, scm_symbol_set_x);
-
-SCM 
-scm_symbol_set_x (o, s, v)
-     SCM o;
-     SCM s;
-     SCM v;
+GUILE_PROC(scm_symbol_set_x, "symbol-set!", 3, 0, 0,
+           (SCM o, SCM s, SCM v),
+"")
+#define FUNC_NAME s_scm_symbol_set_x
 {
   SCM vcell;
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG2, s_symbol_set_x);
+  SCM_VALIDATE_SYMBOL(2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_symbol_set_x);
+  SCM_VALIDATE_VECTOR(1,o);
   vcell = scm_sym2ovcell (s, o);
   SCM_SETCDR (vcell, v);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 static void
-msymbolize (s)
-     SCM s;
+msymbolize (SCM s)
 {
   SCM string;
   string = scm_makfromstr (SCM_CHARS (s), SCM_LENGTH (s), SCM_SYMBOL_SLOTS);
@@ -683,44 +650,42 @@ msymbolize (s)
 }
 
 
-SCM_PROC(s_symbol_fref, "symbol-fref", 1, 0, 0, scm_symbol_fref);
-
-SCM
-scm_symbol_fref (s)
-     SCM s;
+GUILE_PROC(scm_symbol_fref, "symbol-fref", 1, 0, 0, 
+           (SCM s),
+"")
+#define FUNC_NAME s_scm_symbol_fref
 {
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, s_symbol_fref);
+  SCM_VALIDATE_SYMBOL(1,s);
   SCM_DEFER_INTS;
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
   SCM_ALLOW_INTS;
   return SCM_SYMBOL_FUNC (s);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_symbol_pref, "symbol-pref", 1, 0, 0, scm_symbol_pref);
-
-SCM
-scm_symbol_pref (s)
-     SCM s;
+GUILE_PROC(scm_symbol_pref, "symbol-pref", 1, 0, 0, 
+           (SCM s),
+"")
+#define FUNC_NAME s_scm_symbol_pref
 {
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, s_symbol_pref);
+  SCM_VALIDATE_SYMBOL(1,s);
   SCM_DEFER_INTS;
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
   SCM_ALLOW_INTS;
   return SCM_SYMBOL_PROPS (s);
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_symbol_fset_x, "symbol-fset!", 2, 0, 0, scm_symbol_fset_x);
-
-SCM
-scm_symbol_fset_x (s, val)
-     SCM s;
-     SCM val;
+GUILE_PROC(scm_symbol_fset_x, "symbol-fset!", 2, 0, 0, 
+           (SCM s, SCM val),
+           "")
+#define FUNC_NAME s_scm_symbol_fset_x
 {
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, s_symbol_fset_x);
+  SCM_VALIDATE_SYMBOL(1,s);
   SCM_DEFER_INTS;
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
@@ -728,16 +693,15 @@ scm_symbol_fset_x (s, val)
   SCM_SYMBOL_FUNC (s) = val;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_symbol_pset_x, "symbol-pset!", 2, 0, 0, scm_symbol_pset_x);
-
-SCM
-scm_symbol_pset_x (s, val)
-     SCM s;
-     SCM val;
+GUILE_PROC(scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
+           (SCM s, SCM val),
+"")
+#define FUNC_NAME s_scm_symbol_pset_x
 {
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, s_symbol_pset_x);
+  SCM_VALIDATE_SYMBOL(1,s);
   SCM_DEFER_INTS;
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
@@ -745,27 +709,24 @@ scm_symbol_pset_x (s, val)
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_symbol_hash, "symbol-hash", 1, 0, 0, scm_symbol_hash);
-
-SCM
-scm_symbol_hash (s)
-     SCM s;
+GUILE_PROC(scm_symbol_hash, "symbol-hash", 1, 0, 0, 
+           (SCM s),
+"")
+#define FUNC_NAME s_scm_symbol_hash
 {
-  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, s_symbol_hash);
+  SCM_VALIDATE_SYMBOL(1,s);
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
   return SCM_MAKINUM ((unsigned long)s ^ SCM_SYMBOL_HASH (s));
 }
+#undef FUNC_NAME
 
-
-static void copy_and_prune_obarray SCM_P ((SCM from, SCM to));
 
 static void
-copy_and_prune_obarray (from, to)
-     SCM from;
-     SCM to;
+copy_and_prune_obarray (SCM from, SCM to)
 {
   int i;
   int length = SCM_LENGTH (from);
@@ -789,46 +750,46 @@ copy_and_prune_obarray (from, to)
 }
 
 
-SCM_PROC(s_builtin_bindings, "builtin-bindings", 0, 0, 0, scm_builtin_bindings);
-
-SCM
-scm_builtin_bindings ()
+GUILE_PROC(scm_builtin_bindings, "builtin-bindings", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_builtin_bindings
 {
   int length = SCM_LENGTH (scm_symhash);
   SCM obarray = scm_make_vector (SCM_MAKINUM (length), SCM_EOL);
   copy_and_prune_obarray (scm_symhash, obarray);
   return obarray;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC(s_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0, scm_builtin_weak_bindings);
-
-SCM
-scm_builtin_weak_bindings ()
+GUILE_PROC(scm_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0, 
+           (),
+"")
+#define FUNC_NAME s_scm_builtin_weak_bindings
 {
   int length = SCM_LENGTH (scm_weak_symhash);
   SCM obarray = scm_make_doubly_weak_hash_table (SCM_MAKINUM (length));
   copy_and_prune_obarray (scm_weak_symhash, obarray);
   return obarray;
 }
+#undef FUNC_NAME
 
 static int gensym_counter;
 static SCM gensym_prefix;
 
-/*fixme* Optimize */
-SCM_PROC (s_gensym, "gensym", 0, 2, 0, scm_gensym);
-
-SCM
-scm_gensym (name, obarray)
-     SCM name;
-     SCM obarray;
+/* :FIXME:OPTIMIZE */
+GUILE_PROC (scm_gensym, "gensym", 0, 2, 0,
+            (SCM name, SCM obarray),
+"")
+#define FUNC_NAME s_scm_gensym
 {
   SCM new;
   if (SCM_UNBNDP (name))
     name = gensym_prefix;
   else
-    SCM_ASSERT (SCM_NIMP (name) && SCM_ROSTRINGP (name),
-		name, SCM_ARG1, s_gensym);
+    SCM_VALIDATE_ROSTRING(1,name);
+
   new = name;
   if (SCM_UNBNDP (obarray))
     {
@@ -840,7 +801,7 @@ scm_gensym (name, obarray)
 		&& (SCM_VECTORP (obarray) || SCM_WVECTP (obarray)),
 		obarray,
 		SCM_ARG2,
-		s_gensym);
+		FUNC_NAME);
   while (scm_string_to_obarray_symbol (obarray, new, SCM_BOOL_T)
 	 != SCM_BOOL_F)
     skip_test:
@@ -851,6 +812,7 @@ scm_gensym (name, obarray)
 		  SCM_EOL));
   return scm_string_to_obarray_symbol (obarray, new, SCM_BOOL_F);
 }
+#undef FUNC_NAME
 
 void
 scm_init_symbols ()

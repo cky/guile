@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -45,39 +49,41 @@
 #include "chars.h"
 
 #include "strings.h"
+#include "scm_validate.h"
 
 
 /* {Strings}
  */
 
-SCM_PROC(s_string_p, "string?", 1, 0, 0, scm_string_p);
-
-SCM
-scm_string_p (x)
-     SCM x;
+GUILE_PROC(scm_string_p, "string?", 1, 0, 0, 
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_string_p
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
-  return SCM_STRINGP (x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_STRINGP (x));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_read_only_string_p, "read-only-string?", 1, 0, 0, scm_read_only_string_p);
-
-SCM
-scm_read_only_string_p (x)
-     SCM x;
+GUILE_PROC(scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
+           (SCM x),
+"")
+#define FUNC_NAME s_scm_read_only_string_p
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
-  return SCM_ROSTRINGP (x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_ROSTRINGP (x));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_list_to_string, "list->string", 1, 0, 0, scm_string);
-SCM_PROC(s_string, "string", 0, 0, 1, scm_string);
+SCM_REGISTER_PROC(s_list_to_string, "list->string", 1, 0, 0, scm_string);
 
-SCM
-scm_string (chrs)
-     SCM chrs;
+
+GUILE_PROC(scm_string, "string", 0, 0, 1, 
+           (SCM chrs),
+"")
+#define FUNC_NAME s_scm_string
 {
   SCM res;
   register unsigned char *data;
@@ -88,7 +94,7 @@ scm_string (chrs)
   if (i < 0)
     {
       SCM_ALLOW_INTS;
-      SCM_ASSERT (0, chrs, SCM_ARG1, s_string);
+      SCM_ASSERT (0, chrs, SCM_ARG1, FUNC_NAME);
     }
   len = 0;
   {
@@ -102,7 +108,7 @@ scm_string (chrs)
       else
 	{
 	  SCM_ALLOW_INTS;
-	  SCM_ASSERT (0, s, SCM_ARG1, s_string);
+	  SCM_ASSERT (0, s, SCM_ARG1, FUNC_NAME);
 	}
   }
   res = scm_makstr (len, 0);
@@ -127,12 +133,11 @@ scm_string (chrs)
   SCM_ALLOW_INTS;
   return res;
 }
+#undef FUNC_NAME
 
 
 SCM 
-scm_makstr (len, slots)
-     long len;
-     int slots;
+scm_makstr (long len, int slots)
 {
   SCM s;
   SCM * mem;
@@ -140,7 +145,7 @@ scm_makstr (len, slots)
   --slots;
   SCM_REDEFER_INTS;
   mem = (SCM *)scm_must_malloc (sizeof (SCM) * (slots + 1) + len + 1,
-				s_string);
+				"scm_makstr");
   if (slots >= 0)
     {
       int x;
@@ -159,9 +164,7 @@ scm_makstr (len, slots)
 /* If argc < 0, a null terminated scm_array is assumed. */
 
 SCM 
-scm_makfromstrs (argc, argv)
-     int argc;
-     char **argv;
+scm_makfromstrs (int argc, char **argv)
 {
   int i = argc;
   SCM lst = SCM_EOL;
@@ -203,10 +206,7 @@ scm_take0str (char *s)
 
 
 SCM 
-scm_makfromstr (src, len, slots)
-     const char *src;
-     scm_sizet len;
-     int slots;
+scm_makfromstr (const char *src, scm_sizet len, int slots)
 {
   SCM s;
   register char *dst;
@@ -220,8 +220,7 @@ scm_makfromstr (src, len, slots)
 
 
 SCM 
-scm_makfrom0str (src)
-     const char *src;
+scm_makfrom0str (const char *src)
 {
   if (!src) return SCM_BOOL_F;
   return scm_makfromstr (src, (scm_sizet) strlen (src), 0);
@@ -229,8 +228,7 @@ scm_makfrom0str (src)
 
 
 SCM 
-scm_makfrom0str_opt (src)
-     const char *src;
+scm_makfrom0str_opt (const char *src)
 {
   return scm_makfrom0str (src);
 }
@@ -238,21 +236,18 @@ scm_makfrom0str_opt (src)
 
 
 
-SCM_PROC(s_make_string, "make-string", 1, 1, 0, scm_make_string);
-
-SCM
-scm_make_string (k, chr)
-     SCM k;
-     SCM chr;
+GUILE_PROC(scm_make_string, "make-string", 1, 1, 0,
+           (SCM k, SCM chr),
+"")
+#define FUNC_NAME s_scm_make_string
 {
   SCM res;
   register long i;
-  SCM_ASSERT (SCM_INUMP (k) && (k >= 0), k, SCM_ARG1, s_make_string);
-  i = SCM_INUM (k);
+  SCM_VALIDATE_INT_MIN_COPY(1,k,0,i);
   res = scm_makstr (i, 0);
   if (!SCM_UNBNDP (chr))
     {
-      SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG2, s_make_string);
+      SCM_VALIDATE_CHAR(2,chr);
       {
 	unsigned char *dst = SCM_UCHARS (res);
 	char c = SCM_ICHR (chr);
@@ -262,96 +257,79 @@ scm_make_string (k, chr)
     }
   return res;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_length, "string-length", 1, 0, 0, scm_string_length);
-
-SCM
-scm_string_length (str)
-     SCM str;
+GUILE_PROC(scm_string_length, "string-length", 1, 0, 0, 
+           (SCM str),
+"")
+#define FUNC_NAME s_scm_string_length
 {
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_string_length);
+  SCM_VALIDATE_ROSTRING(1,str);
   return SCM_MAKINUM (SCM_ROLENGTH (str));
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_ref, "string-ref", 1, 1, 0, scm_string_ref);
-
-SCM
-scm_string_ref (str, k)
-     SCM str;
-     SCM k;
+GUILE_PROC(scm_string_ref, "string-ref", 1, 1, 0,
+           (SCM str, SCM k),
+"")
+#define FUNC_NAME s_scm_string_ref
 {
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_string_ref);
-  if (k == SCM_UNDEFINED)
-    k = SCM_MAKINUM (0);
-  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG2, s_string_ref);
-  SCM_ASSERT (SCM_INUM (k) < SCM_ROLENGTH (str) && SCM_INUM (k) >= 0, k, SCM_OUTOFRANGE, s_string_ref);
+  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_INT_DEF(2,k,0);
+  SCM_ASSERT (SCM_INUM (k) < SCM_ROLENGTH (str) && SCM_INUM (k) >= 0, k, SCM_OUTOFRANGE, FUNC_NAME);
   return SCM_MAKICHR (SCM_ROUCHARS (str)[SCM_INUM (k)]);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_set_x, "string-set!", 3, 0, 0, scm_string_set_x);
-
-SCM
-scm_string_set_x (str, k, chr)
-     SCM str;
-     SCM k;
-     SCM chr;
+GUILE_PROC(scm_string_set_x, "string-set!", 3, 0, 0,
+           (SCM str, SCM k, SCM chr),
+"")
+#define FUNC_NAME s_scm_string_set_x
 {
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str),
-	      str, SCM_ARG1, s_string_set_x);
-  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG2, s_string_set_x);
-  SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG3, s_string_set_x);
-  if (! SCM_RWSTRINGP (str))
-    scm_misc_error (s_string_set_x, "argument is a read-only string", str);
-  SCM_ASSERT ((SCM_INUM (k) >= 0
-	       && ((unsigned) SCM_INUM (k)) < SCM_LENGTH (str)),
-	      k, SCM_OUTOFRANGE, s_string_set_x);
+  SCM_VALIDATE_RWSTRING(1,str);
+  SCM_VALIDATE_INT_RANGE(2,k,0,SCM_LENGTH(str));
+  SCM_VALIDATE_CHAR(3,chr);
   SCM_UCHARS (str)[SCM_INUM (k)] = SCM_ICHR (chr);
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 
-SCM_PROC(s_substring, "substring", 2, 1, 0, scm_substring);
-
-SCM
-scm_substring (str, start, end)
-     SCM str;
-     SCM start;
-     SCM end;
+GUILE_PROC(scm_substring, "substring", 2, 1, 0,
+           (SCM str, SCM start, SCM end),
+"")
+#define FUNC_NAME s_scm_substring
 {
   long l;
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str),
-	 str, SCM_ARG1, s_substring);
-  SCM_ASSERT (SCM_INUMP (start), start, SCM_ARG2, s_substring);
-  if (end == SCM_UNDEFINED)
-    end = SCM_MAKINUM (SCM_ROLENGTH (str));
-  SCM_ASSERT (SCM_INUMP (end), end, SCM_ARG3, s_substring);
-  SCM_ASSERT (SCM_INUM (start) <= SCM_ROLENGTH (str), start, SCM_OUTOFRANGE, s_substring);
-  SCM_ASSERT (SCM_INUM (end) <= SCM_ROLENGTH (str), end, SCM_OUTOFRANGE, s_substring);
+  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_INT(2,start);
+  SCM_VALIDATE_INT_DEF(3,end,SCM_ROLENGTH(str));
+  SCM_ASSERT (SCM_INUM (start) <= SCM_ROLENGTH (str), start, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT (SCM_INUM (end) <= SCM_ROLENGTH (str), end, SCM_OUTOFRANGE, FUNC_NAME);
   l = SCM_INUM (end)-SCM_INUM (start);
-  SCM_ASSERT (l >= 0, SCM_MAKINUM (l), SCM_OUTOFRANGE, s_substring);
+  SCM_ASSERT (l >= 0, SCM_MAKINUM (l), SCM_OUTOFRANGE, FUNC_NAME);
   return scm_makfromstr (&SCM_ROCHARS (str)[SCM_INUM (start)], (scm_sizet)l, 0);
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_string_append, "string-append", 0, 0, 1, scm_string_append);
-
-SCM
-scm_string_append (args)
-     SCM args;
+GUILE_PROC(scm_string_append, "string-append", 0, 0, 1, 
+           (SCM args),
+"")
+#define FUNC_NAME s_scm_string_append
 {
   SCM res;
   register long i = 0;
   register SCM l, s;
   register unsigned char *data;
   for (l = args;SCM_NIMP (l);) {
-    SCM_ASSERT (SCM_CONSP (l), l, SCM_ARGn, s_string_append);
+    SCM_ASSERT (SCM_CONSP (l), l, SCM_ARGn, FUNC_NAME);
     s = SCM_CAR (l);
-    SCM_ASSERT (SCM_NIMP (s) && SCM_ROSTRINGP (s),
-	   s, SCM_ARGn, s_string_append);
+    SCM_VALIDATE_ROSTRING(SCM_ARGn,s);
     i += SCM_ROLENGTH (s);
     l = SCM_CDR (l);
   }
-  SCM_ASSERT (SCM_NULLP (l), args, SCM_ARGn, s_string_append);
+  SCM_ASSERT (SCM_NULLP (l), args, SCM_ARGn, FUNC_NAME);
   res = scm_makstr (i, 0);
   data = SCM_UCHARS (res);
   for (l = args;SCM_NIMP (l);l = SCM_CDR (l)) {
@@ -360,37 +338,25 @@ scm_string_append (args)
   }
   return res;
 }
+#undef FUNC_NAME
 
-SCM_PROC(s_make_shared_substring, "make-shared-substring", 1, 2, 0, scm_make_shared_substring);
-
-SCM
-scm_make_shared_substring (str, frm, to)
-     SCM str;
-     SCM frm;
-     SCM to;
+GUILE_PROC(scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
+           (SCM str, SCM frm, SCM to),
+"")
+#define FUNC_NAME s_scm_make_shared_substring
 {
   long f;
   long t;
   SCM answer;
   SCM len_str;
 
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_make_shared_substring);
+  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_INT_DEF_COPY(2,frm,0,f);
+  SCM_VALIDATE_INT_DEF_COPY(3,to,0,t);
 
-  if (frm == SCM_UNDEFINED)
-    frm = SCM_MAKINUM (0);
-  else
-    SCM_ASSERT (SCM_INUMP (frm), frm, SCM_ARG2, s_make_shared_substring);
-
-  if (to == SCM_UNDEFINED)
-    to = SCM_MAKINUM (SCM_ROLENGTH (str));
-  else
-    SCM_ASSERT (SCM_INUMP (to), to, SCM_ARG3, s_make_shared_substring);
-
-  f = SCM_INUM (frm);
-  t = SCM_INUM (to);
-  SCM_ASSERT ((f >= 0), frm, SCM_OUTOFRANGE, s_make_shared_substring);
+  SCM_ASSERT ((f >= 0), frm, SCM_OUTOFRANGE, FUNC_NAME);
   SCM_ASSERT ((f <= t) && (t <= SCM_ROLENGTH (str)), to, SCM_OUTOFRANGE,
-	      s_make_shared_substring);
+	      FUNC_NAME);
 
   SCM_NEWCELL (answer);
   SCM_NEWCELL (len_str);
@@ -417,7 +383,7 @@ scm_make_shared_substring (str, frm, to)
   SCM_ALLOW_INTS;
   return answer;
 }
-
+#undef FUNC_NAME
 
 void
 scm_init_strings ()
