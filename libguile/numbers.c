@@ -39,6 +39,9 @@
 
  */
 
+/* tell glibc (2.3) to give prototype for C99 trunc() */
+#define _GNU_SOURCE
+
 #if HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -262,8 +265,6 @@ xisnan (double x)
   return 0;
 #endif
 }
-
-#define isfinite(x) (! xisinf (x))
 
 SCM_DEFINE (scm_inf_p, "inf?", 1, 0, 0, 
             (SCM n),
@@ -3643,46 +3644,67 @@ scm_divide (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
-SCM_GPROC1 (s_asinh, "$asinh", scm_tc7_dsubr, (SCM (*)()) scm_asinh, g_asinh);
-/* "Return the inverse hyperbolic sine of @var{x}."
- */
+
 double
 scm_asinh (double x)
 {
+#if HAVE_ASINH
+  return asinh (x);
+#else
+#define asinh scm_asinh
   return log (x + sqrt (x * x + 1));
+#endif
 }
-
-
-SCM_GPROC1 (s_acosh, "$acosh", scm_tc7_dsubr, (SCM (*)()) scm_acosh, g_acosh);
-/* "Return the inverse hyperbolic cosine of @var{x}."
+SCM_GPROC1 (s_asinh, "$asinh", scm_tc7_dsubr, (SCM (*)()) asinh, g_asinh);
+/* "Return the inverse hyperbolic sine of @var{x}."
  */
+
+
 double
 scm_acosh (double x)
 {
+#if HAVE_ACOSH
+  return acosh (x);
+#else
+#define acosh scm_acosh
   return log (x + sqrt (x * x - 1));
+#endif
 }
-
-
-SCM_GPROC1 (s_atanh, "$atanh", scm_tc7_dsubr, (SCM (*)()) scm_atanh, g_atanh);
-/* "Return the inverse hyperbolic tangent of @var{x}."
+SCM_GPROC1 (s_acosh, "$acosh", scm_tc7_dsubr, (SCM (*)()) acosh, g_acosh);
+/* "Return the inverse hyperbolic cosine of @var{x}."
  */
+
+
 double
 scm_atanh (double x)
 {
+#if HAVE_ATANH
+  return atanh (x);
+#else
+#define atanh scm_atanh
   return 0.5 * log ((1 + x) / (1 - x));
+#endif
 }
-
-
-SCM_GPROC1 (s_truncate, "truncate", scm_tc7_dsubr, (SCM (*)()) scm_truncate, g_truncate);
-/* "Round the inexact number @var{x} towards zero."
+SCM_GPROC1 (s_atanh, "$atanh", scm_tc7_dsubr, (SCM (*)()) atanh, g_atanh);
+/* "Return the inverse hyperbolic tangent of @var{x}."
  */
+
+
 double
 scm_truncate (double x)
 {
+#if HAVE_TRUNC
+  return trunc (x);
+#else
+#define trunc scm_truncate
   if (x < 0.0)
     return -floor (-x);
   return floor (x);
+#endif
 }
+SCM_GPROC1 (s_truncate, "truncate", scm_tc7_dsubr, (SCM (*)()) trunc, g_truncate);
+/* "Round the inexact number @var{x} towards zero."
+ */
 
 
 SCM_GPROC1 (s_round, "round", scm_tc7_dsubr, (SCM (*)()) scm_round, g_round);
@@ -3973,7 +3995,7 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
     long lu = (long) u;
     if (SCM_FIXABLE (lu)) {
       return SCM_MAKINUM (lu);
-    } else if (isfinite (u) && !xisnan (u)) {
+    } else if (!xisinf (u) && !xisnan (u)) {
       return scm_i_dbl2big (u);
     } else {
       scm_num_overflow (s_scm_inexact_to_exact);
