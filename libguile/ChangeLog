@@ -1,5 +1,8 @@
 Thu Aug  1 02:58:39 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
+	* filesys.c, posix.c: #include <sys/types.h> before <sys/stat.h>.
+	This is necessary on Ultrix, and doesn't hurt portability. 
+
 	* Makefile.in (dist-dir): New target, implementing a new dist system.
 	(installed_h_files): Put in alphabetical order.
 	Remove duplicate entries for markers.h and unif.h.
@@ -7,6 +10,8 @@ Thu Aug  1 02:58:39 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 	(ancillary): Renamed from anillery; all uses changed.  Remove
  	PLUGIN; it's a directory, and needs special treatment in dist-dir.
   	Remove all the ../doc/* files; doc/Makefile.in handles that.
+
+	* Makefile.in (libobjs): Remove duplicate entry for markers.o.
 
 	* Makefile.in (.c.x): Compensate for Ultrix's broken Bourne shell:
 	every if must have an else, or else the whole command has a
