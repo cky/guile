@@ -1,6 +1,16 @@
 2001-12-28  Thien-Thi Nguyen  <ttn@glug.org>
 
-	* Update copyright.
+	* guile.m4 (GUILE_PROGS, GUILE_SITE_DIR, GUILE_CHECK,
+	GUILE_MODULE_EXPORTS, GUILE_MODULE_REQUIRED_EXPORTS): New macros.
+
+	(GUILE_MODULE_CHECK): Renamed from AC_GUILE_MODULE_CHECK.
+	Rewritten to expect `description' as a present-tense verb phrase.
+
+	(GUILE_MODULE_AVAILABLE, GUILE_MODULE_REQUIRED): Renamed likewise.
+
+2001-12-28  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* guile.m4: Update copyright.
 	Add index in header comments.
 
 	(AC_GUILE_MODULE_CHECK, AC_GUILE_MODULE_AVAILABLE,
