@@ -240,7 +240,6 @@ stringbuf_grow (struct stringbuf *buf)
 {
   size_t ptroff = buf->ptr - buf->buf;
   buf->buf_len *= 2; 
-  // fprintf (stderr, "growing to %u\n", buf->buf_len);
   buf->buf = scm_realloc (buf->buf, buf->buf_len);
   buf->ptr = buf->buf + ptroff;
 }
@@ -408,8 +407,6 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 	  
 	  /* If the file exists at all, we should return it.  If the
 	     file is inaccessible, then that's an error.  */
-
-	  // fprintf (stderr, "trying: %s\n", buf.buf);
 
 	  if (stat (buf.buf, &mode) == 0
 	      && ! (mode.st_mode & S_IFDIR))
