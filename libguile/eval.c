@@ -89,8 +89,10 @@ char *alloca ();
 
 
 
+static SCM unmemoize_exprs (SCM expr, SCM env);
 static SCM canonicalize_define (SCM expr);
 static SCM *scm_lookupcar1 (SCM vloc, SCM genv, int check);
+static SCM unmemoize_builtin_macro (SCM expr, SCM env);
 
 
 
@@ -526,6 +528,69 @@ is_self_quoting_p (const SCM expr)
 }
 
 
+SCM_SYMBOL (sym_three_question_marks, "???");
+
+static SCM
+unmemoize_expression (const SCM expr, const SCM env)
+{
+  if (SCM_ILOCP (expr))
+    {
+      SCM frame_idx;
+      unsigned long int frame_nr;
+      SCM symbol_idx;
+      unsigned long int symbol_nr;
+
+      for (frame_idx = env, frame_nr = SCM_IFRAME (expr);
+           frame_nr != 0; 
+           frame_idx = SCM_CDR (frame_idx), --frame_nr)
+        ;
+      for (symbol_idx = SCM_CAAR (frame_idx), symbol_nr = SCM_IDIST (expr);
+           symbol_nr != 0;
+           symbol_idx = SCM_CDR (symbol_idx), --symbol_nr)
+        ;
+      return SCM_ICDRP (expr) ? symbol_idx : SCM_CAR (symbol_idx);
+    }
+  else if (SCM_VARIABLEP (expr))
+    {
+      const SCM sym = scm_module_reverse_lookup (scm_env_module (env), expr);
+      return !SCM_FALSEP (sym) ? sym : sym_three_question_marks;
+    }
+  else if (SCM_VECTORP (expr))
+    {
+      return scm_list_2 (scm_sym_quote, expr);
+    }
+  else if (!SCM_CONSP (expr))
+    {
+      return expr;
+    }
+  else if (SCM_ISYMP (SCM_CAR (expr)))
+    {
+      return unmemoize_builtin_macro (expr, env);
+    }
+  else
+    {
+      return unmemoize_exprs (expr, env);
+    }
+}
+
+
+static SCM
+unmemoize_exprs (const SCM exprs, const SCM env)
+{
+  SCM result = SCM_EOL;
+  SCM expr_idx;
+
+  for (expr_idx = exprs; !SCM_NULLP (expr_idx); expr_idx = SCM_CDR (expr_idx))
+    {
+      const SCM expr = SCM_CAR (expr_idx);
+      const SCM um_expr = unmemoize_expression (expr, env);
+      result = scm_cons (um_expr, result);
+    }
+
+  return scm_reverse_x (result, SCM_UNDEFINED);
+}
+
+
 /* Rewrite the body (which is given as the list of expressions forming the
  * body) into its internal form.  The internal form of a body (<expr> ...) is
  * just the body itself, but prefixed with an ISYM that denotes to what kind
@@ -814,6 +879,12 @@ scm_m_and (SCM expr, SCM env SCM_UNUSED)
     }
 }
 
+static SCM
+unmemoize_and (const SCM expr, const SCM env)
+{
+  return scm_cons (scm_sym_and, unmemoize_exprs (SCM_CDR (expr), env));
+}
+
 
 SCM_SYNTAX (s_begin, "begin", scm_i_makbimacro, scm_m_begin);
 SCM_GLOBAL_SYMBOL (scm_sym_begin, s_begin);
@@ -829,6 +900,12 @@ scm_m_begin (SCM expr, SCM env SCM_UNUSED)
 
   SCM_SETCAR (expr, SCM_IM_BEGIN);
   return expr;
+}
+
+static SCM
+unmemoize_begin (const SCM expr, const SCM env)
+{
+  return scm_cons (scm_sym_begin, unmemoize_exprs (SCM_CDR (expr), env));
 }
 
 
@@ -899,6 +976,34 @@ scm_m_case (SCM expr, SCM env)
   return expr;
 }
 
+static SCM
+unmemoize_case (const SCM expr, const SCM env)
+{
+  const SCM um_key_expr = unmemoize_expression (SCM_CADR (expr), env);
+  SCM um_clauses = SCM_EOL;
+  SCM clause_idx;
+
+  for (clause_idx = SCM_CDDR (expr);
+       !SCM_NULLP (clause_idx);
+       clause_idx = SCM_CDR (clause_idx))
+    {
+      const SCM clause = SCM_CAR (clause_idx);
+      const SCM labels = SCM_CAR (clause);
+      const SCM exprs = SCM_CDR (clause);
+
+      const SCM um_exprs = unmemoize_exprs (exprs, env);
+      const SCM um_labels = (SCM_EQ_P (labels, SCM_IM_ELSE))
+        ? scm_sym_else
+        : scm_i_finite_list_copy (labels);
+      const SCM um_clause = scm_cons (um_labels, um_exprs);
+
+      um_clauses = scm_cons (um_clause, um_clauses);
+    }
+  um_clauses = scm_reverse_x (um_clauses, SCM_UNDEFINED);
+
+  return scm_cons2 (scm_sym_case, um_key_expr, um_clauses);
+}
+
 
 SCM_SYNTAX (s_cond, "cond", scm_i_makbimacro, scm_m_cond);
 SCM_GLOBAL_SYMBOL (scm_sym_cond, s_cond);
@@ -949,6 +1054,47 @@ scm_m_cond (SCM expr, SCM env)
 
   SCM_SETCAR (expr, SCM_IM_COND);
   return expr;
+}
+
+static SCM
+unmemoize_cond (const SCM expr, const SCM env)
+{
+  SCM um_clauses = SCM_EOL;
+  SCM clause_idx;
+
+  for (clause_idx = SCM_CDR (expr);
+       !SCM_NULLP (clause_idx);
+       clause_idx = SCM_CDR (clause_idx))
+    {
+      const SCM clause = SCM_CAR (clause_idx);
+      const SCM sequence = SCM_CDR (clause);
+      const SCM test = SCM_CAR (clause);
+      SCM um_test;
+      SCM um_sequence;
+      SCM um_clause;
+
+      if (SCM_EQ_P (test, SCM_IM_ELSE))
+        um_test = scm_sym_else;
+      else
+        um_test = unmemoize_expression (test, env);
+
+      if (!SCM_NULLP (sequence) && SCM_EQ_P (SCM_CAR (sequence), SCM_IM_ARROW))
+        {
+          const SCM target = SCM_CADR (sequence);
+          const SCM um_target = unmemoize_expression (target, env);
+          um_sequence = scm_list_2 (scm_sym_arrow, um_target);
+        }
+      else
+        {
+          um_sequence = unmemoize_exprs (sequence, env);
+        }
+
+      um_clause = scm_cons (um_test, um_sequence);
+      um_clauses = scm_cons (um_clause, um_clauses);
+    }
+  um_clauses = scm_reverse_x (um_clauses, SCM_UNDEFINED);
+
+  return scm_cons (scm_sym_cond, um_clauses);
 }
 
 
@@ -1077,6 +1223,13 @@ scm_m_delay (SCM expr, SCM env)
   return new_expr;
 }
 
+static SCM
+unmemoize_delay (const SCM expr, const SCM env)
+{
+  const SCM thunk_expr = SCM_CADDR (expr);
+  return scm_list_2 (scm_sym_delay, unmemoize_expression (thunk_expr, env));
+}
+
 
 SCM_SYNTAX(s_do, "do", scm_i_makbimacro, scm_m_do);
 SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
@@ -1156,6 +1309,43 @@ scm_m_do (SCM expr, SCM env SCM_UNUSED)
   return expr;
 }
 
+static SCM
+unmemoize_do (const SCM expr, const SCM env)
+{
+  const SCM cdr_expr = SCM_CDR (expr);
+  const SCM cddr_expr = SCM_CDR (cdr_expr);
+  const SCM rnames = SCM_CAR (cddr_expr);
+  const SCM extended_env = SCM_EXTEND_ENV (rnames, SCM_EOL, env);
+  const SCM cdddr_expr = SCM_CDR (cddr_expr);
+  const SCM exit_sequence = SCM_CAR (cdddr_expr);
+  const SCM um_exit_sequence = unmemoize_exprs (exit_sequence, extended_env);
+  const SCM cddddr_expr = SCM_CDR (cdddr_expr);
+  const SCM um_body = unmemoize_exprs (SCM_CAR (cddddr_expr), extended_env);
+
+  /* build transformed binding list */
+  SCM um_names = scm_reverse (rnames);
+  SCM um_inits = unmemoize_exprs (SCM_CAR (cdr_expr), env);
+  SCM um_steps = unmemoize_exprs (SCM_CDR (cddddr_expr), extended_env);
+  SCM um_bindings = SCM_EOL;
+  while (!SCM_NULLP (um_names))
+    {
+      const SCM name = SCM_CAR (um_names);
+      const SCM init = SCM_CAR (um_inits);
+      SCM step = SCM_CAR (um_steps);
+      step = SCM_EQ_P (step, name) ? SCM_EOL : scm_list_1 (step);
+
+      um_bindings = scm_cons (scm_cons2 (name, init, step), um_bindings);
+
+      um_names = SCM_CDR (um_names);
+      um_inits = SCM_CDR (um_inits);
+      um_steps = SCM_CDR (um_steps);
+    }
+  um_bindings = scm_reverse_x (um_bindings, SCM_UNDEFINED);
+
+  return scm_cons (scm_sym_do,
+                   scm_cons2 (um_bindings, um_exit_sequence, um_body));
+}
+
 
 SCM_SYNTAX (s_if, "if", scm_i_makbimacro, scm_m_if);
 SCM_GLOBAL_SYMBOL (scm_sym_if, s_if);
@@ -1168,6 +1358,26 @@ scm_m_if (SCM expr, SCM env SCM_UNUSED)
   ASSERT_SYNTAX (length == 2 || length == 3, s_expression, expr);
   SCM_SETCAR (expr, SCM_IM_IF);
   return expr;
+}
+
+static SCM
+unmemoize_if (const SCM expr, const SCM env)
+{
+  const SCM cdr_expr = SCM_CDR (expr);
+  const SCM um_condition = unmemoize_expression (SCM_CAR (cdr_expr), env);
+  const SCM cddr_expr = SCM_CDR (cdr_expr);
+  const SCM um_then = unmemoize_expression (SCM_CAR (cddr_expr), env);
+  const SCM cdddr_expr = SCM_CDR (cddr_expr);
+
+  if (SCM_NULLP (cdddr_expr))
+    {
+      return scm_list_3 (scm_sym_if, um_condition, um_then);
+    }
+  else
+    {
+      const SCM um_else = unmemoize_expression (SCM_CAR (cdddr_expr), env);
+      return scm_list_4 (scm_sym_if, um_condition, um_then, um_else);
+    }
 }
 
 
@@ -1250,6 +1460,19 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
   else
     SCM_SETCDR (cdr_expr, new_body);
   return expr;
+}
+
+static SCM
+unmemoize_lambda (const SCM expr, const SCM env)
+{
+  const SCM formals = SCM_CADR (expr);
+  const SCM body = SCM_CDDR (expr);
+
+  const SCM new_env = SCM_EXTEND_ENV (formals, SCM_EOL, env);
+  const SCM um_formals = scm_i_finite_list_copy (formals);
+  const SCM um_body = unmemoize_exprs (body, new_env);
+
+  return scm_cons2 (scm_sym_lambda, um_formals, um_body);
 }
 
 
@@ -1388,6 +1611,84 @@ scm_m_let (SCM expr, SCM env)
     }
 }
 
+static SCM
+build_binding_list (SCM rnames, SCM rinits)
+{
+  SCM bindings = SCM_EOL;
+  while (!SCM_NULLP (rnames))
+    {
+      const SCM binding = scm_list_2 (SCM_CAR (rnames), SCM_CAR (rinits));
+      bindings = scm_cons (binding, bindings);
+      rnames = SCM_CDR (rnames);
+      rinits = SCM_CDR (rinits);
+    }
+  return bindings;
+}
+
+static SCM
+unmemoize_let (const SCM expr, const SCM env)
+{
+  const SCM cdr_expr = SCM_CDR (expr);
+  const SCM um_rnames = SCM_CAR (cdr_expr);
+  const SCM extended_env = SCM_EXTEND_ENV (um_rnames, SCM_EOL, env);
+  const SCM cddr_expr = SCM_CDR (cdr_expr);
+  const SCM um_inits = unmemoize_exprs (SCM_CAR (cddr_expr), env);
+  const SCM um_rinits = scm_reverse_x (um_inits, SCM_UNDEFINED);
+  const SCM um_bindings = build_binding_list (um_rnames, um_rinits);
+  const SCM um_body = unmemoize_exprs (SCM_CDR (cddr_expr), extended_env);
+
+  return scm_cons2 (scm_sym_let, um_bindings, um_body);
+}
+
+
+SCM_SYNTAX(s_letrec, "letrec", scm_i_makbimacro, scm_m_letrec);
+SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
+
+SCM 
+scm_m_letrec (SCM expr, SCM env)
+{
+  SCM bindings;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
+
+  bindings = SCM_CAR (cdr_expr);
+  if (SCM_NULLP (bindings))
+    {
+      /* no bindings, let* is executed faster */
+      SCM body = m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr));
+      return scm_m_letstar (scm_cons2 (SCM_CAR (expr), SCM_EOL, body), env);
+    }
+  else
+    {
+      SCM rvariables;
+      SCM inits;
+      SCM new_body;
+
+      check_bindings (bindings, expr);
+      transform_bindings (bindings, expr, &rvariables, &inits);
+      new_body = m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr));
+      return scm_cons2 (SCM_IM_LETREC, rvariables, scm_cons (inits, new_body));
+    }
+}
+
+static SCM
+unmemoize_letrec (const SCM expr, const SCM env)
+{
+  const SCM cdr_expr = SCM_CDR (expr);
+  const SCM um_rnames = SCM_CAR (cdr_expr);
+  const SCM extended_env = SCM_EXTEND_ENV (um_rnames, SCM_EOL, env);
+  const SCM cddr_expr = SCM_CDR (cdr_expr);
+  const SCM um_inits = unmemoize_exprs (SCM_CAR (cddr_expr), extended_env);
+  const SCM um_rinits = scm_reverse_x (um_inits, SCM_UNDEFINED);
+  const SCM um_bindings = build_binding_list (um_rnames, um_rinits);
+  const SCM um_body = unmemoize_exprs (SCM_CDR (cddr_expr), extended_env);
+
+  return scm_cons2 (scm_sym_letrec, um_bindings, um_body);
+}
+
+
 
 SCM_SYNTAX (s_letstar, "let*", scm_i_makbimacro, scm_m_letstar);
 SCM_GLOBAL_SYMBOL (scm_sym_letstar, s_letstar);
@@ -1437,37 +1738,30 @@ scm_m_letstar (SCM expr, SCM env SCM_UNUSED)
   return expr;
 }
 
-
-SCM_SYNTAX(s_letrec, "letrec", scm_i_makbimacro, scm_m_letrec);
-SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
-
-SCM 
-scm_m_letrec (SCM expr, SCM env)
+static SCM
+unmemoize_letstar (const SCM expr, const SCM env)
 {
-  SCM bindings;
-
   const SCM cdr_expr = SCM_CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
+  const SCM body = SCM_CDR (cdr_expr);
+  SCM bindings = SCM_CAR (cdr_expr);
+  SCM um_bindings = SCM_EOL;
+  SCM extended_env = env;
+  SCM um_body;
 
-  bindings = SCM_CAR (cdr_expr);
-  if (SCM_NULLP (bindings))
+  while (!SCM_NULLP (bindings))
     {
-      /* no bindings, let* is executed faster */
-      SCM body = m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr));
-      return scm_m_letstar (scm_cons2 (SCM_CAR (expr), SCM_EOL, body), env);
+      const SCM variable = SCM_CAR (bindings);
+      const SCM init = SCM_CADR (bindings);
+      const SCM um_init = unmemoize_expression (init, extended_env);
+      um_bindings = scm_cons (scm_list_2 (variable, um_init), um_bindings);
+      extended_env = SCM_EXTEND_ENV (variable, SCM_BOOL_F, extended_env);
+      bindings = SCM_CDDR (bindings);
     }
-  else
-    {
-      SCM rvariables;
-      SCM inits;
-      SCM new_body;
+  um_bindings = scm_reverse_x (um_bindings, SCM_UNDEFINED);
 
-      check_bindings (bindings, expr);
-      transform_bindings (bindings, expr, &rvariables, &inits);
-      new_body = m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr));
-      return scm_cons2 (SCM_IM_LETREC, rvariables, scm_cons (inits, new_body));
-    }
+  um_body = unmemoize_exprs (body, extended_env);
+
+  return scm_cons2 (scm_sym_letstar, um_bindings, um_body);
 }
 
 
@@ -1492,6 +1786,12 @@ scm_m_or (SCM expr, SCM env SCM_UNUSED)
       SCM_SETCAR (expr, SCM_IM_OR);
       return expr;
     }
+}
+
+static SCM
+unmemoize_or (const SCM expr, const SCM env)
+{
+  return scm_cons (scm_sym_or, unmemoize_exprs (SCM_CDR (expr), env));
 }
 
 
@@ -1625,6 +1925,12 @@ scm_m_set_x (SCM expr, SCM env SCM_UNUSED)
   return expr;
 }
 
+static SCM
+unmemoize_set_x (const SCM expr, const SCM env)
+{
+  return scm_cons (scm_sym_set_x, unmemoize_exprs (SCM_CDR (expr), env));
+}
+
 
 /* Start of the memoizers for non-R5RS builtin macros.  */
 
@@ -1642,6 +1948,12 @@ scm_m_apply (SCM expr, SCM env SCM_UNUSED)
 
   SCM_SETCAR (expr, SCM_IM_APPLY);
   return expr;
+}
+
+static SCM
+unmemoize_apply (const SCM expr, const SCM env)
+{
+  return scm_list_2 (scm_sym_atapply, unmemoize_exprs (SCM_CDR (expr), env));
 }
 
 
@@ -1714,6 +2026,12 @@ scm_m_cont (SCM expr, SCM env SCM_UNUSED)
   return expr;
 }
 
+static SCM
+unmemoize_atcall_cc (const SCM expr, const SCM env)
+{
+  return scm_list_2 (scm_sym_atcall_cc, unmemoize_exprs (SCM_CDR (expr), env));
+}
+
 
 SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_i_makbimacro, scm_m_at_call_with_values);
 SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, s_at_call_with_values);
@@ -1727,6 +2045,13 @@ scm_m_at_call_with_values (SCM expr, SCM env SCM_UNUSED)
 
   SCM_SETCAR (expr, SCM_IM_CALL_WITH_VALUES);
   return expr;
+}
+
+static SCM
+unmemoize_at_call_with_values (const SCM expr, const SCM env)
+{
+  return scm_list_2 (scm_sym_at_call_with_values,
+                     unmemoize_exprs (SCM_CDR (expr), env));
 }
 
 
@@ -1744,6 +2069,13 @@ scm_m_future (SCM expr, SCM env)
   const SCM new_expr = memoize_as_thunk_prototype (expr, env);
   SCM_SETCAR (new_expr, SCM_IM_FUTURE);
   return new_expr;
+}
+
+static SCM
+unmemoize_future (const SCM expr, const SCM env)
+{
+  const SCM thunk_expr = SCM_CADDR (expr);
+  return scm_list_2 (scm_sym_future, unmemoize_expression (thunk_expr, env));
 }
 
 
@@ -1806,6 +2138,9 @@ scm_m_generalized_set_x (SCM expr, SCM env)
  * soon as the module system allows us to more freely create bindings in
  * arbitrary modules during the startup phase, the code from goops.c should be
  * moved here.  */
+
+SCM_SYMBOL (sym_atslot_ref, "@slot-ref");
+
 SCM
 scm_m_atslot_ref (SCM expr, SCM env SCM_UNUSED)
 {
@@ -1822,11 +2157,23 @@ scm_m_atslot_ref (SCM expr, SCM env SCM_UNUSED)
   return expr;
 }
 
+static SCM
+unmemoize_atslot_ref (const SCM expr, const SCM env)
+{
+  const SCM instance = SCM_CADR (expr);
+  const SCM um_instance = unmemoize_expression (instance, env);
+  const SCM slot_nr = SCM_CDDR (expr);
+  return scm_list_3 (sym_atslot_ref, um_instance, slot_nr);
+}
+
 
 /* @slot-set! is bound privately in the (oop goops) module from goops.c.  As
  * soon as the module system allows us to more freely create bindings in
  * arbitrary modules during the startup phase, the code from goops.c should be
  * moved here.  */
+
+SCM_SYMBOL (sym_atslot_set_x, "@slot-set!");
+
 SCM
 scm_m_atslot_set_x (SCM expr, SCM env SCM_UNUSED)
 {
@@ -1840,6 +2187,20 @@ scm_m_atslot_set_x (SCM expr, SCM env SCM_UNUSED)
 
   SCM_SETCAR (expr, SCM_IM_SLOT_SET_X);
   return expr;
+}
+
+static SCM
+unmemoize_atslot_set_x (const SCM expr, const SCM env)
+{
+  const SCM cdr_expr = SCM_CDR (expr);
+  const SCM instance = SCM_CAR (cdr_expr);
+  const SCM um_instance = unmemoize_expression (instance, env);
+  const SCM cddr_expr = SCM_CDR (cdr_expr);
+  const SCM slot_nr = SCM_CAR (cddr_expr);
+  const SCM cdddr_expr = SCM_CDR (cddr_expr);
+  const SCM value = SCM_CAR (cdddr_expr);
+  const SCM um_value = unmemoize_expression (value, env);
+  return scm_list_4 (sym_atslot_set_x, um_instance, slot_nr, um_value);
 }
 
 
@@ -1925,6 +2286,107 @@ scm_m_atfop (SCM expr, SCM env SCM_UNUSED)
 #endif /* SCM_ENABLE_ELISP */
 
 
+static SCM
+unmemoize_builtin_macro (const SCM expr, const SCM env)
+{
+  switch (ISYMNUM (SCM_CAR (expr)))
+    {
+    case (ISYMNUM (SCM_IM_AND)):
+      return unmemoize_and (expr, env);
+
+    case (ISYMNUM (SCM_IM_BEGIN)):
+      return unmemoize_begin (expr, env);
+
+    case (ISYMNUM (SCM_IM_CASE)):
+      return unmemoize_case (expr, env);
+
+    case (ISYMNUM (SCM_IM_COND)):
+      return unmemoize_cond (expr, env);
+
+    case (ISYMNUM (SCM_IM_DELAY)):
+      return unmemoize_delay (expr, env);
+
+    case (ISYMNUM (SCM_IM_DO)):
+      return unmemoize_do (expr, env);
+
+    case (ISYMNUM (SCM_IM_IF)):
+      return unmemoize_if (expr, env);
+
+    case (ISYMNUM (SCM_IM_LAMBDA)):
+      return unmemoize_lambda (expr, env);
+
+    case (ISYMNUM (SCM_IM_LET)):
+      return unmemoize_let (expr, env);
+
+    case (ISYMNUM (SCM_IM_LETREC)):
+      return unmemoize_letrec (expr, env);
+
+    case (ISYMNUM (SCM_IM_LETSTAR)):
+      return unmemoize_letstar (expr, env);
+
+    case (ISYMNUM (SCM_IM_OR)):
+      return unmemoize_or (expr, env);
+
+    case (ISYMNUM (SCM_IM_QUOTE)):
+      return unmemoize_quote (expr, env);
+
+    case (ISYMNUM (SCM_IM_SET_X)):
+      return unmemoize_set_x (expr, env);
+
+    case (ISYMNUM (SCM_IM_APPLY)):
+      return unmemoize_apply (expr, env);
+
+    case (ISYMNUM (SCM_IM_BIND)):
+      return unmemoize_exprs (expr, env);  /* FIXME */
+
+    case (ISYMNUM (SCM_IM_CONT)):
+      return unmemoize_atcall_cc (expr, env);
+
+    case (ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
+      return unmemoize_at_call_with_values (expr, env);
+
+    case (ISYMNUM (SCM_IM_FUTURE)):
+      return unmemoize_future (expr, env);
+
+    case (ISYMNUM (SCM_IM_SLOT_REF)):
+      return unmemoize_atslot_ref (expr, env);
+
+    case (ISYMNUM (SCM_IM_SLOT_SET_X)):
+      return unmemoize_atslot_set_x (expr, env);
+
+    case (ISYMNUM (SCM_IM_NIL_COND)):
+      return unmemoize_exprs (expr, env);  /* FIXME */
+
+    default:
+      return unmemoize_exprs (expr, env);  /* FIXME */
+    }
+}
+
+
+/* scm_unmemocopy takes a memoized body together with its environment and
+ * rewrites it to its original form.  Thus, it is the inversion of the rewrite
+ * rules above.  The procedure is not optimized for speed.  It's used in
+ * scm_unmemoize, scm_procedure_source, macro_print and scm_iprin1.
+ *
+ * Unmemoizing is not a reliable process.  You cannot in general expect to get
+ * the original source back.
+ *
+ * However, GOOPS currently relies on this for method compilation.  This ought
+ * to change.  */
+
+SCM
+scm_unmemocopy (SCM forms, SCM env)
+{
+  const SCM source_properties = scm_whash_lookup (scm_source_whash, forms);
+  const SCM um_forms = unmemoize_exprs (forms, env);
+
+  if (!SCM_FALSEP (source_properties))
+    scm_whash_insert (scm_source_whash, um_forms, source_properties);
+
+  return um_forms;
+}
+
+
 #if (SCM_ENABLE_DEPRECATED == 1)
 
 /* Deprecated in guile 1.7.0 on 2003-11-09.  */
@@ -1974,50 +2436,15 @@ scm_macroexp (SCM x, SCM env)
 
 #endif
 
-/*****************************************************************************/
-/*****************************************************************************/
-/*               The definitions for unmemoization start here.               */
-/*****************************************************************************/
-/*****************************************************************************/
 
-#define SCM_BIT7(x) (127 & SCM_UNPACK (x))
+#if (SCM_ENABLE_DEPRECATED == 1)
 
-SCM_SYMBOL (sym_three_question_marks, "???");
-
-
-/* scm_unmemocopy takes a memoized expression together with its
- * environment and rewrites it to its original form.  Thus, it is the
- * inversion of the rewrite rules above.  The procedure is not
- * optimized for speed.  It's used in scm_iprin1 when printing the
- * code of a closure, in scm_procedure_source, in display_frame when
- * generating the source for a stackframe in a backtrace, and in
- * display_expression.
- *
- * Unmemoizing is not a reliable process.  You cannot in general
- * expect to get the original source back.
- *
- * However, GOOPS currently relies on this for method compilation.
- * This ought to change.
- */
-
-static SCM
-build_binding_list (SCM rnames, SCM rinits)
+SCM
+scm_unmemocar (SCM form, SCM env)
 {
-  SCM bindings = SCM_EOL;
-  while (!SCM_NULLP (rnames))
-    {
-      SCM binding = scm_list_2 (SCM_CAR (rnames), SCM_CAR (rinits));
-      bindings = scm_cons (binding, bindings);
-      rnames = SCM_CDR (rnames);
-      rinits = SCM_CDR (rinits);
-    }
-  return bindings;
-}
+  scm_c_issue_deprecation_warning 
+    ("`scm_unmemocar' is deprecated.");
 
-
-static SCM
-unmemocar (SCM form, SCM env)
-{
   if (!SCM_CONSP (form))
     return form;
   else
@@ -2044,241 +2471,6 @@ unmemocar (SCM form, SCM env)
 	}
       return form;
     }
-}
-
-
-SCM
-scm_unmemocopy (SCM x, SCM env)
-{
-  SCM ls, z;
-  SCM p;
-
-  if (SCM_VECTORP (x))
-    {
-      return scm_list_2 (scm_sym_quote, x);
-    }
-  else if (!SCM_CONSP (x))
-    return x;
-
-  p = scm_whash_lookup (scm_source_whash, x);
-  if (SCM_ISYMP (SCM_CAR (x)))
-    {
-      switch (ISYMNUM (SCM_CAR (x)))
-        {
-        case (ISYMNUM (SCM_IM_AND)):
-          ls = z = scm_cons (scm_sym_and, SCM_UNSPECIFIED);
-          break;
-        case (ISYMNUM (SCM_IM_BEGIN)):
-          ls = z = scm_cons (scm_sym_begin, SCM_UNSPECIFIED);
-          break;
-        case (ISYMNUM (SCM_IM_CASE)):
-          ls = z = scm_cons (scm_sym_case, SCM_UNSPECIFIED);
-          break;
-        case (ISYMNUM (SCM_IM_COND)):
-          ls = z = scm_cons (scm_sym_cond, SCM_UNSPECIFIED);
-          break;
-        case (ISYMNUM (SCM_IM_DO)):
-          {
-            /* format: (#@do (i1 ... ik) (nk ... n1) (test) (body) s1 ... sk),
-             * where ix is an initializer for a local variable, nx is the name
-             * of the local variable, test is the test clause of the do loop,
-             * body is the body of the do loop and sx are the step clauses for
-             * the local variables.  */
-            SCM names, inits, test, memoized_body, steps, bindings;
-
-            x = SCM_CDR (x);
-            inits = scm_reverse (scm_unmemocopy (SCM_CAR (x), env));
-            x = SCM_CDR (x);
-            names = SCM_CAR (x);
-            env = SCM_EXTEND_ENV (names, SCM_EOL, env);
-            x = SCM_CDR (x);
-            test = scm_unmemocopy (SCM_CAR (x), env);
-            x = SCM_CDR (x);
-            memoized_body = SCM_CAR (x);
-            x = SCM_CDR (x);
-            steps = scm_reverse (scm_unmemocopy (x, env));
-
-            /* build transformed binding list */
-            bindings = SCM_EOL;
-            while (!SCM_NULLP (names))
-              {
-                SCM name = SCM_CAR (names);
-                SCM init = SCM_CAR (inits);
-                SCM step = SCM_CAR (steps);
-                step = SCM_EQ_P (step, name) ? SCM_EOL : scm_list_1 (step);
-
-                bindings = scm_cons (scm_cons2 (name, init, step), bindings);
-
-                names = SCM_CDR (names);
-                inits = SCM_CDR (inits);
-                steps = SCM_CDR (steps);
-              }
-            z = scm_cons (test, SCM_UNSPECIFIED);
-            ls = scm_cons2 (scm_sym_do, bindings, z);
-
-            x = scm_cons (SCM_BOOL_F, memoized_body);
-            break;
-          }
-        case (ISYMNUM (SCM_IM_IF)):
-          ls = z = scm_cons (scm_sym_if, SCM_UNSPECIFIED);
-          break;
-        case (ISYMNUM (SCM_IM_LET)):
-          {
-            /* format: (#@let (nk nk-1 ...) (i1 ... ik) b1 ...),
-             * where nx is the name of a local variable, ix is an initializer
-             * for the local variable and by are the body clauses.  */
-            SCM rnames, rinits, bindings;
-
-            x = SCM_CDR (x);
-            rnames = SCM_CAR (x);
-            x = SCM_CDR (x);
-            rinits = scm_reverse (scm_unmemocopy (SCM_CAR (x), env));
-            env = SCM_EXTEND_ENV (rnames, SCM_EOL, env);
-
-            bindings = build_binding_list (rnames, rinits);
-            z = scm_cons (bindings, SCM_UNSPECIFIED);
-            ls = scm_cons (scm_sym_let, z);
-            break;
-          }
-        case (ISYMNUM (SCM_IM_LETREC)):
-          {
-            /* format: (#@letrec (vn ... v2 v1) (i1 i2 ... in) b1 ...),
-             * where vx is the name of a local variable, ix is an initializer
-             * for the local variable and by are the body clauses.  */
-            SCM rnames, rinits, bindings;
-
-            x = SCM_CDR (x);
-            rnames = SCM_CAR (x);
-            env = SCM_EXTEND_ENV (rnames, SCM_EOL, env);
-            x = SCM_CDR (x);
-            rinits = scm_reverse (scm_unmemocopy (SCM_CAR (x), env));
-
-            bindings = build_binding_list (rnames, rinits);
-            z = scm_cons (bindings, SCM_UNSPECIFIED);
-            ls = scm_cons (scm_sym_letrec, z);
-            break;
-          }
-        case (ISYMNUM (SCM_IM_LETSTAR)):
-          {
-            SCM b, y;
-            x = SCM_CDR (x);
-            b = SCM_CAR (x);
-            y = SCM_EOL;
-            if (SCM_NULLP (b))
-              {
-                env = SCM_EXTEND_ENV (SCM_EOL, SCM_EOL, env);
-              }
-            else
-              {
-                SCM copy = scm_unmemocopy (SCM_CADR (b), env);
-                SCM initializer = unmemocar (scm_list_1 (copy), env);
-                y = z = scm_acons (SCM_CAR (b), initializer, SCM_UNSPECIFIED);
-                env = SCM_EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
-                b = SCM_CDDR (b);
-                if (SCM_NULLP (b))
-                  {
-                    SCM_SETCDR (y, SCM_EOL);
-                    z = scm_cons (y, SCM_UNSPECIFIED);
-                    ls = scm_cons (scm_sym_let, z);
-                    break;
-                  }
-                do
-                  {
-                    copy = scm_unmemocopy (SCM_CADR (b), env);
-                    initializer = unmemocar (scm_list_1 (copy), env);
-                    SCM_SETCDR (z, scm_acons (SCM_CAR (b),
-                                              initializer,
-                                              SCM_UNSPECIFIED));
-                    z = SCM_CDR (z);
-                    env = SCM_EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
-                    b = SCM_CDDR (b);
-                  }
-                while (!SCM_NULLP (b));
-                SCM_SETCDR (z, SCM_EOL);
-              }
-            z = scm_cons (y, SCM_UNSPECIFIED);
-            ls = scm_cons (scm_sym_letstar, z);
-            break;
-          }
-        case (ISYMNUM (SCM_IM_OR)):
-          ls = z = scm_cons (scm_sym_or, SCM_UNSPECIFIED);
-          break;
-        case (ISYMNUM (SCM_IM_LAMBDA)):
-          x = SCM_CDR (x);
-          z = scm_cons (SCM_CAR (x), SCM_UNSPECIFIED);
-          ls = scm_cons (scm_sym_lambda, z);
-          env = SCM_EXTEND_ENV (SCM_CAR (x), SCM_EOL, env);
-          break;
-
-        case (ISYMNUM (SCM_IM_QUOTE)):
-          return unmemoize_quote (x, env);
-
-        case (ISYMNUM (SCM_IM_SET_X)):
-          ls = z = scm_cons (scm_sym_set_x, SCM_UNSPECIFIED);
-          break;
-	case (ISYMNUM (SCM_IM_APPLY)):
-	  ls = z = scm_cons (scm_sym_atapply, SCM_UNSPECIFIED);
-	  break;
-	case (ISYMNUM (SCM_IM_CONT)):
-	  ls = z = scm_cons (scm_sym_atcall_cc, SCM_UNSPECIFIED);
-	  break;
-	case (ISYMNUM (SCM_IM_DELAY)):
-	  ls = z = scm_cons (scm_sym_delay, SCM_UNSPECIFIED);
-	  x = SCM_CDR (x);
-	  break;
-	case (ISYMNUM (SCM_IM_FUTURE)):
-	  ls = z = scm_cons (scm_sym_future, SCM_UNSPECIFIED);
-	  x = SCM_CDR (x);
-	  break;
-	case (ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
-	  ls = z = scm_cons (scm_sym_at_call_with_values, SCM_UNSPECIFIED);
-	  break;
-	case (ISYMNUM (SCM_IM_ELSE)):
-	  ls = z = scm_cons (scm_sym_else, SCM_UNSPECIFIED);
-	  break;
-        default:
-          ls = z = unmemocar (scm_cons (scm_unmemocopy (SCM_CAR (x), env),
-                                        SCM_UNSPECIFIED),
-                              env);
-        }
-    }
-  else
-    {
-      ls = z = unmemocar (scm_cons (scm_unmemocopy (SCM_CAR (x), env),
-				    SCM_UNSPECIFIED),
-			  env);
-    }
-
-  x = SCM_CDR (x);
-  while (SCM_CONSP (x))
-    {
-      SCM form = SCM_CAR (x);
-      if (!SCM_ISYMP (form))
-	{
-	  SCM copy = scm_cons (scm_unmemocopy (form, env), SCM_UNSPECIFIED);
-	  SCM_SETCDR (z, unmemocar (copy, env));
-	  z = SCM_CDR (z);
-	}
-      else if (SCM_EQ_P (form, SCM_IM_ARROW))
-        {
-	  SCM_SETCDR (z, scm_cons (scm_sym_arrow, SCM_UNSPECIFIED));
-	  z = SCM_CDR (z);
-        }
-      x = SCM_CDR (x);
-    }
-  SCM_SETCDR (z, x);
-  if (!SCM_FALSEP (p))
-    scm_whash_insert (scm_source_whash, ls, p);
-  return ls;
-}
-
-
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-SCM
-scm_unmemocar (SCM form, SCM env)
-{
-  return unmemocar (form, env);
 }
 
 #endif
@@ -3024,7 +3216,7 @@ start:
 		      scm_sym_enter_frame,
 		      stackrep,
 		      tail,
-		      scm_unmemocopy (x, env));
+		      unmemoize_expression (x, env));
 	  SCM_TRAPS_P = 1;
 	}
     }
@@ -3318,9 +3510,7 @@ dispatch:
           x = SCM_CDR (x);
           {
             SCM bindings = SCM_CAR (x);
-            if (SCM_NULLP (bindings))
-              env = SCM_EXTEND_ENV (SCM_EOL, SCM_EOL, env);
-            else
+            if (!SCM_NULLP (bindings))
               {
                 do
                   {
@@ -3844,7 +4034,7 @@ dispatch:
         {
           const SCM formals = SCM_CLOSURE_FORMALS (proc);
           if (SCM_CONSP (formals))
-            goto umwrongnumargs;
+            goto wrongnumargs;
           x = SCM_CLOSURE_BODY (proc);
           env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
           goto nontoplevel_begin;
@@ -3877,8 +4067,7 @@ dispatch:
       case scm_tc7_cxr:
       case scm_tc7_subr_3:
       case scm_tc7_lsubr_2:
-      umwrongnumargs:
-	unmemocar (x, env);
+      wrongnumargs:
 	scm_wrong_num_args (proc);
       default:
       badfun:
@@ -3978,7 +4167,7 @@ dispatch:
               const SCM formals = SCM_CLOSURE_FORMALS (proc);
               if (SCM_NULLP (formals)
                   || (SCM_CONSP (formals) && SCM_CONSP (SCM_CDR (formals))))
-                goto umwrongnumargs;
+                goto wrongnumargs;
               x = SCM_CLOSURE_BODY (proc);
 #ifdef DEVAL
               env = SCM_EXTEND_ENV (formals,
@@ -4135,7 +4324,7 @@ dispatch:
                       && (SCM_NULLP (SCM_CDR (formals))
                           || (SCM_CONSP (SCM_CDR (formals))
                               && SCM_CONSP (SCM_CDDR (formals))))))
-                goto umwrongnumargs;
+                goto wrongnumargs;
 #ifdef DEVAL
               env = SCM_EXTEND_ENV (formals,
                                     debug.info->a.args,
@@ -4218,7 +4407,7 @@ dispatch:
                     && (SCM_NULLP (SCM_CDR (formals))
                         || (SCM_CONSP (SCM_CDR (formals))
                             && scm_badargsp (SCM_CDDR (formals), x)))))
-              goto umwrongnumargs;
+              goto wrongnumargs;
             SCM_SET_ARGSREADY (debug);
             env = SCM_EXTEND_ENV (formals,
                                   debug.info->a.args,
@@ -4280,7 +4469,7 @@ dispatch:
 		    && (SCM_NULLP (SCM_CDR (formals))
 			|| (SCM_CONSP (SCM_CDR (formals))
 			    && scm_badargsp (SCM_CDDR (formals), x)))))
-	      goto umwrongnumargs;
+	      goto wrongnumargs;
             env = SCM_EXTEND_ENV (formals,
                                   scm_cons2 (arg1,
                                              arg2,

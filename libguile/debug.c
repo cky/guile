@@ -329,15 +329,21 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     {
-      SCM formals = SCM_CLOSURE_FORMALS (proc);
-      SCM src = scm_source_property (SCM_CLOSURE_BODY (proc), scm_sym_copy);
+      const SCM formals = SCM_CLOSURE_FORMALS (proc);
+      const SCM body = SCM_CLOSURE_BODY (proc);
+      const SCM src = scm_source_property (body, scm_sym_copy);
+
       if (!SCM_FALSEP (src))
-	return scm_cons2 (scm_sym_lambda, formals, src);
-      return scm_cons (scm_sym_lambda,
-		       scm_unmemocopy (SCM_CODE (proc),
-				       SCM_EXTEND_ENV (formals,
-						       SCM_EOL,
-						       SCM_ENV (proc))));
+        {
+          return scm_cons2 (scm_sym_lambda, formals, src);
+        }
+      else
+        {
+          const SCM env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
+          return scm_cons2 (scm_sym_lambda,
+                            scm_i_finite_list_copy (formals),
+                            scm_unmemocopy (body, env));
+        }
     }
   case scm_tcs_struct:
     if (!SCM_I_OPERATORP (proc))

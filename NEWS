@@ -804,6 +804,13 @@ Guile always defines
 
   scm_t_timespec
 
+** The function scm_unmemocopy now expects a sequence of body forms
+
+Formerly, scm_unmemocopy would have accepted both, a single expression and a
+sequence of body forms for unmemoization.  Now, it only accepts only a
+sequence of body forms, which was the normal way of using it.  Passing it a
+single expression won't work any more.
+
 ** The macro SCM_IFLAGP now only returns true for flags
 
 User code should never have used this macro anyway.  And, you should not use

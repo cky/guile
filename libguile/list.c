@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1997,2000,2001, 2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004
+ * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -498,6 +499,34 @@ SCM_DEFINE (scm_list_head, "list-head", 2, 0, 0,
   return answer;
 }
 #undef FUNC_NAME
+
+
+/* Copy a list which is known to be finite.  The last pair may or may not have
+ * a '() in its cdr.  That is, improper lists are accepted.  */
+SCM
+scm_i_finite_list_copy (SCM list)
+{
+  if (!SCM_CONSP (list))
+    {
+      return list;
+    }
+  else
+    {
+      SCM tail;
+      const SCM result = tail = scm_list_1 (SCM_CAR (list));
+      list = SCM_CDR (list);
+      while (SCM_CONSP (list))
+        {
+          const SCM new_tail = scm_list_1 (SCM_CAR (list));
+          SCM_SETCDR (tail, new_tail);
+          tail = new_tail;
+          list = SCM_CDR (list);
+        }
+      SCM_SETCDR (tail, list);
+
+      return result;
+    }
+}
 
 
 SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0, 

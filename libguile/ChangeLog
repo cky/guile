@@ -1,3 +1,39 @@
+2004-06-06  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* list.[ch] (scm_i_finite_list_copy): New internal function to
+	copy lists that are known to be finite (though not necessarily
+	proper).
+
+	* debug.c (scm_procedure_source): Don't have scm_unmemocopy treat
+	a closure's argument list like an expression of a body.
+
+	* eval.c (unmemoize_expression, unmemoize_exprs, unmemoize_and,
+	unmemoize_begin, unmemoize_case, unmemoize_cond, unmemoize_delay,
+	unmemoize_do, unmemoize_if, unmemoize_lambda, unmemoize_let,
+	unmemoize_letrec, unmemoize_letstar, unmemoize_or,
+	unmemoize_set_x, unmemoize_apply, unmemoize_atcall_cc,
+	unmemoize_at_call_with_values, unmemoize_future, sym_atslot_ref, 
+	unmemoize_atslot_ref, sym_atslot_set_x, unmemoize_atslot_set_x,
+	unmemoize_builtin_macro): New static functions and symbols.
+
+	(scm_unmemocopy): Rewritten in terms of the above.  scm_unmemocopy
+	now has a slightly different meaning: The memoized form that is
+	receives as its argument is now interpreted as a sequence of
+	expressions from a body.
+
+	(unmemocar, scm_unmemocar): Since the whole functionality of
+	unmemocar and scm_unmemocar is not needed any more, scm_unmemocar
+	has its old content back and is deprecated, while unmemocar has
+	been removed.
+
+	(SCM_BIT7): Removed.
+
+	(CEVAL): For unmemoizing a single expression, call
+	unmemoize_expression instead of scm_unmemocopy, which now expects
+	a sequence of body expressions.  Eliminated unnecessary empty
+	environment frame when executing let* forms.  Eliminated
+	unmemoization step from evaluator.
+
 2004-06-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* eval.c (scm_macroexp, macroexp): Renamed scm_macroexp to
