@@ -67,7 +67,7 @@ extern scm_option scm_print_opts[];
 #define SCM_WRITINGP(pstate) ((pstate)->writingp)
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
-#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwpwuwuwurpW"
+#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwpwuwuwuruopr"
 typedef struct scm_print_state {
   SCM handle;			/* Struct handle */
   unsigned long writingp;	/* Writing? */
@@ -78,9 +78,9 @@ typedef struct scm_print_state {
   unsigned long list_offset;
   unsigned long top;		/* Top of reference stack */
   unsigned long ceiling;	/* Max size of reference stack */
-  unsigned long n_refs;		/* Size of struct tail array */
-  SCM ref_stack[1];		/* Stack of references used during
+  SCM *ref_stack;		/* Stack of references used during
 				   circular reference detection */
+  SCM ref_vect;
 } scm_print_state;
 
 extern SCM scm_print_options SCM_P ((SCM setting));

@@ -175,9 +175,14 @@ static SCM
 make_print_state ()
 {
   SCM print_state = scm_make_struct (SCM_CAR (print_state_pool), /* pstate type */
-				     SCM_MAKINUM (PSTATE_SIZE),
+				     SCM_INUM0,
 				     SCM_EOL);
-  SCM_PRINT_STATE (print_state)->ceiling = PSTATE_SIZE;
+  scm_print_state *pstate = SCM_PRINT_STATE (print_state);
+  pstate->ref_vect = scm_make_vector (SCM_MAKINUM (PSTATE_SIZE),
+				      SCM_UNDEFINED,
+				      SCM_UNDEFINED);
+  pstate->ref_stack = SCM_VELTS (pstate->ref_vect);
+  pstate->ceiling = SCM_LENGTH (pstate->ref_vect);
   return print_state;
 }
 
@@ -224,25 +229,10 @@ static void
 grow_ref_stack (pstate)
      scm_print_state *pstate;
 {
-  int i, size = pstate->ceiling;
-  int total_size;
-  SCM handle;
-  SCM *data;
-  SCM_DEFER_INTS;
-  handle = pstate->handle;
-  data = (SCM *) pstate - scm_struct_n_extra_words;
-  total_size = ((SCM *) pstate)[scm_struct_i_n_words];
-  data = (SCM *) scm_must_realloc ((char *) data,
-				   total_size,
-				   total_size + size,
-				   "grow_ref_stack");
-  pstate = (scm_print_state *) (data + scm_struct_n_extra_words);
-  ((SCM *) pstate)[scm_struct_i_n_words] = total_size + size;
-  pstate->ceiling += size;
-  for (i = size; i < pstate->ceiling; ++i)
-    pstate->ref_stack[i] = SCM_BOOL_F;
-  SCM_SETCDR (handle, pstate);
-  SCM_ALLOW_INTS;
+  int new_size = 2 * pstate->ceiling;
+  scm_vector_set_length_x (pstate->ref_vect, SCM_MAKINUM (new_size));
+  pstate->ref_stack = SCM_VELTS (pstate->ref_vect);
+  pstate->ceiling = new_size;
 }
 
 
