@@ -1,3 +1,8 @@
+2001-12-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in (HAVE_MAKEINFO): Check for the makeinfo program and
+	set this conditional accordingly.
+	
 2001-12-01  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* README: Fix virulent typo.
