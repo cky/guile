@@ -1,5 +1,13 @@
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* exceptions.test:  Use expect-fail-exception to indicate test
+	cases where exceptions should occur, but don't.
+
+	(exception:bad-bindings, exception:bad-formals, exception:bad-var,
+	exception:missing/extra-expr):  New constants.
+
+2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* reader.test, exceptions.test:  Moved the reader related test
 	cases from exceptions.test to reader.test.
 

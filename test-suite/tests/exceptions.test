@@ -85,6 +85,15 @@
 ;; Ideally, we would mine these out of libguile/error.[hc], etc.
 ;; (Someday, when guile is re-implemented in Scheme....)
 
+(define exception:bad-bindings
+  (cons 'misc-error "^bad bindings"))
+(define exception:bad-formals
+  (cons 'misc-error "^bad formals"))
+(define exception:bad-var
+  (cons 'misc-error "^bad variable"))
+(define exception:missing/extra-expr
+  (cons 'misc-error "^missing or extra expression"))
+
 (define x:unbound-var "[Uu]nbound variable")
 (define x:bad-var "[Bb]ad variable")
 (define x:bad-formals "[Bb]ad formals")
@@ -118,10 +127,13 @@
     (goad x:bad-formals (lambda (x "a") 2))
     (goad x:bad-formals (lambda ("a" x) 2))
 
-    ;; no exception on 2001-02-22
-    (goad x:bad-formals (lambda (x x) 1))
-    ;; no exception on 2001-02-22
-    (goad x:bad-formals (lambda (x x x) 1))
+    (expect-fail-exception "(lambda (x x) 1)"
+      exception:bad-formals
+      (lambda (x x) 1))
+
+    (expect-fail-exception "(lambda (x x x) 1)"
+      exception:bad-formals
+      (lambda (x x x) 1))
 
     (with-test-prefix "cond-arrow-proc"
       (goad x:bad-formals (cond (1 => (lambda (x 1) 2))))
@@ -197,13 +209,14 @@
   (with-test-prefix "misc"
     (goad x:missing/extra-expr (quote))
 
-    ;; no exception on 2001-02-22
     ;; R5RS says:
     ;; *Note:* In many dialects of Lisp, the empty combination, (),
     ;; is a legitimate expression.  In Scheme, combinations must
     ;; have at least one subexpression, so () is not a syntactically
     ;; valid expression.
-    (goad x:missing/extra-expr ())
+    (expect-fail-exception "empty parentheses \"()\""
+      exception:missing/extra-expr
+      ())
 
     ;; Add more (syntax misc) exceptions here.
     )
@@ -230,10 +243,13 @@
     (goad x:wrong-type-arg (set! '#t 1))
     (goad x:wrong-type-arg (set! '#f 1))
 
-    ;; no exception on 2001-02-22
-    (goad x:bad-var (string-set! (symbol->string 'abc) 1 #\space))
-    ;; no exception on 2001-02-22
-    (goad x:bad-var (string-set! "abc" 1 #\space))
+    (expect-fail-exception "mutating string derived from symbol"
+      exception:bad-var
+      (string-set! (symbol->string 'abc) 1 #\space))
+
+    (expect-fail-exception "mutating string constant"
+      exception:bad-var
+      (string-set! "abc" 1 #\space))
 
     ;; Add more (bindings immutable-modification) exceptions here.
     )
@@ -241,16 +257,18 @@
     (goad x:bad-var (let ((1 2)) 3))
     (goad x:unbound-var (let ((x 1) (y x)) y))
 
-    ;; no exception on 2001-02-22
-    (goad x:bad-bindings (let ((x 1) (x 2)) x))
+    (expect-fail-exception "(let ((x 1) (x 2)) x)"
+      exception:bad-bindings
+      (let ((x 1) (x 2)) x))
 
     ;; Add more (bindings let) exceptions here.
     )
   (with-test-prefix "let*"
     (goad x:bad-var (let* ((1 2)) 3))
 
-    ;; no exception on 2001-02-22
-    (goad x:bad-bindings (let* ((x 1) (x 2)) x))
+    (expect-fail-exception "(let* ((x 1) (x 2)) x)"
+      exception:bad-bindings
+      (let* ((x 1) (x 2)) x))
 
     ;; Add more (bindings let*) exceptions here.
     )
@@ -258,8 +276,9 @@
     (goad x:bad-var (letrec ((1 2)) 3))
     (goad x:unbound-var (letrec ((x 1) (y x)) y))
 
-    ;; no exception on 2001-02-22
-    (goad x:bad-bindings (letrec ((x 1) (x 2)) x))
+    (expect-fail-exception "(letrec ((x 1) (x 2)) x)"
+      exception:bad-bindings
+      (letrec ((x 1) (x 2)) x))
 
     ;; Add more (bindings letrec) exceptions here.
     )
