@@ -240,66 +240,51 @@ SCM_API SCM scm_symbol_set_x (SCM o, SCM s, SCM v);
 
 SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 
+#define SCM_OPDIRP(x) (SCM_DIRP (x) && (SCM_DIR_OPEN_P (x)))
+#define scm_fport scm_t_fport
+#define scm_option scm_t_option
+#define scm_srcprops scm_t_srcprops
+#define scm_srcprops_chunk scm_t_srcprops_chunk
+#define scm_info_frame scm_t_info_frame
+#define scm_stack scm_t_stack
+#define scm_array scm_t_array
+#define scm_array_dim scm_t_array_dim
+#define SCM_ARRAY_CONTIGUOUS SCM_ARRAY_FLAG_CONTIGUOUS
+#define SCM_FUNC_NAME (scm_makfrom0str (FUNC_NAME))
+
+#define SCM_WTA(pos, scm) \
+  do { scm_wta (scm, (char *) pos, FUNC_NAME); } while (0)
+
+#define RETURN_SCM_WTA(pos, scm) \
+  do { return scm_wta (scm, (char *) pos, FUNC_NAME); } while (0)
+
+#define SCM_VALIDATE_NUMBER_COPY(pos, z, cvar)	\
+  do {						\
+    if (SCM_INUMP (z))				\
+      cvar = (double) SCM_INUM (z);		\
+    else if (SCM_REALP (z))			\
+      cvar = SCM_REAL_VALUE (z);		\
+    else if (SCM_BIGP (z))			\
+      cvar = scm_i_big2dbl (z);			\
+    else					\
+      {						\
+	cvar = 0.0;				\
+        SCM_WRONG_TYPE_ARG (pos, z);		\
+      }						\
+  } while (0)
+
+#define SCM_VALIDATE_NUMBER_DEF_COPY(pos, number, def, cvar)	\
+  do {								\
+    if (SCM_UNBNDP (number))					\
+      cvar = def;						\
+    else							\
+      SCM_VALIDATE_NUMBER_COPY(pos, number, cvar);		\
+  } while (0)
+
+#define SCM_VALIDATE_OPDIR(pos, port) SCM_MAKE_VALIDATE (pos, port, OPDIRP)
+
 void scm_i_init_deprecated (void);
 
 #endif
 
 #endif /* SCM_DEPRECATED_H */
-
-#if 0 
-/* TODO */
-
-scm_vector_set_length_x
-
-SCM_OPDIRP
-
-scm_fport
-scm_option
-SCM_CONST_LONG
-SCM_VCELL
-SCM_GLOBAL_VCELL
-
-SCM_VCELL_INIT
-SCM_GLOBAL_VCELL_INIT
-scm_srcprops
-scm_srcprops_chunk
-
-scm_info_frame
-scm_stack
-scm_array
-scm_array_dim
-SCM_ARRAY_CONTIGUOUS
-
-SCM_HUGE_LENGTH
-SCM_FUNC_NAME
-SCM_WTA
-RETURN_SCM_WTA
-
-SCM_VALIDATE_NUMBER_COPY
-SCM_VALIDATE_NUMBER_DEF_COPY
-
-SCM_VALIDATE_STRINGORSUBSTR
-SCM_VALIDATE_ROSTRING
-
-SCM_VALIDATE_ROSTRING_COPY
-SCM_VALIDATE_NULLORROSTRING_COPY
-
-SCM_VALIDATE_RWSTRING
-SCM_VALIDATE_OPDIR
-scm_small_istr2int
-
-scm_istr2int
-scm_istr2flo
-scm_istring2number
-scm_istr2int
-
-scm_istr2flo
-scm_istring2number
-scm_vtable_index_vcell
-
-SCM_ECONSP
-SCM_NECONSP
-
-scm_tc16_variable
-
-#endif
