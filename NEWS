@@ -1441,7 +1441,7 @@ the Scheme shell).
 
 To use the scm_shell function, first initialize any guile modules
 linked into your application, and then call scm_shell with the values
-of ARGC and ARGV your `main' function received.  scm_shell will adding
+of ARGC and ARGV your `main' function received.  scm_shell will add
 any SCSH-style meta-arguments from the top of the script file to the
 argument vector, and then process the command-line arguments.  This
 generally means loading a script file or starting up an interactive
