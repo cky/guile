@@ -4884,11 +4884,42 @@ scm_truncate (double x)
 #endif
 }
 
+/* scm_round is done using floor(x+0.5) to round to nearest and with
+   half-way case (ie. when x is an integer plus 0.5) going upwards.  Then
+   half-way cases are identified and adjusted down if the round-upwards
+   didn't give the desired even integer.
+
+   "plus_half == result" identifies a half-way case.  If plus_half, which is
+   x + 0.5, is an integer then x must be an integer plus 0.5.
+
+   An odd "result" value is identified with result/2 != floor(result/2).
+   This is done with plus_half, since that value is ready for use sooner in
+   a pipelined cpu, and we're already requiring plus_half == result.
+
+   Note however that we need to be careful when x is big and already an
+   integer.  In that case "x+0.5" may round to an adjacent integer, causing
+   us to return such a value, incorrectly.  For instance if the hardware is
+   in the usual default nearest-even rounding, then for x = 0x1FFFFFFFFFFFFF
+   (ie. 53 one bits) we will have x+0.5 = 0x20000000000000 and that value
+   returned.  Or if the hardware is in round-upwards mode, then other bigger
+   values like say x == 2^128 will see x+0.5 rounding up to the next higher
+   representable value, 2^128+2^76 (or whatever), again incorrect.
+
+   These bad roundings of x+0.5 are avoided by testing at the start whether
+   x is already an integer.  If it is then clearly that's the desired result
+   already.  And if it's not then the exponent must be small enough to allow
+   an 0.5 to be represented, and hence added without a bad rounding.  */
+
 double
 scm_round (double x)
 {
-  double plus_half = x + 0.5;
-  double result = floor (plus_half);
+  double plus_half, result;
+
+  if (x == floor (x))
+    return x;
+
+  plus_half = x + 0.5;
+  result = floor (plus_half);
   /* Adjust so that the scm_round is towards even.  */
   return ((plus_half == result && plus_half / 2 != floor (plus_half / 2))
 	  ? result - 1
