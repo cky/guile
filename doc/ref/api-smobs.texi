@@ -87,6 +87,11 @@ The @var{equalp} procedure should return @code{SCM_BOOL_T} when
 smob type @var{tc}.
 @end deftypefn
 
+@deftypefn {C Function} void scm_assert_smob_type (scm_t_bits tag, SCM val)
+When @var{val} is a smob of the type indicated by @var{tag}, do nothing.
+Else, signal an error.
+@end deftypefn
+
 @deftypefn {C Macro} int SCM_SMOB_PREDICATE (scm_t_bits tag, SCM exp)
 Return true iff @var{exp} is a smob instance of the type indicated by
 @var{tag}.  The expression @var{exp} can be evaluated more than once,
