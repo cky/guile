@@ -988,9 +988,9 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	  continue;
 	
 	++p;
-	if (*p == 'A')
+	if (*p == 'A' || *p == 'a')
 	  writingp = 0;
-	else if (*p == 'S')
+	else if (*p == 'S' || *p == 's')
 	  writingp = 1;
 	else
 	  continue;
