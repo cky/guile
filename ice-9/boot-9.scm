@@ -1830,7 +1830,8 @@
     (or already
 	(begin
 	  (if (or (null? maybe-autoload) (car maybe-autoload))
-	      (or (try-module-autoload name)
+	      (or (try-module-linked name)
+		  (try-module-autoload name)
 		  (try-module-dynamic-link name)))
 	  (make-modules-in (current-module) full-name))))))
 	    
@@ -2080,11 +2081,13 @@
     (set! registered-modules 
 	  (append! (convert-c-registered-modules dynobj)
 		   registered-modules))))
-	    
+
+(define (try-module-linked module-name)
+  (init-dynamic-module module-name))
+
 (define (try-module-dynamic-link module-name)
-  (or (init-dynamic-module module-name)
-      (and (find-and-link-dynamic-module module-name)
-	   (init-dynamic-module module-name))))
+  (and (find-and-link-dynamic-module module-name)
+       (init-dynamic-module module-name)))
 
 
 

@@ -5,6 +5,14 @@ Tue Sep 16 22:09:50 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	(separate-fields-discarding-char, separate-fields-after-char,
  	separate-fields-before-char): Bugfix from Maciej Stachowiak
 	<mstachow@mit.edu>.  Thanks!
+	(try-module-linked): Try to find module among those already
+	registered.
+	(try-module-dynamic-link): Removed the first test which
+	corresponds to a call to `try-module-linked'.
+	(resolve-module): Resolve modules in this order: 1. Already
+	registered modules (for example those which have been statically
+	linked), 2. Try to autoload an .scm-file, 3. Try to dynamically
+	link a .so-file.
 
 Mon Sep 15 23:39:54 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
