@@ -147,28 +147,28 @@ protected by the table.
 @node Property Primitives
 @subsection Low Level Property Implementation.
 
-@deffn {Scheme Procedure} primitive-make-property not_found_proc
+@deffn {Scheme Procedure} primitive-make-property not-found-proc
 @deffnx {C Function} scm_primitive_make_property (not_found_proc)
 Create a @dfn{property token} that can be used with
 @code{primitive-property-ref} and @code{primitive-property-set!}.
 See @code{primitive-property-ref} for the significance of
-@var{not_found_proc}.
+@var{not-found-proc}.
 @end deffn
 
 @deffn {Scheme Procedure} primitive-property-ref prop obj
 @deffnx {C Function} scm_primitive_property_ref (prop, obj)
-Return the property @var{prop} of @var{obj}.  When no value
-has yet been associated with @var{prop} and @var{obj}, call
-@var{not-found-proc} instead (see @code{primitive-make-property})
-and use its return value.  That value is also associated with
-@var{obj} via @code{primitive-property-set!}.  When
-@var{not-found-proc} is @code{#f}, use @code{#f} as the
-default value of @var{prop}.
+Return the property @var{prop} of @var{obj}.
+
+When no value has yet been associated with @var{prop} and @var{obj},
+the @var{not-found-proc} from @var{prop} is used.  A call
+@code{(@var{not-found-proc} @var{prop} @var{obj})} is made and the
+result set as the property value.  If @var{not-found-proc} is
+@code{#f} then @code{#f} is the property value.
 @end deffn
 
 @deffn {Scheme Procedure} primitive-property-set! prop obj val
 @deffnx {C Function} scm_primitive_property_set_x (prop, obj, val)
-Associate @var{code} with @var{prop} and @var{obj}.
+Set the property @var{prop} of @var{obj} to @var{val}.
 @end deffn
 
 @deffn {Scheme Procedure} primitive-property-del! prop obj
