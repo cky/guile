@@ -115,8 +115,8 @@
 
 	   (($ <glil-argument> op index)
 	    (if (eq? op 'ref)
-		(push-code! `(local-ref ,index)))
-	    (push-code! `(local-set ,index)))
+		(push-code! `(local-ref ,index))
+		(push-code! `(local-set ,index))))
 
 	   (($ <glil-local> op index)
 	    (if (eq? op 'ref)
