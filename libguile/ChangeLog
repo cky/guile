@@ -1,3 +1,8 @@
+2002-10-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* evalext.h:  Replaced SCM_DEBUG_DEPRECATED with
+	!SCM_ENABLE_DEPRECATED.
+
 2002-10-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* async.c (s_scm_system_async_mark_for_thread): Only call

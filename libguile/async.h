@@ -71,7 +71,7 @@ void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d);
 void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
 SCM_API void scm_init_async (void);
 
-#if (SCM_DEBUG_DEPRECATED == 0)
+#if (SCM_ENABLE_DEPRECATED == 1)
 
 SCM_API SCM scm_unmask_signals (void);
 SCM_API SCM scm_mask_signals (void);
