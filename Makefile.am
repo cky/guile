@@ -19,7 +19,6 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
-SUBDIRS = ice-9 qt libguile guile-config guile-readline doc
+SUBDIRS = ice-9 qt libltdl libguile guile-config guile-readline doc
 
-EXTRA_DIST = qthreads.m4 ltconfig ltmain.sh acconfig.h \
-	HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
+EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
