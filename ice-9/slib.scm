@@ -56,27 +56,27 @@
 	    string-port
 	    with-file)
 
-	  (if (defined? getenv)
+	  (if (defined? 'getenv)
 	      '(getenv)
 	      '())
 
-	  (if (defined? current-time)
+	  (if (defined? 'current-time)
 	      '(current-time)
 	      '())
 
-	  (if (defined? system)
+	  (if (defined? 'system)
 	      '(system)
 	      '())
 
-	  (if (defined? array?)
+	  (if (defined? 'array?)
 	      '(array)
 	      '())
 
-	  (if (defined? char-ready?)
+	  (if (defined? 'char-ready?)
 	      '(char-ready?)
 	      '())
 
-	  (if (defined? array-for-each)
+	  (if (defined? 'array-for-each)
 	      '(array-for-each)
 	      '())
 

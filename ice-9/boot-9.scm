@@ -1829,7 +1829,7 @@
 (define (macroexpand-1 e)
   (cond
    ((pair? e) (let* ((a (car e))
-		     (val (and (symbol? a) (eval `(defined? ,a)) (eval a))))
+		     (val (and (symbol? a) (defined? a) (eval a))))
 		(if (defmacro? val)
 		    (apply (defmacro-transformer val) (cdr e))
 		    e)))
@@ -1838,7 +1838,7 @@
 (define (macroexpand e)
   (cond
    ((pair? e) (let* ((a (car e))
-		     (val (and (symbol? a) (eval `(defined? ,a)) (eval a))))
+		     (val (and (symbol? a) (defined? a) (eval a))))
 		(if (defmacro? val)
 		    (macroexpand (apply (defmacro-transformer val) (cdr e)))
 		    e)))
