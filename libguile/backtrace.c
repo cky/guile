@@ -460,14 +460,14 @@ display_backtrace_file (frame, last_file, port, pstate)
 
   display_backtrace_get_file_line (frame, &file, &line);
 
-  if (file == *last_file)
+  if (SCM_EQ_P (file, *last_file))
     return;
 
   *last_file = file;
 
   scm_puts ("In ", port);
-  if (file == SCM_BOOL_F)
-    if (line == SCM_BOOL_F)
+  if (SCM_FALSEP (file))
+    if (SCM_FALSEP (line))
       scm_puts ("unknown file", port);
     else
       scm_puts ("current input", port);
@@ -489,9 +489,9 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
 
   if (SCM_EQ_P (SCM_SHOW_FILE_NAME, sym_base))
     {
-      if (file == SCM_BOOL_F)
+      if (SCM_FALSEP (file))
 	{
-	  if (line == SCM_BOOL_F)
+	  if (SCM_FALSEP (line))
 	    scm_putc ('?', port);
 	  else
 	    scm_puts ("<stdin>", port);
@@ -506,7 +506,7 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
 
       scm_putc (':', port);
     }
-  else if (line != SCM_BOOL_F)
+  else if (!SCM_FALSEP (line))
     {
       int i, j=0;
       for (i = SCM_INUM (line)+1; i > 0; i = i/10, j++)
@@ -514,7 +514,7 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
       indent (4-j, port);
     }
 
-  if (line == SCM_BOOL_F)
+  if (SCM_FALSEP (line))
     scm_puts ("   ?", port);
   else
     scm_intprint (SCM_INUM (line) + 1, 10, port);

@@ -1,3 +1,10 @@
+2001-09-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* backtrace.c (display_backtrace_file,
+	display_backtrace_file_and_line):  Use SCM_EQ_P when comparing SCM
+	values, use SCM_FALSEP when comparing SCM values against #f.
+	Thanks to Rob Browning for the bug report.
+
 2001-09-12  Martin Baulig  <martin@home-of-linux.org>
 
 	* strings.[ch] (scm_str2string): New function.
