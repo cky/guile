@@ -1,3 +1,20 @@
+2001-05-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c (scm_debug_opts): New option `show-file-name'.
+	* debug.h (SCM_SHOW_FILE_NAME): New.
+	
+	* backtrace.c: Include "libguile/filesys.h".
+	(sym_base, display_backtrace_get_file_line,
+	display_backtrace_file, display_backtrace_file_and_line): New.
+	(display_frame): Call display_backtrace_file_and_line if that is
+	requested.
+	(display_backtrace_body): Call scm_display_backtrace_file if
+	requested.
+
+	* debug.h (scm_lookup_cstr, scm_lookup_soft, scm_evstr):
+	Prototypes removed since there's no definition for these
+	functions.
+
 2001-05-24  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* unif.c (scm_make_ra, array_free), unif.h (SCM_ARRAY_DIMS):
