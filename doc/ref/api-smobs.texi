@@ -55,6 +55,10 @@ directly associated with the smob instance @var{OBJ}.  It must assume
 that all @code{SCM} values that it references have already been freed
 and are thus invalid.
 
+It must also not call any libguile function or macro except
+@code{scm_gc_free}, @code{SCM_SMOB_FLAGS}, @code{SCM_SMOB_DATA},
+@code{SCM_SMOB_DATA_2}, and @code{SCM_SMOB_DATA_3}.
+
 The @var{free} procedure must return 0.
 @end deftypefn
 

@@ -61,6 +61,10 @@ the size of the struct passed to @code{scm_make_smob_type} is non-zero)
 using @code{scm_gc_free}.  @xref{Garbage Collecting Smobs}, for more
 details.
 
+This function operates while the heap is in an inconsistent state and
+must therefore be careful.  @xref{Smobs}, for details about what this
+function is allowed to do.
+
 @item print
 Guile will apply this function to each instance of the new type to print
 the value, as for @code{display} or @code{write}.  The default print
