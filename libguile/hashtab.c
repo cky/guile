@@ -96,20 +96,21 @@ scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned long (*hash_fn)
     scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (k));
   SCM_REDEFER_INTS;
   it = assoc_fn (obj, SCM_VELTS (table)[k], closure);
-  if (SCM_NIMP (it))
+  if (!SCM_FALSEP (it))
     {
       SCM_REALLOW_INTS;
       return it;
     }
-  {
-    SCM new_bucket;
-    SCM old_bucket;
-    old_bucket = SCM_VELTS (table)[k];
-    new_bucket = scm_acons (obj, init, old_bucket);
-    SCM_VELTS(table)[k] = new_bucket;
-    SCM_REALLOW_INTS;
-    return SCM_CAR (new_bucket);
-  }
+  else
+    {
+      SCM new_bucket;
+      SCM old_bucket;
+      old_bucket = SCM_VELTS (table)[k];
+      new_bucket = scm_acons (obj, init, old_bucket);
+      SCM_VELTS(table)[k] = new_bucket;
+      SCM_REALLOW_INTS;
+      return SCM_CAR (new_bucket);
+    }
 }
 #undef FUNC_NAME
 

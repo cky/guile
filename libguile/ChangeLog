@@ -1,3 +1,12 @@
+2001-10-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* hashtab.c (scm_hash_fn_create_handle_x):  The result of assoc_fn
+	is known to be #f if no entry is found.  Thus, use !SCM_FALSEP
+	instead of SCM_NIMP to test for that case.
+
+	* strings.h (SCM_SET_STRING_LENGTH):  Cast the length to
+	scm_t_bits instead of long.
+
 2001-10-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tags.h (SCM_T_BITS_MAX, SCM_T_SIGNED_BITS_MAX,
