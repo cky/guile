@@ -1187,7 +1187,7 @@ AC_SUBST(LIBGUILE_SRFI_SRFI_13_14_INTERFACE)
 #######################################################################
 
 dnl Tell guile-config what flags guile users should compile and link with.
-GUILE_LIBS"$LDFLAGS $LIBS"
+GUILE_LIBS="$LDFLAGS $LIBS"
 GUILE_CFLAGS="$PTHREAD_CFLAGS"
 AC_SUBST(GUILE_LIBS)
 AC_SUBST(GUILE_CFLAGS)
