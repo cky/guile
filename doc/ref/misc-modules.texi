@@ -615,6 +615,114 @@ use @code{throw} or similar to escape.
 @end defun
 
 
+@node Queues
+@chapter Queues
+@cindex Queues
+@tindex Queues
+
+@noindent
+The functions in this section are provided by
+
+@example
+(use-modules (ice-9 q))
+@end example
+
+This module implements queues holding arbitrary scheme objects and
+designed for efficient first-in / first-out operations.
+
+@code{make-q} creates a queue, and objects are entered and removed
+with @code{enq!} and @code{deq!}.  @code{q-push!}  and @code{q-pop!}
+can be used too, treating the front of the queue like a stack.
+
+@sp 1
+
+@deffn {Scheme Procedure} make-q
+Return a new queue.
+@end deffn
+
+@deffn {Scheme Procedure} q? obj
+Return @code{#t} if @var{obj} is a queue, or @code{#f} if not.
+
+Note that queues are not a distinct class of objects but are
+implemented with cons cells.  For that reason certain list structures
+can get @code{#t} from @code{q?}.
+@end deffn
+
+@deffn {Scheme Procedure} enq! q obj
+Add @var{obj} to the rear of @var{q}, and return @var{q}.
+@end deffn
+
+@deffn {Scheme Procedure} deq! q
+@deffnx {Scheme Procedure} q-pop! q
+Remove and return the front element from @var{q}.  If @var{q} is
+empty, a @code{q-empty} exception is thrown.
+
+@code{deq!} and @code{q-pop!} are the same operation, the two names
+just let an application match @code{enq!} with @code{deq!}, or
+@code{q-push!} with @code{q-pop!}.
+@end deffn
+
+@deffn {Scheme Procedure} q-push! q obj
+Add @var{obj} to the front of @var{q}, and return @var{q}.
+@end deffn
+
+@deffn {Scheme Procedure} q-length q
+Return the number of elements in @var{q}.
+@end deffn
+
+@deffn {Scheme Procedure} q-empty? q
+Return true if @var{q} is empty.
+@end deffn
+
+@deffn {Scheme Procedure} q-empty-check q
+Throw a @code{q-empty} exception if @var{q} is empty.
+@end deffn
+
+@deffn {Scheme Procedure} q-front q
+Return the first element of @var{q} (without removing it).  If @var{q}
+is empty, a @code{q-empty} exception is thrown.
+@end deffn
+
+@deffn {Scheme Procedure} q-rear q
+Return the last element of @var{q} (without removing it).  If @var{q}
+is empty, a @code{q-empty} exception is thrown.
+@end deffn
+
+@deffn {Scheme Procedure} q-remove! q obj
+Remove all occurences of @var{obj} from @var{q}, and return @var{q}.
+@var{obj} is compared to queue elements using @code{eq?}.
+@end deffn
+
+@sp 1
+@cindex @code{q-empty}
+The @code{q-empty} exceptions described above are thrown just as
+@code{(throw 'q-empty)}, there's no message etc like an error throw.
+
+A queue is implemented as a cons cell, the @code{car} containing a
+list of queued elements, and the @code{cdr} being the last cell in
+that list (for ease of enqueuing).
+
+@example
+(@var{list} . @var{last-cell})
+@end example
+
+@noindent
+If the queue is empty, @var{list} is the empty list and
+@var{last-cell} is @code{#f}.
+
+An application can directly access the queue list if desired, for
+instance to search the elements or to insert at a specific point.
+
+@deffn {Scheme Procedure} sync-q! q
+Recompute the @var{last-cell} field in @var{q}.
+
+All the operations above maintain @var{last-cell} as described, so
+normally there's no need for @code{sync-q!}.  But if an application
+modifies the queue @var{list} then it must either maintain
+@var{last-cell} similarly, or call @code{sync-q!} to recompute it.
+@end deffn
+
+
 @c Local Variables:
 @c TeX-master: "guile.texi"
 @c End:
