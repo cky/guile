@@ -71,19 +71,13 @@ static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 
 
 #if (SCM_DEBUG_DEPRECATED == 1)  /* not defined in header yet? */
-/* SCM_FIXABLE is non-0 if its long argument can be encoded in an SCM_INUM.
- */
-#define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
-#define SCM_NEGFIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
-#define SCM_UNEGFIXABLE(n) ((n) <= -SCM_MOST_NEGATIVE_FIXNUM)
-#define SCM_FIXABLE(n) (SCM_POSFIXABLE(n) && SCM_NEGFIXABLE(n))
-
 
 /* SCM_FLOBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an inexact number.
  */
 #define SCM_FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
-#endif
+
+#endif  /* SCM_DEBUG_DEPRECATED == 1 */
 
 
 /* IS_INF tests its floating point number for infiniteness
@@ -1349,7 +1343,7 @@ scm_big2inum (SCM b, scm_sizet l)
       if (SCM_POSFIXABLE (num))
 	return SCM_MAKINUM (num);
     }
-  else if (SCM_UNEGFIXABLE (num))
+  else if (num <= -SCM_MOST_NEGATIVE_FIXNUM)
     return SCM_MAKINUM (-num);
   return b;
 }

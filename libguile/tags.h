@@ -91,10 +91,6 @@ typedef long scm_bits_t;
  */
 #define SCM_EQ_P(x, y) (SCM_UNPACK (x) == SCM_UNPACK (y))
 
-
-/* SCM_UNPACK_CAR is a convenience for treating the CAR of X as a word */
-#define SCM_UNPACK_CAR(x) (SCM_CELL_TYPE (x))
-
 
 
 /* SCM variables can contain:
@@ -580,7 +576,8 @@ extern char *scm_isymnames[];   /* defined in print.c */
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
-#define SCM_NDOUBLE_CELLP(x) 	(!SCM_DOUBLE_CELLP (x))
+#define SCM_UNPACK_CAR(x) (SCM_CELL_WORD_0 (x))
+#define SCM_NDOUBLE_CELLP(x) (!SCM_DOUBLE_CELLP (x))
 
 #define scm_tc16_flo		scm_tc16_real
 #define scm_tc_flo		0x017fL

@@ -193,6 +193,12 @@ only characters, for compatibility with R5RS.
 ** New procedure: port-closed? PORT
 Returns #t if PORT is closed or #f if it is open.
 
+* Changes to the gh_ interface
+
+** Deprecated: gh_int2scmb
+
+Use gh_bool2scm instead.
+
 * Changes to the scm_ interface
 
 ** Guile primitives now carry docstrings!
@@ -212,14 +218,15 @@ the readability of argument checking.
 
 ** All (nearly?) K&R prototypes for functions replaced with ANSI C equivalents.
 
-** New macros: SCM_PACK, SCM_UNPACK, SCM_UNPACK_CAR
+** New macros: SCM_PACK, SCM_UNPACK
 
 Compose/decompose an SCM value.
 
-The SCM type is now defined as void * on most architectures.  This
-makes it easier to find several types of bugs, for example when SCM
-values are treated as integers without conversion.  Values of the SCM
-type should be treated as "atomic" values.  These macros are used when
+The SCM type is now treated as an abstract data type and may be defined as a
+long, a void* or as a struct, depending on the architecture and compile time
+options. This makes it easier to find several types of bugs, for example when
+SCM values are treated as integers without conversion.  Values of the SCM type
+should be treated as "atomic" values.  These macros are used when
 composing/decomposing an SCM value, either because you want to access
 individual bits, or because you want to treat it as an integer value.
 
@@ -227,11 +234,11 @@ E.g., in order to set bit 7 in an SCM value x, use the expression
 
   SCM_PACK (SCM_UNPACK (x) | 0x80)
 
-SCM_UNPACK_CAR (X) is defined as SCM_UNPACK (SCM_CAR (X))
+** Deprecated macros: SCM_INPORTP, SCM_OUTPORTP, SCM_CRDY, SCM_ICHRP, 
+SCM_ICHR, SCM_MAKICHR, SCM_SETJMPBUF, SCM_NSTRINGP, SCM_NRWSTRINGP,
+SCM_NVECTORP
 
-** Deprecated macros: SCM_INPORTP, SCM_OUTPORTP
-
-These macros will be removed in next release of Guile.
+These macros will be removed in a future release of Guile.
 
 ** Port internals: the rw_random variable in the scm_port structure
 must be set to non-zero in any random access port.  In recent Guile
@@ -253,6 +260,10 @@ beginning of the ptob seek procedure:
 although to actually avoid resetting the buffers and discard unread
 chars requires further hacking that depends on the characteristics
 of the ptob.
+
+** Deprecated functions: scm_fseek, scm_tag
+
+These functions are no longer used and will be removed in a future version.
 
 ** The scm_sysmissing procedure is no longer used in libguile.
 Unless it turns out to be unexpectedly useful to somebody, it will be

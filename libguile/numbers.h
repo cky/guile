@@ -77,6 +77,12 @@
 #define SCM_INUM(x)     (SCM_SRS (SCM_UNPACK (x), 2))
 
 
+/* SCM_FIXABLE is true if its long argument can be encoded in an SCM_INUM. */
+#define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
+#define SCM_NEGFIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
+#define SCM_FIXABLE(n) (SCM_POSFIXABLE(n) && SCM_NEGFIXABLE(n))
+
+
 /* A name for 0. */
 #define SCM_INUM0 (SCM_MAKINUM (0))
 
@@ -304,10 +310,7 @@ typedef struct scm_dblproc
 
 #define SCM_NEWREAL(z, x) do { z = scm_make_real (x); } while (0)
 #define SCM_NEWCOMPLEX(z, x, y) do { z = scm_make_complex (x, y); } while (0)
-#define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
-#define SCM_NEGFIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
 #define SCM_UNEGFIXABLE(n) ((n) <= -SCM_MOST_NEGATIVE_FIXNUM)
-#define SCM_FIXABLE(n) (SCM_POSFIXABLE(n) && SCM_NEGFIXABLE(n))
 #define SCM_FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
 #define SCM_INEXP(x) SCM_INEXACTP(x)
 #define SCM_CPLXP(x) SCM_COMPLEXP(x)

@@ -1,6 +1,17 @@
 2000-05-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* filesys.h (SCM_OPDIRP), fluids (SCM_FLUIDP, SCM_FLUID_NUM),
+	* numbers.[ch] (SCM_POSFIXABLE, SCM_NEGFIXABLE, SCM_FIXABLE):
+	Un-deprecated since otherwise user code can't determine whether a
+	number fits into an inum any longer.  The names should be changed
+	some time, though.
+
+	* numbers.c (scm_big2inum):  Eliminated use of SCM_UNEGFIXABLE.
+
+	* tags.h (SCM_UNPACK_CAR):  Deprecated.
+
+2000-05-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* filesys.h (SCM_OPDIRP), fluids.h (SCM_FLUIDP, SCM_FLUID_NUM),
 	fports.h (SCM_OPFPORTP, SCM_OPINFPORTP, SCM_OPOUTFPORTP), hooks.h
 	(SCM_HOOK_ARITY), keywords.h (SCM_KEYWORDP, SCM_KEYWORDSYM),
 	numbers.h (SCM_NUMP, SCM_BIGSIGN, SCM_BDIGITS, SCM_NUMDIGS): 
