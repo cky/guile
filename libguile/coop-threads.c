@@ -418,6 +418,7 @@ scm_wait_condition_variable (c, m)
 	      s_wait_condition_variable);
   coop_mutex_unlock (SCM_MUTEX_DATA (m));
   coop_condition_variable_wait (SCM_CONDVAR_DATA (c));
+  coop_mutex_lock (SCM_MUTEX_DATA (m));
   return SCM_BOOL_T;
 }
 
