@@ -1,3 +1,8 @@
+Tue Nov 19 22:43:31 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* gc.c (scm_igc, scm_gc_mark): Round up the size of the stack we
+	pass to scm_mark_locations.  (Thanks to Aubrey Jaffer.)
+
 Sun Nov 10 13:35:05 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* gc.c (struct scm_heap_seg_data): Doc fixes.

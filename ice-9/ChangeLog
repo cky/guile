@@ -1,3 +1,8 @@
+Wed Nov 20 14:45:27 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* slib.scm (slib-parent-dir): Use string-length, not length.
+	(Thanks to Bernard Urban.)
+
 Sat Nov  2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 *	* boot-9.scm: The debugging evaluator and recording of positions

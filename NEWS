@@ -68,7 +68,13 @@ Why does `#!' start a block comment terminated by `!#', instead of the
 end of the line?  That is the notation SCSH uses, and although we
 don't yet support the other SCSH features that motivate that choice,
 we would like to be backward-compatible with any existing Guile
-scripts once we do.
+scripts once we do.  Furthermore, if the path to Guile on your system
+is too long for your kernel, you can start the script with this
+horrible hack:
+
+#!/bin/sh
+exec /really/long/path/to/guile -s "$0" ${1+"$@"}
+!#
 
 Note that some very old Unix systems don't support the `#!' syntax.
 
