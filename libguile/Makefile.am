@@ -36,11 +36,11 @@ guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 
 libguile_la_SOURCES = \
     alist.c arbiters.c async.c backtrace.c boolean.c chars.c \
-    continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c \
+    continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c evalext.c \
     feature.c filesys.c fluids.c fports.c gc.c gdbint.c genio.c \
     gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c \
     gh_predicates.c gsubr.c hash.c hashtab.c init.c ioext.c kw.c \
-    list.c load.c mallocs.c markers.c net_db.c numbers.c objects.c \
+    list.c load.c macros.c mallocs.c markers.c net_db.c numbers.c objects.c \
     objprop.c options.c pairs.c ports.c posix.c print.c procprop.c \
     procs.c ramap.c read.c readline.c root.c scmsigs.c script.c \
     simpos.c smob.c socket.c srcprop.c stackchk.c stacks.c stime.c \
@@ -50,11 +50,11 @@ libguile_la_SOURCES = \
 BUILT_SOURCES = \
     cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
     alist.x arbiters.x async.x backtrace.x boolean.x chars.x \
-    continuations.x debug.x dynl.x dynwind.x eq.x error.x eval.x \
+    continuations.x debug.x dynl.x dynwind.x eq.x error.x eval.x evalext.x \
     feature.x filesys.x fluids.x fports.x gc.x gdbint.x genio.x \
     gh_data.x gh_eval.x gh_funcs.x gh_init.x gh_io.x gh_list.x \
     gh_predicates.x gsubr.x hash.x hashtab.x init.x ioext.x iselect.x \
-    kw.x list.x load.x mallocs.x markers.x net_db.x numbers.x \
+    kw.x list.x load.x macros.x mallocs.x markers.x net_db.x numbers.x \
     objects.x objprop.x options.x pairs.x ports.x posix.x print.x \
     procprop.x procs.x ramap.x read.x readline.x regex-posix.x root.x \
     scmsigs.x script.x simpos.x smob.x socket.x srcprop.x stackchk.x \
@@ -86,10 +86,10 @@ pkginclude_HEADERS = gh.h
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS = \
     __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h \
-    continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h \
+    continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h evalext.h \
     feature.h filesys.h fports.h gc.h gdb_interface.h gdbint.h genio.h \
     gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h load.h \
-    mallocs.h markers.h net_db.h numbers.h objects.h objprop.h \
+    macros.h mallocs.h markers.h net_db.h numbers.h objects.h objprop.h \
     options.h pairs.h ports.h posix.h regex-posix.h print.h procprop.h \
     procs.h ramap.h read.h readline.h root.h scmsigs.h script.h \
     simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h stime.h \
