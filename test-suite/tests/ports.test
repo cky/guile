@@ -115,6 +115,27 @@
 	    (char=? (read-char port) #\s))
    (delete-file filename)))
 
+;;; unusual characters.
+(catch-test-errors
+ (let* ((filename (test-file))
+	(port (open-output-file filename)))
+   (display (string #\nul (integer->char 255) (integer->char 128)
+		    #\nul) port)
+   (close-port port)
+   (let* ((port (open-input-file filename))
+	  (line (read-line port)))
+     (pass-if "file: read back NUL 1"
+	      (char=? (string-ref line 0) #\nul))
+     (pass-if "file: read back 255"
+	      (char=? (string-ref line 1) (integer->char 255)))
+     (pass-if "file: read back 128"
+	      (char=? (string-ref line 2) (integer->char 128)))
+     (pass-if "file: read back NUL 2"
+	      (char=? (string-ref line 3) #\nul))
+     (pass-if "file: EOF"
+	      (eof-object? (read-char port))))
+   (delete-file filename)))
+
 
 ;;;; Pipe ports.
 
