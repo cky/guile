@@ -5,6 +5,12 @@
 
 2004-01-04  Kevin Ryde  <user42@zip.com.au>
 
+	* scheme-scheduling.texi (Threads): Note Guile uses POSIX threads, for
+	concurrency and preemption.
+	(C level thread interface): Note periodic libguile call required for C
+	code in threads, add commented out reminders for SCM_TICK and
+	guile-mode, for when those features are ready.
+
 	* srfi-modules.texi (SRFI-1 Filtering and Partitioning): For partition
 	and partition!, emphasise the multi-value return, note partition may
 	share a tail with the given list.
