@@ -247,8 +247,8 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
       SCM_VALIDATE_STRING (1, prefix);
       len = SCM_STRING_LENGTH (prefix);
       if (len > MAX_PREFIX_LENGTH)
-	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
-      strncpy (name, SCM_STRING_CHARS (prefix), len);
+	name = SCM_MUST_MALLOC (len + SCM_INTBUFLEN);
+      memcpy (name, SCM_STRING_CHARS (prefix), len);
     }
   {
     int n_digits = scm_iint2str (gensym_counter++, 10, &name[len]);

@@ -1,3 +1,11 @@
+2001-05-28  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* symbols.c (scm_gensym): Fix buffer overrun (try `(gensym
+	(make-string 2000 #\!))' in an older version).  
+
+	Change strncpy to memcpy to allow embedded NUL characters in
+	symbol prefix.
+
 2001-05-28  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* hooks.c (scm_create_hook): deprecated.
