@@ -1,3 +1,12 @@
+2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* README: Document the new --disable-discouraged option.
+
+	* configure.in (SCM_I_GSC_ENABLE_DISCOURAGED): New, for the new
+	--enable-discouraged option.
+
+	* libguile.h: Include libguile/discouraged.h.
+
 2004-07-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* configure.in: Bugfix: logic in detecting ptrdiff_t was inverted;

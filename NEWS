@@ -598,26 +598,77 @@ starting the week.
 
 * Changes to the C interface
 
-** Many of the old macros for doing type conversions between C and
-   Scheme have been deprecated and replaced with functions (or macros
-   that behave like functions).
+** There is the new notion of 'discouraged' features.
 
-This was done to ...
+This is a milder form of deprecation.
 
-These are the deprecated macros and their replacements:
+Things that are discouraged should not be used in new code, but it is
+OK to leave them in old code for now.  When a discouraged feature is
+used, no warning message is printed like there is for 'deprecated'
+features.  Also, things that are merely discouraged are nevertheless
+implemented efficiently, while deprecated features can be very slow.
 
-  SCM_EQ_P         ->  scm_is_eq
-  SCM_FALSEP       ->  scm_is_false
-  SCM_NFALSEP      ->  scm_is_true
-  SCM_BOOL         ->  scm_from_bool
-  SCM_NEGATE_BOOL  ->  scm_from_bool (! ...)
-  SCM_BOOLP        ->  scm_is_bool
-  SCM_BOOL_NOT     ->  scm_not
+You can omit discouraged features from libguile by configuring it with
+the '--disable-discouraged' option.
 
-  SCM_INUMP        ->  scm_is_integer or similar
-  SCM_NINUMP       ->  !scm_is_integer or similar
-  SCM_MAKINUM      ->  scm_from_int or similar
-  SCM_INUM         ->  scm_to_int or similar
+** A new family of functions for converting between C values and
+   Scheme values has been added.
+
+These functions follow a common naming scheme and are designed to be
+easier to use, thread-safe and more future-proof than the older
+alternatives.
+
+  - int scm_is_* (...)
+ 
+  These are predicates that return a C boolean: 1 or 0.  Instead of
+  SCM_NFALSEP, you can now use scm_is_true, for example.
+
+  - <type> scm_to_<type> (SCM val, ...)
+
+  These are functions that convert a Scheme value into an appropriate
+  C value.  For example, you can use scm_to_int to safely convert from
+  a SCM to an int.
+
+  - SCM scm_from_<type>) (<type> val, ...)
+
+  These functions convert from a C type to a SCM value; for example,
+  scm_from_int for ints.
+
+There is a huge number of these functions, for numbers, strings,
+symbols, vectors, etc.  They are documented in the reference manual in
+the API section together with the types that they apply to.
+
+** The INUM macros have been deprecated.
+
+A lot of code uses these macros to do general integer conversions,
+although they only work correctly with fixnums.  Use the following
+alternatives.
+
+  SCM_INUMP             ->  scm_is_integer or similar
+  SCM_NINUMP            ->  !scm_is_integer or similar
+  SCM_MAKINUM           ->  scm_from_int or similar
+  SCM_INUM              ->  scm_to_int or similar
+
+  SCM_VALIDATE_INUM_*   ->  Do not use these, scm_to_int, etc. will
+                            do the validating for you.
+
+** The scm_num2<type> and scm_<type>2num functions have been
+   discouraged.
+
+Use the newer scm_to_<type> and scm_from_<type> functions instead for
+new code.  The functions have been discouraged since they don't fit
+the naming scheme.
+
+** The 'boolean' macros SCM_FALSEP etc have been discouraged.
+
+They have strange names, especially SCM_NFALSEP, and SCM_BOOLP
+evaluates its argument twice.  Use scm_is_true, etc. instead for new
+code.
+
+** The macro SCM_EQ_P has been discouraged.
+
+Use scm_is_eq for new code, which fits better into the naming
+conventions.
 
 ** SCM_CELL_WORD_LOC has been deprecated.
 
