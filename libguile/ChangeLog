@@ -1,5 +1,8 @@
 2000-09-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
+	* Makefile.am (.x.doc): Bugfix: Added $(srcdir) to path in order
+	to allow for builds in separate tree.
+
 	* symbols.c (scm_gensym): Bugfixed my previous bugfix.  (Thanks to
 	Dale P. Smith.)
 
