@@ -1,3 +1,7 @@
+2001-04-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am: Fixed "srf-14.x" typo.
+
 2001-04-24  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* guile-srfi.texi: Removed, because merged with the GRM.
