@@ -1,3 +1,12 @@
+2005-01-28  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-1 Predicates): Clarify proper-list?,
+	circular-list? and dotted-list?, note any object passes exactly one of
+	those.
+
+	* srfi-modules.texi (SRFI-19 Time/Date conversions): In default
+	tz-offset, note restrictions on a 32-bit system.
+
 2005-01-24  Kevin Ryde  <user42@zip.com.au>
 
 	* api-i18n.texi (Internationalization): Expand and revise a bit for
