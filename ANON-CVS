@@ -57,6 +57,19 @@ The EGCS Project is kindly lending us space, time, and bandwidth on
 their CVS server.  Thanks, folks!
 
 
+Change Notification ==================================================
+
+If you would like to receive mail when people commit changes to the
+Guile CVS repository, you can subscribe to guile-cvs@egcs.cygnus.com
+by sending a message to guile-cvs-subscribe@egcs.cygnus.com.  Even
+better, you can get daily digests of these commit messages by sending
+a message to guile-cvs-digest-subscribe@egcs.cygnus.com.
+
+If you want to subscribe an e-mail address other than the one that
+appears in your From: header, say foo@bar.com, send a mail note to
+guile-cvs-subscribe-foo=bar.com@egcs.cygnus.com.
+
+
 Questions ============================================================
 
 (I don't know if they'll be "frequently asked" or not yet!)
