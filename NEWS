@@ -1,104 +1,10 @@
 Guile NEWS --- history of user-visible changes.  -*- text -*-
-Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.3.4:
-
-* New primitive: `simple-format', affects `scm-error', scm_display_error, & scm_error message strings
-
-(ice-9 boot) makes `format' an alias for `simple-format' until possibly
-extended by the more sophisticated version in (ice-9 format)
-
-(simple-format port message . args)
-Write MESSAGE to DESTINATION, defaulting to `current-output-port'.
-MESSAGE can contain ~A (was %s) and ~S (was %S) escapes.  When printed,
-the escapes are replaced with corresponding members of ARGS:
-~A formats using `display' and ~S formats using `write'.
-If DESTINATION is #t, then use the `current-output-port',
-if DESTINATION is #f, then return a string containing the formatted text.
-Does not add a trailing newline."
-
-The two C procedures: scm_display_error and scm_error, as well as the
-primitive `scm-error', now use scm_format to do their work.  This means
-that the message strings of all code must be updated to use ~A where %s
-was used before, and ~S where %S was used before.
-
-During the period when there still are a lot of old Guiles out there,
-you might want to support both old and new versions of Guile.
-
-There are basically two methods to achieve this.  Both methods use
-autoconf.  Put
-
-  AC_CHECK_FUNCS(scm_simple_format)
-
-in your configure.in.
-
-Method 1: Use the string concatenation features of ANSI C's
-          preprocessor.
-
-In C:
-
-#ifdef HAVE_SCM_SIMPLE_FORMAT
-#define FMT_S "~S"
-#else
-#define FMT_S "%S"
-#endif
-
-Then represent each of your error messages using a preprocessor macro:
-
-#define E_SPIDER_ERROR "There's a spider in your " ## FMT_S ## "!!!"
-
-In Scheme:
-
-(define fmt-s (if (defined? 'simple-format) "~S" "%S"))
-(define make-message string-append)
-
-(define e-spider-error (make-message "There's a spider in your " fmt-s "!!!"))
-
-Method 2: Use the oldfmt function found in doc/oldfmt.c.
-
-In C:
-
-scm_misc_error ("picnic", scm_c_oldfmt0 ("There's a spider in your ~S!!!"),
-                ...);
-
-In Scheme:
-
-(scm-error 'misc-error "picnic" (oldfmt "There's a spider in your ~S!!!")
-           ...)
-
-* Massive software engineering face-lift by Greg J. Badros <gjb@cs.washington.edu>
-
-Now Guile primitives are defined using the GUILE_PROC/GUILE_PROC1 macros
-and must contain a docstring that is extracted into foo.doc using a new
-guile-doc-snarf script (that uses guile-doc-snarf.awk).
-
-Also, many SCM_VALIDATE_* macros are defined to ease the redundancy and
-improve the readability of argument checking.
-
-All (nearly?) K&R prototypes for functions replaced with ANSI C equivalents.
-
-* Dynamic linking now uses libltdl from the libtool package.
-
-The old system dependent code for doing dynamic linking has been
-replaced with calls to the libltdl functions which do all the hairy
-details for us.
-
-The major improvement is that you can now directly pass libtool
-library names like "libfoo.la" to `dynamic-link' and `dynamic-link'
-will be able to do the best shared library job you can get, via
-libltdl.
-
-The way dynamic libraries are found has changed and is not really
-portable across platforms, probably.  It is therefore recommended to
-use absolute filenames when possible.
-
-If you pass a filename without an extension to `dynamic-link', it will
-try a few appropriate ones.  Thus, the most platform ignorant way is
-to specify a name like "libfoo", without any directories and
-extensions.
 
 * Changes to the distribution
 
@@ -152,17 +58,27 @@ a garbage collection before each allocation of a cell.  This can
 slow down the interpreter dramatically, so the setter should be used to
 turn on this extra processing only when necessary.
 
-* Changes to Scheme functions and syntax
-
-** string-ref: the second argument is no longer optional.
-
-** string, list->string: no longer accept strings in their arguments,
-only characters, for compatibility with R5RS.
-
-** New procedure: port-closed? PORT
-Returns #t if PORT is closed or #f if it is open.
-
 * Changes to the stand-alone interpreter
+
+** Dynamic linking now uses libltdl from the libtool package.
+
+The old system dependent code for doing dynamic linking has been
+replaced with calls to the libltdl functions which do all the hairy
+details for us.
+
+The major improvement is that you can now directly pass libtool
+library names like "libfoo.la" to `dynamic-link' and `dynamic-link'
+will be able to do the best shared library job you can get, via
+libltdl.
+
+The way dynamic libraries are found has changed and is not really
+portable across platforms, probably.  It is therefore recommended to
+use absolute filenames when possible.
+
+If you pass a filename without an extension to `dynamic-link', it will
+try a few appropriate ones.  Thus, the most platform ignorant way is
+to specify a name like "libfoo", without any directories and
+extensions.
 
 ** New primitives: `pkgdata-dir', `site-dir', `library-dir' 
 
@@ -195,7 +111,44 @@ at the top of the script.
 ** Attempting to get the value of an unbound variable now produces
 an exception with a key of 'unbound-variable instead of 'misc-error.
 
+* Changes to Scheme functions and syntax
+
+** New procedure: simple-format PORT MESSAGE ARG1 ...
+
+(ice-9 boot) makes `format' an alias for `simple-format' until possibly
+extended by the more sophisticated version in (ice-9 format)
+
+(simple-format port message . args)
+Write MESSAGE to DESTINATION, defaulting to `current-output-port'.
+MESSAGE can contain ~A (was %s) and ~S (was %S) escapes.  When printed,
+the escapes are replaced with corresponding members of ARGS:
+~A formats using `display' and ~S formats using `write'.
+If DESTINATION is #t, then use the `current-output-port',
+if DESTINATION is #f, then return a string containing the formatted text.
+Does not add a trailing newline."
+
+** string-ref: the second argument is no longer optional.
+
+** string, list->string: no longer accept strings in their arguments,
+only characters, for compatibility with R5RS.
+
+** New procedure: port-closed? PORT
+Returns #t if PORT is closed or #f if it is open.
+
 * Changes to the scm_ interface
+
+** Guile primitives are defined in a new way: GUILE_PROC/GUILE_PROC1
+
+Now Guile primitives are defined using the GUILE_PROC/GUILE_PROC1 macros
+and must contain a docstring that is extracted into foo.doc using a new
+guile-doc-snarf script (that uses guile-doc-snarf.awk).
+
+** Guile primitives use a new technique for validation of arguments
+
+SCM_VALIDATE_* macros are defined to ease the redundancy and improve
+the readability of argument checking.
+
+** All (nearly?) K&R prototypes for functions replaced with ANSI C equivalents.
 
 ** Port internals: the rw_random variable in the scm_port structure
 must be set to non-zero in any random access port.  In recent Guile
@@ -221,6 +174,58 @@ of the ptob.
 ** The scm_sysmissing procedure is no longer used in libguile.
 Unless it turns out to be unexpectedly useful to somebody, it will be
 removed in a future version.
+
+** The format of error message strings has changed
+
+The two C procedures: scm_display_error and scm_error, as well as the
+primitive `scm-error', now use scm_simple_format to do their work.
+This means that the message strings of all code must be updated to use
+~A where %s was used before, and ~S where %S was used before.
+
+During the period when there still are a lot of old Guiles out there,
+you might want to support both old and new versions of Guile.
+
+There are basically two methods to achieve this.  Both methods use
+autoconf.  Put
+
+  AC_CHECK_FUNCS(scm_simple_format)
+
+in your configure.in.
+
+Method 1: Use the string concatenation features of ANSI C's
+          preprocessor.
+
+In C:
+
+#ifdef HAVE_SCM_SIMPLE_FORMAT
+#define FMT_S "~S"
+#else
+#define FMT_S "%S"
+#endif
+
+Then represent each of your error messages using a preprocessor macro:
+
+#define E_SPIDER_ERROR "There's a spider in your " ## FMT_S ## "!!!"
+
+In Scheme:
+
+(define fmt-s (if (defined? 'simple-format) "~S" "%S"))
+(define make-message string-append)
+
+(define e-spider-error (make-message "There's a spider in your " fmt-s "!!!"))
+
+Method 2: Use the oldfmt function found in doc/oldfmt.c.
+
+In C:
+
+scm_misc_error ("picnic", scm_c_oldfmt0 ("There's a spider in your ~S!!!"),
+                ...);
+
+In Scheme:
+
+(scm-error 'misc-error "picnic" (oldfmt "There's a spider in your ~S!!!")
+           ...)
+
 
 * Changes to system call interfaces:
 
