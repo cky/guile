@@ -1,3 +1,13 @@
+2000-08-24  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* smob.h (scm_smob_descriptor): Added `apply' and `gsubr_type'.
+	* smob.c (scm_make_smob_type): Initialize `apply' and `gsubr_type'.
+	(scm_set_smob_apply): New function.
+	(scm_smob_apply_0, scm_smob_apply_1, scm_smob_apply_2,
+	scm_smob_apply_3): New functions.
+	* eval.c (SCM_CEVAL, SCM_APPLY): Added dispatch for applicable smobs.
+	* procs.c (s_scm_procedure_p): Check applicable smobs.
+
 2000-08-24  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* Makefile.am (BUILT_SOURCES): Experimentally added scmconfig.h
