@@ -1011,7 +1011,7 @@ Return an object representing the broken down components of
 @code{current-time}.  The values are calculated for @acronym{UTC}.
 @end deffn
 
-@deffn {Scheme Procedure} mktime sbd_time [zone]
+@deffn {Scheme Procedure} mktime sbd-time [zone]
 @deffnx {C Function} scm_mktime (sbd_time, zone)
 @var{sbd-time} is an object representing broken down time and
 @code{zone} is an optional time zone specifier (otherwise the @env{TZ}

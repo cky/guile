@@ -1,6 +1,19 @@
 2002-11-17  Neil Jerram  <neil@ossau.uklinux.net>
 
-	Applied patch from Stephen Compall as follows.  (Thanks!)
+	Applied patches from Stephen Compall as follows.  (Thanks!)
+
+	2002-11-06  Stephen Compall  <rushing@sigecom.net>
+
+	* posix.texi: Changed quotes to match Texinfo expectations.
+
+        Added references to the glibc manual.
+
+        Used proper Texinfo text marking for many keywords, such as @code,
+	@samp, @env, @var.
+
+        Fixed argument metasyntactic variable references in
+	file-manipulation section so the usage in the descriptions matches
+	the usage in the declarations.
 
 	2002-10-26  Stephen Compall  <rushing@sigecom.net>
 
