@@ -1,3 +1,8 @@
+2003-08-09  Kevin Ryde  <user42@zip.com.au>
+
+	* srcprop.c (scm_source_properties): Return plist from hash if it's a
+	list set by source-properties! rather than an SRCPROPS object,
+
 2003-07-29  Kevin Ryde  <user42@zip.com.au>
 
 	* properties.c (scm_primitive_property_ref): In docstring, note
