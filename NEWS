@@ -231,15 +231,6 @@ work on the top level.  The forms `define-public' and
 behave just like `define' and `defmacro', respectively, when they are
 used in a lexical environment.
 
-** `port-for-each' makes an additional guarantee.
-
-From the docstring: @var{proc} is applied exactly once to every port
-that exists in the system at the time @var{port-for-each} is invoked.
-Changes to the port table while @var{port-for-each} is running have no
-effect as far as @var{port-for-each} is concerned.
-
-This guarantee is important to make (ice-9 popen) work reliable.
-
 ** The semantics of guardians have changed.
 
 The changes are for the most part compatible.  An important criterion
@@ -427,8 +418,12 @@ Determines whether a given object is a port that is related to a file.
 
 ** New function: port-for-each proc
 
-Apply PROC to each port in the Guile port table in turn.  The
-return value is unspecified.
+     Apply PROC to each port in the Guile port table in turn.  The
+     return value is unspecified.  More specifically, PROC is applied
+     exactly once to every port that exists in the system at the time
+     PORT-FOR-EACH is invoked.  Changes to the port table while
+     PORT-FOR-EACH is running have no effect as far as PORT-FOR-EACH is
+     concerned.
 
 ** New function: dup2 oldfd newfd
 
@@ -505,6 +500,28 @@ Return the contents of an output string port.
 ** New function: identity
 
 Return the argument.
+
+** socket, connect, accept etc., now have support for IPv6.  IPv6 addresses
+   are represented in Scheme as integers with normal host byte ordering.
+
+** New function: inet-pton family address
+
+     Convert a printable string network address into an integer.  Note
+     that unlike the C version of this function, the result is an
+     integer with normal host byte ordering.  FAMILY can be `AF_INET'
+     or `AF_INET6'.  e.g.,
+          (inet-pton AF_INET "127.0.0.1") => 2130706433
+          (inet-pton AF_INET6 "::1") => 1
+
+** New function: inet-ntop family address
+
+     Convert an integer network address into a printable string.  Note
+     that unlike the C version of this function, the input is an
+     integer with normal host byte ordering.  FAMILY can be `AF_INET'
+     or `AF_INET6'.  e.g.,
+          (inet-ntop AF_INET 2130706433) => "127.0.0.1"
+          (inet-ntop AF_INET6 (- (expt 2 128) 1)) =>
+          ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 
 ** Deprecated: id
 
