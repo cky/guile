@@ -113,13 +113,14 @@
      (set-current-module slib-module)
      (let* ((errinfo (catch 'system-error
 			    (lambda ()
-			      (basic-load name)
+			      (primitive-load-path name)
 			      #f)
 			    (lambda args args)))
 	    (errinfo (and errinfo
 			  (catch 'system-error
 				 (lambda ()
-				   (basic-load (string-append name ".scm"))
+				   (primitive-load-path
+				    (string-append name ".scm"))
 				   #f)
 				 (lambda args args)))))
        (if errinfo
