@@ -267,7 +267,6 @@ SCM_API SCM scm_i_long2big (long n);
 SCM_API SCM scm_i_ulong2big (unsigned long n);
 
 /* ratio functions */
-SCM_API SCM scm_make_ratio (SCM num, SCM den);
 SCM_API SCM scm_rationalize (SCM x, SCM err);
 SCM_API SCM scm_numerator (SCM z);
 SCM_API SCM scm_denominator (SCM z);

@@ -343,8 +343,8 @@ scm_i_mpz2num (mpz_t b)
 /* this is needed when we want scm_divide to make a float, not a ratio, even if passed two ints */
 static SCM scm_divide2real (SCM x, SCM y);
 
-SCM
-scm_make_ratio (SCM numerator, SCM denominator)
+static SCM
+scm_i_make_ratio (SCM numerator, SCM denominator)
 #define FUNC_NAME "make-ratio"
 {
   /* First make sure the arguments are proper.
@@ -692,7 +692,7 @@ SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
     {
       if (scm_is_false (scm_negative_p (SCM_FRACTION_NUMERATOR (x))))
 	return x;
-      return scm_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), SCM_UNDEFINED),
+      return scm_i_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), SCM_UNDEFINED),
 			     SCM_FRACTION_DENOMINATOR (x));
     }
   else
@@ -2684,7 +2684,7 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	    return SCM_BOOL_F;
 
 	  /* both are int/big here, I assume */
-	  result = scm_make_ratio (uinteger, divisor);
+	  result = scm_i_make_ratio (uinteger, divisor);
 	}
       else if (radix == 10)
 	{
@@ -3868,7 +3868,7 @@ scm_sum (SCM x, SCM y)
                                    SCM_COMPLEX_IMAG (y));
         }
       else if (SCM_FRACTIONP (y))
-	return scm_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (y), 
+	return scm_i_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (y), 
 					scm_product (x, SCM_FRACTION_DENOMINATOR (y))),
 			       SCM_FRACTION_DENOMINATOR (y));
       else
@@ -3933,7 +3933,7 @@ scm_sum (SCM x, SCM y)
 	    return scm_make_complex (real_part, SCM_COMPLEX_IMAG (y));
 	  }
 	else if (SCM_FRACTIONP (y))
-	  return scm_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (y), 
+	  return scm_i_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (y), 
 					  scm_product (x, SCM_FRACTION_DENOMINATOR (y))),
 				 SCM_FRACTION_DENOMINATOR (y));
 	else
@@ -3986,11 +3986,11 @@ scm_sum (SCM x, SCM y)
   else if (SCM_FRACTIONP (x))
     {
       if (SCM_I_INUMP (y))
-	return scm_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (x), 
+	return scm_i_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (x), 
 					scm_product (y, SCM_FRACTION_DENOMINATOR (x))),
 			       SCM_FRACTION_DENOMINATOR (x));
       else if (SCM_BIGP (y))
-	return scm_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (x), 
+	return scm_i_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (x), 
 					scm_product (y, SCM_FRACTION_DENOMINATOR (x))),
 			       SCM_FRACTION_DENOMINATOR (x));
       else if (SCM_REALP (y))
@@ -4000,7 +4000,7 @@ scm_sum (SCM x, SCM y)
 				 SCM_COMPLEX_IMAG (y));
       else if (SCM_FRACTIONP (y))
 	/* a/b + c/d = (ad + bc) / bd */
-	return scm_make_ratio (scm_sum (scm_product (SCM_FRACTION_NUMERATOR (x), SCM_FRACTION_DENOMINATOR (y)),
+	return scm_i_make_ratio (scm_sum (scm_product (SCM_FRACTION_NUMERATOR (x), SCM_FRACTION_DENOMINATOR (y)),
 					scm_product (SCM_FRACTION_NUMERATOR (y), SCM_FRACTION_DENOMINATOR (x))),
 			       scm_product (SCM_FRACTION_DENOMINATOR (x), SCM_FRACTION_DENOMINATOR (y)));
       else
@@ -4041,7 +4041,7 @@ scm_difference (SCM x, SCM y)
           return scm_make_complex (-SCM_COMPLEX_REAL (x),
                                    -SCM_COMPLEX_IMAG (x));
 	else if (SCM_FRACTIONP (x))
-	  return scm_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), SCM_UNDEFINED),
+	  return scm_i_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), SCM_UNDEFINED),
 				 SCM_FRACTION_DENOMINATOR (x));
         else
           SCM_WTA_DISPATCH_1 (g_difference, x, SCM_ARG1, s_difference);
@@ -4101,7 +4101,7 @@ scm_difference (SCM x, SCM y)
 	}
       else if (SCM_FRACTIONP (y))
 	/* a - b/c = (ac - b) / c */
-	return scm_make_ratio (scm_difference (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
+	return scm_i_make_ratio (scm_difference (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
 					       SCM_FRACTION_NUMERATOR (y)),
 			       SCM_FRACTION_DENOMINATOR (y));
       else
@@ -4166,7 +4166,7 @@ scm_difference (SCM x, SCM y)
 	  return scm_make_complex (real_part, - SCM_COMPLEX_IMAG (y));      
 	}
       else if (SCM_FRACTIONP (y))
-	return scm_make_ratio (scm_difference (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
+	return scm_i_make_ratio (scm_difference (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
 					       SCM_FRACTION_NUMERATOR (y)),
 			       SCM_FRACTION_DENOMINATOR (y));
       else SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
@@ -4219,11 +4219,11 @@ scm_difference (SCM x, SCM y)
     {
       if (SCM_I_INUMP (y))
 	/* a/b - c = (a - cb) / b */
-	return scm_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), 
+	return scm_i_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), 
 					       scm_product(y, SCM_FRACTION_DENOMINATOR (x))),
 			       SCM_FRACTION_DENOMINATOR (x));
       else if (SCM_BIGP (y))
-	return scm_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), 
+	return scm_i_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), 
 					       scm_product(y, SCM_FRACTION_DENOMINATOR (x))),
 			       SCM_FRACTION_DENOMINATOR (x));
       else if (SCM_REALP (y))
@@ -4233,7 +4233,7 @@ scm_difference (SCM x, SCM y)
 				 -SCM_COMPLEX_IMAG (y));
       else if (SCM_FRACTIONP (y))
 	/* a/b - c/d = (ad - bc) / bd */
-	return scm_make_ratio (scm_difference (scm_product (SCM_FRACTION_NUMERATOR (x), SCM_FRACTION_DENOMINATOR (y)),
+	return scm_i_make_ratio (scm_difference (scm_product (SCM_FRACTION_NUMERATOR (x), SCM_FRACTION_DENOMINATOR (y)),
 					       scm_product (SCM_FRACTION_NUMERATOR (y), SCM_FRACTION_DENOMINATOR (x))),
 			       scm_product (SCM_FRACTION_DENOMINATOR (x), SCM_FRACTION_DENOMINATOR (y)));
       else
@@ -4302,7 +4302,7 @@ scm_product (SCM x, SCM y)
 	return scm_make_complex (xx * SCM_COMPLEX_REAL (y),
 				 xx * SCM_COMPLEX_IMAG (y));
       else if (SCM_FRACTIONP (y))
-	return scm_make_ratio (scm_product (x, SCM_FRACTION_NUMERATOR (y)),
+	return scm_i_make_ratio (scm_product (x, SCM_FRACTION_NUMERATOR (y)),
 			       SCM_FRACTION_DENOMINATOR (y));
       else
 	SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
@@ -4337,7 +4337,7 @@ scm_product (SCM x, SCM y)
 				   z * SCM_COMPLEX_IMAG (y));
 	}
       else if (SCM_FRACTIONP (y))
-	return scm_make_ratio (scm_product (x, SCM_FRACTION_NUMERATOR (y)),
+	return scm_i_make_ratio (scm_product (x, SCM_FRACTION_NUMERATOR (y)),
 			       SCM_FRACTION_DENOMINATOR (y));
       else
 	SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
@@ -4396,10 +4396,10 @@ scm_product (SCM x, SCM y)
   else if (SCM_FRACTIONP (x))
     {
       if (SCM_I_INUMP (y))
-	return scm_make_ratio (scm_product (y, SCM_FRACTION_NUMERATOR (x)),
+	return scm_i_make_ratio (scm_product (y, SCM_FRACTION_NUMERATOR (x)),
 			       SCM_FRACTION_DENOMINATOR (x));
       else if (SCM_BIGP (y))
-	return scm_make_ratio (scm_product (y, SCM_FRACTION_NUMERATOR (x)),
+	return scm_i_make_ratio (scm_product (y, SCM_FRACTION_NUMERATOR (x)),
 			       SCM_FRACTION_DENOMINATOR (x));
       else if (SCM_REALP (y))
 	return scm_from_double (scm_i_fraction2double (x) * SCM_REAL_VALUE (y));
@@ -4411,7 +4411,7 @@ scm_product (SCM x, SCM y)
 	}
       else if (SCM_FRACTIONP (y))
 	/* a/b * c/d = ac / bd */
-	return scm_make_ratio (scm_product (SCM_FRACTION_NUMERATOR (x),
+	return scm_i_make_ratio (scm_product (SCM_FRACTION_NUMERATOR (x),
 					    SCM_FRACTION_NUMERATOR (y)),
 			       scm_product (SCM_FRACTION_DENOMINATOR (x),
 					    SCM_FRACTION_DENOMINATOR (y)));
@@ -4482,14 +4482,14 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	    {
 	      if (inexact)
 		return scm_from_double (1.0 / (double) xx);
-	      else return scm_make_ratio (SCM_I_MAKINUM(1), x);
+	      else return scm_i_make_ratio (SCM_I_MAKINUM(1), x);
 	    }
 	}
       else if (SCM_BIGP (x))
 	{
 	  if (inexact)
 	    return scm_from_double (1.0 / scm_i_big2dbl (x));
-	  else return scm_make_ratio (SCM_I_MAKINUM(1), x);
+	  else return scm_i_make_ratio (SCM_I_MAKINUM(1), x);
 	}
       else if (SCM_REALP (x))
 	{
@@ -4519,7 +4519,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	    }
 	}
       else if (SCM_FRACTIONP (x))
-	return scm_make_ratio (SCM_FRACTION_DENOMINATOR (x),
+	return scm_i_make_ratio (SCM_FRACTION_DENOMINATOR (x),
 			       SCM_FRACTION_NUMERATOR (x));
       else
 	SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
@@ -4543,7 +4543,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	    {
 	      if (inexact)
 		return scm_from_double ((double) xx / (double) yy);
-	      else return scm_make_ratio (x, y);
+	      else return scm_i_make_ratio (x, y);
 	    }
 	  else
 	    {
@@ -4558,7 +4558,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	{
 	  if (inexact)
 	    return scm_from_double ((double) xx / scm_i_big2dbl (y));
-	  else return scm_make_ratio (x, y);
+	  else return scm_i_make_ratio (x, y);
 	}
       else if (SCM_REALP (y))
 	{
@@ -4593,7 +4593,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	}
       else if (SCM_FRACTIONP (y))
 	/* a / b/c = ac / b */
-	return scm_make_ratio (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
+	return scm_i_make_ratio (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
 			       SCM_FRACTION_NUMERATOR (y));
       else
 	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
@@ -4641,7 +4641,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 		{
 		  if (inexact)
 		    return scm_from_double (scm_i_big2dbl (x) / (double) yy);
-		  else return scm_make_ratio (x, y);
+		  else return scm_i_make_ratio (x, y);
 		}
 	    }
 	}
@@ -4681,7 +4681,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 		      scm_remember_upto_here_2 (x, y);
 		      return scm_from_double (dbx / dby);
 		    }
-		  else return scm_make_ratio (x, y);
+		  else return scm_i_make_ratio (x, y);
 		}
 	    }
 	}
@@ -4701,7 +4701,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	  goto complex_div;
 	}
       else if (SCM_FRACTIONP (y))
-	return scm_make_ratio (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
+	return scm_i_make_ratio (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
 			       SCM_FRACTION_NUMERATOR (y));
       else
 	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
@@ -4813,12 +4813,12 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	    scm_num_overflow (s_divide);
 	  else
 #endif
-	    return scm_make_ratio (SCM_FRACTION_NUMERATOR (x),
+	    return scm_i_make_ratio (SCM_FRACTION_NUMERATOR (x),
 				   scm_product (SCM_FRACTION_DENOMINATOR (x), y));
 	} 
       else if (SCM_BIGP (y)) 
 	{
-	  return scm_make_ratio (SCM_FRACTION_NUMERATOR (x),
+	  return scm_i_make_ratio (SCM_FRACTION_NUMERATOR (x),
 				 scm_product (SCM_FRACTION_DENOMINATOR (x), y));
 	} 
       else if (SCM_REALP (y)) 
@@ -4837,7 +4837,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	  goto complex_div;
 	} 
       else if (SCM_FRACTIONP (y))
-	return scm_make_ratio (scm_product (SCM_FRACTION_NUMERATOR (x), SCM_FRACTION_DENOMINATOR (y)),
+	return scm_i_make_ratio (scm_product (SCM_FRACTION_NUMERATOR (x), SCM_FRACTION_DENOMINATOR (y)),
 			       scm_product (SCM_FRACTION_NUMERATOR (y), SCM_FRACTION_DENOMINATOR (x)));
       else 
 	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
@@ -5324,7 +5324,7 @@ scm_magnitude (SCM z)
     {
       if (scm_is_false (scm_negative_p (SCM_FRACTION_NUMERATOR (z))))
 	return z;
-      return scm_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (z), SCM_UNDEFINED),
+      return scm_i_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (z), SCM_UNDEFINED),
 			     SCM_FRACTION_DENOMINATOR (z));
     }
   else
@@ -5417,10 +5417,10 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 	  
 	  mpq_init (frac);
 	  mpq_set_d (frac, SCM_REAL_VALUE (z));
-	  q = scm_make_ratio (scm_i_mpz2num (mpq_numref (frac)),
+	  q = scm_i_make_ratio (scm_i_mpz2num (mpq_numref (frac)),
 			      scm_i_mpz2num (mpq_denref (frac)));
 
-	  /* When scm_make_ratio throws, we leak the memory allocated
+	  /* When scm_i_make_ratio throws, we leak the memory allocated
 	     for frac...
 	   */
 	  mpq_clear (frac);

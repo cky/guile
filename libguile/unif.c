@@ -2599,8 +2599,8 @@ scm_init_unif ()
   scm_set_smob_free (scm_tc16_array, array_free);
   scm_set_smob_print (scm_tc16_array, scm_raprin1);
   scm_set_smob_equalp (scm_tc16_array, scm_array_equal_p);
-  exactly_one_third = scm_permanent_object (scm_make_ratio (scm_from_int (1),
-                                                            scm_from_int (3)));
+  exactly_one_third = scm_permanent_object (scm_divide (scm_from_int (1),
+							scm_from_int (3)));
   scm_add_feature ("array");
 #include "libguile/unif.x"
 }
