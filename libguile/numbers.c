@@ -1114,8 +1114,8 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             (SCM n, SCM cnt),
 	    "The function ash performs an arithmetic shift left by CNT bits\n"
 	    "(or shift right, if CNT is negative).  'Arithmetic' means, that\n"
-            "the function does not guarantee to keep the bit structure of N,\n"
-            "but rather guarantees that the result will always be rounded\n"
+	    "the function does not guarantee to keep the bit structure of N,\n"
+	    "but rather guarantees that the result will always be rounded\n"
 	    "towards minus infinity.  Therefore, the results of ash and a\n"
 	    "corresponding bitwise shift will differ if N is negative.\n\n"
 	    "Formally, the function returns an integer equivalent to\n"
@@ -1123,9 +1123,9 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 	    "Example:\n"
 	    "@lisp\n"
 	    "(number->string (ash #b1 3) 2)\n"
-	    "   @result{} \"1000\""
-	    "(number->string (ash #b1010 -1) 2)"
-	    "   @result{} \"101\""
+	    "   @result{} \"1000\"\n"
+	    "(number->string (ash #b1010 -1) 2)\n"
+	    "   @result{} \"101\"\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_ash
 {

@@ -1,4 +1,15 @@
+2000-08-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* root.c (s_scm_call_with_dynamic_root): Docstring fix - rogue
+	newline.
+	
 2000-08-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* numbers.c (scm_ash): Docstring fix - missing newlines.
+
+	* ports.c (scm_port_filename): Docstring fix - missing newline.
+
+	* strports.c (scm_eval_string): Docstring fix - missing newline.
 
 	* vports.c (s_scm_make_soft_port): Docstring updated so that
 	example is correct.
