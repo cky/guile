@@ -85,7 +85,7 @@ SCM scm_no_applicable_method;
 /* This function is used for efficient type dispatch.  */
 SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	    (SCM x),
-	    "")
+	    "Return the class of @var{x}.")
 #define FUNC_NAME s_scm_class_of
 {
   switch (SCM_ITAG3 (x))
@@ -356,7 +356,7 @@ scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
 
 SCM_DEFINE (scm_entity_p, "entity?", 1, 0, 0, 
             (SCM obj),
-"")
+	    "Return @code{#t} if @var{obj} is an entity.")
 #define FUNC_NAME s_scm_entity_p
 {
   return SCM_BOOL(SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj));
@@ -365,7 +365,7 @@ SCM_DEFINE (scm_entity_p, "entity?", 1, 0, 0,
 
 SCM_DEFINE (scm_operator_p, "operator?", 1, 0, 0, 
             (SCM obj),
-"")
+	    "Return @code{#t} if @var{obj} is an operator.")
 #define FUNC_NAME s_scm_operator_p
 {
   return SCM_BOOL(SCM_STRUCTP (obj)
@@ -376,7 +376,8 @@ SCM_DEFINE (scm_operator_p, "operator?", 1, 0, 0,
 
 SCM_DEFINE (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0, 
             (SCM obj, SCM proc),
-"")
+	    "Return the object procedure of @var{obj} to @var{proc}.\n"
+	    "@var{obj} must be either an entity or an operator.")
 #define FUNC_NAME s_scm_set_object_procedure_x
 {
   SCM_ASSERT (SCM_STRUCTP (obj)
@@ -399,7 +400,8 @@ SCM_DEFINE (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0,
 #ifdef GUILE_DEBUG
 SCM_DEFINE (scm_object_procedure, "object-procedure", 1, 0, 0, 
             (SCM obj),
-"")
+	    "Return the object procedure of @var{obj}. @var{obj} must be\n"
+	    "an entity or an operator.")
 #define FUNC_NAME s_scm_object_procedure
 {
   SCM_ASSERT (SCM_STRUCTP (obj)
@@ -434,7 +436,8 @@ scm_i_make_class_object (SCM meta,
 
 SCM_DEFINE (scm_make_class_object, "make-class-object", 2, 0, 0, 
             (SCM metaclass, SCM layout),
-"")
+	    "Create a new class object of class @var{metaclass}, with the\n"
+	    "slot layout specified by @var{layout}.")
 #define FUNC_NAME s_scm_make_class_object
 {
   unsigned long flags = 0;
@@ -448,7 +451,8 @@ SCM_DEFINE (scm_make_class_object, "make-class-object", 2, 0, 0,
 
 SCM_DEFINE (scm_make_subclass_object, "make-subclass-object", 2, 0, 0, 
             (SCM class, SCM layout),
-"")
+	    "Create a subclass object of @var{class}, with the slot layout\n"
+	    "specified by @var{layout}.")
 #define FUNC_NAME s_scm_make_subclass_object
 {
   SCM pl;
