@@ -87,7 +87,7 @@ SCM_DEFINE (scm_sys_symbols, "%symbols", 0, 0, 0,
 SCM
 scm_mem2symbol (const char *name, size_t len)
 {
-  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len);
+  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len)/2;
   size_t hash = raw_hash % SCM_VECTOR_LENGTH (symbols);
 
   {
@@ -140,6 +140,19 @@ scm_mem2symbol (const char *name, size_t len)
 }
 
 SCM
+scm_mem2uninterned_symbol (const char *name, size_t len)
+{
+  size_t raw_hash = (scm_string_hash ((const unsigned char *) name, len)/2
+		     + SCM_T_BITS_MAX/2 + 1);
+
+  return scm_alloc_double_cell (SCM_MAKE_SYMBOL_TAG (len),
+				(scm_t_bits) scm_must_strndup (name, len),
+				raw_hash,
+				SCM_UNPACK (scm_cons (SCM_BOOL_F,
+						      SCM_EOL)));
+}
+
+SCM
 scm_str2symbol (const char *str)
 {
   return scm_mem2symbol (str, strlen (str));
@@ -152,6 +165,33 @@ SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_p
 {
   return SCM_BOOL (SCM_SYMBOLP (obj));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_symbol_interned_p, "symbol-interned?", 1, 0, 0, 
+	    (SCM symbol),
+	    "Return @code{#t} if @var{symbol} is interned, otherwise return\n"
+	    "@code{#f}.")
+#define FUNC_NAME s_scm_symbol_interned_p
+{
+  SCM_VALIDATE_SYMBOL (1, symbol);
+  return SCM_BOOL (SCM_SYMBOL_INTERNED_P (symbol));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_make_symbol, "make-symbol", 1, 0, 0,
+	    (SCM name),
+	    "Return a new uninterned symbol with the name @var{name}.  " 
+	    "The returned symbol is guaranteed to be unique and future "
+	    "calls to @code{string->symnbol} will not return it.")
+#define FUNC_NAME s_scm_make_symbol
+{
+  SCM sym;
+  SCM_VALIDATE_STRING (1, name);
+  sym = scm_mem2uninterned_symbol (SCM_STRING_CHARS (name),
+				   SCM_STRING_LENGTH (name));
+  scm_remember_upto_here_1 (name);
+  return sym;
 }
 #undef FUNC_NAME
 
@@ -270,7 +310,7 @@ SCM_DEFINE (scm_symbol_hash, "symbol-hash", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_hash
 {
   SCM_VALIDATE_SYMBOL (1, symbol);
-  return SCM_MAKINUM (SCM_SYMBOL_HASH (symbol));
+  return scm_ulong2num (SCM_SYMBOL_HASH (symbol));
 }
 #undef FUNC_NAME
 

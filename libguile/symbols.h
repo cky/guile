@@ -51,6 +51,10 @@
 
 /* SCM_SYMBOL_LENGTH(SYM) is the length of SYM's name in characters, and
  * SCM_SYMBOL_CHARS(SYM) is the address of the first character of SYM's name.
+ * 
+ * SCM_SYMBOL_HASH is a hash value for the symbol.  It is also used to
+ * encode whether the symbol is interned or not.  See
+ * SCM_SYMBOL_INTERNED_P.
  */
 
 #define SCM_SYMBOLP(x)              (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_symbol))
@@ -60,7 +64,7 @@
 #define SCM_SYMBOL_CHARS(x)         ((char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_SYMBOL_CHARS(s, c)  (SCM_SET_CELL_WORD_1 ((s), (c)))
 #define SCM_SYMBOL_HASH(X)          ((unsigned long) SCM_CELL_WORD_2 (X))
-#define SCM_SET_SYMBOL_HASH(X, v)   (SCM_SET_CELL_WORD_2 ((X), (v)))
+#define SCM_SYMBOL_INTERNED_P(X)    (SCM_SYMBOL_HASH(X) <= (SCM_T_BITS_MAX/2))
 
 #define SCM_PROP_SLOTS(X)           (SCM_CELL_OBJECT_3 (X))
 #define SCM_SET_PROP_SLOTS(X, v)    (SCM_SET_CELL_OBJECT_3 ((X), (v)))
