@@ -104,7 +104,7 @@ scm_threads_mark_stacks (void)
 
   {
     unsigned long stack_len = scm_stack_size (scm_stack_base);
-#ifdef SCM_STACK_GROWS_UP
+#if SCM_STACK_GROWS_UP
     scm_mark_locations (scm_stack_base, stack_len);
 #else
     scm_mark_locations (scm_stack_base - stack_len, stack_len);
