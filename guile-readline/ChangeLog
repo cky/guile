@@ -1,3 +1,19 @@
+2000-06-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* readline.c: Always provide scm_init_readline, also if readline
+	support is not included.  Otherwise, a strange dynamic loading
+	error will occur.  (It would be better not to install
+	libguilereadline at all.)
+
+	* readline-activator.scm (activate-readline): Report an error if
+	readline isn't provided by Guile.
+
+	* readline.scm: Report an error if readline isn't provided by
+	Guile;  Added :no-backtrace to module header.
+
+	* configure.in: Put more ink before readline version warning.
+	(Thanks to Ian Grant.)
+
 2000-06-01  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* autogen.sh: call ../guile-aclocal.sh instead of aclocal
