@@ -69,10 +69,12 @@ fi
 
 # set vars and handler -- handle CPP override
 cpp_ok_p=false
-temp=`mktemp -t guile-snarf.XXXXXX` || exit 1
+tempdir="/tmp/snarf.$$"
+(umask 077 && mkdir $tempdir) || exit 1
+temp="$tempdir/tmp"
 if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
 
-trap "rm -f $temp" 0 1 2 15
+trap "rm -rf $tempdir" 0 1 2 15
 
 if [ ! "$outfile" = "-" ] ; then
     modern_snarf "$@" > $outfile
