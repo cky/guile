@@ -1,3 +1,28 @@
+1997-10-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* print.h (SCM_COERCE_OPORT): Renamed to SCM_COERCE_OUTPORT.  An
+	OPORT is an `open' port, not an output port.
+
+	* filesys.c (scm_close, set_element, get_element, scm_chown,
+	scm_chmod, scm_stat, scm_truncate_file, scm_fcntl, scm_fsync): Use
+	SCM_COERCE_OUTPORT to cope with the printstate/port magic.
+	* ports.c (scm_port_revealed, scm_set_port_revealed_x,
+	scm_close_port, scm_port_line, scm_set_port_line_x,
+	scm_port_column, scm_set_port_column_x, scm_port_filename,
+	scm_set_port_filename_x, scm_port_mode,
+	scm_close_all_ports_except, scm_set_current_output_port,
+	scm_set_current_error_port): Likewise
+	* ioext.c (scm_redirect_port, scm_dup_to_fdes, scm_freopen,
+	scm_ftell, scm_fileno, scm_isatty_p, scm_primitive_move_to_fdes):
+	Likewise
+	* posix.c (scm_ttyname, scm_tcgetpgrp, scm_tcsetpgrp): Likewise
+	* backtrace.c (display_backtrace_body): Likewise
+	* fports (scm_setvbuf): Likewise
+	* socket.c (scm_getsockopt, scm_setsockopt, scm_shutdown,
+	scm_connect, scm_bind, scm_listen, scm_accept, scm_getsockname,
+	scm_getpeername, scm_send, scm_sendto): Likewise
+	* unif.c (scm_uniform_array_write): Likewise
+
 Sat Oct 25 02:52:58 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	Minor problems with substring-related tag changes.
