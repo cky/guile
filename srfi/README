@@ -18,6 +18,8 @@ SRFI-2: and-let*
 
   (use-modules (srfi srfi-2)) to make and-let* available.
 
+SRFI-4: Homogeneous numeric vector datatypes
+
 SRFI-6: open-input-string, open-output-string and get-output-string
 
   (use-modules (srfi srfi-6)) to make these available. (Currently,
@@ -74,3 +76,21 @@ SRFI-19: Time Data Types and Procedures
 SRFI-23: Error reporting mechanism
 
   Guile fully supports this SRFI.  No need to load any module.
+
+SRFI-26: Notation for Specializing Parameters without Currying
+
+  Exports: cut, cute.
+
+SRFI-31: A special form for recursive evaluation
+
+  Exports: rec.
+
+SRFI-34: Exception Handling for Programs
+
+  Exports: with-exception-handler, raise.
+  Exports syntax: guard.
+
+SRFI-39: Parameter objects
+
+  Exports: make-parameter, with-parameters*.
+  Exports syntax: parameterize.

@@ -1,3 +1,7 @@
+2004-12-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* README: Update, document available SRFIs.
+
 2004-12-06  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (alist-copy, alist-delete, break, span): Change to
