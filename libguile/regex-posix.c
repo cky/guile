@@ -188,7 +188,6 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
 
   SCM_VALIDATE_STRING (1, pat);
   SCM_VALIDATE_REST_ARGUMENT (flags);
-  SCM_STRING_COERCE_0TERMINATION_X (pat);
 
   /* Examine list of regexp flags.  If REG_BASIC is supplied, then
      turn off REG_EXTENDED flag (on by default). */
@@ -255,7 +254,6 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   if (SCM_UNBNDP (flags))
     flags = SCM_INUM0;
   SCM_VALIDATE_INUM (4,flags);
-  SCM_STRING_COERCE_0TERMINATION_X (str);
 
   /* re_nsub doesn't account for the `subexpression' representing the
      whole regexp, so add 1 to nmatches. */

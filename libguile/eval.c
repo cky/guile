@@ -155,7 +155,7 @@ char *alloca ();
 			     ? *scm_lookupcar (x, env, 1) \
 			     : SCM_CEVAL (SCM_CAR (x), env))
 
-#define EVALCAR(x, env) (!SCM_CELLP (SCM_CAR (x)) \
+#define EVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
 			 ? SCM_EVALIM (SCM_CAR (x), env) \
 			 : EVALCELLCAR (x, env))
 
@@ -413,8 +413,7 @@ scm_unmemocar (SCM form, SCM env)
   c = SCM_CAR (form);
   if (SCM_VARIABLEP (c))
     {
-      SCM sym =
-	scm_module_reverse_lookup (scm_env_module (env), c);
+      SCM sym = scm_module_reverse_lookup (scm_env_module (env), c);
       if (SCM_EQ_P (sym, SCM_BOOL_F))
 	sym = sym_three_question_marks;
       SCM_SETCAR (form, sym);
@@ -1300,7 +1299,7 @@ unmemocopy (SCM x, SCM env)
 #ifdef DEBUG_EXTENSIONS
   SCM p;
 #endif
-  if (!SCM_CELLP (x) || !SCM_CONSP (x))
+  if (!SCM_CONSP (x))
     return x;
 #ifdef DEBUG_EXTENSIONS
   p = scm_whash_lookup (scm_source_whash, x);
@@ -1468,15 +1467,17 @@ unmemocopy (SCM x, SCM env)
 			  env);
     }
 loop:
-  while (SCM_CELLP (x = SCM_CDR (x)) && SCM_CONSP (x))
+  x = SCM_CDR (x);
+  while (SCM_CONSP (x))
     {
-      if (SCM_ISYMP (SCM_CAR (x)))
-	/* skip body markers */
-	continue;
-      SCM_SETCDR (z, unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
-					  SCM_UNSPECIFIED),
-				env));
-      z = SCM_CDR (z);
+      SCM form = SCM_CAR (x);
+      if (!SCM_ISYMP (form))
+	{
+	  SCM copy = scm_cons (unmemocopy (form, env), SCM_UNSPECIFIED);
+	  SCM_SETCDR (z, unmemocar (copy, env));
+	  z = SCM_CDR (z);
+	}
+      x = SCM_CDR (x);
     }
   SCM_SETCDR (z, x);
 #ifdef DEBUG_EXTENSIONS
@@ -1975,7 +1976,7 @@ dispatch:
 	}
       
     carloop:			/* scm_eval car of last form in list */
-      if (!SCM_CELLP (SCM_CAR (x)))
+      if (SCM_IMP (SCM_CAR (x)))
 	{
 	  x = SCM_CAR (x);
 	  RETURN (SCM_EVALIM (x, env))
@@ -2508,7 +2509,6 @@ dispatch:
 #endif
 #endif
     case scm_tc7_string:
-    case scm_tc7_substring:
     case scm_tc7_smob:
     case scm_tcs_closures:
     case scm_tc7_cclo:
@@ -4048,47 +4048,6 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-/* Use scm_current_module () or scm_interaction_environment ()
- * instead.  The former is the module selected during loading of code.
- * The latter is the module in which the user of this thread currently
- * types expressions.
- */
-
-SCM scm_top_level_lookup_closure_var;
-SCM scm_system_transformer;
-
-/* Avoid using this functionality altogether (except for implementing
- * libguile, where you can use scm_i_eval or scm_i_eval_x).
- *
- * Applications should use either C level scm_eval_x or Scheme
- * scm_eval; or scm_primitive_eval_x or scm_primitive_eval.  */
-
-SCM 
-scm_eval_3 (SCM obj, int copyp, SCM env)
-{
-  if (copyp)
-    return scm_i_eval (obj, env);
-  else
-    return scm_i_eval_x (obj, env);
-}
-
-SCM_DEFINE (scm_eval2, "eval2", 2, 0, 0,
-           (SCM obj, SCM env_thunk),
-	    "Evaluate @var{exp}, a Scheme expression, in the environment\n"
-	    "designated by @var{lookup}, a symbol-lookup function."
-	    "Do not use this version of eval, it does not play well\n"
-	    "with the module system.  Use @code{eval} or\n"
-	    "@code{primitive-eval} instead.")
-#define FUNC_NAME s_scm_eval2
-{
-  return scm_i_eval (obj, scm_top_level_env (env_thunk));
-}
-#undef FUNC_NAME
-
-#endif /* DEPRECATED */
-
 
 /* At this point, scm_deval and scm_dapply are generated.
  */
@@ -4123,13 +4082,6 @@ scm_init_eval ()
 
   /* acros */
   /* end of acros */
-
-#if SCM_DEBUG_DEPRECATED == 0
-  scm_top_level_lookup_closure_var =
-    scm_c_define ("*top-level-lookup-closure*", scm_make_fluid ());
-  scm_system_transformer =
-    scm_c_define ("scm:eval-transformer", scm_make_fluid ());
-#endif
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/eval.x"

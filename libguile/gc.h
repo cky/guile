@@ -2,6 +2,7 @@
 
 #ifndef SCM_GC_H
 #define SCM_GC_H
+
 /* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -389,32 +390,6 @@ extern void scm_gc_unregister_roots (SCM *b, unsigned long n);
 extern int scm_init_storage (void);
 extern void *scm_get_stack_base (void);
 extern void scm_init_gc (void);
-
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-extern SCM scm_protect_object (SCM obj);
-extern SCM scm_unprotect_object (SCM obj);
-
-#define SCM_SETAND_CAR(x, y) \
-  (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) & (y))))
-#define SCM_SETOR_CAR(x, y)\
-  (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) | (y))))
-#define SCM_SETAND_CDR(x, y)\
-  (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y))))
-#define SCM_SETOR_CDR(x, y)\
-  (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y))))
-#define SCM_FREEP(x) (SCM_FREE_CELL_P (x))
-#define SCM_NFREEP(x) (!SCM_FREE_CELL_P (x))
-#define SCM_GC8MARKP(x) SCM_GCMARKP (x)
-#define SCM_SETGC8MARK(x) SCM_SETGCMARK (x)
-#define SCM_CLRGC8MARK(x) SCM_CLRGCMARK (x)
-#define SCM_GCTYP16(x) SCM_TYP16 (x)
-#define SCM_GCCDR(x) SCM_CDR (x)
-extern void scm_remember (SCM * ptr);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* SCM_GC_H */
 

@@ -2,18 +2,19 @@
 
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
+
 /* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -42,6 +43,7 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
 
 
 #include "libguile/__scm.h"
@@ -114,7 +116,7 @@ extern SCM scm_eval_options_interface (SCM setting);
 #define SCM_XEVAL(x, env) (SCM_IMP (x) \
 			   ? SCM_EVALIM2(x) \
 			   : (*scm_ceval_ptr) ((x), (env)))
-#define SCM_XEVALCAR(x, env) (SCM_NCELLP (SCM_CAR (x)) \
+#define SCM_XEVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
 			      ? SCM_EVALIM (SCM_CAR (x), env) \
 			      : (SCM_SYMBOLP (SCM_CAR (x)) \
 			         ? *scm_lookupcar (x, env, 1) \
@@ -133,13 +135,6 @@ extern SCM scm_eval_options_interface (SCM setting);
 /*fixme* This should probably be removed throught the code. */
 
 #define SCM_TOP_LEVEL_LOOKUP_CLOSURE (scm_current_module_lookup_closure())
-
-#if SCM_DEBUG_DEPRECATED == 0
-
-extern SCM scm_top_level_lookup_closure_var;
-extern SCM scm_system_transformer;
-#endif
-
 
 
 extern const char scm_s_expression[];
@@ -244,10 +239,6 @@ extern SCM scm_force (SCM x);
 extern SCM scm_promise_p (SCM x);
 extern SCM scm_cons_source (SCM xorig, SCM x, SCM y);
 extern SCM scm_copy_tree (SCM obj);
-#if SCM_DEBUG_DEPRECATED == 0
-extern SCM scm_eval_3 (SCM obj, int copyp, SCM env);
-extern SCM scm_eval2 (SCM obj, SCM env_thunk);
-#endif
 extern SCM scm_i_eval_x (SCM exp, SCM env);
 extern SCM scm_i_eval (SCM exp, SCM env);
 extern SCM scm_primitive_eval (SCM exp);

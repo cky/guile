@@ -743,47 +743,6 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
-           (SCM ports),
-	    "[DEPRECATED] Close all open file ports used by the interpreter\n"
-	    "except for those supplied as arguments.  This procedure\n"
-	    "was intended to be used before an exec call to close file descriptors\n"
-	    "which are not needed in the new process.  However it has the\n"
-	    "undesirable side-effect of flushing buffes, so it's deprecated.\n"
-	    "Use port-for-each instead.")
-#define FUNC_NAME s_scm_close_all_ports_except
-{
-  long i = 0;
-  SCM_VALIDATE_REST_ARGUMENT (ports);
-  while (i < scm_port_table_size)
-    {
-      SCM thisport = scm_port_table[i]->port;
-      int found = 0;
-      SCM ports_ptr = ports;
-
-      while (!SCM_NULLP (ports_ptr))
-	{
-	  SCM port = SCM_COERCE_OUTPORT (SCM_CAR (ports_ptr));
-	  if (i == 0)
-            SCM_VALIDATE_OPPORT (SCM_ARG1,port);
-	  if (SCM_EQ_P (port, thisport))
-	    found = 1;
-	  ports_ptr = SCM_CDR (ports_ptr);
-	}
-      if (found)
-	i++;
-      else
-	/* i is not to be incremented here.  */
-	scm_close_port (thisport);
-    }
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-#endif
-
 
 /* Utter miscellany.  Gosh, we should clean this up some time.  */
 
@@ -1392,7 +1351,6 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
   else
     {
       SCM_VALIDATE_STRING (1, object);
-      SCM_STRING_COERCE_0TERMINATION_X (object);
       SCM_SYSCALL (rv = truncate (SCM_STRING_CHARS (object), c_length));
     }
   if (rv == -1)
@@ -1575,7 +1533,6 @@ SCM_DEFINE (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
 #define FUNC_NAME s_scm_sys_make_void_port
 {
   SCM_VALIDATE_STRING (1, mode);
-  SCM_STRING_COERCE_0TERMINATION_X (mode);
   return scm_void_port (SCM_STRING_CHARS (mode));
 }
 #undef FUNC_NAME

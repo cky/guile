@@ -1,5 +1,12 @@
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* readline.c (scm_readline, scm_add_history,
+	scm_filename_completion_function, completion_function):  Remove
+	calls to SCM_STRING_COERCE_0TERMINATION_X.  Since the substring
+	type is gone, all strings are 0-terminated anyway.
+
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* readline.scm: `feature?´ is deprecated.  Use `provided?´
 	instead.
 

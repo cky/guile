@@ -138,7 +138,6 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
 	obj = scm_number_to_string (obj, SCM_MAKINUM (10));
       }
     case scm_tc7_string:
-    case scm_tc7_substring:
       return scm_string_hash (SCM_STRING_UCHARS (obj), SCM_STRING_LENGTH (obj)) % n;
     case scm_tc7_symbol:
       return SCM_SYMBOL_HASH (obj) % n;

@@ -237,7 +237,6 @@ SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
 {
   SCM_VALIDATE_INUM (1,fdes);
   SCM_VALIDATE_STRING (2, modes);
-  SCM_STRING_COERCE_0TERMINATION_X (modes);
 
   return scm_fdes_to_port (SCM_INUM (fdes), SCM_STRING_CHARS (modes), SCM_BOOL_F);
 }

@@ -1,15 +1,20 @@
-/*	Copyright (C) 1996, 1998, 2000 Free Software Foundation, Inc.
- * 
+/* classes: h_files */
+
+#ifndef SCM_DYNL_H
+#define SCM_DYNL_H
+
+/* Copyright (C) 1996,1998,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -38,18 +43,12 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
-
 
-#ifndef LIBGUILE_DYNL_H
-#define LIBGUILE_DYNL_H
+
 
 #include "libguile/__scm.h"
 
 
-
-void scm_register_module_xxx (char *module_name, void *init_func);
-SCM scm_registered_modules (void);
-SCM scm_clear_registered_modules (void);
 
 SCM scm_dynamic_link (SCM fname);
 SCM scm_dynamic_unlink (SCM dobj);
@@ -60,7 +59,7 @@ SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
 
 void scm_init_dynamic_linking (void);
 
-#endif  /* LIBGUILE_DYNL_H */
+#endif  /* SCM_DYNL_H */
 
 /*
   Local Variables:

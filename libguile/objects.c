@@ -132,7 +132,6 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 #endif
 	  return scm_class_vector;
 	case scm_tc7_string:
-	case scm_tc7_substring:
 	  return scm_class_string;
 	case scm_tc7_asubr:
 	case scm_tc7_subr_0:

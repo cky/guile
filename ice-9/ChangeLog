@@ -1,5 +1,29 @@
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* boot-9.scm: Don't load module (ice-9 rdelim).
+
+	(feature?): Deprecated.
+
+	(id, -1+, return-it, string-character-length, flags,
+	eval-in-module, split-c-module-name,
+	(convert-c-registered-modules, registered-modules,
+	register-modules, warn-autoload-deprecation, init-dynamic-module,
+	dynamic-maybe-call, dynamic-maybe-link,
+	find-and-link-dynamic-module, try-using-libtool-name,
+	try-using-sharlib-name, link-dynamic-module, try-module-linked,
+	try-module-dynamic-link): Removed.
+
+	(module-make-local-var!, module-ensure-local-variable!,
+	module-define!): Eliminate call to `variable-set-name-hint!´.
+
+	(try-load-module, use-syntax, module-export!): Remove deprecated
+	functionality.
+
+	* format.scm:  Remove deprecated definition of format that was
+	needed to trick export.
+
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* optargs.scm:  Remove #& reader extension.
 
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>

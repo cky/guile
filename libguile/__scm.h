@@ -2,18 +2,19 @@
 
 #ifndef SCM___SCM_H
 #define SCM___SCM_H
+
 /* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -42,6 +43,7 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
 
 
 /* "What's the difference between _scm.h and __scm.h?"
@@ -167,7 +169,7 @@
  * common prefix for all option macros of this kind is "SCM_DEBUG_".  It is
  * guaranteed that a macro named SCM_DEBUG_XXX is defined to be either 0 or 1,
  * i. e. there is no need to test for the undefined case.  This allows to use
- * these definitions comfortably in macro code, as in the following example:
+ * these definitions comfortably within code, as in the following example:
  *   #define FOO do { if (SCM_DEBUG_XXX) bar(); else baz(); } while (0)
  * Any sane compiler will remove the unused branch without any performance
  * penalty for the resulting code.
@@ -194,13 +196,6 @@
  */
 #ifndef SCM_DEBUG_CELL_ACCESSES
 #define SCM_DEBUG_CELL_ACCESSES SCM_DEBUG
-#endif
-
-/* If SCM_DEBUG_DEPRECATED is set to 1, deprecated code is not compiled.  This
- * can be used by developers to get rid of references to deprecated code.
- */
-#ifndef SCM_DEBUG_DEPRECATED
-#define SCM_DEBUG_DEPRECATED SCM_DEBUG
 #endif
 
 /* If SCM_DEBUG_INTERRUPTS is set to 1, with every deferring and allowing of
@@ -236,29 +231,33 @@
 #define SCM_DEBUG_TYPING_STRICTNESS 1
 #endif
 
-/* If SCM_ENABLE_VCELLS is set to 1, a couple of functions that deal
- * with vcells are defined for compatibility reasons.  Supporting
- * vcells reduces performance however.
- *
- * We use a dedicated macro instead of just SCM_DEBUG_DEPRECATED so
- * that code the belongs to the `vcell' feature is easier to find.
- */
-#define SCM_ENABLE_VCELLS !SCM_DEBUG_DEPRECATED
-
 
 
-#ifdef HAVE_LONG_LONGS
-
-/* Some auto-generated .h files contain unused prototypes
- * that need these typedefs.
+/* {Feature Options}
+ *
+ * These compile time options determine whether code for certain features
+ * should be compiled into guile.  The common prefix for all option macros
+ * of this kind is "SCM_ENABLE_".  It is guaranteed that a macro named
+ * SCM_ENABLE_XXX is defined to be either 0 or 1, i. e. there is no need to
+ * test for the undefined case.  This allows to use these definitions
+ * comfortably within code, as in the following example:
+ *   #define FOO do { if (SCM_ENABLE_XXX) bar(); else baz(); } while (0)
+ * Any sane compiler will remove the unused branch without any performance
+ * penalty for the resulting code.
+ *
+ * Note:  Some SCM_ENABLE_XXX options are not settable at configure time.
+ * To change the value of such options you will have to edit this header
+ * file or give suitable options to make, like:
+ *   make all CFLAGS="-DSCM_ENABLE_XXX=1 ..."
  */
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-typedef long long long_long;
-typedef unsigned long long ulong_long;
+/* If SCM_ENABLE_DEPRECATED is set to 1, deprecated code will be included in
+ * guile, as well as some functions to issue run-time warnings about uses of
+ * deprecated functions.
+ */
+#ifndef SCM_ENABLE_DEPRECATED
+#define SCM_ENABLE_DEPRECATED 0
 #endif
-
-#endif /* HAVE_LONG_LONGS */
 
 
 
@@ -318,10 +317,6 @@ typedef long ptrdiff_t;
 # endif
 #  include <stddef.h>
 #endif /* def STDC_HEADERS */
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_sizet size_t
-#endif
 
 
 
@@ -629,31 +624,6 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
 #define SCM_ARG6 		6
 #define SCM_ARG7 		7 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-/* Use SCM_WRONG_NUM_ARGS instead of: */
-#define SCM_WNA 		8
-
-/* Use SCM_ASSERT_RANGE or SCM_VALIDATE_XXX_RANGE instead of: */
-#define SCM_OUTOFRANGE         10
-
-/* Use scm_memory_error instead of: */
-#define SCM_NALLOC             11
-
-#define SCM_HUP_SIGNAL         14
-#define SCM_INT_SIGNAL         15
-#define SCM_FPE_SIGNAL         16
-#define SCM_BUS_SIGNAL         17
-#define SCM_SEGV_SIGNAL        18
-#define SCM_ALRM_SIGNAL        19
-#define SCM_GC_SIGNAL          20
-#define SCM_TICK_SIGNAL        21
-#define SCM_SIG_ORD(X)         ((X) - SCM_HUP_SIGNAL)
-#define SCM_ORD_SIG(X)         ((X) + SCM_HUP_SIGNAL)
-#define SCM_NUM_SIGS           (SCM_SIG_ORD (SCM_TICK_SIGNAL) + 1)
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 #endif /* SCM_MAGIC_SNARFER */
 
 
@@ -678,8 +648,6 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
 #define SCM_EXIT_FAILURE 1
 #endif /* def vms */
 #endif /* ndef SCM_EXIT_FAILURE */
-
-
 
 #endif  /* SCM___SCM_H */
 

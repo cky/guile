@@ -133,7 +133,6 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
   else
     {
       SCM_VALIDATE_STRING (2, subr);
-      SCM_STRING_COERCE_0TERMINATION_X (subr);
       szSubr = SCM_STRING_CHARS (subr);
     }
 
@@ -144,7 +143,6 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
   else
     {
       SCM_VALIDATE_STRING (2, message);
-      SCM_STRING_COERCE_0TERMINATION_X (message);
       szMessage = SCM_STRING_CHARS (message);
     }
 
@@ -292,57 +290,6 @@ scm_misc_error (const char *subr, const char *message, SCM args)
 {
   scm_error (scm_misc_error_key, subr, message, args, SCM_BOOL_F);
 }
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM
-scm_wta (SCM arg, const char *pos, const char *s_subr)
-{
-  if (!s_subr || !*s_subr)
-    s_subr = NULL;
-  if ((~0x1fL) & (long) pos)
-    {
-      /* error string supplied.  */
-      scm_misc_error (s_subr, pos, scm_list_1 (arg));
-    }
-  else
-    {
-      /* numerical error code.  */
-      int error = (int) pos;
-
-      switch (error)
-	{
-	case SCM_ARGn:
-	  scm_wrong_type_arg (s_subr, 0, arg);
-	case SCM_ARG1:
-	  scm_wrong_type_arg (s_subr, 1, arg);
-	case SCM_ARG2:
-	  scm_wrong_type_arg (s_subr, 2, arg);
-	case SCM_ARG3:
-	  scm_wrong_type_arg (s_subr, 3, arg);
-	case SCM_ARG4:
-	  scm_wrong_type_arg (s_subr, 4, arg);
-	case SCM_ARG5:
-	  scm_wrong_type_arg (s_subr, 5, arg);
-	case SCM_ARG6:
-	  scm_wrong_type_arg (s_subr, 6, arg);
-	case SCM_ARG7:
-	  scm_wrong_type_arg (s_subr, 7, arg);
-	case SCM_WNA:
-	  scm_wrong_num_args (arg);
-	case SCM_OUTOFRANGE:
-	  scm_out_of_range (s_subr, arg);
-	case SCM_NALLOC:
-	  scm_memory_error (s_subr);
-	default:
-	  /* this shouldn't happen.  */
-	  scm_misc_error (s_subr, "Unknown error", SCM_EOL);
-	}
-    }
-  return SCM_UNSPECIFIED;
-}
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 void
 scm_init_error ()

@@ -2,18 +2,19 @@
 
 #ifndef SCM_MODULES_H
 #define SCM_MODULES_H
+
 /* Copyright (C) 1998,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -42,6 +43,7 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
 
 
 #include "libguile/__scm.h"
@@ -129,15 +131,6 @@ extern SCM scm_system_module_env_p (SCM env);
 
 extern void scm_modules_prehistory (void);
 extern void scm_init_modules (void);
-
-#if SCM_DEBUG_DEPRECATED == 0
-
-extern SCM scm_the_root_module (void);
-extern SCM scm_make_module (SCM name);
-extern SCM scm_ensure_user_module (SCM name);
-extern SCM scm_load_scheme_module (SCM name);
-
-#endif
 
 #endif  /* SCM_MODULES_H */
 

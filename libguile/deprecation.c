@@ -53,10 +53,10 @@
 
 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
+#if (SCM_ENABLE_DEPRECATED == 1)
 
 /* This is either a boolean (when a summary should be printed) or a
-   hashtab (when detailed warnings shouold be printed).
+   hashtab (when detailed warnings should be printed).
 */
 SCM issued_msgs;
 
@@ -121,11 +121,7 @@ SCM_DEFINE(scm_include_deprecated_features,
            "in public interfaces.")
 #define FUNC_NAME s_scm_include_deprecated_features
 {
-#if SCM_DEBUG_DEPRECATED == 0
-  return SCM_BOOL_T;
-#else
-  return SCM_BOOL_F;
-#endif
+  return SCM_BOOL (SCM_ENABLE_DEPRECATED == 1);
 }
 #undef FUNC_NAME
 
@@ -135,7 +131,7 @@ SCM_DEFINE(scm_include_deprecated_features,
 void
 scm_init_deprecation ()
 {
-#if SCM_DEBUG_DEPRECATED == 0
+#if (SCM_ENABLE_DEPRECATED == 1)
   const char *level = getenv ("GUILE_WARN_DEPRECATED");
   if (level == NULL)
     level = SCM_WARN_DEPRECATED_DEFAULT;

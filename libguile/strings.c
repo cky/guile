@@ -66,23 +66,6 @@ SCM_DEFINE (scm_string_p, "string?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#if SCM_DEBUG_DEPRECATED == 0
-
-/* The concept of read-only strings will disappear in next release
- * of Guile.
- */
-
-SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
-	    (SCM obj),
-	    "Return @code{#t} if @var{obj} is either a string or a symbol,\n"
-            "otherwise return @code{#f}.")
-#define FUNC_NAME s_scm_read_only_string_p
-{
-  return SCM_BOOL(SCM_ROSTRINGP (obj));
-}
-#undef FUNC_NAME
-
-#endif /* DEPRECATED */
 
 SCM_REGISTER_PROC (s_scm_list_to_string, "list->string", 1, 0, 0, scm_string);
 
@@ -118,33 +101,9 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
 }
 #undef FUNC_NAME
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM 
-scm_makstr (size_t len, int dummy)
-#define FUNC_NAME "scm_makstr"
-{
-  SCM s;
-  char *mem;
-
-  SCM_ASSERT_RANGE (1, scm_long2num (len), len <= SCM_STRING_MAX_LENGTH);
-
-  mem = (char *) scm_must_malloc (len + 1, FUNC_NAME);
-  mem[len] = 0;
-
-  SCM_NEWCELL (s);
-  SCM_SET_STRING_CHARS (s, mem);
-  SCM_SET_STRING_LENGTH (s, len);
-
-  return s;
-}
-#undef FUNC_NAME
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 /* converts C scm_array of strings to SCM scm_list of strings. */
 /* If argc < 0, a null terminated scm_array is assumed. */
-
 SCM 
 scm_makfromstrs (int argc, char **argv)
 {
@@ -191,18 +150,6 @@ scm_take0str (char *s)
   return scm_take_str (s, strlen (s));
 }
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM 
-scm_makfromstr (const char *src, size_t len, int dummy SCM_UNUSED)
-{
-  scm_c_issue_deprecation_warning ("`scm_makfromstr' is deprecated. "
-				   "Use `scm_mem2string' instead.");
-
-  return scm_mem2string (src, len);
-}
-
-#endif
 
 SCM 
 scm_mem2string (const char *src, size_t len)
@@ -320,11 +267,7 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 	    "@var{str}.")
 #define FUNC_NAME s_scm_string_set_x
 {
-#if (SCM_DEBUG_DEPRECATED == 0)
-  SCM_VALIDATE_RWSTRING (1, str);
-#else
   SCM_VALIDATE_STRING (1, str);
-#endif
   SCM_VALIDATE_INUM_RANGE (2,k,0,SCM_STRING_LENGTH(str));
   SCM_VALIDATE_CHAR (3,chr);
   SCM_STRING_UCHARS (str)[SCM_INUM (k)] = SCM_CHAR (chr);
@@ -390,65 +333,6 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 }
 #undef FUNC_NAME
 
-#if SCM_DEBUG_DEPRECATED == 0
-
-/* Explicit shared substrings will disappear from Guile.
- *
- * Instead, "normal" strings will be implemented using sharing
- * internally, combined with a copy-on-write strategy.
- */
-
-SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
-	    (SCM str, SCM start, SCM end),
-	    "Return a shared substring of @var{str}.  The arguments are the\n"
-	    "same as for the @code{substring} function: the shared substring\n"
-	    "returned includes all of the text from @var{str} between\n"
-	    "indexes @var{start} (inclusive) and @var{end} (exclusive).  If\n"
-	    "@var{end} is omitted, it defaults to the end of @var{str}.  The\n"
-	    "shared substring returned by @code{make-shared-substring}\n"
-	    "occupies the same storage space as @var{str}.")
-#define FUNC_NAME s_scm_make_shared_substring
-{
-  long f;
-  long t;
-  SCM answer;
-  SCM len_str;
-
-  SCM_VALIDATE_ROSTRING (1,str);
-  SCM_VALIDATE_INUM_DEF_COPY (2,start,0,f);
-  SCM_VALIDATE_INUM_DEF_COPY (3,end,SCM_ROLENGTH(str),t);
-
-  SCM_ASSERT_RANGE (2,start,(f >= 0));
-  SCM_ASSERT_RANGE (3,end, (f <= t) && (t <= SCM_ROLENGTH (str)));
-
-  SCM_NEWCELL (answer);
-  SCM_NEWCELL (len_str);
-
-  SCM_DEFER_INTS;
-  if (SCM_SUBSTRP (str))
-    {
-      long offset;
-      offset = SCM_INUM (SCM_SUBSTR_OFFSET (str));
-      f += offset;
-      t += offset;
-      SCM_SETCAR (len_str, SCM_MAKINUM (f));
-      SCM_SETCDR (len_str, SCM_SUBSTR_STR (str));
-      SCM_SETCDR (answer, len_str);
-      SCM_SETLENGTH (answer, t - f, scm_tc7_substring);
-    }
-  else
-    {
-      SCM_SETCAR (len_str, SCM_MAKINUM (f));
-      SCM_SETCDR (len_str, str);
-      SCM_SETCDR (answer, len_str);
-      SCM_SETLENGTH (answer, t - f, scm_tc7_substring);
-    }
-  SCM_ALLOW_INTS;
-  return answer;
-}
-#undef FUNC_NAME
-
-#endif /* DEPRECATED */
 
 void
 scm_init_strings ()

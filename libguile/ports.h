@@ -2,18 +2,19 @@
 
 #ifndef SCM_PORTS_H
 #define SCM_PORTS_H
+
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -44,6 +45,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
+
 #include "libguile/__scm.h"
 
 #include "libguile/print.h"
@@ -150,17 +152,17 @@ extern long scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_BUF0	(8L<<16) /* Is it unbuffered? */
 #define SCM_BUFLINE     (64L<<16) /* Is it line-buffered? */
 
-#define SCM_PORTP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_port))
-#define SCM_OPPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_OPN)))
-#define SCM_OPINPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_RDNG) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
-#define SCM_OPOUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
+#define SCM_PORTP(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_port))
+#define SCM_OPPORTP(x) (!SCM_IMP(x) && (((0x7f | SCM_OPN) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_OPN)))
+#define SCM_OPINPORTP(x) (!SCM_IMP(x) && (((0x7f | SCM_OPN | SCM_RDNG) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
+#define SCM_OPOUTPORTP(x) (!SCM_IMP(x) && (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
 #define SCM_INPUT_PORT_P(x) \
-  (SCM_NIMP(x) \
+  (!SCM_IMP(x) \
    && (((0x7f | SCM_RDNG) & SCM_CELL_WORD_0(x)) == (scm_tc7_port | SCM_RDNG)))
 #define SCM_OUTPUT_PORT_P(x) \
-  (SCM_NIMP(x) \
+  (!SCM_IMP(x) \
    && (((0x7f | SCM_WRTNG) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_WRTNG)))
-#define SCM_OPENP(x) (SCM_NIMP(x) && (SCM_OPN & SCM_CELL_WORD_0 (x)))
+#define SCM_OPENP(x) (!SCM_IMP(x) && (SCM_OPN & SCM_CELL_WORD_0 (x)))
 #define SCM_CLOSEDP(x) (!SCM_OPENP(x))
 #define SCM_CLR_PORT_OPEN_FLAG(p) \
   SCM_SET_CELL_WORD_0 ((p), SCM_CELL_WORD_0 (p) & ~SCM_OPN)
@@ -203,12 +205,6 @@ typedef struct scm_t_ptob_descriptor
   void (*truncate) (SCM port, off_t length);
 
 } scm_t_ptob_descriptor;
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_port scm_t_port
-# define scm_ptob_descriptor scm_t_ptob_descriptor
-# define scm_port_rw_active scm_t_port_rw_active
-#endif
 
 #define SCM_TC2PTOBNUM(x) (0x0ff & ((x) >> 8))
 #define SCM_PTOBNUM(x) (SCM_TC2PTOBNUM (SCM_CELL_TYPE (x)))
@@ -317,14 +313,6 @@ extern void scm_init_ports (void);
 extern SCM scm_pt_size (void);
 extern SCM scm_pt_member (SCM member);
 #endif /* GUILE_DEBUG */
-
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-extern SCM scm_close_all_ports_except (SCM ports);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* SCM_PORTS_H */
 

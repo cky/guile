@@ -2,18 +2,19 @@
 
 #ifndef SCM_VARIABLE_H
 #define SCM_VARIABLE_H
+
 /* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -44,29 +45,18 @@
  * If you do not wish that, delete this exception notice.  */
 
 
+
 #include "libguile/__scm.h"
 #include "libguile/smob.h"
 
 
 
-
 /* Variables 
  */
-#define SCM_VARIABLEP(X)      (SCM_NIMP(X) && SCM_TYP7(X) == scm_tc7_variable)
-
-#if !SCM_ENABLE_VCELLS
-#define SCM_VARIABLE_REF(V)   SCM_CELL_OBJECT_1(V)
+#define SCM_VARIABLEP(X)      (!SCM_IMP (X) && SCM_TYP7(X) == scm_tc7_variable)
+#define SCM_VARIABLE_REF(V)   SCM_CELL_OBJECT_1 (V)
 #define SCM_VARIABLE_SET(V,X) SCM_SET_CELL_OBJECT_1 (V, X)
 #define SCM_VARIABLE_LOC(V)   ((SCM *) SCM_CELL_WORD_LOC ((V), 1))
-#else
-#define SCM_VARVCELL(V)       SCM_CELL_OBJECT_1(V)
-#define SCM_UDVARIABLEP(X)    (SCM_VARIABLEP(X) && SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
-#define SCM_DEFVARIABLEP(X)   (SCM_VARIABLEP(X) && !SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
-
-#define SCM_VARIABLE_REF(V)   SCM_CDR(SCM_VARVCELL(V))
-#define SCM_VARIABLE_SET(V,X) SCM_SETCDR(SCM_VARVCELL(V),X)
-#define SCM_VARIABLE_LOC(V)   SCM_CDRLOC(SCM_VARVCELL(V))
-#endif
 
 
 
@@ -76,10 +66,6 @@ extern SCM scm_variable_p (SCM obj);
 extern SCM scm_variable_ref (SCM var);
 extern SCM scm_variable_set_x (SCM var, SCM val);
 extern SCM scm_variable_bound_p (SCM var);
-extern SCM scm_variable_set_name_hint (SCM var, SCM hint);
-#if SCM_ENABLE_VCELLS
-extern SCM scm_builtin_variable (SCM name);
-#endif
 
 extern void scm_i_variable_print (SCM var, SCM port, scm_print_state *pstate);
 

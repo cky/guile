@@ -19,7 +19,6 @@ See also file HACKING.
 
 === Eventually:
 
-- deprecate `read-only-string?'
 - [after signal handling and threading have been fixed] remove the code
   corresponding to GUILE_OLD_ASYNC_CLICK and the corresponding
   GUILE_OLD_ASYNC_CLICK macro.
@@ -56,6 +55,12 @@ See also file HACKING.
   to convert source correctly in unmemocopy
 - eliminate argument checking for closures
 - Implement a thread-safe alternative to SCM's environment caches
+- rename ice-9 to something more obvious
+- implement implicitly shared substrings (thread-safe, copy on write).  In
+  this context, the concept of read-only-strings might be re-introduced to
+  implement the symbol->string semantics of R5RS.
+- implement internationalized strings
+- revise the uniform vector implementation
 
 === Before releasing 1.8.0:
 
@@ -69,107 +74,9 @@ See also file HACKING.
 
 - Start a new THANKS file.
 
-- remove deprecated functions scm_read_0str, scm_eval_0str.
+=== Before releasing 1.10.0:
 
-- remove deprecated "scm_*_t" type names in libguile.h.
-
-- remove re-exporting behaviour of `export'.
-    in boot-9.scm, remove begin-deprecated part of `module-export!'
-    in format.scm, remove kluge at top
-    in srfi-13.scm, likewise
-    in srfi-1.scm, likewise
-
-- remove deprecated subr and gsubr functions
-    in procs.h, procs.c: scm_make_subr, scm_make_subr_opt,
-      scm_make_subr_with_generic,
-    in gsubr.h, gsubr.c: scm_make_gsubr, scm_make_gsubr_with_generic.
-
-- remove deprecated C interface to modules
-    in modules.h, modules.c:
-      root_module_lookup_closure, scm_sym_app, scm_sym_modules,
-      module_prefix, make_modules_in_var, beautify_user_module_x_var,
-      scm_the_root_module, scm_make_module, scm_ensure_user_module,
-      scm_load_scheme_module
-
-- remove vcell and obarray support.
-  Remove all code bracketed by `#if SCM_ENABLE_VCELLS'.
-  Remove SCM_ENABLE_VCELLS itself.
-  Also remove `variable-set-name-hint' completely.
-
-- remove compatability module (ice-9 and-let*).  It
-  has been replaced by (ice-9 and-let-star) and/or (srfi srfi-2).
-
-- remove support for autoloading compiled-code modules:
-    try-module-linked
-    try-module-dynamic-link
-    init-dynamic-module, etc.
-    scm_register_module_xxx
-    scm_registered_modules
-    scm_clear_registered_modules
-
-- remove deprecated variables:
-    scm_top_level_lookup_closure_var
-    scm_scm_system_transformer
-    Remove all code that still sets them:
-     `use-syntax', scm_set_current_module, ...
-
-- remove deprecated functions:
-    eval.c: scm_eval2, scm_eval_3
-    load.c: scm_read_and_eval_x
-    smob.c: scm_make_smob_type_mfpe, scm_set_smob_mfpe
-    gc.c: scm_remember
-    string.c: scm_makstr, scm_makfromstr
-- remove deprecated procedures:
-    boot-9.scm: eval-in-module, id, -1+, return-it, string-character-length,
-      flags
-- remove deprecated macros: SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL,
-  SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL,
-  SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD,
-  SCM_ORD_SIG, SCM_NUM_SIGS, SCM_SLOPPY_STRINGP, SCM_VALIDATE_STRINGORSUBSTR,
-  SCM_FREEP, SCM_NFREEP, SCM_CHARS, SCM_UCHARS, SCM_VALIDATE_ROSTRING,
-  SCM_VALIDATE_ROSTRING_COPY, SCM_VALIDATE_NULLORROSTRING_COPY, SCM_ROLENGTH,
-  SCM_LENGTH, SCM_HUGE_LENGTH, SCM_SUBSTRP, SCM_SUBSTR_STR, SCM_SUBSTR_OFFSET,
-  SCM_COERCE_SUBSTR, SCM_ROSTRINGP, SCM_RWSTRINGP, SCM_VALIDATE_RWSTRING,
-  SCM_ROCHARS, SCM_ROUCHARS, SCM_SETLENGTH, SCM_SETCHARS, SCM_LENGTH_MAX,
-  SCM_GC8MARKP, SCM_SETGC8MARK, SCM_CLRGC8MARK, SCM_GCTYP16, SCM_GCCDR,
-  SCM_SUBR_DOC, SCM_OPDIRP, SCM_VALIDATE_OPDIR, SCM_WTA, RETURN_SCM_WTA,
-  SCM_WNA, SCM_FUNC_NAME, SCM_VALIDATE_NUMBER_COPY,
-  SCM_VALIDATE_NUMBER_DEF_COPY, SCM_SLOPPY_CONSP, SCM_SLOPPY_NCONSP,
-  SCM_SETAND_CDR, SCM_SETOR_CDR, SCM_SETAND_CAR, SCM_SETOR_CAR,
-  SCM_ARRAY_CONTIGUOUS,
-  SCM_LIST0, SCM_LIST1, SCM_LIST2, SCM_LIST3, SCM_LIST4, SCM_LIST5,
-  SCM_LIST6, SCM_LIST7, SCM_LIST8, SCM_LIST9
-- remove scm_listify
-- remove scm_vector_set_length_x
-- remove function scm_call_catching_errors
-  (replaced by catch functions from throw.[ch])
-- remove support for "#&" reader syntax in (ice-9 optargs).
-- remove scm_make_shared_substring
-- remove scm_read_only_string_p
-- remove scm_strhash
-- remove scm_tc7_ssymbol
-- remove scm_tc7_msymbol
-- remove scm_tcs_symbols
-- remove scm_sloppy_memq, scm_sloppy_memv, scm_sloppy_member
-- consider removing the automatic loading of (ice-9 rdelim) when guile
-  starts up.  This would be a brave move, since a lot of code will
-  assume that read-line is available by default.  However it would make
-  it easier to use alternative implementations of this module, e.g., a
-  strictly scsh-compatible version which uses multiple values.  For
-  interactive use it would be easy to load the module in ~/.guile.
-- remove scm_close_all_ports_except
-- remove scm_strprint_obj
-- remove SCM_CONST_LONG
-- remove scm_wta
-- remove deprecated typedefs: long_long, ulong_long, scm_sizet
-- remove deprecated macros: scm_contregs, scm_port_rw_active,
-  scm_port, scm_ptob_descriptor, scm_debug_info, scm_debug_frame,
-  scm_fport, SCM_FIXNUM_BIT, scm_option, scm_subr_entry, scm_rstate,
-  scm_rng, scm_i_rstate, scm_srcprops, scm_srcprops_chunk,
-  scm_info_frame, scm_stack, scm_array, scm_array_dim.
-- remove deprecated functions: scm_mkbig, scm_big2num, scm_adjbig,
-  scm_normbig, scm_copybig, scm_2ulong2big, scm_dbl2big, scm_big2dbl.
-- remove deprecated functions: scm_protect_object,
-  scm_unprotect_object, scm_create_hook.
+- in boot-9.scm:
+  remove deprecated function `feature?´.
 
 [TODO ends here]

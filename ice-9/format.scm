@@ -15,11 +15,6 @@
   :use-module (ice-9 and-let-star)
   :autoload (ice-9 pretty-print) (pretty-print))
 
-(begin-deprecated
- ;; So that `export' below will not accidentally re-export the
- ;; `format' of the `(guile)' module.
- (define format #f))
-
 (export format
 	format:symbol-case-conv
 	format:iobj-case-conv

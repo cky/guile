@@ -1,3 +1,8 @@
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* srfi-1.scm, srfi-13.scm: Remove the defines that were needed to
+	trick export from the beginning of the files.
+
 2001-08-25  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* srfi-19.scm (add-duration): Fix bug: Call `add-duration!' w/

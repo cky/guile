@@ -1,9 +1,17 @@
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* TODO:  Added some points, and eliminated all done items.
+
+	* acconfig.h, configure.in (SCM_DEBUG_DEPRECATED,
+	SCM_ENABLE_DEPRECATED):  Renamed SCM_DEBUG_DEPRECATED to
+	SCM_ENABLE_DEPRECATED with the logic reversed.
+
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* libguile.h:  Removed bogus comment, rearranged includes, removed
 	deprecated definitions.
 
-	(LIBGUILEH, SCM_LIBGUILE_H):  Renamed <foo>H to	SCM_<foo>_H.
+	(LIBGUILEH, SCM_LIBGUILE_H):  Renamed <foo>H to SCM_<foo>_H.
 
 2001-08-30  Thien-Thi Nguyen  <ttn@revel.glug.org>
 

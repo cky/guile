@@ -127,104 +127,6 @@ scm_must_free_argv(char **argv)
   free (argv);
 }
 
-#if SCM_DEBUG_DEPRECATED == 0
-
-/* Module registry
- */
-
-/* We can't use SCM objects here. One should be able to call
-   SCM_REGISTER_MODULE from a C++ constructor for a static
-   object. This happens before main and thus before libguile is
-   initialized. */
-
-struct moddata {
-  struct moddata *link;
-  char *module_name;
-  void *init_func;
-};
-
-static struct moddata *registered_mods = NULL;
-
-void
-scm_register_module_xxx (char *module_name, void *init_func)
-{
-  struct moddata *md;
-
-  scm_c_issue_deprecation_warning 
-    ("`scm_register_module_xxx' is deprecated.  Use extensions instead.");
-
-  /* XXX - should we (and can we) DEFER_INTS here? */
-
-  for (md = registered_mods; md; md = md->link)
-    if (!strcmp (md->module_name, module_name))
-      {
-	md->init_func = init_func;
-	return;
-      }
-
-  md = (struct moddata *) malloc (sizeof (struct moddata));
-  if (md == NULL)
-    {
-      fprintf (stderr,
-	       "guile: can't register module (%s): not enough memory",
-	       module_name);
-      return;
-    }
-
-  md->module_name = module_name;
-  md->init_func = init_func;
-  md->link = registered_mods;
-  registered_mods = md;
-}
-
-SCM_DEFINE (scm_registered_modules, "c-registered-modules", 0, 0, 0, 
-            (),
-	    "Return a list of the object code modules that have been imported into\n"
-	    "the current Guile process.  Each element of the list is a pair whose\n"
-	    "car is the name of the module, and whose cdr is the function handle\n"
-	    "for that module's initializer function.  The name is the string that\n"
-	    "has been passed to scm_register_module_xxx.")
-#define FUNC_NAME s_scm_registered_modules
-{
-  SCM res;
-  struct moddata *md;
-
-  res = SCM_EOL;
-  for (md = registered_mods; md; md = md->link)
-    res = scm_cons (scm_cons (scm_makfrom0str (md->module_name),
-			      scm_ulong2num ((unsigned long) md->init_func)),
-		    res);
-  return res;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0, 
-            (),
-	    "Destroy the list of modules registered with the current Guile process.\n"
-	    "The return value is unspecified.  @strong{Warning:} this function does\n"
-	    "not actually unlink or deallocate these modules, but only destroys the\n"
-	    "records of which modules have been loaded.  It should therefore be used\n"
-	    "only by module bookkeeping operations.")
-#define FUNC_NAME s_scm_clear_registered_modules
-{
-  struct moddata *md1, *md2;
-
-  SCM_DEFER_INTS;
-
-  for (md1 = registered_mods; md1; md1 = md2)
-    {
-      md2 = md1->link;
-      free (md1);
-    }
-  registered_mods = NULL;
-
-  SCM_ALLOW_INTS;
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-#endif /* !SCM_DEBUG_DEPRECATED */
-
 /* Dispatch to the system dependent files
  *
  * They define some static functions.  These functions are called with
@@ -365,7 +267,6 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0,
   void *handle;
 
   SCM_VALIDATE_STRING (1, filename);
-  SCM_STRING_COERCE_0TERMINATION_X (filename);
   handle = sysdep_dynl_link (SCM_STRING_CHARS (filename), FUNC_NAME);
   SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (filename), handle);
 }
@@ -433,7 +334,6 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
     char *chars;
 
     SCM_DEFER_INTS;
-    SCM_STRING_COERCE_0TERMINATION_X (name);
     chars = SCM_STRING_CHARS (name);
     func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), FUNC_NAME);
     SCM_ALLOW_INTS;

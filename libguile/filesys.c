@@ -179,7 +179,6 @@ SCM_DEFINE (scm_chown, "chown", 3, 0, 0,
 #endif
     {
       SCM_VALIDATE_STRING (1, object);
-      SCM_STRING_COERCE_0TERMINATION_X (object);
       SCM_SYSCALL (rv = chown (SCM_STRING_CHARS (object),
 			       SCM_INUM (owner), SCM_INUM (group)));
     }
@@ -219,7 +218,6 @@ SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
   else
     {
       SCM_VALIDATE_STRING (1, object);
-      SCM_STRING_COERCE_0TERMINATION_X (object);
       SCM_SYSCALL (rv = chmod (SCM_STRING_CHARS (object), SCM_INUM (mode)));
     }
   if (rv == -1)
@@ -264,7 +262,6 @@ SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0,
   int imode;
 
   SCM_VALIDATE_STRING (1, path);
-  SCM_STRING_COERCE_0TERMINATION_X (path);
   iflags = SCM_NUM2INT (2, flags);
   imode = SCM_NUM2INT_DEF (3, mode, 0666);
   SCM_SYSCALL (fd = open (SCM_STRING_CHARS (path), iflags, imode));
@@ -556,7 +553,6 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
     }
   else if (SCM_STRINGP (object))
     {
-      SCM_STRING_COERCE_0TERMINATION_X (object);
       SCM_SYSCALL (rv = stat (SCM_STRING_CHARS (object), &stat_temp));
     }
   else
@@ -596,9 +592,7 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
   int val;
 
   SCM_VALIDATE_STRING (1, oldpath);
-  SCM_STRING_COERCE_0TERMINATION_X (oldpath);
   SCM_VALIDATE_STRING (2, newpath);
-  SCM_STRING_COERCE_0TERMINATION_X (newpath);
   SCM_SYSCALL (val = link (SCM_STRING_CHARS (oldpath),
 			   SCM_STRING_CHARS (newpath)));
   if (val != 0)
@@ -619,8 +613,6 @@ SCM_DEFINE (scm_rename, "rename-file", 2, 0, 0,
   int rv;
   SCM_VALIDATE_STRING (1, oldname);
   SCM_VALIDATE_STRING (2, newname);
-  SCM_STRING_COERCE_0TERMINATION_X (oldname);
-  SCM_STRING_COERCE_0TERMINATION_X (newname);
 #ifdef HAVE_RENAME
   SCM_SYSCALL (rv = rename (SCM_STRING_CHARS (oldname), SCM_STRING_CHARS (newname)));
 #else
@@ -647,7 +639,6 @@ SCM_DEFINE (scm_delete_file, "delete-file", 1, 0, 0,
 {
   int ans;
   SCM_VALIDATE_STRING (1, str);
-  SCM_STRING_COERCE_0TERMINATION_X (str);
   SCM_SYSCALL (ans = unlink (SCM_STRING_CHARS (str)));
   if (ans != 0)
     SCM_SYSERROR;
@@ -667,7 +658,6 @@ SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
   int rv;
   mode_t mask;
   SCM_VALIDATE_STRING (1, path);
-  SCM_STRING_COERCE_0TERMINATION_X (path);
   if (SCM_UNBNDP (mode))
     {
       mask = umask (0);
@@ -696,7 +686,6 @@ SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0,
   int val;
 
   SCM_VALIDATE_STRING (1, path);
-  SCM_STRING_COERCE_0TERMINATION_X (path);
   SCM_SYSCALL (val = rmdir (SCM_STRING_CHARS (path)));
   if (val != 0)
     SCM_SYSERROR;
@@ -732,7 +721,6 @@ SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
 {
   DIR *ds;
   SCM_VALIDATE_STRING (1, dirname);
-  SCM_STRING_COERCE_0TERMINATION_X (dirname);
   SCM_SYSCALL (ds = opendir (SCM_STRING_CHARS (dirname)));
   if (ds == NULL)
     SCM_SYSERROR;
@@ -841,7 +829,6 @@ SCM_DEFINE (scm_chdir, "chdir", 1, 0, 0,
   int ans;
 
   SCM_VALIDATE_STRING (1, str);
-  SCM_STRING_COERCE_0TERMINATION_X (str);
   SCM_SYSCALL (ans = chdir (SCM_STRING_CHARS (str)));
   if (ans != 0)
     SCM_SYSERROR;
@@ -1266,8 +1253,6 @@ SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
 
   SCM_VALIDATE_STRING (1, oldpath);
   SCM_VALIDATE_STRING (2, newpath);
-  SCM_STRING_COERCE_0TERMINATION_X (oldpath);
-  SCM_STRING_COERCE_0TERMINATION_X (newpath);
   SCM_SYSCALL (val = symlink (SCM_STRING_CHARS (oldpath), SCM_STRING_CHARS (newpath)));
   if (val != 0)
     SCM_SYSERROR;
@@ -1288,7 +1273,6 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
   char *buf;
   SCM result;
   SCM_VALIDATE_STRING (1, path);
-  SCM_STRING_COERCE_0TERMINATION_X (path);
   buf = scm_must_malloc (size, FUNC_NAME);
   while ((rv = readlink (SCM_STRING_CHARS (path), buf, size)) == size)
     {
@@ -1317,7 +1301,6 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
   struct stat stat_temp;
 
   SCM_VALIDATE_STRING (1, str);
-  SCM_STRING_COERCE_0TERMINATION_X (str);
   SCM_SYSCALL (rv = lstat (SCM_STRING_CHARS (str), &stat_temp));
   if (rv != 0)
     {
@@ -1344,9 +1327,7 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   struct stat oldstat;
 
   SCM_VALIDATE_STRING (1, oldfile);
-  SCM_STRING_COERCE_0TERMINATION_X (oldfile);
   SCM_VALIDATE_STRING (2, newfile);
-  SCM_STRING_COERCE_0TERMINATION_X (newfile);
   if (stat (SCM_STRING_CHARS (oldfile), &oldstat) == -1)
     SCM_SYSERROR;
   oldfd = open (SCM_STRING_CHARS (oldfile), O_RDONLY);

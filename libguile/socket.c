@@ -171,7 +171,6 @@ SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0,
   struct in_addr soka;
 
   SCM_VALIDATE_STRING (1, address);
-  SCM_STRING_COERCE_0TERMINATION_X (address);
   if (inet_aton (SCM_STRING_CHARS (address), &soka) == 0)
     SCM_MISC_ERROR ("bad address", SCM_EOL);
   return scm_ulong2num (ntohl (soka.s_addr));

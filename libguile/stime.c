@@ -311,7 +311,6 @@ setzone (SCM zone, int pos, const char *subr)
       char *buf;
 
       SCM_ASSERT (SCM_STRINGP (zone), zone, pos, subr);
-      SCM_STRING_COERCE_0TERMINATION_X (zone);
       buf = scm_must_malloc (SCM_STRING_LENGTH (zone) + sizeof (tzvar) + 1, subr);
       sprintf (buf, "%s=%s", tzvar, SCM_STRING_CHARS (zone));
       oldenv = environ;
@@ -580,7 +579,6 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
   SCM_VALIDATE_STRING (1, format);
   bdtime2c (stime, &t, SCM_ARG2, FUNC_NAME);
 
-  SCM_STRING_COERCE_0TERMINATION_X (format);
   fmt = SCM_STRING_CHARS (format);
   len = SCM_STRING_LENGTH (format);
 
@@ -673,8 +671,6 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
   SCM_VALIDATE_STRING (1, format);
   SCM_VALIDATE_STRING (2, string);
 
-  SCM_STRING_COERCE_0TERMINATION_X (format);
-  SCM_STRING_COERCE_0TERMINATION_X (string);
   fmt = SCM_STRING_CHARS (format);
   str = SCM_STRING_CHARS (string);
 

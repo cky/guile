@@ -297,8 +297,6 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 
   SCM_VALIDATE_STRING (1, filename);
   SCM_VALIDATE_STRING (2, mode);
-  SCM_STRING_COERCE_0TERMINATION_X (filename);
-  SCM_STRING_COERCE_0TERMINATION_X (mode);
 
   file = SCM_STRING_CHARS (filename);
   md = SCM_STRING_CHARS (mode);

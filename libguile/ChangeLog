@@ -1,5 +1,120 @@
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* __scm.h: Added new section about compile time selectable
+	features.
+
+	(long_long, ulong_long, scm_sizet, SCM_WNA, SCM_OUTOFRANGE,
+	SCM_NALLOC, SCM_HUP_SIGNAL, SCM_INT_SIGNAL, SCM_FPE_SIGNAL,
+	SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, SCM_ALRM_SIGNAL, SCM_GC_SIGNAL,
+	SCM_TICK_SIGNAL, SCM_SIG_ORD, SCM_ORD_SIG, SCM_NUM_SIGS):
+	Removed.
+
+	* deprecation.c (scm_include_deprecated_features): Simplified.
+
+	* eval.c (EVALCAR, unmemocopy), eval.h (SCM_XEVALCAR): Use
+	`SCM_IMP´ instead of `!SCM_CELLP´.
+
+	* eval.c (unmemocopy): Eliminate redundant SCM_CELLP tests.
+	Extract side-effecting operations from macros.
+
+	(scm_init_eval): Don't initialize *top-level-lookup-closure*,
+	scm_top_level_lookup_closure_var and scm_system_transformer.
+
+	* gc.c (CELL_P): New local definition to replace SCM_CELLP.
+
+	(heap_segment):  Use CELL_P instead of SCM_CELLP.
+
+	* init.c (start_stack): Don't initialize
+	scm_top_level_lookup_closure_var and scm_system_transformer.
+
+	* modules.c (scm_set_current_module): Don't access
+	scm_top_level_lookup_closure_var and scm_system_transformer.
+
+	(scm_sym2var): Don't call scm_variable_set_name_hint.
+
+	(scm_post_boot_init_modules): Removed deprecated initializations.
+
+	* print.c (scm_ipruk): Don't access cell contents of non cells.
+
+	* strings.c (scm_string_set_x):  All strings are writable.
+
+	* strings.h (SCM_STRINGP):  Use SCM_TYP7 to determine the string
+	type.  There is only one string type now.
+
+	(SCM_STRING_COERCE_0TERMINATION_X): Deprecated.
+
+	* tags.h: Remove comments about two different string types.
+
+	(SCM_CELLP, SCM_NCELLP): Deprecated.
+
+	* variable.c (make_variable): Remove code variant for vcells.
+
+	* variable.h (SCM_VARIABLE_REF, SCM_VARIABLE_SET,
+	SCM_VARIABLE_LOC): Remove code variant for vcells.
+
+	* __scm.h, deprecation.[ch]:  Renamed SCM_DEBUG_DEPRECATED to
+	SCM_ENABLE_DEPRECATED with the logic reversed.
+
+	* dynl.c (moddata, registered_mods), dynl.[ch]
+	(scm_register_module_xxx, scm_registered_modules,
+	scm_clear_registered_modules), error.[ch] (scm_wta), eval.c
+	(*top-level-lookup-closure*), eval.[ch]
+	(scm_top_level_lookup_closure_var, scm_system_transformer,
+	scm_eval_3, scm_eval2), gc.h (SCM_SETAND_CAR, SCM_SETOR_CAR,
+	SCM_SETAND_CDR, SCM_SETOR_CDR, SCM_FREEP, SCM_NFREEP,
+	SCM_GC8MARKP, SCM_SETGC8MARK, SCM_CLRGC8MARK, SCM_GCTYP16,
+	SCM_GCCDR), gc.[ch] (scm_remember, scm_protect_object,
+	scm_unprotect_object), modules.c (root_module_lookup_closure,
+	scm_sym_app, scm_sym_modules, module_prefix, make_modules_in_var,
+	beautify_user_module_x_var, try_module_autoload_var,
+	scm_module_full_name), modules.[ch] (scm_the_root_module,
+	scm_make_module, scm_ensure_user_module, scm_load_scheme_module),
+	ports.h (scm_port, scm_ptob_descriptor, scm_port_rw_active), 
+	ports.[ch] (scm_close_all_ports_except), random.h (scm_rstate,
+	scm_rng, scm_i_rstate), strings.h (SCM_SLOPPY_STRINGP,
+	SCM_RWSTRINGP, SCM_STRING_UCHARS, SCM_STRING_CHARS), strings.[ch]
+	(scm_read_only_string_p, scm_makstr, scm_makfromstr,
+	scm_make_shared_substring), tags.h (scm_tc7_substring,
+	SCM_SLOPPY_CONSP, SCM_SLOPPY_NCONSP, scm_tc7_ssymbol,
+	scm_tc7_msymbol, scm_tcs_symbols), variable.c (sym_huh),
+	variable.[ch] (scm_variable_set_name_hint, scm_builtin_variable),
+	variable.h (SCM_VARVCELL, SCM_UDVARIABLEP, SCM_DEFVARIABLEP):
+	Removed.
+
+	* dynl.c (scm_dynamic_link, scm_dynamic_func), error.c
+	(scm_error_scm), filesys.c (scm_chown, scm_chmod, scm_open_fdes,
+	scm_stat, scm_link, scm_rename, scm_delete_file, scm_mkdir,
+	scm_rmdir, scm_opendir, scm_chdir, scm_symlink, scm_readlink,
+	scm_lstat, scm_copy_file), fports.c (scm_open_file), ioext.c
+	(scm_fdopen), net_db.c (scm_gethost, scm_getnet, scm_getproto,
+	scm_getserv), ports.c (scm_truncate_file, scm_sys_make_void_port),
+	posix.c (scm_getpwuid, scm_getgrgid, scm_execl, scm_execlp,
+	scm_execle, scm_mkstemp, scm_utime, scm_access, scm_setlocale,
+	scm_mknod, scm_crypt, scm_chroot, scm_getpass, scm_sethostname),
+	regex-posix.c (scm_make_regexp, scm_regexp_exec), simpos.c
+	(scm_system, scm_getenv), socket.c (scm_inet_aton), stime.c
+	(setzone, scm_strftime, scm_strptime), vports.c
+	(scm_make_soft_port): Remove calls to
+	SCM_STRING_COERCE_0TERMINATION_X.  Since the substring type is
+	gone, all strings are 0-terminated anyway.
+
+	* dynl.h (LIBGUILE_DYNL_H, SCM_DYNL_H), random.h (RANDOMH,
+	SCM_RANDOM_H): Renamed the macros that are defined to inhibit
+	double inclusion of the same headers to the SCM_<filename>_H
+	format.
+
+	* eval.c (SCM_CEVAL), gc.c (MARK, scm_gc_sweep), gh_data.c
+	(gh_scm2chars), hash.c (scm_hasher), objects.c (scm_class_of),
+	print.c (scm_iprin1): The type scm_tc7_substring does not exist
+	any more.
+
+	* ports.h (SCM_PORTP, SCM_OPPORTP, SCM_OPINPORTP, SCM_OPOUTPORTP,
+	SCM_INPUT_PORT_P, SCM_OUTPUT_PORT_P, SCM_OPENP), tags.h
+	(SCM_TYP16_PREDICATE), variable.h (SCM_VARIABLEP): Prefer
+	!SCM_<foo> over SCM_N<foo>.
+
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* Makefile.am:  Remove references to symbols-deprecated.c.
 
 	* symbols.c (scm_init_symbols):  Don't initialize deprecated

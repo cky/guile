@@ -189,7 +189,6 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
   SCM z;
   SCM_VALIDATE_VECTOR_LEN (1,pv,5);
   SCM_VALIDATE_STRING (2, modes);
-  SCM_STRING_COERCE_0TERMINATION_X (modes);
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (z);

@@ -60,20 +60,6 @@
   :use-module (ice-9 session)
   :use-module (ice-9 receive))
 
-(begin-deprecated
- ;; Prevent `export' from re-exporting core bindings.  This behaviour
- ;; of `export' is deprecated and will disappear in one of the next
- ;; releases.
- (define iota #f)
- (define map #f)
- (define map-in-order #f)
- (define for-each #f)
- (define list-index #f)
- (define member #f)
- (define delete #f)
- (define delete! #f)
- (define assoc #f))
-
 (export 
 ;;; Constructors
  ;; cons				<= in the core

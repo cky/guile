@@ -82,8 +82,8 @@
 (define (provided? feature)
   (and (memq feature *features*) #t))
 
-;;; presumably deprecated.
-(define feature? provided?)
+(begin-deprecated
+ (define feature? provided?))
 
 ;;; let format alias simple-format until the more complete version is loaded
 (define format simple-format)
@@ -135,17 +135,6 @@
 (define (and=> value procedure) (and value (procedure value)))
 (define (make-hash-table k) (make-vector k '()))
 
-(begin-deprecated
- (define (id x)
-   (issue-deprecation-warning "`id' is deprecated.  Use `identity' instead.")
-   (identity x))
- (define (-1+ n)
-   (issue-deprecation-warning "`-1+' is deprecated.  Use `1-' instead.")
-   (1- n))
- (define (return-it . args)
-   (issue-deprecation-warning "`return-it' is deprecated.  Use `noop' instead.")
-   (apply noop args)))
-
 ;;; apply-to-args is functionally redundant with apply and, worse,
 ;;; is less general than apply since it only takes two arguments.
 ;;;
@@ -172,14 +161,6 @@
 				(quotient k 2)
 				(if (even? k) acc (proc acc x))
 				proc))))
-
-(begin-deprecated
- (define (string-character-length s)
-   (issue-deprecation-warning "`string-character-length' is deprecated.  Use `string-length' instead.")
-   (string-length s))
- (define (flags . args)
-   (issue-deprecation-warning "`flags' is deprecated.  Use `logior' instead.")
-   (apply logior args)))
 
 
 ;;; {Symbol Properties}
@@ -1054,12 +1035,6 @@
       ;; to maximally one module.
       (set-procedure-property! closure 'module module))))
 
-(begin-deprecated
- (define (eval-in-module exp mod)
-   (issue-deprecation-warning
-    "`eval-in-module' is deprecated.  Use `eval' instead.")
-   (eval exp mod)))
-
 
 ;;; {Observer protocol}
 ;;;
@@ -1287,7 +1262,6 @@
 	   ((module-binder m) m v #t))
       (begin
 	(let ((answer (make-undefined-variable)))
-	  (variable-set-name-hint! answer v)
 	  (module-obarray-set! (module-obarray m) v answer)
 	  (module-modified m)
 	  answer))))
@@ -1301,7 +1275,6 @@
 (define (module-ensure-local-variable! module symbol)
   (or (module-local-variable module symbol)
       (let ((var (make-undefined-variable)))
-	(variable-set-name-hint! var symbol)
 	(module-add! module symbol var)
 	var)))
 
@@ -1458,7 +1431,6 @@
 	  (variable-set! variable value)
 	  (module-modified module))
 	(let ((variable (make-variable value)))
-	  (variable-set-name-hint! variable name)
 	  (module-add! module name variable)))))
 
 ;; MODULE-DEFINED? -- exported
@@ -1646,9 +1618,7 @@
 ;; (define-special-value '(app modules new-ws) (lambda () (make-scm-module)))
 
 (define (try-load-module name)
-  (or (begin-deprecated (try-module-linked name))
-      (try-module-autoload name)
-      (begin-deprecated (try-module-dynamic-link name))))
+  (try-module-autoload name))
 
 (define (purify-module! module)
   "Removes bindings in MODULE which are inherited from the (guile) module."
@@ -1838,152 +1808,6 @@
 
 
 ;;; Dynamic linking of modules
-
-;; This method of dynamically linking Guile Extensions is deprecated.
-;; Use `load-extension' explicitely from Scheme code instead.
-
-(begin-deprecated
-
- (define (split-c-module-name str)
-   (let loop ((rev '())
-	      (start 0)
-	      (pos 0)
-	      (end (string-length str)))
-     (cond
-      ((= pos end)
-       (reverse (cons (string->symbol (substring str start pos)) rev)))
-      ((eq? (string-ref str pos) #\space)
-       (loop (cons (string->symbol (substring str start pos)) rev)
-	     (+ pos 1)
-	     (+ pos 1)
-	     end))
-      (else
-       (loop rev start (+ pos 1) end)))))
-
- (define (convert-c-registered-modules dynobj)
-   (let ((res (map (lambda (c)
-		     (list (split-c-module-name (car c)) (cdr c) dynobj))
-		   (c-registered-modules))))
-     (c-clear-registered-modules)
-     res))
-
- (define registered-modules '())
-
- (define (register-modules dynobj)
-   (set! registered-modules
-	 (append! (convert-c-registered-modules dynobj)
-		  registered-modules)))
-
- (define (warn-autoload-deprecation modname)
-   (issue-deprecation-warning
-    "Autoloading of compiled code modules is deprecated."
-    "Write a Scheme file instead that uses `load-extension'.")
-   (issue-deprecation-warning
-    (simple-format #f "(You just autoloaded module ~S.)" modname)))
-
- (define (init-dynamic-module modname)
-   ;; Register any linked modules which have been registered on the C level
-   (register-modules #f)
-   (or-map (lambda (modinfo)
-	     (if (equal? (car modinfo) modname)
-		 (begin
-		   (warn-autoload-deprecation modname)
-		   (set! registered-modules (delq! modinfo registered-modules))
-		   (let ((mod (resolve-module modname #f)))
-		     (save-module-excursion
-		      (lambda ()
-			(set-current-module mod)
-			(set-module-public-interface! mod mod)
-			(dynamic-call (cadr modinfo) (caddr modinfo))
-			))
-		     #t))
-		 #f))
-	   registered-modules))
-
- (define (dynamic-maybe-call name dynobj)
-   (catch #t				; could use false-if-exception here
-	  (lambda ()
-	    (dynamic-call name dynobj))
-	  (lambda args
-	    #f)))
-
- (define (dynamic-maybe-link filename)
-   (catch #t				; could use false-if-exception here
-	  (lambda ()
-	    (dynamic-link filename))
-	  (lambda args
-	    #f)))
-
- (define (find-and-link-dynamic-module module-name)
-   (define (make-init-name mod-name)
-     (string-append "scm_init"
-		    (list->string (map (lambda (c)
-					 (if (or (char-alphabetic? c)
-						 (char-numeric? c))
-					     c
-					     #\_))
-				       (string->list mod-name)))
-		    "_module"))
-
-   ;; Put the subdirectory for this module in the car of SUBDIR-AND-LIBNAME,
-   ;; and the `libname' (the name of the module prepended by `lib') in the cdr
-   ;; field.  For example, if MODULE-NAME is the list (inet tcp-ip udp), then
-   ;; SUBDIR-AND-LIBNAME will be the pair ("inet/tcp-ip" . "libudp").
-   (let ((subdir-and-libname
-	  (let loop ((dirs "")
-		     (syms module-name))
-	    (if (null? (cdr syms))
-		(cons dirs (string-append "lib" (symbol->string (car syms))))
-		(loop (string-append dirs (symbol->string (car syms)) "/")
-		      (cdr syms)))))
-	 (init (make-init-name (apply string-append
-				      (map (lambda (s)
-					     (string-append "_"
-							    (symbol->string s)))
-					   module-name)))))
-     (let ((subdir (car subdir-and-libname))
-	   (libname (cdr subdir-and-libname)))
-
-       ;; Now look in each dir in %LOAD-PATH for `subdir/libfoo.la'.  If that
-       ;; file exists, fetch the dlname from that file and attempt to link
-       ;; against it.  If `subdir/libfoo.la' does not exist, or does not seem
-       ;; to name any shared library, look for `subdir/libfoo.so' instead and
-       ;; link against that.
-       (let check-dirs ((dir-list %load-path))
-	 (if (null? dir-list)
-	     #f
-	     (let* ((dir (in-vicinity (car dir-list) subdir))
-		    (sharlib-full
-		     (or (try-using-libtool-name dir libname)
-			 (try-using-sharlib-name dir libname))))
-	       (if (and sharlib-full (file-exists? sharlib-full))
-		   (link-dynamic-module sharlib-full init)
-		   (check-dirs (cdr dir-list)))))))))
-
- (define (try-using-libtool-name libdir libname)
-   (let ((libtool-filename (in-vicinity libdir
-					(string-append libname ".la"))))
-     (and (file-exists? libtool-filename)
-	  libtool-filename)))
-
- (define (try-using-sharlib-name libdir libname)
-   (in-vicinity libdir (string-append libname ".so")))
-
- (define (link-dynamic-module filename initname)
-   ;; Register any linked modules which have been registered on the C level
-   (register-modules #f)
-   (let ((dynobj (dynamic-link filename)))
-     (dynamic-call initname dynobj)
-     (register-modules dynobj)))
-
- (define (try-module-linked module-name)
-   (init-dynamic-module module-name))
-
- (define (try-module-dynamic-link module-name)
-   (and (find-and-link-dynamic-module module-name)
-	(init-dynamic-module module-name))))
-;; end of deprecated section
-
 
 (define autoloads-done '((guile . guile)))
 
@@ -2737,9 +2561,7 @@
 				   (list ,@(compile-interface-spec spec))))
 	     (set-module-transformer! (current-module)
 				      ,(car (last-pair spec))))
-	   `((set-module-transformer! (current-module) ,spec)))
-     (begin-deprecated
-      (fluid-set! scm:eval-transformer (module-transformer (current-module)))))
+	   `((set-module-transformer! (current-module) ,spec))))
     (else
      (error "use-syntax can only be used at the top level"))))
 
@@ -2783,17 +2605,6 @@
 (define (module-export! m names)
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
-		(begin-deprecated
-		 (if (not (module-local-variable m name))
-		     (let ((v (module-variable m name)))
-		       (cond
-			(v
-			 (issue-deprecation-warning
-			  "Using `export' to re-export imported bindings is deprecated.  Use `re-export' instead.")
-			 (issue-deprecation-warning
-			  (simple-format #f "(You just re-exported `~a' from `~a'.)"
-					 name (module-name m)))
-			 (module-define! m name (variable-ref v)))))))
 		(let ((var (module-ensure-local-variable! m name)))
 		  (module-add! public-i name var)))
 	      names)))
@@ -3067,9 +2878,5 @@
 ;;
 
 (define-module (guile-user))
-
-(begin-deprecated
- ;; automatic availability of this module is deprecated.
- (use-modules (ice-9 rdelim)))
 
 ;;; boot-9.scm ends here

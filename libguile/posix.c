@@ -292,7 +292,6 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   else
     {
       SCM_VALIDATE_STRING (1, user);
-      SCM_STRING_COERCE_0TERMINATION_X (user);
       entry = getpwnam (SCM_STRING_CHARS (user));
     }
   if (!entry)
@@ -362,7 +361,6 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
   else
     {
       SCM_VALIDATE_STRING (1, name);
-      SCM_STRING_COERCE_0TERMINATION_X (name);
       SCM_SYSCALL (entry = getgrnam (SCM_STRING_CHARS (name)));
     }
   if (!entry)
@@ -895,7 +893,6 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
 {
   char **execargv;
   SCM_VALIDATE_STRING (1, filename);
-  SCM_STRING_COERCE_0TERMINATION_X (filename);
   execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
   execv (SCM_STRING_CHARS (filename), execargv);
   SCM_SYSERROR;
@@ -916,7 +913,6 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
 {
   char **execargv;
   SCM_VALIDATE_STRING (1, filename);
-  SCM_STRING_COERCE_0TERMINATION_X (filename);
   execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
   execvp (SCM_STRING_CHARS (filename), execargv);
   SCM_SYSERROR;
@@ -969,7 +965,6 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
   char **exec_env;
 
   SCM_VALIDATE_STRING (1, filename);
-  SCM_STRING_COERCE_0TERMINATION_X (filename);
   
   execargv = scm_convert_exec_args (args, SCM_ARG1, FUNC_NAME);
   exec_env = environ_list_to_c (env, SCM_ARG2, FUNC_NAME);
@@ -1099,7 +1094,6 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
   char *c_tmpl;
   int rv;
   
-  SCM_STRING_COERCE_0TERMINATION_X (tmpl);
   SCM_VALIDATE_STRING_COPY (1, tmpl, c_tmpl);
   SCM_SYSCALL (rv = mkstemp (c_tmpl));
   if (rv == -1)
@@ -1126,7 +1120,6 @@ SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
   struct utimbuf utm_tmp;
 
   SCM_VALIDATE_STRING (1, pathname);
-  SCM_STRING_COERCE_0TERMINATION_X (pathname);
   if (SCM_UNBNDP (actime))
     SCM_SYSCALL (time (&utm_tmp.actime));
   else
@@ -1174,7 +1167,6 @@ SCM_DEFINE (scm_access, "access?", 2, 0, 0,
   int rv;
 
   SCM_VALIDATE_STRING (1, path);
-  SCM_STRING_COERCE_0TERMINATION_X (path);
   SCM_VALIDATE_INUM (2, how);
   rv = access (SCM_STRING_CHARS (path), SCM_INUM (how));
   return SCM_NEGATE_BOOL(rv);
@@ -1245,7 +1237,6 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
   else
     {
       SCM_VALIDATE_STRING (2, locale);
-      SCM_STRING_COERCE_0TERMINATION_X (locale);
       clocale = SCM_STRING_CHARS (locale);
     }
 
@@ -1283,7 +1274,6 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
   SCM_VALIDATE_SYMBOL (2,type);
   SCM_VALIDATE_INUM (3,perms);
   SCM_VALIDATE_INUM (4,dev);
-  SCM_STRING_COERCE_0TERMINATION_X (path);
 
   p = SCM_SYMBOL_CHARS (type);
   if (strcmp (p, "regular") == 0)
@@ -1354,8 +1344,6 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
 
   SCM_VALIDATE_STRING (1, key);
   SCM_VALIDATE_STRING (2, salt);
-  SCM_STRING_COERCE_0TERMINATION_X (key);
-  SCM_STRING_COERCE_0TERMINATION_X (salt);
 
   p = crypt (SCM_STRING_CHARS (key), SCM_STRING_CHARS (salt));
   return scm_makfrom0str (p);
@@ -1374,7 +1362,6 @@ SCM_DEFINE (scm_chroot, "chroot", 1, 0, 0,
 #define FUNC_NAME s_scm_chroot
 {
   SCM_VALIDATE_STRING (1, path);
-  SCM_STRING_COERCE_0TERMINATION_X (path);
 
   if (chroot (SCM_STRING_CHARS (path)) == -1)
     SCM_SYSERROR;
@@ -1512,7 +1499,6 @@ SCM_DEFINE (scm_getpass, "getpass", 1, 0, 0,
   SCM passwd;
 
   SCM_VALIDATE_STRING (1, prompt);
-  SCM_STRING_COERCE_0TERMINATION_X (prompt);
 
   p = getpass(SCM_STRING_CHARS (prompt));
   passwd = scm_makfrom0str (p);
@@ -1574,7 +1560,6 @@ SCM_DEFINE (scm_sethostname, "sethostname", 1, 0, 0,
 #define FUNC_NAME s_scm_sethostname
 {
   SCM_VALIDATE_STRING (1, name);
-  SCM_STRING_COERCE_0TERMINATION_X (name);
 
   if (sethostname (SCM_STRING_CHARS (name), SCM_STRING_LENGTH (name)) == -1)
     SCM_SYSERROR;

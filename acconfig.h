@@ -44,8 +44,8 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* Define this if you want to exclude deprecated features */
-#undef SCM_DEBUG_DEPRECATED
+/* Define this to 1 if you want to include deprecated features */
+#undef SCM_ENABLE_DEPRECATED
 
 /* Define this to control the default warning level for deprecated features */
 #undef SCM_WARN_DEPRECATED_DEFAULT

@@ -2,18 +2,19 @@
 
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
+
 /* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -49,24 +50,17 @@
 
 
 
-#define SCM_STRINGP(x) (!SCM_IMP (x) && (SCM_TYP7S (x) == scm_tc7_string))
-#if (SCM_DEBUG_DEPRECATED == 1)
+#define SCM_STRINGP(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
 #define SCM_STRING_UCHARS(x) ((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_STRING_CHARS(x) ((char *) (SCM_CELL_WORD_1 (x)))
-#endif
 #define SCM_SET_STRING_CHARS(s, c) (SCM_SET_CELL_WORD_1 ((s), (c)))
 #define SCM_STRING_MAX_LENGTH ((1UL << 24) - 1UL)
 #define SCM_STRING_LENGTH(x) ((size_t) (SCM_CELL_WORD_0 (x) >> 8))
 #define SCM_SET_STRING_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), ((l) << 8) + scm_tc7_string))
 
-#define SCM_STRING_COERCE_0TERMINATION_X(x) \
-  { if (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_substring)) \
-      x = scm_mem2string (SCM_STRING_CHARS (x), SCM_STRING_LENGTH (x)); }
-
 
 
 extern SCM scm_string_p (SCM x);
-extern SCM scm_read_only_string_p (SCM x);
 extern SCM scm_string (SCM chrs);
 extern SCM scm_makfromstrs (int argc, char **argv);
 extern SCM scm_take_str (char *s, size_t len);
@@ -85,23 +79,11 @@ extern void scm_init_strings (void);
 
 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
+#if (SCM_ENABLE_DEPRECATED == 1)
 
-#define SCM_SLOPPY_STRINGP(x) (SCM_STRINGP(x))
-#define SCM_RWSTRINGP(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
-#define SCM_STRING_UCHARS(x) \
-  ((SCM_TYP7 (x) == scm_tc7_substring) \
-     ? (unsigned char *) SCM_CELL_WORD_1 (SCM_CDDR (x)) + SCM_INUM (SCM_CADR (x)) \
-     : (unsigned char *) SCM_CELL_WORD_1 (x))
-#define SCM_STRING_CHARS(x) \
-  ((SCM_TYP7 (x) == scm_tc7_substring) \
-     ? (char *) SCM_CELL_WORD_1 (SCM_CDDR (x)) + SCM_INUM (SCM_CADR (x)) \
-     : (char *) SCM_CELL_WORD_1 (x))
-extern SCM scm_make_shared_substring (SCM str, SCM frm, SCM to);
-extern SCM scm_makstr (size_t len, int);
-extern SCM scm_makfromstr (const char *src, size_t len, int);
+#define SCM_STRING_COERCE_0TERMINATION_X(x) (x)
 
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+#endif
 
 #endif  /* SCM_STRINGS_H */
 

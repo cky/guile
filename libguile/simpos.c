@@ -86,7 +86,6 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
   SCM_VALIDATE_STRING (1, cmd);
   SCM_DEFER_INTS;
   errno = 0;
-  SCM_STRING_COERCE_0TERMINATION_X (cmd);
   rv = system (SCM_STRING_CHARS (cmd));
   if (rv == -1 || (rv == 127 && errno != 0))
     SCM_SYSERROR;
@@ -106,7 +105,6 @@ SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0,
 {
   char *val;
   SCM_VALIDATE_STRING (1, nam);
-  SCM_STRING_COERCE_0TERMINATION_X (nam);
   val = getenv (SCM_STRING_CHARS (nam));
   return val ? scm_mem2string (val, strlen (val)) : SCM_BOOL_F;
 }

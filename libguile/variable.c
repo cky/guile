@@ -65,33 +65,15 @@ scm_i_variable_print (SCM exp, SCM port, scm_print_state *pstate)
 
 
 
-#if SCM_ENABLE_VCELLS
-SCM_SYMBOL (sym_huh, "???");
-#endif
-
 static SCM
 make_variable (SCM init)
 {
-#if !SCM_ENABLE_VCELLS
-  {
-    SCM z;
-    SCM_NEWCELL (z);
-    SCM_SET_CELL_WORD_1 (z, SCM_UNPACK (init));
-    SCM_SET_CELL_TYPE (z, scm_tc7_variable);
-    scm_remember_upto_here_1 (init);
-    return z;
-  }
-#else
-  {
-    SCM z;
-    SCM cell = scm_cons (sym_huh, init);
-    SCM_NEWCELL (z);
-    SCM_SET_CELL_WORD_1 (z, SCM_UNPACK (cell));
-    SCM_SET_CELL_TYPE (z, scm_tc7_variable);
-    scm_remember_upto_here_1 (cell);
-    return z;
-  }
-#endif
+  SCM z;
+  SCM_NEWCELL (z);
+  SCM_SET_CELL_WORD_1 (z, SCM_UNPACK (init));
+  SCM_SET_CELL_TYPE (z, scm_tc7_variable);
+  scm_remember_upto_here_1 (init);
+  return z;
 }
 
 SCM_DEFINE (scm_make_variable, "make-variable", 1, 0, 0, 
@@ -165,37 +147,6 @@ SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_variable_set_name_hint, "variable-set-name-hint!", 2, 0, 0,
-	    (SCM var, SCM hint),
-	    "Do not use this function.")
-#define FUNC_NAME s_scm_variable_set_name_hint
-{
-  SCM_VALIDATE_VARIABLE (1, var);
-  SCM_VALIDATE_SYMBOL (2, hint);
-#if SCM_ENABLE_VCELLS
-  SCM_SETCAR (SCM_SMOB_DATA (var), hint);
-#endif
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-#if SCM_ENABLE_VCELLS
-
-SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0, 
-            (SCM name),
-            "Return the built-in variable with the name @var{name}.\n"
-            "@var{name} must be a symbol (not a string).\n"
-            "Then use @code{variable-ref} to access its value.\n")
-#define FUNC_NAME s_scm_builtin_variable
-{
-  SCM_VALIDATE_SYMBOL (1,name);
-  scm_c_issue_deprecation_warning ("`builtin-variable' is deprecated. "
-				   "Use module system operations instead.");
-  return scm_sym2var (name, SCM_BOOL_F, SCM_BOOL_T);
-}
-#undef FUNC_NAME
-
-#endif /* SCM_ENABLE_VCELLS */
 
 void
 scm_init_variable ()

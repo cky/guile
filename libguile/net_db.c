@@ -176,7 +176,6 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
     }
   else if (SCM_STRINGP (host))
     {
-      SCM_STRING_COERCE_0TERMINATION_X (host);
       entry = gethostbyname (SCM_STRING_CHARS (host));
     }
   else
@@ -248,7 +247,6 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
     }
   else if (SCM_STRINGP (net))
     {
-      SCM_STRING_COERCE_0TERMINATION_X (net);
       entry = getnetbyname (SCM_STRING_CHARS (net));
     }
   else
@@ -298,7 +296,6 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
     }
   else if (SCM_STRINGP (protocol))
     {
-      SCM_STRING_COERCE_0TERMINATION_X (protocol);
       entry = getprotobyname (SCM_STRING_CHARS (protocol));
     }
   else
@@ -360,10 +357,8 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
       return scm_return_entry (entry);
     }
   SCM_VALIDATE_STRING (2, protocol);
-  SCM_STRING_COERCE_0TERMINATION_X (protocol);
   if (SCM_STRINGP (name))
     {
-      SCM_STRING_COERCE_0TERMINATION_X (name);
       entry = getservbyname (SCM_STRING_CHARS (name), SCM_STRING_CHARS (protocol));
     }
   else

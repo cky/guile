@@ -91,13 +91,6 @@ SCM_DEFINE (scm_set_current_module, "set-current-module", 1, 0, 0,
   old = scm_current_module ();
   scm_fluid_set_x (the_module, module);
 
-#if SCM_DEBUG_DEPRECATED == 0
-  scm_fluid_set_x (SCM_VARIABLE_REF (scm_top_level_lookup_closure_var),
-		   scm_current_module_lookup_closure ());
-  scm_fluid_set_x (SCM_VARIABLE_REF (scm_system_transformer),
-		   scm_current_module_transformer ());
-#endif
-
   return old;
 }
 #undef FUNC_NAME
@@ -429,9 +422,6 @@ scm_sym2var (SCM sym, SCM proc, SCM definep)
 	  if (var == SCM_BOOL_F)
 	    {
 	      var = scm_make_variable (SCM_UNDEFINED);
-#if SCM_ENABLE_VCELLS
-	      scm_variable_set_name_hint (var, sym);
-#endif
 	      SCM_SETCDR (handle, var);
 	    }
 	}
@@ -573,18 +563,6 @@ SCM_DEFINE (scm_get_pre_modules_obarray, "%get-pre-modules-obarray", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-#if SCM_DEBUG_DEPRECATED == 0
-
-static SCM root_module_lookup_closure;
-SCM_SYMBOL (scm_sym_app, "app");
-SCM_SYMBOL (scm_sym_modules, "modules");
-static SCM module_prefix;
-static SCM make_modules_in_var;
-static SCM beautify_user_module_x_var;
-static SCM try_module_autoload_var;
-
-#endif
-
 SCM_SYMBOL (scm_sym_system_module, "system-module");
 
 SCM
@@ -635,72 +613,8 @@ scm_post_boot_init_modules ()
   module_export_x_var = PERM (scm_c_lookup ("module-export!"));
   the_root_module_var = PERM (scm_c_lookup ("the-root-module"));
 
-#if SCM_DEBUG_DEPRECATED == 0
-
-  module_prefix = PERM (scm_list_2 (scm_sym_app, scm_sym_modules));
-  make_modules_in_var = PERM (scm_c_lookup ("make-modules-in"));
-  root_module_lookup_closure =
-    PERM (scm_module_lookup_closure (SCM_VARIABLE_REF (the_root_module_var)));
-  beautify_user_module_x_var = PERM (scm_c_lookup ("beautify-user-module!"));
-  try_module_autoload_var = PERM (scm_c_lookup ("try-module-autoload"));
-
-#endif
-
   scm_module_system_booted_p = 1;
 }
-
-#if SCM_DEBUG_DEPRECATED == 0
-
-SCM
-scm_the_root_module ()
-{
-  scm_c_issue_deprecation_warning ("`scm_the_root_module' is deprecated. "
-				   "Use `scm_c_resolve_module (\"guile\") "
-				   "instead.");
-
-  return the_root_module ();
-}
-
-static SCM
-scm_module_full_name (SCM name)
-{
-  if (SCM_EQ_P (SCM_CAR (name), scm_sym_app))
-    return name;
-  else
-    return scm_append (scm_list_2 (module_prefix, name));
-}
-
-SCM
-scm_make_module (SCM name)
-{
-  scm_c_issue_deprecation_warning ("`scm_make_module' is deprecated. "
-				   "Use `scm_c_define_module instead.");
-
-  return scm_call_2 (SCM_VARIABLE_REF (make_modules_in_var),
-		     scm_the_root_module (),
-		     scm_module_full_name (name));
-}
-
-SCM
-scm_ensure_user_module (SCM module)
-{
-  scm_c_issue_deprecation_warning ("`scm_ensure_user_module' is deprecated. "
-				   "Use `scm_c_define_module instead.");
-
-  scm_call_1 (SCM_VARIABLE_REF (beautify_user_module_x_var), module);
-  return SCM_UNSPECIFIED;
-}
-
-SCM
-scm_load_scheme_module (SCM name)
-{
-  scm_c_issue_deprecation_warning ("`scm_load_scheme_module' is deprecated. "
-				   "Use `scm_c_resolve_module instead.");
-
-  return scm_call_1 (SCM_VARIABLE_REF (try_module_autoload_var), name);
-}
-
-#endif
 
 /*
   Local Variables:

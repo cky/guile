@@ -288,7 +288,6 @@ gh_scm2chars (SCM obj, char *m)
       break;
 #endif
     case scm_tc7_string:
-    case scm_tc7_substring:
       n = SCM_STRING_LENGTH (obj);
       if (m == 0)
 	m = (char *) malloc (n * sizeof (char));

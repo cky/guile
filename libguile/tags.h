@@ -2,6 +2,7 @@
 
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
+
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,7 +43,6 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
-
 
 
 
@@ -247,19 +247,6 @@ typedef signed long scm_t_signed_bits;
  *
  *		TYP7S(X) returns TYP7, but masking out the option bit S.
  *
- *              For example, all strings have 0010 in the 'xxxx' bits
- *              in the diagram above, the S bit says whether it's a
- *              substring.
- *
- *		for example:
- *						        S
- *			scm_tc7_string    	= G0010101
- *			scm_tc7_substring	= G0010111
- *
- *		TYP7S turns both string tags into tc7_string; thus,
- *		testing TYP7S against tc7_string is a quick way to
- *		test for any kind of string, shared or unshared.
- *
  *		Some TC7 types are subdivided into 256 subtypes giving
  *		rise to the macros:
  *
@@ -292,9 +279,6 @@ typedef signed long scm_t_signed_bits;
 
 
 
-#define SCM_CELLP(x) 	(((sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
-#define SCM_NCELLP(x) 	(!SCM_CELLP (x))
-
 /* See numbers.h for macros relating to immediate integers.
  */
 
@@ -323,7 +307,7 @@ typedef signed long scm_t_signed_bits;
 #define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
 #define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))
 
-#define SCM_TYP16_PREDICATE(tag,x) (SCM_NIMP (x) && SCM_TYP16 (x) == (tag))
+#define SCM_TYP16_PREDICATE(tag,x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
 
 
 
@@ -334,9 +318,8 @@ typedef signed long scm_t_signed_bits;
 #define scm_tc7_vector		13
 #define scm_tc7_wvect		15
 
-/* couple */
 #define scm_tc7_string		21
-#define scm_tc7_substring	23
+/* free                         23 */
 
 /* Many of the following should be turned
  * into structs or smobs.  We need back some
@@ -542,16 +525,12 @@ extern char *scm_isymnames[];   /* defined in print.c */
 
 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
+#if (SCM_ENABLE_DEPRECATED == 1)
 
-#define SCM_SLOPPY_CONSP(x)  ((1 & SCM_CELL_TYPE (x)) == 0)
-#define SCM_SLOPPY_NCONSP(x) (!SCM_SLOPPY_CONSP(x))
+#define SCM_CELLP(x) 	(((sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
+#define SCM_NCELLP(x) 	(!SCM_CELLP (x))
 
-#define scm_tc7_ssymbol		scm_tc7_symbol
-#define scm_tc7_msymbol		scm_tc7_symbol
-#define scm_tcs_symbols         scm_tc7_symbol
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+#endif
 
 #endif  /* SCM_TAGS_H */
 

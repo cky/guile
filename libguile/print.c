@@ -507,7 +507,6 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	      scm_putc ('>', port);
 	    }
 	  break;
-	case scm_tc7_substring:
 	case scm_tc7_string:
 	  if (SCM_WRITINGP (pstate))
 	    {
@@ -730,7 +729,7 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
 {
   scm_puts ("#<unknown-", port);
   scm_puts (hdr, port);
-  if (SCM_CELLP (ptr))
+  if (scm_cellp (ptr))
     {
       scm_puts (" (0x", port);
       scm_intprint (SCM_CELL_WORD_0 (ptr), 16, port);

@@ -171,7 +171,6 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 	  --in_readline;
 	  scm_wrong_type_arg (s_scm_readline, SCM_ARG1, text);
 	}
-      SCM_STRING_COERCE_0TERMINATION_X (text);
     }
   
   if (!((SCM_UNBNDP (inp) && SCM_OPINFPORTP (scm_cur_inp))
@@ -327,7 +326,6 @@ SCM_DEFINE (scm_add_history, "add-history", 1, 0, 0,
 {
   char* s;
   SCM_VALIDATE_STRING (1,text);
-  SCM_STRING_COERCE_0TERMINATION_X (text);
 
   s = SCM_STRING_CHARS (text);
   add_history (strdup (s));
@@ -377,7 +375,6 @@ SCM_DEFINE (scm_filename_completion_function, "filename-completion-function", 2,
   char *s;
   SCM ans;
   SCM_VALIDATE_STRING (1,text);
-  SCM_STRING_COERCE_0TERMINATION_X (text);
 #ifdef HAVE_RL_FILENAME_COMPLETION_FUNCTION
   s = rl_filename_completion_function (SCM_STRING_CHARS (text), SCM_NFALSEP (continuep));
 #else
@@ -417,7 +414,6 @@ completion_function (char *text, int continuep)
 	scm_misc_error (s_scm_readline,
 			"Completion function returned bogus value: %S",
 			scm_list_1 (res));
-      SCM_STRING_COERCE_0TERMINATION_X (res);
       return strdup (SCM_STRING_CHARS (res));
     }
 }

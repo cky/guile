@@ -94,6 +94,8 @@
 
 
 
+#define CELL_P(x)  (SCM_ITAG3 (x) == scm_tc3_cons)
+
 unsigned int scm_gc_running_p = 0;
 
 
@@ -1227,7 +1229,7 @@ gc_mark_loop_first_time:
     SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
 #else
   /* In non-debug mode, do at least some cheap testing. */
-  if (!SCM_CELLP (ptr))
+  if (!CELL_P (ptr))
     SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
 #endif
 
@@ -1343,10 +1345,6 @@ gc_mark_loop_first_time:
 #endif
     case scm_tc7_string:
       break;
-
-    case scm_tc7_substring:
-      ptr = SCM_CDR (ptr);
-      goto_gc_mark_loop;
 
     case scm_tc7_wvect:
       SCM_SET_WVECT_GC_CHAIN (ptr, scm_weak_vectors);
@@ -1509,7 +1507,7 @@ gc_mark_loop_first_time:
 static long int
 heap_segment (SCM obj)
 {
-  if (!SCM_CELLP (obj))
+  if (!CELL_P (obj))
     return -1;
   else
     {
@@ -1783,8 +1781,6 @@ scm_gc_sweep ()
 	      scm_must_free (SCM_UVECTOR_BASE (scmptr));
 	      break;
 #endif
-	    case scm_tc7_substring:
-	      break;
 	    case scm_tc7_string:
 	      m += SCM_STRING_LENGTH (scmptr) + 1;
 	      scm_must_free (SCM_STRING_CHARS (scmptr));
@@ -2472,9 +2468,9 @@ alloc_some_heap (scm_t_freelist *freelist, policy_on_error error_policy)
  * scm_remember_upto_here* _behind_ the last code in your function, that
  * depends on the scheme object to exist.
  *
- * Example: We want to make sure, that the string object str does not get
- * garbage collected during the execution of 'some_function', because
- * otherwise the characters belonging to str would be freed and
+ * Example: We want to make sure that the string object str does not get
+ * garbage collected during the execution of 'some_function' in the code
+ * below, because otherwise the characters belonging to str would be freed and
  * 'some_function' might access freed memory.  To make sure that the compiler
  * keeps str alive on the stack or in a register such that it is visible to
  * the conservative gc we add the call to scm_remember_upto_here_1 _after_ the
@@ -2502,34 +2498,6 @@ scm_remember_upto_here (SCM obj SCM_UNUSED, ...)
 {
   /* Empty.  Protects any number of objects from garbage collection. */
 }
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-void
-scm_remember (SCM *ptr)
-{
-  scm_c_issue_deprecation_warning ("`scm_remember' is deprecated. "
-                                   "Use the `scm_remember_upto_here*' family of functions instead.");
-}
-
-SCM
-scm_protect_object (SCM obj)
-{
-  scm_c_issue_deprecation_warning ("`scm_protect_object' is deprecated. "
-                                   "Use `scm_gc_protect_object' instead.");
-  return scm_gc_protect_object (obj);
-}
-
-SCM
-scm_unprotect_object (SCM obj)
-{
-  scm_c_issue_deprecation_warning ("`scm_unprotect_object' is deprecated. "
-                                   "Use `scm_gc_unprotect_object' instead.");
-  return scm_gc_unprotect_object (obj);
-}
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 /*
   These crazy functions prevent garbage collection
