@@ -1306,7 +1306,7 @@
 					     can-go-in-now))))
 		(loop
 		 (filter (lambda (x) (not (eq? x choice)))
-			     elements)
+			 elements)
 		 constraints
 		 (append result (list choice)))))))))
 
