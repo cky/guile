@@ -341,15 +341,16 @@ really_launch (SCM_STACKITEM *base, launch_data *data)
 		       data,
 		       (scm_t_catch_handler) handler_bootstrip,
 		       data, base);
+  scm_i_plugin_mutex_unlock (&t->heap_mutex); /* release the heap */
   free (data);
 
-  scm_thread_detach (t->thread);
   scm_i_plugin_mutex_lock (&thread_admin_mutex);
   all_threads = scm_delq_x (thread, all_threads);
   t->exited = 1;
   thread_count--;
   scm_i_plugin_mutex_unlock (&thread_admin_mutex);
   /* We're leaving with heap_mutex still locked. */
+  scm_thread_detach (t->thread);
 }
 
 static void *
@@ -374,7 +375,7 @@ create_thread (scm_t_catch_body body, void *body_data,
 
   {
     scm_t_thread th;
-    SCM root, old_winds, new_threads;
+    SCM root, old_winds;
     launch_data *data;
     scm_thread *t;
     int err;
@@ -402,12 +403,16 @@ create_thread (scm_t_catch_body body, void *body_data,
     /* In order to avoid the need of synchronization between parent
        and child thread, we need to insert the child into all_threads
        before creation. */
-    new_threads = scm_cons (thread, SCM_BOOL_F); /* could cause GC */
-    scm_i_plugin_mutex_lock (&thread_admin_mutex);
-    SCM_SETCDR (new_threads, all_threads);
-    all_threads = new_threads;
-    thread_count++;
-    scm_i_plugin_mutex_unlock (&thread_admin_mutex);
+    {
+      SCM new_threads = scm_cons (thread, SCM_BOOL_F); /* could cause GC */
+      scm_thread *parent = scm_i_leave_guile (); /* to prevent deadlock */
+      scm_i_plugin_mutex_lock (&thread_admin_mutex);
+      SCM_SETCDR (new_threads, all_threads);
+      all_threads = new_threads;
+      thread_count++;
+      scm_i_plugin_mutex_unlock (&thread_admin_mutex);
+      scm_i_enter_guile (parent);
+    }
     
     err = scm_i_plugin_thread_create (&th, 0, launch_thread, (void *) data);
     if (err != 0)
@@ -1169,7 +1174,9 @@ scm_i_thread_put_to_sleep ()
   SCM_REC_CRITICAL_SECTION_START (gc_section);
   if (threads_initialized_p && gc_section_count == 1)
     {
-      SCM threads = all_threads;
+      SCM threads;
+      scm_i_plugin_mutex_lock (&thread_admin_mutex);
+      threads = all_threads;
       /* Signal all threads to go to sleep */
       scm_i_thread_go_to_sleep = 1;
       for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
@@ -1179,12 +1186,14 @@ scm_i_thread_put_to_sleep ()
 	    scm_i_plugin_mutex_lock (&t->heap_mutex);
 	  }
       scm_i_thread_go_to_sleep = 0;
+      scm_i_plugin_mutex_unlock (&thread_admin_mutex);
     }
 }
 
 void
 scm_i_thread_invalidate_freelists ()
 {
+  /* Don't need to lock thread_admin_mutex here since we are sinle threaded */
   SCM threads = all_threads;
   for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
     if (SCM_CAR (threads) != cur_thread)
@@ -1199,7 +1208,10 @@ scm_i_thread_wake_up ()
 {
   if (threads_initialized_p && gc_section_count == 1)
     {
-      SCM threads = all_threads;
+      SCM threads;
+      /* Need to lock since woken threads can die and be deleted from list */
+      scm_i_plugin_mutex_lock (&thread_admin_mutex);
+      threads = all_threads;
       scm_i_plugin_cond_broadcast (&wake_up_cond);
       for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
 	if (SCM_CAR (threads) != cur_thread)
@@ -1207,6 +1219,7 @@ scm_i_thread_wake_up ()
 	    scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
 	    scm_i_plugin_mutex_unlock (&t->heap_mutex);
 	  }
+      scm_i_plugin_mutex_unlock (&thread_admin_mutex);
     }
   SCM_REC_CRITICAL_SECTION_END (gc_section);
 }

@@ -1,5 +1,10 @@
 2002-12-10  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
+	* threads.c (really_launch): Release heap (to prevent deadlock).
+	(create_thread): Release heap before locking thread admin mutex.
+
+2002-12-10  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
 	* threads.c (scm_i_thread_invalidate_freelists): New
 	function.
 
