@@ -1,3 +1,12 @@
+1998-07-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm: Let the user start in module `(user)' instead of
+	module `(guile)'.  Also make sure that `(user)' uses suitable
+	modules.  This change improves Guile stability substantially since
+	bindings will only be copied from the root module: If the user
+	redefines builtins in `(user)' it won't affect the internal
+	operation of Guile itself.
+
 1998-06-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (load-module): When loading files from within files
