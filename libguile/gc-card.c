@@ -91,8 +91,6 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
   int offset =SCM_MAX (SCM_GC_CARD_N_HEADER_CELLS, span);
   int free_count  = 0;
 
-  ++ scm_gc_running_p;
-
   /*
     I tried something fancy with shifting by one bit every word from
     the bitvec in turn, but it wasn't any faster, but quite a bit
@@ -263,7 +261,6 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
       free_count ++;
     }
 
-  --scm_gc_running_p;
   return free_count;
 }
 #undef FUNC_NAME
