@@ -25,7 +25,7 @@ AUTOMAKE_OPTIONS = foreign
 ice9_sources =								\
 	and-let*.scm arrays.scm boot-9.scm \
 	calling.scm common-list.scm debug.scm	\
-	debugger.scm emacs.scm expect.scm format.scm			\
+	debugger.scm doc.scm emacs.scm expect.scm format.scm		\
 	getopt-gnu-style.scm getopt-long.scm hcons.scm lineio.scm	\
 	ls.scm mapping.scm networking.scm				\
 	optargs.scm poe.scm popen.scm posix.scm \
