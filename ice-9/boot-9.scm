@@ -483,17 +483,10 @@
 (define (obarray-symbol-append ob . args)
   (string->obarray-symbol (apply string-append ob args)))
 
-(define obarray-gensym
-  (let ((n -1))
-    (lambda (obarray . opt)
-      (if (null? opt)
-	  (set! opt '(%%gensym)))
-      (let loop ((proposed-name (apply string-append opt)))
-	(if (string->obarray-symbol obarray proposed-name #t)
-	    (loop (apply string-append (append opt (begin (set! n (1+ n)) (list (number->string n))))))
-	    (string->obarray-symbol obarray proposed-name))))))
-
-(define (gensym . args) (apply obarray-gensym #f args))
+(define (obarray-gensym obarray . opt)
+  (if (null? opt)
+      (gensym "%%gensym" obarray)
+      (gensym (car opt) obarray)))
 
 
 ;;; {Lists}
@@ -2176,12 +2169,8 @@
 		    e)))
    (#t e)))
 
-(define gentemp
-  (let ((*gensym-counter* -1))
-    (lambda ()
-      (set! *gensym-counter* (+ *gensym-counter* 1))
-      (string->symbol
-       (string-append "scm:G" (number->string *gensym-counter*))))))
+(define (gentemp)
+  (gensym "scm:G"))
 
 
 

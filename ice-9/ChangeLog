@@ -1,3 +1,9 @@
+Tue Sep  2 00:26:42 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm (gensym): Removed (replaced by primitive).
+	(obarray-gensym): Rewritten to use `gensym'.
+	(gentemp): Rewritten to use `gensym'.
+
 Mon Sep  1 20:08:32 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* gtcl.scm (make-tcl-binder): Rewritten to choose bindings
