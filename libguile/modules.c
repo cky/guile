@@ -91,6 +91,11 @@ scm_c_call_with_current_module (SCM module,
   return scm_c_with_fluid (the_module, module, func, data);
 }
 
+void
+scm_frame_current_module (SCM module)
+{
+  scm_frame_fluid (the_module, module);
+}
 
 /*
   convert "A B C" to scheme list (A B C)
