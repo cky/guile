@@ -65,7 +65,7 @@ that user-visible changes are reflected in NEWS.
 
 - add DLL support [ela]		<-- set by ttn (my bad)
 
-- sync srfi-modules.texi [ttn]
++ sync srfi-modules.texi [ttn]
 
 - For GOOPS: [ttn]
   - rewrite method cache management in C
