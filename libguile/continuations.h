@@ -49,6 +49,7 @@
 #include "libguile/__scm.h"
 
 #ifdef __ia64__
+#include <signal.h>
 #include <sys/ucontext.h>
 extern unsigned long * __libc_ia64_register_backing_store_base;
 #endif /* __ia64__ */

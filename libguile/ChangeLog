@@ -1,3 +1,8 @@
+2002-07-24  Stefan Jahn  <stefan@lkcc.org>
+
+	* continuations.h: ia64: Include <signal.h> before 
+	<sys/ucontext.h>.
+
 2002-07-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* modules.c (scm_sym2var):  Don't compare SCM values with ==.
