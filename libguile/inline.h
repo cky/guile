@@ -63,6 +63,11 @@ SCM_C_INLINE
 SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
+  if (scm_gc_running_p)
+    {
+      abort();
+    }
+  
   SCM z;
   /* We retrieve the SCM pointer only once since the call to
      SCM_FREELIST_LOC will be slightly expensive when we support
@@ -161,6 +166,11 @@ SCM
 scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 		 scm_t_bits ccr, scm_t_bits cdr)
 {
+  if (scm_gc_running_p)
+    {
+      abort();
+    }
+
   SCM z;
   SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist2);
 
