@@ -49,6 +49,7 @@
 #include "smob.h"
 #include "pairs.h"
 #include "throw.h"
+#include "fluids.h"
 
 #include "root.h"
 
@@ -83,6 +84,7 @@ mark_root (root)
   scm_gc_mark (s->def_inp);
   scm_gc_mark (s->def_outp);
   scm_gc_mark (s->def_errp);
+  scm_gc_mark (s->fluids);
   scm_gc_mark (s->top_level_lookup_closure_var);
   scm_gc_mark (s->system_transformer);
   scm_gc_mark (s->the_last_stack_var);
@@ -135,6 +137,7 @@ scm_make_root (parent)
   if (SCM_NIMP (parent) && SCM_ROOTP (parent))
     {
       memcpy (root_state, SCM_ROOT_STATE (parent), sizeof (scm_root_state));
+      scm_copy_fluids (root_state);
       root_state->parent = parent;
     }
   else
