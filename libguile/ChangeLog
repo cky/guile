@@ -1,3 +1,19 @@
+2001-05-31  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* print.c (scm_simple_format): Support "~~" and "~%".  Signal
+	error for unsupported format controls and for superflous
+	arguments.  Thanks to David Skarda!
+
+	* print.h, print.c (scm_print_symbol_name): Factored out of
+	scm_iprin1.
+	(scm_iprin1): Call it.
+	
+	* keywords.c (keyword_print): Use scm_print_symbol_name so that
+	weird names are printed correctly.
+
+	* print.c (scm_print_symbol_name): Symbols whose name starts with
+	`#' or `:' or ends with `:' are considered weird.
+
 2001-05-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* numbers.c (scm_difference, scm_divide): Clarified comments for -
