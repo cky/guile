@@ -1,3 +1,7 @@
+2001-07-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* pairs.h (SCM_VALIDATE_PAIR):  Use SCM_CONSP, not SCM_ECONSP.
+
 2001-07-29  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Removed vcell slot from structs.
