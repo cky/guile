@@ -50,32 +50,29 @@
  ** It is here that tag bits are assigned for various purposes.
  **/
 
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
-
-
+/* picks up scmconfig.h too */
+#include "libguile/__scm.h"
 
 /* In the beginning was the Word:
  */
-#ifdef HAVE_UINTPTR_T
-typedef uintptr_t scm_t_bits;
-typedef intptr_t scm_t_signed_bits;
-#define SIZEOF_SCM_T_BITS SIZEOF_UINTPTR_T
-#define SCM_T_BITS_MAX UINTPTR_MAX
+#if SCM_SIZEOF_INTPTR_T != 0 && defined(INTPTR_MAX) && defined(INTPTR_MIN)
+typedef scm_t_intptr scm_t_signed_bits;
 #define SCM_T_SIGNED_BITS_MAX INTPTR_MAX
 #define SCM_T_SIGNED_BITS_MIN INTPTR_MIN
 #else
-typedef unsigned long scm_t_bits;
 typedef signed long scm_t_signed_bits;
-#define SIZEOF_SCM_T_BITS SIZEOF_LONG
-#define SCM_T_BITS_MAX ULONG_MAX
 #define SCM_T_SIGNED_BITS_MAX LONG_MAX
 #define SCM_T_SIGNED_BITS_MIN LONG_MIN
+#endif
+
+#if SCM_SIZEOF_UINTPTR_T != 0 && defined(UINTPTR_MAX)
+typedef uintptr_t scm_t_bits;
+#define SIZEOF_SCM_T_BITS SCM_SIZEOF_UINTPTR_T
+#define SCM_T_BITS_MAX UINTPTR_MAX
+#else
+typedef unsigned long scm_t_bits;
+#define SIZEOF_SCM_T_BITS SCM_SIZEOF_UNSIGNED_LONG
+#define SCM_T_BITS_MAX ULONG_MAX
 #endif
 
 /* But as external interface, we use SCM, which may, according to the desired
@@ -333,7 +330,7 @@ typedef signed long scm_t_signed_bits;
  */
 #define scm_tc7_pws		31
 
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
 #define scm_tc7_llvect          29
 #define scm_tc7_uvect		37
 /* free                         39 */
