@@ -1912,10 +1912,10 @@ scm_real_p(x)
 
 
 
-SCM_PROC(s_int_p, "int?", 1, 0, 0, scm_int_p);
+SCM_PROC(s_int_p, "integer?", 1, 0, 0, scm_integer_p);
 
 SCM
-scm_int_p(x)
+scm_integer_p(x)
      SCM x;
 {
   double r;
@@ -1925,7 +1925,7 @@ scm_int_p(x)
   if SCM_BIGP(x) return SCM_BOOL_T;
 # endif
   if (!SCM_INEXP(x)) return SCM_BOOL_F;
-  if SCM_CPLXP(x) return SCM_BOOL_F;
+  if (SCM_CPLXP(x)) return SCM_BOOL_F;
   r = SCM_REALPART(x);
   if (r==floor(r)) return SCM_BOOL_T;
   return SCM_BOOL_F;
@@ -1950,7 +1950,7 @@ scm_inexact_p(x)
 
 
 
-SCM_PROC1 (s_eq_p, "=?", scm_tc7_rpsubr, scm_num_eq_p);
+SCM_PROC1 (s_eq_p, "=", scm_tc7_rpsubr, scm_num_eq_p);
 
 SCM
 scm_num_eq_p (x, y)
@@ -2032,7 +2032,7 @@ scm_num_eq_p (x, y)
 
 
 
-SCM_PROC1 (s_less_p, "<?", scm_tc7_rpsubr, scm_less_p);
+SCM_PROC1 (s_less_p, "<", scm_tc7_rpsubr, scm_less_p);
 
 SCM
 scm_less_p(x, y)
@@ -2108,7 +2108,7 @@ scm_less_p(x, y)
 }
 
 
-SCM_PROC1 (s_gr_p, ">?", scm_tc7_rpsubr, scm_gr_p);
+SCM_PROC1 (s_gr_p, ">", scm_tc7_rpsubr, scm_gr_p);
 
 SCM
 scm_gr_p(x, y)
@@ -2120,7 +2120,7 @@ scm_gr_p(x, y)
 
 
 
-SCM_PROC1 (s_leq_p, "<=?", scm_tc7_rpsubr, scm_leq_p);
+SCM_PROC1 (s_leq_p, "<=", scm_tc7_rpsubr, scm_leq_p);
 
 SCM
 scm_leq_p(x, y)
@@ -2132,7 +2132,7 @@ scm_leq_p(x, y)
 
 
 
-SCM_PROC1 (s_geq_p, ">=?", scm_tc7_rpsubr, scm_geq_p);
+SCM_PROC1 (s_geq_p, ">=", scm_tc7_rpsubr, scm_geq_p);
 
 SCM
 scm_geq_p(x, y)
