@@ -1,3 +1,12 @@
+2002-12-01  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* GUILE-VERSION: Added versioning info for srfi 1.
+
+	* configure.in (LIBGUILE_SRFI_SRFI_1_INTERFACE_CURRENT,
+	LIBGUILE_SRFI_SRFI_1_INTERFACE_REVISION,
+	LIBGUILE_SRFI_SRFI_1_INTERFACE_AGE,
+	LIBGUILE_SRFI_SRFI_1_INTERFACE): New AC_SUBST.
+
 2002-11-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in (USE_THREADS, GUILE_ISELECT): Define always.  We
