@@ -76,8 +76,8 @@ For really specialized needs, take at look at
 @code{scm_gc_register_collectable_memory} and
 @code{scm_gc_unregister_collectable_memory}.
 
-@deftypefn {C Function} void *scm_malloc (size_t @var{size})
-@deftypefnx {C Function} void *scm_calloc (size_t @var{size})
+@deftypefn {C Function} {void *} scm_malloc (size_t @var{size})
+@deftypefnx {C Function} {void *} scm_calloc (size_t @var{size})
 Allocate @var{size} bytes of memory and return a pointer to it.  When
 @var{size} is 0, return @code{NULL}.  When not enough memory is
 available, signal an error.  This function runs the GC to free up some
@@ -92,7 +92,7 @@ The function @code{scm_calloc} is similar to @code{scm_malloc}, but
 initializes the block of memory to zero as well.
 @end deftypefn
 
-@deftypefn {C Function} void *scm_realloc (void *@var{mem}, size_t @var{new_size})
+@deftypefn {C Function} {void *} scm_realloc (void *@var{mem}, size_t @var{new_size})
 Change the size of the memory block at @var{mem} to @var{new_size} and
 return its new location.  When @var{new_size} is 0, this is the same
 as calling @code{free} on @var{mem} and @code{NULL} is returned.  When
@@ -133,9 +133,9 @@ this, the GC might have a wrong impression of what is going on and run
 much less efficiently than it could.
 @end deftypefn
 
-@deftypefn {C Function} void *scm_gc_malloc (size_t @var{size}, const char *@var{what})
-@deftypefnx {C Function} void *scm_gc_realloc (void *@var{mem}, size_t @var{old_size}, size_t @var{new_size}, const char *@var{what});
-@deftypefnx {C Function} void *scm_gc_calloc (size_t @var{size}, const char *@var{what})
+@deftypefn {C Function} {void *} scm_gc_malloc (size_t @var{size}, const char *@var{what})
+@deftypefnx {C Function} {void *} scm_gc_realloc (void *@var{mem}, size_t @var{old_size}, size_t @var{new_size}, const char *@var{what});
+@deftypefnx {C Function} {void *} scm_gc_calloc (size_t @var{size}, const char *@var{what})
 Like @code{scm_malloc}, @code{scm_realloc} or @code{scm_calloc}, but
 also call @code{scm_gc_register_collectable_memory}.  Note that you
 need to pass the old size of a reallocated memory block as well.  See
