@@ -1696,7 +1696,7 @@ all @code{<@@lower>} parts are omitted.
 
 The @code{<:len>} part is a @samp{:} character followed by an unsigned
 integer in decimal giving the length of a dimension.  Like for the lower
-bounds, there is one @code{<:len>} for ech dimension, and the
+bounds, there is one @code{<:len>} for each dimension, and the
 @code{<:len>} part always follows the @code{<@@lower>} part for a
 dimension.  Lengths are only then printed when they can't be deduced
 from the nested lists of elements of the array literal, which can happen
