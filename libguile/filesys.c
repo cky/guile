@@ -61,7 +61,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_LIBC_H
+#ifdef LIBC_H_WITH_UNISTD_H
 #include <libc.h>
 #endif
 

@@ -44,8 +44,14 @@
 #undef SCM_STACK_GROWS_UP
 
 /* Define this if <utime.h> doesn't define struct utimbuf unless
-   _POSIX_SOURCE is #defined.  */
+   _POSIX_SOURCE is #defined.  See GUILE_STRUCT_UTIMBUF in aclocal.m4.  */
 #undef UTIMBUF_NEEDS_POSIX
+
+/* Define this if we should #include <libc.h> when we've already
+   #included <unistd.h>.  On some systems, they conflict, and libc.h
+   should be omitted.  See GUILE_HEADER_LIBC_WITH_UNISTD in
+   aclocal.m4.  */
+#undef LIBC_H_WITH_UNISTD_H
 
 /* Define these to indicate the current version of Guile.  These
    values are supposed to be supplied by the configuration system.  */

@@ -41,6 +41,7 @@ AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h sys/utime.h time.h unistd.h utime.h)
+GUILE_HEADER_LIBC_WITH_UNISTD
 
 AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
