@@ -176,8 +176,10 @@ AC_C_CONST
 AC_C_INLINE
 AC_C_BIGENDIAN
 
+AC_CHECK_SIZEOF(short)
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(size_t)
 
 dnl Check for integral types that can represent the range of pointers.
 dnl If these types don't exist on this platform, they are replaced by
@@ -185,17 +187,10 @@ dnl "unsigned long" and "long", respectively.
 
 AC_CHECK_HEADERS(stdint.h)
 AC_CHECK_HEADERS(inttypes.h)
-AC_CHECK_TYPES([uintptr_t, ptrdiff_t])
+AC_CHECK_SIZEOF(uintptr_t)
+AC_CHECK_SIZEOF(ptrdiff_t)
 
-AC_CACHE_CHECK([for long longs], scm_cv_long_longs,
-	       AC_TRY_COMPILE(,
-			      [long long a],
-			      scm_cv_long_longs=yes,
-			      scm_cv_long_longs=no))
-if test "$scm_cv_long_longs" = yes; then
-  AC_DEFINE(HAVE_LONG_LONGS)
-  AC_CHECK_SIZEOF(long long)
-fi
+AC_CHECK_SIZEOF(long long)
 
 AC_CHECK_SIZEOF(void *)
 
