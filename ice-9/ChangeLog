@@ -1,7 +1,8 @@
 2001-03-08  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* psyntax.ss: Added FSF copyright notice.  Added a notice of
-	changes in order to comply with paragraph 2a of the GPL.
+	changes in order to comply with paragraph 2a of the GPL.  (Thanks
+	to Keith Wright.)
 
 2001-03-07  Neil Jerram  <neil@ossau.uklinux.net>
 
