@@ -34,6 +34,12 @@
   (if (not (memq sym *features*))
       (set! *features* (cons sym *features*))))
 
+;;; Return #t iff FEATURE is available to this Guile interpreter.
+;;; In SLIB, provided? also checks to see if the module is available.
+;;; We should do that too, but don't.
+(define (provided? feature)
+  (and (memq feature *features*) #t))
+
 
 ;;; {R4RS compliance}
 
