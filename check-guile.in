@@ -1,0 +1,43 @@
+#! /bin/sh
+# Usage: check-guile [-i GUILE-INTERPRETER] [GUILE-TEST-ARGS]
+# If `-i GUILE-INTERPRETER' is omitted, use libguile/guile.
+# See test-suite/guile-test for documentation on GUILE-TEST-ARGS.
+#
+# Example invocations:
+# ./check-guile
+# ./check-guile numbers.test
+# ./check-guile -i /usr/local/bin/guile
+# ./check-guile -i /usr/local/bin/guile numbers.test
+#
+# Dependencies: dirname sed
+
+TEST_SUITE_DIR=@test_suite_dir@
+parent=`dirname $TEST_SUITE_DIR`
+
+if [ x"$1" = x-i ] ; then
+    guile=$2
+    shift
+    shift
+else
+    guile=$parent/libguile/guile
+    glp=$parent
+fi
+
+if [ -f "$guile" -a -x "$guile" ] ; then
+    echo Testing $guile ... "$@"
+    if [ x"$glp" = x ] ; then
+        glp=`$guile -c "(for-each write-line %load-path)"`
+        glp=`echo $glp | sed 's/ /:/g'`:$parent
+    fi
+    GUILE_LOAD_PATH=$glp
+    export GUILE_LOAD_PATH
+    echo with GUILE_LOAD_PATH: $GUILE_LOAD_PATH
+else
+    echo ERROR: Cannot execute $guile
+    exit 1
+fi
+
+cd $TEST_SUITE_DIR
+exec $guile -e main -s guile-test --test-suite $TEST_SUITE_DIR/tests "$@"
+
+# check-guile ends here
