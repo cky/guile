@@ -24,6 +24,7 @@
 
 #include "libguile/_scm.h"
 
+#include <gmp.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -262,9 +263,6 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
     (unsigned long *) scm_gc_calloc (num_chunks * sizeof (unsigned long),
                                      "random bignum chunks");
 
-  /* FIXME: what about chance that bignums end up with zeroes at the
-     front? -- do we need to normalize? */
-
   do
     {
       unsigned long *current_chunk = random_chunks + (num_chunks - 1);
@@ -303,7 +301,7 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
   scm_gc_free (random_chunks,
                num_chunks * sizeof (unsigned long),
                "random bignum chunks");
-  return result;
+  return scm_i_normbig (result);
 }
 
 /*
