@@ -1,5 +1,8 @@
 Tue May 13 04:34:52 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* socket.c (scm_addr_vector): use SCM_UNDEFINED in scm_listify,
+	not SCM_UNSPECIFIED.
+
 	* script.c (scm_compile_shell_switches): don't append (quit) if
 	interactive.
 	(scm_shell): call scm_exit_status and exit on the result of the
