@@ -54,7 +54,7 @@ htmldir = $(prefix)/html/guile-$(VERSION)
 html_DATA = guile_toc.html $(shell ls guile_*.html 2>/dev/null)
 
 guile_toc.html: guile.texi $(guile_TEXINFOS)
-	$(TEXI2HTML) -split_chapter guile.texi
+	$(TEXI2HTML) -split_chapter $(srcdir)/guile.texi
 
 endif
 
