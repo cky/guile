@@ -472,6 +472,8 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist, policy_on_erro
     freelist->collected = LONG_MAX;
   }
 
+  if (len > scm_max_segment_size)
+    len = scm_max_segment_size;
   if (len < SCM_MIN_HEAP_SEG_SIZE)
     len = SCM_MIN_HEAP_SEG_SIZE;
 
