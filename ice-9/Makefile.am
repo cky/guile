@@ -28,7 +28,7 @@ ice9_sources =								\
 	getopt-gnu-style.scm getopt-long.scm hcons.scm lineio.scm	\
 	ls.scm mapping.scm						\
 	optargs.scm poe.scm popen.scm psyntax.pp psyntax.ss q.scm	\
-	r4rs.scm readline.scm regex.scm runq.scm session.scm slib.scm	\
+	r4rs.scm regex.scm runq.scm session.scm slib.scm		\
 	streams.scm string-fun.scm syncase.scm tags.scm threads.scm
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
