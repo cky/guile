@@ -1,3 +1,9 @@
+Tue Dec 10 23:38:43 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* simpos.c (scm_getenv): return #f if string can't be found in the
+	environment instead of throwing an exception, for compatibility
+	with numerous other systems.
+
 Mon Dec  9 23:23:35 1996  Tom Tromey  <tromey@cygnus.com>
 
 	* Makefile.am (.c.x): Use guile-snarf.

@@ -90,17 +90,7 @@ scm_getenv(nam)
   if (SCM_ROSTRINGP (nam))
     nam = scm_makfromstr (SCM_ROCHARS (nam), SCM_ROLENGTH (nam), 0);
   val = getenv(SCM_CHARS(nam));
-  if (!val)
-    {
-      /* This isn't a system error (errno won't be set), but is still
-	 treated as an exceptional condition, since getenv normally
-	 returns a string.  Can easily do (false-if-exception (getenv ...))
-	 to catch the exception.
-	 */
-      scm_misc_error (s_getenv, "%S not found in environment",
-		      scm_listify (nam, SCM_UNDEFINED));
-    }
-  return scm_makfromstr(val, (scm_sizet)strlen(val), 0);
+  return (val) ? scm_makfromstr(val, (scm_sizet)strlen(val), 0) : SCM_BOOL_F;
 }
 
 #ifdef vms
