@@ -123,18 +123,18 @@ scm_vector_set_length_x (SCM vect, SCM len)
 }
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
-	    (SCM x),
-"")
+	    (SCM obj),
+	    "Returns @t{#t} if @var{obj} is a vector, otherwise returns @t{#f}. (r5rs)")
 #define FUNC_NAME s_scm_vector_p
 {
-  if (SCM_IMP (x))
+  if (SCM_IMP (obj))
     return SCM_BOOL_F;
-  return SCM_BOOL (SCM_VECTORP (x));
+  return SCM_BOOL (SCM_VECTORP (obj));
 }
 #undef FUNC_NAME
 
 SCM_GPROC (s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vector_length);
-
+/* Returns the number of elements in @var{vector} as an exact integer. (r5rs) */
 SCM
 scm_vector_length (SCM v)
 {
@@ -144,10 +144,24 @@ scm_vector_length (SCM v)
 }
 
 SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
-
+/*
+	    "@samp{List->vector} returns a newly\n"
+	    "created vector initialized to the elements of the list @var{list}.\n\n"
+	    "@format\n"
+	    "@t{(vector->list '#(dah dah didah))\n"
+	    "=>  (dah dah didah)\n"
+	    "list->vector '(dididit dah))\n"
+	    "=>  #(dididit dah)\n"
+	    "}\n"
+	    "@end format")
+*/
 SCM_DEFINE (scm_vector, "vector", 0, 0, 1, 
 	    (SCM l),
-"")
+	    "Returns a newly allocated vector whose elements contain the given\n"
+	    "arguments.  Analogous to @samp{list}. (r5rs)\n\n"
+	    "@format\n"
+	    "@t{(vector 'a 'b 'c)                      ==>  #(a b c) }\n"
+	    "@end format")
 #define FUNC_NAME s_scm_vector
 {
   SCM res;
@@ -164,6 +178,24 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
 
 SCM_GPROC (s_vector_ref, "vector-ref", 2, 0, 0, scm_vector_ref, g_vector_ref);
 
+/*
+           "@var{k} must be a valid index of @var{vector}.\n"
+	   "@samp{Vector-ref} returns the contents of element @var{k} of\n"
+	   "@var{vector}.\n\n"
+	   "@format\n"
+	   "@t{(vector-ref '#(1 1 2 3 5 8 13 21)\n"
+	   "                5)\n"
+	   "        ==>  8\n"
+	   "(vector-ref '#(1 1 2 3 5 8 13 21)\n"
+	   "    (let ((i (round (* 2 (acos -1)))))\n"
+	   "      (if (inexact? i)\n"
+	   "        (inexact->exact i)\n"
+	   "           i))) \n"
+	   "     ==> 13\n"
+	   "}\n"
+	   "@end format"
+*/
+
 SCM
 scm_vector_ref (SCM v, SCM k)
 {
@@ -177,6 +209,25 @@ scm_vector_ref (SCM v, SCM k)
 }
 
 SCM_GPROC (s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x, g_vector_set_x);
+
+/* (r5rs)
+@var{k} must be a valid index of @var{vector}.
+@samp{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
+The value returned by @samp{vector-set!} is unspecified.  
+@c  <!>
+
+
+@format
+@t{(let ((vec (vector 0 '(2 2 2 2) "Anna")))
+  (vector-set! vec 1 '("Sue" "Sue"))
+  vec)      
+          ==>  #(0 ("Sue" "Sue") "Anna")
+
+(vector-set! '#(0 1 2) 1 "doe")  
+          ==>  @emph{error}  ; constant vector
+}
+@end format
+*/
 
 SCM
 scm_vector_set_x (SCM v, SCM k, SCM obj)
@@ -196,7 +247,9 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 
 SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
             (SCM k, SCM fill),
-"")
+	    "Returns a newly allocated vector of @var{k} elements.  If a second\n"
+	    "argument is given, then each element is initialized to @var{fill}.\n"
+	    "Otherwise the initial contents of each element is unspecified. (r5rs)")
 #define FUNC_NAME s_scm_make_vector
 {
   SCM v;
@@ -223,7 +276,15 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
 
 SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0, 
            (SCM v),
-"")
+	    "@samp{Vector->list} returns a newly allocated list of the objects contained\n"
+	    "in the elements of @var{vector}.  (r5rs)\n\n"
+	    "@format\n"
+	    "@t{(vector->list '#(dah dah didah))\n"
+	    "=>  (dah dah didah)\n"
+	    "list->vector '(dididit dah))\n"
+	    "=>  #(dididit dah)\n"
+	    "}\n"
+	    "@end format")
 #define FUNC_NAME s_scm_vector_to_list
 {
   SCM res = SCM_EOL;
@@ -239,7 +300,8 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
 
 SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
             (SCM v, SCM fill_x),
-"")
+	    "Stores @var{fill} in every element of @var{vector}.\n"
+	    "The value returned by @samp{vector-fill!} is unspecified. (r5rs)")
 #define FUNC_NAME s_scm_vector_fill_x
 {
   register long i;
@@ -251,7 +313,6 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
 
 
 SCM

@@ -420,18 +420,39 @@ scm_symbol_value0 (const char *name)
 }
 
 SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0, 
-           (SCM x),
-"")
+           (SCM obj),
+	    "Returns @t{#t} if @var{obj} is a symbol, otherwise returns @t{#f}. (r5rs)")
 #define FUNC_NAME s_scm_symbol_p
 {
-  if SCM_IMP(x) return SCM_BOOL_F;
-  return SCM_BOOL(SCM_SYMBOLP(x));
+  if SCM_IMP(obj) return SCM_BOOL_F;
+  return SCM_BOOL(SCM_SYMBOLP(obj));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0, 
            (SCM s),
-"")
+	    "Returns the name of @var{symbol} as a string.  If the symbol was part of\n"
+	    "an object returned as the value of a literal expression\n"
+	    "(section @pxref{Literal expressions}) or by a call to the @samp{read} procedure,\n"
+	    "and its name contains alphabetic characters, then the string returned\n"
+	    "will contain characters in the implementation's preferred standard\n"
+	    "case---some implementations will prefer upper case, others lower case.\n"
+	    "If the symbol was returned by @samp{string->symbol}, the case of\n"
+	    "characters in the string returned will be the same as the case in the\n"
+	    "string that was passed to @samp{string->symbol}.  It is an error\n"
+	    "to apply mutation procedures like @code{string-set!} to strings returned\n"
+	    "by this procedure. (r5rs)\n\n"
+	    "The following examples assume that the implementation's standard case is\n"
+	    "lower case:\n\n"
+	    "@format\n"
+	    "@t{(symbol->string 'flying-fish)     \n"
+	    "                                ==>  \"flying-fish\"\n"
+	    "(symbol->string 'Martin)               ==>  \"martin\"\n"
+	    "(symbol->string\n"
+	    "   (string->symbol "Malvina"))     \n"
+            "                           ==>  \"Malvina\"\n"
+	    "}\n"
+	    "@end format")
 #define FUNC_NAME s_scm_symbol_to_string
 {
   SCM_VALIDATE_SYMBOL (1,s);
@@ -442,7 +463,31 @@ SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0,
 
 SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0, 
            (SCM s),
-"")
+	    "Returns the symbol whose name is @var{string}.  This procedure can\n"
+	    "create symbols with names containing special characters or letters in\n"
+	    "the non-standard case, but it is usually a bad idea to create such\n"
+	    "symbols because in some implementations of Scheme they cannot be read as\n"
+	    "themselves.  See @samp{symbol->string}.\n\n"
+	    "The following examples assume that the implementation's standard case is\n"
+	    "lower case:\n\n"
+"@format\n"
+"@t{(eq? 'mISSISSIppi 'mississippi)  \n"
+"          ==>  #t\n"
+"(string->symbol \"mISSISSIppi\")  \n"
+"          ==>\n"
+"  @r{}the symbol with name \"mISSISSIppi\"\n"
+"(eq? 'bitBlt (string->symbol \"bitBlt\"))     \n"
+"          ==>  #f\n"
+"(eq? 'JollyWog\n"
+"     (string->symbol\n"
+"       (symbol->string 'JollyWog)))  \n"
+"          ==>  #t\n"
+"(string=? \"K. Harper, M.D.\"\n"
+"          (symbol->string\n"
+"            (string->symbol \"K. Harper, M.D.\")))  \n"
+"          ==>  #t\n"
+"}\n"
+	    "@end format")
 #define FUNC_NAME s_scm_string_to_symbol
 {
   SCM vcell;
@@ -776,7 +821,7 @@ copy_and_prune_obarray (SCM from, SCM to)
 
 
 SCM_DEFINE (scm_builtin_bindings, "builtin-bindings", 0, 0, 0, 
-           (),
+            (),
 	    "Create and return a copy of the global symbol table, removing all\n"
 	    "unbound symbols.")
 #define FUNC_NAME s_scm_builtin_bindings
@@ -790,7 +835,7 @@ SCM_DEFINE (scm_builtin_bindings, "builtin-bindings", 0, 0, 0,
 
 
 SCM_DEFINE (scm_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0, 
-           (),
+            (),
 	    "")
 #define FUNC_NAME s_scm_builtin_weak_bindings
 {
