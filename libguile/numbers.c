@@ -392,11 +392,13 @@ scm_make_ratio (SCM numerator, SCM denominator)
 	      /* both are bignums */
 	      if (SCM_EQ_P (numerator, denominator))
 		return SCM_MAKINUM(1);
-	      int divisible_p = mpz_divisible_p (SCM_I_BIG_MPZ (numerator),
-						 SCM_I_BIG_MPZ (denominator));
-	      if (divisible_p)
+	      if (mpz_divisible_p (SCM_I_BIG_MPZ (numerator),
+				   SCM_I_BIG_MPZ (denominator)))
 		return scm_divide(numerator, denominator);
-	      else return scm_double_cell (scm_tc16_fraction, (scm_t_bits)numerator, (scm_t_bits)denominator, 0);
+	      else 
+		return scm_double_cell (scm_tc16_fraction,
+					(scm_t_bits)numerator,
+					(scm_t_bits)denominator, 0);
 	    }
 	}
       else SCM_WRONG_TYPE_ARG (1, numerator);
