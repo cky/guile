@@ -161,10 +161,23 @@ In the subdirectory example, wrote
 Will Fitzgerald:
   wrote initial srfi/srfi-19.scm.
 
+Jost Boekemeier:
+In the subdirectory libguile, wrote:
+    environments.c, environments.h
+
 Dirk Herrmann:
 In the subdirectory doc, changes to:
-    data-rep.texi
-    scm.texi
+    data-rep.texi, scm.texi
+In the subdirectory libguile, rewrote:
+    environments.c, environments.h
+In the subdirectory libguile, changes to:
+    error.c, gc.c, gc.h, numbers.c, strings.c, symbols.c 
+In the subdirectory test-suite, rewrote:
+    lib.scm
+In the subdirectory test-suite/tests, wrote:
+    bit-operations.test, common-list.test, environments.test, eval.test,
+    gc.test, list.test, numbers.test, symbols.test, syntax.test
+Many other changes throughout.
 
 Greg Badros:
 In the subdirectory doc, changes to:
