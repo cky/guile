@@ -1,3 +1,9 @@
+2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* arrays.scm:  Don't install a read-hash-extension for 'b':  #b
+	is already defined by R5RS.  Further, there is already a working
+	read syntax for bitvectors, starting with #*.
+
 2001-06-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* Makefile.am (ice9_sources): Removed tags.scm.
