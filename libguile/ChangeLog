@@ -1,3 +1,19 @@
+2004-12-27  Marius Vollmer  <mvo@zagadka.de>
+
+	* vectors.h, vectors.c (scm_c_vector_set_x): Make return type
+	void.
+	(scm_is_vector, scm_vector_p, scm_vector_length,
+	scm_c_vector_length, scm_vector_ref, scm_c_vector_ref,
+	scm_vector_set_x, scm_c_vector_set_x, scm_vector_to_list,
+	scm_vector_move_left_x, scm_vector_move_right_x,
+	scm_vector_fill_x): handle one-dimensional arrays.
+
+	* ramap.c (scm_ramapc, scm_raeql): Use
+	scm_c_generalized_vector_length instead of
+	scm_uniform_vector_length.
+	(scm_ramap, rafe): Use scm_c_vector_ref instead of SCM_VELTS.  use
+	scm_c_generalized_vector_ref instead of scm_uniform_vector_ref.
+		
 2004-12-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* continuations.h, continuations.c (scm_t_contregs): New 'offset'
