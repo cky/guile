@@ -1,3 +1,8 @@
+2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm (define-private, export-syntax, export-syntax):
+	Changed definitions to form 'real' macro definitions.
+
 2002-11-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* format.scm (format): Use 'monitor' properly.  Not the definition

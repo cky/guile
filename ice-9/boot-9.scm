@@ -2591,7 +2591,8 @@
     (else
      (error "use-syntax can only be used at the top level"))))
 
-(define define-private define)
+(defmacro define-private args
+  `(define ,args))
 
 (defmacro define-public args
   (define (syntax)
@@ -2666,9 +2667,11 @@
     (else
      (error "re-export can only be used at the top level"))))
 
-(define export-syntax export)
-(define re-export-syntax re-export)
+(defmacro export-syntax names
+  `(export ,names))
 
+(defmacro export-syntax names
+  `(export ,names))
 
 (define load load-module)
 
