@@ -1,3 +1,9 @@
+2003-06-19  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/posix.test: New file, exercising putenv, setenv, unsetenv.
+	* tests/threads.test: New file, exercising parallel.
+	* Makefile.am (SCM_TESTS): Add them.
+
 2003-06-07  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-6.test: New file.

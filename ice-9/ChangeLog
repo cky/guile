@@ -1,3 +1,7 @@
+2003-06-19  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.scm (parallel): For no forms, use `(values)' not `(begin)'.
+
 2003-05-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm (make-autoload-interface): Added missing quote around
