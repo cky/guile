@@ -1,3 +1,18 @@
+1998-10-03    <jimb@savonarola.red-bean.com>
+
+	* configure.in: Don't use the canonical host name to decide
+	whether `bzero' and `usleep' have declarations --- that's going
+	back to the bad old days before autoconf.  Remove the call to
+	AC_CANONICAL_HOST and the subsequent case statement.
+	(GUILE_FUNC_DECLARED): New m4 macro.  Use it to check for
+	declarations for `bzero', `usleep', and (new!) `strptime'.
+	* acconfig.h: (DECLARE_BZERO, DECLARE_USLEEP): Removed.
+	(MISSING_BZERO_DECL, MISSING_USLEEP_DECL, MISSING_STRPTIME_DECL):
+	Added.  I think this naming convention is more consistent with the
+	rest of autoconf; names generally describes the system, not what
+	the package should do to accomodate the system.
+	* configure: Regenerated.
+
 1998-09-05  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in: Remove --disable-debug option.  The debugging

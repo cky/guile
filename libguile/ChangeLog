@@ -1,3 +1,27 @@
+1998-10-03    <jimb@savonarola.red-bean.com>
+
+	Getting rid of more warnings...
+	* iselect.c: Test for MISSING_BZERO_DECL, not DECLARE_BZERO; see
+	today's change to ../configure.in.
+	* scmsigs.c: Test for MISSING_USLEEP_DECL, not DECLARE_USLEEP.
+	* scmconfig.h.in: Regenertaded.de.,.__
+	* stime.c (strptime): Declare this, #ifdef MISSING_STRPTIME_DECL.
+	(scm_localtime, scm_mktime): Use a const char * to manipulate the
+	time zone name.
+
+	* readline.c: Doc fix.
+	(rl_cleanup_after_signal, rl_free_line_state): Make these static.
+	* readline.h (scm_filename_completion_function): Add prototype.
+	(scm_init_readline): Make this into a prototype.
+
+	* readline.c (scm_filename_completion_function): Use SCM_PROC to
+	declare this, instead of calling scm_make_subr manually.
+
+1998-10-02    <jimb@savonarola.red-bean.com>
+
+	* readline.h (scm_init_readline): Add prototype for this.
+	(scm_init_readline): Make this a real prototype.
+
 1998-09-30  Jim Blandy  <jimb@zwingli.cygnus.com>
 	
 	Warning fixes from Maciej Stachowiak:
@@ -361,6 +385,9 @@ Sat Jul 11 22:08:21 1998  Mikael Djurfeldt  <mdj@totoro.red-bean.com>
 	assure that we have version >= 2.1.)
 
 1998-05-11  Mikael Djurfeldt  <mdj@kenneth>
+
+	* readline.c (scm_readline): Defer interrupts while we're calling
+	readline.
 
 	* readline.c (scm_add_history): Bugfix: Do strdup before giving
 	away the string to add_history.
