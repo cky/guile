@@ -785,7 +785,7 @@
 ;	  path))
 
 (define (try-load name)
-  (%try-load-path name #t read-sharp))
+  (primitive-load-path name #t read-sharp))
 
 
 ;;; {Load}
