@@ -19,6 +19,45 @@ to activate readline is now
 
 This should work at any time, including from the guile prompt.
 
+** regexp-substitute/global has changed slightly, but incompatibly.
+
+If you include a function in the item list, the string of the match
+object it receives is the same string passed to
+regexp-substitute/global, not some suffix of that string.
+Correspondingly, the match's positions are relative to the entire
+string, not the suffix.
+
+If the regexp can match the empty string, the way matches are chosen
+from the string has changed.  regexp-substitute/global recognizes the
+same set of matches that list-matches does; see below.
+
+** New function: list-matches REGEXP STRING [FLAGS]
+
+Return a list of match objects, one for every non-overlapping, maximal
+match of REGEXP in STRING.  The matches appear in left-to-right order.
+list-matches only reports matches of the empty string if there are no
+other matches which begin on, end at, or include the empty match's
+position.
+
+If present, FLAGS is passed as the FLAGS argument to regexp-exec.
+
+** New function: fold-matches REGEXP STRING INIT PROC [FLAGS]
+
+For each match of REGEXP in STRING, apply PROC to the match object,
+and the last value PROC returned, or INIT for the first call.  Return
+the last value returned by PROC.  We apply PROC to the matches as they
+appear from left to right.
+
+This function recognizes matches according to the same criteria as
+list-matches.
+
+Thus, you could define list-matches like this:
+
+  (define (list-matches regexp string . flags)
+    (reverse! (apply fold-matches regexp string '() cons flags)))
+
+If present, FLAGS is passed as the FLAGS argument to regexp-exec.
+
 ** Hooks
 
 *** New function: hook? OBJ
