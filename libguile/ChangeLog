@@ -1,5 +1,8 @@
 2005-01-10  Marius Vollmer  <mvo@zagadka.de>
 
+	* ramap.c: Replaced single-index uses of scm_array_set_x with
+	scm_c_generalized_vector_set_x.
+
 	* unif.c (scm_array_rank, scm_array_dimensions,
 	scm_shared_array_offset, scm_shared_array_increments,
 	scm_array_ref, scm_array_set_x): Use scm_t_array_handle operations
@@ -7,7 +10,9 @@
 	(scm_shared_array_root): Work with all kinds of arrays, including
 	naked vectors.
 	(indices_to_pos): New.
-	
+	(scm_make_shared_array): Use it instead of scm_aind; use handle
+	for oldra.
+
 2005-01-10  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_mkstemp): Update docstring from manual.
