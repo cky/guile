@@ -3091,11 +3091,11 @@
 		   (lambda (prompt)
 		     (dynamic-wind
 		      (lambda ()
-			(set-readline-prompt! prompt)
+			(set-readline-prompt! prompt "... ")
 			(set-readline-read-hook! read-hook))
 		      (lambda () (read))
 		      (lambda ()
-			(set-readline-prompt! "")
+			(set-readline-prompt! "" "")
 			(set-readline-read-hook! #f)))))))
        (let ((status (scm-style-repl)))
 	 (run-hook exit-hook)
