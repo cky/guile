@@ -86,7 +86,7 @@ order when the procedure is invoked.
 
 @c FIXME::martin: Review me!
 
-Scheme procedures, as defined in R5RS, can wither handle a fixed number
+Scheme procedures, as defined in R5RS, can either handle a fixed number
 of actual arguments, or a fixed number of actual arguments followed by
 arbitrarily many additional arguments.  Writing procedures of variable
 arity can be useful, but unfortunately, the syntactic means for handling

@@ -1,3 +1,8 @@
+2001-12-04  Martin Grabmueller  <mg@glug.org>
+
+	* scheme-procedures.texi (Optional Arguments): Typo fix: wither ->
+	either.
+
 2001-12-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-data.texi (Hooks): Moved into scheme-utility.texi.
