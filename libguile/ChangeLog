@@ -1,3 +1,9 @@
+Sat Apr  5 23:56:40 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* stime.c (scm_init_stime): don't define ticks/sec.
+	(scm_gettimeofday): renamed from scm_time_plus_ticks (avoids multiple
+	return value problem and is still portable.)
+
 Sat Apr  5 17:59:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* cpp_err_symbols.in: Renamed from cpp_err_symbols, to avoid

@@ -183,16 +183,16 @@ scm_current_time()
   return scm_long2num((long) timv);
 }
 
-SCM_PROC (s_time_plus_ticks, "time+ticks", 0, 0, 0, scm_time_plus_ticks);
+SCM_PROC (s_gettimeofday, "gettimeofday", 0, 0, 0, scm_gettimeofday);
 SCM
-scm_time_plus_ticks (void)
+scm_gettimeofday (void)
 {
 #ifdef HAVE_GETTIMEOFDAY
   struct timeval time;
 
   SCM_DEFER_INTS;
   if (gettimeofday (&time, NULL) == -1)
-    scm_syserror (s_time_plus_ticks);
+    scm_syserror (s_gettimeofday);
   SCM_ALLOW_INTS;
   return scm_cons (scm_long2num ((long) time.tv_sec),
 		   scm_long2num ((long) time.tv_usec));
@@ -202,13 +202,13 @@ scm_time_plus_ticks (void)
 
   ftime(&time);
   return scm_cons (scm_long2num ((long) time.time), 
-		   SCM_MAKINUM (time.millitm));
+		   SCM_MAKINUM (time.millitm) * 1000);
 # else
   timet timv;
   
   SCM_DEFER_INTS;
   if ((timv = time (0)) == -1)
-    scm_syserror (s_time_plus_ticks);
+    scm_syserror (s_gettimeofday);
   SCM_ALLOW_INTS;
   return scm_cons (scm_long2num (timv), SCM_MAKINUM (0));
 # endif
@@ -404,18 +404,6 @@ scm_init_stime()
 #else
   if (!scm_your_base) time(&scm_your_base);
 #endif
-
-  scm_sysintern("ticks/sec", 
-#ifdef HAVE_GETTIMEOFDAY
-		scm_long2num ((long) 1000000)
-#else
-# ifdef HAVE_FTIME
-		SCM_MAKINUM (1000)
-# else
-		SCM_MAKINUM (1)
-# endif
-#endif
-		);
 
   if (!scm_my_base) scm_my_base = mytime();
 

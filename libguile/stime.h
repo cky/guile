@@ -50,7 +50,7 @@
 extern SCM scm_get_internal_real_time SCM_P ((void));
 extern SCM scm_get_internal_run_time SCM_P ((void));
 extern SCM scm_current_time SCM_P ((void));
-extern SCM scm_time_plus_ticks (void);
+extern SCM scm_gettimeofday (void);
 extern SCM scm_localtime (SCM time, SCM zone);
 extern SCM scm_gmtime (SCM time);
 extern SCM scm_mktime (SCM sbd_time);
