@@ -1,3 +1,9 @@
+1998-10-07  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* eval.c (safe_setjmp): Remove this misunderstanding.
+	(ENTER_APPLY, SCM_CEVAL, SCM_APPLY): Replace with references to
+	ordinary setjmp.
+
 1998-10-06  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* libguile.h: Mark these as C declarations, for compilation by C++
