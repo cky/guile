@@ -84,8 +84,10 @@ scm_make_arbiter (name)
 {
   register SCM z;
   SCM_NEWCELL (z);
+  SCM_DEFER_INTS;
   SCM_SETCDR (z, name);
   SCM_SETCAR (z, scm_tc16_arbiter);
+  SCM_ALLOW_INTS;
   return z;
 }
 
