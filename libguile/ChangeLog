@@ -1,3 +1,19 @@
+2002-07-12  Gary Houston  <ghouston@arglist.com>
+
+	* dynl.c: Don't define stub procedures if DYNAMIC_LINKING is not
+	defined.  They don't do anything useful, especially since the
+	only case where DYNAMIC_LINKING is undefined seems to be
+	when --with-modules=no is given to configure, which is basically
+	requesting that the "dynamic linking module" be omitted.
+
+	* Makefile.am (libguile_la_SOURCES): move dynl.c from
+	libguile_la_SOURCES to EXTRA_libguile_la_SOURCES.
+
+	* extensions.c (load_extension): check DYNAMIC_LINKING for
+	scm_dynamic_call.
+	* init.c (scm_init_guile_1): check DYNAMIC_LINKING for
+	scm_init_dynamic_linking.
+
 2002-07-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile.c, iselect.h, net_db.c, posix.c, socket.c: No need to

@@ -171,7 +171,32 @@ AM_PROG_LIBTOOL
 AC_CHECK_PROG(have_makeinfo, makeinfo, yes, no)
 AM_CONDITIONAL(HAVE_MAKEINFO, test "$have_makeinfo" = yes)
 
+dnl Check for dynamic linking
+
+use_modules=yes
+AC_ARG_WITH(modules,
+[  --with-modules[=FILES]  Add support for dynamic modules],
+use_modules="$withval")
+test -z "$use_modules" && use_modules=yes
+DLPREOPEN=
+if test "$use_modules" != no; then
+  AC_DEFINE(DYNAMIC_LINKING, 1,
+    [Define if you want support for dynamic linking.])
+  if test "$use_modules" = yes; then
+    DLPREOPEN="-dlpreopen force"
+  else
+    DLPREOPEN="-export-dynamic"
+    for module in $use_modules; do
+      DLPREOPEN="$DLPREOPEN -dlopen $module"
+    done
+  fi
+fi
+
 dnl files which are destined for separate modules.
+
+if test "$use_modules" != no; then
+   AC_LIBOBJ([dynl])
+fi
 
 if test "$enable_arrays" = yes; then
    AC_LIBOBJ([ramap])
@@ -279,27 +304,6 @@ if test "$MINGW32" = "yes" ; then
     fi
 fi
 AC_SUBST(EXTRA_DEFS)
-
-dnl Check for dynamic linking
-
-use_modules=yes
-AC_ARG_WITH(modules,
-[  --with-modules[=FILES]  Add support for dynamic modules],
-use_modules="$withval")
-test -z "$use_modules" && use_modules=yes
-DLPREOPEN=
-if test "$use_modules" != no; then
-  AC_DEFINE(DYNAMIC_LINKING, 1,
-    [Define if you want support for dynamic linking.])
-  if test "$use_modules" = yes; then
-    DLPREOPEN="-dlpreopen force"
-  else
-    DLPREOPEN="-export-dynamic"
-    for module in $use_modules; do
-      DLPREOPEN="$DLPREOPEN -dlopen $module"
-    done
-  fi
-fi
 
 AC_SUBST(INCLTDL)
 AC_SUBST(LIBLTDL)

@@ -61,7 +61,7 @@ guile_LDADD = libguile.la
 guile_LDFLAGS = @DLPREOPEN@
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
-    chars.c continuations.c convert.c debug.c deprecation.c dynl.c 	    \
+    chars.c continuations.c convert.c debug.c deprecation.c                 \
     dynwind.c environments.c eq.c error.c eval.c evalext.c extensions.c     \
     feature.c fluids.c fports.c						    \
     gc.c gc_os_dep.c gdbint.c gh_data.c gh_eval.c gh_funcs.c gh_init.c	    \
@@ -113,7 +113,7 @@ BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h scmconfig.h \
 
 EXTRA_libguile_la_SOURCES = _scm.h			\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
-    threads.c regex-posix.c				\
+    dynl.c threads.c regex-posix.c			\
     filesys.c posix.c net_db.c socket.c			\
     ramap.c unif.c debug-malloc.c mkstemp.c             \
     win32-uname.c win32-dirent.c win32-socket.c

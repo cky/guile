@@ -556,7 +556,9 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_simpos ();
   scm_init_load_path ();
   scm_init_standard_ports ();  /* Requires fports */
+#ifdef DYNAMIC_LINKING
   scm_init_dynamic_linking ();
+#endif
 #ifdef SCM_ENABLE_ELISP
   scm_init_lang ();
 #endif /* SCM_ENABLE_ELISP */

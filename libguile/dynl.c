@@ -75,8 +75,6 @@ maybe_drag_in_eprintf ()
 #include "libguile/lang.h"
 #include "libguile/validate.h"
 
-#ifdef DYNAMIC_LINKING
-
 #include "libltdl/ltdl.h"
 
 /* From the libtool manual: "Note that libltdl is not threadsafe,
@@ -132,46 +130,6 @@ sysdep_dynl_init ()
 {
   lt_dlinit ();
 }
-
-#else
-
-/* no dynamic linking available, throw errors. */
-
-static void
-sysdep_dynl_init (void)
-{
-}
-
-static void
-no_dynl_error (const char *subr)
-{
-  scm_misc_error (subr, "dynamic linking not available", SCM_EOL);
-}
-    
-static void *
-sysdep_dynl_link (const char *filename, const char *subr)
-{
-  no_dynl_error (subr);
-  return NULL;
-}
-
-static void 
-sysdep_dynl_unlink (void *handle, 
-		    const char *subr)
-{
-  no_dynl_error (subr);
-}
-
-static void *
-sysdep_dynl_func (const char *symbol, 
-		  void *handle,
-		  const char *subr)
-{
-  no_dynl_error (subr);
-  return NULL;
-}
-
-#endif
 
 scm_t_bits scm_tc16_dynamic_obj;
 
