@@ -1,3 +1,86 @@
+2004-08-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* strings.h, deprecated.h (SCM_STRING_COERCE_0TERMINATION_X):
+	Moved from string.h to deprecated.h.
+
+	* deprecated.c, deprecated.h (SCM_CHARS, SCM_LENGTH): Removed.
+
+	* strings.h, strings.c (SCM_MAKE_STRING_TAG): Rename dto
+	SCM_I_MAKE_STRING_TAG, changed all uses.
+	(SCM_STRING_CHARS, SCM_STRING_UCHARS, SCM_STRING_LENGTH): Renamed
+	to SCM_I_STRING_CHARS, SCM_I_STRING_UCHARS, and SCM_I_LENGTH
+	respectively.  For a short time, the old names are still there as
+	aliases.  Not all uses have been changed yet, but the ones in
+	strings.c have.
+	(SCM_STRING_MAX_LEN): Do not hardcode to 24 bits, compute from
+	SCM_T_BITS_MAX.
+	(scm_is_string, scm_from_locale_string, scm_from_locale_stringn,
+	scm_take_locale_string, scm_take_locale_stringn,
+	scm_to_locale_string, scm_to_locale_stringn,
+	scm_to_locale_stringbuf): New.
+	(scm_c_string2str, scm_c_substring2str): Deprecated by moving to
+	deprecated.[hc]. Implemented in terms of the new functions above.
+	(scm_take_str, scm_take0str, scm_mem2string, scm_str2string,
+	scm_makfrom0str): Reimplemented in terms of the new functions from
+	above.  They will be discouraged shortly.
+	(scm_substring): Do not use scm_mem2string.
+	(scm_i_allocate_string_pointers, scm_i_free_string_pointers): New,
+	to replace similar code from posix.c, simpos.c, and dynl.c.
+	(scm_string_append): Use memcpy instead of explicit loop.  Do not
+	use register keyword.  Use plain 'char' instead of 'unsigned
+	char'.
+	
+	* strports.c (scm_mkstrport): Use SCM_I_STRING_UCHARS instead of
+	SCM_STRING_UCHARS.  Use SCM_I_STRINGP instead of SCM_STRINGP.
+
+	* strop.c (scm_i_index): Replaced SCM_STRINGP, SCM_STRING_CHARS,
+	and SCM_STRING_LENGTH with SCM_I_STRINGP, SCM_I_STRING_CHARS, and
+	SCM_I_STRING_LENGTH, respectively.  Pass string object directly,
+	not as a pointer.  Use scm_remember_upto_here_1 to protect it.
+
+	* read.c (scm_input_error): Use a SCM value for 'fn', not a C
+	string.  This avoids a conversion round-trip.
+
+	* gh_data.c: Replaced SCM_STRINGP, SCM_STRING_CHARS, and
+	SCM_STRING_LENGTH with SCM_I_STRINGP, SCM_I_STRING_CHARS, and
+	SCM_I_STRING_LENGTH, respectively.
+	(gh_scm2newstr): Implement in terms of scm_to_locale_string.
+	
+	* environments.c: Instead calling scm_puts on the SCM_STRING_CHARS
+	of a string, call scm_display on the string itself.
+
+	* dynwind.c, dynwind.h (scm_frame_free): New.
+
+	* stime.c, socket.c, simpos.c, procs.c, posix.c, ports.c,
+	net_db.c, fports.c, filesys.c, eval.c, deprecation.c, dynl.c:
+	Replaced uses of SCM_STRING_CHARS with proper uses of
+	scm_to_locale_string.  Replaced SCM_STRINGP with scm_is_string.
+	Replaced scm_mem2string with scm_from_locale_string.
+
+	* simpos.c, posix.c (allocate_string_pointers, environ_list_to_c):
+	Removed, replaced all uses with scm_i_allocate_string_pointers.
+
+	* load.h, load.c (scm_internal_parse_path): Removed.
+	(scm_parse_path): Use scm_string_split to do the work.
+	(scm_init_load_path): Use scm_parse_path instead of
+	scm_internal_parse_path.
+	(scm_search_path): Rewritten string handling part of the code in
+	terms of scm_to_locale_stringbuf and so that it is thread safe.
+
+	* error.c (scm_error_scm): Throw directly instead of calling
+	scm_error, this avoids the back and forth conversion of SUBR and
+	MESSAGE and also plugs a memory leak.
+	(scm_error): Call scm_error_scm.
+	
+	* backtrace.c: Replaced SCM_STRINGP with scm_is_string.
+	(display_header): Print FNAME when it is true, not
+	merely when it is a string.
+
+	* strings.h (SCM_SET_STRING_LENGTH, SCM_SET_STRING_CHARS): Removed
+	unceremoniously.  They were unused by Guile itself, and external
+	use should stop immediately.
+	
+
 2004-08-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* numbers.h, number.c, deprecated.h, deprecated.c (scm_round,
