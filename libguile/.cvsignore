@@ -13,6 +13,7 @@ errnos.list
 fd.h
 gh_test_c
 gh_test_repl
+guile
 guile-snarf
 libpath.h
 libtool
