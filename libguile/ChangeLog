@@ -1,5 +1,12 @@
 2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* continuations.c (scm_make_cont):  Use
+	SCM_SET_CONTINUATION_LENGTH instead of SCM_SETLENGTH.
+
+	* continuations.h (SCM_SET_CONTINUATION_LENGTH):  Added.
+
+2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* vectors.c (scm_make_vector), weaks.c (scm_make_weak_vector):
 	Use SCM_SET_VECTOR_LENGTH instead of SCM_SETLENGTH.
 

@@ -89,7 +89,7 @@ scm_make_cont (SCM *answer)
   SCM_THROW_VALUE (cont) = SCM_EOL;
   src = SCM_BASE (cont) = SCM_BASE (scm_rootcont);
   SCM_SEQ (cont) = SCM_SEQ (scm_rootcont);
-  SCM_SETLENGTH (cont, j, scm_tc7_contin);
+  SCM_SET_CONTINUATION_LENGTH (cont, j);
   SCM_EXIT_A_SECTION;
 #ifndef SCM_STACK_GROWS_UP
   src -= SCM_CONTINUATION_LENGTH (cont);

@@ -64,6 +64,7 @@ typedef struct
 #define SCM_CONTREGS(x)		((scm_contregs *) SCM_CELL_WORD_1 (x))	 
 #define SCM_SET_CONTREGS(x, r)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (r))) 
 #define SCM_CONTINUATION_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_SET_CONTINUATION_LENGTH(x, l) (SCM_SET_CELL_WORD_0 ((x), ((l) << 8) + scm_tc7_contin))
 
 #define SCM_JMPBUF(x)		((SCM_CONTREGS (x))->jmpbuf)
 #define SCM_DYNENV(x)		((SCM_CONTREGS (x))->dynenv)
