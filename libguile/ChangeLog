@@ -1,5 +1,21 @@
 Mon Oct 28 16:48:32 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* strports.c (scm_eval_0str): New function.
+	#include "read.h", to get prototype for scm_read.
+	* Makefile.in (strports.o): Update dependencies.
+	* strports.h: New prototype.
+
+*	* numbers.c (scm_integer_p): Renamed from scm_int_p; change its
+	scheme name from "int?" to "integer?".  It seems to do the job.
+	* numbers.h: Rename prototype too.
+	* scmhob.h (intp): Change definition to refer to scm_integer_p.  I
+	hope this is right.
+
+*	* numbers.c (scm_less_p, scm_gr_p, scm_leq_p, scm_geq_p,
+	scm_num_eq_p): Rename these according to R4RS conventions: call
+	them <, <=, =, >, and >=, not <?, <=?, =?, >?, and >=?.  En route
+	to making libguile R4RS compliant without ice-9...
+
 *	* load.c (scm_sys_search_load_path): Search for files under all
 	extensions listed in the %load-extensions variable.  If FILENAME
 	is absolute, return it unchanged, without searching the load path.
