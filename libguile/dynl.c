@@ -234,7 +234,7 @@ SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0,
 
 #ifdef DYNAMIC_LINKING
 
-#include <ltdl.h>
+#include "libltdl/ltdl.h"
 
 static void *
 sysdep_dynl_link (const char *fname, const char *subr)
