@@ -373,7 +373,10 @@ fi
 ## If we're using GCC, ask for aggressive warnings.
 case "$GCC" in
   yes )
-    CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes" ;;
+    ## We had -Wstrict-prototypes in here for a bit, but Guile does too
+    ## much stuff with generic function pointers for that to really be
+    ## less than exasperating.
+    CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wmissing-prototypes" ;;
 esac
 
 AC_PROG_AWK
