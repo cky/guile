@@ -213,7 +213,8 @@ scm_create_hook (const char* name, int n_args)
 SCM_DEFINE (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0, 
             (SCM name, SCM n_args),
 	    "Create a named hook with the name @var{name} for storing\n"
-	    "procedures of arity @var{n_args}.")
+	    "procedures of arity @var{n_args}.  @var{n_args} defaults to\n"
+	    "zero.")
 #define FUNC_NAME s_scm_make_hook_with_name
 {
   SCM hook = make_hook (n_args, FUNC_NAME);
@@ -227,7 +228,8 @@ SCM_DEFINE (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0,
 
 SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0, 
             (SCM n_args),
-	    "Create a hook for storing procedure of arity @var{n_args}.")
+	    "Create a hook for storing procedure of arity\n"
+	    "@var{n_args}.  @var{n_args} defaults to zero.")
 #define FUNC_NAME s_scm_make_hook
 {
   return make_hook (n_args, FUNC_NAME);
@@ -237,7 +239,7 @@ SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0,
 
 SCM_DEFINE (scm_hook_p, "hook?", 1, 0, 0, 
             (SCM x),
-	    "Return @code{#t} if @var{x} is a hook.")
+	    "Return @code{#t} if @var{x} is a hook, @code{#f} otherwise.")
 #define FUNC_NAME s_scm_hook_p
 {
   return SCM_BOOL (SCM_HOOKP (x));
@@ -247,7 +249,8 @@ SCM_DEFINE (scm_hook_p, "hook?", 1, 0, 0,
 
 SCM_DEFINE (scm_hook_empty_p, "hook-empty?", 1, 0, 0, 
             (SCM hook),
-	    "Return @code{#t} if @var{hook} is an empty hook.")
+	    "Return @code{#t} if @var{hook} is an empty hook, @code{#f}\n"
+	    "otherwise.")
 #define FUNC_NAME s_scm_hook_empty_p
 {
   SCM_VALIDATE_HOOK (1, hook);
@@ -312,7 +315,8 @@ SCM_DEFINE (scm_reset_hook_x, "reset-hook!", 1, 0, 0,
 SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1, 
             (SCM hook, SCM args),
 	    "Apply all procedures from the hook @var{hook} to the arguments\n"
-	    "@var{args}.")
+	    "@var{args}.  The order of the procedure application is first to\n"
+	    "last.")
 #define FUNC_NAME s_scm_run_hook
 {
   SCM_VALIDATE_HOOK (1,hook);

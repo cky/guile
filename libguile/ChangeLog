@@ -1,3 +1,9 @@
+2001-04-06  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* hooks.c (scm_make_hook, scm_make_hook_with_name),
+	(scm_hook_p, scm_hook_empty_p, scm_run_hook): Docstring
+	improvements.
+
 2001-04-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	The following changes make the documentation more consistent.
