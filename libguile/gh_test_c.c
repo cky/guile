@@ -50,7 +50,7 @@ SCM c_factorial (SCM s_n);
 SCM c_sin (SCM s_x);
 SCM c_vector_test (SCM s_length);
 
-/* the gh_enter() routine, the standard entryp point for the gh_
+/* the gh_enter() routine, the standard entry point for the gh_
    interface, makes you use a separate main function */
 void 
 main_prog (int argc, char *argv[])
