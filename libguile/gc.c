@@ -495,8 +495,9 @@ scm_igc (what)
   /* This assumes that all registers are saved into the jmp_buf */
   setjmp (scm_save_regs_gc_mark);
   scm_mark_locations ((SCM_STACKITEM *) scm_save_regs_gc_mark,
-		      (   (scm_sizet) sizeof scm_save_regs_gc_mark
-		       / sizeof (SCM_STACKITEM)));
+		      (   (scm_sizet) (sizeof (SCM_STACKITEM) - 1 +
+				       sizeof scm_save_regs_gc_mark)
+			  / sizeof (SCM_STACKITEM)));
 
   {
     /* stack_len is long rather than scm_sizet in order to guarantee that
@@ -682,7 +683,10 @@ gc_mark_nimp:
 	(ptr) break;
       SCM_SETGC8MARK (ptr);
       scm_mark_locations (SCM_VELTS (ptr),
-	       (scm_sizet) (SCM_LENGTH (ptr) + sizeof (scm_contregs) / sizeof (SCM_STACKITEM)));
+	       (scm_sizet)
+	       (SCM_LENGTH (ptr) +
+		(sizeof (SCM_STACKITEM) + -1 + sizeof (scm_contregs)) /
+		sizeof (SCM_STACKITEM)));
       break;
     case scm_tc7_bvect:
     case scm_tc7_byvect:
