@@ -69,7 +69,7 @@
 extern SCM scm_list_head (SCM lst, SCM k);
 extern SCM scm_listify (SCM elt, ...);
 extern SCM scm_list (SCM objs);
-extern SCM scm_list_star (SCM arg, SCM objs);
+extern SCM scm_cons_star (SCM arg, SCM objs);
 extern SCM scm_null_p (SCM x);
 extern SCM scm_list_p (SCM x);
 extern long scm_ilength (SCM sx);
@@ -100,6 +100,14 @@ extern SCM scm_delq1_x (SCM item, SCM lst);
 extern SCM scm_delv1_x (SCM item, SCM lst);
 extern SCM scm_delete1_x (SCM item, SCM lst);
 extern void scm_init_list (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define scm_list_star scm_cons_star
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* LISTH */
 
