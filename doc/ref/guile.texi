@@ -131,59 +131,10 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.28 2004-02-12 00:21:26 kryde Exp $
+@subtitle $Id: guile.texi,v 1.29 2004-02-18 20:07:19 mvo Exp $
 
-@c AUTHORS
-
-@c The Guile reference and tutorial manuals were written and edited
-@c largely by Mark Galassi and Jim Blandy.  In particular, Jim wrote the
-@c original tutorial on Guile's data representation and the C API for
-@c accessing Guile objects.
-
-@c Significant portions were contributed by Gary Houston (contributions
-@c to POSIX system calls and networking, expect, I/O internals and
-@c extensions, slib installation, error handling) and Tim Pierce
-@c (sections on script interpreter triggers, alists, function tracing).
-
-@c Tom Lord contributed a great deal of material with early Guile
-@c snapshots; although most of this text has been rewritten, all of it
-@c was important, and some of the structure remains.
-
-@c Aubrey Jaffer wrote the SCM Scheme implementation and manual upon
-@c which the Guile program and manual are based.  Some portions of the
-@c SCM and SLIB manuals have been included here verbatim.
-
-@c Since Guile 1.4, Neil Jerram has been maintaining and improving the
-@c reference manual.  Among other contributions, he wrote the Basic
-@c Ideas chapter, developed the tools for keeping the manual in sync
-@c with snarfed libguile docstrings, and reorganized the structure so as
-@c to accommodate docstrings for all Guile's primitives.
-
-@c Martin Grabmueller has made substantial contributions throughout the
-@c reference manual in preparation for the Guile 1.6 release, including
-@c filling out a lot of the documentation of Scheme data types, control
-@c mechanisms and procedures.  In addition, he wrote the documentation
-@c for Guile's SRFI modules and modules associated with the Guile REPL.
-
-@author Mark Galassi
-@author Cygnus Solution and Los Alamos National Laboratory
-@author @email{rosalia@@cygnus.com}
-@author
-@author Jim Blandy
-@author Free Software Foundation and MIT AI Lab
-@author @email{jimb@@red-bean.com}
-@author
-@author Gary Houston
-@author @email{ghouston@@arglist.com}
-@author
-@author Tim Pierce
-@author @email{twp@@skepsis.com}
-@author
-@author Neil Jerram
-@author @email{neil@@ossau.uklinux.net}
-@author
-@author Martin Grabmueller
-@author @email{mgrabmue@@cs.tu-berlin.de}
+@c See preface.texi for the list of authors
+@author The Guile Developers
 
 @c The following two commands start the copyright page.
 @page
@@ -200,7 +151,7 @@ x
 @set example-dir doc/examples
 
 @ifnottex
-@node Top, Guile License, (dir), (dir)
+@node Top, Contributors, (dir), (dir)
 @top The Guile Reference Manual
 
 @insertcopying
@@ -210,6 +161,7 @@ x
 @menu
 Preface
 
+* Contributors::                Contributors to this manual.
 * Guile License::               Conditions for copying and using Guile.
 * Manual Layout::               How to read the rest of this manual.
 * Manual Conventions::          Conventional terminology.

@@ -18,6 +18,45 @@ corresponds to Guile version @value{VERSION}.
 
 
 @iftex
+@section Contributors to this Manual
+@end iftex
+
+@ifnottex
+@node Contributors
+@chapter Contributors to this Manual
+@end ifnottex
+
+The Guile reference and tutorial manuals were written and edited
+largely by Mark Galassi and Jim Blandy.  In particular, Jim wrote the
+original tutorial on Guile's data representation and the C API for
+accessing Guile objects.
+
+Significant portions were contributed by Gary Houston (contributions
+to POSIX system calls and networking, expect, I/O internals and
+extensions, slib installation, error handling) and Tim Pierce
+(sections on script interpreter triggers, alists, function tracing).
+
+Tom Lord contributed a great deal of material with early Guile
+snapshots; although most of this text has been rewritten, all of it
+was important, and some of the structure remains.
+
+Aubrey Jaffer wrote the SCM Scheme implementation and manual upon
+which the Guile program and manual are based.  Some portions of the
+SCM and SLIB manuals have been included here verbatim.
+
+Since Guile 1.4, Neil Jerram has been maintaining and improving the
+reference manual.  Among other contributions, he wrote the Basic
+Ideas chapter, developed the tools for keeping the manual in sync
+with snarfed libguile docstrings, and reorganized the structure so as
+to accommodate docstrings for all Guile's primitives.
+
+Martin Grabmueller has made substantial contributions throughout the
+reference manual in preparation for the Guile 1.6 release, including
+filling out a lot of the documentation of Scheme data types, control
+mechanisms and procedures.  In addition, he wrote the documentation
+for Guile's SRFI modules and modules associated with the Guile REPL.
+
+@iftex
 @section The Guile License
 @end iftex
 
