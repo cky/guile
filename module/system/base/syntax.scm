@@ -20,11 +20,10 @@
 ;;; Code:
 
 (define-module (system base syntax)
-  :use-module (ice-9 try)
   :use-module (ice-9 match)
   :use-module (ice-9 receive)
   :use-module (ice-9 and-let-star)
-  :export (try stack-catch match syntax-error receive and-let*))
+  :export (stack-catch match syntax-error receive and-let*))
 
 
 ;;;
