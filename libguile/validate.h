@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.13 2000-06-30 09:48:25 dirk Exp $ */
+/* $Id: validate.h,v 1.14 2000-09-03 21:56:03 mdj Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -181,6 +181,14 @@
 	cvar = 0.0;				\
         SCM_WTA (pos, z);			\
       }						\
+  } while (0)
+
+#define SCM_VALIDATE_NUMBER_DEF_COPY(pos, number, def, cvar)	\
+  do {								\
+    if (SCM_UNBNDP (number))					\
+      cvar = def;						\
+    else							\
+      SCM_VALIDATE_NUMBER_COPY(pos, number, cvar);		\
   } while (0)
 
 #define SCM_VALIDATE_INUM(pos, k) SCM_MAKE_VALIDATE (pos, k, INUMP)
