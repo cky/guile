@@ -4980,7 +4980,7 @@ scm_real_part (SCM z)
   else if (SCM_COMPLEXP (z))
     return scm_make_real (SCM_COMPLEX_REAL (z));
   else if (SCM_FRACTIONP (z))
-    return scm_make_real (scm_i_fraction2double (z));
+    return z;
   else
     SCM_WTA_DISPATCH_1 (g_real_part, z, SCM_ARG1, s_real_part);
 }
