@@ -1,3 +1,8 @@
+2000-06-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* common-list.scm (list*):  Removed, since this function is
+	implemented as a primitive in libguile/list.c.
+
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* session.scm (help): Warn user if 'regex isn't provided.

@@ -1,3 +1,7 @@
+2000-06-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* list.c (list*):  Added documentation from common-list.scm.
+
 2000-06-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_unprotect_object):  The reference count is guaranteed

@@ -91,7 +91,10 @@ SCM_DEFINE (scm_list, "list", 0, 0, 1,
 
 SCM_DEFINE (scm_list_star, "list*", 1, 0, 1, 
             (SCM arg, SCM rest),
-	    "Return an improper list of the arguments.")
+	    "Works like `list' except that it returns an improper list of\n"
+	    "the arguments, where the last argument is the cdr of the last\n"
+	    "pair.  If there is only one argument then the result is just\n"
+	    "that argument.  Sometimes this function is called cons*.")
 #define FUNC_NAME s_scm_list_star
 {
   SCM_VALIDATE_REST_ARGUMENT (rest);

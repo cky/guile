@@ -199,18 +199,6 @@ Returns everything that's left."
 	((member (car lst) (cdr lst)) #t)
 	(else (has-duplicates? (cdr lst)))))
 
-(define-public (list* x . y)
-  "Works like `list' except that the cdr of the last pair is
-the last argument unless there is only one argument, when
-th result is just that argument.  Sometiems called cons*."
-  (define (list*1 x)
-    (if (null? (cdr x))
-	(car x)
-	(cons (car x) (list*1 (cdr x)))))
-  (if (null? y)
-      x
-      (cons x (list*1 y))))
-
 (define-public (pick p l)
   "Apply P to each element of L, returning a list of elts
 for which P returns a non-#f value."
