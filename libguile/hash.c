@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997, 2000, 2001, 2003 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -171,7 +171,7 @@ SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
 	    "different values, since @code{foo} will be garbage collected.")
 #define FUNC_NAME s_scm_hashq
 {
-  SCM_VALIDATE_INUM_MIN (2, size, 0);
+  SCM_VALIDATE_INUM_MIN (2, size, 1);
   return SCM_I_MAKINUM (scm_ihashq (key, SCM_INUM (size)));
 }
 #undef FUNC_NAME
@@ -207,7 +207,7 @@ SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
 	    "different values, since @code{foo} will be garbage collected.")
 #define FUNC_NAME s_scm_hashv
 {
-  SCM_VALIDATE_INUM_MIN (2, size, 0);
+  SCM_VALIDATE_INUM_MIN (2, size, 1);
   return SCM_I_MAKINUM (scm_ihashv (key, SCM_INUM (size)));
 }
 #undef FUNC_NAME
@@ -230,7 +230,7 @@ SCM_DEFINE (scm_hash, "hash", 2, 0, 0,
 	    "integer in the range 0 to @var{size} - 1.")
 #define FUNC_NAME s_scm_hash
 {
-  SCM_VALIDATE_INUM_MIN (2, size, 0);
+  SCM_VALIDATE_INUM_MIN (2, size, 1);
   return SCM_I_MAKINUM (scm_ihash (key, SCM_INUM (size)));
 }
 #undef FUNC_NAME
