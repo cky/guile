@@ -1,3 +1,7 @@
+2002-02-22  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* api-diff: New script.
+
 2002-02-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Include $(top_srcdir)/pre-inst-guile.am.
