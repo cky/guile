@@ -33,6 +33,7 @@
 #include "libguile/feature.h"
 #include "libguile/strings.h"
 #include "libguile/unif.h"
+#include "libguile/srfi-4.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
@@ -426,34 +427,52 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
 #if SCM_HAVE_ARRAYS
 
 static void
-vector_scale (SCM v, double c)
+vector_scale_x (SCM v, double c)
 {
-  int n = scm_to_int (scm_uniform_vector_length (v));
+  size_t n;
   if (SCM_VECTORP (v))
-    while (--n >= 0)
-      SCM_REAL_VALUE (SCM_VELTS (v)[n]) *= c;
+    {
+      n = SCM_VECTOR_LENGTH (v);
+      while (n-- > 0)
+	SCM_REAL_VALUE (SCM_VELTS (v)[n]) *= c;
+    }
   else
-    while (--n >= 0)
-      ((double *) SCM_VELTS (v))[n] *= c;
+    {
+      /* must be a f64vector. */
+      double *elts = scm_f64vector_elements (v);
+      n = scm_c_uniform_vector_length (v);
+      while (n-- > 0)
+	elts[n] *= c;
+      scm_uniform_vector_release (v);
+    }
 }
 
 static double
 vector_sum_squares (SCM v)
 {
   double x, sum = 0.0;
-  int n = scm_to_int (scm_uniform_vector_length (v));
+  size_t n;
   if (SCM_VECTORP (v))
-    while (--n >= 0)
-      {
-	x = SCM_REAL_VALUE (SCM_VELTS (v)[n]);
-	sum += x * x;
-      }
+    {
+      n = SCM_VECTOR_LENGTH (v);
+      while (n-- > 0)
+	{
+	  x = SCM_REAL_VALUE (SCM_VELTS (v)[n]);
+	  sum += x * x;
+	}
+    }
   else
-    while (--n >= 0)
-      {
-	x = ((double *) SCM_VELTS (v))[n];
-	sum += x * x;
-      }
+    {
+      /* must be a f64vector. */
+      double *elts = scm_f64vector_elements (v);
+      n = scm_c_uniform_vector_length (v);
+      while (n-- > 0)
+	{
+	  x = elts[n];
+	  sum += x * x;
+	}
+      scm_uniform_vector_release (v);
+    }
   return sum;
 }
 
@@ -477,10 +496,10 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
   scm_random_normal_vector_x (v, state);
-  vector_scale (v,
-		pow (scm_c_uniform01 (SCM_RSTATE (state)),
-		     1.0 / scm_to_int (scm_uniform_vector_length (v)))
-		/ sqrt (vector_sum_squares (v)));
+  vector_scale_x (v,
+		  pow (scm_c_uniform01 (SCM_RSTATE (state)),
+		       1.0 / scm_to_int (scm_uniform_vector_length (v)))
+		  / sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -500,7 +519,7 @@ SCM_DEFINE (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
   scm_random_normal_vector_x (v, state);
-  vector_scale (v, 1 / sqrt (vector_sum_squares (v)));
+  vector_scale_x (v, 1 / sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -513,18 +532,27 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
             "(i.e., with mean 0 and variance 1).")
 #define FUNC_NAME s_scm_random_normal_vector_x
 {
-  int n;
-  SCM_VALIDATE_VECTOR_OR_DVECTOR (1, v);
+  size_t n;
+
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
-  n = scm_to_int (scm_uniform_vector_length (v));
   if (SCM_VECTORP (v))
-    while (--n >= 0)
-      SCM_VECTOR_SET (v, n, scm_from_double (scm_c_normal01 (SCM_RSTATE (state))));
+    {
+      n = SCM_VECTOR_LENGTH (v);
+      while (n-- > 0)
+	SCM_VECTOR_SET (v, n,
+			scm_from_double (scm_c_normal01 (SCM_RSTATE (state))));
+    }
   else
-    while (--n >= 0)
-      ((double *) SCM_VELTS (v))[n] = scm_c_normal01 (SCM_RSTATE (state));
+    {
+      /* must be a f64vector. */
+      double *elts = scm_f64vector_elements (v);
+      n = scm_c_uniform_vector_length (v);
+      while (n-- > 0)
+	elts[n] = scm_c_normal01 (SCM_RSTATE (state));
+      scm_uniform_vector_release (v);
+    }
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
