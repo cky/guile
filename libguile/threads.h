@@ -248,10 +248,10 @@ SCM_API SCM scm_thread_exited_p (SCM thread);
 
 SCM_API scm_root_state *scm_i_thread_root (SCM thread);
 
-#ifdef SCM_USE_PTHREAD_THREADS
-#include "libguile/pthread-threads.h"
+#if SCM_USE_PTHREAD_THREADS
+# include "libguile/pthread-threads.h"
 #else
-#include "libguile/null-threads.h"
+# include "libguile/null-threads.h"
 #endif
 
 #define SCM_CURRENT_THREAD \
