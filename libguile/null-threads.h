@@ -123,7 +123,7 @@ SCM_API void scm_cond_init (scm_t_cond *cv);
 SCM_API void scm_cond_destroy (scm_t_cond *cv);
 SCM_API void scm_cond_wait (scm_t_cond *cv, scm_t_mutex *mx);
 SCM_API int  scm_cond_timedwait (scm_t_cond *cv, scm_t_mutex *mx,
-				 struct timespec *abstime);
+				 scm_t_timespec *abstime);
 SCM_API void scm_cond_signal (scm_t_cond *cv);
 SCM_API void scm_cond_broadcast (scm_t_cond *cv);
 
