@@ -1,3 +1,10 @@
+2001-04-26  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-13-14.texi (Reverse/Append): Updated procedure names for
+	string-concatenate-reverse[/shared].
+	(Reverse/Append): Document the parameter `end' to
+	string-concatenate-reverse.
+
 2001-04-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* data-rep.texi (Defining New Types (Smobs)): Use non-deprecated

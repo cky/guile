@@ -541,7 +541,7 @@ Like @code{string-concatenate}, but the result may share memory
 with the strings in the list @var{ls}.
 @end deffn
 
-@deffn primitive reverse-string-concatenate ls final_string end
+@deffn primitive string-concatenate-reverse ls final_string end
 Without optional arguments, this procedure is equivalent to
 
 @smalllisp
@@ -550,13 +550,15 @@ Without optional arguments, this procedure is equivalent to
 
 If the optional argument @var{final_string} is specified, it is
 consed onto the beginning to @var{ls} before performing the
-list-reverse and string-concatenate operations.
+list-reverse and string-concatenate operations.  If @var{end}
+is given, only the characters of @var{final_string} up to index
+@var{end} are used.
 
 Guaranteed to return a freshly allocated string.
 @end deffn
 
-@deffn primitive reverse-string-concatenate/shared ls final_string end
-Like @code{reverse-string-concatenate}, but the result may
+@deffn primitive string-concatenate-reverse/shared ls final_string end
+Like @code{string-concatenate-reverse}, but the result may
 share memory with the the strings in the @var{ls} arguments.
 @end deffn
 
