@@ -59,11 +59,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
 AWK = @AWK@
 CC = @CC@
 CPP = @CPP@
-DLLTOOL = @DLLTOOL@
 GUILE_LIBS = @GUILE_LIBS@
 GUILE_MAJOR_VERSION = @GUILE_MAJOR_VERSION@
 GUILE_MINOR_VERSION = @GUILE_MINOR_VERSION@
@@ -102,10 +100,10 @@ bin_PROGRAMS = guile
 guile_SOURCES = guile.c
 guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 
-libguile_la_SOURCES =      alist.c arbiters.c async.c backtrace.c boolean.c chars.c     continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c evalext.c     feature.c filesys.c fluids.c fports.c gc.c gdbint.c genio.c     gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c     gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c ioext.c kw.c     list.c load.c macros.c mallocs.c markers.c modules.c net_db.c     numbers.c objects.c     objprop.c options.c pairs.c ports.c posix.c print.c procprop.c     procs.c ramap.c random.c read.c readline.c root.c scmsigs.c script.c     simpos.c smob.c socket.c sort.c srcprop.c stackchk.c stacks.c stime.c     strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c     throw.c unif.c variable.c vectors.c version.c vports.c weaks.c
+libguile_la_SOURCES =      alist.c arbiters.c async.c backtrace.c boolean.c chars.c     continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c evalext.c     feature.c filesys.c fluids.c fports.c gc.c gdbint.c genio.c     gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c     gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c ioext.c     keywords.c list.c load.c macros.c mallocs.c markers.c modules.c net_db.c     numbers.c objects.c     objprop.c options.c pairs.c ports.c posix.c print.c procprop.c     procs.c ramap.c random.c read.c readline.c root.c scmsigs.c script.c     simpos.c smob.c socket.c sort.c srcprop.c stackchk.c stacks.c stime.c     strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c     throw.c unif.c variable.c vectors.c version.c vports.c weaks.c
 
 
-BUILT_SOURCES =      cpp_err_symbols.c cpp_sig_symbols.c libpath.h     alist.x arbiters.x async.x backtrace.x boolean.x chars.x     continuations.x debug.x dynl.x dynwind.x eq.x error.x eval.x evalext.x     feature.x filesys.x fluids.x fports.x gc.x gdbint.x genio.x     gh_data.x gh_eval.x gh_funcs.x gh_init.x gh_io.x gh_list.x     gh_predicates.x gsubr.x guardians.x hash.x hashtab.x init.x ioext.x     iselect.x kw.x list.x load.x macros.x mallocs.x markers.x modules.x     net_db.x numbers.x     objects.x objprop.x options.x pairs.x ports.x posix.x print.x     procprop.x procs.x random.x ramap.x read.x readline.x regex-posix.x     root.x scmsigs.x script.x simpos.x smob.x socket.x sort.x srcprop.x     stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x     struct.x symbols.x tag.x threads.x throw.x unif.x variable.x vectors.x     version.x vports.x weaks.x
+BUILT_SOURCES =      cpp_err_symbols.c cpp_sig_symbols.c libpath.h     alist.x arbiters.x async.x backtrace.x boolean.x chars.x     continuations.x debug.x dynl.x dynwind.x eq.x error.x eval.x evalext.x     feature.x filesys.x fluids.x fports.x gc.x gdbint.x genio.x     gh_data.x gh_eval.x gh_funcs.x gh_init.x gh_io.x gh_list.x     gh_predicates.x gsubr.x guardians.x hash.x hashtab.x init.x ioext.x     iselect.x keywords.x list.x load.x macros.x mallocs.x markers.x modules.x     net_db.x numbers.x     objects.x objprop.x options.x pairs.x ports.x posix.x print.x     procprop.x procs.x random.x ramap.x read.x readline.x regex-posix.x     root.x scmsigs.x script.x simpos.x smob.x socket.x sort.x srcprop.x     stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x     struct.x symbols.x tag.x threads.x throw.x unif.x variable.x vectors.x     version.x vports.x weaks.x
 
 
 EXTRA_libguile_la_SOURCES = _scm.h     strerror.c inet_aton.c putenv.c     threads.c alloca.c     regex-posix.c iselect.c
@@ -124,7 +122,7 @@ pkginclude_HEADERS = gh.h
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
-modinclude_HEADERS =      __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h     continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h evalext.h     feature.h filesys.h fports.h gc.h gdb_interface.h gdbint.h genio.h     gsubr.h guardians.h hash.h hashtab.h init.h ioext.h kw.h list.h load.h     macros.h mallocs.h markers.h modules.h net_db.h numbers.h     objects.h objprop.h     options.h pairs.h ports.h posix.h regex-posix.h print.h procprop.h     procs.h random.h ramap.h read.h readline.h root.h scmsigs.h script.h     simpos.h smob.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h     strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h     tags.h throw.h unif.h variable.h vectors.h version.h vports.h     weaks.h snarf.h threads.h coop-defs.h fluids.h iselect.h
+modinclude_HEADERS =      __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h     continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h evalext.h     feature.h filesys.h fports.h gc.h gdb_interface.h gdbint.h genio.h     gsubr.h guardians.h hash.h hashtab.h init.h ioext.h keywords.h list.h     load.h macros.h mallocs.h markers.h modules.h net_db.h numbers.h     objects.h objprop.h     options.h pairs.h ports.h posix.h regex-posix.h print.h procprop.h     procs.h random.h ramap.h read.h readline.h root.h scmsigs.h script.h     simpos.h smob.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h     strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h     tags.h throw.h unif.h variable.h vectors.h version.h vports.h     weaks.h snarf.h threads.h coop-defs.h fluids.h iselect.h
 
 
 modinclude_DATA = scmconfig.h
@@ -166,14 +164,14 @@ boolean.lo chars.lo continuations.lo debug.lo dynl.lo dynwind.lo eq.lo \
 error.lo eval.lo evalext.lo feature.lo filesys.lo fluids.lo fports.lo \
 gc.lo gdbint.lo genio.lo gh_data.lo gh_eval.lo gh_funcs.lo gh_init.lo \
 gh_io.lo gh_list.lo gh_predicates.lo gsubr.lo guardians.lo hash.lo \
-hashtab.lo init.lo ioext.lo kw.lo list.lo load.lo macros.lo mallocs.lo \
-markers.lo modules.lo net_db.lo numbers.lo objects.lo objprop.lo \
-options.lo pairs.lo ports.lo posix.lo print.lo procprop.lo procs.lo \
-ramap.lo random.lo read.lo readline.lo root.lo scmsigs.lo script.lo \
-simpos.lo smob.lo socket.lo sort.lo srcprop.lo stackchk.lo stacks.lo \
-stime.lo strings.lo strop.lo strorder.lo strports.lo struct.lo \
-symbols.lo tag.lo throw.lo unif.lo variable.lo vectors.lo version.lo \
-vports.lo weaks.lo
+hashtab.lo init.lo ioext.lo keywords.lo list.lo load.lo macros.lo \
+mallocs.lo markers.lo modules.lo net_db.lo numbers.lo objects.lo \
+objprop.lo options.lo pairs.lo ports.lo posix.lo print.lo procprop.lo \
+procs.lo ramap.lo random.lo read.lo readline.lo root.lo scmsigs.lo \
+script.lo simpos.lo smob.lo socket.lo sort.lo srcprop.lo stackchk.lo \
+stacks.lo stime.lo strings.lo strop.lo strorder.lo strports.lo \
+struct.lo symbols.lo tag.lo throw.lo unif.lo variable.lo vectors.lo \
+version.lo vports.lo weaks.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 guile_OBJECTS =  guile.o
@@ -215,19 +213,19 @@ DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/arbiters.P .deps/async.P \
 .deps/gh_list.P .deps/gh_predicates.P .deps/gh_test_c.P \
 .deps/gh_test_repl.P .deps/gsubr.P .deps/guardians.P .deps/guile.P \
 .deps/hash.P .deps/hashtab.P .deps/inet_aton.P .deps/init.P \
-.deps/ioext.P .deps/iselect.P .deps/kw.P .deps/list.P .deps/load.P \
-.deps/macros.P .deps/mallocs.P .deps/markers.P .deps/modules.P \
-.deps/net_db.P .deps/numbers.P .deps/objects.P .deps/objprop.P \
-.deps/options.P .deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
-.deps/procprop.P .deps/procs.P .deps/putenv.P .deps/ramap.P \
-.deps/random.P .deps/read.P .deps/readline.P .deps/regex-posix.P \
-.deps/root.P .deps/scmsigs.P .deps/script.P .deps/simpos.P .deps/smob.P \
-.deps/socket.P .deps/sort.P .deps/srcprop.P .deps/stackchk.P \
-.deps/stacks.P .deps/stime.P .deps/strerror.P .deps/strings.P \
-.deps/strop.P .deps/strorder.P .deps/strports.P .deps/struct.P \
-.deps/symbols.P .deps/tag.P .deps/threads.P .deps/throw.P .deps/unif.P \
-.deps/variable.P .deps/vectors.P .deps/version.P .deps/vports.P \
-.deps/weaks.P
+.deps/ioext.P .deps/iselect.P .deps/keywords.P .deps/list.P \
+.deps/load.P .deps/macros.P .deps/mallocs.P .deps/markers.P \
+.deps/modules.P .deps/net_db.P .deps/numbers.P .deps/objects.P \
+.deps/objprop.P .deps/options.P .deps/pairs.P .deps/ports.P \
+.deps/posix.P .deps/print.P .deps/procprop.P .deps/procs.P \
+.deps/putenv.P .deps/ramap.P .deps/random.P .deps/read.P \
+.deps/readline.P .deps/regex-posix.P .deps/root.P .deps/scmsigs.P \
+.deps/script.P .deps/simpos.P .deps/smob.P .deps/socket.P .deps/sort.P \
+.deps/srcprop.P .deps/stackchk.P .deps/stacks.P .deps/stime.P \
+.deps/strerror.P .deps/strings.P .deps/strop.P .deps/strorder.P \
+.deps/strports.P .deps/struct.P .deps/symbols.P .deps/tag.P \
+.deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
+.deps/vectors.P .deps/version.P .deps/vports.P .deps/weaks.P
 SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES) $(guile_SOURCES) $(gh_test_c_SOURCES) $(gh_test_repl_SOURCES)
 OBJECTS = $(libguile_la_OBJECTS) $(guile_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test_repl_OBJECTS)
 
