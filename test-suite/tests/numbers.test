@@ -1790,6 +1790,13 @@
 ;;; *
 ;;;
 
+(with-test-prefix "*"
+
+  (pass-if "complex * bignum"
+    (let ((big (ash 1 90)))
+      (= (make-rectangular big big)
+	 (* 1+1i big)))))
+
 ;;;
 ;;; /
 ;;;
