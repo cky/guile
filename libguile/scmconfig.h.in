@@ -176,6 +176,9 @@
 /* Define if usleep doesn't return a value. */
 #undef USLEEP_RETURNS_VOID
 
+/* Define if your readline library has the rl_getc_function variable.  */
+#define HAVE_RL_GETC_FUNCTION 1
+
 /* Define if you have the bzero function.  */
 #undef HAVE_BZERO
 
@@ -277,9 +280,6 @@
 
 /* Define if you have the rl_clear_signals function.  */
 #undef HAVE_RL_CLEAR_SIGNALS
-
-/* Define if you have the rl_getc_function function.  */
-#undef HAVE_RL_GETC_FUNCTION
 
 /* Define if you have the rmdir function.  */
 #undef HAVE_RMDIR
