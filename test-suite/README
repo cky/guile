@@ -1,0 +1,21 @@
+This directory contains some tests for Guile, and some generic test
+support code.
+
+Right now, we only have tests for I/O ports.
+
+To run the test suite, you'll need to:
+- edit the path to the guile interpreter in `guile-test', and 
+- edit the paths in `paths.scm', so `guile-test' can find the test
+  scripts.
+
+Once that's done, you can just run the `guile-test' script.  That
+script has usage instructions in the comments at the top.
+
+You can reference the file `lib.scm' from your own code as the module
+(test-suite lib); it also has comments at the top and before each
+function explaining what's going on.
+
+Please write more Guile tests, and send them to bug-guile@gnu.org.
+We'll merge them into the distribution.  All test suites must be
+licensed for our use under the GPL, but I don't think I'm going to
+collect assignment papers for them.

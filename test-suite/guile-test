@@ -1,0 +1,162 @@
+#!/usr/local/bin/guile \
+-e main -s
+!#
+
+;;;; guile-test --- run the Guile test suite
+;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
+;;;;
+;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+
+
+
+;;;; Usage: guile-test [--log-file LOG] [TEST ...]
+;;;;
+;;;; Run tests from the Guile test suite.  Report failures and
+;;;; unexpected passes to the standard output, along with a summary of
+;;;; all the results.  Record each reported test outcome in the log
+;;;; file, `guile.log'.
+;;;;
+;;;; Normally, guile-test scans the test directory, and executes all
+;;;; files whose names end in `.test'.  (It assumes they contain
+;;;; Scheme code.)  However, you can have it execute specific tests by
+;;;; listing their filenames on the command line.
+;;;;
+;;;; If present, the `--log-file LOG' option tells `guile-test' to put
+;;;; the log output in a file named LOG.
+;;;;
+;;;; Installation:
+;;;;
+;;;; Change the #! line at the top of this script to point at the
+;;;; Guile interpreter you want to test.  Edit `test-suite/paths.scm'
+;;;; so that datadir points to the parent directory of the `tests' tree.
+;;;;
+;;;; Shortcomings:
+;;;;
+;;;; At the moment, due to a simple-minded implementation, test files
+;;;; must live in the test directory, and you must specify their names
+;;;; relative to the top of the test directory.  If you want to send
+;;;; me a patche that fixes this, but still leaves sane test names in
+;;;; the log file, that would be great.  At the moment, all the tests
+;;;; I care about are in the test directory, though.
+;;;;
+;;;; It would be nice if you could specify the Guile interpreter you
+;;;; want to test on the command line.  As it stands, if you want to
+;;;; change which Guile interpreter you're testing, you need to edit
+;;;; the #! line at the top of this file, which is stupid.
+
+(use-modules (test-suite lib)
+	     (test-suite paths)
+	     (ice-9 getopt-long)
+	     (ice-9 and-let*))
+
+
+;;; General utilities, that probably should be in a library somewhere.
+
+;;; Traverse the directory tree at ROOT, applying F to the name of
+;;; each file in the tree, including ROOT itself.  For a subdirectory
+;;; SUB, if (F SUB) is true, we recurse into SUB.  Do not follow
+;;; symlinks.
+(define (for-each-file f root)
+
+  ;; A "hard directory" is a path that denotes a directory and is not a 
+  ;; symlink.
+  (define (file-is-hard-directory? filename)
+    (eq? (stat:type (lstat filename)) 'directory))
+
+  (let visit ((root root))
+    (let ((should-recur (f root)))
+      (if (and should-recur (file-is-hard-directory? root))
+	  (let ((dir (opendir root)))
+	    (let loop ()
+	      (let ((entry (readdir dir)))
+		(cond 
+		 ((eof-object? entry) #f)
+		 ((or (string=? entry ".")
+		      (string=? entry ".."))
+		  (loop))
+		 (else
+		  (visit (string-append root "/" entry))
+		  (loop))))))))))
+
+
+
+;;; The test driver.
+
+(define test-root (in-vicinity datadir "tests"))
+
+(define (test-file-name test)
+  (in-vicinity test-root test))
+
+;;; Return a list of all the test files in the test tree.
+(define (enumerate-tests)
+  (let ((root-len (+ 1 (string-length test-root)))
+	(tests '()))
+    (for-each-file (lambda (file)
+		     (if (has-suffix? file ".test")
+			 (let ((short-name
+				(substring file root-len)))
+			   (set! tests (cons short-name tests))))
+		     #t)
+		   test-root)
+
+    ;; for-each-file presents the files in whatever order it finds
+    ;; them in the directory.  We sort them here, so they'll always
+    ;; appear in the same order.  This makes it easier to compare test
+    ;; log files mechanically.
+    (sort tests string<?)))
+
+(define (main args)
+  (let ((options (getopt-long args
+			      `((log-file (single-char #\l)
+					  (value #t))))))
+    (define (opt tag default)
+      (let ((pair (assq tag options)))
+	(if pair (cdr pair) default)))
+    (let ((log-file (opt 'log-file "guile.log"))
+	  (tests (let ((foo (opt '() '())))
+		   (if (null? foo) (enumerate-tests)
+		       foo))))
+
+      ;; Open the log file.
+      (let ((log-port (open-output-file log-file)))
+
+	;; Register some reporters.
+	(let ((counter (make-count-reporter)))
+	  (register-reporter (car counter))
+	  (register-reporter (make-log-reporter log-port))
+	  (register-reporter user-reporter)
+
+	  ;; Run the tests.
+	  (for-each (lambda (test)
+		      (with-test-prefix test
+			(catch-test-errors
+			 (load (test-file-name test)))))
+		    tests)
+
+	  ;; Display the final counts, both to the user and in the log
+	  ;; file.
+	  (let ((counts ((cadr counter))))
+	    (print-counts counts)
+	    (print-counts counts log-port))
+
+	  (close-port log-port))))))
+
+
+;;; Local Variables:
+;;; mode: scheme
+;;; End:
