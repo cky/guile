@@ -325,8 +325,15 @@ extern SCM scm_ulong_long2num (unsigned long long sl);
 extern long long scm_num2long_long (SCM num, unsigned long int pos,
                                     const char *s_caller);
 extern unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
-				      const char *s_caller);
+					      const char *s_caller);
 #endif
+
+extern SCM scm_float2num (float n);
+extern SCM scm_double2num (double n);
+extern float scm_num2float (SCM num, unsigned long int pos,
+			    const char *s_caller);
+extern double scm_num2double (SCM num, unsigned long int pos,
+			      const char *s_caller);
 
 extern void scm_init_numbers (void);
 

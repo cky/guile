@@ -116,6 +116,12 @@
 #define SCM_NUM2ULONG_LONG_DEF(pos, arg, def) \
   (SCM_UNBNDP (arg) ? def : scm_num2ulong_long (arg, pos, FUNC_NAME))
 
+#define SCM_NUM2FLOAT(pos, arg) \
+  (scm_num2float (arg, pos, FUNC_NAME))
+
+#define SCM_NUM2DOUBLE(pos, arg) \
+  (scm_num2double (arg, pos, FUNC_NAME))
+
 #define SCM_OUT_OF_RANGE(pos, arg) \
   do { scm_out_of_range_pos (FUNC_NAME, arg, SCM_MAKINUM (pos)); } while (0)
 
@@ -230,6 +236,16 @@
 #define SCM_VALIDATE_LONG_COPY(pos, k, cvar) \
   do { \
     cvar = SCM_NUM2LONG (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_FLOAT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2FLOAT (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_DOUBLE_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2DOUBLE (pos, k); \
   } while (0)
 
 #define SCM_VALIDATE_BIGINT(pos, k) SCM_MAKE_VALIDATE (pos, k, BIGP)

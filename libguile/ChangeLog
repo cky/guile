@@ -1,3 +1,11 @@
+2001-09-23  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* validate.h (SCM_NUM2FLOAT, SCM_NUM2DOUBLE,
+	SCM_VALIDATE_FLOAT_COPY, SCM_VALIDATE_DOUBLE_COPY): New
+	macros. (The NUM names might soon change.)
+
+	* numbers.h: Added missing declarations.
+
 2001-09-22  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* Makefile.am: Distribute num2float.i.c.
