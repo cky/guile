@@ -6,10 +6,10 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = md time
 
 lib_LIBRARIES = @target_libs@
-EXTRA_LIBRARIES = libqt.a
+EXTRA_LIBRARIES = libqthreads.a
 
-libqt_a_SOURCES = qt.c copyright.h
-libqt_a_LIBADD = qtmds.o qtmdc.o
+libqthreads_a_SOURCES = qt.c copyright.h
+libqthreads_a_LIBADD = qtmds.o qtmdc.o
 
 qtmds.o: @qtmds_s@ 
 	$(COMPILE) -c @qtmds_s@

@@ -88,10 +88,10 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = md time
 
 lib_LIBRARIES = @target_libs@
-EXTRA_LIBRARIES = libqt.a
+EXTRA_LIBRARIES = libqthreads.a
 
-libqt_a_SOURCES = qt.c copyright.h
-libqt_a_LIBADD = qtmds.o qtmdc.o
+libqthreads_a_SOURCES = qt.c copyright.h
+libqthreads_a_LIBADD = qtmds.o qtmdc.o
 
 EXTRA_DIST = CHANGES README.MISC README.PORT b.h meas.c stp.c stp.h \
 Makefile.base config
@@ -105,8 +105,8 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../libguile
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libqt_a_DEPENDENCIES =  qtmds.o qtmdc.o
-libqt_a_OBJECTS =  qt.o
+libqthreads_a_DEPENDENCIES =  qtmds.o qtmdc.o
+libqthreads_a_OBJECTS =  qt.o
 AR = ar
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
@@ -120,8 +120,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP = --best
 DEP_FILES =  .deps/qt.P
-SOURCES = $(libqt_a_SOURCES)
-OBJECTS = $(libqt_a_OBJECTS)
+SOURCES = $(libqthreads_a_SOURCES)
+OBJECTS = $(libqthreads_a_OBJECTS)
 
 default: all
 
@@ -195,10 +195,10 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-libqt.a: $(libqt_a_OBJECTS) $(libqt_a_DEPENDENCIES)
-	-rm -f libqt.a
-	$(AR) cru libqt.a $(libqt_a_OBJECTS) $(libqt_a_LIBADD)
-	$(RANLIB) libqt.a
+libqthreads.a: $(libqthreads_a_OBJECTS) $(libqthreads_a_DEPENDENCIES)
+	-rm -f libqthreads.a
+	$(AR) cru libqthreads.a $(libqthreads_a_OBJECTS) $(libqthreads_a_LIBADD)
+	$(RANLIB) libqthreads.a
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
