@@ -526,6 +526,44 @@ are now incorrect, since they will return early, and fail to mark any
 other objects the smob refers to.  Some code in the Guile library used
 to work this way.
 
+** The semantics of the I/O port functions in scm_ptobfuns have changed.
+
+If you have implemented your own I/O port type, by writing the
+functions required by the scm_ptobfuns and then calling scm_newptob,
+you will need to change your functions slightly.
+
+The functions in a scm_ptobfuns structure now expect the port itself
+as their argument; they used to expect the `stream' member of the
+port's scm_port_table structure.  This allows functions in an
+scm_ptobfuns structure to easily access the port's cell (and any flags
+it its CAR), and the port's scm_port_table structure.
+
+Guile now passes the I/O port itself as the `port' argument in the
+following scm_ptobfuns functions:
+
+  int (*free) (SCM port);
+  int (*fputc) (int, SCM port);
+  int (*fputs) (char *, SCM port);
+  scm_sizet (*fwrite) SCM_P ((char *ptr,
+			      scm_sizet size,
+			      scm_sizet nitems,
+			      SCM port));
+  int (*fflush) (SCM port);
+  int (*fgetc) (SCM port);
+  int (*fclose) (SCM port);
+
+The interfaces to the `mark', `print', `equalp', and `fgets' methods
+are unchanged.
+
+If you have existing code which defines its own port types, it is easy
+to convert your code to the new interface; simply apply SCM_STREAM to
+the port argument to yield the value you code used to expect.
+
+Note that since both the port and the stream have the same type in the
+C code --- they are both SCM values --- the C compiler will not remind
+you if you forget to update your scm_ptobfuns functions.
+
+
 ** Function: int scm_internal_select (int fds,
 				      SELECT_TYPE *rfds,
 				      SELECT_TYPE *wfds,

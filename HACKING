@@ -138,7 +138,7 @@ the configure script.
 those are vestiges of a time when Guile was meant to compile on
 pre-ANSI compilers.  Guile now requires ANSI C, so when you write new
 functions, feel free to use ANSI declarations, and please provide
-prototypes for everything.
+prototypes for everything.  You don't need to use SCM_P in new code.
 
 
 Jim Blandy
