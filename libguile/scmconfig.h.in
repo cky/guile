@@ -134,6 +134,10 @@
 #undef GUILE_MINOR_VERSION
 #undef GUILE_VERSION
 
+/* Define this to include various undocumented functions used to debug
+   the Guile library itself.  */
+#undef GUILE_DEBUG
+
 /* Define if using cooperative multithreading.  */
 #undef USE_COOP_THREADS
 
