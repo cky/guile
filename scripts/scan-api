@@ -204,10 +204,11 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                 i))
       (format #t "  (sofile . ~S)\n" sofile)
       (format #t "  ~A\n"
-              (cons 'groups (if grouper
-                                (map (lambda (p) (get p 'name))
-                                     (hook->list grouper))
-                                '(Scheme C))))
+              (cons 'groups (append (if grouper
+                                        (map (lambda (p) (get p 'name))
+                                             (hook->list grouper))
+                                        '())
+                                    '(Scheme C))))
       (format #t ") ;; end of meta\n")
       (format #t "(interface\n")
       (for-each (lambda (x)
