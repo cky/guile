@@ -1,3 +1,8 @@
+2000-07-01  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* boot-9.scm (process-define-module): Bugfix: Only check the CDR
+	for export args.
+
 2000-06-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* popen.scm:  gc-thunk is deprecated.  Use after-gc-hook instead.
