@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include "guile-ltdl.h"
 
 #define lt_dlhandle_struct scm_i_lt_dlhandle_struct
+#define SCM_INSERTED_DLSYMLIST_STRUCT_DECL scm_i_lt_dlsymlist_struct
 
 #define LT_SCOPE static
 #define SCMLTXT static
@@ -43,10 +44,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include "raw-ltdl.c"
 
 void
-scm_lt_dlset_preloaded_symbols (void)
+scm_lt_dlpreload_default (const scm_lt_dlsymlist *preloads)
 {
-  extern const lt_dlsymlist lt_preloaded_symbols[];
-  lt_dlpreload_default(lt_preloaded_symbols);
+  lt_dlpreload_default(preloads);
 }
 
 int
