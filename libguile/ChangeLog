@@ -1,3 +1,8 @@
+Thu Jul  3 16:31:24 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* root.c (cwdr_outer_body): Bugfix: Pass `c' instead of `&c' to
+ 	scm_internal_catch.
+
 Sat Jun 28 16:14:09 1997  Tim Pierce  <twp@twp.tezcat.com>
 
 	* Makefile.am (libguile_la_LIBADD): Remove @ALLOCA@, since
