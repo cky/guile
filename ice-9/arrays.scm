@@ -24,12 +24,14 @@
 
 ;; deprecated
 
-(define uniform-vector-fill! array-fill!)
+(begin-deprecated
 
-(define make-uniform-vector dimensions->uniform-array)
+ (define uniform-vector-fill! array-fill!)
 
-(define (make-uniform-array prot . args)
-  (dimensions->uniform-array args prot))
+ (define make-uniform-vector dimensions->uniform-array)
 
-(define (list->uniform-vector prot lst)
-  (list->uniform-array 1 prot lst))
+ (define (make-uniform-array prot . args)
+   (dimensions->uniform-array args prot))
+ 
+ (define (list->uniform-vector prot lst)
+   (list->uniform-array 1 prot lst)))
