@@ -63,4 +63,4 @@ dist-hook:
 	 sed -e 's|\([ 	]\)\(\.\./\(\|libguile/\|guile-readline/\)[a-z_-]*\.h\)|\1$$(srcdir)/\2|g' $(distdir)/Makefile.in \
 	 | sed -e 's|\$$(srcdir)/\(\.\./libguile/\(libpath\|scmconfig\|versiondat\)\)|\1|g' \
 	 | sed -e 's|\.\./guile-readline/\([a-z_-]*\.x\)|\1|g' > $$temp \
-	 && cp -p $$temp $(distdir)/Makefile.in)
+	 && chmod u+w $(distdir)/Makefile.in && cp -p $$temp $(distdir)/Makefile.in)
