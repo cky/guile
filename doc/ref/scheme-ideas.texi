@@ -508,6 +508,7 @@ expressions.
 
 @menu
 * Evaluating::                  How a Scheme program is executed.
+* Tail Calls::                  Space-safe recursion.
 * The REPL::                    Interacting with the Guile interpreter.
 * Syntax Summary::              Common syntactic expressions -- in brief.
 @end menu
@@ -782,6 +783,121 @@ procedure is invoked.
 The rules for evaluating each special syntactic expression are specified
 individually for each special syntax.  For a summary of standard special
 syntax, see @xref{Syntax Summary}.
+
+
+@node Tail Calls
+@subsubsection Tail calls
+@cindex tail calls
+@cindex recursion
+
+Scheme is ``properly tail recursive'', meaning that tail calls or
+recursions from certain contexts do not consume stack space or other
+resources and can therefore be used on arbitrarily large data or for
+an arbitrarily long calculation.  Consider for example,
+
+@example
+(define (foo n)
+  (display n)
+  (newline)
+  (foo (1+ n)))
+
+(foo 1)
+@print{}
+1
+2
+3
+@dots{}
+@end example
+
+@code{foo} prints numbers infinitely, starting from the given @var{n}.
+It's implemented by printing @var{n} then recursing to itself to print
+@math{@var{n}+1} and so on.  This recursion is a tail call, it's the
+last thing done, and in Scheme such tail calls can be made without
+limit.
+
+Or consider a case where a value is returned, a version of the SRFI-1
+@code{last} function (@pxref{SRFI-1 Selectors}) returning the last
+element of a list,
+
+@example
+(define (my-last lst)
+  (if (null? (cdr lst))
+      (car lst)
+      (my-last (cdr lst))))
+
+(my-last '(1 2 3)) @result{} 3      
+@end example
+
+If the list has more than one element, @code{my-last} applies itself
+to the @code{cdr}.  This recursion is a tail call, there's no code
+after it, and the return value is the return value from that call.  In
+Scheme this can be used on an arbitrarily long list argument.
+
+@sp 1
+A proper tail call is only available from certain contexts, namely the
+following special form positions,
+
+@itemize @bullet
+@item
+@code{and} --- last expression
+
+@item
+@code{begin} --- last expression
+     
+@item
+@code{case} --- last expression in each clause
+
+@item
+@code{cond} --- last expression in each clause, and the call to a
+@code{=>} procedure is a tail call
+
+@item
+@code{do} --- last result expression
+
+@item
+@code{if} --- ``true'' and ``false'' leg expressions
+
+@item
+@code{lambda} --- last expression in body
+
+@item
+@code{let}, @code{let*}, @code{letrec}, @code{let-syntax},
+@code{letrec-syntax} --- last expression in body
+
+@item
+@code{or} --- last expression
+@end itemize
+
+@noindent
+The following core functions make tail calls,
+
+@itemize @bullet
+@item
+@code{apply} --- tail call to given procedure
+
+@item
+@code{call-with-current-continuation} --- tail call to the procedure
+receiving the new continuation
+
+@item
+@code{call-with-values} --- tail call to given procedure
+
+@item
+@code{eval} --- tail call to evaluate the form
+
+@item
+@code{string-any}, @code{string-every} --- tail call to predicate on
+the last character (if that point is reached)
+@end itemize
+
+@sp 1
+The above are just the core functions and special forms, tail calls in
+other modules are described with the relevant documentation, for
+example SRFI-1 @code{any} and @code{every} (@pxref{SRFI-1 Searching}).
+
+It will be noted there are a lot of places which could potentially be
+tail calls, for instance the last call in a @code{for-each}, but only
+those explicitly described are guaranteed.
 
 
 @node The REPL
