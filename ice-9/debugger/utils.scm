@@ -10,6 +10,48 @@
 	    write-state-long
 	    write-state-short))
 
+;;; Procedures in this module print information about a stack frame.
+;;; The available information is as follows.
+;;;
+;;; * Source code location.
+;;;
+;;; For an evaluation frame, this is the location recorded at the time
+;;; that the expression being evaluated was read, if the 'positions
+;;; read option was enabled at that time.
+;;;
+;;; For an application frame, I'm not yet sure.  Some applications
+;;; seem to have associated source expressions.
+;;;
+;;; * Whether frame is still evaluating its arguments.
+;;;
+;;; Only applies to an application frame.  For example, an expression
+;;; like `(+ (* 2 3) 4)' goes through the following stages of
+;;; evaluation.
+;;;
+;;; (+ (* 2 3) 4)       -- evaluation
+;;; [+ ...              -- application; the car of the evaluation
+;;;                        has been evaluated and found to be a
+;;;                        procedure; before this procedure can
+;;;                        be applied, its arguments must be evaluated
+;;; [+ 6 ...            -- same application after evaluating the
+;;;                        first argument
+;;; [+ 6 4]             -- same application after evaluating all
+;;;                        arguments
+;;; 10                  -- result
+;;;
+;;; * Whether frame is real or tail-recursive.
+;;;
+;;; If a frame is tail-recursive, its containing frame as shown by the
+;;; debugger backtrace doesn't really exist as far as the Guile
+;;; evaluator is concerned.  The effect of this is that when a
+;;; tail-recursive frame returns, it looks as though its containing
+;;; frame returns at the same time.  (And if the containing frame is
+;;; also tail-recursive, _its_ containing frame returns at that time
+;;; also, and so on ...)
+;;;
+;;; A `real' frame is one that is not tail-recursive.
+
+
 (define (write-state-short state)
   (let* ((frame (stack-ref (state-stack state) (state-index state)))
 	 (source (frame-source frame))
