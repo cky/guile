@@ -251,9 +251,10 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
   SCM result = scm_i_mkbig ();
   const size_t m_bits = mpz_sizeinbase (SCM_I_BIG_MPZ (m), 2);
   /* how many bits would only partially fill the last unsigned long? */
-  const size_t end_bits = m_bits % (sizeof (unsigned long) * 8);
+  const size_t end_bits = m_bits % (sizeof (unsigned long) * SCM_CHAR_BIT);
   unsigned long *random_chunks = NULL;
-  const unsigned long num_full_chunks = m_bits / (sizeof (unsigned long) * 8);
+  const unsigned long num_full_chunks =
+    m_bits / (sizeof (unsigned long) * SCM_CHAR_BIT);
   const unsigned long num_chunks = num_full_chunks + ((end_bits) ? 1 : 0);
 
   /* we know the result will be this big */
@@ -275,7 +276,7 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
           /* generate a mask with ones in the end_bits position, i.e. if
              end_bits is 3, then we'd have a mask of ...0000000111 */
           const unsigned long rndbits = scm_the_rng.random_bits (state);
-          int rshift = (sizeof (unsigned long) * 8) - end_bits;
+          int rshift = (sizeof (unsigned long) * SCM_CHAR_BIT) - end_bits;
           unsigned long mask = ((unsigned long) ULONG_MAX) >> rshift;
           unsigned long highest_bits = rndbits & mask;
           *current_chunk-- = highest_bits;
