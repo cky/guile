@@ -1,5 +1,5 @@
 ;;;; exceptions.test --- tests for Guile's exception handling  -*- scheme -*-
-;;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -15,6 +15,8 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+
+(use-modules (test-suite lib))
 
 (with-test-prefix "throw/catch"
 
@@ -59,3 +61,24 @@
       (catch 'a
 	(lambda () (throw 'a))
 	(lambda (x y . rest) #f)))))
+
+(with-test-prefix "false-if-exception"
+  
+  (pass-if (false-if-exception #t))
+  (pass-if (not (false-if-exception #f)))
+  (pass-if (not (false-if-exception (error "xxx"))))
+  
+  (with-test-prefix "in empty environment"
+    ;; an environment with no bindings at all
+    (define empty-environment
+      (make-module 1))
+    
+    (pass-if "#t"
+      (eval `(,false-if-exception #t)
+	    empty-environment))
+    (pass-if "#f"
+      (not (eval `(,false-if-exception #f)
+		 empty-environment)))
+    (pass-if "exception"
+      (not (eval `(,false-if-exception (,error "xxx"))
+		 empty-environment)))))
