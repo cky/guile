@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,2000,2001, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -229,8 +229,10 @@ scm_c_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
   
   data = scm_cons (fluids, values);
   scm_frame_begin (SCM_F_FRAME_REWINDABLE);
-  scm_frame_rewind_with_scm (swap_fluids, data, SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_with_scm (swap_fluids_reverse, data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_rewind_handler_with_scm (swap_fluids, data,
+				     SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler_with_scm (swap_fluids_reverse, data,
+				     SCM_F_WIND_EXPLICITLY);
   ans = cproc (cdata);
   scm_frame_end ();
   return ans;
@@ -275,8 +277,8 @@ void
 scm_frame_fluid (SCM fluid, SCM value)
 {
   SCM data = scm_cons (fluid, value);
-  scm_frame_rewind_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_rewind_handler_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
 }
 
 void

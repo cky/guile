@@ -53,15 +53,15 @@ typedef enum {
 SCM_API void scm_frame_begin (scm_t_frame_flags);
 SCM_API void scm_frame_end (void);
 
-SCM_API void scm_frame_unwind (void (*func) (void *), void *data,
-			       scm_t_wind_flags);
-SCM_API void scm_frame_rewind (void (*func) (void *), void *data,
-			       scm_t_wind_flags);
+SCM_API void scm_frame_unwind_handler (void (*func) (void *), void *data,
+				       scm_t_wind_flags);
+SCM_API void scm_frame_rewind_handler (void (*func) (void *), void *data,
+				       scm_t_wind_flags);
 
-SCM_API void scm_frame_unwind_with_scm (void (*func) (SCM), SCM data,
-					scm_t_wind_flags);
-SCM_API void scm_frame_rewind_with_scm (void (*func) (SCM), SCM data,
-					scm_t_wind_flags);
+SCM_API void scm_frame_unwind_handler_with_scm (void (*func) (SCM), SCM data,
+						scm_t_wind_flags);
+SCM_API void scm_frame_rewind_handler_with_scm (void (*func) (SCM), SCM data,
+						scm_t_wind_flags);
 
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_wind_chain (void);

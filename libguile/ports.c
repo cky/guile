@@ -453,8 +453,10 @@ scm_frame_current_foo_port (SCM port,
   data->getter = getter;
   data->setter = setter;
   
-  scm_frame_rewind_with_scm (swap_port, scm_data, SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_with_scm (swap_port, scm_data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_rewind_handler_with_scm (swap_port, scm_data,
+				     SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler_with_scm (swap_port, scm_data,
+				     SCM_F_WIND_EXPLICITLY);
 }
 
 void
