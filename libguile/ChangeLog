@@ -1,3 +1,10 @@
+1999-03-18  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* error.c (scm_wta): Pass SCM_LIST1 (arg) instead of SCM_EOL to
+	scm_misc_error when pos is a string.  This allows for dispatching
+	arbitrary error messages with one argument via SCM_ASSERT:
+	SCM_ASSERT (<cond>, obj, "Undigestable object: %S", <subr>);
+
 1999-03-17  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* list.c (scm_reverse): Report an error if given a circular list
