@@ -34,7 +34,8 @@ DISTFILES =	COPYING \
 		configure.in \
 		config.sub \
 		config.guess \
-		install-sh
+		install-sh \
+		mkinstalldirs
 
 # `all'
 #     Compile the entire program.  This should be the default target.

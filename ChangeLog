@@ -1,5 +1,7 @@
 Fri Sep 13 14:39:30 1996  Mark Galassi  <rosalia@sarastro.lanl.gov>
 
+	* Makefile.in (DISTFILES): added mkinstalldirs to the DISTFILES
+
 	* PLUGIN: changed the PLUGIN/REQ files in the ice-9 and lgh
 	directories, to arrange for lgh to the last thing
 	configured/built.
