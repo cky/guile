@@ -1,3 +1,10 @@
+1998-10-08  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* .cvsignore: New file, containing data-rep.info.  I'm not sure
+ 	whether we want to check this file into CVS, because it's
+ 	generated; if you find compelling reasons it should be, let me
+	know.
+
 1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* New directory for documentation.
