@@ -77,10 +77,10 @@ typedef struct scm_freelist_t {
   SCM *clustertail;
   /* GC trigger */
   int triggeredp;
-  /* trigger GC ? */
-  int triggerp;
-  /* minimum number of objects allocated before GC is triggered
-     and cluster size.  */
+  /* minimum number of objects allocated before GC is triggered and
+   * cluster size.  These two concepts should be divorced when we go
+   * to POSIX threads.
+   */
   int gc_trigger;
 #endif
   /* number of cells per object on this list */
@@ -150,8 +150,8 @@ extern SCM scm_permanent_object (SCM obj);
 extern SCM scm_protect_object (SCM obj);
 extern SCM scm_unprotect_object (SCM obj);
 #ifdef GUILE_NEW_GC_SCHEME
-extern int scm_init_storage (scm_sizet init_heap_size, int tp, int trig,
-                             scm_sizet init_heap2_size, int tp2, int trig2);
+extern int scm_init_storage (scm_sizet init_heap_size, int trig,
+                             scm_sizet init_heap2_size, int trig2);
 #else
 extern int scm_init_storage (scm_sizet init_heap_size,
                              scm_sizet init_heap2_size);

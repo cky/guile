@@ -152,11 +152,11 @@
 #ifdef GUILE_NEW_GC_SCHEME
 SCM scm_freelist = SCM_EOL;
 scm_freelist_t scm_master_freelist = {
-  SCM_EOL, 0, SCM_EOL, SCM_EOL, 0, 0, 0, 1, 0, 0
+  SCM_EOL, 0, SCM_EOL, SCM_EOL, 0, 0, 1, 0, 0
 };
 SCM scm_freelist2 = SCM_EOL;
 scm_freelist_t scm_master_freelist2 = {
-  SCM_EOL, 0, SCM_EOL, SCM_EOL, 0, 0, 0, 2, 0, 0
+  SCM_EOL, 0, SCM_EOL, SCM_EOL, 0, 0, 2, 0, 0
 };
 #else
 scm_freelist_t scm_freelist = { SCM_EOL, 1, 0, 0 };
@@ -571,7 +571,7 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
     scm_igc ("cells");
   else if (SCM_NULLP (master->clusters))
     alloc_some_heap (master);
-  else if (master->triggerp && SCM_NULLP (SCM_CDR (master->clusters)))
+  else if (SCM_NULLP (SCM_CDR (master->clusters)))
     /* we are satisfied; GC instead of alloc next time around */
     master->triggeredp = 1;
   --scm_ints_disabled;
@@ -2213,8 +2213,8 @@ make_initial_segment (scm_sizet init_heap_size, scm_freelist_t *freelistp)
 
 #ifdef GUILE_NEW_GC_SCHEME
 int
-scm_init_storage (scm_sizet init_heap_size, int triggerp, int gc_trigger,
-		  scm_sizet init_heap2_size, int triggerp2, int gc_trigger2)
+scm_init_storage (scm_sizet init_heap_size, int gc_trigger,
+		  scm_sizet init_heap2_size, int gc_trigger2)
 #else
 int
 scm_init_storage (scm_sizet init_heap_size, scm_sizet init_heap2_size)
@@ -2231,7 +2231,6 @@ scm_init_storage (scm_sizet init_heap_size, scm_sizet init_heap2_size)
   scm_freelist = SCM_EOL;
   scm_master_freelist.clusters = SCM_EOL;
   scm_master_freelist.triggeredp = 0;
-  scm_master_freelist.triggerp = triggerp;
   scm_master_freelist.gc_trigger
     = gc_trigger ? gc_trigger : SCM_GC_TRIGGER;
   scm_master_freelist.span = 1;
@@ -2248,7 +2247,6 @@ scm_init_storage (scm_sizet init_heap_size, scm_sizet init_heap2_size)
   scm_freelist2 = SCM_EOL;
   scm_master_freelist2.clusters = SCM_EOL;
   scm_master_freelist2.triggeredp = 0;
-  scm_master_freelist2.triggerp = triggerp2;
   scm_master_freelist2.gc_trigger
     = gc_trigger2 ? gc_trigger2 : SCM_GC_TRIGGER2;
   scm_master_freelist2.span = 2;
