@@ -1,3 +1,7 @@
+2000-09-03  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* validate.h (SCM_VALIDATE_NUMBER_DEF_COPY): New macro.
+
 2000-09-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (.x.doc): Pretend to create .doc files from .x files
