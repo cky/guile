@@ -139,6 +139,6 @@
 %%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, init_val)
 #endif
 
-#define SCM_CONST_LONG(C_NAME, SCHEME_NAME,VALUE) SCM_VCELL_INIT(C_NAME, SCHEME_NAME, scm_long2num(VALUE));
+#define SCM_CONST_LONG(C_NAME, SCHEME_NAME,VALUE) SCM_VCELL_INIT(C_NAME, SCHEME_NAME, scm_long2num(VALUE))
 
 #endif /* LIBGUILE_SNARF_H */
