@@ -124,7 +124,7 @@ Output a newline character, thus advancing to the next output line.
 
 @item ~&
 Start a new line, that is, output a newline character if not already
-at the statr of a line.
+at the start of a line.
 
 @item ~_
 Output a single space character.
@@ -173,8 +173,8 @@ Output the corresponding @var{arg} in exponential notation, such as
 @code{1.34E+0}.
 
 @item ~g
-%% FIXME::martin: There must be a difference.  Does anybody know?
-Like @code{~f}.  
+This works either like @code{~f} or like @code{~e}, whichever produces
+less characters to be written.
 
 @item ~$
 Like @code{~f}, but only with two digits after the decimal point.

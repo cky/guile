@@ -1,3 +1,15 @@
+2001-09-26  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-modules.texi (SRFI-13): Tyop fix.
+	(SRFI-13): Changed paragraph about bindings both in the code and
+	in SRFI-13.
+
+	* misc-modules.texi (Formatted Output): Tyop fix.
+	(Formatted Output): Document ~g properly.
+
+	Thanks to Alex Schroeder for pointing out the typos and sending
+	suggestions.
+	
 2001-09-25  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* scheme-procedures.texi (Syntax Rules): Add `cindex' directive.

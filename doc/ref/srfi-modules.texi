@@ -1124,11 +1124,11 @@ please refer to the relevant chapters in the Guile Reference Manual, for
 example the documentation of strings and string procedures
 (@pxref{Strings}).
 
-All of the procedures defined in SRFI-13, which are not already included
-in the Guile core library, are implemented in the module @code{(srfi
-srfi-13)}.  The procedures which are both in Guile and in SRFI-13, but
-which are slightly extended, have been implemented in this module, and
-the bindings overwrite those in the Guile core.
+All of the procedures defined in SRFI-13, which are not already
+included in the Guile core library, are implemented in the module
+@code{(srfi srfi-13)}.  The procedures which are both in Guile and in
+SRFI-13 are slightly extended in this module.  Their bindings
+overwrite those in the Guile core.
 
 The procedures which are defined in the section @emph{Low-level
 procedures} of SRFI-13 for parsing optional string indices, substring
@@ -1152,7 +1152,7 @@ soon as possible.
 * SRFI-13 Case Mapping::        Mapping to lower-/upper-case.
 * SRFI-13 Reverse/Append::      Reverse and append strings.
 * SRFI-13 Fold/Unfold/Map::     Construct/deconstruct strings.
-* SRFI-13 Replicate/Rotate::    Replacate and rotate portions of strings.
+* SRFI-13 Replicate/Rotate::    Replicate and rotate portions of strings.
 * SRFI-13 Miscellaneous::       Left-over string procedures.
 * SRFI-13 Filtering/Deleting::  Filter and delete characters from strings.
 @end menu
