@@ -1192,7 +1192,7 @@ scm_divbigint(x, z, sgn, mode)
     register SCM_BIGDIG *ds = SCM_BDIGITS(x);
     scm_sizet nd = SCM_NUMDIGS(x);
     while(nd--) t2 = (SCM_BIGUP(t2) + ds[nd]) % z;
-    if (mode) t2 = z - t2;
+    if (mode && t2) t2 = z - t2;
     return SCM_MAKINUM(sgn ? -t2 : t2);
   }
   {
