@@ -1125,7 +1125,7 @@ the sum of whose squares is equal to 1.0.
 Thinking of vect as coordinates in space of
 dimension n = (vector-length vect), the coordinates
 are uniformly distributed over the surface of the
-unit n-shere.
+unit n-sphere.
 @end deffn
 
 @deffn primitive random:normal [state]
@@ -1146,7 +1146,7 @@ Fills vect with inexact real random numbers
 the sum of whose squares is less than 1.0.
 Thinking of vect as coordinates in space of
 dimension n = (vector-length vect), the coordinates
-are uniformly distributed within the unit n-shere.
+are uniformly distributed within the unit n-sphere.
 The sum of the squares of the numbers is returned.
 @end deffn
 
@@ -1389,7 +1389,7 @@ characters enclosed in double quotes (@code{"}). @footnote{Actually, the
 current implementation restricts strings to a length of 2^24
 characters.}  If you want to insert a double quote character into a
 string literal, it must be prefixed with a backslash @code{\} character
-(called an @emph{escape character}).
+(called an @dfn{escape character}).
 
 The following are examples of string literals:
 
@@ -1410,8 +1410,7 @@ fulfills some specified property.
 
 @rnindex string?
 @deffn primitive string? obj
-Return @code{#t} iff @var{obj} is a string, else returns
-@code{#f}.
+Return @code{#t} iff @var{obj} is a string, else @code{#f}.
 @end deffn
 
 @deffn primitive string-null? str
@@ -1522,9 +1521,9 @@ exact integers satisfying:
 @node String Modification
 @subsection String Modification
 
-These procedures are for modifying strings in-place.  That means, that
-not a new string is the result of a string operation, but that the
-actual memory representation of a string is modified.
+These procedures are for modifying strings in-place.  This means that the
+result of the operation is not a new string; instead, the original string's
+memory representation is modified.
 
 @rnindex string-set!
 @deffn primitive string-set! str k chr
@@ -1821,7 +1820,7 @@ A @dfn{regular expression} (or @dfn{regexp}) is a pattern that
 describes a whole class of strings.  A full description of regular
 expressions and their syntax is beyond the scope of this manual;
 an introduction can be found in the Emacs manual (@pxref{Regexps,
-, Syntax of Regular Expressions, emacs, The GNU Emacs Manual}, or
+, Syntax of Regular Expressions, emacs, The GNU Emacs Manual}), or
 in many general Unix reference books.
 
 If your system does not include a POSIX regular expression library, and

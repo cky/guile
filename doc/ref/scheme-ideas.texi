@@ -188,9 +188,9 @@ of an existing variable.
 @code{define} syntax that can be used when defining new procedures.
 
 @item
-REFFIXME, to read about an alternative form of the @code{set!}  syntax
-that helps with changing a single value in the depths of a compound data
-structure.)
+@ref{Procedures with Setters}, to read about an alternative form of the
+@code{set!} syntax that helps with changing a single value in the depths
+of a compound data structure.)
 @end itemize
 
 

@@ -698,7 +698,7 @@ module @samp{(math bessel)}.  First we need to write the appropriate
 glue code to convert the arguments and return values of the functions
 from Scheme to C and back.  Additionally, we need a function that will
 add them to the set of Guile primitives.  Because this is just an
-example, we will only implement this for the @code{j0} function, tho.
+example, we will only implement this for the @code{j0} function.
 
 @c FIXME::martin: Change all gh_ references to their scm_ equivalents.
 

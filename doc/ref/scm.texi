@@ -78,7 +78,7 @@ Prefix arg non-nil means use \"gh_\" prefix, otherwise use \"scm_\" prefix."
                       (">=" . "_geq")
                       ("<"  . "_less")
                       (">"  . "_gr")
-                      ("@"  . "at"))))
+                      ("@@"  . "at"))))
     (while transforms
       (let ((trigger (concat "\\(.*\\)"
                              (regexp-quote (caar transforms))
@@ -233,9 +233,9 @@ All of the elements of the ptob, apart from @code{name}, are procedures
 which collectively implement the port behaviour.  Creating a new port
 type mostly involves writing these procedures.
 
-@code{scm_make_port_type} initialises three elements of the structure
+@code{scm_make_port_type} initializes three elements of the structure
 (@code{name}, @code{fill_input} and @code{write}) from its arguments.
-The remaining elements are initialised with default values and can be
+The remaining elements are initialized with default values and can be
 set later if required.
 
 @table @code
