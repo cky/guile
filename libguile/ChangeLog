@@ -1,3 +1,9 @@
+Sat Mar 15 00:06:08 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* snarf.h: g++ says it's non-portable not to specify the first
+ 	argument in a varargs declaration.  I introduced the first
+ 	argument by using preprocessor conditionals.
+
 Thu Mar 13 21:28:25 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ioext.c (scm_read_delimited_x): use RO string macros for delims.
