@@ -56,6 +56,9 @@ extern scm_option scm_print_opts[];
 
 /* State information passed around during printing.
  */
+#define SCM_PRINT_STATE_P(obj) (SCM_NIMP(obj) && SCM_STRUCTP(obj) && \
+				SCM_STRUCT_VTABLE(obj) == \
+				   scm_print_state_vtable)
 #define SCM_PRINT_STATE(obj) ((scm_print_state *) SCM_STRUCT_DATA (obj))
 
 #define RESET_PRINT_STATE(pstate) \
@@ -67,9 +70,13 @@ extern scm_option scm_print_opts[];
 #define SCM_WRITINGP(pstate) ((pstate)->writingp)
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
-#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwpwuwuwuruopr"
+#define SCM_COERCE_OPORT(p) ((SCM_NIMP(p) && SCM_PRINT_STATE_P(SCM_CDR (p)))? \
+                             SCM_CAR(p) : p)
+
+#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwuwpwuwuwuruopr"
 typedef struct scm_print_state {
   SCM handle;			/* Struct handle */
+  int revealed;                 /* Has the state escaped to Scheme? */
   unsigned long writingp;	/* Writing? */
   unsigned long fancyp;		/* Fancy printing? */
   unsigned long level;		/* Max level */
@@ -83,6 +90,8 @@ typedef struct scm_print_state {
   SCM ref_vect;
 } scm_print_state;
 
+extern SCM scm_print_state_vtable;
+
 extern SCM scm_print_options SCM_P ((SCM setting));
 SCM scm_make_print_state SCM_P ((void));
 void scm_free_print_state SCM_P ((SCM print_state));
@@ -95,7 +104,9 @@ extern SCM scm_write SCM_P ((SCM obj, SCM port));
 extern SCM scm_display SCM_P ((SCM obj, SCM port));
 extern SCM scm_newline SCM_P ((SCM port));
 extern SCM scm_write_char SCM_P ((SCM chr, SCM port));
-extern SCM scm_printer_apply SCM_P ((SCM proc, SCM exp, SCM port, scm_print_state *));
+extern SCM scm_printer_apply SCM_P ((SCM proc, SCM exp, SCM port,
+				     scm_print_state *));
+extern int scm_valid_oport_value_p SCM_P ((SCM val));
 extern void scm_init_print SCM_P ((void));
 
 #endif  /* PRINTH */

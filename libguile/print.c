@@ -53,7 +53,6 @@
 #include "unif.h"
 #include "alist.h"
 #include "struct.h"
-#include "fluids.h"
 
 #include "print.h"
 
@@ -156,18 +155,9 @@ scm_print_options (setting)
 
 #define EXIT_NESTED_DATA(pstate) { --pstate->top; }
 
+SCM scm_print_state_vtable;
+
 static SCM print_state_pool;
-
-/* This fluid is an implicit parameter to scm_iprin (and thus
-scm_display and scm_write) and carries the current print_state when
-Scheme code is called to do some printing.  That way, circular
-references are detected even when they reach across calls to `display'
-or `write'. 
-
-The fluid is not visible to Scheme code, but maybe it should. */
-
-static SCM print_state_fluid;
-static int print_state_fluid_num;
 
 #ifdef GUILE_DEBUG /* Used for debugging purposes */
 SCM_PROC(s_current_pstate, "current-pstate", 0, 0, 0, scm_current_pstate);
@@ -227,6 +217,7 @@ scm_free_print_state (print_state)
    * often.
    */
   pstate->fancyp = 0;
+  pstate->revealed = 0;
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
   SCM_SETCAR (handle, print_state);
@@ -353,72 +344,65 @@ taloop:
 	case scm_tcs_closures:
 	  /* The user supplied print closure procedure must handle
 	     macro closures as well. */
-	  if (SCM_NFALSEP (scm_procedure_p (SCM_PRINT_CLOSURE)))
-	    {
-	      SCM ans = scm_cons2 (exp, port,
-				   scm_cons (SCM_WRITINGP (pstate)
-					     ? SCM_BOOL_T
-					     : SCM_BOOL_F,
-					     SCM_EOL));
-	      ans = scm_apply (SCM_PRINT_CLOSURE, ans, SCM_EOL);
-	    }
-	  else
-	    {
-	      SCM name, code;
-	      if (SCM_TYP16 (exp) == scm_tc16_macro)
-		{
-		  /* Printing a macro. */
-		prinmacro:
-		  name = scm_macro_name (exp);
-		  if (!SCM_CLOSUREP (SCM_CDR (exp)))
-		    {
-		      code = 0;
-		      scm_gen_puts (scm_regular_string, "#<primitive-",
-				    port);
-		    }
-		  else
-		    {
-		      code = SCM_CODE (SCM_CDR (exp));
-		      scm_gen_puts (scm_regular_string, "#<", port);
-		    }
-		  if (SCM_CAR (exp) & (3L << 16))
-		    scm_gen_puts (scm_regular_string, "macro", port);
-		  else
-		    scm_gen_puts (scm_regular_string, "syntax", port);
-		  if (SCM_CAR (exp) & (2L << 16))
-		    scm_gen_putc ('!', port);
-		}
-	      else
-		{
-		  /* Printing a closure. */
-		  name = scm_procedure_name (exp);
-		  code = SCM_CODE (exp);
-		  scm_gen_puts (scm_regular_string, "#<procedure",
-				port);
-		}
-	      if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
-		{
-		  scm_gen_putc (' ', port);
-		  scm_gen_puts (scm_regular_string, SCM_ROCHARS (name), port);
-		}
-	      if (code)
-		{
-		  scm_gen_putc (' ', port);
-		  scm_iprin1 (SCM_CAR (code), port, pstate);
-		}
-	      if (code && SCM_PRINT_SOURCE_P)
-		{
-		  code = scm_unmemocopy (SCM_CDR (code),
-					 SCM_EXTEND_ENV (SCM_CAR (code),
-							 SCM_EOL,
-							 SCM_ENV (exp)));
-		  ENTER_NESTED_DATA (pstate, exp, circref);
-		  scm_iprlist (" ", code, '>', port, pstate);
-		  EXIT_NESTED_DATA (pstate);
-		}
-	      else
-		scm_gen_putc ('>', port);
-	    }
+	  if (SCM_FALSEP (scm_procedure_p (SCM_PRINT_CLOSURE))
+	      || SCM_FALSEP (scm_printer_apply (SCM_PRINT_CLOSURE,
+						exp, port, pstate)));
+	  {
+	    SCM name, code;
+	    if (SCM_TYP16 (exp) == scm_tc16_macro)
+	      {
+		/* Printing a macro. */
+	      prinmacro:
+		name = scm_macro_name (exp);
+		if (!SCM_CLOSUREP (SCM_CDR (exp)))
+		  {
+		    code = 0;
+		    scm_gen_puts (scm_regular_string, "#<primitive-",
+				  port);
+		  }
+		else
+		  {
+		    code = SCM_CODE (SCM_CDR (exp));
+		    scm_gen_puts (scm_regular_string, "#<", port);
+		  }
+		if (SCM_CAR (exp) & (3L << 16))
+		  scm_gen_puts (scm_regular_string, "macro", port);
+		else
+		  scm_gen_puts (scm_regular_string, "syntax", port);
+		if (SCM_CAR (exp) & (2L << 16))
+		  scm_gen_putc ('!', port);
+	      }
+	    else
+	      {
+		/* Printing a closure. */
+		name = scm_procedure_name (exp);
+		code = SCM_CODE (exp);
+		scm_gen_puts (scm_regular_string, "#<procedure",
+			      port);
+	      }
+	    if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
+	      {
+		scm_gen_putc (' ', port);
+		scm_gen_puts (scm_regular_string, SCM_ROCHARS (name), port);
+	      }
+	    if (code)
+	      {
+		scm_gen_putc (' ', port);
+		scm_iprin1 (SCM_CAR (code), port, pstate);
+	      }
+	    if (code && SCM_PRINT_SOURCE_P)
+	      {
+		code = scm_unmemocopy (SCM_CDR (code),
+				       SCM_EXTEND_ENV (SCM_CAR (code),
+						       SCM_EOL,
+						       SCM_ENV (exp)));
+		ENTER_NESTED_DATA (pstate, exp, circref);
+		scm_iprlist (" ", code, '>', port, pstate);
+		EXIT_NESTED_DATA (pstate);
+	      }
+	    else
+	      scm_gen_putc ('>', port);
+	  }
 	  break;
 	case scm_tc7_mb_string:
 	case scm_tc7_mb_substring:
@@ -638,6 +622,10 @@ taloop:
  * kept in a pool so that they can be reused.
  */
 
+/* The PORT argument can also be a print-state/port pair, which will
+ * then be used instead of allocating a new print state.  This is
+ * useful for continuing a chain of print calls from Scheme.  */
+
 void 
 scm_prin1 (exp, port, writingp)
      SCM exp;
@@ -648,11 +636,15 @@ scm_prin1 (exp, port, writingp)
   SCM pstate_scm;
   scm_print_state *pstate;
 
-  /* If there is currently a print state active, use that.  Else
-     create a new one. */
+  /* If PORT is a print-state/port pair, use that.  Else create a new
+     print-state. */
 
-  pstate_scm = SCM_FAST_FLUID_REF (print_state_fluid_num);
-  if (pstate_scm == SCM_BOOL_F)
+  if (SCM_NIMP (port) && SCM_CONSP (port))
+    {
+      pstate_scm = SCM_CDR (port);
+      port = SCM_CAR (port);
+    }
+  else
     {
       /* First try to allocate a print state from the pool */
       SCM_DEFER_INTS;
@@ -671,8 +663,10 @@ scm_prin1 (exp, port, writingp)
   pstate->writingp = writingp;
   scm_iprin1 (exp, port, pstate);
 
-  /* Return print state to pool, if it has been created above. */
-  if (handle != SCM_BOOL_F)
+  /* Return print state to pool if it has been created above and
+     hasn't escaped to Scheme. */
+
+  if (handle != SCM_BOOL_F && !pstate->revealed)
     {
       SCM_DEFER_INTS;
       SCM_SETCDR (handle, SCM_CDR (print_state_pool));
@@ -830,6 +824,15 @@ circref:
 
 
 
+int
+scm_valid_oport_value_p	(SCM val)
+{
+  return SCM_NIMP (val) && 
+    (SCM_OPOUTPORTP (val) || (SCM_CONSP (val) && SCM_NIMP (SCM_CAR (val)) && 
+			    SCM_OPOUTPORTP (SCM_CAR (val)) && 
+			    SCM_PRINT_STATE_P (SCM_CDR (val))));
+}
+
 SCM_PROC(s_write, "write", 1, 1, 0, scm_write);
 
 SCM 
@@ -840,7 +843,8 @@ scm_write (obj, port)
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG2, s_write);
+    SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write);
+
   scm_prin1 (obj, port, 1);
 #ifdef HAVE_PIPE
 # ifdef EPIPE
@@ -862,7 +866,8 @@ scm_display (obj, port)
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG2, s_display);
+    SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_display);
+
   scm_prin1 (obj, port, 0);
 #ifdef HAVE_PIPE
 # ifdef EPIPE
@@ -880,10 +885,11 @@ scm_newline (port)
      SCM port;
 {
   if (SCM_UNBNDP (port))
- port = scm_cur_outp;
+    port = scm_cur_outp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1, s_newline);
-  scm_gen_putc ('\n', port);
+    SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG1, s_newline);
+
+  scm_gen_putc ('\n', SCM_COERCE_OPORT (port));
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
@@ -904,11 +910,12 @@ scm_write_char (chr, port)
      SCM port;
 {
   if (SCM_UNBNDP (port))
- port = scm_cur_outp;
+    port = scm_cur_outp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG2, s_write_char);
+    SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write_char);
+
   SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG1, s_write_char);
-  scm_gen_putc ((int) SCM_ICHR (chr), port);
+  scm_gen_putc ((int) SCM_ICHR (chr), SCM_COERCE_OPORT (port));
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
@@ -920,39 +927,23 @@ scm_write_char (chr, port)
 
 
 
-/* Routines for calling back to Scheme code to do the printing of
-special objects (like structs).  SCM_PRINTER_APPLY applies PROC to EXP
-and PORT while the print_state_fluid is set to PSTATE.  When PROC
-inturn calls `display' or `write', this print_state is picked up and
-used to control the printing. */
-
-struct apply_data {
-  SCM proc;
-  SCM arg1;
-  SCM args;
-};
-
-static SCM
-apply_stub (void *data)
-{
-  struct apply_data *cl = (struct apply_data *)data;
-  return scm_apply (cl->proc, cl->arg1, cl->args);
-}
+/* Call back to Scheme code to do the printing of special objects
+(like structs).  SCM_PRINTER_APPLY applies PROC to EXP and a pair
+containing PORT and PSTATE.  This pair can be used as the port for
+display/write etc to continue the current print chain.  The REVEALED
+field of PSTATE is set to true to indicate that the print state has
+escaped to Scheme and thus has to be freed by the GC. */
 
 SCM
 scm_printer_apply (proc, exp, port, pstate)
      SCM proc, exp, port;
      scm_print_state *pstate;
 {
-  struct apply_data cl;
-  cl.proc = proc;
-  cl.arg1 = exp;
-  cl.args = scm_cons (port, scm_listofnull);
-  return scm_internal_with_fluids (scm_cons (print_state_fluid, SCM_EOL),
-				   scm_cons (pstate->handle, SCM_EOL),
-				   apply_stub, (void *)&cl);
+  SCM pair = scm_cons (port, pstate->handle);
+  pstate->revealed = 1;
+  return scm_apply (proc, exp, scm_cons (pair, scm_listofnull));
 }
-				   
+
 
 
 void
@@ -968,9 +959,7 @@ scm_init_print ()
 				    SCM_EOL));
   print_state_pool = scm_permanent_object (scm_cons (type, SCM_EOL));
 
-  print_state_fluid = scm_permanent_object (scm_make_fluid ());
-  scm_fluid_set_x (print_state_fluid, SCM_BOOL_F);
-  print_state_fluid_num = SCM_FLUID_NUM (print_state_fluid);
+  scm_print_state_vtable = type;
 
 #include "print.x"
 }
