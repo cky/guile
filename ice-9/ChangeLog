@@ -1,7 +1,14 @@
+Mon May 26 17:24:48 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* COPYING, boot-9.scm, debug.scm, emacs.scm, expect.scm, gtcl.scm,
+ 	gwish.scm, hcons.scm, lineio.scm, mapping.scm, nonblocking.scm,
+ 	oldprint.scm, poe.scm, r4rs.scm, source.scm, tags.scm, test.scm,
+ 	threads.scm: New address for FSF.
+
 Fri May 16 04:09:45 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* debug.scm: Update copyright years; this file has been worked on
-	in 1997.
+ 	in 1997.
 
 Thu May 15 07:56:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
