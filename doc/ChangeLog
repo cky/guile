@@ -1,3 +1,20 @@
+2001-03-20  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-options.texi (Evaluator options): Added evaluator
+	options, corrected docs for evaluator trap options.
+
+	* scheme-evaluation.texi (Scheme Read): New docs for read-options,
+	read-enable, read-disable and read-set! and cross references to
+	option nodes.
+	(Evaluator Options): New docs for eval-options, eval-enable,
+	eval-disable and eval-set!, traps, trap-enable, trap-disable and
+	trap-set! and cross references to option nodes.
+	(Evaluator Behaviour): Renamed node from `Evaluator options' to
+	avoid name clash.
+
+	* scheme-io.texi (String Ports): Added docs for SRFI-6 procedures.
+	(Void Ports): Corrected introductory comment.
+
 2001-03-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-data.texi (Arithmetic): Documented the arithmetic

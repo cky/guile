@@ -12,7 +12,7 @@ loading and evaluating Scheme code at run time.
 * Loading::                     Loading Scheme code from file.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
 * Local Evaluation::            Evaluation in a local environment.
-* Evaluator Options::
+* Evaluator Behaviour::         Modifying Guile's evaluator.
 @end menu
 
 
@@ -65,19 +65,47 @@ returned will be the return value of @code{read}.
 @node Scheme Read
 @section Reading Scheme Code
 
-@c docstring begin (texi-doc-string "guile" "read-options-interface")
-@deffn primitive read-options-interface [setting]
-Option interface for the read options. Instead of using
-this procedure directly, use the procedures @code{read-enable},
-@code{read-disable}, @code{read-set!} and @var{read-options}.
-@end deffn
-
 @r5index read
 @c docstring begin (texi-doc-string "guile" "read")
 @deffn primitive read [port]
 Read an s-expression from the input port @var{port}, or from
 the current input port if @var{port} is not specified.
 Any whitespace before the next token is discarded.
+@end deffn
+
+The behaviour of Guile's Scheme reader can be modified by manipulating
+its read options.  For more information about options, @xref{General
+option interface}.  If you want to know which reader options are
+available, @xref{Reader options}.
+
+@c FIXME::martin: This is taken from libguile/options.c.  Is there 
+@c actually a difference between 'help and 'full?
+
+@deffn procedure read-options [setting]
+Display the current settings of the read options.  If @var{setting} is
+omitted, only a short form of the current read options is printed.
+Otherwise, @var{setting} should be one of the following symbols:
+@table @code
+@item help
+Display the complete option settings.
+@item full
+Like @code{help}, but also print programmer options.
+@end table
+@end deffn
+
+@deffn procedure read-enable option-name
+@deffnx procedure read-disable option-name
+@deffnx procedure read-set! option-name value
+Modify the read options.  @code{read-enable} should be used with boolean
+options and switches them on, @code{read-disable} switches them off.
+@code{read-set!} can be used to set an option to a specific value.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "read-options-interface")
+@deffn primitive read-options-interface [setting]
+Option interface for the read options. Instead of using
+this procedure directly, use the procedures @code{read-enable},
+@code{read-disable}, @code{read-set!} and @code{read-options}.
 @end deffn
 
 
@@ -254,14 +282,70 @@ is implicit).
 @end deffn
 
 
-@node Evaluator Options
-@section Evaluator Options
+@node Evaluator Behaviour
+@section Evaluator Behaviour
+
+@c FIXME::martin: Maybe this node name is bad, but the old name clashed with
+@c `Evaluator options' under `Options and Config'.
+
+The behaviour of Guile's evaluator can be modified by manipulating the
+evaluator options.  For more information about options, @xref{General
+option interface}.  If you want to know which reader options are
+available, @xref{Evaluator options}.
+
+@c FIXME::martin: This is taken from libguile/options.c.  Is there 
+@c actually a difference between 'help and 'full?
+
+@deffn procedure eval-options [setting]
+Display the current settings of the evaluator options.  If @var{setting}
+is omitted, only a short form of the current evaluator options is
+printed.  Otherwise, @var{setting} should be one of the following
+symbols:
+@table @code
+@item help
+Display the complete option settings.
+@item full
+Like @code{help}, but also print programmer options.
+@end table
+@end deffn
+
+@deffn procedure eval-enable option-name
+@deffnx procedure eval-disable option-name
+@deffnx procedure eval-set! option-name value
+Modify the evaluator options.  @code{eval-enable} should be used with boolean
+options and switches them on, @code{eval-disable} switches them off.
+@code{eval-set!} can be used to set an option to a specific value.
+@end deffn
 
 @c docstring begin (texi-doc-string "guile" "eval-options-interface")
 @deffn primitive eval-options-interface [setting]
 Option interface for the evaluation options. Instead of using
 this procedure directly, use the procedures @code{eval-enable},
-@code{eval-disable}, @code{eval-set!} and @var{eval-options}.
+@code{eval-disable}, @code{eval-set!} and @code{eval-options}.
+@end deffn
+
+@c FIXME::martin: Why aren't these procedure named like the other options
+@c procedures?
+
+@deffn procedure traps [setting]
+Display the current settings of the evaluator traps options.  If
+@var{setting} is omitted, only a short form of the current evaluator
+traps options is printed.  Otherwise, @var{setting} should be one of the
+following symbols:
+@table @code
+@item help
+Display the complete option settings.
+@item full
+Like @code{help}, but also print programmer options.
+@end table
+@end deffn
+
+@deffn procedure trap-enable option-name
+@deffnx procedure trap-disable option-name
+@deffnx procedure trap-set! option-name value
+Modify the evaluator options.  @code{trap-enable} should be used with boolean
+options and switches them on, @code{trap-disable} switches them off.
+@code{trap-set!} can be used to set an option to a specific value.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "evaluator-traps-interface")

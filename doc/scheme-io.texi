@@ -762,15 +762,34 @@ port set temporarily to a string port opened on the specified
 @var{string}.  The value yielded by @var{thunk} is returned.
 @end deffn
 
+@c docstring begin (texi-doc-string "guile" "open-input-string")
+@deffn primitive open-input-string str
+Takes a string and returns an input port that delivers
+characters from the string. The port can be closed by
+@code{close-input-port}, though its storage will be reclaimed
+by the garbage collector if it becomes inaccessible.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "open-output-string")
+@deffn primitive open-output-string
+Returns an output port that will accumulate characters for
+retrieval by @code{get-output-string}. The port can be closed
+by the procedure @code{close-output-port}, though its storage
+will be reclaimed by the garbage collector if it becomes
+inaccessible.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "get-output-string")
+@deffn primitive get-output-string port
+Given an output port created by @code{open-output-string},
+returns a string consisting of the characters that have been
+output to the port so far.
+@end deffn
+
 A string port can be used in many procedures which accept a port
 but which are not dependent on implementation details of fports.
 E.g., seeking and truncating will work on a string port,
 but trying to extract the file descriptor number will fail.
-
-At present there isn't a procedure that simply returns a new string
-port.  There's also no way of opening read/write string ports from
-Scheme even though it's possible from C.  SRFI 6 could be implemented
-without much difficulty.
 
 
 @node Soft Ports
@@ -828,8 +847,8 @@ the port has reached end-of-file.  For example:
 @node Void Ports
 @subsection Void Ports
 
-This kind of port just causes errors if you try to use it in
-a normal way.
+This kind of port causes any data to be discarded when written to, and
+always returns the end-of-file object when read from.
 
 @c docstring begin (texi-doc-string "guile" "%make-void-port")
 @deffn primitive %make-void-port mode
