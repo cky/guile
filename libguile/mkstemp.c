@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 1992, 1996, 1998 Free Software Foundation, Inc.
+/* Copyright (C) 1991, 1992, 1996, 1998, 2001 Free Software Foundation, Inc.
    This file is derived from mkstemps.c from the GNU Libiberty Library
    which in turn is derived from the GNU C Library.
 
@@ -17,7 +17,7 @@
    write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
    Boston, MA 02111-1307, USA.  */
 
-#include "scmconfig.h"
+#include "libguile/scmconfig.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
