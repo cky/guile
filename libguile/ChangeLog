@@ -1,12 +1,28 @@
-Sun Apr 13 23:03:55 1997  Jim Blandy  <jimb@floss.cyclic.com>
+Mon Apr 14 01:32:57 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* gh_init.c (gh_standard_handler): Return SCM_BOOL_F, not garbage.
 
+	Merge GH interface library into libguile.
+	* gh.h, gh_data.c, gh_eval.c, gh_funcs.c, gh_init.c, gh_io.c,
+ 	gh_list.c, gh_predicates.c, gh_test_c, gh_test_c.c, gh_test_repl,
+ 	gh_test_repl.c: New files.
 	* Makefile.am (libguile_la_SOURCES): Add gh_data.c, gh_eval.c,
-	gh_funcs.c, gh_init.c, gh_io.c, gh_list.c, gh_predicates.c.
-
-	* Makefile.am (libguile_la_SOURCES): Move _scm.h to...
+	gh_funcs.c, gh_init.c, gh_io.c, gh_list.c, gh_predicates.c.  Move
+	_scm.h to ...
 	(EXTRA_libguile_la_SOURCES): ... here.
+	(pkginclude_HEADERS): Add variable, to get gh.h installed.
+	(THREAD_LIBS, check_ldadd, check_PROGRAMS, gh_test_c_SOURCES,
+	gh_test_c_LDADD, gh_test_repl_SOURCES, gh_test_repl_LDADD):
+	New variables, describing how to build the gh test programs.
+	* configure.in: Check for -lm, -lsocket, -lnsl; we need this to
+	build the test programs, and we probably should have been linking
+	libguile.la against them all along, to support AIX shared libs.
+	Add cflags for threads to CFLAGS; add libs for threads to new
+	variable THREAD_LIBS, used in Makefile.am.
+	* ChangeLog-gh: log from old `gh' subdirectory. 
+	* Makefile.in, configure, scmconfig.h.in: Rebuilt.
+
+Sun Apr 13 23:03:55 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* acconfig.h: Undo change of Apr 9; including the definition of
 	PACKAGE in the guile headers conflicts with applications' own

@@ -8,24 +8,29 @@ AUTOMAKE_OPTIONS = foreign
 INCLUDES = -I.. -I$(srcdir)/..
 
 lib_LTLIBRARIES = libguile.la
-libguile_la_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
-    boolean.c chars.c continuations.c dynl.c dynwind.c eq.c \
-    error.c eval.c extchrs.c feature.c filesys.c fports.c gc.c \
-    gdbint.c genio.c gsubr.c hash.c hashtab.c init.c ioext.c \
-    kw.c list.c load.c mallocs.c markers.c mbstrings.c net_db.c \
-    numbers.c objprop.c \
-    options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
-    read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c \
-    stackchk.c stime.c strings.c strop.c strorder.c \
-    strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
-    vectors.c version.c vports.c weaks.c _scm.h
-EXTRA_libguile_la_SOURCES = backtrace.c stacks.c debug.c srcprop.c \
+
+libguile_la_SOURCES = \
+    alist.c append.c appinit.c arbiters.c async.c boolean.c chars.c \
+    continuations.c dynl.c dynwind.c eq.c error.c eval.c extchrs.c \
+    feature.c filesys.c fports.c gc.c gdbint.c genio.c gh_data.c gh_eval.c \
+    gh_funcs.c gh_init.c gh_io.c gh_list.c gh_predicates.c gsubr.c hash.c \
+    hashtab.c init.c ioext.c kw.c list.c load.c mallocs.c markers.c \
+    mbstrings.c net_db.c numbers.c objprop.c options.c pairs.c ports.c \
+    posix.c print.c procprop.c procs.c ramap.c read.c root.c scmsigs.c \
+    sequences.c simpos.c smob.c socket.c stackchk.c stime.c strings.c \
+    strop.c strorder.c strports.c struct.c symbols.c tag.c throw.c unif.c \
+    variable.c vectors.c version.c vports.c weaks.c
+EXTRA_libguile_la_SOURCES = _scm.h \
+    backtrace.c stacks.c debug.c srcprop.c \
     strerror.c inet_aton.c putenv.c
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 0:0 -rpath $(libdir)
 
 include_HEADERS = libguile.h
+
+# These are headers visible as <guile/mumble.h> 
+pkginclude_HEADERS = gh.h
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/@module@
@@ -46,6 +51,14 @@ modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
 modinclude_DATA = scmconfig.h
 
 bin_SCRIPTS = guile-snarf
+
+THREAD_LIBS = @THREAD_LIBS@
+check_ldadd = libguile.la ${THREAD_LIBS}
+check_PROGRAMS = gh_test_c gh_test_repl
+gh_test_c_SOURCES = gh_test_c.c
+gh_test_c_LDADD = ${check_ldadd}
+gh_test_repl_SOURCES = gh_test_repl.c
+gh_test_repl_LDADD = ${check_ldadd}
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
     dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
