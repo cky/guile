@@ -1,5 +1,8 @@
 Tue Jan  7 18:11:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* objprop.c (scm_object_property): No need to take the CDR of the
+	value returned by scm_object_properties, since Aug 20 change.
+
 	* configure.in: When checking for struct linger, #include
 	<sys/types.h> as well as <sys/socket.h>.  I've never known
 	<sys/types.h> to cause any portability problems, and Solaris's

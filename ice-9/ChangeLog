@@ -1,3 +1,12 @@
+Tue Jan  7 20:02:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* boot-9.scm (and=>): Rename THUNK argument to PROCEDURE, 'cos
+	that's what it is.
+
+	* lineio.scm (make-line-buffering-input-port): Properly test for
+	the case of an empty buffer list.  The old code assumed that '()
+	was false.
+
 Mon Jan  6 01:13:53 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 *	* boot-9.scm (use-modules): New macro (from Marius Vollmer).
