@@ -167,5 +167,3 @@
 /* Define if the compiler supports long longs.  */
 #undef HAVE_LONG_LONGS
 
-/* defined to signed long if doesn't exist: */
-#undef ptrdiff_t
