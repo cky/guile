@@ -110,8 +110,10 @@
 	    
 	     (else (cons (car libs) (loop (cdr libs)))))))
 
-	 ;; Don't omit -lguile itself from the list of flags.
-	 (flags (cons "-lguile" flags)))
+	 ;; Include libguile itself in the list, along with the
+	 ;; directory it was installed in.
+	 (flags (cons (string-append "-L" (get-build-info 'libdir))
+		      (cons "-lguile" flags))))
 
     ;; Display the flags, separated by spaces.
     (display-separated flags)
