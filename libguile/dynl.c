@@ -75,19 +75,18 @@ maybe_drag_in_eprintf ()
 #include "libguile/lang.h"
 #include "libguile/validate.h"
 
-/* Dispatch to the system dependent files
- *
- * They define some static functions.  These functions are called with
- * deferred interrupts.  When they want to throw errors, they are
- * expected to insert a SCM_ALLOW_INTS before doing the throw.  It
- * might work to throw an error while interrupts are deferred (because
- * they will be unconditionally allowed the next time a SCM_ALLOW_INTS
- * is executed, SCM_DEFER_INTS and SCM_ALLOW_INTS do not nest).
- */
-
 #ifdef DYNAMIC_LINKING
 
 #include "libltdl/ltdl.h"
+
+/* From the libtool manual: "Note that libltdl is not threadsafe,
+   i.e. a multithreaded application has to use a mutex for libltdl.".
+
+   Guile does not currently support pre-emptive threads, so there is
+   no mutex.  Previously SCM_DEFER_INTS and SCM_ALLOW_INTS were used:
+   they are mentioned here in case somebody is grepping for thread
+   problems ;)
+*/
 
 static void *
 sysdep_dynl_link (const char *fname, const char *subr)
@@ -99,7 +98,6 @@ sysdep_dynl_link (const char *fname, const char *subr)
       SCM fn;
       SCM msg;
 
-      SCM_ALLOW_INTS;
       fn = scm_makfrom0str (fname);
       msg = scm_makfrom0str (lt_dlerror ());
       scm_misc_error (subr, "file: ~S, message: ~S", scm_list_2 (fn, msg));
@@ -112,7 +110,6 @@ sysdep_dynl_unlink (void *handle, const char *subr)
 {
   if (lt_dlclose ((lt_dlhandle) handle))
     {
-      SCM_ALLOW_INTS;
       scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
     }
 }
@@ -125,7 +122,6 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
   fptr = lt_dlsym ((lt_dlhandle) handle, symb);
   if (!fptr)
     {
-      SCM_ALLOW_INTS;
       scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
     }
   return fptr;
@@ -149,7 +145,6 @@ sysdep_dynl_init (void)
 static void
 no_dynl_error (const char *subr)
 {
-  SCM_ALLOW_INTS;
   scm_misc_error (subr, "dynamic linking not available", SCM_EOL);
 }
     
@@ -245,10 +240,8 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
   if (DYNL_HANDLE (dobj) == NULL) {
     SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
   } else {
-    SCM_DEFER_INTS;
     sysdep_dynl_unlink (DYNL_HANDLE (dobj), FUNC_NAME);
     SET_DYNL_HANDLE (dobj, NULL);
-    SCM_ALLOW_INTS;
     return SCM_UNSPECIFIED;
   }
 }
@@ -281,10 +274,8 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
   } else {
     char *chars;
 
-    SCM_DEFER_INTS;
     chars = SCM_STRING_CHARS (name);
     func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), FUNC_NAME);
-    SCM_ALLOW_INTS;
     return scm_ulong2num ((unsigned long) func);
   }
 }
@@ -301,9 +292,7 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
 	    "is equivalent to\n"
 	    "@smallexample\n"
 	    "(dynamic-call (dynamic-func @var{func} @var{dobj} #f))\n"
-	    "@end smallexample\n\n"
-	    "Interrupts are deferred while the C function is executing (with\n"
-	    "@code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).")
+	    "@end smallexample\n\n")
 #define FUNC_NAME s_scm_dynamic_call
 {
   void (*fptr) ();
@@ -311,9 +300,7 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
   if (SCM_STRINGP (func))
     func = scm_dynamic_func (func, dobj);
   fptr = (void (*) ()) SCM_NUM2ULONG (1, func);
-  SCM_DEFER_INTS;
   fptr ();
-  SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -371,14 +358,12 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
     func = scm_dynamic_func (func, dobj);
 
   fptr = (int (*) (int, char **)) SCM_NUM2ULONG (1, func);
-  SCM_DEFER_INTS;
   argv = allocate_string_pointers (args, &argc);
   /* if the procedure mutates its arguments, the original strings will be
      changed -- in Guile 1.6 and earlier, this wasn't the case since a
      new copy of each string was allocated.  */
   result = (*fptr) (argc, argv);
   free (argv);
-  SCM_ALLOW_INTS;
 
   return SCM_MAKINUM (0L + result);
 }

@@ -1,5 +1,9 @@
 2002-06-30  Gary Houston  <ghouston@arglist.com>
 
+	* dynl.c: Removed all SCM_DEFER_INTS/SCM_ALLOW_INTS, which won't
+	do anything useful.  Added a comment about need for a mutex if
+	pre-emptive threading is supported.
+
 	* posix.c (scm_convert_exec_args), dynl.c
 	(scm_make_argv_from_stringlist): static procs: 1) renamed both to
 	allocate_string_pointers.  2) simplified: don't reallocate the
