@@ -1,5 +1,8 @@
 2003-07-10  Kevin Ryde  <user42@zip.com.au>
 
+	* deprecation.c (scm_c_issue_deprecation_warning_fmt): Add va_end.
+	* list.c (scm_list_n): Ditto.
+
 	* gc-malloc.c (scm_gc_realloc): Define "ptr" at start of function.
 
 2003-07-08  Matthias Koeppe <mkoeppe@merkur.math.uni-magdeburg.de>
