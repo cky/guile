@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999,2002 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@
 	(supers caddr)
 	(slots cadddr)
 	(rest cddddr))
-    (procedure->macro
+    (procedure->memoizing-macro
       (lambda (exp env)
 	(standard-define-class-transformer
 	 `(define-class ,(name exp) ,(supers exp) ,@(slots exp)

@@ -1,3 +1,11 @@
+2002-07-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops.scm (define-generic, define-accessor):  Make sure that
+	implicit redefines only happen on top level.
+
+	* goops.scm (define-class, define-generic, define-accessor),
+	goops/stklos.scm (define-class):  Use mmacros instead of macros.
+
 2002-07-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops/save.scm (restore): Replaced "macro" by	mmacro.

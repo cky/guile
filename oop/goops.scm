@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998,1999,2000,2001,2002 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -224,7 +224,7 @@
 	   (name cadr)
 	   (slots cdddr))
     
-    (procedure->macro
+    (procedure->memoizing-macro
       (lambda (exp env)
 	(cond ((not (top-level-env? env))
 	       (goops-error "define-class: Only allowed at top level"))
@@ -361,12 +361,13 @@
 ;;;
 
 (define define-generic
-  (procedure->macro
+  (procedure->memoizing-macro
     (lambda (exp env)
       (let ((name (cadr exp)))
 	(cond ((not (symbol? name))
 	       (goops-error "bad generic function name: ~S" name))
-	      ((defined? name env)
+	      ((and (top-level-env? env) 
+		    (defined? name env))
 	       `(define ,name
 		  (if (is-a? ,name <generic>)
 		      (make <generic> #:name ',name)
@@ -391,12 +392,13 @@
 	  (else (make <generic> #:name name)))))
 
 (define define-accessor
-  (procedure->macro
+  (procedure->memoizing-macro
     (lambda (exp env)
       (let ((name (cadr exp)))
 	(cond ((not (symbol? name))
 	       (goops-error "bad accessor name: ~S" name))
-	      ((defined? name env)
+	      ((and (top-level-env? env) 
+		    (defined? name env))
 	       `(define ,name
 		  (if (and (is-a? ,name <generic-with-setter>)
 			   (is-a? (setter ,name) <generic>))
