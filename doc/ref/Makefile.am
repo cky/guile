@@ -84,4 +84,4 @@ autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
 	$(preinstguiletool)/snarf-guile-m4-docs $< > $(srcdir)/$@
 
-CLEANFILES = autoconf-macros.texi
+MAINTAINERCLEANFILES = autoconf-macros.texi
