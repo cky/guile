@@ -1,5 +1,10 @@
 Thu Apr 24 01:37:49 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	Get 'make dist' to work again.
+	* Makefile.am (EXTRA_DIST): Remove PLUGIN files.
+	* Makefile.in: Regenerated, like the secret sachets of seven
+	sultry sailors.
+
 	Changes for reduced Guile distribution: one configure script,
 	no plugins.
 	* configure.in, configure: Removed.
