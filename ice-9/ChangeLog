@@ -1,3 +1,8 @@
+2002-10-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* threads.scm (%thread-handler): Explicitely return '#f'.  This
+	value will be returned by join-thread.
+
 2002-10-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	Merging debugger enhancements previously in separate
