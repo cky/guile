@@ -1,3 +1,7 @@
+1999-12-22  Greg Harvey <Greg.Harvey@thezone.net>
+
+	* tests/weaks.test: Added.
+
 1999-12-18  Greg Harvey <Greg.Harvey@thezone.net>
 
 	* tests/alist.test: Added.
