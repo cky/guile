@@ -1,3 +1,17 @@
+2000-08-22  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* src/vm.c, src/vm.h, src/vm_engine.c, src/vm_engine.h,
+	src/vm_system.c: Create external frames dynamically.
+	* vm/shell.scm: Use frame-external-link.
+
+	* vm/compile.scm (compile-file): Output "(use-modules (vm vm))".
+
+	* vm/types.scm (make-code): Check argument types.
+	(make-code:and, make-code:or): Pass env to make-code.
+
+	* vm/bytecomp.scm (translate-and, translate-or): Don't branch on
+	the last expression.
+
 2000-08-20  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* Version 0.2 is released.
