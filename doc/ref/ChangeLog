@@ -5,7 +5,8 @@
 
 	* scheme-io.texi (Reading): In read-char and peek-char, fix typos "?"
 	in @rnindex.  In port-column, use @: after i.e.  
-	(Writing): In get-print-state, two spaces after full stop.
+	(Writing): In get-print-state, two spaces after full stop.  Add write,
+	revise display.
 
 	* srfi-modules.texi (SRFI-1 Length Append etc): Add count.
 	(SRFI-1 Fold and Map): In reduce, fix typo "... variant of fold", add
