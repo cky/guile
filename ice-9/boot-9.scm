@@ -2872,7 +2872,7 @@
 				    ;; Make a backup copy of the stack
 				    (fluid-set! before-signal-stack
 						(fluid-ref the-last-stack))
-				    (save-stack %deliver-signals)
+				    (save-stack 1)
 				    (scm-error 'signal
 					       #f
 					       msg
