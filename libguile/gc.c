@@ -1709,6 +1709,7 @@ scm_gc_sweep ()
 
 		  if (mm != 0)
 		    {
+#if SCM_ENABLE_DEPRECATED == 1
 		      scm_c_issue_deprecation_warning
 			("Returning non-0 from a port free function is "
 			 "deprecated.  Use scm_gc_free et al instead.");
@@ -1716,8 +1717,11 @@ scm_gc_sweep ()
 			("(You just returned non-0 while freeing a %s.)",
 			 SCM_PTOBNAME (k));
 		      m += mm;
+#else
+		      abort ();
+#endif
 		    }
-		    
+
 		  SCM_SETSTREAM (scmptr, 0);
 		  scm_remove_from_port_table (scmptr);
 		  scm_gc_ports_collected++;
@@ -1755,6 +1759,7 @@ scm_gc_sweep ()
 			mm = scm_smobs[k].free (scmptr);
 			if (mm != 0)
 			  {
+#if SCM_ENABLE_DEPRECATED == 1
 			    scm_c_issue_deprecation_warning
 			      ("Returning non-0 from a smob free function is "
 			       "deprecated.  Use scm_gc_free et al instead.");
@@ -1762,6 +1767,9 @@ scm_gc_sweep ()
 			      ("(You just returned non-0 while freeing a %s.)",
 			       SCM_SMOBNAME (k));
 			    m += mm;
+#else
+			    abort();
+#endif
 			  }
 		      }
 		    break;
