@@ -312,10 +312,9 @@ SCM_DEFINE (scm_set_print_params_x, "set-print-params!", 1, 0, 0,
 		params,
 		SCM_ARG2,
 		s_scm_set_print_params_x);
-  new_params = scm_must_malloc (n * sizeof (print_params_t),
-				FUNC_NAME);
+  new_params = scm_malloc (n * sizeof (print_params_t));
   if (print_params != default_print_params)
-    scm_must_free (print_params);
+    free (print_params);
   print_params = new_params;
   for (i = 0; i < n; ++i)
     {

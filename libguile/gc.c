@@ -241,8 +241,8 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
  * INIT_MALLOC_LIMIT is the initial amount of malloc usage which will
  * trigger a GC.
  *
- * SCM_MTRIGGER_HYSTERESIS is the amount of malloc storage that must be
- * reclaimed by a GC triggered by must_malloc. If less than this is
+ * SCM_MTRIGGER_HYSTERESIS is the amount of malloc storage that must
+ * be reclaimed by a GC triggered by a malloc. If less than this is
  * reclaimed, the trigger threshold is raised. [I don't know what a
  * good value is. I arbitrarily chose 1/10 of the INIT_MALLOC_LIMIT to
  * work around a oscillation that caused almost constant GC.]
@@ -1635,15 +1635,17 @@ scm_gc_sweep ()
 		unsigned long int length = SCM_VECTOR_LENGTH (scmptr);
 		if (length > 0)
 		  {
-		    m += length * sizeof (scm_t_bits);
-		    scm_must_free (SCM_VECTOR_BASE (scmptr));
+		    scm_gc_free (SCM_VECTOR_BASE (scmptr),
+				 length * sizeof (scm_t_bits),
+				 "vector");
 		  }
 		break;
 	      }
 #ifdef CCLO
 	    case scm_tc7_cclo:
-	      m += (SCM_CCLO_LENGTH (scmptr) * sizeof (SCM));
-	      scm_must_free (SCM_CCLO_BASE (scmptr));
+	      scm_gc_free (SCM_CCLO_BASE (scmptr), 
+			   SCM_CCLO_LENGTH (scmptr) * sizeof (SCM),
+			   "compiled closure");
 	      break;
 #endif
 #ifdef HAVE_ARRAYS
@@ -1652,8 +1654,10 @@ scm_gc_sweep ()
 		unsigned long int length = SCM_BITVECTOR_LENGTH (scmptr);
 		if (length > 0)
 		  {
-		    m += sizeof (long) * ((length + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-		    scm_must_free (SCM_BITVECTOR_BASE (scmptr));
+		    scm_gc_free (SCM_BITVECTOR_BASE (scmptr),
+				 (sizeof (long)
+				  * ((length+SCM_LONG_BIT-1) / SCM_LONG_BIT)),
+				 "vector");
 		  }
 	      }
 	      break;
@@ -1667,17 +1671,19 @@ scm_gc_sweep ()
 	    case scm_tc7_fvect:
 	    case scm_tc7_dvect:
 	    case scm_tc7_cvect:
-	      m += SCM_UVECTOR_LENGTH (scmptr) * scm_uniform_element_size (scmptr);
-	      scm_must_free (SCM_UVECTOR_BASE (scmptr));
+	      scm_gc_free (SCM_UVECTOR_BASE (scmptr), 
+			   (SCM_UVECTOR_LENGTH (scmptr)
+			    * scm_uniform_element_size (scmptr)),
+			   "vector");
 	      break;
 #endif
 	    case scm_tc7_string:
-	      m += SCM_STRING_LENGTH (scmptr) + 1;
-	      scm_must_free (SCM_STRING_CHARS (scmptr));
+	      scm_gc_free (SCM_STRING_CHARS (scmptr), 
+			   SCM_STRING_LENGTH (scmptr) + 1, "string");
 	      break;
 	    case scm_tc7_symbol:
-	      m += SCM_SYMBOL_LENGTH (scmptr) + 1;
-	      scm_must_free (SCM_SYMBOL_CHARS (scmptr));
+	      scm_gc_free (SCM_SYMBOL_CHARS (scmptr), 
+			   SCM_SYMBOL_LENGTH (scmptr) + 1, "symbol");
 	      break;
             case scm_tc7_variable:
               break;
@@ -1688,6 +1694,7 @@ scm_gc_sweep ()
 	      if SCM_OPENP (scmptr)
 		{
 		  int k = SCM_PTOBNUM (scmptr);
+		  size_t mm;
 #if (SCM_DEBUG_CELL_ACCESSES == 1) || (defined (GUILE_DEBUG_FREELIST))
 		  if (!(k < scm_numptob))
 		    SCM_MISC_ERROR ("undefined port type", SCM_EOL);
@@ -1698,7 +1705,19 @@ scm_gc_sweep ()
 		  /* Yes, I really do mean scm_ptobs[k].free */
 		  /* rather than ftobs[k].close.  .close */
 		  /* is for explicit CLOSE-PORT by user */
-		  m += (scm_ptobs[k].free) (scmptr);
+		  mm = scm_ptobs[k].free (scmptr);
+
+		  if (mm != 0)
+		    {
+		      scm_c_issue_deprecation_warning
+			("Returning non-0 from a port free function is "
+			 "deprecated.  Use scm_gc_free et al instead.");
+		      scm_c_issue_deprecation_warning_fmt
+			("(You just returned non-0 while freeing a %s.)",
+			 SCM_PTOBNAME (k));
+		      m += mm;
+		    }
+		    
 		  SCM_SETSTREAM (scmptr, 0);
 		  scm_remove_from_port_table (scmptr);
 		  scm_gc_ports_collected++;
@@ -1713,13 +1732,14 @@ scm_gc_sweep ()
 		  break;
 #ifdef SCM_BIGDIG
 		case scm_tc16_big:
-		  m += (SCM_NUMDIGS (scmptr) * SCM_BITSPERDIG / SCM_CHAR_BIT);
-		  scm_must_free (SCM_BDIGITS (scmptr));
+		  scm_gc_free (SCM_BDIGITS (scmptr),
+			       ((SCM_NUMDIGS (scmptr) * SCM_BITSPERDIG
+				 / SCM_CHAR_BIT)), "bignum");
 		  break;
 #endif /* def SCM_BIGDIG */
 		case scm_tc16_complex:
-		  m += sizeof (scm_t_complex);
-		  scm_must_free (SCM_COMPLEX_MEM (scmptr));
+		  scm_gc_free (SCM_COMPLEX_MEM (scmptr), 2*sizeof (double),
+			       "complex");
 		  break;
 		default:
 		  {
@@ -1730,7 +1750,20 @@ scm_gc_sweep ()
 		      SCM_MISC_ERROR ("undefined smob type", SCM_EOL);
 #endif
 		    if (scm_smobs[k].free)
-		      m += (scm_smobs[k].free) (scmptr);
+		      {
+			size_t mm;
+			mm = scm_smobs[k].free (scmptr);
+			if (mm != 0)
+			  {
+			    scm_c_issue_deprecation_warning
+			      ("Returning non-0 from a smob free function is "
+			       "deprecated.  Use scm_gc_free et al instead.");
+			    scm_c_issue_deprecation_warning_fmt
+			      ("(You just returned non-0 while freeing a %s.)",
+			       SCM_SMOBNAME (k));
+			    m += mm;
+			  }
+		      }
 		    break;
 		  }
 		}
@@ -1814,7 +1847,141 @@ scm_gc_sweep ()
 
 
 
-/* {Front end to malloc}
+/* Function for non-cell memory management.
+ */
+
+void *
+scm_malloc (size_t size)
+{
+  void *ptr;
+
+  if (size == 0)
+    return NULL;
+
+  SCM_SYSCALL (ptr = malloc (size));
+  if (ptr)
+    return ptr;
+
+  scm_igc ("malloc");
+  SCM_SYSCALL (ptr = malloc (size));
+  if (ptr)
+    return ptr;
+
+  scm_memory_error ("malloc");
+}
+
+void *
+scm_realloc (void *mem, size_t size)
+{
+  void *ptr;
+
+  SCM_SYSCALL (ptr = realloc (mem, size));
+  if (ptr)
+    return ptr;
+
+  scm_igc ("realloc");
+  SCM_SYSCALL (ptr = realloc (mem, size));
+  if (ptr)
+    return ptr;
+
+  scm_memory_error ("realloc");
+}
+
+char *
+scm_strndup (const char *str, size_t n)
+{
+  char *dst = scm_malloc (n+1);
+  memcpy (dst, str, n);
+  dst[n] = 0;
+  return dst;
+}
+
+char *
+scm_strdup (const char *str)
+{
+  return scm_strndup (str, strlen (str));
+}
+
+void
+scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
+{
+  scm_mallocated += size;
+
+  if (scm_mallocated > scm_mtrigger)
+    {
+      scm_igc (what);
+      if (scm_mallocated > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS)
+	{
+	  if (scm_mallocated > scm_mtrigger)
+	    scm_mtrigger = scm_mallocated + scm_mallocated / 2;
+	  else
+	    scm_mtrigger += scm_mtrigger / 2;
+	}
+    }
+
+#ifdef GUILE_DEBUG_MALLOC
+  scm_malloc_register (mem, what);
+#endif
+}
+
+void
+scm_gc_unregister_collectable_memory (void *mem, size_t size, const char *what)
+{
+  scm_mallocated -= size;
+
+#ifdef GUILE_DEBUG_MALLOC
+  scm_malloc_unregister (mem);
+#endif
+}
+
+void *
+scm_gc_malloc (size_t size, const char *what)
+{
+  /* XXX - The straightforward implementation below has the problem
+     that it might call the GC twice, once in scm_malloc and then
+     again in scm_gc_register_collectable_memory.  We don't really
+     want the second GC.
+  */
+
+  void *ptr = scm_malloc (size);
+  scm_gc_register_collectable_memory (ptr, size, what);
+  return ptr;
+}
+
+void *
+scm_gc_realloc (void *mem, size_t old_size, size_t new_size, const char *what)
+{
+  /* XXX - see scm_gc_malloc. */
+
+  void *ptr = scm_realloc (mem, new_size);
+  scm_gc_unregister_collectable_memory (mem, old_size, what);
+  scm_gc_register_collectable_memory (ptr, new_size, what);
+  return ptr;
+}
+
+void
+scm_gc_free (void *mem, size_t size, const char *what)
+{
+  scm_gc_unregister_collectable_memory (mem, size, what);
+  free (mem);
+}
+
+char *
+scm_gc_strndup (const char *str, size_t n, const char *what)
+{
+  char *dst = scm_gc_malloc (n+1, what);
+  memcpy (dst, str, n);
+  dst[n] = 0;
+  return dst;
+}
+
+char *
+scm_gc_strdup (const char *str, const char *what)
+{
+  return scm_gc_strndup (str, strlen (str), what);
+}
+
+/* {Deprecated front end to malloc}
  *
  * scm_must_malloc, scm_must_realloc, scm_must_free, scm_done_malloc,
  * scm_done_free
@@ -2660,7 +2827,7 @@ scm_init_storage ()
   j = SCM_HEAP_SEG_SIZE;
   scm_mtrigger = SCM_INIT_MALLOC_LIMIT;
   scm_heap_table = ((scm_t_heap_seg_data *)
-		    scm_must_malloc (sizeof (scm_t_heap_seg_data) * 2, "hplims"));
+		    scm_malloc (sizeof (scm_t_heap_seg_data) * 2));
   heap_segment_table_size = 2;
 
   mark_space_ptr = &mark_space_head;

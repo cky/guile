@@ -105,8 +105,8 @@ scm_make_root (SCM parent)
   SCM root;
   scm_root_state *root_state;
 
-  root_state = (scm_root_state *) scm_must_malloc (sizeof (scm_root_state),
-						   "scm_make_root");
+  root_state = (scm_root_state *) scm_gc_malloc (sizeof (scm_root_state),
+						 "root state");
   if (SCM_ROOTP (parent))
     {
       memcpy (root_state, SCM_ROOT_STATE (parent), sizeof (scm_root_state));
@@ -247,8 +247,8 @@ scm_internal_cwdr (scm_t_catch_body body, void *body_data,
 
     SCM_REDEFER_INTS;
     {
-      scm_t_contregs *contregs = scm_must_malloc (sizeof (scm_t_contregs),
-						"inferior root continuation");
+      scm_t_contregs *contregs = scm_gc_malloc (sizeof (scm_t_contregs),
+						"continuation");
 
       contregs->num_stack_items = 0;
       contregs->dynenv = SCM_EOL;

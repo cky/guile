@@ -71,7 +71,7 @@
 #define scm_vtable_index_printer 2 /* A printer for this struct type. */
 #define scm_vtable_offset_user   3 /* Where do user fields start? */
 
-typedef size_t (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
+typedef void (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
 
 #define SCM_STRUCTF_MASK   (0xFFF << 20)
 #define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
@@ -107,11 +107,12 @@ SCM_API SCM scm_structs_to_free;
 
 
 
-SCM_API scm_t_bits * scm_alloc_struct (int n_words, int n_extra, char * who);
-SCM_API size_t scm_struct_free_0 (scm_t_bits * vtable, scm_t_bits * data);
-SCM_API size_t scm_struct_free_light (scm_t_bits * vtable, scm_t_bits * data);
-SCM_API size_t scm_struct_free_standard (scm_t_bits * vtable, scm_t_bits * data);
-SCM_API size_t scm_struct_free_entity (scm_t_bits * vtable, scm_t_bits * data);
+SCM_API scm_t_bits * scm_alloc_struct (int n_words, int n_extra,
+				       const char *what);
+SCM_API void scm_struct_free_0 (scm_t_bits * vtable, scm_t_bits * data);
+SCM_API void scm_struct_free_light (scm_t_bits * vtable, scm_t_bits * data);
+SCM_API void scm_struct_free_standard (scm_t_bits * vtable, scm_t_bits * data);
+SCM_API void scm_struct_free_entity (scm_t_bits * vtable, scm_t_bits * data);
 SCM_API SCM scm_make_struct_layout (SCM fields);
 SCM_API SCM scm_struct_p (SCM x);
 SCM_API SCM scm_struct_vtable_p (SCM x);

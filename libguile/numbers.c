@@ -1388,7 +1388,7 @@ scm_i_mkbig (size_t nlen, int sign)
   if (((nlen << SCM_BIGSIZEFIELD) >> SCM_BIGSIZEFIELD) != nlen)
     scm_memory_error (s_bignum);
 
-  base = scm_must_malloc (nlen * sizeof (SCM_BIGDIG), s_bignum);
+  base = scm_gc_malloc (nlen * sizeof (SCM_BIGDIG), s_bignum);
 
   v = scm_alloc_cell (SCM_MAKE_BIGNUM_TAG (nlen, sign), (scm_t_bits) base);
   return v;
@@ -1424,9 +1424,9 @@ scm_i_adjbig (SCM b, size_t nlen)
   {
     SCM_BIGDIG *digits
       = ((SCM_BIGDIG *)
-	 scm_must_realloc ((char *) SCM_BDIGITS (b),
-			   (long) (SCM_NUMDIGS (b) * sizeof (SCM_BIGDIG)),
-			   (long) (nsiz * sizeof (SCM_BIGDIG)), s_bignum));
+	 scm_gc_realloc (SCM_BDIGITS (b),
+			 SCM_NUMDIGS (b) * sizeof (SCM_BIGDIG),
+			 nsiz * sizeof (SCM_BIGDIG), s_bignum));
 
     SCM_SET_BIGNUM_BASE (b, digits);
     SCM_SETNUMDIGS (b, nsiz, SCM_BIGSIGN (b));
@@ -2840,7 +2840,8 @@ scm_make_complex (double x, double y)
     return scm_make_real (x);
   } else {
     SCM z;
-    SCM_NEWSMOB (z, scm_tc16_complex, scm_must_malloc (2L * sizeof (double), "complex"));
+    SCM_NEWSMOB (z, scm_tc16_complex, scm_gc_malloc (2*sizeof (double),
+						     "complex"));
     SCM_COMPLEX_REAL (z) = x;
     SCM_COMPLEX_IMAG (z) = y;
     return z;

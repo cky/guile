@@ -152,8 +152,7 @@ CTYPES2UVECT (const CTYPE *data, long n)
 
   SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n), 
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
-  if ((v = (char *) SCM_MUST_MALLOC_TYPE_NUM (CTYPE, n)) == NULL)
-    return SCM_UNDEFINED;
+  v = scm_gc_malloc (sizeof (CTYPE) * n, "vector");
   memcpy (v, data, n * sizeof (CTYPE));
   return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE), (scm_t_bits) v);
 }
@@ -168,8 +167,7 @@ CTYPES2UVECT2 (const unsigned CTYPE *data, long n)
 
   SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n), 
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
-  if ((v = (char *) SCM_MUST_MALLOC_TYPE_NUM (unsigned CTYPE, n)) == NULL)
-    return SCM_UNDEFINED;
+  v = scm_gc_malloc (sizeof (unsigned CTYPE) * n, "vector");
   memcpy (v, data, n * sizeof (unsigned CTYPE));
   return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE2), (scm_t_bits) v);
 }

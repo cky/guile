@@ -476,7 +476,8 @@ environment_mark (SCM env)
 static size_t
 environment_free (SCM env)
 {
-  return (*(SCM_ENVIRONMENT_FUNCS (env)->free)) (env);
+  (*(SCM_ENVIRONMENT_FUNCS (env)->free)) (env);
+  return 0;
 }
 
 
@@ -984,13 +985,12 @@ leaf_environment_mark (SCM env)
 }
 
 
-static size_t
+static void
 leaf_environment_free (SCM env)
 {
   core_environments_finalize (env);
-
-  free (LEAF_ENVIRONMENT (env));
-  return sizeof (struct leaf_environment);
+  scm_gc_free (LEAF_ENVIRONMENT (env), sizeof (struct leaf_environment),
+	       "leaf environment");
 }
 
 
@@ -1034,7 +1034,7 @@ SCM_DEFINE (scm_make_leaf_environment, "make-leaf-environment", 0, 0, 0,
 #define FUNC_NAME s_scm_make_leaf_environment
 {
   size_t size = sizeof (struct leaf_environment);
-  struct leaf_environment *body = scm_must_malloc (size, FUNC_NAME);
+  struct leaf_environment *body = scm_gc_malloc (size, "leaf environment");
   SCM env;
 
   core_environments_preinit (&body->base);
@@ -1345,13 +1345,12 @@ eval_environment_mark (SCM env)
 }
 
 
-static size_t
+static void
 eval_environment_free (SCM env)
 {
   core_environments_finalize (env);
-
-  free (EVAL_ENVIRONMENT (env));
-  return sizeof (struct eval_environment);
+  scm_gc_free (EVAL_ENVIRONMENT (env), sizeof (struct eval_environment),
+	       "eval environment");
 }
 
 
@@ -1428,7 +1427,7 @@ SCM_DEFINE (scm_make_eval_environment, "make-eval-environment", 2, 0, 0,
   SCM_ASSERT (SCM_ENVIRONMENT_P (local), local, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (SCM_ENVIRONMENT_P (imported), imported, SCM_ARG2, FUNC_NAME);
 
-  body = scm_must_malloc (sizeof (struct eval_environment), FUNC_NAME);
+  body = scm_gc_malloc (sizeof (struct eval_environment), "eval environment");
 
   core_environments_preinit (&body->base);
   body->obarray = SCM_BOOL_F;
@@ -1764,13 +1763,12 @@ import_environment_mark (SCM env)
 }
 
 
-static size_t
+static void
 import_environment_free (SCM env)
 {
   core_environments_finalize (env);
-
-  free (IMPORT_ENVIRONMENT (env));
-  return sizeof (struct import_environment);
+  scm_gc_free (IMPORT_ENVIRONMENT (env), sizeof (struct import_environment),
+	       "import environment");
 }
 
 
@@ -1844,7 +1842,7 @@ SCM_DEFINE (scm_make_import_environment, "make-import-environment", 2, 0, 0,
 #define FUNC_NAME s_scm_make_import_environment
 {
   size_t size = sizeof (struct import_environment);
-  struct import_environment *body = scm_must_malloc (size, FUNC_NAME);
+  struct import_environment *body = scm_gc_malloc (size, "import environment");
   SCM env;
 
   core_environments_preinit (&body->base);
@@ -2070,13 +2068,12 @@ export_environment_mark (SCM env)
 }
 
 
-static size_t
+static void
 export_environment_free (SCM env)
 {
   core_environments_finalize (env);
-
-  free (EXPORT_ENVIRONMENT (env));
-  return sizeof (struct export_environment);
+  scm_gc_free (EXPORT_ENVIRONMENT (env), sizeof (struct export_environment),
+	       "export environment");
 }
 
 
@@ -2171,7 +2168,7 @@ SCM_DEFINE (scm_make_export_environment, "make-export-environment", 2, 0, 0,
   SCM_ASSERT (SCM_ENVIRONMENT_P (private), private, SCM_ARG1, FUNC_NAME);
 
   size = sizeof (struct export_environment);
-  body = scm_must_malloc (size, FUNC_NAME);
+  body = scm_gc_malloc (size, "export environment");
 
   core_environments_preinit (&body->base);
   body->private = SCM_BOOL_F;

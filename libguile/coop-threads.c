@@ -324,7 +324,7 @@ c_launch_thread (void *p)
 		     data,
 		     (SCM_STACKITEM *) &thread);
   scm_thread_count--;
-  scm_must_free ((char *) data);
+  free ((char *) data);
 }
 
 SCM
@@ -334,8 +334,7 @@ scm_spawn_thread (scm_t_catch_body body, void *body_data,
   SCM thread;
   coop_t *t;
   SCM root, old_winds;
-  c_launch_data *data = (c_launch_data *) scm_must_malloc (sizeof (*data),
-							   "scm_spawn_thread");
+  c_launch_data *data = (c_launch_data *) scm_malloc (sizeof (*data));
   
   /* Unwind wind chain. */
   old_winds = scm_dynwinds;
@@ -414,11 +413,8 @@ scm_single_thread_p (void)
 SCM
 scm_make_mutex (void)
 {
-  SCM m;
-  coop_m *data = (coop_m *) scm_must_malloc (sizeof (coop_m), "mutex");
-
-  SCM_NEWSMOB (m, scm_tc16_mutex, (scm_t_bits) data);
-  coop_mutex_init (data);
+  SCM m = scm_make_smob (scm_tc16_mutex);
+  coop_mutex_init (SCM_MUTEX_DATA (m));
   return m;
 }
 
@@ -446,9 +442,7 @@ scm_unlock_mutex (SCM m)
 SCM
 scm_make_condition_variable (void)
 {
-  SCM c;
-  coop_c *data = (coop_c *) scm_must_malloc (sizeof (coop_c), "condvar");
-  SCM_NEWSMOB (c, scm_tc16_condvar, (scm_t_bits) data);
+  SCM c = scm_make_smob (scm_tc16_condvar);
   coop_condition_variable_init (SCM_CONDVAR_DATA (c));
   return c;
 }

@@ -133,7 +133,7 @@ scm_take_str (char *s, size_t len)
   SCM_ASSERT_RANGE (2, scm_ulong2num (len), len <= SCM_STRING_MAX_LENGTH);
 
   answer = scm_alloc_cell (SCM_MAKE_STRING_TAG (len), (scm_t_bits) s);
-  scm_done_malloc (len + 1);
+  scm_gc_register_collectable_memory (s, len+1, "string");
 
   return answer;
 }
@@ -191,7 +191,7 @@ scm_allocate_string (size_t len)
 
   SCM_ASSERT_RANGE (1, scm_long2num (len), len <= SCM_STRING_MAX_LENGTH);
 
-  mem = (char *) scm_must_malloc (len + 1, FUNC_NAME);
+  mem = (char *) scm_gc_malloc (len + 1, "string");
   mem[len] = 0;
 
   s = scm_alloc_cell (SCM_MAKE_STRING_TAG (len), (scm_t_bits) mem);

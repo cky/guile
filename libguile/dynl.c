@@ -89,7 +89,8 @@ maybe_drag_in_eprintf ()
    (Dirk: IMO strings.c is not the right place.) */
 
 static char **
-scm_make_argv_from_stringlist (SCM args,int *argcp,const char *subr,int argn)
+scm_make_argv_from_stringlist (SCM args, int *argcp, const char *subr, 
+			       int argn)
 {
   char **argv;
   int argc;
@@ -97,7 +98,7 @@ scm_make_argv_from_stringlist (SCM args,int *argcp,const char *subr,int argn)
 
   argc = scm_ilength (args);
   SCM_ASSERT (argc >= 0, args, argn, subr);
-  argv = (char **) scm_must_malloc ((argc + 1) * sizeof (char *), subr);
+  argv = (char **) scm_malloc ((argc + 1) * sizeof (char *));
   for (i = 0; !SCM_NULL_OR_NIL_P (args); args = SCM_CDR (args), ++i) {
     SCM arg = SCM_CAR (args);
     size_t len;
@@ -107,7 +108,7 @@ scm_make_argv_from_stringlist (SCM args,int *argcp,const char *subr,int argn)
     SCM_ASSERT (SCM_STRINGP (arg), args, argn, subr);
     len = SCM_STRING_LENGTH (arg);
     src = SCM_STRING_CHARS (arg);
-    dst = (char *) scm_must_malloc (len + 1, subr);
+    dst = (char *) scm_malloc (len + 1);
     memcpy (dst, src, len);
     dst[len] = 0;
     argv[i] = dst;
@@ -120,7 +121,7 @@ scm_make_argv_from_stringlist (SCM args,int *argcp,const char *subr,int argn)
 }
 
 static void
-scm_must_free_argv(char **argv)
+scm_free_argv (char **argv)
 {
   char **av = argv;
   while (*av)
@@ -398,7 +399,7 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
   SCM_DEFER_INTS;
   argv = scm_make_argv_from_stringlist (args, &argc, FUNC_NAME, SCM_ARG3);
   result = (*fptr) (argc, argv);
-  scm_must_free_argv (argv);
+  scm_free_argv (argv);
   SCM_ALLOW_INTS;
 
   return SCM_MAKINUM (0L + result);

@@ -81,7 +81,7 @@ allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
 	    fill = SCM_UNSPECIFIED;
 
 	  SCM_ASSERT_RANGE (1, size, c_size <= SCM_VECTOR_MAX_LENGTH);
-	  base = scm_must_malloc (c_size * sizeof (scm_t_bits), FUNC_NAME);
+	  base = scm_gc_malloc (c_size * sizeof (scm_t_bits), "weak vector");
 	  for (j = 0; j != c_size; ++j)
 	    base[j] = SCM_UNPACK (fill);
 	  v = scm_alloc_double_cell (SCM_MAKE_VECTOR_TAG (c_size,

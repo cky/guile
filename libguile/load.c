@@ -354,7 +354,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
   { /* scope */
     SCM result = SCM_BOOL_F;
     size_t buf_size = max_path_len + 1 + filename_len + max_ext_len + 1;
-    char *buf = SCM_MUST_MALLOC (buf_size);
+    char *buf = scm_malloc (buf_size);
 
     /* This simplifies the loop below a bit.  */
     if (SCM_NULL_OR_NIL_P (extensions))
@@ -400,8 +400,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
       }
 
   end:
-    scm_must_free (buf);
-    scm_done_free (buf_size);
+    free (buf);
     SCM_ALLOW_INTS;
     return result;
   }

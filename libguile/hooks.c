@@ -77,8 +77,7 @@ scm_c_hook_add (scm_t_c_hook *hook,
 		void *func_data, 
 		int appendp)
 {
-  scm_t_c_hook_entry *entry = scm_must_malloc (sizeof (scm_t_c_hook_entry),
-					     "C level hook entry");
+  scm_t_c_hook_entry *entry = scm_malloc (sizeof (scm_t_c_hook_entry));
   scm_t_c_hook_entry **loc = &hook->first;
   if (appendp)
     while (*loc)
@@ -101,7 +100,7 @@ scm_c_hook_remove (scm_t_c_hook *hook,
 	{
 	  scm_t_c_hook_entry *entry = *loc;
 	  *loc = (*loc)->next;
-	  scm_must_free (entry);
+	  free (entry);
 	  return;
 	}
       loc = &(*loc)->next;

@@ -74,13 +74,12 @@ void
 scm_c_register_extension (const char *lib, const char *init,
 			  void (*func) (void *), void *data)
 {
-  extension_t *ext = scm_must_malloc (sizeof(extension_t),
-					   "scm_register_extension");
+  extension_t *ext = scm_malloc (sizeof(extension_t));
   if (lib)
-    ext->lib = scm_must_strdup (lib);
+    ext->lib = scm_strdup (lib);
   else
     ext->lib = NULL;
-  ext->init = scm_must_strdup (init);
+  ext->init = scm_strdup (init);
   ext->func = func;
   ext->data = data;
 

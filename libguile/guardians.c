@@ -175,8 +175,8 @@ guardian_mark (SCM ptr)
 static size_t
 guardian_free (SCM ptr)
 {
-  scm_must_free (GUARDIAN_DATA (ptr));
-  return sizeof (t_guardian);
+  scm_gc_free (GUARDIAN_DATA (ptr), sizeof (t_guardian), "guardian");
+  return 0;
 }
 
 
@@ -330,7 +330,7 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 1, 0,
             "paper still (mostly) accurately describes the interface).")
 #define FUNC_NAME s_scm_make_guardian
 {
-  t_guardian *g = SCM_MUST_MALLOC_TYPE (t_guardian);
+  t_guardian *g = scm_gc_malloc (sizeof (t_guardian), "guardian");
   SCM z1 = scm_cons (SCM_BOOL_F, SCM_EOL);
   SCM z2 = scm_cons (SCM_BOOL_F, SCM_EOL);
   SCM z;

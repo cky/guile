@@ -942,17 +942,17 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
   char *wd;
   SCM result;
 
-  wd = scm_must_malloc (size, FUNC_NAME);
+  wd = scm_malloc (size);
   while ((rv = getcwd (wd, size)) == 0 && errno == ERANGE)
     {
-      scm_must_free (wd);
+      free (wd);
       size *= 2;
-      wd = scm_must_malloc (size, FUNC_NAME);
+      wd = scm_malloc (size);
     }
   if (rv == 0)
     SCM_SYSERROR;
   result = scm_mem2string (wd, strlen (wd));
-  scm_must_free (wd);
+  free (wd);
   return result;
 }
 #undef FUNC_NAME
@@ -1367,17 +1367,17 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
   char *buf;
   SCM result;
   SCM_VALIDATE_STRING (1, path);
-  buf = scm_must_malloc (size, FUNC_NAME);
+  buf = scm_malloc (size);
   while ((rv = readlink (SCM_STRING_CHARS (path), buf, size)) == size)
     {
-      scm_must_free (buf);
+      free (buf);
       size *= 2;
-      buf = scm_must_malloc (size, FUNC_NAME);
+      buf = scm_malloc (size);
     }
   if (rv == -1)
     SCM_SYSERROR;
   result = scm_mem2string (buf, rv);
-  scm_must_free (buf);
+  free (buf);
   return result;
 }
 #undef FUNC_NAME

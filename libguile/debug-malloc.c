@@ -183,7 +183,7 @@ scm_malloc_unregister (void *obj)
   if (type == 0)
     {
       fprintf (stderr,
-	       "scm_must_free called on object not allocated with scm_must_malloc\n");
+	       "scm_gc_free called on object not allocated with scm_gc_malloc\n");
       abort ();
     }
   type->data = (void *) ((int) type->data - 1);
@@ -194,29 +194,36 @@ void
 scm_malloc_reregister (void *old, void *new, const char *newwhat)
 {
   hash_entry_t *object, *type;
-  GET_CREATE_HASH_ENTRY (object, object, old, l1);
-  type = (hash_entry_t *) object->data;
-  if (type == 0)
+
+  if (old == NULL)
+    scm_malloc_register (new, newwhat);
+  else
     {
-      fprintf (stderr,
-	       "scm_must_realloc called on object not allocated with scm_must_malloc\n");
-      abort ();
-    }
-  if (strcmp ((char *) type->key, newwhat) != 0)
-    {
-      if (strcmp (newwhat, "vector-set-length!") != 0)
+      GET_CREATE_HASH_ENTRY (object, object, old, l1);
+      type = (hash_entry_t *) object->data;
+      if (type == 0)
 	{
 	  fprintf (stderr,
-		   "scm_must_realloc called with arg %s, was %s\n",
-		   newwhat,
-		   (char *) type->key);
+		   "scm_gc_realloc called on object not allocated "
+		   "with scm_gc_malloc\n");
 	  abort ();
 	}
-    }
-  if (new != old)
-    {
-      object->key = 0;
-      CREATE_HASH_ENTRY (object, new, type, l2);
+      if (strcmp ((char *) type->key, newwhat) != 0)
+	{
+	  if (strcmp (newwhat, "vector-set-length!") != 0)
+	    {
+	      fprintf (stderr,
+		       "scm_gc_realloc called with arg %s, was %s\n",
+		       newwhat,
+		       (char *) type->key);
+	      abort ();
+	    }
+	}
+      if (new != old)
+	{
+	  object->key = 0;
+	  CREATE_HASH_ENTRY (object, new, type, l2);
+	}
     }
 }
 
@@ -224,7 +231,7 @@ SCM_DEFINE (scm_malloc_stats, "malloc-stats", 0, 0, 0,
 	    (),
 	    "Return an alist ((@var{what} . @var{n}) ...) describing number\n"
 	    "of malloced objects.\n"
-	    "@var{what} is the second argument to @code{scm_must_malloc},\n"
+	    "@var{what} is the second argument to @code{scm_gc_malloc},\n"
 	    "@var{n} is the number of objects of that type currently\n"
 	    "allocated.")
 #define FUNC_NAME s_scm_malloc_stats

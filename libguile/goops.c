@@ -495,7 +495,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
     SCM_MISC_ERROR ("class object doesn't have enough fields: ~S",
 		    scm_list_1 (nfields));
   
-  s = n > 0 ? scm_must_malloc (n, FUNC_NAME) : 0;
+  s = n > 0 ? scm_malloc (n) : 0;
   for (i = 0; i < n; i += 2)
     {
       long len;
@@ -544,7 +544,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
     }
   SCM_SET_SLOT (class, scm_si_layout, scm_mem2symbol (s, n));
   if (s)
-    scm_must_free (s);
+    free (s);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -577,7 +577,7 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
       long n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
 #if 0
       /*
-       * We could avoid calling scm_must_malloc in the allocation code
+       * We could avoid calling scm_gc_malloc in the allocation code
        * (in which case the following two lines are needed).  Instead
        * we make 0-slot instances non-light, so that the light case
        * can be handled without special cases.
@@ -1326,7 +1326,7 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
   if (SCM_CLASS_FLAGS (class) & SCM_STRUCTF_LIGHT)
     {
       n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
-      m = (SCM *) scm_must_malloc (n * sizeof (SCM), "instance");
+      m = (SCM *) scm_gc_malloc (n * sizeof (SCM), "struct");
       return wrap_init (class, m, n);
     }
   
@@ -1339,9 +1339,8 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
   /* Entities */
   if (SCM_CLASS_FLAGS (class) & SCM_CLASSF_ENTITY)
     {
-      m = (SCM *) scm_alloc_struct (n,
-				    scm_struct_entity_n_extra_words,
-				    "entity");
+      m = (SCM *) scm_alloc_struct (n, scm_struct_entity_n_extra_words,
+				    "entity struct");
       m[scm_struct_i_setter] = SCM_BOOL_F;
       m[scm_struct_i_procedure] = SCM_BOOL_F;
       /* Generic functions */
@@ -1377,9 +1376,7 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
   
   /* Non-light instances */
   {
-    m = (SCM *) scm_alloc_struct (n,
-				  scm_struct_n_extra_words,
-				  "heavy instance");
+    m = (SCM *) scm_alloc_struct (n, scm_struct_n_extra_words, "heavy struct");
     return wrap_init (class, m, n);
   }
 }
@@ -1504,7 +1501,7 @@ go_to_hell (void *o)
   if (n_hell == hell_size)
     {
       long new_size = 2 * hell_size;
-      hell = scm_must_realloc (hell, hell_size, new_size, "hell");
+      hell = scm_realloc (hell, new_size);
       hell_size = new_size;
     }
   hell[n_hell++] = SCM_STRUCT_DATA (obj);
@@ -2683,7 +2680,7 @@ scm_init_goops_builtins (void)
 
   list_of_no_method = scm_permanent_object (scm_list_1 (sym_no_method));
 
-  hell = scm_must_malloc (hell_size, "hell");
+  hell = scm_malloc (hell_size);
 #ifdef USE_THREADS
   scm_mutex_init (&hell_mutex);
 #endif

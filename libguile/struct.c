@@ -306,10 +306,10 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 
 
 scm_t_bits *
-scm_alloc_struct (int n_words, int n_extra, char *who)
+scm_alloc_struct (int n_words, int n_extra, const char *what)
 {
   int size = sizeof (scm_t_bits) * (n_words + n_extra) + 7;
-  void * block = scm_must_malloc (size, who);
+  void * block = scm_gc_malloc (size, what);
 
   /* Adjust the pointer to hide the extra words.  */
   scm_t_bits * p = (scm_t_bits *) block + n_extra;
@@ -326,36 +326,33 @@ scm_alloc_struct (int n_words, int n_extra, char *who)
   return p;
 }
 
-size_t
+void
 scm_struct_free_0 (scm_t_bits * vtable SCM_UNUSED,
 		   scm_t_bits * data SCM_UNUSED)
 {
-  return 0;
 }
 
-size_t
+void
 scm_struct_free_light (scm_t_bits * vtable, scm_t_bits * data)
 {
-  scm_must_free (data);
-  return vtable [scm_struct_i_size] & ~SCM_STRUCTF_MASK;
+  size_t n = vtable [scm_struct_i_size] & ~SCM_STRUCTF_MASK;
+  scm_gc_free (data, n, "struct");
 }
 
-size_t
+void
 scm_struct_free_standard (scm_t_bits * vtable SCM_UNUSED, scm_t_bits * data)
 {
   size_t n = (data[scm_struct_i_n_words] + scm_struct_n_extra_words)
 	     * sizeof (scm_t_bits) + 7;
-  scm_must_free ((void *) data[scm_struct_i_ptr]);
-  return n;
+  scm_gc_free ((void *) data[scm_struct_i_ptr], n, "heavy struct");
 }
 
-size_t
+void
 scm_struct_free_entity (scm_t_bits * vtable SCM_UNUSED, scm_t_bits * data)
 {
   size_t n = (data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
 	     * sizeof (scm_t_bits) + 7;
-  scm_must_free ((void *) data[scm_struct_i_ptr]);
-  return n;
+  scm_gc_free ((void *) data[scm_struct_i_ptr], n, "entity struct");
 }
 
 static void *
@@ -455,14 +452,14 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
     {
       data = scm_alloc_struct (basic_size + tail_elts,
 			       scm_struct_entity_n_extra_words,
-			       "make-struct");
+			       "entity struct");
       data[scm_struct_i_procedure] = SCM_UNPACK (SCM_BOOL_F);
       data[scm_struct_i_setter] = SCM_UNPACK (SCM_BOOL_F);
     }
   else
     data = scm_alloc_struct (basic_size + tail_elts,
 			     scm_struct_n_extra_words,
-			     "make-struct");
+			     "struct");
   handle = scm_alloc_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (vtable))
 				   + scm_tc3_struct),
 				  (scm_t_bits) data, 0, 0);
@@ -541,7 +538,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   SCM_DEFER_INTS;
   data = scm_alloc_struct (basic_size + tail_elts,
 			   scm_struct_n_extra_words,
-			   "make-vtable-vtable");
+			   "struct");
   handle = scm_alloc_double_cell ((scm_t_bits) data + scm_tc3_struct,
 				  (scm_t_bits) data, 0, 0);
   data [scm_vtable_index_layout] = SCM_UNPACK (layout);

@@ -126,7 +126,8 @@ scm_mem2symbol (const char *name, size_t len)
     SCM slot;
 
     symbol = scm_alloc_double_cell (SCM_MAKE_SYMBOL_TAG (len),
-				    (scm_t_bits) scm_must_strndup (name, len),
+				    (scm_t_bits) scm_gc_strndup (name, len,
+								 "symbol"),
 				    raw_hash,
 				    SCM_UNPACK (scm_cons (SCM_BOOL_F,
 							  SCM_EOL)));
@@ -146,7 +147,8 @@ scm_mem2uninterned_symbol (const char *name, size_t len)
 		     + SCM_T_BITS_MAX/2 + 1);
 
   return scm_alloc_double_cell (SCM_MAKE_SYMBOL_TAG (len),
-				(scm_t_bits) scm_must_strndup (name, len),
+				(scm_t_bits) scm_gc_strndup (name, len, 
+							     "symbol"),
 				raw_hash,
 				SCM_UNPACK (scm_cons (SCM_BOOL_F,
 						      SCM_EOL)));
@@ -291,14 +293,14 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
       SCM_VALIDATE_STRING (1, prefix);
       len = SCM_STRING_LENGTH (prefix);
       if (len > MAX_PREFIX_LENGTH)
-	name = SCM_MUST_MALLOC (len + SCM_INTBUFLEN);
+	name = scm_malloc (len + SCM_INTBUFLEN);
       memcpy (name, SCM_STRING_CHARS (prefix), len);
     }
   {
     int n_digits = scm_iint2str (gensym_counter++, 10, &name[len]);
     SCM res = scm_mem2symbol (name, len + n_digits);
     if (name != buf)
-      scm_must_free (name);
+      free (name);
     return res;
   }
 }

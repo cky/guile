@@ -76,7 +76,7 @@ struct scm_environment_funcs {
   void (*unobserve) (SCM self, SCM token);
 
   SCM (*mark) (SCM self);
-  size_t (*free) (SCM self);
+  void (*free) (SCM self);
   int (*print) (SCM self, SCM port, scm_print_state *pstate);
 };
 

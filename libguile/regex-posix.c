@@ -95,8 +95,8 @@ static size_t
 regex_free (SCM obj)
 {
   regfree (SCM_RGX (obj));
-  free (SCM_RGX (obj));
-  return sizeof(regex_t);
+  scm_gc_free (SCM_RGX (obj), sizeof(regex_t), "regex");
+  return 0;
 }
 
 
@@ -202,7 +202,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
       flag = SCM_CDR (flag);
     }
 
-  rx = SCM_MUST_MALLOC_TYPE (regex_t);
+  rx = scm_gc_malloc (sizeof(regex_t), "regex");
   status = regcomp (rx, SCM_STRING_CHARS (pat),
 		    /* Make sure they're not passing REG_NOSUB;
                        regexp-exec assumes we're getting match data.  */
@@ -260,7 +260,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
 
   nmatches = SCM_RGX(rx)->re_nsub + 1;
   SCM_DEFER_INTS;
-  matches = SCM_MUST_MALLOC_TYPE_NUM (regmatch_t,nmatches);
+  matches = scm_malloc (sizeof (regmatch_t) * nmatches);
   status = regexec (SCM_RGX (rx), SCM_STRING_CHARS (str) + offset,
 		    nmatches, matches,
 		    SCM_INUM (flags));
@@ -279,7 +279,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
 	    = scm_cons (scm_long2num (matches[i].rm_so + offset),
 			scm_long2num (matches[i].rm_eo + offset));
     }
-  scm_must_free ((char *) matches);
+  free (matches);
   SCM_ALLOW_INTS;
 
   if (status != 0 && status != REG_NOMATCH)

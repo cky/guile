@@ -232,16 +232,14 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
     SCM_SYSERROR;
 
   size = ngroups * sizeof (GETGROUPS_T);
-  groups = scm_must_malloc (size, FUNC_NAME);
+  groups = scm_malloc (size);
   getgroups (ngroups, groups);
 
   ans = scm_c_make_vector (ngroups, SCM_UNDEFINED);
   while (--ngroups >= 0) 
     SCM_VELTS (ans) [ngroups] = SCM_MAKINUM (groups [ngroups]);
 
-  scm_must_free (groups);
-  scm_done_free (size);
-
+  free (groups);
   return ans;
 }
 #undef FUNC_NAME  
@@ -842,7 +840,7 @@ scm_convert_exec_args (SCM args, int argn, const char *subr)
 
   argc = scm_ilength (args);
   SCM_ASSERT (argc >= 0, args, argn, subr);
-  argv = (char **) scm_must_malloc ((argc + 1) * sizeof (char *), subr);
+  argv = (char **) scm_malloc ((argc + 1) * sizeof (char *));
   for (i = 0; !SCM_NULLP (args); args = SCM_CDR (args), ++i)
     {
       SCM arg = SCM_CAR (args);
@@ -853,7 +851,7 @@ scm_convert_exec_args (SCM args, int argn, const char *subr)
       SCM_ASSERT (SCM_STRINGP (arg), args, argn, subr);
       len = SCM_STRING_LENGTH (arg);
       src = SCM_STRING_CHARS (arg);
-      dst = (char *) scm_must_malloc (len + 1, subr);
+      dst = (char *) scm_malloc (len + 1);
       memcpy (dst, src, len);
       dst[len] = 0;
       argv[i] = dst;
@@ -1635,23 +1633,23 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
   /* 256 is for Solaris, under Linux ENAMETOOLONG is returned if not
      large enough.  */
   int len = 256, res;
-  char *p = scm_must_malloc (len, "gethostname");
+  char *p = scm_malloc (len);
   SCM name;
 
   res = gethostname (p, len);
   while (res == -1 && errno == ENAMETOOLONG)
     {
-      p = scm_must_realloc (p, len, len * 2, "gethostname");
+      p = scm_realloc (p, len * 2);
       len *= 2;
       res = gethostname (p, len);
     }
   if (res == -1)
     {
-      scm_must_free (p);
+      free (p);
       SCM_SYSERROR;
     }
   name = scm_makfrom0str (p);
-  scm_must_free (p);
+  free (p);
   return name;
 }
 #undef FUNC_NAME

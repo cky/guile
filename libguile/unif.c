@@ -171,7 +171,7 @@ scm_make_uve (long k, SCM prot)
 			    scm_long2num (k), k <= SCM_BITVECTOR_MAX_LENGTH);
 	  i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
 	  v = scm_alloc_cell (SCM_MAKE_BITVECTOR_TAG (k), 
-			      (scm_t_bits) scm_must_malloc (i, "vector"));
+			      (scm_t_bits) scm_gc_malloc (i, "vector"));
 	}
       else
 	v = scm_alloc_cell (SCM_MAKE_BITVECTOR_TAG (0), 0);
@@ -240,7 +240,7 @@ scm_make_uve (long k, SCM prot)
   SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_UVECTOR_MAX_LENGTH);
 
   return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (k, type),
-			 (scm_t_bits) scm_must_malloc (i ? i : 1, "vector"));
+			 (scm_t_bits) scm_gc_malloc (i, "vector"));
 }
 #undef FUNC_NAME
 
@@ -520,9 +520,9 @@ scm_make_ra (int ndim)
   SCM ra;
   SCM_DEFER_INTS;
   SCM_NEWSMOB(ra, ((scm_t_bits) ndim << 17) + scm_tc16_array,
-              scm_must_malloc ((sizeof (scm_t_array) +
-				ndim * sizeof (scm_t_array_dim)),
-			       "array"));
+              scm_gc_malloc ((sizeof (scm_t_array) +
+			      ndim * sizeof (scm_t_array_dim)),
+			     "array"));
   SCM_ARRAY_V (ra) = scm_nullvect;
   SCM_ALLOW_INTS;
   return ra;
@@ -2589,9 +2589,11 @@ array_mark (SCM ptr)
 static size_t
 array_free (SCM ptr)
 {
-  scm_must_free (SCM_ARRAY_MEM (ptr));
-  return sizeof (scm_t_array) +
-    SCM_ARRAY_NDIM (ptr) * sizeof (scm_t_array_dim);
+  scm_gc_free (SCM_ARRAY_MEM (ptr),
+	       (sizeof (scm_t_array) 
+		+ SCM_ARRAY_NDIM (ptr) * sizeof (scm_t_array_dim)),
+	       "array");
+  return 0;
 }
 
 void

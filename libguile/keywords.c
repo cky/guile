@@ -95,14 +95,13 @@ SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
 SCM
 scm_c_make_keyword (char *s)
 {
-  char *buf = scm_must_malloc (strlen (s) + 2, "keyword");
+  char *buf = scm_malloc (strlen (s) + 2);
   SCM symbol;
 
   buf[0] = '-';
   strcpy (buf + 1, s);
   symbol = scm_str2symbol (buf);
-  scm_must_free (buf);
-  scm_done_free (strlen (s) + 2);
+  free (buf);
 
   return scm_make_keyword_from_dash_symbol (symbol);
 }

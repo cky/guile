@@ -94,11 +94,11 @@ continuation_free (SCM obj)
     + extra_items * sizeof (SCM_STACKITEM);
 
 #ifdef __ia64__
-  bytes_free += continuation->backing_store_size;
-  scm_must_free (continuation->backing_store);
+  scm_gc_free (continuation->backing_store, continuation->backing_store_size,
+	       "continuation backing store");
 #endif /* __ia64__ */ 
-  scm_must_free (continuation);
-  return bytes_free;
+  scm_gc_free (continuation, bytes_free, "continuation");
+  return 0;
 }
 
 static int
@@ -146,9 +146,9 @@ scm_make_continuation (int *first)
   SCM_ENTER_A_SECTION;
   SCM_FLUSH_REGISTER_WINDOWS;
   stack_size = scm_stack_size (rootcont->base);
-  continuation = scm_must_malloc (sizeof (scm_t_contregs)
-				  + (stack_size - 1) * sizeof (SCM_STACKITEM),
-				  FUNC_NAME);
+  continuation = scm_gc_malloc (sizeof (scm_t_contregs)
+				+ (stack_size - 1) * sizeof (SCM_STACKITEM),
+				"continuation");
   continuation->num_stack_items = stack_size;
   continuation->dynenv = scm_dynwinds;
   continuation->throw_value = SCM_EOL;
@@ -174,7 +174,8 @@ scm_make_continuation (int *first)
         (unsigned long) __libc_ia64_register_backing_store_base;
       continuation->backing_store = NULL;
       continuation->backing_store = 
-        scm_must_malloc (continuation->backing_store_size, FUNC_NAME);
+        scm_gc_malloc (continuation->backing_store_size,
+		       "continuation backing store");
       memcpy (continuation->backing_store, 
               (void *) __libc_ia64_register_backing_store_base, 
               continuation->backing_store_size);

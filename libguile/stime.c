@@ -314,7 +314,7 @@ setzone (SCM zone, int pos, const char *subr)
       char *buf;
 
       SCM_ASSERT (SCM_STRINGP (zone), zone, pos, subr);
-      buf = scm_must_malloc (SCM_STRING_LENGTH (zone) + sizeof (tzvar) + 1, subr);
+      buf = scm_malloc (SCM_STRING_LENGTH (zone) + sizeof (tzvar) + 1);
       sprintf (buf, "%s=%s", tzvar, SCM_STRING_CHARS (zone));
       oldenv = environ;
       tmpenv[0] = buf;
@@ -329,7 +329,7 @@ restorezone (SCM zone, char **oldenv, const char *subr SCM_UNUSED)
 {
   if (!SCM_UNBNDP (zone))
     {
-      scm_must_free (environ[0]);
+      free (environ[0]);
       environ = oldenv;
 #ifdef HAVE_TZSET
       /* for the possible benefit of user code linked with libguile.  */
@@ -378,7 +378,7 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
 #else
       ptr = "";
 #endif
-      zname = SCM_MUST_MALLOC (strlen (ptr) + 1);
+      zname = scm_malloc (strlen (ptr) + 1);
       strcpy (zname, ptr);
     }
   /* the struct is copied in case localtime and gmtime share a buffer.  */
@@ -407,7 +407,8 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
 
   result = filltime (&lt, zoff, zname);
   SCM_ALLOW_INTS;
-  scm_must_free (zname);
+  if (zname)
+    free (zname);
   return result;
 }
 #undef FUNC_NAME
@@ -511,7 +512,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
 #else
       ptr = "";
 #endif
-      zname = SCM_MUST_MALLOC (strlen (ptr) + 1);
+      zname = scm_malloc (strlen (ptr) + 1);
       strcpy (zname, ptr);
     }
 
@@ -540,7 +541,8 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   result = scm_cons (scm_long2num ((long) itime),
 		     filltime (&lt, zoff, zname));
   SCM_ALLOW_INTS;
-  scm_must_free (zname);
+  if (zname)
+    free (zname);
   return result;
 }
 #undef FUNC_NAME
@@ -590,12 +592,12 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
      a zero-byte output string!  Workaround is to prepend a junk
      character to the format string, so that valid returns are always
      nonzero. */
-  myfmt = SCM_MUST_MALLOC (len+2);
+  myfmt = scm_malloc (len+2);
   *myfmt = 'x';
   strncpy(myfmt+1, fmt, len);
   myfmt[len+1] = 0;
 
-  tbuf = SCM_MUST_MALLOC (size);
+  tbuf = scm_malloc (size);
   {
 #if !defined (HAVE_TM_ZONE)
     /* it seems the only way to tell non-GNU versions of strftime what
@@ -632,9 +634,9 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
        case. */
     while ((len = strftime (tbuf, size, myfmt, &t)) == 0 || len == size)
       {
-	scm_must_free (tbuf);
+	free (tbuf);
 	size *= 2;
-	tbuf = SCM_MUST_MALLOC (size);
+	tbuf = scm_malloc (size);
       }
 
 #if !defined (HAVE_TM_ZONE)
@@ -647,8 +649,8 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
     }
 
   result = scm_mem2string (tbuf + 1, len - 1);
-  scm_must_free (tbuf);
-  scm_must_free(myfmt);
+  free (tbuf);
+  free (myfmt);
   return result;
 }
 #undef FUNC_NAME

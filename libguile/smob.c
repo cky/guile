@@ -107,8 +107,11 @@ scm_free0 (SCM ptr SCM_UNUSED)
 size_t
 scm_smob_free (SCM obj)
 {
-  scm_must_free ((char *) SCM_CELL_WORD_1 (obj));
-  return scm_smobs[SCM_SMOBNUM (obj)].size;
+  long n = SCM_SMOBNUM (obj);
+  if (scm_smobs[n].size > 0)
+    scm_gc_free ((void *) SCM_CELL_WORD_1 (obj), 
+		 scm_smobs[n].size, SCM_SMOBNAME (n));
+  return 0;
 }
 
 /* {Print}
@@ -457,7 +460,7 @@ scm_make_smob (scm_t_bits tc)
   long n = SCM_TC2SMOBNUM (tc);
   size_t size = scm_smobs[n].size;
   scm_t_bits data = (size > 0
-		     ? (scm_t_bits) scm_must_malloc (size, SCM_SMOBNAME (n))
+		     ? (scm_t_bits) scm_gc_malloc (size, SCM_SMOBNAME (n))
 		     : 0);
   return scm_alloc_cell (tc, data);
 }

@@ -111,7 +111,7 @@ scm_fport_buffer_add (SCM port, long read_size, int write_size)
 
   if (SCM_INPUT_PORT_P (port) && read_size > 0)
     {
-      pt->read_buf = scm_must_malloc (read_size, FUNC_NAME);
+      pt->read_buf = scm_gc_malloc (read_size, "port buffer");
       pt->read_pos = pt->read_end = pt->read_buf;
       pt->read_buf_size = read_size;
     }
@@ -123,7 +123,7 @@ scm_fport_buffer_add (SCM port, long read_size, int write_size)
 
   if (SCM_OUTPUT_PORT_P (port) && write_size > 0)
     {
-      pt->write_buf = scm_must_malloc (write_size, FUNC_NAME);
+      pt->write_buf = scm_gc_malloc (write_size, "port buffer");
       pt->write_pos = pt->write_buf;
       pt->write_buf_size = write_size;
     }
@@ -192,11 +192,18 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 
   pt = SCM_PTAB_ENTRY (port);
 
-  /* silently discards buffered chars.  */
+  /* silently discards buffered and put-back chars.  */
+  if (pt->read_buf == pt->putback_buf)
+    {
+      pt->read_buf = pt->saved_read_buf;
+      pt->read_pos = pt->saved_read_pos;
+      pt->read_end = pt->saved_read_end;
+      pt->read_buf_size = pt->saved_read_buf_size;
+    }
   if (pt->read_buf != &pt->shortbuf)
-    scm_must_free (pt->read_buf);
+    scm_gc_free (pt->read_buf, pt->read_buf_size, "port buffer");
   if (pt->write_buf != &pt->shortbuf)
-    scm_must_free (pt->write_buf);
+    scm_gc_free (pt->write_buf, pt->write_buf_size, "port buffer");
 
   scm_fport_buffer_add (port, csize, csize);
   return SCM_UNSPECIFIED;
@@ -436,8 +443,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
 
   {
     scm_t_fport *fp
-      = (scm_t_fport *) scm_must_malloc (sizeof (scm_t_fport),
-					      FUNC_NAME);
+      = (scm_t_fport *) scm_gc_malloc (sizeof (scm_t_fport), "file port");
 
     fp->fdes = fdes;
     pt->rw_random = SCM_FDES_RANDOM_P (fdes);
@@ -820,10 +826,10 @@ fport_close (SCM port)
   if (pt->read_buf == pt->putback_buf)
     pt->read_buf = pt->saved_read_buf;
   if (pt->read_buf != &pt->shortbuf)
-    scm_must_free (pt->read_buf);
+    scm_gc_free (pt->read_buf, pt->read_buf_size, "port buffer");
   if (pt->write_buf != &pt->shortbuf)
-    scm_must_free (pt->write_buf);
-  scm_must_free ((char *) fp);
+    scm_gc_free (pt->write_buf, pt->write_buf_size, "port buffer");
+  scm_gc_free (fp, sizeof (*fp), "file port");
   return rv;
 }
 

@@ -155,7 +155,7 @@ makvect (char *m, size_t len, int type)
 SCM
 gh_chars2byvect (const char *d, long n)
 {
-  char *m = scm_must_malloc (n * sizeof (char), "vector");
+  char *m = scm_gc_malloc (n * sizeof (char), "vector");
   memcpy (m, d, n * sizeof (char));
   return makvect (m, n, scm_tc7_byvect);
 }
@@ -163,7 +163,7 @@ gh_chars2byvect (const char *d, long n)
 SCM
 gh_shorts2svect (const short *d, long n)
 {
-  char *m = scm_must_malloc (n * sizeof (short), "vector");
+  char *m = scm_gc_malloc (n * sizeof (short), "vector");
   memcpy (m, d, n * sizeof (short));
   return makvect (m, n, scm_tc7_svect);
 }
@@ -171,7 +171,7 @@ gh_shorts2svect (const short *d, long n)
 SCM
 gh_longs2ivect (const long *d, long n)
 {
-  char *m = scm_must_malloc (n * sizeof (long), "vector");
+  char *m = scm_gc_malloc (n * sizeof (long), "vector");
   memcpy (m, d, n * sizeof (long));
   return makvect (m, n, scm_tc7_ivect);
 }
@@ -179,7 +179,7 @@ gh_longs2ivect (const long *d, long n)
 SCM
 gh_ulongs2uvect (const unsigned long *d, long n)
 {
-  char *m = scm_must_malloc (n * sizeof (unsigned long), "vector");
+  char *m = scm_gc_malloc (n * sizeof (unsigned long), "vector");
   memcpy (m, d, n * sizeof (unsigned long));
   return makvect (m, n, scm_tc7_uvect);
 }
@@ -187,7 +187,7 @@ gh_ulongs2uvect (const unsigned long *d, long n)
 SCM
 gh_floats2fvect (const float *d, long n)
 {
-  char *m = scm_must_malloc (n * sizeof (float), "vector");
+  char *m = scm_gc_malloc (n * sizeof (float), "vector");
   memcpy (m, d, n * sizeof (float));
   return makvect (m, n, scm_tc7_fvect);
 }
@@ -195,7 +195,7 @@ gh_floats2fvect (const float *d, long n)
 SCM
 gh_doubles2dvect (const double *d, long n)
 {
-  char *m = scm_must_malloc (n * sizeof (double), "vector");
+  char *m = scm_gc_malloc (n * sizeof (double), "vector");
   memcpy (m, d, n * sizeof (double));
   return makvect (m, n, scm_tc7_dvect);
 }
