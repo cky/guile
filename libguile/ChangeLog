@@ -1,5 +1,9 @@
 2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* .cvsignore: remove goops.c
+
+2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* modules.c (scm_env_top_level, scm_lookup_closure_module,
 	module_variable, scm_module_lookup_closure,
 	scm_module_transformer, scm_sym2var, scm_module_reverse_lookup,
