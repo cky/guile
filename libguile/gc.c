@@ -300,7 +300,9 @@ static int scm_debug_check_freelist = 0;
 
 SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1, 0, 0, 
             (SCM flag),
-"")
+            "If FLAG is #t, check the freelist for consistency on each cell allocation.\n"
+            "This procedure only exists because the GUILE_DEBUG_FREELIST \n"
+            "compile-time flag was selected.\n")
 #define FUNC_NAME s_scm_gc_set_debug_check_freelist_x
 {
   SCM_VALIDATE_BOOL_COPY (1,flag,scm_debug_check_freelist);

@@ -413,7 +413,7 @@ scm_cmp_function (SCM p)
 /* Question: Is there any need to make this a more general array sort?
    It is probably enough to manage the vector type. */
 /* endpos equal as for substring, i.e. endpos is not included. */
-/* More natural wih length? */
+/* More natural with length? */
 
 SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0, 
             (SCM vec, SCM less, SCM startpos, SCM endpos),

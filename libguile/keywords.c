@@ -70,7 +70,7 @@ int scm_tc16_kw;
 
 SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, 
             (SCM symbol),
-"")
+            "Return a keyword object from SYMBOL that starts with `-' (a dash).")
 #define FUNC_NAME s_scm_make_keyword_from_dash_symbol
 {
   SCM vcell;
@@ -107,9 +107,8 @@ scm_c_make_keyword (char *s)
 }
 
 SCM_DEFINE (scm_keyword_p, "keyword?", 1, 0, 0, 
-           (SCM obj),
-	    "@code{keyword?} returns @code{#t} if the argument @var{kw} is a keyword;\n"
-	    "it returns @code{#f} otherwise.")
+            (SCM obj),
+	    "Returns #t if the argument OBJ is a keyword, else #f.")
 #define FUNC_NAME s_scm_keyword_p
 {
   return SCM_BOOL(SCM_KEYWORDP (obj));
@@ -118,9 +117,9 @@ SCM_DEFINE (scm_keyword_p, "keyword?", 1, 0, 0,
 
 
 SCM_DEFINE (scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, 
-           (SCM keyword),
-	    "@code{keyword-dash-symbol} [FIXME: have no idea what this does; it is\n"
-	    "not commented.]")
+            (SCM keyword),
+	    "Return KEYWORD as a dash symbol.\n"
+            "This is the inverse of `make-keyword-from-dash-symbol'.\n")
 #define FUNC_NAME s_scm_keyword_dash_symbol
 {
   SCM_VALIDATE_KEYWORD (1,keyword);
