@@ -72,6 +72,7 @@
  */
 
 scm_t_bits scm_tc16_array;
+static SCM exactly_one_third;
 
 /* return the size of an element in a uniform array or 0 if type not
    found.  */
@@ -175,6 +176,11 @@ scm_make_uve (long k, SCM prot)
       else
 	type = scm_tc7_ivect;
     }
+  else if (SCM_FRACTIONP (prot))
+    {
+      if (scm_num_eq_p (exactly_one_third, prot))
+        goto dvect;
+    }
   else if (SCM_SYMBOLP (prot) && (1 == SCM_SYMBOL_LENGTH (prot)))
     {
       char s;
@@ -213,6 +219,7 @@ scm_make_uve (long k, SCM prot)
     }
   else
     {
+    dvect:
       i = sizeof (double) * k;
       type = scm_tc7_dvect;
     }
@@ -291,34 +298,46 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
  	{
  	case scm_tc7_bvect:
  	  protp = (SCM_EQ_P (prot, SCM_BOOL_T));
+          break;
  	case scm_tc7_string:
  	  protp = SCM_CHARP(prot) && (SCM_CHAR (prot) != '\0');
+          break;
  	case scm_tc7_byvect:
  	  protp = SCM_EQ_P (prot, SCM_MAKE_CHAR ('\0'));
+          break;
  	case scm_tc7_uvect:
  	  protp = SCM_INUMP(prot) && SCM_INUM(prot)>0;
+          break;
  	case scm_tc7_ivect:
  	  protp = SCM_INUMP(prot) && SCM_INUM(prot)<=0;
-          
+          break;
  	case scm_tc7_svect:
  	  protp = SCM_SYMBOLP (prot)
  	    && (1 == SCM_SYMBOL_LENGTH (prot))
  	    && ('s' == SCM_SYMBOL_CHARS (prot)[0]);
+          break;
 #if SCM_SIZEOF_LONG_LONG != 0
  	case scm_tc7_llvect:
  	  protp = SCM_SYMBOLP (prot)
  	    && (1 == SCM_SYMBOL_LENGTH (prot))
- 	    && ('s' == SCM_SYMBOL_CHARS (prot)[0]);
+ 	    && ('l' == SCM_SYMBOL_CHARS (prot)[0]);
+          break;
 #endif
  	case scm_tc7_fvect:
  	  protp = singp (prot);
+          break;
  	case scm_tc7_dvect:
- 	  protp = SCM_REALP(prot);
+ 	  protp = ((SCM_REALP(prot) && ! singp (prot))
+                   || (SCM_FRACTIONP (prot)
+                       && scm_num_eq_p (exactly_one_third, prot)));
+          break;
  	case scm_tc7_cvect:
  	  protp = SCM_COMPLEXP(prot);
+          break;
  	case scm_tc7_vector:
  	case scm_tc7_wvect:
  	  protp = SCM_NULLP(prot);
+          break;
  	default:
  	  /* no default */
  	  ;
@@ -2589,7 +2608,7 @@ loop:
     case scm_tc7_fvect:
       return scm_make_real (1.0);
     case scm_tc7_dvect:
-      return scm_make_real (1.0 / 3.0);
+      return exactly_one_third;
     case scm_tc7_cvect:
       return scm_make_complex (0.0, 1.0);
     }
@@ -2622,6 +2641,8 @@ scm_init_unif ()
   scm_set_smob_free (scm_tc16_array, array_free);
   scm_set_smob_print (scm_tc16_array, scm_raprin1);
   scm_set_smob_equalp (scm_tc16_array, scm_array_equal_p);
+  exactly_one_third = scm_permanent_object (scm_make_ratio (SCM_MAKINUM (1),
+                                                            SCM_MAKINUM (3)));
   scm_add_feature ("array");
 #include "libguile/unif.x"
 }
