@@ -1910,17 +1910,31 @@
 
 ;; (define-special-value '(app modules new-ws) (lambda () (make-scm-module)))
 
+(define (try-load-module name)
+  (or (try-module-linked name)
+      (try-module-autoload name)
+      (try-module-dynamic-link name)))
+
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
 (define (resolve-module name . maybe-autoload)
   (let ((full-name (append '(app modules) name)))
     (let ((already (local-ref full-name)))
-      (or already
+      (if already
+	  ;; The module already exists...
+	  (if (and (or (null? maybe-autoload) (car maybe-autoload))
+		   (not (module-ref already '%module-public-interface #f)))
+	      ;; ...but we are told to load and it doesn't contain source, so
+	      (begin
+		(try-load-module name)
+		already)
+	      ;; simply return it.
+	      already)
 	  (begin
+	    ;; Try to autoload it if we are told so
 	    (if (or (null? maybe-autoload) (car maybe-autoload))
-		(or (try-module-linked name)
-		    (try-module-autoload name)
-		    (try-module-dynamic-link name)))
+		(try-load-module name))
+	    ;; Get/create it.
 	    (make-modules-in (current-module) full-name))))))
 	    
 (define (beautify-user-module! module)
