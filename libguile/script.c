@@ -379,6 +379,7 @@ scm_shell_usage (int fatal, char *message)
            "  -e FUNCTION    after reading script, apply FUNCTION to\n"
            "                 command line arguments\n"
            "  -ds            do -s script at this point\n"
+           "  --debug        start with debugging evaluator and backtraces\n"
 	   "  -q             inhibit loading of user init file\n"
            "  --emacs        enable Emacs protocol (experimental)\n"
            "  -h, --help     display this help and exit\n"
@@ -523,6 +524,13 @@ scm_compile_shell_switches (int argc, char **argv)
 	  do_script = scm_cons (SCM_BOOL_F, SCM_EOL);
 	  tail = scm_cons (scm_cons (sym_load, do_script),
 			   tail);
+	}
+
+      else if (! strcmp (argv[i], "--debug")) /* debug eval + backtraces */
+	{
+	  SCM_DEVAL_P = 1;
+	  SCM_BACKTRACE_P = 1;
+	  SCM_RESET_DEBUG_MODE;
 	}
 
       else if (! strcmp (argv[i], "--emacs")) /* use emacs protocol */ 
