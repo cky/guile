@@ -72,3 +72,6 @@
 
 /* Define if you want support for dynamic linking. */
 #undef DYNAMIC_LINKING
+
+/* Name of the package we're building.  */
+#undef PACKAGE
