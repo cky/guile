@@ -2843,7 +2843,7 @@ scm_definedp (sym)
   SCM_ASSERT (SCM_NIMP (sym) && SCM_SYMBOLP (sym), sym, SCM_ARG1, s_definedp);
 
   vcell = scm_sym2vcell(sym,
-			SCM_CDR (scm_top_level_lookup_thunk_var),
+			SCM_CDR (scm_top_level_lookup_closure_var),
 			SCM_BOOL_F);
   return (vcell == SCM_BOOL_F || SCM_UNBNDP(SCM_CDR(vcell))) ? 
       SCM_BOOL_F : SCM_BOOL_T;
