@@ -214,7 +214,7 @@ scm_evict_ports (int fd)
 	      fp->fdes = dup (fd);
 	      if (fp->fdes == -1)
 		scm_syserror ("scm_evict_ports");
-	      scm_set_port_revealed_x (port, SCM_MAKINUM (0));
+	      scm_set_port_revealed_x (port, SCM_I_MAKINUM (0));
 	    }
 	}
     }
@@ -845,9 +845,9 @@ scm_init_fports ()
 {
   scm_tc16_fport = scm_make_fptob ();
 
-  scm_c_define ("_IOFBF", SCM_MAKINUM (_IOFBF));
-  scm_c_define ("_IOLBF", SCM_MAKINUM (_IOLBF));
-  scm_c_define ("_IONBF", SCM_MAKINUM (_IONBF));
+  scm_c_define ("_IOFBF", SCM_I_MAKINUM (_IOFBF));
+  scm_c_define ("_IOLBF", SCM_I_MAKINUM (_IOLBF));
+  scm_c_define ("_IONBF", SCM_I_MAKINUM (_IONBF));
 
 #include "libguile/fports.x"
 }

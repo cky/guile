@@ -5415,7 +5415,7 @@ check_map_args (SCM argv,
 	}
 
       if (elt_len != len)
-	scm_out_of_range_pos (who, ve[i], SCM_MAKINUM (i + 2));
+	scm_out_of_range_pos (who, ve[i], SCM_I_MAKINUM (i + 2));
     }
 
   scm_remember_upto_here_1 (argv);

@@ -141,8 +141,8 @@ scm_srcprops_to_plist (SCM obj)
     plist = scm_acons (scm_sym_copy, SRCPROPCOPY (obj), plist);
   if (!SCM_UNBNDP (SRCPROPFNAME (obj)))
     plist = scm_acons (scm_sym_filename, SRCPROPFNAME (obj), plist);
-  plist = scm_acons (scm_sym_column, SCM_MAKINUM (SRCPROPCOL (obj)), plist);
-  plist = scm_acons (scm_sym_line, SCM_MAKINUM (SRCPROPLINE (obj)), plist);
+  plist = scm_acons (scm_sym_column, SCM_I_MAKINUM (SRCPROPCOL (obj)), plist);
+  plist = scm_acons (scm_sym_line, SCM_I_MAKINUM (SRCPROPLINE (obj)), plist);
   plist = scm_acons (scm_sym_breakpoint, scm_from_bool (SRCPROPBRK (obj)), plist);
   return plist;
 }
@@ -203,8 +203,8 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   if (!SRCPROPSP (p))
     goto plist;
   if      (SCM_EQ_P (scm_sym_breakpoint, key)) p = scm_from_bool (SRCPROPBRK (p));
-  else if (SCM_EQ_P (scm_sym_line,       key)) p = SCM_MAKINUM (SRCPROPLINE (p));
-  else if (SCM_EQ_P (scm_sym_column,     key)) p = SCM_MAKINUM (SRCPROPCOL (p));
+  else if (SCM_EQ_P (scm_sym_line,       key)) p = SCM_I_MAKINUM (SRCPROPLINE (p));
+  else if (SCM_EQ_P (scm_sym_column,     key)) p = SCM_I_MAKINUM (SRCPROPCOL (p));
   else if (SCM_EQ_P (scm_sym_filename,   key)) p = SRCPROPFNAME (p);
   else if (SCM_EQ_P (scm_sym_copy,       key)) p = SRCPROPCOPY (p);
   else
@@ -312,7 +312,7 @@ scm_init_srcprop ()
   scm_set_smob_free (scm_tc16_srcprops, srcprops_free);
   scm_set_smob_print (scm_tc16_srcprops, srcprops_print);
 
-  scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (2047));
+  scm_source_whash = scm_make_weak_key_hash_table (SCM_I_MAKINUM (2047));
   scm_c_define ("source-whash", scm_source_whash);
 
 #include "libguile/srcprop.x"

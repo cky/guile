@@ -99,10 +99,10 @@
   (scm_num2double (arg, pos, FUNC_NAME))
 
 #define SCM_OUT_OF_RANGE(pos, arg) \
-  do { scm_out_of_range_pos (FUNC_NAME, arg, SCM_MAKINUM (pos)); } while (0)
+  do { scm_out_of_range_pos (FUNC_NAME, arg, scm_from_int (pos)); } while (0)
 
 #define SCM_ASSERT_RANGE(pos, arg, f) \
-  do { if (!(f)) scm_out_of_range_pos (FUNC_NAME, arg, SCM_MAKINUM (pos)); } while (0)
+  do { if (!(f)) scm_out_of_range_pos (FUNC_NAME, arg, scm_from_int (pos)); } while (0)
 
 #define SCM_MUST_MALLOC_TYPE(type) \
   ((type *) scm_must_malloc (sizeof (type), FUNC_NAME))
@@ -250,7 +250,7 @@
 #define SCM_VALIDATE_INUM_MIN_DEF_COPY(pos, k, min, default, cvar) \
   do { \
     if (SCM_UNBNDP (k)) \
-      k = SCM_MAKINUM (default); \
+      k = SCM_I_MAKINUM (default); \
     SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
     SCM_ASSERT_RANGE (pos, k, (SCM_INUM (k) >= min)); \
     cvar = SCM_INUM (k); \
@@ -259,7 +259,7 @@
 #define SCM_VALIDATE_INUM_DEF(pos, k, default) \
   do { \
     if (SCM_UNBNDP (k)) \
-      k = SCM_MAKINUM (default); \
+      k = SCM_I_MAKINUM (default); \
     else SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
   } while (0)
 
@@ -267,7 +267,7 @@
   do { \
     if (SCM_UNBNDP (k)) \
       { \
-        k = SCM_MAKINUM (default); \
+        k = SCM_I_MAKINUM (default); \
         cvar = default; \
       } \
     else \

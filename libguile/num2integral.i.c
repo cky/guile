@@ -182,17 +182,17 @@ INTEGRAL2NUM (ITYPE n)
   /* have to use #if here rather than if because of gcc warnings about
      limited range */
 #if SIZEOF_ITYPE < SIZEOF_SCM_T_BITS
-    return SCM_MAKINUM ((scm_t_signed_bits) n);
+    return SCM_I_MAKINUM ((scm_t_signed_bits) n);
 #else /* not SIZEOF_ITYPE < SIZEOF_SCM_T_BITS */ 
     if (UNSIGNED)
       {
         if (SCM_POSFIXABLE (n))
-          return SCM_MAKINUM ((scm_t_signed_bits) n);
+          return SCM_I_MAKINUM ((scm_t_signed_bits) n);
       }
     else
       {
         if (SCM_FIXABLE (n))
-          return SCM_MAKINUM ((scm_t_signed_bits) n);
+          return SCM_I_MAKINUM ((scm_t_signed_bits) n);
       }
       return INTEGRAL2BIG (n);
 #endif /* not SIZEOF_ITYPE < SIZEOF_SCM_T_BITS */ 

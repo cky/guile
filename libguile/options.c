@@ -109,7 +109,7 @@ get_option_setting (const scm_t_option options[], unsigned int n)
 	    ls = scm_cons (SCM_PACK (options[i].name), ls);
 	  break;
 	case SCM_OPTION_INTEGER:
-	  ls = scm_cons (SCM_MAKINUM (options[i].val), ls);
+	  ls = scm_cons (SCM_I_MAKINUM (options[i].val), ls);
 	  ls = scm_cons (SCM_PACK (options[i].name), ls);
 	  break;
 	case SCM_OPTION_SCM:
@@ -138,7 +138,7 @@ get_documented_option_setting (const scm_t_option options[], unsigned int n)
 	  ls = scm_cons (options[i].val ? scm_yes_sym : scm_no_sym, ls);
 	  break;
 	case SCM_OPTION_INTEGER:
-	  ls = scm_cons (SCM_MAKINUM (options[i].val), ls);
+	  ls = scm_cons (SCM_I_MAKINUM (options[i].val), ls);
 	  break;
 	case SCM_OPTION_SCM:
 	  ls = scm_cons (SCM_PACK (options[i].val), ls);

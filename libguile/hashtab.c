@@ -90,7 +90,7 @@ make_hash_table (int flags, unsigned long k, const char *func_name) {
        perform the final scan for broken references.  Instead we do
        that ourselves in scan_weak_hashtables. */
     vector = scm_i_allocate_weak_vector (flags | SCM_WVECTF_NOSCAN,
-					 SCM_MAKINUM (n),
+					 SCM_I_MAKINUM (n),
 					 SCM_EOL,
 					 func_name);
   else
@@ -155,7 +155,7 @@ scm_i_rehash (SCM table,
   if (SCM_HASHTABLE_WEAK_P (table))
     new_buckets = scm_i_allocate_weak_vector (SCM_HASHTABLE_FLAGS (table)
 					      | SCM_WVECTF_NOSCAN,
-					      SCM_MAKINUM (new_size),
+					      SCM_I_MAKINUM (new_size),
 					      SCM_EOL,
 					      func_name);
   else

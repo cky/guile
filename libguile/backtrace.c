@@ -454,7 +454,7 @@ SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0,
       
       /* Create a string port used for adaptation of printing parameters. */
       sport = scm_mkstrport (SCM_INUM0,
-			     scm_make_string (SCM_MAKINUM (240),
+			     scm_make_string (scm_from_int (240),
 					      SCM_UNDEFINED),
 			     SCM_OPN | SCM_WRTNG,
 			     FUNC_NAME);
@@ -583,7 +583,7 @@ display_frame (SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_
   indent (nfield - (i ? i : 1), port);
 
   /* Frame number. */
-  scm_iprin1 (SCM_MAKINUM (n), port, pstate);
+  scm_iprin1 (scm_from_int (n), port, pstate);
 
   /* Real frame marker */
   scm_putc (SCM_FRAME_REAL_P (frame) ? '*' : ' ', port);
@@ -677,7 +677,7 @@ display_backtrace_body (struct display_backtrace_args *a)
 
   /* Create a string port used for adaptation of printing parameters. */
   sport = scm_mkstrport (SCM_INUM0,
-			 scm_make_string (SCM_MAKINUM (240), SCM_UNDEFINED),
+			 scm_make_string (scm_from_int (240), SCM_UNDEFINED),
 			 SCM_OPN | SCM_WRTNG,
 			 FUNC_NAME);
 
@@ -695,7 +695,7 @@ display_backtrace_body (struct display_backtrace_args *a)
       unsigned int j;
 
       indent_p = 1;
-      frame = scm_stack_ref (a->stack, SCM_MAKINUM (beg));
+      frame = scm_stack_ref (a->stack, scm_from_int (beg));
       for (i = 0, j = 0; i < n; ++i)
 	{
 	  if (SCM_FRAME_REAL_P (frame))
@@ -712,12 +712,12 @@ display_backtrace_body (struct display_backtrace_args *a)
     }
   
   /* Determine size of frame number field. */
-  j = SCM_FRAME_NUMBER (scm_stack_ref (a->stack, SCM_MAKINUM (end)));
+  j = SCM_FRAME_NUMBER (scm_stack_ref (a->stack, scm_from_int (end)));
   for (i = 0; j > 0; ++i) j /= 10;
   nfield = i ? i : 1;
   
   /* Print frames. */
-  frame = scm_stack_ref (a->stack, SCM_MAKINUM (beg));
+  frame = scm_stack_ref (a->stack, scm_from_int (beg));
   indentation = 1;
   last_file = SCM_UNDEFINED;
   for (i = 0; i < n; ++i)

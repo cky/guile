@@ -310,7 +310,7 @@ compute_getters_n_setters (SCM slots)
 	}
       *cdrloc = scm_cons (scm_cons (SCM_CAAR (slots),
 				    scm_cons (init,
-					      SCM_MAKINUM (i++))),
+					      SCM_I_MAKINUM (i++))),
 			  SCM_EOL);
       cdrloc = SCM_CDRLOC (*cdrloc);
     }
@@ -649,7 +649,7 @@ scm_basic_basic_make_class (SCM class, SCM name, SCM dsupers, SCM dslots)
   SCM_SET_SLOT (z, scm_si_direct_supers, dsupers);
   cpl   = compute_cpl (z);
   slots = build_slots_list (maplist (dslots), cpl);
-  nfields = SCM_MAKINUM (scm_ilength (slots));
+  nfields = SCM_I_MAKINUM (scm_ilength (slots));
   g_n_s = compute_getters_n_setters (slots);
 
   SCM_SET_SLOT (z, scm_si_name, name);
@@ -779,7 +779,7 @@ create_basic_classes (void)
   SCM_SET_SLOT (scm_class_class, scm_si_direct_methods, SCM_EOL);
   SCM_SET_SLOT (scm_class_class, scm_si_cpl, SCM_EOL);  /* will be changed */
   /* SCM_SET_SLOT (scm_class_class, scm_si_slots, slots_of_class); */
-  SCM_SET_SLOT (scm_class_class, scm_si_nfields, SCM_MAKINUM (SCM_N_CLASS_SLOTS));
+  SCM_SET_SLOT (scm_class_class, scm_si_nfields, SCM_I_MAKINUM (SCM_N_CLASS_SLOTS));
   /* SCM_SET_SLOT (scm_class_class, scm_si_getters_n_setters,
                    compute_getters_n_setters (slots_of_class)); */
   SCM_SET_SLOT (scm_class_class, scm_si_redefined, SCM_BOOL_F);
@@ -1629,7 +1629,7 @@ scm_make_method_cache (SCM gf)
 {
   return scm_list_5 (SCM_IM_DISPATCH,
 		     scm_sym_args,
-		     SCM_MAKINUM (1),
+		     SCM_I_MAKINUM (1),
 		     scm_c_make_vector (SCM_INITIAL_MCACHE_SIZE,
 					list_of_no_method),
 		     gf);
@@ -2719,11 +2719,11 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 					      scm_list_1 (slot))));
       {
 	SCM n = SCM_SLOT (class, scm_si_nfields);
-	SCM gns = scm_list_n (name, SCM_BOOL_F, get, set, n, SCM_MAKINUM (1));
+	SCM gns = scm_list_n (name, SCM_BOOL_F, get, set, n, SCM_I_MAKINUM (1));
 	SCM_SET_SLOT (class, scm_si_getters_n_setters,
 		      scm_append_x (scm_list_2 (SCM_SLOT (class, scm_si_getters_n_setters),
 						scm_list_1 (gns))));
-	SCM_SET_SLOT (class, scm_si_nfields, SCM_MAKINUM (SCM_INUM (n) + 1));
+	SCM_SET_SLOT (class, scm_si_nfields, SCM_I_MAKINUM (SCM_INUM (n) + 1));
       }
     }
   }
@@ -2823,7 +2823,7 @@ scm_init_goops_builtins (void)
   scm_permanent_object (scm_goops_lookup_closure);
 
   scm_components = scm_permanent_object (scm_make_weak_key_hash_table
-					 (SCM_MAKINUM (37)));
+					 (SCM_I_MAKINUM (37)));
 
   goops_rstate = scm_c_make_rstate ("GOOPS", 5);
 

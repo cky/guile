@@ -281,7 +281,7 @@ SCM_DEFINE (scm_umask, "umask", 0, 1, 0,
       SCM_VALIDATE_INUM (1, mode);
       mask = umask (SCM_INUM (mode));
     }
-  return SCM_MAKINUM (mask);
+  return SCM_I_MAKINUM (mask);
 }
 #undef FUNC_NAME
 
@@ -303,7 +303,7 @@ SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0,
   SCM_SYSCALL (fd = open (SCM_STRING_CHARS (path), iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
-  return SCM_MAKINUM (fd);
+  return SCM_I_MAKINUM (fd);
 }
 #undef FUNC_NAME
 
@@ -481,7 +481,7 @@ scm_stat2scm (struct stat *stat_temp)
     else
       SCM_VECTOR_SET(ans, 13, scm_sym_unknown);
 
-    SCM_VECTOR_SET(ans, 14, SCM_MAKINUM ((~S_IFMT) & mode));
+    SCM_VECTOR_SET(ans, 14, SCM_I_MAKINUM ((~S_IFMT) & mode));
 
     /* the layout of the bits in ve[14] is intended to be portable.
        If there are systems that don't follow the usual convention,
@@ -510,7 +510,7 @@ scm_stat2scm (struct stat *stat_temp)
        tmp <<= 1;
        if (S_IXOTH & mode) tmp += 1; 
 
-       SCM_VECTOR_SET(ans, 14, SCM_MAKINUM (tmp));
+       SCM_VECTOR_SET(ans, 14, SCM_I_MAKINUM (tmp));
        
        */
   }  
@@ -1306,7 +1306,7 @@ SCM_DEFINE (scm_fcntl, "fcntl", 2, 1, 0,
   SCM_SYSCALL (rv = fcntl (fdes, SCM_INUM (cmd), ivalue));
   if (rv == -1)
     SCM_SYSERROR;
-  return SCM_MAKINUM (rv);
+  return SCM_I_MAKINUM (rv);
 }
 #undef FUNC_NAME
 #endif /* HAVE_FCNTL */
@@ -1494,12 +1494,12 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 #else
       if (len > 0 && s[0] == '/')
 #endif /* ndef __MINGW32__ */
-	return scm_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
+	return scm_substring (filename, SCM_INUM0, SCM_I_MAKINUM (1));
       else
 	return scm_dot_string;
     }
   else
-    return scm_substring (filename, SCM_INUM0, SCM_MAKINUM (i + 1));
+    return scm_substring (filename, SCM_INUM0, SCM_I_MAKINUM (i + 1));
 }
 #undef FUNC_NAME
 
@@ -1548,12 +1548,12 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 #else
       if (len > 0 && f[0] == '/')
 #endif /* ndef __MINGW32__ */
-	return scm_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
+	return scm_substring (filename, SCM_INUM0, SCM_I_MAKINUM (1));
       else
 	return scm_dot_string;
     }
   else
-    return scm_substring (filename, SCM_MAKINUM (i + 1), SCM_MAKINUM (end + 1));
+    return scm_substring (filename, SCM_I_MAKINUM (i + 1), SCM_I_MAKINUM (end + 1));
 }
 #undef FUNC_NAME
 

@@ -594,8 +594,8 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
       len = SCM_VECTOR_LENGTH (items);
       scm_restricted_vector_sort_x (items,
 				    less,
-				    SCM_MAKINUM (0L),
-				    SCM_MAKINUM (len));
+				    SCM_I_MAKINUM (0L),
+				    SCM_I_MAKINUM (len));
       return items;
     }
   else
@@ -633,8 +633,8 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
       scm_array_copy_x (items, sortvec);
       scm_restricted_vector_sort_x (sortvec,
 				    less,
-				    SCM_MAKINUM (0L),
-				    SCM_MAKINUM (len));
+				    SCM_I_MAKINUM (0L),
+				    SCM_I_MAKINUM (len));
       return sortvec;
     }
 #endif

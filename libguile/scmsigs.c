@@ -430,7 +430,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   if (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN)
     old_handler = scm_long2num ((long) old_action.sa_handler);
   SCM_ALLOW_INTS;
-  return scm_cons (old_handler, SCM_MAKINUM (old_action.sa_flags));
+  return scm_cons (old_handler, SCM_I_MAKINUM (old_action.sa_flags));
 #else
   if (query_only)
     {
@@ -449,7 +449,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   if (old_chandler == SIG_DFL || old_chandler == SIG_IGN)
     old_handler = scm_long2num ((long) old_chandler);
   SCM_ALLOW_INTS;
-  return scm_cons (old_handler, SCM_MAKINUM (0));
+  return scm_cons (old_handler, SCM_I_MAKINUM (0));
 #endif
 }
 #undef FUNC_NAME
@@ -500,7 +500,7 @@ SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0,
   unsigned int j;
   SCM_VALIDATE_INUM (1, i);
   j = alarm (SCM_INUM (i));
-  return SCM_MAKINUM (j);
+  return SCM_I_MAKINUM (j);
 }
 #undef FUNC_NAME
 
@@ -705,9 +705,9 @@ scm_init_scmsigs ()
 
 #if defined(HAVE_SETITIMER) || defined(HAVE_GETITIMER)
   /* Stuff needed by setitimer and getitimer. */
-  scm_c_define ("ITIMER_REAL", SCM_MAKINUM (ITIMER_REAL));
-  scm_c_define ("ITIMER_VIRTUAL", SCM_MAKINUM (ITIMER_VIRTUAL));
-  scm_c_define ("ITIMER_PROF", SCM_MAKINUM (ITIMER_PROF));
+  scm_c_define ("ITIMER_REAL", SCM_I_MAKINUM (ITIMER_REAL));
+  scm_c_define ("ITIMER_VIRTUAL", SCM_I_MAKINUM (ITIMER_VIRTUAL));
+  scm_c_define ("ITIMER_PROF", SCM_I_MAKINUM (ITIMER_PROF));
 #endif /* defined(HAVE_SETITIMER) || defined(HAVE_GETITIMER) */
 
 #include "libguile/scmsigs.x"

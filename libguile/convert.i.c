@@ -255,7 +255,7 @@ CTYPES2SCM (const CTYPE *data, long n)
 #ifdef FLOATTYPE
     SCM_VECTOR_SET (v, i, scm_make_real ((double) data[i]));
 #else
-    SCM_VECTOR_SET (v, i,  SCM_MAKINUM (data[i]));
+    SCM_VECTOR_SET (v, i, scm_from_signed_integer (data[i]));
 #endif
   return v;
 }

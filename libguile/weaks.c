@@ -150,7 +150,7 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
      while the vector is being created. */
   i = scm_ilength (l);
   SCM_ASSERT (i >= 0, l, SCM_ARG1, FUNC_NAME);
-  res = scm_make_weak_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
+  res = scm_make_weak_vector (SCM_I_MAKINUM (i), SCM_UNSPECIFIED);
 
   /*
     no alloc, so  this loop is safe.
@@ -192,7 +192,7 @@ SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 
 #define FUNC_NAME s_scm_make_weak_key_alist_vector
 {
   return scm_i_allocate_weak_vector
-    (1, SCM_UNBNDP (size) ? SCM_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
+    (1, SCM_UNBNDP (size) ? SCM_I_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -204,7 +204,7 @@ SCM_DEFINE (scm_make_weak_value_alist_vector, "make-weak-value-alist-vector", 0,
 #define FUNC_NAME s_scm_make_weak_value_alist_vector
 {
   return scm_i_allocate_weak_vector
-    (2, SCM_UNBNDP (size) ? SCM_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
+    (2, SCM_UNBNDP (size) ? SCM_I_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -216,7 +216,7 @@ SCM_DEFINE (scm_make_doubly_weak_alist_vector, "make-doubly-weak-alist-vector", 
 #define FUNC_NAME s_scm_make_doubly_weak_alist_vector
 {
   return scm_i_allocate_weak_vector
-    (3, SCM_UNBNDP (size) ? SCM_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
+    (3, SCM_UNBNDP (size) ? SCM_I_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 

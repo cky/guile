@@ -98,7 +98,7 @@ scm_init_feature()
 #endif
   scm_add_feature ("threads");
   
-  scm_c_define ("char-code-limit", SCM_MAKINUM (SCM_CHAR_CODE_LIMIT));
+  scm_c_define ("char-code-limit", SCM_I_MAKINUM (SCM_CHAR_CODE_LIMIT));
 
 #include "libguile/feature.x"
 }

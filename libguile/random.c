@@ -353,7 +353,7 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
     {
       unsigned long m = SCM_INUM (n);
       SCM_ASSERT_RANGE (1, n, m > 0);
-      return SCM_MAKINUM (scm_c_random (SCM_RSTATE (state), m));
+      return SCM_I_MAKINUM (scm_c_random (SCM_RSTATE (state), m));
     }
   SCM_VALIDATE_NIM (1, n);
   if (SCM_REALP (n))

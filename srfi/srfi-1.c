@@ -169,7 +169,7 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
         }
     }
  done:
-  return SCM_MAKINUM (count);
+  return scm_from_long (count);
 }
 #undef FUNC_NAME
 
@@ -480,7 +480,7 @@ SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
 #define FUNC_NAME s_scm_srfi1_length_plus
 {
   long len = scm_ilength (lst);
-  return (len >= 0 ? SCM_MAKINUM (len) : SCM_BOOL_F);
+  return (len >= 0 ? SCM_I_MAKINUM (len) : SCM_BOOL_F);
 }
 #undef FUNC_NAME
 

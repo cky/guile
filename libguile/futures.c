@@ -60,7 +60,7 @@ count (SCM ls)
       ++n;
       ls = SCM_FUTURE_NEXT (ls);
     }
-  return SCM_MAKINUM (n);
+  return SCM_I_MAKINUM (n);
 }
 
 extern SCM scm_future_cache_status (void);
@@ -76,7 +76,7 @@ SCM_DEFINE (scm_future_cache_status, "future-cache-status", 0, 0, 0,
 		     count (young),
 		     count (old),
 		     count (undead),
-		     SCM_MAKINUM (nd));
+		     SCM_I_MAKINUM (nd));
 }
 #undef FUNC_NAME
 

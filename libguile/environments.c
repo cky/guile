@@ -481,7 +481,7 @@ static int
 observer_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
-  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+  SCM base16 = scm_number_to_string (address, SCM_I_MAKINUM (16));
 
   scm_puts ("#<observer ", port);
   scm_puts (SCM_STRING_CHARS (base16), port);
@@ -745,7 +745,7 @@ core_environments_init (struct core_environments_base *body,
 {
   body->funcs = funcs;
   body->observers = SCM_EOL;
-  body->weak_observers = scm_make_weak_value_alist_vector (SCM_MAKINUM (1));
+  body->weak_observers = scm_make_weak_value_alist_vector (SCM_I_MAKINUM (1));
 }
 
 
@@ -979,7 +979,7 @@ static int
 leaf_environment_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
-  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+  SCM base16 = scm_number_to_string (address, SCM_I_MAKINUM (16));
 
   scm_puts ("#<leaf environment ", port);
   scm_puts (SCM_STRING_CHARS (base16), port);
@@ -1084,9 +1084,9 @@ struct eval_environment {
 #define EVAL_ENVIRONMENT(env) \
   ((struct eval_environment *) SCM_CELL_WORD_1 (env))
 
-#define IMMUTABLE SCM_MAKINUM (0)
-#define MUTABLE   SCM_MAKINUM (1)
-#define UNKNOWN   SCM_MAKINUM (2)
+#define IMMUTABLE SCM_I_MAKINUM (0)
+#define MUTABLE   SCM_I_MAKINUM (1)
+#define UNKNOWN   SCM_I_MAKINUM (2)
 
 #define CACHED_LOCATION(x) SCM_CAR (x)
 #define CACHED_MUTABILITY(x) SCM_CADR (x)
@@ -1339,7 +1339,7 @@ static int
 eval_environment_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
-  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+  SCM base16 = scm_number_to_string (address, SCM_I_MAKINUM (16));
 
   scm_puts ("#<eval environment ", port);
   scm_puts (SCM_STRING_CHARS (base16), port);
@@ -1758,7 +1758,7 @@ import_environment_print (SCM type, SCM port,
 			  scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
-  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+  SCM base16 = scm_number_to_string (address, SCM_I_MAKINUM (16));
 
   scm_puts ("#<import environment ", port);
   scm_puts (SCM_STRING_CHARS (base16), port);
@@ -2063,7 +2063,7 @@ export_environment_print (SCM type, SCM port,
 			  scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
-  SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
+  SCM base16 = scm_number_to_string (address, SCM_I_MAKINUM (16));
 
   scm_puts ("#<export environment ", port);
   scm_puts (SCM_STRING_CHARS (base16), port);

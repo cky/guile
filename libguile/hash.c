@@ -91,20 +91,20 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
     case scm_tc7_number:
       switch SCM_TYP16 (obj) {
       case scm_tc16_big:
-        return SCM_INUM (scm_modulo (obj, SCM_MAKINUM (n)));
+        return SCM_INUM (scm_modulo (obj, SCM_I_MAKINUM (n)));
       case scm_tc16_real:
 	{
 	  double r = SCM_REAL_VALUE (obj);
 	  if (floor (r) == r) {
 	    obj = scm_inexact_to_exact (obj);
 	    if SCM_IMP (obj) return SCM_INUM (obj) % n;
-	    return SCM_INUM (scm_modulo (obj, SCM_MAKINUM (n)));
+	    return SCM_INUM (scm_modulo (obj, SCM_I_MAKINUM (n)));
 	  }
 	}
         /* Fall through */
       case scm_tc16_complex:
       case scm_tc16_fraction:
-	obj = scm_number_to_string (obj, SCM_MAKINUM (10));
+	obj = scm_number_to_string (obj, SCM_I_MAKINUM (10));
         /* Fall through */
       }
       /* Fall through */
@@ -172,7 +172,7 @@ SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
 #define FUNC_NAME s_scm_hashq
 {
   SCM_VALIDATE_INUM_MIN (2, size, 0);
-  return SCM_MAKINUM (scm_ihashq (key, SCM_INUM (size)));
+  return SCM_I_MAKINUM (scm_ihashq (key, SCM_INUM (size)));
 }
 #undef FUNC_NAME
 
@@ -208,7 +208,7 @@ SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
 #define FUNC_NAME s_scm_hashv
 {
   SCM_VALIDATE_INUM_MIN (2, size, 0);
-  return SCM_MAKINUM (scm_ihashv (key, SCM_INUM (size)));
+  return SCM_I_MAKINUM (scm_ihashv (key, SCM_INUM (size)));
 }
 #undef FUNC_NAME
 
@@ -231,7 +231,7 @@ SCM_DEFINE (scm_hash, "hash", 2, 0, 0,
 #define FUNC_NAME s_scm_hash
 {
   SCM_VALIDATE_INUM_MIN (2, size, 0);
-  return SCM_MAKINUM (scm_ihash (key, SCM_INUM (size)));
+  return SCM_I_MAKINUM (scm_ihash (key, SCM_INUM (size)));
 }
 #undef FUNC_NAME
 

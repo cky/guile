@@ -186,7 +186,7 @@ SCM_DEFINE (scm_char_set_hash, "char-set-hash", 1, 1, 0,
       if (p[k] != 0)
         val = p[k] + (val << 1);
     }
-  return SCM_MAKINUM (val % bnd);
+  return SCM_I_MAKINUM (val % bnd);
 }
 #undef FUNC_NAME
 
@@ -204,7 +204,7 @@ SCM_DEFINE (scm_char_set_cursor, "char-set-cursor", 1, 0, 0,
       if (SCM_CHARSET_GET (cs, idx))
 	break;
     }
-  return SCM_MAKINUM (idx);
+  return SCM_I_MAKINUM (idx);
 }
 #undef FUNC_NAME
 
@@ -247,7 +247,7 @@ SCM_DEFINE (scm_char_set_cursor_next, "char-set-cursor-next", 2, 0, 0,
       if (SCM_CHARSET_GET (cs, ccursor))
 	break;
     }
-  return SCM_MAKINUM (ccursor);
+  return SCM_I_MAKINUM (ccursor);
 }
 #undef FUNC_NAME
 
@@ -752,7 +752,7 @@ SCM_DEFINE (scm_char_set_size, "char-set-size", 1, 0, 0,
   for (k = 0; k < SCM_CHARSET_SIZE; k++)
     if (SCM_CHARSET_GET (cs, k))
       count++;
-  return SCM_MAKINUM (count);
+  return SCM_I_MAKINUM (count);
 }
 #undef FUNC_NAME
 
@@ -775,7 +775,7 @@ SCM_DEFINE (scm_char_set_count, "char-set-count", 2, 0, 0,
 	if (scm_is_true (res))
 	  count++;
       }
-  return SCM_MAKINUM (count);
+  return SCM_I_MAKINUM (count);
 }
 #undef FUNC_NAME
 

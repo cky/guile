@@ -308,7 +308,7 @@ SCM_DEFINE (scm_make_u8vector, "make-u8vector", 1, 1, 0,
       unsigned int s = scm_num2uint (fill, 2, FUNC_NAME);
       f = s;
       if ((unsigned int) f != s)
-	scm_out_of_range_pos (FUNC_NAME, fill, SCM_MAKINUM (2));
+	scm_out_of_range_pos (FUNC_NAME, fill, SCM_I_MAKINUM (2));
     }
   p = (int_u8 *) SCM_UVEC_BASE (uvec);
   while (count-- > 0)
@@ -358,7 +358,7 @@ SCM_DEFINE (scm_u8vector_ref, "u8vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_short2num (((int_u8 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -382,12 +382,12 @@ SCM_DEFINE (scm_u8vector_set_x, "u8vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   s = scm_num2uint (value, 3, FUNC_NAME);
   f = s;
   if ((unsigned int) f != s)
-    scm_out_of_range_pos (FUNC_NAME, value, SCM_MAKINUM (3));
+    scm_out_of_range_pos (FUNC_NAME, value, SCM_I_MAKINUM (3));
 
   ((int_u8 *) SCM_UVEC_BASE (uvec))[idx] = f;
   return SCM_UNSPECIFIED;
@@ -413,7 +413,7 @@ SCM_DEFINE (scm_u8vector_to_list, "u8vector->list", 1, 0, 0,
   while (idx-- > 0)
     {
       p--;
-      res = scm_cons (SCM_MAKINUM (*p), res);
+      res = scm_cons (SCM_I_MAKINUM (*p), res);
     }
   return res;
 }
@@ -494,7 +494,7 @@ SCM_DEFINE (scm_make_s8vector, "make-s8vector", 1, 1, 0,
       signed int s = scm_num2int (fill, 2, FUNC_NAME);
       f = s;
       if ((signed int) f != s)
-	scm_out_of_range_pos (FUNC_NAME, fill, SCM_MAKINUM (2));
+	scm_out_of_range_pos (FUNC_NAME, fill, SCM_I_MAKINUM (2));
     }
   p = (int_s8 *) SCM_UVEC_BASE (uvec);
   while (count-- > 0)
@@ -544,7 +544,7 @@ SCM_DEFINE (scm_s8vector_ref, "s8vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_short2num (((int_s8 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -568,12 +568,12 @@ SCM_DEFINE (scm_s8vector_set_x, "s8vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   s = scm_num2int (value, 3, FUNC_NAME);
   f = s;
   if ((signed int) f != s)
-    scm_out_of_range_pos (FUNC_NAME, value, SCM_MAKINUM (3));
+    scm_out_of_range_pos (FUNC_NAME, value, SCM_I_MAKINUM (3));
 
   ((int_s8 *) SCM_UVEC_BASE (uvec))[idx] = f;
   return SCM_UNSPECIFIED;
@@ -599,7 +599,7 @@ SCM_DEFINE (scm_s8vector_to_list, "s8vector->list", 1, 0, 0,
   while (idx-- > 0)
     {
       p--;
-      res = scm_cons (SCM_MAKINUM (*p), res);
+      res = scm_cons (SCM_I_MAKINUM (*p), res);
     }
   return res;
 }
@@ -727,7 +727,7 @@ SCM_DEFINE (scm_u16vector_ref, "u16vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_ushort2num (((int_u16 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -750,7 +750,7 @@ SCM_DEFINE (scm_u16vector_set_x, "u16vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   f = scm_num2ushort (value, 3, FUNC_NAME);
 
@@ -778,7 +778,7 @@ SCM_DEFINE (scm_u16vector_to_list, "u16vector->list", 1, 0, 0,
   while (idx-- > 0)
     {
       p--;
-      res = scm_cons (SCM_MAKINUM (*p), res);
+      res = scm_cons (SCM_I_MAKINUM (*p), res);
     }
   return res;
 }
@@ -897,7 +897,7 @@ SCM_DEFINE (scm_s16vector_ref, "s16vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_short2num (((int_s16 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -920,7 +920,7 @@ SCM_DEFINE (scm_s16vector_set_x, "s16vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   f = scm_num2short (value, 3, FUNC_NAME);
 
@@ -948,7 +948,7 @@ SCM_DEFINE (scm_s16vector_to_list, "s16vector->list", 1, 0, 0,
   while (idx-- > 0)
     {
       p--;
-      res = scm_cons (SCM_MAKINUM (*p), res);
+      res = scm_cons (SCM_I_MAKINUM (*p), res);
     }
   return res;
 }
@@ -1070,7 +1070,7 @@ SCM_DEFINE (scm_u32vector_ref, "u32vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_uint2num (((int_u32 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -1093,7 +1093,7 @@ SCM_DEFINE (scm_u32vector_set_x, "u32vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   f = scm_num2uint (value, 3, FUNC_NAME);
 
@@ -1241,7 +1241,7 @@ SCM_DEFINE (scm_s32vector_ref, "s32vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_int2num (((int_s32 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -1264,7 +1264,7 @@ SCM_DEFINE (scm_s32vector_set_x, "s32vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   f = scm_num2int (value, 3, FUNC_NAME);
 
@@ -1414,7 +1414,7 @@ SCM_DEFINE (scm_u64vector_ref, "u64vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_ulong_long2num (((int_u64 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -1437,7 +1437,7 @@ SCM_DEFINE (scm_u64vector_set_x, "u64vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   f = scm_num2ulong_long (value, 3, FUNC_NAME);
 
@@ -1585,7 +1585,7 @@ SCM_DEFINE (scm_s64vector_ref, "s64vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_long_long2num (((int_s64 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -1608,7 +1608,7 @@ SCM_DEFINE (scm_s64vector_set_x, "s64vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   f = scm_num2long_long (value, 3, FUNC_NAME);
 
@@ -1716,7 +1716,7 @@ SCM_DEFINE (scm_make_f32vector, "make-f32vector", 1, 1, 0,
       /* This test somehow fails for even the simplest inexact
 	 numbers, like 3.1.  Must find out how to check properly.  */
       if (f != d)
-	scm_out_of_range_pos (FUNC_NAME, fill, SCM_MAKINUM (2));
+	scm_out_of_range_pos (FUNC_NAME, fill, SCM_I_MAKINUM (2));
 #endif /* 0 */
     }
   p = (float_f32 *) SCM_UVEC_BASE (uvec);
@@ -1767,7 +1767,7 @@ SCM_DEFINE (scm_f32vector_ref, "f32vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_make_real (((float_f32 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -1791,7 +1791,7 @@ SCM_DEFINE (scm_f32vector_set_x, "f32vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   d = scm_num2dbl (value, FUNC_NAME);
   f = d;
@@ -1799,7 +1799,7 @@ SCM_DEFINE (scm_f32vector_set_x, "f32vector-set!", 3, 0, 0,
       /* This test somehow fails for even the simplest inexact
 	 numbers, like 3.1.  Must find out how to check properly.  */
   if (f != d)
-    scm_out_of_range_pos (FUNC_NAME, value, SCM_MAKINUM (3));
+    scm_out_of_range_pos (FUNC_NAME, value, SCM_I_MAKINUM (3));
 #endif /* 0 */
 
   ((float_f32 *) SCM_UVEC_BASE (uvec))[idx] = f;
@@ -1858,7 +1858,7 @@ SCM_DEFINE (scm_list_to_f32vector, "list->f32vector", 1, 0, 0,
       /* This test somehow fails for even the simplest inexact
 	 numbers, like 3.1.  Must find out how to check properly.  */
       if (d != f)
-	scm_out_of_range_pos (FUNC_NAME, l, SCM_MAKINUM (1));
+	scm_out_of_range_pos (FUNC_NAME, l, SCM_I_MAKINUM (1));
 #endif /* 0 */
       *p++ = f;
       l = SCM_CDR (l);
@@ -1954,7 +1954,7 @@ SCM_DEFINE (scm_f64vector_ref, "f64vector-ref", 2, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   return scm_make_real (((float_f64 *) SCM_UVEC_BASE (uvec))[idx]);
 }
@@ -1977,7 +1977,7 @@ SCM_DEFINE (scm_f64vector_set_x, "f64vector-set!", 3, 0, 0,
 
   idx = scm_num2int (index, 2, FUNC_NAME);
   if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+    scm_out_of_range_pos (FUNC_NAME, index, SCM_I_MAKINUM (2));
 
   f = scm_num2dbl (value, FUNC_NAME);
 

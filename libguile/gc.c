@@ -720,8 +720,8 @@ scm_gc_protect_object (SCM obj)
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
 
-  handle = scm_hashq_create_handle_x (scm_protects, obj, SCM_MAKINUM (0));
-  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), SCM_MAKINUM (1)));
+  handle = scm_hashq_create_handle_x (scm_protects, obj, SCM_I_MAKINUM (0));
+  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), SCM_I_MAKINUM (1)));
 
   protected_obj_count ++;
   
@@ -752,8 +752,8 @@ scm_gc_unprotect_object (SCM obj)
     }
   else
     {
-      SCM count = scm_difference (SCM_CDR (handle), SCM_MAKINUM (1));
-      if (SCM_EQ_P (count, SCM_MAKINUM (0)))
+      SCM count = scm_difference (SCM_CDR (handle), SCM_I_MAKINUM (1));
+      if (SCM_EQ_P (count, SCM_I_MAKINUM (0)))
 	scm_hashq_remove_x (scm_protects, obj);
       else
 	SCM_SETCDR (handle, count);
@@ -774,8 +774,8 @@ scm_gc_register_root (SCM *p)
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
 
-  handle = scm_hashv_create_handle_x (scm_gc_registered_roots, key, SCM_MAKINUM (0));
-  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), SCM_MAKINUM (1)));
+  handle = scm_hashv_create_handle_x (scm_gc_registered_roots, key, SCM_I_MAKINUM (0));
+  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), SCM_I_MAKINUM (1)));
 
   SCM_REALLOW_INTS;
 }
@@ -798,8 +798,8 @@ scm_gc_unregister_root (SCM *p)
     }
   else
     {
-      SCM count = scm_difference (SCM_CDR (handle), SCM_MAKINUM (1));
-      if (SCM_EQ_P (count, SCM_MAKINUM (0)))
+      SCM count = scm_difference (SCM_CDR (handle), SCM_I_MAKINUM (1));
+      if (SCM_EQ_P (count, SCM_I_MAKINUM (0)))
 	scm_hashv_remove_x (scm_gc_registered_roots, key);
       else
 	SCM_SETCDR (handle, count);

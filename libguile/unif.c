@@ -218,11 +218,11 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
     badarg1:SCM_WRONG_TYPE_ARG (1, v);
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      return SCM_MAKINUM (SCM_VECTOR_LENGTH (v));
+      return SCM_I_MAKINUM (SCM_VECTOR_LENGTH (v));
     case scm_tc7_string:
-      return SCM_MAKINUM (SCM_STRING_LENGTH (v));
+      return SCM_I_MAKINUM (SCM_STRING_LENGTH (v));
     case scm_tc7_bvect:
-      return SCM_MAKINUM (SCM_BITVECTOR_LENGTH (v));
+      return SCM_I_MAKINUM (SCM_BITVECTOR_LENGTH (v));
     case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
@@ -233,7 +233,7 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
-      return SCM_MAKINUM (SCM_UVECTOR_LENGTH (v));
+      return SCM_I_MAKINUM (SCM_UVECTOR_LENGTH (v));
     }
 }
 #undef FUNC_NAME
@@ -347,10 +347,10 @@ SCM_DEFINE (scm_array_rank, "array-rank", 1, 0, 0,
     case scm_tc7_llvect:
 #endif
     case scm_tc7_svect:
-      return SCM_MAKINUM (1L);
+      return SCM_I_MAKINUM (1L);
     case scm_tc7_smob:
       if (SCM_ARRAYP (ra))
-	return SCM_MAKINUM (SCM_ARRAY_NDIM (ra));
+	return SCM_I_MAKINUM (SCM_ARRAY_NDIM (ra));
       return SCM_INUM0;
     }
 }
@@ -397,10 +397,10 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
       s = SCM_ARRAY_DIMS (ra);
       while (k--)
 	res = scm_cons (s[k].lbnd
-			? scm_cons2 (SCM_MAKINUM (s[k].lbnd),
-				     SCM_MAKINUM (s[k].ubnd),
+			? scm_cons2 (SCM_I_MAKINUM (s[k].lbnd),
+				     SCM_I_MAKINUM (s[k].ubnd),
 				     SCM_EOL)
-			: SCM_MAKINUM (1 + s[k].ubnd),
+			: SCM_I_MAKINUM (1 + s[k].ubnd),
 			res);
       return res;
     }
@@ -425,7 +425,7 @@ SCM_DEFINE (scm_shared_array_offset, "shared-array-offset", 1, 0, 0,
 #define FUNC_NAME s_scm_shared_array_offset
 {
   SCM_ASSERT (SCM_ARRAYP (ra), ra, SCM_ARG1, FUNC_NAME);
-  return SCM_MAKINUM (SCM_ARRAY_BASE (ra));
+  return SCM_I_MAKINUM (SCM_ARRAY_BASE (ra));
 }
 #undef FUNC_NAME
 
@@ -442,7 +442,7 @@ SCM_DEFINE (scm_shared_array_increments, "shared-array-increments", 1, 0, 0,
   k = SCM_ARRAY_NDIM (ra);
   s = SCM_ARRAY_DIMS (ra);
   while (k--)
-    res = scm_cons (SCM_MAKINUM (s[k].inc), res);
+    res = scm_cons (SCM_I_MAKINUM (s[k].inc), res);
   return res;
 }
 #undef FUNC_NAME
@@ -565,7 +565,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
       if (!SCM_UNBNDP (fill))
 	scm_array_fill_x (answer, fill);
       else if (SCM_SYMBOLP (prot))
-	scm_array_fill_x (answer, SCM_MAKINUM (0));
+	scm_array_fill_x (answer, SCM_I_MAKINUM (0));
       else
 	scm_array_fill_x (answer, prot);
       return answer;
@@ -590,7 +590,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
   if (!SCM_UNBNDP (fill))
     scm_array_fill_x (ra, fill);
   else if (SCM_SYMBOLP (prot))
-    scm_array_fill_x (ra, SCM_MAKINUM (0));
+    scm_array_fill_x (ra, SCM_I_MAKINUM (0));
   else
     scm_array_fill_x (ra, prot);
 
@@ -678,7 +678,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
   s = SCM_ARRAY_DIMS (ra);
   for (k = 0; k < SCM_ARRAY_NDIM (ra); k++)
     {
-      inds = scm_cons (SCM_MAKINUM (s[k].lbnd), inds);
+      inds = scm_cons (SCM_I_MAKINUM (s[k].lbnd), inds);
       if (s[k].ubnd < s[k].lbnd)
 	{
 	  if (1 == SCM_ARRAY_NDIM (ra))
@@ -709,7 +709,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
     {
       if (s[k].ubnd > s[k].lbnd)
 	{
-	  SCM_SETCAR (indptr, SCM_MAKINUM (SCM_INUM (SCM_CAR (indptr)) + 1));
+	  SCM_SETCAR (indptr, SCM_I_MAKINUM (SCM_INUM (SCM_CAR (indptr)) + 1));
 	  imap = scm_apply_0 (mapfunc, scm_reverse (inds));
 	  if (SCM_ARRAYP (oldra))
 
@@ -891,7 +891,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
 
   SCM_VALIDATE_REST_ARGUMENT (axes);
   if (SCM_NULLP (axes))
-      axes = scm_cons ((SCM_ARRAYP (ra) ? SCM_MAKINUM (SCM_ARRAY_NDIM (ra) - 1) : SCM_INUM0), SCM_EOL);
+      axes = scm_cons ((SCM_ARRAYP (ra) ? SCM_I_MAKINUM (SCM_ARRAY_NDIM (ra) - 1) : SCM_INUM0), SCM_EOL);
   ninr = scm_ilength (axes);
   if (ninr < 0)
     SCM_WRONG_NUM_ARGS ();
@@ -933,7 +933,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   noutr = ndim - ninr;
   if (noutr < 0)
     SCM_WRONG_NUM_ARGS ();
-  axv = scm_make_string (SCM_MAKINUM (ndim), SCM_MAKE_CHAR (0));
+  axv = scm_make_string (SCM_I_MAKINUM (ndim), SCM_MAKE_CHAR (0));
   res = scm_make_ra (noutr);
   SCM_ARRAY_BASE (res) = SCM_ARRAY_BASE (ra_inr);
   SCM_ARRAY_V (res) = ra_inr;
@@ -1094,7 +1094,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       /* not reached */
 
     outrng:
-      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
+      scm_out_of_range (FUNC_NAME, SCM_I_MAKINUM (pos));
     wna:
       SCM_WRONG_NUM_ARGS ();
     case scm_tc7_smob:
@@ -1119,14 +1119,14 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
     case scm_tc7_string:
       return SCM_MAKE_CHAR (SCM_STRING_UCHARS (v)[pos]);
     case scm_tc7_byvect:
-      return SCM_MAKINUM (((char *) SCM_UVECTOR_BASE (v))[pos]);
+      return SCM_I_MAKINUM (((char *) SCM_UVECTOR_BASE (v))[pos]);
   case scm_tc7_uvect:
     return scm_ulong2num (((unsigned long *) SCM_VELTS (v))[pos]);
   case scm_tc7_ivect:
     return scm_long2num (((signed long *) SCM_VELTS (v))[pos]);
 
     case scm_tc7_svect:
-      return SCM_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
+      return SCM_I_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       return scm_long_long2num (((long long *) SCM_CELL_WORD_1 (v))[pos]);
@@ -1165,13 +1165,13 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
     case scm_tc7_string:
       return SCM_MAKE_CHAR (SCM_STRING_UCHARS (v)[pos]);
     case scm_tc7_byvect:
-      return SCM_MAKINUM (((char *) SCM_UVECTOR_BASE (v))[pos]);
+      return SCM_I_MAKINUM (((char *) SCM_UVECTOR_BASE (v))[pos]);
     case scm_tc7_uvect:
       return scm_ulong2num(((unsigned long *) SCM_VELTS (v))[pos]);
     case scm_tc7_ivect:
       return scm_long2num(((signed long *) SCM_VELTS (v))[pos]);
     case scm_tc7_svect:
-      return SCM_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
+      return SCM_I_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       return scm_long_long2num (((long long *) SCM_CELL_WORD_1 (v))[pos]);
@@ -1263,7 +1263,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       SCM_WRONG_TYPE_ARG (1, v);
       /* not reached */
     outrng:
-      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
+      scm_out_of_range (FUNC_NAME, SCM_I_MAKINUM (pos));
     wna:
       SCM_WRONG_NUM_ARGS ();
     case scm_tc7_smob:		/* enclosed */
@@ -1282,7 +1282,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       break;
     case scm_tc7_byvect:
       if (SCM_CHARP (obj))
-	obj = SCM_MAKINUM ((char) SCM_CHAR (obj));
+	obj = SCM_I_MAKINUM ((char) SCM_CHAR (obj));
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((char *) SCM_UVECTOR_BASE (v))[pos] = SCM_INUM (obj);
       break;
@@ -1609,7 +1609,7 @@ loop:
   if (!SCM_EQ_P (v, ra) && !SCM_EQ_P (cra, ra))
     scm_array_copy_x (cra, ra);
 
-  return SCM_MAKINUM (ans);
+  return SCM_I_MAKINUM (ans);
 }
 #undef FUNC_NAME
 
@@ -1740,7 +1740,7 @@ loop:
   if (SCM_TYP7 (v) == scm_tc7_bvect)
     ans *= SCM_LONG_BIT;
 
-  return SCM_MAKINUM (ans);
+  return SCM_I_MAKINUM (ans);
 }
 #undef FUNC_NAME
 
@@ -1772,7 +1772,7 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 	w >>= 4;
       }
       if (i == 0) {
-	return SCM_MAKINUM (count);
+	return SCM_I_MAKINUM (count);
       } else {
 	--i;
 	w = SCM_UNPACK (SCM_VELTS (bitvector)[i]);
@@ -1828,17 +1828,17 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 	  switch (w & 0x0f)
 	    {
 	    default:
-	      return SCM_MAKINUM (pos);
+	      return SCM_I_MAKINUM (pos);
 	    case 2:
 	    case 6:
 	    case 10:
 	    case 14:
-	      return SCM_MAKINUM (pos + 1);
+	      return SCM_I_MAKINUM (pos + 1);
 	    case 4:
 	    case 12:
-	      return SCM_MAKINUM (pos + 2);
+	      return SCM_I_MAKINUM (pos + 2);
 	    case 8:
-	      return SCM_MAKINUM (pos + 3);
+	      return SCM_I_MAKINUM (pos + 3);
 	    case 0:
 	      pos += 4;
 	      w >>= 4;
@@ -1899,7 +1899,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	  {
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
 	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
+	      scm_out_of_range (FUNC_NAME, SCM_I_MAKINUM (k));
 	    SCM_BITVEC_CLR(v, k);
 	  }
       else if (SCM_EQ_P (obj, SCM_BOOL_T))
@@ -1907,7 +1907,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	  {
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
 	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
+	      scm_out_of_range (FUNC_NAME, SCM_I_MAKINUM (k));
 	    SCM_BITVEC_SET(v, k);
 	  }
       else
@@ -1969,7 +1969,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	  {
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
 	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
+	      scm_out_of_range (FUNC_NAME, SCM_I_MAKINUM (k));
 	    if (!SCM_BITVEC_REF(v, k))
 	      count++;
 	  }
@@ -1978,7 +1978,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	  {
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
 	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
+	      scm_out_of_range (FUNC_NAME, SCM_I_MAKINUM (k));
 	    if (SCM_BITVEC_REF (v, k))
 	      count++;
 	  }
@@ -1999,13 +1999,13 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	  for (; k; k >>= 4)
 	    count += cnt_tab[k & 0x0f];
 	  if (0 == i--)
-	    return SCM_MAKINUM (count);
+	    return SCM_I_MAKINUM (count);
 
          /* urg. repetitive (see above.) */
 	  k = SCM_UNPACK (SCM_VELTS (kv)[i]) & (fObj ? SCM_UNPACK(SCM_VELTS (v)[i]) : ~SCM_UNPACK (SCM_VELTS (v)[i]));
 	}
     }
-  return SCM_MAKINUM (count);
+  return SCM_I_MAKINUM (count);
 }
 #undef FUNC_NAME
 
@@ -2082,7 +2082,7 @@ ra2l (SCM ra, unsigned long base, unsigned long k)
     do
       {
 	i -= inc;
-	res = scm_cons (scm_uniform_vector_ref (SCM_ARRAY_V (ra), SCM_MAKINUM (i)), res);
+	res = scm_cons (scm_uniform_vector_ref (SCM_ARRAY_V (ra), SCM_I_MAKINUM (i)), res);
       }
     while (i != base);
   return res;
@@ -2126,7 +2126,7 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 	signed char *data = (signed char *) SCM_VELTS (v);
 	unsigned long k = SCM_UVECTOR_LENGTH (v);
 	while (k != 0)
-	  res = scm_cons (SCM_MAKINUM (data[--k]), res);
+	  res = scm_cons (SCM_I_MAKINUM (data[--k]), res);
 	return res;
       }
     case scm_tc7_uvect:
@@ -2206,7 +2206,7 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
     {
       n = scm_ilength (row);
       SCM_ASSERT (n >= 0, lst, SCM_ARG3, FUNC_NAME);
-      shp = scm_cons (SCM_MAKINUM (n), shp);
+      shp = scm_cons (SCM_I_MAKINUM (n), shp);
       if (SCM_NIMP (row))
 	row = SCM_CAR (row);
     }
@@ -2222,7 +2222,7 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
     {
       unsigned long int length = SCM_INUM (scm_uniform_vector_length (ra));
       for (k = 0; k < length; k++, lst = SCM_CDR (lst))
-	scm_array_set_x (ra, SCM_CAR (lst), SCM_MAKINUM (k));
+	scm_array_set_x (ra, SCM_CAR (lst), SCM_I_MAKINUM (k));
       return ra;
     }
   if (l2ra (lst, ra, SCM_ARRAY_BASE (ra), 0))
@@ -2260,7 +2260,7 @@ l2ra (SCM lst, SCM ra, unsigned long base, unsigned long k)
 	{
 	  if (!SCM_CONSP (lst))
 	    return 0;
-	  scm_array_set_x (SCM_ARRAY_V (ra), SCM_CAR (lst), SCM_MAKINUM (base));
+	  scm_array_set_x (SCM_ARRAY_V (ra), SCM_CAR (lst), SCM_I_MAKINUM (base));
 	  base += inc;
 	  lst = SCM_CDR (lst);
 	}
@@ -2327,7 +2327,7 @@ tail:
     default:
       /* scm_tc7_bvect and scm_tc7_llvect only?  */
       if (n-- > 0)
-	scm_iprin1 (scm_uniform_vector_ref (ra, SCM_MAKINUM (j)), port, pstate);
+	scm_iprin1 (scm_uniform_vector_ref (ra, SCM_I_MAKINUM (j)), port, pstate);
       for (j += inc; n-- > 0; j += inc)
 	{
 	  scm_putc (' ', port);
@@ -2570,9 +2570,9 @@ loop:
     case scm_tc7_byvect:
       return SCM_MAKE_CHAR ('\0');
     case scm_tc7_uvect:
-      return SCM_MAKINUM (1L);
+      return SCM_I_MAKINUM (1L);
     case scm_tc7_ivect:
-      return SCM_MAKINUM (-1L);
+      return SCM_I_MAKINUM (-1L);
     case scm_tc7_svect:
       return scm_str2symbol ("s");
 #if SCM_SIZEOF_LONG_LONG != 0
@@ -2615,8 +2615,8 @@ scm_init_unif ()
   scm_set_smob_free (scm_tc16_array, array_free);
   scm_set_smob_print (scm_tc16_array, scm_raprin1);
   scm_set_smob_equalp (scm_tc16_array, scm_array_equal_p);
-  exactly_one_third = scm_permanent_object (scm_make_ratio (SCM_MAKINUM (1),
-                                                            SCM_MAKINUM (3)));
+  exactly_one_third = scm_permanent_object (scm_make_ratio (SCM_I_MAKINUM (1),
+                                                            SCM_I_MAKINUM (3)));
   scm_add_feature ("array");
 #include "libguile/unif.x"
 }

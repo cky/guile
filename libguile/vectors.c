@@ -46,7 +46,7 @@ scm_vector_length (SCM v)
 {
   SCM_GASSERT1 (SCM_VECTORP(v),
 		g_vector_length, v, SCM_ARG1, s_vector_length);
-  return SCM_MAKINUM (SCM_VECTOR_LENGTH (v));
+  return SCM_I_MAKINUM (SCM_VECTOR_LENGTH (v));
 }
 
 SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);

@@ -260,7 +260,7 @@ SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1,
   SCM_VALIDATE_HOOK (1, hook);
   if (scm_ilength (args) != SCM_HOOK_ARITY (hook))
     SCM_MISC_ERROR ("Hook ~S requires ~A arguments",
-		    scm_list_2 (hook, SCM_MAKINUM (SCM_HOOK_ARITY (hook))));
+		    scm_list_2 (hook, SCM_I_MAKINUM (SCM_HOOK_ARITY (hook))));
   scm_c_run_hook (hook, args);
   return SCM_UNSPECIFIED;
 }

@@ -35,8 +35,8 @@ SCM_DEFINE (scm_major_version, "major-version", 0, 0, 0,
             "E.g., the 1 in \"1.6.5\".")
 #define FUNC_NAME s_scm_major_version
 {
-  return scm_number_to_string (SCM_MAKINUM(SCM_MAJOR_VERSION),
-                               SCM_MAKINUM(10));
+  return scm_number_to_string (SCM_I_MAKINUM(SCM_MAJOR_VERSION),
+                               SCM_I_MAKINUM(10));
 }
 #undef FUNC_NAME
 
@@ -48,8 +48,8 @@ SCM_DEFINE (scm_minor_version, "minor-version", 0, 0, 0,
             "E.g., the 6 in \"1.6.5\".")
 #define FUNC_NAME s_scm_minor_version
 {
-  return scm_number_to_string (SCM_MAKINUM(SCM_MINOR_VERSION),
-                               SCM_MAKINUM(10));
+  return scm_number_to_string (SCM_I_MAKINUM(SCM_MINOR_VERSION),
+                               SCM_I_MAKINUM(10));
 }
 #undef FUNC_NAME
 
@@ -61,8 +61,8 @@ SCM_DEFINE (scm_micro_version, "micro-version", 0, 0, 0,
             "E.g., the 5 in \"1.6.5\".")
 #define FUNC_NAME s_scm_micro_version
 {
-  return scm_number_to_string (SCM_MAKINUM(SCM_MICRO_VERSION),
-                               SCM_MAKINUM(10));
+  return scm_number_to_string (SCM_I_MAKINUM(SCM_MICRO_VERSION),
+                               SCM_I_MAKINUM(10));
 }
 #undef FUNC_NAME
 

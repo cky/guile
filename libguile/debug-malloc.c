@@ -217,7 +217,7 @@ SCM_DEFINE (scm_malloc_stats, "malloc-stats", 0, 0, 0,
   for (i = 0; i < malloc_type_size + N_SEEK; ++i)
     if (malloc_type[i].key)
       res = scm_acons (scm_makfrom0str ((char *) malloc_type[i].key),
-		       SCM_MAKINUM ((int) malloc_type[i].data),
+		       SCM_I_MAKINUM ((int) malloc_type[i].data),
 		       res);
   return res;
 }

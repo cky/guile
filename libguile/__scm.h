@@ -563,7 +563,7 @@ SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 	  ? scm_apply_generic ((gf), (args))				  \
 	  : (scm_wrong_type_arg ((subr), (pos),				  \
 				 scm_list_ref ((args),			  \
-					       SCM_MAKINUM ((pos) - 1))), \
+					       scm_from_int ((pos) - 1))), \
 	     SCM_UNSPECIFIED))
 #define SCM_GASSERTn(cond, gf, args, pos, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_n((gf), (args), (pos), (subr))

@@ -130,7 +130,7 @@ scm_i_procedure_arity (SCM proc)
     default:
       return SCM_BOOL_F;
     }
-  return scm_list_3 (SCM_MAKINUM (a), SCM_MAKINUM (o), scm_from_bool(r));
+  return scm_list_3 (SCM_I_MAKINUM (a), SCM_I_MAKINUM (o), scm_from_bool(r));
 }
 
 static SCM

@@ -61,7 +61,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   SCM_ASSERT (SCM_CHARP (chr), chr, SCM_ARG2, why);
 
   if (scm_is_false (sub_start))
-    sub_start = SCM_MAKINUM (0);
+    sub_start = SCM_I_MAKINUM (0);
 
   SCM_ASSERT (SCM_INUMP (sub_start), sub_start, SCM_ARG3, why);
   lower = SCM_INUM (sub_start);
@@ -69,7 +69,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
     scm_out_of_range (why, sub_start);
 
   if (scm_is_false (sub_end))
-    sub_end = SCM_MAKINUM (SCM_STRING_LENGTH (*str));
+    sub_end = SCM_I_MAKINUM (SCM_STRING_LENGTH (*str));
 
   SCM_ASSERT (SCM_INUMP (sub_end), sub_end, SCM_ARG4, why);
   upper = SCM_INUM (sub_end);
@@ -124,7 +124,7 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
   pos = scm_i_index (&str, chr, 1, frm, to, FUNC_NAME);
   return (pos < 0
 	  ? SCM_BOOL_F
-	  : SCM_MAKINUM (pos));
+	  : SCM_I_MAKINUM (pos));
 }
 #undef FUNC_NAME
 
@@ -154,7 +154,7 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
   pos = scm_i_index (&str, chr, -1, frm, to, FUNC_NAME);
   return (pos < 0
 	  ? SCM_BOOL_F
-	  : SCM_MAKINUM (pos));
+	  : SCM_I_MAKINUM (pos));
 }
 #undef FUNC_NAME
 

@@ -614,9 +614,9 @@ scm_socket_symbols_Win32 (socket_error_t * e)
       if (e->error)
 	{
 	  if (e->correct_str)
-	    scm_c_define (e->correct_str, SCM_MAKINUM (e->error));
+	    scm_c_define (e->correct_str, SCM_I_MAKINUM (e->error));
 	  if (e->replace && e->replace_str)
-	    scm_c_define (e->replace_str, SCM_MAKINUM (e->replace));
+	    scm_c_define (e->replace_str, SCM_I_MAKINUM (e->replace));
 	}
       e++;
     }

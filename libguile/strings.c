@@ -217,7 +217,7 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 #define FUNC_NAME s_scm_string_length
 {
   SCM_VALIDATE_STRING (1, string);
-  return SCM_MAKINUM (SCM_STRING_LENGTH (string));
+  return SCM_I_MAKINUM (SCM_STRING_LENGTH (string));
 }
 #undef FUNC_NAME
 

@@ -111,7 +111,7 @@ SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
   i = 0;
   while (i < clen)
     {
-      ch = scm_call_1 (proc, SCM_MAKINUM (i));
+      ch = scm_call_1 (proc, SCM_I_MAKINUM (i));
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       *p++ = SCM_CHAR (ch);
@@ -368,7 +368,7 @@ SCM_DEFINE (scm_substring_shared, "substring/shared", 2, 1, 0,
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_INUM (2, start);
   if (SCM_UNBNDP (end))
-    end = SCM_MAKINUM (SCM_STRING_LENGTH (str));
+    end = SCM_I_MAKINUM (SCM_STRING_LENGTH (str));
   else
     SCM_VALIDATE_INUM (3, end);
   if (SCM_INUM (start) == 0 &&
@@ -860,18 +860,18 @@ SCM_DEFINE (scm_string_compare, "string-compare", 5, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
-	return scm_call_1 (proc_lt, SCM_MAKINUM (cstart1));
+	return scm_call_1 (proc_lt, SCM_I_MAKINUM (cstart1));
       else if (cstr1[cstart1] > cstr2[cstart2])
-	return scm_call_1 (proc_gt, SCM_MAKINUM (cstart1));
+	return scm_call_1 (proc_gt, SCM_I_MAKINUM (cstart1));
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return scm_call_1 (proc_gt, SCM_MAKINUM (cstart1));
+    return scm_call_1 (proc_gt, SCM_I_MAKINUM (cstart1));
   else if (cstart2 < cend2)
-    return scm_call_1 (proc_lt, SCM_MAKINUM (cstart1));
+    return scm_call_1 (proc_lt, SCM_I_MAKINUM (cstart1));
   else
-    return scm_call_1 (proc_eq, SCM_MAKINUM (cstart1));
+    return scm_call_1 (proc_eq, SCM_I_MAKINUM (cstart1));
 }
 #undef FUNC_NAME
 
@@ -903,18 +903,18 @@ SCM_DEFINE (scm_string_compare_ci, "string-compare-ci", 5, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
-	return scm_call_1 (proc_lt, SCM_MAKINUM (cstart1));
+	return scm_call_1 (proc_lt, SCM_I_MAKINUM (cstart1));
       else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
-	return scm_call_1 (proc_gt, SCM_MAKINUM (cstart1));
+	return scm_call_1 (proc_gt, SCM_I_MAKINUM (cstart1));
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return scm_call_1 (proc_gt, SCM_MAKINUM (cstart1));
+    return scm_call_1 (proc_gt, SCM_I_MAKINUM (cstart1));
   else if (cstart2 < cend2)
-    return scm_call_1 (proc_lt, SCM_MAKINUM (cstart1));
+    return scm_call_1 (proc_lt, SCM_I_MAKINUM (cstart1));
   else
-    return scm_call_1 (proc_eq, SCM_MAKINUM (cstart1));
+    return scm_call_1 (proc_eq, SCM_I_MAKINUM (cstart1));
 }
 #undef FUNC_NAME
 
@@ -949,7 +949,7 @@ SCM_DEFINE (scm_string_eq, "string=", 2, 4, 0,
   else if (cstart2 < cend2)
     return SCM_BOOL_F;
   else
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
 }
 #undef FUNC_NAME
 
@@ -973,16 +973,16 @@ SCM_DEFINE (scm_string_neq, "string<>", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       else if (cstr1[cstart1] > cstr2[cstart2])
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else if (cstart2 < cend2)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else
     return SCM_BOOL_F;
 }
@@ -1008,7 +1008,7 @@ SCM_DEFINE (scm_string_lt, "string<", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       else if (cstr1[cstart1] > cstr2[cstart2])
 	return SCM_BOOL_F;
       cstart1++;
@@ -1017,7 +1017,7 @@ SCM_DEFINE (scm_string_lt, "string<", 2, 4, 0,
   if (cstart1 < cend1)
     return SCM_BOOL_F;
   else if (cstart2 < cend2)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else
     return SCM_BOOL_F;
 }
@@ -1045,12 +1045,12 @@ SCM_DEFINE (scm_string_gt, "string>", 2, 4, 0,
       if (cstr1[cstart1] < cstr2[cstart2])
 	return SCM_BOOL_F;
       else if (cstr1[cstart1] > cstr2[cstart2])
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else if (cstart2 < cend2)
     return SCM_BOOL_F;
   else
@@ -1078,7 +1078,7 @@ SCM_DEFINE (scm_string_le, "string<=", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       else if (cstr1[cstart1] > cstr2[cstart2])
 	return SCM_BOOL_F;
       cstart1++;
@@ -1087,9 +1087,9 @@ SCM_DEFINE (scm_string_le, "string<=", 2, 4, 0,
   if (cstart1 < cend1)
     return SCM_BOOL_F;
   else if (cstart2 < cend2)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
 }
 #undef FUNC_NAME
 
@@ -1115,16 +1115,16 @@ SCM_DEFINE (scm_string_ge, "string>=", 2, 4, 0,
       if (cstr1[cstart1] < cstr2[cstart2])
 	return SCM_BOOL_F;
       else if (cstr1[cstart1] > cstr2[cstart2])
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else if (cstart2 < cend2)
     return SCM_BOOL_F;
   else
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
 }
 #undef FUNC_NAME
 
@@ -1160,7 +1160,7 @@ SCM_DEFINE (scm_string_ci_eq, "string-ci=", 2, 4, 0,
   else if (cstart2 < cend2)
     return SCM_BOOL_F;
   else
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
 }
 #undef FUNC_NAME
 
@@ -1185,16 +1185,16 @@ SCM_DEFINE (scm_string_ci_neq, "string-ci<>", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else if (cstart2 < cend2)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else
     return SCM_BOOL_F;
 }
@@ -1221,7 +1221,7 @@ SCM_DEFINE (scm_string_ci_lt, "string-ci<", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
       cstart1++;
@@ -1230,7 +1230,7 @@ SCM_DEFINE (scm_string_ci_lt, "string-ci<", 2, 4, 0,
   if (cstart1 < cend1)
     return SCM_BOOL_F;
   else if (cstart2 < cend2)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else
     return SCM_BOOL_F;
 }
@@ -1259,12 +1259,12 @@ SCM_DEFINE (scm_string_ci_gt, "string-ci>", 2, 4, 0,
       if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
       else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else if (cstart2 < cend2)
     return SCM_BOOL_F;
   else
@@ -1293,7 +1293,7 @@ SCM_DEFINE (scm_string_ci_le, "string-ci<=", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
       cstart1++;
@@ -1302,9 +1302,9 @@ SCM_DEFINE (scm_string_ci_le, "string-ci<=", 2, 4, 0,
   if (cstart1 < cend1)
     return SCM_BOOL_F;
   else if (cstart2 < cend2)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
 }
 #undef FUNC_NAME
 
@@ -1331,16 +1331,16 @@ SCM_DEFINE (scm_string_ci_ge, "string-ci>=", 2, 4, 0,
       if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
 	return SCM_BOOL_F;
       else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
   else if (cstart2 < cend2)
     return SCM_BOOL_F;
   else
-    return SCM_MAKINUM (cstart1);
+    return SCM_I_MAKINUM (cstart1);
 }
 #undef FUNC_NAME
 
@@ -1364,12 +1364,12 @@ SCM_DEFINE (scm_string_prefix_length, "string-prefix-length", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] != cstr2[cstart2])
-	return SCM_MAKINUM (len);
+	return SCM_I_MAKINUM (len);
       len++;
       cstart1++;
       cstart2++;
     }
-  return SCM_MAKINUM (len);
+  return SCM_I_MAKINUM (len);
 }
 #undef FUNC_NAME
 
@@ -1393,12 +1393,12 @@ SCM_DEFINE (scm_string_prefix_length_ci, "string-prefix-length-ci", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) != scm_c_downcase (cstr2[cstart2]))
-	return SCM_MAKINUM (len);
+	return SCM_I_MAKINUM (len);
       len++;
       cstart1++;
       cstart2++;
     }
-  return SCM_MAKINUM (len);
+  return SCM_I_MAKINUM (len);
 }
 #undef FUNC_NAME
 
@@ -1424,10 +1424,10 @@ SCM_DEFINE (scm_string_suffix_length, "string-suffix-length", 2, 4, 0,
       cend1--;
       cend2--;
       if (cstr1[cend1] != cstr2[cend2])
-	return SCM_MAKINUM (len);
+	return SCM_I_MAKINUM (len);
       len++;
     }
-  return SCM_MAKINUM (len);
+  return SCM_I_MAKINUM (len);
 }
 #undef FUNC_NAME
 
@@ -1453,10 +1453,10 @@ SCM_DEFINE (scm_string_suffix_length_ci, "string-suffix-length-ci", 2, 4, 0,
       cend1--;
       cend2--;
       if (scm_c_downcase (cstr1[cend1]) != scm_c_downcase (cstr2[cend2]))
-	return SCM_MAKINUM (len);
+	return SCM_I_MAKINUM (len);
       len++;
     }
-  return SCM_MAKINUM (len);
+  return SCM_I_MAKINUM (len);
 }
 #undef FUNC_NAME
 
@@ -1608,7 +1608,7 @@ SCM_DEFINE (scm_string_indexS, "string-index", 2, 2, 0,
       while (cstart < cend)
 	{
 	  if (cchr == cstr[cstart])
-	    return SCM_MAKINUM (cstart);
+	    return SCM_I_MAKINUM (cstart);
 	  cstart++;
 	}
     }
@@ -1617,7 +1617,7 @@ SCM_DEFINE (scm_string_indexS, "string-index", 2, 2, 0,
       while (cstart < cend)
 	{
 	  if (SCM_CHARSET_GET (char_pred, cstr[cstart]))
-	    return SCM_MAKINUM (cstart);
+	    return SCM_I_MAKINUM (cstart);
 	  cstart++;
 	}
     }
@@ -1629,7 +1629,7 @@ SCM_DEFINE (scm_string_indexS, "string-index", 2, 2, 0,
 	  SCM res;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (scm_is_true (res))
-	    return SCM_MAKINUM (cstart);
+	    return SCM_I_MAKINUM (cstart);
 	  cstart++;
 	}
     }
@@ -1668,7 +1668,7 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	{
 	  cend--;
 	  if (cchr == cstr[cend])
-	    return SCM_MAKINUM (cend);
+	    return SCM_I_MAKINUM (cend);
 	}
     }
   else if (SCM_CHARSETP (char_pred))
@@ -1677,7 +1677,7 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	{
 	  cend--;
 	  if (SCM_CHARSET_GET (char_pred, cstr[cend]))
-	    return SCM_MAKINUM (cend);
+	    return SCM_I_MAKINUM (cend);
 	}
     }
   else
@@ -1689,7 +1689,7 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	  cend--;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
 	  if (scm_is_true (res))
-	    return SCM_MAKINUM (cend);
+	    return SCM_I_MAKINUM (cend);
 	}
     }
   return SCM_BOOL_F;
@@ -1727,7 +1727,7 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
       while (cstart < cend)
 	{
 	  if (cchr != cstr[cstart])
-	    return SCM_MAKINUM (cstart);
+	    return SCM_I_MAKINUM (cstart);
 	  cstart++;
 	}
     }
@@ -1736,7 +1736,7 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
       while (cstart < cend)
 	{
 	  if (!SCM_CHARSET_GET (char_pred, cstr[cstart]))
-	    return SCM_MAKINUM (cstart);
+	    return SCM_I_MAKINUM (cstart);
 	  cstart++;
 	}
     }
@@ -1748,7 +1748,7 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
 	  SCM res;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (scm_is_false (res))
-	    return SCM_MAKINUM (cstart);
+	    return SCM_I_MAKINUM (cstart);
 	  cstart++;
 	}
     }
@@ -1788,7 +1788,7 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	{
 	  cend--;
 	  if (cchr != cstr[cend])
-	    return SCM_MAKINUM (cend);
+	    return SCM_I_MAKINUM (cend);
 	}
     }
   else if (SCM_CHARSETP (char_pred))
@@ -1797,7 +1797,7 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	{
 	  cend--;
 	  if (!SCM_CHARSET_GET (char_pred, cstr[cend]))
-	    return SCM_MAKINUM (cend);
+	    return SCM_I_MAKINUM (cend);
 	}
     }
   else
@@ -1809,7 +1809,7 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	  cend--;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
 	  if (scm_is_false (res))
-	    return SCM_MAKINUM (cend);
+	    return SCM_I_MAKINUM (cend);
 	}
     }
   return SCM_BOOL_F;
@@ -1872,7 +1872,7 @@ SCM_DEFINE (scm_string_count, "string-count", 2, 2, 0,
 	  cstart++;
 	}
     }
-  return SCM_MAKINUM (count);
+  return SCM_I_MAKINUM (count);
 }
 #undef FUNC_NAME
 
@@ -1909,7 +1909,7 @@ SCM_DEFINE (scm_string_contains, "string-contains", 2, 4, 0,
 	  j++;
 	}
       if (j == cend2)
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       cstart1++;
     }
   return SCM_BOOL_F;
@@ -1951,7 +1951,7 @@ SCM_DEFINE (scm_string_contains_ci, "string-contains-ci", 2, 4, 0,
 	  j++;
 	}
       if (j == cend2)
-	return SCM_MAKINUM (cstart1);
+	return SCM_I_MAKINUM (cstart1);
       cstart1++;
     }
   return SCM_BOOL_F;
@@ -2652,7 +2652,7 @@ SCM_DEFINE (scm_string_for_each_index, "string-for-each-index", 2, 2, 0,
 				    4, end, cend);
   while (cstart < cend)
     {
-      scm_call_1 (proc, SCM_MAKINUM (cstart));
+      scm_call_1 (proc, SCM_I_MAKINUM (cstart));
       cstart++;
     }
   return SCM_UNSPECIFIED;
