@@ -20,9 +20,9 @@ What to Hack =========================================================
 You can hack whatever you want, thank GNU.
 
 However, to see what others have indicated as their interest (and avoid
-potential wasteful duplication of effort), see devel/tasks.text.  Note
-that this file is available only from CVS checkout and not distributed
-w/ Guile releases.
+potential wasteful duplication of effort), see file TODO.  Note that
+the version you find may be out of date; a CVS checkout is recommended
+(see also file SNAPSHOTS).
 
 It's also a good idea to join the guile-devel@gnu.org mailing list.
 See http://www.gnu.org/software/guile/mail/mail.html for more info.
@@ -319,7 +319,7 @@ them in THANKS.
 
     s   - a constant C string
 
-    
+
 
 Helpful hints ========================================================
 
