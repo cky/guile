@@ -1,3 +1,9 @@
+2000-09-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* symbols.c (duplicate_string): Don't try to copy the byte after
+	the string.  This might not be `\0' and might even not be
+	allocated memory.
+
 2000-09-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* symbols.c (scm_symbol_p):  Eliminate redundant SCM_IMP test.
