@@ -230,6 +230,8 @@ SCM_API int scm_debug_cells_gc_interval ;
 void scm_i_expensive_validation_check (SCM cell);
 #endif
 
+SCM_API scm_t_mutex scm_i_gc_admin_mutex;
+
 SCM_API int scm_block_gc;
 SCM_API int scm_gc_heap_lock;
 SCM_API unsigned int scm_gc_running_p;

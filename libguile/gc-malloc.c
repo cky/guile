@@ -177,23 +177,37 @@ scm_strdup (const char *str)
   return scm_strndup (str, strlen (str));
 }
 
-
 static void
 decrease_mtrigger (size_t size, const char * what)
 {
+  scm_i_plugin_mutex_lock (&scm_i_gc_admin_mutex);
   scm_mallocated -= size;
   scm_gc_malloc_collected += size;
+  scm_i_plugin_mutex_unlock (&scm_i_gc_admin_mutex);
 }
 
 static void
 increase_mtrigger (size_t size, const char *what)
 {
+  size_t mallocated = 0;
+  int overflow = 0, triggered = 0;
+
+  scm_i_plugin_mutex_lock (&scm_i_gc_admin_mutex);
   if (ULONG_MAX - size < scm_mallocated)
+    overflow = 1;
+  else
+    {
+      scm_mallocated += size;
+      mallocated = scm_mallocated;
+      if (scm_mallocated > scm_mtrigger)
+	triggered = 1;
+    }
+  scm_i_plugin_mutex_unlock (&scm_i_gc_admin_mutex);
+
+  if (overflow)
     {
       scm_memory_error ("Overflow of scm_mallocated: too much memory in use.");
     }
-
-  scm_mallocated += size;
 
   /*
     A program that uses a lot of malloced collectable memory (vectors,
@@ -201,14 +215,14 @@ increase_mtrigger (size_t size, const char *what)
     do GC more often (before cells are exhausted), otherwise swapping
     and malloc management will tie it down.
    */
-  if (scm_mallocated > scm_mtrigger)
+  if (triggered)
     {
       unsigned long prev_alloced;
       float yield;
       
       scm_rec_mutex_lock (&scm_i_sweep_mutex);
       
-      prev_alloced  = scm_mallocated;
+      prev_alloced  = mallocated;
       scm_igc (what);
       scm_i_sweep_all_segments ("mtrigger");
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -199,9 +199,9 @@ scm_gc_mark_dependencies (SCM p)
 	scm_t_bits word0 = SCM_CELL_WORD_0 (ptr) - scm_tc3_struct;
 	scm_t_bits * vtable_data = (scm_t_bits *) word0;
 	SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
-	long len = SCM_SYMBOL_LENGTH (layout);
-	char * fields_desc = SCM_SYMBOL_CHARS (layout);
-	scm_t_bits * struct_data = (scm_t_bits *) SCM_STRUCT_DATA (ptr);
+	long len = scm_i_symbol_length (layout);
+	const char *fields_desc = scm_i_symbol_chars (layout);
+	scm_t_bits *struct_data = (scm_t_bits *) SCM_STRUCT_DATA (ptr);
 
 	if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
 	  {
@@ -276,9 +276,15 @@ scm_gc_mark_dependencies (SCM p)
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
-#endif
-    case scm_tc7_string:
       break;
+#endif
+
+    case scm_tc7_string:
+      ptr = scm_i_string_mark (ptr);
+      goto gc_mark_loop;
+    case scm_tc7_stringbuf:
+      ptr = scm_i_stringbuf_mark (ptr);
+      goto gc_mark_loop;
 
     case scm_tc7_number:
       if (SCM_TYP16 (ptr) == scm_tc16_fraction)
@@ -349,7 +355,7 @@ scm_gc_mark_dependencies (SCM p)
       break;
 
     case scm_tc7_symbol:
-      ptr = SCM_PROP_SLOTS (ptr);
+      ptr = scm_i_symbol_mark (ptr);
       goto gc_mark_loop;
     case scm_tc7_variable:
       ptr = SCM_CELL_OBJECT_1 (ptr);
