@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -447,7 +447,10 @@ scm_done_malloc (long size)
     ("scm_done_malloc is deprecated.  "
      "Use scm_gc_register_collectable_memory instead.");
 
-  scm_gc_register_collectable_memory (NULL, size, "foreign mallocs");
+  if (size >= 0)
+    scm_gc_register_collectable_memory (NULL, size, "foreign mallocs");
+  else
+    scm_gc_unregister_collectable_memory (NULL, -size, "foreign mallocs");
 }
 
 void
@@ -457,7 +460,10 @@ scm_done_free (long size)
     ("scm_done_free is deprecated.  "
      "Use scm_gc_unregister_collectable_memory instead.");
 
-  scm_gc_unregister_collectable_memory (NULL, size, "foreign mallocs");
+  if (size >= 0)
+    scm_gc_unregister_collectable_memory (NULL, size, "foreign mallocs");
+  else
+    scm_gc_register_collectable_memory (NULL, -size, "foreign mallocs");
 }
 
 #endif /* SCM_ENABLE_DEPRECATED == 1 */
