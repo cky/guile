@@ -1,3 +1,8 @@
+2001-06-01  Rob Browning  <rlb@cs.utexas.edu>
+
+	* .cvsignore: here and in all subdirectories listing Makefile and
+	Makefile.in.
+
 2001-05-31  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* box-dynamic: New directory, implements the box type in a shared
