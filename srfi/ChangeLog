@@ -1,3 +1,7 @@
+2001-07-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* README: Cleanup.
+
 2001-07-06  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-1.scm (iota, map, for-each, list-index, member, delete,

@@ -5,8 +5,6 @@ stand for, please refer to the SRFI homepage at
 
   http://srfi.schemers.org
 
-The following SRFIs are supported (as of 2001-06-06 -- 'martin):
-
 SRFI-0: cond-expand
 
   Supported by default, no module needs to get used.
@@ -73,7 +71,6 @@ SRFI-19: Time Data Types and Procedures
   A lot of data types and procedures for dealing with times and
   dates.  (use-modules (srfi srfi-19)) loads the procedures.
 
-SRFI-23: Error reporting mechanism (draft)
+SRFI-23: Error reporting mechanism
 
-  This SRFI is still in draft status, but Guile fully supports it
-  already.  No need to load any module.
+  Guile fully supports this SRFI.  No need to load any module.
