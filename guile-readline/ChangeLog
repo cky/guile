@@ -1,3 +1,22 @@
+2004-06-16  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: move package and version args to AC_INIT as is now
+	recommended.  This also requires m4_esyscmd to read GUILE-VERSION
+	given the way AC_INIT handles its args.  Also move "foreign"
+	indication here.
+
+	* Makefile.am: move support for readline.scm to ice-9/ subdir.
+
+	* readline.scm: moved to ./ice-9/
+
+	* .cvsignore: add ice-9 dir.
+
+	* ice-9/Makefile.am: new file.
+
+	* ice-9/readline.scm: moved here from ../
+
+	* ice-9/.cvsignore: new file.
+
 2004-02-15  Mikael Djurfeldt  <mdj@chunk.mit.edu>
 
 	* configure.in: Use AC_PROG_LIBTOOL instead of AM_PROG_LIBTOOL.

@@ -1,3 +1,15 @@
+2004-06-16  Rob Browning  <rlb@defaultvalue.org>
+
+	* pre-inst-guile.in: modify to handle move of readline.scm to
+	ice-9 subdir of guile-readline.
+
+	* pre-inst-guile-env.in: modify to handle move of readline.scm to
+	ice-9 subdir of guile-readline.
+
+	* configure.in: move package and version args to AC_INIT as is now
+	recommended.  This also requires m4_esyscmd to read GUILE-VERSION
+	given the way AC_INIT handles its args.
+
 2004-04-22  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_HEADERS): Add fenv.h.
