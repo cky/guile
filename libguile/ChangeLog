@@ -1,3 +1,16 @@
+2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* gc.c (scm_must_malloc, scm_must_realloc, scm_must_free): Added
+	calls to malloc debugging functions. 
+
+	* init.c (scm_boot_guile_1): Added calls to debug-malloc init
+	functions.
+
+	* Makefile.am: Added debug-malloc.c, debug-malloc.h,
+	debug-malloc.x.
+
+	* debug-malloc.c, debug-malloc.h: New files.
+
 2000-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (scm_exact_p, scm_odd_p, scm_even_p):  Added

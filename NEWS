@@ -42,7 +42,7 @@ features:
 
 These are likely to become separate modules some day.
 
-** Added new configure option --enable-debug-freelist
+** New configure option --enable-debug-freelist
 
 This enables a debugging version of SCM_NEWCELL(), and also registers
 an extra primitive, the setter `gc-set-debug-check-freelist!'.
@@ -57,6 +57,24 @@ Checking of the freelist forces a traversal of the freelist and
 a garbage collection before each allocation of a cell.  This can
 slow down the interpreter dramatically, so the setter should be used to
 turn on this extra processing only when necessary.
+
+** New configure option --enable-debug-malloc
+
+Include code for debugging of calls to scm_must_malloc/realloc/free.
+
+Checks that
+
+1. objects freed by scm_must_free has been mallocated by scm_must_malloc
+2. objects reallocated by scm_must_realloc has been allocated by
+   scm_must_malloc
+3. reallocated objects are reallocated with the same what string
+
+But, most importantly, it records the number of allocated objects of
+each kind.  This is useful when searching for memory leaks.
+
+A Guile compiled with this option provides the primitive
+`malloc-stats' which returns an alist with pairs of kind and the
+number of objects of that kind.
 
 * Changes to the stand-alone interpreter
 

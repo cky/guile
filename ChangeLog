@@ -1,3 +1,9 @@
+2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* acconfig.h (GUILE_DEBUG_MALLOC): New.
+
+	* configure.in: New --enable-debug-malloc configuration option.
+
 2000-03-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* acconfig.h (GUILE_PTHREAD_COMPAT): New config variable.
