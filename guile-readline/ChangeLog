@@ -1,3 +1,7 @@
+Thu Mar  9 08:00:26 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* readline.c: scm_validate.h renamed to validate.h.
+
 Wed Mar  8 10:43:10 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* readline.c (match_paren): Use SELECT_TYPE, not fd_set, for type
