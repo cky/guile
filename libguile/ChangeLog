@@ -1,5 +1,9 @@
 1999-09-05  James Blandy  <jimb@mule.m17n.org>
 
+	* snarf.h (SCM_GLOBAL_KEYWORD): Call scm_c_make_keyword, not
+	scm_makekey, which doesn't exist any more.  Guess nobody's using
+	this.
+
 	* guile-snarf.c: New implementation of guile-snarf, meant to be
 	more robust than the shell script.  I think it's complete, but I
 	haven't tested it at all, and I haven't changed the build process
