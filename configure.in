@@ -757,6 +757,7 @@ EXTRA_DOT_X_FILES="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.x ,g;s,\.[[^.]]*$,.
 AC_SUBST(GUILE_MAJOR_VERSION)
 AC_SUBST(GUILE_MINOR_VERSION)
 AC_SUBST(GUILE_MICRO_VERSION)
+AC_SUBST(GUILE_EFFECTIVE_VERSION)
 AC_SUBST(GUILE_VERSION)
 
 #######################################################################
@@ -801,20 +802,27 @@ AC_SUBST(EXTRA_DOT_X_FILES)
 dnl See also top_builddir in info node: (libtool)AC_PROG_LIBTOOL
 top_builddir_absolute=`pwd`
 AC_SUBST(top_builddir_absolute)
-top_srcdir_absolute=`(cd $srcdir ; pwd)`
+top_srcdir_absolute=`(cd $srcdir && pwd)`
 AC_SUBST(top_srcdir_absolute)
 
 AC_CONFIG_FILES([
   Makefile
   am/Makefile
-  libguile/Makefile
-  libguile/guile-snarf
-  libguile/guile-doc-snarf
-  libguile/guile-func-name-check
-  libguile/guile-snarf-docs
-  libguile/version.h
-  libguile-ltdl/Makefile
-  libguile-ltdl/upstream/Makefile
+  benchmark-suite/Makefile
+  doc/Makefile
+  doc/goops/Makefile
+  doc/r5rs/Makefile
+  doc/ref/Makefile
+  doc/tutorial/Makefile
+  examples/Makefile
+  examples/box-dynamic-module/Makefile
+  examples/box-dynamic/Makefile
+  examples/box-module/Makefile
+  examples/box/Makefile
+  examples/modules/Makefile
+  examples/safe/Makefile
+  examples/scripts/Makefile
+  guile-config/Makefile
   ice-9/Makefile
   ice-9/debugger/Makefile
   ice-9/debugger/breakpoints/Makefile
@@ -822,40 +830,27 @@ AC_CONFIG_FILES([
   lang/elisp/Makefile
   lang/elisp/internals/Makefile
   lang/elisp/primitives/Makefile
+  libguile-ltdl/Makefile
+  libguile-ltdl/upstream/Makefile
+  libguile/Makefile
   oop/Makefile
   oop/goops/Makefile
   scripts/Makefile
   srfi/Makefile
-  guile-config/Makefile
-  doc/Makefile
-  doc/ref/Makefile
-  doc/tutorial/Makefile
-  doc/goops/Makefile
-  doc/r5rs/Makefile
-  examples/Makefile
-  examples/scripts/Makefile
-  examples/box/Makefile
-  examples/box-module/Makefile
-  examples/box-dynamic/Makefile
-  examples/box-dynamic-module/Makefile
-  examples/modules/Makefile
-  examples/safe/Makefile
-  test-suite/Makefile
-  check-guile
-  benchmark-suite/Makefile
-  benchmark-guile
-  guile-tools
-  pre-inst-guile])
+  test-suite/Makefile])
 
-AC_CONFIG_COMMANDS(default,
-  [ chmod +x libguile/guile-snarf \
-             libguile/guile-doc-snarf \
-             libguile/guile-func-name-check \
-             libguile/guile-snarf-docs \
-             check-guile \
-             benchmark-guile \
-             guile-tools \
-             pre-inst-guile])
+AC_CONFIG_FILES([check-guile], [chmod +x check-guile])
+AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
+AC_CONFIG_FILES([guile-tools], [chmod +x guile-tools])
+AC_CONFIG_FILES([pre-inst-guile], [chmod +x pre-inst-guile])
+AC_CONFIG_FILES([libguile/guile-snarf],
+                [chmod +x libguile/guile-snarf])
+AC_CONFIG_FILES([libguile/guile-doc-snarf],
+                [chmod +x libguile/guile-doc-snarf])
+AC_CONFIG_FILES([libguile/guile-func-name-check],
+                [chmod +x libguile/guile-func-name-check])
+AC_CONFIG_FILES([libguile/guile-snarf-docs],
+                [chmod +x libguile/guile-snarf-docs])
 
 AC_OUTPUT
 
