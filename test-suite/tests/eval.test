@@ -177,4 +177,72 @@
 	(map + '(1 2) '(3)))
     )))
 
+;;;
+;;; promises
+;;;
+
+(with-test-prefix "promises"
+
+  (with-test-prefix "basic promise behaviour"
+
+    (pass-if "delay gives a promise"
+      (promise? (delay 1)))
+
+    (pass-if "force evaluates a promise"
+      (eqv? (force (delay (+ 1 2))) 3))
+
+    (pass-if "a forced promise is a promise"
+      (let ((p (delay (+ 1 2))))
+	(force p)
+	(promise? p)))
+
+    (pass-if "forcing a forced promise works"
+      (let ((p (delay (+ 1 2))))
+	(force p)
+	(eqv? (force p) 3)))
+
+    (pass-if "a promise is evaluated once"
+      (let* ((x 1)
+	     (p (delay (+ x 1))))
+	(force p)
+	(set! x (+ x 1))
+	(eqv? (force p) 2)))
+
+    (pass-if "a promise may call itself"
+      (define p
+	(let ((x 0))
+	  (delay 
+	    (begin 
+	      (set! x (+ x 1))
+	      (if (> x 1) x (force p))))))
+      (eqv? (force p) 2))
+
+    (pass-if "a promise carries its environment"
+      (let* ((x 1) (p #f))
+	(let* ((x 2))
+	  (set! p (delay (+ x 1))))
+	(eqv? (force p) 3)))
+
+    (pass-if "a forced promise does not reference its environment"
+      (let* ((g (make-guardian))
+	     (p #f))
+	(let* ((x (cons #f #f)))
+	  (g x)
+	  (set! p (delay (car x))))
+	(force p)
+	(gc)
+	(if (not (equal? (g) (cons #f #f)))
+	    (throw 'unresolved)
+	    #t))))
+
+  (with-test-prefix "extended promise behaviour"
+
+    (pass-if-exception "forcing a non-promise object is not supported"
+      exception:wrong-type-arg
+      (force 1))
+
+    (pass-if-exception "implicit forcing is not supported"
+      exception:wrong-type-arg
+      (+ (delay (* 3 7)) 13))))
+
 ;;; eval.test ends here

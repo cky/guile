@@ -1,3 +1,7 @@
+2001-10-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/eval.test:  Added tests for promises.
+
 2001-10-21  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* lib.scm: Move module the system directives `export',
