@@ -320,15 +320,15 @@ guardian_gc_init (void *dummy1, void *dummy2, void *dummy3)
 }
 
 static void
-mark_dependencies (guardian_t *g)
+mark_dependencies_in_tconc (tconc_t *tc)
 {
   SCM pair, next_pair;
   SCM *prev_ptr;
 
-  /* scan the live list for unmarked objects, and mark their
+  /* scan the list for unmarked objects, and mark their
      dependencies */
-  for (pair = g->live.head, prev_ptr = &g->live.head;
-       ! SCM_EQ_P (pair, g->live.tail);
+  for (pair = tc->head, prev_ptr = &tc->head;
+       ! SCM_EQ_P (pair, tc->tail);
        pair = next_pair)
     {
       SCM obj = SCM_CAR (pair);
@@ -361,6 +361,13 @@ mark_dependencies (guardian_t *g)
             }
         }
     }
+}
+
+static void
+mark_dependencies (guardian_t *g)
+{
+  mark_dependencies_in_tconc (&g->zombies);
+  mark_dependencies_in_tconc (&g->live);
 }
 
 static void

@@ -1,3 +1,9 @@
+2000-12-28  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* guardians.c (mark_dependencies_in_tconc): new function.
+	(mark_dependencies): bug fix.  mark the dependencies of the known
+	zombies, too.  duh.
+
 2000-12-24  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.c: (scm_gc_mark_dependencies): use SCM_EQ_P for SCMs, not
