@@ -207,7 +207,7 @@ scm_ra_matchp (SCM ra0, SCM ras)
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
     case scm_tc7_fvect:
@@ -243,7 +243,7 @@ scm_ra_matchp (SCM ra0, SCM ras)
 	case scm_tc7_uvect:
 	case scm_tc7_ivect:
 	case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
 	case scm_tc7_llvect:
 #endif
 	case scm_tc7_fvect:
@@ -574,7 +574,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 	  ve[i] = f;
 	break;
       }
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       { /* scope */
 	long long f = SCM_NUM2LONG_LONG (2, fill);
@@ -1719,7 +1719,7 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
     case scm_tc7_fvect:
@@ -1860,7 +1860,7 @@ raeql_1 (SCM ra0, SCM as_equal, SCM ra1)
 	    return 0;
 	return 1;
       }
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
       {
 	long long *v0 = (long long *) SCM_VELTS (ra0) + i0;
