@@ -1,3 +1,15 @@
+1999-06-12  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* strports.c (scm_call_with_output_string): Don't include the
+	extra character at the end of the string in the result.
+
+	* ioext.c (scm_read_line): Switch to reading properly.
+
+	* fports.c, fports.h, gc.c, gdbint.c, ioext.c, ports.c, ports.h,
+	scmsigs.c, strports.c, vports.c: Install the sources which
+	actually correspond to the changes described below.  I got the
+	ChangeLog entries and the patch from two different places...
+
 1999-06-09  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* gc.c (scm_igc): Check for scm_mallocated underflow.  Otherwise,
