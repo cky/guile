@@ -127,6 +127,13 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
       qtmdc_c=md/null.c
       qtdmdb_s=md/axp_b.s
       ;;
+    arm*-*-*)
+      port_name=arm
+      qtmd_h=md/arm.h
+      qtmds_s=md/arm.s
+      qtmdc_c=md/null.c
+      qtdmdb_s=
+      ;;
     *)
       echo "Unknown configuration; threads package disabled"
       THREAD_PACKAGE=""
