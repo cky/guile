@@ -1221,7 +1221,10 @@ safe_setjmp (jmp_buf env)
     if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && PROCTRACEP (proc)))\
       {\
 	SCM tmp, tail = SCM_TRACED_FRAME_P (debug) ? SCM_BOOL_T : SCM_BOOL_F;\
-	SCM_SET_TRACED_FRAME (debug);\
+	SCM_SET_TRACED_FRAME (debug); \
+	SCM_APPLY_FRAME_P = 0; \
+	SCM_TRACE_P = 0; \
+	SCM_RESET_DEBUG_MODE; \
 	if (SCM_CHEAPTRAPS_P)\
 	  {\
 	    tmp = scm_make_debugobj (&debug);\
@@ -1388,21 +1391,6 @@ loopnoap:
   PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 loop:
 #ifdef DEVAL
-#if 0 /* This will probably never have any practical use ... */
-  if (CHECK_EXIT)
-    {
-      if (SINGLE_STEP || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
-	{
-	  SINGLE_STEP = 0;
-	  SCM_RESET_DEBUG_MODE;
-	  SCM_CLEAR_TRACED_FRAME (debug);
-	  scm_make_cont (&t.arg1);
-	  if (!safe_setjmp (SCM_JMPBUF (t.arg1)))
-	    scm_ithrow (scm_i_exit_tail, scm_cons (t.arg1, SCM_EOL), 0);
-	}
-    }
-nextframe:
-#endif
   SCM_CLEAR_ARGSREADY (debug);
   if (SCM_OVERFLOWP (debug))
     --debug.info;
@@ -2204,6 +2192,7 @@ exit:
     if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
       {
 	SCM_EXIT_FRAME_P = 0;
+	SCM_TRACE_P = 0;
 	SCM_RESET_DEBUG_MODE;
 	SCM_CLEAR_TRACED_FRAME (debug);
 	if (SCM_CHEAPTRAPS_P)

@@ -1,5 +1,11 @@
 Sat Mar  1 00:09:15 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* eval.c (scm_deval): Removed some old code.
+	(ENTER_APPLY): Bugfix: Reset apply-frame trap on trap as is done
+	with the others.
+	(ENTER_APPLY, scm_deval): Reset trace flag on apply-frame and
+	exit-frame traps.
+
 	* symbols.c (msymbolize): Bugfix: Must initialize property list to
  	SCM_EOL.
 
