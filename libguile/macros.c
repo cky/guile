@@ -56,6 +56,8 @@ scm_makacro (code)
      SCM code;
 {
   register SCM z;
+  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (code)),
+	      code, SCM_ARG1, s_makacro);
   SCM_NEWCELL (z);
   SCM_SETCDR (z, code);
   SCM_SETCAR (z, scm_tc16_macro);
@@ -70,6 +72,8 @@ scm_makmacro (code)
      SCM code;
 {
   register SCM z;
+  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (code)),
+	      code, SCM_ARG1, s_makmacro);
   SCM_NEWCELL (z);
   SCM_SETCDR (z, code);
   SCM_SETCAR (z, scm_tc16_macro | (1L << 16));
@@ -84,6 +88,8 @@ scm_makmmacro (code)
      SCM code;
 {
   register SCM z;
+  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (code)),
+	      code, SCM_ARG1, s_makmmacro);
   SCM_NEWCELL (z);
   SCM_SETCDR (z, code);
   SCM_SETCAR (z, scm_tc16_macro | (2L << 16));
