@@ -1,3 +1,15 @@
+2002-07-07  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Crosscompiling and Cygwin fixes from Jan Nieuwenhuizen.  Thanks!
+	
+	* autogen.sh: Only fix libltdl/configure.in if it exists.  Current
+	libtool CVS does not need this fix.
+
+	* configure.in (AC_LIBTOOL_WIN32_DLL): Add for shared Cygwin
+	build.
+	Add --with-cc-for-build option to re-enable cross building.
+	Add --with-guile-for-build option to re-enable cross building.
+
 2002-06-30  Gary Houston  <ghouston@arglist.com>
 
 	* autogen.sh: Changed the path to the scripts directory.
