@@ -18,6 +18,8 @@
 
 
 
+#define _GNU_SOURCE  /* ask glibc for everything, in particular strptime */
+
 #if HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -65,7 +67,7 @@ extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
 # define tzname _tzname
 #endif
 
-#ifdef MISSING_STRPTIME_DECL
+#if ! HAVE_DECL_STRPTIME
 extern char *strptime ();
 #endif
 
