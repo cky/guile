@@ -3,7 +3,7 @@
 #ifndef SCM_STACKCHK_H
 #define SCM_STACKCHK_H
 
-/* Copyright (C) 1995,1996,1998,2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000, 2003 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,10 +36,12 @@
 #ifdef STACK_CHECKING
 # if SCM_STACK_GROWS_UP
 #  define SCM_STACK_OVERFLOW_P(s)\
-   (s > ((SCM_STACKITEM *) SCM_BASE (scm_rootcont) + SCM_STACK_LIMIT))
+   (SCM_STACK_PTR (s) \
+    > ((SCM_STACKITEM *) SCM_BASE (scm_rootcont) + SCM_STACK_LIMIT))
 # else
 #  define SCM_STACK_OVERFLOW_P(s)\
-   (s < ((SCM_STACKITEM *) SCM_BASE (scm_rootcont) - SCM_STACK_LIMIT))
+   (SCM_STACK_PTR (s) \
+    < ((SCM_STACKITEM *) SCM_BASE (scm_rootcont) - SCM_STACK_LIMIT))
 # endif
 # define SCM_CHECK_STACK\
     {\

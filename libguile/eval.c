@@ -1962,8 +1962,7 @@ SCM_CEVAL (SCM x, SCM env)
   scm_last_debug_frame = &debug;
 #endif
 #ifdef EVAL_STACK_CHECKING
-  if (scm_stack_checking_enabled_p
-      && SCM_STACK_OVERFLOW_P ((SCM_STACKITEM *) &proc))
+  if (scm_stack_checking_enabled_p && SCM_STACK_OVERFLOW_P (&proc))
     {
 #ifdef DEVAL
       debug.info->e.exp = x;

@@ -3,7 +3,7 @@
 #ifndef SCM___SCM_H
 #define SCM___SCM_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -394,6 +394,10 @@ typedef short SCM_STACKITEM;
 #else
 typedef long SCM_STACKITEM;
 #endif
+
+/* Cast pointer through (void *) in order to avoid compiler warnings
+   when strict aliasing is enabled */
+#define SCM_STACK_PTR(ptr) ((SCM_STACKITEM *) (void *) (ptr))
 
 
 #define SCM_ASYNC_TICK /*fixme* should change names */ \

@@ -216,7 +216,7 @@ suspend ()
   scm_thread *c = SCM_CURRENT_THREAD;
 
   /* record top of stack for the GC */
-  c->top = (SCM_STACKITEM *)&c;
+  c->top = SCM_STACK_PTR (&c);
   /* save registers. */
   SCM_FLUSH_REGISTER_WINDOWS;
   setjmp (c->regs);
@@ -331,7 +331,7 @@ really_launch (SCM_STACKITEM *base, launch_data *data)
 static void *
 launch_thread (void *p)
 {
-  really_launch ((SCM_STACKITEM *)&p, (launch_data *)p);
+  really_launch (SCM_STACK_PTR (&p), (launch_data *) p);
   return 0;
 }
 
@@ -952,8 +952,7 @@ scm_threads_mark_stacks (void)
 	  /* stack_len is long rather than sizet in order to guarantee
 	     that &stack_len is long aligned */
 #if SCM_STACK_GROWS_UP
-	  stack_len = ((SCM_STACKITEM *) (&t) -
-		       (SCM_STACKITEM *) thread->base);
+	  stack_len = SCM_STACK_PTR (&t) - t->base;
 	  
 	  /* Protect from the C stack.  This must be the first marking
 	   * done because it provides information about what objects
@@ -973,8 +972,7 @@ scm_threads_mark_stacks (void)
 	  scm_mark_locations (((size_t) t->base,
 			       (sizet) stack_len));
 #else
-	  stack_len = ((SCM_STACKITEM *) t->base -
-		       (SCM_STACKITEM *) (&t));
+	  stack_len = t->base - SCM_STACK_PTR (&t);
 	  
 	  /* Protect from the C stack.  This must be the first marking
 	   * done because it provides information about what objects
@@ -991,8 +989,7 @@ scm_threads_mark_stacks (void)
 			      ((size_t) sizeof scm_save_regs_gc_mark
 			       / sizeof (SCM_STACKITEM)));
 	  
-	  scm_mark_locations ((SCM_STACKITEM *) &t,
-			      stack_len);
+	  scm_mark_locations (SCM_STACK_PTR (&t), stack_len);
 #endif
 	}
       else

@@ -1,3 +1,19 @@
+2003-05-22  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* __scm.h (SCM_STACK_PTR): New macro. (Cast argument through
+	(void *) in order to avoid an aliasing warning; thanks to Bruce
+	Korb.)
+
+	* stackchk.h (SCM_STACK_OVERFLOW_P): Use SCM_STACK_PTR.
+
+	* threads.c (suspend, launch_thread, scm_threads_mark_stacks): Use
+	SCM_STACK_PTR.
+
+	* threads.c (scm_threads_mark_stacks): Bugfix: Changed
+	thread->base --> t->base.
+
+	* eval.c (SCM_CEVAL): Don't cast argument of SCM_STACK_OVERFLOW_P.
+
 2003-05-20  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* deprecated.h, deprecated.c (scm_makstr, scm_makfromstr,
