@@ -1,3 +1,8 @@
+2001-07-22  Gary Houston  <ghouston@arglist.com>
+
+	* regex-posix.c (s_scm_regexp_exec): use scm_long2num not
+	SCM_MAKINUM to convert regoff_t value to SCM.
+
 2001-07-21  Gary Houston  <ghouston@arglist.com>
 
 	* scmsigs.c: include sys/time.h for itimer stuff.

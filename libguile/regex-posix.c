@@ -278,8 +278,8 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
 	  SCM_VELTS(mvec)[i+1] = scm_cons (SCM_MAKINUM (-1), SCM_MAKINUM (-1));
 	else
 	  SCM_VELTS(mvec)[i+1]
-	    = scm_cons(SCM_MAKINUM(matches[i].rm_so + offset),
-		       SCM_MAKINUM(matches[i].rm_eo + offset));
+	    = scm_cons (scm_long2num (matches[i].rm_so + offset),
+			scm_long2num (matches[i].rm_eo + offset));
     }
   scm_must_free ((char *) matches);
   SCM_ALLOW_INTS;
