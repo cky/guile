@@ -1,5 +1,7 @@
 1999-08-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* gh.h (gh_vector_to_list): Bugfix.  (Thanks to Frank Cieslok.)
+	
 	* backtrace.c, debug.c, eval.c, eval.h, gsubr.c, procprop.h,
 	read.c, srcprop.c, srcprop.h (scm_i_filename, scm_i_line,
 	scm_i_column, scm_i_copy, scm_i_name, scm_i_lambda, scm_i_source,
