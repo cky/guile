@@ -52,6 +52,11 @@
 #include <errno.h>
 #include <string.h>
 
+#ifdef __ia64__
+#include <ucontext.h>
+extern unsigned long __libc_ia64_register_backing_store_base;
+#endif
+
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/stime.h"
@@ -1029,6 +1034,20 @@ scm_t_c_hook scm_before_sweep_c_hook;
 scm_t_c_hook scm_after_sweep_c_hook;
 scm_t_c_hook scm_after_gc_c_hook;
 
+#ifdef __ia64__
+# define SCM_MARK_BACKING_STORE() do {                                \
+    ucontext_t ctx;                                                   \
+    SCM_STACKITEM * top, * bot;                                       \
+    getcontext (&ctx);                                                \
+    scm_mark_locations ((SCM_STACKITEM *) &ctx.uc_mcontext,           \
+      ((size_t) (sizeof (SCM_STACKITEM) - 1 + sizeof ctx.uc_mcontext) \
+       / sizeof (SCM_STACKITEM)));                                    \
+    bot = (SCM_STACKITEM *) __libc_ia64_register_backing_store_base;  \
+    top = (SCM_STACKITEM *) ctx.uc_mcontext.sc_ar_bsp;                \
+    scm_mark_locations (bot, top - bot); } while (0)
+#else
+# define SCM_MARK_BACKING_STORE()
+#endif
 
 void
 scm_igc (const char *what)
@@ -1084,6 +1103,7 @@ scm_igc (const char *what)
     scm_mark_locations (scm_stack_base - stack_len, stack_len);
 #endif
   }
+  SCM_MARK_BACKING_STORE();
 
 #else /* USE_THREADS */
 
