@@ -1,3 +1,29 @@
+2002-07-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* benchmarks/0-reference.bm:  Added as a reference benchmark to be
+	used to calibrate iteration counts.
+
+	* lib.scm: Added documentation.  Added some initialization
+	messages.
+
+	(benchmark-time-base, benchmark-total-time, benchmark-user-time,
+	benchmark-system-time, benchmark-frame-time, benchmark-core-time,
+	benchmark-user-time\interpreter, benchmark-core-time\interpreter):
+	Exported.
+
+	(benchmark-time-base, time-base): Renamed time-base to
+	benchmark-time-base and introduced new time-base as a short-cut.
+
+	(total-time, benchmark-total-time, user-time, benchmark-user-time,
+	system-time, benchmark-system-time, frame-time,
+	benchmark-frame-time, benchmark-time, benchmark-core-time,
+	user-time\interpreter, benchmark-user-time\interpreter,
+	benchmark-time\interpreter, benchmark-core-time\interpreter,
+	print-result, print-user-result):  Renamed <foo>-time to
+	benchmark-<foo>-time.  Exceptions: benchmark-time and
+	benchmark-time\interpreter were renamed to benchmark-core-time and
+	benchmark-core-time\interpreter, respectively.
+
 2002-07-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* COPYING, README, Makefile.am, lib.scm, guile-benchmark:  Copied

@@ -31,12 +31,258 @@
  with-benchmark-prefix with-benchmark-prefix* current-benchmark-prefix
  format-benchmark-name
 
+ ;; Computing timing results
+ benchmark-time-base
+ benchmark-total-time benchmark-user-time benchmark-system-time
+ benchmark-frame-time benchmark-core-time
+ benchmark-user-time\interpreter benchmark-core-time\interpreter
+
  ;; Reporting results in various ways.
  register-reporter unregister-reporter reporter-registered?
  make-log-reporter
  full-reporter
  user-reporter))
 
+
+;;;; If you're using Emacs's Scheme mode:
+;;;;   (put 'with-benchmark-prefix 'scheme-indent-function 1)
+;;;;   (put 'benchmark 'scheme-indent-function 1)
+
+
+;;;; CORE FUNCTIONS
+;;;;
+;;;; The function (run-benchmark name iterations thunk) is the heart of the
+;;;; benchmarking environment.  The first parameter NAME is a unique name for
+;;;; the benchmark to be executed (for an explanation of this parameter see
+;;;; below under ;;;; NAMES.  The second parameter ITERATIONS is a positive
+;;;; integer value that indicates how often the thunk shall be executed (for
+;;;; an explanation of how iteration counts should be used, see below under
+;;;; ;;;; ITERATION COUNTS).  For example:
+;;;;
+;;;;    (run-benchmark "small integer addition" 100000 (lambda () (+ 1 1)))
+;;;;
+;;;; This will run the function (lambda () (+ 1 1)) a 100000 times (the
+;;;; iteration count can, however be scaled.  See below for details).  Some
+;;;; different time data for running the thunk for the given number of
+;;;; iterations is measured and reported.
+;;;;
+;;;; Convenience macro
+;;;;
+;;;; * (benchmark name iterations body) is a short form for
+;;;;   (run-benchmark name iterations (lambda () body))
+
+
+;;;; NAMES
+;;;;
+;;;; Every benchmark in the benchmark suite has a unique name to be able to
+;;;; compare the results of individual benchmarks across several runs of the
+;;;; benchmark suite.
+;;;;
+;;;; A benchmark name is a list of printable objects.  For example:
+;;;; ("ports.scm" "file" "read and write back list of strings")
+;;;; ("ports.scm" "pipe" "read")
+;;;;
+;;;; Benchmark names may contain arbitrary objects, but they always have
+;;;; the following properties:
+;;;; - Benchmark names can be compared with EQUAL?.
+;;;; - Benchmark names can be reliably stored and retrieved with the standard
+;;;;   WRITE and READ procedures; doing so preserves their identity.
+;;;;
+;;;; For example:
+;;;;
+;;;;    (benchmark "simple addition" 100000 (+ 2 2))
+;;;;
+;;;; In that case, the benchmark name is the list ("simple addition").
+;;;;
+;;;; The WITH-BENCHMARK-PREFIX syntax and WITH-BENCHMARK-PREFIX* procedure
+;;;; establish a prefix for the names of all benchmarks whose results are
+;;;; reported within their dynamic scope.  For example:
+;;;;
+;;;; (begin
+;;;;   (with-benchmark-prefix "basic arithmetic"
+;;;;     (benchmark "addition" 100000 (+ 2 2))
+;;;;     (benchmark "subtraction" 100000 (- 4 2)))
+;;;;   (benchmark "multiplication" 100000 (* 2 2))))
+;;;;
+;;;; In that example, the three benchmark names are:
+;;;;   ("basic arithmetic" "addition"),
+;;;;   ("basic arithmetic" "subtraction"), and
+;;;;   ("multiplication").
+;;;;
+;;;; WITH-BENCHMARK-PREFIX can be nested.  Each WITH-BENCHMARK-PREFIX
+;;;; postpends a new element to the current prefix:
+;;;;
+;;;; (with-benchmark-prefix "arithmetic"
+;;;;   (with-benchmark-prefix "addition"
+;;;;     (benchmark "integer" 100000 (+ 2 2))
+;;;;     (benchmark "complex" 100000 (+ 2+3i 4+5i)))
+;;;;   (with-benchmark-prefix "subtraction"
+;;;;     (benchmark "integer" 100000 (- 2 2))
+;;;;     (benchmark "complex" 100000 (- 2+3i 1+2i))))
+;;;;
+;;;; The four benchmark names here are:
+;;;;   ("arithmetic" "addition" "integer")
+;;;;   ("arithmetic" "addition" "complex")
+;;;;   ("arithmetic" "subtraction" "integer")
+;;;;   ("arithmetic" "subtraction" "complex")
+;;;;
+;;;; To print a name for a human reader, we DISPLAY its elements,
+;;;; separated by ": ".  So, the last set of benchmark names would be
+;;;; reported as:
+;;;;
+;;;;   arithmetic: addition: integer
+;;;;   arithmetic: addition: complex
+;;;;   arithmetic: subtraction: integer
+;;;;   arithmetic: subtraction: complex
+;;;;
+;;;; The Guile benchmarks use with-benchmark-prefix to include the name of
+;;;; the source file containing the benchmark in the benchmark name, to
+;;;; provide each file with its own namespace.
+
+
+;;;; ITERATION COUNTS
+;;;;
+;;;; Every benchmark has to be given an iteration count that indicates how
+;;;; often it should be executed.  The reason is, that in most cases a single
+;;;; execution of the benchmark code would not deliver usable timing results:
+;;;; The resolution of the system time is not arbitrarily fine.  Thus, some
+;;;; benchmarks would be executed too quickly to be measured at all.  A rule
+;;;; of thumb is, that the longer a benchmark runs, be more exact is the
+;;;; information about the execution time.
+;;;;
+;;;; However, execution time depends on several influences:  First, the
+;;;; machine you are running the benchmark on.  Second, the compiler you use.
+;;;; Third, which compiler options you use.  Fourth, which version of guile
+;;;; you are using.  Fifth, which guile options you are using (for example if
+;;;; you are using the debugging evaluator or not).  There are even more
+;;;; influences.
+;;;;
+;;;; For this reason, the same number of iterations for a single benchmark may
+;;;; lead to completely different execution times in different
+;;;; constellations.  For someone working on a slow machine, the default
+;;;; execution counts may lead to an inacceptable execution time of the
+;;;; benchmark suite.  For someone on a very fast machine, however, it may be
+;;;; desireable to increase the number of iterations in order to increase the
+;;;; accuracy of the time data.
+;;;;
+;;;; For this reason, the benchmark suite allows to scale the number of
+;;;; executions by a global factor, stored in the exported variable
+;;;; iteration-factor.  The default for iteration-factor is 1.  A number of 2
+;;;; means, that all benchmarks are executed twice as often, which will also
+;;;; roughly double the execution time for the benchmark suite.  Similarly, if
+;;;; iteration-factor holds a value of 0.5, only about half the execution time
+;;;; will be required.
+;;;;
+;;;; It is probably a good idea to choose the iteration count for each
+;;;; benchmark such that all benchmarks will take about the same time, for
+;;;; example one second.  To achieve this, the benchmark suite holds an empty
+;;;; benchmark in the file 0-reference.bm named "reference benchmark for
+;;;; iteration counts".  It's iteration count is calibrated to make the
+;;;; benchmark run about one second on Dirk's laptop :-)  If you are adding
+;;;; benchmarks to the suite, it would be nice if you could calibrate the
+;;;; number of iterations such that each of your added benchmarks takes about
+;;;; as long to run as the reference benchmark.  But:  Don't be too accurate
+;;;; to figure out the correct iteration count.
+
+
+;;;; REPORTERS
+;;;;
+;;;; A reporter is a function which we apply to each benchmark outcome.
+;;;; Reporters can log results, print interesting results to the standard
+;;;; output, collect statistics, etc.
+;;;;
+;;;; A reporter function takes the following arguments:  NAME ITERATIONS
+;;;; BEFORE AFTER GC-TIME.  The argument NAME holds the name of the benchmark,
+;;;; ITERATIONS holds the actual number of iterations that were performed.
+;;;; BEFORE holds the result of the function (times) at the very beginning of
+;;;; the excution of the benchmark, AFTER holds the result of the function
+;;;; (times) after the execution of the benchmark.  GC-TIME, finally, holds
+;;;; the difference of calls to (gc-run-time) before and after the execution
+;;;; of the benchmark.
+;;;;
+;;;; This library provides some standard reporters for logging results
+;;;; to a file, reporting interesting results to the user, (FIXME: and
+;;;; collecting totals).
+;;;;
+;;;; You can use the REGISTER-REPORTER function and friends to add whatever
+;;;; reporting functions you like.  See under ;;;; TIMING DATA to see how the
+;;;; library helps you to extract relevant timing information from the values
+;;;; ITERATIONS, BEFORE, AFTER and GC-TIME.  If you don't register any
+;;;; reporters, the library uses USER-REPORTER, which writes the most
+;;;; interesting results to the standard output.
+
+
+;;;; TIME CALCULATION
+;;;;
+;;;; The library uses the guile functions (times) and (gc-run-time) to
+;;;; determine the execution time for a single benchmark.  Based on these
+;;;; functions, the values of BEFORE, AFTER and GC-TIME are computed, which
+;;;; are then passed to the reporter functions.  All three values BEFORE,
+;;;; AFTER and GC-TIME include the time needed to executed the benchmark code
+;;;; itself, but also the surrounding code that implements the loop to run the
+;;;; benchmark code for the given number of times.  This is undesirable, since
+;;;; one would prefer to only get the timing data for the benchmarking code.
+;;;;
+;;;; To cope with this, the benchmarking framework uses a trick:  During
+;;;; initialization of the library, the time for executing an empty benchmark
+;;;; is measured and stored.  This is an estimate for the time needed by the
+;;;; benchmarking framework itself.  For later benchmarks, this time can then
+;;;; be subtracted from the measured execution times.
+;;;;
+;;;; In order to simplify the time calculation for users who want to write
+;;;; their own reporters, benchmarking framework provides the following
+;;;; definitions:
+;;;;
+;;;; benchmark-time-base : This variable holds the number of time units that
+;;;;     make up a second.  By deviding the results of each of the functions
+;;;;     below by this value, you get the corresponding time in seconds.  For
+;;;;     example (/ (benchmark-total-time before after) benchmark-time-base)
+;;;;     will give you the total time in seconds.
+;;;; benchmark-total-time : this function takes two arguments BEFORE and AFTER
+;;;;     and computes the total time between the two timestamps.  The result
+;;;;     of this function is what the time command of the unix command line
+;;;;     would report as real time.
+;;;; benchmark-user-time : this function takes two arguments BEFORE and AFTER
+;;;;     and computes the time spent in the benchmarking process between the
+;;;;     two timestamps.  That means, the time consumed by other processes
+;;;;     running on the same machine is not part of the resulting time,
+;;;;     neither is time spent within the operating system.  The result of
+;;;;     this function is what the time command of the unix command line would
+;;;;     report as user time.
+;;;; benchmark-system-time : similar to benchmark-user-time, but here the time
+;;;;     spent within the operating system is given.  The result of this
+;;;;     function is what the time command of the unix command line would
+;;;;     report as system time.
+;;;; benchmark-frame-time : this function takes the argument ITERATIONS.  It
+;;;;     reports the part of the user time that is consumed by the
+;;;;     benchmarking framework itself to run some benchmark for the giben
+;;;;     number of iterations.  You can think of this as the time that would
+;;;;     still be consumed, even if the benchmarking code itself was empty.
+;;;;     This value does not include any time for garbage collection, even if
+;;;;     it is the benchmarking framework which is responsible for causing a
+;;;;     garbage collection.
+;;;; benchmark-core-time : this function takes three arguments ITERATIONS,
+;;;;     BEFORE and AFTER.  It reports the part of the user time that is
+;;;;     actually spent within the benchmarking code.  That is, the time
+;;;;     needed for the benchmarking framework is subtracted from the user
+;;;;     time.  This value, however, includes all garbage collection times,
+;;;;     even if some part of the gc-time had actually to be attributed to the
+;;;;     benchmarking framework.
+;;;; benchmark-user-time\interpreter : this function takes three arguments
+;;;;     BEFORE AFTER and GC-TIME.  It reports the part of the user time that
+;;;;     is spent in the interpreter (and not in garbage collection).
+;;;; benchmark-core-time\interpreter : this function takes four arguments
+;;;;     ITERATIONS, BEFORE, AFTER.   and GC-TIME.  It reports the part of the
+;;;;     benchmark-core-time that is spent in the interpreter (and not in
+;;;;     garbage collection).  This value is most probably the one you are
+;;;;     interested in, except if you are doing some garbage collection
+;;;;     checks.
+;;;; 
+;;;; There is not function to calculate the garbage-collection time, since the
+;;;; garbage collection time is already passed as an argument GC-TIME to the
+;;;; reporter functions.
+
+
 ;;;; MISCELLANEOUS
 ;;;;
 
@@ -122,32 +368,35 @@
 ;;;; TIME CALCULATION
 ;;;;
 
-(define time-base 
+(define benchmark-time-base
   internal-time-units-per-second)
+
+(define time-base ;; short-cut, not exported
+  benchmark-time-base)
 
 (define frame-time/iteration
   "<will be set during initialization>")
 
-(define (total-time before after)
+(define (benchmark-total-time before after)
   (- (tms:clock after) (tms:clock before)))
 
-(define (user-time before after)
+(define (benchmark-user-time before after)
   (- (tms:utime after) (tms:utime before)))
 
-(define (system-time before after)
+(define (benchmark-system-time before after)
   (- (tms:stime after) (tms:stime before)))
 
-(define (frame-time iterations)
+(define (benchmark-frame-time iterations)
   (* iterations frame-time/iteration))
 
-(define (benchmark-time iterations before after)
-  (- (user-time before after) (frame-time iterations)))
+(define (benchmark-core-time iterations before after)
+  (- (benchmark-user-time before after) (benchmark-frame-time iterations)))
 
-(define (user-time\interpreter before after gc-time)
-  (- (user-time before after) gc-time))
+(define (benchmark-user-time\interpreter before after gc-time)
+  (- (benchmark-user-time before after) gc-time))
 
-(define (benchmark-time\interpreter iterations before after gc-time)
-  (- (benchmark-time iterations before after) gc-time))
+(define (benchmark-core-time\interpreter iterations before after gc-time)
+  (- (benchmark-core-time iterations before after) gc-time))
 
 
 ;;;; REPORTERS
@@ -193,14 +442,15 @@
 ;;; Display a single benchmark result to the given port
 (define (print-result port name iterations before after gc-time)
   (let* ((name (format-benchmark-name name))
-	 (total-time (total-time before after))
-	 (user-time (user-time before after))
-	 (system-time (system-time before after))
-	 (frame-time (frame-time iterations))
-	 (benchmark-time (benchmark-time iterations before after))
-	 (user-time\interpreter (user-time\interpreter before after gc-time))
-	 (benchmark-time\interpreter 
-	  (benchmark-time\interpreter iterations before after gc-time)))
+	 (total-time (benchmark-total-time before after))
+	 (user-time (benchmark-user-time before after))
+	 (system-time (benchmark-system-time before after))
+	 (frame-time (benchmark-frame-time iterations))
+	 (benchmark-time (benchmark-core-time iterations before after))
+	 (user-time\interpreter
+	  (benchmark-user-time\interpreter before after gc-time))
+	 (benchmark-core-time\interpreter 
+	  (benchmark-core-time\interpreter iterations before after gc-time)))
     (write (list name iterations
 		 "total:" (/ total-time time-base)
 		 "user:" (/ user-time time-base)
@@ -208,7 +458,7 @@
 		 "frame:" (/ frame-time time-base)
 		 "benchmark:" (/ benchmark-time time-base)
 		 "user/interp:" (/ user-time\interpreter time-base)
-		 "bench/interp:" (/ benchmark-time\interpreter time-base)
+		 "bench/interp:" (/ benchmark-core-time\interpreter time-base)
 		 "gc:" (/ gc-time time-base))
 	   port)
     (newline port)))
@@ -229,14 +479,14 @@
 ;;; Display interesting results of a single benchmark to the given port
 (define (print-user-result port name iterations before after gc-time)
   (let* ((name (format-benchmark-name name))
-	 (user-time (user-time before after))
-	 (benchmark-time (benchmark-time iterations before after))
-	 (benchmark-time\interpreter
-	  (benchmark-time\interpreter iterations before after gc-time)))
+	 (user-time (benchmark-user-time before after))
+	 (benchmark-time (benchmark-core-time iterations before after))
+	 (benchmark-core-time\interpreter
+	  (benchmark-core-time\interpreter iterations before after gc-time)))
     (write (list name iterations 
 		 "user:" (/ user-time time-base)
 		 "benchmark:" (/ benchmark-time time-base)
-		 "bench/interp:" (/ benchmark-time\interpreter time-base)
+		 "bench/interp:" (/ benchmark-core-time\interpreter time-base)
 		 "gc:" (/ gc-time time-base))
 	   port)
     (newline port)))
@@ -255,10 +505,12 @@
 (benchmark "empty initialization benchmark" 2 #t)
 
 ;;; Second, initialize the system constants
+(display ";; calibrating the benchmarking framework..." (current-output-port))
+(newline (current-output-port))
 (define (initialization-reporter name iterations before after gc-time)
   (let* ((frame-time (- (tms:utime after) (tms:utime before) gc-time 3)))
     (set! frame-time/iteration (/ frame-time iterations))
-    (display ";; frame time per iteration: " (current-output-port))
+    (display ";; framework time per iteration: " (current-output-port))
     (display (/ frame-time/iteration time-base) (current-output-port))
     (newline (current-output-port))))
 (set! default-reporter initialization-reporter)
@@ -266,3 +518,4 @@
 
 ;;; Finally, set the default reporter
 (set! default-reporter user-reporter)
+
