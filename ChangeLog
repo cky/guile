@@ -1,3 +1,7 @@
+1998-05-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* configure.in: Check for rl_cleanup_after_signal.
+
 1998-05-11  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* configure.in: Added test for rl_getc_function.  Warn if
