@@ -203,7 +203,7 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 
   ans = scm_internal_catch (SCM_BOOL_T,
 			    (scm_catch_body_t) internal_readline,
-			    (void *) text,
+			    (void *) SCM_UNPACK (text),
 			    handle_error, 0);
 
   fclose (rl_instream);

@@ -1,3 +1,8 @@
+2000-04-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* readline.c (scm_readline):  Must unpack SCM values to access
+	their raw contents.
+
 2000-03-19  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* *.[hc]: add Emacs magic at the end of file, to ensure GNU
