@@ -181,6 +181,11 @@ struct scm_metaclass_operator {
 #define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
 #define SCM_OBJ_CLASS_REDEF(x) (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
 
+/* Port classes */
+#define SCM_IN_PCLASS_INDEX    0x000
+#define SCM_OUT_PCLASS_INDEX   0x100
+#define SCM_INOUT_PCLASS_INDEX 0x200
+
 /* Plugin proxy classes for basic types. */
 extern SCM scm_metaclass_standard;
 extern SCM scm_metaclass_operator;
@@ -190,6 +195,7 @@ extern SCM scm_class_procedure_with_setter;
 extern SCM scm_class_vector, scm_class_null;
 extern SCM scm_class_real, scm_class_complex, scm_class_integer;
 extern SCM scm_class_unknown;
+extern SCM *scm_port_class;
 extern SCM *scm_smob_class;
 
 /* Plugin Goops functions. */

@@ -67,6 +67,7 @@ SCM scm_class_vector, scm_class_null;
 SCM scm_class_integer, scm_class_real, scm_class_complex;
 SCM scm_class_unknown;
 
+SCM *scm_port_class = 0;
 SCM *scm_smob_class = 0;
 
 SCM (*scm_make_extended_class) (char *type_name);
@@ -139,7 +140,11 @@ scm_class_of (SCM x)
 	  return scm_class_procedure_with_setter;
 
 	case scm_tc7_port:
-	  return scm_class_unknown;
+	  return scm_port_class[(SCM_CAR (x) | SCM_WRTNG
+				 ? (SCM_CAR (x) | SCM_RDNG
+				    ? SCM_INOUT_PCLASS_INDEX | SCM_PTOBNUM (x)
+				    : SCM_OUT_PCLASS_INDEX | SCM_PTOBNUM (x))
+				 : SCM_IN_PCLASS_INDEX | SCM_PTOBNUM (x))];
 	case scm_tc7_smob:
 	  {
 	    SCM type = SCM_TYP16 (x);
