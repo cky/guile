@@ -1,5 +1,13 @@
 2001-05-18  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
+	* session.scm: (help): Use `provided?' instead of `feature?'.
+	Factor "TYPE not found for X" output into internal proc.
+	Support `(quote SYMBOL)'; call `search-documentation-files'.
+	(help-doc): If initial search fails, try using
+	`search-documentation-files'.
+	(apropos-fold-accessible, apropos-fold-all): Use `identity'
+	instead of `(lambda (x) x)'.  "An identity edit", ha ha.
+
 	* documentation.scm: Fix documentation for Guile Documentation
 	Format Version 2: Mention required terminating newlines.
 
