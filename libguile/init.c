@@ -590,6 +590,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 
   scm_init_rdelim ();
   scm_init_rw ();
+  scm_init_extensions ();
 
   scm_load_startup_files ();
 }
