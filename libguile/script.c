@@ -461,7 +461,7 @@ scm_compile_shell_switches (int argc, char **argv)
   int interactive = 1;		/* Should we go interactive when done? */
   int use_emacs_interface = 0;
   int i;
-  char *argv0;
+  char *argv0 = argv[0];
 
   if (argc > 0)
     {
@@ -473,7 +473,6 @@ scm_compile_shell_switches (int argc, char **argv)
     }
   if (! scm_usage_name)
     scm_usage_name = "guile";
-  argv0 = scm_usage_name;
   
   for (i = 1; i < argc; i++)
     {
