@@ -1,3 +1,8 @@
+2005-01-29  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm (lset-adjoin): Actually use the given `=' procedure.
+	Test membership only on the given `list', not `acc', as per the spec.
+
 2005-01-28  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (lset=): Correction to pred call arg order, srfi spec is
