@@ -25,6 +25,7 @@ After signal handling and threading have been fixed:
 - remove re-exporting behaviour of `export'.
     in boot-9.scm, remove begin-deprecated part of `module-export!' 
     in format.scm, remove kluge at top
+    in srfi13.scm, likewise
 
 - remove deprecated subr and gsubr functions
     in procs.h, procs.c: scm_make_subr, scm_make_subr_opt,
