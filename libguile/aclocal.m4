@@ -1,4 +1,4 @@
-dnl aclocal.m4 generated automatically by aclocal 1.1l
+dnl aclocal.m4 generated automatically by aclocal 1.1k
 
 dnl  On the NeXT, #including <utime.h> doesn't give you a definition for
 dnl  struct utime, unless you #define _POSIX_SOURCE.
