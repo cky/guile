@@ -1,3 +1,7 @@
+2003-02-25  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* gc-segment.c: add comment
+
 2003-04-07  Rob Browning  <rlb@defaultvalue.org>
 
 	* debug.h: change "id" arg name to "info_id" to avoid objective-c
@@ -22,6 +26,7 @@
 	cause trouble when included via objective-c (can't hurt, might
 	help).  Still have usage in debug.h, though.
 
+>>>>>>> 1.1807
 2003-04-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* random.c (scm_c_random_bignum): Don't generate a random number
@@ -581,6 +586,7 @@
 	(modinclude_HEADERS): remove version.h.
 	(nodist_modinclude_HEADERS): add version.h.
 
+>>>>>>> 1.1805
 2003-02-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	This fixes a serious GC bug, introduced during the latest

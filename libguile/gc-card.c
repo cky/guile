@@ -94,7 +94,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 
   /*
     I tried something fancy with shifting by one bit every word from
-    the bitvec in turn, but it wasn't any faster, but quite bit
+    the bitvec in turn, but it wasn't any faster, but quite a bit
     hairier.
    */
   for (p += offset; p < end; p += span, offset += span)

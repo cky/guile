@@ -1,3 +1,8 @@
+2003-04-09  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* standalone/Makefile.am (snarfcppopts): use DEFAULT_INCLUDES
+	instead of INCLUDES
+
 2003-04-07  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (SUBDIRS): add standalone.
