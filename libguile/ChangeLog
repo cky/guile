@@ -1,11 +1,15 @@
-Wed May 28 11:58:28 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+Thu May 29 02:19:40 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* eval.c: Include scmconfig.h at the beginning of the file so that
+ 	HAVE_ALLOCA_H may properly be defined.  Thanks to Bill Janssen for
+ 	pointing this out.
+
+	* regex-posix.c: #include "_scm.h" before conditionally #including
+	<regex.h>; the former defines HAVE_REGCOMP.
 
 	* regex-posix.c: #include <regex.h> conditionally, so the file is
 	CPP'able (for dependency scanning) even on systems that don't have
 	a <regex.h> header.
-
-	* regex-posix.c: #include "_scm.h" before conditionally #including
-	<regex.h>; the former defines HAVE_REGCOMP.
 
 Tue May 27 23:48:38 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
