@@ -73,7 +73,9 @@ Spiffing checklist:
 * Do a `cvs update -A', to get rid of any sticky tags in your working
   directory.
 * Check for files that have changed a lot, but do not have up-to-date
-  copyright notices.  (It would be nice to have a script to do this...)
+  copyright notices.  This can be as simple as doing:
+	grep 'Copyright' * | grep -v 1999
+  and looking for files you know you've worked on a lot.
 * Make sure NEWS, INSTALL and the docs are up to date:
   + Scan the ChangeLogs for user-visible changes, marked with an asterisk
     at the left margin.
