@@ -25,9 +25,6 @@
 #include <scmconfig.h>
 #endif
 
-#define malloc(size) (scm_must_malloc ((size), "alloca emulation"))
-extern char *scm_must_malloc ();
-
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -207,7 +204,10 @@ alloca (size)
     /* Address of header.  */
 
     if (new == 0)
-      abort();
+      {
+	write (2, "alloca emulation: out of memory\n", 32);
+	abort();
+      }
 
     ((header *) new)->h.next = last_alloca_header;
     ((header *) new)->h.deep = depth;
