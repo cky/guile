@@ -93,14 +93,6 @@ typedef struct
 extern SCM scm_make_continuation (int *first);
 extern void scm_init_continuations (void);
 
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-#define SCM_SETJMPBUF(x, r) (SCM_SET_CONTREGS ((x), (r)))
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 #endif  /* CONTINUATIONSH */
 
 /*
