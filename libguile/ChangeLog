@@ -1,3 +1,26 @@
+2000-03-13  Gary Houston  <ghouston@arglist.com>
+
+	* ports.c (flush_void_port): renamed to flush_port_default.
+	(end_input_void_port): renamed to end_input_default.
+
+	* init.c (scm_standard_stream_to_port): create a void port instead
+	of opening /dev/null if the standard file descriptors are bad.
+	advantages: no portability problems, doesn't waste a file descriptor,
+	simplifies the code (thanks to Marius for the idea).
+
+	* vports.c (s_scm_make_soft_port): call scm_port_non_buffer.
+
+	* void ports: make reading from a void port give EOF instead of
+	segv:
+	* ports.c (s_scm_sys_make_void_port): modified docstring.
+	(fill_input_void_port): new proc.
+	(scm_init_ports): set up fill_input_void_port.
+	* ports.c (scm_port_non_buffer): new proc.
+	(scm_void_port): call scm_port_non_buffer.
+
+	* fports.c (scm_setvbuf): docstring: remove the fcntl documentation
+	which was incorrectly appended.
+
 2000-03-13  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* guile-doc-snarf.in: Don't use absolute path for `sed'.  (Note
