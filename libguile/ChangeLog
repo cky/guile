@@ -1,3 +1,20 @@
+2003-11-30  Marius Vollmer  <mvo@zagadka.de>
+
+	* numbers.c (scm_logand): It's "#b...", not "#\b...".
+
+	From Paul Jarc:
+
+	* read.c (scm_lreadr): Signal an error for invalid escape
+	sequences in strings.  Code cleanups too.
+
+	* print.c (scm_iprin1): use \xNN hexadecimal sequences when
+	writing control characters in strings.
+
+2003-11-21  Marius Vollmer  <mvo@zagadka.de>
+
+	* ports.c (scm_drain_input): Bug fix: only access the port after
+	checking that it indeed is one.
+
 2003-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (s_bad_define): New static identifier.
