@@ -197,6 +197,15 @@
       (pass-if (eq? #t (array? scm      '()))))))
 
 ;;;
+;;; array-equal?
+;;;
+
+(with-test-prefix "array-equal?"
+
+  (pass-if "#h(...)"
+    (array-equal? #h(1 2 3) #h(1 2 3))))
+
+;;;
 ;;; array-fill!
 ;;;
 
