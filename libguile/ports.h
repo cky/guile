@@ -250,6 +250,7 @@ SCM_API SCM scm_close_input_port (SCM port);
 SCM_API SCM scm_close_output_port (SCM port);
 SCM_API SCM scm_close_port (SCM port);
 SCM_API SCM scm_port_for_each (SCM proc);
+SCM_API void scm_c_port_for_each (void (*proc)(void *data, SCM p), void *data);
 SCM_API SCM scm_input_port_p (SCM x);
 SCM_API SCM scm_output_port_p (SCM x);
 SCM_API SCM scm_port_p (SCM x);

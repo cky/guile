@@ -724,20 +724,11 @@ SCM_DEFINE (scm_close_output_port, "close-output-port", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
-	    (SCM proc),
-	    "Apply @var{proc} to each port in the Guile port table\n"
-	    "in turn.  The return value is unspecified.  More specifically,\n"
-	    "@var{proc} is applied exactly once to every port that exists\n"
-	    "in the system at the time @var{port-for-each} is invoked.\n"
-	    "Changes to the port table while @var{port-for-each} is running\n"
-	    "have no effect as far as @var{port-for-each} is concerned.") 
-#define FUNC_NAME s_scm_port_for_each
+void
+scm_c_port_for_each (void (*proc)(void *data, SCM p), void *data)
 {
   long i;
   SCM ports;
-
-  SCM_VALIDATE_PROC (1, proc);
 
   /* Even without pre-emptive multithreading, running arbitrary code
      while scanning the port table is unsafe because the port table
@@ -754,13 +745,28 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 
   while (ports != SCM_EOL)
     {
-      scm_call_1 (proc, SCM_CAR (ports));
+      proc (data, SCM_CAR (ports));
       ports = SCM_CDR (ports);
     }
+}
 
+SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
+	    (SCM proc),
+	    "Apply @var{proc} to each port in the Guile port table\n"
+	    "in turn.  The return value is unspecified.  More specifically,\n"
+	    "@var{proc} is applied exactly once to every port that exists\n"
+	    "in the system at the time @var{port-for-each} is invoked.\n"
+	    "Changes to the port table while @var{port-for-each} is running\n"
+	    "have no effect as far as @var{port-for-each} is concerned.") 
+#define FUNC_NAME s_scm_port_for_each
+{
+  SCM_VALIDATE_PROC (1, proc);
+
+  scm_c_port_for_each ((void (*)(void*,SCM))scm_call_1, proc);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
 
 
 /* Utter miscellany.  Gosh, we should clean this up some time.  */
