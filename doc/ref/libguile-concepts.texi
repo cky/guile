@@ -278,7 +278,7 @@ reason formally about recursion than about gotos.  In C, using
 recursion exclusively would not be practical, tho, since it would eat
 up the stack very quickly.  In Scheme, however, it is practical:
 function calls that appear in a @dfn{tail position} do not use any
-additional stack space.
+additional stack space (@pxref{Tail Calls}).
 
 A function call is in a tail position when it is the last thing the
 calling function does.  The value returned by the called function is
