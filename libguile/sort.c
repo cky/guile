@@ -154,6 +154,8 @@ typedef int (*cmp_fun_t) (SCM less,
 			  const void*,
 			  const void*);
 
+static const char s_buggy_less[] = "buggy less predicate used when sorting";
+
 static void
 quicksort (void *const pbase,
 	   size_t total_elems,
@@ -215,10 +217,20 @@ quicksort (void *const pbase,
 	  do
 	    {
 	      while ((*cmp) (less, (void *) left_ptr, (void *) pivot))
-		left_ptr += size;
+		{
+		  left_ptr += size;
+		  /* The comparison predicate may be buggy */
+		  if (left_ptr > hi)
+		    scm_misc_error (0, s_buggy_less, SCM_EOL);
+		}
 
 	      while ((*cmp) (less, (void *) pivot, (void *) right_ptr))
-		right_ptr -= size;
+		{
+		  right_ptr -= size;
+		  /* The comparison predicate may be buggy */
+		  if (right_ptr < lo)
+		    scm_misc_error (0, s_buggy_less, SCM_EOL);
+		}
 
 	      if (left_ptr < right_ptr)
 		{
@@ -297,7 +309,12 @@ quicksort (void *const pbase,
       {
 	tmp_ptr = run_ptr - size;
 	while ((*cmp) (less, (void *) run_ptr, (void *) tmp_ptr))
-	  tmp_ptr -= size;
+	  {
+	    tmp_ptr -= size;
+	    /* The comparison predicate may be buggy */
+	    if (tmp_ptr < base_ptr)
+	      scm_misc_error (0, s_buggy_less, SCM_EOL);
+	  }
 
 	tmp_ptr += size;
 	if (tmp_ptr != run_ptr)
@@ -348,6 +365,7 @@ static int
 closureless (SCM code, const void *a, const void *b)
 {
   SCM env, next;
+  SCM_ASSERT (*(SCM *)b != 0, SCM_BOOL_F, "Bug!", "closureless");
   env  = SCM_EXTEND_ENV (SCM_CAR (SCM_CODE (code)),
 			 scm_cons (*(SCM *) a,
 				   scm_cons (*(SCM *) b, SCM_EOL)),
