@@ -31,6 +31,12 @@ build time based in part on the contents of config.h.
 
 Seen libguile/__scm.h and gen-scmconfig.c for more information.
 
+Note too that nearly all public defines are now set to either 1 or 0
+rather than being set to 1 or left undefined.  See gen-scmconfig.c and
+the GNU Coding Guidelines for the rationale.  However, pre-existing
+defines that were not renamed were not changed.  i.e. GUILE_DEBUG is
+still either 1 or undefined.
+
 ** The INSTALL file is now the generic automake installed one.
 
 Guile specific instructions can be found in the README.

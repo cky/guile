@@ -23,7 +23,7 @@
 #endif
 
 #include <errno.h>
-#include <gmp.h> /* is this even remotely right? -- probably not... */
+#include <gmp.h>
 
 #include "libguile/_scm.h"
 #include "libguile/unif.h"
