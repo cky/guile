@@ -299,7 +299,7 @@ scm_remove_from_port_table (port)
   scm_port_table_size--;
 }
 
-#ifdef DEBUG
+#ifdef GUILE_DEBUG
 /* Undocumented functions for debugging.  */
 /* Return the number of ports in the table.  */
 
