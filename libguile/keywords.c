@@ -74,6 +74,10 @@ prin_keyword (exp, port, pstate)
 
 int scm_tc16_keyword;
 
+/* This global is only kept for backward compatibility.
+   Will be removed in next release.  */
+int scm_tc16_kw;
+
 static scm_smobfuns keyword_smob =
 {scm_markcdr, free_keyword, prin_keyword, 0};
 
@@ -140,6 +144,7 @@ void
 scm_init_keywords ()
 {
   scm_tc16_keyword = scm_newsmob (&keyword_smob);
+  scm_tc16_kw = scm_tc16_keyword;
   scm_keyword_obarray = scm_make_vector (SCM_MAKINUM (256), SCM_EOL);
 #include "keywords.x"
 }
