@@ -1,0 +1,162 @@
+;;;; popen.test --- exercise ice-9/popen.scm      -*- scheme -*-
+;;;;
+;;;; Copyright 2003 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+(define-module (test-suite test-ice-9-popen)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 popen))
+
+
+;; read from PORT until eof is reached, return what's read as a string
+(define (read-string-to-eof port)
+  (do ((lst '() (cons c lst))
+       (c (read-char port) (read-char port)))
+      ((eof-object? c)
+       (list->string (reverse! lst)))))
+
+;; call (THUNK), with SIGPIPE set to SIG_IGN so that an EPIPE error is
+;; generated rather than a SIGPIPE signal
+(define (with-epipe thunk)
+  (dynamic-wind
+      (lambda ()
+	(sigaction SIGPIPE SIG_IGN))
+      thunk
+      restore-signals))
+
+
+;;
+;; open-input-pipe
+;;
+
+(with-test-prefix "open-input-pipe"
+  
+  (pass-if-exception "no args" exception:wrong-num-args
+    (open-input-pipe))
+  
+  (pass-if "port?"
+    (port? (open-input-pipe "echo hello")))
+  
+  (pass-if "echo hello"
+    (string=? "hello\n" (read-string-to-eof (open-input-pipe "echo hello"))))
+  
+  ;; exercise file descriptor setups when stdin is the same as stderr  
+  (pass-if "stdin==stderr"
+    (let ((port (open-file "/dev/null" "r+")))
+      (with-input-from-port port
+	(lambda ()
+	  (with-error-to-port port
+	    (lambda ()
+	      (open-input-pipe "echo hello"))))))
+    #t)
+  
+  ;; exercise file descriptor setups when stdout is the same as stderr  
+  (pass-if "stdout==stderr"
+    (let ((port (open-file "/dev/null" "r+")))
+      (with-output-to-port port
+	(lambda ()
+	  (with-error-to-port port
+	    (lambda ()
+	      (open-input-pipe "echo hello"))))))
+    #t)
+  
+  ;; After the child closes stdout (which it indicates here by writing
+  ;; "closed" to stderr), the parent should see eof.  In Guile 1.6.4 and
+  ;; earlier a duplicate of stdout existed in the child, meaning eof was not
+  ;; seen.
+  (pass-if "no duplicate"
+    (let* ((pair (pipe))
+	   (port (with-error-to-port (cdr pair)
+		   (lambda ()
+		     (open-input-pipe
+		      "exec 1>/dev/null; echo closed 1>&2; sleep 999")))))
+      (read-char (car pair)) ;; wait for child to do its thing
+      (and (char-ready? port)
+	   (eof-object? (read-char port))))))
+
+;;
+;; open-output-pipe
+;;
+
+(with-test-prefix "open-output-pipe"
+  
+  (pass-if-exception "no args" exception:wrong-num-args
+    (open-output-pipe))
+  
+  (pass-if "port?"
+    (port? (open-output-pipe "exit 0")))
+  
+  ;; exercise file descriptor setups when stdout is the same as stderr  
+  (pass-if "stdin==stderr"
+    (let ((port (open-file "/dev/null" "r+")))
+      (with-input-from-port port
+	(lambda ()
+	  (with-error-to-port port
+	    (lambda ()
+	      (open-output-pipe "exit 0"))))))
+    #t)
+  
+  ;; exercise file descriptor setups when stdout is the same as stderr
+  (pass-if "stdout==stderr"
+    (let ((port (open-file "/dev/null" "r+")))
+      (with-output-to-port port
+	(lambda ()
+	  (with-error-to-port port
+	    (lambda ()
+	      (open-output-pipe "exit 0"))))))
+    #t)
+  
+  ;; After the child closes stdin (which it indicates here by writing
+  ;; "closed" to stderr), the parent should see a broken pipe.  We setup to
+  ;; see this as EPIPE (rather than SIGPIPE).  In Guile 1.6.4 and earlier a
+  ;; duplicate of stdin existed in the child, preventing the broken pipe
+  ;; occurring.
+  (pass-if "no duplicate"
+    (with-epipe
+     (lambda ()
+       (let* ((pair (pipe))
+	      (port (with-error-to-port (cdr pair)
+		      (lambda ()
+			(open-output-pipe
+			 "exec 0</dev/null; echo closed 1>&2; sleep 999")))))
+	 (read-char (car pair)) ;; wait for child to do its thing
+	 (catch 'system-error
+		(lambda ()
+		  (write-char #\x port)
+		  (force-output port)
+		  #f)
+		(lambda (key name fmt args errno-list)
+		  (= (car errno-list) EPIPE))))))))
+
+;;
+;; close-pipe
+;;
+
+(with-test-prefix "open-output-pipe"
+  
+  (pass-if-exception "no args" exception:wrong-num-args
+    (close-pipe))
+  
+  (pass-if "exit 0"
+    (let ((st (close-pipe (open-output-pipe "exit 0"))))
+      (and (status:exit-val st)
+	   (= 0 (status:exit-val st)))))
+  
+  (pass-if "exit 1"
+    (let ((st (close-pipe (open-output-pipe "exit 1"))))
+      (and (status:exit-val st)
+	   (= 1 (status:exit-val st))))))
+
