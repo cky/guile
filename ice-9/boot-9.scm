@@ -805,50 +805,11 @@
 	  (newline)
 	  (force-output)))))
 
-(define (%load-announce-win file)
-  (if %load-verbosely
-      (with-output-to-port (current-error-port)
-	(lambda () 
-	  (display ";;; ")
-	  (display "...loaded ")
-	  (display file)
-	  (newline)
-	  (force-output)))))
+(set! %load-hook %load-announce)
 
 (define (load name)
-  (let* ((full-path-supplied (eq? (string-ref name 0) #\/))
-	 (full-path
-	  (cond (full-path-supplied
-		 (or (and (file-exists? name)
-			  (not (file-is-directory? name))
-			  name)
-		     (and (not (has-suffix? name (scheme-file-suffix)))
-			  (let ((name.scm
-				 (string-append name
-						(scheme-file-suffix))))
-			    (and (file-exists? name.scm)
-				 (not (file-is-directory? name.scm))
-				 name.scm)))))
-		(else
-		 ;; we find name before name.scm even if the latter
-		 ;; occurs earlier in %load-path (?).
-		 (or (%search-load-path name)
-		     (and (not (has-suffix? name (scheme-file-suffix)))
-			   (%search-load-path (string-append
-					       name
-					       (scheme-file-suffix)))))))))
-    (cond (full-path
-	   (%load-announce full-path)
-	   (start-stack 'load-stack
-			(primitive-load full-path #t read-sharp)))
-	  (else
-	   (start-stack
-	    'load-error-stack
-	    (if full-path-supplied
-		(scm-error 'misc-error "load" "Unable to find file %S"
-			   (list name) #f)
-		(scm-error 'misc-error "load" "Unable to find file %S in %S"
-			   (list name %load-path) #f)))))))
+  (start-stack 'load-stack
+	       (primitive-load name #t read-sharp)))
 
 
 ;;; {Transcendental Functions}
