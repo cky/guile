@@ -1650,10 +1650,11 @@ scm_gc_sweep ()
 	      break;
 	    case scm_tc7_string:
 	      m += SCM_HUGE_LENGTH (scmptr) + 1;
-	      goto freechars;
+	      scm_must_free (SCM_STRING_CHARS (scmptr));
+	      break;
 	    case scm_tc7_symbol:
 	      m += SCM_LENGTH (scmptr) + 1;
-	      scm_must_free (SCM_CHARS (scmptr));
+	      scm_must_free (SCM_SYMBOL_CHARS (scmptr));
 	      break;
 	    case scm_tc7_contin:
 	      m += SCM_LENGTH (scmptr) * sizeof (SCM_STACKITEM) + sizeof (scm_contregs);

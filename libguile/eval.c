@@ -900,16 +900,6 @@ scm_m_define (SCM x, SCM env)
 	}
 #endif
       arg1 = scm_sym2vcell (proc, scm_env_top_level (env), SCM_BOOL_T);
-#if 0
-#ifndef SCM_RECKLESS
-      if (SCM_NIMP (SCM_CDR (arg1)) && (SCM_SNAME (SCM_CDR (arg1)) == proc)
-	  && (SCM_CDR (arg1) != x))
-	scm_warn ("redefining built-in ", SCM_CHARS (proc));
-      else
-#endif
-      if (5 <= scm_verbose && SCM_UNDEFINED != SCM_CDR (arg1))
-	scm_warn ("redefining ", SCM_CHARS (proc));
-#endif
       SCM_SETCDR (arg1, x);
 #ifdef SICP
       return scm_cons2 (scm_sym_quote, SCM_CAR (arg1), SCM_EOL);

@@ -1,5 +1,13 @@
 2000-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (scm_m_define), evalext.c (scm_m_undefine):  Removed dead
+	code.
+
+	* gc.c (scm_gc_sweep):  Use SCM_STRING_CHARS or SCM_SYMBOL_CHARS
+	instead of SCM_CHARS.
+
+2000-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* backtrace.c (display_frame_expr), environments.c
 	(print_observer, print_leaf_environment, print_eval_environment,
 	print_import_environment, print_export_environment), gh_data.c

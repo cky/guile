@@ -134,15 +134,6 @@ scm_m_undefine (SCM x, SCM env)
   arg1 = scm_sym2vcell (x, scm_env_top_level (env), SCM_BOOL_F);
   SCM_ASSYNT (SCM_NFALSEP (arg1) && !SCM_UNBNDP (SCM_CDR (arg1)),
 	      x, "variable already unbound ", s_undefine);
-#if 0
-#ifndef SCM_RECKLESS
-  if (SCM_NIMP (SCM_CDR (arg1)) && ((SCM) SCM_SNAME (SCM_CDR (arg1)) == x))
-    scm_warn ("undefining built-in ", SCM_CHARS (x));
-  else
-#endif
-    if (5 <= scm_verbose && SCM_UNDEFINED != SCM_CDR (arg1))
-      scm_warn ("redefining ", SCM_CHARS (x));
-#endif
   SCM_SETCDR (arg1, SCM_UNDEFINED);
 #ifdef SICP
   return SCM_CAR (arg1);
