@@ -254,10 +254,8 @@ scm_ilookup (iloc, env)
 
 #endif /* USE_THREADS */
 
-SCM *
-scm_lookupcar1 (vloc, genv)
-     SCM vloc;
-     SCM genv;
+static SCM *
+scm_lookupcar1 (SCM vloc, SCM genv)
 {
   SCM env = genv;
   register SCM *al, fl, var = SCM_CAR (vloc);
@@ -1480,8 +1478,7 @@ scm_option scm_evaluator_trap_table[] = {
 SCM_PROC (s_eval_options_interface, "eval-options-interface", 0, 1, 0, scm_eval_options_interface);
 
 SCM
-scm_eval_options_interface (setting)
-     SCM setting;
+scm_eval_options_interface (SCM setting)
 {
   SCM ans;
   SCM_DEFER_INTS;
