@@ -10,9 +10,6 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-#### Makefile.in template for guile-core/guile-config.
-#### Jim Blandy <jimb@red-bean.com> --- September 1997
-
 
 SHELL = /bin/sh
 
@@ -99,7 +96,7 @@ CONFIG_HEADER = ../libguile/scmconfig.h
 CONFIG_CLEAN_FILES = 
 SCRIPTS =  $(bin_SCRIPTS)
 
-DIST_COMMON =  ChangeLog Makefile.am Makefile.in
+DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
