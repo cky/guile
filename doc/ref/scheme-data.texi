@@ -2665,7 +2665,7 @@ the property list has no entry for @var{prop}, @code{symbol-property}
 returns @code{#f}.
 @end deffn
 
-@deffn {Scheme Procedure} set-symbol-property sym prop val
+@deffn {Scheme Procedure} set-symbol-property! sym prop val
 In @var{sym}'s property list, set the value for property @var{prop} to
 @var{val}, or add a new entry for @var{prop}, with value @var{val}, if
 none already exists.  For the structure of the property list, see
