@@ -108,6 +108,15 @@
 		'()))))
 
 
+;;; FIXME: Because uers want require to search the path, this uses
+;;; primitive-load-path, which probably isn't a hot idea.  slib
+;;; doesn't expect this function to search a path, so I expect to get
+;;; bug reports at some point complaining that the wrong file gets
+;;; loaded when something accidentally appears in the path before
+;;; slib, etc. ad nauseum.  However, the right fix seems to involve
+;;; changing catalog:get in slib/require.scm, and I don't expect
+;;; Aubrey will integrate such a change.  So I'm just going to punt
+;;; for the time being.
 (define (slib:load name)
   (save-module-excursion
    (lambda ()
