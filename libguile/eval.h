@@ -60,10 +60,11 @@ extern int scm_eval_stack;
 
 extern scm_option scm_evaluator_trap_table[];
 
-#define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[0].val
-#define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[1].val
-#define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[2].val
-#define SCM_N_EVALUATOR_TRAPS 3
+#define SCM_TRAPS_P	       scm_evaluator_trap_table[0].val
+#define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[1].val
+#define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[2].val
+#define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[3].val
+#define SCM_N_EVALUATOR_TRAPS 4
 
 
 
