@@ -421,7 +421,9 @@ case "$GCC" in
     ## We had -Wstrict-prototypes in here for a bit, but Guile does too
     ## much stuff with generic function pointers for that to really be
     ## less than exasperating.
-    CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wmissing-prototypes" ;;
+    ## -Wpointer-arith was here too, but something changed in gcc/glibc
+    ## and it became equally exasperating (gcc 2.95 and/or glibc 2.1.2).
+    CFLAGS="$CFLAGS -Wall -Wmissing-prototypes" ;;
 esac
 
 AC_PROG_AWK
