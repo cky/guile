@@ -1,3 +1,17 @@
+2003-11-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugger/behaviour.scm (*trap*): New variable, stores trap type.
+	(before-enter-frame-hook, before-apply-frame-hook,
+	before-exit-frame-hook): Set here.
+	(debug-if-flag-set): Passed into flags on debug-stack call.
+	(at-step, at-next): Changed to debug at frame exit points as well.
+
+	* debugger/utils.scm: Big comment added.
+
+2003-10-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugger/ui-client.scm: Moved to ../emacs/gds-client.scm.
+
 2003-10-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugger/ui-client.scm (ui-connect): Add arg to say whether to
