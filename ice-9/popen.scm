@@ -18,11 +18,18 @@
 ;;;; 
 
 (define-module (ice-9 popen)
-  :export (port/pid-table open-pipe close-pipe open-input-pipe
-	   open-output-pipe))
+  :export (port/pid-table open-pipe* open-pipe close-pipe open-input-pipe
+	   open-output-pipe open-input-output-pipe))
 
-;;    (define-module (guile popen)
-;;      :use-module (guile posix))
+(define (make-rw-port read-port write-port)
+  (make-soft-port
+   (vector
+    (lambda (c) (write-char c write-port))
+    (lambda (s) (display s write-port))
+    (lambda () (force-output write-port))
+    (lambda () (read-char read-port))
+    (lambda () (close-port read-port) (close-port write-port)))
+   "r+"))
 
 ;; a guardian to ensure the cleanup is done correctly when
 ;; an open pipe is gc'd or a close-port is used.
@@ -35,30 +42,37 @@
   (or (false-if-exception (fileno port))
       (open-fdes *null-device* mode)))
 
-;; run a process connected to an input or output port.
-;; mode: OPEN_READ or OPEN_WRITE.
+;; run a process connected to an input, an output or an
+;; input/output port
+;; mode: OPEN_READ, OPEN_WRITE or OPEN_BOTH
 ;; returns port/pid pair.
 (define (open-process mode prog . args)
-  (let ((p (pipe))
-	(reading (string=? mode OPEN_READ)))
-    (setvbuf (cdr p) _IONBF)
+  (let* ((reading (or (equal? mode OPEN_READ)
+		      (equal? mode OPEN_BOTH)))
+	 (writing (or (equal? mode OPEN_WRITE)
+		      (equal? mode OPEN_BOTH)))
+	 (c2p (if reading (pipe) #f))  ; child to parent
+	 (p2c (if writing (pipe) #f))) ; parent to child
+    
+    (if c2p (setvbuf (cdr c2p) _IONBF))
+    (if p2c (setvbuf (cdr p2c) _IONBF))
     (let ((pid (primitive-fork)))
       (cond ((= pid 0)
 	     ;; child
 	     (set-batch-mode?! #t)
 
 	     ;; select the three file descriptors to be used as
-	     ;; standard descriptors 0, 1, 2 for the new process.  one
-	     ;; is the pipe to the parent, the other two are taken
+	     ;; standard descriptors 0, 1, 2 for the new
+	     ;; process. They are pipes to/from the parent or taken
 	     ;; from the current Scheme input/output/error ports if
 	     ;; possible.
 
-	     (let ((input-fdes (if reading
+	     (let ((input-fdes (if writing
+				   (fileno (car p2c))
 				   (ensure-fdes (current-input-port)
-						O_RDONLY)
-				   (fileno (car p))))
+						O_RDONLY)))
 		   (output-fdes (if reading
-				    (fileno (cdr p))
+				    (fileno (cdr c2p))
 				    (ensure-fdes (current-output-port)
 						 O_WRONLY)))
 		   (error-fdes (ensure-fdes (current-error-port)
@@ -110,24 +124,34 @@
 
 	    (else
 	     ;; parent
-	     (if reading
-		 (close-port (cdr p))
-		 (close-port (car p)))
-	     (cons (if reading
-		       (car p)
-		       (cdr p))
+	     (if c2p (close-port (cdr c2p)))
+	     (if p2c (close-port (car p2c)))
+	     (cons (cond ((not writing) (car c2p))
+			 ((not reading) (cdr p2c))
+			 (else (make-rw-port (car c2p)
+					     (cdr p2c))))
 		   pid))))))
 
-(define (open-pipe command mode)
-  "Executes the shell command @var{command} (a string) in a subprocess.
-A pipe to the process is created and returned.  @var{modes} specifies
-whether an input or output pipe to the process is created: it should 
-be the value of @code{OPEN_READ} or @code{OPEN_WRITE}."
-  (let* ((port/pid (open-process mode "/bin/sh" "-c" command))
+(define (open-pipe* mode command . args)
+  "Executes the program @var{command} with optional arguments
+@var{args} (all strings) in a subprocess.
+A port to the process (based on pipes) is created and returned.
+@var{modes} specifies whether an input, an output or an input-output
+port to the process is created: it should be the value of
+@code{OPEN_READ}, @code{OPEN_WRITE} or @code{OPEN_BOTH}."
+  (let* ((port/pid (apply open-process mode command args))
 	 (port (car port/pid)))
     (pipe-guardian port)
     (hashq-set! port/pid-table port (cdr port/pid))
     port))
+
+(define (open-pipe command mode)
+  "Executes the shell command @var{command} (a string) in a subprocess.
+A port to the process (based on pipes) is created and returned.
+@var{modes} specifies whether an input, an output or an input-output
+port to the process is created: it should be the value of
+@code{OPEN_READ}, @code{OPEN_WRITE} or @code{OPEN_BOTH}."
+  (open-pipe* mode "/bin/sh" "-c" command))
 
 (define (fetch-pid port)
   (let ((pid (hashq-ref port/pid-table port)))
@@ -185,3 +209,7 @@ information on how to interpret this value."
 (define (open-output-pipe command)
   "Equivalent to @code{open-pipe} with mode @code{OPEN_WRITE}"
   (open-pipe command OPEN_WRITE))
+
+(define (open-input-output-pipe command)
+  "Equivalent to @code{open-pipe} with mode @code{OPEN_BOTH}"
+  (open-pipe command OPEN_BOTH))
