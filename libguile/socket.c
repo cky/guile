@@ -71,6 +71,10 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+/* we are not currently using socklen_t.  it's not defined on all systems,
+   so would need to be checked by configure.  in the meantime, plain
+   int is the best alternative.  */
+
 
 
 SCM_DEFINE (scm_htons, "htons", 1, 0, 0, 
@@ -133,18 +137,7 @@ SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0,
 
 SCM_SYMBOL (sym_socket, "socket");
 
-static SCM
-scm_sock_fd_to_port (int fd, const char *proc)
-{
-  SCM result;
-  if (fd == -1)
-    scm_syserror (proc);
-  result = scm_fdes_to_port (fd, "r+0", sym_socket);
-  return result;
-}
-
-
-#define SCM_SOCK_FD_TO_PORT(fd) (scm_sock_fd_to_port((fd),FUNC_NAME))
+#define SCM_SOCK_FD_TO_PORT(fd) scm_fdes_to_port (fd, "r+0", sym_socket)
 
 SCM_DEFINE (scm_socket, "socket", 3, 0, 0,
             (SCM family, SCM style, SCM proto),
@@ -161,18 +154,16 @@ SCM_DEFINE (scm_socket, "socket", 3, 0, 0,
 #define FUNC_NAME s_scm_socket
 {
   int fd;
-  SCM result;
 
-  SCM_VALIDATE_INUM (1,family);
-  SCM_VALIDATE_INUM (2,style);
-  SCM_VALIDATE_INUM (3,proto);
+  SCM_VALIDATE_INUM (1, family);
+  SCM_VALIDATE_INUM (2, style);
+  SCM_VALIDATE_INUM (3, proto);
   fd = socket (SCM_INUM (family), SCM_INUM (style), SCM_INUM (proto));
-  result = SCM_SOCK_FD_TO_PORT (fd);
-  return result;
+  if (fd == -1)
+    SCM_SYSERROR;
+  return SCM_SOCK_FD_TO_PORT (fd);
 }
 #undef FUNC_NAME
-
-
 
 #ifdef HAVE_SOCKETPAIR
 SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
@@ -186,8 +177,6 @@ SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
 {
   int fam;
   int fd[2];
-  SCM a;
-  SCM b;
 
   SCM_VALIDATE_INUM (1,family);
   SCM_VALIDATE_INUM (2,style);
@@ -198,9 +187,7 @@ SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
   if (socketpair (fam, SCM_INUM (style), SCM_INUM (proto), fd) == -1)
     SCM_SYSERROR;
 
-  a = SCM_SOCK_FD_TO_PORT(fd[0]);
-  b = SCM_SOCK_FD_TO_PORT(fd[1]);
-  return scm_cons (a, b);
+  return scm_cons (SCM_SOCK_FD_TO_PORT (fd[0]), SCM_SOCK_FD_TO_PORT (fd[1]));
 }
 #undef FUNC_NAME
 #endif
@@ -218,20 +205,16 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 #define FUNC_NAME s_scm_getsockopt
 {
   int fd;
-  size_t optlen;
+  /* size of optval is the largest supported option.  */
 #ifdef HAVE_STRUCT_LINGER
   char optval[sizeof (struct linger)];
+  int optlen = sizeof (struct linger);
 #else
   char optval[sizeof (scm_sizet)];
+  int optlen = sizeof (scm_sizet);
 #endif
   int ilevel;
   int ioptname;
-
-#ifdef HAVE_STRUCT_LINGER
-  optlen = sizeof (struct linger);
-#else
-  optlen = sizeof (size_t);
-#endif
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
@@ -242,35 +225,36 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
   if (getsockopt (fd, ilevel, ioptname, (void *) optval, &optlen) == -1)
     SCM_SYSERROR;
 
+  if (ilevel == SOL_SOCKET)
+    {
 #ifdef SO_LINGER
-  if (ilevel == SOL_SOCKET && ioptname == SO_LINGER)
-    {
+      if (ioptname == SO_LINGER)
+	{
 #ifdef HAVE_STRUCT_LINGER
-      struct linger *ling = (struct linger *) optval;
-      return scm_cons (SCM_MAKINUM (ling->l_onoff),
-		       SCM_MAKINUM (ling->l_linger));
+	  struct linger *ling = (struct linger *) optval;
+
+	  return scm_cons (scm_long2num (ling->l_onoff),
+			   scm_long2num (ling->l_linger));
 #else
-      scm_sizet *ling = (scm_sizet *) optval;
-      return scm_cons (SCM_MAKINUM (*ling),
-		       SCM_MAKINUM (0));
+	  return scm_cons (scm_long2num (*(int *) optval)
+			   SCM_MAKINUM (0));
 #endif
-    }
+	}
+      else
 #endif
+	if (0
 #ifdef SO_SNDBUF
-  if (ilevel == SOL_SOCKET && ioptname == SO_SNDBUF)
-    {
-      scm_sizet *bufsize = (scm_sizet *) optval;
-      return SCM_MAKINUM (*bufsize);
-    }
+	    || ioptname == SO_SNDBUF
 #endif
 #ifdef SO_RCVBUF
-  if (ilevel == SOL_SOCKET && ioptname == SO_RCVBUF)
-    {
-      scm_sizet *bufsize = (scm_sizet *) optval;
-      return SCM_MAKINUM (*bufsize);
-    }
+	    || ioptname == SO_RCVBUF
 #endif
-  return SCM_MAKINUM (*(int *) optval);
+	    )
+	  {
+	    return scm_long2num (*(scm_sizet *) optval);
+	  }
+    }
+  return scm_long2num (*(int *) optval);
 }
 #undef FUNC_NAME
 
@@ -289,66 +273,83 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 #define FUNC_NAME s_scm_setsockopt
 {
   int fd;
-  int optlen;
+  int optlen = -1;
+  /* size of optval is the largest supported option.  */
 #ifdef HAVE_STRUCT_LINGER
-  char optval[sizeof (struct linger)]; /* Biggest option :-(  */
+  char optval[sizeof (struct linger)];
 #else
   char optval[sizeof (scm_sizet)];
 #endif
   int ilevel, ioptname;
+
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
-  SCM_VALIDATE_INUM_COPY (2,level,ilevel);
-  SCM_VALIDATE_INUM_COPY (3,optname,ioptname);
+
+  SCM_VALIDATE_OPFPORT (1, sock);
+  SCM_VALIDATE_INUM_COPY (2, level, ilevel);
+  SCM_VALIDATE_INUM_COPY (3, optname, ioptname);
+
   fd = SCM_FPORT_FDES (sock);
-  if (0);
+
+  if (ilevel == SOL_SOCKET)
+    {
 #ifdef SO_LINGER
-  else if (ilevel == SOL_SOCKET && ioptname == SO_LINGER)
-    {
+      if (ioptname == SO_LINGER)
+	{
 #ifdef HAVE_STRUCT_LINGER
-      struct linger ling;
-      SCM_ASSERT (SCM_CONSP (value)
-		  && SCM_INUMP (SCM_CAR (value))
-		  &&  SCM_INUMP (SCM_CDR (value)),
-		  value, SCM_ARG4, FUNC_NAME);
-      ling.l_onoff = SCM_INUM (SCM_CAR (value));
-      ling.l_linger = SCM_INUM (SCM_CDR (value));
-      optlen = (int) sizeof (struct linger);
-      memcpy (optval, (void *) &ling, optlen);
+	  struct linger ling;
+	  long lv;
+
+	  SCM_ASSERT (SCM_CONSP (value), value, SCM_ARG4, FUNC_NAME);
+	  lv = SCM_NUM2LONG (4, SCM_CAR (value));
+	  ling.l_onoff = (int) lv;
+	  SCM_ASSERT_RANGE (SCM_ARG4, value, ling.l_onoff == lv);
+	  lv = SCM_NUM2LONG (4, SCM_CDR (value));
+	  ling.l_linger = (int) lv;
+	  SCM_ASSERT_RANGE (SCM_ARG4, value, ling.l_linger == lv);
+	  optlen = (int) sizeof (struct linger);
+	  memcpy (optval, (void *) &ling, optlen);
 #else
-      scm_sizet ling;
-      SCM_ASSERT (SCM_CONSP (value)
-		  && SCM_INUMP (SCM_CAR (value))
-		  &&  SCM_INUMP (SCM_CDR (value)),
-		  value, SCM_ARG4, FUNC_NAME);
-      ling = SCM_INUM (SCM_CAR (value));
-      optlen = (int) sizeof (scm_sizet);
-      (*(scm_sizet *) optval) = (scm_sizet) SCM_INUM (value);
+	  int ling;
+	  long lv;
+
+	  SCM_ASSERT (SCM_CONSP (value), value, SCM_ARG4, FUNC_NAME);
+	  /* timeout is ignored, but may as well validate it.  */
+	  lv = SCM_NUM2LONG (4, SCM_CDR (value));
+	  ling = (int) lv;
+	  SCM_ASSERT_RANGE (SCM_ARG4, value, ling == lv);
+	  lv = SCM_NUM2LONG (4, SCM_CAR (value));
+	  ling = (int) lv;
+	  SCM_ASSERT_RANGE (SCM_ARG4, value, ling == lv);
+	  optlen = (int) sizeof (int);
+	  (*(int *) optval) = ling;
 #endif
-    }
+	}
+      else
 #endif
+	if (0
 #ifdef SO_SNDBUF
-  else if (ilevel == SOL_SOCKET && ioptname == SO_SNDBUF)
-    {
-      SCM_VALIDATE_INUM (4,value);
-      optlen = (int) sizeof (scm_sizet);
-      (*(scm_sizet *) optval) = (scm_sizet) SCM_INUM (value);
-    }
+	    || ioptname == SO_SNDBUF
 #endif
 #ifdef SO_RCVBUF
-  else if (ilevel == SOL_SOCKET && ioptname == SO_RCVBUF)
-    {
-      SCM_VALIDATE_INUM (4,value);
-      optlen = (int) sizeof (scm_sizet);
-      (*(scm_sizet *) optval) = (scm_sizet) SCM_INUM (value);
-    }
+	    || ioptname == SO_RCVBUF
 #endif
-  else
+	    )
+	  {
+	    long lv = SCM_NUM2LONG (4, value);
+
+	    optlen = (int) sizeof (scm_sizet);
+	    (*(scm_sizet *) optval) = (scm_sizet) lv;
+	  }
+    }
+  if (optlen == -1)
     {
-      /* Most options just take an int.  */
-      SCM_VALIDATE_INUM (4,value);
+      /* Most options take an int.  */
+      long lv = SCM_NUM2LONG (4, value);
+      int val = (int) lv;
+
+      SCM_ASSERT_RANGE (SCM_ARG4, value, val == lv);
       optlen = (int) sizeof (int);
-      (*(int *) optval) = (int) SCM_INUM (value);
+      (*(int *) optval) = val;
     }
   if (setsockopt (fd, ilevel, ioptname, (void *) optval, optlen) == -1)
     SCM_SYSERROR;
@@ -394,9 +395,9 @@ SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
    proc is the name of the original procedure.
    size returns the size of the structure allocated.  */
 
-
 static struct sockaddr *
-scm_fill_sockaddr (int fam,SCM address,SCM *args,int which_arg,const char *proc,scm_sizet *size)
+scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
+		   const char *proc, int *size)
 {
   switch (fam)
     {
@@ -405,18 +406,19 @@ scm_fill_sockaddr (int fam,SCM address,SCM *args,int which_arg,const char *proc,
 	SCM isport;
 	struct sockaddr_in *soka;
 
-	soka = (struct sockaddr_in *)
-	  scm_must_malloc (sizeof (struct sockaddr_in), proc);
+	SCM_ASSERT (SCM_CONSP (*args), *args, 
+		    which_arg + 1, proc);
+	isport = SCM_CAR (*args);
+	SCM_ASSERT (SCM_INUMP (isport), isport, which_arg + 1, proc);
+	soka = (struct sockaddr_in *) malloc (sizeof (struct sockaddr_in));
+	if (!soka)
+	  scm_memory_error (proc);
 	/* e.g., for BSDs which don't like invalid sin_len.  */
 	memset (soka, 0, sizeof (struct sockaddr_in));
 	soka->sin_family = AF_INET;
 	soka->sin_addr.s_addr =
 	  htonl (scm_num2ulong (address, (char *) which_arg, proc));
-	SCM_ASSERT (SCM_CONSP (*args), *args, 
-		    which_arg + 1, proc);
-	isport = SCM_CAR (*args);
 	*args = SCM_CDR (*args);
-	SCM_ASSERT (SCM_INUMP (isport), isport, which_arg + 1, proc);
 	soka->sin_port = htons (SCM_INUM (isport));
 	*size = sizeof (struct sockaddr_in);
 	return (struct sockaddr *) soka;
@@ -425,15 +427,25 @@ scm_fill_sockaddr (int fam,SCM address,SCM *args,int which_arg,const char *proc,
     case AF_UNIX:
       {
 	struct sockaddr_un *soka;
+	int addr_size;
 
-	soka = (struct sockaddr_un *)
-	  scm_must_malloc (sizeof (struct sockaddr_un), proc);
-	memset (soka, 0, sizeof (struct sockaddr_un));
-	soka->sun_family = AF_UNIX;
 	SCM_ASSERT (SCM_STRINGP (address), address, which_arg, proc);
+	/* the static buffer size in sockaddr_un seems to be arbitrary
+	   and not necessarily a hard limit.  e.g., the glibc manual
+	   suggests it may be possible to declare it size 0.  let's
+	   ignore it.  if the O/S doesn't like the size it will cause
+	   connect/bind etc., to fail.  sun_path is always the last
+	   member of the structure.  */
+	addr_size = sizeof (struct sockaddr_un)
+	  + max (0, SCM_STRING_LENGTH (address) + 1 - (sizeof soka->sun_path));
+	soka = (struct sockaddr_un *) malloc (addr_size);
+	if (!soka)
+	  scm_memory_error (proc);
+	memset (soka, 0, addr_size);  /* for sun_len: see sin_len above. */
+	soka->sun_family = AF_UNIX;
 	memcpy (soka->sun_path, SCM_STRING_CHARS (address),
-		1 + SCM_STRING_LENGTH (address));
-	*size = sizeof (struct sockaddr_un);
+		SCM_STRING_LENGTH (address));
+	*size = SUN_LEN (soka);
 	return (struct sockaddr *) soka;
       }
 #endif
@@ -459,16 +471,23 @@ SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
 {
   int fd;
   struct sockaddr *soka;
-  scm_sizet size;
+  int size;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1,sock);
   SCM_VALIDATE_INUM (2,fam);
   fd = SCM_FPORT_FDES (sock);
-  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME, &size);
+  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME,
+			    &size);
   if (connect (fd, soka, size) == -1)
-    SCM_SYSERROR;
-  scm_must_free ((char *) soka);
+    {
+      int save_errno = errno;
+      
+      free (soka);
+      errno = save_errno;
+      SCM_SYSERROR;
+    }
+  free (soka);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -504,20 +523,25 @@ SCM_DEFINE (scm_bind, "bind", 3, 0, 1,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_bind
 {
-  int rv;
   struct sockaddr *soka;
-  scm_sizet size;
+  int size;
   int fd;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
-  SCM_VALIDATE_INUM (2,fam);
-  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME, &size);
+  SCM_VALIDATE_OPFPORT (1, sock);
+  SCM_VALIDATE_INUM (2, fam);
+  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME,
+			    &size);
   fd = SCM_FPORT_FDES (sock);
-  rv = bind (fd, soka, size);
-  if (rv == -1)
+  if (bind (fd, soka, size) == -1)
+  {
+    int save_errno = errno;
+      
+    free (soka);
+    errno = save_errno;
     SCM_SYSERROR;
-  scm_must_free ((char *) soka);
+  }
+  free (soka);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -544,17 +568,18 @@ SCM_DEFINE (scm_listen, "listen", 2, 0, 0,
 #undef FUNC_NAME
 
 /* Put the components of a sockaddr into a new SCM vector.  */
-
 static SCM
-scm_addr_vector (struct sockaddr *address,const char *proc)
+scm_addr_vector (struct sockaddr *address, const char *proc)
 {
   short int fam = address->sa_family;
   SCM result;
   SCM *ve;
+
 #ifdef HAVE_UNIX_DOMAIN_SOCKETS
   if (fam == AF_UNIX)
     {
       struct sockaddr_un *nad = (struct sockaddr_un *) address;
+
       result = scm_c_make_vector (2, SCM_UNSPECIFIED);
       ve = SCM_VELTS (result);
       ve[0] = scm_ulong2num ((unsigned long) fam);
@@ -566,6 +591,7 @@ scm_addr_vector (struct sockaddr *address,const char *proc)
   if (fam == AF_INET)
     {
       struct sockaddr_in *nad = (struct sockaddr_in *) address;
+
       result = scm_c_make_vector (3, SCM_UNSPECIFIED);
       ve = SCM_VELTS (result);
       ve[0] = scm_ulong2num ((unsigned long) fam);
@@ -579,24 +605,17 @@ scm_addr_vector (struct sockaddr *address,const char *proc)
   return result;
 }
 
-/* Allocate a buffer large enough to hold any sockaddr type.  */
-static char *scm_addr_buffer;
-static size_t scm_addr_buffer_size;
+/* calculate the size of a buffer large enough to hold any supported
+   sockaddr type.  if the buffer isn't large enough, certain system
+   calls will return a truncated address.  */
 
-static void
-scm_init_addr_buffer (void)
-{
-  scm_addr_buffer_size =
-#ifdef HAVE_UNIX_DOMAIN_SOCKETS
-  sizeof (struct sockaddr_un)
+#if defined (HAVE_UNIX_DOMAIN_SOCKETS)
+#define MAX_SIZE_UN sizeof (struct sockaddr_un)
 #else
-  0
+#define MAX_SIZE_UN 0
 #endif
-  ;
-  if (sizeof (struct sockaddr_in) > scm_addr_buffer_size)
-    scm_addr_buffer_size = sizeof (struct sockaddr_in);
-  scm_addr_buffer = scm_must_malloc (scm_addr_buffer_size, "address buffer");
-}
+
+#define MAX_ADDR_SIZE max (sizeof (struct sockaddr_in), MAX_SIZE_UN)
 
 SCM_DEFINE (scm_accept, "accept", 1, 0, 0, 
             (SCM sock),
@@ -617,16 +636,19 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
   int newfd;
   SCM address;
   SCM newsock;
+  int addr_size = MAX_ADDR_SIZE;
+  char max_addr[MAX_ADDR_SIZE];
+  struct sockaddr *addr = (struct sockaddr *) max_addr;
 
-  size_t tmp_size;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
-  tmp_size = scm_addr_buffer_size;
-  newfd = accept (fd, (struct sockaddr *) scm_addr_buffer, &tmp_size);
-  newsock = scm_sock_fd_to_port (newfd, FUNC_NAME);
-  if (tmp_size > 0)
-    address = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, FUNC_NAME);
+  newfd = accept (fd, addr, &addr_size);
+  if (newfd == -1)
+    SCM_SYSERROR;
+  newsock = SCM_SOCK_FD_TO_PORT (newfd);
+  if (addr_size > 0)
+    address = scm_addr_vector (addr, FUNC_NAME);
   else
     address = SCM_BOOL_F;
   
@@ -641,17 +663,19 @@ SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0,
 	    "in the @code{AF_FILE} namespace cannot be read.")
 #define FUNC_NAME s_scm_getsockname
 {
-  size_t tmp_size;
   int fd;
   SCM result;
+  int addr_size = MAX_ADDR_SIZE;
+  char max_addr[MAX_ADDR_SIZE];
+  struct sockaddr *addr = (struct sockaddr *) max_addr;
+
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1,sock);
   fd = SCM_FPORT_FDES (sock);
-  tmp_size = scm_addr_buffer_size;
-  if (getsockname (fd, (struct sockaddr *) scm_addr_buffer, &tmp_size) == -1)
+  if (getsockname (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
-  if (tmp_size > 0)
-    result = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, FUNC_NAME);
+  if (addr_size > 0)
+    result = scm_addr_vector (addr, FUNC_NAME);
   else
     result = SCM_BOOL_F;
   return result;
@@ -666,17 +690,19 @@ SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0,
 	    "in the @code{AF_FILE} namespace cannot be read.")
 #define FUNC_NAME s_scm_getpeername
 {
-  size_t tmp_size;
   int fd;
   SCM result;
+  int addr_size = MAX_ADDR_SIZE;
+  char max_addr[MAX_ADDR_SIZE];
+  struct sockaddr *addr = (struct sockaddr *) max_addr;
+
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1,sock);
   fd = SCM_FPORT_FDES (sock);
-  tmp_size = scm_addr_buffer_size;
-  if (getpeername (fd, (struct sockaddr *) scm_addr_buffer, &tmp_size) == -1)
+  if (getpeername (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
-  if (tmp_size > 0)
-    result = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, FUNC_NAME);
+  if (addr_size > 0)
+    result = scm_addr_vector (addr, FUNC_NAME);
   else
     result = SCM_BOOL_F;
   return result;
@@ -772,8 +798,10 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   char *buf;
   int offset;
   int cend;
-  size_t tmp_size;
   SCM address;
+  int addr_size = MAX_ADDR_SIZE;
+  char max_addr[MAX_ADDR_SIZE];
+  struct sockaddr *addr = (struct sockaddr *) max_addr;
 
   SCM_VALIDATE_OPFPORT (1,sock);
   fd = SCM_FPORT_FDES (sock);
@@ -784,15 +812,17 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   else
     SCM_VALIDATE_ULONG_COPY (3, flags, flg);
 
-  tmp_size = scm_addr_buffer_size;
+  /* recvfrom will not necessarily return an address.  e.g., linux
+     2.4.2 doesn't change addr or addr_size if socket is
+     AF_INET/SOCK_STREAM.  */
+  addr->sa_family = AF_UNSPEC;
   SCM_SYSCALL (rv = recvfrom (fd, buf + offset,
 			      cend - offset, flg,
-			      (struct sockaddr *) scm_addr_buffer,
-			      &tmp_size));
+			      addr, &addr_size));
   if (rv == -1)
     SCM_SYSERROR;
-  if (tmp_size > 0)
-    address = scm_addr_vector ((struct sockaddr *) scm_addr_buffer, FUNC_NAME);
+  if (addr_size > 0 && addr->sa_family != AF_UNSPEC)
+    address = scm_addr_vector (addr, FUNC_NAME);
   else
     address = SCM_BOOL_F;
 
@@ -818,8 +848,7 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
   int fd;
   int flg;
   struct sockaddr *soka;
-  scm_sizet size;
-  int save_err;
+  int size;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_FPORT (1,sock);
@@ -835,13 +864,17 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
       SCM_VALIDATE_CONS (5,args_and_flags);
       flg = SCM_NUM2ULONG (5,SCM_CAR (args_and_flags));
     }
-  SCM_SYSCALL (rv = sendto (fd, SCM_STRING_CHARS (message), SCM_STRING_LENGTH (message),
+  SCM_SYSCALL (rv = sendto (fd, SCM_STRING_CHARS (message),
+			    SCM_STRING_LENGTH (message),
 			    flg, soka, size));
-  save_err = errno;
-  scm_must_free ((char *) soka);
-  errno = save_err;
   if (rv == -1)
-    SCM_SYSERROR;
+    {
+      int save_errno = errno;
+      free (soka);
+      errno = save_errno;
+      SCM_SYSERROR;
+    }
+  free (soka);
   return SCM_MAKINUM (rv);
 }
 #undef FUNC_NAME
@@ -953,7 +986,6 @@ scm_init_socket ()
 #endif
 
   scm_add_feature ("socket");
-  scm_init_addr_buffer ();
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/socket.x"

@@ -1,3 +1,30 @@
+2001-03-04  Gary Houston  <ghouston@arglist.com>
+
+	* socket.c (scm_fill_sockaddr): don't allow buffer overflows when
+	taking an unexpectedly large filename for an AF_UNIX socket from
+	bind/connect/sendto (thanks to Martin Grabmueller).
+	
+	* socket.c (scm_sock_fd_to_port, SCM_SOCK_FD_TO_PORT): removed the
+	former and adjusted the latter.
+	(scm_socket, scm_socketpair): cosmetic changes.
+	(scm_getsockopt, scm_setsockopt): declare optlen as int, not
+	size_t as socklen_t substitute.  don't restrict args/return values
+	to INUM: allow full range of int or size_t.
+	(scm_fill_sockaddr): check arguments before allocating memory, to
+	avoid leakage.  use malloc, not scm_must_malloc.
+	(scm_connect, scm_bind, scm_sendto): use int, not size_t as socklen_t
+	substitute.  free the sockaddr structure before throwing an error.
+	(scm_init_add_buffer): procedure removed, together with its static
+	buffer scm_addr_buffer, which wouldn't be thread safe.  instead,
+	define a macro MAX_ADDR_SIZE and declare the buffer where needed.
+	(scm_accept, scm_getpeername, scm_getsockname, scm_recvfrom,
+	scm_sendto): use a local buffer instead of scm_addr_buffer.
+	adjust for new SCM_SOCK_FD_TO_PORT.  use int for address size,
+	not size_t.
+	(scm_recvfrom): set addr->sa_family to AF_UNSPEC before the recvfrom
+	call to detect whether recvfrom could be bothered to set the address.
+	(scm_init_socket): don't call scm_init_addr_buffer.
+
 2001-03-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* debug.c (scm_procedure_source, scm_procedure_environment),
@@ -33,6 +60,7 @@
 	call function scm_wta, call scm_misc_error or scm_wrong_type_arg
 	instead.
 
+>>>>>>> 1.1294
 2001-03-04  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* goops.c (scm_sys_pre_expand_closure_x): New procedure.
