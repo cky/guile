@@ -1,7 +1,13 @@
 2001-05-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	* eval.c: Use SCM_EQ_P insteda of `==' or `!=' in certain
-	places. (scm_c_improper_memq): Return q instead of SCM_BOOL_T.
+	* symbols.c (scm_mem2symbol): Re-introduce indirect cell.  It is
+	needed for weak-key hashtables.
+
+	* procs.c (scm_make_subr_with_generic): Add missing last argument
+	in call to scm_c_define_gsubr_with_generic.  Thanks to Ariel Rios.
+
+	* eval.c: Use SCM_EQ_P instead of `==' or `!=' in certain
+	places. (scm_c_improper_memq): Return 1 instead of SCM_BOOL_T.
 
 	* eval.h (SCM_EVALIM2): Use SCM_EQ_P instead of `=='.
 
