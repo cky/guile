@@ -412,8 +412,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
                "but doesn't seem to here.\n");
     }
 
-  scm_block_gc = 1;
-
   scm_storage_prehistory ();
   scm_threads_prehistory (base);
   scm_ports_prehistory ();
@@ -542,9 +540,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_threads_default_dynamic_state ();
 
   scm_initialized_p = 1;
-
-  scm_block_gc = 0;		/* permit the gc to run */
-  /* ints still disabled */
 
 #ifdef STACK_CHECKING
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
