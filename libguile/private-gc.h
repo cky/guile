@@ -55,7 +55,8 @@
  * all, this means that we have a numerically intensive application
  */
 #define SCM_DEFAULT_MIN_YIELD_2 40
-#define SCM_DEFAULT_MAX_SEGMENT_SIZE  2097000L /* a little less (adm) than 2 Mb */
+
+#define SCM_DEFAULT_MAX_SEGMENT_SIZE  (20*1024*1024L)
 
 
 
