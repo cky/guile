@@ -429,7 +429,7 @@ delimiter may be either a newline or the @var{eof-object}; if
 @code{(#<eof> . #<eof>)}.
 @end deffn
 
-@node Block reading and writing
+@node Block Reading and Writing
 @section Block reading and writing
 
 The Block-string-I/O module can be accessed with:

@@ -1,3 +1,21 @@
+2001-05-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-modules.texi (Dynamic Libraries): Renamed from `Dynamic
+	Linking from Marius''.
+	(The Guile module system): Removed obsolete naming convention.
+	(Loading Guile Modules, Creating Guile Modules),
+	(More Module Procedures, Included Guile Modules): New nodes, split
+	from `The Guile module system'.
+	(The Guile module system): Changed references to (ice-9 slib) to
+	(ice-9 popen), because note everybody has SLIB installed.
+	(Included Guile Modules): Added a bunch of modules shipped with
+	Guile.
+
+	(Dynamic Libraries): (old version) Removed.
+
+	* scheme-io.texi (Block Reading and Writing): Corrected
+	capitalization, so it builds again.
+
 2001-05-01  Gary Houston  <ghouston@arglist.com>
 
 	* scheme-io.texi: Removed obsolete section Binary IO.  Added

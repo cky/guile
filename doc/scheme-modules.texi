@@ -38,8 +38,7 @@ clutter the global name space.
 @menu
 * Scheme and modules::          How modules are handled in standard Scheme.
 * The Guile module system::     How Guile does it.
-* Dynamic Libraries::		Loading libraries of compiled code at run time.
-* Dynamic Linking from Marius::
+* Dynamic Libraries::           Loading libraries of compiled code at run time.
 @end menu
 
 
@@ -81,41 +80,189 @@ This module system is regarded as being rather idiosyncratic, and will
 probably change to something more like the ML module system, so for now
 I will simply describe how it works for a couple of simple cases.
 
-First of all, the Guile module system sets up a hierarchical name space,
-and that name space can be represented like Unix pathnames preceded by a
-@key{#} character.  The root name space for all Guile-supplied modules
-is called @code{ice-9}.
-
-So for example, the SLIB interface, contained in
-@file{$srcdir/ice-9/slib.scm}, starts out with
+So for example, the pipe interprocess communication interface
+(REFFIXME), contained in @file{$srcdir/ice-9/popen.scm}, starts out with
 
 @smalllisp
-(define-module (ice-9 slib))
+(define-module (ice-9 popen))
 @end smalllisp
 
 and a user program can use
 
 @smalllisp
-(use-modules (ice-9 slib))
+(use-modules (ice-9 popen))
 @end smalllisp
 
-to have access to all procedures and variables defined within the slib
-module with @code{(define-public ...)}.
+to have access to all procedures and variables exported from the module.
 
-So here are the functions involved:
+@menu
+* General Information about Modules::  Guile module basics.
+* Loading Guile Modules::       How to use existing modules.
+* Creating Guile Modules::      How to package your code into modules.
+* More Module Procedures::      Low--level module code.
+* Included Guile Modules::      Which modules come with Guile?
+@end menu
+
+@node General Information about Modules
+@subsection General Information about Modules
+
+A Guile module is a collection of procedures, variables and syntactic
+forms (macros), which are either public or private.  Public bindings are
+in the so--called @dfn{export list} of a module and can be made visible
+to other modules, which import them.  This @dfn{module import} is called
+@dfn{using} of a module, and consists of loading of the module code (if
+it has not already been loaded) and making all exported items of the
+loaded module visible to the importing module (@pxref{Loading Guile
+Modules}).
+
+The other side is called @dfn{defining} a module, and consists of giving
+a name to a module, add procedures and variables to it and declare which
+of the names should be exported when another module uses it
+(@pxref{Creating Guile Modules}).
+
+All Guile modules have unique names, which are lists of one or more
+symbols.  Examples are @code{(ice-9 popen)} or @code{(srfi srfi-11)}.
+When Guile searches for the code of a module, it constructs the name of
+the file to load by concatenating the name elements with slashes between
+the elements and appending a number of file name extensions from the
+list @code{%load-extensions} (REFFIXME).  The resulting file name is
+then searched in all directories in the variable @code{%load-path}.  For
+example, the @code{(ice-9 popen)} module would result in the filename
+@code{ice-9/popen.scm} and searched in the installation directory of
+Guile and in all other directories in the load path.
+
+@c FIXME::martin:  Not sure about this, maybe someone knows better?
+Every module has a so--called syntax transformer associated with it.
+This is a procedure which performs all syntax transformation for the
+time the module is read in and evaluated.  When working with modules,
+you can manipulate the current syntax transformer using the
+@code{use-syntax} syntactic form or the @code{#:use-syntax} module
+definition option (@pxref{Creating Guile Modules}).
+
+Please note that there are some problems with the current module system
+you should keep in mind.  When importing a module which exports a macro
+definition, the other module must export all bindings the macro
+expansion uses, too, because the expanded code would otherwise not be
+able to see these definitions and issue a ``variable unbound'' error, or
+worse, would use another binding which might be present in the scope of
+the expansion.
+
+When two or more modules are imported, and they export bindings with the
+same names, the last imported module wins, and the exported binding of
+that last module will silently be used.  This might lead to
+hard--to--find errors because wrong procedures or variables are used.
+
+
+@node Loading Guile Modules
+@subsection Loading Guile Modules
+
+@c FIXME::martin: Review me!
+
+There are several modules included in the Guile distribution, and not
+all of the procedures available for Guile are immedietely available when
+you start up the interpreter.  Some of the procedures are packaged in
+modules, so that they are only accessible after the user has explicitly
+said that she wants to use them.  In Guile, the syntactic form
+@code{use-modules} is used for telling the interpreter that he should
+locate the code for a given module, load it and make the exported
+bindings of the module visible to the caller.
+
+@c begin (scm-doc-string "boot-9.scm" "use-modules")
+@deffn syntax use-modules module-specification @dots{}
+All @var{module-specification}s are of the form @code{(hierarchy file)}.
+One example of this is
+
+@smalllisp
+(use-modules (ice-9 popen))
+@end smalllisp
+
+@code{use-modules} allows the current Guile program to use all publicly
+defined procedures and variables in the modules denoted by the
+@var{module-specification}s.
+@end deffn
+@c end
+
+@c FIXME::martin: Is this correct, and is there more to say?
+@c FIXME::martin: Define term and concept `system transformer' somewhere.
+
+@deffn syntax use-syntax module-specification
+Load the module @code{module-specification} and use its system
+transformer as the system transformer for the currently defined module,
+as well as installing it as the current system transformer.
+@end deffn
+
+
+@node Creating Guile Modules
+@subsection Creating Guile Modules
+
+@c FIXME::martin: Review me!
+
+When you want to create your own modules, you have to take the following
+steps:
+
+@itemize @bullet
+@item
+Create a Scheme source file and add all variables and procedures you wish
+to export, or which are required by the exported procedures.
+
+@item
+Add a @code{define-module} form at the beginning.
+
+@item
+Export all bindings which should be visible to importing modules, either
+by using @code{define-public} or @code{export} (both documented below).
+@end itemize
+
 @c begin (scm-doc-string "boot-9.scm" "define-module")
-@deffn syntax define-module module-specification
+@deffn syntax define-module module-specification [options @dots{}]
 @var{module-specification} is of the form @code{(hierarchy file)}.  One
 example of this is
 
 @smalllisp
-(define-module (ice-9 slib))
+(define-module (ice-9 popen))
 @end smalllisp
 
 @code{define-module} makes this module available to Guile programs under
 the given @var{module-specification}.
+
+The @var{options} are keyword/value--pairs which specify more about the
+defined module.  The recognized options and their meaning is shown in
+the following table.
+
+@table @code
+@item #:use-module @var{module}
+Equivalent to a @code{(use-modules @var{module})}.  Use the specified
+@var{module} when loading this module.
+
+@item #:use-syntax @var{module}
+Use @var{module} when loading the currently defined module, and install
+it as the syntax transformer.
+
+@item #:autoload @var{module} @var{symbol}
+Load @var{module} whenever @var{symbol} is accessed.
+
+@item #:export @var{list}
+Export all identifiers in @var{list}, which must be a list of symbols.
+This is equivalent to @code{(export @var{list})} in the module body.
+
+@item #:no-backtrace
+Tell Guile not to record information for procedure backtraces when
+executing the procedures in this module.
+
+@item #:pure
+Create a @dfn{pure} module, that is a module which does not contain any
+of the standard procedure bindings except for the syntax forms.  This is
+useful if you want to create @dfn{safe} modules, that is modules which
+do not know anything about dangerous procedures.
+@end table
+
 @end deffn
 @c end
+
+@deffn syntax export variable @dots{}
+Add all @var{variable}s (which must be symbols) to the list of exported
+bindings of the current module.
+@end deffn
 
 @c begin (scm-doc-string "boot-9.scm" "define-public")
 @deffn syntax define-public @dots{}
@@ -124,44 +271,87 @@ module.
 @end deffn
 @c end
 
-@c begin (scm-doc-string "boot-9.scm" "use-modules")
-@deffn syntax use-modules module-specification
-@var{module-specification} is of the form @code{(hierarchy file)}.  One
-example of this is
-
-@smalllisp
-(use-modules (ice-9 slib))
-@end smalllisp
-
-@code{use-modules} allows the current Guile program to use all publicly
-defined procedures and variables in the module denoted by
-@var{module-specification}.
-@end deffn
-@c end
 
 [FIXME: must say more, and explain, and also demonstrate a private name
 space use, and demonstrate how one would do Python's "from Tkinter
 import *" versus "import Tkinter".  Must also add something about paths
 and standards for contributed modules.]
 
+@node More Module Procedures
+@subsection More Module Procedures
+
+@c FIXME::martin: Review me!
+
+@c FIXME::martin: Should this procedure be documented and supported
+@c   at all?
+
+The procedures in this section are useful if you want to dig into the
+innards of Guile's module system.  If you don't know precisely what you
+do, you should probably avoid using any of them.
+
 @deffn primitive standard-eval-closure module
 Return an eval closure for the module @var{module}.
 @end deffn
 
+
+@node Included Guile Modules
+@subsection Included Guile Modules
+
+@c FIXME::martin: Review me!
+
 Some modules are included in the Guile distribution; here are references
 to the entries in this manual which describe them in more detail:
+
 @table @strong
 @item boot-9
 boot-9 is Guile's initialization module, and it is always loaded when
 Guile starts up.
+
 @item (ice-9 debug)
 Mikael Djurfeldt's source-level debugging support for Guile
 (@pxref{Debugger User Interface}).
+
 @item (ice-9 threads)
 Guile's support for multi threaded execution (@pxref{Scheduling}).
+
+@item (ice-9 rdelim)
+Line-- and character--delimited input (REFFIXME).
+
+@item (ice-9 documentation)
+Online documentation (REFFIXME).
+
+@item (srfi srfi-2)
+Support for @code{and-let*} (REFFIXME).
+
+@item (srfi srfi-6)
+Support for some additional string port procedures (REFFIXME).
+
+@item (srfi srfi-8)
+Multiple--value handling with @code{receive} (REFFIXME).
+
+@item (srfi srfi-9)
+Record definition with @code{define-record-type} (REFFIXME).
+
+@item (srfi srfi-10)
+Read--hash extension @code{#,()} (REFFIXME).
+
+@item (srfi srfi-11)
+Multiple--value handling with @code{let-values} and @code{let-values*}
+(REFFIXME).
+
+@item (srfi srfi-13)
+String library (REFFIXME).
+
+@item (srfi srfi-14)
+Character--set library (REFFIXME).
+
+@item (srfi srfi-17)
+Getter--with--setter support (REFFIXME).
+
 @item (ice-9 slib)
 This module contains hooks for using Aubrey Jaffer's portable Scheme
 library SLIB from Guile (@pxref{SLIB}).
+
 @c FIXME::martin: This module is not in the distribution.  Remove it
 @c from here?
 @item (ice-9 jacal)
@@ -172,117 +362,6 @@ packge Jacal from Guile (@pxref{JACAL}).
 
 @node Dynamic Libraries
 @section Dynamic Libraries
-
-Often you will want to extend Guile by linking it with some existing
-system library.  For example, linking Guile with a @code{curses} or
-@code{termcap} library would be useful if you want to implement a
-full-screen user interface for a Guile application.  However, if you
-were to link Guile with these libraries at compile time, it would bloat
-the interpreter considerably, affecting everyone on the system even if
-the new libraries are useful only to you.  Also, every time a new
-library is installed, you would have to reconfigure, recompile and
-relink Guile merely in order to provide a new interface.
-
-Many Unix systems permit you to get around this problem by using
-@dfn{dynamic loading}.  When a new library is linked, it can be made a
-@dfn{dynamic library} by passing certain switches to the linker.  A
-dynamic library does not need to be linked with an executable image at
-link time; instead, the executable may choose to load it dynamically at
-run time.  This is a powerful concept that permits an executable to link
-itself with almost any library without reconfiguration, if it has been
-written properly.
-
-Guile's dynamic linking functions make it relatively easy to write a
-module that incorporates code from third-party object code libraries.
-
-@deffn primitive dynamic-link filename
-Open the dynamic library called @var{filename}.  A library
-handle representing the opened library is returned; this handle
-should be used as the @var{dobj} argument to the following
-functions.
-@end deffn
-
-@deffn primitive dynamic-object? obj
-Return @code{#t} if @var{obj} is a dynamic library handle, or @code{#f}
-otherwise.
-@end deffn
-
-@deffn primitive dynamic-unlink dobj
-Unlink the indicated object file from the application.  The
-argument @var{dobj} must have been obtained by a call to
-@code{dynamic-link}.  After @code{dynamic-unlink} has been
-called on @var{dobj}, its content is no longer accessible.
-@end deffn
-
-@deffn primitive dynamic-func name dobj
-Search the dynamic object @var{dobj} for the C function
-indicated by the string @var{name} and return some Scheme
-handle that can later be used with @code{dynamic-call} to
-actually call the function.
-
-Regardless whether your C compiler prepends an underscore @samp{_} to
-the global names in a program, you should @strong{not} include this
-underscore in @var{function}.  Guile knows whether the underscore is
-needed or not and will add it when necessary.
-@end deffn
-
-@deffn primitive dynamic-call func dobj
-Call the C function indicated by @var{func} and @var{dobj}.
-The function is passed no arguments and its return value is
-ignored.  When @var{function} is something returned by
-@code{dynamic-func}, call that function and ignore @var{dobj}.
-When @var{func} is a string , look it up in @var{dynobj}; this
-is equivalent to
-@smallexample
-(dynamic-call (dynamic-func @var{func} @var{dobj} #f))
-@end smallexample
-
-Interrupts are deferred while the C function is executing (with
-@code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).
-@end deffn
-
-@deffn primitive dynamic-args-call func dobj args
-Call the C function indicated by @var{func} and @var{dobj},
-just like @code{dynamic-call}, but pass it some arguments and
-return its return value.  The C function is expected to take
-two arguments and return an @code{int}, just like @code{main}:
-@smallexample
-int c_func (int argc, char **argv);
-@end smallexample
-
-The parameter @var{args} must be a list of strings and is
-converted into an array of @code{char *}.  The array is passed
-in @var{argv} and its size in @var{argc}.  The return value is
-converted to a Scheme number and returned from the call to
-@code{dynamic-args-call}.
-@end deffn
-
-@deffn primitive c-registered-modules
-Return a list of the object code modules that have been imported into
-the current Guile process.  Each element of the list is a pair whose
-car is the name of the module, and whose cdr is the function handle
-for that module's initializer function.  The name is the string that
-has been passed to scm_register_module_xxx.
-@end deffn
-
-@deffn primitive c-clear-registered-modules
-Destroy the list of modules registered with the current Guile process.
-The return value is unspecified.  @strong{Warning:} this function does
-not actually unlink or deallocate these modules, but only destroys the
-records of which modules have been loaded.  It should therefore be used
-only by module bookkeeping operations.
-@end deffn
-
-[FIXME: provide a brief example here of writing the C hooks for an
-object code module, and using dynamic-link and dynamic-call to load the
-module.]
-
-
-@node Dynamic Linking from Marius
-@section Dynamic Linking from Marius
-
-@c NJFIXME primitive documentation here duplicates (and is generally
-@c better than) documentation for the same primitives earlier on.
 
 Most modern Unices have something called @dfn{shared libraries}.  This
 ordinarily means that they have the capability to share the executable
@@ -319,9 +398,9 @@ dynamic linking apparatus, and a more high-level interface that
 integrates dynamically linked libraries into the module system.
 
 @menu
-* Low level dynamic linking::
-* Compiled Code Modules::
-* Dynamic Linking and Compiled Code Modules::
+* Low level dynamic linking::   
+* Compiled Code Modules::       
+* Dynamic Linking and Compiled Code Modules::  
 @end menu
 
 @node Low level dynamic linking
