@@ -1,3 +1,8 @@
+2000-10-18  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* gc_os_dep.c (GC_noop1, GC_bool, TRUE, FALSE, VOLATILE):
+	Definitions copied from Boehm collector.
+
 2000-10-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* list.[ch] (scm_sloppy_memq, scm_sloppy_memv, scm_sloppy_member):
