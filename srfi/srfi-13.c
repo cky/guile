@@ -3027,7 +3027,7 @@ void
 scm_init_srfi_13 (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "srfi-13.x"
+#include "srfi/srfi-13.x"
 #endif
 }
 

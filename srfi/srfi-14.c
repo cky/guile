@@ -1356,6 +1356,6 @@ scm_init_srfi_14 (void)
   scm_set_smob_print (scm_tc16_charset, charset_print);
 
 #ifndef SCM_MAGIC_SNARFER
-#include "srfi-14.x"
+#include "srfi/srfi-14.x"
 #endif
 }
