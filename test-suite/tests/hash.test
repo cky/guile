@@ -1,0 +1,63 @@
+;;;; hash.test --- test guile hashing     -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2004 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+(define-module (test-suite test-numbers)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 documentation))
+
+;;;
+;;; hash
+;;;
+
+(with-test-prefix "hash"
+  (pass-if (->bool (object-documentation hash)))
+  (pass-if-exception "hash #t -1" exception:out-of-range
+    (hash #t -1))
+  (pass-if-exception "hash #t 0" exception:out-of-range
+    (hash #t 0))
+  (pass-if (= 0 (hash #t 1)))
+  (pass-if (= 0 (hash #f 1)))
+  (pass-if (= 0 (hash noop 1))))
+
+;;;
+;;; hashv
+;;;
+
+(with-test-prefix "hashv"
+  (pass-if (->bool (object-documentation hashv)))
+  (pass-if-exception "hashv #t -1" exception:out-of-range
+    (hashv #t -1))
+  (pass-if-exception "hashv #t 0" exception:out-of-range
+    (hashv #t 0))
+  (pass-if (= 0 (hashv #t 1)))
+  (pass-if (= 0 (hashv #f 1)))
+  (pass-if (= 0 (hashv noop 1))))
+
+;;;
+;;; hashq
+;;;
+
+(with-test-prefix "hashq"
+  (pass-if (->bool (object-documentation hashq)))
+  (pass-if-exception "hashq #t -1" exception:out-of-range
+    (hashq #t -1))
+  (pass-if-exception "hashq #t 0" exception:out-of-range
+    (hashq #t 0))
+  (pass-if (= 0 (hashq #t 1)))
+  (pass-if (= 0 (hashq #f 1)))
+  (pass-if (= 0 (hashq noop 1))))
