@@ -177,6 +177,19 @@ scm_make_continuation (int *first)
 }
 #undef FUNC_NAME
 
+
+/* Invoking a continuation proceeds as follows:
+ *
+ * - the stack is made large enough for the called continuation
+ * - the old windchain is unwound down to the branching point
+ * - the continuation stack is copied into place
+ * - the windchain is rewound up to the continuation's context
+ * - the continuation is invoked via longjmp (or setcontext)
+ *
+ * This order is important so that unwind and rewind handlers are run
+ * with their correct stack.
+ */
+
 static void scm_dynthrow (SCM, SCM);
 
 /* Grow the stack by a fixed amount to provide space to copy in the
@@ -202,12 +215,32 @@ grow_stack (SCM cont, SCM val)
  * within this function is safe, since only stack frames below this function's
  * own frame are overwritten.  Thus, memcpy can be used for best performance.
  */
+
+typedef struct {
+  scm_t_contregs *continuation;
+  SCM_STACKITEM *dst;
+} copy_stack_data;
+
 static void
-copy_stack_and_call (scm_t_contregs *continuation, SCM val, 
+copy_stack (void *data)
+{
+  copy_stack_data *d = (copy_stack_data *)data;
+  memcpy (d->dst, d->continuation->stack,
+	  sizeof (SCM_STACKITEM) * d->continuation->num_stack_items);
+}
+
+static void
+copy_stack_and_call (scm_t_contregs *continuation, SCM val,
 		     SCM_STACKITEM * dst)
 {
-  memcpy (dst, continuation->stack,
-	  sizeof (SCM_STACKITEM) * continuation->num_stack_items);
+  long delta;
+  copy_stack_data data;
+
+  delta = scm_ilength (scm_dynwinds) - scm_ilength (continuation->dynenv);
+  data.continuation = continuation;
+  data.dst = dst;
+  scm_i_dowinds (continuation->dynenv, delta, 0,
+		 copy_stack, &data);
 
   scm_last_debug_frame = continuation->dframe;
 
@@ -221,7 +254,6 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   longjmp (continuation->jmpbuf, 1);
 #endif
 }
-
 
 /* Call grow_stack until the stack space is large enough, then, as the current
  * stack frame might get overwritten, let copy_stack_and_call perform the
@@ -262,10 +294,6 @@ continuation_apply (SCM cont, SCM args)
       SCM_MISC_ERROR ("continuation from wrong top level: ~S", 
 		      scm_list_1 (cont));
     }
-  
-  scm_dowinds (continuation->dynenv,
-	       scm_ilength (scm_dynwinds)
-	       - scm_ilength (continuation->dynenv));
   
   scm_dynthrow (cont, scm_values (args));
   return SCM_UNSPECIFIED; /* not reached */
