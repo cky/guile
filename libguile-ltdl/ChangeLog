@@ -1,3 +1,7 @@
+2003-05-29  Stefan Jahn  <stefan@lkcc.org>
+
+	* raw-ltdl.c: Some more modifications for mingw32 platforms.
+
 2003-03-24  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* raw-ltdl.c: Include <config.h> instead of

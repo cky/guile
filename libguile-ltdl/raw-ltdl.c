@@ -163,11 +163,11 @@ static lt_ptr lt_erealloc	LT_PARAMS((lt_ptr addr, size_t size));
 #define rpl_realloc realloc
 
 /* These are the pointers that can be changed by the caller:  */
-SCMLTSTATIC LT_GLOBAL_DATA lt_ptr (*lt_dlmalloc)	LT_PARAMS((size_t size))
+SCMLTSTATIC lt_ptr (*lt_dlmalloc)	LT_PARAMS((size_t size))
  			= (lt_ptr (*) LT_PARAMS((size_t))) malloc;
-SCMLTSTATIC LT_GLOBAL_DATA lt_ptr (*lt_dlrealloc)	LT_PARAMS((lt_ptr ptr, size_t size))
+SCMLTSTATIC lt_ptr (*lt_dlrealloc)	LT_PARAMS((lt_ptr ptr, size_t size))
  			= (lt_ptr (*) LT_PARAMS((lt_ptr, size_t))) rpl_realloc;
-SCMLTSTATIC LT_GLOBAL_DATA void   (*lt_dlfree)	LT_PARAMS((lt_ptr ptr))
+SCMLTSTATIC void   (*lt_dlfree)	LT_PARAMS((lt_ptr ptr))
  			= (void (*) LT_PARAMS((lt_ptr))) free;
 
 /* The following macros reduce the amount of typing needed to cast
@@ -1185,7 +1185,6 @@ sys_wll_open (loader_data, filename)
 {
   lt_dlhandle	cur;
   lt_module	module	   = NULL;
-  const char   *errormsg   = NULL;
   char	       *searchname = NULL;
   char	       *ext;
   char		self_name_buf[MAX_PATH];

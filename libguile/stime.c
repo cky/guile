@@ -561,7 +561,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
        environment.  interrupts and thread switching must be deferred
        until TZ is restored.  */
     char **oldenv = NULL;
-    SCM *velts = SCM_VELTS (stime);
+    SCM *velts = (SCM *) SCM_VELTS (stime);
     int have_zone = 0;
 
     if (!SCM_FALSEP (velts[10]) && *SCM_STRING_CHARS (velts[10]) != 0)

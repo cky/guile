@@ -483,7 +483,9 @@ AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
 AC_TYPE_MODE_T
 
-AC_CHECK_LIB(m, main)
+if test $MINGW32 = no; then
+	AC_CHECK_LIB(m, main)
+fi
 AC_CHECK_FUNCS(gethostbyname)
 if test $ac_cv_func_gethostbyname = no; then
     AC_CHECK_LIB(nsl, gethostbyname)
@@ -594,13 +596,14 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
 	       inet_pton inet_ntop)
 
 AC_MSG_CHECKING(for __libc_stack_end)
-AC_TRY_LINK([extern char *__libc_stack_end;],
-            [char *p = __libc_stack_end;],
-            have_libc_stack_end=yes,
-            have_libc_stack_end=no)
-AC_MSG_RESULT($have_libc_stack_end)
+AC_CACHE_VAL(guile_cv_have_libc_stack_end,
+[AC_TRY_LINK([extern char *__libc_stack_end;],
+             [char *p = __libc_stack_end;],
+             guile_cv_have_libc_stack_end=yes,
+             guile_cv_have_libc_stack_end=no)])
+AC_MSG_RESULT($guile_cv_have_libc_stack_end)
 
-if test $have_libc_stack_end = yes; then
+if test $guile_cv_have_libc_stack_end = yes; then
   AC_DEFINE(HAVE_LIBC_STACK_END, 1,
            [Define if you have the __libc_stack_end variable.])
 fi

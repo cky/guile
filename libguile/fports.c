@@ -513,6 +513,7 @@ fport_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
+#ifndef __MINGW32__
 /* thread-local block for input on fport's fdes.  */
 static void
 fport_wait_for_input (SCM port)
@@ -537,6 +538,7 @@ fport_wait_for_input (SCM port)
 	while (n == -1 && errno == EINTR);
     }
 }
+#endif /* !__MINGW32__ */
 
 static void fport_flush (SCM port);
 
@@ -549,7 +551,9 @@ fport_fill_input (SCM port)
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   scm_t_fport *fp = SCM_FSTREAM (port);
 
+#ifndef __MINGW32__
   fport_wait_for_input (port);
+#endif /* !__MINGW32__ */
   SCM_SYSCALL (count = read (fp->fdes, pt->read_buf, pt->read_buf_size));
   if (count == -1)
     scm_syserror ("fport_fill_input");

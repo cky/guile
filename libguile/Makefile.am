@@ -42,15 +42,24 @@ gen_scmconfig_SOURCES = gen-scmconfig.c
 ## For some reason, OBJEXT does not include the dot
 gen-scmconfig.$(OBJEXT): gen-scmconfig.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) -c -o $@ $<; \
+		$(CC_FOR_BUILD) $(DEFS) $(INCLUDES) -c -o $@ $<; \
 	else \
 		$(COMPILE) -c -o $@ $<; \
 	fi
 
-scmconfig.h: ${top_builddir}/config.h gen-scmconfig
+## Override default rule; this should run on BUILD host.
+gen-scmconfig$(EXEEXT): $(gen_scmconfig_OBJECTS) $(gen_scmconfig_DEPENDENCIES) 
+	@rm -f gen-scmconfig$(EXEEXT)
+	if [ "$(cross_compiling)" = "yes" ]; then \
+		$(CCLD_FOR_BUILD) -o $@ $(gen_scmconfig_OBJECTS); \
+	else \
+		$(LINK) $(gen_scmconfig_OBJECTS) $(LDADD) $(LIBS); \
+	fi
+
+scmconfig.h: ${top_builddir}/config.h gen-scmconfig$(EXEEXT)
 	rm -f scmconfig.h.tmp
 	cat $(srcdir)/scmconfig.h.top > scmconfig.h.tmp
-	./gen-scmconfig >> scmconfig.h.tmp
+	./gen-scmconfig$(EXEEXT) >> scmconfig.h.tmp
 	chmod 444 scmconfig.h.tmp
 	rm -f scmconfig.h
 	mv scmconfig.h.tmp scmconfig.h
@@ -61,7 +70,7 @@ guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 ## For some reason, OBJEXT does not include the dot
 c-tokenize.$(OBJEXT): c-tokenize.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) -c -o $@ $<; \
+		$(CC_FOR_BUILD) $(DEFS) $(INCLUDES) -c -o $@ $<; \
 	else \
 		$(COMPILE) -c -o $@ $<; \
 	fi
@@ -271,10 +280,10 @@ alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
 snarf2checkedtexi = GUILE="$(GUILE_FOR_BUILD)" $(top_srcdir)/scripts/snarf-check-and-output-texi
 dotdoc2texi       = cat $(alldotdocfiles) | $(snarf2checkedtexi)
 
-guile.texi: $(alldotdocfiles) guile
+guile.texi: $(alldotdocfiles) guile$(EXEEXT)
 	$(dotdoc2texi) --manual > $@ || { rm $@; false; }
 
-guile-procedures.texi: $(alldotdocfiles) guile
+guile-procedures.texi: $(alldotdocfiles) guile$(EXEEXT)
 	$(dotdoc2texi)          > $@ || { rm $@; false; }
 
 if HAVE_MAKEINFO

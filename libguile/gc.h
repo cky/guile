@@ -235,7 +235,7 @@ void scm_i_expensive_validation_check (SCM cell);
 SCM_API int scm_block_gc;
 SCM_API int scm_gc_heap_lock;
 SCM_API unsigned int scm_gc_running_p;
-extern scm_t_rec_mutex scm_i_sweep_mutex;
+SCM_API scm_t_rec_mutex scm_i_sweep_mutex;
 
 
 #if (SCM_ENABLE_DEPRECATED == 1)
@@ -260,10 +260,10 @@ SCM_API size_t scm_max_segment_size;
        *ls = SCM_EOL; 				\
        scm_setspecific ((key), ls); } while (0)
 #define SCM_FREELIST_LOC(key) ((SCM *) scm_getspecific (key))
-extern scm_t_key scm_i_freelist;
-extern scm_t_key scm_i_freelist2;
-extern struct scm_t_cell_type_statistics scm_i_master_freelist;
-extern struct scm_t_cell_type_statistics scm_i_master_freelist2;
+SCM_API scm_t_key scm_i_freelist;
+SCM_API scm_t_key scm_i_freelist2;
+SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist;
+SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist2;
 
 
 SCM_API unsigned long scm_gc_cells_swept;
@@ -288,8 +288,12 @@ SCM_API scm_t_c_hook scm_after_sweep_c_hook;
 SCM_API scm_t_c_hook scm_after_gc_c_hook;
 
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
+#if (SCM_ENABLE_DEPRECATED == 1)
+SCM scm_map_free_list (void);
+#else
 #define scm_map_free_list deprecated
 #define scm_free_list_length deprecated
+#endif
 #endif
 
 #if (SCM_ENABLE_DEPRECATED == 1) && defined (GUILE_DEBUG_FREELIST)

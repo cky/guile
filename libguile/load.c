@@ -188,7 +188,11 @@ scm_internal_parse_path (char *path, SCM tail)
       do {
 	/* Scan back to the beginning of the current element.  */
 	do scan--;
+#ifdef __MINGW32__
+	while (scan >= path && *scan != ';');
+#else
 	while (scan >= path && *scan != ':');
+#endif
 	tail = scm_cons (scm_mem2string (scan + 1, elt_end - (scan + 1)),
 			 tail);
 	elt_end = scan;
@@ -273,7 +277,16 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
   filename_len = SCM_STRING_LENGTH (filename);
 
   /* If FILENAME is absolute, return it unchanged.  */
+#ifdef __MINGW32__
+  if (((filename_len >= 1) && 
+       (filename_chars[0] == '/' || filename_chars[0] == '\\')) ||
+      ((filename_len >= 3) && filename_chars[1] == ':' &&
+       ((filename_chars[0] >= 'a' && filename_chars[0] <= 'z') ||
+	(filename_chars[0] >= 'A' && filename_chars[0] <= 'Z')) &&
+       (filename_chars[2] == '/' || filename_chars[2] == '\\')))
+#else
   if (filename_len >= 1 && filename_chars[0] == '/')
+#endif
     return filename;
 
   /* Find the length of the longest element of path.  */
@@ -306,7 +319,11 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 	    extensions = SCM_EOL;
 	    break;
 	  }
+#ifdef __MINGW32__
+	else if (*endp == '/' || *endp == '\\')
+#else
 	else if (*endp == '/')
+#endif
 	  /* This filename has no extension, so keep the current list
              of extensions.  */
 	  break;
@@ -351,7 +368,11 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 	/* Concatenate the path name and the filename. */
 	len = SCM_STRING_LENGTH (dir);
 	memcpy (buf, SCM_STRING_CHARS (dir), len);
+#ifdef __MINGW32__
+	if (len >= 1 && buf[len - 1] != '/' && buf[len - 1] != '\\')
+#else
 	if (len >= 1 && buf[len - 1] != '/')
+#endif
 	  buf[len++] = '/';
 	memcpy (buf + len, filename_chars, filename_len);
 	len += filename_len;
@@ -433,7 +454,12 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
   if (SCM_FALSEP (full_filename))
     {
       int absolute = (SCM_STRING_LENGTH (filename) >= 1
+#ifdef __MINGW32__
+		      && (SCM_STRING_CHARS (filename)[0] == '/' || 
+			  SCM_STRING_CHARS (filename)[0] == '\\'));
+#else
 		      && SCM_STRING_CHARS (filename)[0] == '/');
+#endif
       SCM_MISC_ERROR ((absolute
 		       ? "Unable to load file ~S"
 		       : "Unable to find file ~S in load path"),

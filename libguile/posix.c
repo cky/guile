@@ -1162,6 +1162,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 
   SCM_VALIDATE_STRING (1, str);
 
+#ifndef __MINGW32__
   if (strchr (SCM_STRING_CHARS (str), '=') == NULL)
     {
       /* No '=' in argument means we should remove the variable from
@@ -1170,6 +1171,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       unsetenv (SCM_STRING_CHARS (str));
     }
   else
+#endif
     {
       /* must make a new copy to be left in the environment, safe from gc.  */
       ptr = scm_malloc (SCM_STRING_LENGTH (str) + 1);

@@ -1,3 +1,8 @@
+2003-05-29  Stefan Jahn  <stefan@lkcc.org>
+
+	* configure.in: Removed -lm check and added a cached check for
+	__libc_stack_end to get it building for mingw32 hosts.
+
 2003-05-19  Kevin Ryde  <user42@zip.com.au>
 
 	* README (Cross building Guile): Remove --with-cc-for-build in favour

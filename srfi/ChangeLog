@@ -1,3 +1,10 @@
+2003-05-29  Stefan Jahn  <stefan@lkcc.org>
+
+	* Makefile.am (libguile_srfi_srfi_1_la_LDFLAGS, 
+	libguile_srfi_srfi_4_la_LDFLAGS, 
+	libguile_srfi_srfi_13_14__la_LDFLAGS): Added the -no-undefined
+	option for the mingw32 build.
+
 2003-05-13  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (delete): Fix predicate arg order to match srfi-1 spec.

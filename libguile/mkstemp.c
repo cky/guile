@@ -47,6 +47,11 @@
 #define TMP_MAX 16384
 #endif
 
+/* We provide this prototype to avoid compiler warnings.  If this ever
+   conflicts with a declaration in a system header file, we'll find
+   out, because we should include that header file here.  */
+int mkstemp (char *);
+
 /* Generate a unique temporary file name from TEMPLATE.
 
    TEMPLATE has the form:

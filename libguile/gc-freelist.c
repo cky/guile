@@ -48,16 +48,17 @@ is unset before allocation.  --hwn
 SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
             (),
 	    "DEPRECATED\n")
-#define FUNC_NAME s_scm_map_free_list
+#define FUNC_NAME "s_scm_map_free_list"
 {
   scm_c_issue_deprecation_warning ("map-free-list has been removed from GUILE. Doing nothing\n");
   return SCM_UNSPECIFIED;
 }  
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1, 0, 0,
             (SCM flag),
 	    "DEPRECATED.\n")
-#define FUNC_NAME s_scm_gc_set_debug_check_freelist_x
+#define FUNC_NAME "s_scm_gc_set_debug_check_freelist_x"
 {
   scm_c_issue_deprecation_warning ("gc-set-debug-check-freelist! has been removed from GUILE. Doing nothing\n");
   return SCM_UNSPECIFIED;

@@ -238,7 +238,7 @@ extern scm_t_key scm_i_thread_key;
    They really refer to the root state of the running thread. */
 #define SCM_THREAD_LOCAL_DATA (scm_i_plugin_getspecific (scm_i_root_state_key))
 #define SCM_SET_THREAD_LOCAL_DATA(x) scm_i_set_thread_data(x)
-extern scm_t_key scm_i_root_state_key;
+SCM_API scm_t_key scm_i_root_state_key;
 SCM_API void scm_i_set_thread_data (void *);
 
 #endif  /* SCM_THREADS_H */

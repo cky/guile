@@ -401,25 +401,25 @@ SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
   uses = SCM_MODULE_USES (module);
   while (SCM_CONSP (uses))
     {
-      SCM interface = SCM_CAR (uses);
+      SCM _interface = SCM_CAR (uses);
       /* 1. Check module obarray */
-      SCM b = scm_hashq_ref (SCM_MODULE_OBARRAY (interface), sym, SCM_BOOL_F);
+      SCM b = scm_hashq_ref (SCM_MODULE_OBARRAY (_interface), sym, SCM_BOOL_F);
       if (SCM_BOUND_THING_P (b))
-	return interface;
+	return _interface;
       {
-	SCM binder = SCM_MODULE_BINDER (interface);
+	SCM binder = SCM_MODULE_BINDER (_interface);
 	if (!SCM_FALSEP (binder))
 	  /* 2. Custom binder */
 	  {
-	    b = scm_call_3 (binder, interface, sym, SCM_BOOL_F);
+	    b = scm_call_3 (binder, _interface, sym, SCM_BOOL_F);
 	    if (SCM_BOUND_THING_P (b))
-	      return interface;
+	      return _interface;
 	  }
       }
       /* 3. Search use list recursively. */
-      interface = scm_module_import_interface (interface, sym);
-      if (!SCM_FALSEP (interface))
-	return interface;
+      _interface = scm_module_import_interface (_interface, sym);
+      if (!SCM_FALSEP (_interface))
+	return _interface;
       uses = SCM_CDR (uses);
     }
   return SCM_BOOL_F;

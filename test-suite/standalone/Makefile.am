@@ -11,7 +11,7 @@ TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
 test_cflags := \
   -I$(top_srcdir)/test-suite/standalone \
   -I$(top_srcdir) \
-  -I$(top_srcdir)/libguile-ltdl
+  -I$(top_srcdir)/libguile-ltdl $(EXTRA_DEFS)
 
 snarfcppopts = $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS)
 %.x: %.c
@@ -39,7 +39,7 @@ TESTS += test-gh
 noinst_LTLIBRARIES += libtest-asmobs.la
 libtest_asmobs_la_SOURCES = test-asmobs-lib.c test-asmobs-lib.x
 libtest_asmobs_la_CFLAGS = ${test_cflags}
-libtest_asmobs_la_LDFLAGS = -rpath `pwd` # so libtool will really build an .so
+libtest_asmobs_la_LDFLAGS = -no-undefined -rpath `pwd` # so libtool will really build an .so
 libtest_asmobs_la_LIBADD = ${top_builddir}/libguile/libguile.la
 BUILT_SOURCES += test-asmobs-lib.x
 check_SCRIPTS += test-asmobs

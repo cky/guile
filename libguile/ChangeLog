@@ -1,3 +1,35 @@
+2003-05-29  Stefan Jahn  <stefan@lkcc.org>
+
+	* win32-dirent.c: Use malloc() instead of scm_malloc().
+
+	* stime.c (s_scm_strftime): Add a type cast to avoid compiler
+	warning.
+
+	* posix.c (s_scm_putenv): Disable use of unsetenv() for the
+	mingw32 build.
+
+	* modules.c (s_scm_module_import_interface): Renamed local
+	variable interface to _interface.  Seems like 'interface'
+	is a special compiler directive for the mingw32 compiler.
+
+	* mkstemp.c: Provide prototype to avoid compiler warning.
+
+	* load.c (s_scm_search_path): Fixed absolute and relative
+	path detections for native Windows platforms.
+
+	* gc.h, threads.h: Export some more symbols using SCM_API (necessary 
+	to build on mingw32).
+
+	* gc-freelist.c ("s_scm_map_free_list", 
+	"s_scm_gc_set_debug_check_freelist_x"): Fixed use of FUNC_NAME.
+
+	* fports.c (fport_fill_input): Disable use of 
+	fport_wait_for_input() on Win32 platforms.
+
+	* filesys.c (s_scm_basename): Fixed __MINGW32__ code.
+
+	* Makefile.am: Modified some rules for cross compiling.
+
 2003-05-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL): In case of an application, all checks for a

@@ -1503,14 +1503,14 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
   if (j == -1)
     end = i;
 #ifdef __MINGW32__
-  while (i >= 0 && (f[i] != '/' || f[i] != '\\')) --i;
+  while (i >= 0 && f[i] != '/' && f[i] != '\\') --i;
 #else
   while (i >= 0 && f[i] != '/') --i;
 #endif /* ndef __MINGW32__ */
   if (i == end)
     {
 #ifdef __MINGW32__
-      if (len > 0 && (f[0] == '/' || f[i] == '\\'))
+      if (len > 0 && (f[0] == '/' || f[0] == '\\'))
 #else
       if (len > 0 && f[0] == '/')
 #endif /* ndef __MINGW32__ */
