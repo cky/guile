@@ -17,6 +17,7 @@
 ;;;; Boston, MA 02111-1307 USA
 
 (define-module (test-suite lib)
+  :use-module (ice-9 stack-catch)
   :use-module (ice-9 regex))
 
 (export
@@ -284,7 +285,7 @@
 (define (run-test-exception name exception expect-pass thunk)
   (run-test name expect-pass
     (lambda ()
-      (catch (car exception)
+      (stack-catch (car exception)
 	(lambda () (thunk) #f)
 	(lambda (key proc message . rest) 
 	  (if (not (string-match (cdr exception) message))
