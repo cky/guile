@@ -1,3 +1,9 @@
+2005-01-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* deprecated.h, deprecated.c, strings.h, strings.c: Turn all
+	deprecated features that once were macros but are now functions
+	back into macros.
+
 2005-01-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* eval.c, debug.h (SCM_WARN_DEPRECATED): New debug option.
