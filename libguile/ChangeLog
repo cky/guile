@@ -1,5 +1,8 @@
 2004-09-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* srfi-13.c (scm_string_trim_right, scm_string_xcopy_x): Correctly
+	use size_t for some locals instead of int.
+
 	* read.c (scm_flush_ws): Detect "#!"-style comments here.
 	(scm_lreadr): Abort on seeing "#!", which should no longer happen.
 	(skip_scsh_block_comment): Use scm_input_error instead of
@@ -38,11 +41,11 @@
 
 	* stime.c (_POSIX_C_SOURCE):  Do not define this item on
 	MinGW32 because it conflicts with its pthread headers.
-	(s_scm_mktime): Consider the HAVE_STRUCT_TM_TM_ZONE define.
-	(s_scm_strftime): Using scm_from_locale_string() instead of
+	(scm_mktime): Consider the HAVE_STRUCT_TM_TM_ZONE define.
+	(scm_strftime): Using scm_from_locale_string() instead of
 	scm_makfrom0str().
 
-	* posix.c (s_scm_putenv): Fixed typo in the !HAVE_UNSETENV
+	* posix.c (scm_putenv): Fixed typo in the !HAVE_UNSETENV
 	part.
 
 	* numbers.c (scm_init_numbers): Removed check_sanity() call
