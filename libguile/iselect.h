@@ -83,6 +83,8 @@
 
 #endif /* no FD_SET */
 
+#ifdef GUILE_ISELECT
+
 extern int scm_I_am_dead;
 
 extern int scm_internal_select (int fds,
@@ -92,5 +94,9 @@ extern int scm_internal_select (int fds,
 				struct timeval *timeout);
 extern void scm_error_revive_threads (void);
 extern void scm_init_iselect (void);
+
+#else /* GUILE_ISELECT */
+#define scm_internal_select select
+#endif /* GUILE_ISELECT */
 
 #endif
