@@ -652,6 +652,15 @@ return.
 
 * Changes to the C interface
 
+** Types have been renamed from scm_*_t to scm_t_*.
+
+This has been done for POSIX sake.  It reserves identifiers ending
+with "_t".  What a concept.
+
+The old names are still available with status `deprecated'.
+
+** scm_t_bits (former scm_bits_t) is now a unsigned type.
+
 ** Deprecated feature have been removed.
 
 *** Macros removed
