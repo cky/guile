@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -243,7 +243,7 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
   SCM_ASSERT ((SCM_INUM (k) < SCM_LENGTH (v)) && (SCM_INUM (k) >= 0),
 	      k, SCM_OUTOFRANGE, s_vector_set_x);
   SCM_VELTS(v)[(long) SCM_INUM(k)] = obj;
-  return obj;
+  return SCM_UNSPECIFIED;
 }
 
 
