@@ -179,7 +179,7 @@ SCM_DEFINE (scm_registered_modules, "c-registered-modules", 0, 0, 0,
 
   res = SCM_EOL;
   for (md = registered_mods; md; md = md->link)
-    res = scm_cons (scm_cons (scm_makfrom0str (md->module_name),
+    res = scm_cons (scm_cons (scm_from_locale_string (md->module_name),
 			      scm_from_ulong ((unsigned long) md->init_func)),
 		    res);
   return res;
@@ -379,17 +379,17 @@ SCM
 scm_makstr (size_t len, int dummy)
 {
   scm_c_issue_deprecation_warning
-    ("'scm_makstr' is deprecated.  Use 'scm_allocate_string' instead.");
-  return scm_allocate_string (len);
+    ("'scm_makstr' is deprecated.  Use 'scm_c_make_string' instead.");
+  return scm_c_make_string (len, SCM_UNDEFINED);
 }
 
 SCM 
 scm_makfromstr (const char *src, size_t len, int dummy SCM_UNUSED)
 {
   scm_c_issue_deprecation_warning ("`scm_makfromstr' is deprecated. "
-				   "Use `scm_mem2string' instead.");
+				   "Use `scm_from_locale_stringn' instead.");
 
-  return scm_mem2string (src, len);
+  return scm_from_locale_stringn (src, len);
 }
 
 SCM
@@ -653,7 +653,7 @@ SCM
 scm_sym2ovcell_soft (SCM sym, SCM obarray)
 {
   SCM lsym, z;
-  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
+  size_t hash = scm_i_symbol_hash (sym) % SCM_VECTOR_LENGTH (obarray);
 
   scm_c_issue_deprecation_warning ("`scm_sym2ovcell_soft' is deprecated. "
 				   "Use hashtables instead.");
@@ -716,8 +716,8 @@ scm_sym2ovcell (SCM sym, SCM obarray)
 SCM 
 scm_intern_obarray_soft (const char *name,size_t len,SCM obarray,unsigned int softness)
 {
-  SCM symbol = scm_mem2symbol (name, len);
-  size_t raw_hash = SCM_SYMBOL_HASH (symbol);
+  SCM symbol = scm_from_locale_symboln (name, len);
+  size_t raw_hash = scm_i_symbol_hash (symbol);
   size_t hash;
   SCM lsym;
 
@@ -814,8 +814,8 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
   else if (scm_is_eq (o, SCM_BOOL_T))
     o = SCM_BOOL_F;
     
-  vcell = scm_intern_obarray_soft (SCM_I_STRING_CHARS(s),
-				   SCM_I_STRING_LENGTH (s),
+  vcell = scm_intern_obarray_soft (scm_i_string_chars (s),
+				   scm_i_string_length (s),
 				   o,
 				   softness);
   if (scm_is_false (vcell))
@@ -841,7 +841,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
 				   "Use hashtables instead.");
 
   SCM_VALIDATE_VECTOR (1,o);
-  hval = SCM_SYMBOL_HASH (s) % SCM_VECTOR_LENGTH (o);
+  hval = scm_i_symbol_hash (s) % SCM_VECTOR_LENGTH (o);
   /* If the symbol is already interned, simply return. */
   SCM_REDEFER_INTS;
   {
@@ -883,7 +883,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
   if (scm_is_false (o))
     return SCM_BOOL_F;
   SCM_VALIDATE_VECTOR (1,o);
-  hval = SCM_SYMBOL_HASH (s) % SCM_VECTOR_LENGTH (o);
+  hval = scm_i_symbol_hash (s) % SCM_VECTOR_LENGTH (o);
   SCM_DEFER_INTS;
   {
     SCM lsym_follow;
@@ -1047,10 +1047,10 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
   else
     {
       SCM_VALIDATE_STRING (1, prefix);
-      len = SCM_I_STRING_LENGTH (prefix);
+      len = scm_i_string_length (prefix);
       if (len > MAX_PREFIX_LENGTH)
 	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
-      strncpy (name, SCM_I_STRING_CHARS (prefix), len);
+      strncpy (name, scm_i_string_chars (prefix), len);
     }
 
   if (SCM_UNBNDP (obarray))
@@ -1112,7 +1112,7 @@ scm_c_string2str (SCM obj, char *str, size_t *lenp)
     {
       char *result = scm_to_locale_string (obj);
       if (lenp)
-	*lenp = SCM_I_STRING_LENGTH (obj);
+	*lenp = scm_i_string_length (obj);
       return result;
     }
   else
@@ -1140,6 +1140,25 @@ scm_c_substring2str (SCM obj, char *str, size_t start, size_t len)
   return str;
 }
 
+/* Converts the given Scheme symbol OBJ into a C string, containing a copy
+   of OBJ's content with a trailing null byte.  If LENP is non-NULL, set
+   *LENP to the string's length.
+
+   When STR is non-NULL it receives the copy and is returned by the function,
+   otherwise new memory is allocated and the caller is responsible for 
+   freeing it via free().  If out of memory, NULL is returned.
+
+   Note that Scheme symbols may contain arbitrary data, including null
+   characters.  This means that null termination is not a reliable way to 
+   determine the length of the returned value.  However, the function always 
+   copies the complete contents of OBJ, and sets *LENP to the length of the
+   scheme symbol (if LENP is non-null).  */
+char *
+scm_c_symbol2str (SCM obj, char *str, size_t *lenp)
+{
+  return scm_c_string2str (scm_symbol_to_string (obj), str, lenp);
+}
+
 double
 scm_truncate (double x)
 {
@@ -1154,6 +1173,23 @@ scm_round (double x)
   scm_c_issue_deprecation_warning
     ("scm_round is deprecated.  Use scm_c_round instead.");
   return scm_c_round (x);
+}
+
+char *
+SCM_SYMBOL_CHARS (SCM sym)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_SYMBOL_CHARS is deprecated.  Use scm_symbol_to_string.");
+
+  return scm_i_symbol_chars (sym);
+}
+
+size_t
+SCM_SYMBOL_LENGTH (SCM sym)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_SYMBOL_LENGTH is deprecated.  Use scm_symbol_to_string.");
+  return scm_c_symbol_length (sym);
 }
 
 void

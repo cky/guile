@@ -404,6 +404,8 @@ SCM_API char *scm_c_string2str (SCM obj, char *str, size_t *lenp);
 */
 SCM_API char *scm_c_substring2str (SCM obj, char *str, size_t start, size_t len);
 
+SCM_API char *scm_c_symbol2str (SCM obj, char *str, size_t *lenp);
+
 /* Deprecated because the names belong to what is now
    scm_truncate_number and scm_round_number.
 */
@@ -438,6 +440,12 @@ SCM_API double scm_round (double x);
                       && (size_t) c_end <= SCM_STRING_LENGTH (str));\
   } while (0)
 
+/* Deprecated because we don't want people to access the internals of
+   symbols directly.
+*/
+
+SCM_API char *SCM_SYMBOL_CHARS (SCM sym);
+SCM_API size_t SCM_SYMBOL_LENGTH (SCM sym);
 
 void scm_i_init_deprecated (void);
 

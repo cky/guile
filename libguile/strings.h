@@ -3,7 +3,7 @@
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,20 +26,56 @@
 
 
 
-#define SCM_STRING_MAX_LENGTH ((SCM_T_BITS_MAX-255)/256)
+/* String representation.
 
-#define SCM_I_MAKE_STRING_TAG(l) ((((scm_t_bits) (l)) << 8) + scm_tc7_string)
-#define SCM_I_STRINGP(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
-#define SCM_I_STRING_UCHARS(x) ((unsigned char *) (SCM_CELL_WORD_1 (x)))
-#define SCM_I_STRING_CHARS(x)  ((char *) (SCM_CELL_WORD_1 (x)))
-#define SCM_I_STRING_LENGTH(x) ((size_t) (SCM_CELL_WORD_0 (x) >> 8))
+   A string is a piece of a stringbuf.  A stringbuf can be used by
+   more than one string.  When a string is written to and the
+   stringbuf of that string is used by more than one string, a new
+   stringbuf is created.  That is, strings are copy-on-write.  This
+   behavior can be used to make the substring operation quite
+   efficient.
 
-#define SCM_STRINGP        SCM_I_STRINGP
-#define SCM_STRING_CHARS   SCM_I_STRING_CHARS
-#define SCM_STRING_UCHARS  SCM_I_STRING_UCHARS
-#define SCM_STRING_LENGTH  SCM_I_STRING_LENGTH
+   The implementation is tuned so that mutating a string is costly,
+   but just reading it is cheap and lock-free.
 
-
+   There are also mutation-sharing strings.  They refer to a part of
+   an ordinary string.  Writing to a mutation-sharing string just
+   writes to the ordinary string.
+
+
+   Internal, low level interface to the character arrays
+
+   - Use scm_i_string_chars to get a pointer to the byte array of a
+     string for reading.  Use scm_i_string_length to get the number of
+     bytes in that array.  The array is not null-terminated.
+
+   - The array is valid as long as the corresponding SCM object is
+     protected but only until the next SCM_TICK.  During such a 'safe
+     point', strings might change their representation.
+
+   - Use scm_i_string_writable_chars to get the same pointer as with
+     scm_i_string_chars, but for reading and writing.  This is a
+     potentially costly operation since it implements the
+     copy-on-write behavior.  When done with the writing, call
+     scm_i_string_stop_writing.  You must do this before the next
+     SCM_TICK.  (This means, before calling almost any other scm_
+     function and you can't allow throws, of course.)
+
+   - New strings can be created with scm_i_make_string.  This gives
+     access to a writable pointer that remains valid as long as nobody
+     else makes a copy-on-write substring of the string.  Do not call
+     scm_i_string_stop_writing for this pointer.
+
+   Legacy interface
+
+   - SCM_STRINGP returns false for sh-strings.
+
+   - SCM_STRING_CHARS uses scm_i_string_writable_chars and immediately
+     calls scm_i_stop_writing, hoping for the best.  SCM_STRING_LENGTH
+     is the same as scm_i_string_length.  SCM_STRINGP will only return
+     true for strings that are null-terminated when accessed with
+     SCM_STRING_CHARS.
+*/
 
 SCM_API SCM scm_string_p (SCM x);
 SCM_API SCM scm_string (SCM chrs);
@@ -48,16 +84,17 @@ SCM_API SCM scm_string_length (SCM str);
 SCM_API SCM scm_string_ref (SCM str, SCM k);
 SCM_API SCM scm_string_set_x (SCM str, SCM k, SCM chr);
 SCM_API SCM scm_substring (SCM str, SCM start, SCM end);
+SCM_API SCM scm_substring_shared (SCM str, SCM start, SCM end);
+SCM_API SCM scm_substring_copy (SCM str, SCM start, SCM end);
 SCM_API SCM scm_string_append (SCM args);
 
-SCM_API SCM scm_makfromstrs (int argc, char **argv);
-SCM_API SCM scm_take_str (char *s, size_t len);
-SCM_API SCM scm_take0str (char *s);
-SCM_API SCM scm_mem2string (const char *src, size_t len);
-SCM_API SCM scm_str2string (const char *src);
-SCM_API SCM scm_makfrom0str (const char *src);
-SCM_API SCM scm_makfrom0str_opt (const char *src);
-SCM_API SCM scm_allocate_string (size_t len);
+SCM_API SCM scm_c_make_string (size_t len, SCM chr);
+SCM_API size_t scm_c_string_length (SCM str);
+SCM_API SCM scm_c_string_ref (SCM str, size_t pos);
+SCM_API void scm_c_string_set_x (SCM str, size_t pos, SCM chr);
+SCM_API SCM scm_c_substring (SCM str, size_t start, size_t end);
+SCM_API SCM scm_c_substring_shared (SCM str, size_t start, size_t end);
+SCM_API SCM scm_c_substring_copy (SCM str, size_t start, size_t end);
 
 SCM_API int scm_is_string (SCM x);
 SCM_API SCM scm_from_locale_string (const char *str);
@@ -68,6 +105,35 @@ SCM_API char *scm_to_locale_string (SCM str);
 SCM_API char *scm_to_locale_stringn (SCM str, size_t *lenp);
 SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
+SCM_API SCM scm_makfromstrs (int argc, char **argv);
+
+/* internal accessor functions.  Arguments must be valid. */
+
+SCM_API SCM scm_i_make_string (size_t len, char **datap);
+SCM_API SCM scm_i_substring (SCM str, size_t start, size_t end);
+SCM_API SCM scm_i_substring_shared (SCM str, size_t start, size_t end);
+SCM_API SCM scm_i_substring_copy (SCM str, size_t start, size_t end);
+SCM_API size_t scm_i_string_length (SCM str);
+SCM_API const char *scm_i_string_chars (SCM str);
+SCM_API char *scm_i_string_writable_chars (SCM str);
+SCM_API void scm_i_string_stop_writing (void);
+
+/* internal functions related to symbols. */
+
+SCM_API SCM scm_i_make_symbol (SCM name, unsigned long hash, SCM props);
+SCM_API const char *scm_i_symbol_chars (SCM sym);
+SCM_API size_t scm_i_symbol_length (SCM sym);
+SCM_API SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);
+
+/* internal GC functions. */
+
+SCM_API SCM scm_i_string_mark (SCM str);
+SCM_API SCM scm_i_stringbuf_mark (SCM buf);
+SCM_API SCM scm_i_symbol_mark (SCM buf);
+SCM_API void scm_i_string_free (SCM str);
+SCM_API void scm_i_stringbuf_free (SCM buf);
+SCM_API void scm_i_symbol_free (SCM sym);
+
 /* internal utility functions. */
 
 SCM_API char **scm_i_allocate_string_pointers (SCM list);
@@ -75,6 +141,17 @@ SCM_API void scm_i_free_string_pointers (char **pointers);
 SCM_API void scm_i_get_substring_spec (size_t len,
 				       SCM start, size_t *cstart,
 				       SCM end, size_t *cend);
+
+/* deprecated stuff */
+
+#if SCM_ENABLE_DEPRECATED
+
+SCM_API int SCM_STRINGP (SCM obj);
+SCM_API char *SCM_STRING_CHARS (SCM str);
+SCM_API size_t SCM_STRING_LENGTH (SCM str);
+#define SCM_STRING_UCHARS ((unsigned char *)SCM_STRING_CHARS (str))
+
+#endif
 
 SCM_API void scm_init_strings (void);
 

@@ -2,7 +2,7 @@
    discourage something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -80,6 +80,80 @@ SCM
 scm_make_complex (double x, double y)
 {
   return scm_c_make_rectangular (x, y);
+}
+
+SCM
+scm_mem2symbol (const char *mem, size_t len)
+{
+  return scm_from_locale_symboln (mem, len);
+}
+
+SCM
+scm_mem2uninterned_symbol (const char *mem, size_t len)
+{
+  return scm_make_symbol (scm_from_locale_stringn (mem, len));
+}
+
+SCM
+scm_str2symbol (const char *str)
+{
+  return scm_from_locale_symbol (str);
+}
+
+
+/* This function must only be applied to memory obtained via malloc,
+   since the GC is going to apply `free' to it when the string is
+   dropped.
+
+   Also, s[len] must be `\0', since we promise that strings are
+   null-terminated.  Perhaps we could handle non-null-terminated
+   strings by claiming they're shared substrings of a string we just
+   made up.  */
+SCM
+scm_take_str (char *s, size_t len)
+{
+  SCM answer = scm_from_locale_stringn (s, len);
+  free (s);
+  return answer;
+}
+
+/* `s' must be a malloc'd string.  See scm_take_str.  */
+SCM
+scm_take0str (char *s)
+{
+  return scm_take_locale_string (s);
+}
+
+SCM 
+scm_mem2string (const char *src, size_t len)
+{
+  return scm_from_locale_stringn (src, len);
+}
+
+SCM
+scm_str2string (const char *src)
+{
+  return scm_from_locale_string (src);
+}
+
+SCM 
+scm_makfrom0str (const char *src)
+{
+  if (!src) return SCM_BOOL_F;
+  return scm_from_locale_string (src);
+}
+
+SCM 
+scm_makfrom0str_opt (const char *src)
+{
+  return scm_makfrom0str (src);
+}
+
+
+SCM
+scm_allocate_string (size_t len)
+{
+  return scm_i_make_string (len, NULL);
 }
 
 void

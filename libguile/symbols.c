@@ -69,7 +69,7 @@ SCM_DEFINE (scm_sys_symbols, "%symbols", 0, 0, 0,
  *    without first creating an SCM string object.  (This would have
  *    been necessary if we had used the hashtable API in hashtab.h.)
  *
- * 2. We can use the raw hash value stored in SCM_SYMBOL_HASH (sym)
+ * 2. We can use the raw hash value stored in scm_i_symbol_hash (sym)
  *    to speed up lookup.
  *
  * Both optimizations might be possible without breaking the
@@ -79,12 +79,15 @@ SCM_DEFINE (scm_sys_symbols, "%symbols", 0, 0, 0,
 unsigned long
 scm_i_hash_symbol (SCM obj, unsigned long n, void *closure)
 {
-  return SCM_SYMBOL_HASH (obj) % n;
+  return scm_i_symbol_hash (obj) % n;
 }
 
-SCM
-scm_mem2symbol (const char *name, size_t len)
+static SCM
+scm_i_mem2symbol (SCM str)
 {
+  const char *name = scm_i_string_chars (str);
+  size_t len = scm_i_string_length (str);
+
   size_t raw_hash = scm_string_hash ((const unsigned char *) name, len) / 2;
   size_t hash = raw_hash % SCM_HASHTABLE_N_BUCKETS (symbols);
 
@@ -98,10 +101,10 @@ scm_mem2symbol (const char *name, size_t len)
 	 l = SCM_CDR (l))
       {
 	SCM sym = SCM_CAAR (l);
-	if (SCM_SYMBOL_HASH (sym) == raw_hash
-	    && SCM_SYMBOL_LENGTH (sym) == len)
+	if (scm_i_symbol_hash (sym) == raw_hash
+	    && scm_i_symbol_length (sym) == len)
 	  {
-	    char *chrs = SCM_SYMBOL_CHARS (sym);
+	    const char *chrs = scm_i_symbol_chars (sym);
 	    size_t i = len;
 
 	    while (i != 0)
@@ -120,11 +123,8 @@ scm_mem2symbol (const char *name, size_t len)
 
   {
     /* The symbol was not found - create it. */
-    SCM symbol = scm_double_cell (SCM_MAKE_SYMBOL_TAG (len),
-			      (scm_t_bits) scm_gc_strndup (name, len,
-							   "symbol"),
-			      raw_hash,
-			      SCM_UNPACK (scm_cons (SCM_BOOL_F, SCM_EOL)));
+    SCM symbol = scm_i_make_symbol (str, raw_hash,
+				    scm_cons (SCM_BOOL_F, SCM_EOL));
 
     SCM slot = SCM_HASHTABLE_BUCKETS (symbols) [hash];
     SCM cell = scm_cons (symbol, SCM_UNDEFINED);
@@ -137,23 +137,17 @@ scm_mem2symbol (const char *name, size_t len)
   }
 }
 
-SCM
-scm_mem2uninterned_symbol (const char *name, size_t len)
+static SCM
+scm_i_mem2uninterned_symbol (SCM str)
 {
+  const char *name = scm_i_string_chars (str);
+  size_t len = scm_i_string_length (str);
+
   size_t raw_hash = (scm_string_hash ((const unsigned char *) name, len)/2
 		     + SCM_T_BITS_MAX/2 + 1);
 
-  return scm_double_cell (SCM_MAKE_SYMBOL_TAG (len),
-			  (scm_t_bits) scm_gc_strndup (name, len, 
-						       "symbol"),
-			  raw_hash,
-			  SCM_UNPACK (scm_cons (SCM_BOOL_F, SCM_EOL)));
-}
-
-SCM
-scm_str2symbol (const char *str)
-{
-  return scm_mem2symbol (str, strlen (str));
+  return scm_i_make_symbol (str, raw_hash,
+			    scm_cons (SCM_BOOL_F, SCM_EOL));
 }
 
 SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0, 
@@ -162,7 +156,7 @@ SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_symbol_p
 {
-  return scm_from_bool (SCM_SYMBOLP (obj));
+  return scm_from_bool (scm_is_symbol (obj));
 }
 #undef FUNC_NAME
 
@@ -173,7 +167,7 @@ SCM_DEFINE (scm_symbol_interned_p, "symbol-interned?", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_interned_p
 {
   SCM_VALIDATE_SYMBOL (1, symbol);
-  return scm_from_bool (SCM_SYMBOL_INTERNED_P (symbol));
+  return scm_from_bool (scm_i_symbol_is_interned (symbol));
 }
 #undef FUNC_NAME
 
@@ -184,12 +178,8 @@ SCM_DEFINE (scm_make_symbol, "make-symbol", 1, 0, 0,
 	    "calls to @code{string->symbol} will not return it.")
 #define FUNC_NAME s_scm_make_symbol
 {
-  SCM sym;
   SCM_VALIDATE_STRING (1, name);
-  sym = scm_mem2uninterned_symbol (SCM_I_STRING_CHARS (name),
-				   SCM_I_STRING_LENGTH (name));
-  scm_remember_upto_here_1 (name);
-  return sym;
+  return scm_i_mem2uninterned_symbol (name);
 }
 #undef FUNC_NAME
 
@@ -220,11 +210,8 @@ SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_symbol_to_string
 {
-  SCM str;
   SCM_VALIDATE_SYMBOL (1, s);
-  str = scm_mem2string (SCM_SYMBOL_CHARS (s), SCM_SYMBOL_LENGTH (s));
-  scm_remember_upto_here_1 (s);
-  return str;
+  return scm_i_symbol_substring (s, 0, scm_i_symbol_length (s));
 }
 #undef FUNC_NAME
 
@@ -253,12 +240,8 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_string_to_symbol
 {
-  SCM sym;
   SCM_VALIDATE_STRING (1, string);
-  sym = scm_mem2symbol (SCM_I_STRING_CHARS (string),
-			SCM_I_STRING_LENGTH (string));
-  scm_remember_upto_here_1 (string);
-  return sym;
+  return scm_i_mem2symbol (string);
 }
 #undef FUNC_NAME
 
@@ -274,39 +257,23 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
 #define FUNC_NAME s_scm_gensym
 {
   static int gensym_counter = 0;
+  
+  SCM suffix, name;
+  int n, n_digits;
+  char buf[SCM_INTBUFLEN];
 
-  char buf[MAX_PREFIX_LENGTH + SCM_INTBUFLEN];
-  char *name = buf;
-  size_t len;
   if (SCM_UNBNDP (prefix))
-    {
-      name[0] = ' ';
-      name[1] = 'g';
-      len = 2;
-    }
-  else
-    {
-      SCM_VALIDATE_STRING (1, prefix);
-      len = SCM_I_STRING_LENGTH (prefix);
-      if (len > MAX_PREFIX_LENGTH)
-	name = scm_malloc (len + SCM_INTBUFLEN);
-      memcpy (name, SCM_I_STRING_CHARS (prefix), len);
-      scm_remember_upto_here_1 (prefix);
-    }
-  {
-    int n, n_digits;
+    prefix = scm_from_locale_string (" g");
+  
+  /* mutex in case another thread looks and incs at the exact same moment */
+  scm_mutex_lock (&scm_i_misc_mutex);
+  n = gensym_counter++;
+  scm_mutex_unlock (&scm_i_misc_mutex);
 
-    /* mutex in case another thread looks and incs at the exact same moment */
-    scm_mutex_lock (&scm_i_misc_mutex);
-    n = gensym_counter++;
-    scm_mutex_unlock (&scm_i_misc_mutex);
-
-    n_digits = scm_iint2str (n, 10, &name[len]);
-    SCM res = scm_mem2symbol (name, len + n_digits);
-    if (name != buf)
-      free (name);
-    return res;
-  }
+  n_digits = scm_iint2str (n, 10, buf);
+  suffix = scm_from_locale_stringn (buf, n_digits);
+  name = scm_string_append (scm_list_2 (prefix, suffix));
+  return scm_string_to_symbol (name);
 }
 #undef FUNC_NAME
 
@@ -316,7 +283,7 @@ SCM_DEFINE (scm_symbol_hash, "symbol-hash", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_hash
 {
   SCM_VALIDATE_SYMBOL (1, symbol);
-  return scm_from_ulong (SCM_SYMBOL_HASH (symbol));
+  return scm_from_ulong (scm_i_symbol_hash (symbol));
 }
 #undef FUNC_NAME
 
@@ -326,7 +293,7 @@ SCM_DEFINE (scm_symbol_fref, "symbol-fref", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_fref
 {
   SCM_VALIDATE_SYMBOL (1, s);
-  return SCM_SYMBOL_FUNC (s);
+  return SCM_CAR (SCM_CELL_OBJECT_3 (s));
 }
 #undef FUNC_NAME
 
@@ -337,7 +304,7 @@ SCM_DEFINE (scm_symbol_pref, "symbol-pref", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_pref
 {
   SCM_VALIDATE_SYMBOL (1, s);
-  return SCM_SYMBOL_PROPS (s);
+  return SCM_CDR (SCM_CELL_OBJECT_3 (s));
 }
 #undef FUNC_NAME
 
@@ -348,7 +315,7 @@ SCM_DEFINE (scm_symbol_fset_x, "symbol-fset!", 2, 0, 0,
 #define FUNC_NAME s_scm_symbol_fset_x
 {
   SCM_VALIDATE_SYMBOL (1, s);
-  SCM_SET_SYMBOL_FUNC (s, val);
+  SCM_SETCAR (SCM_CELL_OBJECT_3 (s), val);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -360,56 +327,22 @@ SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
 #define FUNC_NAME s_scm_symbol_pset_x
 {
   SCM_VALIDATE_SYMBOL (1, s);
-  SCM_DEFER_INTS;
-  SCM_SET_SYMBOL_PROPS (s, val);
-  SCM_ALLOW_INTS;
+  SCM_SETCDR (SCM_CELL_OBJECT_3 (s), val);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
-
-/* Converts the given Scheme symbol OBJ into a C string, containing a copy
-   of OBJ's content with a trailing null byte.  If LENP is non-NULL, set
-   *LENP to the string's length.
-
-   When STR is non-NULL it receives the copy and is returned by the function,
-   otherwise new memory is allocated and the caller is responsible for 
-   freeing it via free().  If out of memory, NULL is returned.
-
-   Note that Scheme symbols may contain arbitrary data, including null
-   characters.  This means that null termination is not a reliable way to 
-   determine the length of the returned value.  However, the function always 
-   copies the complete contents of OBJ, and sets *LENP to the length of the
-   scheme symbol (if LENP is non-null).  */
-#define FUNC_NAME "scm_c_symbol2str"
-char *
-scm_c_symbol2str (SCM obj, char *str, size_t *lenp)
+SCM
+scm_from_locale_symbol (const char *sym)
 {
-  size_t len;
-
-  SCM_ASSERT (SCM_SYMBOLP (obj), obj, SCM_ARG1, FUNC_NAME);
-  len = SCM_SYMBOL_LENGTH (obj);
-
-  if (str == NULL)
-    {
-      /* FIXME: Should we use exported wrappers for malloc (and free), which
-       * allow windows DLLs to call the correct freeing function? */
-      str = (char *) scm_malloc ((len + 1) * sizeof (char));
-      if (str == NULL)
-	return NULL;
-    }
-
-  memcpy (str, SCM_SYMBOL_CHARS (obj), len);
-  scm_remember_upto_here_1 (obj);
-  str[len] = '\0';
-
-  if (lenp != NULL)
-    *lenp = len;
-
-  return str;
+  return scm_string_to_symbol (scm_from_locale_string (sym));
 }
-#undef FUNC_NAME
 
+SCM
+scm_from_locale_symboln (const char *sym, size_t len)
+{
+  return scm_string_to_symbol (scm_from_locale_stringn (sym, len));
+}
 
 void
 scm_symbols_prehistory ()

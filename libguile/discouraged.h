@@ -113,6 +113,41 @@ SCM_API double scm_num2double (SCM num, unsigned long int pos,
 
 SCM_API SCM scm_make_complex (double x, double y);
 
+/* Discouraged because they don't make the encoding explicit.
+ */
+
+SCM_API SCM scm_mem2symbol (const char *mem, size_t len);
+SCM_API SCM scm_mem2uninterned_symbol (const char *mem, size_t len);
+SCM_API SCM scm_str2symbol (const char *str);
+
+SCM_API SCM scm_take_str (char *s, size_t len);
+SCM_API SCM scm_take0str (char *s);
+SCM_API SCM scm_mem2string (const char *src, size_t len);
+SCM_API SCM scm_str2string (const char *src);
+SCM_API SCM scm_makfrom0str (const char *src);
+SCM_API SCM scm_makfrom0str_opt (const char *src);
+
+/* Discouraged because scm_c_make_string has a better name and is more
+   consistent with make-string.
+ */
+SCM_API SCM scm_allocate_string (size_t len);
+
+/* Discouraged because scm_is_symbol has a better name,
+ */
+#define SCM_SYMBOLP scm_is_symbol
+
+/* Discouraged because the alternatives have the better names.
+ */
+#define SCM_SYMBOL_FUNC	            scm_symbol_fref
+#define SCM_SET_SYMBOL_FUNC         scm_symbol_fset_x
+#define SCM_SYMBOL_PROPS	    scm_symbol_pref
+#define SCM_SET_SYMBOL_PROPS        scm_symbol_pset_x
+
+/* Discouraged because there are better ways.
+ */
+#define SCM_SYMBOL_HASH             scm_i_symbol_hash
+#define SCM_SYMBOL_INTERNED_P(X)    scm_i_symbol_is_interned
+
 void scm_i_init_discouraged (void);
 
 #endif /* SCM_ENABLE_DISCOURAGED == 1 */
