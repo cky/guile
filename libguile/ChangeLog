@@ -22,8 +22,8 @@
 	
 	* continuation.c, deprecated.c, goops.c, guardians.c keywords.c,
 	libguile_la-arrays.loT, objprop.c, ports.c, smob.c, sort.s,
-	srcprop.c, stime.c, struct.c, throw.c: Include "libguile/async.h"
-	for SCM_CRITICAL_SECTION_START/END.
+	srcprop.c, stime.c, struct.c, throw.c, regex-posix.c: Include
+	"libguile/async.h" for SCM_CRITICAL_SECTION_START/END.
 
 	* debug.c (scm_debug_options): Replace
 	SCM_CRITICAL_SECTION_START/END with a frame and
