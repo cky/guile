@@ -1,5 +1,9 @@
 2001-01-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gh_data.c (gh_ints2scm):  Simplified using SCM_FIXABLE.
+
+2001-01-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* __scm.h:  Added comment about architecture and compiler
 	properties that are required by guile.
 

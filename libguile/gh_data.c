@@ -140,10 +140,8 @@ gh_ints2scm (int *d, int n)
   SCM *velts = SCM_VELTS(v);
 
   for (i = 0; i < n; ++i)
-    velts[i] = (d[i] >= SCM_MOST_NEGATIVE_FIXNUM
-		&& d[i] <= SCM_MOST_POSITIVE_FIXNUM
-		? SCM_MAKINUM (d[i])
-		: scm_long2big (d[i]));
+    velts[i] = (SCM_FIXABLE (d[i]) ? SCM_MAKINUM (d[i]) : scm_long2big (d[i]));
+
   return v;
 }
 
