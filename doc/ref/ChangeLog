@@ -1,3 +1,8 @@
+2004-12-05  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-1 Length Append etc): In concatenate, note
+	equivalence to "apply append".
+
 2004-11-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-compound.texi (Generalized Vectors): New.
