@@ -802,7 +802,7 @@ The value returned by @samp{vector-set!} is unspecified.
 @end lisp
 @end deffn
 
-@deftypefn {C Function} SCM scm_c_vector_set_x (SCM v, size_t k, SCM obj)
+@deftypefn {C Function} void scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 Store @var{obj} in position @var{k} (a @code{size_t}) of @var{v}.
 @end deftypefn
 
@@ -1479,13 +1479,14 @@ For example,
 @end example
 @end deffn
 
+
 @node Generalized Vectors
 @subsection Generalized Vectors
 
 Guile has a number of data types that are generally vector-like:
 strings, uniform numeric vectors, bitvectors, and of course ordinary
 vectors of arbitrary Scheme values.  These types are disjoint: a
-Scheme values belongs to at most one of the four types listed above.
+Scheme value belongs to at most one of the four types listed above.
 
 If you want to gloss over this distinction and want to treat all four
 types with common code, you can use the procedures in this section.
