@@ -477,6 +477,11 @@ and scm_tc16_complex, respectively.
 
 ** Removed deprecated type tag scm_tc16_kw
 
+** Added type tag scm_tc16_keyword
+
+(This was introduced already in release 1.3.4 but was not documented
+ until now.)
+
 * Changes to system call interfaces:
 
 ** The "select" procedure now tests port buffers for the ability to
