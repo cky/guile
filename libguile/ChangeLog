@@ -85,7 +85,6 @@
 	* ports.c, fports.c, strports, vports.c, ioext.c, unif.c, filesys.c:
 	change callers.
 
->>>>>>> 1.602
 1999-08-06  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (SCM_IM_DISPATCH): Rewrote dispatch protocol.  Dispatch
