@@ -1083,6 +1083,114 @@
 	     (= (length even) 0))))))
 
 ;;
+;; reduce
+;;
+
+(with-test-prefix "reduce"
+
+  (pass-if "empty"
+    (let* ((calls '())
+	   (ret   (reduce (lambda (x prev)
+			    (set! calls (cons (list x prev) calls))
+			    x)
+			  1 '())))
+      (and (equal? calls '())
+	   (equal? ret   1))))
+
+  (pass-if "one elem"
+    (let* ((calls '())
+	   (ret   (reduce (lambda (x prev)
+			    (set! calls (cons (list x prev) calls))
+			    x)
+			  1 '(2))))
+      (and (equal? calls '())
+	   (equal? ret   2))))
+
+  (pass-if "two elems"
+    (let* ((calls '())
+	   (ret   (reduce (lambda (x prev)
+			    (set! calls (cons (list x prev) calls))
+			    x)
+			  1 '(2 3))))
+      (and (equal? calls '((3 2)))
+	   (equal? ret   3))))
+
+  (pass-if "three elems"
+    (let* ((calls '())
+	   (ret   (reduce (lambda (x prev)
+			    (set! calls (cons (list x prev) calls))
+			    x)
+			  1 '(2 3 4))))
+      (and (equal? calls '((4 3)
+			   (3 2)))
+	   (equal? ret   4))))
+
+  (pass-if "four elems"
+    (let* ((calls '())
+	   (ret   (reduce (lambda (x prev)
+			    (set! calls (cons (list x prev) calls))
+			    x)
+			  1 '(2 3 4 5))))
+      (and (equal? calls '((5 4)
+			   (4 3)
+			   (3 2)))
+	   (equal? ret   5)))))
+
+;;
+;; reduce-right
+;;
+
+(with-test-prefix "reduce-right"
+
+  (pass-if "empty"
+    (let* ((calls '())
+	   (ret   (reduce-right (lambda (x prev)
+				  (set! calls (cons (list x prev) calls))
+				  x)
+				1 '())))
+      (and (equal? calls '())
+	   (equal? ret   1))))
+
+  (pass-if "one elem"
+    (let* ((calls '())
+	   (ret   (reduce-right (lambda (x prev)
+				  (set! calls (cons (list x prev) calls))
+				  x)
+				1 '(2))))
+      (and (equal? calls '())
+	   (equal? ret   2))))
+
+  (pass-if "two elems"
+    (let* ((calls '())
+	   (ret   (reduce-right (lambda (x prev)
+				  (set! calls (cons (list x prev) calls))
+				  x)
+				1 '(2 3))))
+      (and (equal? calls '((2 3)))
+	   (equal? ret   2))))
+
+  (pass-if "three elems"
+    (let* ((calls '())
+	   (ret   (reduce-right (lambda (x prev)
+				  (set! calls (cons (list x prev) calls))
+				  x)
+				1 '(2 3 4))))
+      (and (equal? calls '((2 3)
+			   (3 4)))
+	   (equal? ret   2))))
+
+  (pass-if "four elems"
+    (let* ((calls '())
+	   (ret   (reduce-right (lambda (x prev)
+				  (set! calls (cons (list x prev) calls))
+				  x)
+				1 '(2 3 4 5))))
+      (and (equal? calls '((2 3)
+			   (3 4)
+			   (4 5)))
+	   (equal? ret   2)))))
+  
+;;
 ;; remove
 ;;
 
