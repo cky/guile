@@ -3605,9 +3605,9 @@ SCM_GPROC (s_map, "map", 2, 0, 1, scm_map, g_map);
 
 /* Note: Currently, scm_map applies PROC to the argument list(s)
    sequentially, starting with the first element(s).  This is used in
-   evalext.c where the Scheme procedure `serial-map', which guarantees
+   evalext.c where the Scheme procedure `map-in-order', which guarantees
    sequential behaviour, is implemented using scm_map.  If the
-   behaviour changes, we need to update `serial-map'.
+   behaviour changes, we need to update `map-in-order'.
 */
 
 SCM 
