@@ -1,3 +1,11 @@
+1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* guile.m4 (GUILE_FLAGS): New macro.
+
+	* guile.m4 (AM_INIT_GUILE_MODULE): Deleted; it doesn't do anything
+ 	terribly helpful any more, nobody's using it, and this is not
+ 	really the way I want to handle modules anyway.
+
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in (FD_SETTER, FILE_CNT_GPTR): New cases for SCO's

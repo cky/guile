@@ -66,11 +66,12 @@ usually just a `-I' flag to help the compiler find the Guile headers.
 
 
 *** `guile-config link' prints any linker flags necessary to link with Guile.
+
 This command writes to its standard output a list of flags which you
-must pass to the linker, if you want to link your code against the
-Guile library.  The flags include '-lguile' itself, any other
-libraries the Guile library depends upon, and any `-L' flags needed to
-help the linker find those libraries.
+must pass to the linker to link your code against the Guile library.
+The flags include '-lguile' itself, any other libraries the Guile
+library depends upon, and any `-L' flags needed to help the linker
+find those libraries.
 
 For example, here is a Makefile rule that builds a program named 'foo'
 from the object files ${FOO_OBJECTS}, and links them against Guile:
@@ -87,6 +88,40 @@ This was originally called `build-guile', but was renamed to
 `guile-config' before Guile 1.3 was released, to be consistent with
 the analogous script for the GTK+ GUI toolkit, which is called
 `gtk-config'.
+
+
+** Use the GUILE_FLAGS macro in your configure.in file to find Guile.
+
+If you are using the GNU autoconf package to configure your program,
+you can use the GUILE_FLAGS autoconf macro to call `guile-config'
+(described above) and gather the necessary values for use in your
+Makefiles.
+
+The GUILE_FLAGS macro expands to configure script code which runs the
+`guile-config' script, to find out where Guile's header files and
+libraries are installed.  It sets two variables, marked for
+substitution, as by AC_SUBST.
+
+  GUILE_CFLAGS --- flags to pass to a C or C++ compiler to build
+    code that uses Guile header files.  This is almost always just a
+    -I flag.
+
+  GUILE_LDFLAGS --- flags to pass to the linker to link a
+    program against Guile.  This includes `-lguile' for the Guile
+    library itself, any libraries that Guile itself requires (like
+    -lqthreads), and so on.  It may also include a -L flag to tell the
+    compiler where to find the libraries.
+
+GUILE_FLAGS is defined in the file guile.m4, in the top-level
+directory of the Guile distribution.  You can copy it into your
+package's aclocal.m4 file, and then use it in your configure.in file.
+
+If you are using the `aclocal' program, distributed with GNU automake,
+to maintain your aclocal.m4 file, the Guile installation process
+installs guile.m4 where aclocal will find it.  All you need to do is
+use GUILE_FLAGS in your configure.in file, and then run `aclocal';
+this will copy the definition of GUILE_FLAGS into your aclocal.m4
+file.
 
 
 * Changes to Scheme functions and syntax
