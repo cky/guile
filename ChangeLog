@@ -1,3 +1,11 @@
+1998-04-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* configure.in: Check for usleep;  Define DECLARE_BZERO and
+	DECLARE_USLEEP on Solaris 2.5 since it supplies those functions
+	without declaring them.
+
+	* acconfig.h: Added DECLARE_BZERO, DECLARE_USLEEP
+
 1998-04-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* configure.in: Define HAVE_DLOPEN also when HAVE_LIBDL is

@@ -93,7 +93,18 @@ fi
 
 GUILE_DLSYM_USCORE
 
-AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero system)
+AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero system usleep)
+
+# Determine the host we are working on
+AC_CANONICAL_HOST
+
+# Some operating systems don't declare all functions
+case "$host_os" in
+  solaris2.5*)
+    AC_DEFINE(DECLARE_BZERO)
+    AC_DEFINE(DECLARE_USLEEP)
+  ;;
+esac
 
 dnl <GNU-WIN32 hacks>
 
@@ -375,9 +386,6 @@ threads_enabled=false
 if test "$cy_cv_threads_package" = COOP; then
 	threads_enabled=true
 fi
-
-# Determine the host we are working on
-AC_CANONICAL_HOST
 
 # How can we refer to the qt source directory from within the qt build
 # directory?  For headers, we can rely on the fact that the qt src
