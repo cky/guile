@@ -36,17 +36,15 @@ In addition, Guile offers variables as first-class objects.  They can
 be used for interacting with the module system.
 
 @menu
-* Scheme and modules::          How modules are handled in standard Scheme.
+* provide and require::         The SLIB feature mechanism.
+* Environments::                R5RS top-level environments.
 * The Guile module system::     How Guile does it.
 * Dynamic Libraries::           Loading libraries of compiled code at run time.
 * Variables::                   First-class variables.
 @end menu
 
-
-@node Scheme and modules
-@section Scheme and modules
-
-Scheme, as defined in R5RS, does @emph{not} have a module system at all.
+@node provide and require
+@section provide and require
 
 Aubrey Jaffer, mostly to support his portable Scheme library SLIB,
 implemented a provide/require mechanism for many Scheme implementations.
@@ -70,9 +68,55 @@ and they would magically become available, @emph{but still have the same
 names!}  So this method is nice, but not as good as a full-featured
 module system.
 
+When SLIB is used with Guile, provide and require can be used to access
+its facilities.
+
+@node Environments
+@section Environments
+@cindex environment
+
+Scheme, as defined in R5RS, does @emph{not} have a full module system.
+However it does define the concept of a top-level @dfn{environment}.
+Such an environment maps identifiers (symbols) to Scheme objects such
+as procedures and lists: @ref{About Closure}.  In other words, it
+implements a set of @dfn{bindings}.
+
+Environments in R5RS can be passed as the second argument to
+@code{eval} (@pxref{Fly Evaluation}).  Three procedures are defined to
+return environments: @code{scheme-report-environment},
+@code{null-environment} and @code{interaction-environment} (@pxref{Fly
+Evaluation}).
+
+In addition, in Guile any module can be used as an R5RS environment,
+i.e., passed as the second argument to @code{eval}.
+
+@deffn {Scheme Procedure} scheme-report-environment version
+@deffnx {Scheme Procedure} null-environment version
+@var{version} must be the exact integer `5', corresponding to revision
+5 of the Scheme report (the Revised^5 Report on Scheme).
+@code{scheme-report-environment} returns a specifier for an
+environment that is empty except for all bindings defined in the
+report that are either required or both optional and supported by the
+implementation. @code{null-environment} returns a specifier for an
+environment that is empty except for the (syntactic) bindings for all
+syntactic keywords defined in the report that are either required or
+both optional and supported by the implementation.
+
+Currently Guile does not support values of @var{version} for other
+revisions of the report.
+
+The effect of assigning (through the use of @code{eval}) a variable
+bound in a @code{scheme-report-environment} (for example @code{car})
+is unspecified.  Currently the environments specified by
+@code{scheme-report-environment} are not immutable in Guile.
+@end deffn
 
 @node The Guile module system
 @section The Guile module system
+
+The Guile module system extends the concept of environments, discussed
+in the previous section, with mechanisms to define, use and customise
+sets of bindings.
 
 In 1996 Tom Lord implemented a full-featured module system for Guile which
 allows loading Scheme source files into a private name space.  This system has
@@ -101,10 +145,17 @@ there is still some flux.
 @node General Information about Modules
 @subsection General Information about Modules
 
-A Guile module is a collection of named procedures, variables and
-macros, altogether called the @dfn{bindings}, since they bind, or
-associate, a symbol (the name) to a Scheme object (procedure, variable,
-or macro).  Within a module, all bindings are visible.  Certain bindings
+A Guile module can be thought of as a collection of named procedures,
+variables and macros.  More precisely, it is a set of @dfn{bindings}
+of symbols (names) to Scheme objects.
+
+An environment is a mapping from identifiers (or symbols) to locations,
+i.e., a set of bindings.
+There are top-level environments and lexical environments.
+Environment in which a lambda is excuted is remembered as part of its
+definition.
+
+Within a module, all bindings are visible.  Certain bindings
 can be declared @dfn{public}, in which case they are added to the
 module's so-called @dfn{export list}; this set of public bindings is
 called the module's @dfn{public interface} (@pxref{Creating Guile
@@ -118,16 +169,17 @@ algorithmically @dfn{rename} bindings.  In contrast, when using the
 providing module's public interface, the entire export list is available
 without renaming (@pxref{Using Guile Modules}).
 
-To use a module, it must be found and loaded.  All Guile modules have a
-unique @dfn{module name}, which is a list of one or more symbols.
-Examples are @code{(ice-9 popen)} or @code{(srfi srfi-11)}.  When Guile
-searches for the code of a module, it constructs the name of the file to
-load by concatenating the name elements with slashes between the
-elements and appending a number of file name extensions from the list
-@code{%load-extensions} (REFFIXME).  The resulting file name is then
-searched in all directories in the variable @code{%load-path}.  For
-example, the @code{(ice-9 popen)} module would result in the filename
-@code{ice-9/popen.scm} and searched in the installation directory of
+To use a module, it must be found and loaded.  All Guile modules have
+a unique @dfn{module name}, which is a list of one or more symbols.
+Examples are @code{(ice-9 popen)} or @code{(srfi srfi-11)}.  When
+Guile searches for the code of a module, it constructs the name of the
+file to load by concatenating the name elements with slashes between
+the elements and appending a number of file name extensions from the
+list @code{%load-extensions} (@pxref{Loading}).  The resulting file
+name is then searched in all directories in the variable
+@code{%load-path} (@pxref{Install Config}).  For example, the
+@code{(ice-9 popen)} module would result in the filename
+@code{ice-9/popen.scm} and searched in the installation directories of
 Guile and in all other directories in the load path.
 
 @c FIXME::martin:  Not sure about this, maybe someone knows better?
@@ -149,10 +201,11 @@ address these eventually.
 To use a Guile module is to access either its public interface or a
 custom interface (@pxref{General Information about Modules}).  Both
 types of access are handled by the syntactic form @code{use-modules},
-which accepts one or more interface specifications and, upon evaluation,
-arranges for those interfaces to be available to the current module.
-This process may include locating and loading code for a given module if
-that code has not yet been loaded (REFFIXME %load-path).
+which accepts one or more interface specifications and, upon
+evaluation, arranges for those interfaces to be available to the
+current module.  This process may include locating and loading code
+for a given module if that code has not yet been loaded, following
+%load-path (@pxref{Install Config}).
 
 An @dfn{interface specification} has one of two forms.  The first
 variation is simply to name the module, in which case its public
@@ -580,9 +633,6 @@ in @var{argv} and its size in @var{argc}.  The return value is
 converted to a Scheme number and returned from the call to
 @code{dynamic-args-call}.
 @end deffn
-
-When dynamic linking is disabled or not supported on your system,
-the above functions throw errors, but they are still available.
 
 Here is a small example that may work on GNU/Linux:
 

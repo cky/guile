@@ -182,6 +182,8 @@ this procedure directly, use the procedures @code{read-enable},
 @node Fly Evaluation
 @section Procedures for On the Fly Evaluation
 
+@xref{Environments}.
+
 @rnindex eval
 @c ARGFIXME environment/environment specifier
 @deffn {Scheme Procedure} eval exp module
