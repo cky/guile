@@ -1,3 +1,11 @@
+2000-07-23  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* alist.c (scm_assq_remove_x, scm_assv_remove_x,
+	scm_assoc_remove_x): Remove all cells whose key is eq, eqv, or
+	equal (respectively) to the argument key, not all cells that are
+	eq, eqv, or equal to the first cell with the argument key.  Thanks
+	to Neil Jerram!
+	
 2000-07-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.h (SCM_FREE_CELL_CDR, SCM_SET_FREE_CELL_CDR), hooks.c
