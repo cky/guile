@@ -14,6 +14,10 @@ Wed Jun  4 23:27:16 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 	(record-type-name, record-type-fields): Adjusted slot offsets.
 	(%print-module): Reduce argument list to "mod" and "port".
 	
+Tue Jun  3 17:04:18 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* slib.scm (identity): New function, used by SLIB.
+
 Sat May 31 18:57:12 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm: signal-handler, alarm-thunk: removed.

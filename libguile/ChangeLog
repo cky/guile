@@ -6,6 +6,11 @@ Sun Jun  8 14:37:26 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 	(SCM_CEVAL): Use scm_lookupcar1 instead of scm_lookupcar in one
  	place.
 
+Fri Jun  6 19:05:07 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* regex-posix.c (scm_regexp_exec): Use the `start' argument if
+	supplied.  (Change from Tim Pierce.) 
+
 Thu Jun  5 16:38:19 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* struct.c (init_struct): Forget to mention this in the "Wed Jun 4

@@ -1,13 +1,13 @@
+Mon Jun  9 02:35:46 1997  Tim Pierce  <twp@twp.tezcat.com>
+
+	* config.guess: New copy from autoconf-2.12, which recognizes
+	OpenBSD.
+
 Tue Jun  3 16:34:19 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* configure.in: Check for Rx, so we will use its routines (which I
 	pretty much trust) if it is installed.
 	* configure: Regenerated.
-
-Mon Jun  9 02:35:46 1997  Tim Pierce  <twp@twp.tezcat.com>
-
-	* config.guess: New copy from autoconf-2.12, which recognizes
-	OpenBSD.
 
 Sat May 31 03:48:45 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
