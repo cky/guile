@@ -1357,20 +1357,28 @@ which are already in the Guile core, the string predicates
 
 @deffn {Scheme Procedure} string-any pred s [start end]
 Check if the predicate @var{pred} is true for any character in
-the string @var{s}, proceeding from left (index @var{start}) to
-right (index @var{end}).  If @code{string-any} returns true,
-the returned true value is the one produced by the first
-successful application of @var{pred}.
+the string @var{s}.
+
+Calls to @var{pred} are made from left to right across @var{s}.  When
+it returns true (ie.@: non-@code{#f}), that return value is the return
+from @code{string-any}.
 @end deffn
 
 @deffn {Scheme Procedure} string-every pred s [start end]
 Check if the predicate @var{pred} is true for every character
-in the string @var{s}, proceeding from left (index @var{start})
-to right (index @var{end}).  If @code{string-every} returns
-true, the returned true value is the one produced by the final
-application of @var{pred} to the last character of @var{s}.
+in the string @var{s}.
+
+Calls to @var{pred} are made from left to right across @var{s}.  If
+the predicate is true for every character then the return value from
+the last @var{pred} call is the return from @code{string-every}.
+
+If there are no characters in @var{s} (ie.@: @var{start} equals
+@var{end}) then the return is @code{#t}.
 @end deffn
 
+The SRFI-13 specification requires that the call to @var{pred} on the
+last character of @var{s} (assuming that point is reached) be a tail
+call, but currently in Guile this is not the case.
 
 @c ===================================================================
 
