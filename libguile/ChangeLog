@@ -1,3 +1,7 @@
+2002-08-29  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* numbers.c (scm_make_real): prevent reordering of statements
+
 2002-08-27  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* eval.h: prepend libguile/ to include path

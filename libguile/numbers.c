@@ -3015,6 +3015,13 @@ scm_make_real (double x)
 {
   SCM z;
   z = scm_double_cell (scm_tc16_real, 0, 0, 0);
+
+  /*
+    scm_double_cell is inlined. strict C aliasing rules say that it's
+    OK to interchange the initialization above and the one below. We
+    don't want that, of course.
+   */
+  scm_remember_1 (z);
   SCM_REAL_VALUE (z) = x;
   return z;
 }
