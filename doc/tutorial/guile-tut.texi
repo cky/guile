@@ -148,7 +148,7 @@ the prompt; the interpreter's response is preceded (in this manual) by
 In this example we did some simple arithmetic @code{(+ 20 35)} and got
 the answer @code{55}.  Then we coded the classic (and rather wasteful)
 factorial algorithm, and got a glimpse of Scheme's nice
-@emph{bignumbers} by asking for the factorial of 1000.  Then we quit
+@emph{bignumbers} by asking for the factorial of 500.  Then we quit
 with @code{(quit)}.
 @cindex bignumbers
 
