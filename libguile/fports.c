@@ -59,6 +59,9 @@
 #else
 size_t fwrite ();
 #endif
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
 #include <sys/stat.h>
 #endif
@@ -86,7 +89,6 @@ static void
 scm_fport_buffer_add (SCM port, long read_size, int write_size)
 #define FUNC_NAME "scm_fport_buffer_add"
 {
-  scm_t_fport *fp = SCM_FSTREAM (port);
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
   if (read_size == -1 || write_size == -1)
@@ -94,6 +96,7 @@ scm_fport_buffer_add (SCM port, long read_size, int write_size)
       size_t default_size;
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
       struct stat st;
+      scm_t_fport *fp = SCM_FSTREAM (port);
       
       default_size = (fstat (fp->fdes, &st) == -1) ? default_buffer_size
 	: st.st_blksize;
@@ -376,13 +379,14 @@ static int getflags (int fdes)
   else
     {
       /* Or an anonymous pipe handle ? */
-      if (buf.st_mode & 0x1000 /* _O_SHORT_LIVED */)
+      if (buf.st_mode & _S_IFIFO)
 	flags = O_RDWR;
       /* stdin ? */
-      else if (fdes == 0 && isatty (fdes))
+      else if (fdes == fileno (stdin) && isatty (fdes))
 	flags = O_RDONLY;
       /* stdout / stderr ? */
-      else if ((fdes == 1 || fdes == 2) && isatty (fdes))
+      else if ((fdes == fileno (stdout) || fdes == fileno (stderr)) && 
+	       isatty (fdes))
 	flags = O_WRONLY;
       else
 	flags = buf.st_mode;
