@@ -1,5 +1,55 @@
-Sat Mar 22 18:16:29 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Wed Mar 26 04:10:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* ioext.c (scm_setfileno): throw a runtime error if SET_FILE_FD_FIELD
+	wan't defined.  Don't include fd.h.
+
+	* Previously fd.h was regenerated whenever configure was run,
+	forcing a couple of files to be recompiled.
+
+	* fd.h.in: deleted, SET_FILE_FD_FIELD moved to ioext.c.
+	* configure.in: AC_DEFINE FD_SETTER instead of HAVE_FD_SETTER.
+	Check for _fileno as well as _file.
+  	Don't output fd.h.
+	* ioext.c: don't fd.h.
+	* acconfig.h: remove duplicate HAVE_FD_SETTER and change the
+	other to FD_SETTER.
+
+	* Change the stratigy for getting information about errno
+ 	(and now signal number) values, e.g., ENOSYS, SIGKILL.  Instead of
+ 	generating lists of symbols during the build process, which will
+ 	not always work, include comprehensive lists in the distribution.
+  	To help keep the lists up to date, the "check_signals" and
+ 	"check_errnos" make targets can be used.
+	
+	* configure.in: don't check for a command to extract errno codes.
+	* Makefile.am: update file lists, remove errnos.list and errnos.c
+	targets, add cpp_err_symbols.c, cpp_sig_symbols.c, check_signals,
+	check_errnos targets.
+	(CLEANFILES): remove errnos.c and errnos.list, add
+ 	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new
+	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
+	* errnos.default: deleted.
+	* cpp_signal.c: new file.
+	* cpp_errno.c: renamed from errnos_get.c.
+	* cpp_err_symbols, cpp_sig_symbols: new files.
+	* cpp_cnvt.awk: renamed from errnos_cnvt_awk.
+	* error.c (scm_init_error): #include cpp_err_symbols instead of
+	errnos.c.
+	* posix.c (scm_init_posix): don't intern signal symbols.  #include
+	cpp_sig_symbols.c.
+
+Tue Mar 25 04:51:10 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* strop.c (scm_i_index): allow the lower bound to be equal to the
+	length of the string, so a null string doesn't always give an error.
+
+	* posix.h: new prototypes.
+	* posix.c (scm_status_exit_val, scm_status_term_sig,
+	scm_status_stop_sig): new functions, as in scsh.  They break down
+	process status values as returned by waitpid.
+
+Sat Mar 22 18:16:29 1997  Gary Houston  <ghouston@actrix.gen.nz>
+	
 	* net_db.c (scm_gethost): don't check HAVE_GETHOSTENT, since 
 	configure doesn't know about it.
 

@@ -145,8 +145,7 @@ AC_DEFUN(AM_MAINTAINER_MODE,
 ]
 )
 
-
-# serial 4 AM_PROG_LIBTOOL
+# serial 1 AM_PROG_LIBTOOL
 AC_DEFUN(AM_PROG_LIBTOOL,
 [AC_REQUIRE([AC_CANONICAL_HOST])
 AC_REQUIRE([AC_PROG_CC])
@@ -166,40 +165,10 @@ libtool_flags="$libtool_shared"
 test "$silent" = yes && libtool_flags="$libtool_flags --silent"
 test "$ac_cv_prog_gcc" = yes && libtool_flags="$libtool_flags --with-gcc"
 
-[case "$host" in
-*-*-irix6*)
-  # For IRIX 6, ld needs -n32 if cc uses it.
-  if echo " $CC $CFLAGS " | egrep -e '[ 	]-n32[	 ]' > /dev/null; then
-    LD="${LD-ld} -n32"
-  fi
-  ;;
-
-*-*-sco3.2v5*)
-  # On SCO OpenServer 5, we need -belf to get full-featured binaries.
-  CFLAGS="$CFLAGS -belf"
-  ;;
-esac]
-
 # Actually configure libtool.  ac_aux_dir is where install-sh is found.
 CC="$CC" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LD="$LD" RANLIB="$RANLIB" \
-${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig \
-$libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
+$ac_aux_dir/ltconfig $libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
 || AC_MSG_ERROR([libtool configure failed])
-])
-
-dnl From Jim Meyering.
-
-# serial 1
-
-AC_DEFUN(AM_SYS_POSIX_TERMIOS,
-[AC_CACHE_CHECK([POSIX termios], am_cv_sys_posix_termios,
-  [AC_TRY_LINK([#include <sys/types.h>
-#include <unistd.h>
-#include <termios.h>],
-  [/* SunOS 4.0.3 has termios.h but not the library calls.  */
-   tcgetattr(0, 0);],
-  am_cv_sys_posix_termios=yes,
-  am_cv_sys_posix_termios=no)])
 ])
 
 dnl

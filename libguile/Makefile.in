@@ -39,8 +39,6 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
 host_triplet = @host@
 host_alias = @host_alias@
-ERRNO_EXTRACT = @ERRNO_EXTRACT@
-FD_SETTER = @FD_SETTER@
 LIBLOBJS = @LIBLOBJS@
 AWK = @AWK@
 LIBTOOL = @LIBTOOL@
@@ -49,8 +47,8 @@ VERSION = @VERSION@
 CC = @CC@
 RANLIB = @RANLIB@
 MAINT = @MAINT@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
 xtra_PLUGIN_guile_libs = @xtra_PLUGIN_guile_libs@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
 PACKAGE = @PACKAGE@
 
 AUTOMAKE_OPTIONS = foreign
@@ -97,18 +95,20 @@ bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
 dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
-PLUGIN/guile.libs.in errnos_cnvt.awk errnos.default errnos_get.c
+PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_signals \
+cpp_sig_symbols cpp_cnvt_awk
 
 SUFFIXES = .x
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
-CLEANFILES=errnos.c errnos.list
+CLEANFILES=cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
+	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
 ACLOCAL = $(top_srcdir)/aclocal.m4
 CONFIG_HEADER_IN = scmconfig.h.in
 mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
 CONFIG_HEADER = scmconfig.h
-CONFIG_CLEAN_FILES =  fd.h guile-snarf
+CONFIG_CLEAN_FILES =  guile-snarf
 PROGRAMS =  $(lib_PROGRAMS)
 
 
@@ -136,7 +136,7 @@ DATA =  $(modinclude_DATA)
 HEADERS =  $(include_HEADERS) $(modinclude_HEADERS)
 
 DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in acconfig.h \
-acinclude.m4 aclocal.m4 configure configure.in fd.h.in guile-snarf.in \
+acinclude.m4 aclocal.m4 configure configure.in guile-snarf.in \
 scmconfig.h.in stamp-h.in
 
 
@@ -202,8 +202,6 @@ distclean-hdr:
 	rm -f $(CONFIG_HEADER)
 
 maintainer-clean-hdr:
-fd.h: $(top_builddir)/config.status fd.h.in
-	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
 guile-snarf: $(top_builddir)/config.status guile-snarf.in
 	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
 
@@ -496,11 +494,39 @@ libpath.h: Makefile
 .c.x:
 	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
 
-errnos.list: $(srcdir)/errnos.default
-	$(ERRNO_EXTRACT)
+cpp_err_symbols.c: cpp_err_symbols
+	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols > \
+		cpp_err_symbols.c
 
-errnos.c: errnos.list
-	$(AWK) -f $(srcdir)/errnos_cnvt.awk < errnos.list > errnos.c
+cpp_sig_symbols.c: cpp_sig_symbols
+	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_sig_symbols > \
+		cpp_sig_symbols.c
+
+check_signals:
+	gcc -undef -dM -E $(srcdir)/cpp_signal.c | egrep ' SIG[A-Z]+' \
+	  | cut -f2 -d' ' | sort > cpp_sig_symbols_here
+	diff -u $(srcdir)/cpp_sig_symbols cpp_sig_symbols_here | egrep '^\+S' \
+	  | cut -c2- > cpp_sig_symbols_diff
+	if test -s cpp_sig_symbols_diff ; then \
+	  cat $(srcdir)/cpp_sig_symbols cpp_sig_symbols_diff \
+	    | sort > cpp_sig_symbols_new ;\
+	  echo "cpp_sig_symbols_new has the following additions:" ;\
+	  cat cpp_sig_symbols_diff ;\
+	else echo "No new symbols found."; \
+	fi
+
+check_errnos:
+	gcc -undef -dM -E $(srcdir)/cpp_errno.c | egrep ' E.+' \
+	  | cut -f2 -d' ' | sort > cpp_err_symbols_here
+	diff -u $(srcdir)/cpp_err_symbols cpp_err_symbols_here | egrep '^\+E' \
+	  | cut -c2- > cpp_err_symbols_diff
+	if test -s cpp_err_symbols_diff ; then \
+	  cat $(srcdir)/cpp_err_symbols cpp_err_symbols_diff \
+	    | sort > cpp_err_symbols_new ;\
+	  echo "cpp_err_symbols_new has the following additions:" ;\
+	  cat cpp_err_symbols_diff ;\
+	else echo "No new symbols found."; \
+	fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

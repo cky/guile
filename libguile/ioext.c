@@ -42,7 +42,6 @@
 
 
 #include <stdio.h>
-#include "fd.h"
 #include "_scm.h"
 #include "genio.h"
 #include "read.h"
@@ -402,6 +401,9 @@ scm_primitive_move_to_fdes (port, fd)
   return SCM_BOOL_T;
 }
 
+#ifdef FD_SETTER
+#define SET_FILE_FD_FIELD(F,D) ((F)->FD_SETTER = (D))
+#endif
 
 void
 scm_setfileno (fs, fd)
@@ -411,15 +413,7 @@ scm_setfileno (fs, fd)
 #ifdef SET_FILE_FD_FIELD
   SET_FILE_FD_FIELD(fs, fd);
 #else
-  Configure could not guess the name of the correct field in a FILE *.
-
-  This function needs to be ported to your system.
-
-  SET_FILE_FD_FIELD should change the descriptor refered to by a stdio
-  stream, and nothing else.
-
-  The way to port this file is to add cases to configure.in.  Search
-  that file for "SET_FILE_FD_FIELD" and follow the examples there.
+  scm_misc_error ("scm_setfileno", "Not fully implemented");
 #endif
 }
 

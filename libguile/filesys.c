@@ -917,7 +917,7 @@ scm_input_waiting_p (f, caller)
     return remir;
   }
 #  else    
-  scm_misc_error ("char-ready?", "Not fully implemented\n");
+  scm_misc_error ("char-ready?", "Not fully implemented");
 #  endif
 # endif
 }

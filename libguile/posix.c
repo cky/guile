@@ -433,7 +433,40 @@ scm_waitpid (pid, options)
 #endif
 }
 
+SCM_PROC (s_status_exit_val, "status:exit-val", 1, 0, 0, scm_status_exit_val);
+SCM
+scm_status_exit_val (status)
+     SCM status;
+{
+  SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1,s_status_exit_val);
+  if (WIFEXITED (SCM_INUM (status)))
+    return (SCM_MAKINUM (WEXITSTATUS (SCM_INUM (status))));
+  else
+    return SCM_BOOL_F;
+}
+SCM_PROC (s_status_term_sig, "status:term-sig", 1, 0, 0, scm_status_term_sig);
+SCM
+scm_status_term_sig (status)
+     SCM status;
+{
+  SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1,s_status_term_sig);
+  if (WIFSIGNALED (SCM_INUM (status)))
+    return SCM_MAKINUM (WTERMSIG (SCM_INUM (status)));
+  else
+    return SCM_BOOL_F;
+}
 
+SCM_PROC (s_status_stop_sig, "status:stop-sig", 1, 0, 0, scm_status_stop_sig);
+SCM
+scm_status_stop_sig (status)
+     SCM status;
+{
+  SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1,s_status_stop_sig);
+  if (WIFSTOPPED (SCM_INUM (status)))
+    return SCM_MAKINUM (WSTOPSIG (SCM_INUM (status)));
+  else
+    return SCM_BOOL_F;
+}
 
 SCM_PROC (s_getppid, "getppid", 0, 0, 0, scm_getppid);
 
@@ -1228,105 +1261,6 @@ scm_init_posix ()
   scm_sysintern ("WUNTRACED", SCM_MAKINUM (WUNTRACED));
 #endif
 
-#ifdef SIGHUP
-  scm_sysintern ("SIGHUP", SCM_MAKINUM (SIGHUP));
-#endif
-#ifdef SIGINT
-  scm_sysintern ("SIGINT", SCM_MAKINUM (SIGINT));
-#endif
-#ifdef SIGQUIT
-  scm_sysintern ("SIGQUIT", SCM_MAKINUM (SIGQUIT));
-#endif
-#ifdef SIGILL
-  scm_sysintern ("SIGILL", SCM_MAKINUM (SIGILL));
-#endif
-#ifdef SIGTRAP
-  scm_sysintern ("SIGTRAP", SCM_MAKINUM (SIGTRAP));
-#endif
-#ifdef SIGABRT
-  scm_sysintern ("SIGABRT", SCM_MAKINUM (SIGABRT));
-#endif
-#ifdef SIGIOT
-  scm_sysintern ("SIGIOT", SCM_MAKINUM (SIGIOT));
-#endif
-#ifdef SIGBUS
-  scm_sysintern ("SIGBUS", SCM_MAKINUM (SIGBUS));
-#endif
-#ifdef SIGFPE
-  scm_sysintern ("SIGFPE", SCM_MAKINUM (SIGFPE));
-#endif
-#ifdef SIGKILL
-  scm_sysintern ("SIGKILL", SCM_MAKINUM (SIGKILL));
-#endif
-#ifdef SIGUSR1
-  scm_sysintern ("SIGUSR1", SCM_MAKINUM (SIGUSR1));
-#endif
-#ifdef SIGSEGV
-  scm_sysintern ("SIGSEGV", SCM_MAKINUM (SIGSEGV));
-#endif
-#ifdef SIGUSR2
-  scm_sysintern ("SIGUSR2", SCM_MAKINUM (SIGUSR2));
-#endif
-#ifdef SIGPIPE
-  scm_sysintern ("SIGPIPE", SCM_MAKINUM (SIGPIPE));
-#endif
-#ifdef SIGALRM
-  scm_sysintern ("SIGALRM", SCM_MAKINUM (SIGALRM));
-#endif
-#ifdef SIGTERM
-  scm_sysintern ("SIGTERM", SCM_MAKINUM (SIGTERM));
-#endif
-#ifdef SIGSTKFLT
-  scm_sysintern ("SIGSTKFLT", SCM_MAKINUM (SIGSTKFLT));
-#endif
-#ifdef SIGCHLD
-  scm_sysintern ("SIGCHLD", SCM_MAKINUM (SIGCHLD));
-#endif
-#ifdef SIGCONT
-  scm_sysintern ("SIGCONT", SCM_MAKINUM (SIGCONT));
-#endif
-#ifdef SIGSTOP
-  scm_sysintern ("SIGSTOP", SCM_MAKINUM (SIGSTOP));
-#endif
-#ifdef SIGTSTP
-  scm_sysintern ("SIGTSTP", SCM_MAKINUM (SIGTSTP));
-#endif
-#ifdef SIGTTIN
-  scm_sysintern ("SIGTTIN", SCM_MAKINUM (SIGTTIN));
-#endif
-#ifdef SIGTTOU
-  scm_sysintern ("SIGTTOU", SCM_MAKINUM (SIGTTOU));
-#endif
-#ifdef SIGIO
-  scm_sysintern ("SIGIO", SCM_MAKINUM (SIGIO));
-#endif
-#ifdef SIGPOLL
-  scm_sysintern ("SIGPOLL", SCM_MAKINUM (SIGPOLL));
-#endif
-#ifdef SIGURG
-  scm_sysintern ("SIGURG", SCM_MAKINUM (SIGURG));
-#endif
-#ifdef SIGXCPU
-  scm_sysintern ("SIGXCPU", SCM_MAKINUM (SIGXCPU));
-#endif
-#ifdef SIGXFSZ
-  scm_sysintern ("SIGXFSZ", SCM_MAKINUM (SIGXFSZ));
-#endif
-#ifdef SIGVTALRM
-  scm_sysintern ("SIGVTALRM", SCM_MAKINUM (SIGVTALRM));
-#endif
-#ifdef SIGPROF
-  scm_sysintern ("SIGPROF", SCM_MAKINUM (SIGPROF));
-#endif
-#ifdef SIGWINCH
-  scm_sysintern ("SIGWINCH", SCM_MAKINUM (SIGWINCH));
-#endif
-#ifdef SIGLOST
-  scm_sysintern ("SIGLOST", SCM_MAKINUM (SIGLOST));
-#endif
-#ifdef SIGPWR
-  scm_sysintern ("SIGPWR", SCM_MAKINUM (SIGPWR));
-#endif
   /* access() symbols.  */
   scm_sysintern ("R_OK", SCM_MAKINUM (R_OK));
   scm_sysintern ("W_OK", SCM_MAKINUM (W_OK));
@@ -1354,5 +1288,6 @@ scm_init_posix ()
 #ifdef LC_ALL
   scm_sysintern ("LC_ALL", SCM_MAKINUM (LC_ALL));
 #endif
+#include "cpp_sig_symbols.c"
 #include "posix.x"
 }

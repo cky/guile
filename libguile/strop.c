@@ -58,7 +58,7 @@ scm_i_index (str, chr, direction, sub_start, sub_end, pos, pos2, pos3, pos4,
   SCM_ASSERT (SCM_INUMP (sub_start), sub_start, pos3, why);
   lower = SCM_INUM (sub_start);
   if (lower < 0
-      || lower >= SCM_ROLENGTH (*str))
+      || lower > SCM_ROLENGTH (*str))
     scm_out_of_range (why, sub_start);
 
   if (sub_end == SCM_BOOL_F)

@@ -123,33 +123,22 @@ fi
 #
 #--------------------------------------------------------------------
 
-FD_SETTER=""
+AC_MSG_CHECKING(how to set a stream file descriptor)
+AC_CACHE_VAL(scm_cv_fd_setter,
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[stdout->_file = 1],
+			scm_cv_fd_setter="_file",
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[stdout->_fileno = 1],
+			scm_cv_fd_setter="_fileno",
+			scm_cv_fd_setter="")))
 
-if test "x$FD_SETTER" = x; then
-  AC_TRY_COMPILE(#include <stdio.h>
-,		stdout->_file = 1,
-		FD_SETTER="((F)->_file = (D))")
+if test "$scm_cv_fd_setter"; then
+	AC_MSG_RESULT($scm_cv_fd_setter)
+	AC_DEFINE_UNQUOTED(FD_SETTER, $scm_cv_fd_setter)
+else
+	AC_MSG_RESULT(we couldn't do it!)
 fi
-
-if test "x$FD_SETTER" = x; then
- AC_TRY_COMPILE(#include <stdio.h>
-,		stdout->_fileno,
-		FD_SETTER="((F)->_fileno = (D))")
-fi
-
-dnl
-dnl  Add FD_SETTER tests for other systems here.  Your test should
-dnl  try a particular style of assigning to the descriptor
-dnl  field(s) of a FILE* and define FD_SETTER accordingly.
-dnl
-dnl  The value of FD_SETTER is used as a macro body, as in:
-dnl  
-dnl  #define SET_FILE_FD_FIELD(F,D)   @FD_SETTER@
-dnl
-dnl  F is a FILE* and D a descriptor (int).
-dnl
-
-test "x$FD_SETTER" != x && AC_DEFINE(HAVE_FD_SETTER)
 
 #--------------------------------------------------------------------
 # How to find out whether a FILE structure contains buffered data.
@@ -195,6 +184,8 @@ AC_CACHE_VAL(scm_cv_struct_file_readptr,
 if test "$scm_cv_struct_file_readptr"; then
 	AC_MSG_RESULT(read_ptr)
 	AC_DEFINE_UNQUOTED(FILE_CNT_READPTR, $scm_cv_struct_file_readptr)
+else
+	AC_MSG_RESULT(we couldn't do it!)
 fi
 fi
 fi
@@ -234,14 +225,6 @@ case "$GCC" in
 esac
 
 AC_PROG_AWK
-AC_MSG_CHECKING(whether errno codes can be extracted from errno.h)
-if test "$GCC" = yes ; then
-  AC_MSG_RESULT(yes)
-  ERRNO_EXTRACT="${CC-cc} -undef -dM -E $srcdir/errnos_get.c | egrep ' E.+' | cut -f2 -d' ' > errnos.list"
-else
-  ERRNO_EXTRACT="cp $srcdir/errnos.default errnos.list"
-  AC_MSG_RESULT([no, using default])
-fi
 
 ## If we're creating a shared library (using libtool!), then we'll
 ## need to generate a list of .lo files corresponding to the .o files
@@ -253,10 +236,8 @@ AC_DEFINE_UNQUOTED(GUILE_MINOR_VERSION, "$GUILE_MINOR_VERSION")
 AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION")
 
 AC_SUBST(AWK)
-AC_SUBST(FD_SETTER)
-AC_SUBST(ERRNO_EXTRACT)
 AC_SUBST(LIBLOBJS)
-AC_OUTPUT([Makefile fd.h guile-snarf PLUGIN/guile.libs], [chmod +x guile-snarf])
+AC_OUTPUT([Makefile guile-snarf PLUGIN/guile.libs], [chmod +x guile-snarf])
 
 dnl Local Variables:
 dnl comment-start: "dnl "
