@@ -1,5 +1,8 @@
 2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* scheme-data.texi (Integers): Added docs for the new scm_is_,
+	scm_to_ and scm_from_ functions for integers.
+
 	* data-rep.texi (How Guile does it): Mark as being in limbo.  All
 	the real documentation will be in the nodes "Programming in C" and
 	"API Reference".
