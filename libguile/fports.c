@@ -357,23 +357,32 @@ prinfport (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  SCM name;
-  char * c;
-  if (SCM_CLOSEDP (exp))
+  scm_puts ("#<", port);
+  scm_print_port_mode (exp, port);    
+  if (SCM_OPFPORTP (exp))
     {
-      c = "file";
+      int fdes;
+      SCM name = SCM_PTAB_ENTRY (exp)->file_name;
+      scm_puts (SCM_NIMP (name) && SCM_ROSTRINGP (name)
+		? SCM_ROCHARS (name)
+		: SCM_PTOBNAME (SCM_PTOBNUM (exp)),
+		port);
+      scm_putc (' ', port);
+      fdes = (SCM_FSTREAM (exp))->fdes;
+      
+      if (isatty (fdes))
+	scm_puts (ttyname (fdes), port);
+      else
+	scm_intprint (fdes, 10, port);
     }
   else
     {
-      name = SCM_PTAB_ENTRY (exp)->file_name;
-      if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
-	c = SCM_ROCHARS (name);
-      else
-	c = "file";
+      scm_puts (SCM_PTOBNAME (SCM_PTOBNUM (exp)), port);
+      scm_putc (' ', port);
+      scm_intprint (SCM_CDR (exp), 16, port);
     }
-    
-  scm_prinport (exp, port, c);
-  return !0;
+  scm_putc ('>', port);
+  return 1;
 }
 
 #ifdef GUILE_ISELECT
@@ -546,20 +555,27 @@ local_fclose (SCM port)
   return rv;
 }
 
-scm_ptobfuns scm_fptob =
- {
-  0,
-  local_fclose,
-  prinfport,
-  0,
-  local_fflush,
-  local_read_flush,
-  local_fclose,
-  fport_fill_buffer,
-  local_seek,
-  local_ftruncate,
-  fport_input_waiting_p,
-};
+static scm_sizet
+local_free (SCM port)
+{
+  local_fclose (port);
+  return 0;
+}
+
+void scm_make_fptob (void); /* Called from ports.c */
+
+void
+scm_make_fptob ()
+{
+  long tc = scm_make_port_type ("file", fport_fill_buffer, local_fflush);
+  scm_set_ptob_free            (tc, local_free);
+  scm_set_ptob_print           (tc, prinfport);
+  scm_set_ptob_flush_input     (tc, local_read_flush);
+  scm_set_ptob_close           (tc, local_fclose);
+  scm_set_ptob_seek            (tc, local_seek);
+  scm_set_ptob_truncate        (tc, local_ftruncate);
+  scm_set_ptob_input_waiting_p (tc, fport_input_waiting_p);
+}
 
 void
 scm_init_fports ()
