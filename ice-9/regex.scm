@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -115,30 +115,85 @@
 			(else (error 'wrong-type-arg obj))))
 		items)))
 
+;;; If we call fold-matches, below, with a regexp that can match the
+;;; empty string, it's not obvious what "all the matches" means.  How
+;;; many empty strings are there in the string "a"?  Our answer:
+;;;
+;;; 	This function applies PROC to every non-overlapping, maximal
+;;;     match of REGEXP in STRING.
+;;;
+;;; "non-overlapping": There are two non-overlapping matches of "" in
+;;; "a" --- one before the `a', and one after.  There are three
+;;; non-overlapping matches of "q|x*" in "aqb": the empty strings
+;;; before `a' and after `b', and `q'.  The two empty strings before
+;;; and after `q' don't count, because they overlap with the match of
+;;; "q".
+;;;
+;;; "maximal": There are three distinct maximal matches of "x*" in
+;;; "axxxb": one before the `a', one covering `xxx', and one after the
+;;; `b'.  Around or within `xxx', only the match covering all three
+;;; x's counts, because the rest are not maximal.
+
+(define-public (fold-matches regexp string init proc . flags)
+  (let ((regexp (if (regexp? regexp) regexp (make-regexp regexp)))
+	(flags (if (null? flags) 0 flags)))
+    (let loop ((start 0)
+	       (value init)
+	       (abuts #f))		; True if start abuts a previous match.
+      (let ((m (if (> start (string-length string)) #f
+		   (regexp-exec regexp string start flags))))
+	(cond
+	 ((not m) value)
+	 ((and (= (match:start m) (match:end m)) abuts)
+	  ;; We matched an empty string, but that would overlap the
+	  ;; match immediately before.  Try again at a position
+	  ;; further to the right.
+	  (loop (+ start 1) value #f))
+	 (else
+	  (loop (match:end m) (proc m value) #t)))))))
+
+(define-public (list-matches regexp string . flags)
+  (reverse! (apply fold-matches regexp string '() cons flags)))
+
 (define-public (regexp-substitute/global port regexp string . items)
+
   ;; If `port' is #f, send output to a string.
   (if (not port)
       (call-with-output-string
        (lambda (p)
 	 (apply regexp-substitute/global p regexp string items)))
 
-      ;; Otherwise, compile the regexp and match it against the
-      ;; string, looping if 'post is encountered in `items'.
-      (let ((rx (make-regexp regexp)))
-	(let next-match ((str string))
-	  (let ((match (regexp-exec rx str)))
-	    (if (not match)
-		(display str port)
+      ;; Walk the set of non-overlapping, maximal matches.
+      (let next-match ((matches (list-matches regexp string))
+		       (start 0))
+	(if (pair? matches)
+	    (let ((m (car matches)))
 
-		;; Process all of the items for this match.
-		(for-each
-		 (lambda (obj)
-		   (cond
-		    ((string? obj)    (display obj port))
-		    ((integer? obj)   (display (match:substring match obj) port))
-		    ((procedure? obj) (display (obj match) port))
-		    ((eq? 'pre obj)   (display (match:prefix match) port))
-		    ((eq? 'post obj)  (next-match (match:suffix match)))
-		    (else (error 'wrong-type-arg obj))))
-		 items)))))))
+	      ;; Process all of the items for this match.  Don't use
+	      ;; for-each, because we need to make sure 'post at the
+	      ;; end of the item list is a tail call.
+	      (let next-item ((items items))
+	  
+		(define (do-item item)
+		  (cond
+		   ((string? item)    (display item port))
+		   ((integer? item)   (display (match:substring m item) port))
+		   ((procedure? item) (display (item m) port))
+		   ((eq? item 'pre)  
+		    (display
+		     (make-shared-substring string start (match:start m))
+		     port))
+		   ((eq? item 'post)
+		    (if (pair? (cdr matches))
+			(next-match (cdr matches) (match:end m))
+			(display
+			 (make-shared-substring string (match:end m))
+			 port)))
+		   (else (error 'wrong-type-arg item))))
 
+		(if (pair? items)
+		    (if (null? (cdr items))
+			(do-item (car items)) ; This is a tail call.
+			(begin
+			  (do-item (car items)) ; This is not.
+			  (next-item (cdr items)))))))))))

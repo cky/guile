@@ -1,8 +1,18 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* regex.scm (fold-matches, list-matches): New functions.
+	(regexp-substitute/global): Rewritten again in terms of
+	list-matches, to get null match behavior correct.
+
+	* regex.scm (regexp-substitute/global): Rewrite so that 'post at
+	the end of the item list actually causes a tail call.  (Thanks to
+	Jan Nieuwenhuizen.)
+
 1999-09-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* readline.scm: Moved to ../guile-readline.
 
-	* boot-9.scm (top-repl): Removed code for ativating readline.
+	* boot-9.scm (top-repl): Removed code for activating readline.
 
 	* Makefile.am: Removed mention of readline.scm.
 
