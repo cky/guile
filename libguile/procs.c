@@ -349,22 +349,23 @@ scm_procedure (SCM proc)
   return 0; /* not reached */
 }
 
-SCM_PROC (s_setter, "setter", 1, 0, 0, scm_setter);
+SCM_GPROC (s_setter, "setter", 1, 0, 0, scm_setter, g_setter);
 
 SCM
 scm_setter (SCM proc)
 {
-  SCM_ASSERT (SCM_NIMP (proc), proc, SCM_ARG1, s_setter);
+  SCM_GASSERT1 (SCM_NIMP (proc), g_setter, proc, SCM_ARG1, s_setter);
   if (SCM_PROCEDURE_WITH_SETTER_P (proc))
     return SCM_SETTER (proc);
   else if (SCM_STRUCTP (proc))
     {
-      SCM_ASSERT (SCM_I_OPERATORP (proc), proc, SCM_ARG1, s_setter);
+      SCM_GASSERT1 (SCM_I_OPERATORP (proc),
+		    g_setter, proc, SCM_ARG1, s_setter);
       return (SCM_I_ENTITYP (proc)
 	      ? SCM_ENTITY_SETTER (proc)
 	      : SCM_OPERATOR_SETTER (proc));
     }
-  scm_wrong_type_arg (s_setter, SCM_ARG1, proc);
+  SCM_WTA_DISPATCH_1 (g_setter, proc, SCM_ARG1, s_setter);
   return 0;
 }
 
