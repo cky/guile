@@ -1,23 +1,47 @@
 /* Debugging extensions for Guile
-   Copyright (C) 1995, 1996 Mikael Djurfeldt
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 1, or (at your option)
-   any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-   The author can be reached at djurfeldt@nada.kth.se
-   Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN
-   */
+ * Copyright (C) 1995, 1996 Mikael Djurfeldt
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software; see the file COPYING.  If not, write to
+ * the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * As a special exception, the Free Software Foundation gives permission
+ * for additional uses of the text contained in its release of GUILE.
+ *
+ * The exception is that, if you link the GUILE library with other files
+ * to produce an executable, this does not by itself cause the
+ * resulting executable to be covered by the GNU General Public License.
+ * Your use of that executable is in no way restricted on account of
+ * linking the GUILE library code into it.
+ *
+ * This exception does not however invalidate any other reasons why
+ * the executable file might be covered by the GNU General Public License.
+ *
+ * This exception applies only to the code released by the
+ * Free Software Foundation under the name GUILE.  If you copy
+ * code from other Free Software Foundation releases into a copy of
+ * GUILE, as the General Public License permits, the exception does
+ * not apply to the code that you add in this way.  To avoid misleading
+ * anyone as to the status of such modified files, you must delete
+ * this exception notice from them.
+ *
+ * If you write modifications of your own for GUILE, it is your choice
+ * whether to permit this exception to apply to your modifications.
+ * If you do not wish that, delete this exception notice.
+ *
+ * The author can be reached at djurfeldt@nada.kth.se
+ * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN
+ */
 
 #include <stdio.h>
 #include "_scm.h"
@@ -571,202 +595,6 @@ scm_expr_stack (obj)
   return frs;
 }
 
-/* {Support for debugging with gdb}
- *
- * Gdb's support for debugging with Guile is written by Per Bothner at
- * Cygnus Support with modifications by Mikael Djurfeldt.
- *
- * Gdb wants to see the functions:
- *
- * scm_lookup_cstr, scm_evstr, and, scm_ready_p.
- */
-
-/* Avoid calling Guile when this macro is false.
-   scm_gc_heap_lock is set during gc.
- */
-#define SCM_READY_P (!scm_gc_heap_lock)
-
-/* Macros that encapsulate blocks of code which can be called by the
- * debugger.
- */
-#define SCM_BEGIN_FOREIGN_BLOCK \
-{ \
-  ++scm_ints_disabled; \
-  ++scm_block_gc; \
-} \
-
-
-#define SCM_END_FOREIGN_BLOCK \
-{ \
-  --scm_block_gc; \
-  --scm_ints_disabled; \
-} \
-
-
-/* debug_print is a handy function for calling from a debugger.
- * Given an SCM object, o, it executes (write o) to stdout.
- */
-
-#ifdef __STDC__
-void
-debug_print (SCM obj)
-#else
-void
-debug_print (obj)
-     SCM obj;
-#endif
-{
-  if (!SCM_READY_P)
-    {
-      fputs ("debug_print called when Guile not ready", stderr);
-      return;
-    }
-  SCM_BEGIN_FOREIGN_BLOCK;
-  scm_write(obj, scm_def_outp);
-  SCM_END_FOREIGN_BLOCK;
-  fflush(NULL);
-}
-
-/* Gdb uses the following function to determine whether Guile is
- * prepared to run.
- */
-
-#ifdef __STDC__
-int
-scm_ready_p (void)
-#else
-int
-scm_ready_p ()
-#endif
-{
-  return SCM_READY_P;
-}
-
-SCM_PROC (s_eval_string, "eval-string", 1, 0, 0, scm_eval_string);
-#ifdef __STDC__
-SCM
-scm_eval_string (SCM str)
-#else
-SCM
-scm_eval_string (str)
-     SCM str;
-#endif
-{
-  str = scm_mkstrport (SCM_INUM0, str, SCM_OPN | SCM_RDNG, s_eval_string);
-  str = scm_read (str, SCM_UNDEFINED, SCM_UNDEFINED);
-  return XEVAL(str, (SCM) SCM_EOL);
-}
-
-#ifdef __STDC__
-SCM
-scm_evstr (char *str)
-#else
-SCM
-scm_evstr (str)
-     char *str;
-#endif
-{
-  SCM ans;
-  if (!SCM_READY_P)
-    {
-      fputs ("scm_evstr called when Guile not ready", stderr);
-      return SCM_UNDEFINED;
-    }
-  SCM_BEGIN_FOREIGN_BLOCK;
-  SCM_NEWCELL(ans);
-  SCM_SETLENGTH (ans, strlen(str)+0L, scm_tc7_ssymbol);
-  SCM_SETCHARS (ans, str);
-  ans = scm_eval_string (ans);
-  SCM_END_FOREIGN_BLOCK;
-  return ans;
-}
-
-/* Lookup a symbol var in the environment genv.
- * Return a pointer to the storage location if symbol is found.
- * Return NULL otherwise.
- */
-#ifdef __STDC__
-SCM *
-scm_lookup_soft (SCM var, SCM genv)
-#else
-SCM *
-scm_lookup_soft (var, genv)
-     SCM var;
-     SCM genv;
-#endif
-{
-  SCM env = genv;
-  register SCM *al, fl;
-  for (; SCM_NIMP (env); env = SCM_CDR (env))
-    {
-      if (SCM_BOOL_T == scm_procedure_p (SCM_CAR (env)))
-	break;
-      al = &SCM_CAR (env);
-      for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
-	{
-	  if (SCM_NCONSP (fl))
-	      if (fl == var)
-		return &SCM_CDR (*al);
-	    else
-	      break;
-	  al = &SCM_CDR (*al);
-	  if (SCM_CAR (fl) == var)
-	    return &SCM_CAR (*al);
-	}
-    }
-  {
-    SCM top_thunk, vcell;
-    if (SCM_NIMP(env))
-      {
-	top_thunk = SCM_CAR(env);	/* env now refers to a top level env thunk */
-	env = SCM_CDR (env);
-      }
-    else
-      top_thunk = SCM_BOOL_F;
-    vcell = scm_sym2vcell (var, top_thunk, SCM_BOOL_F);
-    if (vcell == SCM_BOOL_F)
-      goto errout;
-    else
-      var = vcell;
-  }
-#ifndef RECKLESS
-  if (SCM_NNULLP (env) || SCM_UNBNDP (SCM_CDR (var)))
-    {
-      var = SCM_CAR (var);
-    errout:
-      return NULL;
-    }
-#endif
-  return &SCM_CDR (var);
-}
-
-#ifdef __STDC__
-SCM *
-scm_lookup_cstr (char *str, int len, SCM env)
-#else
-SCM *
-scm_lookup_cstr (str, len, env)
-     char *str;
-     int len;
-     SCM env;
-#endif
-{
-  SCM *ans;
-  if (!SCM_READY_P)
-    {
-      fputs ("scm_lookup_cstr called when Guile not ready", stderr);
-      return NULL;
-    }
-  fprintf (stderr, "env = 0x%lx\n", env);
-  SCM_BEGIN_FOREIGN_BLOCK;
-  /* Ignore env until gdb is fixed. */
-  ans = scm_lookup_soft (SCM_CAR (scm_intern (str, len)),
-			 scm_top_level_env (SCM_CDR
-					    (scm_top_level_lookup_thunk_var)));
-  SCM_END_FOREIGN_BLOCK;
-  return ans;
-}
-
 
 
 
@@ -777,7 +605,7 @@ scm_init_debug ()
   scm_init_opts (scm_evaluator_traps,
 		 scm_evaluator_trap_table,
 		 SCM_N_EVALUATOR_TRAPS);
-  
+
   scm_tc16_memoized = scm_newsmob (&memoizedsmob);
   scm_tc16_debugobj = scm_newsmob (&debugobjsmob);
 
