@@ -1,3 +1,7 @@
+2004-09-08  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ports.test (port-column): Further tests, of new \a \b \r.
+
 2004-09-07  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (integer-expt): New tests, of infinite exponents.
