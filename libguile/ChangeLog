@@ -1,3 +1,10 @@
+1998-12-08  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* ramap.c (array-copy-in-order!, array-map-in-order):  New names.
+	Replaces old names serial-array-copy! and serial-array-map!.
+
+	* evalext.c (map-in-order): New name.  Replaces serial-map.
+
 1998-12-05  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* smob.c (freeprint): New function.

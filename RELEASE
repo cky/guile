@@ -5,6 +5,12 @@ it in the distribution.
 In release 1.4:
 - remove #/ syntax
 - Remove SCHEME_LOAD_PATH.
+- remove hook support from boot-9.scm
+  (only provided for backward compatibility)
+
+In release 1.5:
+- remove names evalext.c: serial-map,
+               ramap.c:   serial-array-copy!, serial-array-map!
 
 Platforms for test builds:
 SunOS (gcc and pcc) --- galapas.ai.mit.edu
