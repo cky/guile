@@ -51,7 +51,8 @@ extern long scm_tc16_regex_t;
 #define SCM_RGXP(X)	(SCM_CAR(X) == (SCM)scm_tc16_regex_t)
 
 extern SCM scm_make_regexp SCM_P ((SCM pat, SCM flags));
+SCM scm_regexp_p SCM_P ((SCM x));
 extern SCM scm_regexp_exec SCM_P ((SCM rx, SCM str, SCM start, SCM flags));
-extern void scm_init_regex_posix ();
+extern void scm_init_regex_posix SCM_P ((void));
 
 #endif

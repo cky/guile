@@ -52,7 +52,7 @@
 
 SCM_GLOBAL_SYMBOL (scm_sym_arity, "arity");
 
-SCM
+static SCM
 scm_i_procedure_arity (proc)
 {
   int a = 0, o = 0, r = 0;

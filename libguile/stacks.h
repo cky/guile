@@ -114,6 +114,7 @@ extern SCM scm_stack_type;
 
 SCM scm_stack_p SCM_P ((SCM obj));
 SCM scm_make_stack SCM_P ((SCM args));
+SCM scm_stack_id SCM_P ((SCM stack));
 SCM scm_stack_ref SCM_P ((SCM stack, SCM i));
 SCM scm_stack_length SCM_P ((SCM stack));
 
@@ -129,6 +130,7 @@ SCM scm_frame_real_p SCM_P ((SCM frame));
 SCM scm_frame_procedure_p SCM_P ((SCM frame));
 SCM scm_frame_evaluating_args_p SCM_P ((SCM frame));
 SCM scm_frame_overflow_p SCM_P ((SCM frame));
+
 
 void scm_init_stacks SCM_P ((void));
 

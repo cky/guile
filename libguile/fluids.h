@@ -88,6 +88,7 @@ SCM_FLUID_NUM, not the fluid itself. */
 #define SCM_FAST_FLUID_SET_X(n, val) (SCM_VELTS(scm_root->fluids)[n] = val)
 
 SCM scm_make_fluid SCM_P ((void));
+SCM scm_fluid_p SCM_P ((SCM fl));
 SCM scm_fluid_ref SCM_P ((SCM fluid));
 SCM scm_fluid_set_x SCM_P ((SCM fluid, SCM value));
 

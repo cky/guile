@@ -548,7 +548,7 @@ scm_start_stack (id, exp, env)
 }
 
 static char s_start_stack[] = "start-stack";
-SCM
+static SCM
 scm_m_start_stack (exp, env)
      SCM exp;
      SCM env;

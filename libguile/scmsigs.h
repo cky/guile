@@ -52,6 +52,7 @@ extern SCM scm_restore_signals SCM_P ((void));
 extern SCM scm_alarm SCM_P ((SCM i));
 extern SCM scm_pause SCM_P ((void));
 extern SCM scm_sleep SCM_P ((SCM i));
+extern SCM scm_usleep SCM_P ((SCM i));
 extern SCM scm_raise SCM_P ((SCM sig));
 extern void scm_init_scmsigs SCM_P ((void));
 

@@ -117,7 +117,7 @@ static scm_smobfuns regex_t_smob =
 
 SCM_SYMBOL (scm_regexp_error_key, "regular-expression-syntax");
 
-char *
+static char *
 scm_regexp_error_msg (regerrno, rx)
      int regerrno;
      SCM rx;

@@ -115,6 +115,7 @@ extern SCM scm_intern SCM_P ((char *name, scm_sizet len));
 extern SCM scm_intern0 SCM_P ((char * name));
 extern SCM scm_sysintern SCM_P ((char *name, SCM val));
 extern SCM scm_sysintern0 SCM_P ((char *name));
+extern SCM scm_sysintern0_no_module_lookup SCM_P ((char *name));
 extern SCM scm_symbol_value0 SCM_P ((char *name));
 extern SCM scm_symbol_p SCM_P ((SCM x));
 extern SCM scm_symbol_to_string SCM_P ((SCM s));
