@@ -250,7 +250,9 @@
 
   (if width
     (out genwrite:newline-str (pp obj 0))
-    (wr obj 0)))
+    (wr obj 0))
+  ;; Return `unspecified'
+  (if #f #f))
 
 ; (reverse-string-append l) = (apply string-append (reverse l))
 
