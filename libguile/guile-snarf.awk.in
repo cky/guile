@@ -2,8 +2,7 @@
 # 12-Dec-1999
 
 BEGIN { FS="|"; 
-        dot_doc_file = ARGV[1]; ARGV[1] = "";
-        ARGC = 0;
+        dot_doc_file = ARGV[1]; ARGV[1] = "-";
         std_err = "/dev/stderr";
         # be sure to put something in the files to help make out
         print "";
