@@ -7,4 +7,5 @@ Makefile
 Makefile.in
 test-gh
 test-num2integral
+test-round
 test-unwind
