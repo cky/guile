@@ -46,8 +46,6 @@
 
 #include "libguile/__scm.h"
 
-extern scm_ptobfuns scm_stptob;
-
 
 
 extern SCM scm_mkstrport SCM_P ((SCM pos, SCM str, long modes, const char * caller));

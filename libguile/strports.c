@@ -66,13 +66,6 @@
    when rw_active is 0.
 */
 
-static int 
-prinstpt (SCM exp, SCM port, scm_print_state *pstate)
-{
-  scm_prinport (exp, port, "string");
-  return !0;
-}
-
 static int
 stfill_buffer (SCM port)
 {
@@ -358,34 +351,17 @@ scm_eval_string (string)
   return ans;
 }
 
+void scm_make_stptob (void); /* Called from ports.c */
 
-
-static int noop0 SCM_P ((SCM stream));
-
-static int 
-noop0 (stream)
-     SCM stream;
+void
+scm_make_stptob ()
 {
-  return 0;
+  long tc = scm_make_port_type ("string", stfill_buffer, st_flush);
+  scm_set_ptob_mark        (tc, scm_markstream);
+  scm_set_ptob_flush_input (tc, st_read_flush);
+  scm_set_ptob_seek        (tc, st_seek);
+  scm_set_ptob_truncate    (tc, st_ftruncate);
 }
-
-
-scm_ptobfuns scm_stptob =
-{
-  scm_markstream,
-  noop0,
-  prinstpt,
-  0,
-  st_flush,
-  st_read_flush,
-  0,
-  stfill_buffer,
-  st_seek,
-  st_ftruncate,
-  0,
-};
-
-
 
 void
 scm_init_strports ()
