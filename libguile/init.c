@@ -379,7 +379,7 @@ scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_storage (0);
       scm_init_root ();
 #ifdef USE_THREADS
-      scm_init_threads (&i);
+      scm_init_threads (base);
 #endif
       scm_start_stack (base, in, out, err);
       scm_init_gsubr ();
