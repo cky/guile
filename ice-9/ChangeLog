@@ -1,6 +1,11 @@
+Tue Oct 15 17:07:20 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* boot-9.scm (try-load): %sys-load-path has been renamed to
+	primitive-load-path; adjust call here.
+
 Tue Oct 15 14:25:01 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
-	* boot-9.scm ((signal-handler n)): Bugfix: Moved the recording of
+	* boot-9.scm (signal-handler): Bugfix: Moved the recording of
  	the stack to the correct place: when it is decided to generate an
 	error-signal.
 

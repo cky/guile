@@ -1,3 +1,14 @@
+Tue Oct 15 17:06:13 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* load.c (scm_primitive_load, scm_primitive_load_path): Renamed
+ 	from scm_sys_try_load and scm_sys_try_load_path.  The Scheme name
+ 	of scm_primitive_load_path was also changed to
+ 	"primitive-load-path", from "%try-load-path".  Callers changed.
+	We'd like to respect the convention that a function named
+ 	"try-mumble" should behave just like the function called "mumble",
+ 	but return #f instead of signalling some error.
+	* load.h: Rename prototypes.
+
 Tue Oct 15 05:34:10 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* print.c (make_print_state, grow_print_state), print.h: Modified
