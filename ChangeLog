@@ -1,3 +1,8 @@
+2001-05-11  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* check-guile.in: For SRFI testing, set and export env
+	var `LTDL_LIBRARY_PATH'.
+
 2001-05-07  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* AUTHORS: Add docs-related authorship details.
