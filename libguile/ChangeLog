@@ -1,3 +1,26 @@
+1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* numbers.c (scm_lcm): Bugfix: BIGDIG --> SCM_BIGDIG;
+	Account for the case when second argument is unbound.
+
+	* strorder.c (scm_string_less_p, scm_string_ci_less_p): Bugfix.
+	(Thanks to Karoly Lorentey.)
+
+	* gh_data.c, ports.c, strop.c: Alternatively use bcopy if memmove
+	isn't present.  (Thanks to suzukis@file.phys.tohoku.ac.jp.)
+
+	* ports.c: Use ANSI C prototypes in definitions.  (Thanks to
+	Bernard Urban.)
+
+	* filesys.c (scm_stat2scm): Conditionally use S_ISLNK.
+
+	* dynl-dl.c (RTLD_GLOBAL): Define if non-existent.  (Thanks to
+	Bernard Urban and Ian Grant.)
+
+	* Makefile.am (libguile_la_LDFLAGS): Bumped libguile version
+	again.  (1.3.4 will be binary incompatible with 1.3.2 because of a
+	change in the representation of entities and operators.)
+
 1999-08-29  Gary Houston  <ghouston@easynet.co.uk>
 
 	* ports.c (scm_ungetc): bugfix: if putback_buf is NULL 
