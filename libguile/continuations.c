@@ -123,9 +123,6 @@ scm_make_cont (answer)
   return cont;
 }
 
-
-void scm_dynthrow SCM_P ((SCM *a));
-
 /* Grow the stack so that there is room */
 /* to copy in the continuation.  Then */
 #ifndef CHEAP_CONTINUATIONS
