@@ -1,3 +1,8 @@
+Sun Apr 20 15:09:31 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* eq.c (scm_equal_p): Correctly compare strings of different
+	varieties.  (Thanks to Tim Pierce.)
+
 Sat Apr 19 03:59:02 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* read.c (skip_scsh_block_comment): SCSH says the !# that ends a
