@@ -63,7 +63,7 @@ to change people is difficult, but that's why we have guile...
 
 bug 4 -- named-let transform evaluates initvalue in the wrong scope
 reported-by: agj@alum.mit.edu / 2001-09-21
-fixed: not-yet
+fixed: 2001-11-17 (1.7.x)
 
 currently:
 > (let name ((var init) ...) body ...)

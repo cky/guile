@@ -1,3 +1,62 @@
+2001-11-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c:  Removed bogus comment about acros.
+
+	(scm_unmemocar):  Use !SCM_CONSP instead of SCM_IMP.
+	Minimize scope of local variable.  Eliminate dependency on
+	macro DEBUG_EXTENSIONS.
+
+	(s_splicing):  New error message string.
+
+	(scm_m_body):  Issue 'bad body' message rather than 'missing
+	expression' message.
+
+	(scm_m_quote):  Eliminate unnecessary copying.
+
+	(scm_m_lambda, scm_m_letstar, scm_m_letrec, scm_m_let):  Leave the
+	checking of the body to scm_m_body.
+
+	(scm_m_do):  Move comment to function header.  Rename arg1 to
+	binding.  Made the code a bit easier to read.
+
+	(evalcar):  Removed.
+
+	(iqq):  Added a comment.  Changed the depth parameter to
+	unsigned.  Use size_t for vector lengths.  Make sure vector object
+	is gc protected as long as its contents are read.  Add some syntax
+	checks.  Get rid of unnecessary SCM_IMP test.  Clean up the
+	control structure a bit.
+
+	(scm_m_delay):  Added comment about the implementation of
+	scm_m_delay.
+
+	(scm_m_define):  Add comment about guile's currying define
+	syntax.  Renamed 'proc' to 'name'.  Eliminate dependency on macro
+	DEBUG_EXTENSIONS.  Simplified code a bit.  Eliminate SICP code.
+
+	(scm_m_letrec1):  Removed.  Part of the functionality is taken
+	over by the new function 'transform_bindings'.
+
+	(transform_bindings):  New function.  Takes over some of the
+	functionality of removed function 'scm_m_letrec1', namely to split
+	a list of bindings into a reversed list of variables and a list of
+	initializers.
+
+	(scm_m_letrec):  Call 'transform_bindings'.
+
+	(scm_m_let):  Minimized scope of local variables.  Renamed 'proc'
+	to 'temp' and 'arg1' to 'binding'.  Eliminated redundant SCM_NIMP
+	test.  Use 'transform_bindings'.  Fixed scoping error with named
+	let (Thanks to Aubrey Jaffer for reporting the bug and to Neil
+	Jerram for suggesting the fix).  Cleaned up the control structure
+	a bit.
+
+	(scm_m_expand_body):  Use 'transform_bindings'.  Eliminated
+	unnecessary consing.  Eliminated unnecessary
+	SCM_DEFER/ALLOW_INTS.
+
+	(SCM_CEVAL):  Un-obfuscated some loops.
+
 2001-11-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gc.h (scm_unhash_name): Old declaration removed.

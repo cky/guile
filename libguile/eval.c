@@ -405,34 +405,33 @@ SCM_SYMBOL (sym_three_question_marks, "???");
 SCM 
 scm_unmemocar (SCM form, SCM env)
 {
-  SCM c;
-
-  if (SCM_IMP (form))
+  if (!SCM_CONSP (form))
     return form;
-  c = SCM_CAR (form);
-  if (SCM_VARIABLEP (c))
+  else
     {
-      SCM sym = scm_module_reverse_lookup (scm_env_module (env), c);
-      if (SCM_EQ_P (sym, SCM_BOOL_F))
-	sym = sym_three_question_marks;
-      SCM_SETCAR (form, sym);
-    }
+      SCM c = SCM_CAR (form);
+      if (SCM_VARIABLEP (c))
+	{
+	  SCM sym = scm_module_reverse_lookup (scm_env_module (env), c);
+	  if (SCM_FALSEP (sym))
+	    sym = sym_three_question_marks;
+	  SCM_SETCAR (form, sym);
+	}
 #ifdef MEMOIZE_LOCALS
-#ifdef DEBUG_EXTENSIONS
-  else if (SCM_ILOCP (c))
-    {
-      long ir;
+      else if (SCM_ILOCP (c))
+	{
+	  unsigned long int ir;
 
-      for (ir = SCM_IFRAME (c); ir != 0; --ir)
-	env = SCM_CDR (env);
-      env = SCM_CAAR (env);
-      for (ir = SCM_IDIST (c); ir != 0; --ir)
-	env = SCM_CDR (env);
-      SCM_SETCAR (form, SCM_ICDRP (c) ? env : SCM_CAR (env));
+	  for (ir = SCM_IFRAME (c); ir != 0; --ir)
+	    env = SCM_CDR (env);
+	  env = SCM_CAAR (env);
+	  for (ir = SCM_IDIST (c); ir != 0; --ir)
+	    env = SCM_CDR (env);
+	  SCM_SETCAR (form, SCM_ICDRP (c) ? env : SCM_CAR (env));
+	}
+#endif
+      return form;
     }
-#endif
-#endif
-  return form;
 }
 
 
@@ -457,6 +456,7 @@ const char scm_s_variable[] = "bad variable";
 const char scm_s_clauses[] = "bad or missing clauses";
 const char scm_s_formals[] = "bad formals";
 const char scm_s_duplicate_formals[] = "duplicate formals";
+static const char s_splicing[] = "bad (non-list) result for unquote-splicing";
 
 SCM_GLOBAL_SYMBOL (scm_sym_dot, ".");
 SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
@@ -490,7 +490,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_trace, "trace");
 static SCM
 scm_m_body (SCM op, SCM xorig, const char *what)
 {
-  SCM_ASSYNT (scm_ilength (xorig) >= 1, scm_s_expression, what);
+  SCM_ASSYNT (scm_ilength (xorig) >= 1, scm_s_body, what);
 
   /* Don't add another ISYM if one is present already. */
   if (SCM_ISYMP (SCM_CAR (xorig)))
@@ -515,10 +515,8 @@ SCM_GLOBAL_SYMBOL (scm_sym_quote, s_quote);
 SCM
 scm_m_quote (SCM xorig, SCM env SCM_UNUSED)
 {
-  SCM x = scm_copy_tree (SCM_CDR (xorig));
-
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, s_quote);
-  return scm_cons (SCM_IM_QUOTE, x);
+  return scm_cons (SCM_IM_QUOTE, SCM_CDR (xorig));
 }
 
 
@@ -666,8 +664,8 @@ scm_m_lambda (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM formals;
   SCM x = SCM_CDR (xorig);
-  if (scm_ilength (x) < 2)
-    scm_misc_error (s_lambda, scm_s_formals, SCM_EOL);
+
+  SCM_ASSYNT (SCM_CONSP (x), scm_s_formals, s_lambda);
 
   formals = SCM_CAR (x);
   while (SCM_CONSP (formals))
@@ -698,7 +696,9 @@ scm_m_letstar (SCM xorig, SCM env SCM_UNUSED)
   SCM x = SCM_CDR (xorig);
   SCM vars = SCM_EOL;
   SCM *varloc = &vars;
-  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_body, s_letstar);
+
+  SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_letstar);
+
   bindings = SCM_CAR (x);
   SCM_ASSYNT (scm_ilength (bindings) >= 0, scm_s_bindings, s_letstar);
   while (!SCM_NULLP (bindings))
@@ -710,24 +710,30 @@ scm_m_letstar (SCM xorig, SCM env SCM_UNUSED)
       varloc = SCM_CDRLOC (SCM_CDR (*varloc));
       bindings = SCM_CDR (bindings);
     }
+
   return scm_cons2 (SCM_IM_LETSTAR, vars,
 		    scm_m_body (SCM_IM_LETSTAR, SCM_CDR (x), s_letstar));
 }
 
 
-/* DO gets the most radically altered syntax
+/* DO gets the most radically altered syntax.  The order of the vars is
+ * reversed here.  In contrast, the order of the inits and steps is reversed
+ * during the evaluation:
+
    (do ((<var1> <init1> <step1>)
    (<var2> <init2>)
    ... )
    (<test> <return>)
    <body>)
+
    ;; becomes
-   (do_mem (varn ... var2 var1)
+
+   (#@do (varn ... var2 var1)
    (<init1> <init2> ... <initn>)
    (<test> <return>)
    (<body>)
    <step1> <step2> ... <stepn>) ;; missing steps replaced by var
-   */
+ */
 
 SCM_SYNTAX(s_do, "do", scm_makmmacro, scm_m_do);
 SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
@@ -747,19 +753,21 @@ scm_m_do (SCM xorig, SCM env SCM_UNUSED)
   SCM_ASSYNT (scm_ilength (bindings) >= 0, scm_s_bindings, "do");
   while (!SCM_NULLP (bindings))
     {
-      SCM arg1 = SCM_CAR (bindings);
-      long len = scm_ilength (arg1);
+      SCM binding = SCM_CAR (bindings);
+      long len = scm_ilength (binding);
       SCM_ASSYNT (len == 2 || len == 3, scm_s_bindings, "do");
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), scm_s_variable, "do");
-      /* vars reversed here, inits and steps reversed at evaluation */
-      vars = scm_cons (SCM_CAR (arg1), vars);	/* variable */
-      arg1 = SCM_CDR (arg1);
-      *initloc = scm_list_1 (SCM_CAR (arg1));	/* init */
-      initloc = SCM_CDRLOC (*initloc);
-      arg1 = SCM_CDR (arg1);
-      *steploc = scm_list_1 (len == 2 ? SCM_CAR (vars) : SCM_CAR (arg1));
-      steploc = SCM_CDRLOC (*steploc);
-      bindings = SCM_CDR (bindings);
+      {
+	SCM name = SCM_CAR (binding);
+	SCM init = SCM_CADR (binding);
+	SCM step = (len == 2) ? name : SCM_CADDR (binding);
+	SCM_ASSYNT (SCM_SYMBOLP (name), scm_s_variable, "do");
+	vars = scm_cons (name, vars);
+	*initloc = scm_list_1 (init);
+	initloc = SCM_CDRLOC (*initloc);
+	*steploc = scm_list_1 (step);
+	steploc = SCM_CDRLOC (*steploc);
+	bindings = SCM_CDR (bindings);
+      }
     }
   x = SCM_CDR (x);
   SCM_ASSYNT (scm_ilength (SCM_CAR (x)) >= 1, scm_s_test, "do");
@@ -768,16 +776,68 @@ scm_m_do (SCM xorig, SCM env SCM_UNUSED)
   return scm_cons (SCM_IM_DO, x);
 }
 
-/* evalcar is small version of inline EVALCAR when we don't care about
- * speed
- */
-#define evalcar scm_eval_car
 
+SCM_SYNTAX (s_quasiquote, "quasiquote", scm_makacro, scm_m_quasiquote);
+SCM_GLOBAL_SYMBOL (scm_sym_quasiquote, s_quasiquote);
 
-static SCM iqq (SCM form, SCM env, long depth);
-
-SCM_SYNTAX(s_quasiquote, "quasiquote", scm_makacro, scm_m_quasiquote);
-SCM_GLOBAL_SYMBOL(scm_sym_quasiquote, s_quasiquote);
+/* Internal function to handle a quasiquotation:  'form' is the parameter in
+ * the call (quasiquotation form), 'env' is the environment where unquoted
+ * expressions will be evaluated, and 'depth' is the current quasiquotation
+ * nesting level and is known to be greater than zero.  */
+static SCM 
+iqq (SCM form, SCM env, unsigned long int depth)
+{
+  if (SCM_CONSP (form))
+    {
+      SCM tmp = SCM_CAR (form);
+      if (SCM_EQ_P (tmp, scm_sym_quasiquote))
+	{
+	  SCM args = SCM_CDR (form);
+	  SCM_ASSYNT (scm_ilength (args) == 1, scm_s_expression, s_quasiquote);
+	  return scm_list_2 (tmp, iqq (SCM_CAR (args), env, depth + 1));
+	}
+      else if (SCM_EQ_P (tmp, scm_sym_unquote))
+	{
+	  SCM args = SCM_CDR (form);
+	  SCM_ASSYNT (scm_ilength (args) == 1, scm_s_expression, s_quasiquote);
+	  if (depth - 1 == 0)
+	    return scm_eval_car (args, env);
+	  else
+	    return scm_list_2 (tmp, iqq (SCM_CAR (args), env, depth - 1));
+	}
+      else if (SCM_CONSP (tmp)
+	       && SCM_EQ_P (SCM_CAR (tmp), scm_sym_uq_splicing))
+	{
+	  SCM args = SCM_CDR (tmp);
+	  SCM_ASSYNT (scm_ilength (args) == 1, scm_s_expression, s_quasiquote);
+	  if (depth - 1 == 0)
+	    {
+	      SCM list = scm_eval_car (args, env);
+	      SCM rest = SCM_CDR (form);
+	      SCM_ASSYNT (scm_ilength (list) >= 0, s_splicing, s_quasiquote);
+	      return scm_append (scm_list_2 (list, iqq (rest, env, depth)));
+	    }
+	  else
+	    return scm_cons (iqq (SCM_CAR (form), env, depth - 1),
+			     iqq (SCM_CDR (form), env, depth));
+	}
+      else
+	return scm_cons (iqq (SCM_CAR (form), env, depth),
+			 iqq (SCM_CDR (form), env, depth));
+    }
+  else if (SCM_VECTORP (form))
+    {
+      size_t i = SCM_VECTOR_LENGTH (form);
+      SCM *data = SCM_VELTS (form);
+      SCM tmp = SCM_EOL;
+      while (i != 0)
+	tmp = scm_cons (data[--i], tmp);
+      scm_remember_upto_here_1 (form);
+      return scm_vector (iqq (tmp, env, depth));
+    }
+  else
+    return form;
+}
 
 SCM 
 scm_m_quasiquote (SCM xorig, SCM env)
@@ -788,56 +848,14 @@ scm_m_quasiquote (SCM xorig, SCM env)
 }
 
 
-static SCM 
-iqq (SCM form, SCM env, long depth)
-{
-  SCM tmp;
-  long edepth = depth;
-  if (SCM_IMP (form))
-    return form;
-  if (SCM_VECTORP (form))
-    {
-      long i = SCM_VECTOR_LENGTH (form);
-      SCM *data = SCM_VELTS (form);
-      tmp = SCM_EOL;
-      for (; --i >= 0;)
-	tmp = scm_cons (data[i], tmp);
-      return scm_vector (iqq (tmp, env, depth));
-    }
-  if (!SCM_CONSP (form)) 
-    return form;
-  tmp = SCM_CAR (form);
-  if (SCM_EQ_P (scm_sym_quasiquote, tmp))
-    {
-      depth++;
-      goto label;
-    }
-  if (SCM_EQ_P (scm_sym_unquote, tmp))
-    {
-      --depth;
-    label:
-      form = SCM_CDR (form);
-      SCM_ASSERT (SCM_CONSP (form) && SCM_NULLP (SCM_CDR (form)),
-                  form, SCM_ARG1, s_quasiquote);
-      if (0 == depth)
-	return evalcar (form, env);
-      return scm_list_2 (tmp, iqq (SCM_CAR (form), env, depth));
-    }
-  if (SCM_CONSP (tmp) && (SCM_EQ_P (scm_sym_uq_splicing, SCM_CAR (tmp))))
-    {
-      tmp = SCM_CDR (tmp);
-      if (0 == --edepth)
-	return scm_append (scm_list_2 (evalcar (tmp, env), iqq (SCM_CDR (form), env, depth)));
-    }
-  return scm_cons (iqq (SCM_CAR (form), env, edepth), iqq (SCM_CDR (form), env, depth));
-}
-
-/* Here are acros which return values rather than code. */
-
 SCM_SYNTAX (s_delay, "delay", scm_makmmacro, scm_m_delay);
 SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
 
-SCM 
+/* Promises are implemented as closures with an empty parameter list.  Thus,
+ * (delay <expression>) is transformed into (#@delay '() <expression>), where
+ * the empty list represents the empty parameter list.  This representation
+ * allows for easy creation of the closure during evaluation.  */
+SCM
 scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (xorig) == 2, scm_s_expression, s_delay);
@@ -848,82 +866,94 @@ scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
 SCM_SYNTAX(s_define, "define", scm_makmmacro, scm_m_define);
 SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
 
-SCM 
+/* Guile provides an extension to R5RS' define syntax to represent function
+ * currying in a compact way.  With this extension, it is allowed to write
+ * (define <nested-variable> <body>), where <nested-variable> has of one of
+ * the forms (<nested-variable> <formals>), (<nested-variable> . <formal>),  
+ * (<variable> <formals>) or (<variable> . <formal>).  As in R5RS, <formals>
+ * should be either a sequence of zero or more variables, or a sequence of one
+ * or more variables followed by a space-delimited period and another
+ * variable.  Each level of argument nesting wraps the <body> within another
+ * lambda expression.  For example, the following forms are allowed, each one
+ * followed by an equivalent, more explicit implementation.
+ * Example 1:
+ *   (define ((a b . c) . d) <body>)  is equivalent to
+ *   (define a (lambda (b . c) (lambda d <body>)))
+ * Example 2:
+ *   (define (((a) b) c . d) <body>)  is equivalent to
+ *   (define a (lambda () (lambda (b) (lambda (c . d) <body>))))
+ */
+/* Dirk:FIXME:: We should provide an implementation for 'define' in the R5RS
+ * module that does not implement this extension.  */
+SCM
 scm_m_define (SCM x, SCM env)
 {
-  SCM proc, arg1 = x;
+  SCM name;
   x = SCM_CDR (x);
   SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_expression, s_define);
-  proc = SCM_CAR (x);
+  name = SCM_CAR (x);
   x = SCM_CDR (x);
-  while (SCM_CONSP (proc))
-    {				/* nested define syntax */
-      x = scm_list_1 (scm_cons2 (scm_sym_lambda, SCM_CDR (proc), x));
-      proc = SCM_CAR (proc);
+  while (SCM_CONSP (name))
+    {
+      /* This while loop realizes function currying by variable nesting. */
+      SCM formals = SCM_CDR (name);
+      x = scm_list_1 (scm_cons2 (scm_sym_lambda, formals, x));
+      name = SCM_CAR (name);
     }
-  SCM_ASSYNT (SCM_SYMBOLP (proc), scm_s_variable, s_define);
-  SCM_ASSYNT (1 == scm_ilength (x), scm_s_expression, s_define);
+  SCM_ASSYNT (SCM_SYMBOLP (name), scm_s_variable, s_define);
+  SCM_ASSYNT (scm_ilength (x) == 1, scm_s_expression, s_define);
   if (SCM_TOP_LEVEL (env))
     {
-      x = evalcar (x, env);
-#ifdef DEBUG_EXTENSIONS
-      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x))
+      SCM var;
+      x = scm_eval_car (x, env);
+      if (SCM_REC_PROCNAMES_P)
 	{
-	  arg1 = x;
-	proc:
-	  if (SCM_CLOSUREP (arg1)
+	  SCM tmp = x;
+	  while (SCM_MACROP (tmp))
+	    tmp = SCM_MACRO_CODE (tmp);
+	  if (SCM_CLOSUREP (tmp)
 	      /* Only the first definition determines the name. */
-	      && SCM_FALSEP (scm_procedure_property (arg1, scm_sym_name)))
-	    scm_set_procedure_property_x (arg1, scm_sym_name, proc);
-	  else if (SCM_MACROP (arg1)
-		   /* Dirk::FIXME: Does the following test make sense? */
-		   && !SCM_EQ_P (SCM_MACRO_CODE (arg1), arg1))
-	    {
-	      arg1 = SCM_MACRO_CODE (arg1);
-	      goto proc;
-	    }
+	      && SCM_FALSEP (scm_procedure_property (tmp, scm_sym_name)))
+	    scm_set_procedure_property_x (tmp, scm_sym_name, name);
 	}
-#endif
-      arg1 = scm_sym2var (proc, scm_env_top_level (env), SCM_BOOL_T);
-      SCM_VARIABLE_SET (arg1, x);
-#ifdef SICP
-      return scm_list_2 (scm_sym_quote, proc);
-#else
+      var = scm_sym2var (name, scm_env_top_level (env), SCM_BOOL_T);
+      SCM_VARIABLE_SET (var, x);
       return SCM_UNSPECIFIED;
-#endif
     }
-  return scm_cons2 (SCM_IM_DEFINE, proc, x);
+  else
+    return scm_cons2 (SCM_IM_DEFINE, name, x);
 }
 
-/* end of acros */
 
-static SCM
-scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env SCM_UNUSED)
+/* The bindings ((v1 i1) (v2 i2) ... (vn in)) are transformed to the lists
+ * (vn ... v2 v1) and (i1 i2 ... in).  That is, the list of variables is
+ * reversed here, the list of inits gets reversed during evaluation. */
+static void
+transform_bindings (SCM bindings, SCM *rvarloc, SCM *initloc, const char *what)
 {
-  SCM cdrx = SCM_CDR (xorig);	/* locally mutable version of form */
-  char *what = SCM_SYMBOL_CHARS (SCM_CAR (xorig));
-  SCM x = cdrx, proc, arg1;	/* structure traversers */
-  SCM vars = SCM_EOL, inits = SCM_EOL, *initloc = &inits;
+  SCM rvars = SCM_EOL;
+  *rvarloc = SCM_EOL;
+  *initloc = SCM_EOL;
 
-  proc = SCM_CAR (x);
-  SCM_ASSYNT (scm_ilength (proc) >= 1, scm_s_bindings, what);
+  SCM_ASSYNT (scm_ilength (bindings) >= 1, scm_s_bindings, what);
+
   do
     {
-      /* vars scm_list reversed here, inits reversed at evaluation */
-      arg1 = SCM_CAR (proc);
-      SCM_ASSYNT (2 == scm_ilength (arg1), scm_s_bindings, what);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), scm_s_variable, what);
-      if (scm_c_improper_memq (SCM_CAR (arg1), vars))
+      SCM binding = SCM_CAR (bindings);
+      SCM_ASSYNT (scm_ilength (binding) == 2, scm_s_bindings, what);
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), scm_s_variable, what);
+      if (scm_c_improper_memq (SCM_CAR (binding), rvars))
 	scm_misc_error (what, scm_s_duplicate_bindings, SCM_EOL);
-      vars = scm_cons (SCM_CAR (arg1), vars);
-      *initloc = scm_list_1 (SCM_CADR (arg1));
+      rvars = scm_cons (SCM_CAR (binding), rvars);
+      *initloc = scm_list_1 (SCM_CADR (binding));
       initloc = SCM_CDRLOC (*initloc);
+      bindings = SCM_CDR (bindings);
     }
-  while (SCM_NIMP (proc = SCM_CDR (proc)));
+  while (!SCM_NULLP (bindings));
 
-  return scm_cons2 (op, vars,
-		    scm_cons (inits, scm_m_body (imm, SCM_CDR (x), what)));
+  *rvarloc = rvars;
 }
+
 
 SCM_SYNTAX(s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
 SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
@@ -932,74 +962,89 @@ SCM
 scm_m_letrec (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_body, s_letrec);
+  SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_letrec);
   
-  if (SCM_NULLP (SCM_CAR (x)))   /* null binding, let* faster */
-    return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), SCM_EOL,
-				     scm_m_body (SCM_IM_LETREC,
-						 SCM_CDR (x),
-						 s_letrec)),
-			  env);
+  if (SCM_NULLP (SCM_CAR (x)))
+    {
+      /* null binding, let* faster */
+      SCM body = scm_m_body (SCM_IM_LETREC, SCM_CDR (x), s_letrec);
+      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), SCM_EOL, body), env);
+    }
   else
-    return scm_m_letrec1 (SCM_IM_LETREC, SCM_IM_LETREC, xorig, env);
+    {
+      SCM rvars, inits, body;
+      transform_bindings (SCM_CAR (x), &rvars, &inits, "letrec");
+      body = scm_m_body (SCM_IM_LETREC, SCM_CDR (x), "letrec");
+      return scm_cons2 (SCM_IM_LETREC, rvars, scm_cons (inits, body));
+    }
 }
+
 
 SCM_SYNTAX(s_let, "let", scm_makmmacro, scm_m_let);
 SCM_GLOBAL_SYMBOL(scm_sym_let, s_let);
 
-SCM 
+SCM
 scm_m_let (SCM xorig, SCM env)
 {
-  SCM cdrx = SCM_CDR (xorig);	/* locally mutable version of form */
-  SCM x = cdrx, proc, arg1, name;	/* structure traversers */
-  SCM vars = SCM_EOL, inits = SCM_EOL, *varloc = &vars, *initloc = &inits;
+  SCM x = SCM_CDR (xorig);
+  SCM temp;
 
-  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_body, s_let);
-  proc = SCM_CAR (x);
-  if (SCM_NULLP (proc)
-      || (SCM_CONSP (proc)
-	  && SCM_CONSP (SCM_CAR (proc)) && SCM_NULLP (SCM_CDR (proc))))
+  SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_let);
+  temp = SCM_CAR (x);
+  if (SCM_NULLP (temp) 
+      || (scm_ilength (temp) == 1 && SCM_CONSP (SCM_CAR (temp))))
     {
       /* null or single binding, let* is faster */
-      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), proc,
-				       scm_m_body (SCM_IM_LET,
-						   SCM_CDR (x),
-						   s_let)),
-			    env);
+      SCM body = scm_m_body (SCM_IM_LET, SCM_CDR (x), s_let);
+      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), temp, body), env);
     }
-
-  SCM_ASSYNT (SCM_NIMP (proc), scm_s_bindings, s_let);
-  if (SCM_CONSP (proc))
+  else if (SCM_CONSP (temp))
     {
-      /* plain let, proc is <bindings> */
-      return scm_m_letrec1 (SCM_IM_LET, SCM_IM_LET, xorig, env);
+      /* plain let, temp is <bindings> */
+      SCM rvars, inits, body;
+      transform_bindings (temp, &rvars, &inits, "let");
+      body = scm_m_body (SCM_IM_LET, SCM_CDR (x), "let");
+      return scm_cons2 (SCM_IM_LET, rvars, scm_cons (inits, body));
     }
+  else
+    {
+      /* named let: Transform (let name ((var init) ...) body ...) into
+       * ((letrec ((name (lambda (var ...) body ...))) name) init ...) */
 
-  if (!SCM_SYMBOLP (proc))
-    scm_misc_error (s_let, scm_s_bindings, SCM_EOL);	/* bad let */
-  name = proc;			/* named let, build equiv letrec */
-  x = SCM_CDR (x);
-  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_body, s_let);
-  proc = SCM_CAR (x);		/* bindings list */
-  SCM_ASSYNT (scm_ilength (proc) >= 0, scm_s_bindings, s_let);
-  while (SCM_NIMP (proc))
-    {				/* vars and inits both in order */
-      arg1 = SCM_CAR (proc);
-      SCM_ASSYNT (2 == scm_ilength (arg1), scm_s_bindings, s_let);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), scm_s_variable, s_let);
-      *varloc = scm_list_1 (SCM_CAR (arg1));
-      varloc = SCM_CDRLOC (*varloc);
-      *initloc = scm_list_1 (SCM_CADR (arg1));
-      initloc = SCM_CDRLOC (*initloc);
-      proc = SCM_CDR (proc);
+      SCM name = temp;
+      SCM vars = SCM_EOL;
+      SCM *varloc = &vars;
+      SCM inits = SCM_EOL;
+      SCM *initloc = &inits;
+      SCM bindings;
+
+      SCM_ASSYNT (SCM_SYMBOLP (name), scm_s_bindings, s_let);
+      x = SCM_CDR (x);
+      SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_let);
+      bindings = SCM_CAR (x);
+      SCM_ASSYNT (scm_ilength (bindings) >= 0, scm_s_bindings, s_let);
+      while (!SCM_NULLP (bindings))
+	{				/* vars and inits both in order */
+	  SCM binding = SCM_CAR (bindings);
+	  SCM_ASSYNT (scm_ilength (binding) == 2, scm_s_bindings, s_let);
+	  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), scm_s_variable, s_let);
+	  *varloc = scm_list_1 (SCM_CAR (binding));
+	  varloc = SCM_CDRLOC (*varloc);
+	  *initloc = scm_list_1 (SCM_CADR (binding));
+	  initloc = SCM_CDRLOC (*initloc);
+	  bindings = SCM_CDR (bindings);
+	}
+
+      {
+	SCM lambda_body = scm_m_body (SCM_IM_LET, SCM_CDR (x), "let");
+	SCM lambda_form = scm_cons2 (scm_sym_lambda, vars, lambda_body);
+	SCM rvar = scm_list_1 (name);
+	SCM init = scm_list_1 (lambda_form);
+	SCM body = scm_m_body (SCM_IM_LET, scm_list_1 (name), "let");
+	SCM letrec = scm_cons2 (SCM_IM_LETREC, rvar, scm_cons (init, body));
+	return scm_cons (letrec, inits);
+      }
     }
-
-  proc = scm_cons2 (scm_sym_lambda, vars,
-		    scm_m_body (SCM_IM_LET, SCM_CDR (x), "let"));
-  proc = scm_list_3 (scm_sym_let, 
-		     scm_list_1 (scm_list_2 (name, proc)),
-		     scm_cons (name, inits));
-  return scm_m_letrec1 (SCM_IM_LETREC, SCM_IM_LET, proc, env);
 }
 
 
@@ -1205,19 +1250,21 @@ scm_m_expand_body (SCM xorig, SCM env)
 	}
     }
 
-  SCM_ASSYNT (SCM_NIMP (x), scm_s_body, what);
-  if (SCM_NIMP (defs))
+  if (!SCM_NULLP (defs))
     {
-      x = scm_list_1 (scm_m_letrec1 (SCM_IM_LETREC,
-				     SCM_IM_DEFINE,
-				     scm_cons2 (scm_sym_define, defs, x),
-				     env));
+      SCM rvars, inits, body, letrec;
+      transform_bindings (defs, &rvars, &inits, what);
+      body = scm_m_body (SCM_IM_DEFINE, x, what);
+      letrec = scm_cons2 (SCM_IM_LETREC, rvars, scm_cons (inits, body));
+      SCM_SETCAR (xorig, letrec);
+      SCM_SETCDR (xorig, SCM_EOL);
     }
-
-  SCM_DEFER_INTS;
-  SCM_SETCAR (xorig, SCM_CAR (x));
-  SCM_SETCDR (xorig, SCM_CDR (x));
-  SCM_ALLOW_INTS;
+  else
+    {
+      SCM_ASSYNT (SCM_CONSP (x), scm_s_body, what);
+      SCM_SETCAR (xorig, SCM_CAR (x));
+      SCM_SETCDR (xorig, SCM_CDR (x));
+    }
 
   return xorig;
 }
@@ -1947,14 +1994,13 @@ dispatch:
 
     case SCM_BIT8(SCM_IM_AND):
       x = SCM_CDR (x);
-      t.arg1 = x;
-      while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
-	if (SCM_FALSEP (EVALCAR (x, env)))
-	  {
+      while (!SCM_NULLP (SCM_CDR (x)))
+	{
+	  if (SCM_FALSEP (EVALCAR (x, env)))
 	    RETURN (SCM_BOOL_F);
-	  }
-	else
-	  x = t.arg1;
+	  else
+	    x = SCM_CDR (x);
+	}
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
 
@@ -1974,13 +2020,12 @@ dispatch:
          with the current module. */
       if (SCM_CONSP (env) && !SCM_CONSP (SCM_CAR (env)))
 	{
-	  t.arg1 = x;
 	  UPDATE_TOPLEVEL_ENV (env);
-	  while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
+	  while (!SCM_NULLP (SCM_CDR (x)))
 	    {
 	      EVALCAR (x, env);
-	      x = t.arg1;
 	      UPDATE_TOPLEVEL_ENV (env);
+	      x = SCM_CDR (x);
 	    }
 	  goto carloop;
 	}
@@ -1992,8 +2037,7 @@ dispatch:
     nontoplevel_cdrxbegin:
       x = SCM_CDR (x);
     nontoplevel_begin:
-      t.arg1 = x;
-      while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
+      while (!SCM_NULLP (SCM_CDR (x)))
 	{
 	  if (SCM_IMP (SCM_CAR (x)))
 	    {
@@ -2007,7 +2051,7 @@ dispatch:
 	    }
 	  else
 	    SCM_CEVAL (SCM_CAR (x), env);
-	  x = t.arg1;
+	  x = SCM_CDR (x);
 	}
       
     carloop:			/* scm_eval car of last form in list */
@@ -2159,32 +2203,34 @@ dispatch:
 
     case SCM_BIT8(SCM_IM_LETSTAR):
       x = SCM_CDR (x);
-      proc = SCM_CAR (x);
-      if (SCM_IMP (proc))
-	{
+      {
+	SCM bindings = SCM_CAR (x);
+	if (SCM_NULLP (bindings))
 	  env = EXTEND_ENV (SCM_EOL, SCM_EOL, env);
-	  goto nontoplevel_cdrxnoap;
-	}
-      do
-	{
-	  t.arg1 = SCM_CAR (proc);
-	  proc = SCM_CDR (proc);
-	  env = EXTEND_ENV (t.arg1, EVALCAR (proc, env), env);
-	}
-      while (SCM_NIMP (proc = SCM_CDR (proc)));
+	else
+	  {
+	    do
+	      {
+		SCM name = SCM_CAR (bindings);
+		SCM init = SCM_CDR (bindings);
+		env = EXTEND_ENV (name, EVALCAR (init, env), env);
+		bindings = SCM_CDR (init);
+	      }
+	    while (!SCM_NULLP (bindings));
+	  }
+      }
       goto nontoplevel_cdrxnoap;
+
 
     case SCM_BIT8(SCM_IM_OR):
       x = SCM_CDR (x);
-      t.arg1 = x;
-      while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
+      while (!SCM_NULLP (SCM_CDR (x)))
 	{
-	  x = EVALCAR (x, env);
-	  if (!SCM_FALSEP (x))
-	    {
-	      RETURN (x);
-	    }
-	  x = t.arg1;
+	  SCM val = EVALCAR (x, env);
+	  if (!SCM_FALSEP (val))
+	    RETURN (val);
+	  else
+	    x = SCM_CDR (x);
 	}
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
@@ -2289,7 +2335,7 @@ dispatch:
 	      RETURN (val);
 	  }
 	  proc = SCM_CDR (x);
-	  proc = evalcar (proc, env);
+	  proc = scm_eval_car (proc, env);
 	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
 	  PREP_APPLY (proc, scm_list_1 (t.arg1));
 	  ENTER_APPLY;
