@@ -356,6 +356,21 @@ scm_load_startup_files ()
     }
 }
 
+#ifdef GUILE_DEBUG
+/* Get an integer from an environment variable.  */
+static int
+scm_i_getenv_int (const char *var, int def)
+{
+  char *end, *val = getenv (var);
+  long res;
+  if (!val)
+    return def;
+  res = strtol (val, &end, 10);
+  if (end == val)
+    return def;
+  return res;
+}
+#endif /* GUILE_DEBUG */
 
 
 /* The main init code.  */
@@ -459,7 +474,12 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_ports_prehistory ();
       scm_smob_prehistory ();
       scm_tables_prehistory ();
+#if GUILE_DEBUG
+      scm_init_storage (scm_i_getenv_int ("GUILE_INIT_HEAP_SIZE", 0),
+			scm_i_getenv_int ("GUILE_INIT_HEAP_SIZE2", 0));
+#else
       scm_init_storage (0, 0);
+#endif
       scm_init_subr_table ();
       scm_init_root ();
 #ifdef USE_THREADS
