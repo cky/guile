@@ -63,8 +63,11 @@ scm_subr_entry *scm_subr_table;
 
 /* libguile contained approx. 700 primitive procedures on 24 Aug 1999. */
 
+/* Increased to 800 on 2001-05-07 -- Guile now has 779 primitives on
+   startup, 786 with guile-readline.  'martin */
+
 int scm_subr_table_size = 0;
-int scm_subr_table_room = 750;
+int scm_subr_table_room = 800;
 
 SCM 
 scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
