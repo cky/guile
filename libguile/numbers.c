@@ -1418,7 +1418,8 @@ big2str(b, radix)
     for(i = j;j < SCM_LENGTH(ss);j++) s[ch+j-i] = s[j]; /* jeh */
     scm_vector_set_length_x(ss, (SCM)SCM_MAKINUM(ch+SCM_LENGTH(ss)-i)); /* jeh */
   }
-  return ss;
+
+  return scm_return_first (ss, t);
 }
 #endif
 
