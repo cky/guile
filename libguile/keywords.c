@@ -108,8 +108,8 @@ scm_c_make_keyword (char *s)
 
 SCM_DEFINE (scm_keyword_p, "keyword?", 1, 0, 0, 
            (SCM obj),
-"@code{keyword?} returns @code{#t} if the argument @var{kw} is a keyword;
-it returns @code{#f} otherwise.")
+	    "@code{keyword?} returns @code{#t} if the argument @var{kw} is a keyword;\n"
+	    "it returns @code{#f} otherwise.")
 #define FUNC_NAME s_scm_keyword_p
 {
   return SCM_BOOL(SCM_KEYWORDP (obj));
@@ -119,8 +119,8 @@ it returns @code{#f} otherwise.")
 
 SCM_DEFINE (scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, 
            (SCM keyword),
-"@code{keyword-dash-symbol} [FIXME: have no idea what this does; it is
-not commented.]")
+	    "@code{keyword-dash-symbol} [FIXME: have no idea what this does; it is\n"
+	    "not commented.]")
 #define FUNC_NAME s_scm_keyword_dash_symbol
 {
   SCM_VALIDATE_KEYWORD (1,keyword);

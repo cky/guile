@@ -168,13 +168,13 @@ SCM_SYMBOL (sym_write_pipe, "write pipe");
 
 SCM_DEFINE (scm_pipe, "pipe", 0, 0, 0,
             (),
-"Creates a pipe which can be used for communication.  The return value
-is a pair in which the CAR contains an input port and the CDR an
-output port.  Data written to the output port can be read from the
-input port.  Note that both ports are buffered so it may be necessary
-to flush the output port before data will actually be sent across the pipe.
-Alternatively a buffer can be added to the port using @code{setvbuf}
-(see below).")
+	    "Creates a pipe which can be used for communication.  The return value\n"
+	    "is a pair in which the CAR contains an input port and the CDR an\n"
+	    "output port.  Data written to the output port can be read from the\n"
+	    "input port.  Note that both ports are buffered so it may be necessary\n"
+	    "to flush the output port before data will actually be sent across the pipe.\n"
+	    "Alternatively a buffer can be added to the port using @code{setvbuf}\n"
+	    "(see below).")
 #define FUNC_NAME s_scm_pipe
 {
   int fd[2], rv;
@@ -194,7 +194,7 @@ Alternatively a buffer can be added to the port using @code{setvbuf}
 #ifdef HAVE_GETGROUPS
 SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
             (),
-"Returns a vector of integers representing the current supplimentary group IDs.")
+	    "Returns a vector of integers representing the current supplimentary group IDs.")
 #define FUNC_NAME s_scm_getgroups
 {
   SCM grps, ans;
@@ -231,9 +231,9 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 
 SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
             (SCM user),
-"Look up an entry in the user database.  @var{obj} can be an integer,
-a string, or omitted, giving the behaviour of getpwuid, getpwnam
-or getpwent respectively.")
+	    "Look up an entry in the user database.  @var{obj} can be an integer,\n"
+	    "a string, or omitted, giving the behaviour of getpwuid, getpwnam\n"
+	    "or getpwent respectively.")
 #define FUNC_NAME s_scm_getpwuid
 {
   SCM result;
@@ -285,9 +285,9 @@ or getpwent respectively.")
 #ifdef HAVE_SETPWENT
 SCM_DEFINE (scm_setpwent, "setpw", 0, 1, 0,
             (SCM arg),
-"If called with a true argument, initialize or reset the password data
-stream.  Otherwise, close the stream.  The @code{setpwent} and
-@code{endpwent} procedures are implemented on top of this.")
+	    "If called with a true argument, initialize or reset the password data\n"
+	    "stream.  Otherwise, close the stream.  The @code{setpwent} and\n"
+	    "@code{endpwent} procedures are implemented on top of this.")
 #define FUNC_NAME s_scm_setpwent
 {
   if (SCM_UNBNDP (arg) || SCM_FALSEP (arg))
@@ -304,9 +304,9 @@ stream.  Otherwise, close the stream.  The @code{setpwent} and
 /* Combines getgrgid and getgrnam.  */
 SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
             (SCM name),
-"Look up an entry in the group database.  @var{obj} can be an integer,
-a string, or omitted, giving the behaviour of getgrgid, getgrnam
-or getgrent respectively.")
+	    "Look up an entry in the group database.  @var{obj} can be an integer,\n"
+	    "a string, or omitted, giving the behaviour of getgrgid, getgrnam\n"
+	    "or getgrent respectively.")
 #define FUNC_NAME s_scm_getgrgid
 {
   SCM result;
@@ -345,9 +345,9 @@ or getgrent respectively.")
 
 SCM_DEFINE (scm_setgrent, "setgr", 0, 1, 0, 
             (SCM arg),
-"If called with a true argument, initialize or reset the group data
-stream.  Otherwise, close the stream.  The @code{setgrent} and
-@code{endgrent} procedures are implemented on top of this.")
+	    "If called with a true argument, initialize or reset the group data\n"
+	    "stream.  Otherwise, close the stream.  The @code{setgrent} and\n"
+	    "@code{endgrent} procedures are implemented on top of this.")
 #define FUNC_NAME s_scm_setgrent
 {
   if (SCM_UNBNDP (arg) || SCM_FALSEP (arg))
@@ -362,33 +362,28 @@ stream.  Otherwise, close the stream.  The @code{setgrent} and
 
 SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
             (SCM pid, SCM sig),
-"Sends a signal to the specified process or group of processes.
-
-@var{pid} specifies the processes to which the signal is sent:
-
-@table @r
-@item @var{pid} greater than 0
-The process whose identifier is @var{pid}.
-@item @var{pid} equal to 0
-All processes in the current process group.
-@item @var{pid} less than -1
-The process group whose identifier is -@var{pid}
-@item @var{pid} equal to -1
-If the process is privileged, all processes except for some special
-system processes.  Otherwise, all processes with the current effective
-user ID.
-@end table
-
-@var{sig} should be specified using a variable corresponding to
-the Unix symbolic name, e.g.,
-
-@defvar SIGHUP
-Hang-up signal.
-@end defvar
-
-@defvar SIGINT
-Interrupt signal.
-@end defvar")
+	    "Sends a signal to the specified process or group of processes.\n\n"
+	    "@var{pid} specifies the processes to which the signal is sent:\n\n"
+	    "@table @r\n"
+	    "@item @var{pid} greater than 0\n"
+	    "The process whose identifier is @var{pid}.\n"
+	    "@item @var{pid} equal to 0\n"
+	    "All processes in the current process group.\n"
+	    "@item @var{pid} less than -1\n"
+	    "The process group whose identifier is -@var{pid}\n"
+	    "@item @var{pid} equal to -1\n"
+	    "If the process is privileged, all processes except for some special\n"
+	    "system processes.  Otherwise, all processes with the current effective\n"
+	    "user ID.\n"
+	    "@end table\n\n"
+	    "@var{sig} should be specified using a variable corresponding to\n"
+	    "the Unix symbolic name, e.g.,\n\n"
+	    "@defvar SIGHUP\n"
+	    "Hang-up signal.\n"
+	    "@end defvar\n\n"
+	    "@defvar SIGINT\n"
+	    "Interrupt signal.\n"
+	    "@end defvar")
 #define FUNC_NAME s_scm_kill
 {
   SCM_VALIDATE_INUM (1,pid);
@@ -403,47 +398,40 @@ Interrupt signal.
 #ifdef HAVE_WAITPID
 SCM_DEFINE (scm_waitpid, "waitpid", 1, 1, 0,
             (SCM pid, SCM options),
-"This procedure collects status information from a child process which
-has terminated or (optionally) stopped.  Normally it will
-suspend the calling process until this can be done.  If more than one
-child process is eligible then one will be chosen by the operating system.
-
-The value of @var{pid} determines the behaviour:
-
-@table @r
-@item @var{pid} greater than 0
-Request status information from the specified child process.
-@item @var{pid} equal to -1 or WAIT_ANY
-Request status information for any child process.
-@item @var{pid} equal to 0 or WAIT_MYPGRP
-Request status information for any child process in the current process
-group.
-@item @var{pid} less than -1
-Request status information for any child process whose process group ID
-is -@var{PID}.
-@end table
-
-The @var{options} argument, if supplied, should be the bitwise OR of the
-values of zero or more of the following variables:
-
-@defvar WNOHANG
-Return immediately even if there are no child processes to be collected.
-@end defvar
-
-@defvar WUNTRACED
-Report status information for stopped processes as well as terminated
-processes.
-@end defvar
-
-The return value is a pair containing:
-
-@enumerate
-@item
-The process ID of the child process, or 0 if @code{WNOHANG} was
-specified and no process was collected.
-@item
-The integer status value.
-@end enumerate")
+	    "This procedure collects status information from a child process which\n"
+	    "has terminated or (optionally) stopped.  Normally it will\n"
+	    "suspend the calling process until this can be done.  If more than one\n"
+	    "child process is eligible then one will be chosen by the operating system.\n\n"
+	    "The value of @var{pid} determines the behaviour:\n\n"
+	    "@table @r\n"
+	    "@item @var{pid} greater than 0\n"
+	    "Request status information from the specified child process.\n"
+	    "@item @var{pid} equal to -1 or WAIT_ANY\n"
+	    "Request status information for any child process.\n"
+	    "@item @var{pid} equal to 0 or WAIT_MYPGRP\n"
+	    "Request status information for any child process in the current process\n"
+	    "group.\n"
+	    "@item @var{pid} less than -1\n"
+	    "Request status information for any child process whose process group ID\n"
+	    "is -@var{PID}.\n"
+	    "@end table\n\n"
+	    "The @var{options} argument, if supplied, should be the bitwise OR of the\n"
+	    "values of zero or more of the following variables:\n\n"
+	    "@defvar WNOHANG\n"
+	    "Return immediately even if there are no child processes to be collected.\n"
+	    "@end defvar\n\n"
+	    "@defvar WUNTRACED\n"
+	    "Report status information for stopped processes as well as terminated\n"
+	    "processes.\n"
+	    "@end defvar\n\n"
+	    "The return value is a pair containing:\n\n"
+	    "@enumerate\n"
+	    "@item\n"
+	    "The process ID of the child process, or 0 if @code{WNOHANG} was\n"
+	    "specified and no process was collected.\n"
+	    "@item\n"
+	    "The integer status value.\n"
+	    "@end enumerate")
 #define FUNC_NAME s_scm_waitpid
 {
   int i;
@@ -468,9 +456,9 @@ The integer status value.
 
 SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0, 
             (SCM status),
-"Returns the exit status value, as would be
-set if a process ended normally through a
-call to @code{exit} or @code{_exit}, if any, otherwise @code{#f}.")
+	    "Returns the exit status value, as would be\n"
+	    "set if a process ended normally through a\n"
+	    "call to @code{exit} or @code{_exit}, if any, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_status_exit_val
 {
   int lstatus;
@@ -489,8 +477,8 @@ call to @code{exit} or @code{_exit}, if any, otherwise @code{#f}.")
 
 SCM_DEFINE (scm_status_term_sig, "status:term-sig", 1, 0, 0, 
             (SCM status),
-"Returns the signal number which terminated the
-process, if any, otherwise @code{#f}.")
+	    "Returns the signal number which terminated the\n"
+	    "process, if any, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_status_term_sig
 {
   int lstatus;
@@ -507,8 +495,8 @@ process, if any, otherwise @code{#f}.")
 
 SCM_DEFINE (scm_status_stop_sig, "status:stop-sig", 1, 0, 0, 
             (SCM status),
-"Returns the signal number which stopped the
-process, if any, otherwise @code{#f}.")
+	    "Returns the signal number which stopped the\n"
+	    "process, if any, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_status_stop_sig
 {
   int lstatus;
@@ -525,7 +513,7 @@ process, if any, otherwise @code{#f}.")
 
 SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
             (),
-"Returns an integer representing the process ID of the parent process.")
+	    "Returns an integer representing the process ID of the parent process.")
 #define FUNC_NAME s_scm_getppid
 {
   return SCM_MAKINUM (0L + getppid ());
@@ -536,7 +524,7 @@ SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
 
 SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
             (),
-"Returns an integer representing the current real user ID.")
+	    "Returns an integer representing the current real user ID.")
 #define FUNC_NAME s_scm_getuid
 {
   return SCM_MAKINUM (0L + getuid ());
@@ -547,7 +535,7 @@ SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
 
 SCM_DEFINE (scm_getgid, "getgid", 0, 0, 0,
             (),
-"Returns an integer representing the current real group ID.")
+	    "Returns an integer representing the current real group ID.")
 #define FUNC_NAME s_scm_getgid
 {
   return SCM_MAKINUM (0L + getgid ());
@@ -558,10 +546,10 @@ SCM_DEFINE (scm_getgid, "getgid", 0, 0, 0,
 
 SCM_DEFINE (scm_geteuid, "geteuid", 0, 0, 0,
             (),
-"Returns an integer representing the current effective user ID.
-If the system does not support effective IDs, then the real ID
-is returned.  @code{(feature? 'EIDs)} reports whether the system
-supports effective IDs.")
+	    "Returns an integer representing the current effective user ID.\n"
+	    "If the system does not support effective IDs, then the real ID\n"
+	    "is returned.  @code{(feature? 'EIDs)} reports whether the system\n"
+	    "supports effective IDs.")
 #define FUNC_NAME s_scm_geteuid
 {
 #ifdef HAVE_GETEUID
@@ -576,10 +564,10 @@ supports effective IDs.")
 
 SCM_DEFINE (scm_getegid, "getegid", 0, 0, 0,
             (),
-"Returns an integer representing the current effective group ID.
-If the system does not support effective IDs, then the real ID
-is returned.  @code{(feature? 'EIDs)} reports whether the system
-supports effective IDs.")
+	    "Returns an integer representing the current effective group ID.\n"
+	    "If the system does not support effective IDs, then the real ID\n"
+	    "is returned.  @code{(feature? 'EIDs)} reports whether the system\n"
+	    "supports effective IDs.")
 #define FUNC_NAME s_scm_getegid
 {
 #ifdef HAVE_GETEUID
@@ -593,9 +581,9 @@ supports effective IDs.")
 
 SCM_DEFINE (scm_setuid, "setuid", 1, 0, 0, 
             (SCM id),
-"Sets both the real and effective user IDs to the integer @var{id}, provided
-the process has appropriate privileges.
-The return value is unspecified.")
+	    "Sets both the real and effective user IDs to the integer @var{id}, provided\n"
+	    "the process has appropriate privileges.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setuid
 {
   SCM_VALIDATE_INUM (1,id);
@@ -607,9 +595,9 @@ The return value is unspecified.")
 
 SCM_DEFINE (scm_setgid, "setgid", 1, 0, 0, 
             (SCM id),
-"Sets both the real and effective group IDs to the integer @var{id}, provided
-the process has appropriate privileges.
-The return value is unspecified.")
+	    "Sets both the real and effective group IDs to the integer @var{id}, provided\n"
+	    "the process has appropriate privileges.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setgid
 {
   SCM_VALIDATE_INUM (1,id);
@@ -621,11 +609,11 @@ The return value is unspecified.")
 
 SCM_DEFINE (scm_seteuid, "seteuid", 1, 0, 0, 
             (SCM id),
-"Sets the effective user ID to the integer @var{id}, provided the process
-has appropriate privileges.  If effective IDs are not supported, the
-real ID is set instead -- @code{(feature? 'EIDs)} reports whether the
-system supports effective IDs.
-The return value is unspecified.")
+	    "Sets the effective user ID to the integer @var{id}, provided the process\n"
+	    "has appropriate privileges.  If effective IDs are not supported, the\n"
+	    "real ID is set instead -- @code{(feature? 'EIDs)} reports whether the\n"
+	    "system supports effective IDs.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_seteuid
 {
   int rv;
@@ -645,11 +633,11 @@ The return value is unspecified.")
 #ifdef HAVE_SETEGID
 SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0, 
             (SCM id),
-"Sets the effective group ID to the integer @var{id}, provided the process
-has appropriate privileges.  If effective IDs are not supported, the
-real ID is set instead -- @code{(feature? 'EIDs)} reports whether the
-system supports effective IDs.
-The return value is unspecified.")
+	    "Sets the effective group ID to the integer @var{id}, provided the process\n"
+	    "has appropriate privileges.  If effective IDs are not supported, the\n"
+	    "real ID is set instead -- @code{(feature? 'EIDs)} reports whether the\n"
+	    "system supports effective IDs.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setegid
 {
   int rv;
@@ -670,8 +658,8 @@ The return value is unspecified.")
 
 SCM_DEFINE (scm_getpgrp, "getpgrp", 0, 0, 0,
             (),
-"Returns an integer representing the current process group ID.
-This is the POSIX definition, not BSD.")
+	    "Returns an integer representing the current process group ID.\n"
+	    "This is the POSIX definition, not BSD.")
 #define FUNC_NAME s_scm_getpgrp
 {
   int (*fn)();
@@ -683,11 +671,11 @@ This is the POSIX definition, not BSD.")
 #ifdef HAVE_SETPGID
 SCM_DEFINE (scm_setpgid, "setpgid", 2, 0, 0, 
             (SCM pid, SCM pgid),
-"Move the process @var{pid} into the process group @var{pgid}.  @var{pid} or
-@var{pgid} must be integers: they can be zero to indicate the ID of the
-current process.
-Fails on systems that do not support job control.
-The return value is unspecified.")
+	    "Move the process @var{pid} into the process group @var{pgid}.  @var{pid} or\n"
+	    "@var{pgid} must be integers: they can be zero to indicate the ID of the\n"
+	    "current process.\n"
+	    "Fails on systems that do not support job control.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setpgid
 {
   SCM_VALIDATE_INUM (1,pid);
@@ -703,10 +691,10 @@ The return value is unspecified.")
 #ifdef HAVE_SETSID
 SCM_DEFINE (scm_setsid, "setsid", 0, 0, 0,
             (),
-"Creates a new session.  The current process becomes the session leader
-and is put in a new process group.  The process will be detached
-from its controlling terminal if it has one.
-The return value is an integer representing the new process group ID.")
+	    "Creates a new session.  The current process becomes the session leader\n"
+	    "and is put in a new process group.  The process will be detached\n"
+	    "from its controlling terminal if it has one.\n"
+	    "The return value is an integer representing the new process group ID.")
 #define FUNC_NAME s_scm_setsid
 {
   pid_t sid = setsid ();
@@ -719,8 +707,8 @@ The return value is an integer representing the new process group ID.")
 
 SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0, 
             (SCM port),
-"Returns a string with the name of the serial terminal device underlying
-@var{port}.")
+	    "Returns a string with the name of the serial terminal device underlying\n"
+	    "@var{port}.")
 #define FUNC_NAME s_scm_ttyname
 {
   char *ans;
@@ -742,8 +730,8 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
 #ifdef HAVE_CTERMID
 SCM_DEFINE (scm_ctermid, "ctermid", 0, 0, 0,
             (),
-"Returns a string containing the file name of the controlling terminal
-for the current process.")
+	    "Returns a string containing the file name of the controlling terminal\n"
+	    "for the current process.")
 #define FUNC_NAME s_scm_ctermid
 {
   char *result = ctermid (NULL);
@@ -757,16 +745,15 @@ for the current process.")
 #ifdef HAVE_TCGETPGRP
 SCM_DEFINE (scm_tcgetpgrp, "tcgetpgrp", 1, 0, 0, 
             (SCM port),
-"Returns the process group ID of the foreground
-process group associated with the terminal open on the file descriptor
-underlying @var{port}.
-
-If there is no foreground process group, the return value is a
-number greater than 1 that does not match the process group ID
-of any existing process group.  This can happen if all of the
-processes in the job that was formerly the foreground job have
-terminated, and no other job has yet been moved into the
-foreground.")
+	    "Returns the process group ID of the foreground\n"
+	    "process group associated with the terminal open on the file descriptor\n"
+	    "underlying @var{port}.\n\n"
+	    "If there is no foreground process group, the return value is a\n"
+	    "number greater than 1 that does not match the process group ID\n"
+	    "of any existing process group.  This can happen if all of the\n"
+	    "processes in the job that was formerly the foreground job have\n"
+	    "terminated, and no other job has yet been moved into the\n"
+	    "foreground.")
 #define FUNC_NAME s_scm_tcgetpgrp
 {
   int fd;
@@ -786,11 +773,11 @@ foreground.")
 #ifdef HAVE_TCSETPGRP
 SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
             (SCM port, SCM pgid),
-"Set the foreground process group ID for the terminal used by the file
-descriptor underlying @var{port} to the integer @var{pgid}.
-The calling process
-must be a member of the same session as @var{pgid} and must have the same
-controlling terminal.  The return value is unspecified.")
+	    "Set the foreground process group ID for the terminal used by the file\n"
+	    "descriptor underlying @var{port} to the integer @var{pgid}.\n"
+	    "The calling process\n"
+	    "must be a member of the same session as @var{pgid} and must have the same\n"
+	    "controlling terminal.  The return value is unspecified.")
 #define FUNC_NAME s_scm_tcsetpgrp
 {
   int fd;
@@ -842,17 +829,15 @@ scm_convert_exec_args (SCM args, int pos, const char *subr)
 
 SCM_DEFINE (scm_execl, "execl", 1, 0, 1, 
             (SCM filename, SCM args),
-"Executes the file named by @var{path} as a new process image.
-The remaining arguments are supplied to the process; from a C program
-they are accessable as the @code{argv} argument to @code{main}.
-Conventionally the first @var{arg} is the same as @var{path}.
-All arguments must be strings.  
-
-If @var{arg} is missing, @var{path} is executed with a null
-argument list, which may have system-dependent side-effects.
-
-This procedure is currently implemented using the @code{execv} system
-call, but we call it @code{execl} because of its Scheme calling interface.")
+	    "Executes the file named by @var{path} as a new process image.\n"
+	    "The remaining arguments are supplied to the process; from a C program\n"
+	    "they are accessable as the @code{argv} argument to @code{main}.\n"
+	    "Conventionally the first @var{arg} is the same as @var{path}.\n"
+	    "All arguments must be strings.  \n\n"
+	    "If @var{arg} is missing, @var{path} is executed with a null\n"
+	    "argument list, which may have system-dependent side-effects.\n\n"
+	    "This procedure is currently implemented using the @code{execv} system\n"
+	    "call, but we call it @code{execl} because of its Scheme calling interface.")
 #define FUNC_NAME s_scm_execl
 {
   char **execargv;
@@ -868,13 +853,12 @@ call, but we call it @code{execl} because of its Scheme calling interface.")
 
 SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1, 
             (SCM filename, SCM args),
-"Similar to @code{execl}, however if
-@var{filename} does not contain a slash
-then the file to execute will be located by searching the
-directories listed in the @code{PATH} environment variable.
-
-This procedure is currently implemented using the @code{execlv} system
-call, but we call it @code{execlp} because of its Scheme calling interface.")
+	    "Similar to @code{execl}, however if\n"
+	    "@var{filename} does not contain a slash\n"
+	    "then the file to execute will be located by searching the\n"
+	    "directories listed in the @code{PATH} environment variable.\n\n"
+	    "This procedure is currently implemented using the @code{execlv} system\n"
+	    "call, but we call it @code{execlp} because of its Scheme calling interface.")
 #define FUNC_NAME s_scm_execlp
 {
   char **execargv;
@@ -924,12 +908,11 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
 
 SCM_DEFINE (scm_execle, "execle", 2, 0, 1, 
             (SCM filename, SCM env, SCM args),
-"Similar to @code{execl}, but the environment of the new process is
-specified by @var{env}, which must be a list of strings as returned by the
-@code{environ} procedure.
-
-This procedure is currently implemented using the @code{execve} system
-call, but we call it @code{execle} because of its Scheme calling interface.")
+	    "Similar to @code{execl}, but the environment of the new process is\n"
+	    "specified by @var{env}, which must be a list of strings as returned by the\n"
+	    "@code{environ} procedure.\n\n"
+	    "This procedure is currently implemented using the @code{execve} system\n"
+	    "call, but we call it @code{execle} because of its Scheme calling interface.")
 #define FUNC_NAME s_scm_execle
 {
   char **execargv;
@@ -949,12 +932,11 @@ call, but we call it @code{execle} because of its Scheme calling interface.")
 
 SCM_DEFINE (scm_fork, "primitive-fork", 0, 0, 0,
             (),
-"Creates a new \"child\" process by duplicating the current \"parent\" process.
-In the child the return value is 0.  In the parent the return value is
-the integer process ID of the child.
-
-This procedure has been renamed from @code{fork} to avoid a naming conflict
-with the scsh fork.")
+	    "Creates a new \"child\" process by duplicating the current \"parent\" process.\n"
+	    "In the child the return value is 0.  In the parent the return value is\n"
+	    "the integer process ID of the child.\n\n"
+	    "This procedure has been renamed from @code{fork} to avoid a naming conflict\n"
+	    "with the scsh fork.")
 #define FUNC_NAME s_scm_fork
 {
   int pid;
@@ -968,8 +950,8 @@ with the scsh fork.")
 #ifdef HAVE_UNAME
 SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
             (),
-"Returns an object with some information about the computer system the
-program is running on.")
+	    "Returns an object with some information about the computer system the\n"
+	    "program is running on.")
 #define FUNC_NAME s_scm_uname
 {
   struct utsname buf;
@@ -993,12 +975,12 @@ program is running on.")
 
 SCM_DEFINE (scm_environ, "environ", 0, 1, 0, 
             (SCM env),
-"If @var{env} is omitted, returns the current environment as a list of strings.
-Otherwise it sets the current environment, which is also the
-default environment for child processes, to the supplied list of strings.
-Each member of @var{env} should be of the form
-@code{NAME=VALUE} and values of @code{NAME} should not be duplicated.
-If @var{env} is supplied then the return value is unspecified.")
+	    "If @var{env} is omitted, returns the current environment as a list of strings.\n"
+	    "Otherwise it sets the current environment, which is also the\n"
+	    "default environment for child processes, to the supplied list of strings.\n"
+	    "Each member of @var{env} should be of the form\n"
+	    "@code{NAME=VALUE} and values of @code{NAME} should not be duplicated.\n"
+	    "If @var{env} is supplied then the return value is unspecified.")
 #define FUNC_NAME s_scm_environ
 {
   if (SCM_UNBNDP (env))
@@ -1032,9 +1014,9 @@ If @var{env} is supplied then the return value is unspecified.")
 
 SCM_DEFINE (scm_tmpnam, "tmpnam", 0, 0, 0,
             (),
-"Create a new file in the file system with a unique name.  The return
-value is the name of the new file.  This function is implemented with
-the @code{tmpnam} function in the system libraries.")
+	    "Create a new file in the file system with a unique name.  The return\n"
+	    "value is the name of the new file.  This function is implemented with\n"
+	    "the @code{tmpnam} function in the system libraries.")
 #define FUNC_NAME s_scm_tmpnam
 {
   char name[L_tmpnam];
@@ -1047,21 +1029,18 @@ the @code{tmpnam} function in the system libraries.")
 
 SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
             (SCM pathname, SCM actime, SCM modtime),
-"@code{utime} sets the access and modification times for
-the file named by @var{path}.  If @var{actime} or @var{modtime}
-is not supplied, then the current time is used.
-@var{actime} and @var{modtime}
-must be integer time values as returned by the @code{current-time}
-procedure.
-
-E.g.,
-
-@smalllisp
-(utime \"foo\" (- (current-time) 3600))
-@end smalllisp
-
-will set the access time to one hour in the past and the modification
-time to the current time.")
+	    "@code{utime} sets the access and modification times for\n"
+	    "the file named by @var{path}.  If @var{actime} or @var{modtime}\n"
+	    "is not supplied, then the current time is used.\n"
+	    "@var{actime} and @var{modtime}\n"
+	    "must be integer time values as returned by the @code{current-time}\n"
+	    "procedure.\n\n"
+	    "E.g.,\n\n"
+	    "@smalllisp\n"
+	    "(utime \"foo\" (- (current-time) 3600))\n"
+	    "@end smalllisp\n\n"
+	    "will set the access time to one hour in the past and the modification\n"
+	    "time to the current time.")
 #define FUNC_NAME s_scm_utime
 {
   int rv;
@@ -1088,31 +1067,29 @@ time to the current time.")
 
 SCM_DEFINE (scm_access, "access?", 2, 0, 0,
             (SCM path, SCM how),
-"Returns @code{#t} if @var{path} corresponds to an existing
-file and the current process
-has the type of access specified by @var{how}, otherwise 
-@code{#f}.
-@var{how} should be specified
-using the values of the variables listed below.  Multiple values can
-be combined using a bitwise or, in which case @code{#t} will only
-be returned if all accesses are granted.
-
-Permissions are checked using the real id of the current process,
-not the effective id, although it's the effective id which determines
-whether the access would actually be granted.
-
-@defvar R_OK
-test for read permission.
-@end defvar
-@defvar W_OK
-test for write permission.
-@end defvar
-@defvar X_OK
-test for execute permission.
-@end defvar
-@defvar F_OK
-test for existence of the file.
-@end defvar")
+	    "Returns @code{#t} if @var{path} corresponds to an existing\n"
+	    "file and the current process\n"
+	    "has the type of access specified by @var{how}, otherwise \n"
+	    "@code{#f}.\n"
+	    "@var{how} should be specified\n"
+	    "using the values of the variables listed below.  Multiple values can\n"
+	    "be combined using a bitwise or, in which case @code{#t} will only\n"
+	    "be returned if all accesses are granted.\n\n"
+	    "Permissions are checked using the real id of the current process,\n"
+	    "not the effective id, although it's the effective id which determines\n"
+	    "whether the access would actually be granted.\n\n"
+	    "@defvar R_OK\n"
+	    "test for read permission.\n"
+	    "@end defvar\n"
+	    "@defvar W_OK\n"
+	    "test for write permission.\n"
+	    "@end defvar\n"
+	    "@defvar X_OK\n"
+	    "test for execute permission.\n"
+	    "@end defvar\n"
+	    "@defvar F_OK\n"
+	    "test for existence of the file.\n"
+	    "@end defvar")
 #define FUNC_NAME s_scm_access
 {
   int rv;
@@ -1128,7 +1105,7 @@ test for existence of the file.
 
 SCM_DEFINE (scm_getpid, "getpid", 0, 0, 0,
             (),
-"Returns an integer representing the current process ID.")
+	    "Returns an integer representing the current process ID.")
 #define FUNC_NAME s_scm_getpid
 {
   return SCM_MAKINUM ((unsigned long) getpid ());
@@ -1137,17 +1114,15 @@ SCM_DEFINE (scm_getpid, "getpid", 0, 0, 0,
 
 SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0, 
             (SCM str),
-"Modifies the environment of the current process, which is
-also the default environment inherited by child processes.
-
-If @var{string} is of the form @code{NAME=VALUE} then it will be written
-directly into the environment, replacing any existing environment string
-with
-name matching @code{NAME}.  If @var{string} does not contain an equal
-sign, then any existing string with name matching @var{string} will
-be removed.
-
-The return value is unspecified.")
+	    "Modifies the environment of the current process, which is\n"
+	    "also the default environment inherited by child processes.\n\n"
+	    "If @var{string} is of the form @code{NAME=VALUE} then it will be written\n"
+	    "directly into the environment, replacing any existing environment string\n"
+	    "with\n"
+	    "name matching @code{NAME}.  If @var{string} does not contain an equal\n"
+	    "sign, then any existing string with name matching @var{string} will\n"
+	    "be removed.\n\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_putenv
 {
   int rv;
@@ -1170,16 +1145,15 @@ The return value is unspecified.")
 #ifdef HAVE_SETLOCALE
 SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
             (SCM category, SCM locale),
-"If @var{locale} is omitted, returns the current value of the specified
-locale category 
-as a system-dependent string.
-@var{category} should be specified using the values @code{LC_COLLATE},
-@code{LC_ALL} etc.
-
-Otherwise the specified locale category is set to
-the string @var{locale}
-and the new value is returned as a system-dependent string.  If @var{locale}
-is an empty string, the locale will be set using envirionment variables.")
+	    "If @var{locale} is omitted, returns the current value of the specified\n"
+	    "locale category \n"
+	    "as a system-dependent string.\n"
+	    "@var{category} should be specified using the values @code{LC_COLLATE},\n"
+	    "@code{LC_ALL} etc.\n\n"
+	    "Otherwise the specified locale category is set to\n"
+	    "the string @var{locale}\n"
+	    "and the new value is returned as a system-dependent string.  If @var{locale}\n"
+	    "is an empty string, the locale will be set using envirionment variables.")
 #define FUNC_NAME s_scm_setlocale
 {
   char *clocale;
@@ -1208,18 +1182,17 @@ is an empty string, the locale will be set using envirionment variables.")
 #ifdef HAVE_MKNOD
 SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
             (SCM path, SCM type, SCM perms, SCM dev),
-"Creates a new special file, such as a file corresponding to a device.
-@var{path} specifies the name of the file.  @var{type} should
-be one of the following symbols:
-regular, directory, symlink, block-special, char-special,
-fifo, or socket.  @var{perms} (an integer) specifies the file permissions.
-@var{dev} (an integer) specifies which device the special file refers
-to.  Its exact interpretation depends on the kind of special file
-being created.
-
-E.g.,
-@example
-(mknod "/dev/fd0" 'block-special #o660 (+ (* 2 256) 2))
+	    "Creates a new special file, such as a file corresponding to a device.\n"
+	    "@var{path} specifies the name of the file.  @var{type} should\n"
+	    "be one of the following symbols:\n"
+	    "regular, directory, symlink, block-special, char-special,\n"
+	    "fifo, or socket.  @var{perms} (an integer) specifies the file permissions.\n"
+	    "@var{dev} (an integer) specifies which device the special file refers\n"
+	    "to.  Its exact interpretation depends on the kind of special file\n"
+	    "being created.\n\n"
+	    "E.g.,\n"
+	    "@example\n"
+	    "(mknod "/dev/fd0" 'block-special #o660 (+ (* 2 256) 2))
 @end example
 
 The return value is unspecified.")
@@ -1265,9 +1238,9 @@ The return value is unspecified.")
 #ifdef HAVE_NICE
 SCM_DEFINE (scm_nice, "nice", 1, 0, 0, 
             (SCM incr),
-"Increment the priority of the current process by @var{incr}.  A higher
-priority value means that the process runs less often.
-The return value is unspecified.")
+	    "Increment the priority of the current process by @var{incr}.  A higher\n"
+	    "priority value means that the process runs less often.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_nice
 {
   SCM_VALIDATE_INUM (1,incr);
@@ -1281,8 +1254,8 @@ The return value is unspecified.")
 #ifdef HAVE_SYNC
 SCM_DEFINE (scm_sync, "sync", 0, 0, 0,
             (),
-"Flush the operating system disk buffers.
-The return value is unspecified.")
+	    "Flush the operating system disk buffers.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_sync
 {
   sync();

@@ -528,25 +528,20 @@ scm_handle_by_throw (void *handler_data, SCM tag, SCM args)
 
 SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
            (SCM tag, SCM thunk, SCM handler),
-"Invoke @var{thunk} in the dynamic context of @var{handler} for
-exceptions matching @var{key}.  If thunk throws to the symbol @var{key},
-then @var{handler} is invoked this way:
-
-@example
-(handler key args ...)
-@end example
-
-@var{key} is a symbol or #t.
-
-@var{thunk} takes no arguments.  If @var{thunk} returns normally, that
-is the return value of @code{catch}.
-
-Handler is invoked outside the scope of its own @code{catch}.  If
-@var{handler} again throws to the same key, a new handler from further
-up the call chain is invoked.
-
-If the key is @code{#t}, then a throw to @emph{any} symbol will match
-this call to @code{catch}.")
+	    "Invoke @var{thunk} in the dynamic context of @var{handler} for\n"
+	    "exceptions matching @var{key}.  If thunk throws to the symbol @var{key},\n"
+	    "then @var{handler} is invoked this way:\n\n"
+	    "@example\n"
+	    "(handler key args ...)\n"
+	    "@end example\n\n"
+	    "@var{key} is a symbol or #t.\n\n"
+	    "@var{thunk} takes no arguments.  If @var{thunk} returns normally, that\n"
+	    "is the return value of @code{catch}.\n\n"
+	    "Handler is invoked outside the scope of its own @code{catch}.  If\n"
+	    "@var{handler} again throws to the same key, a new handler from further\n"
+	    "up the call chain is invoked.\n\n"
+	    "If the key is @code{#t}, then a throw to @emph{any} symbol will match\n"
+	    "this call to @code{catch}.")
 #define FUNC_NAME s_scm_catch
 {
   struct scm_body_thunk_data c;
@@ -571,7 +566,7 @@ this call to @code{catch}.")
 
 SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
            (SCM tag, SCM thunk, SCM handler),
-"")
+	    "")
 #define FUNC_NAME s_scm_lazy_catch
 {
   struct scm_body_thunk_data c;
@@ -600,13 +595,11 @@ SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
 
 SCM_DEFINE (scm_throw, "throw", 1, 0, 1,
            (SCM key, SCM args),
-"Invoke the catch form matching @var{key}, passing @var{args} to the
-@var{handler}.  
-
-@var{key} is a symbol.  It will match catches of the same symbol or of
-#t.
-
-If there is no handler at all, an error is signaled.")
+	    "Invoke the catch form matching @var{key}, passing @var{args} to the\n"
+	    "@var{handler}.  \n\n"
+	    "@var{key} is a symbol.  It will match catches of the same symbol or of\n"
+	    "#t.\n\n"
+	    "If there is no handler at all, an error is signaled.")
 #define FUNC_NAME s_scm_throw
 {
   SCM_VALIDATE_SYMBOL (1,key);

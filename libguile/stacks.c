@@ -410,7 +410,7 @@ SCM scm_stack_type;
 
 SCM_DEFINE (scm_stack_p, "stack?", 1, 0, 0, 
             (SCM obj),
-"Return @code{#t} if @var{obj} is a calling stack.")
+	    "Return @code{#t} if @var{obj} is a calling stack.")
 #define FUNC_NAME s_scm_stack_p
 {
   return SCM_BOOL(SCM_STACKP (obj));
@@ -419,7 +419,7 @@ SCM_DEFINE (scm_stack_p, "stack?", 1, 0, 0,
 
 SCM_DEFINE (scm_make_stack, "make-stack", 0, 0, 1, 
             (SCM args),
-"")
+	    "")
 #define FUNC_NAME s_scm_make_stack
 {
   int n, maxp, size;
@@ -512,7 +512,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 0, 0, 1,
 
 SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0, 
             (SCM stack),
-"Return the identifier given to @var{stack} by @code{start-stack}.")
+	    "Return the identifier given to @var{stack} by @code{start-stack}.")
 #define FUNC_NAME s_scm_stack_id
 {
   scm_debug_frame *dframe;
@@ -548,7 +548,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 
 SCM_DEFINE (scm_stack_ref, "stack-ref", 2, 0, 0,
             (SCM stack, SCM i),
-"")
+	    "")
 #define FUNC_NAME s_scm_stack_ref
 {
   SCM_VALIDATE_STACK (1,stack);
@@ -562,7 +562,7 @@ SCM_DEFINE (scm_stack_ref, "stack-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_stack_length, "stack-length", 1, 0, 0, 
            (SCM stack),
-"")
+	    "")
 #define FUNC_NAME s_scm_stack_length
 {
   SCM_VALIDATE_STACK (1,stack);
@@ -575,7 +575,7 @@ SCM_DEFINE (scm_stack_length, "stack-length", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0, 
             (SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_p
 {
   return SCM_BOOL(SCM_FRAMEP (obj));
@@ -584,7 +584,7 @@ SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0,
 
 SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0, 
            (SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_last_stack_frame
 {
   scm_debug_frame *dframe;
@@ -625,7 +625,7 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_number, "frame-number", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_number
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -635,7 +635,7 @@ SCM_DEFINE (scm_frame_number, "frame-number", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_source
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -645,7 +645,7 @@ SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_procedure, "frame-procedure", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_procedure
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -657,7 +657,7 @@ SCM_DEFINE (scm_frame_procedure, "frame-procedure", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_arguments, "frame-arguments", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_arguments
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -667,7 +667,7 @@ SCM_DEFINE (scm_frame_arguments, "frame-arguments", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_previous
 {
   int n;
@@ -682,7 +682,7 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_next, "frame-next", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_next
 {
   int n;
@@ -697,7 +697,7 @@ SCM_DEFINE (scm_frame_next, "frame-next", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_real_p, "frame-real?", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_real_p
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -707,7 +707,7 @@ SCM_DEFINE (scm_frame_real_p, "frame-real?", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_procedure_p, "frame-procedure?", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_procedure_p
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -717,7 +717,7 @@ SCM_DEFINE (scm_frame_procedure_p, "frame-procedure?", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_evaluating_args_p, "frame-evaluating-args?", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_evaluating_args_p
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -727,7 +727,7 @@ SCM_DEFINE (scm_frame_evaluating_args_p, "frame-evaluating-args?", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_overflow_p, "frame-overflow?", 1, 0, 0, 
            (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_overflow_p
 {
   SCM_VALIDATE_FRAME (1,frame);

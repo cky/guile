@@ -135,8 +135,8 @@ scm_regexp_error_msg (int regerrno, regex_t *rx)
 
 SCM_DEFINE (scm_regexp_p, "regexp?", 1, 0, 0, 
             (SCM x),
-"Return @code{#t} if @var{obj} is a compiled regular expression, or
-@code{#f} otherwise.")
+	    "Return @code{#t} if @var{obj} is a compiled regular expression, or\n"
+	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_regexp_p
 {
   return SCM_BOOL(SCM_RGXP (x));
@@ -145,44 +145,39 @@ SCM_DEFINE (scm_regexp_p, "regexp?", 1, 0, 0,
 
 SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1, 
             (SCM pat, SCM flags),
-"Compile the regular expression described by @var{str}, and return the
-compiled regexp structure.  If @var{str} does not describe a legal
-regular expression, @code{make-regexp} throws a
-@code{regular-expression-syntax} error.
-
-The @var{flag} arguments change the behavior of the compiled regexp.
-The following flags may be supplied:
-
-@table @code
-@item regexp/icase
-Consider uppercase and lowercase letters to be the same when matching.
-
-@item regexp/newline
-If a newline appears in the target string, then permit the @samp{^} and
-@samp{$} operators to match immediately after or immediately before the
-newline, respectively.  Also, the @samp{.} and @samp{[^...]} operators
-will never match a newline character.  The intent of this flag is to
-treat the target string as a buffer containing many lines of text, and
-the regular expression as a pattern that may match a single one of those
-lines.
-
-@item regexp/basic
-Compile a basic (``obsolete'') regexp instead of the extended
-(``modern'') regexps that are the default.  Basic regexps do not
-consider @samp{|}, @samp{+} or @samp{?} to be special characters, and
-require the @samp{@{...@}} and @samp{(...)} metacharacters to be
-backslash-escaped (@pxref{Backslash Escapes}).  There are several other
-differences between basic and extended regular expressions, but these
-are the most significant.
-
-@item regexp/extended
-Compile an extended regular expression rather than a basic regexp.  This
-is the default behavior; this flag will not usually be needed.  If a
-call to @code{make-regexp} includes both @code{regexp/basic} and
-@code{regexp/extended} flags, the one which comes last will override
-the earlier one.
-@end table
-")
+	    "Compile the regular expression described by @var{str}, and return the\n"
+	    "compiled regexp structure.  If @var{str} does not describe a legal\n"
+	    "regular expression, @code{make-regexp} throws a\n"
+	    "@code{regular-expression-syntax} error.\n\n"
+	    "The @var{flag} arguments change the behavior of the compiled regexp.\n"
+	    "The following flags may be supplied:\n\n"
+	    "@table @code\n"
+	    "@item regexp/icase\n"
+	    "Consider uppercase and lowercase letters to be the same when matching.\n\n"
+	    "@item regexp/newline\n"
+	    "If a newline appears in the target string, then permit the @samp{^} and\n"
+	    "@samp{$} operators to match immediately after or immediately before the\n"
+	    "newline, respectively.  Also, the @samp{.} and @samp{[^...]} operators\n"
+	    "will never match a newline character.  The intent of this flag is to\n"
+	    "treat the target string as a buffer containing many lines of text, and\n"
+	    "the regular expression as a pattern that may match a single one of those\n"
+	    "lines.\n\n"
+	    "@item regexp/basic\n"
+	    "Compile a basic (``obsolete'') regexp instead of the extended\n"
+	    "(``modern'') regexps that are the default.  Basic regexps do not\n"
+	    "consider @samp{|}, @samp{+} or @samp{?} to be special characters, and\n"
+	    "require the @samp{@{...@}} and @samp{(...)} metacharacters to be\n"
+	    "backslash-escaped (@pxref{Backslash Escapes}).  There are several other\n"
+	    "differences between basic and extended regular expressions, but these\n"
+	    "are the most significant.\n\n"
+	    "@item regexp/extended\n"
+	    "Compile an extended regular expression rather than a basic regexp.  This\n"
+	    "is the default behavior; this flag will not usually be needed.  If a\n"
+	    "call to @code{make-regexp} includes both @code{regexp/basic} and\n"
+	    "@code{regexp/extended} flags, the one which comes last will override\n"
+	    "the earlier one.\n"
+	    "@end table\n"
+	    "")
 #define FUNC_NAME s_scm_make_regexp
 {
   SCM flag;
@@ -225,10 +220,10 @@ the earlier one.
 
 SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0, 
             (SCM rx, SCM str, SCM start, SCM flags),
-"Match the compiled regular expression @var{regexp} against @code{str}.
-If the optional integer @var{start} argument is provided, begin matching
-from that position in the string.  Return a match structure describing
-the results of the match, or @code{#f} if no match could be found.")
+	    "Match the compiled regular expression @var{regexp} against @code{str}.\n"
+	    "If the optional integer @var{start} argument is provided, begin matching\n"
+	    "from that position in the string.  Return a match structure describing\n"
+	    "the results of the match, or @code{#f} if no match could be found.")
 #define FUNC_NAME s_scm_regexp_exec
 {
   int status, nmatches, offset;

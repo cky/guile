@@ -54,7 +54,7 @@ long scm_tc16_macro;
 
 SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
             (SCM code),
-"")
+	    "")
 #define FUNC_NAME s_scm_makacro
 {
   SCM_VALIDATE_PROC (1,code);
@@ -65,7 +65,7 @@ SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
 
 SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0, 
            (SCM code),
-"")
+	    "")
 #define FUNC_NAME s_scm_makmacro
 {
   SCM_VALIDATE_PROC (1,code);
@@ -76,7 +76,7 @@ SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0,
 
 SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
            (SCM code),
-"")
+	    "")
 #define FUNC_NAME s_scm_makmmacro
 {
   SCM_VALIDATE_PROC (1,code);
@@ -87,8 +87,8 @@ SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0,
 
 SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0, 
             (SCM obj),
-"Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
-syntax transformer.")
+	    "Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a\n"
+	    "syntax transformer.")
 #define FUNC_NAME s_scm_macro_p
 {
   return SCM_BOOL(SCM_NIMP (obj) && SCM_TYP16 (obj) == scm_tc16_macro);
@@ -102,10 +102,10 @@ SCM_SYMBOL (scm_sym_mmacro, "macro!");
 
 SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0, 
             (SCM m),
-"Return one of the symbols @code{syntax}, @code{macro} or @code{macro!},
-depending on whether @var{obj} is a syntax tranformer, a regular macro,
-or a memoizing macro, respectively.  If @var{obj} is not a macro,
-@code{#f} is returned.")
+	    "Return one of the symbols @code{syntax}, @code{macro} or @code{macro!},\n"
+	    "depending on whether @var{obj} is a syntax tranformer, a regular macro,\n"
+	    "or a memoizing macro, respectively.  If @var{obj} is not a macro,\n"
+	    "@code{#f} is returned.")
 #define FUNC_NAME s_scm_macro_type
 {
   if (!(SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro))
@@ -123,7 +123,7 @@ or a memoizing macro, respectively.  If @var{obj} is not a macro,
 
 SCM_DEFINE (scm_macro_name, "macro-name", 1, 0, 0, 
             (SCM m),
-"")
+	    "")
 #define FUNC_NAME s_scm_macro_name
 {
   SCM_VALIDATE_SMOB (1,m,macro);
@@ -134,7 +134,7 @@ SCM_DEFINE (scm_macro_name, "macro-name", 1, 0, 0,
 
 SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0, 
             (SCM m),
-"")
+	    "")
 #define FUNC_NAME s_scm_macro_transformer
 {
   SCM_VALIDATE_SMOB (1,m,macro);

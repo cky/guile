@@ -99,12 +99,12 @@ load (void *data)
 
 SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0, 
            (SCM filename),
-"Load @var{file} and evaluate its contents in the top-level environment.
-The load paths are not searched; @var{file} must either be a full
-pathname or be a pathname relative to the current directory.  If the
-variable @code{%load-hook} is defined, it should be bound to a procedure
-that will be called before any code is loaded.  See documentation for
-@code{%load-hook} later in this section.")
+	    "Load @var{file} and evaluate its contents in the top-level environment.\n"
+	    "The load paths are not searched; @var{file} must either be a full\n"
+	    "pathname or be a pathname relative to the current directory.  If the\n"
+	    "variable @code{%load-hook} is defined, it should be bound to a procedure\n"
+	    "that will be called before any code is loaded.  See documentation for\n"
+	    "@code{%load-hook} later in this section.")
 #define FUNC_NAME s_scm_primitive_load
 {
   SCM hook = *scm_loc_load_hook;
@@ -138,9 +138,9 @@ that will be called before any code is loaded.  See documentation for
 #ifdef SCM_PKGDATA_DIR
 SCM_DEFINE (scm_sys_package_data_dir, "%package-data-dir", 0, 0, 0, 
             (),
-"Return the name of the directory where Scheme packages, modules and
-libraries are kept.  On most Unix systems, this will be
-@samp{/usr/local/share/guile}.")
+	    "Return the name of the directory where Scheme packages, modules and\n"
+	    "libraries are kept.  On most Unix systems, this will be\n"
+	    "@samp{/usr/local/share/guile}.")
 #define FUNC_NAME s_scm_sys_package_data_dir
 {
   return scm_makfrom0str (SCM_PKGDATA_DIR);
@@ -151,8 +151,8 @@ libraries are kept.  On most Unix systems, this will be
 #ifdef SCM_LIBRARY_DIR
 SCM_DEFINE (scm_sys_library_dir, "%library-dir", 0,0,0,
             (),
-"Return the directory where the Guile Scheme library files are installed.
-E.g., may return \"/usr/share/guile/1.3.5\".")
+	    "Return the directory where the Guile Scheme library files are installed.\n"
+	    "E.g., may return \"/usr/share/guile/1.3.5\".")
 #define FUNC_NAME s_scm_sys_library_dir
 {
   return scm_makfrom0str(SCM_LIBRARY_DIR);
@@ -163,8 +163,8 @@ E.g., may return \"/usr/share/guile/1.3.5\".")
 #ifdef SCM_SITE_DIR
 SCM_DEFINE (scm_sys_site_dir, "%site-dir", 0,0,0,
             (),
-"Return the directory where the Guile site files are installed.
-E.g., may return \"/usr/share/guile/site\".")
+	    "Return the directory where the Guile site files are installed.\n"
+	    "E.g., may return \"/usr/share/guile/site\".")
 #define FUNC_NAME s_scm_sys_site_dir
 {
   return scm_makfrom0str(SCM_SITE_DIR);
@@ -213,7 +213,7 @@ scm_internal_parse_path (char *path, SCM tail)
 
 SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0, 
             (SCM path, SCM tail),
-"")
+	    "")
 #define FUNC_NAME s_scm_parse_path
 {
   SCM_ASSERT (SCM_FALSEP (path) || (SCM_ROSTRINGP (path)),
@@ -258,7 +258,7 @@ SCM scm_listofnullstr;
    in PATH, we search for FILENAME concatenated with each EXTENSION.  */
 SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
            (SCM path, SCM filename, SCM extensions),
-"")
+	    "")
 #define FUNC_NAME s_scm_search_path
 {
   char *filename_chars;
@@ -401,12 +401,12 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
    If FILENAME is absolute, return it unchanged.  */
 SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0, 
            (SCM filename),
-"Search @var{%load-path} for @var{file}, which must be readable by the
-current user.  If @var{file} is found in the list of paths to search or
-is an absolute pathname, return its full pathname.  Otherwise, return
-@code{#f}.  Filenames may have any of the optional extensions in the
-@code{%load-extensions} list; @code{%search-load-path} will try each
-extension automatically.")
+	    "Search @var{%load-path} for @var{file}, which must be readable by the\n"
+	    "current user.  If @var{file} is found in the list of paths to search or\n"
+	    "is an absolute pathname, return its full pathname.  Otherwise, return\n"
+	    "@code{#f}.  Filenames may have any of the optional extensions in the\n"
+	    "@code{%load-extensions} list; @code{%search-load-path} will try each\n"
+	    "extension automatically.")
 #define FUNC_NAME s_scm_sys_search_load_path
 {
   SCM path = *scm_loc_load_path;
@@ -425,9 +425,9 @@ extension automatically.")
 
 SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0, 
            (SCM filename),
-"Search @var{%load-path} for @var{file} and load it into the top-level
-environment.  If @var{file} is a relative pathname and is not found in
-the list of search paths, an error is signalled.")
+	    "Search @var{%load-path} for @var{file} and load it into the top-level\n"
+	    "environment.  If @var{file} is a relative pathname and is not found in\n"
+	    "the list of search paths, an error is signalled.")
 #define FUNC_NAME s_scm_primitive_load_path
 {
   SCM full_filename;
@@ -459,10 +459,10 @@ SCM_SYMBOL (scm_end_of_file_key, "end-of-file");
 
 SCM_DEFINE (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0, 
             (SCM port),
-"Read a form from @var{port} (standard input by default), and evaluate it
-(memoizing it in the process) in the top-level environment.  If no data
-is left to be read from @var{port}, an @code{end-of-file} error is
-signalled.")
+	    "Read a form from @var{port} (standard input by default), and evaluate it\n"
+	    "(memoizing it in the process) in the top-level environment.  If no data\n"
+	    "is left to be read from @var{port}, an @code{end-of-file} error is\n"
+	    "signalled.")
 #define FUNC_NAME s_scm_read_and_eval_x
 {
   SCM form = scm_read (port);

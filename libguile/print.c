@@ -938,13 +938,13 @@ scm_display (SCM obj, SCM port)
 
 SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
             (SCM destination, SCM message, SCM args),
-"Write MESSAGE to DESTINATION, defaulting to `current-output-port'.
-MESSAGE can contain ~A (was %s) and ~S (was %S) escapes.  When printed,
-the escapes are replaced with corresponding members of ARGS:
-~A formats using `display' and ~S formats using `write'.
-If DESTINATION is #t, then use the `current-output-port',
-if DESTINATION is #f, then return a string containing the formatted text.
-Does not add a trailing newline.")
+	    "Write MESSAGE to DESTINATION, defaulting to `current-output-port'.\n"
+	    "MESSAGE can contain ~A (was %s) and ~S (was %S) escapes.  When printed,\n"
+	    "the escapes are replaced with corresponding members of ARGS:\n"
+	    "~A formats using `display' and ~S formats using `write'.\n"
+	    "If DESTINATION is #t, then use the `current-output-port',\n"
+	    "if DESTINATION is #f, then return a string containing the formatted text.\n"
+	    "Does not add a trailing newline.")
 #define FUNC_NAME s_scm_simple_format
 {
   SCM answer = SCM_UNSPECIFIED;
@@ -999,7 +999,7 @@ Does not add a trailing newline.")
 
 SCM_DEFINE (scm_newline, "newline", 0, 1, 0, 
            (SCM port),
-"")
+	    "")
 #define FUNC_NAME s_scm_newline
 {
   if (SCM_UNBNDP (port))
@@ -1014,7 +1014,7 @@ SCM_DEFINE (scm_newline, "newline", 0, 1, 0,
 
 SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
            (SCM chr, SCM port),
-"")
+	    "")
 #define FUNC_NAME s_scm_write_char
 {
   if (SCM_UNBNDP (port))
@@ -1067,7 +1067,7 @@ scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *pstate)
 
 SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0, 
             (SCM port, SCM pstate),
-"")
+	    "")
 #define FUNC_NAME s_scm_port_with_print_state
 {
   SCM pwps;
@@ -1081,7 +1081,7 @@ SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0,
 
 SCM_DEFINE (scm_get_print_state, "get-print-state", 1, 0, 0, 
             (SCM port),
-"")
+	    "")
 #define FUNC_NAME s_scm_get_print_state
 {
   if (SCM_PORT_WITH_PS_P (port))

@@ -214,7 +214,7 @@ scm_set_port_input_waiting (long tc, int (*input_waiting) (SCM))
 
 SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0, 
            (SCM port),
-"")
+	    "")
 #define FUNC_NAME s_scm_char_ready_p
 {
   scm_port *pt;
@@ -248,8 +248,8 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
 /* Clear a port's read buffers, returning the contents.  */
 SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0, 
             (SCM port),
-"Drains @var{PORT}'s read buffers (including any pushed-back characters)
-and returns the contents as a single string.")
+	    "Drains @var{PORT}'s read buffers (including any pushed-back characters)\n"
+	    "and returns the contents as a single string.")
 #define FUNC_NAME s_scm_drain_input
 {
   SCM result;
@@ -284,7 +284,7 @@ and returns the contents as a single string.")
 
 SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
            (),
-"")
+	    "")
 #define FUNC_NAME s_scm_current_input_port
 {
   return scm_cur_inp;
@@ -293,7 +293,7 @@ SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
 
 SCM_DEFINE (scm_current_output_port, "current-output-port", 0, 0, 0,
            (),
-"")
+	    "")
 #define FUNC_NAME s_scm_current_output_port
 {
   return scm_cur_outp;
@@ -302,8 +302,8 @@ SCM_DEFINE (scm_current_output_port, "current-output-port", 0, 0, 0,
 
 SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
            (),
-"Return the port to which errors and warnings should be sent (the
-@dfn{standard error} in Unix and C terminology).")
+	    "Return the port to which errors and warnings should be sent (the\n"
+	    "@dfn{standard error} in Unix and C terminology).")
 #define FUNC_NAME s_scm_current_error_port
 {
   return scm_cur_errp;
@@ -312,7 +312,7 @@ SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
 
 SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
            (),
-"")
+	    "")
 #define FUNC_NAME s_scm_current_load_port
 {
   return scm_cur_loadp;
@@ -321,11 +321,11 @@ SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
 
 SCM_DEFINE (scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
            (SCM port),
-"@deffnx primitive set-current-output-port port
-@deffnx primitive set-current-error-port port
-Change the ports returned by @code{current-input-port},
-@code{current-output-port} and @code{current-error-port}, respectively,
-so that they use the supplied @var{port} for input or output.")
+	    "@deffnx primitive set-current-output-port port\n"
+	    "@deffnx primitive set-current-error-port port\n"
+	    "Change the ports returned by @code{current-input-port},\n"
+	    "@code{current-output-port} and @code{current-error-port}, respectively,\n"
+	    "so that they use the supplied @var{port} for input or output.")
 #define FUNC_NAME s_scm_set_current_input_port
 {
   SCM oinp = scm_cur_inp;
@@ -338,7 +338,7 @@ so that they use the supplied @var{port} for input or output.")
 
 SCM_DEFINE (scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
            (SCM port),
-"")
+	    "")
 #define FUNC_NAME s_scm_set_current_output_port
 {
   SCM ooutp = scm_cur_outp;
@@ -352,7 +352,7 @@ SCM_DEFINE (scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
 
 SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
            (SCM port),
-"")
+	    "")
 #define FUNC_NAME s_scm_set_current_error_port
 {
   SCM oerrp = scm_cur_errp;
@@ -440,7 +440,7 @@ scm_remove_from_port_table (SCM port)
 
 SCM_DEFINE (scm_pt_size, "pt-size", 0, 0, 0,
            (),
-"")
+	    "")
 #define FUNC_NAME s_scm_pt_size
 {
   return SCM_MAKINUM (scm_port_table_size);
@@ -450,7 +450,7 @@ SCM_DEFINE (scm_pt_size, "pt-size", 0, 0, 0,
 /* Return the ith member of the port table.  */
 SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
            (SCM member),
-"")
+	    "")
 #define FUNC_NAME s_scm_pt_member
 {
   int i;
@@ -483,7 +483,7 @@ scm_revealed_count (SCM port)
 
 SCM_DEFINE (scm_port_revealed, "port-revealed", 1, 0, 0,
            (SCM port),
-"Returns the revealed count for @var{port}.")
+	    "Returns the revealed count for @var{port}.")
 #define FUNC_NAME s_scm_port_revealed
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -495,8 +495,8 @@ SCM_DEFINE (scm_port_revealed, "port-revealed", 1, 0, 0,
 /* Set the revealed count for a port.  */
 SCM_DEFINE (scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
            (SCM port, SCM rcount),
-"Sets the revealed count for a port to a given value.  
-The return value is unspecified.")
+	    "Sets the revealed count for a port to a given value.  \n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_set_port_revealed_x
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -536,10 +536,10 @@ scm_mode_bits (char *modes)
 
 SCM_DEFINE (scm_port_mode, "port-mode", 1, 0, 0,
            (SCM port),
-"Returns the port modes associated with the open port @var{port}.  These
-will not necessarily be identical to the modes used when the port was
-opened, since modes such as \"append\" which are used only during
-port creation are not retained.")
+	    "Returns the port modes associated with the open port @var{port}.  These\n"
+	    "will not necessarily be identical to the modes used when the port was\n"
+	    "opened, since modes such as \"append\" which are used only during\n"
+	    "port creation are not retained.")
 #define FUNC_NAME s_scm_port_mode
 {
   char modes[3];
@@ -571,12 +571,12 @@ port creation are not retained.")
  */
 SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
            (SCM port),
-"Close the specified port object.  Returns @code{#t} if it successfully
-closes a port or @code{#f} if it was already
-closed.  An exception may be raised if an error occurs, for example
-when flushing buffered output.
-See also @ref{Ports and File Descriptors, close}, for a procedure
-which can close file descriptors.")
+	    "Close the specified port object.  Returns @code{#t} if it successfully\n"
+	    "closes a port or @code{#f} if it was already\n"
+	    "closed.  An exception may be raised if an error occurs, for example\n"
+	    "when flushing buffered output.\n"
+	    "See also @ref{Ports and File Descriptors, close}, for a procedure\n"
+	    "which can close file descriptors.")
 #define FUNC_NAME s_scm_close_port
 {
   scm_sizet i;
@@ -600,13 +600,13 @@ which can close file descriptors.")
 
 SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
            (SCM ports),
-"Close all open file ports used by the interpreter
-except for those supplied as arguments.  This procedure
-is intended to be used before an exec call to close file descriptors
-which are not needed in the new process.Close all open file ports used by the interpreter
-except for those supplied as arguments.  This procedure
-is intended to be used before an exec call to close file descriptors
-which are not needed in the new process.")
+	    "Close all open file ports used by the interpreter\n"
+	    "except for those supplied as arguments.  This procedure\n"
+	    "is intended to be used before an exec call to close file descriptors\n"
+	    "which are not needed in the new process.Close all open file ports used by the interpreter\n"
+	    "except for those supplied as arguments.  This procedure\n"
+	    "is intended to be used before an exec call to close file descriptors\n"
+	    "which are not needed in the new process.")
 #define FUNC_NAME s_scm_close_all_ports_except
 {
   int i = 0;
@@ -642,7 +642,7 @@ which are not needed in the new process.")
 
 SCM_DEFINE (scm_input_port_p, "input-port?", 1, 0, 0,
            (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_input_port_p
 {
   if (SCM_IMP (x))
@@ -653,7 +653,7 @@ SCM_DEFINE (scm_input_port_p, "input-port?", 1, 0, 0,
 
 SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
            (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_output_port_p
 {
   if (SCM_IMP (x))
@@ -666,7 +666,7 @@ SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
 
 SCM_DEFINE (scm_port_closed_p, "port-closed?", 1, 0, 0,
            (SCM port),
-"Returns @code{#t} if @var{port} is closed or @code{#f} if it is open.")
+	    "Returns @code{#t} if @var{port} is closed or @code{#f} if it is open.")
 #define FUNC_NAME s_scm_port_closed_p
 {
   SCM_VALIDATE_PORT (1,port);
@@ -676,7 +676,7 @@ SCM_DEFINE (scm_port_closed_p, "port-closed?", 1, 0, 0,
 
 SCM_DEFINE (scm_eof_object_p, "eof-object?", 1, 0, 0,
            (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_eof_object_p
 {
   return SCM_BOOL(SCM_EOF_OBJECT_P (x));
@@ -685,13 +685,12 @@ SCM_DEFINE (scm_eof_object_p, "eof-object?", 1, 0, 0,
 
 SCM_DEFINE (scm_force_output, "force-output", 0, 1, 0,
            (SCM port),
-"Flush the specified output port, or the current output port if @var{port}
-is omitted.  The current output buffer contents are passed to the 
-underlying port implementation (e.g., in the case of fports, the
-data will be written to the file and the output buffer will be cleared.)
-It has no effect on an unbuffered port.
-
-The return value is unspecified.")
+	    "Flush the specified output port, or the current output port if @var{port}\n"
+	    "is omitted.  The current output buffer contents are passed to the \n"
+	    "underlying port implementation (e.g., in the case of fports, the\n"
+	    "data will be written to the file and the output buffer will be cleared.)\n"
+	    "It has no effect on an unbuffered port.\n\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_force_output
 {
   if (SCM_UNBNDP (port))
@@ -708,8 +707,8 @@ The return value is unspecified.")
 
 SCM_DEFINE (scm_flush_all_ports, "flush-all-ports", 0, 0, 0,
             (),
-"Equivalent to calling @code{force-output} on
-all open output ports.  The return value is unspecified.")
+	    "Equivalent to calling @code{force-output} on\n"
+	    "all open output ports.  The return value is unspecified.")
 #define FUNC_NAME s_scm_flush_all_ports
 {
   int i;
@@ -725,7 +724,7 @@ all open output ports.  The return value is unspecified.")
 
 SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
            (SCM port),
-"")
+	    "")
 #define FUNC_NAME s_scm_read_char
 {
   int c;
@@ -947,7 +946,7 @@ scm_ungets (const char *s, int n, SCM port)
 
 SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
            (SCM port),
-"")
+	    "")
 #define FUNC_NAME s_scm_peek_char
 {
   int c;
@@ -965,10 +964,10 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 
 SCM_DEFINE (scm_unread_char, "unread-char", 2, 0, 0,
             (SCM cobj, SCM port),
-"Place @var{char} in @var{port} so that it will be read by the
-next read operation.  If called multiple times, the unread characters
-will be read again in last-in first-out order.  If @var{port} is
-not supplied, the current input port is used.")
+	    "Place @var{char} in @var{port} so that it will be read by the\n"
+	    "next read operation.  If called multiple times, the unread characters\n"
+	    "will be read again in last-in first-out order.  If @var{port} is\n"
+	    "not supplied, the current input port is used.")
 #define FUNC_NAME s_scm_unread_char
 {
   int c;
@@ -988,10 +987,10 @@ not supplied, the current input port is used.")
 
 SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
             (SCM str, SCM port),
-"Place the string @var{str} in @var{port} so that its characters will be
-read in subsequent read operations.  If called multiple times, the
-unread characters will be read again in last-in first-out order.  If
-@var{port} is not supplied, the current-input-port is used.")
+	    "Place the string @var{str} in @var{port} so that its characters will be\n"
+	    "read in subsequent read operations.  If called multiple times, the\n"
+	    "unread characters will be read again in last-in first-out order.  If\n"
+	    "@var{port} is not supplied, the current-input-port is used.")
 #define FUNC_NAME s_scm_unread_string
 {
   SCM_VALIDATE_STRING (1,str);
@@ -1008,29 +1007,26 @@ unread characters will be read again in last-in first-out order.  If
 
 SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
             (SCM object, SCM offset, SCM whence),
-"Sets the current position of @var{fd/port} to the integer @var{offset},
-which is interpreted according to the value of @var{whence}.
-
-One of the following variables should be supplied
-for @var{whence}:
-@defvar SEEK_SET
-Seek from the beginning of the file.
-@end defvar
-@defvar SEEK_CUR
-Seek from the current position.
-@end defvar
-@defvar SEEK_END
-Seek from the end of the file.
-@end defvar
-
-If @var{fd/port} is a file descriptor, the underlying system call is
-@code{lseek}.  @var{port} may be a string port.
-
-The value returned is the new position in the file.  This means that
-the current position of a port can be obtained using:
-@smalllisp
-(seek port 0 SEEK_CUR)
-@end smalllisp")
+	    "Sets the current position of @var{fd/port} to the integer @var{offset},\n"
+	    "which is interpreted according to the value of @var{whence}.\n\n"
+	    "One of the following variables should be supplied\n"
+	    "for @var{whence}:\n"
+	    "@defvar SEEK_SET\n"
+	    "Seek from the beginning of the file.\n"
+	    "@end defvar\n"
+	    "@defvar SEEK_CUR\n"
+	    "Seek from the current position.\n"
+	    "@end defvar\n"
+	    "@defvar SEEK_END\n"
+	    "Seek from the end of the file.\n"
+	    "@end defvar\n\n"
+	    "If @var{fd/port} is a file descriptor, the underlying system call is\n"
+	    "@code{lseek}.  @var{port} may be a string port.\n\n"
+	    "The value returned is the new position in the file.  This means that\n"
+	    "the current position of a port can be obtained using:\n"
+	    "@smalllisp\n"
+	    "(seek port 0 SEEK_CUR)\n"
+	    "@end smalllisp")
 #define FUNC_NAME s_scm_seek
 {
   off_t off;
@@ -1066,13 +1062,12 @@ the current position of a port can be obtained using:
 
 SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
             (SCM object, SCM length),
-"Truncates the object referred to by @var{obj} to at most @var{size} bytes.
-@var{obj} can be a string containing a file name or an integer file
-descriptor or a port.  @var{size} may be omitted if @var{obj} is not
-a file name, in which case the truncation occurs at the current port.
-position.
-
-The return value is unspecified.")
+	    "Truncates the object referred to by @var{obj} to at most @var{size} bytes.\n"
+	    "@var{obj} can be a string containing a file name or an integer file\n"
+	    "descriptor or a port.  @var{size} may be omitted if @var{obj} is not\n"
+	    "a file name, in which case the truncation occurs at the current port.\n"
+	    "position.\n\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_truncate_file
 {
   int rv;
@@ -1126,7 +1121,7 @@ The return value is unspecified.")
 
 SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
             (SCM port),
-"")
+	    "")
 #define FUNC_NAME s_scm_port_line
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1137,7 +1132,7 @@ SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
 
 SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
             (SCM port, SCM line),
-"")
+	    "")
 #define FUNC_NAME s_scm_set_port_line_x
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1149,15 +1144,15 @@ SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 
 SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
             (SCM port),
-"@deffnx primitive port-line [input-port]
-Return the current column number or line number of @var{input-port},
-using the current input port if none is specified.  If the number is
-unknown, the result is #f.  Otherwise, the result is a 0-origin integer
-- i.e. the first character of the first line is line 0, column 0.
-(However, when you display a file position, for example in an error
-message, we recommand you add 1 to get 1-origin integers.  This is
-because lines and column numbers traditionally start with 1, and that is
-what non-programmers will find most natural.)")
+	    "@deffnx primitive port-line [input-port]\n"
+	    "Return the current column number or line number of @var{input-port},\n"
+	    "using the current input port if none is specified.  If the number is\n"
+	    "unknown, the result is #f.  Otherwise, the result is a 0-origin integer\n"
+	    "- i.e. the first character of the first line is line 0, column 0.\n"
+	    "(However, when you display a file position, for example in an error\n"
+	    "message, we recommand you add 1 to get 1-origin integers.  This is\n"
+	    "because lines and column numbers traditionally start with 1, and that is\n"
+	    "what non-programmers will find most natural.)")
 #define FUNC_NAME s_scm_port_column
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1168,9 +1163,9 @@ what non-programmers will find most natural.)")
 
 SCM_DEFINE (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
             (SCM port, SCM column),
-"@deffnx primitive set-port-line! [input-port] line
-Set the current column or line number of @var{input-port}, using the
-current input port if none is specified.")
+	    "@deffnx primitive set-port-line! [input-port] line\n"
+	    "Set the current column or line number of @var{input-port}, using the\n"
+	    "current input port if none is specified.")
 #define FUNC_NAME s_scm_set_port_column_x
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1182,8 +1177,8 @@ current input port if none is specified.")
 
 SCM_DEFINE (scm_port_filename, "port-filename", 1, 0, 0,
             (SCM port),
-"Return the filename associated with @var{port}.  This function returns
-the strings "standard input", "standard output" and "standard error"
+	    "Return the filename associated with @var{port}.  This function returns\n"
+	    "the strings "standard input", "standard output" and "standard error"
 when called on the current input, output and error ports respectively.")
 #define FUNC_NAME s_scm_port_filename
 {
@@ -1195,10 +1190,10 @@ when called on the current input, output and error ports respectively.")
 
 SCM_DEFINE (scm_set_port_filename_x, "set-port-filename!", 2, 0, 0,
             (SCM port, SCM filename),
-"Change the filename associated with @var{port}, using the current input
-port if none is specified.  Note that this does not change the port's
-source of data, but only the value that is returned by
-@code{port-filename} and reported in diagnostic output.")
+	    "Change the filename associated with @var{port}, using the current input\n"
+	    "port if none is specified.  Note that this does not change the port's\n"
+	    "source of data, but only the value that is returned by\n"
+	    "@code{port-filename} and reported in diagnostic output.")
 #define FUNC_NAME s_scm_set_port_filename_x
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1303,9 +1298,9 @@ scm_void_port (char *mode_str)
 
 SCM_DEFINE (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
             (SCM mode),
-"Create and return a new void port.  The @var{mode} argument describes
-the input/output modes for this port; for a description, see the
-documentation for @code{open-file} in @ref{File Ports}.")
+	    "Create and return a new void port.  The @var{mode} argument describes\n"
+	    "the input/output modes for this port; for a description, see the\n"
+	    "documentation for @code{open-file} in @ref{File Ports}.")
 #define FUNC_NAME s_scm_sys_make_void_port
 {
   SCM_VALIDATE_ROSTRING (1,mode);

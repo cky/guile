@@ -1705,7 +1705,7 @@ scm_option scm_evaluator_trap_table[] = {
 
 SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
             (SCM setting),
-"")
+	    "")
 #define FUNC_NAME s_scm_eval_options_interface
 {
   SCM ans;
@@ -1722,7 +1722,7 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
 
 SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, 
             (SCM setting),
-"")
+	    "")
 #define FUNC_NAME s_scm_evaluator_traps
 {
   SCM ans;
@@ -3186,7 +3186,7 @@ ret:
 
 SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0, 
            (SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_nconc2last
 {
   SCM *lloc;
@@ -3705,7 +3705,7 @@ prinprom (SCM exp,SCM port,scm_print_state *pstate)
 
 SCM_DEFINE (scm_force, "force", 1, 0, 0, 
            (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_force
 {
   SCM_VALIDATE_SMOB (1,x,promise);
@@ -3726,8 +3726,8 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
 
 SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0, 
             (SCM x),
-"Return true if @var{obj} is a promise, i.e. a delayed computation
-(@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).")
+	    "Return true if @var{obj} is a promise, i.e. a delayed computation\n"
+	    "(@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).")
 #define FUNC_NAME s_scm_promise_p
 {
   return SCM_BOOL(SCM_NIMP (x) && (SCM_TYP16 (x) == scm_tc16_promise));
@@ -3736,7 +3736,7 @@ SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0,
 
 SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0, 
             (SCM xorig, SCM x, SCM y),
-"")
+	    "")
 #define FUNC_NAME s_scm_cons_source
 {
   SCM p, z;
@@ -3753,11 +3753,11 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
 
 SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0, 
             (SCM obj),
-"Recursively copy the data tree that is bound to @var{obj}, and return a
-pointer to the new data structure.  @code{copy-tree} recurses down the
-contents of both pairs and vectors (since both cons cells and vector
-cells may point to arbitrary objects), and stops recursing when it hits
-any other object.")
+	    "Recursively copy the data tree that is bound to @var{obj}, and return a\n"
+	    "pointer to the new data structure.  @code{copy-tree} recurses down the\n"
+	    "contents of both pairs and vectors (since both cons cells and vector\n"
+	    "cells may point to arbitrary objects), and stops recursing when it hits\n"
+	    "any other object.")
 #define FUNC_NAME s_scm_copy_tree
 {
   SCM ans, tl;
@@ -3801,9 +3801,9 @@ scm_eval_3 (SCM obj, int copyp, SCM env)
 
 SCM_DEFINE (scm_eval2, "eval2", 2, 0, 0,
            (SCM obj, SCM env_thunk),
-"Evaluate @var{exp}, a Scheme expression, in the environment designated
-by @var{lookup}, a symbol-lookup function.  @code{(eval exp)} is
-equivalent to @code{(eval2 exp *top-level-lookup-closure*)}.")
+	    "Evaluate @var{exp}, a Scheme expression, in the environment designated\n"
+	    "by @var{lookup}, a symbol-lookup function.  @code{(eval exp)} is\n"
+	    "equivalent to @code{(eval2 exp *top-level-lookup-closure*)}.")
 #define FUNC_NAME s_scm_eval2
 {
   return scm_eval_3 (obj, 1, scm_top_level_env (env_thunk));
@@ -3812,8 +3812,8 @@ equivalent to @code{(eval2 exp *top-level-lookup-closure*)}.")
 
 SCM_DEFINE (scm_eval, "eval", 1, 0, 0, 
            (SCM obj),
-"Evaluate @var{exp}, a list representing a Scheme expression, in the
-top-level environment.")
+	    "Evaluate @var{exp}, a list representing a Scheme expression, in the\n"
+	    "top-level environment.")
 #define FUNC_NAME s_scm_eval
 {
   return scm_eval_3 (obj,

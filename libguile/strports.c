@@ -297,9 +297,9 @@ SCM scm_strport_to_string (SCM port)
 
 SCM_DEFINE (scm_call_with_output_string, "call-with-output-string", 1, 0, 0, 
            (SCM proc),
-"Calls the one-argument procedure @var{proc} with a newly created output
-port.  When the function returns, the string composed of the characters
-written into the port is returned.")
+	    "Calls the one-argument procedure @var{proc} with a newly created output\n"
+	    "port.  When the function returns, the string composed of the characters\n"
+	    "written into the port is returned.")
 #define FUNC_NAME s_scm_call_with_output_string
 {
   SCM p;
@@ -339,9 +339,9 @@ scm_strprint_obj (SCM obj)
 
 SCM_DEFINE (scm_call_with_input_string, "call-with-input-string", 2, 0, 0,
            (SCM str, SCM proc),
-"Calls the one-argument procedure @var{proc} with a newly created input
-port from which @var{string}'s contents may be read.  The value yielded
-by the @var{proc} is returned.")
+	    "Calls the one-argument procedure @var{proc} with a newly created input\n"
+	    "port from which @var{string}'s contents may be read.  The value yielded\n"
+	    "by the @var{proc} is returned.")
 #define FUNC_NAME s_scm_call_with_input_string
 {
   SCM p = scm_mkstrport(SCM_INUM0, str, SCM_OPN | SCM_RDNG, FUNC_NAME);
@@ -380,8 +380,8 @@ scm_eval_0str (const char *expr)
 
 SCM_DEFINE (scm_eval_string, "eval-string", 1, 0, 0, 
             (SCM string),
-"Evaluate @var{string} as the text representation of a Scheme form
-or forms, and return whatever value they produce.")
+	    "Evaluate @var{string} as the text representation of a Scheme form\n"
+	    "or forms, and return whatever value they produce.")
 #define FUNC_NAME s_scm_eval_string
 {
   SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,

@@ -262,10 +262,10 @@ scm_subr_p (SCM obj)
 
 SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0, 
            (SCM proc),
-"Return the documentation string associated with @code{proc}.  By
-convention, if a procedure contains more than one expression and the
-first expression is a string constant, that string is assumed to contain
-documentation for that procedure.")
+	    "Return the documentation string associated with @code{proc}.  By\n"
+	    "convention, if a procedure contains more than one expression and the\n"
+	    "first expression is a string constant, that string is assumed to contain\n"
+	    "documentation for that procedure.")
 #define FUNC_NAME s_scm_procedure_documentation
 {
   SCM code;
@@ -300,7 +300,7 @@ documentation for that procedure.")
 
 SCM_DEFINE (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0, 
             (SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_procedure_with_setter_p
 {
   return SCM_BOOL(SCM_PROCEDURE_WITH_SETTER_P (obj));
@@ -309,7 +309,7 @@ SCM_DEFINE (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0,
 
 SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 0, 
             (SCM procedure, SCM setter),
-"")
+	    "")
 #define FUNC_NAME s_scm_make_procedure_with_setter
 {
   SCM z;
@@ -326,7 +326,7 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 
 SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0, 
             (SCM proc),
-"")
+	    "")
 #define FUNC_NAME s_scm_procedure
 {
   SCM_VALIDATE_NIM (1,proc);

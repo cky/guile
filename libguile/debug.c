@@ -476,10 +476,10 @@ SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0,
  */
 SCM_DEFINE (scm_local_eval, "local-eval", 1, 1, 0,
             (SCM exp, SCM env),
-"Evaluate @var{exp} in its environment.  If @var{env} is supplied,
-it is the environment in which to evaluate @var{exp}.  Otherwise,
-@var{exp} must be a memoized code object (in which case, its environment
-is implicit).")
+	    "Evaluate @var{exp} in its environment.  If @var{env} is supplied,\n"
+	    "it is the environment in which to evaluate @var{exp}.  Otherwise,\n"
+	    "@var{exp} must be a memoized code object (in which case, its environment\n"
+	    "is implicit).")
 #define FUNC_NAME s_scm_local_eval
 {
   if (SCM_UNBNDP (env))
@@ -566,7 +566,7 @@ prindebugobj (SCM obj,SCM port,scm_print_state *pstate)
 
 SCM_DEFINE (scm_debug_object_p, "debug-object?", 1, 0, 0, 
             (SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_debug_object_p
 {
   return SCM_BOOL(SCM_DEBUGOBJP (obj));
@@ -592,7 +592,7 @@ scm_make_debugobj (scm_debug_frame *frame)
 #ifdef GUILE_DEBUG
 SCM_DEFINE (scm_debug_hang, "debug-hang", 0, 1, 0, 
             (SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_debug_hang
 {
   int go = 0;

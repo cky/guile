@@ -97,7 +97,7 @@
 
 SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0, 
             (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_exact_p
 {
   if (SCM_INUMP (x))
@@ -112,7 +112,7 @@ SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0,
 
 SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0, 
             (SCM n),
-"")
+	    "")
 #define FUNC_NAME s_scm_odd_p
 {
 #ifdef SCM_BIGDIG
@@ -130,7 +130,7 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
 
 SCM_DEFINE (scm_even_p, "even?", 1, 0, 0, 
             (SCM n),
-"")
+	    "")
 #define FUNC_NAME s_scm_even_p
 {
 #ifdef SCM_BIGDIG
@@ -517,13 +517,12 @@ scm_lcm (SCM n1, SCM n2)
 
 SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
-"Returns the integer which is the bit-wise AND of the two integer
-arguments.
-
-Example:
-@lisp
-(number->string (logand #b1100 #b1010) 2)
-   @result{} \"1000\"")
+	     "Returns the integer which is the bit-wise AND of the two integer\n"
+	     "arguments.\n\n"
+	     "Example:\n"
+	     "@lisp\n"
+	     "(number->string (logand #b1100 #b1010) 2)\n"
+	     "   @result{} \"1000\"")
 #define FUNC_NAME s_scm_logand
 {
   int i1, i2;
@@ -541,14 +540,13 @@ Example:
 
 SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
              (SCM n1, SCM n2),
-"Returns the integer which is the bit-wise OR of the two integer
-arguments.
-
-Example:
-@lisp
-(number->string (logior #b1100 #b1010) 2)
-   @result{} \"1110\"
-@end lisp")
+	     "Returns the integer which is the bit-wise OR of the two integer\n"
+	     "arguments.\n\n"
+	     "Example:\n"
+	     "@lisp\n"
+	     "(number->string (logior #b1100 #b1010) 2)\n"
+	     "   @result{} \"1110\"\n"
+	     "@end lisp")
 #define FUNC_NAME s_scm_logior
 {
   int i1, i2;
@@ -566,14 +564,13 @@ Example:
 
 SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
              (SCM n1, SCM n2),
-"Returns the integer which is the bit-wise XOR of the two integer
-arguments.
-
-Example:
-@lisp
-(number->string (logxor #b1100 #b1010) 2)
-   @result{} \"110\"
-@end lisp")
+	     "Returns the integer which is the bit-wise XOR of the two integer\n"
+	     "arguments.\n\n"
+	     "Example:\n"
+	     "@lisp\n"
+	     "(number->string (logxor #b1100 #b1010) 2)\n"
+	     "   @result{} \"110\"\n"
+	     "@end lisp")
 #define FUNC_NAME s_scm_logxor
 {
   int i1, i2;
@@ -591,12 +588,11 @@ Example:
 
 SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
             (SCM n1, SCM n2),
-"@example
-(logtest j k) @equiv{} (not (zero? (logand j k)))
-
-(logtest #b0100 #b1011) @result{} #f
-(logtest #b0100 #b0111) @result{} #t
-@end example")
+	    "@example\n"
+	    "(logtest j k) @equiv{} (not (zero? (logand j k)))\n\n"
+	    "(logtest #b0100 #b1011) @result{} #f\n"
+	    "(logtest #b0100 #b0111) @result{} #t\n"
+	    "@end example")
 #define FUNC_NAME s_scm_logtest
 {
   int i1, i2;
@@ -609,15 +605,14 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 
 SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
             (SCM index, SCM j),
-"@example
-(logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)
-
-(logbit? 0 #b1101) @result{} #t
-(logbit? 1 #b1101) @result{} #f
-(logbit? 2 #b1101) @result{} #t
-(logbit? 3 #b1101) @result{} #t
-(logbit? 4 #b1101) @result{} #f
-@end example")
+	    "@example\n"
+	    "(logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)\n\n"
+	    "(logbit? 0 #b1101) @result{} #t\n"
+	    "(logbit? 1 #b1101) @result{} #f\n"
+	    "(logbit? 2 #b1101) @result{} #t\n"
+	    "(logbit? 3 #b1101) @result{} #t\n"
+	    "(logbit? 4 #b1101) @result{} #f\n"
+	    "@end example")
 #define FUNC_NAME s_scm_logbit_p
 {
   int i1, i2;
@@ -629,16 +624,15 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 
 SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0, 
             (SCM n),
-"Returns the integer which is the 2s-complement of the integer argument.
-
-Example:
-@lisp
-(number->string (lognot #b10000000) 2)
-   @result{} \"-10000001\"
-(number->string (lognot #b0) 2)
-   @result{} \"-1\"
-@end lisp
-")
+	    "Returns the integer which is the 2s-complement of the integer argument.\n\n"
+	    "Example:\n"
+	    "@lisp\n"
+	    "(number->string (lognot #b10000000) 2)\n"
+	    "   @result{} \"-10000001\"\n"
+	    "(number->string (lognot #b0) 2)\n"
+	    "   @result{} \"-1\"\n"
+	    "@end lisp\n"
+	    "")
 #define FUNC_NAME s_scm_lognot
 {
   SCM_VALIDATE_INUM (1,n);
@@ -648,15 +642,14 @@ Example:
 
 SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
             (SCM n, SCM k),
-"Returns @var{n} raised to the non-negative integer exponent @var{k}.
-
-Example:
-@lisp
-(integer-expt 2 5)
-   @result{} 32
-(integer-expt -3 3)
-   @result{} -27
-@end lisp")
+	    "Returns @var{n} raised to the non-negative integer exponent @var{k}.\n\n"
+	    "Example:\n"
+	    "@lisp\n"
+	    "(integer-expt 2 5)\n"
+	    "   @result{} 32\n"
+	    "(integer-expt -3 3)\n"
+	    "   @result{} -27\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_integer_expt
 {
   SCM acc = SCM_MAKINUM (1L);
@@ -689,13 +682,12 @@ Example:
 
 SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             (SCM n, SCM cnt),
-"Returns an integer equivalent to
-@code{(inexact->exact (floor (* @var{int} (expt 2 @var{count}))))}.@refill
-
-Example:
-@lisp
-(number->string (ash #b1 3) 2)
-   @result{} "1000"
+	    "Returns an integer equivalent to\n"
+	    "@code{(inexact->exact (floor (* @var{int} (expt 2 @var{count}))))}.@refill\n\n"
+	    "Example:\n"
+	    "@lisp\n"
+	    "(number->string (ash #b1 3) 2)\n"
+	    "   @result{} "1000"
 (number->string (ash #b1010 -1) 2)
    @result{} "101"
 @end lisp")
@@ -732,17 +724,16 @@ Example:
 /* GJB:FIXME: do not use SCMs as integers! */
 SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
             (SCM n, SCM start, SCM end),
-"Returns the integer composed of the @var{start} (inclusive) through
-@var{end} (exclusive) bits of @var{n}.  The @var{start}th bit becomes
-the 0-th bit in the result.@refill
-
-Example:
-@lisp
-(number->string (bit-extract #b1101101010 0 4) 2)
-   @result{} \"1010\"
-(number->string (bit-extract #b1101101010 4 9) 2)
-   @result{} \"10110\"
-@end lisp")
+	    "Returns the integer composed of the @var{start} (inclusive) through\n"
+	    "@var{end} (exclusive) bits of @var{n}.  The @var{start}th bit becomes\n"
+	    "the 0-th bit in the result.@refill\n\n"
+	    "Example:\n"
+	    "@lisp\n"
+	    "(number->string (bit-extract #b1101101010 0 4) 2)\n"
+	    "   @result{} \"1010\"\n"
+	    "(number->string (bit-extract #b1101101010 4 9) 2)\n"
+	    "   @result{} \"10110\"\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_bit_extract
 {
   int istart, iend;
@@ -770,20 +761,19 @@ static const char scm_logtab[] = {
 
 SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
             (SCM n),
-"Returns the number of bits in integer @var{n}.  If integer is positive,
-the 1-bits in its binary representation are counted.  If negative, the
-0-bits in its two's-complement binary representation are counted.  If 0,
-0 is returned.
-
-Example:
-@lisp
-(logcount #b10101010)
-   @result{} 4
-(logcount 0)
-   @result{} 0
-(logcount -2)
-   @result{} 1
-@end lisp")
+	    "Returns the number of bits in integer @var{n}.  If integer is positive,\n"
+	    "the 1-bits in its binary representation are counted.  If negative, the\n"
+	    "0-bits in its two's-complement binary representation are counted.  If 0,\n"
+	    "0 is returned.\n\n"
+	    "Example:\n"
+	    "@lisp\n"
+	    "(logcount #b10101010)\n"
+	    "   @result{} 4\n"
+	    "(logcount 0)\n"
+	    "   @result{} 0\n"
+	    "(logcount -2)\n"
+	    "   @result{} 1\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_logcount
 {
   register unsigned long c = 0;
@@ -820,17 +810,16 @@ static const char scm_ilentab[] = {
 
 SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
             (SCM n),
-"Returns the number of bits neccessary to represent @var{n}.
-
-Example:
-@lisp
-(integer-length #b10101010)
-   @result{} 8
-(integer-length 0)
-   @result{} 0
-(integer-length #b1111)
-   @result{} 4
-@end lisp")
+	    "Returns the number of bits neccessary to represent @var{n}.\n\n"
+	    "Example:\n"
+	    "@lisp\n"
+	    "(integer-length #b10101010)\n"
+	    "   @result{} 8\n"
+	    "(integer-length 0)\n"
+	    "   @result{} 0\n"
+	    "(integer-length #b1111)\n"
+	    "   @result{} 4\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_integer_length
 {
   register unsigned long c = 0;
@@ -1781,7 +1770,7 @@ big2str (SCM b, unsigned int radix)
 
 SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
             (SCM x, SCM radix),
-"")
+	    "")
 #define FUNC_NAME s_scm_number_to_string
 {
   int base;
@@ -2383,7 +2372,7 @@ scm_istring2number (char *str, long len, long radix)
 
 SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
             (SCM str, SCM radix),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_to_number
 {
   SCM answer;
@@ -2467,7 +2456,7 @@ SCM_REGISTER_PROC (s_number_p, "number?", 1, 0, 0, scm_number_p);
 
 SCM_DEFINE (scm_number_p, "complex?", 1, 0, 0, 
             (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_number_p
 {
   if (SCM_INUMP (x))
@@ -2493,7 +2482,7 @@ SCM_REGISTER_PROC (s_real_p, "real?", 1, 0, 0, scm_real_p);
 
 SCM_DEFINE (scm_real_p, "rational?", 1, 0, 0, 
             (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_real_p
 {
   if (SCM_INUMP (x))
@@ -2514,7 +2503,7 @@ SCM_DEFINE (scm_real_p, "rational?", 1, 0, 0,
 
 SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0, 
             (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_integer_p
 {
   double r;
@@ -2543,7 +2532,7 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
 
 SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0, 
             (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_inexact_p
 {
 #ifdef SCM_FLOATS
@@ -2769,7 +2758,7 @@ scm_less_p (SCM x, SCM y)
 
 SCM_DEFINE1 (scm_gr_p, ">", scm_tc7_rpsubr,
              (SCM x, SCM y),
-"")
+	     "")
 #define FUNC_NAME s_scm_gr_p
 {
   return scm_less_p (y, x);
@@ -2780,7 +2769,7 @@ SCM_DEFINE1 (scm_gr_p, ">", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_leq_p, "<=", scm_tc7_rpsubr,
              (SCM x, SCM y),
-"")
+	     "")
 #define FUNC_NAME s_scm_leq_p
 {
   return SCM_BOOL_NOT (scm_less_p (y, x));
@@ -2791,7 +2780,7 @@ SCM_DEFINE1 (scm_leq_p, "<=", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_geq_p, ">=", scm_tc7_rpsubr,
              (SCM x, SCM y),
-"")
+	     "")
 #define FUNC_NAME s_scm_geq_p
 {
   return SCM_BOOL_NOT (scm_less_p (x, y));
@@ -4169,7 +4158,7 @@ scm_two_doubles (SCM z1, SCM z2, const char *sstring, struct dpair *xy)
 
 SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
             (SCM z1, SCM z2),
-"")
+	    "")
 #define FUNC_NAME s_scm_sys_expt
 {
   struct dpair xy;
@@ -4182,7 +4171,7 @@ SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
 
 SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
             (SCM z1, SCM z2),
-"")
+	    "")
 #define FUNC_NAME s_scm_sys_atan2
 {
   struct dpair xy;
@@ -4195,7 +4184,7 @@ SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
 
 SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
             (SCM z1, SCM z2),
-"")
+	    "")
 #define FUNC_NAME s_scm_make_rectangular
 {
   struct dpair xy;
@@ -4208,7 +4197,7 @@ SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
 
 SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
             (SCM z1, SCM z2),
-"")
+	    "")
 #define FUNC_NAME s_scm_make_polar
 {
   struct dpair xy;
@@ -4346,7 +4335,7 @@ scm_angle (SCM z)
 
 SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0, 
             (SCM z),
-"")
+	    "")
 #define FUNC_NAME s_scm_inexact_to_exact
 {
   if (SCM_INUMP (z))

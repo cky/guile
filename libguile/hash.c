@@ -146,12 +146,12 @@ scm_ihashq (SCM obj, unsigned int n)
 
 SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
            (SCM obj, SCM n),
-"@deffnx primitive hashv key size
-@deffnx primitive hash key size
-Default hash functions for Guile hash tables.  @var{key} is the
-object to be hashed, and @var{size} is the size of the target hash
-table.  Each function returns an integer in the range 0 to
-@var{size}-1.")
+	    "@deffnx primitive hashv key size\n"
+	    "@deffnx primitive hash key size\n"
+	    "Default hash functions for Guile hash tables.  @var{key} is the\n"
+	    "object to be hashed, and @var{size} is the size of the target hash\n"
+	    "table.  Each function returns an integer in the range 0 to\n"
+	    "@var{size}-1.")
 #define FUNC_NAME s_scm_hashq
 {
   SCM_VALIDATE_INUM_MIN (2,n,0);
@@ -178,7 +178,7 @@ scm_ihashv (SCM obj, unsigned int n)
 
 SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
            (SCM obj, SCM n),
-"")
+	    "")
 #define FUNC_NAME s_scm_hashv
 {
   SCM_VALIDATE_INUM_MIN (2,n,0);
@@ -198,7 +198,7 @@ scm_ihash (SCM obj, unsigned int n)
 
 SCM_DEFINE (scm_hash, "hash", 2, 0, 0,
            (SCM obj, SCM n),
-"")
+	    "")
 #define FUNC_NAME s_scm_hash
 {
   SCM_VALIDATE_INUM_MIN (2,n,0);

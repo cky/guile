@@ -57,7 +57,7 @@
 
 SCM_DEFINE (scm_string_p, "string?", 1, 0, 0, 
            (SCM x),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_p
 {
   if (SCM_IMP (x))
@@ -68,18 +68,15 @@ SCM_DEFINE (scm_string_p, "string?", 1, 0, 0,
 
 SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
            (SCM x),
-"Return true of OBJ can be read as a string,
-
-This illustrates the difference between @code{string?} and
-@code{read-only-string?}:
-
-@example
-(string? \"a string\") @result{} #t
-(string? 'a-symbol) @result{} #f
-
-(read-only-string? \"a string\") @result{} #t
-(read-only-string? 'a-symbol) @result{} #t
-@end example")
+	    "Return true of OBJ can be read as a string,\n\n"
+	    "This illustrates the difference between @code{string?} and\n"
+	    "@code{read-only-string?}:\n\n"
+	    "@example\n"
+	    "(string? \"a string\") @result{} #t\n"
+	    "(string? 'a-symbol) @result{} #f\n\n"
+	    "(read-only-string? \"a string\") @result{} #t\n"
+	    "(read-only-string? 'a-symbol) @result{} #t\n"
+	    "@end example")
 #define FUNC_NAME s_scm_read_only_string_p
 {
   if (SCM_IMP (x))
@@ -93,7 +90,7 @@ SCM_REGISTER_PROC(s_list_to_string, "list->string", 1, 0, 0, scm_string);
 
 SCM_DEFINE (scm_string, "string", 0, 0, 1, 
            (SCM chrs),
-"")
+	    "")
 #define FUNC_NAME s_scm_string
 {
   SCM res;
@@ -249,7 +246,7 @@ scm_makfrom0str_opt (const char *src)
 
 SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
            (SCM k, SCM chr),
-"")
+	    "")
 #define FUNC_NAME s_scm_make_string
 {
   SCM res;
@@ -272,7 +269,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 
 SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0, 
            (SCM str),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_length
 {
   SCM_VALIDATE_ROSTRING (1,str);
@@ -282,7 +279,7 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 
 SCM_DEFINE (scm_string_ref, "string-ref", 1, 1, 0,
            (SCM str, SCM k),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_ref
 {
   SCM_VALIDATE_ROSTRING (1,str);
@@ -294,7 +291,7 @@ SCM_DEFINE (scm_string_ref, "string-ref", 1, 1, 0,
 
 SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
            (SCM str, SCM k, SCM chr),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_set_x
 {
   SCM_VALIDATE_RWSTRING (1,str);
@@ -309,7 +306,7 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
            (SCM str, SCM start, SCM end),
-"")
+	    "")
 #define FUNC_NAME s_scm_substring
 {
   long l;
@@ -326,7 +323,7 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
 
 SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1, 
            (SCM args),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_append
 {
   SCM res;
@@ -352,13 +349,13 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 
 SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
            (SCM str, SCM frm, SCM to),
-"Return a shared substring of @var{str}.  The semantics are the same as
-for the @code{substring} function: the shared substring returned
-includes all of the text from @var{str} between indexes @var{start}
-(inclusive) and @var{end} (exclusive).  If @var{end} is omitted, it
-defaults to the end of @var{str}.  The shared substring returned by
-@code{make-shared-substring} occupies the same storage space as
-@var{str}.")
+	    "Return a shared substring of @var{str}.  The semantics are the same as\n"
+	    "for the @code{substring} function: the shared substring returned\n"
+	    "includes all of the text from @var{str} between indexes @var{start}\n"
+	    "(inclusive) and @var{end} (exclusive).  If @var{end} is omitted, it\n"
+	    "defaults to the end of @var{str}.  The shared substring returned by\n"
+	    "@code{make-shared-substring} occupies the same storage space as\n"
+	    "@var{str}.")
 #define FUNC_NAME s_scm_make_shared_substring
 {
   long f;

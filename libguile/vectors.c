@@ -267,7 +267,7 @@ scm_vector_equal_p(SCM x, SCM y)
 
 SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
-"Vector version of @code{substring-move-left!}.")
+	    "Vector version of @code{substring-move-left!}.")
 #define FUNC_NAME s_scm_vector_move_left_x
 {
   long i;
@@ -290,7 +290,7 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 
 SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
-"Vector version of @code{substring-move-right!}.")
+	    "Vector version of @code{substring-move-right!}.")
 #define FUNC_NAME s_scm_vector_move_right_x
 {
   long i;

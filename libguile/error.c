@@ -89,17 +89,17 @@ scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 /* Scheme interface to scm_error.  */
 SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0, 
            (SCM key, SCM subr, SCM message, SCM args, SCM rest),
-"Raise an error with key @var{key}.  @var{subr} can be a string naming
-the procedure associated with the error, or @code{#f}.  @var{message}
-is the error message string, possibly containing @code{~S} and @code{~A}
-escapes.  When an error is reported, these are replaced by formating the
-corresponding members of @var{args}: @code{~A} (was @code{%s}) formats using @code{display}
-and @code(~S) (was @code{%S}) formats using @code{write}.  @var{data} is a
-list or @code{#f} depending on @var{key}: if @var{key} is
-@code{system-error} then it should be a list
-containing the Unix @code{errno} value;  If @var{key} is @code{signal} then
-it should be a list containing the Unix signal number; otherwise it
-will usually be @code{#f}.")
+	    "Raise an error with key @var{key}.  @var{subr} can be a string naming\n"
+	    "the procedure associated with the error, or @code{#f}.  @var{message}\n"
+	    "is the error message string, possibly containing @code{~S} and @code{~A}\n"
+	    "escapes.  When an error is reported, these are replaced by formating the\n"
+	    "corresponding members of @var{args}: @code{~A} (was @code{%s}) formats using @code{display}\n"
+	    "and @code(~S) (was @code{%S}) formats using @code{write}.  @var{data} is a\n"
+	    "list or @code{#f} depending on @var{key}: if @var{key} is\n"
+	    "@code{system-error} then it should be a list\n"
+	    "containing the Unix @code{errno} value;  If @var{key} is @code{signal} then\n"
+	    "it should be a list containing the Unix signal number; otherwise it\n"
+	    "will usually be @code{#f}.")
 #define FUNC_NAME s_scm_error_scm
 {
   char *szSubr;
@@ -116,7 +116,7 @@ will usually be @code{#f}.")
 
 SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0, 
             (SCM err),
-"Returns the Unix error message corresponding to @var{errno}, an integer.")
+	    "Returns the Unix error message corresponding to @var{errno}, an integer.")
 #define FUNC_NAME s_scm_strerror
 {
   SCM_VALIDATE_INUM (1,err);

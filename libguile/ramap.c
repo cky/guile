@@ -406,8 +406,8 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 
 SCM_DEFINE (scm_array_fill_x, "array-fill!", 2, 0, 0,
            (SCM ra, SCM fill),
-"Stores @var{fill} in every element of @var{array}.  The value returned
-is unspecified.")
+	    "Stores @var{fill} in every element of @var{array}.  The value returned\n"
+	    "is unspecified.")
 #define FUNC_NAME s_scm_array_fill_x
 {
   SCM_RAMAPC (scm_array_fill_int, fill, ra, SCM_EOL);
@@ -777,10 +777,10 @@ SCM_REGISTER_PROC(s_array_copy_in_order_x, "array-copy-in-order!", 2, 0, 0, scm_
 
 SCM_DEFINE (scm_array_copy_x, "array-copy!", 2, 0, 0,
            (SCM src, SCM dst),
-"Copies every element from vector or array @var{source} to the
-corresponding element of @var{destination}.  @var{destination} must have
-the same rank as @var{source}, and be at least as large in each
-dimension.  The order is unspecified.")
+	    "Copies every element from vector or array @var{source} to the\n"
+	    "corresponding element of @var{destination}.  @var{destination} must have\n"
+	    "the same rank as @var{source}, and be at least as large in each\n"
+	    "dimension.  The order is unspecified.")
 #define FUNC_NAME s_scm_array_copy_x
 {
   SCM_RAMAPC (racp, SCM_UNDEFINED, src, scm_cons (dst, SCM_EOL));
@@ -1597,12 +1597,12 @@ SCM_REGISTER_PROC(s_array_map_in_order_x, "array-map-in-order!", 2, 0, 1, scm_ar
 
 SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
            (SCM ra0, SCM proc, SCM lra),
-"@var{array1}, @dots{} must have the same number of dimensions as
-@var{array0} and have a range for each index which includes the range
-for the corresponding index in @var{array0}.  @var{proc} is applied to
-each tuple of elements of @var{array1} @dots{} and the result is stored
-as the corresponding element in @var{array0}.  The value returned is
-unspecified.  The order of application is unspecified.")
+	    "@var{array1}, @dots{} must have the same number of dimensions as\n"
+	    "@var{array0} and have a range for each index which includes the range\n"
+	    "for the corresponding index in @var{array0}.  @var{proc} is applied to\n"
+	    "each tuple of elements of @var{array1} @dots{} and the result is stored\n"
+	    "as the corresponding element in @var{array0}.  The value returned is\n"
+	    "unspecified.  The order of application is unspecified.")
 #define FUNC_NAME s_scm_array_map_x
 {
   SCM_VALIDATE_PROC (2,proc);
@@ -1744,8 +1744,8 @@ rafe (SCM ra0,SCM proc,SCM ras)
 
 SCM_DEFINE (scm_array_for_each, "array-for-each", 2, 0, 1,
            (SCM proc, SCM ra0, SCM lra),
-"@var{proc} is applied to each tuple of elements of @var{array0} @dots{}
-in row-major order.  The value returned is unspecified.")
+	    "@var{proc} is applied to each tuple of elements of @var{array0} @dots{}\n"
+	    "in row-major order.  The value returned is unspecified.")
 #define FUNC_NAME s_scm_array_for_each
 {
   SCM_VALIDATE_PROC (1,proc);
@@ -1756,24 +1756,23 @@ in row-major order.  The value returned is unspecified.")
 
 SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
            (SCM ra, SCM proc),
-"applies @var{proc} to the indices of each element of @var{array} in
-turn, storing the result in the corresponding element.  The value
-returned and the order of application are unspecified.
-
-One can implement @var{array-indexes} as
-@example
-(define (array-indexes array)
-    (let ((ra (apply make-array #f (array-shape array))))
-      (array-index-map! ra (lambda x x))
-      ra))
-@end example
-Another example:
-@example
-(define (apl:index-generator n)
-    (let ((v (make-uniform-vector n 1)))
-      (array-index-map! v (lambda (i) i))
-      v))
-@end example")
+	    "applies @var{proc} to the indices of each element of @var{array} in\n"
+	    "turn, storing the result in the corresponding element.  The value\n"
+	    "returned and the order of application are unspecified.\n\n"
+	    "One can implement @var{array-indexes} as\n"
+	    "@example\n"
+	    "(define (array-indexes array)\n"
+	    "    (let ((ra (apply make-array #f (array-shape array))))\n"
+	    "      (array-index-map! ra (lambda x x))\n"
+	    "      ra))\n"
+	    "@end example\n"
+	    "Another example:\n"
+	    "@example\n"
+	    "(define (apl:index-generator n)\n"
+	    "    (let ((v (make-uniform-vector n 1)))\n"
+	    "      (array-index-map! v (lambda (i) i))\n"
+	    "      v))\n"
+	    "@end example")
 #define FUNC_NAME s_scm_array_index_map_x
 {
   scm_sizet i;
@@ -2044,11 +2043,11 @@ scm_raequal (SCM ra0, SCM ra1)
 /* GJB:FIXME:: Why not use SCM_DEFINE1 for array-equal? */
 SCM_DEFINE1 (scm_array_equal_p, "array-equal?", scm_tc7_rpsubr,
             (SCM ra0, SCM ra1),
-"Returns @code{#t} iff all arguments are arrays with the same shape, the
-same type, and have corresponding elements which are either
-@code{equal?}  or @code{array-equal?}.  This function differs from
-@code{equal?} in that a one dimensional shared array may be
-@var{array-equal?} but not @var{equal?} to a vector or uniform vector.")
+	     "Returns @code{#t} iff all arguments are arrays with the same shape, the\n"
+	     "same type, and have corresponding elements which are either\n"
+	     "@code{equal?}  or @code{array-equal?}.  This function differs from\n"
+	     "@code{equal?} in that a one dimensional shared array may be\n"
+	     "@var{array-equal?} but not @var{equal?} to a vector or uniform vector.")
 #define FUNC_NAME s_scm_array_equal_p
 {
 }

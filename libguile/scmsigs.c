@@ -181,32 +181,28 @@ sys_deliver_signals (void)
 /* user interface for installation of signal handlers.  */
 SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0, 
            (SCM signum, SCM handler, SCM flags),
-"Install or report the signal hander for a specified signal.
-
-@var{signum} is the signal number, which can be specified using the value
-of variables such as @code{SIGINT}.
-
-If @var{action} is omitted, @code{sigaction} returns a pair: the
-CAR is the current
-signal hander, which will be either an integer with the value @code{SIG_DFL}
-(default action) or @code{SIG_IGN} (ignore), or the Scheme procedure which
-handles the signal, or @code{#f} if a non-Scheme procedure handles the
-signal.  The CDR contains the current @code{sigaction} flags for the handler.
-
-If @var{action} is provided, it is installed as the new handler for
-@var{signum}.  @var{action} can be a Scheme procedure taking one
-argument, or the value of @code{SIG_DFL} (default action) or
-@code{SIG_IGN} (ignore), or @code{#f} to restore whatever signal handler
-was installed before @code{sigaction} was first used.  Flags can
-optionally be specified for the new handler (@code{SA_RESTART} will
-always be added if it's available and the system is using rstartable
-system calls.)  The return value is a pair with information about the
-old handler as described above.
-
-This interface does not provide access to the \"signal blocking\"
-facility.  Maybe this is not needed, since the thread support may
-provide solutions to the problem of consistent access to data
-structures.")
+	    "Install or report the signal hander for a specified signal.\n\n"
+	    "@var{signum} is the signal number, which can be specified using the value\n"
+	    "of variables such as @code{SIGINT}.\n\n"
+	    "If @var{action} is omitted, @code{sigaction} returns a pair: the\n"
+	    "CAR is the current\n"
+	    "signal hander, which will be either an integer with the value @code{SIG_DFL}\n"
+	    "(default action) or @code{SIG_IGN} (ignore), or the Scheme procedure which\n"
+	    "handles the signal, or @code{#f} if a non-Scheme procedure handles the\n"
+	    "signal.  The CDR contains the current @code{sigaction} flags for the handler.\n\n"
+	    "If @var{action} is provided, it is installed as the new handler for\n"
+	    "@var{signum}.  @var{action} can be a Scheme procedure taking one\n"
+	    "argument, or the value of @code{SIG_DFL} (default action) or\n"
+	    "@code{SIG_IGN} (ignore), or @code{#f} to restore whatever signal handler\n"
+	    "was installed before @code{sigaction} was first used.  Flags can\n"
+	    "optionally be specified for the new handler (@code{SA_RESTART} will\n"
+	    "always be added if it's available and the system is using rstartable\n"
+	    "system calls.)  The return value is a pair with information about the\n"
+	    "old handler as described above.\n\n"
+	    "This interface does not provide access to the \"signal blocking\"\n"
+	    "facility.  Maybe this is not needed, since the thread support may\n"
+	    "provide solutions to the problem of consistent access to data\n"
+	    "structures.")
 #define FUNC_NAME s_scm_sigaction
 {
   int csig;
@@ -337,8 +333,8 @@ structures.")
 
 SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0, 
             (void),
-"Return all signal handlers to the values they had before any call to
-@code{sigaction} was made.  The return value is unspecified.")
+	    "Return all signal handlers to the values they had before any call to\n"
+	    "@code{sigaction} was made.  The return value is unspecified.")
 #define FUNC_NAME s_scm_restore_signals
 {
   int i;
@@ -370,15 +366,14 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 
 SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0, 
            (SCM i),
-"Set a timer to raise a @code{SIGALRM} signal after the specified
-number of seconds (an integer).  It's advisable to install a signal
-handler for
-@code{SIGALRM} beforehand, since the default action is to terminate
-the process.
-
-The return value indicates the time remaining for the previous alarm,
-if any.  The new value replaces the previous alarm.  If there was
-no previous alarm, the return value is zero.")
+	    "Set a timer to raise a @code{SIGALRM} signal after the specified\n"
+	    "number of seconds (an integer).  It's advisable to install a signal\n"
+	    "handler for\n"
+	    "@code{SIGALRM} beforehand, since the default action is to terminate\n"
+	    "the process.\n\n"
+	    "The return value indicates the time remaining for the previous alarm,\n"
+	    "if any.  The new value replaces the previous alarm.  If there was\n"
+	    "no previous alarm, the return value is zero.")
 #define FUNC_NAME s_scm_alarm
 {
   unsigned int j;
@@ -391,9 +386,9 @@ no previous alarm, the return value is zero.")
 #ifdef HAVE_PAUSE
 SCM_DEFINE (scm_pause, "pause", 0, 0, 0, 
            (),
-"Pause the current process (thread?) until a signal arrives whose
-action is to either terminate the current process or invoke a
-handler procedure.  The return value is unspecified.")
+	    "Pause the current process (thread?) until a signal arrives whose\n"
+	    "action is to either terminate the current process or invoke a\n"
+	    "handler procedure.  The return value is unspecified.")
 #define FUNC_NAME s_scm_pause
 {
   pause ();
@@ -404,9 +399,9 @@ handler procedure.  The return value is unspecified.")
 
 SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0, 
            (SCM i),
-"Wait for the given number of seconds (an integer) or until a signal
-arrives.  The return value is zero if the time elapses or the number
-of seconds remaining otherwise.")
+	    "Wait for the given number of seconds (an integer) or until a signal\n"
+	    "arrives.  The return value is zero if the time elapses or the number\n"
+	    "of seconds remaining otherwise.")
 #define FUNC_NAME s_scm_sleep
 {
   unsigned long j;
@@ -423,7 +418,7 @@ of seconds remaining otherwise.")
 #if defined(USE_THREADS) || defined(HAVE_USLEEP)
 SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0, 
            (SCM i),
-"")
+	    "")
 #define FUNC_NAME s_scm_usleep
 {
   SCM_VALIDATE_INUM_MIN (1,i,0);
@@ -451,9 +446,9 @@ SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
 
 SCM_DEFINE (scm_raise, "raise", 1, 0, 0, 
            (SCM sig),
-"
-Sends a specified signal @var{sig} to the current process, where
-@var{sig} is as described for the kill procedure.")
+	    "\n"
+	    "Sends a specified signal @var{sig} to the current process, where\n"
+	    "@var{sig} is as described for the kill procedure.")
 #define FUNC_NAME s_scm_raise
 {
   SCM_VALIDATE_INUM (1,sig);

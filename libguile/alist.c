@@ -55,10 +55,10 @@
 
 SCM_DEFINE (scm_acons, "acons", 3, 0, 0,
            (SCM key, SCM value, SCM alist),
-"Adds a new key-value pair to @var{alist}.  A new pair is
-created whose car is @var{key} and whose cdr is @var{value}, and the
-pair is consed onto @var{alist}, and the new list is returned.  This
-function is @emph{not} destructive; @var{alist} is not modified.")
+	    "Adds a new key-value pair to @var{alist}.  A new pair is\n"
+	    "created whose car is @var{key} and whose cdr is @var{value}, and the\n"
+	    "pair is consed onto @var{alist}, and the new list is returned.  This\n"
+	    "function is @emph{not} destructive; @var{alist} is not modified.")
 #define FUNC_NAME s_scm_acons
 {
   SCM pair;
@@ -80,8 +80,8 @@ function is @emph{not} destructive; @var{alist} is not modified.")
 
 SCM_DEFINE (scm_sloppy_assq, "sloppy-assq", 2, 0, 0,
             (SCM key, SCM alist),
-"Behaves like @code{assq} but does not do any error checking.
-Recommended only for use in Guile internals.")
+	    "Behaves like @code{assq} but does not do any error checking.\n"
+	    "Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assq
 {
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
@@ -98,8 +98,8 @@ Recommended only for use in Guile internals.")
 
 SCM_DEFINE (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
             (SCM key, SCM alist),
-"Behaves like @code{assv} but does not do any error checking.
-Recommended only for use in Guile internals.")
+	    "Behaves like @code{assv} but does not do any error checking.\n"
+	    "Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assv
 {
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
@@ -116,8 +116,8 @@ Recommended only for use in Guile internals.")
 
 SCM_DEFINE (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
             (SCM key, SCM alist),
-"Behaves like @code{assoc} but does not do any error checking.
-Recommended only for use in Guile internals.")
+	    "Behaves like @code{assoc} but does not do any error checking.\n"
+	    "Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assoc
 {
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
@@ -136,15 +136,15 @@ Recommended only for use in Guile internals.")
 
 SCM_DEFINE (scm_assq, "assq", 2, 0, 0,
            (SCM key, SCM alist),
-"@deffnx primitive assv key alist
-@deffnx primitive assoc key alist
-Fetches the entry in @var{alist} that is associated with @var{key}.  To
-decide whether the argument @var{key} matches a particular entry in
-@var{alist}, @code{assq} compares keys with @code{eq?}, @code{assv}
-uses @code{eqv?} and @code{assoc} uses @code{equal?}.  If @var{key}
-cannot be found in @var{alist} (according to whichever equality
-predicate is in use), then @code{#f} is returned.  These functions
-return the entire alist entry found (i.e. both the key and the value).")
+	    "@deffnx primitive assv key alist\n"
+	    "@deffnx primitive assoc key alist\n"
+	    "Fetches the entry in @var{alist} that is associated with @var{key}.  To\n"
+	    "decide whether the argument @var{key} matches a particular entry in\n"
+	    "@var{alist}, @code{assq} compares keys with @code{eq?}, @code{assv}\n"
+	    "uses @code{eqv?} and @code{assoc} uses @code{equal?}.  If @var{key}\n"
+	    "cannot be found in @var{alist} (according to whichever equality\n"
+	    "predicate is in use), then @code{#f} is returned.  These functions\n"
+	    "return the entire alist entry found (i.e. both the key and the value).")
 #define FUNC_NAME s_scm_assq
 {
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
@@ -162,7 +162,7 @@ return the entire alist entry found (i.e. both the key and the value).")
 
 SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
            (SCM key, SCM alist),
-"Behaves like @code{assq} but uses @code{eqv?} for key comparison.")
+	    "Behaves like @code{assq} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv
 {
   for(; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
@@ -180,7 +180,7 @@ SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
 
 SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
            (SCM key, SCM alist),
-"Behaves like @code{assq} but uses @code{equal?} for key comparison.")
+	    "Behaves like @code{assq} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc
 {
   for(; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
@@ -200,18 +200,16 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
 
 SCM_DEFINE (scm_assq_ref, "assq-ref", 2, 0, 0,
             (SCM alist, SCM key),
-"@deffnx primitive assv-ref alist key
-@deffnx primitive assoc-ref alist key
-Like @code{assq}, @code{assv} and @code{assoc}, except that only the
-value associated with @var{key} in @var{alist} is returned.  These
-functions are equivalent to
-
-@lisp
-(let ((ent (@var{associator} @var{key} @var{alist})))
-  (and ent (cdr ent)))
-@end lisp
-
-where @var{associator} is one of @code{assq}, @code{assv} or @code{assoc}.")
+	    "@deffnx primitive assv-ref alist key\n"
+	    "@deffnx primitive assoc-ref alist key\n"
+	    "Like @code{assq}, @code{assv} and @code{assoc}, except that only the\n"
+	    "value associated with @var{key} in @var{alist} is returned.  These\n"
+	    "functions are equivalent to\n\n"
+	    "@lisp\n"
+	    "(let ((ent (@var{associator} @var{key} @var{alist})))\n"
+	    "  (and ent (cdr ent)))\n"
+	    "@end lisp\n\n"
+	    "where @var{associator} is one of @code{assq}, @code{assv} or @code{assoc}.")
 #define FUNC_NAME s_scm_assq_ref
 {
   SCM handle;
@@ -228,7 +226,7 @@ where @var{associator} is one of @code{assq}, @code{assv} or @code{assoc}.")
 
 SCM_DEFINE (scm_assv_ref, "assv-ref", 2, 0, 0,
             (SCM alist, SCM key),
-"Behaves like @code{assq-ref} but uses @code{eqv?} for key comparison.")
+	    "Behaves like @code{assq-ref} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv_ref
 {
   SCM handle;
@@ -245,7 +243,7 @@ SCM_DEFINE (scm_assv_ref, "assv-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_assoc_ref, "assoc-ref", 2, 0, 0,
             (SCM alist, SCM key),
-"Behaves like @code{assq-ref} but uses @code{equal?} for key comparison.")
+	    "Behaves like @code{assq-ref} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc_ref
 {
   SCM handle;
@@ -266,16 +264,15 @@ SCM_DEFINE (scm_assoc_ref, "assoc-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_assq_set_x, "assq-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
-"@deffnx primitive assv-set! alist key value
-@deffnx primitive assoc-set! alist key value
-Reassociate @var{key} in @var{alist} with @var{value}: find any existing
-@var{alist} entry for @var{key} and associate it with the new
-@var{value}.  If @var{alist} does not contain an entry for @var{key},
-add a new one.  Return the (possibly new) alist.
-
-These functions do not attempt to verify the structure of @var{alist},
-and so may cause unusual results if passed an object that is not an
-association list.")
+	    "@deffnx primitive assv-set! alist key value\n"
+	    "@deffnx primitive assoc-set! alist key value\n"
+	    "Reassociate @var{key} in @var{alist} with @var{value}: find any existing\n"
+	    "@var{alist} entry for @var{key} and associate it with the new\n"
+	    "@var{value}.  If @var{alist} does not contain an entry for @var{key},\n"
+	    "add a new one.  Return the (possibly new) alist.\n\n"
+	    "These functions do not attempt to verify the structure of @var{alist},\n"
+	    "and so may cause unusual results if passed an object that is not an\n"
+	    "association list.")
 #define FUNC_NAME s_scm_assq_set_x
 {
   SCM handle;
@@ -293,7 +290,7 @@ association list.")
 
 SCM_DEFINE (scm_assv_set_x, "assv-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
-"Behaves like @code{assq-set!} but uses @code{eqv?} for key comparison.")
+	    "Behaves like @code{assq-set!} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv_set_x
 {
   SCM handle;
@@ -311,7 +308,7 @@ SCM_DEFINE (scm_assv_set_x, "assv-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
-"Behaves like @code{assq-set!} but uses @code{equal?} for key comparison.")
+	    "Behaves like @code{assq-set!} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc_set_x
 {
   SCM handle;
@@ -332,10 +329,10 @@ SCM_DEFINE (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
             (SCM alist, SCM key),
-"@deffnx primitive assv-remove! alist key
-@deffnx primitive assoc-remove! alist key
-Delete any entry in @var{alist} associated with @var{key}, and return
-the resulting alist.")
+	    "@deffnx primitive assv-remove! alist key\n"
+	    "@deffnx primitive assoc-remove! alist key\n"
+	    "Delete any entry in @var{alist} associated with @var{key}, and return\n"
+	    "the resulting alist.")
 #define FUNC_NAME s_scm_assq_remove_x
 {
   SCM handle;
@@ -353,7 +350,7 @@ the resulting alist.")
 
 SCM_DEFINE (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
             (SCM alist, SCM key),
-"Behaves like @code{assq-remove!} but uses @code{eqv?} for key comparison.")
+	    "Behaves like @code{assq-remove!} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv_remove_x
 {
   SCM handle;
@@ -371,7 +368,7 @@ SCM_DEFINE (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
 
 SCM_DEFINE (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
             (SCM alist, SCM key),
-"Behaves like @code{assq-remove!} but uses @code{equal?} for key comparison.")
+	    "Behaves like @code{assq-remove!} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc_remove_x
 {
   SCM handle;

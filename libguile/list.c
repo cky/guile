@@ -234,8 +234,8 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
 
 SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0, 
            (SCM lst),
-"Return a pointer to the last pair in @var{lst}, signalling an error if
-@var{lst} is circular.")
+	    "Return a pointer to the last pair in @var{lst}, signalling an error if\n"
+	    "@var{lst} is circular.")
 #define FUNC_NAME s_scm_last_pair
 {
   SCM tortoise = lst;
@@ -264,7 +264,7 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
 
 SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
             (SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_reverse
 {
   SCM result = SCM_EOL;
@@ -289,17 +289,16 @@ SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
 
 SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
             (SCM lst, SCM new_tail),
-"A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r4rs,
-The Revised^4 Report on Scheme}).  The cdr of each cell in @var{lst} is
-modified to point to the previous list element.  Return a pointer to the
-head of the reversed list.
-
-Caveat: because the list is modified in place, the tail of the original
-list now becomes its head, and the head of the original list now becomes
-the tail.  Therefore, the @var{lst} symbol to which the head of the
-original list was bound now points to the tail.  To ensure that the head
-of the modified list is not lost, it is wise to save the return value of
-@code{reverse!}")
+	    "A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r4rs,\n"
+	    "The Revised^4 Report on Scheme}).  The cdr of each cell in @var{lst} is\n"
+	    "modified to point to the previous list element.  Return a pointer to the\n"
+	    "head of the reversed list.\n\n"
+	    "Caveat: because the list is modified in place, the tail of the original\n"
+	    "list now becomes its head, and the head of the original list now becomes\n"
+	    "the tail.  Therefore, the @var{lst} symbol to which the head of the\n"
+	    "original list was bound now points to the tail.  To ensure that the head\n"
+	    "of the modified list is not lost, it is wise to save the return value of\n"
+	    "@code{reverse!}")
 #define FUNC_NAME s_scm_reverse_x
 {
   SCM_ASSERT (scm_ilength (lst) >= 0, lst, SCM_ARG1, FUNC_NAME);
@@ -325,7 +324,7 @@ of the modified list is not lost, it is wise to save the return value of
 
 SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
            (SCM lst, SCM k),
-"")
+	    "")
 #define FUNC_NAME s_scm_list_ref
 {
   register long i;
@@ -343,7 +342,7 @@ SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_list_set_x, "list-set!", 3, 0, 0,
            (SCM lst, SCM k, SCM val),
-"Set the @var{k}th element of @var{lst} to @var{val}.")
+	    "Set the @var{k}th element of @var{lst} to @var{val}.")
 #define FUNC_NAME s_scm_list_set_x
 {
   register long i;
@@ -365,12 +364,11 @@ SCM_REGISTER_PROC(s_list_cdr_ref, "list-cdr-ref", 2, 0, 0, scm_list_tail);
 
 SCM_DEFINE (scm_list_tail, "list-tail", 2, 0, 0,
            (SCM lst, SCM k),
-"Return the \"tail\" of @var{lst} beginning with its @var{k}th element.
-The first element of the list is considered to be element 0.
-
-@code{list-cdr-ref} and @code{list-tail} are identical.  It may help to
-think of @code{list-cdr-ref} as accessing the @var{k}th cdr of the list,
-or returning the results of cdring @var{k} times down @var{lst}.")
+	    "Return the \"tail\" of @var{lst} beginning with its @var{k}th element.\n"
+	    "The first element of the list is considered to be element 0.\n\n"
+	    "@code{list-cdr-ref} and @code{list-tail} are identical.  It may help to\n"
+	    "think of @code{list-cdr-ref} as accessing the @var{k}th cdr of the list,\n"
+	    "or returning the results of cdring @var{k} times down @var{lst}.")
 #define FUNC_NAME s_scm_list_tail
 {
   register long i;
@@ -386,7 +384,7 @@ or returning the results of cdring @var{k} times down @var{lst}.")
 
 SCM_DEFINE (scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
            (SCM lst, SCM k, SCM val),
-"Set the @var{k}th cdr of @var{lst} to @var{val}.")
+	    "Set the @var{k}th cdr of @var{lst} to @var{val}.")
 #define FUNC_NAME s_scm_list_cdr_set_x
 {
   register long i;
@@ -409,8 +407,8 @@ erout:
 
 SCM_DEFINE (scm_list_head, "list-head", 2, 0, 0,
            (SCM lst, SCM k),
-"Copy the first @var{k} elements from @var{lst} into a new list, and
-return it.")
+	    "Copy the first @var{k} elements from @var{lst} into a new list, and\n"
+	    "return it.")
 #define FUNC_NAME s_scm_list_head
 {
   SCM answer;
@@ -434,7 +432,7 @@ return it.")
 
 SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0, 
             (SCM lst),
-"Return a (newly-created) copy of @var{lst}.")
+	    "Return a (newly-created) copy of @var{lst}.")
 #define FUNC_NAME s_scm_list_copy
 {
   SCM newlst;
@@ -462,12 +460,12 @@ SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0,
 
 SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
             (SCM x, SCM lst),
-"@deffnx primitive sloppy-memv
-@deffnx primitive sloppy-member
-These procedures behave like @code{memq}, @code{memv} and @code{member}
-(@pxref{Pairs and Lists,,,r4rs, The Revised^4 Report on Scheme}), but do
-not perform any type or error checking.  Their use is recommended only
-in writing Guile internals, not for high-level Scheme programs.")
+	    "@deffnx primitive sloppy-memv\n"
+	    "@deffnx primitive sloppy-member\n"
+	    "These procedures behave like @code{memq}, @code{memv} and @code{member}\n"
+	    "(@pxref{Pairs and Lists,,,r4rs, The Revised^4 Report on Scheme}), but do\n"
+	    "not perform any type or error checking.  Their use is recommended only\n"
+	    "in writing Guile internals, not for high-level Scheme programs.")
 #define FUNC_NAME s_scm_sloppy_memq
 {
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
@@ -482,7 +480,7 @@ in writing Guile internals, not for high-level Scheme programs.")
 
 SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
             (SCM x, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_sloppy_memv
 {
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
@@ -497,7 +495,7 @@ SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
 
 SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
             (SCM x, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_sloppy_member
 {
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
@@ -513,7 +511,7 @@ SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 
 SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
            (SCM x, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_memq
 {
   SCM answer;
@@ -527,7 +525,7 @@ SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
 
 SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
            (SCM x, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_memv
 {
   SCM answer;
@@ -540,7 +538,7 @@ SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
 
 SCM_DEFINE (scm_member, "member", 2, 0, 0,
            (SCM x, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_member
 {
   SCM answer;
@@ -556,14 +554,14 @@ SCM_DEFINE (scm_member, "member", 2, 0, 0,
 
 SCM_DEFINE (scm_delq_x, "delq!", 2, 0, 0,
            (SCM item, SCM lst),
-"@deffnx primitive delv! item lst
-@deffnx primitive delete! item lst
-These procedures are destructive versions of @code{delq}, @code{delv}
-and @code{delete}: they modify the pointers in the existing @var{lst}
-rather than creating a new list.  Caveat evaluator: Like other
-destructive list functions, these functions cannot modify the binding of
-@var{lst}, and so cannot be used to delete the first element of
-@var{lst} destructively.")
+	    "@deffnx primitive delv! item lst\n"
+	    "@deffnx primitive delete! item lst\n"
+	    "These procedures are destructive versions of @code{delq}, @code{delv}\n"
+	    "and @code{delete}: they modify the pointers in the existing @var{lst}\n"
+	    "rather than creating a new list.  Caveat evaluator: Like other\n"
+	    "destructive list functions, these functions cannot modify the binding of\n"
+	    "@var{lst}, and so cannot be used to delete the first element of\n"
+	    "@var{lst} destructively.")
 #define FUNC_NAME s_scm_delq_x
 {
   SCM walk;
@@ -586,7 +584,7 @@ destructive list functions, these functions cannot modify the binding of
 
 SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
            (SCM item, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_delv_x
 {
   SCM walk;
@@ -610,7 +608,7 @@ SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
 
 SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
            (SCM item, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_delete_x
 {
   SCM walk;
@@ -636,12 +634,12 @@ SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
 
 SCM_DEFINE (scm_delq, "delq", 2, 0, 0,
             (SCM item, SCM lst),
-"@deffnx primitive delv item lst
-@deffnx primitive delete item lst
-Return a newly-created copy of @var{lst} with @var{item} removed.  These
-procedures mirror @code{memq}, @code{memv} and @code{member}:
-@code{delq} compares elements of @var{lst} against @var{item} with
-@code{eq?}, @code{delv} uses @code{eqv?} and @code{delete} uses @code{equal?}")
+	    "@deffnx primitive delv item lst\n"
+	    "@deffnx primitive delete item lst\n"
+	    "Return a newly-created copy of @var{lst} with @var{item} removed.  These\n"
+	    "procedures mirror @code{memq}, @code{memv} and @code{member}:\n"
+	    "@code{delq} compares elements of @var{lst} against @var{item} with\n"
+	    "@code{eq?}, @code{delv} uses @code{eqv?} and @code{delete} uses @code{equal?}")
 #define FUNC_NAME s_scm_delq
 {
   SCM copy = scm_list_copy (lst);
@@ -651,7 +649,7 @@ procedures mirror @code{memq}, @code{memv} and @code{member}:
 
 SCM_DEFINE (scm_delv, "delv", 2, 0, 0,
             (SCM item, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_delv
 {
   SCM copy = scm_list_copy (lst);
@@ -661,7 +659,7 @@ SCM_DEFINE (scm_delv, "delv", 2, 0, 0,
 
 SCM_DEFINE (scm_delete, "delete", 2, 0, 0,
             (SCM item, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_delete
 {
   SCM copy = scm_list_copy (lst);
@@ -672,7 +670,7 @@ SCM_DEFINE (scm_delete, "delete", 2, 0, 0,
 
 SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
            (SCM item, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_delq1_x
 {
   SCM walk;
@@ -698,7 +696,7 @@ SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
 
 SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
            (SCM item, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_delv1_x
 {
   SCM walk;
@@ -724,7 +722,7 @@ SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
 
 SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
            (SCM item, SCM lst),
-"")
+	    "")
 #define FUNC_NAME s_scm_delete1_x
 {
   SCM walk;

@@ -166,15 +166,15 @@ scm_hash_fn_remove_x (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn
 
 SCM_DEFINE (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
             (SCM table, SCM obj),
-"@deffnx primitive hashv-get-handle table key
-@deffnx primitive hash-get-handle table key
-@deffnx primitive hashx-get-handle hasher assoc table key
-These procedures are similar to their @code{-ref} cousins, but return a
-@dfn{handle} from the hash table rather than the value associated with
-@var{key}.  By convention, a handle in a hash table is the pair which
-associates a key with a value.  Where @code{hashq-ref table key} returns
-only a @code{value}, @code{hashq-get-handle table key} returns the pair
-@code{(key . value)}.")
+	    "@deffnx primitive hashv-get-handle table key\n"
+	    "@deffnx primitive hash-get-handle table key\n"
+	    "@deffnx primitive hashx-get-handle hasher assoc table key\n"
+	    "These procedures are similar to their @code{-ref} cousins, but return a\n"
+	    "@dfn{handle} from the hash table rather than the value associated with\n"
+	    "@var{key}.  By convention, a handle in a hash table is the pair which\n"
+	    "associates a key with a value.  Where @code{hashq-ref table key} returns\n"
+	    "only a @code{value}, @code{hashq-get-handle table key} returns the pair\n"
+	    "@code{(key . value)}.")
 #define FUNC_NAME s_scm_hashq_get_handle
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihashq, scm_sloppy_assq, 0);
@@ -184,12 +184,12 @@ only a @code{value}, @code{hashq-get-handle table key} returns the pair
 
 SCM_DEFINE (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
             (SCM table, SCM obj, SCM init),
-"@deffnx primitive hashv-create-handle! table key init
-@deffnx primitive hash-create-handle! table key init
-@deffnx primitive hashx-create-handle! hasher assoc table key init
-These functions look up @var{key} in @var{table} and return its handle,
-If @var{key} is not already present, a new handle is created which
-associates @var{key} with @var{init}.")
+	    "@deffnx primitive hashv-create-handle! table key init\n"
+	    "@deffnx primitive hash-create-handle! table key init\n"
+	    "@deffnx primitive hashx-create-handle! hasher assoc table key init\n"
+	    "These functions look up @var{key} in @var{table} and return its handle,\n"
+	    "If @var{key} is not already present, a new handle is created which\n"
+	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hashq_create_handle_x
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihashq, scm_sloppy_assq, 0);
@@ -199,12 +199,12 @@ associates @var{key} with @var{init}.")
 
 SCM_DEFINE (scm_hashq_ref, "hashq-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
-"@deffnx primitive hashv-ref table key [default]
-@deffnx primitive hash-ref table key [default]
-Look up @var{key} in the hash table @var{table}, and return the
-value (if any) associated with it.  If @var{key} is not found,
-return @var{default} (or @code{#f} if no @var{default} argument is
-supplied).")
+	    "@deffnx primitive hashv-ref table key [default]\n"
+	    "@deffnx primitive hash-ref table key [default]\n"
+	    "Look up @var{key} in the hash table @var{table}, and return the\n"
+	    "value (if any) associated with it.  If @var{key} is not found,\n"
+	    "return @var{default} (or @code{#f} if no @var{default} argument is\n"
+	    "supplied).")
 #define FUNC_NAME s_scm_hashq_ref
 {
   if (dflt == SCM_UNDEFINED)
@@ -217,10 +217,10 @@ supplied).")
 
 SCM_DEFINE (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
-"@deffnx primitive hashv-set! table key value
-@deffnx primitive hash-set! table key value
-Find the entry in @var{table} associated with @var{key}, and store
-@var{value} there.")
+	    "@deffnx primitive hashv-set! table key value\n"
+	    "@deffnx primitive hash-set! table key value\n"
+	    "Find the entry in @var{table} associated with @var{key}, and store\n"
+	    "@var{value} there.")
 #define FUNC_NAME s_scm_hashq_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihashq, scm_sloppy_assq, 0);
@@ -231,9 +231,9 @@ Find the entry in @var{table} associated with @var{key}, and store
 
 SCM_DEFINE (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
             (SCM table, SCM obj),
-"@deffnx primitive hashv-remove! table key
-@deffnx primitive hash-remove! table key
-Remove @var{key} (and any value associated with it) from @var{table}.")
+	    "@deffnx primitive hashv-remove! table key\n"
+	    "@deffnx primitive hash-remove! table key\n"
+	    "Remove @var{key} (and any value associated with it) from @var{table}.")
 #define FUNC_NAME s_scm_hashq_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihashq, scm_sloppy_assq, scm_delq_x, 0);
@@ -245,7 +245,7 @@ Remove @var{key} (and any value associated with it) from @var{table}.")
 
 SCM_DEFINE (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
             (SCM table, SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_hashv_get_handle
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihashv, scm_sloppy_assv, 0);
@@ -255,7 +255,7 @@ SCM_DEFINE (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
 
 SCM_DEFINE (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
             (SCM table, SCM obj, SCM init),
-"")
+	    "")
 #define FUNC_NAME s_scm_hashv_create_handle_x
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihashv, scm_sloppy_assv, 0);
@@ -265,7 +265,7 @@ SCM_DEFINE (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
 
 SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
-"")
+	    "")
 #define FUNC_NAME s_scm_hashv_ref
 {
   if (dflt == SCM_UNDEFINED)
@@ -278,7 +278,7 @@ SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
 
 SCM_DEFINE (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
-"")
+	    "")
 #define FUNC_NAME s_scm_hashv_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihashv, scm_sloppy_assv, 0);
@@ -288,7 +288,7 @@ SCM_DEFINE (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
             (SCM table, SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_hashv_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihashv, scm_sloppy_assv, scm_delv_x, 0);
@@ -299,7 +299,7 @@ SCM_DEFINE (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
 
 SCM_DEFINE (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
             (SCM table, SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_hash_get_handle
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihash, scm_sloppy_assoc, 0);
@@ -309,7 +309,7 @@ SCM_DEFINE (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
 
 SCM_DEFINE (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
             (SCM table, SCM obj, SCM init),
-"")
+	    "")
 #define FUNC_NAME s_scm_hash_create_handle_x
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihash, scm_sloppy_assoc, 0);
@@ -319,7 +319,7 @@ SCM_DEFINE (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
 
 SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
-"")
+	    "")
 #define FUNC_NAME s_scm_hash_ref
 {
   if (dflt == SCM_UNDEFINED)
@@ -332,7 +332,7 @@ SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
 
 SCM_DEFINE (scm_hash_set_x, "hash-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
-"")
+	    "")
 #define FUNC_NAME s_scm_hash_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihash, scm_sloppy_assoc, 0);
@@ -343,7 +343,7 @@ SCM_DEFINE (scm_hash_set_x, "hash-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
             (SCM table, SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_hash_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihash, scm_sloppy_assoc, scm_delete_x, 0);
@@ -407,7 +407,7 @@ scm_delx_x (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
 
 SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0, 
             (SCM hash, SCM assoc, SCM table, SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_hashx_get_handle
 {
   struct scm_ihashx_closure closure;
@@ -420,7 +420,7 @@ SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0,
 
 SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0, 
             (SCM hash,SCM assoc,SCM table,SCM obj,SCM init),
-"")
+	    "")
 #define FUNC_NAME s_scm_hashx_create_handle_x
 {
   struct scm_ihashx_closure closure;
@@ -434,17 +434,16 @@ SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0,
 
 SCM_DEFINE (scm_hashx_ref, "hashx-ref", 4, 1, 0, 
             (SCM hash,SCM assoc,SCM table,SCM obj,SCM dflt),
-"@deffnx primitive hashx-set! hasher assoc table key value
-@deffnx primitive hashx-remove! hasher assoc table key
-These behave the same way as the corresponding @code{ref} and
-@code{set!} functions described above, but use @var{hasher} as a
-hash function and @var{assoc} to compare keys.  @code{hasher} must
-be a function that takes two arguments, a key to be hashed and a
-table size.  @code{assoc} must be an associator function, like
-@code{assoc}, @code{assq} or @code{assv}.
-
-By way of illustration, @code{hashq-ref table key} is equivalent
-to @code{hashx-ref hashq assq table key}.")
+	    "@deffnx primitive hashx-set! hasher assoc table key value\n"
+	    "@deffnx primitive hashx-remove! hasher assoc table key\n"
+	    "These behave the same way as the corresponding @code{ref} and\n"
+	    "@code{set!} functions described above, but use @var{hasher} as a\n"
+	    "hash function and @var{assoc} to compare keys.  @code{hasher} must\n"
+	    "be a function that takes two arguments, a key to be hashed and a\n"
+	    "table size.  @code{assoc} must be an associator function, like\n"
+	    "@code{assoc}, @code{assq} or @code{assv}.\n\n"
+	    "By way of illustration, @code{hashq-ref table key} is equivalent\n"
+	    "to @code{hashx-ref hashq assq table key}.")
 #define FUNC_NAME s_scm_hashx_ref
 {
   struct scm_ihashx_closure closure;
@@ -461,7 +460,7 @@ to @code{hashx-ref hashq assq table key}.")
 
 SCM_DEFINE (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
             (SCM hash, SCM assoc, SCM table, SCM obj, SCM val),
-"")
+	    "")
 #define FUNC_NAME s_scm_hashx_set_x
 {
   struct scm_ihashx_closure closure;
@@ -491,7 +490,7 @@ fold_proc (void *proc, SCM key, SCM data, SCM value)
 
 SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0, 
             (SCM proc, SCM init, SCM table),
-"")
+	    "")
 #define FUNC_NAME s_scm_hash_fold
 {
   SCM_VALIDATE_PROC (1,proc);

@@ -69,19 +69,18 @@
 
 SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
             (SCM delims, SCM buf, SCM gobble, SCM port, SCM start, SCM end),
-"Read characters from @var{port} into @var{buf} until one of the
-characters in the @var{delims} string is encountered.  If @var{gobble?}
-is true, store the delimiter character in @var{buf} as well; otherwise,
-discard it.  If @var{port} is not specified, use the value of
-@code{(current-input-port)}.  If @var{start} or @var{end} are specified,
-store data only into the substring of @var{buf} bounded by @var{start}
-and @var{end} (which default to the beginning and end of the buffer,
-respectively).
-
-Return a pair consisting of the delimiter that terminated the string and
-the number of characters read.  If reading stopped at the end of file,
-the delimiter returned is the @var{eof-object}; if the buffer was filled
-without encountering a delimiter, this value is @var{#f}.")
+	    "Read characters from @var{port} into @var{buf} until one of the\n"
+	    "characters in the @var{delims} string is encountered.  If @var{gobble?}\n"
+	    "is true, store the delimiter character in @var{buf} as well; otherwise,\n"
+	    "discard it.  If @var{port} is not specified, use the value of\n"
+	    "@code{(current-input-port)}.  If @var{start} or @var{end} are specified,\n"
+	    "store data only into the substring of @var{buf} bounded by @var{start}\n"
+	    "and @var{end} (which default to the beginning and end of the buffer,\n"
+	    "respectively).\n\n"
+	    "Return a pair consisting of the delimiter that terminated the string and\n"
+	    "the number of characters read.  If reading stopped at the end of file,\n"
+	    "the delimiter returned is the @var{eof-object}; if the buffer was filled\n"
+	    "without encountering a delimiter, this value is @var{#f}.")
 #define FUNC_NAME s_scm_read_delimited_x
 {
   long j;
@@ -229,12 +228,12 @@ scm_do_read_line (SCM port, int *len_p)
 
 SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0, 
             (SCM port),
-"Read a newline-terminated line from @var{port}, allocating storage as
-necessary.  The newline terminator (if any) is removed from the string,
-and a pair consisting of the line and its delimiter is returned.  The
-delimiter may be either a newline or the @var{eof-object}; if
-@code{%read-line} is called at the end of file, it returns the pair
-@code{(#<eof> . #<eof>)}.")
+	    "Read a newline-terminated line from @var{port}, allocating storage as\n"
+	    "necessary.  The newline terminator (if any) is removed from the string,\n"
+	    "and a pair consisting of the line and its delimiter is returned.  The\n"
+	    "delimiter may be either a newline or the @var{eof-object}; if\n"
+	    "@code{%read-line} is called at the end of file, it returns the pair\n"
+	    "@code{(#<eof> . #<eof>)}.")
 #define FUNC_NAME s_scm_read_line
 {
   scm_port *pt;
@@ -282,14 +281,13 @@ delimiter may be either a newline or the @var{eof-object}; if
 
 SCM_DEFINE (scm_write_line, "write-line", 1, 1, 0,
             (SCM obj, SCM port),
-"Display @var{obj} and a newline character to @var{port}.  If @var{port}
-is not specified, @code{(current-output-port)} is used.  This function
-is equivalent to:
-
-@smalllisp
-(display obj [port])
-(newline [port])
-@end smalllisp")
+	    "Display @var{obj} and a newline character to @var{port}.  If @var{port}\n"
+	    "is not specified, @code{(current-output-port)} is used.  This function\n"
+	    "is equivalent to:\n\n"
+	    "@smalllisp\n"
+	    "(display obj [port])\n"
+	    "(newline [port])\n"
+	    "@end smalllisp")
 #define FUNC_NAME s_scm_write_line
 {
   scm_display (obj, port);
@@ -299,11 +297,11 @@ is equivalent to:
 
 SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0, 
             (SCM object),
-"Returns an integer representing the current position of @var{fd/port},
-measured from the beginning.  Equivalent to:
-@smalllisp
-(seek port 0 SEEK_CUR)
-@end smalllisp")
+	    "Returns an integer representing the current position of @var{fd/port},\n"
+	    "measured from the beginning.  Equivalent to:\n"
+	    "@smalllisp\n"
+	    "(seek port 0 SEEK_CUR)\n"
+	    "@end smalllisp")
 #define FUNC_NAME s_scm_ftell
 {
   return scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
@@ -312,8 +310,8 @@ measured from the beginning.  Equivalent to:
 
 SCM_DEFINE (scm_fseek, "fseek", 3, 0, 0,
             (SCM object, SCM offset, SCM whence),
-"Obsolete.  Almost the same as seek, above, but the return value is
-unspecified.")
+	    "Obsolete.  Almost the same as seek, above, but the return value is\n"
+	    "unspecified.")
 #define FUNC_NAME s_scm_fseek
 {
   scm_seek (object, offset, whence);
@@ -323,19 +321,16 @@ unspecified.")
 
 SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
             (SCM old, SCM new),
-"This procedure takes two ports and duplicates the underlying file
-descriptor from @var{old-port} into @var{new-port}.  The
-current file descriptor in @var{new-port} will be closed.
-After the redirection the two ports will share a file position
-and file status flags.
-
-The return value is unspecified.
-
-Unexpected behaviour can result if both ports are subsequently used
-and the original and/or duplicate ports are buffered.
-
-This procedure does not have any side effects on other ports or
-revealed counts.")
+	    "This procedure takes two ports and duplicates the underlying file\n"
+	    "descriptor from @var{old-port} into @var{new-port}.  The\n"
+	    "current file descriptor in @var{new-port} will be closed.\n"
+	    "After the redirection the two ports will share a file position\n"
+	    "and file status flags.\n\n"
+	    "The return value is unspecified.\n\n"
+	    "Unexpected behaviour can result if both ports are subsequently used\n"
+	    "and the original and/or duplicate ports are buffered.\n\n"
+	    "This procedure does not have any side effects on other ports or\n"
+	    "revealed counts.")
 #define FUNC_NAME s_scm_redirect_port
 {
   int ans, oldfd, newfd;
@@ -372,7 +367,7 @@ revealed counts.")
 
 SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0, 
             (SCM fd_or_port, SCM fd),
-"Returns an integer file descriptor.")
+	    "Returns an integer file descriptor.")
 #define FUNC_NAME s_scm_dup_to_fdes
 {
   int oldfd, newfd, rv;
@@ -411,8 +406,8 @@ SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
 
 SCM_DEFINE (scm_fileno, "fileno", 1, 0, 0, 
             (SCM port),
-"Returns the integer file descriptor underlying @var{port}.
-Does not change its revealed count.")
+	    "Returns the integer file descriptor underlying @var{port}.\n"
+	    "Does not change its revealed count.")
 #define FUNC_NAME s_scm_fileno
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -427,8 +422,8 @@ Does not change its revealed count.")
    if it is not going to assume that the arg is a port */
 SCM_DEFINE (scm_isatty_p, "isatty?", 1, 0, 0, 
             (SCM port),
-"Returns @code{#t} if @var{port} is using a serial
-non-file device, otherwise @code{#f}.")
+	    "Returns @code{#t} if @var{port} is using a serial\n"
+	    "non-file device, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_isatty_p
 {
   int rv;
@@ -447,10 +442,10 @@ non-file device, otherwise @code{#f}.")
 
 SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
             (SCM fdes, SCM modes),
-"Returns a new port based on the file descriptor @var{fdes}.
-Modes are given by the string @var{modes}.  The revealed count of the port
-is initialized to zero.  The modes string is the same as that accepted
-by @ref{File Ports, open-file}.")
+	    "Returns a new port based on the file descriptor @var{fdes}.\n"
+	    "Modes are given by the string @var{modes}.  The revealed count of the port\n"
+	    "is initialized to zero.  The modes string is the same as that accepted\n"
+	    "by @ref{File Ports, open-file}.")
 #define FUNC_NAME s_scm_fdopen
 {
   SCM port;
@@ -472,12 +467,12 @@ by @ref{File Ports, open-file}.")
  */
 SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
             (SCM port, SCM fd),
-"Moves the underlying file descriptor for @var{port} to the integer
-value @var{fdes} without changing the revealed count of @var{port}.
-Any other ports already using this descriptor will be automatically
-shifted to new descriptors and their revealed counts reset to zero.
-The return value is @code{#f} if the file descriptor already had the
-required value or @code{#t} if it was moved.")
+	    "Moves the underlying file descriptor for @var{port} to the integer\n"
+	    "value @var{fdes} without changing the revealed count of @var{port}.\n"
+	    "Any other ports already using this descriptor will be automatically\n"
+	    "shifted to new descriptors and their revealed counts reset to zero.\n"
+	    "The return value is @code{#f} if the file descriptor already had the\n"
+	    "required value or @code{#t} if it was moved.")
 #define FUNC_NAME s_scm_primitive_move_to_fdes
 {
   struct scm_fport *stream;
@@ -509,8 +504,8 @@ required value or @code{#t} if it was moved.")
 /* Return a list of ports using a given file descriptor.  */
 SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
            (SCM fd),
-"Returns a list of existing ports which have @var{fdes} as an
-underlying file descriptor, without changing their revealed counts.")
+	    "Returns a list of existing ports which have @var{fdes} as an\n"
+	    "underlying file descriptor, without changing their revealed counts.")
 #define FUNC_NAME s_scm_fdes_to_ports
 {
   SCM result = SCM_EOL;

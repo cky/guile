@@ -88,10 +88,10 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
 
 SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
-"Return the index of the first occurrence of @var{chr} in @var{str}.  The
-optional integer arguments @var{frm} and @var{to} limit the search to
-a portion of the string.  This procedure essentially implements the
-@code{index} or @code{strchr} functions from the C library.")
+	    "Return the index of the first occurrence of @var{chr} in @var{str}.  The\n"
+	    "optional integer arguments @var{frm} and @var{to} limit the search to\n"
+	    "a portion of the string.  This procedure essentially implements the\n"
+	    "@code{index} or @code{strchr} functions from the C library.")
 #define FUNC_NAME s_scm_string_index
 {
   int pos;
@@ -109,9 +109,9 @@ a portion of the string.  This procedure essentially implements the
 
 SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
-"Like @code{string-index}, but search from the right of the string rather
-than from the left.  This procedure essentially implements the
-@code{rindex} or @code{strrchr} functions from the C library.")
+	    "Like @code{string-index}, but search from the right of the string rather\n"
+	    "than from the left.  This procedure essentially implements the\n"
+	    "@code{rindex} or @code{strrchr} functions from the C library.")
 #define FUNC_NAME s_scm_string_rindex
 {
   int pos;
@@ -134,22 +134,21 @@ SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, sc
 
 SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0, 
            (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
-"Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
-into @var{str2} beginning at position @var{end2}.
-@code{substring-move-right!} begins copying from the rightmost character
-and moves left, and @code{substring-move-left!} copies from the leftmost
-character moving right.
-
-It is useful to have two functions that copy in different directions so
-that substrings can be copied back and forth within a single string.  If
-you wish to copy text from the left-hand side of a string to the
-right-hand side of the same string, and the source and destination
-overlap, you must be careful to copy the rightmost characters of the
-text first, to avoid clobbering your data.  Hence, when @var{str1} and
-@var{str2} are the same string, you should use
-@code{substring-move-right!} when moving text from left to right, and
-@code{substring-move-left!}  otherwise.  If @code{str1} and @samp{str2}
-are different strings, it does not matter which function you use.")
+	    "Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}\n"
+	    "into @var{str2} beginning at position @var{end2}.\n"
+	    "@code{substring-move-right!} begins copying from the rightmost character\n"
+	    "and moves left, and @code{substring-move-left!} copies from the leftmost\n"
+	    "character moving right.\n\n"
+	    "It is useful to have two functions that copy in different directions so\n"
+	    "that substrings can be copied back and forth within a single string.  If\n"
+	    "you wish to copy text from the left-hand side of a string to the\n"
+	    "right-hand side of the same string, and the source and destination\n"
+	    "overlap, you must be careful to copy the rightmost characters of the\n"
+	    "text first, to avoid clobbering your data.  Hence, when @var{str1} and\n"
+	    "@var{str2} are the same string, you should use\n"
+	    "@code{substring-move-right!} when moving text from left to right, and\n"
+	    "@code{substring-move-left!}  otherwise.  If @code{str1} and @samp{str2}\n"
+	    "are different strings, it does not matter which function you use.")
 #define FUNC_NAME s_scm_substring_move_x
 {
   long s1, s2, e, len;
@@ -177,8 +176,8 @@ are different strings, it does not matter which function you use.")
 
 SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
            (SCM str, SCM start, SCM end, SCM fill),
-"Change every character in @var{str} between @var{start} and @var{end} to
-@var{fill-char}.")
+	    "Change every character in @var{str} between @var{start} and @var{end} to\n"
+	    "@var{fill-char}.")
 #define FUNC_NAME s_scm_substring_fill_x
 {
   long i, e;
@@ -197,8 +196,8 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 
 SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0, 
            (SCM str),
-"Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}
-otherwise.")
+	    "Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}\n"
+	    "otherwise.")
 #define FUNC_NAME s_scm_string_null_p
 {
   SCM_VALIDATE_ROSTRING (1,str);
@@ -209,7 +208,7 @@ otherwise.")
 
 SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0, 
            (SCM str),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_to_list
 {
   long i;
@@ -226,7 +225,7 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
 
 SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0, 
            (SCM str),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_copy
 {
   SCM_VALIDATE_STRINGORSUBSTR (1,str);
@@ -237,7 +236,7 @@ SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0,
 
 SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
            (SCM str, SCM chr),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_fill_x
 {
   register char *dst, c;
@@ -251,8 +250,8 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
 
 SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
            (SCM v),
-"@deffnx primitive string-downcase! str
-Upcase or downcase every character in @code{str}, respectively.")
+	    "@deffnx primitive string-downcase! str\n"
+	    "Upcase or downcase every character in @code{str}, respectively.")
 #define FUNC_NAME s_scm_string_upcase_x
 {
   register long k;
@@ -276,7 +275,7 @@ Upcase or downcase every character in @code{str}, respectively.")
 
 SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0, 
            (SCM str),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_upcase
 {
   return scm_string_upcase_x(scm_string_copy(str));
@@ -285,7 +284,7 @@ SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0,
 
 SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
            (SCM v),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_downcase_x
 {
   register long k;
@@ -308,7 +307,7 @@ SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 
 SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0, 
            (SCM str),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_downcase
 {
   SCM_VALIDATE_STRING (1,str);
@@ -318,7 +317,7 @@ SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0,
 
 SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
            (SCM s),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_capitalize_x
 {
   char *str;
@@ -343,7 +342,7 @@ SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
 
 SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0, 
            (SCM s),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_capitalize
 {
   SCM_VALIDATE_STRING (1,s);
@@ -353,7 +352,7 @@ SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0,
 
 SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
            (SCM str),
-"")
+	    "")
 #define FUNC_NAME s_scm_string_ci_to_symbol
 {
   return scm_string_to_symbol (SCM_CASE_INSENSITIVE_P

@@ -131,7 +131,7 @@ struct timeb scm_your_base = {0};
 
 SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
            (),
-"Returns the number of time units since the interpreter was started.")
+	    "Returns the number of time units since the interpreter was started.")
 #define FUNC_NAME s_scm_get_internal_real_time
 {
   struct timeb time_buffer;
@@ -155,7 +155,7 @@ timet scm_your_base = 0;
 
 SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
            (),
-"")
+	    "")
 #define FUNC_NAME s_scm_get_internal_real_time
 {
   return scm_long2num((time((timet*)0) - scm_your_base) * (int)CLKTCK);
@@ -167,25 +167,24 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 #ifdef HAVE_TIMES
 SCM_DEFINE (scm_times, "times", 0, 0, 0, 
             (void),
-"Returns an object with information about real and processor time.
-The following procedures accept such an object as an argument and
-return a selected component:
-
-@table @code
-@item tms:clock
-The current real time, expressed as time units relative to an
-arbitrary base.
-@item tms:utime
-The CPU time units used by the calling process.
-@item tms:stime
-The CPU time units used by the system on behalf of the calling process.
-@item tms:cutime
-The CPU time units used by terminated child processes of the calling
-process, whose status has been collected (e.g., using @code{waitpid}).
-@item tms:cstime
-Similarly, the CPU times units used by the system on behalf of 
-terminated child processes.
-@end table")
+	    "Returns an object with information about real and processor time.\n"
+	    "The following procedures accept such an object as an argument and\n"
+	    "return a selected component:\n\n"
+	    "@table @code\n"
+	    "@item tms:clock\n"
+	    "The current real time, expressed as time units relative to an\n"
+	    "arbitrary base.\n"
+	    "@item tms:utime\n"
+	    "The CPU time units used by the calling process.\n"
+	    "@item tms:stime\n"
+	    "The CPU time units used by the system on behalf of the calling process.\n"
+	    "@item tms:cutime\n"
+	    "The CPU time units used by terminated child processes of the calling\n"
+	    "process, whose status has been collected (e.g., using @code{waitpid}).\n"
+	    "@item tms:cstime\n"
+	    "Similarly, the CPU times units used by the system on behalf of \n"
+	    "terminated child processes.\n"
+	    "@end table")
 #define FUNC_NAME s_scm_times
 {
   struct tms t;
@@ -209,8 +208,8 @@ static long scm_my_base = 0;
 
 SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
            (void),
-"Returns the number of time units of processor time used by the interpreter.
-Both "system" and "user" time
+	    "Returns the number of time units of processor time used by the interpreter.\n"
+	    "Both "system" and "user" time
 are included but subprocesses are not.")
 #define FUNC_NAME s_scm_get_internal_run_time
 {
@@ -220,8 +219,7 @@ are included but subprocesses are not.")
 
 SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0, 
            (void),
-"Returns the number of seconds since 1970-01-01 00:00:00 UTC, excluding
-leap seconds.")
+	    "Returns the number of seconds since 1970-01-01 00:00:00 UTC, excludingleap seconds.")
 #define FUNC_NAME s_scm_current_time
 {
   timet timv;
