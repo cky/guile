@@ -32,6 +32,7 @@
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
+#include "libguile/dynwind.h"
 
 #include <fcntl.h>
 
@@ -218,9 +219,8 @@ SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
 	    "same as that accepted by @ref{File Ports, open-file}.")
 #define FUNC_NAME s_scm_fdopen
 {
-  SCM_VALIDATE_STRING (2, modes);
-  return scm_fdes_to_port (scm_to_int (fdes),
-			   SCM_STRING_CHARS (modes), SCM_BOOL_F);
+  return scm_i_fdes_to_port (scm_to_int (fdes),
+			     scm_i_mode_bits (modes), SCM_BOOL_F);
 }
 #undef FUNC_NAME
 
