@@ -74,6 +74,32 @@ guile-request@cygnus.com.  Of course, please send bug reports (and
 fixes!) to bug-guile@prep.ai.mit.edu.
 
 
+Hacking It Yourself ==================================================
+
+As distributed, Guile needs only an ANSI C compiler and a Unix system
+to compile.  However, Guile's makefiles, configuration scripts, and a
+few other files are automatically generated, not written by hand.  If
+you want to make changes to the system (which we encourage!) you will
+find it helpful to have the tools we use to develop Guile.  They
+are the following:
+
+Autoconf 2.12 --- a system for automatically generate `configure'
+	scripts from templates which list the non-portable features a
+	program would like to use.  Available in
+	"ftp://prep.ai.mit.edu/pub/gnu".
+
+Automake 1.1l --- a system for automatically generating Makefiles that
+	conform to the (rather Byzantine) GNU coding standards.  The
+	nice thing is that it takes care of hairy targets like 'make
+	dist' and 'make distclean', and automatically generates
+	Makefile dependencies.  Available in
+	"ftp://ftp.cygnus.com/pub/tromey".
+
+libtool 0.7 --- a system for managing the zillion hairy options needed
+	on various systems to produce shared libraries.  Available in
+	"http://casual1.enci.ucalgary.ca/~gord/src/".
+
+
 Authors And Contributors =============================================
 
 Many people have generously contributed to Guile.  However, any errors
