@@ -50,7 +50,15 @@
 
 #include <stdio.h>
 #include <sys/types.h>
+
+/* Supposedly, this file is never compiled unless we know we have
+   POSIX regular expressions.  But we still put this in an #ifdef so
+   the file is CPP'able (for dependency scanning) even on systems that
+   don't have a <regex.h> header.  */
+#ifdef HAVE_REGCOMP
 #include <regex.h>
+#endif 
+
 #include "_scm.h"
 #include "smob.h"
 #include "symbols.h"
