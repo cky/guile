@@ -159,7 +159,18 @@ returned by `opendir'.
 
 Return #t if readline is in use in the current repl.
 
+** structs will be removed in 1.4
+
+Structs will be replaced in Guile 1.4.  We will merge GOOPS into Guile
+and use GOOPS objects as the fundamental record type.
+
 * Changes to the scm_ interface
+
+** structs will be removed in 1.4
+
+The entire current struct interface (struct.c, struct.h) will be
+replaced in Guile 1.4.  We will merge GOOPS into libguile and use
+GOOPS objects as the fundamental record type.
 
 ** The internal representation of subr's has changed
 
