@@ -1,3 +1,10 @@
+Tue May 13 04:34:52 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* script.c (scm_compile_shell_switches): don't append (quit) if
+	interactive.
+	(scm_shell): call scm_exit_status and exit on the result of the
+	evaluation.
+
 Mon May 12 17:23:58 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Ensure that shared substrings are handled properly when passed to

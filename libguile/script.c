@@ -761,12 +761,13 @@ scm_compile_shell_switches (int argc, char **argv)
       tail = scm_cons (scm_cons (sym_load_user_init, SCM_EOL), tail);
       tail = scm_cons (scm_cons (sym_top_repl, SCM_EOL), tail);
     }
-
-  /* After doing all the other actions prescribed by the command line,
-     quit.  */
-  tail = scm_cons (scm_cons (sym_quit, SCM_EOL),
+  else
+    {
+      /* After doing all the other actions prescribed by the command line,
+	 quit.  */
+      tail = scm_cons (scm_cons (sym_quit, SCM_EOL),
 		   tail);
-      
+    }
   {
     /* We want a path only containing directories from SCHEME_LOAD_PATH,
        SCM_SITE_DIR and SCM_LIBRARY_DIR when searching for the site init
@@ -813,7 +814,7 @@ scm_shell (argc, argv)
       }
   }
 
-  scm_eval_x (scm_compile_shell_switches (argc, argv));
+  exit (scm_exit_status (scm_eval_x (scm_compile_shell_switches (argc,argv))));
 }
 
 
