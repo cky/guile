@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -260,7 +260,7 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
 	    "A destructive version of @code{append} (@pxref{Pairs and\n"
 	    "Lists,,,r5rs, The Revised^5 Report on Scheme}).  The cdr field\n"
 	    "of each list's final pair is changed to point to the head of\n"
-	    "the next list, so no consing is performed.  Return a pointer to\n"
+	    "the next list, so no consing is performed.  Return\n"
 	    "the mutated list.")
 #define FUNC_NAME s_scm_append_x
 {
@@ -286,7 +286,7 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
 
 SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0, 
            (SCM lst),
-	    "Return a pointer to the last pair in @var{lst}, signalling an error if\n"
+	    "Return the last pair in @var{lst}, signalling an error if\n"
 	    "@var{lst} is circular.")
 #define FUNC_NAME s_scm_last_pair
 {
@@ -344,8 +344,8 @@ SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
             (SCM lst, SCM new_tail),
 	    "A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r5rs,\n"
 	    "The Revised^5 Report on Scheme}).  The cdr of each cell in @var{lst} is\n"
-	    "modified to point to the previous list element.  Return a pointer to the\n"
-	    "head of the reversed list.\n\n"
+	    "modified to point to the previous list element.  Return the\n"
+	    "reversed list.\n\n"
 	    "Caveat: because the list is modified in place, the tail of the original\n"
 	    "list now becomes its head, and the head of the original list now becomes\n"
 	    "the tail.  Therefore, the @var{lst} symbol to which the head of the\n"
