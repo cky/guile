@@ -22,7 +22,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include <stdio.h>
 #include <ctype.h>
-#include "_scm.h"
+#include "libguile/_scm.h"
 
 
 
