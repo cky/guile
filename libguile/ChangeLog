@@ -1,5 +1,8 @@
 1998-10-11  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* libguile.h: Don't omit the dynamic linking functions.  (Thanks
+	to Greg Badros.)
+
 	* genio.c (scm_do_read_line): Count lines correctly when the file
 	doesn't end in a newline.
 
