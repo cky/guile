@@ -18,19 +18,39 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
+;;;;
+;;;; NB: Please don't report the TTN_TEST_NEW env var refs as a bug.
+;;;;     They will go away on checkin of rewritten getopt-long.scm.
+;;;;
+
 (use-modules (test-suite lib)
              (ice-9 getopt-long)
              (ice-9 regex))
 
-(define exception:option-predicate-failed
-  (cons 'misc-error "^option predicate failed"))
+(defmacro deferr (name-frag re)
+  (let ((name (symbol-append 'exception: name-frag)))
+    `(define ,name (cons 'misc-error ,re))))
+
+(deferr no-such-option              "^no such option")
+(deferr option-predicate-failed     "^option predicate failed")
+(deferr option-does-not-support-arg "^option does not support argument")
+(deferr option-must-be-specified    "^option must be specified")
+(deferr option-must-have-arg        "^option must be specified with argument")
+
+(or (getenv "TTN_TEST_NEW")
+    (deferr not-enough-args             "^not enough arg"))
+
+(with-test-prefix "exported procs"
+  (pass-if "`option-ref' defined"  (defined? 'option-ref))
+  (pass-if "`getopt-long' defined" (defined? 'getopt-long)))
 
 (with-test-prefix "specifying predicate"
 
   (define (test1 . args)
-    (getopt-long args `((test (value #t)
-                              (predicate ,(lambda (x)
-                                            (string-match "^[0-9]+$" x)))))))
+    (getopt-long args
+                 `((test (value #t)
+                         (predicate ,(lambda (x)
+                                       (string-match "^[0-9]+$" x)))))))
 
   (pass-if "valid arg"
            (equal? (test1 "foo" "bar" "--test=123")
@@ -41,8 +61,10 @@
                      (test1 "foo" "bar" "--test=foo"))
 
   (pass-if-exception "option has no arg"
-                     exception:option-predicate-failed
-                     (test1 "foo" "bar"))
+                     (if (getenv "TTN_TEST_NEW")
+                         exception:option-must-have-arg
+                         exception:not-enough-args)
+                     (test1 "foo" "bar" "--test"))
 
   )
 
@@ -90,6 +112,115 @@
   (pass-if "long option `bar', long option `foo', no args"
            (equal? (test3 "prg" "--bar" "--foo")
                    '((()) (foo . #t) (bar . #t))))
+
+  )
+
+(with-test-prefix "option-ref"
+
+  (define (test4 option-arg . args)
+    (equal? option-arg (option-ref (getopt-long
+                                    (cons "prog" args)
+                                    '((foo
+                                       (value optional)
+                                       (single-char #\f))
+                                      (bar)))
+                                   'foo #f)))
+
+  (pass-if "option-ref `--foo 4'"
+           (test4 "4" "--foo" "4"))
+
+  (pass-if "option-ref `-f 4'"
+           (test4 "4" "-f" "4"))
+
+  (and (getenv "TTN_TEST_NEW")
+       (pass-if "option-ref `-f4'"
+                (test4 "4" "-f4")))
+
+  (pass-if "option-ref `--foo=4'"
+           (test4 "4" "--foo=4"))
+
+  )
+
+(with-test-prefix "required"
+
+  (define (test5 args specs)
+    (getopt-long (cons "foo" args) specs))
+
+  (pass-if "not mentioned, not given"
+           (equal? (test5 '() '())
+                   '((()))))
+
+  (and (getenv "TTN_TEST_NEW")
+       (pass-if-exception "not mentioned, given"
+                          exception:no-such-option
+                          (test5 '("--req") '((something)))))
+
+  (pass-if "not specified required, not given"
+           (equal? (test5 '() '((req (required? #f))))
+                   '((()))))
+
+  (pass-if "not specified required, given anyway"
+           (equal? (test5 '("--req") '((req (required? #f))))
+                   '((()) (req . #t))))
+
+  (pass-if "not specified required, but w/ value, given anyway w/ \"=\" val"
+           (equal? (test5 '("--req=7") '((req (required? #f) (value #t))))
+                   '((()) (req . "7"))))
+
+  (pass-if "not specified required, but w/ value, given anyway w/ non-\"=\" val"
+           (equal? (test5 '("--req" "7") '((req (required? #f) (value #t))))
+                   '((()) (req . "7"))))
+
+  (pass-if-exception "specified required, not given"
+                     exception:option-must-be-specified
+                     (test5 '() '((req (required? #t)))))
+
+  )
+
+(with-test-prefix "specified no-value, given anyway"
+
+  (define (test6 args specs)
+    (getopt-long (cons "foo" args) specs))
+
+  (and (getenv "TTN_TEST_NEW")
+       (pass-if-exception "using \"=\" syntax"
+                          exception:option-does-not-support-arg
+                          (test6 '("--maybe=yes") '((maybe)))))
+
+  )
+
+(with-test-prefix "specified arg required"
+
+  (define (test7 args)
+    (getopt-long (cons "foo" args) '((hmm (value #t) (single-char #\H))
+                                     (ignore))))
+
+  (pass-if "short opt, arg given"
+           (equal? (test7 '("-H" "99"))
+                   '((()) (hmm . "99"))))
+
+  (pass-if "long non-\"=\" opt, arg given"
+           (equal? (test7 '("--hmm" "100"))
+                   '((()) (hmm . "100"))))
+
+  (pass-if "long \"=\" opt, arg given"
+           (equal? (test7 '("--hmm=101"))
+                   '((()) (hmm . "101"))))
+
+  (pass-if-exception "short opt, arg not given"
+                     exception:option-must-have-arg
+                     (test7 '("-H")))
+
+  (and (getenv "TTN_TEST_NEW")
+       (pass-if-exception "long non-\"=\" opt, arg not given (next arg an option)"
+                          exception:option-must-have-arg
+                          (test7 '("--hmm" "--ignore"))))
+
+  (and (getenv "TTN_TEST_NEW")
+       (pass-if-exception "long \"=\" opt, arg not given"
+                          exception:option-must-have-arg
+                          (test7 '("--hmm"))))
+
   )
 
 ;;; getopt-long.test ends here
