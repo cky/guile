@@ -56,6 +56,61 @@
 
 
 /*
+ * Generic object name
+ */
+
+static SCM scm_name_property;
+
+SCM_DEFINE (scm_name, "name", 1, 0, 0,
+	    (SCM obj),
+"")
+#define FUNC_NAME s_scm_name
+{
+  return scm_primitive_property_ref (scm_name_property, obj);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_set_name_x, "set-name!", 2, 0, 0,
+	    (SCM obj, SCM name),
+"")
+#define FUNC_NAME s_scm_set_name_x
+{
+  SCM_VALIDATE_SYMBOL (2, name);
+  return scm_primitive_property_set_x (scm_name_property, obj, name);
+}
+#undef FUNC_NAME
+
+int
+scm_smob_print_with_name (SCM smob, SCM port, scm_print_state *pstate)
+{
+  int n = SCM_SMOBNUM (smob);
+  SCM name = scm_name (smob);
+  scm_puts ("#<", port);
+  scm_puts (SCM_SMOBNAME (n) ? SCM_SMOBNAME (n) : "smob", port);
+  scm_putc (' ', port);
+  if (SCM_FALSEP (name))
+    {
+      scm_puts ("0x", port);
+      scm_intprint (SCM_UNPACK (scm_smobs[n].size ? SCM_CDR (smob) : smob),
+		    16, port);
+    }
+  else
+    {
+      scm_display (name, port);
+    }
+  scm_putc ('>', port);
+  return 1;
+}
+
+static void
+init_name_property ()
+{
+  scm_name_property
+    = scm_permanent_object (scm_primitive_make_property (SCM_BOOL_F));
+}
+
+
+/*
  * Instruction
  */
 
@@ -550,26 +605,6 @@ mark_program (SCM program)
   return SCM_PROGRAM_ENV (program);
 }
 
-static SCM scm_program_name (SCM program);
-
-static int
-print_program (SCM obj, SCM port, scm_print_state *pstate)
-{
-  SCM name = scm_program_name (obj);
-  scm_puts ("#<program ", port);
-  if (SCM_FALSEP (name))
-    {
-      scm_puts ("0x", port);
-      scm_intprint ((long) SCM_PROGRAM_BASE (obj), 16, port);
-    }
-  else
-    {
-      scm_display (name, port);
-    }
-  scm_putc ('>', port);
-  return 1;
-}
-
 static SCM scm_vm_apply (SCM vm, SCM program, SCM args);
 static SCM make_vm (int stack_size);
 
@@ -584,7 +619,7 @@ init_program_type ()
 {
   scm_program_tag = scm_make_smob_type ("program", 0);
   scm_set_smob_mark (scm_program_tag, mark_program);
-  scm_set_smob_print (scm_program_tag, print_program);
+  scm_set_smob_print (scm_program_tag, scm_smob_print_with_name);
   scm_set_smob_apply (scm_program_tag, apply_program, 0, 0, 1);
 }
 
@@ -606,16 +641,6 @@ SCM_DEFINE (scm_make_program, "make-program", 2, 0, 0,
 {
   SCM_VALIDATE_BYTECODE (1, bytecode);
   return make_program (bytecode, parent);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_program_name, "program-name", 1, 0, 0,
-	    (SCM program),
-"")
-#define FUNC_NAME s_scm_program_name
-{
-  SCM_VALIDATE_PROGRAM (1, program);
-  return scm_object_property (program, scm_sym_name);
 }
 #undef FUNC_NAME
 
@@ -890,6 +915,7 @@ init_vm_type ()
 {
   scm_vm_tag = scm_make_smob_type ("vm", sizeof (struct scm_vm));
   scm_set_smob_mark (scm_vm_tag, mark_vm);
+  scm_set_smob_print (scm_vm_tag, scm_smob_print_with_name);
 }
 
 /* Scheme interface */
@@ -1231,6 +1257,7 @@ scm_init_vm ()
   scm_module_vm = scm_make_module (scm_read_0str ("(vm vm)"));
   old_module = scm_select_module (scm_module_vm);
 
+  init_name_property ();
   init_instruction_type ();
   init_bytecode_type ();
   init_program_type ();
