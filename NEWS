@@ -53,7 +53,7 @@ to be named `and-let*', of course.
 
 On systems that support it, there is also a compatibility module named
 (ice-9 and-let*).  It will go away in the next release.
-   
+
 ** New modules (oop goops) etc.:
 
   (oop goops)
@@ -265,7 +265,7 @@ used in a lexical environment.
 ** The semantics of guardians have changed.
 
 The changes are for the most part compatible.  An important criterion
-was to keep the typical usage of guardians as simple as before, but to 
+was to keep the typical usage of guardians as simple as before, but to
 make the semantics safer and (as a result) more useful.
 
 *** All objects returned from guardians are now properly alive.
@@ -647,7 +647,7 @@ behaviour is undefined - it may even crash or loop endlessly.  Further, for
 the case that the object is not found in the list, scm_c_memq returns #f which
 is similar to scm_memq, but different from scm_sloppy_memq's behaviour.
 
-** New functions: scm_remember_upto_here_1, scm_remember_upto_here_2, 
+** New functions: scm_remember_upto_here_1, scm_remember_upto_here_2,
 scm_remember_upto_here
 
 These functions replace the function scm_remember.
@@ -678,26 +678,26 @@ of this variable is (and has been) not fully safe anyway.
 
 Use these instead of SCM_LENGTH_MAX.
 
-** New macros:  SCM_CONTINUATION_LENGTH, SCM_CCLO_LENGTH, SCM_STACK_LENGTH, 
+** New macros:  SCM_CONTINUATION_LENGTH, SCM_CCLO_LENGTH, SCM_STACK_LENGTH,
 SCM_STRING_LENGTH, SCM_SYMBOL_LENGTH, SCM_UVECTOR_LENGTH,
 SCM_BITVECTOR_LENGTH, SCM_VECTOR_LENGTH.
 
 Use these instead of SCM_LENGTH.
 
-** New macros:  SCM_SET_CONTINUATION_LENGTH, SCM_SET_STRING_LENGTH, 
+** New macros:  SCM_SET_CONTINUATION_LENGTH, SCM_SET_STRING_LENGTH,
 SCM_SET_SYMBOL_LENGTH, SCM_SET_VECTOR_LENGTH, SCM_SET_UVECTOR_LENGTH,
 SCM_SET_BITVECTOR_LENGTH
 
 Use these instead of SCM_SETLENGTH
 
-** New macros:  SCM_STRING_CHARS, SCM_SYMBOL_CHARS, SCM_CCLO_BASE, 
+** New macros:  SCM_STRING_CHARS, SCM_SYMBOL_CHARS, SCM_CCLO_BASE,
 SCM_VECTOR_BASE, SCM_UVECTOR_BASE, SCM_BITVECTOR_BASE, SCM_COMPLEX_MEM,
 SCM_ARRAY_MEM
 
 Use these instead of SCM_CHARS, SCM_UCHARS, SCM_ROCHARS, SCM_ROUCHARS or
 SCM_VELTS.
 
-** New macros:  SCM_SET_BIGNUM_BASE, SCM_SET_STRING_CHARS, 
+** New macros:  SCM_SET_BIGNUM_BASE, SCM_SET_STRING_CHARS,
 SCM_SET_SYMBOL_CHARS, SCM_SET_UVECTOR_BASE, SCM_SET_BITVECTOR_BASE,
 SCM_SET_VECTOR_BASE
 
@@ -713,9 +713,9 @@ Use instead of SCM_COERCE_SUBSTR.
 
 For directory objects, use these instead of SCM_OPDIRP and SCM_OPN.
 
-** Deprecated macros:  SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL, 
-SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
-SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
+** Deprecated macros:  SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL,
+SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL,
+SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD,
 SCM_ORD_SIG, SCM_NUM_SIGS, SCM_SYMBOL_SLOTS, SCM_SLOTS, SCM_SLOPPY_STRINGP,
 SCM_VALIDATE_STRINGORSUBSTR, SCM_FREEP, SCM_NFREEP, SCM_CHARS, SCM_UCHARS,
 SCM_VALIDATE_ROSTRING, SCM_VALIDATE_ROSTRING_COPY,
@@ -735,7 +735,7 @@ Use SCM_STRINGP instead of SCM_SLOPPY_STRINGP.
 Use SCM_VALIDATE_STRING instead of SCM_VALIDATE_STRINGORSUBSTR.
 Use SCM_FREE_CELL_P instead of SCM_FREEP/SCM_NFREEP
 Use a type specific accessor macro instead of SCM_CHARS/SCM_UCHARS.
-Use a type specific accessor instead of SCM(_|_RO|_HUGE_)LENGTH. 
+Use a type specific accessor instead of SCM(_|_RO|_HUGE_)LENGTH.
 Use SCM_VALIDATE_(SYMBOL|STRING) instead of SCM_VALIDATE_ROSTRING.
 Use SCM_STRING_COERCE_0TERMINATION_X instead of SCM_COERCE_SUBSTR.
 Use SCM_STRINGP or SCM_SYMBOLP instead of SCM_ROSTRINGP.
@@ -920,6 +920,7 @@ This is useful when debugging your .guile init file or scripts.
 Usage: (help NAME) gives documentation about objects named NAME (a symbol)
        (help REGEXP) ditto for objects with names matching REGEXP (a string)
        (help ,EXPR) gives documentation for object returned by EXPR
+       (help (my module)) gives module commentary for `(my module)'
        (help) gives this text
 
 `help' searches among bindings exported from loaded modules, while
@@ -958,7 +959,7 @@ Linux POSIX threads due to their use of the stack pointer to find the
 thread context.  This has now been fixed with a workaround which uses
 the pthreads to allocate the stack.
 
-** New primitives: `pkgdata-dir', `site-dir', `library-dir' 
+** New primitives: `pkgdata-dir', `site-dir', `library-dir'
 
 ** Positions of erring expression in scripts
 
@@ -1184,13 +1185,13 @@ Thus, the use of SCM_HOOK_NAME and scm_make_hook_with_name is deprecated.
 
 You can emulate this feature by using object properties.
 
-** Deprecated macros: SCM_INPORTP, SCM_OUTPORTP, SCM_CRDY, SCM_ICHRP, 
+** Deprecated macros: SCM_INPORTP, SCM_OUTPORTP, SCM_CRDY, SCM_ICHRP,
 SCM_ICHR, SCM_MAKICHR, SCM_SETJMPBUF, SCM_NSTRINGP, SCM_NRWSTRINGP,
 SCM_NVECTORP
 
 These macros will be removed in a future release of Guile.
 
-** The following types, functions and macros from numbers.h are deprecated:  
+** The following types, functions and macros from numbers.h are deprecated:
 scm_dblproc, SCM_UNEGFIXABLE, SCM_FLOBUFLEN, SCM_INEXP, SCM_CPLXP, SCM_REAL,
 SCM_IMAG, SCM_REALPART, scm_makdbl, SCM_SINGP, SCM_NUM2DBL, SCM_NO_BIGDIG
 
@@ -1462,7 +1463,7 @@ now possible to use `defined?' to check whether the facility is
 available.
 
 ** Procedures which depend on the timezone should now give the correct
-result on systems which cache the TZ environment variable, even if TZ 
+result on systems which cache the TZ environment variable, even if TZ
 is changed without calling tzset.
 
 * Changes to the networking interfaces:
@@ -1972,7 +1973,7 @@ when the hook was created.
     in a regular expression will still match before a line-break or
     end-of-file.  The default is `regexp/noteol'.
 
-*** The expect-strings macro now uses a variable 
+*** The expect-strings macro now uses a variable
     `expect-strings-compile-flags' for the flags to be supplied to
     `make-regexp'.  The default is `regexp/newline', which was previously
     hard-coded.
@@ -2450,7 +2451,7 @@ string, and the source and destination areas may overlap; in all
 cases, the function behaves as if all the characters were copied
 simultanously.
 
-*** Extended functions: substring-move-left! substring-move-right! 
+*** Extended functions: substring-move-left! substring-move-right!
 
 These functions now correctly copy arbitrarily overlapping substrings;
 they are both synonyms for substring-move!.
@@ -2484,7 +2485,7 @@ Each option can have the following (PROPERTY VALUE) pairs:
   (value BOOL) --- If BOOL is #t, the option accepts a value; if
             it is #f, it does not; and if it is the symbol
             `optional', the option may appear in ARGS with or
-            without a value. 
+            without a value.
   (predicate FUNC) --- If the option accepts a value (i.e. you
             specified `(value #t)' for this option), then getopt
             will apply FUNC to the value, and throw an exception
@@ -2562,10 +2563,10 @@ So, for example:
              (single-char #\v)
              (value #f))
     (x-includes (single-char #\x))
-    (rnet-server (single-char #\y) 
+    (rnet-server (single-char #\y)
                  (predicate ,string?))))
 
-(getopt-long '("my-prog" "-vk" "/tmp" "foo1" "--x-includes=/usr/include" 
+(getopt-long '("my-prog" "-vk" "/tmp" "foo1" "--x-includes=/usr/include"
                "--rnet-server=lamprod" "--" "-fred" "foo2" "foo3")
                grammar)
 => ((() "foo1" "-fred" "foo2" "foo3")
@@ -2580,10 +2581,10 @@ It will be removed in a few releases.
 
 ** New syntax: lambda*
 ** New syntax: define*
-** New syntax: define*-public   
+** New syntax: define*-public
 ** New syntax: defmacro*
 ** New syntax: defmacro*-public
-Guile now supports optional arguments. 
+Guile now supports optional arguments.
 
 `lambda*', `define*', `define*-public', `defmacro*' and
 `defmacro*-public' are identical to the non-* versions except that
@@ -2592,17 +2593,17 @@ syntax (parentheses are literal, square brackets indicate grouping,
 and `*', `+' and `?' have the usual meaning):
 
    ext-param-list ::= ( [identifier]* [#&optional [ext-var-decl]+]?
-      [#&key [ext-var-decl]+ [#&allow-other-keys]?]? 
+      [#&key [ext-var-decl]+ [#&allow-other-keys]?]?
       [[#&rest identifier]|[. identifier]]? ) | [identifier]
 
-   ext-var-decl ::= identifier | ( identifier expression )  
+   ext-var-decl ::= identifier | ( identifier expression )
 
 The semantics are best illustrated with the following documentation
 and examples for `lambda*':
 
  lambda* args . body
    lambda extended for optional and keyword arguments
-   
+
  lambda* creates a procedure that takes optional arguments. These
  are specified by putting them inside brackets at the end of the
  paramater list, but before any dotted rest argument. For example,
@@ -2622,11 +2623,11 @@ and examples for `lambda*':
  Optional and keyword arguments can also be given default values
  which they take on when they are not present in a call, by giving a
  two-item list in place of an optional argument, for example in:
-   (lambda* (foo #&optional (bar 42) #&key (baz 73)) (list foo bar baz)) 
+   (lambda* (foo #&optional (bar 42) #&key (baz 73)) (list foo bar baz))
  foo is a fixed argument, bar is an optional argument with default
  value 42, and baz is a keyword argument with default value 73.
  Default value expressions are not evaluated unless they are needed
- and until the procedure is called.  
+ and until the procedure is called.
 
  lambda* now supports two more special parameter list keywords.
 
@@ -2932,7 +2933,7 @@ SIZE to the system.  The return value is a tag that is used in
 creating instances of the type.  If SIZE is 0, then no memory will
 be allocated when instances of the smob are created, and nothing
 will be freed by the default free function.
-    
+
 *** Function: void scm_set_smob_mark (long tc, SCM (*mark) (SCM))
 This function sets the smob marking procedure for the smob type
 specified by the tag TC. TC is the tag returned by
@@ -3317,7 +3318,7 @@ For example:
     the-scm-module: backtrace       #<primitive-procedure backtrace>
     the-scm-module: after-backtrace-hook    ()
     the-scm-module: has-shown-backtrace-hint?       #f
-    guile> 
+    guile>
 
 ** There are new functions and syntax for working with macros.
 
@@ -3349,7 +3350,7 @@ values are:
     The symbol `syntax' --- a macro created by procedure->syntax.
     The symbol `macro' --- a macro created by procedure->macro.
     The symbol `macro!' --- a macro created by procedure->memoizing-macro.
-    The boolean #f --- if OBJ is not a macro object.  
+    The boolean #f --- if OBJ is not a macro object.
 
 *** New function: (macro-name MACRO)
 Return the name of the macro object MACRO's procedure, as returned by
@@ -3367,7 +3368,7 @@ top-level environment.  TRANSFORMER is an expression evaluated in the
 resulting environment which must yield a procedure to use as the
 module's eval transformer: every expression evaluated in this module
 is passed to this function, and the result passed to the Guile
-interpreter. 
+interpreter.
 
 *** macro-eval! is removed.  Use local-eval instead.
 
@@ -3442,7 +3443,7 @@ Function: with-fluids* FLUIDS VALUES THUNK
 
     FLUIDS is a list of fluids and VALUES a corresponding list of
     values for these fluids.  Before THUNK gets called the values are
-    installed in the fluids and the old values of the fluids are 
+    installed in the fluids and the old values of the fluids are
     saved in the VALUES list.  When the flow of control leaves THUNK
     or reenters it, the values get swapped again.  You might think of
     this as a `safe-fluid-excursion'.  Note that the VALUES list is
@@ -3989,7 +3990,7 @@ Here is a small example that works on GNU/Linux:
 See the file `libguile/DYNAMIC-LINKING' for additional comments.
 
 ** The #/ syntax for module names is depreciated, and will be removed
-in a future version of Guile.  Instead of 
+in a future version of Guile.  Instead of
 
 	#/foo/bar/baz
 
@@ -4612,7 +4613,7 @@ argument.
 
 ** Changes to I/O functions
 
-*** The functions `read', `primitive-load', `read-and-eval!', and 
+*** The functions `read', `primitive-load', `read-and-eval!', and
 `primitive-load-path' no longer take optional arguments controlling
 case insensitivity and a `#' parser.
 
@@ -4630,7 +4631,7 @@ syntax of Guile Scheme in a somewhat controlled way.
 
   The reader applies PROC to two arguments: CHAR and an input port.
 
-*** The new functions read-delimited and read-delimited! provide a 
+*** The new functions read-delimited and read-delimited! provide a
 general mechanism for doing delimited input on streams.
 
 (read-delimited DELIMS [PORT HANDLE-DELIM])
@@ -4749,7 +4750,7 @@ and `recvfrom!'.  They no longer accept a size for a second argument;
 you must pass a string to hold the received value.  They no longer
 return the buffer.  Instead, `recv' returns the length of the message
 received, and `recvfrom' returns a pair containing the packet's length
-and originating address. 
+and originating address.
 
 *** The file descriptor datatype has been removed, as have the
 `read-fd', `write-fd', `close', `lseek', and `dup' functions.
@@ -4875,17 +4876,17 @@ internet protocols:
 
   Component                 Accessor
   ========================= ===============
-  official service name     servent:name   
+  official service name     servent:name
   alias list		    servent:aliases
-  port number		    servent:port   
-  protocol to use	    servent:proto  
+  port number		    servent:port
+  protocol to use	    servent:proto
 
 *** There are new accessors for the sockaddr structures returned by
 `accept', `getsockname', `getpeername', `recvfrom!':
 
   Component                                Accessor
   ======================================== ===============
-  address format (`family')                sockaddr:fam 
+  address format (`family')                sockaddr:fam
   path, for file domain addresses	   sockaddr:path
   address, for internet domain addresses   sockaddr:addr
   TCP or UDP port, for internet		   sockaddr:port
@@ -5057,7 +5058,7 @@ command interpreter.  For details, see "Changes to the stand-alone
 interpreter" above.
 
 ** The new functions scm_get_meta_args and scm_count_argv help you
-implement the SCSH-style meta-argument, `\'.  
+implement the SCSH-style meta-argument, `\'.
 
 char **scm_get_meta_args (int ARGC, char **ARGV)
   If the second element of ARGV is a string consisting of a single
@@ -5065,7 +5066,7 @@ char **scm_get_meta_args (int ARGC, char **ARGV)
   named by the following argument, parse arguments from it, and return
   the spliced command line.  The returned array is terminated by a
   null pointer.
-  
+
   For details of argument parsing, see above, under "guile now accepts
   command-line arguments compatible with SCSH..."
 
