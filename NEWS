@@ -14,7 +14,8 @@ Changes since Guile 1.4:
 
 Example:
 
-(define m (make-module 1021 (list (resolve-interface '(ice-9 safe-r5rs)))))
+(use-modules (ice-9 safe))
+(define m (make-safe-module))
 ;;; m will now be a module containing only a safe subset of R5RS
 (eval-in-module '(+ 1 2) m) --> 3
 (eval-in-module 'load m) --> ERROR: Unbound variable: load

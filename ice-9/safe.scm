@@ -29,3 +29,6 @@
 		 (list n)
 		 '()))
   safe-r5rs-interface)
+
+(define-public (make-safe-module)
+  (make-module 1021 (list safe-r5rs-interface)))
