@@ -1483,7 +1483,17 @@
 
   (pass-if (= 0.5+0i 1/2))
   (pass-if (not (= 0.5+0i 2/3)))
-  (pass-if (not (= 0+0.5i 1/2))))
+  (pass-if (not (= 0+0.5i 1/2)))
+
+  ;; prior to guile 1.8, inum/flonum comparisons were done just by
+  ;; converting the inum to a double, which on a 64-bit would round making
+  ;; say inexact 2^58 appear equal to exact 2^58+1
+  (pass-if (= (ash-flo 1.0 58) (ash 1 58)))
+  (pass-if (not (= (ash-flo 1.0 58) (1+ (ash 1 58)))))
+  (pass-if (not (= (ash-flo 1.0 58) (1- (ash 1 58)))))
+  (pass-if (= (ash 1 58) (ash-flo 1.0 58)))
+  (pass-if (not (= (1+ (ash 1 58)) (ash-flo 1.0 58))))
+  (pass-if (not (= (1- (ash 1 58)) (ash-flo 1.0 58)))))
 
 ;;;
 ;;; <
