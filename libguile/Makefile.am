@@ -46,7 +46,8 @@ libguile_la_SOURCES =							 \
     goops.c gsubr.c guardians.c hash.c hashtab.c hooks.c init.c ioext.c	 \
     iselect.c keywords.c lang.c list.c load.c macros.c mallocs.c	 \
     modules.c numbers.c objects.c objprop.c options.c pairs.c ports.c	 \
-    print.c procprop.c procs.c random.c read.c root.c scmsigs.c		 \
+    print.c procprop.c procs.c random.c rdelim.c \
+    read.c root.c scmsigs.c \
     script.c simpos.c smob.c sort.c srcprop.c stackchk.c stacks.c	 \
     stime.c strings.c strop.c strorder.c strports.c struct.c symbols.c	 \
     tag.c throw.c values.c variable.c vectors.c version.c vports.c weaks.c \
@@ -61,7 +62,7 @@ DOT_X_FILES =								\
     hooks.x init.x ioext.x iselect.x keywords.x lang.x list.x load.x	\
     macros.x mallocs.x modules.x net_db.x numbers.x objects.x		\
     objprop.x options.x pairs.x ports.x posix.x print.x procprop.x	\
-    procs.x random.x read.x root.x scmsigs.x				\
+    procs.x random.x rdelim.x read.x root.x scmsigs.x \
     script.x simpos.x smob.x socket.x sort.x srcprop.x stackchk.x	\
     stacks.x stime.x strings.x strop.x strorder.x strports.x struct.x	\
     symbols.x tag.x throw.x values.x variable.x vectors.x		\
@@ -80,7 +81,8 @@ DOT_DOC_FILES =								  \
     ioext.doc iselect.doc keywords.doc lang.doc list.doc load.doc	  \
     macros.doc mallocs.doc modules.doc net_db.doc numbers.doc objects.doc \
     objprop.doc options.doc pairs.doc ports.doc posix.doc print.doc	  \
-    procprop.doc procs.doc random.doc read.doc root.doc scmsigs.doc	  \
+    procprop.doc procs.doc random.doc rdelim.doc \
+    read.doc root.doc scmsigs.doc	  \
     script.doc simpos.doc smob.doc socket.doc sort.doc srcprop.doc	  \
     stackchk.doc stacks.doc stime.doc strings.doc strop.doc strorder.doc  \
     strports.doc struct.doc symbols.doc tag.doc throw.doc values.doc	  \
@@ -127,7 +129,8 @@ modinclude_HEADERS =							 \
     ioext.h keywords.h lang.h list.h load.h macros.h mallocs.h		 \
     modules.h net_db.h numbers.h objects.h objprop.h options.h pairs.h	 \
     ports.h posix.h regex-posix.h print.h procprop.h procs.h random.h	 \
-    ramap.h read.h root.h scmsigs.h validate.h script.h simpos.h	 \
+    ramap.h rdelim.h \
+    read.h root.h scmsigs.h validate.h script.h simpos.h	 \
     smob.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h	 \
     strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h	 \
     tags.h throw.h unif.h values.h variable.h vectors.h version.h        \

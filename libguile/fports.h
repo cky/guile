@@ -72,7 +72,6 @@ struct scm_fport {
 
 extern SCM scm_setbuf0 (SCM port);
 extern SCM scm_setvbuf (SCM port, SCM mode, SCM size);
-extern void scm_setfileno (FILE *fs, int fd);
 extern void scm_evict_ports (int fd);
 extern SCM scm_open_file (SCM filename, SCM modes);
 extern SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
