@@ -397,12 +397,10 @@ static int
 local_fgetc (SCM port)
 {
   FILE *s = (FILE *) SCM_STREAM (port);
-#if 0
   pre_read (port);
   if (feof (s))
     return EOF;
   else
-#endif
     return fgetc (s);
 }
 
@@ -416,9 +414,7 @@ local_fgets (SCM port, int *len)
   char *p;		/* pointer to current buffer position */
   int   limit = 80;	/* current size of buffer */
 
-#if 0
   pre_read (port);
-#endif
 
   /* If this is a socket port or something where we can't rely on
      ftell to determine how much we've read, then call the generic
@@ -523,9 +519,7 @@ local_fputc (int c, SCM port)
 {
   FILE *fp = (FILE *) SCM_STREAM (port);
 
-#if 0
   pre_write (port);
-#endif
   return fputc (c, fp);
 }
 
@@ -533,9 +527,7 @@ static int
 local_fputs (char *s, SCM port)
 {
   FILE *fp = (FILE *) SCM_STREAM (port);
-#if 0
   pre_write (port);
-#endif
   return fputs (s, fp);
 }
 
@@ -546,9 +538,7 @@ local_ffwrite (char *ptr,
 	       SCM port)
 {
   FILE *fp = (FILE *) SCM_STREAM (port);
-#if 0
   pre_write (port);
-#endif
   return ffwrite (ptr, size, nitems, fp);
 }
 
