@@ -859,7 +859,7 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 2, 0,
   if (SCM_UNBNDP (name))
     name = gensym_prefix;
   else
-    SCM_VALIDATE_ROSTRING (1,name);
+    SCM_VALIDATE_SYMBOL (1, name);
 
   new = name;
   if (SCM_UNBNDP (obarray))
