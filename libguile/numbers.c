@@ -3021,7 +3021,7 @@ scm_make_real (double x)
     OK to interchange the initialization above and the one below. We
     don't want that, of course.
    */
-  scm_remember_1 (z);
+  scm_remember_upto_here_1 (z);
   SCM_REAL_VALUE (z) = x;
   return z;
 }
