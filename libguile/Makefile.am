@@ -43,7 +43,7 @@ modinclude_DATA = scmconfig.h
 bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-dynl-vms.c PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs
+dynl-vms.c PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs.in
 
 ## FIXME: shouldn't directly generate file; instead generate temp file
 ## and "mv".  Consider using timestamp file as well, to avoid
@@ -57,6 +57,11 @@ libpath.h: Makefile
 SUFFIXES = .x
 .c.x:
 	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
+
+## When dynamic linking is disabled, this dependency is not
+## automatically detected.
+
+dynl.o: dynl.x
 
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
