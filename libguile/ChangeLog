@@ -1,3 +1,13 @@
+Wed Apr  9 18:01:20 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Changes to work with automake-1.1n, which has better libtool support.
+	* Makefile.am: Use lib_LTLIBRARIES instead of lib_PROGRAMS.
+	Use libguile_la_LIBADD instead of libguile_la_LDADD.  (What's the
+	difference here?)
+	(libguile_la_SOURCES, modinclude_HEADERS, EXTRA_DIST): Format for
+	readability.
+	* Makefile.in: Rebuild.
+
 Sat Apr  5 23:56:40 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* stime.c (scm_init_stime): don't define ticks/sec.
