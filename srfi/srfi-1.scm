@@ -627,12 +627,11 @@
   (span pred list))			; XXX:optimize
 
 (define (break pred clist)
-  (if (null? clist)
-    (values '() '())
-    (if (pred (car clist))
-      (values '() clist)
-      (receive (first last) (break pred (cdr clist))
-	       (values (cons (car clist) first) last)))))
+  (let lp ((clist clist) (rl '()))
+    (if (or (null? clist)
+	    (pred (car clist)))
+	(values (reverse! rl) clist)
+	(lp (cdr clist) (cons (car clist) rl)))))
 
 (define (break! pred list)
   (break pred list))			; XXX:optimize
