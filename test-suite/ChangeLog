@@ -1,5 +1,44 @@
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* lib.scm:  Added comment about new convenience functions/macros
+	to test for exceptions.
+
+	(exception:out-of-range, exception:wrong-type-arg):  New exported
+	constants.
+
+	(run-test-exception):  New function.
+
+	(pass-if-exception, expect-fail-exception):  New exported macros.
+
+	* tests/environments.test:  Fixed tests that were checking for
+	exceptions when set!ing an unbound symbol.
+
+	(exception:unbound-symbol):  New constant.
+
+	* tests/hooks.test (catch-error-returning-true, pass-if-not,
+	catch-error-returning-false), tests/weaks.test
+	(catch-error-returning-true, pass-if-not,
+	catch-error-returning-false):  Removed.  The macro pass-if-not was 
+	not used.  The macro catch-error-returning-false is unnecessary
+	since exceptions are caught by the test-suite anyway.  The
+	functionality of catch-error-returning-true is provided by the new
+	convenience macro pass-if-exception.
+
+	* tests/hooks.test (exception:wrong-num-hook-args):  New constant.
+	Maybe a standard wrong-num-arg exception should be thrown instead
+	of a misc-error?
+
+	* tests/reader.test (try-to-read):  Replaced by read-string.
+
+	(read-string):  New function.
+
+	* tests/alist.test, tests/environments.test, tests/eval.test,
+	tests/hooks.test, tests/list.test, tests/ports.test,
+	tests/reader.test, tests/strings.test, tests/weaks.test:  Replace
+	tests for exceptions with the new convenience macros.
+
+2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/alist.test:  Remove redundant test name prefix.
 
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
