@@ -3,7 +3,7 @@
 #ifndef SCM_UNIF_H
 #define SCM_UNIF_H
 
-/* Copyright (C) 1995,1996,1997,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -68,13 +68,6 @@ SCM_API scm_t_bits scm_tc16_array;
 
 #define SCM_I_MAX_LENGTH  ((unsigned long) (-1L) >> 8)
 
-#define SCM_UVECTOR_BASE(x) ((void *) (SCM_CELL_WORD_1 (x)))
-#define SCM_SET_UVECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
-#define SCM_UVECTOR_MAX_LENGTH SCM_I_MAX_LENGTH
-#define SCM_UVECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
-#define SCM_MAKE_UVECTOR_TAG(l, t)  (((l) << 8) + (t))
-#define SCM_SET_UVECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), SCM_MAKE_UVECTOR_TAG(l, t)))
-
 #define SCM_BITVECTOR_P(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_bvect))
 #define SCM_BITVECTOR_BASE(x) ((unsigned long *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_BITVECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
@@ -85,7 +78,6 @@ SCM_API scm_t_bits scm_tc16_array;
 
 
 
-SCM_API SCM scm_make_uve (long k, SCM prot);
 SCM_API SCM scm_array_p (SCM v, SCM prot);
 SCM_API SCM scm_array_rank (SCM ra);
 SCM_API SCM scm_array_dimensions (SCM ra);
@@ -93,16 +85,13 @@ SCM_API SCM scm_shared_array_root (SCM ra);
 SCM_API SCM scm_shared_array_offset (SCM ra);
 SCM_API SCM scm_shared_array_increments (SCM ra);
 SCM_API long scm_aind (SCM ra, SCM args, const char *what);
-SCM_API SCM scm_make_ra (int ndim);
 SCM_API SCM scm_shap2ra (SCM args, const char *what);
 SCM_API SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
-SCM_API void scm_ra_set_contp (SCM ra);
 SCM_API SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
 SCM_API SCM scm_transpose_array (SCM ra, SCM args);
 SCM_API SCM scm_enclose_array (SCM ra, SCM axes);
 SCM_API SCM scm_array_in_bounds_p (SCM v, SCM args);
 SCM_API SCM scm_array_ref (SCM v, SCM args);
-SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
 SCM_API SCM scm_array_set_x (SCM v, SCM obj, SCM args);
 SCM_API SCM scm_array_contents (SCM ra, SCM strict);
 SCM_API SCM scm_ra2contig (SCM ra, int copy);
@@ -113,14 +102,22 @@ SCM_API SCM scm_bit_position (SCM item, SCM v, SCM k);
 SCM_API SCM scm_bit_set_star_x (SCM v, SCM kv, SCM obj);
 SCM_API SCM scm_bit_count_star (SCM v, SCM kv, SCM obj);
 SCM_API SCM scm_bit_invert_x (SCM v);
-SCM_API SCM scm_istr2bve (SCM str);
+
 SCM_API SCM scm_array_to_list (SCM v);
 SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
-SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
-SCM_API SCM scm_array_prototype (SCM ra);
 SCM_API SCM scm_array_creator (SCM ra);
 
 SCM_API SCM scm_i_read_array (SCM port, int c);
+
+/* deprecated. */
+
+SCM_API SCM scm_make_uve (long k, SCM prot);
+SCM_API SCM scm_make_ra (int ndim);
+SCM_API void scm_ra_set_contp (SCM ra);
+SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
+SCM_API SCM scm_istr2bve (SCM str);
+SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
+SCM_API SCM scm_array_prototype (SCM ra);
 
 SCM_API void scm_init_unif (void);
 
