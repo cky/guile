@@ -76,6 +76,13 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;    (use-modules (scripts read-scheme-source))
 ;;    (define source-forms (read-scheme-source-silently "FILE1" "FILE2" ...))
 ;;
+;; There are also two convenience procs exported for use by Scheme programs:
+;;
+;; (clump FORMS) --- filter FORMS combining contiguous comment forms that
+;;                   have the same number of leading semicolons.
+;;
+;; (quoted? SYM FORM) --- see if FORM looks like: "(quote (SYM ...))", parse
+;;                        the ":tags", and return alist of (TAG . VAL) elems.
 ;;
 ;; TODO: Add option "--clump-comments", maybe w/ different clumping styles.
 ;;       Make `annotate!' extensible.
@@ -84,7 +91,10 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 
 (define-module (scripts read-scheme-source)
   :use-module (ice-9 rdelim)
-  :export (read-scheme-source read-scheme-source-silently))
+  :export (read-scheme-source
+           read-scheme-source-silently
+           quoted?
+           clump))
 
 ;; Try to figure out what FORM is and its various attributes.
 ;; Call proc NOTE! with key (a symbol) and value.
@@ -179,6 +189,8 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                      (nb! form))))
             (loop (1+ (port-line p)) (read-line p)))))))
 
+;;; entry points
+
 (define (read-scheme-source-silently . files)
   "See commentary in module (scripts read-scheme-source)."
   (let* ((res '()))
@@ -192,6 +204,80 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
   (for-each (lambda (file)
               (process file (lambda (e) (write e) (newline))))
             files))
+
+;; Recognize:          (quote (SYM :TAG1 VAL1 :TAG2 VAL2 ...))
+;; and return alist:   ((TAG1 . VAL1) (TAG2 . VAL2) ...)
+;; where the tags are symbols.
+;;
+(define (quoted? sym form)
+  (and (list? form)
+       (= 2 (length form))
+       (eq? 'quote (car form))
+       (let ((inside (cadr form)))
+         (and (list? inside)
+              (< 0 (length inside))
+              (eq? sym (car inside))
+              (let loop ((ls (cdr inside)) (alist '()))
+                (if (null? ls)
+                    alist               ; retval
+                    (let ((first (car ls)))
+                      (or (symbol? first)
+                          (error "bad list!"))
+                      (loop (cddr ls)
+                            (acons (string->symbol
+                                    (substring (symbol->string first) 1))
+                                   (cadr ls)
+                                   alist)))))))))
+
+;; Filter FORMS, combining contiguous comment forms that have the same number
+;; of leading semicolons.  Do not include in them whitespace lines.
+;; Whitespace lines outside of such comment groupings are ignored, as are
+;; hash-bang comments.  All other forms are passed through unchanged.
+;;
+(define (clump forms)
+  (let loop ((forms forms) (acc '()) (pass-this-one-through? #f))
+    (if (null? forms)
+        (reverse acc)                   ; retval
+        (let ((form (car forms)))
+          (cond (pass-this-one-through?
+                 (loop (cdr forms) (cons form acc) #f))
+                ((quoted? 'following-form-properties form)
+                 (loop (cdr forms) (cons form acc) #t))
+                ((quoted? 'whitespace form)             ;;; ignore
+                 (loop (cdr forms) acc #f))
+                ((quoted? 'hash-bang-comment form)      ;;; ignore for now
+                 (loop (cdr forms) acc #f))
+                ((quoted? 'comment form)
+                 => (lambda (alist)
+                      (let cloop ((inner-forms (cdr forms))
+                                  (level (assq-ref alist 'leading-semicolons))
+                                  (text (list (assq-ref alist 'text))))
+                        (let ((up (lambda ()
+                                    (loop inner-forms
+                                          (cons (cons level (reverse text))
+                                                acc)
+                                          #f))))
+                          (if (null? inner-forms)
+                              (up)
+                              (let ((inner-form (car inner-forms)))
+                                (cond ((quoted? 'comment inner-form)
+                                       => (lambda (inner-alist)
+                                            (let ((new-level
+                                                   (assq-ref
+                                                    inner-alist
+                                                    'leading-semicolons)))
+                                              (if (= new-level level)
+                                                  (cloop (cdr inner-forms)
+                                                         level
+                                                         (cons (assq-ref
+                                                                inner-alist
+                                                                'text)
+                                                               text))
+                                                  (up)))))
+                                      (else (up)))))))))
+                (else (loop (cdr forms) (cons form acc) #f)))))))
+
+;;; script entry point
 
 (define main read-scheme-source)
 
