@@ -3095,8 +3095,7 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
   if (SCM_COMPLEXP (x))
     return SCM_BOOL_F;
   r = SCM_REAL_VALUE (x);
-  if (xisinf (r))
-    return SCM_BOOL_F;
+  /* +/-inf passes r==floor(r), making those #t */
   if (r == floor (r))
     return SCM_BOOL_T;
   return SCM_BOOL_F;

@@ -8,7 +8,6 @@
 2004-09-07  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_integer_expt): Reject exponent +/-inf.
-	(scm_integer_p): +/-inf is not an integer.
 	Bug report by Bill Schottstaedt.
 
 	* ports.c (scm_getc, scm_lfwrite): Recognise \a \b and \r for port
