@@ -1,3 +1,8 @@
+2003-05-03  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/r5rs_pitfall.test: New.  Thanks to Dale P. Smith for
+	pointing us to these tests.
+
 2003-04-30  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (SCM_TESTS): Add tests/srfi-34.test.
