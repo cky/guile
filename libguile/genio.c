@@ -182,7 +182,10 @@ scm_do_read_line (port, len)
 
   i = SCM_PTOBNUM (port);
   SCM_SYSCALL (s = (scm_ptobs[i].fgets) (port, len));
-  if (s)
+
+  /* If we're not at EOF, and there was a newline at the end of the
+     string, increment the line counter.  */
+  if (s && *len > 0 && s[*len - 1] == '\n')
     SCM_INCLINE(port);
 
   return s;
