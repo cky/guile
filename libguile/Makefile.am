@@ -97,12 +97,16 @@ EXTRA_libguile_la_SOURCES = _scm.h			\
     filesys.c posix.c net_db.c socket.c			\
     ramap.c unif.c debug-malloc.c
 
-Makefile: $(DOT_X_FILES)
-
 ## In next release, threads will be factored out of libguile.
 ## Until then, the machine specific headers is a temporary kludge.
 OMIT_DEPENDENCIES = libguile.h ltdl.h \
     axp.h hppa.h i386.h ksr.h m88k.h mips.h sparc.h vax.h
+
+## delete guile-snarf.awk from the installation bindir, in case it's
+## lingering there due to an earlier guile version not having been
+## wiped out.
+install-exec-hook:
+	rm -f $(bindir)/guile-snarf.awk
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included.  So instead we list them here.
