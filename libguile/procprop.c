@@ -120,29 +120,18 @@ scm_i_procedure_arity (SCM proc)
 	r = 1;
       break;
     case scm_tcs_cons_gloc:
-      if (!SCM_I_OPERATORP (proc))
+      if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	{
+	  r = 1;
+	  break;
+	}
+      else if (!SCM_I_OPERATORP (proc))
 	return SCM_BOOL_F;
-      {
-	SCM *p = (SCM_I_ENTITYP (proc)
-		  ? &SCM_ENTITY_PROC_0 (proc)
-		  : &SCM_OPERATOR_PROC_0 (proc));
-	SCM arity;
-	int i, amin = -1, amax = 0;
-	for (i = 0; i < 4; ++i)
-	  if (SCM_NFALSEP (arity = scm_i_procedure_arity (p[i])))
-	    {
-	      if (amin < 0)
-		amin = i;
-	      amax = i;
-	    }
-	if (amin < 0)
-	  /* no procedures in the struct! */
-	  return SCM_BOOL_F;
-	a += amin;
-	o = amax - amin;
-	r = SCM_NFALSEP (arity) && SCM_NFALSEP (SCM_CADDR (arity));
-	break;
-      }
+      proc = (SCM_I_ENTITYP (proc)
+	      ? SCM_ENTITY_PROCEDURE (proc)
+	      : SCM_OPERATOR_PROCEDURE (proc));
+      a -= 1;
+      goto loop;
     default:
       return SCM_BOOL_F;
     }
