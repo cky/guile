@@ -1,3 +1,12 @@
+2004-03-26  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (min, max): Check inexactness of big/real and
+	real/big combinations, collect up tests under arg types for clarity.
+
+2004-03-26  Eric Hanchrow <offby1@blarg.net>
+	
+	* tests/numbers.test (modulo-expt): New tests.
+
 2004-03-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* tests/eval.test: Added tests which reflect the recent fixes to
