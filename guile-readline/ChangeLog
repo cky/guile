@@ -2,6 +2,7 @@
 
 	* Makefile.in, configure, aclocal.m4: Deleted from CVS repository.
 	Run the autogen.sh script to create generated files like these.
+	* autogen.sh: New script, invoked by the top-level autogen.sh.
 
 1999-09-22  Jim Blandy  <jimb@savonarola.red-bean.com>
 

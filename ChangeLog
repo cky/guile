@@ -1,8 +1,8 @@
 1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
 
-	* autogen.sh: Call autoheader explicitly.  autoreconf runs
-	autoconf before autoheader, and autoconf complains if
-	libguile/scmconfig.h.in doesn't exist.
+	* autogen.sh: Don't call autoreconf at all; it's not reliable.
+	Instead, call the various tools explicitly.  Invoke
+	guile-readline's autogen.sh script.
 
 	Straighten up the situation regarding guile.m4 and qthreads.m4.
 	
