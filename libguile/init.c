@@ -485,6 +485,7 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
 			scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_2", 0),
 			scm_i_getenv_int ("GUILE_MIN_YIELD_2", 0),
 			scm_i_getenv_int ("GUILE_MAX_SEGMENT_SIZE", 0));
+      scm_struct_prehistory ();	/* Must come after scm_init_storage */
       scm_weaks_prehistory ();	/* Must come after scm_init_storage */
       scm_init_subr_table ();
       scm_init_root ();
