@@ -1,3 +1,8 @@
+2003-06-05  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_max, scm_min): For inum, bignum and real, if other
+	operand is NaN, then return NaN.  Also avoid passing NaN to mpz_cmp_d.
+
 2003-06-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h, gc-card.c (SCM_DEBUG_DEBUGGER_SUPPORT,
