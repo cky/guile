@@ -1,6 +1,6 @@
 2000-07-31  Gary Houston  <ghouston@arglist.com>
 
-	* net_db.c: declare h_errno only if HAVE_H_ERRNO is defined
+	* net_db.c: declare h_errno only if HAVE_H_ERRNO is not defined
 	(thanks to Richard Kim for the bug report).
 
 2000-07-30  Marius Vollmer  <mvo@zagadka.ping.de>
