@@ -1535,7 +1535,6 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   else if (SCM_BIGP (k))
     {
       z_i2 = scm_i_clonebig (k, 1);
-      mpz_init_set (SCM_I_BIG_MPZ (z_i2), SCM_I_BIG_MPZ (k));
       scm_remember_upto_here_1 (k);
       i2_is_big = 1;
     }
@@ -1547,7 +1546,7 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
       if ((r > SCM_MOST_POSITIVE_FIXNUM) || (r < SCM_MOST_NEGATIVE_FIXNUM))
         {
           z_i2 = scm_i_mkbig ();
-          mpz_init_set_d (SCM_I_BIG_MPZ (z_i2), r);
+          mpz_set_d (SCM_I_BIG_MPZ (z_i2), r);
           i2_is_big = 1;
         }
       else
@@ -1569,12 +1568,10 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
         {
           if (mpz_sgn(SCM_I_BIG_MPZ (z_i2)) == 0)
             {
-              mpz_clear (SCM_I_BIG_MPZ (z_i2));
               return acc;
             }
           if (mpz_cmp_ui(SCM_I_BIG_MPZ (z_i2), 1) == 0)
             {
-              mpz_clear (SCM_I_BIG_MPZ (z_i2));
               return scm_product (acc, n);
             }
           if (mpz_tstbit(SCM_I_BIG_MPZ (z_i2), 0))
