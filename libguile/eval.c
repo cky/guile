@@ -2077,7 +2077,7 @@ dispatch:
 	  {
 	    int i, end, mask;
 	    mask = -1;
-	    proc = SCM_CDR (x);
+	    proc = SCM_CADR (x);
 	    i = 0;
 	    end = SCM_LENGTH (proc);
 	  find_method:
@@ -2093,7 +2093,7 @@ dispatch:
 		    arg2 = SCM_CDR (arg2);
 		  }
 		while (SCM_NIMP (t.arg1));
-		x = SCM_CAR (arg2);
+		x = arg2;
 		env = scm_cons (SCM_CAR (env), SCM_CDR (arg2));
 		goto begin;
 	      next_method:
@@ -2106,7 +2106,7 @@ dispatch:
 	    {
 	      int hashset = SCM_INUM (SCM_CADR (x));
 	      mask = SCM_INUM (SCM_CADDR (x));
-	      proc = SCM_CDDDR (x);
+	      proc = SCM_CADDDR (x);
 	      i = 0;
 	      t.arg1 = SCM_CDDAR (env);
 	      do
@@ -2121,6 +2121,19 @@ dispatch:
 	    goto find_method;
 	  }
 
+	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
+	  x = SCM_CDR (x);
+	  t.arg1 = EVALCAR (x, env);
+	  RETURN (SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CADR (x))]);
+	  
+	case (SCM_ISYMNUM (SCM_IM_SLOT_SET_X)):
+	  x = SCM_CDR (x);
+	  t.arg1 = EVALCAR (x, env);
+	  x = SCM_CDR (x);
+	  proc = SCM_CDR (x);
+	  RETURN (SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CAR (x))]
+		  = EVALCAR (proc, env));
+	  
 	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
 	  proc = SCM_CDR (x);
 	  while (SCM_NIMP (x = SCM_CDR (proc)))
