@@ -1,3 +1,11 @@
+Wed Dec  3 12:23:06 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* ports.c (scm_close_port): Make sure the port is open before
+	trying to close it.
+
+	* guile-snarf.in: Pass args through to gcc in a way that preserves
+	whitespace boundaries.  (Thanks to Greg Badros.)
+
 1997-12-02  Tim Pierce  <twp@skepsis.com>
 
 	* stacks.c (scm_frame_procedure): Reverse the logic in the return

@@ -6,13 +6,14 @@ The Guile core distribution:
 
 Bug reports and fixes from:
 
+       Greg Badros
  Aleksandar Bakic
      Marcus Daniels
        Fred Fish
    Jesse N. Glick
        Bill Janssen
-Christopher Lee
       Shiro Kawai
+Christopher Lee
      Roland McGrath
       Clark McGrew
      Thomas Morgan
