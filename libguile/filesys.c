@@ -589,7 +589,7 @@ scm_sys_stat (fd_or_path)
      SCM fd_or_path;
 #endif
 {
-  int rv;
+  int rv = 1;
   struct stat stat_temp;
 
   if (SCM_INUMP (fd_or_path))
