@@ -70,6 +70,12 @@
     (let dump! ((x x))
       (cond
        ((object->code x) => push-code!)
+       ((integer? x)
+	(let ((str (do ((n x (quotient n 256))
+			(l '() (cons (modulo n 256) l)))
+		       ((= n 0)
+			(list->string (map integer->char l))))))
+	  (push-code! `(load-integer ,str))))
        ((string? x)
 	(push-code! `(load-string ,x)))
        ((symbol? x)

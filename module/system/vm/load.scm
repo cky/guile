@@ -32,7 +32,7 @@
 	 (compiled (object-file-name file)))
     (if (or (not (file-exists? compiled))
 	    (> (stat:mtime (stat file)) (stat:mtime (stat compiled))))
-	(compile-file-in file #f (lookup-language 'r5rs)))
+	(compile-file-in file #f (lookup-language 'gscheme)))
     (let ((bytes (make-uniform-vector (stat:size (stat compiled)) #\a)))
       (call-with-input-file compiled
 	(lambda (p) (uniform-vector-read! bytes p)))

@@ -44,10 +44,18 @@
 VM_DEFINE_INSTRUCTION (load_integer, "load-integer", -1)
 {
   size_t len;
+
   FETCH_LENGTH (len);
-  SCM_MISC_ERROR ("Not implemented yet", SCM_EOL);
-  ip += len;
-  NEXT;
+  if (len <= 4)
+    {
+      long val = 0;
+      while (len-- > 0)
+	val = (val << 8) + FETCH ();
+      PUSH (scm_long2num (val));
+      NEXT;
+    }
+  else
+    SCM_MISC_ERROR ("load-integer: not implemented yet", SCM_EOL);
 }
 
 VM_DEFINE_INSTRUCTION (load_symbol, "load-symbol", -1)

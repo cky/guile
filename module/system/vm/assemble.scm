@@ -278,8 +278,8 @@
 (define (code-finalize code)
   (match code
     ((inst (? symbol? s))
-     (let ((str (symbol->string s)))
-       `(,inst ,(string-length str) ,str)))
+     (let ((s (symbol->string s)))
+       `(,inst ,(string-length s) ,s)))
     ((inst (? string? s))
      `(,inst ,(string-length s) ,s))
     (else (code-pack code))))

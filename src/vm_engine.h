@@ -228,8 +228,6 @@ do {						\
  */
 
 #define FETCH()		(*ip++)
-#define FETCH2()	(((int) FETCH () << 8) + (int) FETCH ())
-
 #define FETCH_LENGTH(len) do { ip = vm_fetch_length (ip, &len); } while (0)
 
 #undef CLOCK

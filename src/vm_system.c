@@ -128,7 +128,9 @@ VM_DEFINE_INSTRUCTION (make_int8_1, "make-int8:1", 0)
 
 VM_DEFINE_INSTRUCTION (make_int16, "make-int16", 2)
 {
-  PUSH (SCM_MAKINUM ((signed short) FETCH2 ()));
+  int h = FETCH ();
+  int l = FETCH ();
+  PUSH (SCM_MAKINUM ((signed short) (h << 8) + l));
   NEXT;
 }
 
@@ -168,12 +170,6 @@ VM_DEFINE_INSTRUCTION (object_ref, "object-ref", 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (object_ref_2, "object-ref*2", 2)
-{
-  PUSH (OBJECT_REF (FETCH2 ()));
-  NEXT;
-}
-
 VM_DEFINE_INSTRUCTION (local_ref, "local-ref", 1)
 {
   PUSH (LOCAL_REF (FETCH ()));
@@ -183,12 +179,6 @@ VM_DEFINE_INSTRUCTION (local_ref, "local-ref", 1)
 VM_DEFINE_INSTRUCTION (local_ref_0, "local-ref:0", 0)
 {
   PUSH (LOCAL_REF (0));
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (local_ref_2, "local-ref*2", 2)
-{
-  PUSH (LOCAL_REF (FETCH2 ()));
   NEXT;
 }
 
@@ -205,20 +195,6 @@ VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1)
 VM_DEFINE_INSTRUCTION (module_ref, "module-ref", 1)
 {
   int i = FETCH ();
-  SCM o, x = OBJECT_REF (i);
-  o = VARIABLE_REF (x);
-  if (SCM_UNBNDP (o))
-    {
-      err_args = SCM_LIST1 (SCM_CAR (x));
-      goto vm_error_unbound;
-    }
-  PUSH (o);
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (module_ref_2, "module-ref*2", 2)
-{
-  int i = FETCH2 ();
   SCM o, x = OBJECT_REF (i);
   o = VARIABLE_REF (x);
   if (SCM_UNBNDP (o))
@@ -252,13 +228,6 @@ VM_DEFINE_INSTRUCTION (local_set, "local-set", 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (local_set_2, "local-set*2", 2)
-{
-  LOCAL_SET (FETCH2 (), *sp);
-  DROP ();
-  NEXT;
-}
-
 VM_DEFINE_INSTRUCTION (external_set, "external-set", 1)
 {
   unsigned int i;
@@ -273,15 +242,6 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1)
 VM_DEFINE_INSTRUCTION (module_set, "module-set", 1)
 {
   int i = FETCH ();
-  SCM x = OBJECT_REF (i);
-  VARIABLE_SET (x, *sp);
-  DROP ();
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (module_set_2, "module-set*2", 2)
-{
-  int i = FETCH2 ();
   SCM x = OBJECT_REF (i);
   VARIABLE_SET (x, *sp);
   DROP ();
