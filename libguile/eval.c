@@ -1336,27 +1336,6 @@ scm_macroexp (SCM x, SCM env)
   if (scm_ilength (res) <= 0)
     res = scm_cons2 (SCM_IM_BEGIN, res, SCM_EOL);
       
-#if 0
-  /* XXX - what needs to be done for debugging? */
-      
-#ifdef DEVAL
-  if (!SCM_CLOSUREP (SCM_CDR (proc)))
-    {
-      SCM_DEFER_INTS;
-      SCM_SETCAR (x, SCM_CAR (res));
-      SCM_SETCDR (x, SCM_CDR (res));
-      SCM_ALLOW_INTS;
-      goto macro_tail;
-    }
-  
-  /* Prevent memoizing of debug info expression. */
-  debug.info->e.exp = scm_cons (SCM_CAR (x), SCM_CDR (x));
-  scm_set_source_properties_x (debug.info->e.exp,
-			       scm_source_properties (x));
-#endif
-  
-#endif
-      
   SCM_DEFER_INTS;
   SCM_SETCAR (x, SCM_CAR (res));
   SCM_SETCDR (x, SCM_CDR (res));
@@ -2608,9 +2587,9 @@ dispatch:
 		      goto dispatch;
 		    }
 		  /* Prevent memoizing of debug info expression. */
-		  debug.info->e.exp = scm_cons (SCM_CAR (x), SCM_CDR (x));
-		  scm_set_source_properties_x (debug.info->e.exp,
-					       scm_source_properties (x));
+		  debug.info->e.exp = scm_cons_source (debug.info->e.exp,
+						       SCM_CAR (x),
+						       SCM_CDR (x));
 #endif
 		  SCM_DEFER_INTS;
 		  SCM_SETCAR (x, SCM_CAR (t.arg1));
