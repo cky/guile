@@ -503,15 +503,31 @@ scm_local_eval (exp, env)
   return scm_eval_3 (exp, 1, env);
 }
 
-static char s_start_stack[] = "start-stack";
 SCM
-scm_m_start_stack (exp, env)
+scm_start_stack (id, exp, env)
+     SCM id;
      SCM exp;
      SCM env;
 {
   SCM answer;
   scm_debug_frame vframe;
   scm_debug_info vframe_vect_body;
+  vframe.prev = scm_last_debug_frame;
+  vframe.status = SCM_VOIDFRAME;
+  vframe.vect = &vframe_vect_body;
+  vframe.vect[0].id = id;
+  scm_last_debug_frame = &vframe;
+  answer = scm_eval_3 (exp, 0, env);
+  scm_last_debug_frame = vframe.prev;
+  return answer;
+}
+
+static char s_start_stack[] = "start-stack";
+SCM
+scm_m_start_stack (exp, env)
+     SCM exp;
+     SCM env;
+{
   exp = SCM_CDR (exp);
   SCM_ASSERT (SCM_NIMP (exp)
 	      && SCM_ECONSP (exp)
@@ -521,14 +537,7 @@ scm_m_start_stack (exp, env)
 	      exp,
 	      SCM_WNA,
 	      s_start_stack);
-  vframe.prev = scm_last_debug_frame;
-  vframe.status = SCM_VOIDFRAME;
-  vframe.vect = &vframe_vect_body;
-  vframe.vect[0].id = scm_eval_car (exp, env);
-  scm_last_debug_frame = &vframe;
-  answer = scm_eval_car (SCM_CDR (exp), env);
-  scm_last_debug_frame = vframe.prev;
-  return answer;
+  return scm_start_stack (scm_eval_car (exp, env), SCM_CADR (exp), env);
 }
 
 /* {Debug Objects}
