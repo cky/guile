@@ -1138,6 +1138,15 @@ be removed.
 The return value is unspecified.
 @end deffn
 
+@deffn {Scheme Procedure} setenv name value
+Give the environment variable @var{name} the value @var{value}.  The
+name can not contain a @samp{=} character.
+@end deffn
+
+@deffn {Scheme Procedure} unsetenv name
+Remove variable @var{name} from the environment.  The
+name can not contain a @samp{=} character.
+@end deffn
 
 @node Processes
 @section Processes
