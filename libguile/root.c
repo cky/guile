@@ -163,7 +163,7 @@ SCM scm_exitval;		/* INUM with return value */
 #endif
 static int n_dynamic_roots = 0;
 
-static SCM cwnr SCM_P ((SCM thunk, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start));
+static SCM cwdr SCM_P ((SCM thunk, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start));
 
 /* This is the basic code for new root creation.
  *
@@ -173,20 +173,17 @@ static SCM cwnr SCM_P ((SCM thunk, SCM a1, SCM args, SCM handler, SCM_STACKITEM 
  */
 
 static SCM 
-cwnr (thunk, a1, args, handler, stack_start)
-     SCM thunk;
+cwdr (proc, a1, args, handler, stack_start)
+     SCM proc;
      SCM a1;
      SCM args;
      SCM handler;
      SCM_STACKITEM *stack_start;
 {
   int old_ints_disabled = scm_ints_disabled;
-  SCM root, old_winds;
+  SCM old_rootcont, old_winds;
   SCM answer;
 
-  /* Create the new root with current root as parent. */
-  root = scm_make_root (scm_root->handle);
-  
   /* Create a fresh root continuation.
    */
   {
@@ -199,35 +196,31 @@ cwnr (thunk, a1, args, handler, stack_start)
     SCM_CAR (new_rootcont) = scm_tc7_contin;
     SCM_DYNENV (new_rootcont) = SCM_EOL;
     SCM_BASE (new_rootcont) = stack_start;
-    SCM_SEQ (new_rootcont) = n_dynamic_roots++;
+    SCM_SEQ (new_rootcont) = ++n_dynamic_roots;
 #ifdef DEBUG_EXTENSIONS
     SCM_DFRAME (new_rootcont) = 0;
 #endif
-    SCM_ROOT_STATE (root)->rootcont = new_rootcont;
+    old_rootcont = scm_rootcont;
+    scm_rootcont = new_rootcont;
     SCM_REALLOW_INTS;
   }
 
-  /* Enter new root state. */
-  SCM_REDEFER_INTS;
-  scm_set_root (SCM_ROOT_STATE (root));
-#ifdef DEBUG_EXTENSIONS
-  last_debug_info_frame = 0;
-#endif
-  SCM_REALLOW_INTS;
-  
-  /* Exit caller's dynamic state (using new, private scm_dynwinds).
+  /* Exit caller's dynamic state.
    */
-  old_winds = scm_root->dynwinds;
-  scm_dowinds (SCM_EOL, scm_ilength (scm_root->dynwinds));
-
+  old_winds = scm_dynwinds;
+  scm_dowinds (SCM_EOL, scm_ilength (scm_dynwinds));
+#ifdef DEBUG_EXTENSIONS
+  scm_last_debug_frame = 0;
+#endif
+  
   /* Catch all errors. */
-  answer = scm_catch (SCM_BOOL_T, thunk, handler);
+  answer = scm_catch_apply (SCM_BOOL_T, proc, a1, args, handler, 0);
   
   scm_dowinds (old_winds, - scm_ilength (old_winds));
   SCM_REDEFER_INTS;
-  scm_set_root (SCM_ROOT_STATE (scm_root->parent));
+  scm_rootcont = old_rootcont;
 #ifdef DEBUG_EXTENSIONS
-  last_debug_info_frame = SCM_DFRAME (scm_root->rootcont);
+  scm_last_debug_frame = SCM_DFRAME (scm_rootcont);
 #endif
   SCM_REALLOW_INTS;
   scm_ints_disabled = old_ints_disabled;
@@ -235,20 +228,20 @@ cwnr (thunk, a1, args, handler, stack_start)
 }
 
 
-SCM_PROC(s_call_with_new_root, "call-with-new-root", 2, 0, 0, scm_call_with_new_root);
+SCM_PROC(s_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0, scm_call_with_dynamic_root);
 #ifdef __STDC__
 SCM
-scm_call_with_new_root (SCM thunk, SCM handler)
+scm_call_with_dynamic_root (SCM thunk, SCM handler)
 #else
 SCM
-scm_call_new_root (thunk, handler)
+scm_call_with_dynamic_root (thunk, handler)
      SCM thunk;
      SCM handler;
 #endif
 {
   SCM_STACKITEM stack_place;
 
-  return cwnr (thunk, SCM_EOL, SCM_EOL, handler, &stack_place);
+  return cwdr (thunk, SCM_EOL, SCM_EOL, handler, &stack_place);
 }
 
 SCM_PROC(s_dynamic_root, "dynamic-root", 0, 0, 0, scm_dynamic_root);
@@ -265,10 +258,10 @@ scm_dynamic_root ()
 
 #ifdef __STDC__
 SCM
-scm_app_wdr (SCM proc, SCM a1, SCM args, SCM error)
+scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler)
 #else
 SCM
-scm_app_wdr (proc, a1, args, error)
+scm_apply_with_dynamic_root (proc, a1, args, handler)
      SCM proc;
      SCM a1;
      SCM args;
@@ -276,7 +269,7 @@ scm_app_wdr (proc, a1, args, error)
 #endif
 {
   SCM_STACKITEM stack_place;
-  return cwnr (proc, a1, args, error, &stack_place);
+  return cwdr (proc, a1, args, handler, &stack_place);
 }
 
 
@@ -308,7 +301,7 @@ scm_call_catching_errors (thunk, err_filter, closure)
   SCM answer;
   setjmp_type i;
 #ifdef DEBUG_EXTENSIONS
-  SCM_DFRAME (scm_rootcont) = last_debug_info_frame;
+  SCM_DFRAME (scm_rootcont) = scm_last_debug_frame;
 #endif
   i = setjmp (SCM_JMPBUF (scm_rootcont));
 #ifdef STACK_CHECKING
