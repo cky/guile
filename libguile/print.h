@@ -3,7 +3,7 @@
 #ifndef SCM_PRINT_H
 #define SCM_PRINT_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -55,7 +55,7 @@ do { \
 #define SCM_COERCE_OUTPORT(p) \
   (SCM_PORT_WITH_PS_P (p) ? SCM_PORT_WITH_PS_PORT (p) : p)
 
-#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwuwpwuwuwuruopr"
+#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwuwpwuwuwuruoprpw"
 typedef struct scm_print_state {
   SCM handle;			/* Struct handle */
   int revealed;                 /* Has the state escaped to Scheme? */
@@ -70,6 +70,7 @@ typedef struct scm_print_state {
   SCM *ref_stack;		/* Stack of references used during
 				   circular reference detection */
   SCM ref_vect;
+  SCM highlight_objects;        /* List of objects to be highlighted */
 } scm_print_state;
 
 SCM_API SCM scm_print_state_vtable;

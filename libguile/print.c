@@ -160,6 +160,7 @@ make_print_state (void)
   pstate->ref_vect = scm_c_make_vector (PSTATE_SIZE, SCM_UNDEFINED);
   pstate->ref_stack = SCM_WRITABLE_VELTS (pstate->ref_vect);
   pstate->ceiling = SCM_VECTOR_LENGTH (pstate->ref_vect);
+  pstate->highlight_objects = SCM_EOL;
   return print_state;
 }
 
@@ -192,6 +193,7 @@ scm_free_print_state (SCM print_state)
    */
   pstate->fancyp = 0;
   pstate->revealed = 0;
+  pstate->highlight_objects = SCM_EOL;
   scm_i_plugin_mutex_lock (&print_state_mutex);
   handle = scm_cons (print_state, print_state_pool);
   print_state_pool = handle;
@@ -350,8 +352,24 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 SCM_GPROC(s_write, "write", 1, 1, 0, scm_write, g_write);
 SCM_GPROC(s_display, "display", 1, 1, 0, scm_display, g_display);
 
+static void iprin1 (SCM exp, SCM port, scm_print_state *pstate);
+
 void 
 scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
+{
+  if (pstate->fancyp
+      && scm_is_true (scm_memq (exp, pstate->highlight_objects)))
+    {
+      scm_lfwrite ("{", 1, port);
+      iprin1 (exp, port, pstate);
+      scm_lfwrite ("}", 1, port);
+    }
+  else
+    iprin1 (exp, port, pstate);
+}
+
+static void
+iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
   switch (SCM_ITAG3 (exp))
     {
