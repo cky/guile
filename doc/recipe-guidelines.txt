@@ -1,0 +1,80 @@
+                                            -*-text-*-
+
+Guidelines for contributions to the Guile Recipes manual
+--------------------------------------------------------
+
+1. Licensing
+
+Contributions must be licensed under the GNU Free Documentation
+License (GFDL) or the GNU General Public License (GPL).
+
+2. Copyright
+
+Contributors are encouraged, but not required, to assign the copyright
+for their contribution to the FSF.  `not required' also covers the
+case where a contributor has every intention of assigning copyright,
+but the process is simply taking a little time.  Note that:
+
+- If you assign your copyright, other people (who have also assigned
+  copyright) can make non-trivial enhancements to your contribution
+  without any difficulties arising.  If you don't assign copyright for
+  contribution, it complicates the ownership picture if other people
+  make non-trivial changes to it; and if the burden of tracking
+  copyright ownership becomes too great, it will be easier simply to
+  remove that contribution from the manual.
+
+- If it transpires that non-assigned copyrights turn out to be a bad
+  thing (for whatever reason), the maintainers reserve the right to
+  remove non-assigned contributions from the manual.
+
+3. Manual organization
+
+Each contribution has its own chapter and lives in its own Texinfo
+file.  Chapters in related areas may be grouped together, but maybe
+not.  Instead, the introduction to the manual will contain references
+to chapters, and the introductory text will group those references
+appropriately.
+
+4. Copyright ownership
+
+Given this organization, ownership for copyright purposes is
+straightforward.  Each Texinfo file is either owned by its
+contributor, or assigned to the FSF.
+
+Every contribution's chapter should begin with a statement of who
+contributed it, who owns the copyright, and its license (GFDL or
+GPL).  These statements should appear in the printed and online
+documentation -- i.e. they are _not_ comments.
+
+5. Documentation vs. code
+
+Contributed material should be informative and helpful, and should fit
+in with the manual syntax.  In general, this means that a
+straightforward lump of code is _not_ good enough -- it also needs the
+statements mentioned above, introduction, explanation or
+documentation, Texinfo markup, etc.
+
+Note that the maintainers may be able to accept a contribution that
+requires substantial extra work if copyright for that contribution has
+been assigned to the FSF.  Where copyright has not been assigned, the
+contribution has to be already finished by its author.
+
+6. Good indexing
+
+In practice, the manual index will be a very important tool for
+someone looking for an example that is useful to them.  So please give
+some thought to good indexing in your contribution.
+
+7. Submissions
+
+To submit material for inclusion in Guile Recipes, please send your
+contribution to the guile-sources mailing list
+<guile-sources@gnu.org>.
+
+As far as past material is concerned, I do have an archive of material
+that I will ask people about including individually, but it would make
+things easier for me if people resubmitted past material to
+guile-sources anyway.
+
+--
+Neil Jerram <neil@ossau.uklinux.net> April 20th 2001

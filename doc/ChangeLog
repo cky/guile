@@ -1,3 +1,8 @@
+2001-04-20  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* recipe-guidelines.txt: New file: guidelines for contributions to
+	the Guile Recipes manual.
+
 2001-04-20  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* intro.texi (Using Guile Modules): Wrote intro to using modules.
