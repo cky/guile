@@ -1,3 +1,9 @@
+2002-10-20  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* boot-9.scm (top-repl): Look for use-emacs-interface in
+	guile-user-module (should it be there?) instead of
+	the-root-module.
+
 2002-10-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (top-repl): Use 2 as the limit when saving the stack.
