@@ -1,5 +1,10 @@
 2001-03-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
+	* posix.c (scm_gethostname): Set initial name length to 256 for
+	Solaris.
+
+2001-03-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
 	* posix.h (scm_crypt, scm_chroot, scm_getlogin, scm_cuserid),
 	(scm_getpriority, scm_setpriority, scm_getpass, scm_flock),
 	(scm_sethostname, scm_gethostname): New prototypes.
