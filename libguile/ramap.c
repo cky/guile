@@ -323,7 +323,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
     {
     default:
     case 0:
-      scm_misc_error (what, "array shape mismatch: ~S", ra0);
+      scm_misc_error (what, "array shape mismatch: ~S", scm_list_1 (ra0));
     case 2:
     case 3:
     case 4:			/* Try unrolling arrays */
