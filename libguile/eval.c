@@ -1698,7 +1698,7 @@ scm_option scm_evaluator_trap_table[] = {
   { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." }
 };
 
-GUILE_PROC (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
+SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
             (SCM setting),
 "")
 #define FUNC_NAME s_scm_eval_options_interface
@@ -1715,7 +1715,7 @@ GUILE_PROC (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, 
+SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, 
             (SCM setting),
 "")
 #define FUNC_NAME s_scm_evaluator_traps
@@ -3179,7 +3179,7 @@ ret:
    you if you do (scm_apply scm_apply '( ... ))"  If you know what
    they're referring to, send me a patch to this comment.  */
 
-GUILE_PROC(scm_nconc2last, "apply:nconc2last", 1, 0, 0, 
+SCM_DEFINE(scm_nconc2last, "apply:nconc2last", 1, 0, 0, 
            (SCM lst),
 "")
 #define FUNC_NAME s_scm_nconc2last
@@ -3698,7 +3698,7 @@ prinprom (SCM exp,SCM port,scm_print_state *pstate)
 }
 
 
-GUILE_PROC(scm_force, "force", 1, 0, 0, 
+SCM_DEFINE(scm_force, "force", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_force
@@ -3719,7 +3719,7 @@ GUILE_PROC(scm_force, "force", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_promise_p, "promise?", 1, 0, 0, 
+SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0, 
             (SCM x),
 "Return true if @var{obj} is a promise, i.e. a delayed computation
 (@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).")
@@ -3729,7 +3729,7 @@ GUILE_PROC (scm_promise_p, "promise?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_cons_source, "cons-source", 3, 0, 0, 
+SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0, 
             (SCM xorig, SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_cons_source
@@ -3746,7 +3746,7 @@ GUILE_PROC (scm_cons_source, "cons-source", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_copy_tree, "copy-tree", 1, 0, 0, 
+SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0, 
             (SCM obj),
 "Recursively copy the data tree that is bound to @var{obj}, and return a
 pointer to the new data structure.  @code{copy-tree} recurses down the
@@ -3794,7 +3794,7 @@ scm_eval_3 (SCM obj, int copyp, SCM env)
   return SCM_XEVAL (obj, env);
 }
 
-GUILE_PROC(scm_eval2, "eval2", 2, 0, 0,
+SCM_DEFINE(scm_eval2, "eval2", 2, 0, 0,
            (SCM obj, SCM env_thunk),
 "Evaluate @var{exp}, a Scheme expression, in the environment designated
 by @var{lookup}, a symbol-lookup function.  @code{(eval exp)} is
@@ -3805,7 +3805,7 @@ equivalent to @code{(eval2 exp *top-level-lookup-closure*)}.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_eval, "eval", 1, 0, 0, 
+SCM_DEFINE(scm_eval, "eval", 1, 0, 0, 
            (SCM obj),
 "Evaluate @var{exp}, a list representing a Scheme expression, in the
 top-level environment.")

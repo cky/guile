@@ -55,7 +55,7 @@
  */
 
 
-GUILE_PROC(scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
+SCM_DEFINE(scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
            (SCM k, SCM fill),
 "Return a weak vector with @var{size} elements. If the optional
 argument @var{fill} is given, all entries in the vector will be set to
@@ -77,7 +77,7 @@ argument @var{fill} is given, all entries in the vector will be set to
 
 SCM_REGISTER_PROC(s_list_to_weak_vector, "list->weak-vector", 1, 0, 0, scm_weak_vector);
 
-GUILE_PROC(scm_weak_vector, "weak-vector", 0, 0, 1, 
+SCM_DEFINE(scm_weak_vector, "weak-vector", 0, 0, 1, 
            (SCM l),
 "@deffnx primitive list->weak-vector l
 Construct a weak vector from a list: @code{weak-vector} uses the list of
@@ -103,7 +103,7 @@ its arguments while @code{list->weak-vector} uses its only argument
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_weak_vector_p, "weak-vector?", 1, 0, 0, 
+SCM_DEFINE(scm_weak_vector_p, "weak-vector?", 1, 0, 0, 
            (SCM x),
 "Return @var{#t} if @var{obj} is a weak vector. Note that all weak
 hashes are also weak vectors.")
@@ -119,7 +119,7 @@ hashes are also weak vectors.")
 
 
 
-GUILE_PROC(scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, 
+SCM_DEFINE(scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, 
            (SCM k),
 "@deffnx primitive make-weak-value-hash-table size
 @deffnx primitive make-doubly-weak-hash-table size
@@ -141,7 +141,7 @@ regular hash tables. (@pxref{Hash Tables})")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 0, 
+SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 0, 
             (SCM k),
 "")
 #define FUNC_NAME s_scm_make_weak_value_hash_table
@@ -158,7 +158,7 @@ GUILE_PROC (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 
 
 
 
-GUILE_PROC (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, 
+SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, 
             (SCM k),
 "")
 #define FUNC_NAME s_scm_make_doubly_weak_hash_table
@@ -173,7 +173,7 @@ GUILE_PROC (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
+SCM_DEFINE(scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
            (SCM x),
 "@deffnx primitive weak-value-hash-table? obj
 @deffnx primitive doubly-weak-hash-table? obj
@@ -187,7 +187,7 @@ hash table.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0, 
+SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_weak_value_hash_table_p
@@ -197,7 +197,7 @@ GUILE_PROC (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0, 
+SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_doubly_weak_hash_table_p

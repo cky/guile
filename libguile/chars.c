@@ -52,7 +52,7 @@
 #include "chars.h"
 
 
-GUILE_PROC (scm_char_p, "char?", 1, 0, 0, 
+SCM_DEFINE (scm_char_p, "char?", 1, 0, 0, 
             (SCM x),
 "Return #t iff X is a character, else #f.")
 #define FUNC_NAME s_scm_char_p
@@ -173,7 +173,7 @@ GUILE_PROC1 (scm_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_char_alphabetic_p, "char-alphabetic?", 1, 0, 0,
+SCM_DEFINE(scm_char_alphabetic_p, "char-alphabetic?", 1, 0, 0,
            (SCM chr),
 "Return #t iff CHR is alphabetic, else #f.
 Alphabetic means the same thing as the isalpha C library function.")
@@ -184,7 +184,7 @@ Alphabetic means the same thing as the isalpha C library function.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_char_numeric_p, "char-numeric?", 1, 0, 0, 
+SCM_DEFINE(scm_char_numeric_p, "char-numeric?", 1, 0, 0, 
            (SCM chr),
 "Return #t iff CHR is numeric, else #f.
 Numeric means the same thing as the isdigit C library function.")
@@ -195,7 +195,7 @@ Numeric means the same thing as the isdigit C library function.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_char_whitespace_p, "char-whitespace?", 1, 0, 0, 
+SCM_DEFINE(scm_char_whitespace_p, "char-whitespace?", 1, 0, 0, 
            (SCM chr),
 "Return #t iff CHR is whitespace, else #f.
 Whitespace means the same thing as the isspace C library function.")
@@ -208,7 +208,7 @@ Whitespace means the same thing as the isspace C library function.")
 
 
 
-GUILE_PROC(scm_char_upper_case_p, "char-upper-case?", 1, 0, 0, 
+SCM_DEFINE(scm_char_upper_case_p, "char-upper-case?", 1, 0, 0, 
            (SCM chr),
 "Return #t iff CHR is uppercase, else #f.
 Uppercase means the same thing as the isupper C library function.")
@@ -220,7 +220,7 @@ Uppercase means the same thing as the isupper C library function.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_char_lower_case_p, "char-lower-case?", 1, 0, 0, 
+SCM_DEFINE(scm_char_lower_case_p, "char-lower-case?", 1, 0, 0, 
            (SCM chr),
 "Return #t iff CHR is lowercase, else #f.
 Lowercase means the same thing as the islower C library function.")
@@ -233,7 +233,7 @@ Lowercase means the same thing as the islower C library function.")
 
 
 
-GUILE_PROC (scm_char_is_both_p, "char-is-both?", 1, 0, 0, 
+SCM_DEFINE (scm_char_is_both_p, "char-is-both?", 1, 0, 0, 
             (SCM chr),
 "Return #t iff CHR is either uppercase or lowercase, else #f.
 Uppercase and lowercase are as defined by the isupper and islower
@@ -248,7 +248,7 @@ C library functions.")
 
 
 
-GUILE_PROC (scm_char_to_integer, "char->integer", 1, 0, 0, 
+SCM_DEFINE (scm_char_to_integer, "char->integer", 1, 0, 0, 
             (SCM chr),
 "Return the number corresponding to ordinal position of CHR in the Ascii sequence.")
 #define FUNC_NAME s_scm_char_to_integer
@@ -260,7 +260,7 @@ GUILE_PROC (scm_char_to_integer, "char->integer", 1, 0, 0,
 
 
 
-GUILE_PROC(scm_integer_to_char, "integer->char", 1, 0, 0, 
+SCM_DEFINE(scm_integer_to_char, "integer->char", 1, 0, 0, 
            (SCM n),
 "Return the character at position N in the Ascii sequence.")
 #define FUNC_NAME s_scm_integer_to_char
@@ -271,7 +271,7 @@ GUILE_PROC(scm_integer_to_char, "integer->char", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_char_upcase, "char-upcase", 1, 0, 0, 
+SCM_DEFINE(scm_char_upcase, "char-upcase", 1, 0, 0, 
            (SCM chr),
 "Return the uppercase character version of CHR.")
 #define FUNC_NAME s_scm_char_upcase
@@ -282,7 +282,7 @@ GUILE_PROC(scm_char_upcase, "char-upcase", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_char_downcase, "char-downcase", 1, 0, 0, 
+SCM_DEFINE(scm_char_downcase, "char-downcase", 1, 0, 0, 
            (SCM chr),
 "Return the lowercase character version of CHR.")
 #define FUNC_NAME s_scm_char_downcase

@@ -82,7 +82,7 @@ scm_listify (SCM elt, ...)
 }
 
 
-GUILE_PROC(scm_list, "list", 0, 0, 1, 
+SCM_DEFINE(scm_list, "list", 0, 0, 1, 
            (SCM objs),
 "")
 #define FUNC_NAME s_scm_list
@@ -92,7 +92,7 @@ GUILE_PROC(scm_list, "list", 0, 0, 1,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_list_star, "list*", 1, 0, 1, 
+SCM_DEFINE (scm_list_star, "list*", 1, 0, 1, 
             (SCM arg, SCM rest),
 "")
 #define FUNC_NAME s_scm_list_star
@@ -115,7 +115,7 @@ GUILE_PROC (scm_list_star, "list*", 1, 0, 1,
 
 /* general questions about lists --- null?, list?, length, etc.  */
 
-GUILE_PROC(scm_null_p, "null?", 1, 0, 0, 
+SCM_DEFINE(scm_null_p, "null?", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_null_p
@@ -124,7 +124,7 @@ GUILE_PROC(scm_null_p, "null?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_list_p, "list?", 1, 0, 0, 
+SCM_DEFINE(scm_list_p, "list?", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_list_p
@@ -164,7 +164,7 @@ scm_ilength(SCM sx)
   return -1;
 }
 
-GUILE_PROC(scm_length, "length", 1, 0, 0, 
+SCM_DEFINE(scm_length, "length", 1, 0, 0, 
            (SCM lst),
 "")
 #define FUNC_NAME s_scm_length
@@ -179,7 +179,7 @@ GUILE_PROC(scm_length, "length", 1, 0, 0,
 
 /* appending lists */
 
-GUILE_PROC (scm_append, "append", 0, 0, 1, 
+SCM_DEFINE (scm_append, "append", 0, 0, 1, 
             (SCM args),
 "A destructive version of @code{append} (@pxref{Pairs and Lists,,,r4rs,
 The Revised^4 Report on Scheme}).  The cdr field of each list's final
@@ -214,7 +214,7 @@ performed.  Return a pointer to the mutated list.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_append_x, "append!", 0, 0, 1, 
+SCM_DEFINE (scm_append_x, "append!", 0, 0, 1, 
             (SCM args),
 "")
 #define FUNC_NAME s_scm_append_x
@@ -233,7 +233,7 @@ GUILE_PROC (scm_append_x, "append!", 0, 0, 1,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_last_pair, "last-pair", 1, 0, 0, 
+SCM_DEFINE(scm_last_pair, "last-pair", 1, 0, 0, 
            (SCM sx),
 "Return a pointer to the last pair in @var{lst}, signalling an error if
 @var{lst} is circular.")
@@ -262,7 +262,7 @@ GUILE_PROC(scm_last_pair, "last-pair", 1, 0, 0,
 
 /* reversing lists */
 
-GUILE_PROC (scm_reverse, "reverse", 1, 0, 0,
+SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
             (SCM ls),
 "A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r4rs,
 The Revised^4 Report on Scheme}).  The cdr of each cell in @var{lst} is
@@ -299,7 +299,7 @@ of the modified list is not lost, it is wise to save the return value of
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_reverse_x, "reverse!", 1, 1, 0,
+SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
             (SCM ls, SCM new_tail),
 "")
 #define FUNC_NAME s_scm_reverse_x
@@ -326,7 +326,7 @@ GUILE_PROC (scm_reverse_x, "reverse!", 1, 1, 0,
 
 /* indexing lists by element number */
 
-GUILE_PROC(scm_list_ref, "list-ref", 2, 0, 0,
+SCM_DEFINE(scm_list_ref, "list-ref", 2, 0, 0,
            (SCM lst, SCM k),
 "")
 #define FUNC_NAME s_scm_list_ref
@@ -344,7 +344,7 @@ GUILE_PROC(scm_list_ref, "list-ref", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_list_set_x, "list-set!", 3, 0, 0,
+SCM_DEFINE(scm_list_set_x, "list-set!", 3, 0, 0,
            (SCM lst, SCM k, SCM val),
 "Set the @var{k}th element of @var{lst} to @var{val}.")
 #define FUNC_NAME s_scm_list_set_x
@@ -366,7 +366,7 @@ GUILE_PROC(scm_list_set_x, "list-set!", 3, 0, 0,
 
 SCM_REGISTER_PROC(s_list_cdr_ref, "list-cdr-ref", 2, 0, 0, scm_list_tail);
 
-GUILE_PROC(scm_list_tail, "list-tail", 2, 0, 0,
+SCM_DEFINE(scm_list_tail, "list-tail", 2, 0, 0,
            (SCM lst, SCM k),
 "Return the \"tail\" of @var{lst} beginning with its @var{k}th element.
 The first element of the list is considered to be element 0.
@@ -387,7 +387,7 @@ or returning the results of cdring @var{k} times down @var{lst}.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
+SCM_DEFINE(scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
            (SCM lst, SCM k, SCM val),
 "Set the @var{k}th cdr of @var{lst} to @var{val}.")
 #define FUNC_NAME s_scm_list_cdr_set_x
@@ -410,7 +410,7 @@ erout:
 
 /* copying lists, perhaps partially */
 
-GUILE_PROC(scm_list_head, "list-head", 2, 0, 0,
+SCM_DEFINE(scm_list_head, "list-head", 2, 0, 0,
            (SCM lst, SCM k),
 "Copy the first @var{k} elements from @var{lst} into a new list, and
 return it.")
@@ -435,7 +435,7 @@ return it.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_list_copy, "list-copy", 1, 0, 0, 
+SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0, 
             (SCM lst),
 "Return a (newly-created) copy of @var{lst}.")
 #define FUNC_NAME s_scm_list_copy
@@ -463,7 +463,7 @@ GUILE_PROC (scm_list_copy, "list-copy", 1, 0, 0,
 
 /* membership tests (memq, memv, etc.) */ 
 
-GUILE_PROC (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
+SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
             (SCM x, SCM lst),
 "@deffnx primitive sloppy-memv
 @deffnx primitive sloppy-member
@@ -483,7 +483,7 @@ in writing Guile internals, not for high-level Scheme programs.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
+SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
             (SCM x, SCM lst),
 "")
 #define FUNC_NAME s_scm_sloppy_memv
@@ -498,7 +498,7 @@ GUILE_PROC (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_sloppy_member, "sloppy-member", 2, 0, 0,
+SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
             (SCM x, SCM lst),
 "")
 #define FUNC_NAME s_scm_sloppy_member
@@ -514,7 +514,7 @@ GUILE_PROC (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 
 
 
-GUILE_PROC(scm_memq, "memq", 2, 0, 0,
+SCM_DEFINE(scm_memq, "memq", 2, 0, 0,
            (SCM x, SCM lst),
 "")
 #define FUNC_NAME s_scm_memq
@@ -528,7 +528,7 @@ GUILE_PROC(scm_memq, "memq", 2, 0, 0,
 
 
 
-GUILE_PROC(scm_memv, "memv", 2, 0, 0,
+SCM_DEFINE(scm_memv, "memv", 2, 0, 0,
            (SCM x, SCM lst),
 "")
 #define FUNC_NAME s_scm_memv
@@ -541,7 +541,7 @@ GUILE_PROC(scm_memv, "memv", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_member, "member", 2, 0, 0,
+SCM_DEFINE(scm_member, "member", 2, 0, 0,
            (SCM x, SCM lst),
 "")
 #define FUNC_NAME s_scm_member
@@ -557,7 +557,7 @@ GUILE_PROC(scm_member, "member", 2, 0, 0,
 
 /* deleting elements from a list (delq, etc.) */
 
-GUILE_PROC(scm_delq_x, "delq!", 2, 0, 0,
+SCM_DEFINE(scm_delq_x, "delq!", 2, 0, 0,
            (SCM item, SCM lst),
 "@deffnx primitive delv! item lst
 @deffnx primitive delete! item lst
@@ -587,7 +587,7 @@ destructive list functions, these functions cannot modify the binding of
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_delv_x, "delv!", 2, 0, 0,
+SCM_DEFINE(scm_delv_x, "delv!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delv_x
@@ -611,7 +611,7 @@ GUILE_PROC(scm_delv_x, "delv!", 2, 0, 0,
 
 
 
-GUILE_PROC(scm_delete_x, "delete!", 2, 0, 0,
+SCM_DEFINE(scm_delete_x, "delete!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delete_x
@@ -637,7 +637,7 @@ GUILE_PROC(scm_delete_x, "delete!", 2, 0, 0,
 
 
 
-GUILE_PROC (scm_delq, "delq", 2, 0, 0,
+SCM_DEFINE (scm_delq, "delq", 2, 0, 0,
             (SCM item, SCM lst),
 "@deffnx primitive delv item lst
 @deffnx primitive delete item lst
@@ -652,7 +652,7 @@ procedures mirror @code{memq}, @code{memv} and @code{member}:
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_delv, "delv", 2, 0, 0,
+SCM_DEFINE (scm_delv, "delv", 2, 0, 0,
             (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delv
@@ -662,7 +662,7 @@ GUILE_PROC (scm_delv, "delv", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_delete, "delete", 2, 0, 0,
+SCM_DEFINE (scm_delete, "delete", 2, 0, 0,
             (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delete
@@ -673,7 +673,7 @@ GUILE_PROC (scm_delete, "delete", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_delq1_x, "delq1!", 2, 0, 0,
+SCM_DEFINE(scm_delq1_x, "delq1!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delq1_x
@@ -699,7 +699,7 @@ GUILE_PROC(scm_delq1_x, "delq1!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_delv1_x, "delv1!", 2, 0, 0,
+SCM_DEFINE(scm_delv1_x, "delv1!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delv1_x
@@ -725,7 +725,7 @@ GUILE_PROC(scm_delv1_x, "delv1!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_delete1_x, "delete1!", 2, 0, 0,
+SCM_DEFINE(scm_delete1_x, "delete1!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delete1_x

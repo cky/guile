@@ -67,7 +67,7 @@
 #endif
 
 
-GUILE_PROC (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
+SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
             (SCM delims, SCM buf, SCM gobble, SCM port, SCM start, SCM end),
 "Read characters from @var{port} into @var{buf} until one of the
 characters in the @var{delims} string is encountered.  If @var{gobble?}
@@ -228,7 +228,7 @@ scm_do_read_line (SCM port, int *len_p)
  * efficiently in Scheme.
  */
 
-GUILE_PROC (scm_read_line, "%read-line", 0, 1, 0, 
+SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0, 
             (SCM port),
 "Read a newline-terminated line from @var{port}, allocating storage as
 necessary.  The newline terminator (if any) is removed from the string,
@@ -281,7 +281,7 @@ delimiter may be either a newline or the @var{eof-object}; if
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_write_line, "write-line", 1, 1, 0,
+SCM_DEFINE (scm_write_line, "write-line", 1, 1, 0,
             (SCM obj, SCM port),
 "Display @var{obj} and a newline character to @var{port}.  If @var{port}
 is not specified, @code{(current-output-port)} is used.  This function
@@ -298,7 +298,7 @@ is equivalent to:
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_ftell, "ftell", 1, 0, 0, 
+SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0, 
             (SCM object),
 "Returns an integer representing the current position of @var{fd/port},
 measured from the beginning.  Equivalent to:
@@ -311,7 +311,7 @@ measured from the beginning.  Equivalent to:
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_fseek, "fseek", 3, 0, 0,
+SCM_DEFINE (scm_fseek, "fseek", 3, 0, 0,
             (SCM object, SCM offset, SCM whence),
 "Obsolete.  Almost the same as seek, above, but the return value is
 unspecified.")
@@ -322,7 +322,7 @@ unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_redirect_port, "redirect-port", 2, 0, 0,
+SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
             (SCM old, SCM new),
 "This procedure takes two ports and duplicates the underlying file
 descriptor from @var{old-port} into @var{new-port}.  The
@@ -371,7 +371,7 @@ revealed counts.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_dup_to_fdes, "dup->fdes", 1, 1, 0, 
+SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0, 
             (SCM fd_or_port, SCM fd),
 "Returns an integer file descriptor.")
 #define FUNC_NAME s_scm_dup_to_fdes
@@ -411,7 +411,7 @@ GUILE_PROC (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_fileno, "fileno", 1, 0, 0, 
+SCM_DEFINE (scm_fileno, "fileno", 1, 0, 0, 
             (SCM port),
 "Returns the integer file descriptor underlying @var{port}.
 Does not change its revealed count.")
@@ -427,7 +427,7 @@ Does not change its revealed count.")
    an error if the arg is not a port?
    This proc as is would be better names isattyport?
    if it is not going to assume that the arg is a port */
-GUILE_PROC (scm_isatty_p, "isatty?", 1, 0, 0, 
+SCM_DEFINE (scm_isatty_p, "isatty?", 1, 0, 0, 
             (SCM port),
 "Returns @code{#t} if @var{port} is using a serial
 non-file device, otherwise @code{#f}.")
@@ -447,7 +447,7 @@ non-file device, otherwise @code{#f}.")
 
 
 
-GUILE_PROC (scm_fdopen, "fdopen", 2, 0, 0,
+SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
             (SCM fdes, SCM modes),
 "Returns a new port based on the file descriptor @var{fdes}.
 Modes are given by the string @var{modes}.  The revealed count of the port
@@ -472,7 +472,7 @@ by @ref{File Ports, open-file}.")
  *          #t if fdes moved. 
  * MOVE->FDES is implemented in Scheme and calls this primitive.
  */
-GUILE_PROC (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
+SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
             (SCM port, SCM fd),
 "Moves the underlying file descriptor for @var{port} to the integer
 value @var{fdes} without changing the revealed count of @var{port}.
@@ -509,7 +509,7 @@ required value or @code{#t} if it was moved.")
 #undef FUNC_NAME
 
 /* Return a list of ports using a given file descriptor.  */
-GUILE_PROC(scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
+SCM_DEFINE(scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
            (SCM fd),
 "Returns a list of existing ports which have @var{fdes} as an
 underlying file descriptor, without changing their revealed counts.")

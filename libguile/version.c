@@ -52,7 +52,7 @@
 
 /* Return a Scheme string containing Guile's major version number.  */
 
-GUILE_PROC(scm_major_version, "major-version", 0, 0, 0, 
+SCM_DEFINE(scm_major_version, "major-version", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_major_version
@@ -63,7 +63,7 @@ GUILE_PROC(scm_major_version, "major-version", 0, 0, 0,
 
 /* Return a Scheme string containing Guile's minor version number.  */
 
-GUILE_PROC(scm_minor_version, "minor-version", 0, 0, 0, 
+SCM_DEFINE(scm_minor_version, "minor-version", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_minor_version
@@ -74,7 +74,7 @@ GUILE_PROC(scm_minor_version, "minor-version", 0, 0, 0,
 
 /* Return a Scheme string containing Guile's complete version.  */
 
-GUILE_PROC(scm_version, "version", 0, 0, 0, 
+SCM_DEFINE(scm_version, "version", 0, 0, 0, 
            (),
 "@deffnx primitive major-version
 @deffnx primitive minor-version

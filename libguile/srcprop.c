@@ -163,7 +163,7 @@ scm_srcprops_to_plist (SCM obj)
   return plist;
 }
 
-GUILE_PROC (scm_source_properties, "source-properties", 1, 0, 0, 
+SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0, 
             (SCM obj),
 "")
 #define FUNC_NAME s_scm_source_properties
@@ -185,7 +185,7 @@ GUILE_PROC (scm_source_properties, "source-properties", 1, 0, 0,
 
 /* Perhaps this procedure should look through an alist
    and try to make a srcprops-object...? */
-GUILE_PROC (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
+SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
             (SCM obj, SCM plist),
 "")
 #define FUNC_NAME s_scm_set_source_properties_x
@@ -204,7 +204,7 @@ GUILE_PROC (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_source_property, "source-property", 2, 0, 0,
+SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
             (SCM obj, SCM key),
 "")
 #define FUNC_NAME s_scm_source_property
@@ -236,7 +236,7 @@ GUILE_PROC (scm_source_property, "source-property", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
+SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
             (SCM obj, SCM key, SCM datum),
 "")
 #define FUNC_NAME s_scm_set_source_property_x

@@ -277,7 +277,7 @@ mark_async (SCM obj)
 
 
 
-GUILE_PROC(scm_async, "async", 1, 0, 0, 
+SCM_DEFINE(scm_async, "async", 1, 0, 0, 
            (SCM thunk),
 "")
 #define FUNC_NAME s_scm_async
@@ -290,7 +290,7 @@ GUILE_PROC(scm_async, "async", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_system_async, "system-async", 1, 0, 0, 
+SCM_DEFINE(scm_system_async, "system-async", 1, 0, 0, 
             (SCM thunk),
 "")
 #define FUNC_NAME s_scm_system_async
@@ -305,7 +305,7 @@ GUILE_PROC(scm_system_async, "system-async", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_async_mark, "async-mark", 1, 0, 0, 
+SCM_DEFINE(scm_async_mark, "async-mark", 1, 0, 0, 
             (SCM a),
 "")
 #define FUNC_NAME s_scm_async_mark
@@ -318,7 +318,7 @@ GUILE_PROC(scm_async_mark, "async-mark", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_system_async_mark, "system-async-mark", 1, 0, 0, 
+SCM_DEFINE(scm_system_async_mark, "system-async-mark", 1, 0, 0, 
            (SCM a),
 "")
 #define FUNC_NAME s_scm_system_async_mark
@@ -335,7 +335,7 @@ GUILE_PROC(scm_system_async_mark, "system-async-mark", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_run_asyncs, "run-asyncs", 1, 0, 0, 
+SCM_DEFINE(scm_run_asyncs, "run-asyncs", 1, 0, 0, 
            (SCM list_of_a),
 "")
 #define FUNC_NAME s_scm_run_asyncs
@@ -366,7 +366,7 @@ GUILE_PROC(scm_run_asyncs, "run-asyncs", 1, 0, 0,
 
 
 
-GUILE_PROC(scm_noop, "noop", 0, 0, 1, 
+SCM_DEFINE(scm_noop, "noop", 0, 0, 1, 
            (SCM args),
 "")
 #define FUNC_NAME s_scm_noop
@@ -380,7 +380,7 @@ GUILE_PROC(scm_noop, "noop", 0, 0, 1,
 
 
 
-GUILE_PROC(scm_set_tick_rate, "set-tick-rate", 1, 0, 0, 
+SCM_DEFINE(scm_set_tick_rate, "set-tick-rate", 1, 0, 0, 
            (SCM n),
 "")
 #define FUNC_NAME s_scm_set_tick_rate
@@ -398,7 +398,7 @@ GUILE_PROC(scm_set_tick_rate, "set-tick-rate", 1, 0, 0,
 
 
 
-GUILE_PROC(scm_set_switch_rate, "set-switch-rate", 1, 0, 0, 
+SCM_DEFINE(scm_set_switch_rate, "set-switch-rate", 1, 0, 0, 
            (SCM n),
 "")
 #define FUNC_NAME s_scm_set_switch_rate
@@ -438,7 +438,7 @@ scm_sys_gc_async_thunk (void)
 
 
 
-GUILE_PROC(scm_unmask_signals, "unmask-signals", 0, 0, 0, 
+SCM_DEFINE(scm_unmask_signals, "unmask-signals", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_unmask_signals
@@ -449,7 +449,7 @@ GUILE_PROC(scm_unmask_signals, "unmask-signals", 0, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_mask_signals, "mask-signals", 0, 0, 0, 
+SCM_DEFINE(scm_mask_signals, "mask-signals", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_mask_signals

@@ -237,7 +237,7 @@ scm_make_uve (long k, SCM prot)
   return v;
 }
 
-GUILE_PROC(scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
+SCM_DEFINE(scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
            (SCM v),
 "Returns the number of elements in @var{uve}.")
 #define FUNC_NAME s_scm_uniform_vector_length
@@ -267,7 +267,7 @@ GUILE_PROC(scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_array_p, "array?", 1, 1, 0,
+SCM_DEFINE(scm_array_p, "array?", 1, 1, 0,
            (SCM v, SCM prot),
 "Returns @code{#t} if the @var{obj} is an array, and @code{#f} if not.
 
@@ -335,7 +335,7 @@ loop:
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_array_rank, "array-rank", 1, 0, 0, 
+SCM_DEFINE(scm_array_rank, "array-rank", 1, 0, 0, 
            (SCM ra),
 "Returns the number of dimensions of @var{obj}.  If @var{obj} is not an
 array, @code{0} is returned.")
@@ -370,7 +370,7 @@ array, @code{0} is returned.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_array_dimensions, "array-dimensions", 1, 0, 0, 
+SCM_DEFINE(scm_array_dimensions, "array-dimensions", 1, 0, 0, 
            (SCM ra),
 "@code{Array-dimensions} is similar to @code{array-shape} but replaces
 elements with a @code{0} minimum with one greater than the maximum. So:
@@ -508,7 +508,7 @@ scm_shap2ra (SCM args, const char *what)
   return ra;
 }
 
-GUILE_PROC(scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 0,
+SCM_DEFINE(scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 0,
            (SCM dims, SCM prot, SCM fill),
 "@deffnx primitive make-uniform-vector length prototype [fill]
 Creates and returns a uniform array or vector of type corresponding to
@@ -619,7 +619,7 @@ scm_ra_set_contp (SCM ra)
 }
 
 
-GUILE_PROC(scm_make_shared_array, "make-shared-array", 2, 0, 1,
+SCM_DEFINE(scm_make_shared_array, "make-shared-array", 2, 0, 1,
            (SCM oldra, SCM mapfunc, SCM dims),
 "@code{make-shared-array} can be used to create shared subarrays of other
 arrays.  The @var{mapper} is a function that translates coordinates in
@@ -745,7 +745,7 @@ it can be otherwise arbitrary.  A simple example:
 
 
 /* args are RA . DIMS */
-GUILE_PROC(scm_transpose_array, "transpose-array", 0, 0, 1, 
+SCM_DEFINE(scm_transpose_array, "transpose-array", 0, 0, 1, 
            (SCM args),
 "Returns an array sharing contents with @var{array}, but with dimensions
 arranged in a different order.  There must be one @var{dim} argument for
@@ -857,7 +857,7 @@ examples:
 #undef FUNC_NAME
 
 /* args are RA . AXES */
-GUILE_PROC(scm_enclose_array, "enclose-array", 0, 0, 1, 
+SCM_DEFINE(scm_enclose_array, "enclose-array", 0, 0, 1, 
            (SCM axes),
 "@var{dim0}, @var{dim1} @dots{} should be nonnegative integers less than
 the rank of @var{array}.  @var{enclose-array} returns an array
@@ -960,7 +960,7 @@ examples:
 
 
 
-GUILE_PROC(scm_array_in_bounds_p, "array-in-bounds?", 0, 0, 1, 
+SCM_DEFINE(scm_array_in_bounds_p, "array-in-bounds?", 0, 0, 1, 
            (SCM args),
 "Returns @code{#t} if its arguments would be acceptable to array-ref.")
 #define FUNC_NAME s_scm_array_in_bounds_p
@@ -1043,7 +1043,7 @@ tail:
 SCM_REGISTER_PROC(s_array_ref, "array-ref", 1, 0, 1, scm_uniform_vector_ref);
 
 
-GUILE_PROC(scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
+SCM_DEFINE(scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
            (SCM v, SCM args),
 "Returns the element at the @code{(index1, index2)} element in @var{array}.")
 #define FUNC_NAME s_scm_uniform_vector_ref
@@ -1237,7 +1237,7 @@ SCM_REGISTER_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_ar
 
 /* Note that args may be a list or an immediate object, depending which
    PROC is used (and it's called from C too).  */
-GUILE_PROC(scm_array_set_x, "array-set!", 2, 0, 1, 
+SCM_DEFINE(scm_array_set_x, "array-set!", 2, 0, 1, 
            (SCM v, SCM obj, SCM args),
 "Sets the element at the @code{(index1, index2)} element in @var{array} to
 @var{new-value}.  The value returned by array-set! is unspecified.")
@@ -1343,7 +1343,7 @@ GUILE_PROC(scm_array_set_x, "array-set!", 2, 0, 1,
    returns the unrolled array or #f if it can't be done.  */
   /* if strict is not SCM_UNDEFINED, return #f if returned array
 		     wouldn't have contiguous elements.  */
-GUILE_PROC(scm_array_contents, "array-contents", 1, 1, 0,
+SCM_DEFINE(scm_array_contents, "array-contents", 1, 1, 0,
            (SCM ra, SCM strict),
 "@deffnx primitive array-contents array strict
 If @var{array} may be @dfn{unrolled} into a one dimensional shared array
@@ -1449,7 +1449,7 @@ scm_ra2contig (SCM ra, int copy)
 
 
 
-GUILE_PROC(scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
+SCM_DEFINE(scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
            (SCM ra, SCM port_or_fd, SCM start, SCM end),
 "@deffnx primitive uniform-vector-read! uve [port-or-fdes] [start] [end]
 Attempts to read all elements of @var{ura}, in lexicographic order, as
@@ -1609,7 +1609,7 @@ loop:
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
+SCM_DEFINE(scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
            (SCM v, SCM port_or_fd, SCM start, SCM end),
 "@deffnx primitive uniform-vector-write uve [port-or-fdes] [start] [end]
 Writes all elements of @var{ura} as binary objects to
@@ -1734,7 +1734,7 @@ loop:
 static char cnt_tab[16] =
 {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 
-GUILE_PROC(scm_bit_count, "bit-count", 2, 0, 0,
+SCM_DEFINE(scm_bit_count, "bit-count", 2, 0, 0,
            (SCM item, SCM seq),
 "Returns the number occurrences of @var{bool} in @var{bv}.")
 #define FUNC_NAME s_scm_bit_count
@@ -1769,7 +1769,7 @@ GUILE_PROC(scm_bit_count, "bit-count", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_bit_position, "bit-position", 3, 0, 0,
+SCM_DEFINE(scm_bit_position, "bit-position", 3, 0, 0,
            (SCM item, SCM v, SCM k),
 "Returns the minimum index of an occurrence of @var{bool} in @var{bv}
 which is at least @var{k}.  If no @var{bool} occurs within the specified
@@ -1837,7 +1837,7 @@ range @code{#f} is returned.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
+SCM_DEFINE(scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
            (SCM v, SCM kv, SCM obj),
 "If uve is a bit-vector @var{bv} and uve must be of the same length.  If
 @var{bool} is @code{#t}, uve is OR'ed into @var{bv}; If @var{bool} is @code{#f}, the
@@ -1899,7 +1899,7 @@ The return value is unspecified.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_bit_count_star, "bit-count*", 3, 0, 0,
+SCM_DEFINE(scm_bit_count_star, "bit-count*", 3, 0, 0,
            (SCM v, SCM kv, SCM obj),
 "Returns
 @example
@@ -1967,7 +1967,7 @@ GUILE_PROC(scm_bit_count_star, "bit-count*", 3, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_bit_invert_x, "bit-invert!", 1, 0, 0, 
+SCM_DEFINE(scm_bit_invert_x, "bit-invert!", 1, 0, 0, 
            (SCM v),
 "Modifies @var{bv} by replacing each element with its negation.")
 #define FUNC_NAME s_scm_bit_invert_x
@@ -2050,7 +2050,7 @@ ra2l (SCM ra,scm_sizet base,scm_sizet k)
 }
 
 
-GUILE_PROC(scm_array_to_list, "array->list", 1, 0, 0, 
+SCM_DEFINE(scm_array_to_list, "array->list", 1, 0, 0, 
            (SCM v),
 "Returns a list consisting of all the elements, in order, of @var{array}.")
 #define FUNC_NAME s_scm_array_to_list
@@ -2157,7 +2157,7 @@ static char s_bad_ralst[] = "Bad scm_array contents list";
 
 static int l2ra(SCM lst, SCM ra, scm_sizet base, scm_sizet k);
 
-GUILE_PROC(scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
+SCM_DEFINE(scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
            (SCM ndim, SCM prot, SCM lst),
 "@deffnx procedure list->uniform-vector prot lst
 Returns a uniform array of the type indicated by prototype @var{prot}
@@ -2512,7 +2512,7 @@ tail:
   return 1;
 }
 
-GUILE_PROC(scm_array_prototype, "array-prototype", 1, 0, 0, 
+SCM_DEFINE(scm_array_prototype, "array-prototype", 1, 0, 0, 
            (SCM ra),
 "Returns an object that would produce an array of the same type as
 @var{array}, if used as the @var{prototype} for

@@ -99,7 +99,7 @@ make_vcell_variable (SCM vcell)
   SCM_RETURN_NEWSMOB (scm_tc16_variable, vcell);
 }
 
-GUILE_PROC(scm_make_variable, "make-variable", 1, 1, 0, 
+SCM_DEFINE(scm_make_variable, "make-variable", 1, 1, 0, 
            (SCM init, SCM name_hint),
 "")
 #define FUNC_NAME s_scm_make_variable
@@ -119,7 +119,7 @@ GUILE_PROC(scm_make_variable, "make-variable", 1, 1, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0, 
+SCM_DEFINE(scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0, 
            (SCM name_hint),
 "")
 #define FUNC_NAME s_scm_make_undefined_variable
@@ -139,7 +139,7 @@ GUILE_PROC(scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_variable_p, "variable?", 1, 0, 0, 
+SCM_DEFINE(scm_variable_p, "variable?", 1, 0, 0, 
            (SCM obj),
 "")
 #define FUNC_NAME s_scm_variable_p
@@ -149,7 +149,7 @@ GUILE_PROC(scm_variable_p, "variable?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_variable_ref, "variable-ref", 1, 0, 0, 
+SCM_DEFINE(scm_variable_ref, "variable-ref", 1, 0, 0, 
            (SCM var),
 "")
 #define FUNC_NAME s_scm_variable_ref
@@ -161,7 +161,7 @@ GUILE_PROC(scm_variable_ref, "variable-ref", 1, 0, 0,
 
 
 
-GUILE_PROC(scm_variable_set_x, "variable-set!", 2, 0, 0,
+SCM_DEFINE(scm_variable_set_x, "variable-set!", 2, 0, 0,
            (SCM var, SCM val),
 "")
 #define FUNC_NAME s_scm_variable_set_x
@@ -173,7 +173,7 @@ GUILE_PROC(scm_variable_set_x, "variable-set!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_builtin_variable, "builtin-variable", 1, 0, 0, 
+SCM_DEFINE(scm_builtin_variable, "builtin-variable", 1, 0, 0, 
            (SCM name),
 "")
 #define FUNC_NAME s_scm_builtin_variable
@@ -200,7 +200,7 @@ GUILE_PROC(scm_builtin_variable, "builtin-variable", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_variable_bound_p, "variable-bound?", 1, 0, 0, 
+SCM_DEFINE(scm_variable_bound_p, "variable-bound?", 1, 0, 0, 
            (SCM var),
 "")
 #define FUNC_NAME s_scm_variable_bound_p

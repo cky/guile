@@ -118,7 +118,7 @@ int next_fluid_num ()
   return n;
 }
 
-GUILE_PROC (scm_make_fluid, "make-fluid", 0, 0, 0, 
+SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0, 
             (),
 "")
 #define FUNC_NAME s_scm_make_fluid
@@ -131,7 +131,7 @@ GUILE_PROC (scm_make_fluid, "make-fluid", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_fluid_p, "fluid?", 1, 0, 0, 
+SCM_DEFINE (scm_fluid_p, "fluid?", 1, 0, 0, 
             (SCM fl),
 "")
 #define FUNC_NAME s_scm_fluid_p
@@ -140,7 +140,7 @@ GUILE_PROC (scm_fluid_p, "fluid?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
+SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
             (SCM fl),
 "")
 #define FUNC_NAME s_scm_fluid_ref
@@ -157,7 +157,7 @@ GUILE_PROC (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
+SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
             (SCM fl, SCM val),
 "")
 #define FUNC_NAME s_scm_fluid_set_x
@@ -213,7 +213,7 @@ apply_thunk (void *thunk)
   return scm_apply ((SCM) thunk, SCM_EOL, SCM_EOL);
 }
 
-GUILE_PROC (scm_with_fluids, "with-fluids*", 3, 0, 0, 
+SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0, 
             (SCM fluids, SCM vals, SCM thunk),
 "")
 #define FUNC_NAME s_scm_with_fluids

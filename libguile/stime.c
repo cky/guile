@@ -129,7 +129,7 @@ extern int errno;
 
 struct timeb scm_your_base = {0};
 
-GUILE_PROC(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
+SCM_DEFINE(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
            (),
 "Returns the number of time units since the interpreter was started.")
 #define FUNC_NAME s_scm_get_internal_real_time
@@ -153,7 +153,7 @@ GUILE_PROC(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 
 timet scm_your_base = 0;
 
-GUILE_PROC(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
+SCM_DEFINE(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_get_internal_real_time
@@ -164,7 +164,7 @@ GUILE_PROC(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 
 #endif
 
-GUILE_PROC (scm_times, "times", 0, 0, 0, 
+SCM_DEFINE (scm_times, "times", 0, 0, 0, 
             (void),
 "Returns an object with information about real and processor time.
 The following procedures accept such an object as an argument and
@@ -215,7 +215,7 @@ terminated child processes.
 
 static long scm_my_base = 0;
 
-GUILE_PROC(scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
+SCM_DEFINE(scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
            (void),
 "Returns the number of time units of processor time used by the interpreter.
 Both "system" and "user" time
@@ -226,7 +226,7 @@ are included but subprocesses are not.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_current_time, "current-time", 0, 0, 0, 
+SCM_DEFINE(scm_current_time, "current-time", 0, 0, 0, 
            (void),
 "Returns the number of seconds since 1970-01-01 00:00:00 UTC, excluding
 leap seconds.")
@@ -242,7 +242,7 @@ leap seconds.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_gettimeofday, "gettimeofday", 0, 0, 0, 
+SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0, 
             (void),
 "Returns a pair containing the number of seconds and microseconds since
 1970-01-01 00:00:00 UTC, excluding leap seconds.  Note: whether true
@@ -337,7 +337,7 @@ restorezone (SCM zone, char **oldenv, const char *subr)
 }
 
 
-GUILE_PROC (scm_localtime, "localtime", 1, 1, 0, 
+SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0, 
             (SCM time, SCM zone),
 "Returns an object representing the broken down components of @var{time},
 an integer like the one returned by @code{current-time}.  The time zone
@@ -407,7 +407,7 @@ used.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_gmtime, "gmtime", 1, 0, 0, 
+SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0, 
             (SCM time),
 "Returns an object representing the broken down components of @var{time},
 an integer like the one returned by @code{current-time}.  The values
@@ -465,7 +465,7 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 #endif
 }
 
-GUILE_PROC (scm_mktime, "mktime", 1, 1, 0, 
+SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0, 
             (SCM sbd_time, SCM zone),
 "@var{bd-time} is an object representing broken down time and @code{zone}
 is an optional time zone specifier (otherwise the TZ environment variable
@@ -541,7 +541,7 @@ as @var{bd-time} but with normalized values.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_tzset, "tzset", 0, 0, 0, 
+SCM_DEFINE (scm_tzset, "tzset", 0, 0, 0, 
             (void),
 "Initialize the timezone from the TZ environment variable or the system
 default.  Usually this is done automatically by other procedures which
@@ -554,7 +554,7 @@ is changed.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_strftime, "strftime", 2, 0, 0,
+SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
             (SCM format, SCM stime),
 "Formats a time specification @var{time} using @var{template}.  @var{time}
 is an object with time components in the form returned by @code{localtime}
@@ -593,7 +593,7 @@ is the formatted string.
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_strptime, "strptime", 2, 0, 0,
+SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
             (SCM format, SCM string),
 "Performs the reverse action to @code{strftime}, parsing @var{string}
 according to the specification supplied in @var{template}.  The

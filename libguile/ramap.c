@@ -404,7 +404,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 }
 
 
-GUILE_PROC(scm_array_fill_x, "array-fill!", 2, 0, 0,
+SCM_DEFINE(scm_array_fill_x, "array-fill!", 2, 0, 0,
            (SCM ra, SCM fill),
 "Stores @var{fill} in every element of @var{array}.  The value returned
 is unspecified.")
@@ -775,7 +775,7 @@ SCM_REGISTER_PROC(s_serial_array_copy_x, "serial-array-copy!", 2, 0, 0, scm_arra
 SCM_REGISTER_PROC(s_array_copy_in_order_x, "array-copy-in-order!", 2, 0, 0, scm_array_copy_x);
 
 
-GUILE_PROC(scm_array_copy_x, "array-copy!", 2, 0, 0,
+SCM_DEFINE(scm_array_copy_x, "array-copy!", 2, 0, 0,
            (SCM src, SCM dst),
 "Copies every element from vector or array @var{source} to the
 corresponding element of @var{destination}.  @var{destination} must have
@@ -1595,7 +1595,7 @@ SCM_REGISTER_PROC(s_serial_array_map_x, "serial-array-map!", 2, 0, 1, scm_array_
 SCM_REGISTER_PROC(s_array_map_in_order_x, "array-map-in-order!", 2, 0, 1, scm_array_map_x);
 
 
-GUILE_PROC(scm_array_map_x, "array-map!", 2, 0, 1,
+SCM_DEFINE(scm_array_map_x, "array-map!", 2, 0, 1,
            (SCM ra0, SCM proc, SCM lra),
 "@var{array1}, @dots{} must have the same number of dimensions as
 @var{array0} and have a range for each index which includes the range
@@ -1742,7 +1742,7 @@ rafe (SCM ra0,SCM proc,SCM ras)
 }
 
 
-GUILE_PROC(scm_array_for_each, "array-for-each", 2, 0, 1,
+SCM_DEFINE(scm_array_for_each, "array-for-each", 2, 0, 1,
            (SCM proc, SCM ra0, SCM lra),
 "@var{proc} is applied to each tuple of elements of @var{array0} @dots{}
 in row-major order.  The value returned is unspecified.")
@@ -1754,7 +1754,7 @@ in row-major order.  The value returned is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_array_index_map_x, "array-index-map!", 2, 0, 0,
+SCM_DEFINE(scm_array_index_map_x, "array-index-map!", 2, 0, 0,
            (SCM ra, SCM proc),
 "applies @var{proc} to the indices of each element of @var{array} in
 turn, storing the result in the corresponding element.  The value

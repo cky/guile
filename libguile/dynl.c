@@ -173,7 +173,7 @@ scm_register_module_xxx (char *module_name, void *init_func)
     registered_mods = md;
 }
 
-GUILE_PROC (scm_registered_modules, "c-registered-modules", 0, 0, 0, 
+SCM_DEFINE (scm_registered_modules, "c-registered-modules", 0, 0, 0, 
             (),
 "Return a list of the object code modules that have been imported into
 the current Guile process.  Each element of the list is a pair whose
@@ -194,7 +194,7 @@ for that module's initializer function.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0, 
+SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0, 
             (),
 "Destroy the list of modules registered with the current Guile process.
 The return value is unspecified.  @strong{Warning:} this function does
@@ -319,7 +319,7 @@ print_dynl_obj (SCM exp,SCM port,scm_print_state *pstate)
 static SCM kw_global;
 SCM_SYMBOL (sym_global, "-global");
 
-GUILE_PROC (scm_dynamic_link, "dynamic-link", 1, 0, 1, 
+SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 1, 
             (SCM fname, SCM rest),
 "Open the dynamic library @var{library-file}.  A library handle
 representing the opened library is returned; this handle should be used
@@ -385,7 +385,7 @@ get_dynl_obj (SCM dobj,const char *subr,int argn)
     return d;
 }
 
-GUILE_PROC (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0, 
+SCM_DEFINE (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0, 
             (SCM obj),
 "Return @code{#t} if @var{obj} is a dynamic library handle, or @code{#f}
 otherwise.")
@@ -395,7 +395,7 @@ otherwise.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0, 
+SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0, 
             (SCM dobj),
 "Unlink the library represented by @var{library-handle}, and remove any
 imported symbols from the address space.
@@ -417,7 +417,7 @@ below and you will get type mismatch errors when you try to.
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_dynamic_func, "dynamic-func", 2, 0, 0, 
+SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0, 
             (SCM symb, SCM dobj),
 "Import the symbol @var{func} from @var{lib} (a dynamic library handle).
 A @dfn{function handle} representing the imported function is returned.
@@ -451,7 +451,7 @@ needed or not and will add it when necessary.
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_dynamic_call, "dynamic-call", 2, 0, 0, 
+SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0, 
             (SCM func, SCM dobj),
 "Call @var{lib-thunk}, a procedure of no arguments.  If @var{lib-thunk}
 is a string, it is assumed to be a symbol found in the dynamic library
@@ -486,7 +486,7 @@ Interrupts are deferred while the C function is executing (with
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
+SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
             (SCM func, SCM dobj, SCM args),
 "Call @var{proc}, a dynamically loaded function, passing it the argument
 list @var{args} (a list of strings).  As with @code{dynamic-call},

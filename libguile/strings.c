@@ -55,7 +55,7 @@
 /* {Strings}
  */
 
-GUILE_PROC(scm_string_p, "string?", 1, 0, 0, 
+SCM_DEFINE(scm_string_p, "string?", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_string_p
@@ -66,7 +66,7 @@ GUILE_PROC(scm_string_p, "string?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
+SCM_DEFINE(scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
            (SCM x),
 "Return true of OBJ can be read as a string,
 
@@ -91,7 +91,7 @@ This illustrates the difference between @code{string?} and
 SCM_REGISTER_PROC(s_list_to_string, "list->string", 1, 0, 0, scm_string);
 
 
-GUILE_PROC(scm_string, "string", 0, 0, 1, 
+SCM_DEFINE(scm_string, "string", 0, 0, 1, 
            (SCM chrs),
 "")
 #define FUNC_NAME s_scm_string
@@ -247,7 +247,7 @@ scm_makfrom0str_opt (const char *src)
 
 
 
-GUILE_PROC(scm_make_string, "make-string", 1, 1, 0,
+SCM_DEFINE(scm_make_string, "make-string", 1, 1, 0,
            (SCM k, SCM chr),
 "")
 #define FUNC_NAME s_scm_make_string
@@ -270,7 +270,7 @@ GUILE_PROC(scm_make_string, "make-string", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_length, "string-length", 1, 0, 0, 
+SCM_DEFINE(scm_string_length, "string-length", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_length
@@ -280,7 +280,7 @@ GUILE_PROC(scm_string_length, "string-length", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_ref, "string-ref", 1, 1, 0,
+SCM_DEFINE(scm_string_ref, "string-ref", 1, 1, 0,
            (SCM str, SCM k),
 "")
 #define FUNC_NAME s_scm_string_ref
@@ -292,7 +292,7 @@ GUILE_PROC(scm_string_ref, "string-ref", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_set_x, "string-set!", 3, 0, 0,
+SCM_DEFINE(scm_string_set_x, "string-set!", 3, 0, 0,
            (SCM str, SCM k, SCM chr),
 "")
 #define FUNC_NAME s_scm_string_set_x
@@ -307,7 +307,7 @@ GUILE_PROC(scm_string_set_x, "string-set!", 3, 0, 0,
 
 
 
-GUILE_PROC(scm_substring, "substring", 2, 1, 0,
+SCM_DEFINE(scm_substring, "substring", 2, 1, 0,
            (SCM str, SCM start, SCM end),
 "")
 #define FUNC_NAME s_scm_substring
@@ -324,7 +324,7 @@ GUILE_PROC(scm_substring, "substring", 2, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_append, "string-append", 0, 0, 1, 
+SCM_DEFINE(scm_string_append, "string-append", 0, 0, 1, 
            (SCM args),
 "")
 #define FUNC_NAME s_scm_string_append
@@ -350,7 +350,7 @@ GUILE_PROC(scm_string_append, "string-append", 0, 0, 1,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
+SCM_DEFINE(scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
            (SCM str, SCM frm, SCM to),
 "Return a shared substring of @var{str}.  The semantics are the same as
 for the @code{substring} function: the shared substring returned

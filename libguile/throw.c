@@ -526,7 +526,7 @@ scm_handle_by_throw (void *handler_data, SCM tag, SCM args)
 
 /* the Scheme-visible CATCH and LAZY-CATCH functions */
 
-GUILE_PROC(scm_catch, "catch", 3, 0, 0,
+SCM_DEFINE(scm_catch, "catch", 3, 0, 0,
            (SCM tag, SCM thunk, SCM handler),
 "Invoke @var{thunk} in the dynamic context of @var{handler} for
 exceptions matching @var{key}.  If thunk throws to the symbol @var{key},
@@ -569,7 +569,7 @@ this call to @code{catch}.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_lazy_catch, "lazy-catch", 3, 0, 0,
+SCM_DEFINE(scm_lazy_catch, "lazy-catch", 3, 0, 0,
            (SCM tag, SCM thunk, SCM handler),
 "")
 #define FUNC_NAME s_scm_lazy_catch
@@ -598,7 +598,7 @@ GUILE_PROC(scm_lazy_catch, "lazy-catch", 3, 0, 0,
 
 /* throwing */
 
-GUILE_PROC(scm_throw, "throw", 1, 0, 1,
+SCM_DEFINE(scm_throw, "throw", 1, 0, 1,
            (SCM key, SCM args),
 "Invoke the catch form matching @var{key}, passing @var{args} to the
 @var{handler}.  

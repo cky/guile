@@ -54,7 +54,7 @@
 /* {Pairs}
  */
 
-GUILE_PROC(scm_cons, "cons", 2, 0, 0,
+SCM_DEFINE(scm_cons, "cons", 2, 0, 0,
            (SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_cons
@@ -83,7 +83,7 @@ scm_cons2 (SCM w, SCM x, SCM y)
 }
 
 
-GUILE_PROC (scm_pair_p, "pair?", 1, 0, 0, 
+SCM_DEFINE (scm_pair_p, "pair?", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_pair_p
@@ -94,7 +94,7 @@ GUILE_PROC (scm_pair_p, "pair?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_set_car_x, "set-car!", 2, 0, 0,
+SCM_DEFINE (scm_set_car_x, "set-car!", 2, 0, 0,
             (SCM pair, SCM value),
 "")
 #define FUNC_NAME s_scm_set_car_x
@@ -105,7 +105,7 @@ GUILE_PROC (scm_set_car_x, "set-car!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
+SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
             (SCM pair, SCM value),
 "")
 #define FUNC_NAME s_scm_set_cdr_x

@@ -128,7 +128,7 @@ scm_option scm_print_opts[] = {
     "Print closures with source." }
 };
 
-GUILE_PROC (scm_print_options, "print-options-interface", 0, 1, 0, 
+SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0, 
             (SCM setting),
 "")
 #define FUNC_NAME s_scm_print_options
@@ -184,7 +184,7 @@ static SCM print_state_pool;
 
 #ifdef GUILE_DEBUG /* Used for debugging purposes */
 
-GUILE_PROC(scm_current_pstate, "current-pstate", 0, 0, 0, 
+SCM_DEFINE(scm_current_pstate, "current-pstate", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_current_pstate
@@ -934,7 +934,7 @@ scm_display (SCM obj, SCM port)
   return SCM_UNSPECIFIED;
 }
 
-GUILE_PROC(scm_newline, "newline", 0, 1, 0, 
+SCM_DEFINE(scm_newline, "newline", 0, 1, 0, 
            (SCM port),
 "")
 #define FUNC_NAME s_scm_newline
@@ -949,7 +949,7 @@ GUILE_PROC(scm_newline, "newline", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_write_char, "write-char", 1, 1, 0,
+SCM_DEFINE(scm_write_char, "write-char", 1, 1, 0,
            (SCM chr, SCM port),
 "")
 #define FUNC_NAME s_scm_write_char
@@ -1002,7 +1002,7 @@ scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *pstate)
   return scm_apply (proc, exp, scm_cons (pwps, scm_listofnull));
 }
 
-GUILE_PROC (scm_port_with_print_state, "port-with-print-state", 2, 0, 0, 
+SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0, 
             (SCM port, SCM pstate),
 "")
 #define FUNC_NAME s_scm_port_with_print_state
@@ -1016,7 +1016,7 @@ GUILE_PROC (scm_port_with_print_state, "port-with-print-state", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_get_print_state, "get-print-state", 1, 0, 0, 
+SCM_DEFINE (scm_get_print_state, "get-print-state", 1, 0, 0, 
             (SCM port),
 "")
 #define FUNC_NAME s_scm_get_print_state

@@ -335,7 +335,7 @@ cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
 			    stack_start);
 }
 
-GUILE_PROC(scm_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0,
+SCM_DEFINE(scm_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0,
            (SCM thunk, SCM handler),
 "Evaluate @var{(thunk)} in a new dynamic context, returning its value.
 
@@ -386,7 +386,7 @@ be under a new dynamic root.)")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_dynamic_root, "dynamic-root", 0, 0, 0, 
+SCM_DEFINE(scm_dynamic_root, "dynamic-root", 0, 0, 0, 
            (),
 "Return an object representing the current dynamic root.
 

@@ -164,7 +164,7 @@ scm_hash_fn_remove_x (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn
 
 
 
-GUILE_PROC (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
+SCM_DEFINE (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
             (SCM table, SCM obj),
 "@deffnx primitive hashv-get-handle table key
 @deffnx primitive hash-get-handle table key
@@ -182,7 +182,7 @@ only a @code{value}, @code{hashq-get-handle table key} returns the pair
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
+SCM_DEFINE (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
             (SCM table, SCM obj, SCM init),
 "@deffnx primitive hashv-create-handle! table key init
 @deffnx primitive hash-create-handle! table key init
@@ -197,7 +197,7 @@ associates @var{key} with @var{init}.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hashq_ref, "hashq-ref", 2, 1, 0,
+SCM_DEFINE (scm_hashq_ref, "hashq-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
 "@deffnx primitive hashv-ref table key [default]
 @deffnx primitive hash-ref table key [default]
@@ -215,7 +215,7 @@ supplied).")
 
 
 
-GUILE_PROC (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
+SCM_DEFINE (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
 "@deffnx primitive hashv-set! table key value
 @deffnx primitive hash-set! table key value
@@ -229,7 +229,7 @@ Find the entry in @var{table} associated with @var{key}, and store
 
 
 
-GUILE_PROC (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
+SCM_DEFINE (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
             (SCM table, SCM obj),
 "@deffnx primitive hashv-remove! table key
 @deffnx primitive hash-remove! table key
@@ -243,7 +243,7 @@ Remove @var{key} (and any value associated with it) from @var{table}.")
 
 
 
-GUILE_PROC (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
+SCM_DEFINE (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
             (SCM table, SCM obj),
 "")
 #define FUNC_NAME s_scm_hashv_get_handle
@@ -253,7 +253,7 @@ GUILE_PROC (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
+SCM_DEFINE (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
             (SCM table, SCM obj, SCM init),
 "")
 #define FUNC_NAME s_scm_hashv_create_handle_x
@@ -263,7 +263,7 @@ GUILE_PROC (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hashv_ref, "hashv-ref", 2, 1, 0,
+SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
 "")
 #define FUNC_NAME s_scm_hashv_ref
@@ -276,7 +276,7 @@ GUILE_PROC (scm_hashv_ref, "hashv-ref", 2, 1, 0,
 
 
 
-GUILE_PROC (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
+SCM_DEFINE (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
 "")
 #define FUNC_NAME s_scm_hashv_set_x
@@ -286,7 +286,7 @@ GUILE_PROC (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
+SCM_DEFINE (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
             (SCM table, SCM obj),
 "")
 #define FUNC_NAME s_scm_hashv_remove_x
@@ -297,7 +297,7 @@ GUILE_PROC (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
 
 
 
-GUILE_PROC (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
+SCM_DEFINE (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
             (SCM table, SCM obj),
 "")
 #define FUNC_NAME s_scm_hash_get_handle
@@ -307,7 +307,7 @@ GUILE_PROC (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
+SCM_DEFINE (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
             (SCM table, SCM obj, SCM init),
 "")
 #define FUNC_NAME s_scm_hash_create_handle_x
@@ -317,7 +317,7 @@ GUILE_PROC (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hash_ref, "hash-ref", 2, 1, 0,
+SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
 "")
 #define FUNC_NAME s_scm_hash_ref
@@ -330,7 +330,7 @@ GUILE_PROC (scm_hash_ref, "hash-ref", 2, 1, 0,
 
 
 
-GUILE_PROC (scm_hash_set_x, "hash-set!", 3, 0, 0,
+SCM_DEFINE (scm_hash_set_x, "hash-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
 "")
 #define FUNC_NAME s_scm_hash_set_x
@@ -341,7 +341,7 @@ GUILE_PROC (scm_hash_set_x, "hash-set!", 3, 0, 0,
 
 
 
-GUILE_PROC (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
+SCM_DEFINE (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
             (SCM table, SCM obj),
 "")
 #define FUNC_NAME s_scm_hash_remove_x
@@ -405,7 +405,7 @@ scm_delx_x (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
 
 
 
-GUILE_PROC (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0, 
+SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0, 
             (SCM hash, SCM assoc, SCM table, SCM obj),
 "")
 #define FUNC_NAME s_scm_hashx_get_handle
@@ -418,7 +418,7 @@ GUILE_PROC (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0, 
+SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0, 
             (SCM hash,SCM assoc,SCM table,SCM obj,SCM init),
 "")
 #define FUNC_NAME s_scm_hashx_create_handle_x
@@ -432,7 +432,7 @@ GUILE_PROC (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0,
 
 
 
-GUILE_PROC (scm_hashx_ref, "hashx-ref", 4, 1, 0, 
+SCM_DEFINE (scm_hashx_ref, "hashx-ref", 4, 1, 0, 
             (SCM hash,SCM assoc,SCM table,SCM obj,SCM dflt),
 "@deffnx primitive hashx-set! hasher assoc table key value
 @deffnx primitive hashx-remove! hasher assoc table key
@@ -459,7 +459,7 @@ to @code{hashx-ref hashq assq table key}.")
 
 
 
-GUILE_PROC (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
+SCM_DEFINE (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
             (SCM hash, SCM assoc, SCM table, SCM obj, SCM val),
 "")
 #define FUNC_NAME s_scm_hashx_set_x
@@ -489,7 +489,7 @@ fold_proc (void *proc, SCM key, SCM data, SCM value)
   return scm_apply ((SCM) proc, SCM_LIST3 (key, data, value), SCM_EOL);
 }
 
-GUILE_PROC (scm_hash_fold, "hash-fold", 3, 0, 0, 
+SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0, 
             (SCM proc, SCM init, SCM table),
 "")
 #define FUNC_NAME s_scm_hash_fold

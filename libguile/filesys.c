@@ -122,7 +122,7 @@
 /* {Permissions}
  */
 
-GUILE_PROC (scm_chown, "chown", 3, 0, 0, 
+SCM_DEFINE (scm_chown, "chown", 3, 0, 0, 
             (SCM object, SCM owner, SCM group),
 "Change the ownership and group of the file referred to by @var{obj} to
 the integer userid values @var{owner} and @var{group}.  @var{obj} can be
@@ -168,7 +168,7 @@ as @code{-1}, then that ID is not changed.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_chmod, "chmod", 2, 0, 0,
+SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
             (SCM object, SCM mode),
 "Changes the permissions of the file referred to by @var{obj}.
 @var{obj} can be a string containing a file name or a port or integer file
@@ -205,7 +205,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_umask, "umask", 0, 1, 0, 
+SCM_DEFINE (scm_umask, "umask", 0, 1, 0, 
             (SCM mode),
 "If @var{mode} is omitted, retuns a decimal number representing the current
 file creation mask.  Otherwise the file creation mask is set to
@@ -231,7 +231,7 @@ E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
 
 
 
-GUILE_PROC (scm_open_fdes, "open-fdes", 2, 1, 0, 
+SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0, 
             (SCM path, SCM flags, SCM mode),
 "Similar to @code{open} but returns a file descriptor instead of a
 port.")
@@ -252,7 +252,7 @@ port.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_open, "open", 2, 1, 0, 
+SCM_DEFINE (scm_open, "open", 2, 1, 0, 
             (SCM path, SCM flags, SCM mode),
 "Open the file named by @var{path} for reading and/or writing.
 @var{flags} is an integer specifying how the file should be opened.
@@ -312,7 +312,7 @@ for additional flags.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_close, "close", 1, 0, 0, 
+SCM_DEFINE (scm_close, "close", 1, 0, 0, 
             (SCM fd_or_port),
 "Similar to close-port (@pxref{Generic Port Operations, close-port}),
 but also works on file descriptors.  A side
@@ -445,7 +445,7 @@ scm_stat2scm (struct stat *stat_temp)
   return ans;
 }
 
-GUILE_PROC (scm_stat, "stat", 1, 0, 0, 
+SCM_DEFINE (scm_stat, "stat", 1, 0, 0, 
             (SCM object),
 "Returns an object containing various information
 about the file determined by @var{obj}.
@@ -543,7 +543,7 @@ An integer representing the access permission bits.
 /* {Modifying Directories}
  */
 
-GUILE_PROC (scm_link, "link", 2, 0, 0,
+SCM_DEFINE (scm_link, "link", 2, 0, 0,
             (SCM oldpath, SCM newpath),
 "Creates a new name @var{path-to} in the file system for the file
 named by @var{path-from}.  If @var{path-from} is a symbolic link, the
@@ -569,7 +569,7 @@ link may or may not be followed depending on the system.")
 
 
 
-GUILE_PROC (scm_rename, "rename-file", 2, 0, 0,
+SCM_DEFINE (scm_rename, "rename-file", 2, 0, 0,
             (SCM oldname, SCM newname),
 "Renames the file specified by @var{path-from} to @var{path-to}.
 The return value is unspecified.")
@@ -599,7 +599,7 @@ The return value is unspecified.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_delete_file, "delete-file", 1, 0, 0, 
+SCM_DEFINE(scm_delete_file, "delete-file", 1, 0, 0, 
            (SCM str),
 "Deletes (or \"unlinks\") the file specified by @var{path}.")
 #define FUNC_NAME s_scm_delete_file
@@ -614,7 +614,7 @@ GUILE_PROC(scm_delete_file, "delete-file", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_mkdir, "mkdir", 1, 1, 0,
+SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
             (SCM path, SCM mode),
 "Create a new directory named by @var{path}.  If @var{mode} is omitted
 then the permissions of the directory file are set using the current
@@ -650,7 +650,7 @@ umask.  Otherwise they are set to the decimal value specified with
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_rmdir, "rmdir", 1, 0, 0, 
+SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0, 
             (SCM path),
 "Remove the existing directory named by @var{path}.  The directory must
 be empty for this to succeed.  The return value is unspecified.")
@@ -679,7 +679,7 @@ be empty for this to succeed.  The return value is unspecified.")
 
 long scm_tc16_dir;
 
-GUILE_PROC (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
+SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
             (SCM obj),
 "Returns a boolean indicating whether @var{object} is a directory stream
 as returned by @code{opendir}.")
@@ -689,7 +689,7 @@ as returned by @code{opendir}.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_opendir, "opendir", 1, 0, 0, 
+SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0, 
             (SCM dirname),
 "Open the directory specified by @var{path} and return a directory
 stream.")
@@ -706,7 +706,7 @@ stream.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_readdir, "readdir", 1, 0, 0, 
+SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0, 
             (SCM port),
 "Return (as a string) the next directory entry from the directory stream
 @var{stream}.  If there is no remaining entry to be read then the
@@ -726,7 +726,7 @@ end of file object is returned.")
 
 
 
-GUILE_PROC (scm_rewinddir, "rewinddir", 1, 0, 0, 
+SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0, 
             (SCM port),
 "Reset the directory port @var{stream} so that the next call to
 @code{readdir} will return the first directory entry.")
@@ -740,7 +740,7 @@ GUILE_PROC (scm_rewinddir, "rewinddir", 1, 0, 0,
 
 
 
-GUILE_PROC (scm_closedir, "closedir", 1, 0, 0, 
+SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0, 
             (SCM port),
 "Close the directory stream @var{stream}.
 The return value is unspecified.")
@@ -790,7 +790,7 @@ scm_dir_free (SCM p)
  */
 
 
-GUILE_PROC (scm_chdir, "chdir", 1, 0, 0, 
+SCM_DEFINE (scm_chdir, "chdir", 1, 0, 0, 
             (SCM str),
 "Change the current working directory to @var{path}.
 The return value is unspecified.")
@@ -809,7 +809,7 @@ The return value is unspecified.")
 
 
 
-GUILE_PROC (scm_getcwd, "getcwd", 0, 0, 0,
+SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
             (),
 "Returns the name of the current working directory.")
 #define FUNC_NAME s_scm_getcwd
@@ -936,7 +936,7 @@ retrieve_select_type (SELECT_TYPE *set, SCM list)
 }
 
 /* Static helper functions above refer to s_scm_select directly as s_select */
-GUILE_PROC (scm_select, "select", 3, 2, 0, 
+SCM_DEFINE (scm_select, "select", 3, 2, 0, 
             (SCM reads, SCM writes, SCM excepts, SCM secs, SCM usecs),
 "@var{reads}, @var{writes} and @var{excepts} can be lists or vectors: it
 doesn't matter which, but the corresponding object returned will be
@@ -1044,7 +1044,7 @@ values instead of a list and has an additional select! interface.
 
 
 
-GUILE_PROC (scm_fcntl, "fcntl", 2, 0, 1,
+SCM_DEFINE (scm_fcntl, "fcntl", 2, 0, 1,
             (SCM object, SCM cmd, SCM value),
 "Apply @var{command} to the specified file descriptor or the underlying
 file descriptor of the specified port.  @var{value} is an optional
@@ -1101,7 +1101,7 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_fsync, "fsync", 1, 0, 0, 
+SCM_DEFINE (scm_fsync, "fsync", 1, 0, 0, 
             (SCM object),
 "Copies any unwritten data for the specified output file descriptor to disk.
 If @var{port/fd} is a port, its buffer is flushed before the underlying
@@ -1129,7 +1129,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_symlink, "symlink", 2, 0, 0,
+SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
             (SCM oldpath, SCM newpath),
 "Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
 @var{path-from}.  The return value is unspecified.")
@@ -1155,7 +1155,7 @@ GUILE_PROC (scm_symlink, "symlink", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_readlink, "readlink", 1, 0, 0, 
+SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0, 
             (SCM path),
 "Returns the value of the symbolic link named by
 @var{path} (a string), i.e., the
@@ -1190,7 +1190,7 @@ file that the link points to.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_lstat, "lstat", 1, 0, 0, 
+SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0, 
             (SCM str),
 "Similar to @code{stat}, but does not follow symbolic links, i.e.,
 it will return information about a symbolic link itself, not the 
@@ -1224,7 +1224,7 @@ file it points to.  @var{path} must be a string.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_copy_file, "copy-file", 2, 0, 0,
+SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
             (SCM oldfile, SCM newfile),
 "Copy the file specified by @var{path-from} to @var{path-to}.
 The return value is unspecified.")
@@ -1272,7 +1272,7 @@ The return value is unspecified.")
 
 SCM scm_dot_string;
 
-GUILE_PROC (scm_dirname, "dirname", 1, 0, 0, 
+SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0, 
             (SCM filename),
 "")
 #define FUNC_NAME s_scm_dirname
@@ -1298,7 +1298,7 @@ GUILE_PROC (scm_dirname, "dirname", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_basename, "basename", 1, 1, 0, 
+SCM_DEFINE (scm_basename, "basename", 1, 1, 0, 
             (SCM filename, SCM suffix),
 "")
 #define FUNC_NAME s_scm_basename

@@ -144,7 +144,7 @@ scm_ihashq (SCM obj, unsigned int n)
 }
 
 
-GUILE_PROC(scm_hashq, "hashq", 2, 0, 0,
+SCM_DEFINE(scm_hashq, "hashq", 2, 0, 0,
            (SCM obj, SCM n),
 "@deffnx primitive hashv key size
 @deffnx primitive hash key size
@@ -176,7 +176,7 @@ scm_ihashv (SCM obj, unsigned int n)
 }
 
 
-GUILE_PROC(scm_hashv, "hashv", 2, 0, 0,
+SCM_DEFINE(scm_hashv, "hashv", 2, 0, 0,
            (SCM obj, SCM n),
 "")
 #define FUNC_NAME s_scm_hashv
@@ -196,7 +196,7 @@ scm_ihash (SCM obj, unsigned int n)
   return (unsigned int)scm_hasher (obj, n, 10);
 }
 
-GUILE_PROC(scm_hash, "hash", 2, 0, 0,
+SCM_DEFINE(scm_hash, "hash", 2, 0, 0,
            (SCM obj, SCM n),
 "")
 #define FUNC_NAME s_scm_hash

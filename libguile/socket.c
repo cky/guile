@@ -71,7 +71,7 @@
 
 
 
-GUILE_PROC (scm_htons, "htons", 1, 0, 0, 
+SCM_DEFINE (scm_htons, "htons", 1, 0, 0, 
             (SCM in),
 "Returns a new integer from @var{value} by converting from host to
 network order. @var{value} must be within the range of a C unsigned
@@ -88,7 +88,7 @@ short integer.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_ntohs, "ntohs", 1, 0, 0, 
+SCM_DEFINE (scm_ntohs, "ntohs", 1, 0, 0, 
             (SCM in),
 "Returns a new integer from @var{value} by converting from network to
 host order.  @var{value} must be within the range of a C unsigned short
@@ -105,7 +105,7 @@ integer.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_htonl, "htonl", 1, 0, 0, 
+SCM_DEFINE (scm_htonl, "htonl", 1, 0, 0, 
             (SCM in),
 "Returns a new integer from @var{value} by converting from host to
 network order. @var{value} must be within the range of a C unsigned
@@ -117,7 +117,7 @@ long integer.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_ntohl, "ntohl", 1, 0, 0, 
+SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0, 
             (SCM in),
 "Returns a new integer from @var{value} by converting from network to
 host order. @var{value} must be within the range of a C unsigned
@@ -144,7 +144,7 @@ scm_sock_fd_to_port (int fd, const char *proc)
 
 #define SCM_SOCK_FD_TO_PORT(fd) (scm_sock_fd_to_port((fd),FUNC_NAME))
 
-GUILE_PROC (scm_socket, "socket", 3, 0, 0,
+SCM_DEFINE (scm_socket, "socket", 3, 0, 0,
             (SCM family, SCM style, SCM proto),
 "Returns a new socket port of the type specified by @var{family}, @var{style}
 and @var{protocol}.  All three parameters are integers.  Typical values
@@ -175,7 +175,7 @@ it has been connected to another socket.")
 
 
 #ifdef HAVE_SOCKETPAIR
-GUILE_PROC (scm_socketpair, "socketpair", 3, 0, 0,
+SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
             (SCM family, SCM style, SCM proto),
 "Returns a pair of connected (but unnamed) socket ports of the type specified
 by @var{family}, @var{style} and @var{protocol}.
@@ -205,7 +205,7 @@ the only meaningful value for @var{protocol}.")
 #undef FUNC_NAME
 #endif
 
-GUILE_PROC (scm_getsockopt, "getsockopt", 3, 0, 0,
+SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
             (SCM sock, SCM level, SCM optname),
 "Returns the value of a particular socket option for the socket
 port @var{socket}.  @var{level} is an integer code for type of option
@@ -275,7 +275,7 @@ pair of integers.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_setsockopt, "setsockopt", 4, 0, 0,
+SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
             (SCM sock, SCM level, SCM optname, SCM value),
 "Sets the value of a particular socket option for the socket
 port @var{socket}.  @var{level} is an integer code for type of option
@@ -358,7 +358,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_shutdown, "shutdown", 2, 0, 0,
+SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
           (SCM sock, SCM how),
 "Sockets can be closed simply by using @code{close-port}. The
 @code{shutdown} procedure allows reception or tranmission on a
@@ -447,7 +447,7 @@ scm_fill_sockaddr (int fam,SCM address,SCM *args,int which_arg,const char *proc,
     }
 }
   
-GUILE_PROC (scm_connect, "connect", 3, 0, 1,
+SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
             (SCM sock, SCM fam, SCM address, SCM args),
 "Initiates a connection from @var{socket} to the address
 specified by @var{address} and possibly @var{arg @dots{}}.  The format
@@ -481,7 +481,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_bind, "bind", 3, 0, 1,
+SCM_DEFINE (scm_bind, "bind", 3, 0, 1,
             (SCM sock, SCM fam, SCM address, SCM args),
 "Assigns an address to the socket port @var{socket}.
 Generally this only needs to be done for server sockets,
@@ -539,7 +539,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_listen, "listen", 2, 0, 0,
+SCM_DEFINE (scm_listen, "listen", 2, 0, 0,
             (SCM sock, SCM backlog),
 "This procedure enables @var{socket} to accept connection
 requests.  @var{backlog} is an integer specifying
@@ -616,7 +616,7 @@ scm_init_addr_buffer (void)
   scm_addr_buffer = scm_must_malloc (scm_addr_buffer_size, "address buffer");
 }
 
-GUILE_PROC (scm_accept, "accept", 1, 0, 0, 
+SCM_DEFINE (scm_accept, "accept", 1, 0, 0, 
             (SCM sock),
 "Accepts a connection on a bound, listening socket @var{socket}.  If there
 are no pending connections in the queue, it waits until
@@ -655,7 +655,7 @@ connection and will continue to accept new requests.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_getsockname, "getsockname", 1, 0, 0, 
+SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0, 
             (SCM sock),
 "Returns the address of @var{socket}, in the same form as the object
 returned by @code{accept}.  On many systems the address of a socket
@@ -679,7 +679,7 @@ in the @code{AF_FILE} namespace cannot be read.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_getpeername, "getpeername", 1, 0, 0, 
+SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0, 
             (SCM sock),
 "Returns the address of the socket that the socket @var{socket} is connected to,
 in the same form as the object
@@ -704,7 +704,7 @@ in the @code{AF_FILE} namespace cannot be read.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_recv, "recv!", 2, 1, 0,
+SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
             (SCM sock, SCM buf, SCM flags),
 "Receives data from the socket port @var{socket}.  @var{socket} must already
 be bound to the address from which data is to be received.
@@ -740,7 +740,7 @@ any unread buffered port data is ignored.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_send, "send", 2, 1, 0,
+SCM_DEFINE (scm_send, "send", 2, 1, 0,
             (SCM sock, SCM message, SCM flags),
 "Transmits the string @var{message} on the socket port @var{socket}. 
 @var{socket} must already be bound to a destination address.  The
@@ -770,7 +770,7 @@ any unflushed buffered port data is ignored.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_recvfrom, "recvfrom!", 2, 3, 0,
+SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
             (SCM sock, SCM buf, SCM flags, SCM start, SCM end),
 "Returns data from the socket port @var{socket} and also information about
 where the data was received from.  @var{socket} must already
@@ -850,7 +850,7 @@ any unread buffered port data is ignored.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_sendto, "sendto", 4, 0, 1,
+SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
             (SCM sock, SCM message, SCM fam, SCM address, SCM args_and_flags),
 "Transmits the string @var{message} on the socket port @var{socket}.  The
 destination address is specified using the @var{family}, @var{address} and

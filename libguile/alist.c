@@ -53,7 +53,7 @@
 
 
 
-GUILE_PROC(scm_acons, "acons", 3, 0, 0,
+SCM_DEFINE(scm_acons, "acons", 3, 0, 0,
            (SCM key, SCM value, SCM alist),
 "Adds a new key-value pair to @var{alist}.  A new pair is
 created whose car is @var{key} and whose cdr is @var{value}, and the
@@ -78,7 +78,7 @@ function is @emph{not} destructive; @var{alist} is not modified.")
 
 
 
-GUILE_PROC (scm_sloppy_assq, "sloppy-assq", 2, 0, 0,
+SCM_DEFINE (scm_sloppy_assq, "sloppy-assq", 2, 0, 0,
             (SCM key, SCM alist),
 "Behaves like @code{assq} but does not do any error checking.
 Recommended only for use in Guile internals.")
@@ -96,7 +96,7 @@ Recommended only for use in Guile internals.")
 
 
 
-GUILE_PROC (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
+SCM_DEFINE (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
             (SCM key, SCM alist),
 "Behaves like @code{assv} but does not do any error checking.
 Recommended only for use in Guile internals.")
@@ -114,7 +114,7 @@ Recommended only for use in Guile internals.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
+SCM_DEFINE (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
             (SCM key, SCM alist),
 "Behaves like @code{assoc} but does not do any error checking.
 Recommended only for use in Guile internals.")
@@ -134,7 +134,7 @@ Recommended only for use in Guile internals.")
 
 
 
-GUILE_PROC(scm_assq, "assq", 2, 0, 0,
+SCM_DEFINE(scm_assq, "assq", 2, 0, 0,
            (SCM key, SCM alist),
 "@deffnx primitive assv key alist
 @deffnx primitive assoc key alist
@@ -158,7 +158,7 @@ return the entire alist entry found (i.e. both the key and the value).")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_assv, "assv", 2, 0, 0,
+SCM_DEFINE(scm_assv, "assv", 2, 0, 0,
            (SCM key, SCM alist),
 "Behaves like @code{assq} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv
@@ -179,7 +179,7 @@ GUILE_PROC(scm_assv, "assv", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_assoc, "assoc", 2, 0, 0,
+SCM_DEFINE(scm_assoc, "assoc", 2, 0, 0,
            (SCM key, SCM alist),
 "Behaves like @code{assq} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc
@@ -197,7 +197,7 @@ GUILE_PROC(scm_assoc, "assoc", 2, 0, 0,
 
 
 
-GUILE_PROC (scm_assq_ref, "assq-ref", 2, 0, 0,
+SCM_DEFINE (scm_assq_ref, "assq-ref", 2, 0, 0,
             (SCM alist, SCM key),
 "@deffnx primitive assv-ref alist key
 @deffnx primitive assoc-ref alist key
@@ -225,7 +225,7 @@ where @var{associator} is one of @code{assq}, @code{assv} or @code{assoc}.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_assv_ref, "assv-ref", 2, 0, 0,
+SCM_DEFINE (scm_assv_ref, "assv-ref", 2, 0, 0,
             (SCM alist, SCM key),
 "Behaves like @code{assq-ref} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv_ref
@@ -242,7 +242,7 @@ GUILE_PROC (scm_assv_ref, "assv-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_assoc_ref, "assoc-ref", 2, 0, 0,
+SCM_DEFINE (scm_assoc_ref, "assoc-ref", 2, 0, 0,
             (SCM alist, SCM key),
 "Behaves like @code{assq-ref} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc_ref
@@ -263,7 +263,7 @@ GUILE_PROC (scm_assoc_ref, "assoc-ref", 2, 0, 0,
 
 
 
-GUILE_PROC (scm_assq_set_x, "assq-set!", 3, 0, 0,
+SCM_DEFINE (scm_assq_set_x, "assq-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
 "@deffnx primitive assv-set! alist key value
 @deffnx primitive assoc-set! alist key value
@@ -290,7 +290,7 @@ association list.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_assv_set_x, "assv-set!", 3, 0, 0,
+SCM_DEFINE (scm_assv_set_x, "assv-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
 "Behaves like @code{assq-set!} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv_set_x
@@ -308,7 +308,7 @@ GUILE_PROC (scm_assv_set_x, "assv-set!", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
+SCM_DEFINE (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
 "Behaves like @code{assq-set!} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc_set_x
@@ -329,7 +329,7 @@ GUILE_PROC (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
 
 
 
-GUILE_PROC (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
+SCM_DEFINE (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
             (SCM alist, SCM key),
 "@deffnx primitive assv-remove! alist key
 @deffnx primitive assoc-remove! alist key
@@ -350,7 +350,7 @@ the resulting alist.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
+SCM_DEFINE (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
             (SCM alist, SCM key),
 "Behaves like @code{assq-remove!} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv_remove_x
@@ -368,7 +368,7 @@ GUILE_PROC (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
+SCM_DEFINE (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
             (SCM alist, SCM key),
 "Behaves like @code{assq-remove!} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc_remove_x

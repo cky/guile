@@ -137,7 +137,7 @@ sf_close (SCM port)
 
 
 
-GUILE_PROC(scm_make_soft_port, "make-soft-port", 2, 0, 0,
+SCM_DEFINE(scm_make_soft_port, "make-soft-port", 2, 0, 0,
            (SCM pv, SCM modes),
 "Returns a port capable of receiving or delivering characters as
 specified by the @var{modes} string (@pxref{File Ports,

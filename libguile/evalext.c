@@ -67,7 +67,7 @@ scm_m_generalized_set_x (SCM xorig, SCM env)
   return scm_wta (xorig, scm_s_variable, scm_s_set_x);
 }
 
-GUILE_PROC (scm_definedp, "defined?", 1, 1, 0,
+SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
             (SCM sym, SCM env),
 "Return @code{#t} if @var{sym} is defined in the top-level environment.")
 #define FUNC_NAME s_scm_definedp

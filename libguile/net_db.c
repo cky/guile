@@ -82,7 +82,7 @@ int close ();
 
 extern int inet_aton ();
 
-GUILE_PROC (scm_inet_aton, "inet-aton", 1, 0, 0, 
+SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
             (SCM address),
 "Converts a string containing an Internet host address in the traditional
 dotted decimal notation into an integer.
@@ -105,7 +105,7 @@ dotted decimal notation into an integer.
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
+SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
             (SCM inetid),
 "Converts an integer Internet host address into a string with the
 traditional dotted decimal representation.
@@ -126,7 +126,7 @@ traditional dotted decimal representation.
 #undef FUNC_NAME
 
 #ifdef HAVE_INET_NETOF
-GUILE_PROC (scm_inet_netof, "inet-netof", 1, 0, 0, 
+SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0, 
             (SCM address),
 "Returns the network number part of the given integer Internet address.
 
@@ -143,7 +143,7 @@ GUILE_PROC (scm_inet_netof, "inet-netof", 1, 0, 0,
 #endif
 
 #ifdef HAVE_INET_LNAOF
-GUILE_PROC (scm_lnaof, "inet-lnaof", 1, 0, 0, 
+SCM_DEFINE (scm_lnaof, "inet-lnaof", 1, 0, 0, 
             (SCM address),
 "Returns the local-address-with-network part of the given Internet
 address.
@@ -161,7 +161,7 @@ address.
 #endif
 
 #ifdef HAVE_INET_MAKEADDR
-GUILE_PROC (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
+SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
             (SCM net, SCM lna),
 "Makes an Internet host address by combining the network number @var{net}
 with the local-address-within-network number @var{lna}.
@@ -234,7 +234,7 @@ static void scm_resolv_error (const char *subr, SCM bad_value)
    Should use reentrant facilities if available.
  */
 
-GUILE_PROC (scm_gethost, "gethost", 0, 1, 0, 
+SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0, 
             (SCM name),
 "@deffnx procedure gethostbyname hostname
 @deffnx procedure gethostbyaddr address
@@ -319,7 +319,7 @@ Unusual conditions may result in errors thrown to the
    operation?), but it seems to work okay.  We'll see.  */
 
 #if defined(HAVE_GETNETENT) && defined(HAVE_GETNETBYNAME) && defined(HAVE_GETNETBYADDR)
-GUILE_PROC (scm_getnet, "getnet", 0, 1, 0, 
+SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0, 
             (SCM name),
 "@deffnx procedure getnetbyname net-name
 @deffnx procedure getnetbyaddr net-number
@@ -372,7 +372,7 @@ given.")
 #endif
 
 #ifdef HAVE_GETPROTOENT
-GUILE_PROC (scm_getproto, "getproto", 0, 1, 0, 
+SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0, 
             (SCM name),
 "@deffnx procedure getprotobyname name
 @deffnx procedure getprotobynumber number
@@ -438,7 +438,7 @@ scm_return_entry (struct servent *entry)
 }
 
 #ifdef HAVE_GETSERVENT
-GUILE_PROC (scm_getserv, "getserv", 0, 2, 0,
+SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
             (SCM name, SCM proto),
 "@deffnx procedure getservbyname name protocol
 @deffnx procedure getservbyport port protocol
@@ -487,7 +487,7 @@ as its first argument; if given no arguments, it behaves like
 #endif
 
 #if defined(HAVE_SETHOSTENT) && defined(HAVE_ENDHOSTENT)
-GUILE_PROC (scm_sethost, "sethost", 0, 1, 0, 
+SCM_DEFINE (scm_sethost, "sethost", 0, 1, 0, 
             (SCM arg),
 "If @var{stayopen} is omitted, this is equivalent to @code{endhostent}.
 Otherwise it is equivalent to @code{sethostent stayopen}.")
@@ -503,7 +503,7 @@ Otherwise it is equivalent to @code{sethostent stayopen}.")
 #endif
 
 #if defined(HAVE_SETNETENT) && defined(HAVE_ENDNETENT) 
-GUILE_PROC (scm_setnet, "setnet", 0, 1, 0, 
+SCM_DEFINE (scm_setnet, "setnet", 0, 1, 0, 
             (SCM arg),
 "If @var{stayopen} is omitted, this is equivalent to @code{endnetent}.
 Otherwise it is equivalent to @code{setnetent stayopen}.")
@@ -519,7 +519,7 @@ Otherwise it is equivalent to @code{setnetent stayopen}.")
 #endif
 
 #if defined(HAVE_SETPROTOENT) && defined(HAVE_ENDPROTOENT)
-GUILE_PROC (scm_setproto, "setproto", 0, 1, 0, 
+SCM_DEFINE (scm_setproto, "setproto", 0, 1, 0, 
             (SCM arg),
 "If @var{stayopen} is omitted, this is equivalent to @code{endprotoent}.
 Otherwise it is equivalent to @code{setprotoent stayopen}.")
@@ -535,7 +535,7 @@ Otherwise it is equivalent to @code{setprotoent stayopen}.")
 #endif
 
 #if defined(HAVE_SETSERVENT) && defined(HAVE_ENDSERVENT)
-GUILE_PROC (scm_setserv, "setserv", 0, 1, 0, 
+SCM_DEFINE (scm_setserv, "setserv", 0, 1, 0, 
             (SCM arg),
 "If @var{stayopen} is omitted, this is equivalent to @code{endservent}.
 Otherwise it is equivalent to @code{setservent stayopen}.")

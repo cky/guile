@@ -133,7 +133,7 @@ scm_regexp_error_msg (int regerrno, regex_t *rx)
   return SCM_CHARS (errmsg);
 }
 
-GUILE_PROC (scm_regexp_p, "regexp?", 1, 0, 0, 
+SCM_DEFINE (scm_regexp_p, "regexp?", 1, 0, 0, 
             (SCM x),
 "Return @code{#t} if @var{obj} is a compiled regular expression, or
 @code{#f} otherwise.")
@@ -143,7 +143,7 @@ GUILE_PROC (scm_regexp_p, "regexp?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_make_regexp, "make-regexp", 1, 0, 1, 
+SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1, 
             (SCM pat, SCM flags),
 "Compile the regular expression described by @var{str}, and return the
 compiled regexp structure.  If @var{str} does not describe a legal
@@ -223,7 +223,7 @@ the earlier one.
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_regexp_exec, "regexp-exec", 2, 2, 0, 
+SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0, 
             (SCM rx, SCM str, SCM start, SCM flags),
 "Match the compiled regular expression @var{regexp} against @code{str}.
 If the optional integer @var{start} argument is provided, begin matching

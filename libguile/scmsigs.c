@@ -179,7 +179,7 @@ sys_deliver_signals (void)
 }
 
 /* user interface for installation of signal handlers.  */
-GUILE_PROC(scm_sigaction, "sigaction", 1, 2, 0, 
+SCM_DEFINE(scm_sigaction, "sigaction", 1, 2, 0, 
            (SCM signum, SCM handler, SCM flags),
 "Install or report the signal hander for a specified signal.
 
@@ -335,7 +335,7 @@ structures.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_restore_signals, "restore-signals", 0, 0, 0, 
+SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0, 
             (void),
 "Return all signal handlers to the values they had before any call to
 @code{sigaction} was made.  The return value is unspecified.")
@@ -368,7 +368,7 @@ GUILE_PROC (scm_restore_signals, "restore-signals", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_alarm, "alarm", 1, 0, 0, 
+SCM_DEFINE(scm_alarm, "alarm", 1, 0, 0, 
            (SCM i),
 "Set a timer to raise a @code{SIGALRM} signal after the specified
 number of seconds (an integer).  It's advisable to install a signal
@@ -389,7 +389,7 @@ no previous alarm, the return value is zero.")
 #undef FUNC_NAME
 
 #ifdef HAVE_PAUSE
-GUILE_PROC(scm_pause, "pause", 0, 0, 0, 
+SCM_DEFINE(scm_pause, "pause", 0, 0, 0, 
            (),
 "Pause the current process (thread?) until a signal arrives whose
 action is to either terminate the current process or invoke a
@@ -402,7 +402,7 @@ handler procedure.  The return value is unspecified.")
 #undef FUNC_NAME
 #endif
 
-GUILE_PROC(scm_sleep, "sleep", 1, 0, 0, 
+SCM_DEFINE(scm_sleep, "sleep", 1, 0, 0, 
            (SCM i),
 "Wait for the given number of seconds (an integer) or until a signal
 arrives.  The return value is zero if the time elapses or the number
@@ -421,7 +421,7 @@ of seconds remaining otherwise.")
 #undef FUNC_NAME
 
 #if defined(USE_THREADS) || defined(HAVE_USLEEP)
-GUILE_PROC(scm_usleep, "usleep", 1, 0, 0, 
+SCM_DEFINE(scm_usleep, "usleep", 1, 0, 0, 
            (SCM i),
 "")
 #define FUNC_NAME s_scm_usleep
@@ -449,7 +449,7 @@ GUILE_PROC(scm_usleep, "usleep", 1, 0, 0,
 #undef FUNC_NAME
 #endif /* GUILE_ISELECT || HAVE_USLEEP */
 
-GUILE_PROC(scm_raise, "raise", 1, 0, 0, 
+SCM_DEFINE(scm_raise, "raise", 1, 0, 0, 
            (SCM sig),
 "
 Sends a specified signal @var{sig} to the current process, where

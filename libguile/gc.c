@@ -243,7 +243,7 @@ which_seg (SCM cell)
 }
 
 
-GUILE_PROC (scm_map_free_list, "map-free-list", 0, 0, 0, 
+SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0, 
             (),
 "")
 #define FUNC_NAME s_scm_map_free_list
@@ -298,7 +298,7 @@ scm_check_freelist ()
 
 static int scm_debug_check_freelist = 0;
 
-GUILE_PROC (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1, 0, 0, 
+SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1, 0, 0, 
             (SCM flag),
 "")
 #define FUNC_NAME s_scm_gc_set_debug_check_freelist_x
@@ -342,7 +342,7 @@ scm_debug_newcell (void)
 /* {Scheme Interface to GC}
  */
 
-GUILE_PROC (scm_gc_stats, "gc-stats", 0, 0, 0, 
+SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0, 
             (),
 "Returns an association list of statistics about Guile's current use of storage.  ")
 #define FUNC_NAME s_scm_gc_stats
@@ -407,7 +407,7 @@ scm_gc_end ()
 }
 
 
-GUILE_PROC (scm_object_address, "object-address", 1, 0, 0, 
+SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0, 
             (SCM obj),
 "Return an integer that for the lifetime of @var{obj} is uniquely
 returned by this function for @var{obj}")
@@ -418,7 +418,7 @@ returned by this function for @var{obj}")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_gc, "gc", 0, 0, 0, 
+SCM_DEFINE(scm_gc, "gc", 0, 0, 0, 
            (),
 "Scans all of SCM objects and reclaims for further use those that are
 no longer accessible.")
@@ -1754,7 +1754,7 @@ alloc_some_heap (int ncells, SCM *freelistp)
 
 
 
-GUILE_PROC (scm_unhash_name, "unhash-name", 1, 0, 0, 
+SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0, 
             (SCM name),
 "")
 #define FUNC_NAME s_scm_unhash_name

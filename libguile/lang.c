@@ -63,7 +63,7 @@
  * in all data structures.
  */
 
-GUILE_PROC (scm_nil_cons, "nil-cons", 2, 0, 0,
+SCM_DEFINE (scm_nil_cons, "nil-cons", 2, 0, 0,
             (SCM x, SCM y),
 "")
 #define FUNC_NAME s_scm_nil_cons
@@ -77,7 +77,7 @@ GUILE_PROC (scm_nil_cons, "nil-cons", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_nil_car, "nil-car", 1, 0, 0, 
+SCM_DEFINE (scm_nil_car, "nil-car", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_nil_car
@@ -89,7 +89,7 @@ GUILE_PROC (scm_nil_car, "nil-car", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_nil_cdr, "nil-cdr", 1, 0, 0, 
+SCM_DEFINE (scm_nil_cdr, "nil-cdr", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_nil_cdr
@@ -103,7 +103,7 @@ GUILE_PROC (scm_nil_cdr, "nil-cdr", 1, 0, 0,
 
 /* GJB:FIXME:: why does this return scm_nil instead of SCM_BOOL_F?
    Could use SCM_BOOL, below, otherwise */
-GUILE_PROC (scm_null, "null", 1, 0, 0, 
+SCM_DEFINE (scm_null, "null", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_null

@@ -71,7 +71,7 @@ scm_add_feature (const char *str)
 
 
 
-GUILE_PROC(scm_program_arguments, "program-arguments", 0, 0, 0, 
+SCM_DEFINE(scm_program_arguments, "program-arguments", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_program_arguments
@@ -179,7 +179,7 @@ scm_make_named_hook (const char* name, int n_args)
 }
 
 
-GUILE_PROC (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0, 
+SCM_DEFINE (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0, 
             (SCM name, SCM n_args),
 "")
 #define FUNC_NAME s_scm_make_hook_with_name
@@ -189,7 +189,7 @@ GUILE_PROC (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_make_hook, "make-hook", 0, 1, 0, 
+SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0, 
             (SCM n_args),
 "")
 #define FUNC_NAME s_scm_make_hook
@@ -199,7 +199,7 @@ GUILE_PROC (scm_make_hook, "make-hook", 0, 1, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hook_p, "hook?", 1, 0, 0, 
+SCM_DEFINE (scm_hook_p, "hook?", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_hook_p
@@ -209,7 +209,7 @@ GUILE_PROC (scm_hook_p, "hook?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_hook_empty_p, "hook-empty?", 1, 0, 0, 
+SCM_DEFINE (scm_hook_empty_p, "hook-empty?", 1, 0, 0, 
             (SCM hook),
 "")
 #define FUNC_NAME s_scm_hook_empty_p
@@ -220,7 +220,7 @@ GUILE_PROC (scm_hook_empty_p, "hook-empty?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_add_hook_x, "add-hook!", 2, 1, 0, 
+SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0, 
             (SCM hook, SCM proc, SCM append_p),
 "")
 #define FUNC_NAME s_scm_add_hook_x
@@ -246,7 +246,7 @@ GUILE_PROC (scm_add_hook_x, "add-hook!", 2, 1, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_remove_hook_x, "remove-hook!", 2, 0, 0, 
+SCM_DEFINE (scm_remove_hook_x, "remove-hook!", 2, 0, 0, 
             (SCM hook, SCM proc),
 "")
 #define FUNC_NAME s_scm_remove_hook_x
@@ -259,7 +259,7 @@ GUILE_PROC (scm_remove_hook_x, "remove-hook!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_reset_hook_x, "reset-hook!", 1, 0, 0, 
+SCM_DEFINE (scm_reset_hook_x, "reset-hook!", 1, 0, 0, 
             (SCM hook),
 "")
 #define FUNC_NAME s_scm_reset_hook_x
@@ -271,7 +271,7 @@ GUILE_PROC (scm_reset_hook_x, "reset-hook!", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_run_hook, "run-hook", 1, 0, 1, 
+SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1, 
             (SCM hook, SCM args),
 "")
 #define FUNC_NAME s_scm_run_hook
@@ -301,7 +301,7 @@ scm_c_run_hook (SCM hook, SCM args)
 }
 
 
-GUILE_PROC (scm_hook_to_list, "hook->list", 1, 0, 0, 
+SCM_DEFINE (scm_hook_to_list, "hook->list", 1, 0, 0, 
             (SCM hook),
 "")
 #define FUNC_NAME s_scm_hook_to_list

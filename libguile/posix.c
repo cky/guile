@@ -166,7 +166,7 @@ extern char ** environ;
 SCM_SYMBOL (sym_read_pipe, "read pipe");
 SCM_SYMBOL (sym_write_pipe, "write pipe");
 
-GUILE_PROC (scm_pipe, "pipe", 0, 0, 0,
+SCM_DEFINE (scm_pipe, "pipe", 0, 0, 0,
             (),
 "Creates a pipe which can be used for communication.  The return value
 is a pair in which the CAR contains an input port and the CDR an
@@ -192,7 +192,7 @@ Alternatively a buffer can be added to the port using @code{setvbuf}
 
 
 #ifdef HAVE_GETGROUPS
-GUILE_PROC (scm_getgroups, "getgroups", 0, 0, 0,
+SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
             (),
 "Returns a vector of integers representing the current supplimentary group IDs.")
 #define FUNC_NAME s_scm_getgroups
@@ -229,7 +229,7 @@ GUILE_PROC (scm_getgroups, "getgroups", 0, 0, 0,
 #endif
 
 
-GUILE_PROC (scm_getpwuid, "getpw", 0, 1, 0,
+SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
             (SCM user),
 "Look up an entry in the user database.  @var{obj} can be an integer,
 a string, or omitted, giving the behaviour of getpwuid, getpwnam
@@ -283,7 +283,7 @@ or getpwent respectively.")
 
 
 #ifdef HAVE_SETPWENT
-GUILE_PROC (scm_setpwent, "setpw", 0, 1, 0,
+SCM_DEFINE (scm_setpwent, "setpw", 0, 1, 0,
             (SCM arg),
 "If called with a true argument, initialize or reset the password data
 stream.  Otherwise, close the stream.  The @code{setpwent} and
@@ -302,7 +302,7 @@ stream.  Otherwise, close the stream.  The @code{setpwent} and
 
 
 /* Combines getgrgid and getgrnam.  */
-GUILE_PROC (scm_getgrgid, "getgr", 0, 1, 0,
+SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
             (SCM name),
 "Look up an entry in the group database.  @var{obj} can be an integer,
 a string, or omitted, giving the behaviour of getgrgid, getgrnam
@@ -343,7 +343,7 @@ or getgrent respectively.")
 
 
 
-GUILE_PROC (scm_setgrent, "setgr", 0, 1, 0, 
+SCM_DEFINE (scm_setgrent, "setgr", 0, 1, 0, 
             (SCM arg),
 "If called with a true argument, initialize or reset the group data
 stream.  Otherwise, close the stream.  The @code{setgrent} and
@@ -360,7 +360,7 @@ stream.  Otherwise, close the stream.  The @code{setgrent} and
 
 
 
-GUILE_PROC (scm_kill, "kill", 2, 0, 0,
+SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
             (SCM pid, SCM sig),
 "Sends a signal to the specified process or group of processes.
 
@@ -401,7 +401,7 @@ Interrupt signal.
 #undef FUNC_NAME
 
 #ifdef HAVE_WAITPID
-GUILE_PROC (scm_waitpid, "waitpid", 1, 1, 0,
+SCM_DEFINE (scm_waitpid, "waitpid", 1, 1, 0,
             (SCM pid, SCM options),
 "This procedure collects status information from a child process which
 has terminated or (optionally) stopped.  Normally it will
@@ -466,7 +466,7 @@ The integer status value.
 #undef FUNC_NAME
 #endif /* HAVE_WAITPID */
 
-GUILE_PROC (scm_status_exit_val, "status:exit-val", 1, 0, 0, 
+SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0, 
             (SCM status),
 "Returns the exit status value, as would be
 set if a process ended normally through a
@@ -487,7 +487,7 @@ call to @code{exit} or @code{_exit}, if any, otherwise @code{#f}.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_status_term_sig, "status:term-sig", 1, 0, 0, 
+SCM_DEFINE (scm_status_term_sig, "status:term-sig", 1, 0, 0, 
             (SCM status),
 "Returns the signal number which terminated the
 process, if any, otherwise @code{#f}.")
@@ -505,7 +505,7 @@ process, if any, otherwise @code{#f}.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_status_stop_sig, "status:stop-sig", 1, 0, 0, 
+SCM_DEFINE (scm_status_stop_sig, "status:stop-sig", 1, 0, 0, 
             (SCM status),
 "Returns the signal number which stopped the
 process, if any, otherwise @code{#f}.")
@@ -523,7 +523,7 @@ process, if any, otherwise @code{#f}.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_getppid, "getppid", 0, 0, 0,
+SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
             (),
 "Returns an integer representing the process ID of the parent process.")
 #define FUNC_NAME s_scm_getppid
@@ -534,7 +534,7 @@ GUILE_PROC (scm_getppid, "getppid", 0, 0, 0,
 
 
 
-GUILE_PROC (scm_getuid, "getuid", 0, 0, 0,
+SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
             (),
 "Returns an integer representing the current real user ID.")
 #define FUNC_NAME s_scm_getuid
@@ -545,7 +545,7 @@ GUILE_PROC (scm_getuid, "getuid", 0, 0, 0,
 
 
 
-GUILE_PROC (scm_getgid, "getgid", 0, 0, 0,
+SCM_DEFINE (scm_getgid, "getgid", 0, 0, 0,
             (),
 "Returns an integer representing the current real group ID.")
 #define FUNC_NAME s_scm_getgid
@@ -556,7 +556,7 @@ GUILE_PROC (scm_getgid, "getgid", 0, 0, 0,
 
 
 
-GUILE_PROC (scm_geteuid, "geteuid", 0, 0, 0,
+SCM_DEFINE (scm_geteuid, "geteuid", 0, 0, 0,
             (),
 "Returns an integer representing the current effective user ID.
 If the system does not support effective IDs, then the real ID
@@ -574,7 +574,7 @@ supports effective IDs.")
 
 
 
-GUILE_PROC (scm_getegid, "getegid", 0, 0, 0,
+SCM_DEFINE (scm_getegid, "getegid", 0, 0, 0,
             (),
 "Returns an integer representing the current effective group ID.
 If the system does not support effective IDs, then the real ID
@@ -591,7 +591,7 @@ supports effective IDs.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_setuid, "setuid", 1, 0, 0, 
+SCM_DEFINE (scm_setuid, "setuid", 1, 0, 0, 
             (SCM id),
 "Sets both the real and effective user IDs to the integer @var{id}, provided
 the process has appropriate privileges.
@@ -605,7 +605,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_setgid, "setgid", 1, 0, 0, 
+SCM_DEFINE (scm_setgid, "setgid", 1, 0, 0, 
             (SCM id),
 "Sets both the real and effective group IDs to the integer @var{id}, provided
 the process has appropriate privileges.
@@ -619,7 +619,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_seteuid, "seteuid", 1, 0, 0, 
+SCM_DEFINE (scm_seteuid, "seteuid", 1, 0, 0, 
             (SCM id),
 "Sets the effective user ID to the integer @var{id}, provided the process
 has appropriate privileges.  If effective IDs are not supported, the
@@ -643,7 +643,7 @@ The return value is unspecified.")
 #undef FUNC_NAME
 
 #ifdef HAVE_SETEGID
-GUILE_PROC (scm_setegid, "setegid", 1, 0, 0, 
+SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0, 
             (SCM id),
 "Sets the effective group ID to the integer @var{id}, provided the process
 has appropriate privileges.  If effective IDs are not supported, the
@@ -668,7 +668,7 @@ The return value is unspecified.")
 #undef FUNC_NAME
 #endif
 
-GUILE_PROC (scm_getpgrp, "getpgrp", 0, 0, 0,
+SCM_DEFINE (scm_getpgrp, "getpgrp", 0, 0, 0,
             (),
 "Returns an integer representing the current process group ID.
 This is the POSIX definition, not BSD.")
@@ -680,7 +680,7 @@ This is the POSIX definition, not BSD.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_setpgid, "setpgid", 2, 0, 0, 
+SCM_DEFINE (scm_setpgid, "setpgid", 2, 0, 0, 
             (SCM pid, SCM pgid),
 "Move the process @var{pid} into the process group @var{pgid}.  @var{pid} or
 @var{pgid} must be integers: they can be zero to indicate the ID of the
@@ -704,7 +704,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_setsid, "setsid", 0, 0, 0,
+SCM_DEFINE (scm_setsid, "setsid", 0, 0, 0,
             (),
 "Creates a new session.  The current process becomes the session leader
 and is put in a new process group.  The process will be detached
@@ -725,7 +725,7 @@ The return value is an integer representing the new process group ID.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_ttyname, "ttyname", 1, 0, 0, 
+SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0, 
             (SCM port),
 "Returns a string with the name of the serial terminal device underlying
 @var{port}.")
@@ -748,7 +748,7 @@ GUILE_PROC (scm_ttyname, "ttyname", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_ctermid, "ctermid", 0, 0, 0,
+SCM_DEFINE (scm_ctermid, "ctermid", 0, 0, 0,
             (),
 "Returns a string containing the file name of the controlling terminal
 for the current process.")
@@ -767,7 +767,7 @@ for the current process.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_tcgetpgrp, "tcgetpgrp", 1, 0, 0, 
+SCM_DEFINE (scm_tcgetpgrp, "tcgetpgrp", 1, 0, 0, 
             (SCM port),
 "Returns the process group ID of the foreground
 process group associated with the terminal open on the file descriptor
@@ -800,7 +800,7 @@ foreground.")
 }
 #undef FUNC_NAME    
 
-GUILE_PROC (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
+SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
             (SCM port, SCM pgid),
 "Set the foreground process group ID for the terminal used by the file
 descriptor underlying @var{port} to the integer @var{pgid}.
@@ -862,7 +862,7 @@ scm_convert_exec_args (SCM args, int pos, const char *subr)
   return execargv;
 }
 
-GUILE_PROC (scm_execl, "execl", 1, 0, 1, 
+SCM_DEFINE (scm_execl, "execl", 1, 0, 1, 
             (SCM filename, SCM args),
 "Executes the file named by @var{path} as a new process image.
 The remaining arguments are supplied to the process; from a C program
@@ -888,7 +888,7 @@ call, but we call it @code{execl} because of its Scheme calling interface.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_execlp, "execlp", 1, 0, 1, 
+SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1, 
             (SCM filename, SCM args),
 "Similar to @code{execl}, however if
 @var{filename} does not contain a slash
@@ -944,7 +944,7 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
   return result;
 }
 
-GUILE_PROC (scm_execle, "execle", 2, 0, 1, 
+SCM_DEFINE (scm_execle, "execle", 2, 0, 1, 
             (SCM filename, SCM env, SCM args),
 "Similar to @code{execl}, but the environment of the new process is
 specified by @var{env}, which must be a list of strings as returned by the
@@ -969,7 +969,7 @@ call, but we call it @code{execle} because of its Scheme calling interface.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_fork, "primitive-fork", 0, 0, 0,
+SCM_DEFINE (scm_fork, "primitive-fork", 0, 0, 0,
             (),
 "Creates a new \"child\" process by duplicating the current \"parent\" process.
 In the child the return value is 0.  In the parent the return value is
@@ -988,7 +988,7 @@ with the scsh fork.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_uname, "uname", 0, 0, 0,
+SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
             (),
 "Returns an object with some information about the computer system the
 program is running on.")
@@ -1018,7 +1018,7 @@ program is running on.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_environ, "environ", 0, 1, 0, 
+SCM_DEFINE (scm_environ, "environ", 0, 1, 0, 
             (SCM env),
 "If @var{env} is omitted, returns the current environment as a list of strings.
 Otherwise it sets the current environment, which is also the
@@ -1057,7 +1057,7 @@ If @var{env} is supplied then the return value is unspecified.")
 
 #ifdef L_tmpnam
 
-GUILE_PROC (scm_tmpnam, "tmpnam", 0, 0, 0,
+SCM_DEFINE (scm_tmpnam, "tmpnam", 0, 0, 0,
             (),
 "Create a new file in the file system with a unique name.  The return
 value is the name of the new file.  This function is implemented with
@@ -1072,7 +1072,7 @@ the @code{tmpnam} function in the system libraries.")
 
 #endif
 
-GUILE_PROC (scm_utime, "utime", 1, 2, 0,
+SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
             (SCM pathname, SCM actime, SCM modtime),
 "@code{utime} sets the access and modification times for
 the file named by @var{path}.  If @var{actime} or @var{modtime}
@@ -1113,7 +1113,7 @@ time to the current time.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_access, "access?", 2, 0, 0,
+SCM_DEFINE (scm_access, "access?", 2, 0, 0,
             (SCM path, SCM how),
 "Returns @code{#t} if @var{path} corresponds to an existing
 file and the current process
@@ -1153,7 +1153,7 @@ test for existence of the file.
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_getpid, "getpid", 0, 0, 0,
+SCM_DEFINE (scm_getpid, "getpid", 0, 0, 0,
             (),
 "Returns an integer representing the current process ID.")
 #define FUNC_NAME s_scm_getpid
@@ -1162,7 +1162,7 @@ GUILE_PROC (scm_getpid, "getpid", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_putenv, "putenv", 1, 0, 0, 
+SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0, 
             (SCM str),
 "Modifies the environment of the current process, which is
 also the default environment inherited by child processes.
@@ -1194,7 +1194,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_setlocale, "setlocale", 1, 1, 0,
+SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
             (SCM category, SCM locale),
 "If @var{locale} is omitted, returns the current value of the specified
 locale category 
@@ -1236,7 +1236,7 @@ is an empty string, the locale will be set using envirionment variables.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_mknod, "mknod", 4, 0, 0,
+SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
             (SCM path, SCM type, SCM perms, SCM dev),
 "Creates a new special file, such as a file corresponding to a device.
 @var{path} specifies the name of the file.  @var{type} should
@@ -1298,7 +1298,7 @@ The return value is unspecified.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_nice, "nice", 1, 0, 0, 
+SCM_DEFINE (scm_nice, "nice", 1, 0, 0, 
             (SCM incr),
 "Increment the priority of the current process by @var{incr}.  A higher
 priority value means that the process runs less often.
@@ -1319,7 +1319,7 @@ The return value is unspecified.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_sync, "sync", 0, 0, 0,
+SCM_DEFINE (scm_sync, "sync", 0, 0, 0,
             (),
 "Flush the operating system disk buffers.
 The return value is unspecified.")

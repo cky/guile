@@ -72,7 +72,7 @@
 /* {Run time control of the debugging evaluator}
  */
 
-GUILE_PROC (scm_debug_options, "debug-options-interface", 0, 1, 0, 
+SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0, 
             (SCM setting),
 "")
 #define FUNC_NAME s_scm_debug_options
@@ -120,7 +120,7 @@ with_traps_inner (void *data)
   return scm_apply (thunk, SCM_EOL, SCM_EOL);
 }
 
-GUILE_PROC (scm_with_traps, "with-traps", 1, 0, 0, 
+SCM_DEFINE (scm_with_traps, "with-traps", 1, 0, 0, 
             (SCM thunk),
 "")
 #define FUNC_NAME s_scm_with_traps
@@ -161,7 +161,7 @@ prinmemoized (SCM obj,SCM port,scm_print_state *pstate)
   return 1;
 }
 
-GUILE_PROC (scm_memoized_p, "memoized?", 1, 0, 0, 
+SCM_DEFINE (scm_memoized_p, "memoized?", 1, 0, 0, 
             (SCM obj),
 "")
 #define FUNC_NAME s_scm_memoized_p
@@ -250,7 +250,7 @@ scm_make_memoized (SCM exp, SCM env)
 #include "variable.h"
 #include "procs.h"
 
-GUILE_PROC (scm_make_gloc, "make-gloc", 1, 1, 0, 
+SCM_DEFINE (scm_make_gloc, "make-gloc", 1, 1, 0, 
             (SCM var, SCM env),
 "")
 #define FUNC_NAME s_scm_make_gloc
@@ -269,7 +269,7 @@ GUILE_PROC (scm_make_gloc, "make-gloc", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_gloc_p, "gloc?", 1, 0, 0, 
+SCM_DEFINE (scm_gloc_p, "gloc?", 1, 0, 0, 
             (SCM obj),
 "")
 #define FUNC_NAME s_scm_gloc_p
@@ -279,7 +279,7 @@ GUILE_PROC (scm_gloc_p, "gloc?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_make_iloc, "make-iloc", 3, 0, 0,
+SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
             (SCM frame, SCM binding, SCM cdrp),
 "")
 #define FUNC_NAME s_scm_make_iloc
@@ -293,7 +293,7 @@ GUILE_PROC (scm_make_iloc, "make-iloc", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_iloc_p, "iloc?", 1, 0, 0, 
+SCM_DEFINE (scm_iloc_p, "iloc?", 1, 0, 0, 
           (SCM obj),
 "")
 #define FUNC_NAME s_scm_iGUILE_p
@@ -302,7 +302,7 @@ GUILE_PROC (scm_iloc_p, "iloc?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_memcons, "memcons", 2, 1, 0,
+SCM_DEFINE (scm_memcons, "memcons", 2, 1, 0,
             (SCM car, SCM cdr, SCM env),
 "")
 #define FUNC_NAME s_scm_memcons
@@ -334,7 +334,7 @@ GUILE_PROC (scm_memcons, "memcons", 2, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_mem_to_proc, "mem->proc", 1, 0, 0, 
+SCM_DEFINE (scm_mem_to_proc, "mem->proc", 1, 0, 0, 
             (SCM obj),
 "")
 #define FUNC_NAME s_scm_mem_to_proc
@@ -350,7 +350,7 @@ GUILE_PROC (scm_mem_to_proc, "mem->proc", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_proc_to_mem, "proc->mem", 1, 0, 0, 
+SCM_DEFINE (scm_proc_to_mem, "proc->mem", 1, 0, 0, 
             (SCM obj),
 "")
 #define FUNC_NAME s_scm_proc_to_mem
@@ -363,7 +363,7 @@ GUILE_PROC (scm_proc_to_mem, "proc->mem", 1, 0, 0,
 
 #endif /* GUILE_DEBUG */
 
-GUILE_PROC (scm_unmemoize, "unmemoize", 1, 0, 0, 
+SCM_DEFINE (scm_unmemoize, "unmemoize", 1, 0, 0, 
             (SCM m),
 "")
 #define FUNC_NAME s_scm_unmemoize
@@ -373,7 +373,7 @@ GUILE_PROC (scm_unmemoize, "unmemoize", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_memoized_environment, "memoized-environment", 1, 0, 0, 
+SCM_DEFINE (scm_memoized_environment, "memoized-environment", 1, 0, 0, 
             (SCM m),
 "")
 #define FUNC_NAME s_scm_memoized_environment
@@ -383,7 +383,7 @@ GUILE_PROC (scm_memoized_environment, "memoized-environment", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_procedure_name, "procedure-name", 1, 0, 0, 
+SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0, 
             (SCM proc),
 "")
 #define FUNC_NAME s_scm_procedure_name
@@ -409,7 +409,7 @@ GUILE_PROC (scm_procedure_name, "procedure-name", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_procedure_source, "procedure-source", 1, 0, 0, 
+SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0, 
             (SCM proc),
 "")
 #define FUNC_NAME s_scm_procedure_source
@@ -444,7 +444,7 @@ GUILE_PROC (scm_procedure_source, "procedure-source", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_procedure_environment, "procedure-environment", 1, 0, 0, 
+SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0, 
             (SCM proc),
 "")
 #define FUNC_NAME s_scm_procedure_environment
@@ -474,7 +474,7 @@ GUILE_PROC (scm_procedure_environment, "procedure-environment", 1, 0, 0,
  * the code before evaluating.  One solution would be to have eval.c
  * generate yet another evaluator.  They are not very big actually.
  */
-GUILE_PROC (scm_local_eval, "local-eval", 1, 1, 0,
+SCM_DEFINE (scm_local_eval, "local-eval", 1, 1, 0,
             (SCM exp, SCM env),
 "Evaluate @var{exp} in its environment.  If @var{env} is supplied,
 it is the environment in which to evaluate @var{exp}.  Otherwise,
@@ -564,7 +564,7 @@ prindebugobj (SCM obj,SCM port,scm_print_state *pstate)
   return 1;
 }
 
-GUILE_PROC (scm_debug_object_p, "debug-object?", 1, 0, 0, 
+SCM_DEFINE (scm_debug_object_p, "debug-object?", 1, 0, 0, 
             (SCM obj),
 "")
 #define FUNC_NAME s_scm_debug_object_p
@@ -590,7 +590,7 @@ scm_make_debugobj (scm_debug_frame *frame)
 
 /* Undocumented debugging procedure */
 #ifdef GUILE_DEBUG
-GUILE_PROC (scm_debug_hang, "debug-hang", 0, 1, 0, 
+SCM_DEFINE (scm_debug_hang, "debug-hang", 0, 1, 0, 
             (SCM obj),
 "")
 #define FUNC_NAME s_scm_debug_hang

@@ -246,7 +246,7 @@ display_error_handler (struct display_error_handler_data *data,
   return SCM_UNSPECIFIED;
 }
 
-GUILE_PROC(scm_display_error, "display-error", 6, 0, 0,
+SCM_DEFINE(scm_display_error, "display-error", 6, 0, 0,
            (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest),
 "")
 #define FUNC_NAME s_scm_display_error
@@ -283,7 +283,7 @@ static print_params_t default_print_params[] = {
 static print_params_t *print_params = default_print_params;
 
 #ifdef GUILE_DEBUG
-GUILE_PROC(scm_set_print_params_x, "set-print-params!", 1, 0, 0,
+SCM_DEFINE(scm_set_print_params_x, "set-print-params!", 1, 0, 0,
            (SCM params),
 "")
 #define FUNC_NAME s_scm_set_print_params_x
@@ -385,7 +385,7 @@ display_application (SCM frame,int indentation,SCM sport,SCM port,scm_print_stat
 		      pstate);
 }
 
-GUILE_PROC(scm_display_application, "display-application", 1, 2, 0, 
+SCM_DEFINE(scm_display_application, "display-application", 1, 2, 0, 
            (SCM frame, SCM port, SCM indent),
 "")
 #define FUNC_NAME s_scm_display_application
@@ -599,7 +599,7 @@ display_backtrace_body(struct display_backtrace_args *a)
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_display_backtrace, "display-backtrace", 2, 2, 0, 
+SCM_DEFINE(scm_display_backtrace, "display-backtrace", 2, 2, 0, 
            (SCM stack, SCM port, SCM first, SCM depth),
 "")
 #define FUNC_NAME s_scm_display_backtrace
@@ -621,7 +621,7 @@ GUILE_PROC(scm_display_backtrace, "display-backtrace", 2, 2, 0,
 
 SCM_VCELL (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
 
-GUILE_PROC(scm_backtrace, "backtrace", 0, 0, 0, 
+SCM_DEFINE(scm_backtrace, "backtrace", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_backtrace

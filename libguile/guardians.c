@@ -149,7 +149,7 @@ guard (SCM cclo, SCM arg)
 
 static SCM guard1;
 
-GUILE_PROC (scm_make_guardian, "make-guardian", 0, 0, 0, 
+SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0, 
             (),
 "")
 #define FUNC_NAME s_scm_make_guardian

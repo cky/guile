@@ -350,7 +350,7 @@ free_rstate (SCM rstate)
 
 SCM_GLOBAL_VCELL_INIT (scm_var_random_state, "*random-state*", scm_seed_to_random_state (scm_makfrom0str ("URL:http://stat.fsu.edu/~geo/diehard.html")));
 
-GUILE_PROC (scm_random, "random", 1, 1, 0, 
+SCM_DEFINE (scm_random, "random", 1, 1, 0, 
             (SCM n, SCM state),
 "")
 #define FUNC_NAME s_scm_random
@@ -373,7 +373,7 @@ GUILE_PROC (scm_random, "random", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_copy_random_state, "copy-random-state", 0, 1, 0, 
+SCM_DEFINE (scm_copy_random_state, "copy-random-state", 0, 1, 0, 
             (SCM state),
 "")
 #define FUNC_NAME s_scm_copy_random_state
@@ -385,7 +385,7 @@ GUILE_PROC (scm_copy_random_state, "copy-random-state", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_seed_to_random_state, "seed->random-state", 1, 0, 0, 
+SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0, 
             (SCM seed),
 "")
 #define FUNC_NAME s_scm_seed_to_random_state
@@ -398,7 +398,7 @@ GUILE_PROC (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_random_uniform, "random:uniform", 0, 1, 0, 
+SCM_DEFINE (scm_random_uniform, "random:uniform", 0, 1, 0, 
             (SCM state),
 "")
 #define FUNC_NAME s_scm_random_uniform
@@ -410,7 +410,7 @@ GUILE_PROC (scm_random_uniform, "random:uniform", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_random_normal, "random:normal", 0, 1, 0, 
+SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0, 
             (SCM state),
 "")
 #define FUNC_NAME s_scm_random_normal
@@ -461,7 +461,7 @@ vector_sum_squares (SCM v)
  * distribution r^n; i.e., u=r^n is uniform [0,1], so r can be
  * generated as r=u^(1/n).
  */
-GUILE_PROC (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0, 
+SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0, 
             (SCM v, SCM state),
 "")
 #define FUNC_NAME s_scm_random_solid_sphere_x
@@ -479,7 +479,7 @@ GUILE_PROC (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0, 
+SCM_DEFINE (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0, 
             (SCM v, SCM state),
 "")
 #define FUNC_NAME s_scm_random_hollow_sphere_x
@@ -495,7 +495,7 @@ GUILE_PROC (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0, 
+SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0, 
             (SCM v, SCM state),
 "")
 #define FUNC_NAME s_scm_random_normal_vector_x
@@ -518,7 +518,7 @@ GUILE_PROC (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
 
 #endif /* HAVE_ARRAYS */
 
-GUILE_PROC (scm_random_exp, "random:exp", 0, 1, 0, 
+SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0, 
             (SCM state),
 "")
 #define FUNC_NAME s_scm_random_exp

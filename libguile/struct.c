@@ -66,7 +66,7 @@ static SCM required_vtable_fields = SCM_BOOL_F;
 SCM scm_struct_table;
 
 
-GUILE_PROC (scm_make_struct_layout, "make-struct-layout", 1, 0, 0, 
+SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0, 
             (SCM fields),
 "Return a new structure layout object.
 
@@ -240,7 +240,7 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 }
 
 
-GUILE_PROC (scm_struct_p, "struct?", 1, 0, 0, 
+SCM_DEFINE (scm_struct_p, "struct?", 1, 0, 0, 
             (SCM x),
 "Return #t iff @var{obj} is a structure object, else #f.")
 #define FUNC_NAME s_scm_struct_p
@@ -249,7 +249,7 @@ GUILE_PROC (scm_struct_p, "struct?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0, 
+SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0, 
             (SCM x),
 "Return #t iff obj is a vtable structure.")
 #define FUNC_NAME s_scm_struct_vtable_p
@@ -367,7 +367,7 @@ scm_struct_free_entity (SCM *vtable, SCM *data)
   return n;
 }
 
-GUILE_PROC (scm_make_struct, "make-struct", 2, 0, 1, 
+SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 
             (SCM vtable, SCM tail_array_size, SCM init),
 "Create a new structure.
 
@@ -420,7 +420,7 @@ can not be initialized by Scheme programs.")
 
 
 
-GUILE_PROC (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
+SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
             (SCM extra_fields, SCM tail_array_size, SCM init),
 "Return a new, self-describing vtable structure.
 
@@ -522,7 +522,7 @@ provided, it will be interpreted as a print call-back function.
 
 
 
-GUILE_PROC (scm_struct_ref, "struct-ref", 2, 0, 0,
+SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
             (SCM handle, SCM pos),
 "@deffnx primitive struct-set! struct n value
 Access (or modify) the @var{n}th field of @var{struct}.
@@ -607,7 +607,7 @@ integer value small enough to fit in one machine word.")
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_struct_set_x, "struct-set!", 3, 0, 0,
+SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
             (SCM handle, SCM pos, SCM val),
 "")
 #define FUNC_NAME s_scm_struct_set_x
@@ -681,7 +681,7 @@ GUILE_PROC (scm_struct_set_x, "struct-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_struct_vtable, "struct-vtable", 1, 0, 0, 
+SCM_DEFINE (scm_struct_vtable, "struct-vtable", 1, 0, 0, 
             (SCM handle),
 "Return the vtable structure that describes the type of @var{struct}.")
 #define FUNC_NAME s_scm_struct_vtable
@@ -692,7 +692,7 @@ GUILE_PROC (scm_struct_vtable, "struct-vtable", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0, 
+SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0, 
             (SCM handle),
 "")
 #define FUNC_NAME s_scm_struct_vtable_tag
@@ -731,7 +731,7 @@ scm_struct_create_handle (SCM obj)
   return handle;
 }
 
-GUILE_PROC (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0, 
+SCM_DEFINE (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0, 
             (SCM vtable),
 "")
 #define FUNC_NAME s_scm_struct_vtable_name
@@ -741,7 +741,7 @@ GUILE_PROC (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0, 
+SCM_DEFINE (scm_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0, 
             (SCM vtable, SCM name),
 "")
 #define FUNC_NAME s_scm_set_struct_vtable_name_x

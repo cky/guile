@@ -295,7 +295,7 @@ SCM scm_strport_to_string (SCM port)
   return scm_makfromstr (pt->read_buf, pt->read_buf_size, 0);
 }
 
-GUILE_PROC(scm_call_with_output_string, "call-with-output-string", 1, 0, 0, 
+SCM_DEFINE(scm_call_with_output_string, "call-with-output-string", 1, 0, 0, 
            (SCM proc),
 "Calls the one-argument procedure @var{proc} with a newly created output
 port.  When the function returns, the string composed of the characters
@@ -337,7 +337,7 @@ scm_strprint_obj (SCM obj)
 
 
 
-GUILE_PROC(scm_call_with_input_string, "call-with-input-string", 2, 0, 0,
+SCM_DEFINE(scm_call_with_input_string, "call-with-input-string", 2, 0, 0,
            (SCM str, SCM proc),
 "Calls the one-argument procedure @var{proc} with a newly created input
 port from which @var{string}'s contents may be read.  The value yielded
@@ -378,7 +378,7 @@ scm_eval_0str (const char *expr)
 }
 
 
-GUILE_PROC (scm_eval_string, "eval-string", 1, 0, 0, 
+SCM_DEFINE (scm_eval_string, "eval-string", 1, 0, 0, 
             (SCM string),
 "Evaluate @var{string} as the text representation of a Scheme form
 or forms, and return whatever value they produce.")

@@ -122,7 +122,7 @@ scm_vector_set_length_x (SCM vect, SCM len)
   return vect;
 }
 
-GUILE_PROC (scm_vector_p, "vector?", 1, 0, 0, 
+SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
 	    (SCM x),
 "")
 #define FUNC_NAME s_scm_vector_p
@@ -145,7 +145,7 @@ scm_vector_length (SCM v)
 
 SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
 
-GUILE_PROC (scm_vector, "vector", 0, 0, 1, 
+SCM_DEFINE (scm_vector, "vector", 0, 0, 1, 
 	    (SCM l),
 "")
 #define FUNC_NAME s_scm_vector
@@ -194,7 +194,7 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 }
 
 
-GUILE_PROC (scm_make_vector, "make-vector", 1, 1, 0,
+SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
             (SCM k, SCM fill),
 "")
 #define FUNC_NAME s_scm_make_vector
@@ -221,7 +221,7 @@ GUILE_PROC (scm_make_vector, "make-vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_vector_to_list, "vector->list", 1, 0, 0, 
+SCM_DEFINE(scm_vector_to_list, "vector->list", 1, 0, 0, 
            (SCM v),
 "")
 #define FUNC_NAME s_scm_vector_to_list
@@ -237,7 +237,7 @@ GUILE_PROC(scm_vector_to_list, "vector->list", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
+SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
             (SCM v, SCM fill_x),
 "")
 #define FUNC_NAME s_scm_vector_fill_x
@@ -265,7 +265,7 @@ scm_vector_equal_p(SCM x, SCM y)
 }
 
 
-GUILE_PROC (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0, 
+SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
 "Vector version of @code{substring-move-left!}.")
 #define FUNC_NAME s_scm_vector_move_left_x
@@ -288,7 +288,7 @@ GUILE_PROC (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0, 
+SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
 "Vector version of @code{substring-move-right!}.")
 #define FUNC_NAME s_scm_vector_move_right_x

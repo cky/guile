@@ -63,7 +63,7 @@
 extern int system();
 
 
-GUILE_PROC(scm_system, "system", 0, 1, 0, 
+SCM_DEFINE(scm_system, "system", 0, 1, 0, 
            (SCM cmd),
 "Executes @var{cmd} using the operating system's "command processor".
 Under Unix this is usually the default shell @code{sh}.  The value
@@ -103,7 +103,7 @@ indicating whether the command processor is available.")
 #undef FUNC_NAME
 
 extern char *getenv();
-GUILE_PROC (scm_getenv, "getenv", 1, 0, 0, 
+SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0, 
             (SCM nam),
 "Looks up the string @var{name} in the current environment.  The return
 value is @code{#f} unless a string of the form @code{NAME=VALUE} is
@@ -120,7 +120,7 @@ returned.")
 #undef FUNC_NAME
 
 /* simple exit, without unwinding the scheme stack or flushing ports.  */
-GUILE_PROC (scm_primitive_exit, "primitive-exit", 0, 1, 0, 
+SCM_DEFINE (scm_primitive_exit, "primitive-exit", 0, 1, 0, 
             (SCM status),
 "Terminate the current process without unwinding the Scheme stack.
 This is would typically be useful after a fork.  The exit status

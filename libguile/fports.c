@@ -129,7 +129,7 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
     SCM_SETCAR (port, (SCM_CAR (port) | SCM_BUF0));
 }
 
-GUILE_PROC (scm_setvbuf, "setvbuf", 2, 1, 0, 
+SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0, 
             (SCM port, SCM mode, SCM size),
 "Set the buffering mode for @var{port}.  @var{mode} can be:
 @table @code
@@ -255,7 +255,7 @@ scm_evict_ports (int fd)
  *
  * Return the new port.
  */
-GUILE_PROC(scm_open_file, "open-file", 2, 0, 0,
+SCM_DEFINE(scm_open_file, "open-file", 2, 0, 0,
            (SCM filename, SCM modes),
 "Open the file whose name is @var{string}, and return a port
 representing that file.  The attributes of the port are

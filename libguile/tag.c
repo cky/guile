@@ -89,7 +89,7 @@ SCM_CONST_LONG (scm_utag_flag_base, "utag_flag_base", 254);
 SCM_CONST_LONG (scm_utag_struct_base, "utag_struct_base", 255);
 
 
-GUILE_PROC (scm_tag, "tag", 1, 0, 0, 
+SCM_DEFINE (scm_tag, "tag", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_tag

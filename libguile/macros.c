@@ -52,7 +52,7 @@
 
 long scm_tc16_macro;
 
-GUILE_PROC (scm_makacro, "procedure->syntax", 1, 0, 0,
+SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
             (SCM code),
 "")
 #define FUNC_NAME s_scm_makacro
@@ -63,7 +63,7 @@ GUILE_PROC (scm_makacro, "procedure->syntax", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_makmacro, "procedure->macro", 1, 0, 0, 
+SCM_DEFINE(scm_makmacro, "procedure->macro", 1, 0, 0, 
            (SCM code),
 "")
 #define FUNC_NAME s_scm_makmacro
@@ -74,7 +74,7 @@ GUILE_PROC(scm_makmacro, "procedure->macro", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
+SCM_DEFINE(scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
            (SCM code),
 "")
 #define FUNC_NAME s_scm_makmmacro
@@ -85,7 +85,7 @@ GUILE_PROC(scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_macro_p, "macro?", 1, 0, 0, 
+SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0, 
             (SCM obj),
 "Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
 syntax transformer.")
@@ -100,7 +100,7 @@ SCM_SYMBOL (scm_sym_syntax, "syntax");
 SCM_SYMBOL (scm_sym_macro, "macro");
 SCM_SYMBOL (scm_sym_mmacro, "macro!");
 
-GUILE_PROC (scm_macro_type, "macro-type", 1, 0, 0, 
+SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0, 
             (SCM m),
 "Return one of the symbols @code{syntax}, @code{macro} or @code{macro!},
 depending on whether @var{obj} is a syntax tranformer, a regular macro,
@@ -121,7 +121,7 @@ or a memoizing macro, respectively.  If @var{obj} is not a macro,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_macro_name, "macro-name", 1, 0, 0, 
+SCM_DEFINE (scm_macro_name, "macro-name", 1, 0, 0, 
             (SCM m),
 "")
 #define FUNC_NAME s_scm_macro_name
@@ -132,7 +132,7 @@ GUILE_PROC (scm_macro_name, "macro-name", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_macro_transformer, "macro-transformer", 1, 0, 0, 
+SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0, 
             (SCM m),
 "")
 #define FUNC_NAME s_scm_macro_transformer

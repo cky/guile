@@ -74,7 +74,7 @@ scm_option scm_read_opts[] = {
     "Style of keyword recognition: #f or 'prefix"}
 };
 
-GUILE_PROC (scm_read_options, "read-options-interface", 0, 1, 0, 
+SCM_DEFINE (scm_read_options, "read-options-interface", 0, 1, 0, 
             (SCM setting),
 "")
 #define FUNC_NAME s_scm_read_options
@@ -92,7 +92,7 @@ GUILE_PROC (scm_read_options, "read-options-interface", 0, 1, 0,
 /* An association list mapping extra hash characters to procedures.  */
 static SCM *scm_read_hash_procedures;
 
-GUILE_PROC (scm_read, "read", 0, 1, 0, 
+SCM_DEFINE (scm_read, "read", 0, 1, 0, 
             (SCM port),
 "")
 #define FUNC_NAME s_scm_read
@@ -701,7 +701,7 @@ exit:
 
 /* Manipulate the read-hash-procedures alist.  This could be written in
    Scheme, but maybe it will also be used by C code during initialisation.  */
-GUILE_PROC (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
+SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
             (SCM chr, SCM proc),
 "")
 #define FUNC_NAME s_scm_read_hash_extend

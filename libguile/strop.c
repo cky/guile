@@ -86,7 +86,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   return -1;
 }
 
-GUILE_PROC(scm_string_index, "string-index", 2, 2, 0, 
+SCM_DEFINE(scm_string_index, "string-index", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
 "Return the index of the first occurrence of @var{chr} in @var{str}.  The
 optional integer arguments @var{frm} and @var{to} limit the search to
@@ -107,7 +107,7 @@ a portion of the string.  This procedure essentially implements the
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_rindex, "string-rindex", 2, 2, 0, 
+SCM_DEFINE(scm_string_rindex, "string-rindex", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
 "Like @code{string-index}, but search from the right of the string rather
 than from the left.  This procedure essentially implements the
@@ -132,7 +132,7 @@ SCM_REGISTER_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_
 SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_x);
 
 
-GUILE_PROC(scm_substring_move_x, "substring-move!", 5, 0, 0, 
+SCM_DEFINE(scm_substring_move_x, "substring-move!", 5, 0, 0, 
            (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
 "Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
 into @var{str2} beginning at position @var{end2}.
@@ -175,7 +175,7 @@ are different strings, it does not matter which function you use.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
+SCM_DEFINE(scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
            (SCM str, SCM start, SCM end, SCM fill),
 "Change every character in @var{str} between @var{start} and @var{end} to
 @var{fill-char}.")
@@ -195,7 +195,7 @@ GUILE_PROC(scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_string_null_p, "string-null?", 1, 0, 0, 
+SCM_DEFINE(scm_string_null_p, "string-null?", 1, 0, 0, 
            (SCM str),
 "Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}
 otherwise.")
@@ -207,7 +207,7 @@ otherwise.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_string_to_list, "string->list", 1, 0, 0, 
+SCM_DEFINE(scm_string_to_list, "string->list", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_to_list
@@ -224,7 +224,7 @@ GUILE_PROC(scm_string_to_list, "string->list", 1, 0, 0,
 
 
 
-GUILE_PROC(scm_string_copy, "string-copy", 1, 0, 0, 
+SCM_DEFINE(scm_string_copy, "string-copy", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_copy
@@ -235,7 +235,7 @@ GUILE_PROC(scm_string_copy, "string-copy", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_string_fill_x, "string-fill!", 2, 0, 0,
+SCM_DEFINE(scm_string_fill_x, "string-fill!", 2, 0, 0,
            (SCM str, SCM chr),
 "")
 #define FUNC_NAME s_scm_string_fill_x
@@ -249,7 +249,7 @@ GUILE_PROC(scm_string_fill_x, "string-fill!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
+SCM_DEFINE(scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
            (SCM v),
 "@deffnx primitive string-downcase! str
 Upcase or downcase every character in @code{str}, respectively.")
@@ -274,7 +274,7 @@ Upcase or downcase every character in @code{str}, respectively.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_upcase, "string-upcase", 1, 0, 0, 
+SCM_DEFINE(scm_string_upcase, "string-upcase", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_upcase
@@ -283,7 +283,7 @@ GUILE_PROC(scm_string_upcase, "string-upcase", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
+SCM_DEFINE(scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
            (SCM v),
 "")
 #define FUNC_NAME s_scm_string_downcase_x
@@ -306,7 +306,7 @@ GUILE_PROC(scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_downcase, "string-downcase", 1, 0, 0, 
+SCM_DEFINE(scm_string_downcase, "string-downcase", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_downcase
@@ -316,7 +316,7 @@ GUILE_PROC(scm_string_downcase, "string-downcase", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
+SCM_DEFINE(scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
            (SCM s),
 "")
 #define FUNC_NAME s_scm_string_capitalize_x
@@ -341,7 +341,7 @@ GUILE_PROC(scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_capitalize, "string-capitalize", 1, 0, 0, 
+SCM_DEFINE(scm_string_capitalize, "string-capitalize", 1, 0, 0, 
            (SCM s),
 "")
 #define FUNC_NAME s_scm_string_capitalize
@@ -351,7 +351,7 @@ GUILE_PROC(scm_string_capitalize, "string-capitalize", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
+SCM_DEFINE(scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_ci_to_symbol

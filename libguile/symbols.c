@@ -419,7 +419,7 @@ scm_symbol_value0 (const char *name)
   return SCM_CDR (vcell);
 }
 
-GUILE_PROC(scm_symbol_p, "symbol?", 1, 0, 0, 
+SCM_DEFINE(scm_symbol_p, "symbol?", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_symbol_p
@@ -429,7 +429,7 @@ GUILE_PROC(scm_symbol_p, "symbol?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_symbol_to_string, "symbol->string", 1, 0, 0, 
+SCM_DEFINE(scm_symbol_to_string, "symbol->string", 1, 0, 0, 
            (SCM s),
 "")
 #define FUNC_NAME s_scm_symbol_to_string
@@ -440,7 +440,7 @@ GUILE_PROC(scm_symbol_to_string, "symbol->string", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_string_to_symbol, "string->symbol", 1, 0, 0, 
+SCM_DEFINE(scm_string_to_symbol, "string->symbol", 1, 0, 0, 
            (SCM s),
 "")
 #define FUNC_NAME s_scm_string_to_symbol
@@ -456,7 +456,7 @@ GUILE_PROC(scm_string_to_symbol, "string->symbol", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
+SCM_DEFINE(scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
            (SCM o, SCM s, SCM softp),
 "Intern a new symbol in @var{obarray}, a symbol table, with name
 @var{string}.
@@ -501,7 +501,7 @@ table; instead, simply return @code{#f}.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_intern_symbol, "intern-symbol", 2, 0, 0,
+SCM_DEFINE(scm_intern_symbol, "intern-symbol", 2, 0, 0,
            (SCM o, SCM s),
 "Add a new symbol to @var{obarray} with name @var{string}, bound to an
 unspecified initial value.  The symbol table is not modified if a symbol
@@ -538,7 +538,7 @@ with this name is already present.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
+SCM_DEFINE(scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
            (SCM o, SCM s),
 "Remove the symbol with name @var{string} from @var{obarray}.  This
 function returns @code{#t} if the symbol was present and @code{#f}
@@ -578,7 +578,7 @@ otherwise.")
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_symbol_binding, "symbol-binding", 2, 0, 0,
+SCM_DEFINE(scm_symbol_binding, "symbol-binding", 2, 0, 0,
            (SCM o, SCM s),
 "Look up in @var{obarray} the symbol whose name is @var{string}, and
 return the value to which it is bound.  If @var{obarray} is @code{#f},
@@ -597,7 +597,7 @@ use the global symbol table.  If @var{string} is not interned in
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
+SCM_DEFINE(scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
            (SCM o, SCM s),
 "Return @var{#t} if @var{obarray} contains a symbol with name
 @var{string}, and @var{#f} otherwise.")
@@ -618,7 +618,7 @@ GUILE_PROC(scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
+SCM_DEFINE(scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
            (SCM o, SCM s),
 "Return @var{#t} if @var{obarray} contains a symbol with name
 @var{string} bound to a defined value.  This differs from
@@ -641,7 +641,7 @@ been given any meaningful value.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_symbol_set_x, "symbol-set!", 3, 0, 0,
+SCM_DEFINE(scm_symbol_set_x, "symbol-set!", 3, 0, 0,
            (SCM o, SCM s, SCM v),
 "Find the symbol in @var{obarray} whose name is @var{string}, and rebind
 it to @var{value}.  An error is signalled if @var{string} is not present
@@ -676,7 +676,7 @@ msymbolize (SCM s)
 }
 
 
-GUILE_PROC(scm_symbol_fref, "symbol-fref", 1, 0, 0, 
+SCM_DEFINE(scm_symbol_fref, "symbol-fref", 1, 0, 0, 
            (SCM s),
 "Return the contents of @var{symbol}'s @dfn{function slot}.")
 #define FUNC_NAME s_scm_symbol_fref
@@ -691,7 +691,7 @@ GUILE_PROC(scm_symbol_fref, "symbol-fref", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_symbol_pref, "symbol-pref", 1, 0, 0, 
+SCM_DEFINE(scm_symbol_pref, "symbol-pref", 1, 0, 0, 
            (SCM s),
 "Return the @dfn{property list} currently associated with @var{symbol}.")
 #define FUNC_NAME s_scm_symbol_pref
@@ -706,7 +706,7 @@ GUILE_PROC(scm_symbol_pref, "symbol-pref", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_symbol_fset_x, "symbol-fset!", 2, 0, 0, 
+SCM_DEFINE(scm_symbol_fset_x, "symbol-fset!", 2, 0, 0, 
            (SCM s, SCM val),
 "Change the binding of @var{symbol}'s function slot.")
 #define FUNC_NAME s_scm_symbol_fset_x
@@ -722,7 +722,7 @@ GUILE_PROC(scm_symbol_fset_x, "symbol-fset!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
+SCM_DEFINE(scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
            (SCM s, SCM val),
 "Change the binding of @var{symbol}'s property slot.")
 #define FUNC_NAME s_scm_symbol_pset_x
@@ -738,7 +738,7 @@ GUILE_PROC(scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_symbol_hash, "symbol-hash", 1, 0, 0, 
+SCM_DEFINE(scm_symbol_hash, "symbol-hash", 1, 0, 0, 
            (SCM s),
 "Return the hash value derived from @var{symbol}'s name, i.e. the integer
 index into @var{symbol}'s obarray at which it is stored.")
@@ -777,7 +777,7 @@ copy_and_prune_obarray (SCM from, SCM to)
 }
 
 
-GUILE_PROC(scm_builtin_bindings, "builtin-bindings", 0, 0, 0, 
+SCM_DEFINE(scm_builtin_bindings, "builtin-bindings", 0, 0, 0, 
            (),
 "Create and return a copy of the global symbol table, removing all
 unbound symbols.")
@@ -791,7 +791,7 @@ unbound symbols.")
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0, 
+SCM_DEFINE(scm_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_builtin_weak_bindings
@@ -807,7 +807,7 @@ static int gensym_counter;
 static SCM gensym_prefix;
 
 /* :FIXME:OPTIMIZE */
-GUILE_PROC (scm_gensym, "gensym", 0, 2, 0,
+SCM_DEFINE (scm_gensym, "gensym", 0, 2, 0,
             (SCM name, SCM obarray),
 "Create a new, unique symbol in @var{obarray}, using the global symbol
 table by default.  If @var{name} is specified, it should be used as a

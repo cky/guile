@@ -415,7 +415,7 @@ scm_cmp_function (SCM p)
 /* endpos equal as for substring, i.e. endpos is not included. */
 /* More natural wih length? */
 
-GUILE_PROC (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0, 
+SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0, 
             (SCM vec, SCM less, SCM startpos, SCM endpos),
 "")
 #define FUNC_NAME s_scm_restricted_vector_sort_x
@@ -456,7 +456,7 @@ GUILE_PROC (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
  * is true when sequence is a list (x0 x1 ... xm) or a vector #(x0 ... xm)
  * such that for all 1 <= i <= m,
  * (not (less? (list-ref list i) (list-ref list (- i 1)))). */
-GUILE_PROC (scm_sorted_p, "sorted?", 2, 0, 0,
+SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
             (SCM items, SCM less),
 "")
 #define FUNC_NAME s_scm_sorted_p
@@ -536,7 +536,7 @@ GUILE_PROC (scm_sorted_p, "sorted?", 2, 0, 0,
    and returns a new list in which the elements of a and b have been stably
    interleaved so that (sorted? (merge a b less?) less?).
    Note:  this does _not_ accept vectors. */
-GUILE_PROC (scm_merge, "merge", 3, 0, 0, 
+SCM_DEFINE (scm_merge, "merge", 3, 0, 0, 
             (SCM alist, SCM blist, SCM less),
 "")
 #define FUNC_NAME s_scm_merge
@@ -643,7 +643,7 @@ scm_merge_list_x (SCM alist, SCM blist,
   return build;
 }				/* scm_merge_list_x */
 
-GUILE_PROC (scm_merge_x, "merge!", 3, 0, 0, 
+SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0, 
             (SCM alist, SCM blist, SCM less),
 "")
 #define FUNC_NAME s_scm_merge_x
@@ -715,7 +715,7 @@ scm_merge_list_step (SCM * seq,
 
 
 /* scm_sort_x manages lists and vectors, not stable sort */
-GUILE_PROC (scm_sort_x, "sort!", 2, 0, 0, 
+SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0, 
             (SCM items, SCM less),
 "")
 #define FUNC_NAME s_scm_sort_x
@@ -747,7 +747,7 @@ GUILE_PROC (scm_sort_x, "sort!", 2, 0, 0,
 
 /* scm_sort manages lists and vectors, not stable sort */
 
-GUILE_PROC (scm_sort, "sort", 2, 0, 0, 
+SCM_DEFINE (scm_sort, "sort", 2, 0, 0, 
             (SCM items, SCM less),
 "")
 #define FUNC_NAME s_scm_sort
@@ -838,7 +838,7 @@ scm_merge_vector_step (void *const vp,
 
 /* stable-sort! manages lists and vectors */
 
-GUILE_PROC (scm_stable_sort_x, "stable-sort!", 2, 0, 0, 
+SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0, 
             (SCM items, SCM less),
 "")
 #define FUNC_NAME s_scm_stable_sort_x
@@ -876,7 +876,7 @@ GUILE_PROC (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 
 /* stable_sort manages lists and vectors */
 
-GUILE_PROC (scm_stable_sort, "stable-sort", 2, 0, 0, 
+SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0, 
             (SCM items, SCM less),
 "")
 #define FUNC_NAME s_scm_stable_sort
@@ -919,7 +919,7 @@ GUILE_PROC (scm_stable_sort, "stable-sort", 2, 0, 0,
 #undef FUNC_NAME				/* scm_stable_sort */
 
 /* stable */
-GUILE_PROC (scm_sort_list_x, "sort-list!", 2, 0, 0, 
+SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0, 
             (SCM items, SCM less),
 "")
 #define FUNC_NAME s_scm_sort_list_x
@@ -932,7 +932,7 @@ GUILE_PROC (scm_sort_list_x, "sort-list!", 2, 0, 0,
 #undef FUNC_NAME				/* scm_sort_list_x */
 
 /* stable */
-GUILE_PROC (scm_sort_list, "sort-list", 2, 0, 0, 
+SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0, 
   (SCM items, SCM less),
 "")
 #define FUNC_NAME s_scm_sort_list

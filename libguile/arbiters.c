@@ -74,7 +74,7 @@ prinarb (SCM exp, SCM port, scm_print_state *pstate)
   return !0;
 }
 
-GUILE_PROC(scm_make_arbiter, "make-arbiter", 1, 0, 0, 
+SCM_DEFINE(scm_make_arbiter, "make-arbiter", 1, 0, 0, 
            (SCM name),
 "")
 #define FUNC_NAME s_scm_make_arbiter
@@ -83,7 +83,7 @@ GUILE_PROC(scm_make_arbiter, "make-arbiter", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC(scm_try_arbiter, "try-arbiter", 1, 0, 0, 
+SCM_DEFINE(scm_try_arbiter, "try-arbiter", 1, 0, 0, 
            (SCM arb),
 "")
 #define FUNC_NAME s_scm_try_arbiter
@@ -103,7 +103,7 @@ GUILE_PROC(scm_try_arbiter, "try-arbiter", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC(scm_release_arbiter, "release-arbiter", 1, 0, 0, 
+SCM_DEFINE(scm_release_arbiter, "release-arbiter", 1, 0, 0, 
            (SCM arb),
 "")
 #define FUNC_NAME s_scm_release_arbiter

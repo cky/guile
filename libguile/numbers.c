@@ -95,7 +95,7 @@
 
 
 
-GUILE_PROC (scm_exact_p, "exact?", 1, 0, 0, 
+SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_exact_p
@@ -110,7 +110,7 @@ GUILE_PROC (scm_exact_p, "exact?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_odd_p, "odd?", 1, 0, 0, 
+SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0, 
             (SCM n),
 "")
 #define FUNC_NAME s_scm_odd_p
@@ -128,7 +128,7 @@ GUILE_PROC (scm_odd_p, "odd?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_even_p, "even?", 1, 0, 0, 
+SCM_DEFINE (scm_even_p, "even?", 1, 0, 0, 
             (SCM n),
 "")
 #define FUNC_NAME s_scm_even_p
@@ -584,7 +584,7 @@ Example:
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_logtest, "logtest", 2, 0, 0,
+SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
             (SCM n1, SCM n2),
 "")
 #define FUNC_NAME s_scm_logtest
@@ -597,7 +597,7 @@ GUILE_PROC (scm_logtest, "logtest", 2, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_logbit_p, "logbit?", 2, 0, 0,
+SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
             (SCM n1, SCM n2),
 "")
 #define FUNC_NAME s_scm_logbit_p
@@ -665,7 +665,7 @@ GUILE_PROC1 (scm_logxor, "logxor", scm_tc7_asubr,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_logtest, "logtest", 2, 0, 0,
+SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
             (SCM n1, SCM n2),
 "@example
 (logtest j k) @equiv{} (not (zero? (logand j k)))
@@ -682,7 +682,7 @@ GUILE_PROC (scm_logtest, "logtest", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_logbit_p, "logbit?", 2, 0, 0,
+SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
             (SCM n1, SCM n2),
 "@example
 (logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)
@@ -703,7 +703,7 @@ GUILE_PROC (scm_logbit_p, "logbit?", 2, 0, 0,
 #undef FUNC_NAME
 #endif
 
-GUILE_PROC (scm_lognot, "lognot", 1, 0, 0, 
+SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0, 
             (SCM n),
 "Returns the integer which is the 2s-complement of the integer argument.
 
@@ -722,7 +722,7 @@ Example:
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_integer_expt, "integer-expt", 2, 0, 0,
+SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
             (SCM z1, SCM z2),
 "Returns @var{n} raised to the non-negative integer exponent @var{k}.
 
@@ -763,7 +763,7 @@ Example:
 }
 #undef FUNC_NAME
 
-GUILE_PROC (scm_ash, "ash", 2, 0, 0,
+SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             (SCM n, SCM cnt),
 "Returns an integer equivalent to
 @code{(inexact->exact (floor (* @var{int} (expt 2 @var{count}))))}.@refill
@@ -806,7 +806,7 @@ Example:
 #undef FUNC_NAME
 
 /* GJB:FIXME: do not use SCMs as integers! */
-GUILE_PROC (scm_bit_extract, "bit-extract", 3, 0, 0,
+SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
             (SCM n, SCM start, SCM end),
 "Returns the integer composed of the @var{start} (inclusive) through
 @var{end} (exclusive) bits of @var{n}.  The @var{start}th bit becomes
@@ -845,7 +845,7 @@ static const char scm_logtab[] = {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
 };
 
-GUILE_PROC (scm_logcount, "logcount", 1, 0, 0,
+SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
             (SCM n),
 "Returns the number of bits in integer @var{n}.  If integer is positive,
 the 1-bits in its binary representation are counted.  If negative, the
@@ -895,7 +895,7 @@ static const char scm_ilentab[] = {
   0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4
 };
 
-GUILE_PROC (scm_integer_length, "integer-length", 1, 0, 0,
+SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
             (SCM n),
 "Returns the number of bits neccessary to represent @var{n}.
 
@@ -1856,7 +1856,7 @@ big2str (SCM b, unsigned int radix)
 #endif
 
 
-GUILE_PROC (scm_number_to_string, "number->string", 1, 1, 0,
+SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
             (SCM x, SCM radix),
 "")
 #define FUNC_NAME s_scm_number_to_string
@@ -2458,7 +2458,7 @@ scm_istring2number (char *str, long len, long radix)
 }
 
 
-GUILE_PROC (scm_string_to_number, "string->number", 1, 1, 0,
+SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
             (SCM str, SCM radix),
 "")
 #define FUNC_NAME s_scm_string_to_number
@@ -2542,7 +2542,7 @@ scm_floequal (SCM x, SCM y)
 
 SCM_REGISTER_PROC (s_number_p, "number?", 1, 0, 0, scm_number_p);
 
-GUILE_PROC (scm_number_p, "complex?", 1, 0, 0, 
+SCM_DEFINE (scm_number_p, "complex?", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_number_p
@@ -2568,7 +2568,7 @@ GUILE_PROC (scm_number_p, "complex?", 1, 0, 0,
 SCM_REGISTER_PROC (s_real_p, "real?", 1, 0, 0, scm_real_p);
 
 
-GUILE_PROC (scm_real_p, "rational?", 1, 0, 0, 
+SCM_DEFINE (scm_real_p, "rational?", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_real_p
@@ -2589,7 +2589,7 @@ GUILE_PROC (scm_real_p, "rational?", 1, 0, 0,
 
 
 
-GUILE_PROC (scm_integer_p, "integer?", 1, 0, 0, 
+SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_integer_p
@@ -2618,7 +2618,7 @@ GUILE_PROC (scm_integer_p, "integer?", 1, 0, 0,
 
 #endif /* SCM_FLOATS */
 
-GUILE_PROC (scm_inexact_p, "inexact?", 1, 0, 0, 
+SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_inexact_p
@@ -4244,7 +4244,7 @@ scm_two_doubles (SCM z1, SCM z2, const char *sstring, struct dpair *xy)
 
 
 
-GUILE_PROC (scm_sys_expt, "$expt", 2, 0, 0,
+SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
             (SCM z1, SCM z2),
 "")
 #define FUNC_NAME s_scm_sys_expt
@@ -4257,7 +4257,7 @@ GUILE_PROC (scm_sys_expt, "$expt", 2, 0, 0,
 
 
 
-GUILE_PROC (scm_sys_atan2, "$atan2", 2, 0, 0,
+SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
             (SCM z1, SCM z2),
 "")
 #define FUNC_NAME s_scm_sys_atan2
@@ -4270,7 +4270,7 @@ GUILE_PROC (scm_sys_atan2, "$atan2", 2, 0, 0,
 
 
 
-GUILE_PROC (scm_make_rectangular, "make-rectangular", 2, 0, 0,
+SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
             (SCM z1, SCM z2),
 "")
 #define FUNC_NAME s_scm_make_rectangular
@@ -4283,7 +4283,7 @@ GUILE_PROC (scm_make_rectangular, "make-rectangular", 2, 0, 0,
 
 
 
-GUILE_PROC (scm_make_polar, "make-polar", 2, 0, 0,
+SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
             (SCM z1, SCM z2),
 "")
 #define FUNC_NAME s_scm_make_polar
@@ -4421,7 +4421,7 @@ scm_angle (SCM z)
 }
 
 
-GUILE_PROC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0, 
+SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0, 
             (SCM z),
 "")
 #define FUNC_NAME s_scm_inexact_to_exact

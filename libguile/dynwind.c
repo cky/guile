@@ -70,7 +70,7 @@
 
 
 
-GUILE_PROC(scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
+SCM_DEFINE(scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
            (SCM thunk1, SCM thunk2, SCM thunk3),
 "All three arguments must be 0-argument procedures.
 
@@ -199,7 +199,7 @@ scm_internal_dynamic_wind (scm_guard_t before,
 }
 
 #ifdef GUILE_DEBUG
-GUILE_PROC (scm_wind_chain, "wind-chain", 0, 0, 0, 
+SCM_DEFINE (scm_wind_chain, "wind-chain", 0, 0, 0, 
             (),
 "")
 #define FUNC_NAME s_scm_wind_chain
