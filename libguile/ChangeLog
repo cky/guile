@@ -1,3 +1,10 @@
+2005-03-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* async.h (scm_mask_ints): Removed left over reference to
+	scm_root.
+
+	* threads.c: Removed fprintf debug statements.
+	
 2005-03-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debug.c (scm_make_memoized): Restore use of SCM_UNPACK.

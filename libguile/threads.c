@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1076,8 +1076,6 @@ fat_cond_timedwait (SCM cond, SCM mutex,
 
   while (1)
     {
-      fprintf (stderr, "cond wait on %p\n", &c->lock);
-
       scm_i_scm_pthread_mutex_lock (&c->lock);
       msg = fat_mutex_unlock (m);
       t->block_asyncs++;
@@ -1085,15 +1083,12 @@ fat_cond_timedwait (SCM cond, SCM mutex,
 	{
 	  err = block_self (c->waiting, cond, &c->lock, waittime);
 	  scm_i_pthread_mutex_unlock (&c->lock);
-	  fprintf (stderr, "locking mutex\n");
 	  fat_mutex_lock (mutex);
 	}
       else
 	scm_i_pthread_mutex_unlock (&c->lock);
       t->block_asyncs--;
       scm_async_click ();
-
-      fprintf (stderr, "back: %s, %d\n", msg, err);
 
       if (msg)
 	scm_misc_error (NULL, msg, SCM_EOL);
@@ -1152,8 +1147,6 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
 static void
 fat_cond_signal (fat_cond *c)
 {
-  fprintf (stderr, "cond signal on %p\n", &c->lock);
-
   scm_i_scm_pthread_mutex_lock (&c->lock);
   unblock_from_queue (c->waiting);
   scm_i_pthread_mutex_unlock (&c->lock);
