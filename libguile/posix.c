@@ -584,7 +584,7 @@ SCM
 scm_getpgrp ()
 {
   int (*fn)();
-  fn = getpgrp;
+  fn = (int (*) ()) getpgrp;
   return SCM_MAKINUM (fn (0));
 }
 
