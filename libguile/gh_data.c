@@ -80,7 +80,7 @@ gh_double2scm (double x)
 SCM 
 gh_char2scm (char c)
 {
-  return SCM_MAKICHR (c);
+ return SCM_MAKICHR (c);
 }
 SCM 
 gh_str2scm (char *s, int len)
@@ -101,7 +101,8 @@ gh_str02scm (char *s)
 void 
 gh_set_substr (char *src, SCM dst, int start, int len)
 {
-  char *dst_ptr, dst_len, effective_length;
+  char *dst_ptr;
+  unsigned long dst_len, effective_length;
 
   SCM_ASSERT (SCM_NIMP (dst) && SCM_STRINGP (dst), dst, SCM_ARG3,
 	      "gh_set_substr");
