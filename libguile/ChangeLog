@@ -1,3 +1,8 @@
+1999-10-08  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* throw.c (handler_message): Display backtrace if backtraces
+	enabled.
+
 1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.in, scmconfig.h.in: Deleted from CVS repository.  Run

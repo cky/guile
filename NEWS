@@ -56,6 +56,21 @@ a garbage collection before each allocation of a cell.  This can
 slow down the interpreter dramatically, so the setter should be used to
 turn on this extra processing only when necessary.
 
+* Changes to the stand-alone interpreter
+
+** Backtraces in scripts
+
+It is now possible to get backtraces in scripts.
+
+Put
+
+  (debug-enable 'debug 'backtrace)
+
+at the top of the script.
+
+(The first options enables the debugging evaluator.
+ The second enables backtraces.)
+
 
 Changes since Guile 1.3.2:
 
