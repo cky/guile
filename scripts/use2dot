@@ -97,7 +97,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
          (format #t "  \"~A\" -> \"~A\"~A;\n" module use etc-spec))))
 
 (define (header)
-  (format #t "digraph use2dot {")
+  (format #t "digraph use2dot {\n")
   (for-each (lambda (s) (format #t "  ~A;\n" s))
             (map vv `((label . ,(q "Guile Module Dependencies"))
                       ;(rankdir . LR)
@@ -105,6 +105,12 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                       (ratio . fill)
                       ;(nodesep . ,(q "0.05"))
                       ))))
+
+(define (ferret use)                    ; handle "((foo bar) :select ...)"
+  (let ((maybe (car use)))
+    (if (list? maybe)
+        maybe
+        use)))
 
 (define (grok filename)
   (let* ((p (open-file filename "r"))
@@ -121,7 +127,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                          (or (null? ls)
                              (case (car ls)
                                ((:use-module)
-                                (spew module (cadr ls))
+                                (spew module (ferret (cadr ls)))
                                 (loop (cddr ls)))
                                ((:autoload)
                                 (spew module (cadr ls)
@@ -133,7 +139,8 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                                (else (loop (cdr ls))))))))
                     ((use-modules)
                      (for-each (lambda (use)
-                                 (spew (or curmod default-module) use))
+                                 (spew (or curmod default-module)
+                                       (ferret use)))
                                (cdr form)))
                     ((load primitive-load)
                      (spew (or curmod default-module)
