@@ -160,6 +160,15 @@
 #define SCM_DEBUG 0
 #endif
 
+/* If SCM_DEBUG_CELL_ACCESSES is set to 1, cell accesses will perform
+ * exhaustive parameter checking:  It will be verified that cell parameters
+ * actually point to a valid heap cell.  Note:  If this option is enabled,
+ * guile will run about ten times slower than normally.
+ */
+#ifndef SCM_DEBUG_CELL_ACCESSES
+#define SCM_DEBUG_CELL_ACCESSES SCM_DEBUG
+#endif
+
 /* If SCM_DEBUG_DEPRECATED is set to 1, deprecated code is not compiled.  This
  * can be used by developers to get rid of references to deprecated code.
  */

@@ -1,5 +1,18 @@
 2000-05-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* __scm.h (SCM_DEBUG_CELL_ACCESSES), gc.h (SCM_):  Added as a new
+	debug option to verify all accesses to cells actually access
+	objects on the heap.
+
+	* gc.h (SCM_VALIDATE_CELL):  Added.  Only performs validation if
+	SCM_DEBUG_CELL_ACCESSES is set to 1.
+
+	(SCM_CELL_WORD, SCM_CELL_OBJECT, SCM_SET_CELL_WORD,
+	SCM_SET_CELL_OBJECT):  Use SCM_VALIDATE_CELL to check every cell
+	that is accessed.
+
+2000-05-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gh_data.c (gh_scm2chars, gh_scm2shorts, gh_scm2longs,
 	gh_scm2floats, gh_scm2doubles):  Change !SCM_NIMP to SCM_IMP.
 
