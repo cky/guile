@@ -30,7 +30,7 @@
   :export (assemble))
 
 (define (assemble glil env . opts)
-  (dump (codegen (preprocess glil #f) #t)))
+  (optimizing-dump (codegen (preprocess glil #f) #t)))
 
 
 ;;;
@@ -89,16 +89,19 @@
 	   (set! label-alist (assq-set! label-alist key addr))))
        (define (generate-code x)
 	 (match x
-	   (($ <vm-asm> env)
-	    (push-object! (codegen x #f))
-	    (if (venv-closure? env) (push-code! `(make-closure))))
+	   (($ <vm-asm> venv)
+	    (let ((spec (codegen x #f)))
+	      (if toplevel
+		  (dump-object! spec push-code!)
+		  (push-object! spec)))
+	    (if (venv-closure? venv) (push-code! `(make-closure))))
 
 	   (($ <glil-void>)
 	    (push-code! `(void)))
 
 	   (($ <glil-const> x)
 	    (if toplevel
-		(for-each push-code! (object->dump-code x))
+		(dump-object! x push-code!)
 		(cond ((object->code x) => push-code!)
 		      (else (push-object! x)))))
 
@@ -117,13 +120,11 @@
 		 (push-code! `(,(symbol-append 'external- op) ,(+ index i))))))
 
 	   (($ <glil-module> op module name)
-	    (if toplevel
-		(begin
-		  ;; (push-code! `(load-module ,module))
-		  (for-each push-code! (object->dump-code name))
-		  (push-code! `(link/current-module)))
-		;; (let ((vlink (make-vlink (make-vmod module) name)))
-		(push-object! (make-vlink #f name)))
+	    ;; (let ((vlink (make-vlink (make-vmod module) name)))
+	    (let ((vlink (make-vlink #f name)))
+	      (if toplevel
+		  (dump-object! vlink push-code!)
+		  (push-object! vlink)))
 	    (push-code! (list (symbol-append 'variable- op))))
 
 	   (($ <glil-label> label)
@@ -192,48 +193,23 @@
 
 
 ;;;
-;;; Stage3: Dumpcode generation
+;;; Stage3: Dump optimization
 ;;;
 
-(define (dump bytespec)
-  (let* ((table (build-object-table bytespec))
-	 (bytes (bytespec->bytecode bytespec table '(return))))
-    (if (null? table)
-	bytes
-	(let ((spec (make-bytespec 0 0 (length table) bytes '())))
-	  (bytespec->bytecode spec '() '(tail-call 0))))))
+(define (optimizing-dump bytespec)
+  ;; no optimization yet
+  (bytespec-bytes bytespec))
 
-(define (bytespec->bytecode bytespec object-table last-code)
-  (let ((stack '()))
-    (define (push-code! x)
-      (set! stack (cons x stack)))
-    (define (object-index x)
-      (cond ((object-find object-table x) => cdr)
-	    (else #f)))
-    (define (dump-table-object! obj+index)
-      (let dump! ((x (car obj+index)))
-	(cond
-	 ((vlink? x)
-	  ;; (push-code! `(local-ref ,(object-index (vlink-module x))))
-	  (for-each push-code! (object->dump-code (vlink-name x)))
-	  (push-code! `(link/current-module)))
-	 ;;((vmod? x)
-	 ;;  (push-code! `(load-module ,(vmod-id x))))
-	 (else
-	  (for-each push-code! (object->dump-code x)))))
-      (push-code! `(local-set ,(cdr obj+index))))
-    (define (dump-object! x)
-      (let dump! ((x x))
-	(cond
-	 ((bytespec? x) (dump-bytecode! x))
-	 ((object-index x) => (lambda (i) (push-code! `(local-ref ,i))))
-	 (else
-	  (error "Cannot dump:" x)))))
-    (define (dump-bytecode! spec)
-      (let ((nargs (bytespec-nargs spec))
-	    (nrest (bytespec-nrest spec))
-	    (nlocs (bytespec-nlocs spec))
-	    (objs  (bytespec-objs spec)))
+(define (dump-object! x push-code!)
+  (let dump! ((x x))
+    (cond
+     ((object->code x) => push-code!)
+     ((bytespec? x)
+      (let ((nargs (bytespec-nargs x))
+	    (nrest (bytespec-nrest x))
+	    (nlocs (bytespec-nlocs x))
+	    (bytes (bytespec-bytes x))
+	    (objs  (bytespec-objs x)))
 	;; dump parameters
 	(if (and (< nargs 4) (< nlocs 16))
 	    (push-code! (object->code (+ (* nargs 32) (* nrest 16) nlocs)))
@@ -244,31 +220,44 @@
 	      (push-code! (object->code #f))))
 	;; dump object table
 	(cond ((not (null? objs))
-	       (for-each dump-object! objs)
+	       (for-each dump! objs)
 	       (push-code! `(vector ,(length objs)))))
 	;; dump bytecode
-	(push-code! `(load-program ,(bytespec-bytes spec)))))
-    ;;
-    ;; main
-    (for-each dump-table-object! object-table)
-    (dump-bytecode! bytespec)
-    (push-code! last-code)
-    (apply string-append
-	   (map code->bytes (map code-pack (reverse! stack))))))
+	(push-code! `(load-program ,bytes))))
+     ((vlink? x)
+      ;; (push-code! `(local-ref ,(object-index (vlink-module x))))
+      (dump! (vlink-name x))
+      (push-code! `(link/current-module)))
+     ;;((vmod? x)
+     ;;  (push-code! `(load-module ,(vmod-id x))))
+     ((integer? x)
+      (let ((str (do ((n x (quotient n 256))
+		      (l '() (cons (modulo n 256) l)))
+		     ((= n 0)
+		      (list->string (map integer->char l))))))
+	(push-code! `(load-integer ,str))))
+     ((string? x)
+      (push-code! `(load-string ,x)))
+     ((symbol? x)
+      (push-code! `(load-symbol ,(symbol->string x))))
+     ((keyword? x)
+      (push-code! `(load-keyword ,(symbol->string (keyword-dash-symbol x)))))
+     ((list? x)
+      (for-each dump! x)
+      (push-code! `(list ,(length x))))
+     ((pair? x)
+      (dump! (car x))
+      (dump! (cdr x))
+      (push-code! `(cons)))
+     ((vector? x)
+      (for-each dump! (vector->list x))
+      (push-code! `(vector ,(vector-length x))))
+     (else
+      (error "Cannot dump:" x)))))
 
-(define (object-find table x)
-  ((if (or (vlink? x) (vmod? x)) assoc assq) x table))
-
-(define (build-object-table bytespec)
-  (let ((table '()) (index 0))
-    (define (insert! x)
-      ;; (if (vlink? x) (begin (insert! (vlink-module x))))
-      (if (not (object-find table x))
-	  (begin
-	    (set! table (acons x index table))
-	    (set! index (1+ index)))))
-    (let loop ((spec bytespec))
-      (for-each (lambda (x)
-		  (if (bytespec? x) (loop x) (insert! x)))
-		(bytespec-objs spec)))
-    (reverse! table)))
+;;;(define (dump-table-object! obj+index)
+;;;  (let dump! ((x (car obj+index)))
+;;;    (cond
+;;;     (else
+;;;      (for-each push-code! (dump-object! x)))))
+;;;  (push-code! `(local-set ,(cdr obj+index))))

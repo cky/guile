@@ -63,16 +63,13 @@
   (apply read-in repl.language args))
 
 (define (repl-compile repl form . opts)
-  (let ((bytes (apply compile-in form repl.module repl.language opts)))
-    (if (or (memq :c opts) (memq :l opts) (memq :t opts) (memq :e opts))
-	bytes
-	(vm-load repl.vm bytes))))
+  (apply compile-in form repl.module repl.language opts))
 
 (define (repl-eval repl form)
   (let ((evaler repl.language.evaler))
     (if evaler
 	(evaler form repl.module)
-	(repl.vm (repl-compile repl form)))))
+	(vm-load repl.vm (repl-compile repl form)))))
 
 (define (repl-print repl val)
   (if (not (eq? val *unspecified*))
@@ -89,6 +86,6 @@
 
 (define (repl-load-file repl file . opts)
   (let ((bytes (apply load-file-in file repl.module repl.language opts)))
-    (if (memq #:t opts) (vm-trace-start! repl.vm #:a))
-    (repl.vm (vm-load repl.vm bytes))
-    (if (memq #:t opts) (vm-trace-end! repl.vm #:a))))
+    (if (memq :t opts)
+	(vm-trace repl.vm bytes :a)
+	(vm-load repl.vm bytes))))

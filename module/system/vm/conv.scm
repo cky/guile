@@ -23,7 +23,7 @@
   :use-module (system vm core)
   :use-module (ice-9 match)
   :use-module (ice-9 regex)
-  :export (code-pack code-unpack object->code object->dump-code code->object))
+  :export (code-pack code-unpack object->code code->object code->bytes))
 
 ;;;
 ;;; Code compress/decompression
@@ -72,39 +72,6 @@
 	((char? x) `(make-char8 ,(char->integer x)))
 	(else #f)))
 
-(define (object->dump-code x)
-  (let ((stack '()))
-    (define (push-code! code)
-      (set! stack (cons code stack)))
-    (let dump! ((x x))
-      (cond
-       ((object->code x) => push-code!)
-       ((integer? x)
-	(let ((str (do ((n x (quotient n 256))
-			(l '() (cons (modulo n 256) l)))
-		       ((= n 0)
-			(list->string (map integer->char l))))))
-	  (push-code! `(load-integer ,str))))
-       ((string? x)
-	(push-code! `(load-string ,x)))
-       ((symbol? x)
-	(push-code! `(load-symbol ,(symbol->string x))))
-       ((keyword? x)
-	(push-code! `(load-keyword ,(symbol->string (keyword-dash-symbol x)))))
-       ((list? x)
-	(for-each dump! x)
-	(push-code! `(list ,(length x))))
-       ((pair? x)
-	(dump! (car x))
-	(dump! (cdr x))
-	(push-code! `(cons)))
-       ((vector? x)
-	(for-each dump! (vector->list x))
-	(push-code! `(vector ,(vector-length x))))
-       (else
-	(error "Cannot dump:" x))))
-    (reverse! stack)))
-
 (define (code->object code)
   (match code
     (('make-true) #t)
@@ -122,7 +89,7 @@
     (('load-keyword s) (symbol->keyword (string->symbol s)))
     (else #f)))
 
-(define-public (code->bytes code)
+(define (code->bytes code)
   (let* ((inst (car code))
 	 (rest (cdr code))
 	 (head (make-string 1 (integer->char (instruction->opcode inst))))

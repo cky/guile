@@ -288,7 +288,7 @@ Generate compiled code.
   -D    Add debug information"
   (let ((x (apply repl-compile repl form opts)))
     (cond ((null? opts)
-	   (disassemble-program x))
+	   (puts x))
 	  ((memq :l opts)
 	   (disassemble-bytecode x))
 	  ((memq :c opts)
@@ -304,7 +304,7 @@ Compile a file."
 (define (disassemble repl prog)
   "disassemble PROGRAM
 Disassemble a program."
-  (disassemble-program (repl.vm (repl-compile repl prog))))
+  (disassemble-program (repl-eval repl prog)))
 
 (define (disassemble-file repl file)
   "disassemble-file FILE

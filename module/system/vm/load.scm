@@ -36,7 +36,7 @@
     (let ((bytes (make-uniform-vector (stat:size (stat compiled)) #\a)))
       (call-with-input-file compiled
 	(lambda (p) (uniform-vector-read! bytes p)))
-      ((vm-load *the-vm* bytes)))))
+      (vm-load *the-vm* bytes))))
 
 (define (file-name-full-name filename)
   (let ((oldname (and (current-load-port)

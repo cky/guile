@@ -176,12 +176,6 @@ VM_DEFINE_INSTRUCTION (local_ref, "local-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (local_ref_0, "local-ref:0", 0, 0, 1)
-{
-  PUSH (LOCAL_REF (0));
-  NEXT;
-}
-
 VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1, 0, 1)
 {
   unsigned int i;
