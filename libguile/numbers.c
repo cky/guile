@@ -420,8 +420,8 @@ scm_logand(n1, n2)
 	return SCM_MAKINUM (-1);
       return n1;
     }
-  return scm_long2num (scm_num2long(n1, (char *)SCM_ARG1, s_logand)
-		       & scm_num2long(n2, (char *)SCM_ARG2, s_logand));
+  return scm_ulong2num (scm_num2ulong(n1, (char *)SCM_ARG1, s_logand)
+		       & scm_num2ulong(n2, (char *)SCM_ARG2, s_logand));
 }
 
 SCM_PROC1 (s_logior, "logior", scm_tc7_asubr, scm_logior);
@@ -437,8 +437,8 @@ scm_logior(n1, n2)
 	return SCM_INUM0;
       return n1;
     }
-  return scm_long2num(scm_num2long(n1, (char *)SCM_ARG1, s_logior)
-		      | scm_num2long(n2, (char *)SCM_ARG2, s_logior));
+  return scm_ulong2num(scm_num2ulong(n1, (char *)SCM_ARG1, s_logior)
+		      | scm_num2ulong(n2, (char *)SCM_ARG2, s_logior));
 }
 
 SCM_PROC1 (s_logxor, "logxor", scm_tc7_asubr, scm_logxor);
@@ -454,8 +454,8 @@ scm_logxor(n1, n2)
 	return SCM_INUM0;
       return n1;
     }
-  return scm_long2num(scm_num2long(n1, (char *)SCM_ARG1, s_logxor)
-		      ^ scm_num2long(n2, (char *)SCM_ARG2, s_logxor));
+  return scm_ulong2num(scm_num2ulong(n1, (char *)SCM_ARG1, s_logxor)
+		      ^ scm_num2ulong(n2, (char *)SCM_ARG2, s_logxor));
 }
 
 SCM_PROC(s_logtest, "logtest", 2, 0, 0, scm_logtest);
@@ -465,8 +465,8 @@ scm_logtest(n1, n2)
      SCM n1;
      SCM n2;
 {
-  return ((scm_num2long (n1, (char *)SCM_ARG1, s_logtest)
-	   & scm_num2long (n2, (char *)SCM_ARG2, s_logtest))
+  return ((scm_num2ulong (n1, (char *)SCM_ARG1, s_logtest)
+	   & scm_num2ulong (n2, (char *)SCM_ARG2, s_logtest))
 	  ? SCM_BOOL_T : SCM_BOOL_F);
 }
 
@@ -479,7 +479,7 @@ scm_logbit_p(n1, n2)
      SCM n2;
 {
   return (((1 << scm_num2long (n1, (char *)SCM_ARG1, s_logtest))
-	   & scm_num2long (n2, (char *)SCM_ARG2, s_logtest))
+	   & scm_num2ulong (n2, (char *)SCM_ARG2, s_logtest))
 	  ? SCM_BOOL_T : SCM_BOOL_F);
 }
 
