@@ -763,6 +763,11 @@
     (pass-if "n = fixnum-min - 1"
       (eqv? (- (- fixnum-min 1)) (gcd 0 (- fixnum-min 1)))))
 
+  (with-test-prefix "(n 0)"
+
+    (pass-if "n = 2^128 * fixnum-max"
+      (eqv? (ash fixnum-max 128) (gcd (ash fixnum-max 128) 0))))
+
   (with-test-prefix "(1 n)"
 
     (pass-if "n = 0"
