@@ -233,7 +233,7 @@
 	 '("passes:               "
 	   "failures:             "
 	   "unexpected passes:    "
-	   "unexpected failures:  "
+	   "expected failures:    "
 	   "errors:               ")))
     (lambda (results . port?)
       (let ((port (if (pair? port?) 
