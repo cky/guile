@@ -1,3 +1,7 @@
+2004-12-16  Kevin Ryde  <user42@zip.com.au>
+
+	* ramap.c (scm_array_map_x): Check for at least one source argument.
+
 2004-12-14  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (string-any, string-every): Use a scheme wrapper around
