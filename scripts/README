@@ -65,7 +65,7 @@ Programs must follow the "executable module" convention, documented here:
 
   #!/bin/sh
   main='(module-ref (resolve-module '\''(scripts PROGRAM)) '\'main')'
-  exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
+  exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
   !#
 
 Following these conventions allows the program file to be used as module
