@@ -124,6 +124,14 @@ Analogous to some but returns #t as soon as an application of PRED returns #f,
 or #f otherwise."
   (not (apply every pred ls)))
 
+(define-public (count-if pred l)
+  "Returns the number of elements in L such that (PRED element)
+returns true."
+  (let loop ((n 0) (l l))
+    (cond ((null? l) n)
+	  ((pred (car l)) (loop (+ n 1) (cdr l)))
+	  (else (loop n (cdr l))))))
+
 (define-public (find-if pred l)
   "Searches for the first element in L such that (PRED element)
 returns true. If it finds any such element in L, element is
