@@ -49,17 +49,23 @@
 
 
 
-extern SCM scm_string_index SCM_P ((SCM str, SCM chr, SCM frm, SCM to));
-extern SCM scm_string_rindex SCM_P ((SCM str, SCM chr, SCM frm, SCM to));
-extern SCM scm_substring_move_left_x SCM_P ((SCM str1, SCM start1, SCM args));
-extern SCM scm_substring_move_right_x SCM_P ((SCM str1, SCM start1, SCM args));
-extern SCM scm_substring_fill_x SCM_P ((SCM str, SCM start, SCM args));
-extern SCM scm_string_null_p SCM_P ((SCM str));
-extern SCM scm_string_to_list SCM_P ((SCM str));
-extern SCM scm_string_copy SCM_P ((SCM str));
-extern SCM scm_string_fill_x SCM_P ((SCM str, SCM chr));
-extern void scm_init_strop SCM_P ((void));
-extern SCM scm_string_upcase_x SCM_P ((SCM v));
-extern SCM scm_string_downcase_x SCM_P ((SCM v));
+extern SCM scm_string_index (SCM str, SCM chr, SCM frm, SCM to);
+extern SCM scm_string_rindex (SCM str, SCM chr, SCM frm, SCM to);
+extern SCM scm_substring_move_left_x (SCM str1, SCM start1, SCM end1, 
+				      SCM str2, SCM start2);
+extern SCM scm_substring_move_right_x (SCM str1, SCM start1, SCM end1, 
+				       SCM str2, SCM start2);
+extern SCM scm_substring_fill_x (SCM str, SCM start, SCM end, SCM fill);
+extern SCM scm_string_null_p (SCM str);
+extern SCM scm_string_to_list (SCM str);
+extern SCM scm_string_copy (SCM str);
+extern SCM scm_string_fill_x (SCM str, SCM chr);
+extern void scm_init_strop (void);
+extern SCM scm_string_upcase_x (SCM v);
+extern SCM scm_string_upcase (SCM v);
+extern SCM scm_string_downcase_x (SCM v);
+extern SCM scm_string_downcase (SCM v);
+extern SCM scm_string_capitalize_x (SCM v);
+extern SCM scm_string_ci_to_symbol (SCM v);
 
 #endif  /* STROPH */
