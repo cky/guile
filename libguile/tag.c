@@ -175,8 +175,7 @@ scm_tag (x)
 	case scm_tcs_cons_gloc:
 	  /* must be a struct */
 	  {
-	    int tag;
-	    tag = SCM_STRUCT_VTABLE_DATA (x)[scm_struct_i_tag];
+	    int tag = (int) SCM_STRUCT_VTABLE_DATA (x) >> 3;
 	    return SCM_MAKINUM (SCM_INUM (SCM_CDR (scm_utag_struct_base))
 				| (tag << 8));
 	  }
