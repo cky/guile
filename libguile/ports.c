@@ -1395,13 +1395,13 @@ SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 
 SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
             (SCM port),
-	    "@deffnx primitive port-line [input-port]\n"
-	    "Return the current column number or line number of @var{input-port},\n"
+	    "@deffnx primitive port-line port\n"
+	    "Return the current column number or line number of @var{port},\n"
 	    "using the current input port if none is specified.  If the number is\n"
 	    "unknown, the result is #f.  Otherwise, the result is a 0-origin integer\n"
 	    "- i.e. the first character of the first line is line 0, column 0.\n"
 	    "(However, when you display a file position, for example in an error\n"
-	    "message, we recommand you add 1 to get 1-origin integers.  This is\n"
+	    "message, we recommend you add 1 to get 1-origin integers.  This is\n"
 	    "because lines and column numbers traditionally start with 1, and that is\n"
 	    "what non-programmers will find most natural.)")
 #define FUNC_NAME s_scm_port_column

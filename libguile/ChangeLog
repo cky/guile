@@ -1,3 +1,8 @@
+2001-03-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* ports.c (scm_port_column): Docstring fixes: (i) port-line arg is
+	not optional (ii) "recommend" spelling correction.
+
 2001-03-08  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* ramap.c (racp): Removed optimization which caused array copying
