@@ -1,3 +1,7 @@
+
+/* NOTE: this code was never being run.  The same tests have been
+   migrated to standalone/test-gh.c */
+
 /* strings.c --- test the Guile C API's string handling functions
    Jim Blandy <jimb@red-bean.com> --- August 1999  */
 
