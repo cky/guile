@@ -1,6 +1,14 @@
 2000-01-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-	* fports.c, list.c: Converted docstrings to ANSI C format and
+	* net_db.c (scm_resolv_error): Cast result from hstrerror.
+
+	* strports.c (st_end_input): Inserted parenthesis to get operator
+	grouping correct.
+
+	* list.h (scm_init_list): Removed SCM_P around prototypes.
+
+	* fports.c, list.c, numbers.c, ports.c, stime.c, symbols.c,
+	filesys.c, posix.c: Converted docstrings to ANSI C format and
 	escaped " occurring inside string literals.
 
 Tue Jan 18 13:21:08 2000  Mikael Djurfeldt  <mdj@r11n07-s.pdc.kth.se>
