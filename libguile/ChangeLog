@@ -1,3 +1,22 @@
+2000-03-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* coop-threads.c: Addd #include "root.h", #include "strings.h".
+
+	* debug.c: Added #include "root.h".  (Thanks to Thien-Thi Nguyen.)
+
+	* gc.c (scm_gc_for_newcell, adjust_gc_trigger): Improved GC
+	trigger adjustmeant: Take yield (freed cells) for all freelists
+	into account.
+	(SCM_INIT_HEAP_SIZE_1, SCM_GC_TRIGGER_1, SCM_GC_TRIGGER_2): Tuned
+	to 50000 cell heap with 45% trigger.
+	(scm_gc_cells_collected): Reintroduced.
+	(SCM_HEAP_SIZE): New macro.
+	(scm_gc_sweep): Reintroduced correct computation of
+	scm_cells_allocated.
+	(scm_freelist_t): Corrected commentary for field `cluster_size':
+	Clustersize counts objects, not cells;  New member
+	`clusters_allocated'.
+
 2000-03-19  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* *.[hc]: add Emacs magic at the end of file, to ensure GNU
