@@ -101,6 +101,8 @@ Add STRING as the most recent line in the history used by the READLINE
 command.  READLINE does not add lines to the history itself; you must
 call ADD-HISTORY to make previous input available to the user.
 
+** macro-eval! is removed.  Use local-eval instead.
+
 ** Some magic has been added to the printer to better handle user
 written printing routines (like record printers, closure printers).
 
