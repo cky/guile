@@ -1088,6 +1088,11 @@ SCM_GLOC_VAL_LOC, scm_make_gloc, scm_gloc_p, scm_tc16_variable
 These functions were used in the implementation of the evaluator.  It's
 unlikely that they have been used by user code.
 
+** Removed macro SCM_MAKSPCSYM
+
+This macro was used for defining byte codes of the evaluator.  It is almost
+impossible that user code has used this macro.
+
 
 Changes since Guile 1.4:
 

@@ -3,7 +3,8 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004
+ * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -321,18 +322,11 @@ typedef unsigned long scm_t_bits;
  * value and sign.  Thus, the only scheme objects for which a further
  * subdivision is of interest are the ones with tc3==100.
  *
- * tc7, tc8, tc9 (for objects with tc3==100):
- *   00-0000-100:  \  evaluator byte codes ('short instructions').  The byte
- *       ...        } code interpreter can dispatch on them in one step based
- *   00-1100-100:  /  on their tc7 value.
- *   00-1101-100:  evaluator byte codes ('long instructions').  The byte code
- *                 interpreter needs to dispatch on them in two steps: The
- *                 first dispatch is based on the tc7-code.  The second
- *                 dispatch is based on the actual byte code that is extracted
- *                 from the upper bits.
- *   x1-1110-100:  evaluator byte codes ('ilocs')
- *   x1-1111-100:  characters with x as their least significant bit
- *   10-1111-100:  various constants ('flags')
+ * tc8 (for objects with tc3==100):
+ *   00000-100:  special objects ('flags')
+ *   00001-100:  characters
+ *   00010-100:  evaluator byte codes ('ilocs')
+ *   00011-100:  evaluator byte codes ('isyms')
  *
  *
  * Summary of type codes on the heap
@@ -491,32 +485,30 @@ typedef unsigned long scm_t_bits;
 #define scm_tc_free_cell	(scm_tc7_smob + 0 * 256L)
 
 
+
 /* {Immediate Values}
  */
 
-enum scm_tags
+enum scm_tc8_tags
 {
-  scm_tc8_iloc = 0xf4,
-  scm_tc8_char = 0xfc,
-  scm_tc9_flag = 0x17c
+  scm_tc8_flag = scm_tc3_imm24 + 0x00,  /* special objects ('flags') */
+  scm_tc8_char = scm_tc3_imm24 + 0x08,  /* characters */
+  scm_tc8_isym = scm_tc3_imm24 + 0x10,  /* evaluator byte codes ('isyms') */
+  scm_tc8_iloc = scm_tc3_imm24 + 0x18   /* evaluator byte codes ('ilocs') */
 };
 
 #define SCM_ITAG8(X)		(SCM_UNPACK (X) & 0xff)
 #define SCM_MAKE_ITAG8(X, TAG)	SCM_PACK (((X) << 8) + TAG)
 #define SCM_ITAG8_DATA(X)	(SCM_UNPACK (X) >> 8)
 
-#define SCM_ITAG9(X)		(SCM_UNPACK (X) & 0x1ff)
-#define SCM_MAKE_ITAG9(X, TAG)	SCM_PACK (((X) << 9) + TAG)
-#define SCM_ITAG9_DATA(X)	(SCM_UNPACK (X) >> 9)
-
-
 
-/* Flags (various constants and special objects).  The indices of the flags
- * must agree with the declarations in print.c: iflagnames.  */
 
-#define SCM_IFLAGP(n)    (SCM_ITAG9 (n) == scm_tc9_flag)
-#define SCM_MAKIFLAG(n)  SCM_MAKE_ITAG9 ((n), scm_tc9_flag)
-#define SCM_IFLAGNUM(n)  (SCM_ITAG9_DATA (n))
+/* Flags (special objects).  The indices of the flags must agree with the
+ * declarations in print.c: iflagnames.  */
+
+#define SCM_IFLAGP(n)    (SCM_ITAG8 (n) == scm_tc8_flag)
+#define SCM_MAKIFLAG(n)  SCM_MAKE_ITAG8 ((n), scm_tc8_flag)
+#define SCM_IFLAGNUM(n)  (SCM_ITAG8_DATA (n))
 
 #define SCM_BOOL_F		SCM_MAKIFLAG (0)
 #define SCM_BOOL_T 		SCM_MAKIFLAG (1)
@@ -541,54 +533,34 @@ enum scm_tags
 
 #define SCM_UNBNDP(x)		(SCM_EQ_P ((x), SCM_UNDEFINED))
 
+
 
-/* Short instructions ('special symbols'), long instructions ('immediate
- * symbols').  The indices of the SCM_IM_ symbols must agree with the
- * declarations in print.c: scm_isymnames.  */
+/* Evaluator byte codes ('immediate symbols').  These constants are used only
+ * in eval but their values have to be allocated here.  The indices of the
+ * SCM_IM_ symbols must agree with the declarations in print.c:
+ * scm_isymnames.  */
 
-#define SCM_MAKSPCSYM(n) 	SCM_PACK (((n) << 9) + ((n) << 3) + 4L)
-#define SCM_MAKISYM(n) 		SCM_PACK (((n) << 9) + 0x6cL)
+#define SCM_ISYMP(n) 		(SCM_ITAG8 (n) == scm_tc8_isym)
+#define SCM_MAKISYM(n) 		SCM_MAKE_ITAG8 ((n), scm_tc8_isym)
+#define SCM_ISYMNUM(n) 		(SCM_ITAG8_DATA (n))
 
-/* SCM_ISYMP tests for ISPCSYM and ISYM */
-#define SCM_ISYMP(n) 		((0x187 & SCM_UNPACK (n)) == 4)
-#define SCM_ISYMNUM(n) 		(SCM_UNPACK (n) >> 9)
 SCM_API char *scm_isymnames[];   /* defined in print.c */
 #define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM (n)])
 
-/* Evaluator bytecodes (short instructions): These are uniquely identified by
- * their tc7 value.  This makes it possible for the evaluator to dispatch on
- * them in one step.  However, the type system allows for at most 13 short
- * instructions.  Consequently, the most frequent instructions are chosen to
- * be represented as short instructions.  These constants are used only in
- * eval but their values have to be allocated here.  */
-
-#define SCM_IM_AND		SCM_MAKSPCSYM (0)
-#define SCM_IM_BEGIN		SCM_MAKSPCSYM (1)
-#define SCM_IM_CASE		SCM_MAKSPCSYM (2)
-#define SCM_IM_COND		SCM_MAKSPCSYM (3)
-#define SCM_IM_DO		SCM_MAKSPCSYM (4)
-#define SCM_IM_IF		SCM_MAKSPCSYM (5)
-#define SCM_IM_LAMBDA		SCM_MAKSPCSYM (6)
-#define SCM_IM_LET		SCM_MAKSPCSYM (7)
-#define SCM_IM_LETSTAR		SCM_MAKSPCSYM (8)
-#define SCM_IM_LETREC		SCM_MAKSPCSYM (9)
-#define SCM_IM_OR		SCM_MAKSPCSYM (10)
-#define SCM_IM_QUOTE		SCM_MAKSPCSYM (11)
-#define SCM_IM_SET_X		SCM_MAKSPCSYM (12)
-
-
-/* Evaluator bytecodes (long instructions): All these share a common tc7
- * value.  Thus, the evaluator needs to dispatch on them in two steps.  These
- * constants are used only in eval but their values have to be allocated
- * here.  */
-
-/* Evaluator bytecode for (define ...) statements.  We make it a long
- * instruction since the evaluator will see this bytecode only for a very
- * limited number of times, namely once for every top-level and internal
- * definition: Top-level definitions are only executed once and internal
- * definitions are converted to letrec expressions.  */
+#define SCM_IM_AND              SCM_MAKISYM (0)
+#define SCM_IM_BEGIN            SCM_MAKISYM (1)
+#define SCM_IM_CASE             SCM_MAKISYM (2)
+#define SCM_IM_COND             SCM_MAKISYM (3)
+#define SCM_IM_DO               SCM_MAKISYM (4)
+#define SCM_IM_IF               SCM_MAKISYM (5)
+#define SCM_IM_LAMBDA           SCM_MAKISYM (6)
+#define SCM_IM_LET              SCM_MAKISYM (7)
+#define SCM_IM_LETSTAR          SCM_MAKISYM (8)
+#define SCM_IM_LETREC           SCM_MAKISYM (9)
+#define SCM_IM_OR               SCM_MAKISYM (10)
+#define SCM_IM_QUOTE            SCM_MAKISYM (11)
+#define SCM_IM_SET_X            SCM_MAKISYM (12)
 #define SCM_IM_DEFINE           SCM_MAKISYM (13)
-
 #define SCM_IM_APPLY		SCM_MAKISYM (14)
 #define SCM_IM_CONT		SCM_MAKISYM (15)
 #define SCM_IM_DISPATCH		SCM_MAKISYM (16)
@@ -599,11 +571,8 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 #define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (21)
 #define SCM_IM_ELSE             SCM_MAKISYM (22)
 #define SCM_IM_ARROW            SCM_MAKISYM (23)
-
-/* Multi-language support */
-
-#define SCM_IM_NIL_COND		SCM_MAKISYM (24)
-#define SCM_IM_BIND		SCM_MAKISYM (25)
+#define SCM_IM_NIL_COND         SCM_MAKISYM (24)  /* Multi-language support */
+#define SCM_IM_BIND             SCM_MAKISYM (25)  /* Multi-language support */
 
 
 

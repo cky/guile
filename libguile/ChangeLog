@@ -1,3 +1,33 @@
+2004-04-18  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* tags.h (scm_tags, scm_tc8_tags, scm_tc9_flag, scm_tc8_flag,
+	scm_tc8_isym): Renamed scm_tags to scm_tc8_tags.  Renamed
+	scm_tc9_flag to scm_tc8_flag.  Introduced new identifier
+	scm_tc8_isym.  Defined tc8-tags relative to scm_tc3_imm24.
+	Defined the tc8-tag for flags to be 0x04, which will mean that
+	SCM_BOOL_F will also have the value 0x04 instead of 0x013c.  Due
+	to the reduced number of bits and the simpler bit pattern for
+	SCM_BOOL_F, certain machines may be able to use more efficient
+	processor instructions to deal with SCM_BOOL_F.
+
+	(SCM_ITAG9, SCM_MAKE_ITAG9, SCM_ITAG9_DATA): Removed.  These have
+	never been defined in a released version, thus no need to
+	deprecate them.
+
+	(SCM_IFLAGP, SCM_MAKIFLAG, SCM_IFLAGNUM): Flags now use tc8
+	instead of tc9 tags.
+
+	(SCM_ISYMP, SCM_MAKISYM, SCM_ISYMNUM): Isyms now use tc8 instead
+	of tc9 tags.
+
+	(SCM_MAKSPCSYM): Removed.  It is almost impossible that user code
+	could have used this definition.
+
+	(SCM_IM_AND, SCM_IM_BEGIN, SCM_IM_CASE, SCM_IM_COND, SCM_IM_DO,
+	SCM_IM_IF, SCM_IM_LAMBDA, SCM_IM_LET, SCM_IM_LETSTAR,
+	SCM_IM_LETREC, SCM_IM_OR, SCM_IM_QUOTE, SCM_IM_SET_X): Now encoded
+	as isyms, as special isyms don't exist any more.
+
 2004-04-18  Kevin Ryde  <user42@zip.com.au>
 
 	* filesys.c (scm_readdir): Use readdir_r when available, for thread
