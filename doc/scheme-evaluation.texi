@@ -245,11 +245,16 @@ signalled.
 
 @rnindex load
 @deffn procedure load filename
-Load @var{file} and evaluate its contents in the top-level environment.
-The load paths are searched.  If the variable @code{%load-hook} is
-defined, it should be bound to a procedure that will be called before
-any code is loaded.  See documentation for @code{%load-hook} later in
-this section.
+Load @var{filename} and evaluate its contents in the top-level
+environment.  The load paths are not searched.  If the variable
+@code{%load-hook} is defined, it should be bound to a procedure that
+will be called before any code is loaded.  See documentation for
+@code{%load-hook} later in this section.
+@end deffn
+
+@deffn procedure load-from-path filename
+Similar to @code{load}, but searches for @var{filename} in the load
+paths.
 @end deffn
 
 @deffn primitive primitive-load filename

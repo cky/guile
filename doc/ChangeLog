@@ -1,3 +1,8 @@
+2001-07-11  Gary Houston  <ghouston@arglist.com>
+
+	* scheme-evaluation.texi: Added `load-from-path'.  Corrected `load':
+	it doesn't use the load paths.
+	
 2001-07-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-data.texi (Hook Reference): Removed documentation for
