@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -170,9 +170,7 @@ int scm_block_gc = 1;
 /* During collection, this accumulates objects holding
  * weak references.
  */
-SCM *scm_weak_vectors;
-int scm_weak_size;
-int scm_n_weak;
+SCM scm_weak_vectors;
 
 /* GC Statistics Keeping
  */
@@ -448,6 +446,14 @@ scm_igc (what)
 
   /* fprintf (stderr, "gc: %s\n", what); */
 
+  scm_gc_start (what);
+
+  if (!scm_stack_base || scm_block_gc)
+    {
+      scm_gc_end ();
+      return;
+    }
+
   if (scm_mallocated > ((unsigned long) 0 - (1 << 24)))
     {
       /* It is extremely unlikely that you have allocated all but 16 Mb
@@ -460,15 +466,14 @@ scm_igc (what)
       abort ();
     }
 
-  scm_gc_start (what);
-  if (!scm_stack_base || scm_block_gc)
-    {
-      scm_gc_end ();
-      return;
-    }
+  if (scm_gc_heap_lock)
+    /* We've invoked the collector while a GC is already in progress.
+       That should never happen.  */
+    abort ();
 
   ++scm_gc_heap_lock;
-  scm_n_weak = 0;
+
+  scm_weak_vectors = SCM_EOL;
 
   scm_guardian_gc_init ();
 
@@ -755,20 +760,8 @@ gc_mark_nimp:
     case scm_tc7_wvect:
       if (SCM_GC8MARKP(ptr))
 	break;
-      scm_weak_vectors[scm_n_weak++] = ptr;
-      if (scm_n_weak >= scm_weak_size)
-	{
-	  SCM_SYSCALL (scm_weak_vectors =
-		       (SCM *) realloc ((char *) scm_weak_vectors,
-					sizeof (SCM) * (scm_weak_size *= 2)));
-	  if (scm_weak_vectors == NULL)
-	    {
-	      scm_puts ("weak vector table", scm_cur_errp);
-	      scm_puts ("\nFATAL ERROR DURING CRITICAL SCM_CODE SECTION\n",
-			scm_cur_errp);
-	      exit(SCM_EXIT_FAILURE);
-	    }
-	}
+      SCM_WVECT_GC_CHAIN (ptr) = scm_weak_vectors;
+      scm_weak_vectors = ptr;
       SCM_SETGC8MARK (ptr);
       if (SCM_IS_WHVEC_ANY (ptr))
 	{
@@ -1029,20 +1022,20 @@ scm_cellp (value)
 static void
 scm_mark_weak_vector_spines ()
 {
-  int i;
+  SCM w;
 
-  for (i = 0; i < scm_n_weak; ++i)
+  for (w = scm_weak_vectors; w != SCM_EOL; w = SCM_WVECT_GC_CHAIN (w))
     {
-      if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i]))
+      if (SCM_IS_WHVEC_ANY (w))
 	{
 	  SCM *ptr;
 	  SCM obj;
 	  int j;
 	  int n;
 
-	  obj = scm_weak_vectors[i];
-	  ptr = SCM_VELTS (scm_weak_vectors[i]);
-	  n = SCM_LENGTH (scm_weak_vectors[i]);
+	  obj = w;
+	  ptr = SCM_VELTS (w);
+	  n = SCM_LENGTH (w);
 	  for (j = 0; j < n; ++j)
 	    {
 	      SCM alist;
@@ -1157,8 +1150,8 @@ scm_gc_sweep ()
 		}
 	      else
 		{
-		  m += (1 + SCM_LENGTH (scmptr)) * sizeof (SCM);
-		  scm_must_free ((char *)(SCM_VELTS (scmptr) - 1));
+		  m += (2 + SCM_LENGTH (scmptr)) * sizeof (SCM);
+		  scm_must_free ((char *)(SCM_VELTS (scmptr) - 2));
 		  break;
 		}
 
@@ -1364,26 +1357,26 @@ scm_gc_sweep ()
     }
   /* Scan weak vectors. */
   {
-    SCM *ptr;
-    for (i = 0; i < scm_n_weak; ++i)
+    SCM *ptr, w;
+    for (w = scm_weak_vectors; w != SCM_EOL; w = SCM_WVECT_GC_CHAIN (w))
       {
-	if (!SCM_IS_WHVEC_ANY (scm_weak_vectors[i]))
+	if (!SCM_IS_WHVEC_ANY (w))
 	  {
 	    register long j, n;
 
-	    ptr = SCM_VELTS (scm_weak_vectors[i]);
-	    n = SCM_LENGTH (scm_weak_vectors[i]);
+	    ptr = SCM_VELTS (w);
+	    n = SCM_LENGTH (w);
 	    for (j = 0; j < n; ++j)
 	      if (SCM_NIMP (ptr[j]) && SCM_FREEP (ptr[j]))
 		ptr[j] = SCM_BOOL_F;
 	  }
 	else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
 	  {
-	    SCM obj = scm_weak_vectors[i];
-	    register long n = SCM_LENGTH (scm_weak_vectors[i]);
+	    SCM obj = w;
+	    register long n = SCM_LENGTH (w);
 	    register long j;
 
-	    ptr = SCM_VELTS (scm_weak_vectors[i]);
+	    ptr = SCM_VELTS (w);
 
 	    for (j = 0; j < n; ++j)
 	      {
@@ -1918,8 +1911,7 @@ scm_init_storage (scm_sizet init_heap_size)
     scm_expmem = 1;
   scm_heap_org = CELL_UP (scm_heap_table[0].bounds[0]);
   /* scm_hplims[0] can change. do not remove scm_heap_org */
-  if (!(scm_weak_vectors = (SCM *) malloc ((scm_weak_size = 32) * sizeof(SCM))))
-    return 1;
+  scm_weak_vectors = SCM_EOL;
 
   /* Initialise the list of ports.  */
   scm_port_table = (scm_port **)
