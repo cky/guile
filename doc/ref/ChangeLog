@@ -1,3 +1,14 @@
+2002-01-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* data-rep.texi, gh.texi, guile.texi, intro.texi,
+	misc-modules.texi, new-docstrings.texi, posix.texi, program.texi,
+	repl-modules.texi, scheme-binding.texi, scheme-compound.texi,
+	scheme-control.texi, scheme-data.texi, scheme-debug.texi,
+	scheme-ideas.texi, scheme-io.texi, scheme-memory.texi,
+	scheme-modules.texi, scheme-procedures.texi,
+	scheme-translation.texi, scheme-utility.texi, scm.texi, slib.texi,
+	srfi-modules.texi: Spell check.  Thanks to Fabrice Bauzac.
+
 2002-01-07  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* intro.texi (Linking Programs With Guile): Fix typo (superfluous
