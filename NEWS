@@ -43,6 +43,25 @@ debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
 
+** Mutexes are now recursive.
+
+Locking a mutex that you have already locked will now succeed.  Every
+call to lock-mutex must be matched with a call to unlock-mutex.  Only
+the last call to unlock-mutex will actually unlock the mutex.
+
+** New function 'try-mutex'.
+
+This function will attempt to lock a mutex but will return immediately
+instead if blocking, indicating failure.
+
+** Waiting on a condition variable can have a timeout.
+
+The funtion 'wait-condition-variable' now takes a third, optional
+argument that specifies the point in time where the waiting should be
+aborted.
+
+** New function 'broadcast-condition-variable'.
+
 ** New functions 'all-threads' and 'current-thread'.
 
 ** Signals and system asyncs work better with threads.
