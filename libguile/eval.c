@@ -1580,7 +1580,7 @@ start:
 #if defined (USE_THREADS) || defined (DEVAL)
 dispatch:
 #endif
-  SCM_ASYNC_TICK;
+  SCM_TICK;
   switch (SCM_TYP7 (x))
     {
     case scm_tcs_symbols:

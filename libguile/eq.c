@@ -96,7 +96,7 @@ scm_equal_p (x, y)
      SCM y;
 {
   SCM_CHECK_STACK;
- tailrecurse: SCM_ASYNC_TICK;
+ tailrecurse: SCM_TICK;
 	if (x==y) return SCM_BOOL_T;
 	if (SCM_IMP(x)) return SCM_BOOL_F;
 	if (SCM_IMP(y)) return SCM_BOOL_F;
