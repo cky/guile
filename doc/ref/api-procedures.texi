@@ -209,7 +209,7 @@ position for binding local variables to argument values.
 and @code{let*} (@pxref{Local Bindings}).
 
 @deffn {library syntax} let-keywords rest-arg allow-other-keys? (binding @dots{})  expr @dots{}
-@deffnx {library syntax} let-keywords rest-arg allow-other-keys? (binding @dots{})  expr @dots{}
+@deffnx {library syntax} let-keywords* rest-arg allow-other-keys? (binding @dots{})  expr @dots{}
 These macros pick out keyword arguments from @var{rest-arg}, but do not
 modify it.  This is consistent at least with Common Lisp, which
 duplicates keyword arguments in the rest argument. More explanation of what
