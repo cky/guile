@@ -58,6 +58,7 @@
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/modules.h"
+#include "libguile/validate.h"
 
 #include "libguile/strports.h"
 
@@ -311,17 +312,26 @@ SCM scm_strport_to_string (SCM port)
   return scm_makfromstr ((char *) pt->read_buf, pt->read_buf_size, 0);
 }
 
-SCM_DEFINE (scm_object_to_string, "object->string", 1, 0, 0,
-	    (SCM obj),
-	    "Return a Scheme string obtained by printing a given object.")
+SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
+	    (SCM obj, SCM printer),
+	    "Return a Scheme string obtained by printing @var{obj}.\n"
+	    "Printing function can be specified by the optional second\n"
+	    "argument @var{printer} (default: @code{write}).")
 #define FUNC_NAME s_scm_object_to_string
 {
-  SCM str;
-  SCM port;
+  SCM str, port;
+
+  if (!SCM_UNBNDP (printer))
+    SCM_VALIDATE_PROC (2, printer);
 
   str = scm_makstr (0, 0);
   port = scm_mkstrport (SCM_INUM0, str, SCM_OPN | SCM_WRTNG, FUNC_NAME);
-  scm_prin1 (obj, port, 1);
+
+  if (SCM_UNBNDP (printer))
+    scm_write (obj, port);
+  else
+    scm_apply (printer, SCM_LIST2 (obj, port), SCM_EOL);
+
   return scm_strport_to_string (port);
 }
 #undef FUNC_NAME
@@ -331,7 +341,7 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 0, 0,
 SCM
 scm_strprint_obj (SCM obj)
 {
-  return scm_object_to_string (obj);
+  return scm_object_to_string (obj, SCM_UNDEFINED);
 }
 
 #endif /* (SCM_DEBUG_DEPRECATED == 0) */

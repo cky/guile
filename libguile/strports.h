@@ -50,7 +50,7 @@
 
 extern SCM scm_mkstrport (SCM pos, SCM str, long modes, const char * caller);
 extern SCM scm_strport_to_string (SCM port);
-extern SCM scm_object_to_string (SCM obj);
+extern SCM scm_object_to_string (SCM obj, SCM printer);
 extern SCM scm_call_with_output_string (SCM proc);
 extern SCM scm_call_with_input_string (SCM str, SCM proc);
 extern SCM scm_read_0str (char *expr);
