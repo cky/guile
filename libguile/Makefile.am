@@ -94,7 +94,7 @@ EXTRA_libguile_la_SOURCES = _scm.h			\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
     threads.c regex-posix.c				\
     filesys.c posix.c net_db.c socket.c			\
-    ramap.c unif.c debug-malloc.c
+    ramap.c unif.c debug-malloc.c mkstemp.c
 
 ## In next release, threads will be factored out of libguile.
 ## Until then, the machine specific headers is a temporary kludge.
