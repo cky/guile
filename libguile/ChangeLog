@@ -1,7 +1,17 @@
+2002-03-15  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* guile-snarf.in: Remove "--compat=1.4" support.
+	Add "-d" and "-D" support.
+
+	(deprecated_list): New var.
+	(compat_mode_clean_xxx): Delete.
+	(grep_deprecated): New func.
+	("main"): If "-d" or "-D", call `grep_deprecated'.
+
 2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	Docstring fixes:
-	
+
 	* strings.c (scm_string_p): Change unnecessary `iff' to `if'.
 
 	* ports.c (scm_sys_make_void_port): Use `@file'.
