@@ -12,7 +12,7 @@ In release 1.3.2:
 * remove #/ syntax
 * Remove SCHEME_LOAD_PATH.
 
-In release 1.3.4:
+In release 1.3.6:
 - remove hook support from boot-9.scm
   (only provided for backward compatibility)
 - remove names evalext.c: serial-map,

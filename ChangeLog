@@ -3,7 +3,7 @@
 	* configure.in: Test for presence of S_ISLNK in sys/stat.h.
 	(Thanks to Bernard Urban.)
 	Test for memmove and bcopy.  (Thanks to
-	suzukis@file.phys.tohoku.ac.jp.)
+po	suzukis@file.phys.tohoku.ac.jp.)
 
 	* acconfig.h: Added HAVE_S_ISLNK.
 
