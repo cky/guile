@@ -70,11 +70,12 @@
 #define scm_permobjs scm_sys_protects[11]
 #define scm_asyncs scm_sys_protects[12]
 #define scm_protects scm_sys_protects[13]
+#define scm_properties_whash scm_sys_protects[14]
 #ifdef DEBUG_EXTENSIONS
-#define scm_source_whash scm_sys_protects[14]
-#define SCM_NUM_PROTECTS 15
+#define scm_source_whash scm_sys_protects[15]
+#define SCM_NUM_PROTECTS 16
 #else
-#define SCM_NUM_PROTECTS 14
+#define SCM_NUM_PROTECTS 15
 #endif
 
 extern SCM scm_sys_protects[];
