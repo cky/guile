@@ -2193,7 +2193,7 @@
 	   (lambda ()
 	     (let loop ((ln (read-line)))
 	       (cond ((eof-object? ln) #f)
-		     ((and (>= (string-length ln) 8)
+		     ((and (> (string-length ln) 9)
 			   (string=? "dlname='" (substring ln 0 8))
 			   (string-index ln #\' 8))
 		      =>

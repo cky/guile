@@ -1,3 +1,9 @@
+1998-12-01  Christian Lynbech  <chl@tbit.dk>
+
+	* boot-9.scm (try-using-libtool-name): Fix check on dlname to make
+	sure that it isn't empty, as it is when we are only buidling
+	static libraries.
+
 1998-11-27  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* session.scm (arity): New procedure.
