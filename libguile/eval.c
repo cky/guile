@@ -1386,19 +1386,16 @@ unsafe_setjmp (jmp_buf env)
 #define ENTER_APPLY \
 {\
   SCM_SET_ARGSREADY (debug);\
-  if (CHECK_APPLY)\
+  if (CHECK_APPLY && SCM_TRAPS_P)\
     if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && PROCTRACEP (proc)))\
       {\
 	SCM tmp, tail = SCM_TRACED_FRAME_P (debug) ? SCM_BOOL_T : SCM_BOOL_F;\
 	SCM_SET_TRACED_FRAME (debug); \
-	SCM_APPLY_FRAME_P = 0; \
-	SCM_TRACE_P = 0; \
-	SCM_RESET_DEBUG_MODE; \
 	if (SCM_CHEAPTRAPS_P)\
 	  {\
 	    tmp = scm_make_debugobj (&debug);\
 	    scm_ithrow (scm_i_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
-	  }\
+ 	  }\
 	else\
 	  {\
 	    scm_make_cont (&tmp);\
@@ -1470,6 +1467,7 @@ scm_option scm_debug_opts[] = {
 };
 
 scm_option scm_evaluator_trap_table[] = {
+  { SCM_OPTION_BOOLEAN, "traps", 0, "Enable evaluator traps." },
   { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
   { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
   { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." }
@@ -1637,13 +1635,11 @@ loop:
 start:
   debug.info->e.exp = x;
   debug.info->e.env = env;
-  if (CHECK_ENTRY)
+  if (CHECK_ENTRY && SCM_TRAPS_P)
     if (SCM_ENTER_FRAME_P || (SCM_BREAKPOINTS_P && SRCBRKP (x)))
       {
 	SCM tail = SCM_TAILRECP (debug) ? SCM_BOOL_T : SCM_BOOL_F;
 	SCM_SET_TAILREC (debug);
-	SCM_ENTER_FRAME_P = 0;
-	SCM_RESET_DEBUG_MODE;
 	if (SCM_CHEAPTRAPS_P)
 	  t.arg1 = scm_make_debugobj (&debug);
 	else
@@ -2677,12 +2673,9 @@ evapply:
   }
 #ifdef DEVAL
 exit:
-  if (CHECK_EXIT)
+  if (CHECK_EXIT && SCM_TRAPS_P)
     if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
       {
-	SCM_EXIT_FRAME_P = 0;
-	SCM_TRACE_P = 0;
-	SCM_RESET_DEBUG_MODE;
 	SCM_CLEAR_TRACED_FRAME (debug);
 	if (SCM_CHEAPTRAPS_P)
 	  t.arg1 = scm_make_debugobj (&debug);
@@ -2876,11 +2869,9 @@ SCM_APPLY (proc, arg1, args)
 #endif
     }
 #ifdef DEVAL
-  if (SCM_ENTER_FRAME_P)
+  if (SCM_ENTER_FRAME_P && SCM_TRAPS_P)
     {
       SCM tmp;
-      SCM_ENTER_FRAME_P = 0;
-      SCM_RESET_DEBUG_MODE;
       if (SCM_CHEAPTRAPS_P)
 	tmp = scm_make_debugobj (&debug);
       else
@@ -3070,11 +3061,9 @@ tail:
     }
 #ifdef DEVAL
 exit:
-  if (CHECK_EXIT)
+  if (CHECK_EXIT && SCM_TRAPS_P)
     if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
       {
-	SCM_EXIT_FRAME_P = 0;
-	SCM_RESET_DEBUG_MODE;
 	SCM_CLEAR_TRACED_FRAME (debug);
 	if (SCM_CHEAPTRAPS_P)
 	  arg1 = scm_make_debugobj (&debug);
