@@ -1,6 +1,11 @@
+1998-06-13  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* readline.scm (apropos-completion-function): regexp-quote text to
+	be completed.
+
 1998-06-11  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-	* emacs.scm: Bugfix: Treat `the-last-stack' as a fluid.
+	* debug.scm, emacs.scm: Bugfix: Treat `the-last-stack' as a fluid.
 
 1998-06-09  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 

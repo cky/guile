@@ -28,7 +28,7 @@
 (define-public (frame-number->index n)
   (if (memq 'backwards (debug-options))
       n
-      (- (stack-length the-last-stack) n 1)))
+      (- (stack-length (fluid-ref the-last-stack)) n 1)))
 
 
 ;;; {Trace}

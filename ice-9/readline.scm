@@ -21,7 +21,8 @@
 ;;;; Andrew Archibald <aarchiba@undergrad.math.uwaterloo.ca>.
 
 (define-module (ice-9 readline)
-  :use-module (ice-9 session))
+  :use-module (ice-9 session)
+  :use-module (ice-9 regexp))
 
 ;;; MDJ 980513 <djurfeldt@nada.kth.se>:
 ;;; There should probably be low-level support instead of this code.
@@ -125,7 +126,8 @@
       (if (not cont?)
 	  (set! completions
 		(map symbol->string
-		     (apropos-internal (string-append "^" text)))))
+		     (apropos-internal (string-append "^"
+						      (regexp-quote text))))))
       (if (null? completions)
 	  #f
 	  (let ((retval (car completions)))
