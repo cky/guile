@@ -103,5 +103,5 @@
 #undef USLEEP_RETURNS_VOID
 
 /* Define if your readline library has the rl_getc_function variable.  */
-#define HAVE_RL_GETC_FUNCTION 1
+#undef HAVE_RL_GETC_FUNCTION
 
