@@ -1823,10 +1823,8 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
       long int in = SCM_INUM (n);
 
       /* When istart>=SCM_I_FIXNUM_BIT we can just limit the shift to
-         SCM_I_FIXNUM_BIT-1 to get either 0 or -1 per the sign of "in".
-         FIXME: This shift relies on signed right shifts being arithmetic,
-         which is not guaranteed by C99. */
-      in >>= MIN (istart, SCM_I_FIXNUM_BIT-1);
+         SCM_I_FIXNUM_BIT-1 to get either 0 or -1 per the sign of "in". */
+      in = SCM_SRS (in, MIN (istart, SCM_I_FIXNUM_BIT-1));
 
       if (in < 0 && bits >= SCM_I_FIXNUM_BIT)
 	{
