@@ -233,4 +233,37 @@ Bill Gribble sez:
 > version of libltdl.
 
 
+bug 11 -- (ice-9 optargs) #:rest arg polluted by keys/values
+reported-by: ttn / 2001-11-09
+fixed: not-yet
+
+ttn sez:
+> the following code displays
+>
+>   (#<procedure good x> ())
+>   (#<procedure good x> (1))
+>   (#<procedure good x> ((1 2 3)))
+>   (#<procedure blah x> JAY KAY (#:j JAY #:k KAY))
+>   (#<procedure blah x> JAY KAY (#:j JAY #:k KAY 1))
+>   (#<procedure blah x> JAY KAY (#:j JAY #:k KAY (1 2 3)))
+>
+> but `x' should be the same for both `good' and `blah':
+>
+>   (use-modules (ice-9 optargs) (ice-9 rdelim))
+>
+>   (define* (good #:rest x)
+>     (write-line (list good x)))
+>
+>   (good)
+>   (good 1)
+>   (good '(1 2 3))
+>
+>   (define* (blah #:key (j 'j) (k 'k) #:rest x)
+>     (write-line (list blah j k x)))
+>
+>   (blah #:j 'JAY #:k 'KAY)
+>   (blah #:j 'JAY #:k 'KAY 1)
+>   (blah #:j 'JAY #:k 'KAY '(1 2 3))
+
+
 [BUGS ends here]
