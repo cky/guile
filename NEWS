@@ -6,6 +6,20 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since the stable branch:
 
+* Changes to the standalone interpreter
+
+** New command line option `--no-debug'.
+
+Specifying `--no-debug' on the command line will keep the debugging
+evaluator turned off, even for interactive sessions.
+
+** User-init file ~/.guile is now loaded with the debugging evaluator.
+
+Previously, the normal evaluator would have been used.  Using the
+debugging evaluator gives better error messages.
+
+* Changes to Scheme functions and syntax
+
 ** Variables have no longer a special behavior for `equal?'.
 
 Previously, comparing two variables with `equal?' would recursivly
