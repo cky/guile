@@ -25,12 +25,16 @@ If optional parameter @var{domainname} is supplied, set the textdomain.  Return 
 
 @deffn {Scheme Procedure} bindtextdomain domainname [directory]
 @deffnx {C Function} scm_bindtextdomain (domainname, directory)
-If optional parameter @var{directory} is supplied, set message catalogs to directory @{directory}.  Return the directory bound to @var{domainname}.
+If optional parameter @var{directory} is supplied, set message
+catalogs to directory @var{directory}.  Return the directory bound to
+@var{domainname}.
 @end deffn
 
 @deffn {Scheme Procedure} bind-textdomain-codeset domainname [encoding]
 @deffnx {C Function} scm_bind_textdomain_codeset (domainname, encoding)
-If optional parameter @var{encoding} is supplied, set encoding for message catalogs of @{domainname}.  Return the encoding of @var{domainname}.
+If optional parameter @var{encoding} is supplied, set encoding for
+message catalogs of @var{domainname}.  Return the encoding of
+@var{domainname}.
 @end deffn
 
 @c Local Variables:
