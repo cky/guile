@@ -656,8 +656,8 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 check-local:
-	echo '(+ 1 2 3)' | ./gh_test_c; echo
-	echo '(+ 1 2 3)' | ./gh_test_repl; echo
+	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_c; echo
+	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_repl; echo
 
 libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo "Generating libpath.h..." 

@@ -112,8 +112,8 @@ gh_test_repl_SOURCES = gh_test_repl.c
 gh_test_repl_LDADD = ${check_ldadd}
 
 check-local:
-	echo '(+ 1 2 3)' | ./gh_test_c; echo
-	echo '(+ 1 2 3)' | ./gh_test_repl; echo
+	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_c; echo
+	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_repl; echo
 
 EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads dynl-dl.c \
     dynl-dld.c dynl-shl.c dynl-vms.c DYNAMIC-LINKING cpp_signal.c cpp_errno.c \
