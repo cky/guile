@@ -699,7 +699,7 @@ root.o: root.c _scm.h __scm.h scmconfig.h \
  tags.h error.h __scm.h pairs.h list.h gc.h \
  gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
  root.h ports.h async.h stackchk.h continuations.h \
- debug.h options.h
+ debug.h options.h root.x
 scmsigs.o: scmsigs.c _scm.h __scm.h scmconfig.h \
  tags.h error.h __scm.h pairs.h list.h gc.h \
  gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
