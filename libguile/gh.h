@@ -148,6 +148,9 @@ SCM gh_vset(SCM vec, SCM pos, SCM val);
 SCM gh_vref(SCM vec, SCM pos);
 unsigned long gh_vector_length(SCM v);
 
+SCM gh_lookup (char *sname);
+SCM gh_module_lookup (SCM vector, char *sname);
+
 SCM gh_cons(SCM x, SCM y);
 #define gh_list scm_listify
 unsigned long gh_list_length(SCM l);

@@ -286,3 +286,32 @@ gh_vector_length (SCM v)
 {
   return gh_scm2ulong (scm_vector_length (v));
 }
+
+/* Data lookups between C and Scheme
+
+   Look up a symbol with a given name, and return the object to which
+   it is bound.  gh_lookup examines the Guile top level, and
+   gh_module_lookup checks the module namespace specified by the
+   `vec' argument.
+
+   The return value is the Scheme object to which SNAME is bound, or
+   SCM_UNDEFINED if SNAME is not bound in the given context. [FIXME:
+   should this be SCM_UNSPECIFIED?  Can a symbol ever legitimately be
+   bound to SCM_UNDEFINED or SCM_UNSPECIFIED?  What is the difference?
+   -twp] */
+
+SCM
+gh_lookup (char *sname)
+{
+  return gh_module_lookup (SCM_BOOL_F, sname);
+}
+
+SCM
+gh_module_lookup (SCM vec, char *sname)
+{
+  SCM sym = gh_symbol2scm (sname);
+  if ((scm_symbol_bound_p (vec, sym)) == SCM_BOOL_T)
+    return scm_symbol_binding (vec, sym);
+  else
+    return SCM_UNDEFINED;
+}
