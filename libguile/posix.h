@@ -84,6 +84,7 @@ extern SCM scm_execle SCM_P ((SCM filename, SCM env, SCM args));
 extern SCM scm_fork SCM_P ((void));
 extern SCM scm_uname SCM_P ((void));
 extern SCM scm_environ SCM_P ((SCM env));
+extern SCM scm_tmpnam SCM_P ((void));
 extern SCM scm_open_pipe SCM_P ((SCM pipestr, SCM modes));
 extern SCM scm_close_pipe SCM_P ((SCM port));
 extern SCM scm_utime SCM_P ((SCM pathname, SCM actime, SCM modtime));
