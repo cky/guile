@@ -36,7 +36,7 @@ ice9_sources =								   \
 	buffered-input.scm time.scm history.scm channel.scm		   \
         pretty-print.scm ftw.scm gap-buffer.scm
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
+subpkgdatadir = $(pkgdatadir)/${GUILE_EFFECTIVE_VERSION}/ice-9
 subpkgdata_DATA = $(ice9_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 
