@@ -40,6 +40,8 @@
  * If you do not wish that, delete this exception notice.  */
 
 
+#include <stdio.h>
+
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/stime.h"
@@ -184,7 +186,10 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, int span)
 	      size_t mm;
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 	      if (!(k < scm_numptob))
-		SCM_MISC_ERROR ("undefined port type", SCM_EOL);
+		{
+		  fprintf (stderr, "undefined port type");
+		  abort();
+		}
 #endif
 	      /* Keep "revealed" ports alive.  */
 	      if (scm_revealed_count (scmptr) > 0)
@@ -239,7 +244,10 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, int span)
 		k = SCM_SMOBNUM (scmptr);
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 		if (!(k < scm_numsmob))
-		  SCM_MISC_ERROR ("undefined smob type", SCM_EOL);
+		  {
+		    fprintf (stderr, "undefined smob type");
+		    abort();
+		  }
 #endif
 		if (scm_smobs[k].free)
 		  {
@@ -265,7 +273,8 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, int span)
 	    }
 	  break;
 	default:
-	  SCM_MISC_ERROR ("unknown type", SCM_EOL);
+	  fprintf (stderr, "unknown type");
+	  abort();
 	}
 
 	  

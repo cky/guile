@@ -380,7 +380,10 @@ scm_must_free (void *obj)
   if (obj)
     free (obj);
   else
-    SCM_MISC_ERROR ("freeing NULL pointer", SCM_EOL);
+    {
+      fprintf (stderr,"freeing NULL pointer");
+      abort ();
+    }
 }
 #undef FUNC_NAME
 

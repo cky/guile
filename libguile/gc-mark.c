@@ -403,7 +403,10 @@ scm_gc_mark_dependencies (SCM p)
       i = SCM_PTOBNUM (ptr);
 #if (SCM_DEBUG_CELL_ACCESSES == 1) 
       if (!(i < scm_numptob))
-	SCM_MISC_ERROR ("undefined port type", SCM_EOL);
+	{
+	  fprintf (stderr, "undefined port type");
+	  abort();
+	}
 #endif
       if (SCM_PTAB_ENTRY(ptr))
 	scm_gc_mark (SCM_FILENAME (ptr));
@@ -431,7 +434,10 @@ scm_gc_mark_dependencies (SCM p)
 	  i = SCM_SMOBNUM (ptr);
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 	  if (!(i < scm_numsmob))
-	    SCM_MISC_ERROR ("undefined smob type", SCM_EOL);
+	    {
+	      fprintf (stderr, "undefined smob type");
+	      abort();
+	    }
 #endif
 	  if (scm_smobs[i].mark)
 	    {
@@ -443,7 +449,8 @@ scm_gc_mark_dependencies (SCM p)
 	}
       break;
     default:
-      SCM_MISC_ERROR ("unknown type", SCM_EOL);
+      fprintf (stderr, "unknown type");
+      abort();
     }
 
   /*
@@ -472,7 +479,10 @@ gc_mark_loop:
     
 #endif
     if (!valid_cell)
-      SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
+      {
+	fprintf (stderr, "rogue pointer in heap");
+	abort();
+      }
   }
   
  if (SCM_GC_MARK_P (ptr))
