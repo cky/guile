@@ -938,7 +938,7 @@ fi
 CCLD_FOR_BUILD="$CC_FOR_BUILD"
 
 AC_SUBST(cross_compiling)
-AC_SUBST(CC_FOR_BUILD)
+AC_ARG_VAR(CC_FOR_BUILD,[build system C compiler])
 AC_SUBST(CCLD_FOR_BUILD)
 	
 ## libtool erroneously calls CC_FOR_BUILD HOST_CC;
