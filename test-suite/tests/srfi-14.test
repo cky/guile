@@ -1,0 +1,188 @@
+;;;; srfi-14.test --- Test suite for Guile's SRFI-14 functions. -*- scheme -*-
+;;;; Martin Grabmueller, 2001-07-16
+;;;;
+;;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+
+(use-modules (srfi srfi-14))
+
+(define exception:invalid-char-set-cursor
+  (cons 'misc-error "^invalid character set cursor"))
+
+(define exception:non-char-return
+  (cons 'misc-error "returned non-char"))
+
+(with-test-prefix "char-set?"
+
+  (pass-if "success on empty set"
+    (char-set? (char-set)))
+
+  (pass-if "success on non-empty set"
+    (char-set? char-set:printing))
+
+  (pass-if "failure on empty set"
+    (not (char-set? #t))))
+
+
+(with-test-prefix "char-set="
+  (pass-if "success, no arg"
+    (char-set=))
+
+  (pass-if "success, one arg"
+    (char-set= char-set:lower-case))
+
+  (pass-if "success, two args"
+    (char-set= char-set:upper-case char-set:upper-case))
+
+  (pass-if "failure, first empty"
+    (not (char-set= (char-set) (char-set #\a))))
+
+  (pass-if "failure, second empty"
+    (not (char-set= (char-set #\a) (char-set))))
+
+  (pass-if "success, more args"
+    (char-set= char-set:blank char-set:blank char-set:blank)))
+
+(with-test-prefix "char-set<="
+  (pass-if "success, no arg"
+    (char-set<=))
+
+  (pass-if "success, one arg"
+    (char-set<= char-set:lower-case))
+
+  (pass-if "success, two args"
+    (char-set<= char-set:upper-case char-set:upper-case))
+
+  (pass-if "success, first empty"
+    (char-set<= (char-set) (char-set #\a)))
+
+  (pass-if "failure, second empty"
+    (not (char-set<= (char-set #\a) (char-set))))
+
+  (pass-if "success, more args, equal"
+    (char-set<= char-set:blank char-set:blank char-set:blank))
+
+  (pass-if "success, more args, not equal"
+    (char-set<= char-set:blank
+		(char-set-adjoin char-set:blank #\F)
+		(char-set-adjoin char-set:blank #\F #\o))))
+
+(with-test-prefix "char-set-hash"
+   (pass-if "empty set, bound"
+      (let ((h (char-set-hash char-set:empty 31)))
+	(and h (number? h) (exact? h) (>= h 0) (< h 31))))
+
+   (pass-if "empty set, no bound"
+      (let ((h (char-set-hash char-set:empty)))
+	(and h (number? h) (exact? h) (>= h 0))))
+
+   (pass-if "full set, bound"
+      (let ((h (char-set-hash char-set:full 31)))
+	(and h (number? h) (exact? h) (>= h 0) (< h 31))))
+
+   (pass-if "full set, no bound"
+      (let ((h (char-set-hash char-set:full)))
+	(and h (number? h) (exact? h) (>= h 0))))
+
+   (pass-if "other set, bound"
+      (let ((h (char-set-hash (char-set #\f #\o #\b #\a #\r) 31)))
+	(and h (number? h) (exact? h) (>= h 0) (< h 31))))
+
+   (pass-if "other set, no bound"
+      (let ((h (char-set-hash (char-set #\f #\o #\b #\a #\r))))
+	(and h (number? h) (exact? h) (>= h 0)))))
+
+
+(with-test-prefix "char-set cursor"
+
+  (pass-if-exception "invalid character cursor" 
+     exception:invalid-char-set-cursor
+     (let* ((cs (char-set #\B #\r #\a #\z))
+	    (cc (char-set-cursor cs)))
+       (char-set-ref cs 1000)))
+
+  (pass-if "success"
+     (let* ((cs (char-set #\B #\r #\a #\z))
+	    (cc (char-set-cursor cs)))
+       (char? (char-set-ref cs cc))))
+
+  (pass-if "end of set fails"
+     (let* ((cs (char-set #\a))
+	    (cc (char-set-cursor cs)))
+       (not (end-of-char-set? cc))))
+ 
+  (pass-if "end of set succeeds, empty set"
+     (let* ((cs (char-set))
+	    (cc (char-set-cursor cs)))
+       (end-of-char-set? cc)))
+
+  (pass-if "end of set succeeds, non-empty set"
+     (let* ((cs (char-set #\a))
+	    (cc (char-set-cursor cs))
+	    (cc (char-set-cursor-next cs cc)))
+       (end-of-char-set? cc))))
+
+(with-test-prefix "char-set-fold"
+
+  (pass-if "count members"
+     (= (char-set-fold (lambda (c n) (+ n 1)) 0 (char-set #\a #\b)) 2))
+
+  (pass-if "copy set"
+     (= (char-set-size (char-set-fold (lambda (c cs) (char-set-adjoin cs c)) 
+				      (char-set) (char-set #\a #\b))) 2)))
+
+(with-test-prefix "char-set-unfold"
+
+  (pass-if "create char set"
+     (char-set= char-set:full
+		(char-set-unfold (lambda (s) (= s 256)) integer->char
+				 (lambda (s) (+ s 1)) 0)))
+  (pass-if "create char set (base set)"
+     (char-set= char-set:full
+		(char-set-unfold (lambda (s) (= s 256)) integer->char
+				 (lambda (s) (+ s 1)) 0 char-set:empty))))
+
+(with-test-prefix "char-set-unfold!"
+
+  (pass-if "create char set"
+     (char-set= char-set:full
+		(char-set-unfold! (lambda (s) (= s 256)) integer->char
+				 (lambda (s) (+ s 1)) 0
+				 (char-set-copy char-set:empty))))
+
+  (pass-if "create char set"
+     (char-set= char-set:full
+		(char-set-unfold! (lambda (s) (= s 32)) integer->char
+				 (lambda (s) (+ s 1)) 0
+				 (char-set-copy char-set:full)))))
+
+
+(with-test-prefix "char-set-for-each"
+
+  (pass-if "copy char set"
+     (= (char-set-size (let ((cs (char-set)))
+			 (char-set-for-each
+			  (lambda (c) (char-set-adjoin! cs c))
+			  (char-set #\a #\b))
+			 cs))
+	2)))
+
+(with-test-prefix "char-set-map"
+
+  (pass-if "upper case char set"
+     (char-set= (char-set-map char-upcase char-set:lower-case)
+		char-set:upper-case)))

@@ -1,3 +1,7 @@
+2001-07-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* tests/srfi-14.test: New file.
+
 2001-07-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tests/import.test: New file.
