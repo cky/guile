@@ -1536,7 +1536,7 @@ loop:
   if (!SCM_UNBNDP (start))
     {
       offset = 
-	scm_num2long (start, (char *) SCM_ARG3, FUNC_NAME);
+	SCM_NUM2LONG (3, start);
 
       if (offset < 0 || offset >= cend)
 	scm_out_of_range (FUNC_NAME, start);
@@ -1544,7 +1544,7 @@ loop:
       if (!SCM_UNBNDP (end))
 	{
 	  long tend =
-	    scm_num2long (end, (char *) SCM_ARG4, FUNC_NAME);
+	    SCM_NUM2LONG (4, end);
       
 	  if (tend <= offset || tend > cend)
 	    scm_out_of_range (FUNC_NAME, end);
@@ -1647,7 +1647,7 @@ loop:
   switch SCM_TYP7 (v)
     {
     default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, FUNC_NAME);
+    badarg1:SCM_WTA (1, v);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       v = scm_ra2contig (v, 1);
@@ -1694,7 +1694,7 @@ loop:
   if (!SCM_UNBNDP (start))
     {
       offset = 
-	scm_num2long (start, (char *) SCM_ARG3, FUNC_NAME);
+	SCM_NUM2LONG (3, start);
 
       if (offset < 0 || offset >= cend)
 	scm_out_of_range (FUNC_NAME, start);
@@ -1702,7 +1702,7 @@ loop:
       if (!SCM_UNBNDP (end))
 	{
 	  long tend = 
-	    scm_num2long (end, (char *) SCM_ARG4, FUNC_NAME);
+	    SCM_NUM2LONG (4, end);
       
 	  if (tend <= offset || tend > cend)
 	    scm_out_of_range (FUNC_NAME, end);

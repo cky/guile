@@ -476,7 +476,7 @@ Interrupts are deferred while the C function is executing (with
 
     if (SCM_ROSTRINGP (func))
 	func = scm_dynamic_func (func, dobj);
-    fptr = (void (*)()) scm_num2ulong (func, (char *)SCM_ARG1, FUNC_NAME);
+    fptr = (void (*)()) SCM_NUM2ULONG (1, func);
     SCM_DEFER_INTS;
     fptr ();
     SCM_ALLOW_INTS;
@@ -520,8 +520,7 @@ and returned from the call to @code{dynamic-args-call}.
     if (SCM_ROSTRINGP (func))
 	func = scm_dynamic_func (func, dobj);
 
-    fptr = (int (*)(int, char **)) scm_num2ulong (func, (char *)SCM_ARG1,
-						   FUNC_NAME);
+    fptr = (int (*)(int, char **)) SCM_NUM2ULONG (1,func);
     SCM_DEFER_INTS;
     argv = scm_make_argv_from_stringlist (args, &argc, FUNC_NAME,
 					  SCM_ARG3);

@@ -172,7 +172,7 @@ GUILE_PROC(scm_assv, "assv", 2, 0, 0,
   }
 # ifndef SCM_RECKLESS
   if (!(SCM_NULLP(alist)))
-    badlst: scm_wta(alist, (char *)SCM_ARG2, FUNC_NAME);
+    badlst: SCM_WTA(2,alist);
 # endif
   return SCM_BOOL_F;
 }

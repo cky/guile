@@ -265,7 +265,7 @@ GUILE_PROC(scm_integer_to_char, "integer->char", 1, 0, 0,
 "Return the character at position N in the Ascii sequence.")
 #define FUNC_NAME s_scm_integer_to_char
 {
-  unsigned long ni = 0xffff & scm_num2ulong (n, (char *)SCM_ARG1, FUNC_NAME);
+  unsigned long ni = 0xffff & SCM_NUM2ULONG (1,n);
   return SCM_MAKICHR(ni);
 }
 #undef FUNC_NAME

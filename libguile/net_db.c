@@ -281,7 +281,7 @@ Unusual conditions may result in errors thrown to the
     }
   else
     {
-      inad.s_addr = htonl (scm_num2ulong (name, (char *) SCM_ARG1, FUNC_NAME));
+      inad.s_addr = htonl (SCM_NUM2ULONG (1,name);
       entry = gethostbyaddr ((char *) &inad, sizeof (inad), AF_INET);
     }
   if (!entry)
@@ -356,7 +356,7 @@ given.")
   else
     {
       unsigned long netnum;
-      netnum = scm_num2ulong (name, (char *) SCM_ARG1, FUNC_NAME);
+      netnum = SCM_NUM2ULONG (1, name);
       entry = getnetbyaddr (netnum, AF_INET);
     }
   if (!entry)

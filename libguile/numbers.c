@@ -1875,7 +1875,7 @@ GUILE_PROC (scm_number_to_string, "number->string", 1, 1, 0,
       if (!SCM_INEXP (x))
 	{
 	badx:
-	  scm_wta (x, (char *) SCM_ARG1, FUNC_NAME);
+	  SCM_WTA (1, x);
 	}
 #endif
 #else
@@ -4436,7 +4436,7 @@ GUILE_PROC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
   if (!(SCM_REALP (z)))
     {
     badz:
-      scm_wta (z, (char *) SCM_ARG1, FUNC_NAME);
+      SCM_WTA (1, z);
     }
 #endif
 #else
