@@ -194,10 +194,6 @@
 	  (let ((arg-pos (format:format-work fmt args))
 		(arg-len (length args)))
 	    (cond
-	     ((< arg-pos arg-len)
-	      (set! format:arg-pos (+ arg-pos 1))
-	      (set! format:pos (string-length fmt))
-	      (format:error "~a superfluous argument~:p" (- arg-len arg-pos)))
 	     ((> arg-pos arg-len)
 	      (set! format:arg-pos (+ arg-len 1))
 	      (display format:arg-pos)
