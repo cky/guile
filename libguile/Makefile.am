@@ -86,8 +86,11 @@ guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile
 
 
 guile_SOURCES = guile.c
+guile_CFLAGS = $(GUILE_CFLAGS)
 guile_LDADD = libguile.la
-guile_LDFLAGS = @DLPREOPEN@
+guile_LDFLAGS = @DLPREOPEN@ $(GUILE_CFLAGS)
+
+libguile_la_CFLAGS = $(GUILE_CFLAGS)
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     chars.c continuations.c convert.c debug.c deprecation.c deprecated.c    \
@@ -171,7 +174,7 @@ noinst_HEADERS = convert.i.c	\
 	         private-gc.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@ ../libguile-ltdl/libguile-ltdl.la $(THREAD_LIBS_LOCAL)
+libguile_la_LIBADD = @LIBLOBJS@ ../libguile-ltdl/libguile-ltdl.la
 libguile_la_LDFLAGS = @LTLIBINTL@ -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
 
 # These are headers visible as <guile/mumble.h>
@@ -256,6 +259,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '	{ "libguileinterface", "@LIBGUILE_INTERFACE@" }, \' \
 		>> libpath.tmp
 	@echo '	{ "LIBS",	   "@GUILE_LIBS@" }, \' >> libpath.tmp
+	@echo '	{ "CFLAGS",	   "@GUILE_CFLAGS@" }, \' >> libpath.tmp
 	@echo '	{ "buildstamp",    "'"`date`"'" }, \' >> libpath.tmp
 	@echo '}' >> libpath.tmp
 	@mv libpath.tmp libpath.h
