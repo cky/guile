@@ -14,3 +14,24 @@
 		  (retfoo (lambda () foo)))
 	   (define baz (retfoo))
 	   (retfoo)))
+
+;; Test that evaluation of closure bodies works as it should
+
+(with-test-prefix "closure bodies"
+  (with-test-prefix "eval"
+    (pass-if "expansion"
+	     ;; we really want exactly #f back from the closure
+	     (not ((lambda () (define ret #f) ret))))
+    (pass-if "iloc escape"
+	     (not (let* ((x #f)
+			 (foo (lambda () x)))
+		    (foo) ; causes memoization of x
+		    (foo)))))
+  (with-test-prefix "apply"
+    (pass-if "expansion"
+	     (not (catch #t (lambda () (define ret #f) ret) (lambda a #t))))
+    (pass-if "iloc escape"
+	     (not (let* ((x #f)
+			 (foo (lambda () x)))
+		    (foo)
+		    (catch #t foo (lambda a #t)))))))
