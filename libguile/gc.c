@@ -373,8 +373,8 @@ SCM_DEFINE (scm_free_list_length, "free-list-length", 0, 0, 0,
 #ifdef GUILE_NEW_GC_SCHEME
   free_list_lengths ("1-words", &scm_master_freelist, scm_freelist);
   free_list_lengths ("2-words", &scm_master_freelist2, scm_freelist2);
-  return SCM_UNSPECIFIED;
 #endif
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
