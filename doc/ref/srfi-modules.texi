@@ -29,6 +29,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-16::                     case-lambda
 * SRFI-17::                     Generalized set!
 * SRFI-19::                     Time/Date library.
+* SRFI-26::                     Convenient syntax for partial application
 @end menu
 
 
@@ -2926,6 +2927,10 @@ month and weekday names are always expected in English.  This may
 change in the future.
 @end defun
 
+@node SRFI-26
+@section SRFI-26
+
+XXX - To be written.
 
 @c srfi-modules.texi ends here
 
