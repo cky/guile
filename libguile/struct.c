@@ -98,11 +98,21 @@ scm_make_struct_layout (fields)
 	switch (field_desc[x + 1])
 	  {
 	  case 'w':
-	    SCM_ASSERT ((field_desc[x] != 's'), SCM_MAKICHR (field_desc[x + 1]),
+	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKICHR (field_desc[x + 1]),
 			"self fields not writable", s_struct_make_layout);
 	      
 	  case 'r':
 	  case 'o':
+	    break;
+	  case 'R':
+	  case 'W':
+	  case 'O':
+	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKICHR (field_desc[x + 1]),
+			"self fields not allowed in tail array",
+			s_struct_make_layout);
+	    SCM_ASSERT (x == len - 2, SCM_MAKICHR (field_desc[x + 1]),
+			"tail array field must be last field in layout",
+			s_struct_make_layout);
 	    break;
 	  default:
 	    SCM_ASSERT (0, SCM_MAKICHR (field_desc[x]) , "unrecognized ref specification", s_struct_make_layout);
@@ -126,34 +136,50 @@ scm_make_struct_layout (fields)
 
 #ifdef __STDC__
 static void
-init_struct (SCM handle, SCM tail_elts, SCM inits)
+init_struct (SCM handle, int tail_elts, SCM inits)
 #else
 static void
 init_struct (handle, tail_elts, inits)
      SCM handle;
-     SCM tail_elts;
+     int tail_elts;
      SCM inits;
 #endif
 {
   SCM layout;
   SCM * data;
   unsigned char * fields_desc;
+  unsigned char prot;
   int n_fields;
   SCM * mem;
-
+  int tailp = 0;
+  
   layout = SCM_STRUCT_LAYOUT (handle);
   data = SCM_STRUCT_DATA (handle);
-  fields_desc = (unsigned char *)SCM_CHARS (layout);
+  fields_desc = (unsigned char *) SCM_CHARS (layout) - 2;
   n_fields = SCM_LENGTH (layout) / 2;
   mem = SCM_STRUCT_DATA (handle);
   while (n_fields)
     {
+      if (!tailp)
+	{
+	  fields_desc += 2;
+	  prot = fields_desc[1];
+	  if (SCM_LAYOUT_TAILP (prot))
+	    {
+	      tailp = 1;
+	      prot = prot == 'R' ? 'r' : prot == 'W' ? 'w' : 'o';
+	      *mem++ = tail_elts;
+	      n_fields += tail_elts - 1;
+	      if (n_fields == 0)
+		break;
+	    }
+	}
+      
       switch (*fields_desc)
 	{
 #if 0
 	case 'i':
-	  if (   ((fields_desc[1] != 'r') && (fields_desc[1] != 'w'))
-	      || ((inits == SCM_EOL) || !SCM_NUMBERP (SCM_CAR (inits))))
+	  if ((prot != 'r' && prot != 'w') || inits == SCM_EOL)
 	    *mem = 0;
 	  else
 	    {
@@ -164,8 +190,7 @@ init_struct (handle, tail_elts, inits)
 #endif
 
 	case 'u':
-	  if (   ((fields_desc[1] != 'r') && (fields_desc[1] != 'w'))
-	      || ((inits == SCM_EOL) || !SCM_NUMBERP (SCM_CAR (inits))))
+	  if ((prot != 'r' && prot != 'w') || inits == SCM_EOL)
 	    *mem = 0;
 	  else
 	    {
@@ -175,8 +200,7 @@ init_struct (handle, tail_elts, inits)
 	  break;
 
 	case 'p':
-	  if (   ((fields_desc[1] != 'r') && (fields_desc[1] != 'w'))
-	      || (inits == SCM_EOL))
+	  if ((prot != 'r' && prot != 'w') || inits == SCM_EOL)
 	    *mem = SCM_EOL;
 	  else
 	    {
@@ -188,8 +212,7 @@ init_struct (handle, tail_elts, inits)
 
 #if 0
 	case 'd':
-	  if (   ((fields_desc[1] != 'r') && (fields_desc[1] != 'w'))
-	      || ((inits == SCM_EOL) || !SCM_NUMBERP (SCM_CAR (inits))))
+	  if ((prot != 'r' && prot != 'w') || inits == SCM_EOL)
 	    *((double *)mem) = 0.0;
 	  else
 	    {
@@ -205,7 +228,6 @@ init_struct (handle, tail_elts, inits)
 	  break;
 	}
 
-      fields_desc += 2;
       n_fields--;
       mem++;
     }
@@ -295,10 +317,15 @@ scm_make_struct (vtable, tail_array_size, init)
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  data = (SCM*)scm_must_malloc (sizeof (SCM) * (2 + basic_size + tail_elts), "structure");
-  *data = (SCM)(2 + basic_size + tail_elts);
-  data[1] = struct_num++;
-  data += 2;
+  data = (SCM*)scm_must_malloc (sizeof (SCM) * (scm_struct_n_extra_words
+						+ basic_size
+						+ tail_elts),
+				"structure");
+  data += scm_struct_n_extra_words;
+  data[scm_struct_i_n_words] = (SCM) (scm_struct_n_extra_words
+				      + basic_size
+				      + tail_elts);
+  data[scm_struct_i_tag] = struct_num++;
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)SCM_STRUCT_DATA (vtable)) + 1);
   init_struct (handle, tail_elts, init);
@@ -340,10 +367,15 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  data = (SCM*)scm_must_malloc (sizeof (SCM) * (2 + basic_size + tail_elts), "structure");
-  *data = (SCM)(2 + basic_size + tail_elts);
-  data[1] = struct_num++;
-  data += 2;
+  data = (SCM *) scm_must_malloc (sizeof (SCM) * (scm_struct_n_extra_words
+						  + basic_size
+						  + tail_elts),
+				  "structure");
+  data += scm_struct_n_extra_words;
+  data[scm_struct_i_n_words] = (SCM) (scm_struct_n_extra_words
+				      + basic_size
+				      + tail_elts);
+  data[scm_struct_i_tag] = struct_num++;
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)data) + 1);
   SCM_STRUCT_LAYOUT (handle) = layout;
@@ -384,22 +416,30 @@ scm_struct_ref (handle, pos)
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = SCM_LENGTH (layout) / 2;
+  n_fields = data[- scm_struct_n_extra_words] - scm_struct_n_extra_words;
+  
+  SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, s_struct_ref);
 
-  SCM_ASSERT (p <= n_fields, pos, SCM_OUTOFRANGE, s_struct_ref);
-
-  field_type = fields_desc[p * 2];
-  {
-    unsigned char ref;
-    ref = fields_desc [p * 2 + 1];
-    if ((ref != 'r') && (ref != 'w'))
-      {
-	if ((ref == 'R') || (ref == 'W'))
-	  field_type = 'u';
-	else
-	  SCM_ASSERT (0, pos, "ref denied", s_struct_ref);
-      }
-  }
+  if (p * 2 < SCM_LENGTH (layout))
+    {
+      unsigned char ref;
+      field_type = fields_desc[p * 2];
+      ref = fields_desc[p * 2 + 1];
+      if ((ref != 'r') && (ref != 'w'))
+	{
+	  if ((ref == 'R') || (ref == 'W'))
+	    field_type = 'u';
+	  else
+	    SCM_ASSERT (0, pos, "ref denied", s_struct_ref);
+	}
+    }
+  else if (fields_desc[SCM_LENGTH (layout) - 1] != 'O')    
+    field_type = fields_desc[SCM_LENGTH (layout) - 2];
+  else
+    {
+      SCM_ASSERT (0, pos, "ref denied", s_struct_ref);
+    }
+  
   switch (field_type)
     {
     case 'u':
@@ -461,17 +501,25 @@ scm_struct_set_x (handle, pos, val)
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = SCM_LENGTH (layout) / 2;
+  n_fields = data[- scm_struct_n_extra_words] - scm_struct_n_extra_words;
 
-  SCM_ASSERT (p <= n_fields, pos, SCM_OUTOFRANGE, s_struct_set_x);
+  SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, s_struct_set_x);
 
-  field_type = fields_desc[p * 2];
-  {
-    unsigned char set_x;
-    set_x = fields_desc [p * 2 + 1];
-    if (set_x != 'w')
-      SCM_ASSERT (0, pos, "set_x denied", s_struct_set_x);
-  }
+  if (p * 2 < SCM_LENGTH (layout))
+    {
+      unsigned char set_x;
+      field_type = fields_desc[p * 2];
+      set_x = fields_desc [p * 2 + 1];
+      if (set_x != 'w')
+	SCM_ASSERT (0, pos, "set_x denied", s_struct_set_x);
+    }
+  else if (fields_desc[SCM_LENGTH (layout) - 1] == 'W')    
+    field_type = fields_desc[SCM_LENGTH (layout) - 2];
+  else
+    {
+      SCM_ASSERT (0, pos, "set_x denied", s_struct_ref);
+    }
+  
   switch (field_type)
     {
     case 'u':

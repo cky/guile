@@ -48,6 +48,9 @@
 
 
 
+/* Number of words with negative index */
+#define scm_struct_n_extra_words 2
+
 /* These are how the initial words of a vtable are allocated. */
 #define scm_struct_i_n_words -2	/* How many words allocated to this struct? */
 #define scm_struct_i_tag -1	/* A unique tag for this type.. */
@@ -62,6 +65,8 @@
 #define SCM_STRUCT_VTABLE_DATA(X) 	((SCM *)(SCM_CAR(X) - 1))
 #define SCM_STRUCT_LAYOUT(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_struct_i_layout])
 #define SCM_STRUCT_VTABLE(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_struct_i_vtable])
+/* Efficiency is important in the following macro, since it's used in GC */
+#define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
 
 
 
