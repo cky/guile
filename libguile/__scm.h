@@ -408,7 +408,7 @@ typedef long SCM_STACKITEM;
 
 #define SCM_ASYNC_TICK /*fixme* should change names */ \
 do { \
-  if (scm_active_asyncs != SCM_EOL) \
+  if (scm_root->active_asyncs != SCM_EOL) \
     scm_async_click (); \
 } while (0)
 
