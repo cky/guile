@@ -170,7 +170,7 @@ F(scm_,TAG,vector_writable_elements) (SCM uvec,
 				      scm_t_array_handle *h,
 				      size_t *lenp, ssize_t *incp)
 {
-  scm_vector_get_handle (uvec, h);
+  scm_generalized_vector_get_handle (uvec, h);
   if (lenp)
     {
       scm_t_array_dim *dim = scm_array_handle_dims (h);
