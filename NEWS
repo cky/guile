@@ -15,7 +15,7 @@ guile-doc-snarf script (that uses guile-doc-snarf.awk).
 Also, many SCM_VALIDATE_* macros are defined to ease the redundancy and
 improve the readability of argument checking.
 
-I replaced (nearly?) all K&R prototypes for functions with ANSI C equivalents.
+All (nearly?) K&R prototypes for functions replaced with ANSI C equivalents.
 
 * Changes to the distribution
 
@@ -101,6 +101,9 @@ at the top of the script.
 ** New procedure: port-closed? PORT
 Returns #t if PORT is closed or #f if it is open.
 
+** Attempting to get the value of an unbound variable now produces
+an exception with a key of 'unbound-variable instead of 'misc-error.
+
 * Changes to the scm_ interface
 
 ** Port internals: the rw_random variable in the scm_port structure
@@ -123,6 +126,21 @@ beginning of the ptob seek procedure:
 although to actually avoid resetting the buffers and discard unread
 chars requires further hacking that depends on the characteristics
 of the ptob.
+
+** The scm_sysmissing procedure is no longer used in libguile.
+Unless it turns out to be unexpectedly useful to somebody, it will be
+removed in a future version.
+
+* Changes to system call interfaces:
+
+** If a facility is not available on the system when Guile is
+compiled, the corresponding primitive procedure will not be defined.
+Previously it would have been defined but would throw a system-error
+exception if called.  Exception handlers which catch this case may
+need minor modification: an error will be thrown with key
+'unbound-variable instead of 'system-error.  Alternatively it's
+now possible to use `defined?' to check whether the facility is
+available.
 
 * Changes to the networking interfaces:
 

@@ -67,6 +67,8 @@ extern SCM scm_strerror (SCM err);
 extern void scm_syserror SCM_P ((const char *subr)) SCM_NORETURN;
 extern void scm_syserror_msg SCM_P ((const char *subr, const char *message,
 				     SCM args, int eno)) SCM_NORETURN;
+/* scm_sysmissing is no longer used in libguile.  it can probably be
+   removed after a release or two (2000-01-09).  */
 extern void scm_sysmissing SCM_P ((const char *subr)) SCM_NORETURN;
 extern void scm_num_overflow SCM_P ((const char *subr)) SCM_NORETURN;
 extern void scm_out_of_range SCM_P ((const char *subr, SCM bad_value))

@@ -164,6 +164,7 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 
 #endif
 
+#ifdef HAVE_TIMES
 SCM_DEFINE (scm_times, "times", 0, 0, 0, 
             (void),
 "Returns an object with information about real and processor time.
@@ -187,7 +188,6 @@ terminated child processes.
 @end table")
 #define FUNC_NAME s_scm_times
 {
-#ifdef HAVE_TIMES
   struct tms t;
   clock_t rv;
 
@@ -201,11 +201,9 @@ terminated child processes.
   SCM_VELTS (result)[3] = scm_long2num (t.tms_cutime);
   SCM_VELTS (result)[4] = scm_long2num (t.tms_cstime);
   return result;
-#else
-  SCM_SYSMISSING;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_TIMES */
 
 #ifndef HAVE_TZSET
 /* GNU-WIN32's cygwin.dll doesn't have this. */
@@ -593,6 +591,7 @@ is the formatted string.
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_STRPTIME
 SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
             (SCM format, SCM string),
 "Performs the reverse action to @code{strftime}, parsing @var{string}
@@ -604,10 +603,9 @@ in the form returned by @code{localtime} or @code{gmtime},
 but the time zone components
 are not usefully set.
 The CDR reports the number of characters from @var{string} which
-were used for the conversion.")
+vwere used for the conversion.")
 #define FUNC_NAME s_scm_strptime
 {
-#ifdef HAVE_STRPTIME
   struct tm t;
   char *fmt, *str, *rest;
 
@@ -638,12 +636,9 @@ were used for the conversion.")
 
   SCM_ALLOW_INTS;
   return scm_cons (filltime (&t, 0, NULL),  SCM_MAKINUM (rest - str));
-
-#else
-  SCM_SYSMISSING;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_STRPTIME */
 
 void
 scm_init_stime()

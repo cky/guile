@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.14 2000-01-09 03:52:29 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.15 2000-01-09 13:41:53 ghouston Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -53,9 +53,6 @@
 
 #define SCM_SYSERROR_MSG(str,args,val) \
   do { scm_syserror_msg(FUNC_NAME,(str),(args),(val)); } while (0)
-
-#define SCM_SYSMISSING \
-  do { scm_sysmissing(FUNC_NAME); } while (0)
 
 #define SCM_WTA(pos,scm) \
   do { scm_wta(scm,(char *)pos,FUNC_NAME); } while (0)

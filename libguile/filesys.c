@@ -614,6 +614,7 @@ SCM_DEFINE (scm_delete_file, "delete-file", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_MKDIR
 SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
             (SCM path, SCM mode),
 "Create a new directory named by @var{path}.  If @var{mode} is omitted
@@ -622,7 +623,6 @@ umask.  Otherwise they are set to the decimal value specified with
 @var{mode}.  The return value is unspecified.")
 #define FUNC_NAME s_scm_mkdir
 {
-#ifdef HAVE_MKDIR
   int rv;
   mode_t mask;
   SCM_VALIDATE_ROSTRING (1,path);
@@ -641,22 +641,17 @@ umask.  Otherwise they are set to the decimal value specified with
   if (rv != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_MKDIR */
 
-
+#ifdef HAVE_RMDIR
 SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0, 
             (SCM path),
 "Remove the existing directory named by @var{path}.  The directory must
 be empty for this to succeed.  The return value is unspecified.")
 #define FUNC_NAME s_scm_rmdir
 {
-#ifdef HAVE_RMDIR
   int val;
 
   SCM_VALIDATE_ROSTRING (1,path);
@@ -665,13 +660,9 @@ be empty for this to succeed.  The return value is unspecified.")
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif
 
 
 /* {Examining Directories}
@@ -807,14 +798,12 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-
-
+#ifdef HAVE_GETCWD
 SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
             (),
 "Returns the name of the current working directory.")
 #define FUNC_NAME s_scm_getcwd
 {
-#ifdef HAVE_GETCWD
   char *rv;
 
   scm_sizet size = 100;
@@ -833,13 +822,9 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
   result = scm_makfromstr (wd, strlen (wd), 0);
   scm_must_free (wd);
   return result;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_GETCWD */
 
 
 
@@ -935,6 +920,7 @@ retrieve_select_type (SELECT_TYPE *set, SCM list)
     }
 }
 
+#ifdef HAVE_SELECT
 /* Static helper functions above refer to s_scm_select directly as s_select */
 SCM_DEFINE (scm_select, "select", 3, 2, 0, 
             (SCM reads, SCM writes, SCM excepts, SCM secs, SCM usecs),
@@ -963,7 +949,6 @@ values instead of a list and has an additional select! interface.
 ")
 #define FUNC_NAME s_scm_select
 {
-#ifdef HAVE_SELECT
   struct timeval timeout;
   struct timeval * time_p;
   SELECT_TYPE read_set;
@@ -1034,13 +1019,9 @@ values instead of a list and has an additional select! interface.
 		      retrieve_select_type (&write_set, writes),
 		      retrieve_select_type (&except_set, excepts),
 		      SCM_UNDEFINED);
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_SELECT */
 
 
 
@@ -1129,13 +1110,13 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_SYMLINK
 SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
             (SCM oldpath, SCM newpath),
 "Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
 @var{path-from}.  The return value is unspecified.")
 #define FUNC_NAME s_scm_symlink
 {
-#ifdef HAVE_SYMLINK
   int val;
 
   SCM_VALIDATE_ROSTRING (1,oldpath);
@@ -1146,15 +1127,11 @@ SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_SYMLINK */
 
-
+#ifdef HAVE_READLINK
 SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0, 
             (SCM path),
 "Returns the value of the symbolic link named by
@@ -1162,7 +1139,6 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
 file that the link points to.")
 #define FUNC_NAME s_scm_readlink
 {
-#ifdef HAVE_READLINK
   int rv;
   int size = 100;
   char *buf;
@@ -1181,15 +1157,11 @@ file that the link points to.")
   result = scm_makfromstr (buf, rv, 0);
   scm_must_free (buf);
   return result;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_READLINK */
 
-
+#ifdef HAVE_LSTAT
 SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0, 
             (SCM str),
 "Similar to @code{stat}, but does not follow symbolic links, i.e.,
@@ -1197,7 +1169,6 @@ it will return information about a symbolic link itself, not the
 file it points to.  @var{path} must be a string.")
 #define FUNC_NAME s_scm_lstat
 {
-#ifdef HAVE_LSTAT
   int rv;
   struct stat stat_temp;
 
@@ -1215,14 +1186,9 @@ file it points to.  @var{path} must be a string.")
 			en);
     }
   return scm_stat2scm(&stat_temp);
-#else 
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
-
+#endif /* HAVE_LSTAT */
 
 SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
             (SCM oldfile, SCM newfile),

@@ -63,6 +63,7 @@
 extern int system();
 
 
+#ifdef HAVE_SYSTEM
 SCM_DEFINE (scm_system, "system", 0, 1, 0, 
            (SCM cmd),
 "Executes @var{cmd} using the operating system's "command processor".
@@ -78,15 +79,10 @@ indicating whether the command processor is available.")
 
   if (SCM_UNBNDP (cmd))
     {
-#ifdef HAVE_SYSTEM
       rv = system (NULL);
-#else
-      rv = 0;
-#endif
       return SCM_BOOL(rv);
     }
   SCM_VALIDATE_ROSTRING (1,cmd);
-#ifdef HAVE_SYSTEM
   SCM_DEFER_INTS;
   errno = 0;
   if (SCM_ROSTRINGP (cmd))
@@ -96,11 +92,9 @@ indicating whether the command processor is available.")
     SCM_SYSERROR;
   SCM_ALLOW_INTS;
   return SCM_MAKINUM (rv);
-#else
-  SCM_SYSMISSING;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_SYSTEM */
 
 extern char *getenv();
 SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0, 

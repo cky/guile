@@ -1,3 +1,22 @@
+2000-01-09  Gary Houston  <ghouston@arglist.com>
+
+	* eval.c: define scm_unbound_variable_key ('unbound-variable).
+	scm_lookupcar1: throw an error with key 'unbound-variable instead
+	of 'misc-error when an unbound variable is encountered.
+
+	* filesys.c (scm_mkdir, scm_rmdir, scm_getcwd, scm_select, 
+	scm_symlink, scm_readlink, scm_lstat),
+	posix.c (scm_setpgid, scm_setsid, scm_ctermid, scm_tcgetpgrp,
+	scm_tcsetpgrp, scm_uname, scm_setlocale, scm_mknod, scm_nice,
+	scm_sync),
+	simpos.c (scm_system), 
+	stime.c (scm_times, scm_strptime):
+	move the HAVE_XXX feature tests out of the procedure bodies.
+	don't use SCM_SYSMISSING.
+	scm_validate.h (SCM_SYSMISSING): removed.
+	error.h, error.c (scm_sysmissing): comment that this is deprecated.
+	see ChangeLog entry for 1999-12-28.
+
 Sat Jan  8 19:52:04 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* scm_validate.h (SCM_VALIDATE_BOOL_COPY): Fix typo.

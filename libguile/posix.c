@@ -680,6 +680,7 @@ This is the POSIX definition, not BSD.")
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_SETPGID
 SCM_DEFINE (scm_setpgid, "setpgid", 2, 0, 0, 
             (SCM pid, SCM pgid),
 "Move the process @var{pid} into the process group @var{pgid}.  @var{pid} or
@@ -689,21 +690,17 @@ Fails on systems that do not support job control.
 The return value is unspecified.")
 #define FUNC_NAME s_scm_setpgid
 {
-#ifdef HAVE_SETPGID
   SCM_VALIDATE_INUM (1,pid);
   SCM_VALIDATE_INUM (2,pgid);
   /* FIXME(?): may be known as setpgrp.  */
   if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_SETPGID */
 
+#ifdef HAVE_SETSID
 SCM_DEFINE (scm_setsid, "setsid", 0, 0, 0,
             (),
 "Creates a new session.  The current process becomes the session leader
@@ -712,18 +709,13 @@ from its controlling terminal if it has one.
 The return value is an integer representing the new process group ID.")
 #define FUNC_NAME s_scm_setsid
 {
-#ifdef HAVE_SETSID
   pid_t sid = setsid ();
   if (sid == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_SETSID */
 
 SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0, 
             (SCM port),
@@ -747,26 +739,22 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-
+#ifdef HAVE_CTERMID
 SCM_DEFINE (scm_ctermid, "ctermid", 0, 0, 0,
             (),
 "Returns a string containing the file name of the controlling terminal
 for the current process.")
 #define FUNC_NAME s_scm_ctermid
 {
-#ifdef HAVE_CTERMID
   char *result = ctermid (NULL);
   if (*result == '\0')
     SCM_SYSERROR;
   return scm_makfrom0str (result);
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_CTERMID */
 
+#ifdef HAVE_TCGETPGRP
 SCM_DEFINE (scm_tcgetpgrp, "tcgetpgrp", 1, 0, 0, 
             (SCM port),
 "Returns the process group ID of the foreground
@@ -781,7 +769,6 @@ terminated, and no other job has yet been moved into the
 foreground.")
 #define FUNC_NAME s_scm_tcgetpgrp
 {
-#ifdef HAVE_TCGETPGRP
   int fd;
   pid_t pgid;
 
@@ -792,14 +779,11 @@ foreground.")
   if ((pgid = tcgetpgrp (fd)) == -1)
     SCM_SYSERROR;
   return SCM_MAKINUM (pgid);
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME    
+#endif /* HAVE_TCGETPGRP */
 
+#ifdef HAVE_TCSETPGRP
 SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
             (SCM port, SCM pgid),
 "Set the foreground process group ID for the terminal used by the file
@@ -809,7 +793,6 @@ must be a member of the same session as @var{pgid} and must have the same
 controlling terminal.  The return value is unspecified.")
 #define FUNC_NAME s_scm_tcsetpgrp
 {
-#ifdef HAVE_TCSETPGRP
   int fd;
 
   port = SCM_COERCE_OUTPORT (port);
@@ -820,14 +803,9 @@ controlling terminal.  The return value is unspecified.")
   if (tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
-   
+#endif /* HAVE_TCSETPGRP */
 
 /* Copy exec args from an SCM vector into a new C array.  */
 
@@ -987,14 +965,13 @@ with the scsh fork.")
 }
 #undef FUNC_NAME
 
-
+#ifdef HAVE_UNAME
 SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
             (),
 "Returns an object with some information about the computer system the
 program is running on.")
 #define FUNC_NAME s_scm_uname
 {
-#ifdef HAVE_UNAME
   struct utsname buf;
   SCM ans = scm_make_vector (SCM_MAKINUM(5), SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
@@ -1010,13 +987,9 @@ program is running on.")
   ve[5] = scm_makfrom0str (buf.domainname);
 */
   return ans;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_UNAME */
 
 SCM_DEFINE (scm_environ, "environ", 0, 1, 0, 
             (SCM env),
@@ -1194,6 +1167,7 @@ The return value is unspecified.")
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_SETLOCALE
 SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
             (SCM category, SCM locale),
 "If @var{locale} is omitted, returns the current value of the specified
@@ -1208,7 +1182,6 @@ and the new value is returned as a system-dependent string.  If @var{locale}
 is an empty string, the locale will be set using envirionment variables.")
 #define FUNC_NAME s_scm_setlocale
 {
-#ifdef HAVE_SETLOCALE
   char *clocale;
   char *rv;
 
@@ -1228,14 +1201,11 @@ is an empty string, the locale will be set using envirionment variables.")
   if (rv == NULL)
     SCM_SYSERROR;
   return scm_makfrom0str (rv);
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_SETLOCALE */
 
+#ifdef HAVE_MKNOD
 SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
             (SCM path, SCM type, SCM perms, SCM dev),
 "Creates a new special file, such as a file corresponding to a device.
@@ -1255,7 +1225,6 @@ E.g.,
 The return value is unspecified.")
 #define FUNC_NAME s_scm_mknod
 {
-#ifdef HAVE_MKNOD
   int val;
   char *p;
   int ctype = 0;
@@ -1289,15 +1258,11 @@ The return value is unspecified.")
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_MKNOD */
 
-
+#ifdef HAVE_NICE
 SCM_DEFINE (scm_nice, "nice", 1, 0, 0, 
             (SCM incr),
 "Increment the priority of the current process by @var{incr}.  A higher
@@ -1305,35 +1270,25 @@ priority value means that the process runs less often.
 The return value is unspecified.")
 #define FUNC_NAME s_scm_nice
 {
-#ifdef HAVE_NICE
   SCM_VALIDATE_INUM (1,incr);
   if (nice(SCM_INUM(incr)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_NICE */
 
-
+#ifdef HAVE_SYNC
 SCM_DEFINE (scm_sync, "sync", 0, 0, 0,
             (),
 "Flush the operating system disk buffers.
 The return value is unspecified.")
 #define FUNC_NAME s_scm_sync
 {
-#ifdef HAVE_SYNC
   sync();
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-#endif
-  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+#endif /* HAVE_SYNC */
 
 void 
 scm_init_posix ()

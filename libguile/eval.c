@@ -254,6 +254,8 @@ scm_ilookup (SCM iloc, SCM env)
 */
 static scm_cell undef_cell = { SCM_UNDEFINED, SCM_UNDEFINED };
 
+SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
+
 #ifdef USE_THREADS
 static SCM *
 scm_lookupcar1 (SCM vloc, SCM genv, int check)
@@ -342,11 +344,14 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
     errout:
       /* scm_everr (vloc, genv,...) */
       if (check)
-	scm_misc_error (NULL,
-			SCM_NULLP (env)
-			? "Unbound variable: %S"
-			: "Damaged environment: %S",
-			scm_listify (var, SCM_UNDEFINED));
+	{
+	  if (SCM_NULLP (env))
+	    scm_error (scm_unbound_variable_key, NULL, "Unbound variable: %S",
+		       scm_cons (var, SCM_EOL), SCM_BOOL_F);
+	  else
+	    scm_misc_error (NULL, "Damaged environment: %S",
+			    scm_cons (var, SCM_EOL));
+	}
       else
 	return SCM_CDRLOC (&undef_cell);
     }
