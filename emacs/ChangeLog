@@ -1,3 +1,7 @@
+2001-04-25  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* guile.el, guile-scheme.el, guile-emacs.scm: New files.
+
 2001-03-13  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* guile-c.el (guile-c-edit-docstring): Set fill-column to 63, so

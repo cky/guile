@@ -1,3 +1,7 @@
+2001-04-25  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* channel.scm: New file.
+
 2001-04-19  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* receive.scm (receive): Use `define-macro'.
