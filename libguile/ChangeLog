@@ -1,6 +1,26 @@
+Wed Feb 19 14:04:23 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* list.h (scm_list_cdr_ref): Delete prototype; function no longer
+	exists.
+
 Thu Feb 13 21:44:07 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* unif.c (scm_array_set_x): minor change to argument error checking.
+
+Tue Feb 11 18:19:47 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.am (libguile_la_SOURCES): Remove backtrace.c, debug.c,
+ 	inet_aton.c, srcprop.c, stacks.c, and strerror.c from this list.
+  	They should only be included in the library at configure.in's
+ 	discretion.
+	(libguile_la_LDADD): Include the appropriate .lo files here.
+	(libguile_la_DEPENDENCIES): List the corresponding .o files here,
+	so we know when to build them (and their .lo bretheren).
+	* configure.in (LIBLOBJS): New substituted variable.  We let
+ 	configure decide which .o files to include in LIBOBJS, and then
+ 	put the corresponding list of .lo files in LIBLOBJS.  The latter
+	is what we pass to libtool.
+	* Makefile.in, configure: regenerated.
 
 Mon Feb 10 00:08:08 1997  Mikael Djurfeldt  <mdj@kenneth>
 
