@@ -25,21 +25,13 @@
 #include "libguile/__scm.h"
 
 #include "libguile/continuations.h"
-#ifdef DEBUG_EXTENSIONS
 #include "libguile/debug.h"
-#endif
+
 
 
-/* With debug extensions we have the possibility to use the debug options
- * to disable stack checking.
+/* With debug options we have the possibility to disable stack checking.
  */
-#ifdef DEBUG_EXTENSIONS
 #define SCM_STACK_CHECKING_P SCM_STACK_LIMIT
-#else
-/* *fixme* This option should be settable also without debug extensions. */
-#define SCM_STACK_LIMIT 100000
-#define SCM_STACK_CHECKING_P 1
-#endif
 
 #ifdef STACK_CHECKING
 # if SCM_STACK_GROWS_UP

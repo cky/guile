@@ -105,7 +105,6 @@ SCM_API scm_t_bits scm_tc16_promise;
 #define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
                             ? *scm_ilookup ((x), env) \
 			    : SCM_EVALIM2(x))
-#ifdef DEBUG_EXTENSIONS
 #define SCM_XEVAL(x, env) (SCM_IMP (x) \
 			   ? SCM_EVALIM2(x) \
 			   : (*scm_ceval_ptr) ((x), (env)))
@@ -114,12 +113,6 @@ SCM_API scm_t_bits scm_tc16_promise;
 			      : (SCM_SYMBOLP (SCM_CAR (x)) \
 			         ? *scm_lookupcar (x, env, 1) \
 			         : (*scm_ceval_ptr) (SCM_CAR (x), env)))
-#else
-#define SCM_XEVAL(x, env) (SCM_IMP (x) \
-			   ? SCM_EVALIM2(x) \
-			   : scm_ceval ((x), (env)))
-#define SCM_XEVALCAR(x, env) EVALCAR (x, env)
-#endif /* DEBUG_EXTENSIONS */
 
 typedef SCM (*scm_t_trampoline_0) (SCM proc);
 typedef SCM (*scm_t_trampoline_1) (SCM proc, SCM arg1);

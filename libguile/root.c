@@ -230,9 +230,7 @@ scm_internal_cwdr (scm_t_catch_body body, void *body_data,
       contregs->base = stack_start;
       contregs->seq = ++n_dynamic_roots;
       contregs->throw_value = SCM_BOOL_F;
-#ifdef DEBUG_EXTENSIONS
       contregs->dframe = 0;
-#endif
       SCM_NEWSMOB (new_rootcont, scm_tc16_continuation, contregs);
     }
     old_rootcont = scm_rootcont;
@@ -244,10 +242,8 @@ scm_internal_cwdr (scm_t_catch_body body, void *body_data,
    */
   old_winds = scm_dynwinds;
   scm_dowinds (SCM_EOL, scm_ilength (scm_dynwinds));
-#ifdef DEBUG_EXTENSIONS
   SCM_DFRAME (old_rootcont) = scm_last_debug_frame;
   scm_last_debug_frame = 0;
-#endif
 
   {
     my_handler_data.run_handler = 0;
@@ -258,9 +254,7 @@ scm_internal_cwdr (scm_t_catch_body body, void *body_data,
 
   scm_dowinds (old_winds, - scm_ilength (old_winds));
   SCM_REDEFER_INTS;
-#ifdef DEBUG_EXTENSIONS
   scm_last_debug_frame = SCM_DFRAME (old_rootcont);
-#endif
   scm_rootcont = old_rootcont;
   SCM_REALLOW_INTS;
 

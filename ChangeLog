@@ -1,3 +1,8 @@
+2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* libguile.h: Removed uses of DEBUG_EXTENSIONS to fix compile
+	errors with --disable-deprecated.
+
 2003-04-07  Rob Browning  <rlb@defaultvalue.org>
 
 	* pre-inst-guile-env.in: new script -- can be used to run commands

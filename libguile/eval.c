@@ -401,12 +401,10 @@ SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
 
 SCM scm_f_apply;
 
-#ifdef DEBUG_EXTENSIONS
 SCM_GLOBAL_SYMBOL (scm_sym_enter_frame, "enter-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_apply_frame, "apply-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_exit_frame, "exit-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_trace, "trace");
-#endif
 
 
 /* Check that the body denoted by XORIG is valid and rewrite it into
@@ -1284,14 +1282,10 @@ static SCM
 unmemocopy (SCM x, SCM env)
 {
   SCM ls, z;
-#ifdef DEBUG_EXTENSIONS
   SCM p;
-#endif
   if (!SCM_CONSP (x))
     return x;
-#ifdef DEBUG_EXTENSIONS
   p = scm_whash_lookup (scm_source_whash, x);
-#endif
   switch (SCM_ITAG7 (SCM_CAR (x)))
     {
     case SCM_BIT8(SCM_IM_AND):
@@ -1500,10 +1494,8 @@ loop:
       x = SCM_CDR (x);
     }
   SCM_SETCDR (z, x);
-#ifdef DEBUG_EXTENSIONS
   if (!SCM_FALSEP (p))
     scm_whash_insert (scm_source_whash, ls, p);
-#endif
   return ls;
 }
 
@@ -3441,7 +3433,6 @@ scm_dapply (SCM proc, SCM arg1, SCM args)
 SCM 
 SCM_APPLY (SCM proc, SCM arg1, SCM args)
 {
-#ifdef DEBUG_EXTENSIONS
 #ifdef DEVAL
   scm_t_debug_frame debug;
   scm_t_debug_info debug_vect_body;
@@ -3454,7 +3445,6 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
 #else
   if (SCM_DEBUGGINGP)
     return scm_dapply (proc, arg1, args);
-#endif
 #endif
 
   SCM_ASRTGO (SCM_NIMP (proc), badproc);
@@ -4487,10 +4477,8 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 /* At this point, scm_deval and scm_dapply are generated.
  */
 
-#ifdef DEBUG_EXTENSIONS
 # define DEVAL
 # include "eval.c"
-#endif
 
 
 

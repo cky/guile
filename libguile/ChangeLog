@@ -1,3 +1,10 @@
+2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* continuations.c, continuations.h, eval.c, eval.h, extensions.c,
+	gsubr.c, guile.c, init.c, read.c, root.c, root.h, stackchk.h,
+	throw.c: Removed uses of DEBUG_EXTENSIONS and DYNAMIC_LINKING to
+	fix compile errors with --disable-deprecated.
+
 2003-04-17  Rob Browning  <rlb@defaultvalue.org>
 
 	* numbers.c (scm_integer_expt): fix case where we were declaring

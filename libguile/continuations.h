@@ -55,11 +55,10 @@ typedef struct
   size_t num_stack_items;   /* size of the saved stack.  */
   unsigned long seq;        /* dynamic root identifier.  */
 
-#ifdef DEBUG_EXTENSIONS
   /* the most recently created debug frame on the live stack, before
      it was saved.  */
   struct scm_t_debug_frame *dframe;
-#endif
+
   SCM_STACKITEM stack[1];    /* copied stack of size num_stack_items.  */ 
 } scm_t_contregs;
 

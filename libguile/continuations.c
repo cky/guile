@@ -22,16 +22,13 @@
 
 #include <string.h>
 
+#include "libguile/debug.h"
 #include "libguile/root.h"
 #include "libguile/stackchk.h"
 #include "libguile/smob.h"
 #include "libguile/ports.h"
 #include "libguile/dynwind.h"
 #include "libguile/values.h"
-
-#ifdef DEBUG_EXTENSIONS
-#include "libguile/debug.h"
-#endif
 
 #include "libguile/validate.h"
 #include "libguile/continuations.h"
@@ -131,9 +128,7 @@ scm_make_continuation (int *first)
   continuation->throw_value = SCM_EOL;
   continuation->base = src = rootcont->base;
   continuation->seq = rootcont->seq;
-#ifdef DEBUG_EXTENSIONS
   continuation->dframe = scm_last_debug_frame;
-#endif
   SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
   SCM_EXIT_A_SECTION;
 
@@ -215,9 +210,7 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   memcpy (dst, continuation->stack,
 	  sizeof (SCM_STACKITEM) * continuation->num_stack_items);
 
-#ifdef DEBUG_EXTENSIONS
   scm_last_debug_frame = continuation->dframe;
-#endif
 
   continuation->throw_value = val;
 #ifdef __ia64__

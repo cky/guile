@@ -34,9 +34,7 @@
 #ifdef HAVE_CONFIG_H
 #include <libguile/scmconfig.h>
 #endif
-#ifdef DYNAMIC_LINKING
 #include <guile-ltdl.h>
-#endif
 
 #ifdef HAVE_WINSOCK2_H
 #include <winsock2.h>
@@ -68,7 +66,7 @@ inner_main (void *closure SCM_UNUSED, int argc, char **argv)
 int
 main (int argc, char **argv)
 {
-#if defined (DYNAMIC_LINKING) && !defined (__MINGW32__)
+#if !defined (__MINGW32__)
   /* libtool automagically inserts this variable into your executable... */
   extern const scm_lt_dlsymlist lt_preloaded_symbols[];
   scm_lt_dlpreload_default (lt_preloaded_symbols);

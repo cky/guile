@@ -125,11 +125,9 @@ extern "C" {
 #include "libguile/version.h"
 #include "libguile/vports.h"
 #include "libguile/weaks.h"
-#ifdef DEBUG_EXTENSIONS
 #include "libguile/backtrace.h"
 #include "libguile/debug.h"
 #include "libguile/stacks.h"
-#endif
 #include "libguile/threads.h"
 #include "libguile/inline.h"
 #include "libguile/deprecated.h"

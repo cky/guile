@@ -41,12 +41,8 @@
 #define scm_protects scm_sys_protects[10]
 #define scm_properties_whash scm_sys_protects[11]
 #define scm_gc_registered_roots scm_sys_protects[12]
-#ifdef DEBUG_EXTENSIONS
 #define scm_source_whash scm_sys_protects[13]
 #define SCM_NUM_PROTECTS 14
-#else
-#define SCM_NUM_PROTECTS 13
-#endif
 
 SCM_API SCM scm_sys_protects[];
 
@@ -65,10 +61,9 @@ typedef struct scm_root_state
 
   SCM rootcont;
   SCM dynwinds;
-#ifdef DEBUG_EXTENSIONS
+
   /* It is very inefficient to have this variable in the root state. */
   scm_t_debug_frame *last_debug_frame;
-#endif
 
   SCM progargs;			/* vestigial */
   SCM exitval;			/* vestigial */

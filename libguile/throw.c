@@ -26,9 +26,7 @@
 #include "libguile/eq.h"
 #include "libguile/dynwind.h"
 #include "libguile/backtrace.h"
-#ifdef DEBUG_EXTENSIONS
 #include "libguile/debug.h"
-#endif
 #include "libguile/continuations.h"
 #include "libguile/stackchk.h"
 #include "libguile/stacks.h"
@@ -53,10 +51,8 @@ static scm_t_bits tc16_jmpbuffer;
 
 #define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
 #define SETJBJMPBUF(x, v)        (SCM_SET_CELL_WORD_1 ((x), (v)))
-#ifdef DEBUG_EXTENSIONS
 #define SCM_JBDFRAME(x)         ((scm_t_debug_frame *) SCM_CELL_WORD_2 (x))
 #define SCM_SETJBDFRAME(x, v)    (SCM_SET_CELL_WORD_2 ((x), (v)))
-#endif
 
 static int
 jmpbuffer_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -74,11 +70,7 @@ make_jmpbuf (void)
   SCM answer;
   SCM_REDEFER_INTS;
   {
-#ifdef DEBUG_EXTENSIONS
     SCM_NEWSMOB2 (answer, tc16_jmpbuffer, 0, 0);
-#else
-    SCM_NEWSMOB (answer, tc16_jmpbuffer, 0);
-#endif
     SETJBJMPBUF(answer, (jmp_buf *)0);
     DEACTIVATEJB(answer);
   }
@@ -155,9 +147,7 @@ scm_internal_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch
   answer = SCM_EOL;
   scm_dynwinds = scm_acons (tag, jmpbuf, scm_dynwinds);
   SETJBJMPBUF(jmpbuf, &jbr.buf);
-#ifdef DEBUG_EXTENSIONS
   SCM_SETJBDFRAME(jmpbuf, scm_last_debug_frame);
-#endif
   if (setjmp (jbr.buf))
     {
       SCM throw_tag;
@@ -652,9 +642,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
       jbr = (struct jmp_buf_and_retval *)JBJMPBUF (jmpbuf);
       jbr->throw_tag = key;
       jbr->retval = args;
-#ifdef DEBUG_EXTENSIONS
       scm_last_debug_frame = SCM_JBDFRAME (jmpbuf);
-#endif
       longjmp (*JBJMPBUF (jmpbuf), 1);
     }
 

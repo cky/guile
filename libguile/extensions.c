@@ -83,11 +83,8 @@ load_extension (SCM lib, SCM init)
 	}
   }
 
-#if defined (DYNAMIC_LINKING)
   /* Dynamically link the library. */
-
   scm_dynamic_call (init, scm_dynamic_link (lib));
-#endif
 }
 
 void

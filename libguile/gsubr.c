@@ -87,10 +87,8 @@ create_gsubr (int define, const char *name,
 	SCM_SET_GSUBR_PROC (cclo, subr);
 	SCM_SET_GSUBR_TYPE (cclo,
 			    SCM_MAKINUM (SCM_GSUBR_MAKTYPE (req, opt, rst)));
-#ifdef DEBUG_EXTENSIONS
 	if (SCM_REC_PROCNAMES_P)
 	  scm_set_procedure_property_x (cclo, scm_sym_name, sym);
-#endif
 	if (define)
 	  scm_define (sym, cclo);
       return cclo;

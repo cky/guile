@@ -39,9 +39,7 @@
 #include "libguile/boolean.h"
 #include "libguile/chars.h"
 #include "libguile/continuations.h"
-#ifdef DEBUG_EXTENSIONS
 #include "libguile/debug.h"
-#endif
 #ifdef GUILE_DEBUG_MALLOC
 #include "libguile/debug-malloc.h"
 #endif
@@ -139,9 +137,7 @@ restart_stack (void *base)
   scm_dynwinds = SCM_EOL;
   SCM_DYNENV (scm_rootcont) = SCM_EOL;
   SCM_THROW_VALUE (scm_rootcont) = SCM_EOL;
-#ifdef DEBUG_EXTENSIONS
   SCM_DFRAME (scm_rootcont) = scm_last_debug_frame = 0;
-#endif
   SCM_BASE (scm_rootcont) = base;
 }
 
@@ -503,9 +499,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_socket ();
 #endif
   scm_init_sort ();
-#ifdef DEBUG_EXTENSIONS
   scm_init_srcprop ();
-#endif
   scm_init_stackchk ();
   scm_init_strings ();
   scm_init_struct ();   /* Requires strings */
@@ -527,9 +521,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_vports ();
   scm_init_eval ();
   scm_init_evalext ();
-#ifdef DEBUG_EXTENSIONS
   scm_init_debug ();	/* Requires macro smobs */
-#endif
   scm_init_random ();
 #if SCM_HAVE_ARRAYS
   scm_init_ramap ();
@@ -538,9 +530,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_simpos ();
   scm_init_load_path ();
   scm_init_standard_ports ();  /* Requires fports */
-#ifdef DYNAMIC_LINKING
   scm_init_dynamic_linking ();
-#endif
 #if SCM_ENABLE_ELISP
   scm_init_lang ();
 #endif /* SCM_ENABLE_ELISP */
