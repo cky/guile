@@ -1,6 +1,7 @@
 2000-04-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
-	* validate.h (SCM_VALIDATE_INUM_RANGE_COPY): New macro.
+	* validate.h (SCM_VALIDATE_INUM_RANGE_COPY,
+	SCM_VALIDATE_REAL_COPY): New macros.
 
 2000-04-16  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
