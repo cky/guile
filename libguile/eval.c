@@ -101,11 +101,11 @@ char *alloca ();
 static const char s_bad_expression[] = "Bad expression";
 
 /* If a form is detected that holds less expressions than are required in that
- * contect, a 'Missing expression' error is signalled.  */
+ * context, a 'Missing expression' error is signalled.  */
 static const char s_missing_expression[] = "Missing expression in";
 
 /* If a form is detected that holds more expressions than are allowed in that
- * contect, an 'Extra expression' error is signalled.  */
+ * context, an 'Extra expression' error is signalled.  */
 static const char s_extra_expression[] = "Extra expression in";
 
 /* Case or cond expressions must have at least one clause.  If a case or cond
@@ -933,6 +933,23 @@ scm_m_define (SCM expr, SCM env)
 }
 
 
+/* This is a helper function for forms (<keyword> <expression>) that are
+ * transformed into (#@<keyword> '() <memoized_expression>) in order to allow
+ * for easy creation of a thunk (i. e. a closure without arguments) using the
+ * ('() <memoized_expression>) tail of the memoized form.  */
+static SCM
+memoize_as_thunk_prototype (const SCM expr, const SCM env SCM_UNUSED)
+{
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
+
+  SCM_SETCDR (expr, scm_cons (SCM_EOL, cdr_expr));
+
+  return expr;
+}
+
+
 SCM_SYNTAX (s_delay, "delay", scm_i_makbimacro, scm_m_delay);
 SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
 
@@ -941,10 +958,11 @@ SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
  * the empty list represents the empty parameter list.  This representation
  * allows for easy creation of the closure during evaluation.  */
 SCM
-scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
+scm_m_delay (SCM expr, SCM env)
 {
-  SCM_ASSYNT (scm_ilength (xorig) == 2, s_expression, s_delay);
-  return scm_cons2 (SCM_IM_DELAY, SCM_EOL, SCM_CDR (xorig));
+  const SCM new_expr = memoize_as_thunk_prototype (expr, env);
+  SCM_SETCAR (new_expr, SCM_IM_DELAY);
+  return new_expr;
 }
 
 
@@ -1435,10 +1453,11 @@ SCM_GLOBAL_SYMBOL (scm_sym_future, s_future);
  * empty parameter list.  This representation allows for easy creation
  * of the closure during evaluation.  */
 SCM
-scm_m_future (SCM xorig, SCM env SCM_UNUSED)
+scm_m_future (SCM expr, SCM env)
 {
-  SCM_ASSYNT (scm_ilength (xorig) == 2, s_expression, s_future);
-  return scm_cons2 (SCM_IM_FUTURE, SCM_EOL, SCM_CDR (xorig));
+  const SCM new_expr = memoize_as_thunk_prototype (expr, env);
+  SCM_SETCAR (new_expr, SCM_IM_FUTURE);
+  return new_expr;
 }
 
 
