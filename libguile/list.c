@@ -59,7 +59,7 @@
 
 /* creating lists */
 
-#define SCM_I_CONS(cell,x,y)			\
+#define SCM_I_CONS(cell, x, y)			\
 do {						\
   cell = scm_cell ((scm_t_bits)x, (scm_t_bits)y);			\
 } while (0)
@@ -218,7 +218,7 @@ SCM_DEFINE (scm_length, "length", 1, 0, 0,
 #define FUNC_NAME s_scm_length
 {
   long i;
-  SCM_VALIDATE_LIST_COPYLEN (1,lst,i);
+  SCM_VALIDATE_LIST_COPYLEN (1, lst, i);
   return SCM_MAKINUM (i);
 }
 #undef FUNC_NAME
@@ -398,7 +398,7 @@ SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
 {
   SCM lst = list;
   unsigned long int i;
-  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
   while (SCM_CONSP (lst)) {
     if (i == 0)
       return SCM_CAR (lst);
@@ -422,7 +422,7 @@ SCM_DEFINE (scm_list_set_x, "list-set!", 3, 0, 0,
 {
   SCM lst = list;
   unsigned long int i;
-  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
   while (SCM_CONSP (lst)) {
     if (i == 0) {
       SCM_SETCAR (lst, val);
@@ -453,9 +453,9 @@ SCM_DEFINE (scm_list_tail, "list-tail", 2, 0, 0,
 #define FUNC_NAME s_scm_list_tail
 {
   register long i;
-  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
   while (i-- > 0) {
-    SCM_VALIDATE_CONS (1,lst);
+    SCM_VALIDATE_CONS (1, lst);
     lst = SCM_CDR(lst);
   }
   return lst;
@@ -470,7 +470,7 @@ SCM_DEFINE (scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
 {
   SCM lst = list;
   unsigned long int i;
-  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
   while (SCM_CONSP (lst)) {
     if (i == 0) {
       SCM_SETCDR (lst, val);
@@ -501,12 +501,12 @@ SCM_DEFINE (scm_list_head, "list-head", 2, 0, 0,
   SCM * pos;
   register long i;
 
-  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
   answer = SCM_EOL;
   pos = &answer;
   while (i-- > 0)
     {
-      SCM_VALIDATE_CONS (1,lst);
+      SCM_VALIDATE_CONS (1, lst);
       *pos = scm_cons (SCM_CAR (lst), SCM_EOL);
       pos = SCM_CDRLOC (*pos);
       lst = SCM_CDR(lst);

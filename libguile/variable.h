@@ -55,7 +55,7 @@
  */
 #define SCM_VARIABLEP(X)      (!SCM_IMP (X) && SCM_TYP7(X) == scm_tc7_variable)
 #define SCM_VARIABLE_REF(V)   SCM_CELL_OBJECT_1 (V)
-#define SCM_VARIABLE_SET(V,X) SCM_SET_CELL_OBJECT_1 (V, X)
+#define SCM_VARIABLE_SET(V, X) SCM_SET_CELL_OBJECT_1 (V, X)
 #define SCM_VARIABLE_LOC(V)   ((SCM *) SCM_CELL_WORD_LOC ((V), 1))
 
 

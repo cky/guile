@@ -85,7 +85,7 @@ SCM_DEFINE (scm_nil_car, "nil-car", 1, 0, 0,
 {
   if (SCM_NILP (x))
     return scm_lisp_nil;
-  SCM_VALIDATE_CONS (1,x);
+  SCM_VALIDATE_CONS (1, x);
   return SCM_CAR (x);
 }
 #undef FUNC_NAME
@@ -98,7 +98,7 @@ SCM_DEFINE (scm_nil_cdr, "nil-cdr", 1, 0, 0,
 {
   if (SCM_NILP (x))
     return scm_lisp_nil;
-  SCM_VALIDATE_CONS (1,x);
+  SCM_VALIDATE_CONS (1, x);
   return SCM_EOL2NIL (SCM_CDR (x), x);
 }
 #undef FUNC_NAME

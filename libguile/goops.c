@@ -75,7 +75,7 @@
 
 #define SPEC_OF(x)  SCM_SLOT (x, scm_si_specializers)
 
-#define DEFVAR(v,val) \
+#define DEFVAR(v, val) \
 { scm_eval (scm_list_3 (scm_sym_define_public, (v), (val)), \
 	    scm_module_goops); }
 /* Temporary hack until we get the new module system */
@@ -84,13 +84,13 @@
 						 (v), SCM_BOOL_F)))
 
 /* Fixme: Should use already interned symbols */
-#define CALL_GF1(name,a)	(scm_call_1 (GETVAR (scm_str2symbol (name)), \
+#define CALL_GF1(name, a)	(scm_call_1 (GETVAR (scm_str2symbol (name)), \
 					     a))
-#define CALL_GF2(name,a,b)	(scm_call_2 (GETVAR (scm_str2symbol (name)), \
+#define CALL_GF2(name, a, b)	(scm_call_2 (GETVAR (scm_str2symbol (name)), \
 					     a, b))
-#define CALL_GF3(name,a,b,c)	(scm_call_3 (GETVAR (scm_str2symbol (name)), \
+#define CALL_GF3(name, a, b, c)	(scm_call_3 (GETVAR (scm_str2symbol (name)), \
 					     a, b, c))
-#define CALL_GF4(name,a,b,c,d)	(scm_call_4 (GETVAR (scm_str2symbol (name)), \
+#define CALL_GF4(name, a, b, c, d)	(scm_call_4 (GETVAR (scm_str2symbol (name)), \
 					     a, b, c, d))
 
 /* Class redefinition protocol:
@@ -1684,7 +1684,7 @@ applicablep (SCM actual, SCM formal)
 }
 
 static int
-more_specificp (SCM m1, SCM m2, SCM *targs)
+more_specificp (SCM m1, SCM m2, SCM const *targs)
 {
   register SCM s1, s2;
   register long i;
@@ -1704,7 +1704,7 @@ more_specificp (SCM m1, SCM m2, SCM *targs)
    * the end of this array).
    *
    */
-  for (i=0,s1=SPEC_OF(m1),s2=SPEC_OF(m2); ; i++,s1=SCM_CDR(s1),s2=SCM_CDR(s2)) {
+  for (i=0, s1=SPEC_OF(m1), s2=SPEC_OF(m2); ; i++, s1=SCM_CDR(s1), s2=SCM_CDR(s2)) {
     if (SCM_NULLP(s1)) return 1;
     if (SCM_NULLP(s2)) return 0;
     if (SCM_CAR(s1) != SCM_CAR(s2)) {
@@ -1731,13 +1731,13 @@ scm_i_vector2list (SCM l, long len)
   SCM z = scm_c_make_vector (len, SCM_UNDEFINED);
 
   for (j = 0; j < len; j++, l = SCM_CDR (l)) {
-    SCM_VELTS (z)[j] = SCM_CAR (l);
+    SCM_VECTOR_SET (z, j, SCM_CAR (l));
   }
   return z;
 }
 
 static SCM
-sort_applicable_methods (SCM method_list, long size, SCM *targs)
+sort_applicable_methods (SCM method_list, long size, SCM const *targs)
 {
   long i, j, incr;
   SCM *v, vector = SCM_EOL;
@@ -1761,7 +1761,13 @@ sort_applicable_methods (SCM method_list, long size, SCM *targs)
     {
       /* Too many elements in method_list to keep everything locally */
       vector = scm_i_vector2list (save, size);
-      v      = SCM_VELTS (vector);
+
+      /*
+	This is a new vector. Don't worry about the write barrier.
+	We're not allocating elements in this routine, so this should
+	pose no problem.
+      */
+      v      = SCM_WRITABLE_VELTS (vector);
     }
 
   /* Use a simple shell sort since it is generally faster than qsort on
@@ -1807,8 +1813,10 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
   long count = 0;
   SCM l, fl, applicable = SCM_EOL;
   SCM save = args;
-  SCM buffer[BUFFSIZE], *types, *p;
-  SCM tmp;
+  SCM buffer[BUFFSIZE];
+  SCM const *types;
+  SCM *p;
+  SCM tmp = SCM_EOL;
 
   /* Build the list of arguments types */
   if (len >= BUFFSIZE) {
@@ -1816,14 +1824,20 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
     /* NOTE: Using pointers to malloced memory won't work if we
        1. have preemtive threading, and,
        2. have a GC which moves objects.  */
-    types = p = SCM_VELTS(tmp);
+    types = p = SCM_WRITABLE_VELTS(tmp);
+
+    /*
+      note that we don't have to work to reset the generation
+      count. TMP is a new vector anyway, and it is found
+      conservatively.
+    */
   }
   else
     types = p = buffer;
 
   for (  ; !SCM_NULLP (args); args = SCM_CDR (args))
     *p++ = scm_class_of (SCM_CAR (args));
-
+  
   /* Build a list of all applicable methods */
   for (l = SCM_SLOT (gf, scm_si_methods); !SCM_NULLP (l); l = SCM_CDR (l))
     {
@@ -1857,6 +1871,8 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
       /* if we are here, it's because no-applicable-method hasn't signaled an error */
       return SCM_BOOL_F;
     }
+
+  scm_remember_upto_here (tmp);
   return (count == 1
 	  ? applicable
 	  : sort_applicable_methods (applicable, count, types));
@@ -2135,7 +2151,7 @@ SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
 
   for (i = 0, l = targs; !SCM_NULLP (l); i++, l = SCM_CDR (l)) {
     SCM_ASSERT (SCM_CLASSP (SCM_CAR (l)), targs, SCM_ARG3, FUNC_NAME);
-    SCM_VELTS(v)[i] = SCM_CAR(l);
+    SCM_VECTOR_SET (v, i, SCM_CAR(l));
   }
   return more_specificp (m1, m2, SCM_VELTS(v)) ? SCM_BOOL_T: SCM_BOOL_F;
 }

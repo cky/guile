@@ -168,7 +168,7 @@ SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
 	    "must be an integer value.")
 #define FUNC_NAME s_scm_strerror
 {
-  SCM_VALIDATE_INUM (1,err);
+  SCM_VALIDATE_INUM (1, err);
   return scm_makfrom0str (SCM_I_STRERROR (SCM_INUM (err)));
 }
 #undef FUNC_NAME
@@ -224,7 +224,7 @@ scm_out_of_range_pos (const char *subr, SCM bad_value, SCM pos)
   scm_error (scm_out_of_range_key,
 	     subr,
 	     "Argument ~S out of range: ~S",
-             scm_list_2 (pos,bad_value),
+             scm_list_2 (pos, bad_value),
 	     SCM_BOOL_F);
 }
 

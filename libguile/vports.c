@@ -187,7 +187,7 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
 {
   scm_t_port *pt;
   SCM z;
-  SCM_VALIDATE_VECTOR_LEN (1,pv,5);
+  SCM_VALIDATE_VECTOR_LEN (1, pv,5);
   SCM_VALIDATE_STRING (2, modes);
   z = scm_cell (scm_tc16_sfport, 0);
   SCM_DEFER_INTS;

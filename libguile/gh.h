@@ -167,7 +167,7 @@ SCM_API SCM gh_define(const char *name, SCM val);
 #define gh_string_length(str)        scm_string_length(str)
 #define gh_string_ref(str, k)        scm_string_ref(str, k)
 #define gh_string_set_x(str, k, chr) scm_string_set_x(str, k, chr)
-#define gh_substring(str, start,end) scm_substring(str, start, end)
+#define gh_substring(str, start, end) scm_substring(str, start, end)
 #define gh_string_append(args)       scm_string_append(args)
 
 

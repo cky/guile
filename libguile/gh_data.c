@@ -122,10 +122,8 @@ gh_ints2scm (const int *d, long n)
 {
   long i;
   SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
-  SCM *velts = SCM_VELTS(v);
-
   for (i = 0; i < n; ++i)
-    velts[i] = (SCM_FIXABLE (d[i]) ? SCM_MAKINUM (d[i]) : scm_i_long2big (d[i]));
+    SCM_VECTOR_SET (v, i, (SCM_FIXABLE (d[i]) ? SCM_MAKINUM (d[i]) : scm_i_long2big (d[i])));
 
   return v;
 }
@@ -135,10 +133,9 @@ gh_doubles2scm (const double *d, long n)
 {
   long i;
   SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
-  SCM *velts = SCM_VELTS(v);
 
   for(i = 0; i < n; i++) 
-    velts[i] = scm_make_real (d[i]);
+    SCM_VECTOR_SET (v, i, scm_make_real (d[i]));
   return v;
 }
 

@@ -97,8 +97,8 @@ SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
   old = SCM_COERCE_OUTPORT (old);
   new = SCM_COERCE_OUTPORT (new);
   
-  SCM_VALIDATE_OPFPORT (1,old);
-  SCM_VALIDATE_OPFPORT (2,new);
+  SCM_VALIDATE_OPFPORT (1, old);
+  SCM_VALIDATE_OPFPORT (2, new);
   oldfd = SCM_FPORT_FDES (old);
   fp = SCM_FSTREAM (new);
   newfd = fp->fdes;
@@ -138,7 +138,7 @@ SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
     oldfd = SCM_INUM (fd_or_port);
   else
     {
-      SCM_VALIDATE_OPFPORT (1,fd_or_port);
+      SCM_VALIDATE_OPFPORT (1, fd_or_port);
       oldfd = SCM_FPORT_FDES (fd_or_port);
     }
 
@@ -197,7 +197,7 @@ SCM_DEFINE (scm_fileno, "fileno", 1, 0, 0,
 #define FUNC_NAME s_scm_fileno
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPFPORT (1,port);
+  SCM_VALIDATE_OPFPORT (1, port);
   return SCM_MAKINUM (SCM_FPORT_FDES (port));
 }
 #undef FUNC_NAME
@@ -238,7 +238,7 @@ SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
 	    "same as that accepted by @ref{File Ports, open-file}.")
 #define FUNC_NAME s_scm_fdopen
 {
-  SCM_VALIDATE_INUM (1,fdes);
+  SCM_VALIDATE_INUM (1, fdes);
   SCM_VALIDATE_STRING (2, modes);
 
   return scm_fdes_to_port (SCM_INUM (fdes), SCM_STRING_CHARS (modes), SCM_BOOL_F);
@@ -269,8 +269,8 @@ SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_OPFPORT (1,port);
-  SCM_VALIDATE_INUM (2,fd);
+  SCM_VALIDATE_OPFPORT (1, port);
+  SCM_VALIDATE_INUM (2, fd);
   stream = SCM_FSTREAM (port);
   old_fd = stream->fdes;
   new_fd = SCM_INUM (fd);
@@ -300,7 +300,7 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
   int int_fd;
   long i;
   
-  SCM_VALIDATE_INUM_COPY (1,fd,int_fd);
+  SCM_VALIDATE_INUM_COPY (1, fd, int_fd);
 
   for (i = 0; i < scm_port_table_size; i++)
     {

@@ -179,7 +179,7 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
 #define FUNC_NAME s_scm_source_properties
 {
   SCM p;
-  SCM_VALIDATE_NIM (1,obj);
+  SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
   else if (!SCM_CONSP (obj))
@@ -200,7 +200,7 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_source_properties_x
 {
   SCM handle;
-  SCM_VALIDATE_NIM (1,obj);
+  SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
   else if (!SCM_CONSP (obj))
@@ -218,7 +218,7 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
 #define FUNC_NAME s_scm_source_property
 {
   SCM p;
-  SCM_VALIDATE_NIM (1,obj);
+  SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
   else if (!SCM_CONSP (obj))
@@ -250,7 +250,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 {
   scm_whash_handle h;
   SCM p;
-  SCM_VALIDATE_NIM (1,obj);
+  SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
   else if (!SCM_CONSP (obj))
@@ -284,7 +284,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
     }
   else if (SCM_EQ_P (scm_sym_line, key))
     {
-      SCM_VALIDATE_INUM (3,datum);
+      SCM_VALIDATE_INUM (3, datum);
       if (SRCPROPSP (p))
 	SETSRCPROPLINE (p, SCM_INUM (datum));
       else
@@ -294,7 +294,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
     }
   else if (SCM_EQ_P (scm_sym_column, key))
     {
-      SCM_VALIDATE_INUM (3,datum);
+      SCM_VALIDATE_INUM (3, datum);
       if (SRCPROPSP (p))
 	SETSRCPROPCOL (p, SCM_INUM (datum));
       else

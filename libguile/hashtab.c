@@ -61,7 +61,7 @@ scm_c_make_hash_table (unsigned long k)
 
 
 SCM
-scm_hash_fn_get_handle (SCM table,SCM obj,unsigned long (*hash_fn)(),SCM (*assoc_fn)(),void * closure)
+scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
 #define FUNC_NAME "scm_hash_fn_get_handle"
 {
   unsigned long k;
@@ -80,8 +80,8 @@ scm_hash_fn_get_handle (SCM table,SCM obj,unsigned long (*hash_fn)(),SCM (*assoc
 
 
 SCM
-scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned long (*hash_fn)(),
-                             SCM (*assoc_fn)(),void * closure)
+scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_fn)(),
+                             SCM (*assoc_fn)(), void * closure)
 #define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
   unsigned long k;
@@ -107,7 +107,7 @@ scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned long (*hash_fn)
       SCM old_bucket;
       old_bucket = SCM_VELTS (table)[k];
       new_bucket = scm_acons (obj, init, old_bucket);
-      SCM_VELTS(table)[k] = new_bucket;
+      SCM_VECTOR_SET (table, k, new_bucket);
       SCM_REALLOW_INTS;
       return SCM_CAR (new_bucket);
     }
@@ -116,8 +116,8 @@ scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned long (*hash_fn)
 
 
 SCM 
-scm_hash_fn_ref (SCM table,SCM obj,SCM dflt,unsigned long (*hash_fn)(),
-                 SCM (*assoc_fn)(),void * closure)
+scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned long (*hash_fn)(),
+                 SCM (*assoc_fn)(), void * closure)
 {
   SCM it = scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure);
   if (SCM_CONSP (it))
@@ -130,8 +130,8 @@ scm_hash_fn_ref (SCM table,SCM obj,SCM dflt,unsigned long (*hash_fn)(),
 
 
 SCM 
-scm_hash_fn_set_x (SCM table,SCM obj,SCM val,unsigned long (*hash_fn)(),
-                   SCM (*assoc_fn)(),void * closure)
+scm_hash_fn_set_x (SCM table, SCM obj, SCM val, unsigned long (*hash_fn)(),
+                   SCM (*assoc_fn)(), void * closure)
 {
   SCM it;
 
@@ -145,8 +145,8 @@ scm_hash_fn_set_x (SCM table,SCM obj,SCM val,unsigned long (*hash_fn)(),
 
 
 SCM 
-scm_hash_fn_remove_x (SCM table,SCM obj,unsigned long (*hash_fn)(),SCM (*assoc_fn)(),
-                      SCM (*delete_fn)(),void * closure)
+scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*assoc_fn)(),
+                      SCM (*delete_fn)(), void * closure)
 {
   unsigned long k;
   SCM h;
@@ -158,7 +158,7 @@ scm_hash_fn_remove_x (SCM table,SCM obj,unsigned long (*hash_fn)(),SCM (*assoc_f
   if (k >= SCM_VECTOR_LENGTH (table))
     scm_out_of_range ("hash_fn_remove_x", scm_ulong2num (k));
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
-  SCM_VELTS(table)[k] = delete_fn (h, SCM_VELTS(table)[k]);
+  SCM_VECTOR_SET (table, k, delete_fn (h, SCM_VELTS(table)[k]));
   return h;
 }
 
@@ -528,8 +528,8 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
             "table into an a-list of key-value pairs.")
 #define FUNC_NAME s_scm_hash_fold
 {
-  SCM_VALIDATE_PROC (1,proc);
-  SCM_VALIDATE_VECTOR (3,table);
+  SCM_VALIDATE_PROC (1, proc);
+  SCM_VALIDATE_VECTOR (3, table);
   return scm_internal_hash_fold (fold_proc, (void *) SCM_UNPACK (proc), init, table);
 }
 #undef FUNC_NAME

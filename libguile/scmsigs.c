@@ -192,10 +192,10 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 #endif
   int query_only = 0;
   int save_handler = 0;
-  SCM *scheme_handlers = SCM_VELTS (*signal_handlers);
+      
   SCM old_handler;
 
-  SCM_VALIDATE_INUM_COPY (1,signum,csig);
+  SCM_VALIDATE_INUM_COPY (1, signum, csig);
 #if defined(HAVE_SIGACTION)
 #if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
   /* don't allow SA_RESTART to be omitted if HAVE_RESTARTABLE_SYSCALLS
@@ -207,13 +207,13 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 #endif
   if (!SCM_UNBNDP (flags))
     {
-      SCM_VALIDATE_INUM (3,flags);
+      SCM_VALIDATE_INUM (3, flags);
       action.sa_flags |= SCM_INUM (flags);
     }
   sigemptyset (&action.sa_mask);
 #endif
   SCM_DEFER_INTS;
-  old_handler = scheme_handlers[csig];
+  old_handler = SCM_VELTS(*signal_handlers)[csig];
   if (SCM_UNBNDP (handler))
     query_only = 1;
   else if (SCM_EQ_P (scm_integer_p (handler), SCM_BOOL_T))
@@ -226,7 +226,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 #else
 	  chandler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
 #endif
-	  scheme_handlers[csig] = SCM_BOOL_F;
+	  SCM_VECTOR_SET (*signal_handlers, csig, SCM_BOOL_F);
 	}
       else
 	SCM_OUT_OF_RANGE (2, handler);
@@ -241,7 +241,8 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 	{
 	  action = orig_handlers[csig];
 	  orig_handlers[csig].sa_handler = SIG_ERR;
-	  scheme_handlers[csig] = SCM_BOOL_F;
+	  SCM_VECTOR_SET (*signal_handlers, csig, SCM_BOOL_F);
+
 	}
 #else
       if (orig_handlers[csig] == SIG_ERR)
@@ -250,13 +251,13 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 	{
 	  chandler = orig_handlers[csig];
 	  orig_handlers[csig] = SIG_ERR;
-	  scheme_handlers[csig] = SCM_BOOL_F;
+	  SCM_VECTOR_SET (*signal_handlers, csig, SCM_BOOL_F);
 	}
 #endif
     }
   else
     {
-      SCM_VALIDATE_NIM (2,handler);
+      SCM_VALIDATE_NIM (2, handler);
 #ifdef HAVE_SIGACTION
       action.sa_handler = take_signal;
       if (orig_handlers[csig].sa_handler == SIG_ERR)
@@ -266,7 +267,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
       if (orig_handlers[csig] == SIG_ERR)
 	save_handler = 1;
 #endif
-      scheme_handlers[csig] = handler;
+      SCM_VECTOR_SET (*signal_handlers, csig, handler);
     }
 
   /* XXX - Silently ignore setting handlers for `program error signals'
@@ -346,8 +347,6 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 #define FUNC_NAME s_scm_restore_signals
 {
   int i;
-  SCM *scheme_handlers = SCM_VELTS (*signal_handlers);
-
   for (i = 0; i < NSIG; i++)
     {
 #ifdef HAVE_SIGACTION
@@ -356,7 +355,7 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 	  if (sigaction (i, &orig_handlers[i], NULL) == -1)
 	    SCM_SYSERROR;
 	  orig_handlers[i].sa_handler = SIG_ERR;
-	  scheme_handlers[i] = SCM_BOOL_F;
+	  SCM_VECTOR_SET (*signal_handlers, i, SCM_BOOL_F);
 	}
 #else
       if (orig_handlers[i] != SIG_ERR)
@@ -364,7 +363,7 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 	  if (signal (i, orig_handlers[i]) == SIG_ERR)
 	    SCM_SYSERROR;
 	  orig_handlers[i] = SIG_ERR;
-	  scheme_handlers[i] = SCM_BOOL_F;
+	  SCM_VECTOR_SET (*signal_handlers, i, SCM_BOOL_F);	  
 	}
 #endif
     }
@@ -385,7 +384,7 @@ SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0,
 #define FUNC_NAME s_scm_alarm
 {
   unsigned int j;
-  SCM_VALIDATE_INUM (1,i);
+  SCM_VALIDATE_INUM (1, i);
   j = alarm (SCM_INUM (i));
   return SCM_MAKINUM (j);
 }
@@ -496,7 +495,7 @@ SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0,
 #define FUNC_NAME s_scm_sleep
 {
   unsigned long j;
-  SCM_VALIDATE_INUM_MIN (1,i,0);
+  SCM_VALIDATE_INUM_MIN (1, i,0);
 #ifdef USE_THREADS
   j = scm_thread_sleep (SCM_INUM(i));
 #else
@@ -513,7 +512,7 @@ SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
 	    "all platforms.")
 #define FUNC_NAME s_scm_usleep
 {
-  SCM_VALIDATE_INUM_MIN (1,i,0);
+  SCM_VALIDATE_INUM_MIN (1, i,0);
 
 #ifdef USE_THREADS
   /* If we have threads, we use the thread system's sleep function.  */
@@ -542,7 +541,7 @@ SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
 	    "@var{sig} is as described for the kill procedure.")
 #define FUNC_NAME s_scm_raise
 {
-  SCM_VALIDATE_INUM (1,sig);
+  SCM_VALIDATE_INUM (1, sig);
   SCM_DEFER_INTS;
   if (kill (getpid (), (int) SCM_INUM (sig)) != 0)
     SCM_SYSERROR;

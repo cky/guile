@@ -115,9 +115,9 @@ do { \
 #define SCM_SMOB_DESCRIPTOR(x)		(scm_smobs[SCM_SMOBNUM (x)])
 #define SCM_SMOB_APPLICABLE_P(x)	(SCM_SMOB_DESCRIPTOR (x).apply)
 #define SCM_SMOB_APPLY_0(x)		(SCM_SMOB_DESCRIPTOR (x).apply_0 (x))
-#define SCM_SMOB_APPLY_1(x,a1)		(SCM_SMOB_DESCRIPTOR (x).apply_1 (x, (a1)))
-#define SCM_SMOB_APPLY_2(x,a1,a2)	(SCM_SMOB_DESCRIPTOR (x).apply_2 (x, (a1), (a2)))
-#define SCM_SMOB_APPLY_3(x,a1,a2,rst)	(SCM_SMOB_DESCRIPTOR (x).apply_3 (x, (a1), (a2), (rst)))
+#define SCM_SMOB_APPLY_1(x, a1)		(SCM_SMOB_DESCRIPTOR (x).apply_1 (x, (a1)))
+#define SCM_SMOB_APPLY_2(x, a1, a2)	(SCM_SMOB_DESCRIPTOR (x).apply_2 (x, (a1), (a2)))
+#define SCM_SMOB_APPLY_3(x, a1, a2, rst)	(SCM_SMOB_DESCRIPTOR (x).apply_3 (x, (a1), (a2), (rst)))
 
 SCM_API long scm_numsmob;
 SCM_API scm_smob_descriptor scm_smobs[];

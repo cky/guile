@@ -199,7 +199,7 @@ static char remsg[] = "remove\n#define ", addmsg[] = "add\n#define ";
 
 
 static void 
-fixconfig (char *s1,char *s2,int s)
+fixconfig (char *s1, char *s2, int s)
 {
   fputs (s1, stderr);
   fputs (s2, stderr);

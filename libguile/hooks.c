@@ -228,7 +228,7 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
 {
   SCM arity, rest;
   int n_args;
-  SCM_VALIDATE_HOOK (1,hook);
+  SCM_VALIDATE_HOOK (1, hook);
   SCM_ASSERT (!SCM_FALSEP (arity = scm_i_procedure_arity (proc)),
 	      proc, SCM_ARG2, FUNC_NAME);
   n_args = SCM_HOOK_ARITY (hook);
@@ -267,7 +267,7 @@ SCM_DEFINE (scm_reset_hook_x, "reset-hook!", 1, 0, 0,
 	    "value of this procedure is not specified.")
 #define FUNC_NAME s_scm_reset_hook_x
 {
-  SCM_VALIDATE_HOOK (1,hook);
+  SCM_VALIDATE_HOOK (1, hook);
   SCM_SET_HOOK_PROCEDURES (hook, SCM_EOL);
   return SCM_UNSPECIFIED;
 }
@@ -281,7 +281,7 @@ SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1,
 	    "last.  The return value of this procedure is not specified.")
 #define FUNC_NAME s_scm_run_hook
 {
-  SCM_VALIDATE_HOOK (1,hook);
+  SCM_VALIDATE_HOOK (1, hook);
   if (scm_ilength (args) != SCM_HOOK_ARITY (hook))
     SCM_MISC_ERROR ("Hook ~S requires ~A arguments",
 		    scm_list_2 (hook, SCM_MAKINUM (SCM_HOOK_ARITY (hook))));

@@ -110,10 +110,10 @@ typedef struct scm_t_srcprops_chunk
 #define CLEARSRCPROPBRK(p)  \
   (SCM_SET_CELL_WORD_0 ((p), SCM_CELL_WORD_0 (p) \
                              & ~SCM_SOURCE_PROPERTY_FLAG_BREAK))
-#define SRCPROPMAKPOS(l,c) (((l) << 12) + (c))
-#define SETSRCPROPPOS(p,l,c) (SRCPROPPOS (p) = SRCPROPMAKPOS (l, c))
-#define SETSRCPROPLINE(p,l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
-#define SETSRCPROPCOL(p,c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
+#define SRCPROPMAKPOS(l, c) (((l) << 12) + (c))
+#define SETSRCPROPPOS(p, l, c) (SRCPROPPOS (p) = SRCPROPMAKPOS (l, c))
+#define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
+#define SETSRCPROPCOL(p, c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
 
 #define PROCTRACEP(x) (!SCM_FALSEP (scm_procedure_property (x, scm_sym_trace)))
 

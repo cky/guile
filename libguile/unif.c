@@ -678,8 +678,8 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
   scm_t_array_dim *s;
 
   SCM_VALIDATE_REST_ARGUMENT (dims);
-  SCM_VALIDATE_ARRAY (1,oldra);
-  SCM_VALIDATE_PROC (2,mapfunc);
+  SCM_VALIDATE_ARRAY (1, oldra);
+  SCM_VALIDATE_PROC (2, mapfunc);
   ra = scm_shap2ra (dims, FUNC_NAME);
   if (SCM_ARRAYP (oldra))
     {
@@ -802,7 +802,8 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 	    "@end lisp")
 #define FUNC_NAME s_scm_transpose_array
 {
-  SCM res, vargs, *ve = &vargs;
+  SCM res, vargs;
+  SCM const *ve = &vargs;
   scm_t_array_dim *s, *r;
   int ndim, i, k;
 
@@ -1104,7 +1105,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 	}
       else
 	{
-          SCM_VALIDATE_INUM (2,args);
+          SCM_VALIDATE_INUM (2, args);
 	  pos = SCM_INUM (args);
 	}
       length = SCM_INUM (scm_uniform_vector_length (v));
@@ -1184,7 +1185,7 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
     default:
       SCM_WRONG_TYPE_ARG (SCM_ARG1, v);
     case scm_tc7_bvect:
-      if (SCM_BITVEC_REF(v,pos))
+      if (SCM_BITVEC_REF(v, pos))
 	return SCM_BOOL_T;
       else
 	return SCM_BOOL_F;
@@ -1278,7 +1279,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 	}
       else
 	{
-          SCM_VALIDATE_INUM_COPY (3,args,pos);
+          SCM_VALIDATE_INUM_COPY (3, args, pos);
 	}
       length = SCM_INUM (scm_uniform_vector_length (v));
       SCM_ASRTGO (pos >= 0 && pos < length, outrng);
@@ -1296,9 +1297,9 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       goto badarg1;
     case scm_tc7_bvect:
       if (SCM_FALSEP (obj))
-	SCM_BITVEC_CLR(v,pos);
+	SCM_BITVEC_CLR(v, pos);
       else if (SCM_EQ_P (obj, SCM_BOOL_T))
-	SCM_BITVEC_SET(v,pos);
+	SCM_BITVEC_SET(v, pos);
       else
 	badobj:SCM_WRONG_TYPE_ARG (2, obj);
       break;
@@ -1350,7 +1351,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       break;
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      SCM_VELTS (v)[pos] = obj;
+      SCM_VECTOR_SET (v, pos, obj);
       break;
     }
   return SCM_UNSPECIFIED;
@@ -1824,7 +1825,7 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 
   SCM_VALIDATE_BOOL (1, item);
   SCM_ASSERT (SCM_BITVECTOR_P (v), v, SCM_ARG2, FUNC_NAME);
-  SCM_VALIDATE_INUM_COPY (3,k,pos);
+  SCM_VALIDATE_INUM_COPY (3, k, pos);
   SCM_ASSERT_RANGE (3, k, (pos <= SCM_BITVECTOR_LENGTH (v)) && (pos >= 0));
 
   if (pos == SCM_BITVECTOR_LENGTH (v))
@@ -1902,7 +1903,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
 	    if (k >= vlen)
 	      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
-	    SCM_BITVEC_CLR(v,k);
+	    SCM_BITVEC_CLR(v, k);
 	  }
       else if (SCM_EQ_P (obj, SCM_BOOL_T))
 	for (i = SCM_UVECTOR_LENGTH (kv); i;)
@@ -1910,7 +1911,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
 	    if (k >= vlen)
 	      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
-	    SCM_BITVEC_SET(v,k);
+	    SCM_BITVEC_SET(v, k);
 	  }
       else
 	badarg3:SCM_WRONG_TYPE_ARG (3, obj);
@@ -1960,7 +1961,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
 	    if (k >= vlen)
 	      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
-	    if (!SCM_BITVEC_REF(v,k))
+	    if (!SCM_BITVEC_REF(v, k))
 	      count++;
 	  }
       else if (SCM_EQ_P (obj, SCM_BOOL_T))
@@ -1969,7 +1970,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
 	    if (k >= vlen)
 	      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
-	    if (SCM_BITVEC_REF (v,k))
+	    if (SCM_BITVEC_REF (v, k))
 	      count++;
 	  }
       else
@@ -2050,7 +2051,7 @@ scm_istr2bve (char *str, long len)
 
 
 static SCM 
-ra2l (SCM ra,unsigned long base,unsigned long k)
+ra2l (SCM ra, unsigned long base, unsigned long k)
 {
   register SCM res = SCM_EOL;
   register long inc = SCM_ARRAY_DIMS (ra)[k].inc;
@@ -2190,7 +2191,7 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
   SCM ra;
   unsigned long k;
   long n;
-  SCM_VALIDATE_INUM_COPY (1,ndim,k);
+  SCM_VALIDATE_INUM_COPY (1, ndim, k);
   while (k--)
     {
       n = scm_ilength (row);
@@ -2261,7 +2262,7 @@ l2ra (SCM lst, SCM ra, unsigned long base, unsigned long k)
 
 
 static void 
-rapr1 (SCM ra,unsigned long j,unsigned long k,SCM port,scm_print_state *pstate)
+rapr1 (SCM ra, unsigned long j, unsigned long k, SCM port, scm_print_state *pstate)
 {
   long inc = 1;
   long n = (SCM_TYP7 (ra) == scm_tc7_smob

@@ -473,9 +473,9 @@ SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
   int fam;
   int fd[2];
 
-  SCM_VALIDATE_INUM (1,family);
-  SCM_VALIDATE_INUM (2,style);
-  SCM_VALIDATE_INUM (3,proto);
+  SCM_VALIDATE_INUM (1, family);
+  SCM_VALIDATE_INUM (2, style);
+  SCM_VALIDATE_INUM (3, proto);
 
   fam = SCM_INUM (family);
 
@@ -673,9 +673,9 @@ SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
 {
   int fd;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
-  SCM_VALIDATE_INUM (2,how);
-  SCM_ASSERT_RANGE(2,how,0 <= SCM_INUM (how) && 2 >= SCM_INUM (how));
+  SCM_VALIDATE_OPFPORT (1, sock);
+  SCM_VALIDATE_INUM (2, how);
+  SCM_ASSERT_RANGE(2, how,0 <= SCM_INUM (how) && 2 >= SCM_INUM (how));
   fd = SCM_FPORT_FDES (sock);
   if (shutdown (fd, SCM_INUM (how)) == -1)
     SCM_SYSERROR;
@@ -820,8 +820,8 @@ SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
   int size;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
-  SCM_VALIDATE_INUM (2,fam);
+  SCM_VALIDATE_OPFPORT (1, sock);
+  SCM_VALIDATE_INUM (2, fam);
   fd = SCM_FPORT_FDES (sock);
   soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME,
 			    &size);
@@ -911,8 +911,8 @@ SCM_DEFINE (scm_listen, "listen", 2, 0, 0,
 {
   int fd;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
-  SCM_VALIDATE_INUM (2,backlog);
+  SCM_VALIDATE_OPFPORT (1, sock);
+  SCM_VALIDATE_INUM (2, backlog);
   fd = SCM_FPORT_FDES (sock);
   if (listen (fd, SCM_INUM (backlog)) == -1)
     SCM_SYSERROR;
@@ -925,8 +925,8 @@ static SCM
 scm_addr_vector (const struct sockaddr *address, const char *proc)
 {
   short int fam = address->sa_family;
-  SCM result;
-  SCM *ve;
+  SCM ans =SCM_EOL;
+
 
   switch (fam)
     {
@@ -934,11 +934,11 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
       {
 	const struct sockaddr_in *nad = (struct sockaddr_in *) address;
 
-	result = scm_c_make_vector (3, SCM_UNSPECIFIED);
-	ve = SCM_VELTS (result);
-	ve[0] = scm_ulong2num ((unsigned long) fam);
-	ve[1] = scm_ulong2num (ntohl (nad->sin_addr.s_addr));
-	ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin_port));
+	ans = scm_c_make_vector (3, SCM_UNSPECIFIED);
+
+	SCM_VECTOR_SET(ans, 0, scm_ulong2num ((unsigned long) fam));
+	SCM_VECTOR_SET(ans, 1, scm_ulong2num (ntohl (nad->sin_addr.s_addr)));
+	SCM_VECTOR_SET(ans, 2, scm_ulong2num ((unsigned long) ntohs (nad->sin_port)));
       }
       break;
 #ifdef HAVE_IPV6
@@ -946,16 +946,15 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
       {
 	const struct sockaddr_in6 *nad = (struct sockaddr_in6 *) address;
 
-	result = scm_c_make_vector (5, SCM_UNSPECIFIED);
-	ve = SCM_VELTS (result);
-	ve[0] = scm_ulong2num ((unsigned long) fam);
-	ve[1] = ipv6_net_to_num (nad->sin6_addr.s6_addr);
-	ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin6_port));
-	ve[3] = scm_ulong2num ((unsigned long) nad->sin6_flowinfo);
+	ans = scm_c_make_vector (5, SCM_UNSPECIFIED);
+	SCM_VECTOR_SET(ans, 0, scm_ulong2num ((unsigned long) fam));
+	SCM_VECTOR_SET(ans, 1, ipv6_net_to_num (nad->sin6_addr.s6_addr));
+	SCM_VECTOR_SET(ans, 2, scm_ulong2num ((unsigned long) ntohs (nad->sin6_port)));
+	SCM_VECTOR_SET(ans, 3, scm_ulong2num ((unsigned long) nad->sin6_flowinfo));
 #ifdef HAVE_SIN6_SCOPE_ID
-	ve[4] = scm_ulong2num ((unsigned long) nad->sin6_scope_id);
+	SCM_VECTOR_SET(ans, 4, scm_ulong2num ((unsigned long) nad->sin6_scope_id));
 #else
-	ve[4] = SCM_INUM0;
+	SCM_VECTOR_SET(ans, 4, SCM_INUM0);
 #endif
       }
       break;
@@ -965,10 +964,10 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
       {
 	const struct sockaddr_un *nad = (struct sockaddr_un *) address;
 
-	result = scm_c_make_vector (2, SCM_UNSPECIFIED);
-	ve = SCM_VELTS (result);
-	ve[0] = scm_ulong2num ((unsigned long) fam);
-	ve[1] = scm_mem2string (nad->sun_path, strlen (nad->sun_path));
+	ans = scm_c_make_vector (2, SCM_UNSPECIFIED);
+
+	SCM_VECTOR_SET(ans, 0, scm_ulong2num ((unsigned long) fam));
+	SCM_VECTOR_SET(ans, 1, scm_mem2string (nad->sun_path, strlen (nad->sun_path)));
       }
       break;
 #endif
@@ -976,7 +975,7 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
       scm_misc_error (proc, "Unrecognised address family: ~A",
 		      scm_list_1 (SCM_MAKINUM (fam)));
     }
-  return result;
+  return ans;
 }
 
 /* calculate the size of a buffer large enough to hold any supported
@@ -1047,7 +1046,7 @@ SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0,
   struct sockaddr *addr = (struct sockaddr *) max_addr;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
   if (getsockname (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
@@ -1069,7 +1068,7 @@ SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0,
   struct sockaddr *addr = (struct sockaddr *) max_addr;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
   if (getpeername (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
@@ -1102,9 +1101,9 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
   int fd;
   int flg;
 
-  SCM_VALIDATE_OPFPORT (1,sock);
-  SCM_VALIDATE_STRING (2,buf);
-  SCM_VALIDATE_INUM_DEF_COPY (3,flags,0,flg);
+  SCM_VALIDATE_OPFPORT (1, sock);
+  SCM_VALIDATE_STRING (2, buf);
+  SCM_VALIDATE_INUM_DEF_COPY (3, flags,0, flg);
   fd = SCM_FPORT_FDES (sock);
 
   SCM_SYSCALL (rv = recv (fd, SCM_STRING_CHARS (buf), SCM_STRING_LENGTH (buf), flg));
@@ -1136,9 +1135,9 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
   int flg;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_OPFPORT (1, sock);
   SCM_VALIDATE_STRING (2, message);
-  SCM_VALIDATE_INUM_DEF_COPY (3,flags,0,flg);
+  SCM_VALIDATE_INUM_DEF_COPY (3, flags,0, flg);
   fd = SCM_FPORT_FDES (sock);
 
   SCM_SYSCALL (rv = send (fd, SCM_STRING_CHARS (message), SCM_STRING_LENGTH (message), flg));
@@ -1182,7 +1181,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   char max_addr[MAX_ADDR_SIZE];
   struct sockaddr *addr = (struct sockaddr *) max_addr;
 
-  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, str, buf, 4, start, offset,
 				    5, end, cend);
@@ -1236,9 +1235,9 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
   int size;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_FPORT (1,sock);
+  SCM_VALIDATE_FPORT (1, sock);
   SCM_VALIDATE_STRING (2, message);
-  SCM_VALIDATE_INUM (3,fam);
+  SCM_VALIDATE_INUM (3, fam);
   fd = SCM_FPORT_FDES (sock);
   soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args_and_flags, 4,
 			    FUNC_NAME, &size);
@@ -1246,7 +1245,7 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
     flg = 0;
   else
     {
-      SCM_VALIDATE_CONS (5,args_and_flags);
+      SCM_VALIDATE_CONS (5, args_and_flags);
       flg = SCM_NUM2ULONG (5, SCM_CAR (args_and_flags));
     }
   SCM_SYSCALL (rv = sendto (fd, SCM_STRING_CHARS (message),

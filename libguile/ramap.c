@@ -488,7 +488,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
     case scm_tc7_vector:
     case scm_tc7_wvect:
       for (i = base; n--; i += inc)
-	SCM_VELTS (ra)[i] = fill;
+	SCM_VECTOR_SET (ra, i, fill);
       break;
     case scm_tc7_string:
       SCM_ASRTGO (SCM_CHARP (fill), badarg2);
@@ -905,7 +905,7 @@ scm_ra_eqp (SCM ra0, SCM ras)
 /* opt 0 means <, nonzero means >= */
 
 static int
-ra_compare (SCM ra0,SCM ra1,SCM ra2,int opt)
+ra_compare (SCM ra0, SCM ra1, SCM ra2, int opt)
 {
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
   unsigned long i0 = SCM_ARRAY_BASE (ra0), i1 = SCM_ARRAY_BASE (ra1), i2 = SCM_ARRAY_BASE (ra2);
@@ -1230,7 +1230,7 @@ scm_array_identity (SCM dst, SCM src)
 
 
 static int 
-ramap (SCM ra0,SCM proc,SCM ras)
+ramap (SCM ra0, SCM proc, SCM ras)
 {
   long i = SCM_ARRAY_DIMS (ra0)->lbnd;
   long inc = SCM_ARRAY_DIMS (ra0)->inc;
@@ -1243,7 +1243,8 @@ ramap (SCM ra0,SCM proc,SCM ras)
   else
     {
       SCM ra1 = SCM_CAR (ras);
-      SCM args, *ve = &ras;
+      SCM args;
+      SCM const *ve = &ras;
       unsigned long k, i1 = SCM_ARRAY_BASE (ra1);
       long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
@@ -1255,6 +1256,7 @@ ramap (SCM ra0,SCM proc,SCM ras)
 	  ras = scm_vector (ras);
 	  ve = SCM_VELTS (ras);
 	}
+      
       for (; i <= n; i++, i1 += inc1)
 	{
 	  args = SCM_EOL;
@@ -1269,7 +1271,7 @@ ramap (SCM ra0,SCM proc,SCM ras)
 
 
 static int
-ramap_cxr (SCM ra0,SCM proc,SCM ras)
+ramap_cxr (SCM ra0, SCM proc, SCM ras)
 {
   SCM ra1 = SCM_CAR (ras);
   SCM e1 = SCM_UNDEFINED;
@@ -1330,7 +1332,7 @@ ramap_cxr (SCM ra0,SCM proc,SCM ras)
 
 
 static int
-ramap_rp (SCM ra0,SCM proc,SCM ras)
+ramap_rp (SCM ra0, SCM proc, SCM ras)
 {
   SCM ra1 = SCM_CAR (ras), ra2 = SCM_CAR (SCM_CDR (ras));
   SCM e1 = SCM_UNDEFINED, e2 = SCM_UNDEFINED;
@@ -1415,7 +1417,7 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
 
 
 static int
-ramap_1 (SCM ra0,SCM proc,SCM ras)
+ramap_1 (SCM ra0, SCM proc, SCM ras)
 {
   SCM ra1 = SCM_CAR (ras);
   SCM e1 = SCM_UNDEFINED;
@@ -1436,7 +1438,7 @@ ramap_1 (SCM ra0,SCM proc,SCM ras)
 
 
 static int
-ramap_2o (SCM ra0,SCM proc,SCM ras)
+ramap_2o (SCM ra0, SCM proc, SCM ras)
 {
   SCM ra1 = SCM_CAR (ras);
   SCM e1 = SCM_UNDEFINED;
@@ -1483,7 +1485,7 @@ ramap_2o (SCM ra0,SCM proc,SCM ras)
 
 
 static int
-ramap_a (SCM ra0,SCM proc,SCM ras)
+ramap_a (SCM ra0, SCM proc, SCM ras)
 {
   SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
@@ -1521,7 +1523,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	    "unspecified.  The order of application is unspecified.")
 #define FUNC_NAME s_scm_array_map_x
 {
-  SCM_VALIDATE_PROC (2,proc);
+  SCM_VALIDATE_PROC (2, proc);
   SCM_VALIDATE_REST_ARGUMENT (lra);
   switch (SCM_TYP7 (proc))
     {
@@ -1624,7 +1626,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 
 
 static int
-rafe (SCM ra0,SCM proc,SCM ras)
+rafe (SCM ra0, SCM proc, SCM ras)
 {
   long i = SCM_ARRAY_DIMS (ra0)->lbnd;
   unsigned long i0 = SCM_ARRAY_BASE (ra0);
@@ -1637,7 +1639,8 @@ rafe (SCM ra0,SCM proc,SCM ras)
   else
     {
       SCM ra1 = SCM_CAR (ras);
-      SCM args, *ve = &ras;
+      SCM args;
+      SCM const*ve = &ras;
       unsigned long k, i1 = SCM_ARRAY_BASE (ra1);
       long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
@@ -1668,7 +1671,7 @@ SCM_DEFINE (scm_array_for_each, "array-for-each", 2, 0, 1,
 	    "in row-major order.  The value returned is unspecified.")
 #define FUNC_NAME s_scm_array_for_each
 {
-  SCM_VALIDATE_PROC (1,proc);
+  SCM_VALIDATE_PROC (1, proc);
   SCM_VALIDATE_REST_ARGUMENT (lra);
   scm_ramapc (rafe, proc, ra0, lra, FUNC_NAME);
   return SCM_UNSPECIFIED;
@@ -1697,8 +1700,8 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 #define FUNC_NAME s_scm_array_index_map_x
 {
   unsigned long i;
-  SCM_VALIDATE_NIM (1,ra);
-  SCM_VALIDATE_PROC (2,proc);
+  SCM_VALIDATE_NIM (1, ra);
+  SCM_VALIDATE_PROC (2, proc);
   switch (SCM_TYP7(ra))
     {
     default:
@@ -1706,9 +1709,8 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
     case scm_tc7_vector:
     case scm_tc7_wvect:
       {
-	SCM *ve = SCM_VELTS (ra);
 	for (i = 0; i < SCM_VECTOR_LENGTH (ra); i++)
-	  ve[i] = scm_call_1 (proc, SCM_MAKINUM (i));
+	  SCM_VECTOR_SET(ra, i, scm_call_1 (proc, SCM_MAKINUM (i)));
 	return SCM_UNSPECIFIED;
       }
     case scm_tc7_string:
@@ -1778,7 +1780,7 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 
 
 static int
-raeql_1 (SCM ra0,SCM as_equal,SCM ra1)
+raeql_1 (SCM ra0, SCM as_equal, SCM ra1)
 {
   SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
   unsigned long i0 = 0, i1 = 0;
@@ -1906,7 +1908,7 @@ raeql_1 (SCM ra0,SCM as_equal,SCM ra1)
 
 
 static int
-raeql (SCM ra0,SCM as_equal,SCM ra1)
+raeql (SCM ra0, SCM as_equal, SCM ra1)
 {
   SCM v0 = ra0, v1 = ra1;
   scm_t_array_dim dim0, dim1;

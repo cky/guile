@@ -216,7 +216,7 @@ make_print_state (void)
     = scm_make_struct (scm_print_state_vtable, SCM_INUM0, SCM_EOL);
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
   pstate->ref_vect = scm_c_make_vector (PSTATE_SIZE, SCM_UNDEFINED);
-  pstate->ref_stack = SCM_VELTS (pstate->ref_vect);
+  pstate->ref_stack = SCM_WRITABLE_VELTS (pstate->ref_vect);
   pstate->ceiling = SCM_VECTOR_LENGTH (pstate->ref_vect);
   return print_state;
 }
@@ -260,23 +260,22 @@ static void
 grow_ref_stack (scm_print_state *pstate)
 {
   unsigned long int old_size = SCM_VECTOR_LENGTH (pstate->ref_vect);
-  SCM *old_elts = SCM_VELTS (pstate->ref_vect);
+  SCM const *old_elts = SCM_VELTS (pstate->ref_vect);
   unsigned long int new_size = 2 * pstate->ceiling;
   SCM new_vect = scm_c_make_vector (new_size, SCM_UNDEFINED);
-  SCM *new_elts = SCM_VELTS (new_vect);
   unsigned long int i;
 
   for (i = 0; i != old_size; ++i)
-    new_elts [i] = old_elts [i];
+    SCM_VECTOR_SET (new_vect, i, old_elts [i]);
 
   pstate->ref_vect = new_vect;
-  pstate->ref_stack = new_elts;
+  pstate->ref_stack = SCM_WRITABLE_VELTS(new_vect);
   pstate->ceiling = new_size;
 }
 
 
 static void
-print_circref (SCM port,scm_print_state *pstate,SCM ref)
+print_circref (SCM port, scm_print_state *pstate, SCM ref)
 {
   register long i;
   long self = pstate->top - 1;
@@ -757,7 +756,7 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
 /* Print a list.
  */
 void 
-scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
+scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate)
 {
   register SCM hare, tortoise;
   long floor = pstate->top - 2;
@@ -1012,7 +1011,7 @@ SCM_DEFINE (scm_newline, "newline", 0, 1, 0,
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
 
-  SCM_VALIDATE_OPORT_VALUE (1,port);
+  SCM_VALIDATE_OPORT_VALUE (1, port);
 
   scm_putc ('\n', SCM_COERCE_OUTPORT (port));
   return SCM_UNSPECIFIED;
@@ -1027,8 +1026,8 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
 
-  SCM_VALIDATE_CHAR (1,chr);
-  SCM_VALIDATE_OPORT_VALUE (2,port);
+  SCM_VALIDATE_CHAR (1, chr);
+  SCM_VALIDATE_OPORT_VALUE (2, port);
 
   scm_putc ((int) SCM_CHAR (chr), SCM_COERCE_OUTPORT (port));
 #ifdef HAVE_PIPE
@@ -1079,8 +1078,8 @@ SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0,
 #define FUNC_NAME s_scm_port_with_print_state
 {
   SCM pwps;
-  SCM_VALIDATE_OPORT_VALUE (1,port);
-  SCM_VALIDATE_PRINTSTATE (2,pstate);
+  SCM_VALIDATE_OPORT_VALUE (1, port);
+  SCM_VALIDATE_PRINTSTATE (2, pstate);
   port = SCM_COERCE_OUTPORT (port);
   SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, SCM_UNPACK (scm_cons (port, pstate)));
   return pwps;

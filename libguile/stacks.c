@@ -151,7 +151,7 @@
  * is read from a continuation.
  */
 static scm_t_bits
-stack_depth (scm_t_debug_frame *dframe,long offset,SCM *id,int *maxp)
+stack_depth (scm_t_debug_frame *dframe, long offset, SCM *id, int *maxp)
 {
   long n;
   long max_depth = SCM_BACKTRACE_MAXDEPTH;
@@ -183,7 +183,7 @@ stack_depth (scm_t_debug_frame *dframe,long offset,SCM *id,int *maxp)
 /* Read debug info from DFRAME into IFRAME.
  */
 static void
-read_frame (scm_t_debug_frame *dframe,long offset,scm_t_info_frame *iframe)
+read_frame (scm_t_debug_frame *dframe, long offset, scm_t_info_frame *iframe)
 {
   scm_t_bits flags = SCM_UNPACK (SCM_INUM0); /* UGh. */
   if (SCM_EVALFRAMEP (*dframe))
@@ -250,7 +250,7 @@ do { \
  */
 
 static scm_t_bits
-read_frames (scm_t_debug_frame *dframe,long offset,long n,scm_t_info_frame *iframes)
+read_frames (scm_t_debug_frame *dframe, long offset, long n, scm_t_info_frame *iframes)
 {
   scm_t_info_frame *iframe = iframes;
   scm_t_debug_info *info;
@@ -344,7 +344,7 @@ read_frames (scm_t_debug_frame *dframe,long offset,long n,scm_t_info_frame *ifra
  */
 
 static void
-narrow_stack (SCM stack,long inner,SCM inner_key,long outer,SCM outer_key)
+narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
 {
   scm_t_stack *s = SCM_STACK (stack);
   unsigned long int i;
@@ -591,7 +591,7 @@ SCM_DEFINE (scm_stack_length, "stack-length", 1, 0, 0,
 	    "Return the length of @var{stack}.")
 #define FUNC_NAME s_scm_stack_length
 {
-  SCM_VALIDATE_STACK (1,stack);
+  SCM_VALIDATE_STACK (1, stack);
   return SCM_MAKINUM (SCM_STACK_LENGTH (stack));
 }
 #undef FUNC_NAME
@@ -657,7 +657,7 @@ SCM_DEFINE (scm_frame_number, "frame-number", 1, 0, 0,
 	    "Return the frame number of @var{frame}.")
 #define FUNC_NAME s_scm_frame_number
 {
-  SCM_VALIDATE_FRAME (1,frame);
+  SCM_VALIDATE_FRAME (1, frame);
   return SCM_MAKINUM (SCM_FRAME_NUMBER (frame));
 }
 #undef FUNC_NAME
@@ -667,7 +667,7 @@ SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0,
 	    "Return the source of @var{frame}.")
 #define FUNC_NAME s_scm_frame_source
 {
-  SCM_VALIDATE_FRAME (1,frame);
+  SCM_VALIDATE_FRAME (1, frame);
   return SCM_FRAME_SOURCE (frame);
 }
 #undef FUNC_NAME
@@ -678,7 +678,7 @@ SCM_DEFINE (scm_frame_procedure, "frame-procedure", 1, 0, 0,
 	    "procedure is associated with @var{frame}.")
 #define FUNC_NAME s_scm_frame_procedure
 {
-  SCM_VALIDATE_FRAME (1,frame);
+  SCM_VALIDATE_FRAME (1, frame);
   return (SCM_FRAME_PROC_P (frame)
 	  ? SCM_FRAME_PROC (frame)
 	  : SCM_BOOL_F);
@@ -690,7 +690,7 @@ SCM_DEFINE (scm_frame_arguments, "frame-arguments", 1, 0, 0,
 	    "Return the arguments of @var{frame}.")
 #define FUNC_NAME s_scm_frame_arguments
 {
-  SCM_VALIDATE_FRAME (1,frame);
+  SCM_VALIDATE_FRAME (1, frame);
   return SCM_FRAME_ARGS (frame);
 }
 #undef FUNC_NAME
@@ -732,7 +732,7 @@ SCM_DEFINE (scm_frame_real_p, "frame-real?", 1, 0, 0,
 	    "Return @code{#t} if @var{frame} is a real frame.")
 #define FUNC_NAME s_scm_frame_real_p
 {
-  SCM_VALIDATE_FRAME (1,frame);
+  SCM_VALIDATE_FRAME (1, frame);
   return SCM_BOOL(SCM_FRAME_REAL_P (frame));
 }
 #undef FUNC_NAME
@@ -742,7 +742,7 @@ SCM_DEFINE (scm_frame_procedure_p, "frame-procedure?", 1, 0, 0,
 	    "Return @code{#t} if a procedure is associated with @var{frame}.")
 #define FUNC_NAME s_scm_frame_procedure_p
 {
-  SCM_VALIDATE_FRAME (1,frame);
+  SCM_VALIDATE_FRAME (1, frame);
   return SCM_BOOL(SCM_FRAME_PROC_P (frame));
 }
 #undef FUNC_NAME
@@ -752,7 +752,7 @@ SCM_DEFINE (scm_frame_evaluating_args_p, "frame-evaluating-args?", 1, 0, 0,
 	    "Return @code{#t} if @var{frame} contains evaluated arguments.")
 #define FUNC_NAME s_scm_frame_evaluating_args_p
 {
-  SCM_VALIDATE_FRAME (1,frame);
+  SCM_VALIDATE_FRAME (1, frame);
   return SCM_BOOL(SCM_FRAME_EVAL_ARGS_P (frame));
 }
 #undef FUNC_NAME
@@ -762,7 +762,7 @@ SCM_DEFINE (scm_frame_overflow_p, "frame-overflow?", 1, 0, 0,
 	    "Return @code{#t} if @var{frame} is an overflow frame.")
 #define FUNC_NAME s_scm_frame_overflow_p
 {
-  SCM_VALIDATE_FRAME (1,frame);
+  SCM_VALIDATE_FRAME (1, frame);
   return SCM_BOOL(SCM_FRAME_OVERFLOW_P (frame));
 }
 #undef FUNC_NAME

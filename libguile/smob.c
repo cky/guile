@@ -137,11 +137,11 @@ scm_smob_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 
 #define SCM_SMOB_APPLY0(SMOB) \
   SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB)
-#define SCM_SMOB_APPLY1(SMOB,A1) \
+#define SCM_SMOB_APPLY1(SMOB, A1) \
   SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1)
-#define SCM_SMOB_APPLY2(SMOB,A1,A2) \
+#define SCM_SMOB_APPLY2(SMOB, A1, A2) \
   SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1, A2)
-#define SCM_SMOB_APPLY3(SMOB,A1,A2,A3) \
+#define SCM_SMOB_APPLY3(SMOB, A1, A2, A3) \
   SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1, A2, A3)
 
 static SCM

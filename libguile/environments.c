@@ -533,7 +533,7 @@ obarray_enter (SCM obarray, SCM symbol, SCM data)
   size_t hash = SCM_SYMBOL_HASH (symbol) % SCM_VECTOR_LENGTH (obarray);
   SCM entry = scm_cons (symbol, data);
   SCM slot = scm_cons (entry, SCM_VELTS (obarray)[hash]);
-  SCM_VELTS (obarray)[hash] = slot;
+  SCM_VECTOR_SET  (obarray, hash, slot);
 
   return entry;
 }
@@ -562,7 +562,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
     }
 
   slot = scm_cons (new_entry, SCM_VELTS (obarray)[hash]);
-  SCM_VELTS (obarray)[hash] = slot;
+  SCM_VECTOR_SET (obarray, hash, slot);
 
   return SCM_BOOL_F;
 }
@@ -587,6 +587,46 @@ obarray_retrieve (SCM obarray, SCM sym)
   return SCM_UNDEFINED;
 }
 
+/*
+  Remove first occurance of KEY from (cdr ALIST),
+  return (KEY . VAL) if found, otherwise return #f
+
+  PRECONDITION:
+
+  length (ALIST) >= 1
+ */
+static
+SCM
+remove_key_from_alist (SCM alist, SCM key)
+{
+  SCM cell_cdr = alist;
+  alist =SCM_CDR (alist);
+
+  /*
+    inv: cdr(cell_cdr) == alist
+   */
+  while (!SCM_NULLP (alist))
+    {
+      if (SCM_EQ_P(SCM_CAAR (alist), key))
+	{
+	  SCM entry = SCM_CAR(alist);
+	  SCM_SETCDR(cell_cdr, SCM_CDR (alist));
+
+	  return entry;
+	}
+      else
+	{
+	  cell_cdr = SCM_CDR (cell_cdr);
+	}
+      
+      if (!SCM_NULLP(alist))
+	alist = SCM_CDR (alist);
+    }
+
+  return SCM_BOOL_F;
+}
+
+  
 
 /*
  * Remove entry from obarray.  If the symbol was found and removed, the old
@@ -596,22 +636,20 @@ static SCM
 obarray_remove (SCM obarray, SCM sym)
 {
   size_t hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
-  SCM lsym;
-  SCM *lsymp;
+  SCM table_entry = SCM_VELTS (obarray)[hash];
 
-  /* Dirk:FIXME:: gc problem due to use of &SCM_VELTS[hash] */
-  for (lsym = *(lsymp = &SCM_VELTS (obarray)[hash]);
-       !SCM_NULLP (lsym);
-       lsym = *(lsymp = SCM_CDRLOC (lsym)))
+  if (SCM_NULLP(table_entry))
+    return SCM_BOOL_F;
+
+  if (SCM_EQ_P (SCM_CAAR (table_entry), sym))
     {
-      SCM entry = SCM_CAR (lsym);
-      if (SCM_EQ_P (SCM_CAR (entry), sym))
-	{
-	  *lsymp = SCM_CDR (lsym);
-	  return entry;
-	}
+      SCM_VECTOR_SET (obarray, hash, SCM_CDR(table_entry));
+      return SCM_CAR(table_entry);
     }
-  return SCM_BOOL_F;
+  else
+    {
+      return remove_key_from_alist (table_entry, sym);
+    }
 }
 
 
@@ -623,7 +661,7 @@ obarray_remove_all (SCM obarray)
 
   for (i = 0; i < size; i++)
     {
-      SCM_VELTS (obarray)[i] = SCM_EOL;
+      SCM_VECTOR_SET (obarray, i, SCM_EOL);
     }
 }
 
@@ -655,7 +693,7 @@ struct core_environments_base {
 #define CORE_ENVIRONMENT_WEAK_OBSERVERS(env) \
   (SCM_VELTS (CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env)) [0])
 #define SCM_SET_CORE_ENVIRONMENT_WEAK_OBSERVERS(env, v) \
-  (SCM_VELTS (CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env)) [0] = (v))
+  (SCM_VECTOR_SET (CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env), 0, (v)))
 
 
 

@@ -80,8 +80,23 @@ typedef scm_t_cell * SCM_CELLPTR;
 #  define PTR2SCM(x) (SCM_PACK ((scm_t_bits) (x)))
 #endif /* def _UNICOS */
 
+#ifdef GENGC
+/*
+  TODO
+ */
+#else /* ! genGC */ 
+
 #define SCM_GC_CARD_N_HEADER_CELLS 1
 #define SCM_GC_CARD_N_CELLS        256
+
+#define SCM_GC_CARD_GENERATION(card)  
+#define SCM_GC_FLAG_OBJECT_WRITE(x)  
+
+#define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_limb *) ((card)->word_0))
+#define SCM_GC_SET_CARD_BVEC(card, bvec) \
+    ((card)->word_0 = (scm_t_bits) (bvec))
+#endif
+
 
 #define SCM_GC_CARD_SIZE           (SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell))
 #define SCM_GC_CARD_N_DATA_CELLS   (SCM_GC_CARD_N_CELLS - SCM_GC_CARD_N_HEADER_CELLS)
@@ -91,10 +106,6 @@ typedef scm_t_cell * SCM_CELLPTR;
 
 #define SCM_GC_IN_CARD_HEADERP(x) \
     SCM_PTR_LT ((scm_t_cell *) (x), SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS)
-
-#define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_limb *) ((card)->word_0))
-#define SCM_GC_SET_CARD_BVEC(card, bvec) \
-    ((card)->word_0 = (scm_t_bits) (bvec))
 
 #define SCM_GC_GET_CARD_FLAGS(card) ((long) ((card)->word_1))
 #define SCM_GC_SET_CARD_FLAGS(card, flags) \

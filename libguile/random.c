@@ -362,7 +362,7 @@ SCM_GLOBAL_VARIABLE_INIT (scm_var_random_state, "*random-state*", scm_seed_to_ra
 
 SCM_DEFINE (scm_random, "random", 1, 1, 0, 
             (SCM n, SCM state),
-            "Return a number in [0,N).\n"
+            "Return a number in [0, N).\n"
             "\n"
             "Accepts a positive integer or real n and returns a\n"
             "number of the same type between zero (inclusive) and\n"
@@ -378,14 +378,14 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
-  SCM_VALIDATE_RSTATE (2,state);
+  SCM_VALIDATE_RSTATE (2, state);
   if (SCM_INUMP (n))
     {
       unsigned long m = SCM_INUM (n);
-      SCM_ASSERT_RANGE (1,n,m > 0);
+      SCM_ASSERT_RANGE (1, n, m > 0);
       return SCM_MAKINUM (scm_c_random (SCM_RSTATE (state), m));
     }
-  SCM_VALIDATE_NIM (1,n);
+  SCM_VALIDATE_NIM (1, n);
   if (SCM_REALP (n))
     return scm_make_real (SCM_REAL_VALUE (n)
 			  * scm_c_uniform01 (SCM_RSTATE (state)));
@@ -401,7 +401,7 @@ SCM_DEFINE (scm_copy_random_state, "copy-random-state", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
-  SCM_VALIDATE_RSTATE (1,state);
+  SCM_VALIDATE_RSTATE (1, state);
   return make_rstate (scm_the_rng.copy_rstate (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME
@@ -413,7 +413,7 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
 {
   if (SCM_NUMBERP (seed))
     seed = scm_number_to_string (seed, SCM_UNDEFINED);
-  SCM_VALIDATE_STRING (1,seed);
+  SCM_VALIDATE_STRING (1, seed);
   return make_rstate (scm_c_make_rstate (SCM_STRING_CHARS (seed),
 					 SCM_STRING_LENGTH (seed)));
 }
@@ -427,7 +427,7 @@ SCM_DEFINE (scm_random_uniform, "random:uniform", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
-  SCM_VALIDATE_RSTATE (1,state);
+  SCM_VALIDATE_RSTATE (1, state);
   return scm_make_real (scm_c_uniform01 (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME
@@ -442,7 +442,7 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
-  SCM_VALIDATE_RSTATE (1,state);
+  SCM_VALIDATE_RSTATE (1, state);
   return scm_make_real (scm_c_normal01 (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME
@@ -496,10 +496,10 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
             "The sum of the squares of the numbers is returned.")
 #define FUNC_NAME s_scm_random_solid_sphere_x
 {
-  SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
+  SCM_VALIDATE_VECTOR_OR_DVECTOR (1, v);
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
-  SCM_VALIDATE_RSTATE (2,state);
+  SCM_VALIDATE_RSTATE (2, state);
   scm_random_normal_vector_x (v, state);
   vector_scale (v,
 		pow (scm_c_uniform01 (SCM_RSTATE (state)),
@@ -519,10 +519,10 @@ SCM_DEFINE (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
             "unit n-sphere.")
 #define FUNC_NAME s_scm_random_hollow_sphere_x
 {
-  SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
+  SCM_VALIDATE_VECTOR_OR_DVECTOR (1, v);
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
-  SCM_VALIDATE_RSTATE (2,state);
+  SCM_VALIDATE_RSTATE (2, state);
   scm_random_normal_vector_x (v, state);
   vector_scale (v, 1 / sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
@@ -538,14 +538,14 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
 #define FUNC_NAME s_scm_random_normal_vector_x
 {
   int n;
-  SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
+  SCM_VALIDATE_VECTOR_OR_DVECTOR (1, v);
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
-  SCM_VALIDATE_RSTATE (2,state);
+  SCM_VALIDATE_RSTATE (2, state);
   n = SCM_INUM (scm_uniform_vector_length (v));
   if (SCM_VECTORP (v))
     while (--n >= 0)
-      SCM_VELTS (v)[n] = scm_make_real (scm_c_normal01 (SCM_RSTATE (state)));
+      SCM_VECTOR_SET (v, n, scm_make_real (scm_c_normal01 (SCM_RSTATE (state))));
   else
     while (--n >= 0)
       ((double *) SCM_VELTS (v))[n] = scm_c_normal01 (SCM_RSTATE (state));
@@ -564,7 +564,7 @@ SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
-  SCM_VALIDATE_RSTATE (1,state);
+  SCM_VALIDATE_RSTATE (1, state);
   return scm_make_real (scm_c_exp1 (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME

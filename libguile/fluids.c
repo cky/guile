@@ -76,12 +76,12 @@ grow_fluids (scm_root_state *root_state, int new_length)
   i = 0;
   while (i < old_length)
     {
-      SCM_VELTS(new_fluids)[i] = SCM_VELTS(old_fluids)[i];
+      SCM_VECTOR_SET (new_fluids, i, SCM_VELTS(old_fluids)[i]);
       i++;
     }
   while (i < new_length)
     {
-      SCM_VELTS(new_fluids)[i] = SCM_BOOL_F;
+      SCM_VECTOR_SET (new_fluids, i, SCM_BOOL_F);
       i++;
     }
 
@@ -171,7 +171,7 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 
   if (SCM_VECTOR_LENGTH (scm_root->fluids) <= n)
     grow_fluids (scm_root, n+1);
-  SCM_VELTS (scm_root->fluids)[n] = value;
+  SCM_VECTOR_SET (scm_root->fluids, n, value);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

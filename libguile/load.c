@@ -282,12 +282,12 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
   size_t max_path_len;		/* maximum length of any PATH element */
   size_t max_ext_len;		/* maximum length of any EXTENSIONS element */
 
-  SCM_VALIDATE_LIST (1,path);
+  SCM_VALIDATE_LIST (1, path);
   SCM_VALIDATE_STRING (2, filename);
   if (SCM_UNBNDP (extensions))
     extensions = SCM_EOL;
   else
-    SCM_VALIDATE_LIST (3,extensions);
+    SCM_VALIDATE_LIST (3, extensions);
 
   filename_chars = SCM_STRING_CHARS (filename);
   filename_len = SCM_STRING_LENGTH (filename);

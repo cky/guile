@@ -1,3 +1,8 @@
+2002-07-20  Han-Wen  <hanwen@cs.uu.nl>
+
+	* autogen.sh (mscripts): find and check version number of
+	autoconf. Complain if 2.53 is not found.
+
 2002-07-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* benchmark-guile.in:  Copied from check-guile.in and adapted for

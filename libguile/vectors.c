@@ -101,7 +101,11 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
      while the vector is being created. */
   SCM_VALIDATE_LIST_COPYLEN (1, l, i);
   res = scm_c_make_vector (i, SCM_UNSPECIFIED);
-  data = SCM_VELTS (res);
+
+  /*
+    this code doesn't alloc. -- accessing RES is safe. 
+  */
+  data = SCM_WRITABLE_VELTS (res);
   while (!SCM_NULL_OR_NIL_P (l)) 
     {
       *data++ = SCM_CAR (l);
@@ -165,7 +169,7 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 		g_vector_set_x, scm_list_3 (v, k, obj),
 		SCM_ARG2, s_vector_set_x);
   SCM_ASSERT_RANGE (2, k, SCM_INUM (k) < SCM_VECTOR_LENGTH (v) && SCM_INUM (k) >= 0);
-  SCM_VELTS(v)[(long) SCM_INUM(k)] = obj;
+  SCM_VECTOR_SET (v, (long) SCM_INUM(k), obj);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -235,8 +239,8 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
 {
   SCM res = SCM_EOL;
   long i;
-  SCM *data;
-  SCM_VALIDATE_VECTOR (1,v);
+  SCM const *data;
+  SCM_VALIDATE_VECTOR (1, v);
   data = SCM_VELTS(v);
   for(i = SCM_VECTOR_LENGTH(v)-1;i >= 0;i--) res = scm_cons(data[i], res);
   return res;
@@ -251,11 +255,10 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
 #define FUNC_NAME s_scm_vector_fill_x
 {
   register long i;
-  register SCM *data;
   SCM_VALIDATE_VECTOR (1, v);
-  data = SCM_VELTS (v);
+
   for(i = SCM_VECTOR_LENGTH (v) - 1; i >= 0; i--)
-    data[i] = fill;
+    SCM_VECTOR_SET(v, i, fill);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -287,16 +290,19 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
   long j;
   long e;
   
-  SCM_VALIDATE_VECTOR (1,vec1);
-  SCM_VALIDATE_INUM_COPY (2,start1,i);
-  SCM_VALIDATE_INUM_COPY (3,end1,e);
-  SCM_VALIDATE_VECTOR (4,vec2);
-  SCM_VALIDATE_INUM_COPY (5,start2,j);
+  SCM_VALIDATE_VECTOR (1, vec1);
+  SCM_VALIDATE_INUM_COPY (2, start1, i);
+  SCM_VALIDATE_INUM_COPY (3, end1, e);
+  SCM_VALIDATE_VECTOR (4, vec2);
+  SCM_VALIDATE_INUM_COPY (5, start2, j);
   SCM_ASSERT_RANGE (2, start1, i <= SCM_VECTOR_LENGTH (vec1) && i >= 0);
   SCM_ASSERT_RANGE (5, start2, j <= SCM_VECTOR_LENGTH (vec2) && j >= 0);
   SCM_ASSERT_RANGE (3, end1, e <= SCM_VECTOR_LENGTH (vec1) && e >= 0);
   SCM_ASSERT_RANGE (5, start2, e-i+j <= SCM_VECTOR_LENGTH (vec2));
-  while (i<e) SCM_VELTS (vec2)[j++] = SCM_VELTS (vec1)[i++];
+
+  while (i<e)
+    SCM_VECTOR_SET (vec2, j++, SCM_VELTS (vec1)[i++]);
+  
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -316,18 +322,18 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
   long j;
   long e;
 
-  SCM_VALIDATE_VECTOR (1,vec1);
-  SCM_VALIDATE_INUM_COPY (2,start1,i);
-  SCM_VALIDATE_INUM_COPY (3,end1,e);
-  SCM_VALIDATE_VECTOR (4,vec2);
-  SCM_VALIDATE_INUM_COPY (5,start2,j);
+  SCM_VALIDATE_VECTOR (1, vec1);
+  SCM_VALIDATE_INUM_COPY (2, start1, i);
+  SCM_VALIDATE_INUM_COPY (3, end1, e);
+  SCM_VALIDATE_VECTOR (4, vec2);
+  SCM_VALIDATE_INUM_COPY (5, start2, j);
   SCM_ASSERT_RANGE (2, start1, i <= SCM_VECTOR_LENGTH (vec1) && i >= 0);
   SCM_ASSERT_RANGE (5, start2, j <= SCM_VECTOR_LENGTH (vec2) && j >= 0);
   SCM_ASSERT_RANGE (3, end1, e <= SCM_VECTOR_LENGTH (vec1) && e >= 0);
   j = e - i + j;
   SCM_ASSERT_RANGE (5, start2, j <= SCM_VECTOR_LENGTH (vec2));
   while (i < e)
-    SCM_VELTS (vec2)[--j] = SCM_VELTS (vec1)[--e];
+    SCM_VECTOR_SET (vec2, --j, SCM_VELTS (vec1)[--e]);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

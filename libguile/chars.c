@@ -76,8 +76,8 @@ SCM_DEFINE1 (scm_char_less_p, "char<?", scm_tc7_rpsubr,
 	     "else @code{#f}.")
 #define FUNC_NAME s_scm_char_less_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
   return SCM_BOOL(SCM_CHAR(x) < SCM_CHAR(y));
 }
 #undef FUNC_NAME
@@ -88,8 +88,8 @@ SCM_DEFINE1 (scm_char_leq_p, "char<=?", scm_tc7_rpsubr,
 	     "ASCII sequence, else @code{#f}.")
 #define FUNC_NAME s_scm_char_leq_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
   return SCM_BOOL(SCM_CHAR(x) <= SCM_CHAR(y));
 }
 #undef FUNC_NAME
@@ -100,8 +100,8 @@ SCM_DEFINE1 (scm_char_gr_p, "char>?", scm_tc7_rpsubr,
 	     "sequence, else @code{#f}.")
 #define FUNC_NAME s_scm_char_gr_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
   return SCM_BOOL(SCM_CHAR(x) > SCM_CHAR(y));
 }
 #undef FUNC_NAME
@@ -112,8 +112,8 @@ SCM_DEFINE1 (scm_char_geq_p, "char>=?", scm_tc7_rpsubr,
 	     "ASCII sequence, else @code{#f}.")
 #define FUNC_NAME s_scm_char_geq_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
   return SCM_BOOL(SCM_CHAR(x) >= SCM_CHAR(y));
 }
 #undef FUNC_NAME
@@ -124,8 +124,8 @@ SCM_DEFINE1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
 	     "case, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_eq_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
   return SCM_BOOL(scm_upcase(SCM_CHAR(x))==scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
@@ -136,8 +136,8 @@ SCM_DEFINE1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
 	     "ignoring case, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_less_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
   return SCM_BOOL((scm_upcase(SCM_CHAR(x))) < scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
@@ -148,8 +148,8 @@ SCM_DEFINE1 (scm_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr,
 	     "ASCII sequence ignoring case, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_leq_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
   return SCM_BOOL(scm_upcase(SCM_CHAR(x)) <= scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
@@ -160,8 +160,8 @@ SCM_DEFINE1 (scm_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr,
 	     "sequence ignoring case, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_gr_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
   return SCM_BOOL(scm_upcase(SCM_CHAR(x)) > scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
@@ -172,8 +172,8 @@ SCM_DEFINE1 (scm_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr,
 	     "ASCII sequence ignoring case, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_geq_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
   return SCM_BOOL(scm_upcase(SCM_CHAR(x)) >= scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
@@ -185,7 +185,7 @@ SCM_DEFINE (scm_char_alphabetic_p, "char-alphabetic?", 1, 0, 0,
 	    "Alphabetic means the same thing as the isalpha C library function.")
 #define FUNC_NAME s_scm_char_alphabetic_p
 {
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_CHAR (1, chr);
   return SCM_BOOL(isalpha(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
@@ -196,7 +196,7 @@ SCM_DEFINE (scm_char_numeric_p, "char-numeric?", 1, 0, 0,
 	    "Numeric means the same thing as the isdigit C library function.")
 #define FUNC_NAME s_scm_char_numeric_p
 {
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_CHAR (1, chr);
   return SCM_BOOL(isdigit(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
@@ -207,7 +207,7 @@ SCM_DEFINE (scm_char_whitespace_p, "char-whitespace?", 1, 0, 0,
 	    "Whitespace means the same thing as the isspace C library function.")
 #define FUNC_NAME s_scm_char_whitespace_p
 {
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_CHAR (1, chr);
   return SCM_BOOL(isspace(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
@@ -220,7 +220,7 @@ SCM_DEFINE (scm_char_upper_case_p, "char-upper-case?", 1, 0, 0,
 	    "Uppercase means the same thing as the isupper C library function.")
 #define FUNC_NAME s_scm_char_upper_case_p
 {
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_CHAR (1, chr);
   return SCM_BOOL(isupper(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
@@ -232,7 +232,7 @@ SCM_DEFINE (scm_char_lower_case_p, "char-lower-case?", 1, 0, 0,
 	    "Lowercase means the same thing as the islower C library function.")
 #define FUNC_NAME s_scm_char_lower_case_p
 {
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_CHAR (1, chr);
   return SCM_BOOL(islower(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
@@ -246,7 +246,7 @@ SCM_DEFINE (scm_char_is_both_p, "char-is-both?", 1, 0, 0,
 	    "C library functions.")
 #define FUNC_NAME s_scm_char_is_both_p
 {
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_CHAR (1, chr);
   return SCM_BOOL((isupper(SCM_CHAR(chr)) || islower(SCM_CHAR(chr))));
 }
 #undef FUNC_NAME
@@ -260,7 +260,7 @@ SCM_DEFINE (scm_char_to_integer, "char->integer", 1, 0, 0,
 	    "ASCII sequence.")
 #define FUNC_NAME s_scm_char_to_integer
 {
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_CHAR (1, chr);
   return scm_ulong2num((unsigned long)SCM_CHAR(chr));
 }
 #undef FUNC_NAME
@@ -283,7 +283,7 @@ SCM_DEFINE (scm_char_upcase, "char-upcase", 1, 0, 0,
 	    "Return the uppercase character version of @var{chr}.")
 #define FUNC_NAME s_scm_char_upcase
 {
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_CHAR (1, chr);
   return SCM_MAKE_CHAR(scm_upcase(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
@@ -294,7 +294,7 @@ SCM_DEFINE (scm_char_downcase, "char-downcase", 1, 0, 0,
 	    "Return the lowercase character version of @var{chr}.")
 #define FUNC_NAME s_scm_char_downcase
 {
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_CHAR (1, chr);
   return SCM_MAKE_CHAR(scm_downcase(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
@@ -358,14 +358,14 @@ scm_downcase (unsigned int c)
 #ifdef EBCDIC
 char *const scm_charnames[] =
 {
-  "nul","soh","stx","etx", "pf", "ht", "lc","del",
-   0   , 0   ,"smm", "vt", "ff", "cr", "so", "si",
-  "dle","dc1","dc2","dc3","res", "nl", "bs", "il",
-  "can", "em", "cc", 0   ,"ifs","igs","irs","ius",
-   "ds","sos", "fs", 0   ,"byp", "lf","eob","pre",
-   0   , 0   , "sm", 0   , 0   ,"enq","ack","bel",
-   0   , 0   ,"syn", 0   , "pn", "rs", "uc","eot",
-   0   , 0   , 0   , 0   ,"dc4","nak", 0   ,"sub",
+  "nul", "soh", "stx", "etx", "pf", "ht", "lc", "del",
+   0   , 0   , "smm", "vt", "ff", "cr", "so", "si",
+  "dle", "dc1", "dc2", "dc3", "res", "nl", "bs", "il",
+  "can", "em", "cc", 0   , "ifs", "igs", "irs", "ius",
+   "ds", "sos", "fs", 0   , "byp", "lf", "eob", "pre",
+   0   , 0   , "sm", 0   , 0   , "enq", "ack", "bel",
+   0   , 0   , "syn", 0   , "pn", "rs", "uc", "eot",
+   0   , 0   , 0   , 0   , "dc4", "nak", 0   , "sub",
    "space", scm_s_newline, "tab", "backspace", "return", "page", "null"};
 
 const char scm_charnums[] =

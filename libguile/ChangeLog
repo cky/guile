@@ -1,3 +1,14 @@
+2002-07-20  Han-Wen  <hanwen@cs.uu.nl>
+
+	* *.c: add space after commas everywhere.
+
+	* *.c: use SCM_VECTOR_SET everywhere, where a vector is written.
+	Document cases where SCM_WRITABLE_VELTS() is used.
+	
+	* vectors.h (SCM_VELTS): prepare for write barrier, and let
+	SCM_VELTS() return a const pointer
+	(SCM_VECTOR_SET): add macro.
+
 2002-07-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL), macros.c (macro_print, scm_makmacro,

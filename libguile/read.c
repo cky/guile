@@ -107,7 +107,7 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  SCM_VALIDATE_OPINPORT (1,port);
+  SCM_VALIDATE_OPINPORT (1, port);
 
   c = scm_flush_ws (port, (char *) NULL);
   if (EOF == c)
@@ -280,7 +280,7 @@ static SCM scm_get_hash_procedure(int c);
 static char s_list[]="list";
 
 SCM 
-scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
+scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 #define FUNC_NAME "scm_lreadr"
 {
   int c;

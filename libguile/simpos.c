@@ -121,7 +121,7 @@ SCM_DEFINE (scm_primitive_exit, "primitive-exit", 0, 1, 0,
   int cstatus = 0;
   if (!SCM_UNBNDP (status))
     {
-      SCM_VALIDATE_INUM (1,status);
+      SCM_VALIDATE_INUM (1, status);
       cstatus = SCM_INUM (status);
     }
   exit (cstatus);

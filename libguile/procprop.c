@@ -176,7 +176,7 @@ SCM_DEFINE (scm_procedure_properties, "procedure-properties", 1, 0, 0,
 	    "Return @var{obj}'s property list.")
 #define FUNC_NAME s_scm_procedure_properties
 {
-  SCM_VALIDATE_PROC (1,proc);
+  SCM_VALIDATE_PROC (1, proc);
   return scm_acons (scm_sym_arity, scm_i_procedure_arity (proc),
 		    SCM_PROCPROPS (SCM_CLOSUREP (proc)
 				   ? proc
@@ -191,7 +191,7 @@ SCM_DEFINE (scm_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0
 {
   if (!SCM_CLOSUREP (proc))
     proc = scm_stand_in_scm_proc(proc);
-  SCM_VALIDATE_CLOSURE (1,proc);
+  SCM_VALIDATE_CLOSURE (1, proc);
   SCM_SETPROCPROPS (proc, new_val);
   return SCM_UNSPECIFIED;
 }
@@ -210,7 +210,7 @@ SCM_DEFINE (scm_procedure_property, "procedure-property", 2, 0, 0,
 		  p, SCM_ARG1, FUNC_NAME);
       return arity;
     }
-  SCM_VALIDATE_PROC (1,p);
+  SCM_VALIDATE_PROC (1, p);
   assoc = scm_sloppy_assq (k,
 			   SCM_PROCPROPS (SCM_CLOSUREP (p)
 					  ? p
@@ -228,7 +228,7 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
   SCM assoc;
   if (!SCM_CLOSUREP (p))
     p = scm_stand_in_scm_proc(p);
-  SCM_VALIDATE_CLOSURE (1,p);
+  SCM_VALIDATE_CLOSURE (1, p);
   if (SCM_EQ_P (k, scm_sym_arity))
     SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
   assoc = scm_sloppy_assq (k, SCM_PROCPROPS (p));

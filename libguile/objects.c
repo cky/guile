@@ -468,8 +468,8 @@ SCM_DEFINE (scm_make_class_object, "make-class-object", 2, 0, 0,
 #define FUNC_NAME s_scm_make_class_object
 {
   unsigned long flags = 0;
-  SCM_VALIDATE_STRUCT (1,metaclass);
-  SCM_VALIDATE_STRING (2,layout);
+  SCM_VALIDATE_STRUCT (1, metaclass);
+  SCM_VALIDATE_STRING (2, layout);
   if (SCM_EQ_P (metaclass, scm_metaclass_operator))
     flags = SCM_CLASSF_OPERATOR;
   return scm_i_make_class_object (metaclass, layout, flags);
@@ -483,8 +483,8 @@ SCM_DEFINE (scm_make_subclass_object, "make-subclass-object", 2, 0, 0,
 #define FUNC_NAME s_scm_make_subclass_object
 {
   SCM pl;
-  SCM_VALIDATE_STRUCT (1,class);
-  SCM_VALIDATE_STRING (2,layout);
+  SCM_VALIDATE_STRUCT (1, class);
+  SCM_VALIDATE_STRING (2, layout);
   pl = SCM_PACK (SCM_STRUCT_DATA (class) [scm_vtable_index_layout]);
   /* Convert symbol->string */
   pl = scm_mem2string (SCM_SYMBOL_CHARS (pl), SCM_SYMBOL_LENGTH (pl));

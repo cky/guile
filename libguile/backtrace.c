@@ -132,7 +132,7 @@ scm_display_error_message (SCM message, SCM args, SCM port)
 }
 
 static void
-display_expression (SCM frame,SCM pname,SCM source,SCM port)
+display_expression (SCM frame, SCM pname, SCM source, SCM port)
 {
   SCM print_state = scm_make_print_state ();
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
@@ -335,7 +335,7 @@ indent (int n, SCM port)
 }
 
 static void
-display_frame_expr (char *hdr,SCM exp,char *tlr,int indentation,SCM sport,SCM port,scm_print_state *pstate)
+display_frame_expr (char *hdr, SCM exp, char *tlr, int indentation, SCM sport, SCM port, scm_print_state *pstate)
 {
   SCM string;
   int i = 0, n;
@@ -377,7 +377,7 @@ display_frame_expr (char *hdr,SCM exp,char *tlr,int indentation,SCM sport,SCM po
 }
 
 static void
-display_application (SCM frame,int indentation,SCM sport,SCM port,scm_print_state *pstate)
+display_application (SCM frame, int indentation, SCM sport, SCM port, scm_print_state *pstate)
 {
   SCM proc = SCM_FRAME_PROC (frame);
   SCM name = (!SCM_FALSEP (scm_procedure_p (proc))
@@ -400,15 +400,15 @@ SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0,
 	    "output.")
 #define FUNC_NAME s_scm_display_application
 {
-  SCM_VALIDATE_FRAME (1,frame);
+  SCM_VALIDATE_FRAME (1, frame);
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
   else
-    SCM_VALIDATE_OPOUTPORT (2,port);
+    SCM_VALIDATE_OPOUTPORT (2, port);
   if (SCM_UNBNDP (indent))
     indent = SCM_INUM0;
   else
-    SCM_VALIDATE_INUM (3,indent);
+    SCM_VALIDATE_INUM (3, indent);
   
   if (SCM_FRAME_PROC_P (frame))
     /* Display an application. */
@@ -524,7 +524,7 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
 }
 
 static void
-display_frame (SCM frame,int nfield,int indentation,SCM sport,SCM port,scm_print_state *pstate)
+display_frame (SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_print_state *pstate)
 {
   int n, i, j;
 

@@ -77,7 +77,7 @@ SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
 {
   SCM var;
 
-  SCM_VALIDATE_SYMBOL (1,sym);
+  SCM_VALIDATE_SYMBOL (1, sym);
 
   if (SCM_UNBNDP (env))
     var = scm_sym2var (sym, scm_current_module_lookup_closure (),

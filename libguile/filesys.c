@@ -218,8 +218,8 @@ SCM_DEFINE (scm_chown, "chown", 3, 0, 0,
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INUM (2,owner);
-  SCM_VALIDATE_INUM (3,group);
+  SCM_VALIDATE_INUM (2, owner);
+  SCM_VALIDATE_INUM (3, group);
 #ifdef HAVE_FCHOWN
   if (SCM_INUMP (object) || (SCM_OPFPORTP (object)))
     {
@@ -259,7 +259,7 @@ SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INUM (2,mode);
+  SCM_VALIDATE_INUM (2, mode);
   if (SCM_INUMP (object) || SCM_OPFPORTP (object))
     {
       if (SCM_INUMP (object))
@@ -295,7 +295,7 @@ SCM_DEFINE (scm_umask, "umask", 0, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_INUM (1,mode);
+      SCM_VALIDATE_INUM (1, mode);
       mask = umask (SCM_INUM (mode));
     }
   return SCM_MAKINUM (mask);
@@ -397,7 +397,7 @@ SCM_DEFINE (scm_close, "close", 1, 0, 0,
 
   if (SCM_PORTP (fd_or_port))
     return scm_close_port (fd_or_port);
-  SCM_VALIDATE_INUM (1,fd_or_port);
+  SCM_VALIDATE_INUM (1, fd_or_port);
   fd = SCM_INUM (fd_or_port);
   scm_evict_ports (fd);		/* see scsh manual.  */
   SCM_SYSCALL (rv = close (fd));
@@ -448,58 +448,57 @@ static SCM
 scm_stat2scm (struct stat *stat_temp)
 {
   SCM ans = scm_c_make_vector (15, SCM_UNSPECIFIED);
-  SCM *ve = SCM_VELTS (ans);
   
-  ve[0] = scm_ulong2num ((unsigned long) stat_temp->st_dev);
-  ve[1] = scm_ulong2num ((unsigned long) stat_temp->st_ino);
-  ve[2] = scm_ulong2num ((unsigned long) stat_temp->st_mode);
-  ve[3] = scm_ulong2num ((unsigned long) stat_temp->st_nlink);
-  ve[4] = scm_ulong2num ((unsigned long) stat_temp->st_uid);
-  ve[5] = scm_ulong2num ((unsigned long) stat_temp->st_gid);
+  SCM_VECTOR_SET(ans, 0, scm_ulong2num ((unsigned long) stat_temp->st_dev));
+  SCM_VECTOR_SET(ans, 1, scm_ulong2num ((unsigned long) stat_temp->st_ino));
+  SCM_VECTOR_SET(ans, 2, scm_ulong2num ((unsigned long) stat_temp->st_mode));
+  SCM_VECTOR_SET(ans, 3, scm_ulong2num ((unsigned long) stat_temp->st_nlink));
+  SCM_VECTOR_SET(ans, 4, scm_ulong2num ((unsigned long) stat_temp->st_uid));
+  SCM_VECTOR_SET(ans, 5, scm_ulong2num ((unsigned long) stat_temp->st_gid));
 #ifdef HAVE_STRUCT_STAT_ST_RDEV
-  ve[6] = scm_ulong2num ((unsigned long) stat_temp->st_rdev);
+  SCM_VECTOR_SET(ans, 6, scm_ulong2num ((unsigned long) stat_temp->st_rdev));
 #else
-  ve[6] = SCM_BOOL_F;
+  SCM_VECTOR_SET(ans, 6, SCM_BOOL_F);
 #endif
-  ve[7] = scm_ulong2num ((unsigned long) stat_temp->st_size);
-  ve[8] = scm_ulong2num ((unsigned long) stat_temp->st_atime);
-  ve[9] = scm_ulong2num ((unsigned long) stat_temp->st_mtime);
-  ve[10] = scm_ulong2num ((unsigned long) stat_temp->st_ctime);
+  SCM_VECTOR_SET(ans, 7, scm_ulong2num ((unsigned long) stat_temp->st_size));
+  SCM_VECTOR_SET(ans, 8, scm_ulong2num ((unsigned long) stat_temp->st_atime));
+  SCM_VECTOR_SET(ans, 9, scm_ulong2num ((unsigned long) stat_temp->st_mtime));
+  SCM_VECTOR_SET(ans, 10, scm_ulong2num ((unsigned long) stat_temp->st_ctime));
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
-  ve[11] = scm_ulong2num ((unsigned long) stat_temp->st_blksize);
+  SCM_VECTOR_SET(ans, 11, scm_ulong2num ((unsigned long) stat_temp->st_blksize));
 #else
-  ve[11] = scm_ulong2num (4096L);
+  SCM_VECTOR_SET(ans, 11, scm_ulong2num (4096L));
 #endif
 #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
-  ve[12] = scm_ulong2num ((unsigned long) stat_temp->st_blocks);
+  SCM_VECTOR_SET(ans, 12, scm_ulong2num ((unsigned long) stat_temp->st_blocks));
 #else
-  ve[12] = SCM_BOOL_F;
+  SCM_VECTOR_SET(ans, 12, SCM_BOOL_F);
 #endif
   {
     int mode = stat_temp->st_mode;
     
     if (S_ISREG (mode))
-      ve[13] = scm_sym_regular;
+      SCM_VECTOR_SET(ans, 13, scm_sym_regular);
     else if (S_ISDIR (mode))
-      ve[13] = scm_sym_directory;
+      SCM_VECTOR_SET(ans, 13, scm_sym_directory);
 #ifdef HAVE_S_ISLNK
     else if (S_ISLNK (mode))
-      ve[13] = scm_sym_symlink;
+      SCM_VECTOR_SET(ans, 13, scm_sym_symlink);
 #endif
     else if (S_ISBLK (mode))
-      ve[13] = scm_sym_block_special;
+      SCM_VECTOR_SET(ans, 13, scm_sym_block_special);
     else if (S_ISCHR (mode))
-      ve[13] = scm_sym_char_special;
+      SCM_VECTOR_SET(ans, 13, scm_sym_char_special);
     else if (S_ISFIFO (mode))
-      ve[13] = scm_sym_fifo;
+      SCM_VECTOR_SET(ans, 13, scm_sym_fifo);
 #ifdef S_ISSOCK
     else if (S_ISSOCK (mode))
-      ve[13] = scm_sym_sock;
+      SCM_VECTOR_SET(ans, 13, scm_sym_sock);
 #endif
     else
-      ve[13] = scm_sym_unknown;
+      SCM_VECTOR_SET(ans, 13, scm_sym_unknown);
 
-    ve[14] = SCM_MAKINUM ((~S_IFMT) & mode);
+    SCM_VECTOR_SET(ans, 14, SCM_MAKINUM ((~S_IFMT) & mode));
 
     /* the layout of the bits in ve[14] is intended to be portable.
        If there are systems that don't follow the usual convention,
@@ -528,7 +527,7 @@ scm_stat2scm (struct stat *stat_temp)
        tmp <<= 1;
        if (S_IXOTH & mode) tmp += 1; 
 
-       ve[14] = SCM_MAKINUM (tmp);
+       SCM_VECTOR_SET(ans, 14, SCM_MAKINUM (tmp));
        
        */
   }  
@@ -761,7 +760,7 @@ SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_INUM (2,mode);
+      SCM_VALIDATE_INUM (2, mode);
       SCM_SYSCALL (rv = mkdir (SCM_STRING_CHARS (path), SCM_INUM (mode)));
     }
   if (rv != 0)
@@ -1021,7 +1020,7 @@ fill_select_type (SELECT_TYPE *set, SCM *ports_ready, SCM list_or_vec, int pos)
   if (SCM_VECTORP (list_or_vec))
     {
       int i = SCM_VECTOR_LENGTH (list_or_vec);
-      SCM *ve = SCM_VELTS (list_or_vec);
+      SCM const *ve = SCM_VELTS (list_or_vec);
       
       while (--i >= 0)
 	{
@@ -1082,7 +1081,7 @@ retrieve_select_type (SELECT_TYPE *set, SCM ports_ready, SCM list_or_vec)
   if (SCM_VECTORP (list_or_vec))
     {
       int i = SCM_VECTOR_LENGTH (list_or_vec);
-      SCM *ve = SCM_VELTS (list_or_vec);
+      SCM const  *ve = SCM_VELTS (list_or_vec);
 
       while (--i >= 0)
 	{
@@ -1212,7 +1211,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 	    timeout.tv_usec = 0;
 	  else
 	    {
-              SCM_VALIDATE_INUM (5,usecs);
+              SCM_VALIDATE_INUM (5, usecs);
 	      timeout.tv_usec = SCM_INUM (usecs);
 	    }
 	}
@@ -1285,12 +1284,12 @@ SCM_DEFINE (scm_fcntl, "fcntl", 2, 1, 0,
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INUM (2,cmd);
+  SCM_VALIDATE_INUM (2, cmd);
   if (SCM_OPFPORTP (object))
     fdes = SCM_FPORT_FDES (object);
   else
     {
-      SCM_VALIDATE_INUM (1,object);
+      SCM_VALIDATE_INUM (1, object);
       fdes = SCM_INUM (object);
     }
 
@@ -1327,7 +1326,7 @@ SCM_DEFINE (scm_fsync, "fsync", 1, 0, 0,
     }
   else
     {
-      SCM_VALIDATE_INUM (1,object);
+      SCM_VALIDATE_INUM (1, object);
       fdes = SCM_INUM (object);
     }
   if (fsync (fdes) == -1)
@@ -1464,7 +1463,7 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
   long int i;
   unsigned long int len;
 
-  SCM_VALIDATE_STRING (1,filename);
+  SCM_VALIDATE_STRING (1, filename);
 
   s = SCM_STRING_CHARS (filename);
   len = SCM_STRING_LENGTH (filename);
@@ -1506,7 +1505,7 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
   char *f, *s = 0;
   int i, j, len, end;
 
-  SCM_VALIDATE_STRING (1,filename);
+  SCM_VALIDATE_STRING (1, filename);
   f = SCM_STRING_CHARS (filename);
   len = SCM_STRING_LENGTH (filename);
 

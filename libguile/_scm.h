@@ -125,10 +125,10 @@
 
 
 #ifndef min
-#define min(A,B) ((A) <= (B) ? (A) : (B))
+#define min(A, B) ((A) <= (B) ? (A) : (B))
 #endif
 #ifndef max
-#define max(A,B) ((A) >= (B) ? (A) : (B))
+#define max(A, B) ((A) >= (B) ? (A) : (B))
 #endif
 
 #endif  /* SCM__SCM_H */

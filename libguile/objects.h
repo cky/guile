@@ -92,7 +92,7 @@
 	((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_ENTITY) != 0)
 #define SCM_ENTITY_PROCEDURE(obj) \
         (SCM_PACK (SCM_STRUCT_DATA (obj) [scm_struct_i_procedure]))
-#define SCM_SET_ENTITY_PROCEDURE(obj,v) \
+#define SCM_SET_ENTITY_PROCEDURE(obj, v) \
         (SCM_STRUCT_DATA (obj) [scm_struct_i_procedure] = SCM_UNPACK (v))
 #define SCM_ENTITY_SETTER(obj) (SCM_PACK (SCM_STRUCT_DATA (obj)[scm_struct_i_setter]))
 #define SCM_SET_ENTITY_SETTER(obj, v) \

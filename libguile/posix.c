@@ -236,9 +236,13 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
   getgroups (ngroups, groups);
 
   ans = scm_c_make_vector (ngroups, SCM_UNDEFINED);
-  while (--ngroups >= 0) 
-    SCM_VELTS (ans) [ngroups] = SCM_MAKINUM (groups [ngroups]);
 
+  {
+    SCM * ve = SCM_WRITABLE_VELTS(ans);
+    
+    while (--ngroups >= 0) 
+      ve[ngroups] = SCM_MAKINUM (groups [ngroups]);
+  }
   free (groups);
   return ans;
 }
@@ -253,12 +257,9 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
 	    "or getpwent respectively.")
 #define FUNC_NAME s_scm_getpwuid
 {
-  SCM result;
   struct passwd *entry;
-  SCM *ve;
 
-  result = scm_c_make_vector (7, SCM_UNSPECIFIED);
-  ve = SCM_VELTS (result);
+  SCM ans = scm_c_make_vector (7, SCM_UNSPECIFIED);
   if (SCM_UNBNDP (user) || SCM_FALSEP (user))
     {
       SCM_SYSCALL (entry = getpwent ());
@@ -279,20 +280,20 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   if (!entry)
     SCM_MISC_ERROR ("entry not found", SCM_EOL);
 
-  ve[0] = scm_makfrom0str (entry->pw_name);
-  ve[1] = scm_makfrom0str (entry->pw_passwd);
-  ve[2] = scm_ulong2num ((unsigned long) entry->pw_uid);
-  ve[3] = scm_ulong2num ((unsigned long) entry->pw_gid);
-  ve[4] = scm_makfrom0str (entry->pw_gecos);
+  SCM_VECTOR_SET(ans, 0, scm_makfrom0str (entry->pw_name));
+  SCM_VECTOR_SET(ans, 1, scm_makfrom0str (entry->pw_passwd));
+  SCM_VECTOR_SET(ans, 2, scm_ulong2num ((unsigned long) entry->pw_uid));
+  SCM_VECTOR_SET(ans, 3, scm_ulong2num ((unsigned long) entry->pw_gid));
+  SCM_VECTOR_SET(ans, 4, scm_makfrom0str (entry->pw_gecos));
   if (!entry->pw_dir)
-    ve[5] = scm_makfrom0str ("");
+    SCM_VECTOR_SET(ans, 5, scm_makfrom0str (""));
   else
-    ve[5] = scm_makfrom0str (entry->pw_dir);
+    SCM_VECTOR_SET(ans, 5, scm_makfrom0str (entry->pw_dir));
   if (!entry->pw_shell)
-    ve[6] = scm_makfrom0str ("");
+    SCM_VECTOR_SET(ans, 6, scm_makfrom0str (""));
   else
-    ve[6] = scm_makfrom0str (entry->pw_shell);
-  return result;
+    SCM_VECTOR_SET(ans, 6, scm_makfrom0str (entry->pw_shell));
+  return ans;
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETPWENT */
@@ -325,11 +326,9 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
 	    "or getgrent respectively.")
 #define FUNC_NAME s_scm_getgrgid
 {
-  SCM result;
   struct group *entry;
-  SCM *ve;
-  result = scm_c_make_vector (4, SCM_UNSPECIFIED);
-  ve = SCM_VELTS (result);
+  SCM ans = scm_c_make_vector (4, SCM_UNSPECIFIED);
+
   if (SCM_UNBNDP (name) || SCM_FALSEP (name))
     {
       SCM_SYSCALL (entry = getgrent ());
@@ -348,11 +347,11 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
   if (!entry)
     SCM_SYSERROR;
 
-  ve[0] = scm_makfrom0str (entry->gr_name);
-  ve[1] = scm_makfrom0str (entry->gr_passwd);
-  ve[2] = scm_ulong2num ((unsigned long) entry->gr_gid);
-  ve[3] = scm_makfromstrs (-1, entry->gr_mem);
-  return result;
+  SCM_VECTOR_SET(ans, 0, scm_makfrom0str (entry->gr_name));
+  SCM_VECTOR_SET(ans, 1, scm_makfrom0str (entry->gr_passwd));
+  SCM_VECTOR_SET(ans, 2, scm_ulong2num ((unsigned long) entry->gr_gid));
+  SCM_VECTOR_SET(ans, 3, scm_makfromstrs (-1, entry->gr_mem));
+  return ans;
 }
 #undef FUNC_NAME
 
@@ -401,8 +400,8 @@ SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
 	    "@end defvar")
 #define FUNC_NAME s_scm_kill
 {
-  SCM_VALIDATE_INUM (1,pid);
-  SCM_VALIDATE_INUM (2,sig);
+  SCM_VALIDATE_INUM (1, pid);
+  SCM_VALIDATE_INUM (2, sig);
   /* Signal values are interned in scm_init_posix().  */
 #ifdef HAVE_KILL
   if (kill ((int) SCM_INUM (pid), (int) SCM_INUM (sig)) != 0)
@@ -457,12 +456,12 @@ SCM_DEFINE (scm_waitpid, "waitpid", 1, 1, 0,
   int i;
   int status;
   int ioptions;
-  SCM_VALIDATE_INUM (1,pid);
+  SCM_VALIDATE_INUM (1, pid);
   if (SCM_UNBNDP (options))
     ioptions = 0;
   else
     {
-      SCM_VALIDATE_INUM (2,options);
+      SCM_VALIDATE_INUM (2, options);
       /* Flags are interned in scm_init_posix.  */
       ioptions = SCM_INUM (options);
     }
@@ -484,7 +483,7 @@ SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0,
 {
   int lstatus;
 
-  SCM_VALIDATE_INUM (1,status);
+  SCM_VALIDATE_INUM (1, status);
 
   /* On Ultrix, the WIF... macros assume their argument is an lvalue;
      go figure.  SCM_INUM does not yield an lvalue.  */
@@ -504,7 +503,7 @@ SCM_DEFINE (scm_status_term_sig, "status:term-sig", 1, 0, 0,
 {
   int lstatus;
 
-  SCM_VALIDATE_INUM (1,status);
+  SCM_VALIDATE_INUM (1, status);
 
   lstatus = SCM_INUM (status);
   if (WIFSIGNALED (lstatus))
@@ -522,7 +521,7 @@ SCM_DEFINE (scm_status_stop_sig, "status:stop-sig", 1, 0, 0,
 {
   int lstatus;
 
-  SCM_VALIDATE_INUM (1,status);
+  SCM_VALIDATE_INUM (1, status);
 
   lstatus = SCM_INUM (status);
   if (WIFSTOPPED (lstatus))
@@ -610,7 +609,7 @@ SCM_DEFINE (scm_setuid, "setuid", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setuid
 {
-  SCM_VALIDATE_INUM (1,id);
+  SCM_VALIDATE_INUM (1, id);
   if (setuid (SCM_INUM (id)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -624,7 +623,7 @@ SCM_DEFINE (scm_setgid, "setgid", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setgid
 {
-  SCM_VALIDATE_INUM (1,id);
+  SCM_VALIDATE_INUM (1, id);
   if (setgid (SCM_INUM (id)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -642,7 +641,7 @@ SCM_DEFINE (scm_seteuid, "seteuid", 1, 0, 0,
 {
   int rv;
 
-  SCM_VALIDATE_INUM (1,id);
+  SCM_VALIDATE_INUM (1, id);
 #ifdef HAVE_SETEUID
   rv = seteuid (SCM_INUM (id));
 #else
@@ -668,7 +667,7 @@ SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0,
 {
   int rv;
 
-  SCM_VALIDATE_INUM (1,id);
+  SCM_VALIDATE_INUM (1, id);
 #ifdef HAVE_SETEUID
   rv = setegid (SCM_INUM (id));
 #else
@@ -708,8 +707,8 @@ SCM_DEFINE (scm_setpgid, "setpgid", 2, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setpgid
 {
-  SCM_VALIDATE_INUM (1,pid);
-  SCM_VALIDATE_INUM (2,pgid);
+  SCM_VALIDATE_INUM (1, pid);
+  SCM_VALIDATE_INUM (2, pgid);
   /* FIXME(?): may be known as setpgrp.  */
   if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
     SCM_SYSERROR;
@@ -746,7 +745,7 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
   int fd;
 
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPPORT (1,port);
+  SCM_VALIDATE_OPPORT (1, port);
   if (!SCM_FPORTP (port))
     return SCM_BOOL_F;
   fd = SCM_FPORT_FDES (port);
@@ -794,7 +793,7 @@ SCM_DEFINE (scm_tcgetpgrp, "tcgetpgrp", 1, 0, 0,
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_OPFPORT (1,port);
+  SCM_VALIDATE_OPFPORT (1, port);
   fd = SCM_FPORT_FDES (port);
   if ((pgid = tcgetpgrp (fd)) == -1)
     SCM_SYSERROR;
@@ -817,8 +816,8 @@ SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_OPFPORT (1,port);
-  SCM_VALIDATE_INUM (2,pgid);
+  SCM_VALIDATE_OPFPORT (1, port);
+  SCM_VALIDATE_INUM (2, pgid);
   fd = SCM_FPORT_FDES (port);
   if (tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
     SCM_SYSERROR;
@@ -984,17 +983,16 @@ SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
 {
   struct utsname buf;
   SCM ans = scm_c_make_vector (5, SCM_UNSPECIFIED);
-  SCM *ve = SCM_VELTS (ans);
   if (uname (&buf) < 0)
     SCM_SYSERROR;
-  ve[0] = scm_makfrom0str (buf.sysname);
-  ve[1] = scm_makfrom0str (buf.nodename);
-  ve[2] = scm_makfrom0str (buf.release);
-  ve[3] = scm_makfrom0str (buf.version);
-  ve[4] = scm_makfrom0str (buf.machine);
+  SCM_VECTOR_SET(ans, 0, scm_makfrom0str (buf.sysname));
+  SCM_VECTOR_SET(ans, 1, scm_makfrom0str (buf.nodename));
+  SCM_VECTOR_SET(ans, 2, scm_makfrom0str (buf.release));
+  SCM_VECTOR_SET(ans, 3, scm_makfrom0str (buf.version));
+  SCM_VECTOR_SET(ans, 4, scm_makfrom0str (buf.machine));
 /* 
    a linux special?
-  ve[5] = scm_makfrom0str (buf.domainname);
+  SCM_VECTOR_SET(ans, 5, scm_makfrom0str (buf.domainname));
 */
   return ans;
 }
@@ -1225,7 +1223,7 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
   char *clocale;
   char *rv;
 
-  SCM_VALIDATE_INUM (1,category);
+  SCM_VALIDATE_INUM (1, category);
   if (SCM_UNBNDP (locale))
     {
       clocale = NULL;
@@ -1267,9 +1265,9 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
   int ctype = 0;
 
   SCM_VALIDATE_STRING (1, path);
-  SCM_VALIDATE_SYMBOL (2,type);
-  SCM_VALIDATE_INUM (3,perms);
-  SCM_VALIDATE_INUM (4,dev);
+  SCM_VALIDATE_SYMBOL (2, type);
+  SCM_VALIDATE_INUM (3, perms);
+  SCM_VALIDATE_INUM (4, dev);
 
   p = SCM_SYMBOL_CHARS (type);
   if (strcmp (p, "regular") == 0)
@@ -1289,7 +1287,7 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
     ctype = S_IFSOCK;
 #endif
   else
-    SCM_OUT_OF_RANGE (2,type);
+    SCM_OUT_OF_RANGE (2, type);
 
   SCM_SYSCALL (val = mknod (SCM_STRING_CHARS (path), ctype | SCM_INUM (perms),
 			    SCM_INUM (dev)));
@@ -1308,7 +1306,7 @@ SCM_DEFINE (scm_nice, "nice", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_nice
 {
-  SCM_VALIDATE_INUM (1,incr);
+  SCM_VALIDATE_INUM (1, incr);
   if (nice(SCM_INUM(incr)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;

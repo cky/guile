@@ -106,7 +106,7 @@ SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
 	    "environment.")
 #define FUNC_NAME s_scm_makacro
 {
-  SCM_VALIDATE_PROC (1,code);
+  SCM_VALIDATE_PROC (1, code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro, SCM_UNPACK (code));
 }
 #undef FUNC_NAME
@@ -134,7 +134,7 @@ SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0,
      " non-memoizing macros in general.  Use memoizing macros"
      " or r5rs macros instead.");
 
-  SCM_VALIDATE_PROC (1,code);
+  SCM_VALIDATE_PROC (1, code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro | (1L << 16), SCM_UNPACK (code));
 }
 #undef FUNC_NAME
@@ -154,7 +154,7 @@ SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0,
 	    "form of the containing code.")
 #define FUNC_NAME s_scm_makmmacro
 {
-  SCM_VALIDATE_PROC (1,code);
+  SCM_VALIDATE_PROC (1, code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro | (2L << 16), SCM_UNPACK (code));
 }
 #undef FUNC_NAME
@@ -206,7 +206,7 @@ SCM_DEFINE (scm_macro_name, "macro-name", 1, 0, 0,
 	    "Return the name of the macro @var{m}.")
 #define FUNC_NAME s_scm_macro_name
 {
-  SCM_VALIDATE_SMOB (1,m,macro);
+  SCM_VALIDATE_SMOB (1, m, macro);
   return scm_procedure_name (SCM_PACK (SCM_SMOB_DATA (m)));
 }
 #undef FUNC_NAME
@@ -217,7 +217,7 @@ SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0,
 	    "Return the transformer of the macro @var{m}.")
 #define FUNC_NAME s_scm_macro_transformer
 {
-  SCM_VALIDATE_SMOB (1,m,macro);
+  SCM_VALIDATE_SMOB (1, m, macro);
   return ((SCM_CLOSUREP (SCM_PACK (SCM_SMOB_DATA (m)))) ?
 	  SCM_PACK(SCM_SMOB_DATA (m)) : SCM_BOOL_F);
 }

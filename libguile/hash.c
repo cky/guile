@@ -145,7 +145,7 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
     case scm_tc7_vector:
       {
 	size_t len = SCM_VECTOR_LENGTH(obj);
-	SCM *data = SCM_VELTS(obj);
+	SCM const *data = SCM_VELTS(obj);
 	if (len > 5)
 	  {
 	    size_t i = d/2;

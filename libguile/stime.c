@@ -195,11 +195,11 @@ SCM_DEFINE (scm_times, "times", 0, 0, 0,
   rv = times (&t);
   if (rv == -1)
     SCM_SYSERROR;
-  SCM_VELTS (result)[0] = scm_long2num (rv);
-  SCM_VELTS (result)[1] = scm_long2num (t.tms_utime);
-  SCM_VELTS (result)[2] = scm_long2num (t.tms_stime);
-  SCM_VELTS (result)[3] = scm_long2num (t.tms_cutime);
-  SCM_VELTS (result)[4] = scm_long2num (t.tms_cstime);
+  SCM_VECTOR_SET (result, 0, scm_long2num (rv));
+  SCM_VECTOR_SET (result, 1, scm_long2num (t.tms_utime));
+  SCM_VECTOR_SET (result, 2, scm_long2num (t.tms_stime));
+  SCM_VECTOR_SET (result ,3, scm_long2num (t.tms_cutime));
+  SCM_VECTOR_SET (result, 4, scm_long2num (t.tms_cstime));
   return result;
 }
 #undef FUNC_NAME
@@ -282,17 +282,17 @@ filltime (struct tm *bd_time, int zoff, char *zname)
 {
   SCM result = scm_c_make_vector (11, SCM_UNDEFINED);
 
-  SCM_VELTS (result)[0] = SCM_MAKINUM (bd_time->tm_sec);
-  SCM_VELTS (result)[1] = SCM_MAKINUM (bd_time->tm_min);
-  SCM_VELTS (result)[2] = SCM_MAKINUM (bd_time->tm_hour);
-  SCM_VELTS (result)[3] = SCM_MAKINUM (bd_time->tm_mday);
-  SCM_VELTS (result)[4] = SCM_MAKINUM (bd_time->tm_mon);
-  SCM_VELTS (result)[5] = SCM_MAKINUM (bd_time->tm_year);
-  SCM_VELTS (result)[6] = SCM_MAKINUM (bd_time->tm_wday);
-  SCM_VELTS (result)[7] = SCM_MAKINUM (bd_time->tm_yday);
-  SCM_VELTS (result)[8] = SCM_MAKINUM (bd_time->tm_isdst);
-  SCM_VELTS (result)[9] = SCM_MAKINUM (zoff);
-  SCM_VELTS (result)[10] = zname ? scm_makfrom0str (zname) : SCM_BOOL_F;
+  SCM_VECTOR_SET (result,0, SCM_MAKINUM (bd_time->tm_sec));
+  SCM_VECTOR_SET (result,1, SCM_MAKINUM (bd_time->tm_min));
+  SCM_VECTOR_SET (result,2, SCM_MAKINUM (bd_time->tm_hour));
+  SCM_VECTOR_SET (result,3, SCM_MAKINUM (bd_time->tm_mday));
+  SCM_VECTOR_SET (result,4, SCM_MAKINUM (bd_time->tm_mon));
+  SCM_VECTOR_SET (result,5, SCM_MAKINUM (bd_time->tm_year));
+  SCM_VECTOR_SET (result,6, SCM_MAKINUM (bd_time->tm_wday));
+  SCM_VECTOR_SET (result,7, SCM_MAKINUM (bd_time->tm_yday));
+  SCM_VECTOR_SET (result,8, SCM_MAKINUM (bd_time->tm_isdst));
+  SCM_VECTOR_SET (result,9, SCM_MAKINUM (zoff));
+  SCM_VECTOR_SET (result,10, zname ? scm_makfrom0str (zname) : SCM_BOOL_F);
   return result;
 }
 
@@ -439,7 +439,7 @@ SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
 static void
 bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 {
-  SCM *velts;
+  SCM const *velts;
   int i;
 
   SCM_ASSERT (SCM_VECTORP (sbd_time)

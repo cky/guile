@@ -315,7 +315,7 @@ typedef signed long scm_t_signed_bits;
 #define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
 #define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))
 
-#define SCM_TYP16_PREDICATE(tag,x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
+#define SCM_TYP16_PREDICATE(tag, x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
 
 
 

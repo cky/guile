@@ -264,7 +264,7 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT (1,port);
+    SCM_VALIDATE_OPINPORT (1, port);
 
   pt = SCM_PTAB_ENTRY (port);
 
@@ -340,7 +340,7 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   long count;
 
-  SCM_VALIDATE_OPINPORT (1,port);
+  SCM_VALIDATE_OPINPORT (1, port);
 
   count = pt->read_end - pt->read_pos;
   if (pt->read_buf == pt->putback_buf)
@@ -409,7 +409,7 @@ SCM_DEFINE (scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
 #define FUNC_NAME s_scm_set_current_input_port
 {
   SCM oinp = scm_cur_inp;
-  SCM_VALIDATE_OPINPORT (1,port);
+  SCM_VALIDATE_OPINPORT (1, port);
   scm_cur_inp = port;
   return oinp;
 }
@@ -423,7 +423,7 @@ SCM_DEFINE (scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
 {
   SCM ooutp = scm_cur_outp;
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPOUTPORT (1,port);
+  SCM_VALIDATE_OPOUTPORT (1, port);
   scm_cur_outp = port;
   return ooutp;
 }
@@ -437,7 +437,7 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
 {
   SCM oerrp = scm_cur_errp;
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPOUTPORT (1,port);
+  SCM_VALIDATE_OPOUTPORT (1, port);
   scm_cur_errp = port;
   return oerrp;
 }
@@ -538,7 +538,7 @@ SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
 #define FUNC_NAME s_scm_pt_member
 {
   long i;
-  SCM_VALIDATE_INUM_COPY (1,index,i);
+  SCM_VALIDATE_INUM_COPY (1, index, i);
   if (i < 0 || i >= scm_port_table_size)
     return SCM_BOOL_F;
   else
@@ -579,7 +579,7 @@ SCM_DEFINE (scm_port_revealed, "port-revealed", 1, 0, 0,
 #define FUNC_NAME s_scm_port_revealed
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT (1,port);
+  SCM_VALIDATE_OPENPORT (1, port);
   return SCM_MAKINUM (scm_revealed_count (port));
 }
 #undef FUNC_NAME
@@ -592,8 +592,8 @@ SCM_DEFINE (scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_port_revealed_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT (1,port);
-  SCM_VALIDATE_INUM (2,rcount);
+  SCM_VALIDATE_OPENPORT (1, port);
+  SCM_VALIDATE_INUM (2, rcount);
   SCM_REVEALED (port) = SCM_INUM (rcount);
   return SCM_UNSPECIFIED;
 }
@@ -638,7 +638,7 @@ SCM_DEFINE (scm_port_mode, "port-mode", 1, 0, 0,
   modes[0] = '\0';
 
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPPORT (1,port);
+  SCM_VALIDATE_OPPORT (1, port);
   if (SCM_CELL_WORD_0 (port) & SCM_RDNG) {
     if (SCM_CELL_WORD_0 (port) & SCM_WRTNG)
       strcpy (modes, "r+");
@@ -805,7 +805,7 @@ SCM_DEFINE (scm_port_closed_p, "port-closed?", 1, 0, 0,
 	    "open.")
 #define FUNC_NAME s_scm_port_closed_p
 {
-  SCM_VALIDATE_PORT (1,port);
+  SCM_VALIDATE_PORT (1, port);
   return SCM_BOOL (!SCM_OPPORTP (port));
 }
 #undef FUNC_NAME
@@ -835,7 +835,7 @@ SCM_DEFINE (scm_force_output, "force-output", 0, 1, 0,
   else
     {
       port = SCM_COERCE_OUTPORT (port);
-      SCM_VALIDATE_OPOUTPORT (1,port);
+      SCM_VALIDATE_OPOUTPORT (1, port);
     }
   scm_flush (port);
   return SCM_UNSPECIFIED;
@@ -869,7 +869,7 @@ SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
   int c;
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  SCM_VALIDATE_OPINPORT (1,port);
+  SCM_VALIDATE_OPINPORT (1, port);
   c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
@@ -1196,7 +1196,7 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT (1,port);
+    SCM_VALIDATE_OPINPORT (1, port);
   c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
@@ -1215,11 +1215,11 @@ SCM_DEFINE (scm_unread_char, "unread-char", 1, 1, 0,
 {
   int c;
 
-  SCM_VALIDATE_CHAR (1,cobj);
+  SCM_VALIDATE_CHAR (1, cobj);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT (2,port);
+    SCM_VALIDATE_OPINPORT (2, port);
 
   c = SCM_CHAR (cobj);
 
@@ -1236,11 +1236,11 @@ SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
 	    "@var{port} is not supplied, the current-input-port is used.")
 #define FUNC_NAME s_scm_unread_string
 {
-  SCM_VALIDATE_STRING (1,str);
+  SCM_VALIDATE_STRING (1, str);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT (2,port);
+    SCM_VALIDATE_OPINPORT (2, port);
 
   scm_ungets (SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str), port);
   
@@ -1297,7 +1297,7 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
     }
   else /* file descriptor?.  */
     {
-      SCM_VALIDATE_INUM (1,fd_port);
+      SCM_VALIDATE_INUM (1, fd_port);
       rv = lseek (SCM_INUM (fd_port), off, how);
       if (rv == -1)
 	SCM_SYSERROR;
@@ -1339,11 +1339,11 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
     {
       /* must supply length if object is a filename.  */
       if (SCM_STRINGP (object))
-        SCM_MISC_ERROR("must supply length if OBJECT is a filename",SCM_EOL);
+        SCM_MISC_ERROR("must supply length if OBJECT is a filename", SCM_EOL);
       
       length = scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
     }
-  c_length = SCM_NUM2LONG (2,length);
+  c_length = SCM_NUM2LONG (2, length);
   if (c_length < 0)
     SCM_MISC_ERROR ("negative offset", SCM_EOL);
 
@@ -1384,7 +1384,7 @@ SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
 #define FUNC_NAME s_scm_port_line
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT (1,port);
+  SCM_VALIDATE_OPENPORT (1, port);
   return SCM_MAKINUM (SCM_LINUM (port));
 }
 #undef FUNC_NAME
@@ -1395,8 +1395,8 @@ SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_port_line_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT (1,port);
-  SCM_VALIDATE_INUM (2,line);
+  SCM_VALIDATE_OPENPORT (1, port);
+  SCM_VALIDATE_INUM (2, line);
   SCM_PTAB_ENTRY (port)->line_number = SCM_INUM (line);
   return SCM_UNSPECIFIED;
 }
@@ -1416,7 +1416,7 @@ SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
 #define FUNC_NAME s_scm_port_column
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT (1,port);
+  SCM_VALIDATE_OPENPORT (1, port);
   return SCM_MAKINUM (SCM_COL (port));
 }
 #undef FUNC_NAME
@@ -1429,8 +1429,8 @@ SCM_DEFINE (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_port_column_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT (1,port);
-  SCM_VALIDATE_INUM (2,column);
+  SCM_VALIDATE_OPENPORT (1, port);
+  SCM_VALIDATE_INUM (2, column);
   SCM_PTAB_ENTRY (port)->column_number = SCM_INUM (column);
   return SCM_UNSPECIFIED;
 }
@@ -1444,7 +1444,7 @@ SCM_DEFINE (scm_port_filename, "port-filename", 1, 0, 0,
 #define FUNC_NAME s_scm_port_filename
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT (1,port);
+  SCM_VALIDATE_OPENPORT (1, port);
   return SCM_FILENAME (port);
 }
 #undef FUNC_NAME
@@ -1458,7 +1458,7 @@ SCM_DEFINE (scm_set_port_filename_x, "set-port-filename!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_port_filename_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT (1,port);
+  SCM_VALIDATE_OPENPORT (1, port);
   /* We allow the user to set the filename to whatever he likes.  */
   SCM_SET_FILENAME (port, filename);
   return SCM_UNSPECIFIED;

@@ -190,17 +190,17 @@ SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
 {
   long s1, s2, e, len;
 
-  SCM_VALIDATE_STRING (1,str1);
-  SCM_VALIDATE_INUM_COPY (2,start1,s1);
-  SCM_VALIDATE_INUM_COPY (3,end1,e);
-  SCM_VALIDATE_STRING (4,str2);
-  SCM_VALIDATE_INUM_COPY (5,start2,s2);
+  SCM_VALIDATE_STRING (1, str1);
+  SCM_VALIDATE_INUM_COPY (2, start1, s1);
+  SCM_VALIDATE_INUM_COPY (3, end1, e);
+  SCM_VALIDATE_STRING (4, str2);
+  SCM_VALIDATE_INUM_COPY (5, start2, s2);
   len = e - s1;
-  SCM_ASSERT_RANGE (3,end1,len >= 0);
-  SCM_ASSERT_RANGE (2,start1,s1 <= SCM_STRING_LENGTH (str1) && s1 >= 0);
-  SCM_ASSERT_RANGE (5,start2,s2 <= SCM_STRING_LENGTH (str2) && s2 >= 0);
-  SCM_ASSERT_RANGE (3,end1,e <= SCM_STRING_LENGTH (str1) && e >= 0);
-  SCM_ASSERT_RANGE (5,start2,len+s2 <= SCM_STRING_LENGTH (str2));
+  SCM_ASSERT_RANGE (3, end1, len >= 0);
+  SCM_ASSERT_RANGE (2, start1, s1 <= SCM_STRING_LENGTH (str1) && s1 >= 0);
+  SCM_ASSERT_RANGE (5, start2, s2 <= SCM_STRING_LENGTH (str2) && s2 >= 0);
+  SCM_ASSERT_RANGE (3, end1, e <= SCM_STRING_LENGTH (str1) && e >= 0);
+  SCM_ASSERT_RANGE (5, start2, len+s2 <= SCM_STRING_LENGTH (str2));
 
   SCM_SYSCALL(memmove((void *)(&(SCM_STRING_CHARS(str2)[s2])),
 		      (void *)(&(SCM_STRING_CHARS(str1)[s1])),
@@ -226,12 +226,12 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 {
   long i, e;
   char c;
-  SCM_VALIDATE_STRING (1,str);
-  SCM_VALIDATE_INUM_COPY (2,start,i);
-  SCM_VALIDATE_INUM_COPY (3,end,e);
-  SCM_VALIDATE_CHAR_COPY (4,fill,c);
-  SCM_ASSERT_RANGE (2,start,i <= SCM_STRING_LENGTH (str) && i >= 0);
-  SCM_ASSERT_RANGE (3,end,e <= SCM_STRING_LENGTH (str) && e >= 0);
+  SCM_VALIDATE_STRING (1, str);
+  SCM_VALIDATE_INUM_COPY (2, start, i);
+  SCM_VALIDATE_INUM_COPY (3, end, e);
+  SCM_VALIDATE_CHAR_COPY (4, fill, c);
+  SCM_ASSERT_RANGE (2, start, i <= SCM_STRING_LENGTH (str) && i >= 0);
+  SCM_ASSERT_RANGE (3, end, e <= SCM_STRING_LENGTH (str) && e >= 0);
   while (i<e) SCM_STRING_CHARS (str)[i++] = c;
   return SCM_UNSPECIFIED;
 }
@@ -249,7 +249,7 @@ SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_string_null_p
 {
-  SCM_VALIDATE_STRING (1,str);
+  SCM_VALIDATE_STRING (1, str);
   return SCM_BOOL (SCM_STRING_LENGTH (str) == 0);
 }
 #undef FUNC_NAME
@@ -266,7 +266,7 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
   long i;
   SCM res = SCM_EOL;
   unsigned char *src;
-  SCM_VALIDATE_STRING (1,str);
+  SCM_VALIDATE_STRING (1, str);
   src = SCM_STRING_UCHARS (str);
   for (i = SCM_STRING_LENGTH (str)-1;i >= 0;i--) res = scm_cons (SCM_MAKE_CHAR (src[i]), res);
   return res;
@@ -307,8 +307,8 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
 {
   register char *dst, c;
   register long k;
-  SCM_VALIDATE_STRING_COPY (1,str,dst);
-  SCM_VALIDATE_CHAR_COPY (2,chr,c);
+  SCM_VALIDATE_STRING_COPY (1, str, dst);
+  SCM_VALIDATE_CHAR_COPY (2, chr, c);
   for (k = SCM_STRING_LENGTH (str)-1;k >= 0;k--) dst[k] = c;
   return SCM_UNSPECIFIED;
 }

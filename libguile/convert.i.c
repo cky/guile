@@ -245,17 +245,17 @@ SCM
 CTYPES2SCM (const CTYPE *data, long n)
 {
   long i;
-  SCM v, *velts;
-
+  SCM v;
+  
   SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n), 
 		    n > 0 && n <= SCM_VECTOR_MAX_LENGTH);
   v = scm_c_make_vector (n, SCM_UNSPECIFIED);
-  velts = SCM_VELTS (v);
+
   for (i = 0; i < n; i++)
 #ifdef FLOATTYPE
-    velts[i] = scm_make_real ((double) data[i]);
+    SCM_VECTOR_SET (v, i, scm_make_real ((double) data[i]));
 #else
-    velts[i] = SCM_MAKINUM (data[i]);
+    SCM_VECTOR_SET (v, i,  SCM_MAKINUM (data[i]));
 #endif
   return v;
 }

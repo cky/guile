@@ -798,7 +798,7 @@ iqq (SCM form, SCM env, unsigned long int depth)
   else if (SCM_VECTORP (form))
     {
       size_t i = SCM_VECTOR_LENGTH (form);
-      SCM *data = SCM_VELTS (form);
+      SCM const *data = SCM_VELTS (form);
       SCM tmp = SCM_EOL;
       while (i != 0)
 	tmp = scm_cons (data[--i], tmp);
@@ -1020,7 +1020,7 @@ scm_m_let (SCM xorig, SCM env)
 }
 
 
-SCM_SYNTAX (s_atapply,"@apply", scm_makmmacro, scm_m_apply);
+SCM_SYNTAX (s_atapply, "@apply", scm_makmmacro, scm_m_apply);
 SCM_GLOBAL_SYMBOL (scm_sym_atapply, s_atapply);
 SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
 
@@ -1032,8 +1032,8 @@ scm_m_apply (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX(s_atcall_cc,"@call-with-current-continuation", scm_makmmacro, scm_m_cont);
-SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc,s_atcall_cc);
+SCM_SYNTAX(s_atcall_cc, "@call-with-current-continuation", scm_makmmacro, scm_m_cont);
+SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc, s_atcall_cc);
 
 
 SCM 
@@ -3413,7 +3413,7 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
 #define FUNC_NAME s_scm_nconc2last
 {
   SCM *lloc;
-  SCM_VALIDATE_NONEMPTYLIST (1,lst);
+  SCM_VALIDATE_NONEMPTYLIST (1, lst);
   lloc = &lst;
   while (!SCM_NULLP (SCM_CDR (*lloc))) /* Perhaps should be
                                           SCM_NULL_OR_NIL_P, but not
@@ -3792,7 +3792,7 @@ check_map_args (SCM argv,
 		SCM args,
 		const char *who)
 {
-  SCM *ve = SCM_VELTS (argv);
+  SCM const *ve = SCM_VELTS (argv);
   long i;
 
   for (i = SCM_VECTOR_LENGTH (argv) - 1; i >= 1; i--)
@@ -3831,7 +3831,7 @@ scm_map (SCM proc, SCM arg1, SCM args)
   long i, len;
   SCM res = SCM_EOL;
   SCM *pres = &res;
-  SCM *ve = &args;		/* Keep args from being optimized away. */
+  SCM const *ve = &args;		/* Keep args from being optimized away. */
 
   len = scm_ilength (arg1);
   SCM_GASSERTn (len >= 0,
@@ -3858,7 +3858,7 @@ scm_map (SCM proc, SCM arg1, SCM args)
 	  if (SCM_IMP (ve[i])) 
 	    return res;
 	  arg1 = scm_cons (SCM_CAR (ve[i]), arg1);
-	  ve[i] = SCM_CDR (ve[i]);
+	  SCM_VECTOR_SET (args, i, SCM_CDR (ve[i]));
 	}
       *pres = scm_list_1 (scm_apply (proc, arg1, SCM_EOL));
       pres = SCM_CDRLOC (*pres);
@@ -3873,7 +3873,7 @@ SCM
 scm_for_each (SCM proc, SCM arg1, SCM args)
 #define FUNC_NAME s_for_each
 {
-  SCM *ve = &args;		/* Keep args from being optimized away. */
+  SCM const *ve = &args;		/* Keep args from being optimized away. */
   long i, len;
   len = scm_ilength (arg1);
   SCM_GASSERTn (len >= 0, g_for_each, scm_cons2 (proc, arg1, args),
@@ -3899,7 +3899,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 	  if (SCM_IMP (ve[i]))
 	    return SCM_UNSPECIFIED;
 	  arg1 = scm_cons (SCM_CAR (ve[i]), arg1);
-	  ve[i] = SCM_CDR (ve[i]);
+	  SCM_VECTOR_SET (args, i, SCM_CDR (ve[i]));
 	}
       scm_apply (proc, arg1, SCM_EOL);
     }
@@ -4011,7 +4011,7 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
       unsigned long i = SCM_VECTOR_LENGTH (obj);
       ans = scm_c_make_vector (i, SCM_UNSPECIFIED);
       while (i--)
-	SCM_VELTS (ans)[i] = scm_copy_tree (SCM_VELTS (obj)[i]);
+	SCM_VECTOR_SET (ans, i, scm_copy_tree (SCM_VELTS (obj)[i]));
       return ans;
     }
   if (!SCM_CONSP (obj))

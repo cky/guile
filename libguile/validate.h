@@ -306,10 +306,10 @@
       } \
   } while (0)
 
-/* [low,high) */
-#define SCM_VALIDATE_INUM_RANGE(pos,k,low,high) \
+/* [low, high) */
+#define SCM_VALIDATE_INUM_RANGE(pos, k, low, high) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
-       SCM_ASSERT_RANGE(pos,k, \
+       SCM_ASSERT_RANGE(pos, k, \
                         (SCM_INUM (k) >= low && \
                          SCM_INUM (k) < high)); \
      } while (0)
@@ -367,7 +367,7 @@
     SCM_ASSERT (scm_valid_oport_value_p (port), port, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_PRINTSTATE(pos, a) SCM_MAKE_VALIDATE(pos,a,PRINT_STATE_P)
+#define SCM_VALIDATE_PRINTSTATE(pos, a) SCM_MAKE_VALIDATE(pos, a, PRINT_STATE_P)
 
 #define SCM_VALIDATE_SMOB(pos, obj, type) \
   do { \
@@ -421,7 +421,7 @@
 #define SCM_VALIDATE_OPINPORT(pos, port) \
   SCM_MAKE_VALIDATE (pos, port, OPINPORTP)
 
-#define SCM_VALIDATE_OPENPORT(pos,port) \
+#define SCM_VALIDATE_OPENPORT(pos, port) \
   do { \
     SCM_ASSERT (SCM_PORTP (port) && SCM_OPENP (port), \
                 port, pos, FUNC_NAME); \
@@ -445,7 +445,7 @@
 
 #define SCM_VALIDATE_RSTATE(pos, v) SCM_MAKE_VALIDATE (pos, v, RSTATEP)
 
-#define SCM_VALIDATE_ARRAY(pos,v) \
+#define SCM_VALIDATE_ARRAY(pos, v) \
   do { \
     SCM_ASSERT (!SCM_IMP (v) \
                 && !SCM_FALSEP (scm_array_p (v, SCM_UNDEFINED)), \

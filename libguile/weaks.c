@@ -141,8 +141,11 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
   i = scm_ilength (l);
   SCM_ASSERT (i >= 0, l, SCM_ARG1, FUNC_NAME);
   res = scm_make_weak_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
-  data = SCM_VELTS (res);
 
+  /*
+    no alloc, so  this loop is safe.
+  */     
+  data = SCM_WRITABLE_VELTS (res);
   while (!SCM_NULL_OR_NIL_P (l))
     {
       *data++ = SCM_CAR (l);
@@ -261,7 +264,7 @@ scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
     {
       if (SCM_IS_WHVEC_ANY (w))
 	{
-	  SCM *ptr;
+	  SCM const *ptr;
 	  SCM obj;
 	  long j;
 	  long n;
@@ -302,7 +305,7 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
 	{
 	  register long j, n;
 
-	  ptr = SCM_VELTS (w);
+	  ptr = SCM_GC_WRITABLE_VELTS (w);
 	  n = SCM_VECTOR_LENGTH (w);
 	  for (j = 0; j < n; ++j)
 	    if (SCM_FREE_CELL_P (ptr[j]))
@@ -316,7 +319,7 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
           int weak_keys = SCM_IS_WHVEC (obj) || SCM_IS_WHVEC_B (obj);
           int weak_values = SCM_IS_WHVEC_V (obj) || SCM_IS_WHVEC_B (obj);
 
-	  ptr = SCM_VELTS (w);
+	  ptr = SCM_GC_WRITABLE_VELTS (w);
 
 	  for (j = 0; j < n; ++j)
 	    {

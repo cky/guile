@@ -123,7 +123,7 @@ SCM_DEFINE (scm_with_traps, "with-traps", 1, 0, 0,
 #define FUNC_NAME s_scm_with_traps
 {
   int trap_flag;
-  SCM_VALIDATE_THUNK (1,thunk);
+  SCM_VALIDATE_THUNK (1, thunk);
   return scm_internal_dynamic_wind (with_traps_before,
 				    with_traps_inner,
 				    with_traps_after,
@@ -243,8 +243,8 @@ SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
 	    "offset @var{binding} and the cdr flag @var{cdrp}.")
 #define FUNC_NAME s_scm_make_iloc
 {
-  SCM_VALIDATE_INUM (1,frame);
-  SCM_VALIDATE_INUM (2,binding);
+  SCM_VALIDATE_INUM (1, frame);
+  SCM_VALIDATE_INUM (2, binding);
   return SCM_PACK (SCM_UNPACK (SCM_ILOC00)
                    + SCM_IFRINC * SCM_INUM (frame)
                    + (!SCM_FALSEP (cdrp) ? SCM_ICDR : 0)
@@ -289,7 +289,7 @@ SCM_DEFINE (scm_memcons, "memcons", 2, 1, 0,
   if (SCM_UNBNDP (env))
     env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
   else
-    SCM_VALIDATE_NULLORCONS (3,env);
+    SCM_VALIDATE_NULLORCONS (3, env);
   return scm_make_memoized (scm_cons (car, cdr), env);
 }
 #undef FUNC_NAME
@@ -301,7 +301,7 @@ SCM_DEFINE (scm_mem_to_proc, "mem->proc", 1, 0, 0,
 #define FUNC_NAME s_scm_mem_to_proc
 {
   SCM env;
-  SCM_VALIDATE_MEMOIZED (1,obj);
+  SCM_VALIDATE_MEMOIZED (1, obj);
   env = SCM_MEMOIZED_ENV (obj);
   obj = SCM_MEMOIZED_EXP (obj);
   if (!SCM_CONSP (obj) || !SCM_EQ_P (SCM_CAR (obj), SCM_IM_LAMBDA))
@@ -328,7 +328,7 @@ SCM_DEFINE (scm_unmemoize, "unmemoize", 1, 0, 0,
 	    "Unmemoize the memoized expression @var{m},")
 #define FUNC_NAME s_scm_unmemoize
 {
-  SCM_VALIDATE_MEMOIZED (1,m);
+  SCM_VALIDATE_MEMOIZED (1, m);
   return scm_unmemocopy (SCM_MEMOIZED_EXP (m), SCM_MEMOIZED_ENV (m));
 }
 #undef FUNC_NAME
@@ -338,7 +338,7 @@ SCM_DEFINE (scm_memoized_environment, "memoized-environment", 1, 0, 0,
 	    "Return the environment of the memoized expression @var{m}.")
 #define FUNC_NAME s_scm_memoized_environment
 {
-  SCM_VALIDATE_MEMOIZED (1,m);
+  SCM_VALIDATE_MEMOIZED (1, m);
   return SCM_MEMOIZED_ENV (m);
 }
 #undef FUNC_NAME
@@ -348,7 +348,7 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
 	    "Return the name of the procedure @var{proc}")
 #define FUNC_NAME s_scm_procedure_name
 {
-  SCM_VALIDATE_PROC (1,proc);
+  SCM_VALIDATE_PROC (1, proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_subrs:
     return SCM_SNAME (proc);
@@ -374,7 +374,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
 	    "Return the source of the procedure @var{proc}.")
 #define FUNC_NAME s_scm_procedure_source
 {
-  SCM_VALIDATE_NIM (1,proc);
+  SCM_VALIDATE_NIM (1, proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     {
@@ -407,7 +407,7 @@ SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0,
 	    "Return the environment of the procedure @var{proc}.")
 #define FUNC_NAME s_scm_procedure_environment
 {
-  SCM_VALIDATE_NIM (1,proc);
+  SCM_VALIDATE_NIM (1, proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     return SCM_ENV (proc);

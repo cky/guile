@@ -271,8 +271,8 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_string_set_x
 {
   SCM_VALIDATE_STRING (1, str);
-  SCM_VALIDATE_INUM_RANGE (2,k,0,SCM_STRING_LENGTH(str));
-  SCM_VALIDATE_CHAR (3,chr);
+  SCM_VALIDATE_INUM_RANGE (2, k,0, SCM_STRING_LENGTH(str));
+  SCM_VALIDATE_CHAR (3, chr);
   SCM_STRING_UCHARS (str)[SCM_INUM (k)] = SCM_CHAR (chr);
   return SCM_UNSPECIFIED;
 }
@@ -323,7 +323,7 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (args);
   for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) {
     s = SCM_CAR (l);
-    SCM_VALIDATE_STRING (SCM_ARGn,s);
+    SCM_VALIDATE_STRING (SCM_ARGn, s);
     i += SCM_STRING_LENGTH (s);
   }
   res = scm_allocate_string (i);

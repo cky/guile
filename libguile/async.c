@@ -115,7 +115,7 @@ static scm_t_bits tc16_async;
 /* cmm: this has SCM_ prefix because SCM_MAKE_VALIDATE expects it.
    this is ugly.  */
 #define SCM_ASYNCP(X)		SCM_TYP16_PREDICATE (tc16_async, X)
-#define VALIDATE_ASYNC(pos,a)	SCM_MAKE_VALIDATE(pos, a, ASYNCP)
+#define VALIDATE_ASYNC(pos, a)	SCM_MAKE_VALIDATE(pos, a, ASYNCP)
 
 #define ASYNC_GOT_IT(X)        (SCM_CELL_WORD_0 (X) >> 16)
 #define SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 ((X), SCM_TYP16 (X) | ((V) << 16)))

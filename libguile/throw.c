@@ -76,10 +76,10 @@ static scm_t_bits tc16_jmpbuffer;
   (SCM_SET_CELL_WORD_0 ((x), (SCM_CELL_WORD_0 (x) & ~(1L << 16L))))
 
 #define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
-#define SETJBJMPBUF(x,v)        (SCM_SET_CELL_WORD_1 ((x), (v)))
+#define SETJBJMPBUF(x, v)        (SCM_SET_CELL_WORD_1 ((x), (v)))
 #ifdef DEBUG_EXTENSIONS
 #define SCM_JBDFRAME(x)         ((scm_t_debug_frame *) SCM_CELL_WORD_2 (x))
-#define SCM_SETJBDFRAME(x,v)    (SCM_SET_CELL_WORD_2 ((x), (v)))
+#define SCM_SETJBDFRAME(x, v)    (SCM_SET_CELL_WORD_2 ((x), (v)))
 #endif
 
 static int
@@ -595,7 +595,7 @@ SCM_DEFINE (scm_throw, "throw", 1, 0, 1,
 	    "If there is no handler at all, Guile prints an error and then exits.")
 #define FUNC_NAME s_scm_throw
 {
-  SCM_VALIDATE_SYMBOL (1,key);
+  SCM_VALIDATE_SYMBOL (1, key);
   return scm_ithrow (key, args, 1);
 }
 #undef FUNC_NAME

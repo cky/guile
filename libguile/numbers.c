@@ -65,7 +65,7 @@ static SCM scm_divbigbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, in
 static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 
 
-#define SCM_SWAP(x,y) do { SCM __t = x; x = y; y = __t; } while (0)
+#define SCM_SWAP(x, y) do { SCM __t = x; x = y; y = __t; } while (0)
 
 
 /* FLOBUFLEN is the maximum number of characters neccessary for the
@@ -1257,7 +1257,7 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 	SCM_WRONG_TYPE_ARG (2, k);
     }
   else
-    SCM_VALIDATE_ULONG_COPY (2,k,i2);
+    SCM_VALIDATE_ULONG_COPY (2, k, i2);
   if (i2 < 0)
     {
       i2 = -i2;
@@ -1350,7 +1350,7 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 #define FUNC_NAME s_scm_bit_extract
 {
   unsigned long int istart, iend;
-  SCM_VALIDATE_INUM_MIN_COPY (2,start,0,istart);
+  SCM_VALIDATE_INUM_MIN_COPY (2, start,0, istart);
   SCM_VALIDATE_INUM_MIN_COPY (3, end, 0, iend);
   SCM_ASSERT_RANGE (3, end, (iend >= istart));
 
@@ -2992,7 +2992,7 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
   SCM answer;
   int base;
   SCM_VALIDATE_STRING (1, string);
-  SCM_VALIDATE_INUM_MIN_DEF_COPY (2,radix,2,10,base);
+  SCM_VALIDATE_INUM_MIN_DEF_COPY (2, radix,2,10, base);
   answer = scm_i_mem2number (SCM_STRING_CHARS (string),
 			   SCM_STRING_LENGTH (string),
 			   base);

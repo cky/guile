@@ -133,7 +133,7 @@ scm_mem2symbol (const char *name, size_t len)
 
     slot = SCM_VELTS (symbols) [hash];
     cell = scm_cons (symbol, SCM_UNDEFINED);
-    SCM_VELTS (symbols) [hash] = scm_cons (cell, slot);
+    SCM_VECTOR_SET (symbols, hash, scm_cons (cell, slot));
 
     return symbol;
   }
@@ -319,7 +319,7 @@ SCM_DEFINE (scm_symbol_fref, "symbol-fref", 1, 0, 0,
 	    "Return the contents of @var{symbol}'s @dfn{function slot}.")
 #define FUNC_NAME s_scm_symbol_fref
 {
-  SCM_VALIDATE_SYMBOL (1,s);
+  SCM_VALIDATE_SYMBOL (1, s);
   return SCM_SYMBOL_FUNC (s);
 }
 #undef FUNC_NAME
@@ -330,7 +330,7 @@ SCM_DEFINE (scm_symbol_pref, "symbol-pref", 1, 0, 0,
 	    "Return the @dfn{property list} currently associated with @var{symbol}.")
 #define FUNC_NAME s_scm_symbol_pref
 {
-  SCM_VALIDATE_SYMBOL (1,s);
+  SCM_VALIDATE_SYMBOL (1, s);
   return SCM_SYMBOL_PROPS (s);
 }
 #undef FUNC_NAME
@@ -341,7 +341,7 @@ SCM_DEFINE (scm_symbol_fset_x, "symbol-fset!", 2, 0, 0,
 	    "Change the binding of @var{symbol}'s function slot.")
 #define FUNC_NAME s_scm_symbol_fset_x
 {
-  SCM_VALIDATE_SYMBOL (1,s);
+  SCM_VALIDATE_SYMBOL (1, s);
   SCM_SET_SYMBOL_FUNC (s, val);
   return SCM_UNSPECIFIED;
 }
@@ -353,7 +353,7 @@ SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
 	    "Change the binding of @var{symbol}'s property slot.")
 #define FUNC_NAME s_scm_symbol_pset_x
 {
-  SCM_VALIDATE_SYMBOL (1,s);
+  SCM_VALIDATE_SYMBOL (1, s);
   SCM_DEFER_INTS;
   SCM_SET_SYMBOL_PROPS (s, val);
   SCM_ALLOW_INTS;

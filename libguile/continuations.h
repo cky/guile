@@ -91,7 +91,7 @@ typedef struct
 #define SCM_CONTREGS(x)		((scm_t_contregs *) SCM_CELL_WORD_1 (x))
 
 #define SCM_CONTINUATION_LENGTH(x) (SCM_CONTREGS (x)->num_stack_items)
-#define SCM_SET_CONTINUATION_LENGTH(x,n)\
+#define SCM_SET_CONTINUATION_LENGTH(x, n)\
    (SCM_CONTREGS (x)->num_stack_items = (n))
 #define SCM_JMPBUF(x)		((SCM_CONTREGS (x))->jmpbuf)
 #define SCM_DYNENV(x)		((SCM_CONTREGS (x))->dynenv)
