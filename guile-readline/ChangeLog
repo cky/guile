@@ -5,6 +5,7 @@
 	the shared library.
 	* configure.in: AC_SUBST it.
 	* Makefile.am: Substitute it into name of library.
+	* ice-9/readline.scm: Use new name with load-extension.
 
 2004-08-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
