@@ -46,9 +46,6 @@
 
 #include "libguile/__scm.h"
 
-
-extern SCM *scm_loc_features;
-
 extern void scm_add_feature SCM_P((char* str));
 extern SCM scm_program_arguments  SCM_P((void));
 extern void scm_init_feature SCM_P((void));
