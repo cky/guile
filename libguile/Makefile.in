@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1l from Makefile.am
+# Makefile.in generated automatically by automake 1.1n from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -32,45 +32,56 @@ pkgincludedir = $(includedir)/@PACKAGE@
 
 top_builddir = .
 
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-host_triplet = @host@
+
+NORMAL_INSTALL = true
+PRE_INSTALL = true
+POST_INSTALL = true
+NORMAL_UNINSTALL = true
+PRE_UNINSTALL = true
+POST_UNINSTALL = true
 host_alias = @host_alias@
-LIBLOBJS = @LIBLOBJS@
+host_triplet = @host@
 AWK = @AWK@
-LIBTOOL = @LIBTOOL@
-module = @module@
-VERSION = @VERSION@
 CC = @CC@
-RANLIB = @RANLIB@
+LIBLOBJS = @LIBLOBJS@
+LIBTOOL = @LIBTOOL@
 MAINT = @MAINT@
-xtra_PLUGIN_guile_libs = @xtra_PLUGIN_guile_libs@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
 PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+VERSION = @VERSION@
+module = @module@
+xtra_PLUGIN_guile_libs = @xtra_PLUGIN_guile_libs@
 
 AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = -I.. -I$(srcdir)/..
 
-lib_PROGRAMS = libguile.la
+lib_LTLIBRARIES = libguile.la
 libguile_la_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
-boolean.c chars.c continuations.c dynl.c dynwind.c eq.c \
-error.c eval.c extchrs.c feature.c filesys.c fports.c gc.c \
-gdbint.c genio.c gsubr.c hash.c hashtab.c init.c ioext.c \
-kw.c list.c load.c mallocs.c markers.c mbstrings.c net_db.c \
-numbers.c objprop.c \
-options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
-read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c \
-stackchk.c stime.c strings.c strop.c strorder.c \
-strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
-vectors.c version.c vports.c weaks.c _scm.h
+    boolean.c chars.c continuations.c dynl.c dynwind.c eq.c \
+    error.c eval.c extchrs.c feature.c filesys.c fports.c gc.c \
+    gdbint.c genio.c gsubr.c hash.c hashtab.c init.c ioext.c \
+    kw.c list.c load.c mallocs.c markers.c mbstrings.c net_db.c \
+    numbers.c objprop.c \
+    options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
+    read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c \
+    stackchk.c stime.c strings.c strop.c strorder.c \
+    strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
+    vectors.c version.c vports.c weaks.c _scm.h
 EXTRA_libguile_la_SOURCES = backtrace.c stacks.c debug.c srcprop.c \
-strerror.c inet_aton.c putenv.c
+    strerror.c inet_aton.c putenv.c
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LDADD = @LIBLOBJS@
+libguile_la_LIBADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 0:0 -rpath $(libdir)
 
 include_HEADERS = libguile.h
@@ -78,25 +89,25 @@ include_HEADERS = libguile.h
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/@module@
 modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
-backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h eq.h \
-error.h eval.h extchrs.h feature.h filesys.h fports.h gc.h \
-gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h ioext.h \
-kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
-numbers.h objprop.h \
-options.h pairs.h ports.h posix.h print.h procprop.h procs.h ramap.h read.h \
-root.h scmhob.h scmsigs.h sequences.h simpos.h smob.h socket.h srcprop.h \
-stackchk.h stacks.h stime.h strings.h strop.h strorder.h strports.h struct.h \
-symbols.h tag.h tags.h throw.h unif.h variable.h vectors.h version.h \
-vports.h weaks.h snarf.h
+    backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h \
+    eq.h error.h eval.h extchrs.h feature.h filesys.h fports.h gc.h \
+    gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h \
+    ioext.h kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
+    numbers.h objprop.h options.h pairs.h ports.h posix.h print.h \
+    procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h \
+    sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
+    stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
+    tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
+    weaks.h snarf.h
 
 modinclude_DATA = scmconfig.h
 
 bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
-PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
-cpp_sig_symbols.in cpp_cnvt.awk
+    dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
+    PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
+    cpp_sig_symbols.in cpp_cnvt.awk
 
 SUFFIXES = .x
 
@@ -104,12 +115,13 @@ MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 CLEANFILES=cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
-ACLOCAL = $(top_srcdir)/aclocal.m4
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 CONFIG_HEADER_IN = scmconfig.h.in
+CONFIG_HEADER_FULL = scmconfig.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
 CONFIG_HEADER = scmconfig.h
 CONFIG_CLEAN_FILES =  guile-snarf
-PROGRAMS =  $(lib_PROGRAMS)
+LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I.
@@ -130,6 +142,7 @@ SCRIPTS =  $(bin_SCRIPTS)
 
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LINK = $(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@
 DATA =  $(modinclude_DATA)
 
@@ -140,10 +153,10 @@ acinclude.m4 aclocal.m4 configure configure.in guile-snarf.in \
 scmconfig.h.in stamp-h.in
 
 
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
+GZIP = --best
 DEP_FILES =  .deps/alist.P .deps/append.P .deps/appinit.P \
 .deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
 .deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynl.P \
@@ -169,30 +182,30 @@ default: all
 
 .SUFFIXES:
 .SUFFIXES: .c .o .lo .x
-$(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
-	cd $(top_srcdir) && automake --foreign Makefile
+$(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(srcdir)/aclocal.m4: @MAINT@configure.in acinclude.m4
-	cd $(srcdir) && aclocal
+$(srcdir)/aclocal.m4: @MAINT@ configure.in  acinclude.m4
+	cd $(srcdir) && $(ACLOCAL)
 
 config.status: configure
 	$(SHELL) ./config.status --recheck
-$(srcdir)/configure: @MAINT@configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
-	cd $(srcdir) && autoconf
+$(srcdir)/configure: @MAINT@configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && $(AUTOCONF)
 
 $(CONFIG_HEADER): stamp-h
 stamp-h: $(CONFIG_HEADER_IN) $(top_builddir)/config.status
 	cd $(top_builddir) \
-	  && CONFIG_FILES= CONFIG_HEADERS=$(CONFIG_HEADER) \
+	  && CONFIG_FILES= CONFIG_HEADERS=$(CONFIG_HEADER_FULL) \
 	     $(SHELL) ./config.status
 	@echo timestamp > stamp-h
 $(srcdir)/$(CONFIG_HEADER_IN): @MAINT@stamp-h.in
-$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL) acconfig.h
-	cd $(top_srcdir) && autoheader
+$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) acconfig.h
+	cd $(top_srcdir) && $(AUTOHEADER)
 	echo timestamp > $(srcdir)/stamp-h.in
 
 mostlyclean-hdr:
@@ -206,28 +219,29 @@ maintainer-clean-hdr:
 guile-snarf: $(top_builddir)/config.status guile-snarf.in
 	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
 
-mostlyclean-libPROGRAMS:
+mostlyclean-libLTLIBRARIES:
 
-clean-libPROGRAMS:
-	test -z "$(lib_PROGRAMS)" || rm -f $(lib_PROGRAMS)
+clean-libLTLIBRARIES:
+	test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
 
-distclean-libPROGRAMS:
+distclean-libLTLIBRARIES:
 
-maintainer-clean-libPROGRAMS:
+maintainer-clean-libLTLIBRARIES:
 
-install-libPROGRAMS: $(lib_PROGRAMS)
-	$(NORMAL_INSTALL)
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(libdir)
-	@list="$(lib_PROGRAMS)"; for p in $$list; do \
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo "$(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $$p $(libdir)/$$p"; \
-	    $(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $$p $(libdir)/$$p; \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(libdir)/$$p; \
 	  else :; fi; \
 	done
 
-uninstall-libPROGRAMS:
-	list="$(lib_PROGRAMS)"; for p in $$list; do \
-	  $(LIBTOOL) --mode=uninstall rm -f $(libdir)/$$p; \
+uninstall-libLTLIBRARIES:
+	$(NORMAL_UNINSTALL)
+	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  $(LIBTOOL)  --mode=uninstall rm -f $(libdir)/$$p; \
 	done
 
 .c.o:
@@ -255,70 +269,73 @@ clean-libtool:
 distclean-libtool:
 
 maintainer-clean-libtool:
-$(libguile_la_OBJECTS): scmconfig.h
 
 libguile.la: $(libguile_la_OBJECTS) $(libguile_la_DEPENDENCIES)
-	$(LINK) $(libguile_la_LDFLAGS) $(libguile_la_OBJECTS) $(libguile_la_LDADD) $(LIBS)
+	$(LINK) -rpath lib $(libguile_la_LDFLAGS) $(libguile_la_OBJECTS) $(libguile_la_LIBADD) $(LIBS)
 
 install-binSCRIPTS: $(bin_SCRIPTS)
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(bindir)
-	@list="$(bin_SCRIPTS)"; for p in $$list; do \
+	@list='$(bin_SCRIPTS)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo "$(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    echo " $(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
 	    $(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`; \
 	  else if test -f $(srcdir)/$$p; then \
-	    echo "$(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
 	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`; \
 	  else :; fi; fi; \
 	done
 
 uninstall-binSCRIPTS:
-	list="$(bin_SCRIPTS)"; for p in $$list; do \
+	$(NORMAL_UNINSTALL)
+	list='$(bin_SCRIPTS)'; for p in $$list; do \
 	  rm -f $(bindir)/`echo $$p|sed '$(transform)'`; \
 	done
 
 install-modincludeDATA: $(modinclude_DATA)
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(modincludedir)
-	@list="$(modinclude_DATA)"; for p in $$list; do \
+	@list='$(modinclude_DATA)'; for p in $$list; do \
 	  if test -f $(srcdir)/$$p; then \
-	    echo "$(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
+	    echo " $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
 	    $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
 	  else if test -f $$p; then \
-	    echo "$(INSTALL_DATA) $$p $(modincludedir)/$$p"; \
+	    echo " $(INSTALL_DATA) $$p $(modincludedir)/$$p"; \
 	    $(INSTALL_DATA) $$p $(modincludedir)/$$p; \
 	  fi; fi; \
 	done
 
 uninstall-modincludeDATA:
-	list="$(modinclude_DATA)"; for p in $$list; do \
+	$(NORMAL_UNINSTALL)
+	list='$(modinclude_DATA)'; for p in $$list; do \
 	  rm -f $(modincludedir)/$$p; \
 	done
 
 install-includeHEADERS: $(include_HEADERS)
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(includedir)
-	@list="$(include_HEADERS)"; for p in $$list; do \
-	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p"; \
+	@list='$(include_HEADERS)'; for p in $$list; do \
+	  echo " $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p"; \
 	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
 	done
 
 uninstall-includeHEADERS:
-	list="$(include_HEADERS)"; for p in $$list; do \
+	$(NORMAL_UNINSTALL)
+	list='$(include_HEADERS)'; for p in $$list; do \
 	  rm -f $(includedir)/$$p; \
 	done
 
 install-modincludeHEADERS: $(modinclude_HEADERS)
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(modincludedir)
-	@list="$(modinclude_HEADERS)"; for p in $$list; do \
-	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
+	@list='$(modinclude_HEADERS)'; for p in $$list; do \
+	  echo " $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
 	  $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
 	done
 
 uninstall-modincludeHEADERS:
-	list="$(modinclude_HEADERS)"; for p in $$list; do \
+	$(NORMAL_UNINSTALL)
+	list='$(modinclude_HEADERS)'; for p in $$list; do \
 	  rm -f $(modincludedir)/$$p; \
 	done
 
@@ -330,11 +347,11 @@ ID: $(HEADERS) $(SOURCES)
 TAGS:  $(HEADERS) $(SOURCES) scmconfig.h.in $(TAGS_DEPENDENCIES)
 	tags=; \
 	here=`pwd`; \
-	list="$(SUBDIRS)"; for subdir in $$list; do \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
 	done; \
 	test -z "$(ETAGS_ARGS)scmconfig.h.in$(SOURCES)$(HEADERS)$$tags" \
-	  || cd $(srcdir) && etags $(ETAGS_ARGS) $$tags scmconfig.h.in $(SOURCES) $(HEADERS) -o $$here/TAGS
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags scmconfig.h.in $(SOURCES) $(HEADERS) -o $$here/TAGS)
 
 mostlyclean-tags:
 
@@ -351,7 +368,7 @@ distdir = $(PACKAGE)-$(VERSION)
 # tarfile.
 distcheck: dist
 	rm -rf $(distdir)
-	$(TAR) zxf $(distdir).tar.gz
+	GZIP=$(GZIP) $(TAR) zxf $(distdir).tar.gz
 	mkdir $(distdir)/=build
 	mkdir $(distdir)/=inst
 	dc_install_base=`cd $(distdir)/=inst && pwd`; \
@@ -369,11 +386,11 @@ distcheck: dist
 	echo "========================"
 dist: distdir
 	-chmod -R a+r $(distdir)
-	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
 	rm -rf $(distdir)
 dist-all: distdir
 	-chmod -R a+r $(distdir)
-	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
 	rm -rf $(distdir)
 distdir: $(DISTFILES)
 	rm -rf $(distdir)
@@ -381,7 +398,7 @@ distdir: $(DISTFILES)
 	-chmod 755 $(distdir)
 	here=`pwd`; distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
 	$(mkinstalldirs) $(distdir)/PLUGIN
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
@@ -409,24 +426,24 @@ maintainer-clean-depend:
 	@echo "Computing dependencies for $<..."
 	@o='o';				\
 	test -n "$o" && o='$$o';	\
-	$(MKDEP) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
+	$(MKDEP) $< | sed "s,^\(.*\)\.o:,\1.$$o \1.l$$o $@:," > $@
 info:
 dvi:
 check: all
 	$(MAKE)
 installcheck:
-install-exec: install-libPROGRAMS install-binSCRIPTS
-	$(NORMAL_INSTALL)
+install-exec: install-libLTLIBRARIES install-binSCRIPTS
+	@$(NORMAL_INSTALL)
 
 install-data: install-modincludeDATA install-includeHEADERS install-modincludeHEADERS
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libPROGRAMS uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS
+uninstall: uninstall-libLTLIBRARIES uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS
 
-all: $(PROGRAMS) $(SCRIPTS) $(DATA) $(HEADERS) Makefile scmconfig.h
+all: $(LTLIBRARIES) $(SCRIPTS) $(DATA) $(HEADERS) Makefile scmconfig.h
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
@@ -449,20 +466,20 @@ distclean-generic:
 maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
-mostlyclean:  mostlyclean-hdr mostlyclean-libPROGRAMS \
+mostlyclean:  mostlyclean-hdr mostlyclean-libLTLIBRARIES \
 		mostlyclean-compile mostlyclean-libtool \
 		mostlyclean-tags mostlyclean-depend mostlyclean-generic
 
-clean:  clean-hdr clean-libPROGRAMS clean-compile clean-libtool \
+clean:  clean-hdr clean-libLTLIBRARIES clean-compile clean-libtool \
 		clean-tags clean-depend clean-generic mostlyclean
 
-distclean:  distclean-hdr distclean-libPROGRAMS distclean-compile \
+distclean:  distclean-hdr distclean-libLTLIBRARIES distclean-compile \
 		distclean-libtool distclean-tags distclean-depend \
 		distclean-generic clean
 	rm -f config.status
 	rm -f libtool
 
-maintainer-clean:  maintainer-clean-hdr maintainer-clean-libPROGRAMS \
+maintainer-clean:  maintainer-clean-hdr maintainer-clean-libLTLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
 		maintainer-clean-tags maintainer-clean-depend \
 		maintainer-clean-generic distclean
@@ -471,13 +488,14 @@ maintainer-clean:  maintainer-clean-hdr maintainer-clean-libPROGRAMS \
 	rm -f config.status
 
 .PHONY: default mostlyclean-hdr distclean-hdr clean-hdr \
-maintainer-clean-hdr mostlyclean-libPROGRAMS distclean-libPROGRAMS \
-clean-libPROGRAMS maintainer-clean-libPROGRAMS uninstall-libPROGRAMS \
-install-libPROGRAMS mostlyclean-compile distclean-compile clean-compile \
-maintainer-clean-compile mostlyclean-libtool distclean-libtool \
-clean-libtool maintainer-clean-libtool uninstall-binSCRIPTS \
-install-binSCRIPTS uninstall-modincludeDATA install-modincludeDATA \
-uninstall-includeHEADERS install-includeHEADERS \
+maintainer-clean-hdr mostlyclean-libLTLIBRARIES \
+distclean-libLTLIBRARIES clean-libLTLIBRARIES \
+maintainer-clean-libLTLIBRARIES uninstall-libLTLIBRARIES \
+install-libLTLIBRARIES mostlyclean-compile distclean-compile \
+clean-compile maintainer-clean-compile mostlyclean-libtool \
+distclean-libtool clean-libtool maintainer-clean-libtool \
+uninstall-binSCRIPTS install-binSCRIPTS uninstall-modincludeDATA \
+install-modincludeDATA uninstall-includeHEADERS install-includeHEADERS \
 uninstall-modincludeHEADERS install-modincludeHEADERS tags \
 mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
 distdir mostlyclean-depend distclean-depend clean-depend \

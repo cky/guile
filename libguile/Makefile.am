@@ -7,22 +7,22 @@ AUTOMAKE_OPTIONS = foreign
 ## building.
 INCLUDES = -I.. -I$(srcdir)/..
 
-lib_PROGRAMS = libguile.la
+lib_LTLIBRARIES = libguile.la
 libguile_la_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
-boolean.c chars.c continuations.c dynl.c dynwind.c eq.c \
-error.c eval.c extchrs.c feature.c filesys.c fports.c gc.c \
-gdbint.c genio.c gsubr.c hash.c hashtab.c init.c ioext.c \
-kw.c list.c load.c mallocs.c markers.c mbstrings.c net_db.c \
-numbers.c objprop.c \
-options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
-read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c \
-stackchk.c stime.c strings.c strop.c strorder.c \
-strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
-vectors.c version.c vports.c weaks.c _scm.h
+    boolean.c chars.c continuations.c dynl.c dynwind.c eq.c \
+    error.c eval.c extchrs.c feature.c filesys.c fports.c gc.c \
+    gdbint.c genio.c gsubr.c hash.c hashtab.c init.c ioext.c \
+    kw.c list.c load.c mallocs.c markers.c mbstrings.c net_db.c \
+    numbers.c objprop.c \
+    options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
+    read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c \
+    stackchk.c stime.c strings.c strop.c strorder.c \
+    strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
+    vectors.c version.c vports.c weaks.c _scm.h
 EXTRA_libguile_la_SOURCES = backtrace.c stacks.c debug.c srcprop.c \
-strerror.c inet_aton.c putenv.c
+    strerror.c inet_aton.c putenv.c
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LDADD = @LIBLOBJS@
+libguile_la_LIBADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 0:0 -rpath $(libdir)
 
 include_HEADERS = libguile.h
@@ -30,16 +30,16 @@ include_HEADERS = libguile.h
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/@module@
 modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
-backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h eq.h \
-error.h eval.h extchrs.h feature.h filesys.h fports.h gc.h \
-gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h ioext.h \
-kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
-numbers.h objprop.h \
-options.h pairs.h ports.h posix.h print.h procprop.h procs.h ramap.h read.h \
-root.h scmhob.h scmsigs.h sequences.h simpos.h smob.h socket.h srcprop.h \
-stackchk.h stacks.h stime.h strings.h strop.h strorder.h strports.h struct.h \
-symbols.h tag.h tags.h throw.h unif.h variable.h vectors.h version.h \
-vports.h weaks.h snarf.h
+    backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h \
+    eq.h error.h eval.h extchrs.h feature.h filesys.h fports.h gc.h \
+    gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h \
+    ioext.h kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
+    numbers.h objprop.h options.h pairs.h ports.h posix.h print.h \
+    procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h \
+    sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
+    stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
+    tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
+    weaks.h snarf.h
 
 ## This file is generated at configure time.  That is why it is DATA
 ## and not a header -- headers are included in the distribution.
@@ -48,9 +48,9 @@ modinclude_DATA = scmconfig.h
 bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
-PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
-cpp_sig_symbols.in cpp_cnvt.awk
+    dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
+    PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
+    cpp_sig_symbols.in cpp_cnvt.awk
 
 ## FIXME: shouldn't directly generate file; instead generate temp file
 ## and "mv".  Consider using timestamp file as well, to avoid
