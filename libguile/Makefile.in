@@ -493,7 +493,7 @@ maintainer-clean-depend:
 info:
 dvi:
 check: all $(check_PROGRAMS)
-	$(MAKE)
+	$(MAKE) check-local
 installcheck:
 install-exec: install-libLTLIBRARIES install-binPROGRAMS install-binSCRIPTS
 	@$(NORMAL_INSTALL)
@@ -571,11 +571,15 @@ uninstall-modincludeHEADERS install-modincludeHEADERS \
 uninstall-pkgincludeHEADERS install-pkgincludeHEADERS tags \
 mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
 distdir mostlyclean-depend distclean-depend clean-depend \
-maintainer-clean-depend info dvi installcheck install-exec install-data \
-install uninstall all installdirs mostlyclean-generic distclean-generic \
-clean-generic maintainer-clean-generic clean mostlyclean distclean \
-maintainer-clean
+maintainer-clean-depend info dvi check-local installcheck install-exec \
+install-data install uninstall all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
+
+check-local:
+	echo '(+ 1 2 3)' | ./gh_test_c; echo
+	echo '(+ 1 2 3)' | ./gh_test_repl; echo
 
 libpath.h: Makefile
 	rm -f libpath.tmp
