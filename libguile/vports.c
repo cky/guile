@@ -191,12 +191,10 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
   SCM_VALIDATE_STRING (2, modes);
   
   SCM_DEFER_INTS;
-  pt = scm_new_port_table_entry ();
+  z = scm_new_port_table_entry (scm_tc16_sfport);
   scm_port_non_buffer (pt);
-  z = scm_cell (scm_tc16_sfport | scm_mode_bits (SCM_STRING_CHARS (modes)), 0);
-  SCM_SETPTAB_ENTRY (z, pt);
-  pt->port = z;
-  
+  SCM_SET_CELL_TYPE (z, scm_tc16_sfport | scm_mode_bits (SCM_STRING_CHARS (modes)));
+
   SCM_SETSTREAM (z, SCM_UNPACK (pv));
   SCM_ALLOW_INTS;
   return z;

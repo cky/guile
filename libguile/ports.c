@@ -452,10 +452,11 @@ long scm_port_table_size = 0;	/* Number of ports in scm_port_table.  */
 long scm_port_table_room = 20;	/* Size of the array.  */
 
 
-scm_t_port *
-scm_new_port_table_entry (void)
+SCM
+scm_new_port_table_entry (scm_t_bits tag)
 #define FUNC_NAME "scm_new_port_table_entry"
 {
+  SCM z = scm_cell (SCM_EOL, SCM_EOL);
   scm_t_port *entry = (scm_t_port *) scm_gc_calloc (sizeof (scm_t_port), "port");
   if (scm_port_table_size == scm_port_table_room)
     {
@@ -468,17 +469,19 @@ scm_new_port_table_entry (void)
       scm_port_table_room *= 2;
     }
 
-  entry->port = SCM_EOL;
   entry->entry = scm_port_table_size;
 
   entry->file_name = SCM_BOOL_F;
   entry->rw_active = SCM_PORT_NEITHER;
 
-
   scm_port_table[scm_port_table_size] = entry;
   scm_port_table_size++;
 
-  return entry;
+  entry->port = z;
+  SCM_SET_CELL_TYPE(z, tag);
+  SCM_SETPTAB_ENTRY(z, entry);
+  
+  return z;
 }
 #undef FUNC_NAME
 
@@ -1521,13 +1524,10 @@ scm_void_port (char *mode_str)
   SCM_DEFER_INTS;
   {
     int mode_bits = scm_mode_bits (mode_str);
-    scm_t_port * pt = scm_new_port_table_entry ();
-    SCM answer;
-    
+    SCM answer = scm_new_port_table_entry (scm_tc16_void_port);
+    scm_t_port * pt = SCM_PTAB_ENTRY(answer);
+
     scm_port_non_buffer (pt);
-    answer = scm_cell (scm_tc16_void_port, 0);
-    SCM_SETPTAB_ENTRY (answer, pt);
-    pt->port = answer;
   
     SCM_SETSTREAM (answer, 0);
     SCM_SET_CELL_TYPE (answer, scm_tc16_void_port | mode_bits);

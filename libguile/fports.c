@@ -437,10 +437,10 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
     }
 
   SCM_DEFER_INTS;
-  pt = scm_new_port_table_entry ();
-  port = scm_cell (scm_tc16_fport | mode_bits, (scm_t_bits) pt);
-  pt->port = port;
-  
+
+  port = scm_new_port_table_entry (scm_tc16_fport);
+  SCM_SET_CELL_TYPE(port, scm_tc16_fport | mode_bits);
+  pt = SCM_PTAB_ENTRY(port);
   {
     scm_t_fport *fp
       = (scm_t_fport *) scm_gc_malloc (sizeof (scm_t_fport), "file port");

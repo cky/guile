@@ -1,3 +1,8 @@
+2002-08-09  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* ports.c ("scm_new_port_table_entry"): return a boxed SCM in
+	stead of scm_t_port*. The function now takes a tag argument.
+
 2002-08-08  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc.h: add scm_debug_cells_gc_interval to public interface

@@ -281,14 +281,10 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
     scm_misc_error ("scm_mkstrport", "port must read or write", SCM_EOL);
 
   SCM_DEFER_INTS;
-  pt = scm_new_port_table_entry ();
-  z = scm_cell (scm_tc16_strport | modes,  0);
-
-  SCM_SETPTAB_ENTRY (z, pt);
-  pt->port = z;
-
-  
+  z = scm_new_port_table_entry (scm_tc16_strport);
+  pt = SCM_PTAB_ENTRY(z);
   SCM_SETSTREAM (z, SCM_UNPACK (str));
+  SCM_SET_CELL_TYPE(z, scm_tc16_strport|modes);
   pt->write_buf = pt->read_buf = SCM_STRING_UCHARS (str);
   pt->read_pos = pt->write_pos = pt->read_buf + SCM_INUM (pos);
   pt->write_buf_size = pt->read_buf_size = str_len;
