@@ -4257,10 +4257,14 @@ SCM_GPROC (s_angle, "angle", 1, 0, 0, scm_angle, g_angle);
 SCM
 scm_angle (SCM z)
 {
+  /* atan(0,-1) is pi and it'd be possible to have that as a constant like
+     scm_flo0 to save allocating a new flonum with scm_make_real each time.
+     But if atan2 follows the floating point rounding mode, then the value
+     is not a constant.  Maybe it'd be close enough though.  */
   if (SCM_INUMP (z))
     {
       if (SCM_INUM (z) >= 0)
-	return scm_make_real (atan2 (0.0, 1.0));
+        return scm_flo0;
       else
 	return scm_make_real (atan2 (0.0, -1.0));
     }
@@ -4271,10 +4275,15 @@ scm_angle (SCM z)
       if (sgn < 0)
 	return scm_make_real (atan2 (0.0, -1.0));
       else
-	return scm_make_real (atan2 (0.0, 1.0));
+        return scm_flo0;
     }
   else if (SCM_REALP (z))
-    return scm_make_real (atan2 (0.0, SCM_REAL_VALUE (z)));
+    {
+      if (SCM_REAL_VALUE (z) >= 0)
+        return scm_flo0;
+      else
+        return scm_make_real (atan2 (0.0, -1.0));
+    }
   else if (SCM_COMPLEXP (z))
     return scm_make_real (atan2 (SCM_COMPLEX_IMAG (z), SCM_COMPLEX_REAL (z)));
   else
