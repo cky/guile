@@ -54,36 +54,6 @@
 #define SCM_CRITICAL_SECTION_END 
 #define SCM_THREAD_SWITCHING_CODE
 
-typedef struct scm_null_mutex {
-  int locked;
-} scm_null_mutex;
-
-SCM_API int scm_null_mutex_init (scm_null_mutex *);
-SCM_API int scm_null_mutex_lock (scm_null_mutex *);
-SCM_API int scm_null_mutex_unlock (scm_null_mutex *);
-SCM_API int scm_null_mutex_destroy (scm_null_mutex *);
-
-typedef scm_null_mutex scm_t_mutex;
-#define scm_mutex_init scm_null_mutex_init
-#define scm_mutex_lock scm_null_mutex_lock
-#define scm_mutex_unlock scm_null_mutex_unlock
-
-typedef struct scm_null_condvar {
-  int signalled;
-} scm_null_condvar;
-
-SCM_API int scm_null_condvar_init (scm_null_condvar *);
-SCM_API int scm_null_condvar_wait (scm_null_condvar *, scm_null_mutex *);
-SCM_API int scm_null_condvar_signal (scm_null_condvar *);
-SCM_API int scm_null_condvar_destroy (scm_null_condvar *);
-
-typedef scm_null_condvar scm_t_cond;
-#define scm_cond_init scm_null_condvar_init
-#define scm_cond_wait scm_null_condvar_wait
-#define scm_cond_signal scm_null_condvar_signal
-#define scm_cond_broadcast scm_null_condvar_signal /* yes */
-#define scm_cond_destroy scm_null_condvar_destroy
-
 SCM_API void *scm_null_threads_data;
 
 #define SCM_THREAD_LOCAL_DATA          (scm_null_threads_data)

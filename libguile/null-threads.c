@@ -49,14 +49,28 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
+#include <stdio.h>
 
 void *scm_null_threads_data;
 
 static SCM main_thread;
 
+typedef struct {
+  int level;
+} scm_null_mutex;
+
+typedef struct {
+  int signalled;
+} scm_null_cond;
+
 void
 scm_threads_init (SCM_STACKITEM *i)
 {
+  scm_tc16_thread = scm_make_smob_type ("thread", 0);
+  scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (scm_null_mutex));
+  scm_tc16_condvar = scm_make_smob_type ("condition-variable",
+					 sizeof (scm_null_cond));
+
   main_thread = scm_permanent_object (scm_cell (scm_tc16_thread, 0));
   scm_null_threads_data = NULL;
 }
@@ -147,124 +161,104 @@ scm_join_thread (SCM thread)
 }
 #undef FUNC_NAME
 
+int
+scm_c_thread_exited_p (SCM thread)
+#define FUNC_NAME s_scm_thread_exited_p
+{
+  return 0;
+}
+#undef FUNC_NAME
+
 SCM
 scm_yield (void)
 {
   return SCM_BOOL_T;
 }
 
-/* Block until a new async might have been queued.
- */
-static void
-block ()
-{
-  select (0, NULL, NULL, NULL, NULL);
-}
-
-int
-scm_null_mutex_init (scm_null_mutex *m)
-{
-  m->locked = 0;
-  return 0;
-}
-
-int
-scm_null_mutex_lock (scm_null_mutex *m)
-{
-  while (m->locked)
-    {
-      block ();
-      SCM_ASYNC_TICK;
-    }
-  m->locked = 1;
-  return 1;
-}
-
-int
-scm_null_mutex_unlock (scm_null_mutex *m)
-{
-  if (m->locked == 0)
-    return 0;
-  m->locked = 0;
-  return 1;
-}
-
-int
-scm_null_mutex_destroy (scm_null_mutex *m)
-{
-  return 1;
-}
-
 SCM
 scm_make_mutex (void)
 {
   SCM m = scm_make_smob (scm_tc16_mutex);
-  scm_null_mutex_init (SCM_MUTEX_DATA(m));
+  scm_null_mutex *mx = SCM_MUTEX_DATA(m);
+  mx->level = 0;
   return m;
 }
 
 SCM
 scm_lock_mutex (SCM m)
 {
+  scm_null_mutex *mx;
   SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_lock_mutex);
-  scm_null_mutex_lock (SCM_MUTEX_DATA(m));
+  mx = SCM_MUTEX_DATA(m);
+  mx->level++;
   return SCM_BOOL_T;
+}
+
+SCM
+scm_try_mutex (SCM m)
+{
+  return scm_lock_mutex (m); /* will always succeed right away. */
 }
 
 SCM
 scm_unlock_mutex (SCM m)
 {
+  scm_null_mutex *mx;
   SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_unlock_mutex);
-  if (!scm_null_mutex_unlock (SCM_MUTEX_DATA(m)))
+  mx = SCM_MUTEX_DATA(m);
+  if (mx->level == 0)
     scm_misc_error (s_unlock_mutex, "mutex is not locked", SCM_EOL);
+  mx->level--;
   return SCM_BOOL_T;
-}
-
-int
-scm_null_condvar_init (scm_null_condvar *c)
-{
-  c->signalled = 0;
-  return 0;
-}
-
-int
-scm_null_condvar_wait (scm_null_condvar *c, scm_null_mutex *m)
-{
-  scm_null_mutex_unlock (m);
-  while (!c->signalled)
-    {
-      block ();
-      SCM_ASYNC_TICK;
-    }
-  scm_null_mutex_lock (m);
-  c->signalled = 0;
-  return 0;
-}
-
-int
-scm_null_condvar_signal (scm_null_condvar *c)
-{
-  c->signalled = 1;
-  return 0;
-}
-
-int
-scm_null_condvar_destroy (scm_null_condvar *c)
-{
-  return 1;
 }
 
 SCM
 scm_make_condition_variable (void)
 {
+  scm_null_cond *cv;
   SCM c = scm_make_smob (scm_tc16_condvar);
-  scm_null_condvar_init (SCM_CONDVAR_DATA (c));
+  cv = SCM_CONDVAR_DATA (c);
+  cv->signalled = 0;
   return c;
 }
 
-SCM
-scm_wait_condition_variable (SCM c, SCM m)
+/* Subtract the `struct timeval' values X and Y,
+   storing the result in RESULT.  Might modify Y.
+   Return 1 if the difference is negative or zero, otherwise 0.  */
+
+static int
+timeval_subtract (result, x, y)
+     struct timeval *result, *x, *y;
 {
+  /* Perform the carry for the later subtraction by updating Y. */
+  if (x->tv_usec < y->tv_usec) {
+    int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
+    y->tv_usec -= 1000000 * nsec;
+    y->tv_sec += nsec;
+  }
+  if (x->tv_usec - y->tv_usec > 1000000) {
+    int nsec = (x->tv_usec - y->tv_usec) / 1000000;
+    y->tv_usec += 1000000 * nsec;
+    y->tv_sec -= nsec;
+  }
+  
+  /* Compute the time remaining to wait.
+     `tv_usec' is certainly positive. */
+  result->tv_sec = x->tv_sec - y->tv_sec;
+  result->tv_usec = x->tv_usec - y->tv_usec;
+  
+  /* Return 1 if result is negative or zero. */
+  return x->tv_sec < y->tv_sec
+    || (result->tv_sec == 0 && result->tv_usec == 0);
+}
+
+SCM
+scm_timed_wait_condition_variable (SCM c, SCM m, SCM t)
+#define FUNC_NAME s_wait_condition_variable
+{
+  scm_null_cond *cv;
+  struct timeval waittime;
+
   SCM_ASSERT (SCM_CONDVARP (c),
 	      c,
 	      SCM_ARG1,
@@ -273,19 +267,65 @@ scm_wait_condition_variable (SCM c, SCM m)
 	      m,
 	      SCM_ARG2,
 	      s_wait_condition_variable);
-  scm_null_condvar_wait (SCM_CONDVAR_DATA (c), SCM_MUTEX_DATA (m));
-  return SCM_BOOL_T;
+  if (!SCM_UNBNDP (t))
+    {
+      if (SCM_CONSP (t))
+	{
+	  SCM_VALIDATE_UINT_COPY (3, SCM_CAR(t), waittime.tv_sec);
+	  SCM_VALIDATE_UINT_COPY (3, SCM_CDR(t), waittime.tv_usec);
+	}
+      else
+	{
+	  SCM_VALIDATE_UINT_COPY (3, t, waittime.tv_sec);
+	  waittime.tv_usec = 0;
+	}
+    }
+
+  cv = SCM_CONDVAR_DATA (c);
+
+  scm_unlock_mutex (m);
+  while (!cv->signalled)
+    {
+      if (SCM_UNBNDP (t))
+	select (0, NULL, NULL, NULL, NULL);
+      else
+	{
+	  struct timeval now, then, diff;
+	  then = waittime;
+	  gettimeofday (&now, NULL);
+	  if (timeval_subtract (&diff, &then, &now))
+	    break;
+	  select (0, NULL, NULL, NULL, &diff);
+	}
+      SCM_ASYNC_TICK;
+    }
+  scm_lock_mutex (m);
+  if (cv->signalled)
+    {
+      cv->signalled = 0;
+      return SCM_BOOL_T;
+    }
+  return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 SCM
 scm_signal_condition_variable (SCM c)
 {
+  scm_null_cond *cv;
   SCM_ASSERT (SCM_CONDVARP (c),
 	      c,
 	      SCM_ARG1,
 	      s_signal_condition_variable);
-  scm_null_condvar_signal (SCM_CONDVAR_DATA (c));
+  cv = SCM_CONDVAR_DATA (c);
+  cv->signalled = 1;
   return SCM_BOOL_T;
+}
+
+SCM
+scm_broadcast_condition_variable (SCM c)
+{
+  return scm_signal_condition_variable (c); /* only one thread anyway. */
 }
 
 unsigned long 
