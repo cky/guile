@@ -179,6 +179,12 @@
 /* Define if usleep doesn't return a value. */
 #undef USLEEP_RETURNS_VOID
 
+/* Define if configuring on totoro.red-bean.com.
+   This variable is used in a workaround which forces totoro to include
+   readline support regardless.  This kludge should obviously be
+   removed as fast as possible. */
+#undef TOTORO
+
 /* Define if you have the bzero function.  */
 #undef HAVE_BZERO
 
@@ -322,6 +328,9 @@
 
 /* Define if you have the socketpair function.  */
 #undef HAVE_SOCKETPAIR
+
+/* Define if you have the strdup function.  */
+#undef HAVE_STRDUP
 
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
