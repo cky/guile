@@ -138,7 +138,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  }
 #endif
       }
-    new_sym = SCM_CAR (scm_intern_obarray (field_desc, len, SCM_BOOL_F));
+    new_sym = scm_mem2symbol (field_desc, len);
   }
   return scm_return_first (new_sym, fields);
 }

@@ -153,11 +153,11 @@ SCM_SNARF_INIT(scm_make_synt (RANAME, TYPE, CFN))
 
 #define SCM_SYMBOL(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (SCM_CAR (scm_intern0 (scheme_name))))
+SCM_SNARF_INIT(c_name = scm_permanent_object (scm_str2symbol (scheme_name)))
 
 #define SCM_GLOBAL_SYMBOL(c_name, scheme_name) \
 SCM_SNARF_HERE(SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (SCM_CAR (scm_intern0 (scheme_name))))
+SCM_SNARF_INIT(c_name = scm_permanent_object (scm_str2symbol (scheme_name)))
 
 #define SCM_KEYWORD(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \

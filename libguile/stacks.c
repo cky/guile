@@ -741,8 +741,7 @@ scm_init_stacks ()
     = scm_permanent_object (scm_make_struct (vtable, SCM_INUM0,
 					     scm_cons (stack_layout,
 						       SCM_EOL)));
-  scm_set_struct_vtable_name_x (scm_stack_type,
-				SCM_CAR (scm_intern0 ("stack")));
+  scm_set_struct_vtable_name_x (scm_stack_type, scm_str2symbol ("stack"));
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/stacks.x"
 #endif

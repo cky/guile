@@ -381,8 +381,7 @@ tryagain_no_flush_ws:
 
 	case '{':
 	  j = scm_read_token (c, tok_buf, port, 1);
-	  p = scm_intern (SCM_STRING_CHARS (*tok_buf), j);
-	  return SCM_CAR (p);
+	  return scm_mem2symbol (SCM_STRING_CHARS (*tok_buf), j);
 
 	case '\\':
 	  c = scm_getc (port);
@@ -404,8 +403,8 @@ tryagain_no_flush_ws:
 	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
 	case ':':
 	  j = scm_read_token ('-', tok_buf, port, 0);
-	  p = scm_intern (SCM_STRING_CHARS (*tok_buf), j);
-	  return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
+	  p = scm_mem2symbol (SCM_STRING_CHARS (*tok_buf), j);
+	  return scm_make_keyword_from_dash_symbol (p);
 
 	default:
 	callshrp:
@@ -509,8 +508,8 @@ tryagain_no_flush_ws:
       if (SCM_EQ_P (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_prefix))
 	{
 	  j = scm_read_token ('-', tok_buf, port, 0);
-	  p = scm_intern (SCM_STRING_CHARS (*tok_buf), j);
-	  return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
+	  p = scm_mem2symbol (SCM_STRING_CHARS (*tok_buf), j);
+	  return scm_make_keyword_from_dash_symbol (p);
 	}
       /* fallthrough */
     default:
@@ -518,8 +517,7 @@ tryagain_no_flush_ws:
       /* fallthrough */
 
     tok:
-      p = scm_intern (SCM_STRING_CHARS (*tok_buf), j);
-      return SCM_CAR (p);
+      return scm_mem2symbol (SCM_STRING_CHARS (*tok_buf), j);
     }
 }
 

@@ -2038,7 +2038,7 @@ static void
 init_raprocs (ra_iproc *subra)
 {
   for (; subra->name; subra++)
-    subra->sproc = SCM_CDR (scm_intern (subra->name, strlen (subra->name)));
+    subra->sproc = scm_symbol_binding (SCM_BOOL_F, scm_str2symbol (subra->name));
 }
 
 

@@ -65,7 +65,7 @@ void
 scm_add_feature (const char *str)
 {
   SCM old = SCM_CDR (features);
-  SCM new = scm_cons (SCM_CAR (scm_intern (str, strlen (str))), old);
+  SCM new = scm_cons (scm_str2symbol (str), old);
   SCM_SETCDR (features, new);
 }
 

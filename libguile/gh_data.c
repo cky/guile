@@ -129,7 +129,7 @@ gh_set_substr (char *src, SCM dst, int start, int len)
 SCM 
 gh_symbol2scm (const char *symbol_str)
 {
-  return SCM_CAR (scm_intern (symbol_str, strlen (symbol_str)));
+  return scm_str2symbol(symbol_str);
 }
 
 SCM

@@ -1,5 +1,40 @@
 2000-12-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* feature.c (scm_add_feature), gh_data.c (gh_symbol2scm), goops.c
+	(scm_sys_prep_layout_x, scm_make_class, scm_add_slot,
+	scm_init_goops), load.c (init_build_info), print.c
+	(scm_init_print), read.c (scm_lreadr), snarf.h (SCM_SYMBOL,
+	SCM_GLOBAL_SYMBOL), stacks.c (scm_init_stacks), struct.c
+	(scm_make_struct_layout), symbols.c (scm_sysintern0,
+	scm_string_to_symbol, scm_gensym), throw.c
+	(scm_handle_by_message):  Use scm_mem2symbol or scm_str2symbol
+	instead of scm_intern_* to create a symbol object.
+
+	* goops.c (Intern):  Removed.
+
+	(CALL_GF1, CALL_GF2, CALL_GF3, CALL_GF4, build_class_class_slots,
+	create_basic_classes, scm_class_name, scm_class_direct_supers,
+	scm_class_direct_slots, scm_class_direct_subclasses,
+	scm_class_direct_methods, scm_class_precedence_list,
+	scm_class_slots, scm_class_environment,
+	scm_generic_function_methods, scm_method_generic_function,
+	scm_method_specializers, scm_method_procedure,
+	scm_accessor_method_slot_definition, purgatory, scm_make,
+	make_stdcls, create_standard_classes, make_class_from_template,
+	scm_make_class):  Replaced calls to Intern with calls to
+	scm_str2symbol.
+
+	* ramap.c (init_raprocs):  Use scm_symbol_binding instead of
+	scm_intern.
+
+	* symbols.c (scm_sym2vcell):  Add a bogus return to avoid compiler
+	warnings.
+
+	* unif.c (scm_array_prototype):  Fix prototype return value for
+	svects and llvects.
+
+2000-12-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* symbols.[ch] (scm_mem2symbol, scm_str2symbol):  New functions.
 	These shall replace all those calls to scm_intern... which are
 	only required to create a scheme symbol from a C string or a field

@@ -125,7 +125,7 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
       else if (SCM_VARIABLEP (var))
 	return SCM_VARVCELL (var);
       else
-	scm_wta (sym, "strangely interned symbol? ", "");
+	return scm_wta (sym, "strangely interned symbol? ", "");
     }
   else
     {
@@ -402,7 +402,7 @@ scm_sysintern0 (const char *name)
   if (scm_module_system_booted_p
       && SCM_NIMP (lookup_proc = SCM_TOP_LEVEL_LOOKUP_CLOSURE))
     {
-      SCM sym = SCM_CAR (scm_intern0 (name));
+      SCM sym = scm_str2symbol (name);
       SCM vcell = scm_sym2vcell (sym, lookup_proc, SCM_BOOL_T);
       if (SCM_FALSEP (vcell))
 	  scm_misc_error ("sysintern0", "can't define variable", sym);
@@ -499,13 +499,8 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
 	    "@end format")
 #define FUNC_NAME s_scm_string_to_symbol
 {
-  SCM vcell;
-  SCM answer;
-
-  SCM_VALIDATE_STRING (1,s);
-  vcell = scm_intern (SCM_STRING_CHARS (s), SCM_STRING_LENGTH (s));
-  answer = SCM_CAR (vcell);
-  return answer;
+  SCM_VALIDATE_STRING (1, s);
+  return scm_mem2symbol (SCM_STRING_CHARS (s), SCM_STRING_LENGTH (s));
 }
 #undef FUNC_NAME
 
@@ -846,7 +841,7 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
     }
   {
     int n_digits = scm_iint2str (gensym_counter++, 10, &name[len]);
-    SCM res = SCM_CAR (scm_intern (name, len + n_digits));
+    SCM res = scm_mem2symbol (name, len + n_digits);
     if (name != buf)
       scm_must_free (name);
     return res;

@@ -479,7 +479,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
 SCM
 scm_handle_by_message (void *handler_data, SCM tag, SCM args)
 {
-  if (SCM_NFALSEP (scm_eq_p (tag, SCM_CAR (scm_intern0 ("quit")))))
+  if (SCM_NFALSEP (scm_eq_p (tag, scm_str2symbol ("quit"))))
     {
       exit (scm_exit_status (args));
     }

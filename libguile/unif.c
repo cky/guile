@@ -2523,10 +2523,10 @@ loop:
     case scm_tc7_ivect:
       return SCM_MAKINUM (-1L);
     case scm_tc7_svect:
-      return SCM_CDR (scm_intern ("s", 1));
+      return scm_str2symbol ("s");
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
-      return SCM_CDR (scm_intern ("l", 1));
+      return scm_str2symbol ("l");
 #endif
     case scm_tc7_fvect:
       return scm_make_real (1.0);

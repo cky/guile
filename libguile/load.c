@@ -496,7 +496,7 @@ init_build_info ()
   unsigned int i;
 
   for (i = 0; i < (sizeof (info) / sizeof (info[0])); i++)
-    *loc = scm_acons (SCM_CAR (scm_intern0 (info[i].name)),
+    *loc = scm_acons (scm_str2symbol (info[i].name),
 		      scm_makfrom0str (info[i].value),
 		      *loc);
 }
