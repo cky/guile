@@ -479,7 +479,7 @@ Return the lowercase character version of @var{chr}.
 @end deffn
 
 with-continuation-barrier
-@c snarfed from continuations.c:406
+@c snarfed from continuations.c:412
 @deffn {Scheme Procedure} with-continuation-barrier proc
 @deffnx {C Function} scm_with_continuation_barrier (proc)
 Call @var{proc} and return its result.  Do not allow the invocation of
@@ -496,7 +496,7 @@ Thus, @code{with-continuation-barrier} returns exactly once.
 @end deffn
 
 debug-options-interface
-@c snarfed from debug.c:53
+@c snarfed from debug.c:54
 @deffn {Scheme Procedure} debug-options-interface [setting]
 @deffnx {C Function} scm_debug_options (setting)
 Option interface for the debug options. Instead of using
@@ -505,14 +505,14 @@ this procedure directly, use the procedures @code{debug-enable},
 @end deffn
 
 with-traps
-@c snarfed from debug.c:96
+@c snarfed from debug.c:101
 @deffn {Scheme Procedure} with-traps thunk
 @deffnx {C Function} scm_with_traps (thunk)
 Call @var{thunk} with traps enabled.
 @end deffn
 
 memoized?
-@c snarfed from debug.c:134
+@c snarfed from debug.c:139
 @deffn {Scheme Procedure} memoized? obj
 @deffnx {C Function} scm_memoized_p (obj)
 Return @code{#t} if @var{obj} is memoized.
@@ -585,19 +585,19 @@ Return @code{#t} iff deprecated features should be included in public interfaces
 @end deffn
 
 substring-move-left!
-@c snarfed from deprecated.c:72
+@c snarfed from deprecated.c:73
 @deffn {Scheme Procedure} substring-move-left!
 implemented by the C function "scm_substring_move_x"
 @end deffn
 
 substring-move-right!
-@c snarfed from deprecated.c:74
+@c snarfed from deprecated.c:75
 @deffn {Scheme Procedure} substring-move-right!
 implemented by the C function "scm_substring_move_x"
 @end deffn
 
 c-registered-modules
-@c snarfed from deprecated.c:177
+@c snarfed from deprecated.c:178
 @deffn {Scheme Procedure} c-registered-modules
 @deffnx {C Function} scm_registered_modules ()
 Return a list of the object code modules that have been imported into
@@ -608,7 +608,7 @@ has been passed to scm_register_module_xxx.
 @end deffn
 
 c-clear-registered-modules
-@c snarfed from deprecated.c:198
+@c snarfed from deprecated.c:199
 @deffn {Scheme Procedure} c-clear-registered-modules
 @deffnx {C Function} scm_clear_registered_modules ()
 Destroy the list of modules registered with the current Guile process.
@@ -619,7 +619,7 @@ only by module bookkeeping operations.
 @end deffn
 
 close-all-ports-except
-@c snarfed from deprecated.c:341
+@c snarfed from deprecated.c:342
 @deffn {Scheme Procedure} close-all-ports-except . ports
 @deffnx {C Function} scm_close_all_ports_except (ports)
 [DEPRECATED] Close all open file ports used by the interpreter
@@ -631,21 +631,21 @@ Use port-for-each instead.
 @end deffn
 
 variable-set-name-hint!
-@c snarfed from deprecated.c:358
+@c snarfed from deprecated.c:359
 @deffn {Scheme Procedure} variable-set-name-hint! var hint
 @deffnx {C Function} scm_variable_set_name_hint (var, hint)
 Do not use this function.
 @end deffn
 
 builtin-variable
-@c snarfed from deprecated.c:371
+@c snarfed from deprecated.c:372
 @deffn {Scheme Procedure} builtin-variable name
 @deffnx {C Function} scm_builtin_variable (name)
 Do not use this function.
 @end deffn
 
 sloppy-memq
-@c snarfed from deprecated.c:445
+@c snarfed from deprecated.c:446
 @deffn {Scheme Procedure} sloppy-memq x lst
 @deffnx {C Function} scm_sloppy_memq (x, lst)
 This procedure behaves like @code{memq}, but does no type or error checking.
@@ -654,7 +654,7 @@ not for high-level Scheme programs.
 @end deffn
 
 sloppy-memv
-@c snarfed from deprecated.c:465
+@c snarfed from deprecated.c:466
 @deffn {Scheme Procedure} sloppy-memv x lst
 @deffnx {C Function} scm_sloppy_memv (x, lst)
 This procedure behaves like @code{memv}, but does no type or error checking.
@@ -663,7 +663,7 @@ not for high-level Scheme programs.
 @end deffn
 
 sloppy-member
-@c snarfed from deprecated.c:485
+@c snarfed from deprecated.c:486
 @deffn {Scheme Procedure} sloppy-member x lst
 @deffnx {C Function} scm_sloppy_member (x, lst)
 This procedure behaves like @code{member}, but does no type or error checking.
@@ -672,7 +672,7 @@ not for high-level Scheme programs.
 @end deffn
 
 read-and-eval!
-@c snarfed from deprecated.c:507
+@c snarfed from deprecated.c:508
 @deffn {Scheme Procedure} read-and-eval! [port]
 @deffnx {C Function} scm_read_and_eval_x (port)
 Read a form from @var{port} (standard input by default), and evaluate it
@@ -682,7 +682,7 @@ signalled.
 @end deffn
 
 string->obarray-symbol
-@c snarfed from deprecated.c:824
+@c snarfed from deprecated.c:825
 @deffn {Scheme Procedure} string->obarray-symbol o s [softp]
 @deffnx {C Function} scm_string_to_obarray_symbol (o, s, softp)
 Intern a new symbol in @var{obarray}, a symbol table, with name
@@ -701,7 +701,7 @@ table; instead, simply return @code{#f}.
 @end deffn
 
 intern-symbol
-@c snarfed from deprecated.c:862
+@c snarfed from deprecated.c:863
 @deffn {Scheme Procedure} intern-symbol o s
 @deffnx {C Function} scm_intern_symbol (o, s)
 Add a new symbol to @var{obarray} with name @var{string}, bound to an
@@ -710,7 +710,7 @@ with this name is already present.
 @end deffn
 
 unintern-symbol
-@c snarfed from deprecated.c:904
+@c snarfed from deprecated.c:905
 @deffn {Scheme Procedure} unintern-symbol o s
 @deffnx {C Function} scm_unintern_symbol (o, s)
 Remove the symbol with name @var{string} from @var{obarray}.  This
@@ -719,7 +719,7 @@ otherwise.
 @end deffn
 
 symbol-binding
-@c snarfed from deprecated.c:949
+@c snarfed from deprecated.c:950
 @deffn {Scheme Procedure} symbol-binding o s
 @deffnx {C Function} scm_symbol_binding (o, s)
 Look up in @var{obarray} the symbol whose name is @var{string}, and
@@ -729,7 +729,7 @@ use the global symbol table.  If @var{string} is not interned in
 @end deffn
 
 symbol-bound?
-@c snarfed from deprecated.c:1002
+@c snarfed from deprecated.c:1003
 @deffn {Scheme Procedure} symbol-bound? o s
 @deffnx {C Function} scm_symbol_bound_p (o, s)
 Return @code{#t} if @var{obarray} contains a symbol with name
@@ -741,7 +741,7 @@ value.
 @end deffn
 
 symbol-set!
-@c snarfed from deprecated.c:1029
+@c snarfed from deprecated.c:1030
 @deffn {Scheme Procedure} symbol-set! o s v
 @deffnx {C Function} scm_symbol_set_x (o, s, v)
 Find the symbol in @var{obarray} whose name is @var{string}, and rebind
@@ -750,7 +750,7 @@ in @var{obarray}.
 @end deffn
 
 gentemp
-@c snarfed from deprecated.c:1062
+@c snarfed from deprecated.c:1063
 @deffn {Scheme Procedure} gentemp [prefix [obarray]]
 @deffnx {C Function} scm_gentemp (prefix, obarray)
 Create a new symbol with a name unique in an obarray.
@@ -1591,7 +1591,7 @@ options like @code{-e} and @code{-l}.
 @end deffn
 
 make-fluid
-@c snarfed from fluids.c:257
+@c snarfed from fluids.c:260
 @deffn {Scheme Procedure} make-fluid
 @deffnx {C Function} scm_make_fluid ()
 Return a newly created fluid.
@@ -1604,7 +1604,7 @@ with its own dynamic state, you can use fluids for thread local storage.
 @end deffn
 
 fluid?
-@c snarfed from fluids.c:278
+@c snarfed from fluids.c:283
 @deffn {Scheme Procedure} fluid? obj
 @deffnx {C Function} scm_fluid_p (obj)
 Return @code{#t} iff @var{obj} is a fluid; otherwise, return
@@ -1612,7 +1612,7 @@ Return @code{#t} iff @var{obj} is a fluid; otherwise, return
 @end deffn
 
 fluid-ref
-@c snarfed from fluids.c:301
+@c snarfed from fluids.c:306
 @deffn {Scheme Procedure} fluid-ref fluid
 @deffnx {C Function} scm_fluid_ref (fluid)
 Return the value associated with @var{fluid} in the current
@@ -1621,14 +1621,14 @@ dynamic root.  If @var{fluid} has not been set, then return
 @end deffn
 
 fluid-set!
-@c snarfed from fluids.c:320
+@c snarfed from fluids.c:325
 @deffn {Scheme Procedure} fluid-set! fluid value
 @deffnx {C Function} scm_fluid_set_x (fluid, value)
 Set the value associated with @var{fluid} in the current dynamic root.
 @end deffn
 
 with-fluids*
-@c snarfed from fluids.c:390
+@c snarfed from fluids.c:395
 @deffn {Scheme Procedure} with-fluids* fluids values thunk
 @deffnx {C Function} scm_with_fluids (fluids, values, thunk)
 Set @var{fluids} to @var{values} temporary, and call @var{thunk}.
@@ -1638,7 +1638,7 @@ one after another.  @var{thunk} must be a procedure with no argument.
 @end deffn
 
 with-fluid*
-@c snarfed from fluids.c:429
+@c snarfed from fluids.c:434
 @deffn {Scheme Procedure} with-fluid* fluid value thunk
 @deffnx {C Function} scm_with_fluid (fluid, value, thunk)
 Set @var{fluid} to @var{value} temporarily, and call @var{thunk}.
@@ -1646,7 +1646,7 @@ Set @var{fluid} to @var{value} temporarily, and call @var{thunk}.
 @end deffn
 
 make-dynamic-state
-@c snarfed from fluids.c:482
+@c snarfed from fluids.c:487
 @deffn {Scheme Procedure} make-dynamic-state [parent]
 @deffnx {C Function} scm_make_dynamic_state (parent)
 Return a copy of the dynamic state object @var{parent}
@@ -1654,7 +1654,7 @@ or of the current dynamic state when @var{parent} is omitted.
 @end deffn
 
 dynamic-state?
-@c snarfed from fluids.c:509
+@c snarfed from fluids.c:515
 @deffn {Scheme Procedure} dynamic-state? obj
 @deffnx {C Function} scm_dynamic_state_p (obj)
 Return @code{#t} if @var{obj} is a dynamic state object;
@@ -1662,14 +1662,14 @@ return @code{#f} otherwise
 @end deffn
 
 current-dynamic-state
-@c snarfed from fluids.c:524
+@c snarfed from fluids.c:530
 @deffn {Scheme Procedure} current-dynamic-state
 @deffnx {C Function} scm_current_dynamic_state ()
 Return the current dynamic state object.
 @end deffn
 
 set-current-dynamic-state
-@c snarfed from fluids.c:534
+@c snarfed from fluids.c:540
 @deffn {Scheme Procedure} set-current-dynamic-state state
 @deffnx {C Function} scm_set_current_dynamic_state (state)
 Set the current dynamic state object to @var{state}
@@ -1677,7 +1677,7 @@ and return the previous current dynamic state object.
 @end deffn
 
 with-dynamic-state
-@c snarfed from fluids.c:576
+@c snarfed from fluids.c:582
 @deffn {Scheme Procedure} with-dynamic-state state proc
 @deffnx {C Function} scm_with_dynamic_state (state, proc)
 Call @var{proc} while @var{state} is the current dynamic
@@ -1767,14 +1767,14 @@ value.
 @end deffn
 
 gc-live-object-stats
-@c snarfed from gc.c:292
+@c snarfed from gc.c:276
 @deffn {Scheme Procedure} gc-live-object-stats
 @deffnx {C Function} scm_gc_live_object_stats ()
 Return an alist of statistics of the current live objects. 
 @end deffn
 
 gc-stats
-@c snarfed from gc.c:309
+@c snarfed from gc.c:293
 @deffn {Scheme Procedure} gc-stats
 @deffnx {C Function} scm_gc_stats ()
 Return an association list of statistics about Guile's current
@@ -1783,7 +1783,7 @@ use of storage.
 @end deffn
 
 object-address
-@c snarfed from gc.c:445
+@c snarfed from gc.c:429
 @deffn {Scheme Procedure} object-address obj
 @deffnx {C Function} scm_object_address (obj)
 Return an integer that for the lifetime of @var{obj} is uniquely
@@ -1791,7 +1791,7 @@ returned by this function for @var{obj}
 @end deffn
 
 gc
-@c snarfed from gc.c:456
+@c snarfed from gc.c:440
 @deffn {Scheme Procedure} gc
 @deffnx {C Function} scm_gc ()
 Scans all of SCM objects and reclaims for further use those that are
@@ -1799,14 +1799,14 @@ no longer accessible.
 @end deffn
 
 class-of
-@c snarfed from goops.c:165
+@c snarfed from goops.c:166
 @deffn {Scheme Procedure} class-of x
 @deffnx {C Function} scm_class_of (x)
 Return the class of @var{x}.
 @end deffn
 
 %compute-slots
-@c snarfed from goops.c:406
+@c snarfed from goops.c:407
 @deffn {Scheme Procedure} %compute-slots class
 @deffnx {C Function} scm_sys_compute_slots (class)
 Return a list consisting of the names of all slots belonging to
@@ -1815,7 +1815,7 @@ its superclasses.
 @end deffn
 
 get-keyword
-@c snarfed from goops.c:497
+@c snarfed from goops.c:498
 @deffn {Scheme Procedure} get-keyword key l default_value
 @deffnx {C Function} scm_get_keyword (key, l, default_value)
 Determine an associated value for the keyword @var{key} from
@@ -1827,7 +1827,7 @@ If @var{l} does not hold a value for @var{key}, the value
 @end deffn
 
 %initialize-object
-@c snarfed from goops.c:520
+@c snarfed from goops.c:521
 @deffn {Scheme Procedure} %initialize-object obj initargs
 @deffnx {C Function} scm_sys_initialize_object (obj, initargs)
 Initialize the object @var{obj} with the given arguments
@@ -1835,147 +1835,147 @@ Initialize the object @var{obj} with the given arguments
 @end deffn
 
 %prep-layout!
-@c snarfed from goops.c:618
+@c snarfed from goops.c:619
 @deffn {Scheme Procedure} %prep-layout! class
 @deffnx {C Function} scm_sys_prep_layout_x (class)
 
 @end deffn
 
 %inherit-magic!
-@c snarfed from goops.c:717
+@c snarfed from goops.c:718
 @deffn {Scheme Procedure} %inherit-magic! class dsupers
 @deffnx {C Function} scm_sys_inherit_magic_x (class, dsupers)
 
 @end deffn
 
 instance?
-@c snarfed from goops.c:957
+@c snarfed from goops.c:958
 @deffn {Scheme Procedure} instance? obj
 @deffnx {C Function} scm_instance_p (obj)
 Return @code{#t} if @var{obj} is an instance.
 @end deffn
 
 class-name
-@c snarfed from goops.c:972
+@c snarfed from goops.c:973
 @deffn {Scheme Procedure} class-name obj
 @deffnx {C Function} scm_class_name (obj)
 Return the class name of @var{obj}.
 @end deffn
 
 class-direct-supers
-@c snarfed from goops.c:982
+@c snarfed from goops.c:983
 @deffn {Scheme Procedure} class-direct-supers obj
 @deffnx {C Function} scm_class_direct_supers (obj)
 Return the direct superclasses of the class @var{obj}.
 @end deffn
 
 class-direct-slots
-@c snarfed from goops.c:992
+@c snarfed from goops.c:993
 @deffn {Scheme Procedure} class-direct-slots obj
 @deffnx {C Function} scm_class_direct_slots (obj)
 Return the direct slots of the class @var{obj}.
 @end deffn
 
 class-direct-subclasses
-@c snarfed from goops.c:1002
+@c snarfed from goops.c:1003
 @deffn {Scheme Procedure} class-direct-subclasses obj
 @deffnx {C Function} scm_class_direct_subclasses (obj)
 Return the direct subclasses of the class @var{obj}.
 @end deffn
 
 class-direct-methods
-@c snarfed from goops.c:1012
+@c snarfed from goops.c:1013
 @deffn {Scheme Procedure} class-direct-methods obj
 @deffnx {C Function} scm_class_direct_methods (obj)
 Return the direct methods of the class @var{obj}
 @end deffn
 
 class-precedence-list
-@c snarfed from goops.c:1022
+@c snarfed from goops.c:1023
 @deffn {Scheme Procedure} class-precedence-list obj
 @deffnx {C Function} scm_class_precedence_list (obj)
 Return the class precedence list of the class @var{obj}.
 @end deffn
 
 class-slots
-@c snarfed from goops.c:1032
+@c snarfed from goops.c:1033
 @deffn {Scheme Procedure} class-slots obj
 @deffnx {C Function} scm_class_slots (obj)
 Return the slot list of the class @var{obj}.
 @end deffn
 
 class-environment
-@c snarfed from goops.c:1042
+@c snarfed from goops.c:1043
 @deffn {Scheme Procedure} class-environment obj
 @deffnx {C Function} scm_class_environment (obj)
 Return the environment of the class @var{obj}.
 @end deffn
 
 generic-function-name
-@c snarfed from goops.c:1053
+@c snarfed from goops.c:1054
 @deffn {Scheme Procedure} generic-function-name obj
 @deffnx {C Function} scm_generic_function_name (obj)
 Return the name of the generic function @var{obj}.
 @end deffn
 
 generic-function-methods
-@c snarfed from goops.c:1098
+@c snarfed from goops.c:1099
 @deffn {Scheme Procedure} generic-function-methods obj
 @deffnx {C Function} scm_generic_function_methods (obj)
 Return the methods of the generic function @var{obj}.
 @end deffn
 
 method-generic-function
-@c snarfed from goops.c:1111
+@c snarfed from goops.c:1112
 @deffn {Scheme Procedure} method-generic-function obj
 @deffnx {C Function} scm_method_generic_function (obj)
 Return the generic function for the method @var{obj}.
 @end deffn
 
 method-specializers
-@c snarfed from goops.c:1121
+@c snarfed from goops.c:1122
 @deffn {Scheme Procedure} method-specializers obj
 @deffnx {C Function} scm_method_specializers (obj)
 Return specializers of the method @var{obj}.
 @end deffn
 
 method-procedure
-@c snarfed from goops.c:1131
+@c snarfed from goops.c:1132
 @deffn {Scheme Procedure} method-procedure obj
 @deffnx {C Function} scm_method_procedure (obj)
 Return the procedure of the method @var{obj}.
 @end deffn
 
 accessor-method-slot-definition
-@c snarfed from goops.c:1141
+@c snarfed from goops.c:1142
 @deffn {Scheme Procedure} accessor-method-slot-definition obj
 @deffnx {C Function} scm_accessor_method_slot_definition (obj)
 Return the slot definition of the accessor @var{obj}.
 @end deffn
 
 %tag-body
-@c snarfed from goops.c:1151
+@c snarfed from goops.c:1152
 @deffn {Scheme Procedure} %tag-body body
 @deffnx {C Function} scm_sys_tag_body (body)
 Internal GOOPS magic---don't use this function!
 @end deffn
 
 make-unbound
-@c snarfed from goops.c:1166
+@c snarfed from goops.c:1167
 @deffn {Scheme Procedure} make-unbound
 @deffnx {C Function} scm_make_unbound ()
 Return the unbound value.
 @end deffn
 
 unbound?
-@c snarfed from goops.c:1175
+@c snarfed from goops.c:1176
 @deffn {Scheme Procedure} unbound? obj
 @deffnx {C Function} scm_unbound_p (obj)
 Return @code{#t} if @var{obj} is unbound.
 @end deffn
 
 assert-bound
-@c snarfed from goops.c:1185
+@c snarfed from goops.c:1186
 @deffn {Scheme Procedure} assert-bound value obj
 @deffnx {C Function} scm_assert_bound (value, obj)
 Return @var{value} if it is bound, and invoke the
@@ -1983,7 +1983,7 @@ Return @var{value} if it is bound, and invoke the
 @end deffn
 
 @@assert-bound-ref
-@c snarfed from goops.c:1197
+@c snarfed from goops.c:1198
 @deffn {Scheme Procedure} @@assert-bound-ref obj index
 @deffnx {C Function} scm_at_assert_bound_ref (obj, index)
 Like @code{assert-bound}, but use @var{index} for accessing
@@ -1991,14 +1991,14 @@ the value from @var{obj}.
 @end deffn
 
 %fast-slot-ref
-@c snarfed from goops.c:1209
+@c snarfed from goops.c:1210
 @deffn {Scheme Procedure} %fast-slot-ref obj index
 @deffnx {C Function} scm_sys_fast_slot_ref (obj, index)
 Return the slot value with index @var{index} from @var{obj}.
 @end deffn
 
 %fast-slot-set!
-@c snarfed from goops.c:1223
+@c snarfed from goops.c:1224
 @deffn {Scheme Procedure} %fast-slot-set! obj index value
 @deffnx {C Function} scm_sys_fast_slot_set_x (obj, index, value)
 Set the slot with index @var{index} in @var{obj} to
@@ -2006,35 +2006,35 @@ Set the slot with index @var{index} in @var{obj} to
 @end deffn
 
 slot-ref-using-class
-@c snarfed from goops.c:1360
+@c snarfed from goops.c:1361
 @deffn {Scheme Procedure} slot-ref-using-class class obj slot_name
 @deffnx {C Function} scm_slot_ref_using_class (class, obj, slot_name)
 
 @end deffn
 
 slot-set-using-class!
-@c snarfed from goops.c:1379
+@c snarfed from goops.c:1380
 @deffn {Scheme Procedure} slot-set-using-class! class obj slot_name value
 @deffnx {C Function} scm_slot_set_using_class_x (class, obj, slot_name, value)
 
 @end deffn
 
 slot-bound-using-class?
-@c snarfed from goops.c:1393
+@c snarfed from goops.c:1394
 @deffn {Scheme Procedure} slot-bound-using-class? class obj slot_name
 @deffnx {C Function} scm_slot_bound_using_class_p (class, obj, slot_name)
 
 @end deffn
 
 slot-exists-using-class?
-@c snarfed from goops.c:1408
+@c snarfed from goops.c:1409
 @deffn {Scheme Procedure} slot-exists-using-class? class obj slot_name
 @deffnx {C Function} scm_slot_exists_using_class_p (class, obj, slot_name)
 
 @end deffn
 
 slot-ref
-@c snarfed from goops.c:1424
+@c snarfed from goops.c:1425
 @deffn {Scheme Procedure} slot-ref obj slot_name
 @deffnx {C Function} scm_slot_ref (obj, slot_name)
 Return the value from @var{obj}'s slot with the name
@@ -2042,14 +2042,14 @@ Return the value from @var{obj}'s slot with the name
 @end deffn
 
 slot-set!
-@c snarfed from goops.c:1441
+@c snarfed from goops.c:1442
 @deffn {Scheme Procedure} slot-set! obj slot_name value
 @deffnx {C Function} scm_slot_set_x (obj, slot_name, value)
 Set the slot named @var{slot_name} of @var{obj} to @var{value}.
 @end deffn
 
 slot-bound?
-@c snarfed from goops.c:1458
+@c snarfed from goops.c:1459
 @deffn {Scheme Procedure} slot-bound? obj slot_name
 @deffnx {C Function} scm_slot_bound_p (obj, slot_name)
 Return @code{#t} if the slot named @var{slot_name} of @var{obj}
@@ -2057,14 +2057,14 @@ is bound.
 @end deffn
 
 slot-exists?
-@c snarfed from goops.c:1476
+@c snarfed from goops.c:1477
 @deffn {Scheme Procedure} slot-exists? obj slot_name
 @deffnx {C Function} scm_slot_exists_p (obj, slot_name)
 Return @code{#t} if @var{obj} has a slot named @var{slot_name}.
 @end deffn
 
 %allocate-instance
-@c snarfed from goops.c:1515
+@c snarfed from goops.c:1516
 @deffn {Scheme Procedure} %allocate-instance class initargs
 @deffnx {C Function} scm_sys_allocate_instance (class, initargs)
 Create a new instance of class @var{class} and initialize it
@@ -2072,63 +2072,63 @@ from the arguments @var{initargs}.
 @end deffn
 
 %set-object-setter!
-@c snarfed from goops.c:1585
+@c snarfed from goops.c:1586
 @deffn {Scheme Procedure} %set-object-setter! obj setter
 @deffnx {C Function} scm_sys_set_object_setter_x (obj, setter)
 
 @end deffn
 
 %modify-instance
-@c snarfed from goops.c:1610
+@c snarfed from goops.c:1611
 @deffn {Scheme Procedure} %modify-instance old new
 @deffnx {C Function} scm_sys_modify_instance (old, new)
 
 @end deffn
 
 %modify-class
-@c snarfed from goops.c:1636
+@c snarfed from goops.c:1637
 @deffn {Scheme Procedure} %modify-class old new
 @deffnx {C Function} scm_sys_modify_class (old, new)
 
 @end deffn
 
 %invalidate-class
-@c snarfed from goops.c:1660
+@c snarfed from goops.c:1661
 @deffn {Scheme Procedure} %invalidate-class class
 @deffnx {C Function} scm_sys_invalidate_class (class)
 
 @end deffn
 
 %invalidate-method-cache!
-@c snarfed from goops.c:1782
+@c snarfed from goops.c:1783
 @deffn {Scheme Procedure} %invalidate-method-cache! gf
 @deffnx {C Function} scm_sys_invalidate_method_cache_x (gf)
 
 @end deffn
 
 generic-capability?
-@c snarfed from goops.c:1808
+@c snarfed from goops.c:1809
 @deffn {Scheme Procedure} generic-capability? proc
 @deffnx {C Function} scm_generic_capability_p (proc)
 
 @end deffn
 
 enable-primitive-generic!
-@c snarfed from goops.c:1821
+@c snarfed from goops.c:1822
 @deffn {Scheme Procedure} enable-primitive-generic! . subrs
 @deffnx {C Function} scm_enable_primitive_generic_x (subrs)
 
 @end deffn
 
 primitive-generic-generic
-@c snarfed from goops.c:1842
+@c snarfed from goops.c:1843
 @deffn {Scheme Procedure} primitive-generic-generic subr
 @deffnx {C Function} scm_primitive_generic_generic (subr)
 
 @end deffn
 
 make
-@c snarfed from goops.c:2208
+@c snarfed from goops.c:2209
 @deffn {Scheme Procedure} make . args
 @deffnx {C Function} scm_make (args)
 Make a new object.  @var{args} must contain the class and
@@ -2136,21 +2136,21 @@ all necessary initialization information.
 @end deffn
 
 find-method
-@c snarfed from goops.c:2297
+@c snarfed from goops.c:2298
 @deffn {Scheme Procedure} find-method . l
 @deffnx {C Function} scm_find_method (l)
 
 @end deffn
 
 %method-more-specific?
-@c snarfed from goops.c:2317
+@c snarfed from goops.c:2318
 @deffn {Scheme Procedure} %method-more-specific? m1 m2 targs
 @deffnx {C Function} scm_sys_method_more_specific_p (m1, m2, targs)
 
 @end deffn
 
 %goops-loaded
-@c snarfed from goops.c:2943
+@c snarfed from goops.c:2944
 @deffn {Scheme Procedure} %goops-loaded
 @deffnx {C Function} scm_sys_goops_loaded ()
 Announce that GOOPS is loaded and perform initialization
@@ -2158,7 +2158,7 @@ on the C level which depends on the loaded GOOPS modules.
 @end deffn
 
 make-guardian
-@c snarfed from guardians.c:306
+@c snarfed from guardians.c:307
 @deffn {Scheme Procedure} make-guardian [greedy_p]
 @deffnx {C Function} scm_make_guardian (greedy_p)
 Create a new guardian.
@@ -2189,21 +2189,21 @@ paper still (mostly) accurately describes the interface).
 @end deffn
 
 guardian-destroyed?
-@c snarfed from guardians.c:334
+@c snarfed from guardians.c:335
 @deffn {Scheme Procedure} guardian-destroyed? guardian
 @deffnx {C Function} scm_guardian_destroyed_p (guardian)
 Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.
 @end deffn
 
 guardian-greedy?
-@c snarfed from guardians.c:352
+@c snarfed from guardians.c:353
 @deffn {Scheme Procedure} guardian-greedy? guardian
 @deffnx {C Function} scm_guardian_greedy_p (guardian)
 Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.
 @end deffn
 
 destroy-guardian!
-@c snarfed from guardians.c:363
+@c snarfed from guardians.c:364
 @deffn {Scheme Procedure} destroy-guardian! guardian
 @deffnx {C Function} scm_destroy_guardian_x (guardian)
 Destroys @var{guardian}, by making it impossible to put any more
@@ -2254,29 +2254,27 @@ integer in the range 0 to @var{size} - 1.
 @end deffn
 
 make-hash-table
-@c snarfed from hashtab.c:333
+@c snarfed from hashtab.c:332
 @deffn {Scheme Procedure} make-hash-table [n]
 @deffnx {C Function} scm_make_hash_table (n)
-Make a hash table with optional minimum number of buckets @var{n}
+Make a new abstract hash table object with minimum number of buckets @var{n}
 
 @end deffn
 
 make-weak-key-hash-table
-@c snarfed from hashtab.c:352
+@c snarfed from hashtab.c:349
 @deffn {Scheme Procedure} make-weak-key-hash-table [n]
 @deffnx {Scheme Procedure} make-weak-value-hash-table size
 @deffnx {Scheme Procedure} make-doubly-weak-hash-table size
 @deffnx {C Function} scm_make_weak_key_hash_table (n)
-Return a weak hash table with @var{size} buckets. As with any
-hash table, choosing a good size for the table requires some
-caution.
+Return a weak hash table with @var{size} buckets.
 
 You can modify weak hash tables in exactly the same way you
 would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn
 
 make-weak-value-hash-table
-@c snarfed from hashtab.c:367
+@c snarfed from hashtab.c:364
 @deffn {Scheme Procedure} make-weak-value-hash-table [n]
 @deffnx {C Function} scm_make_weak_value_hash_table (n)
 Return a hash table with weak values with @var{size} buckets.
@@ -2284,7 +2282,7 @@ Return a hash table with weak values with @var{size} buckets.
 @end deffn
 
 make-doubly-weak-hash-table
-@c snarfed from hashtab.c:384
+@c snarfed from hashtab.c:381
 @deffn {Scheme Procedure} make-doubly-weak-hash-table n
 @deffnx {C Function} scm_make_doubly_weak_hash_table (n)
 Return a hash table with weak keys and values with @var{size}
@@ -2292,14 +2290,14 @@ buckets.  (@pxref{Hash Tables})
 @end deffn
 
 hash-table?
-@c snarfed from hashtab.c:403
+@c snarfed from hashtab.c:400
 @deffn {Scheme Procedure} hash-table? obj
 @deffnx {C Function} scm_hash_table_p (obj)
-Return @code{#t} if @var{obj} is a hash table.
+Return @code{#t} if @var{obj} is an abstract hash table object.
 @end deffn
 
 weak-key-hash-table?
-@c snarfed from hashtab.c:417
+@c snarfed from hashtab.c:414
 @deffn {Scheme Procedure} weak-key-hash-table? obj
 @deffnx {Scheme Procedure} weak-value-hash-table? obj
 @deffnx {Scheme Procedure} doubly-weak-hash-table? obj
@@ -2310,28 +2308,28 @@ nor a weak value hash table.
 @end deffn
 
 weak-value-hash-table?
-@c snarfed from hashtab.c:427
+@c snarfed from hashtab.c:424
 @deffn {Scheme Procedure} weak-value-hash-table? obj
 @deffnx {C Function} scm_weak_value_hash_table_p (obj)
 Return @code{#t} if @var{obj} is a weak value hash table.
 @end deffn
 
 doubly-weak-hash-table?
-@c snarfed from hashtab.c:437
+@c snarfed from hashtab.c:434
 @deffn {Scheme Procedure} doubly-weak-hash-table? obj
 @deffnx {C Function} scm_doubly_weak_hash_table_p (obj)
 Return @code{#t} if @var{obj} is a doubly weak hash table.
 @end deffn
 
 hash-clear!
-@c snarfed from hashtab.c:591
+@c snarfed from hashtab.c:586
 @deffn {Scheme Procedure} hash-clear! table
 @deffnx {C Function} scm_hash_clear_x (table)
-Remove all items from TABLE (without triggering a resize).
+Remove all items from @var{table} (without triggering a resize).
 @end deffn
 
 hashq-get-handle
-@c snarfed from hashtab.c:608
+@c snarfed from hashtab.c:607
 @deffn {Scheme Procedure} hashq-get-handle table key
 @deffnx {C Function} scm_hashq_get_handle (table, key)
 This procedure returns the @code{(key . value)} pair from the
@@ -2341,7 +2339,7 @@ Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-create-handle!
-@c snarfed from hashtab.c:620
+@c snarfed from hashtab.c:619
 @deffn {Scheme Procedure} hashq-create-handle! table key init
 @deffnx {C Function} scm_hashq_create_handle_x (table, key, init)
 This function looks up @var{key} in @var{table} and returns its handle.
@@ -2350,7 +2348,7 @@ associates @var{key} with @var{init}.
 @end deffn
 
 hashq-ref
-@c snarfed from hashtab.c:633
+@c snarfed from hashtab.c:632
 @deffn {Scheme Procedure} hashq-ref table key [dflt]
 @deffnx {C Function} scm_hashq_ref (table, key, dflt)
 Look up @var{key} in the hash table @var{table}, and return the
@@ -2360,7 +2358,7 @@ is supplied).  Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-set!
-@c snarfed from hashtab.c:647
+@c snarfed from hashtab.c:646
 @deffn {Scheme Procedure} hashq-set! table key val
 @deffnx {C Function} scm_hashq_set_x (table, key, val)
 Find the entry in @var{table} associated with @var{key}, and
@@ -2368,7 +2366,7 @@ store @var{value} there. Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-remove!
-@c snarfed from hashtab.c:659
+@c snarfed from hashtab.c:658
 @deffn {Scheme Procedure} hashq-remove! table key
 @deffnx {C Function} scm_hashq_remove_x (table, key)
 Remove @var{key} (and any value associated with it) from
@@ -2376,7 +2374,7 @@ Remove @var{key} (and any value associated with it) from
 @end deffn
 
 hashv-get-handle
-@c snarfed from hashtab.c:675
+@c snarfed from hashtab.c:673
 @deffn {Scheme Procedure} hashv-get-handle table key
 @deffnx {C Function} scm_hashv_get_handle (table, key)
 This procedure returns the @code{(key . value)} pair from the
@@ -2386,7 +2384,7 @@ Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-create-handle!
-@c snarfed from hashtab.c:687
+@c snarfed from hashtab.c:685
 @deffn {Scheme Procedure} hashv-create-handle! table key init
 @deffnx {C Function} scm_hashv_create_handle_x (table, key, init)
 This function looks up @var{key} in @var{table} and returns its handle.
@@ -2395,7 +2393,7 @@ associates @var{key} with @var{init}.
 @end deffn
 
 hashv-ref
-@c snarfed from hashtab.c:701
+@c snarfed from hashtab.c:699
 @deffn {Scheme Procedure} hashv-ref table key [dflt]
 @deffnx {C Function} scm_hashv_ref (table, key, dflt)
 Look up @var{key} in the hash table @var{table}, and return the
@@ -2405,7 +2403,7 @@ is supplied).  Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-set!
-@c snarfed from hashtab.c:715
+@c snarfed from hashtab.c:713
 @deffn {Scheme Procedure} hashv-set! table key val
 @deffnx {C Function} scm_hashv_set_x (table, key, val)
 Find the entry in @var{table} associated with @var{key}, and
@@ -2413,7 +2411,7 @@ store @var{value} there. Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-remove!
-@c snarfed from hashtab.c:726
+@c snarfed from hashtab.c:724
 @deffn {Scheme Procedure} hashv-remove! table key
 @deffnx {C Function} scm_hashv_remove_x (table, key)
 Remove @var{key} (and any value associated with it) from
@@ -2421,7 +2419,7 @@ Remove @var{key} (and any value associated with it) from
 @end deffn
 
 hash-get-handle
-@c snarfed from hashtab.c:741
+@c snarfed from hashtab.c:738
 @deffn {Scheme Procedure} hash-get-handle table key
 @deffnx {C Function} scm_hash_get_handle (table, key)
 This procedure returns the @code{(key . value)} pair from the
@@ -2431,7 +2429,7 @@ Uses @code{equal?} for equality testing.
 @end deffn
 
 hash-create-handle!
-@c snarfed from hashtab.c:753
+@c snarfed from hashtab.c:750
 @deffn {Scheme Procedure} hash-create-handle! table key init
 @deffnx {C Function} scm_hash_create_handle_x (table, key, init)
 This function looks up @var{key} in @var{table} and returns its handle.
@@ -2440,7 +2438,7 @@ associates @var{key} with @var{init}.
 @end deffn
 
 hash-ref
-@c snarfed from hashtab.c:766
+@c snarfed from hashtab.c:763
 @deffn {Scheme Procedure} hash-ref table key [dflt]
 @deffnx {C Function} scm_hash_ref (table, key, dflt)
 Look up @var{key} in the hash table @var{table}, and return the
@@ -2450,7 +2448,7 @@ is supplied).  Uses @code{equal?} for equality testing.
 @end deffn
 
 hash-set!
-@c snarfed from hashtab.c:781
+@c snarfed from hashtab.c:778
 @deffn {Scheme Procedure} hash-set! table key val
 @deffnx {C Function} scm_hash_set_x (table, key, val)
 Find the entry in @var{table} associated with @var{key}, and
@@ -2459,7 +2457,7 @@ testing.
 @end deffn
 
 hash-remove!
-@c snarfed from hashtab.c:793
+@c snarfed from hashtab.c:790
 @deffn {Scheme Procedure} hash-remove! table key
 @deffnx {C Function} scm_hash_remove_x (table, key)
 Remove @var{key} (and any value associated with it) from
@@ -2467,7 +2465,7 @@ Remove @var{key} (and any value associated with it) from
 @end deffn
 
 hashx-get-handle
-@c snarfed from hashtab.c:846
+@c snarfed from hashtab.c:831
 @deffn {Scheme Procedure} hashx-get-handle hash assoc table key
 @deffnx {C Function} scm_hashx_get_handle (hash, assoc, table, key)
 This behaves the same way as the corresponding
@@ -2479,7 +2477,7 @@ table size.  @code{assoc} must be an associator function, like
 @end deffn
 
 hashx-create-handle!
-@c snarfed from hashtab.c:865
+@c snarfed from hashtab.c:850
 @deffn {Scheme Procedure} hashx-create-handle! hash assoc table key init
 @deffnx {C Function} scm_hashx_create_handle_x (hash, assoc, table, key, init)
 This behaves the same way as the corresponding
@@ -2491,7 +2489,7 @@ table size.  @code{assoc} must be an associator function, like
 @end deffn
 
 hashx-ref
-@c snarfed from hashtab.c:888
+@c snarfed from hashtab.c:873
 @deffn {Scheme Procedure} hashx-ref hash assoc table key [dflt]
 @deffnx {C Function} scm_hashx_ref (hash, assoc, table, key, dflt)
 This behaves the same way as the corresponding @code{ref}
@@ -2506,7 +2504,7 @@ equivalent to @code{hashx-ref hashq assq table key}.
 @end deffn
 
 hashx-set!
-@c snarfed from hashtab.c:914
+@c snarfed from hashtab.c:899
 @deffn {Scheme Procedure} hashx-set! hash assoc table key val
 @deffnx {C Function} scm_hashx_set_x (hash, assoc, table, key, val)
 This behaves the same way as the corresponding @code{set!}
@@ -2520,8 +2518,23 @@ that takes two arguments, a key to be hashed and a table size.
 equivalent to @code{hashx-set!  hashq assq table key}.
 @end deffn
 
+hashx-remove!
+@c snarfed from hashtab.c:920
+@deffn {Scheme Procedure} hashx-remove! hash assoc table obj
+@deffnx {C Function} scm_hashx_remove_x (hash, assoc, table, obj)
+This behaves the same way as the corresponding @code{remove!}
+function, but uses @var{hash} as a hash function and
+@var{assoc} to compare keys.  @code{hash} must be a function
+that takes two arguments, a key to be hashed and a table size.
+@code{assoc} must be an associator function, like @code{assoc},
+@code{assq} or @code{assv}.
+
+ By way of illustration, @code{hashq-remove! table key} is
+equivalent to @code{hashx-remove!  hashq assq #f table key}.
+@end deffn
+
 hash-fold
-@c snarfed from hashtab.c:1016
+@c snarfed from hashtab.c:1009
 @deffn {Scheme Procedure} hash-fold proc init table
 @deffnx {C Function} scm_hash_fold (proc, init, table)
 An iterator over hash-table elements.
@@ -2535,7 +2548,7 @@ table into an a-list of key-value pairs.
 @end deffn
 
 hash-for-each
-@c snarfed from hashtab.c:1037
+@c snarfed from hashtab.c:1030
 @deffn {Scheme Procedure} hash-for-each proc table
 @deffnx {C Function} scm_hash_for_each (proc, table)
 An iterator over hash-table elements.
@@ -2545,7 +2558,7 @@ and value are successive pairs from the hash table TABLE.
 @end deffn
 
 hash-for-each-handle
-@c snarfed from hashtab.c:1054
+@c snarfed from hashtab.c:1047
 @deffn {Scheme Procedure} hash-for-each-handle proc table
 @deffnx {C Function} scm_hash_for_each_handle (proc, table)
 An iterator over hash-table elements.
@@ -2553,7 +2566,7 @@ Applies PROC successively on all hash table handles.
 @end deffn
 
 hash-map->list
-@c snarfed from hashtab.c:1080
+@c snarfed from hashtab.c:1073
 @deffn {Scheme Procedure} hash-map->list proc table
 @deffnx {C Function} scm_hash_map_to_list (proc, table)
 An iterator over hash-table elements.
@@ -2765,7 +2778,7 @@ counts.
 @end deffn
 
 keyword?
-@c snarfed from keywords.c:51
+@c snarfed from keywords.c:52
 @deffn {Scheme Procedure} keyword? obj
 @deffnx {C Function} scm_keyword_p (obj)
 Return @code{#t} if the argument @var{obj} is a keyword, else
@@ -2773,14 +2786,14 @@ Return @code{#t} if the argument @var{obj} is a keyword, else
 @end deffn
 
 symbol->keyword
-@c snarfed from keywords.c:60
+@c snarfed from keywords.c:61
 @deffn {Scheme Procedure} symbol->keyword symbol
 @deffnx {C Function} scm_symbol_to_keyword (symbol)
 Return the keyword with the same name as @var{symbol}.
 @end deffn
 
 keyword->symbol
-@c snarfed from keywords.c:81
+@c snarfed from keywords.c:82
 @deffn {Scheme Procedure} keyword->symbol keyword
 @deffnx {C Function} scm_keyword_to_symbol (keyword)
 Return the symbol with the same name as @var{keyword}.
@@ -3644,35 +3657,35 @@ else.
 @end deffn
 
 truncate
-@c snarfed from numbers.c:5033
+@c snarfed from numbers.c:5060
 @deffn {Scheme Procedure} truncate x
 @deffnx {C Function} scm_truncate_number (x)
 Round the number @var{x} towards zero.
 @end deffn
 
 round
-@c snarfed from numbers.c:5049
+@c snarfed from numbers.c:5076
 @deffn {Scheme Procedure} round x
 @deffnx {C Function} scm_round_number (x)
 Round the number @var{x} towards the nearest integer. When it is exactly halfway between two integers, round towards the even one.
 @end deffn
 
 floor
-@c snarfed from numbers.c:5075
+@c snarfed from numbers.c:5102
 @deffn {Scheme Procedure} floor x
 @deffnx {C Function} scm_floor (x)
 Round the number @var{x} towards minus infinity.
 @end deffn
 
 ceiling
-@c snarfed from numbers.c:5106
+@c snarfed from numbers.c:5133
 @deffn {Scheme Procedure} ceiling x
 @deffnx {C Function} scm_ceiling (x)
 Round the number @var{x} towards infinity.
 @end deffn
 
 $expt
-@c snarfed from numbers.c:5215
+@c snarfed from numbers.c:5242
 @deffn {Scheme Procedure} $expt x y
 @deffnx {C Function} scm_sys_expt (x, y)
 Return @var{x} raised to the power of @var{y}. This
@@ -3680,7 +3693,7 @@ procedure does not accept complex arguments.
 @end deffn
 
 $atan2
-@c snarfed from numbers.c:5231
+@c snarfed from numbers.c:5258
 @deffn {Scheme Procedure} $atan2 x y
 @deffnx {C Function} scm_sys_atan2 (x, y)
 Return the arc tangent of the two arguments @var{x} and
@@ -3691,7 +3704,7 @@ procedure does not accept complex arguments.
 @end deffn
 
 make-rectangular
-@c snarfed from numbers.c:5259
+@c snarfed from numbers.c:5286
 @deffn {Scheme Procedure} make-rectangular real imaginary
 @deffnx {C Function} scm_make_rectangular (real, imaginary)
 Return a complex number constructed of the given @var{real} and
@@ -3699,21 +3712,21 @@ Return a complex number constructed of the given @var{real} and
 @end deffn
 
 make-polar
-@c snarfed from numbers.c:5283
+@c snarfed from numbers.c:5310
 @deffn {Scheme Procedure} make-polar x y
 @deffnx {C Function} scm_make_polar (x, y)
 Return the complex number @var{x} * e^(i * @var{y}).
 @end deffn
 
 inexact->exact
-@c snarfed from numbers.c:5486
+@c snarfed from numbers.c:5513
 @deffn {Scheme Procedure} inexact->exact z
 @deffnx {C Function} scm_inexact_to_exact (z)
 Return an exact number that is numerically closest to @var{z}.
 @end deffn
 
 rationalize
-@c snarfed from numbers.c:5523
+@c snarfed from numbers.c:5550
 @deffn {Scheme Procedure} rationalize x err
 @deffnx {C Function} scm_rationalize (x, err)
 Return an exact number that is within @var{err} of @var{x}.
@@ -3765,28 +3778,28 @@ specified by @var{layout}.
 @end deffn
 
 object-properties
-@c snarfed from objprop.c:35
+@c snarfed from objprop.c:36
 @deffn {Scheme Procedure} object-properties obj
 @deffnx {C Function} scm_object_properties (obj)
 Return @var{obj}'s property list.
 @end deffn
 
 set-object-properties!
-@c snarfed from objprop.c:45
+@c snarfed from objprop.c:46
 @deffn {Scheme Procedure} set-object-properties! obj alist
 @deffnx {C Function} scm_set_object_properties_x (obj, alist)
 Set @var{obj}'s property list to @var{alist}.
 @end deffn
 
 object-property
-@c snarfed from objprop.c:56
+@c snarfed from objprop.c:57
 @deffn {Scheme Procedure} object-property obj key
 @deffnx {C Function} scm_object_property (obj, key)
 Return the property of @var{obj} with name @var{key}.
 @end deffn
 
 set-object-property!
-@c snarfed from objprop.c:68
+@c snarfed from objprop.c:69
 @deffn {Scheme Procedure} set-object-property! obj key value
 @deffnx {C Function} scm_set_object_property_x (obj, key, value)
 In @var{obj}'s property list, set the property named @var{key}
@@ -3827,7 +3840,7 @@ by @code{set-cdr!} is unspecified.
 @end deffn
 
 char-ready?
-@c snarfed from ports.c:244
+@c snarfed from ports.c:245
 @deffn {Scheme Procedure} char-ready? [port]
 @deffnx {C Function} scm_char_ready_p (port)
 Return @code{#t} if a character is ready on input @var{port}
@@ -3847,7 +3860,7 @@ interactive port that has no ready characters.
 @end deffn
 
 drain-input
-@c snarfed from ports.c:321
+@c snarfed from ports.c:322
 @deffn {Scheme Procedure} drain-input port
 @deffnx {C Function} scm_drain_input (port)
 This procedure clears a port's input buffers, similar
@@ -3867,7 +3880,7 @@ for further input.
 @end deffn
 
 current-input-port
-@c snarfed from ports.c:354
+@c snarfed from ports.c:355
 @deffn {Scheme Procedure} current-input-port
 @deffnx {C Function} scm_current_input_port ()
 Return the current input port.  This is the default port used
@@ -3876,7 +3889,7 @@ returns the @dfn{standard input} in Unix and C terminology.
 @end deffn
 
 current-output-port
-@c snarfed from ports.c:366
+@c snarfed from ports.c:367
 @deffn {Scheme Procedure} current-output-port
 @deffnx {C Function} scm_current_output_port ()
 Return the current output port.  This is the default port used
@@ -3886,7 +3899,7 @@ Unix and C terminology.
 @end deffn
 
 current-error-port
-@c snarfed from ports.c:376
+@c snarfed from ports.c:377
 @deffn {Scheme Procedure} current-error-port
 @deffnx {C Function} scm_current_error_port ()
 Return the port to which errors and warnings should be sent (the
@@ -3894,7 +3907,7 @@ Return the port to which errors and warnings should be sent (the
 @end deffn
 
 current-load-port
-@c snarfed from ports.c:386
+@c snarfed from ports.c:387
 @deffn {Scheme Procedure} current-load-port
 @deffnx {C Function} scm_current_load_port ()
 Return the current-load-port.
@@ -3902,7 +3915,7 @@ The load port is used internally by @code{primitive-load}.
 @end deffn
 
 set-current-input-port
-@c snarfed from ports.c:399
+@c snarfed from ports.c:400
 @deffn {Scheme Procedure} set-current-input-port port
 @deffnx {Scheme Procedure} set-current-output-port port
 @deffnx {Scheme Procedure} set-current-error-port port
@@ -3913,28 +3926,28 @@ so that they use the supplied @var{port} for input or output.
 @end deffn
 
 set-current-output-port
-@c snarfed from ports.c:412
+@c snarfed from ports.c:413
 @deffn {Scheme Procedure} set-current-output-port port
 @deffnx {C Function} scm_set_current_output_port (port)
 Set the current default output port to @var{port}.
 @end deffn
 
 set-current-error-port
-@c snarfed from ports.c:426
+@c snarfed from ports.c:427
 @deffn {Scheme Procedure} set-current-error-port port
 @deffnx {C Function} scm_set_current_error_port (port)
 Set the current default error port to @var{port}.
 @end deffn
 
 port-revealed
-@c snarfed from ports.c:624
+@c snarfed from ports.c:625
 @deffn {Scheme Procedure} port-revealed port
 @deffnx {C Function} scm_port_revealed (port)
 Return the revealed count for @var{port}.
 @end deffn
 
 set-port-revealed!
-@c snarfed from ports.c:637
+@c snarfed from ports.c:638
 @deffn {Scheme Procedure} set-port-revealed! port rcount
 @deffnx {C Function} scm_set_port_revealed_x (port, rcount)
 Sets the revealed count for a port to a given value.
@@ -3942,7 +3955,7 @@ The return value is unspecified.
 @end deffn
 
 port-mode
-@c snarfed from ports.c:698
+@c snarfed from ports.c:699
 @deffn {Scheme Procedure} port-mode port
 @deffnx {C Function} scm_port_mode (port)
 Return the port modes associated with the open port @var{port}.
@@ -3952,7 +3965,7 @@ used only during port creation are not retained.
 @end deffn
 
 close-port
-@c snarfed from ports.c:735
+@c snarfed from ports.c:736
 @deffn {Scheme Procedure} close-port port
 @deffnx {C Function} scm_close_port (port)
 Close the specified port object.  Return @code{#t} if it
@@ -3964,7 +3977,7 @@ descriptors.
 @end deffn
 
 close-input-port
-@c snarfed from ports.c:765
+@c snarfed from ports.c:766
 @deffn {Scheme Procedure} close-input-port port
 @deffnx {C Function} scm_close_input_port (port)
 Close the specified input port object.  The routine has no effect if
@@ -3976,7 +3989,7 @@ which can close file descriptors.
 @end deffn
 
 close-output-port
-@c snarfed from ports.c:780
+@c snarfed from ports.c:781
 @deffn {Scheme Procedure} close-output-port port
 @deffnx {C Function} scm_close_output_port (port)
 Close the specified output port object.  The routine has no effect if
@@ -3988,7 +4001,7 @@ which can close file descriptors.
 @end deffn
 
 port-for-each
-@c snarfed from ports.c:826
+@c snarfed from ports.c:827
 @deffn {Scheme Procedure} port-for-each proc
 @deffnx {C Function} scm_port_for_each (proc)
 Apply @var{proc} to each port in the Guile port table
@@ -4000,7 +4013,7 @@ have no effect as far as @var{port-for-each} is concerned.
 @end deffn
 
 input-port?
-@c snarfed from ports.c:844
+@c snarfed from ports.c:845
 @deffn {Scheme Procedure} input-port? x
 @deffnx {C Function} scm_input_port_p (x)
 Return @code{#t} if @var{x} is an input port, otherwise return
@@ -4009,7 +4022,7 @@ Return @code{#t} if @var{x} is an input port, otherwise return
 @end deffn
 
 output-port?
-@c snarfed from ports.c:855
+@c snarfed from ports.c:856
 @deffn {Scheme Procedure} output-port? x
 @deffnx {C Function} scm_output_port_p (x)
 Return @code{#t} if @var{x} is an output port, otherwise return
@@ -4018,7 +4031,7 @@ Return @code{#t} if @var{x} is an output port, otherwise return
 @end deffn
 
 port?
-@c snarfed from ports.c:867
+@c snarfed from ports.c:868
 @deffn {Scheme Procedure} port? x
 @deffnx {C Function} scm_port_p (x)
 Return a boolean indicating whether @var{x} is a port.
@@ -4027,7 +4040,7 @@ Equivalent to @code{(or (input-port? @var{x}) (output-port?
 @end deffn
 
 port-closed?
-@c snarfed from ports.c:877
+@c snarfed from ports.c:878
 @deffn {Scheme Procedure} port-closed? port
 @deffnx {C Function} scm_port_closed_p (port)
 Return @code{#t} if @var{port} is closed or @code{#f} if it is
@@ -4035,7 +4048,7 @@ open.
 @end deffn
 
 eof-object?
-@c snarfed from ports.c:888
+@c snarfed from ports.c:889
 @deffn {Scheme Procedure} eof-object? x
 @deffnx {C Function} scm_eof_object_p (x)
 Return @code{#t} if @var{x} is an end-of-file object; otherwise
@@ -4043,7 +4056,7 @@ return @code{#f}.
 @end deffn
 
 force-output
-@c snarfed from ports.c:902
+@c snarfed from ports.c:903
 @deffn {Scheme Procedure} force-output [port]
 @deffnx {C Function} scm_force_output (port)
 Flush the specified output port, or the current output port if @var{port}
@@ -4056,7 +4069,7 @@ The return value is unspecified.
 @end deffn
 
 flush-all-ports
-@c snarfed from ports.c:920
+@c snarfed from ports.c:921
 @deffn {Scheme Procedure} flush-all-ports
 @deffnx {C Function} scm_flush_all_ports ()
 Equivalent to calling @code{force-output} on
@@ -4064,7 +4077,7 @@ all open output ports.  The return value is unspecified.
 @end deffn
 
 read-char
-@c snarfed from ports.c:940
+@c snarfed from ports.c:941
 @deffn {Scheme Procedure} read-char [port]
 @deffnx {C Function} scm_read_char (port)
 Return the next character available from @var{port}, updating
@@ -4073,7 +4086,7 @@ characters are available, the end-of-file object is returned.
 @end deffn
 
 peek-char
-@c snarfed from ports.c:1282
+@c snarfed from ports.c:1283
 @deffn {Scheme Procedure} peek-char [port]
 @deffnx {C Function} scm_peek_char (port)
 Return the next character available from @var{port},
@@ -4093,7 +4106,7 @@ to @code{read-char} would have hung.
 @end deffn
 
 unread-char
-@c snarfed from ports.c:1305
+@c snarfed from ports.c:1306
 @deffn {Scheme Procedure} unread-char cobj [port]
 @deffnx {C Function} scm_unread_char (cobj, port)
 Place @var{char} in @var{port} so that it will be read by the
@@ -4103,7 +4116,7 @@ not supplied, the current input port is used.
 @end deffn
 
 unread-string
-@c snarfed from ports.c:1328
+@c snarfed from ports.c:1329
 @deffn {Scheme Procedure} unread-string str port
 @deffnx {C Function} scm_unread_string (str, port)
 Place the string @var{str} in @var{port} so that its characters will be
@@ -4113,7 +4126,7 @@ unread characters will be read again in last-in first-out order.  If
 @end deffn
 
 seek
-@c snarfed from ports.c:1367
+@c snarfed from ports.c:1368
 @deffn {Scheme Procedure} seek fd_port offset whence
 @deffnx {C Function} scm_seek (fd_port, offset, whence)
 Sets the current position of @var{fd/port} to the integer
@@ -4142,7 +4155,7 @@ that the current position of a port can be obtained using:
 @end deffn
 
 truncate-file
-@c snarfed from ports.c:1425
+@c snarfed from ports.c:1426
 @deffn {Scheme Procedure} truncate-file object [length]
 @deffnx {C Function} scm_truncate_file (object, length)
 Truncates the object referred to by @var{object} to at most
@@ -4154,7 +4167,7 @@ position.  The return value is unspecified.
 @end deffn
 
 port-line
-@c snarfed from ports.c:1485
+@c snarfed from ports.c:1486
 @deffn {Scheme Procedure} port-line port
 @deffnx {C Function} scm_port_line (port)
 Return the current line number for @var{port}.
@@ -4166,7 +4179,7 @@ non-programmers.
 @end deffn
 
 set-port-line!
-@c snarfed from ports.c:1497
+@c snarfed from ports.c:1498
 @deffn {Scheme Procedure} set-port-line! port line
 @deffnx {C Function} scm_set_port_line_x (port, line)
 Set the current line number for @var{port} to @var{line}.  The
@@ -4174,7 +4187,7 @@ first line of a file is 0.
 @end deffn
 
 port-column
-@c snarfed from ports.c:1516
+@c snarfed from ports.c:1517
 @deffn {Scheme Procedure} port-column port
 @deffnx {C Function} scm_port_column (port)
 Return the current column number of @var{port}.
@@ -4188,7 +4201,7 @@ what non-programmers will find most natural.)
 @end deffn
 
 set-port-column!
-@c snarfed from ports.c:1528
+@c snarfed from ports.c:1529
 @deffn {Scheme Procedure} set-port-column! port column
 @deffnx {C Function} scm_set_port_column_x (port, column)
 Set the current column of @var{port}.  Before reading the first
@@ -4196,7 +4209,7 @@ character on a line the column should be 0.
 @end deffn
 
 port-filename
-@c snarfed from ports.c:1542
+@c snarfed from ports.c:1543
 @deffn {Scheme Procedure} port-filename port
 @deffnx {C Function} scm_port_filename (port)
 Return the filename associated with @var{port}.  This function returns
@@ -4205,7 +4218,7 @@ when called on the current input, output and error ports respectively.
 @end deffn
 
 set-port-filename!
-@c snarfed from ports.c:1556
+@c snarfed from ports.c:1557
 @deffn {Scheme Procedure} set-port-filename! port filename
 @deffnx {C Function} scm_set_port_filename_x (port, filename)
 Change the filename associated with @var{port}, using the current input
@@ -4215,7 +4228,7 @@ source of data, but only the value that is returned by
 @end deffn
 
 %make-void-port
-@c snarfed from ports.c:1650
+@c snarfed from ports.c:1651
 @deffn {Scheme Procedure} %make-void-port mode
 @deffnx {C Function} scm_sys_make_void_port (mode)
 Create and return a new void port.  A void port acts like
@@ -4967,14 +4980,14 @@ list elements. This is a stable sort.
 @end deffn
 
 source-properties
-@c snarfed from srcprop.c:152
+@c snarfed from srcprop.c:153
 @deffn {Scheme Procedure} source-properties obj
 @deffnx {C Function} scm_source_properties (obj)
 Return the source property association list of @var{obj}.
 @end deffn
 
 set-source-properties!
-@c snarfed from srcprop.c:175
+@c snarfed from srcprop.c:176
 @deffn {Scheme Procedure} set-source-properties! obj plist
 @deffnx {C Function} scm_set_source_properties_x (obj, plist)
 Install the association list @var{plist} as the source property
@@ -4982,7 +4995,7 @@ list for @var{obj}.
 @end deffn
 
 source-property
-@c snarfed from srcprop.c:193
+@c snarfed from srcprop.c:194
 @deffn {Scheme Procedure} source-property obj key
 @deffnx {C Function} scm_source_property (obj, key)
 Return the source property specified by @var{key} from
@@ -4990,7 +5003,7 @@ Return the source property specified by @var{key} from
 @end deffn
 
 set-source-property!
-@c snarfed from srcprop.c:224
+@c snarfed from srcprop.c:225
 @deffn {Scheme Procedure} set-source-property! obj key datum
 @deffnx {C Function} scm_set_source_property_x (obj, key, datum)
 Set the source property of object @var{obj}, which is specified by
@@ -5149,7 +5162,7 @@ Return @code{#t} if @var{frame} is an overflow frame.
 @end deffn
 
 get-internal-real-time
-@c snarfed from stime.c:132
+@c snarfed from stime.c:133
 @deffn {Scheme Procedure} get-internal-real-time
 @deffnx {C Function} scm_get_internal_real_time ()
 Return the number of time units since the interpreter was
@@ -5157,7 +5170,7 @@ started.
 @end deffn
 
 times
-@c snarfed from stime.c:179
+@c snarfed from stime.c:180
 @deffn {Scheme Procedure} times
 @deffnx {C Function} scm_times ()
 Return an object with information about real and processor
@@ -5184,7 +5197,7 @@ terminated child processes.
 @end deffn
 
 get-internal-run-time
-@c snarfed from stime.c:211
+@c snarfed from stime.c:212
 @deffn {Scheme Procedure} get-internal-run-time
 @deffnx {C Function} scm_get_internal_run_time ()
 Return the number of time units of processor time used by the
@@ -5193,7 +5206,7 @@ included but subprocesses are not.
 @end deffn
 
 current-time
-@c snarfed from stime.c:228
+@c snarfed from stime.c:229
 @deffn {Scheme Procedure} current-time
 @deffnx {C Function} scm_current_time ()
 Return the number of seconds since 1970-01-01 00:00:00 UTC,
@@ -5201,7 +5214,7 @@ excluding leap seconds.
 @end deffn
 
 gettimeofday
-@c snarfed from stime.c:247
+@c snarfed from stime.c:248
 @deffn {Scheme Procedure} gettimeofday
 @deffnx {C Function} scm_gettimeofday ()
 Return a pair containing the number of seconds and microseconds
@@ -5211,7 +5224,7 @@ operating system.
 @end deffn
 
 localtime
-@c snarfed from stime.c:363
+@c snarfed from stime.c:364
 @deffn {Scheme Procedure} localtime time [zone]
 @deffnx {C Function} scm_localtime (time, zone)
 Return an object representing the broken down components of
@@ -5222,7 +5235,7 @@ optionally specified by @var{zone} (a string), otherwise the
 @end deffn
 
 gmtime
-@c snarfed from stime.c:448
+@c snarfed from stime.c:449
 @deffn {Scheme Procedure} gmtime time
 @deffnx {C Function} scm_gmtime (time)
 Return an object representing the broken down components of
@@ -5231,7 +5244,7 @@ Return an object representing the broken down components of
 @end deffn
 
 mktime
-@c snarfed from stime.c:516
+@c snarfed from stime.c:517
 @deffn {Scheme Procedure} mktime sbd_time [zone]
 @deffnx {C Function} scm_mktime (sbd_time, zone)
 @var{bd-time} is an object representing broken down time and @code{zone}
@@ -5245,7 +5258,7 @@ as @var{bd-time} but with normalized values.
 @end deffn
 
 tzset
-@c snarfed from stime.c:602
+@c snarfed from stime.c:603
 @deffn {Scheme Procedure} tzset
 @deffnx {C Function} scm_tzset ()
 Initialize the timezone from the TZ environment variable
@@ -5255,7 +5268,7 @@ timezone.
 @end deffn
 
 strftime
-@c snarfed from stime.c:619
+@c snarfed from stime.c:620
 @deffn {Scheme Procedure} strftime format stime
 @deffnx {C Function} scm_strftime (format, stime)
 Formats a time specification @var{time} using @var{template}.  @var{time}
@@ -5268,7 +5281,7 @@ is the formatted string.
 @end deffn
 
 strptime
-@c snarfed from stime.c:720
+@c snarfed from stime.c:721
 @deffn {Scheme Procedure} strptime format string
 @deffnx {C Function} scm_strptime (format, string)
 Performs the reverse action to @code{strftime}, parsing
@@ -7903,7 +7916,7 @@ procedure returns.
 @end deffn
 
 make-struct-layout
-@c snarfed from struct.c:55
+@c snarfed from struct.c:56
 @deffn {Scheme Procedure} make-struct-layout fields
 @deffnx {C Function} scm_make_struct_layout (fields)
 Return a new structure layout object.
@@ -7919,7 +7932,7 @@ indicate that the field is a tail-array.
 @end deffn
 
 struct?
-@c snarfed from struct.c:222
+@c snarfed from struct.c:223
 @deffn {Scheme Procedure} struct? x
 @deffnx {C Function} scm_struct_p (x)
 Return @code{#t} iff @var{x} is a structure object, else
@@ -7927,14 +7940,14 @@ Return @code{#t} iff @var{x} is a structure object, else
 @end deffn
 
 struct-vtable?
-@c snarfed from struct.c:231
+@c snarfed from struct.c:232
 @deffn {Scheme Procedure} struct-vtable? x
 @deffnx {C Function} scm_struct_vtable_p (x)
 Return @code{#t} iff @var{x} is a vtable structure.
 @end deffn
 
 make-struct
-@c snarfed from struct.c:417
+@c snarfed from struct.c:418
 @deffn {Scheme Procedure} make-struct vtable tail_array_size . init
 @deffnx {C Function} scm_make_struct (vtable, tail_array_size, init)
 Create a new structure.
@@ -7965,7 +7978,7 @@ For more information, see the documentation for @code{make-vtable-vtable}.
 @end deffn
 
 make-vtable-vtable
-@c snarfed from struct.c:501
+@c snarfed from struct.c:502
 @deffn {Scheme Procedure} make-vtable-vtable user_fields tail_array_size . init
 @deffnx {C Function} scm_make_vtable_vtable (user_fields, tail_array_size, init)
 Return a new, self-describing vtable structure.
@@ -8027,7 +8040,7 @@ ball @result{} #<a green ball owned by Nisse>
 @end deffn
 
 struct-ref
-@c snarfed from struct.c:541
+@c snarfed from struct.c:542
 @deffn {Scheme Procedure} struct-ref handle pos
 @deffnx {Scheme Procedure} struct-set! struct n value
 @deffnx {C Function} scm_struct_ref (handle, pos)
@@ -8040,7 +8053,7 @@ integer value small enough to fit in one machine word.
 @end deffn
 
 struct-set!
-@c snarfed from struct.c:620
+@c snarfed from struct.c:621
 @deffn {Scheme Procedure} struct-set! handle pos val
 @deffnx {C Function} scm_struct_set_x (handle, pos, val)
 Set the slot of the structure @var{handle} with index @var{pos}
@@ -8049,28 +8062,28 @@ to.
 @end deffn
 
 struct-vtable
-@c snarfed from struct.c:691
+@c snarfed from struct.c:692
 @deffn {Scheme Procedure} struct-vtable handle
 @deffnx {C Function} scm_struct_vtable (handle)
 Return the vtable structure that describes the type of @var{struct}.
 @end deffn
 
 struct-vtable-tag
-@c snarfed from struct.c:702
+@c snarfed from struct.c:703
 @deffn {Scheme Procedure} struct-vtable-tag handle
 @deffnx {C Function} scm_struct_vtable_tag (handle)
 Return the vtable tag of the structure @var{handle}.
 @end deffn
 
 struct-vtable-name
-@c snarfed from struct.c:741
+@c snarfed from struct.c:742
 @deffn {Scheme Procedure} struct-vtable-name vtable
 @deffnx {C Function} scm_struct_vtable_name (vtable)
 Return the name of the vtable @var{vtable}.
 @end deffn
 
 set-struct-vtable-name!
-@c snarfed from struct.c:751
+@c snarfed from struct.c:752
 @deffn {Scheme Procedure} set-struct-vtable-name! vtable name
 @deffnx {C Function} scm_set_struct_vtable_name_x (vtable, name)
 Set the name of the vtable @var{vtable} to @var{name}.
@@ -8210,7 +8223,7 @@ Change the binding of @var{symbol}'s property slot.
 @end deffn
 
 call-with-new-thread
-@c snarfed from threads.c:594
+@c snarfed from threads.c:611
 @deffn {Scheme Procedure} call-with-new-thread thunk [handler]
 @deffnx {C Function} scm_call_with_new_thread (thunk, handler)
 Call @code{thunk} in a new thread and with a new dynamic state,
@@ -8226,98 +8239,98 @@ the @emph{exit value} of the thread and the thread is terminated.
 @end deffn
 
 yield
-@c snarfed from threads.c:705
+@c snarfed from threads.c:722
 @deffn {Scheme Procedure} yield
 @deffnx {C Function} scm_yield ()
 Move the calling thread to the end of the scheduling queue.
 @end deffn
 
 join-thread
-@c snarfed from threads.c:715
+@c snarfed from threads.c:732
 @deffn {Scheme Procedure} join-thread thread
 @deffnx {C Function} scm_join_thread (thread)
 Suspend execution of the calling thread until the target @var{thread} terminates, unless the target @var{thread} has already terminated. 
 @end deffn
 
 make-mutex
-@c snarfed from threads.c:811
+@c snarfed from threads.c:828
 @deffn {Scheme Procedure} make-mutex
 @deffnx {C Function} scm_make_mutex ()
 Create a new mutex. 
 @end deffn
 
 make-recursive-mutex
-@c snarfed from threads.c:820
+@c snarfed from threads.c:837
 @deffn {Scheme Procedure} make-recursive-mutex
 @deffnx {C Function} scm_make_recursive_mutex ()
 Create a new recursive mutex. 
 @end deffn
 
 lock-mutex
-@c snarfed from threads.c:866
+@c snarfed from threads.c:883
 @deffn {Scheme Procedure} lock-mutex mx
 @deffnx {C Function} scm_lock_mutex (mx)
 Lock @var{mutex}. If the mutex is already locked, the calling thread blocks until the mutex becomes available. The function returns when the calling thread owns the lock on @var{mutex}.  Locking a mutex that a thread already owns will succeed right away and will not block the thread.  That is, Guile's mutexes are @emph{recursive}. 
 @end deffn
 
 try-mutex
-@c snarfed from threads.c:905
+@c snarfed from threads.c:931
 @deffn {Scheme Procedure} try-mutex mutex
 @deffnx {C Function} scm_try_mutex (mutex)
 Try to lock @var{mutex}. If the mutex is already locked by someone else, return @code{#f}.  Else lock the mutex and return @code{#t}. 
 @end deffn
 
 unlock-mutex
-@c snarfed from threads.c:950
+@c snarfed from threads.c:976
 @deffn {Scheme Procedure} unlock-mutex mx
 @deffnx {C Function} scm_unlock_mutex (mx)
 Unlocks @var{mutex} if the calling thread owns the lock on @var{mutex}.  Calling unlock-mutex on a mutex not owned by the current thread results in undefined behaviour. Once a mutex has been unlocked, one thread blocked on @var{mutex} is awakened and grabs the mutex lock.  Every call to @code{lock-mutex} by this thread must be matched with a call to @code{unlock-mutex}.  Only the last call to @code{unlock-mutex} will actually unlock the mutex. 
 @end deffn
 
 make-condition-variable
-@c snarfed from threads.c:1026
+@c snarfed from threads.c:1052
 @deffn {Scheme Procedure} make-condition-variable
 @deffnx {C Function} scm_make_condition_variable ()
 Make a new condition variable.
 @end deffn
 
 wait-condition-variable
-@c snarfed from threads.c:1099
+@c snarfed from threads.c:1120
 @deffn {Scheme Procedure} wait-condition-variable cv mx [t]
 @deffnx {C Function} scm_timed_wait_condition_variable (cv, mx, t)
 Wait until @var{cond-var} has been signalled.  While waiting, @var{mutex} is atomically unlocked (as with @code{unlock-mutex}) and is locked again when this function returns.  When @var{time} is given, it specifies a point in time where the waiting should be aborted.  It can be either a integer as returned by @code{current-time} or a pair as returned by @code{gettimeofday}.  When the waiting is aborted the mutex is locked and @code{#f} is returned.  When the condition variable is in fact signalled, the mutex is also locked and @code{#t} is returned. 
 @end deffn
 
 signal-condition-variable
-@c snarfed from threads.c:1138
+@c snarfed from threads.c:1157
 @deffn {Scheme Procedure} signal-condition-variable cv
 @deffnx {C Function} scm_signal_condition_variable (cv)
 Wake up one thread that is waiting for @var{cv}
 @end deffn
 
 broadcast-condition-variable
-@c snarfed from threads.c:1158
+@c snarfed from threads.c:1177
 @deffn {Scheme Procedure} broadcast-condition-variable cv
 @deffnx {C Function} scm_broadcast_condition_variable (cv)
 Wake up all threads that are waiting for @var{cv}. 
 @end deffn
 
 current-thread
-@c snarfed from threads.c:1335
+@c snarfed from threads.c:1354
 @deffn {Scheme Procedure} current-thread
 @deffnx {C Function} scm_current_thread ()
 Return the thread that called this function.
 @end deffn
 
 all-threads
-@c snarfed from threads.c:1353
+@c snarfed from threads.c:1372
 @deffn {Scheme Procedure} all-threads
 @deffnx {C Function} scm_all_threads ()
 Return a list of all threads.
 @end deffn
 
 thread-exited?
-@c snarfed from threads.c:1379
+@c snarfed from threads.c:1398
 @deffn {Scheme Procedure} thread-exited? thread
 @deffnx {C Function} scm_thread_exited_p (thread)
 Return @code{#t} iff @var{thread} has exited.
@@ -8325,7 +8338,7 @@ Return @code{#t} iff @var{thread} has exited.
 @end deffn
 
 catch
-@c snarfed from throw.c:511
+@c snarfed from throw.c:512
 @deffn {Scheme Procedure} catch key thunk handler
 @deffnx {C Function} scm_catch (key, thunk, handler)
 Invoke @var{thunk} in the dynamic context of @var{handler} for
@@ -8349,7 +8362,7 @@ match this call to @code{catch}.
 @end deffn
 
 lazy-catch
-@c snarfed from throw.c:539
+@c snarfed from throw.c:540
 @deffn {Scheme Procedure} lazy-catch key thunk handler
 @deffnx {C Function} scm_lazy_catch (key, thunk, handler)
 This behaves exactly like @code{catch}, except that it does
@@ -8359,7 +8372,7 @@ it must throw to another catch, or otherwise exit non-locally.
 @end deffn
 
 throw
-@c snarfed from throw.c:572
+@c snarfed from throw.c:573
 @deffn {Scheme Procedure} throw key . args
 @deffnx {C Function} scm_throw (key, args)
 Invoke the catch form matching @var{key}, passing @var{args} to the
@@ -11013,7 +11026,7 @@ any unflushed buffered port data is ignored.
 @end deffn
 
 regexp?
-@c snarfed from regex-posix.c:105
+@c snarfed from regex-posix.c:106
 @deffn {Scheme Procedure} regexp? obj
 @deffnx {C Function} scm_regexp_p (obj)
 Return @code{#t} if @var{obj} is a compiled regular expression,
@@ -11021,7 +11034,7 @@ or @code{#f} otherwise.
 @end deffn
 
 make-regexp
-@c snarfed from regex-posix.c:150
+@c snarfed from regex-posix.c:151
 @deffn {Scheme Procedure} make-regexp pat . flags
 @deffnx {C Function} scm_make_regexp (pat, flags)
 Compile the regular expression described by @var{pat}, and
@@ -11064,7 +11077,7 @@ one which comes last will override the earlier one.
 @end deffn
 
 regexp-exec
-@c snarfed from regex-posix.c:216
+@c snarfed from regex-posix.c:217
 @deffn {Scheme Procedure} regexp-exec rx str [start [flags]]
 @deffnx {C Function} scm_regexp_exec (rx, str, start, flags)
 Match the compiled regular expression @var{rx} against
