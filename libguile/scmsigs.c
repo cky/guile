@@ -81,6 +81,7 @@ int usleep ();
 #define alarm(sec) (0)
 /* This weird comma expression is because Sleep is void under Windows. */
 #define sleep(sec) (Sleep ((sec) * 1000), 0)
+#define usleep(usec) (Sleep ((usec) / 1000), 0)
 #define kill(pid, sig) raise (sig)
 #endif
 
@@ -534,7 +535,7 @@ SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#if defined(USE_THREADS) || defined(HAVE_USLEEP)
+#if defined(USE_THREADS) || defined(HAVE_USLEEP) || defined(__MINGW32__)
 SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
            (SCM i),
 	    "Sleep for I microseconds.  @code{usleep} is not available on\n"
@@ -562,7 +563,7 @@ SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
 #endif
 }
 #undef FUNC_NAME
-#endif /* GUILE_ISELECT || HAVE_USLEEP */
+#endif /* USE_THREADS || HAVE_USLEEP || __MINGW32__ */
 
 SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
            (SCM sig),
