@@ -17,23 +17,29 @@
 # the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 # Boston, MA 02111-1307 USA
 
-# Usage: guile-tools --version
-#        guile-tools --help
-#        guile-tools [OPTION] PROGRAM [ARGS]
-#
-# PROGRAM is run w/ ARGS.  To see a list of available programs, use
-# "guile-tools --help" to find the default scripts directory and then
-# do a "ls" on that directory.  Or just read the source 14 lines below.
-#
-# Options (only one of which may be used at a time):
-# --scriptsdir DIR      -- Look in DIR for scripts
-# --guileversion VERS   -- Look in $pkgdatadir/VERS/scripts for scripts
+# Usage: See `help' func below.
 #
 # TODO
 # - handle pre-install invocation
 # - "full" option processing (but see comment below)
 #
 # Author: Thien-Thi Nguyen
+
+help ()
+{
+    cat <<EOF
+Usage: guile-tools --version
+       guile-tools --help
+       guile-tools [OPTION] PROGRAM [ARGS]
+
+If PROGRAM is "list" or omitted, display contents of scripts dir, otherwise
+PROGRAM is run w/ ARGS.  Options (only one of which may be used at a time):
+ --scriptsdir DIR    -- Look in DIR for scripts
+ --guileversion VERS -- Look in $pkgdatadir/VERS/scripts for scripts
+
+Default scripts dir: $default_scriptsdir
+EOF
+}
 
 prefix="@prefix@"
 pkgdatadir="@datadir@/@PACKAGE@"
@@ -46,25 +52,20 @@ if [ -d "$mydir/scripts" -a -f "$mydir/scripts/Makefile.am" ] ; then
     default_scriptsdir=`(cd $mydir/scripts ; pwd)`
 fi
 
-help ()
-{
-    echo "$0 [--scriptsdir DIR | --guileversion VERSION] PROGRAM [ARGS]"
-    echo default scriptsdir: $default_scriptsdir
-}
-
 # option processing -- basically, you can override either the script dir
 # completely, or just the guile version.  we choose implementation simplicity
 # over orthogonality.
 
-if [ x"$1" = x--version ] ; then
+case x"$1" in
+x--version)
     echo $0 $guileversion
     exit 0
-fi
-
-if [ x"$1" = x--help -o x"$1" = x ] ; then
+    ;;
+x--help)
     help
     exit 0
-fi
+    ;;
+esac
 
 if [ x"$1" = x--scriptsdir ] ; then
     user_scriptsdir=$2
@@ -83,9 +84,9 @@ if [ ! -d $scriptsdir ] ; then
     exit 1
 fi
 
-if [ x"$1" = x ] ; then
-    help
-    exit 1
+if [ x"$1" = x -o x"$1" = xlist ] ; then
+    ls $scriptsdir
+    exit 0
 fi
 
 program=$scriptsdir/$1
