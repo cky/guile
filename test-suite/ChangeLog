@@ -1,3 +1,10 @@
+1999-09-03  James Blandy  <jimb@mule.m17n.org>
+
+	* tests/multilingual.nottest: New file, which we will turn into a
+	test file once we actually have multilingual support to test.
+
+	* tests/load.test: New test file.
+
 1999-08-30  James Blandy  <jimb@mule.m17n.org>
 
 	* tests/strings.test: New test file.
