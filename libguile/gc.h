@@ -79,6 +79,9 @@ extern struct scm_freelist_t scm_freelist;
 extern struct scm_freelist_t scm_freelist2;
 #endif
 extern unsigned long scm_gc_cells_collected;
+#ifdef GUILE_NEW_GC_SCHEME
+extern unsigned long scm_gc_yield;
+#endif
 extern unsigned long scm_gc_malloc_collected;
 extern unsigned long scm_gc_ports_collected;
 extern unsigned long scm_cells_allocated;

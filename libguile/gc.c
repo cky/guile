@@ -253,6 +253,9 @@ SCM scm_weak_vectors;
 unsigned long scm_cells_allocated = 0;
 long scm_mallocated = 0;
 unsigned long scm_gc_cells_collected;
+#ifdef GUILE_NEW_GC_SCHEME
+unsigned long scm_gc_yield;
+#endif
 unsigned long scm_gc_malloc_collected;
 unsigned long scm_gc_ports_collected;
 unsigned long scm_gc_rt;
@@ -727,6 +730,11 @@ scm_gc_start (const char *what)
 {
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ());
   scm_gc_cells_collected = 0;
+#ifdef GUILE_NEW_GC_SCHEME
+  scm_gc_yield = (scm_cells_allocated
+		  + master_cells_allocated (&scm_master_freelist)
+		  + master_cells_allocated (&scm_master_freelist2));
+#endif
   scm_gc_malloc_collected = 0;
   scm_gc_ports_collected = 0;
 }
@@ -772,9 +780,9 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 #ifdef GUILE_NEW_GC_SCHEME
 
 static void
-adjust_gc_trigger (scm_freelist_t *freelist, unsigned long yield)
+adjust_gc_trigger (scm_freelist_t *freelist)
 {
-  /* GC trigger is adjusted so that next predicted yield is
+  /* GC trigger is adjusted upwards so that next predicted yield is
    * gc_trigger_fraction of total heap size.
    *
    * The reason why we look at actual yield instead of collected cells
@@ -788,14 +796,14 @@ adjust_gc_trigger (scm_freelist_t *freelist, unsigned long yield)
   if (freelist->gc_trigger_fraction)
     {
       int delta = ((SCM_HEAP_SIZE * freelist->gc_trigger_fraction / 100)
-		   - yield);
+		   - scm_gc_yield);
 #ifdef DEBUGINFO
       fprintf (stderr, " after GC = %d, delta = %d\n",
 	       scm_cells_allocated,
 	       delta);
 #endif
       if (delta > 0)
-	freelist->gc_trigger += delta;;
+	freelist->gc_trigger += delta;
     }
 }
 
@@ -819,15 +827,8 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
 	    }
 	  else
 	    {
-	      unsigned long allocated
-		= (scm_cells_allocated
-		   + master_cells_allocated (&scm_master_freelist)
-		   + master_cells_allocated (&scm_master_freelist2));
-#ifdef DEBUGINFO
-	      fprintf (stderr, "allocated = %d, ", allocated);
-#endif
 	      scm_igc ("cells");
-	      adjust_gc_trigger (master, allocated - scm_cells_allocated);
+	      adjust_gc_trigger (master);
 	    }
 	}
       cell = SCM_CAR (master->clusters);
@@ -1933,6 +1934,9 @@ scm_gc_sweep ()
       }
   }
   scm_cells_allocated = (SCM_HEAP_SIZE - scm_gc_cells_collected);
+#ifdef GUILE_NEW_GC_SCHEME
+  scm_gc_yield -= scm_cells_allocated;
+#endif
   scm_mallocated -= m;
   scm_gc_malloc_collected = m;
 }
@@ -2306,7 +2310,7 @@ alloc_some_heap (scm_freelist_t *freelist)
 #ifdef GUILE_NEW_GC_SCHEME
   {
     /* Assure that the new segment is large enough for the new trigger */
-    int slack = freelist->gc_trigger - scm_gc_cells_collected;
+    int slack = freelist->gc_trigger - scm_gc_yield;
     int min_cells = 100 * slack / (99 - freelist->gc_trigger_fraction);
     len =  SCM_EXPHEAP (freelist->heap_size);
 #ifdef DEBUGINFO
