@@ -65,7 +65,7 @@
 ;;   Checks if a variable is bound in the current environment.
 ;;
 ;; defined? doesn't quite cut it as it stands, since it only
-;; cheks bindings in the top-level environment, not those in
+;; checks bindings in the top-level environment, not those in
 ;; local scope only.
 ;;
 
@@ -243,7 +243,7 @@
 ;; lambda*-defined procedures now throw an error by default if a
 ;; keyword other than one of those specified is found in the actual
 ;; passed arguments. However, specifying #:allow-other-keys
-;; immediately after the kyword argument declarations restores the
+;; immediately after the keyword argument declarations restores the
 ;; previous behavior of ignoring unknown keywords. lambda* also now
 ;; guarantees that if the same keyword is passed more than once, the
 ;; last one passed is the one that takes effect. For example,

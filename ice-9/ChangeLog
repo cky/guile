@@ -1,3 +1,7 @@
+2000-10-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* optargs.scm: Fix typos in commentary for bound? and lambda*.
+
 2000-10-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* session.scm (apropos, apropos-fold):  regexp-exec does not
