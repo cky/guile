@@ -1,4 +1,4 @@
-[ID: $Id: TODO,v 1.18 2001-07-07 06:31:26 ttn Exp $]
+[ID: $Id: TODO,v 1.19 2001-07-08 21:04:03 mvo Exp $]
 
 These TODO items are grouped by target release version.  The first group is
 the "Eventually" group, which is not associated w/ any particular version.
@@ -69,12 +69,15 @@ See also file HACKING.
 
 === In release 1.8.0:
 
+- remove deprecated functions scm_read_0str, scm_eval_0str.
+
 - remove deprecated "scm_*_t" type names in libguile.h.
 
 - remove re-exporting behaviour of `export'.
     in boot-9.scm, remove begin-deprecated part of `module-export!'
     in format.scm, remove kluge at top
-    in srfi13.scm, likewise
+    in srfi-13.scm, likewise
+    in srfi-1.scm, likewise
 
 - remove deprecated subr and gsubr functions
     in procs.h, procs.c: scm_make_subr, scm_make_subr_opt,
