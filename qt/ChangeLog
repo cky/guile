@@ -1,3 +1,7 @@
+Sun Apr 27 18:00:06 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* aclocal.m4: Removed; unnecessary, given changes of Apr 24.
+
 Thu Apr 24 01:37:49 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Get 'make dist' to work again.
