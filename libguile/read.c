@@ -489,7 +489,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       while ('"' != (c = scm_getc (port)))
 	{
 	  if (c == EOF)
-	    scm_input_error (FUNC_NAME, port, "end of file in string constant", SCM_EOL);
+	    str_eof: scm_input_error (FUNC_NAME, port, "end of file in string constant", SCM_EOL);
 
 	  while (j + 2 >= SCM_STRING_LENGTH (*tok_buf))
 	    scm_grow_tok_buf (tok_buf);
@@ -497,6 +497,8 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	  if (c == '\\')
 	    switch (c = scm_getc (port))
 	      {
+	      case EOF:
+		goto str_eof;
 	      case '\n':
 		continue;
 	      case '0':
@@ -520,6 +522,30 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	      case 'v':
 		c = '\v';
 		break;
+	      case 'x':
+		{
+		  int a, b, a_09 = 0, b_09 = 0, a_AF = 0, b_AF = 0, a_af = 0,
+		    b_af = 0;
+		  a = scm_getc (port);
+		  if (a == EOF) goto str_eof;
+		  b = scm_getc (port);
+		  if (b == EOF) goto str_eof;
+		  if      ('0' <= a && a <= '9') a_09 = 1;
+		  else if ('A' <= a && a <= 'F') a_AF = 1;
+		  else if ('a' <= a && a <= 'f') a_af = 1;
+		  if      ('0' <= b && b <= '9') b_09 = 1;
+		  else if ('A' <= b && b <= 'F') b_AF = 1;
+		  else if ('a' <= b && b <= 'f') b_af = 1;
+		  if ((a_09 || a_AF || a_af) && (b_09 || b_AF || b_af))
+		    c = (a_09? a - '0': a_AF? a - 'A' + 10: a - 'a' + 10) * 16
+		      + (b_09? b - '0': b_AF? b - 'A' + 10: b - 'a' + 10);
+		  else
+		    {
+		      scm_ungetc (b, port);
+		      scm_ungetc (a, port);
+		    }
+		  break;
+		}
 	      }
 	  SCM_STRING_CHARS (*tok_buf)[j] = c;
 	  ++j;
