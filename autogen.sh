@@ -28,6 +28,12 @@ for f in $workbookdistfiles ; do
 done
 rm -f examples/example.gdbinit
 ln -s $workbook/build/dist-files/.gdbinit examples/example.gdbinit
+
+# TODO: This should be moved to dist-guile
+mscripts=$workbook/../scripts
+rm -f BUGS
+$mscripts/render-bugs > BUGS
+
 ######################################################################
 
 # Make sure this matches the ACLOCAL invokation in Makefile.am
