@@ -1450,7 +1450,12 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
 
 SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
             (SCM port),
-	    "Return the current line number for @var{port}.")
+	    "Return the current line number for @var{port}.\n"
+	    "\n"
+	    "The first line of a file is 0.  But you might want to add 1\n"
+	    "when printing line numbers, since starting from 1 is\n"
+	    "traditional in error messages, and likely to be more natural to\n"
+	    "non-programmers.")
 #define FUNC_NAME s_scm_port_line
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1461,7 +1466,8 @@ SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
 
 SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
             (SCM port, SCM line),
-	    "Set the current line number for @var{port} to @var{line}.")
+	    "Set the current line number for @var{port} to @var{line}.  The\n"
+	    "first line of a file is 0.")
 #define FUNC_NAME s_scm_set_port_line_x
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1474,9 +1480,8 @@ SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 
 SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
             (SCM port),
-	    "@deffnx {Scheme Procedure} port-line port\n"
-	    "Return the current column number or line number of @var{port},\n"
-	    "using the current input port if none is specified.  If the number is\n"
+	    "Return the current column number of @var{port}.\n"
+	    "If the number is\n"
 	    "unknown, the result is #f.  Otherwise, the result is a 0-origin integer\n"
 	    "- i.e. the first character of the first line is line 0, column 0.\n"
 	    "(However, when you display a file position, for example in an error\n"
@@ -1493,9 +1498,8 @@ SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
 
 SCM_DEFINE (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
             (SCM port, SCM column),
-	    "@deffnx {Scheme Procedure} set-port-line! port line\n"
-	    "Set the current column or line number of @var{port}, using the\n"
-	    "current input port if none is specified.")
+	    "Set the current column of @var{port}.  Before reading the first\n"
+	    "character on a line the column should be 0.")
 #define FUNC_NAME s_scm_set_port_column_x
 {
   port = SCM_COERCE_OUTPORT (port);
