@@ -12,12 +12,13 @@ Changes since the stable branch:
 
 When you configure "--with-threads=null", you will get the usual
 threading API (call-with-new-thread, make-mutex, etc), but you can't
-actually create new threads.
+actually create new threads.  Also, "--with-threads=no" is now
+equivalent to "--with-threads=null".  This means that the thread API
+is always present, although you might not be able to create new
+threads.
 
-The short term plan is to remove the support for --with-threads=no
-completely so that one doesn't need to special case as much when
-writing code that needs to be thread-aware but should also work
-without threads.
+When cooperative threading is not supported on your platform, you will
+get the "null" threads.
 
 The long term plan is to make the selection of a thread implementation
 a run-time option, not a configure time option.
