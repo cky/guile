@@ -1,3 +1,7 @@
+1999-09-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* debugger.scm (eval-handler): Handle unhandled exceptions.
+
 1999-09-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* debugger.scm ("p"): New alias for "evaluate";
