@@ -43,6 +43,18 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+
+/* "What's the difference between _scm.h and __scm.h?"
+
+   _scm.h is not installed; it's only visible to the libguile sources
+   themselves.
+
+   __scm.h is installed, and is #included by <libguile.h>.  If both
+   the client and libguile need some piece of information, and it
+   doesn't fit well into the header file for any particular module, it
+   should go in __scm.h.  */
+
+
 /* {Supported Options}
  *
  * These may be defined or undefined.

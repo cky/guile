@@ -2,7 +2,7 @@
 
 #ifndef _SCMH
 #define _SCMH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,17 @@
 
 #include "__scm.h"
 
-/* This file is only visible to the libguile sources */
+/* "What's the difference between _scm.h and __scm.h?"
+
+   _scm.h is not installed; it's only visible to the libguile sources
+   themselves.
+
+   __scm.h is installed, and is #included by <libguile.h>.  If both
+   the client and libguile need some piece of information, and it
+   doesn't fit well into the header file for any particular module, it
+   should go in __scm.h.  */
+
+
 
 /* Include headers for those files central to the implementation.  The
    rest should be explicitly #included in the C files themselves.  */
