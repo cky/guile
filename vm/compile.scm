@@ -106,30 +106,29 @@
   (make-code:constant env (car args)))
 
 (define (canon-formals formals)
-  ;; foo             -> (() . foo)
-  ;; (foo bar baz)   -> ((foo bar baz) . #f)
-  ;; (foo bar . baz) -> ((foo bar) . baz)
+  ;; foo             -> (), foo
+  ;; (foo bar baz)   -> (foo bar baz), #f
+  ;; (foo bar . baz) -> (foo bar), baz
   (cond ((symbol? formals)
-	 (cons '() formals))
+	 (values '() formals))
 	((or (null? formals)
 	     (null? (cdr (last-pair formals))))
-	 (cons formals #f))
+	 (values formals #f))
 	(else
 	 (let* ((copy (list-copy formals))
 		(pair (last-pair copy))
 		(last (cdr pair)))
 	   (set-cdr! pair '())
-	   (cons copy last)))))
+	   (values copy last)))))
 
 (define (parse-lambda args env)
   (let ((formals (car args)) (body (cdr args)))
-    (let* ((pair (canon-formals formals))
-	   (reqs (car pair))
-	   (rest (cdr pair))
-	   (syms (append reqs (if rest (list rest) '())))
-	   (new-env (make-env syms env)))
-      (make-code:program env (length reqs) (if rest #t #f)
-			 (parse-begin body new-env)))))
+    (call-with-values (lambda () (canon-formals formals))
+      (lambda (reqs rest)
+	(let* ((syms (append reqs (if rest (list rest) '())))
+	       (new-env (make-env syms env)))
+	  (make-code:program env (length reqs) (if rest #t #f)
+			     (parse-begin body new-env)))))))
 
 (define (parse-set! args env)
   (let ((var (env-ref env (car args)))
