@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -18,9 +18,71 @@
 
 
 (define-module (ice-9 session)
+  :use-module (ice-9 doc)
   :no-backtrace)
 
 
+
+;;; Documentation
+;;;
+(define-public help
+  (procedure->syntax
+    (lambda (exp env)
+      "(help [NAME])
+Prints useful information.  Try `(help)'."
+      (if (not (= (length exp) 2))
+	  (help-usage)
+	  (let* ((sym (cadr exp))
+		 (obj (catch #t
+			     (lambda ()
+			       (local-eval sym env))
+			     (lambda args
+			       #f))))
+	    (cond ;; *fixme*: when we have GOOPS
+	          ;;((or obj (not sym)) (describe obj))
+	          ((and (or obj (not sym))
+			(cond ((procedure? obj)
+			       (display (proc-doc obj))
+			       (newline)
+			       #t)
+			      ((and (macro? obj) (macro-transformer obj))
+			       (display (proc-doc (macro-transformer obj)))
+			       (newline))
+			      (else #f))))
+		  ((symbol? sym)
+		   (documentation sym))
+		  (else
+		   (display "No documentation for `")
+		   (display sym)
+		   (display "'\n")))
+	    *unspecified*)))))
+
+(define (help-usage)
+  (display "Usage: (help NAME) gives documentation about NAME (unquoted)
+       (help) gives this text
+
+Example: (help help)
+
+Other useful sources of helpful information:
+
+(apropos STRING)
+(arity PROCEDURE)
+(name PROCEDURE-OR-MACRO)
+(source PROCEDURE-OR-MACRO)
+
+Tools:
+
+(debug)					;the debugger
+(backtrace)				;backtrace from last error
+
+(OPTIONSET-options 'full)		;display option information
+(OPTIONSET-enable 'OPTION)
+(OPTIONSET-disable 'OPTION)
+(OPTIONSET-set! OPTION VALUE)
+
+where OPTIONSET is one of debug, read, eval, print
+
+"))
 
 ;;; {Apropos}
 ;;;
