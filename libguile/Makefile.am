@@ -201,12 +201,12 @@ schemelib_DATA = guile-procedures.txt
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
-cpp_err_symbols.c: cpp_err_symbols.in
+cpp_err_symbols.c: cpp_err_symbols.in cpp_cnvt.awk
 	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols.in > \
 		cpp_err_symbols.tmp
 	mv cpp_err_symbols.tmp cpp_err_symbols.c
 
-cpp_sig_symbols.c: cpp_sig_symbols.in
+cpp_sig_symbols.c: cpp_sig_symbols.in cpp_cnvt.awk
 	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_sig_symbols.in > \
 		cpp_sig_symbols.tmp
 	mv cpp_sig_symbols.tmp cpp_sig_symbols.c
