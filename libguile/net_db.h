@@ -51,6 +51,7 @@
 
 
 
+extern SCM scm_gethost (SCM host);
 extern SCM scm_getnet (SCM name);
 extern SCM scm_getproto (SCM name);
 extern SCM scm_getserv (SCM name, SCM proto);
