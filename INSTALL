@@ -83,7 +83,7 @@ switches specific to Guile you may find useful in some circumstances.
   If you have automake, autoconf, and libtool installed on your
   system, this switch causes configure to generate Makefiles which
   know how to automatically regenerate configure scripts, makefiles,
-  and headers, when they are out of date.  The README file says which
+  and headers, when they are out of date.  The HACKING file says which
   versions of those tools you will need.
 
 
