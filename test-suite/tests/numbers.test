@@ -303,6 +303,16 @@
 
   ;; Are numerical overflows detected correctly?
 
+  (with-test-prefix "division by zero"
+
+    (pass-if-exception "(quotient 1 0)"
+      exception:numerical-overflow
+      (quotient 1 0))
+
+    (pass-if-exception "(quotient bignum 0)"
+      exception:numerical-overflow
+      (quotient (+ fixnum-max 1) 0)))
+
   ;; Are wrong type arguments detected correctly?
 
   )
@@ -477,6 +487,16 @@
     (eqv? 0 (remainder -35 -7)))
 
   ;; Are numerical overflows detected correctly?
+
+  (with-test-prefix "division by zero"
+
+    (pass-if-exception "(remainder 1 0)"
+      exception:numerical-overflow
+      (remainder 1 0))
+
+    (pass-if-exception "(remainder bignum 0)"
+      exception:numerical-overflow
+      (remainder (+ fixnum-max 1) 0)))
 
   ;; Are wrong type arguments detected correctly?
 
@@ -664,6 +684,16 @@
     (eqv? 0 (modulo -2177452800 -86400)))
 
   ;; Are numerical overflows detected correctly?
+
+  (with-test-prefix "division by zero"
+
+    (pass-if-exception "(modulo 1 0)"
+      exception:numerical-overflow
+      (modulo 1 0))
+
+    (pass-if-exception "(modulo bignum 0)"
+      exception:numerical-overflow
+      (modulo (+ fixnum-max 1) 0)))
 
   ;; Are wrong type arguments detected correctly?
 
@@ -1357,9 +1387,41 @@
       exception:numerical-overflow
       (/ 0))
 
+    (pass-if-exception "(/ 0.0)"
+      exception:numerical-overflow
+      (/ 0.0))
+
     (pass-if-exception "(/ 1 0)"
       exception:numerical-overflow
-      (/ 1 0))))
+      (/ 1 0))
+
+    (pass-if-exception "(/ 1 0.0)"
+      exception:numerical-overflow
+      (/ 1 0.0))
+
+    (pass-if-exception "(/ bignum 0)"
+      exception:numerical-overflow
+      (/ (+ fixnum-max 1) 0))
+
+    (pass-if-exception "(/ bignum 0.0)"
+      exception:numerical-overflow
+      (/ (+ fixnum-max 1) 0.0))
+
+    (pass-if-exception "(/ 1.0 0)"
+      exception:numerical-overflow
+      (/ 1.0 0))
+
+    (pass-if-exception "(/ 1.0 0.0)"
+      exception:numerical-overflow
+      (/ 1.0 0.0))
+
+    (pass-if-exception "(/ +i 0)"
+      exception:numerical-overflow
+      (/ +i 0))
+
+    (pass-if-exception "(/ +i 0.0)"
+      exception:numerical-overflow
+      (/ +i 0.0))))
 
 ;;;
 ;;; truncate
