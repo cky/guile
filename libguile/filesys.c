@@ -281,7 +281,7 @@ SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
 
 SCM_DEFINE (scm_umask, "umask", 0, 1, 0, 
             (SCM mode),
-	    "If @var{mode} is omitted, retuns a decimal number representing the current\n"
+	    "If @var{mode} is omitted, returns a decimal number representing the current\n"
 	    "file creation mask.  Otherwise the file creation mask is set to\n"
 	    "@var{mode} and the previous value is returned.\n\n"
 	    "E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
@@ -1106,7 +1106,7 @@ retrieve_select_type (SELECT_TYPE *set, SCM ports_ready, SCM list_or_vec)
 SCM_DEFINE (scm_select, "select", 3, 2, 0, 
             (SCM reads, SCM writes, SCM excepts, SCM secs, SCM usecs),
 	    "This procedure has a variety of uses: waiting for the ability\n"
-	    "to provide input, accept output, or the existance of\n"
+	    "to provide input, accept output, or the existence of\n"
 	    "exceptional conditions on a collection of ports or file\n"
 	    "descriptors, or waiting for a timeout to occur.\n"
 	    "It also returns if interrupted by a signal.\n\n"
@@ -1499,7 +1499,7 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
             (SCM filename, SCM suffix),
 	    "Return the base name of the file name @var{filename}. The\n"
 	    "base name is the file name without any directory components.\n"
-	    "If @var{suffix} is privided, and is equal to the end of\n"
+	    "If @var{suffix} is provided, and is equal to the end of\n"
 	    "@var{basename}, it is removed also.")
 #define FUNC_NAME s_scm_basename
 {

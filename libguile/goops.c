@@ -913,7 +913,7 @@ SCM_DEFINE (scm_generic_function_methods, "generic-function-methods", 1, 0, 0,
 
 SCM_DEFINE (scm_method_generic_function, "method-generic-function", 1, 0, 0,
 	    (SCM obj),
-	    "Return the generic function fot the method @var{obj}.")
+	    "Return the generic function for the method @var{obj}.")
 #define FUNC_NAME s_scm_method_generic_function
 {
   SCM_VALIDATE_METHOD (1, obj);

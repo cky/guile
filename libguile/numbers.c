@@ -1332,7 +1332,7 @@ static const char scm_ilentab[] = {
 
 SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
             (SCM n),
-	    "Return the number of bits neccessary to represent @var{n}.\n"
+	    "Return the number of bits necessary to represent @var{n}.\n"
 	    "\n"
 	    "@lisp\n"
 	    "(integer-length #b10101010)\n"
@@ -2887,7 +2887,7 @@ SCM_REGISTER_PROC (s_number_p, "number?", 1, 0, 0, scm_number_p);
 SCM_DEFINE (scm_number_p, "complex?", 1, 0, 0, 
             (SCM x),
 	    "Return @code{#t} if @var{x} is a complex number, @code{#f}\n"
-	    "else.  Note that the sets of real, rational and integer\n"
+	    "otherwise.  Note that the sets of real, rational and integer\n"
 	    "values form subsets of the set of complex numbers, i. e. the\n"
 	    "predicate will also be fulfilled if @var{x} is a real,\n"
 	    "rational or integer number.")
@@ -2907,7 +2907,7 @@ SCM_REGISTER_PROC (s_real_p, "real?", 1, 0, 0, scm_real_p);
 SCM_DEFINE (scm_real_p, "rational?", 1, 0, 0, 
             (SCM x),
 	    "Return @code{#t} if @var{x} is a rational number, @code{#f}\n"
-	    "else.  Note that the set of integer values forms a subset of\n"
+	    "otherwise.  Note that the set of integer values forms a subset of\n"
 	    "the set of rational numbers, i. e. the predicate will also be\n"
 	    "fulfilled if @var{x} is an integer number.  Real numbers\n"
 	    "will also satisfy this predicate, because of their limited\n"

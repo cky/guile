@@ -655,7 +655,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
           (SCM sock, SCM how),
 	    "Sockets can be closed simply by using @code{close-port}. The\n"
-	    "@code{shutdown} procedure allows reception or tranmission on a\n"
+	    "@code{shutdown} procedure allows reception or transmission on a\n"
 	    "connection to be shut down individually, according to the parameter\n"
 	    "@var{how}:\n\n"
 	    "@table @asis\n"

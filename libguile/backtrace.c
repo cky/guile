@@ -259,7 +259,7 @@ SCM_DEFINE (scm_display_error, "display-error", 6, 0, 0,
 	    (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest),
 	    "Display an error message to the output port @var{port}.\n"
 	    "@var{stack} is the saved stack for the error, @var{subr} is\n"
-	    "the name of the procedure in which the error occured and\n"
+	    "the name of the procedure in which the error occurred and\n"
 	    "@var{message} is the actual error message, which may contain\n"
 	    "formatting instructions. These will format the arguments in\n"
 	    "the list @var{args} accordingly.  @var{rest} is currently\n"

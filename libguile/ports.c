@@ -1546,7 +1546,7 @@ scm_void_port (char *mode_str)
 SCM_DEFINE (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
             (SCM mode),
 	    "Create and return a new void port.  A void port acts like\n"
-	    "/dev/null.  The @var{mode} argument\n"
+	    "@file{/dev/null}.  The @var{mode} argument\n"
 	    "specifies the input/output modes for this port: see the\n"
 	    "documentation for @code{open-file} in @ref{File Ports}.")
 #define FUNC_NAME s_scm_sys_make_void_port

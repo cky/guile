@@ -219,7 +219,7 @@ SCM_DEFINE (scm_pipe, "pipe", 0, 0, 0,
 SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
             (),
 	    "Return a vector of integers representing the current\n"
-	    "supplimentary group IDs.")
+	    "supplementary group IDs.")
 #define FUNC_NAME s_scm_getgroups
 {
   SCM ans;
@@ -864,7 +864,7 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
             (SCM filename, SCM args),
 	    "Executes the file named by @var{path} as a new process image.\n"
 	    "The remaining arguments are supplied to the process; from a C program\n"
-	    "they are accessable as the @code{argv} argument to @code{main}.\n"
+	    "they are accessible as the @code{argv} argument to @code{main}.\n"
 	    "Conventionally the first @var{arg} is the same as @var{path}.\n"
 	    "All arguments must be strings.\n\n"
 	    "If @var{arg} is missing, @var{path} is executed with a null\n"
@@ -1213,7 +1213,7 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
 	    "Otherwise the specified locale category is set to the string\n"
 	    "@var{locale} and the new value is returned as a\n"
 	    "system-dependent string.  If @var{locale} is an empty string,\n"
-	    "the locale will be set using envirionment variables.")
+	    "the locale will be set using environment variables.")
 #define FUNC_NAME s_scm_setlocale
 {
   char *clocale;
@@ -1586,7 +1586,7 @@ SCM_DEFINE (scm_flock, "flock", 2, 0, 0,
 	    "it to one of the other operations.\n"
 	    "@end table\n"
 	    "The return value is not specified. @var{file} may be an open\n"
-	    "file descriptor or an open file descriptior port.")
+	    "file descriptor or an open file descriptor port.")
 #define FUNC_NAME s_scm_flock
 {
   int coperation, fdes;

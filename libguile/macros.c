@@ -115,9 +115,7 @@ SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0,
 	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
 	    "appears as the first symbol in an expression, evaluates the\n"
 	    "result of applying @var{code} to the expression and the\n"
-	    "environment.  The value returned from @var{code} which has been\n"
-	    "passed to @code{procedure->memoizing-macro} replaces the form\n"
-	    "passed to @var{code}.  For example:\n"
+	    "environment.  For example:\n"
 	    "\n"
 	    "@lisp\n"
 	    "(define trace\n"
@@ -137,17 +135,12 @@ SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0,
            (SCM code),
 	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
 	    "appears as the first symbol in an expression, evaluates the\n"
-	    "result of applying @var{proc} to the expression and the\n"
-	    "environment.  The value returned from @var{proc} which has been\n"
-	    "passed to @code{procedure->memoizing-macro} replaces the form\n"
-	    "passed to @var{proc}.  For example:\n"
-	    "\n"
-	    "@lisp\n"
-	    "(define trace\n"
-	    "  (procedure->macro\n"
-	    "   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))\n\n"
-	    "(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).\n"
-	    "@end lisp")
+	    "result of applying @var{code} to the expression and the\n"
+	    "environment.\n\n"
+	    "@code{procedure->memoizing-macro} is the same as\n"
+	    "@code{procedure->macro}, except that the expression returned by\n"
+	    "@var{code} replaces the original macro expression in the memoized\n"
+	    "form of the containing code.")
 #define FUNC_NAME s_scm_makmmacro
 {
   SCM_VALIDATE_PROC (1,code);

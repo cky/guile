@@ -1,5 +1,24 @@
 2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
 
+	Docstring fixes:
+	
+	* strings.c (scm_string_p): Change unnecessary `iff' to `if'.
+
+	* ports.c (scm_sys_make_void_port): Use `@file'.
+
+	* numbers.c (scm_number_p, scm_real_p): Use `otherwise' rather
+	than `else'.
+
+	* macros.c (scm_makmacro): Don't say that the form replaces its
+	source, because it doesn't.
+	(scm_makmmacro): Clarify difference between this and scm_makmacro.
+
+	* backtrace.c (scm_display_error), filesys.c (scm_umask,
+	scm_select, scm_basename), goops.c (scm_method_generic_function),
+	numbers.c (scm_integer_length), posix.c (scm_getgroups, scm_execl,
+	scm_setlocale, scm_flock), socket.c (scm_shutdown): Correct
+	spelling mistakes.
+
 	* debug.c (scm_debug_options), eval.c
 	(scm_eval_options_interface), read.c (scm_read_options): Change
 	incorrect @var in docstring to @code.

@@ -58,7 +58,7 @@
 
 SCM_DEFINE (scm_string_p, "string?", 1, 0, 0, 
 	    (SCM obj),
-	    "Return @code{#t} iff @var{obj} is a string, else @code{#f}.")
+	    "Return @code{#t} if @var{obj} is a string, else @code{#f}.")
 #define FUNC_NAME s_scm_string_p
 {
   return SCM_BOOL (SCM_STRINGP (obj));
