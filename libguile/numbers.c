@@ -1,5 +1,9 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  *
+ * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
+ * and Bellcore.  See scm_divide.
+ *
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -3691,6 +3695,33 @@ scm_num2dbl (SCM a, const char *why)
 #undef FUNC_NAME
 
 
+/* The code below for complex division is adapted from the GNU
+   libstdc++, which adapted it from f2c's libF77, and is subject to
+   this copyright:  */
+
+/****************************************************************
+Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories and Bellcore.
+
+Permission to use, copy, modify, and distribute this software
+and its documentation for any purpose and without fee is hereby
+granted, provided that the above copyright notice appear in all
+copies and that both that the copyright notice and this
+permission notice and warranty disclaimer appear in supporting
+documentation, and that the names of AT&T Bell Laboratories or
+Bellcore or any of their entities not be used in advertising or
+publicity pertaining to distribution of the software without
+specific, written prior permission.
+
+AT&T and Bellcore disclaim all warranties with regard to this
+software, including all implied warranties of merchantability
+and fitness.  In no event shall AT&T or Bellcore be liable for
+any special, indirect or consequential damages or any damages
+whatsoever resulting from loss of use, data or profits, whether
+in an action of contract, negligence or other tortious action,
+arising out of or in connection with the use or performance of
+this software.
+****************************************************************/
+
 SCM_GPROC1 (s_divide, "/", scm_tc7_asubr, scm_divide, g_divide);
 /* Divide the first argument by the product of the remaining
    arguments.  If called with one argument @var{z1}, 1/@var{z1} is
@@ -3724,8 +3755,15 @@ scm_divide (SCM x, SCM y)
     } else if (SCM_COMPLEXP (x)) {
       double r = SCM_COMPLEX_REAL (x);
       double i = SCM_COMPLEX_IMAG (x);
-      double d = r * r + i * i;
-      return scm_make_complex (r / d, -i / d);
+      if (r <= i) {
+	double t = r / i;
+	double d = i * (1.0 + t * t);
+	return scm_make_complex (t / d, -1.0 / d);
+      } else {
+	double t = i / r;
+	double d = r * (1.0 + t * t);
+	return scm_make_complex (1.0 / d, -t / d);
+      }
     } else {
       SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
     }
@@ -3765,8 +3803,15 @@ scm_divide (SCM x, SCM y)
       {
 	double r = SCM_COMPLEX_REAL (y);
 	double i = SCM_COMPLEX_IMAG (y);
-	double d = r * r + i * i;
-	return scm_make_complex ((a * r) / d, (-a * i) / d);
+	if (r <= i) {
+	  double t = r / i;
+	  double d = i * (1.0 + t * t);
+	  return scm_make_complex ((a * t) / d,  -a / d);
+	} else {
+	  double t = i / r;
+	  double d = r * (1.0 + t * t);
+	  return scm_make_complex (a / d,  -(a * t) / d);
+	}
       }
     } else {
       SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
@@ -3870,9 +3915,15 @@ scm_divide (SCM x, SCM y)
     } else if (SCM_COMPLEXP (y)) {
       double ry = SCM_COMPLEX_REAL (y);
       double iy = SCM_COMPLEX_IMAG (y);
-      double d = ry * ry + iy * iy;
-      return scm_make_complex ((rx * ry + ix * iy) / d, 
-			       (ix * ry - rx * iy) / d);
+      if (ry <= iy) {
+	double t = ry / iy;
+	double d = iy * (1.0 + t * t);
+	return scm_make_complex ((rx * t + ix) / d, (ix * t - rx) / d);
+      } else {
+	double t = iy / ry;
+	double d = ry * (1.0 + t * t);
+	return scm_make_complex ((rx + ix * t) / d, (ix - rx * t) / d);
+      }
     } else {
       SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
     }
