@@ -1191,7 +1191,7 @@ EOF
 
       # Not a directory, so check to see that there is only one file specified.
       set dummy $files
-      if $# -gt 2; then
+      if test $# -gt 2; then
         echo "$progname: \`$dest' is not a directory" 1>&2
         echo "$help" 1>&2
 	exit 1
