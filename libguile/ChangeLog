@@ -1,3 +1,7 @@
+2000-09-10  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* eval.c (SCM_APPLY): Fixed bugs in the applicable-smob calls.
+
 2000-09-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* environments.c (obarray_enter, obarray_retrieve,
