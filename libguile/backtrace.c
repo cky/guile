@@ -427,7 +427,7 @@ SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0,
 {
   SCM_VALIDATE_FRAME (1, frame);
   if (SCM_UNBNDP (port))
-    port = scm_cur_outp;
+    port = scm_current_output_port ();
   else
     SCM_VALIDATE_OPOUTPORT (2, port);
   if (SCM_UNBNDP (indent))
@@ -776,6 +776,7 @@ SCM_DEFINE (scm_backtrace_with_highlights, "backtrace", 0, 1, 0,
 	    "the backtrace.")
 #define FUNC_NAME s_scm_backtrace_with_highlights
 {
+  SCM port = scm_current_output_port ();
   SCM the_last_stack =
     scm_fluid_ref (SCM_VARIABLE_REF (scm_the_last_stack_fluid_var));
 
@@ -784,27 +785,27 @@ SCM_DEFINE (scm_backtrace_with_highlights, "backtrace", 0, 1, 0,
 
   if (scm_is_true (the_last_stack))
     {
-      scm_newline (scm_cur_outp);
-      scm_puts ("Backtrace:\n", scm_cur_outp);
+      scm_newline (port);
+      scm_puts ("Backtrace:\n", port);
       scm_display_backtrace_with_highlights (the_last_stack,
-					     scm_cur_outp,
+					     port,
 					     SCM_BOOL_F,
 					     SCM_BOOL_F,
 					     highlights);
-      scm_newline (scm_cur_outp);
+      scm_newline (port);
       if (scm_is_false (SCM_VARIABLE_REF (scm_has_shown_backtrace_hint_p_var))
 	  && !SCM_BACKTRACE_P)
 	{
 	  scm_puts ("Type \"(debug-enable 'backtrace)\" if you would like "
 		    "a backtrace\n"
 		    "automatically if an error occurs in the future.\n",
-		    scm_cur_outp);
+		    port);
 	  SCM_VARIABLE_SET (scm_has_shown_backtrace_hint_p_var, SCM_BOOL_T);
 	}
     }
   else
     {
-      scm_puts ("No backtrace available.\n", scm_cur_outp);
+      scm_puts ("No backtrace available.\n", port);
     }
   return SCM_UNSPECIFIED;
 }

@@ -52,21 +52,11 @@
 
 #endif /* no FD_SET */
 
-SCM_API int scm_internal_select (int fds,
-				 SELECT_TYPE *rfds,
-				 SELECT_TYPE *wfds,
-				 SELECT_TYPE *efds,
-				 struct timeval *timeout);
-
-#if SCM_USE_COOP_THREADS
-
-SCM_API int scm_I_am_dead;
-
-SCM_API void scm_error_revive_threads (void);
-
-#endif /* SCM_USE_COOP_THREADS */
-
-SCM_API void scm_init_iselect (void);
+SCM_API int scm_std_select (int fds,
+			    SELECT_TYPE *rfds,
+			    SELECT_TYPE *wfds,
+			    SELECT_TYPE *efds,
+			    struct timeval *timeout);
 
 #endif  /* SCM_ISELECT_H */
 

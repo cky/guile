@@ -290,11 +290,11 @@ scm_make_smob_type (char const *name, size_t size)
 {
   long new_smob;
 
-  SCM_ENTER_A_SECTION;  /* scm_numsmob */
+  SCM_CRITICAL_SECTION_START;
   new_smob = scm_numsmob;
   if (scm_numsmob != MAX_SMOB_COUNT)
     ++scm_numsmob;
-  SCM_EXIT_A_SECTION;
+  SCM_CRITICAL_SECTION_END;
 
   if (new_smob == MAX_SMOB_COUNT)
     scm_misc_error (FUNC_NAME, "maximum number of smobs exceeded", SCM_EOL);

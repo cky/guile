@@ -120,7 +120,8 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
     fdes = scm_to_int (port_or_fdes);
   else
     {
-      SCM port = SCM_UNBNDP (port_or_fdes) ? scm_cur_inp : port_or_fdes;
+      SCM port = (SCM_UNBNDP (port_or_fdes)?
+		  scm_current_input_port () : port_or_fdes);
 
       SCM_VALIDATE_OPFPORT (2, port);
       SCM_VALIDATE_INPUT_PORT (2, port);
@@ -227,7 +228,8 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
     fdes = scm_to_int (port_or_fdes);
   else
     {
-      SCM port = SCM_UNBNDP (port_or_fdes) ? scm_cur_outp : port_or_fdes;
+      SCM port = (SCM_UNBNDP (port_or_fdes)?
+		  scm_current_output_port () : port_or_fdes);
       scm_t_port *pt;
       off_t space;
 

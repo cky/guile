@@ -336,7 +336,8 @@
 #define SCM_VALIDATE_OPOUTSTRPORT(pos, port) \
   SCM_MAKE_VALIDATE_MSG (pos, port, OPOUTSTRPORTP, "open output string port")
 
-#define SCM_VALIDATE_FLUID(pos, fluid) SCM_MAKE_VALIDATE_MSG (pos, fluid, FLUIDP, "fluid")
+#define SCM_VALIDATE_FLUID(pos, fluid) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, fluid, scm_is_fluid, "fluid")
 
 #define SCM_VALIDATE_KEYWORD(pos, v) SCM_MAKE_VALIDATE_MSG (pos, v, KEYWORDP, "keyword")
 

@@ -136,7 +136,7 @@ scm_i_stringbuf_free (SCM buf)
 		 STRINGBUF_OUTLINE_LENGTH (buf) + 1, "string");
 }
 
-SCM_MUTEX (stringbuf_write_mutex);
+scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* Copy-on-write strings.
  */
@@ -209,9 +209,9 @@ scm_i_substring (SCM str, size_t start, size_t end)
   SCM buf;
   size_t str_start;
   get_str_buf_start (&str, &buf, &str_start);
-  scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
+  scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
   SET_STRINGBUF_SHARED (buf);
-  scm_i_plugin_mutex_unlock (&stringbuf_write_mutex);
+  scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
   return scm_double_cell (STRING_TAG, SCM_UNPACK(buf),
 			  (scm_t_bits)str_start + start,
 			  (scm_t_bits) end - start);
@@ -223,9 +223,9 @@ scm_i_substring_read_only (SCM str, size_t start, size_t end)
   SCM buf;
   size_t str_start;
   get_str_buf_start (&str, &buf, &str_start);
-  scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
+  scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
   SET_STRINGBUF_SHARED (buf);
-  scm_i_plugin_mutex_unlock (&stringbuf_write_mutex);
+  scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
   return scm_double_cell (RO_STRING_TAG, SCM_UNPACK(buf),
 			  (scm_t_bits)str_start + start,
 			  (scm_t_bits) end - start);
@@ -334,7 +334,7 @@ scm_i_string_writable_chars (SCM orig_str)
   if (IS_RO_STRING (str))
     scm_misc_error (NULL, "string is read-only: ~s", scm_list_1 (orig_str));
 
-  scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
+  scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
   if (STRINGBUF_SHARED (buf))
     {
       /* Clone stringbuf.  For this, we put all threads to sleep.
@@ -343,7 +343,7 @@ scm_i_string_writable_chars (SCM orig_str)
       size_t len = STRING_LENGTH (str);
       SCM new_buf;
 
-      scm_i_plugin_mutex_unlock (&stringbuf_write_mutex);
+      scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
 
       new_buf = make_stringbuf (len);
       memcpy (STRINGBUF_CHARS (new_buf),
@@ -357,7 +357,7 @@ scm_i_string_writable_chars (SCM orig_str)
 
       buf = new_buf;
 
-      scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
+      scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
     }
 
   return STRINGBUF_CHARS (buf) + start;
@@ -366,7 +366,7 @@ scm_i_string_writable_chars (SCM orig_str)
 void
 scm_i_string_stop_writing (void)
 {
-  scm_i_plugin_mutex_unlock (&stringbuf_write_mutex);
+  scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
 }
 
 /* Symbols.
@@ -396,9 +396,9 @@ scm_i_make_symbol (SCM name, scm_t_bits flags,
   if (start == 0 && length == STRINGBUF_LENGTH (buf))
     {
       /* reuse buf. */
-      scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
+      scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
       SET_STRINGBUF_SHARED (buf);
-      scm_i_plugin_mutex_unlock (&stringbuf_write_mutex);
+      scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
     }
   else
     {
@@ -441,9 +441,9 @@ SCM
 scm_i_symbol_substring (SCM sym, size_t start, size_t end)
 {
   SCM buf = SYMBOL_STRINGBUF (sym);
-  scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
+  scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
   SET_STRINGBUF_SHARED (buf);
-  scm_i_plugin_mutex_unlock (&stringbuf_write_mutex);
+  scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
   return scm_double_cell (STRING_TAG, SCM_UNPACK(buf),
 			  (scm_t_bits)start, (scm_t_bits) end - start);
 }

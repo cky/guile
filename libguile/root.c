@@ -19,6 +19,8 @@
 
 
 #include <string.h>
+#include <stdio.h>
+
 #include "libguile/_scm.h"
 #include "libguile/stackchk.h"
 #include "libguile/dynwind.h"
@@ -34,88 +36,7 @@
 
 SCM scm_sys_protects[SCM_NUM_PROTECTS];
 
-scm_t_bits scm_tc16_root;
-
 
-
-static SCM
-root_mark (SCM root)
-{
-  scm_root_state *s = SCM_ROOT_STATE (root);
-
-  scm_gc_mark (s->rootcont);
-  scm_gc_mark (s->dynwinds);
-  scm_gc_mark (s->progargs);
-  scm_gc_mark (s->exitval);
-  scm_gc_mark (s->cur_inp);
-  scm_gc_mark (s->cur_outp);
-  scm_gc_mark (s->cur_errp);
-  /* No need to gc mark def_loadp */
-  scm_gc_mark (s->fluids);
-  scm_gc_mark (s->active_asyncs);
-  scm_gc_mark (s->signal_asyncs);
-  return SCM_ROOT_STATE (root) -> parent;
-}
-
-
-static int
-root_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
-{
-  scm_puts ("#<root ", port);
-  scm_uintprint(SCM_SEQ (SCM_ROOT_STATE (exp) -> rootcont), 16, port);
-  scm_putc('>', port);
-  return 1;
-}
-
-
-
-
-SCM
-scm_make_root (SCM parent)
-{
-  SCM root;
-  scm_root_state *root_state;
-
-  root_state = (scm_root_state *) scm_gc_malloc (sizeof (scm_root_state),
-						 "root state");
-  if (SCM_ROOTP (parent))
-    {
-      memcpy (root_state, SCM_ROOT_STATE (parent), sizeof (scm_root_state));
-      root_state->parent = parent;
-    }
-  else
-    {
-      root_state->parent = SCM_BOOL_F;
-
-      /* Initialize everything right now, in case a GC happens early.  */
-      root_state->rootcont
-	= root_state->dynwinds
-	= root_state->progargs
-	= root_state->exitval
-	= root_state->cur_inp
-	= root_state->cur_outp
-	= root_state->cur_errp
-	= root_state->cur_loadp
-	= root_state->fluids
-	= root_state->handle
-	= root_state->parent
-	= SCM_BOOL_F;
-    }
-  
-  root_state->active_asyncs = SCM_EOL;
-  root_state->signal_asyncs = SCM_EOL;
-  root_state->block_asyncs = 0;
-  root_state->pending_asyncs = 1;
-
-  SCM_NEWSMOB (root, scm_tc16_root, root_state);
-  root_state->handle = root;
-  
-  if (SCM_ROOTP (parent))
-    /* Must be done here so that fluids are GC protected */
-    scm_i_copy_fluids (root_state);
-  
-  return root;
-}
 
 /* {call-with-dynamic-root}
  *
@@ -124,25 +45,6 @@ scm_make_root (SCM parent)
  *
  * Calls to call-with-dynamic-root return exactly once (unless
  * the process is somehow exitted).  */
-
-/* Some questions about cwdr:
-
-   Couldn't the body just be a closure?  Do we really need to pass
-   args through to it?
-
-   The semantics are a lot like catch's; in fact, we call
-   scm_internal_catch to take care of that part of things.  Wouldn't
-   it be cleaner to say that uncaught throws just disappear into the
-   ether (or print a message to stderr), and let the caller use catch
-   themselves if they want to?
-
-   -JimB */
-
-#if 0
-SCM scm_exitval;		/* INUM with return value */
-#endif
-static long n_dynamic_roots = 0;
-
 
 /* cwdr fills out both of these structures, and then passes a pointer
    to them through scm_internal_catch to the cwdr_body and
@@ -201,62 +103,31 @@ cwdr_handler (void *data, SCM tag, SCM args)
   return SCM_UNSPECIFIED;
 }
 
-/* This is the basic code for new root creation.
- *
- * WARNING!  The order of actions in this routine is in many ways
- * critical.  E. g., it is essential that an error doesn't leave Guile
- * in a messed up state.  */
-
 SCM 
 scm_internal_cwdr (scm_t_catch_body body, void *body_data,
 		   scm_t_catch_handler handler, void *handler_data,
 		   SCM_STACKITEM *stack_start)
 {
-  SCM old_rootcont, old_winds;
   struct cwdr_handler_data my_handler_data;
-  SCM answer;
-
-  /* Create a fresh root continuation.  */
-  {
-    SCM new_rootcont;
-
-    SCM_REDEFER_INTS;
-    {
-      scm_t_contregs *contregs = scm_gc_malloc (sizeof (scm_t_contregs),
-						"continuation");
-
-      contregs->num_stack_items = 0;
-      contregs->dynenv = SCM_EOL;
-      contregs->base = stack_start;
-      contregs->seq = ++n_dynamic_roots;
-      contregs->throw_value = SCM_BOOL_F;
-      contregs->dframe = 0;
-      SCM_NEWSMOB (new_rootcont, scm_tc16_continuation, contregs);
-    }
-    old_rootcont = scm_rootcont;
-    scm_rootcont = new_rootcont;
-    SCM_REALLOW_INTS;
-  }
+  SCM answer, old_winds;
 
   /* Exit caller's dynamic state.
    */
-  old_winds = scm_dynwinds;
-  scm_dowinds (SCM_EOL, scm_ilength (scm_dynwinds));
-  SCM_DFRAME (old_rootcont) = scm_last_debug_frame;
-  scm_last_debug_frame = 0;
+  old_winds = scm_i_dynwinds ();
+  scm_dowinds (SCM_EOL, scm_ilength (old_winds));
 
-  {
-    my_handler_data.run_handler = 0;
-    answer = scm_internal_catch (SCM_BOOL_T,
-				 body, body_data,
-				 cwdr_handler, &my_handler_data);
-  }
+  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  scm_frame_current_dynamic_state (scm_make_dynamic_state (SCM_UNDEFINED));
 
+  my_handler_data.run_handler = 0;
+  answer = scm_i_with_continuation_barrier (body, body_data,
+					    cwdr_handler, &my_handler_data);
+
+  scm_frame_end ();
+
+  /* Enter caller's dynamic state.
+   */
   scm_dowinds (old_winds, - scm_ilength (old_winds));
-  SCM_REDEFER_INTS;
-  scm_last_debug_frame = SCM_DFRAME (old_rootcont);
-  scm_rootcont = old_rootcont;
-  SCM_REALLOW_INTS;
 
   /* Now run the real handler iff the body did a throw. */
   if (my_handler_data.run_handler)
@@ -328,12 +199,10 @@ SCM_DEFINE (scm_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0,
 SCM_DEFINE (scm_dynamic_root, "dynamic-root", 0, 0, 0, 
            (),
 	    "Return an object representing the current dynamic root.\n\n"
-	    "These objects are only useful for comparison using @code{eq?}.\n"
-	    "They are currently represented as numbers, but your code should\n"
-	    "in no way depend on this.")
+	    "These objects are only useful for comparison using @code{eq?}.\n")
 #define FUNC_NAME s_scm_dynamic_root
 {
-  return scm_from_ulong (SCM_SEQ (scm_root->rootcont));
+  return SCM_I_CURRENT_THREAD->continuation_root;
 }
 #undef FUNC_NAME
 
@@ -349,10 +218,6 @@ scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler)
 void
 scm_init_root ()
 {
-  scm_tc16_root = scm_make_smob_type ("root", sizeof (struct scm_root_state));
-  scm_set_smob_mark (scm_tc16_root, root_mark);
-  scm_set_smob_print (scm_tc16_root, root_print);
-
 #include "libguile/root.x"
 }
 

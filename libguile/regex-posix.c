@@ -243,7 +243,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
      whole regexp, so add 1 to nmatches. */
 
   nmatches = SCM_RGX(rx)->re_nsub + 1;
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   matches = scm_malloc (sizeof (regmatch_t) * nmatches);
   c_str = scm_to_locale_string (substr);
   status = regexec (SCM_RGX (rx), c_str, nmatches, matches,
@@ -267,7 +267,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
 				   scm_from_long (matches[i].rm_eo + offset)));
     }
   free (matches);
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
 
   if (status != 0 && status != REG_NOMATCH)
     scm_error_scm (scm_regexp_error_key,

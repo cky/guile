@@ -29,6 +29,7 @@
 #include "libguile/ports.h"
 #include "libguile/dynwind.h"
 #include "libguile/values.h"
+#include "libguile/eval.h"
 
 #include "libguile/validate.h"
 #include "libguile/continuations.h"
@@ -45,6 +46,7 @@ continuation_mark (SCM obj)
 {
   scm_t_contregs *continuation = SCM_CONTREGS (obj);
 
+  scm_gc_mark (continuation->root);
   scm_gc_mark (continuation->throw_value);
   scm_mark_locations (continuation->stack, continuation->num_stack_items);
 #ifdef __ia64__
@@ -60,7 +62,7 @@ static size_t
 continuation_free (SCM obj)
 {
   scm_t_contregs *continuation = SCM_CONTREGS (obj);
-  /* stack array size is 1 if num_stack_items is 0 (rootcont).  */
+  /* stack array size is 1 if num_stack_items is 0.  */
   size_t extra_items = (continuation->num_stack_items > 0)
     ? (continuation->num_stack_items - 1)
     : 0;
@@ -107,29 +109,29 @@ extern struct rv ia64_getcontext (ucontext_t *) __asm__ ("getcontext");
 SCM 
 scm_make_continuation (int *first)
 {
-  volatile SCM cont;
+  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  SCM cont;
   scm_t_contregs *continuation;
-  scm_t_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
   long stack_size;
   SCM_STACKITEM * src;
 #ifdef __ia64__
   struct rv rv;
 #endif /* __ia64__ */
 
-  SCM_ENTER_A_SECTION;
+  SCM_CRITICAL_SECTION_START;
   SCM_FLUSH_REGISTER_WINDOWS;
-  stack_size = scm_stack_size (rootcont->base);
+  stack_size = scm_stack_size (thread->continuation_base);
   continuation = scm_gc_malloc (sizeof (scm_t_contregs)
 				+ (stack_size - 1) * sizeof (SCM_STACKITEM),
 				"continuation");
   continuation->num_stack_items = stack_size;
-  continuation->dynenv = scm_dynwinds;
+  continuation->dynenv = scm_i_dynwinds ();
   continuation->throw_value = SCM_EOL;
-  continuation->base = src = rootcont->base;
-  continuation->seq = rootcont->seq;
-  continuation->dframe = scm_last_debug_frame;
+  continuation->root = thread->continuation_root;
+  continuation->dframe = scm_i_last_debug_frame ();
+  src = thread->continuation_base;
   SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
-  SCM_EXIT_A_SECTION;
+  SCM_CRITICAL_SECTION_END;
 
 #if ! SCM_STACK_GROWS_UP
   src -= stack_size;
@@ -237,12 +239,12 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   long delta;
   copy_stack_data data;
 
-  delta = scm_ilength (scm_dynwinds) - scm_ilength (continuation->dynenv);
+  delta = scm_ilength (scm_i_dynwinds ()) - scm_ilength (continuation->dynenv);
   data.continuation = continuation;
   data.dst = dst;
   scm_i_dowinds (continuation->dynenv, delta, copy_stack, &data);
 
-  scm_last_debug_frame = continuation->dframe;
+  scm_i_set_last_debug_frame (continuation->dframe);
 
   continuation->throw_value = val;
 #ifdef __ia64__
@@ -262,8 +264,9 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
 static void 
 scm_dynthrow (SCM cont, SCM val)
 {
+  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_contregs *continuation = SCM_CONTREGS (cont);
-  SCM_STACKITEM * dst = SCM_BASE (scm_rootcont);
+  SCM_STACKITEM *dst = thread->continuation_base;
   SCM_STACKITEM stack_top_element;
 
 #if SCM_STACK_GROWS_UP
@@ -284,15 +287,14 @@ static SCM
 continuation_apply (SCM cont, SCM args)
 #define FUNC_NAME "continuation_apply"
 {
+  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_contregs *continuation = SCM_CONTREGS (cont);
-  scm_t_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
 
-  if (continuation->seq != rootcont->seq
-      /* this base comparison isn't needed */
-      || continuation->base != rootcont->base)
+  if (continuation->root != thread->continuation_root)
     {
-      SCM_MISC_ERROR ("continuation from wrong top level: ~S", 
-		      scm_list_1 (cont));
+      SCM_MISC_ERROR 
+	("invoking continuation would cross continuation barrier: ~A",
+	 scm_list_1 (cont));
     }
   
   scm_dynthrow (cont, scm_values (args));
@@ -300,6 +302,107 @@ continuation_apply (SCM cont, SCM args)
 }
 #undef FUNC_NAME
 
+SCM
+scm_i_with_continuation_barrier (scm_t_catch_body body,
+				 void *body_data,
+				 scm_t_catch_handler handler,
+				 void *handler_data)
+{
+  SCM_STACKITEM stack_item;
+  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  SCM old_controot;
+  SCM_STACKITEM *old_contbase;
+  scm_t_debug_frame *old_lastframe;
+  SCM result;
+
+  /* Establish a fresh continuation root.  
+   */
+  old_controot = thread->continuation_root;
+  old_contbase = thread->continuation_base;
+  old_lastframe = thread->last_debug_frame;
+  thread->continuation_root = scm_cons (thread->handle, old_controot);
+  thread->continuation_base = &stack_item;
+  thread->last_debug_frame = NULL;
+
+  /* Call FUNC inside a catch all.  This is now guaranteed to return
+     directly and exactly once.
+  */
+  result = scm_internal_catch (SCM_BOOL_T,
+			       body, body_data,
+			       handler, handler_data);
+
+  /* Return to old continuation root.
+   */
+  thread->last_debug_frame = old_lastframe;
+  thread->continuation_base = old_contbase;
+  thread->continuation_root = old_controot;
+
+  return result;
+}
+
+struct c_data {
+  void *(*func) (void *);
+  void *data;
+  void *result;
+};
+
+static SCM
+c_body (void *d)
+{
+  struct c_data *data = (struct c_data *)d;
+  data->result = data->func (data->data);
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+c_handler (void *d, SCM tag, SCM args)
+{
+  struct c_data *data = (struct c_data *)d;
+  scm_handle_by_message_noexit (NULL, tag, args);
+  data->result = NULL;
+  return SCM_UNSPECIFIED;
+}
+
+void *
+scm_c_with_continuation_barrier (void *(*func) (void *), void *data)
+{
+  struct c_data c_data;
+  c_data.func = func;
+  c_data.data = data;
+  scm_i_with_continuation_barrier (c_body, &c_data,
+				   c_handler, &c_data);
+  return c_data.result;
+}
+
+struct scm_data {
+  SCM proc;
+};
+
+static SCM
+scm_body (void *d)
+{
+  struct scm_data *data = (struct scm_data *)d;
+  return scm_call_0 (data->proc);
+}
+
+static SCM
+scm_handler (void *d, SCM tag, SCM args)
+{
+  scm_handle_by_message_noexit (NULL, tag, args);
+  return SCM_BOOL_F;
+}
+
+SCM_DEFINE (scm_with_continuation_barrier, "with-continuation-barrier", 1,0,0,
+	    (SCM proc),
+	    "Call @var{proc} and return the returned value but do not allow the invocation of continuations that would exit or reenter the dynamic extent of the call to @var{proc}.  When a uncaught throw happens during the call to @var{proc}, a message is printed to the current error port and @code{#f} is returned.")
+#define FUNC_NAME s_scm_with_continuation_barrier
+{
+  struct scm_data scm_data;
+  scm_data.proc = proc;
+  return scm_i_with_continuation_barrier (scm_body, &scm_data,
+					  scm_handler, &scm_data);
+}
+#undef FUNC_NAME
 
 void
 scm_init_continuations ()

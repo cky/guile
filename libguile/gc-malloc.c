@@ -110,21 +110,21 @@ scm_realloc (void *mem, size_t size)
   if (ptr)
     return ptr;
 
-  scm_rec_mutex_lock (&scm_i_sweep_mutex);
+  scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
   
   scm_i_sweep_all_segments ("realloc");
   
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
     { 
-      scm_rec_mutex_unlock (&scm_i_sweep_mutex);
+      scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
       return ptr;
     }
 
   scm_igc ("realloc");
   scm_i_sweep_all_segments ("realloc");
   
-  scm_rec_mutex_unlock (&scm_i_sweep_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
   
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
@@ -180,10 +180,10 @@ scm_strdup (const char *str)
 static void
 decrease_mtrigger (size_t size, const char * what)
 {
-  scm_i_plugin_mutex_lock (&scm_i_gc_admin_mutex);
+  scm_i_pthread_mutex_lock (&scm_i_gc_admin_mutex);
   scm_mallocated -= size;
   scm_gc_malloc_collected += size;
-  scm_i_plugin_mutex_unlock (&scm_i_gc_admin_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_gc_admin_mutex);
 }
 
 static void
@@ -192,7 +192,7 @@ increase_mtrigger (size_t size, const char *what)
   size_t mallocated = 0;
   int overflow = 0, triggered = 0;
 
-  scm_i_plugin_mutex_lock (&scm_i_gc_admin_mutex);
+  scm_i_pthread_mutex_lock (&scm_i_gc_admin_mutex);
   if (ULONG_MAX - size < scm_mallocated)
     overflow = 1;
   else
@@ -202,12 +202,10 @@ increase_mtrigger (size_t size, const char *what)
       if (scm_mallocated > scm_mtrigger)
 	triggered = 1;
     }
-  scm_i_plugin_mutex_unlock (&scm_i_gc_admin_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_gc_admin_mutex);
 
   if (overflow)
-    {
-      scm_memory_error ("Overflow of scm_mallocated: too much memory in use.");
-    }
+    scm_memory_error ("Overflow of scm_mallocated: too much memory in use.");
 
   /*
     A program that uses a lot of malloced collectable memory (vectors,
@@ -220,7 +218,7 @@ increase_mtrigger (size_t size, const char *what)
       unsigned long prev_alloced;
       float yield;
       
-      scm_rec_mutex_lock (&scm_i_sweep_mutex);
+      scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
       
       prev_alloced  = mallocated;
       scm_igc (what);
@@ -265,7 +263,7 @@ increase_mtrigger (size_t size, const char *what)
 #endif
 	}
       
-      scm_rec_mutex_unlock (&scm_i_sweep_mutex);
+      scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
     }
 }
 

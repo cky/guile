@@ -201,7 +201,7 @@ scm_evict_ports (int fd)
 {
   long i;
 
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
 
   for (i = 0; i < scm_i_port_table_size; i++)
     {
@@ -221,7 +221,7 @@ scm_evict_ports (int fd)
 	}
     }
 
-  scm_mutex_unlock (&scm_i_port_table_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 }
 
 
@@ -425,7 +425,7 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
       SCM_MISC_ERROR ("requested file mode not available on fdes", SCM_EOL);
     }
 
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
 
   port = scm_new_port_table_entry (scm_tc16_fport);
   SCM_SET_CELL_TYPE(port, scm_tc16_fport | mode_bits);
@@ -443,7 +443,7 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
       scm_fport_buffer_add (port, -1, -1);
   }
   SCM_SET_FILENAME (port, name);
-  scm_mutex_unlock (&scm_i_port_table_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
   return port;
 }
 #undef FUNC_NAME
@@ -545,7 +545,7 @@ fport_wait_for_input (SCM port)
 	  {
 	    FD_ZERO (&readfds);
 	    FD_SET (fdes, &readfds);
-	    n = scm_internal_select (fdes + 1, &readfds, NULL, NULL, NULL);
+	    n = scm_std_select (fdes + 1, &readfds, NULL, NULL, NULL);
 	  }
 	while (n == -1 && errno == EINTR);
     }

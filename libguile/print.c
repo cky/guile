@@ -133,7 +133,7 @@ do { \
 
 SCM scm_print_state_vtable = SCM_BOOL_F;
 static SCM print_state_pool = SCM_EOL;
-SCM_MUTEX (print_state_mutex);
+scm_i_pthread_mutex_t print_state_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef GUILE_DEBUG /* Used for debugging purposes */
 
@@ -173,13 +173,13 @@ scm_make_print_state ()
   SCM answer = SCM_BOOL_F;
 
   /* First try to allocate a print state from the pool */
-  scm_i_plugin_mutex_lock (&print_state_mutex);
+  scm_i_pthread_mutex_lock (&print_state_mutex);
   if (!scm_is_null (print_state_pool))
     {
       answer = SCM_CAR (print_state_pool);
       print_state_pool = SCM_CDR (print_state_pool);
     }
-  scm_i_plugin_mutex_unlock (&print_state_mutex);
+  scm_i_pthread_mutex_unlock (&print_state_mutex);
   
   return scm_is_false (answer) ? make_print_state () : answer;
 }
@@ -197,10 +197,10 @@ scm_free_print_state (SCM print_state)
   pstate->fancyp = 0;
   pstate->revealed = 0;
   pstate->highlight_objects = SCM_EOL;
-  scm_i_plugin_mutex_lock (&print_state_mutex);
+  scm_i_pthread_mutex_lock (&print_state_mutex);
   handle = scm_cons (print_state, print_state_pool);
   print_state_pool = handle;
-  scm_i_plugin_mutex_unlock (&print_state_mutex);
+  scm_i_pthread_mutex_unlock (&print_state_mutex);
 }
 
 SCM
@@ -692,13 +692,13 @@ scm_prin1 (SCM exp, SCM port, int writingp)
   else
     {
       /* First try to allocate a print state from the pool */
-      scm_i_plugin_mutex_lock (&print_state_mutex);
+      scm_i_pthread_mutex_lock (&print_state_mutex);
       if (!scm_is_null (print_state_pool))
 	{
 	  handle = print_state_pool;
 	  print_state_pool = SCM_CDR (print_state_pool);
 	}
-      scm_i_plugin_mutex_unlock (&print_state_mutex);
+      scm_i_pthread_mutex_unlock (&print_state_mutex);
       if (scm_is_false (handle))
 	handle = scm_list_1 (make_print_state ());
       pstate_scm = SCM_CAR (handle);
@@ -715,10 +715,10 @@ scm_prin1 (SCM exp, SCM port, int writingp)
 
   if (scm_is_true (handle) && !pstate->revealed)
     {
-      scm_i_plugin_mutex_lock (&print_state_mutex);
+      scm_i_pthread_mutex_lock (&print_state_mutex);
       SCM_SETCDR (handle, print_state_pool);
       print_state_pool = handle;
-      scm_i_plugin_mutex_unlock (&print_state_mutex);
+      scm_i_pthread_mutex_unlock (&print_state_mutex);
     }
 }
 
@@ -878,7 +878,7 @@ SCM
 scm_write (SCM obj, SCM port)
 {
   if (SCM_UNBNDP (port))
-    port = scm_cur_outp;
+    port = scm_current_output_port ();
 
   SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write);
 
@@ -899,7 +899,7 @@ SCM
 scm_display (SCM obj, SCM port)
 {
   if (SCM_UNBNDP (port))
-    port = scm_cur_outp;
+    port = scm_current_output_port ();
 
   SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_display);
 
@@ -938,7 +938,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 
   if (scm_is_eq (destination, SCM_BOOL_T))
     {
-      destination = port = scm_cur_outp;
+      destination = port = scm_current_output_port ();
     }
   else if (scm_is_false (destination))
     {
@@ -1020,7 +1020,7 @@ SCM_DEFINE (scm_newline, "newline", 0, 1, 0,
 #define FUNC_NAME s_scm_newline
 {
   if (SCM_UNBNDP (port))
-    port = scm_cur_outp;
+    port = scm_current_output_port ();
 
   SCM_VALIDATE_OPORT_VALUE (1, port);
 
@@ -1035,7 +1035,7 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
 #define FUNC_NAME s_scm_write_char
 {
   if (SCM_UNBNDP (port))
-    port = scm_cur_outp;
+    port = scm_current_output_port ();
 
   SCM_VALIDATE_CHAR (1, chr);
   SCM_VALIDATE_OPORT_VALUE (2, port);

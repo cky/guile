@@ -41,6 +41,7 @@
 #include "libguile/validate.h"
 #include "libguile/ports.h"
 #include "libguile/vectors.h"
+#include "libguile/fluids.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -121,7 +122,7 @@ scm_make_port_type (char *name,
   char *tmp;
   if (255 <= scm_numptob)
     goto ptoberr;
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   SCM_SYSCALL (tmp = (char *) realloc ((char *) scm_ptobs,
 				       (1 + scm_numptob)
 				       * sizeof (scm_t_ptob_descriptor)));
@@ -148,7 +149,7 @@ scm_make_port_type (char *name,
 
       scm_numptob++;
     }
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   if (!tmp)
     {
     ptoberr:
@@ -246,7 +247,7 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
   scm_t_port *pt;
 
   if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
+    port = scm_current_input_port ();
   else
     SCM_VALIDATE_OPINPORT (1, port);
 
@@ -341,6 +342,11 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 
 /* Standard ports --- current input, output, error, and more(!).  */
 
+static SCM cur_inport_fluid;
+static SCM cur_outport_fluid;
+static SCM cur_errport_fluid;
+static SCM cur_loadport_fluid;
+
 SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
 	    (),
 	    "Return the current input port.  This is the default port used\n"
@@ -348,7 +354,7 @@ SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
 	    "returns the @dfn{standard input} in Unix and C terminology.")
 #define FUNC_NAME s_scm_current_input_port
 {
-  return scm_cur_inp;
+  return scm_fluid_ref (cur_inport_fluid);
 }
 #undef FUNC_NAME
 
@@ -360,7 +366,7 @@ SCM_DEFINE (scm_current_output_port, "current-output-port", 0, 0, 0,
 	    "Unix and C terminology.")
 #define FUNC_NAME s_scm_current_output_port
 {
-  return scm_cur_outp;
+  return scm_fluid_ref (cur_outport_fluid);
 }
 #undef FUNC_NAME
 
@@ -370,7 +376,7 @@ SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
 	    "@dfn{standard error} in Unix and C terminology).")
 #define FUNC_NAME s_scm_current_error_port
 {
-  return scm_cur_errp;
+  return scm_fluid_ref (cur_errport_fluid);
 }
 #undef FUNC_NAME
 
@@ -380,7 +386,7 @@ SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
             "The load port is used internally by @code{primitive-load}.")
 #define FUNC_NAME s_scm_current_load_port
 {
-  return scm_cur_loadp;
+  return scm_fluid_ref (cur_loadport_fluid);
 }
 #undef FUNC_NAME
 
@@ -393,9 +399,9 @@ SCM_DEFINE (scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
 	    "so that they use the supplied @var{port} for input or output.")
 #define FUNC_NAME s_scm_set_current_input_port
 {
-  SCM oinp = scm_cur_inp;
+  SCM oinp = scm_fluid_ref (cur_inport_fluid);
   SCM_VALIDATE_OPINPORT (1, port);
-  scm_cur_inp = port;
+  scm_fluid_set_x (cur_inport_fluid, port);
   return oinp;
 }
 #undef FUNC_NAME
@@ -406,10 +412,10 @@ SCM_DEFINE (scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
 	    "Set the current default output port to @var{port}.")
 #define FUNC_NAME s_scm_set_current_output_port
 {
-  SCM ooutp = scm_cur_outp;
+  SCM ooutp = scm_fluid_ref (cur_outport_fluid);
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPOUTPORT (1, port);
-  scm_cur_outp = port;
+  scm_fluid_set_x (cur_outport_fluid, port);
   return ooutp;
 }
 #undef FUNC_NAME
@@ -420,69 +426,47 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
 	    "Set the current default error port to @var{port}.")
 #define FUNC_NAME s_scm_set_current_error_port
 {
-  SCM oerrp = scm_cur_errp;
+  SCM oerrp = scm_fluid_ref (cur_errport_fluid);
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPOUTPORT (1, port);
-  scm_cur_errp = port;
+  scm_fluid_set_x (cur_errport_fluid, port);
   return oerrp;
 }
 #undef FUNC_NAME
 
-typedef struct {
-  SCM value;
-  SCM (*getter) (void);
-  SCM (*setter) (SCM);
-} swap_data;
-
-static void
-swap_port (SCM scm_data)
-{
-  swap_data *d = (swap_data *)SCM_MALLOCDATA (scm_data);
-  SCM t;
-
-  t = d->getter ();
-  d->setter (d->value);
-  d->value = t;
-}
-
-static void
-scm_frame_current_foo_port (SCM port,
-			   SCM (*getter) (void), SCM (*setter) (SCM))
-{
-  SCM scm_data = scm_malloc_obj (sizeof (swap_data));
-  swap_data *data = (swap_data *)SCM_MALLOCDATA (scm_data);
-  data->value = port;
-  data->getter = getter;
-  data->setter = setter;
-  
-  scm_frame_rewind_handler_with_scm (swap_port, scm_data,
-				     SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_handler_with_scm (swap_port, scm_data,
-				     SCM_F_WIND_EXPLICITLY);
-}
-
 void
 scm_frame_current_input_port (SCM port)
+#define FUNC_NAME NULL
 {
-  scm_frame_current_foo_port (port,
-			      scm_current_input_port,
-			      scm_set_current_input_port);
+  SCM_VALIDATE_OPINPORT (1, port);
+  scm_frame_fluid (cur_inport_fluid, port);
 }
+#undef FUNC_NAME
 
 void
 scm_frame_current_output_port (SCM port)
+#define FUNC_NAME NULL
 {
-  scm_frame_current_foo_port (port,
-			      scm_current_output_port,
-			      scm_set_current_output_port);
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_VALIDATE_OPOUTPORT (1, port);
+  scm_frame_fluid (cur_outport_fluid, port);
 }
+#undef FUNC_NAME
 
 void
 scm_frame_current_error_port (SCM port)
+#define FUNC_NAME NULL
 {
-  scm_frame_current_foo_port (port,
-			      scm_current_error_port,
-			      scm_set_current_error_port);
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_VALIDATE_OPOUTPORT (1, port);
+  scm_frame_fluid (cur_errport_fluid, port);
+}
+#undef FUNC_NAME
+
+void
+scm_i_frame_current_load_port (SCM port)
+{
+  scm_frame_fluid (cur_loadport_fluid, port);
 }
 
 
@@ -493,7 +477,7 @@ scm_t_port **scm_i_port_table;
 long scm_i_port_table_size = 0;	/* Number of ports in scm_i_port_table.  */
 long scm_i_port_table_room = 20;	/* Size of the array.  */
 
-SCM_GLOBAL_MUTEX (scm_i_port_table_mutex);
+scm_i_pthread_mutex_t scm_i_port_table_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* This function is not and should not be thread safe. */
 
@@ -764,9 +748,9 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
     rv = (scm_ptobs[i].close) (port);
   else
     rv = 0;
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   scm_remove_from_port_table (port);
-  scm_mutex_unlock (&scm_i_port_table_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
   SCM_CLR_PORT_OPEN_FLAG (port);
   return scm_from_bool (rv >= 0);
 }
@@ -815,18 +799,18 @@ scm_c_port_for_each (void (*proc)(void *data, SCM p), void *data)
      can change arbitrarily (from a GC, for example).  So we first
      collect the ports into a vector. -mvo */
 
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   n = scm_i_port_table_size;
-  scm_mutex_unlock (&scm_i_port_table_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   ports = scm_c_make_vector (n, SCM_BOOL_F);
 
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   if (n > scm_i_port_table_size)
     n = scm_i_port_table_size;
   for (i = 0; i < n; i++)
     SCM_SIMPLE_VECTOR_SET (ports, i, scm_i_port_table[i]->port);
-  scm_mutex_unlock (&scm_i_port_table_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   for (i = 0; i < n; i++)
     proc (data, SCM_SIMPLE_VECTOR_REF (ports, i));
@@ -919,7 +903,7 @@ SCM_DEFINE (scm_force_output, "force-output", 0, 1, 0,
 #define FUNC_NAME s_scm_force_output
 {
   if (SCM_UNBNDP (port))
-    port = scm_cur_outp;
+    port = scm_current_output_port ();
   else
     {
       port = SCM_COERCE_OUTPORT (port);
@@ -938,13 +922,13 @@ SCM_DEFINE (scm_flush_all_ports, "flush-all-ports", 0, 0, 0,
 {
   size_t i;
 
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   for (i = 0; i < scm_i_port_table_size; i++)
     {
       if (SCM_OPOUTPORTP (scm_i_port_table[i]->port))
 	scm_flush (scm_i_port_table[i]->port);
     }
-  scm_mutex_unlock (&scm_i_port_table_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -958,7 +942,7 @@ SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
 {
   int c;
   if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
+    port = scm_current_input_port ();
   SCM_VALIDATE_OPINPORT (1, port);
   c = scm_getc (port);
   if (EOF == c)
@@ -1300,7 +1284,7 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 {
   int c, column;
   if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
+    port = scm_current_input_port ();
   else
     SCM_VALIDATE_OPINPORT (1, port);
   column = SCM_COL(port);
@@ -1325,7 +1309,7 @@ SCM_DEFINE (scm_unread_char, "unread-char", 1, 1, 0,
 
   SCM_VALIDATE_CHAR (1, cobj);
   if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
+    port = scm_current_input_port ();
   else
     SCM_VALIDATE_OPINPORT (2, port);
 
@@ -1346,7 +1330,7 @@ SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
 {
   SCM_VALIDATE_STRING (1, str);
   if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
+    port = scm_current_input_port ();
   else
     SCM_VALIDATE_OPINPORT (2, port);
 
@@ -1638,7 +1622,7 @@ write_void_port (SCM port SCM_UNUSED,
 static SCM
 scm_i_void_port (long mode_bits)
 {
-  scm_mutex_lock (&scm_i_port_table_mutex);
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   {
     SCM answer = scm_new_port_table_entry (scm_tc16_void_port);
     scm_t_port * pt = SCM_PTAB_ENTRY(answer);
@@ -1647,7 +1631,7 @@ scm_i_void_port (long mode_bits)
   
     SCM_SETSTREAM (answer, 0);
     SCM_SET_CELL_TYPE (answer, scm_tc16_void_port | mode_bits);
-    scm_mutex_unlock (&scm_i_port_table_mutex);
+    scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
     return answer;
   }
 }
@@ -1683,6 +1667,12 @@ scm_init_ports ()
 
   scm_tc16_void_port = scm_make_port_type ("void", fill_input_void_port, 
 					   write_void_port);
+
+  cur_inport_fluid = scm_permanent_object (scm_make_fluid ());
+  cur_outport_fluid = scm_permanent_object (scm_make_fluid ());
+  cur_errport_fluid = scm_permanent_object (scm_make_fluid ());
+  cur_loadport_fluid = scm_permanent_object (scm_make_fluid ());
+
 #include "libguile/ports.x"
 }
 

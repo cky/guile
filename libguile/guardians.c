@@ -225,14 +225,14 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
       SCM z;
 
       /* This critical section barrier will be replaced by a mutex. */
-      SCM_DEFER_INTS;
+      SCM_CRITICAL_SECTION_START;
 
       if (GREEDY_P (g))
         {
           if (scm_is_true (scm_hashq_get_handle
                            (greedily_guarded_whash, obj)))
             {
-              SCM_ALLOW_INTS;
+              SCM_CRITICAL_SECTION_END;
 
               if (throw_p)
                 scm_misc_error ("guard",
@@ -249,7 +249,7 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
       z = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
       TCONC_IN (g->live, obj, z);
 
-      SCM_ALLOW_INTS;
+      SCM_CRITICAL_SECTION_END;
     }
 
   return throw_p ? SCM_UNSPECIFIED : SCM_BOOL_T;
@@ -263,7 +263,7 @@ scm_get_one_zombie (SCM guardian)
   SCM res = SCM_BOOL_F;
 
   /* This critical section barrier will be replaced by a mutex. */
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
 
   if (!TCONC_EMPTYP (g->zombies))
     TCONC_OUT (g->zombies, res);
@@ -271,7 +271,7 @@ scm_get_one_zombie (SCM guardian)
   if (scm_is_true (res) && GREEDY_P (g))
     scm_hashq_remove_x (greedily_guarded_whash, res);
 
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   
   return res;
 }
@@ -337,11 +337,11 @@ SCM_DEFINE (scm_guardian_destroyed_p, "guardian-destroyed?", 1, 0, 0,
   SCM res = SCM_BOOL_F;
 
   /* This critical section barrier will be replaced by a mutex. */
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
 
   res = scm_from_bool (DESTROYED_P (GUARDIAN_DATA (guardian)));
   
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
 
   return res;
 }
@@ -366,11 +366,11 @@ SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0,
   t_guardian *g = GUARDIAN_DATA (guardian);
 
   /* This critical section barrier will be replaced by a mutex. */
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   
   if (DESTROYED_P (g))
     {
-      SCM_ALLOW_INTS;
+      SCM_CRITICAL_SECTION_END;
       SCM_MISC_ERROR ("guardian is already destroyed: ~A",
 		      scm_list_1 (guardian));
     }
@@ -391,7 +391,7 @@ SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0,
   
   SET_DESTROYED (g);
   
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
 
   return SCM_UNSPECIFIED;
 }
@@ -569,16 +569,17 @@ whine_about_self_centered_zombies (void *dummy1 SCM_UNUSED,
 {
   if (!scm_is_null (self_centered_zombies))
     {
+      SCM port = scm_current_error_port ();
       SCM pair;
       
       scm_puts ("** WARNING: the following guarded objects were unguarded due to cycles:",
-                scm_cur_errp);
-      scm_newline (scm_cur_errp);
+                port);
+      scm_newline (port);
       for (pair = self_centered_zombies;
            !scm_is_null (pair); pair = SCM_CDR (pair))
         {
-          scm_display (SCM_CAR (pair), scm_cur_errp);
-          scm_newline (scm_cur_errp);
+          scm_display (SCM_CAR (pair), port);
+          scm_newline (port);
         }
 
       self_centered_zombies = SCM_EOL;

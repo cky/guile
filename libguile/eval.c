@@ -80,6 +80,7 @@ char *alloca ();
 #include "libguile/srcprop.h"
 #include "libguile/stackchk.h"
 #include "libguile/strings.h"
+#include "libguile/threads.h"
 #include "libguile/throw.h"
 #include "libguile/validate.h"
 #include "libguile/values.h"
@@ -877,10 +878,10 @@ macroexp (SCM x, SCM env)
   if (scm_ilength (res) <= 0)
     res = scm_list_2 (SCM_IM_BEGIN, res);
       
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   SCM_SETCAR (x, SCM_CAR (res));
   SCM_SETCDR (x, SCM_CDR (res));
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
 
   goto macro_tail;
 }
@@ -2641,7 +2642,7 @@ static SCM deval (SCM x, SCM env);
             ? SCM_CAR (x) \
             :  *scm_lookupcar ((x), (env), 1)))))
 
-SCM_REC_MUTEX (source_mutex);
+scm_i_pthread_mutex_t source_mutex = SCM_I_PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 
 
 /* Lookup a given local variable in an environment.  The local variable is
@@ -2936,11 +2937,11 @@ scm_eval_body (SCM code, SCM env)
 	{
 	  if (SCM_ISYMP (SCM_CAR (code)))
 	    {
-	      scm_rec_mutex_lock (&source_mutex);
+	      scm_i_scm_pthread_mutex_lock (&source_mutex);
 	      /* check for race condition */
 	      if (SCM_ISYMP (SCM_CAR (code)))
 		m_expand_body (code, env);
-	      scm_rec_mutex_unlock (&source_mutex);
+	      scm_i_pthread_mutex_unlock (&source_mutex);
 	      goto again;
 	    }
 	}
@@ -3084,13 +3085,13 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
 #define FUNC_NAME s_scm_eval_options_interface
 {
   SCM ans;
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   ans = scm_options (setting,
 		     scm_eval_opts,
 		     SCM_N_EVAL_OPTIONS,
 		     FUNC_NAME);
   scm_eval_stack = SCM_EVAL_STACK * sizeof (void *);
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return ans;
 }
 #undef FUNC_NAME
@@ -3102,13 +3103,13 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 #define FUNC_NAME s_scm_evaluator_traps
 {
   SCM ans;
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   ans = scm_options (setting,
 		     scm_evaluator_trap_table,
 		     SCM_N_EVALUATOR_TRAPS,
 		     FUNC_NAME);
   SCM_RESET_DEBUG_MODE;
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return ans;
 }
 #undef FUNC_NAME
@@ -3185,7 +3186,7 @@ CEVAL (SCM x, SCM env)
 #ifdef DEVAL
   scm_t_debug_frame debug;
   scm_t_debug_info *debug_info_end;
-  debug.prev = scm_last_debug_frame;
+  debug.prev = scm_i_last_debug_frame ();
   debug.status = 0;
   /*
    * The debug.vect contains twice as much scm_t_debug_info frames as the
@@ -3197,7 +3198,7 @@ CEVAL (SCM x, SCM env)
 					    * sizeof (scm_t_debug_info));
   debug.info = debug.vect;
   debug_info_end = debug.vect + scm_debug_eframe_size;
-  scm_last_debug_frame = &debug;
+  scm_i_set_last_debug_frame (&debug);
 #endif
 #ifdef EVAL_STACK_CHECKING
   if (scm_stack_checking_enabled_p && SCM_STACK_OVERFLOW_P (&proc))
@@ -3326,11 +3327,11 @@ dispatch:
                 {
                   if (SCM_ISYMP (form))
                     {
-                      scm_rec_mutex_lock (&source_mutex);
+                      scm_i_scm_pthread_mutex_lock (&source_mutex);
                       /* check for race condition */
                       if (SCM_ISYMP (SCM_CAR (x)))
                         m_expand_body (x, env);
-                      scm_rec_mutex_unlock (&source_mutex);
+                      scm_i_pthread_mutex_unlock (&source_mutex);
                       goto nontoplevel_begin;
                     }
                   else
@@ -3903,7 +3904,7 @@ dispatch:
 	      }
 	    
 	    scm_swap_bindings (vars, vals);
-	    scm_dynwinds = scm_acons (vars, vals, scm_dynwinds);
+	    scm_i_set_dynwinds (scm_acons (vars, vals, scm_i_dynwinds ()));
 
 	    /* Ignore all but the last evaluation result.  */
 	    for (x = SCM_CDR (x); !scm_is_null (SCM_CDR (x)); x = SCM_CDR (x))
@@ -3913,7 +3914,7 @@ dispatch:
 	      }
 	    proc = EVALCAR (x, env);
 	  
-	    scm_dynwinds = SCM_CDR (scm_dynwinds);
+	    scm_i_set_dynwinds (SCM_CDR (scm_i_dynwinds ()));
 	    scm_swap_bindings (vars, vals);
 
 	    RETURN (proc);
@@ -3997,10 +3998,10 @@ dispatch:
 #ifdef DEVAL
 		  if (!SCM_CLOSUREP (SCM_MACRO_CODE (proc)))
 		    {
-		      SCM_DEFER_INTS;
+		      SCM_CRITICAL_SECTION_START;
 		      SCM_SETCAR (x, SCM_CAR (arg1));
 		      SCM_SETCDR (x, SCM_CDR (arg1));
-		      SCM_ALLOW_INTS;
+		      SCM_CRITICAL_SECTION_END;
 		      goto dispatch;
 		    }
 		  /* Prevent memoizing of debug info expression. */
@@ -4008,10 +4009,10 @@ dispatch:
 						       SCM_CAR (x),
 						       SCM_CDR (x));
 #endif
-		  SCM_DEFER_INTS;
+		  SCM_CRITICAL_SECTION_START;
 		  SCM_SETCAR (x, SCM_CAR (arg1));
 		  SCM_SETCDR (x, SCM_CDR (arg1));
-		  SCM_ALLOW_INTS;
+		  SCM_CRITICAL_SECTION_END;
 		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		  goto loop;
 #if SCM_ENABLE_DEPRECATED == 1
@@ -4578,7 +4579,7 @@ exit:
 	SCM_TRAPS_P = 1;
       }
 ret:
-  scm_last_debug_frame = debug.prev;
+  scm_i_set_last_debug_frame (debug.prev);
   return proc;
 #endif
 }
@@ -4734,12 +4735,12 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
 #ifdef DEVAL
   scm_t_debug_frame debug;
   scm_t_debug_info debug_vect_body;
-  debug.prev = scm_last_debug_frame;
+  debug.prev = scm_i_last_debug_frame ();
   debug.status = SCM_APPLYFRAME;
   debug.vect = &debug_vect_body;
   debug.vect[0].a.proc = proc;
   debug.vect[0].a.args = SCM_EOL;
-  scm_last_debug_frame = &debug;
+  scm_i_set_last_debug_frame (&debug);
 #else
   if (scm_debug_mode_p)
     return scm_dapply (proc, arg1, args);
@@ -4929,11 +4930,11 @@ tail:
 	    {
 	      if (SCM_ISYMP (SCM_CAR (proc)))
 		{
-		  scm_rec_mutex_lock (&source_mutex);
+		  scm_i_scm_pthread_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (proc)))
 		    m_expand_body (proc, args);
-		  scm_rec_mutex_unlock (&source_mutex);
+		  scm_i_pthread_mutex_unlock (&source_mutex);
 		  goto again;
 		}
 	      else
@@ -5038,7 +5039,7 @@ exit:
 	SCM_TRAPS_P = 1;
       }
 ret:
-  scm_last_debug_frame = debug.prev;
+  scm_i_set_last_debug_frame (debug.prev);
   return proc;
 #endif
 }
@@ -5560,13 +5561,19 @@ scm_makprom (SCM code)
 {
   SCM_RETURN_NEWSMOB2 (scm_tc16_promise,
 		       SCM_UNPACK (code),
-		       scm_make_rec_mutex ());
+		       scm_make_recursive_mutex ());
+}
+
+static SCM
+promise_mark (SCM promise)
+{
+  scm_gc_mark (SCM_PROMISE_MUTEX (promise));
+  return SCM_PROMISE_DATA (promise);
 }
 
 static size_t
 promise_free (SCM promise)
 {
-  scm_rec_mutex_free (SCM_PROMISE_MUTEX (promise));
   return 0;
 }
 
@@ -5590,7 +5597,7 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
 #define FUNC_NAME s_scm_force
 {
   SCM_VALIDATE_SMOB (1, promise, promise);
-  scm_rec_mutex_lock (SCM_PROMISE_MUTEX (promise));
+  scm_lock_mutex (SCM_PROMISE_MUTEX (promise));
   if (!SCM_PROMISE_COMPUTED_P (promise))
     {
       SCM ans = scm_call_0 (SCM_PROMISE_DATA (promise));
@@ -5600,7 +5607,7 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
 	  SCM_SET_PROMISE_COMPUTED (promise);
 	}
     }
-  scm_rec_mutex_unlock (SCM_PROMISE_MUTEX (promise));
+  scm_unlock_mutex (SCM_PROMISE_MUTEX (promise));
   return SCM_PROMISE_DATA (promise);
 }
 #undef FUNC_NAME
@@ -5813,13 +5820,15 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
      environment and calling scm_i_eval.  Thus, changes to the
      top-level module are tracked normally.
 
-   - scm_eval (exp, mod)
+   - scm_eval (exp, mod_or_state)
 
-     evaluates EXP while MOD is the current module.  This is done by
-     setting the current module to MOD, invoking scm_primitive_eval on
-     EXP, and then restoring the current module to the value it had
-     previously.  That is, while EXP is evaluated, changes to the
-     current module are tracked, but these changes do not persist when
+     evaluates EXP while MOD_OR_STATE is the current module or current
+     dynamic state (as appropriate).  This is done by setting the
+     current module (or dynamic state) to MOD_OR_STATE, invoking
+     scm_primitive_eval on EXP, and then restoring the current module
+     (or dynamic state) to the value it had previously.  That is,
+     while EXP is evaluated, changes to the current module (or dynamic
+     state) are tracked, but these changes do not persist when
      scm_eval returns.
 
   For each level of evals, there are two variants, distinguished by a
@@ -5882,67 +5891,47 @@ SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
  * system, where we would like to make the choice of evaluation
  * environment explicit.  */
 
-static void
-change_environment (void *data)
-{
-  SCM pair = SCM_PACK (data);
-  SCM new_module = SCM_CAR (pair);
-  SCM old_module = scm_current_module ();
-  SCM_SETCDR (pair, old_module);
-  scm_set_current_module (new_module);
-}
-
-static void
-restore_environment (void *data)
-{
-  SCM pair = SCM_PACK (data);
-  SCM old_module = SCM_CDR (pair);
-  SCM new_module = scm_current_module ();
-  SCM_SETCAR (pair, new_module);
-  scm_set_current_module (old_module);
-}
-
-static SCM
-inner_eval_x (void *data)
-{
-  return scm_primitive_eval_x (SCM_PACK(data));
-}
-
 SCM
-scm_eval_x (SCM exp, SCM module)
-#define FUNC_NAME "eval!"
+scm_eval_x (SCM exp, SCM module_or_state)
 {
-  SCM_VALIDATE_MODULE (2, module);
+  SCM res;
 
-  return scm_internal_dynamic_wind 
-    (change_environment, inner_eval_x, restore_environment,
-     (void *) SCM_UNPACK (exp),
-     (void *) SCM_UNPACK (scm_cons (module, SCM_BOOL_F)));
-}
-#undef FUNC_NAME
+  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  if (scm_is_dynamic_state (module_or_state))
+    scm_frame_current_dynamic_state (module_or_state);
+  else
+    scm_frame_current_module (module_or_state);
 
-static SCM
-inner_eval (void *data)
-{
-  return scm_primitive_eval (SCM_PACK(data));
+  res = scm_primitive_eval_x (exp);
+
+  scm_frame_end ();
+  return res;
 }
 
 SCM_DEFINE (scm_eval, "eval", 2, 0, 0, 
-	    (SCM exp, SCM module),
+	    (SCM exp, SCM module_or_state),
 	    "Evaluate @var{exp}, a list representing a Scheme expression,\n"
-            "in the top-level environment specified by @var{module}.\n"
+            "in the top-level environment specified by\n"
+	    "@var{module_or_state}.\n"
             "While @var{exp} is evaluated (using @code{primitive-eval}),\n"
-            "@var{module} is made the current module.  The current module\n"
-            "is reset to its previous value when @var{eval} returns.\n"
+            "@var{module_or_state} is made the current module when\n"
+	    "it is a module, or the current dynamic state when it is\n"
+	    "a dynamic state."
 	    "Example: (eval '(+ 1 2) (interaction-environment))")
 #define FUNC_NAME s_scm_eval
 {
-  SCM_VALIDATE_MODULE (2, module);
+  SCM res;
 
-  return scm_internal_dynamic_wind 
-    (change_environment, inner_eval, restore_environment,
-     (void *) SCM_UNPACK (exp),
-     (void *) SCM_UNPACK (scm_cons (module, SCM_BOOL_F)));
+  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  if (scm_is_dynamic_state (module_or_state))
+    scm_frame_current_dynamic_state (module_or_state);
+  else
+    scm_frame_current_module (module_or_state);
+
+  res = scm_primitive_eval (exp);
+
+  scm_frame_end ();
+  return res;
 }
 #undef FUNC_NAME
 
@@ -6004,7 +5993,7 @@ scm_init_eval ()
 		 SCM_N_EVAL_OPTIONS);
   
   scm_tc16_promise = scm_make_smob_type ("promise", 0);
-  scm_set_smob_mark (scm_tc16_promise, scm_markcdr);
+  scm_set_smob_mark (scm_tc16_promise, promise_mark);
   scm_set_smob_free (scm_tc16_promise, promise_free);
   scm_set_smob_print (scm_tc16_promise, promise_print);
 

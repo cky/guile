@@ -54,7 +54,7 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
 #define FUNC_NAME s_scm_debug_options
 {
   SCM ans;
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   ans = scm_options (setting, scm_debug_opts, SCM_N_DEBUG_OPTIONS, FUNC_NAME);
   if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
     {
@@ -64,7 +64,7 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
   SCM_RESET_DEBUG_MODE;
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
   scm_debug_eframe_size = 2 * SCM_N_FRAMES;
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return ans;
 }
 #undef FUNC_NAME
@@ -143,10 +143,10 @@ scm_make_memoized (SCM exp, SCM env)
 {
   /* *fixme* Check that env is a valid environment. */
   register SCM z, ans;
-  SCM_ENTER_A_SECTION;
+  SCM_CRITICAL_SECTION_START;
   SCM_NEWSMOB (z, SCM_UNPACK (exp), SCM_UNPACK (env));
   SCM_NEWSMOB (ans, scm_tc16_memoized, SCM_UNPACK (z));
-  SCM_EXIT_A_SECTION;
+  SCM_CRITICAL_SECTION_END;
   return ans;
 }
 
@@ -446,13 +446,13 @@ scm_start_stack (SCM id, SCM exp, SCM env)
   SCM answer;
   scm_t_debug_frame vframe;
   scm_t_debug_info vframe_vect_body;
-  vframe.prev = scm_last_debug_frame;
+  vframe.prev = scm_i_last_debug_frame ();
   vframe.status = SCM_VOIDFRAME;
   vframe.vect = &vframe_vect_body;
   vframe.vect[0].id = id;
-  scm_last_debug_frame = &vframe;
+  scm_i_set_last_debug_frame (&vframe);
   answer = scm_i_eval (exp, env);
-  scm_last_debug_frame = vframe.prev;
+  scm_i_set_last_debug_frame (vframe.prev);
   return answer;
 }
 

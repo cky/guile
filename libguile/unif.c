@@ -1353,7 +1353,7 @@ SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
 #define FUNC_NAME s_scm_uniform_array_read_x
 {
   if (SCM_UNBNDP (port_or_fd))
-    port_or_fd = scm_cur_inp;
+    port_or_fd = scm_current_input_port ();
 
   if (scm_is_uniform_vector (ura))
     {
@@ -1407,7 +1407,7 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
 #define FUNC_NAME s_scm_uniform_array_write
 {
   if (SCM_UNBNDP (port_or_fd))
-    port_or_fd = scm_cur_outp;
+    port_or_fd = scm_current_output_port ();
 
   if (scm_is_uniform_vector (ura))
     {

@@ -29,46 +29,39 @@
 /* Fluids.
 
    Fluids are objects of a certain type (a smob) that can hold one SCM
-   value per dynamic root.  That is, modifications to this value are
-   only visible to code that executes within the same dynamic root as
-   the modifying code.  When a new dynamic root is constructed, it
+   value per dynamic state.  That is, modifications to this value are
+   only visible to code that executes with the same dynamic state as
+   the modifying code.  When a new dynamic state is constructed, it
    inherits the values from its parent.  Because each thread executes
-   in its own dynamic root, you can use fluids for thread local
+   with its own dynamic state, you can use fluids for thread local
    storage.
 
    Each fluid is identified by a small integer.  This integer is used
-   to index a vector that holds the values of all fluids.  Each root
-   has its own vector.
-
-   Currently, you can't get rid a certain fluid if you don't use it
-   any longer.  The slot that has been allocated for it in the fluid
-   vector will not be reused for other fluids.  Therefore, only use
-   SCM_MAKE_FLUID or its Scheme variant `make-fluid' in initialization
-   code that is only run once.  Nevertheless, it should be possible to
-   implement a more lightweight version of fluids on top of this basic
-   mechanism. */
-
-SCM_API scm_t_bits scm_tc16_fluid;
-
-#define SCM_FLUIDP(x)    (SCM_SMOB_PREDICATE (scm_tc16_fluid, (x)))
-#define SCM_FLUID_NUM(x) (SCM_CELL_WORD_1 (x))
+   to index a vector that holds the values of all fluids.  A dynamic
+   state consists of this vector, wrapped in a smob so that the vector
+   can grow.
+ */
 
 /* The fastest way to acces/modify the value of a fluid.  These macros
-do no error checking at all.  You should only use them when you know
-that the relevant fluid already exists in the current dynamic root.
-The easiest way to ensure this is to execute a SCM_FLUID_SET_X in the
-topmost root, for example right after SCM_MAKE_FLUID in your
-SCM_INIT_MUMBLE routine that gets called from SCM_BOOT_GUILE_1.  The
-first argument is the index number of the fluid, obtained via
-SCM_FLUID_NUM, not the fluid itself. */
+   do no error checking at all.  The first argument is the index
+   number of the fluid, obtained via SCM_FLUID_NUM, not the fluid
+   itself.  You must make sure that the fluid remains protected as
+   long you use its number since numbers of unused fluids are reused
+   eventually.
+*/
 
-#define SCM_FAST_FLUID_REF(n) (SCM_VELTS(scm_root->fluids)[n])
-#define SCM_FAST_FLUID_SET_X(n, val) (SCM_VELTS(scm_root->fluids)[n] = val)
+#define SCM_FLUID_NUM(x)             scm_i_fluid_num (x)
+#define SCM_FAST_FLUID_REF(n)        scm_i_fast_fluid_ref (n)
+#define SCM_FAST_FLUID_SET_X(n, val) scm_i_fast_fluid_set_x ((n),(val))
 
 SCM_API SCM scm_make_fluid (void);
+SCM_API int scm_is_fluid (SCM obj);
 SCM_API SCM scm_fluid_p (SCM fl);
 SCM_API SCM scm_fluid_ref (SCM fluid);
 SCM_API SCM scm_fluid_set_x (SCM fluid, SCM value);
+SCM_API size_t scm_i_fluid_num (SCM fl);
+SCM_API SCM scm_i_fast_fluid_ref (size_t n);
+SCM_API void scm_i_fast_fluid_set_x (size_t n, SCM val);
 
 SCM_API SCM scm_c_with_fluids (SCM fluids, SCM vals,
 			       SCM (*cproc)(void *), void *cdata);
@@ -79,9 +72,19 @@ SCM_API SCM scm_with_fluid (SCM fluid, SCM val, SCM thunk);
 
 SCM_API void scm_frame_fluid (SCM fluid, SCM value);
 
-SCM_API SCM scm_i_make_initial_fluids (void);
-SCM_API void scm_i_copy_fluids (scm_root_state *);
+SCM_API SCM scm_make_dynamic_state (SCM parent);
+SCM_API SCM scm_dynamic_state_p (SCM obj);
+SCM_API int scm_is_dynamic_state (SCM obj);
+SCM_API SCM scm_current_dynamic_state (void);
+SCM_API SCM scm_set_current_dynamic_state (SCM state);
+SCM_API void scm_frame_current_dynamic_state (SCM state);
+SCM_API void *scm_c_with_dynamic_state (SCM state, 
+					void *(*func)(void *), void *data);
+SCM_API SCM scm_with_dynamic_state (SCM state, SCM proc);
 
+SCM_API SCM scm_i_make_initial_dynamic_state (void);
+
+SCM_API void scm_fluids_prehistory (void);
 SCM_API void scm_init_fluids (void);
 
 #endif  /* SCM_FLUIDS_H */

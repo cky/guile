@@ -71,7 +71,7 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
   SCM h;
   SCM assoc;
   h = scm_hashq_create_handle_x (scm_object_whash, obj, SCM_EOL);
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   assoc = scm_assq (key, SCM_CDR (h));
   if (SCM_NIMP (assoc))
     SCM_SETCDR (assoc, value);
@@ -80,7 +80,7 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
       assoc = scm_acons (key, value, SCM_CDR (h));
       SCM_SETCDR (h, assoc);
     }
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return value;
 }
 #undef FUNC_NAME

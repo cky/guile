@@ -47,66 +47,6 @@ SCM_API SCM scm_sys_protects[];
 
 
 
-SCM_API scm_t_bits scm_tc16_root;
-
-#define SCM_ROOTP(obj)       SCM_SMOB_PREDICATE (scm_tc16_root, (obj))
-#define SCM_ROOT_STATE(root) ((scm_root_state *) SCM_SMOB_DATA (root))
-
-typedef struct scm_root_state
-{
-  SCM_STACKITEM * stack_base;
-  jmp_buf save_regs_gc_mark;
-  int errjmp_bad;
-
-  SCM rootcont;
-  SCM dynwinds;
-
-  /* It is very inefficient to have this variable in the root state. */
-  scm_t_debug_frame *last_debug_frame;
-
-  SCM progargs;			/* vestigial */
-  SCM exitval;			/* vestigial */
-
-  SCM cur_inp;
-  SCM cur_outp;
-  SCM cur_errp;
-  SCM cur_loadp;
-
-  SCM fluids;
-
-  SCM handle;			/* The root object for this root state */
-  SCM parent;			/* The parent root object */
-
-  SCM active_asyncs;            /* The thunks to be run at the next
-                                   safe point */
-  SCM signal_asyncs;            /* The pre-queued cells for signal handlers.
-                                 */
-  unsigned int block_asyncs;    /* Non-zero means that asyncs should 
-                                   not be run. */
-  unsigned int pending_asyncs;  /* Non-zero means that asyncs might be pending.
-				 */
-} scm_root_state;
-
-#define scm_stack_base			(scm_root->stack_base)
-#define scm_save_regs_gc_mark		(scm_root->save_regs_gc_mark)
-#define scm_errjmp_bad			(scm_root->errjmp_bad)
-
-#define scm_rootcont			(scm_root->rootcont)
-#define scm_dynwinds			(scm_root->dynwinds)
-#define scm_progargs			(scm_root->progargs)
-#define scm_last_debug_frame		(scm_root->last_debug_frame)
-#define scm_exitval 			(scm_root->exitval)
-#define scm_cur_inp			(scm_root->cur_inp)
-#define scm_cur_outp			(scm_root->cur_outp)
-#define scm_cur_errp			(scm_root->cur_errp)
-#define scm_cur_loadp			(scm_root->cur_loadp)
-
-#define scm_root                ((scm_root_state *) SCM_THREAD_LOCAL_DATA)
-#define scm_set_root(new_root)  SCM_SET_THREAD_LOCAL_DATA (new_root)
-
-
-
-SCM_API SCM scm_make_root (SCM parent);
 SCM_API SCM scm_internal_cwdr (scm_t_catch_body body,
 			       void *body_data,
 			       scm_t_catch_handler handler,

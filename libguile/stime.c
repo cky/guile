@@ -230,9 +230,9 @@ SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
 {
   timet timv;
 
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   timv = time (NULL);
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   if (timv == -1)
     SCM_MISC_ERROR ("current time not available", SCM_EOL);
   return scm_from_long (timv);
@@ -251,10 +251,10 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
   struct timeval time;
   int ret, err;
 
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   ret = gettimeofday (&time, NULL);
   err = errno;
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   if (ret == -1)
     {
       errno = err;
@@ -273,10 +273,10 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
   timet timv;
   int err;
 
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   timv = time (NULL);
   err = errno;
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   if (timv == -1)
     {
       errno = err;
@@ -375,7 +375,7 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
 
   /* deferring interupts is essential since a) setzone may install a temporary
      environment b) localtime uses a static buffer.  */
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
 #ifdef LOCALTIME_CACHE
   tzset ();
@@ -428,7 +428,7 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
     zoff += 24 * 60 * 60;
 
   result = filltime (&lt, zoff, zname);
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   if (zname)
     free (zname);
   return result;
@@ -461,11 +461,11 @@ SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
 #if HAVE_GMTIME_R
   bd_time = gmtime_r (&itime, &bd_buf);
 #else
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   bd_time = gmtime (&itime);
   if (bd_time != NULL)
     bd_buf = *bd_time;
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
 #endif
   if (bd_time == NULL)
     SCM_SYSERROR;
@@ -531,7 +531,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   scm_frame_free ((char *)lt.tm_zone);
 #endif
 
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
 #ifdef LOCALTIME_CACHE
   tzset ();
@@ -584,7 +584,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
 
   result = scm_cons (scm_from_long (itime),
 		     filltime (&lt, zoff, zname));
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   if (zname)
     free (zname);
 
@@ -667,7 +667,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 						 SCM_EOL)));
 
 	have_zone = 1;
-	SCM_DEFER_INTS;
+	SCM_CRITICAL_SECTION_START;
 	oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
       }
 #endif
@@ -690,7 +690,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
     if (have_zone)
       {
 	restorezone (velts[10], oldenv, FUNC_NAME);
-	SCM_ALLOW_INTS;
+	SCM_CRITICAL_SECTION_END;
       }
 #endif
     }
@@ -743,11 +743,11 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
 
   /* GNU glibc strptime() "%s" is affected by the current timezone, since it
      reads a UTC time_t value and converts with localtime_r() to set the tm
-     fields, hence the use of SCM_DEFER_INTS.  */
+     fields, hence the use of SCM_CRITICAL_SECTION_START.  */
   t.tm_isdst = -1;
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   rest = strptime (str, fmt, &t);
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   if (rest == NULL)
     {
       /* POSIX doesn't say strptime sets errno, and on glibc 2.3.2 for

@@ -136,39 +136,39 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 
 
 
+static scm_i_pthread_mutex_t async_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
 /* System asyncs. */
 
 void
 scm_async_click ()
 {
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  SCM asyncs;
+
   /* Reset pending_asyncs even when asyncs are blocked and not really
-     executed.
+     executed since this will avoid future futile calls to this
+     function.  When asyncs are unblocked again, this function is
+     invoked even when pending_asyncs is zero.
   */
 
-  scm_root->pending_asyncs = 0;
-  if (scm_root->block_asyncs == 0)
+  scm_i_scm_pthread_mutex_lock (&async_mutex);
+  t->pending_asyncs = 0;
+  if (t->block_asyncs == 0)
     {
-      SCM asyncs;
-      while (!scm_is_null(asyncs = scm_root->active_asyncs))
-	{
-	  scm_root->active_asyncs = SCM_EOL;
-	  do
-	    {
-	      scm_call_0 (SCM_CAR (asyncs));
-	      asyncs = SCM_CDR (asyncs);
-	    }
-	  while (!scm_is_null(asyncs));
-	}
-      for (asyncs = scm_root->signal_asyncs; !scm_is_null(asyncs);
-	   asyncs = SCM_CDR (asyncs))
-	{
-	  if (scm_is_true (SCM_CAR (asyncs)))
-	    {
-	      SCM proc = SCM_CAR (asyncs);
-	      SCM_SETCAR (asyncs, SCM_BOOL_F);
-	      scm_call_0 (proc);
-	    }
-	}
+      asyncs = t->active_asyncs;
+      t->active_asyncs = SCM_EOL;
+    }
+  else
+    asyncs = SCM_EOL;
+  scm_i_pthread_mutex_unlock (&async_mutex);
+
+  while (scm_is_pair (asyncs))
+    {
+      SCM next = SCM_CDR (asyncs);
+      SCM_SETCDR (asyncs, SCM_BOOL_F);
+      scm_call_0 (SCM_CAR (asyncs));
+      asyncs = next;
     }
 }
 
@@ -190,24 +190,98 @@ SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
 #endif /* SCM_ENABLE_DEPRECATED == 1 */
 
 void
-scm_i_queue_async_cell (SCM c, scm_root_state *root)
+scm_i_queue_async_cell (SCM c, scm_i_thread *t)
 {
-  SCM p = root->active_asyncs;
+  SCM sleep_object;
+  scm_i_pthread_mutex_t *sleep_mutex;
+  int sleep_fd;
+  SCM p;
+  
+  scm_i_scm_pthread_mutex_lock (&async_mutex);
+  p = t->active_asyncs;
   SCM_SETCDR (c, SCM_EOL);
-  if (p == SCM_EOL)
-    root->active_asyncs = c;
+  if (!scm_is_pair (p))
+    t->active_asyncs = c;
   else
     {
       SCM pp;
-      while ((pp = SCM_CDR(p)) != SCM_EOL)
+      while (scm_is_pair (pp = SCM_CDR (p)))
 	{
-	  if (SCM_CAR (p) == SCM_CAR (c))
-	    return;
+	  if (scm_is_eq (SCM_CAR (p), SCM_CAR (c)))
+	    {
+	      scm_i_pthread_mutex_unlock (&async_mutex);
+	      return;
+	    }
 	  p = pp;
 	}
       SCM_SETCDR (p, c);
     }
-  root->pending_asyncs = 1;
+  t->pending_asyncs = 1;
+  sleep_object = t->sleep_object;
+  sleep_mutex = t->sleep_mutex;
+  sleep_fd = t->sleep_fd;
+  scm_i_pthread_mutex_unlock (&async_mutex);
+
+  if (sleep_mutex)
+    {
+      /* By now, the thread T might be out of its sleep already, or
+	 might even be in the next, unrelated sleep.  Interrupting it
+	 anyway does no harm, however.
+
+	 The important thing to prevent here is to signal sleep_cond
+	 before T waits on it.  This can not happen since T has
+	 sleep_mutex locked while setting t->sleep_mutex and will only
+	 unlock it again while waiting on sleep_cond.
+      */
+      scm_i_scm_pthread_mutex_lock (sleep_mutex);
+      scm_i_pthread_cond_signal (&t->sleep_cond);
+      scm_i_pthread_mutex_unlock (sleep_mutex);
+    }
+
+  if (sleep_fd >= 0)
+    {
+      char dummy = 0;
+      /* Likewise, T might already been done with sleeping here, but
+	 interrupting it once too often does no harm.  T might also
+	 not yet have started sleeping, but this is no problem either
+	 since the data written to a pipe will not be lost, unlike a
+	 condition variable signal.
+      */
+      write (sleep_fd, &dummy, 1);
+    }
+
+  /* This is needed to protect sleep_mutex.
+   */
+  scm_remember_upto_here_1 (sleep_object);
+}
+
+int
+scm_i_setup_sleep (scm_i_thread *t,
+		   SCM sleep_object, scm_i_pthread_mutex_t *sleep_mutex,
+		   int sleep_fd)
+{
+  int pending;
+
+  scm_i_scm_pthread_mutex_lock (&async_mutex);
+  pending = t->pending_asyncs;
+  if (!pending)
+    {
+      t->sleep_object = sleep_object;
+      t->sleep_mutex = sleep_mutex;
+      t->sleep_fd = sleep_fd;
+    }
+  scm_i_pthread_mutex_unlock (&async_mutex);
+  return pending;
+}
+
+void
+scm_i_reset_sleep (scm_i_thread *t)
+{
+  scm_i_scm_pthread_mutex_lock (&async_mutex);
+  t->sleep_object = SCM_BOOL_F;
+  t->sleep_mutex = NULL;
+  t->sleep_fd = -1;
+  scm_i_pthread_mutex_unlock (&async_mutex);  
 }
 
 SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
@@ -222,16 +296,24 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 	    "signal handlers.")
 #define FUNC_NAME s_scm_system_async_mark_for_thread
 {
+  /* The current thread might not have a handle yet.  This can happen
+     when the GC runs immediately before allocating the handle.  At
+     the end of that GC, a system async might be marked.  Thus, we can
+     not use scm_current_thread here.
+  */
+
+  scm_i_thread *t;
+
   if (SCM_UNBNDP (thread))
-    thread = scm_current_thread ();
+    t = SCM_I_CURRENT_THREAD;
   else
     {
       SCM_VALIDATE_THREAD (2, thread);
       if (scm_c_thread_exited_p (thread))
 	SCM_MISC_ERROR ("thread has already exited", SCM_EOL);
+      t = SCM_I_THREAD_DATA (thread);
     }
-  scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F),
-			  scm_i_thread_root (thread));
+  scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F), t);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -268,13 +350,15 @@ SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0,
 	    "Unmask signals. The returned value is not specified.")
 #define FUNC_NAME s_scm_unmask_signals
 {
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
   scm_c_issue_deprecation_warning 
     ("'unmask-signals' is deprecated.  "
      "Use 'call-with-blocked-asyncs' instead.");
 
-  if (scm_root->block_asyncs == 0)
+  if (t->block_asyncs == 0)
     SCM_MISC_ERROR ("signals already unmasked", SCM_EOL);
-  scm_root->block_asyncs = 0;
+  t->block_asyncs = 0;
   scm_async_click ();
   return SCM_UNSPECIFIED;
 }
@@ -286,12 +370,14 @@ SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0,
 	    "Mask signals. The returned value is not specified.")
 #define FUNC_NAME s_scm_mask_signals
 {
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
   scm_c_issue_deprecation_warning 
     ("'mask-signals' is deprecated.  Use 'call-with-blocked-asyncs' instead.");
 
-  if (scm_root->block_asyncs > 0)
+  if (t->block_asyncs > 0)
     SCM_MISC_ERROR ("signals already masked", SCM_EOL);
-  scm_root->block_asyncs = 1;
+  t->block_asyncs = 1;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -299,16 +385,15 @@ SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0,
 #endif /* SCM_ENABLE_DEPRECATED == 1 */
 
 static void
-increase_block (void *unused)
+increase_block (void *data)
 {
-  scm_root->block_asyncs++;
+  ((scm_i_thread *)data)->block_asyncs++;
 }
 
 static void
-decrease_block (void *unused)
+decrease_block (void *data)
 {
-  scm_root->block_asyncs--;
-  if (scm_root->block_asyncs == 0)
+  if (--((scm_i_thread *)data)->block_asyncs == 0)
     scm_async_click ();
 }
 
@@ -322,7 +407,8 @@ SCM_DEFINE (scm_call_with_blocked_asyncs, "call-with-blocked-asyncs", 1, 0, 0,
   return scm_internal_dynamic_wind (increase_block,
 				    (scm_t_inner) scm_call_0,
 				    decrease_block,
-				    (void *)proc, NULL);
+				    (void *)proc,
+				    SCM_I_CURRENT_THREAD);
 }
 #undef FUNC_NAME
 
@@ -332,7 +418,8 @@ scm_c_call_with_blocked_asyncs (void *(*proc) (void *data), void *data)
   return (void *)scm_internal_dynamic_wind (increase_block,
 					    (scm_t_inner) proc,
 					    decrease_block,
-					    data, NULL);
+					    data,
+					    SCM_I_CURRENT_THREAD);
 }
 
 
@@ -343,42 +430,46 @@ SCM_DEFINE (scm_call_with_unblocked_asyncs, "call-with-unblocked-asyncs", 1, 0, 
 	    "it is running.  Return the value returned by @var{proc}.\n")
 #define FUNC_NAME s_scm_call_with_unblocked_asyncs
 {
-  if (scm_root->block_asyncs == 0)
+  if (SCM_I_CURRENT_THREAD->block_asyncs == 0)
     SCM_MISC_ERROR ("asyncs already unblocked", SCM_EOL);
   return scm_internal_dynamic_wind (decrease_block,
 				    (scm_t_inner) scm_call_0,
 				    increase_block,
-				    (void *)proc, NULL);
+				    (void *)proc,
+				    SCM_I_CURRENT_THREAD);
 }
 #undef FUNC_NAME
 
 void *
 scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
 {
-  if (scm_root->block_asyncs == 0)
+  if (SCM_I_CURRENT_THREAD->block_asyncs == 0)
     scm_misc_error ("scm_c_call_with_unblocked_asyncs",
 		    "asyncs already unblocked", SCM_EOL);
   return (void *)scm_internal_dynamic_wind (decrease_block,
 					    (scm_t_inner) proc,
 					    increase_block,
-					    data, NULL);
+					    data,
+					    SCM_I_CURRENT_THREAD);
 }
 
 void
 scm_frame_block_asyncs ()
 {
-  scm_frame_rewind_handler (increase_block, NULL, SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_handler (decrease_block, NULL, SCM_F_WIND_EXPLICITLY);
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_frame_rewind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
 }
 
 void
 scm_frame_unblock_asyncs ()
 {
-  if (scm_root->block_asyncs == 0)
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  if (t->block_asyncs == 0)
     scm_misc_error ("scm_with_unblocked_asyncs", 
 		    "asyncs already unblocked", SCM_EOL);
-  scm_frame_rewind_handler (decrease_block, NULL, SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_handler (increase_block, NULL, SCM_F_WIND_EXPLICITLY);
+  scm_frame_rewind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
 }
 
 

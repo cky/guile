@@ -511,6 +511,62 @@ SCM_API scm_t_array_dim *scm_i_array_dims (SCM a);
 #define SCM_ARRAY_BASE(a)  scm_i_array_base(a)
 #define SCM_ARRAY_DIMS(a)  scm_i_array_dims(a)
 
+/* Deprecated because they should not be lvalues and we want people to
+   use the official interfaces.
+ */
+
+#define scm_cur_inp           scm_i_cur_inp ()
+#define scm_cur_outp          scm_i_cur_outp ()
+#define scm_cur_errp          scm_i_cur_errp ()
+#define scm_cur_loadp         scm_i_cur_loadp ()
+#define scm_progargs          scm_i_progargs ()
+#define scm_dynwinds          scm_i_deprecated_dynwinds ()
+#define scm_last_debug_frame  scm_i_deprecated_last_debug_frame ()
+#define scm_stack_base        scm_i_stack_base ()
+
+SCM_API SCM scm_i_cur_inp (void);
+SCM_API SCM scm_i_cur_outp (void);
+SCM_API SCM scm_i_cur_errp (void);
+SCM_API SCM scm_i_cur_loadp (void);
+SCM_API SCM scm_i_progargs (void);
+SCM_API SCM scm_i_deprecated_dynwinds (void);
+SCM_API scm_t_debug_frame *scm_i_deprecated_last_debug_frame (void);
+SCM_API SCM_STACKITEM *scm_i_stack_base (void);
+
+/* Deprecated because it evaluates its argument twice.
+ */
+#define SCM_FLUIDP(x) scm_i_fluidp (x)
+SCM_API int scm_i_fluidp (SCM x);
+
+/* In the old days, SCM_CRITICAL_SECTION_START stopped signal handlers from running,
+   since in those days the handler directly ran scheme code, and that had to
+   be avoided when the heap was not in a consistent state etc.  And since
+   the scheme code could do a stack swapping new continuation etc, signals
+   had to be deferred around various C library functions which were not safe
+   or not known to be safe to swap away, which was a lot of stuff.
+
+   These days signals are implemented with asyncs and don't directly run
+   scheme code in the handler, but hold it until an SCM_TICK etc where it
+   will be safe.  This means interrupt protection is not needed and
+   SCM_CRITICAL_SECTION_START / SCM_CRITICAL_SECTION_END is something of an anachronism.
+
+   What past SCM_CRITICAL_SECTION_START usage also did though was indicate code that was
+   not reentrant, ie. could not be reentered by signal handler code.  The
+   present definitions are a mutex lock, affording that reentrancy
+   protection against the new guile 1.8 free-running posix threads.
+
+   One big problem with the present defintions though is that code which
+   throws an error from within a DEFER/ALLOW region will leave the
+   defer_mutex locked and hence hang other threads that attempt to enter a
+   similar DEFER/ALLOW region.
+*/
+
+SCM_API void scm_i_defer_ints_etc (void);
+#define SCM_DEFER_INTS scm_i_defer_ints_etc ()
+#define SCM_ALLOW_INTS scm_i_defer_ints_etc ()
+#define SCM_REDEFER_INTS scm_i_defer_ints_etc ()
+#define SCM_REALLOW_INTS scm_i_defer_ints_etc ()
+
 void scm_i_init_deprecated (void);
 
 #endif

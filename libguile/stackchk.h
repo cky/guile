@@ -37,11 +37,11 @@
 # if SCM_STACK_GROWS_UP
 #  define SCM_STACK_OVERFLOW_P(s)\
    (SCM_STACK_PTR (s) \
-    > ((SCM_STACKITEM *) SCM_BASE (scm_rootcont) + SCM_STACK_LIMIT))
+    > (SCM_I_CURRENT_THREAD->base + SCM_STACK_LIMIT))
 # else
 #  define SCM_STACK_OVERFLOW_P(s)\
    (SCM_STACK_PTR (s) \
-    < ((SCM_STACKITEM *) SCM_BASE (scm_rootcont) - SCM_STACK_LIMIT))
+    < (SCM_I_CURRENT_THREAD->base - SCM_STACK_LIMIT))
 # endif
 # define SCM_CHECK_STACK\
     {\

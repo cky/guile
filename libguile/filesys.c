@@ -1259,9 +1259,9 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     }
 
   {
-    int rv = scm_internal_select (max_fd + 1,
-				  &read_set, &write_set, &except_set,
-				  time_ptr);
+    int rv = scm_std_select (max_fd + 1,
+			     &read_set, &write_set, &except_set,
+			     time_ptr);
     if (rv < 0)
       SCM_SYSERROR;
   }

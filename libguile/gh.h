@@ -55,8 +55,8 @@ SCM_API SCM gh_eval_file(const char *fname);
 SCM_API SCM gh_eval_file_with_catch(const char *scheme_code, scm_t_catch_handler handler);
 SCM_API SCM gh_eval_file_with_standard_handler(const char *scheme_code);
 
-#define gh_defer_ints() SCM_DEFER_INTS
-#define gh_allow_ints() SCM_ALLOW_INTS
+#define gh_defer_ints() SCM_CRITICAL_SECTION_START
+#define gh_allow_ints() SCM_CRITICAL_SECTION_END
 
 SCM_API SCM gh_new_procedure(const char *proc_name, SCM (*fn)(),
 			     int n_required_args, int n_optional_args, 

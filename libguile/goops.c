@@ -1617,7 +1617,7 @@ SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
    * scratch the old value with new to be correct with GC.
    * See "Class redefinition protocol above".
    */
-  SCM_REDEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   {
     SCM car = SCM_CAR (old);
     SCM cdr = SCM_CDR (old);
@@ -1626,7 +1626,7 @@ SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
     SCM_SETCAR (new, car);
     SCM_SETCDR (new, cdr);
   }
-  SCM_REALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1639,7 +1639,7 @@ SCM_DEFINE (scm_sys_modify_class, "%modify-class", 2, 0, 0,
   SCM_VALIDATE_CLASS (1, old);
   SCM_VALIDATE_CLASS (2, new);
 
-  SCM_REDEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   {
     SCM car = SCM_CAR (old);
     SCM cdr = SCM_CDR (old);
@@ -1650,7 +1650,7 @@ SCM_DEFINE (scm_sys_modify_class, "%modify-class", 2, 0, 0,
     SCM_SETCDR (new, cdr);
     SCM_STRUCT_DATA (new)[scm_vtable_index_vtable] = SCM_UNPACK (new);
   }
-  SCM_REALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

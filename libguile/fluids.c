@@ -15,7 +15,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-
+#include <stdio.h>
+#include <string.h>
 
 #include "libguile/_scm.h"
 #include "libguile/print.h"
@@ -27,84 +28,247 @@
 #include "libguile/ports.h"
 #include "libguile/deprecation.h"
 #include "libguile/lang.h"
-
-#define INITIAL_FLUIDS 10
 #include "libguile/validate.h"
 
-static volatile long n_fluids;
-scm_t_bits scm_tc16_fluid;
+#define FLUID_GROW 20
 
-SCM
-scm_i_make_initial_fluids ()
-{
-  return scm_c_make_vector (INITIAL_FLUIDS, SCM_BOOL_F);
-}
+/* A lot of the complexity below stems from the desire to reuse fluid
+   slots.  Normally, fluids should be pretty global and long-lived
+   things, so that reusing their slots should not be overly critical,
+   but it is the right thing to do nevertheless.  The code therefore
+   puts the burdon on allocating and collection fluids and keeps
+   accessing fluids lock free.  This is achieved by manipulating the
+   global state of the fluid machinery mostly in single threaded
+   sections.
 
+   Reusing a fluid slot means that it must be reset to #f in all
+   dynamic states.  We do this by maintaining a weak list of all
+   dynamic states, which is used after a GC to do the resetting.
+
+   Also, the fluid vectors in the dynamic states need to grow from
+   time to time when more fluids are created.  We do this in a single
+   threaded section so that threads do not need to lock when accessing
+   a fluid in the normal way.
+*/
+
+static scm_i_pthread_mutex_t fluid_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
+/* Protected by fluid_admin_mutex, but also accessed during GC.  See
+   next_fluid_num for a discussion of this.
+ */
+static size_t allocated_fluids_len = 0;
+static size_t allocated_fluids_num = 0;
+static char *allocated_fluids = NULL;
+
+static scm_t_bits tc16_fluid;
+
+#define IS_FLUID(x)         SCM_SMOB_PREDICATE(tc16_fluid, (x))
+#define FLUID_NUM(x)        ((size_t)SCM_SMOB_DATA(x))
+#define FLUID_NEXT(x)       SCM_SMOB_OBJECT_2(x)
+#define SET_FLUID_NEXT(x,y) SCM_SET_SMOB_OBJECT_2((x), (y))
+
+static scm_t_bits tc16_dynamic_state;
+
+#define IS_DYNAMIC_STATE(x)        SCM_SMOB_PREDICATE(tc16_dynamic_state, (x))
+#define DYNAMIC_STATE_FLUIDS(x)        SCM_SMOB_OBJECT(x)
+#define SET_DYNAMIC_STATE_FLUIDS(x, y) SCM_SET_SMOB_OBJECT((x), (y))
+#define DYNAMIC_STATE_NEXT(x)          SCM_SMOB_OBJECT_2(x)
+#define SET_DYNAMIC_STATE_NEXT(x, y)   SCM_SET_SMOB_OBJECT_2((x), (y))
+
+/* Weak lists of all dynamic states and all fluids.
+ */
+static SCM all_dynamic_states = SCM_EOL;
+static SCM all_fluids = SCM_EOL;
+
+/* Make sure that the dynamic state STATE has the right size.  This
+   must be called while being single threaded and while
+   fluid_admin_mutex is held.
+*/
 static void
-grow_fluids (scm_root_state *root_state, int new_length)
+ensure_state_size (SCM state)
 {
-  SCM old_fluids, new_fluids;
-  long old_length, i;
+  SCM fluids = DYNAMIC_STATE_FLUIDS (state);
+  size_t len = SCM_SIMPLE_VECTOR_LENGTH (fluids), i;
 
-  old_fluids = root_state->fluids;
-  old_length = SCM_SIMPLE_VECTOR_LENGTH (old_fluids);
-  new_fluids = scm_c_make_vector (new_length, SCM_BOOL_F);
-  i = 0;
-  while (i < old_length)
+  if (len != allocated_fluids_len)
     {
-      SCM_SIMPLE_VECTOR_SET (new_fluids, i,
-			     SCM_SIMPLE_VECTOR_REF (old_fluids, i));
-      i++;
+      SCM new_fluids = scm_c_make_vector (allocated_fluids_len, SCM_BOOL_F);
+      for (i = 0; i < len; i++)
+	SCM_SIMPLE_VECTOR_SET (new_fluids, i,
+			       SCM_SIMPLE_VECTOR_REF (fluids, i));
+      SET_DYNAMIC_STATE_FLUIDS (state, new_fluids);
     }
-  while (i < new_length)
-    {
-      SCM_SIMPLE_VECTOR_SET (new_fluids, i, SCM_BOOL_F);
-      i++;
-    }
-
-  root_state->fluids = new_fluids;
 }
 
-void
-scm_i_copy_fluids (scm_root_state *root_state)
+/* Make sure that all states have the right size.  This must be called
+   while fluid_admin_mutex is held.
+*/
+static void
+ensure_all_state_sizes ()
 {
-  grow_fluids (root_state, SCM_SIMPLE_VECTOR_LENGTH (root_state->fluids));
+  SCM state;
+
+  scm_frame_begin (0);
+  scm_i_frame_single_threaded ();
+
+  scm_gc ();
+  for (state = all_dynamic_states; !scm_is_null (state);
+       state = DYNAMIC_STATE_NEXT (state))
+    ensure_state_size (state);
+
+  scm_frame_end ();
+}
+
+/* This is called during GC, that is, while being single threaded.
+   See next_fluid_num for a discussion why it is safe to access
+   allocated_fluids here.
+ */
+static void *
+scan_dynamic_states_and_fluids (void *dummy1 SCM_UNUSED,
+				void *dummy2 SCM_UNUSED,
+				void *dummy3 SCM_UNUSED)
+{
+  SCM *statep, *fluidp;
+
+  /* Scan all fluids and deallocate the unmarked ones.
+   */
+  fluidp = &all_fluids;
+  while (!scm_is_null (*fluidp))
+    {
+      if (!SCM_GC_MARK_P (*fluidp))
+	{
+	  allocated_fluids_num -= 1;
+	  allocated_fluids[FLUID_NUM (*fluidp)] = 0;
+	  *fluidp = FLUID_NEXT (*fluidp);
+	}
+      else
+	fluidp = &FLUID_NEXT (*fluidp);
+    }
+
+  /* Scan all dynamic states and remove the unmarked ones.  The live
+     ones are updated for unallocated fluids.
+  */
+  statep = &all_dynamic_states;
+  while (!scm_is_null (*statep))
+    {
+      if (!SCM_GC_MARK_P (*statep))
+	*statep = DYNAMIC_STATE_NEXT (*statep);
+      else
+	{
+	  SCM fluids = DYNAMIC_STATE_FLUIDS (*statep);
+	  size_t len, i;
+	  
+	  len = SCM_SIMPLE_VECTOR_LENGTH (fluids);
+	  for (i = 0; i < len && i < allocated_fluids_len; i++)
+	    if (allocated_fluids[i] == 0)
+	      SCM_SIMPLE_VECTOR_SET (fluids, i, SCM_BOOL_F);
+
+	  statep = &DYNAMIC_STATE_NEXT (*statep);
+	}
+    }
+
+  return NULL;
+}
+
+static size_t
+fluid_free (SCM fluid)
+{
+  /* The real work is done in scan_dynamic_states_and_fluids.  We can
+     not touch allocated_fluids etc here since a smob free routine can
+     be run at any time, in any thread.
+  */
+  return 0;
 }
 
 static int
 fluid_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<fluid ", port);
-  scm_intprint ((int) SCM_FLUID_NUM (exp), 10, port);
+  scm_intprint ((int) FLUID_NUM (exp), 10, port);
   scm_putc ('>', port);
   return 1;
 }
 
-static long
+static size_t
 next_fluid_num ()
 {
-  long n;
-  SCM_CRITICAL_SECTION_START;
-  n = n_fluids++;
-  SCM_CRITICAL_SECTION_END;
+  size_t n;
+
+  scm_frame_begin (0);
+  scm_i_frame_pthread_mutex_lock (&fluid_admin_mutex);
+
+  if (allocated_fluids_num == allocated_fluids_len)
+    {
+      /* All fluid numbers are in use.  Run a GC to try to free some
+	 up.
+      */
+      scm_gc ();
+    }
+
+  if (allocated_fluids_num < allocated_fluids_len)
+    {
+      for (n = 0; n < allocated_fluids_len; n++)
+	if (allocated_fluids[n] == 0)
+	  break;
+    }
+  else
+    {
+      /* During the following call, the GC might run and elements of
+	 allocated_fluids might bet set to zero.  Also,
+	 allocated_fluids and allocated_fluids_len are used to scan
+	 all dynamic states during GC.  Thus we need to make sure that
+	 no GC can run while updating these two variables.
+      */
+
+      char *new_allocated_fluids = 
+	scm_malloc (allocated_fluids_len + FLUID_GROW);
+
+      /* Copy over old values and initialize rest.  GC can not run
+	 during these two operations since there is no safe point in
+	 them.
+      */
+      memcpy (new_allocated_fluids, allocated_fluids, allocated_fluids_len);
+      memset (new_allocated_fluids + allocated_fluids_len, 0, FLUID_GROW);
+      n = allocated_fluids_len;
+      allocated_fluids = new_allocated_fluids;
+      allocated_fluids_len += FLUID_GROW;
+      
+      /* Now allocated_fluids and allocated_fluids_len are valid again
+	 and we can allow GCs to occur.
+      */
+      ensure_all_state_sizes ();
+    }
+  
+  allocated_fluids_num += 1;
+  allocated_fluids[n] = 1;
+  
+  scm_frame_end ();
   return n;
 }
 
 SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0, 
 	    (),
 	    "Return a newly created fluid.\n"
-	    "Fluids are objects of a certain type (a smob) that can hold one SCM\n"
-	    "value per dynamic root.  That is, modifications to this value are\n"
-	    "only visible to code that executes within the same dynamic root as\n"
-	    "the modifying code.  When a new dynamic root is constructed, it\n"
-	    "inherits the values from its parent.  Because each thread executes\n"
-	    "in its own dynamic root, you can use fluids for thread local storage.")
+	    "Fluids are objects that can hold one\n"
+	    "value per dynamic state.  That is, modifications to this value are\n"
+	    "only visible to code that executes with the same dynamic state as\n"
+	    "the modifying code.  When a new dynamic state is constructed, it\n"
+	    "inherits the values from its parent.  Because each thread normally executes\n"
+	    "with its own dynamic state, you can use fluids for thread local storage.")
 #define FUNC_NAME s_scm_make_fluid
 {
-  long n;
+  SCM fluid;
 
-  n = next_fluid_num ();
-  SCM_RETURN_NEWSMOB (scm_tc16_fluid, n);
+  SCM_NEWSMOB2 (fluid, tc16_fluid,
+		(scm_t_bits) next_fluid_num (), SCM_UNPACK (SCM_EOL));
+
+  /* The GC must not run until the fluid is properly entered into the
+     list.
+  */
+  SET_FLUID_NEXT (fluid, all_fluids);
+  all_fluids = fluid;
+
+  return fluid;
 }
 #undef FUNC_NAME
 
@@ -114,9 +278,21 @@ SCM_DEFINE (scm_fluid_p, "fluid?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_fluid_p
 {
-  return scm_from_bool(SCM_FLUIDP (obj));
+  return scm_from_bool (IS_FLUID (obj));
 }
 #undef FUNC_NAME
+
+int
+scm_is_fluid (SCM obj)
+{
+  return IS_FLUID (obj);
+}
+
+size_t
+scm_i_fluid_num (SCM fluid)
+{
+  return FLUID_NUM (fluid);
+}
 
 SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
 	    (SCM fluid),
@@ -125,33 +301,39 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_fluid_ref
 {
-  unsigned long int n;
+  SCM fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
 
   SCM_VALIDATE_FLUID (1, fluid);
-  n = SCM_FLUID_NUM (fluid);
-
-  if (SCM_SIMPLE_VECTOR_LENGTH (scm_root->fluids) <= n)
-    grow_fluids (scm_root, n+1);
-  return SCM_SIMPLE_VECTOR_REF (scm_root->fluids, n);
+  return SCM_SIMPLE_VECTOR_REF (fluids, FLUID_NUM (fluid));
 }
 #undef FUNC_NAME
+
+SCM
+scm_i_fast_fluid_ref (size_t n)
+{
+  SCM fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
+  return SCM_SIMPLE_VECTOR_REF (fluids, n);
+}
 
 SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 	    (SCM fluid, SCM value),
 	    "Set the value associated with @var{fluid} in the current dynamic root.")
 #define FUNC_NAME s_scm_fluid_set_x
 {
-  unsigned long int n;
+  SCM fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
 
   SCM_VALIDATE_FLUID (1, fluid);
-  n = SCM_FLUID_NUM (fluid);
-
-  if (SCM_SIMPLE_VECTOR_LENGTH (scm_root->fluids) <= n)
-    grow_fluids (scm_root, n+1);
-  SCM_SIMPLE_VECTOR_SET (scm_root->fluids, n, value);
+  SCM_SIMPLE_VECTOR_SET (fluids, FLUID_NUM (fluid), value);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
+void
+scm_i_fast_fluid_set_x (size_t n, SCM value)
+{
+  SCM fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
+  SCM_SIMPLE_VECTOR_SET (fluids, n, value);
+}
 
 static void
 swap_fluids (SCM data)
@@ -170,7 +352,8 @@ swap_fluids (SCM data)
 }
 
 /* Swap the fluid values in reverse order.  This is important when the
-same fluid appears multiple times in the fluids list. */
+   same fluid appears multiple times in the fluids list.
+*/
 
 static void
 swap_fluids_reverse_aux (SCM fluids, SCM vals)
@@ -282,11 +465,143 @@ scm_frame_fluid (SCM fluid, SCM value)
   scm_frame_unwind_handler_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
 }
 
+SCM
+scm_i_make_initial_dynamic_state ()
+{
+  SCM fluids = scm_c_make_vector (allocated_fluids_len, SCM_BOOL_F);
+  SCM state;
+  SCM_NEWSMOB2 (state, tc16_dynamic_state,
+		SCM_UNPACK (fluids), SCM_UNPACK (SCM_EOL));
+  all_dynamic_states = state;
+  return state;
+}
+
+SCM_DEFINE (scm_make_dynamic_state, "make-dynamic-state", 0, 1, 0,
+	    (SCM parent),
+	    "Return a copy of the dynamic state object @var{parent}\n"
+	    "or of the current dynamic state when @var{parent} is omitted.")
+#define FUNC_NAME s_scm_make_dynamic_state
+{
+  SCM fluids, state;
+
+  if (SCM_UNBNDP (parent))
+    parent = scm_current_dynamic_state ();
+
+  scm_assert_smob_type (tc16_dynamic_state, parent);
+  fluids = scm_vector_copy (DYNAMIC_STATE_FLUIDS (parent));
+  SCM_NEWSMOB2 (state, tc16_dynamic_state,
+		SCM_UNPACK (fluids), SCM_UNPACK (SCM_EOL));
+
+  /* The GC must not run until the state is properly entered into the
+     list. 
+  */
+  SET_DYNAMIC_STATE_NEXT (state, all_dynamic_states);
+  all_dynamic_states = state;
+
+  //fprintf (stderr, "new state %p\n", state);
+  return state;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_dynamic_state_p, "dynamic-state?", 1, 0, 0,
+	    (SCM obj),
+	    "Return @code{#t} if @var{obj} is a dynamic state object;\n"
+	    "return @code{#f} otherwise")
+#define FUNC_NAME s_scm_dynamic_state_p
+{
+  return scm_from_bool (IS_DYNAMIC_STATE (obj));
+}
+#undef FUNC_NAME
+
+int
+scm_is_dynamic_state (SCM obj)
+{
+  return IS_DYNAMIC_STATE (obj);
+}
+
+SCM_DEFINE (scm_current_dynamic_state, "current-dynamic-state", 0, 0, 0,
+	    (),
+	    "Return the current dynamic state object.")
+#define FUNC_NAME s_scm_current_dynamic_state
+{
+  return SCM_I_CURRENT_THREAD->dynamic_state;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_set_current_dynamic_state, "set-current-dynamic-state", 1,0,0,
+	    (SCM state),
+	    "Set the current dynamic state object to @var{state}\n"
+	    "and return the previous current dynamic state object.")
+#define FUNC_NAME s_scm_set_current_dynamic_state
+{
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  SCM old = t->dynamic_state;
+  scm_assert_smob_type (tc16_dynamic_state, state);
+  t->dynamic_state = state;
+  return old;
+}
+#undef FUNC_NAME
+
+static void
+swap_dynamic_state (SCM loc)
+{
+  SCM_SETCAR (loc, scm_set_current_dynamic_state (SCM_CAR (loc)));
+}
+
+void
+scm_frame_current_dynamic_state (SCM state)
+{
+  SCM loc = scm_cons (state, SCM_EOL);
+  scm_assert_smob_type (tc16_dynamic_state, state);
+  scm_frame_rewind_handler_with_scm (swap_dynamic_state, loc,
+				     SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler_with_scm (swap_dynamic_state, loc,
+				     SCM_F_WIND_EXPLICITLY);
+}
+
+void *
+scm_c_with_dynamic_state (SCM state, void *(*func)(void *), void *data)
+{
+  void *result;
+  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  scm_frame_current_dynamic_state (state);
+  result = func (data);
+  scm_frame_end ();
+  return result;
+}
+
+SCM_DEFINE (scm_with_dynamic_state, "with-dynamic-state", 2, 0, 0,
+	    (SCM state, SCM proc),
+	    "Call @var{proc} while @var{state} is the current dynamic\n"
+	    "state object.")
+#define FUNC_NAME s_scm_with_dynamic_state
+{
+  SCM result;
+  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  scm_frame_current_dynamic_state (state);
+  result = scm_call_0 (proc);
+  scm_frame_end ();
+  return result;
+}
+#undef FUNC_NAME
+
+void
+scm_fluids_prehistory ()
+{
+  tc16_fluid = scm_make_smob_type ("fluid", 0);
+  scm_set_smob_free (tc16_fluid, fluid_free);
+  scm_set_smob_print (tc16_fluid, fluid_print);
+
+  tc16_dynamic_state = scm_make_smob_type ("dynamic-state", 0);
+  scm_set_smob_mark (tc16_dynamic_state, scm_markcdr);
+
+  scm_c_hook_add (&scm_after_sweep_c_hook, scan_dynamic_states_and_fluids,
+		  0, 0);
+}
+
 void
 scm_init_fluids ()
 {
-  scm_tc16_fluid = scm_make_smob_type ("fluid", 0);
-  scm_set_smob_print (scm_tc16_fluid, fluid_print);
 #include "libguile/fluids.x"
 }
 

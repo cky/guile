@@ -1,3 +1,219 @@
+2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	Big merge from the mvo-thread-cleanup branch. The main changes
+	are:
+	
+	- The dynamic roots functionality has been split into dynamic
+	  states and continuations barriers.  Fluids have been
+	  reimplemented and can now be garbage collected.
+	
+	- Initialization of Guile now works in a multi-thread friendly
+	  manner.  Threads can freely enter and leave guile mode.
+
+	- Blocking on mutexes or condition variables or while selecting
+	  can now be reliably interrupted via system asyncs.
+
+	- The low-level threading interface has been removed.
+
+	- Signals are delivered via a pipe to a dedicated 'signal delivery
+	  thread'.
+	
+	- SCM_DEFER_INTS, SCM_ALLOW_INTS etc have been deprecated.
+
+	* throw.c (scm_handle_by_message): Exit only the current thread,
+	not the whole process.
+	(scm_handle_by_message_noexit): Exit when catching 'quit.
+	
+	* scmsigs.c (take_signal, signal_delivery_thread,
+	start_signal_delivery_thread, ensure_signal_delivery_thread,
+	install_handler): Reimplemented signal delivery as explained in
+	the comments.
+
+	* pthreads-threads.h (scm_i_pthread_t, scm_i_pthread_self,
+	scm_i_pthread_create, scm_i_pthread_detach, scm_i_pthread_exit,
+	scm_i_sched_yield, scm_i_pthread_sigmask,
+	SCM_I_PTHREAD_MUTEX_INITIALIZER,
+	SCM_I_PTHREAD_RECURSIVE_MUTEX_INITIALIZER, scm_i_pthread_mutex_t ,
+	scm_i_pthread_mutex_init, scm_i_pthread_mutex_destroy,
+	scm_i_pthread_mutex_trylock, scm_i_pthread_mutex_lock,
+	scm_i_pthread_mutex_unlock, SCM_I_PTHREAD_COND_INITIALIZER,
+	scm_i_pthread_cond_t, scm_i_pthread_cond_init,
+	scm_i_pthread_cond_destroy, scm_i_pthread_cond_signal,
+	scm_i_pthread_cond_broadcast, scm_i_pthread_cond_wait,
+	scm_i_pthread_cond_timedwait, scm_i_pthread_once_t,
+	SCM_I_PTHREAD_ONCE_INIT, scm_i_pthread_once, scm_i_pthread_key_t ,
+	scm_i_pthread_key_create, scm_i_pthread_setspecific,
+	scm_i_pthread_getspecific, scm_i_scm_pthread_mutex_lock,
+	scm_i_frame_pthread_mutex_lock, scm_i_scm_pthread_cond_wait,
+	scm_i_scm_pthread_cond_timedwait): Provide the obvious mapping
+	when using pthreads.
+	* null-threads.c, null-threads.h: Provide dummy definitions for
+	the above symbols when not using pthreads.
+	
+	* modules.h, modules.c (scm_frame_current_module): New.
+
+	* load.c (scm_primitive_load): Use scm_i_frame_current_load_port
+	instead of scm_internal_dynamic_wind.
+
+	* init.h, init.c (restart_stack, start_stack): Removed.
+	(scm_boot_guile, invoke_main_func): Simply use scm_with_guile.
+	(scm_boot_guile_1): Removed.
+	(scm_i_init_mutex): New.
+	(really_cleanup_for_exit, cleanup_for_exit): New.
+	(scm_init_guile_1, scm_i_init_guile): Renamed former to latter.
+	Moved around some init funcs.  Call
+	scm_init_threads_default_dynamic_state.  Register cleanup_for_exit
+	with atexit.
+	
+	* hashtab.c (scm_hash_fn_create_handle_x, scm_hash_fn_remove_x):
+	Use "!scm_is_eq" instead of "!=".
+
+	* ge-scmconfig.c, gen-scmconfig.h.in (SCM_I_GSC_USE_COOP_THREADS,
+	SCM_USE_COOP_THREADS): Removed.
+
+	* gc.c (scm_igc): Take care that scm_gc_running_p is properly
+	maintained.  Unlock scm_i_sweep_mutex before running
+	scm_after_gc_c_hook.
+	(scm_permanent_object): Allocate outside of critical section.
+	(cleanup): Removed.
+	
+	* fluids.h, fluids.c: Reimplemented completely.
+	(SCM_FLUID_NUM, SCM_FAST_FLUID_REF,
+	SCM_FAST_FLUID_SET): Reimplemented as functions.
+	(scm_is_fluid): New.
+	(scm_i_make_initial_fluids, scm_i_copy_fluids): Removed.
+	(scm_make_dynamic_state, scm_dynamic_state_p,
+	scm_is_dynamic_state, scm_current_dynamic_state,
+	scm_set_current_dynamic_state, scm_frame_current_dynamic_state,
+	scm_c_with_dynamic_state, scm_with_dynamic_state,
+	scm_i_make_initial_dynamic_state, scm_fluids_prehistory): New.
+	
+	* feature.c (progargs_fluid): New.
+	(scm_program_arguments, scm_set_program_arguments): Use it instead
+	of scm_progargs.
+	(scm_init_feature): Allocate it.  Also, only add "threads" feature
+	when SCM_USE_PTHREAD_THREADS is true.
+	
+	* eval.c (scm_makprom): Use scm_make_recursive_mutex instead of
+	scm_make_rec_mutex, with all the consequences.
+	(scm_eval_x, scm_eval): Use scm_frame_begin etc instead of
+	scm_internal_dynamic_wind.  Handle dynamic states as second
+	argument.
+	
+        * threads.h, threads.c (scm_internal_select): Renamed to
+	scm_std_select and discouraged old name.
+	(scm_thread_sleep, scm_thread_usleep): Likewise, as scm_std_sleep
+	and scm_std_usleep.
+	(scm_tc16_fair_mutex, scm_tc16_fair_condvar, SCM_MUTEXP,
+	SCM_FAIR_MUTEX_P, SCM_MUTEX_DATA, SCM_CONDVARP,
+	SCM_FAIR_CONDVAR_P, SCM_CONDVAR_DATA, SCM_THREADP,
+	SCM_THREAD_DATA): Removed.
+	(SCM_I_IS_THREAD, SCM_I_THREAD_DATA): New.
+	(scm_i_thread): New.
+	(SCM_VALIDATE_THREAD, SCM_VALIDATE_MUTEX, SCM_VALIDATE_CONDVAR):
+	Use scm_assert_smob_type.
+	(scm_c_scm2thread, scm_thread_join, scm_thread_detach,
+	scm_thread_self, scm_thread_yield, scm_mutex_init,
+	scm_mutex_destroy, scm_mutex_trylock, scm_mutex_unlock,
+	scm_rec_mutex_init, scm_rec_mutex_destroy, scm_make_rec_mutex,
+	scm_rec_mutex_free, scm_rec_mutex_lock, scm_rec_mutex_trylock,
+	scm_cond_init, scm_cond_destroy, scm_cond_wait,
+	scm_cond_timedwait, scm_cond_signal, scm_cond_broadcast,
+	scm_key_create, scm_key_delete, scm_setspecific, scm_getspecific,
+	scm_thread_select): Removed.  Replaced with scm_i_pthread
+	functions as appropriate.
+	(scm_in_guile, scm_outside_guile): Removed.
+	(scm_t_guile_ticket, scm_leave_guile, scm_enter_guile): Return and
+	take a ticket.
+	(scm_with_guile, scm_without_guile, scm_i_with_guile_and_parent):
+	New.
+	(scm_i_frame_single_threaded): New.
+	(scm_init_threads_default_dynamic_state): New.
+	(scm_i_create_thread): Removed.
+	(scm_make_fair_mutex, scm_make_fair_condition_variable): Removed.
+	(scm_make_recursive_mutex): New.
+	(scm_frame_critical_section): New.
+	(SCM_CURRENT_THREAD, SCM_I_CURRENT_THREAD): Renamed former to
+	latter, changed all uses.
+	(scm_i_dynwinds, scm_i_setdynwinds, scm_i_last_debug_frame,
+	scm_i_set_last_debug_frame): New, use them instead of scm_root
+	stuff.
+	(SCM_THREAD_LOCAL_DATA, SCM_SET_THREAD_LOCAL_DATA,
+	scm_i_root_state_key,m scm_i_set_thread_data): Removed.
+	(scm_pthread_mutex_lock, scm_frame_pthread_mutex_lock,
+	scm_pthread_cond_wait, scm_pthread_cond_timedwait).
+	(remqueue): Allow the removal of already removed cells.  Indicate
+	whether a real removal has happened.
+	(scm_thread): Removed, replaced with scm_i_thread.
+	(make_thread, init_thread_creatant): Removed.
+	(cur_thread): Removed.
+	(block_self, unblock_from_queue): New.
+	(block, timed_block, unblock): Removed.
+	(guilify_self_1, guilify_self_2, do_thread_exit,
+	init_thread_key_once, init_thread_key,
+	scm_i_init_thread_for_guile, get_thread_stack_base,
+	scm_init_guile): New initialisation method.
+	(scm_call_with_new_thread, scm_spawn_thread): Use it to simplify
+	thread creation.
+	(fair_mutex, fat_mutex, etc, fair_condvar, fat_condvar): Renamed
+	"fair" to fat and implemented new semantics, including reliable
+	interruption.
+	(all_threads): Now a pointer to a scm_i_thread, not a SCM.
+	(scm_threads_mark_stacks): Explicitly mark handle.
+	(scm_std_select): Allow interruption by also selecting on the
+	sleep_pipe.
+	(scm_i_thread_put_to_sleep): Handle recursive requests for
+	single-threadedness.
+	(scm_threads_prehistory, scm_init_threads): Put current thread
+	into guile mode via guileify_self_1 and guileify_self_2,
+	respectively.
+
+	* fluid.h (SCM_FLUIDP): Deprecated.
+	
+	* coop-threads.c: Removed.
+	
+	* continuations.h, continuations.c (scm_with_continuation_barrier,
+	scm_c_with_continuation_barrier, scm_i_with_continuation_barrier):
+	New.
+
+	* async.h, async.c (scm_i_setup_sleep, scm_i_reset_sleep): New.
+	(async_mutex): New.
+	(scm_async_click): Protected with async_mutex.  Do not deal with
+	signal_asyncs, which are gone.  Set cdr of handled async cell to
+	#f.
+	(scm_i_queue_async_cell): Protected with async_mutex.  Interrupt
+	current sleep.
+	(scm_system_async_mark_for_thread): Do not use scm_current_thread
+	since that might not work during early initialization.
+	
+	* __scm.h (SCM_DEFER_INTS, SCM_ALLOW_INTS, SCM_REDEFER_INTS,
+	SCM_REALLOW_INTS): Deprecated by moving into deprecated.h and
+	deprecated.c.  Replaced all uses with SCM_CRITICAL_SECTION_START
+	and SCM_CRITICAL_SECTION_END.
+	(SCM_ENTER_A_SECTION, SCM_EXIT_A_SECTION): Removed.  Replaced with
+	SCM_CRITICAL_SECTION_START/END.
+	
+	* Makefile.am (modinclude_HEADER): Removed threads-plugin.h.
+	(libguile_la_SOURCES): Added null-threads.c
+	(EXTRA_libguile_la_SOURCES): Removed pthread-threads.c and
+	threads-plugin.c.
+	* pthread-threads.c, threads-plugin.c, threads-plugin.h: Removed.
+
+	* root.h, root.c (scm_tc16_root, SCM_ROOTP, SCM_ROOT_STATE,
+	scm_root_state, scm_stack_base, scm_save_regs_gc_mark,
+	scm_errjmp_bad, scm_rootcont, scm_dynwinds, scm_progargs,
+	scm_last_debug_frame, scm_exitval, scm_cur_inp, scm_outp,
+	scm_cur_err, scm_cur_loadp, scm_root, scm_set_root,
+	scm_make_root): Removed or deprecated.  Replaced with references
+	to the current thread, dynamic state, continuation barrier, or
+	some fluid, as appropriate.
+	(root_mark, root_print): Removed.
+	(scm_internal_cwdr): Reimplemented guts with
+	scm_frame_current_dynamic_state and
+	scm_i_with_continuation_barrier.
+	(scm_dynamic_root): Return current continuation barrier.
+	
+	
 2005-02-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* socket.c (scm_setsockopt): Handle IP_ADD_MEMBERSHIP and

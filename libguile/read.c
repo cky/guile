@@ -134,7 +134,7 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
   SCM tok_buf, copy;
 
   if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
+    port = scm_current_input_port ();
   SCM_VALIDATE_OPINPORT (1, port);
 
   c = scm_flush_ws (port, (char *) NULL);

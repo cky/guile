@@ -429,7 +429,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
   basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
       data = scm_alloc_struct (basic_size + tail_elts,
@@ -446,7 +446,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 			     + scm_tc3_struct),
 			    (scm_t_bits) data, 0, 0);
   scm_struct_init (handle, layout, data, tail_elts, init);
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return handle;
 }
 #undef FUNC_NAME
@@ -516,7 +516,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   layout = scm_make_struct_layout (fields);
   basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   data = scm_alloc_struct (basic_size + tail_elts,
 			   scm_struct_n_extra_words,
 			   "struct");
@@ -524,7 +524,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 			    (scm_t_bits) data, 0, 0);
   data [scm_vtable_index_layout] = SCM_UNPACK (layout);
   scm_struct_init (handle, layout, data, tail_elts, scm_cons (layout, init));
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return handle;
 }
 #undef FUNC_NAME

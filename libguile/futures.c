@@ -39,7 +39,7 @@ do {						\
   list = SCM_FUTURE_NEXT (list);		\
 } while (0)
      
-SCM_MUTEX (future_admin_mutex);
+scm_i_pthread_mutex_t future_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 static SCM futures = SCM_EOL;
 static SCM young = SCM_EOL;
@@ -99,8 +99,8 @@ static char *s_future = "future";
 static void
 cleanup (scm_t_future *future)
 {
-  scm_mutex_destroy (&future->mutex);
-  scm_cond_destroy (&future->cond);
+  scm_i_pthread_mutex_destroy (&future->mutex);
+  scm_i_pthread_cond_destroy (&future->cond);
   scm_gc_free (future, sizeof (*future), s_future);
 #ifdef SCM_FUTURES_DEBUG
   ++n_dead;
@@ -110,18 +110,18 @@ cleanup (scm_t_future *future)
 static SCM
 future_loop (scm_t_future *future)
 {
-  scm_mutex_lock (&future->mutex);
+  scm_i_scm_pthread_mutex_lock (&future->mutex);
   do {
     if (future->status == SCM_FUTURE_SIGNAL_ME)
-      scm_cond_broadcast (&future->cond);
+      scm_i_pthread_cond_broadcast (&future->cond);
     future->status = SCM_FUTURE_COMPUTING;
     future->data = (SCM_CLOSUREP (future->data)
 		    ? scm_i_call_closure_0 (future->data)
 		    : scm_call_0 (future->data));
-    scm_cond_wait (&future->cond, &future->mutex);
+    scm_i_scm_pthread_cond_wait (&future->cond, &future->mutex);
   } while (!future->die_p);
   future->status = SCM_FUTURE_DEAD;
-  scm_mutex_unlock (&future->mutex);
+  scm_i_pthread_mutex_unlock (&future->mutex);
   return SCM_UNSPECIFIED;
 }
 
@@ -129,7 +129,7 @@ static SCM
 future_handler (scm_t_future *future, SCM key, SCM args)
 {
   future->status = SCM_FUTURE_DEAD;
-  scm_mutex_unlock (&future->mutex);
+  scm_i_pthread_mutex_unlock (&future->mutex);
   return scm_apply_1 (*scm_loc_sys_thread_handler, key, args);
 }
 
@@ -139,15 +139,15 @@ alloc_future (SCM thunk)
   scm_t_future *f = scm_gc_malloc (sizeof (*f), s_future);
   SCM future;
   f->data = SCM_BOOL_F;
-  scm_mutex_init (&f->mutex, &scm_i_plugin_mutex);
-  scm_cond_init (&f->cond, 0);
+  scm_i_pthread_mutex_init (&f->mutex, NULL);
+  scm_i_pthread_cond_init (&f->cond, NULL);
   f->die_p = 0;
   f->status = SCM_FUTURE_TASK_ASSIGNED;
-  scm_mutex_lock (&future_admin_mutex);
+  scm_i_scm_pthread_mutex_lock (&future_admin_mutex);
   SCM_NEWSMOB2 (future, scm_tc16_future, futures, f);
   SCM_SET_FUTURE_DATA (future, thunk);
   futures = future;
-  scm_mutex_unlock (&future_admin_mutex);
+  scm_i_pthread_mutex_unlock (&future_admin_mutex);
   scm_spawn_thread ((scm_t_catch_body) future_loop,
 		    SCM_FUTURE (future),
 		    (scm_t_catch_handler) future_handler,
@@ -166,7 +166,7 @@ SCM
 scm_i_make_future (SCM thunk)
 {
   SCM future;
-  scm_mutex_lock (&future_admin_mutex);
+  scm_i_scm_pthread_mutex_lock (&future_admin_mutex);
   while (1)
     {
       if (!scm_is_null (old))
@@ -175,25 +175,25 @@ scm_i_make_future (SCM thunk)
 	UNLINK (young, future);
       else
 	{
-	  scm_mutex_unlock (&future_admin_mutex);
+	  scm_i_pthread_mutex_unlock (&future_admin_mutex);
 	  return alloc_future (thunk);
 	}
-      if (scm_mutex_trylock (SCM_FUTURE_MUTEX (future)))
+      if (scm_i_pthread_mutex_trylock (SCM_FUTURE_MUTEX (future)))
 	kill_future (future);
       else if (!SCM_FUTURE_ALIVE_P (future))
 	{
-	  scm_mutex_unlock (SCM_FUTURE_MUTEX (future));
+	  scm_i_pthread_mutex_unlock (SCM_FUTURE_MUTEX (future));
 	  cleanup (SCM_FUTURE (future));
 	}
       else
 	break;
     }
   LINK (futures, future);
-  scm_mutex_unlock (&future_admin_mutex);
+  scm_i_pthread_mutex_unlock (&future_admin_mutex);
   SCM_SET_FUTURE_DATA (future, thunk);
   SCM_SET_FUTURE_STATUS (future, SCM_FUTURE_TASK_ASSIGNED);
-  scm_cond_signal (SCM_FUTURE_COND (future));
-  scm_mutex_unlock (SCM_FUTURE_MUTEX (future));
+  scm_i_pthread_cond_signal (SCM_FUTURE_COND (future));
+  scm_i_pthread_mutex_unlock (SCM_FUTURE_MUTEX (future));
   return future;
 }
 
@@ -223,20 +223,21 @@ SCM_DEFINE (scm_future_ref, "future-ref", 1, 0, 0,
 {
   SCM res;
   SCM_VALIDATE_FUTURE (1, future);
-  scm_mutex_lock (SCM_FUTURE_MUTEX (future));
+  scm_i_scm_pthread_mutex_lock (SCM_FUTURE_MUTEX (future));
   if (SCM_FUTURE_STATUS (future) != SCM_FUTURE_COMPUTING)
     {
       SCM_SET_FUTURE_STATUS (future, SCM_FUTURE_SIGNAL_ME);
-      scm_cond_wait (SCM_FUTURE_COND (future), SCM_FUTURE_MUTEX (future));
+      scm_i_scm_pthread_cond_wait (SCM_FUTURE_COND (future),
+			     SCM_FUTURE_MUTEX (future));
     }
   if (!SCM_FUTURE_ALIVE_P (future))
     {
-      scm_mutex_unlock (SCM_FUTURE_MUTEX (future));
+      scm_i_pthread_mutex_unlock (SCM_FUTURE_MUTEX (future));
       SCM_MISC_ERROR ("requesting result from failed future ~A",
 		      scm_list_1 (future));
     }
   res = SCM_FUTURE_DATA (future);
-  scm_mutex_unlock (SCM_FUTURE_MUTEX (future));
+  scm_i_pthread_mutex_unlock (SCM_FUTURE_MUTEX (future));
   return res;
 }
 #undef FUNC_NAME
@@ -249,7 +250,7 @@ kill_futures (SCM victims)
       SCM future;
       UNLINK (victims, future);
       kill_future (future);
-      scm_cond_signal (SCM_FUTURE_COND (future));
+      scm_i_pthread_cond_signal (SCM_FUTURE_COND (future));
     }
 }
 
@@ -259,12 +260,12 @@ cleanup_undead ()
   SCM next = undead, *nextloc = &undead;
   while (!scm_is_null (next))
     {
-      if (scm_mutex_trylock (SCM_FUTURE_MUTEX (next)))
+      if (scm_i_pthread_mutex_trylock (SCM_FUTURE_MUTEX (next)))
 	goto next;
       else if (SCM_FUTURE_ALIVE_P (next))
 	{
-	  scm_cond_signal (SCM_FUTURE_COND (next));
-	  scm_mutex_unlock (SCM_FUTURE_MUTEX (next));
+	  scm_i_pthread_cond_signal (SCM_FUTURE_COND (next));
+	  scm_i_pthread_mutex_unlock (SCM_FUTURE_MUTEX (next));
 	next:
 	  SCM_SET_GC_MARK (next);
 	  nextloc = SCM_FUTURE_NEXTLOC (next);
@@ -274,7 +275,7 @@ cleanup_undead ()
 	{
 	  SCM future;
 	  UNLINK (next, future);
-	  scm_mutex_unlock (SCM_FUTURE_MUTEX (future));
+	  scm_i_pthread_mutex_unlock (SCM_FUTURE_MUTEX (future));
 	  cleanup (SCM_FUTURE (future));
 	  *nextloc = next;
 	}
@@ -340,6 +341,8 @@ scan_futures (void *dummy1, void *dummy2, void *dummy3)
   mark_futures (old);
   return 0;
 }
+
+scm_t_bits scm_tc16_future;
 
 void
 scm_init_futures ()

@@ -434,7 +434,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
      scm_make_stack was given.  */
   if (scm_is_eq (obj, SCM_BOOL_T))
     {
-      dframe = scm_last_debug_frame;
+      dframe = scm_i_last_debug_frame ();
     }
   else if (SCM_DEBUGOBJP (obj))
     {
@@ -515,7 +515,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
   long offset = 0;
   if (scm_is_eq (stack, SCM_BOOL_T))
     {
-      dframe = scm_last_debug_frame;
+      dframe = scm_i_last_debug_frame ();
     }
   else if (SCM_DEBUGOBJP (stack))
     {

@@ -71,7 +71,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 			    start, &cstart, end, &cend);
 
   if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
+    port = scm_current_input_port ();
   else
     SCM_VALIDATE_OPINPORT (4, port);
 
@@ -208,7 +208,7 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
   SCM line, term;
 
   if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
+    port = scm_current_input_port ();
   SCM_VALIDATE_OPINPORT (1,port);
 
   pt = SCM_PTAB_ENTRY (port);

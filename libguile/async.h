@@ -24,6 +24,7 @@
 
 #include "libguile/__scm.h"
 #include "libguile/root.h"
+#include "libguile/threads.h"
 
 
 
@@ -37,7 +38,10 @@ SCM_API SCM scm_async (SCM thunk);
 SCM_API SCM scm_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark_for_thread (SCM a, SCM thread);
-SCM_API void scm_i_queue_async_cell (SCM cell, scm_root_state *);
+SCM_API void scm_i_queue_async_cell (SCM cell, scm_i_thread *);
+SCM_API int scm_i_setup_sleep (scm_i_thread *,
+			       SCM obj, scm_i_pthread_mutex_t *m, int fd);
+SCM_API void scm_i_reset_sleep (scm_i_thread *);
 SCM_API SCM scm_run_asyncs (SCM list_of_a);
 SCM_API SCM scm_noop (SCM args);
 SCM_API SCM scm_call_with_blocked_asyncs (SCM proc);
@@ -46,6 +50,7 @@ void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d);
 void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
 void scm_frame_block_asyncs (void);
 void scm_frame_unblock_asyncs (void);
+
 SCM_API void scm_init_async (void);
 
 #if (SCM_ENABLE_DEPRECATED == 1)

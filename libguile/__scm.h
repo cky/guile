@@ -454,7 +454,7 @@ typedef long SCM_STACKITEM;
 
 #define SCM_ASYNC_TICK /*fixme* should change names */ \
 do { \
-  if (scm_root->pending_asyncs) \
+  if (SCM_I_CURRENT_THREAD->pending_asyncs) \
     scm_async_click (); \
 } while (0)
 
@@ -482,80 +482,11 @@ do { \
 #define SCM_FENCE
 #endif
 
-/* In the old days, SCM_DEFER_INTS stopped signal handlers from running,
-   since in those days the handler directly ran scheme code, and that had to
-   be avoided when the heap was not in a consistent state etc.  And since
-   the scheme code could do a stack swapping new continuation etc, signals
-   had to be deferred around various C library functions which were not safe
-   or not known to be safe to swap away, which was a lot of stuff.
-
-   These days signals are implemented with asyncs and don't directly run
-   scheme code in the handler, but hold it until an SCM_TICK etc where it
-   will be safe.  This means interrupt protection is not needed and
-   SCM_DEFER_INTS / SCM_ALLOW_INTS is something of an anachronism.
-
-   What past SCM_DEFER_INTS usage also did though was indicate code that was
-   not reentrant, ie. could not be reentered by signal handler code.  The
-   present definitions are a mutex lock, affording that reentrancy
-   protection against the new guile 1.8 free-running posix threads.
-
-   One big problem with the present defintions though is that code which
-   throws an error from within a DEFER/ALLOW region will leave the
-   defer_mutex locked and hence hang other threads that attempt to enter a
-   similar DEFER/ALLOW region.
-
-   The plan is to migrate reentrancy protection to an explicit mutex
-   (private or global, with unwind where necessary), and remove the
-   remaining DEFER/ALLOWs.  */
-
-#define SCM_DEFER_INTS scm_rec_mutex_lock (&scm_i_defer_mutex);
-
-#define SCM_ALLOW_INTS scm_rec_mutex_unlock (&scm_i_defer_mutex);
-
-#define SCM_REDEFER_INTS SCM_DEFER_INTS
-
-#define SCM_REALLOW_INTS SCM_ALLOW_INTS
-
 #define SCM_TICK \
 do { \
   SCM_ASYNC_TICK; \
   SCM_THREAD_SWITCHING_CODE; \
 } while (0)
-
-
-
-/* Note: The following needs updating. */
-
-/* Classification of critical sections
- *
- * When Guile moves to POSIX threads, it won't be possible to prevent
- * context switching.  In fact, the whole idea of context switching is
- * bogus if threads are run by different processors.  Therefore, we
- * must ultimately eliminate all critical sections or enforce them by
- * use of mutecis.
- *
- * All instances of SCM_DEFER_INTS and SCM_ALLOW_INTS should therefore
- * be classified and replaced by one of the delimiters below.  If you
- * understand what this is all about, I'd like to encourage you to
- * help with this task.  The set of classes below must of course be
- * incrementally augmented.
- *
- * MDJ 980419 <djurfeldt@nada.kth.se>
- */
-
-/* A sections
- *
- * Allocation of a cell with type tag in the CAR.
- *
- * With POSIX threads, each thread will have a private pool of free
- * cells.  Therefore, this type of section can be removed.  But!  It
- * is important that the CDR is initialized first (with the CAR still
- * indicating a free cell) so that we can guarantee a consistent heap
- * at all times.
- */
-
-#define SCM_ENTER_A_SECTION SCM_CRITICAL_SECTION_START
-#define SCM_EXIT_A_SECTION SCM_CRITICAL_SECTION_END
 
 
 

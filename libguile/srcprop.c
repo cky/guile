@@ -102,7 +102,7 @@ SCM
 scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
 {
   register scm_t_srcprops *ptr;
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   if ((ptr = srcprops_freelist) != NULL)
     srcprops_freelist = *(scm_t_srcprops **)ptr;
   else
@@ -128,7 +128,7 @@ scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
   ptr->fname = filename;
   ptr->copy = copy;
   ptr->plist = plist;
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   SCM_RETURN_NEWSMOB (scm_tc16_srcprops, ptr);
 }
 

@@ -97,14 +97,15 @@ SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_dynamic_wind
 {
-  SCM ans;
+  SCM ans, old_winds;
   SCM_ASSERT (scm_is_true (scm_thunk_p (out_guard)),
 	      out_guard,
 	      SCM_ARG3, FUNC_NAME);
   scm_call_0 (in_guard);
-  scm_dynwinds = scm_acons (in_guard, out_guard, scm_dynwinds);
+  old_winds = scm_i_dynwinds ();
+  scm_i_set_dynwinds (scm_acons (in_guard, out_guard, old_winds));
   ans = scm_call_0 (thunk);
-  scm_dynwinds = SCM_CDR (scm_dynwinds);
+  scm_i_set_dynwinds (old_winds);
   scm_call_0 (out_guard);
   return ans;
 }
@@ -154,20 +155,25 @@ scm_frame_begin (scm_t_frame_flags flags)
   SCM_NEWSMOB (f, tc16_frame, 0);
   if (flags & SCM_F_FRAME_REWINDABLE)
     SCM_SET_SMOB_FLAGS (f, FRAME_F_REWINDABLE);
-  scm_dynwinds = scm_cons (f, scm_dynwinds);
+  scm_i_set_dynwinds (scm_cons (f, scm_i_dynwinds ()));
 }
 
 void
 scm_frame_end (void)
 {
+  SCM winds;
+
   /* Unwind upto and including the next frame entry.  We can only
      encounter #<winder> entries on the way.
    */
 
-  while (scm_is_pair (scm_dynwinds))
+  winds = scm_i_dynwinds ();
+  while (scm_is_pair (winds))
     {
-      SCM entry = SCM_CAR (scm_dynwinds);
-      scm_dynwinds = SCM_CDR (scm_dynwinds);
+      SCM entry = SCM_CAR (winds);
+      winds = SCM_CDR (winds);
+
+      scm_i_set_dynwinds (winds);
 
       if (FRAME_P (entry))
 	return;
@@ -196,7 +202,7 @@ scm_frame_unwind_handler (void (*proc) (void *), void *data,
   SCM_NEWSMOB2 (w, tc16_winder,	(scm_t_bits) proc, (scm_t_bits) data);
   if (flags & SCM_F_WIND_EXPLICITLY)
     SCM_SET_SMOB_FLAGS (w, WINDER_F_EXPLICIT);
-  scm_dynwinds = scm_cons (w, scm_dynwinds);
+  scm_i_set_dynwinds (scm_cons (w, scm_i_dynwinds ()));
 }
 
 void
@@ -206,7 +212,7 @@ scm_frame_rewind_handler (void (*proc) (void *), void *data,
   SCM w;
   SCM_NEWSMOB2 (w, tc16_winder,	(scm_t_bits) proc, (scm_t_bits) data);
   SCM_SET_SMOB_FLAGS (w, WINDER_F_REWIND);
-  scm_dynwinds = scm_cons (w, scm_dynwinds);
+  scm_i_set_dynwinds (scm_cons (w, scm_i_dynwinds ()));
   if (flags & SCM_F_WIND_EXPLICITLY)
     proc (data);
 }
@@ -219,7 +225,7 @@ scm_frame_unwind_handler_with_scm (void (*proc) (SCM), SCM data,
   scm_t_bits fl = ((flags&SCM_F_WIND_EXPLICITLY)? WINDER_F_EXPLICIT : 0);
   SCM_NEWSMOB2 (w, tc16_winder,	(scm_t_bits) proc, SCM_UNPACK (data));
   SCM_SET_SMOB_FLAGS (w, fl | WINDER_F_MARK);
-  scm_dynwinds = scm_cons (w, scm_dynwinds);
+  scm_i_set_dynwinds (scm_cons (w, scm_i_dynwinds ()));
 }
 
 void
@@ -229,7 +235,7 @@ scm_frame_rewind_handler_with_scm (void (*proc) (SCM), SCM data,
   SCM w;
   SCM_NEWSMOB2 (w, tc16_winder, (scm_t_bits) proc, SCM_UNPACK (data));
   SCM_SET_SMOB_FLAGS (w, WINDER_F_REWIND | WINDER_F_MARK);
-  scm_dynwinds = scm_cons (w, scm_dynwinds);
+  scm_i_set_dynwinds (scm_cons (w, scm_i_dynwinds ()));
   if (flags & SCM_F_WIND_EXPLICITLY)
     proc (data);
 }
@@ -248,7 +254,7 @@ SCM_DEFINE (scm_wind_chain, "wind-chain", 0, 0, 0,
 	    "argument thunks when entering/exiting its scope.")
 #define FUNC_NAME s_scm_wind_chain
 {
-  return scm_dynwinds;
+  return scm_i_dynwinds ();
 }
 #undef FUNC_NAME
 #endif
@@ -277,7 +283,7 @@ void
 scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 {
  tail:
-  if (scm_is_eq (to, scm_dynwinds))
+  if (scm_is_eq (to, scm_i_dynwinds ()))
     {
       if (turn_func)
 	turn_func (data);
@@ -318,15 +324,17 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 	    }
 	}
 
-      scm_dynwinds = to;
+      scm_i_set_dynwinds (to);
     }
   else
     {
+      SCM wind;
       SCM wind_elt;
       SCM wind_key;
 
-      wind_elt = SCM_CAR (scm_dynwinds);
-      scm_dynwinds = SCM_CDR (scm_dynwinds);
+      wind = scm_i_dynwinds ();
+      wind_elt = SCM_CAR (wind);
+      scm_i_set_dynwinds (SCM_CDR (wind));
 
       if (FRAME_P (wind_elt))
 	{

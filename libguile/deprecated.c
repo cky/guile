@@ -43,6 +43,7 @@
 #include "libguile/smob.h"
 #include "libguile/alist.h"
 #include "libguile/keywords.h"
+#include "libguile/feature.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -199,7 +200,7 @@ SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0,
 {
   struct moddata *md1, *md2;
 
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
 
   for (md1 = registered_mods; md1; md1 = md2)
     {
@@ -208,7 +209,7 @@ SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0,
     }
   registered_mods = NULL;
 
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -687,7 +688,7 @@ scm_sym2ovcell_soft (SCM sym, SCM obarray)
   scm_c_issue_deprecation_warning ("`scm_sym2ovcell_soft' is deprecated. "
 				   "Use hashtables instead.");
 
-  SCM_REDEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   for (lsym = SCM_VECTOR_REF (obarray, hash);
        SCM_NIMP (lsym);
        lsym = SCM_CDR (lsym))
@@ -695,11 +696,11 @@ scm_sym2ovcell_soft (SCM sym, SCM obarray)
       z = SCM_CAR (lsym);
       if (scm_is_eq (SCM_CAR (z), sym))
 	{
-	  SCM_REALLOW_INTS;
+	  SCM_CRITICAL_SECTION_END;
 	  return z;
 	}
     }
-  SCM_REALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return SCM_BOOL_F;
 }
 
@@ -872,7 +873,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
   SCM_VALIDATE_VECTOR (1,o);
   hval = scm_i_symbol_hash (s) % SCM_VECTOR_LENGTH (o);
   /* If the symbol is already interned, simply return. */
-  SCM_REDEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   {
     SCM lsym;
     SCM sym;
@@ -883,7 +884,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
 	sym = SCM_CAR (lsym);
 	if (scm_is_eq (SCM_CAR (sym), s))
 	  {
-	    SCM_REALLOW_INTS;
+	    SCM_CRITICAL_SECTION_END;
 	    return SCM_UNSPECIFIED;
 	  }
       }
@@ -891,7 +892,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
 		    scm_acons (s, SCM_UNDEFINED,
 			       SCM_VECTOR_REF (o, hval)));
   }
-  SCM_REALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -913,7 +914,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
     return SCM_BOOL_F;
   SCM_VALIDATE_VECTOR (1,o);
   hval = scm_i_symbol_hash (s) % SCM_VECTOR_LENGTH (o);
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   {
     SCM lsym_follow;
     SCM lsym;
@@ -930,12 +931,12 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
 	      SCM_VECTOR_SET (o, hval, lsym);
 	    else
 	      SCM_SETCDR (lsym_follow, SCM_CDR(lsym));
-	    SCM_ALLOW_INTS;
+	    SCM_CRITICAL_SECTION_END;
 	    return SCM_BOOL_T;
 	  }
       }
   }
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -1355,6 +1356,86 @@ scm_i_array_dims (SCM a)
   scm_c_issue_deprecation_warning
     ("SCM_ARRAY_DIMS is deprecated.  Use scm_array_handle_dims instead.");
   return SCM_I_ARRAY_DIMS (a);
+}
+
+SCM
+scm_i_cur_inp (void)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_cur_inp is deprecated.  Use scm_current_input_port instead.");
+  return scm_current_input_port ();
+}
+
+SCM
+scm_i_cur_outp (void)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_cur_outp is deprecated.  Use scm_current_output_port instead.");
+  return scm_current_output_port ();
+}
+
+SCM
+scm_i_cur_errp (void)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_cur_errp is deprecated.  Use scm_current_error_port instead.");
+  return scm_current_error_port ();
+}
+
+SCM
+scm_i_cur_loadp (void)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_cur_loadp is deprecated.  Use scm_current_load_port instead.");
+  return scm_current_load_port ();
+}
+
+SCM
+scm_i_progargs (void)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_progargs is deprecated.  Use scm_program_arguments instead.");
+  return scm_program_arguments ();
+}
+
+SCM
+scm_i_deprecated_dynwinds (void)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_dynwinds is deprecated.  Do not use it.");
+  return scm_i_dynwinds ();
+}
+
+scm_t_debug_frame *
+scm_i_deprecated_last_debug_frame (void)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_last_debug_frame is deprecated.  Do not use it.");
+  return scm_i_last_debug_frame ();
+}
+
+SCM_STACKITEM *
+scm_i_stack_base (void)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_stack_base is deprecated.  Do not use it.");
+  return SCM_I_CURRENT_THREAD->base;
+}
+
+int
+scm_i_fluidp (SCM x)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_FLUIDP is deprecated.  Use scm_is_fluid instead.");
+  return scm_is_fluid (x);
+}
+
+void
+scm_i_defer_ints_etc ()
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_CRITICAL_SECTION_START etc are deprecated.  "
+     "Use a mutex instead if appropriate.");
 }
 
 void

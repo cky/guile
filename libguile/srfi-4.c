@@ -853,7 +853,7 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
   void *base;
 
   if (SCM_UNBNDP (port_or_fd))
-    port_or_fd = scm_cur_inp;
+    port_or_fd = scm_current_input_port ();
   else
     SCM_ASSERT (scm_is_integer (port_or_fd)
 		|| (SCM_OPINPORTP (port_or_fd)),
@@ -968,7 +968,7 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
   port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
 
   if (SCM_UNBNDP (port_or_fd))
-    port_or_fd = scm_cur_outp;
+    port_or_fd = scm_current_output_port ();
   else
     SCM_ASSERT (scm_is_integer (port_or_fd)
 		|| (SCM_OPOUTPORTP (port_or_fd)),

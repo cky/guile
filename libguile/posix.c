@@ -40,6 +40,7 @@
 #include "libguile/validate.h"
 #include "libguile/posix.h"
 #include "libguile/i18n.h"
+#include "libguile/threads.h"
 
 
 #ifdef HAVE_STRING_H
@@ -820,11 +821,11 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
     return SCM_BOOL_F;
   fd = SCM_FPORT_FDES (port);
 
-  scm_mutex_lock (&scm_i_misc_mutex);
+  scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
   SCM_SYSCALL (result = ttyname (fd));
   err = errno;
   ret = scm_from_locale_string (result);
-  scm_mutex_unlock (&scm_i_misc_mutex);
+  scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
 
   if (!result)
     {
@@ -1505,15 +1506,12 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
   char *c_key, *c_salt;
 
   scm_frame_begin (0);
-  scm_frame_unwind_handler ((void(*)(void*)) scm_mutex_unlock,
-                            &scm_i_misc_mutex,
-                            SCM_F_WIND_EXPLICITLY);
-  scm_mutex_lock (&scm_i_misc_mutex);
+  scm_i_frame_pthread_mutex_lock (&scm_i_misc_mutex);
 
   c_key = scm_to_locale_string (key);
   scm_frame_free (c_key);
   c_salt = scm_to_locale_string (salt);
-  scm_frame_free (c_key);
+  scm_frame_free (c_salt);
 
   ret = scm_from_locale_string (crypt (c_key, c_salt));
 

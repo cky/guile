@@ -64,14 +64,14 @@ SCM_DEFINE (scm_symbol_to_keyword, "symbol->keyword", 1, 0, 0,
 
   SCM_ASSERT_TYPE (scm_is_symbol (symbol), symbol, 0, NULL, "symbol");
 
-  SCM_DEFER_INTS;
+  SCM_CRITICAL_SECTION_START;
   keyword = scm_hashq_ref (scm_keyword_obarray, symbol, SCM_BOOL_F);
   if (scm_is_false (keyword))
     {
       SCM_NEWSMOB (keyword, scm_tc16_keyword, SCM_UNPACK (symbol));
       scm_hashq_set_x (scm_keyword_obarray, symbol, keyword);
     }
-  SCM_ALLOW_INTS;
+  SCM_CRITICAL_SECTION_END;
   return keyword;
 }
 #undef FUNC_NAME

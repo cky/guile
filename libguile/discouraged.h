@@ -168,6 +168,13 @@ SCM_API SCM scm_keyword_dash_symbol (SCM keyword);
 
 SCM_API SCM scm_c_make_keyword (const char *s);
 
+/* Discouraged because the 'internal' and 'thread' moniker is
+   confusing.
+ */
+
+#define scm_internal_select scm_std_select
+#define scm_thread_sleep    scm_std_sleep
+#define scm_thread_usleep   scm_std_usleep
 
 void scm_i_init_discouraged (void);
 

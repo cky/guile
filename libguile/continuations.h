@@ -51,11 +51,10 @@ typedef struct
   void *backing_store;
   unsigned long backing_store_size;
 #endif /* __ia64__ */
-  SCM_STACKITEM *base;      /* base of the live stack, before it was saved.  */
   size_t num_stack_items;   /* size of the saved stack.  */
-  unsigned long seq;        /* dynamic root identifier.  */
+  SCM root;                 /* continuation root identifier.  */
 
-  /* The offset from the live stack location and this copy.  This is
+  /* The offset from the live stack location to this copy.  This is
      used to adjust pointers from within the copied stack to the stack
      itself.
 
@@ -66,7 +65,7 @@ typedef struct
   scm_t_ptrdiff offset;
 
   /* The most recently created debug frame on the live stack, before
-     it was saved.  This need to be adjusted with OFFSET, above.
+     it was saved.  This needs to be adjusted with OFFSET, above.
   */
   struct scm_t_debug_frame *dframe;
 
@@ -80,16 +79,24 @@ typedef struct
 #define SCM_CONTINUATION_LENGTH(x) (SCM_CONTREGS (x)->num_stack_items)
 #define SCM_SET_CONTINUATION_LENGTH(x, n)\
    (SCM_CONTREGS (x)->num_stack_items = (n))
-#define SCM_JMPBUF(x)		((SCM_CONTREGS (x))->jmpbuf)
-#define SCM_DYNENV(x)		((SCM_CONTREGS (x))->dynenv)
-#define SCM_THROW_VALUE(x)	((SCM_CONTREGS (x))->throw_value)
-#define SCM_BASE(x)		((SCM_CONTREGS (x))->base) 
-#define SCM_SEQ(x)		((SCM_CONTREGS (x))->seq)   
-#define SCM_DFRAME(x)		((SCM_CONTREGS (x))->dframe)
+#define SCM_JMPBUF(x)		 ((SCM_CONTREGS (x))->jmpbuf)
+#define SCM_DYNENV(x)		 ((SCM_CONTREGS (x))->dynenv)
+#define SCM_THROW_VALUE(x)	 ((SCM_CONTREGS (x))->throw_value)
+#define SCM_CONTINUATION_ROOT(x) ((SCM_CONTREGS (x))->root)   
+#define SCM_DFRAME(x)		 ((SCM_CONTREGS (x))->dframe)
 
 
 
 SCM_API SCM scm_make_continuation (int *first);
+
+SCM_API void *scm_c_with_continuation_barrier (void *(*func)(void*), void *);
+SCM_API SCM scm_with_continuation_barrier (SCM proc);
+
+SCM_API SCM scm_i_with_continuation_barrier (scm_t_catch_body body,
+					     void *body_data,
+					     scm_t_catch_handler handler,
+					     void *handler_data);
+
 SCM_API void scm_init_continuations (void);
 
 #endif  /* SCM_CONTINUATIONS_H */
