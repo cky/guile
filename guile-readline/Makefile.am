@@ -33,8 +33,10 @@ GUILE_SNARF = ../libguile/guile-snarf
 lib_LTLIBRARIES = libguilereadline.la
 
 libguilereadline_la_SOURCES = readline.c
-libguilereadline_la_LDFLAGS = -export-dynamic -no-undefined
 libguilereadline_la_LIBADD = ../libguile/libguile.la
+libguilereadline_la_LDFLAGS = -version-info @LIBGUILEREADLINE_INTERFACE@ \
+  -export-dynamic -no-undefined
+
 
 BUILT_SOURCES = readline.x
 
