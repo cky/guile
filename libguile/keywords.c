@@ -134,7 +134,9 @@ scm_init_keywords ()
                                              scm_markcdr, NULL, prin_keyword, NULL);
 
   scm_keyword_obarray = scm_make_vector (SCM_MAKINUM (256), SCM_EOL);
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/keywords.x"
+#endif
 }
 
 

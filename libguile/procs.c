@@ -390,7 +390,9 @@ scm_init_subr_table ()
 void
 scm_init_procs ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/procs.x"
+#endif
 }
 
 /*

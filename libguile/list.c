@@ -827,7 +827,9 @@ SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
 void
 scm_init_list ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/list.x"
+#endif
 }
 
 /*

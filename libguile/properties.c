@@ -145,7 +145,9 @@ void
 scm_init_properties ()
 {
   scm_properties_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (511));
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/properties.x"
+#endif
 }
 
 

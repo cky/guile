@@ -543,7 +543,9 @@ scm_init_scmsigs ()
   scm_sysintern ("SA_RESTART", scm_long2num (SA_RESTART));
 #endif
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/scmsigs.x"
+#endif
 }
 
 

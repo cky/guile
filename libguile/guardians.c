@@ -334,7 +334,9 @@ scm_init_guardian()
   scm_c_hook_add (&scm_before_mark_c_hook, scm_guardian_gc_init, 0, 0);
   scm_c_hook_add (&scm_before_sweep_c_hook, scm_guardian_zombify, 0, 0);
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/guardians.x"
+#endif
 }
 
 /*

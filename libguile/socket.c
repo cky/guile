@@ -976,7 +976,9 @@ scm_init_socket ()
   scm_add_feature ("socket");
   scm_init_addr_buffer ();
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/socket.x"
+#endif
 }
 
 

@@ -4374,7 +4374,9 @@ scm_init_numbers ()
     scm_dblprec = scm_dblprec - 1;
   }
 #endif /* DBL_DIG */
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/numbers.x"
+#endif
 }
 
 /*

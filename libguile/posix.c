@@ -1314,7 +1314,9 @@ scm_sysintern ("PIPE_BUF", scm_long2num (PIPE_BUF));
 #endif
 
 #include "libguile/cpp_sig_symbols.c"
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/posix.x"
+#endif
 }
 
 /*

@@ -392,7 +392,9 @@ SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
 void
 scm_init_strings ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/strings.x"
+#endif
 }
 
 

@@ -334,7 +334,9 @@ scm_init_srcprop ()
   scm_sym_breakpoint = SCM_CAR (scm_sysintern ("breakpoint", SCM_UNDEFINED));
 
   scm_sysintern ("source-whash", scm_source_whash);
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/srcprop.x"
+#endif
 }
 
 void

@@ -235,7 +235,9 @@ scm_call_continuation (SCM cont, SCM val)
 void
 scm_init_continuations ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/continuations.x"
+#endif
 }
 
 

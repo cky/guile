@@ -354,7 +354,9 @@ scm_init_hooks ()
   scm_set_smob_mark (scm_tc16_hook, scm_markcdr);
   scm_set_smob_print (scm_tc16_hook, print_hook);
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/hooks.x"
+#endif
 }
 
 /*

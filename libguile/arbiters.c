@@ -128,7 +128,9 @@ scm_init_arbiters ()
 {
   scm_tc16_arbiter = scm_make_smob_type_mfpe ("arbiter", 0,
                                               scm_markcdr, NULL, prinarb, NULL);
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/arbiters.x"
+#endif
 }
 
 /*

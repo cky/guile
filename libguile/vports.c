@@ -211,7 +211,9 @@ scm_make_sfptob ()
 void
 scm_init_vports ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/vports.x"
+#endif
 }
 
 /*

@@ -100,7 +100,9 @@ SCM_DEFINE (scm_version, "version", 0, 0, 0,
 void
 scm_init_version ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/version.x"
+#endif
 }
 
 /*

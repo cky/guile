@@ -146,7 +146,9 @@ scm_init_threads (SCM_STACKITEM *i)
   scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (coop_m));
   scm_tc16_condvar = scm_make_smob_type ("condition-variable", sizeof (coop_c));
                                         
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/threads.x"
+#endif
   /* Initialize implementation specific details of the threads support */
   scm_threads_init (i);
 }

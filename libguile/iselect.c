@@ -627,7 +627,9 @@ scm_init_iselect ()
   timeout0.tv_usec = 0;
 #endif
   init_bc (0x80, 0, 0);
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/iselect.x"
+#endif
 }
 
 #endif /* GUILE_ISELECT */

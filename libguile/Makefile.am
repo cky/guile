@@ -200,7 +200,8 @@ guile-procedures.txt: guile.texi
 	rm -f $@
 	makeinfo --force -o $@ $< || test -f $@
 
-pkgdata_DATA = guile-procedures.txt
+schemelibdir = $(pkgdatadir)/$(VERSION)
+schemelib_DATA = guile-procedures.txt
 
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

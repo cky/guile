@@ -269,7 +269,9 @@ SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
 void
 scm_init_modules ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/modules.x"
+#endif
   module_make_local_var_x = scm_sysintern ("module-make-local-var!",
 					   SCM_UNDEFINED);
   scm_eval_closure_tag = scm_make_smob_type ("eval-closure", 0);

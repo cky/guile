@@ -406,7 +406,9 @@ SCM_DEFINE (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
 void
 scm_init_alist ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/alist.x"
+#endif
 }
 
 

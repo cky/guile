@@ -706,7 +706,9 @@ scm_init_throw ()
 					     NULL,
 					     print_lazy_catch,
 					     NULL);
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/throw.x"
+#endif
 }
 
 /*

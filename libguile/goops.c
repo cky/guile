@@ -2718,7 +2718,9 @@ scm_init_goops (void)
 
   goops_rstate = scm_c_make_rstate ("GOOPS", 5);
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/goops.x"
+#endif
 
   list_of_no_method = scm_permanent_object (SCM_LIST1 (sym_no_method));
 

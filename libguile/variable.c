@@ -235,7 +235,9 @@ scm_init_variable ()
   scm_tc16_variable = scm_make_smob_type_mfpe ("variable", 0,
                                               scm_markvar, NULL, prin_var, var_equal);
   anonymous_variable_sym = SCM_CAR (scm_sysintern ("anonymous-variable", SCM_UNDEFINED));
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/variable.x"
+#endif
 }
 
 

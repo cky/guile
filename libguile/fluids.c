@@ -260,7 +260,9 @@ scm_init_fluids ()
 {
   scm_tc16_fluid = scm_make_smob_type_mfpe ("fluid", 0,
                                            NULL, NULL, print_fluid, NULL);
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/fluids.x"
+#endif
 }
 
 /*

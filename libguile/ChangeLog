@@ -1,3 +1,25 @@
+2000-11-17  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* alist.c, arbiters.c, async.c, backtrace.c, boolean.c, chars.c,
+	continuations.c, debug-malloc.c, debug.c, dynl.c, dynwind.c,
+	environments.c, eq.c, error.c, eval.c, evalext.c, feature.c,
+	filesys.c, fluids.c, fports.c, gc.c, goops.c, guardians.c, hash.c,
+	hashtab.c, hooks.c, ioext.c, iselect.c, keywords.c, lang.c,
+	list.c, load.c, macros.c, modules.c, net_db.c, numbers.c,
+	objects.c, objprop.c, options.c, pairs.c, ports.c, posix.c,
+	print.c, procprop.c, procs.c, properties.c, ramap.c, random.c,
+	read.c, regex-posix.c, root.c, scmsigs.c, script.c, simpos.c,
+	socket.c, sort.c, srcprop.c, stackchk.c, stacks.c, stime.c,
+	strings.c, strop.c, strorder.c, strports.c, struct.c, symbols.c,
+	tag.c, threads.c, throw.c, unif.c, variable.c, vectors.c,
+	version.c, vports.c, weaks.c: Makes sure the snarfer output
+	inclusion is disabled when the snarfer is run on the file.  Thanks
+	to Lars J. Aas!
+
+	* Makefile.am: Install guile-procedures.txt in version-specific
+	directory to enable multiple installed guile versions.  Suggested
+	by Karl M. Hegbloom <karlheg@debian.org, patch by Matthias Koeppe.
+
 2000-11-13  Gary Houston  <ghouston@arglist.com>
 
 	* fports.c: include gc.h.

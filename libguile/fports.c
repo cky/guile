@@ -745,7 +745,9 @@ scm_make_fptob ()
 void
 scm_init_fports ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/fports.x"
+#endif
   scm_sysintern ("_IOFBF", SCM_MAKINUM (_IOFBF));
   scm_sysintern ("_IOLBF", SCM_MAKINUM (_IOLBF));
   scm_sysintern ("_IONBF", SCM_MAKINUM (_IONBF));

@@ -584,7 +584,9 @@ scm_init_random ()
     for (i = m >> 1; i < m; ++i)
       scm_masktab[i] = m - 1;
   
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/random.x"
+#endif
 
   /* Check that the assumptions about bits per bignum digit are correct. */
 #if SIZEOF_INT == 4

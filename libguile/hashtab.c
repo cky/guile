@@ -558,7 +558,9 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 void
 scm_init_hashtab ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/hashtab.x"
+#endif
 }
 
 /*

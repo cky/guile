@@ -362,7 +362,9 @@ void
 scm_init_error ()
 {
 #include "libguile/cpp_err_symbols.c"
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/error.x"
+#endif
 }
 
 

@@ -1478,7 +1478,9 @@ scm_sysintern ("F_SETOWN", scm_long2num (F_SETOWN));
 scm_sysintern ("FD_CLOEXEC", scm_long2num (FD_CLOEXEC));
 #endif
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/filesys.x"
+#endif
 }
 
 /*

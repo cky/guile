@@ -293,7 +293,9 @@ scm_init_regex_posix ()
   scm_sysintern ("regexp/notbol", scm_long2num (REG_NOTBOL));
   scm_sysintern ("regexp/noteol", scm_long2num (REG_NOTEOL));
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/regex-posix.x"
+#endif
 
   scm_add_feature ("regex");
 }

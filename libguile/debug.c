@@ -642,7 +642,9 @@ scm_init_debug ()
 #endif
   scm_add_feature ("debug-extensions");
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/debug.x"
+#endif
 }
 
 /*

@@ -3983,7 +3983,9 @@ scm_init_eval ()
   scm_sym_trace = SCM_CAR (scm_sysintern ("trace", SCM_UNDEFINED));
 #endif
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/eval.x"
+#endif
 
   scm_add_feature ("delay");
 }

@@ -150,7 +150,9 @@ SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr,
 void
 scm_init_lang ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/lang.x"
+#endif
   scm_make_synt ("nil-while", scm_makacro, scm_m_while);
 }
 

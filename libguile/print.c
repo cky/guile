@@ -1149,7 +1149,9 @@ scm_init_print ()
   scm_set_smob_mark (scm_tc16_port_with_ps, scm_markcdr);
   scm_set_smob_print (scm_tc16_port_with_ps, print_port_with_ps);
   
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/print.x"
+#endif
 }
 
 /*

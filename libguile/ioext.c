@@ -562,7 +562,9 @@ scm_init_ioext ()
 {
   scm_add_feature ("i/o-extensions");
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/ioext.x"
+#endif
 }
 
 

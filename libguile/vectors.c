@@ -407,7 +407,9 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 void
 scm_init_vectors ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/vectors.x"
+#endif
 }
 
 

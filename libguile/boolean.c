@@ -76,7 +76,9 @@ SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0,
 void
 scm_init_boolean ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/boolean.x"
+#endif
 }
 
 

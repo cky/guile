@@ -2317,7 +2317,9 @@ scm_environments_prehistory ()
 void
 scm_init_environments ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/environments.x"
+#endif
 }
 
 

@@ -218,7 +218,9 @@ SCM_DEFINE (scm_tag, "tag", 1, 0, 0,
 void
 scm_init_tag ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/tag.x"
+#endif
 }
 
 

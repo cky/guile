@@ -181,7 +181,9 @@ scm_init_macros ()
 {
   scm_tc16_macro = scm_make_smob_type_mfpe ("macro", 0,
                                            scm_markcdr, NULL, NULL, NULL);
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/macros.x"
+#endif
 }
 
 /*

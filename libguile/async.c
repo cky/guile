@@ -462,7 +462,9 @@ scm_init_async ()
   tc16_async = scm_make_smob_type ("async", 0);
   scm_set_smob_mark (tc16_async, mark_async);
 
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/async.x"
+#endif
 }
 
 /*

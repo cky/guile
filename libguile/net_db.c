@@ -569,7 +569,9 @@ scm_init_net_db ()
 #endif
 
   scm_add_feature ("net-db");
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/net_db.x"
+#endif
 }
 
 /*

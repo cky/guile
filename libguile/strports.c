@@ -432,7 +432,9 @@ scm_make_stptob ()
 void
 scm_init_strports ()
 {
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/strports.x"
+#endif
 }
 
 

@@ -2557,7 +2557,9 @@ scm_init_unif ()
 					    scm_raprin1,
 					    scm_array_equal_p);
   scm_add_feature ("array");
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/unif.x"
+#endif
 }
 
 /*

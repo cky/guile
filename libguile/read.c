@@ -806,7 +806,9 @@ scm_init_read ()
     SCM_CDRLOC (scm_sysintern ("read-hash-procedures", SCM_EOL));
 
   scm_init_opts (scm_read_options, scm_read_opts, SCM_N_READ_OPTIONS);
+#ifndef SCM_MAGIC_SNARFER
 #include "libguile/read.x"
+#endif
 }
 
 /*
