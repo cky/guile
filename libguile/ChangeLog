@@ -1,3 +1,55 @@
+Tue Jan 11 17:42:40 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* scm_validate.h: Added SCM_NUM2LONG_DEF macro.  Make
+	SCM_OUT_OF_RANGE use SCM_MAKINUM, not scm_long2num.  Added
+	SCM_COERCE_ROSTRING macro.  Added SCM_VALIDATE_NONEMPTYLIST
+	macro.  Fix SCM_VALIDATE_STRINGORSUBSTR macro to not use SLOPPY
+	variants.
+
+	* ports.c (scm_port_closed_p): Validate that the arg is a PORT,
+	then return whether it's an open port (was validating that it was
+	an open port -- this was a bug I introduced back in December, but
+	my careful reading of diffs caught it).
+
+	* numbers.c: Recombine the two conditional-compilation paths for
+	all the log* primitives -- they were split based on #ifndef
+	scm_long2num;  factored out a SCM_LOGOP_RETURN macro, and fixed
+	some bugs and inconsistencies in the two sets of implementations.
+	(scm_lognot) Fixed *atrocious* re-use of a SCM as an integer!
+
+	* ioext.c: Use SCM_ASSERT_RANGE in a couple places, and
+	SCM_VALIDATE_INUM_COPY once where it should've been used.
+
+	* fluids.c (scm_internal_with_fluids): Use
+	SCM_VALIDATE_LIST_COPYLEN.
+
+	* filesys.c: Use SCM_NUM2LONG instead of SCM_VALIDATE_INUM_COPY;
+	this is questionable as it relaxes type safety, but other changes
+	were useful and all SCM_NUM2LONG's should probably be
+	revisited. Use SCM_OUT_OF_RANGE, SCM_WRONG_TYPE_ARG.
+
+	* evalext.c: line-break change on 1 line.
+
+	* eval.c (nconc2last): Takes a non-empty list as its first
+	argument, not just a list.
+
+	* dynl.c: Use new SCM_COERCE_ROSTRING macro.
+
+Tue Jan 11 15:44:23 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* dynl.c, feature.c, filesys.c, fports.c, list.c, load.c,
+ 	net_db.c, sort.c, stacks.c, unif.c: Use SCM_WTA, SCM_MISC_ERROR
+ 	where possible.
+
+	* symbols.c (scm_sysintern0): Fixed the function name in a
+	scm_misc_error invocation.
+
+	* print.c (scm_simple_format): Do not need SCM_COERCE_SUBSTR, and
+	use scm_return_first to ward off latent GC bug that Mikael caught.
+
+	* async.c: Use SCM_VALIDATE_ASYNC_COPY one place where it wasn't
+	used before but should've been.
+
 2000-01-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* snarf.h (SCM_PROC1): Replaced SCM (*) (...) with
