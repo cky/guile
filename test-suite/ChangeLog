@@ -1,5 +1,7 @@
 2003-08-23  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/srfi-1.test (list-copy): New tests.
+
 	* tests/srfi-19.test (date-week-number): Add tests.
 
 2003-08-22  Kevin Ryde  <user42@zip.com.au>
