@@ -1,3 +1,7 @@
+2002-05-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* read-rfc822: New script.
+
 2002-05-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* scan-api (scan-api): Fix bug: No longer omit `C' and `Scheme' in
