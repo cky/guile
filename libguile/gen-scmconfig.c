@@ -270,6 +270,7 @@ main (int argc, char *argv[])
   pf ("#define SCM_SIZEOF_UNSIGNED_LONG %d\n", SIZEOF_UNSIGNED_LONG);
   pf ("#define SCM_SIZEOF_INT %d\n", SIZEOF_INT);
   pf ("#define SCM_SIZEOF_UNSIGNED_INT %d\n", SIZEOF_UNSIGNED_INT);
+  pf ("#define SCM_SIZEOF_SIZE_T %d\n", SIZEOF_SIZE_T);
 
   pf ("\n");
   pf ("/* Size of (unsigned) long long or 0 if not available (scm_t_*64 may\n"
@@ -302,6 +303,15 @@ main (int argc, char *argv[])
   pf ("typedef %s scm_t_uint32;\n", SCM_I_GSC_T_UINT32);
   pf ("typedef %s scm_t_intmax;\n", SCM_I_GSC_T_INTMAX);
   pf ("typedef %s scm_t_uintmax;\n", SCM_I_GSC_T_UINTMAX);
+
+  if (0 == strcmp ("intmax_t", SCM_I_GSC_T_INTMAX))
+    pf ("#define SCM_SIZEOF_INTMAX %d\n", SIZEOF_INTMAX_T);
+  else if (0 == strcmp ("long long", SCM_I_GSC_T_INTMAX))
+    pf ("#define SCM_SIZEOF_INTMAX %d\n", SIZEOF_LONG_LONG);
+  else if (0 == strcmp ("__int64", SCM_I_GSC_T_INTMAX))
+    pf ("#define SCM_SIZEOF_INTMAX %d\n", SIZEOF___INT64);
+  else
+    return 1;
 
   pf ("\n");
   pf ("/* 64-bit integer -- if available SCM_HAVE_T_INT64 will be 1 and\n"
