@@ -81,7 +81,7 @@ extern SCM scm_debug_newcell (void);
 
 
 
-extern SCM scm_object_addr (SCM obj);
+extern SCM scm_object_address (SCM obj);
 extern SCM scm_unhash_name (SCM name);
 extern SCM scm_gc_stats (void);
 extern void scm_gc_start (const char *what);
