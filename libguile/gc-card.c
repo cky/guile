@@ -127,16 +127,9 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	  break;
 	case scm_tc7_wvect:
 	case scm_tc7_vector:
-	  {
-	    unsigned long int length = SCM_VECTOR_LENGTH (scmptr);
-	    if (length > 0)
-	      {
-		scm_gc_free (SCM_VECTOR_BASE (scmptr),
-			     length * sizeof (scm_t_bits),
-			     "vector");
-	      }
-	    break;
-	  }
+	  scm_i_vector_free (scmptr);
+	  break;
+
 #ifdef CCLO
 	case scm_tc7_cclo:
 	  scm_gc_free (SCM_CCLO_BASE (scmptr), 
