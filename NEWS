@@ -17,14 +17,6 @@ libguile/sequences.c removed.
 
 * Changes to Scheme functions and syntax
 
-** The detection of circular references has been extended to structs.
-That is, a structure that -- in the process of being printed -- prints
-itself does not lead to infinite recursion.
-
-** There is now some basic support for fluids.  Please read
-"libguile/fluid.h" to find out more. It is accessible from Scheme with
-the following functions and macros:
-
 ** struct-vtable-offset renamed to vtable-offset-user
 
 ** New constants: vtable-index-layout, vtable-index-vtable, vtable-index-printer
@@ -32,6 +24,14 @@ the following functions and macros:
 ** There is now a fourth (optional) argument to make-vtable-vtable and
    make-struct when constructing new types (vtables).  This argument
    initializes field vtable-index-printer of the vtable.
+
+** The detection of circular references has been extended to structs.
+That is, a structure that -- in the process of being printed -- prints
+itself does not lead to infinite recursion.
+
+** There is now some basic support for fluids.  Please read
+"libguile/fluid.h" to find out more. It is accessible from Scheme with
+the following functions and macros:
 
 Function: make-fluid
 
