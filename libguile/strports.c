@@ -155,7 +155,7 @@ st_write (SCM port, const void *data, size_t size)
       int space = pt->write_end - pt->write_pos;
       int write_len = (size > space) ? space : size;
       
-      strncpy ((char *) pt->write_pos, input, write_len);
+      memcpy ((char *) pt->write_pos, input, write_len);
       pt->write_pos += write_len;
       size -= write_len;
       input += write_len;

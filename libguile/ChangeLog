@@ -1,3 +1,8 @@
+2001-07-11  Gary Houston  <ghouston@arglist.com>
+
+	* strports.c (st_write): use memcpy, not strncpy.  thanks to
+	Dale P. Smith.
+
 2001-07-09  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* alist.c, alloca.c, arbiters.c, async.c, async.h, backtrace.c,
