@@ -1111,7 +1111,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
     case scm_tc7_string:
       return SCM_MAKE_CHAR (SCM_STRING_UCHARS (v)[pos]);
     case scm_tc7_byvect:
-      return scm_from_char (((char *) SCM_UVECTOR_BASE (v))[pos]);
+      return scm_from_schar (((char *) SCM_UVECTOR_BASE (v))[pos]);
   case scm_tc7_uvect:
     return scm_from_ulong (((unsigned long *) SCM_VELTS (v))[pos]);
   case scm_tc7_ivect:
@@ -1273,8 +1273,8 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       break;
     case scm_tc7_byvect:
       if (SCM_CHARP (obj))
-	obj = scm_from_char ((char) SCM_CHAR (obj));
-      ((char *) SCM_UVECTOR_BASE (v))[pos] = scm_to_char (obj);
+	obj = scm_from_schar ((char) SCM_CHAR (obj));
+      ((char *) SCM_UVECTOR_BASE (v))[pos] = scm_to_schar (obj);
       break;
     case scm_tc7_uvect:
       ((unsigned long *) SCM_UVECTOR_BASE (v))[pos] = scm_to_ulong (obj);
