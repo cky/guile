@@ -4,6 +4,7 @@
 	Cluster sizes are now independent of GC trigger values.
 	GUILE_GC_TRIGGER_n can now specify a relative trigger value:
 	A negative integer gives fraction of total heap size in percent.
+	(SCM_GC_TRIGGER_1, SCM_GC_TRIGGER_2): Default values set to -40.
 
 	* init.c (scm_boot_guile_1): Introduced new variable
 	GUILE_MAX_SEGMENT_SIZE; New environment variable names:
