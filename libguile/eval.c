@@ -482,7 +482,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_trace, "trace");
 static SCM
 scm_m_body (SCM op, SCM xorig, const char *what)
 {
-  SCM_ASSYNT (scm_ilength (xorig) >= 1, xorig, scm_s_expression, what);
+  SCM_ASSYNT (scm_ilength (xorig) >= 1, scm_s_expression, what);
 
   /* Don't add another ISYM if one is present already. */
   if (SCM_ISYMP (SCM_CAR (xorig)))
@@ -508,8 +508,7 @@ scm_m_quote (SCM xorig, SCM env)
 {
   SCM x = scm_copy_tree (SCM_CDR (xorig));
 
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
-	      xorig, scm_s_expression, s_quote);
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, s_quote);
   return scm_cons (SCM_IM_QUOTE, x);
 }
 
@@ -521,8 +520,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_begin, s_begin);
 SCM 
 scm_m_begin (SCM xorig, SCM env)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 1,
-	      xorig, scm_s_expression, s_begin);
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 1, scm_s_expression, s_begin);
   return scm_cons (SCM_IM_BEGIN, SCM_CDR (xorig));
 }
 
@@ -533,7 +531,7 @@ SCM
 scm_m_if (SCM xorig, SCM env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 2 && len <= 3, xorig, scm_s_expression, "if");
+  SCM_ASSYNT (len >= 2 && len <= 3, scm_s_expression, "if");
   return scm_cons (SCM_IM_IF, SCM_CDR (xorig));
 }
 
@@ -547,9 +545,8 @@ SCM
 scm_m_set_x (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, scm_s_set_x);
-  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (x)),
-	      xorig, scm_s_variable, scm_s_set_x);
+  SCM_ASSYNT (2 == scm_ilength (x), scm_s_expression, scm_s_set_x);
+  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (x)), scm_s_variable, scm_s_set_x);
   return scm_cons (SCM_IM_SET_X, x);
 }
 
@@ -561,7 +558,7 @@ SCM
 scm_m_and (SCM xorig, SCM env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 0, xorig, scm_s_test, s_and);
+  SCM_ASSYNT (len >= 0, scm_s_test, s_and);
   if (len >= 1)
     return scm_cons (SCM_IM_AND, SCM_CDR (xorig));
   else
@@ -575,7 +572,7 @@ SCM
 scm_m_or (SCM xorig, SCM env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 0, xorig, scm_s_test, s_or);
+  SCM_ASSYNT (len >= 0, scm_s_test, s_or);
   if (len >= 1)
     return scm_cons (SCM_IM_OR, SCM_CDR (xorig));
   else
@@ -590,15 +587,15 @@ SCM
 scm_m_case (SCM xorig, SCM env)
 {
   SCM proc, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
-  SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_clauses, s_case);
+  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_clauses, s_case);
   while (SCM_NIMP (x = SCM_CDR (x)))
     {
       proc = SCM_CAR (x);
-      SCM_ASSYNT (scm_ilength (proc) >= 2, xorig, scm_s_clauses, s_case);
+      SCM_ASSYNT (scm_ilength (proc) >= 2, scm_s_clauses, s_case);
       SCM_ASSYNT (scm_ilength (SCM_CAR (proc)) >= 0
 		  || (SCM_EQ_P (scm_sym_else, SCM_CAR (proc)) 
 		      && SCM_NULLP (SCM_CDR (x))),
-		  xorig, scm_s_clauses, s_case);
+		  scm_s_clauses, s_case);
     }
   return scm_cons (SCM_IM_CASE, cdrx);
 }
@@ -613,21 +610,21 @@ scm_m_cond (SCM xorig, SCM env)
 {
   SCM arg1, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
   int len = scm_ilength (x);
-  SCM_ASSYNT (len >= 1, xorig, scm_s_clauses, s_cond);
+  SCM_ASSYNT (len >= 1, scm_s_clauses, s_cond);
   while (SCM_NIMP (x))
     {
       arg1 = SCM_CAR (x);
       len = scm_ilength (arg1);
-      SCM_ASSYNT (len >= 1, xorig, scm_s_clauses, s_cond);
+      SCM_ASSYNT (len >= 1, scm_s_clauses, s_cond);
       if (SCM_EQ_P (scm_sym_else, SCM_CAR (arg1)))
 	{
 	  SCM_ASSYNT (SCM_NULLP (SCM_CDR (x)) && len >= 2,
-		      xorig, "bad ELSE clause", s_cond);
+		      "bad ELSE clause", s_cond);
 	  SCM_SETCAR (arg1, SCM_BOOL_T);
 	}
       if (len >= 2 && SCM_EQ_P (scm_sym_arrow, SCM_CAR (SCM_CDR (arg1))))
 	SCM_ASSYNT (3 == len && SCM_NIMP (SCM_CAR (SCM_CDR (SCM_CDR (arg1)))),
-		    xorig, "bad recipient", s_cond);
+		    "bad recipient", s_cond);
       x = SCM_CDR (x);
     }
   return scm_cons (SCM_IM_COND, cdrx);
@@ -703,14 +700,14 @@ scm_m_letstar (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig), arg1, proc, vars = SCM_EOL, *varloc = &vars;
   int len = scm_ilength (x);
-  SCM_ASSYNT (len >= 2, xorig, scm_s_body, s_letstar);
+  SCM_ASSYNT (len >= 2, scm_s_body, s_letstar);
   proc = SCM_CAR (x);
-  SCM_ASSYNT (scm_ilength (proc) >= 0, xorig, scm_s_bindings, s_letstar);
+  SCM_ASSYNT (scm_ilength (proc) >= 0, scm_s_bindings, s_letstar);
   while (SCM_NIMP (proc))
     {
       arg1 = SCM_CAR (proc);
-      SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, s_letstar);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, s_letstar);
+      SCM_ASSYNT (2 == scm_ilength (arg1), scm_s_bindings, s_letstar);
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), scm_s_variable, s_letstar);
       *varloc = scm_cons2 (SCM_CAR (arg1), SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       varloc = SCM_CDRLOC (SCM_CDR (*varloc));
       proc = SCM_CDR (proc);
@@ -745,15 +742,15 @@ scm_m_do (SCM xorig, SCM env)
   SCM vars = SCM_EOL, inits = SCM_EOL, steps = SCM_EOL;
   SCM *initloc = &inits, *steploc = &steps;
   int len = scm_ilength (x);
-  SCM_ASSYNT (len >= 2, xorig, scm_s_test, "do");
+  SCM_ASSYNT (len >= 2, scm_s_test, "do");
   proc = SCM_CAR (x);
-  SCM_ASSYNT (scm_ilength (proc) >= 0, xorig, scm_s_bindings, "do");
+  SCM_ASSYNT (scm_ilength (proc) >= 0, scm_s_bindings, "do");
   while (SCM_NIMP(proc))
     {
       arg1 = SCM_CAR (proc);
       len = scm_ilength (arg1);
-      SCM_ASSYNT (2 == len || 3 == len, xorig, scm_s_bindings, "do");
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, "do");
+      SCM_ASSYNT (2 == len || 3 == len, scm_s_bindings, "do");
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), scm_s_variable, "do");
       /* vars reversed here, inits and steps reversed at evaluation */
       vars = scm_cons (SCM_CAR (arg1), vars);	/* variable */
       arg1 = SCM_CDR (arg1);
@@ -765,7 +762,7 @@ scm_m_do (SCM xorig, SCM env)
       proc = SCM_CDR (proc);
     }
   x = SCM_CDR (x);
-  SCM_ASSYNT (scm_ilength (SCM_CAR (x)) >= 1, xorig, scm_s_test, "do");
+  SCM_ASSYNT (scm_ilength (SCM_CAR (x)) >= 1, scm_s_test, "do");
   x = scm_cons2 (SCM_CAR (x), SCM_CDR (x), steps);
   x = scm_cons2 (vars, inits, x);
   return scm_cons (SCM_IM_DO, x);
@@ -786,7 +783,7 @@ SCM
 scm_m_quasiquote (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 1, xorig, scm_s_expression, s_quasiquote);
+  SCM_ASSYNT (scm_ilength (x) == 1, scm_s_expression, s_quasiquote);
   return iqq (SCM_CAR (x), env, 1);
 }
 
@@ -843,7 +840,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
 SCM 
 scm_m_delay (SCM xorig, SCM env)
 {
-  SCM_ASSYNT (scm_ilength (xorig) == 2, xorig, scm_s_expression, s_delay);
+  SCM_ASSYNT (scm_ilength (xorig) == 2, scm_s_expression, s_delay);
   return scm_cons2 (SCM_IM_DELAY, SCM_EOL, SCM_CDR (xorig));
 }
 
@@ -856,7 +853,7 @@ scm_m_define (SCM x, SCM env)
 {
   SCM proc, arg1 = x;
   x = SCM_CDR (x);
-  SCM_ASSYNT (scm_ilength (x) >= 2, arg1, scm_s_expression, s_define);
+  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_expression, s_define);
   proc = SCM_CAR (x);
   x = SCM_CDR (x);
   while (SCM_CONSP (proc))
@@ -864,9 +861,8 @@ scm_m_define (SCM x, SCM env)
       x = scm_cons (scm_cons2 (scm_sym_lambda, SCM_CDR (proc), x), SCM_EOL);
       proc = SCM_CAR (proc);
     }
-  SCM_ASSYNT (SCM_SYMBOLP (proc),
-	      arg1, scm_s_variable, s_define);
-  SCM_ASSYNT (1 == scm_ilength (x), arg1, scm_s_expression, s_define);
+  SCM_ASSYNT (SCM_SYMBOLP (proc), scm_s_variable, s_define);
+  SCM_ASSYNT (1 == scm_ilength (x), scm_s_expression, s_define);
   if (SCM_TOP_LEVEL (env))
     {
       x = evalcar (x, env);
@@ -909,13 +905,13 @@ scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env)
   SCM vars = SCM_EOL, inits = SCM_EOL, *initloc = &inits;
 
   proc = SCM_CAR (x);
-  SCM_ASSYNT (scm_ilength (proc) >= 1, xorig, scm_s_bindings, what);
+  SCM_ASSYNT (scm_ilength (proc) >= 1, scm_s_bindings, what);
   do
     {
       /* vars scm_list reversed here, inits reversed at evaluation */
       arg1 = SCM_CAR (proc);
-      SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, what);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, what);
+      SCM_ASSYNT (2 == scm_ilength (arg1), scm_s_bindings, what);
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), scm_s_variable, what);
       if (scm_c_improper_memq (SCM_CAR (arg1), vars))
 	scm_misc_error (what, scm_s_duplicate_bindings, SCM_EOL);
       vars = scm_cons (SCM_CAR (arg1), vars);
@@ -935,7 +931,7 @@ SCM
 scm_m_letrec (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_letrec);
+  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_body, s_letrec);
   
   if (SCM_NULLP (SCM_CAR (x)))   /* null binding, let* faster */
     return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), SCM_EOL,
@@ -957,7 +953,7 @@ scm_m_let (SCM xorig, SCM env)
   SCM x = cdrx, proc, arg1, name;	/* structure traversers */
   SCM vars = SCM_EOL, inits = SCM_EOL, *varloc = &vars, *initloc = &inits;
 
-  SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_let);
+  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_body, s_let);
   proc = SCM_CAR (x);
   if (SCM_NULLP (proc)
       || (SCM_CONSP (proc)
@@ -971,7 +967,7 @@ scm_m_let (SCM xorig, SCM env)
 			    env);
     }
 
-  SCM_ASSYNT (SCM_NIMP (proc), xorig, scm_s_bindings, s_let);
+  SCM_ASSYNT (SCM_NIMP (proc), scm_s_bindings, s_let);
   if (SCM_CONSP (proc))
     {
       /* plain let, proc is <bindings> */
@@ -982,15 +978,14 @@ scm_m_let (SCM xorig, SCM env)
     scm_misc_error (s_let, scm_s_bindings, SCM_EOL);	/* bad let */
   name = proc;			/* named let, build equiv letrec */
   x = SCM_CDR (x);
-  SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_let);
+  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_body, s_let);
   proc = SCM_CAR (x);		/* bindings list */
-  SCM_ASSYNT (scm_ilength (proc) >= 0, xorig, scm_s_bindings, s_let);
+  SCM_ASSYNT (scm_ilength (proc) >= 0, scm_s_bindings, s_let);
   while (SCM_NIMP (proc))
     {				/* vars and inits both in order */
       arg1 = SCM_CAR (proc);
-      SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, s_let);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)),
-		  xorig, scm_s_variable, s_let);
+      SCM_ASSYNT (2 == scm_ilength (arg1), scm_s_bindings, s_let);
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), scm_s_variable, s_let);
       *varloc = scm_cons (SCM_CAR (arg1), SCM_EOL);
       varloc = SCM_CDRLOC (*varloc);
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
@@ -1014,8 +1009,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
 SCM 
 scm_m_apply (SCM xorig, SCM env)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2,
-	      xorig, scm_s_expression, s_atapply);
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2, scm_s_expression, s_atapply);
   return scm_cons (SCM_IM_APPLY, SCM_CDR (xorig));
 }
 
@@ -1028,7 +1022,7 @@ SCM
 scm_m_cont (SCM xorig, SCM env)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
-	      xorig, scm_s_expression, s_atcall_cc);
+	      scm_s_expression, s_atcall_cc);
   return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
 }
 
@@ -1043,8 +1037,7 @@ SCM
 scm_m_nil_cond (SCM xorig, SCM env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 1 && (len & 1) == 1, xorig,
-	      scm_s_expression, "nil-cond");
+  SCM_ASSYNT (len >= 1 && (len & 1) == 1, scm_s_expression, "nil-cond");
   return scm_cons (SCM_IM_NIL_COND, SCM_CDR (xorig));
 }
 
@@ -1053,8 +1046,7 @@ SCM_SYNTAX (s_nil_ify, "nil-ify", scm_makmmacro, scm_m_nil_ify);
 SCM
 scm_m_nil_ify (SCM xorig, SCM env)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
-	      xorig, scm_s_expression, "nil-ify");
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "nil-ify");
   return scm_cons (SCM_IM_NIL_IFY, SCM_CDR (xorig));
 }
 
@@ -1063,8 +1055,7 @@ SCM_SYNTAX (s_t_ify, "t-ify", scm_makmmacro, scm_m_t_ify);
 SCM
 scm_m_t_ify (SCM xorig, SCM env)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
-	      xorig, scm_s_expression, "t-ify");
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "t-ify");
   return scm_cons (SCM_IM_T_IFY, SCM_CDR (xorig));
 }
 
@@ -1074,8 +1065,7 @@ SCM
 scm_m_0_cond (SCM xorig, SCM env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 1 && (len & 1) == 1, xorig,
-	      scm_s_expression, "0-cond");
+  SCM_ASSYNT (len >= 1 && (len & 1) == 1, scm_s_expression, "0-cond");
   return scm_cons (SCM_IM_0_COND, SCM_CDR (xorig));
 }
 
@@ -1084,8 +1074,7 @@ SCM_SYNTAX (s_0_ify, "0-ify", scm_makmmacro, scm_m_0_ify);
 SCM
 scm_m_0_ify (SCM xorig, SCM env)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
-	      xorig, scm_s_expression, "0-ify");
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "0-ify");
   return scm_cons (SCM_IM_0_IFY, SCM_CDR (xorig));
 }
 
@@ -1094,8 +1083,7 @@ SCM_SYNTAX (s_1_ify, "1-ify", scm_makmmacro, scm_m_1_ify);
 SCM
 scm_m_1_ify (SCM xorig, SCM env)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
-	      xorig, scm_s_expression, "1-ify");
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "1-ify");
   return scm_cons (SCM_IM_1_IFY, SCM_CDR (xorig));
 }
 
@@ -1105,9 +1093,9 @@ SCM
 scm_m_atfop (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig), vcell;
-  SCM_ASSYNT (scm_ilength (x) >= 1, xorig, scm_s_expression, "@fop");
+  SCM_ASSYNT (scm_ilength (x) >= 1, scm_s_expression, "@fop");
   vcell = scm_symbol_fref (SCM_CAR (x));
-  SCM_ASSYNT (SCM_CONSP (vcell), x,
+  SCM_ASSYNT (SCM_CONSP (vcell),
 	      "Symbol's function definition is void", NULL);
   SCM_SET_CELL_WORD_0 (x, SCM_UNPACK (vcell) + scm_tc3_cons_gloc);
   return x;
@@ -1119,7 +1107,7 @@ SCM
 scm_m_atbind (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) > 1, xorig, scm_s_expression, "@bind");
+  SCM_ASSYNT (scm_ilength (x) > 1, scm_s_expression, "@bind");
 
   if (SCM_IMP (env))
     env = SCM_BOOL_F;
@@ -1182,7 +1170,7 @@ scm_m_expand_body (SCM xorig, SCM env)
 	}
     }
 
-  SCM_ASSYNT (SCM_NIMP (x), SCM_CDR (xorig), scm_s_body, what);
+  SCM_ASSYNT (SCM_NIMP (x), scm_s_body, what);
   if (SCM_NIMP (defs))
     {
       x = scm_cons (scm_m_letrec1 (SCM_IM_LETREC,

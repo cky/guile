@@ -1,5 +1,21 @@
 2001-03-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* macros.h (SCM_ASSYNT):  Removed unused object argument from
+	signature.
+
+	* eval.c (scm_m_body, scm_m_quote, scm_m_begin, scm_m_if,
+	scm_m_set_x, scm_m_and, scm_m_or, scm_m_case, scm_m_cond,
+	scm_m_letstar, scm_m_do, scm_m_quasiquote, scm_m_delay,
+	scm_m_define, scm_m_letrec1, scm_m_letrec, scm_m_let, scm_m_apply,
+	scm_m_cont, scm_m_nil_cond, scm_m_nil_ify, scm_m_t_ify,
+	scm_m_0_cond, scm_m_0_ify, scm_m_1_ify, scm_m_atfop, scm_m_atbind,
+	scm_m_expand_body), evalext.c (scm_m_generalized_set_x,
+	scm_m_undefine), goops.c (scm_m_atslot_ref, scm_m_atslot_set_x,
+	scm_m_atdispatch):  Removed unused object argument from call to
+	SCM_ASSYNT.
+
+2001-03-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gh.h/gh_data.c (gh_ints2scm):  Changed the signature to use a
 	const int* to reflect that the input array of integers remains
 	unchanged.  Thanks to Brett Viren for the hint.

@@ -1869,7 +1869,7 @@ scm_m_atslot_ref (SCM xorig, SCM env)
 #define FUNC_NAME s_atslot_ref
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 2, xorig, scm_s_expression, FUNC_NAME);
+  SCM_ASSYNT (scm_ilength (x) == 2, scm_s_expression, FUNC_NAME);
   SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
   return scm_cons (SCM_IM_SLOT_REF, x);
 }
@@ -1883,7 +1883,7 @@ scm_m_atslot_set_x (SCM xorig, SCM env)
 #define FUNC_NAME s_atslot_set_x
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 3, xorig, scm_s_expression, FUNC_NAME);
+  SCM_ASSYNT (scm_ilength (x) == 3, scm_s_expression, FUNC_NAME);
   SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
   return scm_cons (SCM_IM_SLOT_SET_X, x);
 }
@@ -1899,7 +1899,7 @@ scm_m_atdispatch (SCM xorig, SCM env)
 #define FUNC_NAME s_atdispatch
 {
   SCM args, n, v, gf, x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 4, xorig, scm_s_expression, FUNC_NAME);
+  SCM_ASSYNT (scm_ilength (x) == 4, scm_s_expression, FUNC_NAME);
   args = SCM_CAR (x);
   if (!SCM_CONSP (args) && !SCM_SYMBOLP (args))
     SCM_WRONG_TYPE_ARG (SCM_ARG1, args);

@@ -59,7 +59,7 @@ SCM
 scm_m_generalized_set_x (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, scm_s_set_x);
+  SCM_ASSYNT (2 == scm_ilength (x), scm_s_expression, scm_s_set_x);
   if (SCM_SYMBOLP (SCM_CAR (x)))
     return scm_cons (SCM_IM_SET_X, x);
   else if (SCM_CONSP (SCM_CAR (x)))
@@ -127,14 +127,14 @@ scm_m_undefine (SCM x, SCM env)
 {
   SCM arg1 = x;
   x = SCM_CDR (x);
-  SCM_ASSYNT (SCM_TOP_LEVEL (env), arg1, "bad placement ", s_undefine);
+  SCM_ASSYNT (SCM_TOP_LEVEL (env), "bad placement ", s_undefine);
   SCM_ASSYNT (SCM_CONSP (x) && SCM_NULLP (SCM_CDR (x)),
-	      arg1, scm_s_expression, s_undefine);
+	      scm_s_expression, s_undefine);
   x = SCM_CAR (x);
-  SCM_ASSYNT (SCM_SYMBOLP (x), arg1, scm_s_variable, s_undefine);
+  SCM_ASSYNT (SCM_SYMBOLP (x), scm_s_variable, s_undefine);
   arg1 = scm_sym2vcell (x, scm_env_top_level (env), SCM_BOOL_F);
   SCM_ASSYNT (SCM_NFALSEP (arg1) && !SCM_UNBNDP (SCM_CDR (arg1)),
-	      x, "variable already unbound ", s_undefine);
+	      "variable already unbound ", s_undefine);
   SCM_SETCDR (arg1, SCM_UNDEFINED);
 #ifdef SICP
   return SCM_CAR (arg1);
