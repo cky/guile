@@ -63,11 +63,6 @@ SCM_C_INLINE
 SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
-  if (scm_gc_running_p)
-    {
-      abort();
-    }
-  
   SCM z;
   /* We retrieve the SCM pointer only once since the call to
      SCM_FREELIST_LOC will be slightly expensive when we support
@@ -80,6 +75,11 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
    */
   SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist);
 
+  if (scm_gc_running_p)
+    {
+      abort();
+    }
+  
   if (scm_is_null (*freelist))
     z = scm_gc_for_newcell (&scm_i_master_freelist, freelist);
   else
@@ -166,13 +166,13 @@ SCM
 scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 		 scm_t_bits ccr, scm_t_bits cdr)
 {
+  SCM z;
+  SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist2);
+
   if (scm_gc_running_p)
     {
       abort();
     }
-
-  SCM z;
-  SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist2);
 
   if (scm_is_null (*freelist))
     z = scm_gc_for_newcell (&scm_i_master_freelist2, freelist);
