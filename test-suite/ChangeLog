@@ -1,5 +1,7 @@
 2004-08-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* standalone/test-conversion.c (test_locale_strings): New.
+
 	* standalone/test-round.c: Replaced all uses of scm_round with
 	scm_c_round.
 
