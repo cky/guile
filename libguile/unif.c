@@ -764,7 +764,7 @@ SCM_DEFINE (scm_make_typed_array, "make-typed-array", 2, 0, 1,
   while (k--)
     {
       s[k].inc = rlen;
-      SCM_ASSERT_RANGE (1, bounds, s[k].lbnd <= s[k].ubnd);
+      SCM_ASSERT_RANGE (1, bounds, s[k].lbnd <= s[k].ubnd + 1);
       rlen = (s[k].ubnd - s[k].lbnd + 1) * s[k].inc;
     }
 
@@ -2332,45 +2332,59 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 static void l2ra (SCM lst, scm_t_array_handle *handle, ssize_t pos, size_t k);
 
 SCM_DEFINE (scm_list_to_typed_array, "list->typed-array", 3, 0, 0,
-           (SCM type, SCM ndim, SCM lst),
+           (SCM type, SCM shape, SCM lst),
 	    "Return an array of the type @var{type}\n"
 	    "with elements the same as those of @var{lst}.\n"
 	    "\n"
-	    "The argument @var{ndim} determines the number of dimensions\n"
-	    "of the array.  It is either an exact integer, giving the\n"
-	    "number directly, or a list of exact integers, whose length\n"
-	    "specifies the number of dimensions and each element is the\n"
-	    "lower index bound of its dimension.")
+	    "The argument @var{shape} determines the number of dimensions\n"
+	    "of the array and their shape.  It is either an exact integer,\n"
+	    "giving the\n"
+	    "number of dimensions directly, or a list whose length\n"
+	    "specifies the number of dimensions and each element specified\n"
+	    "the lower and optionally the upper bound of the corresponding\n"
+	    "dimension.\n"
+	    "When the element is list of two elements, these elements\n"
+	    "give the lower and upper bounds.  When it is an exact\n"
+	    "integer, it gives only the lower bound.")
 #define FUNC_NAME s_scm_list_to_typed_array
 {
-  SCM shape, row;
+  SCM row;
   SCM ra;
   scm_t_array_handle handle;
 
-  shape = SCM_EOL;
   row = lst;
-  if (scm_is_integer (ndim))
+  if (scm_is_integer (shape))
     {
-      size_t k = scm_to_size_t (ndim);
+      size_t k = scm_to_size_t (shape);
+      shape = SCM_EOL;
       while (k-- > 0)
 	{
 	  shape = scm_cons (scm_length (row), shape);
-	  if (k > 0)
+	  if (k > 0 && !scm_is_null (row))
 	    row = scm_car (row);
 	}
     }
   else
     {
+      SCM shape_spec = shape;
+      shape = SCM_EOL;
       while (1)
 	{
-	  shape = scm_cons (scm_list_2 (scm_car (ndim),
-					scm_sum (scm_sum (scm_car (ndim),
-							  scm_length (row)),
-						 scm_from_int (-1))),
-			    shape);
-	  ndim = scm_cdr (ndim);
-	  if (scm_is_pair (ndim))
-	    row = scm_car (row);
+	  SCM spec = scm_car (shape_spec);
+	  if (scm_is_pair (spec))
+	    shape = scm_cons (spec, shape);
+	  else
+	    shape = scm_cons (scm_list_2 (spec,
+					  scm_sum (scm_sum (spec,
+							    scm_length (row)),
+						   scm_from_int (-1))),
+			      shape);
+	  shape_spec = scm_cdr (shape_spec);
+	  if (scm_is_pair (shape_spec))
+	    {
+	      if (!scm_is_null (row))
+		row = scm_car (row);
+	    }
 	  else
 	    break;
 	}
@@ -2405,8 +2419,10 @@ l2ra (SCM lst, scm_t_array_handle *handle, ssize_t pos, size_t k)
     {
       scm_t_array_dim *dim = scm_array_handle_dims (handle) + k;
       ssize_t inc = dim->inc;
-      size_t n = 1 + dim->ubnd - dim->lbnd;
+      size_t len = 1 + dim->ubnd - dim->lbnd, n;
+      char *errmsg = NULL;
 
+      n = len;
       while (n > 0 && scm_is_pair (lst))
 	{
 	  l2ra (SCM_CAR (lst), handle, pos, k + 1);
@@ -2415,11 +2431,12 @@ l2ra (SCM lst, scm_t_array_handle *handle, ssize_t pos, size_t k)
 	  n -= 1;
 	}
       if (n != 0)
-	scm_misc_error (NULL, "too few elements for array dimension ~a",
-			scm_list_1 (scm_from_ulong (k)));
+	errmsg = "too few elements for array dimension ~a, need ~a";
       if (!scm_is_null (lst))
-	scm_misc_error (NULL, "too many elements for array dimension ~a",
-			scm_list_1 (scm_from_ulong (k)));
+	errmsg = "too many elements for array dimension ~a, want ~a";
+      if (errmsg)
+	scm_misc_error (NULL, errmsg, scm_list_2 (scm_from_ulong (k),
+						  scm_from_size_t (len)));
     }
 }
 
@@ -2485,6 +2502,7 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
   SCM v = SCM_ARRAY_V (array);
   unsigned long base = SCM_ARRAY_BASE (array);
   long i;
+  int print_lbnds = 0, zero_size = 0, print_lens = 0;
 
   scm_putc ('#', port);
   if (ndim != 1 || dim_specs[0].lbnd != 0)
@@ -2499,14 +2517,29 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
     scm_puts ("?", port);
   
   for (i = 0; i < ndim; i++)
-    if (dim_specs[i].lbnd != 0)
+    {
+      if (dim_specs[i].lbnd != 0)
+	print_lbnds = 1;
+      if (dim_specs[i].ubnd - dim_specs[i].lbnd + 1 == 0)
+	zero_size = 1;
+      else if (zero_size)
+	print_lens = 1;
+    }
+
+  if (print_lbnds || print_lens)
+    for (i = 0; i < ndim; i++)
       {
-	for (i = 0; i < ndim; i++)
+	if (print_lbnds)
 	  {
 	    scm_putc ('@', port);
-	    scm_uintprint (dim_specs[i].lbnd, 10, port);
+	    scm_intprint (dim_specs[i].lbnd, 10, port);
 	  }
-	break;
+	if (print_lens)
+	  {
+	    scm_putc (':', port);
+	    scm_intprint (dim_specs[i].ubnd - dim_specs[i].lbnd + 1,
+			  10, port);
+	  }
       }
 
   if (ndim == 0)
@@ -2615,6 +2648,31 @@ tag_to_type (const char *tag, SCM port)
     return scm_from_locale_symbol (tag);
 }
 
+static int
+read_decimal_integer (SCM port, int c, ssize_t *resp)
+{
+  ssize_t sign = 1;
+  ssize_t res = 0;
+  int got_it = 0;
+
+  if (c == '-')
+    {
+      sign = -1;
+      c = scm_getc (port);
+    }
+
+  while ('0' <= c && c <= '9')
+    {
+      res = 10*res + c-'0';
+      got_it = 1;
+      c = scm_getc (port);
+    }
+
+  if (got_it)
+    *resp = res;
+  return c;
+}
+
 SCM
 scm_i_read_array (SCM port, int c)
 {
@@ -2623,7 +2681,7 @@ scm_i_read_array (SCM port, int c)
   char tag[80];
   int tag_len;
 
-  SCM lower_bounds = SCM_BOOL_F, elements;
+  SCM shape = SCM_BOOL_F, elements;
 
   /* XXX - shortcut for ordinary vectors.  Shouldn't be necessary but
      the array code can not deal with zero-length dimensions yet, and
@@ -2653,55 +2711,55 @@ scm_i_read_array (SCM port, int c)
       goto continue_reading_tag;
     }
 
-  /* Read rank. */
-  rank = 0;
-  got_rank = 0;
-  while ('0' <= c && c <= '9')
-    {
-      rank = 10*rank + c-'0';
-      got_rank = 1;
-      c = scm_getc (port);
-    }
-  if (!got_rank)
-    rank = 1;
+  /* Read rank. 
+   */
+  rank = 1;
+  c = read_decimal_integer (port, c, &rank);
+  if (rank < 0)
+    scm_i_input_error (NULL, port, "array rank must be non-negative",
+		       SCM_EOL);
 
-  /* Read tag. */
+  /* Read tag. 
+   */
   tag_len = 0;
  continue_reading_tag:
-  while (c != EOF && c != '(' && c != '@' && tag_len < 80)
+  while (c != EOF && c != '(' && c != '@' && c != ':' && tag_len < 80)
     {
       tag[tag_len++] = c;
       c = scm_getc (port);
     }
   tag[tag_len] = '\0';
   
-  /* Read lower bounds. */
-  if (c == '@')
+  /* Read shape. 
+   */
+  if (c == '@' || c == ':')
     {
-      lower_bounds = SCM_EOL;
+      shape = SCM_EOL;
       
       do
 	{
-	  /* Yeah, right, we should use some ready-made integer parsing
-	     routine for this...
-	  */
+	  ssize_t lbnd = 0, len = 0;
+	  SCM s;
 
-	  long lbnd = 0;
-	  long sign = 1;
+	  if (c == '@')
+	    {
+	      c = scm_getc (port);
+	      c = read_decimal_integer (port, c, &lbnd);
+	    }
 	  
-	  c = scm_getc (port);
-	  if (c == '-')
+	  s = scm_from_ssize_t (lbnd);
+
+	  if (c == ':')
 	    {
-	      sign = -1;
 	      c = scm_getc (port);
+	      c = read_decimal_integer (port, c, &len);
+	      s = scm_list_2 (s, scm_from_ssize_t (lbnd+len-1));
 	    }
-	  while ('0' <= c && c <= '9')
-	    {
-	      lbnd = 10*lbnd + c-'0';
-	      c = scm_getc (port);
-	    }
-	  lower_bounds = scm_cons (scm_from_long (sign*lbnd), lower_bounds);
-	} while (c == '@');
+
+	  shape = scm_cons (s, shape);
+	} while (c == '@' || c == ':');
+
+      shape = scm_reverse_x (shape, SCM_EOL);
     }
 
   /* Read nested lists of elements.
@@ -2713,24 +2771,33 @@ scm_i_read_array (SCM port, int c)
   scm_ungetc (c, port);
   elements = scm_read (port);
 
-  if (scm_is_false (lower_bounds))
-    lower_bounds = scm_from_size_t (rank);
-  else if (scm_ilength (lower_bounds) != rank)
-    scm_i_input_error (NULL, port,
-		       "the number of lower bounds must match the array rank",
-		       SCM_EOL);
+  if (scm_is_false (shape))
+    shape = scm_from_size_t (rank);
+  else if (scm_ilength (shape) != rank)
+    scm_i_input_error 
+      (NULL, port,
+       "the number of shape specifications must match the array rank",
+       SCM_EOL);
 
   /* Handle special print syntax of rank zero arrays; see
      scm_i_print_array for a rationale.
   */
   if (rank == 0)
-    elements = scm_car (elements);
+    {
+      if (!scm_is_pair (elements))
+	scm_i_input_error (NULL, port,
+			   "too few elements in array literal, need 1",
+			   SCM_EOL);
+      if (!scm_is_null (SCM_CDR (elements)))
+	scm_i_input_error (NULL, port,
+			   "too many elements in array literal, want 1",
+			   SCM_EOL);
+      elements = SCM_CAR (elements);
+    }
 
   /* Construct array. 
    */
-  return scm_list_to_typed_array (tag_to_type (tag, port),
-				  lower_bounds,
-				  elements);
+  return scm_list_to_typed_array (tag_to_type (tag, port), shape, elements);
 }
 
 int 
