@@ -466,6 +466,12 @@ handler_message (void *handler_data, SCM tag, SCM args)
       SCM parts   = SCM_CADDR (args);
       SCM rest    = SCM_CDDDR (args);
 
+      if (SCM_BACKTRACE_P && SCM_NFALSEP (stack))
+	{
+	  scm_puts ("Backtrace:\n", p);
+	  scm_display_backtrace (stack, p, SCM_UNDEFINED, SCM_UNDEFINED);
+	  scm_newline (p);
+	}
       scm_display_error (stack, p, subr, message, parts, rest);
     }
   else
