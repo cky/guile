@@ -693,37 +693,26 @@ scm_ports_prehistory ()
 int scm_tc16_void_port = 0;
 
 static int
-print_void_port (exp, port, writing)
-     SCM exp;
-     SCM port;
-     int writing;
+print_void_port (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_prinport (exp, port, "void");
   return 1;
 }
 
 static int
-putc_void_port (c, strm)
-     int c;
-     SCM strm;
+putc_void_port (int c, SCM strm)
 {
   return 0;			/* vestigial return value */
 }
 
 static int
-puts_void_port (s, strm)
-     char * s;
-     SCM strm;
+puts_void_port (char *s, SCM strm)
 {
   return 0;			/* vestigial return value */
 }
 
 static scm_sizet
-write_void_port (ptr, size, nitems, strm)
-     void * ptr;
-     int size;
-     int nitems;
-     SCM strm;
+write_void_port (char *ptr, scm_sizet size, scm_sizet nitems, SCM strm)
 {
   int len;
   len = size * nitems;
@@ -731,42 +720,30 @@ write_void_port (ptr, size, nitems, strm)
 }
 
 
-static int flush_void_port SCM_P ((SCM strm));
-
 static int
-flush_void_port (strm)
-     SCM strm;
+flush_void_port (SCM strm)
 {
   return 0;
 }
 
 
-static int getc_void_port SCM_P ((SCM strm));
-
 static int
-getc_void_port (strm)
-     SCM strm;
+getc_void_port (SCM strm)
 {
   return EOF;
 }
 
 
-static int close_void_port SCM_P ((SCM strm));
-
 static int
-close_void_port (strm)
-     SCM strm;
+close_void_port (SCM strm)
 {
   return 0;			/* this is ignored by scm_close_port. */
 }
 
 
 
-static int noop0 SCM_P ((SCM stream));
-
 static int 
-noop0 (stream)
-     SCM stream;
+noop0 (SCM stream)
 {
   return 0;
 }
