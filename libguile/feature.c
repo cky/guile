@@ -42,37 +42,20 @@
 
 #include <stdio.h>
 #include "_scm.h"
-#include "libpath.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
 
 
-SCM *scm_loc_features;
+static SCM *scm_loc_features;
 
 void
 scm_add_feature(str)
      char* str;
 {
-  *scm_loc_features = scm_cons(SCM_CAR(scm_intern(str, strlen(str))), *scm_loc_features);
-}
-
-
-
-/* {Help finding slib}
- */
-
-
-SCM_PROC(s_compiled_library_path, "compiled-library-path", 0, 0, 0, scm_compiled_library_path);
-SCM
-scm_compiled_library_path ()
-{
-#ifndef LIBRARY_PATH
-  return SCM_BOOL_F;
-#else
-  return scm_makfrom0str (LIBRARY_PATH);
-#endif
+  *scm_loc_features = scm_cons(SCM_CAR(scm_intern(str, strlen(str))),
+			       *scm_loc_features);
 }
 
 
@@ -84,8 +67,6 @@ scm_program_arguments ()
 {
   return scm_progargs;
 }
-
-
 
 
 
@@ -112,7 +93,6 @@ scm_init_feature()
 #ifndef CHEAP_CONTINUATIONS
   scm_add_feature ("full-continuation");
 #endif
-
 
   scm_sysintern ("char-code-limit", SCM_MAKINUM (SCM_CHAR_SCM_CODE_LIMIT));
 #include "feature.x"
