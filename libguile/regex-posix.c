@@ -87,13 +87,13 @@
 
 long scm_tc16_regex_t;
 
-static size_t
+static scm_size_t
 scm_free_regex_t (obj)
      SCM obj;
 {
   regfree (SCM_RGX (obj));
   free (SCM_RGX (obj));
-  return 0;
+  return sizeof(regex_t);
 }
 
 static int
