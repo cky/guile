@@ -330,14 +330,23 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
 #undef FUNC_NAME
 
 
+/* Helper function for the string copy and string conversion functions.
+ * No argument checking is performed.  */
+static SCM
+string_copy (SCM str)
+{
+  return scm_makfromstr (SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str), 0);
+}
+
 
 SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0, 
-           (SCM str),
+	    (SCM str),
 	    "Returns a newly allocated copy of the given @var{string}. (r5rs)")
 #define FUNC_NAME s_scm_string_copy
 {
   SCM_VALIDATE_STRING (1, str);
-  return scm_makfromstr (SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str), 0);
+
+  return string_copy (str);
 }
 #undef FUNC_NAME
 
@@ -357,8 +366,23 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+
+/* Helper function for the string uppercase conversion functions.  
+ * No argument checking is performed.  */
+static SCM
+string_upcase_x (SCM v)
+{
+  unsigned long k;
+
+  for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
+    SCM_STRING_UCHARS (v) [k] = scm_upcase (SCM_STRING_UCHARS (v) [k]);
+
+  return v;
+}
+
+
 SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
-           (SCM v),
+	    (SCM str),
 	    "Destructively upcase every character in @code{str}.\n\n"
 	    "(qdocs:) Converts each element in @var{str} to upper case.\n\n"
 	    "@example\n"
@@ -369,28 +393,41 @@ SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_string_upcase_x
 {
-  unsigned long k;
+  SCM_VALIDATE_STRING (1, str);
 
-  SCM_VALIDATE_STRING (1, v);
-
-  for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
-    SCM_STRING_UCHARS (v) [k] = scm_upcase (SCM_STRING_UCHARS (v) [k]);
-
-  return v;
+  return string_upcase_x (str);
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0, 
-           (SCM str),
+	    (SCM str),
 	    "Upcase every character in @code{str}.")
 #define FUNC_NAME s_scm_string_upcase
 {
-  return scm_string_upcase_x(scm_string_copy(str));
+  SCM_VALIDATE_STRING (1, str);
+
+  return string_upcase_x (string_copy (str));
 }
 #undef FUNC_NAME
 
+
+/* Helper function for the string lowercase conversion functions.  
+ * No argument checking is performed.  */
+static SCM
+string_downcase_x (SCM v)
+{
+  unsigned long k;
+
+  for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
+    SCM_STRING_UCHARS (v) [k] = scm_downcase (SCM_STRING_UCHARS (v) [k]);
+
+  return v;
+}
+
+
 SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
-           (SCM v),
+	    (SCM str),
 	    "Destructively downcase every character in @code{str}.\n\n"
 	    "(qdocs:) Converts each element in @var{str} to lower case.\n\n"
 	    "@example\n"
@@ -403,35 +440,33 @@ SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_string_downcase_x
 {
-  unsigned long k;
+  SCM_VALIDATE_STRING (1, str);
 
-  SCM_VALIDATE_STRING (1, v);
-
-  for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
-    SCM_STRING_UCHARS (v) [k] = scm_downcase (SCM_STRING_UCHARS (v) [k]);
-
-  return v;
+  return string_downcase_x (str);
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0, 
-           (SCM str),
+	    (SCM str),
 	    "Downcase every character in @code{str}.")
 #define FUNC_NAME s_scm_string_downcase
 {
-  SCM_VALIDATE_STRING (1,str);
-  return scm_string_downcase_x(scm_string_copy(str));
+  SCM_VALIDATE_STRING (1, str);
+
+  return string_downcase_x (string_copy (str));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
-           (SCM str),
-	    "Destructively capitalize every character in @code{str}.")
-#define FUNC_NAME s_scm_string_capitalize_x
+
+/* Helper function for the string capitalization functions.  
+ * No argument checking is performed.  */
+static SCM
+string_capitalize_x (SCM str)
 {
   char *sz;
   int i, len, in_word=0;
-  SCM_VALIDATE_STRING (1,str);
+
   len = SCM_STRING_LENGTH(str);
   sz = SCM_STRING_CHARS (str);
   for(i=0; i<len;  i++) {
@@ -447,17 +482,31 @@ SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
   }
   return str;
 }
+
+
+SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
+	    (SCM str),
+	    "Destructively capitalize every character in @code{str}.")
+#define FUNC_NAME s_scm_string_capitalize_x
+{
+  SCM_VALIDATE_STRING (1, str);
+
+  return string_capitalize_x (str);
+}
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0, 
-           (SCM str),
+	    (SCM str),
 	    "Capitalize every character in @code{str}.")
 #define FUNC_NAME s_scm_string_capitalize
 {
-  SCM_VALIDATE_STRING (1,str);
-  return scm_string_capitalize_x(scm_string_copy(str));
+  SCM_VALIDATE_STRING (1, str);
+
+  return string_capitalize_x (string_copy (str));
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
            (SCM str),

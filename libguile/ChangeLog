@@ -1,5 +1,20 @@
 2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	The following patch was sent by Martin Grabmueller.  It makes sure
+	that in case of parameter errors the correct function name is
+	shown, and that parameter types are only checked once.
+
+	* strop.c (string_copy, string_upcase_x, string_downcase_x,
+	string_capitalize_x):  New functions.  Each one performs the core
+	functionality of the corresponding scm_* function.
+
+	(scm_string_copy, scm_string_upcase_x, scm_string_upcase,
+	scm_string_downcase_x, scm_string_downcase,
+	scm_string_capitalize_x, scm_string_capitalize):  Reduced to
+	parameter checking wrappers of the above functions.
+
+2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* continuations.c, dynl.c, keywords.c, load.c:  Include
 	strings.h.  Thanks to Bill Schottstaedt for the bug report.
 
