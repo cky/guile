@@ -1,9 +1,9 @@
-2002-01-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+2002-02-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_gc_sweep): Make it compile even when deprecated
 	features are excluded.
 
-2002-01-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+2002-02-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* num2integral.i.c (NUM2INTEGRAL): Fixed signedness problem.
 
