@@ -1,5 +1,16 @@
 2004-10-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* numbers.c (scm_i_range_error): New.
+	* conv-integer.i.c, conv-uinteger.i.c: Use it instead of
+	scm_out_of_range.	
+
+	* sort.c (scm_restricted_vector_sort_x): Validate startpos <=
+	endpos.  State inclusiveness/exclusiveness if bounds in docstring.
+
+	* unif.c (scm_array_p): When no prototype is given, explicitely
+	test for allowable types, do not simply return true.  Thanks to
+	Roland Orre for reporting this!
+
 	* private-gc.h (SCM_DEFAULT_MAX_SEGMENT_SIZE): Increase to 20 Mib.
 
 	* gc-segment.c (scm_i_get_new_heap_segment): Limit size of new
