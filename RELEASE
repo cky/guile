@@ -26,13 +26,14 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
 2) Verify that Guile builds and runs in your working directory.  I
    hope that we'll eventually have a test suite to make this more
    concrete, but for the moment, just make sure things seem sane.
-3) Make sure NEWS and the docs are up to date:
+3) Make sure NEWS, INSTALL and the docs are up to date:
    a) Scan the ChangeLogs for user-visible changes, marked with an asterisk
       at the left margin.
    b) Update NEWS and the Texinfo documentation as appropriate.
    c) Remove the user-visible markers from the log entries once they're
       documented.
    d) Check for any [[incomplete]] sections of NEWS.
+   e) Fact-check INSTALL.
 4) Scan output from `cvs diff' to find files that have changed a lot, but
    do not have up-to-date copyright notices.
 5) Update the version numbers in GUILE-VERSION, and README.  The Guile
@@ -62,9 +63,8 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
     g) If you made any fixes, commit them, and start from a) again
 11a) Add "Guile N.M released." entry to ChangeLog, and commit it.
 12) Tag the entire source tree with a tag of the form "release_N_M".
-13) Copy the tar file over to the GNU machines, and ask the appropriate
-    person to put it on prep.  At the time of this writing, Joel Weber
-    <devnull@gnu.org> has been generous about helping with that.
+13) Copy the tar file over to the GNU machines, and send mail to
+    ftp-upload@gnu.org, asking them to put it on prep.
 14) Send an announcement message to gnu-announce@gnu.org.  Put
     "Obtaining Guile" first, then a brief summary of the changes in
     this release, then "Thanks," "About This Distribution," and

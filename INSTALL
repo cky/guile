@@ -75,15 +75,15 @@ be enabled by default.  The interaction with blocking I/O is pretty ad
 hoc at the moment.  In our experience, bugs in the thread support do
 not affect you if you don't actually use threads.
 
-At the moment, threads are known not to work with the NetBSD 1.2
-assembler.
-
 --enable-dynamic-linking --- Build a Guile executable and library
 providing Scheme functions which can load a shared library and
 initialize it, perhaps thereby adding new functions to Guile.  This
-feature is not yet thoroughly tested; once it is, it will be enabled
-by default.  This option has no effect on systems that do not support
-shared libraries.
+feature is enabled by default; you only need to use this option (as
+`--enable-dynamic-linking=no') if you want to build a Guile which does
+not support dynamic linking.
+
+This option has no effect on systems that do not support shared
+libraries.
 
 --disable-shared --- Do not build shared libraries.  Normally, Guile
 will build shared libraries if your system supports them.  Guile

@@ -263,6 +263,14 @@ True iff OBJ is a macro object.
 Like (macro? OBJ), but true only if OBJ is one of the Guile primitive
 macro transformers, implemented in eval.c rather than Scheme code.
 
+Why do we have this function?
+- For symmetry with procedure? and primitive-procedure?,
+- to allow custom print procedures to tell whether a macro is
+  primitive, and display it differently, and
+- to allow compilers and user-written evaluators to distinguish
+  builtin special forms from user-defined ones, which could be
+  compiled.
+
 *** New function: (macro-type OBJ)
 Return a value indicating what kind of macro OBJ is.  Possible return
 values are:
