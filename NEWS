@@ -39,6 +39,73 @@ AC_CHECK_LIB(guile, scm_shell)
 
 * Changes to Scheme functions and syntax
 
+** The dynamic linking features of Guile are now enabled by default.
+You can disable them by giving the `--disable-dynamic-linking' option
+to configure.
+
+When dynamic linking is disabled or not supported on your system,
+the following functions throw errors, but they are still available.
+
+  (dynamic-link FILENAME)
+
+    Find the object file denoted by FILENAME (a string) and link it
+    into the running Guile application.  When everything works out,
+    return a Scheme object suitable for representing the linked object
+    file.  Otherwise an error is thrown.  How object files are
+    searched is system dependent.
+
+  (dynamic-object? VAL)
+
+    Determine whether VAL represents a dynamically linked object file.
+
+  (dynamic-unlink DYNOBJ)
+
+    Unlink the indicated object file from the application.  DYNOBJ
+    should be one of the values returned by `dynamic-link'.
+
+  (dynamic-func FUNCTION DYNOBJ)
+
+    Search the C function indicated by FUNCTION (a string or symbol)
+    in DYNOBJ and return some Scheme object that can later be used
+    with `dynamic-call' to actually call this function.  Right now,
+    these Scheme objects are formed by casting the address of the
+    function to `long' and converting this number to its Scheme
+    representation.
+
+  (dynamic-call FUNCTION DYNOBJ)
+
+    Call the C function indicated by FUNCTION and DYNOBJ.  The
+    function is passed no arguments and its return value is ignored.
+    When FUNCTION is something returned by `dynamic-func', call that
+    function and ignore DYNOBJ.  When FUNCTION is a string (or symbol,
+    etc.), look it up in DYNOBJ; this is equivalent to
+
+	(dynamic-call (dynamic-func FUNCTION DYNOBJ) #f)
+
+    Interrupts are deferred while the C function is executing (with
+    SCM_DEFER_INTS/SCM_ALLOW_INTS).
+
+  (dynamic-args-call FUNCTION DYNOBJ ARGS)
+
+    Call the C function indicated by FUNCTION and DYNOBJ, but pass it
+    some arguments and return its return value.  The C function is
+    expected to take two arguments and return an `int', just like
+    `main':
+
+	int c_func (int argc, char **argv);
+
+    ARGS must be a list of strings and is converted into an array of
+    `char *'.  The array is passed in ARGV and its size in ARGC.  The
+    return value is converted to a Scheme number and returned from the
+    call to `dynamic-args-call'.
+
+Here is a small example that works on GNU/Linux:
+
+  (define libc-obj (dynamic-link "libc.so"))
+  (dynamic-args-call 'rand libc-obj '())
+
+See the file `libguile/DYNAMIC-LINKING' for additional comments.
+
 ** The #/ syntax for module names is depreciated, and will be removed
 in a future version of Guile.  Instead of 
 
