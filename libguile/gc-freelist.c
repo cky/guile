@@ -138,6 +138,11 @@ scm_init_freelist (scm_t_cell_type_statistics *freelist,
 	       int span,
 	       int min_yield)
 {
+  if (min_yield < 1)
+    min_yield = 1;
+  if (min_yield > 99)
+    min_yield = 99;
+
   freelist->heap_segment_idx = -1;
   freelist->min_yield = 0;
   freelist->min_yield_fraction = min_yield;
@@ -158,10 +163,9 @@ scm_init_freelist (scm_t_cell_type_statistics *freelist,
 void
 scm_gc_init_freelist (void)
 {
-  size_t init_heap_size_1
+  int init_heap_size_1
     = scm_getenv_int ("GUILE_INIT_SEGMENT_SIZE_1", SCM_DEFAULT_INIT_HEAP_SIZE_1);
-
-  size_t init_heap_size_2
+  int init_heap_size_2
     = scm_getenv_int ("GUILE_INIT_SEGMENT_SIZE_2", SCM_DEFAULT_INIT_HEAP_SIZE_2);
 
   scm_i_freelist = SCM_EOL;
@@ -172,12 +176,14 @@ scm_gc_init_freelist (void)
   scm_init_freelist (&scm_i_master_freelist, 1,
 		     scm_getenv_int ("GUILE_MIN_YIELD_1", SCM_DEFAULT_MIN_YIELD_1));
 
-
   scm_max_segment_size = scm_getenv_int ("GUILE_MAX_SEGMENT_SIZE", SCM_DEFAULT_MAX_SEGMENT_SIZE);
+
+  if (scm_max_segment_size <= 0)
+    scm_max_segment_size = SCM_DEFAULT_MAX_SEGMENT_SIZE;
+  
   
   scm_i_make_initial_segment (init_heap_size_1, &scm_i_master_freelist);
   scm_i_make_initial_segment (init_heap_size_2, &scm_i_master_freelist2);
-
   
 #if (SCM_ENABLE_DEPRECATED == 1)
   if ( scm_default_init_heap_size_1 ||

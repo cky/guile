@@ -124,7 +124,8 @@ extern unsigned long scm_gc_cells_collected_1;
 void scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist);
 void scm_i_gc_sweep_freelist_reset (scm_t_cell_type_statistics *freelist);
 int scm_i_gc_grow_heap_p (scm_t_cell_type_statistics * freelist);
-     
+
+
 #define SCM_HEAP_SIZE \
   (scm_i_master_freelist.heap_size + scm_i_master_freelist2.heap_size)
 
@@ -228,7 +229,7 @@ void scm_i_sweep_segments (void);
 SCM scm_i_sweep_some_segments (scm_t_cell_type_statistics * fl);
 void scm_i_reset_segments (void);
 void scm_i_sweep_all_segments (char const *reason);
-void scm_i_make_initial_segment (size_t init_heap_size, scm_t_cell_type_statistics *freelist);
+void scm_i_make_initial_segment (int init_heap_size, scm_t_cell_type_statistics *freelist);
 
 extern long int scm_i_deprecated_memory_return;
 

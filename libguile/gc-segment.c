@@ -520,12 +520,15 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist, policy_on_erro
   return -1;
 }
 
-
-
 void
-scm_i_make_initial_segment (size_t init_heap_size, scm_t_cell_type_statistics *freelist)
+scm_i_make_initial_segment (int init_heap_size, scm_t_cell_type_statistics *freelist)
 {
   scm_t_heap_segment * seg = scm_i_make_empty_heap_segment (freelist);
+
+  if (init_heap_size < 1)
+    {
+      init_heap_size =  SCM_DEFAULT_INIT_HEAP_SIZE_1;
+    }
  
   if (scm_i_initialize_heap_segment_data (seg, init_heap_size))
     {

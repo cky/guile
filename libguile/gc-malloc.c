@@ -106,6 +106,14 @@ scm_gc_init_malloc (void)
 				 SCM_DEFAULT_INIT_MALLOC_LIMIT);
   scm_i_minyield_malloc =  scm_getenv_int ("GUILE_MIN_YIELD_MALLOC",
 					   SCM_DEFAULT_MALLOC_MINYIELD);
+
+  if (scm_i_minyield_malloc >= 100)
+    scm_i_minyield_malloc = 99;
+  if (scm_i_minyield_malloc < 1)
+    scm_i_minyield_malloc = 1;
+
+  if (scm_mtrigger < 0)
+    scm_mtrigger = SCM_DEFAULT_INIT_MALLOC_LIMIT;
 }
 
 
@@ -226,7 +234,10 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 	    Instead of getting bogged down, we let the mtrigger grow
 	    strongly with it.
 	   */
-	  scm_mtrigger = (scm_mallocated * 110) / (100 - scm_i_minyield_malloc);
+	  float no_overflow_trigger = (float)(scm_mallocated * 110);
+
+	  no_overflow_trigger /= (float)  (100 - scm_i_minyield_malloc);
+	  scm_mtrigger =  (unsigned long) no_overflow_trigger;
 	  
 #ifdef DEBUGINFO
 	  fprintf (stderr, "Mtrigger sweep: ineffective. New trigger %d\n", scm_mtrigger);
