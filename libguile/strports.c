@@ -320,7 +320,7 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 0, 0,
   SCM port;
 
   str = scm_makstr (0, 0);
-  port = scm_mkstrport (SCM_INUM0, str, SCM_OPN | SCM_WRTNG, "scm_strprint_obj");
+  port = scm_mkstrport (SCM_INUM0, str, SCM_OPN | SCM_WRTNG, FUNC_NAME);
   scm_prin1 (obj, port, 1);
   return scm_strport_to_string (port);
 }
