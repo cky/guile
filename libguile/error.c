@@ -252,7 +252,7 @@ scm_wta (arg, pos, s_subr)
   if ((~0x1fL) & (long) pos)
     {
       /* error string supplied.  */
-      scm_misc_error (s_subr, pos, SCM_EOL);
+      scm_misc_error (s_subr, pos, SCM_LIST1 (arg));
     }
   else
     {
