@@ -1,3 +1,8 @@
+2001-11-20  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* modules.c (scm_c_export): Do nothing when the first argument is
+	already the terminating NULL.  Thanks to Han-Wen Nienhuys!
+
 2001-11-20  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* Makefile.am (libpath.h): In SCM_BUILD_INFO,
