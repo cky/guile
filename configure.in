@@ -210,38 +210,12 @@ case "$guile_cv_func_usleep_return_type" in
   ;;
 esac
 
-dnl <GNU-WIN32 hacks>
-
 AC_CHECK_HEADER(sys/un.h, have_sys_un_h=1)
 if test -n "$have_sys_un_h" ; then
 AC_DEFINE(HAVE_UNIX_DOMAIN_SOCKETS)
 fi
 
 AC_CHECK_FUNCS(socketpair getgroups setpwent pause tzset)
-
-dnl I don't know what this prefixing of cygwin32_ is for.
-dnl scmconfig.h wasn't updated with the test results.
-dnl so use AC_CHECK_FUNCS for now.
-
-dnl how about:
-dnl save confdefs.h
-dnl if test $ac_cv_cigwin = yes; then
-dnl   modify confdefs.h
-dnl fi
-dnl AC_CHECK_FUNCS...
-dnl restore confdefs.h
-
-dnl cp confdefs.h confdefs.h.bak
-dnl for func in gethostent sethostent endhostent getnetent setnetent endnetent getprotoent setprotoent endprotoent getservent setservent endservent getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof hstrerror; do
-dnl cp confdefs.h.bak confdefs.h
-dnl cat >> confdefs.h << EOF 
-dnl #ifdef __CYGWIN32__
-dnl #define $func cygwin32_$func
-dnl #endif
-dnl EOF
-dnl AC_CHECK_FUNC($func)
-dnl done
-dnl cp confdefs.h.bak confdefs.h
 
 AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
                setnetent    getnetent    endnetent    dnl
@@ -250,7 +224,18 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
                getnetbyaddr getnetbyname dnl
 	       inet_lnaof inet_makeaddr inet_netof hstrerror)
 
-dnl </GNU-WIN32 hacks>
+dnl Some systems do not declare this.  Some systems do declare it, as a
+dnl macro.  With cygwin it may be in a DLL.
+
+AC_MSG_CHECKING(whether netdb.h declares h_errno)
+AC_CACHE_VAL(guile_cv_have_h_errno,
+[AC_TRY_COMPILE([#include <netdb.h>],
+[int a = h_errno;],
+guile_cv_have_h_errno=yes, guile_cv_have_h_errno=no)])
+AC_MSG_RESULT($guile_cv_have_h_errno)
+if test $guile_cv_have_h_errno = yes; then
+  AC_DEFINE(HAVE_H_ERRNO)
+fi
 
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(guile_cv_localtime_cache,

@@ -110,6 +110,9 @@
 /* Define if dlsym automatically supplies a leading underscore. */
 #undef DLSYM_ADDS_USCORE
 
+/* Define if h_errno is declared in netdb.h.  */
+#undef HAVE_H_ERRNO
+
 /* Define if localtime caches the TZ setting.  */
 #undef LOCALTIME_CACHE
 
