@@ -28,7 +28,8 @@ libguile_la_SOURCES = \
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
     strerror.c inet_aton.c putenv.c \
-    threads.c alloca.c
+    threads.c alloca.c \
+    regex-posix.c
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included in threads.c.  So instead we list
@@ -52,7 +53,7 @@ modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
     eq.h error.h eval.h extchrs.h feature.h filesys.h fports.h gc.h \
     gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h \
     ioext.h kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
-    numbers.h objprop.h options.h pairs.h ports.h posix.h print.h \
+    numbers.h objprop.h options.h pairs.h ports.h posix.h regex-posix.h print.h \
     procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h script.h \
     sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \

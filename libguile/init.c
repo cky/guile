@@ -81,6 +81,9 @@
 #include "pairs.h"
 #include "ports.h"
 #include "posix.h"
+#ifdef HAVE_REGCOMP
+#include "regex-posix.h"
+#endif
 #include "print.h"
 #include "procprop.h"
 #include "procs.h"
@@ -415,6 +418,9 @@ scm_boot_guile_1 (base, closure)
       scm_init_pairs ();
       scm_init_ports ();
       scm_init_posix ();
+#ifdef HAVE_REGCOMP
+      scm_init_regex_posix ();
+#endif
       scm_init_procs ();
       scm_init_procprop ();
       scm_init_scmsigs ();

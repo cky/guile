@@ -197,6 +197,9 @@
 /* Define if you have the readlink function.  */
 #undef HAVE_READLINK
 
+/* Define if you have the regcomp function.  */
+#undef HAVE_REGCOMP
+
 /* Define if you have the rename function.  */
 #undef HAVE_RENAME
 

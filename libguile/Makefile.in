@@ -99,7 +99,8 @@ libguile_la_SOURCES = \
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
     strerror.c inet_aton.c putenv.c \
-    threads.c alloca.c
+    threads.c alloca.c \
+    regex-posix.c
 
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
@@ -119,7 +120,7 @@ modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
     eq.h error.h eval.h extchrs.h feature.h filesys.h fports.h gc.h \
     gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h \
     ioext.h kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
-    numbers.h objprop.h options.h pairs.h ports.h posix.h print.h \
+    numbers.h objprop.h options.h pairs.h ports.h posix.h regex-posix.h print.h \
     procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h script.h \
     sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
@@ -216,12 +217,12 @@ DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/append.P .deps/appinit.P \
 .deps/net_db.P .deps/numbers.P .deps/objprop.P .deps/options.P \
 .deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
 .deps/procprop.P .deps/procs.P .deps/putenv.P .deps/ramap.P \
-.deps/read.P .deps/root.P .deps/scmsigs.P .deps/script.P \
-.deps/sequences.P .deps/simpos.P .deps/smob.P .deps/socket.P \
-.deps/srcprop.P .deps/stackchk.P .deps/stacks.P .deps/stime.P \
-.deps/strerror.P .deps/strings.P .deps/strop.P .deps/strorder.P \
-.deps/strports.P .deps/struct.P .deps/symbols.P .deps/tag.P \
-.deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
+.deps/read.P .deps/regex-posix.P .deps/root.P .deps/scmsigs.P \
+.deps/script.P .deps/sequences.P .deps/simpos.P .deps/smob.P \
+.deps/socket.P .deps/srcprop.P .deps/stackchk.P .deps/stacks.P \
+.deps/stime.P .deps/strerror.P .deps/strings.P .deps/strop.P \
+.deps/strorder.P .deps/strports.P .deps/struct.P .deps/symbols.P \
+.deps/tag.P .deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
 .deps/vectors.P .deps/version.P .deps/vports.P .deps/weaks.P
 SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES) $(guile_SOURCES) $(gh_test_c_SOURCES) $(gh_test_repl_SOURCES)
 OBJECTS = $(libguile_la_OBJECTS) $(guile_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test_repl_OBJECTS)
