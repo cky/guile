@@ -969,7 +969,8 @@ scm_ungetc (int c, SCM port)
     {
       if (pt->putback_buf == NULL)
 	{
-	  pt->putback_buf = (char *) malloc (SCM_INITIAL_PUTBACK_BUF_SIZE);
+	  pt->putback_buf
+	    = (unsigned char *) malloc (SCM_INITIAL_PUTBACK_BUF_SIZE);
 	  if (pt->putback_buf == NULL)
 	    scm_memory_error ("scm_ungetc");
 	  pt->putback_buf_size = SCM_INITIAL_PUTBACK_BUF_SIZE;
@@ -1081,7 +1082,7 @@ SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
   else
     SCM_VALIDATE_OPINPORT (2,port);
 
-  scm_ungets (SCM_ROUCHARS (str), SCM_LENGTH (str), port);
+  scm_ungets (SCM_ROCHARS (str), SCM_LENGTH (str), port);
   
   return str;
 }
