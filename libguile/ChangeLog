@@ -1,5 +1,9 @@
 1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* Makefile.am (libguile_la_LDFLAGS): Increment shared library
+	version number.
+	* Makefile.in: Regenerated.
+
 	* fports.h (scm_setbuf0, scm_setvbuf, scm_setfileno,
 	scm_evict_ports, scm_open_file, scm_stdio_to_port): Get rid of
 	SCM_P macro.
