@@ -1,5 +1,7 @@
 1999-03-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* print.c (scm_isymnames): Added #@dispatch and #@hash-dispatch.
+
 	* hashtab.c, hashtab.h (scm_hash_fold, scm_internal_hash_fold):
 	Place the table argument last.
 
