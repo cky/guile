@@ -1,9 +1,9 @@
 The Guile core distribution:
 
-Mikael Djurfeldt and Christian Lynbech contributed core support for GOOPS,
-    a CLOS-like object system.
-Gary Houston contributed a new, more efficient implementation of I/O ports,
-    and hacked on (ice-9 expect).
+Mikael Djurfeldt contributed core support for GOOPS, a CLOS-like object
+    system for Guile.
+Gary Houston contributed a more efficient and portable implementation of
+    I/O ports, and hacked on (ice-9 expect).
 Michael Livshin implemented Dybvig's Guardians.
 Russ McManus contributed a command-line argument parser (ice-9 getopt-long).
 Ken Raeburn made Guile use `const' in some appropriate places.
