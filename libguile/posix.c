@@ -126,23 +126,6 @@ extern char ** environ;
 #include <sys/utsname.h>
 #endif
 
-#if HAVE_DIRENT_H
-# include <dirent.h>
-# define NAMLEN(dirent) strlen((dirent)->d_name)
-#else
-# define dirent direct
-# define NAMLEN(dirent) (dirent)->d_namlen
-# if HAVE_SYS_NDIR_H
-#  include <sys/ndir.h>
-# endif
-# if HAVE_SYS_DIR_H
-#  include <sys/dir.h>
-# endif
-# if HAVE_NDIR_H
-#  include <ndir.h>
-# endif
-#endif
-
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
 #endif
@@ -994,7 +977,11 @@ SCM_DEFINE (scm_fork, "primitive-fork", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_FORK */
 
-#ifdef HAVE_UNAME
+#ifdef __MINGW32__
+# include "win32-uname.h"
+#endif
+
+#if defined (HAVE_UNAME) || defined (__MINGW32__)
 SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
             (),
 	    "Return an object with some information about the computer\n"
@@ -1080,6 +1067,10 @@ SCM_DEFINE (scm_tmpnam, "tmpnam", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+#endif
+
+#ifndef HAVE_MKSTEMP
+extern int mkstemp (char *);
 #endif
 
 SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
@@ -1385,7 +1376,7 @@ static char * getlogin (void)
 #endif /* __MINGW32__ */
 
 
-#if HAVE_GETLOGIN
+#if defined (HAVE_GETLOGIN) || defined (__MINGW32__)
 SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0, 
             (void),
 	    "Return a string containing the name of the user logged in on\n"
