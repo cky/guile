@@ -1,5 +1,5 @@
 ;;; Author: Russ McManus
-;;; $Id: getopt-long.scm,v 1.1 1999-02-12 10:09:29 jimb Exp $
+;;; $Id: getopt-long.scm,v 1.2 1999-02-15 12:53:10 jimb Exp $
 ;;;
 ;;; Copyright (C) 1998 FSF
 ;;;
@@ -408,10 +408,14 @@
 									  (option-spec->predicate-ls spec))
 								    (cdr parse-ls))))
 				     ((eq? val 'optional)
-				      ;; for optional values, simply don't add a predicate.
+				      ;; for optional values, don't add a predicate.  do, however
+				      ;; put the value 'optional in the value-required? field.  this
+				      ;; setting checks whether optional values are 'greedy'.  set
+				      ;; to #f to make optional value clauses 'non-greedy'.
+
 				      (parse-iter (make-option-spec (option-spec->name spec)
 								    (option-spec->value spec)
-								    #f
+								    'optional
 								    (option-spec->single-char spec)
 								    (option-spec->predicate-ls spec)
 								    (cdr parse-ls))))
@@ -521,7 +525,8 @@ needs to record whether the option ever can take a value."
 	      (let* ((next-value (if (null? (cdr argument-ls)) #f (cadr argument-ls)))
 		     (option-value (if (and next-value
 					    (not (is-short-option? next-value))
-					    (not (is-long-option? next-value)))
+					    (not (is-long-option? next-value))
+					    (option-spec->value-required? spec))
 				       next-value
 				       #t))
 		     (new-alist (cons (cons (option-spec->name spec) option-value) alist)))
