@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.17 2000-01-12 01:51:18 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.18 2000-01-14 17:35:13 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -73,7 +73,7 @@
 
 #define SCM_NUM2LONG(pos,arg) (scm_num2long(arg, (char *) pos, FUNC_NAME))
 
-#define SCM_NUM2LONG_DEF(pos,arg,def) (SCM_UNBNDP(arg)?SCM_MAKINUM(def):(scm_num2long(arg, (char *) pos, FUNC_NAME)))
+#define SCM_NUM2LONG_DEF(pos,arg,def) (SCM_UNBNDP(arg)?def:(scm_num2long(arg, (char *) pos, FUNC_NAME)))
 
 #define SCM_NUM2LONG_LONG(pos,arg) (scm_num2long_long(arg, (char *) pos, FUNC_NAME))
 
