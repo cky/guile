@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4a from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -46,9 +46,10 @@ AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 
 INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_STRIP_FLAG =
 transform = @program_transform_name@
 
 NORMAL_INSTALL = :
@@ -102,13 +103,13 @@ bin_PROGRAMS = guile
 guile_SOURCES = guile.c
 guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 
-libguile_la_SOURCES =      alist.c arbiters.c async.c backtrace.c boolean.c chars.c		    continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c	    evalext.c feature.c fluids.c fports.c gc.c gdbint.c	    gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c		    gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c		    ioext.c keywords.c lang.c list.c load.c macros.c mallocs.c		    modules.c numbers.c objects.c objprop.c options.c pairs.c	    ports.c print.c procprop.c procs.c ramap.c random.c read.c	    root.c scmsigs.c script.c simpos.c smob.c sort.c		    srcprop.c stackchk.c stacks.c stime.c strings.c strop.c strorder.c	    strports.c struct.c symbols.c tag.c throw.c unif.c variable.c	    vectors.c version.c vports.c weaks.c
+libguile_la_SOURCES =      alist.c arbiters.c async.c backtrace.c boolean.c chars.c		    continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c	    evalext.c feature.c fluids.c fports.c gc.c gdbint.c	    gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c		    gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c		    ioext.c keywords.c lang.c list.c load.c macros.c mallocs.c		    modules.c numbers.c objects.c objprop.c options.c pairs.c	    ports.c print.c procprop.c procs.c random.c read.c	    root.c scmsigs.c script.c simpos.c smob.c sort.c		    srcprop.c stackchk.c stacks.c stime.c strings.c strop.c strorder.c	    strports.c struct.c symbols.c tag.c throw.c variable.c	    vectors.c version.c vports.c weaks.c
 
 
 BUILT_SOURCES =      cpp_err_symbols.c cpp_sig_symbols.c libpath.h alist.x arbiters.x	    async.x backtrace.x boolean.x chars.x continuations.x debug.x	    dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x filesys.x	    fluids.x fports.x gc.x gsubr.x					    guardians.x hash.x hashtab.x init.x ioext.x iselect.x keywords.x	    lang.x list.x load.x macros.x mallocs.x modules.x net_db.x		    numbers.x objects.x objprop.x options.x pairs.x ports.x posix.x	    print.x procprop.x procs.x random.x ramap.x read.x regex-posix.x	    root.x scmsigs.x script.x simpos.x smob.x socket.x sort.x		    srcprop.x stackchk.x stacks.x stime.x strings.x strop.x strorder.x	    strports.x struct.x symbols.x tag.x threads.x throw.x unif.x	    variable.x vectors.x version.x vports.x weaks.x
 
 
-EXTRA_libguile_la_SOURCES = _scm.h		    alloca.c inet_aton.c memmove.c putenv.c strerror.c	    threads.c regex-posix.c iselect.c     filesys.c posix.c net_db.c socket.c
+EXTRA_libguile_la_SOURCES = _scm.h		    alloca.c inet_aton.c memmove.c putenv.c strerror.c	    threads.c regex-posix.c iselect.c     filesys.c posix.c net_db.c socket.c     ramap.c unif.c
 
 
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c
@@ -124,12 +125,12 @@ pkginclude_HEADERS = gh.h
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
-modinclude_HEADERS =      __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h	    continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h	    evalext.h feature.h filesys.h fports.h gc.h gdb_interface.h		    gdbint.h genio.h gsubr.h guardians.h hash.h hashtab.h init.h	    ioext.h keywords.h kw.h lang.h list.h load.h macros.h mallocs.h 	    modules.h net_db.h numbers.h objects.h objprop.h options.h pairs.h	    ports.h posix.h regex-posix.h print.h procprop.h procs.h random.h	    ramap.h read.h root.h scmsigs.h script.h simpos.h smob.h socket.h	    sort.h srcprop.h stackchk.h stacks.h stime.h strings.h strop.h	    strorder.h strports.h struct.h symbols.h tag.h tags.h throw.h	    unif.h variable.h vectors.h version.h vports.h weaks.h snarf.h	    threads.h coop-defs.h fluids.h iselect.h
+modinclude_HEADERS =      __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h	    continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h	    evalext.h feature.h filesys.h fports.h gc.h gdb_interface.h		    gdbint.h genio.h gsubr.h guardians.h hash.h hashtab.h init.h	    ioext.h keywords.h kw.h lang.h list.h load.h macros.h mallocs.h 	    modules.h net_db.h numbers.h objects.h objprop.h options.h pairs.h	    ports.h posix.h regex-posix.h print.h procprop.h procs.h random.h	    ramap.h read.h root.h scmsigs.h scm_validate.h script.h simpos.h smob.h socket.h	    sort.h srcprop.h stackchk.h stacks.h stime.h strings.h strop.h	    strorder.h strports.h struct.h symbols.h tag.h tags.h throw.h	    unif.h variable.h vectors.h version.h vports.h weaks.h snarf.h	    threads.h coop-defs.h fluids.h iselect.h
 
 
 modinclude_DATA = scmconfig.h
 
-bin_SCRIPTS = guile-snarf
+bin_SCRIPTS = guile-snarf guile-doc-snarf guile-doc-snarf.awk
 
 check_ldadd = libguile.la ${THREAD_LIBS_LOCAL}
 check_PROGRAMS = gh_test_c gh_test_repl
@@ -141,7 +142,9 @@ gh_test_repl_LDADD = ${check_ldadd}
 EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads dynl-dl.c     dynl-dld.c dynl-shl.c dynl-vms.c DYNAMIC-LINKING cpp_signal.c cpp_errno.c     cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk coop-threads.h.cygnus     coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c fsu-pthreads.h
 
 
-SUFFIXES = .x
+#	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ 
+
+SUFFIXES = .x .doc
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
@@ -153,7 +156,7 @@ CLEANFILES = libpath.h
 DISTCLEANFILES = *.x
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = scmconfig.h
-CONFIG_CLEAN_FILES =  guile-snarf versiondat.h
+CONFIG_CLEAN_FILES =  guile-snarf guile-doc-snarf versiondat.h
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
@@ -168,11 +171,11 @@ gdbint.lo gh_data.lo gh_eval.lo gh_funcs.lo gh_init.lo gh_io.lo \
 gh_list.lo gh_predicates.lo gsubr.lo guardians.lo hash.lo hashtab.lo \
 init.lo ioext.lo keywords.lo lang.lo list.lo load.lo macros.lo \
 mallocs.lo modules.lo numbers.lo objects.lo objprop.lo options.lo \
-pairs.lo ports.lo print.lo procprop.lo procs.lo ramap.lo random.lo \
-read.lo root.lo scmsigs.lo script.lo simpos.lo smob.lo sort.lo \
-srcprop.lo stackchk.lo stacks.lo stime.lo strings.lo strop.lo \
-strorder.lo strports.lo struct.lo symbols.lo tag.lo throw.lo unif.lo \
-variable.lo vectors.lo version.lo vports.lo weaks.lo
+pairs.lo ports.lo print.lo procprop.lo procs.lo random.lo read.lo \
+root.lo scmsigs.lo script.lo simpos.lo smob.lo sort.lo srcprop.lo \
+stackchk.lo stacks.lo stime.lo strings.lo strop.lo strorder.lo \
+strports.lo struct.lo symbols.lo tag.lo throw.lo variable.lo vectors.lo \
+version.lo vports.lo weaks.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 guile_OBJECTS =  guile.o
@@ -197,12 +200,12 @@ HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) $(noinst_HEADERS) \
 $(pkginclude_HEADERS)
 
 DIST_COMMON =  ./stamp-h.in COPYING ChangeLog Makefile.am Makefile.in \
-guile-snarf.in scmconfig.h.in versiondat.h.in
+guile-doc-snarf.in guile-snarf.in scmconfig.h.in versiondat.h.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/arbiters.P .deps/async.P \
 .deps/backtrace.P .deps/boolean.P .deps/chars.P .deps/continuations.P \
@@ -232,7 +235,7 @@ OBJECTS = $(libguile_la_OBJECTS) $(guile_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .s .x
+.SUFFIXES: .S .c .doc .lo .o .s .x
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --foreign libguile/Makefile
 
@@ -269,6 +272,8 @@ distclean-hdr:
 
 maintainer-clean-hdr:
 guile-snarf: $(top_builddir)/config.status guile-snarf.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+guile-doc-snarf: $(top_builddir)/config.status guile-doc-snarf.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 versiondat.h: $(top_builddir)/config.status versiondat.h.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
@@ -347,8 +352,8 @@ install-binPROGRAMS: $(bin_PROGRAMS)
 	$(mkinstalldirs) $(DESTDIR)$(bindir)
 	@list='$(bin_PROGRAMS)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	  else :; fi; \
 	done
 
@@ -504,7 +509,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -576,7 +581,7 @@ all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(SCRIPTS) $(DATA) \
 		$(HEADERS) scmconfig.h
 all-redirect: all-am
 install-strip:
-	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+	$(MAKE) $(AM_MAKEFLAGS) INSTALL_STRIP_FLAG=-s install
 installdirs:
 	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) \
 		$(DESTDIR)$(bindir) $(DESTDIR)$(modincludedir) \
@@ -690,8 +695,11 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '}' >> libpath.tmp
 	@mv libpath.tmp libpath.h
 .c.x:
-	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
 	|| { rm $@; false; }
+.c.doc:
+	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
+        || { rm $@; false; }
 
 cpp_err_symbols.c: cpp_err_symbols.in
 	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols.in > \

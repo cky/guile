@@ -65,48 +65,49 @@ SCM FNAME ARGLIST
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 	static const char RANAME[]=STR; \
 	static SCM GF = 0
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-	static const char RANAME[]=STR
 #define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF) \
 	static const char RANAME[]=STR; \
 	static SCM GF = 0
 #else
 #if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
+/* for C++ snarfing */
 
 #define GUILE_PROC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 %%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)(...)) FNAME); \
-$$$ primname #ARGLIST req opt var @@@ docstring @!!!
+$$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
 
 #define GUILE_PROC1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
 %%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME); \
-$$1 primname #ARGLIST type @@@ docstring @!!!
+$$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
 
 #define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN) \
-$$R RANAMEprimname #ARGLIST type @@@ docstring @!!!
+%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN); \
+$$$R RANAME CFN STR REQ OPT VAR @!!!
 
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 %%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)(...))CFN, &GF)
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-%%%	scm_make_subr(RANAME, TYPE, (SCM (*)(...))CFN)
+
 #define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF)  \
 %%%	scm_make_subr_with_generic(RANAME, TYPE, (SCM (*)(...))CFN, &GF)
+
 #else
+/* for ANSI C snarfing, not C++ */
 
 #define GUILE_PROC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
-%%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)()) FNAME);
+%%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)()) FNAME); \
+$$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
+
 #define GUILE_PROC1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
-%%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME);
+%%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME); \
+$$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
 
-
-#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN)
 #define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN)
+%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN); \
+$$$R RANAME CFN STR REQ OPT VAR @!!!
+
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 %%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN, &GF)
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-%%%	scm_make_subr(RANAME, TYPE, CFN)
+
 #define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF)  \
 %%%	scm_make_subr_with_generic(RANAME, TYPE, CFN, &GF)
 #endif

@@ -103,7 +103,7 @@ modinclude_HEADERS = \
 ## and not a header -- headers are included in the distribution.
 modinclude_DATA = scmconfig.h
 
-bin_SCRIPTS = guile-snarf
+bin_SCRIPTS = guile-snarf guile-doc-snarf guile-doc-snarf.awk
 
 check_ldadd = libguile.la ${THREAD_LIBS_LOCAL}
 check_PROGRAMS = gh_test_c gh_test_repl
@@ -154,10 +154,16 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '}' >> libpath.tmp
 	@mv libpath.tmp libpath.h
 
-SUFFIXES = .x
+
+#	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ 
+
+SUFFIXES = .x .doc
 .c.x:
-	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
 	|| { rm $@; false; }
+.c.doc:
+	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
+        || { rm $@; false; }
 
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
