@@ -3,6 +3,11 @@
 	* api.txt:  Added a first attempt for a description of the newly
 	designed low level API.
 
+2000-01-31  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (version.texi): Override automake's rule for
+	version.texi so that it gets created even in non-maintainer-mode.
+
 Thu Jan 20 13:00:18 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* version.texi, stamp-vti: Removed -- these are auto-generated.
