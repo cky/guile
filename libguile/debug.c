@@ -629,7 +629,10 @@ void
 scm_init_debug ()
 {
   scm_init_opts (scm_debug_options, scm_debug_opts, SCM_N_DEBUG_OPTIONS);
-
+  scm_init_opts (scm_evaluator_traps,
+		 scm_evaluator_trap_table,
+		 SCM_N_EVALUATOR_TRAPS);
+  
   scm_tc16_memoized = scm_newsmob (&memoizedsmob);
   scm_tc16_debugobj = scm_newsmob (&debugobjsmob);
 
