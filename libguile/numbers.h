@@ -101,6 +101,26 @@
 #define SCM_INUM0 ((SCM) 2)
 
 
+/* SCM_MAXEXP is the maximum double precision expontent
+ * SCM_FLTMAX is less than or scm_equal the largest single precision float
+ */
+
+#ifdef STDC_HEADERS
+#ifndef GO32
+#include <float.h>
+#endif /* ndef GO32 */
+#endif /* def STDC_HEADERS */
+#ifdef DBL_MAX_10_EXP
+#define SCM_MAXEXP DBL_MAX_10_EXP
+#else
+#define SCM_MAXEXP 308		/* IEEE doubles */
+#endif /* def DBL_MAX_10_EXP */
+#ifdef FLT_MAX
+#define SCM_FLTMAX FLT_MAX
+#else
+#define SCM_FLTMAX 1e+23
+#endif /* def FLT_MAX */
+
 
 /* SCM_FIXABLE is non-0 if its long argument can be encoded in an SCM_INUM.
  */
@@ -133,23 +153,55 @@
 /* Numbers 
  */
 
-#define SCM_INEXP(x) (SCM_NIMP(x) && (SCM_TYP16(x)==scm_tc16_flo))
-#define SCM_CPLXP(x) (SCM_NIMP(x) && (SCM_UNPACK_CAR (x)==scm_tc_dblc))
-#define SCM_REAL(x) (*(((scm_dbl *) (SCM2PTR(x)))->real))
-#define SCM_IMAG(x) (*((double *)(SCM_CHARS(x)+sizeof(double))))
-/* ((&SCM_REAL(x))[1]) */
+#define SCM_NEWREAL(z, x) \
+  do { \
+    SCM_NEWCELL2 (z); \
+    SCM_SETCAR (z, scm_tc16_real); \
+    SCM_REAL_VALUE (z) = (x); \
+  } while (0) \
 
+#define SCM_NEWCOMPLEX(z, x, y)	\
+  do { \
+    double __SCM_complex_tmp = (y); \
+    if (__SCM_complex_tmp == 0.0) \
+      SCM_NEWREAL (z, x); \
+    else \
+      { \
+        SCM_NEWSMOB (z, scm_tc16_complex, \
+		     scm_must_malloc (2L * sizeof (double), "complex")); \
+        SCM_COMPLEX_REAL (z) = (x); \
+        SCM_COMPLEX_IMAG (z) = __SCM_complex_tmp; \
+      } \
+  } while (0) \
 
-#ifdef SCM_SINGLES
-#define SCM_REALP(x) (SCM_NIMP(x) && ((~SCM_REAL_PART & SCM_UNPACK_CAR (x))==scm_tc_flo))
-#define SCM_SINGP(x) (SCM_NIMP(x) && (SCM_UNPACK_CAR (x)==scm_tc_flo))
-#define SCM_FLO(x) (((scm_flo *)(SCM2PTR(x)))->num)
-#define SCM_REALPART(x) (SCM_SINGP(x)?0.0+SCM_FLO(x):SCM_REAL(x))
-#else /* SCM_SINGLES */
-#define SCM_REALP(x) (SCM_NIMP(x) && (SCM_CAR(x)==scm_tc_dblr))
-#define SCM_REALPART SCM_REAL
-#endif /* SCM_SINGLES */
+#define SCM_SLOPPY_INEXACTP(x) (SCM_TYP16S (x) == scm_tc16_real)
+#define SCM_SLOPPY_REALP(x) (SCM_TYP16 (x) == scm_tc16_real)
+#define SCM_SLOPPY_COMPLEXP(x) (SCM_TYP16 (x) == scm_tc16_complex)
+#define SCM_INEXACTP(x) (SCM_NIMP (x) && SCM_TYP16S (x) == scm_tc16_real)
+#define SCM_REALP(x) (SCM_NIMP (x) && SCM_TYP16 (x) == scm_tc16_real)
+#define SCM_COMPLEXP(x) (SCM_NIMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
 
+#define SCM_INEXP(x) SCM_INEXACTP(x) /* Deprecated */
+#define SCM_CPLXP(x) SCM_COMPLEXP(x) /* Deprecated */
+
+#define SCM_REAL_VALUE(x) (((scm_double_t *) SCM2PTR (x))->real)
+#define SCM_COMPLEX_REAL(x) (((scm_complex_t *) SCM_CDR (x))->real)
+#define SCM_COMPLEX_IMAG(x) (((scm_complex_t *) SCM_CDR (x))->imag)
+#define SCM_REAL(x) \
+ (SCM_SLOPPY_REALP (x) \
+  ? SCM_REAL_VALUE (x) \
+  : SCM_COMPLEX_REAL (x)) \
+
+#define SCM_IMAG(x) \
+  (SCM_SLOPPY_REALP (x) \
+   ? 0.0 \
+   : SCM_COMPLEX_IMAG (x)) \
+
+#define SCM_REALPART(x) \
+  (SCM_SLOPPY_REALP (x) ? SCM_REAL_VALUE (x) : SCM_COMPLEX_REAL (x))
+
+#define scm_makdbl scm_make_complex /* Deprecated */
+#define SCM_SINGP(x) SCM_BOOL_F /* Deprecated */
 
 /* Define SCM_BIGDIG to an integer type whose size is smaller than long if
  * you want bignums.  SCM_BIGRAD is one greater than the biggest SCM_BIGDIG. 
@@ -185,12 +237,8 @@
  */
 # define SCM_BIGDIG unsigned short
 # define SCM_NO_BIGDIG
-# ifndef SCM_FLOATS
-#  define SCM_INUMS_ONLY
-# endif /* ndef SCM_FLOATS */
 #endif /* ndef SCM_BIGDIG */
 
-#ifdef SCM_FLOATS
 #define SCM_NUMBERP(x) (SCM_INUMP(x) || (SCM_NIMP(x) && SCM_NUMP(x)))
 #ifdef SCM_BIGDIG
 #define SCM_NUM2DBL(x) (SCM_INUMP (x) \
@@ -203,47 +251,40 @@
 			? (double) SCM_INUM (x) \
 			: SCM_REALPART (x))
 #endif
-#else
-#ifdef SCM_BIGDIG
-#define SCM_NUMBERP(x) (SCM_INUMP(x) || (SCM_NIMP(x) && SCM_NUMP(x)))
-#define SCM_NUM2DBL(x) (SCM_INUMP (x) \
-			? (double) SCM_INUM (x) \
-			: scm_big2dbl (x))
-#else
-#define SCM_NUMBERP SCM_INUMP
-#define SCM_NUM2DBL(x) ((double) SCM_INUM (x))
-#endif
-#endif
-#define SCM_NUMP(x) (SCM_NIMP(x) && (0xfcff & (int)SCM_CAR(x))==scm_tc7_smob)
-#define SCM_BIGP(x) (SCM_NIMP(x) && SCM_TYP16S(x)==scm_tc16_bigpos)
-#define SCM_BIGSIGN(x) (0x0100 & (int)SCM_CAR(x))
-#define SCM_BDIGITS(x) ((SCM_BIGDIG *)(SCM_CDR(x)))
-#define SCM_NUMDIGS(x) ((scm_sizet)(SCM_UNPACK_CAR (x)>>16))
-#define SCM_SETNUMDIGS(x, v, t) SCM_SETCAR(x, (((v)+0L)<<16)+(t))
+#define SCM_NUMP(x) \
+  (SCM_NIMP(x) && (0xfcff & (int) SCM_CAR(x)) == scm_tc7_smob)
+#define SCM_BIGP(x) SCM_SMOB_PREDICATE (scm_tc16_big, x)
+#define SCM_BIGSIGNFLAG 0x10000L
+#define SCM_BIGSIZEFIELD 17
+#define SCM_BIGSIGN(x) (SCM_UNPACK_CAR (x) & SCM_BIGSIGNFLAG)
+#define SCM_BDIGITS(x) ((SCM_BIGDIG *) (SCM_CDR (x)))
+#define SCM_NUMDIGS(x) ((scm_sizet) (SCM_UNPACK_CAR (x) >> SCM_BIGSIZEFIELD))
+#define SCM_SETNUMDIGS(x, v, sign) \
+  SCM_SETCAR (x, \
+	      scm_tc16_big \
+	      | ((sign) ? SCM_BIGSIGNFLAG : 0) \
+	      | (((v) + 0L) << 17)) \
+
 
 
-#ifdef SCM_FLOATS
 typedef struct scm_dblproc
 {
   char *scm_string;
   double (*cproc) ();
 } scm_dblproc;
 
-#ifdef SCM_SINGLES
-typedef struct scm_flo
+typedef struct scm_double_t
 {
   SCM type;
-  float num;
-} scm_flo;
-#endif
+  SCM pad;
+  double real;
+} scm_double_t;
 
-typedef struct scm_dbl
+typedef struct scm_complex_t
 {
-  SCM type;
-  double *real;
-} scm_dbl;
-#endif
-
+  double real;
+  double imag;
+} scm_complex_t;
 
 
 
@@ -287,15 +328,19 @@ extern SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 extern SCM scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn, int modes);
 extern scm_sizet scm_iint2str (long num, int rad, char *p);
 extern SCM scm_number_to_string (SCM x, SCM radix);
-extern int scm_floprint (SCM sexp, SCM port, scm_print_state *pstate);
+extern int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);
+extern int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
 extern int scm_bigprint (SCM exp, SCM port, scm_print_state *pstate);
 extern SCM scm_istr2int (char *str, long len, long radix);
 extern SCM scm_istr2flo (char *str, long len, long radix);
 extern SCM scm_istring2number (char *str, long len, long radix);
 extern SCM scm_string_to_number (SCM str, SCM radix);
+extern SCM scm_make_real (double x);
+extern SCM scm_make_complex (double x, double y);
 extern SCM scm_makdbl (double x, double y);
 extern SCM scm_bigequal (SCM x, SCM y);
-extern SCM scm_floequal (SCM x, SCM y);
+extern SCM scm_real_equalp (SCM x, SCM y);
+extern SCM scm_complex_equalp (SCM x, SCM y);
 extern SCM scm_number_p (SCM x);
 extern SCM scm_real_p (SCM x);
 extern SCM scm_integer_p (SCM x);
