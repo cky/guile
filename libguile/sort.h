@@ -1,19 +1,20 @@
 /* classes: h_files */
 
-#ifndef SORTH
-#define SORTH
-/*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
- * 
+#ifndef SCM_SORT_H
+#define SCM_SORT_H
+
+/* Copyright (C) 1999,2000 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -42,6 +43,7 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
 
 
 #include "libguile/__scm.h"
@@ -63,10 +65,7 @@ extern SCM scm_sort_list (SCM ls, SCM less);
 extern SCM scm_sort_list_x (SCM ls, SCM less);
 extern void scm_init_sort (void);
 
-#endif  /* SORTH */
-
-
-
+#endif  /* SCM_SORT_H */
 
 /*
   Local Variables:

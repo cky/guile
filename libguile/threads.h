@@ -1,20 +1,20 @@
 /* classes: h_files */
 
-#ifndef THREADSH
-#define THREADSH
+#ifndef SCM_THREADS_H
+#define SCM_THREADS_H
 
-/* Copyright (C) 1996, 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -104,7 +104,7 @@ extern SCM scm_signal_condition_variable (SCM cond);
 #include "libguile/coop-defs.h"
 #endif
 
-#endif  /* THREADSH */
+#endif  /* SCM_THREADS_H */
 
 /*
   Local Variables:

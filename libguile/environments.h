@@ -1,8 +1,9 @@
 /* classes: h_files */
 
-#ifndef ENVIRONMENTS_H
-#define ENVIRONMENTS_H
-/* Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+#ifndef SCM_ENVIRONMENTS_H
+#define SCM_ENVIRONMENTS_H
+
+/* Copyright (C) 1999,2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +43,7 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
 
 
 #include "libguile/__scm.h"
@@ -201,9 +203,7 @@ extern SCM scm_export_environment_set_private_x (SCM env, SCM private);
 extern SCM scm_export_environment_signature (SCM env);
 extern SCM scm_export_environment_set_signature_x (SCM env, SCM signature);
 
-
-#endif
-
+#endif  /* SCM_ENVIRONMENTS_H */
 
 /*
   Local Variables:

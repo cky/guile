@@ -1,19 +1,20 @@
 /* classes: h_files */
 
-#ifndef GDBINTH
-#define GDBINTH
-/*	Copyright (C) 1996, 2000 Free Software Foundation
- * 
+#ifndef SCM_GDBINT_H
+#define SCM_GDBINT_H
+
+/* Copyright (C) 1996,2000 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -45,6 +46,7 @@
  *
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
+
 
 
 #include "libguile/__scm.h"
@@ -55,7 +57,7 @@ extern int scm_print_carefully_p;
 
 extern void scm_init_gdbint (void);
 
-#endif /* GDBINTH */
+#endif  /* SCM_GDBINT_H */
 
 /*
   Local Variables:

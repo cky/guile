@@ -1,3 +1,37 @@
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* _scm.h (_SCMH, SCM__SCM_H), alist.h (ALISTH, SCM_ALIST_H),
+	arbiters.h (ARBITERSH, SCM_ARBITERS_H), backtrace.h (BACKTRACEH,
+	SCM_BACKTRACE_H), boolean.h (BOOLEANH, SCM_BOOLEAN_H), chars.h
+	(SCM_CHARSH, SCM_CHARS_H), coop-defs.h (COOP_DEFSH,
+	SCM_COOP_DEFS_H), coop-threads.h (COOP_THREADSH,
+	SCM_COOP_THREADS_H), debug-malloc.h (DEBUGMALLOCH,
+	SCM_DEBUG_MALLOC_H), dynwind.h (DYNWINDH, SCM_DYNWIND_H),
+	environments.h (ENVIRONMENTS_H, SCM_ENVIRONMENTS_H), eq.h (EQH,
+	SCM_EQ_H), evalext.h (EVALEXTH, SCM_EVALEXT_H), extensions.h
+	(LIBGUILE_EXTENSIONS_H, SCM_EXTENSIONS_H), feature.h (FEATUREH,
+	SCM_FEATURE_H), gdbint.h (GDBINTH, SCM_GDBINT_H), guardians.h
+	(SCM_GUARDIANH, SCM_GUARDIANS_H), hash.h (HASHH, SCM_HASH_H),
+	hashtab.h (HASHTABH, SCM_HASHTAB_H), init.h (INITH, SCM_INIT_H),
+	ioext.h (IOEXTH, SCM_IOEXT_H), iselect.h (ISELECTH,
+	SCM_ISELECT_H), keywords.h (KEYWORDSH, SCM_KEYWORDS_H), lang.h
+	(LANGH, SCM_LANG_H), mallocs.h (MALLOCSH, SCM_MALLOCS_H), net_db.h
+	(SCM_NETDBH, SCM_NET_DB_H), objprop.h (OBJPROPH, SCM_OBJPROP_H),
+	posix.h (POSIXH, SCM_POSIX_H), procprop.h (PROCPROPH,
+	SCM_PROCPROP_H), properties.h (PROPERTIES_H, SCM_PROPERTIES_H),
+	ramap.h (RAMAPH, SCM_RAMAP_H), rdelim.h (SCM_RDELIM,
+	SCM_RDELIM_H), read.h (READH, SCM_READ_H), rw.h (SCM_RW,
+	SCM_RW_H), scmsigs.h (SCMSIGSH, SCM_SCMSIGS_H), script.h (SCRIPTH,
+	SCM_SCRIPT_H), simpos.h (SIMPOSH, SCM_SIMPOS_H), socket.h
+	(SCM_SOCKETH, SCM_SOCKET_H), sort.h (SORTH, SCM_SORT_H),
+	stackchk.h (STACKCHKH, SCM_STACKCHK_H), stime.h (STIMEH,
+	SCM_STIME_H), strop.h (STROPH, SCM_STROP_H), strorder.h
+	(STRORDERH, SCM_STRORDER_H), threads.h (THREADSH, SCM_THREADS_H),
+	throw.h (THROWH, SCM_THROW_H), version.h (VERSIONH,
+	SCM_VERSION_H), vports.h (VPORTSH, SCM_VPORTS_H): Renamed
+	the macros that are defined to inhibit double inclusion of the
+	same headers to the SCM_<filename>_H format.
+
 2001-08-27  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* ports.c, ports.h, fprots.c, gc.c, ioext.c: Replaced

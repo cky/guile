@@ -1,8 +1,9 @@
 /* classes: h_files */
 
-#ifndef DEBUGMALLOCH
-#define DEBUGMALLOCH
-/* Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+#ifndef SCM_DEBUG_MALLOC_H
+#define SCM_DEBUG_MALLOC_H
+
+/* Copyright (C) 2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +59,7 @@ extern SCM scm_malloc_stats (void);
 extern void scm_debug_malloc_prehistory (void);
 extern void scm_init_debug_malloc (void);
 
-#endif  /* DEBUGMALLOCH */
+#endif  /* SCM_DEBUG_MALLOC_H */
 
 /*
   Local Variables:

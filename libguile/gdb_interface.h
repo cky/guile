@@ -1,3 +1,7 @@
+/* classes: h_files */
+
+#ifndef GDB_INTERFACE_H
+#define GDB_INTERFACE_H
 /* Simple interpreter interface for GDB, the GNU debugger.
    Copyright (C) 1996, 2000, 2001 Free Software Foundation
 
@@ -43,9 +47,6 @@ If you do not wish that, delete this exception notice.
 
 The author can be reached at djurfeldt@nada.kth.se
 Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN  */
-
-#ifndef GDB_INTERFACE_H
-#define GDB_INTERFACE_H
 
 /* This is the header file for GDB's interpreter interface.  The
    interpreter must supply definitions of all symbols declared in this
@@ -169,7 +170,7 @@ extern int gdb_print (GDB_TYPE value);
 
 extern int gdb_binding (GDB_TYPE name, GDB_TYPE value);
 
-#endif /* GDB_INTERFACE_H */
+#endif  /* GDB_INTERFACE_H */
 
 /*
   Local Variables:

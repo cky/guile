@@ -1,14 +1,15 @@
 /* classes: h_files */
 
-#ifndef SCM_RW
-#define SCM_RW
-/*	Copyright (C) 2001 Free Software Foundation, Inc.
- * 
+#ifndef SCM_RW_H
+#define SCM_RW_H
+
+/* Copyright (C) 2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -42,6 +43,7 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
 
 
 #include "libguile/__scm.h"
@@ -54,7 +56,7 @@ extern SCM scm_write_string_partial (SCM str, SCM port_or_fdes, SCM start,
 SCM scm_init_rw_builtins (void);
 void scm_init_rw (void);
 
-#endif
+#endif  /* SCM_RW_H */
 
 /*
   Local Variables:

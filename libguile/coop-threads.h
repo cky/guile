@@ -1,20 +1,20 @@
 /* classes: h_files */
 
-#ifndef COOP_THREADSH
-#define COOP_THREADSH
+#ifndef SCM_COOP_THREADS_H
+#define SCM_COOP_THREADS_H
 
-/*	Copyright (C) 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1996,1997,1998,2000 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -43,6 +43,7 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
 
 
 /* This file is only included by coop-threads.c while coop-defs.h is
@@ -121,7 +122,7 @@ extern coop_q_t coop_tmp_queue;
 extern coop_q_t coop_global_allq;	/* A queue of all threads. */
 extern coop_t *coop_global_curr;       	/* Currently-executing thread. */
 
-#endif /* COOP_THREADSH */
+#endif  /* SCM_COOP_THREADS_H */
 
 /*
   Local Variables:

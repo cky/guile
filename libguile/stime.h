@@ -1,8 +1,9 @@
 /* classes: h_files */
 
-#ifndef STIMEH
-#define STIMEH
-/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
+#ifndef SCM_STIME_H
+#define SCM_STIME_H
+
+/* Copyright (C) 1995,1996,1997,1998,2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +43,7 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
 
 
 #include "libguile/__scm.h"
@@ -61,7 +63,7 @@ extern SCM scm_strftime (SCM format, SCM stime);
 extern SCM scm_strptime (SCM format, SCM string);
 extern void scm_init_stime (void);
 
-#endif  /* STIMEH */
+#endif  /* SCM_STIME_H */
 
 /*
   Local Variables:
