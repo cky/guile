@@ -1,15 +1,5 @@
 2002-10-04  Rob Browning  <rlb@defaultvalue.org>
 
-	* raw-ltdl.h: guile's modified version of the upstream ltdl.h.
-
-	* raw-ltdl.c: guile's modified version of the upstream ltdl.c.
-
-	* guile-ltdl.h: main header file for guile's internal
-	libguile-ltdl.
-
-	* guile-ltdl.c: main source file for libguile-ltdl -- #includes
-	raw-ltdl.c and raw-ldtl.h directly.  See README.
-
 	* COPYING.LIB: moved from ../libltdl.
 
 	* ChangeLog: moved from ../libltdl.
@@ -24,19 +14,26 @@
 
 	* upstream/ltdl.h: upstream source.
 
-	* raw-ltdl.c: Remove custom realloc. (#define rpl_realloc
-	realloc).  You can't define realloc like this unless you also
-	define malloc.  This is a quick hack for now; we may want
-	something cleaner later.
+	* guile-ltdl.h: main header file for guile's internal
+	libguile-ltdl.
+
+	* guile-ltdl.c: main source file for libguile-ltdl -- #includes
+	raw-ltdl.c and raw-ldtl.h directly.  See README.
+
+	* raw-ltdl.h: guile's modified version of the upstream ltdl.h.
+
+	* raw-ltdl.c: guile's modified version of the upstream ltdl.c.
 	(memcpy): coerce ptrs to (char *) before copying characters
 	through them -- I can't recall for sure, but I believe this was
 	causing an overrun error at times.
-	(realloc): commented out -- as mentioned above, you can't define
+	(realloc): Remove custom realloc. (#define rpl_realloc realloc)
+	and comment out later code for custom realloc.  You can't define
 	your own malloc unless you know enough about the malloc in use to
 	be able to tell how big the src ptr is.  The disabled code
 	incorrectly used the *destination* ptr to decide how much to copy.
 	This sometimes results in out-of-bound accesses which cause
-	segfaults.
+	segfaults.  This is a quick hack for now; we may want something
+	cleaner later.
 	(tryall_dlopen_module): check to be sure (dirname_len > 0) before
 	testing first character against '/'.
 	(try_dlopen): check for feof(file) in read loop -- otherwise
