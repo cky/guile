@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -153,7 +153,7 @@ SCM_DEFINE (scm_variable_p, "variable?", 1, 0, 0,
             "Return #t iff OBJ is a variable object, else return #f\n")
 #define FUNC_NAME s_scm_variable_p
 {
-  return SCM_BOOL(SCM_VARIABLEP (obj));
+  return SCM_BOOL (SCM_VARIABLEP (obj));
 }
 #undef FUNC_NAME
 
@@ -165,7 +165,7 @@ SCM_DEFINE (scm_variable_ref, "variable-ref", 1, 0, 0,
             "`make-undefined-variable'")
 #define FUNC_NAME s_scm_variable_ref
 {
-  SCM_VALIDATE_VARIABLE (1,var);
+  SCM_VALIDATE_VARIABLE (1, var);
   return SCM_CDR (SCM_CDR (var));
 }
 #undef FUNC_NAME
