@@ -2078,11 +2078,11 @@ ra2l (SCM ra,unsigned long base,unsigned long k)
 }
 
 
-SCM_DEFINE (scm_t_arrayo_list, "array->list", 1, 0, 0, 
+SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0, 
            (SCM v),
 	    "Return a list consisting of all the elements, in order, of\n"
 	    "@var{array}.")
-#define FUNC_NAME s_scm_t_arrayo_list
+#define FUNC_NAME s_scm_array_to_list
 {
   SCM res = SCM_EOL;
   register long k;

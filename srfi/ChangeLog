@@ -1,3 +1,9 @@
+2002-02-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* srfi-19.scm (priv:year-day): Index into priv:month-assoc using
+	month number, not day number.  (Thanks to Sébastien de Menten de
+	Horne for reporting the problem.)
+
 2002-02-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-14.c, srfi-4.c: Use scm_gc_malloc/scm_malloc and

@@ -802,7 +802,7 @@
                             (9 . 273) (10 . 304) (11 . 334) (12 . 365)))
 
 (define (priv:year-day day month year)
-  (let ((days-pr (assoc day priv:month-assoc)))
+  (let ((days-pr (assoc month priv:month-assoc)))
     (if (not days-pr)
         (priv:error 'date-year-day 'invalid-month-specification month))
     (if (and (priv:leap-year? year) (> month 2))

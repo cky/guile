@@ -140,7 +140,7 @@ SCM_API SCM scm_bit_set_star_x (SCM v, SCM kv, SCM obj);
 SCM_API SCM scm_bit_count_star (SCM v, SCM kv, SCM obj);
 SCM_API SCM scm_bit_invert_x (SCM v);
 SCM_API SCM scm_istr2bve (char *str, long len);
-SCM_API SCM scm_t_arrayo_list (SCM v);
+SCM_API SCM scm_array_to_list (SCM v);
 SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
 SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
 SCM_API SCM scm_array_prototype (SCM ra);

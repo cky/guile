@@ -1,3 +1,8 @@
+2002-02-21  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* unif.c (scm_array_to_list): Correct name, which had been
+	accidentally changed to scm_t_arrayo_list!
+
 2002-02-20  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* gc.c (scm_gc_sweep): Print an error message when aborting due to
