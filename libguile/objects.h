@@ -194,6 +194,7 @@ SCM_API SCM scm_class_fraction;
 SCM_API SCM scm_class_unknown;
 SCM_API SCM *scm_port_class;
 SCM_API SCM *scm_smob_class;
+SCM_API int scm_classes_initialized;
 
 SCM_API SCM scm_no_applicable_method;
 

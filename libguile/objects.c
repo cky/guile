@@ -51,6 +51,8 @@ SCM scm_class_vector, scm_class_null;
 SCM scm_class_integer, scm_class_real, scm_class_complex, scm_class_fraction;
 SCM scm_class_unknown;
 
+int scm_classes_initialized = 0;
+
 SCM *scm_port_class = 0;
 SCM *scm_smob_class = 0;
 
@@ -62,6 +64,9 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	    "Return the class of @var{x}.")
 #define FUNC_NAME s_scm_class_of
 {
+  if (!scm_classes_initialized)
+    scm_misc_error (NULL, "GOOPS not loaded yet.", SCM_EOL);
+
   switch (SCM_ITAG3 (x))
     {
     case scm_tc3_int_1:
