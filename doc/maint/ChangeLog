@@ -1,3 +1,7 @@
+2002-04-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* doctring.el: List commands in commentary; nfc.
+
 2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile.texi: Replaced by regenerated libguile version.
