@@ -124,17 +124,20 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 typedef struct scm_ptobfuns
 {
-  SCM (*mark) SCM_P ((SCM));
-  int (*free) SCM_P ((SCM));
-  int (*print) SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-  SCM (*equalp) SCM_P ((SCM, SCM));
-  int (*fputc) SCM_P ((int, SCM stream));
-  int (*fputs) SCM_P ((char *, SCM stream));
-  scm_sizet (*fwrite) SCM_P ((char *ptr, scm_sizet size, scm_sizet nitems, SCM stream));
-  int (*fflush) SCM_P ((SCM stream));
-  int (*fgetc) SCM_P ((SCM stream));
-  char * (*fgets) SCM_P ((SCM stream, int *len));
-  int (*fclose) SCM_P ((SCM stream));
+  SCM (*mark) (SCM);
+  int (*free) (SCM);
+  int (*print) (SCM exp, SCM port, scm_print_state *pstate);
+  SCM (*equalp) (SCM, SCM);
+  int (*fputc) (int, SCM port);
+  int (*fputs) (char *, SCM port);
+  scm_sizet (*fwrite) SCM_P ((char *ptr,
+			      scm_sizet size,
+			      scm_sizet nitems,
+			      SCM port));
+  int (*fflush) (SCM port);
+  int (*fgetc) (SCM port);
+  char * (*fgets) (SCM port, int *len);
+  int (*fclose) (SCM port);
 } scm_ptobfuns;
 
 #define SCM_PTOBNUM(x) (0x0ff & (SCM_CAR(x)>>8))
