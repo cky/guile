@@ -1,3 +1,8 @@
+2002-10-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (top-repl): Use "1" instead of "%deliver-signals" to
+	limit the signal stack.
+
 2002-09-15  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (feature?): Added deprecation message.
