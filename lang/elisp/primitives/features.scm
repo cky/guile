@@ -1,6 +1,7 @@
 (define-module (lang elisp primitives features)
   #:use-module (lang elisp internals fset)
   #:use-module (lang elisp internals load)
+  #:use-module (lang elisp internals null)
   #:use-module (ice-9 optargs))
 
 (define-public features '())
@@ -12,7 +13,7 @@
 
 (fset 'featurep
       (lambda (feature)
-	(memq feature features)))
+	(->nil (memq feature features))))
 
 (fset 'require
       (lambda* (feature #:optional file-name noerror)

@@ -67,28 +67,28 @@
 			  `(((,> %--num-args ,(+ num-required num-optional))
 			     (,error "Wrong number of args (too many args)"))))
 		    (else
-		     (@bind ,(append (map (lambda (i)
-					    (list (list-ref required i)
-						  `(,list-ref %--args ,i)))
-					  (iota num-required))
-				     (map (lambda (i)
-					    (let ((i+nr (+ i num-required)))
-					      (list (list-ref optional i)
-						    `(,if (,> %--num-args ,i+nr)
-							  (,list-ref %--args ,i+nr)
-							  #f))))
-					  (iota num-optional))
-				     (if rest
-					 (list (list rest
-						     `(,if (,> %--num-args
-							       ,(+ num-required
-								   num-optional))
-							   (,list-tail %--args
-								       ,(+ num-required
-									   num-optional))
-							   '())))
-					 '()))
-			    ,@(map transformer (cddr exp)))))))))))
+		     (, @bind ,(append (map (lambda (i)
+					      (list (list-ref required i)
+						    `(,list-ref %--args ,i)))
+					    (iota num-required))
+				       (map (lambda (i)
+					      (let ((i+nr (+ i num-required)))
+						(list (list-ref optional i)
+						      `(,if (,> %--num-args ,i+nr)
+							    (,list-ref %--args ,i+nr)
+							    ,%nil))))
+					    (iota num-optional))
+				       (if rest
+					   (list (list rest
+						       `(,if (,> %--num-args
+								 ,(+ num-required
+								     num-optional))
+							     (,list-tail %--args
+									 ,(+ num-required
+									     num-optional))
+							     ,%nil)))
+					   '()))
+			      ,@(map transformer (cddr exp)))))))))))
 
 (define (set-not-subr! proc boolean)
   (set! (not-subr? proc) boolean))
@@ -101,7 +101,7 @@
        (,set-procedure-property! %--lambda (,quote name) (,quote ,name))
        (,set-not-subr! %--lambda #t)
        ,@(if is
-	     `((,set! (,interactive-spec %--lambda) (,quote ,is)))
+	     `((,set! (,interactive-specification %--lambda) (,quote ,is)))
 	     '())
        %--lambda)))
 

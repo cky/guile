@@ -45,7 +45,7 @@
 				(iota (match:count match))))
 		    #f)))
 
-	(if last-match (car last-match) #f)))
+	(if last-match (car last-match) %nil)))
 
 (fset 'match-beginning
       (lambda (subexp)

@@ -2,7 +2,9 @@
   #:use-module (lang elisp internals evaluation)
   #:use-module (lang elisp internals fset)
   #:use-module ((lang elisp internals load) #:select ((load . elisp:load)))
+  #:use-module ((lang elisp transform) #:select (transformer))
   #:export (eval-elisp
+	    translate-elisp
 	    elisp-function
 	    elisp-variable
 	    load-elisp-file
@@ -18,6 +20,10 @@
 (define (eval-elisp x)
   "Evaluate the Elisp expression @var{x}."
   (eval x the-elisp-module))
+
+(define (translate-elisp x)
+  "Translate the Elisp expression @var{x} to equivalent Scheme code."
+  (transformer x))
 
 (define (elisp-function sym)
   "Return the procedure or macro that implements @var{sym} in Elisp.
@@ -112,7 +118,7 @@ exported to Elisp."
 			   (error "No macro name specified or deducible:" obj)))
 		      ((symbol? obj)
 		       (or name
-			   (set! name symbol))
+			   (set! name obj))
 		       (module-add! the-elisp-module name
 				    (module-ref (current-module) obj)))
 		      (else

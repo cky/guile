@@ -1,3 +1,85 @@
+2002-02-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* STATUS: New file.
+
+	* README: Updated.
+
+	* interface.scm (translate-elisp): New exported procedure.
+	(elisp-function): Symbol var is `obj', not `symbol'.
+	
+	* internals/lambda.scm, primitives/fns.scm: Fix confusion between
+	interactive-spec and interactive-specification.
+	
+	* internals/lambda.scm (transform-lambda), primitives/syntax.scm
+	(defmacro): Bind unspecified optional and rest arguments to #nil,
+	not #f.
+
+	* internals/null.scm (->nil, lambda->nil): New, exported.
+	(null): Use ->nil.
+
+	* primitives/features.scm (featurep), primitives/fns.scm
+	(fboundp, subrp): Use ->nil.
+
+	* internals/lists.scm (cons, setcdr, memq, member, assq, assoc):
+	Simplified.
+	(car, cdr): Return #nil rather than #f.
+
+	* primitives/load.scm (current-load-list), primitives/pure.scm
+	(purify-flag): Set to #nil, not #f.
+
+	* primitives/match.scm (string-match): Return #nil rather than #f.
+
+	* primitives/numbers.scm (integerp, numberp),
+	primitives/strings.scm (string-lessp, stringp): Use lambda->nil.
+
+	* primitives/symprop.scm (boundp): Use ->nil.
+	(symbolp, local-variable-if-set-p): Return #nil rather than #f.
+
+	* primitives/syntax.scm (prog1, prog2): Mangle variable names
+	further to lessen possibility of conflicts.
+	(if, and, or, cond): Return #nil rather than #f.
+	(cond): Return #t rather than t (which is undefined).
+	(let, let*): Bind uninitialized variables to #nil, not #f.
+	
+	* transform.scm: Resolve inconsistency in usage of `map', and add
+	an explanatory note.  Also cleaned up use of subsidiary
+	transformation functions.  Also use cons-source wherever possible.
+	(transform-datum, transform-quote): New.
+	(transform-quasiquote): Renamed from `transform-inside-qq'.
+	(transform-application): Apply `transform-quote' to application
+	args.
+	(cars->nil): Removed.
+	
+	* internals/null.scm (null), primitives/lists.scm (cons, car, cdr,
+	setcdr, memq, member, assq, assoc, nth): Update to take into
+	account new libguile support for Elisp nil value.
+
+2002-02-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* example.el (time): New macro, for performance measurement.
+	Accompanying comment compares results for Guile and Emacs.
+	
+	* transform.scm (scheme): New macro.
+	(transformer): New implementation of `scheme' escape that doesn't
+	rely on (lang elisp base) importing Guile bindings.
+
+	* base.scm: No longer import anything from (guile).
+	(load-emacs): Add scheme form to ensure that keywords
+	read option is set correctly.
+
+	* primitives/syntax.scm (defmacro, let, let*): Unquote uses of
+	`@bind' in transformed code.
+	(if): Unquote uses of `nil-cond' in transformed code.
+
+	* internals/lambda.scm (transform-lambda): Unquote use of `@bind'
+	in transformed code.
+
+	* transform.scm (transformer-macro): Don't quote `list' in
+	transformed code.
+	(transform-application): Don't quote `@fop' in transformed code.
+	(transformer): No need to treat `@bind' and `@fop' as special
+	cases in input to the transformer.
+
 2002-02-04  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* primitives/syntax.scm (parse-formals, transform-lambda,

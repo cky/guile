@@ -1,9 +1,10 @@
 (define-module (lang elisp primitives numbers)
-  #:use-module (lang elisp internals fset))
+  #:use-module (lang elisp internals fset)
+  #:use-module (lang elisp internals null))
 
 (fset 'logior logior)
 (fset 'logand logand)
-(fset 'integerp integer?)
+(fset 'integerp (lambda->nil integer?))
 (fset '= =)
 (fset '< <)
 (fset '> >)
@@ -39,4 +40,4 @@
 			(- shift 1))))))
 	lsh))
 
-(fset 'numberp number?)
+(fset 'numberp (lambda->nil number?))

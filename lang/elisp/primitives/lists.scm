@@ -3,9 +3,7 @@
   #:use-module (lang elisp internals null)
   #:use-module (lang elisp internals signal))
 
-(fset 'cons
-      (lambda (x y)
-	(cons x (or y '()))))
+(fset 'cons cons)
 
 (fset 'null null)
 
@@ -14,13 +12,13 @@
 (fset 'car
       (lambda (l)
 	(if (null l)
-	    #f
+	    %nil
 	    (car l))))
 
 (fset 'cdr
       (lambda (l)
 	(if (null l)
-	    #f
+	    %nil
 	    (cdr l))))
 
 (fset 'eq
@@ -35,12 +33,7 @@
 
 (fset 'setcar set-car!)
 
-(fset 'setcdr
-      (lambda (cell newcdr)
-	(set-cdr! cell
-		  (if (null newcdr)
-		      '()
-		      newcdr))))
+(fset 'setcdr set-cdr!)
 
 (for-each (lambda (sym proc)
 	    (fset sym
@@ -48,14 +41,10 @@
 		    (if (null list)
 			%nil
 			(if (null elt)
-			    (or (proc #f list)
-				(proc '() list)
-				(proc %nil list)
-				(proc 'nil list)) ; 'nil shouldn't be
-						  ; here, as it should
-						  ; have been
-						  ; translated by the
-						  ; transformer.
+			    (let loop ((l list))
+			      (cond ((null l) %nil)
+				    ((null (car l)) l)
+				    (else (loop (cdr l)))))
 			    (proc elt list))))))
 	  '( memq  member  assq  assoc)
 	  `(,memq ,member ,assq ,assoc))
@@ -97,7 +86,7 @@
       (lambda (n list)
 	(if (or (null list)
 		(>= n (length list)))
-	    #f
+	    %nil
 	    (list-ref list n))))
 
 (fset 'listp

@@ -18,11 +18,11 @@
 
 (fset 'commandp
       (lambda (sym)
-	(if (interactive-spec (fref sym)) #t %nil)))
+	(if (interactive-specification (fref sym)) #t %nil)))
 
 (fset 'fboundp
       (lambda (sym)
-	(variable? (symbol-fref sym))))
+	(->nil (variable? (symbol-fref sym)))))
 
 (fset 'symbol-function fref/error-if-void)
 
@@ -30,7 +30,7 @@
 
 (fset 'subrp
       (lambda (obj)
-	(not (not-subr? obj))))
+	(->nil (not (not-subr? obj)))))
 
 (fset 'byte-code-function-p
       (lambda (object)

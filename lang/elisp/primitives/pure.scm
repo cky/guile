@@ -5,4 +5,4 @@
 
 (fset 'purecopy identity)
 
-(define-public purify-flag #f)
+(define-public purify-flag %nil)

@@ -14,4 +14,4 @@
       (lambda args
 	#t))
 
-(define-public current-load-list #f)
+(define-public current-load-list %nil)

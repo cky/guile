@@ -45,8 +45,7 @@ and try to bootstrap a complete Emacs environment:
 
 * Status
 
-Please note that this is work in progress; the translator is
-incomplete and not yet widely tested.
+Please see the STATUS file for the full position.
 
 ** Trying to load a complete Emacs environment.
 
@@ -163,12 +162,23 @@ transform Elisp variable references after all.
 
 *** Truth value stuff
 
-Lots of stuff to do with providing the special self-evaluating `nil'
-and `t' symbols, and macros that convert between Scheme and Elisp
-truth values, and so on.
+Following extensive discussions on the Guile mailing list between
+September 2001 and January 2002, we decided to go with Jim Blandy's
+proposal.  See devel/translation/lisp-and-scheme.text for details.
 
-I'm hoping that most of this will go away, but I need to show that
-it's feasible first.
+- The Elisp nil value is a new immediate SCM_MAKIFLAG, eq?-distinct
+from both #f and '() (and of course any other Scheme value).  It can
+be accessed via the (guile) binding `%nil', and prints as `#nil'.
+
+- All Elisp primitives treat #nil, #f and '() as identical.
+
+- Scheme truth-testing primitives have been modified so that they
+treat #nil the same as #f.
+
+- Scheme list-manipulating primitives have been modified so that they
+treat #nil the same as '().
+
+- The Elisp t value is the same as #t.
 
 ** Emacs editing primitives
 
@@ -191,8 +201,9 @@ that Ken Raeburn has been doing on the Emacs codebase.
 
 Elisp is close enough to Scheme that it's convenient to coopt the
 existing Guile reader rather than to write a new one from scratch, but
-there are a few syntactic differences that will require adding Elisp
-support to the reader.
+there are a few syntactic differences that will require changes in
+reading and printing.  None of the following changes has yet been
+implemented.
 
 - Character syntax is `?a' rather than `#\a'.  (Not done.  More
   precisely, `?a' in Elisp isn't character syntax but an alternative
@@ -204,12 +215,10 @@ support to the reader.
 
   and so on.)
 
-- `nil' and `t' should be read (I think) as #f and #t.  (Done.)
+- Vector syntax is `[1 2 3]' rather than `#(1 2 3)'.
 
-- Vector syntax is `[1 2 3]' rather than `#(1 2 3)'.  (Not done.)
-
-Correspondingly, when printing, #f and '() should be written as
-`nil'.  (Not done.)
+- When in an Elisp environment, #nil and #t should print as `nil' and
+  `t'.
 
 ** The Elisp evaluation module (lang elisp base)
 
@@ -272,36 +281,6 @@ worry about adding unexec support to Guile!)  For the output that
 currently results from calling `(load-emacs)', see above in the Status
 section.
 
-* nil, #f and '()
-
-For Jim Blandy's notes on this, see the reference at the bottom of
-this file.  Currently I'm investigating a different approach, which is
-better IMO than Jim's proposal because it avoids requiring multiple
-false values in the Scheme world.
-
-According to my approach...
-
-- `nil' and `t' are read (when in Elisp mode) as #f and #t.
-
-- `(if x ...)', `(while x ...)' etc. are translated to something
-  like `(if (and x (not (null? x))) ...)'.
-
-- Functions which interpret an argument as a list --
-  `cons', `setcdr', `memq', etc. -- either convert #f to '(), or
-  handle the #f case specially.
-
-- `eq' treats #f and '() as the same.
-
-- Optionally, functions which produce '() values -- i.e. the reader
-  and `cdr' -- could convert those immediately to #f.  This shouldn't
-  affect the validity of any Elisp code, but it alters the balance of
-  #f and '() values swimming around in that code and so affects what
-  happens if two such values are returned to the Scheme world and then
-  compared.  However, since you can never completely solve this
-  problem (unless you are prepared to convert arbitrarily deep
-  structures on entry to the Elisp world, which would kill performance),
-  I'm inclined not to try to solve it at all.
-
 * Resources
 
 ** Ken Raeburn's Guile Emacs page
@@ -316,6 +295,9 @@ http://gemacs.sourceforge.net
 
 http://sanpietro.red-bean.com/guile/guile/old/3114.html
 
+Also now stored as guile-core/devel/translation/lisp-and-scheme.text
+in Guile CVS.
+
 ** Mikael Djurfeldt's notes on translation
 
-See file guile-cvs/devel/translation/langtools.text in Guile CVS.
+See file guile-core/devel/translation/langtools.text in Guile CVS.

@@ -1,7 +1,8 @@
 (define-module (lang elisp primitives symprop)
-  #:use-module (lang elisp internals set)
-  #:use-module (lang elisp internals fset)
   #:use-module (lang elisp internals evaluation)
+  #:use-module (lang elisp internals fset)
+  #:use-module (lang elisp internals null)
+  #:use-module (lang elisp internals set)
   #:use-module (ice-9 optargs))
 
 ;;; {Elisp Exports}
@@ -16,7 +17,7 @@
 
 (fset 'boundp
       (lambda (sym)
-	(module-defined? the-elisp-module sym)))
+	(->nil (module-defined? the-elisp-module sym))))
 
 (fset 'default-boundp 'boundp)
 
@@ -29,10 +30,11 @@
 (fset 'symbolp
       (lambda (object)
 	(or (symbol? object)
-	    (keyword? object))))
+	    (keyword? object)
+	    %nil)))
 
 (fset 'local-variable-if-set-p
       (lambda* (variable #:optional buffer)
-	#f))
+	%nil))
 
 (fset 'symbol-name symbol->string)

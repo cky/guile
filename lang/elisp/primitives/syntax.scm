@@ -32,7 +32,6 @@
 	      `(,quote ,(cadr exp))
 	      `(,begin (,if (,not (,defined? (,quote ,(cadr exp))))
 			    ,(setq (list (car exp) (cadr exp) (caddr exp)) env))
-		       ;; (,macro-setq ,(cadr exp) ,(caddr exp)))
 		       (,quote ,(cadr exp)))))))
 
 (fset 'defconst
@@ -87,28 +86,28 @@
 						 `(((,> %--num-args ,(+ num-required num-optional))
 						    (,error "Wrong number of args (too many args)"))))
 					   (else (,transformer
-						  (@bind ,(append (map (lambda (i)
-									 (list (list-ref required i)
-									       `(,list-ref %--args ,i)))
-								       (iota num-required))
-								  (map (lambda (i)
-									 (let ((i+nr (+ i num-required)))
-									   (list (list-ref optional i)
-										 `(,if (,> %--num-args ,i+nr)
-										       (,list-ref %--args ,i+nr)
-										       #f))))
-								       (iota num-optional))
-								  (if rest
-								      (list (list rest
-										  `(,if (,> %--num-args
-											    ,(+ num-required
-												num-optional))
-											(,list-tail %--args
-												    ,(+ num-required
-													num-optional))
-											'())))
-								      '()))
-							 ,@(map transformer (cdddr exp)))))))))))))))))
+						  (, @bind ,(append (map (lambda (i)
+									   (list (list-ref required i)
+										 `(,list-ref %--args ,i)))
+									 (iota num-required))
+								    (map (lambda (i)
+									   (let ((i+nr (+ i num-required)))
+									     (list (list-ref optional i)
+										   `(,if (,> %--num-args ,i+nr)
+											 (,list-ref %--args ,i+nr)
+											 ,%nil))))
+									 (iota num-optional))
+								    (if rest
+									(list (list rest
+										    `(,if (,> %--num-args
+											      ,(+ num-required
+												  num-optional))
+											  (,list-tail %--args
+												      ,(+ num-required
+													  num-optional))
+											  ,%nil)))
+									'()))
+							   ,@(map transformer (cdddr exp)))))))))))))))))
 
 ;;; {Sequencing}
 
@@ -120,36 +119,34 @@
 (fset 'prog1
       (procedure->memoizing-macro
         (lambda (exp env)
-	  `(,let ((%res1 ,(transformer (cadr exp))))
+	  `(,let ((%--res1 ,(transformer (cadr exp))))
 	     ,@(map transformer (cddr exp))
-	     %res1))))
+	     %--res1))))
 
 (fset 'prog2
       (procedure->memoizing-macro
         (lambda (exp env)
 	  `(,begin ,(transformer (cadr exp))
-		   (,let ((%res2 ,(transformer (caddr exp))))
+		   (,let ((%--res2 ,(transformer (caddr exp))))
 		     ,@(map transformer (cdddr exp))
-		     %res2)))))
+		     %--res2)))))
 
 ;;; {Conditionals}
-
-(define <-- *unspecified*)
 
 (fset 'if
       (procedure->memoizing-macro
         (lambda (exp env)
 	  (let ((else-case (cdddr exp)))
 	    (cond ((null? else-case)
-		   `(nil-cond ,(transformer (cadr exp)) ,(transformer (caddr exp)) #f))
+		   `(,nil-cond ,(transformer (cadr exp)) ,(transformer (caddr exp)) ,%nil))
 		  ((null? (cdr else-case))
-		   `(nil-cond ,(transformer (cadr exp))
-			      ,(transformer (caddr exp))
-			      ,(transformer (car else-case))))
+		   `(,nil-cond ,(transformer (cadr exp))
+			       ,(transformer (caddr exp))
+			       ,(transformer (car else-case))))
 		  (else
-		   `(nil-cond ,(transformer (cadr exp))
-			      ,(transformer (caddr exp))
-			      (,begin ,@(map transformer else-case)))))))))
+		   `(,nil-cond ,(transformer (cadr exp))
+			       ,(transformer (caddr exp))
+			       (,begin ,@(map transformer else-case)))))))))
 
 (fset 'and
       (procedure->memoizing-macro
@@ -162,13 +159,26 @@
 			 (if (null? (cdr args))
 			     (list (transformer (car args)))
 			     (cons (list not (transformer (car args)))
-				   (cons #f
+				   (cons %nil
 					 (loop (cdr args))))))))))))
+
+;;; NIL-COND expressions have the form:
+;;;
+;;; (nil-cond COND VAL COND VAL ... ELSEVAL)
+;;;
+;;; The CONDs are evaluated in order until one of them returns true
+;;; (in the Elisp sense, so not including empty lists).  If a COND
+;;; returns true, its corresponding VAL is evaluated and returned,
+;;; except if that VAL is the unspecified value, in which case the
+;;; result of evaluating the COND is returned.  If none of the COND's
+;;; returns true, ELSEVAL is evaluated and its value returned.
+
+(define <-- *unspecified*)
 
 (fset 'or
       (procedure->memoizing-macro
         (lambda (exp env)
-	  (cond ((null? (cdr exp)) #f)
+	  (cond ((null? (cdr exp)) %nil)
 		((null? (cddr exp)) (transformer (cadr exp)))
 		(else
 		 (cons nil-cond
@@ -183,15 +193,15 @@
       (procedure->memoizing-macro
        (lambda (exp env)
 	 (if (null? (cdr exp))
-	     #f
+	     %nil
 	     (cons
 	      nil-cond
 	      (let loop ((clauses (cdr exp)))
 		(if (null? clauses)
-		    '(#f)
+		    (list %nil)
 		    (let ((clause (car clauses)))
 		      (if (eq? (car clause) #t)
-			  (cond ((null? (cdr clause)) '(t))
+			  (cond ((null? (cdr clause)) (list #t))
 				((null? (cddr clause))
 				 (list (transformer (cadr clause))))
 				(else `((,begin ,@(map transformer (cdr clause))))))
@@ -210,7 +220,7 @@
 				  (,nil-cond ,(transformer (cadr exp))
 					     (,begin ,@(map transformer (cddr exp))
 						     (%--while))
-					     #f))))
+					     ,%nil))))
 	      %--while)))))
 
 ;;; {Local binding}
@@ -218,13 +228,13 @@
 (fset 'let
       (procedure->memoizing-macro
         (lambda (exp env)
-	  `(@bind ,(map (lambda (binding)
-			  (trc 'let binding)
-			  (if (pair? binding)
-			      `(,(car binding) ,(transformer (cadr binding)))
-			      `(,binding #f)))
-			(cadr exp))
-		  ,@(map transformer (cddr exp))))))
+	  `(, @bind ,(map (lambda (binding)
+			    (trc 'let binding)
+			    (if (pair? binding)
+				`(,(car binding) ,(transformer (cadr binding)))
+				`(,binding ,%nil)))
+			  (cadr exp))
+		    ,@(map transformer (cddr exp))))))
 
 (fset 'let*
       (procedure->memoizing-macro
@@ -234,11 +244,11 @@
 	      (car (let loop ((bindings (cadr exp)))
 		     (if (null? bindings)
 			 (map transformer (cddr exp))
-			 `((@bind (,(let ((binding (car bindings)))
-				      (if (pair? binding)
-					  `(,(car binding) ,(transformer (cadr binding)))
-					  `(,binding #f))))
-				  ,@(loop (cdr bindings)))))))))))
+			 `((, @bind (,(let ((binding (car bindings)))
+					(if (pair? binding)
+					    `(,(car binding) ,(transformer (cadr binding)))
+					    `(,binding ,%nil))))
+				    ,@(loop (cdr bindings)))))))))))
 
 ;;; {Exception handling}
 

@@ -1,7 +1,13 @@
 (define-module (lang elisp internals null)
-  #:export (null))
+  #:export (->nil lambda->nil null))
+
+(define (->nil x)
+  (or x %nil))
+
+(define (lambda->nil proc)
+  (lambda args
+    (->nil (apply proc args))))
 
 (define (null obj)
-  (or (not obj)
-      (null? obj)
-      (eq? obj 'nil)))			; Should be removed.
+  (->nil (or (not obj)
+	     (null? obj))))

@@ -1,12 +1,11 @@
 (define-module (lang elisp base)
 
-  ;; Be pure.  Nothing in this module requires most of the standard
-  ;; Guile builtins, and it creates a problem if this module has
-  ;; access to them, as @bind can dynamically change their values.
+  ;; Be pure.  Nothing in this module requires symbols that map to the
+  ;; standard Guile builtins, and it creates a problem if this module
+  ;; has access to them, as @bind can dynamically change their values.
+  ;; Transformer output always uses the values of builtin procedures
+  ;; and macros directly.
   #:pure
-
-  ;; But we do need a few builtins - import them here.
-  #:use-module ((guile) #:select (@fop @bind nil-cond))
 
   ;; {Elisp Primitives}
   ;;
@@ -34,13 +33,10 @@
   ;; Now switch into Emacs Lisp syntax.
   #:use-syntax (lang elisp transform))
 
-;(use-modules (lang elisp transform))
-;(read-set! keywords 'prefix)
-;(set-module-transformer! (current-module) transformer)
-
 ;;; Everything below here is written in Elisp.
 
 (defun load-emacs ()
+  (scheme (read-set! keywords 'prefix))
   (message "Calling loadup.el to clothe the bare Emacs...")
   (load "loadup.el")
   (message "Guile Emacs now fully clothed"))
