@@ -778,15 +778,6 @@
 ;;; Scheme code based on the argument list.  This page contains help
 ;;; functions for the code it generates.
 
-(define (eval-string string)
-  (call-with-input-string
-   string
-   (lambda (port)
-     (let loop ()
-       (let ((expr (read port)))
-	 (if (eof-object? expr) #f
-	     (begin (eval expr) (loop))))))))
-
 (define (command-line) (program-arguments))
 
 (define (load-user-init)
