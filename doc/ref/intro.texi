@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.7 2002-01-07 20:48:02 ossau Exp $
+@c $Id: intro.texi,v 1.8 2002-01-08 08:29:00 ttn Exp $
 
 
 @page
@@ -686,7 +686,7 @@ the host platform will be provided automatically.
 For this to work, @code{load-extension} must be able to find
 @file{libguile-bessel}, of course.  It will look in the places that
 are usual for your operating system, and it will additionally look
-into the directories listed in the @code{LTDL_LIBRRAY_PATH}
+into the directories listed in the @code{LTDL_LIBRARY_PATH}
 environment variable.
 
 To see how these Guile extensions via shared libraries relate to the

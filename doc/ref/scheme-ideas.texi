@@ -42,7 +42,7 @@ variable.
 @node Latent Typing
 @subsection Latent Typing
 
-The term @dfn{latent typing} is used to descibe a computer language,
+The term @dfn{latent typing} is used to describe a computer language,
 such as Scheme, for which you cannot, @emph{in general}, simply look at
 a program's source code and determine what type of data will be
 associated with a particular variable, or with the result of a
@@ -1156,7 +1156,7 @@ and susceptible to interrupts that could leave the
 @end lisp
 
 The key point here is that the code does not create any local binding
-for the identifier @code{currency-abbreviation}, so all occurences of
+for the identifier @code{currency-abbreviation}, so all occurrences of
 this identifier refer to the top level variable.
 
 

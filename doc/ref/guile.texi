@@ -94,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.11 2002-01-02 23:59:00 ttn Exp $
+@subtitle $Id: guile.texi,v 1.12 2002-01-08 08:29:00 ttn Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -105,7 +105,7 @@ by the Free Software Foundation.
 @c accessing Guile objects.
 
 @c Significant portions were contributed by Gary Houston (contributions
-@c to posix system calls and networking, expect, I/O internals and
+@c to POSIX system calls and networking, expect, I/O internals and
 @c extensions, slib installation, error handling) and Tim Pierce
 @c (sections on script interpreter triggers, alists, function tracing).
 
@@ -209,7 +209,7 @@ Part I: Introduction to Guile
 
 Part II: Programming with Guile
 
-* Programming Intro::           Intoduction to this part.
+* Programming Intro::           Introduction to this part.
 * Programming Overview::        An overview of Guile programming.
 * Scheme Intro::                Introduction to Guile Scheme.
 * Basic Ideas::                 Basic ideas in Scheme.

@@ -71,7 +71,7 @@ values.
 @deffn syntax if test consequent [alternate]
 All arguments may be arbitrary expressions.  First, @var{test} is
 evaluated.  If it returns a true value, the expression @var{consequent}
-is evaluated and @var{alternate} is ignoret.  If @var{test} evaluates to
+is evaluated and @var{alternate} is ignored.  If @var{test} evaluates to
 @code{#f}, @var{alternate} is evaluated instead.  The value of the
 evaluated branch (@var{consequent} or @var{alternate}) is returned as
 the value of the @code{if} expression.
@@ -123,7 +123,7 @@ and the last @var{clause} may have the form
 
 All @var{datum}s must be distinct.  First, @var{key} is evaluated.  The
 the result of this evaluation is compared against all @var{datum}s using
-@code{eqv?}.  When this comparison succeeds, the epression(s) following
+@code{eqv?}.  When this comparison succeeds, the expression(s) following
 the @var{datum} are evaluated from left to right, returning the value of
 the last expression as the result of the @code{case} expression.
 
@@ -313,7 +313,7 @@ Scheme allows a procedure to return more than one value to its caller.
 This is quite different to other languages which only allow
 single-value returns.  Returning multiple values is different from
 returning a list (or pair or vector) of values to the caller, because
-conceptionally not @emph{one} compound object is returned, but several
+conceptually not @emph{one} compound object is returned, but several
 distinct values.
 
 The primitive procedures for handling multiple values are @code{values}
@@ -884,7 +884,7 @@ in which they are used:
 @itemize @bullet
 @item
 @code{error-signal}: thrown after receiving an unhandled fatal signal
-such as SIGSEV, SIGBUS, SIGFPE etc.  The @var{rest} argument in the throw
+such as SIGSEGV, SIGBUS, SIGFPE etc.  The @var{rest} argument in the throw
 contains the coded signal number (at present this is not the same as the
 usual Unix signal number).
 
@@ -901,7 +901,7 @@ errno value.
 accepted domain.
 
 @item
-@code{wrong-type-arg}: an argument to a procedure has the wrong thpe.
+@code{wrong-type-arg}: an argument to a procedure has the wrong type.
 
 @item
 @code{wrong-number-of-args}: a procedure was called with the wrong number

@@ -151,7 +151,7 @@ This is the user's main program.  It will be invoked by
 
 Note that you can use @code{gh_repl} inside @code{gh_enter} (in other
 words, inside the code for @code{main-prog}) if you want the program to
-be controled by a Scheme read-eval-print loop.
+be controlled by a Scheme read-eval-print loop.
 @end deftypefun
 
 @cindex read eval print loop -- from the gh_ interface
@@ -328,7 +328,7 @@ routine @code{(*fn)()}.
 
 First of all the C routine has to return type @code{SCM}.
 
-Second, all arguments passed to the C funcion will be of type
+Second, all arguments passed to the C function will be of type
 @code{SCM}.
 
 Third: the C routine is now subject to Scheme flow control, which means
@@ -342,7 +342,7 @@ Fourth: to get around the latter issue, you can use
 
 @defmac GH_DEFER_INTS
 @defmacx GH_ALLOW_INTS
-These macros disable and reenable Scheme's flow control.  They 
+These macros disable and re-enable Scheme's flow control.  They 
 @end defmac
 
 
@@ -725,7 +725,7 @@ These correspond to the Scheme @code{(make-vector n fill)},
 value)} @code{(vector-length v)} @code{(list->vector ls)} procedures.
 
 The correspondence is not perfect for @code{gh_vector}: this routine
-taks a list @var{ls} instead of the individual list elements, thus
+takes a list @var{ls} instead of the individual list elements, thus
 making it identical to @code{gh_list_to_vector}.
 
 There is also a difference in gh_vector_length: the value returned is a
@@ -811,7 +811,7 @@ here.
 
    Look up a symbol with a given name, and return the object to which
    it is bound.  gh_lookup examines the Guile top level, and
-   gh_module_lookup checks the module namespace specified by the
+   gh_module_lookup checks the module name space specified by the
    `vec' argument.
 
    The return value is the Scheme object to which SNAME is bound, or
@@ -851,7 +851,7 @@ If you are using libtool to link your executables, just use
 @code{-lguile} in your link command.  Libtool will expand this into
 the needed linker options automatically.  If you are not using
 libtool, use the @code{guile-config} program to query the needed
-options explicitely.  A linker command like
+options explicitly.  A linker command like
 
 @smallexample
 $(CC) -o prog prog.o `guile-config link`

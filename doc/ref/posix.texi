@@ -46,7 +46,7 @@ facility.
 @item
 Underscores in Unix procedure names are converted to hyphens.
 @item
-Procedures which destructively modify Scheme data have exclaimation
+Procedures which destructively modify Scheme data have exclamation
 marks appended, e.g., @code{recv!}.
 @item
 Predicates (returning only @code{#t} or @code{#f}) have question marks
@@ -116,7 +116,7 @@ environment.
 
 A file descriptor can be extracted from a port and a new port can be
 created from a file descriptor.  However a file descriptor is just an
-integer and the garbage collector doesn't recognise it as a reference
+integer and the garbage collector doesn't recognize it as a reference
 to the port.  If all other references to the port were dropped, then
 it's likely that the garbage collector would free the port, with the
 side-effect of closing the file descriptor prematurely.
@@ -125,7 +125,7 @@ To assist the programmer in avoiding this problem, each port has an
 associated "revealed count" which can be used to keep track of how many
 times the underlying file descriptor has been stored in other places.
 If a port's revealed count is greater than zero, the file descriptor
-will not be closed when the port is gabage collected.  A programmer
+will not be closed when the port is garbage collected.  A programmer
 can therefore ensure that the revealed count will be greater than
 zero if the file descriptor is needed elsewhere.
 
@@ -400,7 +400,7 @@ used only during port creation are not retained.
 except for those supplied as arguments.  This procedure
 was intended to be used before an exec call to close file descriptors
 which are not needed in the new process.  However it has the
-undesirable side-effect of flushing buffes, so it's deprecated.
+undesirable side-effect of flushing buffers, so it's deprecated.
 Use port-for-each instead.
 @end deffn
 
@@ -475,13 +475,13 @@ Don't block when locking.  May be specified by bitwise OR'ing
 it to one of the other operations.
 @end table
 The return value is not specified. @var{file} may be an open
-file descriptor or an open file descriptior port.
+file descriptor or an open file descriptor port.
 @end deffn
 
 @deffn {Scheme Procedure} select reads writes excepts [secs [usecs]]
 @deffnx {C Function} scm_select (reads, writes, excepts, secs, usecs)
 This procedure has a variety of uses: waiting for the ability
-to provide input, accept output, or the existance of
+to provide input, accept output, or the existence of
 exceptional conditions on a collection of ports or file
 descriptors, or waiting for a timeout to occur.
 It also returns if interrupted by a signal.
@@ -797,7 +797,7 @@ component, @code{.} is returned.
 @deffnx {C Function} scm_basename (filename, suffix)
 Return the base name of the file name @var{filename}. The
 base name is the file name without any directory components.
-If @var{suffix} is privided, and is equal to the end of
+If @var{suffix} is provided, and is equal to the end of
 @var{basename}, it is removed also.
 @end deffn
 
@@ -877,11 +877,11 @@ The encrypted group password.
 @item group:gid
 The group id number.
 @item group:mem
-A list of userids which have this group as a supplimentary group.
+A list of userids which have this group as a supplementary group.
 @end table
 
 @deffn {Scheme Procedure} getgrgid gid
-Look up an integer groupid in the group database.
+Look up an integer group id in the group database.
 @end deffn
 
 @deffn {Scheme Procedure} getgrnam name
@@ -1165,7 +1165,7 @@ Return the name of the current working directory.
 
 @deffn {Scheme Procedure} umask [mode]
 @deffnx {C Function} scm_umask (mode)
-If @var{mode} is omitted, retuns a decimal number representing the current
+If @var{mode} is omitted, returns a decimal number representing the current
 file creation mask.  Otherwise the file creation mask is set to
 @var{mode} and the previous value is returned.
 
@@ -1189,7 +1189,7 @@ Return an integer representing the current process ID.
 @deffn {Scheme Procedure} getgroups
 @deffnx {C Function} scm_getgroups ()
 Return a vector of integers representing the current
-supplimentary group IDs.
+supplementary group IDs.
 @end deffn
 
 @deffn {Scheme Procedure} getppid
@@ -1370,7 +1370,7 @@ is @var{status} if supplied, otherwise zero.
 @deffnx {C Function} scm_execl (filename, args)
 Executes the file named by @var{path} as a new process image.
 The remaining arguments are supplied to the process; from a C program
-they are accessable as the @code{argv} argument to @code{main}.
+they are accessible as the @code{argv} argument to @code{main}.
 Conventionally the first @var{arg} is the same as @var{path}.
 All arguments must be strings.
 
@@ -2097,7 +2097,7 @@ The return value is unspecified.
 @deffn {Scheme Procedure} shutdown sock how
 @deffnx {C Function} scm_shutdown (sock, how)
 Sockets can be closed simply by using @code{close-port}. The
-@code{shutdown} procedure allows reception or tranmission on a
+@code{shutdown} procedure allows reception or transmission on a
 connection to be shut down individually, according to the parameter
 @var{how}:
 
@@ -2239,7 +2239,7 @@ number.
 @deffnx {C Function} scm_getsockname (sock)
 Return the address of @var{sock}, in the same form as the
 object returned by @code{accept}.  On many systems the address
-of a socket in the @code{AF_FILE} namespace cannot be read.
+of a socket in the @code{AF_FILE} name space cannot be read.
 @end deffn
 
 @deffn {Scheme Procedure} getpeername sock
@@ -2247,7 +2247,7 @@ of a socket in the @code{AF_FILE} namespace cannot be read.
 Return the address that @var{sock}
 is connected to, in the same form as the object returned by
 @code{accept}.  On many systems the address of a socket in the
-@code{AF_FILE} namespace cannot be read.
+@code{AF_FILE} name space cannot be read.
 @end deffn
 
 @deffn {Scheme Procedure} recv! sock buf [flags]
@@ -2456,7 +2456,7 @@ specified locale category as a system-dependent string.
 Otherwise the specified locale category is set to the string
 @var{locale} and the new value is returned as a
 system-dependent string.  If @var{locale} is an empty string,
-the locale will be set using envirionment variables.
+the locale will be set using environment variables.
 @end deffn
 
 @node Encryption

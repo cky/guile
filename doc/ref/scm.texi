@@ -149,7 +149,7 @@ Prefix arg non-nil means use \"gh_\" prefix, otherwise use \"scm_\" prefix."
 @subsection Structuring argument lists for C functions
 
 The C function's arguments will be all of the Scheme procedure's
-argumements, both required and optional; if the Scheme procedure takes a
+arguments, both required and optional; if the Scheme procedure takes a
 ``rest'' argument, that will be a final argument to the C function.  The
 C function's arguments, as well as its return type, will be @code{SCM}.
 

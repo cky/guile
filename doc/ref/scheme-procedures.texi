@@ -5,7 +5,7 @@
 @menu
 * Lambda::                      Basic procedure creation using lambda.
 * Optional Arguments::          Handling keyword, optional and rest arguments.
-* Procedure Properties::        Procedure properties and metainformation.
+* Procedure Properties::        Procedure properties and meta-information.
 * Procedures with Setters::     Procedures with setters.
 * Macros::                      Lisp style macro definitions.
 * Syntax Rules::                Support for R5RS @code{syntax-rules}.
@@ -66,7 +66,7 @@ called, the sequence of actual arguments will converted into a list and
 stored into the newly created location for the formal variable.
 @item (@var{variable1} @dots{} @var{variablen} . @var{variablen+1})
 If a space-delimited period precedes the last variable, then the
-procedure takes @var{n} or more variablesm where @var{n} is the number
+procedure takes @var{n} or more variables where @var{n} is the number
 of formal arguments before the period.  There must be at least one
 argument before the period.  The first @var{n} actual arguments will be
 stored into the newly allocated locations for the first @var{n} formal
@@ -196,13 +196,13 @@ ext-var-decl ::= identifier | ( identifier expression )
 @end example
 
 The characters `*', `+' and `?' are not to be taken literally; they mean
-respectively, zero or more occurences, one or more occurences, and one
-or zero occurences.
+respectively, zero or more occurrences, one or more occurrences, and one
+or zero occurrences.
 
 @deffn {library syntax} lambda* formals body
 @code{lambda*} creates a procedure that takes optional arguments. These
 are specified by putting them inside brackets at the end of the
-paramater list, but before any dotted rest argument. For example,
+parameter list, but before any dotted rest argument. For example,
 
 @lisp
 (lambda* (a b #:optional c d . e) '())
@@ -298,7 +298,7 @@ currying, just like Guile's define. Some examples:
    (display (list y z u)))
 @end lisp
 defines a procedure @code{x} with a fixed argument @var{y}, an optional
-agument @var{a}, another optional argument @var{z} with default value 3,
+argument @var{a}, another optional argument @var{z} with default value 3,
 a keyword argument @var{w}, and a rest argument @var{u}.
 
 @lisp
@@ -316,7 +316,7 @@ Of course, @code{define*[-public]} also supports @code{#:rest} and
 @deffn {library syntax} defmacro* name formals body
 @deffnx {library syntax} defmacro*-public name formals body
 These are just like @code{defmacro} and @code{defmacro-public} except that they
-take @code{lambda*}-style extended paramter lists, where @code{#:optional},
+take @code{lambda*}-style extended parameter lists, where @code{#:optional},
 @code{#:key}, @code{#:allow-other-keys} and @code{#:rest} are allowed with the usual
 semantics. Here is an example of a macro with an optional argument:
 
@@ -328,13 +328,13 @@ semantics. Here is an example of a macro with an optional argument:
 
 
 @node Procedure Properties
-@section Procedure Properties and Metainformation
+@section Procedure Properties and Meta-information
 
 @c FIXME::martin: Review me!
 
 Procedures always have attached the environment in which they were
 created and information about how to apply them to actual arguments.  In
-addition to that, properties and metainformation can be stored with
+addition to that, properties and meta-information can be stored with
 procedures.  The procedures in this section can be used to test whether
 a given procedure satisfies a condition; and to access and set a
 procedure's property.
@@ -441,7 +441,7 @@ Return the source property specified by @var{key} from
 @cindex procedure with setter
 @cindex setter
 A @dfn{procedure with setter} is a special kind of procedure which
-normally behaves like any accesor procedure, that is a procedure which
+normally behaves like any accessor procedure, that is a procedure which
 accesses a data structure.  The difference is that this kind of
 procedure has a so-called @dfn{setter} attached, which is a procedure
 for storing something into a data structure.
@@ -673,8 +673,8 @@ given by the <transformer-spec>.
 @node Internal Macros
 @section Internal Representation of Macros and Syntax
 
-Internally, Guile uses three different flavours of macros.  The three
-flavours are called @dfn{acro} (or @dfn{syntax}), @dfn{macro} and
+Internally, Guile uses three different flavors of macros.  The three
+flavors are called @dfn{acro} (or @dfn{syntax}), @dfn{macro} and
 @dfn{mmacro}.
 
 Given the expression
@@ -684,7 +684,7 @@ Given the expression
 @end lisp
 
 @noindent
-with @code{foo} being some flavour of macro, one of the following things
+with @code{foo} being some flavor of macro, one of the following things
 will happen when the expression is evaluated.
 
 @itemize @bullet
@@ -762,7 +762,7 @@ first symbol in an expression, evaluates the result of applying
 of the containing code.
 @end deffn
 
-In the following primitives, @dfn{acro} flavour macros are referred to
+In the following primitives, @dfn{acro} flavor macros are referred to
 as @dfn{syntax transformers}.
 
 @deffn {Scheme Procedure} macro? obj

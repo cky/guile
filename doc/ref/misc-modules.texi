@@ -140,7 +140,7 @@ Output a page separator (formfeed) character.
 Advance to the next tabulator position.
 
 @item ~y
-Pretty-print the correspinding @var{arg}.
+Pretty-print the corresponding @var{arg}.
 
 @item ~a
 Output the corresponding @var{arg} like @code{display}.
@@ -163,7 +163,7 @@ Output the corresponding @var{arg} as a binary number.
 @item ~r
 Output the corresponding @var{arg} as a number word, e.g. 10 prints as
 @code{ten}.  If prefixed with @code{:}, @code{tenth} is printed, if
-prefixed with @code{:@@}, roman numbers are printed.
+prefixed with @code{:@@}, Roman numbers are printed.
 
 @item ~f
 Output the corresponding @var{arg} as a fixed format floating point

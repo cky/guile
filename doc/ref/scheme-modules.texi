@@ -446,7 +446,7 @@ library SLIB from Guile (@pxref{SLIB}).
 @c from here?
 @item (ice-9 jacal)
 This module contains hooks for using Aubrey Jaffer's symbolic math
-packge Jacal from Guile (@pxref{JACAL}).
+package Jacal from Guile (@pxref{JACAL}).
 @end table
 
 
@@ -497,7 +497,7 @@ integrates dynamically linked libraries into the module system.
 @subsection Low level dynamic linking
 
 When using the low level procedures to do your dynamic linking, you have
-complete control over which library is loaded when and what get's done
+complete control over which library is loaded when and what gets done
 with it.
 
 @deffn {Scheme Procedure} dynamic-link library
@@ -667,7 +667,7 @@ called, the current module is a newly created module with a name as
 indicated by @var{name}.  Each definition that is added to it will be
 automatically exported.
 
-The string @var{name} indicates the hierachical name of the new module.
+The string @var{name} indicates the hierarchical name of the new module.
 It should consist of the individual components of the module name
 separated by single spaces.  That is, the Scheme module name @code{(foo
 bar)}, which is a list, should be written as @code{"foo bar"} for the

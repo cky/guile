@@ -32,14 +32,14 @@ a LISP nil.
 @end deffn
 
 @deffn {Scheme Procedure} nil-eq x y
-Compare @var{x} and @var{y} and return LISP's t if they are
-@code{eq?}, return LISP's nil otherwise.
+Compare @var{x} and @var{y} and return Lisp's t if they are
+@code{eq?}, return Lisp's nil otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} null x
 @deffnx {C Function} scm_null (x)
-Return LISP's @code{t} if @var{x} is nil in the LISP sense,
-return LISP's nil otherwise.
+Return Lisp's @code{t} if @var{x} is nil in the LISP sense,
+return Lisp's nil otherwise.
 @end deffn
 
 

@@ -936,7 +936,7 @@ string is used as the buffer.
 Special treatment is required for ports which can be seeked at random.
 Before various operations, such as seeking the port or changing from
 input to output on a bidirectional port or vice versa, the port
-implemention must be given a chance to update its state.  The write
+implementation must be given a chance to update its state.  The write
 buffer is updated by calling the @code{flush} ptob procedure and the
 input buffer is updated by calling the @code{end_input} ptob procedure.
 In the case of an fport, @code{flush} causes buffered output to be
@@ -1066,7 +1066,7 @@ Complete the processing of buffered output data.  Reset the value of
 Set using @code{scm_set_port_flush}.
 
 @item end_input
-Perform any synchronisation required when switching from input to output
+Perform any synchronization required when switching from input to output
 on the port.  Reset the value of @code{rw_active} to @code{SCM_PORT_NEITHER}.
 Set using @code{scm_set_port_end_input}.
 

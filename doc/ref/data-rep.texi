@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.2 2001-11-25 14:51:03 mvo Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.3 2002-01-08 08:29:00 ttn Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -396,7 +396,7 @@ references are necessary; it suffices to check the bottom two bits of
 the @code{SCM} value.  This may be significant when traversing lists, a
 common activity in a Scheme system.
 
-Again, most real Scheme systems use a slighty different implementation;
+Again, most real Scheme systems use a slightly different implementation;
 for example, if GET_PAIR subtracts off the low bits of @code{x}, instead
 of masking them off, the optimizer will often be able to combine that
 subtraction with the addition of the offset of the structure member we
@@ -564,7 +564,7 @@ The former class are called @dfn{immediates}.  The class of immediates
 includes small integers, characters, boolean values, the empty list, the
 mysterious end-of-file object, and some others.
 
-The remaining types are called, not suprisingly, @dfn{non-immediates}.
+The remaining types are called, not surprisingly, @dfn{non-immediates}.
 They include pairs, procedures, strings, vectors, and all other data
 types in Guile.
 
@@ -797,7 +797,7 @@ Allocate (``CONStruct'') a new pair, with @var{car} and @var{cdr} as its
 contents.
 @end deftypefun
 
-The macros below perform no typechecking.  The results are undefined if
+The macros below perform no type checking.  The results are undefined if
 @var{cell} is an immediate.  However, since all non-immediate Guile
 objects are constructed from cells, and these macros simply return the
 first element of a cell, they actually can be useful on datatypes other
@@ -949,7 +949,7 @@ connected with the interpreter's implementation.
 A subr is a pointer to a C function, packaged up as a Scheme object to
 make it callable by Scheme code.  In addition to the function pointer,
 the subr also contains a pointer to the name of the function, and
-information about the number of arguments accepted by the C fuction, for
+information about the number of arguments accepted by the C function, for
 the sake of error checking.
 
 There is no single type predicate macro that recognizes subrs, as
@@ -1143,7 +1143,7 @@ If so, all of the type and value information can be determined from the
 @node Non-immediate objects
 @subsubsection Non-immediate objects
 
-A Scheme object of type @code{SCM} that does not fullfill the
+A Scheme object of type @code{SCM} that does not fulfill the
 @code{SCM_IMP} predicate holds an encoded reference to a heap cell.
 This reference can be decoded to a C pointer to a heap cell using the
 @code{SCM2PTR} macro.  The encoding of a pointer to a heap cell into a
@@ -1388,7 +1388,7 @@ datatypes described here.)
 @menu
 * Describing a New Type::       
 * Creating Instances::          
-* Typechecking::                
+* Type checking::                
 * Garbage Collecting Smobs::    
 * A Common Mistake In Allocating Smobs::  
 * Garbage Collecting Simple Smobs::  
@@ -1413,7 +1413,7 @@ refers to.  The default smob mark function is to not mark any data.
 Guile will apply this function to each instance of the new type it could
 not find any live pointers to.  The function should release all
 resources held by the object and return the number of bytes released.
-This is analagous to the Java finalization method-- it is invoked at an
+This is analogous to the Java finalization method-- it is invoked at an
 unspecified time (when garbage collection occurs) after the object is
 dead.  The default free function frees the smob data (if the size of the
 struct passed to @code{scm_make_smob_type} is non-zero) using
@@ -1499,14 +1499,14 @@ This function invokes @code{scm_make_smob_type} on its first two arguments
 to add a new smob type named @var{name}, with instance size @var{size} to the system.  
 It also registers the @var{mark}, @var{free}, @var{print}, @var{equalp} smob
 special functions for that new type.  Any of these parameters can be @code{NULL}
-to have that special function use the default behaviour for guile.
+to have that special function use the default behavior for guile.
 The return value is a tag that is used in creating instances of the type.  If @var{size}
 is 0, then no memory will be allocated when instances of the smob are created, and
 nothing will be freed by the default free function.
 @end deftypefun
 
 For example, here is how one might declare and register a new type
-representing eight-bit grayscale images:
+representing eight-bit gray-scale images:
 
 @example
 #include <libguile.h>
@@ -1646,8 +1646,8 @@ make_image (SCM name, SCM s_width, SCM s_height)
 @end example
 
 
-@node Typechecking
-@subsection Typechecking
+@node Type checking
+@subsection Type checking
 
 Functions that operate on smobs should aggressively check the types of
 their arguments, to avoid misinterpreting some other datatype as a smob,

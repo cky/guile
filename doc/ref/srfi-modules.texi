@@ -122,7 +122,7 @@ If no clause is satisfied, an error is signalled.
 
 Since @code{cond-expand} is needed to tell what a Scheme implementation
 provides, it must be accessible without using any
-implementation-dependant operations, such as @code{use-modules} in
+implementation-dependent operations, such as @code{use-modules} in
 Guile.  Thus, it is not necessary to use any module to get access to
 this form.
 
@@ -185,7 +185,7 @@ processing procedure, you should also have a look at the sections
 * SRFI-1 Length Append etc::    Length calculation and list appending.
 * SRFI-1 Fold and Map::         Higher-order list processing.
 * SRFI-1 Filtering and Partitioning::  Filter lists based on predicates.
-* SRFI-1 Searching::            Search for elments.
+* SRFI-1 Searching::            Search for elements.
 * SRFI-1 Deleting::             Delete elements from lists.
 * SRFI-1 Association Lists::    Handle association lists.
 * SRFI-1 Set Operations::       Use lists for representing sets.
@@ -252,7 +252,7 @@ the empty list, but some other value.
 @deffn {Scheme Procedure} null-list? lst
 Return @code{#t} if @var{lst} is the empty list @code{()}, @code{#f}
 otherwise.  If something else than a proper or circular list is passed
-as @var{lst}, an error is signalled.  This procedure is recommented
+as @var{lst}, an error is signalled.  This procedure is recommended
 for checking for the end of a list in contexts where dotted lists are
 not allowed.
 @end deffn
@@ -502,7 +502,7 @@ the list(s) @var{lst1}, @var{lst2}, @dots{}.  The return value is not
 specified.  This procedure is extended with respect to R5RS, because
 the argument lists may have different lengths.  The shortest argument
 list determines the number of times @var{f} is called.  @var{f} will
-be applied to tge list elements in left-to-right order.
+be applied to the list elements in left-to-right order.
 
 @end deffn
 
@@ -646,14 +646,14 @@ result.
 Apply @var{pred} across the lists and return a true value if the
 predicate returns true for any of the list elements(s); return
 @code{#f} otherwise.  The true value returned is always the result of
-the first succesful application of @var{pred}.
+the first successful application of @var{pred}.
 @end deffn
 
 @deffn {Scheme Procedure} every pred lst1 lst2 @dots{}
 Apply @var{pred} across the lists and return a true value if the
 predicate returns true for every of the list elements(s); return
 @code{#f} otherwise.  The true value returned is always the result of
-the final succesful application of @var{pred}.
+the final successful application of @var{pred}.
 @end deffn
 
 @deffn {Scheme Procedure} list-index pred lst1 lst2 @dots{}
@@ -748,7 +748,7 @@ structure of the list @var{alist} in order to produce the result.
 
 Lists can be used for representing sets of objects.  The procedures
 documented in this section can be used for such set representations.
-Man combinding several sets or adding elements, they make sure that no
+Man combining several sets or adding elements, they make sure that no
 object is contained more than once in a given list.  Please note that
 lists are not a too efficient implementation method for sets, so if
 you need high performance, you should think about implementing a
@@ -1064,7 +1064,7 @@ read syntax form
 @end example
 
 where @var{ctor} must be a symbol for which a read constructor was
-defined previouly, using @code{define-reader-ctor}.
+defined previously, using @code{define-reader-ctor}.
 
 Example:
 
@@ -1146,7 +1146,7 @@ soon as possible.
 * SRFI-13 Constructors::        String constructing procedures.
 * SRFI-13 List/String Conversion::  Conversion from/to lists.
 * SRFI-13 Selection::           Selection portions of strings.
-* SRFI-13 Modification::        Modfify strings in-place.
+* SRFI-13 Modification::        Modify strings in-place.
 * SRFI-13 Comparison::          Compare strings.
 * SRFI-13 Prefixes/Suffixes::   Detect common pre-/suffixes.
 * SRFI-13 Searching::           Searching for substrings.
@@ -1465,14 +1465,14 @@ character or a given substring, or a character from a set of characters.
 @deffn {Scheme Procedure} string-index s char_pred [start end]
 @deffnx {Scheme Procedure} string-index-right s char_pred [start end]
 Search through the string @var{s} from left to right (right to left),
-returning the index of the first (last) occurence of a character which
+returning the index of the first (last) occurrence of a character which
 
 @itemize @bullet
 @item
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a
+satisfies the predicate @var{char_pred}, if it is a
 procedure,
 
 @item
@@ -1483,14 +1483,14 @@ is in the set @var{char_pred}, if it is a character set.
 @deffn {Scheme Procedure} string-skip s char_pred [start end]
 @deffnx {Scheme Procedure} string-skip-right s char_pred [start end]
 Search through the string @var{s} from left to right (right to left),
-returning the index of the first (last) occurence of a character which
+returning the index of the first (last) occurrence of a character which
 
 @itemize @bullet
 @item
 does not equal @var{char_pred}, if it is character,
 
 @item
-does not satisify the predicate @var{char_pred}, if it is
+does not satisfy the predicate @var{char_pred}, if it is
 a procedure.
 
 @item
@@ -1507,7 +1507,7 @@ Return the count of the number of characters in the string
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a procedure.
+satisfies the predicate @var{char_pred}, if it is a procedure.
 
 @item
 is in the set @var{char_pred}, if it is a character set.
@@ -1772,7 +1772,7 @@ the module @code{(srfi srfi-14)}, as well as the standard variables
 * SRFI-14 Character Set Data Type::  Underlying data type for charsets.
 * SRFI-14 Predicates/Comparison::  Charset predicates.
 * SRFI-14 Iterating Over Character Sets::  Enumerate charset elements.
-* SRFI-14 Creating Character Sets::  Makeing new charsets.
+* SRFI-14 Creating Character Sets::  Making new charsets.
 * SRFI-14 Querying Character Sets::  Test charsets for membership etc.
 * SRFI-14 Character-Set Algebra::  Calculating new charsets.
 * SRFI-14 Standard Character Sets::  Variables containing predefined charsets.
@@ -1965,7 +1965,7 @@ character codes lie in the half-open range
 If @var{error} is a true value, an error is signalled if the
 specified range contains characters which are not contained in
 the implemented character range.  If @var{error} is @code{#f},
-these characters are silently left out of the resultung
+these characters are silently left out of the resulting
 character set.
 
 The characters in @var{base_cs} are added to the result, if

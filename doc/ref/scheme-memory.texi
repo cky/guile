@@ -44,7 +44,7 @@ Weak references let you attach bookkeeping information to data so that
 the additional information automatically disappears when the original
 data is no longer in use and gets garbage collected. In a weak key hash,
 the hash entry for that key disappears as soon as the key is no longer
-referneced from anywhere else. For weak value hashes, the same happens
+referenced from anywhere else. For weak value hashes, the same happens
 as soon as the value is no longer in use. Entries in a doubly weak hash
 disappear when either the key or the value are not used anywhere else
 anymore.

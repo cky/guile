@@ -257,7 +257,7 @@ function to do everything from reading news to psychoanalysis and
 playing adventure games.  The only limitation is that extensions are
 restricted to the functionality provided by Emacs's built-in set of
 primitive operations.  For example, you can interact and display data by
-manipulating the contents of an Emacs buffer, but you can't popup and
+manipulating the contents of an Emacs buffer, but you can't pop-up and
 draw a window with a layout that is totally different to the Emacs
 standard.
 

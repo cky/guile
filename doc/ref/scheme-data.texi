@@ -25,7 +25,7 @@ constitute Guile's support for dynamic linking, in the context of the
 module system.
 @end itemize
 
-The contents of this chapter are, therefore, a matter of judgement.  By
+The contents of this chapter are, therefore, a matter of judgment.  By
 @dfn{generic}, we mean to select those data types whose typical use as
 @emph{data} in a wide variety of programming contexts is more important
 than their use in the implementation of a particular piece of
@@ -724,7 +724,7 @@ Return the maximum of all parameter values.
 
 @c begin (texi-doc-string "guile" "min")
 @deffn {Scheme Procedure} min x1 x2 @dots{}
-Return the minium of all parameter values.
+Return the minimum of all parameter values.
 @end deffn
 
 @c begin (texi-doc-string "guile" "truncate")
@@ -1064,7 +1064,7 @@ representation are counted.  If 0, 0 is returned.
 
 @deffn {Scheme Procedure} integer-length n
 @deffnx {C Function} scm_integer_length (n)
-Return the number of bits neccessary to represent @var{n}.
+Return the number of bits necessary to represent @var{n}.
 
 @lisp
 (integer-length #b10101010)
@@ -1398,7 +1398,7 @@ like in C.  That means that Scheme strings can contain any character,
 even the NUL character @code{'\0'}.  But note: Since most operating
 system calls dealing with strings (such as for file operations) expect
 strings to be zero-terminated, they might do unexpected things when
-called with string containing unusal characters.
+called with string containing unusual characters.
 
 @menu
 * String Syntax::               Read syntax for strings.
@@ -1830,7 +1830,8 @@ installation includes regular expression support by checking whether the
 @menu
 * Regexp Functions::            Functions that create and match regexps.
 * Match Structures::            Finding what was matched by a regexp.
-* Backslash Escapes::           Removing the special meaning of regexp metacharacters.
+* Backslash Escapes::           Removing the special meaning of regexp
+                                meta-characters.
 @end menu
 
 [FIXME: it may be useful to include an Examples section.  Parts of this
@@ -2424,10 +2425,10 @@ example:
 
 @itemize @bullet
 @item
-colour depth -- Default: the colour depth for the screen
+color depth -- Default: the color depth for the screen
 
 @item
-background colour -- Default: white
+background color -- Default: white
 
 @item
 width -- Default: 600
@@ -2442,8 +2443,8 @@ argument order and using a special value to indicate the default value
 for that argument:
 
 @lisp
-(make-window 'default              ;; Colour depth
-             'default              ;; Background colour
+(make-window 'default              ;; Color depth
+             'default              ;; Background color
              800                   ;; Width
              100                   ;; Height
              @dots{})                  ;; More make-window arguments

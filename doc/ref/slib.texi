@@ -42,7 +42,7 @@ ln -s /usr/local/share/slib /usr/local/share/guile/site/slib
 @end example
 
 @item
-Use Guile to create the catalogue file, e.g.,:
+Use Guile to create the catalog file, e.g.,:
 
 @example
 # guile
@@ -51,7 +51,7 @@ guile> (load "/usr/local/share/slib/mklibcat.scm")
 guile> (quit)
 @end example
 
-The catalogue data should now be in
+The catalog data should now be in
 @code{/usr/local/share/guile/site/slibcat}.
 
 If instead you get an error such as:

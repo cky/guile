@@ -219,7 +219,7 @@ Here the enclosing form is a @code{let}, so the @code{define}s in the
 internal definitions is the @strong{complete} body of the
 @code{let}-expression, the @code{lambda}-expression which gets bound
 to the variable @code{banana} may refer to the variable @code{apple},
-even thogh it's definition appears lexically @emph{after} the definition
+even though it's definition appears lexically @emph{after} the definition
 of @code{banana}.  This is because a sequence of internal definition
 acts as if it were a @code{letrec} expression.
 
@@ -262,7 +262,7 @@ with duplicate bindings.
 @node Binding Reflection
 @section Querying variable bindings
 
-Guile provides a procedure for checking wehther a symbol is bound in the
+Guile provides a procedure for checking whether a symbol is bound in the
 top level environment.  If you want to test whether a symbol is locally
 bound in expression, you can use the @code{bound?} macro from the module
 @code{(ice-9 optargs)}, documented in @ref{Optional Arguments}.

@@ -38,13 +38,13 @@ module often, you should save these to lines to your @file{.guile}
 personal startup file.
 
 You will notice that the REPL's behaviour changes a bit when you have
-loaded the readline module.  For examle, when you press Enter before
+loaded the readline module.  For example, when you press Enter before
 typing in the closing parentheses of a list, you will see the
 @dfn{continuation} prompt, three dots: @code{...}  This gives you a nice
 visual feedback when trying to match parentheses.  To make this even
 easier, @dfn{bouncing parentheses} are implemented.  That means that
 when you type in a closing parentheses, the cursor will jump to the
-corresponding opening paren for a short time, making it trivial to make
+corresponding opening parenthesis for a short time, making it trivial to make
 them match.
 
 Once the readline module is activated, all lines entered interactively

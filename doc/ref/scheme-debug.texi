@@ -10,7 +10,7 @@
 @deffnx {C Function} scm_display_error (stack, port, subr, message, args, rest)
 Display an error message to the output port @var{port}.
 @var{stack} is the saved stack for the error, @var{subr} is
-the name of the procedure in which the error occured and
+the name of the procedure in which the error occurred and
 @var{message} is the actual error message, which may contain
 formatting instructions. These will format the arguments in
 the list @var{args} accordingly.  @var{rest} is currently

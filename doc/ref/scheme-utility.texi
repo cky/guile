@@ -10,7 +10,7 @@ applications, they are collected in a @dfn{utility} chapter.
 
 @menu
 * Equality::                    When are two values `the same'?
-* Property Lists::              Managing metainformation about Scheme objects.
+* Property Lists::              Managing meta-information about Scheme objects.
 * Primitive Properties::        A modern interface to object properties.
 * Sorting::                     Sort utility procedures.
 * Copying::                     Copying deep structures.
