@@ -1,3 +1,9 @@
+2004-07-28  Kevin Ryde  <user42@zip.com.au>
+
+	* misc-modules.texi (Formatted Output): Rewrite, describing escapes
+	and parameters in detail.
+	* guile.texi (@le, @ge): New macros for ifnottex.
+
 2004-07-24  Kevin Ryde  <user42@zip.com.au>
 
 	* guile.texi (@nicode): Use @alias instead of @macro, for correct
