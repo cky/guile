@@ -57,6 +57,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/q.test			\
 	    tests/r4rs.test			\
 	    tests/r5rs_pitfall.test		\
+	    tests/ramap.test			\
 	    tests/reader.test			\
 	    tests/receive.test			\
 	    tests/regexp.test			\
