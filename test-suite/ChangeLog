@@ -1,3 +1,9 @@
+2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tests/unif.test: Removed tests that tried to store a character
+	into a byte vector, which no longer works.  Characters are not
+	bytes.
+
 2004-10-03  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* tests/syntax.test: Added tests for unmemoization.

@@ -164,6 +164,9 @@ be used with '-e'.  For example, you can now write a script like
 It now complies with SRFI-4 and the weird prototype based uniform
 array creation has been deprecated.  See the manual for more details.
 
+One non-compatible change is that characters can no longer be stored
+into byte arrays.
+
 ** There is now support for copy-on-write substrings, mutation-sharing
    substrings and read-only strings.
 
