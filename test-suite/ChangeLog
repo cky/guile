@@ -1,3 +1,8 @@
+2001-05-08  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* tests/srfi-13.test: Added module access kludge, and uncommented
+	some tests depending on this.
+
 2001-05-07  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* tests/srfi-13.test: New file testing the SRFI string library.

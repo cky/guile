@@ -20,6 +20,11 @@
 
 (use-modules (srfi srfi-13))
 
+;;; This kludge is needed, because SRFI-13 redefines some bindings in
+;;; the core.
+(define (module-peek module-name sym)
+  (variable-ref (module-variable (resolve-module module-name) sym)))
+
 (define exception:strict-infix-grammar
   (cons 'misc-error "^strict-infix"))
 
@@ -90,6 +95,7 @@
     (string=? (string-tabulate
 	       (lambda (idx) (integer->char (+ idx 32))) 10) " !\"#$%&'()")))
 
+(define string->list (module-peek '(srfi srfi-13) 'string->list))
 
 (with-test-prefix "string->list"
 
@@ -99,13 +105,11 @@
   (pass-if "nonempty"
      (= (length (string->list "foo")) 3))
 
-;;; FIXME: These do not work, because the standard definition is used,
-;;; apparently.
-;   (pass-if "empty, start index"
-;      (zero? (length (string->list "foo" 3 3))))
+  (pass-if "empty, start index"
+     (zero? (length (string->list "foo" 3 3))))
 
-;   (pass-if "nonempty, start index"
-;      (= (length (string->list "foo" 2)) 1 3))
+   (pass-if "nonempty, start index"
+     (= (length (string->list "foo" 1 3)) 2))
   )
 
 (with-test-prefix "reverse-list->string"
@@ -196,6 +200,7 @@
      (string=? "foo|delim|bar|delim|" (string-join '("foo" "bar") "|delim|"
 						   'suffix))))
 
+(define string-copy (module-peek '(srfi srfi-13) 'string-copy))
 
 (with-test-prefix "string-copy"
 
@@ -205,13 +210,11 @@
   (pass-if "full string"
     (string=? "foo-bar" (string-copy "foo-bar")))
 
-;;; FIXME: These do not work, because the standard definition is used,
-;;; apparently.
-;   (pass-if "start index"
-;     (string=? "o-bar" (string-copy "foo-bar" 2)))
+  (pass-if "start index"
+    (string=? "o-bar" (string-copy "foo-bar" 2)))
 
-;   (pass-if "start and end index"
-;     (string=? "o-ba" (string-copy "foo-bar" 2 6)))
+  (pass-if "start and end index"
+    (string=? "o-ba" (string-copy "foo-bar" 2 6)))
 )
 
 (with-test-prefix "substring/shared"
