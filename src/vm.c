@@ -571,9 +571,6 @@ SCM_DEFINE (scm_vm_load, "vm-load", 2, 0, 0,
 void
 scm_init_vm (void)
 {
-  SCM mod = scm_resolve_module (scm_read_0str ("(system vm core)"));
-  mod = scm_set_current_module (mod);
-
   scm_init_instructions ();
   scm_init_programs ();
 
@@ -592,8 +589,6 @@ scm_init_vm (void)
 #ifndef SCM_MAGIC_SNARFER
 #include "vm.x"
 #endif
-
-  scm_set_current_module (mod);
 }
 
 /*

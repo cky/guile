@@ -220,7 +220,7 @@ SCM_DEFINE (scm_env_define, "env-define", 3, 0, 0,
 void
 scm_init_envs (void)
 {
-  SCM mod, old;
+  SCM mod;
 
   scm_tc16_env = scm_make_smob_type ("env", 0);
   scm_set_smob_mark (scm_tc16_env, env_mark);
@@ -228,19 +228,15 @@ scm_init_envs (void)
 
   env_table = scm_permanent_object (scm_c_make_hash_table (51));
 
-  mod = scm_resolve_module (scm_read_0str ("(system base module)"));
-  old = scm_set_current_module (mod);
-
 #ifndef SCM_MAGIC_SNARFER
 #include "envs.x"
 #endif
 
+  mod = scm_current_module ();
   load_env = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
 				      scm_str2symbol ("load-env"),
 				      SCM_BOOL_T);
   load_env = SCM_VARVCELL (load_env);
-
-  scm_set_current_module (old);
 }
 
 /*
