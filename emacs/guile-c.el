@@ -24,6 +24,7 @@
 ;;     (require 'guile-c)
 ;;     (define-key c-mode-map "\C-c\C-g\C-e" 'guile-c-edit-docstring)
 ;;     (define-key c-mode-map "\C-c\C-g\C-p" 'guile-c-insert-define)
+;;     (define-key c-mode-map "\C-c\C-g\C-d" 'guile-c-deprecate-region)
 ;;     ))
 
 ;;; Code:
@@ -32,6 +33,7 @@
 
 (defvar guile-c-prefix "scm_")
 
+
 ;;;
 ;;; Insert templates
 ;;;
@@ -91,6 +93,7 @@
   (while (string-match "[-:]" name) (setq name (replace-match "_" t t name)))
   (concat guile-c-prefix name))
 
+
 ;;;
 ;;; Edit docstrings
 ;;;
@@ -150,6 +153,21 @@
 	  (while (looking-at "[ \t]*\"")
 	    (forward-line 1))
 	  (cons start (- (point) 2))))))
+
+
+;;;
+;;; Others
+;;;
+
+(defun guile-c-deprecate-region (start end)
+  (interactive "r")
+  (save-excursion
+    (let ((marker (make-marker)))
+      (set-marker marker end)
+      (goto-char start)
+      (insert "#if (SCM_DEBUG_DEPRECATED == 0)\n\n")
+      (goto-char marker)
+      (insert "\n#endif /* (SCM_DEBUG_DEPRECATED == 0) */\n"))))
 
 (provide 'guile-c)
 
