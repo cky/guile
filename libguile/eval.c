@@ -1798,7 +1798,8 @@ scm_m_set_x (SCM expr, SCM env SCM_UNUSED)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
   variable = SCM_CAR (cdr_expr);
-  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
+  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable) || SCM_VARIABLEP (variable),
+		   s_bad_variable, variable, expr);
 
   SCM_SETCAR (expr, SCM_IM_SET_X);
   return expr;
@@ -1930,9 +1931,9 @@ SCM_SYNTAX (s_gset_x, "set!", scm_i_makbimacro, scm_m_generalized_set_x);
 SCM_SYMBOL (scm_sym_setter, "setter");
 
 SCM 
-scm_m_generalized_set_x (SCM expr, SCM env SCM_UNUSED)
+scm_m_generalized_set_x (SCM expr, SCM env)
 {
-  SCM target;
+  SCM target, exp_target;
 
   const SCM cdr_expr = SCM_CDR (expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
@@ -1947,16 +1948,35 @@ scm_m_generalized_set_x (SCM expr, SCM env SCM_UNUSED)
   else
     {
       /* (set! (foo bar ...) baz) becomes ((setter foo) bar ... baz) */
+      /* Macroexpanding the target might return things of the form
+	 (begin <atom>).  In that case, <atom> must be a symbol or a
+	 variable and we memoize to (set! <atom> ...).
+      */
+      exp_target = scm_macroexp (target, env);
+      if (SCM_EQ_P (SCM_CAR (exp_target), SCM_IM_BEGIN)
+	  && !SCM_NULLP (SCM_CDR (exp_target))
+	  && SCM_NULLP (SCM_CDDR (exp_target)))
+	{
+	  exp_target= SCM_CADR (exp_target);
+	  SCM_ASSYNT (SCM_SYMBOLP (exp_target) || SCM_VARIABLEP (exp_target),
+		      s_bad_variable, s_set_x);
+	  return scm_cons (SCM_IM_SET_X, scm_cons (exp_target,
+						   SCM_CDR (cdr_expr)));
+	}
+      else
+	{
+	  const SCM setter_proc_tail = scm_list_1 (SCM_CAR (target));
+	  const SCM setter_proc = scm_cons_source (expr, scm_sym_setter,
+						   setter_proc_tail);
 
-      const SCM setter_proc_tail = scm_list_1 (SCM_CAR (target));
-      const SCM setter_proc = scm_cons_source (expr, scm_sym_setter, setter_proc_tail);
+	  const SCM cddr_expr = SCM_CDR (cdr_expr);
+	  const SCM setter_args = scm_append_x (scm_list_2 (SCM_CDR (target),
+							    cddr_expr));
 
-      const SCM cddr_expr = SCM_CDR (cdr_expr);
-      const SCM setter_args = scm_append_x (scm_list_2 (SCM_CDR (target), cddr_expr));
-
-      SCM_SETCAR (expr, setter_proc);
-      SCM_SETCDR (expr, setter_args);
-      return expr;
+	  SCM_SETCAR (expr, setter_proc);
+	  SCM_SETCDR (expr, setter_args);
+	  return expr;
+	}
     }
 }
 
