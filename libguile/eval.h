@@ -118,6 +118,12 @@ extern SCM scm_eval_options_interface (SCM setting);
 
 #define SCM_EXTEND_ENV scm_acons
 
+
+#define SCM_TOP_LEVEL_LOOKUP_CLOSURE scm_fluid_ref (SCM_CDR (scm_top_level_lookup_closure_var))
+
+extern SCM scm_system_transformer;
+extern SCM scm_top_level_lookup_closure_var;
+
 
 extern const char scm_s_expression[];
 extern const char scm_s_test[];
