@@ -1,3 +1,7 @@
+2001-06-20  Gary Houston  <ghouston@arglist.com>
+
+	* deprecation.c, extensions.c, rw.c: include string.h.
+
 2001-06-19  Gary Houston  <ghouston@arglist.com>
 
 	* filter-doc-snarfage.c (process): added ungetc in

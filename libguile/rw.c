@@ -44,6 +44,7 @@
 /* This is the C part of the (ice-9 rw) module.  */
 
 #include <errno.h>
+#include <string.h>
 
 #include "libguile/_scm.h"
 #include "libguile/fports.h"
