@@ -100,36 +100,14 @@ singp (SCM obj)
 }
 #endif
 
-static SCM scm_i_proc_make_vector;
-static SCM scm_i_proc_make_string;
-static SCM scm_i_proc_make_u1vector;
+SCM scm_i_proc_make_vector;
+SCM scm_i_proc_make_string;
+SCM scm_i_proc_make_bitvector;
 
 #if SCM_ENABLE_DEPRECATED
 
 SCM_SYMBOL (scm_sym_s, "s");
 SCM_SYMBOL (scm_sym_l, "l");
-
-SCM scm_make_u1vector (SCM len, SCM fill);
-
-SCM_DEFINE (scm_make_u1vector, "make-u1vector", 1, 1, 0,
-	    (SCM len, SCM fill),
-	    "...")
-#define FUNC_NAME s_scm_make_u1vector
-{
-  long k = scm_to_long (len);
-  if (k > 0)
-    {
-      long i;
-      SCM_ASSERT_RANGE (1, scm_from_long (k),
-			k <= SCM_BITVECTOR_MAX_LENGTH);
-      i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-      return scm_cell (SCM_MAKE_BITVECTOR_TAG (k), 
-		       (scm_t_bits) scm_gc_malloc (i, "vector"));
-    }
-  else
-    return scm_cell (SCM_MAKE_BITVECTOR_TAG (0), 0);
-}
-#undef FUNC_NAME
 
 static SCM
 scm_i_convert_old_prototype (SCM proto)
@@ -142,7 +120,7 @@ scm_i_convert_old_prototype (SCM proto)
     return proto;
 
   if (scm_is_eq (proto, SCM_BOOL_T))
-    new_proto = scm_i_proc_make_u1vector;
+    new_proto = scm_i_proc_make_bitvector;
   else if (scm_is_eq (proto, SCM_MAKE_CHAR ('a')))
     new_proto = scm_i_proc_make_string;
   else if (scm_is_eq (proto, SCM_MAKE_CHAR (0)))
@@ -177,7 +155,7 @@ scm_i_convert_old_prototype (SCM proto)
 static SCM
 scm_i_get_old_prototype (SCM uvec)
 {
-  if (SCM_BITVECTOR_P (uvec))
+  if (scm_is_bitvector (uvec))
     return SCM_BOOL_T;
   else if (scm_is_string (uvec))
     return SCM_MAKE_CHAR ('a');
@@ -197,7 +175,7 @@ scm_i_get_old_prototype (SCM uvec)
     return scm_divide (scm_from_int (1), scm_from_int (3));
   else if (scm_is_true (scm_c64vector_p (uvec)))
     return scm_c_make_rectangular (0, 1);
-  else if (scm_is_true (scm_vector_p (uvec)))
+  else if (scm_is_vector (uvec))
     return SCM_EOL;
   else
     return SCM_UNSPECIFIED;
@@ -209,10 +187,14 @@ SCM
 scm_make_uve (long k, SCM prot)
 #define FUNC_NAME "scm_make_uve"
 {
+  SCM res;
 #if SCM_ENABLE_DEPRECATED
   prot = scm_i_convert_old_prototype (prot);
 #endif
-  return scm_call_1 (prot, scm_from_long (k));
+  res = scm_call_1 (prot, scm_from_long (k));
+  if (!scm_is_generalized_vector (res))
+    scm_wrong_type_arg_msg (NULL, 0, res, "generalized vector");
+  return res;
 }
 #undef FUNC_NAME
 
@@ -223,13 +205,11 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
 	    "and is described elsewhere.")
 #define FUNC_NAME s_scm_array_p
 {
-  int nprot;
-  int enclosed;
-  nprot = SCM_UNBNDP (prot);
-  enclosed = 0;
-  if (SCM_IMP (v))
-    return SCM_BOOL_F;
+  int nprot = SCM_UNBNDP (prot);
+  int enclosed = 0;
 
+  /* Get storage vector. 
+   */
   while (SCM_ARRAYP (v))
     {
       if (nprot)
@@ -239,68 +219,18 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
       v = SCM_ARRAY_V (v);
     }
 
-  /* XXX - clean up
+  /* It must be a generalized vector (which includes vectors, strings, etc).
    */
-  if (scm_is_uniform_vector (v))
-    {
-      if (nprot)
-	return SCM_BOOL_T;
-      else
-	{
-#if SCM_ENABLE_DEPRECATED
-	  prot = scm_i_convert_old_prototype (prot);
-#endif
-	  return scm_eq_p (prot, scm_i_uniform_vector_creator (v));
-	}
-    }
-  else if (scm_is_true (scm_vector_p (v)))
-    {
-      if (nprot)
-	return SCM_BOOL_T;
-      else
-	{
-#if SCM_ENABLE_DEPRECATED
-	  prot = scm_i_convert_old_prototype (prot);
-#endif
-	  return scm_eq_p (prot, scm_i_proc_make_vector);
-	}
-    }
+  if (!scm_is_generalized_vector (v))
+    return SCM_BOOL_F;
 
   if (nprot)
-    {
-      switch (SCM_TYP7 (v))
- 	{
- 	case scm_tc7_bvect:
- 	case scm_tc7_string:
- 	case scm_tc7_vector:
- 	case scm_tc7_wvect:
-	  return SCM_BOOL_T;
- 	default:
-	  return SCM_BOOL_F;
-	}
-    }
-  else
-    {
-      int protp = 0;
+    return SCM_BOOL_T;
 
-      switch (SCM_TYP7 (v))
- 	{
- 	case scm_tc7_bvect:
- 	  protp = (scm_is_eq (prot, SCM_BOOL_T));
-          break;
- 	case scm_tc7_string:
- 	  protp = SCM_CHARP(prot) && (SCM_CHAR (prot) != '\0');
-          break;
- 	case scm_tc7_vector:
- 	case scm_tc7_wvect:
- 	  protp = scm_is_null(prot);
-          break;
- 	default:
- 	  /* no default */
- 	  ;
- 	}
-      return scm_from_bool(protp);
-    }
+#if SCM_ENABLE_DEPRECATED
+  prot = scm_i_convert_old_prototype (prot);
+#endif
+  return scm_eq_p (prot, scm_i_generalized_vector_creator (v));
 }
 #undef FUNC_NAME
 
@@ -311,24 +241,13 @@ SCM_DEFINE (scm_array_rank, "array-rank", 1, 0, 0,
 	    "not an array, @code{0} is returned.")
 #define FUNC_NAME s_scm_array_rank
 {
-  if (scm_is_uniform_vector (ra))
+  if (scm_is_generalized_vector (ra))
     return scm_from_int (1);
 
-  if (SCM_IMP (ra))
-    return SCM_INUM0;
-  switch (SCM_TYP7 (ra))
-    {
-    default:
-      return SCM_INUM0;
-    case scm_tc7_string:
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      return scm_from_int (1);
-    case scm_tc7_smob:
-      if (SCM_ARRAYP (ra))
-	return scm_from_size_t (SCM_ARRAY_NDIM (ra));
-      return SCM_INUM0;
-    }
+  if (SCM_ARRAYP (ra))
+    return scm_from_size_t (SCM_ARRAY_NDIM (ra));
+    
+  return scm_from_int (0);
 }
 #undef FUNC_NAME
 
@@ -342,27 +261,15 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_array_dimensions
 {
-  SCM res = SCM_EOL;
-  size_t k;
-  scm_t_array_dim *s;
-  if (SCM_IMP (ra))
-    return SCM_BOOL_F;
+  if (scm_is_generalized_vector (ra))
+    return scm_cons (scm_generalized_vector_length (ra), SCM_EOL);
 
-  if (scm_is_uniform_vector (ra))
-    return scm_cons (scm_uniform_vector_length (ra), SCM_EOL);
-
-  switch (SCM_TYP7 (ra))
+  if (SCM_ARRAYP (ra))
     {
-    default:
-      return SCM_BOOL_F;
-    case scm_tc7_string:
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-    case scm_tc7_bvect:
-      return scm_cons (scm_uniform_vector_length (ra), SCM_EOL);
-    case scm_tc7_smob:
-      if (!SCM_ARRAYP (ra))
-	return SCM_BOOL_F;
+      SCM res = SCM_EOL;
+      size_t k;
+      scm_t_array_dim *s;
+      
       k = SCM_ARRAY_NDIM (ra);
       s = SCM_ARRAY_DIMS (ra);
       while (k--)
@@ -374,6 +281,8 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
 			res);
       return res;
     }
+
+  scm_wrong_type_arg_msg (NULL, 0, ra, "array");
 }
 #undef FUNC_NAME
 
@@ -752,7 +661,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (args);
   SCM_ASSERT (SCM_NIMP (ra), ra, SCM_ARG1, FUNC_NAME);
 
-  if (scm_is_uniform_vector (ra))
+  if (scm_is_generalized_vector (ra))
     {
       /* Make sure that we are called with a single zero as
 	 arguments. 
@@ -764,19 +673,8 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
       return ra;
     }
 
-  switch (SCM_TYP7 (ra))
+  if (SCM_ARRAYP (ra))
     {
-    default:
-    badarg:SCM_WRONG_TYPE_ARG (1, ra);
-    case scm_tc7_bvect:
-    case scm_tc7_string:
-      if (scm_is_null (args) || !scm_is_null (SCM_CDR (args)))
-	SCM_WRONG_NUM_ARGS ();
-      SCM_VALIDATE_INT_COPY (SCM_ARG2, SCM_CAR (args), i);
-      SCM_ASSERT_RANGE (SCM_ARG2, SCM_CAR (args), i == 0);
-      return ra;
-    case scm_tc7_smob:
-      SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
       vargs = scm_vector (args);
       if (SCM_VECTOR_LENGTH (vargs) != SCM_ARRAY_NDIM (ra))
 	SCM_WRONG_NUM_ARGS ();
@@ -826,6 +724,8 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
       scm_ra_set_contp (res);
       return res;
     }
+
+  scm_wrong_type_arg_msg (NULL, 0, ra, "array");
 }
 #undef FUNC_NAME
 
@@ -864,35 +764,26 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   if (ninr < 0)
     SCM_WRONG_NUM_ARGS ();
   ra_inr = scm_make_ra (ninr);
-  SCM_ASRTGO (SCM_NIMP (ra), badarg1);
 
-  if (scm_is_uniform_vector (ra))
-    goto uniform_vector;
-
-  switch SCM_TYP7 (ra)
+  if (scm_is_generalized_vector (ra))
     {
-    default:
-    badarg1:SCM_WRONG_TYPE_ARG (1, ra);
-    case scm_tc7_string:
-    case scm_tc7_bvect:
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-    uniform_vector:
       s->lbnd = 0;
       s->ubnd = scm_to_long (scm_uniform_vector_length (ra)) - 1;
       s->inc = 1;
       SCM_ARRAY_V (ra_inr) = ra;
       SCM_ARRAY_BASE (ra_inr) = 0;
       ndim = 1;
-      break;
-    case scm_tc7_smob:
-      SCM_ASRTGO (SCM_ARRAYP (ra), badarg1);
+    }
+  else if (SCM_ARRAYP (ra))
+    {
       s = SCM_ARRAY_DIMS (ra);
       SCM_ARRAY_V (ra_inr) = SCM_ARRAY_V (ra);
       SCM_ARRAY_BASE (ra_inr) = SCM_ARRAY_BASE (ra);
       ndim = SCM_ARRAY_NDIM (ra);
-      break;
     }
+  else
+    scm_wrong_type_arg_msg (NULL, 0, ra, "array");
+
   noutr = ndim - ninr;
   if (noutr < 0)
     SCM_WRONG_NUM_ARGS ();
@@ -941,25 +832,24 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
   scm_t_array_dim *s;
 
   SCM_VALIDATE_REST_ARGUMENT (args);
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
-  if (SCM_NIMP (args))
 
+  if (scm_is_pair (args))
     {
       ind = SCM_CAR (args);
       args = SCM_CDR (args);
       pos = scm_to_long (ind);
     }
+
 tail:
-
-  if (scm_is_uniform_vector (v))
-    goto uniform_vector;
-
-  switch SCM_TYP7 (v)
+  if (scm_is_generalized_vector (v))
     {
-    default:
-    badarg1:SCM_WRONG_TYPE_ARG (1, v);
-    wna: SCM_WRONG_NUM_ARGS ();
-    case scm_tc7_smob:
+      size_t length = scm_c_generalized_vector_length (v);
+      SCM_ASRTGO (scm_is_null (args) && scm_is_integer (ind), wna);
+      return scm_from_bool (pos >= 0 && pos < length);
+    }
+  
+  if (SCM_ARRAYP (v))
+    {
       k = SCM_ARRAY_NDIM (v);
       s = SCM_ARRAY_DIMS (v);
       pos = SCM_ARRAY_BASE (v);
@@ -989,17 +879,12 @@ tail:
       SCM_ASRTGO (0 == k, wna);
       v = SCM_ARRAY_V (v);
       goto tail;
-    case scm_tc7_bvect:
-    case scm_tc7_string:
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-    uniform_vector:
-      {
-	unsigned long length = scm_to_ulong (scm_uniform_vector_length (v));
-	SCM_ASRTGO (scm_is_null (args) && scm_is_integer (ind), wna);
-	return scm_from_bool(pos >= 0 && pos < length);
-      }
+
+    wna:
+      SCM_WRONG_NUM_ARGS ();
     }
+
+  scm_wrong_type_arg_msg (NULL, 0, v, "array");
 }
 #undef FUNC_NAME
 
@@ -1024,7 +909,7 @@ SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
     }
   else
     {
-      unsigned long int length;
+      size_t length;
       if (SCM_NIMP (args))
 	{
 	  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG2, FUNC_NAME);
@@ -1032,54 +917,35 @@ SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
 	  SCM_ASRTGO (scm_is_null (SCM_CDR (args)), wna);
 	}
       else
-	{
-	  pos = scm_to_long (args);
-	}
-      length = scm_to_ulong (scm_uniform_vector_length (v));
+	pos = scm_to_long (args);
+      length = scm_c_generalized_vector_length (v);
       SCM_ASRTGO (pos >= 0 && pos < length, outrng);
     }
 
-  if (scm_is_uniform_vector (v))
-    return scm_uniform_vector_ref (v, scm_from_long (pos));
+  if (scm_is_generalized_vector (v))
+    return scm_c_generalized_vector_ref (v, pos);
 
-  switch SCM_TYP7 (v)
-    {
-    default:
-      if (scm_is_null (args))
- return v;
-    badarg:
-      SCM_WRONG_TYPE_ARG (1, v);
-      /* not reached */
-
-    outrng:
-      scm_out_of_range (FUNC_NAME, scm_from_long (pos));
-    wna:
-      SCM_WRONG_NUM_ARGS ();
-    case scm_tc7_smob:
-      {				/* enclosed */
-	int k = SCM_ARRAY_NDIM (v);
-	SCM res = scm_make_ra (k);
-	SCM_ARRAY_V (res) = SCM_ARRAY_V (v);
-	SCM_ARRAY_BASE (res) = pos;
-	while (k--)
-	  {
-	    SCM_ARRAY_DIMS (res)[k].lbnd = SCM_ARRAY_DIMS (v)[k].lbnd;
-	    SCM_ARRAY_DIMS (res)[k].ubnd = SCM_ARRAY_DIMS (v)[k].ubnd;
-	    SCM_ARRAY_DIMS (res)[k].inc = SCM_ARRAY_DIMS (v)[k].inc;
-	  }
-	return res;
-      }
-    case scm_tc7_bvect:
-      if (SCM_BITVEC_REF (v, pos))
-	return SCM_BOOL_T;
-      else
-	return SCM_BOOL_F;
-    case scm_tc7_string:
-      return scm_c_string_ref (v, pos);
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      return SCM_VELTS (v)[pos];
+  if (SCM_ARRAYP (v))
+    {				/* enclosed */
+      int k = SCM_ARRAY_NDIM (v);
+      SCM res = scm_make_ra (k);
+      SCM_ARRAY_V (res) = SCM_ARRAY_V (v);
+      SCM_ARRAY_BASE (res) = pos;
+      while (k--)
+	{
+	  SCM_ARRAY_DIMS (res)[k].lbnd = SCM_ARRAY_DIMS (v)[k].lbnd;
+	  SCM_ARRAY_DIMS (res)[k].ubnd = SCM_ARRAY_DIMS (v)[k].ubnd;
+	  SCM_ARRAY_DIMS (res)[k].inc = SCM_ARRAY_DIMS (v)[k].inc;
+	}
+      return res;
     }
+
+ badarg:
+  scm_wrong_type_arg_msg (NULL, 0, v, "array");
+ wna:
+  scm_wrong_num_args (NULL);
+ outrng:
+  scm_out_of_range (NULL, scm_from_long (pos));
 }
 #undef FUNC_NAME
 
@@ -1088,42 +954,27 @@ SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
 
 SCM 
 scm_cvref (SCM v, unsigned long pos, SCM last)
-#define FUNC_NAME "scm_cvref"
 {
-  if (scm_is_uniform_vector (v))
-    return scm_uniform_vector_ref (v, scm_from_ulong (pos));
+  if (scm_is_generalized_vector (v))
+    return scm_c_generalized_vector_ref (v, pos);
 
-  switch SCM_TYP7 (v)
-    {
-    default:
-      SCM_WRONG_TYPE_ARG (SCM_ARG1, v);
-    case scm_tc7_bvect:
-      if (SCM_BITVEC_REF(v, pos))
-	return SCM_BOOL_T;
-      else
-	return SCM_BOOL_F;
-    case scm_tc7_string:
-      return scm_c_string_ref (v, pos);
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      return SCM_VELTS (v)[pos];
-    case scm_tc7_smob:
-      {				/* enclosed scm_array */
-	int k = SCM_ARRAY_NDIM (v);
-	SCM res = scm_make_ra (k);
-	SCM_ARRAY_V (res) = SCM_ARRAY_V (v);
-	SCM_ARRAY_BASE (res) = pos;
-	while (k--)
-	  {
-	    SCM_ARRAY_DIMS (res)[k].ubnd = SCM_ARRAY_DIMS (v)[k].ubnd;
-	    SCM_ARRAY_DIMS (res)[k].lbnd = SCM_ARRAY_DIMS (v)[k].lbnd;
-	    SCM_ARRAY_DIMS (res)[k].inc = SCM_ARRAY_DIMS (v)[k].inc;
-	  }
-	return res;
-      }
+  if (SCM_ARRAYP (v))
+    {				/* enclosed scm_array */
+      int k = SCM_ARRAY_NDIM (v);
+      SCM res = scm_make_ra (k);
+      SCM_ARRAY_V (res) = SCM_ARRAY_V (v);
+      SCM_ARRAY_BASE (res) = pos;
+      while (k--)
+	{
+	  SCM_ARRAY_DIMS (res)[k].ubnd = SCM_ARRAY_DIMS (v)[k].ubnd;
+	  SCM_ARRAY_DIMS (res)[k].lbnd = SCM_ARRAY_DIMS (v)[k].lbnd;
+	  SCM_ARRAY_DIMS (res)[k].inc = SCM_ARRAY_DIMS (v)[k].inc;
+	}
+      return res;
     }
+
+  scm_wrong_type_arg_msg (NULL, 0, v, "array");
 }
-#undef FUNC_NAME
 
 
 SCM_REGISTER_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_array_set_x);
@@ -1133,14 +984,12 @@ SCM_REGISTER_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_ar
    PROC is used (and it's called from C too).  */
 SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1, 
            (SCM v, SCM obj, SCM args),
-	    "@deffnx {Scheme Procedure} uniform-array-set1! v obj args\n"
 	    "Set the element at the @code{(index1, index2)} element in @var{array} to\n"
 	    "@var{new-value}.  The value returned by array-set! is unspecified.")
 #define FUNC_NAME s_scm_array_set_x           
 {
   long pos = 0;
 
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_ARRAYP (v))
     {
       pos = scm_aind (v, args, FUNC_NAME);
@@ -1148,52 +997,30 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
     }
   else
     {
-      unsigned long int length;
+      size_t length;
       if (scm_is_pair (args))
 	{
 	  SCM_ASRTGO (scm_is_null (SCM_CDR (args)), wna);
 	  pos = scm_to_long (SCM_CAR (args));
 	}
       else
-	{
-	  pos = scm_to_long (args);
-	}
-      length = scm_to_ulong (scm_uniform_vector_length (v));
+	pos = scm_to_long (args);
+      length = scm_c_generalized_vector_length (v);
       SCM_ASRTGO (pos >= 0 && pos < length, outrng);
     }
 
-  if (scm_is_uniform_vector (v))
-    return scm_uniform_vector_set_x (v, scm_from_long (pos), obj);
-
-  switch (SCM_TYP7 (v))
+  if (scm_is_generalized_vector (v))
     {
-    default: badarg1:
-      SCM_WRONG_TYPE_ARG (1, v);
-      /* not reached */
-    outrng:
-      scm_out_of_range (FUNC_NAME, scm_from_long (pos));
-    wna:
-      SCM_WRONG_NUM_ARGS ();
-    case scm_tc7_smob:		/* enclosed */
-      goto badarg1;
-    case scm_tc7_bvect:
-      if (scm_is_false (obj))
-	SCM_BITVEC_CLR(v, pos);
-      else if (scm_is_eq (obj, SCM_BOOL_T))
-	SCM_BITVEC_SET(v, pos);
-      else
-	badobj:SCM_WRONG_TYPE_ARG (2, obj);
-      break;
-    case scm_tc7_string:
-      SCM_ASRTGO (SCM_CHARP (obj), badobj);
-      scm_c_string_set_x (v, pos, obj);
-      break;
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      SCM_VECTOR_SET (v, pos, obj);
-      break;
+      scm_c_generalized_vector_set_x (v, pos, obj);
+      return SCM_UNSPECIFIED;
     }
-  return SCM_UNSPECIFIED;
+
+  scm_wrong_type_arg_msg (NULL, 0, v, "array");
+
+ outrng:
+  scm_out_of_range (NULL, scm_from_long (pos));
+ wna:
+  scm_wrong_num_args (NULL);
 }
 #undef FUNC_NAME
 
@@ -1216,57 +1043,46 @@ SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
 {
   SCM sra;
 
-  if (scm_is_uniform_vector (ra))
+  if (scm_is_generalized_vector (ra))
     return ra;
 
-  if (SCM_IMP (ra))
-    return SCM_BOOL_F;
-
-  switch SCM_TYP7 (ra)
+  if (SCM_ARRAYP (ra))
     {
-    default:
-      return SCM_BOOL_F;
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-    case scm_tc7_string:
-    case scm_tc7_bvect:
-      return ra;
-    case scm_tc7_smob:
-      {
-	size_t k, ndim = SCM_ARRAY_NDIM (ra), len = 1;
-	if (!SCM_ARRAYP (ra) || !SCM_ARRAY_CONTP (ra))
-	  return SCM_BOOL_F;
-	for (k = 0; k < ndim; k++)
-	  len *= SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd + 1;
-	if (!SCM_UNBNDP (strict))
-	  {
-	    if (ndim && (1 != SCM_ARRAY_DIMS (ra)[ndim - 1].inc))
-	      return SCM_BOOL_F;
-	    if (scm_tc7_bvect == SCM_TYP7 (SCM_ARRAY_V (ra)))
-	      {
-		if (len != SCM_BITVECTOR_LENGTH (SCM_ARRAY_V (ra)) ||
-		    SCM_ARRAY_BASE (ra) % SCM_LONG_BIT ||
-		    len % SCM_LONG_BIT)
-		  return SCM_BOOL_F;
-	      }
-	  }
-
+      size_t k, ndim = SCM_ARRAY_NDIM (ra), len = 1;
+      if (!SCM_ARRAYP (ra) || !SCM_ARRAY_CONTP (ra))
+	return SCM_BOOL_F;
+      for (k = 0; k < ndim; k++)
+	len *= SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd + 1;
+      if (!SCM_UNBNDP (strict))
 	{
-	  SCM v = SCM_ARRAY_V (ra);
-	  unsigned long length = scm_to_ulong (scm_uniform_vector_length (v));
-	  if ((len == length) && 0 == SCM_ARRAY_BASE (ra) && SCM_ARRAY_DIMS (ra)->inc)
-	    return v;
+	  if (ndim && (1 != SCM_ARRAY_DIMS (ra)[ndim - 1].inc))
+	    return SCM_BOOL_F;
+	  if (scm_is_bitvector (SCM_ARRAY_V (ra)))
+	    {
+	      if (len != scm_c_bitvector_length (SCM_ARRAY_V (ra)) ||
+		  SCM_ARRAY_BASE (ra) % SCM_LONG_BIT ||
+		  len % SCM_LONG_BIT)
+		return SCM_BOOL_F;
+	    }
 	}
-
-	sra = scm_make_ra (1);
-	SCM_ARRAY_DIMS (sra)->lbnd = 0;
-	SCM_ARRAY_DIMS (sra)->ubnd = len - 1;
-	SCM_ARRAY_V (sra) = SCM_ARRAY_V (ra);
-	SCM_ARRAY_BASE (sra) = SCM_ARRAY_BASE (ra);
-	SCM_ARRAY_DIMS (sra)->inc = (ndim ? SCM_ARRAY_DIMS (ra)[ndim - 1].inc : 1);
-	return sra;
+      
+      {
+	SCM v = SCM_ARRAY_V (ra);
+	size_t length = scm_c_generalized_vector_length (v);
+	if ((len == length) && 0 == SCM_ARRAY_BASE (ra) && SCM_ARRAY_DIMS (ra)->inc)
+	  return v;
       }
+      
+      sra = scm_make_ra (1);
+      SCM_ARRAY_DIMS (sra)->lbnd = 0;
+      SCM_ARRAY_DIMS (sra)->ubnd = len - 1;
+      SCM_ARRAY_V (sra) = SCM_ARRAY_V (ra);
+      SCM_ARRAY_BASE (sra) = SCM_ARRAY_BASE (ra);
+      SCM_ARRAY_DIMS (sra)->inc = (ndim ? SCM_ARRAY_DIMS (ra)[ndim - 1].inc : 1);
+      return sra;
     }
+
+  scm_wrong_type_arg_msg (NULL, 0, ra, "array");
 }
 #undef FUNC_NAME
 
@@ -1282,9 +1098,9 @@ scm_ra2contig (SCM ra, int copy)
   k = SCM_ARRAY_NDIM (ra);
   if (SCM_ARRAY_CONTP (ra) && ((0 == k) || (1 == SCM_ARRAY_DIMS (ra)[k - 1].inc)))
     {
-      if (scm_tc7_bvect != SCM_TYP7 (SCM_ARRAY_V (ra)))
+      if (!scm_is_bitvector (SCM_ARRAY_V (ra)))
 	return ra;
-      if ((len == SCM_BITVECTOR_LENGTH (SCM_ARRAY_V (ra)) &&
+      if ((len == scm_c_bitvector_length (SCM_ARRAY_V (ra)) &&
 	   0 == SCM_ARRAY_BASE (ra) % SCM_LONG_BIT &&
 	   0 == len % SCM_LONG_BIT))
 	return ra;
@@ -1324,53 +1140,55 @@ SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
 #define FUNC_NAME s_scm_uniform_array_read_x
 {
   SCM cra = SCM_UNDEFINED, v = ra;
-  long sz, vlen, ans;
+  long sz, ans;
   long cstart = 0;
   long cend;
   long offset = 0;
+  size_t vlen;
   char *base;
 
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_UNBNDP (port_or_fd))
     port_or_fd = scm_cur_inp;
   else
     SCM_ASSERT (scm_is_integer (port_or_fd)
 		|| (SCM_OPINPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, FUNC_NAME);
-  vlen = (SCM_TYP7 (v) == scm_tc7_smob
-	  ? 0
-	  : scm_to_long (scm_uniform_vector_length (v)));
+  vlen = (SCM_ARRAYP (v) ?
+	  0 : scm_c_generalized_vector_length (v));
+
+  scm_frame_begin (0);
 
 loop:
   if (scm_is_uniform_vector (v))
     {
       base = scm_uniform_vector_elements (v);
       sz = scm_uniform_vector_element_size (v);
+      scm_frame_uniform_vector_release (v);
+    }
+  else if (scm_is_bitvector (v))
+    {
+      base = (char *) scm_bitvector_elements (v);
+      scm_frame_bitvector_release (v);
+      vlen = (vlen + 31) / 32;
+      cstart /= 32;
+      sz = sizeof (scm_t_uint32);
+    }
+  else if (scm_is_string (v))
+    {
+      base = NULL;  /* writing to strings is special, see below. */
+      sz = sizeof (char);
+    }
+  else if (SCM_ARRAYP (v))
+    {
+      cra = scm_ra2contig (ra, 0);
+      cstart += SCM_ARRAY_BASE (cra);
+      vlen = SCM_ARRAY_DIMS (cra)->inc *
+	(SCM_ARRAY_DIMS (cra)->ubnd - SCM_ARRAY_DIMS (cra)->lbnd + 1);
+      v = SCM_ARRAY_V (cra);
+      goto loop;
     }
   else
-    switch SCM_TYP7 (v)
-      {
-      default:
-      badarg1:SCM_WRONG_TYPE_ARG (SCM_ARG1, v);
-      case scm_tc7_smob:
-	SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
-	cra = scm_ra2contig (ra, 0);
-	cstart += SCM_ARRAY_BASE (cra);
-	vlen = SCM_ARRAY_DIMS (cra)->inc *
-	  (SCM_ARRAY_DIMS (cra)->ubnd - SCM_ARRAY_DIMS (cra)->lbnd + 1);
-	v = SCM_ARRAY_V (cra);
-	goto loop;
-      case scm_tc7_string:
-	base = NULL;  /* writing to strings is special, see below. */
-	sz = sizeof (char);
-	break;
-      case scm_tc7_bvect:
-	base = (char *) SCM_BITVECTOR_BASE (v);
-	vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
-	cstart /= SCM_LONG_BIT;
-	sz = sizeof (long);
-	break;
-      }
+    scm_wrong_type_arg_msg (NULL, 0, v, "array");
   
   cend = vlen;
   if (!SCM_UNBNDP (start))
@@ -1457,11 +1275,13 @@ loop:
       if (ans == -1)
 	SCM_SYSERROR;
     }
-  if (SCM_TYP7 (v) == scm_tc7_bvect)
-    ans *= SCM_LONG_BIT;
+  if (scm_is_bitvector (v))
+    ans *= 32;
 
   if (!scm_is_eq (v, ra) && !scm_is_eq (cra, ra))
     scm_array_copy_x (cra, ra);
+
+  scm_frame_end ();
 
   return scm_from_long (ans);
 }
@@ -1481,55 +1301,58 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
 	    "@code{(current-output-port)}.")
 #define FUNC_NAME s_scm_uniform_array_write
 {
-  long sz, vlen, ans;
+  long sz, ans;
   long offset = 0;
   long cstart = 0;
   long cend;
   const char *base;
+  size_t vlen;
 
   port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
 
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_UNBNDP (port_or_fd))
     port_or_fd = scm_cur_outp;
   else
     SCM_ASSERT (scm_is_integer (port_or_fd)
 		|| (SCM_OPOUTPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, FUNC_NAME);
-  vlen = (SCM_TYP7 (v) == scm_tc7_smob
+  vlen = (SCM_ARRAYP(v)
 	  ? 0
-	  : scm_to_long (scm_uniform_vector_length (v)));
-  
+	  : scm_c_generalized_vector_length (v));
+
+  scm_frame_begin (0);
+
 loop:
   if (scm_is_uniform_vector (v))
     {
       base = scm_uniform_vector_elements (v);
       sz = scm_uniform_vector_element_size (v);
+      scm_frame_uniform_vector_release (v);
+    }
+  else if (scm_is_bitvector (v))
+    {
+      base = (char *) scm_bitvector_elements (v);
+      scm_frame_bitvector_release (v);
+      vlen = (vlen + 31) / 32;
+      cstart /= 32;
+      sz = sizeof (scm_t_uint32);
+    }
+  else if (scm_is_string (v))
+    {
+      base = scm_i_string_chars (v);
+      sz = sizeof (char);
+    }
+  else if (SCM_ARRAYP (v))
+    {
+      v = scm_ra2contig (v, 1);
+      cstart = SCM_ARRAY_BASE (v);
+      vlen = (SCM_ARRAY_DIMS (v)->inc
+	      * (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1));
+      v = SCM_ARRAY_V (v);
+      goto loop;
     }
   else
-    switch SCM_TYP7 (v)
-      {
-      default:
-      badarg1:SCM_WRONG_TYPE_ARG (1, v);
-      case scm_tc7_smob:
-	SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
-	v = scm_ra2contig (v, 1);
-	cstart = SCM_ARRAY_BASE (v);
-	vlen = (SCM_ARRAY_DIMS (v)->inc
-		* (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1));
-	v = SCM_ARRAY_V (v);
-	goto loop;
-      case scm_tc7_string:
-	base = scm_i_string_chars (v);
-	sz = sizeof (char);
-	break;
-      case scm_tc7_bvect:
-	base = (char *) SCM_BITVECTOR_BASE (v);
-	vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
-	cstart /= SCM_LONG_BIT;
-	sz = sizeof (long);
-	break;
-      }
+    scm_wrong_type_arg_msg (NULL, 0, v, "array");
   
   cend = vlen;
   if (!SCM_UNBNDP (start))
@@ -1566,16 +1389,309 @@ loop:
       if (ans == -1)
 	SCM_SYSERROR;
     }
-  if (SCM_TYP7 (v) == scm_tc7_bvect)
-    ans *= SCM_LONG_BIT;
+  if (scm_is_bitvector (v))
+    ans *= 32;
+
+  scm_frame_end ();
 
   return scm_from_long (ans);
 }
 #undef FUNC_NAME
 
 
-static char cnt_tab[16] =
-{0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
+/** Bit vectors */
+
+static scm_t_bits scm_tc16_bitvector;
+
+#define IS_BITVECTOR(obj)       SCM_SMOB_PREDICATE(scm_tc16_bitvector,(obj))
+#define BITVECTOR_BITS(obj)     ((scm_t_uint32 *)SCM_SMOB_DATA(obj))
+#define BITVECTOR_LENGTH(obj)   ((size_t)SCM_SMOB_DATA_2(obj))
+
+static size_t
+bitvector_free (SCM vec)
+{
+  scm_gc_free (BITVECTOR_BITS (vec),
+	       sizeof (scm_t_uint32) * ((BITVECTOR_LENGTH (vec)+31)/32),
+	       "bitvector");
+  return 0;
+}
+
+static int
+bitvector_print (SCM vec, SCM port, scm_print_state *pstate)
+{
+  size_t bit_len = BITVECTOR_LENGTH (vec);
+  size_t word_len = (bit_len+31)/32;
+  scm_t_uint32 *bits = BITVECTOR_BITS (vec);
+  size_t i, j;
+
+  scm_puts ("#*", port);
+  for (i = 0; i < word_len; i++, bit_len -= 32)
+    {
+      scm_t_uint32 mask = 1;
+      for (j = 0; j < 32 && j < bit_len; j++, mask <<= 1)
+	scm_putc ((bits[i] & mask)? '1' : '0', port);
+    }
+    
+  return 1;
+}
+
+static SCM
+bitvector_equalp (SCM vec1, SCM vec2)
+{
+  size_t bit_len = BITVECTOR_LENGTH (vec1);
+  size_t word_len = (bit_len + 31) / 32;
+  scm_t_uint32 last_mask =  ((scm_t_uint32)-1) >> (32*word_len - bit_len);
+  scm_t_uint32 *bits1 = BITVECTOR_BITS (vec1);
+  scm_t_uint32 *bits2 = BITVECTOR_BITS (vec2);
+
+  /* compare lengths */
+  if (BITVECTOR_LENGTH (vec2) != bit_len)
+    return SCM_BOOL_F;
+  /* avoid underflow in word_len-1 below. */
+  if (bit_len == 0)
+    return SCM_BOOL_T;
+  /* compare full words */
+  if (memcmp (bits1, bits2, sizeof (scm_t_uint32) * (word_len-1)))
+    return SCM_BOOL_F;
+  /* compare partial last words */
+  if ((bits1[word_len-1] & last_mask) != (bits2[word_len-1] & last_mask))
+    return SCM_BOOL_F;
+  return SCM_BOOL_T;
+}
+
+int
+scm_is_bitvector (SCM vec)
+{
+  return IS_BITVECTOR (vec);
+}
+
+SCM_DEFINE (scm_bitvector_p, "bitvector?", 1, 0, 0,
+	    (SCM obj),
+	    "Return @code{#t} when @var{obj} is a bitvector, else\n"
+	    "return @code{#f}.")
+#define FUNC_NAME s_scm_bitvector_p
+{
+  return scm_from_bool (scm_is_bitvector (obj));
+}
+#undef FUNC_NAME
+
+SCM
+scm_c_make_bitvector (size_t len, SCM fill)
+{
+  size_t word_len = (len + 31) / 32;
+  scm_t_uint32 *bits;
+  SCM res;
+
+  bits = scm_gc_malloc (sizeof (scm_t_uint32) * word_len,
+			"bitvector");
+  SCM_NEWSMOB2 (res, scm_tc16_bitvector, bits, len);
+
+  if (!SCM_UNBNDP (fill))
+    scm_bitvector_fill_x (res, fill);
+      
+  return res;
+}
+
+SCM_DEFINE (scm_make_bitvector, "make-bitvector", 1, 1, 0,
+	    (SCM len, SCM fill),
+	    "Create a new bitvector of length @var{len} and\n"
+	    "optionally initialize all elements to @var{fill}.")
+#define FUNC_NAME s_scm_make_bitvector
+{
+  return scm_c_make_bitvector (scm_to_size_t (len), fill);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_bitvector, "bitvector", 0, 0, 1,
+	    (SCM bits),
+	    "Create a new bitvector with the arguments as elements.")
+#define FUNC_NAME s_scm_bitvector
+{
+  return scm_list_to_bitvector (bits);
+}
+#undef FUNC_NAME
+
+size_t
+scm_c_bitvector_length (SCM vec)
+{
+  scm_assert_smob_type (scm_tc16_bitvector, vec);
+  return BITVECTOR_LENGTH (vec);
+}
+
+SCM_DEFINE (scm_bitvector_length, "bitvector-length", 1, 0, 0,
+	    (SCM vec),
+	    "Return the length of the bitvector @var{vec}.")
+#define FUNC_NAME s_scm_bitvector_length
+{
+  return scm_from_size_t (scm_c_bitvector_length (vec));
+}
+#undef FUNC_NAME
+
+scm_t_uint32 *
+scm_bitvector_elements (SCM vec)
+{
+  scm_assert_smob_type (scm_tc16_bitvector, vec);
+  return BITVECTOR_BITS (vec);
+}
+
+void
+scm_bitvector_release (SCM vec)
+{
+  /* Nothing to do right now, but this function might come in handy
+     when bitvectors need to be locked when giving away a pointer
+     to their elements.
+     
+     Also, a call to scm_bitvector_release acts like
+     scm_remember_upto_here, which is needed in any case.
+  */
+}
+
+void
+scm_frame_bitvector_release (SCM vec)
+{
+  scm_frame_unwind_handler_with_scm (scm_bitvector_release, vec,
+				     SCM_F_WIND_EXPLICITLY);
+}
+
+SCM
+scm_c_bitvector_ref (SCM vec, size_t idx)
+{
+  if (idx < scm_c_bitvector_length (vec))
+    {
+      scm_t_uint32 *bits = scm_bitvector_elements (vec);
+      SCM res = (bits[idx/32] & (1L << (idx%32)))? SCM_BOOL_T : SCM_BOOL_F;
+      scm_bitvector_release (vec);
+      return res;
+    }
+  else
+    scm_out_of_range (NULL, scm_from_size_t (idx));
+}
+
+SCM_DEFINE (scm_bitvector_ref, "bitvector-ref", 2, 0, 0,
+	    (SCM vec, SCM idx),
+	    "Return the element at index @var{idx} of the bitvector\n"
+	    "@var{vec}.")
+#define FUNC_NAME s_scm_bitvector_ref
+{
+  return scm_c_bitvector_ref (vec, scm_to_size_t (idx));
+}
+#undef FUNC_NAME
+
+void
+scm_c_bitvector_set_x (SCM vec, size_t idx, SCM val)
+{
+  if (idx < scm_c_bitvector_length (vec))
+    {
+      scm_t_uint32 *bits = scm_bitvector_elements (vec);
+      scm_t_uint32 mask = 1L << (idx%32);
+      if (scm_is_true (val))
+	bits[idx/32] |= mask;
+      else
+	bits[idx/32] &= ~mask;
+      scm_bitvector_release (vec);
+    }
+  else
+    scm_out_of_range (NULL, scm_from_size_t (idx));
+}
+
+SCM_DEFINE (scm_bitvector_set_x, "bitvector-set!", 3, 0, 0,
+	    (SCM vec, SCM idx, SCM val),
+	    "Set the element at index @var{idx} of the bitvector\n"
+	    "@var{vec} when @var{val} is true, else clear it.")
+#define FUNC_NAME s_scm_bitvector_set_x
+{
+  scm_c_bitvector_set_x (vec, scm_to_size_t (idx), val);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_bitvector_fill_x, "bitvector-fill!", 2, 0, 0,
+	    (SCM vec, SCM val),
+	    "Set all elements of the bitvector\n"
+	    "@var{vec} when @var{val} is true, else clear them.")
+#define FUNC_NAME s_scm_bitvector_fill_x
+{
+  scm_t_uint32 *bits = scm_bitvector_elements (vec);
+  size_t bit_len = BITVECTOR_LENGTH (vec);
+  size_t word_len = (bit_len + 31) / 32;
+  memset (bits, scm_is_true (val)? -1:0, sizeof (scm_t_uint32) * word_len);
+  scm_bitvector_release (vec);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_list_to_bitvector, "list->bitvector", 1, 0, 0,
+	    (SCM list),
+	    "Return a new bitvector initialized with the elements\n"
+	    "of @var{list}.")
+#define FUNC_NAME s_scm_list_to_bitvector
+{
+  size_t bit_len = scm_to_size_t (scm_length (list));
+  SCM vec = scm_c_make_bitvector (bit_len, SCM_UNDEFINED);
+  size_t word_len = (bit_len+31)/32;
+  scm_t_uint32 *bits = scm_bitvector_elements (vec);
+  size_t i, j;
+
+  for (i = 0; i < word_len && scm_is_pair (list); i++, bit_len -= 32)
+    {
+      scm_t_uint32 mask = 1;
+      bits[i] = 0;
+      for (j = 0; j < 32 && j < bit_len;
+	   j++, mask <<= 1, list = SCM_CDR (list))
+	if (scm_is_true (SCM_CAR (list)))
+	  bits[i] |= mask;
+    }
+  
+  scm_bitvector_release (vec);
+  return vec;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_bitvector_to_list, "bitvector->list", 1, 0, 0,
+	    (SCM vec),
+	    "Return a new list initialized with the elements\n"
+	    "of the bitvector @var{vec}.")
+#define FUNC_NAME s_scm_bitvector_to_list
+{
+  size_t bit_len = scm_c_bitvector_length (vec);
+  SCM res = SCM_EOL;
+  size_t word_len = (bit_len+31)/32;
+  scm_t_uint32 *bits = scm_bitvector_elements (vec);
+  size_t i, j;
+
+  for (i = 0; i < word_len; i++, bit_len -= 32)
+    {
+      scm_t_uint32 mask = 1;
+      for (j = 0; j < 32 && j < bit_len; j++, mask <<= 1)
+	res = scm_cons ((bits[i] & mask)? SCM_BOOL_T : SCM_BOOL_F, res);
+    }
+  
+  scm_bitvector_release (vec);
+  return scm_reverse_x (res, SCM_EOL);
+}
+#undef FUNC_NAME
+
+/* From mmix-arith.w by Knuth.
+
+  Here's a fun way to count the number of bits in a tetrabyte.
+
+  [This classical trick is called the ``Gillies--Miller method for
+  sideways addition'' in {\sl The Preparation of Programs for an
+  Electronic Digital Computer\/} by Wilkes, Wheeler, and Gill, second
+  edition (Reading, Mass.:\ Addison--Wesley, 1957), 191--193. Some of
+  the tricks used here were suggested by Balbir Singh, Peter
+  Rossmanith, and Stefan Schwoon.]
+*/
+
+static size_t
+count_ones (scm_t_uint32 x)
+{
+  x=x-((x>>1)&0x55555555);
+  x=(x&0x33333333)+((x>>2)&0x33333333);
+  x=(x+(x>>4))&0x0f0f0f0f;
+  x=x+(x>>8);
+  return (x+(x>>16)) & 0xff;
+}
 
 SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 	    (SCM b, SCM bitvector),
@@ -1583,37 +1699,45 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 	    "@var{bitvector}.")
 #define FUNC_NAME s_scm_bit_count
 {
-  SCM_VALIDATE_BOOL (1, b);
-  SCM_ASSERT (SCM_BITVECTOR_P (bitvector), bitvector, 2, FUNC_NAME);
-  if (SCM_BITVECTOR_LENGTH (bitvector) == 0) {
-    return SCM_INUM0;
-  } else {
-    unsigned long int count = 0;
-    unsigned long int i = (SCM_BITVECTOR_LENGTH (bitvector) - 1) / SCM_LONG_BIT;
-    unsigned long int w = SCM_UNPACK (SCM_VELTS (bitvector)[i]);
-    if (scm_is_false (b)) {
-      w = ~w;
-    };
-    w <<= SCM_LONG_BIT - 1 - ((SCM_BITVECTOR_LENGTH (bitvector) - 1) % SCM_LONG_BIT);
-    while (1) {
-      while (w) {
-	count += cnt_tab[w & 0x0f];
-	w >>= 4;
-      }
-      if (i == 0) {
-	return scm_from_ulong (count);
-      } else {
-	--i;
-	w = SCM_UNPACK (SCM_VELTS (bitvector)[i]);
-	if (scm_is_false (b)) {
-	  w = ~w;
-	}
-      }
-    }
-  }
+  size_t bit_len = scm_c_bitvector_length (bitvector);
+  size_t word_len = (bit_len + 31) / 32;
+  scm_t_uint32 last_mask =  ((scm_t_uint32)-1) >> (32*word_len - bit_len);
+  scm_t_uint32 *bits = scm_bitvector_elements (bitvector);
+
+  int bit = scm_to_bool (b);
+  size_t count = 0, i;
+
+  if (bit_len == 0)
+    return 0;
+
+  for (i = 0; i < word_len-1; i++)
+    count += count_ones (bits[i]);
+  count += count_ones (bits[i] & last_mask);
+
+  scm_bitvector_release (bitvector);
+  return scm_from_size_t (bit? count : bit_len-count);
 }
 #undef FUNC_NAME
 
+/* returns 32 for x == 0. 
+*/
+static size_t
+find_first_one (scm_t_uint32 x)
+{
+  size_t pos = 0;
+  /* do a binary search in x. */
+  if ((x & 0xFFFF) == 0)
+    x >>= 16, pos += 16;
+  if ((x & 0xFF) == 0)
+    x >>= 8, pos += 8;
+  if ((x & 0xF) == 0)
+    x >>= 4, pos += 4;
+  if ((x & 0x3) == 0)
+    x >>= 2, pos += 2;
+  if ((x & 0x1) == 0)
+    pos += 1;
+  return pos;
+}
 
 SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
            (SCM item, SCM v, SCM k),
@@ -1628,61 +1752,40 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_bit_position
 {
-  long i, lenw, xbits, pos;
-  register unsigned long w;
+  size_t bit_len = scm_c_bitvector_length (v);
+  size_t word_len = (bit_len + 31) / 32;
+  scm_t_uint32 last_mask =  ((scm_t_uint32)-1) >> (32*word_len - bit_len);
+  scm_t_uint32 *bits = scm_bitvector_elements (v);
+  size_t first_bit = scm_to_unsigned_integer (k, 0, bit_len);
+  size_t first_word = first_bit / 32;
+  scm_t_uint32 first_mask =  ((scm_t_uint32)-1) << (first_bit - 32*first_word);
+  scm_t_uint32 w;
 
-  SCM_VALIDATE_BOOL (1, item);
-  SCM_ASSERT (SCM_BITVECTOR_P (v), v, SCM_ARG2, FUNC_NAME);
-  pos = scm_to_long (k);
-  SCM_ASSERT_RANGE (3, k, (pos <= SCM_BITVECTOR_LENGTH (v)) && (pos >= 0));
+  int bit = scm_to_bool (item);
+  size_t i;
+  SCM res = SCM_BOOL_F;
 
-  if (pos == SCM_BITVECTOR_LENGTH (v))
-    return SCM_BOOL_F;
+  if (bit_len == 0)
+    return 0;
 
-  lenw = (SCM_BITVECTOR_LENGTH (v) - 1) / SCM_LONG_BIT;   /* watch for part words */
-  i = pos / SCM_LONG_BIT;
-  w = SCM_UNPACK (SCM_VELTS (v)[i]);
-  if (scm_is_false (item))
-    w = ~w;
-  xbits = (pos % SCM_LONG_BIT);
-  pos -= xbits;
-  w = ((w >> xbits) << xbits);
-  xbits = SCM_LONG_BIT - 1 - (SCM_BITVECTOR_LENGTH (v) - 1) % SCM_LONG_BIT;
-  while (!0)
+  for (i = first_word; i < word_len; i++)
     {
-      if (w && (i == lenw))
-	w = ((w << xbits) >> xbits);
+      w = (bit? bits[i] : ~bits[i]);
+      if (i == first_word)
+	w &= first_mask;
+      if (i == word_len-1)
+	w &= last_mask;
       if (w)
-	while (w)
-	  switch (w & 0x0f)
-	    {
-	    default:
-	      return scm_from_long (pos);
-	    case 2:
-	    case 6:
-	    case 10:
-	    case 14:
-	      return scm_from_long (pos + 1);
-	    case 4:
-	    case 12:
-	      return scm_from_long (pos + 2);
-	    case 8:
-	      return scm_from_long (pos + 3);
-	    case 0:
-	      pos += 4;
-	      w >>= 4;
-	    }
-      if (++i > lenw)
-	break;
-      pos += SCM_LONG_BIT;
-      w = SCM_UNPACK (SCM_VELTS (v)[i]);
-      if (scm_is_false (item))
-	w = ~w;
+	{
+	  res = scm_from_size_t (32*i + find_first_one (w));
+	  break;
+	}
     }
-  return SCM_BOOL_F;
+
+  scm_bitvector_release (v);
+  return res;
 }
 #undef FUNC_NAME
-
 
 SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    (SCM v, SCM kv, SCM obj),
@@ -1714,33 +1817,40 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_bit_set_star_x
 {
-  SCM_ASSERT (SCM_BITVECTOR_P (v), v, SCM_ARG1, FUNC_NAME);
-
-  if (SCM_BITVECTOR_P (kv))
+  if (scm_is_bitvector (kv))
     {
-      long k;
-
-      if (SCM_BITVECTOR_LENGTH (v) != SCM_BITVECTOR_LENGTH (kv))
+      size_t bit_len = scm_c_bitvector_length (kv);
+      size_t word_len = (bit_len + 31) / 32;
+      scm_t_uint32 *bits1, *bits2;
+      size_t i;
+      int bit = scm_to_bool (obj);
+ 
+      if (scm_c_bitvector_length (v) != bit_len)
 	scm_misc_error (NULL,
 			"bit vectors must have equal length",
 			SCM_EOL);
 
-      if (scm_is_false (obj))
-	for (k = (SCM_BITVECTOR_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
-	     k--;)
-	  SCM_BITVECTOR_BASE (v) [k] &= ~SCM_BITVECTOR_BASE (kv) [k];
-      else if (scm_is_eq (obj, SCM_BOOL_T))
-	for (k = (SCM_BITVECTOR_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
-	     k--;)
-	  SCM_BITVECTOR_BASE (v) [k] |= SCM_BITVECTOR_BASE (kv) [k];
+      bits1 = scm_bitvector_elements (v);
+      bits2 = scm_bitvector_elements (kv);
+
+      if (bit  == 0)
+	for (i = 0; i < word_len; i++)
+	  bits1[i] &= ~bits2[i];
       else
-	scm_wrong_type_arg_msg (NULL, 0, obj, "boolean");
+	for (i = 0; i < word_len; i++)
+	  bits1[i] |= bits2[i];
+
+      scm_bitvector_release (kv);
+      scm_bitvector_release (v);
     }
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
-      size_t vlen = SCM_BITVECTOR_LENGTH (v);
       size_t ulen, i;
-      scm_t_uint32 k, *indices;
+      scm_t_uint32 *indices;
+
+      /* assert that obj is a boolean. 
+       */
+      scm_to_bool (obj);
 
       scm_frame_begin (0);
 
@@ -1748,26 +1858,12 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       indices = scm_u32vector_elements (kv);
       scm_frame_uniform_vector_release (kv);
 
-      if (scm_to_bool (obj) == 0)
-	for (i = 0; i < ulen; i++)
-	  {
-	    k = indices[i];
-	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, scm_from_uint32 (k));
-	    SCM_BITVEC_CLR(v, k);
-	  }
-      else
-	for (i = 0; i < ulen; i++)
-	  {
-	    k = indices[i];
-	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, scm_from_uint32 (k));
-	    SCM_BITVEC_SET(v, k);
-	  }
+      for (i = 0; i < ulen; i++)
+	scm_c_bitvector_set_x (v, (size_t)indices[i], obj);
 
       scm_frame_end ();
     }
-  else
+  else 
     scm_wrong_type_arg_msg (NULL, 0, kv, "bitvector or u32vector");
 
   return SCM_UNSPECIFIED;
@@ -1796,44 +1892,40 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_bit_count_star
 {
-  size_t count = 0;
-  
-  SCM_ASSERT (SCM_BITVECTOR_P (v), v, SCM_ARG1, FUNC_NAME);
-
-  if (SCM_BITVECTOR_P (kv))
+  if (scm_is_bitvector (kv))
     {
-      unsigned long k, i;
-      int fObj = 0;
+      size_t bit_len = scm_c_bitvector_length (kv);
+      size_t word_len = (bit_len + 31) / 32;
+      scm_t_uint32 last_mask =  ((scm_t_uint32)-1) >> (32*word_len - bit_len);
+      scm_t_uint32 xor_mask = scm_to_bool (obj)? 0 : ((scm_t_uint32)-1);
+      scm_t_uint32 *bits1, *bits2;
+      size_t count = 0, i;
 
-      if (SCM_BITVECTOR_LENGTH (v) != SCM_BITVECTOR_LENGTH (kv))
+      if (scm_c_bitvector_length (v) != bit_len)
 	scm_misc_error (NULL,
 			"bit vectors must have equal length",
 			SCM_EOL);
 
-      if (0 == SCM_BITVECTOR_LENGTH (v))
-	return SCM_INUM0;
+      if (bit_len == 0)
+	return scm_from_size_t (0);
 
-      fObj = scm_to_bool (obj);
+      bits1 = scm_bitvector_elements (v);
+      bits2 = scm_bitvector_elements (kv);
 
-      i = (SCM_BITVECTOR_LENGTH (v) - 1) / SCM_LONG_BIT;
-      k = SCM_UNPACK (SCM_VELTS (kv)[i]) & (fObj ? SCM_UNPACK (SCM_VELTS (v)[i]) : ~ SCM_UNPACK (SCM_VELTS (v)[i]));
-      k <<= SCM_LONG_BIT - 1 - ((SCM_BITVECTOR_LENGTH (v) - 1) % SCM_LONG_BIT);
-      while (1)
-	{
-	  for (; k; k >>= 4)
-	    count += cnt_tab[k & 0x0f];
-	  if (0 == i--)
-	    return scm_from_long (count);
+      for (i = 0; i < word_len-1; i++)
+	count += count_ones ((bits1[i]^xor_mask) & bits2[i]);
+      count += count_ones ((bits1[i]^xor_mask) & bits2[i] & last_mask);
 
-         /* urg. repetitive (see above.) */
-	  k = SCM_UNPACK (SCM_VELTS (kv)[i]) & (fObj ? SCM_UNPACK(SCM_VELTS (v)[i]) : ~SCM_UNPACK (SCM_VELTS (v)[i]));
-	}
+      scm_bitvector_release (kv);
+      scm_bitvector_release (v);
+
+      return scm_from_size_t (count);
     }
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
-      size_t vlen = SCM_BITVECTOR_LENGTH (v);
-      size_t ulen, i;
-      scm_t_uint32 k, *indices;
+      size_t count = 0, ulen, i;
+      scm_t_uint32 *indices;
+      int bit = scm_to_bool (obj);
 
       scm_frame_begin (0);
 
@@ -1841,31 +1933,17 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       indices = scm_u32vector_elements (kv);
       scm_frame_uniform_vector_release (kv);
 
-      if (scm_to_bool (obj) == 0)
-	for (i = 0; i < ulen; i++)
-	  {
-	    k = indices[i];
-	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, scm_from_uint32 (k));
-	    if (!SCM_BITVEC_REF(v, k))
-	      count++;
-	  }
-      else
-	for (i = 0; i < ulen; i++)
-	  {
-	    k = indices[i];
-	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, scm_from_uint32 (k));
-	    if (SCM_BITVEC_REF (v, k))
-	      count++;
-	  }
+      for (i = 0; i < ulen; i++)
+	if ((scm_is_true (scm_c_bitvector_ref (v, (size_t)indices[i])) != 0)
+	    == (bit != 0))
+	  count++;
 
       scm_frame_end ();
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, kv, "bitvector or u32vector");
 
-  return scm_from_long (count);
+      return scm_from_size_t (count);
+    }
+  else 
+    scm_wrong_type_arg_msg (NULL, 0, kv, "bitvector or u32vector");
 }
 #undef FUNC_NAME
 
@@ -1876,14 +1954,15 @@ SCM_DEFINE (scm_bit_invert_x, "bit-invert!", 1, 0, 0,
 	    "its negation.")
 #define FUNC_NAME s_scm_bit_invert_x
 {
-  long int k;
+  size_t bit_len = scm_c_bitvector_length (v);
+  size_t word_len = (bit_len + 31) / 32;
+  scm_t_uint32 *bits = scm_bitvector_elements (v);
+  size_t i;
 
-  SCM_ASSERT (SCM_BITVECTOR_P (v), v, SCM_ARG1, FUNC_NAME);
+  for (i = 0; i < word_len; i++)
+    bits[i] = ~bits[i];
 
-  k = SCM_BITVECTOR_LENGTH (v);
-  for (k = (k + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
-    SCM_BITVECTOR_BASE (v) [k] = ~SCM_BITVECTOR_BASE (v) [k];
-
+  scm_bitvector_release (v);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1893,19 +1972,20 @@ SCM
 scm_istr2bve (SCM str)
 {
   size_t len = scm_i_string_length (str);
-  SCM v = scm_make_u1vector (scm_from_size_t (len), SCM_UNDEFINED);
-  long *data = (long *) SCM_VELTS (v);
-  register unsigned long mask;
-  register long k;
-  register long j;
-  const char *c_str = scm_i_string_chars (str);
+  SCM vec = scm_c_make_bitvector (len, SCM_UNDEFINED);
+  SCM res = vec;
 
-  for (k = 0; k < (len + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k++)
+  scm_t_uint32 mask;
+  size_t k, j;
+  const char *c_str = scm_i_string_chars (str);
+  scm_t_uint32 *data = scm_bitvector_elements (vec);
+
+  for (k = 0; k < (len + 31) / 32; k++)
     {
       data[k] = 0L;
-      j = len - k * SCM_LONG_BIT;
-      if (j > SCM_LONG_BIT)
-	j = SCM_LONG_BIT;
+      j = len - k * 32;
+      if (j > 32)
+	j = 32;
       for (mask = 1L; j--; mask <<= 1)
 	switch (*c_str++)
 	  {
@@ -1915,10 +1995,15 @@ scm_istr2bve (SCM str)
 	    data[k] |= mask;
 	    break;
 	  default:
-	    return SCM_BOOL_F;
+	    res = SCM_BOOL_F;
+	    goto exit;
 	  }
     }
-  return v;
+  
+ exit:
+  scm_remember_upto_here_1 (str);
+  scm_bitvector_release (vec);
+  return res;
 }
 
 
@@ -1958,37 +2043,12 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 	    "@var{array}.")
 #define FUNC_NAME s_scm_array_to_list
 {
-  SCM res = SCM_EOL;
-  register long k;
+  if (scm_is_generalized_vector (v))
+    return scm_generalized_vector_to_list (v);
+  else if (SCM_ARRAYP (v))
+    return ra2l (v, SCM_ARRAY_BASE (v), 0);
 
-  if (scm_is_uniform_vector (v))
-    return scm_uniform_vector_to_list (v);
-
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
-  switch SCM_TYP7 (v)
-    {
-    default:
-    badarg1:SCM_WRONG_TYPE_ARG (1, v);
-    case scm_tc7_smob:
-      SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
-      return ra2l (v, SCM_ARRAY_BASE (v), 0);
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      return scm_vector_to_list (v);
-    case scm_tc7_string:
-      return scm_string_to_list (v);
-    case scm_tc7_bvect:
-      {
-	long *data = (long *) SCM_VELTS (v);
-	register unsigned long mask;
-	for (k = (SCM_BITVECTOR_LENGTH (v) - 1) / SCM_LONG_BIT; k > 0; k--)
-	  for (mask = 1UL << (SCM_LONG_BIT - 1); mask; mask >>= 1)
-	    res = scm_cons (scm_from_bool(((long *) data)[k] & mask), res);
-	for (mask = 1L << ((SCM_BITVECTOR_LENGTH (v) % SCM_LONG_BIT) - 1); mask; mask >>= 1)
-	  res = scm_cons (scm_from_bool(((long *) data)[k] & mask), res);
-	return res;
-      }
-    }
+  scm_wrong_type_arg_msg (NULL, 0, v, "array");
 }
 #undef FUNC_NAME
 
@@ -2005,7 +2065,7 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
 	    "\n"
 	    "The argument @var{ndim} determines the number of dimensions\n"
 	    "of the array.  It is either an exact integer, giving the\n"
-	    " number directly, or a list of exact integers, whose length\n"
+	    "number directly, or a list of exact integers, whose length\n"
 	    "specifies the number of dimensions and each element is the\n"
 	    "lower index bound of its dimension.")
 #define FUNC_NAME s_scm_list_to_uniform_array
@@ -2045,6 +2105,7 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
 
   ra = scm_dimensions_to_uniform_array (scm_reverse_x (shape, SCM_EOL), prot,
 					SCM_UNDEFINED);
+
   if (scm_is_null (shape))
     {
       SCM_ASRTGO (1 == scm_ilength (lst), badlst);
@@ -2053,9 +2114,9 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
     }
   if (!SCM_ARRAYP (ra))
     {
-      unsigned long length = scm_to_ulong (scm_uniform_vector_length (ra));
+      size_t length = scm_c_generalized_vector_length (ra);
       for (k = 0; k < length; k++, lst = SCM_CDR (lst))
-	scm_array_set_x (ra, SCM_CAR (lst), scm_from_ulong (k));
+	scm_c_generalized_vector_set_x (ra, k, SCM_CAR (lst));
       return ra;
     }
   if (l2ra (lst, ra, SCM_ARRAY_BASE (ra), 0))
@@ -2227,24 +2288,7 @@ scm_i_print_array_dimension (SCM array, int dim, int base,
   return 1;
 }
 
-static const char *
-scm_i_legacy_tag (SCM v)
-{
-  switch (SCM_TYP7 (v))
-    {
-    case scm_tc7_bvect:
-      return "b";
-    case scm_tc7_string:
-      return "a";
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      return "";
-    default:
-      return "?";
-    }
-}
-
-/* Print a array.  (Only for strict arrays, not for strings, uniform
+/* Print an array.  (Only for strict arrays, not for strings, uniform
    vectors, vectors and other stuff that can masquerade as an array.)
 */
 
@@ -2289,16 +2333,22 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
 {
   long ndim = SCM_ARRAY_NDIM (array);
   scm_t_array_dim *dim_specs = SCM_ARRAY_DIMS (array);
+  SCM v = SCM_ARRAY_V (array);
   unsigned long base = SCM_ARRAY_BASE (array);
   long i;
 
   scm_putc ('#', port);
   if (ndim != 1 || dim_specs[0].lbnd != 0)
     scm_intprint (ndim, 10, port);
-  if (scm_is_uniform_vector (SCM_ARRAY_V (array)))
-    scm_puts (scm_i_uniform_vector_tag (SCM_ARRAY_V (array)), port);
-  else 
-    scm_puts (scm_i_legacy_tag (SCM_ARRAY_V (array)), port);
+  if (scm_is_uniform_vector (v))
+    scm_puts (scm_i_uniform_vector_tag (v), port);
+  else if (scm_is_bitvector (v))
+    scm_puts ("b", port);
+  else if (scm_is_string (v))
+    scm_puts ("a", port);
+  else if (!scm_is_vector (v))
+    scm_puts ("?", port);
+  
   for (i = 0; i < ndim; i++)
     if (dim_specs[i].lbnd != 0)
       {
@@ -2309,12 +2359,6 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
 	  }
 	break;
       }
-
-#if 0
-  scm_putc ('{', port);
-  scm_uintprint (base, 10, port);
-  scm_putc ('}', port);
-#endif
 
   return scm_i_print_array_dimension (array, 0, base, port, pstate);
 }
@@ -2330,8 +2374,6 @@ typedef struct {
   const char *tag;
   SCM *proto_var;
 } tag_proto;
-
-static SCM scm_i_proc_make_vector;
 
 static tag_proto tag_proto_table[] = {
   { "", &scm_i_proc_make_vector },
@@ -2537,69 +2579,18 @@ scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
   SCM v = exp;
   unsigned long base = 0;
+  long ndim;
 
   if (SCM_ARRAYP (exp) && !SCM_ARRAYP (SCM_ARRAY_V (exp)))
     return scm_i_print_array (exp, port, pstate);
 
   scm_putc ('#', port);
-tail:
-  switch SCM_TYP7 (v)
-    {
-    case scm_tc7_smob:
-      {
-	long ndim = SCM_ARRAY_NDIM (v);
-	base = SCM_ARRAY_BASE (v);
-	v = SCM_ARRAY_V (v);
-	if (SCM_ARRAYP (v))
-
-	  {
-	    scm_puts ("<enclosed-array ", port);
-	    rapr1 (exp, base, 0, port, pstate);
-	    scm_putc ('>', port);
-	    return 1;
-	  }
-	else
-	  {
-	    scm_intprint (ndim, 10, port);
-	    goto tail;
-	  }
-      }
-    case scm_tc7_bvect:
-      if (scm_is_eq (exp, v))
-	{			/* a uve, not an scm_array */
-	  register long i, j, w;
-	  scm_putc ('*', port);
-	  for (i = 0; i < (SCM_BITVECTOR_LENGTH (exp)) / SCM_LONG_BIT; i++)
-	    {
-	      scm_t_bits w = SCM_UNPACK (SCM_VELTS (exp)[i]);
-	      for (j = SCM_LONG_BIT; j; j--)
-		{
-		  scm_putc (w & 1 ? '1' : '0', port);
-		  w >>= 1;
-		}
-	    }
-	  j = SCM_BITVECTOR_LENGTH (exp) % SCM_LONG_BIT;
-	  if (j)
-	    {
-	      w = SCM_UNPACK (SCM_VELTS (exp)[SCM_BITVECTOR_LENGTH (exp) / SCM_LONG_BIT]);
-	      for (; j; j--)
-		{
-		  scm_putc (w & 1 ? '1' : '0', port);
-		  w >>= 1;
-		}
-	    }
-	  return 1;
-	}
-      else
-	scm_putc ('b', port);
-      break;
-    case scm_tc7_string:
-      scm_putc ('a', port);
-      break;
-    }
-  scm_putc ('(', port);
+  ndim = SCM_ARRAY_NDIM (v);
+  base = SCM_ARRAY_BASE (v);
+  v = SCM_ARRAY_V (v);
+  scm_puts ("<enclosed-array ", port);
   rapr1 (exp, base, 0, port, pstate);
-  scm_putc (')', port);
+  scm_putc ('>', port);
   return 1;
 }
 
@@ -2619,14 +2610,8 @@ SCM_DEFINE (scm_array_creator, "array-creator", 1, 0, 0,
       outer = 0;
     }
 
-  if (scm_is_uniform_vector (ra))
-    return scm_i_uniform_vector_creator (ra);
-  else if (scm_is_true (scm_vector_p (ra)))
-    return scm_i_proc_make_vector;
-  else if (scm_is_string (ra))
-    return scm_i_proc_make_string;
-  else if (SCM_BITVECTOR_P (ra))
-    return scm_i_proc_make_u1vector;
+  if (scm_is_generalized_vector (ra))
+    return scm_i_generalized_vector_creator (ra);
   else if (SCM_ARRAYP (ra))
     scm_misc_error (NULL, "creator not known for enclosed array: ~a",
 		    scm_list_1 (orig_ra));
@@ -2648,35 +2633,19 @@ SCM_DEFINE (scm_array_prototype, "array-prototype", 1, 0, 0,
 #define FUNC_NAME s_scm_array_prototype
 {
   int enclosed = 0;
-  SCM_ASRTGO (SCM_NIMP (ra), badarg);
-loop:
-  switch SCM_TYP7 (ra)
+
+ loop:
+  if (SCM_ARRAYP (ra))
     {
-    default:
-    badarg:SCM_WRONG_TYPE_ARG (1, ra);
-    case scm_tc7_smob:
-      if (SCM_ARRAYP (ra))
-	{
-	  if (enclosed++)
-	    return SCM_UNSPECIFIED;
-	  ra = SCM_ARRAY_V (ra);
-	  goto loop;
-	}
-      else
-	{
-	  SCM proto = scm_i_get_old_prototype (ra);
-	  if (scm_is_eq (SCM_UNSPECIFIED, proto))
-	    goto badarg;
-	  return proto;
-	}
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      return SCM_EOL;
-    case scm_tc7_bvect:
-      return SCM_BOOL_T;
-    case scm_tc7_string:
-      return SCM_MAKE_CHAR ('a');
+      if (enclosed++)
+	return SCM_UNSPECIFIED;
+      ra = SCM_ARRAY_V (ra);
+      goto loop;
     }
+  else if (scm_is_generalized_vector (ra))
+    return scm_i_get_old_prototype (ra);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, ra, "array");
 }
 #undef FUNC_NAME
 
@@ -2710,11 +2679,18 @@ scm_init_unif ()
   exactly_one_third = scm_permanent_object (scm_divide (scm_from_int (1),
 							scm_from_int (3)));
   scm_add_feature ("array");
+
+  scm_tc16_bitvector = scm_make_smob_type ("bitvector", 0);
+  scm_set_smob_free (scm_tc16_bitvector, bitvector_free);
+  scm_set_smob_print (scm_tc16_bitvector, bitvector_print);
+  scm_set_smob_equalp (scm_tc16_bitvector, bitvector_equalp);
+
 #include "libguile/unif.x"
 
   scm_i_proc_make_vector = scm_variable_ref (scm_c_lookup ("make-vector"));
   scm_i_proc_make_string = scm_variable_ref (scm_c_lookup ("make-string"));
-  scm_i_proc_make_u1vector = scm_variable_ref (scm_c_lookup ("make-u1vector"));
+  scm_i_proc_make_bitvector =
+    scm_variable_ref (scm_c_lookup ("make-bitvector"));
 }
 
 /*

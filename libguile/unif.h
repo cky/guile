@@ -26,6 +26,13 @@
 
 
 
+/* This file contains the definitions for arrays and bit vectors.
+   Uniform numeric vectors are now in srfi-4.c.
+*/
+
+
+/** Arrays */
+
 /*
   an array SCM is a non-immediate pointing to a  heap cell where:
 
@@ -66,18 +73,6 @@ SCM_API scm_t_bits scm_tc16_array;
 #define SCM_ARRAY_BASE(a) (SCM_ARRAY_MEM (a)->base)
 #define SCM_ARRAY_DIMS(a) ((scm_t_array_dim *)((char *) SCM_ARRAY_MEM (a) + sizeof (scm_t_array))) 
 
-#define SCM_I_MAX_LENGTH  ((unsigned long) (-1L) >> 8)
-
-#define SCM_BITVECTOR_P(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_bvect))
-#define SCM_BITVECTOR_BASE(x) ((unsigned long *) (SCM_CELL_WORD_1 (x)))
-#define SCM_SET_BITVECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
-#define SCM_BITVECTOR_MAX_LENGTH SCM_I_MAX_LENGTH
-#define SCM_BITVECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
-#define SCM_MAKE_BITVECTOR_TAG(l)  (((l) << 8) + scm_tc7_bvect)
-#define SCM_SET_BITVECTOR_LENGTH(v, l) (SCM_SET_CELL_WORD_0 ((v), SCM_MAKE_BITVECTOR_TAG (l)))
-
-
-
 SCM_API SCM scm_array_p (SCM v, SCM prot);
 SCM_API SCM scm_array_rank (SCM ra);
 SCM_API SCM scm_array_dimensions (SCM ra);
@@ -97,17 +92,39 @@ SCM_API SCM scm_array_contents (SCM ra, SCM strict);
 SCM_API SCM scm_ra2contig (SCM ra, int copy);
 SCM_API SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd, SCM start, SCM end);
 SCM_API SCM scm_uniform_array_write (SCM v, SCM port_or_fd, SCM start, SCM end);
+SCM_API SCM scm_array_to_list (SCM v);
+SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
+SCM_API SCM scm_array_creator (SCM ra);
+
+SCM_API SCM scm_i_read_array (SCM port, int c);
+
+
+/** Bit vectors */
+
+SCM_API SCM scm_bitvector_p (SCM vec);
+SCM_API SCM scm_bitvector (SCM bits);
+SCM_API SCM scm_make_bitvector (SCM len, SCM fill);
+SCM_API SCM scm_bitvector_length (SCM vec);
+SCM_API SCM scm_bitvector_ref (SCM vec, SCM idx);
+SCM_API SCM scm_bitvector_set_x (SCM vec, SCM idx, SCM val);
+SCM_API SCM scm_list_to_bitvector (SCM list);
+SCM_API SCM scm_bitvector_to_list (SCM vec);
+SCM_API SCM scm_bitvector_fill_x (SCM vec, SCM val);
+
 SCM_API SCM scm_bit_count (SCM item, SCM seq);
 SCM_API SCM scm_bit_position (SCM item, SCM v, SCM k);
 SCM_API SCM scm_bit_set_star_x (SCM v, SCM kv, SCM obj);
 SCM_API SCM scm_bit_count_star (SCM v, SCM kv, SCM obj);
 SCM_API SCM scm_bit_invert_x (SCM v);
 
-SCM_API SCM scm_array_to_list (SCM v);
-SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
-SCM_API SCM scm_array_creator (SCM ra);
-
-SCM_API SCM scm_i_read_array (SCM port, int c);
+SCM_API int scm_is_bitvector (SCM obj);
+SCM_API SCM scm_c_make_bitvector (size_t len, SCM fill);
+SCM_API size_t scm_c_bitvector_length (SCM vec);
+SCM_API SCM scm_c_bitvector_ref (SCM vec, size_t idx);
+SCM_API void scm_c_bitvector_set_x (SCM vec, size_t idx, SCM val);
+SCM_API scm_t_uint32 *scm_bitvector_elements (SCM vec);
+SCM_API void scm_bitvector_release (SCM vec);
+SCM_API void scm_frame_bitvector_release (SCM vec);
 
 /* deprecated. */
 
@@ -118,6 +135,10 @@ SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
 SCM_API SCM scm_istr2bve (SCM str);
 SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
 SCM_API SCM scm_array_prototype (SCM ra);
+
+SCM_API SCM scm_i_proc_make_vector;
+SCM_API SCM scm_i_proc_make_string;
+SCM_API SCM scm_i_proc_make_bitvector;
 
 SCM_API void scm_init_unif (void);
 
