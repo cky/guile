@@ -1,3 +1,7 @@
+2001-12-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* TODO: Added two items.
+
 2001-12-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in (HAVE_MAKEINFO): Check for the makeinfo program and

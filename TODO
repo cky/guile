@@ -59,9 +59,12 @@ that user-visible changes are reflected in NEWS.
 - make the set of error signalling functions more consistent
 - Fix bug reported by Sven.Hartrumpf@fernuni-hagen.de 2001-08-31:
   (debug-disable 'debug) has no effect if it is the first form in ~/.guile.
+- provide a non-extended implementation of 'define' for the R5RS module.
 
 
 * Before releasing 1.8.0:
+
+- deprecate old uniform vector interface.
 
 - add DLL support [ela]		<-- set by ttn (my bad)
 
