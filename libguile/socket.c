@@ -218,7 +218,7 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 #define FUNC_NAME s_scm_getsockopt
 {
   int fd;
-  int optlen;
+  size_t optlen;
 #ifdef HAVE_STRUCT_LINGER
   char optval[sizeof (struct linger)];
 #else
@@ -228,15 +228,15 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
   int ioptname;
 
 #ifdef HAVE_STRUCT_LINGER
-  optlen = (int) sizeof (struct linger);
+  optlen = sizeof (struct linger);
 #else
-  optlen = (int) sizeof (scm_sizet);
+  optlen = sizeof (size_t);
 #endif
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT (1,sock);
-  SCM_VALIDATE_INUM_COPY (2,level,ilevel);
-  SCM_VALIDATE_INUM_COPY (3,optname,ioptname);
+  SCM_VALIDATE_OPFPORT (1, sock);
+  SCM_VALIDATE_INUM_COPY (2, level, ilevel);
+  SCM_VALIDATE_INUM_COPY (3, optname, ioptname);
 
   fd = SCM_FPORT_FDES (sock);
   if (getsockopt (fd, ilevel, ioptname, (void *) optval, &optlen) == -1)
@@ -582,20 +582,20 @@ scm_addr_vector (struct sockaddr *address,const char *proc)
 
 /* Allocate a buffer large enough to hold any sockaddr type.  */
 static char *scm_addr_buffer;
-static int scm_addr_buffer_size;
+static size_t scm_addr_buffer_size;
 
 static void
 scm_init_addr_buffer (void)
 {
   scm_addr_buffer_size =
 #ifdef HAVE_UNIX_DOMAIN_SOCKETS
-  (int) sizeof (struct sockaddr_un)
+  sizeof (struct sockaddr_un)
 #else
   0
 #endif
   ;
   if (sizeof (struct sockaddr_in) > scm_addr_buffer_size)
-    scm_addr_buffer_size = (int) sizeof (struct sockaddr_in);
+    scm_addr_buffer_size = sizeof (struct sockaddr_in);
   scm_addr_buffer = scm_must_malloc (scm_addr_buffer_size, "address buffer");
 }
 
@@ -619,7 +619,7 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
   SCM address;
   SCM newsock;
 
-  int tmp_size;
+  size_t tmp_size;
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1,sock);
   fd = SCM_FPORT_FDES (sock);
@@ -642,7 +642,7 @@ SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0,
 	    "in the @code{AF_FILE} namespace cannot be read.")
 #define FUNC_NAME s_scm_getsockname
 {
-  int tmp_size;
+  size_t tmp_size;
   int fd;
   SCM result;
   sock = SCM_COERCE_OUTPORT (sock);
@@ -667,7 +667,7 @@ SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0,
 	    "in the @code{AF_FILE} namespace cannot be read.")
 #define FUNC_NAME s_scm_getpeername
 {
-  int tmp_size;
+  size_t tmp_size;
   int fd;
   SCM result;
   sock = SCM_COERCE_OUTPORT (sock);
@@ -771,7 +771,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   int flg;
   int offset = 0;
   int cend;
-  int tmp_size;
+  size_t tmp_size;
   SCM address;
 
   SCM_VALIDATE_OPFPORT (1,sock);
