@@ -24,8 +24,6 @@
  * which are treated differently with respect to DEVAL.  The heads of these
  * sections are marked with the string "SECTION:".  */
 
-#define _GNU_SOURCE
-
 /* SECTION: This code is compiled once.
  */
 
@@ -88,8 +86,6 @@ char *alloca ();
 #include "libguile/vectors.h"
 
 #include "libguile/eval.h"
-
-#include <pthread.h>
 
 
 
@@ -2645,7 +2641,7 @@ static SCM deval (SCM x, SCM env);
             ? SCM_CAR (x) \
             :  *scm_lookupcar ((x), (env), 1)))))
 
-pthread_mutex_t source_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+SCM_REC_MUTEX (source_mutex);
 
 
 /* Lookup a given local variable in an environment.  The local variable is
@@ -2940,11 +2936,11 @@ scm_eval_body (SCM code, SCM env)
 	{
 	  if (SCM_ISYMP (SCM_CAR (code)))
 	    {
-	      scm_pthread_mutex_lock (&source_mutex);
+	      scm_rec_mutex_lock (&source_mutex);
 	      /* check for race condition */
 	      if (SCM_ISYMP (SCM_CAR (code)))
 		m_expand_body (code, env);
-	      pthread_mutex_unlock (&source_mutex);
+	      scm_rec_mutex_unlock (&source_mutex);
 	      goto again;
 	    }
 	}
@@ -3330,11 +3326,11 @@ dispatch:
                 {
                   if (SCM_ISYMP (form))
                     {
-                      scm_pthread_mutex_lock (&source_mutex);
+                      scm_rec_mutex_lock (&source_mutex);
                       /* check for race condition */
                       if (SCM_ISYMP (SCM_CAR (x)))
                         m_expand_body (x, env);
-                      pthread_mutex_unlock (&source_mutex);
+                      scm_rec_mutex_unlock (&source_mutex);
                       goto nontoplevel_begin;
                     }
                   else
@@ -4933,11 +4929,11 @@ tail:
 	    {
 	      if (SCM_ISYMP (SCM_CAR (proc)))
 		{
-		  scm_pthread_mutex_lock (&source_mutex);
+		  scm_rec_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (proc)))
 		    m_expand_body (proc, args);
-		  pthread_mutex_unlock (&source_mutex);
+		  scm_rec_mutex_unlock (&source_mutex);
 		  goto again;
 		}
 	      else
@@ -5564,19 +5560,13 @@ scm_makprom (SCM code)
 {
   SCM_RETURN_NEWSMOB2 (scm_tc16_promise,
 		       SCM_UNPACK (code),
-		       scm_make_recursive_mutex ());
-}
-
-static SCM
-promise_mark (SCM promise)
-{
-  scm_gc_mark (SCM_PROMISE_MUTEX (promise));
-  return SCM_PROMISE_DATA (promise);
+		       scm_make_rec_mutex ());
 }
 
 static size_t
 promise_free (SCM promise)
 {
+  scm_rec_mutex_free (SCM_PROMISE_MUTEX (promise));
   return 0;
 }
 
@@ -5600,7 +5590,7 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
 #define FUNC_NAME s_scm_force
 {
   SCM_VALIDATE_SMOB (1, promise, promise);
-  scm_lock_mutex (SCM_PROMISE_MUTEX (promise));
+  scm_rec_mutex_lock (SCM_PROMISE_MUTEX (promise));
   if (!SCM_PROMISE_COMPUTED_P (promise))
     {
       SCM ans = scm_call_0 (SCM_PROMISE_DATA (promise));
@@ -5610,7 +5600,7 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
 	  SCM_SET_PROMISE_COMPUTED (promise);
 	}
     }
-  scm_unlock_mutex (SCM_PROMISE_MUTEX (promise));
+  scm_rec_mutex_unlock (SCM_PROMISE_MUTEX (promise));
   return SCM_PROMISE_DATA (promise);
 }
 #undef FUNC_NAME
@@ -6014,7 +6004,7 @@ scm_init_eval ()
 		 SCM_N_EVAL_OPTIONS);
   
   scm_tc16_promise = scm_make_smob_type ("promise", 0);
-  scm_set_smob_mark (scm_tc16_promise, promise_mark);
+  scm_set_smob_mark (scm_tc16_promise, scm_markcdr);
   scm_set_smob_free (scm_tc16_promise, promise_free);
   scm_set_smob_print (scm_tc16_promise, promise_print);
 

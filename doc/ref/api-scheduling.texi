@@ -113,7 +113,7 @@ them temporarily.
 
 In addition to the C versions of @code{call-with-blocked-asyncs} and
 @code{call-with-unblocked-asyncs}, C code can use
-@code{scm_frame_block_asyncs} and @code{scm_frame_unblock_asyncs}
+@code{scm_with_blocked_asyncs} and @code{scm_with_unblocked_asyncs}
 inside a @dfn{frame} (@pxref{Frames}) to block or unblock system asyncs
 temporarily.
 

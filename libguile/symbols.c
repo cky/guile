@@ -279,9 +279,9 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
     prefix = scm_from_locale_string (" g");
   
   /* mutex in case another thread looks and incs at the exact same moment */
-  scm_pthread_mutex_lock (&scm_i_misc_mutex);
+  scm_mutex_lock (&scm_i_misc_mutex);
   n = gensym_counter++;
-  pthread_mutex_unlock (&scm_i_misc_mutex);
+  scm_mutex_unlock (&scm_i_misc_mutex);
 
   n_digits = scm_iint2str (n, 10, buf);
   suffix = scm_from_locale_stringn (buf, n_digits);

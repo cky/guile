@@ -55,12 +55,7 @@ extern scm_t_bits scm_tc16_hashtable;
 #define SCM_HASHTABLE_N_ITEMS(x)   (SCM_HASHTABLE (x)->n_items)
 #define SCM_SET_HASHTABLE_N_ITEMS(x, n)   (SCM_HASHTABLE (x)->n_items = n)
 #define SCM_HASHTABLE_INCREMENT(x) (SCM_HASHTABLE_N_ITEMS(x)++)
-#if 0
 #define SCM_HASHTABLE_DECREMENT(x) (SCM_HASHTABLE_N_ITEMS(x)--)
-#else
-SCM_API void scm_i_hashtable_decrement (SCM h);
-#define SCM_HASHTABLE_DECREMENT(x) scm_i_hashtable_decrement(x)
-#endif
 #define SCM_HASHTABLE_UPPER(x)     (SCM_HASHTABLE (x)->upper)
 #define SCM_HASHTABLE_LOWER(x)     (SCM_HASHTABLE (x)->lower)
 

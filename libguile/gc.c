@@ -15,7 +15,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#define _GNU_SOURCE
 
 /* #define DEBUGINFO */
 
@@ -72,7 +71,7 @@ unsigned int scm_gc_running_p = 0;
 
 /* Lock this mutex before doing lazy sweeping.
  */
-pthread_mutex_t scm_i_sweep_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+scm_t_rec_mutex scm_i_sweep_mutex;
 
 /* Set this to != 0 if every cell that is accessed shall be checked:
  */
@@ -206,6 +205,9 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 #endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 
 
+
+scm_t_key scm_i_freelist;
+scm_t_key scm_i_freelist2;
 
 
 /* scm_mtrigger
@@ -445,7 +447,7 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 {
   SCM cell;
  
-  scm_pthread_mutex_lock (&scm_i_sweep_mutex);
+  scm_rec_mutex_lock (&scm_i_sweep_mutex);
 
   *free_cells = scm_i_sweep_some_segments (freelist);
   if (*free_cells == SCM_EOL && scm_i_gc_grow_heap_p (freelist))
@@ -487,7 +489,7 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 
   *free_cells = SCM_FREE_CELL_CDR (cell);
 
-  pthread_mutex_unlock (&scm_i_sweep_mutex);
+  scm_rec_mutex_unlock (&scm_i_sweep_mutex);
 
   return cell;
 }
@@ -502,7 +504,7 @@ scm_t_c_hook scm_after_gc_c_hook;
 void
 scm_igc (const char *what)
 {
-  scm_pthread_mutex_lock (&scm_i_sweep_mutex);
+  scm_rec_mutex_lock (&scm_i_sweep_mutex);
   ++scm_gc_running_p;
   scm_c_hook_run (&scm_before_gc_c_hook, 0);
 
@@ -606,7 +608,7 @@ scm_igc (const char *what)
    */
   --scm_gc_running_p;
   scm_c_hook_run (&scm_after_gc_c_hook, 0);
-  pthread_mutex_unlock (&scm_i_sweep_mutex);
+  scm_rec_mutex_unlock (&scm_i_sweep_mutex);
 
   /*
     For debugging purposes, you could do
@@ -888,13 +890,18 @@ scm_storage_prehistory ()
   scm_c_hook_init (&scm_after_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
 }
 
-pthread_mutex_t scm_i_gc_admin_mutex = PTHREAD_MUTEX_INITIALIZER;
+scm_t_mutex scm_i_gc_admin_mutex;
 
 int
 scm_init_storage ()
 {
   size_t j;
 
+  /* Fixme: Should use mutexattr from the low-level API. */
+  scm_rec_mutex_init (&scm_i_sweep_mutex, &scm_i_plugin_rec_mutex);
+
+  scm_i_plugin_mutex_init (&scm_i_gc_admin_mutex, &scm_i_plugin_mutex);
+  
   j = SCM_NUM_PROTECTS;
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;
@@ -912,18 +919,12 @@ scm_init_storage ()
   if (!scm_i_port_table)
     return 1;
 
-#if 0
-  /* We can't have a cleanup handler since we have no thread to run it
-     in. */
-
 #ifdef HAVE_ATEXIT
   atexit (cleanup);
 #else
 #ifdef HAVE_ON_EXIT
   on_exit (cleanup, 0);
 #endif
-#endif
-
 #endif
 
   scm_stand_in_procs = scm_c_make_hash_table (257);

@@ -30,27 +30,6 @@
 #include "libguile/hashtab.h"
 
 
-static void
-loop (void)
-{
-  int loop = 1;
-  printf ("looping %d\n", getpid ());
-  while (loop)
-    ;
-}
-
-void
-scm_i_hashtable_decrement (SCM h)
-{
-  scm_t_hashtable *t = SCM_HASHTABLE (h);
-  if (t->n_items == 0)
-    {
-      printf ("hashtab underflow\n");
-      loop ();
-    }
-  t->n_items--;
-}
-
 /* NOTES
  *
  * 1. The current hash table implementation uses weak alist vectors
@@ -166,7 +145,7 @@ scm_i_rehash (SCM table,
       SCM_HASHTABLE (table)->closure = closure;
     }
   SCM_HASHTABLE (table)->size_index = i;
-
+  
   new_size = hashtable_size[i];
   if (i <= SCM_HASHTABLE (table)->min_size_index)
     SCM_HASHTABLE (table)->lower = 0;

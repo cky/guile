@@ -133,6 +133,46 @@
 #include <unistd.h>
 #endif
 
+/* Setting up the stack.  */
+
+static void
+restart_stack (void *base)
+{
+  scm_dynwinds = SCM_EOL;
+  SCM_DYNENV (scm_rootcont) = SCM_EOL;
+  SCM_THROW_VALUE (scm_rootcont) = SCM_EOL;
+  SCM_DFRAME (scm_rootcont) = scm_last_debug_frame = 0;
+  SCM_BASE (scm_rootcont) = base;
+}
+
+static void
+start_stack (void *base)
+{
+  SCM root;
+
+  root = scm_permanent_object (scm_make_root (SCM_UNDEFINED));
+  scm_set_root (SCM_ROOT_STATE (root));
+  scm_stack_base = base;
+
+  scm_exitval = SCM_BOOL_F;	/* vestigial */
+
+  scm_root->fluids = scm_i_make_initial_fluids ();
+
+  /* Create an object to hold the root continuation.
+   */
+  {
+    scm_t_contregs *contregs = scm_gc_malloc (sizeof (scm_t_contregs),
+					      "continuation");
+    contregs->num_stack_items = 0;
+    contregs->seq = 0;
+    SCM_NEWSMOB (scm_rootcont, scm_tc16_continuation, contregs);
+  }
+
+  /* The remainder of stack initialization is factored out to another
+   * function so that if this stack is ever exitted, it can be
+   * re-entered using restart_stack.  */
+  restart_stack (base);
+}
 
 
 #if 0
@@ -305,9 +345,11 @@ struct main_func_closure
   char **argv;			/* the argument list it should receive */
 };
 
+
+static void scm_init_guile_1 (SCM_STACKITEM *base);
 static void scm_boot_guile_1 (SCM_STACKITEM *base,
 			      struct main_func_closure *closure);
-static void *invoke_main_func(void *body_data);
+static SCM invoke_main_func(void *body_data);
 
 
 /* Fire up the Guile Scheme interpreter.
@@ -341,6 +383,10 @@ static void *invoke_main_func(void *body_data);
 void
 scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
 {
+  /* The garbage collector uses the address of this variable as one
+     end of the stack, and the address of one of its own local
+     variables as the other end.  */
+  SCM_STACKITEM dummy;
   struct main_func_closure c;
 
   c.main_func = main_func;
@@ -348,47 +394,19 @@ scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
   c.argc = argc;
   c.argv = argv;
 
-  scm_with_guile (invoke_main_func, &c);
+  scm_boot_guile_1 (&dummy, &c);
 }
 
-static void *
-invoke_main_func (void *body_data)
-{
-  struct main_func_closure *closure = (struct main_func_closure *) body_data;
-
-  scm_set_program_arguments (closure->argc, closure->argv, 0);
-  (*closure->main_func) (closure->closure, closure->argc, closure->argv);
-
-  scm_restore_signals ();
-
-  /* This tick gives any pending
-   * asyncs a chance to run.  This must be done after
-   * the call to scm_restore_signals.
-   */
-  SCM_ASYNC_TICK;
-
-  /* If the caller doesn't want this, they should exit from main_func
-     themselves.
-  */
-  pthread_exit (NULL);
-
-  /* never reached */
-  return NULL;
-}
-
-#if 0
 void
 scm_init_guile ()
 {
-  scm_i_init_guile ((SCM_STACKITEM *)scm_get_stack_base ());
+  scm_init_guile_1 ((SCM_STACKITEM *)scm_get_stack_base ());
 }
-#endif
 
-pthread_mutex_t scm_i_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 int scm_initialized_p = 0;
 
-void
-scm_i_init_guile (SCM_STACKITEM *base)
+static void
+scm_init_guile_1 (SCM_STACKITEM *base)
 {
   if (scm_initialized_p)
     return;
@@ -409,7 +427,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_block_gc = 1;
 
   scm_storage_prehistory ();
-  scm_threads_prehistory (base);
+  scm_threads_prehistory ();
   scm_ports_prehistory ();
   scm_smob_prehistory ();
   scm_hashtab_prehistory ();	/* requires storage_prehistory */
@@ -430,7 +448,8 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_variable ();           /* all bindings need variables */
   scm_init_continuations ();
   scm_init_root ();		  /* requires continuations */
-  scm_init_threads ();
+  scm_init_threads (base);
+  start_stack (base);
   scm_init_gsubr ();
   scm_init_thread_procs ();       /* requires gsubrs */
   scm_init_procprop ();
@@ -532,8 +551,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_i_init_deprecated ();
 #endif
 
-  scm_init_threads_root_root ();
-
   scm_initialized_p = 1;
 
   scm_block_gc = 0;		/* permit the gc to run */
@@ -550,6 +567,50 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_load_startup_files ();
 }
 
+/* Record here whether SCM_BOOT_GUILE_1 has already been called.  This
+   variable is now here and not inside SCM_BOOT_GUILE_1 so that one
+   can tweak it. This is necessary for unexec to work. (Hey, "1-live"
+   is the name of a local radiostation...) */
+
+int scm_boot_guile_1_live = 0;
+
+static void
+scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
+{
+  scm_init_guile_1 (base);
+
+  /* This function is not re-entrant. */
+  if (scm_boot_guile_1_live)
+    abort ();
+
+  scm_boot_guile_1_live = 1;
+
+  scm_set_program_arguments (closure->argc, closure->argv, 0);
+  invoke_main_func (closure);
+
+  scm_restore_signals ();
+
+  /* This tick gives any pending
+   * asyncs a chance to run.  This must be done after
+   * the call to scm_restore_signals.
+   */
+  SCM_ASYNC_TICK;
+
+  /* If the caller doesn't want this, they should return from
+     main_func themselves.  */
+  exit (0);
+}
+
+static SCM
+invoke_main_func (void *body_data)
+{
+  struct main_func_closure *closure = (struct main_func_closure *) body_data;
+
+  (*closure->main_func) (closure->closure, closure->argc, closure->argv);
+
+  /* never reached */
+  return SCM_UNDEFINED;
+}
 
 /*
   Local Variables:

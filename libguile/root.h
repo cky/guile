@@ -64,7 +64,8 @@ typedef struct scm_root_state
   /* It is very inefficient to have this variable in the root state. */
   scm_t_debug_frame *last_debug_frame;
 
-  SCM progargs;
+  SCM progargs;			/* vestigial */
+  SCM exitval;			/* vestigial */
 
   SCM cur_inp;
   SCM cur_outp;
@@ -86,10 +87,6 @@ typedef struct scm_root_state
 				 */
 } scm_root_state;
 
-#define scm_root    ((scm_root_state *) pthread_getspecific (scm_i_root_key))
-#define scm_set_root(new_root)  pthread_setspecific (scm_i_root_key, new_root)
-SCM_API pthread_key_t scm_i_root_key;
-
 #define scm_stack_base			(scm_root->stack_base)
 #define scm_save_regs_gc_mark		(scm_root->save_regs_gc_mark)
 #define scm_errjmp_bad			(scm_root->errjmp_bad)
@@ -104,6 +101,8 @@ SCM_API pthread_key_t scm_i_root_key;
 #define scm_cur_errp			(scm_root->cur_errp)
 #define scm_cur_loadp			(scm_root->cur_loadp)
 
+#define scm_root                ((scm_root_state *) SCM_THREAD_LOCAL_DATA)
+#define scm_set_root(new_root)  SCM_SET_THREAD_LOCAL_DATA (new_root)
 
 
 

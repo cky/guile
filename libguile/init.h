@@ -23,10 +23,8 @@
 
 
 #include "libguile/__scm.h"
-#include "libguile/threads.h"
 
 
-SCM_API pthread_mutex_t scm_i_init_mutex;
 SCM_API int scm_initialized_p;
 
 SCM_API void scm_init_guile (void);
@@ -36,8 +34,6 @@ SCM_API void scm_boot_guile (int argc, char **argv,
 						int argc,
 						char **argv),
 			     void *closure);
-
-SCM_API void scm_i_init_guile (SCM_STACKITEM *base);
 
 SCM_API void scm_load_startup_files (void);
 

@@ -25,7 +25,12 @@
 #include "libguile/__scm.h"
 
 #include "libguile/hooks.h"
-#include "libguile/threads.h"
+
+#if SCM_USE_PTHREAD_THREADS
+# include "libguile/pthread-threads.h"
+#else
+# include "libguile/null-threads.h"
+#endif
 
 
 
@@ -225,12 +230,12 @@ SCM_API int scm_debug_cells_gc_interval ;
 void scm_i_expensive_validation_check (SCM cell);
 #endif
 
-SCM_API pthread_mutex_t scm_i_gc_admin_mutex;
+SCM_API scm_t_mutex scm_i_gc_admin_mutex;
 
 SCM_API int scm_block_gc;
 SCM_API int scm_gc_heap_lock;
 SCM_API unsigned int scm_gc_running_p;
-SCM_API pthread_mutex_t scm_i_sweep_mutex;
+SCM_API scm_t_rec_mutex scm_i_sweep_mutex;
 
 
 #if (SCM_ENABLE_DEPRECATED == 1)
@@ -250,10 +255,13 @@ SCM_API size_t scm_default_max_segment_size;
 
 SCM_API size_t scm_max_segment_size;
 
-#define SCM_SET_FREELIST_LOC(key,ptr) pthread_setspecific ((key), (ptr))
-#define SCM_FREELIST_LOC(key) ((SCM *) pthread_getspecific (key))
-SCM_API pthread_key_t scm_i_freelist;
-SCM_API pthread_key_t scm_i_freelist2;
+#define SCM_FREELIST_CREATE(key)		\
+  do { SCM *ls = (SCM *) malloc (sizeof (SCM));	\
+       *ls = SCM_EOL; 				\
+       scm_setspecific ((key), ls); } while (0)
+#define SCM_FREELIST_LOC(key) ((SCM *) scm_getspecific (key))
+SCM_API scm_t_key scm_i_freelist;
+SCM_API scm_t_key scm_i_freelist2;
 SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist;
 SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist2;
 

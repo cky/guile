@@ -460,7 +460,7 @@ scm_handle_by_message (void *handler_data, SCM tag, SCM args)
     }
 
   handler_message (handler_data, tag, args);
-  pthread_exit (NULL);
+  exit (2);
 }
 
 
