@@ -1,5 +1,9 @@
 2000-05-14  Gary Houston  <ghouston@arglist.com>
 
+	* stime.c (scm_strftime): if HAVE_TM_ZONE is not defined, hack the
+	TZ environment variable so that the %Z format returns the zone
+	from the input vector instead of the system default.
+
 	from Keisuke Nishida:
 	* fports.c (scm_setvbuf): minor docstring fix.
 	* ports.h (scm_generic_fgets): obsolete prototype deleted.

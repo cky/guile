@@ -1,3 +1,13 @@
+2000-05-14  Gary Houston  <ghouston@arglist.com>
+
+	* boot-9.scm (load-user-init): rewritten.  first work out the home
+	directory and then try to open the file (previously it could try
+	to open a file in more than one place).  catch exceptions when
+	trying to get a directory from the user database.  don't check
+	that ~/.guile is not a directory before trying to load it (a lack
+	of ~/.guile is not a crime, but if the file is not valid for any
+	reason then primitive-load will raise an error).
+
 2000-05-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm (abs):  Don't set to magnitude.  abs now does not
