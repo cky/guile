@@ -1,6 +1,6 @@
 ;;; srfi-1.scm --- List Library
 
-;; 	Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -247,16 +247,10 @@
       acc
       (lp (- n 1) (cons (init-proc (- n 1)) acc)))))
 
-(define (circular-list elt1 . rest)
-  (let ((start (cons elt1 '())))
-    (let lp ((r rest) (p start))
-      (if (null? r)
-	(begin
-	  (set-cdr! p start)
-	  start)
-	(begin
-	  (set-cdr! p (cons (car r) '()))
-	  (lp (cdr r) (cdr p)))))))
+(define (circular-list elt1 . elts)
+  (set! elts (cons elt1 elts))
+  (set-cdr! (last-pair elts) elts)
+  elts)
 
 (define (iota count . rest)
   (check-arg-type non-negative-integer? count "iota")
