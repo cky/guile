@@ -261,7 +261,7 @@
 	     (n-specializers
 	      (if (list? specializers)
 		  (length specializers)
-		  (abs (slot-ref (method-cache-generic-function exp)
+		  (+ 1 (slot-ref (method-cache-generic-function exp)
 				 'n-specialized)))))
 	(let* ((types (map class-of (first-n args n-specializers)))
 	       (entry+cmethod (compute-entry-with-cmethod applicable types)))
