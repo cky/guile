@@ -1,3 +1,14 @@
+1999-09-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* debugger.scm ("p"): New alias for "evaluate";
+	Mark module with :no-backtrace.
+	("position"): New command.
+	(source-position, display-position): New procedures.
+	(display-source): Display position of expression, if available.
+	(catch-user-errors): Return #f on error.  (Commands are expected
+	to return a valid state.)
+	(read-and-dispatch-command): Bugfix: Return old state on error.
+
 1999-09-16  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* regex.scm (regexp-substitute/global): Handle the end of the
