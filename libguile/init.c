@@ -80,6 +80,7 @@
 #include "load.h"
 #include "macros.h"
 #include "mallocs.h"
+#include "modules.h"
 #include "net_db.h"
 #include "numbers.h"
 #include "objects.h"
@@ -448,6 +449,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_list ();
       scm_init_macros ();
       scm_init_mallocs ();
+      scm_init_modules ();
       scm_init_net_db ();
       scm_init_numbers ();
       scm_init_objprop ();
@@ -539,6 +541,8 @@ invoke_main_func (body_data)
   struct main_func_closure *closure = (struct main_func_closure *) body_data;
 
   scm_load_startup_files ();
+
+  scm_post_boot_init_modules ();
 
   (*closure->main_func) (closure->closure, closure->argc, closure->argv);
 
