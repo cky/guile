@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,6 +69,17 @@
 
 
 static SCM symbols;
+
+#ifdef GUILE_DEBUG
+SCM_DEFINE (scm_sys_symbols, "%symbols", 0, 0, 0,
+	    (),
+	    "Return the system symbol obarray.")
+#define FUNC_NAME s_scm_sys_symbols
+{
+  return symbols;
+}
+#undef FUNC_NAME
+#endif
 
 
 
@@ -864,7 +875,7 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
 void
 scm_symbols_prehistory ()
 {
-  symbols = scm_make_weak_key_hash_table (SCM_MAKINUM (277));
+  symbols = scm_make_weak_key_hash_table (SCM_MAKINUM (1009));
   scm_permanent_object (symbols);
 }
 

@@ -2,7 +2,7 @@
 
 #ifndef SYMBOLSH
 #define SYMBOLSH
-/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,6 +71,9 @@
 
 
 
+#ifdef GUILE_DEBUG
+extern SCM scm_sys_symbols (void);
+#endif
 extern SCM scm_mem2symbol (const char*, scm_sizet);
 extern SCM scm_str2symbol (const char*);
 
