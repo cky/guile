@@ -23,19 +23,6 @@ AUTOMAKE_OPTIONS = gnu
 
 info_TEXINFOS = goops.texi
 
-goops_TEXINFOS = goops-tutorial.texi hierarchy.eps hierarchy.txt
+goops_TEXINFOS = goops-tutorial.texi hierarchy.eps hierarchy.png hierarchy.txt
 
 TEXINFO_TEX = ../ref/texinfo.tex
-
-# Optionally support building an HTML version of the manual.
-
-if HTMLDOC
-
-htmldir = $(prefix)/html/guile-$(VERSION)
-
-html_DATA = goops_toc.html $(shell ls goops_*.html 2>/dev/null)
-
-goops_toc.html: goops.texi $(goops_TEXINFOS)
-	$(TEXI2HTML) -split_chapter goops.texi
-
-endif
