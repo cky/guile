@@ -461,8 +461,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 		  set_slot_value (class,
 				  obj,
 				  SCM_CAR (get_n_set),
-				  scm_eval_body (SCM_CDR (SCM_CODE (tmp)),
-						 env));
+				  scm_eval_body (SCM_CLOSURE_BODY (tmp), env));
 		}
 	    }
 	}
@@ -1089,7 +1088,7 @@ get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
 			     scm_list_1 (obj),
 			     SCM_ENV (code));
       /* Evaluate the closure body */
-      return scm_eval_body (SCM_CDR (SCM_CODE (code)), env);
+      return scm_eval_body (SCM_CLOSURE_BODY (code), env);
     }
 }
 
@@ -1128,7 +1127,7 @@ set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
 				 scm_list_2 (obj, value),
 				 SCM_ENV (code));
 	  /* Evaluate the closure body */
-	  scm_eval_body (SCM_CDR (SCM_CODE (code)), env);
+	  scm_eval_body (SCM_CLOSURE_BODY (code), env);
 	}
     }
   return SCM_UNSPECIFIED;

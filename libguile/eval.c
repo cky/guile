@@ -2320,8 +2320,8 @@ dispatch:
 		}
 	      
 	      env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), argl, SCM_ENV (proc));
-	      x = SCM_CODE (proc);
-	      goto nontoplevel_cdrxbegin;
+	      x = SCM_CLOSURE_BODY (proc);
+	      goto nontoplevel_begin;
 	    }
 	  proc = scm_f_apply;
 	  goto evapply;
@@ -2754,9 +2754,9 @@ evapply:
 	if (scm_badformalsp (proc, 0))
 	  goto umwrongnumargs;
       case scm_tcs_closures:
-	x = SCM_CODE (proc);
+	x = SCM_CLOSURE_BODY (proc);
 	env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), SCM_EOL, SCM_ENV (proc));
-	goto nontoplevel_cdrxbegin;
+	goto nontoplevel_begin;
       case scm_tcs_struct:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
@@ -2895,13 +2895,13 @@ evapply:
 	    goto umwrongnumargs;
 	case scm_tcs_closures:
 	  /* clos1: */
-	  x = SCM_CODE (proc);
+	  x = SCM_CLOSURE_BODY (proc);
 #ifdef DEVAL
 	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), debug.info->a.args, SCM_ENV (proc));
 #else
 	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), scm_list_1 (t.arg1), SCM_ENV (proc));
 #endif
-	  goto nontoplevel_cdrxbegin;
+	  goto nontoplevel_begin;
 	case scm_tcs_struct:
 	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	    {
@@ -3059,8 +3059,8 @@ evapply:
 	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
 			    scm_list_2 (t.arg1, arg2), SCM_ENV (proc));
 #endif
-	  x = SCM_CODE (proc);
-	  goto nontoplevel_cdrxbegin;
+	  x = SCM_CLOSURE_BODY (proc);
+	  goto nontoplevel_begin;
 	}
     }
 #ifdef SCM_CAUTIOUS
@@ -3137,8 +3137,8 @@ evapply:
 	env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
 			      debug.info->a.args,
 			      SCM_ENV (proc));
-	x = SCM_CODE (proc);
-	goto nontoplevel_cdrxbegin;
+	x = SCM_CLOSURE_BODY (proc);
+	goto nontoplevel_begin;
 #else /* DEVAL */
       case scm_tc7_subr_3:
 	SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
@@ -3209,8 +3209,8 @@ evapply:
 					 arg2,
 					 scm_eval_args (x, env, proc)),
 			      SCM_ENV (proc));
-	x = SCM_CODE (proc);
-	goto nontoplevel_cdrxbegin;
+	x = SCM_CLOSURE_BODY (proc);
+	goto nontoplevel_begin;
 #endif /* DEVAL */
       case scm_tcs_struct:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
@@ -3603,7 +3603,7 @@ tail:
 	}
       
       args = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), args, SCM_ENV (proc));
-      proc = SCM_CDR (SCM_CODE (proc));
+      proc = SCM_CLOSURE_BODY (proc);
     again:
       arg1 = proc;
       while (!SCM_NULLP (arg1 = SCM_CDR (arg1)))

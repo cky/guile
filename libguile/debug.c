@@ -362,7 +362,7 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
       SCM name = scm_procedure_property (proc, scm_sym_name);
 #if 0
       /* Source property scm_sym_procname not implemented yet... */
-      SCM name = scm_source_property (SCM_CADR (SCM_CODE (proc)), scm_sym_procname);
+      SCM name = scm_source_property (SCM_CAR (SCM_CLOSURE_BODY (proc)), scm_sym_procname);
       if (SCM_FALSEP (name))
 	name = scm_procedure_property (proc, scm_sym_name);
 #endif
@@ -384,7 +384,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
   case scm_tcs_closures:
     {
       SCM formals = SCM_CLOSURE_FORMALS (proc);
-      SCM src = scm_source_property (SCM_CDR (SCM_CODE (proc)), scm_sym_copy);
+      SCM src = scm_source_property (SCM_CLOSURE_BODY (proc), scm_sym_copy);
       if (!SCM_FALSEP (src))
 	return scm_cons2 (scm_sym_lambda, formals, src);
       return scm_cons (scm_sym_lambda,

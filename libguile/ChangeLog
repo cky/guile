@@ -1,3 +1,16 @@
+2002-01-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* procs.h (SCM_CLOSURE_BODY):  New Macro.
+
+	* debug.c (scm_procedure_name, scm_procedure_source), eval.c
+	(SCM_CEVAL, SCM_APPLY), goops.c (scm_sys_initialize_object,
+	get_slot_value, set_slot_value), procs.c
+	(scm_procedure_documentation), sort.c (closureless), stacks.c
+	(get_applybody): Replace SCM_CDR (SCM_CODE (...)) by
+	SCM_CLOSURE_BODY.
+
+	* sort.c (closureless): Prefer !SCM_FOOP over SCM_NFOOP.
+
 2001-12-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (guile-procedures.txt): When we don't have makeinfo,

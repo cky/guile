@@ -221,7 +221,7 @@ get_applybody ()
 {
   SCM var = scm_sym2var (scm_sym_apply, SCM_BOOL_F, SCM_BOOL_F);
   if (SCM_VARIABLEP (var) && SCM_CLOSUREP (SCM_VARIABLE_REF (var)))
-    return SCM_CADR (SCM_CODE (SCM_VARIABLE_REF (var)));
+    return SCM_CAR (SCM_CLOSURE_BODY (SCM_VARIABLE_REF (var)));
   else
     return SCM_UNDEFINED;
 }

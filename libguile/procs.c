@@ -279,7 +279,7 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
   switch (SCM_TYP7 (proc))
     {
     case scm_tcs_closures:
-      code = SCM_CDR (SCM_CODE (proc));
+      code = SCM_CLOSURE_BODY (proc);
       if (SCM_IMP (SCM_CDR (code)))
 	return SCM_BOOL_F;
       code = SCM_CAR (code);
