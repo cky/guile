@@ -4,6 +4,9 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
+Changes since Guile 1.3.2:
+
+
 Changes since Guile 1.3:
 
 * Changes to mailing lists
