@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -204,7 +204,7 @@
 	    (else
 	     (case handle-delim
 	       ((trim peek) nchars)
-	       ((concat) (string-set! buf nchars terminator)
+	       ((concat) (string-set! buf (+ nchars start) terminator)
 			 (+ nchars 1))
 	       ((split) (cons nchars terminator))
 	       (else (error "unexpected handle-delim value: " 
