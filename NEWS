@@ -177,6 +177,8 @@ element is interpreted as an `input-waiting' thunk -- i.e. a thunk
 that returns the number of characters that can be read immediately
 without the soft port blocking.
 
+** New debugging feature: breakpoints.
+
 * Changes to the C interface
 
 ** The value 'scm_mask_ints' is no longer writable.

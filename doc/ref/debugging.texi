@@ -2,54 +2,935 @@
 @node Debugging Features
 @chapter Debugging Features
 
-@c      --- The title and introduction of this appendix need to
-@c          distinguish this clearly from the chapter on the internal
-@c          debugging interface.
+Guile includes debugging tools to help you work out what is going wrong
+when a program signals an error or behaves differently to how you would
+expect.  This chapter describes how to use these tools.
 
-When debugging a program, programmers often find it helpful to examine
-the program's internal status while it runs: the values of internal
-variables, the choices made in @code{if} and @code{cond} statements, and
-so forth.  Guile Scheme provides a debugging interface that programmers
-can use to single-step through Scheme functions and examine symbol
-bindings.  This is different from the @ref{Debugging}, which permits
-programmers to debug the Guile interpreter itself.  Most programmers
-will be more interested in debugging their own Scheme programs than the
-interpreter which evaluates them.
+Broadly speaking, Guile's debugging support allows you to do two things:
 
-[FIXME: should we include examples of traditional debuggers
-and explain why they can't be used to debug interpreted Scheme or Lisp?]
- 
+@itemize @bullet
+@item
+specify @dfn{breakpoints} --- points in the execution of a program where
+execution should pause so you can see what is going on
+
+@item
+examine in detail the ``scene of the crime'' --- in other words, the
+execution context at a breakpoint, or when the last error occurred.
+@end itemize
+
+@noindent
+The details are more complex and more powerful @dots{}
+
 @menu
-* Single-Step::         Execute a program or function one step at a time.
-* Trace::               Print a report each time a given function is called.
-* Backtrace::           See a list of the statements that caused an error.
+* Debug Last Error::            Debugging the most recent error.
+* Breakpoints::                 Setting and manipulating breakpoints.
+* Interactive Debugger::        Using the interactive debugger.
+* Tracing::                     Tracing program execution.
 @end menu
 
- 
-@node Single-Step
-@section Single-Step
 
- 
-@node Trace
-@section Trace
+@node Debug Last Error
+@section Debugging the Most Recent Error
 
-When a function is @dfn{traced}, it means that every call to that
-function is reported to the user during a program run.  This can help a
-programmer determine whether a function is being called at the wrong
-time or with the wrong set of arguments.
+When an error is signalled, Guile remembers the execution context where
+the error occurred.  By default, Guile then displays only the most
+immediate information about where and why the error occurred, for
+example:
 
-@defun trace function
-Enable debug tracing on @code{function}.  While a program is being run, Guile
-will print a brief report at each call to a traced function,
-advising the user which function was called and the arguments that were
+@lisp
+(make-string (* 4 (+ 3 #\s)) #\space)
+@print{}
+standard input:2:19: In procedure + in expression (+ 3 #\s):
+standard input:2:19: Wrong type argument: #\s
+ABORT: (wrong-type-arg)
+
+Type "(backtrace)" to get more information or "(debug)" to enter the debugger.
+@end lisp
+
+@noindent
+However, as the message above says, you can obtain much more information
+about the context of the error by typing @code{(backtrace)} or
+@code{(debug)}:
+
+@deffn {Scheme Procedure} backtrace
+@deffnx {C Function} scm_backtrace ()
+Display a backtrace of the stack saved by the last error
+to the current output port.
+@end deffn
+
+@deffn {Scheme Procedure} debug
+Invoke the Guile debugger to explore the context of the last error.
+@end deffn
+
+@code{(backtrace)} displays the Scheme call stack at the point where the
+error occurred:
+
+@lisp
+(backtrace)
+@print{}
+Backtrace:
+In standard input:
+   2: 0* [make-string ...
+   2: 1*  [* 4 ...
+   2: 2*   [+ 3 #\s]
+
+Type "(debug-enable 'backtrace)" if you would like a backtrace
+automatically if an error occurs in the future.
+@end lisp
+
+@noindent
+In a more complex scenario than this one, this can be extremely useful
+for understanding where and why the error occurred.  For more on the
+format of the displayed backtrace, see the subsection below.
+
+@code{(debug)} takes you into Guile's interactive debugger, which
+provides commands that allow you to
+
+@itemize @bullet
+@item
+display the Scheme call stack at the point where the error occurred
+(the @code{backtrace} command --- see @ref{Display Backtrace})
+
+@item
+move up and down the call stack, to see in detail the expression being
+evaluated, or the procedure being applied, in each @dfn{frame} (the
+@code{up}, @code{down}, @code{frame}, @code{position}, @code{info args}
+and @code{info frame} commands --- see @ref{Frame Selection} and
+@ref{Frame Information})
+
+@item
+examine the values of variables and expressions in the context of each
+frame (the @code{evaluate} command --- see @ref{Frame Evaluation}).
+@end itemize
+
+Use of the interactive debugger, including these commands, is described
+in @ref{Interactive Debugger}.
+
+@menu
+* Backtrace Format::            How to interpret a backtrace.
+@end menu
+
+
+@node Backtrace Format
+@subsection How to Interpret a Backtrace
+
+
+@node Breakpoints
+@section Breakpoints
+
+If you are not already familiar with the concept of breakpoints, the
+first subsection below explains how they work are why they are useful.
+
+Broadly speaking, Guile's breakpoint support consists of
+
+@itemize @bullet
+@item
+type-specific features for @emph{creating} breakpoints of various types
+
+@item
+relatively generic features for @emph{manipulating} the behaviour of
+breakpoints once they've been created.
+@end itemize
+
+Different breakpoint types are implemented as different classes in a
+GOOPS hierarchy with common base class @code{<breakpoint>}.  The magic
+of generic functions then allows most of the manipulation functions to
+be generic by default but specializable (by breakpoint class) if the
+need arises.
+
+Generic breakpoint support is provided by the @code{(ice-9 debugger
+breakpoints)} module, so you will almost always need to use this module
+in order to access the functionality described here:
+
+@smalllisp
+(use-modules (ice-9 debugger breakpoints))
+@end smalllisp
+
+@noindent
+You may like to add this to your @file{.guile} file.
+
+@menu
+* Breakpoints Overview::
+* Source Breakpoints::
+* Procedural Breakpoints::
+* Setting Breakpoints::
+* break! trace! trace-subtree!::
+* Accessing Breakpoints::
+* Breakpoint Behaviours::
+* Enabling and Disabling::
+* Deleting Breakpoints::
+* Breakpoint Information::
+* Other Breakpoint Types::
+@end menu
+
+
+@node Breakpoints Overview
+@subsection How Breakpoints Work and Why They Are Useful
+
+Often, debugging the last error is not enough to tell you what went
+wrong.  For example, the root cause of the error may have arisen a long
+time before the error was signalled, in which case the execution context
+of the error is too late to be useful.  Or your program might not signal
+an error at all, just return an unexpected result or have some incorrect
+side effect.
+
+In many such cases, it's useful to pause the program at or before the
+point where you suspect the problem arises.  Then you can explore the
+stack, display the values of key variables, and generally check that the
+state of the program is as you expect.  If all is well, you can let the
+program continue running normally, or step more slowly through each
+expression that the Scheme interpreter evaluates.  Single-stepping may
+reveal that the program is going through blocks of code that you didn't
+intend --- a useful data point for understanding what the underlying
+problem is.
+
+Telling Guile where or when to pause a program is called @dfn{setting a
+breakpoint}.  When a breakpoint is hit, Guile's default behaviour is to
+enter the interactive debugger, where there are now two sets of commands
+available:
+
+@itemize @bullet
+@item
+all the commands as described for last error debugging (@pxref{Debug
+Last Error}), which allow you to explore the stack and so on
+
+@item
+additional commands for continuing program execution in various ways:
+@code{next}, @code{step}, @code{finish}, @code{trace-finish} and
+@code{continue}.
+@end itemize
+
+Use of the interactive debugger is described in @ref{Interactive
+Debugger}.
+
+
+@node Source Breakpoints
+@subsection Source Breakpoints
+
+A source breakpoint is a breakpoint that triggers whenever program
+execution hits a particular source location.  A source breakpoint can be
+conveniently set simply by evaluating code that has @code{##} inserted
+into it at the position where you want the breakpoint to be.
+
+For example, to set a breakpoint immediately before evaluation of
+@code{(= n 0)} in the following procedure definition, evaluate:
+
+@smalllisp
+(define (fact1 n)
+  (if ##(= n 0)
+      1
+      (* n (fact1 (- n 1)))))
+@print{}
+Set breakpoint 1: standard input:4:9: (= n 0)
+@end smalllisp
+
+@noindent
+Note the message confirming that you have set a breakpoint.  If you
+don't see this, something isn't working.
+
+@code{##} is provided by the @code{(ice-9 debugger breakpoints source)} module,
+so you must use this module before trying to set breakpoints in this
+way:
+
+@smalllisp
+(use-modules (ice-9 debugger breakpoints source))
+@end smalllisp
+
+@noindent
+You may like to add this to your @file{.guile} file.
+
+The default behaviour for source breakpoints is @code{debug-here}
+(@pxref{Breakpoint Behaviours}), which means to enter the command line
+debugger when the breakpoint is hit.  So, if you now use @code{fact1},
+that is what happens.
+
+@smalllisp
+guile> (fact1 3)
+Hit breakpoint 1: standard input:4:9: (= n 0)
+Frame 3 at standard input:4:9
+        (= n 0)
+debug> 
+@end smalllisp
+
+
+@node Procedural Breakpoints
+@subsection Procedural Breakpoints
+
+A procedural breakpoint is a breakpoint that triggers whenever Guile is
+about to apply a specified procedure to its (already evaluated)
+arguments.  To set a procedural breakpoint, call @code{break!} with the
+target procedure as a single argument.  For example:
+
+@smalllisp
+(define (fact1 n)
+  (if (= n 0)
+      1
+      (* n (fact1 (- n 1)))))
+
+(break! fact1)
+@print{}
+Set breakpoint 1: [fact1]
+@result{}
+#<<procedure-breakpoint> 808b0b0>
+@end smalllisp
+
+Alternatives to @code{break!} are @code{trace!} and
+@code{trace-subtree!}.  The difference is that these three calls create
+a breakpoint in the same place but with three different behaviours,
+respectively @code{debug-here}, @code{trace-here} and
+@code{trace-subtree}.  Breakpoint behaviours are documented fully later
+(@pxref{Breakpoint Behaviours}), but to give a quick taste, here's an
+example of running code that includes a procedural breakpoint with the
+@code{trace-here} behaviour.
+
+@smalllisp
+(trace! fact1)
+@print{}
+Set breakpoint 1: [fact1]
+@result{}
+#<<procedure-breakpoint> 808b0b0>
+
+(fact1 4)
+@print{}
+|  [fact1 4]
+|  |  [fact1 3]
+|  |  |  [fact1 2]
+|  |  |  |  [fact1 1]
+|  |  |  |  |  [fact1 0]
+|  |  |  |  |  1
+|  |  |  |  2
+|  |  |  6
+|  |  24
+|  24
+@result{}
+24
+@end smalllisp
+
+To set and use procedural breakpoints, you will need to use the
+@code{(ice-9 debugger breakpoints procedural)} module:
+
+@smalllisp
+(use-modules (ice-9 debugger breakpoints procedural))
+@end smalllisp
+
+@noindent
+You may like to add this to your @file{.guile} file.
+
+
+@node Setting Breakpoints
+@subsection Setting Breakpoints
+
+In general, that is.  We've already seen how to set source and
+procedural breakpoints conveniently in practice.  This section explains
+how those conveniences map onto a more general mechanism.
+
+The general mechanism for setting breakpoints is the generic function
+@code{set-breakpoint!}:
+
+@deffn {Generic Function} set-breakpoint! behaviour . location-args
+Set a breakpoint with behaviour @var{behaviour} at the location
+specified by @var{location-args}.
+
+The form of the @var{location-args} depends upon what methods for
+@code{set-breakpoint!} have been provided by the implementations of
+subclasses of the @code{<breakpoint>} base class.
+@end deffn
+
+So, for example, @code{(ice-9 debugger breakpoints procedural)} implements the
+@code{<procedure-breakpoint>} subclass and provides a
+@code{set-breakpoint!} method that takes a procedure argument:
+
+@deffn {Method} set-breakpoint! behaviour (proc <procedure>)
+Set a breakpoint with behaviour @var{behaviour} before applications of
+the procedure @var{proc}.
+@end deffn
+
+@code{(ice-9 debugger breakpoints source)} implements the
+@code{<source-breakpoint>} subclass and provides a
+@code{set-breakpoint!} method that takes two arguments describing the
+source expression on which the breakpoint should be set:
+
+@deffn {Method} set-breakpoint! behaviour x-as-read (x-pairified <pair>)
+Set a breakpoint with behaviour @var{behaviour} on the source expression
+@var{x-pairified}, storing @var{x-as-read} for use in messages
+describing the breakpoint.
+@end deffn
+
+A non-type-specific @code{set-breakpoint!} method is provided by the
+generic module @code{(ice-9 debugger breakpoints)}.  It allows you to change the
+behaviour of an existing breakpoint that is identified by its breakpoint
+number:
+
+@deffn {Method} set-breakpoint! behaviour (number <integer>)
+Change the behaviour of existing breakpoint number @var{number} to
+@var{behaviour}.
+@end deffn
+
+
+@node break! trace! trace-subtree!
+@subsection break! trace! trace-subtree!
+
+We have already talked above about the use of @code{break!},
+@code{trace!} and @code{trace-subtree!} for setting procedural
+breakpoints.  Now that @code{set-breakpoint!} has been introduced, we
+can reveal that @code{break!}, @code{trace!} and @code{trace-subtree!}
+are in fact just wrappers for @code{set-breakpoint!} that specify
+particular breakpoint behaviours, respectively @code{debug-here},
+@code{trace-here} and @code{trace-subtree}.
+
+@smalllisp
+(break! . @var{args})
+    @equiv{} (set-breakpoint! debug-here . @var{args})
+(trace! . @var{args})
+    @equiv{} (set-breakpoint! trace-here . @var{args})
+(trace-subtree! . @var{args})
+    @equiv{} (set-breakpoint! trace-subtree . @var{args})
+@end smalllisp
+
+This means that these three procedures can be used to set the
+corresponding behaviours for any type of breakpoint for which a
+@code{set-breakpoint!} method exists, not just procedural ones.
+
+
+@node Accessing Breakpoints
+@subsection Accessing Breakpoints
+
+Information about the state and behaviour of a breakpoint is stored in
+an instance of the appropriate breakpoint class.  To access and change
+that information, therefore, you need to get hold of the desired
+breakpoint instance.
+
+The generic function @code{get-breakpoint} meets this need:
+
+@deffn {Generic Function} get-breakpoint . location-args
+Find and return the breakpoint instance at the location specified by
+@var{location-args}.
+
+The form of the @var{location-args} depends upon what methods for
+@code{get-breakpoint} have been provided by the implementations of
+subclasses of the @code{<breakpoint>} base class.
+@end deffn
+
+For every @code{set-breakpoint!} method there is a corresponding
+@code{get-breakpoint} method which interprets the @var{location-args} in
+the same way.  Since those interpretations are described above
+(@pxref{Setting Breakpoints}), we won't repeat them here, except to note
+again the useful type-independent case:
+
+@smalllisp
+(get-breakpoint @var{number})
+@end smalllisp
+
+@noindent
+returns the breakpoint instance for the existing breakpoint numbered
+@var{number}.
+
+
+@node Breakpoint Behaviours
+@subsection Breakpoint Behaviours
+
+A breakpoint's @dfn{behaviour} determines what happens when that
+breakpoint is hit.  Several kinds of behaviour are generally useful.
+
+@table @code
+@item debug-here
+Enter the command line debugger.  This gives the opportunity to explore
+the stack, evaluate expressions in any of the pending stack frames,
+change breakpoint properties or set new breakpoints, and continue
+program execution when you are done.
+
+@item trace-here
+Trace the current stack frame.  For expressions being evaluated, this
+shows the expression.  For procedure applications, it shows the
+procedure name and its arguments @emph{post-evaluation}.  For both
+expressions and applications, the indentation of the tracing indicates
+whether the traced items are mutually tail recursive.
+
+@item trace-subtree
+Trace the current stack frame, and enable tracing for all future
+evaluations and applications until the current stack frame is exited.
+@code{trace-subtree} is a great preliminary exploration tool when all
+you know is that there is a bug ``somewhere in XXX or in something that
+XXX calls''.
+
+@item (at-exit @var{thunk})
+Don't do anything now, but arrange for @var{thunk} to be executed when
+the current stack frame is exited.  For example, the operation that most
+debugging tools call ``finish'' is @code{(at-exit debug-here)}.
+
+@item (at-next @var{count} @var{thunk})
+@dots{} arrange for @var{thunk} to be executed when beginning the
+@var{count}th next evaluation or application with source location in the
+current file.
+
+@item (at-entry @var{count} @var{thunk})
+@dots{} arrange for @var{thunk} to be executed when beginning the
+@var{count}th next evaluation (regardless of source location).
+
+@item (at-apply @var{count} @var{thunk})
+@dots{} arrange for @var{thunk} to be executed just before performing
+the @var{count}th next application (regardless of source location).
+
+@item (at-step @var{count} @var{thunk})
+Synthesis of @code{at-entry} and @code{at-apply}; counts both
+evaluations and applications.
+@end table
+
+Every breakpoint instance has a slot in which its behaviour is stored.
+If you have a breakpoint instance in hand, you can change its behaviour
+using the @code{bp-behaviour} accessor.
+
+@deffn {Accessor} bp-behaviour breakpoint
+Get or set the behaviour of the breakpoint instance @var{breakpoint}.
+@end deffn
+
+@noindent
+(An @dfn{accessor} supports the setting of a property like this:
+
+@smalllisp
+(set! (bp-behaviour @var{breakpoint}) @var{new-behaviour})
+@end smalllisp
+
+@noindent
+See the GOOPS manual for further information on accessors.)
+
+Alternatively, if you know how to specify the @var{location-args} for
+the breakpoint in question, you can change its behaviour using
+@code{set-breakpoint!}.  For example:
+
+@smalllisp
+;; Change behaviour of breakpoint number 2.
+(set-breakpoint! @var{new-behaviour} 2)
+
+;; Change behaviour of procedural breakpoint on [fact1].
+(set-breakpoint! @var{new-behaviour} fact1)
+@end smalllisp
+
+In all cases, the behaviour that you specify should be either a single
+thunk, or a list of thunks, to be called when the breakpoint is hit.
+
+The most common behaviours above are exported as thunks from the
+@code{(ice-9 debugger behaviour)} module.  So, if you use this module, you can
+use those behaviours directly like this:
+
+@smalllisp
+(use-modules (ice-9 debugger behaviour))
+(set-breakpoint! trace-subtree 2)
+(set! (bp-behaviour (get-breakpoint 3)) debug-here)
+@end smalllisp
+
+@noindent
+You can also use the list option to combine common behaviours:
+
+@smalllisp
+(set-breakpoint! (list trace-here debug-here) 2)
+@end smalllisp
+
+@noindent
+Or, for more customized behaviour, you could build and use your own
+thunk like this:
+
+@smalllisp
+(define (my-behaviour)
+  (trace-here)
+  (at-exit (lambda ()
+             (display "Exiting frame of my-behaviour bp\n")
+             ... do something unusual ...)))
+
+(set-breakpoint my-behaviour 2)
+@end smalllisp
+
+
+@node Enabling and Disabling
+@subsection Enabling and Disabling
+
+Independently of its behaviour, each breakpoint also keeps track of
+whether it is currently enabled.  This is a straightforward convenience
+to allow breakpoints to be temporarily switched off without losing all
+their carefully constructed properties.
+
+If you have a breakpoint instance in hand, you can enable or disable it
+using the @code{bp-enabled?} accessor:
+
+@deffn {Accessor} bp-enabled? breakpoint
+Get or set the enabled state of the specified @var{breakpoint}.
+@end deffn
+
+Alternatively, you can enable or disable a breakpoint by its location
+args:
+
+@deffn {Procedure} enable-breakpoint! . location-args
+@deffnx {Procedure} disable-breakpoint! . location-args
+Enable or disable the breakpoint at the location specified by
+@var{location-args}.
+@end deffn
+
+@code{enable-breakpoint!} and @code{disable-breakpoint!} are implemented
+using @code{get-breakpoint} and @code{bp-enabled?}, so any
+@var{location-args} that are valid for @code{get-breakpoint} will work
+also for these procedures.
+
+
+@node Deleting Breakpoints
+@subsection Deleting Breakpoints
+
+Given a breakpoint instance in hand, you can deactivate it and remove it
+from the global list of current breakpoints by calling
+@code{bp-delete!}:
+
+@deffn {Generic Function} bp-delete! breakpoint
+Delete breakpoint @var{breakpoint}.  This means (1) doing whatever is
+needed to prevent the breakpoint from triggering again, and (2) removing
+it from the global list of current breakpoints.
+@end deffn
+
+Alternatively, you can delete a breakpoint by its location args:
+
+@deffn {Procedure} delete-breakpoint! . location-args
+Delete the breakpoint at the location specified by @var{location-args}.
+@end deffn
+
+@code{delete-breakpoint!} is implemented using @code{get-breakpoint} and
+@code{bp-delete!}, so any @var{location-args} that are valid for
+@code{get-breakpoint} will work also for @code{delete-breakpoint!}.
+
+There is no way to reinstate a deleted breakpoint.  Final destruction of
+the breakpoint instance is determined by the usual garbage collection
+rules.
+
+
+@node Breakpoint Information
+@subsection Breakpoint Information
+
+To get Guile to print a description of a breakpoint instance, use
+@code{bp-describe}:
+
+@smalllisp
+(bp-describe (get-breakpoint 1) #t)
+@print{}
+Breakpoint 1: [fact1]
+        enabled? = #t
+        behaviour = #<procedure trace-here ()>
+@end smalllisp
+
+@deffn {Generic Function} bp-describe breakpoint port
+Print a description of @var{breakpoint} to the specified @var{port}.
+@var{port} can be @code{#t} for standard output, or else any output
+port.
+@end deffn
+
+Following the usual model, @code{describe-breakpoint} is also provided:
+
+@deffn {Procedure} describe-breakpoint . location-args
+Print (to standard output) a description of the breakpoint at location
+specified by @var{location-args}.
+@end deffn
+
+Finally, two stragglers.  @code{all-breakpoints} returns a list of all
+current breakpoints.  @code{describe-all-breakpoints} combines
+@code{bp-describe} and @code{all-breakpoints} by printing a description
+of all current breakpoints to standard output.
+
+@deffn {Procedure} all-breakpoints
+Return a list of all current breakpoints, ordered by breakpoint number.
+@end deffn
+
+@deffn {Procedure} describe-all-breakpoints
+Print a description of all current breakpoints to standard output.
+@end deffn
+
+
+@node Other Breakpoint Types
+@subsection Other Breakpoint Types
+
+Besides source and procedural breakpoints, Guile includes an early
+implementation of a third class of breakpoints: @dfn{range} breakpoints.
+These are breakpoints that trigger when program execution enters (or
+perhaps exits) a defined range of source locations.
+
+Sadly, these don't yet work well.  The apparent problem is that the
+extra methods for @code{set-breakpoint!} and @code{get-breakpoint} cause
+some kind of explosion in the time taken by GOOPS to construct its
+method cache and to dispatch calls involving these generic functions.
+But we haven't really investigated enough to be sure that this is the
+real issue.
+
+If you're interested in looking and/or investigating anyway, please feel
+free to check out and play with the @code{(ice-9 debugger breakpoints
+range)} module.
+
+The other kind of breakpoint that we'd like to have is watchpoints, but
+this hasn't been implemented at all yet.  Watchpoints may turn out to be
+impractical for performance reasons.
+
+
+@node Interactive Debugger
+@section Using the Interactive Debugger
+
+Guile's interactive debugger is a command line application that accepts
+commands from you for examining the stack and, if at a breakpoint, for
+continuing program execution in various ways.  Unlike in the normal
+Guile REPL, commands are typed mostly without parentheses.
+
+When you first enter the debugger, it introduces itself with a message
+like this:
+
+@lisp
+This is the Guile debugger -- for help, type `help'.
+There are 3 frames on the stack.
+
+Frame 2 at standard input:36:19
+        [+ 3 #\s]
+debug> 
+@end lisp
+
+@noindent
+``debug>'' is the debugger's prompt, and a useful reminder that you are
+not in the normal Guile REPL.  The available commands are described in
+detail in the following subsections.
+
+@menu
+* Display Backtrace::           backtrace.
+* Frame Selection::             up, down, frame.
+* Frame Information::           info args, info frame, position.
+* Frame Evaluation::            evaluate.
+* Single Stepping::             step, next.
+* Run To Frame Exit::           finish, trace-finish.
+* Continue Execution::          continue.
+* Leave Debugger::              quit.
+@end menu
+
+
+@node Display Backtrace
+@subsection Display Backtrace
+
+The @code{backtrace} command, which can also be invoked as @code{bt} or
+@code{where}, displays the call stack (aka backtrace) at the point where
+the debugger was entered:
+
+@lisp
+debug> bt
+In standard input:
+  36: 0* [make-string ...
+  36: 1*  [* 4 ...
+  36: 2*   [+ 3 #\s]
+@end lisp
+
+@deffn {Debugger Command} backtrace [count]
+@deffnx {Debugger Command} bt [count]
+@deffnx {Debugger Command} where [count]
+Print backtrace of all stack frames, or of the innermost @var{count}
+frames.  With a negative argument, print the outermost -@var{COUNT}
+frames.  If the number of frames isn't explicitly given, the debug
+option @code{depth} determines the maximum number of frames printed.
+@end deffn
+
+The format of the displayed backtrace is the same as for the
+@code{backtrace} procedure --- see @ref{Backtrace Format} for details.
+
+
+@node Frame Selection
+@subsection Frame Selection
+
+A call stack consists of a sequence of stack @dfn{frames}, with each
+frame describing one level of the nested evaluations and applications
+that the program was executing when it hit a breakpoint or an error.
+Frames are numbered such that frame 0 is the outermost --- i.e. the
+operation on the call stack that began least recently --- and frame N-1
+the innermost (where N is the total number of frames on the stack).
+
+When you enter the debugger, the innermost frame is selected, which
+means that the commands for getting information about the ``current''
+frame, or for evaluating expressions in the context of the current
+frame, will do so by default with respect to the innermost frame.  To
+select a different frame, so that these operations will apply to it
+instead, use the @code{up}, @code{down} and @code{frame} commands like
+this:
+
+@lisp
+debug> up
+Frame 1 at standard input:36:14
+	[* 4 ...
+debug> frame 0
+Frame 0 at standard input:36:1
+	[make-string ...
+debug> down
+Frame 1 at standard input:36:14
+	[* 4 ...
+@end lisp
+
+@deffn {Debugger Command} up [n]
+Move @var{n} frames up the stack.  For positive @var{n}, this
+advances toward the outermost frame, to higher frame numbers, to
+frames that have existed longer.  @var{n} defaults to one.
+@end deffn
+
+@deffn {Debugger Command} down [n]
+Move @var{n} frames down the stack.  For positive @var{n}, this
+advances toward the innermost frame, to lower frame numbers, to frames
+that were created more recently.  @var{n} defaults to one.
+@end deffn
+
+@deffn {Debugger Command} frame [n]
+Select and print a stack frame.  With no argument, print the selected
+stack frame.  (See also ``info frame''.)  An argument specifies the
+frame to select; it must be a stack-frame number.
+@end deffn
+
+
+@node Frame Information
+@subsection Frame Information
+
+[to be completed]
+
+@deffn {Debugger Command} info frame
+All about selected stack frame.
+@end deffn
+
+@deffn {Debugger Command} info args
+Argument variables of current stack frame.
+@end deffn
+
+@deffn {Debugger Command} position
+Display the position of the current expression.
+@end deffn
+
+
+@node Frame Evaluation
+@subsection Frame Evaluation
+
+[to be completed]
+
+@deffn {Debugger Command} evaluate expression
+Evaluate an expression.
+The expression must appear on the same line as the command,
+however it may be continued over multiple lines.
+@end deffn
+
+
+@node Single Stepping
+@subsection Single Stepping
+
+[to be completed]
+
+@deffn {Debugger Command} step [n]
+Continue until entry to @var{n}th next frame.
+@end deffn
+
+@deffn {Debugger Command} next [n]
+Continue until entry to @var{n}th next frame in same file.
+@end deffn
+
+
+@node Run To Frame Exit
+@subsection Run To Frame Exit
+
+[to be completed]
+
+@deffn {Debugger Command} finish
+Continue until evaluation of the current frame is complete, and
+print the result obtained.
+@end deffn
+
+@deffn {Debugger Command} trace-finish
+Trace until evaluation of the current frame is complete.
+@end deffn
+
+
+@node Continue Execution
+@subsection Continue Execution
+
+[to be completed]
+
+@deffn {Debugger Command} continue
+Continue program execution.
+@end deffn
+
+
+@node Leave Debugger
+@subsection Leave Debugger
+
+[to be completed]
+
+@deffn {Debugger Command} quit
+Exit the debugger.
+@end deffn
+
+
+@node Tracing
+@section Tracing
+
+Tracing has already been described as a breakpoint behaviour
+(@pxref{Breakpoint Behaviours}), but we mention it again here because it
+is so useful, and because Guile actually now has @emph{two} mechanisms
+for tracing, and its worth clarifying the differences between them.
+
+@menu
+* Old Tracing::                 Tracing provided by (ice-9 debug).
+* New Tracing::                 Breakpoint-based tracing.
+* Tracing Compared::            Differences between old and new.
+@end menu
+
+
+@node Old Tracing
+@subsection Tracing Provided by @code{(ice-9 debug)}
+
+The @code{(ice-9 debug)} module implements tracing of procedure
+applications.  When a procedure is @dfn{traced}, it means that every
+call to that procedure is reported to the user during a program run.
+The idea is that you can mark a collection of procedures for tracing,
+and Guile will subsequently print out a line of the form
+
+@smalllisp
+|  |  [@var{procedure} @var{args} @dots{}]
+@end smalllisp
+
+whenever a marked procedure is about to be applied to its arguments.
+This can help a programmer determine whether a function is being called
+at the wrong time or with the wrong set of arguments.
+
+In addition, the indentation of the output is useful for demonstrating
+how the traced applications are or are not tail recursive with respect
+to each other.  Thus, a trace of a non-tail recursive factorial
+implementation looks like this:
+
+@smalllisp
+[fact1 4]
+|  [fact1 3]
+|  |  [fact1 2]
+|  |  |  [fact1 1]
+|  |  |  |  [fact1 0]
+|  |  |  |  1
+|  |  |  1
+|  |  2
+|  6
+24
+@end smalllisp
+
+While a typical tail recursive implementation would look more like this:
+
+@smalllisp
+[fact2 4]
+[facti 1 4]
+[facti 4 3]
+[facti 12 2]
+[facti 24 1]
+[facti 24 0]
+24
+@end smalllisp
+
+@deffn {Scheme Procedure} trace procedure
+Enable tracing for @code{procedure}.  While a program is being run,
+Guile will print a brief report at each call to a traced procedure,
+advising the user which procedure was called and the arguments that were
 passed to it.
-@end defun
+@end deffn
 
-@defun untrace function
-Disable debug tracing for @code{function}.
-@end defun
+@deffn {Scheme Procedure} untrace procedure
+Disable tracing for @code{procedure}.
+@end deffn
 
-Example:
+Here is another example:
 
 @lisp
 (define (rev ls)
@@ -75,9 +956,9 @@ Example:
    (e d c b a)
    (e d c b a)
 @end lisp
- 
+
 Note the way Guile indents the output, illustrating the depth of
-execution at each function call.  This can be used to demonstrate, for
+execution at each procedure call.  This can be used to demonstrate, for
 example, that Guile implements self-tail-recursion properly:
  
 @lisp
@@ -102,14 +983,126 @@ example, that Guile implements self-tail-recursion properly:
  
 Since the tail call is effectively optimized to a @code{goto} statement,
 there is no need for Guile to create a new stack frame for each
-iteration.  Using @code{trace} here helps us see why this is so.
- 
+iteration.  Tracing reveals this optimization in operation.
 
-@node Backtrace
-@section Backtrace
 
-@deffn {Scheme Procedure} backtrace
-@deffnx {C Function} scm_backtrace ()
-Display a backtrace of the stack saved by the last error
-to the current output port.
-@end deffn
+@node New Tracing
+@subsection Breakpoint-based Tracing
+
+Guile's newer mechanism implements tracing as an optional behaviour for
+any kind of breakpoint.
+
+To trace a procedure (in the same kind of way as the older tracing), use
+the @code{trace!} procedure to set a procedure breakpoint with
+@code{trace-here} behaviour:
+
+@lisp
+(trace! fact1)
+@print{}
+Set breakpoint 1: [fact1]
+@result{}
+#<<procedure-breakpoint> 40337bf0>
+
+(fact1 4)
+@print{}
+|  [fact1 4]
+|  |  [fact1 3]
+|  |  |  [fact1 2]
+|  |  |  |  [fact1 1]
+|  |  |  |  |  [fact1 0]
+|  |  |  |  |  1
+|  |  |  |  2
+|  |  |  6
+|  |  24
+|  24
+@result{}
+24
+@end lisp
+
+To trace evaluation of a source expression, evaluate code containing a
+breakpoint marker @code{##} in the appropriate place, then use
+@code{set-breakpoint} to change the behaviour of the new breakpoint to
+@code{trace-here}:
+
+@lisp
+(define (fact1 n)
+  (if ##(= n 0)
+      1
+      (* n (fact1 (- n 1)))))
+@print{}
+Set breakpoint 4: standard input:13:9: (= n 0)
+
+(use-modules (ice-9 debugger behaviour))
+(set-breakpoint! trace-here 4)
+@print{}
+Breakpoint 4: standard input:13:9: (= n 0)
+	enabled? = #t
+	behaviour = #<procedure trace-here ()>
+
+(fact1 4)
+@print{}
+|  (= n 0)
+|  #f
+|  (= n 0)
+|  #f
+|  (= n 0)
+|  #f
+|  (= n 0)
+|  #f
+|  (= n 0)
+|  #t
+@result{}
+24
+@end lisp
+
+@noindent
+(Note --- this example reveals a bug: each occurrence of @code{(= n 0)}
+should be shown indented with respect to the one before it, as
+@code{fact1} does not call itself tail-recursively.)
+
+You can also give a breakpoint the @code{trace-subtree} behaviour, which
+means to trace the breakpoint location itself plus any evaluations and
+applications that occur below it in the call stack.  In the following
+example, this allows us to see the evaluated arguments that are being
+compared by the @code{=} procedure:
+
+@lisp
+(set-breakpoint! trace-subtree 4)
+@print{}
+Breakpoint 4: standard input:13:9: (= n 0)
+	enabled? = #t
+	behaviour = #<procedure trace-subtree ()>
+
+(fact1 4)
+@print{}
+|  (= n 0)
+|  [= 4 0]
+|  #f
+|  (= n 0)
+|  [= 3 0]
+|  #f
+|  (= n 0)
+|  [= 2 0]
+|  #f
+|  (= n 0)
+|  [= 1 0]
+|  #f
+|  (= n 0)
+|  [= 0 0]
+|  #t
+@result{}
+24
+@end lisp
+
+
+@node Tracing Compared
+@subsection Differences Between Old and New Tracing Mechanisms
+
+The newer tracing mechanism is more general and so more powerful than
+the older one: it works for expressions as well as procedure
+applications, and it implements the useful @code{trace-subtree}
+behaviour as well as the more traditional @code{trace-here}.
+
+The older mechanism will probably become obsolete eventually, but it's
+worth keeping it around for a while until we are sure that the new
+mechanism is correct and does what programmers need.
