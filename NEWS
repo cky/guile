@@ -31,6 +31,10 @@ compare their values.  This is no longer done.  Variables are now only
 You can now use an empty `begin' form.  It will yield #<unspecified>
 when evaluated and simply be ignored in a definition context.
 
+** Removed: substring-move-left!, substring-move-right!
+
+Use `substring-move!' instead.
+
 * Changes to the C interface
 
 ** New function: scm_str2string

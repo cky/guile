@@ -1,5 +1,8 @@
 2001-11-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* strop.h, strop.c (scm_substring_move_left_x,
+	scm_substring_move_right_x): Removed.
+
 	* __scm.h (HAVE_UINTPTR_T, HAVE_PTRDIFF_T, HAVE_LONG_LONG,
 	HAVE_LONG_LONGS): Define to "1" when defining them, to mirror what
 	configure does.
