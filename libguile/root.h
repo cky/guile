@@ -130,27 +130,11 @@ typedef struct scm_root_state
 #define scm_system_transformer		(scm_root->system_transformer)
 
 #ifdef USE_THREADS
-
-#ifdef USE_MIT_PTHREADS
-#define scm_root ((scm_root_state *) pthread_self()->attr.arg_attr)
-#define scm_set_root(new_root) (pthread_self()->attr.arg_attr = (new_root))
-#endif
-
-#ifdef USE_COOP_THREADS
-#define scm_root ((scm_root_state *) coop_global_curr->data)
-#define scm_set_root(new_root) (coop_global_curr->data = (new_root))
-#endif
-
-#ifdef USE_FSU_PTHREADS
-#define scm_root ((scm_root_state *) pthread_self()->prots)
-#define scm_set_root(new_root) (pthread_self()->prots = (new_root))
-#endif
-
+#define scm_root ((scm_root_state *) SCM_THREAD_LOCAL_DATA)
+#define scm_set_root(new_root) SCM_SET_THREAD_LOCAL_DATA (new_root)
 #else /* USE_THREADS */
-
 extern struct scm_root_state *scm_root;
 #define scm_set_root(new_root) (scm_root = (new_root))
-
 #endif /* USE_THREADS */
 
 
