@@ -991,7 +991,7 @@ work on any kind of port, not just ports which are open on a file.
 
 ** The procedure truncate-file now works on string ports as well
 as file ports.  If the size argument is omitted, the current
-file position is now used.
+file position is used.
 
 ** new procedure: lseek PORT/FDES OFFSET WHENCE
 The arguments are the same as for the old fseek procedure, but it

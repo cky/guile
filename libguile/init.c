@@ -282,8 +282,6 @@ scm_init_standard_ports ()
      buffered input on stdin can reset \ex{(current-input-port)} to
      block buffering for higher performance.  */
 
-  /* stdout and stderr are also now unbuffered if connected to
-     a terminal, since line buffered output is no longer available.  */
   scm_def_inp
     = scm_standard_stream_to_port (0, 
 				   isatty (0) ? "r0" : "r",

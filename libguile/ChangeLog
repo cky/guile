@@ -1,3 +1,7 @@
+1999-07-25  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.c (scm_putc): fix line-buffering.
+
 1999-07-25  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* ports.c, ports.h, fports.c, strports.c, vports.c: Renamed

@@ -771,6 +771,13 @@ scm_putc (c, port)
 
   if (pt->write_pos == pt->write_end)
     ptob->fflush (port);
+  else
+    {
+      /* check for line-buffering.  */
+      if ((SCM_CAR (port) & SCM_BUFLINE)
+	  && c == '\n')
+	ptob->fflush (port);
+    }
   
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_WRITE;
