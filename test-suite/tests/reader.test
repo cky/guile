@@ -18,7 +18,20 @@
   (pass-if "1+i+i"
     (equal? (read-string "1+i+i") '1+i+i))
   (pass-if "1+e10000i"
-    (equal? (read-string "1+e10000i") '1+e10000i)))
+    (equal? (read-string "1+e10000i") '1+e10000i))
+
+  ;; At one time the arg list for "Unknown # object: ~S" didn't make it out
+  ;; of read.c.  Check that `format' can be applied to this error.
+  (pass-if "error message on bad #"
+    (catch #t
+	   (lambda ()
+	     (read-string "#ZZZ")
+	     ;; oops, this # is supposed to be unrecognised
+	     #f)
+	   (lambda (key subr message args rest)
+	     (apply format #f message args)
+	     ;; message and args are ok
+	     #t))))
 
 (pass-if-exception "radix passed to number->string can't be zero"
   exception:out-of-range
