@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,9 +40,11 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.26 2000-11-30 10:26:44 dirk Exp $ */
+/* $Id: coop.c,v 1.27 2001-03-10 03:09:07 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
+
+#include <stdio.h>
 
 #ifdef HAVE_UNISTD_H 
 #include <unistd.h>

@@ -1,3 +1,9 @@
+2001-03-09  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* coop.c: Inserted #include <stdio.h>.
+
+	* iselect.c: Reinserted #include <stdio.h>.
+
 2001-03-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* posix.c: Replaced `#define' of __USE_XOPEN right before

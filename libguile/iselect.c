@@ -1,4 +1,4 @@
-/*	Copyright (C) 1997, 1998, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+#include <stdio.h>
 #include <limits.h>
 #include <string.h>
 
