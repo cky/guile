@@ -1,3 +1,10 @@
+2004-04-22  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_round): Test for x already an integer, to avoid bad
+	rounding in x+0.5 when x is a big value already an integer.  In
+	certain hardware rounding cases x+0.5 can give an adjacent integer,
+	leading to that as the result, when we really just wanted x itself.
+	
 2004-04-19  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (scm_unmemocopy): Fixed unmemoization of let*.
