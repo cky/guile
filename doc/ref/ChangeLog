@@ -1,3 +1,9 @@
+2001-10-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-evaluation.texi (Fly Evaluation): Removed documentation
+	for `read-and-eval!' and `eval2'.  (Thanks to Alex Schroeder for
+	noticing that they'd disappeared!)
+
 2001-10-05  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* scheme-io.texi (Writing): Add entry for `display'.
