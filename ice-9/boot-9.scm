@@ -2487,7 +2487,7 @@
 ;;; {IOTA functions: generating lists of numbers}
 
 (define (reverse-iota n) (if (> n 0) (cons (1- n) (reverse-iota (1- n))) '()))
-(define (iota n) (list-reverse! (reverse-iota n)))
+(define (iota n) (reverse! (reverse-iota n)))
 
 
 ;;; {While}
