@@ -100,7 +100,26 @@ switches specific to Guile you may find useful in some circumstances.
   try to use them.  All other values will include all deprecated
   features.  The LEVEL argument is used as the default value for the
   environment variable GUILE_WARN_DEPRECATED.  See the README for
-  documentation about this.
+  more information.
+
+  The default is to get a vague warning at program exit if deprecated
+  features were used:
+
+  --enable-deprecated=yes
+  --enable-deprecated=summary
+
+  To get a detailed warning at first use of a deprecated feature:
+
+  --enable-deprecated=detailed
+
+  To get no warnings:
+
+  [ FIXME: this doesn't seem to be possible, without setting the
+    environment variable ]
+
+  To omit deprecated features completely and irrevokably:
+
+  --enable-deprecated=no
 
 
 --disable-shared  ---  Do not build shared libraries.
