@@ -4,7 +4,8 @@
 	(scm_system_module_env_p): Assume root environment is no lookup
 	closure is found.
 
-	* debug.c, eval.c, evalext.c, stacks.c: #include "modules.h".
+	* debug.c, eval.c, evalext.c, gdbint.c stacks.c:
+	#include "modules.h".
 
 	* modules.c, modules.h, eval.c, eval.h (scm_env_top_level,
 	scm_top_level_env, scm_system_module_env_p): Moved to modules.c.
