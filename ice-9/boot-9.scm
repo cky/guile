@@ -3830,6 +3830,12 @@
     (define-module (guile) :use-module (ice-9 emacs)))
 
 
+;;; {Load regexp code if regexp primitives are available.}
+
+(if (memq 'regex *features*)
+    (define-module (guile) :use-module (ice-9 regex)))
+
+
 
 (define-module (guile))
 

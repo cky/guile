@@ -17,6 +17,8 @@
 
 ;;;; POSIX regex support functions.
 
+(define-module (ice-9 regex))
+
 ;;; FIXME:
 ;;;   It is not clear what should happen if a `match' function
 ;;;   is passed a `match number' which is out of bounds for the
@@ -26,25 +28,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; These procedures are not defined in SCSH, but I found them useful.
 
-(define (match:count match)
+(define-public (match:count match)
   (- (vector-length match) 1))
 
-(define (match:string match)
+(define-public (match:string match)
   (vector-ref match 0))
 
-(define (match:prefix match)
+(define-public (match:prefix match)
   (make-shared-substring (match:string match)
 			 0
 			 (match:start match 0)))
 
-(define (match:suffix match)
+(define-public (match:suffix match)
   (make-shared-substring (match:string match)
 			 (match:end match 0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; SCSH compatibility routines.
 
-(define (regexp-match? match)
+(define-public (regexp-match? match)
   (and (vector? match)
        (string? (vector-ref match 0))
        (let loop ((i 1))
@@ -55,7 +57,7 @@
 		(loop (+ 1 i)))
 	       (else #f)))))
 
-(define (regexp-quote regexp)
+(define-public (regexp-quote regexp)
   (call-with-output-string
    (lambda (p)
      (let loop ((i 0))
@@ -67,21 +69,21 @@
 	      (write-char (string-ref regexp i) p)
 	      (loop (1+ i))))))))
 
-(define (match:start match . args)
+(define-public (match:start match . args)
   (let* ((matchnum (if (pair? args)
 		       (+ 1 (car args))
 		       1))
 	 (start (car (vector-ref match matchnum))))
     (if (= start -1) #f start)))
 
-(define (match:end match . args)
+(define-public (match:end match . args)
   (let* ((matchnum (if (pair? args)
 		       (+ 1 (car args))
 		       1))
 	 (end (cdr (vector-ref match matchnum))))
     (if (= end -1) #f end)))
 
-(define (match:substring match . args)
+(define-public (match:substring match . args)
   (let* ((matchnum (if (pair? args)
 		       (car args)
 		       0))
@@ -91,12 +93,12 @@
 					  start
 					  end))))
 
-(define (string-match pattern str . args)
+(define-public (string-match pattern str . args)
   (let ((rx (make-regexp pattern))
 	(start (if (pair? args) (car args) 0)))
     (regexp-exec rx str start)))
 
-(define (regexp-substitute port match . items)
+(define-public (regexp-substitute port match . items)
   ;; If `port' is #f, send output to a string.
   (if (not port)
       (call-with-output-string
@@ -112,7 +114,7 @@
 			(else (error 'wrong-type-arg obj))))
 		items)))
 
-(define (regexp-substitute/global port regexp string . items)
+(define-public (regexp-substitute/global port regexp string . items)
   ;; If `port' is #f, send output to a string.
   (if (not port)
       (call-with-output-string
