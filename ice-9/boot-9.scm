@@ -780,10 +780,8 @@
 (define expt
   (let ((integer-expt integer-expt))
     (lambda (z1 z2)
-      (cond ((integer? z2)
-	     (if (negative? z2)
-		 (/ 1 (integer-expt z1 (- z2)))
-		 (integer-expt z1 z2)))
+      (cond ((and (exact? z2) (integer? z2))
+	     (integer-expt z1 z2))
 	    ((and (real? z2) (real? z1) (>= z1 0))
 	     ($expt z1 z2))
 	    (else
