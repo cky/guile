@@ -3370,7 +3370,10 @@ scm_difference (SCM x, SCM y)
 	    {
 	      SCM result = scm_i_mkbig ();
 
-	      mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), yy);
+	      if (yy >= 0)
+		mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), yy);
+	      else
+		mpz_add_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), -yy);
 	      scm_remember_upto_here_1 (x);
 
 	      if ((sgn_x < 0 && (yy > 0)) || ((sgn_x > 0) && yy < 0))
