@@ -121,12 +121,9 @@
 /* Numbers 
  */
 
-#define SCM_SLOPPY_INEXACTP(x) (SCM_TYP16S (x) == scm_tc16_real)
-#define SCM_SLOPPY_REALP(x) (SCM_TYP16 (x) == scm_tc16_real)
-#define SCM_SLOPPY_COMPLEXP(x) (SCM_TYP16 (x) == scm_tc16_complex)
-#define SCM_INEXACTP(x) (!SCM_IMP (x) && SCM_SLOPPY_INEXACTP(x))
-#define SCM_REALP(x) (!SCM_IMP (x) && SCM_SLOPPY_REALP(x))
-#define SCM_COMPLEXP(x) (!SCM_IMP (x) && SCM_SLOPPY_COMPLEXP(x))
+#define SCM_INEXACTP(x) (!SCM_IMP (x) && SCM_TYP16S (x) == scm_tc16_real)
+#define SCM_REALP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_real)
+#define SCM_COMPLEXP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
 
 #define SCM_REAL_VALUE(x) (((scm_t_double *) SCM2PTR (x))->real)
 #define SCM_COMPLEX_MEM(x) ((scm_t_complex *) SCM_CELL_WORD_1 (x))

@@ -630,6 +630,18 @@ Guile always defines
 
   scm_t_timespec
 
+** The macro SCM_SLOPPY_INEXACTP has been deprecated.
+
+Use SCM_INEXACTP instead.
+
+** The macro SCM_SLOPPY_REALP has been deprecated.
+
+Use SCM_REALP instead.
+
+** The macro SCM_SLOPPY_COMPLEXP has been deprecated.
+
+Use SCM_COMPLEXP instead.
+
 ** The preprocessor define USE_THREADS has been deprecated.
 
 Going forward, assume that the thread API is always present.

@@ -27,6 +27,13 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
+/* From numbers.h: Macros checking for types, but avoiding a redundant check
+ * for !SCM_IMP.  These were deprecated in guile 1.7.0 on 2003-09-06.  */
+#define SCM_SLOPPY_INEXACTP(x) (SCM_TYP16S (x) == scm_tc16_real)
+#define SCM_SLOPPY_REALP(x) (SCM_TYP16 (x) == scm_tc16_real)
+#define SCM_SLOPPY_COMPLEXP(x) (SCM_TYP16 (x) == scm_tc16_complex)
+
+
 /* From eval.h: Macros for handling ilocs.  These were deprecated in guile
  * 1.7.0 on 2003-06-04.  */
 #define SCM_ILOC00		SCM_MAKE_ITAG8(0L, scm_tc8_iloc)

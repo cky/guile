@@ -1,5 +1,14 @@
 2003-09-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.h (SCM_INEXACTP, SCM_REALP, SCM_COMPLEXP): Removed uses
+	of SCM_SLOPPY_INEXACTP, SCM_SLOPPY_REALP and SCM_SLOPPY_COMPLEXP.
+
+	* numbers.h, deprecated.h (SCM_SLOPPY_INEXACTP, SCM_SLOPPY_REALP,
+	SCM_SLOPPY_COMPLEXP): Deprecated and moved from numbers.h to
+	deprecated.h.
+
+2003-09-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eq.c (scm_eqv_p, scm_equal_p): Removed uses of
 	SCM_SLOPPY_INEXACTP, SCM_SLOPPY_REALP and SCM_SLOPPY_COMPLEXP.
 
