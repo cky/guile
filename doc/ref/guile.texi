@@ -4,7 +4,7 @@
 @setfilename guile.info
 @settitle Guile Reference Manual
 @set guile
-@set MANUAL_EDITION 1.1
+@set MANUAL-EDITION 1.1
 @c %**end of header
 
 @c Notes
@@ -100,8 +100,8 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle Edition @value{MANUAL_EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.19 2002-09-25 00:06:38 ossau Exp $
+@subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
+@subtitle $Id: guile.texi,v 1.20 2003-03-08 04:28:55 rlb Exp $
 
 @c AUTHORS
 
@@ -199,7 +199,7 @@ This reference manual documents Guile, GNU's Ubiquitous Intelligent
 Language for Extensions.  It describes how to use Guile in many useful
 and interesting ways.
 
-This Info file contains edition @value{MANUAL_EDITION} of the reference
+This Info file contains edition @value{MANUAL-EDITION} of the reference
 manual, corresponding to Guile version @value{VERSION}.
 @end ifnottex
 
