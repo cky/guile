@@ -22,7 +22,7 @@
 AUTOMAKE_OPTIONS = gnu
 
 ## Prevent automake from adding extra -I options
-DEFS = @DEFS@
+DEFS = @DEFS@ @EXTRA_LIB_DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
@@ -94,7 +94,7 @@ EXTRA_libguile_la_SOURCES = _scm.h			\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
     threads.c regex-posix.c				\
     filesys.c posix.c net_db.c socket.c			\
-    ramap.c unif.c debug-malloc.c mkstemp.c
+    ramap.c unif.c debug-malloc.c mkstemp.c win32-uname.c win32-dirent.c
 
 ## In next release, threads will be factored out of libguile.
 ## Until then, the machine specific headers is a temporary kludge.
@@ -112,11 +112,11 @@ install-exec-hook:
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c \
-		 num2integral.i.c num2float.i.c
+		 num2integral.i.c num2float.i.c win32-uname.h win32-dirent.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL)
-libguile_la_LDFLAGS = -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic
+libguile_la_LDFLAGS = -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
 
 # These are headers visible as <guile/mumble.h> 
 pkginclude_HEADERS = gh.h
@@ -198,7 +198,7 @@ SUFFIXES = .x .doc
 
 $(DOT_X_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf.in
 
-$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf-docs.in guile_filter_doc_snarfage
+$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf-docs.in guile_filter_doc_snarfage$(EXEEXT)
 
 error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
