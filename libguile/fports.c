@@ -180,10 +180,45 @@ scm_open_file (filename, modes)
   return port;
 }
 
+
+/* Build a Scheme port from an open stdio port, FILE.
+   MODE indicates whether FILE is open for reading or writing; it uses
+      the same notation as open-file's second argument.
+   If NAME is non-zero, use it as the port's filename.
+
+   scm_stdio_to_port sets the revealed count for FILE's file
+   descriptor to 1, so that FILE won't be closed when the port object
+   is GC'd.  */
+SCM
+scm_stdio_to_port (file, mode, name)
+     FILE *file;
+     char *mode;
+     char *name;
+{
+  long mode_bits = scm_mode_bits (mode);
+  SCM port;
+  struct scm_port_table * pt;
+
+  SCM_NEWCELL (port);
+  SCM_DEFER_INTS;
+  {
+    pt = scm_add_to_port_table (port);
+    SCM_SETPTAB_ENTRY (port, pt);
+    SCM_SETCAR (port, (scm_tc16_fport | mode_bits));
+    if (SCM_BUF0 & SCM_CAR (port))
+      scm_setbuf0 (port);
+    SCM_SETSTREAM (port, (SCM) file);
+    SCM_PTAB_ENTRY (port)->file_name = scm_makfrom0str (name);
+  }
+  SCM_ALLOW_INTS;
+  scm_set_port_revealed_x (port, SCM_MAKINUM (1));
+  return port;
+}
+
+
 /* Return the mode flags from an open port.
  * Some modes such as "append" are only used when opening
- * a file and are not returned here.
- */
+ * a file and are not returned here.  */
 
 SCM_PROC(s_port_mode, "port-mode", 1, 0, 0, scm_port_mode);
 

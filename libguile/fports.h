@@ -58,6 +58,7 @@ extern scm_ptobfuns scm_pipob;
 extern SCM scm_setbuf0 SCM_P ((SCM port));
 extern long scm_mode_bits SCM_P ((char *modes));
 extern SCM scm_open_file SCM_P ((SCM filename, SCM modes));
+extern SCM scm_stdio_to_port SCM_P ((FILE *file, char *name, char *modes));
 extern SCM scm_port_mode SCM_P ((SCM port));
 extern void scm_init_fports SCM_P ((void));
 
