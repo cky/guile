@@ -1,5 +1,10 @@
 Tue Oct 15 17:07:20 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* boot-9.scm: Doc fixes.
+	(make-module): Rework for readability.
+	(make-root-module, make-scm-module): USES argument to make-module
+ 	should be '(), not #f.
+
 	* boot-9.scm (try-load): %sys-load-path has been renamed to
 	primitive-load-path; adjust call here.
 

@@ -1,5 +1,10 @@
 Tue Oct 15 17:06:13 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* variable.c (scm_make_variable): Make the name hint optional, as
+ 	documented.
+	(anonymous_variable_sym): Renamed from variable_sym.  All uses
+ 	changed.
+
 	* load.c (scm_primitive_load, scm_primitive_load_path): Renamed
  	from scm_sys_try_load and scm_sys_try_load_path.  The Scheme name
  	of scm_primitive_load_path was also changed to
