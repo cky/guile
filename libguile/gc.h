@@ -2,7 +2,7 @@
 
 #ifndef GCH
 #define GCH
-/*	Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ extern unsigned long scm_gc_cells_collected;
 extern unsigned long scm_gc_malloc_collected;
 extern unsigned long scm_gc_ports_collected;
 extern unsigned long scm_cells_allocated;
-extern unsigned long scm_mallocated;
+extern long scm_mallocated;
 extern unsigned long scm_mtrigger;
 
 #ifdef DEBUG_FREELIST

@@ -175,7 +175,7 @@ SCM scm_weak_vectors;
 /* GC Statistics Keeping
  */
 unsigned long scm_cells_allocated = 0;
-unsigned long scm_mallocated = 0;
+long scm_mallocated = 0;
 unsigned long scm_gc_cells_collected;
 unsigned long scm_gc_malloc_collected;
 unsigned long scm_gc_ports_collected;
@@ -454,17 +454,13 @@ scm_igc (what)
       return;
     }
 
-  if (scm_mallocated > ((unsigned long) 0 - (1 << 24)))
-    {
-      /* It is extremely unlikely that you have allocated all but 16 Mb
-	 (one sixteenth of 2^32) of your address space.  It is much more
-	 likely that you have forgotten to report the sizes of objects
-	 you have allocated via scm_done_malloc, or some such.  When the
-	 GC freed them, it subtracted their size from scm_mallocated,
-	 which underflowed.  Since it's unsigned, this looks like a
-	 really big number, so we start GC'ing all the time.  */
-      abort ();
-    }
+  if (scm_mallocated < 0)
+    /* The byte count of allocated objects has underflowed.  This is
+       probably because you forgot to report the sizes of objects you
+       have allocated, by calling scm_done_malloc or some such.  When
+       the GC freed them, it subtracted their size from
+       scm_mallocated, which underflowed.  */
+    abort ();
 
   if (scm_gc_heap_lock)
     /* We've invoked the collector while a GC is already in progress.
