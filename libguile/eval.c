@@ -152,6 +152,10 @@ char *alloca ();
 
 #define EXTEND_ENV SCM_EXTEND_ENV
 
+SCM_REC_CRITICAL_SECTION (source);
+#define SOURCE_SECTION_START SCM_REC_CRITICAL_SECTION_START (source);
+#define SOURCE_SECTION_END SCM_REC_CRITICAL_SECTION_END (source);
+
 SCM *
 scm_ilookup (SCM iloc, SCM env)
 {
@@ -1580,7 +1584,11 @@ scm_eval_body (SCM code, SCM env)
 	{
 	  if (SCM_ISYMP (SCM_CAR (code)))
 	    {
-	      code = scm_m_expand_body (code, env);
+	      SOURCE_SECTION_START;
+	      /* check for race condition */
+	      if (SCM_ISYMP (SCM_CAR (code)))
+		code = scm_m_expand_body (code, env);
+	      SOURCE_SECTION_END;
 	      goto again;
 	    }
 	}
@@ -1979,7 +1987,11 @@ dispatch:
 	    {
 	      if (SCM_ISYMP (form))
 		{
-		  x = scm_m_expand_body (x, env);
+		  SOURCE_SECTION_START;
+		  /* check for race condition */
+		  if (SCM_ISYMP (SCM_CAR (x)))
+		    x = scm_m_expand_body (x, env);
+		  SOURCE_SECTION_END;
 		  goto nontoplevel_begin;
 		}
 	      else
@@ -3634,7 +3646,11 @@ tail:
 	    {
 	      if (SCM_ISYMP (SCM_CAR (proc)))
 		{
-		  proc = scm_m_expand_body (proc, args);
+		  SOURCE_SECTION_START;
+		  /* check for race condition */
+		  if (SCM_ISYMP (SCM_CAR (proc)))
+		    proc = scm_m_expand_body (proc, args);
+		  SOURCE_SECTION_END;
 		  goto again;
 		}
 	      else

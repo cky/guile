@@ -168,8 +168,11 @@ scm_gc_init_freelist (void)
   int init_heap_size_2
     = scm_getenv_int ("GUILE_INIT_SEGMENT_SIZE_2", SCM_DEFAULT_INIT_HEAP_SIZE_2);
 
-  scm_i_freelist = SCM_EOL;
-  scm_i_freelist2 = SCM_EOL;
+  /* These are the thread-local freelists. */
+  scm_key_create (&scm_i_freelist, free);
+  scm_key_create (&scm_i_freelist2, free);
+  SCM_FREELIST_CREATE (scm_i_freelist);
+  SCM_FREELIST_CREATE (scm_i_freelist2);
   
   scm_init_freelist (&scm_i_master_freelist2, 2, 
 		     scm_getenv_int ("GUILE_MIN_YIELD_2", SCM_DEFAULT_MIN_YIELD_2));

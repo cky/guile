@@ -46,49 +46,52 @@
 
 
 
-/* The pthreads-threads implementation.  This is a very simple mapping.
+/* The pthreads-threads implementation.  This is a direct mapping.
 */
+
+/* This is an interface between Guile and the pthreads thread package. */
 
 #include <pthread.h>
 
-#define scm_t_thread pthread_t
+/* MDJ 021209 <djurfeldt@nada.kth.se>:
+   The separation of the plugin interface and the low-level C API
+   (currently in threads.h) needs to be completed in a sensible way.
+ */
 
-#define scm_thread_create(th,proc,data) \
-  pthread_create ((th), NULL, (void *(*)(void *))(proc), (data))
+/* The scm_t_ types are temporarily used both in plugin and low-level API */
+#define scm_t_thread			pthread_t
 
-#define scm_thread_join(th)   pthread_join (th, NULL)
-#define scm_thread_detach(th) pthread_detach (th)
-#define scm_thread_self()     pthread_self ()
+#define scm_i_plugin_thread_create	pthread_create
 
-#define scm_t_mutex pthread_mutex_t
+#define scm_i_plugin_thread_join	pthread_join 
+#define scm_i_plugin_thread_detach	pthread_detach 
+#define scm_i_plugin_thread_self	pthread_self 
 
-#define scm_mutex_init(mx)    pthread_mutex_init (mx, NULL)
-#define scm_mutex_destroy(mx) pthread_mutex_destroy (mx)
-#define scm_mutex_lock(mx)    pthread_mutex_lock (mx)
-#define scm_mutex_trylock(mx) pthread_mutex_trylock (mx)
-#define scm_mutex_unlock(mx)  pthread_mutex_unlock (mx)
+#define scm_t_mutex			pthread_mutex_t
 
-#define scm_t_cond pthread_cond_t
+#define scm_i_plugin_mutex_init		pthread_mutex_init 
+#define scm_i_plugin_mutex_destroy	pthread_mutex_destroy
+#define scm_i_plugin_mutex_lock		pthread_mutex_lock 
+#define scm_i_plugin_mutex_trylock	pthread_mutex_trylock 
+#define scm_i_plugin_mutex_unlock	pthread_mutex_unlock 
 
-#define scm_cond_init(cv)     pthread_cond_init (cv, NULL)
-#define scm_cond_destroy(cv)  pthread_cond_destroy (cv)
-#define scm_cond_wait(cv,mx)  pthread_cond_wait (cv, mx)
-#define scm_cond_timedwait(cv,mx,at) \
-                              pthread_cond_timedwait (cv, mx, at)
-#define scm_cond_signal(cv)   pthread_cond_signal (cv)
-#define scm_cond_broadcast(cv) \
-                              pthread_cond_broadcast (cv)
+#define scm_t_cond			pthread_cond_t
 
-#define scm_t_key pthread_key_t
+#define scm_i_plugin_cond_init		pthread_cond_init 
+#define scm_i_plugin_cond_destroy	pthread_cond_destroy 
+#define scm_i_plugin_cond_wait		pthread_cond_wait 
+#define scm_i_plugin_cond_timedwait	pthread_cond_timedwait 
+#define scm_i_plugin_cond_signal	pthread_cond_signal 
+#define scm_i_plugin_cond_broadcast	pthread_cond_broadcast 
 
-#define scm_key_create(keyp)  pthread_key_create (keyp, NULL)
-#define scm_key_delete(key)   pthread_key_delete (key)
-#define scm_key_setspecific(key, value) \
-                              pthread_setspecific (key, value)
-#define scm_key_getspecific(key) \
-                              pthread_getspecific (key)
+#define scm_t_key			pthread_key_t
 
-#define scm_thread_select    select
+#define scm_i_plugin_key_create		pthread_key_create 
+#define scm_i_plugin_key_delete		pthread_key_delete 
+#define scm_i_plugin_setspecific	pthread_setspecific 
+#define scm_i_plugin_getspecific	pthread_getspecific 
+
+#define scm_i_plugin_select		select
 
 #endif  /* SCM_THREADS_NULL_H */
 

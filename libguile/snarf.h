@@ -203,6 +203,34 @@ SCM_SNARF_INIT(c_name = scm_permanent_object (scm_c_define (scheme_name, init_va
 SCM_SNARF_HERE(SCM c_name) \
 SCM_SNARF_INIT(c_name = scm_permanent_object (scm_c_define (scheme_name, init_val));)
 
+#define SCM_NONREC_CRITICAL_SECTION(prefix) \
+SCM_SNARF_HERE(static scm_t_mutex prefix ## _mutex) \
+SCM_SNARF_INIT(scm_i_plugin_mutex_init (&prefix ## _mutex, 0))
+
+#define SCM_GLOBAL_NONREC_CRITICAL_SECTION(prefix) \
+SCM_SNARF_HERE(scm_t_mutex prefix ## _mutex) \
+SCM_SNARF_INIT(scm_i_plugin_mutex_init (&prefix ## _mutex, 0))
+
+#define SCM_REC_CRITICAL_SECTION(prefix) \
+SCM_SNARF_HERE(\
+static scm_t_mutex prefix ## _mutex; \
+static int prefix ## _count; \
+static scm_thread *prefix ## _owner\
+)SCM_SNARF_INIT(\
+scm_i_plugin_mutex_init (&prefix ## _mutex, 0)\
+)
+
+#define SCM_GLOBAL_REC_CRITICAL_SECTION(prefix) \
+SCM_SNARF_HERE(\
+scm_t_mutex prefix ## _mutex; \
+int prefix ## _count; \
+scm_thread *prefix ## _owner\
+)SCM_SNARF_INIT(\
+scm_i_plugin_mutex_init (&prefix ## _mutex, 0); \
+prefix ## _count = 0; \
+prefix ## _owner = 0\
+)
+
 #ifdef SCM_MAGIC_SNARF_DOCS
 #undef SCM_ASSERT
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) ^^ argpos _arg _pos __LINE__ ^^

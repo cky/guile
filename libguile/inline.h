@@ -57,6 +57,7 @@
 
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
+#include "libguile/threads.h"
 
 
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
@@ -79,15 +80,23 @@ SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
   SCM z;
+  /* We retrieve the SCM pointer only once since the call to
+     SCM_FREELIST_LOC will be slightly expensive when we support
+     preemptive multithreading.  SCM_FREELIST_DOC will then retrieve
+     the thread specific freelist.
+   
+     Until then, SCM_FREELIST_DOC expands to (&scm_i_freelist) and the
+     following code will compile to the same as if we had worked
+     directly on the scm_i_freelist variable.
+   */
+  SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist);
 
-  if (SCM_NULLP (scm_i_freelist))
-    {
-      z = scm_gc_for_newcell (&scm_i_master_freelist, &scm_i_freelist);
-    }
+  if (SCM_NULLP (*freelist))
+    z = scm_gc_for_newcell (&scm_i_master_freelist, freelist);
   else
     {
-      z = scm_i_freelist;
-      scm_i_freelist = SCM_FREE_CELL_CDR (scm_i_freelist);
+      z = *freelist;
+      *freelist = SCM_FREE_CELL_CDR (*freelist);
     }
 
   /*
@@ -136,6 +145,7 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   SCM_GC_SET_CELL_WORD (z, 1, cdr);
   SCM_GC_SET_CELL_WORD (z, 0, car);
 
+#if 0 /*fixme* Hmm... let's consider this later. */
 #if !defined(USE_COOP_THREADS) && !defined(USE_NULL_THREADS) && !defined(USE_COPT_THREADS)
   /* When we are using preemtive threads, we might need to make
      sure that the initial values for the slots are protected until
@@ -144,7 +154,7 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
 #error review me
   scm_remember_upto_here_1 (SCM_PACK (cdr));
 #endif
-
+#endif
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
   if (scm_expensive_debug_cell_accesses_p )
@@ -160,16 +170,14 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 		 scm_t_bits ccr, scm_t_bits cdr)
 {
   SCM z;
+  SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist2);
 
-
-  if (SCM_NULLP (scm_i_freelist2))
-    {
-      z = scm_gc_for_newcell (&scm_i_master_freelist2, &scm_i_freelist2);
-    }
+  if (SCM_NULLP (*freelist))
+    z = scm_gc_for_newcell (&scm_i_master_freelist2, freelist);
   else
     {
-      z = scm_i_freelist2;
-      scm_i_freelist2 = SCM_FREE_CELL_CDR (scm_i_freelist2);
+      z = *freelist;
+      *freelist = SCM_FREE_CELL_CDR (*freelist);
     }
 
   scm_cells_allocated += 2;
@@ -185,6 +193,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   SCM_GC_SET_CELL_WORD (z, 3, cdr);
   SCM_GC_SET_CELL_WORD (z, 0, car);
 
+#if 0 /*fixme* Hmm... let's consider this later. */
 #if !defined(USE_COOP_THREADS) && !defined(USE_NULL_THREADS) && !defined(USE_COPT_THREADS)
   /* When we are using non-cooperating threads, we might need to make
      sure that the initial values for the slots are protected until
@@ -192,6 +201,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   */
 #error review me
   scm_remember_upto_here_3 (SCM_PACK (cbr), SCM_PACK (ccr), SCM_PACK (cdr));
+#endif
 #endif
 
 

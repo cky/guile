@@ -50,6 +50,8 @@
    no new threads can be created.
 */
 
+#error temporarily broken, compile with threads enabled (default option)
+
 /* We can't switch so don't bother trying. 
 */
 #undef  SCM_THREAD_SWITCHING_CODE

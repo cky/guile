@@ -446,53 +446,46 @@ do { \
 #define SCM_FENCE
 #endif
 
-#define SCM_DEFER_INTS \
-do { \
-  SCM_FENCE; \
-  SCM_CHECK_NOT_DISABLED; \
-  SCM_CRITICAL_SECTION_START; \
-  SCM_FENCE; \
-  scm_ints_disabled = 1; \
-  SCM_FENCE; \
+#define SCM_DEFER_INTS				\
+do {						\
+  SCM_FENCE;					\
+  SCM_CHECK_NOT_DISABLED;			\
+  SCM_REC_CRITICAL_SECTION_START (scm_i_defer);	\
+  SCM_FENCE;					\
+  scm_ints_disabled = 1;			\
+  SCM_FENCE;					\
 } while (0)
 
 
-#define SCM_ALLOW_INTS_ONLY \
-do { \
-  SCM_CRITICAL_SECTION_END; \
-  scm_ints_disabled = 0; \
+#define SCM_ALLOW_INTS				\
+do {						\
+  SCM_FENCE;					\
+  SCM_CHECK_NOT_ENABLED;			\
+  SCM_REC_CRITICAL_SECTION_END (scm_i_defer);	\
+  SCM_FENCE;					\
+  scm_ints_disabled = 0;			\
+  SCM_FENCE;					\
+  SCM_THREAD_SWITCHING_CODE;			\
+  SCM_FENCE;					\
 } while (0)
 
 
-#define SCM_ALLOW_INTS \
-do { \
-  SCM_FENCE; \
-  SCM_CHECK_NOT_ENABLED; \
-  SCM_CRITICAL_SECTION_END; \
-  SCM_FENCE; \
-  scm_ints_disabled = 0; \
-  SCM_FENCE; \
-  SCM_THREAD_SWITCHING_CODE; \
-  SCM_FENCE; \
+#define SCM_REDEFER_INTS			\
+do {						\
+  SCM_FENCE;					\
+  SCM_REC_CRITICAL_SECTION_START (scm_i_defer);	\
+  ++scm_ints_disabled;				\
+  SCM_FENCE;					\
 } while (0)
 
 
-#define SCM_REDEFER_INTS  \
-do { \
-  SCM_FENCE; \
-  SCM_CRITICAL_SECTION_START; \
-  ++scm_ints_disabled; \
-  SCM_FENCE; \
-} while (0)
-
-
-#define SCM_REALLOW_INTS \
-do { \
-  SCM_FENCE; \
-  SCM_CRITICAL_SECTION_END; \
-  SCM_FENCE; \
-  --scm_ints_disabled; \
-  SCM_FENCE; \
+#define SCM_REALLOW_INTS			\
+do {						\
+  SCM_FENCE;					\
+  SCM_REC_CRITICAL_SECTION_END (scm_i_defer);	\
+  SCM_FENCE;					\
+  --scm_ints_disabled;				\
+  SCM_FENCE;					\
 } while (0)
 
 
@@ -503,6 +496,65 @@ do { \
 } while (0)
 
 
+
+/* Critical sections */
+
+#define SCM_DECLARE_NONREC_CRITICAL_SECTION(prefix) \
+  extern scm_t_mutex prefix ## _mutex
+
+#define SCM_NONREC_CRITICAL_SECTION_START(prefix)	\
+  do { scm_thread *t = scm_i_leave_guile ();		\
+       scm_i_plugin_mutex_lock (&prefix ## _mutex);	\
+       scm_i_enter_guile (t);				\
+  } while (0)
+
+#define SCM_NONREC_CRITICAL_SECTION_END(prefix)		\
+  do { scm_i_plugin_mutex_unlock (&prefix ## _mutex);	\
+  } while (0)
+
+/* This could be replaced by a single call to scm_i_plugin_mutex_lock
+   on systems which support recursive mutecis (like LinuxThreads).
+   We should test for the presence of recursive mutecis in
+   configure.in.
+
+   Also, it is probably possible to replace recursive sections with
+   non-recursive ones, so don't worry about the complexity.
+ */
+   
+#define SCM_DECLARE_REC_CRITICAL_SECTION(prefix)	\
+  extern scm_t_mutex prefix ## _mutex;			\
+  extern int prefix ## _count;				\
+  extern scm_thread *prefix ## _owner
+
+#define SCM_REC_CRITICAL_SECTION_START(prefix)				\
+  do { scm_i_plugin_mutex_lock (&scm_i_section_mutex);			\
+       if (prefix ## _count && prefix ## _owner == SCM_CURRENT_THREAD)	\
+	 {								\
+	   ++prefix ## _count;						\
+           scm_i_plugin_mutex_unlock (&scm_i_section_mutex);		\
+	 }								\
+       else								\
+	 {								\
+	   scm_thread *t = scm_i_leave_guile ();			\
+	   scm_i_plugin_mutex_unlock (&scm_i_section_mutex);		\
+	   scm_i_plugin_mutex_lock (&prefix ## _mutex);			\
+	   prefix ## _count = 1;					\
+	   prefix ## _owner = t;					\
+	   scm_i_enter_guile (t);					\
+	 }								\
+  } while (0)
+
+#define SCM_REC_CRITICAL_SECTION_END(prefix)			\
+  do { scm_i_plugin_mutex_lock (&scm_i_section_mutex);		\
+       if (!--prefix ## _count)					\
+	 {							\
+	   prefix ## _owner = 0;				\
+	   scm_i_plugin_mutex_unlock (&prefix ## _mutex);	\
+	 }							\
+       scm_i_plugin_mutex_unlock (&scm_i_section_mutex);	\
+  } while (0)
+
+/* Note: The following needs updating. */
 
 /* Classification of critical sections
  *

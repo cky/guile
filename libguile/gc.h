@@ -3,7 +3,7 @@
 #ifndef SCM_GC_H
 #define SCM_GC_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,12 @@
 #include "libguile/__scm.h"
 
 #include "libguile/hooks.h"
+
+#ifdef USE_PTHREAD_THREADS
+#include "libguile/pthread-threads.h"
+#else
+#include "libguile/null-threads.h"
+#endif
 
 
 
@@ -276,13 +282,14 @@ SCM_API size_t scm_default_max_segment_size;
 
 SCM_API size_t scm_max_segment_size;
 
-/*
-  Deprecated scm_freelist, scm_master_freelist.
-  No warning; this is not a user serviceable part.
- */
-extern SCM scm_i_freelist;
+#define SCM_FREELIST_CREATE(key)		\
+  do { SCM *ls = (SCM *) malloc (sizeof (SCM));	\
+       *ls = SCM_EOL; 				\
+       scm_setspecific ((key), ls); } while (0)
+#define SCM_FREELIST_LOC(key) ((SCM *) scm_getspecific (key))
+extern scm_t_key scm_i_freelist;
+extern scm_t_key scm_i_freelist2;
 extern struct scm_t_cell_type_statistics scm_i_master_freelist;
-extern SCM scm_i_freelist2;
 extern struct scm_t_cell_type_statistics scm_i_master_freelist2;
 
 

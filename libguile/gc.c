@@ -144,7 +144,9 @@ scm_i_expensive_validation_check (SCM cell)
       else
 	{
 	  counter = scm_debug_cells_gc_interval;
+	  scm_i_thread_put_to_sleep ();
 	  scm_igc ("scm_assert_cell_valid");
+	  scm_i_thread_wake_up ();
 	}
     }
 }
@@ -249,8 +251,8 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 
 
 
-SCM scm_i_freelist = SCM_EOL;
-SCM scm_i_freelist2 = SCM_EOL;
+scm_t_key scm_i_freelist;
+scm_t_key scm_i_freelist2;
 
 
 /* scm_mtrigger
@@ -457,7 +459,9 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 #define FUNC_NAME s_scm_gc
 {
   SCM_DEFER_INTS;
+  scm_i_thread_put_to_sleep ();
   scm_igc ("call");
+  scm_i_thread_wake_up ();
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
@@ -475,6 +479,8 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 {
   SCM cell;
  
+  scm_i_thread_put_to_sleep ();
+
   ++scm_ints_disabled;
 
   *free_cells = scm_i_sweep_some_segments (freelist);
@@ -519,6 +525,7 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 
   *free_cells = SCM_FREE_CELL_CDR (cell);
 
+  scm_i_thread_wake_up ();
 
   return cell;
 }
@@ -540,13 +547,17 @@ scm_igc (const char *what)
   fprintf (stderr,"gc reason %s\n", what);
   
   fprintf (stderr,
-	   SCM_NULLP (scm_i_freelist)
+	   SCM_NULLP (*SCM_FREELIST_LOC (scm_i_freelist))
 	   ? "*"
-	   : (SCM_NULLP (scm_i_freelist2) ? "o" : "m"));
+	   : (SCM_NULLP (*SCM_FREELIST_LOC (scm_i_freelist2)) ? "o" : "m"));
 #endif
 
   /* During the critical section, only the current thread may run. */
+#if 0 /* MDJ 021207 <djurfeldt@nada.kth.se>
+       Currently, a much larger piece of the GC is single threaded.
+       Can we shrink it again? */
   SCM_CRITICAL_SECTION_START;
+#endif
 
   if (!scm_root || !scm_stack_base || scm_block_gc)
     {
@@ -610,7 +621,9 @@ scm_igc (const char *what)
   scm_c_hook_run (&scm_after_sweep_c_hook, 0);
   gc_end_stats ();
 
+#if 0 /* MDJ 021207 <djurfeldt@nada.kth.se> */
   SCM_CRITICAL_SECTION_END;
+#endif
 
   /*
     See above.
@@ -1011,8 +1024,8 @@ scm_gc_sweep (void)
   
   /* When we move to POSIX threads private freelists should probably
      be GC-protected instead. */
-  scm_i_freelist = SCM_EOL;
-  scm_i_freelist2 = SCM_EOL;
+  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
+  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
 }
 
 #undef FUNC_NAME

@@ -642,18 +642,18 @@ AC_ARG_WITH(threads, [  --with-threads          thread interface],
             , with_threads=yes)
 
 case "$with_threads" in
-  "yes" | "coop-pthread" | "copt" | "coop" | "")
+  "yes" | "pthread" | "pthreads" | "pthread-threads" | "")
     AC_CHECK_LIB(pthread, main,
       LIBS="-lpthread $LIBS"
-      AC_DEFINE(USE_COPT_THREADS, 1,
-        [Define if using coop-pthread multithreading.])
-      with_threads="coop-pthreads",
+      AC_DEFINE(USE_PTHREAD_THREADS, 1,
+        [Define if using pthread multithreading.])
+      with_threads="pthreads",
       with_threads="null")
   ;;
 esac
 
 case "$with_threads" in
-  "coop-pthreads")
+  "pthreads")
   ;;
   "no" | "null")
     AC_DEFINE(USE_NULL_THREADS, 1,

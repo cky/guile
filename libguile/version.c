@@ -59,7 +59,7 @@ SCM_DEFINE (scm_major_version, "major-version", 0, 0, 0,
             "E.g., the 1 in \"1.6.5\".")
 #define FUNC_NAME s_scm_major_version
 {
-  return scm_number_to_string (SCM_MAKINUM(SCM_MAJOR_VERSION),
+  return scm_number_to_string (SCM_MAKINUM(1),
                                SCM_MAKINUM(10));
 }
 #undef FUNC_NAME
@@ -72,7 +72,7 @@ SCM_DEFINE (scm_minor_version, "minor-version", 0, 0, 0,
             "E.g., the 6 in \"1.6.5\".")
 #define FUNC_NAME s_scm_minor_version
 {
-  return scm_number_to_string (SCM_MAKINUM(SCM_MINOR_VERSION),
+  return scm_number_to_string (SCM_MAKINUM(7),
                                SCM_MAKINUM(10));
 }
 #undef FUNC_NAME
@@ -85,7 +85,7 @@ SCM_DEFINE (scm_micro_version, "micro-version", 0, 0, 0,
             "E.g., the 5 in \"1.6.5\".")
 #define FUNC_NAME s_scm_micro_version
 {
-  return scm_number_to_string (SCM_MAKINUM(SCM_MICRO_VERSION),
+  return scm_number_to_string (SCM_MAKINUM(0),
                                SCM_MAKINUM(10));
 }
 #undef FUNC_NAME
@@ -110,15 +110,17 @@ SCM_DEFINE (scm_version, "version", 0, 0, 0,
 
   char version_str[3 * 4 + 3];
 
+#if 0
 #if SCM_MAJOR_VERSION > 9999 \
     || SCM_MINOR_VERSION > 9999 \
     || SCM_MICRO_VERSION > 9999
 # error version string may overflow buffer
 #endif
+#endif
   sprintf (version_str, "%d.%d.%d",
-           SCM_MAJOR_VERSION,
-           SCM_MINOR_VERSION,
-           SCM_MICRO_VERSION);
+           1,
+           7,
+           0);
   return scm_makfrom0str (version_str);
 }
 #undef FUNC_NAME
@@ -140,10 +142,12 @@ SCM_DEFINE (scm_effective_version, "effective-version", 0, 0, 0,
 
   char version_str[2 * 4 + 3];
 
+#if 0
 #if (SCM_MAJOR_VERSION > 9999 || SCM_MINOR_VERSION > 9999)
 # error version string may overflow buffer
 #endif
-  sprintf (version_str, "%d.%d", SCM_MAJOR_VERSION, SCM_MINOR_VERSION);
+#endif
+  sprintf (version_str, "%d.%d", 1, 7);
   return scm_makfrom0str (version_str);
 }
 #undef FUNC_NAME

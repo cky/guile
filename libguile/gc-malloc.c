@@ -130,14 +130,21 @@ scm_realloc (void *mem, size_t size)
   if (ptr)
     return ptr;
 
+  scm_i_thread_put_to_sleep ();
+  
   scm_i_sweep_all_segments ("realloc");
   
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
-    return ptr;
+    { 
+      scm_i_thread_wake_up ();
+      return ptr;
+    }
 
   scm_igc ("realloc");
   scm_i_sweep_all_segments ("realloc");
+  
+  scm_i_thread_wake_up ();
   
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
@@ -208,11 +215,14 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
    */
   if (scm_mallocated > scm_mtrigger)
     {
-      unsigned long prev_alloced  = scm_mallocated;
+      unsigned long prev_alloced;
       float yield;
       
+      scm_i_thread_put_to_sleep ();
+      
+      prev_alloced  = scm_mallocated;
       scm_igc (what);
-      scm_i_sweep_all_segments("mtrigger");
+      scm_i_sweep_all_segments ("mtrigger");
 
       yield = ((float)prev_alloced - (float) scm_mallocated)
 	/ (float) prev_alloced;
@@ -243,6 +253,8 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 	  fprintf (stderr, "Mtrigger sweep: ineffective. New trigger %d\n", scm_mtrigger);
 #endif
 	}
+      
+      scm_i_thread_wake_up ();
     }
   
 #ifdef GUILE_DEBUG_MALLOC

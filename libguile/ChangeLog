@@ -1,3 +1,61 @@
+2002-12-09  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	These changes are the start of support for preemptive
+	multithreading.  Marius and I have agreed that I commit this code
+	into the repository although it isn't thoroughly tested and surely
+	introduces many bugs.  The bugs should only be exposed when using
+	threads, though.  Signalling and error handling for threads is
+	very likely broken.  Work on making the implementation cleaner and
+	more efficient is needed.
+	
+	* __scm.h (SCM_ALLOW_INTS_ONLY): Removed.
+	(SCM_NONREC_CRITICAL_SECTION_START,
+	SCM_NONREC_CRITICAL_SECTION_END, SCM_REC_CRITICAL_SECTION_START,
+	SCM_REC_CRITICAL_SECTION_END): New macros.
+	(SCM_CRITICAL_SECTION_START/END): Defined here.
+
+	* eval.c: Insert SOURCE_SECTION_START / SOURCE_SECTION_END around
+	the three calls to scm_m_expand_body.
+
+	* gc.h: #include "libguile/pthread-threads.h";
+	(SCM_FREELIST_CREATE, SCM_FREELIST_LOC): New macros.
+
+	* gc.c (scm_i_freelist, scm_i_freelist2): Defined to be of type
+	scm_t_key;
+
+	* gc.c, gc-freelist.c, inline.h: Use SCM_FREELIST_LOC for freelist
+	access.
+
+	* gc-freelist.c (scm_gc_init_freelist): Create freelist keys.
+
+	* gc-freelist.c, threads.c (really_launch): Use
+	SCM_FREELIST_CREATE.
+
+	* gc-malloc.c (scm_realloc, scm_gc_register_collectable_memory):
+
+	* gc.c (scm_i_expensive_validation_check, scm_gc,
+	scm_gc_for_newcell): Put threads to sleep before doing GC-related
+	heap administration so that those pieces of code are executed
+	single-threaded.  We might consider rewriting these code sections
+	in terms of a "call_gc_code_singly_threaded" construct instead of
+	calling the pair of scm_i_thread_put_to_sleep () and
+	scm_i_thread_wake_up ().  Also, we would want to have as many of
+	these sections eleminated.
+
+	* init.c (scm_init_guile_1): Call scm_threads_prehistory.
+
+	* inline.h: #include "libguile/threads.h"
+
+	* pthread-threads.h: Macros now conform more closely to the
+	pthreads interface.  Some of them now take a second argument.
+
+	* threads.c, threads.h: Many changes.
+
+2002-12-09  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Makefile.am (version.h): Changed $^ --> $< in rule for
+	version.h.
+	
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* version.h.in (SCM_MICRO_VERSION): use @--@ substitution now.

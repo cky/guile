@@ -181,7 +181,7 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
 ## usual @...@, so autoconf doesn't go and substitute the values
 ## directly into the left-hand sides of the sed substitutions.  *sigh*
 version.h: version.h.in
-	sed < $^ > $@.tmp \
+	sed < $< > $@.tmp \
 	  -e s:@-GUILE_MAJOR_VERSION-@:${GUILE_MAJOR_VERSION}: \
 	  -e s:@-GUILE_MINOR_VERSION-@:${GUILE_MINOR_VERSION}: \
 	  -e s:@-GUILE_MICRO_VERSION-@:${GUILE_MICRO_VERSION}:
