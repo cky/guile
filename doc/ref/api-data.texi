@@ -2325,9 +2325,9 @@ important.
 
 In C, a string is just a sequence of bytes, and the character encoding
 describes the relation between these bytes and the actual characters
-that the string contains.  For Scheme strings, character encoding not
-an issue (most of the time), since in Scheme you never get to see the
-bytes, only the characters.
+that make up the string.  For Scheme strings, character encoding is
+not an issue (most of the time), since in Scheme you never get to see
+the bytes, only the characters.
 
 Well, ideally, anyway.  Right now, Guile simply equates Scheme
 characters and bytes, ignoring the possibility of multi-byte encodings
@@ -2336,10 +2336,11 @@ Unicode codepoints as its characters and UTF-8 (or maybe UCS-4) as its
 internal encoding.  When you exclusively use the functions listed in
 this section, you are `future-proof'.
 
-Converting a Scheme string to a C string will allocate fresh memory to
-hold the result.  You must take care that this memory is properly
-freed eventually.  In many cases, this can be achieved by using
-@code{scm_frame_free} inside an appropriate frame, @xref{Frames}.
+Converting a Scheme string to a C string will often allocate fresh
+memory to hold the result.  You must take care that this memory is
+properly freed eventually.  In many cases, this can be achieved by
+using @code{scm_frame_free} inside an appropriate frame,
+@xref{Frames}.
 
 @deftypefn  {C Function} SCM scm_from_locale_string (const char *str)
 @deftypefnx {C Function} SCM scm_from_locale_stringn (const char *str, size_t len)
