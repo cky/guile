@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003 Free Software
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -158,26 +158,32 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
       oldquit = scm_sigaction (sigquit, sig_ign, SCM_UNDEFINED);
       
       pid = fork ();
-      if (pid == -1)
-        SCM_SYSERROR;
-      else if (pid)
+      if (pid == 0)
         {
-          int wait_result;
-          int status;
+          /* child */
+          execvp (SCM_STRING_CHARS (SCM_CAR (args)), execargv);
+          scm_remember_upto_here_1 (args);
+          SCM_SYSERROR;
+          /* not reached.  */
+          return SCM_BOOL_F;
+        }
+      else
+        {
+          /* parent */
+          int wait_result, status, save_errno;
+
+          save_errno = errno;
+          free (execargv);
+          errno = save_errno;
+          if (pid == -1)
+            SCM_SYSERROR;
+
           SCM_SYSCALL (wait_result = waitpid (pid, &status, 0));
           if (wait_result == -1) SCM_SYSERROR;
           scm_sigaction (sigint, SCM_CAR (oldint), SCM_CDR (oldint));
           scm_sigaction (sigquit, SCM_CAR (oldquit), SCM_CDR (oldquit));
           scm_remember_upto_here_2 (oldint, oldquit);
           return SCM_MAKINUM (0L + status);
-        }
-      else
-        {
-          execvp (SCM_STRING_CHARS (SCM_CAR (args)), execargv);
-          scm_remember_upto_here_1 (args);
-          SCM_SYSERROR;
-          /* not reached.  */
-          return SCM_BOOL_F;
         }
     }
   else
