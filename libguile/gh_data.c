@@ -176,7 +176,7 @@ gh_scm2newstr (SCM str, int *lenp)
   char *ret_str;
   int len;
 
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG3,
+  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG3,
 	      "gh_scm2newstr");
 
   /* protect str from GC while we copy off its data */
@@ -187,7 +187,7 @@ gh_scm2newstr (SCM str, int *lenp)
   ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
 				      "gh_scm2newstr");
   /* so we copy tmp_str to ret_str, which is what we will allocate */
-  memcpy (ret_str, SCM_CHARS (str), len);
+  memcpy (ret_str, SCM_ROCHARS (str), len);	/* test ROCHARS here -twp */
   /* now make sure we null-terminate it */
   ret_str[len] = '\0';
 
@@ -213,13 +213,13 @@ void
 gh_get_substr (SCM src, char *dst, int start, int len)
 {
   int src_len, effective_length;
-  SCM_ASSERT (SCM_NIMP (src) && SCM_STRINGP (src), src, SCM_ARG3,
+  SCM_ASSERT (SCM_NIMP (src) && SCM_ROSTRINGP (src), src, SCM_ARG3,
 	      "gh_get_substr");
 
   scm_protect_object (src);
   src_len = SCM_LENGTH (src);
   effective_length = (len < src_len) ? len : src_len;
-  memcpy (dst + start, SCM_CHARS (src), effective_length * sizeof (char));
+  memcpy (dst + start, SCM_ROCHARS (src), effective_length * sizeof (char));
   /* FIXME: must signal an error if len > src_len */
   scm_unprotect_object (src);
 }
