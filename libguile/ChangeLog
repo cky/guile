@@ -1,3 +1,7 @@
+2003-05-10  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_num_eq_p, scm_less_p): Don't pass NaN to mpz_cmp_d.
+
 2003-05-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c, eval.h, read.c, read.h (scm_sym_dot): Moved from eval to
