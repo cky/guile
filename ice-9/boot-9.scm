@@ -2148,6 +2148,12 @@ automatically if an error occurs in the future.\n")
      (set-current-module module)
      module))
 
+(defmacro use-modules modules
+  `(for-each (lambda (module)
+	       (module-use! (current-module)
+			    (resolve-interface module)))
+	     (reverse ',modules)))
+
 (define define-private define)
 
 (defmacro define-public args

@@ -1,3 +1,9 @@
+Mon Jan  6 01:13:53 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+*	* boot-9.scm (use-modules): New macro (from Marius Vollmer).
+	(use-modules <module name> ...) Put the the modules named by
+ 	<module name> ... on the use list of the current module.
+
 Sun Jan  5 15:52:59 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm (error-catching-loop): Remove message saying that
