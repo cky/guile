@@ -87,6 +87,11 @@ The @var{equalp} procedure should return @code{SCM_BOOL_T} when
 smob type @var{tc}.
 @end deftypefn
 
+@deftypefn {C Macro} int SCM_SMOB_PREDICATE (scm_t_bits tag, SCM exp)
+Return true iff @var{exp} is a smob instance of the type indicated by
+@var{tag}.  The expression @var{exp} can be evaluated more than once,
+so it shouldn't contain any side effects.
+@end deftypefn
 
 @deftypefn {C Macro} void SCM_NEWSMOB (SCM value, scm_t_bits tag, void *data)
 @deftypefnx {C Macro} void SCM_NEWSMOB2 (SCM value, scm_t_bits tag, void *data, void *data2)
@@ -100,6 +105,8 @@ The initial values @var{data}, @var{data2}, and @var{data3} are of
 type @code{scm_t_bits}; when you want to use them for @code{SCM}
 values, these values need to be converted to a @code{scm_t_bits} first
 by using @code{SCM_UNPACK}.
+
+The flags of the smob instance start out as zero.
 @end deftypefn
 
 Since it is often the case (e.g., in smob constructors) that you will
@@ -116,22 +123,6 @@ surrounding function to return that @code{SCM} value.  It should be
 the last piece of code in a block.
 @end deftypefn
 
-@deftypefn {C Macro} scm_t_bits SCM_SMOB_DATA (SCM obj)
-@deftypefnx {C Macro} scm_t_bits SCM_SMOB_DATA2 (SCM obj)
-@deftypefnx {C Macro} scm_t_bits SCM_SMOB_DATA3 (SCM obj)
-Return the first (second, third) immediate word of the smob @var{obj}.
-When the word contains a @code{SCM} value, it must be converted with
-@code{SCM_PACK}.
-@end deftypefn
-
-@deftypefn {C Macro} scm_t_bits SCM_SET_SMOB_DATA (SCM obj, scm_t_bits val)
-@deftypefnx {C Macro} scm_t_bits SCM_SET_SMOB_DATA2 (SCM obj, scm_t_bits val)
-@deftypefnx {C Macro} scm_t_bits SCM_SET_SMOB_DATA3 (SCM obj, scm_t_bits val)
-Set the first (second, third) immediate word of the smob @var{obj} to
-@var{val}.  When the word should be set to a @code{SCM} value, that
-value must be converted with @code{SCM_UNPACK} first.
-@end deftypefn
-
 @deftypefn {C Macro} scm_t_bits SCM_SMOB_FLAGS (SCM obj)
 Return the 16 extra bits of the smob @var{obj}.  No meaning is
 predefined for these bits, you can use them freely.
@@ -141,6 +132,53 @@ predefined for these bits, you can use them freely.
 Set the 16 extra bits of the smob @var{obj} to @var{flags}.  No
 meaning is predefined for these bits, you can use them freely.
 @end deftypefn
+
+@deftypefn {C Macro} scm_t_bits SCM_SMOB_DATA (SCM obj)
+@deftypefnx {C Macro} scm_t_bits SCM_SMOB_DATA_2 (SCM obj)
+@deftypefnx {C Macro} scm_t_bits SCM_SMOB_DATA_3 (SCM obj)
+Return the first (second, third) immediate word of the smob @var{obj}
+as a @code{scm_t_bits} value.  When the word contains a @code{SCM}
+value, use @code{SCM_SMOB_OBJECT} (etc.) instead.
+@end deftypefn
+
+@deftypefn {C Macro} void SCM_SET_SMOB_DATA (SCM obj, scm_t_bits val)
+@deftypefnx {C Macro} void SCM_SET_SMOB_DATA_2 (SCM obj, scm_t_bits val)
+@deftypefnx {C Macro} void SCM_SET_SMOB_DATA_3 (SCM obj, scm_t_bits val)
+Set the first (second, third) immediate word of the smob @var{obj} to
+@var{val}.  When the word should be set to a @code{SCM} value, use
+@code{SCM_SMOB_SET_OBJECT} (etc.) instead.
+@end deftypefn
+
+@deftypefn {C Macro} SCM SCM_SMOB_OBJECT (SCM obj)
+@deftypefnx {C Macro} SCM SCM_SMOB_OBJECT_2 (SCM obj)
+@deftypefnx {C Macro} SCM SCM_SMOB_OBJECT_3 (SCM obj)
+Return the first (second, third) immediate word of the smob @var{obj}
+as a @code{SCM} value.  When the word contains a @code{scm_t_bits}
+value, use @code{SCM_SMOB_DATA} (etc.) instead.
+@end deftypefn
+
+@deftypefn {C Macro} void SCM_SET_SMOB_OBJECT (SCM obj, SCM val)
+@deftypefnx {C Macro} void SCM_SET_SMOB_OBJECT_2 (SCM obj, SCM val)
+@deftypefnx {C Macro} void SCM_SET_SMOB_OBJECT_3 (SCM obj, SCM val)
+Set the first (second, third) immediate word of the smob @var{obj} to
+@var{val}.  When the word should be set to a @code{scm_t_bits} value, use
+@code{SCM_SMOB_SET_DATA} (etc.) instead.
+@end deftypefn
+
+@deftypefn {C Macro} SCM *SCM_SMOB_OBJECT_LOC (SCM obj)
+@deftypefnx {C Macro} SCM *SCM_SMOB_OBJECT_2_LOC (SCM obj)
+@deftypefnx {C Macro} SCM *SCM_SMOB_OBJECT_3_LOC (SCM obj)
+Return a pointer to the first (second, third) immediate word of the
+smob @var{obj}.  Note that this is a pointer to @code{SCM}.  If you
+need to work with @code{scm_t_bits} values, use @code{SCM_PACK} and
+@code{SCM_UNPACK}, as appropriate.
+@end deftypefn
+
+@deftypefun SCM scm_markcdr (SCM @var{x})
+Mark the references in the smob @var{x}, assuming that @var{x}'s first
+data word contains an ordinary Scheme object, and @var{x} refers to no
+other objects.  This function simply returns @var{x}'s first data word.
+@end deftypefun
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
