@@ -34,7 +34,8 @@ INCLUDES = -I.. -I$(srcdir)/..
 libqthreads_la_SOURCES = qt.c copyright.h
 libqthreads_la_LIBADD = qtmds.lo qtmdc.lo
 libqthreads_la_DEPENDENCIES = qtmds.lo qtmdc.lo
-libqthreads_la_LDFLAGS = -rpath $(libdir) -version-info @LIBGUILEQTHREADS_INTERFACE_CURRENT@:@LIBGUILEQTHREADS_INTERFACE_REVISION@:@LIBGUILEQTHREADS_INTERFACE_AGE@ -export-dynamic -no-undefined
+libqthreads_la_LDFLAGS = -rpath $(libdir) -export-dynamic -no-undefined \
+  -version-info @LIBQTHREADS_INTERFACE@ 
 
 # Seems to be obsolete - autogen.sh is giving:
 # invalid unused variable name: `OMIT_DEPENDENCIES'
