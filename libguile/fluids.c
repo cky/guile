@@ -233,6 +233,23 @@ scm_c_with_fluid (SCM fluid, SCM value, SCM (*cproc) (), void *cdata)
 }
 #undef FUNC_NAME
 
+static void
+swap_fluid (SCM data)
+{
+  SCM f = SCM_CAR (data);
+  SCM t = scm_fluid_ref (f);
+  scm_fluid_set_x (f, SCM_CDR (data));
+  SCM_SETCDR (data, t);
+}
+
+void
+scm_frame_fluid (SCM fluid, SCM value)
+{
+  SCM data = scm_cons (fluid, value);
+  scm_frame_rewind_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
+}
+
 void
 scm_init_fluids ()
 {
