@@ -2471,6 +2471,7 @@ scm_makdbl (x, y)
   else
     {
       SCM_NEWSMOB(z,scm_tc_dblc,scm_must_malloc (2L * sizeof (double), "comkplex"));
+      SCM_IMAG (z) = y;
     }
   SCM_REAL (z) = x;
   SCM_ALLOW_INTS;
