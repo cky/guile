@@ -98,6 +98,19 @@ SCM_API unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
 					       const char *s_caller);
 #endif
 
+SCM_API SCM scm_make_real (double x);
+SCM_API double scm_num2dbl (SCM a, const char * why);
+SCM_API SCM scm_float2num (float n);
+SCM_API SCM scm_double2num (double n);
+
+/* The next two are implemented in numbers.c since they use features
+   only available there.
+*/
+SCM_API float scm_num2float (SCM num, unsigned long int pos,
+			     const char *s_caller);
+SCM_API double scm_num2double (SCM num, unsigned long int pos,
+			       const char *s_caller);
+
 void scm_i_init_discouraged (void);
 
 #endif /* SCM_ENABLE_DISCOURAGED == 1 */

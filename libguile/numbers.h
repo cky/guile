@@ -213,7 +213,6 @@ SCM_API int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
 SCM_API int scm_bigprint (SCM exp, SCM port, scm_print_state *pstate);
 SCM_API SCM scm_i_mem2number (const char *mem, size_t len, unsigned int radix);
 SCM_API SCM scm_string_to_number (SCM str, SCM radix);
-SCM_API SCM scm_make_real (double x);
 SCM_API SCM scm_make_complex (double x, double y);
 SCM_API SCM scm_bigequal (SCM x, SCM y);
 SCM_API SCM scm_real_equalp (SCM x, SCM y);
@@ -235,7 +234,6 @@ SCM_API SCM scm_min (SCM x, SCM y);
 SCM_API SCM scm_sum (SCM x, SCM y);
 SCM_API SCM scm_difference (SCM x, SCM y);
 SCM_API SCM scm_product (SCM x, SCM y);
-SCM_API double scm_num2dbl (SCM a, const char * why);
 SCM_API SCM scm_divide (SCM x, SCM y);
 SCM_API SCM scm_floor (SCM x);
 SCM_API SCM scm_ceiling (SCM x);
@@ -258,14 +256,6 @@ SCM_API SCM scm_exact_to_inexact (SCM z);
 SCM_API SCM scm_inexact_to_exact (SCM z);
 SCM_API SCM scm_trunc (SCM x);
 
-SCM_API SCM scm_float2num (float n);
-SCM_API SCM scm_double2num (double n);
-SCM_API float scm_num2float (SCM num, unsigned long int pos,
-			     const char *s_caller);
-SCM_API double scm_num2double (SCM num, unsigned long int pos,
-			       const char *s_caller);
-
-
 /* bignum internal functions */
 SCM_API SCM scm_i_mkbig (void);
 SCM_API SCM scm_i_normbig (SCM x);
@@ -273,20 +263,8 @@ SCM_API int scm_i_bigcmp (SCM a, SCM b);
 SCM_API SCM scm_i_dbl2big (double d);
 SCM_API SCM scm_i_dbl2num (double d);
 SCM_API double scm_i_big2dbl (SCM b);
-SCM_API SCM scm_i_short2big (short n);
-SCM_API SCM scm_i_ushort2big (unsigned short n);
-SCM_API SCM scm_i_int2big (int n);
-SCM_API SCM scm_i_uint2big (unsigned int n);
 SCM_API SCM scm_i_long2big (long n);
 SCM_API SCM scm_i_ulong2big (unsigned long n);
-SCM_API SCM scm_i_size2big (size_t n);
-SCM_API SCM scm_i_ptrdiff2big (scm_t_ptrdiff n);
-
-#if SCM_SIZEOF_LONG_LONG != 0
-SCM_API SCM scm_i_long_long2big (long long n);
-SCM_API SCM scm_i_ulong_long2big (unsigned long long n);
-#endif
-
 
 /* ratio functions */
 SCM_API SCM scm_make_ratio (SCM num, SCM den);
@@ -299,11 +277,6 @@ SCM_API SCM scm_rational_p (SCM z);
 SCM_API double scm_i_fraction2double (SCM z);
 SCM_API SCM scm_i_fraction_equalp (SCM x, SCM y);
 SCM_API int scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate);
-
-
-#ifdef GUILE_DEBUG
-SCM_API SCM scm_sys_check_number_conversions (void);
-#endif
 
 /* conversion functions for integers */
 
@@ -445,7 +418,7 @@ SCM_API SCM          scm_from_uint64 (scm_t_uint64 x);
 #define scm_to_uintmax   scm_to_uint64
 #define scm_from_uintmax scm_from_uint64
 #else
-#error sizeof(scm_t_intmax_t) is not 4 or 8.
+#error sizeof(scm_t_intmax) is not 4 or 8.
 #endif
 #endif
 
@@ -480,6 +453,7 @@ SCM_API SCM          scm_from_uint64 (scm_t_uint64 x);
 /* conversion functions for reals */
 
 SCM_API int scm_is_real (SCM val);
+SCM_API int scm_is_rational (SCM val);
 SCM_API double scm_to_double (SCM val);
 SCM_API SCM scm_from_double (double val);
 

@@ -52,6 +52,29 @@ DEFTO   (long long, scm_num2long_long, scm_to_long_long);
 DEFTO   (unsigned long long, scm_num2ulong_long, scm_to_ulong_long);
 #endif
 
+SCM
+scm_make_real (double x)
+{
+  return scm_from_double (x);
+}
+
+double
+scm_num2dbl (SCM a, const char *why)
+{
+  return scm_to_double (a);
+}
+
+SCM
+scm_float2num (float n)
+{
+  return scm_from_double ((double) n);
+}
+
+SCM
+scm_double2num (double n)
+{
+  return scm_from_double (n);
+}
 
 void
 scm_i_init_discouraged (void)
