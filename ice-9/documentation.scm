@@ -25,6 +25,12 @@
 ;; documentation-files  -- a search-list of files using the Guile
 ;;                         Documentation Format Version 2.
 ;;
+;; search-documentation-files -- a procedure that takes NAME (a symbol)
+;;                               and searches `documentation-files' for
+;;                               associated documentation.  optional
+;;                               arg FILES is a list of filenames to use
+;;                               instead of `documentation-files'.
+;;
 ;; object-documentation -- a procedure that returns its arg's docstring
 ;;
 ;; * Guile Documentation Format
@@ -35,14 +41,17 @@
 ;; HEADER
 ;; ^LPROC1
 ;; DOCUMENTATION1
+;;
 ;; ^LPROC2
 ;; DOCUMENTATION2
-;; ...
+;;
+;; ^L...
 ;;
 ;; The HEADER is completely ignored.  The "^L" are formfeeds.  PROC1, PROC2
 ;; and so on are symbols that name the element documented.  DOCUMENTATION1,
 ;; DOCUMENTATION2 and so on are the related documentation, w/o any further
-;; formatting.
+;; formatting.  Note that there are two newlines before the next formfeed;
+;; these are discarded when the documentation is read in.
 ;;
 ;; (Version 1, corresponding to guile-1.4 and prior, is documented as being
 ;; not documented anywhere except by this embarrassingly circular comment.)
@@ -72,7 +81,9 @@
 
 (define-module (ice-9 documentation)
   :use-module (ice-9 rdelim)
-  :export (file-commentary documentation-files object-documentation)
+  :export (file-commentary
+           documentation-files search-documentation-files
+           object-documentation)
   :autoload (ice-9 regex) (match:suffix)
   :no-backtrace)
 
@@ -137,11 +148,6 @@
 	     %site-dir
 	     (lambda () "."))))
 
-(define (find-documentation name)
-  (or-map (lambda (file)
-	    (find-documentation-in-file name file))
-          documentation-files))
-
 (define entry-delimiter "\f")
 
 (define (find-documentation-in-file name file)
@@ -163,6 +169,12 @@
 		    (substring entry (+ len 2) (- (string-length entry) 2)))
 		   (else (loop (read-delimited entry-delimiter port)))))))))
 
+(define (search-documentation-files name . files)
+  (or-map (lambda (file)
+	    (find-documentation-in-file name file))
+          (cond ((null? files) documentation-files)
+                (else files))))
+
 ;; helper until the procedure documentation property is cleaned up
 (define (proc-doc proc)
   (or (procedure-documentation proc)
@@ -179,11 +191,11 @@ OBJECT can be a procedure, macro or any object that has its
 	     (and transformer
 		  (proc-doc transformer))))
       (object-property object 'documentation)
-      ;; find-documentation currently only works for builtin primitives
       (and (procedure? object)
 	   (not (closure? object))
 	   (procedure-name object)
-	   (let ((docstring (find-documentation (procedure-name object))))
+	   (let ((docstring (search-documentation-files
+                             (procedure-name object))))
 	     (if docstring
 		 (set-procedure-property! object 'documentation docstring))
 	     docstring))))
