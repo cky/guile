@@ -1,3 +1,10 @@
+1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Fixes for EMX from Mikael Ståldal.
+
+	* configure.in: Check for <io.h>.
+	* configure: Regenerated.
+
 1999-07-18  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* qthreads.m4 (QTHREADS_CONFIGURE): 'alpha' in a configuration

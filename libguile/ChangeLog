@@ -1,3 +1,38 @@
+1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Fixes for EMX from Mikael Ståldal.
+
+	* filesys.c: #include <io.h>, if we have it.
+	* scmconfig.h.in: Regenerated.
+
+	* stime.c (ftime): Delete declaration for this function --- let
+	the system supply it.
+
+	Cleanups from John Bley.
+
+	* gdbint.c: Don't include <stdio.h> and "_scm.h" twice.
+	* gsubr.c: Don't include "gsubr.h" twice.
+
+	Cleanups for compilation on Irix 6, from David Kaelbling.
+	
+	* regex-posix.c (scm_regexp_error_msg): Change `rx' argument to
+	regex_t pointer.  This is what the callers have, mostly.
+	(scm_regexp_exec): Don't forget to pass the `rx' argument to
+	scm_regexp_error_msg.
+
+	* scmsigs.c (scm_sigaction): Cast SIG_DFL and SIG_IGN to SCM, not
+	int.  That way, if we get a warning on this line, it's more likely
+	that we're really missing bits we care about.
+
+	* snarf.h (SCM_CONST_LONG): Remove trailing semicolon from
+	definition.
+
+	* tags.h (SCM_IMP, SCM_NCONSP, SCM_NCELLP, SCM_ITAG3, SCM_TYP3,
+	SCM_TYP7, SCM_TYP7S, SCM_TYP16, SCM_TYP16S, SCM_GCTYP16,
+	SCM_GCMARKP, SCM_GC8MARKP): Don't cast to int.  Either SCM or no
+	cast at all is more appropriate in every case.  At the moment, we
+	assume everywhere that SCM is an integral type anyway.
+
 1999-07-14  Gary Houston  <ghouston@easynet.co.uk>
 
 	* unif.c (scm_uniform_array_read_x), ports.c (scm_getc): increment
