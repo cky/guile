@@ -22,7 +22,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 ## Prevent automake from adding extra -I options
-DEFS = @DEFS@
+DEFS = @DEFS@ @EXTRA_DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
@@ -33,6 +33,8 @@ GUILE_SNARF = ../libguile/guile-snarf
 lib_LTLIBRARIES = libguilereadline.la
 
 libguilereadline_la_SOURCES = readline.c
+libguilereadline_la_LDFLAGS = -export-dynamic -no-undefined
+libguilereadline_la_LIBADD = ../libguile/libguile.la
 
 BUILT_SOURCES = readline.x
 
