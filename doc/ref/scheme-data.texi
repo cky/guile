@@ -259,6 +259,10 @@ representation where the required number does not fit in the native
 form.  Conversion between these two representations is automatic and
 completely invisible to the Scheme level programmer.
 
+The infinities @code{+inf.0} and @code{-inf.0} are considered to be
+inexact integers.  They are explained in detail in the next section,
+together with reals and rationals.
+
 @c REFFIXME Maybe point here to discussion of handling immediates/bignums
 @c on the C level, where the conversion is not so automatic - NJ
 
@@ -274,6 +278,10 @@ Return @code{#t} if @var{x} is an integer number, else @code{#f}.
 (integer? -3.4)
 @result{}
 #f
+
+(integer? +inf.0)
+@result{}
+#t
 @end lisp
 @end deffn
 
@@ -326,6 +334,31 @@ rational numbers and real irrational numbers such as square roots,
 and in such a way that the new kinds of number integrate seamlessly
 with those that are already implemented.
 
+Dividing by an exact zero leads to a error message, as one might
+expect.  However, dividing by an inexact zero does not produce an
+error.  Instead, the result of the division is either plus or minus
+infinity, depending on the sign of the divided number.
+
+The infinities are written @samp{+inf.0} and @samp{-inf.0},
+respectibly.  This syntax is also recognized by @code{read} as an
+extension to the usual Scheme syntax.
+
+Dividing zero by zero yields something that is not a number at all:
+@samp{+nan.0}.  This is the special 'not a number' value.
+
+On platforms that follow IEEE 754 for their floating point arithmetic,
+the @samp{+inf.0}, @samp{-inf.0}, and @samp{+nan.0} values are
+implemented using the corresponding IEEE 754 values.  They behave in
+arithmetic operations like IEEE 754 describes it, i.e., @code{(=
++nan.0 +nan.0) @result{#f}}.
+
+The infinities are inexact integers and are considered to be both even
+and odd.  While @samp{+nan.0} is not @code{=} to itself, it is
+@code{eqv?} to itself.
+
+To test for the special values, use the functions @code{inf?} and
+@code{nan?}.
+
 @deffn {Scheme Procedure} real? obj
 @deffnx {C Function} scm_real_p (obj)
 Return @code{#t} if @var{obj} is a real number, else @code{#f}.
@@ -344,6 +377,14 @@ will also satisfy this predicate, because of their limited
 precision.
 @end deffn
 
+@deffn {Scheme Procedure} inf? x
+Return @code{#t} if @var{x} is either @samp{+inf.0} or @samp{-inf.0},
+code @var{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} nan? x
+Return @code{#t} if @var{x} is @samp{+nan.0}, code @var{#f} otherwise.
+@end deffn
 
 @node Complex Numbers
 @subsection Complex Numbers
@@ -491,6 +532,12 @@ all real numbers in Guile are also rational, since any number R with a
 limited number of decimal places, say N, can be made into an integer by
 multiplying by 10^N.
 
+Guile also understands the syntax @samp{+inf.0} and @samp{-inf.0} for
+plus and minus infinity, respectively.  The value must be written
+exactly as shown, that is, the always must have a sign and exactly one
+zero digit after the decimal point.  It also understands @samp{+nan.0}
+and @samp{-nan.0} for the special 'not-a-number' value.  The sign is
+ignored for 'not-a-number' and the value is always printed as @samp{+nan.0}.
 
 @node Integer Operations
 @subsection Operations on Integer Values
