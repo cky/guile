@@ -66,6 +66,11 @@ build_subdirs="${existingdirs}"
 ### Decide which directories to build; remove the ones we don't want
 ### from build_subdirs.
 
+### On some systems, the Tcl library contains references to
+### functions in the dynamic linker library, -ldl, so we may need
+### to include that.
+AC_CHECK_LIB(dl, dlopen)
+
 ### Use gtcltk-lib only if we seem to have Tcl installed on the
 ### system.  We really should check for Tk as well, but that involves
 ### finding all the X libraries that we need to do a complete link.
