@@ -28,3 +28,10 @@
 	 (false-if-exception
 	  (begin (eval '(use-syntax (ice-9 syncase)) (current-module))
 		 #t)))
+
+(define-syntax plus
+  (syntax-rules ()
+    ((plus x ...) (+ x ...))))
+
+(pass-if "basic syncase macro"
+	 (= (plus 1 2 3) (+ 1 2 3)))
