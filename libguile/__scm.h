@@ -279,6 +279,10 @@ typedef unsigned long long ulong_long;
  * - ... add more
  */
 
+#ifndef HAVE_PTRDIFF_T
+typedef long ptrdiff_t;
+#endif
+
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
 #endif
