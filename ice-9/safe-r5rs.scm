@@ -20,7 +20,9 @@
 
 (define-module (ice-9 safe-r5rs))
 
-(module-use! %module-public-interface (resolve-interface '(ice-9 null)))
+(define null-interface (resolve-interface '(ice-9 null)))
+
+(module-use! %module-public-interface null-interface)
 
 (export eqv? eq? equal?
 	number?	complex? real? rational? integer?
@@ -129,13 +131,14 @@
 	;;transcript-off
 	)
 
-(define null-interface (make-module 31))
-(set-module-kind! null-interface 'interface)
-
 (define (null-environment n)
   (if (not (= n 5))
       (scm-error 'misc-error 'null-environment
 		 "~A is not a valid version"
 		 (list n)
 		 '()))
-  null-interface)
+  ;; Note that we need to create a *fresh* interface
+  (let ((interface (make-module 31)))
+    (set-module-kind! interface 'interface)
+    (module-use! interface null-interface)
+    interface))
