@@ -52,11 +52,16 @@ Automake 1.4-p4 --- a system for automatically generating Makefiles that
 
 	Before using automake, you may need to copy `threads.m4' and
 	`guile.m4' from the top directory of the Guile core disty to
-	`/usr/local/share/aclocal.
+	`/usr/local/share/aclocal'.
 
 libtool 1.4 --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
 	"ftp://ftp.gnu.org/pub/gnu/libtool"
+
+	To avoid reported tricky errors during the Guile build: After
+	unpacking the libtool distribution, use autoconf (2.50) to
+	regenerate its ./configure script.  Then build and install as
+	usual.
 
 flex 2.5.4 (or newer) --- a scanner generator.  earlier versions will
         most probably work too.
