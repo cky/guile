@@ -1,3 +1,15 @@
+2002-10-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* async.c (s_scm_system_async_mark_for_thread): Only call
+	scm_i_thread_root when USE_THREADS is defined.  Use scm_root
+	otherwise.
+
+	* scmsigs.c (take_signal): Only call scm_i_thread_root when
+	USE_THREADS is defined.  Use scm_root otherwise.
+	(scm_sigaction_for_thread): Ignore THREAD argument when
+	USE_THREADS is not defined.  Also, move THREAD argument defaulting
+	out of HAVE_SIGACTION section, which was a bug.
+
 2002-10-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* scmsigs.c (scm_sigaction_for_thread): Store original handler in

@@ -1,3 +1,13 @@
+2002-10-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* upstream/Makefile.am (ltdl.h.diff, ltdl.c.diff): Look for
+	raw-ltdl.h and raw-ltdl.c in "$(srcdir)/..".  This is needed for
+	VPATH builds.
+
+	* Makefile.am (INCLUDES): Also look for includes in "." and
+	"$(srcdir)".  This is needed for VPATH builds.
+	(EXTRA_DIST): Also distribute EXTRA_HEADERS.
+
 2002-10-09  Rob Browning  <rlb@defaultvalue.org>
 
 	* upstream/Makefile.am (ltdl.h.diff): remove
