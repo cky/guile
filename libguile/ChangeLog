@@ -1,3 +1,8 @@
+2000-08-21  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* gc.h (SCM_GC_CARD_N_CELLS): change to be a nice non-confusing
+	constant.
+
 2000-08-19  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.c (scm_gc_sweep): added a `continue' statement that have
