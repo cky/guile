@@ -1,3 +1,10 @@
+2001-04-24  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* guile-srfi.texi: Removed, because merged with the GRM.
+
+	* guile-srfi.texi: The docs are now up to date with the
+	implementation and have new introductory material.
+
 2001-04-23  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	Integrated the guile-srfi package into the Guile distribution.

@@ -57,7 +57,7 @@
  string-ci= string-ci<>
  string-ci< string-ci>
  string-ci<= string-ci>=
- string-hash string-hash-ci		; FIXME::martin: rewrite in C?
+ string-hash string-hash-ci
 
 ;;; Prefixes/Suffixes
  string-prefix-length

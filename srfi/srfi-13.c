@@ -56,8 +56,8 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
 	    "Check if the predicate @var{pred} is true for any character in\n"
 	    "the string @var{s}, proceeding from left (index @var{start}) to\n"
 	    "right (index @var{end}).  If @code{string-any} returns true,\n"
-	    "the returned true value is the one produced by the application\n"
-	    "of @var{pred}.")
+	    "the returned true value is the one produced by the first\n"
+	    "successful application of @var{pred}.")
 #define FUNC_NAME s_scm_string_any
 {
   char * cstr;
