@@ -1,5 +1,9 @@
 2005-01-24  Kevin Ryde  <user42@zip.com.au>
 
+	* standalone/test-unwind.c (check_cont): Cast rewindable to long, to
+	avoid warning from gcc 3.4 on 64-bit systems about casting int
+	(32-bits) to pointer (64-bits).
+
 	* tests/srfi-1.test (lset=, member): New tests.
 
 2005-01-12  Kevin Ryde  <user42@zip.com.au>
