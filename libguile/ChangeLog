@@ -1,5 +1,7 @@
 2002-08-05  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
+	* tags.h: remove GC bits documentation from the tags table. 
+
 	* read.c (INPUT_ERROR): Prepare for file:line:column error
 	messages for errors in scm_lreadr() and friends.
 

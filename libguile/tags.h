@@ -229,12 +229,10 @@ typedef signed long scm_t_signed_bits;
  *
  * Here is a summary of tags in the CAR of a non-immediate:
  *
- *   HEAP CELL:	G=gc_mark; 1 during mark, 0 other times.
- *
- * cons	   ..........SCM car..............0  ...........SCM cdr.............G
- * struct  ..........void * type........001  ...........void * data.........G
- * closure ..........SCM code...........011  ...........SCM env.............G
- * tc7	   ......24.bits of data...Gxxxx1S1  ..........void *data............
+ * cons	   ..........SCM car..............0  ...........SCM cdr.............0
+ * struct  ..........void * type........001  ...........void * data.........0
+ * closure ..........SCM code...........011  ...........SCM env.............0
+ * tc7	   ......24.bits of data...0xxxx1S1  ..........void *data............
  *
  *
  *

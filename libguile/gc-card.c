@@ -91,6 +91,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, int span)
     the bitvec in turn, but it wasn't any faster, but quite bit
     hairier.
    */
+
   for (p += offset; p < end; p += span, offset += span)
     {
       SCM scmptr = PTR2SCM(p);

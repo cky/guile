@@ -192,7 +192,7 @@ scm_gc_mark (SCM ptr)
 
 Mark the dependencies of an object.
 
-TODO:
+Prefetching:
 
 Should prefetch objects before marking, i.e. if marking a cell, we
 should prefetch the car, and then mark the cdr. This will improve CPU
@@ -204,7 +204,13 @@ garbage collector cache misses.
 
 Prefetch is supported on GCC >= 3.1 
 
- */
+(Some time later.)
+
+Tried this with GCC 3.1.1 -- the time differences are barely measurable.
+Perhaps this would work better with an explicit markstack?
+
+
+*/
 void
 scm_gc_mark_dependencies (SCM p)
 #define FUNC_NAME "scm_gc_mark_dependencies"
@@ -225,6 +231,8 @@ scm_gc_mark_dependencies (SCM p)
 	  ptr = SCM_CAR (ptr);
 	  goto gc_mark_nimp;
 	}
+
+
       scm_gc_mark (SCM_CAR (ptr));
       ptr = SCM_CDR (ptr);
       goto gc_mark_nimp;
@@ -232,6 +240,7 @@ scm_gc_mark_dependencies (SCM p)
       ptr = SCM_CDR (ptr);
       goto gc_mark_loop;
     case scm_tc7_pws:
+
       scm_gc_mark (SCM_SETTER (ptr));
       ptr = SCM_PROCEDURE (ptr);
       goto gc_mark_loop;
@@ -285,8 +294,10 @@ scm_gc_mark_dependencies (SCM p)
       if (i == 0)
 	break;
       while (--i > 0)
-	if (SCM_NIMP (SCM_VELTS (ptr)[i]))
-	  scm_gc_mark (SCM_VELTS (ptr)[i]);
+	{
+	  if (SCM_NIMP (SCM_VELTS (ptr)[i]))
+	    scm_gc_mark (SCM_VELTS (ptr)[i]);
+	}
       ptr = SCM_VELTS (ptr)[0];
       goto gc_mark_loop;
 #ifdef CCLO
