@@ -2804,7 +2804,7 @@ scm_eval (obj)
      SCM obj;
 {
   return
-    scm_eval_3(obj, 1, scm_top_level_env(SCM_CDR(scm_top_level_lookup_thunk_var)));
+    scm_eval_3(obj, 1, scm_top_level_env(SCM_CDR(scm_top_level_lookup_closure_var)));
 }
 
 /* SCM_PROC(s_eval_x, "eval!", 1, 0, 0, scm_eval_x); */
@@ -2816,7 +2816,7 @@ scm_eval_x (obj)
   return
     scm_eval_3(obj,
 	       0,
-	       scm_top_level_env (SCM_CDR (scm_top_level_lookup_thunk_var)));
+	       scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var)));
 }
 
 SCM_PROC (s_macro_eval_x, "macro-eval!", 2, 0, 0, scm_macro_eval_x);
@@ -2902,8 +2902,8 @@ scm_init_eval ()
   scm_make_synt (s_delay, scm_makacro, scm_m_delay);
   /* end of acros */
 
-  scm_top_level_lookup_thunk_var =
-    scm_sysintern("*top-level-lookup-thunk*", SCM_BOOL_F);
+  scm_top_level_lookup_closure_var =
+    scm_sysintern("*top-level-lookup-closure*", SCM_BOOL_F);
 
   scm_i_and = scm_make_synt ("and", scm_makmmacro, scm_m_and);
   scm_i_begin = scm_make_synt ("begin", scm_makmmacro, scm_m_begin);

@@ -109,7 +109,7 @@ typedef struct scm_root_state
   SCM def_errp;
 
   SCM system_transformer;
-  SCM top_level_lookup_thunk_var;
+  SCM top_level_lookup_closure_var;
 
   SCM handle;			/* The root object for this root state */
   SCM parent;			/* The parent root object */
@@ -134,7 +134,8 @@ typedef struct scm_root_state
 #define scm_def_inp			(scm_root->def_inp)
 #define scm_def_outp			(scm_root->def_outp)
 #define scm_def_errp			(scm_root->def_errp)
-#define scm_top_level_lookup_thunk_var	(scm_root->top_level_lookup_thunk_var)
+#define scm_top_level_lookup_closure_var \
+                                       (scm_root->top_level_lookup_closure_var)
 #define scm_system_transformer		(scm_root->system_transformer)
 
 #ifdef USE_THREADS

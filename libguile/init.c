@@ -134,7 +134,7 @@ scm_start_stack (base)
 
   scm_exitval = SCM_BOOL_F;	/* vestigial */
 
-  scm_top_level_lookup_thunk_var = SCM_BOOL_F;
+  scm_top_level_lookup_closure_var = SCM_BOOL_F;
   scm_system_transformer = SCM_BOOL_F;
 
   /* Create an object to hold the root continuation.

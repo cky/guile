@@ -255,7 +255,7 @@ gdb_eval (exp)
     }
   SCM_BEGIN_FOREIGN_BLOCK;
   {
-    SCM env = scm_top_level_env (SCM_CDR (scm_top_level_lookup_thunk_var));
+    SCM env = scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var));
     gdb_result = scm_permanent_object (scm_ceval (exp, env));
   }
   SCM_END_FOREIGN_BLOCK;
@@ -293,7 +293,7 @@ gdb_binding (name, value)
   SCM_BEGIN_FOREIGN_BLOCK;
   {
     SCM vcell = scm_sym2vcell (name,
-			       SCM_CDR (scm_top_level_lookup_thunk_var),
+			       SCM_CDR (scm_top_level_lookup_closure_var),
 			       SCM_BOOL_T);
     SCM_SETCDR (vcell, value);
   }
