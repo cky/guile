@@ -360,10 +360,7 @@ narrow_stack (SCM stack,int inner,SCM inner_key,int outer,SCM outer_key)
 	  SCM m = s->frames[i].source;
 	  if (   SCM_MEMOIZEDP (m)
 	      && SCM_NIMP (SCM_MEMOIZED_ENV (m))
-#if SCM_DEBUG_DEPRECATED == 0
-	      && SCM_FALSEP (scm_system_module_env_p (SCM_MEMOIZED_ENV (m)))
-#endif
-		 )
+	      && SCM_FALSEP (scm_system_module_env_p (SCM_MEMOIZED_ENV (m))))
 	    {
 	      /* Back up in order to include any non-source frames */
 	      while (i > 0
