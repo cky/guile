@@ -1,3 +1,10 @@
+2005-01-02  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-39.test: Use define-module to keep bindings from
+	subsequent tests, use test-suite lib for stand-alone checking.
+
+	* Makefile.am (SCM_TESTS): Add srfi-39.test.
+
 2004-12-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/continuations.test (continuations): Moved continuation /
