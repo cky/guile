@@ -57,5 +57,5 @@
 (define (rassv key alist)
   (generic-rassoc key alist eqv?))
 
-(define (rassv key alist)
+(define (rassq key alist)
   (generic-rassoc key alist eq?))
